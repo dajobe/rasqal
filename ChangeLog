@@ -1,5 +1,8 @@
 2005-01-03  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
+	* roqet.c (main): Declare query_string as void* to prevent type
+	punning warning.
+
 	* sparql_lexer.l, roqet.c, rdql_lexer.l, rasqal_query.c: casts
 	for C++
 
