@@ -190,6 +190,7 @@ die "Usage; $program TEST\n" unless @ARGV<=1;
 
 my $unique_test=$ARGV[0];
 
+my(@failed);
 my(@entries);
 if(!$unique_test) {
   opendir(DIR, $rdql_testsuite_dir) or die "Cannot opendir $rdql_testsuite_dir - $!\n";
@@ -199,16 +200,21 @@ if(!$unique_test) {
   @entries="test-$unique_test";
 }
 
-my $rc=0;
+my $result=0;
 for my $entry (@entries) {
   my $entry_file=$rdql_testsuite_dir.$entry;
   next if -d $entry_file;
   next unless $entry =~ /^test-(.*)$/;
 
   my $test=$1;
-  $rc += run_test($rdql_testsuite_dir, $1);
+  my $rc = run_test($rdql_testsuite_dir, $1);
+  push(@failed, $test) if $rc;
+  $result++ if $rc;
 }
 
-unlink "roqet.out", "result.out", "diff.out";
+unlink "roqet.out", "result.out", "diff.out"
+  unless $unique_test;
 
-exit $rc;
+warn "$0: FAILED tests: @failed\n"
+  if @failed;
+exit $result;
