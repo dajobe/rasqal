@@ -108,7 +108,7 @@ static int brql_query_error(rasqal_query* rq, const char *message);
 /*
  * shift/reduce conflicts
  */
-%expect 3
+%expect 2
 
 
 /* word symbols */
@@ -151,7 +151,6 @@ static int brql_query_error(rasqal_query* rq, const char *message);
 
 
 %type <seq> SelectClause SourceClause PrefixClause
-%type <seq> CommaAndConstraintClause
 %type <seq> VarList TriplePatternList PrefixDeclList URIList
 %type <seq> ConstructClause
 
@@ -263,11 +262,14 @@ TriplePatternList : TriplePatternList TriplePattern
   /* FIXME - should record optional triples */
   raptor_sequence_push($$, $3);
 }
-| TriplePatternList AND CommaAndConstraintClause
+| TriplePatternList AND Expression
 {
+  raptor_sequence* cons=raptor_new_sequence(NULL, (raptor_sequence_print_handler*)rasqal_expression_print);
+  raptor_sequence_push($$, $3);
+  
   $$=$1;
   /* FIXME - should append $3 to constraints, an already inited sequence */
-  ((rasqal_query*)rq)->constraints=$3;
+  ((rasqal_query*)rq)->constraints=cons;
 }
 | /* empty */
 {
@@ -285,18 +287,6 @@ TriplePattern : LPAREN VarOrURI VarOrURI VarOrLiteral RPAREN
   $$=rasqal_new_triple($2, $3, $4);
 }
 ;
-
-CommaAndConstraintClause : CommaAndConstraintClause AND Expression
-{
-  $$=$1;
-  raptor_sequence_push($$, $3);
-}
-| /* empty */
-{
-  $$=raptor_new_sequence(NULL, (raptor_sequence_print_handler*)rasqal_expression_print);
-}
-;
-
 
 PrefixClause : PrefixDeclList
 {
