@@ -57,10 +57,11 @@ typedef struct {
 } rasqal_prefix ;
 
 
+/* variable binding */
 typedef struct {
   const char *name;
-  const char *value;
-} rasqal_variable ;
+  struct rasqal_expression_s *value;
+} rasqal_variable;
 
 
 typedef enum {
@@ -122,6 +123,8 @@ typedef enum {
 } rasqal_op;
 
 
+struct rasqal_variable_s;
+
 /* expression (arg1), unary op (arg1), binary op (arg1,arg2),
  * literal or variable 
 */
@@ -179,6 +182,7 @@ RASQAL_API void rasqal_query_add_source(rasqal_query* query, const unsigned char
 RASQAL_API rasqal_sequence* rasqal_query_get_source_sequence(rasqal_query* query);
 RASQAL_API const unsigned char* rasqal_query_get_source(rasqal_query* query, int idx);
 RASQAL_API int rasqal_query_has_variable(rasqal_query* query, const char *name);
+RASQAL_API int rasqal_query_set_variable(rasqal_query* query, const char *name, rasqal_expression* value);
 
 RASQAL_API int rasqal_parse_query(rasqal_query *query, const unsigned char *uri_string, const char *query_string, size_t len);
 
@@ -247,10 +251,10 @@ RASQAL_API void rasqal_free_triple(rasqal_triple* t);
 RASQAL_API void rasqal_print_triple(rasqal_triple* t, FILE* fh);
 
 /* Variable class */
-RASQAL_API rasqal_variable* rasqal_new_variable(const char *name, const char *value);
+RASQAL_API rasqal_variable* rasqal_new_variable(const char *name, rasqal_expression *value);
 RASQAL_API void rasqal_free_variable(rasqal_variable* variable);
 RASQAL_API void rasqal_print_variable(rasqal_variable* t, FILE* fh);
-
+RASQAL_API void rasqal_variable_set_value(rasqal_variable* v, rasqal_expression *e);
 
 /* rasqal_engine.c */
 
