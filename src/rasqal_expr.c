@@ -206,6 +206,17 @@ rasqal_new_triple(rasqal_literal* subject, rasqal_literal* predicate, rasqal_lit
   return t;
 }
 
+rasqal_triple*
+rasqal_new_triple_from_triple(rasqal_triple* t) {
+  rasqal_triple* newt=(rasqal_triple*)RASQAL_CALLOC(rasqal_triple,sizeof(rasqal_triple), 1);
+
+  newt->subject=rasqal_new_literal_from_literal(t->subject);
+  newt->predicate=rasqal_new_literal_from_literal(t->predicate);
+  newt->object=rasqal_new_literal_from_literal(t->object);
+
+  return newt;
+}
+
 void
 rasqal_free_triple(rasqal_triple* t)
 {
