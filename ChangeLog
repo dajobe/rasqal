@@ -1,5 +1,11 @@
 2004-10-20  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
+	* rasqal_redland.c (rasqal_redland_bind_match):
+	Take array of 4 bindings.
+
+	* rasqal_redland.c:
+	Update redland support to changes after addition of origin.
+
 	* rasqal_general.c:
 	Added rasqal_initialising and rasqal_finishing statics
 	(rasqal_init, rasqal_finish): Use the above to prevent
