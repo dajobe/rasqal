@@ -7,7 +7,7 @@
 .\" Institute for Learning and Research Technology - http://www.ilrt.bristol.ac.uk/
 .\" University of Bristol - http://www.bristol.ac.uk/
 .\"
-.TH librasqal 3 "2004-06-12"
+.TH librasqal 3 "2004-06-13"
 .\" Please adjust this date whenever revising the manpage.
 .SH NAME
 librasqal \- Rasqal RDF query library
@@ -152,39 +152,52 @@ Prepare aquery string \fIquery_string\fPwith
 optional base URI \fIuri_string\fP for execution,
 parsing it and modifying the rasqal_query internals.
 Return non-0 on failure.
-.IP "\fBint rasqal_query_execute(rasqal_query* \fIquery\fP)\fR"
-Execute a query, returning non-0 on failure.
-.IP "\fBint rasqal_query_get_result_count(rasqal_query *\fIquery\fP)\fR"
+.IP "\fBrasqal_query_results* rasqal_query_execute(rasqal_query* \fIquery\fP)\fR"
+Execute a query, returning a rasqal_query_results* object or NULL on failure.
+.IP "\fBvoid rasqal_query_set_user_data(rasqal_query *\fIquery\fP, void *\fIuser_data\fP)\fR"
+Set some user data to be associated with the query.
+.IP "\fBvoid* rasqal_query_get_user_data(rasqal_query *\fIquery\fP)\fR"
+Get the user data associated with the query.
+.SH "QUERY RESULTS CLASS"
+A class for the results of a query.  The results can be in different
+forms, presently variable bindings are available but graphs or
+sets of graphs may be returned as sets of triples, a triple at a
+time.
+.SH "QUERY RESULTS CONSTRUCTOR"
+There is no public constructor for this class, the
+\fBrasqal_query_results*\fP is returned from 
+\fBrasqal_query_execute\fP.
+.SH "QUERY RESULTS DESTRUCTOR"
+.IP "\fBrasqal_free_query_results(rasqal_query_results *\fIquery_results\fP);\fR"
+Destroy a rasqal query results object.
+.SH "QUERY RESULTS METHODS"
+.IP "\fBint rasqal_query_results_get_count(rasqal_query_results *\fIquery_result\fP)\fR"
 Get the current number of results returned.
-.IP "\fBint rasqal_query_results_finished(rasqal_query *\fIquery\fP)\fR"
+.IP "\fBint rasqal_query_results_next(rasqal_query_results *\fIquery_results\fP)\fR"
+Move to the next result, returning non-0 on failure or results are exhausted.
+.IP "\fBint rasqal_query_results_finished(rasqal_query_results *\fIquery_results\fP)\fR"
 Find out if binding results are exhausted, return non-0 if results
 are finished or the query failed.
-.IP "\fBint rasqal_query_get_result_bindings(rasqal_query *\fIquery\fP, const char ***names, rasqal_literal ***values);\fR"
+.IP "\fBint rasqal_query_results_get_bindings(rasqal_query_results *\fIquery_results\fP, const char ***names, rasqal_literal ***values);\fR"
 Get all binding names and values for the current result.
 If \fInames\fP is not NULL, it is set to the address of a shared array
 of names of the bindings (an output parameter). 
 If \fIvalues\fP is not NULL, it is set to the address of a shared array
 of rasqal_literal* binding values.  Note that both the
 names or values are shared and must not be freed by the caller.
-Returns is non-0 if the assignment failed.
-.IP "\fBrasqal_literal* rasqal_query_get_result_binding_value(rasqal_query *\fIquery\fP, int offset);\fR"
+Returns non-0 if the assignment failed.
+.IP "\fBrasqal_literal* rasqal_query_results_get_binding_value(rasqal_query_results *\fIquery_results\fP, int offset);\fR"
 Get one binding literal value for the current result.  Returns the
 value of the variable indexed in the sequence of variable bindings
 at position \fIoffset\fP.
-.IP "\fBconst char* rasqal_query_get_result_binding_name(rasqal_query *\fIquery\fP, int offset);\fR"
+.IP "\fBconst char* rasqal_query_results_get_binding_name(rasqal_query_results *\fIquery_results\fP, int offset);\fR"
 Get the name of the variable indexed in the sequence of variable bindings
 at position \fIoffset\fP.
-.IP "\fBrasqal_literal* rasqal_query_get_result_binding_by_name(rasqal_query *\fIquery\fP, const char *\fIname\fB);\fR"
+.IP "\fBrasqal_literal* rasqal_query_results_get_binding_value_by_name(rasqal_query_results *\fIquery_results\fP, const char *\fIname\fB);\fR"
 Get the value of the variable in the sequence of variable bindings
 named \fIname\fP or NULL if not known or unbound.
-.IP "\fBint rasqal_query_next_result(rasqal_query *\fIquery\fP)\fR"
-Move to the next result, returning non-0 on failure or results are exhausted.
-.IP "\fBint rasqal_query_get_bindings_count(rasqal_query *\fIquery\fP)\fR"
+.IP "\fBint rasqal_query_results_get_bindings_count(rasqal_query_results *\fIquery_results\fP)\fR"
 Get the number of bound variables in the result or <0 on failure.
-.IP "\fBvoid rasqal_query_set_user_data(rasqal_query *\fIquery\fP, void *\fIuser_data\fP)\fR"
-Set some user data to be associated with the query.
-.IP "\fBvoid* rasqal_query_get_user_data(rasqal_query *\fIquery\fP)\fR"
-Get the user data associated with the query.
 .SH "LITERAL CLASS"
 A class for the values returned as parts of triples and in variable
 bindings. The rasqal_literal structure is public and defined in
