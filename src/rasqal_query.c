@@ -203,8 +203,11 @@ rasqal_query_prepare(rasqal_query *rdf_query,
 
   if(base_uri)
     base_uri=raptor_uri_copy(base_uri);
-  else
-    base_uri=raptor_new_uri(raptor_uri_filename_to_uri_string(""));
+  else {
+    const char *uri_string=raptor_uri_filename_to_uri_string("");
+    base_uri=raptor_new_uri(uri_string);
+    SYSTEM_FREE((void*)uri_string);
+  }
   
   rdf_query->base_uri=base_uri;
   rdf_query->locator.uri=base_uri;
