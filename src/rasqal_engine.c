@@ -948,15 +948,20 @@ rasqal_engine_execute_finish(rasqal_query *query) {
 
 
 static void
-rasqal_engine_move_to_graph_pattern(rasqal_query *query,
-                                    int offset) {
+rasqal_engine_move_to_graph_pattern(rasqal_query *query, int delta) {
   int i;
   
-  RASQAL_DEBUG2("Moving to graph pattern %d\n", offset);
+  if(query->optional_graph_pattern  < 0 ) {
+    query->current_graph_pattern += delta;
+    RASQAL_DEBUG3("Moved to graph pattern %d (delta %d)\n", 
+                  query->current_graph_pattern, delta);
+    return;
+  }
+  
+  /* Otherwise, there are optionals */
 
-  query->current_graph_pattern=offset;
-
-  if(query->optional_graph_pattern >=0) {
+  if(delta > 0) {
+    query->current_graph_pattern++;
     if(query->current_graph_pattern == query->optional_graph_pattern) {
       RASQAL_DEBUG1("Moved to first optional graph pattern\n");
       for(i=query->current_graph_pattern; 
@@ -967,6 +972,14 @@ rasqal_engine_move_to_graph_pattern(rasqal_query *query,
       }
     }
     query->optional_graph_pattern_matches_count=0;
+  } else {
+    RASQAL_DEBUG1("Moving to previous graph pattern\n");
+
+    if(query->current_graph_pattern > query->optional_graph_pattern) {
+      rasqal_graph_pattern *gp2=(rasqal_graph_pattern*)raptor_sequence_get_at(query->graph_patterns, query->current_graph_pattern);
+      rasqal_graph_pattern_init(gp2);
+    }
+    query->current_graph_pattern--;
   }
 }
 
@@ -1068,8 +1081,7 @@ rasqal_engine_do_step(rasqal_query *query, rasqal_graph_pattern *gp) {
    */
   if(query->current_graph_pattern < graph_patterns_size-1) {
     RASQAL_DEBUG1("Not last graph pattern\n");
-    rasqal_engine_move_to_graph_pattern(query,
-                                        query->current_graph_pattern+1);
+    rasqal_engine_move_to_graph_pattern(query, +1);
     return STEP_SEARCHING;
   }
   
@@ -1097,8 +1109,7 @@ rasqal_engine_do_optional_step(rasqal_query *query, rasqal_graph_pattern *gp) {
                   query->current_graph_pattern);
     
     /* backtrack optionals */
-    rasqal_engine_move_to_graph_pattern(query, 
-                                        query->current_graph_pattern-1);
+    rasqal_engine_move_to_graph_pattern(query, -1);
     return STEP_SEARCHING;
   }
   
@@ -1139,8 +1150,7 @@ rasqal_engine_do_optional_step(rasqal_query *query, rasqal_graph_pattern *gp) {
     
     if(query->current_graph_pattern < graph_patterns_size-1) {
       RASQAL_DEBUG1("More optionals graph patterns to search\n");
-      rasqal_engine_move_to_graph_pattern(query, 
-                                          query->current_graph_pattern+1);
+      rasqal_engine_move_to_graph_pattern(query, +1);
       return STEP_SEARCHING;
     }
 
@@ -1173,7 +1183,7 @@ rasqal_engine_do_optional_step(rasqal_query *query, rasqal_graph_pattern *gp) {
 
     if(gp->matches_returned) {
       RASQAL_DEBUG1("No matches this time, some earlier, backtracking\n");
-      rasqal_engine_move_to_graph_pattern(query, 0);
+      rasqal_engine_move_to_graph_pattern(query, -1);
       return STEP_SEARCHING;
     }
     
@@ -1197,8 +1207,7 @@ rasqal_engine_do_optional_step(rasqal_query *query, rasqal_graph_pattern *gp) {
   */
  if(query->current_graph_pattern < graph_patterns_size-1) {
    RASQAL_DEBUG1("Not last graph pattern\n");
-   rasqal_engine_move_to_graph_pattern(query,
-                                       query->current_graph_pattern+1);
+   rasqal_engine_move_to_graph_pattern(query, +1);
    return STEP_SEARCHING;
  }
  
