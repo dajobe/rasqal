@@ -326,9 +326,6 @@ struct rasqal_triples_source_s {
 
   void *user_data;
 
-  /* Index into the query->sources sequence for current source URI */
-  int source_index;
-  
   /* the triples_source_factory initialises these method */
   rasqal_triples_match* (*new_triples_match)(struct rasqal_triples_source_s* rts, void *user_data, rasqal_triple_meta *m, rasqal_triple *t);
 
@@ -342,7 +339,7 @@ typedef struct rasqal_triples_source_s rasqal_triples_source;
 typedef struct {
   void *user_data; /* user data for triples_source_factory */
   size_t user_data_size; /* size of user data for new_triples_source */
-  int (*new_triples_source)(rasqal_query *query, void *factory_user_data, void *user_data, rasqal_triples_source* rts, raptor_uri *uri);
+  int (*new_triples_source)(rasqal_query *query, void *factory_user_data, void *user_data, rasqal_triples_source* rts);
 } rasqal_triples_source_factory;
   
 
