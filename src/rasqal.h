@@ -29,6 +29,7 @@
 extern "C" {
 #endif
 
+
 #ifdef WIN32
 #  ifdef RASQAL_INTERNAL
 #    define RASQAL_API _declspec(dllexport)
@@ -39,6 +40,8 @@ extern "C" {
 #  define RASQAL_API
 #endif
 
+#include <raptor.h>
+
 /* Public structure */
 typedef struct rasqal_query_s rasqal_query;
 
@@ -47,7 +50,7 @@ typedef struct rasqal_sequence_s rasqal_sequence;
 
 typedef struct {
   const char *prefix;
-  const char *uri;
+  raptor_uri *uri;
 } rasqal_prefix ;
 
 
@@ -60,6 +63,7 @@ typedef struct {
 typedef enum {
   RASQAL_LITERAL_UNKNOWN,
   RASQAL_LITERAL_URI,
+  RASQAL_LITERAL_QNAME,
   RASQAL_LITERAL_STRING,
   RASQAL_LITERAL_PATTERN,
   RASQAL_LITERAL_BOOLEAN,
@@ -75,6 +79,7 @@ typedef struct {
     char *string;
     int integer;
     float floating;
+    raptor_uri *uri;
   } value;
 } rasqal_literal ;
 
@@ -208,12 +213,12 @@ RASQAL_API void rasqal_print_expression_op(rasqal_expression* expression, FILE* 
 RASQAL_API void rasqal_print_expression(rasqal_expression* e, FILE* fh);
 
 /* Literal class */
-RASQAL_API rasqal_literal* rasqal_new_literal(rasqal_literal_type type, int integer, float floating, char *string);
+RASQAL_API rasqal_literal* rasqal_new_literal(rasqal_literal_type type, int integer, float floating, char *string, raptor_uri *uri);
 RASQAL_API void rasqal_free_literal(rasqal_literal* l);
 RASQAL_API void rasqal_print_literal_type(rasqal_literal* literal, FILE* fh);
 RASQAL_API void rasqal_print_literal(rasqal_literal* literal, FILE* fh);
 
-RASQAL_API rasqal_prefix* rasqal_new_prefix(const char *prefix, const char *uri);
+RASQAL_API rasqal_prefix* rasqal_new_prefix(const char *prefix, raptor_uri *uri);
 RASQAL_API void rasqal_free_prefix(rasqal_prefix* prefix);
 RASQAL_API void rasqal_print_prefix(rasqal_prefix* p, FILE* fh);
 
