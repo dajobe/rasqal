@@ -541,7 +541,7 @@ main(int argc, char *argv[])
     FILE *fh;
     query_string=(char*)calloc(FILE_READ_BUF_SIZE, 1);
     fh=fopen(filename, "r");
-    if(!fh) {
+    if(fh) {
       fread(query_string, FILE_READ_BUF_SIZE, 1, fh);
       fclose(fh);
     } else {
