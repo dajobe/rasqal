@@ -28,32 +28,34 @@
 
 <h3>RDQL</h3>
 <ul>
-<li>Check if blank nodes are allowed, they are not in the test suite (CONFORMANCE)</li>
-<li>RDQL tests allow UTF-8 and \uHHHH for prefixes, local names</li>
-<li>LIMIT and OFFSET result constraints, after engine supports them.  AKT's Triplestore implementation of RDQL has this option. (extension)</li>
 <li>RDQL testsuite failures:
 <ul>
 
-<li>1-09: relies on the odd prefix definition
-<code>&lt;prefix:/r-1&gt;</code></li>
+<li>1-09: relies on <code>&lt;prefix:/r-1&gt;</code>
+being interpreted as a qname after <code>prefix:</code> is defined later.
+However this syntax is not in the 
+<a href="http://www.w3.org/Submission/2004/SUBM-RDQL-20040109/">RDQL - A Query Language for RDF, W3C Member Submission 9 January 2004</a>.
+(Test case bug?)</li>
 
 <li>B-01: comment in the test says "No match: the value in the model is
-datatyped." however result-B-01.n3 has 1 result solution.</li>
+datatyped." however result-B-01.n3 has 1 result solution (Test case bug?)</li>
 
 <li>B-07, B-15, B-16, B-20: floating and integer values should be
-string literals (BUG)</li>
+string literals (Rasqal BUG)</li>
 
-<li>S-02: utf8 prefix - not in the RDQL lexer</li>
+<li>S-02: UTF-8 in prefix - not yet in the RDQL lexer (Rasqal BUG)</li>
 
-<li>S-03: utf8 qname - not in the RDQL lexer</li>
+<li>S-03: UTF-8 in qname - not yet in the RDQL lexer  (Rasqal BUG)</li>
 
-<li>S-04, S-05: \u unicode prefix - not in the RDQL lexer</li>
+<li>S-04, S-05: \uHHH unicode in prefix - not yet in the RDQL lexer (Rasqal BUG)</li>
 
 <li>B-17, B-18: boolean literals fail to match the string literals
-"true"/"false".  It is not clear how to resolve this.</li>
+"true"/"false".  It is not clear how to resolve this - in the RDQL
+part of the code or the general expression evaluator. (Rasqal BUG).</li>
 
 </ul>
 </li>
+<li>LIMIT and OFFSET result constraints, after engine supports them.  AKT's Triplestore implementation of RDQL has this option. (extension)</li>
 
 </ul>
 
@@ -64,6 +66,7 @@ string literals (BUG)</li>
 release version where appropriate.</p>
 
 <ul>
+<li>RDQAL: Checked that blank nodes are not allowed in RDQL queries.</li>
 <li>RDQL: string matches should be case insensitive with EQ, NE; not with ==,  !=</li>
 <li>Engine: comparisons between integer and floats return &lt;0 (-1),0 or &gt;0 (1) integers as appropriate</li>
 <li>Literal languages, datatypes - <code>"lit"@lang</code> and
