@@ -953,6 +953,19 @@ rasqal_literal_expand_qname(void *user_data, rasqal_literal *l)
 }
 
 
+/*
+ * rasqal_literal_has_qname - INTERNAL Check if literal has a qname part
+ * @l: &rasqal_literal literal
+ * 
+ * Checks if any part ofthe literal has an unexpanded QName.
+ * 
+ * Return value: non-0 if a QName is present
+ **/
+int
+rasqal_literal_has_qname(rasqal_literal *l) {
+  return (l->type == RASQAL_LITERAL_QNAME) ||
+         (l->type == RASQAL_LITERAL_STRING && (l->flags));
+}
 
 
 /**
