@@ -317,8 +317,8 @@ AC_MSG_CHECKING(for posix regex library)
 oLIBS="$LIBS"
 if test $ac_cv_header_regex_h = yes; then
   AC_TRY_LINK([#include <sys/types.h>
-              #include <regex.h>
-             main() {regex_t reg; char *pat="abc"; regcomp(&reg, pat, 0);}],
+              #include <regex.h>],
+             [regex_t reg; char *pat="abc"; regcomp(&reg, pat, 0);],
              worked=yes, worked=no, worked=no)
   if test $worked = yes; then
     have_regex_posix=1
