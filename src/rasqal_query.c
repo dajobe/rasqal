@@ -237,6 +237,11 @@ rasqal_query_prepare(rasqal_query *rdf_query,
                      const unsigned char *query_string,
                      raptor_uri *base_uri)
 {
+  int rc=0;
+  
+  if(rdf_query->failed || rdf_query->finished)
+    return 1;
+
   if(rdf_query->prepared)
     return 1;
   rdf_query->prepared=1;
@@ -256,7 +261,10 @@ rasqal_query_prepare(rasqal_query *rdf_query,
   rdf_query->locator.uri=base_uri;
   rdf_query->locator.line= rdf_query->locator.column = 0;
 
-  return rdf_query->factory->prepare(rdf_query);
+  rc=rdf_query->factory->prepare(rdf_query);
+  if(rc)
+    rdf_query->failed=1;
+  return rc;
 }
 
 
@@ -271,18 +279,25 @@ rasqal_query_execute(rasqal_query *rdf_query)
 {
   int rc=0;
   
+  if(rdf_query->failed || rdf_query->finished)
+    return 1;
+
   if(rdf_query->executed)
     return 1;
   rdf_query->executed=1;
   
   rc=rasqal_engine_execute_init(rdf_query);
-  if(rc)
+  if(rc) {
+    rdf_query->failed=1;
     return rc;
+  }
 
   if(rdf_query->factory->execute) {
     rc=rdf_query->factory->execute(rdf_query);
-    if(rc)
+    if(rc) {
+      rdf_query->failed=1;
       return rc;
+    }
   }
 
   rasqal_query_next_result(rdf_query);
@@ -320,7 +335,7 @@ rasqal_query_get_result_count(rasqal_query *query) {
 
 int
 rasqal_query_results_finished(rasqal_query *query) {
-  return query->finished;
+  return (query->failed || query->finished);
 }
 
 
