@@ -1,4 +1,81 @@
+2005-02-03  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* sparql_lexer.l ({QNAME}): Now assigns a uri using sparql_copy_qname.
+	(sparql_copy_qname): expands and returns a raptor_uri* here.
+	When running standalone as rasqal_lexer_test, ignore unexpanded
+	qnames.
+	(sparql_copy_string_token): When running standalone as
+	rasqal_lexer_test, ignore unexpanded qnames.
+
+	* sparql_lexer.l (sparql_copy_string_token):
+	Check and expand datatype qnames here,
+	since prefixes are always defined before qname use..
+
+	* RELEASE.html: Note STR
+
+	* rasqal_expr.c: Added support for expressions:
+	STR, LANG, DATATYPE, ISURI, ISBLANK and ISLITERAL
+	(rasqal_free_expression, rasqal_expression_foreach,
+	rasqal_expression_print_op, rasqal_expression_print):  Updated to
+	handle the expression types above.
+	(rasqal_expression_evaluate): Print evaluation before and after debug
+	messages.  Edit main body to not return in cases.
+	Implement the expressions above.
+
+	* sparql_parser.y:
+	Added tokens STR, LANG, DATATYPE, ISURI, ISBLANK and ISLITERAL
+	(BuiltinExpression): Use the tokens above to implement built in
+	functions of the same names.
+
+	* sparql_lexer.l: Added keywords STR, LANG, DATATYPE, ISURI,
+	ISBLANK and ISLITERAL
+
+	* rasqal.h: Added rasqal_op RASQAL_EXPR_STR, RASQAL_EXPR_LANG,
+	RASQAL_EXPR_DATATYPE, RASQAL_EXPR_ISURI, RASQAL_EXPR_ISBLANK,
+	RASQAL_EXPR_ISLITERAL,
+
+	* TODO.html, librasqal.3, rasqal_literal.c, RELEASE.html:
+	Updates for 0.9.6
+
+2005-02-02  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal.rdf.in: Updates for schema
+
 2005-02-01  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal_engine.c (rasqal_engine_do_optional_step): When the
+	constraint fails, zero the new_bindings_count since none matter
+	now.
+
+	* sparql_lexer.l: Added BNAME token
+	({BNAME}): Added to just do a blank node.
+
+	* configure.ac: Added dir tests/sparql/bound
+
+	* tests/sparql/syntax/Makefile.am,
+	tests/sparql/syntax/construct2.rq: Construct with bnodes in
+	construct2.rq
+
+	* tests/sparql/bound/.cvsignore, tests/sparql/bound/Makefile.am,
+	tests/sparql/bound/bound1-result.n3, tests/sparql/bound/bound1.rq,
+	tests/sparql/bound/data.n3, tests/sparql/bound/manifest.n3: DAWG
+	BOUND tests
+
+	* tests/sparql/Makefile.am: added bound
+
+	* sparql_lexer.l ({QNAME}): If it starts _:, make a BLANK_LITERAL
+	(sparql_token_print, sparql_token_free): Added BLANK_LITERAL support.
+
+	* sparql_parser.y:
+	Added tokens BLANK_LITERAL ConstructPattern (rq23) BNode (rq23),
+	TripleTemplate (rq23) and VarOrLiteralOrBNode VarOrURIOrBNode
+	(ConstructClause): Now using ConstructPattern
+	(ConstructPattern): Added from rq23, using TripleTemplate
+	(TripleTemplate): Added from rq23, using VarOrURIOrBNode for subject
+	and VarOrLiteralOrBNode for object.
+	(VarOrURIOrBNode): Added, using BNode
+	(VarOrLiteralOrBNode): Added, using BNode
+	(BNode): Added from rq23
 
 	* rasqal_expr.c (rasqal_free_expression,
 	rasqal_expression_evaluate, rasqal_expression_print_op): Added
