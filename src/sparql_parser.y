@@ -289,6 +289,8 @@ GraphPattern : GraphPattern PatternElement
 {
   /* FIXME - make graph pattern structure from element */
   $$=$1;
+  while(raptor_sequence_size($2) >0)
+    raptor_sequence_push($$, raptor_sequence_pop($2));
 }
 | PatternElement
 {
@@ -310,6 +312,7 @@ PatternElement : TriplePatternList
 | PatternElementForms
 {
   /* FIXME - make a pattern element */
+  $$=$1;
 }
 ;
 
@@ -318,7 +321,8 @@ PatternElement : TriplePatternList
 GraphPattern1 : TriplePattern
 {
   /* FIXME - make a graphpattern */
-  $$=NULL;
+  $$=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_triple, (raptor_sequence_print_handler*)rasqal_triple_print);
+  raptor_sequence_push($$, $1);
 }
 | LPAREN GraphPattern RPAREN /*  ExplicitGroup inlined */
 {
@@ -328,7 +332,7 @@ GraphPattern1 : TriplePattern
 | PatternElementForms
 {
   /* FIXME - make a graphpattern */
-  $$=NULL;
+  $$=$1;
 }
 ;
 
