@@ -39,9 +39,6 @@ extern "C" {
 #include <dmalloc.h>
 #endif
 
-/* FIXME for testing */
-#include <redland.h>
-
 #define RASQAL_MALLOC(type, size) malloc(size)
 #define RASQAL_CALLOC(type, size, count) calloc(size, count)
 #define RASQAL_FREE(type, ptr)   free((void*)ptr)
@@ -94,30 +91,6 @@ void rasqal_system_free(void *ptr);
 
 
 typedef struct rasqal_query_engine_factory_s rasqal_query_engine_factory;
-
-
-struct rasqal_triples_match_s {
-  void *user_data;
-  int (*bind_match)(struct rasqal_triples_match_s*, void *user_data, rasqal_variable *bindings[3]);
-  void (*next_match)(struct rasqal_triples_match_s*, void *user_data);
-  int (*is_end)(struct rasqal_triples_match_s*, void *user_data);
-  void (*finish)(struct rasqal_triples_match_s*, void *user_data);
-};
-typedef struct rasqal_triples_match_s rasqal_triples_match;
-
-
-typedef struct 
-{
-  /* All the parts of this triple are nodes - no variables */
-  int is_exact;
-  librdf_node* nodes[3];
-  /* query statement, made from the nodes above (even when exact) */
-  librdf_statement *qstatement;
-  librdf_stream *stream;
-  rasqal_variable* bindings[3];
-
-  rasqal_triples_match *triples_match;
-} rasqal_triple_meta;
 
 
 /*
@@ -193,11 +166,11 @@ struct rasqal_query_s {
   /* stopping? */
   int abort;
   
-  /* FIXME querying a Redland model - for testing */
-  librdf_world *world;
-  librdf_model *model;
-
   struct rasqal_query_engine_factory_s* factory;
+
+  rasqal_triples_source* triples_source;
+
+  rasqal_triples_source_factory* triples_source_factory;
 };
 
 
@@ -269,6 +242,14 @@ int rasqal_engine_build_constraints_expression(rasqal_query* rq);
 int rasqal_engine_assign_variables(rasqal_query* rq);
 int rasqal_engine_run(rasqal_query *q);
 
+rasqal_triples_source* rasqal_new_triples_source(rasqal_query *query, raptor_uri* uri);
+void rasqal_free_triples_source(rasqal_triples_source *rts);
+
+void rasqal_set_triples_source_factory(void (*register_fn)(rasqal_triples_source_factory *factory));
+
+/* rasqal_redland.c */
+void rasqal_redland_init(void);
+  
 /* end of RASQAL_INTERNAL */
 #endif
 
