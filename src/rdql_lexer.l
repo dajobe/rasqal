@@ -80,6 +80,19 @@ int lineno=1;
 YYSTYPE rdql_parser_lval;
 #endif
 
+/* Missing rqql_lexer.c/h prototypes */
+int rdql_lexer_get_lineno(void);
+FILE *rdql_lexer_get_in(void);
+FILE *rdql_lexer_get_out(void);
+int rdql_lexer_get_leng(void);
+char *rdql_lexer_get_text(void);
+void rdql_lexer_set_lineno(int line_number);
+void rdql_lexer_set_in(FILE* in_str);
+void rdql_lexer_set_out(FILE* out_str);
+int rdql_lexer_get_debug(void);
+void rdql_lexer_set_debug(int bdebug);
+int rdql_lexer_lex_destroy(void);
+
 
 %}
 
