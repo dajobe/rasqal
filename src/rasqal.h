@@ -185,9 +185,10 @@ RASQAL_API int rdql_parse(rasqal_query* query, const char *query_string);
 /* Sequence class */
 
 typedef void* (rasqal_free_handler(void*));
+typedef void (rasqal_print_handler(void *object, FILE *fh));
 
 /* Create */
-RASQAL_API rasqal_sequence* rasqal_new_sequence(int capacity, rasqal_free_handler* free_handler);
+RASQAL_API rasqal_sequence* rasqal_new_sequence(rasqal_free_handler* free_handler, rasqal_print_handler* print_handler);
 /* Destroy */
 RASQAL_API void rasqal_free_sequence(rasqal_sequence* seq);
 /* Methods */
@@ -199,8 +200,9 @@ RASQAL_API void* rasqal_sequence_get_at(rasqal_sequence* seq, int idx);
 RASQAL_API void* rasqal_sequence_pop(rasqal_sequence* seq);
 RASQAL_API void* rasqal_sequence_unshift(rasqal_sequence* seq);
 
-typedef void (*rasqal_print_handler)(void *object, FILE *fh);
-void rasqal_sequence_print(rasqal_sequence* seq, FILE* fh, rasqal_print_handler handler);
+/* helper for printing sequences of strings */ 
+void rasqal_sequence_print_string(char *data, FILE *fh);
+void rasqal_sequence_print(rasqal_sequence* seq, FILE* fh);
 
 /* Expression class */
 rasqal_expression* rasqal_new_expression(rasqal_op op, rasqal_expression* arg1, rasqal_expression* arg2, rasqal_literal *literal, rasqal_variable *variable);

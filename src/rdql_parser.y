@@ -161,7 +161,7 @@ VarList : Var COMMA VarList
 }
 | Var 
 {
-  $$=rasqal_new_sequence(0, NULL);
+  $$=rasqal_new_sequence(NULL, (rasqal_print_handler*)rasqal_print_variable);
   rasqal_sequence_push($$, $1);
 }
 ;
@@ -201,7 +201,7 @@ TriplePatternList : TriplePattern COMMA TriplePatternList
 }
 | TriplePattern
 {
-  $$=rasqal_new_sequence(0, NULL);
+  $$=rasqal_new_sequence(NULL, (rasqal_print_handler*)rasqal_print_triple);
   rasqal_sequence_push($$, $1);
 }
 ;
@@ -247,7 +247,7 @@ CommaAndConstraintClause : Expression COMMA CommaAndConstraintClause
 }
 | Expression
 {
-  $$=rasqal_new_sequence(0, NULL);
+  $$=rasqal_new_sequence(NULL, (rasqal_print_handler*)rasqal_print_expression);
   rasqal_sequence_push($$, $1);
 }
 ;
@@ -271,7 +271,7 @@ PrefixDeclList : IDENTIFIER FOR URI_LITERAL COMMA PrefixDeclList
 }
 | IDENTIFIER FOR URI_LITERAL
 {
-  $$=rasqal_new_sequence(0, NULL);
+  $$=rasqal_new_sequence(NULL, (rasqal_print_handler*)rasqal_print_prefix);
   rasqal_sequence_push($$, rasqal_new_prefix($1, $3));
 }
 ;
@@ -490,7 +490,7 @@ ArgList : VarOrLiteral COMMA ArgList
 }
 | VarOrLiteral
 {
-  $$=rasqal_new_sequence(0, NULL);
+  $$=rasqal_new_sequence(NULL, (rasqal_print_handler*)rasqal_print_term);
   rasqal_sequence_push($$, $1);
 }
 ;
@@ -560,7 +560,7 @@ URIList : URI_LITERAL COMMA URIList
 }
 | URI_LITERAL
 {
-  $$=rasqal_new_sequence(0, NULL);
+  $$=rasqal_new_sequence(NULL, (rasqal_print_handler*)rasqal_sequence_print_string);
   rasqal_sequence_push($$, $1);
 }
 ;
