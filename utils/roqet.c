@@ -542,12 +542,14 @@ main(int argc, char *argv[])
     query_string=(char*)calloc(FILE_READ_BUF_SIZE, 1);
     fh=fopen(filename, "r");
     if(!fh) {
+      fread(query_string, FILE_READ_BUF_SIZE, 1, fh);
+      fclose(fh);
+    } else {
       fprintf(stderr, "%s: file '%s' open failed - %s", 
               program, filename, strerror(errno));
-      return(1);
+      rc=1;
+      goto tidy_setup;
     }
-    fread(query_string, FILE_READ_BUF_SIZE, 1, fh);
-    fclose(fh);
   } else {
     raptor_www *www=raptor_www_new();
     if(www) {
@@ -559,7 +561,8 @@ main(int argc, char *argv[])
     if(!query_string || error_count) {
       fprintf(stderr, "%s: Retrieving query at URI '%s' failed\n", 
               program, uri_string);
-      return(1);
+      rc=1;
+      goto tidy_setup;
     }
   }
 
@@ -651,6 +654,8 @@ main(int argc, char *argv[])
   rasqal_free_query(rq);
 
   free(query_string);
+
+ tidy_setup:
 
   if(source_uri)
     raptor_free_uri(source_uri);
