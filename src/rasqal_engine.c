@@ -953,10 +953,9 @@ rasqal_engine_execute_finish(rasqal_query *query) {
 }
 
 
-static int
+static void
 rasqal_engine_move_to_graph_pattern(rasqal_query *query,
                                     int offset) {
-  int rc=1;
   int i;
   
   RASQAL_DEBUG2("Moving to graph pattern %d\n", offset);
@@ -974,8 +973,6 @@ rasqal_engine_move_to_graph_pattern(rasqal_query *query,
     }
     query->optional_graph_pattern_matches_count=0;
   }
-  
-  return rc;
 }
 
 
@@ -1038,8 +1035,9 @@ rasqal_engine_get_next_result(rasqal_query *query) {
                     query->current_graph_pattern);
 
       /* backtrack optionals */
-      rc=rasqal_engine_move_to_graph_pattern(query, 
-                                             query->current_graph_pattern-1);
+      rasqal_engine_move_to_graph_pattern(query, 
+                                          query->current_graph_pattern-1);
+      rc=1;
       continue;
     }
     
@@ -1087,8 +1085,9 @@ rasqal_engine_get_next_result(rasqal_query *query) {
         gp->finished=1;
 
         if(query->current_graph_pattern < graph_patterns_size-1) {
-          rc=rasqal_engine_move_to_graph_pattern(query, 
-                                                 query->current_graph_pattern+1);
+          rasqal_engine_move_to_graph_pattern(query, 
+                                              query->current_graph_pattern+1);
+          rc=1;
           continue;
         } else {
           int mandatory_matches=0;
@@ -1189,8 +1188,9 @@ rasqal_engine_get_next_result(rasqal_query *query) {
        */
       if(query->current_graph_pattern < graph_patterns_size-1) {
         RASQAL_DEBUG1("Not last graph pattern\n");
-        rc=rasqal_engine_move_to_graph_pattern(query,
-                                               query->current_graph_pattern+1);
+        rasqal_engine_move_to_graph_pattern(query,
+                                            query->current_graph_pattern+1);
+        rc=1;
         continue;
       }
       
