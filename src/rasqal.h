@@ -171,14 +171,23 @@ struct rasqal_expression_s {
 typedef struct rasqal_expression_s rasqal_expression;
 
 
+/* Extra flags for triples */
+typedef enum {
+  /* true when all of subject, predicate, object are given */
+  RASQAL_TRIPLE_FLAGS_EXACT=1,
+  /* true when the triple is an optional match */
+  RASQAL_TRIPLE_FLAGS_OPTIONAL=2,
+  RASQAL_TRIPLE_FLAGS_LAST=RASQAL_TRIPLE_FLAGS_OPTIONAL
+} rasqal_triple_flags;
 
 
-/* three expressions */
+/* an RDF triple or a triple pattern */
 typedef struct {
   rasqal_literal* subject;
   rasqal_literal* predicate;
   rasqal_literal* object;
   rasqal_literal* origin;
+  unsigned int flags; /* | of enum rasqal_triple_flags bits */
 } rasqal_triple ;
 
 
@@ -296,6 +305,8 @@ RASQAL_API void rasqal_free_triple(rasqal_triple* t);
 RASQAL_API void rasqal_triple_print(rasqal_triple* t, FILE* fh);
 RASQAL_API void rasqal_triple_set_origin(rasqal_triple* t, rasqal_literal *l);
 RASQAL_API rasqal_literal* rasqal_triple_get_origin(rasqal_triple* t);
+RASQAL_API void rasqal_triple_set_flags(rasqal_triple* t, unsigned int flags);
+RASQAL_API unsigned int rasqal_triple_get_flags(rasqal_triple* t);
 
 /* Variable class */
 RASQAL_API rasqal_variable* rasqal_new_variable(rasqal_query* query, const unsigned char *name, rasqal_literal *value);
@@ -317,9 +328,6 @@ typedef struct rasqal_triples_match_s rasqal_triples_match;
 
 typedef struct 
 {
-  /* All the parts of this triple are nodes - no variables */
-  int is_exact;
-
   /* triple (subject, predicate, object) and origin (SOURCE in BRQL) */
   rasqal_variable* bindings[4];
 
