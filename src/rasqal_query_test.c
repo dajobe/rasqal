@@ -43,16 +43,39 @@
 #include "rasqal.h"
 #include "rasqal_internal.h"
 
-
+#ifdef RASQAL_QUERY_RDQL
+#define QUERY_LANGUAGE "rdql"
 #define QUERY_FORMAT "SELECT ?person \
          FROM <%s> \
          WHERE \
          (?person, ?x, foaf:Person) USING \
          rdf FOR <http://www.w3.org/1999/02/22-rdf-syntax-ns#>, \
          foaf FOR <http://xmlns.com/foaf/0.1/>"
+#else
+#ifdef RASQAL_QUERY_SPARQL
+#define QUERY_LANGUAGE "sparql"
+#define QUERY_FORMAT "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> \
+         PREFIX foaf: <http://xmlns.com/foaf/0.1/> \
+         SELECT $person \
+         FROM <%s> \
+         WHERE \
+         ($person $x foaf:Person)"
+#else
+#define NO_QUERY_LANGUAGE
+#endif
+#endif
 
 #define EXPECTED_RESULTS_COUNT 1
 
+
+#ifdef NO_QUERY_LANGUAGE
+int
+main(int argc, char **argv) {
+  const char *program=rasqal_basename(argv[0]);
+  fprintf(stderr, "%s: No supported query language available, skipping test\n", program);
+  return(0);
+}
+#else
 
 int
 main(int argc, char **argv) {
@@ -62,10 +85,10 @@ main(int argc, char **argv) {
   raptor_uri *base_uri;
   unsigned char *data_string;
   unsigned char *uri_string;
+  const char *query_language_name=QUERY_LANGUAGE;
   const char *query_format=QUERY_FORMAT;
   unsigned char *query_string;
   int count;
-  const char *query_language_name="rdql";
 
   rasqal_init();
   
@@ -87,7 +110,7 @@ main(int argc, char **argv) {
   if(!query) {
     fprintf(stderr, "%s: creating query in language %s FAILED\n", program,
             query_language_name);
-    return(0);
+    return(1);
   }
 
   printf("%s: preparing %s query\n", program, query_language_name);
@@ -165,3 +188,5 @@ main(int argc, char **argv) {
 
   return 0;
 }
+
+#endif
