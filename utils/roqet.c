@@ -108,7 +108,9 @@ static int error_count=0;
 
 static const char *title_format_string="Rasqal RDF query utility %s\n";
 
-#define RDQL_FILE_BUF_SIZE 2048
+#define FILE_READ_BUF_SIZE 2048
+
+#define MAX_QUERY_ERROR_REPORT_LEN 512
 
 
 static void
@@ -397,17 +399,17 @@ main(int argc, char *argv[])
   }
 
   if(!uri_string) {
-    query_string=(char*)calloc(RDQL_FILE_BUF_SIZE, 1);
-    fread(query_string, RDQL_FILE_BUF_SIZE, 1, stdin);
+    query_string=(char*)calloc(FILE_READ_BUF_SIZE, 1);
+    fread(query_string, FILE_READ_BUF_SIZE, 1, stdin);
   } else if(filename) {
-    query_string=(char*)calloc(RDQL_FILE_BUF_SIZE, 1);
+    query_string=(char*)calloc(FILE_READ_BUF_SIZE, 1);
     FILE *fh=fopen(filename, "r");
     if(!fh) {
       fprintf(stderr, "%s: file '%s' open failed - %s", 
               program, filename, strerror(errno));
       return(1);
     }
-    fread(query_string, RDQL_FILE_BUF_SIZE, 1, fh);
+    fread(query_string, FILE_READ_BUF_SIZE, 1, fh);
     fclose(fh);
   } else {
     query_string=roqet_get_www_content(uri, NULL, roqet_error_handler);
@@ -438,7 +440,16 @@ main(int argc, char *argv[])
   rq=rasqal_new_query((const char*)ql_name, (const unsigned char*)ql_uri);
 
   if(rasqal_query_prepare(rq, (const unsigned char*)query_string, base_uri)) {
-    fprintf(stderr, "%s: Parsing query '%s' failed\n", program, query_string);
+    size_t len=strlen(query_string);
+    
+    fprintf(stderr, "%s: Parsing query '", program);
+    if(len > MAX_QUERY_ERROR_REPORT_LEN) {
+      fwrite(query_string, MAX_QUERY_ERROR_REPORT_LEN, sizeof(char), stderr);
+      fprintf(stderr, "...' (%d bytes) failed\n", len);
+    } else {
+      fwrite(query_string, len, sizeof(char), stderr);
+      fputs("' failed\n", stderr);
+    }
     rc=1;
     goto tidy_query;
   }
