@@ -128,7 +128,7 @@ rasqal_promote_string_literal_to_native(rasqal_literal *l)
   
   if(!strcmp(raptor_uri_as_string(l->datatype), "http://www.w3.org/2001/XMLSchema#double")) {
     double d=0.0;
-    sscanf(l->value.string, "%lf", &d);
+    sscanf(l->value.string, "%1g", &d);
     free(l->value.string);
 
     raptor_free_uri(l->datatype);
@@ -316,7 +316,7 @@ rasqal_literal_print(rasqal_literal* l, FILE* fh)
         fputs("(false)", fh);
       break;
     case RASQAL_LITERAL_FLOATING:
-      fprintf(fh, " %f", l->value.floating);
+      fprintf(fh, " %g", l->value.floating);
       break;
     case RASQAL_LITERAL_VARIABLE:
       rasqal_variable_print(l->value.variable, fh);
@@ -412,7 +412,7 @@ rasqal_literal_as_string(rasqal_literal* l)
       return l->value.integer ? "true" :"false";
 
     case RASQAL_LITERAL_FLOATING:
-      sprintf(buf, "%f", l->value.floating);
+      sprintf(buf, "%g", l->value.floating);
       return buf;
 
     case RASQAL_LITERAL_STRING:
@@ -433,6 +433,16 @@ rasqal_literal_as_string(rasqal_literal* l)
 rasqal_variable*
 rasqal_literal_as_variable(rasqal_literal* l) {
   return (l->type == RASQAL_LITERAL_VARIABLE) ? l->value.variable : NULL;
+}
+
+
+/* turn the sign of the double into an int, for comparison purposes */
+static inline int
+double_to_int(double d) 
+{
+  if(d == 0.0)
+    return 0;
+  return (d < 0.0) ? -1 : 1;
 }
 
 
@@ -462,16 +472,16 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int *error)
     /* if one is a floating point number, do a comparison as such */
     if(!l1->type != RASQAL_LITERAL_FLOATING &&
        l2->type == RASQAL_LITERAL_FLOATING) {
-      int rc=(int)(l2->value.floating - rasqal_literal_as_integer(l1, &errori));
+      double d=(l2->value.floating - rasqal_literal_as_integer(l1, &errori));
       /* failure always means no match */
-      return errori ? 1 : rc;
+      return errori ? 1 : double_to_int(d);
     }
 
     if(!l2->type != RASQAL_LITERAL_FLOATING &&
        l1->type == RASQAL_LITERAL_FLOATING) {
-      int rc=(int)(rasqal_literal_as_integer(l2, &errori) - l1->value.floating);
+      double d=(rasqal_literal_as_integer(l2, &errori) - l1->value.floating);
       /* failure always means no match */
-      return errori ? 1 : rc;
+      return errori ? 1 : double_to_int(d);
     }
 
     /* if one is an integer number, do a comparison as such */

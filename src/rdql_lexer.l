@@ -612,7 +612,7 @@ rdql_token_print(int token, YYSTYPE *lval)
       return buffer;
 
     case FLOATING_POINT_LITERAL:
-      sprintf(buffer, "FLOATING_POINT_LITERAL(%f)", lval->floating);
+      sprintf(buffer, "FLOATING_POINT_LITERAL(%g)", lval->floating);
       return buffer;
 
     case STRING_LITERAL:

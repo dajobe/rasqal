@@ -90,7 +90,7 @@ rasqal_literal_to_redland_node(librdf_world *world, rasqal_literal* l) {
     librdf_uri* uri=librdf_new_uri(world, "http://www.w3.org/2001/XMLSchema#double");
     librdf_node *node;
     
-    sprintf(buffer, "%f", l->value.floating);
+    sprintf(buffer, "%1g", l->value.floating);
     node=librdf_new_node_from_typed_literal(world, buffer, NULL, uri);
 
     librdf_free_uri(uri);
