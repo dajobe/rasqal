@@ -16,12 +16,12 @@
 all or not fully exhausted.  This caused a problem in Redland when it
 held on to MySQL database handles despite a query having ended.</p>
 
-<p>Added option <code>-n/--dryrun</code> to roqet to stop after
+<p>Added option <code>-n/--dryrun</code> to <code>roqet</code> to stop after
 preparing the query.  Added option <code>-w/--walk-query</code> to
 walk and print the query using the graph API.</p>
 
-<p>Portability fixes for win32 - define RASQAL_INLINE and use it
-as for raptor.  (Dave Viner)</p>
+<p>Portability fixes for win32 - define <code>RASQAL_INLINE</code>
+and use it as for raptor.  (Dave Viner)</p>
 
 <p>Make rasqal tests work when building against raptor in a sibling
 source tree.</p>
