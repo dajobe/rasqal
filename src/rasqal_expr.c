@@ -478,11 +478,11 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
 
       case RASQAL_LITERAL_INTEGER:
       case RASQAL_LITERAL_BOOLEAN:
-        ints[i]=l1->value.integer;
+        ints[i]=lits[i]->value.integer;
         break;
     
       case RASQAL_LITERAL_FLOATING:
-        doubles[i]=l1->value.floating;
+        doubles[i]=lits[i]->value.floating;
 
       default:
         abort();
@@ -571,6 +571,62 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
 
     case RASQAL_LITERAL_FLOATING:
       return double_to_int(doubles[1] - doubles[0]);
+      break;
+
+    default:
+      abort();
+  }
+}
+
+
+/* non-zero if equal (no promotion) */
+int
+rasqal_literal_equals(rasqal_literal* l1, rasqal_literal* l2)
+{
+  /* null literals */
+  if(!l1 || !l2) {
+    /* if either is not null, the comparison fails */
+    return (l1 || l2);
+  }
+
+  if(l1->type != l2->type)
+    return 0;
+  
+  switch(l1->type) {
+    case RASQAL_LITERAL_URI:
+      return raptor_uri_equals(l1->value.uri, l2->value.uri);
+
+    case RASQAL_LITERAL_STRING:
+      if(l1->language || l2->language) {
+        /* if either is null, the comparison fails */
+        if(!l1->language || !l2->language)
+          return 0;
+        if(rasqal_strcasecmp(l1->language,l2->language))
+          return 0;
+      }
+
+      if(l1->datatype || l2->datatype) {
+        /* if either is null, the comparison fails */
+        if(!l1->datatype || !l2->datatype)
+          return 0;
+        if(!raptor_uri_equals(l1->datatype,l2->datatype))
+          return 0;
+      }
+      
+      /* FALLTHROUGH */
+    case RASQAL_LITERAL_BLANK:
+    case RASQAL_LITERAL_PATTERN:
+    case RASQAL_LITERAL_QNAME:
+      return !strcmp(l1->string,l2->string);
+      break;
+      
+    case RASQAL_LITERAL_INTEGER:
+    case RASQAL_LITERAL_BOOLEAN:
+      return l1->value.integer == l2->value.integer;
+      break;
+
+    case RASQAL_LITERAL_FLOATING:
+      return l1->value.floating == l2->value.floating;
       break;
 
     default:
