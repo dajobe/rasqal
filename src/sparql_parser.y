@@ -304,11 +304,6 @@ PatternElement : TriplePatternList
 {
   /* FIXME - make a pattern element */
 }
-| LPAREN GraphPattern RPAREN /*  ExplicitGroup inlined */
-{
-  sparql_syntax_warning((rasqal_query*)rq, "Saw deprecated ( ) group syntax");
-  $$=$2;
-}
 | LCURLY GraphPattern RCURLY /*  ExplicitGroup inlined */
 {
   $$=$2;
@@ -327,13 +322,6 @@ GraphPattern1 : TriplePattern
   /* FIXME - make a graphpattern */
   $$=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_triple, (raptor_sequence_print_handler*)rasqal_triple_print);
   raptor_sequence_push($$, $1);
-}
-| LPAREN GraphPattern RPAREN /*  ExplicitGroup inlined */
-{
-  /* FIXME - remove when syntax changes */
-  /* FIXME - make a graphpattern */
-  sparql_syntax_warning((rasqal_query*)rq, "Saw deprecated ( ) group syntax");
-  $$=$2;
 }
 | LCURLY GraphPattern RCURLY /*  ExplicitGroup inlined */
 {
