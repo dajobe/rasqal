@@ -1186,6 +1186,14 @@ rasqal_sparql_query_engine_prepare(rasqal_query* rdf_query) {
   if(rc)
     return rc;
 
+  /* FIXME - should check remaining query parts  */
+  if(rasqal_engine_sequence_has_qname(rdf_query->triples) ||
+     rasqal_engine_sequence_has_qname(rdf_query->constructs) ||
+     rasqal_engine_query_constraints_has_qname(rdf_query)) {
+    sparql_query_error(rdf_query, "SPARQL query has unexpanded QNames");
+    return 1;
+  }
+
   return rasqal_engine_prepare(rdf_query);
 }
 
@@ -1255,14 +1263,6 @@ sparql_parse(rasqal_query* rq, const unsigned char *string) {
   if(rq->failed)
     return 1;
   
-  /* FIXME - should check remaining query parts  */
-  if(rasqal_engine_sequence_has_qname(rq->triples) ||
-     rasqal_engine_sequence_has_qname(rq->constructs) ||
-     rasqal_engine_query_constraints_has_qname(rq)) {
-    sparql_query_error(rq, "SPARQL query has unexpanded QNames");
-    return 1;
-  }
-
   return 0;
 }
 
@@ -1374,6 +1374,7 @@ main(int argc, char *argv[])
   FILE *fh;
   int rc;
   char *filename=NULL;
+  raptor_uri* base_uri=NULL;
   unsigned char *uri_string;
 
 #if RASQAL_DEBUG > 2
@@ -1404,13 +1405,15 @@ main(int argc, char *argv[])
   query=rasqal_new_query("sparql", NULL);
 
   uri_string=raptor_uri_filename_to_uri_string(filename);
-  query->base_uri=raptor_new_uri(uri_string);
+  base_uri=raptor_new_uri(uri_string);
 
-  rc=sparql_parse(query, (const unsigned char*)query_string);
+  rc=rasqal_query_prepare(query, (const unsigned char*)query_string, base_uri);
 
   rasqal_query_print(query, stdout);
 
   rasqal_free_query(query);
+
+  raptor_free_uri(base_uri);
 
   raptor_free_memory(uri_string);
 
