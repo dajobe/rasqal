@@ -65,7 +65,7 @@
 %option reentrant
 
 
-%x PATTERN ID
+%x PATTERN
 
   /* definitions */
 
@@ -166,7 +166,7 @@ QUOTEDURI \<[A-Za-z][^>]+\>
 ","      { return COMMA; } 
 "("      { return LPAREN; } 
 ")"      { return RPAREN; } 
-"?"      { BEGIN(ID); return VARPREFIX; }
+"?"      { return VARPREFIX; }
 
 "||"         { return SC_OR; }
 "&&"         { return SC_AND; }
