@@ -31,7 +31,7 @@ man_MANS = librasqal.3 rasqal-config.1
 
 librasqal_la_SOURCES = rdql_lexer.c rdql_lexer.h \
 rdql_parser.tab.c rdql_parser.tab.h rdql_common.h \
-rasqal_expr.c rasqal_general.c rasqal_query.c rasqal_sequence.c \
+rasqal_expr.c rasqal_general.c rasqal_query.c \
 rasqal_engine.c rasqal_redland.c
 librasqal_la_LDFLAGS = -version-info @RASQAL_LIBTOOL_VERSION@
 librasqal_la_LIBADD = @RASQAL_INTERNAL_LIBS@
@@ -56,7 +56,7 @@ rasqal.pc.in
 
 SUBDIRS=tests rdql-testsuite
 
-TESTS=rasqal_sequence_test rasqal_expr_test
+TESTS=rasqal_expr_test
 
 CLEANFILES=$(TESTS) rdql_lexer_test rdql_parser_test
 MAINTAINERCLEANFILES=rdql_lexer.c rdql_lexer.h \
@@ -114,9 +114,6 @@ rdql_lexer_test: $(srcdir)/rdql_lexer.c librasqal.la
 
 rdql_parser_test: $(srcdir)/rdql_parser.tab.c librasqal.la
 	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE @RASQAL_INTERNAL_CPPFLAGS@ $(srcdir)/rdql_parser.tab.c librasqal.la $(LIBS)
-
-rasqal_sequence_test: $(srcdir)/rasqal_sequence.c librasqal.la
-	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE @RASQAL_INTERNAL_CPPFLAGS@ $(srcdir)/rasqal_sequence.c librasqal.la $(LIBS)
 
 rasqal_expr_test: $(srcdir)/rasqal_expr.c librasqal.la
 	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE @RASQAL_INTERNAL_CPPFLAGS@ $(srcdir)/rasqal_expr.c librasqal.la $(LIBS)
