@@ -1,6 +1,53 @@
+2005-02-24  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* sparql_parser.y (LimitClauseOpt): Set limit field.
+
+	* rasqal_query.c: Tidy some docucomments.
+	(rasqal_new_query): Initialise distinct, limit fields.
+	(rasqal_query_get_distinct): Added, returning if query results should
+	be distinct.
+	(rasqal_query_get_limit): Added, returning the query results limit
+	specified in the query.
+	(rasqal_query_print): Print distinct, limit fields.
+
+	* rasqal.h: Added rasqal_query_get_distinct and rasqal_query_get_limit
+
+	* rasqal_internal.h: Added limit field to struct rasqal_query_s
+
+	* rasqal_literal.c (rasqal_literal_compare):
+	Recheck for NULL variable values so that
+	?var1 compare ?var2 fails properly when one is not bound.
+
+	* sparql_parser.y: tweak optional warning
+
+2005-02-23  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* roqet.c: Casts for C++
+
+	* rasqal_redland.c (rasqal_redland_new_triples_source):
+	Return -1 on no data.
+
+	* rasqal_raptor.c (rasqal_raptor_new_triples_source):
+	Return -1 on no data.
+
+	* rasqal_query.c (rasqal_query_prepare):
+	Init line, column, byte to undefined.
+
+	* rasqal_engine.c (rasqal_new_triples_source):
+	Throw no data/general error when
+	new triple source factory fails to construct.
+	(rasqal_engine_execute_init): Remove error throwing from here.
+
+	* rasqal.h: new_triples_source factory method document return value
+
+	* roqet.c:
+	Use raptor_stringbuffer to read large queries from files, > buffer
+	size.
+
 2005-02-19  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
-	* tests/sparql/part1/Makefile.am: Add dawg-query-004 dawg-result-004.n3
+	* tests/sparql/part1/Makefile.am: Add dawg-query-004
+	dawg-result-004.n3
 
 	* tests/sparql/part1/dawg-query-001,
 	tests/sparql/part1/dawg-query-002,
