@@ -1,3 +1,21 @@
+2004-07-28  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* autogen.sh: move 'rm's inside configure.ac loop
+
+	* autogen.sh: Ensure subdirs get config.guess, config.sub
+
+2004-07-27  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal_expr.c: Add #ifndef STANDALONE ... #endif around test
+	functions, linked via library.
+
+	* configure.ac: Remove -DLIBRDF_DEBUG
+
+	* configure.ac: Use raptor-config and redland-config with
+	--version-decimal
+
+	* configure.ac: Remove duplicate redland-config test
+
 2004-07-21  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
 	* strcasecmp.c, roqet.c, rasqal_redland.c, rasqal_raptor.c,
