@@ -314,6 +314,7 @@ int rasqal_engine_expand_constraints_qnames(rasqal_query* rq);
 int rasqal_engine_build_constraints_expression(rasqal_query* rq);
 int rasqal_engine_assign_variables(rasqal_query* rq);
 
+int rasqal_engine_prepare(rasqal_query *query);
 int rasqal_engine_execute_init(rasqal_query *query);
 int rasqal_engine_execute_finish(rasqal_query *query);
 int rasqal_engine_run(rasqal_query *q);
