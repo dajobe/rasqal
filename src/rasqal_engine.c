@@ -533,28 +533,32 @@ rasqal_engine_get_next_result(rasqal_query *query) {
           rasqal_literal* result;
           
           expr=(rasqal_expression*)raptor_sequence_get_at(query->constraints, c);
-          fprintf(stderr, "constraint %d expression: ", c);
+#ifdef RASQAL_DEBUG
+          RASQAL_DEBUG2("constraint %d expression:\n", c);
           rasqal_expression_print(expr, stderr);
           fputc('\n', stderr);
+#endif
 
           result=rasqal_expression_evaluate(query, expr);
           if(result) {
             int bresult;
             int error=0;
             
-            fprintf(stderr, "constraint %d expression result: \n", c);
+#ifdef RASQAL_DEBUG
+            RASQAL_DEBUG2("constraint %d expression result:\n", c);
             rasqal_literal_print(result, stderr);
             fputc('\n', stderr);
+#endif
             bresult=rasqal_literal_as_boolean(result, &error);
             if(error) {
-              fprintf(stderr, "constraint %d boolean expression returned error\n", c);
+              RASQAL_DEBUG2("constraint %d boolean expression returned error\n", c);
               bresult=0;
             } else
-              fprintf(stderr, "constraint %d boolean expression result: %d\n", c, bresult);
+              RASQAL_DEBUG3("constraint %d boolean expression result: %d\n", c, bresult);
             rasqal_free_literal(result);
             rc=bresult;
           } else {
-            fprintf(stderr, "constraint %d expression failed with error\n", c);
+            RASQAL_DEBUG2("constraint %d expression failed with error\n", c);
             rc=0;
           }
           
@@ -601,13 +605,15 @@ rasqal_engine_run(rasqal_query *query) {
     
     if(rc > 0) {
       /* matched ok, so print out the variable bindings */
-      fprintf(stdout, "result: ");
-      raptor_sequence_print(query->selects, stdout);
-      fputc('\n', stdout);
+#ifdef RASQAL_DEBUG
+      RASQAL_DEBUG1("result: ");
+      raptor_sequence_print(query->selects, stderr);
+      fputc('\n', stderr);
 #if 0
-      fprintf(stdout, "result as triples: ");
-      raptor_sequence_print(query->triples, stdout);
-      fputc('\n', stdout);
+      RASQAL_DEBUG1("result as triples: ");
+      raptor_sequence_print(query->triples, stderr);
+      fputc('\n', stderr);
+#endif
 #endif
     }
     rc=0;
