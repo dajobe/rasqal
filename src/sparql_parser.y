@@ -286,15 +286,14 @@ TriplePattern : LPAREN VarOrURI VarOrURI VarOrLiteral RPAREN
 }
 ;
 
-CommaAndConstraintClause : Expression AND CommaAndConstraintClause
+CommaAndConstraintClause : CommaAndConstraintClause AND Expression
 {
-  $$=$3;
-  raptor_sequence_shift($$, $1);
+  $$=$1;
+  raptor_sequence_push($$, $3);
 }
-| Expression
+| /* empty */
 {
   $$=raptor_new_sequence(NULL, (raptor_sequence_print_handler*)rasqal_expression_print);
-  raptor_sequence_push($$, $1);
 }
 ;
 
