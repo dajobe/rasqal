@@ -34,10 +34,15 @@
 #include <rasqal.h>
 #include <rasqal_internal.h>
 
-#include <rdql_parser.h>
+#include <rdql_parser.tab.h>
 
 
-int yyerror(const char *msg);
+inline int
+rdql_parser_lex(void) {
+  return rdql_lexer_lex();
+}
+
+int rdql_parser_error(const char *msg);
 
 typedef struct
 {
@@ -61,7 +66,7 @@ yyerror(const char *msg)
   return (0);
 }
 
-extern FILE* yyin;
+extern FILE* rdql_lexer_in;
 
 int
 main(int argc, char *argv[]) 
@@ -74,16 +79,16 @@ main(int argc, char *argv[])
 
   if(argc > 1) {
     filename=argv[1];
-    yyin = fopen(argv[1], "r");
+    rdql_lexer_in = fopen(argv[1], "r");
   } else {
     filename="<stdin>";
-    yyin = stdin;
+    rdql_lexer_in = stdin;
     puts("> ");
     fflush(stdout);
   }
 
 
-  (void) yyparse();
+  (void) rdql_parser_parse();
   return (0);
 }
 #endif

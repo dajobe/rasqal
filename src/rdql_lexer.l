@@ -21,6 +21,16 @@
  */
 
 
+%option 8bit
+%option warn nodefault
+%option prefix="rdql_lexer_"
+%option outfile="rdql_lexer.c" header-file="rdql_lexer.h"
+/* Do not emit #include <unistd.h> */
+%option nounistd
+
+%option nounput
+
+
   /* definitions */
 
 %{
@@ -39,7 +49,7 @@
 #include <rasqal.h>
 #include <rasqal_internal.h>
 
-#include <rdql_parser.h>
+#include <rdql_parser.tab.h>
 
 static int skip_c_comment(void);
 
@@ -50,7 +60,7 @@ char *filename=NULL;
 int lineno=1;
 
 #ifdef STANDALONE
-YYSTYPE yylval;
+YYSTYPE rdql_parser_lval;
 #endif
 
 
@@ -126,38 +136,38 @@ YYSTYPE yylval;
 [0-9]+["lL"]?   { c=yytext[yyleng-1];
                   if (c== 'l' || c == 'L')
                     yytext[yyleng-1]='\0';
-                  yylval.integer=atoi(yytext);
+                  rdql_parser_lval.integer=atoi(yytext);
  		  return INTEGER_LITERAL; 
 }
 
 0[xX][0-9a-fA-F]+   { c=yytext[yyleng+1];
                       if(c == 'x') 
-                        sscanf(yytext+2, "%x", &yylval.integer);
+                        sscanf(yytext+2, "%x", &rdql_parser_lval.integer);
                       else
-                        sscanf(yytext+2, "%X", &yylval.integer);
+                        sscanf(yytext+2, "%X", &rdql_parser_lval.integer);
                       return INTEGER_LITERAL; 
 }
 
 [0-9]+"."[0-9]*[eE][+-]?[0-9]+[fFdD]?|"."[0-9]+[eE][+-]?[0-9]+[fFdD]?|[0-9]+[eE][+-]?[0-9]+[fFdD]?|[0-9]+[eE][+-]?[0-9]+[fFdD]?  { 
-                        sscanf(yytext, "%f", &yylval.floating);
+                        sscanf(yytext, "%f", &rdql_parser_lval.floating);
                         return FLOATING_POINT_LITERAL;
 }
 
-'([^'\\\n\r]|\\[^\n\r])*'    { yylval.string=copy_string_token(yytext+1, yyleng-2, '\"');
+'([^'\\\n\r]|\\[^\n\r])*'    { rdql_parser_lval.string=copy_string_token(yytext+1, yyleng-2, '\"');
                                return STRING_LITERAL; }
 
-\"([^"\\\n\r]|\\[^\n\r])*\"   { yylval.string=copy_string_token(yytext+1, yyleng-2, '"');
+\"([^"\\\n\r]|\\[^\n\r])*\"   { rdql_parser_lval.string=copy_string_token(yytext+1, yyleng-2, '"');
                                 return STRING_LITERAL; }
 
-"true"|"false"	{ yylval.integer=(*yytext = 't');
+"true"|"false"	{ rdql_parser_lval.integer=(*yytext = 't');
                   return BOOLEAN_LITERAL; }
 
 "null"	{ return NULL_LITERAL; }
 
-[A-Za-z0-9_$\.]+	{ yylval.string=copy_token(yytext, yyleng);
+[A-Za-z0-9_$\.]+	{ rdql_parser_lval.string=copy_token(yytext, yyleng);
                           return IDENTIFIER; }
 
-\<[A-Za-z][^>]+\>   { yylval.string=copy_token(yytext+1, yyleng-2);
+\<[A-Za-z][^>]+\>   { rdql_parser_lval.string=copy_token(yytext+1, yyleng-2);
                       return URI_LITERAL; }
 
 \#              { while((c=input()) != '\n' && c)
@@ -362,29 +372,29 @@ rdql_token_print(int token)
       return "TILDE";
 
     case INTEGER_LITERAL:
-      sprintf(buffer, "INTEGER_LITERAL(%d)", yylval.integer);
+      sprintf(buffer, "INTEGER_LITERAL(%d)", rdql_parser_lval.integer);
       return buffer;
 
     case FLOATING_POINT_LITERAL:
-      sprintf(buffer, "FLOATING_POINT_LITERAL(%f)", yylval.floating);
+      sprintf(buffer, "FLOATING_POINT_LITERAL(%f)", rdql_parser_lval.floating);
       return buffer;
 
     case STRING_LITERAL:
-      sprintf(buffer, "STRING_LITERAL(%s)", yylval.string);
+      sprintf(buffer, "STRING_LITERAL(%s)", rdql_parser_lval.string);
       return buffer;
 
     case BOOLEAN_LITERAL:
-      return (yylval.integer ? "BOOLEAN_LITERAL(true)" : "BOOLEAN_LITERAL(false)");
+      return (rdql_parser_lval.integer ? "BOOLEAN_LITERAL(true)" : "BOOLEAN_LITERAL(false)");
 
     case NULL_LITERAL:
       return "NULL_LITERAL";
 
     case URI_LITERAL:
-      sprintf(buffer, "URI_LITERAL(%s)", yylval.string);
+      sprintf(buffer, "URI_LITERAL(%s)", rdql_parser_lval.string);
       return buffer;
 
     case IDENTIFIER:
-      sprintf(buffer, "IDENTIFIER(%s)", yylval.string);
+      sprintf(buffer, "IDENTIFIER(%s)", rdql_parser_lval.string);
       return buffer;
 
     case END:

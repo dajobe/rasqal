@@ -74,7 +74,8 @@ const char * rdql_token_print(int token);
 #define YYERROR_VERBOSE
 #endif
 
-int yylex(void);
+int rdql_lexer_lex(void);
+int rdql_parser_lex(void);
 
 /* end of RASQAL_INTERNAL */
 #endif

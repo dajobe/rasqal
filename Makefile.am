@@ -28,7 +28,8 @@ noinst_HEADERS = rasqal_internal.h win32_config.h
 
 man_MANS = librasqal.3 rasqal-config.1
 
-librasqal_la_SOURCES = rdql_lexer.c rdql_parser.c rdql_parser.h \
+librasqal_la_SOURCES = rdql_lexer.c rdql_lexer.h \
+rdql_parser.tab.c rdql_parser.tab.h \
 rasqal_general.c rasqal_query.c rasqal_sequence.c
 librasqal_la_LDFLAGS = -version-info @RASQAL_LIBTOOL_VERSION@
 
@@ -51,7 +52,8 @@ $(RDQL_EXAMPLES) \
 rasqal.pc.in
 
 CLEANFILES=$(TESTS) rdql_lexer_test rdql_parser_test
-MAINTAINERCLEANFILES=rdql_lexer.c rdql_parser.c rdql_parser.h
+MAINTAINERCLEANFILES=rdql_lexer.c rdql_lexer.h \
+rdql_parser.tab.c rdql_parser.tab.h rdql_parser.output
 
 AM_CPPFLAGS=-I$(top_srcdir)
 LIBS=@LIBS@ $(MEM_LIBS)
@@ -94,29 +96,27 @@ MEM_LIBS=@MEM_LIBS@
 
 
 # Actually it needs rdql_parser.h but nevermind
-@MAINT@rdql_lexer.c: $(srcdir)/rdql_lexer.l rdql_parser.c
-@MAINT@	$(LEX) -t $(srcdir)/rdql_lexer.l > $@
-@MAINT@#	if [ -r lex.yy.c ]; then \
-@MAINT@#	  mv lex.yy.c $@; \
-@MAINT@#	fi
+@MAINT@rdql_lexer.c: $(srcdir)/rdql_lexer.l rdql_parser.tab.c
+@MAINT@	$(LEX) -o $@ $(srcdir)/rdql_lexer.l
 
+# Compile without warnings
+rdql_lexer.lo: rdql_lexer.c $(srcdir)/rdql_parser.tab.c
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) -c -o $@ $<
 
-@MAINT@rdql_parser.c: $(srcdir)/rdql_parser.y
-@MAINT@	$(YACC) -d $(srcdir)/rdql_parser.y
-@MAINT@	if [ -r y.tab.c ]; then \
-@MAINT@	  sed -e 's,y.tab.c,rdql_parser.c,g' < y.tab.c > rdql_parser.c; \
-@MAINT@	  sed -e 's,y.tab.h,rdql_parser.h,g' < y.tab.h > rdql_parser.h; \
-@MAINT@	  rm -f y.tab.c y.tab.h; \
-@MAINT@	fi
+@MAINT@rdql_parser.tab.c: $(srcdir)/rdql_parser.y
+@MAINT@	$(YACC) -b rdql_parser -p rdql_parser_ -d -v $(srcdir)/rdql_parser.y
 
-rdql_lexer.lo: $(srcdir)/rdql_parser.c
+# Compile without warnings
+rdql_parser.lo: rdql_parser.tab.c
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) -c -o $@ $<
+
 
 # Actually it needs rdql_parser.h but nevermind
-rdql_lexer_test: $(srcdir)/rdql_lexer.c $(srcdir)/rdql_parser.c
-	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE -static $(srcdir)/rdql_lexer.c $(LIBS)
+rdql_lexer_test: $(srcdir)/rdql_lexer.c $(srcdir)/rdql_parser.tab.c
+	$(LIBTOOL) --mode=link $(CCLD) $(AM_CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE -static $(srcdir)/rdql_lexer.c $(LIBS) -o $@
 
-rdql_parser_test: $(srcdir)/rdql_lexer.lo $(srcdir)/rdql_parser.c 
-	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE -static $(srcdir)/rdql_parser.c rdql_lexer.lo -o $@
+rdql_parser_test: $(srcdir)/rdql_lexer.lo $(srcdir)/rdql_parser.tab.c 
+	$(LIBTOOL) --mode=link $(CCLD) $(AM_CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE -static $(srcdir)/rdql_parser.tab.c rdql_lexer.lo -o $@
 
 
 check-local: check-rdql-lexer check-rdql-parser
