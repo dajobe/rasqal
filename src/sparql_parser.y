@@ -268,7 +268,10 @@ DescribeClause : VarOrURIList
 /* SPARQL Grammar: [3] FromClause - renamed for clarity */
 FromClauseOpt : FROM URIList
 {
-  ((rasqal_query*)rq)->sources=$2;
+  if($2) {
+    raptor_sequence_join(((rasqal_query*)rq)->sources, $2);
+    raptor_free_sequence($2);
+  }
 }
 | /* empty */
 {
