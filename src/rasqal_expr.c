@@ -494,6 +494,7 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
     
       case RASQAL_LITERAL_FLOATING:
         doubles[i]=lits[i]->value.floating;
+        break;
 
       default:
         abort();
