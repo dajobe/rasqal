@@ -44,10 +44,8 @@
 #include "rasqal_internal.h"
 
 
-#define DATA_FILE "data/dc.rdf"
-
-#define QUERY "SELECT ?person \
-         FROM <" DATA_FILE "> \
+#define QUERY_FORMAT "SELECT ?person \
+         FROM <%s> \
          WHERE \
          (?person, ?x, foaf:Person) USING \
          rdf FOR <http://www.w3.org/1999/02/22-rdf-syntax-ns#>, \
@@ -62,12 +60,24 @@ main(int argc, char **argv) {
   rasqal_query *query = NULL;
   rasqal_query_results *results = NULL;
   raptor_uri *base_uri;
+  char *data_string;
   char *uri_string;
-  const char *query_string=QUERY;
+  const char *query_format=QUERY_FORMAT;
+  char *query_string;
   int count;
 
   rasqal_init();
-
+  
+  if(argc != 2) {
+    fprintf(stderr, "USAGE: %s data-filename\n", program);
+    return(1);
+  }
+    
+  data_string=raptor_uri_filename_to_uri_string(argv[1]);
+  query_string=(char*)malloc(strlen(data_string)+strlen(query_format)+1);
+  sprintf(query_string, query_format, data_string);
+  raptor_free_memory(data_string);
+  
   uri_string=raptor_uri_filename_to_uri_string("");
   base_uri=raptor_new_uri(uri_string);  
   raptor_free_memory(uri_string);
@@ -79,6 +89,8 @@ main(int argc, char **argv) {
     fprintf(stderr, "%s: query prepare FAILED\n", program);
     return(1);
   }
+
+  raptor_free_memory(query_string);
 
   printf("%s: executing query #1\n", program);
   results=rasqal_query_execute(query);
