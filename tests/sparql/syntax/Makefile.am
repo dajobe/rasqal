@@ -31,6 +31,9 @@ data.n3
 SPARQL_TEST_FILES= \
 describe1.rq
 
+SPARQL_BAD_TEST_FILES= \
+nojam.rq
+
 EXPECTED_SPARQL_CORRECT_FAILURES=
 
 SPARQL_RESULT_FILES=
@@ -39,6 +42,7 @@ EXTRA_DIST= \
 $(SPARQL_MANIFEST_FILES) \
 $(SPARQL_MODEL_FILES) \
 $(SPARQL_TEST_FILES) \
+$(SPARQL_BAD_TEST_FILES) \
 $(SPARQL_RESULT_FILES)
 
 build-roqet:
@@ -51,7 +55,7 @@ build-sparql-parser-test:
 	@(cd $(top_builddir) ; $(MAKE) sparql_parser_test)
 
 
-check-local: check-sparql-lexer check-sparql-parser
+check-local: check-sparql-lexer check-sparql-parser check-bad-sparql
 # check-sparql-correct
 
 check-sparql-lexer: build-sparql-lexer-test
@@ -100,4 +104,26 @@ check-sparql-correct: build-roqet $(srcdir)/../check-sparql
 	    echo "FAILED: $$result failures does not match expected $$expect"; result=1; \
           fi; \
 	fi; \
+	set -e; exit $$result
+
+check-bad-sparql: build-sparql-parser-test
+	@set +e; result=0; \
+	$(ECHO) "Testing bad SPARQL fails"; \
+	for test in $(SPARQL_BAD_TEST_FILES); do \
+	  $(ECHO) $(ECHO_N) "Checking $$test $(ECHO_C)"; \
+	  $(top_builddir)/sparql_parser_test $(srcdir)/$$test >$$name.res 2> $$name.err; \
+	  status=$$?; \
+	  if test $$status -eq 1 ; then \
+	    $(ECHO) "ok"; \
+	  elif test $$status -eq 2; then \
+	    $(ECHO) "FAILED - parsing succeeded with a warning"; result=1; \
+	  elif test $$status -eq 0 ; then \
+	    $(ECHO) "FAILED - parsing succeeded but should have failed"; \
+	    cat $$name.res; result=1; \
+	  else \
+	    $(ECHO) "FAILED - parsing failed with unknown status $$status"; \
+	    cat $$name.res; result=1; \
+	  fi; \
+	  rm -f $$name.res $$name.err ; \
+	done; \
 	set -e; exit $$result
