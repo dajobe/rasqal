@@ -228,7 +228,7 @@ RASQAL_API void rasqal_query_set_user_data(rasqal_query *query, void *user_data)
 RASQAL_API rasqal_expression* rasqal_new_1op_expression(rasqal_op op, rasqal_expression* arg);
 RASQAL_API rasqal_expression* rasqal_new_2op_expression(rasqal_op op, rasqal_expression* arg1, rasqal_expression* arg2);
 RASQAL_API rasqal_expression* rasqal_new_string_op_expression(rasqal_op op, rasqal_expression* arg1, rasqal_literal* literal);
-RASQAL_API rasqal_expression* rasqal_new_literal_expression(rasqal_literal *literal);
+RASQAL_API rasqal_expression* rasqal_new_literal_expression(rasqal_literal* literal);
 RASQAL_API rasqal_expression* rasqal_new_variable_expression(rasqal_variable *variable);
 
 RASQAL_API void rasqal_free_expression(rasqal_expression* e);
