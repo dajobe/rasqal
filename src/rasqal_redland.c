@@ -139,15 +139,18 @@ rasqal_redland_new_triples_source(rasqal_query* rdf_query,
   rasqal_redland_triples_source_user_data* rtsc=(rasqal_redland_triples_source_user_data*)user_data;
   librdf_parser *parser;
   const char *parser_name;
+  raptor_uri *uri=NULL;
   
-  rtsc->world=world;
+  uri=(raptor_uri*)raptor_sequence_get_at(rdf_query->sources, 0);
 
-  /* FIXME - no default triple source yet */
-  if(!rts->uri)
+  /* no default triple source possible */
+  if(!uri)
     return 1;
 
+  rtsc->world=world;
+
   /* FIXME error checking */
-  rtsc->uri=librdf_new_uri(world, raptor_uri_as_string(rts->uri));
+  rtsc->uri=librdf_new_uri(world, raptor_uri_as_string(uri));
   rtsc->storage = librdf_new_storage(world, NULL, NULL, NULL);
   rtsc->model = librdf_new_model(world, rtsc->storage, NULL);
 
