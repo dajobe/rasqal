@@ -537,11 +537,11 @@ rasqal_query_prepare(rasqal_query *query,
 {
   int rc=0;
   
-  if(query->failed || query->finished)
+  if(query->failed)
     return 1;
 
   if(query->prepared)
-    return 1;
+    return 0;
   query->prepared=1;
 
   if(query_string) {
@@ -580,11 +580,14 @@ rasqal_query_execute(rasqal_query *query)
   rasqal_query_results *query_results;
   int rc=0;
   
-  if(query->failed || query->finished)
+  if(query->failed)
     return NULL;
 
-  if(query->executed)
-    return NULL;
+  if(query->finished || query->executed) {
+    rasqal_engine_execute_finish(query);
+    query->finished=0;
+  }
+
   query->executed=1;
   
   rc=rasqal_engine_execute_init(query);
