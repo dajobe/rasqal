@@ -62,7 +62,7 @@ extern "C" {
  */
 
 /* Release version as a decimal */
-#define RASQAL_VERSION_DECIMAL 902
+#define RASQAL_VERSION_DECIMAL 903
 
 /* Major version number */
 #define RASQAL_VERSION_MAJOR 0
