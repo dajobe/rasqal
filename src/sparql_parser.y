@@ -751,7 +751,7 @@ rasqal_brql_query_engine_register_factory(rasqal_query_engine_factory *factory)
 void
 rasqal_init_query_engine_brql (void) {
   rasqal_query_engine_register_factory("sparql", 
-                                       "SPARQL",
+                                       "SPARQL W3C DAWG RDF Query Language",
                                        "brql",
                                        (const unsigned char*)"http://www.w3.org/2001/sw/DataAccess/rq23/",
                                        &rasqal_brql_query_engine_register_factory);
