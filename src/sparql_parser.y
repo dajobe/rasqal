@@ -48,6 +48,7 @@
 #include <sparql_parser.h>
 
 #define YY_DECL int sparql_lexer_lex (YYSTYPE *sparql_parser_lval, yyscan_t yyscanner)
+#define YY_NO_UNISTD_H 1
 #include <sparql_lexer.h>
 
 #include <sparql_common.h>

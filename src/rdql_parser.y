@@ -43,6 +43,7 @@
 #include <rdql_parser.h>
 
 #define YY_DECL int rdql_lexer_lex (YYSTYPE *rdql_parser_lval, yyscan_t yyscanner)
+#define YY_NO_UNISTD_H 1
 #include <rdql_lexer.h>
 
 #include <rdql_common.h>
