@@ -1,8 +1,12 @@
 2005-01-16  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
-	* Snapshotted rasqal_0_9_5 for 0.9.5 release
+	* rasqal_query.c (rasqal_query_results_write):
+	Handle RASQAL_LITERAL_BLANK. Doh!
 
-	* RELEASE.html, NEWS.html: update for 0.9.5 release
+	* win32_rasqal_config.h, configure.ac, NEWS.html:
+	Bumped version to 0.9.6
+
+	* Snapshotted rasqal_0_9_5 for 0.9.5 release
 
 	* Makefile.am: Add @RASQAL_EXTERNAL_LIBS@ $(MEM_LIBS) to all *_LDADD
 	It seems to help mysterious shared library linking problems on Solaris.
