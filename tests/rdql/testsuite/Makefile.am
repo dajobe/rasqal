@@ -75,8 +75,8 @@ result-T-07.n3 result-T-08.n3 result-T-09.n3 result-T-10.n3
 rdql_testsuite_extra_files=query-dump rdql-tests.n3	\
 README-RDQL-tests.txt copyright.txt
 
-EXPECTED_RDQL_CORRECT_FAILURES=1-09 B-01 S-03 S-04 S-05
-EXPECTED_RDQL_CORRECT_FAILURES_COUNT=5
+EXPECTED_RDQL_CORRECT_FAILURES=1-09 B-01
+EXPECTED_RDQL_CORRECT_FAILURES_COUNT=2
 
 EXTRA_DIST = README \
 check-rdql \
