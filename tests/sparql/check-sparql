@@ -52,6 +52,9 @@ my $program=basename $0;
 my $debug=0;
 
 
+die "$0: roqet not found at $roqet\n" unless -r $roqet;
+
+
 sub run_test($$$$$) {
   my($name, $dir, $test_file, $data_file, $result_file)=@_;
 
@@ -222,8 +225,6 @@ close(MF);
 print "Entries node is '$entries_node'\n"
   if $debug;
 my $list_node=$entries_node;
-
-use Data::Dumper;
 
 my(@tests);
 while($list_node) {
