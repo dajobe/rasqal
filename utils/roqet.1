@@ -8,7 +8,7 @@
 .\" Institute for Learning and Research Technology - http://www.ilrt.bris.ac.uk/
 .\" University of Bristol - http://www.bristol.ac.uk/
 .\"
-.TH roqet 1 "2004-05-05"
+.TH roqet 1 "2004-10-16"
 .\" Please adjust this date whenever revising the manpage.
 .SH NAME
 roqet \- Rasqal RDF parser utility
@@ -23,15 +23,16 @@ roqet \- Rasqal RDF parser utility
 .br
 .B roqet -q x.rdql http://example.org/base/
 .br
+.B roqet -i sparql http://example.org/query.sparql
+.br
 .SH DESCRIPTION
 The
 .B roqet
 utility allows the querying of RDF content using the
 .B Rasqal
 RDF query library, emitting the results as variable bindings
-(at present).  The \fIquery-URI\fR can only be a file name
-at present; a future version may allow URIs.
-The optional \fIbase-URI\fR is used as the document URI if present.
+(at present).  The query is read from \fIquery-URI\fR and
+the optional \fIbase-URI\fR is used as the base URI if present.
 .SH OPTIONS
 roqet uses the usual GNU command line syntax, with long
 options starting with two dashes (`-') if supported by the
@@ -43,15 +44,30 @@ Show a summary of the options.
 .B \-i, \-\-input LANGUAGE
 Set the input query
 .I LANGUAGE
-to one of the allowed languages, presently just 'rdql' (RDQL,
-default).   The list of
+to one of 'rdql' (RDF Data Query Language, default) and
+'sparql' (SPARQL Query Language for RDF).   The list of
 supported languages is given in the help summary given by \-h.
+.TP
+.B \-o, \-\-output FORMAT
+Set the query result output
+.I FORMAT
+to 'simple' (default) or 'xml' (an experimental XML format)
 .TP
 .B \-c, \-\-count
 Only count the triples and produce no other output.
 .TP
+.B \-d, \-\-dump-query
+Print a debugging dump of the constructed query.
+.TP
 .B \-q, \-\-quiet
 No extra information messages.
+.TP
+.B \-s, \-\-source URI
+Query against RDF data at source
+.I URI
+by adding it to the list of query data source URIs.
+.I FORMAT
+to 'simple' (default) or 'xml' (an experimental XML format)
 .TP
 .B \-v, \-\-version
 Print the rasqal library version and exit.
@@ -60,6 +76,12 @@ Print the rasqal library version and exit.
 HP Labs,
 .UR http://www.hpl.hp.com/semweb/rdql.htm
 http://www.hpl.hp.com/semweb/rdql.htm
+.UE
+\fISPARQL Query Language for RDF\fR,
+Edited by Eric Prud'hommeaux and Andy Seaborne,
+W3C Working Draft, 12 October 2004.  Work in progress.
+.UR http://www.w3.org/TR/2004/WD-rdf-sparql-query-20041012/
+http://www.w3.org/TR/2004/WD-rdf-sparql-query-20041012/
 .UE
 
 .SH SEE ALSO
