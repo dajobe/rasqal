@@ -471,25 +471,59 @@ main(int argc, char *argv[])
   if(output_format == OUTPUT_FORMAT_XML) {
     roqet_query_results_print_as_xml(results, stdout, base_uri);
   } else {
-    while(!rasqal_query_results_finished(results)) {
-      int i;
+    if(rasqal_query_results_is_bindings(results)) {
+      if(!quiet)
+        fprintf(stderr, "%s: Bindings results\n", program);
 
-      fputs("result: [", stdout);
-      for(i=0; i<rasqal_query_results_get_bindings_count(results); i++) {
-        const unsigned char *name=rasqal_query_results_get_binding_name(results, i);
-        rasqal_literal *value=rasqal_query_results_get_binding_value(results, i);
+      while(!rasqal_query_results_finished(results)) {
+        int i;
 
-        if(i>0)
-          fputs(", ", stdout);
-        fprintf(stdout, "%s=", name);
-        if(value)
-          rasqal_literal_print(value, stdout);
-        else
-          fputs("NULL", stdout);
+        fputs("result: [", stdout);
+        for(i=0; i<rasqal_query_results_get_bindings_count(results); i++) {
+          const unsigned char *name=rasqal_query_results_get_binding_name(results, i);
+          rasqal_literal *value=rasqal_query_results_get_binding_value(results, i);
+
+          if(i>0)
+            fputs(", ", stdout);
+          fprintf(stdout, "%s=", name);
+          if(value)
+            rasqal_literal_print(value, stdout);
+          else
+            fputs("NULL", stdout);
+        }
+        fputs("]\n", stdout);
+
+        rasqal_query_results_next(results);
       }
-      fputs("]\n", stdout);
+    } else if (rasqal_query_results_is_boolean(results)) {
+      fprintf(stdout, "%s: Boolean result: %s\n",
+              program,
+              rasqal_query_results_get_boolean(results) ? "true" : "false");
+    }
+    else if (rasqal_query_results_is_graph(results)) {
+      int triple_count=0;
+      
+      if(!quiet)
+        fprintf(stderr, "%s: Graph results\n", program);
+      while(1) {
+        rasqal_triple *t=rasqal_query_results_get_triple(results);
+        if(!t)
+          break;
+        fputs("Triple: ", stdout);
+        rasqal_triple_print(t, stdout);
+        fputs("\n", stdout);
+        triple_count++;
+        
+        if(rasqal_query_results_next_triple(results))
+          break;
+      }
 
-      rasqal_query_results_next(results);
+      if(!quiet)
+        fprintf(stderr, "%s: Returned %d triples\n", program, triple_count);
+    } else {
+      if(!quiet)
+        fprintf(stderr, "%s: Bindings results\n", program);
+
     }
   }
 
