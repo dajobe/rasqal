@@ -17,6 +17,13 @@ README
 TODO
 aclocal.m4
 autom4te.cache
+brql_lexer.c
+brql_lexer.h
+brql_parser.c
+brql_parser.c
+brql_parser.h
+brql_parser.h
+brql_parser.output
 config.cache
 config.guess
 config.log
@@ -40,10 +47,10 @@ rasqal_config.h.in
 rdql_lexer.c
 rdql_lexer.h
 rdql_parser.c
-rdql_parser.h
-rdql_parser.output
 rdql_parser.c
 rdql_parser.h
+rdql_parser.h
+rdql_parser.output
 releases
 roqet
 roqet.html
