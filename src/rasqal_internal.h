@@ -118,8 +118,17 @@ struct rasqal_graph_pattern_s {
   int start_column;
   int end_column;
 
+  /* first graph_pattern in sequence with flags RASQAL_TRIPLE_FLAGS_OPTIONAL */
+  int optional_graph_pattern;
+
   /* enum rasqal_pattern_flags */
   int flags;
+
+  /* used for detecting end of optional graph patterns */
+  int finished;
+
+  /* count of matches for this graph pattern */
+  int matches;
 };
 
 typedef struct rasqal_graph_pattern_s rasqal_graph_pattern;
@@ -260,6 +269,9 @@ struct rasqal_query_s {
 
   /* current position in the sequence */
   int current_graph_pattern;
+
+  /* first graph_pattern in sequence with flags RASQAL_TRIPLE_FLAGS_OPTIONAL */
+  int optional_graph_pattern;
 };
 
 
