@@ -93,8 +93,8 @@ check-local: check-rdql-correct
 
 check-rdql-correct: build-roqet $(srcdir)/check-rdql
 	@set +e; \
-	TOP_SRCDIR=$(top_srcdir) TOP_BUILDDIR=$(top_builddir) \
-	  perl $(srcdir)/check-rdql; \
+	PATH=$(top_builddir):$$PATH \
+	  perl $(srcdir)/check-rdql -s $(srcdir); \
 	result=$$?; \
 	if test $$result != 0 ; then \
 	  echo "Expecting test failures: $(EXPECTED_RDQL_CORRECT_FAILURES)"; \
