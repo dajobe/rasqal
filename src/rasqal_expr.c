@@ -60,6 +60,47 @@ static RASQAL_INLINE int rasqal_expression_as_integer(rasqal_expression* e, int 
 static RASQAL_INLINE int rasqal_expression_compare(rasqal_expression* e1, rasqal_expression* e2, int flags, int *error);
 
 
+
+rasqal_data_graph*
+rasqal_new_data_graph(raptor_uri* uri, raptor_uri* name_uri, int flags)
+{
+  rasqal_data_graph* dg=(rasqal_data_graph*)RASQAL_CALLOC(rasqal_data_graph,
+                                                      sizeof(rasqal_data_graph), 1);
+  dg->uri=raptor_uri_copy(uri);
+  if(name_uri)
+    dg->name_uri=raptor_uri_copy(name_uri);
+  dg->flags=flags;
+
+  return dg;
+}
+
+
+void
+rasqal_free_data_graph(rasqal_data_graph* dg)
+{
+  if(dg->uri)
+    raptor_free_uri(dg->uri);
+  if(dg->name_uri)
+    raptor_free_uri(dg->name_uri);
+  RASQAL_FREE(rasqal_data_graph, dg);
+}
+
+
+void
+rasqal_data_graph_print(rasqal_data_graph* dg, FILE* fh)
+{
+  if(dg->name_uri)
+    fprintf(fh, "data graph(%s named as %s flags %d)", 
+            raptor_uri_as_string(dg->uri),
+            raptor_uri_as_string(dg->name_uri),
+            dg->flags);
+  else
+    fprintf(fh, "data graph(%s, flags %d)", 
+            raptor_uri_as_string(dg->uri), dg->flags);
+}
+
+
+
 /**
  * rasqal_new_variable - Constructor - Create a new Rasqal variable
  * @rq: &rasqal_query to associate the variable with
