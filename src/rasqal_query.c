@@ -228,7 +228,7 @@ rasqal_query_execute(rasqal_query *rdf_query)
   if(rasqal_query_order_triples(rdf_query))
     return 1;
 
-  if(rdf_query->factory->execute(rdf_query))
+  if(rdf_query->factory->execute)
     return rdf_query->factory->execute(rdf_query);
   
   return 1;
@@ -290,8 +290,14 @@ main(int argc, char *argv[])
   char *ql_uri;
   int rc=0;
   raptor_uri *base_uri=NULL;
+  char *p;
   
   program=argv[0];
+  if((p=strrchr(program, '/')))
+    program=p+1;
+  else if((p=strrchr(program, '\\')))
+    program=p+1;
+  argv[0]=program;
   
   if(argc < 3 || argc > 4) {
     fprintf(stderr, "USAGE: %s QUERY-LANGUAGE|- QUERY-URI|- [QUERY-STRING|-]\n", 
