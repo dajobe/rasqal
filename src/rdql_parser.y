@@ -298,17 +298,17 @@ ConstraintClause : AND CommaAndConstraintClause
 
 CommaAndConstraintClause : CommaAndConstraintClause ',' Expression
 {
-  rasqal_query_add_constraint(((rasqal_query*)rq), $3);
+  raptor_sequence_push(((rasqal_query*)rq)->constraints_sequence, $3);
   $$=NULL;
 }
 | CommaAndConstraintClause AND Expression
 {
-  rasqal_query_add_constraint(((rasqal_query*)rq), $3);
+  raptor_sequence_push(((rasqal_query*)rq)->constraints_sequence, $3);
   $$=NULL;
 }
 | Expression
 {
-  rasqal_query_add_constraint(((rasqal_query*)rq), $1);
+  raptor_sequence_push(((rasqal_query*)rq)->constraints_sequence, $1);
   $$=NULL;
 }
 ;
@@ -641,6 +641,9 @@ rasqal_rdql_query_engine_prepare(rasqal_query* rdf_query) {
   
   if(!rdf_query->query_string)
     return 1;
+
+  /* for RDQL only, before the graph pattern is made */
+  rdf_query->constraints_sequence=raptor_new_sequence(NULL, (raptor_sequence_print_handler*)rasqal_expression_print);
   
   rc=rdql_parse(rdf_query, rdf_query->query_string);
   if(rc)
@@ -651,6 +654,20 @@ rasqal_rdql_query_engine_prepare(rasqal_query* rdf_query) {
                                            0, raptor_sequence_size(rdf_query->triples)-1,
                                            0);
   raptor_sequence_push(rdf_query->graph_patterns, gp);
+
+  /* Now assign the constraints to the graph pattern */
+  while(raptor_sequence_size(rdf_query->constraints_sequence)) {
+    rasqal_expression* e=(rasqal_expression*)raptor_sequence_pop(rdf_query->constraints_sequence);
+    rasqal_graph_pattern_add_constraint(gp, e);
+  }
+  raptor_free_sequence(rdf_query->constraints_sequence);
+
+  /* Only now can we handle the prefixes and qnames */
+  if(rasqal_engine_declare_prefixes(rdf_query) ||
+     rasqal_engine_expand_triple_qnames(rdf_query) ||
+     rasqal_engine_expand_query_constraints_qnames(rdf_query))
+    return 1;
+
   return rasqal_engine_prepare(rdf_query);
 }
 
@@ -672,7 +689,7 @@ rdql_parse(rasqal_query* rq, const unsigned char *string) {
   char *buf=NULL;
   size_t len;
   void *buffer;
-
+  
   if(!string || !*string)
     return yy_init_globals(NULL); /* 0 but a way to use yy_init_globals */
 
@@ -720,12 +737,6 @@ rdql_parse(rasqal_query* rq, const unsigned char *string) {
   if(rq->failed)
     return 1;
   
-  /* Only now can we handle the prefixes and qnames */
-  if(rasqal_engine_declare_prefixes(rq) ||
-     rasqal_engine_expand_triple_qnames(rq) ||
-     rasqal_engine_expand_constraints_qnames(rq))
-    return 1;
-
   return 0;
 }
 
@@ -823,6 +834,7 @@ main(int argc, char *argv[])
   FILE *fh;
   int rc;
   char *filename=NULL;
+  raptor_uri* base_uri=NULL;
   unsigned char *uri_string;
 
 #if RASQAL_DEBUG > 2
@@ -853,13 +865,15 @@ main(int argc, char *argv[])
   query=rasqal_new_query("rdql", NULL);
 
   uri_string=raptor_uri_filename_to_uri_string(filename);
-  query->base_uri=raptor_new_uri(uri_string);
-
-  rc=rdql_parse(query, (const unsigned char*)query_string);
+  base_uri=raptor_new_uri(uri_string);
+  
+  rc=rasqal_query_prepare(query, query_string, base_uri);
 
   rasqal_query_print(query, stdout);
 
   rasqal_free_query(query);
+
+  raptor_free_uri(base_uri);
 
   raptor_free_memory(uri_string);
 
