@@ -88,14 +88,17 @@ typedef enum {
 } rasqal_literal_type;
 
 typedef struct {
+  int usage;
   rasqal_literal_type type;
   union {
-    char *string;
-    int integer;
-    float floating;
-    raptor_uri *uri;
+    char *string; /* string, pattern, qname, blank types */
+    int integer;  /* integer and boolean types */
+    float floating; /* floating */
+    raptor_uri *uri; /* uri */
   } value;
-  int usage;
+  char *language; /* string */
+  /* raptor_uri *datatype;  for string MISSING - FIXME */
+  char *flags;   /* pattern */
 } rasqal_literal ;
 
 
@@ -217,7 +220,14 @@ typedef int (*rasqal_expression_foreach_fn)(void *user_data, rasqal_expression *
 RASQAL_API int rasqal_expression_foreach(rasqal_expression* e, rasqal_expression_foreach_fn fn, void *user_data);
 
 /* Literal class */
-RASQAL_API rasqal_literal* rasqal_new_literal(rasqal_literal_type type, int integer, float floating, char *string, raptor_uri *uri);
+rasqal_literal* rasqal_new_integer_literal(rasqal_literal_type type, int integer);
+rasqal_literal* rasqal_new_floating_literal(float floating);
+rasqal_literal* rasqal_new_uri_literal(raptor_uri *uri);
+rasqal_literal* rasqal_new_pattern_literal(char *pattern, char *flags);
+rasqal_literal* rasqal_new_string_literal(char *string, char *language, raptor_uri *datatype);
+rasqal_literal* rasqal_new_simple_literal(rasqal_literal_type type, char *string);
+rasqal_literal* rasqal_new_boolean_literal(int value);
+
 RASQAL_API rasqal_literal* rasqal_new_literal_from_literal(rasqal_literal* l);
 RASQAL_API void rasqal_free_literal(rasqal_literal* l);
 RASQAL_API void rasqal_literal_print(rasqal_literal* literal, FILE* fh);
