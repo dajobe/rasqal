@@ -836,58 +836,34 @@ rasqal_expression_foreach(rasqal_expression* e,
 
 inline int
 rasqal_expression_as_boolean(rasqal_expression* e, int *error) {
-  switch(e->op) {
-    case RASQAL_EXPR_LITERAL:
-      return rasqal_literal_as_boolean(e->literal, error);
-      break;
+  if(e->op == RASQAL_EXPR_LITERAL)
+    return rasqal_literal_as_boolean(e->literal, error);
 
-    default:
-      abort();
-  }
+  abort();
 }
 
 
 int
 rasqal_expression_as_integer(rasqal_expression* e, int *error) {
-  switch(e->op) {
-    case RASQAL_EXPR_LITERAL:
-      return rasqal_literal_as_integer(e->literal, error);
-      break;
+  if(e->op == RASQAL_EXPR_LITERAL)
+    return rasqal_literal_as_integer(e->literal, error);
 
-    default:
-      abort();
-  }
+  abort();
 }
 
 
 int
 rasqal_expression_compare(rasqal_expression* e1, rasqal_expression* e2,
                           int *error) {
-  rasqal_literal *l1, *l2;
   *error=0;
   
   if(e1->op == RASQAL_EXPR_LITERAL && e1->op == e2->op)
     return rasqal_literal_compare(e1->literal, e2->literal, error);
 
-
-  switch(e1->op) {
-    case RASQAL_EXPR_LITERAL:
-      l1=e1->literal;
-      break;
-
-    default:
-      RASQAL_FATAL2("Unexpected e1 op %d\n", e1->op);
-  }
-
-  switch(e2->op) {
-    case RASQAL_EXPR_LITERAL:
-      l2=e2->literal;
-      break;
-    default:
-      RASQAL_FATAL2("Unexpected e2 op %d\n", e2->op);
-  }
-
-  return rasqal_literal_compare(l1, l2, error);
+  if(e1->op !=RASQAL_EXPR_LITERAL)
+    RASQAL_FATAL2("Unexpected e1 op %d\n", e1->op);
+  else
+    RASQAL_FATAL2("Unexpected e2 op %d\n", e2->op);
 }
 
 
