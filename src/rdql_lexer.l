@@ -98,7 +98,7 @@ static void skip_cpp_comment(rasqal_rdql_query_engine *rqe);
 static int skip_c_comment(rasqal_query *rq);
 
 static unsigned char *copy_token(rasqal_query *rq, const unsigned char *text, size_t len);
-static int copy_regex_token(rasqal_query *rq, YYSTYPE* lval, const unsigned char delim);
+static int copy_regex_token(rasqal_query *rq, YYSTYPE* lval, unsigned char delim);
 static int copy_string_token(rasqal_query *rq, YYSTYPE* lval, const unsigned char *text, size_t len, int delim);
 
 #ifdef RASQAL_DEBUG
