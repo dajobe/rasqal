@@ -97,16 +97,10 @@ void rasqal_system_free(void *ptr);
 #define RASQAL_FATAL1(msg) do {fprintf(stderr, "%s:%d:%s: fatal error: " msg, __FILE__, __LINE__ , __func__); abort();} while(0)
 #define RASQAL_FATAL2(msg,arg) do {fprintf(stderr, "%s:%d:%s: fatal error: " msg, __FILE__, __LINE__ , __func__, arg); abort();} while(0)
 
+#define RASQAL_DEPRECATED_MESSAGE(msg) do {fprintf(stderr, "Function %s is deprecated - " msg,  __func__); } while(0)
+
 
 typedef struct rasqal_query_engine_factory_s rasqal_query_engine_factory;
-
-
-/* Extra flags for patterns */
-typedef enum {
-  /* true when the pattern is optional match */
-  RASQAL_PATTERN_FLAGS_OPTIONAL=1,
-  RASQAL_PATTERN_FLAGS_LAST=RASQAL_PATTERN_FLAGS_OPTIONAL
-} rasqal_pattern_flags;
 
 
 /*
@@ -142,15 +136,11 @@ struct rasqal_graph_pattern_s {
   int matches_returned;
 };
 
-typedef struct rasqal_graph_pattern_s rasqal_graph_pattern;
-
-
 rasqal_graph_pattern* rasqal_new_graph_pattern_from_triples(rasqal_query *query, raptor_sequence *triples, int start_column, int end_column, int flags);
 rasqal_graph_pattern* rasqal_new_graph_pattern_from_sequence(rasqal_query *query, raptor_sequence *graph_patterns, int flags);
 void rasqal_free_graph_pattern(rasqal_graph_pattern* pg);
 void rasqal_graph_pattern_init(rasqal_graph_pattern *gp);
 void rasqal_graph_pattern_adjust(rasqal_graph_pattern* gp, int offset);
-void rasqal_graph_pattern_print(rasqal_graph_pattern* gp, FILE* fh);
 
 /*
  * A query in some query language
