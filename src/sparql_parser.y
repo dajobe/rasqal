@@ -572,10 +572,9 @@ URIList : URIList URI_LITERAL
   $$=$1;
   raptor_sequence_push($$, $2);
 }
-| URI_LITERAL
+| /* empty */
 {
   $$=raptor_new_sequence((raptor_sequence_free_handler*)raptor_free_uri, (raptor_sequence_print_handler*)raptor_sequence_print_uri);
-  raptor_sequence_push($$, $1);
 }
 ;
 
