@@ -292,7 +292,12 @@ int rasqal_expression_expand_qname(void *user_data, rasqal_expression *e);
 
 /* rasqal_raptor.c */
 void rasqal_raptor_init(void);
-  
+
+#ifdef RAPTOR_TRIPLES_SOURCE_REDLAND
+/* rasqal_redland.c */
+void rasqal_redland_init(void);
+void rasqal_redland_finish(void);
+#endif  
 
 /* end of RASQAL_INTERNAL */
 #endif
