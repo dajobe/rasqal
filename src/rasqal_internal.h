@@ -87,6 +87,9 @@ struct rasqal_query_s {
   rasqal_sequence *triples;
   rasqal_sequence *constraints;
   rasqal_sequence *prefixes;
+
+  raptor_locator locator;
+  raptor_uri* base_uri;
 };
 
 
