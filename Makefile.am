@@ -62,7 +62,7 @@ MEM=@MEM@
 MEM_LIBS=@MEM_LIBS@
 
 AM_CPPFLAGS=@CPPFLAGS@ @RASQAL_INTERNAL_CPPFLAGS@
-AM_CFLAGS=@CFLAGS@ @REDLAND_CFLAGS@ $(MEM)
+AM_CFLAGS=@CFLAGS@ $(MEM)
 LIBS=@LIBS@ $(MEM_LIBS)
 
 LEX=@LEX@
@@ -102,16 +102,16 @@ pkgconfig_DATA = rasqal.pc
 
 # Actually it needs rdql_parser.h but nevermind
 rdql_lexer_test: $(srcdir)/rdql_lexer.c $(srcdir)/rdql_parser.tab.c
-	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE $(srcdir)/rdql_lexer.c librasqal.la @REDLAND_LIBS@
+	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE $(srcdir)/rdql_lexer.c librasqal.la
 
 rdql_parser_test: $(srcdir)/rdql_parser.tab.c librasqal.la
-	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE $(srcdir)/rdql_parser.tab.c librasqal.la librasqal.la @REDLAND_LIBS@
+	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE $(srcdir)/rdql_parser.tab.c librasqal.la librasqal.la
 
 rasqal_query_test: $(srcdir)/rasqal_query.c librasqal.la
-	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE $(srcdir)/rasqal_query.c librasqal.la librasqal.la @REDLAND_LIBS@
+	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE $(srcdir)/rasqal_query.c librasqal.la librasqal.la
 
 rasqal_sequence_test: $(srcdir)/rasqal_sequence.c
-	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE $(srcdir)/rasqal_sequence.c librasqal.la @REDLAND_LIBS@
+	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE $(srcdir)/rasqal_sequence.c librasqal.la
 
 
 

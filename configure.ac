@@ -20,7 +20,7 @@ dnl full license terms.
 dnl 
 
 
-AC_INIT(Rasqal RDF Query Library, 1.1, redland-dev@lists.librdf.org, rasqal)
+AC_INIT(Rasqal RDF Query Library, 1.0.1, redland-dev@lists.librdf.org, rasqal)
 AC_PREREQ(2.50)
 AC_CONFIG_SRCDIR(rdql_parser.y)
 AC_REVISION($Revision$)
@@ -152,20 +152,6 @@ AC_SUBST(RASQAL_LIBTOOL_VERSION)
 #    AC_DEFINE(HAVE_C99_VSNPRINTF, 1, [vsnprint has C99 compatible return value])
 #    AC_MSG_RESULT(yes))
 #fi
-
-
-AC_MSG_CHECKING(for redland sources in parent directory)
-if test -d $srcdir/../librdf -a -r $srcdir/../librdf/rdf_node.c ; then
-  have_redland=1
-  AC_MSG_RESULT(yes)
-  AC_DEFINE(RASQAL_IN_REDLAND, 1, [is this being built inside redland?])
-  REDLAND_LIBS="\$(top_builddir)/../librdf/librdf.la\$(top_builddir)/../raptor/libraptor.la "
-  REDLAND_CFLAGS=" -I\$(srcdir)/../librdf -I\$(srcdir)/../raptor"
-  AC_SUBST(REDLAND_LIBS)
-  AC_SUBST(REDLAND_CFLAGS)
-else
-  AC_MSG_RESULT(no)
-fi
 
 
 AC_CHECK_PROG(RAPTOR_CONFIG, raptor-config, raptor-config)
