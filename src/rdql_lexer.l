@@ -91,12 +91,12 @@
 
 
 
-static void skip_cpp_comment(rdql_parser *rp);
-static int skip_c_comment(rdql_parser *rp);
+static void skip_cpp_comment(rasqal_rdql_query_engine *rqe);
+static int skip_c_comment(rasqal_query *rq);
 
-static unsigned char *copy_token(rdql_parser *rp, unsigned char *text, size_t len);
-static int copy_regex_token(rdql_parser *rp, unsigned char delim);
-static int copy_string_token(rdql_parser *rp, unsigned char *text, size_t len, int delim);
+static unsigned char *copy_token(rasqal_query *rq, unsigned char *text, size_t len);
+static int copy_regex_token(rasqal_query *rq, unsigned char delim);
+static int copy_string_token(rasqal_query *rq, unsigned char *text, size_t len, int delim);
 
 #ifdef RASQAL_DEBUG
 const char * rdql_token_print(int token, YYSTYPE *lval);
@@ -127,14 +127,15 @@ QUOTEDURI \<[A-Za-z][^>]+\>
   /* rules */
 
   int c;
-  rdql_parser *rp=(rdql_parser*)yyextra;
+  rasqal_query *rq=(rasqal_query*)yyextra;
+  rasqal_rdql_query_engine *rqe=(rasqal_rdql_query_engine*)rq->context;
 
 
 "//"	{ /* C++ comment */
-    skip_cpp_comment(rp);
+    skip_cpp_comment(rqe);
 }
 
-"/*"	{ if(skip_c_comment(rp)<0)
+"/*"	{ if(skip_c_comment(rq)<0)
             return ERROR; 
         }
 
@@ -171,7 +172,7 @@ QUOTEDURI \<[A-Za-z][^>]+\>
 }
 
 <PATTERN>. { /* first non whitespace */
-             copy_regex_token(rp, *yytext);
+             copy_regex_token(rq, *yytext);
              BEGIN(INITIAL);
              return PATTERN_LITERAL;
          };
@@ -212,11 +213,11 @@ QUOTEDURI \<[A-Za-z][^>]+\>
 }
 
 '([^'\\\n\r]|\\[^\n\r])*'(@{LANGUAGETOKEN})?(^^({QUOTEDURI}|{QNAME}))?    { /*' */
-                               copy_string_token(rp, yytext+1, yyleng-2, '\"');
+                               copy_string_token(rq, yytext+1, yyleng-2, '\"');
                                return STRING_LITERAL; }
 
 \"([^"\\\n\r]|\\[^\n\r])*\"(@{LANGUAGETOKEN})?(^^({QUOTEDURI}|{QNAME}))?   { /* " */
-                                copy_string_token(rp, yytext+1, yyleng-2, '"');
+                                copy_string_token(rq, yytext+1, yyleng-2, '"');
                                 return STRING_LITERAL; }
 
 "true"|"false"	{ rdql_parser_lval->integer=(*yytext == 't');
@@ -225,18 +226,18 @@ QUOTEDURI \<[A-Za-z][^>]+\>
 "null"	{ rdql_parser_lval->integer=0;
           return NULL_LITERAL; }
 
-<*>{NAME}	{ rdql_parser_lval->string=copy_token(rp, yytext, yyleng);
+<*>{NAME}	{ rdql_parser_lval->string=copy_token(rq, yytext, yyleng);
                           BEGIN(INITIAL);
                           return IDENTIFIER; }
 
-{QNAME}	{ rdql_parser_lval->string=copy_token(rp, yytext, yyleng);
+{QNAME}	{ rdql_parser_lval->string=copy_token(rq, yytext, yyleng);
                           return QNAME_LITERAL; }
 
 {QUOTEDURI}   { if(yyleng == 2) 
-                  rdql_parser_lval->uri=raptor_uri_copy(rp->base_uri);
+                  rdql_parser_lval->uri=raptor_uri_copy(rq->base_uri);
                 else {
                   yytext[yyleng-1]='\0';
-                  rdql_parser_lval->uri=raptor_new_uri_relative_to_base(rp->base_uri, (const unsigned char*)yytext+1);
+                  rdql_parser_lval->uri=raptor_new_uri_relative_to_base(rq->base_uri, (const unsigned char*)yytext+1);
                  }
                  return URI_LITERAL; }
 
@@ -247,7 +248,7 @@ QUOTEDURI \<[A-Za-z][^>]+\>
 .         	{ if (*yytext == EOF)
                     return EOF;
 
-                  rdql_syntax_error(rp, "syntax error at '%c'", *yytext);
+                  rdql_syntax_error(rq, "syntax error at '%c'", *yytext);
                   return ERROR;
 		}
 
@@ -261,7 +262,7 @@ yywrap (yyscan_t yyscanner) {
 
 
 static unsigned char *
-copy_token(rdql_parser *rp, unsigned char *text, size_t len) {
+copy_token(rasqal_query *rq, unsigned char *text, size_t len) {
   unsigned char *s;
   if(!len)
     len=strlen(text);
@@ -274,9 +275,10 @@ copy_token(rdql_parser *rp, unsigned char *text, size_t len) {
 
 
 static int
-copy_regex_token(rdql_parser* rp, unsigned char delim) {
-  YYSTYPE* lval=&rp->lval;
-  yyscan_t yyscanner=rp->scanner;
+copy_regex_token(rasqal_query* rq, unsigned char delim) {
+  rasqal_rdql_query_engine *rqe=(rasqal_rdql_query_engine*)rq->context;
+  YYSTYPE* lval=&rqe->lval;
+  yyscan_t yyscanner=rqe->scanner;
   int ind=0;
   size_t buffer_len=0;
   unsigned char *buffer=NULL;
@@ -343,8 +345,9 @@ copy_regex_token(rdql_parser* rp, unsigned char delim) {
 
 
 static int
-copy_string_token(rdql_parser* rp, unsigned char *text, size_t len, int delim) {
-  YYSTYPE* lval=&rp->lval;
+copy_string_token(rasqal_query* rq, unsigned char *text, size_t len, int delim) {
+  rasqal_rdql_query_engine *rqe=(rasqal_rdql_query_engine*)rq->context;
+  YYSTYPE* lval=&rqe->lval;
   int i;
   unsigned char *s, *d;
   unsigned char *string=(unsigned char *)malloc(len+1);
@@ -381,7 +384,7 @@ copy_string_token(rdql_parser* rp, unsigned char *text, size_t len, int delim) {
         i+= ulen-1;
         
         if(unichar < 0 || unichar > 0x10ffff) {
-          rdql_syntax_error(rp, "Illegal Unicode character with code point #x%lX.", unichar);
+          rdql_syntax_error(rq, "Illegal Unicode character with code point #x%lX.", unichar);
           free(string);
           return 1;
         }
@@ -394,7 +397,7 @@ copy_string_token(rdql_parser* rp, unsigned char *text, size_t len, int delim) {
 
       } else {
         /* Ignore \x where x isn't the one of: \n \r \t \\ (delim) \u \U */
-        rdql_syntax_warning(rp, "Unknown string escape \\%c in \"%s\"", c, text);
+        rdql_syntax_warning(rq, "Unknown string escape \\%c in \"%s\"", c, text);
         *d++=c;
       }
     } else if(c== delim) {
@@ -436,8 +439,9 @@ copy_string_token(rdql_parser* rp, unsigned char *text, size_t len, int delim) {
 
 
 static int
-skip_c_comment(rdql_parser *rp) {
-  yyscan_t yyscanner=rp->scanner;
+skip_c_comment(rasqal_query *rq) {
+  rasqal_rdql_query_engine *rqe=(rasqal_rdql_query_engine*)rq->context;
+  yyscan_t yyscanner=rqe->scanner;
   int lines=0;
   int c;
   
@@ -456,7 +460,7 @@ skip_c_comment(rdql_parser *rp) {
         break;
     }
     if (c == EOF) {
-      rdql_syntax_error(rp, "EOF in comment");
+      rdql_syntax_error(rq, "EOF in comment");
       lines= -1;
       break;
     }
@@ -466,8 +470,8 @@ skip_c_comment(rdql_parser *rp) {
 
 
 static void
-skip_cpp_comment(rdql_parser *rp) {
-  yyscan_t yyscanner=rp->scanner;
+skip_cpp_comment(rasqal_rdql_query_engine *rqe) {
+  yyscan_t yyscanner=rqe->scanner;
   int c;
   
   while ((c=input(yyscanner)) != EOF)
@@ -625,12 +629,12 @@ rdql_token_print(int token, YYSTYPE *lval)
 
 
 
-#ifdef STANDALONE
+#if 0
 static void
 rdql_lexer_simple_error(void *context, const char *message, ...)
 {
-  rdql_parser* rp=(rdql_parser*)context;
-  yyscan_t yyscanner=rp->scanner;
+  rasqal_rdql_query_engine *rqe=(rasqal_rdql_query_engine*)rq->context;
+  yyscan_t yyscanner=rqe->scanner;
   va_list arguments;
 
   fprintf(stderr, "%s:%d: ", rp->uri_string, rdql_lexer_get_lineno(yyscanner));
@@ -643,9 +647,10 @@ rdql_lexer_simple_error(void *context, const char *message, ...)
 }
 
 int
-rdql_syntax_error(rdql_parser *rp, const char *message, ...)
+rdql_syntax_error(rasqal_query *rq, const char *message, ...)
 {
-  yyscan_t yyscanner=rp->scanner;
+  rasqal_rdql_query_engine *rqe=(rasqal_rdql_query_engine*)rq->context;
+  yyscan_t yyscanner=rqe->scanner;
   va_list arguments;
 
   fprintf(stderr, "%s:%d: ", rp->uri_string, rdql_lexer_get_lineno(yyscanner));
@@ -660,9 +665,10 @@ rdql_syntax_error(rdql_parser *rp, const char *message, ...)
 }
 
 int
-rdql_syntax_warning(rdql_parser *rp, const char *message, ...)
+rdql_syntax_warning(rasqal_query *rq, const char *message, ...)
 {
-  yyscan_t yyscanner=rp->scanner;
+  rasqal_rdql_query_engine *rqe=(rasqal_rdql_query_engine*)rq->context;
+  yyscan_t yyscanner=rqe->scanner;
   va_list arguments;
 
   fprintf(stderr, "%s:%d: Warning: ", rp->uri_string, rdql_lexer_get_lineno(yyscanner));
@@ -675,7 +681,10 @@ rdql_syntax_warning(rdql_parser *rp, const char *message, ...)
 
   return 0;
 }
+#endif
 
+
+#ifdef STANDALONE
 static void
 rdql_token_free(int token, YYSTYPE *lval)
 {
@@ -698,22 +707,16 @@ rdql_token_free(int token, YYSTYPE *lval)
 int
 main(int argc, char *argv[]) 
 {
-  rdql_parser rp;
-  char *filename=NULL;
+  rasqal_query rq;
+  rasqal_rdql_query_engine rdql;
+  yyscan_t scanner;
   int token=EOF;
   FILE *fh;
   YYSTYPE *lval;
-  yyscan_t scanner;
-#ifdef RASQAL_IN_REDLAND
-  librdf_world *world;
-#endif
+  const char *uri_string;
+  char *filename=NULL;
 
-#ifdef RASQAL_IN_REDLAND
-  world=librdf_new_world();
-  librdf_world_open(world);
-#else
-  raptor_init();
-#endif
+  rasqal_init();
   
   if(argc > 1) {
     filename=argv[1];
@@ -728,19 +731,29 @@ main(int argc, char *argv[])
     fh=stdin;
   }
 
-  memset(&rp, 0, sizeof(rdql_parser));
+  memset(&rq, 0, sizeof(rasqal_query));
+  memset(&rdql, 0, sizeof(rasqal_rdql_query_engine));
 
-  lval=&rp.lval;
-  
-  yylex_init(&rp.scanner);
-  scanner=rp.scanner;
+  yylex_init(&rdql.scanner);
+  scanner=rdql.scanner;
   rdql_lexer_set_in(fh, scanner);
-  rdql_lexer_set_extra(&rp, scanner);
+  rdql_lexer_set_extra(&rq, scanner);
 
-  rp.uri_string=raptor_uri_filename_to_uri_string(filename);
-  rp.base_uri=raptor_new_uri(rp.uri_string);
+  /* Initialise enough of the parser and locator to get error messages */
+  rq.context=&rdql;
+  rdql.scanner=&scanner;
+  rq.locator.file=filename;
+  rq.locator.column= -1;
+
+  uri_string=raptor_uri_filename_to_uri_string(filename);
+  rq.base_uri=raptor_new_uri(uri_string);
+#if defined (RAPTOR_DEBUG) && defined(HAVE_DMALLOC_H)
+#undef free
+#endif
+  free((void*)uri_string);
 
   while(1) {
+    memset(&lval, 0, sizeof(YYSTYPE));
     if(rdql_lexer_get_text(scanner) != NULL)
       printf("yyinput '%s'\n", rdql_lexer_get_text(scanner));
     token=yylex(lval, scanner);
@@ -758,17 +771,9 @@ main(int argc, char *argv[])
   
   yylex_destroy(scanner);
 
-#if defined (RASQAL_DEBUG) && defined(HAVE_DMALLOC_H) && defined(RASQAL_MEMORY_DEBUG_DMALLOC)
-#undef free
-#endif
-  free((char*)rp.uri_string);
+  raptor_free_uri(rq.base_uri);
 
-#ifdef RASQAL_IN_REDLAND
-  librdf_free_world(world);
-#else
-  raptor_finish();
-#endif
-
+  rasqal_finish();
 
   if(token==ERROR)
     return 1;

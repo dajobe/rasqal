@@ -39,14 +39,13 @@
 
 
 /* prototypes for helper functions */
-static void rasqal_delete_qengine_factories(void);
-static rasqal_qengine_factory* rasqal_get_qengine_factory(const char *name);
+static void rasqal_delete_query_engine_factories(void);
 
 
 /* statics */
 
 /* list of query factories */
-static rasqal_qengine_factory* qengines=NULL;
+static rasqal_query_engine_factory* query_engines=NULL;
 
 const char * const rasqal_short_copyright_string = "Copyright (C) 2004 David Beckett, ILRT, University of Bristol";
 
@@ -72,10 +71,10 @@ const unsigned int rasqal_version_decimal = RASQAL_VERSION_DECIMAL;
 void
 rasqal_init(void) 
 {
-  if(qengines)
+  if(query_engines)
     return;
 
-  rasqal_init_qengine_rdql();
+  rasqal_init_query_engine_rdql();
 }
 
 
@@ -87,7 +86,7 @@ rasqal_init(void)
 void
 rasqal_finish(void) 
 {
-  rasqal_delete_qengine_factories();
+  rasqal_delete_query_engine_factories();
 }
 
 
@@ -95,36 +94,36 @@ rasqal_finish(void)
 
 
 /*
- * rasqal_delete_qengine_factories - helper function to delete all the registered query engine factories
+ * rasqal_delete_query_engine_factories - helper function to delete all the registered query engine factories
  */
 static void
-rasqal_delete_qengine_factories(void)
+rasqal_delete_query_engine_factories(void)
 {
-  rasqal_qengine_factory *factory, *next;
+  rasqal_query_engine_factory *factory, *next;
   
-  for(factory=qengines; factory; factory=next) {
+  for(factory=query_engines; factory; factory=next) {
     next=factory->next;
 
     if(factory->finish_factory)
       factory->finish_factory(factory);
 
-    RASQAL_FREE(rasqal_qengine_factory, factory->name);
-    RASQAL_FREE(rasqal_qengine_factory, factory->label);
+    RASQAL_FREE(rasqal_query_engine_factory, factory->name);
+    RASQAL_FREE(rasqal_query_engine_factory, factory->label);
     if(factory->alias)
-      RASQAL_FREE(rasqal_qengine_factory, factory->alias);
+      RASQAL_FREE(rasqal_query_engine_factory, factory->alias);
     if(factory->uri_string)
-      RASQAL_FREE(rasqal_qengine_factory, factory->uri_string);
+      RASQAL_FREE(rasqal_query_engine_factory, factory->uri_string);
 
-    RASQAL_FREE(rasqal_qengine_factory, factory);
+    RASQAL_FREE(rasqal_query_engine_factory, factory);
   }
-  qengines=NULL;
+  query_engines=NULL;
 }
 
 
 /* class methods */
 
 /*
- * rasqal_query_register_factory - Register a syntax handled by a query factory
+ * rasqal_query_engine_register_factory - Register a syntax handled by a query factory
  * @name: the short syntax name
  * @label: readable label for syntax
  * @uri_string: URI string of the syntax (or NULL)
@@ -134,12 +133,12 @@ rasqal_delete_qengine_factories(void)
  *
  **/
 void
-rasqal_query_register_factory(const char *name, const char *label,
-                               const char *alias,
-                               const unsigned char *uri_string,
-                               void (*factory) (rasqal_qengine_factory*)) 
+rasqal_query_engine_register_factory(const char *name, const char *label,
+                                     const char *alias,
+                                     const unsigned char *uri_string,
+                                     void (*factory) (rasqal_query_engine_factory*)) 
 {
-  rasqal_qengine_factory *query, *h;
+  rasqal_query_engine_factory *query, *h;
   char *name_copy, *label_copy, *alias_copy;
   unsigned char *uri_string_copy;
   
@@ -150,12 +149,12 @@ rasqal_query_register_factory(const char *name, const char *label,
                 "URI %s\n", (uri_string ? uri_string : "none"));
 #endif
   
-  query=(rasqal_qengine_factory*)RASQAL_CALLOC(rasqal_qengine_factory, 1,
-                                               sizeof(rasqal_qengine_factory));
+  query=(rasqal_query_engine_factory*)RASQAL_CALLOC(rasqal_query_engine_factory, 1,
+                                                    sizeof(rasqal_query_engine_factory));
   if(!query)
     RASQAL_FATAL1("Out of memory\n");
 
-  for(h = qengines; h; h = h->next ) {
+  for(h = query_engines; h; h = h->next ) {
     if(!strcmp(h->name, name) ||
        (alias && !strcmp(h->name, alias))) {
       RASQAL_FATAL2("query %s already registered\n", h->name);
@@ -205,33 +204,35 @@ rasqal_query_register_factory(const char *name, const char *label,
   RASQAL_DEBUG3("%s has context size %d\n", name, query->context_length);
 #endif
   
-  query->next = qengines;
-  qengines = query;
+  query->next = query_engines;
+  query_engines = query;
 }
 
 
 /**
- * rasqal_get_qengine_factory - Get a query factory by name
+ * rasqal_get_query_engine_factory - Get a query factory by name
  * @name: the factory name or NULL for the default factory
  * 
  * Return value: the factory object or NULL if there is no such factory
  **/
-static rasqal_qengine_factory*
-rasqal_get_qengine_factory (const char *name) 
+rasqal_query_engine_factory*
+rasqal_get_query_engine_factory (const char *name, const unsigned char *uri)
 {
-  rasqal_qengine_factory *factory;
+  rasqal_query_engine_factory *factory;
 
   /* return 1st query if no particular one wanted - why? */
-  if(!name) {
-    factory=qengines;
+  if(!name && !uri) {
+    factory=query_engines;
     if(!factory) {
-      RASQAL_DEBUG1("No (default) qengines registered\n");
+      RASQAL_DEBUG1("No (default) query_engines registered\n");
       return NULL;
     }
   } else {
-    for(factory=qengines; factory; factory=factory->next) {
-      if(!strcmp(factory->name, name) ||
+    for(factory=query_engines; factory; factory=factory->next) {
+      if((name && !strcmp(factory->name, name)) ||
          (factory->alias && !strcmp(factory->alias, name)))
+        break;
+      if(uri && !strcmp(factory->uri_string, uri))
         break;
     }
     /* else FACTORY name not found */
@@ -260,7 +261,7 @@ rasqal_languages_enumerate(const unsigned int counter,
                            const unsigned char **uri_string)
 {
   unsigned int i;
-  rasqal_qengine_factory *factory=qengines;
+  rasqal_query_engine_factory *factory=query_engines;
 
   if(!factory || counter < 0)
     return 1;
@@ -289,136 +290,7 @@ rasqal_languages_enumerate(const unsigned int counter,
  */
 int
 rasqal_language_name_check(const char *name) {
-  return (rasqal_get_qengine_factory(name) != NULL);
-}
-
-
-/**
- * rasqal_get_name: Return the short name for the query
- * @query: &rasqal_query query object
- **/
-const char*
-rasqal_get_name(rasqal_query *rdf_query) 
-{
-  return rdf_query->factory->name;
-}
-
-
-/**
- * rasqal_get_label: Return a readable label for the query
- * @query: &rasqal_query query object
- **/
-const char*
-rasqal_get_label(rasqal_query *rdf_query) 
-{
-  return rdf_query->factory->label;
-}
-
-
-/*
- * rasqal_new_query - Constructor - create a new rasqal_query object
- * @name: the query name
- *
- * Return value: a new &rasqal_query object or NULL on failure
- */
-rasqal_query*
-rasqal_new_query(const char *name) {
-  rasqal_qengine_factory* factory;
-  rasqal_query* rdf_query;
-
-  factory=rasqal_get_qengine_factory(name);
-  if(!factory)
-    return NULL;
-
-  rdf_query=(rasqal_query*)RASQAL_CALLOC(rasqal_query, 1, 
-                                         sizeof(rasqal_query));
-  if(!rdf_query)
-    return NULL;
-  
-  rdf_query->context=(char*)RASQAL_CALLOC(rasqal_query_context, 1,
-                                          factory->context_length);
-  if(!rdf_query->context) {
-    rasqal_free_query(rdf_query);
-    return NULL;
-  }
-  
-  rdf_query->factory=factory;
-
-  rdf_query->failed=0;
-
-  if(factory->init(rdf_query, name)) {
-    rasqal_free_query(rdf_query);
-    return NULL;
-  }
-  
-  return rdf_query;
-}
-
-
-
-/**
- * rasqal_start_parse: Start a parse of content with base URI
- * @rdf_query: 
- * @uri: base URI or NULL if no base URI is required
- * 
- * Only the N-Triples query has an optional base URI.
- * 
- * Return value: non-0 on failure.
- **/
-int
-rasqal_start_parse(rasqal_query *rdf_query, rasqal_uri *uri) 
-{
-  if(uri)
-    uri=rasqal_uri_copy(uri);
-  
-  if(rdf_query->base_uri)
-    rasqal_free_uri(rdf_query->base_uri);
-
-  rdf_query->base_uri=uri;
-  rdf_query->locator.uri=uri;
-  rdf_query->locator.line= rdf_query->locator.column = 0;
-
-  return rdf_query->factory->start(rdf_query);
-}
-
-
-
-
-/**
- * rasqal_free_query - Destructor - destroy a rasqal_query object
- * @query: &rasqal_query object
- * 
- **/
-void
-rasqal_free_query(rasqal_query* rdf_query) 
-{
-  if(rdf_query->factory)
-    rdf_query->factory->terminate(rdf_query);
-
-  if(rdf_query->context)
-    RASQAL_FREE(rasqal_query_context, rdf_query->context);
-
-  if(rdf_query->base_uri)
-    rasqal_free_uri(rdf_query->base_uri);
-
-  RASQAL_FREE(rasqal_query, rdf_query);
-}
-
-
-
-/*
- * rasqal_query_fatal_error - Fatal Error from a query - Internal
- **/
-void
-rasqal_query_fatal_error(rasqal_query* query, const char *message, ...)
-{
-  va_list arguments;
-
-  va_start(arguments, message);
-
-  rasqal_query_fatal_error_varargs(query, message, arguments);
-  
-  va_end(arguments);
+  return (rasqal_get_query_engine_factory(name, NULL) != NULL);
 }
 
 
@@ -477,6 +349,22 @@ rasqal_vsnprintf(const char *message, va_list arguments)
 #endif
 
   return buffer;
+}
+
+
+/*
+ * rasqal_query_fatal_error - Fatal Error from a query - Internal
+ **/
+void
+rasqal_query_fatal_error(rasqal_query* query, const char *message, ...)
+{
+  va_list arguments;
+
+  va_start(arguments, message);
+
+  rasqal_query_fatal_error_varargs(query, message, arguments);
+  
+  va_end(arguments);
 }
 
 

@@ -56,9 +56,6 @@
 /* the lexer does not seem to track this */
 #undef RASQAL_RDQL_USE_ERROR_COLUMNS
 
-/* Prototypes */ 
-int rdql_query_error(rdql_parser *rp, const char *msg);
-
 /* Missing rdql_lexer.c/h prototypes */
 int rdql_lexer_get_column(yyscan_t yyscanner);
 /* Not used here */
@@ -67,20 +64,23 @@ int rdql_lexer_get_column(yyscan_t yyscanner);
 
 /* What the lexer wants */
 extern int rdql_lexer_lex (YYSTYPE *rdql_parser_lval, yyscan_t scanner);
-#define YYLEX_PARAM ((rdql_parser*)rp)->scanner
+#define YYLEX_PARAM ((rasqal_rdql_query_engine*)(((rasqal_query*)rq)->context))->scanner
 
 /* Pure parser argument (a void*) */
-#define YYPARSE_PARAM rp
+#define YYPARSE_PARAM rq
 
 /* Make the yyerror below use the rdf_parser */
 #undef yyerror
-#define yyerror(message) rdql_query_error(rp, message)
+#define yyerror(message) rdql_query_error((rasqal_query*)rq, message)
 
 /* Make lex/yacc interface as small as possible */
 #undef yylex
 #define yylex rdql_lexer_lex
 
- 
+
+static int rdql_parse(rasqal_query* rq, const char *string);
+static int rdql_query_error(rasqal_query* rq, const char *message);
+
 %}
 
 
@@ -174,11 +174,11 @@ Document : Query
 
 Query : SELECT SelectClause SourceClause WHERE TriplePatternList ConstraintClause UsingClause
 {
-  ((rdql_parser*)rp)->query->selects=$2;
-  ((rdql_parser*)rp)->query->sources=$3;
-  ((rdql_parser*)rp)->query->triples=$5;
-  ((rdql_parser*)rp)->query->constraints=$6;
-  ((rdql_parser*)rp)->query->prefixes=$7;
+  ((rasqal_query*)rq)->selects=$2;
+  ((rasqal_query*)rq)->sources=$3;
+  ((rasqal_query*)rq)->triples=$5;
+  ((rasqal_query*)rq)->constraints=$6;
+  ((rasqal_query*)rq)->prefixes=$7;
 }
 ;
 
@@ -590,132 +590,158 @@ URIList : URI_LITERAL COMMA URIList
 static int yy_init_globals (yyscan_t yyscanner ) { return 0; };
 
 
-static void
-rdql_parser_simple_error(void *parser, const char *message, ...)
-{
-  rdql_query_error((rdql_parser*)parser, message);
-}
-
-
 
 /**
- * rasqal_rdql_qengine_init - Initialise the rasqal RDQL query engine
+ * rasqal_rdql_query_engine_init - Initialise the RDQL query engine
  *
  * Return value: non 0 on failure
  **/
 static int
-rasqal_rdql_qengine_init(rasqal_query* rdf_query, const char *name) {
-  rasqal_rdql_qengine* rdql_parser=(rasqal_rdql_qengine*)rdf_parser->context;
+rasqal_rdql_query_engine_init(rasqal_query* rdf_query, const char *name) {
+  rasqal_rdql_query_engine* rdql=(rasqal_rdql_query_engine*)rdf_query->context;
   raptor_uri_handler *uri_handler;
   void *uri_context;
 
   raptor_uri_get_handler(&uri_handler, &uri_context);
 
-  rdql_parser->namespaces=raptor_new_namespaces(uri_handler, uri_context,
-                                                rasqal_query_simple_error,
-                                                rdf_query,
-                                                0);
+  rdql->namespaces=raptor_new_namespaces(uri_handler, uri_context,
+                                         rasqal_query_simple_error,
+                                         rdf_query,
+                                         0);
 
   return 0;
 }
 
-int
-rdql_parse(rasqal_query* rq,
-           const unsigned char *uri_string, 
-           const char *string, size_t len) {
-  rasqal_rdql_qengine rp;
-  void *buffer;
-  raptor_uri_handler *uri_handler;
-  void *uri_context;
+
+/**
+ * rasqal_rdql_query_engine_terminate - Free the RDQL query engine
+ *
+ * Return value: non 0 on failure
+ **/
+static void
+rasqal_rdql_query_engine_terminate(rasqal_query* rdf_query) {
+  rasqal_rdql_query_engine* rdql=(rasqal_rdql_query_engine*)rdf_query->context;
+
+  raptor_free_namespaces(rdql->namespaces);
+
+}
+
+
+static int
+rasqal_rdql_query_engine_prepare(rasqal_query* rdf_query) {
+  /* rasqal_rdql_query_engine* rdql=(rasqal_rdql_query_engine*)rdf_query->context; */
+
+  return rdql_parse(rdf_query, rdf_query->query_string);
+}
+
+
+static int
+rasqal_rdql_query_engine_execute(rasqal_query* rdf_query) 
+{
+  rasqal_rdql_query_engine* rdql=(rasqal_rdql_query_engine*)rdf_query->context;
   
+  return (rdql != rdql);
+}
+
+
+static int
+rdql_parse(rasqal_query* rq, const char *string) {
+  rasqal_rdql_query_engine* rqe=(rasqal_rdql_query_engine*)rq->context;
+  void *buffer;
+
   if(!string || !*string)
     return yy_init_globals(NULL); /* 0 but a way to use yy_init_globals */
 
-  memset(&rp, 0, sizeof(rasqal_rdql_qengine));
+  rdql_lexer_lex_init(rqe->scanner);
 
-  rp.query=rq;
-  rp.uri_string=uri_string;
-  rp.base_uri=raptor_new_uri(rp.uri_string);
+  rdql_lexer_set_extra(((rasqal_query*)rq), rqe->scanner);
+  buffer= rdql_lexer__scan_string(string, rqe->scanner);
 
-  raptor_uri_get_handler(&uri_handler, &uri_context);
+  rdql_parser_parse(rq);
 
-  rp.namespaces=raptor_new_namespaces(uri_handler, uri_context,
-                                      rdql_parser_simple_error,
-                                      &rp, 
-                                      0);
-  
-  rdql_lexer_lex_init(&rp.scanner);
-
-  rdql_lexer_set_extra(&rp, rp.scanner);
-  buffer= rdql_lexer__scan_bytes(string, len, rp.scanner);
-
-  rdql_parser_parse(&rp);
-
-  raptor_free_uri(rp.base_uri);
-  raptor_free_namespaces(rp.namespaces);
-
-  return rp.errors;
+  return 0;
 }
 
 
 int
-rdql_query_error(rdql_parser* rp, const char *msg) {
-  yyscan_t yyscanner=rp->scanner;
+rdql_query_error(rasqal_query *rq, const char *msg) {
+  rasqal_rdql_query_engine* rqe=(rasqal_rdql_query_engine*)rq->context;
+  yyscan_t yyscanner=rqe->scanner;
 
-  rp->line=rdql_lexer_get_lineno(yyscanner);
+  rq->locator.line=rdql_lexer_get_lineno(yyscanner);
 #ifdef RASQAL_RDQL_USE_ERROR_COLUMNS
-  /*  rp->column=rdql_lexer_get_column(yyscanner);*/
+  /*  rq->locator.column=rdql_lexer_get_column(yyscanner);*/
 #endif
 
-  fprintf(stderr, "(rdql_query_error) %s:%d: %s\n", rp->uri_string, rp->line, msg);
+  rasqal_query_error(rq, msg);
 
-  rp->errors++;
-  return (0);
+  return 0;
 }
 
 
 int
-rdql_syntax_error(rdql_parser *rp, const char *message, ...)
+rdql_syntax_error(rasqal_query *rq, const char *message, ...)
 {
-  yyscan_t yyscanner=rp->scanner;
+  rasqal_rdql_query_engine *rqe=(rasqal_rdql_query_engine*)rq->context;
+  yyscan_t yyscanner=rqe->scanner;
   va_list arguments;
 
-  rp->line=rdql_lexer_get_lineno(yyscanner);
+  rq->locator.line=rdql_lexer_get_lineno(yyscanner);
 #ifdef RASQAL_RDQL_USE_ERROR_COLUMNS
-  /*  rp->column=rdql_lexer_get_column(yyscanner);*/
+  /*  rp->locator.column=rdql_lexer_get_column(yyscanner);*/
 #endif
 
-  fprintf(stderr, "(rdql_syntax_error) %s:%d:", rp->uri_string, rp->line);
   va_start(arguments, message);
-  vfprintf(stderr, message, arguments);
+  rasqal_query_error_varargs(rq, message, arguments);
   va_end(arguments);
-  fputc('\n', stderr);
 
-  rp->errors++;
-  return (0);
+   return (0);
 }
 
 
 int
-rdql_syntax_warning(rdql_parser *rp, const char *message, ...)
+rdql_syntax_warning(rasqal_query *rq, const char *message, ...)
 {
-  yyscan_t yyscanner=rp->scanner;
+  rasqal_rdql_query_engine *rqe=(rasqal_rdql_query_engine*)rq->context;
+  yyscan_t yyscanner=rqe->scanner;
   va_list arguments;
 
-  rp->line=rdql_lexer_get_lineno(yyscanner);
+  rq->locator.line=rdql_lexer_get_lineno(yyscanner);
 #ifdef RASQAL_RDQL_USE_ERROR_COLUMNS
-  /*  Rp->column=rdql_lexer_get_column(yyscanner);*/
+  /*  rq->locator.column=rdql_lexer_get_column(yyscanner);*/
 #endif
 
-  fprintf(stderr, "(rdql_syntax_warning) %s:%d:", rp->uri_string, rp->line);
   va_start(arguments, message);
-  vfprintf(stderr, message, arguments);
+  rasqal_query_warning_varargs(rq, message, arguments);
   va_end(arguments);
-  fputc('\n', stderr);
 
-  rp->warnings++;
-  return (0);
+   return (0);
 }
+
+
+static void
+rasqal_rdql_query_engine_register_factory(rasqal_query_engine_factory *factory)
+{
+  factory->context_length = sizeof(rasqal_rdql_query_engine);
+
+  factory->init      = rasqal_rdql_query_engine_init;
+  factory->terminate = rasqal_rdql_query_engine_terminate;
+  factory->prepare   = rasqal_rdql_query_engine_prepare;
+  factory->execute   = rasqal_rdql_query_engine_execute;
+}
+
+
+void
+rasqal_init_query_engine_rdql (void) {
+  /* http://www.w3.org/Submission/2004/SUBM-RDQL-20040109/ */
+
+  rasqal_query_engine_register_factory("rdql", 
+                                       "RDF Data Query Language (RDQL)",
+                                       NULL,
+                                       (const unsigned char*)"http://jena.hpl.hp.com/2003/07/query/RDQL",
+                                       &rasqal_rdql_query_engine_register_factory);
+}
+
 
 
 #ifdef STANDALONE
@@ -727,15 +753,14 @@ rdql_syntax_warning(rdql_parser *rp, const char *message, ...)
 int
 main(int argc, char *argv[]) 
 {
-  rasqal_query *rq;
   unsigned char *filename=NULL;
-  unsigned char *uri_string;
   char query_string[RDQL_FILE_BUF_SIZE];
+  rasqal_query query; /* static */
+  rasqal_rdql_query_engine rdql; /* static */
+  raptor_locator *locator=&query.locator;
   FILE *fh;
   int rc;
 
-  raptor_uri_init();
-  
 #if RASQAL_DEBUG > 2
   rdql_parser_debug=1;
 #endif
@@ -758,18 +783,23 @@ main(int argc, char *argv[])
   
   if(argc>1)
     fclose(fh);
-  
-  rq=(rasqal_query*)malloc(sizeof(rasqal_query));
 
-  uri_string=raptor_uri_filename_to_uri_string(filename);
+  raptor_uri_init();
 
-  rc=rdql_parse(rq, uri_string, query_string, strlen(query_string));
+  memset(&query, 0, sizeof(rasqal_query));
+  memset(&rdql, 0, sizeof(rasqal_rdql_query_engine));
 
-  rasqal_free_query(rq);
+  locator->line= locator->column = -1;
+  locator->file= filename;
 
-  free(uri_string);
+  query.context=&rdql;
+  query.base_uri=raptor_new_uri(raptor_uri_filename_to_uri_string(filename));
 
-  raptor_finish();
+  rasqal_rdql_query_engine_init(&query, "rdql");
+
+  rc=rdql_parse(&query, query_string, strlen(query_string));
+
+  raptor_free_uri(query.base_uri);
 
   return rc;
 }

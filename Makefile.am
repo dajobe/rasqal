@@ -86,14 +86,17 @@ pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = rasqal.pc
 
 # Actually it needs rdql_parser.h but nevermind
-@MAINT@rdql_lexer.c: $(srcdir)/rdql_lexer.l rdql_parser.tab.c
-@MAINT@	$(LEX) -o$@ $(srcdir)/rdql_lexer.l
-@MAINT@	mv $@ rdql_lexer.t
-@MAINT@	sed -e 's/\(^[ \t]*free(.*ptr.*\)$$/if(ptr) \1/' rdql_lexer.t > $@
-@MAINT@	rm -f rdql_lexer.t
+rdql_lexer.c: $(srcdir)/rdql_lexer.l rdql_parser.tab.c
+	$(LEX) -o$@ $(srcdir)/rdql_lexer.l
+	mv $@ rdql_lexer.t
+	sed -e 's/\(^[ \t]*free(.*ptr.*\)$$/if(ptr) \1/' rdql_lexer.t > $@
+	rm -f rdql_lexer.t
 
-@MAINT@rdql_parser.tab.c: $(srcdir)/rdql_parser.y
-@MAINT@	$(YACC) -b rdql_parser -p rdql_parser_ -d -v $(srcdir)/rdql_parser.y
+rdql_parser.tab.c: $(srcdir)/rdql_parser.y
+	$(YACC) -b rdql_parser -p rdql_parser_ -d -v $(srcdir)/rdql_parser.y
+	mv $@ rdql_parser.t
+	sed -e '/Suppress GCC warning that yyerrlab1/,/^\#endif/d' rdql_parser.t > $@
+	rm -f rdql_parser.t
 
 
 # Actually it needs rdql_parser.h but nevermind

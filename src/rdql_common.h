@@ -27,7 +27,14 @@ extern "C" {
 #endif
 
 
-struct rasqal_rdql_engine_s {
+/* rdql_parser.y */
+int rdql_syntax_error(rasqal_query *rq, const char *message, ...);
+int rdql_syntax_warning(rasqal_query *rq, const char *message, ...);
+
+int rdql_query_lex(void);
+
+
+struct rasqal_rdql_query_engine_s {
   /* for lexer to store result in */
   YYSTYPE lval;
 
@@ -38,11 +45,10 @@ struct rasqal_rdql_engine_s {
 
   /* for error reporting */
   unsigned int line;
-  unsigned int column;
-
-  unsigned int warnings;
-  unsigned int errors;
 };
+
+
+typedef struct rasqal_rdql_query_engine_s rasqal_rdql_query_engine;
 
 
 #ifdef __cplusplus

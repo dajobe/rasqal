@@ -37,30 +37,104 @@
 
 
 
-/* Constructor */
+/*
+ * rasqal_new_query - Constructor - create a new rasqal_query object
+ * @name: the query name
+ *
+ * Return value: a new &rasqal_query object or NULL on failure
+ */
 rasqal_query*
 rasqal_new_query(const char *name, const unsigned char *uri) {
-  rasqal_query* q=(rasqal_query*)malloc(sizeof(rasqal_query));
+  rasqal_query_engine_factory* factory;
+  rasqal_query* rdf_query;
 
-  /* name "rdql" uri "http://jena.hpl.hp.com/2003/07/query/RDQL" */
-  return q;
+  factory=rasqal_get_query_engine_factory(name, uri);
+  if(!factory)
+    return NULL;
+
+  rdf_query=(rasqal_query*)RASQAL_CALLOC(rasqal_query, 1, 
+                                         sizeof(rasqal_query));
+  if(!rdf_query)
+    return NULL;
+  
+  rdf_query->context=(char*)RASQAL_CALLOC(rasqal_query_context, 1,
+                                          factory->context_length);
+  if(!rdf_query->context) {
+    rasqal_free_query(rdf_query);
+    return NULL;
+  }
+  
+  rdf_query->factory=factory;
+
+  rdf_query->failed=0;
+
+  if(factory->init(rdf_query, name)) {
+    rasqal_free_query(rdf_query);
+    return NULL;
+  }
+  
+  return rdf_query;
 }
 
-/* Destructor */
+
+
+/**
+ * rasqal_free_query - destructor - destroy a rasqal_query object
+ * @query: &rasqal_query object
+ * 
+ **/
 void
-rasqal_free_query(rasqal_query* query) {
-  if(query->selects)
-    rasqal_free_sequence(query->selects);
-  if(query->sources)
-    rasqal_free_sequence(query->sources);
-  if(query->triples)
-    rasqal_free_sequence(query->triples);
-  if(query->prefixes)
-    rasqal_free_sequence(query->prefixes);
+rasqal_free_query(rasqal_query* rdf_query) 
+{
+  if(rdf_query->factory)
+    rdf_query->factory->terminate(rdf_query);
+
+  if(rdf_query->context)
+    RASQAL_FREE(rasqal_query_context, rdf_query->context);
+
+  if(rdf_query->base_uri)
+    raptor_free_uri(rdf_query->base_uri);
+
+  if(rdf_query->query_string)
+    RASQAL_FREE(cstring, rdf_query->query_string);
+
+  if(rdf_query->selects)
+    rasqal_free_sequence(rdf_query->selects);
+  if(rdf_query->sources)
+    rasqal_free_sequence(rdf_query->sources);
+  if(rdf_query->triples)
+    rasqal_free_sequence(rdf_query->triples);
+  if(rdf_query->prefixes)
+    rasqal_free_sequence(rdf_query->prefixes);
+
+  RASQAL_FREE(rasqal_query, rdf_query);
 }
 
 
 /* Methods */
+
+/**
+ * rasqal_get_name: Return the short name for the query
+ * @query: &rasqal_query query object
+ **/
+const char*
+rasqal_get_name(rasqal_query *rdf_query)
+{
+  return rdf_query->factory->name;
+}
+
+
+/**
+ * rasqal_get_label: Return a readable label for the query
+ * @query: &rasqal_query query object
+ **/
+const char*
+rasqal_get_label(rasqal_query *rdf_query)
+{
+  return rdf_query->factory->label;
+}
+
+
 void
 rasqal_query_add_source(rasqal_query* query, const unsigned char* uri) {
   rasqal_sequence_shift(query->sources, (void*)uri);
@@ -77,13 +151,53 @@ rasqal_query_get_source(rasqal_query* query, int idx) {
 }
 
 
+/**
+ * rasqal_query_prepare: Prepare a query - typically parse it
+ * @rdf_query: the &rasqal_query object
+ * @query_string: the query string
+ * @base_uri: base URI of query string (optional)
+ * 
+ * Some query languages may require a base URI to resolve any
+ * relative URIs in the query string.
+ *
+ * Return value: non-0 on failure.
+ **/
 int
-rasqal_parse_query(rasqal_query *query, 
-                   const unsigned char *uri_string,
-                   const char *query_string, size_t len) {
-  return rdql_parse(query, uri_string, query_string, len);
+rasqal_query_prepare(rasqal_query *rdf_query,
+                     const unsigned char *query_string,
+                     raptor_uri *base_uri)
+{
+  rdf_query->query_string=(char*)RASQAL_MALLOC(cstring, strlen(query_string)+1);
+  strcpy((char*)rdf_query->query_string, (const char*)query_string);
+
+  if(base_uri)
+    base_uri=raptor_uri_copy(base_uri);
+  
+  if(rdf_query->base_uri)
+    raptor_free_uri(rdf_query->base_uri);
+
+  rdf_query->base_uri=base_uri;
+  rdf_query->locator.uri=base_uri;
+  rdf_query->locator.line= rdf_query->locator.column = 0;
+
+  return rdf_query->factory->prepare(rdf_query);
 }
 
+
+/**
+ * rasqal_query_execute: excute a query - run and return results
+ * @rdf_query: the &rasqal_query object
+ *
+ * fixme: not implemented
+ *
+ * return value: non-0 on failure.
+ **/
+int
+rasqal_query_excute(rasqal_query *rdf_query)
+{
+  /* return rdf_query->factory->execute(rdf_query); */
+  return 1;
+}
 
 
 /* Utility methods */

@@ -47,6 +47,9 @@ typedef struct rasqal_query_s rasqal_query;
 
 typedef struct rasqal_sequence_s rasqal_sequence;
 
+typedef enum {
+  RASQAL_FEATURE_LAST
+} rasqal_feature;
 
 typedef struct {
   const char *prefix;
@@ -152,6 +155,18 @@ RASQAL_API void rasqal_init(void);
 RASQAL_API void rasqal_finish(void);
 
 
+RASQAL_API int rasqal_languages_enumerate(const unsigned int counter, const char **name, const char **label, const unsigned char **uri_string);
+
+RASQAL_API int rasqal_language_name_check(const char *name);
+RASQAL_API const char* rasqal_get_name(rasqal_query *rdf_query);
+RASQAL_API const char* rasqal_get_label(rasqal_query *rdf_query);
+
+RASQAL_API void rasqal_set_fatal_error_handler(rasqal_query* query, void *user_data, raptor_message_handler handler);
+RASQAL_API void rasqal_set_error_handler(rasqal_query* query, void *user_data, raptor_message_handler handler);
+RASQAL_API void rasqal_set_warning_handler(rasqal_query* query, void *user_data, raptor_message_handler handler);
+
+RASQAL_API void rasqal_set_feature(rasqal_query *query, rasqal_feature feature, int value);
+
 /* Query class */
 
 /* Create */
@@ -169,9 +184,10 @@ RASQAL_API int rasqal_parse_query(rasqal_query *query, const unsigned char *uri_
 /* Utility methods */
 RASQAL_API void rasqal_query_print(rasqal_query*, FILE *stream);
 
+/* Query */
+int rasqal_query_prepare(rasqal_query *rdf_query, const unsigned char *query_string, raptor_uri *base_uri);
+int rasqal_query_excute(rasqal_query *rdf_query);
 
-/* RDQL query parsing */
-RASQAL_API int rdql_parse(rasqal_query* rq, const unsigned char *uri_string, const char *string, size_t len);
 
 
 
