@@ -199,9 +199,10 @@ AC_CHECK_PROG(RAPTOR_CONFIG, raptor-config, raptor-config)
 AC_ARG_WITH(raptor, [  --with-raptor=SOURCE    Pick raptor source - system/internal (default auto)], with_raptor="$withval", with_raptor="auto")
 
 RAPTOR_VERSION=`$RAPTOR_CONFIG --version 2>/dev/null`
-RAPTOR_VERSION_DEC=`$RAPTOR_CONFIG --version-decimal 2>/dev/null`
-
 RAPTOR_MIN_VERSION=1.0.0
+
+# FIXME - could use raptor-config --decimal-version at some point
+RAPTOR_VERSION_DEC=`echo $RAPTOR_VERSION | $AWK -F. '{printf("%d\n", 10000*$1 + 100*$2 + $3)};'`
 RAPTOR_MIN_VERSION_DEC=`echo $RAPTOR_MIN_VERSION | $AWK -F. '{printf("%d\n", 10000*$1 + 100*$2 + $3)};'`
 
 if test "X$RAPTOR_VERSION" = X; then
@@ -213,6 +214,7 @@ if test "X$with_raptor" = Xauto; then
   if test "X$RAPTOR_VERSION" -a $RAPTOR_VERSION_DEC -ge $RAPTOR_MIN_VERSION_DEC; then
     with_raptor=system
   else
+    AC_MSG_WARN(System raptor $RAPTOR_VERSION is too old - need $RAPTOR_MIN_VERSION)
     with_raptor=internal
   fi
 elif test $with_raptor = system; then
@@ -230,8 +232,8 @@ if test $with_raptor = system; then
 else
   RAPTOR_VERSION=internal
   AC_MSG_RESULT(internal)
-  if test "X$have_redland" = 1; then
-    AC_MSG_ERROR(Redland sources missing in parent directory - cannot use internal)
+  if test -r ../raptor/raptor_internal.h; then
+    AC_MSG_ERROR(Raptor sources missing in parent directory - cannot use internal)
   fi
 fi
 
