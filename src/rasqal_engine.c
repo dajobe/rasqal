@@ -1118,8 +1118,11 @@ rasqal_engine_do_optional_step(rasqal_query *query, rasqal_graph_pattern *gp) {
   
   if(query->constraints_expression) {
     step=rasqal_engine_check_constraint(query, gp);
-    if(step != STEP_GOT_MATCH)
+    if(step != STEP_GOT_MATCH) {
+      /* The constraint failed or we have an error - no bindings count */
+      query->new_bindings_count=0;
       return step;
+    }
   }
 
 
