@@ -87,7 +87,7 @@ rasqal_new_variable(rasqal_query* rq,
     }
   }
     
-  v=(rasqal_variable*)calloc(sizeof(rasqal_variable), 1);
+  v=(rasqal_variable*)RASQAL_CALLOC(rasqal_variable, sizeof(rasqal_variable), 1);
 
   v->name=name;
   v->value=value;
@@ -195,7 +195,7 @@ rasqal_prefix_print(rasqal_prefix* p, FILE* fh)
 rasqal_triple*
 rasqal_new_triple(rasqal_literal* subject, rasqal_literal* predicate, rasqal_literal* object)
 {
-  rasqal_triple* t=(rasqal_triple*)calloc(sizeof(rasqal_triple), 1);
+  rasqal_triple* t=(rasqal_triple*)RASQAL_CALLOC(rasqal_triple,sizeof(rasqal_triple), 1);
 
   t->subject=subject;
   t->predicate=predicate;
@@ -291,7 +291,7 @@ rasqal_triple_get_flags(rasqal_triple* t)
 rasqal_expression*
 rasqal_new_1op_expression(rasqal_op op, rasqal_expression* arg)
 {
-  rasqal_expression* e=(rasqal_expression*)calloc(sizeof(rasqal_expression), 1);
+  rasqal_expression* e=(rasqal_expression*)RASQAL_CALLOC(rasqal_expression, sizeof(rasqal_expression), 1);
   e->op=op;
   e->arg1=arg;
   return e;
@@ -302,7 +302,7 @@ rasqal_new_2op_expression(rasqal_op op,
                           rasqal_expression* arg1, 
                           rasqal_expression* arg2)
 {
-  rasqal_expression* e=(rasqal_expression*)calloc(sizeof(rasqal_expression), 1);
+  rasqal_expression* e=(rasqal_expression*)RASQAL_CALLOC(rasqal_expression, sizeof(rasqal_expression), 1);
   e->op=op;
   e->arg1=arg1;
   e->arg2=arg2;
@@ -314,7 +314,7 @@ rasqal_new_string_op_expression(rasqal_op op,
                                 rasqal_expression* arg1,
                                 rasqal_literal* literal)
 {
-  rasqal_expression* e=(rasqal_expression*)calloc(sizeof(rasqal_expression), 1);
+  rasqal_expression* e=(rasqal_expression*)RASQAL_CALLOC(rasqal_expression, sizeof(rasqal_expression), 1);
   e->op=op;
   e->arg1=arg1;
   e->literal=literal;
@@ -324,7 +324,7 @@ rasqal_new_string_op_expression(rasqal_op op,
 rasqal_expression*
 rasqal_new_literal_expression(rasqal_literal *literal)
 {
-  rasqal_expression* e=(rasqal_expression*)calloc(sizeof(rasqal_expression), 1);
+  rasqal_expression* e=(rasqal_expression*)RASQAL_CALLOC(rasqal_expression, sizeof(rasqal_expression), 1);
   e->op=RASQAL_EXPR_LITERAL;
   e->literal=literal;
   return e;
