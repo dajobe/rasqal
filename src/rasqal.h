@@ -159,14 +159,14 @@ RASQAL_API void rasqal_query_add_source(rasqal_query* query, const unsigned char
 RASQAL_API rasqal_sequence* rasqal_query_get_source_sequence(rasqal_query* query);
 RASQAL_API const unsigned char* rasqal_query_get_source(rasqal_query* query, int idx);
 
-RASQAL_API int rasqal_parse_query(rasqal_query *query, const char *query_string);
+RASQAL_API int rasqal_parse_query(rasqal_query *query, const unsigned char *uri_string, const char *query_string);
 
 /* Utility methods */
 RASQAL_API void rasqal_query_print(rasqal_query*, FILE *stream);
 
 
 /* RDQL query parsing */
-RASQAL_API int rdql_parse(rasqal_query* query, const char *query_string);
+RASQAL_API int rdql_parse(rasqal_query* rq, const unsigned char *uri_string, const char *string);
 
 
 
