@@ -454,25 +454,23 @@ rasqal_engine_execute_init(rasqal_query *query) {
 int
 rasqal_engine_execute_finish(rasqal_query *query) {
   if(query->triple_meta) {
-    RASQAL_FREE(rasqal_triple_meta, query->triple_meta);
-
     while(query->column >= 0) {
       rasqal_triple_meta *m=&query->triple_meta[query->column];
+      
+      if(m->bindings[0]) 
+        rasqal_variable_set_value(m->bindings[0],  NULL);
+      if(m->bindings[1]) 
+        rasqal_variable_set_value(m->bindings[1],  NULL);
+      if(m->bindings[2]) 
+        rasqal_variable_set_value(m->bindings[2],  NULL);
 
       if(m->triples_match) {
-
-        if(m->bindings[0]) 
-          rasqal_variable_set_value(m->bindings[0],  NULL);
-        if(m->bindings[1]) 
-          rasqal_variable_set_value(m->bindings[1],  NULL);
-        if(m->bindings[2]) 
-          rasqal_variable_set_value(m->bindings[2],  NULL);
-
         rasqal_free_triples_match(m->triples_match);
         m->triples_match=NULL;
       }
     }
     
+    RASQAL_FREE(rasqal_triple_meta, query->triple_meta);
     query->triple_meta=NULL;
   }
 
