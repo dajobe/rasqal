@@ -36,7 +36,7 @@ local_tests=
 if RASQAL_QUERY_RDQL
 local_tests += rdql_lexer_test rdql_parser_test
 endif
-if RASQAL_QUERY_BRQL
+if RASQAL_QUERY_SPARQL
 local_tests += brql_lexer_test brql_parser_test
 endif
 
@@ -62,7 +62,7 @@ if RASQAL_QUERY_RDQL
 librasqal_la_SOURCES += rdql_lexer.c rdql_lexer.h \
 rdql_parser.c rdql_parser.h rdql_common.h
 endif
-if RASQAL_QUERY_BRQL
+if RASQAL_QUERY_SPARQL
 librasqal_la_SOURCES += brql_lexer.c brql_lexer.h \
 brql_parser.c brql_parser.h brql_common.h
 endif
