@@ -4,6 +4,8 @@
 #
 # $Id$
 # 
+# USAGE check-rdql [-d] [-s SRCDIR] [TEST]
+# 
 # Copyright (C) 2004, David Beckett http://purl.org/net/dajobe/
 # Institute for Learning and Research Technology http://www.ilrt.bristol.ac.uk/
 # University of Bristol, UK http://www.bristol.ac.uk/
@@ -33,16 +35,14 @@
 
 
 use strict;
-
 use File::Basename;
 
 
-my $top_srcdir=$ENV{TOP_SRCDIR} || '../../..';
-my $top_builddir=$ENV{TOP_BUILDDIR} || '../../..';
+my $roqet="roqet";
+my $rapper="rapper";
 
-my $rdql_testsuite_dir=$top_srcdir."/tests/rdql/testsuite";
-my $roqet=$top_builddir."/roqet";
 
+my $rdf='http://www.w3.org/1999/02/22-rdf-syntax-ns#';
 my $rs='http://jena.hpl.hp.com/2003/03/result-set#';
 my $variable_predicate="<${rs}variable>";
 my $value_predicate="<${rs}value>";
@@ -51,24 +51,29 @@ my $solution_predicate="<${rs}solution>";
 
 my $program=basename $0;
 my $debug=0;
+my $srcdir='.';
 
 
-sub run_test($$) {
-  my($rdql_testsuite_dir,$test)=@_;
 
-  my $test_file="$rdql_testsuite_dir/test-$test";
+sub run_test($$$$$) {
+  my($name, $dir, $test_file, $data_files_ref, $result_file)=@_;
+  my(@data_files)=@$data_files_ref;
+
+  warn "run_test($name, $dir, $test_file, ",join("; ",@data_files)," $result_file)\n"
+    if $debug;
 
   die "$program: No such RDQL test suite test $test_file\n"
     unless -r $test_file;
 
-  my $result_file="$rdql_testsuite_dir/result-$test.n3";
 
   die "$program: No such RDQL result suite test $result_file\n"
     unless -r $result_file;
 
   my $cmd;
 
-  $cmd="$roqet -d $test_file 2>roqet.err";
+  my(@args)=(map "-s $_", @data_files);
+  my $args_s=join(" ",@args);
+  $cmd="$roqet -d -i rdql $args_s $test_file 2>roqet.err";
   warn "$program: Running '$cmd'\n"
     if $debug;
 
@@ -93,6 +98,7 @@ sub run_test($$) {
 	$vars =~ s/=uri<[^>]+>//g;
 	$vars =~ s/=string\("[^"]+"[^)]*\)//g; # "
 	$vars =~ s/=blank _//g;
+	$vars =~ s/=NULL//g;
 	$vars =~ s/,//g;
 	@vars_order=split(/ /, $vars);
       }
@@ -109,11 +115,13 @@ sub run_test($$) {
   }
   close(ERR);
   if(@errs) {
-    warn "$program: $test FAILED - query returned errors:\n  ".join("\n  ",@errs)."\n";
+    warn "$program: $test_file FAILED - query returned errors:\n  ".join("\n  ",@errs)."\n";
     return 1;
   }
-  
-  $cmd="rapper -i turtle -q -o ntriples $result_file";
+
+  my $parser='-g';
+  #$parser='-i turtle';
+  $cmd="$rapper $parser -q -o ntriples $result_file";
 
   my(@node_order);
   my(%nodes);
@@ -130,7 +138,7 @@ sub run_test($$) {
     push(@node_order, $subject)
       unless exists $nodes{$subject} || exists $node_type{$subject};
 
-    if ($predicate eq '<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>') {
+    if ($predicate eq "<${rdf}type>") {
       $node_type{$subject}=$object;
     } else {
       push(@{$nodes{$subject}->{$predicate}}, $object);
@@ -189,12 +197,12 @@ sub run_test($$) {
   $cmd="diff -c result.out roqet.out > diff.out";
   my $rc=system($cmd);
   if($rc) {
-    warn "$program: $test FAILED - difference is:\n";
+    warn "$program: $name FAILED - difference is:\n";
     system("cat diff.out");
     warn "$program: Expected $count results\n";
     return 1;
   } else {
-    warn "$program: $test OK\n";
+    warn "$program: $name OK\n";
     unlink "roqet.out", "result.out", "diff.out";
     return 0;
   }
@@ -202,19 +210,38 @@ sub run_test($$) {
 }
 
 
+
+
 # Argument handling
-if(@ARGV && $ARGV[0] eq '-d') {
-  $debug=1;
-  shift(@ARGV);
+my $usage=0;
+
+while(@ARGV && $ARGV[0] =~ /^-(.+)$/) {
+  local $_=shift(@ARGV);
+  if(/^-d/) {
+    $debug=1;
+  } elsif (/^-s$/) {
+    if(!@ARGV) {
+      $usage=1;
+      last;
+    } else {
+      $srcdir=shift @ARGV;
+    }
+  }
 }
-die "Usage; $program [-d] TEST\n" unless @ARGV<=1;
+
+$usage=1 if @ARGV >1;
+
+die "USAGE: $program [-d] [-s srcdir] [TEST]\n" if $usage;
 
 my $unique_test=$ARGV[0];
+
+$srcdir.="/" unless $srcdir =~ m%/$%;
+
 
 my(@failed);
 my(@entries);
 if(!$unique_test) {
-  opendir(DIR, $rdql_testsuite_dir) or die "Cannot opendir $rdql_testsuite_dir - $!\n";
+  opendir(DIR, $srcdir) or die "Cannot opendir $srcdir - $!\n";
   @entries=sort(readdir(DIR));
   closedir(DIR);
 } else {
@@ -223,12 +250,14 @@ if(!$unique_test) {
 
 my $result=0;
 for my $entry (@entries) {
-  my $entry_file=$rdql_testsuite_dir.$entry;
+  my $entry_file=$srcdir.$entry;
   next if -d $entry_file;
   next unless $entry =~ /^test-(.*)$/;
 
   my $test=$1;
-  my $rc = run_test($rdql_testsuite_dir, $1);
+  my $test_file=$srcdir."test-$test";
+  my $result_file=$srcdir."result-$test.n3";
+  my $rc = run_test($1, $srcdir, $test_file, [], $result_file);
   push(@failed, $test) if $rc;
   $result++ if $rc;
 }
