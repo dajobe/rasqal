@@ -48,6 +48,8 @@
 #include "rasqal_internal.h"
 
 
+#ifndef STANDALONE
+
 inline int rasqal_expression_as_boolean(rasqal_expression* e, int *error);
 inline int rasqal_expression_as_integer(rasqal_expression* e, int *error);
 inline int rasqal_expression_compare(rasqal_expression* e1, rasqal_expression* e2, int flags, int *error);
@@ -987,6 +989,10 @@ rasqal_expression_expand_qname(void *user_data, rasqal_expression *e)
 
   return 0;
 }
+
+#endif /* not STANDALONE */
+
+
 
 
 #ifdef STANDALONE
