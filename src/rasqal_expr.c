@@ -187,7 +187,7 @@ rasqal_free_prefix(rasqal_prefix* p)
 void
 rasqal_prefix_print(rasqal_prefix* p, FILE* fh)
 {
-  fprintf(fh, "prefix(%s as %s)", (p->prefix ? p->prefix : "(default)"), raptor_uri_as_string(p->uri));
+  fprintf(fh, "prefix(%s as %s)", (p->prefix ? (const char*)p->prefix : "(default)"), raptor_uri_as_string(p->uri));
 }
 
 
@@ -843,7 +843,7 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
         else {
           rc=pcre_exec(re, 
                        NULL, /* no study */
-                       (const char*)match_string, strlen(match_string),
+                       (const char*)match_string, strlen((const char*)match_string),
                        0 /* startoffset */,
                        0 /* options */,
                        NULL, 0 /* ovector, ovecsize - no matches wanted */
