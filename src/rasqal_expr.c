@@ -189,6 +189,7 @@ rasqal_new_boolean_literal(int value) {
 
   l->type=RASQAL_LITERAL_BOOLEAN;
   l->value.integer=value;
+  l->string=value ? "true":"false";
   l->usage=1;
   return l;
 }
@@ -407,23 +408,13 @@ rasqal_literal_as_integer(rasqal_literal* l, int *error)
 char*
 rasqal_literal_as_string(rasqal_literal* l)
 {
-  static char buf[32]; /* fixme */
-
   if(!l)
     return NULL;
   
   switch(l->type) {
-    case RASQAL_LITERAL_INTEGER:
-      sprintf(buf, "%d", l->value.integer);
-      return buf;
-      
     case RASQAL_LITERAL_BOOLEAN:
-      return l->value.integer ? "true" :"false";
-
+    case RASQAL_LITERAL_INTEGER:
     case RASQAL_LITERAL_FLOATING:
-      sprintf(buf, "%g", l->value.floating);
-      return buf;
-
     case RASQAL_LITERAL_STRING:
       return l->string;
 
