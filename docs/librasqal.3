@@ -7,7 +7,7 @@
 .\" Institute for Learning and Research Technology - http://www.ilrt.bristol.ac.uk/
 .\" University of Bristol - http://www.bristol.ac.uk/
 .\"
-.TH librasqal 3 "2005-01-30"
+.TH librasqal 3 "2005-02-17"
 .\" Please adjust this date whenever revising the manpage.
 .SH NAME
 librasqal \- Rasqal RDF query library
@@ -121,7 +121,14 @@ Get one source in the sequence of sources in the queyr.
 .IP "\fBvoid rasqal_query_add_variable(rasqal_query* \fIquery\fB, rasqal_variable* \fIvar\fP)\fR"
 Add a variable binding to the sequence of bindings in the query.
 .IP "\fBraptor_sequence* rasqal_query_get_variable_sequence(rasqal_query* \fIquery\fB)\fR"
-Get the sequence of variable bindings in the query.
+Deprecated.  Use either \fBrasqal_query_get_bound_variable_sequence\fP
+or \fBrasqal_query_get_all_variable_sequence\fP.
+.IP "\fBraptor_sequence* rasqal_query_get_bound_variable_sequence(rasqal_query* \fIquery\fP)\fR"
+Get the sequence of variables that are returning bindings in the
+query such as when explicitly chosen via \fBSELECT\fP in RDQL or SPARQL
+or all variables mentioned with \fBSELECT *\fP.
+.IP "\fBraptor_sequence* rasqal_query_get_all_variable_sequence(rasqal_query* \fIquery\fP)\fR"
+Get the sequence of all variables mentioned in the query.
 .IP "\fBrasqal_variable* rasqal_query_get_variable(rasqal_query* \fIquery\fB, int \fIidx\fP)\fR"
 Get one variable binding in the sequence of variable bindings in the queyr.
 .IP "\fBint rasqal_query_has_variable(rasqal_query* \fIquery\fB, const unsigned char *\fIname\fB)\fR"
@@ -147,6 +154,10 @@ Add one namespace prefix/URI to the sequence of prefixes in the query.
 Get the sequence of prefixes in the query.
 .IP "\fBrasqal_prefix* rasqal_query_get_prefix(rasqal_query* \fIquery\fB, int \fIidx\fP)\fR"
 Get one prefix in the sequence of prefixes in the query.
+.IP "\fBraptor_sequence* rasqal_query_get_graph_pattern_sequence(rasqal_query* \fIquery\fP)\fR"
+Get the sequence of graph patterns expressions in the query.
+.IP "\fBrasqal_graph_pattern* rasqal_query_get_graph_pattern(rasqal_query* \fIquery\fP, int \fIidx\fP)\fR"
+Get a graph pattern in the sequence of graph_pattern expressions in the query.
 .IP "\fBvoid rasqal_query_print(rasqal_query *\fIquery\fP, FILE* \fIstream\fP)\fR"
 Print a query in a debug format.  This format may change in any release.
 .IP "\fBint rasqal_query_prepare(rasqal_query* \fIquery\fP, const unsigned char *\fIquery_string\fP, raptor_uri *\fIbase_uri\fP)\fR"
@@ -160,6 +171,29 @@ Execute a query, returning a rasqal_query_results* object or NULL on failure.
 Set some user data to be associated with the query.
 .IP "\fBvoid* rasqal_query_get_user_data(rasqal_query *\fIquery\fP)\fR"
 Get the user data associated with the query.
+.SH "GRAPH PATTERN CLASS"
+A class for graph patterns in a query - a set of triple patterns)
+with flags and possible sub-graph patterns
+.SH "GRAPH PATTERN CONSTRUCTOR"
+There is no public constructor for this class, it is constructed
+when the query is prepared from a syntax. The query methods
+\fBrasqal_query_get_graph_pattern_sequence\fP
+and \fBrasqal_query_get_graph_pattern\fP provide access to
+the top-level graph patterns in a query.
+.IP "\fBrasqal_triple* rasqal_graph_pattern_get_triple(rasqal_graph_pattern* \fIgraph_pattern\fP, int \fIidx\fP)\fR"
+Get a rasqal_triple inside a graph pattern at index \fIidx\fP returning NULL
+when the index is out of range.
+.IP "\fBraptor_sequence* rasqal_graph_pattern_get_sub_graph_pattern_sequence(rasqal_graph_pattern* \fIgraph_pattern\fP)\fR"
+Get the sequence of sub-graph patterns inside the graph pattern returning
+NULL if there are no sub-graph patterns.
+.IP "\fBrasqal_graph_pattern* rasqal_graph_pattern_get_sub_graph_pattern(rasqal_graph_pattern* \fIgraph_pattern\fP, int \fIidx\fP)\fR"
+Get a sub-graph pattern inside the graph pattern at index \fIidx\fP
+returning NULL when the index is out of range.
+.IP "\fBint rasqal_graph_pattern_get_flags(rasqal_graph_pattern* \fIgraph_pattern\fP)\fR"
+Get graph pattern flags, a bitwise or of \fIrasqal_pattern_flags\fP
+enum values, currently only \fBRASQAL_PATTERN_FLAGS_OPTIONAL\fP is defined.
+.IP "\fBvoid rasqal_graph_pattern_print(rasqal_graph_pattern* \fIgraph_pattern\fP, FILE* \fIfh\fP)\fR"
+Print a graph pattern in a debug format.  This format may change in any release.
 .SH "QUERY RESULTS CLASS"
 A class for the results of a query.  The results can be in different
 formats - variable bindings, RDF graphs as a sequence of triples
@@ -398,6 +432,25 @@ sub-expressions.  The order is the first expression at hand and then
 the arguments, if any.  function \fIfn\fP is called at each point
 with the arguments of \fIuser_data\fP and the expression.
 .SH API CHANGES
+.SS 0.9.7
+Export \fIrasqal_graph_pattern\fP typedef for graph patterns
+and added access methods:
+\fBrasqal_query_get_graph_pattern_sequence\fP
+\fBrasqal_query_get_graph_pattern\fP, rasqal_graph_pattern_get_triple\fP,
+\fBrasqal_graph_pattern_get_sub_graph_pattern_sequence\fP,
+\fBrasqal_graph_pattern_get_sub_graph_pattern\fP,
+\fBrasqal_graph_pattern_get_flags\fP
+ and exported previously internal \fBrasqal_graph_pattern_print\fP
+Export \fIrasqal_pattern_flags\fP enum for graph pattern flags.
+.LP
+.LP
+Added \fBrasqal_query_get_bound_variable_sequence\fP
+and \fBrasqal_query_get_all_variable_sequence\fP.
+.LP
+Deprecate \fBrasqal_query_get_variable_sequence\fR prefering
+\fBrasqal_query_get_bound_variable_sequence\fP
+.LP
+Deleted \fBRASQAL_EXPR_PATTERN\fP which was never used.
 .SS 0.9.6
 Added new 1-argument expressions to the expression constructor;
 \fBrasqal_op\fP enum gained the following values:
