@@ -30,7 +30,8 @@ man_MANS = librasqal.3 rasqal-config.1
 
 librasqal_la_SOURCES = rdql_lexer.c rdql_lexer.h \
 rdql_parser.tab.c rdql_parser.tab.h rdql_common.h \
-rasqal_expr.c rasqal_general.c rasqal_query.c rasqal_sequence.c
+rasqal_expr.c rasqal_general.c rasqal_query.c rasqal_sequence.c \
+rasqal_engine.c
 librasqal_la_LDFLAGS = -version-info @RASQAL_LIBTOOL_VERSION@
 librasqal_la_LIBADD = @RASQAL_INTERNAL_LIBS@
 librasqal_la_DEPENDENCIES = @RASQAL_INTERNAL_LIBS@
@@ -100,13 +101,13 @@ rdql_parser.tab.c: $(srcdir)/rdql_parser.y
 
 
 rdql_lexer_test: $(srcdir)/rdql_lexer.c librasqal.la
-	$(LINK) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE @RASQAL_INTERNAL_CPPFLAGS@ $(srcdir)/rdql_lexer.c librasqal.la
+	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE @RASQAL_INTERNAL_CPPFLAGS@ $(srcdir)/rdql_lexer.c librasqal.la $(LIBS)
 
 rdql_parser_test: $(srcdir)/rdql_parser.tab.c librasqal.la
-	$(LINK) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE @RASQAL_INTERNAL_CPPFLAGS@ $(srcdir)/rdql_parser.tab.c librasqal.la
+	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE @RASQAL_INTERNAL_CPPFLAGS@ $(srcdir)/rdql_parser.tab.c librasqal.la $(LIBS)
 
 rasqal_query_test: $(srcdir)/rasqal_query.c librasqal.la
-	$(LINK) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE @RASQAL_INTERNAL_CPPFLAGS@ $(srcdir)/rasqal_query.c librasqal.la
+	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE @RASQAL_INTERNAL_CPPFLAGS@ $(srcdir)/rasqal_query.c librasqal.la $(LIBS)
 
 rasqal_sequence_test: $(srcdir)/rasqal_sequence.c librasqal.la
-	$(LINK) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE @RASQAL_INTERNAL_CPPFLAGS@ $(srcdir)/rasqal_sequence.c librasqal.la
+	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE @RASQAL_INTERNAL_CPPFLAGS@ $(srcdir)/rasqal_sequence.c librasqal.la $(LIBS)
