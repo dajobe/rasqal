@@ -215,7 +215,8 @@ RASQAL_API int rasqal_query_execute(rasqal_query *rdf_query);
 RASQAL_API int rasqal_query_get_result_count(rasqal_query *query);
 RASQAL_API int rasqal_query_results_finished(rasqal_query *query);
 RASQAL_API int rasqal_query_get_result_bindings(rasqal_query *query, const char ***names, rasqal_literal ***values);
-RASQAL_API rasqal_literal* rasqal_query_get_result_binding(rasqal_query *query, int offset);
+RASQAL_API rasqal_literal* rasqal_query_get_result_binding_value(rasqal_query *query, int offset);
+RASQAL_API const char* rasqal_query_get_result_binding_name(rasqal_query *query, int offset);
 RASQAL_API rasqal_literal* rasqal_query_get_result_binding_by_name(rasqal_query *query, const char *name);
 RASQAL_API int rasqal_query_next_result(rasqal_query *query);
 
