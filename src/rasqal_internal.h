@@ -141,6 +141,7 @@ rasqal_graph_pattern* rasqal_new_graph_pattern_from_sequence(rasqal_query *query
 void rasqal_free_graph_pattern(rasqal_graph_pattern* pg);
 void rasqal_graph_pattern_init(rasqal_graph_pattern *gp);
 void rasqal_graph_pattern_adjust(rasqal_graph_pattern* gp, int offset);
+void rasqal_graph_pattern_set_origin(rasqal_graph_pattern* graph_pattern, rasqal_literal *origin);
 
 /*
  * A query in some query language
