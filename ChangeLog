@@ -1,5 +1,56 @@
+2005-03-21  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rdql_parser.y (Query): Add background data graphs as this rdql
+	does not allow origin queries.
+
+	* sparql_parser.y (LoadClauseOpt): Add named data graphs from LOAD
+	(GraphOrPattern, NamedGraphPattern, OptionalGraphPattern): Add FIXMEs
+	for UNION, GRAPH *, SOURCE *, deprecated SOURCE, deprecated []
+
+	* rasqal_query.c (rasqal_query_add_data_graph,
+	rasqal_query_add_variable, rasqal_query_add_prefix): Add data
+	graphs, sources, variables, prefixes to the end of the sequence -
+	more sensible and also quicker.
+
+	* rasqal_graph_pattern.c (rasqal_graph_pattern_add_constraint):
+	Add constraints to end of sequence - more sensible and also
+	quicker.
+
+	* rdql_parser.y (Query): Make data graphs here, don't edit
+	deprecated sources list.
+
+	* rasqal_raptor.c (rasqal_raptor_new_triples_source): Pass in
+	graph names as base URIs to parsing.
+
+	* rasqal_redland.c (rasqal_redland_new_triples_source): Use data
+	graphs to gather source URIs and graph URI names.  Pass in graph
+	names as base URIs to parsing.
+
+	* rasqal_raptor.c (rasqal_raptor_new_triples_source): Use data
+	graphs to gather source URIs and graph URI names
+
 2005-03-20  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
+	* sparql_parser.y (NamedGraphClauseOpt):
+	Set name uri when adding a data graph, to same
+	uri as source uri
+
+	* librasqal.3: style, refs, 0.9.8 API changes
+
+	* rasqal.h, rasqal_query.c:
+	(rasqal_query_get_variable_sequence, rasqal_query_add_triple):
+	Removed.  Were announced deprecated in 0.9.7
+
+	* rasqal_expr.c (main):
+	Call rasqal_uri_init and rasqal_uri_finish around test code.
+
+	* rasqal_literal.c (rasqal_new_integer_literal):
+	Use rasqal_xsd_integer_uri.
+	(rasqal_new_floating_literal): Use rasqal_xsd_double_uri.
+	(rasqal_literal_string_to_native): Use rasqal_xsd_integer_uri and
+	rasqal_xsd_double_uri.
+	Also convert xsd:boolean rdf literals into internal
+	RASQAL_LITERAL_BOOLEAN
 	* rasqal_expr.c (main): Call rasqal_uri_init and rasqal_uri_finish
 	around test code.
 
