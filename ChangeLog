@@ -102,8 +102,8 @@
 	rasqal_expression_foreach, rasqal_expression_evaluate,
 	rasqal_expression_print): Added RASQAL_EXPR_UNKNOWN case for
 	-Wswitch-enum.  Deleted "pattern" from rasqal_op_labels.
-	(rasqal_expression_print): Deleted RASQAL_EXPR_PATTERN Handle
-	RASQAL_EXPR_FUNCTION.
+	(rasqal_expression_print): Deleted RASQAL_EXPR_PATTERN.
+	Handle RASQAL_EXPR_FUNCTION.
 
 	* rasqal_literal.c (rasqal_free_literal, rasqal_literal_print,
 	rasqal_literal_as_boolean, rasqal_literal_as_integer,
