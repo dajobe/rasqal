@@ -382,8 +382,10 @@ main(int argc, char *argv[])
     goto tidy_query;
   }
 
-  if(source_uri)
+  if(source_uri) {
     rasqal_query_add_source(rq, source_uri);
+    source_uri=NULL;
+  }
 
   if(dump_query) {
     fprintf(stderr, "Query:\n");
