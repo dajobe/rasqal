@@ -13,33 +13,43 @@
 <h3>General</h3>
 
 <ul>
-<li>It's all new</li>
+<li>Engine: check that (?x, ?x, constant) (and permutations) and
+(?x, ?x, ?x) work - triplesMatching API does not check this.</li>
+<li>Engine: Add constructing triples (like SeRQL <tt>construct</tt>)</li>
+<li>QL: SeRQL</li>
+<li>QL: Squish</li>
+<li>QL: RDFDB query language</li>
+<li>QL: RQL</li>
 </ul>
 
 <h3>RDQL</h3>
 <ul>
-<li>The variety of pattern literals - can do /foo/, m/foo/, XfooX,
-mXfooX (any X), not yet '/foo/' and what about the flags in
-/foo/flags ?</li>
-
-<li>Update for recent RDQL changes - base QNames are now allowed</li>
-<li>Add the default prefixes (rdf, rdfs, owl, ... ?)</li>
-<li>Extensions: multiple LIMIT and OFFSET</li>
-<li>Optionals?</li>
+<li>Update for recent RDQL changes in
+<a href="http://www.w3.org/Submission/2004/SUBM-RDQL-20040109/">RDQL - A Query Language for RDF, W3C Member Submission 9 January 2004</a> - expression grammar is smaller, ...</li>
+<li>Result constraints - LIMIT and OFFSET (after SQL)</li>
+<li>Optionals</li>
 <li>Are keywords case sensitive?  Jena RDQL has an example with
 <tt>SELECT ?select WHERE ...</tt> but @semantics' RDQL tutorial has
 an example with <tt>USING dcq for ...</tt> not <tt>FOR</tt></li>
 <li>Literal languages, datatypes - new <tt>"lit"@lang</tt> and
 <tt>"lit"@lang^^datatype</tt></li>
-<li>Pattern literals seem difficult to recognise without context</li>
-<li>Qnames and URIs - in particular what is <tt>&lt;a:b&gt;</tt> if
-the prefix <tt>a</tt> isn't defined till later</li>
 <li>base URIs?  Lots of &lt;relativeURI&gt; seen.  @base?</li>
+</ul>
+
+<h2>Done</h2>
+
+<p>The most recent changes are at the top, with the first
+release version where appropriate.</p>
+
+<ul>
+<li>RDQL: lexer and parser handle new and old qname style (with a warning) - <tt>a:b</tt> and <tt>&lt;a:b&gt;</tt>.</li>
+<li>RDQL: Recognise pattern literals in /foo/, m/foo/ forms with
+optional flags</li>
 </ul>
 
 <hr />
 
-<p>Copyright 2003 <a href="http://purl.org/net/dajobe/">Dave Beckett</a>, <a href="http://www.ilrt.bristol.ac.uk/">Institute for Learning and Research Technology</a>, <a href="http://www.bristol.ac.uk/">University of Bristol</a></p>
+<p>Copyright 2003-2004 <a href="http://purl.org/net/dajobe/">Dave Beckett</a>, <a href="http://www.ilrt.bristol.ac.uk/">Institute for Learning and Research Technology</a>, <a href="http://www.bristol.ac.uk/">University of Bristol</a></p>
 
 </body>
 </html>
