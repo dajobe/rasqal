@@ -193,7 +193,8 @@ rasqal_redland_triple_present(rasqal_triples_source *rts, void *user_data,
   rasqal_redland_triples_source_user_data* rtsc=(rasqal_redland_triples_source_user_data*)user_data;
   librdf_node* nodes[3];
   librdf_statement *s;
-
+  int rc;
+  
   /* ASSUMPTION: all the parts of the triple are not variables */
   /* FIXME: and no error checks */
   nodes[0]=rasqal_literal_to_redland_node(rtsc->world, t->subject);
@@ -202,7 +203,7 @@ rasqal_redland_triple_present(rasqal_triples_source *rts, void *user_data,
 
   s=librdf_new_statement_from_nodes(rtsc->world, nodes[0], nodes[1], nodes[2]);
   
-  int rc=librdf_model_contains_statement(rtsc->model, s);
+  rc=librdf_model_contains_statement(rtsc->model, s);
   librdf_free_statement(s);
   return rc;
 }
