@@ -1,7 +1,10 @@
 2004-10-16  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
-	* tests/sparql/examples/.cvsignore,
-	tests/sparql/examples/Makefile.am,
+	* sparql_parser.y, sparql_lexer.l: Deleted FOR and USING tokens
+
+	* sparql_parser.y: Remove PatternLiteral
+
+	* tests/sparql/examples/Makefile.am,
 	tests/sparql/examples/ex2-1a-result.n3,
 	tests/sparql/examples/ex2-1a.n3, tests/sparql/examples/ex2-1a.rq,
 	tests/sparql/examples/ex2-1b.rq, tests/sparql/examples/ex2-1c.rq,
