@@ -1,5 +1,9 @@
 2005-01-29  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
+	* roqet.1: Document -f/--format.  Reference -o xml spec
+
+	* roqet.c: Note that -o xml writes the SPARQL xml format.
+
 	* rasqal_engine.c (rasqal_engine_assign_variables):
 	variables_declared_in is now an array of integer (triple) column
 	numbers not pointers to graph patterns.
