@@ -76,6 +76,9 @@ void rasqal_system_free(void *ptr);
 #define RASQAL_DEBUG5(msg, arg1, arg2, arg3, arg4)
 #define RASQAL_DEBUG6(msg, arg1, arg2, arg3, arg4, arg5)
 
+#define SYSTEM_MALLOC(size)   malloc(size)
+#define SYSTEM_FREE(ptr)   free(ptr)
+
 #endif
 
 
