@@ -418,7 +418,9 @@ rasqal_literal_print(rasqal_literal* l, FILE* fh)
       fprintf(fh, "/%s/%s", l->string, l->flags ? (const char*)l->flags : "");
       break;
     case RASQAL_LITERAL_STRING:
-      fprintf(fh, "(\"%s\"", l->string);
+      fputs("(\"", fh);
+      raptor_print_ntriples_string(fh, l->string, '"');
+      fputc('"', fh);
       if(l->language)
         fprintf(fh, "@%s", l->language);
       if(l->datatype)
