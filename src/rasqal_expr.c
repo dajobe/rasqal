@@ -66,6 +66,7 @@ rasqal_new_literal(rasqal_literal_type type, int integer, float floating,
       l->value.uri=uri;
       break;
     case RASQAL_LITERAL_STRING:
+    case RASQAL_LITERAL_BLANK:
     case RASQAL_LITERAL_PATTERN:
     case RASQAL_LITERAL_QNAME:
       l->value.string=string;
@@ -94,6 +95,7 @@ rasqal_free_literal(rasqal_literal* l) {
         raptor_free_uri(l->value.uri);
       break;
     case RASQAL_LITERAL_STRING:
+    case RASQAL_LITERAL_BLANK:
     case RASQAL_LITERAL_PATTERN:
     case RASQAL_LITERAL_QNAME:
       if(l->value.string)
@@ -116,6 +118,7 @@ static const char* rasqal_literal_type_labels[]={
   "uri",
   "qname",
   "string",
+  "blank",
   "pattern",
   "boolean",
   "null",
@@ -141,6 +144,9 @@ rasqal_print_literal(rasqal_literal* l, FILE* fh)
   switch(l->type) {
     case RASQAL_LITERAL_URI:
       fprintf(fh, "<%s>", raptor_uri_as_string(l->value.uri));
+      break;
+    case RASQAL_LITERAL_BLANK:
+      fprintf(fh, "_:%s", l->value.string);
       break;
     case RASQAL_LITERAL_STRING:
     case RASQAL_LITERAL_PATTERN:
@@ -177,6 +183,7 @@ rasqal_literal_as_boolean(rasqal_literal* l)
       return (l->value.uri) != NULL;
       break;
     case RASQAL_LITERAL_STRING:
+    case RASQAL_LITERAL_BLANK:
     case RASQAL_LITERAL_PATTERN:
     case RASQAL_LITERAL_QNAME:
       return (l->value.string) != NULL;
@@ -225,6 +232,7 @@ rasqal_literal_equals(rasqal_literal* l1, rasqal_literal* l2)
       return raptor_uri_equals(l1->value.uri,l2->value.uri);
 
     case RASQAL_LITERAL_STRING:
+    case RASQAL_LITERAL_BLANK:
     case RASQAL_LITERAL_PATTERN:
     case RASQAL_LITERAL_QNAME:
       return !strcmp(l1->value.string,l2->value.string);
@@ -246,13 +254,26 @@ rasqal_literal_equals(rasqal_literal* l1, rasqal_literal* l2)
 
 
 rasqal_variable*
-rasqal_new_variable(const char *name, rasqal_expression *value) 
+rasqal_new_variable(rasqal_query* rq,
+                    const char *name, rasqal_expression *value) 
 {
-  rasqal_variable* v=(rasqal_variable*)calloc(sizeof(rasqal_variable), 1);
+  int i;
+  rasqal_variable* v;
+  
+  for(i=0; i< rasqal_sequence_size(rq->variables_sequence); i++) {
+    v=(rasqal_variable*)rasqal_sequence_get_at(rq->variables_sequence, i);
+    if(!strcmp(v->name, name))
+      return v;
+  }
+    
+  v=(rasqal_variable*)calloc(sizeof(rasqal_variable), 1);
 
   v->name=name;
   v->value=value;
+  v->offset=rq->variables_count++;
 
+  rasqal_sequence_push(rq->variables_sequence, v);
+  
   return v;
 }
 
