@@ -7,7 +7,7 @@
 .\" Institute for Learning and Research Technology - http://www.ilrt.bristol.ac.uk/
 .\" University of Bristol - http://www.bristol.ac.uk/
 .\"
-.TH librasqal 3 "2005-01-15"
+.TH librasqal 3 "2005-01-30"
 .\" Please adjust this date whenever revising the manpage.
 .SH NAME
 librasqal \- Rasqal RDF query library
@@ -162,9 +162,9 @@ Set some user data to be associated with the query.
 Get the user data associated with the query.
 .SH "QUERY RESULTS CLASS"
 A class for the results of a query.  The results can be in different
-forms, presently variable bindings are available but graphs or
-sets of graphs may be returned as sets of triples, a triple at a
-time.
+formats - variable bindings, RDF graphs as a sequence of triples
+or a boolean result.  The format returned is determined by the
+query which is query-language specific.
 .SH "QUERY RESULTS CONSTRUCTOR"
 There is no public constructor for this class, the
 \fBrasqal_query_results*\fP is returned from 
@@ -173,39 +173,61 @@ There is no public constructor for this class, the
 .IP "\fBrasqal_free_query_results(rasqal_query_results *\fIquery_results\fP);\fR"
 Destroy a rasqal query results object.
 .SH "QUERY RESULTS METHODS"
-.IP "\fBint rasqal_query_results_get_count(rasqal_query_results *\fIquery_result\fP)\fR"
-Get the current number of results returned.
-.IP "\fBint rasqal_query_results_next(rasqal_query_results *\fIquery_results\fP)\fR"
-Move to the next result, returning non-0 on failure or results are exhausted.
-.IP "\fBint rasqal_query_results_finished(rasqal_query_results *\fIquery_results\fP)\fR"
-Find out if binding results are exhausted, return non-0 if results
-are finished or the query failed.
-.IP "\fBint rasqal_query_results_get_bindings(rasqal_query_results *\fIquery_results\fP, const unsigned char ***names, rasqal_literal ***values);\fR"
-Get all binding names and values for the current result.
-If \fInames\fP is not NULL, it is set to the address of a shared array
-of names of the bindings (an output parameter). 
-If \fIvalues\fP is not NULL, it is set to the address of a shared array
-of rasqal_literal* binding values.  Note that both the
-names or values are shared and must not be freed by the caller.
-Returns non-0 if the assignment failed.
-.IP "\fBrasqal_literal* rasqal_query_results_get_binding_value(rasqal_query_results *\fIquery_results\fP, int offset);\fR"
-Get one binding literal value for the current result.  Returns the
-value of the variable indexed in the sequence of variable bindings
-at position \fIoffset\fP.
-.IP "\fBconst unsigned char* rasqal_query_results_get_binding_name(rasqal_query_results *\fIquery_results\fP, int offset);\fR"
-Get the name of the variable indexed in the sequence of variable bindings
-at position \fIoffset\fP.
-.IP "\fBrasqal_literal* rasqal_query_results_get_binding_value_by_name(rasqal_query_results *\fIquery_results\fP, const unsigned char *\fIname\fB)\fR"
-Get the value of the variable in the sequence of variable bindings
-named \fIname\fP or NULL if not known or unbound.
-.IP "\fBint rasqal_query_results_get_bindings_count(rasqal_query_results *\fIquery_results\fP)\fR"
-Get the number of bound variables in the result or <0 on failure.
+.IP "\fBint rasqal_query_results_is_bindings(rasqal_query_results *\fIquery_results\fP)\fR"
+.IP "\fBint rasqal_query_results_is_boolean(rasqal_query_results *\fIquery_results\fP)\fR"
+.IP "\fBint rasqal_query_results_is_graph(rasqal_query_results *\fIquery_results\fP)\fR"
+Return non-0 if the \fBrasqal_query_results\fP is of the given
+format.  Only one of these will be non-0 for any result.
 .IP "\fBint rasqal_query_results_write(raptor_iostream *\fIiostr\fP, rasqal_query_results *\fIresults\fP, raptor_uri *\fIformat_uri\fP, raptor_uri *\fIbase_uri\fP)\fR"
 Write the query results in a syntax to the \fIiostr\fP iostream, the
 format of the syntax is given by the \fIformat_uri\fP URI, with
 an optional base URI \fIbase_uri\fP that may be used.  The only
 value of \fIformat_uri\fP currently supported is
 \fIhttp://www.w3.org/TR/2004/WD-rdf-sparql-XMLres-20041221/\fP.
+.SH "QUERY VARIABLE BINDINGS RESULTS METHODS"
+.IP "\fBint rasqal_query_results_get_count(rasqal_query_results *\fIquery_result\fP)\fR"
+Get the current number of variable bindings results returned.
+(Variable bindings results only)
+.IP "\fBint rasqal_query_results_next(rasqal_query_results *\fIquery_results\fP)\fR"
+Move to the next variable bindings result, returning non-0 on failure
+or results are exhausted. (Variable bindings results only)
+.IP "\fBint rasqal_query_results_finished(rasqal_query_results *\fIquery_results\fP)\fR"
+Find out if the variable binding results are exhausted, return non-0 if results
+are finished or the query failed. (Variable bindings results only)
+.IP "\fBint rasqal_query_results_get_bindings(rasqal_query_results *\fIquery_results\fP, const unsigned char ***names, rasqal_literal ***values)\fR"
+Get all variable binding names and values for the current result.
+If \fInames\fP is not NULL, it is set to the address of a shared array
+of names of the bindings (an output parameter). 
+If \fIvalues\fP is not NULL, it is set to the address of a shared array
+of rasqal_literal* binding values.  Note that both the
+names or values are shared and must not be freed by the caller.
+Returns non-0 if the assignment failed. (Variable bindings results only)
+.IP "\fBrasqal_literal* rasqal_query_results_get_binding_value(rasqal_query_results *\fIquery_results\fP, int offset)\fR"
+Get one variable binding literal value for the current result.  Returns the
+value of the variable indexed in the sequence of variable bindings
+at position \fIoffset\fP. (Variable bindings results only)
+.IP "\fBconst unsigned char* rasqal_query_results_get_binding_name(rasqal_query_results *\fIquery_results\fP, int offset)\fR"
+Get the name of the variable indexed in the sequence of variable bindings
+at position \fIoffset\fP. (Variable bindings results only)
+.IP "\fBrasqal_literal* rasqal_query_results_get_binding_value_by_name(rasqal_query_results *\fIquery_results\fP, const unsigned char *\fIname\fB)\fR"
+Get the value of the variable in the sequence of variable bindings
+named \fIname\fP or NULL if not known or unbound. (Variable bindings
+results only)
+.IP "\fBint rasqal_query_results_get_bindings_count(rasqal_query_results *\fIquery_results\fP)\fR"
+Get the number of bound variables in the variable bindings result or
+<0 on failure. (Variable bindings results only)
+.SH "QUERY BOOLEAN RESULTS METHODS"
+.IP "\fBint rasqal_query_results_get_boolean(rasqal_query_results *\fIquery_results\fP)\fR"
+Return the value of a boolean query result.  This is meaningless if
+the query result is not a boolean. (Boolean result format only).
+.SH "QUERY RDF GRAPH RESULTS METHODS"
+.IP "\fBraptor_statement* rasqal_query_results_get_triple(rasqal_query_results *\fIquery_results\fP)\fR"
+Return the current triple in the RDF graph results or NULL at end of
+results or on failure.  The returned \fBraptor_statement\fP is a
+shared pointer.  (Graph results format only).
+.IP "\fBint rasqal_query_results_next_triple(rasqal_query_results *\fIquery_results\fP)\fR"
+Move to the next triple in the RDF graph results, returning non-0
+at end of results or on failure. (Graph results format only).
 .SH "LITERAL CLASS"
 A class for the values returned as parts of triples and in variable
 bindings. The rasqal_literal structure is public and defined in
@@ -277,7 +299,7 @@ The return value is comparable to strcmp(3), first before second
 returns <0.  equal returns 0, and first after second returns >0.
 If there is no ordering, such as for URIs, the return value
 is 0 for equal, non-0 for different (using raptor_uri_equals).
-.IP "\fBint rasqal_literal_equals(rasqal_literal* \Iliteral\fP1, rasqal_literal* \Idata_literal\fP2);\fR"
+.IP "\fBint rasqal_literal_equals(rasqal_literal* \Iliteral\fP1, rasqal_literal* \Idata_literal\fP2)\fR"
 Compare two literals with no type promotion
 If \fIdata_literal\fP's value is a boolean, it will match
  the string "true" or "false" in \fIliteral\fP.
@@ -287,10 +309,13 @@ query where the literals may be variables as well as in then
 interface between Rasqal and RDF systems using RDF triples, when the
 literals may not be literals.  The structure of this class is public
 and defined in rasqal.h
-.SH TRIPLE CONSTRUCTOR
+.SH "TRIPLE CONSTRUCTOR"
 .IP "\fBrasqal_triple* rasqal_new_triple(rasqal_literal* \fIsubject\fP, rasqal_literal* \fIpredicate\fP, rasqal_literal* \fIobject\fP)\fR"
 Create a new rasqal triple from three literals.
-.SH TRIPLE DESTRUCTOR
+.SH "TRIPLE COPY CONSTRUCTOR"
+.IP "\fBrasqal_triple* rasqal_new_triple_from_triple(rasqal_triple* t)\fR"
+Copy an existing rasqal triple object.
+.SH "TRIPLE DESTRUCTOR"
 .IP "\fBvoid rasqal_free_triple(rasqal_triple* \fItriple\fP)\fR"
 Destroy a rasqal triple object.
 .SH "TRIPLE METHODS"
@@ -341,7 +366,7 @@ A class for constraint expressions over literals and variables.  The
 expression operators are defined in rasqal.h as enum rasqal_op
 and take one, two or more complex parameters.
 .SH "EXPRESSION CONSTRUCTORS"
-.IP "\fBrasqal_expression* rasqal_new_1op_expression(rasqal_op \fIop\fP, rasqal_expression* arg);\fR"
+.IP "\fBrasqal_expression* rasqal_new_1op_expression(rasqal_op \fIop\fP, rasqal_expression* arg)\fR"
 Create a new expression with a 1-argument operator.
 .IP "\fBrasqal_expression* rasqal_new_2op_expression(rasqal_op \fIop\fP, rasqal_expression* \fIarg1\fP, rasqal_expression* \fIarg2\fP)\fR"
 Create a new expression with a 2-argument operator.
@@ -352,6 +377,9 @@ which is a literal string.
 Create a new expression over an existing rasqal \fIliteral\fP.
 .IP "\fBrasqal_expression* rasqal_new_variable_expression(rasqal_variable* \fIvariable\fP)\fR"
 Create a new expression over an existing rasqal \fIvariable\fP.
+.IP "\fBrasqal_expression* rasqal_new_function_expression(raptor_uri* name, raptor_sequence* args)\fR"
+Create a new expression for a function named \fIname\fP and with
+sequence of \fBrasqal_literal*\fP arguments \fIargs\fP.
 .SH "EXPRESSION DESTRUCTOR"
 .IP "\fBvoid rasqal_free_expression(rasqal_expression* \fIexpression\fP)\fR"
 Destroy a rasqal expression object.
@@ -370,6 +398,25 @@ sub-expressions.  The order is the first expression at hand and then
 the arguments, if any.  function \fIfn\fP is called at each point
 with the arguments of \fIuser_data\fP and the expression.
 .SH API CHANGES
+.SS 0.9.6
+Added user-defined function expressions to the expression constructor:
+\fBrasqal_op\fP enum gained \fBRASQAL_EXPR_FUNCTION\fP value;
+\fBrasqal_expression\fP gained name and args fields
+and added \fBrasqal_new_function_expression\fP to construct
+a function expression.
+.LP
+Added \fBrasqal_query_results_is_bindings\fP, 
+\fBrasqal_query_results_is_boolean\fP and
+\fBrasqal_query_results_is_graph\fP to test the format of query
+result.
+.LP
+Added \fBrasqal_query_results_get_boolean\fP
+to get the value of a boolean query result.
+.LP
+Added \fBrasqal_query_results_get_triple\fP and
+\fBrasqal_query_results_next_triple\fP to return an RDF graph query result.
+.LP
+Added \fBrasqal_new_triple_from_triple\fP triple copy constructor.
 .SS 0.9.5
 Added \fBrasqal_query_results_write\fP to format query results
 into a syntax, written to a raptor iostream.
