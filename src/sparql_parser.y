@@ -358,12 +358,23 @@ PatternElementForms: SOURCE '*' GraphPattern1  /* from SourceGraphPattern */
 }
 | OPTIONAL GraphPattern1 /* from OptionalGraphPattern */
 {
-  /* FIXME flag all the triples in GraphPattern1 as optional */
+  int i;
+
+  /* Flag all the triples in GraphPattern1 as optional */
+  for(i=0; i < raptor_sequence_size($2); i++) {
+    rasqal_triple *t=(rasqal_triple*)raptor_sequence_get_at($2, i);
+    t->flags |= RASQAL_TRIPLE_FLAGS_OPTIONAL;
+  }
   $$=$2;
 }
 | '[' GraphPattern ']' /* from OptionalGraphPattern */
 {
-  /* FIXME flag all the triples in GraphPattern1 as optional */
+  int i;
+
+  for(i=0; i < raptor_sequence_size($2); i++) {
+    rasqal_triple *t=(rasqal_triple*)raptor_sequence_get_at($2, i);
+    t->flags |= RASQAL_TRIPLE_FLAGS_OPTIONAL;
+  }
   $$=$2;
 }
 | AND Expression
