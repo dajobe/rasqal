@@ -27,16 +27,14 @@ extern "C" {
 #endif
 
 
-struct rdql_parser_s {
-  rasqal_query *query;
-  
+struct rasqal_rdql_engine_s {
   /* for lexer to store result in */
   YYSTYPE lval;
 
   /* STATIC lexer */
   yyscan_t scanner;
 
-  const char *uri_string;
+  raptor_namespace_stack *namespaces;
 
   /* for error reporting */
   unsigned int line;
