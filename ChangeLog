@@ -1,4 +1,28 @@
+2005-02-12  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal_engine.c (rasqal_reset_triple_meta): End any triples
+	match when resetting rasqal_triple_meta; this frees any resources
+	that were providing a source of triples.
+
+2005-02-10  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal_query_test.c (main): Execute a query/free twice with no
+	checking of results in between.
+
+2005-02-08  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* tests/sparql/bound/Makefile.am,
+	tests/sparql/examples/Makefile.am, tests/sparql/part1/Makefile.am,
+	tests/sparql/simple/Makefile.am, tests/sparql/syntax/Makefile.am,
+	configure.ac, tests/rdql/testsuite/Makefile.am: Add @RAPPER_PATH@
+	to the PATH before check-rdql/sparql calls so that if both raptor
+	and rasqal are being built, rapper can be found before
+	installation.
+
 2005-02-06  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* configure.ac, win32_rasqal_config.h:
+	Bumped version to 0.9.7
 
 	* Snapshotted rasqal_0_9_6 for 0.9.6 release
 
