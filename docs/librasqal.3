@@ -164,7 +164,7 @@ Get a graph pattern in the sequence of graph_pattern expressions in the query.
 .IP "\fBvoid rasqal_query_print(rasqal_query* \fIquery\fP, FILE* \fIstream\fP)\fR"
 Print a query in a debug format.  This format may change in any release.
 .IP "\fBint rasqal_query_prepare(rasqal_query* \fIquery\fP, const unsigned char *\fIquery_string\fP, raptor_uri *\fIbase_uri\fP)\fR"
-Prepare aquery string \fIquery_string\fPwith
+Prepare a query string \fIquery_string\fPwith
 optional base URI \fIuri_string\fP for execution,
 parsing it and modifying the rasqal_query internals.
 Return non-0 on failure.
@@ -464,8 +464,8 @@ with an optional name URI.
 .IP "\fBrasqal_data_graph* rasqal_new_data_graph(raptor_uri* \fIuri, raptor_uri* \fIname_uri\fP, int \fIflags)\fR"
 Create a new data graph with source URI \fIuri\fI and optional
 name URI \fIname_uri\fP.  Flags can be 
-\fIRASQAL_DATA_GRAPH_NONE\fP, \fIRASQAL_DATA_GRAPH_NAMED\fP or
-RASQAL_DATA_GRAPH_BACKGROUND\fP.
+\fBRASQAL_DATA_GRAPH_NONE\fP, \fBRASQAL_DATA_GRAPH_NAMED\fP or
+\fBRASQAL_DATA_GRAPH_BACKGROUND\fP.
 .SH DATA GRAPH DESTRUCTOR
 .IP "\fBvoid rasqal_free_data_graph(rasqal_data_graph* \fIdg\fP)\fR"
 Destroy a rasqal data_graph object.
@@ -479,7 +479,7 @@ Added a \fIData Graph\fP class with constructor
 \fBrasqal_free_data_graph\fP and debug method
 \fBrasqal_data_graph_print\fP.
 .LP
-Added casting expressions with type \fIRASQAL_EXPR_CAST\fP
+Added casting expressions with type \fBRASQAL_EXPR_CAST\fP
 and expression constructor \fIrasqal_new_cast_expression\fP
 .LP
 Added a no-arg graph pattern constructor \fBrasqal_new_graph_pattern\fP
@@ -661,12 +661,13 @@ W3C Member Submission 9 January 2004
 .UR http://www.w3.org/Submission/2004/SUBM-RDQL-20040109/
 http://www.w3.org/Submission/2004/SUBM-RDQL-20040109/
 .UE
+.LP
 \fISPARQL Query Language for RDF\fR, 
-Eric Prud'hommeaux and Andy Seaborne (ed), W3C Working Draft, 12 October 2004.
-.UR http://www.w3.org/TR/2004/WD-rdf-sparql-query-20041012/
-http://www.w3.org/TR/2004/WD-rdf-sparql-query-20041012/
+Eric Prud'hommeaux and Andy Seaborne (ed), W3C Working Draft, 17 February 2005.
+.UR http://www.w3.org/TR/2005/WD-rdf-sparql-query-20050217/
+http://www.w3.org/TR/2005/WD-rdf-sparql-query-20050217/
 .UE
-.UE
+.LP
 \fISPARQL Variable Binding Results XML Format\fR, 
 Dave Beckett (ed), W3C Working Draft, 21 December 2004.
 .UR http://www.w3.org/TR/2004/WD-rdf-sparql-XMLres-20041221/
