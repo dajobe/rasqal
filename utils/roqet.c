@@ -116,7 +116,11 @@ static int error_count=0;
 
 static const char *title_format_string="Rasqal RDF query utility %s\n";
 
-#define FILE_READ_BUF_SIZE 2048
+#ifdef BUFSIZ
+#define FILE_READ_BUF_SIZE BUFSIZ
+#else
+#define FILE_READ_BUF_SIZE 1024
+#endif
 
 #define MAX_QUERY_ERROR_REPORT_LEN 512
 
@@ -488,18 +492,33 @@ main(int argc, char *argv[])
     query_string=calloc(FILE_READ_BUF_SIZE, 1);
     fread(query_string, FILE_READ_BUF_SIZE, 1, stdin);
   } else if(filename) {
+    raptor_stringbuffer *sb=raptor_new_stringbuffer();
+    size_t len;
     FILE *fh;
-    query_string=calloc(FILE_READ_BUF_SIZE, 1);
+
     fh=fopen(filename, "r");
-    if(fh) {
-      fread(query_string, FILE_READ_BUF_SIZE, 1, fh);
-      fclose(fh);
-    } else {
+    if(!fh) {
       fprintf(stderr, "%s: file '%s' open failed - %s", 
               program, filename, strerror(errno));
       rc=1;
       goto tidy_setup;
     }
+    
+    while(!feof(fh)) {
+      char buffer[FILE_READ_BUF_SIZE];
+      size_t read_len;
+      read_len=fread(buffer, 1, FILE_READ_BUF_SIZE, fh);
+      if(read_len > 0)
+        raptor_stringbuffer_append_counted_string(sb, buffer, read_len, 1);
+      if(read_len < FILE_READ_BUF_SIZE)
+        break;
+    }
+    fclose(fh);
+
+    len=raptor_stringbuffer_length(sb);
+    query_string=malloc(len+1);
+    raptor_stringbuffer_copy_to_string(sb, query_string, len);
+    raptor_free_stringbuffer(sb);
   } else {
     raptor_www *www=raptor_www_new();
     if(www) {
