@@ -244,6 +244,22 @@ rasqal_query_prepare(rasqal_query *rdf_query,
 librdf_world *world=NULL;
 
 
+static char*
+rasqal_uri_heuristic_parser_name(librdf_uri *uri) {
+  char *uri_string;
+  size_t len;
+
+  uri_string=librdf_uri_as_counted_string(uri, &len);
+  if(strncmp(uri_string+len-3, ".nt", 3))
+    return "ntriples";
+  
+  if(strncmp(uri_string+len-3, ".n3", 3))
+    return "turtle";
+
+  return "rdfxml";
+}
+
+
 /**
  * rasqal_query_execute: excute a query - run and return results
  * @rdf_query: the &rasqal_query object
@@ -260,6 +276,7 @@ rasqal_query_execute(rasqal_query *rdf_query)
   librdf_model *model;
   librdf_parser *parser;
   librdf_uri *source0;
+  char *parser_name;
   
   /* Order the conjunctive query triples */
   if(rasqal_query_order_triples(rdf_query))
@@ -273,7 +290,8 @@ rasqal_query_execute(rasqal_query *rdf_query)
   storage = librdf_new_storage(world, NULL, NULL, NULL);
   model = librdf_new_model(world, storage, NULL);
 
-  parser=librdf_new_parser(world, NULL, NULL, NULL);
+  parser_name=rasqal_uri_heuristic_parser_name(source0);
+  parser=librdf_new_parser(world, parser_name, NULL, NULL);
   librdf_parser_parse_into_model(parser, source0, NULL, model);
   librdf_free_parser(parser);
                                  
