@@ -1,5 +1,7 @@
 2005-01-30  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
+	* rasqal_engine.c (rasqal_engine_assign_variables): C99
+
 	* rasqal_xsd_datatypes.c: Casts for C++
 
 	* rasqal_redland.c (rasqal_redland_bind_match): Updated untested
