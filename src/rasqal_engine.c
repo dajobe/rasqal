@@ -256,6 +256,45 @@ rasqal_engine_expand_triple_qnames(rasqal_query* rq)
 
 
 int
+rasqal_engine_sequence_has_qname(raptor_sequence *seq) {
+  int i;
+
+  if(!seq)
+    return 0;
+  
+  /* expand qnames in triples */
+  for(i=0; i< raptor_sequence_size(seq); i++) {
+    rasqal_triple* t=(rasqal_triple*)raptor_sequence_get_at(seq, i);
+    if(rasqal_literal_has_qname(t->subject) ||
+       rasqal_literal_has_qname(t->predicate) ||
+       rasqal_literal_has_qname(t->object))
+      return 1;
+  }
+
+  return 0;
+}
+
+
+int
+rasqal_engine_constraints_has_qname(rasqal_query* rq) 
+{
+  int i;
+  
+  if(!rq->constraints)
+    return 0;
+  
+  /* check for qnames in constraint expressions */
+  for(i=0; i<raptor_sequence_size(rq->constraints); i++) {
+    rasqal_expression* e=(rasqal_expression*)raptor_sequence_get_at(rq->constraints, i);
+    if(rasqal_expression_foreach(e, rasqal_expression_has_qname, rq))
+      return 1;
+  }
+
+  return 0;
+}
+
+
+int
 rasqal_engine_expand_constraints_qnames(rasqal_query* rq)
 {
   int i;
