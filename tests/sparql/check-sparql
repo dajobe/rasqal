@@ -83,6 +83,7 @@ sub run_test($$$$$) {
 	$vars =~ s/=uri<[^>]+>//g;
 	$vars =~ s/=string\("[^"]+"[^)]*\)//g; # "
 	$vars =~ s/=blank _//g;
+	$vars =~ s/=NULL//g;
 	$vars =~ s/,//g;
 	@vars_order=split(/ /, $vars);
       }
@@ -111,7 +112,7 @@ sub run_test($$$$$) {
     push(@node_order, $subject)
       unless exists $nodes{$subject} || exists $node_type{$subject};
 
-    if ($predicate eq '<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>') {
+    if ($predicate eq "<${rdf}type>") {
       $node_type{$subject}=$object;
     } else {
       push(@{$nodes{$subject}->{$predicate}}, $object);
@@ -161,8 +162,9 @@ sub run_test($$$$$) {
       my $value=$nodes{$binding_node}->{$value_predicate}->[0];
       $results{$variable}=toDebug($value);
     }
-    print OUT "result: [",join(", ",map {$results{$_} ? "$_=$results{$_}" : "$_=undef"} @vars_order),"]\n"
-      if @vars_order;
+
+    my(@defined_vars)=grep(defined $results{$_}, @vars_order);
+    print OUT "result: [",join(", ",map {"$_=$results{$_}"} @defined_vars),"]\n";
     $count++;
   }
   close(OUT);
@@ -247,9 +249,10 @@ while($list_node) {
 
   my $dir=".";
 
-  next if $unique_test && $name ne $unique_test;
-  
-  push(@tests, [$name, $dir, $query_file, $data_file, $result_file]);
+  if (!$unique_test || ($unique_test && $name eq $unique_test)) {
+    push(@tests, [$name, $dir, $query_file, $data_file, $result_file]);
+    last if $unique_test;
+  }
 
   $list_node=$triples{$list_node}->{"<${rdf}rest>"}->[0];
   last if $list_node eq "<${rdf}nil>";
