@@ -1,5 +1,21 @@
 2004-10-27  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
+	* tests/sparql/check-sparql, tests/rdql/testsuite/check-rdql: OK
+	to assume raptor 1.4.0
+
+	* roqet.1: updated RDQL URL
+
+	* tests/sparql/syntax/data.n3: skeleton data file
+
+	* tests/sparql/syntax/Makefile.am: Added check-bad-sparql rule
+	Added nojam.rq bad test
+
+	* tests/sparql/syntax/nojam.rq: failure with ? and non var
+
+	* rdql_lexer.l:
+	Restore ID state which is used to allow things like ?select.
+	However, make sure ID state is left on errors.
+
 	* sparql_lexer.l: In <ID> state with unknown token, return to
 	INITIAL and report the error.
 
