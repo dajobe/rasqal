@@ -222,7 +222,7 @@ roqet_print_results_as_xml(FILE *fh, rasqal_query_results *results)
         default:
           fprintf(stderr, "%s: Cannot turn literal type %d '", program, l->type);
           rasqal_literal_print_type(l, stderr);
-          fputs("'\n", stderr);
+          fputs("' into XML\n", stderr);
           abort();
       }
 
