@@ -145,7 +145,7 @@ static int sparql_query_error(rasqal_query* rq, const char *message);
 %token <literal> FLOATING_POINT_LITERAL
 %token <literal> STRING_LITERAL PATTERN_LITERAL INTEGER_LITERAL
 %token <literal> BOOLEAN_LITERAL
-%token <literal> NULL_LITERAL 
+%token <literal> NULL_LITERAL
 %token <uri> URI_LITERAL
 %token <name> QNAME_LITERAL
 
@@ -170,7 +170,7 @@ static int sparql_query_error(rasqal_query* rq, const char *message);
 
 %type <variable> Var
 %type <triple> TriplePattern
-%type <literal> PatternLiteral Literal
+%type <literal> PatternLiteral Literal URI
 
 %%
 
@@ -403,12 +403,12 @@ VarOrURIList : VarOrURIList Var
   $$=$1;
   raptor_sequence_push($$, $3);
 }
-| VarOrURIList URI_LITERAL
+| VarOrURIList URI
 {
   $$=$1;
   raptor_sequence_push($$, $2);
 }
-| VarOrURIList COMMA URI_LITERAL
+| VarOrURIList COMMA URI
 {
   $$=$1;
   raptor_sequence_push($$, $3);
@@ -419,7 +419,7 @@ VarOrURIList : VarOrURIList Var
   $$=raptor_new_sequence(NULL, (raptor_sequence_print_handler*)rasqal_variable_print);
   raptor_sequence_push($$, $1);
 }
-| URI_LITERAL
+| URI
 {
   /* The variables are freed from the raptor_query field variables */
   $$=raptor_new_sequence(NULL, (raptor_sequence_print_handler*)rasqal_variable_print);
@@ -447,12 +447,12 @@ VarList : VarList Var
 ;
 
 /* NEW Grammar Term */
-URIList : URIList URI_LITERAL
+URIList : URIList URI
 {
   $$=$1;
   raptor_sequence_push($$, $2);
 }
-| URIList COMMA URI_LITERAL
+| URIList COMMA URI
 {
   $$=$1;
   raptor_sequence_push($$, $3);
@@ -469,9 +469,9 @@ VarOrURI : Var
 {
   $$=rasqal_new_variable_literal($1);
 }
-| URI_LITERAL
+| URI
 {
-  $$=rasqal_new_uri_literal($1);
+  $$=$1;
 }
 ;
 
@@ -737,7 +737,15 @@ Literal : URI_LITERAL
 
 /* SPARQL Grammar: [42] String - made into terminal STRING_LITERAL */
 
-/* SPARQL Grammar: [43] URI - merged inline as QNAME_LITERAL | URI_LITERAL */
+/* SPARQL Grammar: [43] URI */
+URI: URI_LITERAL
+{
+  $$=rasqal_new_uri_literal($1);
+}
+| QNAME_LITERAL
+{
+  $$=rasqal_new_simple_literal(RASQAL_LITERAL_QNAME, $1);
+}
 
 /* SPARQL Grammar: [44] QName - made into terminal QNAME_LITERAL */
 
