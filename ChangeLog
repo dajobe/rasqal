@@ -1,3 +1,16 @@
+2004-10-29  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* configure.ac: Minimum raptor 1.4.1
+
+	* rasqal_raptor.c (ordinal_as_uri):
+	Helper, added to Properly calculate uri_string from
+	rdf:_n ordinals
+	(raptor_statement_as_rasqal_triple): Use above for subject,
+	predicate, object
+
+	* rasqal_expr.c (rasqal_free_triple):
+	Handle a partially constructed triple.
+
 2004-10-28  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
 	* sparql_parser.y, rdql_parser.y, rasqal_query_test.c: Casts for C++
