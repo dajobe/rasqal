@@ -327,6 +327,32 @@ main(int argc, char *argv[])
     rc=1;
   }
 
+  while(!rasqal_query_results_finished(rq)) {
+    int i;
+    const char **names;
+    rasqal_literal **values;
+    
+    if(rasqal_query_get_result_bindings(rq, &names, &values))
+      break;
+
+    fputs("result: [", stdout);
+    if(names) {
+      for(i=0; names[i]; i++) {
+        fprintf(stdout, "%s=", names[i]);
+        if(values[i]) {
+          rasqal_literal_print(values[i], stdout);
+        } else
+          fputs("NULL", stdout);
+        if(names[i+1])
+          fputs(", ", stdout);
+      }
+    }
+    fputs("]\n", stdout);
+    
+    rasqal_query_next_result(rq);
+  }
+
+
   rasqal_free_query(rq);
 
   free(query_string);
