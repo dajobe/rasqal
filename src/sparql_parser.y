@@ -509,9 +509,6 @@ PatternElementForms: GRAPH VarOrURI GraphPattern1 /* from SourceGraphPattern */
 }
 | SOURCE VarOrURI GraphPattern1 /* from SourceGraphPattern */
 {
-  int i;
-  raptor_sequence *s=$3->graph_patterns;
-  
 #if RASQAL_DEBUG > 1  
   printf("PatternElementForms 3\n  varoruri=");
   rasqal_literal_print($2, stdout);
