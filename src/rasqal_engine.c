@@ -754,6 +754,8 @@ rasqal_engine_execute_init(rasqal_query *query) {
   query->finished=0;
   query->failed=0;
   
+  query->current_graph_pattern=0;
+  
   return 0;
 }
 
@@ -776,7 +778,7 @@ rasqal_engine_execute_finish(rasqal_query *query) {
  */
 int
 rasqal_engine_get_next_result(rasqal_query *query) {
-  rasqal_graph_pattern* gp;
+  int graph_patterns_size;
   int rc=1;
 
   if(query->failed)
@@ -788,15 +790,38 @@ rasqal_engine_get_next_result(rasqal_query *query) {
   if(!query->triples)
     return -1;
 
-  gp=(rasqal_graph_pattern*)raptor_sequence_get_at(query->graph_patterns, 0);
+  graph_patterns_size=raptor_sequence_size(query->graph_patterns);
 
   while(rc > 0) {
+    rasqal_graph_pattern*gp=(rasqal_graph_pattern*)raptor_sequence_get_at(query->graph_patterns, query->current_graph_pattern);
+
     /*  return: <0 failure, 0 end of results, >0 match */
     rc=rasqal_graph_pattern_get_next_match(query, gp);
-    if(rc <= 0)
+
+    if(rc < 0) {
+      /* failure to match */
+
+      /* optional always matches */
+      if(!(gp->flags & RASQAL_PATTERN_FLAGS_OPTIONAL))
+        break;
+
+      rc=1;
+    }
+
+    if(!rc) {
+      /* end of graph_pattern results */
+
+      /* if this is not the last in the sequence, move on and continue */
+      if(query->current_graph_pattern < graph_patterns_size-1) {
+        query->current_graph_pattern++;
+        rc=1;
+        continue;
+      }
+
       break;
-    
-    /* got a match - check any constraints */
+    }
+
+    /* got all matches - check any constraints */
     if(query->constraints_expression) {
       rasqal_literal* result;
       int bresult=1; /* constraint succeeds */
