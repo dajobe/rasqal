@@ -225,15 +225,15 @@ SourceClause : SOURCE URIList
 
 
 /* Jena RDQL allows optional COMMA */
-TriplePatternList : TriplePattern COMMA TriplePatternList
+TriplePatternList : TriplePatternList COMMA TriplePattern
 {
-  $$=$3;
-  raptor_sequence_shift($$, $1);
+  $$=$1;
+  raptor_sequence_push($$, $3);
 }
-| TriplePattern TriplePatternList
+| TriplePatternList TriplePattern
 {
-  $$=$2;
-  raptor_sequence_shift($$, $1);
+  $$=$1;
+  raptor_sequence_push($$, $2);
 }
 | TriplePattern
 {
