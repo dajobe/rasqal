@@ -52,7 +52,7 @@ rasqal.pc.in
 
 TESTS=rasqal_sequence_test
 
-CLEANFILES=$(TESTS) rdql_lexer_test rdql_parser_test
+CLEANFILES=$(TESTS) rdql_lexer_test rdql_parser_test rasqal_query_test
 MAINTAINERCLEANFILES=rdql_lexer.c rdql_lexer.h \
 rdql_parser.tab.c rdql_parser.tab.h rdql_parser.output
 
@@ -98,7 +98,7 @@ MEM_LIBS=@MEM_LIBS@
 
 # Actually it needs rdql_parser.h but nevermind
 @MAINT@rdql_lexer.c: $(srcdir)/rdql_lexer.l rdql_parser.tab.c
-@MAINT@	$(LEX) -o $@ $(srcdir)/rdql_lexer.l
+@MAINT@	$(LEX) -o$@ $(srcdir)/rdql_lexer.l
 
 # Compile without warnings
 rdql_lexer.lo: rdql_lexer.c $(srcdir)/rdql_parser.tab.c
