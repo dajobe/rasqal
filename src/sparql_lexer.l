@@ -349,7 +349,7 @@ sparql_copy_qname(rasqal_query *rq, const unsigned char *text, size_t len) {
   if(!len)
     len=strlen((const char*)text);
 
-  p=strchr((const char*)text, ':');
+  p=(unsigned char*)strchr((const char*)text, ':');
   if(!raptor_xml_name_check(text, p-text, 11))
     sparql_syntax_warning(rq, "Invalid XML name \"%s\"", text);
   if(!raptor_xml_name_check(p+1, len-((p+1)-text), 11))

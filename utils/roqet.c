@@ -129,7 +129,7 @@ roqet_query_results_print_as_xml(rasqal_query_results *results, FILE *fh,
   if(!iostr)
     return 1;
   
-  uri=raptor_new_uri("http://www.w3.org/TR/2004/WD-rdf-sparql-XMLres-20041221/");
+  uri=raptor_new_uri((const unsigned char*)"http://www.w3.org/TR/2004/WD-rdf-sparql-XMLres-20041221/");
   rasqal_query_results_write(iostr, results, uri, base_uri);
 
   raptor_free_uri(uri);
