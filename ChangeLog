@@ -1,5 +1,7 @@
 2004-10-28  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
+	* sparql_parser.y, rdql_parser.y, rasqal_query_test.c: Casts for C++
+
 	* tests/sparql/check-sparql: Use PATH to find programs.
 	(run-test): More debug messages Add -s $srcdir arg to find
 	manifest
