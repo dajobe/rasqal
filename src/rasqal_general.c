@@ -78,6 +78,7 @@ rasqal_init(void)
   raptor_init();
   
   rasqal_init_query_engine_rdql();
+
 #ifdef RAPTOR_TRIPLES_SOURCE_RAPTOR
   rasqal_raptor_init();
 #endif
@@ -98,6 +99,9 @@ rasqal_finish(void)
   rasqal_delete_query_engine_factories();
 #ifdef RAPTOR_TRIPLES_SOURCE_RAPTOR
   raptor_finish();
+#endif
+#ifdef RAPTOR_TRIPLES_SOURCE_REDLAND
+  rasqal_redland_finish();
 #endif
 }
 
