@@ -32,9 +32,14 @@ man_MANS = roqet.1 librasqal.3 rasqal-config.1
 SUBDIRS=tests docs win32
 
 TESTS=rasqal_expr_test strcasecmp_test rasqal_query_test
+if RASQAL_QUERY_RDQL
+TESTS += rdql_lexer_test rdql_parser_test
+endif
+if RASQAL_QUERY_BRQL
+TESTS += brql_lexer_test brql_parser_test
+endif
 
-CLEANFILES=$(TESTS) rdql_lexer_test rdql_parser_test \
-brql_lexer_test brql_parser_test
+CLEANFILES=$(TESTS)
 MAINTAINERCLEANFILES=rdql_lexer.c rdql_lexer.h \
 rdql_parser.c rdql_parser.h rdql_parser.output \
 brql_lexer.c brql_lexer.h \
@@ -48,12 +53,18 @@ AM_CFLAGS=@CFLAGS@ @RASQAL_INTERNAL_CPPFLAGS@ @RASQAL_EXTERNAL_CPPFLAGS@ $(MEM)
 AM_LDFLAGS=@RASQAL_EXTERNAL_LIBS@ $(MEM_LIBS)
 
 
-librasqal_la_SOURCES = rdql_lexer.c rdql_lexer.h \
-rdql_parser.c rdql_parser.h rdql_common.h \
-brql_lexer.c brql_lexer.h \
-brql_parser.c brql_parser.h brql_common.h \
+librasqal_la_SOURCES = \
 rasqal_expr.c rasqal_general.c rasqal_query.c \
 rasqal_engine.c rasqal_raptor.c rasqal_literal.c
+if RASQAL_QUERY_RDQL
+librasqal_la_SOURCES += rdql_lexer.c rdql_lexer.h \
+rdql_parser.c rdql_parser.h rdql_common.h
+endif
+if RASQAL_QUERY_BRQL
+librasqal_la_SOURCES += brql_lexer.c brql_lexer.h \
+brql_parser.c brql_parser.h brql_common.h
+endif
+
 if GETOPT
 librasqal_la_SOURCES += strcasecmp.c
 endif
@@ -145,9 +156,6 @@ brql_parser.c: $(srcdir)/brql_parser.y
 	rm -f brql_parser.tab.c
 endif
 
-
-check-local: rdql_lexer_test rdql_parser_test \
-brql_lexer_test brql_parser_test
 
 rdql_lexer_test: $(srcdir)/rdql_lexer.c librasqal.la
 	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE @RASQAL_INTERNAL_CPPFLAGS@ $(srcdir)/rdql_lexer.c librasqal.la $(LIBS)
