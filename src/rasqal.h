@@ -239,6 +239,7 @@ RASQAL_API void rasqal_free_literal(rasqal_literal* l);
 RASQAL_API void rasqal_literal_print(rasqal_literal* literal, FILE* fh);
 RASQAL_API int rasqal_literal_as_boolean(rasqal_literal* literal);
 RASQAL_API rasqal_variable* rasqal_literal_as_variable(rasqal_literal* l);
+RASQAL_API char* rasqal_literal_as_string(rasqal_literal* l);
 
 RASQAL_API rasqal_prefix* rasqal_new_prefix(const char *prefix, raptor_uri *uri);
 RASQAL_API void rasqal_free_prefix(rasqal_prefix* prefix);
