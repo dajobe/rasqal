@@ -7,5 +7,5 @@ CONSTRUCT
    ( <http://example.org/ns#thing2> ex:pred5 _:f )
    ( <http://example.org/ns#thing3> ex:pred6 <http://example.org/ns#thing4> )
    ( <http://example.org/ns#thing5> <http://example.org/ns#pred7> <http://example.org/ns#thing6> )
-FROM <data.n3>
+WITH <data.n3>
 WHERE (?x ?y ?z)

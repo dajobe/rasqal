@@ -1,4 +1,4 @@
 prefix ex: <http://example.org/#>
 ask
-from <data.n3>
+with <data.n3>
 where ($x ex:bar ex:baz)
