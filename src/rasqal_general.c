@@ -73,7 +73,7 @@ const unsigned int rasqal_version_decimal = RASQAL_VERSION_DECIMAL;
 void
 rasqal_init(void) 
 {
-  if(rasqal_initialised++)
+  if(rasqal_initialised)
     return;
 
   raptor_init();
@@ -94,6 +94,8 @@ rasqal_init(void)
 #ifdef RAPTOR_TRIPLES_SOURCE_REDLAND
   rasqal_redland_init();
 #endif
+
+  rasqal_initialised=1;
 }
 
 
@@ -105,7 +107,7 @@ rasqal_init(void)
 void
 rasqal_finish(void) 
 {
-  if(--rasqal_initialised)
+  if(!rasqal_initialised)
     return;
 
   rasqal_delete_query_engine_factories();
@@ -115,6 +117,8 @@ rasqal_finish(void)
 #ifdef RAPTOR_TRIPLES_SOURCE_REDLAND
   rasqal_redland_finish();
 #endif
+
+  rasqal_initialised=0;
 }
 
 
