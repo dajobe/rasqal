@@ -445,7 +445,7 @@ main(int argc, char *argv[])
     fprintf(stderr, "%s: Parsing query '", program);
     if(len > MAX_QUERY_ERROR_REPORT_LEN) {
       fwrite(query_string, MAX_QUERY_ERROR_REPORT_LEN, sizeof(char), stderr);
-      fprintf(stderr, "...' (%d bytes) failed\n", len);
+      fprintf(stderr, "...' (%d bytes) failed\n", (int)len);
     } else {
       fwrite(query_string, len, sizeof(char), stderr);
       fputs("' failed\n", stderr);
