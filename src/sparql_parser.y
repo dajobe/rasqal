@@ -264,11 +264,13 @@ TriplePatternList : TriplePatternList TriplePattern
 }
 | TriplePatternList AND Expression
 {
-  raptor_sequence* cons=raptor_new_sequence(NULL, (raptor_sequence_print_handler*)rasqal_expression_print);
-  raptor_sequence_push($$, $3);
+  raptor_sequence* cons;
   
   $$=$1;
   /* FIXME - should append $3 to constraints, an already inited sequence */
+  cons=raptor_new_sequence(NULL, (raptor_sequence_print_handler*)rasqal_expression_print);
+  raptor_sequence_push(cons, $3);
+  
   ((rasqal_query*)rq)->constraints=cons;
 }
 | /* empty */
