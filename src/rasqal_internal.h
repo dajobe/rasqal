@@ -107,6 +107,8 @@ struct rasqal_query_s {
   rasqal_sequence *constraints; /* ... rasqal_expression*          */
   rasqal_sequence *prefixes;    /* ... rasqal_prefix*              */
 
+  int select_all;  /* non-0 if 'SELECT *' was seen (selects will be NULL) */
+  
   /* variable name/value table built from all distinct variables seen
    * in selects, triples, constraints.  An array of size variables_count
    *
