@@ -307,7 +307,9 @@ int rasqal_query_order_triples(rasqal_query* query);
 int rasqal_engine_declare_prefix(rasqal_query *rq, rasqal_prefix *prefix);
 int rasqal_engine_undeclare_prefix(rasqal_query *rq, rasqal_prefix *prefix);
 int rasqal_engine_declare_prefixes(rasqal_query *rq);
+int rasqal_engine_sequence_has_qname(raptor_sequence *seq);
 int rasqal_engine_expand_triple_qnames(rasqal_query* rq);
+int rasqal_engine_constraints_has_qname(rasqal_query* rq);
 int rasqal_engine_expand_constraints_qnames(rasqal_query* rq);
 int rasqal_engine_build_constraints_expression(rasqal_query* rq);
 int rasqal_engine_assign_variables(rasqal_query* rq);
@@ -327,7 +329,9 @@ void rasqal_engine_assign_binding_values(rasqal_query *query);
 int rasqal_literal_as_boolean(rasqal_literal* literal, int *error);
 int rasqal_literal_as_integer(rasqal_literal* l, int *error);
 void rasqal_literal_string_to_native(rasqal_literal *l);
+int rasqal_literal_has_qname(rasqal_literal *l);
 int rasqal_literal_expand_qname(void *user_data, rasqal_literal *l);
+int rasqal_expression_has_qname(void *user_data, rasqal_expression *e);
 int rasqal_expression_expand_qname(void *user_data, rasqal_expression *e);
 
 /* strcasecmp.c */
