@@ -130,57 +130,6 @@ roqet_error_handler(void *user_data,
 }
 
 
-static void
-roqet_get_www_write_bytes(raptor_www* www, void *userdata,
-                          const void *ptr, size_t size, size_t nmemb)
-{
-  raptor_stringbuffer* sb=(raptor_stringbuffer*)userdata;
-  int len=size*nmemb;
-
-  raptor_stringbuffer_append_counted_string(sb, (unsigned char*)ptr, len, 1);
-}
-
-
-static unsigned char*
-roqet_get_www_content(raptor_uri *uri,
-                      void *error_data, raptor_message_handler error_handler) 
-{
-  raptor_stringbuffer *sb=NULL;
-  raptor_www *www=NULL;
-  unsigned char *result=NULL;
-  
-  www=raptor_www_new();
-  if(!www)
-    return NULL;
-
-  sb=raptor_new_stringbuffer();
-  if(!sb) {
-    raptor_www_free(www);
-    return NULL;
-  }
-
-  raptor_www_set_error_handler(www, error_handler, error_data);
-  raptor_www_set_write_bytes_handler(www, roqet_get_www_write_bytes, sb);
-
-  if(raptor_www_fetch(www, uri))
-    result=NULL;
-  else {
-    size_t len=raptor_stringbuffer_length(sb);
-    if(len) {
-      result=(unsigned char*)malloc(len+1);
-      if(result)
-        raptor_stringbuffer_copy_to_string(sb, (void*)result, len+1);
-    }
-  }
-
-  if(sb)
-    raptor_free_stringbuffer(sb);
-  raptor_www_free(www);
-
-  return result;
-}
-
-
 int
 main(int argc, char *argv[]) 
 { 
@@ -420,7 +369,12 @@ main(int argc, char *argv[])
     fread(query_string, FILE_READ_BUF_SIZE, 1, fh);
     fclose(fh);
   } else {
-    query_string=roqet_get_www_content(uri, NULL, roqet_error_handler);
+    raptor_www *www=raptor_www_new();
+    if(www) {
+      raptor_www_fetch_to_string(www, uri, (void**)&query_string, NULL,
+                                 malloc);
+      raptor_www_free(www);
+    }
     if(!query_string || error_count) {
       fprintf(stderr, "%s: Retrieving query at URI '%s' failed\n", 
               program, uri_string);
