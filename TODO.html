@@ -13,13 +13,10 @@
 <h3>General</h3>
 
 <ul>
-<li>Engine: comparisons between integer and floats return integers, so 0.1 compared to 0 might return 0 rather than, more correctly non-0 (BUG)</li>
-<li>streaming triples parser - a Raptor feature request</li>
+<li>Streaming triples from the parser - a Raptor feature request</li>
 <li>Engine: Result constraints - like <code>LIMIT</code> and <code>OFFSET</code> in SQL (extension)</li>
 <li>Engine: Optional triples (extension)</li>
 <li>Engine: Does not handle multiple sources (BUG? / extension?)</li>
-<li>Engine: check that (?x, ?x, constant) (and permutations) and
-(?x, ?x, ?x) work - triplesMatching API does not check this.</li>
 <li>Engine: Add constructing triples (like SeRQL <code>construct</code>)</li>
 <li>QL: SeRQL - needs several engine changes</li>
 <li>QL: Squish - should be just syntax - <a href="http://swordfish.rdfweb.org/rdfquery/squish-bnf.html">Squish BNF</a></li> 
@@ -29,14 +26,10 @@
 
 <h3>RDQL</h3>
 <ul>
-<li>RDQL test n3 has a floating literal constant in model9.n3, not in Turtle</li>
 <li>RDQL tests allow UTF-8 and \uHHHH for prefixes, local names</li>
-<li>kill functioncall grammar term</li>
 <li>string matches should be case insensitive with EQ, NE; not with ==,  !=</li>
 <li>Optionals, after engine supports them (extension)</li>
 <li>LIMIT and OFFSET result constraints, after engine supports them (extension)</li>
-<li>Literal languages, datatypes - new <code>"lit"@lang</code> and
-<code>"lit"@lang^^datatype</code></li>
 </ul>
 
 
@@ -46,7 +39,14 @@
 release version where appropriate.</p>
 
 <ul>
-<li>Engine/Redland/RDQL: recognise xsd:integer as integer, xsd:double as floating</li>
+<li>Engine: comparisons between integer and floats return &lt;0 (-1),0 or &gt;0 (1) integers as appropriate</li>
+<li>Literal languages, datatypes - <code>"lit"@lang</code> and
+<code>"lit"@lang^^datatype</code></li>
+<li>Engine: added checks that (?x, ?x, constant) (and permutations) and
+(?x, ?x, ?x) work in triplesMatching implementation, for redland.</li>
+<li>RDQL testsuite file model9.n3 has a floating literal constant, N3 but not Turtle</li>
+<li>RDQL: kill functioncall grammar term</li>
+<li>Engine: recognise xsd:integer as integer, xsd:double as floating</li>
 <li>RDQL: Updated for changes in
 <a href="http://www.w3.org/Submission/2004/SUBM-RDQL-20040109/">RDQL - A Query Language for RDF, W3C Member Submission 9 January 2004</a></li>
 <li>Engine: base URIs handled</li>
