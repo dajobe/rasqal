@@ -57,9 +57,6 @@ int main(int argc, char *argv[]);
 static char *program=NULL;
 
 
-/* extra noise? */
-static int quiet=0;
-
 static enum { OUTPUT_FORMAT_SIMPLE } output_format = OUTPUT_FORMAT_SIMPLE;
 
 
@@ -74,20 +71,21 @@ rdql_parser_error(const char *msg)
 
 
 #ifdef HAVE_GETOPT_LONG
-#define HELP_TEXT(short, long, description) "  -" #short ", --" long "  " description
+#define HELP_TEXT(short, long, description) "  -" short ", --" long "  " description
 #define HELP_ARG(short, long) "--" #long
 #else
-#define HELP_TEXT(short, long, description) "  -" #short "  " description
+#define HELP_TEXT(short, long, description) "  -" short "  " description
 #define HELP_ARG(short, long) "-" #short
 #endif
 
 
-#define GETOPT_STRING "ho:i:qv"
+#define GETOPT_STRING "cho:i:qv"
 
 #ifdef HAVE_GETOPT_LONG
 static struct option long_options[] =
 {
   /* name, has_arg, flag, val */
+  {"count", 0, 0, 'c'},
   {"help", 0, 0, 'h'},
   {"output", 1, 0, 'o'},
   {"input", 1, 0, 'i'},
@@ -124,6 +122,8 @@ main(int argc, char *argv[])
   char *p;
   int usage=0;
   int help=0;
+  int quiet=0;
+  int count=0;
   librdf_world *world=NULL;
   
   program=argv[0];
@@ -160,6 +160,10 @@ main(int argc, char *argv[])
         usage=1;
         break;
         
+      case 'c':
+        count=1;
+        break;
+
       case 'h':
         help=1;
         break;
@@ -218,8 +222,8 @@ main(int argc, char *argv[])
     puts(rasqal_short_copyright_string);
     puts("Run an RDF query giving variable bindings or RDF triples.");
     puts("\nMain options:");
-    puts(HELP_TEXT(h, "help            ", "Print this help, then exit"));
-    puts(HELP_TEXT(i, "input LANGAUGE  ", "Set query language name to one of:"));
+    puts(HELP_TEXT("h", "help            ", "Print this help, then exit"));
+    puts(HELP_TEXT("i", "input LANGAUGE  ", "Set query language name to one of:"));
     for(i=0; 1; i++) {
       const char *help_name;
       const char *help_label;
@@ -231,11 +235,12 @@ main(int argc, char *argv[])
       else
         putchar('\n');
     }
-    puts(HELP_TEXT(o, "output FORMAT   ", "Set output format to one of:"));
+    puts(HELP_TEXT("o", "output FORMAT   ", "Set output format to one of:"));
     puts("    'simple'                A simple format (default)");
     puts("\nAdditional options:");
-    puts(HELP_TEXT(q, "quiet           ", "No extra information messages"));
-    puts(HELP_TEXT(v, "version         ", "Print the Rasqal version"));
+    puts(HELP_TEXT("c", "count           ", "Count triples - no output"));
+    puts(HELP_TEXT("q", "quiet           ", "No extra information messages"));
+    puts(HELP_TEXT("v", "version         ", "Print the Rasqal version"));
     puts("\nReport bugs to <redland-dev@lists.librdf.org>.");
     puts("Rasqal home page: http://www.redland.opensource.ac.uk/rasqal/");
     exit(0);
@@ -324,8 +329,10 @@ main(int argc, char *argv[])
     rc=1;
   }
 
-  fprintf(stdout, "Query:\n");
-  rasqal_query_print(rq, stdout);
+  if(!quiet) {
+    fprintf(stdout, "Query:\n");
+    rasqal_query_print(rq, stdout);
+  }
 
   if(rasqal_query_execute(rq)) {
     fprintf(stderr, "%s: Query execution failed\n", program);
@@ -340,19 +347,21 @@ main(int argc, char *argv[])
     if(rasqal_query_get_result_bindings(rq, &names, &values))
       break;
 
-    fputs("result: [", stdout);
-    if(names) {
-      for(i=0; names[i]; i++) {
-        fprintf(stdout, "%s=", names[i]);
-        if(values[i]) {
-          rasqal_literal_print(values[i], stdout);
-        } else
-          fputs("NULL", stdout);
-        if(names[i+1])
-          fputs(", ", stdout);
+    if(!count) {
+      fputs("result: [", stdout);
+      if(names) {
+        for(i=0; names[i]; i++) {
+          fprintf(stdout, "%s=", names[i]);
+          if(values[i]) {
+            rasqal_literal_print(values[i], stdout);
+          } else
+            fputs("NULL", stdout);
+          if(names[i+1])
+            fputs(", ", stdout);
+        }
       }
+      fputs("]\n", stdout);
     }
-    fputs("]\n", stdout);
     
     rasqal_query_next_result(rq);
   }
