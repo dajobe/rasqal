@@ -370,8 +370,6 @@ if test $need_regex_pcre = 1; then
   RASQAL_EXTERNAL_LIBS="$RASQAL_EXTERNAL_LIBS `$PCRE_CONFIG --libs`"
 fi
 
-RASQAL_EXTERNAL_CPPFLAGS="$RASQAL_EXTERNAL_CPPFLAGS `redland-config --cflags`"
-RASQAL_EXTERNAL_LIBS="$RASQAL_EXTERNAL_LIBS `redland-config --libs`"
 
 
 # Make final changes to cflags
