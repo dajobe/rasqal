@@ -387,11 +387,23 @@ rasqal_new_literal_expression(rasqal_literal *literal)
 
 rasqal_expression*
 rasqal_new_function_expression(raptor_uri* name,
-                               raptor_sequence* args) {
+                               raptor_sequence* args)
+{
   rasqal_expression* e=(rasqal_expression*)RASQAL_CALLOC(rasqal_expression, sizeof(rasqal_expression), 1);
   e->op=RASQAL_EXPR_FUNCTION;
   e->name=name;
   e->args=args;
+  return e;
+}
+
+
+rasqal_expression*
+rasqal_new_cast_expression(raptor_uri* name, rasqal_expression *value) 
+{
+  rasqal_expression* e=(rasqal_expression*)RASQAL_CALLOC(rasqal_expression, sizeof(rasqal_expression), 1);
+  e->op=RASQAL_EXPR_CAST;
+  e->name=name;
+  e->arg1=value;
   return e;
 }
 
@@ -440,7 +452,12 @@ rasqal_free_expression(rasqal_expression* e)
     case RASQAL_EXPR_FUNCTION:
       raptor_free_uri(e->name);
       raptor_free_sequence(e->args);
-
+      break;
+    case RASQAL_EXPR_CAST:
+      raptor_free_uri(e->name);
+      rasqal_free_expression(e->arg1);
+      break;
+      
     case RASQAL_EXPR_UNKNOWN:
     default:
       RASQAL_FATAL2("Unknown operation %d", e->op);
@@ -484,6 +501,7 @@ rasqal_expression_foreach(rasqal_expression* e,
     case RASQAL_EXPR_ISURI:
     case RASQAL_EXPR_ISBLANK:
     case RASQAL_EXPR_ISLITERAL:
+    case RASQAL_EXPR_CAST:
       return fn(user_data, e) ||
         rasqal_expression_foreach(e->arg1, fn, user_data);
       break;
@@ -1286,6 +1304,10 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
       RASQAL_FATAL1("No function expressions yet");
       break;
       
+    case RASQAL_EXPR_CAST:
+      RASQAL_FATAL1("No cast expressions yet");
+      break;
+
     case RASQAL_EXPR_UNKNOWN:
     default:
       RASQAL_FATAL2("Unknown operation %d", e->op);
@@ -1336,7 +1358,8 @@ static const char* rasqal_op_labels[RASQAL_EXPR_LAST+1]={
   "datatype",
   "isUri",
   "isBlank",
-  "isLiteral"
+  "isLiteral",
+  "cast"
 };
 
 void
@@ -1413,6 +1436,14 @@ rasqal_expression_print(rasqal_expression* e, FILE* fh)
       raptor_uri_print(e->name, fh);
       fputs(", args=", fh);
       raptor_sequence_print(e->args, fh);
+      fputc(')', fh);
+      break;
+
+    case RASQAL_EXPR_CAST:
+      fputs("cast(type=", fh);
+      raptor_uri_print(e->name, fh);
+      fputs(", value=", fh);
+      rasqal_expression_print(e->arg1, fh);
       fputc(')', fh);
       break;
 
