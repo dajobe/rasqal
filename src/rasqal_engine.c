@@ -480,92 +480,51 @@ rasqal_triples_match_is_end(struct rasqal_triples_match_s* rtm) {
 }
 
 
-/*
- * rasqal_engine_prepare - initialise the remainder of the query structures INTERNAL
- * Does not do any execution prepration - this is once-only stuff.
- */
-int
-rasqal_engine_prepare(rasqal_query *query) {
-  int i;
 
-  if(!query->triples)
-    return 1;
-  
-  if(!query->variables) {
-    /* Expand 'SELECT *' and create the query->variables array */
-    rasqal_engine_assign_variables(query);
-  
-    /* Order the conjunctive query triples */
-    if(rasqal_query_order_triples(query))
-      return 1;
+rasqal_pattern_graph*
+rasqal_new_pattern_graph(raptor_sequence *triples, 
+                         int start_column, int end_column, int flags)
+{
+  rasqal_pattern_graph* pg=(rasqal_pattern_graph*)RASQAL_CALLOC(rasqal_pattern_graph, sizeof(rasqal_pattern_graph), 1);
 
-    rasqal_engine_build_constraints_expression(query);
-  }
+  pg->triples=triples;
+  pg->column=0;
+  pg->start_column=start_column;
+  pg->end_column=end_column;
+  pg->flags=flags;
 
-  for(i=0; i < raptor_sequence_size(query->triples); i++) {
-    rasqal_triple *t=(rasqal_triple*)raptor_sequence_get_at(query->triples, i);
+  pg->triples_count=raptor_sequence_size(triples);
+  pg->triple_meta=(rasqal_triple_meta*)RASQAL_CALLOC(rasqal_triple_meta, sizeof(rasqal_triple_meta), pg->triples_count);
+
+  return pg;
+}
+
+
+void
+rasqal_free_pattern_graph(rasqal_pattern_graph* pg)
+{
+  if(pg->triple_meta) 
+    for(;pg->column >= 0; pg->column--) {
+      rasqal_triple_meta *m=&pg->triple_meta[pg->column];
+      
+      if(m->bindings[0]) 
+        rasqal_variable_set_value(m->bindings[0],  NULL);
+      if(m->bindings[1]) 
+        rasqal_variable_set_value(m->bindings[1],  NULL);
+      if(m->bindings[2]) 
+        rasqal_variable_set_value(m->bindings[2],  NULL);
+      if(m->bindings[3]) 
+        rasqal_variable_set_value(m->bindings[3],  NULL);
+
+      if(m->triples_match) {
+        rasqal_free_triples_match(m->triples_match);
+        m->triples_match=NULL;
+      }
     
-    t->flags |= RASQAL_TRIPLE_FLAGS_EXACT;
-    if(rasqal_literal_as_variable(t->predicate) ||
-       rasqal_literal_as_variable(t->subject) ||
-       rasqal_literal_as_variable(t->object))
-      t->flags &= ~RASQAL_TRIPLE_FLAGS_EXACT;
+    RASQAL_FREE(rasqal_triple_meta, pg->triple_meta);
   }
 
-
-  return 0;
-}
-
-
-int
-rasqal_engine_execute_init(rasqal_query *query) {
-  int triples_size;
-  int i;
-  
-  if(!query->triples)
-    return 1;
-  
-  if(!query->triples_source) {
-    query->triples_source=rasqal_new_triples_source(query);
-    if(!query->triples_source) {
-      query->failed=1;
-      rasqal_query_error(query, "Failed to make triples source.");
-      return 1;
-    }
-  }
-
-  if(query->pattern_graph)
-    rasqal_free_pattern_graph(query->pattern_graph);
-
-  triples_size=raptor_sequence_size(query->triples);
-  query->pattern_graph=rasqal_new_pattern_graph(query->triples,
-                                                0, triples_size-1,
-                                                0);
-  if(!query->pattern_graph)
-    return 1;
-  
-  query->abort=0;
-  query->result_count=0;
-  query->finished=0;
-  query->failed=0;
-  
-  return 0;
-}
-
-
-int
-rasqal_engine_execute_finish(rasqal_query *query) {
-  if(query->pattern_graph) {
-    rasqal_free_pattern_graph(query->pattern_graph);
-    query->pattern_graph=NULL;
-  }
-
-  if(query->triples_source) {
-    rasqal_free_triples_source(query->triples_source);
-    query->triples_source=NULL;
-  }
-
-  return 0;
+  RASQAL_FREE(rasqal_pattern_graph, pg);
 }
 
 
@@ -574,7 +533,7 @@ rasqal_engine_execute_finish(rasqal_query *query) {
  * return: <0 failure, 0 end of results, >0 match
  */
 static int
-rasqal_graph_pattern_get_next_triple(rasqal_query *query,
+rasqal_pattern_graph_get_next_match(rasqal_query *query,
                                      rasqal_pattern_graph* pg) 
 {
   int rc;
@@ -663,50 +622,92 @@ rasqal_graph_pattern_get_next_triple(rasqal_query *query,
 }
 
 
-rasqal_pattern_graph*
-rasqal_new_pattern_graph(raptor_sequence *triples, 
-                         int start_column, int end_column, int flags)
-{
-  rasqal_pattern_graph* pg=(rasqal_pattern_graph*)RASQAL_CALLOC(rasqal_pattern_graph, sizeof(rasqal_pattern_graph), 1);
 
-  pg->triples=triples;
-  pg->column=0;
-  pg->start_column=start_column;
-  pg->end_column=end_column;
-  pg->flags=flags;
+/*
+ * rasqal_engine_prepare - initialise the remainder of the query structures INTERNAL
+ * Does not do any execution prepration - this is once-only stuff.
+ */
+int
+rasqal_engine_prepare(rasqal_query *query) {
+  int i;
 
-  pg->triples_count=raptor_sequence_size(triples);
-  pg->triple_meta=(rasqal_triple_meta*)RASQAL_CALLOC(rasqal_triple_meta, sizeof(rasqal_triple_meta), pg->triples_count);
+  if(!query->triples)
+    return 1;
+  
+  if(!query->variables) {
+    /* Expand 'SELECT *' and create the query->variables array */
+    rasqal_engine_assign_variables(query);
+  
+    /* Order the conjunctive query triples */
+    if(rasqal_query_order_triples(query))
+      return 1;
 
-  return pg;
+    rasqal_engine_build_constraints_expression(query);
+  }
+
+  for(i=0; i < raptor_sequence_size(query->triples); i++) {
+    rasqal_triple *t=(rasqal_triple*)raptor_sequence_get_at(query->triples, i);
+    
+    t->flags |= RASQAL_TRIPLE_FLAGS_EXACT;
+    if(rasqal_literal_as_variable(t->predicate) ||
+       rasqal_literal_as_variable(t->subject) ||
+       rasqal_literal_as_variable(t->object))
+      t->flags &= ~RASQAL_TRIPLE_FLAGS_EXACT;
+  }
+
+
+  return 0;
 }
 
 
-void
-rasqal_free_pattern_graph(rasqal_pattern_graph* pg)
-{
-  if(pg->triple_meta) 
-    for(;pg->column >= 0; pg->column--) {
-      rasqal_triple_meta *m=&pg->triple_meta[pg->column];
-      
-      if(m->bindings[0]) 
-        rasqal_variable_set_value(m->bindings[0],  NULL);
-      if(m->bindings[1]) 
-        rasqal_variable_set_value(m->bindings[1],  NULL);
-      if(m->bindings[2]) 
-        rasqal_variable_set_value(m->bindings[2],  NULL);
-      if(m->bindings[3]) 
-        rasqal_variable_set_value(m->bindings[3],  NULL);
-
-      if(m->triples_match) {
-        rasqal_free_triples_match(m->triples_match);
-        m->triples_match=NULL;
-      }
-    
-    RASQAL_FREE(rasqal_triple_meta, pg->triple_meta);
+int
+rasqal_engine_execute_init(rasqal_query *query) {
+  int triples_size;
+  
+  if(!query->triples)
+    return 1;
+  
+  if(!query->triples_source) {
+    query->triples_source=rasqal_new_triples_source(query);
+    if(!query->triples_source) {
+      query->failed=1;
+      rasqal_query_error(query, "Failed to make triples source.");
+      return 1;
+    }
   }
 
-  RASQAL_FREE(rasqal_pattern_graph, pg);
+  if(query->pattern_graph)
+    rasqal_free_pattern_graph(query->pattern_graph);
+
+  triples_size=raptor_sequence_size(query->triples);
+  query->pattern_graph=rasqal_new_pattern_graph(query->triples,
+                                                0, triples_size-1,
+                                                0);
+  if(!query->pattern_graph)
+    return 1;
+  
+  query->abort=0;
+  query->result_count=0;
+  query->finished=0;
+  query->failed=0;
+  
+  return 0;
+}
+
+
+int
+rasqal_engine_execute_finish(rasqal_query *query) {
+  if(query->pattern_graph) {
+    rasqal_free_pattern_graph(query->pattern_graph);
+    query->pattern_graph=NULL;
+  }
+
+  if(query->triples_source) {
+    rasqal_free_triples_source(query->triples_source);
+    query->triples_source=NULL;
+  }
+
+  return 0;
 }
 
 
@@ -734,7 +735,7 @@ rasqal_engine_get_next_result(rasqal_query *query) {
 
   while(rc > 0) {
     /*  return: <0 failure, 0 end of results, >0 match */
-    rc=rasqal_graph_pattern_get_next_triple(query, query->pattern_graph);
+    rc=rasqal_pattern_graph_get_next_match(query, query->pattern_graph);
 
     if(rc > 0) {
       /* got a match - check any constraints */
