@@ -64,7 +64,7 @@ raptor_statement_as_rasqal_triple(const raptor_statement *statement) {
   rasqal_literal *s, *p, *o;
 
   if(statement->subject_type == RAPTOR_IDENTIFIER_TYPE_ANONYMOUS) {
-    char *new_blank=RASQAL_MALLOC(cstring, strlen((char*)statement->subject));
+    char *new_blank=RASQAL_MALLOC(cstring, strlen((char*)statement->subject)+1);
     strcpy(new_blank, (const char*)statement->subject);
     s=rasqal_new_simple_literal(RASQAL_LITERAL_BLANK, new_blank);
   } else
@@ -93,7 +93,7 @@ raptor_statement_as_rasqal_triple(const raptor_statement *statement) {
     char *language=NULL;
     raptor_uri *uri=NULL;
     
-    string=RASQAL_MALLOC(cstring, strlen((char*)statement->object));
+    string=RASQAL_MALLOC(cstring, strlen((char*)statement->object)+1);
     strcpy((char*)string, (const char*)statement->object);
 
     if(statement->object_literal_language) {
