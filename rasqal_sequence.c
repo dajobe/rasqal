@@ -241,6 +241,14 @@ rasqal_sequence_print_string(char *data, FILE *fh)
 }
 
 
+void
+rasqal_sequence_print_uri(char *data, FILE *fh) 
+{
+  raptor_uri* uri=(raptor_uri*)data;
+  fputs(raptor_uri_as_string(uri), fh);
+}
+
+
 /* print sequence */
 void
 rasqal_sequence_print(rasqal_sequence* seq, FILE* fh)
