@@ -685,7 +685,7 @@ rasqal_graph_pattern_get_next_match(rasqal_query *query,
 
 
     if(m->triples_match) {
-      rasqal_triple_parts parts;
+      int parts;
       
       if(rasqal_triples_match_is_end(m->triples_match)) {
         int resets=0;
