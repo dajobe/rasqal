@@ -18,6 +18,7 @@
 # full license terms.
 # 
 
+noinst_PROGRAMS = roqet
 bin_SCRIPTS = rasqal-config
 noinst_SCRIPTS = rasqal-src-config
 lib_LTLIBRARIES = librasqal.la
@@ -35,6 +36,12 @@ rasqal_engine.c
 librasqal_la_LDFLAGS = -version-info @RASQAL_LIBTOOL_VERSION@
 librasqal_la_LIBADD = @RASQAL_INTERNAL_LIBS@
 librasqal_la_DEPENDENCIES = @RASQAL_INTERNAL_LIBS@
+
+roqet_SOURCES = roqet.c rasqal_getopt.h
+roqet_LDADD = libraptor.la @RASQAL_INTERNAL_LIBS@
+roqet_DEPENDENCIES = librasqal.la @RASQAL_INTERNAL_LIBS@
+EXTRA_roqet_SOURCES = getopt.c
+
 
 EXTRA_DIST=ChangeLog \
 README      NEWS      LICENSE.txt \
@@ -112,3 +119,6 @@ rasqal_query_test: $(srcdir)/rasqal_query.c librasqal.la
 
 rasqal_sequence_test: $(srcdir)/rasqal_sequence.c librasqal.la
 	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE @RASQAL_INTERNAL_CPPFLAGS@ $(srcdir)/rasqal_sequence.c librasqal.la $(LIBS)
+
+roqet: $(srcdir)/roqet.c librasqal.la
+	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE @RASQAL_INTERNAL_CPPFLAGS@ $(srcdir)/roqet.c librasqal.la $(LIBS)
