@@ -869,6 +869,7 @@ static int
 rasqal_sparql_query_engine_prepare(rasqal_query* rdf_query) {
   /* rasqal_sparql_query_engine* sparql=(rasqal_sparql_query_engine*)rdf_query->context; */
   int rc;
+  rasqal_graph_pattern *gp;
   
   if(!rdf_query->query_string)
     return 1;
@@ -876,6 +877,11 @@ rasqal_sparql_query_engine_prepare(rasqal_query* rdf_query) {
   rc=sparql_parse(rdf_query, rdf_query->query_string);
   if(rc)
     return rc;
+
+  gp=rasqal_new_graph_pattern(rdf_query->triples,
+                              0, raptor_sequence_size(rdf_query->triples)-1,
+                              0);
+  raptor_sequence_push(rdf_query->graph_patterns, gp);
   return rasqal_engine_prepare(rdf_query);
 }
 
