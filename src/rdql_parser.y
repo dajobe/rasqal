@@ -598,16 +598,7 @@ static int yy_init_globals (yyscan_t yyscanner ) { return 0; };
  **/
 static int
 rasqal_rdql_query_engine_init(rasqal_query* rdf_query, const char *name) {
-  rasqal_rdql_query_engine* rdql=(rasqal_rdql_query_engine*)rdf_query->context;
-  raptor_uri_handler *uri_handler;
-  void *uri_context;
-
-  raptor_uri_get_handler(&uri_handler, &uri_context);
-
-  rdql->namespaces=raptor_new_namespaces(uri_handler, uri_context,
-                                         rasqal_query_simple_error,
-                                         rdf_query,
-                                         0);
+  /* rasqal_rdql_query_engine* rdql=(rasqal_rdql_query_engine*)rdf_query->context; */
 
   return 0;
 }
@@ -620,10 +611,7 @@ rasqal_rdql_query_engine_init(rasqal_query* rdf_query, const char *name) {
  **/
 static void
 rasqal_rdql_query_engine_terminate(rasqal_query* rdf_query) {
-  rasqal_rdql_query_engine* rdql=(rasqal_rdql_query_engine*)rdf_query->context;
-
-  raptor_free_namespaces(rdql->namespaces);
-
+  /* rasqal_rdql_query_engine* rdql=(rasqal_rdql_query_engine*)rdf_query->context; */
 }
 
 
@@ -665,6 +653,11 @@ rdql_parse(rasqal_query* rq, const char *string) {
   buffer= rdql_lexer__scan_string(string, rqe->scanner);
 
   rdql_parser_parse(rq);
+
+  /* Only now can we handle the prefixes and qnames */
+  if(rasqal_engine_declare_prefixes(rq) ||
+     rasqal_engine_expand_triple_qnames(rq))
+    return 1;
 
   return 0;
 }
