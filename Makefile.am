@@ -35,11 +35,6 @@ librasqal_la_LDFLAGS = -version-info @RASQAL_LIBTOOL_VERSION@
 librasqal_la_LIBADD = @RASQAL_INTERNAL_LIBS@
 librasqal_la_DEPENDENCIES = @RASQAL_INTERNAL_LIBS@
 
-RDQL_EXAMPLES=example1.rdql example2.rdql example3.rdql example4.rdql	\
-example5.rdql example_at_1.rdql example_at_2.rdql example_at_3.rdql	\
-example_at_4.rdql example_at_5.rdql example_at_6.rdql			\
-example_at_7.rdql
-
 EXTRA_DIST=ChangeLog \
 README      NEWS      LICENSE.txt \
 README.html NEWS.html LICENSE.html INSTALL.html \
@@ -49,8 +44,9 @@ rasqal-config.in rasqal-src-config.in \
 autogen.sh \
 rasqal.spec.in \
 $(man_MANS) \
-$(RDQL_EXAMPLES) \
 rasqal.pc.in
+
+SUBDIRS=tests
 
 TESTS=rasqal_sequence_test
 
@@ -114,52 +110,3 @@ rasqal_query_test: $(srcdir)/rasqal_query.c librasqal.la
 
 rasqal_sequence_test: $(srcdir)/rasqal_sequence.c
 	$(LINK) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE $(srcdir)/rasqal_sequence.c librasqal.la
-
-
-
-check-local: check-rdql-lexer check-rdql-parser check-rdql-queries
-
-check-rdql-lexer: rdql_lexer_test
-	@result=0; \
-	$(ECHO) "Testing legal RDQL lexing"; \
-	for test in $(RDQL_EXAMPLES); do \
-	  $(ECHO) $(ECHO_N) "Checking $$test $(ECHO_C)"; \
-	  $(top_builddir)/rdql_lexer_test $(srcdir)/$$test >/dev/null; \
-	  status=$$?; \
-	  if test $$status != 0 -a $$status != 2 ; then \
-	    $(ECHO) FAILED returned status $$status; result=1; \
-	  else \
-	    $(ECHO) ok; \
-	  fi; \
-	done; \
-	exit $$result
-
-check-rdql-parser: rdql_parser_test
-	@result=0; \
-	$(ECHO) "Testing legal RDQL parsing"; \
-	for test in $(RDQL_EXAMPLES); do \
-	  $(ECHO) $(ECHO_N) "Checking $$test $(ECHO_C)"; \
-	  $(top_builddir)/rdql_parser_test $(srcdir)/$$test >/dev/null; \
-	  status=$$?; \
-	  if test $$status != 0 -a $$status != 2 ; then \
-	    $(ECHO) FAILED returned status $$status; result=1; \
-	  else \
-	    $(ECHO) ok; \
-	  fi; \
-	done; \
-	exit $$result
-
-check-rdql-queries: rasqal_query_test
-	@result=0; \
-	$(ECHO) "Testing query construction (RDQL)"; \
-	for test in $(RDQL_EXAMPLES); do \
-	  $(ECHO) $(ECHO_N) "Checking $$test $(ECHO_C)"; \
-	  $(top_builddir)/rasqal_query_test rdql - < $(srcdir)/$$test >/dev/null; \
-	  status=$$?; \
-	  if test $$status != 0 -a $$status != 2 ; then \
-	    $(ECHO) FAILED returned status $$status; result=1; \
-	  else \
-	    $(ECHO) ok; \
-	  fi; \
-	done; \
-	exit $$result
