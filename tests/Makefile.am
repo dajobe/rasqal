@@ -37,7 +37,7 @@ $(top_builddir)/rdql_parser_test:
 check-local: check-rdql-lexer check-rdql-parser
 
 check-rdql-lexer: $(top_builddir)/rdql_lexer_test
-	@result=0; \
+	@set +e; result=0; \
 	$(ECHO) "Testing legal RDQL lexing"; \
 	for test in $(RDQL_TEST_FILES); do \
 	  $(ECHO) $(ECHO_N) "Checking $$test $(ECHO_C)"; \
@@ -49,10 +49,10 @@ check-rdql-lexer: $(top_builddir)/rdql_lexer_test
 	    $(ECHO) ok; \
 	  fi; \
 	done; \
-	exit $$result
+	set -e; exit $$result
 
 check-rdql-parser: $(top_builddir)/rdql_parser_test
-	@result=0; \
+	@set +e; result=0; \
 	$(ECHO) "Testing legal RDQL parsing"; \
 	for test in $(RDQL_TEST_FILES); do \
 	  $(ECHO) $(ECHO_N) "Checking $$test $(ECHO_C)"; \
@@ -64,4 +64,4 @@ check-rdql-parser: $(top_builddir)/rdql_parser_test
 	    $(ECHO) ok; \
 	  fi; \
 	done; \
-	exit $$result
+	set -e; exit $$result

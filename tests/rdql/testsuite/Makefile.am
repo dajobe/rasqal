@@ -89,7 +89,7 @@ $(top_builddir)/roqet:
 check-local: check-rdql-works check-rdql-correct
 
 check-rdql-works: $(top_builddir)/roqet
-	@result=0; \
+	@set +e; result=0; \
 	$(ECHO) "Testing RDQL"; \
 	for test in $(rdql_testsuite_test_files); do \
 	  $(ECHO) $(ECHO_N) "Checking $$test $(ECHO_C)"; \
@@ -110,10 +110,11 @@ check-rdql-works: $(top_builddir)/roqet
 	    echo "FAILED: failures $$fails does not match expected"; result=1; \
           fi; \
 	fi; \
-	exit $$result
+	set -e; exit $$result
 
 check-rdql-correct: $(top_builddir)/roqet $(srcdir)/check-rdql
-	@TOP_SRCDIR=$(top_srcdir) TOP_BUILDDIR=$(top_builddir) \
+	@set +e; \
+	TOP_SRCDIR=$(top_srcdir) TOP_BUILDDIR=$(top_builddir) \
 	  perl $(srcdir)/check-rdql; \
 	result=$$?; \
 	if test $$result != 0 ; then \
@@ -124,7 +125,7 @@ check-rdql-correct: $(top_builddir)/roqet $(srcdir)/check-rdql
 	    echo "FAILED: $$result failures does not match expected $(EXPECTED_RDQL_CORRECT_FAILURES_COUNT)"; result=1; \
           fi; \
 	fi; \
-	exit $$result
+	set -e; exit $$result
 
 
 if MAINTAINER_MODE
