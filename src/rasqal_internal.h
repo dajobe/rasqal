@@ -294,6 +294,9 @@ struct rasqal_query_s {
   
   /* current triple in the sequence of triples 'constructs' or -1 */
   int current_triple_result;
+
+  /* boolean ASK result >0 true, 0 false or -1 uninitialised */
+  int ask_result;
 };
 
 
