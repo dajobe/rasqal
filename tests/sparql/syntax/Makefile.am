@@ -31,7 +31,7 @@ data.n3
 SPARQL_TEST_FILES= \
 describe1.rq groups.rq 0triples.rq \
 construct0.rq construct1.rq construct2.rq \
-ask0.rq
+ask0.rq distinct0.rq limit0.rq
 
 SPARQL_BAD_TEST_FILES= \
 nojam.rq
