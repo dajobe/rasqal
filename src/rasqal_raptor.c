@@ -96,8 +96,7 @@ raptor_statement_as_rasqal_triple(const raptor_statement *statement) {
     string=RASQAL_MALLOC(cstring, strlen((char*)statement->object));
     strcpy((char*)string, (const char*)statement->object);
 
-    if(statement->object_literal_language && 
-       !statement->object_literal_datatype) {
+    if(statement->object_literal_language) {
       language=RASQAL_MALLOC(cstring, strlen(statement->object_literal_language)+1);
       strcpy(language, (const char*)statement->object_literal_language);
     }
