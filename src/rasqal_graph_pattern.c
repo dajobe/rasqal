@@ -260,7 +260,9 @@ rasqal_graph_pattern_init(rasqal_graph_pattern *gp)
          query->variables_declared_in[v->offset] == i)
         m->parts= (rasqal_triple_parts)(m->parts | RASQAL_TRIPLE_OBJECT);
 
-      /* FIXME origin */
+      if((v=rasqal_literal_as_variable(t->origin)) &&
+         query->variables_declared_in[v->offset] == i)
+        m->parts= (rasqal_triple_parts)(m->parts | RASQAL_TRIPLE_ORIGIN);
 
       RASQAL_DEBUG4("Graph pattern %p Triple %d has parts %d\n",
                     gp, i, m->parts);
