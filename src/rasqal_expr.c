@@ -50,6 +50,7 @@
 
 
 inline int rasqal_literal_as_integer(rasqal_literal* l);
+inline char* rasqal_literal_as_string(rasqal_literal* l);
 inline int rasqal_literal_compare(rasqal_literal* l1, rasqal_literal *l2, int *error);
 
 inline int rasqal_variable_as_boolean(rasqal_variable* v);
@@ -1395,7 +1396,7 @@ main(int argc, char *argv[])
   rasqal_expression_print(expr, stderr);
   fputc('\n', stderr);
 
-  result=rasqal_expression_evaluate(expr);
+  result=rasqal_expression_evaluate(NULL, expr);
 
   if(result) {
     int bresult;
