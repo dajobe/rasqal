@@ -279,7 +279,6 @@ int rasqal_literal_as_boolean(rasqal_literal* literal, int *error);
 int rasqal_literal_as_integer(rasqal_literal* l, int *error);
 void rasqal_literal_string_to_native(rasqal_literal *l);
 int rasqal_literal_expand_qname(void *user_data, rasqal_literal *l);
-rasqal_literal* rasqal_literal_as_node(rasqal_literal* l);
 int rasqal_expression_expand_qname(void *user_data, rasqal_expression *e);
 
 /* strcasecmp.c */
