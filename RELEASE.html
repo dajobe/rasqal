@@ -8,6 +8,62 @@
 
   <h1>Rasqal RDF Query Library - Release Notes</h1>
 
+<h2 id="rel0_9_3"><a name="rel0_9_3">Rasqal 0.9.3 Changes</a></h2>
+
+<p>FIXME: DRAFT NOTES - NOT YET RELEASED - DRAFT NOTES</p>
+
+<p>Rasqal's License was changed from LGPL 2.1/MPL 1.1 to
+LGPL 2.1/Apache 2</p>
+
+<p>Added support for the
+<a href="http://www.w3.org/TR/2004/WD-rdf-sparql-query-20041012/">
+SPARQL Query Language for RDF</a>,
+W3C Working Draft, 12 October 2004.
+The support is at the syntax level - token lexer and grammar parser
+which passes the first simple tests from the proposed RDF DA WG
+tests.  No additional query engine support has been added for SPARQL
+features that are not supported by RDQL.
+</p>
+
+<p>Queries can now be prepared then executed multiple times.</p>
+
+<p>Added --enable-query-languages option with rdql and sparql
+as the choices.</p>
+
+<p>Thanks to Chris Pointon for several patches to make Rasqal
+easier to build under Win32.  Applied with some modifications.
+Renamed syntax tokens ERROR to ERROR_TOKEN to help.</p>
+
+<p>Added experimental support for querying multiple sources; the same
+query is executed over each source in turn.  Also added some support
+for returning the source URI (SPARQL <code>SOURCE</code>), not
+yet enabled as this feature is in flux in the RDF DA WG.
+This may change or be removed in future versions.</p>
+
+<p>Added support for declaring prefixes for qnames before and after
+their use.</p>
+
+<p><code>roqet</code> can specify a data source URI on the command
+line with <code>-s</code> / <code>--source</code>) <em>URI</em> for
+queries executing against an implicit model.</p>
+
+<p>Added the RDF DA WG SPARQL tests, driven from the
+manifest.n3 format.  Created tests from the examples in the working draft.</p>
+
+<p>Added an experimental XML result format for bindings, based on
+RDF DA WG work.  Enabled in <code>roqet</code> with <code>-o xml</code>.
+This may change or be removed in future versions.</p>
+
+<p>Added <code>roqet</code> argument <code>-d</code> /
+<code>--dump-query</code> to dump the processed query, rather than
+do it by default (0.9.2 and earlier).</p>
+
+<p><code>roqet</code> can now read queries from URIs, using
+the <code>raptor_www</code> class to do the retrieval.
+</p>
+
+
+
 <h2 id="rel0_9_2"><a name="rel0_9_2">Rasqal 0.9.2 Changes</a></h2>
 
 <p>This release made minor portability fixes for building with
