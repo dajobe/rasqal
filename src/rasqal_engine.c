@@ -655,7 +655,7 @@ rasqal_graph_pattern_get_constraint(rasqal_graph_pattern* gp, int idx)
   if(!gp->constraints)
     return NULL;
 
-  return (rasqal_expression*)raptor_sequence_get_at(gp->constraints, 0);
+  return (rasqal_expression*)raptor_sequence_get_at(gp->constraints, idx);
 }
 
 
