@@ -302,11 +302,23 @@ rasqal_engine_assign_variables(rasqal_query* rq)
   
   rq->select_variables_count=raptor_sequence_size(rq->selects);
 
+  if(rq->select_variables_count) {
+    rq->variable_names=(const char**)RASQAL_MALLOC(cstrings,sizeof(const char*)*(rq->select_variables_count+1));
+    rq->binding_values=(rasqal_literal**)RASQAL_MALLOC(rasqal_literals,sizeof(rasqal_literal*)*(rq->select_variables_count+1));
+  }
+  
   rq->variables=(rasqal_variable**)RASQAL_MALLOC(varrary, sizeof(rasqal_variable*)*rq->variables_count);
 
-  for(i=0; i< rq->variables_count; i++)
+  for(i=0; i< rq->variables_count; i++) {
     rq->variables[i]=(rasqal_variable*)raptor_sequence_get_at(rq->variables_sequence, i);
+    if(i< rq->select_variables_count)
+      rq->variable_names[i]=rq->variables[i]->name;
+  }
 
+  if(rq->variable_names) {
+    rq->variable_names[rq->select_variables_count]=NULL;
+    rq->binding_values[rq->select_variables_count]=NULL;
+  }
   return 0;
 }
   
@@ -438,7 +450,11 @@ rasqal_engine_execute_init(rasqal_query *query) {
   }
 
   query->column=0;
-
+  query->abort=0;
+  query->result_count=0;
+  query->finished=0;
+  query->failed=0;
+  
   return 0;
 }
 
@@ -458,10 +474,13 @@ rasqal_engine_execute_finish(rasqal_query *query) {
  *
  * return: <0 failure, 0 end of results, >0 match
  */
-static int
+int
 rasqal_engine_get_next_result(rasqal_query *query) {
   int triples_size=raptor_sequence_size(query->triples);
   int rc=0;
+
+  if(query->finished)
+    return 0;
   
   while(query->column >= 0) {
     rasqal_triple_meta *m=&query->triple_meta[query->column];
@@ -544,22 +563,26 @@ rasqal_engine_get_next_result(rasqal_query *query) {
             fprintf(stderr, "constraint %d expression failed with error\n", c);
           
         }
-      }
+      } /* end check for constraints */
 
       /* exact match, so column must have ended */
       if(m->is_exact)
         query->column--;
 
-      if(rc)
+      if(rc) {
+        query->result_count++;
         return rc;
+      }
       
     } else if (query->column >=0)
       query->column++;
 
   }
 
-  if(query->column < 0)
+  if(query->column < 0) {
     rc=0;
+    query->finished=1;
+  }
   
   return rc;
 }
@@ -595,4 +618,18 @@ rasqal_engine_run(rasqal_query *query) {
   }
   
   return rc;
+}
+
+
+void
+rasqal_engine_assign_binding_values(rasqal_query *query) {
+  int i;
+  
+  for(i=0; i< query->select_variables_count; i++) {
+    rasqal_expression *e=query->variables[i]->value;
+    rasqal_literal *l=NULL;
+    if(e && e->op == RASQAL_EXPR_LITERAL)
+      l=e->literal;
+    query->binding_values[i]=l;
+  }
 }
