@@ -518,10 +518,11 @@ rasqal_engine_execute_init(rasqal_query *query) {
     for(i=0; i<triples_size; i++) {
       rasqal_triple *t=(rasqal_triple*)raptor_sequence_get_at(query->triples, i);
       
-      query->triple_meta[i].is_exact=
-        !(rasqal_literal_as_variable(t->predicate) ||
-          rasqal_literal_as_variable(t->subject) ||
-          rasqal_literal_as_variable(t->object));
+      t->flags |= RASQAL_TRIPLE_FLAGS_EXACT;
+      if(rasqal_literal_as_variable(t->predicate) ||
+         rasqal_literal_as_variable(t->subject) ||
+         rasqal_literal_as_variable(t->object))
+        t->flags &= ~RASQAL_TRIPLE_FLAGS_EXACT;
     }
   }
 
@@ -600,7 +601,7 @@ rasqal_engine_get_next_result(rasqal_query *query) {
       query->column--;
       rc= -1;
       return rc;
-    } else if (m->is_exact) {
+    } else if (t->flags & RASQAL_TRIPLE_FLAGS_EXACT) {
       /* exact triple match wanted */
       if(!rasqal_triples_source_triple_present(query->triples_source, t)) {
         /* failed */
@@ -698,7 +699,7 @@ rasqal_engine_get_next_result(rasqal_query *query) {
       } /* end check for constraints */
 
       /* exact match, so column must have ended */
-      if(m->is_exact)
+      if(t->flags & RASQAL_TRIPLE_FLAGS_EXACT)
         query->column--;
 
       if(rc) {
