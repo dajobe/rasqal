@@ -246,7 +246,7 @@ rasqal_literal_equals(rasqal_literal* l1, rasqal_literal* l2)
 
 
 rasqal_variable*
-rasqal_new_variable(const char *name, const char *value) 
+rasqal_new_variable(const char *name, rasqal_expression *value) 
 {
   rasqal_variable* v=(rasqal_variable*)calloc(sizeof(rasqal_variable), 1);
 
@@ -266,35 +266,39 @@ rasqal_free_variable(rasqal_variable* variable) {
 void
 rasqal_print_variable(rasqal_variable* v, FILE* fh)
 {
-  if(v->value)
-    fprintf(fh, "variable(%s=%s)", v->name, v->value);
-  else
-    fprintf(fh, "variable(%s)", v->name);
+  fprintf(fh, "variable(%s", v->name);
+  if(v->value) {
+    fputc('=', fh);
+    rasqal_print_expression(v->value, fh);
+  }
+  fputc(')', fh);
 }
 
 inline int
 rasqal_variable_as_boolean(rasqal_variable* v)
 {
-  return v->value != NULL;
+  return rasqal_expression_as_boolean(v->value);
 }
 
 inline int
 rasqal_variable_as_integer(rasqal_variable* v)
 {
-  if(!v->value)
-    return 0;
-  else
-    return atoi(v->value);
+  return rasqal_expression_as_integer(v->value);
 }
 
 
 inline int
 rasqal_variable_equals(rasqal_variable* v1, rasqal_variable* v2)
 {
-  if(!v1->value  || !v2->value)
-    return 0;
-  else
-    return !strcmp(v1->value, v2->value);
+  return rasqal_expression_equals(v1->value, v2->value);
+}
+
+void
+rasqal_variable_set_value(rasqal_variable* v, rasqal_expression *e)
+{
+  if(v->value)
+    return rasqal_free_expression(v->value);
+  v->value=e;
 }
 
 
