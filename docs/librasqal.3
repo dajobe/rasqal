@@ -7,7 +7,7 @@
 .\" Institute for Learning and Research Technology - http://www.ilrt.bristol.ac.uk/
 .\" University of Bristol - http://www.bristol.ac.uk/
 .\"
-.TH librasqal 3 "2004-06-13"
+.TH librasqal 3 "2004-08-03"
 .\" Please adjust this date whenever revising the manpage.
 .SH NAME
 librasqal \- Rasqal RDF query library
@@ -122,9 +122,9 @@ Add a variable binding to the sequence of bindings in the query.
 Get the sequence of variable bindings in the query.
 .IP "\fBrasqal_variable* rasqal_query_get_variable(rasqal_query* \fIquery\fB, int \Iidx\fP)\fR"
 Get one variable binding in the sequence of variable bindings in the queyr.
-.IP "\fBint rasqal_query_has_variable(rasqal_query* \fIquery\fB, const char *\fIname\fB);\fR"
+.IP "\fBint rasqal_query_has_variable(rasqal_query* \fIquery\fB, const unsigned char *\fIname\fB);\fR"
 Return non-0 if the named variable is in the variable bindings of the query.
-.IP "\fBint rasqal_query_set_variable(rasqal_query* \fIquery\fB, const char *\fIname\fB, rasqal_literal* value);\fR"
+.IP "\fBint rasqal_query_set_variable(rasqal_query* \fIquery\fB, const unsigned char *\fIname\fB, rasqal_literal* value);\fR"
 Set the query variable \fIname\fP to a literal \fIvalue\fP (the
 variable must already be in the sequence of variable bindings).
 .IP "\fBvoid rasqal_query_add_triple(rasqal_query* \fIquery\fB, rasqal_triple* triple);\fR"
@@ -178,7 +178,7 @@ Move to the next result, returning non-0 on failure or results are exhausted.
 .IP "\fBint rasqal_query_results_finished(rasqal_query_results *\fIquery_results\fP)\fR"
 Find out if binding results are exhausted, return non-0 if results
 are finished or the query failed.
-.IP "\fBint rasqal_query_results_get_bindings(rasqal_query_results *\fIquery_results\fP, const char ***names, rasqal_literal ***values);\fR"
+.IP "\fBint rasqal_query_results_get_bindings(rasqal_query_results *\fIquery_results\fP, const unsigned char ***names, rasqal_literal ***values);\fR"
 Get all binding names and values for the current result.
 If \fInames\fP is not NULL, it is set to the address of a shared array
 of names of the bindings (an output parameter). 
@@ -190,10 +190,10 @@ Returns non-0 if the assignment failed.
 Get one binding literal value for the current result.  Returns the
 value of the variable indexed in the sequence of variable bindings
 at position \fIoffset\fP.
-.IP "\fBconst char* rasqal_query_results_get_binding_name(rasqal_query_results *\fIquery_results\fP, int offset);\fR"
+.IP "\fBconst unsigned char* rasqal_query_results_get_binding_name(rasqal_query_results *\fIquery_results\fP, int offset);\fR"
 Get the name of the variable indexed in the sequence of variable bindings
 at position \fIoffset\fP.
-.IP "\fBrasqal_literal* rasqal_query_results_get_binding_value_by_name(rasqal_query_results *\fIquery_results\fP, const char *\fIname\fB);\fR"
+.IP "\fBrasqal_literal* rasqal_query_results_get_binding_value_by_name(rasqal_query_results *\fIquery_results\fP, const unsigned char *\fIname\fB);\fR"
 Get the value of the variable in the sequence of variable bindings
 named \fIname\fP or NULL if not known or unbound.
 .IP "\fBint rasqal_query_results_get_bindings_count(rasqal_query_results *\fIquery_results\fP)\fR"
@@ -212,13 +212,13 @@ literal object except where noted.
 .IP "\fBrasqal_literal* rasqal_new_integer_literal(rasqal_literal_type \fItype\fP, int \fIinteger\fP)\fR"
 Create a new integer literal of an integral type, either type
 RASQAL_LITERAL_INTEGER or RASQAL_LITERAL_BOOLEAN.
-.IP "\fBrasqal_literal* rasqal_new_floating_literal(const char *\fIstring\fP)\fR"
+.IP "\fBrasqal_literal* rasqal_new_floating_literal(const unsigned char *\fIstring\fP)\fR"
 Create a new floating literal from a \fIstring\fP form of the double.
 .IP "\fBrasqal_literal* rasqal_new_uri_literal(raptor_uri* \fIuri\fP)\fR"
 Create a new URI literal from a raptor_uri \fIuri\fP.
-.IP "\fBrasqal_literal* rasqal_new_pattern_literal(char *\fIpattern\fP, char *\fIflags\fP)\fR"
+.IP "\fBrasqal_literal* rasqal_new_pattern_literal(const unsigned char *\fIpattern\fP, const char *\fIflags\fP)\fR"
 Create a new regular expression literal from regex \fIpattern\fP and \fIflags\fP.
-.IP "\fBrasqal_literal* rasqal_new_string_literal(char *\fIstring\fP, char *\fIlanguage\fP, raptor_uri *\fIdatatype\fP, char *\fIdatatype_qname\fP)\fR"
+.IP "\fBrasqal_literal* rasqal_new_string_literal(const unsigned char *\fIstring\fP, const char *\fIlanguage\fP, raptor_uri *\fIdatatype\fP, const unsigned char *\fIdatatype_qname\fP)\fR"
 Create a new Rasqal string literal.
 The \fIdatatype\fP and \fIdatatype_qname\fP parameters are alternatives; the
 QName is a datatype that cannot be resolved till later since the
@@ -228,7 +228,7 @@ constructor is called.
 If the string literal is datatyped and of certain types recognised
 (currently xsd:decimal, xsd:double) it may be internally converted to
 a different literal type.
-.IP "\fBrasqal_literal* rasqal_new_simple_literal(rasqal_literal_type \fItype\fP, char *\fIstring\fP)\fR"
+.IP "\fBrasqal_literal* rasqal_new_simple_literal(rasqal_literal_type \fItype\fP, const unsigned char *\fIstring\fP)\fR"
 Create a new Rasqal simple literal of \fItype\fP
 RASQAL_LITERAL_BLANK or RASQAL_LITERAL_BLANK_QNAME.
 .IP "\fBrasqal_literal* rasqal_new_boolean_literal(int \fIvalue\fP)\fR"
@@ -248,7 +248,7 @@ Destroy a rasqal literal object.
 Print a literal in a debug format.  This format may change in any release.
 .IP "\fBrasqal_variable* rasqal_literal_as_variable(rasqal_literal* \Iliteral\fP)\fR"
 Return a rasqal literal as a variable, if it is one, otherwise return NULL.
-.IP "\fBchar* rasqal_literal_as_string(rasqal_literal* \Iliteral\fP)\fR"
+.IP "\fBconst unsigned char* rasqal_literal_as_string(rasqal_literal* \Iliteral\fP)\fR"
 Return a rasqal literal as a string value.  This always succeeds.
 .IP "\fBrasqal_literal* rasqal_literal_as_node(rasqal_literal* \Iliteral\fP)\fR"
 Return a new rasqal literal into one suitable for a node in an RDF triple
@@ -293,7 +293,7 @@ with optional value binding such as returned as query results by
 various methods.  The structure of this class is public and defined
 in rasqal.h
 .SH "VARIABLE CONSTRUCTOR"
-.IP "\fBrasqal_variable* rasqal_new_variable(rasqal_query* \fIquery\fP, const char *\fIname\fB, rasqal_literal* \fIvalue\fP)\fR"
+.IP "\fBrasqal_variable* rasqal_new_variable(rasqal_query* \fIquery\fP, const unsigned char *\fIname\fB, rasqal_literal* \fIvalue\fP)\fR"
 Create a new rasqal variable scoped to a Rasqal \fIquery\fP, with required
 \fIname\fP and optional rasqal_literal \fIvalue\fP
 .SH "VARIABLE DESTRUCTOR"
@@ -310,7 +310,7 @@ A class for namespace name/URI prefix association used to shorten
 URIs in some query languages using XML-style QNames.  The structure of this
 class is public and defined in rasqal.h
 .SH PREFIX CONSTRUCTOR
-.IP "\fBrasqal_prefix* rasqal_new_prefix(const char *prefix, raptor_uri* \fIuri\fP)\fR"
+.IP "\fBrasqal_prefix* rasqal_new_prefix(const unsigned char *prefix, raptor_uri* \fIuri\fP)\fR"
 Create a new namespace prefix with the given short \fIprefix\fP and
 URI \fIuri\fP.
 .SH PREFIX DESTRUCTOR
@@ -352,6 +352,38 @@ sub-expressions.  The order is the first expression at hand and then
 the arguments, if any.  function \fIfn\fP is called at each point
 with the arguments of \fIuser_data\fP and the expression.
 .SH API CHANGES
+.SS 0.9.2
+Several functions changed their parameters or return values from
+char* to unsigned char* or const unsigned char* to reflect the actual
+use.
+.LP
+Changed to return a const unsigned char*:
+.br
+rasqal_literal_as_string
+.LP
+Changed to take const unsigned char* (or add const):
+.br
+rasqal_new_floating_literal
+.br
+rasqal_new_pattern_literal
+.br
+rasqal_new_prefix
+.br
+rasqal_new_simple_literal
+.br
+rasqal_new_string_literal
+.br
+rasqal_new_variable
+.br
+rasqal_query_has_variable
+.br
+rasqal_query_results_get_binding_name
+.br
+rasqal_query_results_get_binding_value_by_name
+.br
+rasqal_query_results_get_bindings
+.br
+rasqal_query_set_variable
 .SS 0.9.1
 Added the \fBrasqal_query_results\fR class and moved the results
 methods from \fBrasqal_query\fR.
