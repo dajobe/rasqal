@@ -255,15 +255,27 @@ RASQAL_API void rasqal_query_set_user_data(rasqal_query *query, void *user_data)
 
 /* query results */
 RASQAL_API void rasqal_free_query_results(rasqal_query_results *query_results);
+
+/* Bindings result format */
+RASQAL_API int rasqal_query_results_is_bindings(rasqal_query_results *query_results);
 RASQAL_API int rasqal_query_results_get_count(rasqal_query_results *query_results);
 RASQAL_API int rasqal_query_results_next(rasqal_query_results *query_results);
 RASQAL_API int rasqal_query_results_finished(rasqal_query_results *query_results);
-
 RASQAL_API int rasqal_query_results_get_bindings(rasqal_query_results *query_results, const unsigned char ***names, rasqal_literal ***values);
 RASQAL_API rasqal_literal* rasqal_query_results_get_binding_value(rasqal_query_results *query_results, int offset);
 RASQAL_API const unsigned char* rasqal_query_results_get_binding_name(rasqal_query_results *query_results, int offset);
 RASQAL_API rasqal_literal* rasqal_query_results_get_binding_value_by_name(rasqal_query_results *query_results, const unsigned char *name);
 RASQAL_API int rasqal_query_results_get_bindings_count(rasqal_query_results *query_results);
+
+/* Boolean result format */
+RASQAL_API int rasqal_query_results_is_boolean(rasqal_query_results *query_results);
+RASQAL_API int rasqal_query_results_get_boolean(rasqal_query_results *query_results);
+
+/* Graph result format */
+RASQAL_API int rasqal_query_results_is_graph(rasqal_query_results *query_results);
+RASQAL_API rasqal_triple* rasqal_query_results_get_triple(rasqal_query_results *query_results);
+RASQAL_API int rasqal_query_results_next_triple(rasqal_query_results *query_results);
+
 RAPTOR_API int rasqal_query_results_write(raptor_iostream *iostr, rasqal_query_results *results, raptor_uri *format_uri, raptor_uri *base_uri);
 
 /* Expression class */
