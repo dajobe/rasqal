@@ -1,4 +1,75 @@
+2004-09-10  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal_query.c (rasqal_free_query):
+	Added describes, optional_triples and constructs.
+	(rasqal_query_print): Print describes, optional_triples and
+	constructs when present.  Make most things printing only if present.
+
+	* Makefile.am: fix line directives in bison generated files
+
+	* tests/rdql/testsuite/tests2turtle.patch,
+	tests/rdql/testsuite/check-rdql: Adjustments for dir renaming
+
+	* rasqal_internal.h:
+	Added constructs, optional_triples, describes sequences
+	Added select_is_describe, construct_all flags.
+	Declare rasqal_init_query_engine_brql prototype
+
+	* rasqal_general.c (rasqal_init):
+	Use conditionals for query language inits.
+
+	* rasqal_engine.c (rasqal_engine_expand_triple_qnames): Don't fail
+	if there are no triples.  BRQL doesn't need them.
+
+	* tests/brql/Q-D-1, tests/brql/Q-D-2, tests/brql/Q-D-3,
+	tests/brql/Q-OPT-1, tests/brql/Q-OPT-2, tests/brql/Q-S-1,
+	tests/brql/Q-S-2, tests/brql/D.n3, tests/brql/Q-C-1,
+	tests/brql/Q-C-2: BRQL tests
+
+	* tests/Makefile.am: Switch to just subdirs here
+
+	* Makefile.am: Split tests into BRQL and RDQL ones enabled separately.
+	Use makefile conditionals for sources
+
+	* configure.ac:
+	Added --enable-query-languages and automake conditionals
+	to avoid building them.
+
+	* Makefile.am: Remove rdql-testsuite dir.
+	Add BRQL sources and tests
+
+	* brql_common.h, brql_lexer.l, brql_parser.y: BRQL
+
+	* tests/rdql/dc.rdf, tests/rdql/example1.rdql,
+	tests/rdql/example2.rdql, tests/rdql/example3.rdql,
+	tests/rdql/example4.rdql, tests/rdql/example5.rdql,
+	tests/rdql/example_at_1.rdql, tests/rdql/example_at_2.rdql,
+	tests/rdql/example_at_3.rdql, tests/rdql/example_at_4.rdql,
+	tests/rdql/example_at_5.rdql, tests/rdql/example_at_6.rdql,
+	tests/rdql/example_at_7.rdql, tests/rdql/example_at_8.rdql,
+	tests/rdql/note-ex1.rdql, tests/rdql/note-ex2.rdql,
+	tests/rdql/note-ex3.rdql, tests/rdql/note-ex4.rdql,
+	tests/example_at_2.rdql, tests/example_at_3.rdql,
+	tests/example_at_4.rdql, tests/example_at_5.rdql,
+	tests/example_at_6.rdql, tests/example_at_7.rdql,
+	tests/example_at_8.rdql, tests/note-ex1.rdql, tests/note-ex2.rdql,
+	tests/note-ex3.rdql, tests/note-ex4.rdql, tests/dc.rdf,
+	tests/example1.rdql, tests/example2.rdql, tests/example3.rdql,
+	tests/example4.rdql, tests/example5.rdql, tests/example_at_1.rdql:
+	Moved to rdql subdir
+
+2004-09-07  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rdql_parser.y (rasqal_rdql_query_engine_terminate):
+	Call rdql_lexer_lex_destroy properly.
+
 2004-09-06  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal_engine.c (rasqal_engine_execute_finish):
+	Don't free triple_meta before
+	checking the columns
+
+	* Makefile.am: Added rasqal_query_test to TESTS
 
 	* rasqal_engine.c (rasqal_engine_execute_init):
 	Init triples_source, triple_meta only
