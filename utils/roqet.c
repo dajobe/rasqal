@@ -379,6 +379,7 @@ main(int argc, char *argv[])
   if(rasqal_query_prepare(rq, (const unsigned char*)query_string, base_uri)) {
     fprintf(stderr, "%s: Parsing query '%s' failed\n", program, query_string);
     rc=1;
+    goto tidy_query;
   }
 
   if(source_uri)
@@ -392,6 +393,7 @@ main(int argc, char *argv[])
   if(!(results=rasqal_query_execute(rq))) {
     fprintf(stderr, "%s: Query execution failed\n", program);
     rc=1;
+    goto tidy_query;
   }
 
   if(output_format == OUTPUT_FORMAT_XML) 
@@ -423,9 +425,10 @@ main(int argc, char *argv[])
     fprintf(stderr, "%s: Query returned %d results\n", program, 
             rasqal_query_results_get_count(results));
   
-  
+
   rasqal_free_query_results(results);
   
+ tidy_query:  
   rasqal_free_query(rq);
 
   free(query_string);
