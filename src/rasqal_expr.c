@@ -146,7 +146,7 @@ rasqal_print_literal(rasqal_literal* l, FILE* fh)
       fprintf(fh, "<%s>", raptor_uri_as_string(l->value.uri));
       break;
     case RASQAL_LITERAL_BLANK:
-      fprintf(fh, "_:%s", l->value.string);
+      fprintf(fh, " %s", l->value.string);
       break;
     case RASQAL_LITERAL_STRING:
     case RASQAL_LITERAL_PATTERN:
