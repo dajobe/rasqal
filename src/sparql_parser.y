@@ -124,7 +124,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...);
 
 /* word symbols */
 %token SELECT SOURCE FROM WHERE AND
-%token OPTIONAL PREFIX DESCRIBE CONSTRUCT ASK NOT DISTINCT LIMIT
+%token OPTIONAL PREFIX DESCRIBE CONSTRUCT ASK NOT DISTINCT LIMIT UNION
 
 /* expression delimitors */
 
