@@ -314,7 +314,7 @@ main(int argc, char *argv[])
       free_source_uri_string=1;
     }
     source_uri=raptor_new_uri(source_uri_string);
-    if(!base_uri) {
+    if(!source_uri) {
       fprintf(stderr, "%s: Failed to create source URI for %s\n",
               program, source_uri_string);
       return(1);
