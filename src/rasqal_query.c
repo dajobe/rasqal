@@ -668,6 +668,7 @@ rasqal_query_execute(rasqal_query *query)
 
   query->finished=0;
   query->executed=1;
+  query->current_triple_result= -1;
   
   rc=rasqal_engine_execute_init(query);
   if(rc) {
@@ -791,11 +792,31 @@ rasqal_free_query_results(rasqal_query_results *query_results)
 }
 
 
+int
+rasqal_query_results_is_bindings(rasqal_query_results *query_results) {
+  rasqal_query *query=query_results->query;
+  return (query->selects || query->select_all) && 
+         !query->select_is_describe;
+}
+
+int
+rasqal_query_results_is_boolean(rasqal_query_results *query_results) {
+  rasqal_query *query=query_results->query;
+  return query->ask;
+}
+ 
+int
+rasqal_query_results_is_graph(rasqal_query_results *query_results) {
+  rasqal_query *query=query_results->query;
+  return query->constructs || query->select_is_describe;
+}
+
+
 /**
  * rasqal_query_results_get_count - Get number of bindings so far
  * @query_results: &rasqal_query_results query_results
  * 
- * Return value: number of bindings found so far
+ * Return value: number of bindings found so far or < 0 on failure
  **/
 int
 rasqal_query_results_get_count(rasqal_query_results *query_results)
@@ -803,6 +824,9 @@ rasqal_query_results_get_count(rasqal_query_results *query_results)
   if(!query_results)
     return -1;
 
+  if(!rasqal_query_results_is_bindings(query_results))
+    return -1;
+  
   return query_results->query->result_count;
 }
 
@@ -820,6 +844,9 @@ rasqal_query_results_next(rasqal_query_results *query_results)
   int rc;
   
   if(!query_results)
+    return 1;
+  
+  if(!rasqal_query_results_is_bindings(query_results))
     return 1;
   
   query=query_results->query;
@@ -847,6 +874,9 @@ int
 rasqal_query_results_finished(rasqal_query_results *query_results)
 {
   if(!query_results)
+    return 1;
+  
+  if(!rasqal_query_results_is_bindings(query_results))
     return 1;
   
   return (query_results->query->failed || query_results->query->finished);
@@ -877,6 +907,9 @@ rasqal_query_results_get_bindings(rasqal_query_results *query_results,
   rasqal_query *query;
   
   if(!query_results)
+    return 1;
+  
+  if(!rasqal_query_results_is_bindings(query_results))
     return 1;
   
   query=query_results->query;
@@ -913,6 +946,9 @@ rasqal_query_results_get_binding_value(rasqal_query_results *query_results,
   if(!query_results)
     return NULL;
   
+  if(!rasqal_query_results_is_bindings(query_results))
+    return NULL;
+  
   query=query_results->query;
   if(query->finished)
     return NULL;
@@ -945,6 +981,9 @@ rasqal_query_results_get_binding_name(rasqal_query_results *query_results,
   if(!query_results)
     return NULL;
   
+  if(!rasqal_query_results_is_bindings(query_results))
+    return NULL;
+  
   query=query_results->query;
   if(query->finished)
     return NULL;
@@ -972,6 +1011,9 @@ rasqal_query_results_get_binding_value_by_name(rasqal_query_results *query_resul
   rasqal_query *query;
 
   if(!query_results)
+    return NULL;
+  
+  if(!rasqal_query_results_is_bindings(query_results))
     return NULL;
   
   query=query_results->query;
@@ -1007,6 +1049,9 @@ int
 rasqal_query_results_get_bindings_count(rasqal_query_results *query_results)
 {
   if(!query_results)
+    return -1;
+  
+  if(!rasqal_query_results_is_bindings(query_results))
     return -1;
   
   return query_results->query->select_variables_count;
@@ -1329,4 +1374,102 @@ rasqal_query_results_write(raptor_iostream *iostr,
   return 0;
 }
 
+
+/**
+ * rasqal_query_results_get_triple - Get the current triple in the result
+ * @query_results: &rasqal_query_results query_results
+ * 
+ * Return value: NULl if failed or results exhausted
+ **/
+rasqal_triple*
+rasqal_query_results_get_triple(rasqal_query_results *query_results) {
+  rasqal_query *query;
+  int rc;
+  rasqal_triple *t, *new_t;
+  rasqal_literal *s, *p, *o;
+  
+  if(!query_results)
+    return NULL;
+  
+  if(!rasqal_query_results_is_graph(query_results))
+    return NULL;
+  
+  query=query_results->query;
+  if(query->finished)
+    return NULL;
+
+  if((query->current_triple_result < 0)||
+     query->current_triple_result >= raptor_sequence_size(query->constructs)) {
+    /* rc<0 error rc=0 end of results,  rc>0 got a result */
+    rc=rasqal_engine_get_next_result(query);
+    if(rc<1)
+      query->finished=1;
+    if(rc<0)
+      query->failed=1;
+  
+    if(query->finished | query->failed)
+      return NULL;
+
+    query->current_triple_result=0;
+  }
+
+
+  /* FIXME need bnode substitution so _:a in constructed triple
+   * is different for each result (subgraph of constructed graph)
+   */
+  t=(rasqal_triple*)raptor_sequence_get_at(query->constructs,
+                                           query->current_triple_result);
+
+  s=rasqal_literal_as_node(t->subject);
+  p=rasqal_literal_as_node(t->predicate);
+  o=rasqal_literal_as_node(t->object);
+  new_t=rasqal_new_triple(s, p, o);
+
+  return new_t;
+}
+
+
+/**
+ * rasqal_query_results_next_triple - Move to the next triple result
+ * @query_results: &rasqal_query_results query_results
+ * 
+ * Return value: non-0 if failed or results exhausted
+ **/
+int
+rasqal_query_results_next_triple(rasqal_query_results *query_results) {
+  rasqal_query *query;
+  int rc;
+  
+  if(!query_results)
+    return 1;
+  
+  if(!rasqal_query_results_is_graph(query_results))
+    return 1;
+  
+  query=query_results->query;
+  if(query->finished)
+    return 1;
+
+  if(++query->current_triple_result >= raptor_sequence_size(query->constructs)) {
+    /* rc<0 error rc=0 end of results,  rc>0 got a result */
+    rc=rasqal_engine_get_next_result(query);
+    if(rc<1)
+      query->finished=1;
+    if(rc<0)
+      query->failed=1;
+    if(query->finished | query->failed)
+      return 1;
+
+    query->current_triple_result=0;
+  }
+  
+  return 0;
+}
+
+
+int
+rasqal_query_results_get_boolean(rasqal_query_results *query_results) {
+  /* FIXME - always false */
+  return 0;
+}
 
