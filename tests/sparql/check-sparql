@@ -1,0 +1,221 @@
+#!/usr/bin/perl -w
+#
+# check-sparql - Run Rasqal against W3C DAWG SPARQL testsuite
+#
+# $Id$
+# 
+# Copyright (C) 2004 David Beckett - http://purl.org/net/dajobe/
+# Institute for Learning and Research Technology - http://www.ilrt.bris.ac.uk/
+# University of Bristol - http://www.bristol.ac.uk/
+# 
+# This package is Free Software or Open Source available under the
+# following licenses (these are alternatives):
+#   1. GNU Lesser General Public License (LGPL)
+#   2. GNU General Public License (GPL)
+#   3. Mozilla Public License (MPL)
+# 
+# See LICENSE.html or LICENSE.txt at the top of this package for the
+# full license terms.
+# 
+#
+# Requires:
+#   roqet (from rasqal) compiled in the parent directory
+#   rapper (from raptor 1.3.0) in the PATH
+#
+# Depends on a variety of rasqal internal debug print formats
+# and has some bug workarounds - see FIXME.
+# 
+
+
+use strict;
+use warnings;
+use File::Basename;
+
+
+my $top_srcdir=$ENV{TOP_SRCDIR} || '../..';
+my $top_builddir=$ENV{TOP_BUILDDIR} || '../..';
+
+my $sparql_testsuite_dir=".";
+my $roqet=$top_builddir."/roqet";
+
+my $rs='http://www.w3.org/2001/sw/DataAccess/tests/result-set#';
+my $variable_predicate="<${rs}variable>";
+my $value_predicate="<${rs}value>";
+my $binding_predicate="<${rs}binding>";
+my $solution_predicate="<${rs}solution>";
+
+my $program=basename $0;
+my $debug=0;
+
+
+sub run_test($$$$) {
+  my($sparql_testsuite_dir, $test_file, $data_file, $result_file)=@_;
+
+  my $cmd;
+
+  $cmd="$roqet -d -i sparql -s $data_file $test_file 2>/dev/null";
+  warn "$program: Running '$cmd'\n"
+    if $debug;
+
+  my(@vars_order);
+  open(PIPE, "$cmd|") or die "$program: Cannot create pipe from '$cmd' - $!\n";
+  open(OUT, "| sort >roqet.out") or die "$program: Cannot create pipe to roqet.out - $!\n";
+  while(<PIPE>) {
+    chomp;
+    if(/^selects: \[(.*)\]$/) {
+      my $vars=$1;
+      $vars =~ s/variable\(([^)]+)\)/$1/g; # ) ]
+      $vars =~ s/,//g;
+      @vars_order=split(/ /, $vars);
+    }
+
+    s/blank \w+/blank _/g;
+
+    if (m/^result: \[(.*)\]$/) {
+      print OUT "$_\n";
+      if(!@vars_order) {
+	my $vars=$1;
+	$vars =~ s/=uri<[^>]+>//g;
+	$vars =~ s/=string\("[^"]+"[^)]*\)//g; # "
+	$vars =~ s/=blank _//g;
+	$vars =~ s/,//g;
+	@vars_order=split(/ /, $vars);
+      }
+    }
+  }
+  close(PIPE);
+  close(OUT);
+
+  $cmd="rapper -i turtle -q -o ntriples $result_file";
+
+  my(@node_order);
+  my(%nodes);
+  my(%node_type);
+
+  warn "$program: Opening pipe from '$cmd'\n"
+    if $debug;
+  open(PIPE, "$cmd |");
+  while(<PIPE>) {
+    chomp;
+    s/\s+\.$//;
+
+    # Raptor 1.3.0 bug
+    s!@([^\^]+)(\^\^<http://www.w3.org/1999/02/22-rdf-syntax-ns#XMLLiteral>)!$2!;
+
+    my($subject, $predicate, $object)=split(/ /, $_, 3);
+    push(@node_order, $subject)
+      unless exists $nodes{$subject} || exists $node_type{$subject};
+
+    if ($predicate eq '<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>') {
+      $node_type{$subject}=$object;
+    } else {
+      push(@{$nodes{$subject}->{$predicate}}, $object);
+    }
+  }
+  close(PIPE);
+
+  sub toDebug($) {
+    my $str=shift;
+
+    return "NULL" if $str eq "<${rs}undefined>";
+
+    return $str if $str =~ s/^(".*")(@.*)(\^\^<.*>)$/string($1$2$3)/;
+
+    return $str if $str =~ s/^(".*"\^\^<.*>)$/string($1)/;
+
+    return $str if $str =~ s/^(".*"@.*)$/string($1)/;
+
+    return $str if $str =~ s/^(".*")$/string($1)/;
+
+    return $str if $str =~ s/^(<.*>)$/uri$1/;
+
+    #return $str if $str =~ s/^_:(.*)$/blank $1/;
+    return $str if $str =~ s/^_:(.*)$/blank _/;
+  }
+
+
+  open(OUT, "|sort >result.out")
+    or die "$program: Cannot create pipe to result.out - $!\n";
+
+  # Find ResultSet node
+  my $resultset_node=undef;
+  for my $node (@node_order) {
+    my $type=$node_type{$node};
+    next if !$type || $type ne "<${rs}ResultSet>";
+    $resultset_node=$node;
+    last;
+  }
+
+  my $count=0;
+  for my $node (@{$nodes{$resultset_node}->{$solution_predicate}}) {
+    # Get binding nodes
+    my(%results);
+    for my $binding_node (@{$nodes{$node}->{$binding_predicate}}) {
+      my $variable=$nodes{$binding_node}->{$variable_predicate}->[0];
+      $variable=~ s/^"(.*)"$/$1/;
+      my $value=$nodes{$binding_node}->{$value_predicate}->[0];
+      $results{$variable}=toDebug($value);
+    }
+    print OUT "result: [",join(", ",map {"$_=$results{$_}"} @vars_order),"]\n";
+    $count++;
+  }
+  close(OUT);
+
+  $cmd="diff -c roqet.out result.out > diff.out";
+  my $rc=system($cmd);
+  if($rc) {
+    warn "$program: $test_file FAILED - difference is:\n";
+    system("cat diff.out");
+    warn "$program: Expected $count results\n";
+    return 1;
+  } else {
+    warn "$program: $test_file OK\n";
+    unlink "roqet.out", "result.out", "diff.out";
+    return 0;
+  }
+
+}
+
+
+# Argument handling
+if(@ARGV && $ARGV[0] eq '-d') {
+  $debug=1;
+  shift(@ARGV);
+}
+die "Usage; $program [-d] TEST\n" unless @ARGV<=1;
+
+my $unique_test=$ARGV[0];
+
+my(@failed);
+my(@entries);
+if(!$unique_test) {
+  opendir(DIR, $sparql_testsuite_dir) or die "Cannot opendir $sparql_testsuite_dir - $!\n";
+  @entries=sort(readdir(DIR));
+  closedir(DIR);
+} else {
+  @entries="$unique_test";
+}
+
+my $result=0;
+for my $entry (@entries) {
+  my $entry_file=$sparql_testsuite_dir.$entry;
+  next if -d $entry_file;
+  next unless $entry =~ /^dawg-(.+)\.rq$/;
+
+  my $test=$1;
+
+  my $test_file="$sparql_testsuite_dir/$entry";
+  my $data_file="$sparql_testsuite_dir/data-01.n3";
+  my $result_file="$sparql_testsuite_dir/result-$test.n3";
+
+  my $rc = run_test($sparql_testsuite_dir, $test_file, $data_file, $result_file);
+  push(@failed, $test) if $rc;
+  $result++ if $rc;
+}
+
+unlink "roqet.out", "result.out", "diff.out"
+  unless $unique_test;
+
+warn "$0: FAILED tests: @failed\n"
+  if @failed;
+exit $result;
