@@ -316,8 +316,6 @@ main(int argc, char *argv[])
   unsigned char *uri_string=NULL;
   int free_uri_string=0;
   unsigned char *base_uri_string=NULL;
-  unsigned char *source_uri_string=NULL;
-  int free_source_uri_string=0;
   rasqal_query *rq;
   rasqal_query_results *results;
   char *ql_name="rdql";
@@ -325,7 +323,6 @@ main(int argc, char *argv[])
   int rc=0;
   raptor_uri *uri=NULL;
   raptor_uri *base_uri=NULL;
-  raptor_uri *source_uri=NULL;
   char *filename=NULL;
   char *p;
   int usage=0;
@@ -333,7 +330,8 @@ main(int argc, char *argv[])
   int quiet=0;
   int count=0;
   int dump_query=0;
-  
+  raptor_sequence* sources=NULL;
+
   program=argv[0];
   if((p=strrchr(program, '/')))
     program=p+1;
@@ -347,6 +345,8 @@ main(int argc, char *argv[])
   while (!usage && !help)
   {
     int c;
+    raptor_uri *source_uri;
+    
 #ifdef HAVE_GETOPT_LONG
     int option_index = 0;
 
@@ -415,7 +415,28 @@ main(int argc, char *argv[])
         break;
 
       case 's':
-        source_uri_string=(unsigned char*)optarg;
+        if(!sources) {
+          sources=raptor_new_sequence((raptor_sequence_free_handler*)raptor_free_uri,
+                                      (raptor_sequence_print_handler*)raptor_sequence_print_uri);
+          if(!sources) {
+            fprintf(stderr, "%s: Failed to create source sequence\n", program);
+          return(1);
+          }
+        }
+        
+        if(!access((const char*)optarg, R_OK)) {
+          unsigned char* source_uri_string=raptor_uri_filename_to_uri_string((const char*)optarg);
+          source_uri=raptor_new_uri(source_uri_string);
+          raptor_free_memory(source_uri_string);
+        } else
+          source_uri=raptor_new_uri(optarg);
+
+        if(!source_uri) {
+          fprintf(stderr, "%s: Failed to create source URI for %s\n",
+                  program, optarg);
+          return(1);
+        }
+        raptor_sequence_push(sources, source_uri);
         break;
 
       case 'v':
@@ -521,19 +542,6 @@ main(int argc, char *argv[])
     }
   }
 
-  if(source_uri_string) {
-    if(!access((const char*)source_uri_string, R_OK)) {
-      source_uri_string=raptor_uri_filename_to_uri_string((const char*)source_uri_string);
-      free_source_uri_string=1;
-    }
-    source_uri=raptor_new_uri(source_uri_string);
-    if(!source_uri) {
-      fprintf(stderr, "%s: Failed to create source URI for %s\n",
-              program, source_uri_string);
-      return(1);
-    }
-  }
-
   if(!uri_string) {
     query_string=(char*)calloc(FILE_READ_BUF_SIZE, 1);
     fread(query_string, FILE_READ_BUF_SIZE, 1, stdin);
@@ -600,9 +608,9 @@ main(int argc, char *argv[])
     goto tidy_query;
   }
 
-  if(source_uri) {
-    rasqal_query_add_source(rq, source_uri);
-    source_uri=NULL;
+  if(sources) {
+    while(raptor_sequence_size(sources))
+      rasqal_query_add_source(rq, (raptor_uri*)raptor_sequence_pop(sources));
   }
 
   if(dump_query) {
@@ -657,14 +665,12 @@ main(int argc, char *argv[])
 
  tidy_setup:
 
-  if(source_uri)
-    raptor_free_uri(source_uri);
+  if(sources)
+    raptor_free_sequence(sources);
   if(base_uri)
     raptor_free_uri(base_uri);
   if(uri)
     raptor_free_uri(uri);
-  if(free_source_uri_string)
-    raptor_free_memory(source_uri_string);
   if(free_uri_string)
     raptor_free_memory(uri_string);
 
