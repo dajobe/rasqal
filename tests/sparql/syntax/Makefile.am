@@ -23,7 +23,7 @@
 # the licenses in COPYING.LIB, COPYING and LICENSE-2.0.txt respectively.
 # 
 
-SPARQL_MANIFEST_FILES=
+SPARQL_MANIFEST_FILES= manifest.n3
 
 SPARQL_MODEL_FILES= \
 data.n3
@@ -36,7 +36,8 @@ nojam.rq
 
 EXPECTED_SPARQL_CORRECT_FAILURES=
 
-SPARQL_RESULT_FILES=
+SPARQL_RESULT_FILES= \
+result-0triples.n3
 
 EXTRA_DIST= \
 $(SPARQL_MANIFEST_FILES) \
@@ -55,8 +56,8 @@ build-sparql-parser-test:
 	@(cd $(top_builddir) ; $(MAKE) sparql_parser_test)
 
 
-check-local: check-sparql-lexer check-sparql-parser check-bad-sparql
-# check-sparql-correct
+check-local: check-sparql-lexer check-sparql-parser check-bad-sparql \
+check-sparql-correct
 
 check-sparql-lexer: build-sparql-lexer-test
 	@set +e; result=0; \
