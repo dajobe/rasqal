@@ -64,7 +64,7 @@ static enum { OUTPUT_FORMAT_SIMPLE } output_format = OUTPUT_FORMAT_SIMPLE;
 
 
 #include <redland.h>
-extern librdf_world *world;
+extern librdf_world *World;
 
 int
 rdql_parser_error(const char *msg) 
@@ -131,8 +131,8 @@ main(int argc, char *argv[])
   argv[0]=program;
   
 
-  world=librdf_new_world();
-  librdf_world_open(world);
+  World=librdf_new_world();
+  librdf_world_open(World);
 
   rasqal_init();
 
@@ -339,7 +339,7 @@ main(int argc, char *argv[])
     free(uri_string);
 
   rasqal_finish();
-  librdf_free_world(world);
+  librdf_free_world(World);
   
   return (rc);
 }
