@@ -362,8 +362,8 @@ rasqal_redland_get_match(struct rasqal_triples_match_s* rtm,
   librdf_statement* statement=librdf_stream_get_object(m->stream);
 #ifdef RASQAL_DEBUG
   RASQAL_DEBUG1("  matched statement ");
-  librdf_statement_print(statement, stdout);
-  fputc('\n', stdout);
+  librdf_statement_print(statement, stderr);
+  fputc('\n', stderr);
 #endif
 
   return statement;
@@ -465,8 +465,8 @@ rasqal_new_triples_match(rasqal_query *query, void *user_data,
 
 #ifdef RASQAL_DEBUG
   RASQAL_DEBUG1("query statement: ");
-  librdf_statement_print(m->qstatement, stdout);
-  fputc('\n', stdout);
+  librdf_statement_print(m->qstatement, stderr);
+  fputc('\n', stderr);
 #endif
   
   m->stream=librdf_model_find_statements(query->model, m->qstatement);
@@ -563,6 +563,7 @@ rasqal_engine_run(rasqal_query *query) {
           rasqal_variable_set_value(m->bindings[2],  NULL);
 
         rasqal_free_triples_match(m->triples_match);
+        m->triples_match=NULL;
         
         column--;
         continue;
@@ -592,11 +593,11 @@ rasqal_engine_run(rasqal_query *query) {
     
     if(column == (triples_size-1)) {
       /* Done all conjunctions, so print out the variable bindings */ 
-#ifdef RASQAL_DEBUG
-      RASQAL_DEBUG1("result variable bindings:\n  ");
+
+      fprintf(stdout, "result: ");
       rasqal_sequence_print(query->selects, stdout);
       fputc('\n', stdout);
-#endif
+
       /* exact match, so column must have ended */
       if(m->is_exact)
         column--;
