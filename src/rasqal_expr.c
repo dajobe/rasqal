@@ -105,7 +105,7 @@ rasqal_new_pattern_literal(char *pattern, char *flags) {
 
 
 void
-rasqal_promote_string_literal_to_native(rasqal_literal *l)
+rasqal_literal_string_to_native(rasqal_literal *l)
 {
   if(!l->datatype)
     return;
@@ -157,7 +157,7 @@ rasqal_new_string_literal(char *string, char *language,
   l->flags=datatype_qname;
   l->usage=1;
 
-  rasqal_promote_string_literal_to_native(l);
+  rasqal_literal_string_to_native(l);
   return l;
 }
 

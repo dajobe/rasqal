@@ -233,7 +233,7 @@ rasqal_engine_expand_literal_qname(void *user_data, rasqal_literal *l) {
       RASQAL_FREE(cstring, l->flags);
       l->flags=NULL;
 
-      rasqal_promote_string_literal_to_native(l);
+      rasqal_literal_string_to_native(l);
     }
   }
   return 0;
