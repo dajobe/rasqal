@@ -113,9 +113,13 @@ struct rasqal_query_s {
    * The first select_variables_count of this array are from the selects
    * and are typically returned to the user.
    */
-  rasqal_variable *variables;
+  rasqal_variable **variables;
   int variables_count;
   int select_variables_count;
+
+  /* holds one copy of all the variables - this is where they are freed */
+  rasqal_sequence* variables_sequence;
+
 
   /* A reordered list of conjunctive triples from triples above
    * used as a better order to join in.
@@ -222,6 +226,7 @@ void rasqal_init_query_engine_rdql (void);
 int rasqal_query_order_triples(rasqal_query* query);
 int rasqal_engine_declare_prefixes(rasqal_query *rq);
 int rasqal_engine_expand_triple_qnames(rasqal_query* rq);
+int rasqal_engine_assign_variables(rasqal_query* rq);
 int rasqal_select_next(rasqal_query *q, int count);
 
 /* end of RASQAL_INTERNAL */
