@@ -200,40 +200,44 @@ RASQAL_API void* rasqal_sequence_get_at(rasqal_sequence* seq, int idx);
 RASQAL_API void* rasqal_sequence_pop(rasqal_sequence* seq);
 RASQAL_API void* rasqal_sequence_unshift(rasqal_sequence* seq);
 
+RASQAL_API int rasqal_compare_strings(const void *a, const void *b);
+
+RASQAL_API void rasqal_sequence_sort(rasqal_sequence* seq, int(*compare)(const void *, const void *));
+
 /* helper for printing sequences of strings */ 
-void rasqal_sequence_print_string(char *data, FILE *fh);
-void rasqal_sequence_print(rasqal_sequence* seq, FILE* fh);
+RASQAL_API void rasqal_sequence_print_string(char *data, FILE *fh);
+RASQAL_API void rasqal_sequence_print(rasqal_sequence* seq, FILE* fh);
 
 /* Expression class */
-rasqal_expression* rasqal_new_expression(rasqal_op op, rasqal_expression* arg1, rasqal_expression* arg2, rasqal_literal *literal, rasqal_variable *variable);
-void rasqal_free_expression(rasqal_expression* e);
-void rasqal_print_expression_op(rasqal_expression* expression, FILE* fh);
-void rasqal_print_expression(rasqal_expression* e, FILE* fh);
+RASQAL_API rasqal_expression* rasqal_new_expression(rasqal_op op, rasqal_expression* arg1, rasqal_expression* arg2, rasqal_literal *literal, rasqal_variable *variable);
+RASQAL_API void rasqal_free_expression(rasqal_expression* e);
+RASQAL_API void rasqal_print_expression_op(rasqal_expression* expression, FILE* fh);
+RASQAL_API void rasqal_print_expression(rasqal_expression* e, FILE* fh);
 
 /* Literal class */
-rasqal_literal* rasqal_new_literal(rasqal_literal_type type, int integer, float floating, char *string);
-void rasqal_free_literal(rasqal_literal* l);
-void rasqal_print_literal_type(rasqal_literal* literal, FILE* fh);
-void rasqal_print_literal(rasqal_literal* literal, FILE* fh);
+RASQAL_API rasqal_literal* rasqal_new_literal(rasqal_literal_type type, int integer, float floating, char *string);
+RASQAL_API void rasqal_free_literal(rasqal_literal* l);
+RASQAL_API void rasqal_print_literal_type(rasqal_literal* literal, FILE* fh);
+RASQAL_API void rasqal_print_literal(rasqal_literal* literal, FILE* fh);
 
-rasqal_prefix* rasqal_new_prefix(const char *prefix, const char *uri);
-void rasqal_free_prefix(rasqal_prefix* prefix);
-void rasqal_print_prefix(rasqal_prefix* p, FILE* fh);
+RASQAL_API rasqal_prefix* rasqal_new_prefix(const char *prefix, const char *uri);
+RASQAL_API void rasqal_free_prefix(rasqal_prefix* prefix);
+RASQAL_API void rasqal_print_prefix(rasqal_prefix* p, FILE* fh);
 
 /* Term class */
-rasqal_term* rasqal_new_term(rasqal_term_type type, void *value);
-void rasqal_free_term(rasqal_term* term);
-void rasqal_print_term(rasqal_term* t, FILE* fh);
+RASQAL_API rasqal_term* rasqal_new_term(rasqal_term_type type, void *value);
+RASQAL_API void rasqal_free_term(rasqal_term* term);
+RASQAL_API void rasqal_print_term(rasqal_term* t, FILE* fh);
 
 /* Triple class */
-rasqal_triple* rasqal_new_triple(rasqal_term* subject, rasqal_term* predicate, rasqal_term* object);
-void rasqal_free_triple(rasqal_triple* t);
-void rasqal_print_triple(rasqal_triple* t, FILE* fh);
+RASQAL_API rasqal_triple* rasqal_new_triple(rasqal_term* subject, rasqal_term* predicate, rasqal_term* object);
+RASQAL_API void rasqal_free_triple(rasqal_triple* t);
+RASQAL_API void rasqal_print_triple(rasqal_triple* t, FILE* fh);
 
 /* Variable class */
-rasqal_variable* rasqal_new_variable(const char *name, const char *value);
-void rasqal_free_variable(rasqal_variable* variable);
-void rasqal_print_variable(rasqal_variable* t, FILE* fh);
+RASQAL_API rasqal_variable* rasqal_new_variable(const char *name, const char *value);
+RASQAL_API void rasqal_free_variable(rasqal_variable* variable);
+RASQAL_API void rasqal_print_variable(rasqal_variable* t, FILE* fh);
 
 
 #ifdef __cplusplus
