@@ -159,6 +159,11 @@ VarList : Var COMMA VarList
   $$=$3;
   rasqal_sequence_shift($$, $1);
 }
+| Var VarList 
+{
+  $$=$2;
+  rasqal_sequence_shift($$, $1);
+}
 | Var 
 {
   $$=rasqal_new_sequence(NULL, (rasqal_print_handler*)rasqal_print_variable);
@@ -194,9 +199,15 @@ SourceClause : SOURCE URIList
 /* Inlined into SourceClause: SourceSelector : URL */
 
 
+/* Jena RDQL allows optional COMMA */
 TriplePatternList : TriplePattern COMMA TriplePatternList
 {
   $$=$3;
+  rasqal_sequence_shift($$, $1);
+}
+| TriplePattern TriplePatternList
+{
+  $$=$2;
   rasqal_sequence_shift($$, $1);
 }
 | TriplePattern
@@ -211,12 +222,22 @@ TriplePatternList : TriplePattern COMMA TriplePatternList
 */
 
 
-/* FIXME was:
-TriplePattern : LPAREN VarOrURI CommaOpt VarOrURI CommaOpt VarOrLiteral RPAREN
-*/
+/* FIXME - maybe a better way to do this optional COMMA? */
 TriplePattern : LPAREN VarOrURI COMMA VarOrURI COMMA VarOrLiteral RPAREN
 {
   $$=rasqal_new_triple($2, $4, $6);
+}
+| LPAREN VarOrURI VarOrURI COMMA VarOrLiteral RPAREN
+{
+  $$=rasqal_new_triple($2, $3, $5);
+}
+| LPAREN VarOrURI COMMA VarOrURI VarOrLiteral RPAREN
+{
+  $$=rasqal_new_triple($2, $4, $5);
+}
+| LPAREN VarOrURI VarOrURI VarOrLiteral RPAREN
+{
+  $$=rasqal_new_triple($2, $3, $4);
 }
 ;
 
