@@ -396,12 +396,7 @@ copy_string_token(rasqal_query* rq, YYSTYPE* lval,
           return 1;
         }
           
-/* FIXME - need to link with raptor */
-#if 0
         d+=raptor_unicode_char_to_utf8(unichar, d);
-#endif
-	d+=1;
-
       } else {
         /* Ignore \x where x isn't the one of: \n \r \t \\ (delim) \u \U */
         rdql_syntax_warning(rq, "Unknown string escape \\%c in \"%s\"", c, text);
