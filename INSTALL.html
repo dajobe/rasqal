@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/2000/REC-xhtml1-20000126/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+  <title>Rasqal RDF Query Library - Installation</title>
+</head>
+<body>
+
+<h1 align="center">Rasqal RDF Query Library - Installation</h1>
+<h2 align="center"><a href="http://purl.org/net/dajobe/">Dave Beckett</a><br /><a href="http://www.ilrt.bristol.ac.uk/">Institute for Learning and Research Technology</a><br /><a href="http://www.bristol.ac.uk/">University of Bristol</a></h2>
+  
+
+<h2>1. Getting the sources</h2>
+
+<h2>1.1 Getting the sources from releases</h2>
+
+<p>The sources are available from
+<a href="http://www.redland.opensource.ac.uk/dist/source/">http://www.redland.opensource.ac.uk/dist/source/</a> (master site) and also from the
+<a href="http://sourceforge.net/projects/librdf/">SourceForge site</a>.</p>
+
+
+<h2>1.2 Getting the sources from CVS</h2>
+
+<p>Note that using this rather than the bundles may require having
+some extra development tools.  Presently this includes the gperf
+tool.</p>
+
+<pre>
+  # sh, bash, ...
+  CVSROOT=:pserver:anonymous@cvs.ilrt.org:/cvsroot
+  export CVSROOT
+  # csh, tcsh, ...
+  setenv CVSROOT :pserver:anonymous@cvs.ilrt.org:/cvsroot
+
+  cvs login
+Logging in to :pserver:anonymous@cvs.ilrt.org:2401/cvsroot
+CVS password: 
+  [return]
+
+  cvs checkout redland/rasqal
+
+  cd redland/rasqal
+</pre>
+
+<p>At this stage, or after a <tt>cvs update</tt> you will
+need to create the automake and autoconf derived files, as described
+below in <em>create the configure program</em>
+by using the <tt>autogen.sh</tt> script.</p>
+
+
+
+<h2>2. Configuring and building</h2>
+
+<p>Rasqal uses the GNU automake and autoconf to handle system
+dependency checking.</p>
+
+<p>Rasqal is developed and built on x86 GNU/Linux
+(Redhat 9, Debian unstable) but is also regularly tested on
+sparc Sun Solaris 2.x, x86 FreeBSD 4.8, ppc Apple OSX 10.2 
+and as part of Redland on several other systems via the 
+<a href="http://sourceforge.net/">SourceForge</a> compile farm.</p>
+
+<h3>2.1. Create <tt>configure</tt> program</h3>
+
+<p>If there is no <tt>configure</tt> program, you can create it 
+using the <tt>autogen.sh</tt> script, as long as you have the
+<a href="http://www.gnu.org/software/automake/automake.html">automake</a> and
+<a href="http://www.gnu.org/software/autoconf/autoconf.html">autoconf</a>
+tools.  Alternatively you can run them by hand with:</p>
+<pre>
+  aclocal; autoheader; automake --add-missing; autoconf
+</pre>
+
+<p>The automake and autoconf tools have many different versions and
+at present Raptor is being developed with automake 1.6.3 (minimum
+version 1.6), autoconf 2.57 (minimum version 2.52) and libtool 1.4.2a
+(minimum version 1.4).  These are only needed when compiling from CVS
+sources.  It is expected that development will move to require
+automake 1.7, autoconf 2.57 and libtool 1.4.3.</p>
+
+
+<h3>2.2 Options for <tt>configure</tt></h3>
+
+<p>Raptor also supports the following extra configure options:</p>
+
+<p>None yet</p>
+
+<h3>2.3 Configuring</h3>
+
+<p>If everything is in the default place, do:</p>
+<pre>
+   ./configure
+</pre>
+
+<p>The most common configuration you will be doing something like this:</p>
+<pre>
+   ./configure --prefix=/usr
+</pre>
+
+
+<h3>2.4 Compiling</h3>
+
+<p>Compile the library with;</p>
+<pre>
+   make
+</pre>
+<p>Note: GNU make is probably required so it may be gmake or gnumake
+on your system</p>
+
+
+<h3>2.5 Testing</h3>
+
+<p>You can build and run the built-in test suite with:</p>
+<pre>
+  make check
+</pre>
+
+<p>which should emit lots of exciting test messages to the screen but
+conclude with something like:<br />
+  <tt>All </tt><em>n</em><tt> tests passed</tt><br />
+if everything works correctly.</p>
+
+
+<h2>3. Using the library</h2>
+
+<p>...</p>
+
+<p>The public Rasqal API is described in the
+<a href="librasqal.html">librasqal.3</a> UNIX manual/web page
+</p>
+
+
+<hr />
+
+<p>Copyright 2003 <a href="http://purl.org/net/dajobe/">Dave Beckett</a>, <a href="http://www.ilrt.bristol.ac.uk/">Institute for Learning and Research Technology</a>, <a href="http://www.bristol.ac.uk/">University of Bristol</a></p>
+
+</body>
+</html>
