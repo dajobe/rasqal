@@ -258,7 +258,7 @@ rasqal_engine_build_constraints_expression(rasqal_query* rq)
       newe=e;
     else
       /* must make a conjunction */
-      newe=rasqal_new_2op_expression(RASQAL_EXPR_PLUS, e, newe);
+      newe=rasqal_new_2op_expression(RASQAL_EXPR_AND, e, newe);
   }
   rq->constraints_expression=newe;
 
