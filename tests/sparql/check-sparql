@@ -38,18 +38,23 @@ my $top_builddir=$ENV{TOP_BUILDDIR} || '../..';
 my $sparql_testsuite_dir=".";
 my $roqet=$top_builddir."/roqet";
 
+my $rdf='http://www.w3.org/1999/02/22-rdf-syntax-ns#';
 my $rs='http://www.w3.org/2001/sw/DataAccess/tests/result-set#';
 my $variable_predicate="<${rs}variable>";
 my $value_predicate="<${rs}value>";
 my $binding_predicate="<${rs}binding>";
 my $solution_predicate="<${rs}solution>";
 
+my $manifest_file="manifest.n3";
+my $mf='http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#';
+my $qt='http://www.w3.org/2001/sw/DataAccess/tests/test-query#';
+
 my $program=basename $0;
 my $debug=0;
 
 
-sub run_test($$$$) {
-  my($sparql_testsuite_dir, $test_file, $data_file, $result_file)=@_;
+sub run_test($$$$$) {
+  my($name, $dir, $test_file, $data_file, $result_file)=@_;
 
   my $cmd;
 
@@ -164,12 +169,12 @@ sub run_test($$$$) {
   $cmd="diff -c roqet.out result.out > diff.out";
   my $rc=system($cmd);
   if($rc) {
-    warn "$program: $test_file FAILED - difference is:\n";
+    warn "$program: $name FAILED - difference is:\n";
     system("cat diff.out");
     warn "$program: Expected $count results\n";
     return 1;
   } else {
-    warn "$program: $test_file OK\n";
+    warn "$program: $name OK\n";
     unlink "roqet.out", "result.out", "diff.out";
     return 0;
   }
@@ -186,30 +191,78 @@ die "Usage; $program [-d] TEST\n" unless @ARGV<=1;
 
 my $unique_test=$ARGV[0];
 
-my(@failed);
-my(@entries);
-if(!$unique_test) {
-  opendir(DIR, $sparql_testsuite_dir) or die "Cannot opendir $sparql_testsuite_dir - $!\n";
-  @entries=sort(readdir(DIR));
-  closedir(DIR);
-} else {
-  @entries="$unique_test";
+my(%triples);
+my $entries_node;
+open(MF, "rapper -q -i turtle -o ntriples $manifest_file|") or die "Cannot open pipe to $manifest_file - $!\n";
+while(<MF>) {
+  chomp;
+  s/\s+\.$//;
+  my($s,$p,$o)=split(/ /,$_,3);
+  die "no p in '$_'\n" unless defined $p;
+  die "no o in '$_'\n" unless defined $o;
+  push(@{$triples{$s}->{$p}}, $o);
+  $entries_node=$o if $p eq "<${mf}entries>";
+}
+close(MF);
+
+print "Entries node is '$entries_node'\n"
+  if $debug;
+my $list_node=$entries_node;
+
+use Data::Dumper;
+
+my(@tests);
+while($list_node) {
+  warn "List node is '$list_node'\n"
+    if $debug;
+
+  my $entry_node=$triples{$list_node}->{"<${rdf}first>"}->[0];
+
+  warn "Entry node is '$entry_node'\n"
+    if $debug;
+
+  my $name=$triples{$entry_node}->{"<${mf}name>"}->[0];
+  $name =~ s/^\"(.*)\"$/$1/;
+
+  warn "Entry name=$name\n"
+    if $debug;
+  
+  my $result_node=$triples{$entry_node}->{"<${mf}result>"}->[0];
+  my $result_file=($result_node =~ /^<file:(.+)>$/, $1);
+
+  print "Entry result_file=$result_file\n"
+    if $debug;
+
+  my $action_node=$triples{$entry_node}->{"<${mf}action>"}->[0];
+  
+  my $data_node=$triples{$action_node}->{"<${qt}data>"}->[0];
+  my $data_file=($data_node =~ /^<file:(.+)>$/, $1);
+
+  my $query_node=$triples{$action_node}->{"<${qt}query>"}->[0];
+  my $query_file=($query_node =~ /^<file:(.+)>$/, $1);
+
+  print "Entry data_file=$data_file, $query_file=$query_file\n"
+    if $debug;
+
+  my $dir=".";
+
+  next if $unique_test && $name ne $unique_test;
+  
+  push(@tests, [$name, $dir, $query_file, $data_file, $result_file]);
+
+  $list_node=$triples{$list_node}->{"<${rdf}rest>"}->[0];
+  last if $list_node eq "<${rdf}nil>";
 }
 
+
+my(@failed);
+
 my $result=0;
-for my $entry (@entries) {
-  my $entry_file=$sparql_testsuite_dir.$entry;
-  next if -d $entry_file;
-  next unless $entry =~ /^dawg-(.+)\.rq$/;
+for my $test (@tests) {
+  my($name, $dir, $test_file, $data_file, $result_file)=@$test;
 
-  my $test=$1;
-
-  my $test_file="$sparql_testsuite_dir/$entry";
-  my $data_file="$sparql_testsuite_dir/data-01.n3";
-  my $result_file="$sparql_testsuite_dir/result-$test.n3";
-
-  my $rc = run_test($sparql_testsuite_dir, $test_file, $data_file, $result_file);
-  push(@failed, $test) if $rc;
+  my $rc = run_test($name, $dir, $test_file, $data_file, $result_file);
+  push(@failed, $name) if $rc;
   $result++ if $rc;
 }
 
