@@ -157,7 +157,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...);
 %token <literal> BOOLEAN_LITERAL
 %token <literal> NULL_LITERAL
 %token <uri> URI_LITERAL
-%token <name> QNAME_LITERAL
+%token <name> QNAME_LITERAL BLANK_LITERAL
 
 %token <name> IDENTIFIER
 
@@ -165,7 +165,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...);
 %type <seq> SelectClause ConstructClause DescribeClause
 %type <seq> PrefixDeclOpt FromClauseOpt WhereClauseOpt
 %type <seq> VarList VarOrURIList ArgList URIList
-%type <seq> TriplePatternList
+%type <seq> TriplePatternList ConstructPattern
 
 %type <seq> GraphPattern 
 
@@ -176,11 +176,13 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...);
 %type <expr> MultiplicativeExpression UnaryExpression
 %type <expr> UnaryExpressionNotPlusMinus BuiltinExpression
 
-%type <literal> Literal URI VarOrLiteral VarOrURI
+%type <literal> Literal URI BNode
+%type <literal> VarOrLiteral VarOrURI
+%type <literal> VarOrLiteralOrBNode VarOrURIOrBNode
 
 %type <variable> Var
 
-%type <triple> TriplePattern
+%type <triple> TriplePattern TripleTemplate
 
 
 %%
@@ -257,7 +259,7 @@ DescribeClause : DESCRIBE VarOrURIList
 ;
 
 /* SPARQL Grammar: [5] rq23 ConstructClause */
-ConstructClause : CONSTRUCT TriplePatternList
+ConstructClause : CONSTRUCT ConstructPattern
 {
   $$=$2;
 }
@@ -585,6 +587,28 @@ TriplePattern : '(' VarOrURI VarOrURI VarOrLiteral ')'
 ;
 
 
+/* SPARQL Grammar: [15] rq23 ConstructPattern */
+ConstructPattern : ConstructPattern TripleTemplate
+{
+  $$=$1;
+  raptor_sequence_push($$, $2);
+}
+| TripleTemplate
+{
+  $$=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_triple, (raptor_sequence_print_handler*)rasqal_triple_print);
+  raptor_sequence_push($$, $1);
+}
+;
+
+
+/* SPARQL Grammar: [26] rq23 TripleTemplate */
+TripleTemplate : '(' VarOrURIOrBNode VarOrURI VarOrLiteralOrBNode ')'
+{
+  $$=rasqal_new_triple($2, $3, $4);
+}
+;
+
+
 /* NEW Grammar Term */
 VarOrURIList : VarOrURIList Var
 {
@@ -679,6 +703,29 @@ VarOrLiteral : Var
   $$=rasqal_new_variable_literal($1);
 }
 | Literal
+{
+  $$=$1;
+}
+;
+
+
+/* NEW Grammar Term */
+VarOrURIOrBNode : VarOrURI
+{
+  $$=$1;
+}
+| BNode
+{
+  $$=$1;
+}
+;
+
+/* NEW Grammar Term */
+VarOrLiteralOrBNode : VarOrLiteral
+{
+  $$=$1;
+}
+| BNode
 {
   $$=$1;
 }
@@ -999,6 +1046,15 @@ Var : '?' IDENTIFIER
   $$=rasqal_new_variable((rasqal_query*)rq, $2, NULL);
 }
 ;
+
+
+/* SPARQL Grammar: [57] rq23 BNode */
+BNode : BLANK_LITERAL
+{
+  $$=rasqal_new_simple_literal(RASQAL_LITERAL_BLANK, $1);
+}
+;
+
 
 %%
 
