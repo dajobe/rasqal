@@ -201,6 +201,9 @@ rasqal_raptor_new_triples_source(rasqal_query* rdf_query,
   if(!rtsc->source_uris_count)
     return 1;
 
+  rtsc->source_uris=(raptor_uri**)RASQAL_CALLOC(raptor_uri_ptr, rtsc->source_uris_count, sizeof(raptor_uri*));
+  rtsc->source_literals=(rasqal_literal**)RASQAL_CALLOC(rasqal_literal_ptr, rtsc->source_uris_count, sizeof(rasqal_literal*));
+
   for(i=0; i< rtsc->source_uris_count; i++) {
     raptor_uri* uri=(raptor_uri*)raptor_sequence_get_at(rdf_query->sources, i);
 
@@ -296,6 +299,8 @@ rasqal_raptor_free_triples_source(void *user_data) {
     /* raptor_free_uri(rtsc->source_uris[i]); */
     rasqal_free_literal(rtsc->source_literals[i]);
   }
+  RASQAL_FREE(raptor_uri_ptr, rtsc->source_uris);
+  RASQAL_FREE(raptor_literal_ptr, rtsc->source_literals);
   
 }
 
