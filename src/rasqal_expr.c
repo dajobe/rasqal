@@ -357,6 +357,7 @@ rasqal_free_expression(rasqal_expression* e)
       break;
     case RASQAL_EXPR_TILDE:
     case RASQAL_EXPR_BANG:
+    case RASQAL_EXPR_UMINUS:
       rasqal_free_expression(e->arg1);
       break;
     case RASQAL_EXPR_STR_MATCH:
@@ -400,6 +401,7 @@ rasqal_expression_foreach(rasqal_expression* e,
       break;
     case RASQAL_EXPR_TILDE:
     case RASQAL_EXPR_BANG:
+    case RASQAL_EXPR_UMINUS:
       return fn(user_data, e) ||
         rasqal_expression_foreach(e->arg1, fn, user_data);
       break;
@@ -642,6 +644,16 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
         if(error)
           return NULL;
         return rasqal_new_boolean_literal(b);
+      }
+
+    case RASQAL_EXPR_UMINUS:
+      {
+        rasqal_literal *l=rasqal_expression_evaluate(query, e->arg1);
+        int i= -rasqal_literal_as_integer(l, &error);
+        rasqal_free_literal(l);
+        if(error)
+          return NULL;
+        return rasqal_new_integer_literal(RASQAL_LITERAL_INTEGER, i);
       }
 
     case RASQAL_EXPR_PLUS:
@@ -965,6 +977,7 @@ static const char* rasqal_op_labels[RASQAL_EXPR_LAST+1]={
   "gt",
   "le",
   "ge",
+  "uminus",
   "plus",
   "minus",
   "star",
@@ -1030,6 +1043,7 @@ rasqal_expression_print(rasqal_expression* e, FILE* fh)
       break;
     case RASQAL_EXPR_TILDE:
     case RASQAL_EXPR_BANG:
+    case RASQAL_EXPR_UMINUS:
       fputs("op ", fh);
       rasqal_expression_print_op(e, fh);
       fputc('(', fh);
