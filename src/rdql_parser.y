@@ -37,16 +37,11 @@
 
 #include <rdql_parser.tab.h>
 
-#include <raptor.h>
-
-#ifdef RASQAL_IN_REDLAND
-#include <librdf.h>
-#endif
-
-
 #define YY_DECL int rdql_lexer_lex (YYSTYPE *rdql_parser_lval, yyscan_t yyscanner)
 #include <rdql_lexer.h>
+
 #include <rdql_common.h>
+
 
 /* Make verbose error messages for syntax errors */
 #ifdef RASQAL_DEBUG
@@ -107,6 +102,7 @@ extern int rdql_lexer_lex (YYSTYPE *rdql_parser_lval, yyscan_t scanner);
   unsigned char *language;
   int integer;
   float floating;
+  raptor_uri *uri;
 }
 
 
@@ -146,7 +142,8 @@ extern int rdql_lexer_lex (YYSTYPE *rdql_parser_lval, yyscan_t scanner);
 %token <string> STRING_LITERAL PATTERN_LITERAL
 %token <integer> BOOLEAN_LITERAL
 %token <integer> NULL_LITERAL 
-%token <string> URI_LITERAL
+%token <uri> URI_LITERAL
+%token <string> QNAME_LITERAL
 
 %token <string> IDENTIFIER
 
@@ -484,7 +481,7 @@ UnaryExpressionNotPlusMinus : TILDE UnaryExpression
 }
 | IDENTIFIER LPAREN ArgList RPAREN
 {
-  rasqal_literal *l=rasqal_new_literal(RASQAL_LITERAL_STRING, 0, 0.0, "functioncall");
+  rasqal_literal *l=rasqal_new_literal(RASQAL_LITERAL_STRING, 0, 0.0, "functioncall", NULL);
   $$=rasqal_new_literal_expression(l);
 }
 | LPAREN Expression RPAREN
@@ -511,7 +508,12 @@ VarOrURI : Var
 }
 | URI_LITERAL
 {
-  rasqal_literal *l=rasqal_new_literal(RASQAL_LITERAL_URI, 0, 0.0, $1);
+  rasqal_literal *l=rasqal_new_literal(RASQAL_LITERAL_URI, 0, 0.0, NULL, $1);
+  $$=rasqal_new_literal_expression(l);
+}
+| QNAME_LITERAL
+{
+  rasqal_literal *l=rasqal_new_literal(RASQAL_LITERAL_QNAME, 0, 0.0, $1, NULL);
   $$=rasqal_new_literal_expression(l);
 }
 ;
@@ -534,33 +536,33 @@ Var : VARPREFIX IDENTIFIER
 
 PatternLiteral: PATTERN_LITERAL
 {
-  $$=rasqal_new_literal(RASQAL_LITERAL_PATTERN, 0, 0.0, $1);
+  $$=rasqal_new_literal(RASQAL_LITERAL_PATTERN, 0, 0.0, $1, NULL);
 }
 ;
 
 Literal : URI_LITERAL
 {
-  $$=rasqal_new_literal(RASQAL_LITERAL_URI, 0, 0.0, $1);
+  $$=rasqal_new_literal(RASQAL_LITERAL_URI, 0, 0.0, NULL, $1);
 }
 | INTEGER_LITERAL
 {
-  $$=rasqal_new_literal(RASQAL_LITERAL_INTEGER, $1, 0.0, NULL);
+  $$=rasqal_new_literal(RASQAL_LITERAL_INTEGER, $1, 0.0, NULL, NULL);
 }
 | FLOATING_POINT_LITERAL
 {
-  $$=rasqal_new_literal(RASQAL_LITERAL_FLOATING, 0, $1, NULL);
+  $$=rasqal_new_literal(RASQAL_LITERAL_FLOATING, 0, $1, NULL, NULL);
 }
 | STRING_LITERAL
 {
-  $$=rasqal_new_literal(RASQAL_LITERAL_STRING, 0, 0.0, $1);
+  $$=rasqal_new_literal(RASQAL_LITERAL_STRING, 0, 0.0, $1, NULL);
 }
 | BOOLEAN_LITERAL
 {
-  $$=rasqal_new_literal(RASQAL_LITERAL_BOOLEAN, $1, 0.0, NULL);
+  $$=rasqal_new_literal(RASQAL_LITERAL_BOOLEAN, $1, 0.0, NULL, NULL);
 }
 | NULL_LITERAL
 {
-  $$=rasqal_new_literal(RASQAL_LITERAL_NULL, $1, 0, NULL);
+  $$=rasqal_new_literal(RASQAL_LITERAL_NULL, $1, 0, NULL, NULL);
 }
 ;
 
@@ -588,20 +590,59 @@ URIList : URI_LITERAL COMMA URIList
 static int yy_init_globals (yyscan_t yyscanner ) { return 0; };
 
 
+static void
+rdql_parser_simple_error(void *parser, const char *message, ...)
+{
+  rdql_query_error((rdql_parser*)parser, message);
+}
+
+
+
+/**
+ * rasqal_rdql_qengine_init - Initialise the rasqal RDQL query engine
+ *
+ * Return value: non 0 on failure
+ **/
+static int
+rasqal_rdql_qengine_init(rasqal_query* rdf_query, const char *name) {
+  rasqal_rdql_qengine* rdql_parser=(rasqal_rdql_qengine*)rdf_parser->context;
+  raptor_uri_handler *uri_handler;
+  void *uri_context;
+
+  raptor_uri_get_handler(&uri_handler, &uri_context);
+
+  rdql_parser->namespaces=raptor_new_namespaces(uri_handler, uri_context,
+                                                rasqal_query_simple_error,
+                                                rdf_query,
+                                                0);
+
+  return 0;
+}
+
 int
 rdql_parse(rasqal_query* rq,
            const unsigned char *uri_string, 
            const char *string, size_t len) {
-  rdql_parser rp;
+  rasqal_rdql_qengine rp;
   void *buffer;
+  raptor_uri_handler *uri_handler;
+  void *uri_context;
   
   if(!string || !*string)
     return yy_init_globals(NULL); /* 0 but a way to use yy_init_globals */
 
-  memset(&rp, 0, sizeof(rdql_parser));
+  memset(&rp, 0, sizeof(rasqal_rdql_qengine));
 
   rp.query=rq;
   rp.uri_string=uri_string;
+  rp.base_uri=raptor_new_uri(rp.uri_string);
+
+  raptor_uri_get_handler(&uri_handler, &uri_context);
+
+  rp.namespaces=raptor_new_namespaces(uri_handler, uri_context,
+                                      rdql_parser_simple_error,
+                                      &rp, 
+                                      0);
   
   rdql_lexer_lex_init(&rp.scanner);
 
@@ -609,6 +650,9 @@ rdql_parse(rasqal_query* rq,
   buffer= rdql_lexer__scan_bytes(string, len, rp.scanner);
 
   rdql_parser_parse(&rp);
+
+  raptor_free_uri(rp.base_uri);
+  raptor_free_namespaces(rp.namespaces);
 
   return rp.errors;
 }
@@ -689,16 +733,8 @@ main(int argc, char *argv[])
   char query_string[RDQL_FILE_BUF_SIZE];
   FILE *fh;
   int rc;
-#ifdef RASQAL_IN_REDLAND
-  librdf_world *world;
-#endif
 
-#ifdef RASQAL_IN_REDLAND
-  world=librdf_new_world();
-  librdf_world_open(world);
-#else
-  raptor_init();
-#endif
+  raptor_uri_init();
   
 #if RASQAL_DEBUG > 2
   rdql_parser_debug=1;
@@ -733,11 +769,7 @@ main(int argc, char *argv[])
 
   free(uri_string);
 
-#ifdef RASQAL_IN_REDLAND
-  librdf_free_world(world);
-#else
   raptor_finish();
-#endif
 
   return rc;
 }
