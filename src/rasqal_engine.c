@@ -517,10 +517,19 @@ rasqal_graph_pattern*
 rasqal_new_graph_pattern_from_sequence(raptor_sequence *graph_patterns, 
                                        int flags)
 {
-  rasqal_graph_pattern* gp=(rasqal_graph_pattern*)RASQAL_CALLOC(rasqal_graph_pattern, sizeof(rasqal_graph_pattern), 1);
+  rasqal_graph_pattern* gp;
 
-  gp->graph_patterns=graph_patterns;
-  gp->flags=flags;
+  if(raptor_sequence_size(graph_patterns)==1) {
+    /* fold sequence of 1 graph_pattern */
+    RASQAL_DEBUG1("Folding sequence of 1 graph_patterns\n");
+    gp=(rasqal_graph_pattern*)raptor_sequence_pop(graph_patterns);
+    raptor_free_sequence(graph_patterns);
+  } else {
+    gp=(rasqal_graph_pattern*)RASQAL_CALLOC(rasqal_graph_pattern, sizeof(rasqal_graph_pattern), 1);
+    
+    gp->graph_patterns=graph_patterns;
+    gp->flags=flags;
+  }
 
   return gp;
 }
@@ -606,14 +615,27 @@ rasqal_graph_pattern_print(rasqal_graph_pattern* gp, FILE* fh)
 {
   fputs("graph_pattern(", fh);
   if(gp->triples) {
-    fputs("over triples", fh);
-    raptor_sequence_print(gp->triples, fh);
+    int i;
+    fputs("over triples[", fh);
+
+    for(i=gp->start_column; i <= gp->end_column; i++) {
+      rasqal_triple *t=(rasqal_triple*)raptor_sequence_get_at(gp->triples, i);
+      rasqal_triple_print(t, fh);
+      if(i < gp->end_column)
+        fputs(", ", fh);
+    }
+    fputs("]", fh);
   }
   if(gp->graph_patterns) {
     fputs("over graph_patterns", fh);
     raptor_sequence_print(gp->graph_patterns, fh);
   }
-  fprintf(fh, ", flags=%d)",  gp->flags);
+  if(gp->flags) {
+    fputs(", flags=", fh);
+    if(gp->flags & RASQAL_PATTERN_FLAGS_OPTIONAL)
+      fputs("OPTIONAL", fh);
+  }
+  fputs(")", fh);
 }
 
 
@@ -629,6 +651,7 @@ rasqal_graph_pattern_get_next_match(rasqal_query *query,
 
   if(gp->graph_patterns) {
     /* FIXME - sequence of graph_patterns not implemented, finish */
+    RASQAL_DEBUG1("Failing query with sequence of graph_patterns\n");
     return 0;
   }
     
@@ -731,10 +754,14 @@ rasqal_engine_prepare(rasqal_query *query) {
   if(!query->variables) {
     /* Expand 'SELECT *' and create the query->variables array */
     rasqal_engine_assign_variables(query);
+
+#if 0
+    /* FIXME - do not reorder triples with graph_pattern code added */
   
     /* Order the conjunctive query triples */
     if(rasqal_query_order_triples(query))
       return 1;
+#endif
 
     rasqal_engine_build_constraints_expression(query);
   }
@@ -827,6 +854,7 @@ rasqal_engine_get_next_result(rasqal_query *query) {
 
     if(gp->graph_patterns) {
       /* FIXME - sequence of graph_patterns not implemented, finish */
+      RASQAL_DEBUG1("Failing query with sequence of graph_patterns\n");
       rc=0;
       break;
     }
@@ -840,6 +868,9 @@ rasqal_engine_get_next_result(rasqal_query *query) {
       /* optional always matches */
       if(!(gp->flags & RASQAL_PATTERN_FLAGS_OPTIONAL))
         break;
+
+      RASQAL_DEBUG2("Optional graph pattern %d failed to match\n", 
+                    query->current_graph_pattern);
 
       rc=1;
     }
