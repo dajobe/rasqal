@@ -347,8 +347,9 @@ rasqal_select_next(rasqal_query *q, int count) {
   t=rasqal_sequence_get_at(q->triples, count);
   if(!t) {
     /* Done all conjunctions, so print out the variable bindings */ 
-    printf("Result variable bindings:\n");
+    printf("  result variable bindings:\n    ");
     rasqal_sequence_print(q->selects, stdout);
+    fputc('\n', stdout);
 
   } else if (!rasqal_expression_as_variable(t->predicate) &&
              !rasqal_expression_as_variable(t->subject) && 
@@ -429,20 +430,26 @@ rasqal_select_next(rasqal_query *q, int count) {
 
       statement=librdf_stream_get_object(stream);
 
-      printf("  matched statement at depth %d: ", count);
+      printf("  depth %d: matched statement ", count);
       librdf_statement_print(statement, stdout);
       fputc('\n', stdout);
 
       /* set 1 or 2 variable values from the fields of statement */
-      if(bindings[0]) 
+      if(bindings[0]) {
+        RASQAL_DEBUG2("depth %d: adding binding to subject\n", count);
         rasqal_variable_set_value(bindings[0], 
                                   redland_node_to_rasqal_expression(librdf_statement_get_subject(statement)));
-      if(bindings[1]) 
+      }
+      if(bindings[1])  {
+        RASQAL_DEBUG2("depth %d: adding binding to predicate\n", count);
         rasqal_variable_set_value(bindings[1], 
                                   redland_node_to_rasqal_expression((librdf_statement_get_predicate(statement))));
-      if(bindings[2]) 
+      }
+      if(bindings[2])  {
+        RASQAL_DEBUG2("depth %d: adding binding to predicate\n", count);
         rasqal_variable_set_value(bindings[2], 
                                   redland_node_to_rasqal_expression((librdf_statement_get_object(statement))));
+      }
 
       /* recurse */
       rc=rasqal_select_next(q, count+1);
@@ -452,6 +459,7 @@ rasqal_select_next(rasqal_query *q, int count) {
         return 1;
       }
 
+      librdf_stream_next(stream);
     }
     printf("end of stream at depth %d: \n", count);
 
