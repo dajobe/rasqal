@@ -1,4 +1,39 @@
+2004-07-21  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* strcasecmp.c, roqet.c, rasqal_redland.c, rasqal_raptor.c,
+	rasqal_query.c, rasqal_literal.c, rasqal_general.c, rasqal_expr.c,
+	rasqal_engine.c, Makefile.am, win32_config.h,
+	win32_rasqal_config.h: rename win32_config.h to
+	win32_rasqal_config.h
+
+2004-07-09  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* ChangeLog: ChangeLog in CVS now
+
+2004-06-23  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* Makefile.am: Add rule to make libraptor.la
+
+2004-06-21  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* configure.ac: Added --with-dmalloc
+
+	* rasqal_redland.c (rasqal_redland_bind_match):
+	free the literal returned by
+	redland_node_to_rasqal_literal since a new one is made by
+	rasqal_literal_as_node.
+
+2004-06-17  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* Makefile.am: Zap extra $@ on rule line
+
+2004-06-14  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* NEWS.html: 0.9.2 skeleton
+
 2004-06-13  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* configure.ac: Bumped version to 0.9.2
 
 	* Snapshotted rasqal_0_9_1 for 0.9.1 release
 
