@@ -10,8 +10,8 @@ Release:   %{release}
 Prefix:    %{_prefix}
 Copyright: LGPL/MPL
 Group:     Development/Libraries
-Source:    http://www.redland.opensource.ac.uk/dist/source/%{name}-%{version}.tar.gz
-URL:       http://www.redland.opensource.ac.uk/rasqal/
+Source:    http://librdf.org/dist/source/%{name}-%{version}.tar.gz
+URL:       http://librdf.org/rasqal/
 BuildRoot: /tmp/%{name}-%{version}
 BuildRequires: raptor-devel >= @RAPTOR_MIN_VERSION@
 Packager:  Dave Beckett <Dave.Beckett@bristol.ac.uk>

@@ -13,10 +13,10 @@
 <h2>0. Prerequisites</h2>
 
 <p>Rasqal requires the
-<a href="http://www.redland.opensource.ac.uk/raptor/">Raptor RDF parser toolkit</a>
+<a href="http://librdf.org/raptor/">Raptor RDF parser toolkit</a>
 version 1.3.0 or later for parsing RDF, retrieving WWW content and
 other utility classes and libraries.  It can also use
-<a href="http://www.redland.opensource.ac.uk/">Redland</a>
+<a href="http://librdf.org/">Redland</a>
 as an alternate triple store and enabled by
 <tt>--with-triples-source=redland</tt> as described below
 however Raptor is also required.</p>
@@ -27,7 +27,7 @@ however Raptor is also required.</p>
 <h2>1.1 Getting the sources from releases</h2>
 
 <p>The sources are available from
-<a href="http://www.redland.opensource.ac.uk/dist/source/">http://www.redland.opensource.ac.uk/dist/source/</a> (master site) and also from the
+<a href="http://librdf.org/dist/source/">http://librdf.org/dist/source/</a> (master site) and also from the
 <a href="http://sourceforge.net/projects/librdf/">SourceForge site</a>.</p>
 
 
@@ -40,13 +40,13 @@ version 2.5.31 or later.</p>
 
 <pre>
   # sh, bash, ...
-  CVSROOT=:pserver:anonymous@cvs.ilrt.org:/cvsroot
+  CVSROOT=:pserver:anonymous@cvs.librdf.org:/cvsroot
   export CVSROOT
   # csh, tcsh, ...
-  setenv CVSROOT :pserver:anonymous@cvs.ilrt.org:/cvsroot
+  setenv CVSROOT :pserver:anonymous@cvs.librdf.org:/cvsroot
 
   cvs login
-Logging in to :pserver:anonymous@cvs.ilrt.org:2401/cvsroot
+Logging in to :pserver:anonymous@cvs.librdf.org:2401/cvsroot
 CVS password: 
   [return]
 
@@ -71,7 +71,7 @@ versions.</p>
 <h2>2. Configuring and building</h2>
 
 <p>Requirements: 
-the <a href="http://www.redland.opensource.ac.uk/raptor/">Raptor RDF parser toolkit</a> version 1.3.0 or later
+the <a href="http://librdf.org/raptor/">Raptor RDF parser toolkit</a> version 1.3.0 or later
 (plus flex and bison as specified above, when building from CVS).
 Recommended: <a href="http://www.pcre.org/">PCRE</a> regex library
 or another implementing the POSIX regex API.  If neither is
@@ -133,7 +133,7 @@ or <tt>posix</tt> a POSIX regex implementation in the C library
 <dt><tt>--with-triples-source=NAME</tt><br /></dt>
 <dd><p>Pick a triples source library to use - either <tt>raptor</tt>
 (default, and always available) or <tt>redland</tt> to use
-<a href="http://www.redland.opensource.ac.uk/">Redland</a>.  Raptor
+<a href="http://librdf.org/">Redland</a>.  Raptor
 creates a simple in-store list of triples on parsing each time whereas
 Redland makes a much more efficient indexed in-memory store.  See
 also <tt>--with-redland-config</tt>.</p>
@@ -152,7 +152,7 @@ the system raptor is too old, a warning will be given but the
 configuration will continue.  </p></dd>
 
 <dt><tt>--with-redland-config=NAME</tt><br /></dt>
-<dd><p>Set the path to the <a href="http://www.redland.opensource.ac.uk/">Redland</a> redland-config program</p></dd>
+<dd><p>Set the path to the <a href="http://librdf.org/">Redland</a> redland-config program</p></dd>
 
 </dl>
 

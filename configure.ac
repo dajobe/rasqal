@@ -5,18 +5,23 @@ dnl (Process this file with autoconf to produce a configure script.)
 dnl
 dnl $Id$
 dnl
-dnl Copyright (C) 2003-2004 David Beckett - http://purl.org/net/dajobe/
-dnl Institute for Learning and Research Technology - http://www.ilrt.bris.ac.uk/
-dnl University of Bristol - http://www.bristol.ac.uk/
+dnl Copyright (C) 2003-2004, David Beckett http://purl.org/net/dajobe/
+dnl Institute for Learning and Research Technology http://www.ilrt.bristol.ac.uk/
+dnl University of Bristol, UK http://www.bristol.ac.uk/
 dnl 
-dnl This package is Free Software or Open Source available under the
-dnl following licenses (these are alternatives):
-dnl   1. GNU Lesser General Public License (LGPL)
-dnl   2. GNU General Public License (GPL)
-dnl   3. Mozilla Public License (MPL)
+dnl This package is Free Software and part of Redland http://librdf.org/
+dnl 
+dnl It is licensed under the following three licenses as alternatives:
+dnl   1. GNU Lesser General Public License (LGPL) V2.1 or any newer version
+dnl   2. GNU General Public License (GPL) V2 or any newer version
+dnl   3. Apache License, V2.0 or any newer version
+dnl 
+dnl You may not use this file except in compliance with at least one of
+dnl the above three licenses.
 dnl 
 dnl See LICENSE.html or LICENSE.txt at the top of this package for the
-dnl full license terms.
+dnl complete terms and further detail along with the license texts for
+dnl the licenses in COPYING.LIB, COPYING and LICENSE-2.0.txt respectively.
 dnl 
 
 
@@ -397,7 +402,7 @@ if test "X$REDLAND_CONFIG" != "X"; then
   REDLAND_MIN_VERSION_DEC=`echo $REDLAND_MIN_VERSION | $AWK -F. '{printf("%d\n", 10000*$1 + 100*$2 + $3)};'`
 
   if test "X$REDLAND_VERSION" = X; then
-    AC_MSG_ERROR(Redland RDF library missing - please install from http://www.redland.opensource.ac.uk/)
+    AC_MSG_ERROR(Redland RDF library missing - please install from http://librdf.org/)
   fi
 
   if test "X$REDLAND_VERSION" -a $REDLAND_VERSION_DEC -ge $REDLAND_MIN_VERSION_DEC; then
