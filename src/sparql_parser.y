@@ -1259,7 +1259,7 @@ sparql_parse(rasqal_query* rq, const unsigned char *string) {
   /* FIXME - should check remaining query parts  */
   if(rasqal_engine_sequence_has_qname(rq->triples) ||
      rasqal_engine_sequence_has_qname(rq->constructs) ||
-     rasqal_engine_constraints_has_qname(rq)) {
+     rasqal_engine_query_constraints_has_qname(rq)) {
     sparql_query_error(rq, "SPARQL query has unexpanded QNames");
     return 1;
   }
