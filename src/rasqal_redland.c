@@ -191,8 +191,6 @@ rasqal_redland_free_triples_source(void *user_data) {
   librdf_free_uri(rtsc->uri);
   librdf_free_model(rtsc->model);
   librdf_free_storage(rtsc->storage);
-
-  LIBRDF_FREE(rasqal_redland_triples_source_context, rtsc);
 }
 
 
