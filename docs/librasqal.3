@@ -86,7 +86,7 @@ for a query language with a given integer \fIcounter\fP, returning non-zero
 if no such query language at that offset exists.
 The counter should start from 0 and be incremented by 1
 until the function returns non-zero.
-.IP "\fBint rasqal_language_name_check(const char *\fIname\fB);\fR"
+.IP "\fBint rasqal_language_name_check(const char *\fIname\fB)\fR"
 Check \fIname\fP is a known query language name.
 .SH "QUERY CONSTRUCTOR"
 .IP "\fBrasqal_query* rasqal_new_query(const char *\fIname\fB, const unsigned char *\fIuri\fP)\fR"
@@ -94,7 +94,7 @@ Create a new rasqal query object for the query syntax with name
 \fIname\fR currently only "rdql" for the RDF Data Query Language.
 A language may alternatively be identified by a URI \fIuri\fP.
 .SH "QUERY DESTRUCTOR"
-.IP "\fBvoid rasqal_free_query(rasqal_query* \fIquery\fB);\fR"
+.IP "\fBvoid rasqal_free_query(rasqal_query* \fIquery\fB)\fR"
 Destroy a rasqal query object.
 .SH "QUERY METHODS"
 .IP "\fBconst char* rasqal_query_get_name(rasqal_query* \fIquery\fP)\fR"
@@ -113,36 +113,36 @@ Returns non 0 on failure or if the feature is unknown.  No current
 features are defined.
 .IP "\fBvoid rasqal_query_add_source(rasqal_query* \fIquery\fB, raptor_uri* \Iuri\fP)\fR"
 Add a source URI to the sequence of sources in the query.
-.IP "\fBraptor_sequence* rasqal_query_get_source_sequence(rasqal_query* \fIquery\fB);\fR"
+.IP "\fBraptor_sequence* rasqal_query_get_source_sequence(rasqal_query* \fIquery\fB)\fR"
 Get the sequence of sources in the query.
 .IP "\fBraptor_uri* rasqal_query_get_source(rasqal_query* \fIquery\fB, int \Iidx\fP)\fR"
 Get one source in the sequence of sources in the queyr.
 .IP "\fBvoid rasqal_query_add_variable(rasqal_query* \fIquery\fB, rasqal_variable* \Ivar\fP)\fR"
 Add a variable binding to the sequence of bindings in the query.
-.IP "\fBraptor_sequence* rasqal_query_get_variable_sequence(rasqal_query* \fIquery\fB);\fR"
+.IP "\fBraptor_sequence* rasqal_query_get_variable_sequence(rasqal_query* \fIquery\fB)\fR"
 Get the sequence of variable bindings in the query.
 .IP "\fBrasqal_variable* rasqal_query_get_variable(rasqal_query* \fIquery\fB, int \Iidx\fP)\fR"
 Get one variable binding in the sequence of variable bindings in the queyr.
-.IP "\fBint rasqal_query_has_variable(rasqal_query* \fIquery\fB, const unsigned char *\fIname\fB);\fR"
+.IP "\fBint rasqal_query_has_variable(rasqal_query* \fIquery\fB, const unsigned char *\fIname\fB)\fR"
 Return non-0 if the named variable is in the variable bindings of the query.
 .IP "\fBint rasqal_query_set_variable(rasqal_query* \fIquery\fB, const unsigned char *\fIname\fB, rasqal_literal* value);\fR"
 Set the query variable \fIname\fP to a literal \fIvalue\fP (the
 variable must already be in the sequence of variable bindings).
 .IP "\fBvoid rasqal_query_add_triple(rasqal_query* \fIquery\fB, rasqal_triple* triple);\fR"
 Add a triple to the sequence of triples to match in the query.
-.IP "\fBraptor_sequence* rasqal_query_get_triple_sequence(rasqal_query* \fIquery\fB);\fR"
+.IP "\fBraptor_sequence* rasqal_query_get_triple_sequence(rasqal_query* \fIquery\fB)\fR"
 Get the sequence of triples to match in the query.
 .IP "\fBrasqal_triple* rasqal_query_get_triple(rasqal_query* \fIquery\fB, int \Iidx\fP)\fR"
 Get one triple in the sequences of triples to match in the query.
 .IP "\fBvoid rasqal_query_add_constraint(rasqal_query* \fIquery\fB, rasqal_expression* expr);\fR"
 Add a constraint expression to the sequence of constraints in the query.
-.IP "\fBraptor_sequence* rasqal_query_get_constraint_sequence(rasqal_query* \fIquery\fB);\fR"
+.IP "\fBraptor_sequence* rasqal_query_get_constraint_sequence(rasqal_query* \fIquery\fB)\fR"
 Get the sequence of constraints in the query.
 .IP "\fBrasqal_expression* rasqal_query_get_constraint(rasqal_query* \fIquery\fB, int \Iidx\fP)\fR"
 Get one constraint expression in the sequences of constraint to match in the query.
 .IP "\fBvoid rasqal_query_add_prefix(rasqal_query* \fIquery\fB, rasqal_prefix* prefix);\fR"
 Add one namespace prefix/URI to the sequence of prefixes in the query.
-.IP "\fBraptor_sequence* rasqal_query_get_prefix_sequence(rasqal_query* \fIquery\fB);\fR"
+.IP "\fBraptor_sequence* rasqal_query_get_prefix_sequence(rasqal_query* \fIquery\fB)\fR"
 Get the sequence of prefixes in the query.
 .IP "\fBrasqal_prefix* rasqal_query_get_prefix(rasqal_query* \fIquery\fB, int \Iidx\fP)\fR"
 Get one prefix in the sequence of prefixes in the query.
@@ -194,7 +194,7 @@ at position \fIoffset\fP.
 .IP "\fBconst unsigned char* rasqal_query_results_get_binding_name(rasqal_query_results *\fIquery_results\fP, int offset);\fR"
 Get the name of the variable indexed in the sequence of variable bindings
 at position \fIoffset\fP.
-.IP "\fBrasqal_literal* rasqal_query_results_get_binding_value_by_name(rasqal_query_results *\fIquery_results\fP, const unsigned char *\fIname\fB);\fR"
+.IP "\fBrasqal_literal* rasqal_query_results_get_binding_value_by_name(rasqal_query_results *\fIquery_results\fP, const unsigned char *\fIname\fB)\fR"
 Get the value of the variable in the sequence of variable bindings
 named \fIname\fP or NULL if not known or unbound.
 .IP "\fBint rasqal_query_results_get_bindings_count(rasqal_query_results *\fIquery_results\fP)\fR"
