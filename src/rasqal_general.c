@@ -99,8 +99,6 @@ rasqal_finish(void)
 #ifdef RAPTOR_TRIPLES_SOURCE_RAPTOR
   raptor_finish();
 #endif
-#ifdef RAPTOR_TRIPLES_SOURCE_RAPTOR
-#endif
 }
 
 
