@@ -273,7 +273,7 @@ RASQAL_API int rasqal_query_results_get_boolean(rasqal_query_results *query_resu
 
 /* Graph result format */
 RASQAL_API int rasqal_query_results_is_graph(rasqal_query_results *query_results);
-RASQAL_API rasqal_triple* rasqal_query_results_get_triple(rasqal_query_results *query_results);
+RASQAL_API raptor_statement* rasqal_query_results_get_triple(rasqal_query_results *query_results);
 RASQAL_API int rasqal_query_results_next_triple(rasqal_query_results *query_results);
 
 RAPTOR_API int rasqal_query_results_write(raptor_iostream *iostr, rasqal_query_results *results, raptor_uri *format_uri, raptor_uri *base_uri);
