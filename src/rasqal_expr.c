@@ -50,9 +50,9 @@
 
 #ifndef STANDALONE
 
-int RASQAL_INLINE rasqal_expression_as_boolean(rasqal_expression* e, int *error);
-int RASQAL_INLINE rasqal_expression_as_integer(rasqal_expression* e, int *error);
-int RASQAL_INLINE rasqal_expression_compare(rasqal_expression* e1, rasqal_expression* e2, int flags, int *error);
+RASQAL_INLINE int rasqal_expression_as_boolean(rasqal_expression* e, int *error);
+RASQAL_INLINE int rasqal_expression_as_integer(rasqal_expression* e, int *error);
+RASQAL_INLINE int rasqal_expression_compare(rasqal_expression* e1, rasqal_expression* e2, int flags, int *error);
 
 
 /**
