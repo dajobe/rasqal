@@ -14,7 +14,8 @@
 
 <p><a href="http://www.redland.opensource.ac.uk/rasqal/">Rasqal</a>
 is a free software/Open Source C library that handles RDF query
-syntaxes and query construction..</p>
+syntaxes, query construction and query execution returning
+result bindings.</p>
 
 <p>Rasqal
 was designed to work closely with the
@@ -23,36 +24,57 @@ but is entirely separate.  It is intended to be a portable library
 working across many POSIX systems.
 </p>
 
-<p>This is an alpha quality library - the code and APIs are new
-and likely to change.  See
-the <a href="TODO.html">to do list</a> for more information.  Changes
-can be found in the <a href="NEWS.html">NEWS</a> file or more
-detailed changes in the <a href="ChangeLog">ChangeLog</a>.</p>
+<p>This is an beta quality library - the code and APIs are new
+however likely to change. 
+See the <a href="TODO.html">todo list</a> and the
+<a href="FAQS.html">FAQS</a> for general information.  A summary
+of the changes can be found in the <a href="NEWS.html">NEWS</a> file,
+detailed API changes in the <a href="RELEASE.html">release notes</a>
+and file-by-file changes in the CVS <a href="ChangeLog">ChangeLog</a>.</p>
 
-<h2>Query Languages</h2>
+
+<p>Rasqal provides:</p>
+<ul>
+<li>A <a href="docs/api/query.html">query</a> construction API</li>
+<li>A query execution engine</li>
+<li>Query language support for RDQL</li>
+<li>No memory leaks.</li>
+<li><a href="roqet.html">roqet</a> standalone RDF query utility program</li>
+</ul>
+
+
+
+<h2>Supported Query Languages</h2>
 
 <h3>RDF Data Query Language (RDQL)</h3>
 
-<p>A syntax parser and query constructor for the RDQL language.</p>
+<p>Rasqal provides a syntax parser and query constructor for the RDQL
+language, as defined in
+<a href="http://www.w3.org/Submission/2004/SUBM-RDQL-20040109/">RDQL - A Query Language for RDF</a>,
+W3C Member Submission 9 January 2004
+based on the earlier versions in Jena defined in
+<a href="http://www.hpl.hp.com/semweb/rdql.htm">RDQL RDF Data Query Language</a>
+and the
+<a href="http://www.hpl.hp.com/semweb/rdql-grammar.html ">RDQL Grammar</a>.
+The
+<a href="http://www.hpl.hp.com/semweb/doc/tutorial/RDQL/">Jena RDQL Tutorial</a>
+gives an introduction on the language.
+Rasqal currently passes the majority of the RDQL test suite tests.  The
+tests not passed and further explanation are given in the
+<a href="TODO.html">todo list</a>.</p>
 
-<ul>
-<li><a href="http://www.hpl.hp.com/semweb/rdql.htm">RDQL RDF Data Query Language</a>, HP Labs</li>
-<li><a href="http://www.hpl.hp.com/semweb/rdql-grammar.html ">RDQL Grammar</a></li>
-<li><a href="http://www.hpl.hp.com/semweb/doc/tutorial/RDQL/">Jena RDQL Tutorial</a></li>
-<li><a href="http://phpxmlclasses.sourceforge.net/rdql.html">PHP XML classes RDQL Tutorial</a></li>
-<li><a href="http://www.w3.org/2003/03/rdfqr-tests/">RDF Query (and Rule) Testcase Repository</a></li>
-<li><a href="http://sw1.ilrt.org/rdfquery/tests/tests/">RDQL tests</a> (unsure of the status)</li>
-<li><a href="http://cvs.sourceforge.net/viewcvs.py/jena/jena2/testing/RDQL/">Jena RDQL tests (CVS)</a></li>
-</ul>
 
-<h2>Documentation</h2>
+<h2>Installation and Documentation</h2>
 
 <p>The public API is described in the
 <a href="librasqal.html">librasqal.3</a> UNIX manual page.
 </p>
 
-<p>To install Rasqal see the <a href="INSTALL.html">Installation document</a>.
+<p>Further documentation is available in the
+<a href="docs/README.html">documents area</a> including the
+<a href="docs/api/index.html">API reference document</a>.
 </p>
+
 
 <h2>Sources</h2>
 
@@ -62,6 +84,8 @@ detailed changes in the <a href="ChangeLog">ChangeLog</a>.</p>
 There are 
 <a href="http://www.redland.opensource.ac.uk/dist/snapshots/source/">nightly snapshots</a> of the development version which is can also be browsed via
 <a href="http://cvs.ilrt.org/cvsweb/redland/rasqal/">CVSweb</a>.
+Binary packages of Rasqal and related libraries are available from the
+<a href="http://www.redland.opensource.ac.uk/dist/">download area</a>.
 </p>
 
 
@@ -81,7 +105,7 @@ future plans and announcement of releases.</p>
 
 <hr />
 
-<p>Copyright 2003 <a href="http://purl.org/net/dajobe/">Dave Beckett</a>, <a href="http://www.ilrt.bristol.ac.uk/">Institute for Learning and Research Technology</a>, <a href="http://www.bristol.ac.uk/">University of Bristol</a></p>
+<p>Copyright 2003-2004 <a href="http://purl.org/net/dajobe/">Dave Beckett</a>, <a href="http://www.ilrt.bristol.ac.uk/">Institute for Learning and Research Technology</a>, <a href="http://www.bristol.ac.uk/">University of Bristol</a></p>
 
 </body>
 </html>
