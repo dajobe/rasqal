@@ -390,10 +390,6 @@ if test "X$redland_config" != "X" ; then
   fi
 fi
 
-if test "X$REDLAND_CONFIG" = "X"; then
-  AC_CHECK_PROGS(REDLAND_CONFIG, redland-config)
-fi
-
 if test "X$REDLAND_CONFIG" != "X"; then
   REDLAND_VERSION=`$REDLAND_CONFIG --version 2>/dev/null`
   REDLAND_MIN_VERSION=0.9.16
