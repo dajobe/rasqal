@@ -26,8 +26,6 @@ data-01.n3 data-02.n3 dawg-data-01.n3
 SPARQL_TEST_FILES= \
 dawg-tp-01.rq dawg-tp-02.rq dawg-tp-03.rq dawg-tp-04.rq
 
-EXPECTED_SPARQL_TEST_FAILURES=
-
 SPARQL_RESULT_FILES= \
 result-tp-01.n3 result-tp-02.n3 result-tp-03.n3 result-tp-04.n3
 
@@ -78,22 +76,15 @@ check-sparql-parser: $(top_builddir)/sparql_parser_test
 	    $(ECHO) ok; \
 	  fi; \
 	done; \
-	if test $$result = 1 ; then \
-	  echo "Expecting test failures: $(EXPECTED_SPARQL_TEST_FAILURES)"; \
-	  if test "X$$fails" = "X $(EXPECTED_SPARQL_TEST_FAILURES)" ; then \
-	    echo "OK: Ignoring expected test failures"; result=0; \
-          else \
-	    echo "FAILED: failures $$fails does not match expected"; result=1; \
-          fi; \
-	fi; \
 	set -e; exit $$result
 
 check-sparql-works: $(top_builddir)/roqet
 	@set +e; result=0; \
 	$(ECHO) "Testing SPARQL"; \
 	for test in $(SPARQL_TEST_FILES); do \
+          data=data-01.n3; \
 	  $(ECHO) $(ECHO_N) "Checking $$test $(ECHO_C)"; \
-	  $(top_builddir)/roqet -i sparql $(srcdir)/$$test >/dev/null 2>&1; \
+	  $(top_builddir)/roqet -i sparql -s $$data $(srcdir)/$$test >/dev/null 2>&1; \
 	  status=$$?; \
 	  if test $$status != 0 -a $$status != 2 ; then \
 	    $(ECHO) FAILED returned status $$status; result=1; \
@@ -102,4 +93,14 @@ check-sparql-works: $(top_builddir)/roqet
 	    $(ECHO) ok; \
 	  fi; \
 	done; \
+	set -e; exit $$result
+
+check-sparql-correct: $(top_builddir)/roqet $(srcdir)/../check-sparql
+	@set +e; \
+	TOP_SRCDIR=$(top_srcdir) TOP_BUILDDIR=$(top_builddir) \
+	  perl $(srcdir)/../check-sparql; \
+	result=$$?; \
+	if test $$result != 0 ; then \
+	    echo "FAILED: $$result failures"; \
+	fi; \
 	set -e; exit $$result
