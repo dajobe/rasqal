@@ -71,14 +71,26 @@ extern "C" {
 #define RASQAL_VERSION_MINOR 9
 
 /* Release version number */
-#define RASQAL_VERSION_RELEASE 2
+#define RASQAL_VERSION_RELEASE 3
 
 /* Version number of package */
-#define VERSION "0.9.2"
+#define VERSION "0.9.3"
 
 #include <windows.h>
 #include <io.h>
 #include <memory.h>
+
+/* bison: output uses ERROR in an enum which breaks if this is defined */
+#ifdef ERROR
+#undef ERROR
+#endif
+
+/* flex: const is available */
+#define YY_USE_CONST
+
+#undef RASQAL_INLINE
+#define RASQAL_INLINE
+
 
 #ifdef __cplusplus
 }
