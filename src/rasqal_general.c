@@ -583,3 +583,22 @@ rasqal_set_feature(rasqal_query *query, rasqal_feature feature, int value)
 }
 
 
+#if defined (RASQAL_DEBUG) && defined(HAVE_DMALLOC_H) && defined(RASQAL_MEMORY_DEBUG_DMALLOC)
+
+#undef malloc
+void*
+rasqal_system_malloc(size_t size)
+{
+  return malloc(size);
+}
+
+#undef free
+void
+rasqal_system_free(void *ptr)
+{
+  return free(ptr);
+  
+}
+
+#endif
+
