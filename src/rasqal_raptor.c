@@ -202,21 +202,21 @@ rasqal_raptor_triple_match(rasqal_triple *triple, rasqal_triple *match) {
   int error=0;
   
   if(match->subject) {
-    if(rasqal_literal_compare(triple->subject, match->subject, 0, &error))
+    if(!rasqal_literal_equals(triple->subject, match->subject))
       return 0;
     if(error)
       return 0;
   }
 
   if(match->predicate) {
-    if(rasqal_literal_compare(triple->predicate, match->predicate, 0, &error))
+    if(!rasqal_literal_equals(triple->predicate, match->predicate))
       return 0;
     if(error)
       return 0;
   }
 
   if(match->object) {
-    if(rasqal_literal_compare(triple->object, match->object, 0, &error))
+    if(!rasqal_literal_equals(triple->object, match->object))
       return 0;
     if(error)
       return 0;
