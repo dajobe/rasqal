@@ -119,6 +119,9 @@ int rdql_lexer_lex (YYSTYPE *rdql_parser_lval, yyscan_t yyscanner);
 #define INPUT_FN input
 #endif
 
+/* Remove the re-fill function since it should never be called */
+#define YY_INPUT(buf,result,max_size) { return YY_NULL; }
+
 
 /* Missing rdql_lexer.c/h prototypes */
 int rdql_lexer_get_column(yyscan_t yyscanner);
@@ -726,32 +729,43 @@ rdql_token_free(int token, YYSTYPE *lval)
 }
 
 
+#define FILE_READ_BUF_SIZE 2048
+
 int
 main(int argc, char *argv[]) 
 {
   const char *program=rasqal_basename(argv[0]);
+  char *query_string=NULL;
   rasqal_query rq;
   rasqal_rdql_query_engine rdql;
   yyscan_t scanner;
   int token=EOF;
-  FILE *fh;
   YYSTYPE lval;
   const unsigned char *uri_string;
   char *filename=NULL;
+  char *buf=NULL;
+  size_t len;
+  void *buffer;
 
   rasqal_init();
   
   if(argc > 1) {
+    FILE *fh;
+    query_string=(char*)calloc(FILE_READ_BUF_SIZE, 1);
     filename=argv[1];
     fh=fopen(filename, "r");
-    if(!fh) {
+    if(fh) {
+      fread(query_string, FILE_READ_BUF_SIZE, 1, fh);
+      fclose(fh);
+    } else {
       fprintf(stderr, "%s: Cannot open file %s - %s\n", program, filename,
               strerror(errno));
       exit(1);
     }
   } else {
     filename="<stdin>";
-    fh=stdin;
+    query_string=(char*)calloc(FILE_READ_BUF_SIZE, 1);
+    fread(query_string, FILE_READ_BUF_SIZE, 1, stdin);
   }
 
   memset(&rq, 0, sizeof(rasqal_query));
@@ -759,10 +773,17 @@ main(int argc, char *argv[])
 
   yylex_init(&rdql.scanner);
   scanner=rdql.scanner;
-  rdql_lexer_set_in(fh, scanner);
+
+  len= strlen((const char*)query_string);
+  buf= (char *)RASQAL_MALLOC(cstring, len+3);
+  strncpy(buf, query_string, len);
+  buf[len]= ' ';
+  buf[len+1]= buf[len+2]='\0'; /* YY_END_OF_BUFFER_CHAR; */
+  buffer= rdql_lexer__scan_buffer(buf, len+3, scanner);
+
   rdql_lexer_set_extra(&rq, scanner);
 
-  /* Initialise enough of the parser and locator to get error messages */
+  /* Initialise enough of the rasqal_query and locator to get error messages */
   rq.context=&rdql;
   rdql.lineno=1;
   rq.locator.file=filename;
@@ -787,7 +808,8 @@ main(int argc, char *argv[])
       break;
   }
 
-  fclose(fh);
+  if(buf)
+    RASQAL_FREE(cstring, buf);
   
   yylex_destroy(scanner);
 
