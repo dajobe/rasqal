@@ -1,5 +1,26 @@
 2005-01-09  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
+	* rasqal_internal.h: Added max_optional_graph_pattern to query.
+
+	* rasqal_engine.c (rasqal_engine_do_step): Set gp->matched flag
+	here
+	(rasqal_engine_do_optional_step): Set gp->matched flag
+	(rasqal_engine_get_next_result): Do not set gp->matched flag here.
+	For an optional step, if no bound values were returned ensure
+	search continues.
+
+	* rasqal_engine.c: Add a few more debug messages.
+
+	* rasqal_engine.c: delete a #if 1
+
+	* rasqal_engine.c (rasqal_engine_move_to_graph_pattern):
+	Use max_optional_graph_patterns
+	to walk through combinations of optional graph patterns.
+	(rasqal_engine_do_optional_step): CHeck against max_optional_graph_patterns
+	limit and lower it when backtracking.
+	(rasqal_engine_get_next_result): Count # returned values and continue
+	searching when=0.  This is a fixup hack, not a final solution.
+
 	* rasqal_engine.c (rasqal_engine_move_to_graph_pattern):
 	Use max_optional_graph_patterns
 	to walk through combinations of optional graph patterns.
