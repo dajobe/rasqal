@@ -9,7 +9,7 @@
 	* rasqal_engine.c: source re-ordering
 
 	* rasqal_engine.c (rasqal_engine_prepare): set flags here.
-	(rasqal_engine_execute_init): Always init a new pattern_graph.
+	(rasqal_engine_execute_init): Always init a new graph_pattern.
 
 	* rasqal_engine.c (rasqal_engine_execute_init, rasqal_engine_run):
 	Remove remaining use of query->column field.
@@ -17,34 +17,34 @@
 	* rasqal_internal.h: rasqal_query remove column field
 
 	* rasqal_engine.c:
-	(rasqal_engine_execute_init); Added pattern_graph field, using
-	rasqal_new_pattern_graph
-	(rasqal_engine_execute_finish): Tidy up, deleting pattern_graph.
+	(rasqal_engine_execute_init); Added graph_pattern field, using
+	rasqal_new_graph_pattern
+	(rasqal_engine_execute_finish): Tidy up, deleting graph_pattern.
 	(rasqal_graph_pattern_get_next_triple): Renamed from
 	rasqal_engine_get_next_triple_pattern_result and using
-	rasqal_pattern_graph argument.
-	(rasqal_new_pattern_graph): tidy.
-	(rasqal_free_pattern_graph): Delete the triple_meta array.
+	rasqal_graph_pattern argument.
+	(rasqal_new_graph_pattern): tidy.
+	(rasqal_free_graph_pattern): Delete the triple_meta array.
 	(rasqal_engine_get_next_result): Use
 	rasqal_graph_pattern_get_next_triple and evaluate the constraints
 	here.
 
-	* rasqal_internal.h: rasqal_query rename to pattern_graph field
+	* rasqal_internal.h: rasqal_query rename to graph_pattern field
 
-	* rasqal_internal.h: rasqal_pattern_graph add column Remove
+	* rasqal_internal.h: rasqal_graph_pattern add column Remove
 	rasqal_triple_meta field from rasqal_query and add graph_pattern
 	field
 
-	* rasqal_internal.h: Update rasqal_new_pattern_graph prototype.
+	* rasqal_internal.h: Update rasqal_new_graph_pattern prototype.
 
 	* rasqal_expr.c: Replace calloc() with RASQAL_CALLOC(type,...)
 
 	* rasqal_internal.h: Added rasqal_pattern_flags enum.
-	Added rasqal_pattern_graph
-	Added rasqal_new_pattern_graph, rasqal_free_pattern_graph prototypes.
+	Added rasqal_graph_pattern
+	Added rasqal_new_graph_pattern, rasqal_free_graph_pattern prototypes.
 
-	* rasqal_engine.c (rasqal_new_pattern_graph,
-	rasqal_free_pattern_graph): Added.
+	* rasqal_engine.c (rasqal_new_graph_pattern,
+	rasqal_free_graph_pattern): Added.
 
 	* rasqal_engine.c (rasqal_engine_get_next_triple_pattern_result):
 	Added, split off from rasqal_engine_get_next_result.
