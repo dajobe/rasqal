@@ -207,6 +207,17 @@ rasqal_engine_assign_variables(rasqal_query* rq)
       raptor_sequence_push(rq->selects, raptor_sequence_get_at(rq->variables_sequence, i));
   }
 
+  /* If 'CONSTRUCT *' was given, make the constructs be all triples */
+  if(rq->construct_all) {
+    rq->constructs=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_triple, (raptor_sequence_print_handler*)rasqal_triple_print);
+    raptor_sequence *s=((rasqal_query*)rq)->triples;
+
+    for(i=0; i < raptor_sequence_size(s); i++) {
+      rasqal_triple *t=(rasqal_triple*)raptor_sequence_get_at(s, i);
+      raptor_sequence_push(rq->constructs, rasqal_new_triple_from_triple(t));
+    }
+  }
+
   if(rq->selects)
     rq->select_variables_count=raptor_sequence_size(rq->selects);
 
