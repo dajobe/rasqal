@@ -1,6 +1,0 @@
-@prefix rdf:        <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-@prefix ns:    <http://example.org/ns#> .
-@prefix :      <http://example.org/> .
-
-:abc rdf:type ns:Type1 .
-:def rdf:type ns:Type1 .

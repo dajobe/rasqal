@@ -1,5 +1,0 @@
-SELECT ?x
-WHERE 
-	(?x rdf:type ns:Type1)
-	(?x ns:NoProp "NoSuchElement")
-USING ns FOR <http://example.org/ns#>

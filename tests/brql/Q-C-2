@@ -1,6 +1,0 @@
-CONSTRUCT *
-WHERE 
-	(?x ns:p "foo") 
-USING 
-	ns    FOR <http://example.org/ns#>
-	data  FOR <http://example.org/>

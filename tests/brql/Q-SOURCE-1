@@ -1,6 +1,0 @@
-PREFIX ns: <http://example.org/ns#>
-SELECT ?source ?x
-FROM <D.n3> <E.n3>
-WHERE 
-	SOURCE ?source (?x rdf:type ns:Type1) 
-
