@@ -29,13 +29,16 @@ noinst_HEADERS = rasqal_internal.h win32_rasqal_config.h
 
 man_MANS = roqet.1 librasqal.3 rasqal-config.1
 
-SUBDIRS=tests rdql-testsuite docs win32
+SUBDIRS=tests docs win32
 
 TESTS=rasqal_expr_test strcasecmp_test rasqal_query_test
 
-CLEANFILES=$(TESTS) rdql_lexer_test rdql_parser_test
+CLEANFILES=$(TESTS) rdql_lexer_test rdql_parser_test \
+brql_lexer_test brql_parser_test
 MAINTAINERCLEANFILES=rdql_lexer.c rdql_lexer.h \
-rdql_parser.c rdql_parser.h rdql_parser.output
+rdql_parser.c rdql_parser.h rdql_parser.output \
+brql_lexer.c brql_lexer.h \
+brql_parser.c brql_parser.h brql_parser.output
 
 MEM=@MEM@
 MEM_LIBS=@MEM_LIBS@
@@ -47,6 +50,8 @@ AM_LDFLAGS=@RASQAL_EXTERNAL_LIBS@ $(MEM_LIBS)
 
 librasqal_la_SOURCES = rdql_lexer.c rdql_lexer.h \
 rdql_parser.c rdql_parser.h rdql_common.h \
+brql_lexer.c brql_lexer.h \
+brql_parser.c brql_parser.h brql_common.h \
 rasqal_expr.c rasqal_general.c rasqal_query.c \
 rasqal_engine.c rasqal_raptor.c rasqal_literal.c
 if GETOPT
@@ -73,6 +78,7 @@ README      NEWS      LICENSE.txt \
 README.html NEWS.html LICENSE.html INSTALL.html \
 MPL.html librasqal.html roqet.html RELEASE.html \
 rdql_lexer.l rdql_parser.y \
+brql_lexer.l brql_parser.y \
 rasqal-config.in rasqal-src-config.in \
 autogen.sh \
 rasqal.spec.in \
@@ -123,16 +129,37 @@ rdql_parser.c: $(srcdir)/rdql_parser.y
 	sed -e '/Suppress GCC warning that yyerrlab1/,/^\#endif/d' rdql_parser.tab.c > $@
 	mv rdql_parser.tab.h rdql_parser.h
 	rm -f rdql_parser.tab.c
+
+# Actually it needs brql_parser.h but nevermind
+brql_lexer.c: $(srcdir)/brql_lexer.l brql_parser.c $(srcdir)/fix-flex
+	$(LEX) -o$@ $(srcdir)/brql_lexer.l
+	$(PERL) $(srcdir)/fix-flex $@ > brql_lexer.t
+	mv brql_lexer.t $@
+	$(PERL) $(srcdir)/fix-flex brql_lexer.h > brql_lexer.t
+	mv brql_lexer.t brql_lexer.h
+
+brql_parser.c: $(srcdir)/brql_parser.y
+	$(YACC) -b brql_parser -p brql_parser_ -d -v $(srcdir)/brql_parser.y
+	sed -e '/Suppress GCC warning that yyerrlab1/,/^\#endif/d' brql_parser.tab.c > $@
+	mv brql_parser.tab.h brql_parser.h
+	rm -f brql_parser.tab.c
 endif
 
 
-check-local: rdql_lexer_test rdql_parser_test
+check-local: rdql_lexer_test rdql_parser_test \
+brql_lexer_test brql_parser_test
 
 rdql_lexer_test: $(srcdir)/rdql_lexer.c librasqal.la
 	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE @RASQAL_INTERNAL_CPPFLAGS@ $(srcdir)/rdql_lexer.c librasqal.la $(LIBS)
 
 rdql_parser_test: $(srcdir)/rdql_parser.c librasqal.la
 	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE @RASQAL_INTERNAL_CPPFLAGS@ $(srcdir)/rdql_parser.c librasqal.la $(LIBS)
+
+brql_lexer_test: $(srcdir)/brql_lexer.c librasqal.la
+	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE @RASQAL_INTERNAL_CPPFLAGS@ $(srcdir)/brql_lexer.c librasqal.la $(LIBS)
+
+brql_parser_test: $(srcdir)/brql_parser.c librasqal.la
+	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE @RASQAL_INTERNAL_CPPFLAGS@ $(srcdir)/brql_parser.c librasqal.la $(LIBS)
 
 rasqal_expr_test: $(srcdir)/rasqal_expr.c librasqal.la
 	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE @RASQAL_INTERNAL_CPPFLAGS@ $(srcdir)/rasqal_expr.c librasqal.la $(LIBS)
