@@ -278,8 +278,9 @@ rasqal_engine_assign_variables(rasqal_query* rq)
     for(i=0; i< rq->variables_count; i++)
       raptor_sequence_push(rq->selects, raptor_sequence_get_at(rq->variables_sequence, i));
   }
-  
-  rq->select_variables_count=raptor_sequence_size(rq->selects);
+
+  if(rq->selects)
+    rq->select_variables_count=raptor_sequence_size(rq->selects);
 
   if(rq->select_variables_count) {
     rq->variable_names=(const unsigned char**)RASQAL_MALLOC(cstrings,sizeof(const unsigned char*)*(rq->select_variables_count+1));
