@@ -50,7 +50,6 @@
 
 
 inline int rasqal_literal_as_integer(rasqal_literal* l, int *error);
-inline int rasqal_literal_compare(rasqal_literal* l1, rasqal_literal *l2, int *error);
 
 inline int rasqal_variable_compare(rasqal_variable* v1, rasqal_variable* v2, int *error);
 
@@ -437,7 +436,7 @@ double_to_int(double d)
 }
 
 
-inline int
+int
 rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int *error)
 {
   int errori=0;
