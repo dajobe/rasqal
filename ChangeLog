@@ -1,5 +1,32 @@
 2004-11-10  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
+	* sparql_parser.y: typo
+
+	* rdql_lexer.l, rdql_parser.y, sparql_lexer.l, sparql_parser.y:
+	Rename terminals: PLUS MINUS STAR SLASH REM TILDE BANG to be the
+	single symbol they are.
+
+	* rdql_parser.y, rdql_lexer.l:
+	Rename terminals: COMMA LPAREN RPAREN VARPREFIX to be the single
+	symbol they are.
+
+	* sparql_lexer.l:
+	Rename terminals: COMMA LPAREN RPAREN LSQUARE RSQUARE LCURLY RCURLY
+	VARPREFIX AMP to be the single symbol they are.
+	Added $ terminal.
+
+	* sparql_parser.y: Enable YYERROR_VERBOSE for now
+	Rename terminals: COMMA LPAREN RPAREN LSQUARE RSQUARE LCURLY RCURLY
+	VARPREFIX AMP to be the single symbol they are.
+	(Var): Allow ? and $ prefix.
+
+	* sparql_parser.y: Removed ()s for groups.
+
+	* sparql_parser.y: Added {}s for groups
+
+	* tests/sparql/syntax/Makefile.am, tests/sparql/syntax/groups.rq:
+	Added groups.rq
+
 	* rdql_parser.y (ConstraintClause): Don't add constraint sequence here.
 	(CommaAndConstraintClause): Instead, add constraints here.
 
