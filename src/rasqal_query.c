@@ -251,24 +251,6 @@ rasqal_query_prepare(rasqal_query *rdf_query,
   return rdf_query->factory->prepare(rdf_query);
 }
 
-librdf_world *world=NULL;
-
-
-static char*
-rasqal_uri_heuristic_parser_name(librdf_uri *uri) {
-  char *uri_string;
-  size_t len;
-
-  uri_string=librdf_uri_as_counted_string(uri, &len);
-  if(!strncmp(uri_string+len-3, ".nt", 3))
-    return "ntriples";
-  
-  if(!strncmp(uri_string+len-3, ".n3", 3))
-    return "turtle";
-
-  return "rdfxml";
-}
-
 
 /**
  * rasqal_query_execute: excute a query - run and return results
@@ -282,11 +264,7 @@ int
 rasqal_query_execute(rasqal_query *rdf_query)
 {
   int rc=0;
-  librdf_storage *storage;
-  librdf_model *model;
-  librdf_parser *parser;
-  librdf_uri *source0;
-  char *parser_name;
+  raptor_uri* source;
   
   /* Expand 'SELECT *' and create the rdf_query->variables array */
   rasqal_engine_assign_variables(rdf_query);
@@ -296,20 +274,11 @@ rasqal_query_execute(rasqal_query *rdf_query)
     return 1;
 
   rasqal_engine_build_constraints_expression(rdf_query);
+
+  source=rasqal_sequence_get_at(rdf_query->sources, 0);
+
+  rdf_query->triples_source=rasqal_new_triples_source(rdf_query, source);
   
-  source0=librdf_new_uri(world, raptor_uri_as_string(rasqal_sequence_get_at(rdf_query->sources, 0)));
-
-  storage = librdf_new_storage(world, NULL, NULL, NULL);
-  model = librdf_new_model(world, storage, NULL);
-
-  parser_name=rasqal_uri_heuristic_parser_name(source0);
-  parser=librdf_new_parser(world, parser_name, NULL, NULL);
-  librdf_parser_parse_into_model(parser, source0, NULL, model);
-  librdf_free_parser(parser);
-                                 
-  rdf_query->world=world;
-  rdf_query->model=model;
-
   rasqal_engine_run(rdf_query);
 
   if(rdf_query->factory->execute)
@@ -317,10 +286,7 @@ rasqal_query_execute(rasqal_query *rdf_query)
   else
     rc=1;
 
-  librdf_free_uri(source0);
-  
-  librdf_free_model(model);
-  librdf_free_storage(storage);
+  rasqal_free_triples_source(rdf_query->triples_source);
 
   return rc;
 }
