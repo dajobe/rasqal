@@ -364,6 +364,7 @@ rasqal_raptor_bind_match(struct rasqal_triples_match_s* rtm,
                          rasqal_triple_parts parts) {
   rasqal_raptor_triples_match_context* rtmc=(rasqal_raptor_triples_match_context*)rtm->user_data;
   int error=0;
+  rasqal_triple_parts result=(rasqal_triple_parts)0;
   
 #ifdef RASQAL_DEBUG
   if(rtmc->cur) {
@@ -380,21 +381,23 @@ rasqal_raptor_bind_match(struct rasqal_triples_match_s* rtm,
     RASQAL_DEBUG1("binding subject to variable\n");
     rasqal_variable_set_value(bindings[0],
                               rasqal_literal_as_node(rtmc->cur->triple->subject));
+    result= RASQAL_TRIPLE_SUBJECT;
   }
 
   if(bindings[1] && (parts & RASQAL_TRIPLE_PREDICATE)) {
     if(bindings[0] == bindings[1]) {
       if(rasqal_literal_compare(rtmc->cur->triple->subject,
                                 rtmc->cur->triple->predicate, 0, &error))
-        return 0;
+        return (rasqal_triple_parts)0;
       if(error)
-        return 0;
+        return (rasqal_triple_parts)0;
       
       RASQAL_DEBUG1("subject and predicate values match\n");
     } else {
       RASQAL_DEBUG1("binding predicate to variable\n");
       rasqal_variable_set_value(bindings[1],
                                 rasqal_literal_as_node(rtmc->cur->triple->predicate));
+      result= (rasqal_triple_parts)(result | RASQAL_TRIPLE_PREDICATE);
     }
   }
 
@@ -404,9 +407,9 @@ rasqal_raptor_bind_match(struct rasqal_triples_match_s* rtm,
     if(bindings[0] == bindings[2]) {
       if(rasqal_literal_compare(rtmc->cur->triple->subject,
                                 rtmc->cur->triple->object, 0, &error))
-        return 0;
+        return (rasqal_triple_parts)0;
       if(error)
-        return 0;
+        return (rasqal_triple_parts)0;
 
       bind=0;
       RASQAL_DEBUG1("subject and object values match\n");
@@ -416,9 +419,9 @@ rasqal_raptor_bind_match(struct rasqal_triples_match_s* rtm,
        ) {
       if(rasqal_literal_compare(rtmc->cur->triple->predicate,
                                 rtmc->cur->triple->object, 0, &error))
-        return 0;
+        return (rasqal_triple_parts)0;
       if(error)
-        return 0;
+        return (rasqal_triple_parts)0;
 
       bind=0;
       RASQAL_DEBUG1("predicate and object values match\n");
@@ -428,6 +431,7 @@ rasqal_raptor_bind_match(struct rasqal_triples_match_s* rtm,
       RASQAL_DEBUG1("binding object to variable\n");
       rasqal_variable_set_value(bindings[2],
                                 rasqal_literal_as_node(rtmc->cur->triple->object));
+      result= (rasqal_triple_parts)(result | RASQAL_TRIPLE_OBJECT);
     }
   }
 
@@ -435,9 +439,10 @@ rasqal_raptor_bind_match(struct rasqal_triples_match_s* rtm,
     rasqal_literal *l=rasqal_new_literal_from_literal(rtmc->cur->triple->origin);
     RASQAL_DEBUG1("binding origin to variable\n");
     rasqal_variable_set_value(bindings[3], l);
+    result= (rasqal_triple_parts)(result | RASQAL_TRIPLE_ORIGIN);
   }
 
-  return 1;
+  return result;
 }
 
 

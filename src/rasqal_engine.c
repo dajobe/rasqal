@@ -475,19 +475,19 @@ rasqal_graph_pattern_init(rasqal_graph_pattern *gp) {
       rasqal_triple *t=(rasqal_triple*)raptor_sequence_get_at(gp->triples, i);
       rasqal_variable* v;
 
-      m->parts=0;
+      m->parts=(rasqal_triple_parts)0;
       
       if((v=rasqal_literal_as_variable(t->subject)) &&
          query->variables_declared_in[v->offset] == gp)
-        m->parts |= RASQAL_TRIPLE_SUBJECT;
+        m->parts= (rasqal_triple_parts)(m->parts | RASQAL_TRIPLE_SUBJECT);
       
       if((v=rasqal_literal_as_variable(t->predicate)) &&
          query->variables_declared_in[v->offset] == gp)
-        m->parts |= RASQAL_TRIPLE_PREDICATE;
+        m->parts= (rasqal_triple_parts)(m->parts | RASQAL_TRIPLE_PREDICATE);
       
       if((v=rasqal_literal_as_variable(t->object)) &&
          query->variables_declared_in[v->offset] == gp)
-        m->parts |= RASQAL_TRIPLE_OBJECT;
+        m->parts= (rasqal_triple_parts)(m->parts | RASQAL_TRIPLE_OBJECT);
 
       /* FIXME origin */
 
