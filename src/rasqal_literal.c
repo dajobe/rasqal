@@ -819,9 +819,12 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
 
 /**
  * rasqal_literal_equals - Compare two literals with no type promotion
- * @l1: &rasqal_literal first literal
- * @l2: &rasqal_literal second literal
+ * @l1: &rasqal_literal literal
+ * @l2: &rasqal_literal data literal
  * 
+ * If the data literal's value is a boolean, it will match
+ * the string "true" or "false" in the first literal.
+ *
  * Return value: non-0 if equal
  **/
 int
@@ -833,8 +836,12 @@ rasqal_literal_equals(rasqal_literal* l1, rasqal_literal* l2)
     return (l1 || l2);
   }
 
-  if(l1->type != l2->type)
+  if(l1->type != l2->type) {
+    if(l2->type == RASQAL_LITERAL_BOOLEAN &&
+       l1->type == RASQAL_LITERAL_STRING)
+      return !strcmp(l1->string,l2->string);
     return 0;
+  }
   
   switch(l1->type) {
     case RASQAL_LITERAL_URI:
