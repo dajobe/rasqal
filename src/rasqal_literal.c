@@ -525,9 +525,9 @@ rasqal_literal_as_integer(rasqal_literal* l, int *error)
 
     case RASQAL_LITERAL_STRING:
       {
-        const unsigned char *eptr=NULL;
-        int v=(int)strtol((const char*)l->string, (char**)&eptr, 10);
-        if(eptr != l->string && *eptr=='\0')
+        char *eptr=NULL;
+        int v=(int)strtol((const char*)l->string, &eptr, 10);
+        if((unsigned char*)eptr != l->string && *eptr=='\0')
           return v;
       }
       *error=1;
@@ -573,9 +573,9 @@ rasqal_literal_as_floating(rasqal_literal* l, int *error)
 
     case RASQAL_LITERAL_STRING:
       {
-        unsigned char *eptr=NULL;
-        double  d=strtod((const char*)l->string, (char**)&eptr);
-        if(eptr != l->string && *eptr=='\0')
+        char *eptr=NULL;
+        double  d=strtod((const char*)l->string, &eptr);
+        if((unsigned char*)eptr != l->string && *eptr=='\0')
           return d;
       }
       *error=1;
