@@ -482,18 +482,18 @@ rasqal_triples_match_is_end(struct rasqal_triples_match_s* rtm) {
 
 
 /**
- * rasqal_new_graph_pattern - create a new graph pattern object
+ * rasqal_new_graph_pattern_from_triples - create a new graph pattern object over triples
  * @triples: triples sequence containing the graph pattern
  * @start_column: first triple in the pattern
  * @end_column: last triple in the pattern
  * @flags: enum &rasqal_triple_flags such as RASQAL_TRIPLE_FLAGS_OPTIONAL
  * 
- * 
  * Return value: a new &rasqal_graph-pattern object or NULL on failure
  **/
 rasqal_graph_pattern*
-rasqal_new_graph_pattern(raptor_sequence *triples, 
-                         int start_column, int end_column, int flags)
+rasqal_new_graph_pattern_from_triples(raptor_sequence *triples, 
+                                      int start_column, int end_column,
+                                      int flags)
 {
   rasqal_graph_pattern* gp=(rasqal_graph_pattern*)RASQAL_CALLOC(rasqal_graph_pattern, sizeof(rasqal_graph_pattern), 1);
 
@@ -501,6 +501,28 @@ rasqal_new_graph_pattern(raptor_sequence *triples,
   gp->column=0;
   gp->start_column=start_column;
   gp->end_column=end_column;
+  gp->flags=flags;
+
+  return gp;
+}
+
+
+/**
+ * rasqal_new_graph_pattern_from_sequence - create a new graph pattern from a sequence of graph_patterns
+ * @seq: triples sequence containing the graph pattern
+ * @flags: enum &rasqal_triple_flags such as RASQAL_TRIPLE_FLAGS_OPTIONAL
+ * 
+ * Return value: a new &rasqal_graph-pattern object or NULL on failure
+ **/
+rasqal_graph_pattern*
+rasqal_new_graph_pattern_from_sequence(raptor_sequence *triples, 
+                                       raptor_sequence *graph_patterns, 
+                                       int flags)
+{
+  rasqal_graph_pattern* gp=(rasqal_graph_pattern*)RASQAL_CALLOC(rasqal_graph_pattern, sizeof(rasqal_graph_pattern), 1);
+
+  gp->triples=triples;
+  gp->graph_patterns=graph_patterns;
   gp->flags=flags;
 
   return gp;
@@ -536,6 +558,9 @@ rasqal_free_graph_pattern(rasqal_graph_pattern* gp)
     RASQAL_FREE(rasqal_triple_meta, gp->triple_meta);
   }
 
+  if(gp->graph_patterns)
+    raptor_free_sequence(gp->graph_patterns);
+  
   RASQAL_FREE(rasqal_graph_pattern, gp);
 }
 
@@ -582,17 +607,16 @@ rasqal_graph_pattern_adjust(rasqal_graph_pattern* gp, int offset)
 void
 rasqal_graph_pattern_print(rasqal_graph_pattern* gp, FILE* fh)
 {
-  fputs("graph_pattern(over triples{", fh);
+  fputs("graph_pattern(", fh);
   if(gp->triples) {
-    int i;
-
-    for(i=gp->start_column; i < gp->end_column; i++) {
-      rasqal_triple *t=(rasqal_triple*)raptor_sequence_get_at(gp->triples, i);
-      rasqal_triple_print(t, fh);
-      fputs(", )", fh);
-    }
+    fputs("over triples", fh);
+    raptor_sequence_print(gp->triples, fh);
   }
-  fprintf(fh, "), flags=%d)",  gp->flags);
+  if(gp->graph_patterns) {
+    fputs("over graph_patterns", fh);
+    raptor_sequence_print(gp->graph_patterns, fh);
+  }
+  fprintf(fh, ", flags=%d)",  gp->flags);
 }
 
 
@@ -746,7 +770,11 @@ rasqal_engine_execute_init(rasqal_query *query) {
 
   for(i=0; i < raptor_sequence_size(query->graph_patterns); i++) {
     rasqal_graph_pattern *gp=(rasqal_graph_pattern*)raptor_sequence_get_at(query->graph_patterns, i);
-    rasqal_graph_pattern_init(gp);
+    if(gp)
+      rasqal_graph_pattern_init(gp);
+    else {
+      RASQAL_FATAL2("query graph patterns sequence has a NULL graph_pattern at entry %d\n", i);
+    }
   }
   
   query->abort=0;
