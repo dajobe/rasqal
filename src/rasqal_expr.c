@@ -509,7 +509,7 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
       
       if(!lits[i]->type != RASQAL_LITERAL_INTEGER &&
          lits[1-i]->type == RASQAL_LITERAL_INTEGER) {
-        doubles[i]=rasqal_literal_as_integer(lits[i], &errori);
+        ints[i]=rasqal_literal_as_integer(lits[i], &errori);
         /* failure always means no match */
         if(errori)
           return 1;
