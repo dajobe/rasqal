@@ -22,6 +22,6 @@ SUBDIRS=
 if RASQAL_QUERY_RDQL
 SUBDIRS += rdql
 endif
-if RASQAL_QUERY_BRQL
-SUBDIRS += brql
+if RASQAL_QUERY_SPARQL
+SUBDIRS += sparql
 endif
