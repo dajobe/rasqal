@@ -276,7 +276,7 @@ RASQAL_API int rasqal_expression_foreach(rasqal_expression* expr, rasqal_express
 
 /* Literal class */
 RASQAL_API rasqal_literal* rasqal_new_integer_literal(rasqal_literal_type type, int integer);
-RASQAL_API rasqal_literal* rasqal_new_floating_literal(const unsigned char *string);
+RASQAL_API rasqal_literal* rasqal_new_floating_literal(double f);
 RASQAL_API rasqal_literal* rasqal_new_uri_literal(raptor_uri* uri);
 RASQAL_API rasqal_literal* rasqal_new_pattern_literal(const unsigned char *pattern, const char *flags);
 RASQAL_API rasqal_literal* rasqal_new_string_literal(const unsigned char *string, const char *language, raptor_uri *datatype, const unsigned char *datatype_qname);
