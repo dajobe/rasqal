@@ -1,4 +1,22 @@
+2005-01-16  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* Makefile.am: Make the tests using automake rules rather than
+	hand-crafted compile and link rules which were tricky to maintain.
+	Added EXTRA_PROGRAMS for the tests.
+
+	* rasqal_query_test.c: Handle rdql or sparql tests
+
+	* rasqal_query_test.c:
+	(main) Handle no rdql available with an warning and exit 0
+
 2005-01-15  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal_literal.c (rasqal_literal_compare): Move declarations to
+	start of block.
+
+	* librasqal.3: Updates for 0.9.5
+
+	* configure.ac: Require raptor 1.4.4
 
 	* sparql_parser.y (URIList): Copy the URI before freeing the
 	rasqal_literal.
