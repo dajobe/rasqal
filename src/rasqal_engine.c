@@ -203,52 +203,6 @@ rasqal_engine_declare_prefixes(rasqal_query *rq)
 }
 
 
-static int
-rasqal_engine_expand_literal_qname(void *user_data, rasqal_literal *l) {
-  rasqal_query *rq=(rasqal_query *)user_data;
-
-  if(l->type == RASQAL_LITERAL_QNAME) {
-    /* expand a literal qname */
-    raptor_uri *uri=raptor_qname_string_to_uri(rq->namespaces,
-                                               l->value.string, 
-                                               strlen(l->value.string),
-                                               rasqal_query_simple_error, rq);
-    if(!uri)
-      return 1;
-    RASQAL_FREE(cstring, l->value.string);
-    l->type=RASQAL_LITERAL_URI;
-    l->value.uri=uri; /* uri field is unioned with string field */
-  } else if (l->type == RASQAL_LITERAL_STRING) {
-    raptor_uri *uri;
-    
-    if(l->flags) {
-      /* expand a literal string datatype qname */
-      uri=raptor_qname_string_to_uri(rq->namespaces,
-                                     l->flags, 
-                                     strlen(l->flags),
-                                     rasqal_query_simple_error, rq);
-      if(!uri)
-        return 1;
-      l->datatype=uri;
-      RASQAL_FREE(cstring, l->flags);
-      l->flags=NULL;
-
-      rasqal_literal_string_to_native(l);
-    }
-  }
-  return 0;
-}
- 
-
-static int
-rasqal_engine_expand_expression_qname(void *user_data, rasqal_expression *e) {
-  if(e->op == RASQAL_EXPR_LITERAL)
-    return rasqal_engine_expand_literal_qname(user_data, e->literal);
-
-  return 0;
-}
- 
-
 int
 rasqal_engine_expand_triple_qnames(rasqal_query* rq)
 {
@@ -260,9 +214,9 @@ rasqal_engine_expand_triple_qnames(rasqal_query* rq)
   /* expand qnames in triples */
   for(i=0; i< raptor_sequence_size(rq->triples); i++) {
     rasqal_triple* t=raptor_sequence_get_at(rq->triples, i);
-    if(rasqal_engine_expand_literal_qname(rq, t->subject) ||
-       rasqal_engine_expand_literal_qname(rq, t->predicate) ||
-       rasqal_engine_expand_literal_qname(rq, t->object))
+    if(rasqal_literal_expand_qname(rq, t->subject) ||
+       rasqal_literal_expand_qname(rq, t->predicate) ||
+       rasqal_literal_expand_qname(rq, t->object))
       return 1;
   }
 
@@ -281,7 +235,7 @@ rasqal_engine_expand_constraints_qnames(rasqal_query* rq)
   /* expand qnames in constraint expressions */
   for(i=0; i<raptor_sequence_size(rq->constraints); i++) {
     rasqal_expression* e=(rasqal_expression*)raptor_sequence_get_at(rq->constraints, i);
-    if(rasqal_expression_foreach(e, rasqal_engine_expand_expression_qname, rq))
+    if(rasqal_expression_foreach(e, rasqal_expression_expand_qname, rq))
       return 1;
   }
 

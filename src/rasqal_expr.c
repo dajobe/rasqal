@@ -546,6 +546,43 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int *error)
 }
 
 
+int
+rasqal_literal_expand_qname(void *user_data, rasqal_literal *l) {
+  rasqal_query *rq=(rasqal_query *)user_data;
+
+  if(l->type == RASQAL_LITERAL_QNAME) {
+    /* expand a literal qname */
+    raptor_uri *uri=raptor_qname_string_to_uri(rq->namespaces,
+                                               l->value.string, 
+                                               strlen(l->value.string),
+                                               rasqal_query_simple_error, rq);
+    if(!uri)
+      return 1;
+    RASQAL_FREE(cstring, l->value.string);
+    l->type=RASQAL_LITERAL_URI;
+    l->value.uri=uri; /* uri field is unioned with string field */
+  } else if (l->type == RASQAL_LITERAL_STRING) {
+    raptor_uri *uri;
+    
+    if(l->flags) {
+      /* expand a literal string datatype qname */
+      uri=raptor_qname_string_to_uri(rq->namespaces,
+                                     l->flags, 
+                                     strlen(l->flags),
+                                     rasqal_query_simple_error, rq);
+      if(!uri)
+        return 1;
+      l->datatype=uri;
+      RASQAL_FREE(cstring, l->flags);
+      l->flags=NULL;
+
+      rasqal_literal_string_to_native(l);
+    }
+  }
+  return 0;
+}
+ 
+
 rasqal_variable*
 rasqal_new_variable(rasqal_query* rq,
                     const char *name, rasqal_literal *value) 
@@ -1482,6 +1519,16 @@ rasqal_expression_print(rasqal_expression* e, FILE* fh)
       abort();
   }
   fputc(')', fh);
+}
+
+
+/* for use with rasqal_expression_foreach and user_data=rasqal_query */
+int
+rasqal_expression_expand_qname(void *user_data, rasqal_expression *e) {
+  if(e->op == RASQAL_EXPR_LITERAL)
+    return rasqal_literal_expand_qname(user_data, e->literal);
+
+  return 0;
 }
 
 

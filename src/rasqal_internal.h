@@ -276,7 +276,9 @@ void rasqal_engine_assign_binding_values(rasqal_query *query);
 
 /* rasqal_expr.c */
 void rasqal_literal_string_to_native(rasqal_literal *l);
-  
+int rasqal_literal_expand_qname(void *user_data, rasqal_literal *l);
+int rasqal_expression_expand_qname(void *user_data, rasqal_expression *e);
+
 /* end of RASQAL_INTERNAL */
 #endif
 
