@@ -654,9 +654,15 @@ rdql_token_free(int token, YYSTYPE *lval)
   if(!token)
     return;
   
-  if(lval->string) {
-    free(lval->string);
-    lval->string=NULL;
+  switch(token) {
+    case STRING_LITERAL:
+    case PATTERN_LITERAL:
+    case URI_LITERAL:
+    case IDENTIFIER:
+      free(lval->string);
+      break;
+    default:
+      break;
   }
 }
 
@@ -719,8 +725,13 @@ main(int argc, char *argv[])
       break;
   }
 
+  fclose(fh);
+  
   yylex_destroy(scanner);
 
+#if defined (RASQAL_DEBUG) && defined(HAVE_DMALLOC_H) && defined(RASQAL_MEMORY_DEBUG_DMALLOC)
+#undef free
+#endif
   free((char*)rp.uri_string);
 
 #ifdef RASQAL_IN_REDLAND
