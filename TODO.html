@@ -13,16 +13,13 @@
 <h3><a name="general">General</a></h3>
 
 <ul>
-<li>Engine: confirm that re-running an execute() on a prepared query
-works and does not leak memory (BUG)</li>
 <li>Engine: generating result sets in RDF test case vocabulary</li>
-<li>Streaming triples from the parser - a Raptor feature request</li>
-<li>Engine: Result constraints - like <code>LIMIT</code> and <code>OFFSET</code> in SQL (extension)</li>
-<li>Engine: Optional triples (extension)</li>
-<li>Engine: Does not handle multiple sources (extension)</li>
-<li>Engine: Add constructing of triples (like SeRQL <code>construct</code>)</li>
-<li>Engine: Select distinct results</li>
-<li>QL: SeRQL - needs several engine changes (construct, optionals, multiple sources, distinct, paths, anon variables, predicates) - <a href="http://www.openrdf.org/doc/users/ch05.html">The SeRQL query language</a> in Sesame user manual.</li>
+<li>Engine: result constraints - like <code>LIMIT</code> and <code>OFFSET</code> in SQL (extension)</li>
+<li>Engine: optional triples (extension)</li>
+<li>Engine: multiple sources (extension)</li>
+<li>Engine: constructing of triples (like SeRQL <code>construct</code>)</li>
+<li>Engine: handling distinct results</li>
+<li>QL: SeRQL - needs many engine changes (construct, optionals, multiple sources, distinct, paths, anon variables, predicates) - <a href="http://www.openrdf.org/doc/users/ch05.html">The SeRQL query language</a> in Sesame user manual.</li>
 <li>QL: Squish - should be just syntax - <a href="http://swordfish.rdfweb.org/rdfquery/squish-bnf.html">Squish BNF</a></li> 
 <li>QL: <a href="http://www.guha.com/rdfdb/query.html">RDFDB query language</a> - should be just syntax</li>
 <li>QL: RQL, others - functional requirements not determined</li>
@@ -31,7 +28,7 @@ works and does not leak memory (BUG)</li>
 
 <h3><a name="sparql">SPARQL</a></h3>
 
-<p>Rasqal provides initial syntax support for the SPARQL language,
+<p>Rasqal 0.9.3+ provides initial syntax support for the SPARQL language,
 as defined in
 <a href="http://www.w3.org/TR/2004/WD-rdf-sparql-query-20041012/">SPARQL Query Language for RDF</a>,
 W3C Working Draft, 12 October 2004.</p>
@@ -97,6 +94,8 @@ result solution.</li>
 release version where appropriate.</p>
 
 <ul>
+<li>Engine: re-running an execute() on a prepared query
+works and does not leak memory (0.9.3)</li>
 <li>RDQL: Checked that blank nodes are not allowed in RDQL queries.</li>
 <li>RDQL: string matches should be case insensitive with EQ, NE; not with ==,  !=</li>
 <li>Engine: comparisons between integer and floats return &lt;0 (-1),0 or &gt;0 (1) integers as appropriate</li>
