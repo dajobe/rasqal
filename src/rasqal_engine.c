@@ -1044,8 +1044,13 @@ rasqal_engine_do_optional_step(rasqal_query *query, rasqal_graph_pattern *gp) {
       return STEP_GOT_MATCH;
     }
 
-    if(gp->matches_returned) {
-      RASQAL_DEBUG1("No matches this time, some earlier, backtracking\n");
+    if(gp->matches_returned) { 
+      if(!query->current_graph_pattern) {
+        RASQAL_DEBUG1("No matches this time and first graph pattern was optional, finished\n");
+        return STEP_FINISHED;
+      }
+
+     RASQAL_DEBUG1("No matches this time, some earlier, backtracking\n");
       rasqal_engine_move_to_graph_pattern(query, -1);
       return STEP_SEARCHING;
     }
