@@ -152,7 +152,8 @@ typedef enum {
   RASQAL_EXPR_BANG,
   RASQAL_EXPR_LITERAL,
   RASQAL_EXPR_PATTERN,
-  RASQAL_EXPR_LAST= RASQAL_EXPR_PATTERN
+  RASQAL_EXPR_FUNCTION,
+  RASQAL_EXPR_LAST= RASQAL_EXPR_FUNCTION
 } rasqal_op;
 
 
@@ -168,6 +169,10 @@ struct rasqal_expression_s {
   rasqal_literal* literal;
   rasqal_variable* variable;
   unsigned char *value; /* UTF-8 value */
+
+  /* for extension function qname(args...) */
+  raptor_uri* name;
+  raptor_sequence* args;
 };
 typedef struct rasqal_expression_s rasqal_expression;
 
@@ -267,6 +272,7 @@ RASQAL_API rasqal_expression* rasqal_new_2op_expression(rasqal_op op, rasqal_exp
 RASQAL_API rasqal_expression* rasqal_new_string_op_expression(rasqal_op op, rasqal_expression* arg1, rasqal_literal* literal);
 RASQAL_API rasqal_expression* rasqal_new_literal_expression(rasqal_literal* literal);
 RASQAL_API rasqal_expression* rasqal_new_variable_expression(rasqal_variable *variable);
+RASQAL_API rasqal_expression* rasqal_new_function_expression(raptor_uri* name, raptor_sequence* args);
 
 RASQAL_API void rasqal_free_expression(rasqal_expression* expr);
 RASQAL_API void rasqal_expression_print_op(rasqal_expression* expr, FILE* fh);
