@@ -1,3 +1,14 @@
+2004-10-15  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* sparql_parser.y, sparql_lexer.l, rasqal_internal.h:
+	Updated SPARQL parser to approximately
+	http://www.w3.org/TR/2004/WD-rdf-sparql-query-20041012/#grammar
+
+2004-10-12  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* tests/sparql/part1/Makefile.am:
+	Use EXPECTED_SPARQL_CORRECT_FAILURES and count the list at run time
+
 2004-10-10  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
 	* sparql_lexer.l, sparql_parser.y, rasqal_expr.c,
