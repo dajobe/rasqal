@@ -1,3 +1,14 @@
+2005-02-14  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* win32_rasqal_config.h: Define RASQAL_INLINE to __inline
+
+	* rasqal_query.c: Change inline to RASQAL_INLINE
+
+	* rasqal_internal.h:
+	Add RASQAL_INLINE protection and set RASQAL_DEBUG if LIBRDF_DEBUG set.
+
+	* rasqal.h: rasqal_query_results_write with RASQAL_API prefix.
+
 2005-02-12  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
 	* rasqal_engine.c (rasqal_reset_triple_meta): End any triples
