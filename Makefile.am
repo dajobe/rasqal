@@ -142,3 +142,6 @@ strcasecmp_test: $(srcdir)/strcasecmp.c
 # and should not be deleted when cleaning the distribution.
 distclean-compile:
 	exit 0
+
+$(top_builddir)/raptor/libraptor.la:
+	cd $(top_builddir)/raptor && $(MAKE) $(AM_MAKEFLAGS) libraptor.la
