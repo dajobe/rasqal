@@ -1,0 +1,57 @@
+diff -cr rdql-testsuite.orig/result-B-07.n3 rdql-testsuite/result-B-07.n3
+*** rdql-testsuite.orig/result-B-07.n3	Fri Oct 24 12:02:22 2003
+--- rdql-testsuite/result-B-07.n3	Mon May  3 21:44:52 2004
+***************
+*** 1,4 ****
+--- 1,5 ----
+  @prefix rs:      <http://jena.hpl.hp.com/2003/03/result-set#> .
++ @prefix xsd:  <http://www.w3.org/2001/XMLSchema#> . 
+  
+  []    a       rs:ResultSet ;
+        rs:resultVariable "z" , "y" , "x" ;
+***************
+*** 37,43 ****
+                            rs:variable "y"
+                          ] ;
+                  rs:binding
+!                         [ rs:value 5.7 ;
+                            rs:variable "z"
+                          ] ;
+                  rs:binding
+--- 38,44 ----
+                            rs:variable "y"
+                          ] ;
+                  rs:binding
+!                         [ rs:value "5.7"^^xsd:double ;
+                            rs:variable "z"
+                          ] ;
+                  rs:binding
+diff -cr rdql-testsuite.orig/result-B-20.n3 rdql-testsuite/result-B-20.n3
+*** rdql-testsuite.orig/result-B-20.n3	Fri Oct 24 12:02:31 2003
+--- rdql-testsuite/result-B-20.n3	Mon May  3 21:42:25 2004
+***************
+*** 1,11 ****
+  @prefix rs:      <http://jena.hpl.hp.com/2003/03/result-set#> .
+  
+  []    a       rs:ResultSet ;
+        rs:resultVariable "y" , "x" , "v" ;
+        rs:size "1" ;
+        rs:solution
+                [ rs:binding
+!                         [ rs:value 5.7 ;
+                            rs:variable "v"
+                          ] ;
+                  rs:binding
+--- 1,12 ----
+  @prefix rs:      <http://jena.hpl.hp.com/2003/03/result-set#> .
++ @prefix xsd:  <http://www.w3.org/2001/XMLSchema#> . 
+  
+  []    a       rs:ResultSet ;
+        rs:resultVariable "y" , "x" , "v" ;
+        rs:size "1" ;
+        rs:solution
+                [ rs:binding
+!                         [ rs:value "5.7"^^xsd:double ;
+                            rs:variable "v"
+                          ] ;
+                  rs:binding
