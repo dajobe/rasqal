@@ -583,11 +583,7 @@ rasqal_query_execute(rasqal_query *query)
   if(query->failed)
     return NULL;
 
-  if(query->finished || query->executed) {
-    rasqal_engine_execute_finish(query);
-    query->finished=0;
-  }
-
+  query->finished=0;
   query->executed=1;
   
   rc=rasqal_engine_execute_init(query);
