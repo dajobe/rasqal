@@ -256,7 +256,7 @@ struct rasqal_query_s {
   /* incrementing counter for declaring prefixes in order of appearance */
   int prefix_depth;
 
-  rasqal_pattern_graph* graph_pattern;
+  rasqal_pattern_graph* pattern_graph;
 };
 
 
