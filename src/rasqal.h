@@ -103,6 +103,20 @@ typedef struct {
 
 
 typedef enum {
+  RASQAL_DATA_GRAPH_NONE  = 0,
+  RASQAL_DATA_GRAPH_NAMED = 1,
+  RASQAL_DATA_GRAPH_BACKGROUND = 2,
+} rasqal_data_graph_flags;
+
+
+typedef struct {
+  raptor_uri* uri;
+  raptor_uri* name_uri;
+  int flags;
+} rasqal_data_graph;
+
+
+typedef enum {
   RASQAL_LITERAL_UNKNOWN,
   RASQAL_LITERAL_URI,
   RASQAL_LITERAL_QNAME,
@@ -261,9 +275,13 @@ RASQAL_API void rasqal_query_set_feature(rasqal_query *query, rasqal_feature fea
 RASQAL_API int rasqal_query_get_distinct(rasqal_query *query);
 RASQAL_API int rasqal_query_get_limit(rasqal_query *query);
 
-RASQAL_API void rasqal_query_add_source(rasqal_query* query, raptor_uri* uri);
-RASQAL_API raptor_sequence* rasqal_query_get_source_sequence(rasqal_query* query);
-RASQAL_API raptor_uri* rasqal_query_get_source(rasqal_query* query, int idx);
+RASQAL_API RASQAL_DEPRECATED void rasqal_query_add_source(rasqal_query* query, raptor_uri* uri);
+RASQAL_API RASQAL_DEPRECATED raptor_sequence* rasqal_query_get_source_sequence(rasqal_query* query);
+RASQAL_API RASQAL_DEPRECATED raptor_uri* rasqal_query_get_source(rasqal_query* query, int idx);
+RASQAL_API int rasqal_query_add_data_graph(rasqal_query* query, raptor_uri* uri, raptor_uri* name_uri, int flags);
+RASQAL_API raptor_sequence* rasqal_query_get_data_graph_sequence(rasqal_query* query);
+RASQAL_API rasqal_data_graph* rasqal_query_get_data_graph(rasqal_query* query, int idx);
+
 RASQAL_API void rasqal_query_add_variable(rasqal_query* query, rasqal_variable* var);
 RASQAL_API RASQAL_DEPRECATED raptor_sequence* rasqal_query_get_variable_sequence(rasqal_query* query);
 RASQAL_API raptor_sequence* rasqal_query_get_bound_variable_sequence(rasqal_query* query);
@@ -325,6 +343,12 @@ RASQAL_API raptor_statement* rasqal_query_results_get_triple(rasqal_query_result
 RASQAL_API int rasqal_query_results_next_triple(rasqal_query_results *query_results);
 
 RASQAL_API int rasqal_query_results_write(raptor_iostream *iostr, rasqal_query_results *results, raptor_uri *format_uri, raptor_uri *base_uri);
+
+/* Data graph class */
+RASQAL_API rasqal_data_graph* rasqal_new_data_graph(raptor_uri* uri, raptor_uri* name_uri, int flags);
+RASQAL_API void rasqal_free_data_graph(rasqal_data_graph* dg);
+RASQAL_API void rasqal_data_graph_print(rasqal_data_graph* dg, FILE* fh);
+
 
 /* Expression class */
 RASQAL_API rasqal_expression* rasqal_new_1op_expression(rasqal_op op, rasqal_expression* arg);
