@@ -53,6 +53,17 @@ inline int rasqal_expression_as_integer(rasqal_expression* e, int *error);
 inline int rasqal_expression_compare(rasqal_expression* e1, rasqal_expression* e2, int flags, int *error);
 
 
+/**
+ * rasqal_new_variable - Constructor - Create a new Rasqal variable
+ * @rq: &rasqal_query to associate the variable with
+ * @name: variable name
+ * @value: variable &rasqal_literal value (or NULL)
+ * 
+ * The variable must be associated with a query, since variable
+ * names are only significant with a single query.
+ * 
+ * Return value: a new &rasqal_variable or NULL on failure.
+ **/
 rasqal_variable*
 rasqal_new_variable(rasqal_query* rq,
                     const char *name, rasqal_literal *value) 
@@ -81,6 +92,11 @@ rasqal_new_variable(rasqal_query* rq,
 }
 
 
+/**
+ * rasqal_free_variable - Destructor - Destroy a Rasqal variable object
+ * @v: &rasqal_variable object
+ *
+ **/
 void
 rasqal_free_variable(rasqal_variable* v)
 {
@@ -92,6 +108,14 @@ rasqal_free_variable(rasqal_variable* v)
 }
 
 
+/**
+ * rasqal_variable_print - Print a Rasqal variable in a debug format
+ * @v: the &rasqal_variable object
+ * @fh: the &FILE* handle to print to
+ * 
+ * The print debug format may change in any release.
+ * 
+ **/
 void
 rasqal_variable_print(rasqal_variable* v, FILE* fh)
 {
@@ -104,6 +128,15 @@ rasqal_variable_print(rasqal_variable* v, FILE* fh)
 }
 
 
+/**
+ * rasqal_variable_set_value - Set the value of a Rasqal variable
+ * @v: the &rasqal_variable object
+ * @e: the &rasqal_literal value to set (or NULL)
+ * 
+ * The variable value is an input parameter and is copied in, not shared.
+ * If the variable value is NULL, any existing value is deleted.
+ * 
+ **/
 void
 rasqal_variable_set_value(rasqal_variable* v, rasqal_literal *e)
 {
