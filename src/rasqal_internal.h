@@ -443,6 +443,16 @@ void rasqal_redland_init(void);
 void rasqal_redland_finish(void);
 #endif  
 
+
+/* raptor_general.c */
+extern raptor_uri* rasqal_xsd_namespace_uri;
+extern raptor_uri* rasqal_xsd_integer_uri;
+extern raptor_uri* rasqal_xsd_double_uri;
+extern raptor_uri* rasqal_xsd_boolean_uri;
+void rasqal_uri_init(void);
+void rasqal_uri_finish(void);
+
+
 /* end of RASQAL_INTERNAL */
 #endif
 
