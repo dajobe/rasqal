@@ -672,9 +672,8 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
     type=RASQAL_LITERAL_UNKNOWN;
     /* types differ so try to promote one term to match */
 
-    for(i=0; i<2; i++ ) {
-      
-      /* if one is a floating point number, do a comparison as such */
+    /* if one is a floating point number, do a comparison as such */
+    for(i=0; i<2; i++ )
       if(!lits[i]->type != RASQAL_LITERAL_FLOATING &&
          lits[1-i]->type == RASQAL_LITERAL_FLOATING) {
         doubles[i]=(double)rasqal_literal_as_integer(lits[i], &errori);
@@ -684,30 +683,33 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
         type=lits[1-i]->type;
         break;
       }
-      
-      if(!lits[i]->type != RASQAL_LITERAL_INTEGER &&
-         lits[1-i]->type == RASQAL_LITERAL_INTEGER) {
-        ints[i]=rasqal_literal_as_integer(lits[i], &errori);
-        /* failure always means no match */
-        if(errori)
-          return 1;
-        type=lits[1-i]->type;
-        break;
-      }
-      
-      if(!lits[i]->type != RASQAL_LITERAL_STRING &&
-         lits[1-i]->type == RASQAL_LITERAL_STRING) {
-        strings[i]=rasqal_literal_as_string(lits[i]);
-        type=lits[1-i]->type;
-        break;
-      }
-      
-      /* otherwise cannot promote - FIXME?  or do as strings? */
-      if(type==RASQAL_LITERAL_UNKNOWN) {
-        *error=1;
-        return 0;
-      }
-    } /* end for i=0,1 */
+    
+    if(type == RASQAL_LITERAL_UNKNOWN)
+      for(i=0; i<2; i++ )
+        if(!lits[i]->type != RASQAL_LITERAL_INTEGER &&
+           lits[1-i]->type == RASQAL_LITERAL_INTEGER) {
+          ints[i]=rasqal_literal_as_integer(lits[i], &errori);
+          /* failure always means no match */
+          if(errori)
+            return 1;
+          type=lits[1-i]->type;
+          break;
+        }
+    
+    if(type == RASQAL_LITERAL_UNKNOWN)
+      for(i=0; i<2; i++ )
+        if(!lits[i]->type != RASQAL_LITERAL_STRING &&
+           lits[1-i]->type == RASQAL_LITERAL_STRING) {
+          strings[i]=rasqal_literal_as_string(lits[i]);
+          type=lits[1-i]->type;
+          break;
+        }
+        
+    /* otherwise cannot promote - FIXME?  or do as strings? */
+    if(type==RASQAL_LITERAL_UNKNOWN) {
+      *error=1;
+      return 0;
+    }
 
   } /* end if types differ */
 
