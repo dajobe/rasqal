@@ -1403,7 +1403,7 @@ rasqal_query_results_write(raptor_iostream *iostr,
 }
 
 
-static inline unsigned char*
+static RASQAL_INLINE unsigned char*
 rasqal_prefix_id(int prefix_id, unsigned char *string) {
   int tmpid=prefix_id;
   unsigned char* buffer;
