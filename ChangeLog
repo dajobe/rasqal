@@ -1,4 +1,35 @@
+2004-11-29  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal_literal.c (rasqal_literal_as_integer):
+	For RASQAL_LITERAL_STRING, also try to
+	evaluate it as a double with strtod, then return that cast to int if
+	it worked.
+
+	* sparql_parser.y, rdql_parser.y (UnaryExpression):
+	Make unary plus and minus work; removes 2
+	shift/reduce conflicts.
+
+	* rasqal_expr.c: (rasqal_free_expression, rasqal_expression_foreach,
+	rasqal_expression_evaluate, rasqal_expression_print):
+	Added RASQAL_EXPR_UMINUS support.
+	rasqal_op_labels: added uminus
+
+	* rasqal.h: Added RASQAL_EXPR_UMINUS
+
+2004-11-26  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* configure.ac: --with-dmalloc default is now no
+
 2004-11-21  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal_engine.c (rasqal_new_graph_pattern_from_triples):
+	Init current column to -1 so
+	no execution or tidy happens.
+	(rasqal_free_graph_pattern): Clean up until reach start_column, not 0.
+	(rasqal_graph_pattern_init): Do triple init work only if there are
+	triples.
+
+	* sparql_parser.y: s/puts/fputs(..., stdout)/
 
 	* rasqal_engine.c (rasqal_new_graph_pattern_from_sequence):
 	Fold sequence of 1 graph pattern into the return value, tidying up.
