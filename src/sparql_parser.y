@@ -558,7 +558,7 @@ PatternElementForms: GRAPH VarOrURI GraphPattern1 /* from SourceGraphPattern */
   fputs("\n\n", stdout);
 #endif
 
-  sparql_syntax_warning(((rasqal_query*)rq), "Use OPTIONAL instead of [] for optional triples in SPARQL (2005-02-17 WD)");
+  sparql_syntax_warning(((rasqal_query*)rq), "Use OPTIONAL {} instead of [] for optional triples in SPARQL (2005-02-17 WD)");
 
   if($2) {
     /* Make all graph patterns in GraphPattern, optional */
