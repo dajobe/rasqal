@@ -61,6 +61,7 @@ typedef struct {
 typedef struct {
   const char *name;
   struct rasqal_expression_s *value;
+  int offset;   /* offset in the rasqal_query variables array */
 } rasqal_variable;
 
 
@@ -69,6 +70,7 @@ typedef enum {
   RASQAL_LITERAL_URI,
   RASQAL_LITERAL_QNAME,
   RASQAL_LITERAL_STRING,
+  RASQAL_LITERAL_BLANK,
   RASQAL_LITERAL_PATTERN,
   RASQAL_LITERAL_BOOLEAN,
   RASQAL_LITERAL_NULL,
@@ -251,7 +253,7 @@ RASQAL_API void rasqal_free_triple(rasqal_triple* t);
 RASQAL_API void rasqal_print_triple(rasqal_triple* t, FILE* fh);
 
 /* Variable class */
-RASQAL_API rasqal_variable* rasqal_new_variable(const char *name, rasqal_expression *value);
+RASQAL_API rasqal_variable* rasqal_new_variable(rasqal_query* rdf_query, const char *name, rasqal_expression *value);
 RASQAL_API void rasqal_free_variable(rasqal_variable* variable);
 RASQAL_API void rasqal_print_variable(rasqal_variable* t, FILE* fh);
 RASQAL_API void rasqal_variable_set_value(rasqal_variable* v, rasqal_expression *e);
