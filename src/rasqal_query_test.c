@@ -39,7 +39,7 @@
 #include "rasqal_internal.h"
 
 
-#define DATA_FILE "tests/dc.rdf"
+#define DATA_FILE "data/dc.rdf"
 
 #define QUERY "SELECT ?person \
          FROM <" DATA_FILE "> \
