@@ -127,6 +127,8 @@ rasqal_free_query(rasqal_query* rdf_query)
     rasqal_free_sequence(rdf_query->sources);
   if(rdf_query->triples)
     rasqal_free_sequence(rdf_query->triples);
+  if(rdf_query->constraints)
+    rasqal_free_sequence(rdf_query->constraints);
   if(rdf_query->prefixes)
     rasqal_free_sequence(rdf_query->prefixes);
   if(rdf_query->ordered_triples)
@@ -135,6 +137,9 @@ rasqal_free_query(rasqal_query* rdf_query)
     RASQAL_FREE(vararray, rdf_query->variables);
   if(rdf_query->variables_sequence)
     rasqal_free_sequence(rdf_query->variables_sequence);
+  if(rdf_query->constraints_expression)
+    rasqal_free_expression(rdf_query->constraints_expression);
+
 
   RASQAL_FREE(rasqal_query, rdf_query);
 }
@@ -290,6 +295,8 @@ rasqal_query_execute(rasqal_query *rdf_query)
   if(rasqal_query_order_triples(rdf_query))
     return 1;
 
+  rasqal_engine_build_constraints_expression(rdf_query);
+  
   source0=librdf_new_uri(world, raptor_uri_as_string(rasqal_sequence_get_at(rdf_query->sources, 0)));
 
   storage = librdf_new_storage(world, NULL, NULL, NULL);
