@@ -53,7 +53,8 @@ autogen.sh \
 rasqal.spec.in \
 fix-groff-xhtml \
 $(man_MANS) \
-rasqal.pc.in
+rasqal.pc.in \
+fix-flex
 
 SUBDIRS=tests rdql-testsuite docs
 
@@ -98,11 +99,10 @@ pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = rasqal.pc
 
 # Actually it needs rdql_parser.h but nevermind
-rdql_lexer.c: $(srcdir)/rdql_lexer.l rdql_parser.tab.c
+rdql_lexer.c: $(srcdir)/rdql_lexer.l rdql_parser.tab.c $(srcdir)/fix-flex
 	$(LEX) -o$@ $(srcdir)/rdql_lexer.l
-	mv $@ rdql_lexer.t
-	sed -e 's/\(^[ \t]*free(.*ptr.*\)$$/if(ptr) \1/' rdql_lexer.t > $@
-	rm -f rdql_lexer.t
+	$(PERL) $(srcdir)/fix-flex $@ > rdql_lexer.t
+	mv rdql_lexer.t $@
 
 rdql_parser.tab.c: $(srcdir)/rdql_parser.y
 	$(YACC) -b rdql_parser -p rdql_parser_ -d -v $(srcdir)/rdql_parser.y
