@@ -662,7 +662,7 @@ static void
 rasqal_query_remove_query_result(rasqal_query *query,
                                  rasqal_query_results* query_results) 
 {
-  rasqal_query_results *cur, *prev;
+  rasqal_query_results *cur, *prev=NULL;
   for(cur=query->results; cur && cur != query_results; cur=cur->next)
     prev=cur;
   
