@@ -1,3 +1,21 @@
+2005-01-31  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal_query.c (rasqal_query_execute): Init ask_result.
+	(rasqal_free_query_results, rasqal_query_results_is_bindings,
+	rasqal_query_results_is_boolean, rasqal_query_results_is_graph):
+	Docs.
+	(rasqal_query_results_next, rasqal_query_results_get_triple,
+	rasqal_query_results_next_triple): C style.
+	(rasqal_query_results_get_triple): FIXME about bnodeids is done.
+	(rasqal_query_results_get_boolean): Docs and implement by getting
+	first result and storing if it worked.
+
+	* rasqal_internal.h: Added ask_result to rasqal_query.
+
+	* tests/sparql/syntax/Makefile.am: Added ask0.rq
+
+	* tests/sparql/syntax/ask0.rq: ASK test
+
 2005-01-30  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
 	* rasqal_engine.c (rasqal_engine_assign_variables): C99
