@@ -81,7 +81,7 @@ check-sparql-parser: $(top_builddir)/sparql_parser_test
 
 check-sparql-works: $(top_builddir)/roqet
 	@set +e; result=0; \
-	$(ECHO) "Testing SPARQL"; \
+	$(ECHO) "Testing SPARQL works"; \
 	for test in $(SPARQL_TEST_FILES); do \
           data=data-01.n3; \
 	  $(ECHO) $(ECHO_N) "Checking $$test $(ECHO_C)"; \
@@ -98,6 +98,7 @@ check-sparql-works: $(top_builddir)/roqet
 
 check-sparql-correct: $(top_builddir)/roqet $(srcdir)/../check-sparql
 	@set +e; \
+	$(ECHO) "Testing SPARQL correct"; \
 	TOP_SRCDIR=$(top_srcdir) TOP_BUILDDIR=$(top_builddir) \
 	  perl $(srcdir)/../check-sparql; \
 	result=$$?; \
