@@ -224,6 +224,10 @@ rasqal_literal_as_integer(rasqal_literal* l)
       return (int)l->value.floating;
       break;
 
+    case RASQAL_LITERAL_STRING:
+      return (int)atoi(l->value.string);
+      break;
+
     default:
       abort();
   }
@@ -236,6 +240,14 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int *error)
   *error=0;
   
   if(l1->type != l2->type) {
+    if(!l1->type != RASQAL_LITERAL_INTEGER &&
+       l2->type == RASQAL_LITERAL_INTEGER)
+      return l2->value.integer - rasqal_literal_as_integer(l1);
+
+    if(!l2->type != RASQAL_LITERAL_INTEGER &&
+       l1->type == RASQAL_LITERAL_INTEGER)
+      return rasqal_literal_as_integer(l2) - l1->value.integer;
+
     *error=1;
     return 0;
   }
