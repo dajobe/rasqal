@@ -877,8 +877,10 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
         if(!l1)
           return NULL;
         match_string=rasqal_literal_as_string(l1);
-        if(!match_string)
+        if(!match_string) {
+          rasqal_free_literal(l1);
           return NULL;
+        }
         
         l2=e->literal;
         pattern=l2->string;
@@ -948,6 +950,8 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
         
         if(e->op == RASQAL_EXPR_STR_NMATCH)
           b=1-b;
+
+        rasqal_free_literal(l1);
 
         if(rc<0)
           return NULL;
