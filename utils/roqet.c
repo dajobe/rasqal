@@ -110,6 +110,7 @@ main(int argc, char *argv[])
   int free_uri_string=0;
   unsigned char *base_uri_string=NULL;
   rasqal_query *rq;
+  rasqal_query_results *results;
   char *ql_name="rdql";
   char *ql_uri=NULL;
   int rc=0;
@@ -345,18 +346,18 @@ main(int argc, char *argv[])
     rasqal_query_print(rq, stdout);
   }
 
-  if(rasqal_query_execute(rq)) {
+  if(!(results=rasqal_query_execute(rq))) {
     fprintf(stderr, "%s: Query execution failed\n", program);
     rc=1;
   }
 
-  while(!rasqal_query_results_finished(rq)) {
+  while(!rasqal_query_results_finished(results)) {
     int i;
 
     fputs("result: [", stdout);
-    for(i=0; i<rasqal_query_get_bindings_count(rq); i++) {
-      const char *name=rasqal_query_get_result_binding_name(rq, i);
-      rasqal_literal *value=rasqal_query_get_result_binding_value(rq, i);
+    for(i=0; i<rasqal_query_results_get_bindings_count(results); i++) {
+      const char *name=rasqal_query_results_get_binding_name(results, i);
+      rasqal_literal *value=rasqal_query_results_get_binding_value(results, i);
       
       if(i>0)
         fputs(", ", stdout);
@@ -368,13 +369,15 @@ main(int argc, char *argv[])
     }
     fputs("]\n", stdout);
     
-    rasqal_query_next_result(rq);
+    rasqal_query_results_next(results);
   }
 
 
   if(!quiet)
     fprintf(stdout, "%s: Query returned %d results\n", program, 
-            rasqal_query_get_result_count(rq));
+            rasqal_query_results_get_count(results));
+
+  rasqal_free_query_results(results);
   
   rasqal_free_query(rq);
 
