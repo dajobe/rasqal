@@ -32,6 +32,8 @@ librasqal_la_SOURCES = rdql_lexer.c rdql_lexer.h \
 rdql_parser.tab.c rdql_parser.tab.h rdql_common.h \
 rasqal_general.c rasqal_query.c rasqal_sequence.c
 librasqal_la_LDFLAGS = -version-info @RASQAL_LIBTOOL_VERSION@
+librasqal_la_LIBADD = @RASQAL_INTERNAL_LIBS@
+librasqal_la_DEPENDENCIES = @RASQAL_INTERNAL_LIBS@
 
 RDQL_EXAMPLES=example1.rdql example2.rdql example3.rdql example4.rdql	\
 example5.rdql example_at_1.rdql example_at_2.rdql example_at_3.rdql	\
@@ -56,19 +58,10 @@ CLEANFILES=$(TESTS) rdql_lexer_test rdql_parser_test rasqal_query_test
 MAINTAINERCLEANFILES=rdql_lexer.c rdql_lexer.h \
 rdql_parser.tab.c rdql_parser.tab.h rdql_parser.output
 
-# Memory debugging alternatives
 MEM=@MEM@
 MEM_LIBS=@MEM_LIBS@
 
-# 1) None (use standard functions directly)
-#MEM=
-#MEM_LIBS=
-
-# 2) Use dmalloc library
-#MEM=-DRAPTOR_MEMORY_DEBUG_DMALLOC=1
-#MEM_LIBS=-ldmalloc
-
-
+AM_CPPFLAGS=@CPPFLAGS@ @RASQAL_INTERNAL_CPPFLAGS@
 AM_CFLAGS=@CFLAGS@ @REDLAND_CFLAGS@ $(MEM)
 LIBS=@LIBS@ $(MEM_LIBS)
 
@@ -106,16 +99,16 @@ pkgconfig_DATA = rasqal.pc
 
 # Actually it needs rdql_parser.h but nevermind
 rdql_lexer_test: $(srcdir)/rdql_lexer.c $(srcdir)/rdql_parser.tab.c
-	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE $(srcdir)/rdql_lexer.c $(LIBS) @REDLAND_LIBS@
+	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE $(srcdir)/rdql_lexer.c librasqal.la @REDLAND_LIBS@
 
 rdql_parser_test: $(srcdir)/rdql_parser.tab.c librasqal.la
-	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE $(srcdir)/rdql_parser.tab.c librasqal.la $(LIBS) @REDLAND_LIBS@
+	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE $(srcdir)/rdql_parser.tab.c librasqal.la librasqal.la @REDLAND_LIBS@
 
 rasqal_query_test: $(srcdir)/rasqal_query.c librasqal.la
-	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE $(srcdir)/rasqal_query.c librasqal.la $(LIBS) @REDLAND_LIBS@
+	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE $(srcdir)/rasqal_query.c librasqal.la librasqal.la @REDLAND_LIBS@
 
 rasqal_sequence_test: $(srcdir)/rasqal_sequence.c
-	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE $(srcdir)/rasqal_sequence.c $(LIBS) @REDLAND_LIBS@
+	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE $(srcdir)/rasqal_sequence.c librasqal.la @REDLAND_LIBS@
 
 
 
