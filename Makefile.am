@@ -33,7 +33,7 @@ rasqal_general.c rasqal_query.c rasqal_sequence.c
 librasqal_la_LDFLAGS = -version-info @RASQAL_LIBTOOL_VERSION@
 
 RDQL_EXAMPLES=example1.rdql example2.rdql example3.rdql example4.rdql	\
-example_at_1.rdql example_at_2.rdql example_at_3.rdql			\
+example5.rdql example_at_1.rdql example_at_2.rdql example_at_3.rdql	\
 example_at_4.rdql example_at_5.rdql example_at_6.rdql			\
 example_at_7.rdql
 
