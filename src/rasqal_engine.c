@@ -553,9 +553,12 @@ rasqal_engine_get_next_result(rasqal_query *query) {
       /* check any constraints */
       if(query->constraints) {
         int c;
+        int bresult=1; /* constraint succeeds */
+            
         for(c=0; c< raptor_sequence_size(query->constraints); c++) {
           rasqal_expression* expr;
           rasqal_literal* result;
+          int error=0;
           
           expr=(rasqal_expression*)raptor_sequence_get_at(query->constraints, c);
 #ifdef RASQAL_DEBUG
@@ -566,9 +569,6 @@ rasqal_engine_get_next_result(rasqal_query *query) {
 
           result=rasqal_expression_evaluate(query, expr);
           if(result) {
-            int bresult;
-            int error=0;
-            
 #ifdef RASQAL_DEBUG
             RASQAL_DEBUG2("constraint %d expression result:\n", c);
             rasqal_literal_print(result, stderr);
@@ -586,7 +586,10 @@ rasqal_engine_get_next_result(rasqal_query *query) {
             RASQAL_DEBUG2("constraint %d expression failed with error\n", c);
             rc=0;
           }
-          
+
+          /* stop checking constraints on an error or if one was false */
+          if(error || !bresult)
+            break;
         }
       } /* end check for constraints */
 
