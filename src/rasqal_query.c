@@ -168,9 +168,6 @@ rasqal_free_query(rasqal_query* query)
   if(query->variables)
     RASQAL_FREE(vararray, query->variables);
 
-  if(query->variables_sequence)
-    raptor_free_sequence(query->variables_sequence);
-  
   if(query->graph_patterns)
     raptor_free_sequence(query->graph_patterns);
 
@@ -192,6 +189,10 @@ rasqal_free_query(rasqal_query* query)
     raptor_free_sequence(query->constraints);
   }
 
+  /* Do this last since most everything above could refer to a variable */
+  if(query->variables_sequence)
+    raptor_free_sequence(query->variables_sequence);
+  
   RASQAL_FREE(rasqal_query, query);
 }
 
