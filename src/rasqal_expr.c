@@ -825,7 +825,7 @@ rasqal_literal_equals(rasqal_literal* l1, rasqal_literal* l2)
 }
 
 
-/**
+/*
  * rasqal_literal_expand_qname - INTERNAL Expand any qname in a literal into a URI
  * @user_data: &rasqal_query cast as void for use with raptor_sequence_foreach
  * @l: &rasqal_literal literal
