@@ -137,8 +137,8 @@ LANGUAGETOKEN [A-Za-z][-A-Z_a-z0-9]*
  * http://www.w3.org/TR/xml11/#NT-NameStartChar and 
  * http://www.w3.org/TR/xml11/#NT-NameChar 
  */
-PREFIX [A-Za-z\x80-\xff][-A-Z_a-z\x80-\xff0-9]*
-NAME [A-Za-z_\x80-\xff][-A-Z_a-z\x80-\xff0-9]*
+PREFIX [A-Za-z\\\x80-\xff][-A-Z_a-z\\\x80-\xff0-9]*
+NAME [A-Za-z_\\\x80-\xff][-A-Z_a-z\\\x80-\xff0-9]*
 QNAME ":"|{PREFIX}":"|":"{NAME}|{PREFIX}":"{NAME}
 
 /* The initial char conditions are to ensure this doesn't grab < or <= */
@@ -273,6 +273,8 @@ QUOTEDURI \<[A-Za-z][^>]+\>
           return NULL_LITERAL; }
 
 <ID>{NAME}	{ sparql_parser_lval->name=sparql_copy_name(rq, (const unsigned char*)yytext, yyleng);
+		  if(!sparql_parser_lval->name)
+                    yyterminate();
                           BEGIN(INITIAL);
                           return IDENTIFIER; }
 <ID>.|\r|\n	{	BEGIN(INITIAL);
@@ -284,6 +286,8 @@ QUOTEDURI \<[A-Za-z][^>]+\>
 <PREF>[\ \t\v]+ { /* eat up leading whitespace */ }
 <PREF>{PREFIX}":"	{ BEGIN(INITIAL);
 		  	  sparql_parser_lval->name=sparql_copy_name(rq, (const unsigned char*)yytext, yyleng-1);
+			  if(!sparql_parser_lval->name)
+			    yyterminate();
                           return IDENTIFIER; }
 <PREF>":"	{ BEGIN(INITIAL);
 		  sparql_parser_lval->name=NULL;
@@ -298,6 +302,8 @@ QUOTEDURI \<[A-Za-z][^>]+\>
 }
 
 {QNAME}	{ sparql_parser_lval->name=sparql_copy_qname(rq, (const unsigned char*)yytext, yyleng);
+	  if(!sparql_parser_lval->name)
+	    yyterminate();
                           return QNAME_LITERAL; }
 
 {QUOTEDURI}   { if(yyleng == 2) 
@@ -330,38 +336,40 @@ yywrap (yyscan_t yyscanner) {
 
 static unsigned char *
 sparql_copy_name(rasqal_query *rq, const unsigned char *text, size_t len) {
+  size_t dest_len=0;
   unsigned char *s;
-  if(!len)
-    len=strlen((const char*)text);
 
-  if(!raptor_xml_name_check(text, len, 11))
-    sparql_syntax_warning(rq, "Invalid SPARQL name \"%s\"", text);
+  s=rasqal_escaped_name_to_utf8_string((unsigned char*)text, len,
+                                       &dest_len,
+                                       (raptor_simple_message_handler)sparql_syntax_error, rq);
+  if(!s)
+    return s;
 
-  s=(unsigned char *)malloc(len+1);
+  if(!raptor_xml_name_check(s, dest_len, 11))
+    sparql_syntax_warning(rq, "Invalid SPARQL name \"%s\"", s);
 
-  strncpy((char*)s, (const char*)text, len);
-  s[len] = '\0';
   return s;
 }
 
 
 static unsigned char *
 sparql_copy_qname(rasqal_query *rq, const unsigned char *text, size_t len) {
-  unsigned char *s;
   unsigned char *p;
-  if(!len)
-    len=strlen((const char*)text);
+  size_t dest_len=0;
+  unsigned char *s;
+  
+  s=rasqal_escaped_name_to_utf8_string((unsigned char*)text, len,
+                                       &dest_len,
+                                       (raptor_simple_message_handler)sparql_syntax_error, rq);
+  if(!s)
+    return s;
 
-  p=(unsigned char*)strchr((const char*)text, ':');
-  if(!raptor_xml_name_check(text, p-text, 11))
-    sparql_syntax_warning(rq, "Invalid SPARQL name \"%s\"", text);
-  if(!raptor_xml_name_check(p+1, len-((p+1)-text), 11))
+  p=(unsigned char*)strchr((const char*)s, ':');
+  if(!raptor_xml_name_check(s, p-s, 11))
+    sparql_syntax_warning(rq, "Invalid SPARQL name \"%s\"", s);
+  if(!raptor_xml_name_check(p+1, dest_len-((p+1)-s), 11))
     sparql_syntax_warning(rq, "Invalid SPARQL name \"%s\"", p+1);
 
-  s=(unsigned char *)malloc(len+1);
-
-  strncpy((char*)s, (const char*)text, len);
-  s[len] = '\0';
   return s;
 }
 
