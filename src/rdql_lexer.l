@@ -308,7 +308,7 @@ copy_regex_token(rasqal_query* rq, YYSTYPE* lval, unsigned char delim) {
 
       if(new_buffer_len<10)
         new_buffer_len=10;
-      new_buffer=(unsigned char *)malloc(new_buffer_len+1);
+      new_buffer=(unsigned char *)calloc(1, new_buffer_len+1);
       if(buffer_len) {
         strncpy(new_buffer, buffer, buffer_len);
         free(buffer);
