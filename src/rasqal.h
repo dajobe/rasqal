@@ -70,6 +70,7 @@ typedef struct {
   const unsigned char *prefix;
   raptor_uri* uri;
   int declared;
+  int depth;
 } rasqal_prefix;
 
 
