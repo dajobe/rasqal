@@ -292,9 +292,9 @@ RASQAL_API int rasqal_query_set_variable(rasqal_query* query, const unsigned cha
 RASQAL_API RASQAL_DEPRECATED void rasqal_query_add_triple(rasqal_query* query, rasqal_triple* triple);
 RASQAL_API raptor_sequence* rasqal_query_get_triple_sequence(rasqal_query* query);
 RASQAL_API rasqal_triple* rasqal_query_get_triple(rasqal_query* query, int idx);
-RASQAL_API void rasqal_query_add_constraint(rasqal_query* query, rasqal_expression* expr);
-RASQAL_API raptor_sequence* rasqal_query_get_constraint_sequence(rasqal_query* query);
-RASQAL_API rasqal_expression* rasqal_query_get_constraint(rasqal_query* query, int idx);
+RASQAL_API RASQAL_DEPRECATED void rasqal_query_add_constraint(rasqal_query* query, rasqal_expression* expr);
+RASQAL_API RASQAL_DEPRECATED raptor_sequence* rasqal_query_get_constraint_sequence(rasqal_query* query);
+RASQAL_API RASQAL_DEPRECATED rasqal_expression* rasqal_query_get_constraint(rasqal_query* query, int idx);
 RASQAL_API void rasqal_query_add_prefix(rasqal_query* query, rasqal_prefix* prefix);
 RASQAL_API raptor_sequence* rasqal_query_get_prefix_sequence(rasqal_query* query);
 RASQAL_API rasqal_prefix* rasqal_query_get_prefix(rasqal_query* query, int idx);
@@ -307,6 +307,9 @@ RASQAL_API raptor_sequence* rasqal_graph_pattern_get_sub_graph_pattern_sequence(
 RASQAL_API rasqal_graph_pattern* rasqal_graph_pattern_get_sub_graph_pattern(rasqal_graph_pattern* graph_pattern, int idx);
 RASQAL_API int rasqal_graph_pattern_get_flags(rasqal_graph_pattern* graph_pattern);
 RASQAL_API void rasqal_graph_pattern_print(rasqal_graph_pattern* gp, FILE* fh);
+RASQAL_API int rasqal_graph_pattern_add_constraint(rasqal_graph_pattern* gp, rasqal_expression* expr);
+RASQAL_API raptor_sequence* rasqal_graph_pattern_get_constraint_sequence(rasqal_graph_pattern* gp);
+RASQAL_API rasqal_expression* rasqal_graph_pattern_get_constraint(rasqal_graph_pattern* gp, int idx);
 
 
 /* Utility methods */
