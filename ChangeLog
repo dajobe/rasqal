@@ -1,5 +1,13 @@
 2004-10-25  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
+	* Makefile.am:
+	Execute rasqal_query_test specially, passing in full path to
+	$(srcdir)/data/dc.rdf
+
+	* rasqal_query_test.c:
+	Pass in data file as an argument and allocate the query string with
+	path to the file burnt in.
+
 	* roqet.c:
 	(roqet_xml_print_xml_attribute, roqet_query_results_print_as_xml):
 	Move experimental XML output code here.
