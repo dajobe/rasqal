@@ -180,8 +180,16 @@ Document : Query
 Query : SELECT SelectClause SourceClause WHERE TriplePatternList ConstraintClause UsingClause
 {
   ((rasqal_query*)rq)->selects=$2;
-  ((rasqal_query*)rq)->sources=$3;
-  ((rasqal_query*)rq)->triples=$5;
+
+  if($3) {
+    raptor_sequence_join(((rasqal_query*)rq)->sources, $3);
+    raptor_free_sequence($3);
+  }
+
+  /* ignoring $5 sequence, set in TriplePatternList to
+   * ((rasqal_query*)rq)->triples=$5; 
+   */
+
   /* ignoring $6 sequence, set in ConstraintClause */
 }
 ;
@@ -246,7 +254,7 @@ TriplePatternList : TriplePatternList ',' TriplePattern
 }
 | TriplePattern
 {
-  $$=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_triple, (raptor_sequence_print_handler*)rasqal_triple_print);
+  $$=((rasqal_query*)rq)->triples;
   raptor_sequence_push($$, $1);
 }
 ;
