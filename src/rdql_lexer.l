@@ -99,12 +99,12 @@
 
 
 
-static void skip_cpp_comment(rasqal_rdql_query_engine *rqe);
-static int skip_c_comment(rasqal_query *rq);
+static void rdql_skip_cpp_comment(rasqal_rdql_query_engine *rqe);
+static int rdql_skip_c_comment(rasqal_query *rq);
 
-static unsigned char *copy_token(rasqal_query *rq, const unsigned char *text, size_t len);
-static int copy_regex_token(rasqal_query *rq, YYSTYPE* lval, unsigned char delim);
-static int copy_string_token(rasqal_query *rq, YYSTYPE* lval, const unsigned char *text, size_t len, int delim);
+static unsigned char *rdql_copy_token(rasqal_query *rq, const unsigned char *text, size_t len);
+static int rdql_copy_regex_token(rasqal_query *rq, YYSTYPE* lval, unsigned char delim);
+static int rdql_copy_string_token(rasqal_query *rq, YYSTYPE* lval, const unsigned char *text, size_t len, int delim);
 
 #ifdef RASQAL_DEBUG
 const char * rdql_token_print(int token, YYSTYPE *lval);
@@ -142,10 +142,10 @@ QUOTEDURI \<[A-Za-z][^>]+\>
 
 
 "//"	{ /* C++ comment */
-    skip_cpp_comment(rqe);
+    rdql_skip_cpp_comment(rqe);
 }
 
-"/*"	{ if(skip_c_comment(rq)<0)
+"/*"	{ if(rdql_skip_c_comment(rq)<0)
             return ERROR_TOKEN; 
         }
 
@@ -185,9 +185,10 @@ QUOTEDURI \<[A-Za-z][^>]+\>
 
 
 <PATTERN>. { /* first non whitespace */
-             copy_regex_token(rq, rdql_parser_lval, *yytext);
-             BEGIN(INITIAL);
-             return PATTERN_LITERAL;
+             if(!rdql_copy_regex_token(rq, rdql_parser_lval, *yytext)) {
+               BEGIN(INITIAL);
+               return PATTERN_LITERAL;
+             }
          };
 
 
@@ -228,12 +229,12 @@ QUOTEDURI \<[A-Za-z][^>]+\>
 }
 
 '([^'\\\n\r]|\\[^\n\r])*'(@{LANGUAGETOKEN})?(^^({QUOTEDURI}|{QNAME}))?    { /*' */
-                               copy_string_token(rq, rdql_parser_lval,
+                               rdql_copy_string_token(rq, rdql_parser_lval,
                                  (const unsigned char*)yytext+1, yyleng-2, '\'');
                                return STRING_LITERAL; }
 
 \"([^"\\\n\r]|\\[^\n\r])*\"(@{LANGUAGETOKEN})?(^^({QUOTEDURI}|{QNAME}))?   { /* " */
-                                copy_string_token(rq, rdql_parser_lval,
+                                rdql_copy_string_token(rq, rdql_parser_lval,
                                   (const unsigned char*)yytext+1, yyleng-2, '"');
                                 return STRING_LITERAL; }
 
@@ -243,14 +244,14 @@ QUOTEDURI \<[A-Za-z][^>]+\>
 "null"	{ rdql_parser_lval->literal=NULL;
           return NULL_LITERAL; }
 
-<*>{NAME}	{ rdql_parser_lval->name=copy_token(rq, (const unsigned char*)yytext, yyleng);
+<*>{NAME}	{ rdql_parser_lval->name=rdql_copy_token(rq, (const unsigned char*)yytext, yyleng);
                           BEGIN(INITIAL);
                           return IDENTIFIER; }
 
-{QNAME}	{ rdql_parser_lval->name=copy_token(rq, (const unsigned char*)yytext, yyleng);
+{QNAME}	{ rdql_parser_lval->name=rdql_copy_token(rq, (const unsigned char*)yytext, yyleng);
                           return QNAME_LITERAL; }
 
-\<{QNAME}\>	{ rdql_parser_lval->name=copy_token(rq, (const unsigned char*)yytext+1, yyleng-2);
+\<{QNAME}\>	{ rdql_parser_lval->name=rdql_copy_token(rq, (const unsigned char*)yytext+1, yyleng-2);
                   rdql_syntax_warning(rq, "obsolete <qname> syntax found in \"%s\"", (const unsigned char*)yytext);
                   return QNAME_LITERAL; }
 
@@ -283,7 +284,7 @@ yywrap (yyscan_t yyscanner) {
 
 
 static unsigned char *
-copy_token(rasqal_query *rq, const unsigned char *text, size_t len) {
+rdql_copy_token(rasqal_query *rq, const unsigned char *text, size_t len) {
   unsigned char *s;
   if(!len)
     len=strlen((const char*)text);
@@ -296,7 +297,7 @@ copy_token(rasqal_query *rq, const unsigned char *text, size_t len) {
 
 
 static int
-copy_regex_token(rasqal_query* rq, YYSTYPE* lval, unsigned char delim) {
+rdql_copy_regex_token(rasqal_query* rq, YYSTYPE* lval, unsigned char delim) {
   rasqal_rdql_query_engine *rqe=(rasqal_rdql_query_engine*)rq->context;
   yyscan_t yyscanner=rqe->scanner;
   unsigned int ind=0;
@@ -308,10 +309,15 @@ copy_regex_token(rasqal_query* rq, YYSTYPE* lval, unsigned char delim) {
 
   if(delim == 'm') {
     /* Handle pattern literal m/foo/ */
-    delim=INPUT_FN(yyscanner);
+    c=INPUT_FN(yyscanner);
+    if(c == EOF) {
+      rdql_syntax_error(rq, "EOF in regex");
+      return 1;
+    }
+    delim=(unsigned char)c;
   }
 
-  while((c=INPUT_FN(yyscanner)) != delim && c) {
+  while((c=INPUT_FN(yyscanner)) && c != EOF && c != delim) {
     /* May add 2 chars - \' */
     if(ind+2 > buffer_len) {
       unsigned char *new_buffer;
@@ -335,9 +341,14 @@ copy_regex_token(rasqal_query* rq, YYSTYPE* lval, unsigned char delim) {
   }
   buffer[ind]='\0';
 
+  if(c == EOF) {
+    rdql_syntax_error(rq, "EOF in regex");
+    return 1;
+  }
+
   /* flags */
   ind=0;
-  while((c=INPUT_FN(yyscanner)) && isalpha(c)) {
+  while((c=INPUT_FN(yyscanner)) && c != EOF && isalpha(c)) {
     if(ind+1 > flags_len) {
       unsigned char *new_flags;
       size_t new_flags_len=flags_len + 5;
@@ -363,8 +374,8 @@ copy_regex_token(rasqal_query* rq, YYSTYPE* lval, unsigned char delim) {
 
 
 static int
-copy_string_token(rasqal_query* rq, YYSTYPE* lval,
-                  const unsigned char *text, size_t len, int delim) {
+rdql_copy_string_token(rasqal_query* rq, YYSTYPE* lval,
+                       const unsigned char *text, size_t len, int delim) {
   unsigned int i;
   const unsigned char *s;
   unsigned char *d;
@@ -472,8 +483,8 @@ copy_string_token(rasqal_query* rq, YYSTYPE* lval,
   fprintf(stderr, "string='%s', language='%s'\n", 
           string, (language ? language : ""));
   fprintf(stderr, "dt uri='%s',qname='%s'\n",
-          (dt_uri ? raptor_uri_as_string(dt_uri) : ""),
-          (dt_qname ? dt_qname : ""));
+          (dt_uri ? (const char*)raptor_uri_as_string(dt_uri) : ""),
+          (dt_qname ? (const char*)dt_qname : ""));
 #endif
 
   lval->literal=rasqal_new_string_literal(string, language, dt_uri, dt_qname);
@@ -483,7 +494,7 @@ copy_string_token(rasqal_query* rq, YYSTYPE* lval,
 
 
 static int
-skip_c_comment(rasqal_query *rq) {
+rdql_skip_c_comment(rasqal_query *rq) {
   rasqal_rdql_query_engine *rqe=(rasqal_rdql_query_engine*)rq->context;
   yyscan_t yyscanner=rqe->scanner;
   int lines=0;
@@ -514,7 +525,7 @@ skip_c_comment(rasqal_query *rq) {
 
 
 static void
-skip_cpp_comment(rasqal_rdql_query_engine *rqe) {
+rdql_skip_cpp_comment(rasqal_rdql_query_engine *rqe) {
   yyscan_t yyscanner=rqe->scanner;
   int c;
   
