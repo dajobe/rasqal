@@ -89,7 +89,7 @@ sub run_test($$$$$) {
     s/blank \w+/blank _/g;
 
     if (m/^result: \[(.*)\]$/) {
-      print OUT "$_\n";
+      my $line=$_;
       if(!@vars_order) {
 	my $vars=$1;
 	$vars =~ s/=uri<[^>]+>//g;
@@ -99,6 +99,9 @@ sub run_test($$$$$) {
 	$vars =~ s/,//g;
 	@vars_order=split(/ /, $vars);
       }
+      $line =~ s/,?\s+\w+=NULL//g;
+      $line =~ s/\w+=NULL,\s+//g;
+      print OUT "$line\n";
     }
   }
   close(PIPE);
