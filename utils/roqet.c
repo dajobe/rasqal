@@ -254,7 +254,7 @@ main(int argc, char *argv[])
           else {
             fprintf(stderr, "%s: invalid argument `%s' for `" HELP_ARG(o, output) "'\n",
                     program, optarg);
-            fprintf(stderr, "Valid arguments are:\n  `simple'   for a simple format (default)\n  `xml'      for an experimental XML format\n");
+            fprintf(stderr, "Valid arguments are:\n  `simple'   for a simple format (default)\n  `xml'      for SPARQL variable bindings XML format\n");
             usage=1;
           }
         }
@@ -342,7 +342,7 @@ main(int argc, char *argv[])
     puts("Run an RDF query giving variable bindings or RDF triples.");
     puts("\nMain options:");
     puts(HELP_TEXT("h", "help            ", "Print this help, then exit"));
-    puts(HELP_TEXT("f FORMAT", "format FORMAT", "Set triples output format to one of:"));
+    puts(HELP_TEXT("f FORMAT", "format FORMAT", "Set graph result format to one of:"));
     for(i=0; 1; i++) {
       const char *help_name;
       const char *help_label;
@@ -366,9 +366,9 @@ main(int argc, char *argv[])
       else
         putchar('\n');
     }
-    puts(HELP_TEXT("o", "output FORMAT   ", "Set output format to one of:"));
-    puts("    'simple'                A simple format (default)");
-    puts("    'xml'                   An experimental XML format");
+    puts(HELP_TEXT("o", "output FORMAT   ", "Set variable binding result format to one of:"));
+    puts("    simple                  A simple text format (default)");
+    puts("    xml                     SPARQL variable bindings XML format");
     puts("\nAdditional options:");
     puts(HELP_TEXT("c", "count           ", "Count triples - no output"));
     puts(HELP_TEXT("d", "dump-query      ", "Dump the parsed query"));
