@@ -296,9 +296,8 @@ typedef struct
 
 
 struct rasqal_triples_source_s {
-  /* A source for this query, URI */
+  /* A source for this query */
   rasqal_query *query;
-  raptor_uri *uri;
 
   void *user_data;
 
