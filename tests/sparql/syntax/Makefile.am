@@ -29,7 +29,7 @@ SPARQL_MODEL_FILES= \
 data.n3
 
 SPARQL_TEST_FILES= \
-describe1.rq groups.rq
+describe1.rq groups.rq 0triples.rq
 
 SPARQL_BAD_TEST_FILES= \
 nojam.rq
