@@ -153,8 +153,6 @@ rasqal_free_query(rasqal_query* query)
     raptor_free_sequence(query->optional_triples);
   if(query->constructs)
     raptor_free_sequence(query->constructs);
-  if(query->constraints)
-    raptor_free_sequence(query->constraints);
   if(query->prefixes)
     raptor_free_sequence(query->prefixes);
 
@@ -170,9 +168,23 @@ rasqal_free_query(rasqal_query* query)
   if(query->variables_sequence)
     raptor_free_sequence(query->variables_sequence);
 
-  if(query->constraints_expression)
+  if(query->constraints_expression) {
     rasqal_free_expression(query->constraints_expression);
-
+    if(query->constraints)
+      raptor_free_sequence(query->constraints);
+  } else if(query->constraints) {
+    int i;
+    
+    /* free rasqal_expressions that are normally assembled into an
+     * expression tree pointed at query->constraints_expression
+     * when query construction succeeds.
+     */
+    for(i=0; i< raptor_sequence_size(query->constraints); i++) {
+      rasqal_expression* e=(rasqal_expression*)raptor_sequence_get_at(query->constraints, i);
+      rasqal_free_expression(e);
+    }
+    raptor_free_sequence(query->constraints);
+  }
 
   RASQAL_FREE(rasqal_query, query);
 }
