@@ -104,6 +104,7 @@ rasqal_new_query(const char *name, const unsigned char *uri)
   query->optional_graph_pattern= -1;
 
   query->sources=raptor_new_sequence((raptor_sequence_free_handler*)raptor_free_uri, (raptor_sequence_print_handler*)raptor_sequence_print_uri);
+  query->data_graphs=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_data_graph, (raptor_sequence_print_handler*)rasqal_data_graph_print);
 
   query->distinct= 0;
   query->limit= -1;
@@ -149,6 +150,8 @@ rasqal_free_query(rasqal_query* query)
   if(query->query_string)
     RASQAL_FREE(cstring, query->query_string);
 
+  if(query->data_graphs)
+    raptor_free_sequence(query->data_graphs);
   if(query->sources)
     raptor_free_sequence(query->sources);
   if(query->selects)
@@ -341,20 +344,89 @@ rasqal_query_get_limit(rasqal_query *query)
 
 
 /**
+ * rasqal_query_add_data_graph - Add a data graph to the query
+ * @query: &rasqal_query query object
+ * @uri: &raptor_uri source uri for retrieval
+ * @name_uri: &raptor_uri name uri (or NULL)
+ * @flags: RASQAL_DATA_GRAPH_NAMED or RASQAL_DATA_GRAPH_BACKGROUND
+ *
+ * named_uri must be given if flags RASQAL_DATA_GRAPH_NAMED is set.
+ * It is the name of the graph and also used as the base URI
+ * when resolving any relative URIs for the graph in uri.
+ *
+ * Return value: non-0 on failure
+ **/
+int
+rasqal_query_add_data_graph(rasqal_query* query, 
+                            raptor_uri* uri, raptor_uri* name_uri,
+                            int flags)
+{
+  rasqal_data_graph *dg;
+
+  if((flags & RASQAL_DATA_GRAPH_NAMED) && !name_uri)
+    return 1;
+  
+  dg=rasqal_new_data_graph(uri, name_uri, flags);
+  
+  raptor_sequence_shift(query->data_graphs, (void*)dg);
+
+  /* FIXME - legacy for rasqal_query_add_source & sources */
+  raptor_sequence_shift(query->sources, (void*)raptor_uri_copy(dg->uri));
+
+  return 0;
+}
+
+
+/**
+ * rasqal_query_get_data_graph_sequence - Get the sequence of data_graph URIs
+ * @query: &rasqal_query query object
+ *
+ * Return value: a &raptor_sequence of &raptor_uri pointers.
+ **/
+raptor_sequence*
+rasqal_query_get_data_graph_sequence(rasqal_query* query)
+{
+  return query->data_graphs;
+}
+
+
+/**
+ * rasqal_query_get_data_graph - Get a rasqal_data_graph* in the sequence of data_graphs
+ * @query: &rasqal_query query object
+ * @idx: index into the sequence (0 or larger)
+ *
+ * Return value: a &rasqal_data_graph pointer or NULL if out of the sequence range
+ **/
+rasqal_data_graph*
+rasqal_query_get_data_graph(rasqal_query* query, int idx)
+{
+  if(!query->data_graphs)
+    return NULL;
+  
+  return (rasqal_data_graph*)raptor_sequence_get_at(query->data_graphs, idx);
+}
+
+
+/**
  * rasqal_query_add_source - Add a source URI to the query
  * @query: &rasqal_query query object
  * @uri: &raptor_uri uri
+ *
+ * DEPRECATED - should use rasqal_query_add_data_graph
+ *
  **/
 void
 rasqal_query_add_source(rasqal_query* query, raptor_uri* uri)
 {
-  raptor_sequence_shift(query->sources, (void*)uri);
+  rasqal_query_add_data_graph(query, uri, uri, RASQAL_DATA_GRAPH_NAMED);
 }
 
 
 /**
  * rasqal_query_get_source_sequence - Get the sequence of source URIs
  * @query: &rasqal_query query object
+ *
+ * DEPRECATED - should use rasqal_query_get_data_graph_sequence
  *
  * Return value: a &raptor_sequence of &raptor_uri pointers.
  **/
@@ -369,6 +441,8 @@ rasqal_query_get_source_sequence(rasqal_query* query)
  * rasqal_query_get_source - Get a source URI in the sequence of sources
  * @query: &rasqal_query query object
  * @idx: index into the sequence (0 or larger)
+ *
+ * DEPRECATED - should use rasqal_query_get_data_graph
  *
  * Return value: a &raptor_uri pointer or NULL if out of the sequence range
  **/
