@@ -513,10 +513,12 @@ rasqal_query_build_declared_in(rasqal_query* query)
     rasqal_variable *v=query->variables[i];
     int column=query->variables_declared_in[i];
 
-    if(column >= 0)
+    if(column >= 0) {
+#if RASQAL_DEBUG > 1
       RASQAL_DEBUG4("Variable %s (%d) was declared in column %d\n",
                     v->name, i, column);
-    else 
+#endif
+    } else 
       rasqal_query_warning(query, 
                            "Variable %s was selected but is unused in query.\n", 
                            v->name);
