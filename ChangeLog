@@ -1,5 +1,20 @@
 2005-02-24  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
+	* roqet.c (roqet_graph_pattern_walk): Renamed from
+	roqet_walk_graph_pattern
+
+	* roqet.c (roqet_query_walk): Added to do all query API walking.
+
+	* rasqal_query.c (rasqal_query_print): Tweak distinct, limits wording>
+
+	* tests/sparql/syntax/Makefile.am: Added distinct0.rq limit0.rq
+
+	* tests/sparql/syntax/distinct0.rq, tests/sparql/syntax/limit0.rq:
+	Tests for DISTINCT and LIMIT syntax
+
+	* librasqal.3: Added rasqal_query_get_distinct and
+	rasqal_query_get_limit
+
 	* sparql_parser.y (LimitClauseOpt): Set limit field.
 
 	* rasqal_query.c: Tidy some docucomments.
