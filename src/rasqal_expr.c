@@ -155,6 +155,10 @@ rasqal_free_literal(rasqal_literal* l) {
     case RASQAL_LITERAL_QNAME:
       if(l->value.string)
         free(l->value.string);
+      if(l->language)
+        free(l->language);
+      if(l->datatype)
+        raptor_free_uri(l->datatype);
       break;
     case RASQAL_LITERAL_INTEGER:
     case RASQAL_LITERAL_BOOLEAN:
@@ -208,10 +212,12 @@ rasqal_literal_print(rasqal_literal* l, FILE* fh)
       fprintf(fh, "/%s/%s", l->value.string, l->flags ? l->flags : "");
       break;
     case RASQAL_LITERAL_STRING:
+      fprintf(fh, "(\"%s\"", l->value.string);
       if(l->language)
-        fprintf(fh, "(\"%s\"@%s)", l->value.string, l->language);
-      else
-        fprintf(fh, "(\"%s\")", l->value.string);
+        fprintf(fh, "@%s", l->language);
+      if(l->datatype)
+        fprintf(fh, "^^<%s>", raptor_uri_as_string(l->datatype));
+      fputc(')', fh);
       break;
     case RASQAL_LITERAL_QNAME:
       fprintf(fh, "(%s)", l->value.string);
