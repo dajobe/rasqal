@@ -1,3 +1,46 @@
+2004-11-19  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* sparql_parser.y (rasqal_sparql_query_engine_prepare): Add graph
+	pattern of all triples found.
+
+	* rdql_parser.y (rasqal_rdql_query_engine_prepare): Add graph
+	pattern of all triples found.
+
+	* rasqal_engine.c (rasqal_new_graph_pattern): No triples_size.
+	Don't init triple_meta here but on each execution.
+	(rasqal_free_graph_pattern, rasqal_graph_pattern_get_next_match):
+	update triple_meta offset
+	(rasqal_graph_pattern_init): Added, to init for execution.
+	(rasqal_graph_pattern_print): Added for debug printing.
+	(rasqal_engine_execute_init): Use query->graph_patterns - init
+	them with rasqal_graph_pattern_init
+	(rasqal_engine_execute_finish): Do not delete
+	query->graph_pattern.
+	(rasqal_engine_get_next_result): Pick 0th item from
+	query->graph_patterns to execute.
+
+	* rasqal_query.c (rasqal_new_query, rasqal_free_query): Init/free
+	query->graph_patterns sequence
+
+	* rasqal_internal.h: Delete triples_count from rasqal_graph_pattern.
+	Only use exactly what's needed: end-start+1 columns 
+	Added rasqal_graph_pattern_init and rasqal_graph_pattern_print
+	prototypes
+	Added raptor_sequence of rasqal_graph_pattern* to rasqal_query
+
+	* sparql_parser.y (PatternElementForms):
+	'SOURCE * ...' Warn this is ignored.
+	'Source VarOrURI ...' Set triple origin from the literal
+	(UnaryExpressionNotPlusMinus): Delete ignored ArgList for now.
+
+	* rasqal_internal.h: Added rasqal_graph_pattern_adjust prototype
+
+	* rasqal_engine.c (rasqal_new_graph_pattern,
+	rasqal_free_graph_pattern): Docs, code tidy.
+	(rasqal_graph_pattern_adjust): Added, to shift graph pattern
+	columns.
+	(rasqal_graph_pattern_get_next_match): Code tidy.
+
 2004-11-17  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
 	* rasqal_engine.c (rasqal_engine_get_next_result): More code tweaks
