@@ -430,7 +430,7 @@ main(int argc, char *argv[])
     puts("\nAdditional options:");
     puts(HELP_TEXT("c", "count           ", "Count triples - no output"));
     puts(HELP_TEXT("d", "dump-query      ", "Dump the parsed query"));
-    puts(HELP_TEXT("n", "dryrun          ", "Prepare by do not run the query"));
+    puts(HELP_TEXT("n", "dryrun          ", "Prepare but do not run the query"));
     puts(HELP_TEXT("q", "quiet           ", "No extra information messages"));
     puts(HELP_TEXT("s", "source URI      ", "Query against RDF data at source URI"));
     puts(HELP_TEXT("v", "version         ", "Print the Rasqal version"));
