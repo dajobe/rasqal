@@ -79,7 +79,7 @@ sub run_test($$$$$) {
   open(OUT, "| sort >roqet.out") or die "$program: Cannot create pipe to roqet.out - $!\n";
   while(<PIPE>) {
     chomp;
-    if(/^selects: \[(.*)\]$/) {
+    if(/^(?:selects|bound variables): \[(.*)\]$/) {
       my $vars=$1;
       $vars =~ s/variable\(([^)]+)\)/$1/g; # ) ]
       $vars =~ s/,//g;
