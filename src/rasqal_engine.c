@@ -552,6 +552,25 @@ rasqal_new_graph_pattern_from_sequence(rasqal_query* query,
 }
 
 
+static void
+rasqal_reset_triple_meta(rasqal_triple_meta* m)
+{
+  if(m->bindings[0] && (m->parts & RASQAL_TRIPLE_SUBJECT)) 
+    rasqal_variable_set_value(m->bindings[0],  NULL);
+  if(m->bindings[1] && (m->parts & RASQAL_TRIPLE_PREDICATE)) 
+    rasqal_variable_set_value(m->bindings[1],  NULL);
+  if(m->bindings[2] && (m->parts & RASQAL_TRIPLE_OBJECT)) 
+    rasqal_variable_set_value(m->bindings[2],  NULL);
+  if(m->bindings[3] && (m->parts & RASQAL_TRIPLE_ORIGIN)) 
+    rasqal_variable_set_value(m->bindings[3],  NULL);
+  
+  if(m->triples_match) {
+    rasqal_free_triples_match(m->triples_match);
+    m->triples_match=NULL;
+  }
+}
+
+
 /**
  * rasqal_free_graph_pattern - free a graph pattern object
  * @gp: &rasqal_graph_pattern object
@@ -563,20 +582,7 @@ rasqal_free_graph_pattern(rasqal_graph_pattern* gp)
   if(gp->triple_meta) {
     while(gp->column >= gp->start_column) {
       rasqal_triple_meta *m=&gp->triple_meta[gp->column - gp->start_column];
-
-      if(m->bindings[0] && (m->parts & RASQAL_TRIPLE_SUBJECT)) 
-        rasqal_variable_set_value(m->bindings[0],  NULL);
-      if(m->bindings[1] && (m->parts & RASQAL_TRIPLE_PREDICATE)) 
-        rasqal_variable_set_value(m->bindings[1],  NULL);
-      if(m->bindings[2] && (m->parts & RASQAL_TRIPLE_OBJECT)) 
-        rasqal_variable_set_value(m->bindings[2],  NULL);
-      if(m->bindings[3] && (m->parts & RASQAL_TRIPLE_ORIGIN)) 
-        rasqal_variable_set_value(m->bindings[3],  NULL);
-
-      if(m->triples_match) {
-        rasqal_free_triples_match(m->triples_match);
-        m->triples_match=NULL;
-      }
+      rasqal_reset_triple_meta(m);
       gp->column--;
     }
     RASQAL_FREE(rasqal_triple_meta, gp->triple_meta);
@@ -801,19 +807,7 @@ rasqal_graph_pattern_get_next_match(rasqal_query *query,
     if(m->triples_match) {
       if(rasqal_triples_match_is_end(m->triples_match)) {
         RASQAL_DEBUG2("end of triplesMatch for column %d\n", gp->column);
-
-        if(m->bindings[0] && (m->parts & RASQAL_TRIPLE_SUBJECT)) 
-          rasqal_variable_set_value(m->bindings[0],  NULL);
-        if(m->bindings[1] && (m->parts & RASQAL_TRIPLE_PREDICATE)) 
-          rasqal_variable_set_value(m->bindings[1],  NULL);
-        if(m->bindings[2] && (m->parts & RASQAL_TRIPLE_OBJECT)) 
-          rasqal_variable_set_value(m->bindings[2],  NULL);
-        if(m->bindings[3] && (m->parts & RASQAL_TRIPLE_ORIGIN)) 
-          rasqal_variable_set_value(m->bindings[3],  NULL);
-
-        rasqal_free_triples_match(m->triples_match);
-        m->triples_match=NULL;
-        
+        rasqal_reset_triple_meta(m);
         gp->column--;
         continue;
       }
@@ -959,6 +953,7 @@ rasqal_engine_move_to_graph_pattern(rasqal_query *query,
   int i;
   
   RASQAL_DEBUG2("Moving to graph pattern %d\n", offset);
+
   query->current_graph_pattern=offset;
 
   if(query->optional_graph_pattern >=0) {
@@ -1174,9 +1169,9 @@ rasqal_engine_do_optional_step(rasqal_query *query, rasqal_graph_pattern *gp) {
     if(optional_matches) {
       RASQAL_DEBUG1("Found some matches, returning a result\n");
       return STEP_GOT_MATCH;
-    } 
+    }
 
-    if (gp->matches_returned) {
+    if(gp->matches_returned) {
       RASQAL_DEBUG1("No matches this time, some earlier, backtracking\n");
       rasqal_engine_move_to_graph_pattern(query, 0);
       return STEP_SEARCHING;
@@ -1195,18 +1190,20 @@ rasqal_engine_do_optional_step(rasqal_query *query, rasqal_graph_pattern *gp) {
 
 
   /* got match */
-    
-  /* if this is a match but not the last graph pattern in the
-   * sequence move to the next graph pattern
-   */
-  if(query->current_graph_pattern < graph_patterns_size-1) {
-    RASQAL_DEBUG1("Not last graph pattern\n");
-    rasqal_engine_move_to_graph_pattern(query,
-                                        query->current_graph_pattern+1);
-    return STEP_SEARCHING;
-  }
-  
-  /* is the last graph pattern so we have a solution */
+#if 1
+   
+ /* if this is a match but not the last graph pattern in the
+  * sequence move to the next graph pattern
+  */
+ if(query->current_graph_pattern < graph_patterns_size-1) {
+   RASQAL_DEBUG1("Not last graph pattern\n");
+   rasqal_engine_move_to_graph_pattern(query,
+                                       query->current_graph_pattern+1);
+   return STEP_SEARCHING;
+ }
+ 
+ /* is the last graph pattern so we have a solution */
+#endif
   RASQAL_DEBUG1("Got match\n");
 
   return STEP_GOT_MATCH;
