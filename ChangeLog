@@ -1,11 +1,50 @@
+2005-03-13  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal_engine.c (rasqal_new_graph_pattern): Added.
+
+	* rasqal_query.c (rasqal_new_query, rasqal_free_query): Init
+	query_graph_pattern using rasqal_new_graph_pattern.
+
+	* rasqal_internal.h: Added prototype for rasqal_new_graph_pattern
+
+	* sparql_parser.y, rdql_parser.y: execute factory method takes
+	rasqal_query_results* arg
+
+	* rasqal_engine.c: style
+
+	* rasqal_query.c (rasqal_query_execute): execute factory method takes
+	rasqal_query_results*
+
+	* rasqal_internal.h: execute method takes rasqal_query_results*
+
+	* rasqal_internal.h: style
+
 2005-03-10  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* sparql_parser.y (rasqal_sparql_query_engine_prepare):
+	Move qname expansion checks from sparql_parse.
+
+	* sparql_parser.y:
+	Restore TriplePatternList as first part of PatternElement.
+
+	* tests/sparql/syntax/data.n3: Add something for casting
+
+	* rasqal_expr.c (rasqal_expression_evaluate):
+	Evaluate RASQAL_EXPR_CAST.
+
+	* rdql_parser.y (main): Cast for C++
+
+	* tests/sparql/syntax/Makefile.am: Added cast0.rq
+
+	* tests/sparql/syntax/cast0.rq: Added cast test
 
 	* sparql_lexer.l: and {QUOTEDURI} add optional ')' and return
 	URI_LITERAL_BRACE, QNAME_LITERAL_BRACE instead of URI_LITERAL /
 	QNAME_LITERAL.
 
 	* sparql_parser.y:
-	Added tokens URI_LITERAL_BRACE QNAME_LITERAL_BRACE for URI+'(' and QNAME+'('
+	Added tokens URI_LITERAL_BRACE QNAME_LITERAL_BRACE for URI+'(' and
+	QNAME+'('
 	(URIBrace): Added for handling the two above, replacing two
 	alternatives in BuiltinExpression, removing a conflict.
 
