@@ -96,6 +96,12 @@ raptor_statement_as_rasqal_triple(const raptor_statement *statement) {
     string=RASQAL_MALLOC(cstring, strlen((char*)statement->object));
     strcpy((char*)string, (const char*)statement->object);
 
+    if(statement->object_literal_language && 
+       !statement->object_literal_datatype) {
+      language=RASQAL_MALLOC(cstring, strlen(statement->object_literal_language)+1);
+      strcpy(language, (const char*)statement->object_literal_language);
+    }
+
     if(statement->object_type == RAPTOR_IDENTIFIER_TYPE_XML_LITERAL) {
       /* FIXME */
       extern const char *raptor_xml_literal_datatype_uri_string;
