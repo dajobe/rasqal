@@ -40,9 +40,15 @@
 
 
 
-/*
+/**
  * rasqal_new_query - Constructor - create a new rasqal_query object
- * @name: the query name
+ * @name: the query language name (or NULL)
+ * @uri: &raptor_uri language uri (or NULL)
+ *
+ * A query language can be named or identified by a URI, either
+ * of which is optional.  The default query language will be used
+ * if both are NULL.  rasqal_languages_enumerate returns
+ * information on the known names, labels and URIs.
  *
  * Return value: a new &rasqal_query object or NULL on failure
  */
