@@ -14,7 +14,7 @@
 
 <p>Rasqal requires the
 <a href="http://librdf.org/raptor/">Raptor RDF parser toolkit</a>
-version 1.3.0 or later for parsing RDF, retrieving WWW content and
+version 1.4.4 or later for parsing RDF, retrieving WWW content and
 other utility classes and libraries.  It can also use
 <a href="http://librdf.org/">Redland</a>
 as an alternate triple store and enabled by
@@ -71,7 +71,7 @@ versions.</p>
 <h2>2. Configuring and building</h2>
 
 <p>Requirements: 
-the <a href="http://librdf.org/raptor/">Raptor RDF parser toolkit</a> version 1.3.0 or later
+the <a href="http://librdf.org/raptor/">Raptor RDF parser toolkit</a> version 1.4.4 or later
 (plus flex and bison as specified above, when building from CVS).
 Recommended: <a href="http://www.pcre.org/">PCRE</a> regex library
 or another implementing the POSIX regex API.  If neither is
@@ -79,12 +79,12 @@ present some of the tests will fail and the query engine will
 fail to handle regex matches.
 </p>
 
-<p>Rasqal is developed and built on x86 GNU/Linux
-(Redhat 9, Debian unstable) but is also regularly tested on
-sparc Sun Solaris 2.x, x86 FreeBSD 4.8, ppc Apple OSX 10.2 
-and as part of Redland on several other systems via the 
-<a href="http://sourceforge.net/">SourceForge</a> compile farm
-(AMD IA64 SuSE 8 Linux 2.4, Alpha Debian Linux 2.2).</p>
+<p>Rasqal is developed and built on x86 GNU/Linux (Redhat Fedora Core
+3, Debian unstable) but is also regularly tested on sparc Sun Solaris
+2.x, x86 FreeBSD 4.10, ppc Apple OSX 10.3 and as part of Redland on
+several other systems via the <a
+href="http://sourceforge.net/">SourceForge</a> compile farm (Alpha Linux,
+AMD IA64 Linux, FreeBSD, NetBSD, OpenBSD, Solarix x86).</p>
 
 
 <h3><a id="sec-create-configure" name="sec-create-configure"></a>2.1. Create <code>configure</code> program</h3>
@@ -203,8 +203,6 @@ raptor was compiled</p>
 
 
 <h2>3. Using the library</h2>
-
-<p>...</p>
 
 <p>The public Rasqal API is described in the
 <a href="librasqal.html">librasqal.3</a> UNIX manual/web page
