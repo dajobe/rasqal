@@ -253,7 +253,8 @@ typedef struct {
 static int
 rasqal_redland_bind_match(struct rasqal_triples_match_s* rtm,
                           void *user_data,
-                          rasqal_variable* bindings[4]) 
+                          rasqal_variable* bindings[4],
+                          rasqal_triple_parts parts) 
 {
   rasqal_redland_triples_match_context* rtmc=(rasqal_redland_triples_match_context*)rtm->user_data;
   rasqal_literal* l;
@@ -269,14 +270,14 @@ rasqal_redland_bind_match(struct rasqal_triples_match_s* rtm,
 
   /* set 1 or 2 variable values from the fields of statement */
 
-  if(bindings[0]) {
+  if(bindings[0] && (parts & RASQAL_TRIPLE_SUBJECT)) {
     LIBRDF_DEBUG1("binding subject to variable\n");
     l=redland_node_to_rasqal_literal(librdf_statement_get_subject(statement));
     rasqal_variable_set_value(bindings[0], rasqal_literal_as_node(l));
     rasqal_free_literal(l);
   }
 
-  if(bindings[1]) {
+  if(bindings[1] && (parts & RASQAL_TRIPLE_PREDICATE)) {
     if(bindings[0] == bindings[1]) {
       if(!librdf_node_equals(librdf_statement_get_subject(statement),
                              librdf_statement_get_predicate(statement)))
@@ -290,7 +291,7 @@ rasqal_redland_bind_match(struct rasqal_triples_match_s* rtm,
     }
   }
 
-  if(bindings[2]) {
+  if(bindings[2] && (parts & RASQAL_TRIPLE_OBJECT)) {
     int bind=1;
     
     if(bindings[0] == bindings[2]) {
@@ -319,6 +320,11 @@ rasqal_redland_bind_match(struct rasqal_triples_match_s* rtm,
   }
 
   /* FIXME contexts */
+  /*
+  if(bindings[3] && (parts & RASQAL_TRIPLE_ORIGIN)) {
+    ...
+  }
+  */
 
   return 1;
 }
