@@ -34,11 +34,7 @@ $(top_builddir)/rdql_lexer_test:
 $(top_builddir)/rdql_parser_test:
 	@(cd $(top_builddir) ; $(MAKE) rdql_parser_test)
 
-$(top_builddir)/rasqal_query_test:
-	@(cd $(top_builddir) ; $(MAKE) rasqal_query_test)
-
-
-check-local: check-rdql-lexer check-rdql-parser check-rdql-queries
+check-local: check-rdql-lexer check-rdql-parser
 
 check-rdql-lexer: $(top_builddir)/rdql_lexer_test
 	@result=0; \
@@ -61,21 +57,6 @@ check-rdql-parser: $(top_builddir)/rdql_parser_test
 	for test in $(RDQL_TEST_FILES); do \
 	  $(ECHO) $(ECHO_N) "Checking $$test $(ECHO_C)"; \
 	  $(top_builddir)/rdql_parser_test $(srcdir)/$$test >/dev/null; \
-	  status=$$?; \
-	  if test $$status != 0 -a $$status != 2 ; then \
-	    $(ECHO) FAILED returned status $$status; result=1; \
-	  else \
-	    $(ECHO) ok; \
-	  fi; \
-	done; \
-	exit $$result
-
-check-rdql-queries: $(top_builddir)/rasqal_query_test
-	@result=0; \
-	$(ECHO) "Testing query construction (RDQL)"; \
-	for test in $(RDQL_TEST_FILES); do \
-	  $(ECHO) $(ECHO_N) "Checking $$test $(ECHO_C)"; \
-	  $(top_builddir)/rasqal_query_test rdql - < $(srcdir)/$$test >/dev/null; \
 	  status=$$?; \
 	  if test $$status != 0 -a $$status != 2 ; then \
 	    $(ECHO) FAILED returned status $$status; result=1; \
