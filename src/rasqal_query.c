@@ -152,8 +152,7 @@ rasqal_free_query(rasqal_query* query)
     raptor_free_sequence(query->selects);
   if(query->describes)
     raptor_free_sequence(query->describes);
-  if(query->ordered_triples)
-    raptor_free_sequence(query->ordered_triples);
+
   if(query->triples)
     raptor_free_sequence(query->triples);
   if(query->optional_triples)
@@ -720,10 +719,6 @@ rasqal_query_print(rasqal_query* query, FILE *fh)
   if(query->triples) {
     fprintf(fh, "\ntriples: ");
     raptor_sequence_print(query->triples, fh);
-  }
-  if(query->ordered_triples) {
-    fprintf(fh, "\nordered triples: ");
-    raptor_sequence_print(query->ordered_triples, fh);
   }
   if(query->optional_triples) {
     fprintf(fh, "\noptional triples: ");
