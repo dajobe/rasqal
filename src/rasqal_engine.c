@@ -428,7 +428,7 @@ rasqal_engine_execute_init(rasqal_query *query) {
   if(!query->triples_source) {
     query->failed=1;
     rasqal_query_error(query, "Failed to make a triple source for %s",
-                       (source ? raptor_uri_as_string(source) : "default source"));
+                       (source ? (const char*)raptor_uri_as_string(source) : "default source"));
     return 1;
   }
 
