@@ -1,3 +1,26 @@
+2004-08-03  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* roqet.c, rdql_parser.y, rdql_lexer.l, rasqal_raptor.c,
+	rasqal_query.c, rasqal_literal.c, rasqal_internal.h,
+	rasqal_general.c, rasqal_expr.c, rasqal_engine.c: Update for
+	functions using (const|) unsigned char* Casts for C++ to fix many
+	char*/unsigned char* clashes.
+
+	* rasqal.h:
+	Make many functions use (const|) unsigned char* and return them:
+	rasqal_query_has_variable, rasqal_query_set_variable,
+	rasqal_query_results_get_bindings,
+	rasqal_query_results_get_binding_name,
+	rasqal_query_results_get_binding_value_by_name,
+	rasqal_new_floating_literal, rasqal_new_pattern_literal,
+	rasqal_new_string_literal, rasqal_new_simple_literal,
+	rasqal_literal_as_string, rasqal_new_prefix,
+	rasqal_new_variable
+
+2004-08-02  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* LICENSE.html: Correct the pointer to LGPL v2.1 (not 2)
+
 2004-07-28  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
 	* autogen.sh: move 'rm's inside configure.ac loop
