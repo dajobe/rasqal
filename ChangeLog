@@ -1,4 +1,44 @@
+2004-10-25  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* sparql_parser.y (Literal, URI):
+	Invoke rasqal_literal_expand_qname when handling a
+	QNAME_LITERAL, RASQAL_LITERAL_QNAME.
+	(sparql_parse): Check for unexpanded QNames.  SPARQL does the
+	expansion in order, so do not invoke expansions here.
+
+	* rasqal_literal.c (rasqal_literal_has_qname):
+	Added, for checking when a QName is
+	leftover.
+
+	* rasqal_internal.h: Added rasqal_engine_sequence_has_qname,
+	rasqal_engine_constraints_has_qname, rasqal_literal_has_qname,
+	rasqal_expression_has_qname
+
+	* rasqal_expr.c (rasqal_expression_has_qname): Added for use with
+	rasqal_expression_foreach to check for a leftover QName.
+
+	* rasqal_engine.c (rasqal_engine_sequence_has_qname,
+	rasqal_engine_constraints_has_qname): Added, for checking when a
+	QName is leftover.
+
+	* roqet.c: Set the raptor_www error_handler
+
+	* rasqal.h: Added rasqal_prefix depth field.
+
+	* rasqal_engine.c (rasqal_engine_declare_prefix):
+	Use query->prefix_depth and increment
+
+	* rasqal_query.c (rasqal_query_add_prefix):
+	Undeclare older prefixes with the same prefix.
+
+	* rasqal_internal.h: Added prefix_depth to rasqal_query_s
+	Added rasqal_engine_undeclare_prefix prototype
+
 2004-10-24  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* tests/sparql/examples/Makefile.am: Added missing ex-24a files
+
+	* roqet.c (main): C99 fix - Move FILE*fh declaration to start of block.
 
 	* librasqal.3: Updates for 0.9.3
 
