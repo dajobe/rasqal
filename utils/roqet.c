@@ -201,6 +201,22 @@ roqet_graph_pattern_walk(rasqal_graph_pattern *gp, int gp_index,
   if(gp_index > 0)
     fprintf(fh, "found %d sub-graph patterns\n", gp_index);
 
+  /* look for constraints */
+  gp_index=0;
+  while(1) {
+    rasqal_expression* expr=rasqal_graph_pattern_get_constraint(gp, gp_index);
+    if(!expr)
+      break;
+
+    fwrite(spaces, sizeof(char), indent, fh);
+    fprintf(fh, "constraint %d: ", triple_index);
+    rasqal_expression_print(expr, fh);
+    fputc('\n', fh);
+
+    gp_index++;
+  }
+
+
 }
 
 
