@@ -65,7 +65,7 @@
 %option reentrant
 
 
-%x PATTERN
+%x PATTERN ID
 
   /* definitions */
 
@@ -166,7 +166,7 @@ QUOTEDURI \<[A-Za-z][^>]+\>
 ","      { return COMMA; } 
 "("      { return LPAREN; } 
 ")"      { return RPAREN; } 
-"?"      { return VARPREFIX; }
+"?"      { BEGIN(ID); return VARPREFIX; }
 
 "||"         { return SC_OR; }
 "&&"         { return SC_AND; }
@@ -247,6 +247,9 @@ QUOTEDURI \<[A-Za-z][^>]+\>
 <*>{NAME}	{ rdql_parser_lval->name=rdql_copy_token(rq, (const unsigned char*)yytext, yyleng);
                           BEGIN(INITIAL);
                           return IDENTIFIER; }
+<ID>.	{	BEGIN(INITIAL);
+		rdql_syntax_error(rq, "Missing variable name after ?", *yytext);
+		return ERROR_TOKEN; }
 
 {QNAME}	{ rdql_parser_lval->name=rdql_copy_token(rq, (const unsigned char*)yytext, yyleng);
                           return QNAME_LITERAL; }
