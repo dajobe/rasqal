@@ -26,7 +26,6 @@ Usage: rasqal-src-config [OPTION]
 known values for OPTION are:
 
   --libs                print library linking information
-  --static-libs         print static library linking information
   --cflags              print pre-processor and compiler flags
   --help                display this help and exit
   --version             output version information
@@ -57,9 +56,6 @@ while test $# -gt 0; do
     --libs)
       echo_libs=yes
       ;;
-    --static-libs)
-      echo_static_libs=yes
-      ;;
     --help|--usage)
       usage 0
       ;;
@@ -72,12 +68,19 @@ while test $# -gt 0; do
 done
   
 
+if test @with_raptor@ = internal; then
+  config=@abs_top_builddir@/../raptor/raptor-src-config
+  if test ! -r $config; then
+    echo "rasqal-src-config: Source tree not configured - no raptor-src-config, exiting" 1>&2
+    exit 0
+  fi
+else
+  config=raptor-config
+fi
+
 if test "$echo_cflags" = "yes"; then
-  echo -I@abs_top_srcdir@
+  echo -I@abs_top_srcdir@  `$config --cflags`
 fi
 if test "$echo_libs" = "yes"; then
-  echo '-L@abs_top_builddir@/.libs -lrasqal @LDFLAGS@ @LIBS@'
-fi
-if test "$echo_static_libs" = "yes"; then
-  echo '@abs_top_builddir@/.libs/rasqal.a @LDFLAGS@ @LIBS@'
+  echo -L@abs_top_builddir@/.libs -lrasqal @LDFLAGS@ `$config --libs`
 fi
