@@ -449,7 +449,7 @@ copy_string_token(rasqal_query* rq, YYSTYPE* lval,
     }
   }
 
-#if 1
+#if RASQAL_DEBUG >3
   fprintf(stderr, "string='%s', language='%s'\n", 
           string, (language ? language : ""));
   fprintf(stderr, "dt uri='%s',qname='%s'\n",
