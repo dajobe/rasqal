@@ -166,17 +166,17 @@ rasqal_raptor_new_triples_source(rasqal_query* rdf_query,
 static int
 rasqal_raptor_triple_match(raptor_statement *s, rasqal_triple *t) {
   if(t->subject) {
-    if (1 /* match */)
+    if (1 /* FIXME match */)
       return 0;
   }
 
   if(t->predicate) {
-    if (1 /* match */)
+    if (1 /* FIXME match */)
       return 0;
   }
 
   if(t->object) {
-    if (1 /* match */)
+    if (1 /* FIXME match */)
       return 0;
   }
 
