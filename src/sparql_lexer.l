@@ -184,7 +184,13 @@ QUOTEDURI \<[A-Za-z][^>]+\>
 "OPTIONAL"|"OPTIONAL" { return OPTIONAL; }
 "BASE"|"base" { return BASE; }
 "LOAD"|"load" { return LOAD; }
-"BOUND"|"load" { return BOUND; }
+"BOUND"|"bound" { return BOUND; }
+"STR"|"str" { return STR; }
+"LANG"|"lang" { return LANG; }
+"DATATYPE"|"datatype" { return DATATYPE; }
+"ISURI"|"isuri" { return ISURI; }
+"ISBLANK"|"isblank" { return ISBLANK; }
+"ISLITERAL"|"isliteral" { return ISLITERAL; }
 
 ","      { return ','; } 
 "("      { return '('; } 
@@ -686,6 +692,24 @@ sparql_token_print(int token, YYSTYPE *lval)
     case BOUND:
       return "BOUND";
 
+    case STR:
+      return "STR";
+      
+    case LANG:
+      return "LANG";
+      
+    case DATATYPE:
+      return "DATATYPE";
+      
+    case ISURI:
+      return "ISURI";
+      
+    case ISBLANK:
+      return "ISBLANK";
+      
+    case ISLITERAL:
+      return "ISLITERAL";
+      
     case ',':
       return ",";
 
