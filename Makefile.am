@@ -40,7 +40,8 @@ example_at_7.rdql
 
 EXTRA_DIST=ChangeLog \
 README      NEWS      LICENSE.txt \
-MPL.html \
+README.html NEWS.html LICENSE.html INSTALL.html \
+MPL.html librasqal.html \
 rdql_lexer.l rdql_parser.y \
 rasqal-config.in rasqal-src-config.in \
 autogen.sh \
@@ -57,6 +58,24 @@ LIBS=@LIBS@ $(MEM_LIBS)
 
 LEX=@LEX@
 YACC=@YACC@
+
+# Create some text files from HTML sources
+LYNX=lynx
+HTML_TO_TEXT=TERM=vt100 $(LYNX) -dump -nolist
+
+SUFFIXES = .html .txt
+
+.html.txt:
+	$(HTML_TO_TEXT) $< > $@
+
+README: README.html
+	$(HTML_TO_TEXT) $< > $@
+
+NEWS: NEWS.html
+	$(HTML_TO_TEXT) $< > $@
+
+@MAINT@librasqal.html: $(srcdir)/librasqal.3
+@MAINT@	-groff -man -Thtml -P-l $< | tidy -asxml -wrap 1000 2>/dev/null | perl $(srcdir)/fix-groff-xhtml $@
 
 # Memory debugging alternatives
 MEM=@MEM@
