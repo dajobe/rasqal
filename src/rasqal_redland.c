@@ -79,7 +79,7 @@ redland_node_to_rasqal_expression(librdf_node *node) {
   
   if(librdf_node_is_resource(node)) {
     raptor_uri* uri=raptor_new_uri(librdf_uri_as_string(librdf_node_get_uri(node)));
-    l=rasqal_new_literal(RASQAL_LITERAL_URI, 0, 0.0, NULL, uri);
+    l=rasqal_new_uri_literal(uri);
   } else if(librdf_node_is_literal(node)) {
     char *string;
     char *new_string;
@@ -87,12 +87,13 @@ redland_node_to_rasqal_expression(librdf_node *node) {
     string=librdf_node_get_literal_value_as_counted_string(node, &len);
     new_string=RASQAL_MALLOC(cstring, len+1);
     strcpy(new_string, (const char*)string);
-    l=rasqal_new_literal(RASQAL_LITERAL_STRING, 0, 0.0, new_string, NULL);
+    /* FIXME get language, datatype */
+    l=rasqal_new_string_literal(new_string, NULL, NULL);
   } else {
     char *blank=librdf_node_get_blank_identifier(node);
     char *new_blank=RASQAL_MALLOC(cstring, strlen(blank)+1);
     strcpy(new_blank, (const char*)blank);
-    l=rasqal_new_literal(RASQAL_LITERAL_BLANK, 0, 0.0, new_blank, NULL);
+    l=rasqal_new_simple_literal(RASQAL_LITERAL_BLANK, new_blank);
   }
 
   return rasqal_new_literal_expression(l);
