@@ -372,6 +372,43 @@ rasqal_query_get_constraint(rasqal_query* query, int idx) {
 
 
 /**
+ * rasqal_query_add_prefix: Add a namespace prefix to the query
+ * @query: &rasqal_query query object
+ * @prefix: &rasqal_prefix namespace prefix, URI
+ *
+ **/
+void
+rasqal_query_add_prefix(rasqal_query* query, rasqal_prefix* prefix) {
+  raptor_sequence_shift(query->prefixes, (void*)prefix);
+}
+
+
+/**
+ * rasqal_query_get_prefix_sequence: Get the sequence of namespace prefixes in the query
+ * @query: &rasqal_query query object
+ *
+ * Return value: a &raptor_sequence of &rasqal_prefix pointers.
+ **/
+raptor_sequence*
+rasqal_query_get_prefix_sequence(rasqal_query* query) {
+  return query->prefixes;
+}
+
+
+/**
+ * rasqal_query_get_prefix: Get a prefix in the sequence of namespsace prefixes in the query
+ * @query: &rasqal_query query object
+ * @idx: index into the sequence (0 or larger)
+ *
+ * Return value: a &rasqal_prefix pointer or NULL if out of the sequence range
+ **/
+rasqal_prefix*
+rasqal_query_get_prefix(rasqal_query* query, int idx) {
+  return (rasqal_prefix*)raptor_sequence_get_at(query->prefixes, idx);
+}
+
+
+/**
  * rasqal_query_prepare: Prepare a query - typically parse it
  * @rdf_query: the &rasqal_query object
  * @query_string: the query string
