@@ -164,6 +164,7 @@ roqet_print_results_as_xml(FILE *fh, rasqal_query_results *results)
       rasqal_literal *l=rasqal_query_results_get_binding_value(results, i);
       int print_end=1;
       size_t len;
+      int is_xml=0;
       
       if(!l)
         continue;
@@ -189,16 +190,20 @@ roqet_print_results_as_xml(FILE *fh, rasqal_query_results *results)
           if(l->language)
             roqet_print_xml_attribute(fh, "xml:lang",
                                       (unsigned char *)l->language);
-          if(l->datatype)
-            roqet_print_xml_attribute(fh, "datatype",
-                                      raptor_uri_as_string(l->datatype));
+          if(l->datatype) {
+            if(!strcmp(raptor_uri_as_string(l->datatype),
+                       raptor_xml_literal_datatype_uri_string))
+              is_xml=1;
+            else
+              roqet_print_xml_attribute(fh, "datatype",
+                                        raptor_uri_as_string(l->datatype));
+          }
+          
           fputc('>', fh);
 
-          if(l->datatype &&
-             !strcmp(raptor_uri_as_string(l->datatype),
-                     "http://www.w3.org/1999/02/22-rdf-syntax-ns#XMLLiteral")) {
+          if(is_xml)
             fputs(l->string, fh);
-          } else {
+          else {
             int xml_string_len=raptor_xml_escape_string(l->string, len,
                                                         NULL, 0, 0,
                                                         NULL, NULL);
