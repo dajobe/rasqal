@@ -917,8 +917,9 @@ rasqal_literal_expand_qname(void *user_data, rasqal_literal *l)
     if(!uri)
       return 1;
     RASQAL_FREE(cstring, l->string);
+    l->string=NULL;
     l->type=RASQAL_LITERAL_URI;
-    l->value.uri=uri; /* uri field is unioned with string field */
+    l->value.uri=uri;
   } else if (l->type == RASQAL_LITERAL_STRING) {
     raptor_uri *uri;
     
