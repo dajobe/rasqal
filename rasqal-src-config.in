@@ -60,8 +60,8 @@ while test $# -gt 0; do
     --static-libs)
       echo_static_libs=yes
       ;;
-    --usage)
-      usage 0 1>&2
+    --help|--usage)
+      usage 0
       ;;
     *)
       usage 1 1>&2
