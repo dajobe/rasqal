@@ -250,12 +250,11 @@ typedef struct {
 } rasqal_redland_triples_match_context;
 
 
-static int
+static rasqal_triple_parts
 rasqal_redland_bind_match(struct rasqal_triples_match_s* rtm,
                           void *user_data,
                           rasqal_variable* bindings[4],
-                          rasqal_triple_parts parts) 
-{
+                          rasqal_triple_parts parts) {
   rasqal_redland_triples_match_context* rtmc=(rasqal_redland_triples_match_context*)rtm->user_data;
   rasqal_literal* l;
   librdf_statement* statement=librdf_stream_get_object(rtmc->stream);
