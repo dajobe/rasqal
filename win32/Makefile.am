@@ -1,5 +1,6 @@
 EXTRA_DIST=\
-raptor.dsp raptor.dsw
+rasqal.dsp rasqal.dsw
+
 
 # Make some empty dirs that may be needed
 dist-hook:
