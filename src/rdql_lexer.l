@@ -18,7 +18,7 @@
  * full license terms.
  * 
  * To generate the C files from this source, rather than use the
- * shipped n3_lexer.c/.h needs a patched version of flex 2.5.31 such
+ * shipped rdql_lexer.c/.h needs a patched version of flex 2.5.31 such
  * as the one available in Debian GNU/Linux.   Details below
  * near the %option descriptions.
  *
@@ -360,6 +360,7 @@ copy_string_token(rasqal_query* rq, YYSTYPE* lval,
   unsigned char *language=NULL;
   unsigned char *dt=NULL;
   raptor_uri *dt_uri=NULL;
+  unsigned char *dt_qname=NULL;
 
   for(s=text, d=string, i=0; i<len; s++, i++) {
     unsigned char c=*s;
@@ -423,8 +424,6 @@ copy_string_token(rasqal_query* rq, YYSTYPE* lval,
           dt=d;
           while(i<len) {
             *d++=*s++; i++;
-            if(!isalpha(*s) || !isdigit(*s))
-              break;
           }
           /* *d='\0' below */
         }
@@ -435,10 +434,17 @@ copy_string_token(rasqal_query* rq, YYSTYPE* lval,
 
   *d='\0';
 
-  /* FIXME - dt can be a URI or qname */
-  if(dt)
-    dt_uri=raptor_new_uri(dt);
-  lval->literal=rasqal_new_string_literal(string, language, dt_uri);
+  if(dt) {
+    /* dt can be a URI or qname */
+    if(*dt == '<') {
+      dt[strlen(dt)-1]='\0';
+      dt_uri=raptor_new_uri(dt+1);
+    } else {
+      /* the qname is expanded later */
+      dt_qname=dt;
+    }
+  }
+  lval->literal=rasqal_new_string_literal(string, language, dt_uri, dt_qname);
 
   return 0;
 }
@@ -597,7 +603,22 @@ rdql_token_print(int token, YYSTYPE *lval)
       return buffer;
 
     case STRING_LITERAL:
-      sprintf(buffer, "STRING_LITERAL(%s)", lval->literal->value.string);
+      if(lval->literal->language) {
+        if(lval->literal->datatype)
+          sprintf(buffer, "STRING_LITERAL(\"%s\"@%s^^%s)",
+                  lval->literal->value.string, lval->literal->language,
+                  raptor_uri_as_string(lval->literal->datatype));
+        else
+          sprintf(buffer, "STRING_LITERAL(\"%s\"@%s)",
+                  lval->literal->value.string, lval->literal->language);
+      } else {
+        if(lval->literal->datatype)
+          sprintf(buffer, "STRING_LITERAL(\"%s\"^^%s)", 
+                  lval->literal->value.string,
+                  raptor_uri_as_string(lval->literal->datatype));
+        else
+          sprintf(buffer, "STRING_LITERAL(\"%s\")", lval->literal->value.string);
+      }
       return buffer;
 
     case PATTERN_LITERAL:
