@@ -333,6 +333,17 @@ rasqal_new_literal_expression(rasqal_literal *literal)
 }
 
 
+rasqal_expression*
+rasqal_new_function_expression(raptor_uri* name,
+                               raptor_sequence* args) {
+  rasqal_expression* e=(rasqal_expression*)RASQAL_CALLOC(rasqal_expression, sizeof(rasqal_expression), 1);
+  e->op=RASQAL_EXPR_FUNCTION;
+  e->name=name;
+  e->args=args;
+  return e;
+}
+
+
 void
 rasqal_free_expression(rasqal_expression* e)
 {
@@ -367,8 +378,11 @@ rasqal_free_expression(rasqal_expression* e)
     case RASQAL_EXPR_LITERAL:
       rasqal_free_literal(e->literal);
       break;
+    case RASQAL_EXPR_FUNCTION:
+      raptor_free_uri(e->name);
+      raptor_free_sequence(e->args);
     default:
-      abort();
+      RASQAL_FATAL2("Unknown operation %d", e->op);
   }
   RASQAL_FREE(rasqal_expression, e);
 }
@@ -408,10 +422,11 @@ rasqal_expression_foreach(rasqal_expression* e,
     case RASQAL_EXPR_STR_MATCH:
     case RASQAL_EXPR_STR_NMATCH:
     case RASQAL_EXPR_LITERAL:
+    case RASQAL_EXPR_FUNCTION:
       return fn(user_data, e);
       break;
     default:
-      abort();
+      RASQAL_FATAL2("Unknown operation %d", e->op);
   }
 }
 
@@ -963,8 +978,12 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
       return rasqal_new_literal_from_literal(e->literal);
       break;
 
+    case RASQAL_EXPR_FUNCTION:
+      RASQAL_FATAL1("No function expressions yet");
+      break;
+      
     default:
-      abort();
+      RASQAL_FATAL2("Unknown operation %d", e->op);
   }
 
   return NULL;
@@ -995,6 +1014,7 @@ static const char* rasqal_op_labels[RASQAL_EXPR_LAST+1]={
   "bang",
   "literal",
   "pattern",
+  "function"
 };
 
 void
@@ -1061,7 +1081,7 @@ rasqal_expression_print(rasqal_expression* e, FILE* fh)
       fprintf(fh, "expr_pattern(%s)", (char*)e->value);
       break;
     default:
-      abort();
+      RASQAL_FATAL2("Unknown operation %d", e->op);
   }
   fputc(')', fh);
 }
