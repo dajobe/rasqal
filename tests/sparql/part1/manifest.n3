@@ -33,5 +33,14 @@
        mf:result  <dawg-result-003.n3>
       ]
 
+      [ mf:name    "dawg-opt-query-004" ;
+        rdfs:comment
+            "Optional triples: just a single optional clauses." ;
+        mf:action
+            [ qt:query  <dawg-query-004> ;
+              qt:data   <dawg-data-01.n3> ] ;
+       mf:result  <dawg-result-004.n3>
+      ]
+
     # End of tests
    ).
