@@ -394,7 +394,6 @@ rasqal_redland_finish_triples_match(struct rasqal_triples_match_s* rtm,
                                     void *user_data) {
   rasqal_triple_meta *m=(rasqal_triple_meta *)user_data;
   
-  /* FIXME leak nodes[0..2]? */
   if(m->stream) {
     librdf_free_stream(m->stream);
     m->stream=NULL;
