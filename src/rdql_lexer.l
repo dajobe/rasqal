@@ -202,13 +202,13 @@ QUOTEDURI \<[A-Za-z][^>]+\>
 "<="         { return LE; }
 ">="         { return GE; }
 
-"+"         { return PLUS; }
-"-"         { return MINUS; }
-"*"         { return STAR; }
-"/"         { return SLASH; }
-"%"         { return REM; }
-"~"         { return TILDE; }
-"!"         { return BANG; }
+"+"         { return '+'; }
+"-"         { return '-'; }
+"*"         { return '*'; }
+"/"         { return '/'; }
+"%"         { return '%'; }
+"~"         { return '~'; }
+"!"         { return '!'; }
 
 [0-9]+["lL"]?   { c=yytext[yyleng-1];
                   if (c== 'l' || c == 'L')
@@ -622,26 +622,26 @@ rdql_token_print(int token, YYSTYPE *lval)
     case EQ:
       return "EQ";
 
-    case REM:
-      return "REM";
+    case '%':
+      return "%";
 
-    case SLASH:
-      return "SLASH";
+    case '/':
+      return "/";
 
-    case STAR:
-      return "STAR";
+    case '*':
+      return "*";
 
-    case MINUS:
-      return "MINUS";
+    case '-':
+      return "-";
 
-    case PLUS:
-      return "PLUS";
+    case '+':
+      return "+";
 
-    case BANG:
-      return "BANG";
+    case '!':
+      return "!";
 
-    case TILDE:
-      return "TILDE";
+    case '~':
+      return "~";
 
     case INTEGER_LITERAL:
       sprintf(buffer, "INTEGER_LITERAL(%d)", lval->literal->value.integer);

@@ -144,10 +144,10 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...);
 %left EQ NEQ LT GT LE GE
 
 /* arithmetic operations */
-%left PLUS MINUS STAR SLASH REM
+%left "+" "-" "*" "/" "%"
 
-/* ? operations */
-%left TILDE BANG
+/* unary operations */
+%left "~" "!"
 
 /* literals */
 %token <literal> FLOATING_POINT_LITERAL
@@ -217,7 +217,7 @@ SelectClause : DISTINCT VarList
   $$=$2;
   ((rasqal_query*)rq)->distinct=1;
 }
-| DISTINCT STAR
+| DISTINCT '*'
 {
   $$=NULL;
   ((rasqal_query*)rq)->select_all=1;
@@ -227,7 +227,7 @@ SelectClause : DISTINCT VarList
 {
   $$=$1;
 }
-| STAR
+| '*'
 {
   $$=NULL;
   ((rasqal_query*)rq)->select_all=1;
@@ -240,7 +240,7 @@ ConstructClause : TriplePatternList
 {
   $$=$1;
 }
-| STAR
+| '*'
 {
   $$=NULL;
   ((rasqal_query*)rq)->construct_all=1;
@@ -253,7 +253,7 @@ DescribeClause : VarOrURIList
 {
   $$=$1;
 }
-| STAR
+| '*'
 {
   $$=NULL;
 }
@@ -344,7 +344,7 @@ GraphPattern1 : TriplePattern
 /* SPARQL Grammar: [12] PatternElementForms */
 
 /* This inlines use-once SourceGraphPattern and OptionalGraphPattern */
-PatternElementForms : SOURCE STAR GraphPattern1  /* from SourceGraphPattern */
+PatternElementForms : SOURCE '*' GraphPattern1  /* from SourceGraphPattern */
 {
   /* FIXME - SOURCE * has no defined meaning */
   $$=$3;
@@ -604,11 +604,11 @@ RelationalExpression : AdditiveExpression LT AdditiveExpression
 /* SPARQL Grammar: [29] NumericComparitor - merged into RelationalExpression */
 
 /* SPARQL Grammar: [30] AdditiveExpression */
-AdditiveExpression : MultiplicativeExpression PLUS AdditiveExpression
+AdditiveExpression : MultiplicativeExpression '+' AdditiveExpression
 {
   $$=rasqal_new_2op_expression(RASQAL_EXPR_PLUS, $1, $3);
 }
-| MultiplicativeExpression MINUS AdditiveExpression
+| MultiplicativeExpression '-' AdditiveExpression
 {
   $$=rasqal_new_2op_expression(RASQAL_EXPR_MINUS, $1, $3);
 }
@@ -622,15 +622,15 @@ AdditiveExpression : MultiplicativeExpression PLUS AdditiveExpression
 
 
 /* SPARQL Grammar: [32] MultiplicativeExpression */
-MultiplicativeExpression : UnaryExpression STAR MultiplicativeExpression
+MultiplicativeExpression : UnaryExpression '*' MultiplicativeExpression
 {
   $$=rasqal_new_2op_expression(RASQAL_EXPR_STAR, $1, $3);
 }
-| UnaryExpression SLASH MultiplicativeExpression
+| UnaryExpression '/' MultiplicativeExpression
 {
   $$=rasqal_new_2op_expression(RASQAL_EXPR_SLASH, $1, $3);
 }
-| UnaryExpression REM MultiplicativeExpression
+| UnaryExpression '%' MultiplicativeExpression
 {
   $$=rasqal_new_2op_expression(RASQAL_EXPR_REM, $1, $3);
 }
@@ -643,11 +643,11 @@ MultiplicativeExpression : UnaryExpression STAR MultiplicativeExpression
 /* SPARQL Grammar: [33] MultiplicativeOperation - merged into MultiplicativeExpression */
 
 /* SPARQL Grammar: [34] UnaryExpression */
-UnaryExpression : UnaryExpressionNotPlusMinus PLUS UnaryExpression 
+UnaryExpression : UnaryExpressionNotPlusMinus '+' UnaryExpression 
 {
   $$=rasqal_new_2op_expression(RASQAL_EXPR_PLUS, $1, $3);
 }
-| UnaryExpressionNotPlusMinus MINUS UnaryExpression
+| UnaryExpressionNotPlusMinus '-' UnaryExpression
 {
   $$=rasqal_new_2op_expression(RASQAL_EXPR_MINUS, $1, $3);
 }
@@ -656,18 +656,18 @@ UnaryExpression : UnaryExpressionNotPlusMinus PLUS UnaryExpression
   /* FIXME - 2 shift/reduce conflicts here
    *
    * The original grammar and this one is ambiguous in allowing
-   * PLUS/MINUS in UnaryExpression as well as AdditiveExpression
+   * '+'/'-' in UnaryExpression as well as AdditiveExpression
    */
   $$=$1;
 }
 ;
 
 /* SPARQL Grammar: [35] UnaryExpressionNotPlusMinus */
-UnaryExpressionNotPlusMinus : TILDE UnaryExpression
+UnaryExpressionNotPlusMinus : '~' UnaryExpression
 {
   $$=rasqal_new_1op_expression(RASQAL_EXPR_TILDE, $2);
 }
-| BANG UnaryExpression
+| '!' UnaryExpression
 {
   $$=rasqal_new_1op_expression(RASQAL_EXPR_BANG, $2);
 }
