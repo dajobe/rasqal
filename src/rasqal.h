@@ -320,9 +320,19 @@ RASQAL_API void rasqal_variable_set_value(rasqal_variable* v, rasqal_literal *l)
 
 struct rasqal_triples_match_s {
   void *user_data;
+
+  /* the [4]array (s,p,o,origin) bindings against the current triple match
+   * returns 0 on failure
+   */
   int (*bind_match)(struct rasqal_triples_match_s*, void *user_data, rasqal_variable *bindings[4]);
+
+  /* move to next match */
   void (*next_match)(struct rasqal_triples_match_s*, void *user_data);
+
+  /* check for end of triple match - return non-0 if is end */
   int (*is_end)(struct rasqal_triples_match_s*, void *user_data);
+
+  /* finish triples match and destroy any allocated memory */
   void (*finish)(struct rasqal_triples_match_s*, void *user_data);
 };
 typedef struct rasqal_triples_match_s rasqal_triples_match;

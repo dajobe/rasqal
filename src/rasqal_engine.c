@@ -719,7 +719,7 @@ rasqal_graph_pattern_get_next_match(rasqal_query *query,
         continue;
       }
 
-      if(rasqal_triples_match_bind_match(m->triples_match, m->bindings))
+      if(!rasqal_triples_match_bind_match(m->triples_match, m->bindings))
         rc=0;
 
       rasqal_triples_match_next_match(m->triples_match);

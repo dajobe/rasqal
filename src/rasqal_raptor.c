@@ -385,9 +385,9 @@ rasqal_raptor_bind_match(struct rasqal_triples_match_s* rtm,
     if(bindings[0] == bindings[1]) {
       if(rasqal_literal_compare(rtmc->cur->triple->subject,
                                 rtmc->cur->triple->predicate, 0, &error))
-        return 1;
+        return 0;
       if(error)
-        return 1;
+        return 0;
       
       RASQAL_DEBUG1("subject and predicate values match\n");
     } else {
@@ -402,9 +402,9 @@ rasqal_raptor_bind_match(struct rasqal_triples_match_s* rtm,
     if(bindings[0] == bindings[2]) {
       if(rasqal_literal_compare(rtmc->cur->triple->subject,
                                 rtmc->cur->triple->object, 0, &error))
-        return 1;
+        return 0;
       if(error)
-        return 1;
+        return 0;
 
       bind=0;
       RASQAL_DEBUG1("subject and object values match\n");
@@ -414,9 +414,9 @@ rasqal_raptor_bind_match(struct rasqal_triples_match_s* rtm,
        ) {
       if(rasqal_literal_compare(rtmc->cur->triple->predicate,
                                 rtmc->cur->triple->object, 0, &error))
-        return 1;
+        return 0;
       if(error)
-        return 1;
+        return 0;
 
       bind=0;
       RASQAL_DEBUG1("predicate and object values match\n");
@@ -434,7 +434,7 @@ rasqal_raptor_bind_match(struct rasqal_triples_match_s* rtm,
     rasqal_variable_set_value(bindings[3], l);
   }
 
-  return 0;
+  return 1;
 }
 
 
