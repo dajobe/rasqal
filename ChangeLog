@@ -1,4 +1,61 @@
+2004-10-16  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* tests/sparql/examples/.cvsignore,
+	tests/sparql/examples/Makefile.am,
+	tests/sparql/examples/ex2-1a-result.n3,
+	tests/sparql/examples/ex2-1a.n3, tests/sparql/examples/ex2-1a.rq,
+	tests/sparql/examples/ex2-1b.rq, tests/sparql/examples/ex2-1c.rq,
+	tests/sparql/examples/ex2-1d.n3, tests/sparql/examples/ex2-1e.rq,
+	tests/sparql/examples/ex2-1f.n3,
+	tests/sparql/examples/ex2-2a-result.n3,
+	tests/sparql/examples/ex2-2a.n3, tests/sparql/examples/ex2-2a.rq,
+	tests/sparql/examples/ex2-3a-result.n3,
+	tests/sparql/examples/ex2-3a.n3, tests/sparql/examples/ex2-3a.rq,
+	tests/sparql/examples/ex2-4a-result.n3,
+	tests/sparql/examples/ex2-4a.n3, tests/sparql/examples/ex2-4a.rq,
+	tests/sparql/examples/ex3-result.n3, tests/sparql/examples/ex3.n3,
+	tests/sparql/examples/ex3.rq, tests/sparql/examples/manifest.n3:
+	SPARQL examples from query WD
+
+	* tests/sparql/simple/Makefile.am, tests/sparql/part1/Makefile.am,
+	tests/sparql/Makefile.am, tests/rdql/testsuite/Makefile.am,
+	tests/rdql/Makefile.am: Use indirect rules for the lexer, parser
+	tests for rdql, sparql and roqet
+
+	* configure.ac: Added tests/sparql/examples/Makefile
+
+	* sparql_parser.y:
+	Added SPARQL URI token replacing URI_LITERAL | QNAME_LITERAL for
+	clarity.
+	Makes several List tokens shorter
+
+	* sparql_parser.y (VarOrURIList, VarList): Made left recursive.
+	(VarOrURI): Don't allow a QName.
+
+	* rdql_parser.y (TriplePatternList): rewrite as left recursive
+
+	* rdql_parser.y (VarList): rewrite as left recursive
+
+	* roqet.c (main): When adding source_uri as a triple source, URI is now
+	managed by the query, so drop the source_uri pointer.
+
 2004-10-15  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* sparql_parser.y (PrefixDeclOpt): Actually use query->prefixes list.
+
+	* sparql_parser.y (PrefixDeclOpt):
+	Add new prefix to existing prefixes list.
+	(main): Update test code to initialise/free static query.prefixes.
+
+	* rdql_parser.y (Query): Do not initialise query->prefixes.
+	(PrefixDeclList): Shift new prefixes to existing prefixes list.
+	(main): Update test code to initialise/free static query.prefixes.
+
+	* rasqal_query.c (rasqal_new_query):
+	Init query->prefixes here rather than in each QL
+	implementation.
+
+	* sparql_parser.y: Remove prefix from %union - not needed
 
 	* sparql_parser.y, sparql_lexer.l, rasqal_internal.h:
 	Updated SPARQL parser to approximately
