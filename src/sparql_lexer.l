@@ -63,7 +63,7 @@
 %option reentrant
 
 
-%x PATTERN ID
+%x PATTERN ID PREF
 
   /* definitions */
 
@@ -125,9 +125,10 @@ void brql_lexer_set_column(int  column_no , yyscan_t yyscanner);
 %}
 
 LANGUAGETOKEN [[:alpha:]][[:alnum:]]*
-PREFIX [[:alpha:]][[:alnum:]]*
-NAME [[:alpha:]][[:alnum:]_]*
-QNAME [[:alpha:]][[:alnum:]]*:[[:alpha:]][-[:alnum:]_]*
+PREFIX [A-Za-z][-A-Za-z0-9_]*
+NAME [A-Za-z_][-A-Za-z0-9_]*
+QNAME ":"|{PREFIX}":"|":"{NAME}|{PREFIX}":"{NAME}
+
 /* The initial char conditions are to ensure this doesn't grab < or <= */
 QUOTEDURI \<[A-Za-z][^>]+\>
 
@@ -160,8 +161,8 @@ QUOTEDURI \<[A-Za-z][^>]+\>
 "AND"|"and"       { return AND; } 
 "USING"|"using"   { return USING; }
 "FOR"|"for"       { return FOR; }
-"OPTIONAL"|"optional"	{ return OPTIONAL; } /* BRQL */
-"PREFIX"|"prefix"	{ return PREFIX; } /* BRQL */
+"PREFIX"|"prefix" { BEGIN(PREF);
+		return PREFIX; } /* BRQL */
 "DESCRIBE"|"describe"	{ return DESCRIBE; } /* BRQL */
 "CONSTRUCT"|"construct"	{ return CONSTRUCT; } /* BRQL */
 "ASK"|"ask"	{ return ASK; } /* BRQL */
@@ -172,6 +173,8 @@ QUOTEDURI \<[A-Za-z][^>]+\>
 ","      { return COMMA; } 
 "("      { return LPAREN; } 
 ")"      { return RPAREN; } 
+"["       { return LSQUARE; }
+"]"       { return RSQUARE; }
 "?"      { BEGIN(ID); return VARPREFIX; }
 
 "||"         { return SC_OR; }
@@ -249,16 +252,27 @@ QUOTEDURI \<[A-Za-z][^>]+\>
 "null"	{ brql_parser_lval->literal=NULL;
           return NULL_LITERAL; }
 
-<*>{NAME}	{ brql_parser_lval->name=copy_token(rq, (const unsigned char*)yytext, yyleng);
+<ID>{NAME}	{ brql_parser_lval->name=copy_token(rq, (const unsigned char*)yytext, yyleng);
                           BEGIN(INITIAL);
                           return IDENTIFIER; }
 
+<PREF>[\ \t\v]+ { /* eat up leading whitespace */ }
+<PREF>{PREFIX}":"	{ BEGIN(INITIAL);
+		  	  brql_parser_lval->name=copy_token(rq, (const unsigned char*)yytext, yyleng-1);
+                          return IDENTIFIER; }
+<PREF>":"	{ BEGIN(INITIAL);
+		  brql_parser_lval->name=NULL;
+                  return IDENTIFIER; }
+
+<PREF>.		{ BEGIN(INITIAL);
+		  if (*yytext == EOF)
+                    return EOF;
+
+                  brql_syntax_error(rq, "syntax error at '%c'", *yytext);
+                  return ERROR;  }
+
 {QNAME}	{ brql_parser_lval->name=copy_token(rq, (const unsigned char*)yytext, yyleng);
                           return QNAME_LITERAL; }
-
-\<{QNAME}\>	{ brql_parser_lval->name=copy_token(rq, (const unsigned char*)yytext+1, yyleng-2);
-                  brql_syntax_warning(rq, "obsolete <qname> syntax found in \"%s\"", (const unsigned char*)yytext);
-                  return QNAME_LITERAL; }
 
 {QUOTEDURI}   { if(yyleng == 2) 
                   brql_parser_lval->uri=raptor_uri_copy(rq->base_uri);
@@ -560,9 +574,6 @@ brql_token_print(int token, YYSTYPE *lval)
     case FOR:
       return "FOR";
 
-    case OPTIONAL:
-      return "OPTIONAL";
-
     case PREFIX:
       return "PREFIX";
 
@@ -592,6 +603,12 @@ brql_token_print(int token, YYSTYPE *lval)
 
     case RPAREN:
       return "RPAREN";
+
+    case LSQUARE:
+      return "LSQUARE";
+
+    case RSQUARE:
+      return "RSQUARE";
 
     case VARPREFIX:
       return "VARPREFIX";
