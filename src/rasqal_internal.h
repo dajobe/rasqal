@@ -107,13 +107,13 @@ typedef struct rasqal_query_engine_factory_s rasqal_query_engine_factory;
  * Pattern graph for executing
  */
 struct rasqal_graph_pattern_s {
-  rasqal_query *query;
+  rasqal_query* query;
   
-  raptor_sequence *triples;          /* ... rasqal_triple*         */
-  raptor_sequence *graph_patterns;   /* ... rasqal_graph_pattern*  */
+  raptor_sequence* triples;          /* ... rasqal_triple*         */
+  raptor_sequence* graph_patterns;   /* ... rasqal_graph_pattern*  */
 
   /* An array of items, one per triple in the pattern graph */
-  rasqal_triple_meta *triple_meta;
+  rasqal_triple_meta* triple_meta;
 
   int column;
 
@@ -144,12 +144,12 @@ struct rasqal_graph_pattern_s {
 
 };
 
-rasqal_graph_pattern* rasqal_new_graph_pattern_from_triples(rasqal_query *query, raptor_sequence *triples, int start_column, int end_column, int flags);
-rasqal_graph_pattern* rasqal_new_graph_pattern_from_sequence(rasqal_query *query, raptor_sequence *graph_patterns, int flags);
-void rasqal_free_graph_pattern(rasqal_graph_pattern* pg);
-void rasqal_graph_pattern_init(rasqal_graph_pattern *gp);
+rasqal_graph_pattern* rasqal_new_graph_pattern_from_triples(rasqal_query* query, raptor_sequence* triples, int start_column, int end_column, int flags);
+rasqal_graph_pattern* rasqal_new_graph_pattern_from_sequence(rasqal_query* query, raptor_sequence* graph_patterns, int flags);
+void rasqal_free_graph_pattern(rasqal_graph_pattern* gp);
+void rasqal_graph_pattern_init(rasqal_graph_pattern* gp);
 void rasqal_graph_pattern_adjust(rasqal_graph_pattern* gp, int offset);
-void rasqal_graph_pattern_set_origin(rasqal_graph_pattern* graph_pattern, rasqal_literal *origin);
+void rasqal_graph_pattern_set_origin(rasqal_graph_pattern* graph_pattern, rasqal_literal* origin);
 
 /*
  * A query in some query language
@@ -157,19 +157,19 @@ void rasqal_graph_pattern_set_origin(rasqal_graph_pattern* graph_pattern, rasqal
 struct rasqal_query_s {
   int usage; /* reference count - 1 for itself, plus for query_results */
   
-  unsigned char *query_string;
+  unsigned char* query_string;
 
-  raptor_namespace_stack *namespaces;
+  raptor_namespace_stack* namespaces;
 
   /* sequences of ... */
-  raptor_sequence *selects;     /* ... rasqal_variable* names only */
-  raptor_sequence *data_graphs; /* ... rasqal_data_graph*          */
-  raptor_sequence *sources;     /* ... raptor_uri*  (DEPRECATED)   */
-  raptor_sequence *triples;     /* ... rasqal_triple*              */
-  raptor_sequence *prefixes;    /* ... rasqal_prefix*              */
-  raptor_sequence *constructs;  /* ... rasqal_triple*       SPARQL */
-  raptor_sequence *optional_triples; /* ... rasqal_triple*  SPARQL */
-  raptor_sequence *describes;   /* ... rasqal_literal* (var or URIs) SPARQL */
+  raptor_sequence* selects;     /* ... rasqal_variable* names only */
+  raptor_sequence* data_graphs; /* ... rasqal_data_graph*          */
+  raptor_sequence* sources;     /* ... raptor_uri*  (DEPRECATED)   */
+  raptor_sequence* triples;     /* ... rasqal_triple*              */
+  raptor_sequence* prefixes;    /* ... rasqal_prefix*              */
+  raptor_sequence* constructs;  /* ... rasqal_triple*       SPARQL */
+  raptor_sequence* optional_triples; /* ... rasqal_triple*  SPARQL */
+  raptor_sequence* describes;   /* ... rasqal_literal* (var or URIs) SPARQL */
 
   /* non-0 if DISTINCT was seen in the query (SELECT or DESCRIBE) */
   int distinct;
@@ -201,14 +201,14 @@ struct rasqal_query_s {
    * The first select_variables_count of this array are from the selects
    * and are typically returned to the user.
    */
-  rasqal_variable **variables;
+  rasqal_variable** variables;
   int variables_count;
   int select_variables_count;
 
   /* array of size variables_count
    * pointing to triple column where variable[i] is declared
    */
-  int *variables_declared_in;
+  int* variables_declared_in;
 
   /* holds one copy of all the variables - this is where they are freed */
   raptor_sequence* variables_sequence;
@@ -235,18 +235,18 @@ struct rasqal_query_s {
   int failed;
 
   /* stuff for our user */
-  void *user_data;
+  void* user_data;
 
-  void *fatal_error_user_data;
-  void *error_user_data;
-  void *warning_user_data;
+  void* fatal_error_user_data;
+  void* error_user_data;
+  void* warning_user_data;
 
   raptor_message_handler fatal_error_handler;
   raptor_message_handler error_handler;
   raptor_message_handler warning_handler;
 
   /* query engine specific stuff */
-  void *context;
+  void* context;
 
   /* stopping? */
   int abort;
@@ -264,13 +264,13 @@ struct rasqal_query_s {
   rasqal_triples_source_factory* triples_source_factory;
 
   /* (linked list of) query results made from this query */
-  rasqal_query_results *results;
+  rasqal_query_results* results;
 
   /* incrementing counter for declaring prefixes in order of appearance */
   int prefix_depth;
 
   /* sequence of rasqal_graph_pattern* */
-  raptor_sequence *graph_patterns;
+  raptor_sequence* graph_patterns;
 
   /* current position in the sequence */
   int current_graph_pattern;
@@ -290,10 +290,10 @@ struct rasqal_query_s {
   int max_optional_graph_pattern;
 
   /* result triple - internal, not returned */
-  rasqal_triple *triple;
+  rasqal_triple* triple;
   
   /* sequence of constraints - internal for RDQL parsing, not returned */
-  raptor_sequence *constraints_sequence;
+  raptor_sequence* constraints_sequence;
   
   /* result triple (SHARED) */
   raptor_statement statement;
@@ -353,7 +353,7 @@ struct rasqal_query_engine_factory_s {
  */
 struct rasqal_query_results_s {
   /* query that this was executed over */
-  rasqal_query *query;
+  rasqal_query* query;
 
   /* next query result */
   rasqal_query_results *next;
@@ -361,22 +361,22 @@ struct rasqal_query_results_s {
     
 
 /* rasqal_general.c */
-char* rasqal_vsnprintf(const char *message, va_list arguments);
+char* rasqal_vsnprintf(const char* message, va_list arguments);
 
-void rasqal_query_engine_register_factory(const char *name, const char *label, const char *alias, const unsigned char *uri_string, void (*factory) (rasqal_query_engine_factory*));
-rasqal_query_engine_factory* rasqal_get_query_engine_factory (const char *name, const unsigned char *uri);
+void rasqal_query_engine_register_factory(const char* name, const char* label, const char* alias, const unsigned char* uri_string, void (*factory) (rasqal_query_engine_factory*));
+rasqal_query_engine_factory* rasqal_get_query_engine_factory (const char* name, const unsigned char* uri);
 
-void rasqal_query_fatal_error(rasqal_query* query, const char *message, ...);
-void rasqal_query_fatal_error_varargs(rasqal_query* query, const char *message, va_list arguments);
-void rasqal_query_error(rasqal_query* query, const char *message, ...);
-void rasqal_query_simple_error(void* query, const char *message, ...);
-void rasqal_query_error_varargs(rasqal_query* query, const char *message, va_list arguments);
-void rasqal_query_warning(rasqal_query* query, const char *message, ...);
-void rasqal_query_warning_varargs(rasqal_query* query, const char *message, va_list arguments);
+void rasqal_query_fatal_error(rasqal_query* query, const char* message, ...);
+void rasqal_query_fatal_error_varargs(rasqal_query* query, const char* message, va_list arguments);
+void rasqal_query_error(rasqal_query* query, const char* message, ...);
+void rasqal_query_simple_error(void* query, const char* message, ...);
+void rasqal_query_error_varargs(rasqal_query* query, const char* message, va_list arguments);
+void rasqal_query_warning(rasqal_query* query, const char* message, ...);
+void rasqal_query_warning_varargs(rasqal_query* query, const char* message, va_list arguments);
 
-const char* rasqal_basename(const char *name);
+const char* rasqal_basename(const char* name);
 
-unsigned char* rasqal_escaped_name_to_utf8_string(const unsigned char *src, size_t len, size_t *dest_lenp, raptor_simple_message_handler error_handler, void *error_data);
+unsigned char* rasqal_escaped_name_to_utf8_string(const unsigned char* src, size_t len, size_t* dest_lenp, raptor_simple_message_handler error_handler, void* error_data);
 
 /* rdql_parser.y */
 void rasqal_init_query_engine_rdql (void);
@@ -386,40 +386,40 @@ void rasqal_init_query_engine_sparql (void);
 
 /* rasqal_engine.c */
 int rasqal_query_order_triples(rasqal_query* query);
-int rasqal_engine_declare_prefix(rasqal_query *rq, rasqal_prefix *prefix);
-int rasqal_engine_undeclare_prefix(rasqal_query *rq, rasqal_prefix *prefix);
-int rasqal_engine_declare_prefixes(rasqal_query *rq);
-int rasqal_engine_sequence_has_qname(raptor_sequence *seq);
+int rasqal_engine_declare_prefix(rasqal_query* rq, rasqal_prefix* prefix);
+int rasqal_engine_undeclare_prefix(rasqal_query* rq, rasqal_prefix* prefix);
+int rasqal_engine_declare_prefixes(rasqal_query* rq);
+int rasqal_engine_sequence_has_qname(raptor_sequence* seq);
 int rasqal_engine_expand_triple_qnames(rasqal_query* rq);
 int rasqal_engine_query_constraints_has_qname(rasqal_query* gp);
 int rasqal_engine_graph_pattern_constraints_has_qname(rasqal_graph_pattern* gp);
 int rasqal_engine_expand_query_constraints_qnames(rasqal_query* rq);
-int rasqal_engine_expand_graph_pattern_constraints_qnames(rasqal_query *rq, rasqal_graph_pattern* gp);
+int rasqal_engine_expand_graph_pattern_constraints_qnames(rasqal_query* rq, rasqal_graph_pattern* gp);
 int rasqal_engine_build_constraints_expression(rasqal_graph_pattern* gp);
 int rasqal_engine_assign_variables(rasqal_query* rq);
 
-int rasqal_engine_prepare(rasqal_query *query);
-int rasqal_engine_execute_init(rasqal_query *query);
-int rasqal_engine_execute_finish(rasqal_query *query);
-int rasqal_engine_run(rasqal_query *q);
+int rasqal_engine_prepare(rasqal_query* query);
+int rasqal_engine_execute_init(rasqal_query* query);
+int rasqal_engine_execute_finish(rasqal_query* query);
+int rasqal_engine_run(rasqal_query* q);
 
-rasqal_triples_source* rasqal_new_triples_source(rasqal_query *query);
-void rasqal_free_triples_source(rasqal_triples_source *rts);
-int rasqal_triples_source_next_source(rasqal_triples_source *rts);
+rasqal_triples_source* rasqal_new_triples_source(rasqal_query* query);
+void rasqal_free_triples_source(rasqal_triples_source* rts);
+int rasqal_triples_source_next_source(rasqal_triples_source* rts);
 
-int rasqal_engine_get_next_result(rasqal_query *query);
-void rasqal_engine_assign_binding_values(rasqal_query *query);
+int rasqal_engine_get_next_result(rasqal_query* query);
+void rasqal_engine_assign_binding_values(rasqal_query* query);
 
 /* rasqal_expr.c */
-int rasqal_literal_as_boolean(rasqal_literal* literal, int *error);
-int rasqal_literal_as_integer(rasqal_literal* l, int *error);
-double rasqal_literal_as_floating(rasqal_literal* l, int *error);
+int rasqal_literal_as_boolean(rasqal_literal* literal, int* error);
+int rasqal_literal_as_integer(rasqal_literal* l, int* error);
+double rasqal_literal_as_floating(rasqal_literal* l, int* error);
 raptor_uri* rasqal_literal_as_uri(rasqal_literal* l);
-void rasqal_literal_string_to_native(rasqal_literal *l);
-int rasqal_literal_has_qname(rasqal_literal *l);
-int rasqal_literal_expand_qname(void *user_data, rasqal_literal *l);
-int rasqal_expression_has_qname(void *user_data, rasqal_expression *e);
-int rasqal_expression_expand_qname(void *user_data, rasqal_expression *e);
+void rasqal_literal_string_to_native(rasqal_literal* l);
+int rasqal_literal_has_qname(rasqal_literal* l);
+int rasqal_literal_expand_qname(void* user_data, rasqal_literal* l);
+int rasqal_expression_has_qname(void* user_data, rasqal_expression* e);
+int rasqal_expression_expand_qname(void* user_data, rasqal_expression* e);
 
 /* strcasecmp.c */
 #ifdef HAVE_STRCASECMP
