@@ -39,11 +39,10 @@
 #include <stdarg.h>
 
 #include <redland.h>
-#include <rasqal.h>
 
+#include "rasqal.h"
+#include "rasqal_internal.h"
 
-/* FIXME - import some librdf things while this remains outside librdf */
-void rasqal_redland_init(librdf_world *world);
 
 #define LIBRDF_MALLOC(type, size) malloc(size)
 #define LIBRDF_CALLOC(type, size, count) calloc(size, count)
@@ -141,7 +140,7 @@ rasqal_redland_new_triples_source(rasqal_query* rdf_query,
   const char *parser_name;
   raptor_uri *uri=NULL;
   
-  uri=(raptor_uri*)raptor_sequence_get_at(rdf_query->sources, 0);
+  uri=rasqal_query_get_source(rdf_query, 0);
 
   /* no default triple source possible */
   if(!uri)
@@ -397,9 +396,18 @@ rasqal_redland_new_triples_match(rasqal_triples_source *rts, void *user_data,
   return rtm;
 }
 
+static librdf_world* Rasqal_Redland_World=NULL;
 
 void
-rasqal_redland_init(librdf_world *world) {
-  rasqal_set_triples_source_factory(rasqal_redland_register_triples_source_factory, (void*)world);
+rasqal_redland_init(void) {
+  Rasqal_Redland_World=librdf_new_world();
+  librdf_world_open(Rasqal_Redland_World);
+  rasqal_set_triples_source_factory(rasqal_redland_register_triples_source_factory, Rasqal_Redland_World);
+}
+
+void
+rasqal_redland_finish() {
+  librdf_free_world(Rasqal_Redland_World);
+  Rasqal_Redland_World=NULL;
 }
 
