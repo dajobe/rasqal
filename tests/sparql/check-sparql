@@ -161,7 +161,8 @@ sub run_test($$$$$) {
       my $value=$nodes{$binding_node}->{$value_predicate}->[0];
       $results{$variable}=toDebug($value);
     }
-    print OUT "result: [",join(", ",map {"$_=$results{$_}"} @vars_order),"]\n";
+    print OUT "result: [",join(", ",map {$results{$_} ? "$_=$results{$_}" : "$_=undef"} @vars_order),"]\n"
+      if @vars_order;
     $count++;
   }
   close(OUT);
