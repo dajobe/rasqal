@@ -201,6 +201,27 @@ rasqal_engine_declare_prefixes(rasqal_query *rq)
 
   return 0;
 }
+
+
+static int
+rasqal_engine_expand_qname(void *user_data, rasqal_expression *e) {
+  rasqal_query *rq=(rasqal_query *)user_data;
+
+  if(e->op == RASQAL_EXPR_LITERAL &&
+     e->literal->type == RASQAL_LITERAL_QNAME) {
+    rasqal_literal *l=e->literal;
+    raptor_uri *uri=raptor_qname_string_to_uri(rq->namespaces,
+                                               l->value.string, 
+                                               strlen(l->value.string),
+                                               rasqal_query_simple_error, rq);
+    if(!uri)
+      return 1;
+    RASQAL_FREE(cstring, l->value.string);
+    l->type=RASQAL_LITERAL_URI;
+    l->value.uri=uri; /* uri field is unioned with string field */
+  }
+  return 0;
+}
  
 
 int
@@ -211,50 +232,53 @@ rasqal_engine_expand_triple_qnames(rasqal_query* rq)
   /* expand qnames in triples */
   for(i=0; i< rasqal_sequence_size(rq->triples); i++) {
     rasqal_triple* t=rasqal_sequence_get_at(rq->triples, i);
-
-    if(t->subject->op == RASQAL_EXPR_LITERAL &&
-       t->subject->literal->type == RASQAL_LITERAL_QNAME) {
-      rasqal_literal *l=t->subject->literal;
-      raptor_uri *uri=raptor_qname_string_to_uri(rq->namespaces,
-                                                 l->value.string, 
-                                                 strlen(l->value.string),
-                                                 rasqal_query_simple_error, rq);
-      if(!uri)
-        return 1;
-      RASQAL_FREE(cstring, l->value.string);
-      l->type=RASQAL_LITERAL_URI;
-      l->value.uri=uri; /* uri field is unioned with string field */
-    }
-
-    if(t->predicate->op == RASQAL_EXPR_LITERAL &&
-       t->predicate->literal->type == RASQAL_LITERAL_QNAME) {
-      rasqal_literal *l=t->predicate->literal;
-      raptor_uri *uri=raptor_qname_string_to_uri(rq->namespaces,
-                                                 l->value.string, 
-                                                 strlen(l->value.string),
-                                                 rasqal_query_simple_error, rq);
-      if(!uri)
-        return 1;
-      RASQAL_FREE(cstring, l->value.string);
-      l->type=RASQAL_LITERAL_URI;
-      l->value.uri=uri; /* uri field is unioned with string field */
-    }
-
-    if(t->object->op == RASQAL_EXPR_LITERAL &&
-       t->object->literal->type == RASQAL_LITERAL_QNAME) {
-      rasqal_literal *l=t->object->literal;
-      raptor_uri *uri=raptor_qname_string_to_uri(rq->namespaces,
-                                                 l->value.string, 
-                                                 strlen(l->value.string),
-                                                 rasqal_query_simple_error, rq);
-      if(!uri)
-        return 1;
-      RASQAL_FREE(cstring, l->value.string);
-      l->type=RASQAL_LITERAL_URI;
-      l->value.uri=uri; /* uri field is unioned with string field */
-    }
-
+    if(rasqal_engine_expand_qname(rq, t->subject) ||
+       rasqal_engine_expand_qname(rq, t->predicate) ||
+       rasqal_engine_expand_qname(rq, t->object))
+      return 1;
   }
+
+  return 0;
+}
+
+
+int
+rasqal_engine_expand_constraints_qnames(rasqal_query* rq)
+{
+  int i;
+  
+  if(!rq->constraints)
+    return;
+  
+  /* expand qnames in constraint expressions */
+  for(i=0; i<rasqal_sequence_size(rq->constraints); i++) {
+    rasqal_expression* e=(rasqal_expression*)rasqal_sequence_get_at(rq->constraints, i);
+    if(rasqal_expression_foreach(e, rasqal_engine_expand_qname, rq))
+      return 1;
+  }
+
+  return 0;
+}
+
+
+int
+rasqal_engine_build_constraints_expression(rasqal_query* rq)
+{
+  rasqal_expression* newe=NULL;
+  int i;
+  
+  if(!rq->constraints)
+    return 0;
+  
+  for(i=rasqal_sequence_size(rq->constraints)-1; i>=0 ; i--) {
+    rasqal_expression* e=rasqal_sequence_get_at(rq->constraints, i);
+    if(!newe)
+      newe=e;
+    else
+      /* must make a conjunction */
+      newe=rasqal_new_2op_expression(RASQAL_EXPR_PLUS, e, newe);
+  }
+  rq->constraints_expression=newe;
 
   return 0;
 }
