@@ -215,7 +215,7 @@ QUOTEDURI \<[A-Za-z][^>]+\>
 }
 
 '([^'\\\n\r]|\\[^\n\r])*'(@{LANGUAGETOKEN})?(^^({QUOTEDURI}|{QNAME}))?    { /*' */
-                               copy_string_token(rq, yytext+1, yyleng-2, '\"');
+                               copy_string_token(rq, yytext+1, yyleng-2, '\'');
                                return STRING_LITERAL; }
 
 \"([^"\\\n\r]|\\[^\n\r])*\"(@{LANGUAGETOKEN})?(^^({QUOTEDURI}|{QNAME}))?   { /* " */
