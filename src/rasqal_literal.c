@@ -198,12 +198,12 @@ rasqal_literal_string_to_native(rasqal_literal *l)
  * All parameters are input parameters and if present are stored in
  * the literal, not copied.
  * 
- * The datatype and datatype_qname paramters are alternatives; the
+ * The datatype and datatype_qname parameters are alternatives; the
  * qname is a datatype that cannot be resolved till later since the
  * prefixes have not yet been declared or checked.
  * 
  * If the string literal is datatyped and of certain types recognised
- * it may be promoted to a different literal type by
+ * it may be converted to a different literal type by
  * rasqal_literal_string_to_native.
  *
  * Return value: New &rasqal_literal or NULL on failure
@@ -307,7 +307,7 @@ rasqal_new_literal_from_literal(rasqal_literal* l)
 
 /**
  * rasqal_free_literal - Destructor - destroy an rasqal_literal object
- * @l: &rasqal_lietral object
+ * @l: &rasqal_literal object
  * 
  **/
 void
