@@ -35,16 +35,16 @@ int rdql_query_lex(void);
 
 
 struct rasqal_rdql_query_engine_s {
+  raptor_namespace_stack *namespaces;
+
   /* for lexer to store result in */
   YYSTYPE lval;
 
   /* STATIC lexer */
   yyscan_t scanner;
 
-  raptor_namespace_stack *namespaces;
-
   /* for error reporting */
-  unsigned int line;
+  unsigned int lineno;
 };
 
 
