@@ -162,6 +162,11 @@ struct rasqal_query_s {
   /* An array of items, one per triple in a query */
   rasqal_triple_meta *triple_meta;
 
+  /* the expression version of the sequence of constraints above - this is
+   * where the constraints are freed
+   */
+  rasqal_expression* constraints_expression;
+
   /* can be filled with error location information */
   raptor_locator locator;
 
@@ -259,6 +264,8 @@ void rasqal_init_query_engine_rdql (void);
 int rasqal_query_order_triples(rasqal_query* query);
 int rasqal_engine_declare_prefixes(rasqal_query *rq);
 int rasqal_engine_expand_triple_qnames(rasqal_query* rq);
+int rasqal_engine_expand_constraints_qnames(rasqal_query* rq);
+int rasqal_engine_build_constraints_expression(rasqal_query* rq);
 int rasqal_engine_assign_variables(rasqal_query* rq);
 int rasqal_engine_run(rasqal_query *q);
 
