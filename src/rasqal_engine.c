@@ -718,7 +718,6 @@ rasqal_engine_execute_finish(rasqal_query *query) {
  */
 int
 rasqal_engine_get_next_result(rasqal_query *query) {
-  int triples_size;
   int rc=1;
 
   if(query->failed)
@@ -729,9 +728,6 @@ rasqal_engine_get_next_result(rasqal_query *query) {
 
   if(!query->triples)
     return -1;
-  
-
-  triples_size=raptor_sequence_size(query->triples);
 
   while(rc > 0) {
     /*  return: <0 failure, 0 end of results, >0 match */
