@@ -229,7 +229,7 @@ AC_TRY_LINK([#ifdef HAVE_GETOPT_H
 AC_CHECK_PROG(RAPTOR_CONFIG, raptor-config, raptor-config)
 AC_ARG_WITH(raptor, [  --with-raptor=SOURCE    Pick raptor source - system/internal (default auto)], with_raptor="$withval", with_raptor="auto")
 
-RAPTOR_MIN_VERSION=1.4.0
+RAPTOR_MIN_VERSION=1.4.1
 AC_SUBST(RAPTOR_MIN_VERSION)
 if test "X$RAPTOR_CONFIG" = X; then
   with_raptor=internal
@@ -264,7 +264,7 @@ else
   RAPTOR_VERSION=internal
   AC_MSG_RESULT(internal)
   if test ! -r $srcdir/../raptor/raptor_internal.h; then
-    AC_MSG_ERROR(Raptor sources missing in parent directory - cannot use internal)
+    AC_MSG_ERROR(Raptor sources missing from $srcdir/../raptor directory - cannot use internal)
   fi
 fi
 
