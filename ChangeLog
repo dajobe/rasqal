@@ -1,3 +1,19 @@
+2004-08-29  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rdql_lexer.l: Fix copy_regex_token prototype - delim is not const.
+
+2004-08-22  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* tests/example_at_8.rdql: RDQL @semantics example 8
+
+	* tests/Makefile.am: Added example_at_8.rdql
+
+	* Makefile.am: Re-fix generation of rdql_parser.c
+
+	* rdql_parser.y: Allow optional comma in prefix declaration lists.
+
+	* Makefile.am: Update rdql_parser bison output fix for no .tab.c
+
 2004-08-17  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
 	* rasqal_literal.c (rasqal_literal_as_integer,
