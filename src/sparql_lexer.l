@@ -313,23 +313,31 @@ QUOTEDURI \<[A-Za-z][^>]+\>
                   yyterminate();
 }
 
-{QNAME}	{	sparql_parser_lval->uri=sparql_copy_qname(rq, (const unsigned char*)yytext, yyleng);
+{QNAME}\(?	{
+		int have_brace=(yytext[yyleng-1]=='(');
+		if(have_brace)
+			yyleng--;
+		sparql_parser_lval->uri=sparql_copy_qname(rq, (const unsigned char*)yytext, yyleng);
 		if(!sparql_parser_lval->uri)
 		  yyterminate();
- 		return URI_LITERAL;
+ 		return have_brace ? URI_LITERAL_BRACE : URI_LITERAL;
 }
 
 {BNAME}	{	sparql_parser_lval->name=sparql_copy_name(rq, (unsigned char*)yytext+2, yyleng-2);
 		return BLANK_LITERAL;
 }
 
-{QUOTEDURI}   { if(yyleng == 2) 
+{QUOTEDURI}\(?   { 
+		int have_brace=(yytext[yyleng-1]=='(');
+		if(have_brace)
+			yyleng--;
+		if(yyleng == 2) 
                   sparql_parser_lval->uri=raptor_uri_copy(rq->base_uri);
                 else {
                   yytext[yyleng-1]='\0';
                   sparql_parser_lval->uri=raptor_new_uri_relative_to_base(rq->base_uri, (const unsigned char*)yytext+1);
                  }
-                 return URI_LITERAL; }
+                 return have_brace ? URI_LITERAL_BRACE : URI_LITERAL; }
 
 \#              { while((c=INPUT_FN(yyscanner)) != '\n' && c)
                     ;
@@ -896,6 +904,14 @@ sparql_token_print(int token, YYSTYPE *lval)
 
     case QNAME_LITERAL:
       sprintf(buffer, "QNAME_LITERAL(%s)", lval->name);
+      return buffer;
+
+    case URI_LITERAL_BRACE:
+      sprintf(buffer, "URI_LITERAL_BRACE(%s)", raptor_uri_as_string(lval->uri));
+      return buffer;
+
+    case QNAME_LITERAL_BRACE:
+      sprintf(buffer, "QNAME_LITERAL_BRACE(%s)", lval->name);
       return buffer;
 
     case IDENTIFIER:
