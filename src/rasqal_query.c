@@ -183,24 +183,6 @@ rasqal_free_query(rasqal_query* query)
   if(query->graph_patterns)
     raptor_free_sequence(query->graph_patterns);
 
-  if(query->constraints_expression) {
-    rasqal_free_expression(query->constraints_expression);
-    if(query->constraints)
-      raptor_free_sequence(query->constraints);
-  } else if(query->constraints) {
-    int i;
-    
-    /* free rasqal_expressions that are normally assembled into an
-     * expression tree pointed at query->constraints_expression
-     * when query construction succeeds.
-     */
-    for(i=0; i< raptor_sequence_size(query->constraints); i++) {
-      rasqal_expression* e=(rasqal_expression*)raptor_sequence_get_at(query->constraints, i);
-      rasqal_free_expression(e);
-    }
-    raptor_free_sequence(query->constraints);
-  }
-
   /* Do this last since most everything above could refer to a variable */
   if(query->variables_sequence)
     raptor_free_sequence(query->variables_sequence);
@@ -418,6 +400,8 @@ rasqal_query_get_data_graph(rasqal_query* query, int idx)
 void
 rasqal_query_add_source(rasqal_query* query, raptor_uri* uri)
 {
+  RASQAL_DEPRECATED_MESSAGE("use rasqal_query_add_data_graph");
+
   rasqal_query_add_data_graph(query, uri, uri, RASQAL_DATA_GRAPH_NAMED);
 }
 
@@ -433,6 +417,8 @@ rasqal_query_add_source(rasqal_query* query, raptor_uri* uri)
 raptor_sequence*
 rasqal_query_get_source_sequence(rasqal_query* query)
 {
+  RASQAL_DEPRECATED_MESSAGE("use rasqal_query_get_data_graph_sequence");
+
   return query->sources;
 }
 
@@ -449,6 +435,8 @@ rasqal_query_get_source_sequence(rasqal_query* query)
 raptor_uri*
 rasqal_query_get_source(rasqal_query* query, int idx)
 {
+  RASQAL_DEPRECATED_MESSAGE("use rasqal_query_get_data_graph");
+
   if(!query->sources)
     return NULL;
   
@@ -485,6 +473,8 @@ rasqal_query_add_variable(rasqal_query* query, rasqal_variable* var)
 raptor_sequence*
 rasqal_query_get_variable_sequence(rasqal_query* query)
 {
+  RASQAL_DEPRECATED_MESSAGE("use rasqal_query_get_bound_variable_sequence");
+
   return rasqal_query_get_bound_variable_sequence(query);
 }
 
@@ -646,14 +636,23 @@ rasqal_query_get_triple(rasqal_query* query, int idx)
  * @query: &rasqal_query query object
  * @expr: &rasqal_expression expr
  *
+ * DEPRECATED - use rasqal_graph_pattern_add_constraint on a rasqal_graph_pattern
+ *
  **/
 void
 rasqal_query_add_constraint(rasqal_query* query, rasqal_expression* expr)
 {
-  if(!query->constraints)
-    query->constraints=raptor_new_sequence(NULL, (raptor_sequence_print_handler*)rasqal_expression_print);
+  rasqal_graph_pattern* gp;
   
-  raptor_sequence_shift(query->constraints, (void*)expr);
+  RASQAL_DEPRECATED_MESSAGE("please use rasqal_graph_pattern_add_constraint on a rasqal_graph_pattern");
+
+  if(!query->graph_patterns) {
+    RASQAL_DEBUG1("No graph pattern to add constraint to");
+    return;
+  }
+  
+  gp=(rasqal_graph_pattern*)raptor_sequence_get_at(query->graph_patterns, 0);
+  rasqal_graph_pattern_add_constraint(gp, expr);
 }
 
 
@@ -661,12 +660,25 @@ rasqal_query_add_constraint(rasqal_query* query, rasqal_expression* expr)
  * rasqal_query_get_constraint_sequence - Get the sequence of constraints expressions in the query
  * @query: &rasqal_query query object
  *
+ * DEPRECATED - get constraints per rasqal_graph_pattern using
+ * rasqal_graph_pattern_get_constraint_sequence
+ *
  * Return value: a &raptor_sequence of &rasqal_expression pointers.
  **/
 raptor_sequence*
 rasqal_query_get_constraint_sequence(rasqal_query* query)
 {
-  return query->constraints;
+  rasqal_graph_pattern* gp;
+  
+  RASQAL_DEPRECATED_MESSAGE("get constraints per rasqal_graph_pattern using rasqal_graph_pattern_get_constraint_sequence");
+
+  if(!query->graph_patterns) {
+    RASQAL_DEBUG1("No graph pattern to get constraint sequence from");
+    return NULL;
+  }
+  
+  gp=(rasqal_graph_pattern*)raptor_sequence_get_at(query->graph_patterns, 0);
+  return rasqal_graph_pattern_get_constraint_sequence(gp);
 }
 
 
@@ -675,15 +687,25 @@ rasqal_query_get_constraint_sequence(rasqal_query* query)
  * @query: &rasqal_query query object
  * @idx: index into the sequence (0 or larger)
  *
+ * DEPRECATED - get constraints per rasqal_graph_pattern using
+ * rasqal_graph_pattern_get_constraint
+ *
  * Return value: a &rasqal_expression pointer or NULL if out of the sequence range
  **/
 rasqal_expression*
 rasqal_query_get_constraint(rasqal_query* query, int idx)
 {
-  if(!query->constraints)
-    return NULL;
+  rasqal_graph_pattern* gp;
+  
+  RASQAL_DEPRECATED_MESSAGE("get constraints per rasqal_graph_pattern using rasqal_graph_pattern_get_constraint");
 
-  return (rasqal_expression*)raptor_sequence_get_at(query->constraints, idx);
+  if(!query->graph_patterns) {
+    RASQAL_DEBUG1("No graph pattern to get constraint from");
+    return NULL;
+  }
+  
+  gp=(rasqal_graph_pattern*)raptor_sequence_get_at(query->graph_patterns, 0);
+  return rasqal_graph_pattern_get_constraint(gp, idx);
 }
 
 
@@ -1021,10 +1043,6 @@ rasqal_query_print(rasqal_query* query, FILE *fh)
   if(query->constructs) {
     fprintf(fh, "\nconstructs: ");
     raptor_sequence_print(query->constructs, fh);
-  }
-  if(query->constraints) {
-    fprintf(fh, "\nconstraints: ");
-    raptor_sequence_print(query->constraints, fh);
   }
   if(query->prefixes) {
     fprintf(fh, "\nprefixes: ");
