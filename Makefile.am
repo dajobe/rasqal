@@ -34,11 +34,11 @@ rdql_parser.tab.c rdql_parser.tab.h rdql_common.h \
 rasqal_expr.c rasqal_general.c rasqal_query.c \
 rasqal_engine.c rasqal_redland.c
 librasqal_la_LDFLAGS = -version-info @RASQAL_LIBTOOL_VERSION@
-librasqal_la_LIBADD = @RASQAL_INTERNAL_LIBS@
+librasqal_la_LIBADD = @RASQAL_INTERNAL_LIBS@ @RASQAL_EXTERNAL_LIBS@
 librasqal_la_DEPENDENCIES = @RASQAL_INTERNAL_LIBS@
 
 roqet_SOURCES = roqet.c rasqal_getopt.h
-roqet_LDADD = librasqal.la @RASQAL_INTERNAL_LIBS@
+roqet_LDADD = librasqal.la @RASQAL_INTERNAL_LIBS@ @RASQAL_EXTERNAL_LIBS@
 roqet_DEPENDENCIES = librasqal.la @RASQAL_INTERNAL_LIBS@
 EXTRA_roqet_SOURCES = getopt.c
 
@@ -62,9 +62,8 @@ CLEANFILES=$(TESTS) rdql_lexer_test rdql_parser_test
 MAINTAINERCLEANFILES=rdql_lexer.c rdql_lexer.h \
 rdql_parser.tab.c rdql_parser.tab.h rdql_parser.output
 
-# FIXME - for testing
-MEM=@MEM@ `redland-config --cflags`
-MEM_LIBS=@MEM_LIBS@ `redland-config --libs`
+MEM=@MEM@
+MEM_LIBS=@MEM_LIBS@
 
 AM_CPPFLAGS=@CPPFLAGS@ @RASQAL_INTERNAL_CPPFLAGS@ @RASQAL_EXTERNAL_CPPFLAGS@
 AM_CFLAGS=@CFLAGS@ $(MEM)
