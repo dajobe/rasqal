@@ -732,6 +732,44 @@ rasqal_graph_pattern_get_flags(rasqal_graph_pattern* graph_pattern)
 }
 
 
+/**
+ * rasqal_graph_pattern_set_origin - Get the graph pattern triple origin
+ * @graph_pattern: &rasqal_graph_pattern graph pattern object
+ * @origin: &rasqal_literal variable or URI
+ * 
+ * All triples in this graph pattern or contained graph patterns are set
+ * to have the given origin.
+ **/
+void
+rasqal_graph_pattern_set_origin(rasqal_graph_pattern* graph_pattern,
+                                rasqal_literal *origin)
+{
+  raptor_sequence* s;
+  
+  s=graph_pattern->triples;
+  if(s) {
+    int i;
+
+    /* Flag all the triples in this graph pattern with origin */
+    for(i=0; i < raptor_sequence_size(s); i++) {
+      rasqal_triple *t=(rasqal_triple*)raptor_sequence_get_at(s, i);
+      rasqal_triple_set_origin(t, rasqal_new_literal_from_literal(origin));
+    }
+  }
+
+  s=graph_pattern->graph_patterns;
+  if(s) {
+    int i;
+
+    /* Flag all the triples in sub-graph patterns with origin */
+    for(i=0; i < raptor_sequence_size(s); i++) {
+      rasqal_graph_pattern *gp=(rasqal_graph_pattern*)raptor_sequence_get_at(s, i);
+      rasqal_graph_pattern_set_origin(gp, origin);
+    }
+  }
+
+}
+
 
 /**
  * rasqal_query_prepare: Prepare a query - typically parse it
