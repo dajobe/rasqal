@@ -294,16 +294,25 @@ LoadClauseOpt : LOAD URIList
 FromClauseOpt : WITH URIList
 {
   if($2) {
-    raptor_sequence_join(((rasqal_query*)rq)->sources, $2);
+    int i;
+    
+    for(i=0; i < raptor_sequence_size($2); i++) {
+      raptor_uri* uri=(raptor_uri*)raptor_sequence_get_at($2, i);
+      rasqal_query_add_data_graph((rasqal_query*)rq, uri, NULL, RASQAL_DATA_GRAPH_BACKGROUND);
+    }
+    
     raptor_free_sequence($2);
   }
 }
 | FROM URIList
 {
-  sparql_syntax_warning(((rasqal_query*)rq), "Use WITH instead of FROM for SPARQL dataset construction (2005-02-17 WD)");
-
   if($2) {
-    raptor_sequence_join(((rasqal_query*)rq)->sources, $2);
+    int i;
+    
+    for(i=0; i < raptor_sequence_size($2); i++) {
+      raptor_uri* uri=(raptor_uri*)raptor_sequence_get_at($2, i);
+      rasqal_query_add_data_graph((rasqal_query*)rq, uri, NULL, RASQAL_DATA_GRAPH_NAMED);
+    }
     raptor_free_sequence($2);
   }
 }
