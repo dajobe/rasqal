@@ -166,8 +166,11 @@ roqet_get_www_content(raptor_uri *uri,
     result=NULL;
   else {
     size_t len=raptor_stringbuffer_length(sb);
-    result=malloc(len+1);
-    strncpy(result, raptor_stringbuffer_as_string(sb), len+1);
+    if(len) {
+      result=(unsigned char*)malloc(len+1);
+      if(result)
+        raptor_stringbuffer_copy_to_string(sb, (void*)result, len+1);
+    }
   }
 
   if(sb)
