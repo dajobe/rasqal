@@ -71,11 +71,14 @@ rasqal_new_integer_literal(rasqal_literal_type type, int integer) {
 
 
 rasqal_literal*
-rasqal_new_floating_literal(float floating) {
+rasqal_new_floating_literal(const char *string) {
   rasqal_literal* l=(rasqal_literal*)calloc(sizeof(rasqal_literal), 1);
+  double f;
+
+  sscanf(string, "%lf", &f);
 
   l->type=RASQAL_LITERAL_FLOATING;
-  l->value.floating=floating;
+  l->value.floating=f;
   l->usage=1;
   return l;
 }
@@ -97,7 +100,7 @@ rasqal_new_pattern_literal(char *pattern, char *flags) {
   rasqal_literal* l=(rasqal_literal*)calloc(sizeof(rasqal_literal), 1);
 
   l->type=RASQAL_LITERAL_PATTERN;
-  l->value.string=pattern;
+  l->string=pattern;
   l->flags=flags;
   l->usage=1;
   return l;
@@ -111,8 +114,8 @@ rasqal_literal_string_to_native(rasqal_literal *l)
     return;
 
   if(!strcmp(raptor_uri_as_string(l->datatype), "http://www.w3.org/2001/XMLSchema#integer")) {
-    int i=atoi(l->value.string);
-    free(l->value.string);
+    int i=atoi(l->string);
+    free(l->string);
 
     raptor_free_uri(l->datatype);
     l->datatype=NULL;
@@ -128,8 +131,8 @@ rasqal_literal_string_to_native(rasqal_literal *l)
   
   if(!strcmp(raptor_uri_as_string(l->datatype), "http://www.w3.org/2001/XMLSchema#double")) {
     double d=0.0;
-    sscanf(l->value.string, "%lf", &d);
-    free(l->value.string);
+    sscanf(l->string, "%lf", &d);
+    free(l->string);
 
     raptor_free_uri(l->datatype);
     l->datatype=NULL;
@@ -151,7 +154,7 @@ rasqal_new_string_literal(char *string, char *language,
   rasqal_literal* l=(rasqal_literal*)calloc(sizeof(rasqal_literal), 1);
 
   l->type=RASQAL_LITERAL_STRING;
-  l->value.string=string;
+  l->string=string;
   l->language=language;
   l->datatype=datatype;
   l->flags=datatype_qname;
@@ -168,7 +171,7 @@ rasqal_new_simple_literal(rasqal_literal_type type, char *string) {
   rasqal_literal* l=(rasqal_literal*)calloc(sizeof(rasqal_literal), 1);
 
   l->type=type;
-  l->value.string=string;
+  l->string=string;
   l->usage=1;
   return l;
 }
@@ -217,16 +220,19 @@ rasqal_free_literal(rasqal_literal* l) {
     case RASQAL_LITERAL_BLANK:
     case RASQAL_LITERAL_PATTERN:
     case RASQAL_LITERAL_QNAME:
-      if(l->value.string)
-        free(l->value.string);
+      if(l->string)
+        free(l->string);
       if(l->language)
         free(l->language);
       if(l->datatype)
         raptor_free_uri(l->datatype);
       break;
+    case RASQAL_LITERAL_FLOATING:
+      if(l->string)
+        free(l->string);
+      break;
     case RASQAL_LITERAL_INTEGER:
     case RASQAL_LITERAL_BOOLEAN:
-    case RASQAL_LITERAL_FLOATING:
       break;
     case RASQAL_LITERAL_VARIABLE:
       /* It is correct that this is not called here
@@ -290,13 +296,13 @@ rasqal_literal_print(rasqal_literal* l, FILE* fh)
       fprintf(fh, "<%s>", raptor_uri_as_string(l->value.uri));
       break;
     case RASQAL_LITERAL_BLANK:
-      fprintf(fh, " %s", l->value.string);
+      fprintf(fh, " %s", l->string);
       break;
     case RASQAL_LITERAL_PATTERN:
-      fprintf(fh, "/%s/%s", l->value.string, l->flags ? l->flags : "");
+      fprintf(fh, "/%s/%s", l->string, l->flags ? l->flags : "");
       break;
     case RASQAL_LITERAL_STRING:
-      fprintf(fh, "(\"%s\"", l->value.string);
+      fprintf(fh, "(\"%s\"", l->string);
       if(l->language)
         fprintf(fh, "@%s", l->language);
       if(l->datatype)
@@ -304,7 +310,7 @@ rasqal_literal_print(rasqal_literal* l, FILE* fh)
       fputc(')', fh);
       break;
     case RASQAL_LITERAL_QNAME:
-      fprintf(fh, "(%s)", l->value.string);
+      fprintf(fh, "(%s)", l->string);
       break;
     case RASQAL_LITERAL_INTEGER:
       fprintf(fh, " %d", l->value.integer);
@@ -343,7 +349,7 @@ rasqal_literal_as_boolean(rasqal_literal* l, int *error)
     case RASQAL_LITERAL_BLANK:
     case RASQAL_LITERAL_PATTERN:
     case RASQAL_LITERAL_QNAME:
-      return (l->value.string) != NULL;
+      return (l->string) != NULL;
       break;
 
     case RASQAL_LITERAL_INTEGER:
@@ -416,7 +422,7 @@ rasqal_literal_as_string(rasqal_literal* l)
       return buf;
 
     case RASQAL_LITERAL_STRING:
-      return l->value.string;
+      return l->string;
 
     case RASQAL_LITERAL_URI:
       return raptor_uri_as_string(l->value.uri);
@@ -524,12 +530,12 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int *error)
         if(!raptor_uri_equals(l1->datatype,l2->datatype))
           return 1;
       }
-      return strcmp(l1->value.string,l2->value.string);
+      return strcmp(l1->string,l2->string);
 
     case RASQAL_LITERAL_BLANK:
     case RASQAL_LITERAL_PATTERN:
     case RASQAL_LITERAL_QNAME:
-      return strcmp(l1->value.string,l2->value.string);
+      return strcmp(l1->string,l2->string);
 
     case RASQAL_LITERAL_INTEGER:
     case RASQAL_LITERAL_BOOLEAN:
@@ -553,12 +559,12 @@ rasqal_literal_expand_qname(void *user_data, rasqal_literal *l) {
   if(l->type == RASQAL_LITERAL_QNAME) {
     /* expand a literal qname */
     raptor_uri *uri=raptor_qname_string_to_uri(rq->namespaces,
-                                               l->value.string, 
-                                               strlen(l->value.string),
+                                               l->string, 
+                                               strlen(l->string),
                                                rasqal_query_simple_error, rq);
     if(!uri)
       return 1;
-    RASQAL_FREE(cstring, l->value.string);
+    RASQAL_FREE(cstring, l->string);
     l->type=RASQAL_LITERAL_URI;
     l->value.uri=uri; /* uri field is unioned with string field */
   } else if (l->type == RASQAL_LITERAL_STRING) {
@@ -1353,7 +1359,7 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e) {
           return NULL;
         
         l2=e->literal;
-        pattern=l2->value.string;
+        pattern=l2->string;
         
         for(p=l2->flags; p && *p; p++)
           if(*p == 'i')

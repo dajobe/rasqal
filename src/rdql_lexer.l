@@ -212,7 +212,7 @@ QUOTEDURI \<[A-Za-z][^>]+\>
 }
 
 [0-9]+"."[0-9]*[eE][+-]?[0-9]+[fFdD]?|"."[0-9]+[eE][+-]?[0-9]+[fFdD]?|[0-9]+[eE][+-]?[0-9]+[fFdD]?|[0-9]+[eE][+-]?[0-9]+[fFdD]?|[0-9]+"."[0-9]*  { 
-                        sscanf(yytext, "%lf", &rdql_parser_lval->floating);
+                        rdql_parser_lval->literal=rasqal_new_floating_literal(yytext);
                         return FLOATING_POINT_LITERAL;
 }
 
@@ -619,23 +619,23 @@ rdql_token_print(int token, YYSTYPE *lval)
       if(lval->literal->language) {
         if(lval->literal->datatype)
           sprintf(buffer, "STRING_LITERAL(\"%s\"@%s^^%s)",
-                  lval->literal->value.string, lval->literal->language,
+                  lval->literal->string, lval->literal->language,
                   raptor_uri_as_string(lval->literal->datatype));
         else
           sprintf(buffer, "STRING_LITERAL(\"%s\"@%s)",
-                  lval->literal->value.string, lval->literal->language);
+                  lval->literal->string, lval->literal->language);
       } else {
         if(lval->literal->datatype)
           sprintf(buffer, "STRING_LITERAL(\"%s\"^^%s)", 
-                  lval->literal->value.string,
+                  lval->literal->string,
                   raptor_uri_as_string(lval->literal->datatype));
         else
-          sprintf(buffer, "STRING_LITERAL(\"%s\")", lval->literal->value.string);
+          sprintf(buffer, "STRING_LITERAL(\"%s\")", lval->literal->string);
       }
       return buffer;
 
     case PATTERN_LITERAL:
-      sprintf(buffer, "PATTERN_LITERAL(%s,%s)", lval->literal->value.string,
+      sprintf(buffer, "PATTERN_LITERAL(%s,%s)", lval->literal->string,
               (lval->literal->flags ? (char*)lval->literal->flags : "-"));
       return buffer;
 

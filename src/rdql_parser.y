@@ -134,7 +134,7 @@ static int rdql_query_error(rasqal_query* rq, const char *message);
 %left TILDE BANG
 
 /* literals */
-%token <floating> FLOATING_POINT_LITERAL
+%token <literal> FLOATING_POINT_LITERAL
 %token <literal> STRING_LITERAL PATTERN_LITERAL INTEGER_LITERAL
 %token <literal> BOOLEAN_LITERAL
 %token <literal> NULL_LITERAL 
@@ -530,7 +530,7 @@ Literal : URI_LITERAL
 }
 | FLOATING_POINT_LITERAL
 {
-  $$=rasqal_new_floating_literal($1);
+  $$=$1;
 }
 | STRING_LITERAL
 {

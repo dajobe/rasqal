@@ -91,8 +91,8 @@ typedef enum {
 struct rasqal_literal_s {
   int usage;
   rasqal_literal_type type;
+  char *string; /* string, pattern, qname, blank, float types */
   union {
-    char *string; /* string, pattern, qname, blank types */
     int integer;  /* integer and boolean types */
     double floating; /* floating */
     raptor_uri *uri; /* uri */
@@ -226,7 +226,7 @@ RASQAL_API int rasqal_expression_foreach(rasqal_expression* e, rasqal_expression
 
 /* Literal class */
 RASQAL_API rasqal_literal* rasqal_new_integer_literal(rasqal_literal_type type, int integer);
-RASQAL_API rasqal_literal* rasqal_new_floating_literal(float floating);
+RASQAL_API rasqal_literal* rasqal_new_floating_literal(const char *string);
 RASQAL_API rasqal_literal* rasqal_new_uri_literal(raptor_uri *uri);
 RASQAL_API rasqal_literal* rasqal_new_pattern_literal(char *pattern, char *flags);
 RASQAL_API rasqal_literal* rasqal_new_string_literal(char *string, char *language, raptor_uri *datatype, char *datatype_qname);
