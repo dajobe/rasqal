@@ -44,9 +44,13 @@
 #define QUERY "SELECT ?person \
          FROM <" DATA_FILE "> \
          WHERE \
-         (?person, rdf:type, foaf:Person) USING \
+         (?person, ?x, foaf:Person) USING \
          rdf FOR <http://www.w3.org/1999/02/22-rdf-syntax-ns#>, \
          foaf FOR <http://xmlns.com/foaf/0.1/>"
+
+#define EXPECTED_RESULTS_COUNT 1
+
+char *program;
 
 int
 main(int argc, char **argv) {
@@ -55,8 +59,11 @@ main(int argc, char **argv) {
   raptor_uri *base_uri;
   char *uri_string;
   const char *query_string=QUERY;
+  int count;
 
   rasqal_init();
+
+  program=argv[0];
 
   uri_string=raptor_uri_filename_to_uri_string("");
   base_uri=raptor_new_uri(uri_string);  
@@ -64,33 +71,69 @@ main(int argc, char **argv) {
 
   query=rasqal_new_query("rdql", NULL);
 
-  printf("Prepare\n");
-  rasqal_query_prepare(query, query_string,base_uri);
+  printf("%s: preparing query\n", program);
+  if(rasqal_query_prepare(query, query_string,base_uri)) {
+    fprintf(stderr, "%s: query prepare FAILED\n", program);
+    return(1);
+  }
 
-  printf("Execute 1\n");
+  printf("%s: executing query #1\n", program);
   results=rasqal_query_execute(query);
+  if(!results) {
+    fprintf(stderr, "%s: query execution 1 FAILED\n", program);
+    return(1);
+  }
+
+  count=0;
   while(results && !rasqal_query_results_finished(results)) {
     int i;
     for(i=0; i<rasqal_query_results_get_bindings_count(results); i++) {
       const char *name=rasqal_query_results_get_binding_name(results, i);
       rasqal_literal *value=rasqal_query_results_get_binding_value(results, i);
 
-      printf("variable %s=", name);
+      printf("result %d: variable %s=", count+1, name);
       rasqal_literal_print(value, stdout);
       putchar('\n');
     }
     rasqal_query_results_next(results);
+    count++;
   }
   if(results)
     rasqal_free_query_results(results);
-#if 0
-  printf("Execute 2\n");
-  results = rasqal_query_execute(query);
-  results ? printf("Success!\n") : printf("Failure!\n");
+  if(count != EXPECTED_RESULTS_COUNT) {
+    fprintf(stderr, "%s: query execution 1 returned %d results, expected %d\n",
+            program, count, EXPECTED_RESULTS_COUNT);
+    return(1);
+  }
 
+  printf("%s: executing query #2\n", program);
+  results = rasqal_query_execute(query);
+  if(!results) {
+    fprintf(stderr, "%s: query execution 2 FAILED\n", program);
+    return(1);
+  }
+
+  count=0;
+  while(results && !rasqal_query_results_finished(results)) {
+    int i;
+    for(i=0; i<rasqal_query_results_get_bindings_count(results); i++) {
+      const char *name=rasqal_query_results_get_binding_name(results, i);
+      rasqal_literal *value=rasqal_query_results_get_binding_value(results, i);
+
+      printf("result %d: variable %s=", count+1, name);
+      rasqal_literal_print(value, stdout);
+      putchar('\n');
+    }
+    rasqal_query_results_next(results);
+    count++;
+  }
   if(results)
     rasqal_free_query_results(results);
-#endif
+  if(count != EXPECTED_RESULTS_COUNT) {
+    fprintf(stderr, "%s: query execution 2 returned %d results, expected %d\n", 
+            program, count, EXPECTED_RESULTS_COUNT);
+    return(1);
+  }
 
   rasqal_free_query(query);
 
