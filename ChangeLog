@@ -1,4 +1,19 @@
+2005-01-10  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal_query.c (rasqal_free_query): Delete ordered_triples tidy.
+	(rasqal_query_print): Delete ordered_triples print.
+
+	* rasqal_engine.c:
+	(rasqal_query_order_triples_score, rasqal_query_order_triples):
+	Deleted - no longer used.
+
+	* rasqal_internal.h:
+	Deleted unused ordered_triples field from rasqal_query.
+
 2005-01-09  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* tests/sparql/part1/Makefile.am:
+	All tests pass, empty EXPECTED_SPARQL_CORRECT_FAILURES
 
 	* rasqal_internal.h: Added max_optional_graph_pattern to query.
 
@@ -13,21 +28,23 @@
 
 	* rasqal_engine.c: delete a #if 1
 
-	* rasqal_engine.c (rasqal_engine_move_to_graph_pattern):
-	Use max_optional_graph_patterns
-	to walk through combinations of optional graph patterns.
-	(rasqal_engine_do_optional_step): CHeck against max_optional_graph_patterns
-	limit and lower it when backtracking.
-	(rasqal_engine_get_next_result): Count # returned values and continue
-	searching when=0.  This is a fixup hack, not a final solution.
+	* rasqal_engine.c (rasqal_engine_move_to_graph_pattern): Use
+	max_optional_graph_patterns to walk through combinations of
+	optional graph patterns.
+	(rasqal_engine_do_optional_step): CHeck against
+	max_optional_graph_patterns limit and lower it when backtracking.
+	(rasqal_engine_get_next_result): Count # returned values and
+	continue searching when=0.  This is a fixup hack, not a final
+	solution.
 
-	* rasqal_engine.c (rasqal_engine_move_to_graph_pattern):
-	Use max_optional_graph_patterns
-	to walk through combinations of optional graph patterns.
-	(rasqal_engine_do_optional_step): CHeck against max_optional_graph_patterns
-	limit and lower it when backtracking.
-	(rasqal_engine_get_next_result): Count # returned values and continue
-	searching when=0.  This is a fixup hack, not a final solution.
+	* rasqal_engine.c (rasqal_engine_move_to_graph_pattern): Use
+	max_optional_graph_patterns to walk through combinations of
+	optional graph patterns.
+	(rasqal_engine_do_optional_step): Check against
+	max_optional_graph_patterns limit and lower it when backtracking.
+	(rasqal_engine_get_next_result): Count # returned values and
+	continue searching when=0.  This is a fixup hack, not a final
+	solution.
 
 	* rasqal_engine.c (rasqal_engine_move_to_graph_pattern):
 	Take a delta since only ever
