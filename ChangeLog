@@ -1,5 +1,11 @@
 2005-02-18  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
+	* tests/sparql/syntax/construct1.rq,
+	tests/sparql/syntax/construct2.rq, tests/sparql/syntax/ask0.rq,
+	tests/sparql/syntax/construct0.rq: FROM to WITH for 2005-02-17 WD
+
+	* sparql_parser.y (PatternElementForms): Remove unused vars.
+
 	* sparql_parser.y: Some updates for 2005-02-17 SPARQL query WD.
 	Added GRAPH, WITH tokens
 	(FromClauseOpt): Warn about FROM, add WITH.
