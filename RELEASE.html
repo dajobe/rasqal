@@ -10,11 +10,22 @@
 
 <h2 id="rel0_9_5"><a name="rel0_9_5">Rasqal 0.9.5 Changes</a></h2>
 
-<p>FIXME - not yet released.</p>
+<p>A release with major changes internal to the query engine to
+operate over graph patterns instead of sequences of triple patterns
+and to add execution of optional graph patterns.  Additionally the
+query results can now be written in a recognised XML format.</p>
 
-<p>This release adds graph patterns and optionals for handling
-SPARQL optionals.
-</p>
+<p>This version of Rasqal requires
+<a href="http://librdf.org/raptor/">Raptor</a> 1.4.4.</p>
+
+
+<h3>Core Changes</h3>
+
+<p>Added a <code>rasqal_graph_pattern</code> class for handling
+matching a graph pattern (set of triple patterns) in an
+<code>rasqal_query</code>.  RDQL only has one of these wheras SPARQL
+may have many, and they may be nested (this may change, as SPARQL is
+under development).</p>
 
 <p>Added <code>rasqal_query_results_write</code> method to write
 variable binding query results to a <code>raptor_iostream</code> in
@@ -22,21 +33,14 @@ the XML format defined by
 <a href="http://www.w3.org/TR/2004/WD-rdf-sparql-XMLres-20041221/">SPARQL Variable Binding Results XML Format</a>, W3C Working Draft, 21 December 2004.
 </p>
 
-<p>Requires <a href="http://librdf.org/raptor/">Raptor</a> 1.4.4
-for the XML Writer API.</p>
-
-<p>Added <code>rasqal_graph_pattern</code> class for handling
-matching a set of triple patterns in an <code>rasqal_query</code>.
-RDQL only has one of these wheras SPARQL may have many, and they may
-be nested.</p>
 
 
-<h3>Query Engine</h3>
+<h3>Query Engine Changes</h3>
 
-<p>Updated the query engine to work with multiple graph patterns
-rather than a single set of triple patterns.  The graph patterns may
-be optional, which is used to implement SPARQL optionals.  Nested
-graph patterns are constructed but cannot yet be executed.
+<p>Updated the query engine to operate over graph patterns rather
+than a single sequence of triple patterns.  The graph patterns may be
+optional, which is used to implement SPARQL optionals.  Nested graph
+patterns are constructed but cannot yet be executed.
 </p>
 
 <p>Added a unary minus expression type.</p>
@@ -48,7 +52,7 @@ double or integer respectively.</p>
 <p>Fixed a memory leak with string matches/non-matches.</p>
 
 
-<h3>SPARQL Query Language</h3>
+<h3>SPARQL Query Language Changes</h3>
 
 <p>Optional graph patterns <code>OPTIONAL</code> and
 <code>[</code> ... <code>]</code> now work.</p>
@@ -73,7 +77,8 @@ sparql-query-example-2.2a, sparql-query-example-2.3a,
 sparql-query-example-2.4a, sparql-query-example-3)
 </p>
 
-<p>Allow UTF-8 qname prefixes and check name against XML constraints.</p>
+<p>Allow UTF-8 qname prefixes and check name against XML name
+constraints.</p>
 
 <p>Recover lexer state from errors in regexes.</p>
 
@@ -81,12 +86,12 @@ sparql-query-example-2.4a, sparql-query-example-3)
 multiple errors.</p>
 
 
-<h3>RDQL Query Language</h3>
+<h3>RDQL Query Language Changes</h3>
 
 <p>The lexer now handles UTF-8 qname prefixes, enabling RDQL
 testsuite test S-02 to pass.</p>
 
-<p>Allow UTF-8 qname prefixes and check name against XML
+<p>Allow UTF-8 qname prefixes and check name against XML name
 constraints.</p>
 
 <p>Recover lexer state from errors in regexes.</p>
