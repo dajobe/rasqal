@@ -1,5 +1,21 @@
 2004-11-16  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
+	* rasqal_engine.c (rasqal_engine_get_next_result):
+	Inner loop logic tidying.
+
+	* rasqal_engine.c (rasqal_engine_get_next_result):
+	triples_size deleted, never used.
+
+	* rasqal_engine.c: source re-ordering
+
+	* rasqal_engine.c (rasqal_engine_prepare): set flags here.
+	(rasqal_engine_execute_init): Always init a new pattern_graph.
+
+	* rasqal_engine.c (rasqal_engine_execute_init, rasqal_engine_run):
+	Remove remaining use of query->column field.
+
+	* rasqal_internal.h: rasqal_query remove column field
+
 	* rasqal_engine.c:
 	(rasqal_engine_execute_init); Added pattern_graph field, using
 	rasqal_new_pattern_graph
