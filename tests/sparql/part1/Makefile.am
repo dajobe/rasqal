@@ -26,7 +26,7 @@ dawg-data-01.n3
 SPARQL_TEST_FILES= \
 dawg-query-001 dawg-query-002 dawg-query-003
 
-EXPECTED_SPARQL_CORRECT_FAILURES_COUNT=3
+EXPECTED_SPARQL_CORRECT_FAILURES=dawg-query-001 dawg-query-002 dawg-query-003
 
 SPARQL_RESULT_FILES= \
 dawg-result-001.n3 dawg-result-002.n3 dawg-result-003.n3
@@ -99,16 +99,17 @@ check-sparql-works: $(top_builddir)/roqet
 
 check-sparql-correct: $(top_builddir)/roqet $(srcdir)/../check-sparql
 	@set +e; \
+	expect=`echo $(EXPECTED_SPARQL_CORRECT_FAILURES) | wc -w`; \
 	$(ECHO) "Testing SPARQL correct"; \
 	TOP_SRCDIR=$(top_srcdir) TOP_BUILDDIR=$(top_builddir) \
 	  perl $(srcdir)/../check-sparql; \
 	result=$$?; \
 	if test $$result != 0 ; then \
 	  echo "Expecting test failures: $(EXPECTED_SPARQL_CORRECT_FAILURES)"; \
-	  if test $$result = $(EXPECTED_SPARQL_CORRECT_FAILURES_COUNT) ; then \
+	  if test $$result = $$expect ; then \
 	    echo "OK: Ignoring expected test failures"; result=0; \
           else \
-	    echo "FAILED: $$result failures does not match expected $(EXPECTED_SPARQL_CORRECT_FAILURES_COUNT)"; result=1; \
+	    echo "FAILED: $$result failures does not match expected $$expect"; result=1; \
           fi; \
 	fi; \
 	set -e; exit $$result
