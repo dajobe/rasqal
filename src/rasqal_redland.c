@@ -140,6 +140,9 @@ rasqal_redland_new_triples_source(rasqal_query* rdf_query,
   const char *parser_name;
   raptor_uri *uri=NULL;
   
+  if(!rdf_query->sources)
+    return 1;
+
   uri=rasqal_query_get_source(rdf_query, 0);
 
   /* no default triple source possible */
