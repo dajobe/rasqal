@@ -248,7 +248,7 @@ rasqal_engine_expand_constraints_qnames(rasqal_query* rq)
   int i;
   
   if(!rq->constraints)
-    return;
+    return 0;
   
   /* expand qnames in constraint expressions */
   for(i=0; i<rasqal_sequence_size(rq->constraints); i++) {
@@ -377,20 +377,44 @@ rasqal_triple_present(rasqal_query *query, rasqal_triple *t)
 }
 
 
-static librdf_statement*
-rasqal_redland_get_match(struct rasqal_triples_match_s* rtm,
-                         void *user_data) 
+static int
+rasqal_redland_bind_match(struct rasqal_triples_match_s* rtm,
+                          void *user_data,
+                          rasqal_variable* bindings[3]) 
 {
   rasqal_triple_meta *m=(rasqal_triple_meta *)user_data;
   
   librdf_statement* statement=librdf_stream_get_object(m->stream);
+  if(!statement)
+    return 1;
+  
 #ifdef RASQAL_DEBUG
   RASQAL_DEBUG1("  matched statement ");
   librdf_statement_print(statement, stderr);
   fputc('\n', stderr);
 #endif
 
-  return statement;
+  /* set 1 or 2 variable values from the fields of statement */
+
+  if(bindings[0]) {
+    RASQAL_DEBUG1("binding subject to variable\n");
+    rasqal_variable_set_value(bindings[0],
+                              redland_node_to_rasqal_expression(librdf_statement_get_subject(statement)));
+  }
+
+  if(bindings[1]) {
+    RASQAL_DEBUG1("binding predicate to variable\n");
+    rasqal_variable_set_value(bindings[1], 
+                              redland_node_to_rasqal_expression(librdf_statement_get_predicate(statement)));
+  }
+
+  if(bindings[2]) {
+    RASQAL_DEBUG1("binding object to variable\n");
+    rasqal_variable_set_value(bindings[2],  
+                              redland_node_to_rasqal_expression(librdf_statement_get_object(statement)));
+  }
+
+  return 0;
 }
 
 
@@ -434,7 +458,7 @@ rasqal_new_triples_match(rasqal_query *query, void *user_data,
   rasqal_variable* var;
 
   rtm=(rasqal_triples_match *)RASQAL_CALLOC(rasqal_triples_match, sizeof(rasqal_triples_match), 1);
-  rtm->get_match=rasqal_redland_get_match;
+  rtm->bind_match=rasqal_redland_bind_match;
   rtm->next_match=rasqal_redland_next_match;
   rtm->is_end=rasqal_redland_is_end;
   rtm->finish=rasqal_redland_finish_triples_match;
@@ -509,9 +533,10 @@ rasqal_free_triples_match(rasqal_triples_match* rtm) {
 
 
 /* methods */
-static librdf_statement*
-rasqal_triples_match_get_match(struct rasqal_triples_match_s* rtm) {
-  return rtm->get_match(rtm,  rtm->user_data);
+static int
+rasqal_triples_match_bind_match(struct rasqal_triples_match_s* rtm, 
+                                rasqal_variable *bindings[3]) {
+  return rtm->bind_match(rtm,  rtm->user_data, bindings);
 }
 
 static void
@@ -547,7 +572,6 @@ rasqal_engine_run(rasqal_query *query) {
 
 
   while(column >= 0) {
-    librdf_statement* statement;
     rasqal_triple_meta *m=&query->triple_meta[column];
     rasqal_triple *t=rasqal_sequence_get_at(query->triples, column);
 
@@ -593,24 +617,8 @@ rasqal_engine_run(rasqal_query *query) {
         continue;
       }
 
-      statement=rasqal_triples_match_get_match(m->triples_match);
-
-      /* set 1 or 2 variable values from the fields of statement */
-      if(m->bindings[0]) {
-        RASQAL_DEBUG2("column %d: binding subject to variable\n", column);
-        rasqal_variable_set_value(m->bindings[0], 
-                                  redland_node_to_rasqal_expression(librdf_statement_get_subject(statement)));
-      }
-      if(m->bindings[1])  {
-        RASQAL_DEBUG2("column %d: binding predicate to variable\n", column);
-        rasqal_variable_set_value(m->bindings[1], 
-                                  redland_node_to_rasqal_expression((librdf_statement_get_predicate(statement))));
-      }
-      if(m->bindings[2])  {
-        RASQAL_DEBUG2("column %d: binding object to variable\n", column);
-        rasqal_variable_set_value(m->bindings[2], 
-                                  redland_node_to_rasqal_expression((librdf_statement_get_object(statement))));
-      }
+      if(rasqal_triples_match_bind_match(m->triples_match, m->bindings))
+        break;
 
       rasqal_triples_match_next_match(m->triples_match);
     }
