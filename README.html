@@ -4,7 +4,7 @@
 <head>
   <title>Rasqal RDF Query Library</title>
 </head>
-<body bgcolor="#ffffff" text="#000085">
+<body>
 
 <h1 style="align:center">Rasqal RDF Query Library</h1>
 <h2 style="align:center"><a href="http://purl.org/net/dajobe/">Dave Beckett</a><br /><a href="http://www.ilrt.bristol.ac.uk/">Institute for Learning and Research Technology</a><br /><a href="http://www.bristol.ac.uk/">University of Bristol</a></h2>
@@ -35,13 +35,34 @@ and file-by-file changes in the CVS <a href="ChangeLog">ChangeLog</a>.</p>
 
 <p>Rasqal provides:</p>
 <ul>
-<li>A <a href="docs/api/query.html">query</a> construction API</li>
-<li>A query execution engine</li>
-<li>Query language support for RDQL</li>
+<li>A <a href="docs/api/query.html">query</a> construction API.</li>
+<li>A query execution engine including constraint expression evaluation.</li>
+<li>Query result API.</li>
+<li>Query language support for RDQL.</li>
+<li>Triple store querying APIs to support querying over external RDF graphs.</li>
 <li>No memory leaks.</li>
 <li><a href="roqet.html">roqet</a> standalone RDF query utility program</li>
 </ul>
 
+
+<p>Rasqal does not provide an RDF API or triple store, but relies on
+external libraries implementing the triple store matching API
+over RDF data in some URI.
+Rasqal ships with triple store implementations for the output 
+of an RDF parser using
+<a href="http://www.redland.opensource.ac.uk/raptor/">Raptor</a>
+and by using a
+<a href="http://www.redland.opensource.ac.uk/">Redland</a> indexed store.
+Both of these can be called using the standalone 
+<a href="roqet.html">roqet</a> query utility that takes a
+query language identifier and query string, over content in URIs
+described inside the query string.
+</p>
+
+<p>Rasqal also works inside Redland (0.9.17 or newer) to provide query
+language support, query API and result bindings API over graphs stored
+in Redland.
+</p>
 
 
 <h2>Supported Query Languages</h2>
