@@ -102,12 +102,12 @@
 
 
 
-static void skip_cpp_comment(rasqal_sparql_query_engine *rqe);
-static int skip_c_comment(rasqal_query *rq);
+static void sparql_skip_cpp_comment(rasqal_sparql_query_engine *rqe);
+static int sparql_skip_c_comment(rasqal_query *rq);
 
 static unsigned char *sparql_copy_token(rasqal_query *rq, const unsigned char *text, size_t len);
 static int sparql_copy_regex_token(rasqal_query *rq, YYSTYPE* lval, unsigned char delim);
-static int copy_string_token(rasqal_query *rq, YYSTYPE* lval, const unsigned char *text, size_t len, int delim);
+static int sparql_copy_string_token(rasqal_query *rq, YYSTYPE* lval, const unsigned char *text, size_t len, int delim);
 
 #ifdef RASQAL_DEBUG
 const char * sparql_token_print(int token, YYSTYPE *lval);
@@ -146,10 +146,10 @@ QUOTEDURI \<[A-Za-z][^>]+\>
 
 
 "//"	{ /* C++ comment */
-    skip_cpp_comment(rqe);
+    sparql_skip_cpp_comment(rqe);
 }
 
-"/*"	{ if(skip_c_comment(rq)<0)
+"/*"	{ if(sparql_skip_c_comment(rq)<0)
             return ERROR_TOKEN; 
         }
 
@@ -242,12 +242,12 @@ QUOTEDURI \<[A-Za-z][^>]+\>
 }
 
 '([^'\\\n\r]|\\[^\n\r])*'(@{LANGUAGETOKEN})?(^^({QUOTEDURI}|{QNAME}))?    { /*' */
-                               copy_string_token(rq, sparql_parser_lval,
+                               sparql_copy_string_token(rq, sparql_parser_lval,
                                  (const unsigned char*)yytext+1, yyleng-2, '\'');
                                return STRING_LITERAL; }
 
 \"([^"\\\n\r]|\\[^\n\r])*\"(@{LANGUAGETOKEN})?(^^({QUOTEDURI}|{QNAME}))?   { /* " */
-                                copy_string_token(rq, sparql_parser_lval,
+                                sparql_copy_string_token(rq, sparql_parser_lval,
                                   (const unsigned char*)yytext+1, yyleng-2, '"');
                                 return STRING_LITERAL; }
 
@@ -398,8 +398,8 @@ sparql_copy_regex_token(rasqal_query* rq, YYSTYPE* lval, unsigned char delim) {
 
 
 static int
-copy_string_token(rasqal_query* rq, YYSTYPE* lval,
-                  const unsigned char *text, size_t len, int delim) {
+sparql_copy_string_token(rasqal_query* rq, YYSTYPE* lval,
+                         const unsigned char *text, size_t len, int delim) {
   unsigned int i;
   const unsigned char *s;
   unsigned char *d;
@@ -518,7 +518,7 @@ copy_string_token(rasqal_query* rq, YYSTYPE* lval,
 
 
 static int
-skip_c_comment(rasqal_query *rq) {
+sparql_skip_c_comment(rasqal_query *rq) {
   rasqal_sparql_query_engine *rqe=(rasqal_sparql_query_engine*)rq->context;
   yyscan_t yyscanner=rqe->scanner;
   int lines=0;
@@ -549,7 +549,7 @@ skip_c_comment(rasqal_query *rq) {
 
 
 static void
-skip_cpp_comment(rasqal_sparql_query_engine *rqe) {
+sparql_skip_cpp_comment(rasqal_sparql_query_engine *rqe) {
   yyscan_t yyscanner=rqe->scanner;
   int c;
   
