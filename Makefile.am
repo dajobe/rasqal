@@ -61,7 +61,8 @@ AM_CFLAGS=@CFLAGS@ @RASQAL_INTERNAL_CPPFLAGS@ @RASQAL_EXTERNAL_CPPFLAGS@ $(MEM)
 
 librasqal_la_SOURCES = \
 rasqal_expr.c rasqal_general.c rasqal_query.c \
-rasqal_engine.c rasqal_raptor.c rasqal_literal.c
+rasqal_engine.c rasqal_raptor.c rasqal_literal.c \
+rasqal_graph_pattern.c
 
 if RASQAL_QUERY_RDQL
 librasqal_la_SOURCES += rdql_lexer.c rdql_lexer.h \

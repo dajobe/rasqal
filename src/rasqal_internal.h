@@ -164,6 +164,9 @@ void rasqal_graph_pattern_adjust(rasqal_graph_pattern* gp, int offset);
 void rasqal_graph_pattern_set_origin(rasqal_graph_pattern* graph_pattern, rasqal_literal* origin);
 void rasqal_graph_pattern_add_triples(rasqal_graph_pattern* gp, raptor_sequence* triples, int start_column, int end_column, int flags);
 
+int rasqal_reset_triple_meta(rasqal_triple_meta* m);
+
+
 /*
  * A query in some query language
  */
