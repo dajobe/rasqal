@@ -12,15 +12,71 @@
 
 <p>Not yet released</p>
 
-<p>SPARQL Parser: Allow UTF-8 and \u, \U in prefixes and QNames.
+
+<h3>General Changes</h3>
+
+<p>Fix a bug in writing a query result to XML when blank nodes are
+used. Now also correctly uses the base URI when pass in to the
+writing method.</p>
+
+<p>Added support for three types of query result - bindings (the only
+one in previous versions), an RDF graph and a boolean.  Added
+<code>rasqal_query_results</code> methods to test the type of the
+result: <code>rasqal_query_results_is_bindings</code>,
+<code>rasqal_query_results_is_boolean</code> and
+<code>rasqal_query_results_is_graph</code>.</p>
+
+<p>Added
+<code>rasqal_query_results_get_triple</code>
+to get current triple as a <code>raptor_statement</code>
+and <code>rasqal_query_results_next_triple</code> to move to the next triple.
 </p>
 
-<p>RDQL Parser: Allow UTF-8 and \u, \U in prefixes and QNames.  This
-makes RDQL testsuite tests S-03, S-04 and S-05 work.
+<p>Added 
+<code>rasqal_query_results_get_boolean</code>
+to get a boolean query result value.
 </p>
 
-<p>Query writing to XML: fix writing blank nodes. Correctly use the
-base URI when given in writing.</p>
+<p>Added <code>rasqal_triple</code> copy constructor
+<code>rasqal_new_triple_from_triple</code>.
+</p>
+
+
+
+<h3>Query Engine Changes</h3>
+
+<p>constructs an RDF graph result as a sequence of triples.  This
+enables the SPARQL <code>CONSTRUCT</code> form to work.
+</p>
+
+<p>Added a function expression - rasqal_op enum value
+<code>RASQAL_EXPR_FUNCTION</code>, added new <code>name</code> and
+<code>args</code> fields to the <code>rasqal_expression</code>
+structure and added <code>rasqal_new_function_expression</code> to
+construct this expression.
+</p>
+
+<p>Fixed a problem in optional results returning extra results
+with no new bindings.
+</p>
+
+
+<h3>SPARQL Query Language Changes</h3>
+
+<p>The SPARQL Parser now allows UTF-8 and \u, \U in prefixes and
+QNames.
+</p>
+
+<p>Now supports <code>CONSTRUCT</code> and <code>ASK</code>
+queries using the updated query engine features.</p>
+
+
+<h3>RDQL Query Language Changes</h3>
+
+<p>The RDQL Parser now allows UTF-8 and \u, \U in prefixes and
+QNames.  This makes RDQL testsuite tests S-03, S-04 and S-05 work.
+</p>
+
 
 
 <h2 id="rel0_9_5"><a name="rel0_9_5">Rasqal 0.9.5 Changes</a></h2>
