@@ -97,6 +97,7 @@ typedef struct {
     float floating;
     raptor_uri *uri;
   } value;
+  int usage;
 } rasqal_literal ;
 
 
@@ -242,9 +243,12 @@ RASQAL_API void rasqal_expression_print(rasqal_expression* e, FILE* fh);
 RASQAL_API int rasqal_expression_is_variable(rasqal_expression* e);
 RASQAL_API rasqal_variable* rasqal_expression_as_variable(rasqal_expression* e);
 RASQAL_API rasqal_literal* rasqal_expression_evaluate(rasqal_expression* e);
+typedef int (*rasqal_expression_foreach_fn)(void *user_data, rasqal_expression *e);
+RASQAL_API int rasqal_expression_foreach(rasqal_expression* e, rasqal_expression_foreach_fn fn, void *user_data);
 
 /* Literal class */
 RASQAL_API rasqal_literal* rasqal_new_literal(rasqal_literal_type type, int integer, float floating, char *string, raptor_uri *uri);
+RASQAL_API rasqal_literal* rasqal_new_literal_from_literal(rasqal_literal* l);
 RASQAL_API void rasqal_free_literal(rasqal_literal* l);
 RASQAL_API void rasqal_literal_print(rasqal_literal* literal, FILE* fh);
 RASQAL_API int rasqal_literal_as_boolean(rasqal_literal* literal);
