@@ -118,7 +118,7 @@ void rdql_lexer_set_column(int  column_no , yyscan_t yyscanner);
 LANGUAGETOKEN [[:alpha:]][[:alnum:]]*
 PREFIX [[:alpha:]][[:alnum:]]*
 NAME [[:alpha:]][[:alnum:]_]*
-QNAME [[:alpha:]][[:alnum:]]*:[[:alpha:]][[:alnum:]_]*
+QNAME [[:alpha:]][[:alnum:]]*:[[:alpha:]][-[:alnum:]_]*
 /* The initial char conditions are to ensure this doesn't grab < or <= */
 QUOTEDURI \<[A-Za-z][^>]+\>
 
