@@ -169,6 +169,9 @@ rasqal_raptor_new_triples_source(rasqal_query* rdf_query,
   raptor_parser *parser;
   const char *parser_name;
   raptor_uri* uri=NULL;
+
+  if(!rdf_query->sources)
+    return 1;
   
   uri=(raptor_uri*)raptor_sequence_get_at(rdf_query->sources, 0);
 
