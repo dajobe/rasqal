@@ -29,12 +29,14 @@ SPARQL_MODEL_FILES= \
 ex2-1a.n3 ex2-1d.n3 ex2-1f.n3 \
 ex2-2a.n3 \
 ex2-3a.n3 \
+ex2-4a.n3 \
 ex3.n3
 
 SPARQL_TEST_FILES= \
 ex2-1a.rq ex2-1b.rq ex2-1c.rq ex2-1e.rq \
 ex2-2a.rq \
 ex2-3a.rq \
+ex2-4a.rq \
 ex3.rq
 
 EXPECTED_SPARQL_CORRECT_FAILURES=
