@@ -415,7 +415,10 @@ rasqal_engine_execute_init(rasqal_query *query) {
 
   rasqal_engine_build_constraints_expression(query);
 
-  source=raptor_sequence_get_at(query->sources, 0);
+  if(query->sources)
+    source=(raptor_uri*)raptor_sequence_get_at(query->sources, 0);
+  else
+    source=NULL;
 
   query->triples_source=rasqal_new_triples_source(query, source);
   
