@@ -126,7 +126,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...);
 /* word symbols */
 %token SELECT SOURCE FROM WHERE AND
 %token OPTIONAL PREFIX DESCRIBE CONSTRUCT ASK NOT DISTINCT LIMIT UNION
-%token BASE LOAD BOUND
+%token BASE LOAD BOUND STR LANG DATATYPE ISURI ISBLANK ISLITERAL
 
 /* expression delimitors */
 
@@ -915,6 +915,36 @@ BuiltinExpression : BOUND '(' Var ')'
   rasqal_literal *l=rasqal_new_variable_literal($3);
   rasqal_expression *e=rasqal_new_literal_expression(l);
   $$=rasqal_new_1op_expression(RASQAL_EXPR_BOUND, e);
+}
+| STR '(' VarOrLiteral ')'
+{
+  rasqal_expression *e=rasqal_new_literal_expression($3);
+  $$=rasqal_new_1op_expression(RASQAL_EXPR_STR, e);
+}
+| LANG '(' VarOrLiteral ')'
+{
+  rasqal_expression *e=rasqal_new_literal_expression($3);
+  $$=rasqal_new_1op_expression(RASQAL_EXPR_LANG, e);
+}
+| DATATYPE '(' VarOrLiteral ')'
+{
+  rasqal_expression *e=rasqal_new_literal_expression($3);
+  $$=rasqal_new_1op_expression(RASQAL_EXPR_DATATYPE, e);
+}
+| ISURI '(' VarOrLiteral ')'
+{
+  rasqal_expression *e=rasqal_new_literal_expression($3);
+  $$=rasqal_new_1op_expression(RASQAL_EXPR_ISURI, e);
+}
+| ISBLANK '(' VarOrLiteral ')'
+{
+  rasqal_expression *e=rasqal_new_literal_expression($3);
+  $$=rasqal_new_1op_expression(RASQAL_EXPR_ISBLANK, e);
+}
+| ISLITERAL '(' VarOrLiteral ')'
+{
+  rasqal_expression *e=rasqal_new_literal_expression($3);
+  $$=rasqal_new_1op_expression(RASQAL_EXPR_ISLITERAL, e);
 }
 | UnaryExpressionNotPlusMinus
 {
