@@ -91,6 +91,12 @@ extern "C" {
 #undef RASQAL_INLINE
 #define RASQAL_INLINE
 
+/* Building RDQL query */
+#define RASQAL_QUERY_RDQL 1
+
+/* Building SPARQL query */
+#define RASQAL_QUERY_SPARQL 1
+
 
 #ifdef __cplusplus
 }
