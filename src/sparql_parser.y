@@ -128,6 +128,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...);
 %token SELECT SOURCE FROM WHERE AND
 %token OPTIONAL PREFIX DESCRIBE CONSTRUCT ASK NOT DISTINCT LIMIT UNION
 %token BASE LOAD BOUND STR LANG DATATYPE ISURI ISBLANK ISLITERAL
+%token GRAPH WITH
 
 /* expression delimitors */
 
@@ -290,8 +291,17 @@ LoadClauseOpt : LOAD URIList
 
 
 /* SPARQL Grammar: [8] rq23 FromClause - renamed for clarity */
-FromClauseOpt : FROM URIList
+FromClauseOpt : WITH URIList
 {
+  if($2) {
+    raptor_sequence_join(((rasqal_query*)rq)->sources, $2);
+    raptor_free_sequence($2);
+  }
+}
+| FROM URIList
+{
+  sparql_syntax_warning(((rasqal_query*)rq), "Use WITH instead of FROM for SPARQL dataset construction (2005-02-17 WD)");
+
   if($2) {
     raptor_sequence_join(((rasqal_query*)rq)->sources, $2);
     raptor_free_sequence($2);
@@ -470,10 +480,25 @@ GraphPattern1 : TriplePattern
 /* SPARQL Grammar: [12] PatternElementForms */
 
 /* This inlines use-once SourceGraphPattern and OptionalGraphPattern */
-PatternElementForms: SOURCE '*' GraphPattern1  /* from SourceGraphPattern */
+PatternElementForms: GRAPH VarOrURI GraphPattern1 /* from SourceGraphPattern */
 {
 #if RASQAL_DEBUG > 1  
-  printf("PatternElementForms 1\n  graphpattern=");
+  printf("PatternElementForms 1\n  varoruri=");
+  rasqal_literal_print($2, stdout);
+  printf(", graphpattern=");
+  rasqal_graph_pattern_print($3, stdout);
+  fputs("\n\n", stdout);
+#endif
+
+  rasqal_graph_pattern_set_origin($3, $2);
+
+  rasqal_free_literal($2);
+  $$=$3;
+}
+| SOURCE '*' GraphPattern1  /* from SourceGraphPattern */
+{
+#if RASQAL_DEBUG > 1  
+  printf("PatternElementForms 2\n  graphpattern=");
   rasqal_graph_pattern_print($3, stdout);
   fputs("\n\n", stdout);
 #endif
@@ -488,20 +513,17 @@ PatternElementForms: SOURCE '*' GraphPattern1  /* from SourceGraphPattern */
   raptor_sequence *s=$3->graph_patterns;
   
 #if RASQAL_DEBUG > 1  
-  printf("PatternElementForms 2\n  varoruri=");
+  printf("PatternElementForms 3\n  varoruri=");
   rasqal_literal_print($2, stdout);
   printf(", graphpattern=");
   rasqal_graph_pattern_print($3, stdout);
   fputs("\n\n", stdout);
 #endif
 
-  if(s) {
-    /* Flag all the triples in GraphPattern1 with origin $2 */
-    for(i=0; i < raptor_sequence_size(s); i++) {
-      rasqal_triple *t=(rasqal_triple*)raptor_sequence_get_at(s, i);
-      rasqal_triple_set_origin(t, rasqal_new_literal_from_literal($2));
-    }
-  }
+  sparql_syntax_warning(((rasqal_query*)rq), "Use GRAPH instead of SOURCE in SPARQL (2005-02-17 WD)");
+
+  rasqal_graph_pattern_set_origin($3, $2);
+
   rasqal_free_literal($2);
   $$=$3;
 }
@@ -511,7 +533,7 @@ PatternElementForms: SOURCE '*' GraphPattern1  /* from SourceGraphPattern */
   raptor_sequence *s=$2->graph_patterns;
 
 #if RASQAL_DEBUG > 1  
-  printf("PatternElementForms 3\n  graphpattern=");
+  printf("PatternElementForms 4\n  graphpattern=");
   rasqal_graph_pattern_print($2, stdout);
   fputs("\n\n", stdout);
 #endif
@@ -531,13 +553,15 @@ PatternElementForms: SOURCE '*' GraphPattern1  /* from SourceGraphPattern */
   int i;
 
 #if RASQAL_DEBUG > 1  
-  printf("PatternElementForms 4\n  graphpattern=");
+  printf("PatternElementForms 5\n  graphpattern=");
   if($2)
     raptor_sequence_print($2, stdout);
   else
     fputs("NULL", stdout);
   fputs("\n\n", stdout);
 #endif
+
+  sparql_syntax_warning(((rasqal_query*)rq), "Use OPTIONAL instead of [] for optional triples in SPARQL (2005-02-17 WD)");
 
   if($2) {
     /* Make all graph patterns in GraphPattern, optional */
@@ -552,7 +576,7 @@ PatternElementForms: SOURCE '*' GraphPattern1  /* from SourceGraphPattern */
 | AND Expression
 {
 #if RASQAL_DEBUG > 1  
-  printf("PatternElementForms 4\n expression=");
+  printf("PatternElementForms 6\n expression=");
   rasqal_expression_print($2, stdout);
   fputs("\n\n", stdout);
 #endif
