@@ -100,11 +100,14 @@ README: README.html
 NEWS: NEWS.html
 	$(HTML_TO_TEXT) $< > $@
 
-@MAINT@librasqal.html: $(srcdir)/librasqal.3 $(srcdir)/fix-groff-xhtml $@
-@MAINT@	-groff -man -Thtml -P-l $< | tidy -asxml -wrap 1000 2>/dev/null | perl $(srcdir)/fix-groff-xhtml $@
 
-@MAINT@roqet.html: $(srcdir)/roqet.1 $(srcdir)/fix-groff-xhtml $@
-@MAINT@	-groff -man -Thtml -P-l $< | tidy -asxml -wrap 1000 2>/dev/null | perl $(srcdir)/fix-groff-xhtml $@
+if MAINTAINER_MODE
+librasqal.html: $(srcdir)/librasqal.3 $(srcdir)/fix-groff-xhtml $@
+	-groff -man -Thtml -P-l $< | tidy -asxml -wrap 1000 2>/dev/null | perl $(srcdir)/fix-groff-xhtml $@
+
+roqet.html: $(srcdir)/roqet.1 $(srcdir)/fix-groff-xhtml $@
+	-groff -man -Thtml -P-l $< | tidy -asxml -wrap 1000 2>/dev/null | perl $(srcdir)/fix-groff-xhtml $@
+
 
 # Actually it needs rdql_parser.h but nevermind
 rdql_lexer.c: $(srcdir)/rdql_lexer.l rdql_parser.tab.c $(srcdir)/fix-flex
@@ -117,6 +120,8 @@ rdql_parser.tab.c: $(srcdir)/rdql_parser.y
 	mv $@ rdql_parser.t
 	sed -e '/Suppress GCC warning that yyerrlab1/,/^\#endif/d' rdql_parser.t > $@
 	rm -f rdql_parser.t
+endif
+
 
 check-local: rdql_lexer_test rdql_parser_test
 
