@@ -31,7 +31,7 @@ man_MANS = roqet.1 librasqal.3 rasqal-config.1
 
 SUBDIRS=tests rdql-testsuite docs win32
 
-TESTS=rasqal_expr_test strcasecmp_test
+TESTS=rasqal_expr_test strcasecmp_test rasqal_query_test
 
 CLEANFILES=$(TESTS) rdql_lexer_test rdql_parser_test
 MAINTAINERCLEANFILES=rdql_lexer.c rdql_lexer.h \
