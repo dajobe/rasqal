@@ -13,13 +13,15 @@
 <h3>General</h3>
 
 <ul>
-<li>RDQL: check if blank nodes are allowed, they are not tested (CONFORMANCE)</li>
+<li>Engine: generating result sets in RDF test case vocabulary</li>
+<li>RDQL: check if blank nodes are allowed, they are not in the test suite (CONFORMANCE)</li>
 <li>Streaming triples from the parser - a Raptor feature request</li>
 <li>Engine: Result constraints - like <code>LIMIT</code> and <code>OFFSET</code> in SQL (extension)</li>
 <li>Engine: Optional triples (extension)</li>
-<li>Engine: Does not handle multiple sources (BUG? / extension?)</li>
-<li>Engine: Add constructing triples (like SeRQL <code>construct</code>)</li>
-<li>QL: SeRQL - needs several engine changes</li>
+<li>Engine: Does not handle multiple sources (extension)</li>
+<li>Engine: Add constructing of triples (like SeRQL <code>construct</code>)</li>
+<li>Engine: Select distinct results</li>
+<li>QL: SeRQL - needs several engine changes (construct, optionals, multiple sources, distinct, paths, anon variables, predicates) - <a href="http://www.openrdf.org/doc/users/ch05.html">The SeRQL query language</a> in Sesame user manual.</li>
 <li>QL: Squish - should be just syntax - <a href="http://swordfish.rdfweb.org/rdfquery/squish-bnf.html">Squish BNF</a></li> 
 <li>QL: <a href="http://www.guha.com/rdfdb/query.html">RDFDB query language</a> - should be just syntax</li>
 <li>QL: RQL, others - functional requirements not determined</li>
