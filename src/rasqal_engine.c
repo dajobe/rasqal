@@ -1005,6 +1005,13 @@ rasqal_engine_get_next_result(rasqal_query *query) {
     return 0;
   }
 
+  for(i=0; i < graph_patterns_size; i++) {
+    rasqal_graph_pattern *gp2=(rasqal_graph_pattern*)raptor_sequence_get_at(query->graph_patterns, i);
+    if(query->optional_graph_pattern >= 0 &&
+       i >= query->optional_graph_pattern)
+      gp2->matched=0;
+  }
+  
 
   while(rc > 0) {
     rasqal_graph_pattern* gp=(rasqal_graph_pattern*)raptor_sequence_get_at(query->graph_patterns, query->current_graph_pattern);
