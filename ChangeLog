@@ -1,5 +1,33 @@
 2005-02-17  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
+	* tests/rdql/testsuite/check-rdql, tests/sparql/check-sparql:
+	Handle roqet select: and bound variables:
+
+	* rasqal.h: Added RASQAL_DEPRECATED macro.  Deprecated
+	rasqal_query_get_variable_sequence Added
+	rasqal_query_get_bound_variable_sequence and
+	rasqal_query_get_all_variable_sequence.
+
+	* rasqal_query.c (rasqal_query_get_variable_sequence): Deprecate,
+	prefer rasqal_query_get_bound_variable_sequence
+	(rasqal_query_get_bound_variable_sequence): Added, returning the
+	sequence of rasqal_variable* that are to be bound - appearing in
+	the query result.
+	(rasqal_query_get_all_variable_sequence): Added, return the
+	sequence of all rasqal_variable* mentioned in the query.
+	(rasqal_query_print): Print all variables as well as selected.
+
+	* rasqal_literal.c (rasqal_literal_as_integer,
+	rasqal_literal_as_floating, rasqal_literal_as_string,
+	rasqal_literal_compare): Added remaining LITERAL enums for
+	-Wswitch-enum.
+	(rasqal_literal_compare): Handle two literal values.
+	(rasqal_literal_as_node): Handle RASQAL_LITERAL_BOOLEAN into a
+	xsd:boolean typed value.
+
+	* rasqal_query.c (rasqal_query_results_get_binding_name): Work
+	even when query results are finished.
+
 	* rasqal_query.c (rasqal_query_set_feature): Added
 	RASQAL_FEATURE_LAST case for -Wswitch-enum (there are no
 	features).
