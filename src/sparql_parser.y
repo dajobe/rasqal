@@ -125,7 +125,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...);
 
 /* expression delimitors */
 
-%token COMMA LPAREN RPAREN LSQUARE RSQUARE
+%token COMMA LPAREN RPAREN LSQUARE RSQUARE LCURLY RCURLY
 %token VARPREFIX
 
 /* function call indicator */
@@ -306,6 +306,11 @@ PatternElement : TriplePatternList
 }
 | LPAREN GraphPattern RPAREN /*  ExplicitGroup inlined */
 {
+  sparql_syntax_warning((rasqal_query*)rq, "Saw deprecated ( ) group syntax");
+  $$=$2;
+}
+| LCURLY GraphPattern RCURLY /*  ExplicitGroup inlined */
+{
   $$=$2;
 }
 | PatternElementForms
@@ -324,6 +329,13 @@ GraphPattern1 : TriplePattern
   raptor_sequence_push($$, $1);
 }
 | LPAREN GraphPattern RPAREN /*  ExplicitGroup inlined */
+{
+  /* FIXME - remove when syntax changes */
+  /* FIXME - make a graphpattern */
+  sparql_syntax_warning((rasqal_query*)rq, "Saw deprecated ( ) group syntax");
+  $$=$2;
+}
+| LCURLY GraphPattern RCURLY /*  ExplicitGroup inlined */
 {
   /* FIXME - make a graphpattern */
   $$=$2;
