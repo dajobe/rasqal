@@ -60,14 +60,17 @@ my $srcdir='.';
 
 
 sub run_test($$$$$) {
-  my($name, $dir, $test_file, $data_file, $result_file)=@_;
+  my($name, $dir, $test_file, $data_files_ref, $result_file)=@_;
+  my(@data_files)=@$data_files_ref;
 
-  warn "run_test($name, $dir, $test_file, $data_file, $result_file)\n"
+  warn "run_test($name, $dir, $test_file, ",join("; ",@data_files)," $result_file)\n"
     if $debug;
 
   my $cmd;
 
-  $cmd="$roqet -d -i sparql -s $data_file $test_file 2>roqet.err";
+  my(@args)=(map "-s $_", @data_files);
+  my $args_s=join(" ",@args);
+  $cmd="$roqet -d -i sparql $args_s $test_file 2>roqet.err";
   warn "$program: Running '$cmd'\n"
     if $debug;
 
@@ -112,8 +115,10 @@ sub run_test($$$$$) {
     warn "$program: $test_file FAILED - query returned errors:\n  ".join("\n  ",@errs)."\n";
     return 1;
   }
-  
-  $cmd="$rapper -i turtle -q -o ntriples $result_file";
+
+  my $parser='-g';
+  #$parser='-i turtle';
+  $cmd="$rapper $parser -q -o ntriples $result_file";
 
   my(@node_order);
   my(%nodes);
@@ -237,8 +242,9 @@ die "$program: $srcdir.$manifest_file not found\n"
 
 my(%triples);
 my $entries_node;
-open(MF, "rapper -q -i turtle -o ntriples $srcdir$manifest_file|") 
-  or die "Cannot open pipe to $srcdir$manifest_file - $!\n";
+my $cmd="$rapper -q -i turtle -o ntriples $srcdir$manifest_file";
+open(MF, "$cmd |") 
+  or die "Cannot open pipe from '$cmd' - $!\n";
 while(<MF>) {
   chomp;
   s/\s+\.$//;
@@ -278,20 +284,30 @@ while($list_node) {
     if $debug;
 
   my $action_node=$triples{$entry_node}->{"<${mf}action>"}->[0];
+
+  print "Entry action_node $action_node\n"
+     if $debug;
   
-  my $data_node=$triples{$action_node}->{"<${qt}data>"}->[0];
-  my $data_file=($data_node =~ /^<(.+)>$/, $1);
-  $data_file =~ s,^file:([^/]+),$1,;
+  my(@data_files)=();
+  for my $data_node (@{$triples{$action_node}->{"<${qt}data>"}}) { 
+    print "Entry data_node $data_node\n"
+     if $debug;
+    my $data_file=($data_node =~ /^<(.+)>$/, $1);
+    $data_file =~ s,^file:([^/]+),$1,;
+    push(@data_files, $data_file);
+  }
 
   my $query_node=$triples{$action_node}->{"<${qt}query>"}->[0];
   my $query_file=($query_node =~ /^<(.+)>$/, $1);
   $query_file =~ s,^file:([^/]+),$1,;
 
-  print "Entry data_file=$data_file, $query_file=$query_file\n"
+  print "Entry data_files=",join(", ",@data_files),"\n"
+    if $debug;
+  print "Entry query_file=$query_file\n"
     if $debug;
 
   if (!$unique_test || ($unique_test && $name eq $unique_test)) {
-    push(@tests, [$name, $srcdir, $query_file, $data_file, $result_file]);
+    push(@tests, [$name, $srcdir, $query_file, [ @data_files], $result_file]);
     last if $unique_test;
   }
 
@@ -304,9 +320,9 @@ my(@failed);
 
 my $result=0;
 for my $test (@tests) {
-  my($name, $dir, $test_file, $data_file, $result_file)=@$test;
+  my($name, $dir, $test_file, $data_files_ref, $result_file)=@$test;
 
-  my $rc = run_test($name, $dir, $test_file, $data_file, $result_file);
+  my $rc = run_test($name, $dir, $test_file, $data_files_ref, $result_file);
   push(@failed, $name) if $rc;
   $result++ if $rc;
 }
