@@ -318,13 +318,21 @@ RASQAL_API void rasqal_variable_set_value(rasqal_variable* v, rasqal_literal *l)
 
 /* rasqal_engine.c */
 
+typedef enum {
+  RASQAL_TRIPLE_SUBJECT  = 1,
+  RASQAL_TRIPLE_PREDICATE= 2,
+  RASQAL_TRIPLE_OBJECT   = 4,
+  RASQAL_TRIPLE_ORIGIN   = 8
+} rasqal_triple_parts;
+
 struct rasqal_triples_match_s {
   void *user_data;
 
   /* the [4]array (s,p,o,origin) bindings against the current triple match
-   * returns 0 on failure
+   * only touching triple parts given.
+   * returns parts that were bound or 0 on failure
    */
-  int (*bind_match)(struct rasqal_triples_match_s*, void *user_data, rasqal_variable *bindings[4]);
+  rasqal_triple_parts (*bind_match)(struct rasqal_triples_match_s*, void *user_data, rasqal_variable *bindings[4], rasqal_triple_parts parts);
 
   /* move to next match */
   void (*next_match)(struct rasqal_triples_match_s*, void *user_data);
