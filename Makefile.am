@@ -99,7 +99,6 @@ rdql_parser.tab.c: $(srcdir)/rdql_parser.y
 	rm -f rdql_parser.t
 
 
-# Actually it needs rdql_parser.h but nevermind
 rdql_lexer_test: $(srcdir)/rdql_lexer.c librasqal.la
 	$(LINK) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE @RASQAL_INTERNAL_CPPFLAGS@ $(srcdir)/rdql_lexer.c librasqal.la
 
@@ -109,5 +108,5 @@ rdql_parser_test: $(srcdir)/rdql_parser.tab.c librasqal.la
 rasqal_query_test: $(srcdir)/rasqal_query.c librasqal.la
 	$(LINK) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE @RASQAL_INTERNAL_CPPFLAGS@ $(srcdir)/rasqal_query.c librasqal.la
 
-rasqal_sequence_test: $(srcdir)/rasqal_sequence.c
+rasqal_sequence_test: $(srcdir)/rasqal_sequence.c librasqal.la
 	$(LINK) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE @RASQAL_INTERNAL_CPPFLAGS@ $(srcdir)/rasqal_sequence.c librasqal.la
