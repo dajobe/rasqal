@@ -123,6 +123,17 @@ struct rasqal_graph_pattern_s {
   /* first graph_pattern in sequence with flags RASQAL_TRIPLE_FLAGS_OPTIONAL */
   int optional_graph_pattern;
 
+  /* current position in the sequence */
+  int current_graph_pattern;
+
+  /* Max optional graph pattern allowed so far to stop backtracking
+   * going over old graph patterns
+   */
+  int max_optional_graph_pattern;
+
+  /* Count of all optional matches for the current mandatory matches */
+  int optional_graph_pattern_matches_count;
+
   /* enum rasqal_pattern_flags */
   int flags;
 
@@ -151,6 +162,7 @@ void rasqal_free_graph_pattern(rasqal_graph_pattern* gp);
 void rasqal_graph_pattern_init(rasqal_graph_pattern* gp);
 void rasqal_graph_pattern_adjust(rasqal_graph_pattern* gp, int offset);
 void rasqal_graph_pattern_set_origin(rasqal_graph_pattern* graph_pattern, rasqal_literal* origin);
+void rasqal_graph_pattern_add_triples(rasqal_graph_pattern* gp, raptor_sequence* triples, int start_column, int end_column, int flags);
 
 /*
  * A query in some query language
@@ -164,7 +176,6 @@ struct rasqal_query_s {
 
   /* query graph pattern, containing the sequence of graph_patterns below */
   rasqal_graph_pattern* query_graph_pattern;
-  raptor_sequence* graph_patterns;   /* ... rasqal_graph_pattern*  */
 
   /* sequences of ... */
   raptor_sequence* selects;     /* ... rasqal_variable* names only */
@@ -274,22 +285,8 @@ struct rasqal_query_s {
   /* incrementing counter for declaring prefixes in order of appearance */
   int prefix_depth;
 
-  /* current position in the sequence */
-  int current_graph_pattern;
-
-  /* first graph_pattern in sequence with flags RASQAL_TRIPLE_FLAGS_OPTIONAL */
-  int optional_graph_pattern;
-
-  /* Count of all optional matches for the current mandatory matches */
-  int optional_graph_pattern_matches_count;
-
   /* New variables bound from during the current 'next result' run */
   int new_bindings_count;
-
-  /* Max optional graph pattern allowed so far to stop backtracking
-   * going over old graph patterns
-   */
-  int max_optional_graph_pattern;
 
   /* result triple - internal, not returned */
   rasqal_triple* triple;
