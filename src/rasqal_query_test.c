@@ -65,6 +65,7 @@ main(int argc, char **argv) {
   const char *query_format=QUERY_FORMAT;
   unsigned char *query_string;
   int count;
+  const char *query_language_name="rdql";
 
   rasqal_init();
   
@@ -82,11 +83,17 @@ main(int argc, char **argv) {
   base_uri=raptor_new_uri(uri_string);  
   raptor_free_memory(uri_string);
 
-  query=rasqal_new_query("rdql", NULL);
+  query=rasqal_new_query(query_language_name, NULL);
+  if(!query) {
+    fprintf(stderr, "%s: creating query in language %s FAILED\n", program,
+            query_language_name);
+    return(0);
+  }
 
-  printf("%s: preparing query\n", program);
+  printf("%s: preparing %s query\n", program, query_language_name);
   if(rasqal_query_prepare(query, query_string, base_uri)) {
-    fprintf(stderr, "%s: query prepare FAILED\n", program);
+    fprintf(stderr, "%s: %s query prepare FAILED\n", program, 
+            query_language_name);
     return(1);
   }
 
