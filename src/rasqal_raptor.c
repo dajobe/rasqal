@@ -248,7 +248,7 @@ rasqal_raptor_new_triples_source(rasqal_query* rdf_query,
     parser=raptor_new_parser(parser_name);
     raptor_set_statement_handler(parser, rtsc, rasqal_raptor_statement_handler);
     raptor_set_error_handler(parser, rdf_query, rasqal_raptor_error_handler);
-    raptor_parse_uri(parser, uri, NULL);
+    raptor_parse_uri(parser, uri, dg->name_uri);
     raptor_free_parser(parser);
     if(rdf_query->failed) {
       rasqal_raptor_free_triples_source(user_data);
