@@ -522,12 +522,23 @@ rasqal_query_get_constraint(rasqal_query* query, int idx)
  * @query: &rasqal_query query object
  * @prefix: &rasqal_prefix namespace prefix, URI
  *
+ * If the prefix has already been used, the old URI will be overridden.
  **/
 void
 rasqal_query_add_prefix(rasqal_query* query, rasqal_prefix* prefix)
 {
   if(!query->prefixes)
     query->prefixes=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_prefix, (raptor_sequence_print_handler*)rasqal_prefix_print);
+  else {
+    int i;
+    for(i=0; i< raptor_sequence_size(query->prefixes); i++) {
+      rasqal_prefix* p=(rasqal_prefix*)raptor_sequence_get_at(query->prefixes, i);
+      if(strcmp((const char*)p->prefix, (const char*)prefix->prefix)) {
+        rasqal_engine_undeclare_prefix(query, p);
+        break;
+      }
+    }
+  }
 
   raptor_sequence_shift(query->prefixes, (void*)prefix);
 }
