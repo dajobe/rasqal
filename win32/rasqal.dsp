@@ -118,7 +118,15 @@ SOURCE=.\rdql_lexer.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\rdql_parser.tab.c
+SOURCE=.\rdql_parser.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\sparql_lexer.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\sparql_parser.c
 # End Source File
 # Begin Source File
 
@@ -150,7 +158,19 @@ SOURCE=.\rdql_lexer.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\rdql_parser.tab.h
+SOURCE=.\rdql_parser.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\sparql_common.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\sparql_lexer.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\sparql_parser.h
 # End Source File
 # Begin Source File
 
