@@ -393,25 +393,25 @@ TriplePattern : LPAREN VarOrURI VarOrURI VarOrLiteral RPAREN
 
 
 /* NEW Grammar Term */
-VarOrURIList : Var VarOrURIList 
+VarOrURIList : VarOrURIList Var
 {
-  $$=$2;
-  raptor_sequence_shift($$, $1);
+  $$=$1;
+  raptor_sequence_push($$, $2);
 }
-| Var COMMA VarOrURIList 
+| VarOrURIList COMMA Var
 {
-  $$=$3;
-  raptor_sequence_shift($$, $1);
+  $$=$1;
+  raptor_sequence_push($$, $3);
 }
-| URI_LITERAL VarOrURIList 
+| VarOrURIList URI_LITERAL
 {
-  $$=$2;
-  raptor_sequence_shift($$, $1);
+  $$=$1;
+  raptor_sequence_push($$, $2);
 }
-| URI_LITERAL COMMA VarOrURIList 
+| VarOrURIList COMMA URI_LITERAL
 {
-  $$=$3;
-  raptor_sequence_shift($$, $1);
+  $$=$1;
+  raptor_sequence_push($$, $3);
 }
 | Var 
 {
@@ -428,15 +428,15 @@ VarOrURIList : Var VarOrURIList
 ;
 
 /* NEW Grammar Term */
-VarList : Var VarList 
+VarList : VarList Var
 {
-  $$=$2;
-  raptor_sequence_shift($$, $1);
+  $$=$1;
+  raptor_sequence_push($$, $2);
 }
-| Var COMMA VarList 
+| VarList COMMA Var
 {
-  $$=$3;
-  raptor_sequence_shift($$, $3);
+  $$=$1;
+  raptor_sequence_push($$, $3);
 }
 | Var 
 {
@@ -472,10 +472,6 @@ VarOrURI : Var
 | URI_LITERAL
 {
   $$=rasqal_new_uri_literal($1);
-}
-| QNAME_LITERAL
-{
-  $$=rasqal_new_simple_literal(RASQAL_LITERAL_QNAME, $1);
 }
 ;
 
