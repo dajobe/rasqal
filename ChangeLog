@@ -1,3 +1,30 @@
+2005-02-01  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal_expr.c (rasqal_free_expression,
+	rasqal_expression_evaluate, rasqal_expression_print_op): Added
+	RASQAL_EXPR_BOUND support.
+
+	* rasqal.h: Added RASQAL_EXPR_BOUND
+
+	* sparql_parser.y:
+	Updates from http://www.w3.org/2001/sw/DataAccess/rq23/
+	$Revision: 1.187 $ of $Date: 2005/02/01 10:56:24 $
+	Added tokens BASE LOAD BOUND
+	Renumbered some of comments to rq23 above.
+	(ReportFormat) Moved big () inside Query here
+	(SelectClause, DescribeClause, ConstructClause): Note now in rq23
+	(AskClause): Added from rq23.
+	(LoadClauseOpt): Added from rq23.
+	(LimitCaluseOpt): Added from rq23.
+	(PatternElementForms OPTIONAL GraphPattern1): Mark the graph pattern
+	as optional in the flags.
+	(BaseDeclOpt): Added from rq23.
+	(UnaryExpression): Call BuiltinExpression
+	(BuiltinExpression): Added from rq23 just with BOUND
+
+	* sparql_lexer.l:
+	Added OPTIONAL, BASE, LOAD and BOUND tokens and keywords
+
 2005-01-31  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
 	* rasqal_query.c (rasqal_query_execute): Init ask_result.
