@@ -1,3 +1,66 @@
+2005-03-14  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal_engine.c (rasqal_engine_query_constraints_has_qname):
+	Check for query constraints in sub-graph patterns via
+	rasqal_engine_graph_pattern_constraints_has_qname on
+	query_graph_pattern.
+	(rasqal_engine_graph_pattern_constraints_has_qname): Check in
+	sub-graph patterns here.
+	(rasqal_engine_expand_graph_pattern_constraints_qnames): Expand
+	qnames in sub graph patterns via recursion.
+	(rasqal_engine_expand_query_constraints_qnames): Expand via
+	rasqal_engine_expand_graph_pattern_constraints_qnames on
+	query_graph_pattern.
+	(rasqal_engine_build_constraints_expression): Build constraints in
+	sub graph patterns via recursion.
+	(rasqal_new_graph_pattern_from_triples): Use
+	rasqal_graph_pattern_add_triples to init.
+	(rasqal_graph_pattern_add_triples): Added, to add triples to an
+	existing graph pattern.
+	(rasqal_graph_pattern_init): Init sub graph_patterns by recusion.
+	Optional flags are now stored per graph pattern.
+	(rasqal_query_graph_pattern_build_declared_in): Added to build the
+	variables_declared_in fields per graph_pattern.
+	(rasqal_query_build_declared_in): Use the above to init from the
+	query_graph_pattern down.
+	(rasqal_engine_prepare): Use
+	rasqal_engine_build_constraints_expression to init
+	query_graph_pattern constraints.
+	(rasqal_engine_execute_init): Moved graph pattern sequence init
+	into rasqal_graph_pattern_init.
+	(rasqal_engine_move_to_graph_pattern): Move within an outer graph
+	pattern not a query.
+	(rasqal_engine_do_step, rasqal_engine_do_optional_step): Perform a
+	step within an outer graph_pattern containing graph pattern gp.
+	(rasqal_engine_get_next_result): Execute over contents of query's
+	query_graph_pattern.
+
+	* sparql_parser.y (WhereClauseOpt): Append to query_graph_pattern
+
+	* rdql_parser.y (rasqal_rdql_query_engine_prepare): Use
+	rasqal_graph_pattern_add_sub_graph_pattern on query_graph_pattern
+
+	* rasqal_query.c (rasqal_new_query, rasqal_free_query): Remove
+	graph_patterns and optional_graph_pattern fields.
+	(rasqal_query_add_constraint,
+	rasqal_query_get_constraint_sequence,
+	rasqal_query_get_constraint): Still deprecated, but now use the
+	query's query_graph_pattern field.
+	(rasqal_query_get_graph_pattern_sequence,
+	rasqal_query_get_graph_pattern): Use the graph pattern sequence
+	inside the query's query_graph_pattern.
+	(rasqal_graph_pattern_add_sub_graph_pattern): Added.
+	(rasqal_query_print): Print from the query_graph_pattern.
+
+	* rasqal_internal.h: Moved from structure rasqal_query to
+	rasqal_graph_pattern fields: current_graph_pattern,
+	max_optional_graph_pattern, optional_graph_pattern_matches_count
+	to graph_pattern structure for execution of sub-graph patterns.
+	Added prototype of rasqal_graph_pattern_add_triples.
+
+	* rasqal.h:
+	Added prototype for rasqal_graph_pattern_add_sub_graph_pattern
+
 2005-03-13  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
 	* rasqal_engine.c (rasqal_new_graph_pattern): Added.
