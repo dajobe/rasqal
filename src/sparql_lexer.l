@@ -783,10 +783,7 @@ main(int argc, char *argv[])
 
   uri_string=raptor_uri_filename_to_uri_string(filename);
   rq.base_uri=raptor_new_uri(uri_string);
-#if defined (RAPTOR_DEBUG) && defined(HAVE_DMALLOC_H)
-#undef free
-#endif
-  free((void*)uri_string);
+  raptor_free_memory((void*)uri_string);
 
   while(1) {
     memset(&lval, 0, sizeof(YYSTYPE));
