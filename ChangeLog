@@ -1,4 +1,33 @@
+2005-01-03  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* sparql_lexer.l, roqet.c, rdql_lexer.l, rasqal_query.c: casts
+	for C++
+
+2005-01-01  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* roqet.c (roqet_xml_print_xml_attribute): Deleted
+	(roqet_query_results_print_as_xml): Replaced with call to
+	rasqal_query_results_write.
+	(main): Set error and fatal_error handlers for query.
+	Remove xml format warning.
+
+	* rasqal_query.c (rasqal_query_results_write):
+	Added docs. Declare own namespace stack
+	and free up elements.
+
+	* rasqal.h: Added rasqal_query_results_write
+
+2004-12-31  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal_query.c (rasqal_query_results_write):
+	Added, writing query results in form of
+	http://www.w3.org/TR/2004/WD-rdf-sparql-XMLres-20041221/
+
+	* sparql_parser.y: Undef RASQAL_DEBUG 2 always
+
 2004-12-23  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal_query.c (rasqal_free_query): Free variables last.
 
 	* sparql_lexer.l:
 	LANGUAGETOKEN, PREFIX QNAME use explicit ranges and expand
