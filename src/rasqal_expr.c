@@ -187,7 +187,7 @@ rasqal_free_prefix(rasqal_prefix* p)
 void
 rasqal_prefix_print(rasqal_prefix* p, FILE* fh)
 {
-  fprintf(fh, "prefix(%s as %s)", p->prefix, raptor_uri_as_string(p->uri));
+  fprintf(fh, "prefix(%s as %s)", (p->prefix ? p->prefix : "(default)"), raptor_uri_as_string(p->uri));
 }
 
 
