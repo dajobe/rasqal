@@ -234,15 +234,43 @@ rasqal_redland_bind_match(struct rasqal_triples_match_s* rtm,
   }
 
   if(bindings[1]) {
-    LIBRDF_DEBUG1("binding predicate to variable\n");
-    rasqal_variable_set_value(bindings[1], 
-                              redland_node_to_rasqal_literal(librdf_statement_get_predicate(statement)));
+    if(bindings[0] == bindings[1]) {
+      if(!librdf_node_equals(librdf_statement_get_subject(statement),
+                             librdf_statement_get_predicate(statement)))
+        return 1;
+      LIBRDF_DEBUG1("subject and predicate values match\n");
+    } else {
+      LIBRDF_DEBUG1("binding predicate to variable\n");
+      rasqal_variable_set_value(bindings[1], 
+                                redland_node_to_rasqal_literal(librdf_statement_get_predicate(statement)));
+    }
   }
 
   if(bindings[2]) {
-    LIBRDF_DEBUG1("binding object to variable\n");
-    rasqal_variable_set_value(bindings[2],  
-                              redland_node_to_rasqal_literal(librdf_statement_get_object(statement)));
+    int bind=1;
+    
+    if(bindings[0] == bindings[2]) {
+      if(!librdf_node_equals(librdf_statement_get_subject(statement),
+                             librdf_statement_get_object(statement)))
+        return 1;
+      bind=0;
+      LIBRDF_DEBUG1("subject and object values match\n");
+    }
+    if(bindings[1] == bindings[2] &&
+       !(bindings[0] == bindings[1]) /* don't do this check if ?x ?x ?x */
+       ) {
+      if(!librdf_node_equals(librdf_statement_get_predicate(statement),
+                             librdf_statement_get_object(statement)))
+        return 1;
+      bind=0;
+      LIBRDF_DEBUG1("predicate and object values match\n");
+    }
+    
+    if(bind) {
+      LIBRDF_DEBUG1("binding object to variable\n");
+      rasqal_variable_set_value(bindings[2], 
+                                redland_node_to_rasqal_literal(librdf_statement_get_object(statement)));
+    }
   }
 
   return 0;
