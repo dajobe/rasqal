@@ -282,7 +282,16 @@ AskClause : ASK
 /* SPARQL Grammar: [7] LoadClause - renamed for clarity */
 LoadClauseOpt : LOAD URIList
 {
-  /* FIXME */
+  if($2) {
+    int i;
+    
+    for(i=0; i < raptor_sequence_size($2); i++) {
+      raptor_uri* uri=(raptor_uri*)raptor_sequence_get_at($2, i);
+      rasqal_query_add_data_graph((rasqal_query*)rq, uri, uri, RASQAL_DATA_GRAPH_NAMED);
+    }
+    
+    raptor_free_sequence($2);
+  }
 }
 | /* empty */
 {
@@ -377,6 +386,7 @@ GraphOrPattern : GraphAndPattern
 }
 | GraphAndPattern UNION GraphAndPattern 
 {
+  /* FIXME - union graph pattern type */
   sparql_syntax_warning(((rasqal_query*)rq), "SPARQL UNION ignored");
   $$=$1;
 }
@@ -502,6 +512,7 @@ NamedGraphPattern: GRAPH '*' PatternElementConstraint
   fputs("\n\n", stdout);
 #endif
 
+  /* FIXME */
   sparql_syntax_warning(((rasqal_query*)rq), "SPARQL GRAPH * ignored");
 
   $$=$3;
@@ -529,6 +540,7 @@ NamedGraphPattern: GRAPH '*' PatternElementConstraint
   fputs("\n\n", stdout);
 #endif
 
+  /* FIXME */
   sparql_syntax_warning(((rasqal_query*)rq), "SPARQL SOURCE * ignored");
 
   $$=$3;
@@ -543,6 +555,7 @@ NamedGraphPattern: GRAPH '*' PatternElementConstraint
   fputs("\n\n", stdout);
 #endif
 
+  /* FIXME - deprecated */
   sparql_syntax_warning(((rasqal_query*)rq), "Use GRAPH instead of SOURCE in SPARQL (2005-02-17 WD)");
 
   rasqal_graph_pattern_set_origin($3, $2);
@@ -588,6 +601,7 @@ OptionalGraphPattern: OPTIONAL PatternElementConstraint
   fputs("\n\n", stdout);
 #endif
 
+  /* FIXME - deprecated */
   sparql_syntax_warning(((rasqal_query*)rq), "Use OPTIONAL {} instead of [] for optional triples in SPARQL (2005-02-17 WD)");
 
   if($2) {
