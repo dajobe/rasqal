@@ -380,6 +380,7 @@ rasqal_free_expression(rasqal_expression* e)
     case RASQAL_EXPR_TILDE:
     case RASQAL_EXPR_BANG:
     case RASQAL_EXPR_UMINUS:
+    case RASQAL_EXPR_BOUND:
       rasqal_free_expression(e->arg1);
       break;
     case RASQAL_EXPR_STR_MATCH:
@@ -427,6 +428,7 @@ rasqal_expression_foreach(rasqal_expression* e,
     case RASQAL_EXPR_TILDE:
     case RASQAL_EXPR_BANG:
     case RASQAL_EXPR_UMINUS:
+    case RASQAL_EXPR_BOUND:
       return fn(user_data, e) ||
         rasqal_expression_foreach(e->arg1, fn, user_data);
       break;
@@ -681,6 +683,25 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
           return NULL;
         return rasqal_new_floating_literal(d);
       }
+
+    case RASQAL_EXPR_BOUND:
+      {
+        rasqal_literal *l=rasqal_expression_evaluate(query, e->arg1);
+        rasqal_variable* v;
+        int b;
+
+        v=rasqal_literal_as_variable(l);
+        if(!v) {
+          rasqal_free_literal(l);
+          return NULL;
+        }
+
+        b=(v->value != NULL);
+
+        rasqal_free_literal(l);
+        return rasqal_new_boolean_literal(b);
+      }
+
 
     case RASQAL_EXPR_PLUS:
       {
@@ -1025,7 +1046,8 @@ static const char* rasqal_op_labels[RASQAL_EXPR_LAST+1]={
   "bang",
   "literal",
   "pattern",
-  "function"
+  "function",
+  "bound"
 };
 
 void
@@ -1079,6 +1101,7 @@ rasqal_expression_print(rasqal_expression* e, FILE* fh)
     case RASQAL_EXPR_TILDE:
     case RASQAL_EXPR_BANG:
     case RASQAL_EXPR_UMINUS:
+    case RASQAL_EXPR_BOUND:
       fputs("op ", fh);
       rasqal_expression_print_op(e, fh);
       fputc('(', fh);
