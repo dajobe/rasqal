@@ -10,21 +10,19 @@
 
 <h2 id="rel0_9_4"><a name="rel0_9_4">Rasqal 0.9.4 Changes</a></h2>
 
-<p>
-FIXME DRAFT
-</p>
-
 <p>Pass on raptor parser errors to rasqal's error routines and
 upwards.</p>
 
-<p>Clean up more allocated memory when a query fails to prepare or
-execute.</p>
+<p>Clean up several memory allocations when a query fails to prepare
+or execute fully.</p>
 
-<p>Fixed lexer jam when query had a bad variable name.</p>
+<p>Fixed lexer jams when a query contained an illegal
+variable name after a '?'.</p>
 
-<p>Fixed crash if query ended in a regex.</p>
+<p>Fixed lexer crashes when a query ended in a regex pattern like
+<code>/abc/</code>.</p>
 
-<p>Tidied up testing framework so 'make distcheck' works.</p>
+<p>Tidied up the testing framework so 'make distcheck' works.</p>
 
 
 <h2 id="rel0_9_3"><a name="rel0_9_3">Rasqal 0.9.3 Changes</a></h2>
