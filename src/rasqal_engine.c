@@ -382,6 +382,7 @@ rasqal_new_triples_source(rasqal_query *query, raptor_uri* uri) {
 void
 rasqal_free_triples_source(rasqal_triples_source *rts) {
   rts->free_triples_source(rts->user_data);
+  RASQAL_FREE(user_data, rts->user_data);
   
   raptor_free_uri(rts->uri);
   RASQAL_FREE(rasqal_triples_source, rts);
@@ -568,7 +569,7 @@ rasqal_engine_get_next_result(rasqal_query *query) {
           rasqal_expression_print(expr, stderr);
           fputc('\n', stderr);
 
-          result=rasqal_expression_evaluate(expr);
+          result=rasqal_expression_evaluate(query, expr);
           if(result) {
             int bresult;
             
