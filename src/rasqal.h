@@ -64,7 +64,8 @@ typedef enum {
 typedef struct {
   const unsigned char *prefix;
   raptor_uri* uri;
-} rasqal_prefix ;
+  int declared;
+} rasqal_prefix;
 
 
 /* variable binding */
