@@ -429,7 +429,7 @@ main(int argc, char *argv[])
           source_uri=raptor_new_uri(source_uri_string);
           raptor_free_memory(source_uri_string);
         } else
-          source_uri=raptor_new_uri(optarg);
+          source_uri=raptor_new_uri((const unsigned char*)optarg);
 
         if(!source_uri) {
           fprintf(stderr, "%s: Failed to create source URI for %s\n",
