@@ -67,8 +67,6 @@ rasqal_query_order_triples_score(rasqal_query* query,
     rasqal_triple* t=rasqal_sequence_get_at(query->triples, i);
     rasqal_variable* v;
 
-    ord[i].score=0;
-    
     if((v=rasqal_expression_as_variable(t->subject))) {
 #if RASQAL_DEBUG >2
       RASQAL_DEBUG3("triple %i: has variable %s in subject\n", i, v->name);
@@ -146,7 +144,7 @@ rasqal_query_order_triples(rasqal_query* query) {
   }
   
 
-  ord=(rq_ordering*)RASQAL_MALLOC(intarray, sizeof(rq_ordering)*triples_size);
+  ord=(rq_ordering*)RASQAL_CALLOC(intarray, sizeof(rq_ordering), triples_size);
   if(!ord)
     return 1;
 
