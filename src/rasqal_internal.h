@@ -109,6 +109,9 @@ struct rasqal_query_s {
   raptor_sequence *prefixes;    /* ... rasqal_prefix*              */
 
   int select_all;  /* non-0 if 'SELECT *' was seen (selects will be NULL) */
+
+  int prepared;
+  int executed;
   
   /* variable name/value table built from all distinct variables seen
    * in selects, triples, constraints.  An array of size variables_count
@@ -123,7 +126,18 @@ struct rasqal_query_s {
   /* holds one copy of all the variables - this is where they are freed */
   raptor_sequence* variables_sequence;
 
+  /* array of variable names to bind or NULL if no variables wanted
+   * (size select_variables_count+1, last NULL)
+   * indexes into the names in variables_sequence above.
+   */
+  const char** variable_names;
 
+  /* array of result binding values, per result or NULL if no variables wanted
+   * (size select_variables_count) 
+   * indexes into the values in variables_sequence above, per-binding
+   */
+  rasqal_literal** binding_values;
+  
   /* A reordered list of conjunctive triples from triples above
    * used as a better order to join in.
    *
@@ -165,7 +179,13 @@ struct rasqal_query_s {
 
   /* stopping? */
   int abort;
-  
+
+  /* how many results already found */
+  int result_count;
+
+  /* non-0 if got all results */
+  int finished;
+
   struct rasqal_query_engine_factory_s* factory;
 
   rasqal_triples_source* triples_source;
@@ -252,6 +272,8 @@ rasqal_triples_source* rasqal_new_triples_source(rasqal_query *query, raptor_uri
 void rasqal_free_triples_source(rasqal_triples_source *rts);
 
 void rasqal_set_triples_source_factory(void (*register_fn)(rasqal_triples_source_factory *factory));
+int rasqal_engine_get_next_result(rasqal_query *query);
+void rasqal_engine_assign_binding_values(rasqal_query *query);
 
 /* rasqal_redland.c */
 void rasqal_redland_init(void);
