@@ -503,9 +503,6 @@ rasqal_new_graph_pattern(raptor_sequence *triples,
   gp->end_column=end_column;
   gp->flags=flags;
 
-  gp->triples_count=raptor_sequence_size(triples);
-  gp->triple_meta=(rasqal_triple_meta*)RASQAL_CALLOC(rasqal_triple_meta, sizeof(rasqal_triple_meta), gp->triples_count);
-
   return gp;
 }
 
@@ -520,7 +517,7 @@ rasqal_free_graph_pattern(rasqal_graph_pattern* gp)
 {
   if(gp->triple_meta) 
     for(;gp->column >= 0; gp->column--) {
-      rasqal_triple_meta *m=&gp->triple_meta[gp->column];
+      rasqal_triple_meta *m=&gp->triple_meta[gp->column-gp->start_column];
       
       if(m->bindings[0]) 
         rasqal_variable_set_value(m->bindings[0],  NULL);
@@ -544,6 +541,23 @@ rasqal_free_graph_pattern(rasqal_graph_pattern* gp)
 
 
 /**
+ * rasqal_graph_pattern_init - initialise a graph pattern for execution
+ * @gp &rasqal_graph-pattern object
+ * 
+ **/
+void
+rasqal_graph_pattern_init(rasqal_graph_pattern *gp) {
+  int triples_count=gp->end_column - gp->start_column+1;
+
+  gp->column=0;
+  if(gp->triple_meta)
+    memset(gp->triple_meta, '\0', sizeof(rasqal_triple_meta)*triples_count);
+  else
+    gp->triple_meta=(rasqal_triple_meta*)RASQAL_CALLOC(rasqal_triple_meta, sizeof(rasqal_triple_meta), triples_count);
+}
+
+
+/**
  * rasqal_graph_pattern_adjust - Adjust the column in a graph pattern by the offset
  * @gp: &rasqal_graph_pattern graph pattern
  * @offset: adjustment
@@ -554,6 +568,31 @@ rasqal_graph_pattern_adjust(rasqal_graph_pattern* gp, int offset)
 {
   gp->start_column += offset;
   gp->end_column += offset;
+}
+
+
+/**
+ * rasqal_graph_pattern_print - Print a Rasqal graph_pattern in a debug format
+ * @v: the &rasqal_graph_pattern object
+ * @fh: the &FILE* handle to print to
+ * 
+ * The print debug format may change in any release.
+ * 
+ **/
+void
+rasqal_graph_pattern_print(rasqal_graph_pattern* gp, FILE* fh)
+{
+  fputs("graph_pattern(over triples{", fh);
+  if(gp->triples) {
+    int i;
+
+    for(i=gp->start_column; i < gp->end_column; i++) {
+      rasqal_triple *t=(rasqal_triple*)raptor_sequence_get_at(gp->triples, i);
+      rasqal_triple_print(t, fh);
+      fputs(", )", fh);
+    }
+  }
+  fprintf(fh, "), flags=%d)",  gp->flags);
 }
 
 
@@ -568,7 +607,7 @@ rasqal_graph_pattern_get_next_match(rasqal_query *query,
   int rc;
 
   while(gp->column >= gp->start_column) {
-    rasqal_triple_meta *m=&gp->triple_meta[gp->column];
+    rasqal_triple_meta *m=&gp->triple_meta[gp->column-gp->start_column];
     rasqal_triple *t=(rasqal_triple*)raptor_sequence_get_at(gp->triples,
                                                             gp->column);
 
@@ -691,7 +730,7 @@ rasqal_engine_prepare(rasqal_query *query) {
 
 int
 rasqal_engine_execute_init(rasqal_query *query) {
-  int triples_size;
+  int i;
   
   if(!query->triples)
     return 1;
@@ -705,15 +744,10 @@ rasqal_engine_execute_init(rasqal_query *query) {
     }
   }
 
-  if(query->graph_pattern)
-    rasqal_free_graph_pattern(query->graph_pattern);
-
-  triples_size=raptor_sequence_size(query->triples);
-  query->graph_pattern=rasqal_new_graph_pattern(query->triples,
-                                                0, triples_size-1,
-                                                0);
-  if(!query->graph_pattern)
-    return 1;
+  for(i=0; i < raptor_sequence_size(query->graph_patterns); i++) {
+    rasqal_graph_pattern *gp=(rasqal_graph_pattern*)raptor_sequence_get_at(query->graph_patterns, i);
+    rasqal_graph_pattern_init(gp);
+  }
   
   query->abort=0;
   query->result_count=0;
@@ -726,11 +760,6 @@ rasqal_engine_execute_init(rasqal_query *query) {
 
 int
 rasqal_engine_execute_finish(rasqal_query *query) {
-  if(query->graph_pattern) {
-    rasqal_free_graph_pattern(query->graph_pattern);
-    query->graph_pattern=NULL;
-  }
-
   if(query->triples_source) {
     rasqal_free_triples_source(query->triples_source);
     query->triples_source=NULL;
@@ -747,6 +776,7 @@ rasqal_engine_execute_finish(rasqal_query *query) {
  */
 int
 rasqal_engine_get_next_result(rasqal_query *query) {
+  rasqal_graph_pattern* gp;
   int rc=1;
 
   if(query->failed)
@@ -758,9 +788,11 @@ rasqal_engine_get_next_result(rasqal_query *query) {
   if(!query->triples)
     return -1;
 
+  gp=(rasqal_graph_pattern*)raptor_sequence_get_at(query->graph_patterns, 0);
+
   while(rc > 0) {
     /*  return: <0 failure, 0 end of results, >0 match */
-    rc=rasqal_graph_pattern_get_next_match(query, query->graph_pattern);
+    rc=rasqal_graph_pattern_get_next_match(query, gp);
     if(rc <= 0)
       break;
     
