@@ -105,7 +105,7 @@ static void sparql_skip_cpp_comment(rasqal_sparql_query_engine *rqe);
 static int sparql_skip_c_comment(rasqal_query *rq);
 
 static unsigned char *sparql_copy_name(rasqal_query *rq, const unsigned char *text, size_t len);
-static unsigned char *sparql_copy_qname(rasqal_query *rq, const unsigned char *text, size_t len);
+static raptor_uri* sparql_copy_qname(rasqal_query *rq, const unsigned char *text, size_t len);
 static int sparql_copy_regex_token(rasqal_query *rq, YYSTYPE* lval, unsigned char delim);
 static int sparql_copy_string_token(rasqal_query *rq, YYSTYPE* lval, const unsigned char *text, size_t len, int delim);
 
@@ -312,10 +312,10 @@ QUOTEDURI \<[A-Za-z][^>]+\>
                   yyterminate();
 }
 
-{QNAME}	{	sparql_parser_lval->name=sparql_copy_qname(rq, (const unsigned char*)yytext, yyleng);
-		if(!sparql_parser_lval->name)
+{QNAME}	{	sparql_parser_lval->uri=sparql_copy_qname(rq, (const unsigned char*)yytext, yyleng);
+		if(!sparql_parser_lval->uri)
 		  yyterminate();
- 		return QNAME_LITERAL;
+ 		return URI_LITERAL;
 }
 
 {BNAME}	{	sparql_parser_lval->name=sparql_copy_name(rq, (unsigned char*)yytext+2, yyleng-2);
@@ -368,17 +368,18 @@ sparql_copy_name(rasqal_query *rq, const unsigned char *text, size_t len) {
 }
 
 
-static unsigned char *
+static raptor_uri*
 sparql_copy_qname(rasqal_query *rq, const unsigned char *text, size_t len) {
   unsigned char *p;
   size_t dest_len=0;
   unsigned char *s;
+  raptor_uri* uri=NULL;
   
   s=rasqal_escaped_name_to_utf8_string((unsigned char*)text, len,
                                        &dest_len,
                                        (raptor_simple_message_handler)sparql_syntax_error, rq);
   if(!s)
-    return s;
+    return NULL;
 
   p=(unsigned char*)strchr((const char*)s, ':');
   if(!raptor_xml_name_check(s, p-s, 11))
@@ -386,7 +387,22 @@ sparql_copy_qname(rasqal_query *rq, const unsigned char *text, size_t len) {
   if(!raptor_xml_name_check(p+1, dest_len-((p+1)-s), 11))
     sparql_syntax_warning(rq, "Invalid SPARQL name \"%s\"", p+1);
 
-  return s;
+#ifdef STANDALONE
+  /* lexer test cannot declare namespaces - so just ignore expansion */
+  uri=raptor_new_uri_relative_to_base(rq->base_uri, s);
+#else
+  if(!rq->namespaces) {
+    sparql_syntax_error(rq, "SPARQL syntax error - no namespaces declared");
+    return NULL;
+  }
+  
+  uri=raptor_qname_string_to_uri(rq->namespaces,
+                                 s, dest_len,
+                                 rasqal_query_simple_error, rq);
+#endif
+  RASQAL_FREE(cstring, s);
+  
+  return uri;
 }
 
 
@@ -582,6 +598,19 @@ sparql_copy_string_token(rasqal_query* rq, YYSTYPE* lval,
       if(!raptor_xml_name_check(dt_p+1, dest_len-((dt_p+1)-s), 11))
         sparql_syntax_warning(rq, "Invalid SPARQL name \"%s\"", dt_p+1);
 
+#ifdef STANDALONE
+      /* lexer test cannot declare namespaces - so just ignore expansion */
+      dt_qname=dt_s;
+#else
+      if(!rq->namespaces) {
+        sparql_syntax_error(rq, "SPARQL syntax error - no namespaces declared");
+        RASQAL_FREE(cstring, dt_s);
+        if(language)
+          RASQAL_FREE(cstring, language);
+        free(string);
+        return 1;
+      }
+  
       dt_uri=raptor_qname_string_to_uri(rq->namespaces,
                                         dt_s, dest_len,
                                         rasqal_query_simple_error, rq);
@@ -593,6 +622,7 @@ sparql_copy_string_token(rasqal_query* rq, YYSTYPE* lval,
         free(string);
         return 1;
       }
+#endif
     }
   }
 
