@@ -1048,6 +1048,11 @@ rasqal_engine_get_next_result(rasqal_query *query)
     return -1;
 
   outergp=query->query_graph_pattern;
+  if(!outergp || !outergp->graph_patterns) {
+    /* FIXME - no graph patterns in query - end results */
+    query->finished=1;
+    return 0;
+  }
   
   graph_patterns_size=raptor_sequence_size(outergp->graph_patterns);
   if(!graph_patterns_size) {
