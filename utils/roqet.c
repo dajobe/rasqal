@@ -162,7 +162,7 @@ roqet_error_handler(void *user_data,
 static const char *spaces="                                                                                  ";
 
 static void
-roqet_walk_graph_pattern(rasqal_graph_pattern *gp, int gp_index,
+roqet_graph_pattern_walk(rasqal_graph_pattern *gp, int gp_index,
                          FILE *fh, int indent) {
   int triple_index=0;
   int flags;
@@ -194,7 +194,7 @@ roqet_walk_graph_pattern(rasqal_graph_pattern *gp, int gp_index,
     if(!sgp)
       break;
 
-    roqet_walk_graph_pattern(sgp, gp_index, fh, indent+2);
+    roqet_graph_pattern_walk(sgp, gp_index, fh, indent+2);
     gp_index++;
   }
 
@@ -222,7 +222,7 @@ roqet_query_walk(rasqal_query *rq, FILE *fh) {
     if(!gp)
       break;
     
-    roqet_walk_graph_pattern(gp, gp_index, fh, 2);
+    roqet_graph_pattern_walk(gp, gp_index, fh, 2);
     gp_index++;
   }
 }
