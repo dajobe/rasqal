@@ -180,6 +180,24 @@ main(int argc, char **argv) {
     return(1);
   }
 
+  printf("%s: executing query #3\n", program);
+  results = rasqal_query_execute(query);
+  if(!results) {
+    fprintf(stderr, "%s: query execution 3 FAILED\n", program);
+    return(1);
+  }
+
+  rasqal_free_query_results(results);
+
+  printf("%s: executing query #4\n", program);
+  results = rasqal_query_execute(query);
+  if(!results) {
+    fprintf(stderr, "%s: query execution 4 FAILED\n", program);
+    return(1);
+  }
+
+  rasqal_free_query_results(results);
+
   rasqal_free_query(query);
 
   raptor_free_uri(base_uri);
