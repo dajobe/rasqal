@@ -270,6 +270,52 @@ RASQAL_API void rasqal_variable_set_value(rasqal_variable* v, rasqal_expression 
 
 /* rasqal_engine.c */
 
+struct rasqal_triples_match_s {
+  void *user_data;
+  int (*bind_match)(struct rasqal_triples_match_s*, void *user_data, rasqal_variable *bindings[3]);
+  void (*next_match)(struct rasqal_triples_match_s*, void *user_data);
+  int (*is_end)(struct rasqal_triples_match_s*, void *user_data);
+  void (*finish)(struct rasqal_triples_match_s*, void *user_data);
+};
+typedef struct rasqal_triples_match_s rasqal_triples_match;
+
+
+typedef struct 
+{
+  /* All the parts of this triple are nodes - no variables */
+  int is_exact;
+
+  rasqal_variable* bindings[3];
+
+  rasqal_triples_match *triples_match;
+
+  void *context;
+} rasqal_triple_meta;
+
+
+struct rasqal_triples_source_s {
+  /* A source for this query, URI */
+  rasqal_query *query;
+  raptor_uri *uri;
+
+  void *user_data;
+
+  /* the triples_source_factory initialises these method */
+  rasqal_triples_match* (*new_triples_match)(struct rasqal_triples_source_s* rts, void *user_data, rasqal_triple_meta *m, rasqal_triple *t);
+
+  int (*triple_present)(struct rasqal_triples_source_s* rts, void *user_data, rasqal_triple *t);
+
+  void (*free_triples_source)(void *user_data);
+};
+typedef struct rasqal_triples_source_s rasqal_triples_source;
+
+
+typedef struct {
+  size_t user_data_size;
+  int (*new_triples_source)(rasqal_query *query, void *user_data, rasqal_triples_source* rts);
+} rasqal_triples_source_factory;
+  
+
 #ifdef __cplusplus
 }
 #endif
