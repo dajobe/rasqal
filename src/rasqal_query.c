@@ -91,6 +91,8 @@ rasqal_new_query(const char *name, const unsigned char *uri)
 
   query->variables_sequence=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_variable, (raptor_sequence_print_handler*)rasqal_variable_print);
 
+  query->prefixes=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_prefix, (raptor_sequence_print_handler*)rasqal_prefix_print);
+
   query->usage=1;
   
   if(factory->init(query, name)) {
