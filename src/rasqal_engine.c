@@ -499,7 +499,7 @@ rasqal_engine_prepare(rasqal_query *query) {
 
     rasqal_engine_build_constraints_expression(query);
   }
-  
+
   return 0;
 }
 
@@ -523,11 +523,13 @@ rasqal_engine_execute_init(rasqal_query *query) {
     }
   }
 
-  if(!query->triple_meta) {
-    query->triple_meta=(rasqal_triple_meta*)RASQAL_CALLOC(rasqal_triple_meta, sizeof(rasqal_triple_meta), triples_size);
-    if(!query->triple_meta)
+  if(!query->pattern_graph) {
+    query->pattern_graph=rasqal_new_pattern_graph(query->triples,
+                                                  0, triples_size-1,
+                                                  0);
+    if(!query->pattern_graph)
       return 1;
-    
+
     for(i=0; i<triples_size; i++) {
       rasqal_triple *t=(rasqal_triple*)raptor_sequence_get_at(query->triples, i);
       
@@ -551,27 +553,9 @@ rasqal_engine_execute_init(rasqal_query *query) {
 
 int
 rasqal_engine_execute_finish(rasqal_query *query) {
-  if(query->triple_meta) {
-    for(;query->column >= 0; query->column--) {
-      rasqal_triple_meta *m=&query->triple_meta[query->column];
-      
-      if(m->bindings[0]) 
-        rasqal_variable_set_value(m->bindings[0],  NULL);
-      if(m->bindings[1]) 
-        rasqal_variable_set_value(m->bindings[1],  NULL);
-      if(m->bindings[2]) 
-        rasqal_variable_set_value(m->bindings[2],  NULL);
-      if(m->bindings[3]) 
-        rasqal_variable_set_value(m->bindings[3],  NULL);
-
-      if(m->triples_match) {
-        rasqal_free_triples_match(m->triples_match);
-        m->triples_match=NULL;
-      }
-    }
-    
-    RASQAL_FREE(rasqal_triple_meta, query->triple_meta);
-    query->triple_meta=NULL;
+  if(query->pattern_graph) {
+    rasqal_free_pattern_graph(query->pattern_graph);
+    query->pattern_graph=NULL;
   }
 
   if(query->triples_source) {
@@ -588,49 +572,49 @@ rasqal_engine_execute_finish(rasqal_query *query) {
  * return: <0 failure, 0 end of results, >0 match
  */
 static int
-rasqal_engine_get_next_triple_pattern_result(rasqal_query *query,
-                                             raptor_sequence *triples,
-                                             int start_column,
-                                             int end_column) {
+rasqal_graph_pattern_get_next_triple(rasqal_query *query,
+                                     rasqal_pattern_graph* pg) 
+{
   int rc;
 
-  while(query->column >= start_column) {
-    rasqal_triple_meta *m=&query->triple_meta[query->column];
-    rasqal_triple *t=(rasqal_triple*)raptor_sequence_get_at(query->triples, query->column);
+  while(pg->column >= pg->start_column) {
+    rasqal_triple_meta *m=&pg->triple_meta[pg->column];
+    rasqal_triple *t=(rasqal_triple*)raptor_sequence_get_at(pg->triples,
+                                                            pg->column);
 
     rc=1;
 
     if(!m) {
       /* error recovery - no match */
-      query->column--;
+      pg->column--;
       rc= -1;
       return rc;
     } else if (t->flags & RASQAL_TRIPLE_FLAGS_EXACT) {
       /* exact triple match wanted */
       if(!rasqal_triples_source_triple_present(query->triples_source, t)) {
         /* failed */
-        RASQAL_DEBUG2("exact match failed for column %d\n", query->column);
-        query->column--;
+        RASQAL_DEBUG2("exact match failed for column %d\n", pg->column);
+        pg->column--;
       } else
-        RASQAL_DEBUG2("exact match OK for column %d\n", query->column);
+        RASQAL_DEBUG2("exact match OK for column %d\n", pg->column);
     } else if(!m->triples_match) {
       /* Column has no triplesMatch so create a new query */
       m->triples_match=rasqal_new_triples_match(query, m, m, t);
       if(!m->triples_match) {
         rasqal_query_error(query, "Failed to make a triple match for column%d",
-                           query->column);
+                           pg->column);
         /* failed to match */
-        query->column--;
+        pg->column--;
         rc= -1;
         return rc;
       }
-      RASQAL_DEBUG2("made new triplesMatch for column %d\n", query->column);
+      RASQAL_DEBUG2("made new triplesMatch for column %d\n", pg->column);
     }
 
 
     if(m->triples_match) {
       if(rasqal_triples_match_is_end(m->triples_match)) {
-        RASQAL_DEBUG2("end of triplesMatch for column %d\n", query->column);
+        RASQAL_DEBUG2("end of triplesMatch for column %d\n", pg->column);
 
         if(m->bindings[0]) 
           rasqal_variable_set_value(m->bindings[0],  NULL);
@@ -644,7 +628,7 @@ rasqal_engine_get_next_triple_pattern_result(rasqal_query *query,
         rasqal_free_triples_match(m->triples_match);
         m->triples_match=NULL;
         
-        query->column--;
+        pg->column--;
         continue;
       }
 
@@ -656,21 +640,21 @@ rasqal_engine_get_next_triple_pattern_result(rasqal_query *query,
         continue;
     }
     
-    if(query->column == end_column) {
+    if(pg->column == pg->end_column) {
       /* Done all conjunctions */ 
       
       /* exact match, so column must have ended */
       if(t->flags & RASQAL_TRIPLE_FLAGS_EXACT)
-        query->column--;
+        pg->column--;
 
       /* return with result (rc is 1) */
-      break;
-    } else if (query->column >= start_column)
-      query->column++;
+      return rc;
+    } else if (pg->column >= pg->start_column)
+      pg->column++;
 
   }
 
-  if(query->column < start_column)
+  if(pg->column < pg->start_column)
     rc=0;
   
   return rc;
@@ -679,10 +663,14 @@ rasqal_engine_get_next_triple_pattern_result(rasqal_query *query,
 
 rasqal_pattern_graph*
 rasqal_new_pattern_graph(raptor_sequence *triples, 
-                         int first_column, int last_column,
-                         int flags) {
+                         int start_column, int end_column, int flags)
+{
   rasqal_pattern_graph* pg=(rasqal_pattern_graph*)RASQAL_CALLOC(rasqal_pattern_graph, sizeof(rasqal_pattern_graph), 1);
+
   pg->triples=triples;
+  pg->column=0;
+  pg->start_column=start_column;
+  pg->end_column=end_column;
   pg->flags=flags;
 
   pg->triples_count=raptor_sequence_size(triples);
@@ -695,8 +683,27 @@ rasqal_new_pattern_graph(raptor_sequence *triples,
 void
 rasqal_free_pattern_graph(rasqal_pattern_graph* pg)
 {
-  if(pg->triple_meta)
+  if(pg->triple_meta) 
+    for(;pg->column >= 0; pg->column--) {
+      rasqal_triple_meta *m=&pg->triple_meta[pg->column];
+      
+      if(m->bindings[0]) 
+        rasqal_variable_set_value(m->bindings[0],  NULL);
+      if(m->bindings[1]) 
+        rasqal_variable_set_value(m->bindings[1],  NULL);
+      if(m->bindings[2]) 
+        rasqal_variable_set_value(m->bindings[2],  NULL);
+      if(m->bindings[3]) 
+        rasqal_variable_set_value(m->bindings[3],  NULL);
+
+      if(m->triples_match) {
+        rasqal_free_triples_match(m->triples_match);
+        m->triples_match=NULL;
+      }
+    
     RASQAL_FREE(rasqal_triple_meta, pg->triple_meta);
+  }
+
   RASQAL_FREE(rasqal_pattern_graph, pg);
 }
 
@@ -709,7 +716,7 @@ rasqal_free_pattern_graph(rasqal_pattern_graph* pg)
 int
 rasqal_engine_get_next_result(rasqal_query *query) {
   int triples_size;
-  int rc;
+  int rc=1;
 
   if(query->failed)
     return -1;
@@ -723,63 +730,63 @@ rasqal_engine_get_next_result(rasqal_query *query) {
 
   triples_size=raptor_sequence_size(query->triples);
 
-  /*  return: <0 failure, 0 end of results, >0 match */
-  rc=rasqal_engine_get_next_triple_pattern_result(query,
-                                                  query->triples,
-                                                  0, 
-                                                  triples_size-1);
+  while(rc > 0) {
+    /*  return: <0 failure, 0 end of results, >0 match */
+    rc=rasqal_graph_pattern_get_next_triple(query, query->pattern_graph);
 
-  if(rc > 0) {
-    /* check any constraints */
-    if(query->constraints) {
-      int c;
-      int bresult=1; /* constraint succeeds */
-      
-      for(c=0; c< raptor_sequence_size(query->constraints); c++) {
-        rasqal_expression* expr;
-        rasqal_literal* result;
-        int error=0;
-        
-        expr=(rasqal_expression*)raptor_sequence_get_at(query->constraints, c);
-#ifdef RASQAL_DEBUG
-        RASQAL_DEBUG2("constraint %d expression:\n", c);
-        rasqal_expression_print(expr, stderr);
-        fputc('\n', stderr);
-#endif
-        
-        result=rasqal_expression_evaluate(query, expr);
-        if(result) {
-#ifdef RASQAL_DEBUG
-          RASQAL_DEBUG2("constraint %d expression result:\n", c);
-          rasqal_literal_print(result, stderr);
+    if(rc > 0) {
+      /* got a match - check any constraints */
+      if(query->constraints) {
+        int c;
+        int bresult=1; /* constraint succeeds */
+
+        for(c=0; c< raptor_sequence_size(query->constraints); c++) {
+          rasqal_expression* expr;
+          rasqal_literal* result;
+          int error=0;
+
+          expr=(rasqal_expression*)raptor_sequence_get_at(query->constraints, c);
+  #ifdef RASQAL_DEBUG
+          RASQAL_DEBUG2("constraint %d expression:\n", c);
+          rasqal_expression_print(expr, stderr);
           fputc('\n', stderr);
-#endif
-          bresult=rasqal_literal_as_boolean(result, &error);
-          if(error) {
-            RASQAL_DEBUG2("constraint %d boolean expression returned error\n", c);
-            bresult=0;
-          } else
-            RASQAL_DEBUG3("constraint %d boolean expression result: %d\n", c, bresult);
-          rasqal_free_literal(result);
-          rc=bresult;
-        } else {
-          RASQAL_DEBUG2("constraint %d expression failed with error\n", c);
-          rc=0;
-        }
-        
-        /* stop checking constraints on an error or if one was false */
-        if(error || !bresult)
-          break;
-      }
-    } /* end check for constraints */
+  #endif
 
-    if(rc) {
-      /* Got a valid result */
-      query->result_count++;
-      return rc;
+          result=rasqal_expression_evaluate(query, expr);
+          if(result) {
+  #ifdef RASQAL_DEBUG
+            RASQAL_DEBUG2("constraint %d expression result:\n", c);
+            rasqal_literal_print(result, stderr);
+            fputc('\n', stderr);
+  #endif
+            bresult=rasqal_literal_as_boolean(result, &error);
+            if(error) {
+              RASQAL_DEBUG2("constraint %d boolean expression returned error\n", c);
+              bresult=0;
+            } else
+              RASQAL_DEBUG3("constraint %d boolean expression result: %d\n", c, bresult);
+            rasqal_free_literal(result);
+            rc=bresult;
+          } else {
+            RASQAL_DEBUG2("constraint %d expression failed with error\n", c);
+            rc=0;
+          }
+
+          /* stop checking constraints on an error or if one was false */
+          if(error || !bresult)
+            break;
+        }
+      } /* end check for constraints */
+
+      if(rc) {
+        /* Got a valid result */
+        query->result_count++;
+        return rc;
+      }
+      rc=1;
     }
   }
-
+  
   if(!rc)
     query->finished=1;
   
