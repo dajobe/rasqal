@@ -95,6 +95,16 @@ void rasqal_system_free(void *ptr);
 
 typedef struct rasqal_query_engine_factory_s rasqal_query_engine_factory;
 
+
+typedef struct 
+{
+  librdf_node* nodes[3];
+  librdf_statement *qstatement;
+  librdf_stream *stream;
+  rasqal_variable* bindings[3];
+} rasqal_triple_meta;
+
+
 /*
  * A query in some query language
  */
@@ -133,6 +143,9 @@ struct rasqal_query_s {
    * The entries in this sequence are not freed.
    */
   rasqal_sequence *ordered_triples;
+
+  /* An array of items, one per triple in a query */
+  rasqal_triple_meta *triple_meta;
 
   /* can be filled with error location information */
   raptor_locator locator;
@@ -232,7 +245,7 @@ int rasqal_query_order_triples(rasqal_query* query);
 int rasqal_engine_declare_prefixes(rasqal_query *rq);
 int rasqal_engine_expand_triple_qnames(rasqal_query* rq);
 int rasqal_engine_assign_variables(rasqal_query* rq);
-int rasqal_select_next(rasqal_query *q, int count);
+int rasqal_engine_run(rasqal_query *q);
 
 /* end of RASQAL_INTERNAL */
 #endif
