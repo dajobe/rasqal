@@ -53,14 +53,17 @@ was not working in 0.9.7</p>
 to add triples to an existing graph pattern.
 </p>
 
-<p>Added method
-<code>rasqal_graph_pattern_add_sub_graph_pattern</code>
+<p>Added methods
+<code>rasqal_graph_pattern_add_constraint</code>,
+<code>rasqal_graph_pattern_get_constraint_sequence</code> and
+<code>rasqal_graph_pattern_get_constraint</code>
+to add constraints to a graph pattern.
 </p>
 
-<p>Deprecated query methods <code>rasqal_query_add_source</code>,
-<code>rasqal_query_get_source_sequence</code> and
-<code>rasqal_query_get_source</code>.  These will be removed in the
-next release.</p>
+<p>Added method
+<code>rasqal_graph_pattern_add_sub_graph_pattern</code>
+to add a sub-graph pattern to a graph pattern.
+</p>
 
 <p>Added a <em>Data Graph</em> class with constructor
 <code>rasqal_new_data_graph</code>, destructor
@@ -73,6 +76,15 @@ next release.</p>
 <code>rasqal_query_get_data_graph_sequence</code>,
 <code>rasqal_query_get_data_graph</code>.
 </p>
+
+<p>Deprecated query methods
+<code>rasqal_query_add_constraint</code>,
+<code>rasqal_query_get_constraint_sequence</code>
+<code>rasqal_query_get_constraint</code>,
+<code>rasqal_query_add_source</code>,
+<code>rasqal_query_get_source_sequence</code> and
+<code>rasqal_query_get_source</code>.  These will be removed in the
+next release.</p>
 
 <p>Removed functions deprecated in previous version:
 <code>rasqal_query_get_variable_sequence</code>
