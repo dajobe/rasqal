@@ -194,12 +194,14 @@ roqet_graph_pattern_walk(rasqal_graph_pattern *gp, int gp_index,
     if(!sgp)
       break;
 
-    roqet_graph_pattern_walk(sgp, gp_index, fh, indent+2);
+    roqet_graph_pattern_walk(sgp, gp_index, fh, indent);
     gp_index++;
   }
 
-  if(gp_index > 0)
+  if(gp_index > 0) {
+    fwrite(spaces, sizeof(char), indent, fh);
     fprintf(fh, "found %d sub-graph patterns\n", gp_index);
+  }
 
   /* look for constraints */
   gp_index=0;
@@ -216,6 +218,7 @@ roqet_graph_pattern_walk(rasqal_graph_pattern *gp, int gp_index,
     gp_index++;
   }
 
+  fputc('\n', fh);
 
 }
 
