@@ -567,18 +567,40 @@ sparql_copy_string_token(rasqal_query* rq, YYSTYPE* lval,
       dt[strlen((const char*)dt)-1]='\0';
       dt_uri=raptor_new_uri(dt+1);
     } else {
-      /* the qname is expanded later */
-      dt_qname=(unsigned char *)RASQAL_MALLOC(cstring, strlen((const char*)dt)+1);
-      strcpy((char*)dt_qname, (const char*)dt);
+      unsigned char *dt_p;
+      size_t dest_len=0;
+      unsigned char *dt_s;
+      
+      dt_s=rasqal_escaped_name_to_utf8_string(dt, strlen(dt), &dest_len,
+                                              (raptor_simple_message_handler)sparql_syntax_error, rq);
+      if(!dt_s)
+        return 1;
+
+      dt_p=(unsigned char*)strchr((const char*)dt_s, ':');
+      if(!raptor_xml_name_check(dt_s, dt_p-dt_s, 11))
+        sparql_syntax_warning(rq, "Invalid SPARQL name \"%s\"", dt_s);
+      if(!raptor_xml_name_check(dt_p+1, dest_len-((dt_p+1)-s), 11))
+        sparql_syntax_warning(rq, "Invalid SPARQL name \"%s\"", dt_p+1);
+
+      dt_uri=raptor_qname_string_to_uri(rq->namespaces,
+                                        dt_s, dest_len,
+                                        rasqal_query_simple_error, rq);
+      RASQAL_FREE(cstring, dt_s);
+
+      if(!dt_uri) {
+        if(language)
+          RASQAL_FREE(cstring, language);
+        free(string);
+        return 1;
+      }
     }
   }
 
 #if RASQAL_DEBUG >3
   fprintf(stderr, "string='%s', language='%s'\n", 
           string, (language ? language : ""));
-  fprintf(stderr, "dt uri='%s',qname='%s'\n",
-          (dt_uri ? (const char*)raptor_uri_as_string(dt_uri) : ""),
-          (dt_qname ? (const char*)dt_qname : ""));
+  fprintf(stderr, "datatype uri='%s'\n",
+          (dt_uri ? (const char*)raptor_uri_as_string(dt_uri) : ""));
 #endif
 
   lval->literal=rasqal_new_string_literal(string, language, dt_uri, dt_qname);
