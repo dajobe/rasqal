@@ -118,6 +118,163 @@ static const char *title_format_string="Rasqal RDF query utility %s\n";
 #define MAX_QUERY_ERROR_REPORT_LEN 512
 
 
+static int
+roqet_xml_print_xml_attribute(FILE *handle,
+                              unsigned char *attr, unsigned char *value,
+                              void *user_data, raptor_message_handler handler)
+{
+  size_t attr_len;
+  size_t len;
+  size_t escaped_len;
+  unsigned char *buffer;
+  unsigned char *p;
+  
+  attr_len=strlen((const char*)attr);
+  len=strlen((const char*)value);
+
+  escaped_len=raptor_xml_escape_string(value, len,
+                                       NULL, 0, '"',
+                                       user_data, handler);
+
+  buffer=(unsigned char*)malloc(1 + attr_len + 2 + escaped_len + 1 +1);
+  if(!buffer)
+    return 1;
+  p=buffer;
+  *p++=' ';
+  strncpy((char*)p, (const char*)attr, attr_len);
+  p+= attr_len;
+  *p++='=';
+  *p++='"';
+  raptor_xml_escape_string(value, len,
+                           p, escaped_len, '"',
+                           user_data, handler);
+  p+= escaped_len;
+  *p++='"';
+  *p++='\0';
+  
+  fputs((const char*)buffer, handle);
+  free(buffer);
+
+  return 0;
+}
+
+
+
+static int
+roqet_query_results_print_as_xml(rasqal_query_results *results, FILE *fh,
+                                 void *user_data, 
+                                 raptor_message_handler handler)
+{
+  fputs("<results xmlns=\"http://www.w3.org/sw/2001/DataAccess/result1#\">\n\n",
+        fh);
+  
+
+  while(!rasqal_query_results_finished(results)) {
+    int i;
+
+    fputs("  <result>\n", fh);
+    for(i=0; i<rasqal_query_results_get_bindings_count(results); i++) {
+      const unsigned char *name=rasqal_query_results_get_binding_name(results, i);
+      rasqal_literal *l=rasqal_query_results_get_binding_value(results, i);
+      int print_end=1;
+      size_t len;
+      int is_xml=0;
+      
+      if(!l)
+        continue;
+      
+      fputs("    <", fh);
+      fputs(name, fh);
+
+      switch(l->type) {
+        case RASQAL_LITERAL_URI:
+          if(roqet_xml_print_xml_attribute(fh, "uri",
+                                            raptor_uri_as_string(l->value.uri),
+                                            user_data, handler))
+            return 1;
+          
+          fputs("/>\n", fh);
+          print_end=0;
+          break;
+        case RASQAL_LITERAL_STRING:
+          len=strlen(l->string);
+          if(!len) {
+            fputs("/>\n", fh);
+            print_end=0;
+            break;
+          }
+          
+          if(l->language) {
+            if(roqet_xml_print_xml_attribute(fh, "xml:lang",
+                                             (unsigned char *)l->language,
+                                             user_data, handler))
+              return 1;
+          }
+
+          if(l->datatype) {
+            if(!strcmp(raptor_uri_as_string(l->datatype),
+                       raptor_xml_literal_datatype_uri_string))
+              is_xml=1;
+            else {
+              if(roqet_xml_print_xml_attribute(fh, "datatype",
+                                               raptor_uri_as_string(l->datatype),
+                                               user_data, handler))
+                return 1;
+            }
+          }
+          
+          fputc('>', fh);
+
+          if(is_xml)
+            fputs(l->string, fh);
+          else {
+            int xml_string_len=raptor_xml_escape_string(l->string, len,
+                                                        NULL, 0, 0,
+                                                        NULL, NULL);
+            if(xml_string_len == (int)len)
+              fputs(l->string, fh);
+            else {
+              unsigned char *xml_string=(unsigned char*)malloc(xml_string_len+1);
+              
+              xml_string_len=raptor_xml_escape_string(l->string, len,
+                                                      xml_string, xml_string_len, 0,
+                                                      NULL, NULL);
+              fputs(xml_string, fh);
+              free(xml_string);
+            }
+          }
+          
+          break;
+        case RASQAL_LITERAL_BLANK:
+        case RASQAL_LITERAL_PATTERN:
+        case RASQAL_LITERAL_QNAME:
+        case RASQAL_LITERAL_INTEGER:
+        case RASQAL_LITERAL_BOOLEAN:
+        case RASQAL_LITERAL_FLOATING:
+        case RASQAL_LITERAL_VARIABLE:
+        default:
+          fprintf(stderr, "%s: Cannot turn literal type %d into XML", 
+                  program, l->type);
+          exit(1);
+      }
+
+      if(print_end) {
+        fputs("</", fh);
+        fputs(name, fh);
+        fputs(">\n", fh);
+      }
+    }
+    fputs("  </result>\n\n", fh);
+    
+    rasqal_query_results_next(results);
+  }
+
+  fputs("</results>\n", fh);
+
+  return 0;
+}
+
+
 static void
 roqet_error_handler(void *user_data, 
                     raptor_locator* locator, const char *message) 
@@ -434,9 +591,10 @@ main(int argc, char *argv[])
     goto tidy_query;
   }
 
-  if(output_format == OUTPUT_FORMAT_XML) 
-    rasqal_query_results_print_as_xml(results, stdout, NULL, NULL);
-  else {
+  if(output_format == OUTPUT_FORMAT_XML) {
+    fprintf(stderr, "%s: WARNING - This XML format is very likely to change, do not rely on it\n", program);
+    roqet_query_results_print_as_xml(results, stdout, NULL, NULL);
+  } else {
     while(!rasqal_query_results_finished(results)) {
       int i;
 
