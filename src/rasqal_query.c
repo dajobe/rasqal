@@ -1248,6 +1248,17 @@ rasqal_query_results_write(raptor_iostream *iostr,
           raptor_xml_writer_empty_element(xml_writer, element1);
 
           break;
+        case RASQAL_LITERAL_BLANK:
+          attrs=(raptor_qname **)raptor_alloc_memory(sizeof(raptor_qname*));
+          attrs[0]=raptor_new_qname_from_namespace_local_name(res_ns, 
+                                                              (const unsigned char*)"bnodeid",
+                                                              l->string);
+
+          raptor_xml_element_set_attributes(element1, attrs, 1);
+
+          raptor_xml_writer_empty_element(xml_writer, element1);
+
+          break;
         case RASQAL_LITERAL_STRING:
           len=strlen((const char*)l->string);
           
@@ -1276,7 +1287,6 @@ rasqal_query_results_write(raptor_iostream *iostr,
           raptor_xml_writer_end_element(xml_writer, element1);
           
           break;
-        case RASQAL_LITERAL_BLANK:
         case RASQAL_LITERAL_PATTERN:
         case RASQAL_LITERAL_QNAME:
         case RASQAL_LITERAL_INTEGER:
