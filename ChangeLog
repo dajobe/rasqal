@@ -4,8 +4,8 @@
 	Handle roqet select: and bound variables:
 
 	* rasqal.h: Added RASQAL_DEPRECATED macro.  Deprecated
-	rasqal_query_get_variable_sequence Added
-	rasqal_query_get_bound_variable_sequence and
+	rasqal_query_get_variable_sequence 
+	Added rasqal_query_get_bound_variable_sequence and
 	rasqal_query_get_all_variable_sequence.
 
 	* rasqal_query.c (rasqal_query_get_variable_sequence): Deprecate,
