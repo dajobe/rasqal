@@ -5,8 +5,8 @@ dnl (Process this file with autoconf to produce a configure script.)
 dnl
 dnl $Id$
 dnl
-dnl Copyright (C) 2003 David Beckett - http://purl.org/net/dajobe/
-dnl Institute for Learning and Research Technology - http://www.ilrt.org/
+dnl Copyright (C) 2003-2004 David Beckett - http://purl.org/net/dajobe/
+dnl Institute for Learning and Research Technology - http://www.ilrt.bris.ac.uk/
 dnl University of Bristol - http://www.bristol.ac.uk/
 dnl 
 dnl This package is Free Software or Open Source available under the
@@ -25,7 +25,7 @@ AC_PREREQ(2.50)
 AC_CONFIG_SRCDIR(rdql_parser.y)
 AC_REVISION($Revision$)
 
-AM_INIT_AUTOMAKE(1.6)
+AM_INIT_AUTOMAKE([1.7 check-news std-options -Wall])
 AM_CONFIG_HEADER(rasqal_config.h)
 AM_MAINTAINER_MODE
 
