@@ -672,6 +672,7 @@ rasqal_query_execute(rasqal_query *query)
   query->finished=0;
   query->executed=1;
   query->current_triple_result= -1;
+  query->ask_result= -1;
   
   rc=rasqal_engine_execute_init(query);
   if(rc) {
@@ -781,9 +782,13 @@ rasqal_query_remove_query_result(rasqal_query *query,
 
 
 
+/**
+ * rasqal_free_query_results - destructor - destroy a rasqal_query_results
+ * @query_results: &rasqal_query_results object
+ *
+ **/
 void
-rasqal_free_query_results(rasqal_query_results *query_results) 
-{
+rasqal_free_query_results(rasqal_query_results *query_results) {
   rasqal_query *query;
 
   if(!query_results)
@@ -795,6 +800,12 @@ rasqal_free_query_results(rasqal_query_results *query_results)
 }
 
 
+/**
+ * rasqal_query_results_is_bindings - test if rasqal_query_results is variable bindings format
+ * @query_results: &rasqal_query_results object
+ * 
+ * Return value: non-0 if true
+ **/
 int
 rasqal_query_results_is_bindings(rasqal_query_results *query_results) {
   rasqal_query *query=query_results->query;
@@ -802,12 +813,26 @@ rasqal_query_results_is_bindings(rasqal_query_results *query_results) {
          !query->select_is_describe;
 }
 
+
+/**
+ * rasqal_query_results_is_boolean - test if rasqal_query_results is boolean format
+ * @query_results: &rasqal_query_results object
+ * 
+ * Return value: non-0 if true
+ **/
 int
 rasqal_query_results_is_boolean(rasqal_query_results *query_results) {
   rasqal_query *query=query_results->query;
   return query->ask;
 }
  
+
+/**
+ * rasqal_query_results_is_graph - test if rasqal_query_results is RDF graph format
+ * @query_results: &rasqal_query_results object
+ * 
+ * Return value: non-0 if true
+ **/
 int
 rasqal_query_results_is_graph(rasqal_query_results *query_results) {
   rasqal_query *query=query_results->query;
@@ -858,9 +883,9 @@ rasqal_query_results_next(rasqal_query_results *query_results)
 
   /* rc<0 error rc=0 end of results,  rc>0 got a result */
   rc=rasqal_engine_get_next_result(query);
-  if(rc<1)
+  if(rc < 1)
     query->finished=1;
-  if(rc<0)
+  if(rc < 0)
     query->failed=1;
   
   return query->finished;
@@ -1428,21 +1453,18 @@ rasqal_query_results_get_triple(rasqal_query_results *query_results) {
      query->current_triple_result >= raptor_sequence_size(query->constructs)) {
     /* rc<0 error rc=0 end of results,  rc>0 got a result */
     rc=rasqal_engine_get_next_result(query);
-    if(rc<1)
+    if(rc < 1)
       query->finished=1;
-    if(rc<0)
+    if(rc < 0)
       query->failed=1;
   
-    if(query->finished | query->failed)
+    if(query->finished || query->failed)
       return NULL;
 
     query->current_triple_result=0;
   }
 
 
-  /* FIXME need bnode substitution so _:a in constructed triple
-   * is different for each result (subgraph of constructed graph)
-   */
   t=(rasqal_triple*)raptor_sequence_get_at(query->constructs,
                                            query->current_triple_result);
 
@@ -1542,11 +1564,11 @@ rasqal_query_results_next_triple(rasqal_query_results *query_results) {
   if(++query->current_triple_result >= raptor_sequence_size(query->constructs)) {
     /* rc<0 error rc=0 end of results,  rc>0 got a result */
     rc=rasqal_engine_get_next_result(query);
-    if(rc<1)
+    if(rc < 1)
       query->finished=1;
-    if(rc<0)
+    if(rc < 0)
       query->failed=1;
-    if(query->finished | query->failed)
+    if(query->finished || query->failed)
       return 1;
 
     query->current_triple_result=0;
@@ -1556,9 +1578,50 @@ rasqal_query_results_next_triple(rasqal_query_results *query_results) {
 }
 
 
+/**
+ * rasqal_query_results_get_boolean - Get boolean query result
+ * @query_results: &rasqal_query_results query_results
+ *
+ * The return value is only meaningful if this is a boolean
+ * query result - see &rasqal_query_results_is_boolean
+ *
+ * Return value: boolean query result - >0 is true, 0 is false, <0 on error or finished
+ */
 int
 rasqal_query_results_get_boolean(rasqal_query_results *query_results) {
-  /* FIXME - always false */
-  return 0;
+  rasqal_query *query;
+  int rc;
+  
+  if(!query_results)
+    return -1;
+  
+  if(!rasqal_query_results_is_boolean(query_results))
+    return -1;
+  
+  query=query_results->query;
+  if(query->finished || query->failed)
+    return -1;
+
+  if(query->ask_result >= 0)
+    return query->ask_result;
+
+  /* rc<0 error rc=0 end of results,  rc>0 got a result */
+  rc=rasqal_engine_get_next_result(query);
+  if(rc < 1) {
+    /* error or end of results */
+    query->finished= 1;
+    query->ask_result= 0; /* false */
+  }
+  if(rc < 0) {
+    /* error */
+    query->failed= 1;
+    query->ask_result= -1; /* error */
+  }
+  if(rc > 0) {
+    /* ok */
+    query->ask_result= 1; /* true */
+  }
+
+  return query->ask_result;
 }
 
