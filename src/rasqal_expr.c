@@ -318,7 +318,7 @@ void
 rasqal_variable_set_value(rasqal_variable* v, rasqal_expression *e)
 {
   if(v->value)
-    return rasqal_free_expression(v->value);
+    rasqal_free_expression(v->value);
   v->value=e;
 }
 
