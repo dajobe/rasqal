@@ -260,6 +260,10 @@ QUOTEDURI \<[A-Za-z][^>]+\>
 <ID>{NAME}	{ sparql_parser_lval->name=sparql_copy_token(rq, (const unsigned char*)yytext, yyleng);
                           BEGIN(INITIAL);
                           return IDENTIFIER; }
+<ID>.	{	BEGIN(INITIAL);
+		sparql_syntax_error(rq, "Missing variable name after ?", *yytext);
+		return ERROR_TOKEN; }
+
 
 <PREF>[\ \t\v]+ { /* eat up leading whitespace */ }
 <PREF>{PREFIX}":"	{ BEGIN(INITIAL);
