@@ -84,7 +84,7 @@ roqet_SOURCES = roqet.c
 if GETOPT
 roqet_SOURCES += getopt.c rasqal_getopt.h
 endif
-roqet_LDADD = librasqal.la
+roqet_LDADD = librasqal.la @RASQAL_EXTERNAL_LIBS@ $(MEM_LIBS)
 
 
 pkgconfigdir = $(libdir)/pkgconfig
@@ -185,30 +185,30 @@ run-rasqal-query-test: $(rasqal_query_test)
 
 rdql_lexer_test_SOURCES = rdql_lexer.c
 rdql_lexer_test_CPPFLAGS = -DSTANDALONE
-rdql_lexer_test_LDADD = librasqal.la
+rdql_lexer_test_LDADD = librasqal.la @RASQAL_EXTERNAL_LIBS@ $(MEM_LIBS)
 
 rdql_parser_test_SOURCES = rdql_parser.c
 rdql_parser_test_CPPFLAGS = -DSTANDALONE
-rdql_parser_test_LDADD = librasqal.la
+rdql_parser_test_LDADD = librasqal.la @RASQAL_EXTERNAL_LIBS@ $(MEM_LIBS)
 
 sparql_lexer_test_SOURCES = sparql_lexer.c
 sparql_lexer_test_CPPFLAGS = -DSTANDALONE
-sparql_lexer_test_LDADD = librasqal.la
+sparql_lexer_test_LDADD = librasqal.la @RASQAL_EXTERNAL_LIBS@ $(MEM_LIBS)
 
 sparql_parser_test_SOURCES = sparql_parser.c
 sparql_parser_test_CPPFLAGS = -DSTANDALONE
-sparql_parser_test_LDADD = librasqal.la
+sparql_parser_test_LDADD = librasqal.la @RASQAL_EXTERNAL_LIBS@ $(MEM_LIBS)
 
 rasqal_expr_test_SOURCES = rasqal_expr.c
 rasqal_expr_test_CPPFLAGS = -DSTANDALONE
-rasqal_expr_test_LDADD = librasqal.la
+rasqal_expr_test_LDADD = librasqal.la @RASQAL_EXTERNAL_LIBS@ $(MEM_LIBS)
 
 strcasecmp_test_SOURCES = strcasecmp.c
 strcasecmp_test_CPPFLAGS = -DSTANDALONE
 
 rasqal_query_test_SOURCES = rasqal_query_test.c
 rasqal_query_test_CPPFLAGS = -DSTANDALONE
-rasqal_query_test_LDADD = librasqal.la
+rasqal_query_test_LDADD = librasqal.la @RASQAL_EXTERNAL_LIBS@ $(MEM_LIBS)
 
 $(top_builddir)/raptor/libraptor.la:
 	cd $(top_builddir)/raptor && $(MAKE) $(AM_MAKEFLAGS) libraptor.la
