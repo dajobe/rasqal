@@ -570,6 +570,8 @@ tests/Makefile
 tests/rdql/Makefile
 tests/rdql/testsuite/Makefile
 tests/sparql/Makefile
+tests/sparql/simple/Makefile
+tests/sparql/part1/Makefile
 docs/Makefile
 win32/Makefile
 rasqal.spec
