@@ -101,10 +101,6 @@ rasqal_new_query(const char *name, const unsigned char *uri)
 
   query->query_graph_pattern=rasqal_new_graph_pattern(query);
 
-  query->graph_patterns=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_graph_pattern, (raptor_sequence_print_handler*)rasqal_graph_pattern_print);
-
-  query->optional_graph_pattern= -1;
-
   query->sources=raptor_new_sequence((raptor_sequence_free_handler*)raptor_free_uri, (raptor_sequence_print_handler*)raptor_sequence_print_uri);
   query->data_graphs=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_data_graph, (raptor_sequence_print_handler*)rasqal_data_graph_print);
 
@@ -184,9 +180,6 @@ rasqal_free_query(rasqal_query* query)
 
   if(query->query_graph_pattern)
     rasqal_free_graph_pattern(query->query_graph_pattern);
-
-  if(query->graph_patterns)
-    raptor_free_sequence(query->graph_patterns);
 
   /* Do this last since most everything above could refer to a variable */
   if(query->variables_sequence)
@@ -651,12 +644,7 @@ rasqal_query_add_constraint(rasqal_query* query, rasqal_expression* expr)
   
   RASQAL_DEPRECATED_MESSAGE("please use rasqal_graph_pattern_add_constraint on a rasqal_graph_pattern");
 
-  if(!query->graph_patterns) {
-    RASQAL_DEBUG1("No graph pattern to add constraint to");
-    return;
-  }
-  
-  gp=(rasqal_graph_pattern*)raptor_sequence_get_at(query->graph_patterns, 0);
+  gp=(rasqal_graph_pattern*)query->query_graph_pattern;
   rasqal_graph_pattern_add_constraint(gp, expr);
 }
 
@@ -677,12 +665,7 @@ rasqal_query_get_constraint_sequence(rasqal_query* query)
   
   RASQAL_DEPRECATED_MESSAGE("get constraints per rasqal_graph_pattern using rasqal_graph_pattern_get_constraint_sequence");
 
-  if(!query->graph_patterns) {
-    RASQAL_DEBUG1("No graph pattern to get constraint sequence from");
-    return NULL;
-  }
-  
-  gp=(rasqal_graph_pattern*)raptor_sequence_get_at(query->graph_patterns, 0);
+  gp=(rasqal_graph_pattern*)query->query_graph_pattern;
   return rasqal_graph_pattern_get_constraint_sequence(gp);
 }
 
@@ -704,12 +687,7 @@ rasqal_query_get_constraint(rasqal_query* query, int idx)
   
   RASQAL_DEPRECATED_MESSAGE("get constraints per rasqal_graph_pattern using rasqal_graph_pattern_get_constraint");
 
-  if(!query->graph_patterns) {
-    RASQAL_DEBUG1("No graph pattern to get constraint from");
-    return NULL;
-  }
-  
-  gp=(rasqal_graph_pattern*)raptor_sequence_get_at(query->graph_patterns, 0);
+  gp=(rasqal_graph_pattern*)query->query_graph_pattern;
   return rasqal_graph_pattern_get_constraint(gp, idx);
 }
 
@@ -772,7 +750,7 @@ rasqal_query_get_prefix(rasqal_query* query, int idx)
 
 
 /**
- * rasqal_query_get_graph_pattern_sequence - Get the sequence of graph_patterns expressions in the query
+ * rasqal_query_get_graph_pattern_sequence - Get the sequence of graph_patterns expressions inside the top query graph pattern
  * @query: &rasqal_query query object
  *
  * Return value: a &raptor_sequence of &rasqal_graph_pattern pointers.
@@ -780,12 +758,12 @@ rasqal_query_get_prefix(rasqal_query* query, int idx)
 raptor_sequence*
 rasqal_query_get_graph_pattern_sequence(rasqal_query* query)
 {
-  return query->graph_patterns;
+  return rasqal_graph_pattern_get_sub_graph_pattern_sequence(query->query_graph_pattern);
 }
 
 
 /**
- * rasqal_query_get_graph_pattern - Get a graph_pattern in the sequence of graph_pattern expressions in the query
+ * rasqal_query_get_graph_pattern - Get a graph_pattern in the sequence of graph_pattern expressions in the top query graph pattern
  * @query: &rasqal_query query object
  * @idx: index into the sequence (0 or larger)
  *
@@ -794,10 +772,22 @@ rasqal_query_get_graph_pattern_sequence(rasqal_query* query)
 rasqal_graph_pattern*
 rasqal_query_get_graph_pattern(rasqal_query* query, int idx)
 {
-  if(!query->graph_patterns)
-    return NULL;
+  return rasqal_graph_pattern_get_sub_graph_pattern(query->query_graph_pattern, idx);
+}
 
-  return (rasqal_graph_pattern*)raptor_sequence_get_at(query->graph_patterns, idx);
+
+/**
+ * rasqal_graph_pattern_add_sub_graph_pattern - Add a sub graph pattern to a graph pattern 
+ * @graph_pattern: graph pattern to add to
+ * @sub_graph_pattern: graph pattern to add inside
+ **/
+void
+rasqal_graph_pattern_add_sub_graph_pattern(rasqal_graph_pattern* graph_pattern,
+                                           rasqal_graph_pattern* sub_graph_pattern)
+{
+  if(!graph_pattern->graph_patterns)
+    graph_pattern->graph_patterns=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_graph_pattern, (raptor_sequence_print_handler*)rasqal_graph_pattern_print);
+  raptor_sequence_push(graph_pattern->graph_patterns, sub_graph_pattern);
 }
 
 
@@ -1055,9 +1045,9 @@ rasqal_query_print(rasqal_query* query, FILE *fh)
     fprintf(fh, "\nprefixes: ");
     raptor_sequence_print(query->prefixes, fh);
   }
-  if(query->graph_patterns) {
-    fprintf(fh, "\ngraph patterns: ");
-    raptor_sequence_print(query->graph_patterns, fh);
+  if(query->query_graph_pattern) {
+    fprintf(fh, "\nquery graph pattern: ");
+    rasqal_graph_pattern_print(query->query_graph_pattern, fh);
   }
   fputc('\n', fh);
 }
