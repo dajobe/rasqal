@@ -42,6 +42,7 @@ rasqal_query*
 rasqal_new_query(const char *name, const unsigned char *uri) {
   rasqal_query* q=(rasqal_query*)malloc(sizeof(rasqal_query));
 
+  /* name "rdql" uri "http://jena.hpl.hp.com/2003/07/query/RDQL" */
   return q;
 }
 
