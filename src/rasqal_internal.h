@@ -355,6 +355,8 @@ void rasqal_query_warning_varargs(rasqal_query* query, const char *message, va_l
 
 const char* rasqal_basename(const char *name);
 
+unsigned char* rasqal_escaped_name_to_utf8_string(const unsigned char *src, size_t len, size_t *dest_lenp, raptor_simple_message_handler error_handler, void *error_data);
+
 /* rdql_parser.y */
 void rasqal_init_query_engine_rdql (void);
 
