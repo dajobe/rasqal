@@ -1,3 +1,43 @@
+2004-11-16  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal_engine.c (rasqal_engine_get_next_triple_pattern_result):
+	Added, split off from rasqal_engine_get_next_result.
+
+	* sparql_parser.y (rasqal_sparql_query_engine_prepare):
+	Call rasqal_engine_prepare.
+
+	* rdql_parser.y (rasqal_rdql_query_engine_prepare):
+	Call rasqal_engine_prepare.
+
+	* rasqal_engine.c (rasqal_engine_prepare): Added, split some bits
+	from rasqal_engine_execute_init that were just query preparation,
+	rather than execution.
+
+	* rasqal_internal.h: Added rasqal_engine_prepare prototype
+
+2004-11-12  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* sparql_parser.y (PatternElementForms): Set triple optional flags.
+
+	* rasqal_expr.c: Added rasqal_triple_flag_strings consts
+	(rasqal_triple_print): Use rasqal_triple_flag_strings to print
+	flags out.
+
+	* roqet.c: Cast for c++
+
+	* rasqal_engine.c (rasqal_engine_execute_init): Set triple flags
+	RASQAL_TRIPLE_FLAGS_EXACT rather than triple meta is_exact.
+	(rasqal_engine_get_next_result): Use triple flags
+	RASQAL_TRIPLE_FLAGS_EXACT rather than using triple meta is_exact.
+
+	* rasqal_expr.c (rasqal_triple_set_flags, rasqal_triple_get_flags):
+	Added
+
+	* rasqal.h: Added enum rasqal_triple_flags
+	Added flags field to rasqal_triple.
+	Added prototypes for rasqal_triple_set_flags and
+	rasqal_triple_get_flags
+
 2004-11-11  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
 	* sparql_parser.y (GraphPattern): Only join non-empty PatternElement
