@@ -258,3 +258,185 @@ rasqal_engine_expand_triple_qnames(rasqal_query* rq)
 
   return 0;
 }
+
+
+static librdf_node*
+rasqal_expression_to_redland_node(rasqal_query *q, rasqal_expression* e) {
+  if(e->op == RASQAL_EXPR_LITERAL) {
+    rasqal_literal* l=e->literal;
+    if(l->type == RASQAL_LITERAL_URI) {
+      char *uri_string=raptor_uri_as_string(l->value.uri);
+      return librdf_new_node_from_uri_string(q->world, uri_string);
+    } else if (l->type == RASQAL_LITERAL_STRING)
+      return librdf_new_node_from_literal(q->world, l->value.string, NULL, 0);
+    else
+      abort();
+  } else
+    abort();
+  
+  return NULL;
+}
+
+
+static rasqal_expression*
+redland_node_to_rasqal_expression(librdf_node *node) {
+  rasqal_literal* l;
+  
+  if(librdf_node_is_resource(node)) {
+    raptor_uri* uri=(raptor_uri*)librdf_node_get_uri(node);
+    l=rasqal_new_literal(RASQAL_LITERAL_URI, 0, 0.0, NULL, uri);
+  } else if(librdf_node_is_literal(node)) {
+    l=rasqal_new_literal(RASQAL_LITERAL_URI, 0, 0.0, librdf_node_get_literal_value(node), NULL);
+  } else {
+    /* blank - FIXME */
+    l=rasqal_new_literal(RASQAL_LITERAL_URI, 0, 0.0, librdf_node_get_blank_identifier(node), NULL);
+  }
+
+  return rasqal_new_literal_expression(l);
+}
+
+
+static librdf_statement*
+rasqal_triple_to_redland_statement(rasqal_query *q, rasqal_triple* t)
+{
+  librdf_node* nodes[3];
+
+  /* ASSUMPTION: all the parts of the triple are not variables */
+  /* FIXME: and no error checks */
+  nodes[0]=rasqal_expression_to_redland_node(q, t->subject);
+  nodes[1]=rasqal_expression_to_redland_node(q, t->predicate);
+  nodes[2]=rasqal_expression_to_redland_node(q, t->object);
+
+  return librdf_new_statement_from_nodes(q->world, nodes[0], nodes[1], nodes[2]);
+}
+
+
+
+int
+rasqal_select_next(rasqal_query *q, int count) {
+  rasqal_triple* t;
+  int rc=0;
+
+  if(q->abort)
+    return 0;
+
+  t=rasqal_sequence_get_at(q->triples, count);
+  if(!t) {
+    /* Done all conjunctions, so print out the variable bindings */ 
+    printf("Result variable bindings:\n");
+    rasqal_sequence_print(q->selects, stdout);
+
+  } else if (!rasqal_expression_as_variable(t->predicate) &&
+             !rasqal_expression_as_variable(t->subject) && 
+             !rasqal_expression_as_variable(t->object)) {
+    /* No variables - must match a statement in the triple store */
+    librdf_statement *s=rasqal_triple_to_redland_statement(q, t);
+    
+    rc=!librdf_model_contains_statement(q->model, s);
+    librdf_free_statement(s);
+    if(rc)
+      return 1;
+
+    /* recurse */
+    rasqal_select_next(q, count+1);
+    
+  } else { 
+    /* at least one of the triple terms is a variable and we need to
+     * do a triplesMatching() aka librdf_model_find_statements
+     *
+     * redland find_statements will do the right thing and internally
+     * pick the most efficient, indexed way to get the answer.
+     */
+    librdf_node* nodes[3];
+    librdf_statement *qstatement;
+    librdf_stream *stream=NULL;
+    rasqal_variable* var;
+    rasqal_variable* bindings[3];
+
+    if((var=rasqal_expression_as_variable(t->subject))) {
+      nodes[0]=NULL;
+    } else
+      nodes[0]=rasqal_expression_to_redland_node(q, t->subject);
+
+    bindings[0]=var;
+    
+
+    if((var=rasqal_expression_as_variable(t->predicate))) {
+      nodes[1]=NULL;
+    } else
+      nodes[1]=rasqal_expression_to_redland_node(q, t->predicate);
+
+    bindings[1]=var;
+    
+
+    if((var=rasqal_expression_as_variable(t->object))) {
+      nodes[2]=NULL;
+    } else
+      nodes[2]=rasqal_expression_to_redland_node(q, t->object);
+
+    bindings[2]=var;
+    
+
+    qstatement=librdf_new_statement_from_nodes(q->world, 
+                                               nodes[0], nodes[1], nodes[2]);
+    if(!qstatement)
+      return 1;
+
+    printf("query statement at depth %d: ", count);
+    librdf_statement_print(qstatement, stdout);
+    fputc('\n', stdout);
+    
+    stream=librdf_model_find_statements(q->model, qstatement);
+
+    if(!stream)
+      return 1;
+    
+    while(!librdf_stream_end(stream)) {
+      librdf_statement* statement;
+
+      statement=librdf_stream_get_object(stream);
+
+      printf("  matched statement at depth %d: ", count);
+      librdf_statement_print(statement, stdout);
+      fputc('\n', stdout);
+
+      /* set 1 or 2 variable values from the fields of statement */
+      if(bindings[0]) 
+        rasqal_variable_set_value(bindings[0], 
+                                  redland_node_to_rasqal_expression(librdf_statement_get_subject(statement)));
+      if(bindings[1]) 
+        rasqal_variable_set_value(bindings[1], 
+                                  redland_node_to_rasqal_expression((librdf_statement_get_predicate(statement))));
+      if(bindings[2]) 
+        rasqal_variable_set_value(bindings[2], 
+                                  redland_node_to_rasqal_expression((librdf_statement_get_object(statement))));
+
+      /* recurse */
+      rc=rasqal_select_next(q, count+1);
+
+      if(rc) {
+        librdf_free_stream(stream);
+        return 1;
+      }
+
+    }
+    printf("end of stream at depth %d: \n", count);
+
+    if(bindings[0]) 
+      rasqal_variable_set_value(bindings[0],  NULL);
+    if(bindings[1]) 
+      rasqal_variable_set_value(bindings[1],  NULL);
+    if(bindings[2]) 
+      rasqal_variable_set_value(bindings[2],  NULL);
+
+    /* FIXME leak nodes[0..2]? */
+
+    librdf_free_stream(stream);
+    librdf_free_statement(qstatement);
+  }
+
+  printf("rasqal_select_next done\n");
+
+  return 0;
+}
+
