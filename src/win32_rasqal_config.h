@@ -91,7 +91,7 @@ extern "C" {
 #define YY_USE_CONST
 
 #undef RASQAL_INLINE
-#define RASQAL_INLINE
+#define RASQAL_INLINE __inline
 
 /* Building RDQL query */
 #define RASQAL_QUERY_RDQL 1
