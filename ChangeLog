@@ -1,3 +1,49 @@
+2004-11-10  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rdql_parser.y (ConstraintClause): Don't add constraint sequence here.
+	(CommaAndConstraintClause): Instead, add constraints here.
+
+	* sparql_parser.y (GraphPattern): Use raptor_sequence_join
+
+	* rdql_parser.y (Query): Don't set contraints here.
+	(ConstraintClause): Use rasqal_query_add_constraint.
+
+	* configure.ac: require raptor 1.4.3
+
+	* rasqal.h:
+	Applied patch from René Puls to allow for Redland public headers to
+	be in a different directory structure. If LIBRDF_OBJC_FRAMEWORK
+	is defined, the headers are in a Redland subdirectory.
+	Only applies to public Redland header files that #include other
+	public header files.  rasqal.h includes raptor.h so needs modifying
+	also.
+
+2004-11-02  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal_raptor.c (ordinal_as_uri): Utterly broken
+
+	* tests/sparql/check-sparql (run_test):
+	Take array of data files and use them to invoke roqet
+	Tidy some rapper invoking.
+	Add more debug messages.
+
+	* sparql_parser.y (GraphPattern): Merge the two sequences to make
+	one sequence of triples.
+	(PatternElement): Pass on PatternElementForms sequence
+	(GraphPattern1:) Make a new triple sequence and pass on
+	PatternElementForms.
+
+	* roqet.c (main): Add sources before prepare.
+
+	* roqet.c (main): Form a list of files/source URIs to add using a
+	raptor_sequence and add them once the query is created.
+
+	* configure.ac, win32_rasqal_config.h: Bumped version to 0.9.5
+
+2004-11-01  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* configure.ac: Need raptor 1.4.2
+
 2004-10-29  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
 	* Snapshotted rasqal_0_9_4 for 0.9.4 release
