@@ -79,6 +79,8 @@ rasqal_free_sequence(rasqal_sequence* seq) {
 
   if(seq->sequence)
     free(seq->sequence);
+
+  RASQAL_FREE(rasqal_sequence, seq);
 }
 
 
