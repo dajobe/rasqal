@@ -134,17 +134,17 @@ rasqal_engine_sequence_has_qname(raptor_sequence *seq) {
 
 
 int
-rasqal_engine_constraints_has_qname(rasqal_query* rq) 
+rasqal_engine_query_constraints_has_qname(rasqal_query* rq) 
 {
   int i;
   
-  if(!rq->constraints)
+  if(!rq->graph_patterns)
     return 0;
   
-  /* check for qnames in constraint expressions */
-  for(i=0; i<raptor_sequence_size(rq->constraints); i++) {
-    rasqal_expression* e=(rasqal_expression*)raptor_sequence_get_at(rq->constraints, i);
-    if(rasqal_expression_foreach(e, rasqal_expression_has_qname, rq))
+  /* check for constraint qnames in rasqal_graph_patterns */
+  for(i=0; i < raptor_sequence_size(rq->graph_patterns); i++) {
+    rasqal_graph_pattern *gp=(rasqal_graph_pattern*)raptor_sequence_get_at(rq->graph_patterns, i);
+    if(rasqal_engine_graph_pattern_constraints_has_qname(gp))
       return 1;
   }
 
@@ -153,16 +153,36 @@ rasqal_engine_constraints_has_qname(rasqal_query* rq)
 
 
 int
-rasqal_engine_expand_constraints_qnames(rasqal_query* rq)
+rasqal_engine_graph_pattern_constraints_has_qname(rasqal_graph_pattern* gp) 
 {
   int i;
   
-  if(!rq->constraints)
+  if(!gp->constraints)
+    return 0;
+  
+  /* check for qnames in constraint expressions */
+  for(i=0; i<raptor_sequence_size(gp->constraints); i++) {
+    rasqal_expression* e=(rasqal_expression*)raptor_sequence_get_at(gp->constraints, i);
+    if(rasqal_expression_foreach(e, rasqal_expression_has_qname, gp))
+      return 1;
+  }
+
+  return 0;
+}
+
+
+int
+rasqal_engine_expand_graph_pattern_constraints_qnames(rasqal_query *rq,
+                                                      rasqal_graph_pattern* gp)
+{
+  int i;
+  
+  if(!gp->constraints)
     return 0;
   
   /* expand qnames in constraint expressions */
-  for(i=0; i<raptor_sequence_size(rq->constraints); i++) {
-    rasqal_expression* e=(rasqal_expression*)raptor_sequence_get_at(rq->constraints, i);
+  for(i=0; i<raptor_sequence_size(gp->constraints); i++) {
+    rasqal_expression* e=(rasqal_expression*)raptor_sequence_get_at(gp->constraints, i);
     if(rasqal_expression_foreach(e, rasqal_expression_expand_qname, rq))
       return 1;
   }
@@ -172,23 +192,36 @@ rasqal_engine_expand_constraints_qnames(rasqal_query* rq)
 
 
 int
-rasqal_engine_build_constraints_expression(rasqal_query* rq)
+rasqal_engine_expand_query_constraints_qnames(rasqal_query *rq) 
+{
+  int i;
+
+  for(i=0; i < raptor_sequence_size(rq->graph_patterns); i++) {
+    rasqal_graph_pattern *gp=(rasqal_graph_pattern*)raptor_sequence_get_at(rq->graph_patterns, i);
+    if(rasqal_engine_expand_graph_pattern_constraints_qnames(rq, gp))
+      return 1;
+  }
+  return 0;
+}
+
+int
+rasqal_engine_build_constraints_expression(rasqal_graph_pattern* gp)
 {
   rasqal_expression* newe=NULL;
   int i;
   
-  if(!rq->constraints)
+  if(!gp->constraints)
     return 0;
   
-  for(i=raptor_sequence_size(rq->constraints)-1; i>=0 ; i--) {
-    rasqal_expression* e=(rasqal_expression*)raptor_sequence_get_at(rq->constraints, i);
+  for(i=raptor_sequence_size(gp->constraints)-1; i>=0 ; i--) {
+    rasqal_expression* e=(rasqal_expression*)raptor_sequence_get_at(gp->constraints, i);
     if(!newe)
       newe=e;
     else
       /* must make a conjunction */
       newe=rasqal_new_2op_expression(RASQAL_EXPR_AND, e, newe);
   }
-  rq->constraints_expression=newe;
+  gp->constraints_expression=newe;
 
   return 0;
 }
@@ -486,6 +519,24 @@ rasqal_free_graph_pattern(rasqal_graph_pattern* gp)
   if(gp->graph_patterns)
     raptor_free_sequence(gp->graph_patterns);
   
+  if(gp->constraints_expression) {
+    rasqal_free_expression(gp->constraints_expression);
+    if(gp->constraints)
+      raptor_free_sequence(gp->constraints);
+  } else if(gp->constraints) {
+    int i;
+    
+    /* free rasqal_expressions that are normally assembled into an
+     * expression tree pointed at query->constraints_expression
+     * when query construction succeeds.
+     */
+    for(i=0; i< raptor_sequence_size(gp->constraints); i++) {
+      rasqal_expression* e=(rasqal_expression*)raptor_sequence_get_at(gp->constraints, i);
+      rasqal_free_expression(e);
+    }
+    raptor_free_sequence(gp->constraints);
+  }
+
   RASQAL_FREE(rasqal_graph_pattern, gp);
 }
 
@@ -560,6 +611,55 @@ rasqal_graph_pattern_adjust(rasqal_graph_pattern* gp, int offset)
 
 
 /**
+ * rasqal_graph_pattern_add_constraint - Add a constraint expression to the graph_pattern
+ * @query: &rasqal_graph_pattern query object
+ * @expr: &rasqal_expression expr
+ *
+ * Return value: non-0 on failure
+ **/
+int
+rasqal_graph_pattern_add_constraint(rasqal_graph_pattern* gp,
+                                    rasqal_expression* expr)
+{
+  if(!gp->constraints)
+    gp->constraints=raptor_new_sequence(NULL, (raptor_sequence_print_handler*)rasqal_expression_print);
+  raptor_sequence_shift(gp->constraints, (void*)expr);
+
+  return 0;
+}
+
+
+/**
+ * rasqal_graph_pattern_get_constraint_sequence - Get the sequence of constraints expressions in the query
+ * @query: &rasqal_graph_pattern query object
+ *
+ * Return value: a &raptor_sequence of &rasqal_expression pointers.
+ **/
+raptor_sequence*
+rasqal_graph_pattern_get_constraint_sequence(rasqal_graph_pattern* gp)
+{
+  return gp->constraints;
+}
+
+
+/**
+ * rasqal_graph_pattern_get_constraint - Get a constraint in the sequence of constraint expressions in the query
+ * @query: &rasqal_graph_pattern query object
+ * @idx: index into the sequence (0 or larger)
+ *
+ * Return value: a &rasqal_expression pointer or NULL if out of the sequence range
+ **/
+rasqal_expression*
+rasqal_graph_pattern_get_constraint(rasqal_graph_pattern* gp, int idx)
+{
+  if(!gp->constraints)
+    return NULL;
+
+  return (rasqal_expression*)raptor_sequence_get_at(gp->constraints, 0);
+}
+
+
+/**
  * rasqal_graph_pattern_print - Print a Rasqal graph_pattern in a debug format
  * @v: the &rasqal_graph_pattern object
  * @fh: the &FILE* handle to print to
@@ -586,6 +686,10 @@ rasqal_graph_pattern_print(rasqal_graph_pattern* gp, FILE* fh)
   if(gp->graph_patterns) {
     fputs("over graph_patterns", fh);
     raptor_sequence_print(gp->graph_patterns, fh);
+  }
+  if(gp->constraints) {
+    fprintf(fh, " with constraints: ");
+    raptor_sequence_print(gp->constraints, fh);
   }
   if(gp->flags) {
     fputs(", flags=", fh);
@@ -780,7 +884,11 @@ rasqal_engine_prepare(rasqal_query *query) {
 
     rasqal_query_build_declared_in(query);
     
-    rasqal_engine_build_constraints_expression(query);
+    for(i=0; i < raptor_sequence_size(query->graph_patterns); i++) {
+      rasqal_graph_pattern *gp=(rasqal_graph_pattern*)raptor_sequence_get_at(query->graph_patterns, i);
+
+      rasqal_engine_build_constraints_expression(gp);
+    }
   }
 
   for(i=0; i < raptor_sequence_size(query->triples); i++) {
@@ -933,11 +1041,11 @@ rasqal_engine_check_constraint(rasqal_query *query, rasqal_graph_pattern *gp) {
     
 #ifdef RASQAL_DEBUG
   RASQAL_DEBUG1("constraint expression:\n");
-  rasqal_expression_print(query->constraints_expression, stderr);
+  rasqal_expression_print(gp->constraints_expression, stderr);
   fputc('\n', stderr);
 #endif
     
-  result=rasqal_expression_evaluate(query, query->constraints_expression);
+  result=rasqal_expression_evaluate(query, gp->constraints_expression);
   if(!result)
     return STEP_ERROR;
   
@@ -987,7 +1095,7 @@ rasqal_engine_do_step(rasqal_query *query, rasqal_graph_pattern *gp) {
   }
 
 
-  if(query->constraints_expression) {
+  if(gp->constraints_expression) {
     step=rasqal_engine_check_constraint(query, gp);
     if(step != STEP_GOT_MATCH)
       return step;
@@ -1130,7 +1238,7 @@ rasqal_engine_do_optional_step(rasqal_query *query, rasqal_graph_pattern *gp) {
   }
 
   
-  if(query->constraints_expression) {
+  if(gp->constraints_expression) {
     step=rasqal_engine_check_constraint(query, gp);
     if(step != STEP_GOT_MATCH) {
       /* The constraint failed or we have an error - no bindings count */
