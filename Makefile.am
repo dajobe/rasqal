@@ -37,7 +37,7 @@ librasqal_la_LDFLAGS = -version-info @RASQAL_LIBTOOL_VERSION@
 librasqal_la_LIBADD = @RASQAL_INTERNAL_LIBS@ @RASQAL_EXTERNAL_LIBS@
 librasqal_la_DEPENDENCIES = @RASQAL_INTERNAL_LIBS@
 
-roqet_SOURCES = roqet.c rasqal_getopt.h rasqal_redland.c
+roqet_SOURCES = roqet.c rasqal_getopt.h
 roqet_LDADD = librasqal.la @RASQAL_INTERNAL_LIBS@ @RASQAL_EXTERNAL_LIBS@
 roqet_DEPENDENCIES = librasqal.la @RASQAL_INTERNAL_LIBS@
 EXTRA_roqet_SOURCES = getopt.c
