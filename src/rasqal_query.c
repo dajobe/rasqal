@@ -106,6 +106,9 @@ rasqal_new_query(const char *name, const unsigned char *uri) {
 void
 rasqal_free_query(rasqal_query* rdf_query) 
 {
+  if(rdf_query->executed)
+    rasqal_engine_execute_finish(rdf_query);
+
   if(rdf_query->factory)
     rdf_query->factory->terminate(rdf_query);
 
@@ -133,10 +136,19 @@ rasqal_free_query(rasqal_query* rdf_query)
     raptor_free_sequence(rdf_query->prefixes);
   if(rdf_query->ordered_triples)
     raptor_free_sequence(rdf_query->ordered_triples);
+
+  if(rdf_query->variable_names)
+    RASQAL_FREE(cstrings, rdf_query->variable_names);
+  
+  if(rdf_query->binding_values)
+    RASQAL_FREE(cstrings, rdf_query->binding_values);
+  
   if(rdf_query->variables)
     RASQAL_FREE(vararray, rdf_query->variables);
+
   if(rdf_query->variables_sequence)
     raptor_free_sequence(rdf_query->variables_sequence);
+
   if(rdf_query->constraints_expression)
     rasqal_free_expression(rdf_query->constraints_expression);
 
@@ -233,6 +245,10 @@ rasqal_query_prepare(rasqal_query *rdf_query,
                      const unsigned char *query_string,
                      raptor_uri *base_uri)
 {
+  if(rdf_query->prepared)
+    return 1;
+  rdf_query->prepared=1;
+  
   rdf_query->query_string=(char*)RASQAL_MALLOC(cstring, strlen(query_string)+1);
   strcpy((char*)rdf_query->query_string, (const char*)query_string);
 
@@ -256,14 +272,16 @@ rasqal_query_prepare(rasqal_query *rdf_query,
  * rasqal_query_execute: excute a query - run and return results
  * @rdf_query: the &rasqal_query object
  *
- * fixme: not implemented
- *
  * return value: non-0 on failure.
  **/
 int
 rasqal_query_execute(rasqal_query *rdf_query)
 {
   int rc=0;
+  
+  if(rdf_query->executed)
+    return 1;
+  rdf_query->executed=1;
   
   rc=rasqal_engine_execute_init(rdf_query);
   if(rc)
@@ -275,11 +293,9 @@ rasqal_query_execute(rasqal_query *rdf_query)
       return rc;
   }
 
-  rc=rasqal_engine_run(rdf_query);
+  rasqal_query_next_result(rdf_query);
 
-  rasqal_engine_execute_finish(rdf_query);
-
-  return rc;
+  return rdf_query->failed;
 }
 
 
@@ -302,3 +318,100 @@ rasqal_query_print(rasqal_query* query, FILE *fh) {
   raptor_sequence_print(query->prefixes, fh);
   fputc('\n', fh);
 }
+
+
+int
+rasqal_query_get_result_count(rasqal_query *query) {
+  return query->result_count;
+}
+
+
+int
+rasqal_query_results_finished(rasqal_query *query) {
+  return query->finished;
+}
+
+
+int
+rasqal_query_get_result_bindings(rasqal_query *query,
+                                 const char ***names, 
+                                 rasqal_literal ***values) {
+  if(query->finished)
+    return 1;
+
+  if(names)
+    *names=query->variable_names;
+  
+  if(values) {
+    if(query->binding_values)
+      rasqal_engine_assign_binding_values(query);
+    
+    *values=query->binding_values;
+  }
+  
+  return 0;
+}
+
+
+rasqal_literal*
+rasqal_query_get_result_binding(rasqal_query *query, int offset) {
+  if(query->finished)
+    return NULL;
+
+  if(offset < query->select_variables_count)
+    return NULL;
+  
+  if(query->binding_values)
+    rasqal_engine_assign_binding_values(query);
+  else
+    return NULL;
+  
+  return query->binding_values[offset];
+}
+
+
+rasqal_literal*
+rasqal_query_get_result_binding_by_name(rasqal_query *query,
+                                        const char *name) {
+  int offset= -1;
+  int i;
+  
+  if(query->finished)
+    return NULL;
+
+  for(i=0; i< query->select_variables_count; i++) {
+    if(!strcmp(name, query->variables[i]->name)) {
+      offset=i;
+      break;
+    }
+  }
+  
+  if(offset < 0)
+    return NULL;
+  
+  if(query->binding_values)
+    rasqal_engine_assign_binding_values(query);
+  else
+    return NULL;
+  
+  return query->binding_values[offset];
+}
+
+
+int
+rasqal_query_next_result(rasqal_query *query) {
+  int rc;
+  
+  if(query->finished)
+    return 1;
+
+  /* rc<0 error rc=0 end of results,  rc>0 got a result */
+  rc=rasqal_engine_get_next_result(query);
+  if(rc<1)
+    query->finished=1;
+  if(rc<0)
+    query->failed=1;
+  
+  return query->finished;
+}
+
