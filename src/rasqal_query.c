@@ -298,6 +298,7 @@ rasqal_query_set_feature(rasqal_query *query,
 {
   switch(feature) {
       
+    case RASQAL_FEATURE_LAST:
     default:
       break;
   }
@@ -1362,6 +1363,8 @@ rasqal_query_results_write(raptor_iostream *iostr,
         case RASQAL_LITERAL_BOOLEAN:
         case RASQAL_LITERAL_FLOATING:
         case RASQAL_LITERAL_VARIABLE:
+
+        case RASQAL_LITERAL_UNKNOWN:
         default:
           rasqal_query_error(query, "Cannot turn literal type %d into XML", 
                              l->type);
@@ -1476,6 +1479,7 @@ rasqal_query_results_get_triple(rasqal_query_results *query_results) {
       rs->subject=s->value.uri;
       rs->subject_type=RAPTOR_IDENTIFIER_TYPE_RESOURCE;
       break;
+
     case RASQAL_LITERAL_BLANK:
       s->string=rasqal_prefix_id(query->result_count, 
                                  (unsigned char*)s->string);
@@ -1483,6 +1487,21 @@ rasqal_query_results_get_triple(rasqal_query_results *query_results) {
       rs->subject=s->string;
       rs->subject_type=RAPTOR_IDENTIFIER_TYPE_ANONYMOUS;
       break;
+
+    case RASQAL_LITERAL_QNAME:
+    case RASQAL_LITERAL_PATTERN:
+    case RASQAL_LITERAL_BOOLEAN:
+    case RASQAL_LITERAL_INTEGER:
+    case RASQAL_LITERAL_FLOATING:
+    case RASQAL_LITERAL_VARIABLE:
+      /* QNames should be gone by the time expression eval happens
+       * Everything else is removed by rasqal_literal_as_node() above. 
+       */
+
+    case RASQAL_LITERAL_STRING:
+      /* string [literal] subjects are not RDF */
+
+    case RASQAL_LITERAL_UNKNOWN:
     default:
       /* case RASQAL_LITERAL_STRING: */
       RASQAL_FATAL2("Triple with non-URI/blank subject type %d", s->type);
@@ -1496,6 +1515,21 @@ rasqal_query_results_get_triple(rasqal_query_results *query_results) {
       rs->predicate_type=RAPTOR_IDENTIFIER_TYPE_RESOURCE;
       break;
 
+    case RASQAL_LITERAL_QNAME:
+    case RASQAL_LITERAL_PATTERN:
+    case RASQAL_LITERAL_BOOLEAN:
+    case RASQAL_LITERAL_INTEGER:
+    case RASQAL_LITERAL_FLOATING:
+    case RASQAL_LITERAL_VARIABLE:
+      /* QNames should be gone by the time expression eval happens
+       * Everything else is removed by rasqal_literal_as_node() above. 
+       */
+
+    case RASQAL_LITERAL_BLANK:
+    case RASQAL_LITERAL_STRING:
+      /* blank node or string [literal] predicates are not RDF */
+
+    case RASQAL_LITERAL_UNKNOWN:
     default:
       RASQAL_FATAL2("Triple with non-URI predicatge type %d", p->type);
       break;
@@ -1523,6 +1557,17 @@ rasqal_query_results_get_triple(rasqal_query_results *query_results) {
       rs->object_type=RAPTOR_IDENTIFIER_TYPE_LITERAL;
       break;
 
+    case RASQAL_LITERAL_QNAME:
+    case RASQAL_LITERAL_PATTERN:
+    case RASQAL_LITERAL_BOOLEAN:
+    case RASQAL_LITERAL_INTEGER:
+    case RASQAL_LITERAL_FLOATING:
+    case RASQAL_LITERAL_VARIABLE:
+      /* QNames should be gone by the time expression eval happens
+       * Everything else is removed by rasqal_literal_as_node() above. 
+       */
+
+    case RASQAL_LITERAL_UNKNOWN:
     default:
       RASQAL_FATAL2("Triple with unknown object type %d", o->type);
       break;
