@@ -90,7 +90,7 @@ rdql_parser_error(const char *msg)
 #endif
 
 
-#define GETOPT_STRING "cdf:ho:i:qs:v"
+#define GETOPT_STRING "cdf:ho:i:nqs:vw"
 
 #ifdef HAVE_GETOPT_LONG
 static struct option long_options[] =
@@ -98,6 +98,7 @@ static struct option long_options[] =
   /* name, has_arg, flag, val */
   {"count", 0, 0, 'c'},
   {"dump-query", 0, 0, 'd'},
+  {"dryrun", 0, 0, 'n'},
   {"format", 1, 0, 'f'},
   {"help", 0, 0, 'h'},
   {"output", 1, 0, 'o'},
@@ -105,6 +106,7 @@ static struct option long_options[] =
   {"quiet", 0, 0, 'q'},
   {"source", 1, 0, 's'},
   {"version", 0, 0, 'v'},
+  {"walk-query", 0, 0, 'w'},
   {NULL, 0, 0, 0}
 };
 #endif
@@ -153,6 +155,51 @@ roqet_error_handler(void *user_data,
 }
 
 
+static const char *spaces="                                                                                  ";
+
+static void
+roqet_walk_graph_pattern(rasqal_graph_pattern *gp, int gp_index,
+                         FILE *fh, int indent) {
+  int triple_index=0;
+  int flags;
+      
+  flags=rasqal_graph_pattern_get_flags(gp);
+  
+  fwrite(spaces, sizeof(char), indent, fh);
+  fprintf(fh, "graph pattern %d with flags %d\n", gp_index, flags);
+  
+  indent+= 2;
+
+  while(1) {
+    rasqal_triple* t=rasqal_graph_pattern_get_triple(gp, triple_index);
+    if(!t)
+      break;
+    
+    fwrite(spaces, sizeof(char), indent, fh);
+    fprintf(fh, "triple %d: ", triple_index);
+    rasqal_triple_print(t, fh);
+    fputc('\n', fh);
+
+    triple_index++;
+  }
+
+  /* look for sub graph patterns */
+  gp_index=0;
+  while(1) {
+    rasqal_graph_pattern* sgp=rasqal_graph_pattern_get_sub_graph_pattern(gp, gp_index);
+    if(!sgp)
+      break;
+
+    roqet_walk_graph_pattern(sgp, gp_index, fh, indent+2);
+    gp_index++;
+  }
+
+  if(gp_index > 0)
+    fprintf(fh, "found %d sub-graph patterns\n", gp_index);
+
+}
+
+
 int
 main(int argc, char *argv[]) 
 { 
@@ -174,6 +221,8 @@ main(int argc, char *argv[])
   int quiet=0;
   int count=0;
   int dump_query=0;
+  int dryrun=0;
+  int walk_query=0;
   raptor_sequence* sources=NULL;
   raptor_serializer* serializer=NULL;
   const char *serializer_syntax_name="ntriples";
@@ -245,6 +294,10 @@ main(int argc, char *argv[])
         help=1;
         break;
 
+      case 'n':
+        dryrun=1;
+        break;
+
       case 'o':
         if(optarg) {
           if(!strcmp(optarg, "simple"))
@@ -313,6 +366,11 @@ main(int argc, char *argv[])
         fputs(rasqal_version_string, stdout);
         fputc('\n', stdout);
         exit(0);
+
+      case 'w':
+        walk_query=1;
+        break;
+
     }
     
   }
@@ -348,7 +406,7 @@ main(int argc, char *argv[])
       const char *help_label;
       if(raptor_serializers_enumerate(i, &help_name, &help_label, NULL, NULL))
         break;
-      printf("    %-12s            %s", help_name, help_label);
+      printf("    %-15s         %s", help_name, help_label);
       if(!i)
         puts(" (default)");
       else
@@ -360,7 +418,7 @@ main(int argc, char *argv[])
       const char *help_label;
       if(rasqal_languages_enumerate(i, &help_name, &help_label, NULL))
         break;
-      printf("    %-12s            %s", help_name, help_label);
+      printf("    %-15s         %s", help_name, help_label);
       if(!i)
         puts(" (default)");
       else
@@ -372,9 +430,11 @@ main(int argc, char *argv[])
     puts("\nAdditional options:");
     puts(HELP_TEXT("c", "count           ", "Count triples - no output"));
     puts(HELP_TEXT("d", "dump-query      ", "Dump the parsed query"));
+    puts(HELP_TEXT("n", "dryrun          ", "Prepare by do not run the query"));
     puts(HELP_TEXT("q", "quiet           ", "No extra information messages"));
     puts(HELP_TEXT("s", "source URI      ", "Query against RDF data at source URI"));
     puts(HELP_TEXT("v", "version         ", "Print the Rasqal version"));
+    puts(HELP_TEXT("d", "walk-query      ", "Walk the prepared query using the API"));
     puts("\nReport bugs to <redland-dev@lists.librdf.org>.");
     puts("Rasqal home page: http://librdf.org/rasqal/");
     exit(0);
@@ -496,10 +556,28 @@ main(int argc, char *argv[])
     goto tidy_query;
   }
 
+  if(walk_query) {
+    int gp_index=0;
+    
+    fprintf(stderr, "%s: walking query structure\n", program);
+
+    while(1) {
+      rasqal_graph_pattern* gp=rasqal_query_get_graph_pattern(rq, gp_index);
+      if(!gp)
+        break;
+
+      roqet_walk_graph_pattern(gp, gp_index, stdout, 2);
+      gp_index++;
+    }
+  }
+  
   if(dump_query) {
     fprintf(stderr, "Query:\n");
     rasqal_query_print(rq, stdout);
   }
+
+  if(dryrun)
+    goto tidy_query;
 
   if(!(results=rasqal_query_execute(rq))) {
     fprintf(stderr, "%s: Query execution failed\n", program);
