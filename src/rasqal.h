@@ -241,12 +241,13 @@ RASQAL_API void rasqal_expression_print_op(rasqal_expression* expression, FILE* 
 RASQAL_API void rasqal_expression_print(rasqal_expression* e, FILE* fh);
 RASQAL_API int rasqal_expression_is_variable(rasqal_expression* e);
 RASQAL_API rasqal_variable* rasqal_expression_as_variable(rasqal_expression* e);
+RASQAL_API rasqal_literal* rasqal_expression_evaluate(rasqal_expression* e);
 
 /* Literal class */
 RASQAL_API rasqal_literal* rasqal_new_literal(rasqal_literal_type type, int integer, float floating, char *string, raptor_uri *uri);
 RASQAL_API void rasqal_free_literal(rasqal_literal* l);
-RASQAL_API void rasqal_print_literal_type(rasqal_literal* literal, FILE* fh);
-RASQAL_API void rasqal_print_literal(rasqal_literal* literal, FILE* fh);
+RASQAL_API void rasqal_literal_print(rasqal_literal* literal, FILE* fh);
+RASQAL_API int rasqal_literal_as_boolean(rasqal_literal* literal);
 
 RASQAL_API rasqal_prefix* rasqal_new_prefix(const char *prefix, raptor_uri *uri);
 RASQAL_API void rasqal_free_prefix(rasqal_prefix* prefix);
