@@ -4,8 +4,8 @@
  *
  * $Id$
  *
- * Copyright (C) 2003 David Beckett - http://purl.org/net/dajobe/
- * Institute for Learning and Research Technology - http://www.ilrt.org/
+ * Copyright (C) 2003-2004 David Beckett - http://purl.org/net/dajobe/
+ * Institute for Learning and Research Technology - http://www.ilrt.bris.ac.uk/
  * University of Bristol - http://www.bristol.ac.uk/
  * 
  * This package is Free Software or Open Source available under the
@@ -29,11 +29,14 @@
 #endif
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
+#ifdef HAVE_STDLIB_H
+#include <stdlib.h>
+#endif
+#include <stdarg.h>
 
-#include <rasqal.h>
-#include <rasqal_internal.h>
+#include "rasqal.h"
+#include "rasqal_internal.h"
 
 
 
@@ -158,7 +161,8 @@ rasqal_query_get_source(rasqal_query* query, int idx) {
  * @base_uri: base URI of query string (optional)
  * 
  * Some query languages may require a base URI to resolve any
- * relative URIs in the query string.
+ * relative URIs in the query string.  If this is not given,
+ * the current directory int the filesystem is used as the base URI.
  *
  * Return value: non-0 on failure.
  **/
@@ -172,10 +176,9 @@ rasqal_query_prepare(rasqal_query *rdf_query,
 
   if(base_uri)
     base_uri=raptor_uri_copy(base_uri);
+  else
+    base_uri=raptor_new_uri(raptor_uri_filename_to_uri_string(""));
   
-  if(rdf_query->base_uri)
-    raptor_free_uri(rdf_query->base_uri);
-
   rdf_query->base_uri=base_uri;
   rdf_query->locator.uri=base_uri;
   rdf_query->locator.line= rdf_query->locator.column = 0;
@@ -246,12 +249,12 @@ int
 main(int argc, char *argv[]) 
 { 
   char *query_string=NULL;
-  int len;
   rasqal_query *rq;
   char *ql_name;
   char *ql_uri;
   int rc=0;
-
+  raptor_uri *base_uri=NULL;
+  
   program=argv[0];
   
   if(argc < 3 || argc > 4) {
@@ -263,15 +266,17 @@ main(int argc, char *argv[])
   ql_name=!strcmp(argv[1], "-") ? NULL : argv[1];
   ql_uri=!strcmp(argv[1], "-") ? NULL : argv[2];
 
+  rasqal_init();
+
   if(!argv[2] || !strcmp(argv[2], "-")) {
     query_string=(char*)calloc(RDQL_FILE_BUF_SIZE, 1);
     fread(query_string, RDQL_FILE_BUF_SIZE, 1, stdin);
   } else
     query_string=argv[3];
-  
+
   rq=rasqal_new_query(ql_name, ql_uri);
-  len=strlen(query_string);
-  if(rasqal_parse_query(rq, NULL, query_string, len)) {
+
+  if(rasqal_query_prepare(rq, query_string, base_uri)) {
     fprintf(stderr, "%s: Parsing query '%s' failed\n", program, query_string);
     rc=1;
   }
@@ -284,6 +289,10 @@ main(int argc, char *argv[])
   if(!strcmp(argv[2], "-")) {
     free(query_string);
   }
+
+  raptor_free_uri(base_uri);
+
+  rasqal_finish();
 
   return (rc);
 }
