@@ -265,6 +265,14 @@ rasqal_engine_assign_variables(rasqal_query* rq)
 {
   int i;
 
+  /* If 'SELECT *' was given, make the selects be a list of all variables */
+  if(rq->select_all) {
+    rq->selects=rasqal_new_sequence(NULL, (rasqal_print_handler*)rasqal_print_variable);
+    
+    for(i=0; i< rq->variables_count; i++)
+      rasqal_sequence_push(rq->selects, rasqal_sequence_get_at(rq->variables_sequence, i));
+  }
+  
   rq->select_variables_count=rasqal_sequence_size(rq->selects);
 
   rq->variables=(rasqal_variable**)RASQAL_MALLOC(varrary, sizeof(rasqal_variable*)*rq->variables_count);
@@ -461,7 +469,7 @@ rasqal_select_next(rasqal_query *q, int count) {
 
       librdf_stream_next(stream);
     }
-    printf("end of stream at depth %d: \n", count);
+    printf("end of stream at depth %d\n", count);
 
     if(bindings[0]) 
       rasqal_variable_set_value(bindings[0],  NULL);
