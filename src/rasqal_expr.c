@@ -269,9 +269,9 @@ rasqal_literal_print(rasqal_literal* l, FILE* fh)
       break;
     case RASQAL_LITERAL_BOOLEAN:
       if(l->value.integer)
-        fputs("boolean(true)", fh);
+        fputs("(true)", fh);
       else
-        fputs("boolean(false)", fh);
+        fputs("(false)", fh);
       break;
     case RASQAL_LITERAL_FLOATING:
       fprintf(fh, " %f", l->value.floating);
@@ -429,6 +429,23 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int *error)
       return !raptor_uri_equals(l1->value.uri,l2->value.uri);
 
     case RASQAL_LITERAL_STRING:
+      if(l1->language || l2->language) {
+        /* if either is null, the comparison fails */
+        if(!l1->language || !l2->language)
+          return 1;
+        if(strcmp(l1->language,l2->language))
+          return 1;
+      }
+
+      if(l1->datatype || l2->datatype) {
+        /* if either is null, the comparison fails */
+        if(!l1->datatype || !l2->datatype)
+          return 1;
+        if(!raptor_uri_equals(l1->datatype,l2->datatype))
+          return 1;
+      }
+      return strcmp(l1->value.string,l2->value.string);
+
     case RASQAL_LITERAL_BLANK:
     case RASQAL_LITERAL_PATTERN:
     case RASQAL_LITERAL_QNAME:
