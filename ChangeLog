@@ -1,5 +1,112 @@
 2004-09-30  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
+	* tests/rdql/testsuite/Makefile.am: count expected failures the old way
+
+	* tests/rdql/testsuite/check-rdql, tests/sparql/check-sparql:
+	Handle query parsing, execution errors
+
+	* tests/rdql/testsuite/Makefile.am:
+	Handle test failures with/without a regex library
+
+	* tests/sparql/simple/Makefile.am, tests/sparql/part1/Makefile.am:
+	echo messages for correct, works targets
+
+	* tests/sparql/check-sparql:
+	A few more fixes predicting optional results working.
+	Unique test works
+
+	* tests/rdql/testsuite/check-rdql, tests/sparql/check-sparql:
+	Handle missing vars or with undef value
+
+	* tests/sparql/part1/Makefile.am, tests/sparql/simple/Makefile.am:
+	Use check-sparql to run queries driven by manifests and check results
+	are correct.  Enable this in check-local
+
+	* tests/sparql/check-sparql: Read manifest
+
+	* tests/sparql/simple/Makefile.am: Remove expected test failures code.
+
+	* tests/sparql/Makefile.am: Added check-sparql
+
+	* tests/sparql/check-sparql: run sparql tests
+
+	* tests/rdql/testsuite/check-rdql: Relative to root is ../../..
+	use -d on roqet to dump query
+	Added -d flag here to run in debug mode
+
+	* roqet.c: Added -d/--dump-query to print query to stdout
+
+	* tests/sparql/Makefile.am: sparql tests
+
+	* Makefile.am: sparql parser/lexer tests
+
+	* brql_parser.y: sparql label
+
+	* Makefile.am: BRQL to SPARQL
+
+	* rasqal_general.c: brql to sparql
+
+	* tests/sparql/part1/Makefile.am, tests/sparql/simple/Makefile.am:
+	list files
+
+	* configure.ac: Added sparql subdirs
+
+	* tests/sparql/part1/Makefile.am,
+	tests/sparql/part1/dawg-data-01.n3,
+	tests/sparql/part1/dawg-query-001,
+	tests/sparql/part1/dawg-query-002,
+	tests/sparql/part1/dawg-query-003,
+	tests/sparql/part1/dawg-result-001.n3,
+	tests/sparql/part1/dawg-result-002.n3,
+	tests/sparql/part1/dawg-result-003.n3,
+	tests/sparql/part1/manifest.n3: sparql part1 tests
+
+	* tests/sparql/simple/Makefile.am,
+	tests/sparql/simple/data-01.n3, tests/sparql/simple/data-02.n3,
+	tests/sparql/simple/dawg-data-01.n3,
+	tests/sparql/simple/dawg-tp-01.rq,
+	tests/sparql/simple/dawg-tp-02.rq,
+	tests/sparql/simple/dawg-tp-03.rq,
+	tests/sparql/simple/dawg-tp-04.rq,
+	tests/sparql/simple/manifest.n3,
+	tests/sparql/simple/result-tp-01.n3,
+	tests/sparql/simple/result-tp-02.n3,
+	tests/sparql/simple/result-tp-03.n3,
+	tests/sparql/simple/result-tp-04.n3: sparql simple tests
+
+	* configure.ac, tests/Makefile.am: brql to sparql
+
+	* Makefile.am: Add rasqal_xml.c
+
+	* roqet.c: Use rasqal_query_results_print_as_xml
+
+	* rasqal.h: Added rasqal_query_results_print_as_xml
+
+	* rasqal_xml.c: Rasqal XML
+
+	* roqet.c (roqet_print_results_as_xml):
+	If xml, don't print datatype attribute.
+
+	* roqet.c (roqet_print_results_as_xml): no need to malloc/free
+	when escaped string is same len as original.
+
+	* roqet.c (roqet_print_results_as_xml): Print XML Literals raw.
+
+	* roqet.c: Added OUTPUT_FORMAT_XML experiment
+	(roqet_print_xml_attribute): Added, based on
+	librdf_serialize_rdfxml code.
+	(roqet_print_results_as_xml): Added, printing an entire result stream
+	to the given handle in XML.
+	(main): Added the xml output format.
+
+	* rasqal_literal.c, rasqal.h: Export rasqal_literal_print_type
+
+	* roqet.c: source_uri check
+
+	* brql_parser.y: brql to sparqal (keeping alias)
+
+	* roqet.c: terminology s/data/source/ -d/-s --data/--source
+
 	* rasqal_query.c (rasqal_query_add_source, rasqal_query_get_source):
 	 Handle NULL
 	query->sources and initialise it first time when adding.
@@ -170,8 +277,6 @@
 	* rasqal_raptor.c (rasqal_raptor_new_triples_source): Handle no sources
 
 	* roqet.c: Use raptor_free_memory on uri_string
-
-	* .cvsignore: ignore brql bits
 
 	* Makefile.am: clean up local_tests
 
@@ -2010,7 +2115,7 @@
 
 	* Makefile.am: Moved RDQL tests to tests dir
 
-	* tests/.cvsignore, tests/Makefile.am: Added tests dir
+	* tests/Makefile.am: Added tests dir
 
 	* example1.rdql, example2.rdql, example3.rdql, example4.rdql,
 	example5.rdql, example_at_1.rdql, example_at_2.rdql,
