@@ -1,4 +1,23 @@
-2004-11-29  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+2004-11-29  cmdjb  <cmdjb@hedwig.dajobe.org>
+
+	* rasqal_expr.c (rasqal_expression_evaluate): UMINUS, PLUS, MINUX,
+	STAR, SLASH are now done with floating literals.
+
+	* rasqal_internal.h: Export rasqal_literal_as_floating
+
+	* rasqal_literal.c (rasqal_new_floating_literal): Changed to take
+	a double arg
+	(rasqal_literal_as_floating): Export.
+	(rasqal_literal_compare): Improve promotion. Promote to float
+	where needed, especially assuming strings could be a float.
+
+	* sparql_lexer.l, rdql_lexer.l: Do sscanf here and call
+	rasqal_new_floating_literal with the double.
+
+	* rasqal.h: rasqal_new_floating_literal takes a double arg
+
+	* tests/sparql/check-sparql, tests/rdql/testsuite/check-rdql: Do
+	the diff backwards - from expected to actual
 
 	* tests/sparql/part1/dawg-result-002.n3,
 	tests/sparql/part1/dawg-result-003.n3,
