@@ -1,5 +1,20 @@
 2005-03-21  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
+	* rasqal_graph_pattern.c (rasqal_graph_pattern_init): Set origin
+	parts only if there is an origin.
+
+	* rasqal_engine.c (rasqal_query_graph_pattern_build_declared_in):
+	Set origin vars only if there is an origin.
+
+	* rasqal_query.c (rasqal_graph_pattern_set_origin): Set all
+	columns, not 1 less.
+
+	* rasqal_graph_pattern.c (rasqal_graph_pattern_init): Add origin
+	triple parts.
+
+	* rasqal_engine.c (rasqal_query_graph_pattern_build_declared_in):
+	Mark vars declared in origin.
+
 	* rdql_parser.y (Query): Add background data graphs as this rdql
 	does not allow origin queries.
 
