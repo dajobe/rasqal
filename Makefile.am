@@ -136,3 +136,9 @@ rasqal_expr_test: $(srcdir)/rasqal_expr.c librasqal.la
 
 strcasecmp_test: $(srcdir)/strcasecmp.c
 	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE $(srcdir)/strcasecmp.c
+
+# The default target insanely deletes *.tab.c - i.e.
+# rdql_parser.tab.c which was NOT built by configure
+# and should not be deleted when cleaning the distribution.
+distclean-compile:
+	exit 0
