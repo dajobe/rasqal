@@ -530,10 +530,19 @@ rasqal_literal_as_integer(rasqal_literal* l, int *error)
 
     case RASQAL_LITERAL_STRING:
       {
-        char *eptr=NULL;
-        int v=(int)strtol((const char*)l->string, &eptr, 10);
+        char *eptr;
+        double  d;
+        int v;
+
+        eptr=NULL;
+        v=(int)strtol((const char*)l->string, &eptr, 10);
         if((unsigned char*)eptr != l->string && *eptr=='\0')
           return v;
+
+        eptr=NULL;
+        d=strtod((const char*)l->string, &eptr);
+        if((unsigned char*)eptr != l->string && *eptr=='\0')
+          return (int)d;
       }
       *error=1;
       return 0;
