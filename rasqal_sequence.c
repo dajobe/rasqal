@@ -213,6 +213,29 @@ rasqal_sequence_unshift(rasqal_sequence* seq) {
 }
 
 
+/* print sequence */
+void
+rasqal_sequence_print(rasqal_sequence* seq, FILE* fh,
+                      rasqal_print_handler handler)
+{
+  int i;
+
+  if(!seq)
+    return;
+  
+  fputc('[', fh);
+  for(i=0; i<seq->size; i++) {
+    if(i)
+      fputs(", ", fh);
+    if(seq->sequence[i])
+      handler(seq->sequence[i], fh);
+    else
+      fputs("(empty)", fh);
+  }
+  fputc(']', fh);
+}
+
+
 #ifdef STANDALONE
 #include <stdio.h>
 
