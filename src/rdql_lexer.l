@@ -135,8 +135,8 @@ LANGUAGETOKEN [A-Za-z][-A-Z_a-z0-9]*
  * http://www.w3.org/TR/xml11/#NT-NameStartChar and 
  * http://www.w3.org/TR/xml11/#NT-NameChar 
  */
-PREFIX [A-Za-z\x80-\xff][-A-Z_a-z\x80-\xff0-9]*
-NAME [A-Za-z_\x80-\xff][-A-Z_a-z\x80-\xff0-9]*
+PREFIX [A-Za-z\\\x80-\xff][-A-Z_a-z\\\x80-\xff0-9]*
+NAME [A-Za-z_\\\x80-\xff][-A-Z_a-z\\\x80-\xff0-9]*
 QNAME {PREFIX}:{NAME}*
 /* The initial char conditions are to ensure this doesn't grab < or <= */
 QUOTEDURI \<[A-Za-z][^>]+\>
@@ -262,6 +262,8 @@ QUOTEDURI \<[A-Za-z][^>]+\>
           return NULL_LITERAL; }
 
 <*>{NAME}	{ rdql_parser_lval->name=rdql_copy_name(rq, (const unsigned char*)yytext, yyleng);
+		  if(!rdql_parser_lval->name)
+                    yyterminate();
                           BEGIN(INITIAL);
                           return IDENTIFIER; }
 <ID>.|\r|\n	{	BEGIN(INITIAL);
@@ -270,9 +272,13 @@ QUOTEDURI \<[A-Za-z][^>]+\>
 		}
 
 {QNAME}	{ rdql_parser_lval->name=rdql_copy_qname(rq, (const unsigned char*)yytext, yyleng);
+	  if(!rdql_parser_lval->name)
+            yyterminate();
                           return QNAME_LITERAL; }
 
 \<{QNAME}\>	{ rdql_parser_lval->name=rdql_copy_qname(rq, (const unsigned char*)yytext+1, yyleng-2);
+		  if(!rdql_parser_lval->name)
+	            yyterminate();
                   rdql_syntax_warning(rq, "Obsolete RDQL <qname> syntax found in \"%s\"", (const unsigned char*)yytext);
                   return QNAME_LITERAL; }
 
@@ -306,38 +312,40 @@ yywrap (yyscan_t yyscanner) {
 
 static unsigned char *
 rdql_copy_name(rasqal_query *rq, const unsigned char *text, size_t len) {
+  size_t dest_len=0;
   unsigned char *s;
-  if(!len)
-    len=strlen((const char*)text);
 
-  if(!raptor_xml_name_check(text, len, 11))
-    rdql_syntax_warning(rq, "Invalid RDQL name \"%s\"", text);
+  s=rasqal_escaped_name_to_utf8_string((unsigned char*)text, len,
+                                       &dest_len,
+                                       (raptor_simple_message_handler)rdql_syntax_error, rq);
+  if(!s)
+    return s;
 
-  s=(unsigned char *)malloc(len+1);
+  if(!raptor_xml_name_check(s, dest_len, 11))
+    rdql_syntax_warning(rq, "Invalid RDQL name \"%s\"", s);
 
-  strncpy((char*)s, (const char*)text, len);
-  s[len] = '\0';
   return s;
 }
 
 
 static unsigned char *
 rdql_copy_qname(rasqal_query *rq, const unsigned char *text, size_t len) {
-  unsigned char *s;
   unsigned char *p;
-  if(!len)
-    len=strlen((const char*)text);
+  size_t dest_len=0;
+  unsigned char *s;
+  
+  s=rasqal_escaped_name_to_utf8_string((unsigned char*)text, len,
+                                       &dest_len,
+                                       (raptor_simple_message_handler)rdql_syntax_error, rq);
+  if(!s)
+    return s;
 
-  p=(unsigned char*)strchr((const char*)text, ':');
-  if(!raptor_xml_name_check(text, p-text, 11))
-    rdql_syntax_warning(rq, "Invalid RDQL name \"%s\"", text);
-  if(!raptor_xml_name_check(p+1, len-((p+1)-text), 11))
+  p=(unsigned char*)strchr((const char*)s, ':');
+  if(!raptor_xml_name_check(s, p-s, 11))
+    rdql_syntax_warning(rq, "Invalid RDQL name \"%s\"", s);
+  if(!raptor_xml_name_check(p+1, dest_len-((p+1)-s), 11))
     rdql_syntax_warning(rq, "Invalid RDQL name \"%s\"", p+1);
 
-  s=(unsigned char *)malloc(len+1);
-
-  strncpy((char*)s, (const char*)text, len);
-  s[len] = '\0';
   return s;
 }
 
