@@ -61,6 +61,8 @@
 %option yylineno
 
 
+%x PATTERN
+
   /* definitions */
 
 %{
@@ -153,8 +155,73 @@ int rdql_lexer_lex_destroy(void);
 
 "EQ"|"eq"  { return STR_EQ; }
 "NE"|"NE"  { return STR_NE; }
-"=~"|"~~"|"LIKE"|"like"  { return STR_MATCH; }
-"!~"       { return STR_NMATCH; }
+
+"=~"|"~~"|"LIKE"|"like"  { BEGIN(PATTERN); return STR_MATCH; }
+"!~"       { BEGIN(PATTERN); return STR_NMATCH; }
+
+
+<PATTERN>[\ \t\v]+   {
+	;
+}
+
+<PATTERN>. { /* first non whitespace */
+             int delim=*yytext;
+             int ind=0;
+             size_t buffer_len=0;
+             unsigned char *buffer=NULL;
+
+             if(delim == 'm') {
+               /* Handle pattern literal m/foo/ */
+               delim=input();
+             }
+
+             while((c=input()) != delim && c) {
+               if(c== '\\') {
+                 c=input();
+                 if(!c)
+                   break;
+                 if(c!=delim)
+                   switch(c) {
+                     case '\\':
+                       break;
+                     case 'r':
+                       c='\r';
+                       break;
+                     case 't':
+                       c='\t';
+                       break;
+                     case 'n':
+                       c='\n';
+                       break;
+                     default:
+                       printf("Ignoring unknown pattern string escape \\%c", c);
+                       continue;
+                   }
+               }
+               if(ind+1 > buffer_len) {
+                 unsigned char *new_buffer;
+                 size_t new_buffer_len=buffer_len <<1;
+
+                 if(new_buffer_len<10)
+                   new_buffer_len=10;
+                 new_buffer=(unsigned char *)malloc(new_buffer_len+1);
+                 if(buffer_len) {
+                   strncpy(new_buffer, buffer, buffer_len);
+                   free(buffer);
+                 }
+                 buffer=new_buffer;
+                 buffer_len=new_buffer_len;
+               }
+               buffer[ind++]=c;
+               
+             }
+             buffer[ind]='\0';
+
+             rdql_parser_lval.string=buffer;
+             BEGIN(0);
+             return PATTERN_LITERAL;
+         };
+
 
 "|"      { return BIT_OR; }
 "^"     { return BIT_XOR; }
@@ -221,7 +288,7 @@ int rdql_lexer_lex_destroy(void);
                 }
 
 .         	{ if (*yytext == EOF)
-                    return END;
+                    return EOF;
                   printf("%s:%d: Syntax error at '%s'\n", filename,
                          lineno, yytext);
                   return ERROR;
@@ -440,6 +507,10 @@ rdql_token_print(int token)
       sprintf(buffer, "STRING_LITERAL(%s)", rdql_parser_lval.string);
       return buffer;
 
+    case PATTERN_LITERAL:
+      sprintf(buffer, "PATTERN_LITERAL(%s)", rdql_parser_lval.string);
+      return buffer;
+
     case BOOLEAN_LITERAL:
       return (rdql_parser_lval.integer ? "BOOLEAN_LITERAL(true)" : "BOOLEAN_LITERAL(false)");
 
@@ -453,9 +524,6 @@ rdql_token_print(int token)
     case IDENTIFIER:
       sprintf(buffer, "IDENTIFIER(%s)", rdql_parser_lval.string);
       return buffer;
-
-    case END:
-      return "END";
 
     case ERROR:
       return "ERROR";
@@ -474,7 +542,7 @@ rdql_token_print(int token)
 int
 main(int argc, char *argv[]) 
 {
-  int token=END;
+  int token=EOF;
 
   if(argc > 1) {
     filename=argv[1];
@@ -495,7 +563,7 @@ main(int argc, char *argv[])
 #else
     printf("token %d\n", token);
 #endif
-    if(!token || token == END || token == ERROR)
+    if(!token || token == EOF || token == ERROR)
       break;
   }
 
