@@ -301,7 +301,7 @@ rasqal_graph_pattern_add_constraint(rasqal_graph_pattern* gp,
 {
   if(!gp->constraints)
     gp->constraints=raptor_new_sequence(NULL, (raptor_sequence_print_handler*)rasqal_expression_print);
-  raptor_sequence_shift(gp->constraints, (void*)expr);
+  raptor_sequence_push(gp->constraints, (void*)expr);
 
   return 0;
 }
