@@ -1,5 +1,13 @@
 2004-10-25  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
+	* configure.ac: Use AC_TRY_LINK for regcomp test; no need to run it.
+
+	* roqet.c: Many casts for c++
+	(roqet_xml_print_xml_attribute, roqet_query_results_print_as_xml):
+	Use type raptor_simple_message_handler for error callbacks.
+
+	* rasqal_expr.c: Casts for C++
+
 	* rasqal_expr.c (rasqal_prefix_print): Handle NULL prefix
 
 	* configure.ac:
