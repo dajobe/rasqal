@@ -733,9 +733,10 @@ rasqal_engine_prepare(rasqal_query *query) {
 }
 
 
-static int rasqal_graph_pattern_order(const void *a, const void *b) {
-  rasqal_graph_pattern *gp_a=(rasqal_graph_pattern*)a;
-  rasqal_graph_pattern *gp_b=(rasqal_graph_pattern*)b;
+static int
+rasqal_graph_pattern_order(const void *a, const void *b) {
+  rasqal_graph_pattern *gp_a=*(rasqal_graph_pattern**)a;
+  rasqal_graph_pattern *gp_b=*(rasqal_graph_pattern**)b;
 
   return (gp_a->flags & RASQAL_PATTERN_FLAGS_OPTIONAL) -
          (gp_b->flags & RASQAL_PATTERN_FLAGS_OPTIONAL);
