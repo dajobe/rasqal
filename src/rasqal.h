@@ -354,6 +354,9 @@ typedef struct
   rasqal_triples_match *triples_match;
 
   void *context;
+
+  /* parts of the triple*/
+  rasqal_triple_parts parts;
 } rasqal_triple_meta;
 
 
