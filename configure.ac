@@ -206,34 +206,34 @@ AC_TRY_LINK([#ifdef HAVE_GETOPT_H
 
 
 
+# raptor is REQUIRED despite the checking here
 AC_CHECK_PROG(RAPTOR_CONFIG, raptor-config, raptor-config)
 AC_ARG_WITH(raptor, [  --with-raptor=SOURCE    Pick raptor source - system/internal (default auto)], with_raptor="$withval", with_raptor="auto")
 
-RAPTOR_VERSION=`$RAPTOR_CONFIG --version 2>/dev/null`
 RAPTOR_MIN_VERSION=1.3.0
+if test "X$RAPTOR_CONFIG" = X; then
+  with_raptor=internal
+else
+  RAPTOR_VERSION=`$RAPTOR_CONFIG --version 2>/dev/null`
 
-# FIXME - could use raptor-config --decimal-version at some point
-RAPTOR_VERSION_DEC=`echo $RAPTOR_VERSION | $AWK -F. '{printf("%d\n", 10000*$1 + 100*$2 + $3)};'`
-RAPTOR_MIN_VERSION_DEC=`echo $RAPTOR_MIN_VERSION | $AWK -F. '{printf("%d\n", 10000*$1 + 100*$2 + $3)};'`
+  # FIXME - could use raptor-config --version-decimal at some point
+  RAPTOR_VERSION_DEC=`echo $RAPTOR_VERSION | $AWK -F. '{printf("%d\n", 10000*$1 + 100*$2 + $3)};'`
+  RAPTOR_MIN_VERSION_DEC=`echo $RAPTOR_MIN_VERSION | $AWK -F. '{printf("%d\n", 10000*$1 + 100*$2 + $3)};'`
 
-if test "X$RAPTOR_VERSION" = X; then
-  AC_MSG_ERROR(Raptor RDF parser library missing - please install from http://www.redland.opensource.ac.uk/raptor/)
-fi
-
-
-if test "X$with_raptor" = Xauto; then
-  if test "X$RAPTOR_VERSION" -a $RAPTOR_VERSION_DEC -ge $RAPTOR_MIN_VERSION_DEC; then
-    with_raptor=system
-  else
-    AC_MSG_WARN(System raptor $RAPTOR_VERSION is too old - need $RAPTOR_MIN_VERSION)
-    with_raptor=internal
-  fi
-elif test $with_raptor = system; then
-  if test $RAPTOR_VERSION_DEC -lt $RAPTOR_MIN_VERSION_DEC; then
-    AC_MSG_WARN(System raptor $RAPTOR_VERSION is too old - need $RAPTOR_MIN_VERSION)
-    AC_MSG_WARN(Proceeding anyway since --with-raptor=system was given)
-    AC_MSG_WARN(To use the internal raptor use --with-raptor=internal)
-    AC_MSG_WARN(or omit any --with-raptor argument.)
+  if test "X$with_raptor" = Xauto; then
+    if test "X$RAPTOR_VERSION" -a $RAPTOR_VERSION_DEC -ge $RAPTOR_MIN_VERSION_DEC; then
+      with_raptor=system
+    else
+      AC_MSG_WARN(System raptor $RAPTOR_VERSION is too old - need $RAPTOR_MIN_VERSION)
+      with_raptor=internal
+    fi
+  elif test $with_raptor = system; then
+    if test $RAPTOR_VERSION_DEC -lt $RAPTOR_MIN_VERSION_DEC; then
+      AC_MSG_WARN(System raptor $RAPTOR_VERSION is too old - need $RAPTOR_MIN_VERSION)
+      AC_MSG_WARN(Proceeding anyway since --with-raptor=system was given)
+      AC_MSG_WARN(To use the internal raptor use --with-raptor=internal)
+      AC_MSG_WARN(or omit any --with-raptor argument.)
+    fi
   fi
 fi
 
