@@ -286,7 +286,7 @@ main(int argc, char *argv[])
   if(!uri_string) {
     fread(query_string, RDQL_FILE_BUF_SIZE, 1, stdin);
   } else if(filename) {
-    FILE *fh=fopen(filename, "r+");
+    FILE *fh=fopen(filename, "r");
     if(!fh) {
       fprintf(stderr, "%s: file '%s' open failed - %s", 
               program, filename, strerror(errno));
