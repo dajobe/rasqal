@@ -37,6 +37,13 @@
 
 #include <rdql_parser.tab.h>
 
+#include <raptor.h>
+
+#ifdef RASQAL_IN_REDLAND
+#include <librdf.h>
+#endif
+
+
 #define YY_DECL int rdql_lexer_lex (YYSTYPE *rdql_parser_lval, yyscan_t yyscanner)
 #include <rdql_lexer.h>
 #include <rdql_common.h>
@@ -678,9 +685,20 @@ main(int argc, char *argv[])
 {
   rasqal_query rq;
   unsigned char *filename=NULL;
+  unsigned char *uri_string;
   char query_string[RDQL_FILE_BUF_SIZE];
   FILE *fh;
   int rc;
+#ifdef RASQAL_IN_REDLAND
+  librdf_world *world;
+#endif
+
+#ifdef RASQAL_IN_REDLAND
+  world=librdf_new_world();
+  librdf_world_open(world);
+#else
+  raptor_init();
+#endif
   
 #if RASQAL_DEBUG > 2
   rdql_parser_debug=1;
@@ -707,7 +725,17 @@ main(int argc, char *argv[])
   
   memset(&rq, 0, sizeof(rasqal_query));
 
-  rc=rdql_parse(&rq, filename, query_string);
+  uri_string=raptor_uri_filename_to_uri_string(filename);
+
+  rc=rdql_parse(&rq, uri_string, query_string);
+
+  free(uri_string);
+
+#ifdef RASQAL_IN_REDLAND
+  librdf_free_world(world);
+#else
+  raptor_finish();
+#endif
 
   return rc;
 }

@@ -79,14 +79,20 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <ctype.h>
 #include <stdarg.h>
+#include <ctype.h>
 
 #include <rasqal.h>
 #include <rasqal_internal.h>
 
 #include <rdql_parser.tab.h>
 #include <rdql_common.h>
+
+#include <raptor.h>
+
+#ifdef RASQAL_IN_REDLAND
+#include <librdf.h>
+#endif
 
 
 static void skip_cpp_comment(rdql_parser *rp);
@@ -664,7 +670,17 @@ main(int argc, char *argv[])
   FILE *fh;
   YYSTYPE *lval;
   yyscan_t scanner;
+#ifdef RASQAL_IN_REDLAND
+  librdf_world *world;
+#endif
 
+#ifdef RASQAL_IN_REDLAND
+  world=librdf_new_world();
+  librdf_world_open(world);
+#else
+  raptor_init();
+#endif
+  
   if(argc > 1) {
     filename=argv[1];
     fh=fopen(filename, "r");
@@ -687,7 +703,7 @@ main(int argc, char *argv[])
   rdql_lexer_set_in(fh, scanner);
   rdql_lexer_set_extra(&rp, scanner);
 
-  rp.uri_string=filename; /* FIXME - need raptor */
+  rp.uri_string=raptor_uri_filename_to_uri_string(filename);
 
   while(1) {
     if(rdql_lexer_get_text(scanner) != NULL)
@@ -704,6 +720,15 @@ main(int argc, char *argv[])
   }
 
   yylex_destroy(scanner);
+
+  free((char*)rp.uri_string);
+
+#ifdef RASQAL_IN_REDLAND
+  librdf_free_world(world);
+#else
+  raptor_finish();
+#endif
+
 
   if(token==ERROR)
     return 1;
