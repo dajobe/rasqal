@@ -508,6 +508,124 @@ rasqal_basename(const char *name)
 }
 
 
+/**
+ * rasqal_escaped_name_to_utf8_string - get a UTF-8 and/or \u-escaped name as UTF-8
+ * @src: source name string
+ * @len: length of source name string
+ * @dest_lenp: pointer to store result string (or NULL)
+ * @error_handler: error handling function
+ * @error_data: data for error handle
+ *
+ * If dest_lenp is not NULL, the length of the resulting string is
+ * stored at the pointed size_t.
+ *
+ * Return value: new UTF-8 string or NULL on failure.
+ */
+unsigned char*
+rasqal_escaped_name_to_utf8_string(const unsigned char *src, size_t len,
+                                   size_t *dest_lenp,
+                                   raptor_simple_message_handler error_handler,
+                                   void *error_data) {
+  const unsigned char *p=src;
+  size_t ulen=0;
+  unsigned long unichar=0;
+  unsigned char *result;
+  unsigned char *dest;
+
+  result=(unsigned char*)RASQAL_MALLOC(cstring, len+1);
+  if(!result)
+    return NULL;
+
+  dest=result;
+
+  /* find end of string, fixing backslashed characters on the way */
+  while(len > 0) {
+    unsigned char c=*p;
+
+    if(c > 0x7f) {
+      /* just copy the UTF-8 bytes through */
+      size_t unichar_len=raptor_utf8_to_unicode_char(NULL, (const unsigned char*)p, len+1);
+      if(unichar_len < 0 || unichar_len > len) {
+        if(error_handler)
+          error_handler(error_data, "UTF-8 encoding error at character %d (0x%02X) found.", c, c);
+        /* UTF-8 encoding had an error or ended in the middle of a string */
+        RASQAL_FREE(cstring, result);
+        return NULL;
+      }
+      memcpy(dest, p, unichar_len);
+      dest+= unichar_len;
+      p += unichar_len;
+      len -= unichar_len;
+      continue;
+    }
+
+    p++; len--;
+    
+    if(c != '\\') {
+      /* not an escape - store and move on */
+      *dest++=c;
+      continue;
+    }
+
+    if(!len) {
+      RASQAL_FREE(cstring, result);
+      return NULL;
+    }
+
+    c = *p++; len--;
+
+    switch(c) {
+      case '"':
+      case '\\':
+        *dest++=c;
+        break;
+      case 'u':
+      case 'U':
+        ulen=(c == 'u') ? 4 : 8;
+        
+        if(len < ulen) {
+          if(error_handler)
+            error_handler(error_data, "%c over end of line", c);
+          RASQAL_FREE(cstring, result);
+          return 0;
+        }
+        
+        sscanf((const char*)p, ((ulen == 4) ? "%04lx" : "%08lx"), &unichar);
+
+        p+=ulen;
+        len-=ulen;
+        
+        if(unichar < 0 || unichar > 0x10ffff) {
+          if(error_handler)
+            error_handler(error_data, "Illegal Unicode character with code point #x%lX.", unichar);
+          break;
+        }
+          
+        dest+=raptor_unicode_char_to_utf8(unichar, dest);
+        break;
+
+      default:
+        if(error_handler)
+          error_handler(error_data, "Illegal string escape \\%c in \"%s\"", c, src);
+        RASQAL_FREE(cstring, result);
+        return 0;
+    }
+
+  } /* end while */
+
+  
+  /* terminate dest, can be shorter than source */
+  *dest='\0';
+
+  if(dest_lenp)
+    *dest_lenp=p-src;
+
+  return result;
+}
+
+
+
+
 #if defined (RASQAL_DEBUG) && defined(HAVE_DMALLOC_H) && defined(RASQAL_MEMORY_DEBUG_DMALLOC)
 
 #undef malloc
