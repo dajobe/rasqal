@@ -220,6 +220,9 @@ struct rasqal_query_s {
 
   /* (linked list of) query results made from this query */
   rasqal_query_results *results;
+
+  /* incrementing counter for declaring prefixes in order of appearance */
+  int prefix_depth;
 };
 
 
@@ -302,6 +305,7 @@ void rasqal_init_query_engine_sparql (void);
 /* rasqal_engine.c */
 int rasqal_query_order_triples(rasqal_query* query);
 int rasqal_engine_declare_prefix(rasqal_query *rq, rasqal_prefix *prefix);
+int rasqal_engine_undeclare_prefix(rasqal_query *rq, rasqal_prefix *prefix);
 int rasqal_engine_declare_prefixes(rasqal_query *rq);
 int rasqal_engine_expand_triple_qnames(rasqal_query* rq);
 int rasqal_engine_expand_constraints_qnames(rasqal_query* rq);
