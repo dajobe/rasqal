@@ -3,6 +3,8 @@
 # check-sparql - Run Rasqal against W3C DAWG SPARQL testsuite
 #
 # $Id$
+#
+# USAGE check-sparql [-d] [-s SRCDIR] [TEST]
 # 
 # Copyright (C) 2004, David Beckett http://purl.org/net/dajobe/
 # Institute for Learning and Research Technology http://www.ilrt.bristol.ac.uk/
@@ -36,11 +38,9 @@ use strict;
 use File::Basename;
 
 
-my $top_srcdir=$ENV{TOP_SRCDIR} || '../..';
-my $top_builddir=$ENV{TOP_BUILDDIR} || '../..';
+my $roqet="roqet";
+my $rapper="rapper";
 
-my $sparql_testsuite_dir=".";
-my $roqet=$top_builddir."/roqet";
 
 my $rdf='http://www.w3.org/1999/02/22-rdf-syntax-ns#';
 my $rs='http://www.w3.org/2001/sw/DataAccess/tests/result-set#';
@@ -55,13 +55,15 @@ my $qt='http://www.w3.org/2001/sw/DataAccess/tests/test-query#';
 
 my $program=basename $0;
 my $debug=0;
+my $srcdir='.';
 
-
-die "$0: roqet not found at $roqet\n" unless -r $roqet;
 
 
 sub run_test($$$$$) {
   my($name, $dir, $test_file, $data_file, $result_file)=@_;
+
+  warn "run_test($name, $dir, $test_file, $data_file, $result_file)\n"
+    if $debug;
 
   my $cmd;
 
@@ -111,7 +113,7 @@ sub run_test($$$$$) {
     return 1;
   }
   
-  $cmd="rapper -i turtle -q -o ntriples $result_file";
+  $cmd="$rapper -i turtle -q -o ntriples $result_file";
 
   my(@node_order);
   my(%nodes);
@@ -201,18 +203,42 @@ sub run_test($$$$$) {
 }
 
 
+
+
 # Argument handling
-if(@ARGV && $ARGV[0] eq '-d') {
-  $debug=1;
-  shift(@ARGV);
+my $usage=0;
+
+while(@ARGV && $ARGV[0] =~ /^-(.+)$/) {
+  local $_=shift(@ARGV);
+  if(/^-d/) {
+    $debug=1;
+  } elsif (/^-s$/) {
+    if(!@ARGV) {
+      $usage=1;
+      last;
+    } else {
+      $srcdir=shift @ARGV;
+    }
+  }
 }
-die "Usage; $program [-d] TEST\n" unless @ARGV<=1;
+
+$usage=1 if @ARGV >1;
+
+die "USAGE: $program [-d] [-s srcdir] [TEST]\n" if $usage;
 
 my $unique_test=$ARGV[0];
 
+$srcdir.="/" unless $srcdir =~ m%/$%;
+
+
+die "$program: $srcdir.$manifest_file not found\n"
+  unless -r $srcdir.$manifest_file;
+
+
 my(%triples);
 my $entries_node;
-open(MF, "rapper -q -i turtle -o ntriples $manifest_file|") or die "Cannot open pipe to $manifest_file - $!\n";
+open(MF, "rapper -q -i turtle -o ntriples $srcdir$manifest_file|") 
+  or die "Cannot open pipe to $srcdir$manifest_file - $!\n";
 while(<MF>) {
   chomp;
   s/\s+\.$//;
@@ -264,10 +290,8 @@ while($list_node) {
   print "Entry data_file=$data_file, $query_file=$query_file\n"
     if $debug;
 
-  my $dir=".";
-
   if (!$unique_test || ($unique_test && $name eq $unique_test)) {
-    push(@tests, [$name, $dir, $query_file, $data_file, $result_file]);
+    push(@tests, [$name, $srcdir, $query_file, $data_file, $result_file]);
     last if $unique_test;
   }
 
