@@ -198,9 +198,9 @@ struct rasqal_query_s {
   int select_variables_count;
 
   /* array of size variables_count
-   * pointing to rasqal_graph_pattern* where variable[i] is declared
+   * pointing to triple column where variable[i] is declared
    */
-  rasqal_graph_pattern **variables_declared_in;
+  int *variables_declared_in;
 
   /* holds one copy of all the variables - this is where they are freed */
   raptor_sequence* variables_sequence;
@@ -277,6 +277,9 @@ struct rasqal_query_s {
 
   /* Count of all optional matches for the current mandatory matches */
   int optional_graph_pattern_matches_count;
+
+  /* New variables bound from during the current 'next result' run */
+  int new_bindings_count;
 
   /* Max optional graph pattern allowed so far to stop backtracking
    * going over old graph patterns
