@@ -15,7 +15,6 @@
 <ul>
 <li>Engine: result constraints - like <code>LIMIT</code> and <code>OFFSET</code> in SQL (extension)</li>
 <li>Engine: multiple sources (extension)</li>
-<li>Engine: constructing of triples (like SeRQL <code>construct</code>)</li>
 <li>Engine: handling distinct results</li>
 <li>QL: SeRQL - needs many engine changes (construct, multiple sources, distinct, paths, anon variables, predicates) - <a href="http://www.openrdf.org/doc/users/ch05.html">The SeRQL query language</a> in Sesame user manual.</li>
 <li>QL: Squish - should be just syntax - <a href="http://swordfish.rdfweb.org/rdfquery/squish-bnf.html">Squish BNF</a></li> 
@@ -32,21 +31,20 @@ as defined in
 W3C Working Draft, 12 October 2004.</p>
 
 <p>Rasqal currently implements the functionality in common with RDQL
-plus optionals.  Unimplemented sections primarily include 4-7, parts
-of 8 and 9-11 but are not limited to those sections.  The detail of
-the unimplemented parts is as follows:</p>
+plus optionals, constructed triples, boolean results and some
+built-in functions.  Unimplemented sections primarily include 4-7,
+parts of 8 and 9-11 but are not limited to those sections.  The
+detail of the unimplemented parts from the above SPARQL
+working draft are as follows:</p>
 <ul>
 <li><a href="http://www.w3.org/TR/2004/WD-rdf-sparql-query-20041012/#OptionalMultiple">4.2 Multiple Optional Blocks</a></li>
 <li><a href="http://www.w3.org/TR/2004/WD-rdf-sparql-query-20041012/#NestedPatterns">5 Nested Patterns</a> (<code>( (</code> ... <code>) )</code>)</li>
 <li><a href="http://www.w3.org/TR/2004/WD-rdf-sparql-query-20041012/#alternatives">6 More Pattern Matching &#x2013; Alternatives</a> (skeleton section)</li>
-<li><a href="http://www.w3.org/TR/2004/WD-rdf-sparql-query-20041012/#unsaid">7 More Pattern Matching &#x2013; Unsaid</a> (<code>UNSAID</code> skeleton section)</li>
 <li><a href="http://www.w3.org/TR/2004/WD-rdf-sparql-query-20041012/#choosing">8 Choosing What to Query</a> (<code>FROM</code> with multiple URIs)</li>
 <li><a href="http://www.w3.org/TR/2004/WD-rdf-sparql-query-20041012/#source">9 Querying the Origin of Statements</a> (Using <code>SOURCE</code> in queries with URIs or variable names)</li>
 <li><a href="http://www.w3.org/TR/2004/WD-rdf-sparql-query-20041012/#QueryForms">11 Query Forms</a></li>
 <li><a href="http://www.w3.org/TR/2004/WD-rdf-sparql-query-20041012/#select">11.1 Choosing which Variables to Return</a> (<code>SELECT DISTINCT</code>, <code>SELECT LIMIT</code>)</li>
-<li><a href="http://www.w3.org/TR/2004/WD-rdf-sparql-query-20041012/#construct">11.2 Constructing an Output Graph</a> (<code>CONSTRUCT</code> with triples and <code>CONSTRUCT *</code>)</li>
 <li><a href="http://www.w3.org/TR/2004/WD-rdf-sparql-query-20041012/#describe">11.3 Descriptions of Resources</a> (<code>DESCRIBE</code> with variables, <code>DESCRIBE</code> with URIs)</li>
-<li><a href="http://www.w3.org/TR/2004/WD-rdf-sparql-query-20041012/#ask">11.4 Asking "yes or no" questions</a> (<code>ASK</code>)</li>
 <li><a href="http://www.w3.org/TR/2004/WD-rdf-sparql-query-20041012/#extendedtests">12 Testing Values</a></li>
 <li><a href="http://www.w3.org/TR/2004/WD-rdf-sparql-query-20041012/#extendedtests">12.1 Standard Operations</a> (skeleton section)</li>
 <li><a href="http://www.w3.org/TR/2004/WD-rdf-sparql-query-20041012/#extendedtests">12.2 Extending Value Testing</a> (<code>&amp;qname(...)</code> in constraints)
@@ -84,6 +82,10 @@ result solution.</li>
 release version where appropriate.</p>
 
 <ul>
+<li>SPARQL: <code>BOUND</code> from <a href="http://www.w3.org/TR/2004/WD-rdf-sparql-query-20041012/#unsaid">7 More Pattern Matching &#x2013; Unsaid</a> (<code>UNSAID</code> is no longer in the language) (0.9.6)</li>
+<li>SPARQL: <a href="http://www.w3.org/TR/2004/WD-rdf-sparql-query-20041012/#ask">11.4 Asking "yes or no" questions</a> (<code>ASK</code>) (0.9.6)</li>
+<li>SPARQL: <a href="http://www.w3.org/TR/2004/WD-rdf-sparql-query-20041012/#construct">11.2 Constructing an Output Graph</a> (<code>CONSTRUCT</code> with triples and <code>CONSTRUCT *</code>) (0.9.6)</li>
+<li>Engine: constructing of RDF graph results as a sequence of triples (0.9.6)</li>
 <li>RDQL: Allowed UTF-8 in QNames; enabling RDQL testsuite tests S-03, S-04 and S-05 to pass (0.9.6)</li>
 <li>Engine: generating result sets in XML vocabulary (0.9.5)</li>
 <li>SPARQL <a href="http://www.w3.org/TR/2004/WD-rdf-sparql-query-20041012/#optionals">Optional Values</a> (0.9.5)</li>

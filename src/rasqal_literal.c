@@ -880,8 +880,8 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
  * @l1: &rasqal_literal literal
  * @l2: &rasqal_literal data literal
  * 
- * If the data literal's value is a boolean, it will match
- * the string "true" or "false" in the first literal.
+ * If the l2 data literal value is a boolean, it will match
+ * the string "true" or "false" in the first literal l1.
  *
  * Return value: non-0 if equal
  **/

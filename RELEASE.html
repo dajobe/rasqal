@@ -45,15 +45,32 @@ to get a boolean query result value.
 
 <h3>Query Engine Changes</h3>
 
-<p>constructs an RDF graph result as a sequence of triples.  This
+<p>Constructs an RDF graph result as a sequence of triples.  This
 enables the SPARQL <code>CONSTRUCT</code> form to work.
 </p>
 
-<p>Added a function expression - rasqal_op enum value
+<p>Can return a boolean result indicating that there were variable
+binding results, but not returning them.  This enables the SPARQL
+<code>ASK</code> form to work.
+</p>
+
+<p>Added a new function expression - rasqal_op enum value
 <code>RASQAL_EXPR_FUNCTION</code>, added new <code>name</code> and
 <code>args</code> fields to the <code>rasqal_expression</code>
 structure and added <code>rasqal_new_function_expression</code> to
 construct this expression.
+</p>
+
+<p>Added new 1-argument expressions operating on RDF literals:
+<code>RASQAL_EXPR_LANG</code> returning the language string of an RDF literal,
+<code>RASQAL_EXPR_DATATYPE</code> returning the datatype URI of an RDF literal.
+</p>
+
+<p>Added new 1-argument testing expressions returning booleans:
+<code>RASQAL_EXPR_BOUND</code> true if the variable argument is bound to a value,
+<code>RASQAL_EXPR_ISURI</code> true if the argument is a URI,
+<code>RASQAL_EXPR_ISBLANK</code> true if the argument is a blank node and
+<code>RASQAL_EXPR_ISLITERAL</code> true if the argument is an RDF literal.
 </p>
 
 <p>Fixed a problem in optional results returning extra results
@@ -69,6 +86,22 @@ QNames.
 
 <p>Now supports <code>CONSTRUCT</code> and <code>ASK</code>
 queries using the updated query engine features.</p>
+
+<p><code>OPTIONAL</code> can now be used wherever <code>[</code> ...
+<code>]</code> could be used (parser bug fix).</p>
+
+<p>Now supports the SPARQL built-in functions
+<code>LANG</code> returning the language string of an RDF literal,
+<code>DATATYPE</code> returning the datatype URI of an RDF literal,
+<code>BOUND</code> testing if a variable is bound,
+<code>ISURI</code> testing if an expression is a URI,
+<code>ISBLANK</code> testing if an expression is a blank node and
+<code>ISLITERAL</code> testing if an expression is an RDF literal.
+</p>
+o
+
+<p>Now supports SPARQL <code>BASE</code> directive for setting
+the base URI of a query.</p>
 
 
 <h3>RDQL Query Language Changes</h3>
