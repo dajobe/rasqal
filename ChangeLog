@@ -1,5 +1,7 @@
 2005-02-24  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
+	* roqet.1: roqet is a query util
+
 	* roqet.c (roqet_graph_pattern_walk): Renamed from
 	roqet_walk_graph_pattern
 
