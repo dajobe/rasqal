@@ -55,7 +55,7 @@ fix-groff-xhtml \
 $(man_MANS) \
 rasqal.pc.in
 
-SUBDIRS=tests rdql-testsuite
+SUBDIRS=tests rdql-testsuite docs
 
 TESTS=rasqal_expr_test strcasecmp_test
 
