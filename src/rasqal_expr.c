@@ -503,6 +503,25 @@ rasqal_expression_as_integer(rasqal_expression* e) {
 }
 
 
+rasqal_variable*
+rasqal_expression_as_variable(rasqal_expression* e) {
+  switch(e->op) {
+    case RASQAL_EXPR_EXPR:
+      return rasqal_expression_as_variable(e->arg1);
+      break;
+
+    case RASQAL_EXPR_VARIABLE:
+      return e->variable;
+      break;
+
+    default:
+      break;
+
+  }
+
+  return NULL;
+}
+
 int
 rasqal_expression_equals(rasqal_expression* e1, rasqal_expression* e2) {
   if(e1->op == RASQAL_EXPR_EXPR)
@@ -523,6 +542,12 @@ rasqal_expression_equals(rasqal_expression* e1, rasqal_expression* e2) {
     default:
       abort();
   }
+}
+
+
+int
+rasqal_expression_is_variable(rasqal_expression* e) {
+  return (e->op == RASQAL_EXPR_VARIABLE);
 }
 
 
