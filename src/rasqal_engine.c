@@ -327,7 +327,8 @@ rasqal_new_triples_source(rasqal_query *query, raptor_uri* uri) {
     return NULL;
   }
   rts->query=query;
-  rts->uri=raptor_uri_copy(uri);
+  if(rts->uri)
+    rts->uri=raptor_uri_copy(uri);
 
   if(Triples_Source_Factory.new_triples_source(query, 
                                                Triples_Source_Factory.user_data,
