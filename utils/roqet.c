@@ -90,7 +90,7 @@ rdql_parser_error(const char *msg)
 #endif
 
 
-#define GETOPT_STRING "cdho:i:qs:v"
+#define GETOPT_STRING "cdf:ho:i:qs:v"
 
 #ifdef HAVE_GETOPT_LONG
 static struct option long_options[] =
@@ -98,6 +98,7 @@ static struct option long_options[] =
   /* name, has_arg, flag, val */
   {"count", 0, 0, 'c'},
   {"dump-query", 0, 0, 'd'},
+  {"format", 1, 0, 'f'},
   {"help", 0, 0, 'h'},
   {"output", 1, 0, 'o'},
   {"input", 1, 0, 'i'},
@@ -216,6 +217,30 @@ main(int argc, char *argv[])
         dump_query=1;
         break;
 
+      case 'f':
+        if(optarg) {
+          if(raptor_serializer_syntax_name_check(optarg))
+            serializer_syntax_name=optarg;
+          else {
+            int i;
+            
+            fprintf(stderr, "%s: invalid argument `%s' for `" HELP_ARG(o, output) "'\n",
+                    program, optarg);
+            fprintf(stderr, "Valid arguments are:\n");
+            for(i=0; 1; i++) {
+              const char *help_name;
+              const char *help_label;
+              if(raptor_serializers_enumerate(i, &help_name, &help_label, NULL, NULL))
+                break;
+              printf("  %-12s for %s\n", help_name, help_label);
+            }
+            usage=1;
+            break;
+            
+          }
+        }
+        break;
+
       case 'h':
         help=1;
         break;
@@ -317,6 +342,18 @@ main(int argc, char *argv[])
     puts("Run an RDF query giving variable bindings or RDF triples.");
     puts("\nMain options:");
     puts(HELP_TEXT("h", "help            ", "Print this help, then exit"));
+    puts(HELP_TEXT("f FORMAT", "format FORMAT", "Set triples output format to one of:"));
+    for(i=0; 1; i++) {
+      const char *help_name;
+      const char *help_label;
+      if(raptor_serializers_enumerate(i, &help_name, &help_label, NULL, NULL))
+        break;
+      printf("    %-12s            %s", help_name, help_label);
+      if(!i)
+        puts(" (default)");
+      else
+        putchar('\n');
+    }
     puts(HELP_TEXT("i", "input LANGUAGE  ", "Set query language name to one of:"));
     for(i=0; 1; i++) {
       const char *help_name;
