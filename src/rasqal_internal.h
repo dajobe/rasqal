@@ -96,13 +96,14 @@ void rasqal_system_free(void *ptr);
 typedef struct rasqal_query_engine_factory_s rasqal_query_engine_factory;
 
 
-typedef struct {
+struct rasqal_triples_match_s {
   void *user_data;
-  librdf_statement* (*get_match)(void *user_data);
-  void (*next_match)(void *user_data);
-  int (*is_end)(void *user_data);
-  void (*finish)(void *user_data);
-} rasqal_triples_match;
+  librdf_statement* (*get_match)(struct rasqal_triples_match_s*, void *user_data);
+  void (*next_match)(struct rasqal_triples_match_s*, void *user_data);
+  int (*is_end)(struct rasqal_triples_match_s*, void *user_data);
+  void (*finish)(struct rasqal_triples_match_s*, void *user_data);
+};
+typedef struct rasqal_triples_match_s rasqal_triples_match;
 
 
 typedef struct 
@@ -116,7 +117,6 @@ typedef struct
   rasqal_variable* bindings[3];
 
   rasqal_triples_match *triples_match;
-  void *user_data; /* for triples_match */
 } rasqal_triple_meta;
 
 
