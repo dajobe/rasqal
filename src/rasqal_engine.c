@@ -592,11 +592,44 @@ rasqal_engine_run(rasqal_query *query) {
     }
     
     if(column == (triples_size-1)) {
-      /* Done all conjunctions, so print out the variable bindings */ 
+      /* Done all conjunctions */ 
+      int match=1;
+      
+      /* check any constraints */
+      if(query->constraints) {
+        int c;
+        for(c=0; c< rasqal_sequence_size(query->constraints); c++) {
+          rasqal_expression* expr;
+          rasqal_literal* result;
+          
+          expr=(rasqal_expression*)rasqal_sequence_get_at(query->constraints, c);
+          fprintf(stderr, "constraint %d expression: ", c);
+          rasqal_expression_print(expr, stderr);
+          fputc('\n', stderr);
 
-      fprintf(stdout, "result: ");
-      rasqal_sequence_print(query->selects, stdout);
-      fputc('\n', stdout);
+          result=rasqal_expression_evaluate(expr);
+          if(result) {
+            int bresult;
+            
+            fprintf(stderr, "constraint %d expression result: \n", c);
+            rasqal_literal_print(result, stderr);
+            fputc('\n', stderr);
+            bresult=rasqal_literal_as_boolean(result);
+            fprintf(stderr, "constraint %d boolean expression result: %d\n", c, bresult);
+            rasqal_free_literal(result);
+            match=bresult;
+          } else
+            fprintf(stderr, "constraint %d expression failed with error\n", c);
+          
+        }
+      }
+
+      if(match) {
+        /* matched ok, so print out the variable bindings */
+        fprintf(stdout, "result: ");
+        rasqal_sequence_print(query->selects, stdout);
+        fputc('\n', stdout);
+      }
 
       /* exact match, so column must have ended */
       if(m->is_exact)
