@@ -188,6 +188,9 @@ rasqal_engine_declare_prefixes(rasqal_query *rq)
 {
   int i;
   
+  if(!rq->prefixes)
+    return 0;
+  
   for(i=0; i< rasqal_sequence_size(rq->prefixes); i++) {
     rasqal_prefix* p=rasqal_sequence_get_at(rq->prefixes, i);
 
