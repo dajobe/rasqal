@@ -297,7 +297,8 @@ rasqal_query_execute(rasqal_query *rdf_query)
                                  
   rdf_query->world=world;
   rdf_query->model=model;
-  rasqal_select_next(rdf_query, 0);
+
+  rasqal_engine_run(rdf_query);
 
   if(rdf_query->factory->execute)
     rc=rdf_query->factory->execute(rdf_query);
