@@ -61,24 +61,20 @@ void rasqal_redland_init(librdf_world *world);
 
 static librdf_node*
 rasqal_literal_to_redland_node(librdf_world *world, rasqal_literal* l) {
-  if(l->type == RASQAL_LITERAL_URI) {
-    char *uri_string=raptor_uri_as_string(l->value.uri);
-    return librdf_new_node_from_uri_string(world, uri_string);
-  } else if (l->type == RASQAL_LITERAL_STRING ||
-             l->type == RASQAL_LITERAL_INTEGER ||
-             l->type == RASQAL_LITERAL_FLOATING)
+  if(l->type == RASQAL_LITERAL_URI)
+    return librdf_new_node_from_uri(world, (librdf_uri*)l->value.uri);
+  else if (l->type == RASQAL_LITERAL_STRING ||
+           l->type == RASQAL_LITERAL_INTEGER ||
+           l->type == RASQAL_LITERAL_FLOATING ||
+           l->type == RASQAL_LITERAL_BOOLEAN)
     return librdf_new_node_from_typed_literal(world, l->string, 
                                               l->language, 
                                               (librdf_uri*)l->datatype);
   else if (l->type == RASQAL_LITERAL_BLANK)
     return librdf_new_node_from_blank_identifier(world, l->string);
   else {
-    char *string=rasqal_literal_as_string(l);
-    if(!string) {
-      LIBRDF_DEBUG2("Could not convert literal type %d to string", l->type);
-      abort();
-    }
-    return librdf_new_node_from_literal(world, string, NULL, 0);
+    LIBRDF_DEBUG2("Could not convert literal type %d to librdf_node", l->type);
+    abort();
   }
 
   return NULL;
