@@ -248,7 +248,7 @@ typedef struct {
 static int
 rasqal_redland_bind_match(struct rasqal_triples_match_s* rtm,
                           void *user_data,
-                          rasqal_variable* bindings[3]) 
+                          rasqal_variable* bindings[4]) 
 {
   rasqal_redland_triples_match_context* rtmc=(rasqal_redland_triples_match_context*)rtm->user_data;
   rasqal_literal* l;
