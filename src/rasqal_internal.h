@@ -74,7 +74,16 @@ const char * rdql_token_print(int token);
 #define YYERROR_VERBOSE
 #endif
 
-int rdql_lexer_lex(void);
+
+struct rasqal_query_s {
+  rasqal_sequence *selects; /* sequence of rasqal_variable* */
+  rasqal_sequence *sources; /* sequence of char* */
+  rasqal_sequence *triples;
+  rasqal_sequence *constraints;
+  rasqal_sequence *prefixes;
+};
+
+
 int rdql_parser_lex(void);
 
 /* end of RASQAL_INTERNAL */

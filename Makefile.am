@@ -38,7 +38,6 @@ example5.rdql example_at_1.rdql example_at_2.rdql example_at_3.rdql	\
 example_at_4.rdql example_at_5.rdql example_at_6.rdql			\
 example_at_7.rdql
 
-
 EXTRA_DIST=ChangeLog \
 README      NEWS      LICENSE.txt \
 README.html NEWS.html LICENSE.html INSTALL.html \
@@ -50,6 +49,8 @@ rasqal.spec.in \
 $(man_MANS) \
 $(RDQL_EXAMPLES) \
 rasqal.pc.in
+
+TESTS=rasqal_sequence_test
 
 CLEANFILES=$(TESTS) rdql_lexer_test rdql_parser_test
 MAINTAINERCLEANFILES=rdql_lexer.c rdql_lexer.h \
@@ -115,11 +116,18 @@ rdql_parser.lo: rdql_parser.tab.c
 rdql_lexer_test: $(srcdir)/rdql_lexer.c $(srcdir)/rdql_parser.tab.c
 	$(LIBTOOL) --mode=link $(CCLD) $(AM_CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE -static $(srcdir)/rdql_lexer.c $(LIBS) -o $@
 
-rdql_parser_test: $(srcdir)/rdql_lexer.lo $(srcdir)/rdql_parser.tab.c 
-	$(LIBTOOL) --mode=link $(CCLD) $(AM_CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE -static $(srcdir)/rdql_parser.tab.c rdql_lexer.lo -o $@
+rdql_parser_test: $(srcdir)/rdql_parser.tab.c rdql_lexer.lo rasqal_sequence.lo rasqal_general.lo
+	$(LIBTOOL) --mode=link $(CCLD) $(AM_CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE -static $(srcdir)/rdql_parser.tab.c rdql_lexer.lo rasqal_sequence.lo rasqal_general.lo -o $@
+
+rasqal_query_test: $(srcdir)/rasqal_query.c librasqal.la
+	$(LIBTOOL) --mode=link $(CCLD) $(AM_CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE -static $(srcdir)/rasqal_query.c librasqal.la -o $@
+
+rasqal_sequence_test: $(srcdir)/rasqal_sequence.c
+	$(LIBTOOL) --mode=link $(CCLD) $(AM_CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE -static $(srcdir)/rasqal_sequence.c -o $@
 
 
-check-local: check-rdql-lexer check-rdql-parser
+
+check-local: check-rdql-lexer check-rdql-parser check-rdql-queries
 
 check-rdql-lexer: rdql_lexer_test
 	@result=0; \
@@ -151,3 +159,5 @@ check-rdql-parser: rdql_parser_test
 	done; \
 	exit $$result
 
+check-rdql-queries: rasqal_query_test
+	$(top_builddir)/rasqal_query_test rdql - 'SELECT ?x WHERE  (<http://somewhere/res1>, <http://somewhere/pred1>, ?x)'
