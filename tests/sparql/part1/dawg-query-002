@@ -4,5 +4,5 @@ PREFIX foaf: <http://xmlns.com/foaf/0.1/>
 SELECT ?name ?name2
 WHERE
     (?person foaf:name   ?name)
-  [ (?person foaf:knowns ?p2)
+  [ (?person foaf:knows ?p2)
     (?p2     foaf:name   ?name2) ]

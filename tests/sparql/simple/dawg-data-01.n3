@@ -6,13 +6,13 @@ _:alice
     rdf:type        foaf:Person ;
     foaf:name       "Alice" ;
     foaf:mbox       <mailto:alice@work> ;
-    foaf:knowns     _:bob ;
+    foaf:knows      _:bob ;
     .
 
 _:bob
     rdf:type        foaf:Person ;
     foaf:name       "Bob" ; 
-    foaf:knowns     _:alice ;
+    foaf:knows      _:alice ;
     foaf:mbox       <mailto:bob@work> ;
     foaf:mbox       <mailto:bob@home> ;
     .
