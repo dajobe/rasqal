@@ -653,3 +653,14 @@ rasqal_query_next_result(rasqal_query *query) {
   return query->finished;
 }
 
+
+void*
+rasqal_query_get_user_data(rasqal_query *query) {
+  return query->user_data;
+}
+
+
+void
+rasqal_query_set_user_data(rasqal_query *query, void *user_data) {
+  query->user_data=user_data;
+}
