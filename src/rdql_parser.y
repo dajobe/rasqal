@@ -563,7 +563,11 @@ Literal : URI_LITERAL
 | NULL_LITERAL
 {
   $$=rasqal_new_literal(RASQAL_LITERAL_NULL, $1, 0, NULL, NULL);
+} | QNAME_LITERAL
+{
+  $$=rasqal_new_literal(RASQAL_LITERAL_QNAME, 0, 0.0, $1, NULL);
 }
+
 ;
 
 URIList : URI_LITERAL COMMA URIList
