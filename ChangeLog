@@ -1,4 +1,36 @@
+2005-03-01  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* sparql_parser.y (FromClauseOpt): Add either a NAMED or
+	BACKGROUND rasqal_data_graph with FROM and WITH respectively.
+
+	* rasqal_internal.h: rasqal_query gains data_graphs field, note
+	sources is DEPRECATED.
+
+	* rasqal_query.c (rasqal_new_query, rasqal_free_query):
+	Added data_graphs field init, tidy.
+	(rasqal_query_add_data_graph, rasqal_query_get_data_graph_sequence,
+	rasqal_query_get_data_graph): Added for rasqal_data_graph access
+	(rasqal_query_add_source, rasqal_query_get_source_sequence,
+	rasqal_query_get_source): Added deprecated docs
+
+	* rasqal_expr.c (rasqal_query_add_source,
+	rasqal_query_get_source_sequence and rasqal_query_get_source):
+	Added deprecated notices.
+	(rasqal_new_data_graph, rasqal_free_data_graph,
+	rasqal_data_graph_print): Added for rasqal_data_graph class.
+
+	* rasqal.h: Added rasqal_data_graph and rasqal_data_graph_flags.
+	Deprecated rasqal_query_add_source, rasqal_query_get_source_sequence and
+	rasqal_query_get_source
+	Added prototypes for rasqal_query_add_data_graph,
+	rasqal_query_get_data_graph_sequence, rasqal_query_get_data_graph,
+	rasqal_new_data_graph, rasqal_free_data_graph,
+	rasqal_data_graph_print
+
 2005-02-27  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* win32_rasqal_config.h, configure.ac, NEWS.html, ChangeLog:
+	Bumped version to 0.9.8
 
 	* configure.ac, win32_rasqal_config.h: Bumped version to 0.9.8
 
