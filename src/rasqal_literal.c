@@ -62,7 +62,7 @@
 rasqal_literal*
 rasqal_new_integer_literal(rasqal_literal_type type, int integer)
 {
-  rasqal_literal* l=(rasqal_literal*)calloc(sizeof(rasqal_literal), 1);
+  rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, sizeof(rasqal_literal), 1);
 
   l->type=type;
   l->value.integer=integer;
@@ -87,7 +87,7 @@ rasqal_new_integer_literal(rasqal_literal_type type, int integer)
 rasqal_literal*
 rasqal_new_floating_literal(const char *string)
 {
-  rasqal_literal* l=(rasqal_literal*)calloc(sizeof(rasqal_literal), 1);
+  rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, sizeof(rasqal_literal), 1);
   double f;
 
   sscanf(string, "%lf", &f);
@@ -113,7 +113,7 @@ rasqal_new_floating_literal(const char *string)
 rasqal_literal*
 rasqal_new_uri_literal(raptor_uri *uri)
 {
-  rasqal_literal* l=(rasqal_literal*)calloc(sizeof(rasqal_literal), 1);
+  rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, sizeof(rasqal_literal), 1);
 
   l->type=RASQAL_LITERAL_URI;
   l->value.uri=uri;
@@ -136,7 +136,7 @@ rasqal_new_uri_literal(raptor_uri *uri)
 rasqal_literal*
 rasqal_new_pattern_literal(char *pattern, char *flags)
 {
-  rasqal_literal* l=(rasqal_literal*)calloc(sizeof(rasqal_literal), 1);
+  rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, sizeof(rasqal_literal), 1);
 
   l->type=RASQAL_LITERAL_PATTERN;
   l->string=pattern;
@@ -212,7 +212,7 @@ rasqal_literal*
 rasqal_new_string_literal(char *string, char *language,
                           raptor_uri *datatype, char *datatype_qname)
 {
-  rasqal_literal* l=(rasqal_literal*)calloc(sizeof(rasqal_literal), 1);
+  rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, sizeof(rasqal_literal), 1);
 
   if(datatype && language) {
     RASQAL_FREE(cstring, language);
@@ -244,7 +244,7 @@ rasqal_new_string_literal(char *string, char *language,
 rasqal_literal*
 rasqal_new_simple_literal(rasqal_literal_type type, char *string)
 {
-  rasqal_literal* l=(rasqal_literal*)calloc(sizeof(rasqal_literal), 1);
+  rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, sizeof(rasqal_literal), 1);
 
   l->type=type;
   l->string=string;
@@ -262,7 +262,7 @@ rasqal_new_simple_literal(rasqal_literal_type type, char *string)
 rasqal_literal*
 rasqal_new_boolean_literal(int value)
 {
-  rasqal_literal* l=(rasqal_literal*)calloc(sizeof(rasqal_literal), 1);
+  rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, sizeof(rasqal_literal), 1);
 
   l->type=RASQAL_LITERAL_BOOLEAN;
   l->value.integer=value;
@@ -283,7 +283,7 @@ rasqal_new_boolean_literal(int value)
 rasqal_literal*
 rasqal_new_variable_literal(rasqal_variable *variable)
 {
-  rasqal_literal* l=(rasqal_literal*)calloc(sizeof(rasqal_literal), 1);
+  rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, sizeof(rasqal_literal), 1);
   l->type=RASQAL_LITERAL_VARIABLE;
   l->value.variable=variable;
   l->usage=1;
@@ -501,7 +501,7 @@ rasqal_literal_as_boolean(rasqal_literal* l, int *error)
  * integers. If string values are the lexical form of an integer, that is
  * returned.  Otherwise the error flag is set.
  * 
- * Return value: non-0 if true
+ * Return value: integer value
  **/
 int
 rasqal_literal_as_integer(rasqal_literal* l, int *error)
@@ -523,8 +523,56 @@ rasqal_literal_as_integer(rasqal_literal* l, int *error)
       {
         char *eptr=NULL;
         int v=(int)strtol(l->string, &eptr, 10);
-        if(eptr != l->string)
+        if(eptr != l->string && *eptr=='\0')
           return v;
+      }
+      *error=1;
+      return 0;
+      break;
+
+    case RASQAL_LITERAL_VARIABLE:
+      return rasqal_literal_as_integer(l->value.variable->value, error);
+      break;
+
+    default:
+      abort();
+  }
+}
+
+
+/*
+ * rasqal_literal_as_floating - INTERNAL Return a literal as a floating value
+ * @l: &rasqal_literal object
+ * @error: pointer to error flag
+ * 
+ * Integers, booleans and floating literals natural are turned into
+ * integers. If string values are the lexical form of an floating, that is
+ * returned.  Otherwise the error flag is set.
+ * 
+ * Return value: floating value
+ **/
+static inline double
+rasqal_literal_as_floating(rasqal_literal* l, int *error)
+{
+  if(!l)
+    return 0;
+  
+  switch(l->type) {
+    case RASQAL_LITERAL_INTEGER:
+    case RASQAL_LITERAL_BOOLEAN:
+      return (double)l->value.integer != 0;
+      break;
+
+    case RASQAL_LITERAL_FLOATING:
+      return l->value.floating;
+      break;
+
+    case RASQAL_LITERAL_STRING:
+      {
+        char *eptr=NULL;
+        double  d=strtod(l->string, &eptr);
+        if(eptr != l->string && *eptr=='\0')
+          return d;
       }
       *error=1;
       return 0;
@@ -640,8 +688,12 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
 
   lits[0]=l1;  lits[1]=l2;
   for(i=0; i<2; i++) {
-    if(lits[i]->type == RASQAL_LITERAL_VARIABLE)
+    if(lits[i]->type == RASQAL_LITERAL_VARIABLE) {
       lits[i]=lits[i]->value.variable->value;
+      RASQAL_DEBUG3("literal %d is a variable, value is a %s\n", i,
+                    rasqal_literal_type_labels[lits[i]->type]);
+    }
+    
 
     switch(lits[i]->type) {
       case RASQAL_LITERAL_URI:
@@ -676,10 +728,12 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
     for(i=0; i<2; i++ )
       if(!lits[i]->type != RASQAL_LITERAL_FLOATING &&
          lits[1-i]->type == RASQAL_LITERAL_FLOATING) {
-        doubles[i]=(double)rasqal_literal_as_integer(lits[i], &errori);
+        doubles[i]=rasqal_literal_as_floating(lits[i], &errori);
         /* failure always means no match */
         if(errori)
           return 1;
+        RASQAL_DEBUG4("promoted literal %d (type %s) to a floating, with value %g\n", 
+                      i, rasqal_literal_type_labels[lits[i]->type], doubles[i]);
         type=lits[1-i]->type;
         break;
       }
@@ -692,6 +746,8 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
           /* failure always means no match */
           if(errori)
             return 1;
+          RASQAL_DEBUG4("promoted literal %d (type %s) to an integer, with value %d\n", 
+                        i, rasqal_literal_type_labels[lits[i]->type], ints[i]);
           type=lits[1-i]->type;
           break;
         }
@@ -701,6 +757,8 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
         if(!lits[i]->type != RASQAL_LITERAL_STRING &&
            lits[1-i]->type == RASQAL_LITERAL_STRING) {
           strings[i]=rasqal_literal_as_string(lits[i]);
+          RASQAL_DEBUG4("promoted literal %d (type %s) to a string, with value '%s'\n", 
+                        i, rasqal_literal_type_labels[lits[i]->type], strings[i]);
           type=lits[1-i]->type;
           break;
         }
@@ -889,19 +947,28 @@ rasqal_literal*
 rasqal_literal_as_node(rasqal_literal* l)
 {
   raptor_uri *dt_uri=NULL;
+  rasqal_literal* new_l;
   
   switch(l->type) {
     case RASQAL_LITERAL_URI:
     case RASQAL_LITERAL_STRING:
     case RASQAL_LITERAL_BLANK:
-      return rasqal_new_literal_from_literal(l);
+      new_l=rasqal_new_literal_from_literal(l);
+      break;
+      
     case RASQAL_LITERAL_FLOATING:
     case RASQAL_LITERAL_INTEGER:
       dt_uri=raptor_uri_copy(l->datatype);
-  default:
-    return rasqal_new_string_literal(rasqal_literal_as_string(l), NULL,
-                                     dt_uri, NULL);
+    default:
+      new_l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, sizeof(rasqal_literal), 1);
+
+      new_l->type=RASQAL_LITERAL_STRING;
+      new_l->string=RASQAL_MALLOC(cstring, strlen(l->string)+1);
+      strcpy(new_l->string, l->string);
+      new_l->datatype=dt_uri;
+      new_l->flags=NULL;
+      new_l->usage=1;
   }
+  
+  return new_l;
 }
-
-
