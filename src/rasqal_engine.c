@@ -585,9 +585,11 @@ rasqal_engine_run(rasqal_query *query) {
       fprintf(stdout, "result: ");
       raptor_sequence_print(query->selects, stdout);
       fputc('\n', stdout);
+#if 0
       fprintf(stdout, "result as triples: ");
       raptor_sequence_print(query->triples, stdout);
       fputc('\n', stdout);
+#endif
     }
     rc=0;
   }
