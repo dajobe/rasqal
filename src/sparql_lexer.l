@@ -177,7 +177,6 @@ QUOTEDURI \<[A-Za-z][^>]+\>
 "DESCRIBE"|"describe"	{ return DESCRIBE; }
 "CONSTRUCT"|"construct"	{ return CONSTRUCT; }
 "ASK"|"ask"	{ return ASK; }
-"NOT"|"not"	{ return NOT; }
 "DISTINCT"|"distinct"	{ return DISTINCT; }
 "LIMIT"|"limit"	{ return LIMIT; }
 "UNION"|"union"       { return UNION; }
@@ -723,9 +722,6 @@ sparql_token_print(int token, YYSTYPE *lval)
 
     case ASK:
       return "ASK";
-
-    case NOT:
-      return "NOT";
 
     case DISTINCT:
       return "DISTINCT";
