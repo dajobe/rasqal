@@ -859,13 +859,6 @@ rasqal_expression_compare(rasqal_expression* e1, rasqal_expression* e2,
 }
 
 
-int
-rasqal_expression_is_variable(rasqal_expression* e) {
-  return (e->op == RASQAL_EXPR_LITERAL &&
-          e->literal->type == RASQAL_LITERAL_VARIABLE);
-}
-
-
 rasqal_literal*
 rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e) {
   int error=0;
