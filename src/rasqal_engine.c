@@ -272,6 +272,7 @@ rasqal_set_triples_source_factory(void (*register_fn)(rasqal_triples_source_fact
 rasqal_triples_source*
 rasqal_new_triples_source(rasqal_query *query) {
   rasqal_triples_source* rts;
+  int rc=0;
   
   rts=(rasqal_triples_source*)RASQAL_CALLOC(rasqal_triples_source, sizeof(rasqal_triples_source), 1);
   if(!rts)
@@ -285,9 +286,16 @@ rasqal_new_triples_source(rasqal_query *query) {
   }
   rts->query=query;
 
-  if(Triples_Source_Factory.new_triples_source(query, 
+  rc=Triples_Source_Factory.new_triples_source(query, 
                                                Triples_Source_Factory.user_data,
-                                               rts->user_data, rts)) {
+                                               rts->user_data, rts);
+  if(rc) {
+    query->failed=1;
+    if(rc > 0) {
+      rasqal_query_error(query, "Failed to make triples source.");
+    } else {
+      rasqal_query_error(query, "No data to query.");
+    }
     RASQAL_FREE(user_data, rts->user_data);
     RASQAL_FREE(rasqal_triples_source, rts);
     return NULL;
@@ -812,7 +820,6 @@ rasqal_engine_execute_init(rasqal_query *query) {
     query->triples_source=rasqal_new_triples_source(query);
     if(!query->triples_source) {
       query->failed=1;
-      rasqal_query_error(query, "Failed to make triples source.");
       return 1;
     }
   }
