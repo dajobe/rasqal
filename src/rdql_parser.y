@@ -97,12 +97,9 @@ static int rdql_query_error(rasqal_query* rq, const char *message);
   rasqal_literal *literal;
   rasqal_triple *triple;
   rasqal_expression *expr;
-  unsigned char *string;
-  unsigned char *flags;
-  unsigned char *language;
-  int integer;
   float floating;
   raptor_uri *uri;
+  char *name;
 }
 
 
@@ -137,15 +134,14 @@ static int rdql_query_error(rasqal_query* rq, const char *message);
 %left TILDE BANG
 
 /* literals */
-%token <integer> INTEGER_LITERAL
 %token <floating> FLOATING_POINT_LITERAL
-%token <string> STRING_LITERAL PATTERN_LITERAL
-%token <integer> BOOLEAN_LITERAL
-%token <integer> NULL_LITERAL 
+%token <literal> STRING_LITERAL PATTERN_LITERAL INTEGER_LITERAL
+%token <literal> BOOLEAN_LITERAL
+%token <literal> NULL_LITERAL 
 %token <uri> URI_LITERAL
-%token <string> QNAME_LITERAL
+%token <name> QNAME_LITERAL
 
-%token <string> IDENTIFIER
+%token <name> IDENTIFIER
 
 /* syntax error */
 %token ERROR
@@ -483,7 +479,7 @@ UnaryExpressionNotPlusMinus : TILDE UnaryExpression
 }
 | IDENTIFIER LPAREN ArgList RPAREN
 {
-  rasqal_literal *l=rasqal_new_literal(RASQAL_LITERAL_STRING, 0, 0.0, "functioncall", NULL);
+  rasqal_literal *l=rasqal_new_string_literal("functioncall", NULL, NULL);
   $$=rasqal_new_literal_expression(l);
 }
 | LPAREN Expression RPAREN
@@ -510,12 +506,12 @@ VarOrURI : Var
 }
 | URI_LITERAL
 {
-  rasqal_literal *l=rasqal_new_literal(RASQAL_LITERAL_URI, 0, 0.0, NULL, $1);
+  rasqal_literal *l=rasqal_new_uri_literal($1);
   $$=rasqal_new_literal_expression(l);
 }
 | QNAME_LITERAL
 {
-  rasqal_literal *l=rasqal_new_literal(RASQAL_LITERAL_QNAME, 0, 0.0, $1, NULL);
+  rasqal_literal *l=rasqal_new_simple_literal(RASQAL_LITERAL_QNAME, $1);
   $$=rasqal_new_literal_expression(l);
 }
 ;
@@ -538,36 +534,36 @@ Var : VARPREFIX IDENTIFIER
 
 PatternLiteral: PATTERN_LITERAL
 {
-  $$=rasqal_new_literal(RASQAL_LITERAL_PATTERN, 0, 0.0, $1, NULL);
+  $$=$1;
 }
 ;
 
 Literal : URI_LITERAL
 {
-  $$=rasqal_new_literal(RASQAL_LITERAL_URI, 0, 0.0, NULL, $1);
+  $$=rasqal_new_uri_literal($1);
 }
 | INTEGER_LITERAL
 {
-  $$=rasqal_new_literal(RASQAL_LITERAL_INTEGER, $1, 0.0, NULL, NULL);
+  $$=$1;
 }
 | FLOATING_POINT_LITERAL
 {
-  $$=rasqal_new_literal(RASQAL_LITERAL_FLOATING, 0, $1, NULL, NULL);
+  $$=rasqal_new_floating_literal($1);
 }
 | STRING_LITERAL
 {
-  $$=rasqal_new_literal(RASQAL_LITERAL_STRING, 0, 0.0, $1, NULL);
+  $$=$1;
 }
 | BOOLEAN_LITERAL
 {
-  $$=rasqal_new_literal(RASQAL_LITERAL_BOOLEAN, $1, 0.0, NULL, NULL);
+  $$=$1;
 }
 | NULL_LITERAL
 {
-  $$=rasqal_new_literal(RASQAL_LITERAL_NULL, $1, 0, NULL, NULL);
+  $$=$1;
 } | QNAME_LITERAL
 {
-  $$=rasqal_new_literal(RASQAL_LITERAL_QNAME, 0, 0.0, $1, NULL);
+  $$=rasqal_new_simple_literal(RASQAL_LITERAL_QNAME, $1);
 }
 
 ;
