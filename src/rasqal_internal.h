@@ -107,7 +107,8 @@ typedef enum {
  * Pattern graph for executing
  */
 struct rasqal_graph_pattern_s {
-  raptor_sequence *triples;     /* ... rasqal_triple*              */
+  raptor_sequence *triples;          /* ... rasqal_triple*         */
+  raptor_sequence *graph_patterns;   /* ... rasqal_graph_pattern*  */
 
   /* An array of items, one per triple in the pattern graph */
   rasqal_triple_meta *triple_meta;
@@ -124,7 +125,8 @@ struct rasqal_graph_pattern_s {
 typedef struct rasqal_graph_pattern_s rasqal_graph_pattern;
 
 
-rasqal_graph_pattern* rasqal_new_graph_pattern(raptor_sequence *triples, int start_column, int end_column, int flags);
+rasqal_graph_pattern* rasqal_new_graph_pattern_from_triples(raptor_sequence *triples, int start_column, int end_column, int flags);
+rasqal_graph_pattern* rasqal_new_graph_pattern_from_sequence(raptor_sequence *triples, raptor_sequence *graph_patterns, int flags);
 void rasqal_free_graph_pattern(rasqal_graph_pattern* pg);
 void rasqal_graph_pattern_init(rasqal_graph_pattern *gp);
 void rasqal_graph_pattern_adjust(rasqal_graph_pattern* gp, int offset);
