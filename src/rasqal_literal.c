@@ -712,12 +712,13 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
   double doubles[2];
   const unsigned char* strings[2];
   int errori=0;
-  *error=0;
   int seen_string=0;
   int seen_int=0;
   int seen_double=0;
   int seen_boolean=0;
   
+  *error=0;
+
   /* null literals */
   if(!l1 || !l2) {
     /* if either is not null, the comparison fails */
