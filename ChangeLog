@@ -1,5 +1,7 @@
 2004-10-25  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
+	* Snapshotted rasqal_0_9_3 for 0.9.3 release
+
 	* configure.ac: Use AC_TRY_LINK for regcomp test; no need to run it.
 
 	* roqet.c: Many casts for c++
