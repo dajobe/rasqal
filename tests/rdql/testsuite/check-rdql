@@ -126,9 +126,6 @@ sub run_test($$) {
     chomp;
     s/\s+\.$//;
 
-    # Raptor 1.3.0 bug
-    s!@([^\^]+)(\^\^<http://www.w3.org/1999/02/22-rdf-syntax-ns#XMLLiteral>)!$2!;
-
     my($subject, $predicate, $object)=split(/ /, $_, 3);
     push(@node_order, $subject)
       unless exists $nodes{$subject} || exists $node_type{$subject};
