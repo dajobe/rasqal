@@ -259,21 +259,18 @@ rasqal_query_execute(rasqal_query *rdf_query)
   librdf_storage *storage;
   librdf_model *model;
   librdf_parser *parser;
-  raptor_uri *source0;
-  librdf_uri *r_source0;
+  librdf_uri *source0;
   
   if(rasqal_query_order_triples(rdf_query))
     return 1;
 
-  source0=(raptor_uri*)rasqal_sequence_get_at(rdf_query->sources, 0);
-  //r_source0=librdf_new_uri(world, raptor_uri_as_string(source0));
-  r_source0=librdf_new_uri(world, "file:///home/dajobe/rdf/redland/rasqal/jobs-rss.rdf");
+  source0=librdf_new_uri(world, raptor_uri_as_string(rasqal_sequence_get_at(rdf_query->sources, 0)));
 
   storage = librdf_new_storage(world, NULL, NULL, NULL);
   model = librdf_new_model(world, storage, NULL);
 
   parser=librdf_new_parser(world, NULL, NULL, NULL);
-  librdf_parser_parse_into_model(parser, r_source0, NULL, model);
+  librdf_parser_parse_into_model(parser, source0, NULL, model);
   librdf_free_parser(parser);
                                  
   rdf_query->world=world;
@@ -285,7 +282,7 @@ rasqal_query_execute(rasqal_query *rdf_query)
   else
     rc=1;
 
-  librdf_free_uri(r_source0);
+  librdf_free_uri(source0);
   
   librdf_free_model(model);
   librdf_free_storage(storage);
