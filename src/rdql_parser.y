@@ -628,7 +628,8 @@ rasqal_rdql_query_engine_execute(rasqal_query* rdf_query)
 {
   rasqal_rdql_query_engine* rdql=(rasqal_rdql_query_engine*)rdf_query->context;
   
-  return (rdql != rdql);
+  /* FIXME: not implemented */
+  return 0;
 }
 
 
