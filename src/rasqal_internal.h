@@ -268,7 +268,7 @@ int rasqal_engine_execute_init(rasqal_query *query);
 int rasqal_engine_execute_finish(rasqal_query *query);
 int rasqal_engine_run(rasqal_query *q);
 
-rasqal_triples_source* rasqal_new_triples_source(rasqal_query *query, raptor_uri* uri);
+rasqal_triples_source* rasqal_new_triples_source(rasqal_query *query);
 void rasqal_free_triples_source(rasqal_triples_source *rts);
 
 int rasqal_engine_get_next_result(rasqal_query *query);
