@@ -80,22 +80,15 @@ rasqal_new_integer_literal(rasqal_literal_type type, int integer)
 
 
 /**
- * rasqal_new_floating_literal - Constructor - Create a new Rasqal floating literal from a string
- * @string: formatted version of floating literal
- *
- * The floating point decimal number encoded in the string is
- * turned into a rasqal floating literal (C double) and given
- * a datatype of xsd:double.
+ * rasqal_new_floating_literal - Constructor - Create a new Rasqal floating literal
+ * @f: floating literal double
  * 
  * Return value: New &rasqal_literal or NULL on failure
  **/
 rasqal_literal*
-rasqal_new_floating_literal(const unsigned char *string)
+rasqal_new_floating_literal(double f)
 {
   rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, sizeof(rasqal_literal), 1);
-  double f;
-
-  sscanf((const char*)string, "%lf", &f);
 
   l->type=RASQAL_LITERAL_FLOATING;
   l->value.floating=f;
@@ -569,7 +562,7 @@ rasqal_literal_as_integer(rasqal_literal* l, int *error)
  * 
  * Return value: floating value
  **/
-static RASQAL_INLINE double
+double
 rasqal_literal_as_floating(rasqal_literal* l, int *error)
 {
   if(!l)
@@ -578,7 +571,7 @@ rasqal_literal_as_floating(rasqal_literal* l, int *error)
   switch(l->type) {
     case RASQAL_LITERAL_INTEGER:
     case RASQAL_LITERAL_BOOLEAN:
-      return (double)l->value.integer != 0;
+      return (double)l->value.integer;
       break;
 
     case RASQAL_LITERAL_FLOATING:
@@ -720,7 +713,11 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
   const unsigned char* strings[2];
   int errori=0;
   *error=0;
-
+  int seen_string=0;
+  int seen_int=0;
+  int seen_double=0;
+  int seen_boolean=0;
+  
   /* null literals */
   if(!l1 || !l2) {
     /* if either is not null, the comparison fails */
@@ -746,15 +743,20 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
       case RASQAL_LITERAL_PATTERN:
       case RASQAL_LITERAL_QNAME:
         strings[i]=lits[i]->string;
+        seen_string=1;
       break;
 
-      case RASQAL_LITERAL_INTEGER:
       case RASQAL_LITERAL_BOOLEAN:
+        seen_boolean=1;
+
+      case RASQAL_LITERAL_INTEGER:
         ints[i]=lits[i]->value.integer;
+        seen_int=1;
         break;
     
       case RASQAL_LITERAL_FLOATING:
         doubles[i]=lits[i]->value.floating;
+        seen_double=1;
         break;
 
       default:
@@ -762,58 +764,68 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
     }
   } /* end for i=0,1 */
 
-  type=lits[0]->type;
-  if(type != lits[1]->type) {
-    type=RASQAL_LITERAL_UNKNOWN;
-    /* types differ so try to promote one term to match */
 
-    /* if one is a floating point number, do a comparison as such */
-    for(i=0; i<2; i++ )
-      if(!lits[i]->type != RASQAL_LITERAL_FLOATING &&
-         lits[1-i]->type == RASQAL_LITERAL_FLOATING) {
+  /* work out type to aim for */
+  if(lits[0]->type != lits[1]->type) {
+    RASQAL_DEBUG3("literal 0 type %s.  literal 1 type %s\n", 
+                  rasqal_literal_type_labels[lits[0]->type],
+                  rasqal_literal_type_labels[lits[1]->type]);
+
+    type=seen_string ? RASQAL_LITERAL_STRING : RASQAL_LITERAL_INTEGER;
+    if((seen_int & seen_double) || (seen_int & seen_string))
+      type=RASQAL_LITERAL_FLOATING;
+    if(seen_boolean & seen_string)
+      type=RASQAL_LITERAL_STRING;
+  } else
+    type=lits[0]->type;
+  
+
+  /* do promotions */
+  for(i=0; i<2; i++ ) {
+    if(lits[i]->type == type)
+      continue;
+    
+    switch(type) {
+      case RASQAL_LITERAL_FLOATING:
         doubles[i]=rasqal_literal_as_floating(lits[i], &errori);
         /* failure always means no match */
         if(errori)
           return 1;
         RASQAL_DEBUG4("promoted literal %d (type %s) to a floating, with value %g\n", 
                       i, rasqal_literal_type_labels[lits[i]->type], doubles[i]);
-        type=lits[1-i]->type;
         break;
-      }
+
+      case RASQAL_LITERAL_INTEGER:
+        ints[i]=rasqal_literal_as_integer(lits[i], &errori);
+        /* failure always means no match */
+        if(errori)
+          return 1;
+        RASQAL_DEBUG4("promoted literal %d (type %s) to an integer, with value %d\n", 
+                      i, rasqal_literal_type_labels[lits[i]->type], ints[i]);
+        break;
     
-    if(type == RASQAL_LITERAL_UNKNOWN)
-      for(i=0; i<2; i++ )
-        if(!lits[i]->type != RASQAL_LITERAL_INTEGER &&
-           lits[1-i]->type == RASQAL_LITERAL_INTEGER) {
-          ints[i]=rasqal_literal_as_integer(lits[i], &errori);
-          /* failure always means no match */
-          if(errori)
-            return 1;
-          RASQAL_DEBUG4("promoted literal %d (type %s) to an integer, with value %d\n", 
-                        i, rasqal_literal_type_labels[lits[i]->type], ints[i]);
-          type=lits[1-i]->type;
-          break;
-        }
+      case RASQAL_LITERAL_STRING:
+       strings[i]=rasqal_literal_as_string(lits[i]);
+       RASQAL_DEBUG4("promoted literal %d (type %s) to a string, with value '%s'\n", 
+                     i, rasqal_literal_type_labels[lits[i]->type], strings[i]);
+       break;
+
+      case RASQAL_LITERAL_BOOLEAN:
+        ints[i]=rasqal_literal_as_boolean(lits[i], &errori);
+        /* failure always means no match */
+        if(errori)
+          return 1;
+        RASQAL_DEBUG4("promoted literal %d (type %s) to a boolean, with value %d\n", 
+                      i, rasqal_literal_type_labels[lits[i]->type], ints[i]);
+        break;
     
-    if(type == RASQAL_LITERAL_UNKNOWN)
-      for(i=0; i<2; i++ )
-        if(!lits[i]->type != RASQAL_LITERAL_STRING &&
-           lits[1-i]->type == RASQAL_LITERAL_STRING) {
-          strings[i]=rasqal_literal_as_string(lits[i]);
-          RASQAL_DEBUG4("promoted literal %d (type %s) to a string, with value '%s'\n", 
-                        i, rasqal_literal_type_labels[lits[i]->type], strings[i]);
-          type=lits[1-i]->type;
-          break;
-        }
-        
-    /* otherwise cannot promote - FIXME?  or do as strings? */
-    if(type==RASQAL_LITERAL_UNKNOWN) {
-      *error=1;
-      return 0;
+      default:
+        *error=1;
+        return 0;
     }
 
-  } /* end if types differ */
-
+  } /* check types are promoted */
+  
 
   switch(type) {
     case RASQAL_LITERAL_URI:
