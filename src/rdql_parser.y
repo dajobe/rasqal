@@ -29,6 +29,7 @@
 #include <win32_config.h>
 #endif
 
+#include <stdio.h>
 
 #include <rasqal.h>
 #include <rasqal_internal.h>
