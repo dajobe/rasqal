@@ -153,12 +153,12 @@ rasqal_redland_new_triples_source(rasqal_query* rdf_query,
   int i;
   
   if(!rdf_query->sources)
-    return 1;
+    return -1; /* no data */
 
   rtsc->source_uris_count=raptor_sequence_size(rdf_query->sources);
   /* no default triple source possible */
   if(!rtsc->source_uris_count)
-    return 1;
+    return -1;  /* no data */
 
   rtsc->world=world;
 
