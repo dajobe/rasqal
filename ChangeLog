@@ -1,3 +1,77 @@
+2004-12-23  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* sparql_lexer.l:
+	LANGUAGETOKEN, PREFIX QNAME use explicit ranges and expand
+	to allow UTF8 \x80-\xff.
+	<ID>{NAME}: Use sparql_copy_name
+	<ID>.: Add \r\n to silence -s warning.
+	<PREF>{PREFIX}".": Use sparql_copy_name
+	<PREF>.: Add \r\n to silence -s warning.
+	{QNAME}: Use sparql_copy_qname
+	(sparql_copy_name): Added and checks XML name is OK.
+	(sparql_copy_qname): Renamed from rdql_copy_token, and checks XML names
+	are OK, before and after :
+	(sparql_token_free): Free qname strings before they are made into URIs.
+	(main): Free query_string.
+
+	* rdql_lexer.l:
+	LANGUAGETOKEN, PREFIX QNAME use explicit ranges and expand
+	to allow UTF8 \x80-\xff.
+	<*>{NAME}: Use rdql_copy_name
+	<ID>.: Add \r\n to silence -s warning.
+	{QNAME}: Use rdql_copy_qname
+	\<{QNAME}\>: Use rdql_copy_qname
+	(rdql_copy_name): Added and checks XML name is OK.
+	(rdql_copy_qname): Renamed from rdql_copy_token, and checks XML names
+	are OK, before and after :
+	(rdql_token_free): Free qname strings before they are made into URIs.
+	(main): Free query_string.
+
+2004-12-08  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* tests/rdql/testsuite/Makefile.am (check-rdql-correct):
+	Set PATH then use -s $(srcdir) rather than
+	lots of envariable passing.
+
+	* tests/rdql/testsuite/check-rdql:
+	Merged in changes from check-sparql - use -s . argument now.
+
+	* rasqal_engine.c (rasqal_engine_execute_init):
+	Init current_graph_pattern only if there
+	are graph patterns.
+	(rasqal_engine_get_next_result): Handle 0 graph patterns.
+
+	* tests/sparql/syntax/Makefile.am: Added manifest.n3
+	Invoke check-sparql-correct test
+
+	* tests/sparql/syntax/manifest.n3: Test manifest
+
+	* tests/sparql/syntax/result-0triples.n3: select with 0 triples result
+
+	* tests/sparql/syntax/Makefile.am: Added 0triples.rq
+
+	* tests/sparql/syntax/0triples.rq: Zero graph pattern triples
+
+	* tests/sparql/syntax/data.n3: typos
+
+2004-12-07  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* sparql_parser.y (PatternElementForms):
+	Handle empty GraphPattern1 (NULL sequences)
+
+	* tests/sparql/part1/dawg-data-01.n3,
+	tests/sparql/part1/dawg-query-002,
+	tests/sparql/simple/dawg-tp-04.rq,
+	tests/sparql/simple/dawg-data-01.n3: foaf:knowns to foaf:knows
+
+2004-11-30  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* tests/sparql/examples/ex2-1a-result.n3,
+	tests/sparql/examples/ex2-2a-result.n3,
+	tests/sparql/examples/ex2-3a-result.n3,
+	tests/sparql/examples/ex2-4a-result.n3,
+	tests/sparql/examples/ex3-result.n3: .
+
 2004-11-29  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
 	* rasqal_expr.c (rasqal_expression_evaluate): UMINUS, PLUS, MINUX,
