@@ -469,6 +469,18 @@ rasqal_raptor_finish_triples_match(struct rasqal_triples_match_s* rtm,
                                     void *user_data) {
   rasqal_raptor_triples_match_context* rtmc=(rasqal_raptor_triples_match_context*)rtm->user_data;
 
+  if(rtmc->match.subject)
+    rasqal_free_literal(rtmc->match.subject);
+
+  if(rtmc->match.predicate)
+    rasqal_free_literal(rtmc->match.predicate);
+
+  if(rtmc->match.object)
+    rasqal_free_literal(rtmc->match.object);
+
+  if(rtmc->match.origin)
+    rasqal_free_literal(rtmc->match.origin);
+
   RASQAL_FREE(rasqal_raptor_triples_match_context, rtmc);
 }
 
@@ -502,7 +514,7 @@ rasqal_raptor_new_triples_match(rasqal_triples_source *rts, void *user_data,
     if(var->value)
       rtmc->match.subject=rasqal_new_literal_from_literal(var->value);
   } else
-    rtmc->match.subject=t->subject;
+    rtmc->match.subject=rasqal_new_literal_from_literal(t->subject);
 
   m->bindings[0]=var;
   
@@ -511,7 +523,7 @@ rasqal_raptor_new_triples_match(rasqal_triples_source *rts, void *user_data,
     if(var->value)
       rtmc->match.predicate=rasqal_new_literal_from_literal(var->value);
   } else
-    rtmc->match.predicate=t->predicate;
+    rtmc->match.predicate=rasqal_new_literal_from_literal(t->predicate);
 
   m->bindings[1]=var;
   
@@ -520,7 +532,7 @@ rasqal_raptor_new_triples_match(rasqal_triples_source *rts, void *user_data,
     if(var->value)
       rtmc->match.object=rasqal_new_literal_from_literal(var->value);
   } else
-    rtmc->match.object=t->object;
+    rtmc->match.object=rasqal_new_literal_from_literal(t->object);
 
   m->bindings[2]=var;
   
@@ -530,7 +542,7 @@ rasqal_raptor_new_triples_match(rasqal_triples_source *rts, void *user_data,
       if(var->value)
         rtmc->match.origin=rasqal_new_literal_from_literal(var->value);
     } else
-      rtmc->match.origin=t->origin;
+      rtmc->match.origin=rasqal_new_literal_from_literal(t->origin);
     m->bindings[3]=var;
   }
   
