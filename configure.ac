@@ -1,3 +1,4 @@
+dnl -*- Mode: autoconf -*-
 dnl
 dnl configure.ac - autoconf file for rasqal
 dnl (Process this file with autoconf to produce a configure script.)
