@@ -204,7 +204,6 @@ sub run_test($$$$$) {
     return 1;
   } else {
     warn "$program: $name OK\n";
-    unlink "roqet.out", "result.out", "diff.out";
     return 0;
   }
 
