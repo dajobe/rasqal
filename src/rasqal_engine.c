@@ -1006,6 +1006,13 @@ rasqal_engine_get_next_result(rasqal_query *query) {
           RASQAL_DEBUG2("constraint boolean expression result: %d\n", bresult);
         rasqal_free_literal(result);
         rc=bresult;
+
+        if(!rc) {
+          /* Constraint failed so move to try next match */
+          rc=1;
+          continue;
+        }
+        
       } else {
         RASQAL_DEBUG1("constraint expression failed with error\n");
         rc= -1;
