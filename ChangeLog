@@ -1,9 +1,17 @@
 2004-11-29  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
-	* rasqal_literal.c (rasqal_literal_as_integer):
-	For RASQAL_LITERAL_STRING, also try to
-	evaluate it as a double with strtod, then return that cast to int if
-	it worked.
+	* tests/sparql/part1/dawg-result-002.n3,
+	tests/sparql/part1/dawg-result-003.n3,
+	tests/sparql/simple/result-tp-01.n3,
+	tests/sparql/simple/result-tp-02.n3,
+	tests/sparql/simple/result-tp-03.n3,
+	tests/sparql/simple/result-tp-04.n3,
+	tests/sparql/part1/dawg-result-001.n3: Update to DAWG latest
+	results removing rs:size triples.
+
+	* rasqal_literal.c (rasqal_literal_as_integer): For
+	RASQAL_LITERAL_STRING, also try to evaluate it as a double with
+	strtod, then return that cast to int if it worked.
 
 	* sparql_parser.y, rdql_parser.y (UnaryExpression):
 	Make unary plus and minus work; removes 2
