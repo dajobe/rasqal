@@ -31,7 +31,7 @@ dawg-data-01.n3
 SPARQL_TEST_FILES= \
 dawg-query-001 dawg-query-002 dawg-query-003
 
-EXPECTED_SPARQL_CORRECT_FAILURES=dawg-query-001 dawg-query-002 dawg-query-003
+EXPECTED_SPARQL_CORRECT_FAILURES=
 
 SPARQL_RESULT_FILES= \
 dawg-result-001.n3 dawg-result-002.n3 dawg-result-003.n3
