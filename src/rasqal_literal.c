@@ -597,6 +597,30 @@ rasqal_literal_as_floating(rasqal_literal* l, int *error)
 }
 
 
+/*
+ * rasqal_literal_as_uri - INTERNAL Return a literal as a raptor_uri*
+ * @l: &rasqal_literal object
+ * 
+ * Return value: raptor_uri* value or NULL on failure
+ **/
+raptor_uri*
+rasqal_literal_as_uri(rasqal_literal* l)
+{
+  if(!l)
+    return NULL;
+  
+  if(l->type==RASQAL_LITERAL_URI)
+    return l->value.uri;
+
+  if(l->type==RASQAL_LITERAL_VARIABLE)
+    return rasqal_literal_as_uri(l->value.variable->value);
+
+  abort();
+
+  return NULL;
+}
+
+
 /**
  * rasqal_literal_as_string - Return the string format of a literal
  * @l: &rasqal_literal object
