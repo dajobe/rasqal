@@ -160,9 +160,6 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...);
 
 %token <name> IDENTIFIER
 
-/* syntax error */
-%token ERROR_TOKEN
-
 
 %type <seq> SelectClause ConstructClause DescribeClause
 %type <seq> PrefixDeclOpt FromClauseOpt WhereClauseOpt
@@ -439,7 +436,7 @@ PatternElementForms: SOURCE '*' GraphPattern1  /* from SourceGraphPattern */
 #endif
 
   /* FIXME - SOURCE * has no defined meaning */
-  sparql_syntax_warning(((rasqal_query*)rq), "SOURCE * ignored");
+  sparql_syntax_warning(((rasqal_query*)rq), "SPARQL SOURCE * ignored");
   $$=$3;
 }
 | SOURCE VarOrURI GraphPattern1 /* from SourceGraphPattern */
@@ -1074,7 +1071,7 @@ sparql_parse(rasqal_query* rq, const unsigned char *string) {
   if(rasqal_engine_sequence_has_qname(rq->triples) ||
      rasqal_engine_sequence_has_qname(rq->constructs) ||
      rasqal_engine_constraints_has_qname(rq)) {
-    sparql_query_error(rq, "Query has unexpanded QNames");
+    sparql_query_error(rq, "SPARQL query has unexpanded QNames");
     return 1;
   }
 
