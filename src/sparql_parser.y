@@ -400,12 +400,12 @@ TriplePattern : LPAREN VarOrURI VarOrURI VarOrLiteral RPAREN
 VarOrURIList : VarOrURIList Var
 {
   $$=$1;
-  raptor_sequence_push($$, $2);
+  raptor_sequence_push($$, rasqal_new_variable_literal($1));
 }
 | VarOrURIList COMMA Var
 {
   $$=$1;
-  raptor_sequence_push($$, $3);
+  raptor_sequence_push($$, rasqal_new_variable_literal($1));
 }
 | VarOrURIList URI
 {
@@ -419,14 +419,13 @@ VarOrURIList : VarOrURIList Var
 }
 | Var 
 {
-  /* The variables are freed from the raptor_query field variables */
-  $$=raptor_new_sequence(NULL, (raptor_sequence_print_handler*)rasqal_variable_print);
-  raptor_sequence_push($$, $1);
+  /* rasqal_variable* are freed from the raptor_query field variables */
+  $$=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_literal, (raptor_sequence_print_handler*)rasqal_literal_print);
+  raptor_sequence_push($$, rasqal_new_variable_literal($1));
 }
 | URI
 {
-  /* The variables are freed from the raptor_query field variables */
-  $$=raptor_new_sequence(NULL, (raptor_sequence_print_handler*)rasqal_variable_print);
+  $$=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_literal, (raptor_sequence_print_handler*)rasqal_literal_print);
   raptor_sequence_push($$, $1);
 }
 ;
