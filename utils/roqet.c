@@ -147,8 +147,10 @@ roqet_get_www_content(raptor_uri *uri,
     return NULL;
 
   sb=raptor_new_stringbuffer();
-  if(!sb)
-    goto cleanup;
+  if(!sb) {
+    raptor_www_free(www);
+    return NULL;
+  }
 
   raptor_www_set_error_handler(www, error_handler, error_data);
   raptor_www_set_write_bytes_handler(www, roqet_get_www_write_bytes, sb);
@@ -161,7 +163,6 @@ roqet_get_www_content(raptor_uri *uri,
     strncpy(result, raptor_stringbuffer_as_string(sb), len+1);
   }
 
-  cleanup:
   if(sb)
     raptor_free_stringbuffer(sb);
   raptor_www_free(www);
