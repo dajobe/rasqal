@@ -335,8 +335,12 @@ NamedGraphClauseOpt : FROM URIList
 WhereClauseOpt :  WHERE GraphPattern
 {
   if($2) {
-    raptor_sequence_join(((rasqal_query*)rq)->graph_patterns, $2);
-    raptor_free_sequence($2);
+    rasqal_graph_pattern* gp=((rasqal_query*)rq)->query_graph_pattern;
+    if(gp->graph_patterns) {
+      raptor_sequence_join(gp->graph_patterns, $2);
+      raptor_free_sequence($2);
+    } else
+      gp->graph_patterns=$2;
   }
 }
 | /* empty */
