@@ -67,7 +67,7 @@ rasqal_query_order_triples_score(rasqal_query* query,
     rasqal_triple* t=raptor_sequence_get_at(query->triples, i);
     rasqal_variable* v;
 
-    if((v=rasqal_expression_as_variable(t->subject))) {
+    if((v=rasqal_literal_as_variable(t->subject))) {
 #if RASQAL_DEBUG >2
       RASQAL_DEBUG3("triple %i: has variable %s in subject\n", i, v->name);
 #endif
@@ -75,7 +75,7 @@ rasqal_query_order_triples_score(rasqal_query* query,
         ord[i].score++;
     }
 
-    if((v=rasqal_expression_as_variable(t->predicate))) {
+    if((v=rasqal_literal_as_variable(t->predicate))) {
 #if RASQAL_DEBUG >2
       RASQAL_DEBUG3("triple %i: has variable %s in predicate\n", i, v->name);
 #endif
@@ -83,7 +83,7 @@ rasqal_query_order_triples_score(rasqal_query* query,
         ord[i].score++;
     }
 
-    if((v=rasqal_expression_as_variable(t->object))) {
+    if((v=rasqal_literal_as_variable(t->object))) {
 #if RASQAL_DEBUG >2
       RASQAL_DEBUG3("triple %i: has variable %s in predicate\n", i, v->name);
 #endif
@@ -204,39 +204,45 @@ rasqal_engine_declare_prefixes(rasqal_query *rq)
 
 
 static int
-rasqal_engine_expand_qname(void *user_data, rasqal_expression *e) {
+rasqal_engine_expand_literal_qname(void *user_data, rasqal_literal *l) {
   rasqal_query *rq=(rasqal_query *)user_data;
 
-  if(e->op == RASQAL_EXPR_LITERAL) {
-    rasqal_literal *l=e->literal;
-    if(l->type == RASQAL_LITERAL_QNAME) {
-      /* expand a literal qname */
-      raptor_uri *uri=raptor_qname_string_to_uri(rq->namespaces,
-                                                 l->value.string, 
-                                                 strlen(l->value.string),
-                                                 rasqal_query_simple_error, rq);
+  if(l->type == RASQAL_LITERAL_QNAME) {
+    /* expand a literal qname */
+    raptor_uri *uri=raptor_qname_string_to_uri(rq->namespaces,
+                                               l->value.string, 
+                                               strlen(l->value.string),
+                                               rasqal_query_simple_error, rq);
+    if(!uri)
+      return 1;
+    RASQAL_FREE(cstring, l->value.string);
+    l->type=RASQAL_LITERAL_URI;
+    l->value.uri=uri; /* uri field is unioned with string field */
+  } else if (l->type == RASQAL_LITERAL_STRING) {
+    raptor_uri *uri;
+    
+    if(l->flags) {
+      /* expand a literal string datatype qname */
+      uri=raptor_qname_string_to_uri(rq->namespaces,
+                                     l->flags, 
+                                     strlen(l->flags),
+                                     rasqal_query_simple_error, rq);
       if(!uri)
         return 1;
-      RASQAL_FREE(cstring, l->value.string);
-      l->type=RASQAL_LITERAL_URI;
-      l->value.uri=uri; /* uri field is unioned with string field */
-    } else if (l->type == RASQAL_LITERAL_STRING) {
-      raptor_uri *uri;
-
-      if(l->flags) {
-        /* expand a literal string datatype qname */
-        uri=raptor_qname_string_to_uri(rq->namespaces,
-                                       l->flags, 
-                                       strlen(l->flags),
-                                       rasqal_query_simple_error, rq);
-        if(!uri)
-          return 1;
-        l->datatype=uri;
-        RASQAL_FREE(cstring, l->flags);
-        l->flags=NULL;
-      }
+      l->datatype=uri;
+      RASQAL_FREE(cstring, l->flags);
+      l->flags=NULL;
     }
   }
+  return 0;
+}
+ 
+
+static int
+rasqal_engine_expand_expression_qname(void *user_data, rasqal_expression *e) {
+  if(e->op == RASQAL_EXPR_LITERAL)
+    return rasqal_engine_expand_literal_qname(user_data, e->literal);
+
   return 0;
 }
  
@@ -252,9 +258,9 @@ rasqal_engine_expand_triple_qnames(rasqal_query* rq)
   /* expand qnames in triples */
   for(i=0; i< raptor_sequence_size(rq->triples); i++) {
     rasqal_triple* t=raptor_sequence_get_at(rq->triples, i);
-    if(rasqal_engine_expand_qname(rq, t->subject) ||
-       rasqal_engine_expand_qname(rq, t->predicate) ||
-       rasqal_engine_expand_qname(rq, t->object))
+    if(rasqal_engine_expand_literal_qname(rq, t->subject) ||
+       rasqal_engine_expand_literal_qname(rq, t->predicate) ||
+       rasqal_engine_expand_literal_qname(rq, t->object))
       return 1;
   }
 
@@ -273,7 +279,7 @@ rasqal_engine_expand_constraints_qnames(rasqal_query* rq)
   /* expand qnames in constraint expressions */
   for(i=0; i<raptor_sequence_size(rq->constraints); i++) {
     rasqal_expression* e=(rasqal_expression*)raptor_sequence_get_at(rq->constraints, i);
-    if(rasqal_expression_foreach(e, rasqal_engine_expand_qname, rq))
+    if(rasqal_expression_foreach(e, rasqal_engine_expand_expression_qname, rq))
       return 1;
   }
 
@@ -465,9 +471,9 @@ rasqal_engine_execute_init(rasqal_query *query) {
     rasqal_triple *t=raptor_sequence_get_at(query->triples, i);
 
     query->triple_meta[i].is_exact=
-      !(rasqal_expression_as_variable(t->predicate) ||
-       rasqal_expression_as_variable(t->subject) ||
-       rasqal_expression_as_variable(t->object));
+      !(rasqal_literal_as_variable(t->predicate) ||
+       rasqal_literal_as_variable(t->subject) ||
+       rasqal_literal_as_variable(t->object));
   }
 
   query->column=0;
@@ -646,11 +652,6 @@ void
 rasqal_engine_assign_binding_values(rasqal_query *query) {
   int i;
   
-  for(i=0; i< query->select_variables_count; i++) {
-    rasqal_expression *e=query->variables[i]->value;
-    rasqal_literal *l=NULL;
-    if(e && e->op == RASQAL_EXPR_LITERAL)
-      l=e->literal;
-    query->binding_values[i]=l;
-  }
+  for(i=0; i< query->select_variables_count; i++)
+    query->binding_values[i]=query->variables[i]->value;
 }

@@ -60,22 +60,16 @@ void rasqal_redland_init(librdf_world *world);
 
 
 static librdf_node*
-rasqal_expression_to_redland_node(librdf_world *world, rasqal_expression* e) {
-  if(e->op == RASQAL_EXPR_LITERAL) {
-    rasqal_literal* l=e->literal;
-    if(l->type == RASQAL_LITERAL_URI) {
-      char *uri_string=raptor_uri_as_string(l->value.uri);
-      return librdf_new_node_from_uri_string(world, uri_string);
-    } else if (l->type == RASQAL_LITERAL_STRING)
-      return librdf_new_node_from_literal(world, l->value.string, NULL, 0);
-    else if (l->type == RASQAL_LITERAL_BLANK)
-      return librdf_new_node_from_blank_identifier(world, l->value.string);
-    else {
-      LIBRDF_DEBUG2("Unknown literal type %d", l->type);
-      abort();
-    }
-  } else {
-    LIBRDF_DEBUG2("Unknown expr op %d", e->op);
+rasqal_literal_to_redland_node(librdf_world *world, rasqal_literal* l) {
+  if(l->type == RASQAL_LITERAL_URI) {
+    char *uri_string=raptor_uri_as_string(l->value.uri);
+    return librdf_new_node_from_uri_string(world, uri_string);
+  } else if (l->type == RASQAL_LITERAL_STRING)
+    return librdf_new_node_from_literal(world, l->value.string, NULL, 0);
+  else if (l->type == RASQAL_LITERAL_BLANK)
+    return librdf_new_node_from_blank_identifier(world, l->value.string);
+  else {
+    LIBRDF_DEBUG2("Unknown literal type %d", l->type);
     abort();
   }
 
@@ -83,8 +77,8 @@ rasqal_expression_to_redland_node(librdf_world *world, rasqal_expression* e) {
 }
 
 
-static rasqal_expression*
-redland_node_to_rasqal_expression(librdf_node *node) {
+static rasqal_literal*
+redland_node_to_rasqal_literal(librdf_node *node) {
   rasqal_literal* l;
   
   if(librdf_node_is_resource(node)) {
@@ -116,7 +110,7 @@ redland_node_to_rasqal_expression(librdf_node *node) {
     l=rasqal_new_simple_literal(RASQAL_LITERAL_BLANK, new_blank);
   }
 
-  return rasqal_new_literal_expression(l);
+  return l;
 }
 
 
@@ -171,9 +165,9 @@ rasqal_redland_triple_present(rasqal_triples_source *rts, void *user_data,
 
   /* ASSUMPTION: all the parts of the triple are not variables */
   /* FIXME: and no error checks */
-  nodes[0]=rasqal_expression_to_redland_node(rtsc->world, t->subject);
-  nodes[1]=rasqal_expression_to_redland_node(rtsc->world, t->predicate);
-  nodes[2]=rasqal_expression_to_redland_node(rtsc->world, t->object);
+  nodes[0]=rasqal_literal_to_redland_node(rtsc->world, t->subject);
+  nodes[1]=rasqal_literal_to_redland_node(rtsc->world, t->predicate);
+  nodes[2]=rasqal_literal_to_redland_node(rtsc->world, t->object);
 
   s=librdf_new_statement_from_nodes(rtsc->world, nodes[0], nodes[1], nodes[2]);
   
@@ -231,19 +225,19 @@ rasqal_redland_bind_match(struct rasqal_triples_match_s* rtm,
   if(bindings[0]) {
     LIBRDF_DEBUG1("binding subject to variable\n");
     rasqal_variable_set_value(bindings[0],
-                              redland_node_to_rasqal_expression(librdf_statement_get_subject(statement)));
+                              redland_node_to_rasqal_literal(librdf_statement_get_subject(statement)));
   }
 
   if(bindings[1]) {
     LIBRDF_DEBUG1("binding predicate to variable\n");
     rasqal_variable_set_value(bindings[1], 
-                              redland_node_to_rasqal_expression(librdf_statement_get_predicate(statement)));
+                              redland_node_to_rasqal_literal(librdf_statement_get_predicate(statement)));
   }
 
   if(bindings[2]) {
     LIBRDF_DEBUG1("binding object to variable\n");
     rasqal_variable_set_value(bindings[2],  
-                              redland_node_to_rasqal_expression(librdf_statement_get_object(statement)));
+                              redland_node_to_rasqal_literal(librdf_statement_get_object(statement)));
   }
 
   return 0;
@@ -309,35 +303,35 @@ rasqal_redland_new_triples_match(rasqal_triples_source *rts, void *user_data,
    * pick the most efficient, indexed way to get the answer.
    */
 
-  if((var=rasqal_expression_as_variable(t->subject))) {
+  if((var=rasqal_literal_as_variable(t->subject))) {
     if(var->value)
-      rtmc->nodes[0]=rasqal_expression_to_redland_node(rtsc->world, var->value);
+      rtmc->nodes[0]=rasqal_literal_to_redland_node(rtsc->world, var->value);
     else
       rtmc->nodes[0]=NULL;
   } else
-    rtmc->nodes[0]=rasqal_expression_to_redland_node(rtsc->world, t->subject);
+    rtmc->nodes[0]=rasqal_literal_to_redland_node(rtsc->world, t->subject);
 
   m->bindings[0]=var;
   
 
-  if((var=rasqal_expression_as_variable(t->predicate))) {
+  if((var=rasqal_literal_as_variable(t->predicate))) {
     if(var->value)
-      rtmc->nodes[1]=rasqal_expression_to_redland_node(rtsc->world, var->value);
+      rtmc->nodes[1]=rasqal_literal_to_redland_node(rtsc->world, var->value);
     else
       rtmc->nodes[1]=NULL;
   } else
-    rtmc->nodes[1]=rasqal_expression_to_redland_node(rtsc->world, t->predicate);
+    rtmc->nodes[1]=rasqal_literal_to_redland_node(rtsc->world, t->predicate);
 
   m->bindings[1]=var;
   
 
-  if((var=rasqal_expression_as_variable(t->object))) {
+  if((var=rasqal_literal_as_variable(t->object))) {
     if(var->value)
-      rtmc->nodes[2]=rasqal_expression_to_redland_node(rtsc->world, var->value);
+      rtmc->nodes[2]=rasqal_literal_to_redland_node(rtsc->world, var->value);
     else
       rtmc->nodes[2]=NULL;
   } else
-    rtmc->nodes[2]=rasqal_expression_to_redland_node(rtsc->world, t->object);
+    rtmc->nodes[2]=rasqal_literal_to_redland_node(rtsc->world, t->object);
 
   m->bindings[2]=var;
   

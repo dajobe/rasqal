@@ -145,6 +145,17 @@ rasqal_new_boolean_literal(int value) {
 
 
 rasqal_literal*
+rasqal_new_variable_literal(rasqal_variable *variable)
+{
+  rasqal_literal* l=(rasqal_literal*)calloc(sizeof(rasqal_literal), 1);
+  l->type=RASQAL_LITERAL_VARIABLE;
+  l->value.variable=variable;
+  l->usage=1;
+  return l;
+}
+
+
+rasqal_literal*
 rasqal_new_literal_from_literal(rasqal_literal* l) {
   l->usage++;
   return l;
@@ -176,6 +187,14 @@ rasqal_free_literal(rasqal_literal* l) {
     case RASQAL_LITERAL_BOOLEAN:
     case RASQAL_LITERAL_FLOATING:
       break;
+    case RASQAL_LITERAL_VARIABLE:
+      /* It is correct that this is not called here
+       * since all variables are shared and owned by
+       * the rasqal_query sequence variables_sequence */
+
+      /* rasqal_free_variable(l->value.variable); */
+      break;
+
     default:
       abort();
   }
@@ -192,7 +211,8 @@ static const char* rasqal_literal_type_labels[]={
   "pattern",
   "boolean",
   "integer",
-  "floating"
+  "floating",
+  "variable"
 };
 
 
@@ -220,8 +240,10 @@ rasqal_literal_print(rasqal_literal* l, FILE* fh)
     fputs("null", fh);
     return;
   }
-  
-  rasqal_literal_print_type(l, fh);
+
+  if(l->type != RASQAL_LITERAL_VARIABLE)
+    rasqal_literal_print_type(l, fh);
+
   switch(l->type) {
     case RASQAL_LITERAL_URI:
       fprintf(fh, "<%s>", raptor_uri_as_string(l->value.uri));
@@ -254,6 +276,9 @@ rasqal_literal_print(rasqal_literal* l, FILE* fh)
       break;
     case RASQAL_LITERAL_FLOATING:
       fprintf(fh, " %f", l->value.floating);
+      break;
+    case RASQAL_LITERAL_VARIABLE:
+      rasqal_variable_print(l->value.variable, fh);
       break;
     default:
       abort();
@@ -289,6 +314,10 @@ rasqal_literal_as_boolean(rasqal_literal* l)
       return l->value.floating != 0.0;
       break;
 
+    case RASQAL_LITERAL_VARIABLE:
+      return rasqal_variable_as_boolean(l->value.variable);
+      break;
+
     default:
       abort();
   }
@@ -311,6 +340,10 @@ rasqal_literal_as_integer(rasqal_literal* l)
 
     case RASQAL_LITERAL_STRING:
       return (int)atoi(l->value.string);
+      break;
+
+    case RASQAL_LITERAL_VARIABLE:
+      return rasqal_variable_as_integer(l->value.variable);
       break;
 
     default:
@@ -345,9 +378,18 @@ rasqal_literal_as_string(rasqal_literal* l)
     case RASQAL_LITERAL_URI:
       return raptor_uri_as_string(l->value.uri);
 
+    case RASQAL_LITERAL_VARIABLE:
+      return rasqal_literal_as_string(l->value.variable->value);
+
     default:
       abort();
   }
+}
+
+
+inline rasqal_variable*
+rasqal_literal_as_variable(rasqal_literal* l) {
+  return (l->type == RASQAL_LITERAL_VARIABLE) ? l->value.variable : NULL;
 }
 
 
@@ -363,7 +405,13 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int *error)
       *error=1;
     return 0;
   }
-  
+
+  if(l1->type == RASQAL_LITERAL_VARIABLE)
+    l1=l1->value.variable->value;
+    
+  if(l2->type == RASQAL_LITERAL_VARIABLE)
+    l2=l2->value.variable->value;
+    
   if(l1->type != l2->type) {
     if(!l1->type != RASQAL_LITERAL_INTEGER &&
        l2->type == RASQAL_LITERAL_INTEGER)
@@ -404,7 +452,7 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int *error)
 
 rasqal_variable*
 rasqal_new_variable(rasqal_query* rq,
-                    const char *name, rasqal_expression *value) 
+                    const char *name, rasqal_literal *value) 
 {
   int i;
   rasqal_variable* v;
@@ -435,7 +483,7 @@ rasqal_free_variable(rasqal_variable* v) {
   if(v->name)
     RASQAL_FREE(cstring, v->name);
   if(v->value)
-    rasqal_free_expression(v->value);
+    rasqal_free_literal(v->value);
   free(v);
 }
 
@@ -446,7 +494,7 @@ rasqal_variable_print(rasqal_variable* v, FILE* fh)
   fprintf(fh, "variable(%s", v->name);
   if(v->value) {
     fputc('=', fh);
-    rasqal_expression_print(v->value, fh);
+    rasqal_literal_print(v->value, fh);
   }
   fputc(')', fh);
 }
@@ -454,13 +502,13 @@ rasqal_variable_print(rasqal_variable* v, FILE* fh)
 inline int
 rasqal_variable_as_boolean(rasqal_variable* v)
 {
-  return rasqal_expression_as_boolean(v->value);
+  return rasqal_literal_as_boolean(v->value);
 }
 
 inline int
 rasqal_variable_as_integer(rasqal_variable* v)
 {
-  return rasqal_expression_as_integer(v->value);
+  return rasqal_literal_as_integer(v->value);
 }
 
 
@@ -468,19 +516,19 @@ inline int
 rasqal_variable_compare(rasqal_variable* v1, rasqal_variable* v2, int *error)
 {
   *error=0;
-  return rasqal_expression_compare(v1->value, v2->value, error);
+  return rasqal_literal_compare(v1->value, v2->value, error);
 }
 
 void
-rasqal_variable_set_value(rasqal_variable* v, rasqal_expression *e)
+rasqal_variable_set_value(rasqal_variable* v, rasqal_literal *e)
 {
   if(v->value)
-    rasqal_free_expression(v->value);
+    rasqal_free_literal(v->value);
   v->value=e;
 #ifdef RASQAL_DEBUG
   RASQAL_DEBUG2("setting variable %s to value ", v->name);
   if(v->value)
-    rasqal_expression_print(v->value, stderr);
+    rasqal_literal_print(v->value, stderr);
   else
     fputs("(NULL)", stderr);
   fputc('\n', stderr);
@@ -488,7 +536,7 @@ rasqal_variable_set_value(rasqal_variable* v, rasqal_expression *e)
 }
 
 
-static inline rasqal_expression*
+static inline rasqal_literal*
 rasqal_variable_get_value(rasqal_variable* v) {
   return v->value;
 }
@@ -526,7 +574,7 @@ rasqal_prefix_print(rasqal_prefix* p, FILE* fh)
 
 
 rasqal_triple*
-rasqal_new_triple(rasqal_expression* subject, rasqal_expression* predicate, rasqal_expression* object)
+rasqal_new_triple(rasqal_literal* subject, rasqal_literal* predicate, rasqal_literal* object)
 {
   rasqal_triple* t=(rasqal_triple*)calloc(sizeof(rasqal_triple), 1);
 
@@ -540,9 +588,9 @@ rasqal_new_triple(rasqal_expression* subject, rasqal_expression* predicate, rasq
 void
 rasqal_free_triple(rasqal_triple* t)
 {
-  rasqal_free_expression(t->subject);
-  rasqal_free_expression(t->predicate);
-  rasqal_free_expression(t->object);
+  rasqal_free_literal(t->subject);
+  rasqal_free_literal(t->predicate);
+  rasqal_free_literal(t->object);
   free(t);
 }
 
@@ -551,11 +599,11 @@ void
 rasqal_triple_print(rasqal_triple* t, FILE* fh)
 {
   fputs("triple(", fh);
-  rasqal_expression_print(t->subject, fh);
+  rasqal_literal_print(t->subject, fh);
   fputs(", ", fh);
-  rasqal_expression_print(t->predicate, fh);
+  rasqal_literal_print(t->predicate, fh);
   fputs(", ", fh);
-  rasqal_expression_print(t->object, fh);
+  rasqal_literal_print(t->object, fh);
   fputc(')', fh);
 }
 
@@ -603,16 +651,6 @@ rasqal_new_literal_expression(rasqal_literal *literal)
 }
 
 
-rasqal_expression*
-rasqal_new_variable_expression(rasqal_variable *variable)
-{
-  rasqal_expression* e=(rasqal_expression*)calloc(sizeof(rasqal_expression), 1);
-  e->op=RASQAL_EXPR_VARIABLE;
-  e->variable=variable;
-  return e;
-}
-
-
 void
 rasqal_free_expression(rasqal_expression* e) {
   switch(e->op) {
@@ -647,13 +685,6 @@ rasqal_free_expression(rasqal_expression* e) {
       /* FALLTHROUGH */
     case RASQAL_EXPR_LITERAL:
       rasqal_free_literal(e->literal);
-      break;
-    case RASQAL_EXPR_VARIABLE:
-      /* It is correct that this is not called here
-       * since all variables are shared and owned by
-       * the rasqal_query sequence variables_sequence */
-
-      /* rasqal_free_variable(e->variable); */
       break;
     default:
       abort();
@@ -697,7 +728,6 @@ rasqal_expression_foreach(rasqal_expression* e,
     case RASQAL_EXPR_STR_MATCH:
     case RASQAL_EXPR_STR_NMATCH:
     case RASQAL_EXPR_LITERAL:
-    case RASQAL_EXPR_VARIABLE:
       return fn(user_data, e);
       break;
     default:
@@ -717,10 +747,6 @@ rasqal_expression_as_boolean(rasqal_expression* e) {
       return rasqal_literal_as_boolean(e->literal);
       break;
 
-    case RASQAL_EXPR_VARIABLE:
-      return rasqal_variable_as_boolean(e->variable);
-      break;
-
     default:
       abort();
   }
@@ -737,39 +763,16 @@ rasqal_expression_as_integer(rasqal_expression* e) {
       return rasqal_literal_as_integer(e->literal);
       break;
 
-    case RASQAL_EXPR_VARIABLE:
-      return rasqal_variable_as_integer(e->variable);
-      break;
-
     default:
       abort();
   }
 }
 
 
-rasqal_variable*
-rasqal_expression_as_variable(rasqal_expression* e) {
-  switch(e->op) {
-    case RASQAL_EXPR_EXPR:
-      return rasqal_expression_as_variable(e->arg1);
-      break;
-
-    case RASQAL_EXPR_VARIABLE:
-      return e->variable;
-      break;
-
-    default:
-      break;
-
-  }
-
-  return NULL;
-}
-
-
 int
 rasqal_expression_compare(rasqal_expression* e1, rasqal_expression* e2,
                           int *error) {
+  rasqal_literal *l1, *l2;
   *error=0;
   
   if(e1->op == RASQAL_EXPR_EXPR)
@@ -780,34 +783,32 @@ rasqal_expression_compare(rasqal_expression* e1, rasqal_expression* e2,
   if(e1->op == RASQAL_EXPR_LITERAL && e1->op == e2->op)
     return rasqal_literal_compare(e1->literal, e2->literal, error);
 
-  
+
   switch(e1->op) {
     case RASQAL_EXPR_LITERAL:
+      l1=e1->literal;
       break;
-    case RASQAL_EXPR_VARIABLE:
-      e1=rasqal_variable_get_value(e1->variable);
-      break;
+
     default:
       RASQAL_FATAL2("Unexpected e1 op %d\n", e1->op);
   }
 
   switch(e2->op) {
     case RASQAL_EXPR_LITERAL:
-      break;
-    case RASQAL_EXPR_VARIABLE:
-      e2=rasqal_variable_get_value(e2->variable);
+      l2=e2->literal;
       break;
     default:
       RASQAL_FATAL2("Unexpected e2 op %d\n", e2->op);
   }
 
-  return rasqal_expression_compare(e1, e2, error);
+  return rasqal_literal_compare(l1, l2, error);
 }
 
 
 int
 rasqal_expression_is_variable(rasqal_expression* e) {
-  return (e->op == RASQAL_EXPR_VARIABLE);
+  return (e->op == RASQAL_EXPR_LITERAL &&
+          e->literal->type == RASQAL_LITERAL_VARIABLE);
 }
 
 
@@ -1180,7 +1181,7 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e) {
     case RASQAL_EXPR_STR_NMATCH: 
       {
         int b=0;
-        int flag_i; /* flags contains i */
+        int flag_i=0; /* flags contains i */
         char *p;
         char *match_string;
         char *pattern;
@@ -1268,15 +1269,6 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e) {
       return rasqal_new_literal_from_literal(e->literal);
       break;
 
-    case RASQAL_EXPR_VARIABLE:
-      {
-        rasqal_expression *var_e=rasqal_variable_get_value(e->variable);
-        if(!var_e)
-          return NULL;
-        return rasqal_expression_evaluate(query, var_e);        
-        break;
-      }
-    
     default:
       abort();
   }
@@ -1308,7 +1300,7 @@ static const char* rasqal_op_labels[RASQAL_EXPR_LAST+1]={
   "tilde",
   "bang",
   "literal",
-  "variable",
+  "pattern",
 };
 
 void
@@ -1372,9 +1364,6 @@ rasqal_expression_print(rasqal_expression* e, FILE* fh)
       break;
     case RASQAL_EXPR_LITERAL:
       rasqal_literal_print(e->literal, fh);
-      break;
-    case RASQAL_EXPR_VARIABLE:
-      rasqal_variable_print(e->variable, fh);
       break;
     case RASQAL_EXPR_PATTERN:
       fprintf(fh, "expr_pattern(%s)", (char*)e->value);

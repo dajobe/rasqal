@@ -155,7 +155,7 @@ static int rdql_query_error(rasqal_query* rq, const char *message);
 %type <expr> EqualityExpression RelationalExpression NumericExpression
 %type <expr> AdditiveExpression MultiplicativeExpression UnaryExpression
 %type <expr> UnaryExpressionNotPlusMinus
-%type <expr> VarOrLiteral VarOrURI
+%type <literal> VarOrLiteral VarOrURI
 
 %type <variable> Var
 %type <triple> TriplePattern
@@ -471,7 +471,8 @@ UnaryExpressionNotPlusMinus : TILDE UnaryExpression
 }
 | Var
 {
-  $$=rasqal_new_variable_expression($1);
+  rasqal_literal *l=rasqal_new_variable_literal($1);
+  $$=rasqal_new_literal_expression(l);
 }
 | Literal
 {
@@ -502,27 +503,25 @@ ArgList : VarOrLiteral COMMA ArgList
 
 VarOrURI : Var
 {
-  $$=rasqal_new_variable_expression($1);
+  $$=rasqal_new_variable_literal($1);
 }
 | URI_LITERAL
 {
-  rasqal_literal *l=rasqal_new_uri_literal($1);
-  $$=rasqal_new_literal_expression(l);
+  $$=rasqal_new_uri_literal($1);
 }
 | QNAME_LITERAL
 {
-  rasqal_literal *l=rasqal_new_simple_literal(RASQAL_LITERAL_QNAME, $1);
-  $$=rasqal_new_literal_expression(l);
+  $$=rasqal_new_simple_literal(RASQAL_LITERAL_QNAME, $1);
 }
 ;
 
 VarOrLiteral : Var
 {
-  $$=rasqal_new_variable_expression($1);
+  $$=rasqal_new_variable_literal($1);
 }
 | Literal
 {
-  $$=rasqal_new_literal_expression($1);
+  $$=$1;
 }
 ;
 

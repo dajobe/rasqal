@@ -204,14 +204,14 @@ rasqal_query_has_variable(rasqal_query* query, const char *name) {
 
 int
 rasqal_query_set_variable(rasqal_query* query, const char *name,
-                          rasqal_expression* value) {
+                          rasqal_literal* value) {
   int i;
 
   for(i=0; i< raptor_sequence_size(query->selects); i++) {
     rasqal_variable* v=raptor_sequence_get_at(query->selects, i);
     if(!strcmp(v->name, name)) {
       if(v->value)
-        rasqal_free_expression(v->value);
+        rasqal_free_literal(v->value);
       v->value=value;
       return 0;
     }
