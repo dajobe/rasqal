@@ -80,6 +80,9 @@ rasqal_new_query(const char *name, const unsigned char *uri) {
                                               0);
 
 
+  rdf_query->variables_sequence=rasqal_new_sequence((rasqal_free_handler*)rasqal_free_variable, (rasqal_print_handler*)rasqal_print_variable);
+
+
   if(factory->init(rdf_query, name)) {
     rasqal_free_query(rdf_query);
     return NULL;
@@ -123,6 +126,10 @@ rasqal_free_query(rasqal_query* rdf_query)
     rasqal_free_sequence(rdf_query->prefixes);
   if(rdf_query->ordered_triples)
     rasqal_free_sequence(rdf_query->ordered_triples);
+  if(rdf_query->variables)
+    RASQAL_FREE(vararray, rdf_query->variables);
+  if(rdf_query->variables_sequence)
+    rasqal_free_sequence(rdf_query->variables_sequence);
 
   RASQAL_FREE(rasqal_query, rdf_query);
 }
