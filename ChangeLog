@@ -26,8 +26,6 @@
 	Check and expand datatype qnames here,
 	since prefixes are always defined before qname use..
 
-	* RELEASE.html: Note STR
-
 	* rasqal_expr.c: Added support for expressions:
 	STR, LANG, DATATYPE, ISURI, ISBLANK and ISLITERAL
 	(rasqal_free_expression, rasqal_expression_foreach,
@@ -49,8 +47,7 @@
 	RASQAL_EXPR_DATATYPE, RASQAL_EXPR_ISURI, RASQAL_EXPR_ISBLANK,
 	RASQAL_EXPR_ISLITERAL,
 
-	* TODO.html, librasqal.3, rasqal_literal.c, RELEASE.html:
-	Updates for 0.9.6
+	* librasqal.3, rasqal_literal.c: Updates for 0.9.6
 
 2005-02-02  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
