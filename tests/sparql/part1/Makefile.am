@@ -1,0 +1,101 @@
+# -*- Mode: Makefile -*-
+#
+# Makefile.am - automake file for Rasqal SPARQL tests
+#
+# $Id$
+#
+# Copyright (C) 2004 David Beckett - http://purl.org/net/dajobe/
+# Institute for Learning and Research Technology - http://www.ilrt.org/
+# University of Bristol - http://www.bristol.ac.uk/
+# 
+# This package is Free Software or Open Source available under the
+# following licenses (these are alternatives):
+#   1. GNU Lesser General Public License (LGPL)
+#   2. GNU General Public License (GPL)
+#   3. Mozilla Public License (MPL)
+# 
+# See LICENSE.html or LICENSE.txt at the top of this package for the
+# full license terms.
+# 
+
+SUBDIRS=simple part1
+
+SPARQL_MODEL_FILES= 
+
+SPARQL_TEST_FILES= \
+
+EXPECTED_SPARQL_TEST_FAILURES=
+
+SPARQL_RESULT_FILES=
+
+EXTRA_DIST= \
+$(SPARQL_MODEL_FILES) \
+$(SPARQL_TEST_FILES) \
+$(SPARQL_RESULT_FILES)
+
+$(top_builddir)/roqet:
+	@(cd $(top_builddir) ; $(MAKE) roqet)
+
+$(top_builddir)/sparql_lexer_test:
+	@(cd $(top_builddir) ; $(MAKE) sparql_lexer_test)
+
+$(top_builddir)/sparql_parser_test:
+	@(cd $(top_builddir) ; $(MAKE) sparql_parser_test)
+
+
+check-local: check-sparql-lexer check-sparql-parser
+
+check-sparql-lexer: $(top_builddir)/sparql_lexer_test
+	@set +e; result=0; \
+	$(ECHO) "Testing legal SPARQL lexing"; \
+	for test in $(SPARQL_TEST_FILES); do \
+	  $(ECHO) $(ECHO_N) "Checking $$test $(ECHO_C)"; \
+	  $(top_builddir)/sparql_lexer_test $(srcdir)/$$test >/dev/null; \
+	  status=$$?; \
+	  if test $$status != 0 -a $$status != 2 ; then \
+	    $(ECHO) FAILED returned status $$status; result=1; \
+	  else \
+	    $(ECHO) ok; \
+	  fi; \
+	done; \
+	set -e; exit $$result
+
+check-sparql-parser: $(top_builddir)/sparql_parser_test
+	@set +e; result=0; \
+	$(ECHO) "Testing legal SPARQL parsing"; \
+	for test in $(SPARQL_TEST_FILES); do \
+	  $(ECHO) $(ECHO_N) "Checking $$test $(ECHO_C)"; \
+	  $(top_builddir)/sparql_parser_test $(srcdir)/$$test >/dev/null; \
+	  status=$$?; \
+	  if test $$status != 0 -a $$status != 2 ; then \
+	    $(ECHO) FAILED returned status $$status; result=1; \
+	    fails="$$fails $$test"; \
+	  else \
+	    $(ECHO) ok; \
+	  fi; \
+	done; \
+	if test $$result = 1 ; then \
+	  echo "Expecting test failures: $(EXPECTED_SPARQL_TEST_FAILURES)"; \
+	  if test "X$$fails" = "X $(EXPECTED_SPARQL_TEST_FAILURES)" ; then \
+	    echo "OK: Ignoring expected test failures"; result=0; \
+          else \
+	    echo "FAILED: failures $$fails does not match expected"; result=1; \
+          fi; \
+	fi; \
+	set -e; exit $$result
+
+check-sparql-works: $(top_builddir)/roqet
+	@set +e; result=0; \
+	$(ECHO) "Testing SPARQL"; \
+	for test in $(SPARQL_TEST_FILES); do \
+	  $(ECHO) $(ECHO_N) "Checking $$test $(ECHO_C)"; \
+	  $(top_builddir)/roqet -i sparql $(srcdir)/$$test >/dev/null 2>&1; \
+	  status=$$?; \
+	  if test $$status != 0 -a $$status != 2 ; then \
+	    $(ECHO) FAILED returned status $$status; result=1; \
+	    fails="$$fails $$test"; \
+	  else \
+	    $(ECHO) ok; \
+	  fi; \
+	done; \
+	set -e; exit $$result
