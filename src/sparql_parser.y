@@ -451,10 +451,12 @@ PatternElementForms: SOURCE '*' GraphPattern1  /* from SourceGraphPattern */
   fputs("\n\n", stdout);
 #endif
 
-  /* Flag all the triples in GraphPattern1 with origin $2 */
-  for(i=0; i < raptor_sequence_size(s); i++) {
-    rasqal_triple *t=(rasqal_triple*)raptor_sequence_get_at(s, i);
-    rasqal_triple_set_origin(t, rasqal_new_literal_from_literal($2));
+  if(s) {
+    /* Flag all the triples in GraphPattern1 with origin $2 */
+    for(i=0; i < raptor_sequence_size(s); i++) {
+      rasqal_triple *t=(rasqal_triple*)raptor_sequence_get_at(s, i);
+      rasqal_triple_set_origin(t, rasqal_new_literal_from_literal($2));
+    }
   }
   rasqal_free_literal($2);
   $$=$3;
@@ -470,10 +472,12 @@ PatternElementForms: SOURCE '*' GraphPattern1  /* from SourceGraphPattern */
   fputs("\n\n", stdout);
 #endif
 
-  /* Flag all the triples in GraphPattern1 as optional */
-  for(i=0; i < raptor_sequence_size(s); i++) {
-    rasqal_triple *t=(rasqal_triple*)raptor_sequence_get_at(s, i);
-    t->flags |= RASQAL_TRIPLE_FLAGS_OPTIONAL;
+  if(s) {
+    /* Flag all the triples in GraphPattern1 as optional */
+    for(i=0; i < raptor_sequence_size(s); i++) {
+      rasqal_triple *t=(rasqal_triple*)raptor_sequence_get_at(s, i);
+      t->flags |= RASQAL_TRIPLE_FLAGS_OPTIONAL;
+    }
   }
   $$=$2;
 }
@@ -483,17 +487,22 @@ PatternElementForms: SOURCE '*' GraphPattern1  /* from SourceGraphPattern */
 
 #if RASQAL_DEBUG > 1  
   printf("PatternElementForms 4\n  graphpattern=");
-  raptor_sequence_print($2, stdout);
+  if($2)
+    raptor_sequence_print($2, stdout);
+  else
+    fputs("NULL", stdout);
   fputs("\n\n", stdout);
 #endif
 
-  /* Make all graph patterns in GraphPattern, optional */
-  for(i=0; i < raptor_sequence_size($2); i++) {
-    rasqal_graph_pattern *gp=(rasqal_graph_pattern*)raptor_sequence_get_at($2, i);
-    gp->flags |= RASQAL_PATTERN_FLAGS_OPTIONAL;
-  }
-
-  $$=rasqal_new_graph_pattern_from_sequence($2, RASQAL_PATTERN_FLAGS_OPTIONAL);
+  if($2) {
+    /* Make all graph patterns in GraphPattern, optional */
+    for(i=0; i < raptor_sequence_size($2); i++) {
+      rasqal_graph_pattern *gp=(rasqal_graph_pattern*)raptor_sequence_get_at($2, i);
+      gp->flags |= RASQAL_PATTERN_FLAGS_OPTIONAL;
+    }
+    $$=rasqal_new_graph_pattern_from_sequence($2, RASQAL_PATTERN_FLAGS_OPTIONAL);
+  } else
+    $$=NULL;
 }
 | AND Expression
 {
