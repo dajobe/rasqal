@@ -45,7 +45,8 @@ $(top_builddir)/sparql_parser_test:
 	@(cd $(top_builddir) ; $(MAKE) sparql_parser_test)
 
 
-check-local: check-sparql-lexer check-sparql-parser
+check-local: check-sparql-lexer check-sparql-parser \
+check-sparql-works check-sparql-correct
 
 check-sparql-lexer: $(top_builddir)/sparql_lexer_test
 	@set +e; result=0; \
