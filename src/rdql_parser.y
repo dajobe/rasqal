@@ -38,12 +38,15 @@
 #include <rdql_lexer.h>
 
 
+inline int rdql_parser_lex(void);
+int rdql_parser_error(const char *msg);
+
+
 inline int
 rdql_parser_lex(void) {
   return rdql_lexer_lex();
 }
 
-int rdql_parser_error(const char *msg);
 
 static rasqal_query* Q;
  
