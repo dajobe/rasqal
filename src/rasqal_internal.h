@@ -106,8 +106,20 @@ struct rasqal_query_s {
   raptor_sequence *triples;     /* ... rasqal_triple*              */
   raptor_sequence *constraints; /* ... rasqal_expression*          */
   raptor_sequence *prefixes;    /* ... rasqal_prefix*              */
+  raptor_sequence *constructs;  /* ... rasqal_triple*        BRQL  */
+  raptor_sequence *optional_triples; /* ... rasqal_triple*   BRQL  */
+  raptor_sequence *describes;   /* ... rasqal_uri*           BRQL  */
 
-  int select_all;  /* non-0 if 'SELECT *' was seen (selects will be NULL) */
+  /* non-0 if '*' was seen in SELECT or DESCRIBE (selects will be NULL) */
+  int select_all;
+
+  /* DESCRIBE support */
+  /* non-0 if selects array above was given by DESCRIBE */
+  int select_is_describe;
+
+  /* CONSTRUCT support */
+  /* non-0 if 'CONSTRUCT *' was seen (constructs will be NULL) */
+  int construct_all;
 
   int prepared;
   int executed;
@@ -269,6 +281,9 @@ void rasqal_query_warning_varargs(rasqal_query* query, const char *message, va_l
 
 /* rdql_parser.y */
 void rasqal_init_query_engine_rdql (void);
+
+/* brql_parser.y */
+void rasqal_init_query_engine_brql (void);
 
 /* rasqal_engine.c */
 int rasqal_query_order_triples(rasqal_query* query);
