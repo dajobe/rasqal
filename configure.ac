@@ -582,6 +582,7 @@ tests/sparql/examples/Makefile
 docs/Makefile
 win32/Makefile
 rasqal.spec
+rasqal.rdf
 rasqal.pc])
 AC_CONFIG_FILES([rasqal-config], [chmod +x rasqal-config])
 AC_CONFIG_FILES([rasqal-src-config], [chmod +x rasqal-src-config])

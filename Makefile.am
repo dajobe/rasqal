@@ -96,6 +96,7 @@ README      NEWS      LICENSE.txt \
 README.html NEWS.html LICENSE.html INSTALL.html \
 librasqal.html roqet.html RELEASE.html \
 LICENSE-2.0.txt NOTICE \
+rasqal.rdf.in \
 rdql_lexer.l rdql_parser.y \
 sparql_lexer.l sparql_parser.y \
 rasqal-config.in rasqal-src-config.in \
