@@ -178,7 +178,7 @@ Query : SELECT SelectClause SourceClause WHERE TriplePatternList ConstraintClaus
   ((rasqal_query*)rq)->selects=$2;
   ((rasqal_query*)rq)->sources=$3;
   ((rasqal_query*)rq)->triples=$5;
-  ((rasqal_query*)rq)->constraints=$6;
+  /* ignoring $6 sequence, set in ConstraintClause */
 }
 ;
 
@@ -194,7 +194,7 @@ VarList : VarList COMMA Var
 }
 | Var
 {
-  /* The variables are freed from the raptor_query field variables */
+  /* The variables are freed from the rasqal_query field variables */
   $$=raptor_new_sequence(NULL, (raptor_sequence_print_handler*)rasqal_variable_print);
   raptor_sequence_push($$, $1);
 }
@@ -278,7 +278,8 @@ ConstraintClause : AND Expression ( ( COMMA | AND ) Expression )*
 
 ConstraintClause : AND CommaAndConstraintClause
 {
-  $$=$2;
+  rasqal_query_add_constraint(((rasqal_query*)rq), $2);
+  $$=NULL;
 }
 | /* empty */
 {
