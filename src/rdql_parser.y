@@ -316,6 +316,11 @@ PrefixDeclList : IDENTIFIER FOR URI_LITERAL COMMA PrefixDeclList
   $$=$5;
   raptor_sequence_shift($$, rasqal_new_prefix($1, $3));
 }
+| IDENTIFIER FOR URI_LITERAL PrefixDeclList 
+{
+  $$=$4;
+  raptor_sequence_shift($$, rasqal_new_prefix($1, $3));
+}
 | IDENTIFIER FOR URI_LITERAL
 {
   $$=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_prefix, (raptor_sequence_print_handler*)rasqal_prefix_print);
