@@ -669,7 +669,7 @@ rdql_parse(rasqal_query* rq, const char *string) {
      rasqal_engine_expand_constraints_qnames(rq))
     return 1;
 
-  return 0;
+  return rq->failed;
 }
 
 
