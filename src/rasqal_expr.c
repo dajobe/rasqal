@@ -57,7 +57,8 @@ inline int rasqal_expression_compare(rasqal_expression* e1, rasqal_expression* e
 
 
 rasqal_literal*
-rasqal_new_integer_literal(rasqal_literal_type type, int integer) {
+rasqal_new_integer_literal(rasqal_literal_type type, int integer)
+{
   rasqal_literal* l=(rasqal_literal*)calloc(sizeof(rasqal_literal), 1);
 
   l->type=type;
@@ -71,7 +72,8 @@ rasqal_new_integer_literal(rasqal_literal_type type, int integer) {
 
 
 rasqal_literal*
-rasqal_new_floating_literal(const char *string) {
+rasqal_new_floating_literal(const char *string)
+{
   rasqal_literal* l=(rasqal_literal*)calloc(sizeof(rasqal_literal), 1);
   double f;
 
@@ -88,7 +90,8 @@ rasqal_new_floating_literal(const char *string) {
 
 
 rasqal_literal*
-rasqal_new_uri_literal(raptor_uri *uri) {
+rasqal_new_uri_literal(raptor_uri *uri)
+{
   rasqal_literal* l=(rasqal_literal*)calloc(sizeof(rasqal_literal), 1);
 
   l->type=RASQAL_LITERAL_URI;
@@ -99,7 +102,8 @@ rasqal_new_uri_literal(raptor_uri *uri) {
 
 
 rasqal_literal*
-rasqal_new_pattern_literal(char *pattern, char *flags) {
+rasqal_new_pattern_literal(char *pattern, char *flags)
+{
   rasqal_literal* l=(rasqal_literal*)calloc(sizeof(rasqal_literal), 1);
 
   l->type=RASQAL_LITERAL_PATTERN;
@@ -147,7 +151,8 @@ rasqal_literal_string_to_native(rasqal_literal *l)
 
 rasqal_literal*
 rasqal_new_string_literal(char *string, char *language,
-                          raptor_uri *datatype, char *datatype_qname) {
+                          raptor_uri *datatype, char *datatype_qname)
+{
   rasqal_literal* l=(rasqal_literal*)calloc(sizeof(rasqal_literal), 1);
 
   if(datatype &&
@@ -168,7 +173,8 @@ rasqal_new_string_literal(char *string, char *language,
 
 /* used for BLANK and QNAME */
 rasqal_literal*
-rasqal_new_simple_literal(rasqal_literal_type type, char *string) {
+rasqal_new_simple_literal(rasqal_literal_type type, char *string)
+{
   rasqal_literal* l=(rasqal_literal*)calloc(sizeof(rasqal_literal), 1);
 
   l->type=type;
@@ -179,7 +185,8 @@ rasqal_new_simple_literal(rasqal_literal_type type, char *string) {
 
 
 rasqal_literal*
-rasqal_new_boolean_literal(int value) {
+rasqal_new_boolean_literal(int value)
+{
   rasqal_literal* l=(rasqal_literal*)calloc(sizeof(rasqal_literal), 1);
 
   l->type=RASQAL_LITERAL_BOOLEAN;
@@ -202,14 +209,16 @@ rasqal_new_variable_literal(rasqal_variable *variable)
 
 
 rasqal_literal*
-rasqal_new_literal_from_literal(rasqal_literal* l) {
+rasqal_new_literal_from_literal(rasqal_literal* l)
+{
   l->usage++;
   return l;
 }
 
 
 void
-rasqal_free_literal(rasqal_literal* l) {
+rasqal_free_literal(rasqal_literal* l)
+{
   if(--l->usage)
     return;
   
@@ -434,7 +443,8 @@ rasqal_literal_as_string(rasqal_literal* l)
 
 
 rasqal_variable*
-rasqal_literal_as_variable(rasqal_literal* l) {
+rasqal_literal_as_variable(rasqal_literal* l)
+{
   return (l->type == RASQAL_LITERAL_VARIABLE) ? l->value.variable : NULL;
 }
 
@@ -646,7 +656,8 @@ rasqal_literal_equals(rasqal_literal* l1, rasqal_literal* l2)
 
 
 int
-rasqal_literal_expand_qname(void *user_data, rasqal_literal *l) {
+rasqal_literal_expand_qname(void *user_data, rasqal_literal *l)
+{
   rasqal_query *rq=(rasqal_query *)user_data;
 
   if(l->type == RASQAL_LITERAL_QNAME) {
@@ -717,7 +728,8 @@ rasqal_new_variable(rasqal_query* rq,
 
 
 void
-rasqal_free_variable(rasqal_variable* v) {
+rasqal_free_variable(rasqal_variable* v)
+{
   if(v->name)
     RASQAL_FREE(cstring, v->name);
   if(v->value)
@@ -769,7 +781,8 @@ rasqal_new_prefix(const char *prefix, raptor_uri* uri)
 
 
 void
-rasqal_free_prefix(rasqal_prefix* p) {
+rasqal_free_prefix(rasqal_prefix* p)
+{
   if(p->prefix)
     RASQAL_FREE(cstring, p->prefix);
   raptor_free_uri(p->uri);
@@ -864,7 +877,8 @@ rasqal_new_literal_expression(rasqal_literal *literal)
 
 
 void
-rasqal_free_expression(rasqal_expression* e) {
+rasqal_free_expression(rasqal_expression* e)
+{
   switch(e->op) {
     case RASQAL_EXPR_AND:
     case RASQAL_EXPR_OR:
@@ -905,7 +919,8 @@ rasqal_free_expression(rasqal_expression* e) {
 int
 rasqal_expression_foreach(rasqal_expression* e, 
                           rasqal_expression_foreach_fn fn,
-                          void *user_data) {
+                          void *user_data)
+{
   switch(e->op) {
     case RASQAL_EXPR_AND:
     case RASQAL_EXPR_OR:
@@ -943,7 +958,8 @@ rasqal_expression_foreach(rasqal_expression* e,
 
 
 inline int
-rasqal_expression_as_boolean(rasqal_expression* e, int *error) {
+rasqal_expression_as_boolean(rasqal_expression* e, int *error)
+{
   if(e->op == RASQAL_EXPR_LITERAL)
     return rasqal_literal_as_boolean(e->literal, error);
 
@@ -952,7 +968,8 @@ rasqal_expression_as_boolean(rasqal_expression* e, int *error) {
 
 
 int
-rasqal_expression_as_integer(rasqal_expression* e, int *error) {
+rasqal_expression_as_integer(rasqal_expression* e, int *error)
+{
   if(e->op == RASQAL_EXPR_LITERAL)
     return rasqal_literal_as_integer(e->literal, error);
 
@@ -962,7 +979,8 @@ rasqal_expression_as_integer(rasqal_expression* e, int *error) {
 
 int
 rasqal_expression_compare(rasqal_expression* e1, rasqal_expression* e2,
-                          int flags, int *error) {
+                          int flags, int *error)
+{
   *error=0;
   
   if(e1->op == RASQAL_EXPR_LITERAL && e1->op == e2->op)
@@ -976,7 +994,8 @@ rasqal_expression_compare(rasqal_expression* e1, rasqal_expression* e2,
 
 
 rasqal_literal*
-rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e) {
+rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
+{
   int error=0;
   
   switch(e->op) {
@@ -1574,7 +1593,8 @@ rasqal_expression_print(rasqal_expression* e, FILE* fh)
 
 /* for use with rasqal_expression_foreach and user_data=rasqal_query */
 int
-rasqal_expression_expand_qname(void *user_data, rasqal_expression *e) {
+rasqal_expression_expand_qname(void *user_data, rasqal_expression *e)
+{
   if(e->op == RASQAL_EXPR_LITERAL)
     return rasqal_literal_expand_qname(user_data, e->literal);
 
