@@ -503,11 +503,16 @@ rasqal_engine_execute_finish(rasqal_query *query) {
  */
 int
 rasqal_engine_get_next_result(rasqal_query *query) {
-  int triples_size=raptor_sequence_size(query->triples);
+  int triples_size;
   int rc=0;
 
   if(query->finished)
     return 0;
+
+  if(!query->triples)
+    return -1;
+  
+  triples_size=raptor_sequence_size(query->triples);
   
   while(query->column >= 0) {
     rasqal_triple_meta *m=&query->triple_meta[query->column];
