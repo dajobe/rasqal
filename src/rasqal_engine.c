@@ -405,7 +405,24 @@ rasqal_triples_match_is_end(struct rasqal_triples_match_s* rtm)
 
 
 /**
+ * rasqal_new_graph_pattern - create a new graph pattern object
+ * @query: &rasqal_graph_pattern query object
+ * 
+ * Return value: a new &rasqal_graph-pattern object or NULL on failure
+ **/
+rasqal_graph_pattern*
+rasqal_new_graph_pattern(rasqal_query* query) {
+  rasqal_graph_pattern* gp=(rasqal_graph_pattern*)RASQAL_CALLOC(rasqal_graph_pattern, sizeof(rasqal_graph_pattern), 1);
+
+  gp->query=query;
+
+  return gp;
+}
+
+
+/**
  * rasqal_new_graph_pattern_from_triples - create a new graph pattern object over triples
+ * @query: &rasqal_graph_pattern query object
  * @triples: triples sequence containing the graph pattern
  * @start_column: first triple in the pattern
  * @end_column: last triple in the pattern
@@ -419,9 +436,8 @@ rasqal_new_graph_pattern_from_triples(rasqal_query* query,
                                       int start_column, int end_column,
                                       int flags)
 {
-  rasqal_graph_pattern* gp=(rasqal_graph_pattern*)RASQAL_CALLOC(rasqal_graph_pattern, sizeof(rasqal_graph_pattern), 1);
+  rasqal_graph_pattern* gp=rasqal_new_graph_pattern(query);
 
-  gp->query=query;
   gp->triples=triples;
   gp->column= -1;
   gp->start_column=start_column;
@@ -437,6 +453,8 @@ rasqal_new_graph_pattern_from_triples(rasqal_query* query,
 
 /**
  * rasqal_new_graph_pattern_from_sequence - create a new graph pattern from a sequence of graph_patterns
+ * @query: &rasqal_graph_pattern query object
+ * @graph_patterns: sequence containing the graph patterns
  * @flags: enum &rasqal_triple_flags such as RASQAL_TRIPLE_FLAGS_OPTIONAL
  * 
  * Return value: a new &rasqal_graph-pattern object or NULL on failure
@@ -454,13 +472,11 @@ rasqal_new_graph_pattern_from_sequence(rasqal_query* query,
     gp=(rasqal_graph_pattern*)raptor_sequence_pop(graph_patterns);
     raptor_free_sequence(graph_patterns);
   } else {
-    gp=(rasqal_graph_pattern*)RASQAL_CALLOC(rasqal_graph_pattern, sizeof(rasqal_graph_pattern), 1);
-    
+    gp=rasqal_new_graph_pattern(query);
     gp->graph_patterns=graph_patterns;
     gp->flags=flags;
   }
 
-  gp->query=query;
   gp->column= -1;
   gp->optional_graph_pattern= -1;
   gp->finished=0;
