@@ -230,7 +230,7 @@ if test "X$RAPTOR_CONFIG" = X; then
 else
   RAPTOR_VERSION=`$RAPTOR_CONFIG --version 2>/dev/null`
 
-  RAPTOR_VERSION_DEC=`$RAPTOR_CONFIG --version-decimal`
+  RAPTOR_VERSION_DEC=`$RAPTOR_CONFIG --version-decimal 2>/dev/null`
   RAPTOR_MIN_VERSION_DEC=`echo $RAPTOR_MIN_VERSION | $AWK -F. '{printf("%d\n", 10000*$1 + 100*$2 + $3)};'`
 
   if test "X$with_raptor" = Xauto; then
@@ -393,7 +393,7 @@ if test "X$REDLAND_CONFIG" != "X"; then
   REDLAND_VERSION=`$REDLAND_CONFIG --version 2>/dev/null`
   REDLAND_MIN_VERSION=0.9.16
 
-  REDLAND_VERSION_DEC=`$REDLAND_CONFIG --version-decimal`
+  REDLAND_VERSION_DEC=`$REDLAND_CONFIG --version-decimal 2>/dev/null`
   REDLAND_MIN_VERSION_DEC=`echo $REDLAND_MIN_VERSION | $AWK -F. '{printf("%d\n", 10000*$1 + 100*$2 + $3)};'`
 
   if test "X$REDLAND_VERSION" = X; then
