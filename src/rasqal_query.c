@@ -995,9 +995,9 @@ rasqal_query_print(rasqal_query* query, FILE *fh)
   if(query->limit >= 0)
     fprintf(fh, "query results limit: %d\n", query->limit);
 
-  fprintf(fh, "sources: ");
-  if(query->sources)
-    raptor_sequence_print(query->sources, fh);
+  fprintf(fh, "data graphs: ");
+  if(query->data_graphs)
+    raptor_sequence_print(query->data_graphs, fh);
   if(query->variables_sequence) {
     fprintf(fh, "\nall variables: "); 
     raptor_sequence_print(query->variables_sequence, fh);
