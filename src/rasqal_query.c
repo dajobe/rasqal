@@ -181,6 +181,24 @@ rasqal_query_has_variable(rasqal_query* query, const char *name) {
 }
 
 
+int
+rasqal_query_set_variable(rasqal_query* query, const char *name,
+                          rasqal_expression* value) {
+  int i;
+
+  for(i=0; i< rasqal_sequence_size(query->selects); i++) {
+    rasqal_variable* v=rasqal_sequence_get_at(query->selects, i);
+    if(!strcmp(v->name, name)) {
+      if(v->value)
+        rasqal_free_expression(v->value);
+      v->value=value;
+      return 0;
+    }
+  }
+  return 1;
+}
+
+
 /**
  * rasqal_query_prepare: Prepare a query - typically parse it
  * @rdf_query: the &rasqal_query object
@@ -216,6 +234,8 @@ rasqal_query_prepare(rasqal_query *rdf_query,
   return rdf_query->factory->prepare(rdf_query);
 }
 
+librdf_world *world=NULL;
+
 
 /**
  * rasqal_query_execute: excute a query - run and return results
@@ -228,13 +248,42 @@ rasqal_query_prepare(rasqal_query *rdf_query,
 int
 rasqal_query_execute(rasqal_query *rdf_query)
 {
+  int rc=0;
+  librdf_storage *storage;
+  librdf_model *model;
+  librdf_parser *parser;
+  raptor_uri *source0;
+  librdf_uri *r_source0;
+  
   if(rasqal_query_order_triples(rdf_query))
     return 1;
 
+  source0=(raptor_uri*)rasqal_sequence_get_at(rdf_query->sources, 0);
+  //r_source0=librdf_new_uri(world, raptor_uri_as_string(source0));
+  r_source0=librdf_new_uri(world, "file:///home/dajobe/rdf/redland/rasqal/jobs-rss.rdf");
+
+  storage = librdf_new_storage(world, NULL, NULL, NULL);
+  model = librdf_new_model(world, storage, NULL);
+
+  parser=librdf_new_parser(world, NULL, NULL, NULL);
+  librdf_parser_parse_into_model(parser, r_source0, NULL, model);
+  librdf_free_parser(parser);
+                                 
+  rdf_query->world=world;
+  rdf_query->model=model;
+  rasqal_select_next(rdf_query, 0);
+
   if(rdf_query->factory->execute)
-    return rdf_query->factory->execute(rdf_query);
+    rc=rdf_query->factory->execute(rdf_query);
+  else
+    rc=1;
+
+  librdf_free_uri(r_source0);
   
-  return 1;
+  librdf_free_model(model);
+  librdf_free_storage(storage);
+
+  return rc;
 }
 
 
@@ -313,6 +362,9 @@ main(int argc, char *argv[])
 
   rasqal_init();
 
+  world=librdf_new_world();
+  librdf_world_open(world);
+
   if(!argv[2] || !strcmp(argv[2], "-")) {
     query_string=(char*)calloc(RDQL_FILE_BUF_SIZE, 1);
     fread(query_string, RDQL_FILE_BUF_SIZE, 1, stdin);
@@ -344,10 +396,13 @@ main(int argc, char *argv[])
     free(query_string);
   }
 
-  raptor_free_uri(base_uri);
+  if(base_uri)
+    raptor_free_uri(base_uri);
 
   rasqal_finish();
 
+  librdf_free_world(world);
+  
   return (rc);
 }
 #endif
