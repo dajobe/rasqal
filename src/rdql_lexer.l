@@ -66,7 +66,7 @@
 
 %{
 
-/* NOTE: These headers are NOT included here are inserted by fix-flex
+/* NOTE: These headers are NOT included here. They are inserted by fix-flex
  * since otherwise it appears far too late in the generated C
  */
 
