@@ -89,11 +89,16 @@ typedef struct rasqal_query_engine_factory_s rasqal_query_engine_factory;
 struct rasqal_query_s {
   unsigned char *query_string;
 
+  raptor_namespace_stack *namespaces;
+
   rasqal_sequence *selects; /* sequence of rasqal_variable* */
   rasqal_sequence *sources; /* sequence of char* */
   rasqal_sequence *triples;
   rasqal_sequence *constraints;
   rasqal_sequence *prefixes;
+
+  /* NOTE: Shared triple pointers with 'triples' - entries are not freed  */
+  rasqal_sequence *ordered_triples;
 
   /* can be filled with error location information */
   raptor_locator locator;
@@ -180,6 +185,11 @@ void rasqal_query_warning_varargs(rasqal_query* query, const char *message, va_l
 
 /* rdql_parser.y */
 void rasqal_init_query_engine_rdql (void);
+
+/* rasqal_engine.c */
+int rasqal_query_order_triples(rasqal_query* query);
+int rasqal_engine_declare_prefixes(rasqal_query *rq);
+int rasqal_engine_expand_triple_qnames(rasqal_query* rq);
 
 /* end of RASQAL_INTERNAL */
 #endif
