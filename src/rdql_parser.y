@@ -184,7 +184,7 @@ Query : SELECT SelectClause SourceClause WHERE TriplePatternList ConstraintClaus
     
     for(i=0; i < raptor_sequence_size($3); i++) {
       raptor_uri* uri=(raptor_uri*)raptor_sequence_get_at($3, i);
-      rasqal_query_add_data_graph((rasqal_query*)rq, uri, uri, RASQAL_DATA_GRAPH_NAMED);
+      rasqal_query_add_data_graph((rasqal_query*)rq, uri, NULL, RASQAL_DATA_GRAPH_BACKGROUND);
     }
     raptor_free_sequence($3);
   }
