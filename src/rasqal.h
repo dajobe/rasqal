@@ -62,14 +62,14 @@ typedef enum {
 } rasqal_feature;
 
 typedef struct {
-  const char *prefix;
+  const unsigned char *prefix;
   raptor_uri* uri;
 } rasqal_prefix ;
 
 
 /* variable binding */
 typedef struct {
-  const char *name;
+  const unsigned char *name;
   struct rasqal_literal_s *value;
   int offset;   /* offset in the rasqal_query variables array */
 } rasqal_variable;
@@ -92,16 +92,16 @@ typedef enum {
 struct rasqal_literal_s {
   int usage;
   rasqal_literal_type type;
-  char *string; /* string, pattern, qname, blank, float types */
+  const unsigned char *string; /* UTF-8 string, pattern, qname, blank, float types */
   union {
     int integer;  /* integer and boolean types */
     double floating; /* floating */
     raptor_uri* uri; /* uri */
     rasqal_variable* variable; /* variable */
   } value;
-  char *language; /* for string */
+  const char *language; /* for string */
   raptor_uri *datatype;  /* for string */
-  char *flags;   /* for pattern; used as datatype qname for string  */
+  const unsigned char *flags;   /* for pattern; used as datatype qname for string  */
 };
 
 typedef enum {
@@ -142,7 +142,7 @@ struct rasqal_expression_s {
   struct rasqal_expression_s* arg2;
   rasqal_literal* literal;
   rasqal_variable* variable;
-  char *value;
+  unsigned char *value; /* UTF-8 value */
 };
 typedef struct rasqal_expression_s rasqal_expression;
 
@@ -191,8 +191,8 @@ RASQAL_API raptor_uri* rasqal_query_get_source(rasqal_query* query, int idx);
 RASQAL_API void rasqal_query_add_variable(rasqal_query* query, rasqal_variable* var);
 RASQAL_API raptor_sequence* rasqal_query_get_variable_sequence(rasqal_query* query);
 RASQAL_API rasqal_variable* rasqal_query_get_variable(rasqal_query* query, int idx);
-RASQAL_API int rasqal_query_has_variable(rasqal_query* query, const char *name);
-RASQAL_API int rasqal_query_set_variable(rasqal_query* query, const char *name, rasqal_literal* value);
+RASQAL_API int rasqal_query_has_variable(rasqal_query* query, const unsigned char *name);
+RASQAL_API int rasqal_query_set_variable(rasqal_query* query, const unsigned char *name, rasqal_literal* value);
 RASQAL_API void rasqal_query_add_triple(rasqal_query* query, rasqal_triple* triple);
 RASQAL_API raptor_sequence* rasqal_query_get_triple_sequence(rasqal_query* query);
 RASQAL_API rasqal_triple* rasqal_query_get_triple(rasqal_query* query, int idx);
@@ -219,10 +219,10 @@ RASQAL_API int rasqal_query_results_get_count(rasqal_query_results *query_result
 RASQAL_API int rasqal_query_results_next(rasqal_query_results *query_results);
 RASQAL_API int rasqal_query_results_finished(rasqal_query_results *query_results);
 
-RASQAL_API int rasqal_query_results_get_bindings(rasqal_query_results *query_results, const char ***names, rasqal_literal ***values);
+RASQAL_API int rasqal_query_results_get_bindings(rasqal_query_results *query_results, const unsigned char ***names, rasqal_literal ***values);
 RASQAL_API rasqal_literal* rasqal_query_results_get_binding_value(rasqal_query_results *query_results, int offset);
-RASQAL_API const char* rasqal_query_results_get_binding_name(rasqal_query_results *query_results, int offset);
-RASQAL_API rasqal_literal* rasqal_query_results_get_binding_value_by_name(rasqal_query_results *query_results, const char *name);
+RASQAL_API const unsigned char* rasqal_query_results_get_binding_name(rasqal_query_results *query_results, int offset);
+RASQAL_API rasqal_literal* rasqal_query_results_get_binding_value_by_name(rasqal_query_results *query_results, const unsigned char *name);
 RASQAL_API int rasqal_query_results_get_bindings_count(rasqal_query_results *query_results);
 
 
@@ -243,11 +243,11 @@ RASQAL_API int rasqal_expression_foreach(rasqal_expression* expr, rasqal_express
 
 /* Literal class */
 RASQAL_API rasqal_literal* rasqal_new_integer_literal(rasqal_literal_type type, int integer);
-RASQAL_API rasqal_literal* rasqal_new_floating_literal(const char *string);
+RASQAL_API rasqal_literal* rasqal_new_floating_literal(const unsigned char *string);
 RASQAL_API rasqal_literal* rasqal_new_uri_literal(raptor_uri* uri);
-RASQAL_API rasqal_literal* rasqal_new_pattern_literal(char *pattern, char *flags);
-RASQAL_API rasqal_literal* rasqal_new_string_literal(char *string, char *language, raptor_uri *datatype, char *datatype_qname);
-RASQAL_API rasqal_literal* rasqal_new_simple_literal(rasqal_literal_type type, char *string);
+RASQAL_API rasqal_literal* rasqal_new_pattern_literal(const unsigned char *pattern, const char *flags);
+RASQAL_API rasqal_literal* rasqal_new_string_literal(const unsigned char *string, const char *language, raptor_uri *datatype, const unsigned char *datatype_qname);
+RASQAL_API rasqal_literal* rasqal_new_simple_literal(rasqal_literal_type type, const unsigned char *string);
 RASQAL_API rasqal_literal* rasqal_new_boolean_literal(int value);
 RASQAL_API rasqal_literal* rasqal_new_variable_literal(rasqal_variable *variable);
 
@@ -255,14 +255,14 @@ RASQAL_API rasqal_literal* rasqal_new_literal_from_literal(rasqal_literal* liter
 RASQAL_API void rasqal_free_literal(rasqal_literal* literal);
 RASQAL_API void rasqal_literal_print(rasqal_literal* literal, FILE* fh);
 RASQAL_API rasqal_variable* rasqal_literal_as_variable(rasqal_literal* literal);
-RASQAL_API char* rasqal_literal_as_string(rasqal_literal* literal);
+RASQAL_API const unsigned char* rasqal_literal_as_string(rasqal_literal* literal);
 RASQAL_API rasqal_literal* rasqal_literal_as_node(rasqal_literal* literal);
 
 #define RASQAL_COMPARE_NOCASE 1
 RASQAL_API int rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags, int *error);
 RASQAL_API int rasqal_literal_equals(rasqal_literal* l1, rasqal_literal* l2);
 
-RASQAL_API rasqal_prefix* rasqal_new_prefix(const char* prefix, raptor_uri* uri);
+RASQAL_API rasqal_prefix* rasqal_new_prefix(const unsigned char* prefix, raptor_uri* uri);
 RASQAL_API void rasqal_free_prefix(rasqal_prefix* prefix);
 RASQAL_API void rasqal_prefix_print(rasqal_prefix* p, FILE* fh);
 
@@ -272,7 +272,7 @@ RASQAL_API void rasqal_free_triple(rasqal_triple* t);
 RASQAL_API void rasqal_triple_print(rasqal_triple* t, FILE* fh);
 
 /* Variable class */
-RASQAL_API rasqal_variable* rasqal_new_variable(rasqal_query* query, const char *name, rasqal_literal *value);
+RASQAL_API rasqal_variable* rasqal_new_variable(rasqal_query* query, const unsigned char *name, rasqal_literal *value);
 RASQAL_API void rasqal_free_variable(rasqal_variable* variable);
 RASQAL_API void rasqal_variable_print(rasqal_variable* t, FILE* fh);
 RASQAL_API void rasqal_variable_set_value(rasqal_variable* v, rasqal_literal *l);
