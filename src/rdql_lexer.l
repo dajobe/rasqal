@@ -404,29 +404,34 @@ copy_string_token(rasqal_query* rq, YYSTYPE* lval,
         *d++=c;
       }
     } else if(c== delim) {
+      *d++='\0';
+
+      /* skip delim */
+      s++; i++;
+
+      c=*s++; i++;
+      if(c=='@') {
+        language=d;
+        while(i<=len) {
+          c=*s++; i++;
+          if(!isalpha(c) && !isdigit(c))
+            break;
+          *d++=c;
+        }
+        *d++='\0';
+      }
+      if(c=='^') {
+        /* skip second char of ^^ */
         s++; i++;
-        c=*s;
-        if(c=='@') {
-          *d++='\0';
-          s++; i++;
-          language=d;
-          while(i<len) {
-            *d++=*s++; i++;
-            if(!isalpha(*s) || !isdigit(*s))
-              break;
-          }
-        }
-        if(c=='^') {
-          *d++='\0';
-          s++; i++;
-          /* FIXME assuming ^^ */
-          s++; i++;
-          dt=d;
-          while(i++<=len)
-            *d++=*s++;
-          /* *d='\0' below */
-        }
-        break;
+
+        dt=d;
+        while(i++<=len)
+          *d++=*s++;
+        /* *d='\0' below */
+      } else if (language)
+        *d='\0';
+      
+      break;
    } else
     *d++=c;
   } /* end of for */
@@ -443,6 +448,15 @@ copy_string_token(rasqal_query* rq, YYSTYPE* lval,
       dt_qname=dt;
     }
   }
+
+#if 1
+  fprintf(stderr, "string='%s', language='%s'\n", 
+          string, (language ? language : ""));
+  fprintf(stderr, "dt uri='%s',qname='%s'\n",
+          (dt_uri ? raptor_uri_as_string(dt_uri) : ""),
+          (dt_qname ? dt_qname : ""));
+#endif
+
   lval->literal=rasqal_new_string_literal(string, language, dt_uri, dt_qname);
 
   return 0;
