@@ -1035,9 +1035,14 @@ rasqal_literal_as_node(rasqal_literal* l)
       new_l=rasqal_new_literal_from_literal(l);
       break;
       
+    case RASQAL_LITERAL_VARIABLE:
+      return rasqal_new_literal_from_literal(l->value.variable->value);
+
     case RASQAL_LITERAL_FLOATING:
     case RASQAL_LITERAL_INTEGER:
       dt_uri=raptor_uri_copy(l->datatype);
+      /* FALLTHROUGH */
+
     default:
       new_l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, sizeof(rasqal_literal), 1);
 
