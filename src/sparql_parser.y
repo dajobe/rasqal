@@ -500,9 +500,7 @@ PrefixDeclOpt : PrefixDeclOpt PREFIX IDENTIFIER URI_LITERAL
 }
 | /* empty */
 {
-  /* FIXME - should all be declared already */
-  $$=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_prefix, (raptor_sequence_print_handler*)rasqal_prefix_print);
-  ((rasqal_query*)rq)->prefixes=$$;
+  /* nothing to do, rq->prefixes already initialised */
 }
 ;
 
@@ -1014,6 +1012,7 @@ main(int argc, char *argv[])
                                          &query,
                                          0);
   query.variables_sequence=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_variable, (raptor_sequence_print_handler*)rasqal_variable_print);
+  query.prefixes=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_prefix, (raptor_sequence_print_handler*)rasqal_prefix_print);
   
   locator->line= locator->column = -1;
   locator->file= filename;
@@ -1028,6 +1027,7 @@ main(int argc, char *argv[])
   rc=sparql_parse(&query, (const unsigned char*)query_string);
 
   raptor_free_namespaces(query.namespaces);
+  raptor_free_sequence(query.prefixes);
 
   raptor_free_uri(query.base_uri);
 
