@@ -7,7 +7,7 @@
 .\" Institute for Learning and Research Technology - http://www.ilrt.bristol.ac.uk/
 .\" University of Bristol - http://www.bristol.ac.uk/
 .\"
-.TH librasqal 3 "2004-05-14"
+.TH librasqal 3 "2004-06-12"
 .\" Please adjust this date whenever revising the manpage.
 .SH NAME
 librasqal \- Rasqal RDF query library
@@ -335,7 +335,35 @@ sub-expressions.  The order is the first expression at hand and then
 the arguments, if any.  function \fIfn\fP is called at each point
 with the arguments of \fIuser_data\fP and the expression.
 .SH API CHANGES
-.SS 0.2.0
+.SS 0.9.1
+Added the \fBrasqal_query_results\fR class and moved the results
+methods from \fBrasqal_query\fR.
+.br
+Made \fBrasqal_query_execute\fR return a \fBrasqal_query_result*\fR.
+.br
+Renamed all \fBrasqal_query\fR\fI*result*\fP methods to be rasqal_query_result_*
+Added rasqal_free_query_results to tidy up.
+.ta \w'rasqal_query_get_result_binding_by_name  'u+\n(Spu
+.LP
+\fIOLD API (0.9.0)	NEW API (0.9.1+)\fR
+.br
+\fBrasqal_query_get_result_count\fR	\fBrasqal_query_results_get_count\fR
+.br
+\fBrasqal_query_next_result\fR	\fBrasqal_query_results_next\fR
+.br
+\fBrasqal_query_results_finished\fR	\fBrasqal_query_results_finished\fR
+.br
+\fBrasqal_query_get_result_bindings\fR	\fBrasqal_query_results_get_bindings\fR
+.br
+\fBrasqal_query_get_result_binding_value\fR	\fBrasqal_query_results_get_binding_value\fR
+.br
+\fBrasqal_query_get_result_binding_name\fR	\fBrasqal_query_results_get_binding_value_by_name\fR
+.br
+\fBrasqal_query_get_result_binding_by_name\fR	\fBrasqal_query_results_get_binding_by_name\fR
+.br
+\fBrasqal_query_get_bindings_count\fR	\fBrasqal_query_results_get_bindings_count\fR
+.br
+.SS 0.9.0
 All new.
 .br
 .SH "CONFORMING TO"
