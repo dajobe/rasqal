@@ -1,3 +1,35 @@
+2005-02-17  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal_query.c (rasqal_query_set_feature): Added
+	RASQAL_FEATURE_LAST case for -Wswitch-enum (there are no
+	features).
+	(rasqal_query_results_write, rasqal_query_results_get_triple):
+	Added RASQAL_LITERAL_UNKNOWN case for -Wswitch-enum.
+	(rasqal_query_results_get_triple): Added remaining LITERAL enums
+	for -Wswitch-enum.  Note why forbidden - literal subjects,
+	predicates, bnode predicates.
+
+	* rasqal_expr.c (rasqal_free_expression,
+	rasqal_expression_foreach, rasqal_expression_evaluate,
+	rasqal_expression_print): Added RASQAL_EXPR_UNKNOWN case for
+	-Wswitch-enum.  Deleted "pattern" from rasqal_op_labels.
+	(rasqal_expression_print): Deleted RASQAL_EXPR_PATTERN Handle
+	RASQAL_EXPR_FUNCTION.
+
+	* rasqal_literal.c (rasqal_free_literal, rasqal_literal_print,
+	rasqal_literal_as_boolean, rasqal_literal_as_integer,
+	rasqal_literal_as_floating, rasqal_literal_as_string,
+	rasqal_literal_compare, rasqal_literal_equals): Added
+	RASQAL_LITERAL_UNKNOWN case for -Wswitch-enum.
+	(rasqal_literal_as_integer, rasqal_literal_as_floating): Return
+	RASQAL_LITERAL_BLANK as an error.
+
+	* rasqal.h: Deleted RASQAL_EXPR_PATTERN - never used.
+
+	* configure.ac: Add -Wswitch-enum to maintainer-mode gcc switches
+	to catch missing enum values in switches.  Lots of those near
+	expression and literal handling.
+
 2005-02-14  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
 	* win32_rasqal_config.h: Define RASQAL_INLINE to __inline
