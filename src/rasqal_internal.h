@@ -217,14 +217,6 @@ struct rasqal_query_s {
    */
   rasqal_literal** binding_values;
   
-  /* A reordered list of conjunctive triples from triples above
-   * used as a better order to join in.
-   *
-   * NOTE: Shares the rasqal_triple* pointers with 'triples'.
-   * The entries in this sequence are not freed.
-   */
-  raptor_sequence *ordered_triples;
-
   /* the expression version of the sequence of constraints above - this is
    * where the constraints are freed
    */
