@@ -79,6 +79,11 @@ rasqal_new_query(const char *name, const unsigned char *uri) {
                                               rdf_query,
                                               0);
 
+  raptor_namespaces_start_namespace_full(rdf_query->namespaces, 
+                                         "rdf", RAPTOR_RDF_MS_URI,0);
+  raptor_namespaces_start_namespace_full(rdf_query->namespaces, 
+                                         "rdfs", RAPTOR_RDF_SCHEMA_URI,0);
+
 
   rdf_query->variables_sequence=rasqal_new_sequence((rasqal_free_handler*)rasqal_free_variable, (rasqal_print_handler*)rasqal_print_variable);
 
@@ -278,13 +283,13 @@ rasqal_query_execute(rasqal_query *rdf_query)
   librdf_uri *source0;
   char *parser_name;
   
+  /* Expand 'SELECT *' and create the rdf_query->variables array */
+  rasqal_engine_assign_variables(rdf_query);
+  
   /* Order the conjunctive query triples */
   if(rasqal_query_order_triples(rdf_query))
     return 1;
 
-  /* Expand 'SELECT *' and create the rdf_query->variables array */
-  rasqal_engine_assign_variables(rdf_query);
-  
   source0=librdf_new_uri(world, raptor_uri_as_string(rasqal_sequence_get_at(rdf_query->sources, 0)));
 
   storage = librdf_new_storage(world, NULL, NULL, NULL);
@@ -405,17 +410,15 @@ main(int argc, char *argv[])
     rc=1;
   }
 
-  fprintf(stdout, "Query:\n");
-  rasqal_query_print(rq, stdout);
+#ifdef RASQAL_DEBUG
+  fprintf(stderr, "Query:\n");
+  rasqal_query_print(rq, stderr);
+#endif
 
   if(rasqal_query_execute(rq)) {
     fprintf(stderr, "%s: Query execution failed\n", program);
     rc=1;
   }
-
-  fprintf(stdout, "After execution, Query:\n");
-  rasqal_query_print(rq, stdout);
-
 
   rasqal_free_query(rq);
 
