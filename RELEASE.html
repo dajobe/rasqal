@@ -8,6 +8,92 @@
 
   <h1>Rasqal RDF Query Library - Release Notes</h1>
 
+<h2 id="rel0_9_7"><a name="rel0_9_7">Rasqal 0.9.7 Changes</a></h2>
+
+<p>Not yet released.</p>
+
+
+<h3>General Changes</h3>
+
+<p>Fix a resource clean up when query results are either not read at
+all or not fully exhausted.  This caused a problem in Redland when it
+held on to MySQL database handles despite a query having ended.</p>
+
+<p>Added option <code>-n/--dryrun</code> to roqet to stop after
+preparing the query.  Added option <code>-w/--walk-query</code> to
+walk and print the query using the graph API.</p>
+
+<p>Portability fixes for win32 - define RASQAL_INLINE and use it
+as for raptor.  (Dave Viner)</p>
+
+<p>Make rasqal tests work when building against raptor in a sibling
+source tree.</p>
+
+
+<h3>Query Engine Changes</h3>
+
+<p>Added a graph pattern API with <code>rasqal_graph_pattern</code>
+typedef and <code>rasqal_pattern_flags</code> enum with value
+<code>RASQAL_PATTERN_FLAGS_OPTIONAL</code> to allow complete
+walking of the query structure.</p>
+
+<p>Two new methods to the query class were added to support this:
+<code>rasqal_query_get_graph_pattern_sequence</code> to get the
+raptor_sequence of graph patterns in a query and
+<code>rasqal_query_get_graph_pattern</code> to get individual an
+graph pattern by index.</p>
+
+<p>The new graph pattern methods added are:</p>
+<ul>
+  <li><code>rasqal_graph_pattern_get_triple</code> to get a
+  <code>raptor_triple</code> inside a graph pattern.</li>
+  <li><code>rasqal_graph_pattern_get_sub_graph_pattern_sequence</code> to
+  get the raptor_sequence of sub-graph patterns.</li>
+  <li><code>rasqal_graph_pattern_get_sub_graph_pattern</code> to get
+  a sub-graph pattern inside a graph pattern by index.</li>
+  <li><code>rasqal_graph_pattern_get_flags</code> to get a graph
+  pattern's flags.</li>
+  <li><code>rasqal_graph_pattern_print</code> to print a graph
+  pattern in a debug form.</li>
+</ul>
+
+<p>Deprecated <code>rasqal_query_add_triple</code> as it doesn't
+construct the graph patterns and is of little use as it does not
+build the correct query structures.</p>
+
+<p>Added query API methods to get the bound and all variables
+in a query:  <code>rasqal_query_get_bound_variable_sequence</code>
+and <code>rasqal_query_get_all_variable_sequence</code> respectively.
+Deprecated <code>rasqal_query_get_variable_sequence</code> as
+too ambiguous.</p>
+
+<p>With the aid of gcc <code>-Wswitch-enum</code>, found and fixed
+cases where switch on enumerated values were missing cases.  The
+remaining cases return failure or an error message rather than
+abort().  This fixed a crash when comparing for equality a variable
+?x with a blank node value and an interger.</p>
+
+<p>Deleted <code>RASQAL_EXPR_PATTERN</code> as it was never used.</p>
+
+
+
+<h3>SPARQL Query Language Changes</h3>
+
+<p>Updated some of the SPARQL syntax to match the changes in the
+2005-02-17 SPARQL Query Working Draft.  Added <code>GRAPH</code>
+replacing <code>SOURCE</code> and <code>WITH</code> replacing
+<code>FROM</code>.  Added warnings about using the older forms
+and about using <code>[</code>...<code>]</code> instead of
+<code>OPTIONAL</code>.
+</p>
+
+
+<h3>RDQL Query Language Changes</h3>
+
+<p>None.</p>
+
+
+
 <h2 id="rel0_9_6"><a name="rel0_9_6">Rasqal 0.9.6 Changes</a></h2>
 
 <h3>General Changes</h3>
