@@ -1,5 +1,16 @@
 2005-01-16  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
+	* Snapshotted rasqal_0_9_5 for 0.9.5 release
+
+	* RELEASE.html, NEWS.html: update for 0.9.5 release
+
+	* Makefile.am: Add @RASQAL_EXTERNAL_LIBS@ $(MEM_LIBS) to all *_LDADD
+	It seems to help mysterious shared library linking problems on Solaris.
+
+	* Makefile.am: Remove AM_LDFLAGS, libtool works that out from the
+	LIBADD for librasqal and adds it into the .la and uses it from
+	there.
+
 	* Makefile.am: Make the tests using automake rules rather than
 	hand-crafted compile and link rules which were tricky to maintain.
 	Added EXTRA_PROGRAMS for the tests.
