@@ -736,49 +736,43 @@ rasqal_engine_get_next_result(rasqal_query *query) {
       break;
     
     /* got a match - check any constraints */
-    if(query->constraints) {
-      int c;
+    if(query->constraints_expression) {
+      rasqal_literal* result;
       int bresult=1; /* constraint succeeds */
+      int error=0;
 
-      for(c=0; c< raptor_sequence_size(query->constraints); c++) {
-        rasqal_expression* expr;
-        rasqal_literal* result;
-        int error=0;
-
-        expr=(rasqal_expression*)raptor_sequence_get_at(query->constraints, c);
 #ifdef RASQAL_DEBUG
-        RASQAL_DEBUG2("constraint %d expression:\n", c);
-        rasqal_expression_print(expr, stderr);
+      RASQAL_DEBUG1("constraint expression:\n");
+      rasqal_expression_print(query->constraints_expression, stderr);
+      fputc('\n', stderr);
+#endif
+
+      result=rasqal_expression_evaluate(query, query->constraints_expression);
+      if(result) {
+#ifdef RASQAL_DEBUG
+        RASQAL_DEBUG1("constraint expression result:\n");
+        rasqal_literal_print(result, stderr);
         fputc('\n', stderr);
 #endif
-
-        result=rasqal_expression_evaluate(query, expr);
-        if(result) {
-#ifdef RASQAL_DEBUG
-          RASQAL_DEBUG2("constraint %d expression result:\n", c);
-          rasqal_literal_print(result, stderr);
-          fputc('\n', stderr);
-#endif
-          bresult=rasqal_literal_as_boolean(result, &error);
-          if(error) {
-            RASQAL_DEBUG2("constraint %d boolean expression returned error\n", c);
-            bresult=0;
-          } else
-            RASQAL_DEBUG3("constraint %d boolean expression result: %d\n", c, bresult);
-          rasqal_free_literal(result);
-          rc=bresult;
-        } else {
-          RASQAL_DEBUG2("constraint %d expression failed with error\n", c);
-          rc=0;
-        }
-
-        /* stop checking constraints on an error or if one was false */
-        if(error || !bresult)
-          break;
+        bresult=rasqal_literal_as_boolean(result, &error);
+        if(error) {
+          RASQAL_DEBUG1("constraint boolean expression returned error\n");
+          rc= -1;
+        } else
+          RASQAL_DEBUG2("constraint boolean expression result: %d\n", bresult);
+        rasqal_free_literal(result);
+        rc=bresult;
+      } else {
+        RASQAL_DEBUG1("constraint expression failed with error\n");
+        rc= -1;
       }
+
     } /* end check for constraints */
 
-    if(rc) {
+    if(rc < 0)
+      break;
+    
+    if(rc > 0) {
       /* Got a valid result */
       query->result_count++;
       break;
