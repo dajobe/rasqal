@@ -1,5 +1,11 @@
 2005-03-14  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
+	* Makefile.am, rasqal_engine.c, rasqal_graph_pattern.c,
+	rasqal_internal.h: Move rasqal_graph_pattern to new
+	rasqal_graph_pattern.c
+
+2005-03-14  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
 	* rasqal_engine.c (rasqal_engine_query_constraints_has_qname):
 	Check for query constraints in sub-graph patterns via
 	rasqal_engine_graph_pattern_constraints_has_qname on
