@@ -1,4 +1,15 @@
+2004-11-11  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* sparql_parser.y (GraphPattern): Only join non-empty PatternElement
+	(PatternElement.1): Return something.
+	(PatternElementForms): Return NULL for AND Expression part.
+
 2004-11-10  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* sparql_parser.y (rasqal_init_query_engine_sparql):
+	URL now http://www.w3.org/TR/rdf-sparql-query/
+
+	* sparql_parser.y (rasqal_init_query_engine_sparql): No alias.
 
 	* sparql_parser.y: typo
 
