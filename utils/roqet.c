@@ -174,6 +174,8 @@ main(int argc, char *argv[])
   int count=0;
   int dump_query=0;
   raptor_sequence* sources=NULL;
+  raptor_serializer* serializer=NULL;
+  const char *serializer_syntax_name="ntriples";
 
   program=argv[0];
   if((p=strrchr(program, '/')))
@@ -510,19 +512,30 @@ main(int argc, char *argv[])
       
       if(!quiet)
         fprintf(stdout, "%s: Query returned graph result:\n", program);
+
+      serializer=raptor_new_serializer(serializer_syntax_name);
+      if(!serializer) {
+        fprintf(stderr, 
+                "%s: Failed to create raptor serializer type %s\n", program,
+                serializer_syntax_name);
+        return(1);
+      }
+
+      raptor_serialize_start_to_file_handle(serializer, base_uri, stdout);
+
       while(1) {
-        rasqal_triple *t=rasqal_query_results_get_triple(results);
-        if(!t)
+        raptor_statement *rs=rasqal_query_results_get_triple(results);
+        if(!rs)
           break;
-        rasqal_triple_print(t, stdout);
-        fputs("\n", stdout);
+        raptor_serialize_statement(serializer, rs);
         triple_count++;
 
-        rasqal_free_triple(t);
-        
         if(rasqal_query_results_next_triple(results))
           break;
       }
+
+      raptor_serialize_end(serializer);
+      raptor_free_serializer(serializer);
 
       if(!quiet)
         fprintf(stdout, "%s: Total %d triples\n", program, triple_count);
