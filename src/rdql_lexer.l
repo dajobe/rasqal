@@ -422,9 +422,8 @@ copy_string_token(rasqal_query* rq, YYSTYPE* lval,
           /* FIXME assuming ^^ */
           s++; i++;
           dt=d;
-          while(i<len) {
-            *d++=*s++; i++;
-          }
+          while(i++<=len)
+            *d++=*s++;
           /* *d='\0' below */
         }
         break;
