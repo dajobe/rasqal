@@ -230,7 +230,7 @@ rasqal_engine_expand_triple_qnames(rasqal_query* rq)
   int i;
 
   if(!rq->triples)
-    return;
+    return 1;
   
   /* expand qnames in triples */
   for(i=0; i< raptor_sequence_size(rq->triples); i++) {
