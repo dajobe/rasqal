@@ -1,0 +1,192 @@
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook V3.1//EN"[]> <!-- -*- DocBook -*- -->
+<book id="rasqalAPI">
+  <?dbhtml filename='index.html'>
+  <bookinfo>
+    <date>2004-05-07</date>
+    <title>Rasqal RDF Query Library API Reference Manual</title>
+    <authorgroup>
+      <author>
+	<firstname>Dave</firstname>
+	<surname>Beckett</surname>
+	<affiliation>
+          <orgname>University of Bristol</orgname>
+	  <orgdiv>Institute for Learning and Research Technology (ILRT)</orgdiv>
+	  <address>
+	    <email>Dave.Beckett@bristol.ac.uk</email>
+	  </address>
+	</affiliation>
+      </author>
+    </authorgroup>
+    <copyright>
+      <year>2004</year>
+      <holder>Dave Beckett, University of Bristol, UK</holder>
+      <indexterm>
+	<primary>
+          <author>
+	    <firstname>Dave</firstname>
+	    <surname>Beckett</surname>
+	    <affiliation>
+	      <orgname>University of Bristol</orgname>
+	      <orgdiv>Institute for Learning and Research Technology (ILRT)</orgdiv>
+	    </affiliation>
+	  </author>
+         </primary>
+      </indexterm>
+    </copyright>
+    <legalnotice>
+      <para>
+      Permission is granted to copy, distribute and/or modify this document
+      under the same licensing terms as Rasqal.
+     </para>
+    </legalnotice>
+
+    <pubdate role="CVS">$Date$</pubdate>
+
+    <abstract>
+      <title>Abstract</title>
+      <para>
+This document describes the APIs provided by
+<ulink url="http://www.librdf.org/rasqal/">Rasqal</ulink> to use
+provide RDF query language lexing, parsing and executing over
+an RDF graph (typically provided externally).
+      </para>
+<para>
+See also the <ulink url="http://www.librdf.org/rasqal/">Rasqal Home Page</ulink>
+and the <ulink url="../../README.html">main overview</ulink>.
+</para>
+
+    </abstract>
+
+   </bookinfo>
+
+<toc></toc>
+
+<chapter id="objects">
+<?dbhtml filename='objects.html'>
+<title>Introduction to Objects in C</title>
+<para>
+Rasqal uses objects and is written in C, which has no built in support for
+object construction, destruction, copying etc.  This library thus uses
+conventions for the names of the routines providing the
+constructor, destructor and copy constructor functionality for a class as
+well as conventions for the general methods.
+</para>
+<para>
+A class FOO is defined as a C typedef <literal>rasqal_foo</literal>,
+and its a public interface defined in <filename>rdf_foo.h</filename>
+along with any public or private types, enumerations or constants.
+The private definitions are not exposed to library users, only
+internally when the library is built.  The implementation of the
+class is defined in file <filename>rdf_foo.c</filename> and may
+include private (static) functions either for internal
+implementations or to satisfy part of a factory API.
+</para>
+<para>Each class may have a class initialiser / termination pair
+of functions which must be called before any object in the class is created,
+and after the last object has been freed. These are defined with signatures
+like:
+<programlisting>
+  void init_rasqal_foo (...)
+  void terminate_rasqal_foo (void)
+</programlisting>
+The arguments to the initialisation vary since there are sometimes
+some class wide options that can be set at initialisation time.
+</para>
+<para>
+The object constructor(s) are defined with signatures like:
+<programlisting>
+  rasqal_foo* rasqal_new_foo(void)
+</programlisting>
+which takes no parameters.  Additional constructors can be defined
+with parameters, and are named in a similar way with an extra part
+appropriate for the name for example:
+<programlisting>
+  rasqal_foo* rasqal_new_foo_with_options(char *options)
+</programlisting>
+</para>
+<para>A copy constructor may be defined which will have the signature:
+<programlisting>
+  rasqal_foo* rasqal_new_foo_from_foo(rasqal_foo* old_foo)
+</programlisting>
+</para>
+<para>A destructor must be defined and has the signature:
+<programlisting>
+  void rasqal_free_foo(rasqal_foo* foo)
+</programlisting>
+</para>
+<para>Methods of the class have names starting with <literal>rasqal_foo_</literal> and
+examples could be:
+<programlisting>
+  /* accessor functions to object part 'thing' */
+  int rasqal_foo_set_thing(rasqal_foo* foo, char *thing)
+  char *rasqal_foo_get_thing(rasqal_foo* foo)
+</programlisting>
+</para>
+<para>It is often convienent to get a string representation of an
+object for further processing, debugging or serialisation.  There are
+two conventions for methods that provide this functionality - the
+first is when a pointer is returned to a <emphasis>shared</emphasis>
+copy of the string and in that case the method ends
+<literal>_as_string</literal>.  The second is when a pointer is
+returned to a <emphasis>newly allocated</emphasis> string in which
+case the method ends <literal>_to_string</literal>.</para>
+</chapter>
+
+<chapter id="general">
+<?dbhtml filename='general.html'>
+<title>Rasqal General</title>
+<para>
+This module provides general Rasqal operations such as library
+startup and shutdown as well as utility functions.
+</para>
+
+<sect1>
+<title>Rasqal General</title>
+@INCLUDE general.sgml
+</sect1>
+</chapter>
+
+
+<chapter id="query">
+<?dbhtml filename='query.html'>
+<title>Rasqal Query</title>
+<para>
+This module provides the class for a Rasqal query class
+containing methods for constructing a query as well as bulding
+it via parsing a specific query language, executing it for
+some triple store and returning the results.
+</para>
+
+<sect1>
+<title>RDF Query Class</title>
+@INCLUDE query.sgml
+</sect1>
+</chapter>
+
+
+<chapter id="expr">
+<?dbhtml filename='expr.html'>
+<title>Rasqal Literals, Variables, Triples, Prefixes</title>
+<para>
+This module provides classes for expressions inside Rasqal
+including rasqal_expression for constraint expressions,
+rasqal_literal for literals in a query (terminals) such as
+strings, URIs, integers; rasqal_variable for variable name/literal
+binding; rasqal_triple for 3-tuple of literals used in connecting
+to a triple source as well as executing a query; rasqal_prefix
+for namespace name/URI mapping.
+</para>
+
+<sect1>
+<title>RDF Query Literals</title>
+@INCLUDE literal.sgml
+</sect1>
+
+<sect1>
+<title>RDF Query Expression, Variable, Triple, Prefix Classes</title>
+@INCLUDE expr.sgml
+</sect1>
+</chapter>
+
+
+</book>
