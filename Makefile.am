@@ -18,7 +18,7 @@
 # full license terms.
 # 
 
-noinst_PROGRAMS = roqet
+bin_PROGRAMS = roqet
 bin_SCRIPTS = rasqal-config
 noinst_SCRIPTS = rasqal-src-config
 lib_LTLIBRARIES = librasqal.la
