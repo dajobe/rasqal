@@ -47,7 +47,8 @@
  * Return value: a new &rasqal_query object or NULL on failure
  */
 rasqal_query*
-rasqal_new_query(const char *name, const unsigned char *uri) {
+rasqal_new_query(const char *name, const unsigned char *uri)
+{
   rasqal_query_engine_factory* factory;
   rasqal_query* query;
   raptor_uri_handler *uri_handler;
@@ -179,7 +180,8 @@ rasqal_get_label(rasqal_query *query)
  * @uri: &raptor_uri uri
  **/
 void
-rasqal_query_add_source(rasqal_query* query, raptor_uri* uri) {
+rasqal_query_add_source(rasqal_query* query, raptor_uri* uri)
+{
   raptor_sequence_shift(query->sources, (void*)uri);
 }
 
@@ -191,7 +193,8 @@ rasqal_query_add_source(rasqal_query* query, raptor_uri* uri) {
  * Return value: a &raptor_sequence of &raptor_uri pointers.
  **/
 raptor_sequence*
-rasqal_query_get_source_sequence(rasqal_query* query) {
+rasqal_query_get_source_sequence(rasqal_query* query)
+{
   return query->sources;
 }
 
@@ -204,7 +207,8 @@ rasqal_query_get_source_sequence(rasqal_query* query) {
  * Return value: a &raptor_uri pointer or NULL if out of the sequence range
  **/
 raptor_uri*
-rasqal_query_get_source(rasqal_query* query, int idx) {
+rasqal_query_get_source(rasqal_query* query, int idx)
+{
   return (raptor_uri*)raptor_sequence_get_at(query->sources, idx);
 }
 
@@ -218,7 +222,8 @@ rasqal_query_get_source(rasqal_query* query, int idx) {
  * a previously added variable in the query.
  **/
 void
-rasqal_query_add_variable(rasqal_query* query, rasqal_variable* var) {
+rasqal_query_add_variable(rasqal_query* query, rasqal_variable* var)
+{
   raptor_sequence_shift(query->selects, (void*)var);
 }
 
@@ -230,7 +235,8 @@ rasqal_query_add_variable(rasqal_query* query, rasqal_variable* var) {
  * Return value: a &raptor_sequence of &rasqal_variable pointers.
  **/
 raptor_sequence*
-rasqal_query_get_variable_sequence(rasqal_query* query) {
+rasqal_query_get_variable_sequence(rasqal_query* query)
+{
   return query->selects;
 }
 
@@ -243,7 +249,8 @@ rasqal_query_get_variable_sequence(rasqal_query* query) {
  * Return value: a &rasqal_variable pointer or NULL if out of the sequence range
  **/
 rasqal_variable*
-rasqal_query_get_variable(rasqal_query* query, int idx) {
+rasqal_query_get_variable(rasqal_query* query, int idx)
+{
   return (rasqal_variable*)raptor_sequence_get_at(query->selects, idx);
 }
 
@@ -256,7 +263,8 @@ rasqal_query_get_variable(rasqal_query* query, int idx) {
  * Return value: non-0 if the variable name was found.
  **/
 int
-rasqal_query_has_variable(rasqal_query* query, const char *name) {
+rasqal_query_has_variable(rasqal_query* query, const char *name)
+{
   int i;
 
   for(i=0; i< raptor_sequence_size(query->selects); i++) {
@@ -281,7 +289,8 @@ rasqal_query_has_variable(rasqal_query* query, const char *name) {
  **/
 int
 rasqal_query_set_variable(rasqal_query* query, const char *name,
-                          rasqal_literal* value) {
+                          rasqal_literal* value)
+{
   int i;
 
   for(i=0; i< raptor_sequence_size(query->selects); i++) {
@@ -304,7 +313,8 @@ rasqal_query_set_variable(rasqal_query* query, const char *name,
  *
  **/
 void
-rasqal_query_add_triple(rasqal_query* query, rasqal_triple* triple) {
+rasqal_query_add_triple(rasqal_query* query, rasqal_triple* triple)
+{
   raptor_sequence_shift(query->triples, (void*)triple);
 }
 
@@ -316,7 +326,8 @@ rasqal_query_add_triple(rasqal_query* query, rasqal_triple* triple) {
  * Return value: a &raptor_sequence of &rasqal_triple pointers.
  **/
 raptor_sequence*
-rasqal_query_get_triple_sequence(rasqal_query* query) {
+rasqal_query_get_triple_sequence(rasqal_query* query)
+{
   return query->triples;
 }
 
@@ -329,7 +340,8 @@ rasqal_query_get_triple_sequence(rasqal_query* query) {
  * Return value: a &rasqal_triple pointer or NULL if out of the sequence range
  **/
 rasqal_triple*
-rasqal_query_get_triple(rasqal_query* query, int idx) {
+rasqal_query_get_triple(rasqal_query* query, int idx)
+{
   return (rasqal_triple*)raptor_sequence_get_at(query->triples, idx);
 }
 
@@ -341,7 +353,8 @@ rasqal_query_get_triple(rasqal_query* query, int idx) {
  *
  **/
 void
-rasqal_query_add_constraint(rasqal_query* query, rasqal_expression* expr) {
+rasqal_query_add_constraint(rasqal_query* query, rasqal_expression* expr)
+{
   raptor_sequence_shift(query->constraints, (void*)expr);
 }
 
@@ -353,7 +366,8 @@ rasqal_query_add_constraint(rasqal_query* query, rasqal_expression* expr) {
  * Return value: a &raptor_sequence of &rasqal_expression pointers.
  **/
 raptor_sequence*
-rasqal_query_get_constraint_sequence(rasqal_query* query) {
+rasqal_query_get_constraint_sequence(rasqal_query* query)
+{
   return query->constraints;
 }
 
@@ -366,7 +380,8 @@ rasqal_query_get_constraint_sequence(rasqal_query* query) {
  * Return value: a &rasqal_expression pointer or NULL if out of the sequence range
  **/
 rasqal_expression*
-rasqal_query_get_constraint(rasqal_query* query, int idx) {
+rasqal_query_get_constraint(rasqal_query* query, int idx)
+{
   return (rasqal_expression*)raptor_sequence_get_at(query->constraints, idx);
 }
 
@@ -378,7 +393,8 @@ rasqal_query_get_constraint(rasqal_query* query, int idx) {
  *
  **/
 void
-rasqal_query_add_prefix(rasqal_query* query, rasqal_prefix* prefix) {
+rasqal_query_add_prefix(rasqal_query* query, rasqal_prefix* prefix)
+{
   raptor_sequence_shift(query->prefixes, (void*)prefix);
 }
 
@@ -390,7 +406,8 @@ rasqal_query_add_prefix(rasqal_query* query, rasqal_prefix* prefix) {
  * Return value: a &raptor_sequence of &rasqal_prefix pointers.
  **/
 raptor_sequence*
-rasqal_query_get_prefix_sequence(rasqal_query* query) {
+rasqal_query_get_prefix_sequence(rasqal_query* query)
+{
   return query->prefixes;
 }
 
@@ -403,7 +420,8 @@ rasqal_query_get_prefix_sequence(rasqal_query* query) {
  * Return value: a &rasqal_prefix pointer or NULL if out of the sequence range
  **/
 rasqal_prefix*
-rasqal_query_get_prefix(rasqal_query* query, int idx) {
+rasqal_query_get_prefix(rasqal_query* query, int idx)
+{
   return (rasqal_prefix*)raptor_sequence_get_at(query->prefixes, idx);
 }
 
@@ -496,7 +514,8 @@ rasqal_query_execute(rasqal_query *query)
 
 /* Utility methods */
 void
-rasqal_query_print(rasqal_query* query, FILE *fh) {
+rasqal_query_print(rasqal_query* query, FILE *fh)
+{
   fprintf(fh, "selects: ");
   raptor_sequence_print(query->selects, fh);
   fprintf(fh, "\nsources: ");
@@ -522,7 +541,8 @@ rasqal_query_print(rasqal_query* query, FILE *fh) {
  * Return value: number of bindings found so far
  **/
 int
-rasqal_query_get_result_count(rasqal_query *query) {
+rasqal_query_get_result_count(rasqal_query *query)
+{
   return query->result_count;
 }
 
@@ -534,7 +554,8 @@ rasqal_query_get_result_count(rasqal_query *query) {
  * Return value: non-0 if results are finished or query failed
  **/
 int
-rasqal_query_results_finished(rasqal_query *query) {
+rasqal_query_results_finished(rasqal_query *query)
+{
   return (query->failed || query->finished);
 }
 
@@ -553,7 +574,8 @@ rasqal_query_results_finished(rasqal_query *query) {
 int
 rasqal_query_get_result_bindings(rasqal_query *query,
                                  const char ***names, 
-                                 rasqal_literal ***values) {
+                                 rasqal_literal ***values)
+{
   if(query->finished)
     return 1;
 
@@ -579,7 +601,8 @@ rasqal_query_get_result_bindings(rasqal_query *query,
  * Return value: a pointer to a shared &rasqal_literal binding value or NULL on failure
  **/
 rasqal_literal*
-rasqal_query_get_result_binding_value(rasqal_query *query, int offset) {
+rasqal_query_get_result_binding_value(rasqal_query *query, int offset)
+{
   if(query->finished)
     return NULL;
 
@@ -603,7 +626,8 @@ rasqal_query_get_result_binding_value(rasqal_query *query, int offset) {
  * Return value: a pointer to a shared copy of the binding name or NULL on failure
  **/
 const char*
-rasqal_query_get_result_binding_name(rasqal_query *query, int offset) {
+rasqal_query_get_result_binding_name(rasqal_query *query, int offset)
+{
   if(query->finished)
     return NULL;
 
@@ -623,7 +647,8 @@ rasqal_query_get_result_binding_name(rasqal_query *query, int offset) {
  **/
 rasqal_literal*
 rasqal_query_get_result_binding_by_name(rasqal_query *query,
-                                        const char *name) {
+                                        const char *name)
+{
   int offset= -1;
   int i;
   
@@ -656,7 +681,8 @@ rasqal_query_get_result_binding_by_name(rasqal_query *query,
  * Return value: non-0 if failed or results exhausted
  **/
 int
-rasqal_query_next_result(rasqal_query *query) {
+rasqal_query_next_result(rasqal_query *query)
+{
   int rc;
   
   if(query->finished)
@@ -673,19 +699,39 @@ rasqal_query_next_result(rasqal_query *query) {
 }
 
 
+/**
+ * rasqal_query_get_bindings_count - Get the number of bound variables in the result
+ * @query: &librdf_query query
+ * 
+ * Return value: <0 if failed or results exhausted
+ **/
+int
+rasqal_query_get_bindings_count(rasqal_query *query)
+{
+  return query->select_variables_count;
+}
+
+
+/**
+ * rasqal_query_get_user_data - Get query user data
+ * @query: &rasqal_query
+ * 
+ * Return value: user data as set by rasqal_query_set_user_data
+ **/
 void*
-rasqal_query_get_user_data(rasqal_query *query) {
+rasqal_query_get_user_data(rasqal_query *query)
+{
   return query->user_data;
 }
 
 
+/**
+ * rasqal_query_set_user_data - Set the query user data
+ * @query: &rasqal_query
+ * @user_data: some user data to associate with the query
+ **/
 void
-rasqal_query_set_user_data(rasqal_query *query, void *user_data) {
+rasqal_query_set_user_data(rasqal_query *query, void *user_data)
+{
   query->user_data=user_data;
-}
-
-
-int
-rasqal_query_get_bindings_count(rasqal_query *query) {
-  return query->select_variables_count;
 }
