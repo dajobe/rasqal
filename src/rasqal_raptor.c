@@ -77,6 +77,29 @@ static int rasqal_raptor_triple_present(rasqal_triples_source *rts, void *user_d
 static void rasqal_raptor_free_triples_source(void *user_data);
 
 
+static
+raptor_uri* ordinal_as_uri(int ordinal) 
+{
+  int t=ordinal;
+  size_t len; 
+  unsigned char *buffer;
+  raptor_uri* uri;
+  
+  len=raptor_rdf_namespace_uri_len + 1; /* 1 for '_' */
+  while(t/10)
+    len++;
+  buffer=(unsigned char*)RASQAL_MALLOC(cstring, len+1);
+  if(!buffer)
+    return NULL;
+  
+  sprintf((char*)buffer, "%s_%d", raptor_rdf_namespace_uri, ordinal);
+  uri=raptor_new_uri(buffer);
+  RASQAL_FREE(cstring, buffer);
+
+  return uri;
+}
+
+  
 static rasqal_triple*
 raptor_statement_as_rasqal_triple(const raptor_statement *statement) {
   rasqal_literal *s, *p, *o;
@@ -85,23 +108,18 @@ raptor_statement_as_rasqal_triple(const raptor_statement *statement) {
     unsigned char *new_blank=(unsigned char*)RASQAL_MALLOC(cstring, strlen((char*)statement->subject)+1);
     strcpy((char*)new_blank, (const char*)statement->subject);
     s=rasqal_new_simple_literal(RASQAL_LITERAL_BLANK, new_blank);
+  } else if(statement->subject_type == RAPTOR_IDENTIFIER_TYPE_ORDINAL) {
+    raptor_uri* uri=ordinal_as_uri(*((int*)statement->subject));
+    if(!uri)
+      return NULL;
+    s=rasqal_new_uri_literal(uri);
   } else
     s=rasqal_new_uri_literal(raptor_uri_copy((raptor_uri*)statement->subject));
 
   if(statement->predicate_type == RAPTOR_IDENTIFIER_TYPE_ORDINAL) {
-    /* FIXME - 46 for "<http://www.w3.org/1999/02/22-rdf-syntax-ns#_>" */
-    size_t len=46 + 13; 
-    unsigned char *buffer=(unsigned char*)RASQAL_MALLOC(cstring, len+1);
-    raptor_uri* uri;
- 
-    if(!buffer)
+    raptor_uri* uri=ordinal_as_uri(*((int*)statement->predicate));
+    if(!uri)
       return NULL;
-
-    sprintf((char*)buffer,
-            "<http://www.w3.org/1999/02/22-rdf-syntax-ns#_%d>",
-            *((int*)statement->predicate));
-    uri=raptor_new_uri(buffer);
-    RASQAL_FREE(cstring, buffer);
     p=rasqal_new_uri_literal(uri);
   } else
     p=rasqal_new_uri_literal(raptor_uri_copy((raptor_uri*)statement->predicate));
@@ -133,19 +151,9 @@ raptor_statement_as_rasqal_triple(const raptor_statement *statement) {
     strcpy((char*)new_blank, (const char*)blank);
     o=rasqal_new_simple_literal(RASQAL_LITERAL_BLANK, new_blank);
   } else if(statement->object_type == RAPTOR_IDENTIFIER_TYPE_ORDINAL) {
-    /* FIXME - 46 for "<http://www.w3.org/1999/02/22-rdf-syntax-ns#_>" */
-    size_t len=46 + 13; 
-    unsigned char *buffer=(unsigned char*)RASQAL_MALLOC(cstring, len+1);
-    raptor_uri* uri;
-
-    if(!buffer)
+    raptor_uri* uri=ordinal_as_uri(*((int*)statement->object));
+    if(!uri)
       return NULL;
-
-    sprintf((char*)buffer,
-            "<http://www.w3.org/1999/02/22-rdf-syntax-ns#_%d>",
-            *((int*)statement->predicate));
-    uri=raptor_new_uri(buffer);
-    RASQAL_FREE(cstring, buffer);
     o=rasqal_new_uri_literal(uri);
   } else {
     raptor_uri *uri=raptor_uri_copy((raptor_uri*)statement->object);
