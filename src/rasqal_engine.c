@@ -327,7 +327,7 @@ rasqal_new_triples_source(rasqal_query *query, raptor_uri* uri) {
     return NULL;
   }
   rts->query=query;
-  if(rts->uri)
+  if(uri)
     rts->uri=raptor_uri_copy(uri);
 
   if(Triples_Source_Factory.new_triples_source(query, 
@@ -365,6 +365,9 @@ rasqal_triples_source_triple_present(rasqal_triples_source *rts,
 static rasqal_triples_match*
 rasqal_new_triples_match(rasqal_query *query, void *user_data,
                          rasqal_triple_meta *m, rasqal_triple *t) {
+  if(!query->triples_source)
+    return NULL;
+  
   return query->triples_source->new_triples_match(query->triples_source,
                                                   query->triples_source->user_data,
                                                   m, t);
@@ -422,7 +425,13 @@ rasqal_engine_execute_init(rasqal_query *query) {
     source=NULL;
 
   query->triples_source=rasqal_new_triples_source(query, source);
-  
+  if(!query->triples_source) {
+    query->failed=1;
+    rasqal_query_error(query, "Failed to make a triple source for %s",
+                       (source ? raptor_uri_as_string(source) : "default source"));
+    return 1;
+  }
+
   query->triple_meta=(rasqal_triple_meta*)RASQAL_CALLOC(rasqal_triple_meta, sizeof(rasqal_triple_meta), triples_size);
   if(!query->triple_meta)
     return 1;
@@ -467,6 +476,9 @@ rasqal_engine_get_next_result(rasqal_query *query) {
   int triples_size;
   int rc;
 
+  if(query->failed)
+    return -1;
+
   if(query->finished)
     return 0;
 
@@ -480,8 +492,13 @@ rasqal_engine_get_next_result(rasqal_query *query) {
     rasqal_triple *t=raptor_sequence_get_at(query->triples, query->column);
 
     rc=1;
-    
-    if (m->is_exact) {
+
+    if(!m) {
+      /* error recovery - no match */
+      query->column--;
+      rc= -1;
+      return rc;
+    } else if (m->is_exact) {
       /* exact triple match wanted */
       if(!rasqal_triples_source_triple_present(query->triples_source, t)) {
         /* failed */
@@ -493,7 +510,8 @@ rasqal_engine_get_next_result(rasqal_query *query) {
       /* Column has no triplesMatch so create a new query */
       m->triples_match=rasqal_new_triples_match(query, m, m, t);
       if(!m->triples_match) {
-        RASQAL_DEBUG2("failed to make new triplesMatch for column %d\n", query->column);
+        rasqal_query_error(query, "Failed to make a triple match for column%d",
+                           query->column);
         /* failed to match */
         query->column--;
         rc= -1;
