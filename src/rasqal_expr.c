@@ -249,6 +249,20 @@ rasqal_triple_get_origin(rasqal_triple* t)
 }
 
 
+void
+rasqal_triple_set_flags(rasqal_triple* t, unsigned int flags)
+{
+  t->flags=flags;
+}
+
+
+unsigned int
+rasqal_triple_get_flags(rasqal_triple* t)
+{
+  return t->flags;
+}
+
+
 rasqal_expression*
 rasqal_new_1op_expression(rasqal_op op, rasqal_expression* arg)
 {
