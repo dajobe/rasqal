@@ -85,6 +85,10 @@ rasqal_sequence_ensure(rasqal_sequence *seq, int capacity) {
   if(seq->capacity > capacity)
     return 0;
 
+  /* POLICY - minimum size */
+  if(capacity < 8)
+    capacity=8;
+
   new_sequence=calloc(capacity, sizeof(void*));
   if(!new_sequence)
     return 1;
@@ -103,10 +107,7 @@ rasqal_sequence_ensure(rasqal_sequence *seq, int capacity) {
 static int
 rasqal_sequence_grow(rasqal_sequence *seq) 
 {
-  if(!seq->capacity)
-    return rasqal_sequence_ensure(seq, 5);
-  else
-    return rasqal_sequence_ensure(seq, seq->capacity*2);
+  return rasqal_sequence_ensure(seq, seq->capacity*2);
 }
 
 
@@ -121,8 +122,8 @@ rasqal_sequence_size(rasqal_sequence* seq) {
 /* Store methods */
 int
 rasqal_sequence_set_at(rasqal_sequence* seq, int idx, void *data) {
-  if(idx > seq->capacity) {
-    if(rasqal_sequence_ensure(seq, idx))
+  if(idx+1 > seq->capacity) {
+    if(rasqal_sequence_ensure(seq, idx+1))
       return 1;
   }
     
@@ -211,6 +212,24 @@ rasqal_sequence_unshift(rasqal_sequence* seq) {
 }
 
 
+int
+rasqal_compare_strings(const void *a, const void *b) 
+{
+  return strcmp(*(char**)a, *(char**)b);
+}
+
+
+
+/* sort sequence */
+void
+rasqal_sequence_sort(rasqal_sequence* seq, 
+                     int(*compare)(const void *, const void *))
+{
+  if(seq->size > 1)
+    qsort(seq->sequence, seq->size, sizeof(void*), compare);
+}
+
+
 
 void
 rasqal_sequence_print_string(char *data, FILE *fh) 
@@ -249,24 +268,28 @@ int main(int argc, char *argv[]);
 
 #define assert_match(function, result, string) do { if(strcmp(result, string)) { fprintf(stderr, #function " failed - returned %s, expected %s\n", result, string); exit(1); } } while(0)
 
+char *program;
 
 int
 main(int argc, char *argv[]) 
 {
-  rasqal_sequence* seq=rasqal_new_sequence(20, NULL);
+  rasqal_sequence* seq=rasqal_new_sequence(NULL, (rasqal_print_handler*)rasqal_sequence_print_string);
   char *s;
+
+  program=argv[0];
   
-  rasqal_sequence_set_at(seq, 0, "second");
+
+  rasqal_sequence_set_at(seq, 0, "first");
 
   rasqal_sequence_push(seq, "third");
 
-  rasqal_sequence_shift(seq, "first");
+  rasqal_sequence_shift(seq, "second");
 
   s=(char*)rasqal_sequence_get_at(seq, 0);
-  assert_match(rasqal_sequence_get_at, s, "first");
+  assert_match(rasqal_sequence_get_at, s, "second");
 
   s=(char*)rasqal_sequence_get_at(seq, 1);
-  assert_match(rasqal_sequence_get_at, s, "second");
+  assert_match(rasqal_sequence_get_at, s, "first");
   
   s=(char*)rasqal_sequence_get_at(seq, 2);
   assert_match(rasqal_sequence_get_at, s, "third");
@@ -274,17 +297,36 @@ main(int argc, char *argv[])
   if(rasqal_sequence_size(seq) !=3)
     exit(1);
 
+  fprintf(stderr, "%s: sequence after additions: ", program);
+  rasqal_sequence_print(seq, stderr);
+  fputc('\n', stderr);
+
+  /* now made alphabetical i.e. first, second, third */
+  rasqal_sequence_sort(seq, rasqal_compare_strings);
+
+  fprintf(stderr, "%s: sequence after sort: ", program);
+  rasqal_sequence_print(seq, stderr);
+  fputc('\n', stderr);
+
   s=(char*)rasqal_sequence_pop(seq);
   assert_match(rasqal_sequence_get_at, s, "third");
 
   if(rasqal_sequence_size(seq) !=2)
     exit(1);
 
+  fprintf(stderr, "%s: sequence after pop: ", program);
+  rasqal_sequence_print(seq, stderr);
+  fputc('\n', stderr);
+
   s=(char*)rasqal_sequence_unshift(seq);
   assert_match(rasqal_sequence_get_at, s, "first");
 
   if(rasqal_sequence_size(seq) !=1)
     exit(1);
+
+  fprintf(stderr, "%s: sequence after unshift: ", program);
+  rasqal_sequence_print(seq, stderr);
+  fputc('\n', stderr);
 
   s=(char*)rasqal_sequence_get_at(seq, 0);
   assert_match(rasqal_sequence_get_at, s, "second");
