@@ -57,9 +57,6 @@
 /* Never use yyunput */
 %option nounput
 
-/* make a yylineno please */
-%option yylineno
-
 %option reentrant
 
 
@@ -105,6 +102,12 @@ const char * rdql_token_print(int token, YYSTYPE *lval);
 int rdql_lexer_lex (YYSTYPE *rdql_parser_lval, yyscan_t yyscanner);
 #define YY_DECL int rdql_lexer_lex (YYSTYPE *rdql_parser_lval, yyscan_t yyscanner)
 
+#ifdef __cplusplus
+#define INPUT_FN yyinput
+#else
+#define INPUT_FN input
+#endif
+
 
 /* Missing rdql_lexer.c/h prototypes */
 int rdql_lexer_get_column(yyscan_t yyscanner);
@@ -135,7 +138,7 @@ QUOTEDURI \<[A-Za-z][^>]+\>
             return ERROR; 
         }
 
-[\r\n]+     { /* empty - lineno++ */ }
+\r\n|\r|\n     { rqe->lineno++; }
 
 [\ \t\v]+   { /* eat up other whitespace */
 	;
@@ -163,9 +166,12 @@ QUOTEDURI \<[A-Za-z][^>]+\>
 "=~"|"~~"  { BEGIN(PATTERN); return STR_MATCH; }
 "!~"       { BEGIN(PATTERN); return STR_NMATCH; }
 
-<PATTERN>[ \t\v\r\n]+   {
+<PATTERN>[ \t\v]+   {
 	;
 }
+
+<PATTERN>\r\n|\r|\n     { rqe->lineno++; }
+
 
 <PATTERN>. { /* first non whitespace */
              copy_regex_token(rq, *yytext);
@@ -237,7 +243,7 @@ QUOTEDURI \<[A-Za-z][^>]+\>
                  }
                  return URI_LITERAL; }
 
-\#              { while((c=input(yyscanner)) != '\n' && c)
+\#              { while((c=INPUT_FN(yyscanner)) != '\n' && c)
                     ;
                 }
 
@@ -284,10 +290,10 @@ copy_regex_token(rasqal_query* rq, unsigned char delim) {
 
   if(delim == 'm') {
     /* Handle pattern literal m/foo/ */
-    delim=input(yyscanner);
+    delim=INPUT_FN(yyscanner);
   }
 
-  while((c=input(yyscanner)) != delim && c) {
+  while((c=INPUT_FN(yyscanner)) != delim && c) {
     /* May add 2 chars - \' */
     if(ind+2 > buffer_len) {
       unsigned char *new_buffer;
@@ -305,7 +311,7 @@ copy_regex_token(rasqal_query* rq, unsigned char delim) {
     }
     buffer[ind++]=c;
     if(c == '\\') {
-      c=input(yyscanner);
+      c=INPUT_FN(yyscanner);
       buffer[ind++]=c;
     }
   }
@@ -314,7 +320,7 @@ copy_regex_token(rasqal_query* rq, unsigned char delim) {
 
   /* flags */
   ind=0;
-  while((c=input(yyscanner)) && isalpha(c)) {
+  while((c=INPUT_FN(yyscanner)) && isalpha(c)) {
     if(ind+1 > flags_len) {
       unsigned char *new_flags;
       size_t new_flags_len=flags_len + 5;
@@ -442,12 +448,12 @@ skip_c_comment(rasqal_query *rq) {
   int c;
   
   while(1) {
-    while ((c=input(yyscanner)) != '*' && c!= EOF) {
+    while ((c=INPUT_FN(yyscanner)) != '*' && c!= EOF) {
       if(c == '\r' || c == '\n')
         lines++;
     }
     if( c == '*') {
-      while ((c=input(yyscanner)) == '*') {
+      while ((c=INPUT_FN(yyscanner)) == '*') {
         if(c == '\r' || c == '\n')
           lines++;
       }
@@ -470,7 +476,7 @@ skip_cpp_comment(rasqal_rdql_query_engine *rqe) {
   yyscan_t yyscanner=rqe->scanner;
   int c;
   
-  while ((c=input(yyscanner)) != EOF)
+  while ((c=INPUT_FN(yyscanner)) != EOF)
     if(c == '\r' || c == '\n')
       break;
   return;
@@ -682,7 +688,7 @@ main(int argc, char *argv[])
 
   /* Initialise enough of the parser and locator to get error messages */
   rq.context=&rdql;
-  rdql.scanner=&scanner;
+  rdql.lineno=1;
   rq.locator.file=filename;
   rq.locator.column= -1;
 
