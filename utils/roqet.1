@@ -8,7 +8,7 @@
 .\" Institute for Learning and Research Technology - http://www.ilrt.bris.ac.uk/
 .\" University of Bristol - http://www.bristol.ac.uk/
 .\"
-.TH roqet 1 "2005-01-29"
+.TH roqet 1 "2005-02-17"
 .\" Please adjust this date whenever revising the manpage.
 .SH NAME
 roqet \- Rasqal RDF parser utility
@@ -68,6 +68,9 @@ Only count the triples and produce no other output.
 .B \-d, \-\-dump-query
 Print a debugging dump of the constructed query.
 .TP
+.B \-n, \-\-dryrun
+Prepare the query but do not execute it.
+.TP
 .B \-q, \-\-quiet
 No extra information messages.
 .TP
@@ -80,6 +83,9 @@ to 'simple' (default) or 'xml' (an experimental XML format)
 .TP
 .B \-v, \-\-version
 Print the rasqal library version and exit.
+.TP
+.B \-w, \-\-walk-query
+Walk the query and display it using the API.
 .SH "CONFORMING TO"
 \fIRDQL RDF Data Query Language\fR,
 HP Labs,
