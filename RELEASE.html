@@ -20,7 +20,8 @@ LGPL 2.1/Apache 2</p>
 SPARQL Query Language for RDF</a>,
 W3C Working Draft, 12 October 2004.
 The support is at the syntax level - token lexer and grammar parser
-which passes the first simple tests from the proposed RDF DA WG
+which passes the first simple tests from the proposed
+RDF Data Access Working Group (DAWG)
 tests.  No additional query engine support has been added for SPARQL
 features that are not supported by RDQL.  The
 <a href="http://librdf.org/rasqal/TODO.html#sparql">Rasqal to do list</a>
@@ -39,18 +40,18 @@ Renamed syntax tokens ERROR to ERROR_TOKEN to help.</p>
 <p>Added experimental support for querying multiple sources; the same
 query is executed over each source in turn.  Also added some support
 for returning the source URI (SPARQL <code>SOURCE</code>), not
-yet enabled as this feature is in flux in the RDF DA WG.
+yet enabled as this feature is in flux in the DAWG.
 This may change or be removed in future versions.</p>
 
 <p><code>roqet</code> can specify a data source URI on the command
 line with <code>-s</code> / <code>--source</code>) <em>URI</em> for
 queries executing against an implicit model.</p>
 
-<p>Added the RDF DA WG SPARQL tests, driven from the
+<p>Added the DAWG SPARQL tests, driven from the
 manifest.n3 format.  Created tests from the examples in the working draft.</p>
 
 <p>Added an experimental XML result format for bindings, based on
-RDF DA WG work.  Enabled in <code>roqet</code> with <code>-o xml</code>.
+DAWG work.  Enabled in <code>roqet</code> with <code>-o xml</code>.
 This is very likely to change or be removed in future versions.</p>
 
 <p>Added <code>roqet</code> argument <code>-d</code> /
