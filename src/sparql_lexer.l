@@ -191,6 +191,8 @@ QUOTEDURI \<[A-Za-z][^>]+\>
 "ISURI"|"isuri" { return ISURI; }
 "ISBLANK"|"isblank" { return ISBLANK; }
 "ISLITERAL"|"isliteral" { return ISLITERAL; }
+"GRAPH"|"graph" { return GRAPH; }
+"WITH"|"with" { return WITH; }
 
 ","      { return ','; } 
 "("      { return '('; } 
@@ -763,6 +765,12 @@ sparql_token_print(int token, YYSTYPE *lval)
       
     case ISLITERAL:
       return "ISLITERAL";
+      
+    case GRAPH:
+      return "GRAPH";
+      
+    case WITH:
+      return "WITH";
       
     case ',':
       return ",";
