@@ -198,14 +198,16 @@ QUOTEDURI \<[A-Za-z][^>]+\>
 [0-9]+["lL"]?   { c=yytext[yyleng-1];
                   if (c== 'l' || c == 'L')
                     yytext[yyleng-1]='\0';
-                  rdql_parser_lval->integer=atoi(yytext);
+                  rdql_parser_lval->literal=rasqal_new_integer_literal(RASQAL_LITERAL_INTEGER, atoi(yytext));
  		  return INTEGER_LITERAL; 
 }
 
-0[xX][0-9a-fA-F]+   { if(yytext[yyleng+1] == 'x') 
-                        sscanf(yytext+2, "%x", &rdql_parser_lval->integer);
+0[xX][0-9a-fA-F]+   { int i;
+                      if(yytext[yyleng+1] == 'x') 
+                        sscanf(yytext+2, "%x", &i);
                       else
-                        sscanf(yytext+2, "%X", &rdql_parser_lval->integer);
+                        sscanf(yytext+2, "%X", &i);
+                      rdql_parser_lval->literal=rasqal_new_integer_literal(RASQAL_LITERAL_INTEGER, i);
                       return INTEGER_LITERAL; 
 }
 
@@ -224,20 +226,20 @@ QUOTEDURI \<[A-Za-z][^>]+\>
                                   yytext+1, yyleng-2, '"');
                                 return STRING_LITERAL; }
 
-"true"|"false"	{ rdql_parser_lval->integer=(*yytext == 't');
+"true"|"false"	{ rdql_parser_lval->literal=rasqal_new_integer_literal(RASQAL_LITERAL_BOOLEAN, (*yytext== 't'));
                   return BOOLEAN_LITERAL; }
 
-"null"	{ rdql_parser_lval->integer=0;
+"null"	{ rdql_parser_lval->literal=rasqal_new_integer_literal(RASQAL_LITERAL_NULL, 0);
           return NULL_LITERAL; }
 
-<*>{NAME}	{ rdql_parser_lval->string=copy_token(rq, yytext, yyleng);
+<*>{NAME}	{ rdql_parser_lval->name=copy_token(rq, yytext, yyleng);
                           BEGIN(INITIAL);
                           return IDENTIFIER; }
 
-{QNAME}	{ rdql_parser_lval->string=copy_token(rq, yytext, yyleng);
+{QNAME}	{ rdql_parser_lval->name=copy_token(rq, yytext, yyleng);
                           return QNAME_LITERAL; }
 
-\<{QNAME}\>	{ rdql_parser_lval->string=copy_token(rq, yytext+1, yyleng-2);
+\<{QNAME}\>	{ rdql_parser_lval->name=copy_token(rq, yytext+1, yyleng-2);
                   rdql_syntax_warning(rq, "obsolete <qname> syntax found in \"%s\"", yytext);
                   return QNAME_LITERAL; }
 
@@ -321,7 +323,6 @@ copy_regex_token(rasqal_query* rq, YYSTYPE* lval, unsigned char delim) {
     }
   }
   buffer[ind]='\0';
-  lval->string=buffer;
 
   /* flags */
   ind=0;
@@ -342,11 +343,10 @@ copy_regex_token(rasqal_query* rq, YYSTYPE* lval, unsigned char delim) {
     }
     flags[ind++]=c;
   }
-  if(flags) {
+  if(flags)
     flags[ind]='\0';
-    lval->flags=flags;
-  }
 
+  lval->literal=rasqal_new_pattern_literal(buffer, flags);
   return 0;
 }
 
@@ -359,6 +359,7 @@ copy_string_token(rasqal_query* rq, YYSTYPE* lval,
   unsigned char *string=(unsigned char *)malloc(len+1);
   unsigned char *language=NULL;
   unsigned char *dt=NULL;
+  raptor_uri *dt_uri=NULL;
 
   for(s=text, d=string, i=0; i<len; s++, i++) {
     unsigned char c=*s;
@@ -439,7 +440,11 @@ copy_string_token(rasqal_query* rq, YYSTYPE* lval,
 
   *d='\0';
 
-  lval->string=string;
+  /* FIXME - dt can be a URI or qname */
+  if(dt)
+    dt_uri=raptor_new_uri(dt);
+  lval->literal=rasqal_new_string_literal(string, language, dt_uri);
+
   return 0;
 }
 
@@ -589,7 +594,7 @@ rdql_token_print(int token, YYSTYPE *lval)
       return "TILDE";
 
     case INTEGER_LITERAL:
-      sprintf(buffer, "INTEGER_LITERAL(%d)", lval->integer);
+      sprintf(buffer, "INTEGER_LITERAL(%d)", lval->literal->value.integer);
       return buffer;
 
     case FLOATING_POINT_LITERAL:
@@ -597,30 +602,30 @@ rdql_token_print(int token, YYSTYPE *lval)
       return buffer;
 
     case STRING_LITERAL:
-      sprintf(buffer, "STRING_LITERAL(%s)", lval->string);
+      sprintf(buffer, "STRING_LITERAL(%s)", lval->literal->value.string);
       return buffer;
 
     case PATTERN_LITERAL:
-      sprintf(buffer, "PATTERN_LITERAL(%s,%s)", lval->string,
-              (lval->flags ? (char*)lval->flags : "-"));
+      sprintf(buffer, "PATTERN_LITERAL(%s,%s)", lval->literal->value.string,
+              (lval->literal->flags ? (char*)lval->literal->flags : "-"));
       return buffer;
 
     case BOOLEAN_LITERAL:
-      return (lval->integer ? "BOOLEAN_LITERAL(true)" : "BOOLEAN_LITERAL(false)");
+      return (lval->literal->value.integer ? "BOOLEAN_LITERAL(true)" : "BOOLEAN_LITERAL(false)");
 
     case NULL_LITERAL:
       return "NULL_LITERAL";
 
     case URI_LITERAL:
-      sprintf(buffer, "URI_LITERAL(%s)", lval->string);
+      sprintf(buffer, "URI_LITERAL(%s)", raptor_uri_as_string(lval->uri));
       return buffer;
 
     case QNAME_LITERAL:
-      sprintf(buffer, "QNAME_LITERAL(%s)", lval->string);
+      sprintf(buffer, "QNAME_LITERAL(%s)", lval->name);
       return buffer;
 
     case IDENTIFIER:
-      sprintf(buffer, "IDENTIFIER(%s)", lval->string);
+      sprintf(buffer, "IDENTIFIER(%s)", lval->name);
       return buffer;
 
     case ERROR:
@@ -646,8 +651,10 @@ rdql_token_free(int token, YYSTYPE *lval)
     case STRING_LITERAL:
     case PATTERN_LITERAL:
     case URI_LITERAL:
+      rasqal_free_literal(lval->literal);
+      break;
     case IDENTIFIER:
-      free(lval->string);
+      free(lval->name);
       break;
     default:
       break;
