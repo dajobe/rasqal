@@ -92,24 +92,6 @@ redland_node_to_rasqal_expression(librdf_node *node) {
 }
 
 
-static librdf_statement*
-rasqal_triple_to_redland_statement(rasqal_query *q, rasqal_triple* t)
-{
-  librdf_node* nodes[3];
-
-  /* ASSUMPTION: all the parts of the triple are not variables */
-  /* FIXME: and no error checks */
-  nodes[0]=rasqal_expression_to_redland_node(World, t->subject);
-  nodes[1]=rasqal_expression_to_redland_node(World, t->predicate);
-  nodes[2]=rasqal_expression_to_redland_node(World, t->object);
-
-  return librdf_new_statement_from_nodes(World, nodes[0], nodes[1], nodes[2]);
-}
-
-
-
-
-
 static char*
 rasqal_redland_uri_heuristic_parser_name(librdf_uri *uri) {
   char *uri_string;
@@ -167,9 +149,16 @@ rasqal_redland_triple_present(rasqal_triples_source *rts, void *user_data,
                               rasqal_triple *t) 
 {
   rasqal_redland_triples_source_user_data* rtsc=(rasqal_redland_triples_source_user_data*)user_data;
+  librdf_node* nodes[3];
   librdf_statement *s;
 
-  s=rasqal_triple_to_redland_statement(rts->query, t);
+  /* ASSUMPTION: all the parts of the triple are not variables */
+  /* FIXME: and no error checks */
+  nodes[0]=rasqal_expression_to_redland_node(World, t->subject);
+  nodes[1]=rasqal_expression_to_redland_node(World, t->predicate);
+  nodes[2]=rasqal_expression_to_redland_node(World, t->object);
+
+  s=librdf_new_statement_from_nodes(World, nodes[0], nodes[1], nodes[2]);
   
   int rc=!librdf_model_contains_statement(rtsc->model, s);
   librdf_free_statement(s);
