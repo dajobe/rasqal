@@ -327,7 +327,8 @@ rasqal_engine_assign_variables(rasqal_query* rq)
 static rasqal_triples_source_factory Triples_Source_Factory;
 
 void
-rasqal_set_triples_source_factory(void (*register_fn)(rasqal_triples_source_factory *factory)) {
+rasqal_set_triples_source_factory(void (*register_fn)(rasqal_triples_source_factory *factory), void* user_data) {
+  Triples_Source_Factory.user_data=user_data;
   register_fn(&Triples_Source_Factory);
 }
 
@@ -349,7 +350,9 @@ rasqal_new_triples_source(rasqal_query *query, raptor_uri* uri) {
   rts->query=query;
   rts->uri=raptor_uri_copy(uri);
 
-  if(Triples_Source_Factory.new_triples_source(query, rts->user_data, rts)) {
+  if(Triples_Source_Factory.new_triples_source(query, 
+                                               Triples_Source_Factory.user_data,
+                                               rts->user_data, rts)) {
     RASQAL_FREE(user_data, rts->user_data);
     RASQAL_FREE(rasqal_triples_source, rts);
     return NULL;
