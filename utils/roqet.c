@@ -204,6 +204,31 @@ roqet_walk_graph_pattern(rasqal_graph_pattern *gp, int gp_index,
 }
 
 
+    
+static void
+roqet_query_walk(rasqal_query *rq, FILE *fh) {
+  int gp_index=0;
+  int i;
+
+  i=rasqal_query_get_distinct(rq);
+  if(i != 0)
+    fprintf(fh, "query asks for distinct results\n");
+  i=rasqal_query_get_limit(rq);
+  if(i >= 0)
+    fprintf(fh, "query asks for result limits %d\n", i);
+  
+  while(1) {
+    rasqal_graph_pattern* gp=rasqal_query_get_graph_pattern(rq, gp_index);
+    if(!gp)
+      break;
+    
+    roqet_walk_graph_pattern(gp, gp_index, fh, 2);
+    gp_index++;
+  }
+}
+
+
+
 int
 main(int argc, char *argv[]) 
 { 
@@ -576,18 +601,8 @@ main(int argc, char *argv[])
   }
 
   if(walk_query) {
-    int gp_index=0;
-    
     fprintf(stderr, "%s: walking query structure\n", program);
-
-    while(1) {
-      rasqal_graph_pattern* gp=rasqal_query_get_graph_pattern(rq, gp_index);
-      if(!gp)
-        break;
-
-      roqet_walk_graph_pattern(gp, gp_index, stdout, 2);
-      gp_index++;
-    }
+    roqet_query_walk(rq, stdout);
   }
   
   if(dump_query) {
