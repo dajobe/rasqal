@@ -56,7 +56,20 @@ CLEANFILES=$(TESTS) rdql_lexer_test rdql_parser_test rasqal_query_test
 MAINTAINERCLEANFILES=rdql_lexer.c rdql_lexer.h \
 rdql_parser.tab.c rdql_parser.tab.h rdql_parser.output
 
-AM_CPPFLAGS=-I$(top_srcdir)
+# Memory debugging alternatives
+MEM=@MEM@
+MEM_LIBS=@MEM_LIBS@
+
+# 1) None (use standard functions directly)
+#MEM=
+#MEM_LIBS=
+
+# 2) Use dmalloc library
+#MEM=-DRAPTOR_MEMORY_DEBUG_DMALLOC=1
+#MEM_LIBS=-ldmalloc
+
+
+AM_CFLAGS=@CFLAGS@ @REDLAND_CFLAGS@ $(MEM)
 LIBS=@LIBS@ $(MEM_LIBS)
 
 LEX=@LEX@
@@ -83,47 +96,26 @@ NEWS: NEWS.html
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = rasqal.pc
 
-# Memory debugging alternatives
-MEM=@MEM@
-MEM_LIBS=@MEM_LIBS@
-
-# 1) None (use standard functions directly)
-#MEM=
-#MEM_LIBS=
-
-# 2) Use dmalloc library
-#MEM=-DRAPTOR_MEMORY_DEBUG_DMALLOC=1
-#MEM_LIBS=-ldmalloc
-
-
 # Actually it needs rdql_parser.h but nevermind
 @MAINT@rdql_lexer.c: $(srcdir)/rdql_lexer.l rdql_parser.tab.c
 @MAINT@	$(LEX) -o$@ $(srcdir)/rdql_lexer.l
 
-# Compile without warnings
-rdql_lexer.lo: rdql_lexer.c $(srcdir)/rdql_parser.tab.c
-	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) -c -o $@ $<
-
 @MAINT@rdql_parser.tab.c: $(srcdir)/rdql_parser.y
 @MAINT@	$(YACC) -b rdql_parser -p rdql_parser_ -d -v $(srcdir)/rdql_parser.y
-
-# Compile without warnings
-rdql_parser.lo: rdql_parser.tab.c
-	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) -c -o $@ $<
 
 
 # Actually it needs rdql_parser.h but nevermind
 rdql_lexer_test: $(srcdir)/rdql_lexer.c $(srcdir)/rdql_parser.tab.c
-	$(LIBTOOL) --mode=link $(CCLD) $(AM_CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE -static $(srcdir)/rdql_lexer.c $(LIBS) -o $@
+	$(LIBTOOL) --mode=link $(CCLD) $(AM_LDFLAGS) $(LDFLAGS) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE $(srcdir)/rdql_lexer.c $(LIBS) -o $@
 
-rdql_parser_test: $(srcdir)/rdql_parser.tab.c rdql_lexer.lo rasqal_sequence.lo rasqal_general.lo
-	$(LIBTOOL) --mode=link $(CCLD) $(AM_CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE -static $(srcdir)/rdql_parser.tab.c rdql_lexer.lo rasqal_sequence.lo rasqal_general.lo -o $@
+rdql_parser_test: $(srcdir)/rdql_parser.tab.c librasqal.la
+	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE $(srcdir)/rdql_parser.tab.c librasqal.la -o $@
 
 rasqal_query_test: $(srcdir)/rasqal_query.c librasqal.la
-	$(LIBTOOL) --mode=link $(CCLD) $(AM_CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE -static $(srcdir)/rasqal_query.c librasqal.la -o $@
+	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE $(srcdir)/rasqal_query.c librasqal.la -o $@
 
 rasqal_sequence_test: $(srcdir)/rasqal_sequence.c
-	$(LIBTOOL) --mode=link $(CCLD) $(AM_CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE -static $(srcdir)/rasqal_sequence.c -o $@
+	$(LINK) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE $(srcdir)/rasqal_sequence.c -o $@
 
 
 
@@ -160,4 +152,16 @@ check-rdql-parser: rdql_parser_test
 	exit $$result
 
 check-rdql-queries: rasqal_query_test
-	$(top_builddir)/rasqal_query_test rdql - 'SELECT ?x WHERE  (<http://somewhere/res1>, <http://somewhere/pred1>, ?x)'
+	@result=0; \
+	$(ECHO) "Testing query construction (RDQL)"; \
+	for test in $(RDQL_EXAMPLES); do \
+	  $(ECHO) $(ECHO_N) "Checking $$test $(ECHO_C)"; \
+	  $(top_builddir)/rasqal_query_test rdql - < $(srcdir)/$$test >/dev/null; \
+	  status=$$?; \
+	  if test $$status != 0 -a $$status != 2 ; then \
+	    $(ECHO) FAILED returned status $$status; result=1; \
+	  else \
+	    $(ECHO) ok; \
+	  fi; \
+	done; \
+	exit $$result
