@@ -109,13 +109,13 @@ rdql_lexer_test: $(srcdir)/rdql_lexer.c $(srcdir)/rdql_parser.tab.c
 	$(LIBTOOL) --mode=link $(CCLD) $(AM_LDFLAGS) $(LDFLAGS) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE $(srcdir)/rdql_lexer.c $(LIBS) -o $@
 
 rdql_parser_test: $(srcdir)/rdql_parser.tab.c librasqal.la
-	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE $(srcdir)/rdql_parser.tab.c librasqal.la -o $@
+	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE $(srcdir)/rdql_parser.tab.c librasqal.la
 
 rasqal_query_test: $(srcdir)/rasqal_query.c librasqal.la
-	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE $(srcdir)/rasqal_query.c librasqal.la -o $@
+	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE $(srcdir)/rasqal_query.c librasqal.la
 
 rasqal_sequence_test: $(srcdir)/rasqal_sequence.c
-	$(LINK) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE $(srcdir)/rasqal_sequence.c -o $@
+	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE $(srcdir)/rasqal_sequence.c
 
 
 
