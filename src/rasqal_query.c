@@ -95,6 +95,8 @@ rasqal_new_query(const char *name, const unsigned char *uri)
 
   query->variables_sequence=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_variable, (raptor_sequence_print_handler*)rasqal_variable_print);
 
+  query->triples=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_triple, (raptor_sequence_print_handler*)rasqal_triple_print);
+  
   query->prefixes=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_prefix, (raptor_sequence_print_handler*)rasqal_prefix_print);
 
   query->graph_patterns=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_graph_pattern, (raptor_sequence_print_handler*)rasqal_graph_pattern_print);
@@ -733,6 +735,10 @@ rasqal_query_print(rasqal_query* query, FILE *fh)
   if(query->prefixes) {
     fprintf(fh, "\nprefixes: ");
     raptor_sequence_print(query->prefixes, fh);
+  }
+  if(query->graph_patterns) {
+    fprintf(fh, "\ngraph patterns: ");
+    raptor_sequence_print(query->graph_patterns, fh);
   }
   fputc('\n', fh);
 }
