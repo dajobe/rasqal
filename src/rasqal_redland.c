@@ -108,7 +108,7 @@ redland_node_to_rasqal_expression(librdf_node *node) {
     uri=librdf_node_get_literal_value_datatype_uri(node);
     if(uri)
       new_datatype=raptor_new_uri(librdf_uri_as_string(uri));
-    l=rasqal_new_string_literal(new_string, new_language, new_datatype);
+    l=rasqal_new_string_literal(new_string, new_language, new_datatype, NULL);
   } else {
     char *blank=librdf_node_get_blank_identifier(node);
     char *new_blank=LIBRDF_MALLOC(cstring, strlen(blank)+1);

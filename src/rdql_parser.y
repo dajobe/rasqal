@@ -479,7 +479,7 @@ UnaryExpressionNotPlusMinus : TILDE UnaryExpression
 }
 | IDENTIFIER LPAREN ArgList RPAREN
 {
-  rasqal_literal *l=rasqal_new_string_literal("functioncall", NULL, NULL);
+  rasqal_literal *l=rasqal_new_string_literal("functioncall", NULL, NULL, NULL);
   $$=rasqal_new_literal_expression(l);
 }
 | LPAREN Expression RPAREN
