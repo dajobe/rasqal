@@ -600,6 +600,8 @@ rdql_parse(rasqal_query* rq, const char *query_string) {
   buffer= rdql_lexer__scan_string(query_string);
   rdql_lexer__switch_to_buffer(buffer);
   rdql_parser_parse();
+  rdql_lexer__delete_buffer(buffer);
+  rdql_lexer_pop_buffer_state();
 
   rq=Q;
   
