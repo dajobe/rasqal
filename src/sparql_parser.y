@@ -54,9 +54,12 @@
 
 
 /* Make verbose error messages for syntax errors */
+/*
 #ifdef RASQAL_DEBUG
 #define YYERROR_VERBOSE 1
 #endif
+*/
+#define YYERROR_VERBOSE 1
 
 /* Slow down the grammar operation and watch it work */
 #if RASQAL_DEBUG > 2
@@ -125,11 +128,11 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...);
 
 /* expression delimitors */
 
-%token COMMA LPAREN RPAREN LSQUARE RSQUARE LCURLY RCURLY
-%token VARPREFIX
+%token ',' '(' ')' '[' ']' '{' '}'
+%token '?' '$'
 
 /* function call indicator */
-%token AMP
+%token '&'
 
 /* SC booleans */
 %left SC_OR SC_AND
@@ -304,7 +307,7 @@ PatternElement : TriplePatternList
 {
   /* FIXME - make a pattern element */
 }
-| LCURLY GraphPattern RCURLY /*  ExplicitGroup inlined */
+| '{' GraphPattern '}' /*  ExplicitGroup inlined */
 {
   $$=$2;
 }
@@ -323,7 +326,7 @@ GraphPattern1 : TriplePattern
   $$=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_triple, (raptor_sequence_print_handler*)rasqal_triple_print);
   raptor_sequence_push($$, $1);
 }
-| LCURLY GraphPattern RCURLY /*  ExplicitGroup inlined */
+| '{' GraphPattern '}' /*  ExplicitGroup inlined */
 {
   /* FIXME - make a graphpattern */
   $$=$2;
@@ -356,7 +359,7 @@ PatternElementForms : SOURCE STAR GraphPattern1  /* from SourceGraphPattern */
   /* FIXME flag all the triples in GraphPattern1 as optional */
   $$=$2;
 }
-| LSQUARE GraphPattern RSQUARE /* from OptionalGraphPattern */
+| '[' GraphPattern ']' /* from OptionalGraphPattern */
 {
   /* FIXME flag all the triples in GraphPattern1 as optional */
   $$=$2;
@@ -386,7 +389,7 @@ TriplePatternList : TriplePatternList TriplePattern
 
 
 /* SPARQL Grammar: [16] TriplePattern */
-TriplePattern : LPAREN VarOrURI VarOrURI VarOrLiteral RPAREN
+TriplePattern : '(' VarOrURI VarOrURI VarOrLiteral ')'
 {
   $$=rasqal_new_triple($2, $3, $4);
 }
@@ -399,7 +402,7 @@ VarOrURIList : VarOrURIList Var
   $$=$1;
   raptor_sequence_push($$, rasqal_new_variable_literal($2));
 }
-| VarOrURIList COMMA Var
+| VarOrURIList ',' Var
 {
   $$=$1;
   raptor_sequence_push($$, rasqal_new_variable_literal($3));
@@ -409,7 +412,7 @@ VarOrURIList : VarOrURIList Var
   $$=$1;
   raptor_sequence_push($$, $2);
 }
-| VarOrURIList COMMA URI
+| VarOrURIList ',' URI
 {
   $$=$1;
   raptor_sequence_push($$, $3);
@@ -433,7 +436,7 @@ VarList : VarList Var
   $$=$1;
   raptor_sequence_push($$, $2);
 }
-| VarList COMMA Var
+| VarList ',' Var
 {
   $$=$1;
   raptor_sequence_push($$, $3);
@@ -454,7 +457,7 @@ URIList : URIList URI
   if(uri)
     raptor_sequence_push($$, uri);
 }
-| URIList COMMA URI
+| URIList ',' URI
 {
   raptor_uri* uri=rasqal_literal_as_uri($3);
   $$=$1;
@@ -677,12 +680,12 @@ UnaryExpressionNotPlusMinus : TILDE UnaryExpression
 {
   $$=rasqal_new_literal_expression($1);
 }
-| AMP QNAME_LITERAL LPAREN ArgList RPAREN
+| '&' QNAME_LITERAL '(' ArgList ')'
 {
   /* FIXME - do something with the function name, args */
   $$=NULL;
 }
-| LPAREN Expression RPAREN
+| '(' Expression ')'
 {
   $$=$2;
 }
@@ -771,7 +774,11 @@ URI : URI_LITERAL
 
 
 /* NEW Grammar Term - terminal <VAR> in SPARQL */
-Var : VARPREFIX IDENTIFIER
+Var : '?' IDENTIFIER
+{
+  $$=rasqal_new_variable((rasqal_query*)rq, $2, NULL);
+}
+| '$' IDENTIFIER
 {
   $$=rasqal_new_variable((rasqal_query*)rq, $2, NULL);
 }
