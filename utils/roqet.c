@@ -119,163 +119,23 @@ static const char *title_format_string="Rasqal RDF query utility %s\n";
 
 
 static int
-roqet_xml_print_xml_attribute(FILE *handle,
-                              unsigned char *attr, unsigned char *value,
-                              void *user_data, 
-                              raptor_simple_message_handler handler)
-{
-  size_t attr_len;
-  size_t len;
-  size_t escaped_len;
-  unsigned char *buffer;
-  unsigned char *p;
-  
-  attr_len=strlen((const char*)attr);
-  len=strlen((const char*)value);
-
-  escaped_len=raptor_xml_escape_string(value, len,
-                                       NULL, 0, '"',
-                                       handler,
-                                       user_data);
-
-  buffer=(unsigned char*)malloc(1 + attr_len + 2 + escaped_len + 1 +1);
-  if(!buffer)
-    return 1;
-  p=buffer;
-  *p++=' ';
-  strncpy((char*)p, (const char*)attr, attr_len);
-  p+= attr_len;
-  *p++='=';
-  *p++='"';
-  raptor_xml_escape_string(value, len,
-                           p, escaped_len, '"',
-                           handler, user_data);
-  p+= escaped_len;
-  *p++='"';
-  *p++='\0';
-  
-  fputs((const char*)buffer, handle);
-  free(buffer);
-
-  return 0;
-}
-
-
-
-static int
 roqet_query_results_print_as_xml(rasqal_query_results *results, FILE *fh,
-                                 raptor_simple_message_handler handler,
-                                 void *user_data)
+                                 raptor_uri* base_uri)
 {
-  fputs("<results xmlns=\"http://www.w3.org/sw/2001/DataAccess/result1#\">\n\n",
-        fh);
+  raptor_iostream *iostr;
+  raptor_uri* uri;
   
+  iostr=raptor_new_iostream_to_file_handle(fh);
+  if(!iostr)
+    return 1;
+  
+  uri=raptor_new_uri("http://www.w3.org/TR/2004/WD-rdf-sparql-XMLres-20041221/");
+  rasqal_query_results_write(iostr, results, uri, base_uri);
 
-  while(!rasqal_query_results_finished(results)) {
-    int i;
+  raptor_free_uri(uri);
 
-    fputs("  <result>\n", fh);
-    for(i=0; i<rasqal_query_results_get_bindings_count(results); i++) {
-      const unsigned char *name=rasqal_query_results_get_binding_name(results, i);
-      rasqal_literal *l=rasqal_query_results_get_binding_value(results, i);
-      int print_end=1;
-      size_t len;
-      int is_xml=0;
-      
-      if(!l)
-        continue;
-      
-      fputs("    <", fh);
-      fputs((const char*)name, fh);
-
-      switch(l->type) {
-        case RASQAL_LITERAL_URI:
-          if(roqet_xml_print_xml_attribute(fh, (unsigned char*)"uri",
-                                           raptor_uri_as_string(l->value.uri),
-                                           user_data, 
-                                           handler))
-            return 1;
-          
-          fputs("/>\n", fh);
-          print_end=0;
-          break;
-        case RASQAL_LITERAL_STRING:
-          len=strlen((const char*)l->string);
-          if(!len) {
-            fputs("/>\n", fh);
-            print_end=0;
-            break;
-          }
-          
-          if(l->language) {
-            if(roqet_xml_print_xml_attribute(fh, (unsigned char*)"xml:lang",
-                                             (unsigned char *)l->language,
-                                             user_data,
-                                             handler))
-              return 1;
-          }
-
-          if(l->datatype) {
-            if(!strcmp((const char*)raptor_uri_as_string(l->datatype),
-                       (const char*)raptor_xml_literal_datatype_uri_string))
-              is_xml=1;
-            else {
-              if(roqet_xml_print_xml_attribute(fh, (unsigned char*)"datatype",
-                                               raptor_uri_as_string(l->datatype),
-                                               user_data, 
-                                               handler))
-                return 1;
-            }
-          }
-          
-          fputc('>', fh);
-
-          if(is_xml)
-            fputs((const char*)l->string, fh);
-          else {
-            int xml_string_len=raptor_xml_escape_string(l->string, len,
-                                                        NULL, 0, 0,
-                                                        NULL, NULL);
-            if(xml_string_len == (int)len)
-              fputs((const char*)l->string, fh);
-            else {
-              unsigned char *xml_string=(unsigned char*)malloc(xml_string_len+1);
-              
-              xml_string_len=raptor_xml_escape_string(l->string, len,
-                                                      xml_string, xml_string_len, 0,
-                                                      NULL, NULL);
-              fputs((const char*)xml_string, fh);
-              free(xml_string);
-            }
-          }
-          
-          break;
-        case RASQAL_LITERAL_BLANK:
-        case RASQAL_LITERAL_PATTERN:
-        case RASQAL_LITERAL_QNAME:
-        case RASQAL_LITERAL_INTEGER:
-        case RASQAL_LITERAL_BOOLEAN:
-        case RASQAL_LITERAL_FLOATING:
-        case RASQAL_LITERAL_VARIABLE:
-        default:
-          fprintf(stderr, "%s: Cannot turn literal type %d into XML", 
-                  program, l->type);
-          exit(1);
-      }
-
-      if(print_end) {
-        fputs("</", fh);
-        fputs((const char*)name, fh);
-        fputs(">\n", fh);
-      }
-    }
-    fputs("  </result>\n\n", fh);
-    
-    rasqal_query_results_next(results);
-  }
-
-  fputs("</results>\n", fh);
-
+  raptor_free_iostream(iostr);
+  
   return 0;
 }
 
@@ -289,23 +149,6 @@ roqet_error_handler(void *user_data,
   fprintf(stderr, " - %s\n", message);
 
   error_count++;
-}
-
-
-static void
-roqet_simple_message_handler(void *user_data, const char *message, ...)
-{
-  va_list arguments;
-
-  va_start(arguments, message);
-
-  fprintf(stderr, "%s: Error - ", program);
-  vfprintf(stderr, message, arguments);
-  fputc('\n', stderr);
-
-  error_count++;
-
-  va_end(arguments);
 }
 
 
@@ -592,7 +435,9 @@ main(int argc, char *argv[])
   }
   
   rq=rasqal_new_query((const char*)ql_name, (const unsigned char*)ql_uri);
-
+  rasqal_query_set_error_handler(rq, NULL, roqet_error_handler);
+  rasqal_query_set_fatal_error_handler(rq, NULL, roqet_error_handler);
+  
   if(sources) {
     while(raptor_sequence_size(sources))
       rasqal_query_add_source(rq, (raptor_uri*)raptor_sequence_pop(sources));
@@ -625,9 +470,7 @@ main(int argc, char *argv[])
   }
 
   if(output_format == OUTPUT_FORMAT_XML) {
-    fprintf(stderr, "%s: WARNING - This XML format is very likely to change, do not rely on it\n", program);
-    roqet_query_results_print_as_xml(results, stdout, 
-                                     roqet_simple_message_handler, NULL);
+    roqet_query_results_print_as_xml(results, stdout, base_uri);
   } else {
     while(!rasqal_query_results_finished(results)) {
       int i;
