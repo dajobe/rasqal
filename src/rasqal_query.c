@@ -105,6 +105,9 @@ rasqal_new_query(const char *name, const unsigned char *uri)
 
   query->sources=raptor_new_sequence((raptor_sequence_free_handler*)raptor_free_uri, (raptor_sequence_print_handler*)raptor_sequence_print_uri);
 
+  query->distinct= 0;
+  query->limit= -1;
+
   query->usage=1;
   
   if(factory->init(query, name)) {
@@ -209,8 +212,10 @@ rasqal_free_query(rasqal_query* query)
 /* Methods */
 
 /**
- * rasqal_query_get_name - Return the short name for the query
+ * rasqal_query_get_name - Get a short name for the query language
  * @query: &rasqal_query query object
+ *
+ * Return value: shared string label value
  **/
 const char*
 rasqal_query_get_name(rasqal_query *query)
@@ -220,8 +225,10 @@ rasqal_query_get_name(rasqal_query *query)
 
 
 /**
- * rasqal_query_get_label - Return a readable label for the query
+ * rasqal_query_get_label - Get a readable label for the query language
  * @query: &rasqal_query query object
+ *
+ * Return value: shared string label value
  **/
 const char*
 rasqal_query_get_label(rasqal_query *query)
@@ -302,6 +309,34 @@ rasqal_query_set_feature(rasqal_query *query,
     default:
       break;
   }
+}
+
+
+/**
+ * rasqal_query_get_distinct - Get the query distinct results flag
+ * @query: &rasqal_query query object
+ *
+ * Return value: non-0 if the results should be distinct
+ **/
+int
+rasqal_query_get_distinct(rasqal_query *query)
+{
+  return query->distinct;
+}
+
+
+/**
+ * rasqal_query_get_limit - Get the query-specified limit on results
+ * @query: &rasqal_query query object
+ *
+ * This is the limit given in the query on the number of results allowed.
+ *
+ * Return value: integer >=0 if a limit is given, otherwise <0
+ **/
+int
+rasqal_query_get_limit(rasqal_query *query)
+{
+  return query->limit;
 }
 
 
@@ -881,6 +916,11 @@ rasqal_query_execute(rasqal_query *query)
 void
 rasqal_query_print(rasqal_query* query, FILE *fh)
 {
+  if(query->distinct)
+    fputs("distinct query results\n", fh);
+  if(query->limit >=0)
+    fprintf(fh, "query results limit %d\n", query->limit);
+
   fprintf(fh, "sources: ");
   if(query->sources)
     raptor_sequence_print(query->sources, fh);
