@@ -1,5 +1,12 @@
 2004-10-16  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
+	* roqet.c (roqet_error_handler): Added, used by www fetching.
+	(roqet_get_www_write_bytes): Added, used by roqet_get_www_content
+	(roqet_get_www_content): Added, creates a big string of a URI
+	content using the raptor_www class routines to retrieve it
+	and raptor_stringbuffer to assemble it.
+	(main): Use roqet_get_www_content to retrieve queries from URIs.
+
 	* sparql_parser.y, sparql_lexer.l: Deleted FOR and USING tokens
 
 	* sparql_parser.y: Remove PatternLiteral
