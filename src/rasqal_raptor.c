@@ -102,8 +102,6 @@ raptor_statement_as_rasqal_triple(const raptor_statement *statement) {
     }
 
     if(statement->object_type == RAPTOR_IDENTIFIER_TYPE_XML_LITERAL) {
-      /* FIXME */
-      extern const char *raptor_xml_literal_datatype_uri_string;
       uri=raptor_new_uri(raptor_xml_literal_datatype_uri_string);
     } else if(statement->object_literal_datatype) {
       uri=raptor_uri_copy((raptor_uri*)statement->object_literal_datatype);

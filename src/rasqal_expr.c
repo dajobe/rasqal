@@ -150,8 +150,6 @@ rasqal_new_string_literal(char *string, char *language,
                           raptor_uri *datatype, char *datatype_qname) {
   rasqal_literal* l=(rasqal_literal*)calloc(sizeof(rasqal_literal), 1);
 
-  /* FIXME */
-  extern const char *raptor_xml_literal_datatype_uri_string;
   if(datatype &&
      strcmp(raptor_uri_as_string(datatype), raptor_xml_literal_datatype_uri_string))
     language=NULL;
@@ -677,8 +675,6 @@ rasqal_literal_expand_qname(void *user_data, rasqal_literal *l) {
       RASQAL_FREE(cstring, l->flags);
       l->flags=NULL;
 
-      /* FIXME */
-      extern const char *raptor_xml_literal_datatype_uri_string;
       if(l->language &&
          strcmp(raptor_uri_as_string(uri), raptor_xml_literal_datatype_uri_string)) {
         RASQAL_FREE(cstring, l->language);
