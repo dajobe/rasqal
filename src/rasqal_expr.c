@@ -40,7 +40,6 @@
 
 
 
-inline int rasqal_literal_as_boolean(rasqal_literal* literal);
 inline int rasqal_literal_as_integer(rasqal_literal* l);
 inline int rasqal_literal_compare(rasqal_literal* l1, rasqal_literal *l2, int *error);
 
@@ -51,7 +50,6 @@ inline int rasqal_variable_compare(rasqal_variable* v1, rasqal_variable* v2, int
 inline int rasqal_expression_as_boolean(rasqal_expression* e);
 inline int rasqal_expression_as_integer(rasqal_expression* e);
 inline int rasqal_expression_compare(rasqal_expression* e1, rasqal_expression* e2, int *error);
-rasqal_literal* rasqal_expression_evaluate(rasqal_expression* e);
 
 
 rasqal_literal*
@@ -137,7 +135,7 @@ rasqal_literal_print_type(rasqal_literal* literal, FILE* fh)
 }
 
 
-static void
+void
 rasqal_literal_print(rasqal_literal* l, FILE* fh)
 {
   /*  fputs("literal_", fh); */
@@ -176,7 +174,7 @@ rasqal_literal_print(rasqal_literal* l, FILE* fh)
 
 
 
-inline int
+int
 rasqal_literal_as_boolean(rasqal_literal* l)
 {
   switch(l->type) {
@@ -234,7 +232,7 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int *error)
 
   switch(l1->type) {
     case RASQAL_LITERAL_URI:
-      return raptor_uri_equals(l1->value.uri,l2->value.uri);
+      return !raptor_uri_equals(l1->value.uri,l2->value.uri);
 
     case RASQAL_LITERAL_STRING:
     case RASQAL_LITERAL_BLANK:
@@ -341,6 +339,12 @@ rasqal_variable_set_value(rasqal_variable* v, rasqal_expression *e)
     fputs("(NULL)", stderr);
   fputc('\n', stderr);
 #endif
+}
+
+
+static inline rasqal_expression*
+rasqal_variable_get_value(rasqal_variable* v) {
+  return v->value;
 }
 
 
@@ -582,21 +586,31 @@ rasqal_expression_compare(rasqal_expression* e1, rasqal_expression* e2,
   if(e2->op == RASQAL_EXPR_EXPR)
     return rasqal_expression_compare(e1, e2->arg1, error);
 
-  if(e1->op != e2->op) {
-    *error=1;
-    return 0;
-  }
+  if(e1->op == RASQAL_EXPR_LITERAL && e1->op == e2->op)
+    return rasqal_literal_compare(e1->literal, e2->literal, error);
+
   
   switch(e1->op) {
     case RASQAL_EXPR_LITERAL:
-      return rasqal_literal_compare(e1->literal, e1->literal, error);
-
+      break;
     case RASQAL_EXPR_VARIABLE:
-      return rasqal_variable_compare(e1->variable, e2->variable, error);
-
+      e1=rasqal_variable_get_value(e1->variable);
+      break;
     default:
-      abort();
+      RASQAL_FATAL2("Unexpected e1 op %d\n", e1->op);
   }
+
+  switch(e2->op) {
+    case RASQAL_EXPR_LITERAL:
+      break;
+    case RASQAL_EXPR_VARIABLE:
+      e2=rasqal_variable_get_value(e2->variable);
+      break;
+    default:
+      RASQAL_FATAL2("Unexpected e2 op %d\n", e2->op);
+  }
+
+  return rasqal_expression_compare(e1, e2, error);
 }
 
 
