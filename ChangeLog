@@ -1,4 +1,4 @@
-2004-11-29  cmdjb  <cmdjb@hedwig.dajobe.org>
+2004-11-29  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
 	* rasqal_expr.c (rasqal_expression_evaluate): UMINUS, PLUS, MINUX,
 	STAR, SLASH are now done with floating literals.
