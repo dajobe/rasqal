@@ -235,6 +235,10 @@ QUOTEDURI \<[A-Za-z][^>]+\>
 {QNAME}	{ rdql_parser_lval->string=copy_token(rq, yytext, yyleng);
                           return QNAME_LITERAL; }
 
+\<{QNAME}\>	{ rdql_parser_lval->string=copy_token(rq, yytext+1, yyleng-2);
+                  rdql_syntax_warning(rq, "obsolete <qname> syntax found in \"%s\"", yytext);
+                  return QNAME_LITERAL; }
+
 {QUOTEDURI}   { if(yyleng == 2) 
                   rdql_parser_lval->uri=raptor_uri_copy(rq->base_uri);
                 else {
