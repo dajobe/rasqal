@@ -682,7 +682,7 @@ rdql_query_error(rasqal_query *rq, const char *msg) {
   /*  rq->locator.column=rdql_lexer_get_column(yyscanner);*/
 #endif
 
-  rasqal_query_error(rq, msg);
+  rasqal_query_error(rq, "%s", msg);
 
   return 0;
 }
