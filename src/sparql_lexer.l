@@ -213,6 +213,8 @@ QUOTEDURI \<[A-Za-z][^>]+\>
                BEGIN(INITIAL);
                return PATTERN_LITERAL;
              }
+             BEGIN(INITIAL);
+             return ERROR_TOKEN;
          };
 
 
