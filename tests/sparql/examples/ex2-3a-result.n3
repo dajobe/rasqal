@@ -5,7 +5,6 @@
                 rs:ResultSet ;
     rs:resultVariable
                 "mbox" ;
-    rs:size     "1" ;
     rs:solution [ rs:binding  [ rs:value    <mailto:jlow@example.com> ;
                                 rs:variable "mbox"
                               ]

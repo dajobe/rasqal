@@ -5,7 +5,6 @@
                 rs:ResultSet ;
     rs:resultVariable
                 "x", "v" ;
-    rs:size     "1" ;
     rs:solution [ rs:binding  [ rs:value    rdf:type ;
                                 rs:variable "x"
                               ] ;
