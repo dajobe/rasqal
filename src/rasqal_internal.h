@@ -271,13 +271,9 @@ int rasqal_engine_run(rasqal_query *q);
 rasqal_triples_source* rasqal_new_triples_source(rasqal_query *query, raptor_uri* uri);
 void rasqal_free_triples_source(rasqal_triples_source *rts);
 
-void rasqal_set_triples_source_factory(void (*register_fn)(rasqal_triples_source_factory *factory));
 int rasqal_engine_get_next_result(rasqal_query *query);
 void rasqal_engine_assign_binding_values(rasqal_query *query);
 
-/* rasqal_redland.c */
-void rasqal_redland_init(void);
-  
 /* end of RASQAL_INTERNAL */
 #endif
 
