@@ -18,17 +18,21 @@
 # full license terms.
 # 
 
-SUBDIRS=simple part1
+SPARQL_MANIFEST_FILES= manifest.n3
 
-SPARQL_MODEL_FILES= 
+SPARQL_MODEL_FILES= \
+data-01.n3 data-02.n3 dawg-data-01.n3
 
 SPARQL_TEST_FILES= \
+dawg-tp-01.rq dawg-tp-02.rq dawg-tp-03.rq dawg-tp-04.rq
 
 EXPECTED_SPARQL_TEST_FAILURES=
 
-SPARQL_RESULT_FILES=
+SPARQL_RESULT_FILES= \
+result-tp-01.n3 result-tp-02.n3 result-tp-03.n3 result-tp-04.n3
 
 EXTRA_DIST= \
+$(SPARQL_MANIFEST_FILES) \
 $(SPARQL_MODEL_FILES) \
 $(SPARQL_TEST_FILES) \
 $(SPARQL_RESULT_FILES)
