@@ -155,7 +155,7 @@ roqet_error_handler(void *user_data,
 int
 main(int argc, char *argv[]) 
 { 
-  char *query_string=NULL;
+  void *query_string=NULL;
   unsigned char *uri_string=NULL;
   int free_uri_string=0;
   unsigned char *base_uri_string=NULL;
@@ -386,11 +386,11 @@ main(int argc, char *argv[])
   }
 
   if(!uri_string) {
-    query_string=(char*)calloc(FILE_READ_BUF_SIZE, 1);
+    query_string=calloc(FILE_READ_BUF_SIZE, 1);
     fread(query_string, FILE_READ_BUF_SIZE, 1, stdin);
   } else if(filename) {
     FILE *fh;
-    query_string=(char*)calloc(FILE_READ_BUF_SIZE, 1);
+    query_string=calloc(FILE_READ_BUF_SIZE, 1);
     fh=fopen(filename, "r");
     if(fh) {
       fread(query_string, FILE_READ_BUF_SIZE, 1, fh);
@@ -405,8 +405,7 @@ main(int argc, char *argv[])
     raptor_www *www=raptor_www_new();
     if(www) {
       raptor_www_set_error_handler(www, roqet_error_handler, NULL);
-      raptor_www_fetch_to_string(www, uri, (void**)&query_string, NULL,
-                                 malloc);
+      raptor_www_fetch_to_string(www, uri, &query_string, NULL, malloc);
       raptor_www_free(www);
     }
     if(!query_string || error_count) {
@@ -444,7 +443,7 @@ main(int argc, char *argv[])
   }
 
   if(rasqal_query_prepare(rq, (const unsigned char*)query_string, base_uri)) {
-    size_t len=strlen(query_string);
+    size_t len=strlen((const char*)query_string);
     
     fprintf(stderr, "%s: Parsing query '", program);
     if(len > MAX_QUERY_ERROR_REPORT_LEN) {
