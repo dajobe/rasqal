@@ -1007,6 +1007,16 @@ rasqal_expression_print(rasqal_expression* e, FILE* fh)
 
 /* for use with rasqal_expression_foreach and user_data=rasqal_query */
 int
+rasqal_expression_has_qname(void *user_data, rasqal_expression *e)
+{
+  if(e->op == RASQAL_EXPR_LITERAL)
+    return rasqal_literal_has_qname(e->literal);
+
+  return 0;
+}
+
+/* for use with rasqal_expression_foreach and user_data=rasqal_query */
+int
 rasqal_expression_expand_qname(void *user_data, rasqal_expression *e)
 {
   if(e->op == RASQAL_EXPR_LITERAL)
