@@ -1333,6 +1333,17 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e) {
         char *match_string;
         char *pattern;
         rasqal_literal *l1, *l2;
+#ifdef RASQAL_REGEX_PCRE
+        pcre* re;
+        int options=0;
+        const char *re_error=NULL;
+        int erroffset=0;
+#endif
+#ifdef RASQAL_REGEX_POSIX
+        regex_t reg;
+        int rc;
+        int options=REG_EXTENDED | REG_NOSUB;
+#endif
         
         l1=rasqal_expression_evaluate(query, e->arg1);
         if(!l1)
@@ -1349,11 +1360,6 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e) {
             flag_i++;
           
 #ifdef RASQAL_REGEX_PCRE
-        pcre* re;
-        int options=0;
-        const char *re_error=NULL;
-        int erroffset=0;
-        
         if(flag_i)
           options |= PCRE_CASELESS;
         
@@ -1376,11 +1382,8 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e) {
         }
         
 #endif
-#ifdef RASQAL_REGEX_POSIX
-        regex_t reg;
-        int rc;
-        int options=REG_EXTENDED | REG_NOSUB;
         
+#ifdef RASQAL_REGEX_POSIX
         if(flag_i)
           options |=REG_ICASE;
         
