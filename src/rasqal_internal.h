@@ -91,6 +91,8 @@ typedef struct rasqal_query_engine_factory_s rasqal_query_engine_factory;
  * A query in some query language
  */
 struct rasqal_query_s {
+  int usage; /* reference count - 1 for itself, plus for query_results */
+  
   unsigned char *query_string;
 
   raptor_namespace_stack *namespaces;
@@ -188,6 +190,9 @@ struct rasqal_query_s {
 
   /* executing variables */
   int column;
+
+  /* (linked list of) query results made from this query */
+  rasqal_query_results *results;
 };
 
 
@@ -232,6 +237,18 @@ struct rasqal_query_engine_factory_s {
   void (*finish_factory)(rasqal_query_engine_factory* factory);
 };
 
+
+/*
+ * A query result for some query
+ */
+struct rasqal_query_results_s {
+  /* query that this was executed over */
+  rasqal_query *query;
+
+  /* next query result */
+  rasqal_query_results *next;
+};
+    
 
 /* rasqal_general.c */
 char* rasqal_vsnprintf(const char *message, va_list arguments);
