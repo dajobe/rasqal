@@ -26,7 +26,8 @@ note-ex1.rdql note-ex2.rdql note-ex3.rdql note-ex4.rdql
 
 
 EXTRA_DIST = \
-$(RDQL_TEST_FILES)
+$(RDQL_TEST_FILES) \
+dc.rdf
 
 $(top_builddir)/rdql_lexer_test:
 	@(cd $(top_builddir) ; $(MAKE) rdql_lexer_test)
