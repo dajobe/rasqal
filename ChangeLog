@@ -1,4 +1,38 @@
+2004-08-13  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* Several fixes for building on win32 from Chris Pointon
+
+	* win32/Makefile.am, win32/rasqal.dsp, win32/rasqal.dsw:
+	win32 build configuration
+
+	* configure.ac, Makefile.am: Add win32 dir
+
+	* roqet.c:
+	Use #ifdef HAVE_UNISTD_H ... #endif around include of <unistd.h>
+
+	* rasqal_literal.c, rasqal_expr.c: Use RASQAL_INLINE instead of inline.
+
+	* win32_rasqal_config.h: win32 updates from Chris Pointon
+
+	* rasqal_internal.h: Define RASQAL_INLINE here but don't condition it.
+
+	* rasqal_internal.h: Add RASQAL_INLINE, empty on WIN32
+
+	* rasqal.h: Export rasqal_set_triples_source_factory
+
+	* rdql_parser.y: Use win32_rasqal_config.h
+
+	* rdql_lexer.l, fix-flex:
+	fix-flex now inserts the raptor and win32 config includes block
+	at the top of the lexer C.
+
+	* rdql_parser.y, rdql_lexer.l, Makefile.am:
+	Do not generate *.tab.[ch] for rdql parser but process and rename
+	to make .c, .h.
+
 2004-08-03  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* configure.ac: Bumped version to 0.9.3
 
 	* Snapshotted rasqal_0_9_2 for 0.9.2 release
 
