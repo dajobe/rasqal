@@ -117,6 +117,16 @@ for the <a href="http://www.pcre.org/">PCRE</a>
 or <tt>posix</tt> a POSIX regex implementation in the C library
 </p>
 </dd>
+
+<dt><tt>--with-triples-source=NAME</tt><br /></dt>
+<dd><p>Pick a triples source library to use - either <tt>raptor</tt>
+(default, and always available) or <tt>redland</tt> to use
+<a href="http://www.redland.opensource.ac.uk/">Redland</a>.  Raptor
+creates a simple in-store list of triples on parsing each time whereas
+Redland makes a much more efficient indexed in-memory store.  See
+also <tt>--with-redland-config</tt>.</p>
+</dd>
+
 <dt><tt>--with-pcre-config=NAME</tt><br /></dt>
 <dd><p>Set the path to the <a href="http://www.pcre.org/">PCRE</a> pcre-config program</p></dd>
 <dt><code>--with-raptor=</code> <code>system</code> or <code>internal</code><br /></dt>
@@ -128,6 +138,10 @@ system one, if new enough or the internal one if present.  If
 <code>--with-raptor=system</code> is used and Rasqal discovers that
 the system raptor is too old, a warning will be given but the
 configuration will continue.  </p></dd>
+
+<dt><tt>--with-redland-config=NAME</tt><br /></dt>
+<dd><p>Set the path to the <a href="http://www.redland.opensource.ac.uk/">Redland</a> redland-config program</p></dd>
+
 </dl>
 
 
