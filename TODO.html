@@ -51,7 +51,7 @@ result solution.</li>
 </ul>
 </li>
 <li>LIMIT and OFFSET result constraints, after engine supports them.  AKT's Triplestore implementation of RDQL has this option. (extension)</li>
-
+<li>Error recovery - when parsing a query fails, memory is leaked because the lists of selects, constraints etc. are lost when some part fails.  This requires understanding error recovery in Yacc/Bison.</li>
 </ul>
 
 
