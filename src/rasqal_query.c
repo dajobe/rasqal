@@ -1014,8 +1014,6 @@ rasqal_query_results_get_binding_name(rasqal_query_results *query_results,
     return NULL;
   
   query=query_results->query;
-  if(query->finished)
-    return NULL;
 
   if(offset < 0 || offset > query->select_variables_count-1)
     return NULL;
