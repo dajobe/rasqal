@@ -587,23 +587,14 @@ rasqal_engine_execute_finish(rasqal_query *query) {
  *
  * return: <0 failure, 0 end of results, >0 match
  */
-int
-rasqal_engine_get_next_result(rasqal_query *query) {
-  int triples_size;
+static int
+rasqal_engine_get_next_triple_pattern_result(rasqal_query *query,
+                                             raptor_sequence *triples,
+                                             int start_column,
+                                             int end_column) {
   int rc;
 
-  if(query->failed)
-    return -1;
-
-  if(query->finished)
-    return 0;
-
-  if(!query->triples)
-    return -1;
-  
-  triples_size=raptor_sequence_size(query->triples);
-
-  while(query->column >= 0) {
+  while(query->column >= start_column) {
     rasqal_triple_meta *m=&query->triple_meta[query->column];
     rasqal_triple *t=(rasqal_triple*)raptor_sequence_get_at(query->triples, query->column);
 
@@ -665,70 +656,107 @@ rasqal_engine_get_next_result(rasqal_query *query) {
         continue;
     }
     
-    if(query->column == (triples_size-1)) {
+    if(query->column == end_column) {
       /* Done all conjunctions */ 
       
-      /* check any constraints */
-      if(query->constraints) {
-        int c;
-        int bresult=1; /* constraint succeeds */
-            
-        for(c=0; c< raptor_sequence_size(query->constraints); c++) {
-          rasqal_expression* expr;
-          rasqal_literal* result;
-          int error=0;
-          
-          expr=(rasqal_expression*)raptor_sequence_get_at(query->constraints, c);
-#ifdef RASQAL_DEBUG
-          RASQAL_DEBUG2("constraint %d expression:\n", c);
-          rasqal_expression_print(expr, stderr);
-          fputc('\n', stderr);
-#endif
-
-          result=rasqal_expression_evaluate(query, expr);
-          if(result) {
-#ifdef RASQAL_DEBUG
-            RASQAL_DEBUG2("constraint %d expression result:\n", c);
-            rasqal_literal_print(result, stderr);
-            fputc('\n', stderr);
-#endif
-            bresult=rasqal_literal_as_boolean(result, &error);
-            if(error) {
-              RASQAL_DEBUG2("constraint %d boolean expression returned error\n", c);
-              bresult=0;
-            } else
-              RASQAL_DEBUG3("constraint %d boolean expression result: %d\n", c, bresult);
-            rasqal_free_literal(result);
-            rc=bresult;
-          } else {
-            RASQAL_DEBUG2("constraint %d expression failed with error\n", c);
-            rc=0;
-          }
-
-          /* stop checking constraints on an error or if one was false */
-          if(error || !bresult)
-            break;
-        }
-      } /* end check for constraints */
-
       /* exact match, so column must have ended */
       if(t->flags & RASQAL_TRIPLE_FLAGS_EXACT)
         query->column--;
 
-      if(rc) {
-        query->result_count++;
-        return rc;
-      }
-      
-    } else if (query->column >=0)
+      /* return with result (rc is 1) */
+      break;
+    } else if (query->column >= start_column)
       query->column++;
 
   }
 
-  if(query->column < 0) {
+  if(query->column < start_column)
     rc=0;
-    query->finished=1;
+  
+  return rc;
+}
+
+
+/*
+ *
+ * return: <0 failure, 0 end of results, >0 match
+ */
+int
+rasqal_engine_get_next_result(rasqal_query *query) {
+  int triples_size;
+  int rc;
+
+  if(query->failed)
+    return -1;
+
+  if(query->finished)
+    return 0;
+
+  if(!query->triples)
+    return -1;
+  
+
+  triples_size=raptor_sequence_size(query->triples);
+
+  /*  return: <0 failure, 0 end of results, >0 match */
+  rc=rasqal_engine_get_next_triple_pattern_result(query,
+                                                  query->triples,
+                                                  0, 
+                                                  triples_size-1);
+
+  if(rc > 0) {
+    /* check any constraints */
+    if(query->constraints) {
+      int c;
+      int bresult=1; /* constraint succeeds */
+      
+      for(c=0; c< raptor_sequence_size(query->constraints); c++) {
+        rasqal_expression* expr;
+        rasqal_literal* result;
+        int error=0;
+        
+        expr=(rasqal_expression*)raptor_sequence_get_at(query->constraints, c);
+#ifdef RASQAL_DEBUG
+        RASQAL_DEBUG2("constraint %d expression:\n", c);
+        rasqal_expression_print(expr, stderr);
+        fputc('\n', stderr);
+#endif
+        
+        result=rasqal_expression_evaluate(query, expr);
+        if(result) {
+#ifdef RASQAL_DEBUG
+          RASQAL_DEBUG2("constraint %d expression result:\n", c);
+          rasqal_literal_print(result, stderr);
+          fputc('\n', stderr);
+#endif
+          bresult=rasqal_literal_as_boolean(result, &error);
+          if(error) {
+            RASQAL_DEBUG2("constraint %d boolean expression returned error\n", c);
+            bresult=0;
+          } else
+            RASQAL_DEBUG3("constraint %d boolean expression result: %d\n", c, bresult);
+          rasqal_free_literal(result);
+          rc=bresult;
+        } else {
+          RASQAL_DEBUG2("constraint %d expression failed with error\n", c);
+          rc=0;
+        }
+        
+        /* stop checking constraints on an error or if one was false */
+        if(error || !bresult)
+          break;
+      }
+    } /* end check for constraints */
+
+    if(rc) {
+      /* Got a valid result */
+      query->result_count++;
+      return rc;
+    }
   }
+
+  if(!rc)
+    query->finished=1;
   
   return rc;
 }
