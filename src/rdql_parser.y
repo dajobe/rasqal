@@ -682,6 +682,10 @@ rdql_parse(rasqal_query* rq, const unsigned char *string) {
   locator->column= -1; /* No column info */
   locator->byte= -1; /* No bytes info */
 
+#if RASQAL_DEBUG > 2
+  rdql_parser_debug=1;
+#endif
+
   rqe->lineno=1;
 
   rdql_lexer_lex_init(&rqe->scanner);
