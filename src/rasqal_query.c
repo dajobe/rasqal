@@ -298,6 +298,43 @@ rasqal_query_set_variable(rasqal_query* query, const char *name,
 
 
 /**
+ * rasqal_query_add_triple: Add a matching triple to the query
+ * @query: &rasqal_query query object
+ * @triple: &rasqal_triple triple
+ *
+ **/
+void
+rasqal_query_add_triple(rasqal_query* query, rasqal_triple* triple) {
+  raptor_sequence_shift(query->triples, (void*)triple);
+}
+
+
+/**
+ * rasqal_query_get_triple_sequence: Get the sequence of matching triples in the query
+ * @query: &rasqal_query query object
+ *
+ * Return value: a &raptor_sequence of &rasqal_triple pointers.
+ **/
+raptor_sequence*
+rasqal_query_get_triple_sequence(rasqal_query* query) {
+  return query->triples;
+}
+
+
+/**
+ * rasqal_query_get_triple: Get a triple in the sequence of matching triples in the query
+ * @query: &rasqal_query query object
+ * @idx: index into the sequence (0 or larger)
+ *
+ * Return value: a &rasqal_triple pointer or NULL if out of the sequence range
+ **/
+rasqal_triple*
+rasqal_query_get_triple(rasqal_query* query, int idx) {
+  return (rasqal_triple*)raptor_sequence_get_at(query->triples, idx);
+}
+
+
+/**
  * rasqal_query_prepare: Prepare a query - typically parse it
  * @rdf_query: the &rasqal_query object
  * @query_string: the query string
