@@ -440,9 +440,9 @@ rasqal_query_prepare(rasqal_query *query,
   if(base_uri)
     base_uri=raptor_uri_copy(base_uri);
   else {
-    const char *uri_string=raptor_uri_filename_to_uri_string("");
+    char *uri_string=raptor_uri_filename_to_uri_string("");
     base_uri=raptor_new_uri(uri_string);
-    SYSTEM_FREE((void*)uri_string);
+    raptor_free_memory(uri_string);
   }
   
   query->base_uri=base_uri;
@@ -682,4 +682,10 @@ rasqal_query_get_user_data(rasqal_query *query) {
 void
 rasqal_query_set_user_data(rasqal_query *query, void *user_data) {
   query->user_data=user_data;
+}
+
+
+int
+rasqal_query_get_bindings_count(rasqal_query *query) {
+  return query->select_variables_count;
 }
