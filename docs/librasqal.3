@@ -108,10 +108,16 @@ Set the fatal error handler callback.
 Set the error handler callback.
 .IP "\fBvoid rasqal_query_set_warning_handler(rasqal_query* \fIquery\fB, void *\fIuser_data\fP, raptor_message_handler \fIhandler\fP)\fR"
 Set the warning handler callback.
-.IP "\fBvoid rasqal_query_set_feature(rasqal_query *\fIquery\fP, rasqal_feature \fIfeature\fP, int \fIvalue\fP)\fR"
+.IP "\fBvoid rasqal_query_set_feature(rasqal_query* \fIquery\fP, rasqal_feature \fIfeature\fP, int \fIvalue\fP)\fR"
 Set a query feature \fIfeature\fR to a particular \fIvalue\fR.
 Returns non 0 on failure or if the feature is unknown.  No current
 features are defined.
+.IP "\fBint rasqal_query_get_distinct(rasqal_query* \fIquery\fP)\fR"
+Get the query distinct results flag, returning non-0 if the results
+should be distinct.
+.IP "\fBint rasqal_query_get_limit(rasqal_query* \fIquery\fP)\fR"
+Get the query-specified limit on results returning >= 0 if a
+limit is given, otherwise not specified.
 .IP "\fBvoid rasqal_query_add_source(rasqal_query* \fIquery\fB, raptor_uri* \fIuri\fP)\fR"
 Add a source URI to the sequence of sources in the query.
 .IP "\fBraptor_sequence* rasqal_query_get_source_sequence(rasqal_query* \fIquery\fB)\fR"
@@ -158,7 +164,7 @@ Get one prefix in the sequence of prefixes in the query.
 Get the sequence of graph patterns expressions in the query.
 .IP "\fBrasqal_graph_pattern* rasqal_query_get_graph_pattern(rasqal_query* \fIquery\fP, int \fIidx\fP)\fR"
 Get a graph pattern in the sequence of graph_pattern expressions in the query.
-.IP "\fBvoid rasqal_query_print(rasqal_query *\fIquery\fP, FILE* \fIstream\fP)\fR"
+.IP "\fBvoid rasqal_query_print(rasqal_query* \fIquery\fP, FILE* \fIstream\fP)\fR"
 Print a query in a debug format.  This format may change in any release.
 .IP "\fBint rasqal_query_prepare(rasqal_query* \fIquery\fP, const unsigned char *\fIquery_string\fP, raptor_uri *\fIbase_uri\fP)\fR"
 Prepare aquery string \fIquery_string\fPwith
@@ -167,9 +173,9 @@ parsing it and modifying the rasqal_query internals.
 Return non-0 on failure.
 .IP "\fBrasqal_query_results* rasqal_query_execute(rasqal_query* \fIquery\fP)\fR"
 Execute a query, returning a rasqal_query_results* object or NULL on failure.
-.IP "\fBvoid rasqal_query_set_user_data(rasqal_query *\fIquery\fP, void *\fIuser_data\fP)\fR"
+.IP "\fBvoid rasqal_query_set_user_data(rasqal_query* \fIquery\fP, void *\fIuser_data\fP)\fR"
 Set some user data to be associated with the query.
-.IP "\fBvoid* rasqal_query_get_user_data(rasqal_query *\fIquery\fP)\fR"
+.IP "\fBvoid* rasqal_query_get_user_data(rasqal_query* \fIquery\fP)\fR"
 Get the user data associated with the query.
 .SH "GRAPH PATTERN CLASS"
 A class for graph patterns in a query - a set of triple patterns)
@@ -423,7 +429,7 @@ Print an expression operator in a debug format.  This format may
 change in any release.
 .IP "\fBvoid rasqal_expression_print(rasqal_expression* \fIexpression\fP, FILE* \fIfh\fP)\fR"
 Print an expression in a debug format.  This format may change in any release.
-.IP "\fBrasqal_literal* rasqal_expression_evaluate(rasqal_query *\fIquery\fP, rasqal_expression* \fIexpression\fP)\fR"
+.IP "\fBrasqal_literal* rasqal_expression_evaluate(rasqal_query* \fIquery\fP, rasqal_expression* \fIexpression\fP)\fR"
 Evalute an expression, returning a rasqal boolean with the result or
 NULL on failure.
 .IP "\fBint rasqal_expression_foreach(rasqal_expression* \fIexpression\fP, rasqal_expression_foreach_fn \fIfn\fP, void *\fIuser_data\fP)\fR"
@@ -443,12 +449,14 @@ and added access methods:
  and exported previously internal \fBrasqal_graph_pattern_print\fP
 Export \fIrasqal_pattern_flags\fP enum for graph pattern flags.
 .LP
-.LP
 Added \fBrasqal_query_get_bound_variable_sequence\fP
 and \fBrasqal_query_get_all_variable_sequence\fP.
 .LP
 Deprecate \fBrasqal_query_get_variable_sequence\fR prefering
 \fBrasqal_query_get_bound_variable_sequence\fP
+.LP
+Added  \fBrasqal_query_get_distinct\fP
+and \fBrasqal_query_get_limit\fP to get access to query flags.
 .LP
 Deleted \fBRASQAL_EXPR_PATTERN\fP which was never used.
 .SS 0.9.6
