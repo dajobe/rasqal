@@ -1,5 +1,34 @@
 2005-02-17  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
+	* rasqal_query.c (rasqal_query_add_triple): Deprecated as it
+	doesn't construct the graph patterns and is of little use.
+	(rasqal_query_get_graph_pattern_sequence,
+	rasqal_query_get_graph_pattern): Added to get the
+	rasqal_graph_patterns inside a query.
+	(rasqal_graph_pattern_get_triple): Added to get a rasqal_triple
+	inside a graph_pattern.
+	(rasqal_graph_pattern_get_sub_graph_pattern_sequence,
+	(rasqal_graph_pattern_get_sub_graph_pattern): Added to get a
+	sub-graph pattern inside a graph pattern.
+	(rasqal_graph_pattern_get_flags): Added to get graph pattern flags.
+
+	* rasqal_internal.h:
+	Move rasqal_graph_pattern typedef, rasqal_pattern_flags and
+	rasqal_graph_pattern_print to public api.
+	Added RASQAL_DEPRECATED_MESSAGE macro.
+
+	* rasqal.h: Export rasqal_graph_pattern typedef
+	Export rasqal_pattern_flags enum with value
+	RASQAL_PATTERN_FLAGS_OPTIONAL
+	Deprecate rasqal_query_add_triple as it doesn't construct the graph
+	patterns and is of little use.
+	Added prototypes for rasqal_query_get_graph_pattern_sequence,
+	rasqal_query_get_graph_pattern, rasqal_graph_pattern_get_triple,
+	rasqal_graph_pattern_get_sub_graph_pattern_sequence,
+	rasqal_graph_pattern_get_sub_graph_pattern,
+	rasqal_graph_pattern_get_flags
+	and exported rasqal_graph_pattern_print
+
 	* tests/rdql/testsuite/check-rdql, tests/sparql/check-sparql:
 	Handle roqet select: and bound variables:
 
