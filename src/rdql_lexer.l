@@ -626,6 +626,23 @@ rdql_syntax_error(rdql_parser *rp, const char *message, ...)
   return 0;
 }
 
+int
+rdql_syntax_warning(rdql_parser *rp, const char *message, ...)
+{
+  yyscan_t yyscanner=(yyscan_t)rp;
+  va_list arguments;
+
+  fprintf(stderr, "%s:%d: Warning: ", filename, rdql_lexer_get_lineno(yyscanner));
+
+  va_start(arguments, message);
+  vfprintf(stderr, message, arguments);
+  va_end(arguments);
+
+  fputc('\n', stderr);
+
+  return 0;
+}
+
 static void
 rdql_token_free(int token, YYSTYPE *lval)
 {
