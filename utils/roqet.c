@@ -63,9 +63,6 @@ static int quiet=0;
 static enum { OUTPUT_FORMAT_SIMPLE } output_format = OUTPUT_FORMAT_SIMPLE;
 
 
-extern char *filename;
-extern int lineno;
-
 #include <redland.h>
 extern librdf_world *world;
 
@@ -121,6 +118,7 @@ main(int argc, char *argv[])
   int rc=0;
   raptor_uri *uri=NULL;
   raptor_uri *base_uri=NULL;
+  char *filename=NULL;
   char *p;
   int usage=0;
   int help=0;
@@ -328,10 +326,6 @@ main(int argc, char *argv[])
     fprintf(stderr, "%s: Query execution failed\n", program);
     rc=1;
   }
-
-  fprintf(stdout, "\nAfter execution, query:\n");
-  rasqal_query_print(rq, stdout);
-
 
   rasqal_free_query(rq);
 
