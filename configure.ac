@@ -448,6 +448,49 @@ fi
 AC_MSG_RESULT($triples_source_library)
 
 
+
+dnl RDF Query Languages
+rdql_query_language=no
+brql_query_language=no
+
+if test "$USE_MAINTAINER_MODE" = yes; then
+  rdf_query_languages_available="rdql brql"
+else
+  rdf_query_languages_available=rdql
+fi
+rdf_query_languages_enabled=
+
+
+# This is needed because autoheader can't work out which computed
+# symbols must be pulled from acconfig.h into config.h.in
+if test "x" = "y"; then
+  AC_DEFINE(RASQAL_QUERY_RDQL, 1, [Building RDQL query])
+  AC_DEFINE(RASQAL_QUERY_BRQL, 1, [Building BRQL query])
+fi
+
+AC_MSG_CHECKING(query languages required)
+AC_ARG_ENABLE(query-languages, [  --enable-query-languages=LIST   Enable query languages (default=all)], query_languages="$enableval") 
+if test "X$query_languages" = Xall -o "X$query_languages" = X; then
+  query_languages="$rdf_query_languages_available"
+  AC_MSG_RESULT(all)
+else
+  AC_MSG_RESULT($query_languages)
+fi
+
+for query_language in $query_languages; do
+  p=$query_language
+  eval $p'_query_language=yes'
+  NAME=`echo $p | tr 'abcdefghijklmnopqrstuvwxyz' 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'`
+  n=RASQAL_QUERY_${NAME}
+  AC_DEFINE_UNQUOTED($n)
+  rdf_query_languages_enabled="$rdf_query_languages_enabled $query_language"
+done
+
+AM_CONDITIONAL(RASQAL_QUERY_RDQL, test $rdql_query_language = yes)
+AM_CONDITIONAL(RASQAL_QUERY_BRQL, test $brql_query_language = yes)
+
+
+
 if test $with_raptor = internal; then
   RASQAL_INTERNAL_CPPFLAGS="$RASQAL_INTERNAL_CPPFLAGS -I\$(top_srcdir)/../raptor"
   RASQAL_INTERNAL_LIBS="$RASQAL_INTERNAL_LIBS \$(top_builddir)/../raptor/libraptor.la"
@@ -523,7 +566,9 @@ AC_SUBST(abs_top_builddir)
 
 AC_CONFIG_FILES([Makefile
 tests/Makefile
-rdql-testsuite/Makefile
+tests/rdql/Makefile
+tests/rdql/testsuite/Makefile
+tests/brql/Makefile
 docs/Makefile
 win32/Makefile
 rasqal.spec
@@ -535,5 +580,7 @@ AC_OUTPUT
 
 AC_MSG_RESULT([
 Rasqal build summary:
-  Triple source : $triples_source_library
+  RDF query languages available : $rdf_query_languages_available
+  RDF query languages enabled   :$rdf_query_languages_enabled
+  Triples source                : $triples_source_library
 ])
