@@ -1,4 +1,13 @@
+2004-11-17  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal_engine.c (rasqal_engine_get_next_result): More code tweaks
+
+	* rasqal_engine.c (rasqal_engine_get_next_result):
+	Evaluate constraint_expression
+
 2004-11-16  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal_internal.h, rasqal_engine.c: pattern_graph to graph_pattern
 
 	* rasqal_engine.c (rasqal_engine_get_next_result):
 	Inner loop logic tidying.
