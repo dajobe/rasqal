@@ -677,6 +677,31 @@ rasqal_engine_get_next_triple_pattern_result(rasqal_query *query,
 }
 
 
+rasqal_pattern_graph*
+rasqal_new_pattern_graph(raptor_sequence *triples, 
+                         int first_column, int last_column,
+                         int flags) {
+  rasqal_pattern_graph* pg=(rasqal_pattern_graph*)RASQAL_CALLOC(rasqal_pattern_graph, sizeof(rasqal_pattern_graph), 1);
+  pg->triples=triples;
+  pg->flags=flags;
+
+  pg->triples_count=raptor_sequence_size(triples);
+  pg->triple_meta=(rasqal_triple_meta*)RASQAL_CALLOC(rasqal_triple_meta, sizeof(rasqal_triple_meta), pg->triples_count);
+
+  return pg;
+}
+
+
+void
+rasqal_free_pattern_graph(rasqal_pattern_graph* pg)
+{
+  if(pg->triple_meta)
+    RASQAL_FREE(rasqal_triple_meta, pg->triple_meta);
+  RASQAL_FREE(rasqal_pattern_graph, pg);
+}
+
+
+
 /*
  *
  * return: <0 failure, 0 end of results, >0 match
