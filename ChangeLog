@@ -1,10 +1,20 @@
+2005-01-24  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal_expr.c (rasqal_new_function_expression):
+	Added to create a function call expression.
+	(rasqal_free_expression, rasqal_expression_print): Handle
+	RASQAL_EXPR_FUNCTION.
+
+	* rasqal.h: Added name, args fields to rasqal_expression
+	Added rasqal_new_function_expression
+
+	* Makefile.am: Added rasqal_xsd_datatypes_test
+
+	* rasqal_xsd_datatypes.c: Rasqal XSD datatypes
+
 2005-01-21  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
 	* tests/rdql/testsuite/Makefile.am: S-03, S-04, S-05 work
-
-	* TODO.html: update sparql words
-
-	* TODO.html: RDQL S-03, S-04, S-05 fixed
 
 	* sparql_lexer.l (PREFIX): Allow \
 	(NAME): Allow \
