@@ -56,6 +56,16 @@ extern "C" {
 #define RASQAL_DEBUG5(msg, arg1, arg2, arg3, arg4) do {fprintf(stderr, "%s:%d:%s: " msg, __FILE__, __LINE__, __func__, arg1, arg2, arg3, arg4);} while(0)
 #define RASQAL_DEBUG6(msg, arg1, arg2, arg3, arg4, arg5) do {fprintf(stderr, "%s:%d:%s: " msg, __FILE__, __LINE__, __func__, arg1, arg2, arg3, arg4, arg5);} while(0)
 
+#if defined(HAVE_DMALLOC_H) && defined(RASQAL_MEMORY_DEBUG_DMALLOC)
+void* rasqal_system_malloc(size_t size);
+void rasqal_system_free(void *ptr);
+#define SYSTEM_MALLOC(size)   rasqal_system_malloc(size)
+#define SYSTEM_FREE(ptr)   rasqal_system_free(ptr)
+#else
+#define SYSTEM_MALLOC(size)   malloc(size)
+#define SYSTEM_FREE(ptr)   free(ptr)
+#endif
+
 #else
 /* DEBUGGING TURNED OFF */
 
