@@ -106,9 +106,9 @@ RASQAL_LIBTOOL_VERSION=0:0:0
 AC_SUBST(RASQAL_LIBTOOL_VERSION)
 
 
-#dnl Checks for library functions.
-#AC_CHECK_FUNCS(getopt getopt_long vsnprintf)
-#
+dnl Checks for library functions.
+AC_CHECK_FUNCS(vsnprintf)
+
 ## was AC_REPLACE_FUNCS(strcasecmp) but strcasecmp has two alternatives:
 ## the other non-standard function stricmp or a local alternative
 #if test $ac_cv_func_stricmp = no -a $ac_cv_func_stricmp = no; then
@@ -132,26 +132,26 @@ AC_SUBST(RASQAL_LIBTOOL_VERSION)
 
 
 
-#if test $ac_cv_func_vsnprintf = yes; then
-#  AC_MSG_CHECKING(vsnprintf has C99 compatible return value)
-#  AC_TRY_RUN([#include <stdarg.h>
-#int is_c99(char *s, ...) {
-#  char buffer[32];
-#  va_list args;
-#  int r;
-#  va_start(args, s);
-#  r = vsnprintf(buffer, 5, s, args);
-#  va_end(args);
-#
-#  return (r == 7);
-#}
-#
-#int main(int argc, char* argv) {
-#  return is_c99("1234567");
-#}], AC_MSG_RESULT(no),
-#    AC_DEFINE(HAVE_C99_VSNPRINTF, 1, [vsnprint has C99 compatible return value])
-#    AC_MSG_RESULT(yes))
-#fi
+if test $ac_cv_func_vsnprintf = yes; then
+  AC_MSG_CHECKING(vsnprintf has C99 compatible return value)
+  AC_TRY_RUN([#include <stdarg.h>
+int is_c99(char *s, ...) {
+  char buffer[32];
+  va_list args;
+  int r;
+  va_start(args, s);
+  r = vsnprintf(buffer, 5, s, args);
+  va_end(args);
+
+  return (r == 7);
+}
+
+int main(int argc, char* argv) {
+  return is_c99("1234567");
+}], AC_MSG_RESULT(no),
+    AC_DEFINE(HAVE_C99_VSNPRINTF, 1, [vsnprint has C99 compatible return value])
+    AC_MSG_RESULT(yes))
+fi
 
 
 AC_CHECK_PROG(RAPTOR_CONFIG, raptor-config, raptor-config)
