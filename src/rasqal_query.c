@@ -198,6 +198,9 @@ rasqal_free_query(rasqal_query* query)
   /* Do this last since most everything above could refer to a variable */
   if(query->variables_sequence)
     raptor_free_sequence(query->variables_sequence);
+
+  if(query->triple)
+    rasqal_free_triple(query->triple);
   
   RASQAL_FREE(rasqal_query, query);
 }
@@ -1375,18 +1378,41 @@ rasqal_query_results_write(raptor_iostream *iostr,
 }
 
 
+static inline unsigned char*
+rasqal_prefix_id(int prefix_id, unsigned char *string) {
+  int tmpid=prefix_id;
+  unsigned char* buffer;
+  size_t length=strlen((const char*)string)+4;  /* "r" +... + "_" +... \0 */
+
+  while(tmpid/=10)
+    length++;
+  
+  buffer=(unsigned char*)RASQAL_MALLOC(cstring, length);
+  if(!buffer)
+    return NULL;
+  
+  sprintf((char*)buffer, "r%d_%s", prefix_id, string);
+  
+  RASQAL_FREE(cstring, string);
+  return buffer;
+}
+
+
 /**
  * rasqal_query_results_get_triple - Get the current triple in the result
  * @query_results: &rasqal_query_results query_results
+ *
+ * The return value is a shared raptor_statement
  * 
- * Return value: NULl if failed or results exhausted
+ * Return value: &raptor_statement or NULL if failed or results exhausted
  **/
-rasqal_triple*
+raptor_statement*
 rasqal_query_results_get_triple(rasqal_query_results *query_results) {
   rasqal_query *query;
   int rc;
-  rasqal_triple *t, *new_t;
+  rasqal_triple *t;
   rasqal_literal *s, *p, *o;
+  raptor_statement *rs;
   
   if(!query_results)
     return NULL;
@@ -1420,12 +1446,70 @@ rasqal_query_results_get_triple(rasqal_query_results *query_results) {
   t=(rasqal_triple*)raptor_sequence_get_at(query->constructs,
                                            query->current_triple_result);
 
-  s=rasqal_literal_as_node(t->subject);
-  p=rasqal_literal_as_node(t->predicate);
-  o=rasqal_literal_as_node(t->object);
-  new_t=rasqal_new_triple(s, p, o);
+  rs=&query->statement;
 
-  return new_t;
+  s=rasqal_literal_as_node(t->subject);
+  switch(s->type) {
+    case RASQAL_LITERAL_URI:
+      rs->subject=s->value.uri;
+      rs->subject_type=RAPTOR_IDENTIFIER_TYPE_RESOURCE;
+      break;
+    case RASQAL_LITERAL_BLANK:
+      s->string=rasqal_prefix_id(query->result_count, 
+                                 (unsigned char*)s->string);
+
+      rs->subject=s->string;
+      rs->subject_type=RAPTOR_IDENTIFIER_TYPE_ANONYMOUS;
+      break;
+    default:
+      /* case RASQAL_LITERAL_STRING: */
+      RASQAL_FATAL2("Triple with non-URI/blank subject type %d", s->type);
+      break;
+  }
+  
+  p=rasqal_literal_as_node(t->predicate);
+  switch(p->type) {
+    case RASQAL_LITERAL_URI:
+      rs->predicate=p->value.uri;
+      rs->predicate_type=RAPTOR_IDENTIFIER_TYPE_RESOURCE;
+      break;
+
+    default:
+      RASQAL_FATAL2("Triple with non-URI predicatge type %d", p->type);
+      break;
+  }
+
+  o=rasqal_literal_as_node(t->object);
+  switch(o->type) {
+    case RASQAL_LITERAL_URI:
+      rs->object=o->value.uri;
+      rs->object_type=RAPTOR_IDENTIFIER_TYPE_RESOURCE;
+      break;
+
+    case RASQAL_LITERAL_BLANK:
+      o->string=rasqal_prefix_id(query->result_count, 
+                                 (unsigned char*)o->string);
+
+      rs->object=o->string;
+      rs->object_type=RAPTOR_IDENTIFIER_TYPE_ANONYMOUS;
+      break;
+      
+    case RASQAL_LITERAL_STRING:
+      rs->object=o->string;
+      rs->object_literal_language=o->language;
+      rs->object_literal_datatype=o->datatype;
+      rs->object_type=RAPTOR_IDENTIFIER_TYPE_LITERAL;
+      break;
+
+    default:
+      RASQAL_FATAL2("Triple with unknown object type %d", o->type);
+      break;
+  }
+
+  /* for saving s, p, o for later disposal */
+  query->triple=rasqal_new_triple(s, p, o);
+
+  return rs;
 }
 
 
@@ -1449,6 +1533,11 @@ rasqal_query_results_next_triple(rasqal_query_results *query_results) {
   query=query_results->query;
   if(query->finished)
     return 1;
+
+  if(query->triple) {
+    rasqal_free_triple(query->triple);
+    query->triple=NULL;
+  }
 
   if(++query->current_triple_result >= raptor_sequence_size(query->constructs)) {
     /* rc<0 error rc=0 end of results,  rc>0 got a result */
