@@ -273,8 +273,8 @@ rasqal_new_variable(rasqal_query* rq,
   int i;
   rasqal_variable* v;
   
-  for(i=0; i< rasqal_sequence_size(rq->variables_sequence); i++) {
-    v=(rasqal_variable*)rasqal_sequence_get_at(rq->variables_sequence, i);
+  for(i=0; i< raptor_sequence_size(rq->variables_sequence); i++) {
+    v=(rasqal_variable*)raptor_sequence_get_at(rq->variables_sequence, i);
     if(!strcmp(v->name, name)) {
       /* name already present, do not need a copy */
       RASQAL_FREE(cstring, name);
@@ -288,7 +288,7 @@ rasqal_new_variable(rasqal_query* rq,
   v->value=value;
   v->offset=rq->variables_count++;
 
-  rasqal_sequence_push(rq->variables_sequence, v);
+  raptor_sequence_push(rq->variables_sequence, v);
   
   return v;
 }

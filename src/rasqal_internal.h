@@ -102,11 +102,11 @@ struct rasqal_query_s {
   raptor_namespace_stack *namespaces;
 
   /* sequences of ... */
-  rasqal_sequence *selects;     /* ... rasqal_variable* names only */
-  rasqal_sequence *sources;     /* ... raptor_uri*                 */
-  rasqal_sequence *triples;     /* ... rasqal_triple*              */
-  rasqal_sequence *constraints; /* ... rasqal_expression*          */
-  rasqal_sequence *prefixes;    /* ... rasqal_prefix*              */
+  raptor_sequence *selects;     /* ... rasqal_variable* names only */
+  raptor_sequence *sources;     /* ... raptor_uri*                 */
+  raptor_sequence *triples;     /* ... rasqal_triple*              */
+  raptor_sequence *constraints; /* ... rasqal_expression*          */
+  raptor_sequence *prefixes;    /* ... rasqal_prefix*              */
 
   int select_all;  /* non-0 if 'SELECT *' was seen (selects will be NULL) */
   
@@ -121,7 +121,7 @@ struct rasqal_query_s {
   int select_variables_count;
 
   /* holds one copy of all the variables - this is where they are freed */
-  rasqal_sequence* variables_sequence;
+  raptor_sequence* variables_sequence;
 
 
   /* A reordered list of conjunctive triples from triples above
@@ -130,7 +130,7 @@ struct rasqal_query_s {
    * NOTE: Shares the rasqal_triple* pointers with 'triples'.
    * The entries in this sequence are not freed.
    */
-  rasqal_sequence *ordered_triples;
+  raptor_sequence *ordered_triples;
 
   /* An array of items, one per triple in a query */
   rasqal_triple_meta *triple_meta;
