@@ -260,8 +260,7 @@ DescribeClause : VarOrURIList
 /* SPARQL Grammar: [3] FromClause - renamed for clarity */
 FromClauseOpt : FROM URIList
 {
-  /* FIXME - make a list of URI sources */
-  $$=$2;
+  ((rasqal_query*)rq)->sources=$2;
 }
 | /* empty */
 {
@@ -454,13 +453,17 @@ VarList : VarList Var
 /* NEW Grammar Term */
 URIList : URIList URI
 {
+  raptor_uri* uri=rasqal_literal_as_uri($2);
   $$=$1;
-  raptor_sequence_push($$, $2);
+  if(uri)
+    raptor_sequence_push($$, uri);
 }
 | URIList COMMA URI
 {
+  raptor_uri* uri=rasqal_literal_as_uri($3);
   $$=$1;
-  raptor_sequence_push($$, $3);
+  if(uri)
+    raptor_sequence_push($$, uri);
 }
 | /* empty */
 {
@@ -749,7 +752,7 @@ Literal : URI_LITERAL
 /* SPARQL Grammar: [42] String - made into terminal STRING_LITERAL */
 
 /* SPARQL Grammar: [43] URI */
-URI: URI_LITERAL
+URI : URI_LITERAL
 {
   $$=rasqal_new_uri_literal($1);
 }
