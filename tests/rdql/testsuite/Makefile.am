@@ -18,9 +18,12 @@
 # full license terms.
 # 
 
+TESTSUITE_VERSION=2.1a
+TESTSUITE_ZIP=$(srcdir)/../rdql-tests-jena-$(TESTSUITE_VERSION).zip
+
 rdql_testsuite_model_files=model0.nt model1.nt model2.nt model3.nt	\
-model4.nt model5.nt model5.rdf model6.nt model7.nt model8.n3		\
-model9.n3 vc-db-1.rdf vc-db-2.rdf vc-db-3.rdf
+model4.nt model5.nt model6.nt model7.nt model8.n3 model9.n3 modelA.nt	\
+model5.rdf vc-db-1.rdf vc-db-2.rdf vc-db-3.rdf
 
 rdql_testsuite_test_files=test-0-01 test-0-02 test-0-03 test-0-04	\
 test-1-01 test-1-02 test-1-03 test-1-04 test-1-05 test-1-06 test-1-07	\
@@ -32,8 +35,11 @@ test-5-02 test-5-03 test-5-04 test-6-01 test-6-02 test-6-03 test-6-04	\
 test-7-01 test-7-02 test-7-03 test-7-04 test-8-01 test-8-02 test-8-03	\
 test-8-04 test-8-05 test-9-01 test-9-02 test-A-01 test-A-02 test-B-01	\
 test-B-02 test-B-03 test-B-04 test-B-05 test-B-06 test-B-07 test-B-08	\
-test-B-09 test-B-10 test-B-11 test-B-12 test-T-01 test-T-02 test-T-03	\
-test-T-04 test-T-05 test-T-06 test-T-07 test-T-08 test-T-09 test-T-10
+test-B-09 test-B-10 test-B-11 test-B-12 test-B-13 test-B-14 test-B-15	\
+test-B-16 test-B-17 test-B-18 test-B-19 test-B-20 test-S-01 test-S-02	\
+test-S-03 test-S-04 test-S-05 test-T-01 test-T-02 test-T-03 test-T-04	\
+test-T-05 test-T-06 test-T-07 test-T-08 test-T-09 test-T-10
+
 
 rdql_testsuite_result_files=result-0-01.n3 result-0-02.n3	\
 result-0-03.n3 result-0-04.n3 result-1-01.n3 result-1-02.n3	\
@@ -53,13 +59,19 @@ result-8-05.n3 result-9-01.n3 result-9-02.n3 result-A-01.n3	\
 result-A-02.n3 result-B-01.n3 result-B-02.n3 result-B-03.n3	\
 result-B-04.n3 result-B-05.n3 result-B-06.n3 result-B-07.n3	\
 result-B-08.n3 result-B-09.n3 result-B-10.n3 result-B-11.n3	\
-result-B-12.n3 result-T-01.n3 result-T-02.n3 result-T-03.n3	\
-result-T-04.n3 result-T-05.n3 result-T-06.n3 result-T-07.n3	\
-result-T-08.n3 result-T-09.n3 result-T-10.n3
+result-B-12.n3 result-B-13.n3 result-B-14.n3 result-B-15.n3	\
+result-B-16.n3 result-B-17.n3 result-B-18.n3 result-B-19.n3	\
+result-B-20.n3 result-S-01.n3 result-S-02.n3 result-S-03.n3	\
+result-S-04.n3 result-S-05.n3 result-T-01.n3 result-T-02.n3	\
+result-T-03.n3 result-T-04.n3 result-T-05.n3 result-T-06.n3	\
+result-T-07.n3 result-T-08.n3 result-T-09.n3 result-T-10.n3
 
-rdql_testsuite_extra_files=query-dump rdql-tests.n3 README-RDQL-tests.txt  
 
-EXTRA_DIST = $(rdql_testsuite_model_files) \
+rdql_testsuite_extra_files=query-dump rdql-tests.n3	\
+README-RDQL-tests.txt copyright.txt
+
+EXTRA_DIST = README \
+$(rdql_testsuite_model_files) \
 $(rdql_testsuite_test_files) \
 $(rdql_testsuite_result_files) \
 $(rdql_testsuite_extra_files)
@@ -84,3 +96,21 @@ check-rdql-queries: $(top_builddir)/roqet
 	  fi; \
 	done; \
 	exit $$result
+
+if MAINTAINER_MODE
+clean-tests:
+	rm -f $(rdql_testsuite_model_files) $(rdql_testsuite_test_files) $(rdql_testsuite_result_files) $(rdql_testsuite_extra_files) 
+
+import-tests: clean-tests
+	@if test ! -r $(TESTSUITE_ZIP); then echo "$(TESTSUITE_ZIP) missing - cannot import RDQL testsuite"; exit 1; fi
+	unzip $(TESTSUITE_ZIP)
+	chmod 644 $(rdql_testsuite_model_files) $(rdql_testsuite_test_files) $(rdql_testsuite_result_files) $(rdql_testsuite_extra_files)
+
+commit-tests:
+	cvs commit -m "Updated to RDQL testsuite $(TESTSUITE_VERSION)" $(rdql_testsuite_model_files) $(rdql_testsuite_test_files) $(rdql_testsuite_result_files) $(rdql_testsuite_extra_files)
+
+
+tests-patch:
+	rm -f tests2turtle.patch
+	cd $(srcdir)/..; diff -cr rdql-testsuite.orig rdql-testsuite | grep -v ^Only > rdql-testsuite/tests2turtle.patch
+endif
