@@ -470,7 +470,7 @@ rasqal_engine_execute_init(rasqal_query *query) {
 int
 rasqal_engine_execute_finish(rasqal_query *query) {
   if(query->triple_meta) {
-    while(query->column >= 0) {
+    for(;query->column >= 0; query->column--) {
       rasqal_triple_meta *m=&query->triple_meta[query->column];
       
       if(m->bindings[0]) 
