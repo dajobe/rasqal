@@ -449,7 +449,7 @@ rasqal_select_next(rasqal_query *q, int count) {
                                   redland_node_to_rasqal_expression(librdf_statement_get_subject(statement)));
       }
       if(bindings[1])  {
-        RASQAL_DEBUG2("depth %d: binding object to variable\n", count);
+        RASQAL_DEBUG2("depth %d: binding predicate to variable\n", count);
         rasqal_variable_set_value(bindings[1], 
                                   redland_node_to_rasqal_expression((librdf_statement_get_predicate(statement))));
       }
