@@ -49,9 +49,12 @@
 
 
 /* Make verbose error messages for syntax errors */
+/*
 #ifdef RASQAL_DEBUG
 #define YYERROR_VERBOSE 1
 #endif
+*/
+#define YYERROR_VERBOSE 1
 
 /* Slow down the grammar operation and watch it work */
 #if RASQAL_DEBUG > 2
