@@ -105,7 +105,6 @@ struct rasqal_literal_s {
 
 typedef enum {
   RASQAL_EXPR_UNKNOWN,
-  RASQAL_EXPR_EXPR,
   RASQAL_EXPR_AND,
   RASQAL_EXPR_OR,
   RASQAL_EXPR_EQ,

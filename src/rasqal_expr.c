@@ -757,9 +757,6 @@ rasqal_new_literal_expression(rasqal_literal *literal)
 void
 rasqal_free_expression(rasqal_expression* e) {
   switch(e->op) {
-    case RASQAL_EXPR_EXPR:
-      rasqal_free_expression(e->arg1);
-      break;
     case RASQAL_EXPR_AND:
     case RASQAL_EXPR_OR:
     case RASQAL_EXPR_EQ:
@@ -801,9 +798,6 @@ rasqal_expression_foreach(rasqal_expression* e,
                           rasqal_expression_foreach_fn fn,
                           void *user_data) {
   switch(e->op) {
-    case RASQAL_EXPR_EXPR:
-      return rasqal_expression_foreach(e->arg1, fn, user_data);
-      break;
     case RASQAL_EXPR_AND:
     case RASQAL_EXPR_OR:
     case RASQAL_EXPR_EQ:
@@ -843,9 +837,6 @@ rasqal_expression_foreach(rasqal_expression* e,
 inline int
 rasqal_expression_as_boolean(rasqal_expression* e, int *error) {
   switch(e->op) {
-    case RASQAL_EXPR_EXPR:
-      return rasqal_expression_as_boolean(e->arg1, error);
-
     case RASQAL_EXPR_LITERAL:
       return rasqal_literal_as_boolean(e->literal, error);
       break;
@@ -859,9 +850,6 @@ rasqal_expression_as_boolean(rasqal_expression* e, int *error) {
 int
 rasqal_expression_as_integer(rasqal_expression* e, int *error) {
   switch(e->op) {
-    case RASQAL_EXPR_EXPR:
-      return rasqal_expression_as_integer(e->arg1, error);
-
     case RASQAL_EXPR_LITERAL:
       return rasqal_literal_as_integer(e->literal, error);
       break;
@@ -878,11 +866,6 @@ rasqal_expression_compare(rasqal_expression* e1, rasqal_expression* e2,
   rasqal_literal *l1, *l2;
   *error=0;
   
-  if(e1->op == RASQAL_EXPR_EXPR)
-    return rasqal_expression_compare(e1->arg1, e2, error);
-  if(e2->op == RASQAL_EXPR_EXPR)
-    return rasqal_expression_compare(e1, e2->arg1, error);
-
   if(e1->op == RASQAL_EXPR_LITERAL && e1->op == e2->op)
     return rasqal_literal_compare(e1->literal, e2->literal, error);
 
@@ -920,9 +903,6 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e) {
   int error=0;
   
   switch(e->op) {
-    case RASQAL_EXPR_EXPR:
-      return rasqal_expression_evaluate(query, e->arg1);
-
     case RASQAL_EXPR_AND:
       {
         rasqal_literal *l;
@@ -1412,7 +1392,6 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e) {
 
 static const char* rasqal_op_labels[RASQAL_EXPR_LAST+1]={
   "UNKNOWN",
-  "expr",
   "and",
   "or",
   "eq",
@@ -1451,9 +1430,6 @@ rasqal_expression_print(rasqal_expression* e, FILE* fh)
 {
   fputs("expr(", fh);
   switch(e->op) {
-    case RASQAL_EXPR_EXPR:
-      rasqal_expression_print(e->arg1, fh);
-      break;
     case RASQAL_EXPR_AND:
     case RASQAL_EXPR_OR:
     case RASQAL_EXPR_EQ:
