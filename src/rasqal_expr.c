@@ -1023,11 +1023,11 @@ int main(int argc, char *argv[]);
 
 #define assert_match(function, result, string) do { if(strcmp(result, string)) { fprintf(stderr, #function " failed - returned %s, expected %s\n", result, string); exit(1); } } while(0)
 
-char *program;
 
 int
 main(int argc, char *argv[]) 
 {
+  const char *program=rasqal_basename(argv[0]);
   rasqal_literal *lit1, *lit2;
   rasqal_expression *expr1, *expr2;
   rasqal_expression* expr;
@@ -1041,8 +1041,6 @@ main(int argc, char *argv[])
   lit2=rasqal_new_integer_literal(RASQAL_LITERAL_INTEGER, 1);
   expr2=rasqal_new_literal_expression(lit2);
   expr=rasqal_new_2op_expression(RASQAL_EXPR_PLUS, expr1, expr2);
-
-  program=argv[0];
 
   fprintf(stderr, "%s: expression: ", program);
   rasqal_expression_print(expr, stderr);
@@ -1061,6 +1059,7 @@ main(int argc, char *argv[])
       fprintf(stderr, "%s: boolean expression FAILED\n", program);
     } else
       fprintf(stderr, "%s: boolean expression result: %d\n", program, bresult);
+
 
   } else
     fprintf(stderr, "%s: expression evaluation FAILED with error\n", program);

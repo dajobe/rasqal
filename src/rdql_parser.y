@@ -772,6 +772,7 @@ rasqal_init_query_engine_rdql (void) {
 int
 main(int argc, char *argv[]) 
 {
+  const char *program=rasqal_basename(argv[0]);
   char query_string[RDQL_FILE_BUF_SIZE];
   rasqal_query query; /* static */
   rasqal_rdql_query_engine rdql; /* static */
@@ -790,7 +791,7 @@ main(int argc, char *argv[])
     filename=argv[1];
     fh = fopen(argv[1], "r");
     if(!fh) {
-      fprintf(stderr, "%s: Cannot open file %s - %s\n", argv[0], filename,
+      fprintf(stderr, "%s: Cannot open file %s - %s\n", program, filename,
               strerror(errno));
       exit(1);
     }

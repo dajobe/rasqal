@@ -760,6 +760,7 @@ sparql_token_free(int token, YYSTYPE *lval)
 int
 main(int argc, char *argv[]) 
 {
+  const char *program=rasqal_basename(argv[0]);
   rasqal_query rq;
   rasqal_sparql_query_engine sparql;
   yyscan_t scanner;
@@ -775,7 +776,7 @@ main(int argc, char *argv[])
     filename=argv[1];
     fh=fopen(filename, "r");
     if(!fh) {
-      fprintf(stderr, "%s: Cannot open file %s - %s\n", argv[0], filename,
+      fprintf(stderr, "%s: Cannot open file %s - %s\n", program, filename,
               strerror(errno));
       exit(1);
     }

@@ -50,10 +50,10 @@
 
 #define EXPECTED_RESULTS_COUNT 1
 
-char *program;
 
 int
 main(int argc, char **argv) {
+  const char *program=rasqal_basename(argv[0]);
   rasqal_query *query = NULL;
   rasqal_query_results *results = NULL;
   raptor_uri *base_uri;
@@ -62,8 +62,6 @@ main(int argc, char **argv) {
   int count;
 
   rasqal_init();
-
-  program=argv[0];
 
   uri_string=raptor_uri_filename_to_uri_string("");
   base_uri=raptor_new_uri(uri_string);  
