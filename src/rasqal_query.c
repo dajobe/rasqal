@@ -173,22 +173,88 @@ rasqal_get_label(rasqal_query *rdf_query)
 }
 
 
+/**
+ * rasqal_query_add_source: Add a source URI to the query
+ * @query: &rasqal_query query object
+ * @uri: &raptor_uri uri
+ **/
 void
-rasqal_query_add_source(rasqal_query* query, const unsigned char* uri) {
+rasqal_query_add_source(rasqal_query* query, raptor_uri* uri) {
   raptor_sequence_shift(query->sources, (void*)uri);
 }
 
+
+/**
+ * rasqal_query_get_source_sequence: Get the sequence of source URIs
+ * @query: &rasqal_query query object
+ *
+ * Return value: a &raptor_sequence of &raptor_uri pointers.
+ **/
 raptor_sequence*
 rasqal_query_get_source_sequence(rasqal_query* query) {
   return query->sources;
 }
 
-const unsigned char *
+
+/**
+ * rasqal_query_get_source: Get a source URI in the sequence of sources
+ * @query: &rasqal_query query object
+ * @idx: index into the sequence (0 or larger)
+ *
+ * Return value: a &raptor_uri pointer or NULL if out of the sequence range
+ **/
+raptor_uri*
 rasqal_query_get_source(rasqal_query* query, int idx) {
-  return raptor_sequence_get_at(query->sources, idx);
+  return (raptor_uri*)raptor_sequence_get_at(query->sources, idx);
 }
 
 
+/**
+ * rasqal_query_add_variable: Add a binding variable to the query
+ * @query: &rasqal_query query object
+ * @var: &rasqal_variable variable
+ *
+ * See also rasqal_query_set_variable which assigns or removes a value to
+ * a previously added variable in the query.
+ **/
+void
+rasqal_query_add_variable(rasqal_query* query, rasqal_variable* var) {
+  raptor_sequence_shift(query->selects, (void*)var);
+}
+
+
+/**
+ * rasqal_query_get_variable_sequence: Get the sequence of variables to bind in the query
+ * @query: &rasqal_query query object
+ *
+ * Return value: a &raptor_sequence of &rasqal_variable pointers.
+ **/
+raptor_sequence*
+rasqal_query_get_variable_sequence(rasqal_query* query) {
+  return query->selects;
+}
+
+
+/**
+ * rasqal_query_get_variable: Get a variable in the sequence of variables to bind
+ * @query: &rasqal_query query object
+ * @idx: index into the sequence (0 or larger)
+ *
+ * Return value: a &rasqal_variable pointer or NULL if out of the sequence range
+ **/
+rasqal_variable*
+rasqal_query_get_variable(rasqal_query* query, int idx) {
+  return (rasqal_variable*)raptor_sequence_get_at(query->selects, idx);
+}
+
+
+/**
+ * rasqal_query_has_variable: Find if the named variable is in the sequence of variables to bind
+ * @query: &rasqal_query query object
+ * @name: variable name
+ *
+ * Return value: non-0 if the variable name was found.
+ **/
 int
 rasqal_query_has_variable(rasqal_query* query, const char *name) {
   int i;
@@ -202,6 +268,17 @@ rasqal_query_has_variable(rasqal_query* query, const char *name) {
 }
 
 
+/**
+ * rasqal_query_set_variable: Add a binding variable to the query
+ * @query: &rasqal_query query object
+ * @name: &rasqal_variable variable
+ * @value: &rasqal_literal value to set or NULL
+ *
+ * See also rasqal_query_add_variable which adds a new binding variable
+ * and must be called before this method is invoked.
+ *
+ * Return value: non-0 on failure
+ **/
 int
 rasqal_query_set_variable(rasqal_query* query, const char *name,
                           rasqal_literal* value) {
