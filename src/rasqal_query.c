@@ -917,9 +917,9 @@ void
 rasqal_query_print(rasqal_query* query, FILE *fh)
 {
   if(query->distinct)
-    fputs("distinct query results\n", fh);
-  if(query->limit >=0)
-    fprintf(fh, "query results limit %d\n", query->limit);
+    fputs("query results distinct: yes\n", fh);
+  if(query->limit >= 0)
+    fprintf(fh, "query results limit: %d\n", query->limit);
 
   fprintf(fh, "sources: ");
   if(query->sources)
