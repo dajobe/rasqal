@@ -351,6 +351,7 @@ rasqal_free_literal(rasqal_literal* l)
       /* rasqal_free_variable(l->value.variable); */
       break;
 
+    case RASQAL_LITERAL_UNKNOWN:
     default:
       abort();
   }
@@ -442,6 +443,8 @@ rasqal_literal_print(rasqal_literal* l, FILE* fh)
     case RASQAL_LITERAL_VARIABLE:
       rasqal_variable_print(l->value.variable, fh);
       break;
+
+    case RASQAL_LITERAL_UNKNOWN:
     default:
       abort();
   }
@@ -490,6 +493,7 @@ rasqal_literal_as_boolean(rasqal_literal* l, int *error)
       return rasqal_literal_as_boolean(l->value.variable->value, error);
       break;
 
+    case RASQAL_LITERAL_UNKNOWN:
     default:
       abort();
   }
@@ -547,6 +551,11 @@ rasqal_literal_as_integer(rasqal_literal* l, int *error)
       return rasqal_literal_as_integer(l->value.variable->value, error);
       break;
 
+    case RASQAL_LITERAL_BLANK:
+      *error=1;
+      return 0;
+      
+    case RASQAL_LITERAL_UNKNOWN:
     default:
       abort();
   }
@@ -588,13 +597,18 @@ rasqal_literal_as_floating(rasqal_literal* l, int *error)
           return d;
       }
       *error=1;
-      return 0;
+      return 0.0;
       break;
 
     case RASQAL_LITERAL_VARIABLE:
       return rasqal_literal_as_integer(l->value.variable->value, error);
       break;
 
+    case RASQAL_LITERAL_BLANK:
+      *error=1;
+      return 0.0;
+      
+    case RASQAL_LITERAL_UNKNOWN:
     default:
       abort();
   }
@@ -651,6 +665,7 @@ rasqal_literal_as_string(rasqal_literal* l)
     case RASQAL_LITERAL_VARIABLE:
       return rasqal_literal_as_string(l->value.variable->value);
 
+    case RASQAL_LITERAL_UNKNOWN:
     default:
       abort();
   }
@@ -762,6 +777,7 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
         seen_double=1;
         break;
 
+    case RASQAL_LITERAL_UNKNOWN:
       default:
         abort();
     }
@@ -938,6 +954,7 @@ rasqal_literal_equals(rasqal_literal* l1, rasqal_literal* l2)
       return l1->value.floating == l2->value.floating;
       break;
 
+    case RASQAL_LITERAL_UNKNOWN:
     default:
       abort();
   }
