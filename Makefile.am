@@ -27,7 +27,7 @@ include_HEADERS = rasqal.h
 
 noinst_HEADERS = rasqal_internal.h win32_config.h
 
-man_MANS = librasqal.3 rasqal-config.1
+man_MANS = roqet.1 librasqal.3 rasqal-config.1
 
 librasqal_la_SOURCES = rdql_lexer.c rdql_lexer.h \
 rdql_parser.tab.c rdql_parser.tab.h rdql_common.h \
@@ -46,11 +46,12 @@ EXTRA_roqet_SOURCES = getopt.c
 EXTRA_DIST=ChangeLog \
 README      NEWS      LICENSE.txt \
 README.html NEWS.html LICENSE.html INSTALL.html \
-MPL.html librasqal.html \
+MPL.html librasqal.html roqet.html \
 rdql_lexer.l rdql_parser.y \
 rasqal-config.in rasqal-src-config.in \
 autogen.sh \
 rasqal.spec.in \
+fix-groff-xhtml \
 $(man_MANS) \
 rasqal.pc.in
 
@@ -87,7 +88,10 @@ README: README.html
 NEWS: NEWS.html
 	$(HTML_TO_TEXT) $< > $@
 
-@MAINT@librasqal.html: $(srcdir)/librasqal.3
+@MAINT@librasqal.html: $(srcdir)/librasqal.3 $(srcdir)/fix-groff-xhtml $@
+@MAINT@	-groff -man -Thtml -P-l $< | tidy -asxml -wrap 1000 2>/dev/null | perl $(srcdir)/fix-groff-xhtml $@
+
+@MAINT@roqet.html: $(srcdir)/roqet.1 $(srcdir)/fix-groff-xhtml $@
 @MAINT@	-groff -man -Thtml -P-l $< | tidy -asxml -wrap 1000 2>/dev/null | perl $(srcdir)/fix-groff-xhtml $@
 
 pkgconfigdir = $(libdir)/pkgconfig
