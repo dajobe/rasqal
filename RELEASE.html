@@ -18,49 +18,51 @@ LGPL 2.1/Apache 2</p>
 <p>Added support for the
 <a href="http://www.w3.org/TR/2004/WD-rdf-sparql-query-20041012/">
 SPARQL Query Language for RDF</a>,
-W3C Working Draft, 12 October 2004.
-The support is at the syntax level - token lexer and grammar parser
+W3C Working Draft, 12 October 2004
+from the W3C RDF Data Access Working Group (DAWG).
+The support is at the basic syntax level - token lexer and grammar parser
 which passes the first simple tests from the proposed
-RDF Data Access Working Group (DAWG)
-tests.  No additional query engine support has been added for SPARQL
+DAWG testcases.  No additional query engine support has been added for SPARQL
 features that are not supported by RDQL.  The
 <a href="http://librdf.org/rasqal/TODO.html#sparql">Rasqal to do list</a>
 contains full details of the implementation state.
 </p>
 
-<p>Queries can now be prepared then executed multiple times.</p>
+<p>Queries can now be prepared and then executed multiple times.</p>
 
-<p>Added --enable-query-languages option with rdql and sparql
-as the choices.</p>
+<p>Added configure <code>--enable-query-languages</code> option with
+<code>rdql</code> and <code>sparql</code> as the choices.</p>
 
-<p>Thanks to Chris Pointon for several patches to make Rasqal
-easier to build under Win32.  Applied with some modifications.
-Renamed syntax tokens ERROR to ERROR_TOKEN to help.</p>
+<p>Thanks to Chris Pointon for several patches to make Rasqal easier
+to build under Win32.  Applied with some modifications.  Renamed the
+RDQL and SPARQL syntax tokens ERROR to ERROR_TOKEN to help.</p>
 
 <p>Added experimental support for querying multiple sources; the same
 query is executed over each source in turn.  Also added some support
-for returning the source URI (SPARQL <code>SOURCE</code>), not
-yet enabled as this feature is in flux in the DAWG.
-This may change or be removed in future versions.</p>
+for returning the source URI which is not yet enabled as this feature
+is in flux in the DAWG work.  This may change or be removed in future
+versions.</p>
 
 <p><code>roqet</code> can specify a data source URI on the command
 line with <code>-s</code> / <code>--source</code>) <em>URI</em> for
 queries executing against an implicit model.</p>
 
-<p>Added the DAWG SPARQL tests, driven from the
-manifest.n3 format.  Created tests from the examples in the working draft.</p>
+<p>Added the
+<a href="http://www.w3.org/2001/sw/DataAccess/tests/">DAWG SPARQL test cases</a>
+driven from the manifest.n3 format.  Created tests from the examples
+in the working draft.</p>
 
 <p>Added an experimental XML result format for bindings, based on
 DAWG work.  Enabled in <code>roqet</code> with <code>-o xml</code>.
-This is very likely to change or be removed in future versions.</p>
+This is very likely to change or replaced in future versions.</p>
 
 <p>Added <code>roqet</code> argument <code>-d</code> /
 <code>--dump-query</code> to dump the processed query, rather than
 do it by default (0.9.2 and earlier).</p>
 
 <p><code>roqet</code> can now read queries from URIs, using
-the <code>raptor_www</code> class to do the retrieval.
-</p>
+the <code>raptor_www</code> class to do the retrieval.</p>
+
 
 <h3>Internal changes</h3>
 
