@@ -279,6 +279,16 @@ void rasqal_literal_string_to_native(rasqal_literal *l);
 int rasqal_literal_expand_qname(void *user_data, rasqal_literal *l);
 int rasqal_expression_expand_qname(void *user_data, rasqal_expression *e);
 
+#ifdef HAVE_STRCASECMP
+#define rasqal_strcasecmp strcasecmp
+#define rasqal_strncasecmp strncasecmp
+#else
+#ifdef HAVE_STRICMP
+#define rasqal_strcasecmp stricmp
+#define rasqal_strncasecmp strnicmp
+#endif
+#endif
+
 /* end of RASQAL_INTERNAL */
 #endif
 
