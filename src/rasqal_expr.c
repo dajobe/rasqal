@@ -99,12 +99,13 @@ rasqal_new_pattern_literal(char *pattern, char *flags) {
 
 rasqal_literal*
 rasqal_new_string_literal(char *string, char *language,
-                          raptor_uri *datatype) {
+                          raptor_uri *datatype, char *datatype_qname) {
   rasqal_literal* l=(rasqal_literal*)calloc(sizeof(rasqal_literal), 1);
 
   l->type=RASQAL_LITERAL_STRING;
   l->value.string=string;
-  /* FIXME language, datatype ignored */
+  l->datatype=datatype;
+  l->flags=datatype_qname;
   l->usage=1;
   return l;
 }
