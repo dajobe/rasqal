@@ -1,5 +1,35 @@
 2004-11-16  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
+	* rasqal_engine.c:
+	(rasqal_engine_execute_init); Added pattern_graph field, using
+	rasqal_new_pattern_graph
+	(rasqal_engine_execute_finish): Tidy up, deleting pattern_graph.
+	(rasqal_graph_pattern_get_next_triple): Renamed from
+	rasqal_engine_get_next_triple_pattern_result and using
+	rasqal_pattern_graph argument.
+	(rasqal_new_pattern_graph): tidy.
+	(rasqal_free_pattern_graph): Delete the triple_meta array.
+	(rasqal_engine_get_next_result): Use
+	rasqal_graph_pattern_get_next_triple and evaluate the constraints
+	here.
+
+	* rasqal_internal.h: rasqal_query rename to pattern_graph field
+
+	* rasqal_internal.h: rasqal_pattern_graph add column Remove
+	rasqal_triple_meta field from rasqal_query and add graph_pattern
+	field
+
+	* rasqal_internal.h: Update rasqal_new_pattern_graph prototype.
+
+	* rasqal_expr.c: Replace calloc() with RASQAL_CALLOC(type,...)
+
+	* rasqal_internal.h: Added rasqal_pattern_flags enum.
+	Added rasqal_pattern_graph
+	Added rasqal_new_pattern_graph, rasqal_free_pattern_graph prototypes.
+
+	* rasqal_engine.c (rasqal_new_pattern_graph,
+	rasqal_free_pattern_graph): Added.
+
 	* rasqal_engine.c (rasqal_engine_get_next_triple_pattern_result):
 	Added, split off from rasqal_engine_get_next_result.
 
