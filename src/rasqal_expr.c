@@ -121,10 +121,7 @@ rasqal_literal_string_to_native(rasqal_literal *l)
 
   if(!strcmp(raptor_uri_as_string(l->datatype), "http://www.w3.org/2001/XMLSchema#integer")) {
     int i=atoi(l->string);
-    free(l->string);
 
-    raptor_free_uri(l->datatype);
-    l->datatype=NULL;
     if(l->language) {
       free(l->language);
       l->language=NULL;
@@ -138,10 +135,7 @@ rasqal_literal_string_to_native(rasqal_literal *l)
   if(!strcmp(raptor_uri_as_string(l->datatype), "http://www.w3.org/2001/XMLSchema#double")) {
     double d=0.0;
     sscanf(l->string, "%lf", &d);
-    free(l->string);
 
-    raptor_free_uri(l->datatype);
-    l->datatype=NULL;
     if(l->language) {
       free(l->language);
       l->language=NULL;
@@ -320,10 +314,7 @@ rasqal_literal_print(rasqal_literal* l, FILE* fh)
       fprintf(fh, " %d", l->value.integer);
       break;
     case RASQAL_LITERAL_BOOLEAN:
-      if(l->value.integer)
-        fputs("(true)", fh);
-      else
-        fputs("(false)", fh);
+      fprintf(fh, "(%s)", l->string);
       break;
     case RASQAL_LITERAL_FLOATING:
       fprintf(fh, " %g", l->value.floating);
