@@ -448,7 +448,7 @@ rasqal_engine_execute_finish(rasqal_query *query) {
 
 /*
  *
- * return: <0 failure, 0 end of results, 1 match
+ * return: <0 failure, 0 end of results, >0 match
  */
 static int
 rasqal_engine_get_next_result(rasqal_query *query) {
@@ -461,10 +461,12 @@ rasqal_engine_get_next_result(rasqal_query *query) {
 
     if (m->is_exact) {
       /* exact triple match wanted */
-      if(!rasqal_triples_source_triple_present(query->triples_source, t))
+      if(!rasqal_triples_source_triple_present(query->triples_source, t)) {
         /* failed */
+        RASQAL_DEBUG2("exact match failed for column %d\n", query->column);
         query->column--;
-      RASQAL_DEBUG2("exact match OK for column %d\n", query->column);
+      } else
+        RASQAL_DEBUG2("exact match OK for column %d\n", query->column);
     } else if(!m->triples_match) {
       /* Column has no triplesMatch so create a new query */
       m->triples_match=rasqal_new_triples_match(query, m, m, t);
@@ -564,12 +566,13 @@ rasqal_engine_run(rasqal_query *query) {
 
     if(query->abort)
       break;
-
+    
+    /* rc<0 error rc=0 end of results,  rc>0 finished */
     rc=rasqal_engine_get_next_result(query);
     if(rc<1)
       break;
     
-    if(rc == 1) {
+    if(rc > 0) {
       /* matched ok, so print out the variable bindings */
       fprintf(stdout, "result: ");
       rasqal_sequence_print(query->selects, stdout);
@@ -578,6 +581,7 @@ rasqal_engine_run(rasqal_query *query) {
       rasqal_sequence_print(query->triples, stdout);
       fputc('\n', stdout);
     }
+    rc=0;
   }
   
   return rc;
