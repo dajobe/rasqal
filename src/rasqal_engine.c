@@ -976,6 +976,26 @@ rasqal_engine_move_to_graph_pattern(rasqal_query *query,
 }
 
 
+typedef enum {
+  STEP_UNKNOWN,
+  STEP_SEARCHING,
+  STEP_GOT_MATCH,
+  STEP_FINISHED,
+  STEP_ERROR,
+
+  STEP_LAST=STEP_ERROR
+} rasqal_engine_step;
+
+
+static const char * rasqal_engine_step_names[STEP_LAST+1]={
+  "<unknown>",
+  "searching",
+  "got match",
+  "finished",
+  "error"
+};
+
+
 /*
  *
  * return: <0 failure, 0 end of results, >0 match
@@ -983,7 +1003,7 @@ rasqal_engine_move_to_graph_pattern(rasqal_query *query,
 int
 rasqal_engine_get_next_result(rasqal_query *query) {
   int graph_patterns_size;
-  int rc=1;
+  rasqal_engine_step step;
   int i;
   
   if(query->failed)
@@ -1009,23 +1029,26 @@ rasqal_engine_get_next_result(rasqal_query *query) {
       gp2->matched=0;
   }
   
-
-  while(rc > 0) {
+  step=STEP_SEARCHING;
+  while(step == STEP_SEARCHING) {
     rasqal_graph_pattern* gp=(rasqal_graph_pattern*)raptor_sequence_get_at(query->graph_patterns, query->current_graph_pattern);
-
-    RASQAL_DEBUG3("Handling graph_pattern %d %s\n",
+    int rc;
+    
+    RASQAL_DEBUG4("Step %s: Handling graph_pattern %d %s\n",
+                  rasqal_engine_step_names[step],
                   query->current_graph_pattern,
                   (gp->flags & RASQAL_PATTERN_FLAGS_OPTIONAL) ? "(OPTIONAL)" : "");
 
     if(gp->graph_patterns) {
       /* FIXME - sequence of graph_patterns not implemented, finish */
       RASQAL_DEBUG1("Failing query with sequence of graph_patterns\n");
-      rc=0;
+      step=STEP_FINISHED;
       break;
     }
 
     if(gp->finished) {
       if(!query->current_graph_pattern) {
+        step=STEP_FINISHED;
         RASQAL_DEBUG1("Ended first graph pattern - finished\n");
         query->finished=1;
         return 0;
@@ -1037,7 +1060,7 @@ rasqal_engine_get_next_result(rasqal_query *query) {
       /* backtrack optionals */
       rasqal_engine_move_to_graph_pattern(query, 
                                           query->current_graph_pattern-1);
-      rc=1;
+      step=STEP_SEARCHING;
       continue;
     }
     
@@ -1058,6 +1081,7 @@ rasqal_engine_get_next_result(rasqal_query *query) {
 
     if(rc < 0) {
       /* failure to match */
+      step=STEP_FINISHED;
 
       /* optional always matches */
       if(!(gp->flags & RASQAL_PATTERN_FLAGS_OPTIONAL)) {
@@ -1068,12 +1092,13 @@ rasqal_engine_get_next_result(rasqal_query *query) {
 
       RASQAL_DEBUG2("Optional graph pattern %d failed to match\n", 
                     query->current_graph_pattern);
-      rc=1;
+      step=STEP_SEARCHING;
     }
 
     if(!rc) {
       /* end of graph_pattern results */
-
+      step=STEP_FINISHED;
+      
       if(gp->flags & RASQAL_PATTERN_FLAGS_OPTIONAL) {
         /* if this is not the last (optional graph pattern) in the
          * sequence, move on and continue 
@@ -1087,7 +1112,7 @@ rasqal_engine_get_next_result(rasqal_query *query) {
         if(query->current_graph_pattern < graph_patterns_size-1) {
           rasqal_engine_move_to_graph_pattern(query, 
                                               query->current_graph_pattern+1);
-          rc=1;
+          step=STEP_SEARCHING;
           continue;
         } else {
           int mandatory_matches=0;
@@ -1117,16 +1142,16 @@ rasqal_engine_get_next_result(rasqal_query *query) {
 
           if(optional_matches) {
             RASQAL_DEBUG1("Found some matches, returning a result\n");
-            rc=1;
+            step= STEP_GOT_MATCH;
             break;
           } else if (gp->matches_returned) {
             RASQAL_DEBUG1("No matches this time, some earlier, backtracking\n");
             rasqal_engine_move_to_graph_pattern(query, 0);
-            rc=1;
+            step= STEP_SEARCHING;
             continue;
           } else {
             RASQAL_DEBUG1("No non-optional matches, returning a final result\n");
-            rc=1;
+            step= STEP_GOT_MATCH;
             break;
           }
 
@@ -1162,7 +1187,7 @@ rasqal_engine_get_next_result(rasqal_query *query) {
         bresult=rasqal_literal_as_boolean(result, &error);
         if(error) {
           RASQAL_DEBUG1("constraint boolean expression returned error\n");
-          rc= -1;
+          step= STEP_ERROR;
         } else
           RASQAL_DEBUG2("constraint boolean expression result: %d\n", bresult);
         rasqal_free_literal(result);
@@ -1170,19 +1195,20 @@ rasqal_engine_get_next_result(rasqal_query *query) {
 
         if(!rc) {
           /* Constraint failed so move to try next match */
-          rc=1;
+          step= STEP_SEARCHING;
           continue;
         }
         
       } else {
         RASQAL_DEBUG1("constraint expression failed with error\n");
-        rc= -1;
+        step= STEP_ERROR;
       }
 
     } /* end check for constraints */
 
     if(rc) {
-
+      step= STEP_GOT_MATCH;
+      
       /* if this is a match but not the last graph pattern in the
        * sequence move to the next graph pattern
        */
@@ -1190,7 +1216,7 @@ rasqal_engine_get_next_result(rasqal_query *query) {
         RASQAL_DEBUG1("Not last graph pattern\n");
         rasqal_engine_move_to_graph_pattern(query,
                                             query->current_graph_pattern+1);
-        rc=1;
+        step= STEP_SEARCHING;
         continue;
       }
       
@@ -1201,11 +1227,17 @@ rasqal_engine_get_next_result(rasqal_query *query) {
     }
 
   }
+
+
+  RASQAL_DEBUG3("Ending with step %s and graph pattern %d\n",
+                rasqal_engine_step_names[step],
+                query->current_graph_pattern);
   
-  if(!rc)
+  
+  if(step != STEP_GOT_MATCH)
     query->finished=1;
 
-  if(rc > 0) {
+  if(step == STEP_GOT_MATCH) {
     for(i=0; i < graph_patterns_size; i++) {
       rasqal_graph_pattern *gp2=(rasqal_graph_pattern*)raptor_sequence_get_at(query->graph_patterns, i);
       if(gp2->matched)
@@ -1232,7 +1264,7 @@ rasqal_engine_get_next_result(rasqal_query *query) {
 #endif
   }
   
-  return rc;
+  return (step == STEP_GOT_MATCH);
 }
 
 
