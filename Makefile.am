@@ -4,8 +4,8 @@
 #
 # $Id$
 #
-# Copyright (C) 2003 David Beckett - http://purl.org/net/dajobe/
-# Institute for Learning and Research Technology - http://www.ilrt.org/
+# Copyright (C) 2003-2004 David Beckett - http://purl.org/net/dajobe/
+# Institute for Learning and Research Technology - http://www.ilrt.bris.ac.uk/
 # University of Bristol - http://www.bristol.ac.uk/
 # 
 # This package is Free Software or Open Source available under the
@@ -101,7 +101,7 @@ rdql_parser.tab.c: $(srcdir)/rdql_parser.y
 
 # Actually it needs rdql_parser.h but nevermind
 # Needs raptor
-rdql_lexer_test: $(srcdir)/rdql_lexer.c $(srcdir)/rdql_parser.tab.c
+rdql_lexer_test: $(srcdir)/rdql_lexer.c librasqal.la
 	$(LINK) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE @RASQAL_INTERNAL_CPPFLAGS@ $(srcdir)/rdql_lexer.c librasqal.la
 
 # Needs raptor

@@ -74,6 +74,8 @@ rasqal_init(void)
   if(query_engines)
     return;
 
+  raptor_init();
+  
   rasqal_init_query_engine_rdql();
 }
 
@@ -87,6 +89,7 @@ void
 rasqal_finish(void) 
 {
   rasqal_delete_query_engine_factories();
+  raptor_finish();
 }
 
 

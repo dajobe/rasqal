@@ -110,10 +110,6 @@ int rdql_lexer_lex (YYSTYPE *rdql_parser_lval, yyscan_t yyscanner);
 int rdql_lexer_get_column(yyscan_t yyscanner);
 void rdql_lexer_set_column(int  column_no , yyscan_t yyscanner);
 
-#ifdef STANDALONE
-static void rdql_lexer_simple_error(void *rp, const char *message, ...);
-#endif
-
 %}
 
 LANGUAGETOKEN [[:alpha:]][[:alnum:]]*
@@ -629,61 +625,6 @@ rdql_token_print(int token, YYSTYPE *lval)
 
 
 
-#if 0
-static void
-rdql_lexer_simple_error(void *context, const char *message, ...)
-{
-  rasqal_rdql_query_engine *rqe=(rasqal_rdql_query_engine*)rq->context;
-  yyscan_t yyscanner=rqe->scanner;
-  va_list arguments;
-
-  fprintf(stderr, "%s:%d: ", rp->uri_string, rdql_lexer_get_lineno(yyscanner));
-
-  va_start(arguments, message);
-  vfprintf(stderr, message, arguments);
-  va_end(arguments);
-
-  fputc('\n', stderr);
-}
-
-int
-rdql_syntax_error(rasqal_query *rq, const char *message, ...)
-{
-  rasqal_rdql_query_engine *rqe=(rasqal_rdql_query_engine*)rq->context;
-  yyscan_t yyscanner=rqe->scanner;
-  va_list arguments;
-
-  fprintf(stderr, "%s:%d: ", rp->uri_string, rdql_lexer_get_lineno(yyscanner));
-
-  va_start(arguments, message);
-  vfprintf(stderr, message, arguments);
-  va_end(arguments);
-
-  fputc('\n', stderr);
-
-  return 0;
-}
-
-int
-rdql_syntax_warning(rasqal_query *rq, const char *message, ...)
-{
-  rasqal_rdql_query_engine *rqe=(rasqal_rdql_query_engine*)rq->context;
-  yyscan_t yyscanner=rqe->scanner;
-  va_list arguments;
-
-  fprintf(stderr, "%s:%d: Warning: ", rp->uri_string, rdql_lexer_get_lineno(yyscanner));
-
-  va_start(arguments, message);
-  vfprintf(stderr, message, arguments);
-  va_end(arguments);
-
-  fputc('\n', stderr);
-
-  return 0;
-}
-#endif
-
-
 #ifdef STANDALONE
 static void
 rdql_token_free(int token, YYSTYPE *lval)
@@ -712,7 +653,7 @@ main(int argc, char *argv[])
   yyscan_t scanner;
   int token=EOF;
   FILE *fh;
-  YYSTYPE *lval;
+  YYSTYPE lval;
   const char *uri_string;
   char *filename=NULL;
 
@@ -756,13 +697,13 @@ main(int argc, char *argv[])
     memset(&lval, 0, sizeof(YYSTYPE));
     if(rdql_lexer_get_text(scanner) != NULL)
       printf("yyinput '%s'\n", rdql_lexer_get_text(scanner));
-    token=yylex(lval, scanner);
+    token=yylex(&lval, scanner);
 #ifdef RASQAL_DEBUG
-    printf("token %s\n", rdql_token_print(token, lval));
+    printf("token %s\n", rdql_token_print(token, &lval));
 #else
     printf("token %d\n", token);
 #endif
-    rdql_token_free(token, lval);
+    rdql_token_free(token, &lval);
     if(!token || token == EOF || token == ERROR)
       break;
   }
