@@ -282,6 +282,9 @@ struct rasqal_query_s {
    * going over old graph patterns
    */
   int max_optional_graph_pattern;
+
+  /* current triple in the sequence of triples 'constructs' or -1 */
+  int current_triple_result;
 };
 
 
