@@ -1,3 +1,9 @@
+2004-10-10  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal_expr.c: Make all RASQAL_INLINE functions static.
+
+	* rasqal_expr.c: RASQAL_INLINE at start of line
+
 2004-10-08  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
 	* sparql_parser.y, sparql_lexer.l, sparql_common.h,
