@@ -609,6 +609,7 @@ rasqal_literal_as_string(rasqal_literal* l)
     case RASQAL_LITERAL_INTEGER:
     case RASQAL_LITERAL_FLOATING:
     case RASQAL_LITERAL_STRING:
+    case RASQAL_LITERAL_BLANK:
       return l->string;
 
     case RASQAL_LITERAL_URI:
