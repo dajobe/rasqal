@@ -56,9 +56,6 @@ extern "C" {
 #define RASQAL_DEBUG5(function, msg, arg1, arg2, arg3, arg4) do {fprintf(stderr, "%s:%d:%s: " msg, __FILE__, __LINE__, #function, arg1, arg2, arg3, arg4);} while(0)
 #define RASQAL_DEBUG6(function, msg, arg1, arg2, arg3, arg4, arg5) do {fprintf(stderr, "%s:%d:%s: " msg, __FILE__, __LINE__, #function, arg1, arg2, arg3, arg4, arg5);} while(0)
 
-const char * rdql_token_print(int token);
-
-
 #else
 /* DEBUGGING TURNED OFF */
 
@@ -92,6 +89,12 @@ struct rasqal_query_s {
   rasqal_sequence *prefixes;
 };
 
+
+typedef struct rdql_parser_s rdql_parser;
+
+/* rdql_parser.y */
+int rdql_syntax_error(rdql_parser *rp, const char *message, ...);
+int rdql_syntax_warning(rdql_parser *rp, const char *message, ...);
 
 int rdql_parser_lex(void);
 
