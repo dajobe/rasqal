@@ -4,7 +4,7 @@
 <head>
   <title>Rasqal RDF Query Library - To Do List</title>
 </head>
-<body bgcolor="#ffffff" text="#000085">
+<body>
 
 <h1 style="align:center">Rasqal RDF Query Library - To Do List</h1>
 
@@ -13,28 +13,27 @@
 <h3>General</h3>
 
 <ul>
+<li>streaming triples parser - a Raptor feature request</li>
+<li>Engine: Result constraints - like <code>LIMIT</code> and <code>OFFSET</code> in SQL (extension)</li>
+<li>Engine: Optional triples (extension)</li>
+<li>Engine: Does not handle multiple sources (BUG? / extension?)</li>
 <li>Engine: check that (?x, ?x, constant) (and permutations) and
 (?x, ?x, ?x) work - triplesMatching API does not check this.</li>
-<li>Engine: Add constructing triples (like SeRQL <tt>construct</tt>)</li>
-<li>QL: SeRQL</li>
-<li>QL: Squish</li>
-<li>QL: RDFDB query language</li>
-<li>QL: RQL</li>
+<li>Engine: Add constructing triples (like SeRQL <code>construct</code>)</li>
+<li>QL: SeRQL - needs several engine changes</li>
+<li>QL: Squish - should be just syntax</li> 
+<li>QL: RDFDB query language - should be just syntax</li>
+<li>QL: RQL, others - functional requirements not determined</li>
 </ul>
 
 <h3>RDQL</h3>
 <ul>
-<li>Update for recent RDQL changes in
-<a href="http://www.w3.org/Submission/2004/SUBM-RDQL-20040109/">RDQL - A Query Language for RDF, W3C Member Submission 9 January 2004</a> - expression grammar is smaller, ...</li>
-<li>Result constraints - LIMIT and OFFSET (after SQL)</li>
-<li>Optionals</li>
-<li>Are keywords case sensitive?  Jena RDQL has an example with
-<tt>SELECT ?select WHERE ...</tt> but @semantics' RDQL tutorial has
-an example with <tt>USING dcq for ...</tt> not <tt>FOR</tt></li>
-<li>Literal languages, datatypes - new <tt>"lit"@lang</tt> and
-<tt>"lit"@lang^^datatype</tt></li>
-<li>base URIs?  Lots of &lt;relativeURI&gt; seen.  @base?</li>
+<li>Optionals, after engine supports them (extension)</li>
+<li>LIMIT and OFFSET result constraints, after engine supports them (extension)</li>
+<li>Literal languages, datatypes - new <code>"lit"@lang</code> and
+<code>"lit"@lang^^datatype</code></li>
 </ul>
+
 
 <h2>Done</h2>
 
@@ -42,7 +41,11 @@ an example with <tt>USING dcq for ...</tt> not <tt>FOR</tt></li>
 release version where appropriate.</p>
 
 <ul>
-<li>RDQL: lexer and parser handle new and old qname style (with a warning) - <tt>a:b</tt> and <tt>&lt;a:b&gt;</tt>.</li>
+<li>RDQL: Updated for changes in
+<a href="http://www.w3.org/Submission/2004/SUBM-RDQL-20040109/">RDQL - A Query Language for RDF, W3C Member Submission 9 January 2004</a></li>
+<li>Engine: base URIs handled</li>
+<li>RDQL: defined keywords are handled case insensitive.</li>
+<li>RDQL: lexer and parser handle new and old qname style (with a warning) - <code>a:b</code> and <code>&lt;a:b&gt;</code>.</li>
 <li>RDQL: Recognise pattern literals in /foo/, m/foo/ forms with
 optional flags</li>
 </ul>
