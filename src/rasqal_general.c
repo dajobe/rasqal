@@ -169,7 +169,7 @@ rasqal_query_engine_register_factory(const char *name, const char *label,
 #if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
   RASQAL_DEBUG4("Received registration for syntax %s '%s' with alias '%s'\n", 
                 name, label, (alias ? alias : "none"));
-  RASQAL_DEBUG4(rasqal_query_register_factory,
+  RASQAL_DEBUG3(rasqal_query_register_factory,
                 "URI %s\n", (uri_string ? uri_string : "none"));
 #endif
   
@@ -225,7 +225,7 @@ rasqal_query_engine_register_factory(const char *name, const char *label,
   (*factory)(query);
   
 #if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
-  RASQAL_DEBUG3("%s has context size %d\n", name, query->context_length);
+  RASQAL_DEBUG3("%s has context size %d\n", name, (int)query->context_length);
 #endif
   
   query->next = query_engines;
