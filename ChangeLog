@@ -1,5 +1,10 @@
 2005-03-01  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
+	* roqet.c: Update to use rasqal_data_graph* and methods.
+
+	* rasqal_query.c (rasqal_query_print):
+	Prefer printing query->data_graphs not sources.
+
 	* sparql_parser.y (FromClauseOpt): Add either a NAMED or
 	BACKGROUND rasqal_data_graph with FROM and WITH respectively.
 
