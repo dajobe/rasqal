@@ -46,17 +46,18 @@ and file-by-file changes in the CVS <a href="ChangeLog">ChangeLog</a>.</p>
 
 
 <p>Rasqal does not provide an RDF API or triple store, but relies on
-external libraries implementing the triple store matching API
-over RDF data in some URI.
-Rasqal ships with triple store implementations for the output 
-of an RDF parser using
+external libraries implementing the triple store API providing matched
+RDF data originally from a specified content URI.
+Rasqal ships with triple store implementations using the output 
+of an RDF parser from
 <a href="http://www.redland.opensource.ac.uk/raptor/">Raptor</a>
-and by using a
-<a href="http://www.redland.opensource.ac.uk/">Redland</a> indexed store.
-Both of these can be called using the standalone 
-<a href="roqet.html">roqet</a> query utility that takes a
-query language identifier and query string, over content in URIs
-described inside the query string.
+and over a
+<a href="http://www.redland.opensource.ac.uk/">Redland</a>
+indexed triple store.
+These can be called using the standalone <a
+href="roqet.html">roqet</a> query utility giving a query language
+identifier and query string to run the query over content
+described inside the query string (in RDQL, the <code>FROM</code> clause).
 </p>
 
 <p>Rasqal also works inside Redland (0.9.17 or newer) to provide query
@@ -90,7 +91,7 @@ tests not passed and further explanation are given in the
 <p>The public API is described briefly in the
 <a href="librasqal.html">librasqal.3</a> UNIX manual page
 and in more detail in the
-<a href="docs/api/index.html">API reference document</a>.
+<a href="docs/api/index.html">API reference</a>.
 </p>
 
 
