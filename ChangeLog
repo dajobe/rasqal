@@ -1,3 +1,8 @@
+2004-10-08  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* sparql_parser.y, sparql_lexer.l, sparql_common.h,
+	rasqal_internal.h, rasqal_general.c, Makefile.am: brql to sparql
+
 2004-09-30  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
 	* tests/sparql/check-sparql: -warnings, new perl only
