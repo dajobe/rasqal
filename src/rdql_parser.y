@@ -867,7 +867,7 @@ main(int argc, char *argv[])
   uri_string=raptor_uri_filename_to_uri_string(filename);
   base_uri=raptor_new_uri(uri_string);
   
-  rc=rasqal_query_prepare(query, query_string, base_uri);
+  rc=rasqal_query_prepare(query, (const unsigned char*)query_string, base_uri);
 
   rasqal_query_print(query, stdout);
 
