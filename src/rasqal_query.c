@@ -100,6 +100,7 @@ rasqal_new_query(const char *name, const unsigned char *uri)
   query->prefixes=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_prefix, (raptor_sequence_print_handler*)rasqal_prefix_print);
 
   query->graph_patterns=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_graph_pattern, (raptor_sequence_print_handler*)rasqal_graph_pattern_print);
+  query->sources=raptor_new_sequence((raptor_sequence_free_handler*)raptor_free_uri, (raptor_sequence_print_handler*)raptor_sequence_print_uri);
 
   query->usage=1;
   
@@ -303,9 +304,6 @@ rasqal_query_set_feature(rasqal_query *query,
 void
 rasqal_query_add_source(rasqal_query* query, raptor_uri* uri)
 {
-  if(!query->sources)
-    query->sources=raptor_new_sequence((raptor_sequence_free_handler*)raptor_free_uri, (raptor_sequence_print_handler*)raptor_sequence_print_uri);
-
   raptor_sequence_shift(query->sources, (void*)uri);
 }
 
