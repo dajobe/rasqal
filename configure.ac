@@ -110,7 +110,7 @@ AC_SUBST(RASQAL_LIBTOOL_VERSION)
 
 
 dnl Checks for library functions.
-AC_CHECK_FUNCS(vsnprintf)
+AC_CHECK_FUNCS(getopt vsnprintf)
 
 ## was AC_REPLACE_FUNCS(strcasecmp) but strcasecmp has two alternatives:
 ## the other non-standard function stricmp or a local alternative
@@ -118,20 +118,20 @@ AC_CHECK_FUNCS(vsnprintf)
 #  AC_LIBOBJ([strcasecmp])
 #fi
 
-#RAPPER_EXTRA_OBJS=
-#if test $ac_cv_func_getopt = no -a $ac_cv_func_getopt_long = no; then
-#  RAPPER_EXTRA_OBJS='getopt.$(OBJEXT)'
-#  AC_SUBST([RAPPER_EXTRA_OBJS])
-#fi
+ROQET_EXTRA_OBJS=
+if test $ac_cv_func_getopt = no -a $ac_cv_func_getopt_long = no; then
+  ROQET_EXTRA_OBJS='getopt.$(OBJEXT)'
+  AC_SUBST([ROQET_EXTRA_OBJS])
+fi
 
 
-#AC_MSG_CHECKING(whether need to declare optind)
-#AC_TRY_LINK([#ifdef HAVE_GETOPT_H
-##include <getopt.h>
-##endif], [int x=optind;],
-#            AC_MSG_RESULT(no),
-#            AC_DEFINE(NEED_OPTIND_DECLARATION, 1, [need 'extern int optind' declaration?])
-#            AC_MSG_RESULT(yes))
+AC_MSG_CHECKING(whether need to declare optind)
+AC_TRY_LINK([#ifdef HAVE_GETOPT_H
+#include <getopt.h>
+#endif], [int x=optind;],
+            AC_MSG_RESULT(no),
+            AC_DEFINE(NEED_OPTIND_DECLARATION, 1, [need 'extern int optind' declaration?])
+            AC_MSG_RESULT(yes))
 
 
 
