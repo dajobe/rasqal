@@ -488,10 +488,13 @@ rasqal_query_set_variable(rasqal_query* query, const unsigned char *name,
  * @query: &rasqal_query query object
  * @triple: &rasqal_triple triple
  *
+ * DEPRECATED - does not properly construct the query structures
  **/
 void
 rasqal_query_add_triple(rasqal_query* query, rasqal_triple* triple)
 {
+  RASQAL_DEPRECATED_MESSAGE("does not properly construct query structures");
+  
   if(!query->triples)
     query->triples=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_triple, (raptor_sequence_print_handler*)rasqal_triple_print);
   
@@ -630,6 +633,104 @@ rasqal_query_get_prefix(rasqal_query* query, int idx)
 
   return (rasqal_prefix*)raptor_sequence_get_at(query->prefixes, idx);
 }
+
+
+/**
+ * rasqal_query_get_graph_pattern_sequence - Get the sequence of graph_patterns expressions in the query
+ * @query: &rasqal_query query object
+ *
+ * Return value: a &raptor_sequence of &rasqal_graph_pattern pointers.
+ **/
+raptor_sequence*
+rasqal_query_get_graph_pattern_sequence(rasqal_query* query)
+{
+  return query->graph_patterns;
+}
+
+
+/**
+ * rasqal_query_get_graph_pattern - Get a graph_pattern in the sequence of graph_pattern expressions in the query
+ * @query: &rasqal_query query object
+ * @idx: index into the sequence (0 or larger)
+ *
+ * Return value: a &rasqal_graph_pattern pointer or NULL if out of the sequence range
+ **/
+rasqal_graph_pattern*
+rasqal_query_get_graph_pattern(rasqal_query* query, int idx)
+{
+  if(!query->graph_patterns)
+    return NULL;
+
+  return (rasqal_graph_pattern*)raptor_sequence_get_at(query->graph_patterns, idx);
+}
+
+
+/**
+ * rasqal_graph_pattern_get_triple - Get a triple inside a graph pattern
+ * @graph_pattern: &rasqal_graph_pattern graph pattern object
+ * @idx: index into the sequence of triples in the graph pattern
+ * 
+ * Return value: &rasqal_triple or NULL if out of range
+ **/
+rasqal_triple*
+rasqal_graph_pattern_get_triple(rasqal_graph_pattern* graph_pattern, int idx)
+{
+  if(!graph_pattern->triples)
+    return NULL;
+
+  if(idx > graph_pattern->end_column)
+    return NULL;
+  
+  idx += graph_pattern->start_column;
+  
+  return (rasqal_triple*)raptor_sequence_get_at(graph_pattern->triples, idx);
+}
+
+
+/**
+ * rasqal_graph_pattern_get_sub_graph_pattern_sequence - Get the sequence of graph patterns inside a graph pattern 
+ * @graph_pattern: 
+ * 
+ * Return value:  a &raptor_sequence of &rasqal_graph_pattern pointers.
+ **/
+raptor_sequence*
+rasqal_graph_pattern_get_sub_graph_pattern_sequence(rasqal_graph_pattern* graph_pattern)
+{
+  return graph_pattern->graph_patterns;
+}
+
+
+/**
+ * rasqal_graph_pattern_get_sub_graph_pattern - Get a sub-graph pattern inside a graph pattern
+ * @graph_pattern: &rasqal_graph_pattern graph pattern object
+ * @idx: index into the sequence of sub graph_patterns in the graph pattern
+ * 
+ * Return value: &rasqal_graph_pattern or NULL if out of range
+ **/
+rasqal_graph_pattern*
+rasqal_graph_pattern_get_sub_graph_pattern(rasqal_graph_pattern* graph_pattern, int idx)
+{
+  if(!graph_pattern->graph_patterns)
+    return NULL;
+
+  return (rasqal_graph_pattern*)raptor_sequence_get_at(graph_pattern->graph_patterns, idx);
+}
+
+
+/**
+ * rasqal_graph_pattern_get_flags - Get the graph pattern flags 
+ * @graph_pattern: &rasqal_graph_pattern graph pattern object
+ * 
+ * The flags are a bitwise OR of the values of the rasqal_pattern_flags enum.
+ *
+ * Return value: flags
+ **/
+int
+rasqal_graph_pattern_get_flags(rasqal_graph_pattern* graph_pattern)
+{
+  return graph_pattern->flags;
+}
+
 
 
 /**
