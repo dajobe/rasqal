@@ -42,6 +42,16 @@ extern "C" {
 
 #include <raptor.h>
 
+/* Public statics */
+extern const char * const rasqal_short_copyright_string;
+extern const char * const rasqal_copyright_string;
+extern const char * const rasqal_version_string;
+extern const unsigned int rasqal_version_major;
+extern const unsigned int rasqal_version_minor;
+extern const unsigned int rasqal_version_release;
+extern const unsigned int rasqal_version_decimal;
+
+
 /* Public structure */
 typedef struct rasqal_query_s rasqal_query;
 
