@@ -1,4 +1,33 @@
+2005-01-09  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal_engine.c (rasqal_engine_move_to_graph_pattern):
+	Use max_optional_graph_patterns
+	to walk through combinations of optional graph patterns.
+	(rasqal_engine_do_optional_step): CHeck against max_optional_graph_patterns
+	limit and lower it when backtracking.
+	(rasqal_engine_get_next_result): Count # returned values and continue
+	searching when=0.  This is a fixup hack, not a final solution.
+
+	* rasqal_engine.c (rasqal_engine_move_to_graph_pattern):
+	Take a delta since only ever
+	moving by +1 or -1.
+	When there are no optionals, just move.
+	When backtracking optionals, re-init the finished graph pattern.
+	(rasqal_engine_do_step, rasqal_engine_do_optional_step): Update calls
+	to above.
+
 2005-01-08  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal_engine.c (rasqal_reset_triple_meta): Added.
+	(rasqal_free_graph_pattern, rasqal_graph_pattern_get_next_match):
+	Call new rasqal_reset_triple_meta
+	(rasqal_engine_do_optional_step): Comment out duff test
+
+	* rasqal_engine.c: messages
+
+	* rasqal_engine.c (rasqal_engine_do_optional_step): Copy tidying
+
+	* rasqal_engine.c (rasqal_engine_get_next_result): Debug messages.
 
 	* rasqal_engine.c (rasqal_engine_check_constraint): Added, from
 	body of rasqal_engine_get_next_result.
