@@ -63,6 +63,8 @@ static rasqal_query* Q;
   rasqal_triple *triple;
   rasqal_expression *expr;
   unsigned char *string;
+  unsigned char *flags;
+  unsigned char *language;
   int integer;
   float floating;
 }
@@ -89,14 +91,8 @@ static rasqal_query* Q;
 /* string operations */
 %left STR_EQ STR_NE STR_MATCH STR_NMATCH
 
-/* bit operations */
-%left BIT_OR BIT_XOR BIT_AND
-
 /* operations */
 %left EQ NEQ LT GT LE GE
-
-/* bitshift operations */
-%left LSHIFT RSIGNEDSHIFT RUNSIGNEDSHIFT
 
 /* arithmetic operations */
 %left PLUS MINUS STAR SLASH REM
@@ -123,7 +119,6 @@ static rasqal_query* Q;
 %type <seq> VarList TriplePatternList PrefixDeclList ArgList URIList
 
 %type <expr> Expression ConditionalAndExpression ValueLogical
-%type <expr> InclusiveOrExpression ExclusiveOrExpression AndExpression
 %type <expr> EqualityExpression RelationalExpression NumericExpression
 %type <expr> AdditiveExpression MultiplicativeExpression UnaryExpression
 %type <expr> UnaryExpressionNotPlusMinus
@@ -315,52 +310,21 @@ ConditionalAndExpression: ValueLogical SC_AND ConditionalAndExpression
 }
 ;
 
-ValueLogical : InclusiveOrExpression STR_EQ InclusiveOrExpression
+ValueLogical : EqualityExpression STR_EQ EqualityExpression
 {
   $$=rasqal_new_2op_expression(RASQAL_EXPR_STR_EQ, $1, $3);
 }
-| InclusiveOrExpression STR_NE InclusiveOrExpression
+| EqualityExpression STR_NE EqualityExpression
 {
   $$=rasqal_new_2op_expression(RASQAL_EXPR_STR_NEQ, $1, $3);
 }
-| InclusiveOrExpression STR_MATCH PatternLiteral
+| EqualityExpression STR_MATCH PatternLiteral
 {
   $$=rasqal_new_string_op_expression(RASQAL_EXPR_STR_MATCH, $1, $3);
 }
-| InclusiveOrExpression STR_NMATCH PatternLiteral
+| EqualityExpression STR_NMATCH PatternLiteral
 {
   $$=rasqal_new_string_op_expression(RASQAL_EXPR_STR_NMATCH, $1, $3);
-}
-| InclusiveOrExpression
-{
-  $$=$1;
-}
-;
-
-
-InclusiveOrExpression : ExclusiveOrExpression BIT_OR InclusiveOrExpression
-{
-  $$=rasqal_new_2op_expression(RASQAL_EXPR_BIT_OR, $1, $3);
-}
-| ExclusiveOrExpression
-{
-  $$=$1;
-}
-;
-
-ExclusiveOrExpression : AndExpression BIT_XOR ExclusiveOrExpression
-{
-  $$=rasqal_new_2op_expression(RASQAL_EXPR_BIT_XOR, $1, $3);
-}
-| AndExpression
-{
-  $$=$1;
-}
-;
-
-AndExpression : EqualityExpression BIT_AND AndExpression
-{
-  $$=rasqal_new_2op_expression(RASQAL_EXPR_BIT_AND, $1, $3);
 }
 | EqualityExpression
 {
@@ -404,19 +368,7 @@ RelationalExpression : NumericExpression LT NumericExpression
 }
 ;
 
-NumericExpression : AdditiveExpression LSHIFT NumericExpression
-{
- $$=rasqal_new_2op_expression(RASQAL_EXPR_LSHIFT, $1, $3);
-}
-| AdditiveExpression RSIGNEDSHIFT NumericExpression
-{
- $$=rasqal_new_2op_expression(RASQAL_EXPR_RSIGNEDSHIFT, $1, $3);
-}
-| AdditiveExpression RUNSIGNEDSHIFT NumericExpression
-{
- $$=rasqal_new_2op_expression(RASQAL_EXPR_RUNSIGNEDSHIFT, $1, $3);
-}
-| AdditiveExpression
+NumericExpression : AdditiveExpression
 {
   $$=$1;
 }
