@@ -173,8 +173,23 @@ main(int argc, char *argv[])
         break;
 
       case 'i':
-        if(optarg)
+	if(rasqal_language_name_check(optarg))
           ql_name=optarg;
+	else {
+          int i;
+          fprintf(stderr,
+                  "%s: invalid argument `%s' for `" HELP_ARG(i, input) "'\n",
+                  program, optarg);
+          fprintf(stderr, "Valid arguments are:\n");
+          for(i=0; 1; i++) {
+            const char *help_name;
+            const char *help_label;
+            if(rasqal_languages_enumerate(i, &help_name, &help_label, NULL))
+              break;
+            printf("  %-12s for %s\n", help_name, help_label);
+          }
+          usage=1;
+	}
         break;
 
       case 'q':
@@ -214,7 +229,7 @@ main(int argc, char *argv[])
     puts("Run an RDF query giving variable bindings or RDF triples.");
     puts("\nMain options:");
     puts(HELP_TEXT("h", "help            ", "Print this help, then exit"));
-    puts(HELP_TEXT("i", "input LANGAUGE  ", "Set query language name to one of:"));
+    puts(HELP_TEXT("i", "input LANGUAGE  ", "Set query language name to one of:"));
     for(i=0; 1; i++) {
       const char *help_name;
       const char *help_label;
