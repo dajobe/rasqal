@@ -328,7 +328,7 @@ typedef struct rasqal_triples_match_s rasqal_triples_match;
 
 typedef struct 
 {
-  /* triple (subject, predicate, object) and origin (SOURCE in BRQL) */
+  /* triple (subject, predicate, object) and origin */
   rasqal_variable* bindings[4];
 
   rasqal_triples_match *triples_match;
