@@ -180,6 +180,10 @@ QUOTEDURI \<[A-Za-z][^>]+\>
 "DISTINCT"|"distinct"	{ return DISTINCT; }
 "LIMIT"|"limit"	{ return LIMIT; }
 "UNION"|"union"       { return UNION; }
+"OPTIONAL"|"OPTIONAL" { return OPTIONAL; }
+"BASE"|"base" { return BASE; }
+"LOAD"|"load" { return LOAD; }
+"BOUND"|"load" { return BOUND; }
 
 ","      { return ','; } 
 "("      { return '('; } 
@@ -663,6 +667,18 @@ sparql_token_print(int token, YYSTYPE *lval)
 
     case UNION:
       return "UNION";
+
+    case OPTIONAL:
+      return "OPTIONAL";
+
+    case BASE:
+      return "BASE";
+
+    case LOAD:
+      return "LOAD";
+
+    case BOUND:
+      return "BOUND";
 
     case ',':
       return ",";
