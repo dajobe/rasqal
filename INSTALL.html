@@ -79,12 +79,13 @@ present some of the tests will fail and the query engine will
 fail to handle regex matches.
 </p>
 
-<p>Rasqal is developed and built on x86 GNU/Linux (Redhat Fedora Core
-3, Debian unstable) but is also regularly tested on sparc Sun Solaris
-2.x, x86 FreeBSD 4.10, ppc Apple OSX 10.3 and as part of Redland on
-several other systems via the <a
-href="http://sourceforge.net/">SourceForge</a> compile farm (Alpha Linux,
-AMD IA64 Linux, FreeBSD, NetBSD, OpenBSD, Solarix x86).</p>
+<p>Rasqal is developed and built on x86 GNU/Linux
+(Redhat Fedora Core 3, Debian unstable) but is also regularly tested on
+sparc Sun Solaris 2.x, x86 FreeBSD 4.10, ppc Apple OSX 10.3
+and as part of Redland on several other systems via the
+<a href="http://sourceforge.net/">SourceForge</a> compile farm
+(typically Alpha Linux, AMD IA64 Linux, FreeBSD, NetBSD, OpenBSD, Solarix x86).
+</p>
 
 
 <h3><a id="sec-create-configure" name="sec-create-configure"></a>2.1. Create <code>configure</code> program</h3>
@@ -116,6 +117,13 @@ version 1.7), autoconf 2.59 (minimum version 2.54) and libtool 1.5.4
 sources.  autogen.sh enforces the requirements.  In future
 development will move to require automake 1.8, autoconf 2.58 and
 libtool 1.5.</p>
+
+<p>Rasqal also requires
+<a href="http://lex.sourceforge.net/">flex</a> version 2.5.31 or newer
+(2.5.4 will not work) and
+<a href="http://www.gnu.org/software/bison/bison.html">GNU Bison</a>
+to build lexers and parsers.
+These are only required when building from CVS.</p>
 
 
 <h3>2.2 Options for <tt>configure</tt></h3>
