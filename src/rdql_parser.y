@@ -574,17 +574,27 @@ URIList : URI_LITERAL COMMA URIList
 
 /* Support functions */
 
+
+/* This is declared in rdql_lexer.h but never used, so we always get
+ * a warning unless this dummy code is here.  Used once below in an error case.
+ */
+static int yy_init_globals (yyscan_t yyscanner ) { return 0; };
+
+
 int
-rdql_parse(rasqal_query* rq, const char *string) {
+rdql_parse(rasqal_query* rq,
+           const unsigned char *uri_string, 
+           const char *string) {
   rdql_parser rp;
   void *buffer;
   
   if(!string || !*string)
-    return 0;
+    return yy_init_globals(NULL); /* 0 but a way to use yy_init_globals */
 
   memset(&rp, 0, sizeof(rdql_parser));
 
   rp.query=rq;
+  rp.uri_string=uri_string;
   
   rdql_lexer_lex_init(&rp.scanner);
 
@@ -597,20 +607,16 @@ rdql_parse(rasqal_query* rq, const char *string) {
 }
 
 
-extern char *filename;
- 
 int
 rdql_query_error(rdql_parser* rp, const char *msg) {
   yyscan_t yyscanner=rp->scanner;
 
-  int line=rdql_lexer_get_lineno(yyscanner);
+  rp->line=rdql_lexer_get_lineno(yyscanner);
 #ifdef RASQAL_RDQL_USE_ERROR_COLUMNS
-  /*  int column=rdql_lexer_get_column(yyscanner);*/
-#else
-  /*  int column=0; */
+  /*  rp->column=rdql_lexer_get_column(yyscanner);*/
 #endif
 
-  fprintf(stderr, "(rdql_query_error) %s:%d: %s\n", filename, line, msg);
+  fprintf(stderr, "(rdql_query_error) %s:%d: %s\n", rp->uri_string, rp->line, msg);
 
   rp->errors++;
   return (0);
@@ -620,15 +626,15 @@ rdql_query_error(rdql_parser* rp, const char *msg) {
 int
 rdql_syntax_error(rdql_parser *rp, const char *message, ...)
 {
-  /* yyscan_t yyscanner=rp->scanner; */
+  yyscan_t yyscanner=rp->scanner;
   va_list arguments;
 
-  /* int line=rdql_lexer_get_lineno(yyscanner); */
+  rp->line=rdql_lexer_get_lineno(yyscanner);
 #ifdef RASQAL_RDQL_USE_ERROR_COLUMNS
-  /*  int column=rdql_lexer_get_column(yyscanner);*/
-#else
-  /*  int column=0; */
+  /*  rp->column=rdql_lexer_get_column(yyscanner);*/
 #endif
+
+  fprintf(stderr, "(rdql_syntax_error) %s:%d:", rp->uri_string, rp->line);
   va_start(arguments, message);
   vfprintf(stderr, message, arguments);
   va_end(arguments);
@@ -642,15 +648,15 @@ rdql_syntax_error(rdql_parser *rp, const char *message, ...)
 int
 rdql_syntax_warning(rdql_parser *rp, const char *message, ...)
 {
-  /* yyscan_t yyscanner=rp->scanner; */
+  yyscan_t yyscanner=rp->scanner;
   va_list arguments;
 
-  /* int line=rdql_lexer_get_lineno(yyscanner); */
+  rp->line=rdql_lexer_get_lineno(yyscanner);
 #ifdef RASQAL_RDQL_USE_ERROR_COLUMNS
-  /*  int column=rdql_lexer_get_column(yyscanner);*/
-#else
-  /*  int column=0; */
+  /*  Rp->column=rdql_lexer_get_column(yyscanner);*/
 #endif
+
+  fprintf(stderr, "(rdql_syntax_warning) %s:%d:", rp->uri_string, rp->line);
   va_start(arguments, message);
   vfprintf(stderr, message, arguments);
   va_end(arguments);
@@ -671,6 +677,7 @@ int
 main(int argc, char *argv[]) 
 {
   rasqal_query rq;
+  unsigned char *filename=NULL;
   char query_string[RDQL_FILE_BUF_SIZE];
   FILE *fh;
   int rc;
@@ -700,7 +707,7 @@ main(int argc, char *argv[])
   
   memset(&rq, 0, sizeof(rasqal_query));
 
-  rc=rdql_parse(&rq, query_string);
+  rc=rdql_parse(&rq, filename, query_string);
 
   return rc;
 }
