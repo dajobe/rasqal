@@ -152,9 +152,6 @@ static int rdql_query_error(rasqal_query* rq, const char *message);
 
 %token <name> IDENTIFIER
 
-/* syntax error */
-%token ERROR_TOKEN
-
 
 %type <seq> SelectClause SourceClause ConstraintClause UsingClause
 %type <seq> CommaAndConstraintClause
@@ -762,7 +759,7 @@ rdql_syntax_error(rasqal_query *rq, const char *message, ...)
   rasqal_query_error_varargs(rq, message, arguments);
   va_end(arguments);
 
-   return (0);
+  return (0);
 }
 
 
