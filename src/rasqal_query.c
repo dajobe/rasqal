@@ -153,7 +153,7 @@ rasqal_free_query(rasqal_query* query)
 /* Methods */
 
 /**
- * rasqal_get_name: Return the short name for the query
+ * rasqal_get_name - Return the short name for the query
  * @query: &rasqal_query query object
  **/
 const char*
@@ -164,7 +164,7 @@ rasqal_get_name(rasqal_query *query)
 
 
 /**
- * rasqal_get_label: Return a readable label for the query
+ * rasqal_get_label - Return a readable label for the query
  * @query: &rasqal_query query object
  **/
 const char*
@@ -175,7 +175,7 @@ rasqal_get_label(rasqal_query *query)
 
 
 /**
- * rasqal_query_add_source: Add a source URI to the query
+ * rasqal_query_add_source - Add a source URI to the query
  * @query: &rasqal_query query object
  * @uri: &raptor_uri uri
  **/
@@ -187,7 +187,7 @@ rasqal_query_add_source(rasqal_query* query, raptor_uri* uri)
 
 
 /**
- * rasqal_query_get_source_sequence: Get the sequence of source URIs
+ * rasqal_query_get_source_sequence - Get the sequence of source URIs
  * @query: &rasqal_query query object
  *
  * Return value: a &raptor_sequence of &raptor_uri pointers.
@@ -200,7 +200,7 @@ rasqal_query_get_source_sequence(rasqal_query* query)
 
 
 /**
- * rasqal_query_get_source: Get a source URI in the sequence of sources
+ * rasqal_query_get_source - Get a source URI in the sequence of sources
  * @query: &rasqal_query query object
  * @idx: index into the sequence (0 or larger)
  *
@@ -214,7 +214,7 @@ rasqal_query_get_source(rasqal_query* query, int idx)
 
 
 /**
- * rasqal_query_add_variable: Add a binding variable to the query
+ * rasqal_query_add_variable - Add a binding variable to the query
  * @query: &rasqal_query query object
  * @var: &rasqal_variable variable
  *
@@ -229,7 +229,7 @@ rasqal_query_add_variable(rasqal_query* query, rasqal_variable* var)
 
 
 /**
- * rasqal_query_get_variable_sequence: Get the sequence of variables to bind in the query
+ * rasqal_query_get_variable_sequence - Get the sequence of variables to bind in the query
  * @query: &rasqal_query query object
  *
  * Return value: a &raptor_sequence of &rasqal_variable pointers.
@@ -242,7 +242,7 @@ rasqal_query_get_variable_sequence(rasqal_query* query)
 
 
 /**
- * rasqal_query_get_variable: Get a variable in the sequence of variables to bind
+ * rasqal_query_get_variable - Get a variable in the sequence of variables to bind
  * @query: &rasqal_query query object
  * @idx: index into the sequence (0 or larger)
  *
@@ -256,7 +256,7 @@ rasqal_query_get_variable(rasqal_query* query, int idx)
 
 
 /**
- * rasqal_query_has_variable: Find if the named variable is in the sequence of variables to bind
+ * rasqal_query_has_variable - Find if the named variable is in the sequence of variables to bind
  * @query: &rasqal_query query object
  * @name: variable name
  *
@@ -277,7 +277,7 @@ rasqal_query_has_variable(rasqal_query* query, const char *name)
 
 
 /**
- * rasqal_query_set_variable: Add a binding variable to the query
+ * rasqal_query_set_variable - Add a binding variable to the query
  * @query: &rasqal_query query object
  * @name: &rasqal_variable variable
  * @value: &rasqal_literal value to set or NULL
@@ -307,7 +307,7 @@ rasqal_query_set_variable(rasqal_query* query, const char *name,
 
 
 /**
- * rasqal_query_add_triple: Add a matching triple to the query
+ * rasqal_query_add_triple -  Add a matching triple to the query
  * @query: &rasqal_query query object
  * @triple: &rasqal_triple triple
  *
@@ -320,7 +320,7 @@ rasqal_query_add_triple(rasqal_query* query, rasqal_triple* triple)
 
 
 /**
- * rasqal_query_get_triple_sequence: Get the sequence of matching triples in the query
+ * rasqal_query_get_triple_sequence - Get the sequence of matching triples in the query
  * @query: &rasqal_query query object
  *
  * Return value: a &raptor_sequence of &rasqal_triple pointers.
@@ -333,7 +333,7 @@ rasqal_query_get_triple_sequence(rasqal_query* query)
 
 
 /**
- * rasqal_query_get_triple: Get a triple in the sequence of matching triples in the query
+ * rasqal_query_get_triple - Get a triple in the sequence of matching triples in the query
  * @query: &rasqal_query query object
  * @idx: index into the sequence (0 or larger)
  *
@@ -347,7 +347,7 @@ rasqal_query_get_triple(rasqal_query* query, int idx)
 
 
 /**
- * rasqal_query_add_constraint: Add a constraint expression to the query
+ * rasqal_query_add_constraint - Add a constraint expression to the query
  * @query: &rasqal_query query object
  * @expr: &rasqal_expression expr
  *
@@ -360,7 +360,7 @@ rasqal_query_add_constraint(rasqal_query* query, rasqal_expression* expr)
 
 
 /**
- * rasqal_query_get_constraint_sequence: Get the sequence of constraints expressions in the query
+ * rasqal_query_get_constraint_sequence - Get the sequence of constraints expressions in the query
  * @query: &rasqal_query query object
  *
  * Return value: a &raptor_sequence of &rasqal_expression pointers.
@@ -373,7 +373,7 @@ rasqal_query_get_constraint_sequence(rasqal_query* query)
 
 
 /**
- * rasqal_query_get_constraint: Get a constraint in the sequence of constraint expressions in the query
+ * rasqal_query_get_constraint - Get a constraint in the sequence of constraint expressions in the query
  * @query: &rasqal_query query object
  * @idx: index into the sequence (0 or larger)
  *
@@ -387,7 +387,7 @@ rasqal_query_get_constraint(rasqal_query* query, int idx)
 
 
 /**
- * rasqal_query_add_prefix: Add a namespace prefix to the query
+ * rasqal_query_add_prefix - Add a namespace prefix to the query
  * @query: &rasqal_query query object
  * @prefix: &rasqal_prefix namespace prefix, URI
  *
@@ -400,7 +400,7 @@ rasqal_query_add_prefix(rasqal_query* query, rasqal_prefix* prefix)
 
 
 /**
- * rasqal_query_get_prefix_sequence: Get the sequence of namespace prefixes in the query
+ * rasqal_query_get_prefix_sequence - Get the sequence of namespace prefixes in the query
  * @query: &rasqal_query query object
  *
  * Return value: a &raptor_sequence of &rasqal_prefix pointers.
@@ -413,7 +413,7 @@ rasqal_query_get_prefix_sequence(rasqal_query* query)
 
 
 /**
- * rasqal_query_get_prefix: Get a prefix in the sequence of namespsace prefixes in the query
+ * rasqal_query_get_prefix - Get a prefix in the sequence of namespsace prefixes in the query
  * @query: &rasqal_query query object
  * @idx: index into the sequence (0 or larger)
  *
@@ -475,7 +475,7 @@ rasqal_query_prepare(rasqal_query *query,
 
 
 /**
- * rasqal_query_execute: excute a query - run and return results
+ * rasqal_query_execute - Excute a query - run and return results
  * @query: the &rasqal_query object
  *
  * return value: non-0 on failure.
@@ -513,6 +513,13 @@ rasqal_query_execute(rasqal_query *query)
 
 
 /* Utility methods */
+
+/**
+ * rasqal_query_print - Print a query in a debug format
+ * @query: the &rasqal_query object
+ * @fh: the &FILE* handle to print to.
+ * 
+ **/
 void
 rasqal_query_print(rasqal_query* query, FILE *fh)
 {
@@ -535,7 +542,7 @@ rasqal_query_print(rasqal_query* query, FILE *fh)
 
 
 /**
- * rasqal_query_get_result_count: Get number of bindings so far
+ * rasqal_query_get_result_count - Get number of bindings so far
  * @query: &rasqal_query query
  * 
  * Return value: number of bindings found so far
@@ -548,7 +555,7 @@ rasqal_query_get_result_count(rasqal_query *query)
 
 
 /**
- * rasqal_query_results_finished: Find out if binding results are exhausted
+ * rasqal_query_results_finished - Find out if binding results are exhausted
  * @query: &rasqal_query query
  * 
  * Return value: non-0 if results are finished or query failed
@@ -561,13 +568,18 @@ rasqal_query_results_finished(rasqal_query *query)
 
 
 /**
- * rasqal_query_get_result_bindings: Get all binding names, values for current result
+ * rasqal_query_get_result_bindings - Get all binding names, values for current result
  * @query: &rasqal_query query
  * @names: pointer to an array of binding names (or NULL)
  * @values: pointer to an array of binding value &rasqal_literal (or NULL)
  * 
- * If either of the pointers is not NULL, pointers to shared copies
- * of the binding names or values are returned.
+ * If names is not NULL, it is set to the address of a shared array
+ * of names of the bindings (an output parameter).  These names
+ * are shared and must not be freed by the caller
+ *
+ * If values is not NULL, it is set to the address of a shared array
+ * of &rasqal_literal* binding values.  These values are shaerd
+ * and must not be freed by the caller.
  * 
  * Return value: non-0 if the assignment failed
  **/
@@ -594,7 +606,7 @@ rasqal_query_get_result_bindings(rasqal_query *query,
 
 
 /**
- * rasqal_query_get_result_binding_value: Get one binding value for the current result
+ * rasqal_query_get_result_binding_value - Get one binding value for the current result
  * @query: &rasqal_query query
  * @offset: offset of binding name into array of known names
  * 
@@ -619,7 +631,7 @@ rasqal_query_get_result_binding_value(rasqal_query *query, int offset)
 
 
 /**
- * rasqal_query_get_result_binding_name: Get binding name for the current result
+ * rasqal_query_get_result_binding_name - Get binding name for the current result
  * @query: &rasqal_query query
  * @offset: offset of binding name into array of known names
  * 
@@ -639,7 +651,7 @@ rasqal_query_get_result_binding_name(rasqal_query *query, int offset)
 
 
 /**
- * rasqal_query_get_result_binding_by_name: Get one binding value for a given name in the current result
+ * rasqal_query_get_result_binding_by_name - Get one binding value for a given name in the current result
  * @query: &rasqal_query query
  * @name: variable name
  * 
@@ -675,7 +687,7 @@ rasqal_query_get_result_binding_by_name(rasqal_query *query,
 
 
 /**
- * rasqal_query_next_result: Move to the next result
+ * rasqal_query_next_result - Move to the next result
  * @query: &rasqal_query query
  * 
  * Return value: non-0 if failed or results exhausted
