@@ -38,7 +38,7 @@ librasqal_la_LIBADD = @RASQAL_INTERNAL_LIBS@
 librasqal_la_DEPENDENCIES = @RASQAL_INTERNAL_LIBS@
 
 roqet_SOURCES = roqet.c rasqal_getopt.h
-roqet_LDADD = libraptor.la @RASQAL_INTERNAL_LIBS@
+roqet_LDADD = librasqal.la @RASQAL_INTERNAL_LIBS@
 roqet_DEPENDENCIES = librasqal.la @RASQAL_INTERNAL_LIBS@
 EXTRA_roqet_SOURCES = getopt.c
 
