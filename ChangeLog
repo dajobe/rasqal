@@ -1,5 +1,8 @@
 2005-01-16  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
+	* rasqal_query.c (rasqal_query_results_write): Copy original
+	base_uri each time, don't lose the original reference.
+
 	* rasqal_query.c (rasqal_query_results_write):
 	Handle RASQAL_LITERAL_BLANK. Doh!
 
