@@ -255,6 +255,9 @@ struct rasqal_query_s {
 
   /* sequence of rasqal_graph-pattern* */
   raptor_sequence *graph_patterns;
+
+  /* current position in the sequence */
+  int current_graph_pattern;
 };
 
 
