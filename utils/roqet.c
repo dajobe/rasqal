@@ -517,6 +517,8 @@ main(int argc, char *argv[])
         rasqal_triple_print(t, stdout);
         fputs("\n", stdout);
         triple_count++;
+
+        rasqal_free_triple(t);
         
         if(rasqal_query_results_next_triple(results))
           break;
