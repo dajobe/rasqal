@@ -306,8 +306,7 @@ OptionalList: OptionalList OptionalClause
 }
 | OptionalClause
 {
-  /* FIXME - should have a print handler for print a sequence this way */
-  $$=raptor_new_sequence(NULL, (raptor_sequence_print_handler*)NULL);
+  $$=raptor_new_sequence(NULL, (raptor_sequence_print_handler*)raptor_sequence_print);
   raptor_sequence_push($$, $1);
 }
 | /* empty */
