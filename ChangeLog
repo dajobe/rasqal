@@ -1,4 +1,43 @@
+2004-09-16  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* tests/brql/Makefile.am, tests/brql/E.n3, tests/brql/Q-SOURCE-1,
+	tests/brql/Q-SOURCE-2: tests
+
+2004-09-12  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal_literal.c (rasqal_literal_as_string): Handle BLANK
+
+2004-09-11  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal.h: docs
+
+	* brql_parser.y (OptionalClause): Make print handler for seq of seq.
+
+	* rasqal_engine.c (rasqal_engine_assign_variables): Handle no selects
+
+	* rasqal_raptor.c (rasqal_raptor_new_triples_source): Handle no sources
+
+	* roqet.c: Use raptor_free_memory on uri_string
+
+	* .cvsignore: ignore brql bits
+
+	* Makefile.am: clean up local_tests
+
+	* tests/brql/Makefile.am: fix tool building paths
+
+	* rasqal_query_test.c: Use data/dc.rdf
+
+	* Makefile.am, configure.ac: Added data
+
+	* data/Makefile.am, data/dc.rdf: data
+
 2004-09-10  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* brql_lexer.l, rdql_lexer.l (main): Use raptor_free_memory
+
+	* tests/brql/Makefile.am: BRQL Makefile
+
+	* tests/rdql/Makefile.am: RDQL Makefile
 
 	* rasqal_query.c (rasqal_free_query):
 	Added describes, optional_triples and constructs.
