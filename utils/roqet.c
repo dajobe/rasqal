@@ -353,6 +353,10 @@ main(int argc, char *argv[])
   }
 
 
+  if(!quiet)
+    fprintf(stdout, "%s: Query returned %d results\n", program, 
+            rasqal_query_get_result_count(rq));
+  
   rasqal_free_query(rq);
 
   free(query_string);
