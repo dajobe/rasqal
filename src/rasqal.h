@@ -218,7 +218,6 @@ RASQAL_API rasqal_expression* rasqal_new_variable_expression(rasqal_variable *va
 RASQAL_API void rasqal_free_expression(rasqal_expression* e);
 RASQAL_API void rasqal_expression_print_op(rasqal_expression* expression, FILE* fh);
 RASQAL_API void rasqal_expression_print(rasqal_expression* e, FILE* fh);
-RASQAL_API int rasqal_expression_is_variable(rasqal_expression* e);
 RASQAL_API rasqal_literal* rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e);
 typedef int (*rasqal_expression_foreach_fn)(void *user_data, rasqal_expression *e);
 RASQAL_API int rasqal_expression_foreach(rasqal_expression* e, rasqal_expression_foreach_fn fn, void *user_data);
