@@ -110,7 +110,7 @@ AC_SUBST(RASQAL_LIBTOOL_VERSION)
 
 
 dnl Checks for library functions.
-AC_CHECK_FUNCS(getopt vsnprintf)
+AC_CHECK_FUNCS(getopt getopt_long vsnprintf)
 
 ## was AC_REPLACE_FUNCS(strcasecmp) but strcasecmp has two alternatives:
 ## the other non-standard function stricmp or a local alternative
