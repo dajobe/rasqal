@@ -85,7 +85,7 @@ rasqal_new_query(const char *name, const unsigned char *uri) {
                                          "rdfs", RAPTOR_RDF_SCHEMA_URI,0);
 
 
-  rdf_query->variables_sequence=rasqal_new_sequence((rasqal_free_handler*)rasqal_free_variable, (rasqal_print_handler*)rasqal_print_variable);
+  rdf_query->variables_sequence=rasqal_new_sequence((rasqal_free_handler*)rasqal_free_variable, (rasqal_print_handler*)rasqal_variable_print);
 
 
   if(factory->init(rdf_query, name)) {

@@ -195,7 +195,7 @@ VarList : Var COMMA VarList
 | Var 
 {
   /* The variables are freed from the raptor_query field variables */
-  $$=rasqal_new_sequence(NULL, (rasqal_print_handler*)rasqal_print_variable);
+  $$=rasqal_new_sequence(NULL, (rasqal_print_handler*)rasqal_variable_print);
   rasqal_sequence_push($$, $1);
 }
 ;
@@ -242,7 +242,7 @@ TriplePatternList : TriplePattern COMMA TriplePatternList
 }
 | TriplePattern
 {
-  $$=rasqal_new_sequence((rasqal_free_handler*)rasqal_free_triple, (rasqal_print_handler*)rasqal_print_triple);
+  $$=rasqal_new_sequence((rasqal_free_handler*)rasqal_free_triple, (rasqal_print_handler*)rasqal_triple_print);
   rasqal_sequence_push($$, $1);
 }
 ;
@@ -298,7 +298,7 @@ CommaAndConstraintClause : Expression COMMA CommaAndConstraintClause
 }
 | Expression
 {
-  $$=rasqal_new_sequence((rasqal_free_handler*)rasqal_free_expression, (rasqal_print_handler*)rasqal_print_expression);
+  $$=rasqal_new_sequence((rasqal_free_handler*)rasqal_free_expression, (rasqal_print_handler*)rasqal_expression_print);
   rasqal_sequence_push($$, $1);
 }
 ;
@@ -322,7 +322,7 @@ PrefixDeclList : IDENTIFIER FOR URI_LITERAL COMMA PrefixDeclList
 }
 | IDENTIFIER FOR URI_LITERAL
 {
-  $$=rasqal_new_sequence((rasqal_free_handler*)rasqal_free_prefix, (rasqal_print_handler*)rasqal_print_prefix);
+  $$=rasqal_new_sequence((rasqal_free_handler*)rasqal_free_prefix, (rasqal_print_handler*)rasqal_prefix_print);
   rasqal_sequence_push($$, rasqal_new_prefix($1, $3));
 }
 ;
@@ -499,7 +499,7 @@ ArgList : VarOrLiteral COMMA ArgList
 }
 | VarOrLiteral
 {
-  $$=rasqal_new_sequence((rasqal_free_handler*)rasqal_free_expression, (rasqal_print_handler*)rasqal_print_expression);
+  $$=rasqal_new_sequence((rasqal_free_handler*)rasqal_free_expression, (rasqal_print_handler*)rasqal_expression_print);
   rasqal_sequence_push($$, $1);
 }
 ;
@@ -810,7 +810,7 @@ main(int argc, char *argv[])
                                          rasqal_query_simple_error,
                                          &query,
                                          0);
-  query.variables_sequence=rasqal_new_sequence((rasqal_free_handler*)rasqal_free_variable, (rasqal_print_handler*)rasqal_print_variable);
+  query.variables_sequence=rasqal_new_sequence((rasqal_free_handler*)rasqal_free_variable, (rasqal_print_handler*)rasqal_variable_print);
   
   locator->line= locator->column = -1;
   locator->file= filename;

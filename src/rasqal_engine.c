@@ -135,7 +135,7 @@ rasqal_query_order_triples(rasqal_query* query) {
   /* NOTE: Shared triple pointers with the query->triples - 
    * entries in the ordered_triples sequence are not freed 
    */
-  query->ordered_triples=rasqal_new_sequence(NULL, (rasqal_print_handler*)rasqal_print_triple);
+  query->ordered_triples=rasqal_new_sequence(NULL, (rasqal_print_handler*)rasqal_triple_print);
 
   if(triples_size == 1) {
     rasqal_sequence_push(query->ordered_triples, 
@@ -267,7 +267,7 @@ rasqal_engine_assign_variables(rasqal_query* rq)
 
   /* If 'SELECT *' was given, make the selects be a list of all variables */
   if(rq->select_all) {
-    rq->selects=rasqal_new_sequence(NULL, (rasqal_print_handler*)rasqal_print_variable);
+    rq->selects=rasqal_new_sequence(NULL, (rasqal_print_handler*)rasqal_variable_print);
     
     for(i=0; i< rq->variables_count; i++)
       rasqal_sequence_push(rq->selects, rasqal_sequence_get_at(rq->variables_sequence, i));
