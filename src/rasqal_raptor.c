@@ -274,6 +274,7 @@ rasqal_raptor_bind_match(struct rasqal_triples_match_s* rtm,
                           rasqal_variable* bindings[3]) 
 {
   rasqal_raptor_triples_match_context* rtmc=(rasqal_raptor_triples_match_context*)rtm->user_data;
+  int error=0;
   
 #ifdef RASQAL_DEBUG
   if(rtmc->cur) {
@@ -292,13 +293,50 @@ rasqal_raptor_bind_match(struct rasqal_triples_match_s* rtm,
   }
 
   if(bindings[1]) {
-    RASQAL_DEBUG1("binding predicate to variable\n");
-    rasqal_variable_set_value(bindings[1], rasqal_new_literal_from_literal(rtmc->cur->triple->predicate));
+    if(bindings[0] == bindings[1]) {
+      if(rasqal_literal_compare(rtmc->cur->triple->subject,
+                                rtmc->cur->triple->predicate, 0, &error))
+        return 1;
+      if(error)
+        return 1;
+      
+      RASQAL_DEBUG1("subject and predicate values match\n");
+    } else {
+      RASQAL_DEBUG1("binding predicate to variable\n");
+      rasqal_variable_set_value(bindings[1], rasqal_new_literal_from_literal(rtmc->cur->triple->predicate));
+    }
   }
 
   if(bindings[2]) {
-    RASQAL_DEBUG1("binding object to variable\n");
-    rasqal_variable_set_value(bindings[2],  rasqal_new_literal_from_literal(rtmc->cur->triple->object));
+    int bind=1;
+    
+    if(bindings[0] == bindings[2]) {
+      if(rasqal_literal_compare(rtmc->cur->triple->subject,
+                                rtmc->cur->triple->object, 0, &error))
+        return 1;
+      if(error)
+        return 1;
+
+      bind=0;
+      RASQAL_DEBUG1("subject and object values match\n");
+    }
+    if(bindings[1] == bindings[2] &&
+       !(bindings[0] == bindings[1]) /* don't do this check if ?x ?x ?x */
+       ) {
+      if(rasqal_literal_compare(rtmc->cur->triple->predicate,
+                                rtmc->cur->triple->object, 0, &error))
+        return 1;
+      if(error)
+        return 1;
+
+      bind=0;
+      RASQAL_DEBUG1("predicate and object values match\n");
+    }
+    
+    if(bind) {
+      RASQAL_DEBUG1("binding object to variable\n");
+      rasqal_variable_set_value(bindings[2],  rasqal_new_literal_from_literal(rtmc->cur->triple->object));
+    }
   }
 
   return 0;
