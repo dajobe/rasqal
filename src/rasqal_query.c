@@ -72,13 +72,12 @@ rasqal_new_query(const char *name, const unsigned char *uri)
   if(!factory)
     return NULL;
 
-  query=(rasqal_query*)RASQAL_CALLOC(rasqal_query, 1, 
-                                         sizeof(rasqal_query));
+  query=(rasqal_query*)RASQAL_CALLOC(rasqal_query, 1, sizeof(rasqal_query));
   if(!query)
     return NULL;
   
   query->context=(char*)RASQAL_CALLOC(rasqal_query_context, 1,
-                                          factory->context_length);
+                                      factory->context_length);
   if(!query->context) {
     rasqal_free_query(query);
     return NULL;
@@ -90,9 +89,9 @@ rasqal_new_query(const char *name, const unsigned char *uri)
 
   raptor_uri_get_handler(&uri_handler, &uri_context);
   query->namespaces=raptor_new_namespaces(uri_handler, uri_context,
-                                              rasqal_query_simple_error,
-                                              query,
-                                              0);
+                                          rasqal_query_simple_error,
+                                          query,
+                                          0);
 
   query->variables_sequence=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_variable, (raptor_sequence_print_handler*)rasqal_variable_print);
 
@@ -277,7 +276,8 @@ rasqal_query_set_warning_handler(rasqal_query* query, void *user_data,
  * feature can be one of:
  **/
 void
-rasqal_query_set_feature(rasqal_query *query, rasqal_feature feature, int value)
+rasqal_query_set_feature(rasqal_query *query, 
+                         rasqal_feature feature, int value)
 {
   switch(feature) {
       
@@ -926,7 +926,8 @@ rasqal_query_results_get_binding_value(rasqal_query_results *query_results,
  * Return value: a pointer to a shared copy of the binding name or NULL on failure
  **/
 const unsigned char*
-rasqal_query_results_get_binding_name(rasqal_query_results *query_results, int offset)
+rasqal_query_results_get_binding_name(rasqal_query_results *query_results, 
+                                      int offset)
 {
   rasqal_query *query;
 
