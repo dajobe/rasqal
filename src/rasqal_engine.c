@@ -406,15 +406,17 @@ rasqal_engine_execute_init(rasqal_query *query) {
   
   triples_size=raptor_sequence_size(query->triples);
 
-  /* Expand 'SELECT *' and create the query->variables array */
-  rasqal_engine_assign_variables(query);
+  if(!query->variables) {
+    /* Expand 'SELECT *' and create the query->variables array */
+    rasqal_engine_assign_variables(query);
   
-  /* Order the conjunctive query triples */
-  if(rasqal_query_order_triples(query))
-    return 1;
+    /* Order the conjunctive query triples */
+    if(rasqal_query_order_triples(query))
+      return 1;
 
-  rasqal_engine_build_constraints_expression(query);
-
+    rasqal_engine_build_constraints_expression(query);
+  }
+  
   query->triples_source=rasqal_new_triples_source(query);
   if(!query->triples_source) {
     query->failed=1;
@@ -450,9 +452,11 @@ rasqal_engine_execute_finish(rasqal_query *query) {
   RASQAL_FREE(rasqal_triple_meta, query->triple_meta);
   query->triple_meta=NULL;
 
-  if(query->triples_source)
+  if(query->triples_source) {
     rasqal_free_triples_source(query->triples_source);
-
+    query->triples_source=NULL;
+  }
+  
   return 0;
 }
 
