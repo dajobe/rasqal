@@ -602,6 +602,20 @@ static int
 rasqal_rdql_query_engine_init(rasqal_query* rdf_query, const char *name) {
   /* rasqal_rdql_query_engine* rdql=(rasqal_rdql_query_engine*)rdf_query->context; */
 
+  /* Initialise rdf, rdfs, owl and xsd prefixes and namespaces */
+  raptor_namespaces_start_namespace_full(rdf_query->namespaces, 
+                                         (const unsigned char*)"rdf",
+                                         (const unsigned char*)RAPTOR_RDF_MS_URI,0);
+  raptor_namespaces_start_namespace_full(rdf_query->namespaces, 
+                                         (const unsigned char*)"rdfs", 
+                                         (const unsigned char*)RAPTOR_RDF_SCHEMA_URI,0);
+  raptor_namespaces_start_namespace_full(rdf_query->namespaces,
+                                         (const unsigned char*)"xsd",
+                                         (const unsigned char*)RAPTOR_XMLSCHEMA_DATATYPES_URI, 0);
+  raptor_namespaces_start_namespace_full(rdf_query->namespaces,
+                                         (const unsigned char*)"owl",
+                                         (const unsigned char*)RAPTOR_OWL_URI, 0);
+
   return 0;
 }
 
