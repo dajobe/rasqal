@@ -168,13 +168,14 @@ QUOTEDURI \<[A-Za-z][^>]+\>
 "WHERE"|"where"   { return WHERE; } 
 "AND"|"and"       { return AND; } 
 "PREFIX"|"prefix" { BEGIN(PREF);
-		return PREFIX; } /* SPARQL */
-"DESCRIBE"|"describe"	{ return DESCRIBE; } /* SPARQL */
-"CONSTRUCT"|"construct"	{ return CONSTRUCT; } /* SPARQL */
-"ASK"|"ask"	{ return ASK; } /* SPARQL */
-"NOT"|"not"	{ return NOT; } /* SPARQL */
-"DISTINCT"|"distinct"	{ return DISTINCT; } /* SPARQL */
-"LIMIT"|"limit"	{ return LIMIT; } /* SPARQL */
+		return PREFIX; }
+"DESCRIBE"|"describe"	{ return DESCRIBE; }
+"CONSTRUCT"|"construct"	{ return CONSTRUCT; }
+"ASK"|"ask"	{ return ASK; }
+"NOT"|"not"	{ return NOT; }
+"DISTINCT"|"distinct"	{ return DISTINCT; }
+"LIMIT"|"limit"	{ return LIMIT; }
+"UNION"|"union"       { return UNION; }
 
 ","      { return ','; } 
 "("      { return '('; } 
