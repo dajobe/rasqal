@@ -61,6 +61,9 @@ structure and added <code>rasqal_new_function_expression</code> to
 construct this expression.
 </p>
 
+<p>Added new 1-argument expression <code>RASQAL_EXPR_STR</code>
+returning a string version of the expression.</p>
+
 <p>Added new 1-argument expressions operating on RDF literals:
 <code>RASQAL_EXPR_LANG</code> returning the language string of an RDF literal,
 <code>RASQAL_EXPR_DATATYPE</code> returning the datatype URI of an RDF literal.
@@ -91,12 +94,13 @@ queries using the updated query engine features.</p>
 <code>]</code> could be used (parser bug fix).</p>
 
 <p>Now supports the SPARQL built-in functions
-<code>LANG</code> returning the language string of an RDF literal,
-<code>DATATYPE</code> returning the datatype URI of an RDF literal,
-<code>BOUND</code> testing if a variable is bound,
-<code>ISURI</code> testing if an expression is a URI,
-<code>ISBLANK</code> testing if an expression is a blank node and
-<code>ISLITERAL</code> testing if an expression is an RDF literal.
+<code>STR()</code> returning a string version of the expression,
+<code>LANG()</code> returning the language string of an RDF literal,
+<code>DATATYPE()</code> returning the datatype URI of an RDF literal,
+<code>BOUND()</code> testing if a variable is bound,
+<code>ISURI()</code> testing if an expression is a URI,
+<code>ISBLANK()</code> testing if an expression is a blank node and
+<code>ISLITERAL()</code> testing if an expression is an RDF literal.
 </p>
 
 <p>Now supports SPARQL <code>BASE</code> directive for setting
