@@ -1,4 +1,24 @@
+2005-02-18  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* sparql_parser.y: Some updates for 2005-02-17 SPARQL query WD.
+	Added GRAPH, WITH tokens
+	(FromClauseOpt): Warn about FROM, add WITH.
+	(PatternElementForms): Warn with SOURCE, add GRAPH.
+	Use rasqal_graph_pattern_set_origin to pass on the varOrURI
+	(PatternElementForms): Warn about []
+
+	* sparql_lexer.l: Added graph, with
+
+	* rasqal_internal.h: Added rasqal_graph_pattern_set_origin prototype.
+
+	* rasqal_query.c (rasqal_graph_pattern_set_origin): Added, to
+	recursively set the origin on all triples inside.
+
 2005-02-17  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* librasqal.3: Document 0.9.7 and graph pattern api calls.
+
+	* roqet.1: Document -d, -n
 
 	* roqet.c: Added -n/--dryrun to stop after preparing the query.
 	Added -w/--walk-query to walk and print the query using the API.
