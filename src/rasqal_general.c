@@ -387,6 +387,8 @@ void
 rasqal_query_error_varargs(rasqal_query* query, const char *message, 
                            va_list arguments)
 {
+  query->failed=1;
+
   if(query->error_handler) {
     char *buffer=raptor_vsnprintf(message, arguments);
     if(!buffer) {
