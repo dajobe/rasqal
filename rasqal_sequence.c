@@ -55,7 +55,7 @@ static int rasqal_sequence_grow(rasqal_sequence *seq);
 rasqal_sequence*
 rasqal_new_sequence(rasqal_free_handler *free_handler,
                     rasqal_print_handler *print_handler) {
-  rasqal_sequence* seq=(rasqal_sequence*)malloc(sizeof(rasqal_sequence));
+  rasqal_sequence* seq=(rasqal_sequence*)RASQAL_CALLOC(rasqal_sequence, sizeof(rasqal_sequence), 1);
   if(!seq)
     return NULL;
   seq->size=0;
