@@ -349,11 +349,19 @@ GraphPattern1 : TriplePattern
 PatternElementForms: SOURCE '*' GraphPattern1  /* from SourceGraphPattern */
 {
   /* FIXME - SOURCE * has no defined meaning */
+  sparql_syntax_warning(((rasqal_query*)rq), "SOURCE * ignored");
   $$=$3;
 }
 | SOURCE VarOrURI GraphPattern1 /* from SourceGraphPattern */
 {
-  /* FIXME flag all the triples in GraphPattern1 with source $2 optional */
+  int i;
+
+  /* Flag all the triples in GraphPattern1 with source $2 optional */
+  for(i=0; i < raptor_sequence_size($3); i++) {
+    rasqal_triple *t=(rasqal_triple*)raptor_sequence_get_at($3, i);
+    rasqal_triple_set_origin(t, rasqal_new_literal_from_literal($2));
+  }
+  rasqal_free_literal($2);
   $$=$3;
 }
 | OPTIONAL GraphPattern1 /* from OptionalGraphPattern */
@@ -697,6 +705,8 @@ UnaryExpressionNotPlusMinus : '~' UnaryExpression
 | '&' QNAME_LITERAL '(' ArgList ')'
 {
   /* FIXME - do something with the function name, args */
+  raptor_free_sequence($4);
+
   $$=NULL;
 }
 | '(' Expression ')'
@@ -875,7 +885,7 @@ rasqal_sparql_query_engine_execute(rasqal_query* rdf_query)
 {
   /* rasqal_sparql_query_engine* sparql=(rasqal_sparql_query_engine*)rdf_query->context; */
   
-  /* FIXME: not implemented */
+  /* nothing needed here */
   return 0;
 }
 
