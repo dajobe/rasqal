@@ -617,7 +617,7 @@ rasqal_rdql_query_engine_terminate(rasqal_query* rdf_query) {
   rasqal_rdql_query_engine* rdql=(rasqal_rdql_query_engine*)rdf_query->context;
 
   if(rdql->scanner_set) {
-    rdql_lexer_lex_destroy(&rdql->scanner);
+    rdql_lexer_lex_destroy(rdql->scanner);
     rdql->scanner_set=0;
   }
 
