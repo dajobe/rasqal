@@ -153,24 +153,97 @@ rasqal_free_query(rasqal_query* query)
 /* Methods */
 
 /**
- * rasqal_get_name - Return the short name for the query
+ * rasqal_query_get_name - Return the short name for the query
  * @query: &rasqal_query query object
  **/
 const char*
-rasqal_get_name(rasqal_query *query)
+rasqal_query_get_name(rasqal_query *query)
 {
   return query->factory->name;
 }
 
 
 /**
- * rasqal_get_label - Return a readable label for the query
+ * rasqal_query_get_label - Return a readable label for the query
  * @query: &rasqal_query query object
  **/
 const char*
-rasqal_get_label(rasqal_query *query)
+rasqal_query_get_label(rasqal_query *query)
 {
   return query->factory->label;
+}
+
+
+/**
+ * rasqal_query_set_fatal_error_handler - Set the query error handling function
+ * @query: the query
+ * @user_data: user data to pass to function
+ * @handler: pointer to the function
+ * 
+ * The function will receive callbacks when the query fails.
+ * 
+ **/
+void
+rasqal_query_set_fatal_error_handler(rasqal_query* query, void *user_data,
+                                     raptor_message_handler handler)
+{
+  query->fatal_error_user_data=user_data;
+  query->fatal_error_handler=handler;
+}
+
+
+/**
+ * rasqal_query_set_error_handler - Set the query error handling function
+ * @query: the query
+ * @user_data: user data to pass to function
+ * @handler: pointer to the function
+ * 
+ * The function will receive callbacks when the query fails.
+ * 
+ **/
+void
+rasqal_query_set_error_handler(rasqal_query* query, void *user_data,
+                               raptor_message_handler handler)
+{
+  query->error_user_data=user_data;
+  query->error_handler=handler;
+}
+
+
+/**
+ * rasqal_set_warning_handler - Set the query warning handling function
+ * @query: the query
+ * @user_data: user data to pass to function
+ * @handler: pointer to the function
+ * 
+ * The function will receive callbacks when the query gives a warning.
+ * 
+ **/
+void
+rasqal_query_set_warning_handler(rasqal_query* query, void *user_data,
+                                 raptor_message_handler handler)
+{
+  query->warning_user_data=user_data;
+  query->warning_handler=handler;
+}
+
+
+/**
+ * rasqal_query_set_feature - Set various query features
+ * @query: &rasqal_query query object
+ * @feature: feature to set from enumerated &rasqal_feature values
+ * @value: integer feature value
+ * 
+ * feature can be one of:
+ **/
+void
+rasqal_query_set_feature(rasqal_query *query, rasqal_feature feature, int value)
+{
+  switch(feature) {
+      
+    default:
+      break;
+  }
 }
 
 
