@@ -1083,9 +1083,6 @@ rasqal_query_results_write(raptor_iostream *iostr,
             "http://www.w3.org/TR/2004/WD-rdf-sparql-XMLres-20041221/"))
     return 1;
 
-  if(!base_uri)
-    return 1;
-
   raptor_uri_get_handler(&uri_handler, &uri_context);
 
   nstack=raptor_new_namespaces(uri_handler, uri_context,
@@ -1112,9 +1109,11 @@ rasqal_query_results_write(raptor_iostream *iostr,
                                                           (const unsigned char*)"sparql",
                                                           NULL); /* no attribute value - element */
   
+  if(base_uri)
+    base_uri=raptor_uri_copy(base_uri);
   sparql_element=raptor_new_xml_element(sparql_qname,
                                         NULL, /* language */
-                                        raptor_uri_copy(base_uri));
+                                        base_uri);
 
   raptor_xml_writer_start_element(xml_writer, sparql_element);
   raptor_xml_writer_raw_counted(xml_writer, (const unsigned char*)"\n", 1);
@@ -1125,9 +1124,11 @@ rasqal_query_results_write(raptor_iostream *iostr,
                           (const unsigned char*)"head",
                           NULL); /* no attribute value - element */
   
+  if(base_uri)
+    base_uri=raptor_uri_copy(base_uri);
   element1=raptor_new_xml_element(qname1,
                                   NULL, /* language */
-                                  raptor_uri_copy(base_uri));
+                                  base_uri);
 
   raptor_xml_writer_raw_counted(xml_writer, (const unsigned char*)"  ", 2);
   raptor_xml_writer_start_element(xml_writer, element1);
@@ -1147,9 +1148,11 @@ rasqal_query_results_write(raptor_iostream *iostr,
                                     (const unsigned char*)"variable",
                                     NULL); /* no attribute value - element */
     
+    if(base_uri)
+      base_uri=raptor_uri_copy(base_uri);
     variable_element=raptor_new_xml_element(variable_qname,
                                             NULL,
-                                            raptor_uri_copy(base_uri));
+                                            base_uri);
     
 
     attrs=(raptor_qname **)raptor_alloc_memory(sizeof(raptor_qname*));
@@ -1178,9 +1181,11 @@ rasqal_query_results_write(raptor_iostream *iostr,
                                                            (const unsigned char*)"results",
                                                            NULL);
   
+  if(base_uri)
+    base_uri=raptor_uri_copy(base_uri);
   results_element=raptor_new_xml_element(results_qname,
                                          NULL, /* language */
-                                         raptor_uri_copy(base_uri));
+                                         base_uri);
   raptor_xml_writer_raw_counted(xml_writer, (const unsigned char*)"  ", 2);
   raptor_xml_writer_start_element(xml_writer, results_element);
   raptor_xml_writer_raw_counted(xml_writer, (const unsigned char*)"\n", 1);
@@ -1191,9 +1196,11 @@ rasqal_query_results_write(raptor_iostream *iostr,
                                 (const unsigned char*)"result",
                                                           NULL);
   
+  if(base_uri)
+    base_uri=raptor_uri_copy(base_uri);
   result_element=raptor_new_xml_element(result_qname,
                                         NULL, /* language */
-                                        raptor_uri_copy(base_uri));
+                                        base_uri);
 
 
   while(!rasqal_query_results_finished(results)) {
@@ -1210,9 +1217,11 @@ rasqal_query_results_write(raptor_iostream *iostr,
       qname1=raptor_new_qname_from_namespace_local_name(res_ns, 
                                                         (const unsigned char*)name,
                                                         NULL);
+      if(base_uri)
+        base_uri=raptor_uri_copy(base_uri);
       element1=raptor_new_xml_element(qname1,
                                       NULL, /* language */
-                                      raptor_uri_copy(base_uri));
+                                      base_uri);
       
 
       raptor_xml_writer_raw_counted(xml_writer, (const unsigned char*)"      ", 6);
