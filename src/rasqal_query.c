@@ -132,18 +132,24 @@ rasqal_free_query(rasqal_query* query)
   if(query->query_string)
     RASQAL_FREE(cstring, query->query_string);
 
-  if(query->selects)
-    raptor_free_sequence(query->selects);
   if(query->sources)
     raptor_free_sequence(query->sources);
+  if(query->selects)
+    raptor_free_sequence(query->selects);
+  if(query->describes)
+    raptor_free_sequence(query->describes);
+  if(query->ordered_triples)
+    raptor_free_sequence(query->ordered_triples);
   if(query->triples)
     raptor_free_sequence(query->triples);
+  if(query->optional_triples)
+    raptor_free_sequence(query->optional_triples);
+  if(query->constructs)
+    raptor_free_sequence(query->constructs);
   if(query->constraints)
     raptor_free_sequence(query->constraints);
   if(query->prefixes)
     raptor_free_sequence(query->prefixes);
-  if(query->ordered_triples)
-    raptor_free_sequence(query->ordered_triples);
 
   if(query->variable_names)
     RASQAL_FREE(cstrings, query->variable_names);
@@ -622,25 +628,41 @@ rasqal_query_execute(rasqal_query *query)
 void
 rasqal_query_print(rasqal_query* query, FILE *fh)
 {
-  fprintf(fh, "selects: ");
-  if(query->selects)
-     raptor_sequence_print(query->selects, fh);
-  fprintf(fh, "\nsources: ");
+  fprintf(fh, "sources: ");
   if(query->sources)
     raptor_sequence_print(query->sources, fh);
-  fprintf(fh, "\ntriples: ");
-  if(query->triples)
+  if(query->selects) {
+    fprintf(fh, "\nselects: "); 
+    raptor_sequence_print(query->selects, fh);
+  }
+  if(query->describes) {
+    fprintf(fh, "\ndescribes: ");
+    raptor_sequence_print(query->describes, fh);
+  }
+  if(query->triples) {
+    fprintf(fh, "\ntriples: ");
     raptor_sequence_print(query->triples, fh);
+  }
   if(query->ordered_triples) {
     fprintf(fh, "\nordered triples: ");
     raptor_sequence_print(query->ordered_triples, fh);
   }
-  fprintf(fh, "\nconstraints: ");
-  if(query->constraints)
+  if(query->optional_triples) {
+    fprintf(fh, "\noptional triples: ");
+    raptor_sequence_print(query->optional_triples, fh);
+  }
+  if(query->constructs) {
+    fprintf(fh, "\nconstructs: ");
+    raptor_sequence_print(query->constructs, fh);
+  }
+  if(query->constraints) {
+    fprintf(fh, "\nconstraints: ");
     raptor_sequence_print(query->constraints, fh);
-  fprintf(fh, "\nprefixes: ");
-  if(query->prefixes)
+  }
+  if(query->prefixes) {
+    fprintf(fh, "\nprefixes: ");
     raptor_sequence_print(query->prefixes, fh);
+  }
   fputc('\n', fh);
 }
 
