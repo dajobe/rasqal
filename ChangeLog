@@ -1,4 +1,13 @@
+2005-02-04  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* autogen.sh: Add autoheader and libtoolize to the path search.
+
+	* configure.ac:
+	AM_PROG_LIBTOOL to AC_PROG_LIBTOOL seems to make things happier
+
 2005-02-03  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* sparql_lexer.l, rasqal_expr.c: casts for C++
 
 	* configure.ac: In maintainer mode, stop if flex is too old, no
 	flex or YACC is not GNU bison.
