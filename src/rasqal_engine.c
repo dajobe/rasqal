@@ -1191,7 +1191,7 @@ rasqal_engine_do_optional_step(rasqal_query *query, rasqal_graph_pattern *gp) {
       return STEP_SEARCHING;
     }
     
-    RASQAL_DEBUG1("No non-optional matches, finished\n");
+    RASQAL_DEBUG1("No non-optional matches, returning a result\n");
     return STEP_GOT_MATCH;
   }
 
@@ -1276,6 +1276,9 @@ rasqal_engine_get_next_result(rasqal_query *query) {
     else
       step=rasqal_engine_do_step(query, gp);
 
+    RASQAL_DEBUG2("Returned step is %s\n",
+                  rasqal_engine_step_names[step]);
+
     /* count matches */
     if(step == STEP_GOT_MATCH)
       gp->matched=1;
@@ -1288,8 +1291,10 @@ rasqal_engine_get_next_result(rasqal_query *query) {
         values_returned++;
     }
     RASQAL_DEBUG2("Solution binds %d values\n", values_returned);
-    if(!values_returned && step != STEP_FINISHED)
+    if(!values_returned && step != STEP_FINISHED) {
+      RASQAL_DEBUG1("Set step to searching\n");
       step=STEP_SEARCHING;
+    }
 
   }
 
