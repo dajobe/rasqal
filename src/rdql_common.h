@@ -41,6 +41,8 @@ struct rasqal_rdql_query_engine_s {
   /* STATIC lexer */
   yyscan_t scanner;
 
+  int scanner_set;
+
   /* for error reporting */
   unsigned int lineno;
 };
