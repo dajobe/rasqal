@@ -320,6 +320,14 @@ rasqal_variable_set_value(rasqal_variable* v, rasqal_expression *e)
   if(v->value)
     rasqal_free_expression(v->value);
   v->value=e;
+#ifdef RASQAL_DEBUG
+  RASQAL_DEBUG2("setting variable %s to value ", v->name);
+  if(v->value)
+    rasqal_print_expression(v->value, stderr);
+  else
+    fputs("(NULL)", stderr);
+  fputc('\n', stderr);
+#endif
 }
 
 
