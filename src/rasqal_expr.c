@@ -399,6 +399,8 @@ rasqal_free_expression(rasqal_expression* e)
     case RASQAL_EXPR_FUNCTION:
       raptor_free_uri(e->name);
       raptor_free_sequence(e->args);
+
+    case RASQAL_EXPR_UNKNOWN:
     default:
       RASQAL_FATAL2("Unknown operation %d", e->op);
   }
@@ -450,6 +452,8 @@ rasqal_expression_foreach(rasqal_expression* e,
     case RASQAL_EXPR_FUNCTION:
       return fn(user_data, e);
       break;
+
+    case RASQAL_EXPR_UNKNOWN:
     default:
       RASQAL_FATAL2("Unknown operation %d", e->op);
   }
@@ -1241,6 +1245,7 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
       RASQAL_FATAL1("No function expressions yet");
       break;
       
+    case RASQAL_EXPR_UNKNOWN:
     default:
       RASQAL_FATAL2("Unknown operation %d", e->op);
   }
@@ -1283,7 +1288,6 @@ static const char* rasqal_op_labels[RASQAL_EXPR_LAST+1]={
   "tilde",
   "bang",
   "literal",
-  "pattern",
   "function",
   "bound",
   "str",
@@ -1358,12 +1362,20 @@ rasqal_expression_print(rasqal_expression* e, FILE* fh)
       rasqal_expression_print(e->arg1, fh);
       fputc(')', fh);
       break;
+
     case RASQAL_EXPR_LITERAL:
       rasqal_literal_print(e->literal, fh);
       break;
-    case RASQAL_EXPR_PATTERN:
-      fprintf(fh, "expr_pattern(%s)", (char*)e->value);
+
+    case RASQAL_EXPR_FUNCTION:
+      fputs("function(uri=", fh);
+      raptor_uri_print(e->name, fh);
+      fputs(", args=", fh);
+      raptor_sequence_print(e->args, fh);
+      fputc(')', fh);
       break;
+
+    case RASQAL_EXPR_UNKNOWN:
     default:
       RASQAL_FATAL2("Unknown operation %d", e->op);
   }
