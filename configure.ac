@@ -232,7 +232,7 @@ if test $with_raptor = system; then
 else
   RAPTOR_VERSION=internal
   AC_MSG_RESULT(internal)
-  if test -r ../raptor/raptor_internal.h; then
+  if test ! -r ../raptor/raptor_internal.h; then
     AC_MSG_ERROR(Raptor sources missing in parent directory - cannot use internal)
   fi
 fi
