@@ -5,7 +5,7 @@ dnl (Process this file with autoconf to produce a configure script.)
 dnl
 dnl $Id$
 dnl
-dnl Copyright (C) 2003-2004, David Beckett http://purl.org/net/dajobe/
+dnl Copyright (C) 2003-2005, David Beckett http://purl.org/net/dajobe/
 dnl Institute for Learning and Research Technology http://www.ilrt.bristol.ac.uk/
 dnl University of Bristol, UK http://www.bristol.ac.uk/
 dnl 
@@ -25,7 +25,7 @@ dnl the licenses in COPYING.LIB, COPYING and LICENSE-2.0.txt respectively.
 dnl 
 
 
-AC_INIT(Rasqal RDF Query Library, 0.9.5, redland-dev@lists.librdf.org, rasqal)
+AC_INIT(Rasqal RDF Query Library, 0.9.6, redland-dev@lists.librdf.org, rasqal)
 AC_PREREQ(2.50)
 AC_CONFIG_SRCDIR(rdql_parser.y)
 AC_REVISION($Revision$)
