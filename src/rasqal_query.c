@@ -261,9 +261,13 @@ rasqal_query_execute(rasqal_query *rdf_query)
   librdf_parser *parser;
   librdf_uri *source0;
   
+  /* Order the conjunctive query triples */
   if(rasqal_query_order_triples(rdf_query))
     return 1;
 
+  /* Expand 'SELECT *' and create the rdf_query->variables array */
+  rasqal_engine_assign_variables(rdf_query);
+  
   source0=librdf_new_uri(world, raptor_uri_as_string(rasqal_sequence_get_at(rdf_query->sources, 0)));
 
   storage = librdf_new_storage(world, NULL, NULL, NULL);
