@@ -647,12 +647,19 @@ rasqal_rdql_query_engine_execute(rasqal_query* rdf_query)
 static int
 rdql_parse(rasqal_query* rq, const char *string) {
   rasqal_rdql_query_engine* rqe=(rasqal_rdql_query_engine*)rq->context;
+  raptor_locator *locator=&rq->locator;
   void *buffer;
 
   if(!string || !*string)
     return yy_init_globals(NULL); /* 0 but a way to use yy_init_globals */
 
-  rdql_lexer_lex_init(rqe->scanner);
+  locator->line=1;
+  locator->column= -1; /* No column info */
+  locator->byte= -1; /* No bytes info */
+
+  rqe->lineno=1;
+
+  rdql_lexer_lex_init(&rqe->scanner);
 
   rdql_lexer_set_extra(((rasqal_query*)rq), rqe->scanner);
   buffer= rdql_lexer__scan_string(string, rqe->scanner);
@@ -666,9 +673,8 @@ rdql_parse(rasqal_query* rq, const char *string) {
 int
 rdql_query_error(rasqal_query *rq, const char *msg) {
   rasqal_rdql_query_engine* rqe=(rasqal_rdql_query_engine*)rq->context;
-  yyscan_t yyscanner=rqe->scanner;
 
-  rq->locator.line=rdql_lexer_get_lineno(yyscanner);
+  rq->locator.line=rqe->lineno;
 #ifdef RASQAL_RDQL_USE_ERROR_COLUMNS
   /*  rq->locator.column=rdql_lexer_get_column(yyscanner);*/
 #endif
@@ -683,10 +689,9 @@ int
 rdql_syntax_error(rasqal_query *rq, const char *message, ...)
 {
   rasqal_rdql_query_engine *rqe=(rasqal_rdql_query_engine*)rq->context;
-  yyscan_t yyscanner=rqe->scanner;
   va_list arguments;
 
-  rq->locator.line=rdql_lexer_get_lineno(yyscanner);
+  rq->locator.line=rqe->lineno;
 #ifdef RASQAL_RDQL_USE_ERROR_COLUMNS
   /*  rp->locator.column=rdql_lexer_get_column(yyscanner);*/
 #endif
@@ -703,10 +708,9 @@ int
 rdql_syntax_warning(rasqal_query *rq, const char *message, ...)
 {
   rasqal_rdql_query_engine *rqe=(rasqal_rdql_query_engine*)rq->context;
-  yyscan_t yyscanner=rqe->scanner;
   va_list arguments;
 
-  rq->locator.line=rdql_lexer_get_lineno(yyscanner);
+  rq->locator.line=rqe->lineno;
 #ifdef RASQAL_RDQL_USE_ERROR_COLUMNS
   /*  rq->locator.column=rdql_lexer_get_column(yyscanner);*/
 #endif
@@ -753,13 +757,13 @@ rasqal_init_query_engine_rdql (void) {
 int
 main(int argc, char *argv[]) 
 {
-  unsigned char *filename=NULL;
   char query_string[RDQL_FILE_BUF_SIZE];
   rasqal_query query; /* static */
   rasqal_rdql_query_engine rdql; /* static */
   raptor_locator *locator=&query.locator;
   FILE *fh;
   int rc;
+  unsigned char *filename=NULL;
 
 #if RASQAL_DEBUG > 2
   rdql_parser_debug=1;
@@ -792,12 +796,14 @@ main(int argc, char *argv[])
   locator->line= locator->column = -1;
   locator->file= filename;
 
+  rdql.lineno= 1;
+
   query.context=&rdql;
   query.base_uri=raptor_new_uri(raptor_uri_filename_to_uri_string(filename));
 
   rasqal_rdql_query_engine_init(&query, "rdql");
 
-  rc=rdql_parse(&query, query_string, strlen(query_string));
+  rc=rdql_parse(&query, query_string);
 
   raptor_free_uri(query.base_uri);
 
