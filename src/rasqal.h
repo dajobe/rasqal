@@ -201,6 +201,12 @@ RASQAL_API void rasqal_query_print(rasqal_query*, FILE *stream);
 RASQAL_API int rasqal_query_prepare(rasqal_query *rdf_query, const unsigned char *query_string, raptor_uri *base_uri);
 RASQAL_API int rasqal_query_execute(rasqal_query *rdf_query);
 
+int rasqal_query_get_result_count(rasqal_query *query);
+int rasqal_query_results_finished(rasqal_query *query);
+int rasqal_query_get_result_bindings(rasqal_query *query, const char ***names, rasqal_literal ***values);
+rasqal_literal* rasqal_query_get_result_binding(rasqal_query *query, int offset);
+rasqal_literal* rasqal_query_get_result_binding_by_name(rasqal_query *query, const char *name);
+int rasqal_query_next_result(rasqal_query *query);
 
 
 /* Expression class */
