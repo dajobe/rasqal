@@ -126,7 +126,7 @@ struct rasqal_query_s {
    * (size select_variables_count+1, last NULL)
    * indexes into the names in variables_sequence above.
    */
-  const char** variable_names;
+  const unsigned char** variable_names;
 
   /* array of result binding values, per result or NULL if no variables wanted
    * (size select_variables_count) 

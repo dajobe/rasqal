@@ -249,7 +249,7 @@ rasqal_get_query_engine_factory (const char *name, const unsigned char *uri)
       if((name && !strcmp(factory->name, name)) ||
          (factory->alias && !strcmp(factory->alias, name)))
         break;
-      if(uri && !strcmp(factory->uri_string, uri))
+      if(uri && !strcmp((const char*)factory->uri_string, (const char*)uri))
         break;
     }
     /* else FACTORY name not found */

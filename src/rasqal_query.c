@@ -351,13 +351,13 @@ rasqal_query_get_variable(rasqal_query* query, int idx)
  * Return value: non-0 if the variable name was found.
  **/
 int
-rasqal_query_has_variable(rasqal_query* query, const char *name)
+rasqal_query_has_variable(rasqal_query* query, const unsigned char *name)
 {
   int i;
 
   for(i=0; i< raptor_sequence_size(query->selects); i++) {
-    rasqal_variable* v=raptor_sequence_get_at(query->selects, i);
-    if(!strcmp(v->name, name))
+    rasqal_variable* v=(rasqal_variable*)raptor_sequence_get_at(query->selects, i);
+    if(!strcmp((const char*)v->name, (const char*)name))
       return 1;
   }
   return 0;
@@ -376,14 +376,14 @@ rasqal_query_has_variable(rasqal_query* query, const char *name)
  * Return value: non-0 on failure
  **/
 int
-rasqal_query_set_variable(rasqal_query* query, const char *name,
+rasqal_query_set_variable(rasqal_query* query, const unsigned char *name,
                           rasqal_literal* value)
 {
   int i;
 
   for(i=0; i< raptor_sequence_size(query->selects); i++) {
-    rasqal_variable* v=raptor_sequence_get_at(query->selects, i);
-    if(!strcmp(v->name, name)) {
+    rasqal_variable* v=(rasqal_variable*)raptor_sequence_get_at(query->selects, i);
+    if(!strcmp((const char*)v->name, (const char*)name)) {
       if(v->value)
         rasqal_free_literal(v->value);
       v->value=value;
@@ -545,14 +545,14 @@ rasqal_query_prepare(rasqal_query *query,
   query->prepared=1;
 
   if(query_string) {
-    query->query_string=(char*)RASQAL_MALLOC(cstring, strlen(query_string)+1);
+    query->query_string=(unsigned char*)RASQAL_MALLOC(cstring, strlen((const char*)query_string)+1);
     strcpy((char*)query->query_string, (const char*)query_string);
   }
 
   if(base_uri)
     base_uri=raptor_uri_copy(base_uri);
   else {
-    char *uri_string=raptor_uri_filename_to_uri_string("");
+    unsigned char *uri_string=raptor_uri_filename_to_uri_string("");
     base_uri=raptor_new_uri(uri_string);
     raptor_free_memory(uri_string);
   }
@@ -773,7 +773,7 @@ rasqal_query_results_finished(rasqal_query_results *query_results)
  **/
 int
 rasqal_query_results_get_bindings(rasqal_query_results *query_results,
-                                  const char ***names, 
+                                  const unsigned char ***names, 
                                   rasqal_literal ***values)
 {
   rasqal_query *query;
@@ -838,7 +838,7 @@ rasqal_query_results_get_binding_value(rasqal_query_results *query_results,
  * 
  * Return value: a pointer to a shared copy of the binding name or NULL on failure
  **/
-const char*
+const unsigned char*
 rasqal_query_results_get_binding_name(rasqal_query_results *query_results, int offset)
 {
   rasqal_query *query;
@@ -866,7 +866,7 @@ rasqal_query_results_get_binding_name(rasqal_query_results *query_results, int o
  **/
 rasqal_literal*
 rasqal_query_results_get_binding_value_by_name(rasqal_query_results *query_results,
-                                               const char *name)
+                                               const unsigned char *name)
 {
   int offset= -1;
   int i;
@@ -880,7 +880,7 @@ rasqal_query_results_get_binding_value_by_name(rasqal_query_results *query_resul
     return NULL;
 
   for(i=0; i< query->select_variables_count; i++) {
-    if(!strcmp(name, query->variables[i]->name)) {
+    if(!strcmp((const char*)name, (const char*)query->variables[i]->name)) {
       offset=i;
       break;
     }

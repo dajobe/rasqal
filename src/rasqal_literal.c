@@ -66,9 +66,9 @@ rasqal_new_integer_literal(rasqal_literal_type type, int integer)
 
   l->type=type;
   l->value.integer=integer;
-  l->string=RASQAL_MALLOC(cstring, 30); /* FIXME */
-  sprintf(l->string, "%d", integer);
-  l->datatype=raptor_new_uri("http://www.w3.org/2001/XMLSchema#integer");
+  l->string=(unsigned char*)RASQAL_MALLOC(cstring, 30); /* FIXME */
+  sprintf((char*)l->string, "%d", integer);
+  l->datatype=raptor_new_uri((const unsigned char*)"http://www.w3.org/2001/XMLSchema#integer");
   l->usage=1;
   return l;
 }
@@ -85,18 +85,18 @@ rasqal_new_integer_literal(rasqal_literal_type type, int integer)
  * Return value: New &rasqal_literal or NULL on failure
  **/
 rasqal_literal*
-rasqal_new_floating_literal(const char *string)
+rasqal_new_floating_literal(const unsigned char *string)
 {
   rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, sizeof(rasqal_literal), 1);
   double f;
 
-  sscanf(string, "%lf", &f);
+  sscanf((const char*)string, "%lf", &f);
 
   l->type=RASQAL_LITERAL_FLOATING;
   l->value.floating=f;
-  l->string=RASQAL_MALLOC(cstring, 30); /* FIXME */
-  sprintf(l->string, "%1g", f);
-  l->datatype=raptor_new_uri("http://www.w3.org/2001/XMLSchema#double");
+  l->string=(unsigned char*)RASQAL_MALLOC(cstring, 30); /* FIXME */
+  sprintf((char*)l->string, "%1g", f);
+  l->datatype=raptor_new_uri((const unsigned char*)"http://www.w3.org/2001/XMLSchema#double");
   l->usage=1;
   return l;
 }
@@ -134,13 +134,14 @@ rasqal_new_uri_literal(raptor_uri *uri)
  * Return value: New &rasqal_literal or NULL on failure
  **/
 rasqal_literal*
-rasqal_new_pattern_literal(char *pattern, char *flags)
+rasqal_new_pattern_literal(const unsigned char *pattern, 
+                           const char *flags)
 {
   rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, sizeof(rasqal_literal), 1);
 
   l->type=RASQAL_LITERAL_PATTERN;
   l->string=pattern;
-  l->flags=flags;
+  l->flags=(const unsigned char*)flags;
   l->usage=1;
   return l;
 }
@@ -159,8 +160,8 @@ rasqal_literal_string_to_native(rasqal_literal *l)
   if(!l->datatype)
     return;
 
-  if(!strcmp(raptor_uri_as_string(l->datatype), "http://www.w3.org/2001/XMLSchema#integer")) {
-    int i=atoi(l->string);
+  if(!strcmp((const char*)raptor_uri_as_string(l->datatype), "http://www.w3.org/2001/XMLSchema#integer")) {
+    int i=atoi((const char*)l->string);
 
     if(l->language) {
       RASQAL_FREE(cstring, l->language);
@@ -172,9 +173,9 @@ rasqal_literal_string_to_native(rasqal_literal *l)
     return;
   }
   
-  if(!strcmp(raptor_uri_as_string(l->datatype), "http://www.w3.org/2001/XMLSchema#double")) {
+  if(!strcmp((const char*)raptor_uri_as_string(l->datatype), "http://www.w3.org/2001/XMLSchema#double")) {
     double d=0.0;
-    sscanf(l->string, "%lf", &d);
+    sscanf((char*)l->string, "%lf", &d);
 
     if(l->language) {
       RASQAL_FREE(cstring, l->language);
@@ -190,7 +191,7 @@ rasqal_literal_string_to_native(rasqal_literal *l)
 
 /**
  * rasqal_new_string_literal - Constructor - Create a new Rasqal string literal
- * @string: string lexical form
+ * @string: UTF-8 string lexical form
  * @language: RDF language (xml:lang) (or NULL)
  * @datatype: datatype URI (or NULL)
  * @datatype_qname: datatype qname string (or NULL)
@@ -209,8 +210,10 @@ rasqal_literal_string_to_native(rasqal_literal *l)
  * Return value: New &rasqal_literal or NULL on failure
  **/
 rasqal_literal*
-rasqal_new_string_literal(char *string, char *language,
-                          raptor_uri *datatype, char *datatype_qname)
+rasqal_new_string_literal(const unsigned char *string,
+                          const char *language,
+                          raptor_uri *datatype, 
+                          const unsigned char *datatype_qname)
 {
   rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, sizeof(rasqal_literal), 1);
 
@@ -234,7 +237,7 @@ rasqal_new_string_literal(char *string, char *language,
 /**
  * rasqal_new_simple_literal - Constructor - Create a new Rasqal simple literal
  * @type: RASQAL_LITERAL_BLANK or RASQAL_LITERAL_BLANK_QNAME
- * @string: the string value to store
+ * @string: the UTF-8 string value to store
  * 
  * The string is an input parameter and is stored in the
  * literal, not copied.
@@ -242,7 +245,8 @@ rasqal_new_string_literal(char *string, char *language,
  * Return value: New &rasqal_literal or NULL on failure
  **/
 rasqal_literal*
-rasqal_new_simple_literal(rasqal_literal_type type, char *string)
+rasqal_new_simple_literal(rasqal_literal_type type, 
+                          const unsigned char *string)
 {
   rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, sizeof(rasqal_literal), 1);
 
@@ -266,7 +270,7 @@ rasqal_new_boolean_literal(int value)
 
   l->type=RASQAL_LITERAL_BOOLEAN;
   l->value.integer=value;
-  l->string=value ? "true":"false";
+  l->string=(const unsigned char*)(value ? "true":"false");
   l->usage=1;
   return l;
 }
@@ -413,7 +417,7 @@ rasqal_literal_print(rasqal_literal* l, FILE* fh)
       fprintf(fh, " %s", l->string);
       break;
     case RASQAL_LITERAL_PATTERN:
-      fprintf(fh, "/%s/%s", l->string, l->flags ? l->flags : "");
+      fprintf(fh, "/%s/%s", l->string, l->flags ? (const char*)l->flags : "");
       break;
     case RASQAL_LITERAL_STRING:
       fprintf(fh, "(\"%s\"", l->string);
@@ -521,8 +525,8 @@ rasqal_literal_as_integer(rasqal_literal* l, int *error)
 
     case RASQAL_LITERAL_STRING:
       {
-        char *eptr=NULL;
-        int v=(int)strtol(l->string, &eptr, 10);
+        const unsigned char *eptr=NULL;
+        int v=(int)strtol((const char*)l->string, (char**)&eptr, 10);
         if(eptr != l->string && *eptr=='\0')
           return v;
       }
@@ -569,8 +573,8 @@ rasqal_literal_as_floating(rasqal_literal* l, int *error)
 
     case RASQAL_LITERAL_STRING:
       {
-        char *eptr=NULL;
-        double  d=strtod(l->string, &eptr);
+        unsigned char *eptr=NULL;
+        double  d=strtod((const char*)l->string, (char**)&eptr);
         if(eptr != l->string && *eptr=='\0')
           return d;
       }
@@ -594,7 +598,7 @@ rasqal_literal_as_floating(rasqal_literal* l, int *error)
  * 
  * Return value: pointer to a shared string format of the literal.
  **/
-char*
+const unsigned char*
 rasqal_literal_as_string(rasqal_literal* l)
 {
   if(!l)
@@ -674,7 +678,7 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
   int i;
   int ints[2];
   double doubles[2];
-  char* strings[2];
+  const unsigned char* strings[2];
   int errori=0;
   *error=0;
 
@@ -798,9 +802,9 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
     case RASQAL_LITERAL_PATTERN:
     case RASQAL_LITERAL_QNAME:
       if(flags & RASQAL_COMPARE_NOCASE)
-        return rasqal_strcasecmp(strings[0],strings[1]);
+        return rasqal_strcasecmp((const char*)strings[0], (const char*)strings[1]);
       else
-        return strcmp(strings[0],strings[1]);
+        return strcmp((const char*)strings[0], (const char*)strings[1]);
 
     case RASQAL_LITERAL_INTEGER:
     case RASQAL_LITERAL_BOOLEAN:
@@ -839,7 +843,7 @@ rasqal_literal_equals(rasqal_literal* l1, rasqal_literal* l2)
   if(l1->type != l2->type) {
     if(l2->type == RASQAL_LITERAL_BOOLEAN &&
        l1->type == RASQAL_LITERAL_STRING)
-      return !strcmp(l1->string,l2->string);
+      return !strcmp((const char*)l1->string, (const char*)l2->string);
     return 0;
   }
   
@@ -868,7 +872,7 @@ rasqal_literal_equals(rasqal_literal* l1, rasqal_literal* l2)
     case RASQAL_LITERAL_BLANK:
     case RASQAL_LITERAL_PATTERN:
     case RASQAL_LITERAL_QNAME:
-      return !strcmp(l1->string,l2->string);
+      return !strcmp((const char*)l1->string, (const char*)l2->string);
       break;
       
     case RASQAL_LITERAL_INTEGER:
@@ -908,7 +912,7 @@ rasqal_literal_expand_qname(void *user_data, rasqal_literal *l)
     /* expand a literal qname */
     raptor_uri *uri=raptor_qname_string_to_uri(rq->namespaces,
                                                l->string, 
-                                               strlen(l->string),
+                                               strlen((const char*)l->string),
                                                rasqal_query_simple_error, rq);
     if(!uri)
       return 1;
@@ -922,7 +926,7 @@ rasqal_literal_expand_qname(void *user_data, rasqal_literal *l)
       /* expand a literal string datatype qname */
       uri=raptor_qname_string_to_uri(rq->namespaces,
                                      l->flags, 
-                                     strlen(l->flags),
+                                     strlen((const char*)l->flags),
                                      rasqal_query_simple_error, rq);
       if(!uri)
         return 1;
@@ -970,8 +974,8 @@ rasqal_literal_as_node(rasqal_literal* l)
       new_l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, sizeof(rasqal_literal), 1);
 
       new_l->type=RASQAL_LITERAL_STRING;
-      new_l->string=RASQAL_MALLOC(cstring, strlen(l->string)+1);
-      strcpy(new_l->string, l->string);
+      new_l->string=(unsigned char*)RASQAL_MALLOC(cstring, strlen((const char*)l->string)+1);
+      strcpy((char*)new_l->string, (const char*)l->string);
       new_l->datatype=dt_uri;
       new_l->flags=NULL;
       new_l->usage=1;

@@ -334,9 +334,9 @@ main(int argc, char *argv[])
     }
   }
   
-  rq=rasqal_new_query(ql_name, ql_uri);
+  rq=rasqal_new_query((const char*)ql_name, (const unsigned char*)ql_uri);
 
-  if(rasqal_query_prepare(rq, query_string, base_uri)) {
+  if(rasqal_query_prepare(rq, (const unsigned char*)query_string, base_uri)) {
     fprintf(stderr, "%s: Parsing query '%s' failed\n", program, query_string);
     rc=1;
   }
@@ -356,7 +356,7 @@ main(int argc, char *argv[])
 
     fputs("result: [", stdout);
     for(i=0; i<rasqal_query_results_get_bindings_count(results); i++) {
-      const char *name=rasqal_query_results_get_binding_name(results, i);
+      const unsigned char *name=rasqal_query_results_get_binding_name(results, i);
       rasqal_literal *value=rasqal_query_results_get_binding_value(results, i);
       
       if(i>0)

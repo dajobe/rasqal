@@ -68,14 +68,14 @@ inline int rasqal_expression_compare(rasqal_expression* e1, rasqal_expression* e
  **/
 rasqal_variable*
 rasqal_new_variable(rasqal_query* rq,
-                    const char *name, rasqal_literal *value) 
+                    const unsigned char *name, rasqal_literal *value) 
 {
   int i;
   rasqal_variable* v;
   
   for(i=0; i< raptor_sequence_size(rq->variables_sequence); i++) {
     v=(rasqal_variable*)raptor_sequence_get_at(rq->variables_sequence, i);
-    if(!strcmp(v->name, name)) {
+    if(!strcmp((const char*)v->name, (const char*)name)) {
       /* name already present, do not need a copy */
       RASQAL_FREE(cstring, name);
       return v;
@@ -157,7 +157,7 @@ rasqal_variable_set_value(rasqal_variable* v, rasqal_literal *e)
 
 
 rasqal_prefix*
-rasqal_new_prefix(const char *prefix, raptor_uri* uri) 
+rasqal_new_prefix(const unsigned char *prefix, raptor_uri* uri) 
 {
   rasqal_prefix* p=(rasqal_prefix*)RASQAL_CALLOC(rasqal_prefix,
                                                  sizeof(rasqal_prefix), 1);
@@ -777,9 +777,9 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
       {
         int b=0;
         int flag_i=0; /* flags contains i */
-        char *p;
-        char *match_string;
-        char *pattern;
+        const unsigned char *p;
+        const unsigned char *match_string;
+        const unsigned char *pattern;
         rasqal_literal *l1, *l2;
         int rc=0;
 #ifdef RASQAL_REGEX_PCRE
@@ -811,14 +811,15 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
         if(flag_i)
           options |= PCRE_CASELESS;
         
-        re=pcre_compile(pattern, options, &re_error, &erroffset, NULL);
+        re=pcre_compile((const char*)pattern, options, 
+                        &re_error, &erroffset, NULL);
         if(!re)
           rasqal_query_error(query, "Regex compile of '%s' failed - %s",
                              pattern, re_error);
         else {
           rc=pcre_exec(re, 
                        NULL, /* no study */
-                       match_string, strlen(match_string),
+                       (const char*)match_string, strlen(match_string),
                        0 /* startoffset */,
                        0 /* options */,
                        NULL, 0 /* ovector, ovecsize - no matches wanted */
@@ -838,12 +839,12 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
         if(flag_i)
           options |=REG_ICASE;
         
-        rc=regcomp(&reg, pattern, options);
+        rc=regcomp(&reg, (const char*)pattern, options);
         if(rc) {
           rasqal_query_error(query, "Regex compile of '%s' failed", pattern);
           rc= -1;
         } else {
-          rc=regexec(&reg, match_string, 
+          rc=regexec(&reg, (const char*)match_string, 
                      0, NULL, /* nmatch, regmatch_t pmatch[] - no matches wanted */
                      0 /* eflags */
                      );
@@ -863,7 +864,7 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
         rc= -1;
 #endif
 
-        RASQAL_DEBUG5("regex match returned %s for '%s' against '%s' (flags=%s)\n", b ? "true " : "false", match_string, pattern, l2->flags ? l2->flags : "");
+        RASQAL_DEBUG5("regex match returned %s for '%s' against '%s' (flags=%s)\n", b ? "true " : "false", match_string, pattern, l2->flags ? (char*)l2->flags : "");
         
         if(e->op == RASQAL_EXPR_STR_NMATCH)
           b=1-b;

@@ -64,8 +64,8 @@ raptor_statement_as_rasqal_triple(const raptor_statement *statement) {
   rasqal_literal *s, *p, *o;
 
   if(statement->subject_type == RAPTOR_IDENTIFIER_TYPE_ANONYMOUS) {
-    char *new_blank=RASQAL_MALLOC(cstring, strlen((char*)statement->subject)+1);
-    strcpy(new_blank, (const char*)statement->subject);
+    unsigned char *new_blank=(unsigned char*)RASQAL_MALLOC(cstring, strlen((char*)statement->subject)+1);
+    strcpy((char*)new_blank, (const char*)statement->subject);
     s=rasqal_new_simple_literal(RASQAL_LITERAL_BLANK, new_blank);
   } else
     s=rasqal_new_uri_literal(raptor_uri_copy((raptor_uri*)statement->subject));
@@ -91,28 +91,28 @@ raptor_statement_as_rasqal_triple(const raptor_statement *statement) {
 
   if(statement->object_type == RAPTOR_IDENTIFIER_TYPE_LITERAL || 
      statement->object_type == RAPTOR_IDENTIFIER_TYPE_XML_LITERAL) {
-    char *string;
+    unsigned char *string;
     char *language=NULL;
     raptor_uri *uri=NULL;
     
-    string=RASQAL_MALLOC(cstring, strlen((char*)statement->object)+1);
+    string=(unsigned char*)RASQAL_MALLOC(cstring, strlen((char*)statement->object)+1);
     strcpy((char*)string, (const char*)statement->object);
 
     if(statement->object_literal_language) {
-      language=RASQAL_MALLOC(cstring, strlen(statement->object_literal_language)+1);
+      language=(char*)RASQAL_MALLOC(cstring, strlen((const char*)statement->object_literal_language)+1);
       strcpy(language, (const char*)statement->object_literal_language);
     }
 
     if(statement->object_type == RAPTOR_IDENTIFIER_TYPE_XML_LITERAL) {
-      uri=raptor_new_uri(raptor_xml_literal_datatype_uri_string);
+      uri=raptor_new_uri((const unsigned char*)raptor_xml_literal_datatype_uri_string);
     } else if(statement->object_literal_datatype) {
       uri=raptor_uri_copy((raptor_uri*)statement->object_literal_datatype);
     }
     o=rasqal_new_string_literal(string, language, uri, NULL);
   } else if(statement->object_type == RAPTOR_IDENTIFIER_TYPE_ANONYMOUS) {
     char *blank=(char*)statement->object;
-    char *new_blank=RASQAL_MALLOC(cstring, strlen(blank)+1);
-    strcpy(new_blank, (const char*)blank);
+    unsigned char *new_blank=(unsigned char*)RASQAL_MALLOC(cstring, strlen(blank)+1);
+    strcpy((char*)new_blank, (const char*)blank);
     o=rasqal_new_simple_literal(RASQAL_LITERAL_BLANK, new_blank);
   } else if(statement->object_type == RAPTOR_IDENTIFIER_TYPE_ORDINAL) {
     /* FIXME - 46 for "<http://www.w3.org/1999/02/22-rdf-syntax-ns#_>" */
@@ -146,7 +146,7 @@ rasqal_raptor_statement_handler(void *user_data,
   rasqal_raptor_triples_source_user_data* rtsc=(rasqal_raptor_triples_source_user_data*)user_data;
   rasqal_raptor_triple *triple;
   
-  triple=RASQAL_MALLOC(rasqal_raptor_triple, sizeof(rasqal_raptor_triple));
+  triple=(rasqal_raptor_triple*)RASQAL_MALLOC(rasqal_raptor_triple, sizeof(rasqal_raptor_triple));
   triple->next=NULL;
   triple->triple=raptor_statement_as_rasqal_triple(statement);
 

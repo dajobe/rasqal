@@ -64,7 +64,7 @@ rasqal_query_order_triples_score(rasqal_query* query,
 #endif
 
   for(i=0; i< triples_size; i++) {
-    rasqal_triple* t=raptor_sequence_get_at(query->triples, i);
+    rasqal_triple* t=(rasqal_triple*)raptor_sequence_get_at(query->triples, i);
     rasqal_variable* v;
 
     if((v=rasqal_literal_as_variable(t->subject))) {
@@ -98,7 +98,7 @@ rasqal_query_order_triples_score(rasqal_query* query,
 
   /* Pick triples providing least result variables first */
   for(i=0; i< triples_size; i++) {
-    rasqal_triple* t=raptor_sequence_get_at(query->triples, i);
+    rasqal_triple* t=(rasqal_triple*)raptor_sequence_get_at(query->triples, i);
     if(!ord[i].seen && (!nt || (ord[i].score < next_score))) {
 #if RASQAL_DEBUG >2
       RASQAL_DEBUG4("chose triple %i with score %d, less than %d\n", 
@@ -190,7 +190,7 @@ rasqal_engine_declare_prefixes(rasqal_query *rq)
     return 0;
   
   for(i=0; i< raptor_sequence_size(rq->prefixes); i++) {
-    rasqal_prefix* p=raptor_sequence_get_at(rq->prefixes, i);
+    rasqal_prefix* p=(rasqal_prefix*)raptor_sequence_get_at(rq->prefixes, i);
 
     if(raptor_namespaces_start_namespace_full(rq->namespaces, 
                                               p->prefix, 
@@ -213,7 +213,7 @@ rasqal_engine_expand_triple_qnames(rasqal_query* rq)
   
   /* expand qnames in triples */
   for(i=0; i< raptor_sequence_size(rq->triples); i++) {
-    rasqal_triple* t=raptor_sequence_get_at(rq->triples, i);
+    rasqal_triple* t=(rasqal_triple*)raptor_sequence_get_at(rq->triples, i);
     if(rasqal_literal_expand_qname(rq, t->subject) ||
        rasqal_literal_expand_qname(rq, t->predicate) ||
        rasqal_literal_expand_qname(rq, t->object))
@@ -253,7 +253,7 @@ rasqal_engine_build_constraints_expression(rasqal_query* rq)
     return 0;
   
   for(i=raptor_sequence_size(rq->constraints)-1; i>=0 ; i--) {
-    rasqal_expression* e=raptor_sequence_get_at(rq->constraints, i);
+    rasqal_expression* e=(rasqal_expression*)raptor_sequence_get_at(rq->constraints, i);
     if(!newe)
       newe=e;
     else
@@ -282,7 +282,7 @@ rasqal_engine_assign_variables(rasqal_query* rq)
   rq->select_variables_count=raptor_sequence_size(rq->selects);
 
   if(rq->select_variables_count) {
-    rq->variable_names=(const char**)RASQAL_MALLOC(cstrings,sizeof(const char*)*(rq->select_variables_count+1));
+    rq->variable_names=(const unsigned char**)RASQAL_MALLOC(cstrings,sizeof(const unsigned char*)*(rq->select_variables_count+1));
     rq->binding_values=(rasqal_literal**)RASQAL_MALLOC(rasqal_literals,sizeof(rasqal_literal*)*(rq->select_variables_count+1));
   }
   
@@ -427,7 +427,7 @@ rasqal_engine_execute_init(rasqal_query *query) {
     return 1;
   
   for(i=0; i<triples_size; i++) {
-    rasqal_triple *t=raptor_sequence_get_at(query->triples, i);
+    rasqal_triple *t=(rasqal_triple*)raptor_sequence_get_at(query->triples, i);
 
     query->triple_meta[i].is_exact=
       !(rasqal_literal_as_variable(t->predicate) ||
@@ -479,7 +479,7 @@ rasqal_engine_get_next_result(rasqal_query *query) {
   
   while(query->column >= 0) {
     rasqal_triple_meta *m=&query->triple_meta[query->column];
-    rasqal_triple *t=raptor_sequence_get_at(query->triples, query->column);
+    rasqal_triple *t=(rasqal_triple*)raptor_sequence_get_at(query->triples, query->column);
 
     rc=1;
 

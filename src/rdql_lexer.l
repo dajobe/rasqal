@@ -91,9 +91,9 @@
 static void skip_cpp_comment(rasqal_rdql_query_engine *rqe);
 static int skip_c_comment(rasqal_query *rq);
 
-static unsigned char *copy_token(rasqal_query *rq, unsigned char *text, size_t len);
-static int copy_regex_token(rasqal_query *rq, YYSTYPE* lval,unsigned char delim);
-static int copy_string_token(rasqal_query *rq, YYSTYPE* lval, unsigned char *text, size_t len, int delim);
+static unsigned char *copy_token(rasqal_query *rq, const unsigned char *text, size_t len);
+static int copy_regex_token(rasqal_query *rq, YYSTYPE* lval, const unsigned char delim);
+static int copy_string_token(rasqal_query *rq, YYSTYPE* lval, const unsigned char *text, size_t len, int delim);
 
 #ifdef RASQAL_DEBUG
 const char * rdql_token_print(int token, YYSTYPE *lval);
@@ -212,18 +212,18 @@ QUOTEDURI \<[A-Za-z][^>]+\>
 }
 
 [0-9]+"."[0-9]*[eE][+-]?[0-9]+[fFdD]?|"."[0-9]+[eE][+-]?[0-9]+[fFdD]?|[0-9]+[eE][+-]?[0-9]+[fFdD]?|[0-9]+[eE][+-]?[0-9]+[fFdD]?|[0-9]+"."[0-9]*  { 
-                        rdql_parser_lval->literal=rasqal_new_floating_literal(yytext);
+                        rdql_parser_lval->literal=rasqal_new_floating_literal((const unsigned char*)yytext);
                         return FLOATING_POINT_LITERAL;
 }
 
 '([^'\\\n\r]|\\[^\n\r])*'(@{LANGUAGETOKEN})?(^^({QUOTEDURI}|{QNAME}))?    { /*' */
                                copy_string_token(rq, rdql_parser_lval,
-                                 yytext+1, yyleng-2, '\'');
+                                 (const unsigned char*)yytext+1, yyleng-2, '\'');
                                return STRING_LITERAL; }
 
 \"([^"\\\n\r]|\\[^\n\r])*\"(@{LANGUAGETOKEN})?(^^({QUOTEDURI}|{QNAME}))?   { /* " */
                                 copy_string_token(rq, rdql_parser_lval,
-                                  yytext+1, yyleng-2, '"');
+                                  (const unsigned char*)yytext+1, yyleng-2, '"');
                                 return STRING_LITERAL; }
 
 "true"|"false"	{ rdql_parser_lval->literal=rasqal_new_boolean_literal(*yytext== 't');
@@ -232,15 +232,15 @@ QUOTEDURI \<[A-Za-z][^>]+\>
 "null"	{ rdql_parser_lval->literal=NULL;
           return NULL_LITERAL; }
 
-<*>{NAME}	{ rdql_parser_lval->name=copy_token(rq, yytext, yyleng);
+<*>{NAME}	{ rdql_parser_lval->name=copy_token(rq, (const unsigned char*)yytext, yyleng);
                           BEGIN(INITIAL);
                           return IDENTIFIER; }
 
-{QNAME}	{ rdql_parser_lval->name=copy_token(rq, yytext, yyleng);
+{QNAME}	{ rdql_parser_lval->name=copy_token(rq, (const unsigned char*)yytext, yyleng);
                           return QNAME_LITERAL; }
 
-\<{QNAME}\>	{ rdql_parser_lval->name=copy_token(rq, yytext+1, yyleng-2);
-                  rdql_syntax_warning(rq, "obsolete <qname> syntax found in \"%s\"", yytext);
+\<{QNAME}\>	{ rdql_parser_lval->name=copy_token(rq, (const unsigned char*)yytext+1, yyleng-2);
+                  rdql_syntax_warning(rq, "obsolete <qname> syntax found in \"%s\"", (const unsigned char*)yytext);
                   return QNAME_LITERAL; }
 
 {QUOTEDURI}   { if(yyleng == 2) 
@@ -272,13 +272,13 @@ yywrap (yyscan_t yyscanner) {
 
 
 static unsigned char *
-copy_token(rasqal_query *rq, unsigned char *text, size_t len) {
+copy_token(rasqal_query *rq, const unsigned char *text, size_t len) {
   unsigned char *s;
   if(!len)
-    len=strlen(text);
+    len=strlen((const char*)text);
   s=(unsigned char *)malloc(len+1);
 
-  strncpy(s, text, len);
+  strncpy((char*)s, (const char*)text, len);
   s[len] = '\0';
   return s;
 }
@@ -288,7 +288,7 @@ static int
 copy_regex_token(rasqal_query* rq, YYSTYPE* lval, unsigned char delim) {
   rasqal_rdql_query_engine *rqe=(rasqal_rdql_query_engine*)rq->context;
   yyscan_t yyscanner=rqe->scanner;
-  int ind=0;
+  unsigned int ind=0;
   size_t buffer_len=0;
   unsigned char *buffer=NULL;
   size_t flags_len=0;
@@ -310,7 +310,7 @@ copy_regex_token(rasqal_query* rq, YYSTYPE* lval, unsigned char delim) {
         new_buffer_len=10;
       new_buffer=(unsigned char *)calloc(1, new_buffer_len+1);
       if(buffer_len) {
-        strncpy(new_buffer, buffer, buffer_len);
+        strncpy((char*)new_buffer, (const char*)buffer, buffer_len);
         free(buffer);
       }
       buffer=new_buffer;
@@ -335,7 +335,7 @@ copy_regex_token(rasqal_query* rq, YYSTYPE* lval, unsigned char delim) {
         new_flags_len=5;
       new_flags=(unsigned char *)calloc(1, new_flags_len+1);
       if(flags_len) {
-        strncpy(new_flags, flags, flags_len);
+        strncpy((char*)new_flags, (const char*)flags, flags_len);
         free(flags);
       }
       flags=new_flags;
@@ -346,18 +346,19 @@ copy_regex_token(rasqal_query* rq, YYSTYPE* lval, unsigned char delim) {
   if(flags)
     flags[ind]='\0';
 
-  lval->literal=rasqal_new_pattern_literal(buffer, flags);
+  lval->literal=rasqal_new_pattern_literal(buffer, (const char*)flags);
   return 0;
 }
 
 
 static int
 copy_string_token(rasqal_query* rq, YYSTYPE* lval,
-                  unsigned char *text, size_t len, int delim) {
-  int i;
-  unsigned char *s, *d;
+                  const unsigned char *text, size_t len, int delim) {
+  unsigned int i;
+  const unsigned char *s;
+  unsigned char *d;
   unsigned char *string=(unsigned char *)RASQAL_MALLOC(cstring, len+1);
-  unsigned char *language=NULL;
+  char *language=NULL;
   unsigned char *dt=NULL;
   raptor_uri *dt_uri=NULL;
   unsigned char *dt_qname=NULL;
@@ -387,7 +388,7 @@ copy_string_token(rasqal_query* rq, YYSTYPE* lval,
           return 1;
         }
         
-        sscanf(s, ((ulen == 4) ? "%04lx" : "%08lx"), &unichar);
+        sscanf((const char*)s, ((ulen == 4) ? "%04lx" : "%08lx"), &unichar);
         s+= ulen-1;
         i+= ulen-1;
         
@@ -411,7 +412,7 @@ copy_string_token(rasqal_query* rq, YYSTYPE* lval,
 
       c=*s++; i++;
       if(c=='@') {
-        language=d;
+        language=(char*)d;
         while(i<=len) {
           c=*s++; i++;
           if(!isalpha(c) && !isdigit(c))
@@ -439,7 +440,7 @@ copy_string_token(rasqal_query* rq, YYSTYPE* lval,
   *d='\0';
 
   if(language) {
-    unsigned char *new_language=(unsigned char *)RASQAL_MALLOC(cstring, strlen(language)+1);
+    char *new_language=(char *)RASQAL_MALLOC(cstring, strlen((const char*)language)+1);
     strcpy(new_language, language);
     language=new_language;
   }
@@ -447,12 +448,12 @@ copy_string_token(rasqal_query* rq, YYSTYPE* lval,
   if(dt) {
     /* dt can be a URI or qname */
     if(*dt == '<') {
-      dt[strlen(dt)-1]='\0';
+      dt[strlen((const char*)dt)-1]='\0';
       dt_uri=raptor_new_uri(dt+1);
     } else {
       /* the qname is expanded later */
-      dt_qname=(unsigned char *)RASQAL_MALLOC(cstring, strlen(dt)+1);
-      strcpy(dt_qname, dt);
+      dt_qname=(unsigned char *)RASQAL_MALLOC(cstring, strlen((const char*)dt)+1);
+      strcpy((char*)dt_qname, (const char*)dt);
     }
   }
 
@@ -707,7 +708,7 @@ main(int argc, char *argv[])
   int token=EOF;
   FILE *fh;
   YYSTYPE lval;
-  const char *uri_string;
+  const unsigned char *uri_string;
   char *filename=NULL;
 
   rasqal_init();

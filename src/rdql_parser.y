@@ -78,7 +78,7 @@ extern int rdql_lexer_lex (YYSTYPE *rdql_parser_lval, yyscan_t scanner);
 #define yylex rdql_lexer_lex
 
 
-static int rdql_parse(rasqal_query* rq, const char *string);
+static int rdql_parse(rasqal_query* rq, const unsigned char *string);
 static int rdql_query_error(rasqal_query* rq, const char *message);
 
 %}
@@ -99,7 +99,7 @@ static int rdql_query_error(rasqal_query* rq, const char *message);
   rasqal_expression *expr;
   double floating;
   raptor_uri *uri;
-  char *name;
+  unsigned char *name;
 }
 
 
@@ -510,7 +510,7 @@ VarOrLiteral : Var
 
 Var : VARPREFIX IDENTIFIER
 {
-  $$=rasqal_new_variable(rq, $2, NULL);
+  $$=rasqal_new_variable((rasqal_query*)rq, $2, NULL);
 }
 ;
 
@@ -641,7 +641,7 @@ rasqal_rdql_query_engine_execute(rasqal_query* rdf_query)
 
 
 static int
-rdql_parse(rasqal_query* rq, const char *string) {
+rdql_parse(rasqal_query* rq, const unsigned char *string) {
   rasqal_rdql_query_engine* rqe=(rasqal_rdql_query_engine*)rq->context;
   raptor_locator *locator=&rq->locator;
   void *buffer;
@@ -659,7 +659,7 @@ rdql_parse(rasqal_query* rq, const char *string) {
   rqe->scanner_set=1;
 
   rdql_lexer_set_extra(((rasqal_query*)rq), rqe->scanner);
-  buffer= rdql_lexer__scan_string(string, rqe->scanner);
+  buffer= rdql_lexer__scan_string((const char*)string, rqe->scanner);
 
   rdql_parser_parse(rq);
 
@@ -773,7 +773,7 @@ main(int argc, char *argv[])
   raptor_locator *locator=&query.locator;
   FILE *fh;
   int rc;
-  unsigned char *filename=NULL;
+  char *filename=NULL;
   raptor_uri_handler *uri_handler;
   void *uri_context;
 
@@ -822,7 +822,7 @@ main(int argc, char *argv[])
 
   rasqal_rdql_query_engine_init(&query, "rdql");
 
-  rc=rdql_parse(&query, query_string);
+  rc=rdql_parse(&query, (const unsigned char*)query_string);
 
   raptor_free_namespaces(query.namespaces);
 
