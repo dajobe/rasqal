@@ -369,10 +369,41 @@ rasqal_query_add_variable(rasqal_query* query, rasqal_variable* var)
  * rasqal_query_get_variable_sequence - Get the sequence of variables to bind in the query
  * @query: &rasqal_query query object
  *
+ * DEPRECATED - use rasqal_query_get_bound_variable_sequence
+ *
  * Return value: a &raptor_sequence of &rasqal_variable pointers.
  **/
 raptor_sequence*
 rasqal_query_get_variable_sequence(rasqal_query* query)
+{
+  return rasqal_query_get_bound_variable_sequence(query);
+}
+
+
+/**
+ * rasqal_query_get_bound_variable_sequence - Get the sequence of variables to bind in the query
+ * @query: &rasqal_query query object
+ *
+ * This returns the sequence of variables that are explicitly chosen
+ * via SELECT in RDQL, SPARQL.  Or all variables mentioned with SELECT *
+ *
+ * Return value: a &raptor_sequence of &rasqal_variable pointers.
+ **/
+raptor_sequence*
+rasqal_query_get_bound_variable_sequence(rasqal_query* query)
+{
+  return query->selects;
+}
+
+
+/**
+ * rasqal_query_get_all_variable_sequence - Get the sequence of all variables mentioned in the query
+ * @query: &rasqal_query query object
+ *
+ * Return value: a &raptor_sequence of &rasqal_variable pointers.
+ **/
+raptor_sequence*
+rasqal_query_get_all_variable_sequence(rasqal_query* query)
 {
   return query->selects;
 }
@@ -714,8 +745,12 @@ rasqal_query_print(rasqal_query* query, FILE *fh)
   fprintf(fh, "sources: ");
   if(query->sources)
     raptor_sequence_print(query->sources, fh);
+  if(query->variables_sequence) {
+    fprintf(fh, "\nall variables: "); 
+    raptor_sequence_print(query->variables_sequence, fh);
+  }
   if(query->selects) {
-    fprintf(fh, "\nselects: "); 
+    fprintf(fh, "\nbound variables: "); 
     raptor_sequence_print(query->selects, fh);
   }
   if(query->describes) {
