@@ -298,64 +298,6 @@ rasqal_language_name_check(const char *name) {
 }
 
 
-#ifndef va_copy
-#ifdef __va_copy
-#define va_copy(dest,src) __va_copy(dest,src)
-#else
-#define va_copy(dest,src) (dest) = (src)
-#endif
-#endif
-
-/* Compatiblity wrapper */
-char*
-rasqal_vsnprintf(const char *message, va_list arguments) 
-{
-  char empty_buffer[1];
-  int len;
-  char *buffer=NULL;
-  va_list args_copy;
-
-#ifdef HAVE_C99_VSNPRINTF
-  /* copy for re-use */
-  va_copy(args_copy, arguments);
-  len=vsnprintf(empty_buffer, 1, message, args_copy)+1;
-  va_end(args_copy);
-
-  if(len<=0)
-    return NULL;
-  
-  buffer=(char*)RASQAL_MALLOC(cstring, len);
-  if(buffer) {
-    /* copy for re-use */
-    va_copy(args_copy, arguments);
-    vsnprintf(buffer, len, message, args_copy);
-    va_end(args_copy);
-  }
-#else
-  /* This vsnprintf doesn't return number of bytes required */
-  int size=2;
-      
-  while(1) {
-    buffer=(char*)RASQAL_MALLOC(cstring, size+1);
-    if(!buffer)
-      break;
-    
-    /* copy for re-use */
-    va_copy(args_copy, arguments);
-    len=vsnprintf(buffer, size, message, args_copy);
-    va_end(args_copy);
-
-    if(len>=0)
-      break;
-    RASQAL_FREE(cstring, buffer);
-    size+=4;
-  }
-#endif
-
-  return buffer;
-}
-
-
 /*
  * rasqal_query_fatal_error - Fatal Error from a query - Internal
  **/
@@ -382,7 +324,7 @@ rasqal_query_fatal_error_varargs(rasqal_query* query, const char *message,
   query->failed=1;
 
   if(query->fatal_error_handler) {
-    char *buffer=rasqal_vsnprintf(message, arguments);
+    char *buffer=raptor_vsnprintf(message, arguments);
     if(!buffer) {
       fprintf(stderr, "rasqal_query_fatal_error_varargs: Out of memory\n");
       return;
@@ -446,7 +388,7 @@ rasqal_query_error_varargs(rasqal_query* query, const char *message,
                            va_list arguments)
 {
   if(query->error_handler) {
-    char *buffer=rasqal_vsnprintf(message, arguments);
+    char *buffer=raptor_vsnprintf(message, arguments);
     if(!buffer) {
       fprintf(stderr, "rasqal_query_error_varargs: Out of memory\n");
       return;
@@ -489,7 +431,7 @@ rasqal_query_warning_varargs(rasqal_query* query, const char *message,
 {
 
   if(query->warning_handler) {
-    char *buffer=rasqal_vsnprintf(message, arguments);
+    char *buffer=raptor_vsnprintf(message, arguments);
     if(!buffer) {
       fprintf(stderr, "rasqal_query_warning_varargs: Out of memory\n");
       return;
