@@ -104,10 +104,70 @@ static struct option long_options[] =
 #endif
 
 
+static int error_count=0;
+
 static const char *title_format_string="Rasqal RDF query utility %s\n";
 
-
 #define RDQL_FILE_BUF_SIZE 2048
+
+
+static void
+roqet_error_handler(void *user_data, 
+                    raptor_locator* locator, const char *message) 
+{
+  fprintf(stderr, "%s: Error - ", program);
+  raptor_print_locator(stderr, locator);
+  fprintf(stderr, " - %s\n", message);
+
+  error_count++;
+}
+
+
+static void
+roqet_get_www_write_bytes(raptor_www* www, void *userdata,
+                          const void *ptr, size_t size, size_t nmemb)
+{
+  raptor_stringbuffer* sb=(raptor_stringbuffer*)userdata;
+  int len=size*nmemb;
+
+  raptor_stringbuffer_append_counted_string(sb, (unsigned char*)ptr, len, 1);
+}
+
+
+static unsigned char*
+roqet_get_www_content(raptor_uri *uri,
+                      void *error_data, raptor_message_handler error_handler) 
+{
+  raptor_stringbuffer *sb=NULL;
+  raptor_www *www=NULL;
+  unsigned char *result=NULL;
+  
+  www=raptor_www_new();
+  if(!www)
+    return NULL;
+
+  sb=raptor_new_stringbuffer();
+  if(!sb)
+    goto cleanup;
+
+  raptor_www_set_error_handler(www, error_handler, error_data);
+  raptor_www_set_write_bytes_handler(www, roqet_get_www_write_bytes, sb);
+
+  if(raptor_www_fetch(www, uri))
+    result=NULL;
+  else {
+    size_t len=raptor_stringbuffer_length(sb);
+    result=malloc(len+1);
+    strncpy(result, raptor_stringbuffer_as_string(sb), len+1);
+  }
+
+  cleanup:
+  if(sb)
+    raptor_free_stringbuffer(sb);
+  raptor_www_free(www);
+
+  return result;
+}
 
 
 int
@@ -338,10 +398,11 @@ main(int argc, char *argv[])
     }
   }
 
-  query_string=(char*)calloc(RDQL_FILE_BUF_SIZE, 1);
   if(!uri_string) {
+    query_string=(char*)calloc(RDQL_FILE_BUF_SIZE, 1);
     fread(query_string, RDQL_FILE_BUF_SIZE, 1, stdin);
   } else if(filename) {
+    query_string=(char*)calloc(RDQL_FILE_BUF_SIZE, 1);
     FILE *fh=fopen(filename, "r");
     if(!fh) {
       fprintf(stderr, "%s: file '%s' open failed - %s", 
@@ -351,10 +412,12 @@ main(int argc, char *argv[])
     fread(query_string, RDQL_FILE_BUF_SIZE, 1, fh);
     fclose(fh);
   } else {
-    /* FIXME */
-    fprintf(stderr, "%s: Sorry, can only read queries from files now.\n",
-            program);
-    return(1);
+    query_string=roqet_get_www_content(uri, NULL, roqet_error_handler);
+    if(!query_string || error_count) {
+      fprintf(stderr, "%s: Retrieving URI '%s' content failed\n", 
+              program, uri_string);
+      return(1);
+    }
   }
 
 
