@@ -609,19 +609,24 @@ void
 rasqal_query_print(rasqal_query* query, FILE *fh)
 {
   fprintf(fh, "selects: ");
-  raptor_sequence_print(query->selects, fh);
+  if(query->selects)
+     raptor_sequence_print(query->selects, fh);
   fprintf(fh, "\nsources: ");
-  raptor_sequence_print(query->sources, fh);
+  if(query->sources)
+    raptor_sequence_print(query->sources, fh);
   fprintf(fh, "\ntriples: ");
-  raptor_sequence_print(query->triples, fh);
+  if(query->triples)
+    raptor_sequence_print(query->triples, fh);
   if(query->ordered_triples) {
     fprintf(fh, "\nordered triples: ");
     raptor_sequence_print(query->ordered_triples, fh);
   }
   fprintf(fh, "\nconstraints: ");
-  raptor_sequence_print(query->constraints, fh);
+  if(query->constraints)
+    raptor_sequence_print(query->constraints, fh);
   fprintf(fh, "\nprefixes: ");
-  raptor_sequence_print(query->prefixes, fh);
+  if(query->prefixes)
+    raptor_sequence_print(query->prefixes, fh);
   fputc('\n', fh);
 }
 
