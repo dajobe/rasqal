@@ -100,13 +100,29 @@ struct rasqal_query_s {
 
   raptor_namespace_stack *namespaces;
 
-  rasqal_sequence *selects; /* sequence of rasqal_variable* */
-  rasqal_sequence *sources; /* sequence of char* */
-  rasqal_sequence *triples;
-  rasqal_sequence *constraints;
-  rasqal_sequence *prefixes;
+  /* sequences of ... */
+  rasqal_sequence *selects;     /* ... rasqal_variable* names only */
+  rasqal_sequence *sources;     /* ... raptor_uri*                 */
+  rasqal_sequence *triples;     /* ... rasqal_triple*              */
+  rasqal_sequence *constraints; /* ... rasqal_expression*          */
+  rasqal_sequence *prefixes;    /* ... rasqal_prefix*              */
 
-  /* NOTE: Shared triple pointers with 'triples' - entries are not freed  */
+  /* variable name/value table built from all distinct variables seen
+   * in selects, triples, constraints.  An array of size variables_count
+   *
+   * The first select_variables_count of this array are from the selects
+   * and are typically returned to the user.
+   */
+  rasqal_variable *variables;
+  int variables_count;
+  int select_variables_count;
+
+  /* A reordered list of conjunctive triples from triples above
+   * used as a better order to join in.
+   *
+   * NOTE: Shares the rasqal_triple* pointers with 'triples'.
+   * The entries in this sequence are not freed.
+   */
   rasqal_sequence *ordered_triples;
 
   /* can be filled with error location information */
