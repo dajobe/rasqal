@@ -167,6 +167,10 @@ rasqal_raptor_new_triples_source(rasqal_query* rdf_query,
   raptor_parser *parser;
   const char *parser_name;
   
+  /* no default triple source possible */
+  if(!rts->uri)
+    return 1;
+
   rtsc->uri=raptor_uri_copy(rts->uri);
 
   rts->new_triples_match=rasqal_raptor_new_triples_match;
