@@ -60,6 +60,8 @@
 /* make a yylineno please */
 %option yylineno
 
+%option reentrant
+
 
 %x PATTERN ID
 
@@ -83,35 +85,29 @@
 #include <rasqal_internal.h>
 
 #include <rdql_parser.tab.h>
+#include <rdql_common.h>
 
 
-static void skip_cpp_comment(void);
-static int skip_c_comment(void);
+static void skip_cpp_comment(rdql_parser *rp);
+static int skip_c_comment(rdql_parser *rp);
 
-static unsigned char *copy_token(unsigned char *text, size_t len);
-static int copy_regex_token(unsigned char delim, YYSTYPE* lval);
-static int copy_string_token(unsigned char *text, size_t len, int delim, YYSTYPE* lval);
+static unsigned char *copy_token(rdql_parser *rp, unsigned char *text, size_t len);
+static int copy_regex_token(rdql_parser *rp, unsigned char delim);
+static int copy_string_token(rdql_parser *rp, unsigned char *text, size_t len, int delim);
 
 char *filename=NULL;
-int lineno=1;
 
-#ifdef STANDALONE
-YYSTYPE rdql_parser_lval;
+#ifdef RASQAL_DEBUG
+const char * rdql_token_print(int token, YYSTYPE *lval);
 #endif
 
-/* Missing rqql_lexer.c/h prototypes */
-int rdql_lexer_get_lineno(void);
-FILE *rdql_lexer_get_in(void);
-FILE *rdql_lexer_get_out(void);
-int rdql_lexer_get_leng(void);
-char *rdql_lexer_get_text(void);
-void rdql_lexer_set_lineno(int line_number);
-void rdql_lexer_set_in(FILE* in_str);
-void rdql_lexer_set_out(FILE* out_str);
-int rdql_lexer_get_debug(void);
-void rdql_lexer_set_debug(int bdebug);
-int rdql_lexer_lex_destroy(void);
+int rdql_lexer_lex (YYSTYPE *rdql_parser_lval, yyscan_t yyscanner);
+#define YY_DECL int rdql_lexer_lex (YYSTYPE *rdql_parser_lval, yyscan_t yyscanner)
 
+
+/* Missing rdql_lexer.c/h prototypes */
+int rdql_lexer_get_column(yyscan_t yyscanner);
+void rdql_lexer_set_column(int  column_no , yyscan_t yyscanner);
 
 %}
 
@@ -125,20 +121,18 @@ QUOTEDURI \<[A-Za-z][^>]+\>
   /* rules */
 
   int c;
+  rdql_parser *rp=(rdql_parser*)yyextra;
 
 
 "//"	{ /* C++ comment */
-    skip_cpp_comment();
-    lineno++;
+    skip_cpp_comment(rp);
 }
 
-"/*"	{ int l=skip_c_comment();
-          if(l<0)
+"/*"	{ if(skip_c_comment(rp)<0)
             return ERROR; 
-          lineno+=l;
         }
 
-[\r\n]+     { lineno++; }
+[\r\n]+     { /* empty - lineno++ */ }
 
 [\ \t\v]+   { /* eat up other whitespace */
 	;
@@ -171,7 +165,7 @@ QUOTEDURI \<[A-Za-z][^>]+\>
 }
 
 <PATTERN>. { /* first non whitespace */
-             copy_regex_token(*yytext, &rdql_parser_lval);
+             copy_regex_token(rp, *yytext);
              BEGIN(INITIAL);
              return PATTERN_LITERAL;
          };
@@ -195,51 +189,51 @@ QUOTEDURI \<[A-Za-z][^>]+\>
 [0-9]+["lL"]?   { c=yytext[yyleng-1];
                   if (c== 'l' || c == 'L')
                     yytext[yyleng-1]='\0';
-                  rdql_parser_lval.integer=atoi(yytext);
+                  rdql_parser_lval->integer=atoi(yytext);
  		  return INTEGER_LITERAL; 
 }
 
 0[xX][0-9a-fA-F]+   { if(yytext[yyleng+1] == 'x') 
-                        sscanf(yytext+2, "%x", &rdql_parser_lval.integer);
+                        sscanf(yytext+2, "%x", &rdql_parser_lval->integer);
                       else
-                        sscanf(yytext+2, "%X", &rdql_parser_lval.integer);
+                        sscanf(yytext+2, "%X", &rdql_parser_lval->integer);
                       return INTEGER_LITERAL; 
 }
 
 [0-9]+"."[0-9]*[eE][+-]?[0-9]+[fFdD]?|"."[0-9]+[eE][+-]?[0-9]+[fFdD]?|[0-9]+[eE][+-]?[0-9]+[fFdD]?|[0-9]+[eE][+-]?[0-9]+[fFdD]?  { 
-                        sscanf(yytext, "%f", &rdql_parser_lval.floating);
+                        sscanf(yytext, "%f", &rdql_parser_lval->floating);
                         return FLOATING_POINT_LITERAL;
 }
 
 '([^'\\\n\r]|\\[^\n\r])*'(@{LANGUAGETOKEN})?(^^({QUOTEDURI}|{QNAME}))?    { /*' */
-                               copy_string_token(yytext+1, yyleng-2, '\"', &rdql_parser_lval);
+                               copy_string_token(rp, yytext+1, yyleng-2, '\"');
                                return STRING_LITERAL; }
 
 \"([^"\\\n\r]|\\[^\n\r])*\"(@{LANGUAGETOKEN})?(^^({QUOTEDURI}|{QNAME}))?   { /* " */
-                                copy_string_token(yytext+1, yyleng-2, '"', &rdql_parser_lval);
+                                copy_string_token(rp, yytext+1, yyleng-2, '"');
                                 return STRING_LITERAL; }
 
-"true"|"false"	{ rdql_parser_lval.integer=(*yytext == 't');
+"true"|"false"	{ rdql_parser_lval->integer=(*yytext == 't');
                   return BOOLEAN_LITERAL; }
 
-"null"	{ rdql_parser_lval.integer=0;
+"null"	{ rdql_parser_lval->integer=0;
           return NULL_LITERAL; }
 
-<*>[[:alpha:]][[:alnum:]_$\.]*	{ rdql_parser_lval.string=copy_token(yytext, yyleng);
+<*>[[:alpha:]][[:alnum:]_$\.]*	{ rdql_parser_lval->string=copy_token(rp, yytext, yyleng);
                           BEGIN(INITIAL);
                           return IDENTIFIER; }
 
-{QUOTEDURI}   { rdql_parser_lval.string=copy_token(yytext+1, yyleng-2);
+{QUOTEDURI}   { rdql_parser_lval->string=copy_token(rp, yytext+1, yyleng-2);
                 return URI_LITERAL; }
 
-\#              { while((c=input()) != '\n' && c)
+\#              { while((c=input(yyscanner)) != '\n' && c)
                     ;
                 }
 
 .         	{ if (*yytext == EOF)
                     return EOF;
-                  printf("%s:%d: Syntax error at '%s'\n", filename,
-                         yylineno, yytext);
+
+                  rdql_syntax_error(rp, "syntax error at '%c'", *yytext);
                   return ERROR;
 		}
 
@@ -247,13 +241,13 @@ QUOTEDURI \<[A-Za-z][^>]+\>
   /* user code */
 
 int
-yywrap (void) {
+yywrap (yyscan_t yyscanner) {
   return 1;
 }
 
 
 static unsigned char *
-copy_token(unsigned char *text, size_t len) {
+copy_token(rdql_parser *rp, unsigned char *text, size_t len) {
   unsigned char *s;
   if(!len)
     len=strlen(text);
@@ -266,7 +260,9 @@ copy_token(unsigned char *text, size_t len) {
 
 
 static int
-copy_regex_token(unsigned char delim, YYSTYPE* lval) {
+copy_regex_token(rdql_parser* rp, unsigned char delim) {
+  YYSTYPE* lval=&rp->lval;
+  yyscan_t yyscanner=rp->scanner;
   int ind=0;
   size_t buffer_len=0;
   unsigned char *buffer=NULL;
@@ -276,10 +272,10 @@ copy_regex_token(unsigned char delim, YYSTYPE* lval) {
 
   if(delim == 'm') {
     /* Handle pattern literal m/foo/ */
-    delim=input();
+    delim=input(yyscanner);
   }
 
-  while((c=input()) != delim && c) {
+  while((c=input(yyscanner)) != delim && c) {
     /* May add 2 chars - \' */
     if(ind+2 > buffer_len) {
       unsigned char *new_buffer;
@@ -297,7 +293,7 @@ copy_regex_token(unsigned char delim, YYSTYPE* lval) {
     }
     buffer[ind++]=c;
     if(c == '\\') {
-      c=input();
+      c=input(yyscanner);
       buffer[ind++]=c;
     }
   }
@@ -306,7 +302,7 @@ copy_regex_token(unsigned char delim, YYSTYPE* lval) {
 
   /* flags */
   ind=0;
-  while((c=input()) && isalpha(c)) {
+  while((c=input(yyscanner)) && isalpha(c)) {
     if(ind+1 > flags_len) {
       unsigned char *new_flags;
       size_t new_flags_len=flags_len + 5;
@@ -333,7 +329,8 @@ copy_regex_token(unsigned char delim, YYSTYPE* lval) {
 
 
 static int
-copy_string_token(unsigned char *text, size_t len, int delim, YYSTYPE* lval) {
+copy_string_token(rdql_parser* rp, unsigned char *text, size_t len, int delim) {
+  YYSTYPE* lval=&rp->lval;
   int i;
   unsigned char *s, *d;
   unsigned char *string=(unsigned char *)malloc(len+1);
@@ -370,7 +367,7 @@ copy_string_token(unsigned char *text, size_t len, int delim, YYSTYPE* lval) {
         i+= ulen-1;
         
         if(unichar < 0 || unichar > 0x10ffff) {
-          printf("Illegal Unicode character with code point #x%lX.", unichar);
+          rdql_syntax_error(rp, "Illegal Unicode character with code point #x%lX.", unichar);
           free(string);
           return 1;
         }
@@ -383,7 +380,7 @@ copy_string_token(unsigned char *text, size_t len, int delim, YYSTYPE* lval) {
 
       } else {
         /* don't handle \x where x isn't one of: \n \r \\ (delim) */
-        printf("Warning: Illegal string escape \\%c in \"%s\"", c, text);
+        rdql_syntax_warning(rp, "Illegal string escape \\%c in \"%s\"", c, text);
         *d++=c;
       }
     } else if(c== delim) {
@@ -425,17 +422,18 @@ copy_string_token(unsigned char *text, size_t len, int delim, YYSTYPE* lval) {
 
 
 static int
-skip_c_comment(void) {
+skip_c_comment(rdql_parser *rp) {
+  yyscan_t yyscanner=rp->scanner;
   int lines=0;
   int c;
   
   while(1) {
-    while ((c=input()) != '*' && c!= EOF) {
+    while ((c=input(yyscanner)) != '*' && c!= EOF) {
       if(c == '\r' || c == '\n')
         lines++;
     }
     if( c == '*') {
-      while ((c=input()) == '*') {
+      while ((c=input(yyscanner)) == '*') {
         if(c == '\r' || c == '\n')
           lines++;
       }
@@ -444,7 +442,7 @@ skip_c_comment(void) {
         break;
     }
     if (c == EOF) {
-      fprintf(stderr, "%s:%d: EOF in comment\n", filename, lineno);
+      rdql_syntax_error(rp, "EOF in comment");
       lines= -1;
       break;
     }
@@ -454,10 +452,11 @@ skip_c_comment(void) {
 
 
 static void
-skip_cpp_comment(void) {
+skip_cpp_comment(rdql_parser *rp) {
+  yyscan_t yyscanner=rp->scanner;
   int c;
   
-  while ((c=input()) != EOF)
+  while ((c=input(yyscanner)) != EOF)
     if(c == '\r' || c == '\n')
       break;
   return;
@@ -467,7 +466,7 @@ skip_cpp_comment(void) {
 #ifdef RASQAL_DEBUG
 
 const char *
-rdql_token_print(int token)
+rdql_token_print(int token, YYSTYPE *lval)
 {
   static char buffer[2048];
 
@@ -566,34 +565,34 @@ rdql_token_print(int token)
       return "TILDE";
 
     case INTEGER_LITERAL:
-      sprintf(buffer, "INTEGER_LITERAL(%d)", rdql_parser_lval.integer);
+      sprintf(buffer, "INTEGER_LITERAL(%d)", lval->integer);
       return buffer;
 
     case FLOATING_POINT_LITERAL:
-      sprintf(buffer, "FLOATING_POINT_LITERAL(%f)", rdql_parser_lval.floating);
+      sprintf(buffer, "FLOATING_POINT_LITERAL(%f)", lval->floating);
       return buffer;
 
     case STRING_LITERAL:
-      sprintf(buffer, "STRING_LITERAL(%s)", rdql_parser_lval.string);
+      sprintf(buffer, "STRING_LITERAL(%s)", lval->string);
       return buffer;
 
     case PATTERN_LITERAL:
-      sprintf(buffer, "PATTERN_LITERAL(%s,%s)", rdql_parser_lval.string,
-              (rdql_parser_lval.flags ? (char*)rdql_parser_lval.flags : "-"));
+      sprintf(buffer, "PATTERN_LITERAL(%s,%s)", lval->string,
+              (lval->flags ? (char*)lval->flags : "-"));
       return buffer;
 
     case BOOLEAN_LITERAL:
-      return (rdql_parser_lval.integer ? "BOOLEAN_LITERAL(true)" : "BOOLEAN_LITERAL(false)");
+      return (lval->integer ? "BOOLEAN_LITERAL(true)" : "BOOLEAN_LITERAL(false)");
 
     case NULL_LITERAL:
       return "NULL_LITERAL";
 
     case URI_LITERAL:
-      sprintf(buffer, "URI_LITERAL(%s)", rdql_parser_lval.string);
+      sprintf(buffer, "URI_LITERAL(%s)", lval->string);
       return buffer;
 
     case IDENTIFIER:
-      sprintf(buffer, "IDENTIFIER(%s)", rdql_parser_lval.string);
+      sprintf(buffer, "IDENTIFIER(%s)", lval->string);
       return buffer;
 
     case ERROR:
@@ -611,32 +610,81 @@ rdql_token_print(int token)
 #ifdef STANDALONE
 
 int
+rdql_syntax_error(rdql_parser *rp, const char *message, ...)
+{
+  yyscan_t yyscanner=(yyscan_t)rp;
+  va_list arguments;
+
+  fprintf(stderr, "%s:%d: ", filename, rdql_lexer_get_lineno(yyscanner));
+
+  va_start(arguments, message);
+  vfprintf(stderr, message, arguments);
+  va_end(arguments);
+
+  fputc('\n', stderr);
+
+  return 0;
+}
+
+static void
+rdql_token_free(int token, YYSTYPE *lval)
+{
+  if(!token)
+    return;
+  
+  if(lval->string) {
+    free(lval->string);
+    lval->string=NULL;
+  }
+}
+
+
+int
 main(int argc, char *argv[]) 
 {
+  rdql_parser rp;
   int token=EOF;
+  FILE *fh;
+  YYSTYPE *lval;
+  yyscan_t scanner;
 
   if(argc > 1) {
     filename=argv[1];
-    yyin = fopen(argv[1], "r");
+    fh=fopen(filename, "r");
+    if(!fh) {
+      fprintf(stderr, "%s: Cannot open file %s - %s\n", argv[0], filename,
+              strerror(errno));
+      exit(1);
+    }
   } else {
     filename="<stdin>";
-    yyin = stdin;
-    fputs("> ", stdout);
-    fflush(stdout);
+    fh=stdin;
   }
 
+  memset(&rp, 0, sizeof(rdql_parser));
+
+  lval=&rp.lval;
+  
+  yylex_init(&rp.scanner);
+  scanner=rp.scanner;
+  rdql_lexer_set_in(fh, scanner);
+  rdql_lexer_set_extra(&rp, scanner);
+
   while(1) {
-    if(yytext != NULL)
-      printf("yyinput '%s'\n", yytext);
-    token=yylex();
+    if(rdql_lexer_get_text(scanner) != NULL)
+      printf("yyinput '%s'\n", rdql_lexer_get_text(scanner));
+    token=yylex(lval, scanner);
 #ifdef RASQAL_DEBUG
-    printf("token %s\n", rdql_token_print(token));
+    printf("token %s\n", rdql_token_print(token, lval));
 #else
     printf("token %d\n", token);
 #endif
+    rdql_token_free(token, lval);
     if(!token || token == EOF || token == ERROR)
       break;
   }
+
+  yylex_destroy(scanner);
 
   if(token==ERROR)
     return 1;

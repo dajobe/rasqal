@@ -35,24 +35,56 @@
 #include <rasqal_internal.h>
 
 #include <rdql_parser.tab.h>
-#include <rdql_lexer.h>
 
+#define YY_DECL int rdql_lexer_lex (YYSTYPE *rdql_parser_lval, yyscan_t yyscanner)
+#include <rdql_lexer.h>
+#include <rdql_common.h>
+
+/* Make verbose error messages for syntax errors */
+#ifdef RASQAL_DEBUG
+#define YYERROR_VERBOSE 1
+#endif
+
+/* Slow down the grammar operation and watch it work */
+#if RASQAL_DEBUG > 2
+#define YYDEBUG 1
+#endif
+
+/* the lexer does not seem to track this */
+#undef RASQAL_RDQL_USE_ERROR_COLUMNS
 
 /* Prototypes */ 
-int rdql_parser_error(const char *msg);
+int rdql_query_error(rdql_parser *rp, const char *msg);
 
+/* Missing rdql_lexer.c/h prototypes */
+int rdql_lexer_get_column(yyscan_t yyscanner);
+/* Not used here */
+/* void rdql_lexer_set_column(int  column_no , yyscan_t yyscanner);*/
+
+
+/* What the lexer wants */
+extern int rdql_lexer_lex (YYSTYPE *rdql_parser_lval, yyscan_t scanner);
+#define YYLEX_PARAM ((rdql_parser*)rp)->scanner
+
+/* Pure parser argument (a void*) */
+#define YYPARSE_PARAM rp
+
+/* Make the yyerror below use the rdf_parser */
+#undef yyerror
+#define yyerror(message) rdql_query_error(rp, message)
 
 /* Make lex/yacc interface as small as possible */
-inline int
-rdql_parser_lex(void) {
-  return rdql_lexer_lex();
-}
+#undef yylex
+#define yylex rdql_lexer_lex
 
-/* GLOBAL - FIXME */
-static rasqal_query* Q;
  
-
 %}
+
+
+/* directives */
+
+
+%pure-parser
 
 
 /* Interface between lexer and parser */
@@ -137,11 +169,11 @@ Document : Query
 
 Query : SELECT SelectClause SourceClause WHERE TriplePatternList ConstraintClause UsingClause
 {
-  Q->selects=$2;
-  Q->sources=$3;
-  Q->triples=$5;
-  Q->constraints=$6;
-  Q->prefixes=$7;
+  ((rdql_parser*)rp)->query->selects=$2;
+  ((rdql_parser*)rp)->query->sources=$3;
+  ((rdql_parser*)rp)->query->triples=$5;
+  ((rdql_parser*)rp)->query->constraints=$6;
+  ((rdql_parser*)rp)->query->prefixes=$7;
 }
 ;
 
@@ -542,26 +574,89 @@ URIList : URI_LITERAL COMMA URIList
 /* Support functions */
 
 int
-rdql_parse(rasqal_query* rq, const char *query_string) {
+rdql_parse(rasqal_query* rq, const char *string) {
+  rdql_parser rp;
   void *buffer;
-
-  /* FIXME LOCKING or re-entrant parser/lexer */
-
-  Q=rq;
-
-  buffer= rdql_lexer__scan_string(query_string);
-  rdql_lexer__switch_to_buffer(buffer);
-  rdql_parser_parse();
-  rdql_lexer__delete_buffer(buffer);
-  rdql_lexer_pop_buffer_state();
-
-  rq=Q;
   
-  Q=NULL;
+  if(!string || !*string)
+    return 0;
 
-  /* FIXME UNLOCKING or re-entrant parser/lexer */
+  memset(&rp, 0, sizeof(rdql_parser));
+
+  rp.query=rq;
   
-  return 0;
+  rdql_lexer_lex_init(&rp.scanner);
+
+  rdql_lexer_set_extra(&rp, rp.scanner);
+  buffer= rdql_lexer__scan_string(string, rp.scanner);
+
+  rdql_parser_parse(&rp);
+
+  return rp.errors;
+}
+
+
+extern char *filename;
+ 
+int
+rdql_query_error(rdql_parser* rp, const char *msg) {
+  yyscan_t yyscanner=rp->scanner;
+
+  int line=rdql_lexer_get_lineno(yyscanner);
+#ifdef RASQAL_RDQL_USE_ERROR_COLUMNS
+  /*  int column=rdql_lexer_get_column(yyscanner);*/
+#else
+  /*  int column=0; */
+#endif
+
+  fprintf(stderr, "(rdql_query_error) %s:%d: %s\n", filename, line, msg);
+
+  rp->errors++;
+  return (0);
+}
+
+
+int
+rdql_syntax_error(rdql_parser *rp, const char *message, ...)
+{
+  /* yyscan_t yyscanner=rp->scanner; */
+  va_list arguments;
+
+  /* int line=rdql_lexer_get_lineno(yyscanner); */
+#ifdef RASQAL_RDQL_USE_ERROR_COLUMNS
+  /*  int column=rdql_lexer_get_column(yyscanner);*/
+#else
+  /*  int column=0; */
+#endif
+  va_start(arguments, message);
+  vfprintf(stderr, message, arguments);
+  va_end(arguments);
+  fputc('\n', stderr);
+
+  rp->errors++;
+  return (0);
+}
+
+
+int
+rdql_syntax_warning(rdql_parser *rp, const char *message, ...)
+{
+  /* yyscan_t yyscanner=rp->scanner; */
+  va_list arguments;
+
+  /* int line=rdql_lexer_get_lineno(yyscanner); */
+#ifdef RASQAL_RDQL_USE_ERROR_COLUMNS
+  /*  int column=rdql_lexer_get_column(yyscanner);*/
+#else
+  /*  int column=0; */
+#endif
+  va_start(arguments, message);
+  vfprintf(stderr, message, arguments);
+  va_end(arguments);
+  fputc('\n', stderr);
+
+  rp->warnings++;
+  return (0);
 }
 
 
@@ -569,34 +664,31 @@ rdql_parse(rasqal_query* rq, const char *query_string) {
 #include <stdio.h>
 #include <locale.h>
 
-extern char *filename;
-extern int lineno;
- 
-int
-yyerror(const char *msg)
-{
-  fprintf(stderr, "%s:%d: %s\n", filename, lineno, msg);
-  return (0);
-}
-
-
 #define RDQL_FILE_BUF_SIZE 2048
 
 int
 main(int argc, char *argv[]) 
 {
-  rasqal_query RQ;
+  rasqal_query rq;
   char query_string[RDQL_FILE_BUF_SIZE];
   FILE *fh;
+  int rc;
   
+#if RASQAL_DEBUG > 2
+  rdql_parser_debug=1;
+#endif
+
   if(argc > 1) {
     filename=argv[1];
     fh = fopen(argv[1], "r");
+    if(!fh) {
+      fprintf(stderr, "%s: Cannot open file %s - %s\n", argv[0], filename,
+              strerror(errno));
+      exit(1);
+    }
   } else {
     filename="<stdin>";
     fh = stdin;
-    puts("> ");
-    fflush(stdout);
   }
 
   memset(query_string, 0, RDQL_FILE_BUF_SIZE);
@@ -605,8 +697,10 @@ main(int argc, char *argv[])
   if(argc>1)
     fclose(fh);
   
-  rdql_parse(&RQ, query_string);
+  memset(&rq, 0, sizeof(rasqal_query));
 
-  return (0);
+  rc=rdql_parse(&rq, query_string);
+
+  return rc;
 }
 #endif
