@@ -95,6 +95,39 @@ void rasqal_system_free(void *ptr);
 typedef struct rasqal_query_engine_factory_s rasqal_query_engine_factory;
 
 
+/* Extra flags for patterns */
+typedef enum {
+  /* true when the pattern is optional match */
+  RASQAL_PATTERN_FLAGS_OPTIONAL=1,
+  RASQAL_PATTERN_FLAGS_LAST=RASQAL_PATTERN_FLAGS_OPTIONAL
+} rasqal_pattern_flags;
+
+
+/*
+ * Pattern graph for executing
+ */
+struct rasqal_pattern_graph_s {
+  raptor_sequence *triples;     /* ... rasqal_triple*              */
+
+  int triples_count;
+
+  /* An array of items, one per triple in the pattern graph */
+  rasqal_triple_meta *triple_meta;
+
+  int first_column;
+  int last_column;
+
+  /* enum rasqal_pattern_flags */
+  int flags;
+};
+
+typedef struct rasqal_pattern_graph_s rasqal_pattern_graph;
+
+
+rasqal_pattern_graph* rasqal_new_pattern_graph(raptor_sequence *triples, int flags);
+void rasqal_free_pattern_graph(rasqal_pattern_graph* pg);
+
+
 /*
  * A query in some query language
  */
