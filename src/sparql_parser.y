@@ -862,6 +862,8 @@ static int
 sparql_parse(rasqal_query* rq, const unsigned char *string) {
   rasqal_sparql_query_engine* rqe=(rasqal_sparql_query_engine*)rq->context;
   raptor_locator *locator=&rq->locator;
+  char *buf=NULL;
+  size_t len;
   void *buffer;
 
   if(!string || !*string)
@@ -877,9 +879,28 @@ sparql_parse(rasqal_query* rq, const unsigned char *string) {
   rqe->scanner_set=1;
 
   sparql_lexer_set_extra(((rasqal_query*)rq), rqe->scanner);
-  buffer= sparql_lexer__scan_string((const char*)string, rqe->scanner);
+
+  /* This
+   *   buffer= sparql_lexer__scan_string((const char*)string, rqe->scanner);
+   * is replaced by the code below.  
+   * 
+   * The extra space appended to the buffer is the least-pain
+   * workaround to the lexer crashing by reading EOF twice in
+   * sparql_copy_regex_token; at least as far as I can diagnose.  The
+   * fix here costs little to add as the above function does
+   * something very similar to this anyway.
+   */
+  len= strlen((const char*)string);
+  buf= (char *)RASQAL_MALLOC(cstring, len+3);
+  strncpy(buf, string, len);
+  buf[len]= ' ';
+  buf[len+1]= buf[len+2]='\0'; /* YY_END_OF_BUFFER_CHAR; */
+  buffer= sparql_lexer__scan_buffer(buf, len+3, rqe->scanner);
 
   sparql_parser_parse(rq);
+
+  if(buf)
+    RASQAL_FREE(cstring, buf);
 
   sparql_lexer_lex_destroy(rqe->scanner);
   rqe->scanner_set=0;
