@@ -252,7 +252,7 @@ main(int argc, char *argv[])
   int dump_query=0;
   int dryrun=0;
   int walk_query=0;
-  raptor_sequence* sources=NULL;
+  raptor_sequence* source_uris=NULL;
   raptor_serializer* serializer=NULL;
   const char *serializer_syntax_name="ntriples";
 
@@ -367,10 +367,10 @@ main(int argc, char *argv[])
         break;
 
       case 's':
-        if(!sources) {
-          sources=raptor_new_sequence((raptor_sequence_free_handler*)raptor_free_uri,
-                                      (raptor_sequence_print_handler*)raptor_sequence_print_uri);
-          if(!sources) {
+        if(!source_uris) {
+          source_uris=raptor_new_sequence((raptor_sequence_free_handler*)raptor_free_uri,
+                                          (raptor_sequence_print_handler*)raptor_sequence_print_uri);
+          if(!source_uris) {
             fprintf(stderr, "%s: Failed to create source sequence\n", program);
           return(1);
           }
@@ -388,7 +388,7 @@ main(int argc, char *argv[])
                   program, optarg);
           return(1);
         }
-        raptor_sequence_push(sources, source_uri);
+        raptor_sequence_push(source_uris, source_uri);
         break;
 
       case 'v':
@@ -580,9 +580,16 @@ main(int argc, char *argv[])
   rasqal_query_set_error_handler(rq, NULL, roqet_error_handler);
   rasqal_query_set_fatal_error_handler(rq, NULL, roqet_error_handler);
   
-  if(sources) {
-    while(raptor_sequence_size(sources))
-      rasqal_query_add_source(rq, (raptor_uri*)raptor_sequence_pop(sources));
+  if(source_uris) {
+    while(raptor_sequence_size(source_uris)) {
+      raptor_uri* source_uri=(raptor_uri*)raptor_sequence_pop(source_uris);
+      if(rasqal_query_add_data_graph(rq, source_uri, source_uri, 
+                                     RASQAL_DATA_GRAPH_NAMED)) {
+        fprintf(stderr, "%s: Failed to add named graph %s\n", program, 
+                raptor_uri_as_string(source_uri));
+      }
+      raptor_free_uri(source_uri);
+    }
   }
 
   if(rasqal_query_prepare(rq, (const unsigned char*)query_string, base_uri)) {
@@ -703,8 +710,8 @@ main(int argc, char *argv[])
 
  tidy_setup:
 
-  if(sources)
-    raptor_free_sequence(sources);
+  if(source_uris)
+    raptor_free_sequence(source_uris);
   if(base_uri)
     raptor_free_uri(base_uri);
   if(uri)
