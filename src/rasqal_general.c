@@ -5,7 +5,7 @@
  * $Id$
  *
  * Copyright (C) 2004 David Beckett - http://purl.org/net/dajobe/
- * Institute for Learning and Research Technology - http://www.ilrt.org/
+ * Institute for Learning and Research Technology - http://www.ilrt.bris.ac.uk/
  * University of Bristol - http://www.bristol.ac.uk/
  * 
  * This package is Free Software or Open Source available under the
@@ -33,6 +33,7 @@
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
 #endif
+#include <stdarg.h>
 
 #include "rasqal.h"
 #include "rasqal_internal.h"

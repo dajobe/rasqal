@@ -4,8 +4,8 @@
  *
  * $Id$
  *
- * Copyright (C) 2003 David Beckett - http://purl.org/net/dajobe/
- * Institute for Learning and Research Technology - http://www.ilrt.org/
+ * Copyright (C) 2003-2004 David Beckett - http://purl.org/net/dajobe/
+ * Institute for Learning and Research Technology - http://www.ilrt.bris.ac.uk/
  * University of Bristol - http://www.bristol.ac.uk/
  * 
  * This package is Free Software or Open Source available under the
@@ -29,11 +29,14 @@
 #endif
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
+#ifdef HAVE_STDLIB_H
+#include <stdlib.h>
+#endif
+#include <stdarg.h>
 
-#include <rasqal.h>
-#include <rasqal_internal.h>
+#include "rasqal.h"
+#include "rasqal_internal.h"
 
 
 struct rasqal_sequence_s {
