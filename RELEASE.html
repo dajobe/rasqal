@@ -10,9 +10,6 @@
 
 <h2 id="rel0_9_6"><a name="rel0_9_6">Rasqal 0.9.6 Changes</a></h2>
 
-<p>Not yet released</p>
-
-
 <h3>General Changes</h3>
 
 <p>Fix a bug in writing a query result to XML when blank nodes are
@@ -103,8 +100,13 @@ queries using the updated query engine features.</p>
 <code>ISLITERAL()</code> testing if an expression is an RDF literal.
 </p>
 
-<p>Now supports SPARQL <code>BASE</code> directive for setting
-the base URI of a query.</p>
+<p>Now supports SPARQL <code>BASE</code> directive for setting the
+base URI of a query.  This is <em>experimental</em> and may not be in
+the next version or may not be in the final SPARQL language.</p>
+
+<p>The parser now expands QNames correctly when used in literals like
+<code>"blah"^^xsd:string</code>.
+</p>
 
 
 <h3>RDQL Query Language Changes</h3>
