@@ -403,9 +403,14 @@ rasqal_triples_match_is_end(struct rasqal_triples_match_s* rtm) {
 int
 rasqal_engine_execute_init(rasqal_query *query) {
   raptor_uri* source;
-  int triples_size=raptor_sequence_size(query->triples);
+  int triples_size;
   int i;
   
+  if(!query->triples)
+    return 1;
+  
+  triples_size=raptor_sequence_size(query->triples);
+
   /* Expand 'SELECT *' and create the query->variables array */
   rasqal_engine_assign_variables(query);
   
