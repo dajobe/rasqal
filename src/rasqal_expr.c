@@ -781,10 +781,10 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
         }
         
         if(l->language) {
-          new_language=RASQAL_MALLOC(cstring, strlen(l->language)+1);
-          strcpy(new_language, l->language);
+          new_language=(unsigned char*)RASQAL_MALLOC(cstring, strlen(l->language)+1);
+          strcpy((char*)new_language, l->language);
         } else {
-          new_language=RASQAL_MALLOC(cstring, 2);
+          new_language=(unsigned char*)RASQAL_MALLOC(cstring, 2);
           new_language[0]='-';
           new_language[1]='\0';
         }
