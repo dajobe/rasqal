@@ -106,19 +106,18 @@ static int brql_query_error(rasqal_query* rq, const char *message);
 
 
 /*
- * Two shift/reduce
+ * shift/reduce conflicts
  */
-%expect 6
+%expect 3
 
 
 /* word symbols */
 %token SELECT SOURCE FROM WHERE AND FOR
-/* BRQL word symbols */
 %token OPTIONAL PREFIX DESCRIBE CONSTRUCT ASK NOT DISTINCT LIMIT
 
 /* expression delimitors */
 
-%token COMMA LPAREN RPAREN
+%token COMMA LPAREN RPAREN LSQUARE RSQUARE
 %token VARPREFIX USING
 
 
@@ -151,11 +150,10 @@ static int brql_query_error(rasqal_query* rq, const char *message);
 %token ERROR
 
 
-%type <seq> SelectClause SourceClause ConstraintClause UsingClause
+%type <seq> SelectClause SourceClause ConstraintClause PrefixClause
 %type <seq> CommaAndConstraintClause
 %type <seq> VarList TriplePatternList PrefixDeclList URIList
-/* BRQL */
-%type <seq> ConstructClause OptionalList OptionalClause
+%type <seq> ConstructClause
 
 %type <expr> Expression ConditionalAndExpression ValueLogical
 %type <expr> EqualityExpression RelationalExpression NumericExpression
@@ -170,52 +168,44 @@ static int brql_query_error(rasqal_query* rq, const char *message);
 %%
 
 
-Document : Query
+Document : PrefixClause Query
+{
+  /* FIXME - should all be declared already */
+  ((rasqal_query*)rq)->prefixes=$1;
+}
 ;
 
 
-Query : SELECT SelectClause SourceClause WHERE TriplePatternList OptionalList ConstraintClause UsingClause
+Query : SELECT SelectClause SourceClause WHERE TriplePatternList ConstraintClause
 {
   ((rasqal_query*)rq)->selects=$2;
   ((rasqal_query*)rq)->sources=$3;
   ((rasqal_query*)rq)->triples=$5;
-  ((rasqal_query*)rq)->optional_triples=$6;
-  ((rasqal_query*)rq)->constraints=$7;
-  ((rasqal_query*)rq)->prefixes=$8;
+  ((rasqal_query*)rq)->constraints=$6;
 }
-|  DESCRIBE VarList SourceClause WHERE TriplePatternList OptionalList ConstraintClause UsingClause
+|  DESCRIBE VarList SourceClause WHERE TriplePatternList ConstraintClause
 {
   ((rasqal_query*)rq)->selects=$2;
   ((rasqal_query*)rq)->select_is_describe=1;
   ((rasqal_query*)rq)->sources=$3;
   ((rasqal_query*)rq)->triples=$5;
-  ((rasqal_query*)rq)->optional_triples=$6;
-  ((rasqal_query*)rq)->constraints=$7;
-  ((rasqal_query*)rq)->prefixes=$8;
+  ((rasqal_query*)rq)->constraints=$6;
 }
-|  DESCRIBE URIList SourceClause UsingClause
+|  DESCRIBE URIList SourceClause
 {
   ((rasqal_query*)rq)->describes=$2;
   ((rasqal_query*)rq)->select_is_describe=1;
-  ((rasqal_query*)rq)->prefixes=$3;
 }
-|  CONSTRUCT ConstructClause SourceClause WHERE TriplePatternList OptionalList ConstraintClause UsingClause
+|  CONSTRUCT ConstructClause SourceClause WHERE TriplePatternList ConstraintClause
 {
   ((rasqal_query*)rq)->constructs=$2;
   ((rasqal_query*)rq)->sources=$3;
   ((rasqal_query*)rq)->triples=$5;
-  ((rasqal_query*)rq)->optional_triples=$6;
-  ((rasqal_query*)rq)->constraints=$7;
-  ((rasqal_query*)rq)->prefixes=$8;
+  ((rasqal_query*)rq)->constraints=$6;
 }
 ;
 
-VarList : Var COMMA VarList 
-{
-  $$=$3;
-  raptor_sequence_shift($$, $1);
-}
-| Var VarList 
+VarList : Var VarList 
 {
   $$=$2;
   raptor_sequence_shift($$, $1);
@@ -257,13 +247,7 @@ SourceClause : SOURCE URIList
 /* Inlined into SourceClause: SourceSelector : URL */
 
 
-/* Jena BRQL allows optional COMMA */
-TriplePatternList : TriplePattern COMMA TriplePatternList
-{
-  $$=$3;
-  raptor_sequence_shift($$, $1);
-}
-| TriplePattern TriplePatternList
+TriplePatternList : TriplePattern TriplePatternList
 {
   $$=$2;
   raptor_sequence_shift($$, $1);
@@ -279,6 +263,10 @@ TriplePatternList : TriplePattern COMMA TriplePatternList
   $$=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_triple, (raptor_sequence_print_handler*)rasqal_triple_print);
   raptor_sequence_push($$, $1);
 }
+| LSQUARE TriplePatternList RSQUARE
+{
+  $$=$2;
+}
 ;
 
 /* Inlined:
@@ -286,47 +274,11 @@ TriplePatternList : TriplePattern COMMA TriplePatternList
 */
 
 
-/* FIXME - maybe a better way to do this optional COMMA? */
-TriplePattern : LPAREN VarOrURI COMMA VarOrURI COMMA VarOrLiteral RPAREN
-{
-  $$=rasqal_new_triple($2, $4, $6);
-}
-| LPAREN VarOrURI VarOrURI COMMA VarOrLiteral RPAREN
-{
-  $$=rasqal_new_triple($2, $3, $5);
-}
-| LPAREN VarOrURI COMMA VarOrURI VarOrLiteral RPAREN
-{
-  $$=rasqal_new_triple($2, $4, $5);
-}
-| LPAREN VarOrURI VarOrURI VarOrLiteral RPAREN
+TriplePattern : LPAREN VarOrURI VarOrURI VarOrLiteral RPAREN
 {
   $$=rasqal_new_triple($2, $3, $4);
 }
 ;
-
-OptionalList: OptionalList OptionalClause
-{
-  $$=$1;
-  raptor_sequence_push($$, $2);
-}
-| OptionalClause
-{
-  $$=raptor_new_sequence(NULL, (raptor_sequence_print_handler*)raptor_sequence_print);
-  raptor_sequence_push($$, $1);
-}
-| /* empty */
-{
-  $$=NULL;
-}
-  
-
-OptionalClause: OPTIONAL TriplePatternList
-{
-  $$=$2;
-}
-;
-
 
 /* Was:
 ConstraintClause : AND Expression ( ( COMMA | AND ) Expression )*
@@ -341,6 +293,7 @@ ConstraintClause : AND CommaAndConstraintClause
   $$=NULL;
 }
 ;
+
 
 CommaAndConstraintClause : Expression COMMA CommaAndConstraintClause
 {
@@ -360,10 +313,9 @@ CommaAndConstraintClause : Expression COMMA CommaAndConstraintClause
 ;
 
 
-
-UsingClause : USING PrefixDeclList
+PrefixClause : PrefixDeclList
 {
-  $$=$2;
+  $$=$1;
 }
 | /* empty */
 {
@@ -371,23 +323,21 @@ UsingClause : USING PrefixDeclList
 }
 ;
 
-PrefixDeclList : IDENTIFIER FOR URI_LITERAL COMMA PrefixDeclList 
+PrefixDeclList : PREFIX IDENTIFIER URI_LITERAL PrefixDeclList 
 {
-  $$=$5;
-  raptor_sequence_shift($$, rasqal_new_prefix($1, $3));
-}
-| IDENTIFIER FOR URI_LITERAL PrefixDeclList 
-{
+  rasqal_prefix *p=rasqal_new_prefix($2, $3);
   $$=$4;
-  raptor_sequence_shift($$, rasqal_new_prefix($1, $3));
+  raptor_sequence_shift($$, p);
+  rasqal_engine_declare_prefix(((rasqal_query*)rq), p);
 }
-| IDENTIFIER FOR URI_LITERAL
+| PREFIX IDENTIFIER URI_LITERAL
 {
+  rasqal_prefix *p=rasqal_new_prefix($2, $3);
   $$=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_prefix, (raptor_sequence_print_handler*)rasqal_prefix_print);
-  raptor_sequence_push($$, rasqal_new_prefix($1, $3));
+  raptor_sequence_push($$, p);
+  rasqal_engine_declare_prefix(((rasqal_query*)rq), p);
 }
 ;
-
 
 ConstructClause : TriplePatternList
 {
