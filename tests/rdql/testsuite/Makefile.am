@@ -71,6 +71,7 @@ rdql_testsuite_extra_files=query-dump rdql-tests.n3	\
 README-RDQL-tests.txt copyright.txt
 
 EXTRA_DIST = README \
+check-rdql \
 $(rdql_testsuite_model_files) \
 $(rdql_testsuite_test_files) \
 $(rdql_testsuite_result_files) \
