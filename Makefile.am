@@ -36,8 +36,8 @@ man_MANS = roqet.1 librasqal.3 rasqal-config.1
 
 SUBDIRS=data tests docs win32
 
-TESTS=rasqal_expr_test strcasecmp_test rasqal_query_test
-local_tests=
+TESTS=rasqal_expr_test strcasecmp_test
+local_tests=rasqal_query_test
 if RASQAL_QUERY_RDQL
 local_tests += rdql_lexer_test rdql_parser_test
 endif
@@ -167,7 +167,21 @@ endif
 
 
 # These are compiled here and used elsewhere for running tests
-check-local: $(local_tests)
+check-local: $(local_tests) run-rasqal-query-test
+
+run-rasqal-query-test: $(rasqal_query_test)
+	@tst=rasqal_query_test; \
+	status=0; \
+	if test -f ./$$tst; then dir=./; \
+	elif test -f $$tst; then dir=; \
+	else dir="$(srcdir)/"; fi; \
+	if $${dir}$$tst $(srcdir)/data/dc.rdf; then \
+	  echo "PASS: $$tst"; \
+	else \
+	  echo "FAIL: $$tst"; \
+	  status=1; \
+	fi; \
+	exit $$status
 
 rdql_lexer_test: $(srcdir)/rdql_lexer.c librasqal.la
 	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE @RASQAL_INTERNAL_CPPFLAGS@ $(srcdir)/rdql_lexer.c librasqal.la $(LIBS)
