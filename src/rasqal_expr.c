@@ -1519,6 +1519,8 @@ main(int argc, char *argv[])
   int error=0;
 
   raptor_init();
+
+  rasqal_uri_init();
   
   lit1=rasqal_new_integer_literal(RASQAL_LITERAL_INTEGER, 1);
   expr1=rasqal_new_literal_expression(lit1);
@@ -1553,6 +1555,8 @@ main(int argc, char *argv[])
   if(result)
     rasqal_free_literal(result);
 
+  rasqal_uri_finish();
+  
   raptor_finish();
 
   return error;
