@@ -97,7 +97,7 @@ rasqal.spec.in \
 fix-groff-xhtml \
 $(man_MANS) \
 rasqal.pc.in \
-fix-flex \
+fix-flex fix-bison \
 rasqal_query_test.c
 
 
@@ -136,9 +136,9 @@ rdql_lexer.c: $(srcdir)/rdql_lexer.l rdql_parser.c $(srcdir)/fix-flex
 	$(PERL) $(srcdir)/fix-flex rdql_lexer.h > rdql_lexer.t
 	mv rdql_lexer.t rdql_lexer.h
 
-rdql_parser.c: $(srcdir)/rdql_parser.y
+rdql_parser.c: $(srcdir)/rdql_parser.y $(srcdir)/fix-bison
 	$(YACC) -b rdql_parser -p rdql_parser_ -d -v $(srcdir)/rdql_parser.y
-	sed -e '/Suppress GCC warning that yyerrlab1/,/^\#endif/d'  -e "s/rdql_parser.tab.c/$@/" rdql_parser.tab.c > $@
+	$(PERL) $(srcdir)/fix-bison rdql_parser.tab.c > $@
 	mv rdql_parser.tab.h rdql_parser.h
 	rm -f rdql_parser.tab.c
 
@@ -150,9 +150,9 @@ brql_lexer.c: $(srcdir)/brql_lexer.l brql_parser.c $(srcdir)/fix-flex
 	$(PERL) $(srcdir)/fix-flex brql_lexer.h > brql_lexer.t
 	mv brql_lexer.t brql_lexer.h
 
-brql_parser.c: $(srcdir)/brql_parser.y
+brql_parser.c: $(srcdir)/brql_parser.y $(srcdir)/fix-bison
 	$(YACC) -b brql_parser -p brql_parser_ -d -v $(srcdir)/brql_parser.y
-	sed -e '/Suppress GCC warning that yyerrlab1/,/^\#endif/d'  -e "s/brql_parser.tab.c/$@/" brql_parser.tab.c > $@
+	$(PERL) $(srcdir)/fix-bison brql_parser.tab.c > $@
 	mv brql_parser.tab.h brql_parser.h
 	rm -f brql_parser.tab.c
 endif
