@@ -236,6 +236,7 @@ else
     fi
   fi
 fi
+AC_SUBST(with_raptor)
 
 AC_MSG_CHECKING(raptor library source)
 if test $with_raptor = system; then
