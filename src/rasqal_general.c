@@ -373,7 +373,7 @@ rasqal_query_fatal_error_varargs(rasqal_query* query, const char *message,
     }
 
     query->fatal_error_handler(query->fatal_error_user_data, 
-                                &query->locator, buffer); 
+                               &query->locator, buffer); 
     RASQAL_FREE(cstring, buffer);
     abort();
   }
@@ -438,7 +438,7 @@ rasqal_query_error_varargs(rasqal_query* query, const char *message,
       return;
     }
     query->error_handler(query->error_user_data, 
-                          &query->locator, buffer);
+                         &query->locator, buffer);
     RASQAL_FREE(cstring, buffer);
     return;
   }
@@ -481,7 +481,7 @@ rasqal_query_warning_varargs(rasqal_query* query, const char *message,
       return;
     }
     query->warning_handler(query->warning_user_data,
-                            &query->locator, buffer);
+                           &query->locator, buffer);
     RASQAL_FREE(cstring, buffer);
     return;
   }
