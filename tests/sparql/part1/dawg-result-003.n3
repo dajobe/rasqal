@@ -4,7 +4,6 @@
                 rs:ResultSet ;
     rs:resultVariable
                 "mbox" , "name" ;
-    rs:size     "5" ;
     rs:solution [ rs:binding  [ rs:value    <mailto:bob@home> ;
                                 rs:variable "mbox"
                               ] ;

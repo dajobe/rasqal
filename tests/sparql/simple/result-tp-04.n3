@@ -4,7 +4,6 @@
                 rs:ResultSet ;
     rs:resultVariable
                 "name" ;
-    rs:size     "3" ;
     rs:solution [ rs:binding  [ rs:value    "Bob" ;
                                 rs:variable "name"
                               ]
