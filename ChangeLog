@@ -1,3 +1,24 @@
+2004-10-26  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rdql_lexer.l:
+	Rename static functions to have rdql_ prefix to aid setting
+	breakpoints in debugging.
+	(<PATTERN>.): Only return PATTERN_LITERAL if rdql_copy_regex_token
+	worked.
+	(rdql_copy_regex_token): Report EOF in regex rather than continue.
+	(rdql_copy_string_token): Fix debug message parameters.
+
+	* sparql_lexer.l:
+	Rename static functions to have sparql_ prefix to aid setting
+	breakpoints in debugging.
+	(<PATTERN>.): Only return PATTERN_LITERAL if sparql_copy_regex_token
+	worked.
+	(sparql_copy_regex_token): Report EOF in regex rather than continue.
+
+	* rasqal-config.1: zap ASCII 160
+
+	* rasqal-config.1: Fix --libtool-libs desc
+
 2004-10-25  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
 	* win32_rasqal_config.h, configure.ac, NEWS.html:
