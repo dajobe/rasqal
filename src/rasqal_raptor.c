@@ -86,7 +86,7 @@ raptor_uri* ordinal_as_uri(int ordinal)
   raptor_uri* uri;
   
   len=raptor_rdf_namespace_uri_len + 1; /* 1 for '_' */
-  while(t/10)
+  while(t/=10)
     len++;
   buffer=(unsigned char*)RASQAL_MALLOC(cstring, len+1);
   if(!buffer)
