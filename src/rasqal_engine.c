@@ -209,8 +209,10 @@ rasqal_engine_assign_variables(rasqal_query* rq)
 
   /* If 'CONSTRUCT *' was given, make the constructs be all triples */
   if(rq->construct_all) {
+    raptor_sequence *s;
+    
     rq->constructs=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_triple, (raptor_sequence_print_handler*)rasqal_triple_print);
-    raptor_sequence *s=((rasqal_query*)rq)->triples;
+    s=((rasqal_query*)rq)->triples;
 
     for(i=0; i < raptor_sequence_size(s); i++) {
       rasqal_triple *t=(rasqal_triple*)raptor_sequence_get_at(s, i);
