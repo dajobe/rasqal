@@ -35,23 +35,24 @@
 being interpreted as a qname after <code>prefix:</code> is defined later.
 However this syntax is not in the 
 <a href="http://www.w3.org/Submission/2004/SUBM-RDQL-20040109/">RDQL - A Query Language for RDF, W3C Member Submission 9 January 2004</a>.
-(Test case bug?)</li>
+Legacy syntax.</li>
 
 <li>B-01: comment in the test says "No match: the value in the model is
-datatyped." however result-B-01.n3 has 1 result solution (Test case bug?)</li>
+datatyped." however result-B-01.n3 has 1 result solution.  The comment
+is in error.</li>
 
 <li>B-07, B-15, B-16, B-20: floating and integer values should be
-string literals (Rasqal BUG)</li>
+string literals.</li>
 
-<li>S-02: UTF-8 in prefix - not yet in the RDQL lexer (Rasqal BUG)</li>
+<li>S-02: UTF-8 in prefix - not yet in the RDQL lexer</li>
 
-<li>S-03: UTF-8 in qname - not yet in the RDQL lexer  (Rasqal BUG)</li>
+<li>S-03: UTF-8 in qname - not yet in the RDQL lexer.</li>
 
-<li>S-04, S-05: \uHHH unicode in prefix - not yet in the RDQL lexer (Rasqal BUG)</li>
+<li>S-04, S-05: \uHHH unicode in prefix - not yet in the RDQL lexer.</li>
 
 <li>B-17, B-18: boolean literals fail to match the string literals
 "true"/"false".  It is not clear how to resolve this - in the RDQL
-part of the code or the general expression evaluator. (Rasqal BUG).</li>
+part of the code or the general expression evaluator.</li>
 
 </ul>
 </li>
