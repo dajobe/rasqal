@@ -45,6 +45,21 @@ extern "C" {
 #  define RASQAL_API
 #endif
 
+/* Use gcc 3.1+ feature to allow marking of deprecated API calls.
+ * This gives a warning during compiling.
+ */
+#if ( __GNUC__ == 3 && __GNUC_MINOR__ > 0 ) || __GNUC__ > 3
+#ifdef __APPLE_CC__
+/* OSX gcc cpp-precomp is broken */
+#define RASQAL_DEPRECATED
+#else
+#define RASQAL_DEPRECATED __attribute__((deprecated))
+#endif
+#else
+#define RASQAL_DEPRECATED
+#endif
+
+
 #ifndef LIBRDF_OBJC_FRAMEWORK
 #include <raptor.h>
 #else
@@ -235,7 +250,9 @@ RASQAL_API void rasqal_query_add_source(rasqal_query* query, raptor_uri* uri);
 RASQAL_API raptor_sequence* rasqal_query_get_source_sequence(rasqal_query* query);
 RASQAL_API raptor_uri* rasqal_query_get_source(rasqal_query* query, int idx);
 RASQAL_API void rasqal_query_add_variable(rasqal_query* query, rasqal_variable* var);
-RASQAL_API raptor_sequence* rasqal_query_get_variable_sequence(rasqal_query* query);
+RASQAL_API RASQAL_DEPRECATED raptor_sequence* rasqal_query_get_variable_sequence(rasqal_query* query);
+RASQAL_API raptor_sequence* rasqal_query_get_bound_variable_sequence(rasqal_query* query);
+RASQAL_API raptor_sequence* rasqal_query_get_all_variable_sequence(rasqal_query* query);
 RASQAL_API rasqal_variable* rasqal_query_get_variable(rasqal_query* query, int idx);
 RASQAL_API int rasqal_query_has_variable(rasqal_query* query, const unsigned char *name);
 RASQAL_API int rasqal_query_set_variable(rasqal_query* query, const unsigned char *name, rasqal_literal* value);
