@@ -1,3 +1,30 @@
+2005-03-20  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal_expr.c (main): Call rasqal_uri_init and rasqal_uri_finish
+	around test code.
+
+	* rasqal_literal.c (rasqal_new_integer_literal):
+	Use rasqal_xsd_integer_uri.
+	(rasqal_new_floating_literal): Use rasqal_xsd_double_uri.
+	(rasqal_literal_string_to_native): Use rasqal_xsd_integer_uri and
+	rasqal_xsd_double_uri.
+	Also convert xsd:boolean rdf literals into internal
+	RASQAL_LITERAL_BOOLEAN
+
+	* rasqal_general.c (rasqal_init): Call rasqal_uri_init
+	(rasqal_finish): Call rasqal_uri_finish and always call
+	raptor_finish.
+	(rasqal_uri_init, rasqal_uri_finish): Added to initialise/free
+	URIs used in the library.
+
+	* rasqal_internal.h: Added interanl URIs rasqal_xsd_namespace_uri,
+	rasqal_xsd_integer_uri, rasqal_xsd_double_uri and
+	rasqal_xsd_boolean_uri.
+	Added prototypes for rasqal_uri_init and rasqal_uri_finish to make
+	them.
+
+	* tests/sparql/syntax/cast1.rq: Type check should be xsd:integer.
+
 2005-03-17  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
 	* rasqal_engine.c (rasqal_engine_get_next_result): Finish if the
