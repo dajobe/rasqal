@@ -647,13 +647,6 @@ rasqal_variable_set_value(rasqal_variable* v, rasqal_literal *e)
 }
 
 
-static inline rasqal_literal*
-rasqal_variable_get_value(rasqal_variable* v) {
-  return v->value;
-}
-
-
-
 rasqal_prefix*
 rasqal_new_prefix(const char *prefix, raptor_uri* uri) 
 {
