@@ -35,9 +35,6 @@ int rdql_query_lex(void);
 
 
 struct rasqal_rdql_query_engine_s {
-  /* for lexer to store result in */
-  YYSTYPE lval;
-
   /* STATIC lexer */
   yyscan_t scanner;
 
