@@ -73,7 +73,7 @@ rasqal_new_integer_literal(rasqal_literal_type type, int integer)
   l->value.integer=integer;
   l->string=(unsigned char*)RASQAL_MALLOC(cstring, 30); /* FIXME */
   sprintf((char*)l->string, "%d", integer);
-  l->datatype=raptor_new_uri((const unsigned char*)"http://www.w3.org/2001/XMLSchema#integer");
+  l->datatype=raptor_uri_copy(rasqal_xsd_integer_uri);
   l->usage=1;
   return l;
 }
@@ -94,7 +94,7 @@ rasqal_new_floating_literal(double f)
   l->value.floating=f;
   l->string=(unsigned char*)RASQAL_MALLOC(cstring, 30); /* FIXME */
   sprintf((char*)l->string, "%1g", f);
-  l->datatype=raptor_new_uri((const unsigned char*)"http://www.w3.org/2001/XMLSchema#double");
+  l->datatype=raptor_uri_copy(rasqal_xsd_double_uri);
   l->usage=1;
   return l;
 }
@@ -146,11 +146,13 @@ rasqal_new_pattern_literal(const unsigned char *pattern,
 
 
 /*
- * rasqal_literal_string_to_native - INTERNAL Upgrade a literal string to a datatyped literal
+ * rasqal_literal_string_to_native - INTERNAL Upgrade a datatyped literal string to an internal typed literal
  * @l: &rasqal_literal to operate on inline
  *
- * At present this promotes xsd:decimal to RASQAL_LITERAL_INTEGER and
- * xsd:double to RASQAL_INTEGER_FLOATING.
+ * At present this promotes datatyped literals
+ * xsd:integer to RASQAL_LITERAL_INTEGER
+ * xsd:double to RASQAL_LITERAL_FLOATING
+ * xsd:boolean to RASQAL_LITERAL_BOOLEAN
  **/
 void
 rasqal_literal_string_to_native(rasqal_literal *l)
@@ -158,7 +160,7 @@ rasqal_literal_string_to_native(rasqal_literal *l)
   if(!l->datatype)
     return;
 
-  if(!strcmp((const char*)raptor_uri_as_string(l->datatype), "http://www.w3.org/2001/XMLSchema#integer")) {
+  if(raptor_uri_equals(l->datatype, rasqal_xsd_integer_uri)) {
     int i=atoi((const char*)l->string);
 
     if(l->language) {
@@ -171,7 +173,7 @@ rasqal_literal_string_to_native(rasqal_literal *l)
     return;
   }
   
-  if(!strcmp((const char*)raptor_uri_as_string(l->datatype), "http://www.w3.org/2001/XMLSchema#double")) {
+  if(raptor_uri_equals(l->datatype, rasqal_xsd_double_uri)) {
     double d=0.0;
     sscanf((char*)l->string, "%lf", &d);
 
@@ -184,6 +186,25 @@ rasqal_literal_string_to_native(rasqal_literal *l)
     l->value.floating=d;
     return;
   }
+
+  if(raptor_uri_equals(l->datatype, rasqal_xsd_boolean_uri)) {
+    int b=0;
+    if(!strcmp(l->string, "true") || !strcmp(l->string, "TRUE"))
+       b=1;
+    
+    if(l->language) {
+      RASQAL_FREE(cstring, l->language);
+      l->language=NULL;
+    }
+
+    /* static string for boolean */
+    l->string=(const unsigned char*)(b ? "true":"false");
+
+    l->type=RASQAL_LITERAL_BOOLEAN;
+    l->value.integer=b;
+    return;
+  }
+
 }
 
 
@@ -268,6 +289,7 @@ rasqal_new_boolean_literal(int value)
 
   l->type=RASQAL_LITERAL_BOOLEAN;
   l->value.integer=value;
+  /* static string for boolean */
   l->string=(const unsigned char*)(value ? "true":"false");
   l->usage=1;
   return l;
@@ -341,8 +363,11 @@ rasqal_free_literal(rasqal_literal* l)
           RASQAL_FREE(cstring, l->flags);
       }
       break;
+
     case RASQAL_LITERAL_BOOLEAN:
+      /* static l->string for boolean, does not need freeing */
       break;
+
     case RASQAL_LITERAL_VARIABLE:
       /* It is correct that this is not called here
        * since all variables are shared and owned by
@@ -1087,7 +1112,7 @@ rasqal_literal_as_node(rasqal_literal* l)
     case RASQAL_LITERAL_INTEGER:
     case RASQAL_LITERAL_BOOLEAN:
       if(l->type == RASQAL_LITERAL_BOOLEAN)
-        dt_uri=raptor_new_uri((const unsigned char*)"http://www.w3.org/2001/XMLSchema#boolean");
+        dt_uri=raptor_uri_copy(rasqal_xsd_boolean_uri);
       else
         dt_uri=raptor_uri_copy(l->datatype);
 
