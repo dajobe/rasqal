@@ -115,13 +115,13 @@ static int sparql_query_error(rasqal_query* rq, const char *message);
 
 
 /* word symbols */
-%token SELECT SOURCE FROM WHERE AND FOR
+%token SELECT SOURCE FROM WHERE AND
 %token OPTIONAL PREFIX DESCRIBE CONSTRUCT ASK NOT DISTINCT LIMIT
 
 /* expression delimitors */
 
 %token COMMA LPAREN RPAREN LSQUARE RSQUARE
-%token VARPREFIX USING
+%token VARPREFIX
 
 /* function call indicator */
 %token AMP

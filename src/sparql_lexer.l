@@ -159,8 +159,6 @@ QUOTEDURI \<[A-Za-z][^>]+\>
 "FROM"|"from"     { return FROM; } 
 "WHERE"|"where"   { return WHERE; } 
 "AND"|"and"       { return AND; } 
-"USING"|"using"   { return USING; }
-"FOR"|"for"       { return FOR; }
 "PREFIX"|"prefix" { BEGIN(PREF);
 		return PREFIX; } /* SPARQL */
 "DESCRIBE"|"describe"	{ return DESCRIBE; } /* SPARQL */
@@ -572,9 +570,6 @@ sparql_token_print(int token, YYSTYPE *lval)
     case AND:
       return "AND";
 
-    case FOR:
-      return "FOR";
-
     case PREFIX:
       return "PREFIX";
 
@@ -613,9 +608,6 @@ sparql_token_print(int token, YYSTYPE *lval)
 
     case VARPREFIX:
       return "VARPREFIX";
-
-    case USING:
-      return "USING";
 
     case SC_AND:
       return "SC_AND";
