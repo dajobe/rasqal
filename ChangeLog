@@ -1,5 +1,10 @@
 2004-10-20  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
+	* rasqal_general.c:
+	Added rasqal_initialising and rasqal_finishing statics
+	(rasqal_init, rasqal_finish): Use the above to prevent
+	recursion in these methods when rasqal uses redland using rasqal.
+
 	* configure.ac:
 	use $srcdir not .. when looking for raptor sources nearby
 
