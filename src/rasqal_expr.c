@@ -207,9 +207,12 @@ rasqal_new_triple(rasqal_literal* subject, rasqal_literal* predicate, rasqal_lit
 void
 rasqal_free_triple(rasqal_triple* t)
 {
-  rasqal_free_literal(t->subject);
-  rasqal_free_literal(t->predicate);
-  rasqal_free_literal(t->object);
+  if(t->subject)
+    rasqal_free_literal(t->subject);
+  if(t->predicate)
+    rasqal_free_literal(t->predicate);
+  if(t->object)
+    rasqal_free_literal(t->object);
   RASQAL_FREE(rasqal_triple, t);
 }
 
