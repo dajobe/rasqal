@@ -632,11 +632,15 @@ rasqal_rdql_query_engine_terminate(rasqal_query* rdf_query) {
 static int
 rasqal_rdql_query_engine_prepare(rasqal_query* rdf_query) {
   /* rasqal_rdql_query_engine* rdql=(rasqal_rdql_query_engine*)rdf_query->context; */
-
-  if(rdf_query->query_string)
-    return rdql_parse(rdf_query, rdf_query->query_string);
-  else
-    return 0;
+  int rc;
+  
+  if(!rdf_query->query_string)
+    return 1;
+  
+  rc=rdql_parse(rdf_query, rdf_query->query_string);
+  if(rc)
+    return rc;
+  return rasqal_engine_prepare(rdf_query);
 }
 
 
