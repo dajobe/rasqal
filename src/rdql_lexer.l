@@ -17,7 +17,11 @@
  * See LICENSE.html or LICENSE.txt at the top of this package for the
  * full license terms.
  * 
- * 
+ * To generate the C files from this source, rather than use the
+ * shipped n3_lexer.c/.h needs a patched version of flex 2.5.31 such
+ * as the one available in Debian GNU/Linux.   Details below
+ * near the %option descriptions.
+ *
  */
 
 
@@ -28,15 +32,25 @@
 /* all symbols prefixed by this */
 %option prefix="rdql_lexer_"
 
+/* This is not needed, flex is invoked -ordql_lexer.c */
 %option outfile="rdql_lexer.c"
+
+/* Emit a C header file for prototypes
+ * Only available in flex 2.5.13 or newer.
+ * It was renamed to header-file in flex 2.5.19
+ */
 %option header-file="rdql_lexer.h"
 
-/* Do not emit #include <unistd.h> */
+/* Do not emit #include <unistd.h>
+ * Only available in flex 2.5.7 or newer.
+ * Broken in flex 2.5.31 without patches.
+ */
 %option nounistd
 
 /* Never interactive */
 /*  No isatty() check */
 %option never-interactive
+
 /* Batch scanner */
 %option batch
 
