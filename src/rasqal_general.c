@@ -240,7 +240,7 @@ rasqal_get_query_engine_factory (const char *name, const unsigned char *uri)
     }
     /* else FACTORY name not found */
     if(!factory) {
-      RASQAL_DEBUG2("No query with name %s found\n", name);
+      RASQAL_DEBUG2("No query language with name %s found\n", name);
       return NULL;
     }
   }
