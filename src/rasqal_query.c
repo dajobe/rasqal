@@ -264,29 +264,20 @@ int
 rasqal_query_execute(rasqal_query *rdf_query)
 {
   int rc=0;
-  raptor_uri* source;
   
-  /* Expand 'SELECT *' and create the rdf_query->variables array */
-  rasqal_engine_assign_variables(rdf_query);
-  
-  /* Order the conjunctive query triples */
-  if(rasqal_query_order_triples(rdf_query))
-    return 1;
+  rc=rasqal_engine_execute_init(rdf_query);
+  if(rc)
+    return rc;
 
-  rasqal_engine_build_constraints_expression(rdf_query);
-
-  source=rasqal_sequence_get_at(rdf_query->sources, 0);
-
-  rdf_query->triples_source=rasqal_new_triples_source(rdf_query, source);
-  
-  rasqal_engine_run(rdf_query);
-
-  if(rdf_query->factory->execute)
+  if(rdf_query->factory->execute) {
     rc=rdf_query->factory->execute(rdf_query);
-  else
-    rc=1;
+    if(rc)
+      return rc;
+  }
 
-  rasqal_free_triples_source(rdf_query->triples_source);
+  rc=rasqal_engine_run(rdf_query);
+
+  rasqal_engine_execute_finish(rdf_query);
 
   return rc;
 }
