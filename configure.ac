@@ -508,3 +508,8 @@ AC_CONFIG_FILES([rasqal-config], [chmod +x rasqal-config])
 AC_CONFIG_FILES([rasqal-src-config], [chmod +x rasqal-src-config])
 
 AC_OUTPUT
+
+AC_MSG_RESULT([
+Rasqal build summary:
+  Triple source : $triples_source_library
+])
