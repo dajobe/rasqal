@@ -400,12 +400,12 @@ TriplePattern : LPAREN VarOrURI VarOrURI VarOrLiteral RPAREN
 VarOrURIList : VarOrURIList Var
 {
   $$=$1;
-  raptor_sequence_push($$, rasqal_new_variable_literal($1));
+  raptor_sequence_push($$, rasqal_new_variable_literal($2));
 }
 | VarOrURIList COMMA Var
 {
   $$=$1;
-  raptor_sequence_push($$, rasqal_new_variable_literal($1));
+  raptor_sequence_push($$, rasqal_new_variable_literal($3));
 }
 | VarOrURIList URI
 {
