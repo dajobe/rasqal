@@ -298,7 +298,7 @@ CommaAndConstraintClause : Expression COMMA CommaAndConstraintClause
 }
 | Expression
 {
-  $$=rasqal_new_sequence((rasqal_free_handler*)rasqal_free_expression, (rasqal_print_handler*)rasqal_expression_print);
+  $$=rasqal_new_sequence(NULL, (rasqal_print_handler*)rasqal_expression_print);
   rasqal_sequence_push($$, $1);
 }
 ;
@@ -673,7 +673,8 @@ rdql_parse(rasqal_query* rq, const char *string) {
 
   /* Only now can we handle the prefixes and qnames */
   if(rasqal_engine_declare_prefixes(rq) ||
-     rasqal_engine_expand_triple_qnames(rq))
+     rasqal_engine_expand_triple_qnames(rq) ||
+     rasqal_engine_expand_constraints_qnames(rq))
     return 1;
 
   return 0;
