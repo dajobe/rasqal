@@ -12,7 +12,7 @@ Group:     Development/Libraries
 Source:    http://www.redland.opensource.ac.uk/dist/source/%{name}-%{version}.tar.gz
 URL:       http://www.redland.opensource.ac.uk/rasqal/
 BuildRoot: /tmp/%{name}-%{version}
-BuildRequires: raptor-devel >= 1.3.0
+BuildRequires: raptor-devel >= @RAPTOR_MIN_VERSION@
 Packager:  Dave Beckett <Dave.Beckett@bristol.ac.uk>
 Docdir: %{_docdir}
 Requires: raptor
@@ -25,7 +25,7 @@ RDF Query Language.
 Summary: Libraries, includes etc to develop with the Rasqal RDF query library
 Group: Development/Libraries
 Requires: rasqal = %{version}
-Requires: raptor >= 1.3.0
+Requires: raptor >= @RAPTOR_MIN_VERSION@
 
 %description devel
 Libraries, includes etc to develop with the Rasqal RDF query language library.
@@ -63,9 +63,11 @@ install -d $RPM_BUILD_ROOT%{_mandir}/man3
 
 %doc AUTHORS COPYING COPYING.LIB ChangeLog LICENSE.txt NEWS README
 %doc MPL.html
+%doc %{_mandir}/man1/roqet.1*
 %doc %{_mandir}/man3/librasqal.3*
 
 %{_libdir}/librasqal*.so.*
+%{prefix}/bin/roqet
 
 
 %files devel
@@ -86,6 +88,9 @@ install -d $RPM_BUILD_ROOT%{_mandir}/man3
 
 
 %changelog
+* We May 5 2004 <Dave.Beckett@bristol.ac.uk>
+- Ship roqet and roqet.1
+
 * Sat May 1 2004 <Dave.Beckett@bristol.ac.uk>
 - Requires raptor 1.3.0
 
