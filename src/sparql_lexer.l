@@ -140,6 +140,7 @@ LANGUAGETOKEN [A-Za-z][-A-Z_a-z0-9]*
 PREFIX [A-Za-z\\\x80-\xff][-A-Z_a-z\\\x80-\xff0-9]*
 NAME [A-Za-z_\\\x80-\xff][-A-Z_a-z\\\x80-\xff0-9]*
 QNAME ":"|{PREFIX}":"|":"{NAME}|{PREFIX}":"{NAME}
+BNAME "_:"{NAME}
 
 /* The initial char conditions are to ensure this doesn't grab < or <= */
 QUOTEDURI \<[A-Za-z][^>]+\>
@@ -305,14 +306,14 @@ QUOTEDURI \<[A-Za-z][^>]+\>
                   yyterminate();
 }
 
-{QNAME}	{	if(yyleng > 2 && yytext[0] == '_' && yytext[1] == ':') {
- 		  sparql_parser_lval->name=sparql_copy_name(rq, (unsigned char*)yytext+2, yyleng-2);
-		  return BLANK_LITERAL;
-                }
-		sparql_parser_lval->name=sparql_copy_qname(rq, (const unsigned char*)yytext, yyleng);
+{QNAME}	{	sparql_parser_lval->name=sparql_copy_qname(rq, (const unsigned char*)yytext, yyleng);
 		if(!sparql_parser_lval->name)
 		  yyterminate();
  		return QNAME_LITERAL;
+}
+
+{BNAME}	{	sparql_parser_lval->name=sparql_copy_name(rq, (unsigned char*)yytext+2, yyleng-2);
+		return BLANK_LITERAL;
 }
 
 {QUOTEDURI}   { if(yyleng == 2) 
