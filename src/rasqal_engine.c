@@ -1256,8 +1256,7 @@ rasqal_engine_get_next_result(rasqal_query *query) {
   while(step == STEP_SEARCHING) {
     rasqal_graph_pattern* gp=(rasqal_graph_pattern*)raptor_sequence_get_at(query->graph_patterns, query->current_graph_pattern);
     
-    RASQAL_DEBUG4("Step %s: Handling graph_pattern %d %s\n",
-                  rasqal_engine_step_names[step],
+    RASQAL_DEBUG3("Handling graph_pattern %d %s\n",
                   query->current_graph_pattern,
                   (gp->flags & RASQAL_PATTERN_FLAGS_OPTIONAL) ? "(OPTIONAL)" : "");
 
