@@ -1496,7 +1496,7 @@ rasqal_query_results_get_triple(rasqal_query_results *query_results) {
       
     case RASQAL_LITERAL_STRING:
       rs->object=o->string;
-      rs->object_literal_language=o->language;
+      rs->object_literal_language=(const unsigned char*)o->language;
       rs->object_literal_datatype=o->datatype;
       rs->object_type=RAPTOR_IDENTIFIER_TYPE_LITERAL;
       break;

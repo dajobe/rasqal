@@ -175,15 +175,15 @@ rasqal_xsd_datatypes_date_equal(raptor_uri* name, raptor_sequence *args,
 
 #define RASQAL_XSD_DATATYPE_FNS_SIZE 9
 static rasqal_xsd_datatype_fn_info rasqal_xsd_datatype_fns[RASQAL_XSD_DATATYPE_FNS_SIZE]={
-  { "date-less-than",        1, 1, rasqal_xsd_datatypes_date_less_than },
-  { "dateTime-less-than",    1, 1, rasqal_xsd_datatypes_date_less_than },
-  { "time-less-than",        1, 1, rasqal_xsd_datatypes_date_less_than },
-  { "date-greater-than",     1, 1, rasqal_xsd_datatypes_date_greater_than },
-  { "dateTime-greater-than", 1, 1, rasqal_xsd_datatypes_date_greater_than },
-  { "time-greater-than",     1, 1, rasqal_xsd_datatypes_date_greater_than },
-  { "date-equal",            1, 1, rasqal_xsd_datatypes_date_equal },
-  { "dateTime-equal",        1, 1, rasqal_xsd_datatypes_date_equal },
-  { "time-equal",            1, 1, rasqal_xsd_datatypes_date_equal }
+  { (const unsigned char*)"date-less-than",        1, 1, rasqal_xsd_datatypes_date_less_than },
+  { (const unsigned char*)"dateTime-less-than",    1, 1, rasqal_xsd_datatypes_date_less_than },
+  { (const unsigned char*)"time-less-than",        1, 1, rasqal_xsd_datatypes_date_less_than },
+  { (const unsigned char*)"date-greater-than",     1, 1, rasqal_xsd_datatypes_date_greater_than },
+  { (const unsigned char*)"dateTime-greater-than", 1, 1, rasqal_xsd_datatypes_date_greater_than },
+  { (const unsigned char*)"time-greater-than",     1, 1, rasqal_xsd_datatypes_date_greater_than },
+  { (const unsigned char*)"date-equal",            1, 1, rasqal_xsd_datatypes_date_equal },
+  { (const unsigned char*)"dateTime-equal",        1, 1, rasqal_xsd_datatypes_date_equal },
+  { (const unsigned char*)"time-equal",            1, 1, rasqal_xsd_datatypes_date_equal }
 };
 
 
@@ -196,12 +196,12 @@ static void
 rasqal_init_datatypes(void) {
   int i;
   
-  raptor_xpfo_base_uri=raptor_new_uri(RASQAL_XPFO_BASE_URI);
-  rasqal_sparql_op_namespace_uri=raptor_new_uri(RASQAL_SPARQL_OP_NAMESPACE_URI);
+  raptor_xpfo_base_uri=raptor_new_uri((const unsigned char*)RASQAL_XPFO_BASE_URI);
+  rasqal_sparql_op_namespace_uri=raptor_new_uri((const unsigned char*)RASQAL_SPARQL_OP_NAMESPACE_URI);
 
   for(i=0; i< RASQAL_XSD_DATATYPES_SIZE; i++) {
     rasqal_xsd_datatypes[i].uri=raptor_new_uri_from_uri_local_name(raptor_xpfo_base_uri,
-                                                               rasqal_xsd_datatypes[i].name);
+                                                                   (const unsigned char*)rasqal_xsd_datatypes[i].name);
   }
 
   for(i=0; i< RASQAL_XSD_DATATYPE_FNS_SIZE; i++) {
@@ -475,14 +475,14 @@ main(int argc, char *argv[]) {
   raptor_init();
 
   xsd_uri=raptor_new_uri(raptor_xmlschema_datatypes_namespace_uri);
-  dateTime_uri=raptor_new_uri_from_uri_local_name(xsd_uri, "dateTime");
+  dateTime_uri=raptor_new_uri_from_uri_local_name(xsd_uri, (const unsigned char*)"dateTime");
 
   rasqal_init_datatypes();
 
   fn_args=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_literal, (raptor_sequence_print_handler*)rasqal_literal_print);
-  l1=rasqal_new_string_literal(strdup("2004-05-04"), NULL, raptor_uri_copy(dateTime_uri), NULL);
+  l1=rasqal_new_string_literal((unsigned char*)strdup("2004-05-04"), NULL, raptor_uri_copy(dateTime_uri), NULL);
   raptor_sequence_push(fn_args, l1);
-  l2=rasqal_new_string_literal(strdup("2003-01-02"), NULL, raptor_uri_copy(dateTime_uri), NULL);
+  l2=rasqal_new_string_literal((unsigned char*)strdup("2003-01-02"), NULL, raptor_uri_copy(dateTime_uri), NULL);
   raptor_sequence_push(fn_args, l2);
   
   fn_i=0;
