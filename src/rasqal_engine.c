@@ -318,7 +318,20 @@ rasqal_engine_assign_variables(rasqal_query* rq)
 /* static */
 static rasqal_triples_source_factory Triples_Source_Factory;
 
-void
+
+/**
+ * rasqal_set_triples_source_factory - Register the factory to return triple sources
+ * @register_fn: registration function
+ * @user_data: user data for registration
+ * 
+ * Registers the factory that returns triples sources.  Note that
+ * there is only one of these per runtime. 
+ *
+ * The rasqal_triples_source_factory factory method new_triples_source is
+ * called with the user data for some query and rasqal_triples_source.
+ * 
+ **/
+RASQAL_API void
 rasqal_set_triples_source_factory(void (*register_fn)(rasqal_triples_source_factory *factory), void* user_data) {
   Triples_Source_Factory.user_data=user_data;
   register_fn(&Triples_Source_Factory);
