@@ -285,6 +285,11 @@ struct rasqal_query_s {
 
   /* Count of all optional matches for the current mandatory matches */
   int optional_graph_pattern_matches_count;
+
+  /* Max optional graph pattern allowed so far to stop backtracking
+   * going over old graph patterns
+   */
+  int max_optional_graph_pattern;
 };
 
 
