@@ -1,3 +1,32 @@
+2004-10-20  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* configure.ac:
+	use $srcdir not .. when looking for raptor sources nearby
+
+	* configure.ac: raptor minimum version 1.4.0
+
+	* roqet.c: cast for fprintf
+
+	* configure.ac: autoconf mode
+
+2004-10-18  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rdql_lexer.l, rdql_parser.y, sparql_lexer.l, sparql_parser.y:
+	Rename rather generic define ERROR to ERROR_TOKEN to help win32.
+
+	* rdql_lexer.l, sparql_lexer.l: words
+
+	* rasqal_engine.c (rasqal_set_triples_source_factory):
+	Export this, to match rasqal.h
+	and add docs.
+
+2004-10-17  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* roqet.c: Tidy some #defines
+	(main): Don't print all of huge query_string on errors.
+
+	* roqet.1: formatting
+
 2004-10-16  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
 	* tests/sparql/check-sparql: Destroy duff relative file: URIs only
@@ -45,10 +74,8 @@
 
 	* configure.ac: Added tests/sparql/examples/Makefile
 
-	* sparql_parser.y:
-	Added SPARQL URI token replacing URI_LITERAL | QNAME_LITERAL for
-	clarity.
-	Makes several List tokens shorter
+	* sparql_parser.y: Added SPARQL URI token replacing URI_LITERAL |
+	QNAME_LITERAL for clarity.  Makes several List tokens shorter
 
 	* sparql_parser.y (VarOrURIList, VarList): Made left recursive.
 	(VarOrURI): Don't allow a QName.
@@ -57,8 +84,8 @@
 
 	* rdql_parser.y (VarList): rewrite as left recursive
 
-	* roqet.c (main): When adding source_uri as a triple source, URI is now
-	managed by the query, so drop the source_uri pointer.
+	* roqet.c (main): When adding source_uri as a triple source, URI
+	is now managed by the query, so drop the source_uri pointer.
 
 2004-10-15  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
@@ -72,9 +99,8 @@
 	(PrefixDeclList): Shift new prefixes to existing prefixes list.
 	(main): Update test code to initialise/free static query.prefixes.
 
-	* rasqal_query.c (rasqal_new_query):
-	Init query->prefixes here rather than in each QL
-	implementation.
+	* rasqal_query.c (rasqal_new_query): Init query->prefixes here
+	rather than in each QL implementation.
 
 	* sparql_parser.y: Remove prefix from %union - not needed
 
