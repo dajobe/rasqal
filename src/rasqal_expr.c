@@ -381,6 +381,12 @@ rasqal_free_expression(rasqal_expression* e)
     case RASQAL_EXPR_BANG:
     case RASQAL_EXPR_UMINUS:
     case RASQAL_EXPR_BOUND:
+    case RASQAL_EXPR_STR:
+    case RASQAL_EXPR_LANG:
+    case RASQAL_EXPR_DATATYPE:
+    case RASQAL_EXPR_ISURI:
+    case RASQAL_EXPR_ISBLANK:
+    case RASQAL_EXPR_ISLITERAL:
       rasqal_free_expression(e->arg1);
       break;
     case RASQAL_EXPR_STR_MATCH:
@@ -429,6 +435,12 @@ rasqal_expression_foreach(rasqal_expression* e,
     case RASQAL_EXPR_BANG:
     case RASQAL_EXPR_UMINUS:
     case RASQAL_EXPR_BOUND:
+    case RASQAL_EXPR_STR:
+    case RASQAL_EXPR_LANG:
+    case RASQAL_EXPR_DATATYPE:
+    case RASQAL_EXPR_ISURI:
+    case RASQAL_EXPR_ISBLANK:
+    case RASQAL_EXPR_ISLITERAL:
       return fn(user_data, e) ||
         rasqal_expression_foreach(e->arg1, fn, user_data);
       break;
@@ -484,6 +496,13 @@ rasqal_literal*
 rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
 {
   int error=0;
+  rasqal_literal* result=NULL;
+  
+#ifdef RASQAL_DEBUG
+  RASQAL_DEBUG2("evaluating expression %p: ", e);
+  rasqal_expression_print(e, stderr);
+  fprintf(stderr, "\n");
+#endif
   
   switch(e->op) {
     case RASQAL_EXPR_AND:
@@ -493,22 +512,23 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
         
         l=rasqal_expression_evaluate(query, e->arg1);
         if(!l)
-          return NULL;
+          goto failed;
         b=rasqal_literal_as_boolean(l, &error);
         rasqal_free_literal(l);
         if(error)
-          return NULL;
+          goto failed;
 
         if(b) {
           l=rasqal_expression_evaluate(query, e->arg2);
           if(!l)
-            return NULL;
+            goto failed;
           b=rasqal_literal_as_boolean(l, &error);
           rasqal_free_literal(l);
           if(error)
-            return NULL;
+            goto failed;
         }
-        return rasqal_new_boolean_literal(b);
+        result=rasqal_new_boolean_literal(b);
+        break;
       }
       
     case RASQAL_EXPR_OR:
@@ -518,22 +538,23 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
         
         l=rasqal_expression_evaluate(query, e->arg1);
         if(!l)
-          return NULL;
+          goto failed;
         b=rasqal_literal_as_boolean(l, &error);
         rasqal_free_literal(l);
         if(error)
-          return NULL;
+          goto failed;
 
         if(!b) {
           l=rasqal_expression_evaluate(query, e->arg2);
           if(!l)
-            return NULL;
+            goto failed;
           b=rasqal_literal_as_boolean(l, &error);
           rasqal_free_literal(l);
           if(error)
-            return NULL;
+            goto failed;
         }
-        return rasqal_new_boolean_literal(b);
+        result=rasqal_new_boolean_literal(b);
+        break;
       }
 
     case RASQAL_EXPR_EQ:
@@ -543,20 +564,21 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
         
         l1=rasqal_expression_evaluate(query, e->arg1);
         if(!l1)
-          return NULL;
+          goto failed;
 
         l2=rasqal_expression_evaluate(query, e->arg2);
         if(!l2) {
           rasqal_free_literal(l1);
-          return NULL;
+          goto failed;
         }
 
         b=(rasqal_literal_compare(l1, l2, 0, &error) == 0);
         rasqal_free_literal(l1);
         rasqal_free_literal(l2);
         if(error)
-          return NULL;
-        return rasqal_new_boolean_literal(b);
+          goto failed;
+        result=rasqal_new_boolean_literal(b);
+        break;
       }
 
     case RASQAL_EXPR_NEQ:
@@ -566,20 +588,21 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
         
         l1=rasqal_expression_evaluate(query, e->arg1);
         if(!l1)
-          return NULL;
+          goto failed;
 
         l2=rasqal_expression_evaluate(query, e->arg2);
         if(!l2) {
           rasqal_free_literal(l1);
-          return NULL;
+          goto failed;
         }
 
         b=(rasqal_literal_compare(l1, l2, 0, &error) != 0);
         rasqal_free_literal(l1);
         rasqal_free_literal(l2);
         if(error)
-          return NULL;
-        return rasqal_new_boolean_literal(b);
+          goto failed;
+        result=rasqal_new_boolean_literal(b);
+        break;
       }
 
     case RASQAL_EXPR_LT:
@@ -589,20 +612,21 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
         
         l1=rasqal_expression_evaluate(query, e->arg1);
         if(!l1)
-          return NULL;
+          goto failed;
 
         l2=rasqal_expression_evaluate(query, e->arg2);
         if(!l2) {
           rasqal_free_literal(l1);
-          return NULL;
+          goto failed;
         }
 
         b=(rasqal_literal_compare(l1, l2, 0, &error) > 0);
         rasqal_free_literal(l1);
         rasqal_free_literal(l2);
         if(error)
-          return NULL;
-        return rasqal_new_boolean_literal(b);
+          goto failed;
+        result=rasqal_new_boolean_literal(b);
+        break;
       }
 
     case RASQAL_EXPR_GT:
@@ -612,20 +636,21 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
         
         l1=rasqal_expression_evaluate(query, e->arg1);
         if(!l1)
-          return NULL;
+          goto failed;
 
         l2=rasqal_expression_evaluate(query, e->arg2);
         if(!l2) {
           rasqal_free_literal(l1);
-          return NULL;
+          goto failed;
         }
 
         b=(rasqal_literal_compare(l1, l2, 0, &error) < 0);
         rasqal_free_literal(l1);
         rasqal_free_literal(l2);
         if(error)
-          return NULL;
-        return rasqal_new_boolean_literal(b);
+          goto failed;
+        result=rasqal_new_boolean_literal(b);
+        break;
       }
 
     case RASQAL_EXPR_LE:
@@ -635,20 +660,21 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
         
         l1=rasqal_expression_evaluate(query, e->arg1);
         if(!l1)
-          return NULL;
+          goto failed;
 
         l2=rasqal_expression_evaluate(query, e->arg2);
         if(!l2) {
           rasqal_free_literal(l1);
-          return NULL;
+          goto failed;
         }
 
         b=(rasqal_literal_compare(l1, l2, 0, &error) >= 0);
         rasqal_free_literal(l1);
         rasqal_free_literal(l2);
         if(error)
-          return NULL;
-        return rasqal_new_boolean_literal(b);
+          goto failed;
+        result=rasqal_new_boolean_literal(b);
+        break;        
       }
 
     case RASQAL_EXPR_GE:
@@ -658,20 +684,21 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
         
         l1=rasqal_expression_evaluate(query, e->arg1);
         if(!l1)
-          return NULL;
+          goto failed;
 
         l2=rasqal_expression_evaluate(query, e->arg2);
         if(!l2) {
           rasqal_free_literal(l1);
-          return NULL;
+          goto failed;
         }
 
         b=(rasqal_literal_compare(l1, l2, 0, &error) <= 0);
         rasqal_free_literal(l1);
         rasqal_free_literal(l2);
         if(error)
-          return NULL;
-        return rasqal_new_boolean_literal(b);
+          goto failed;
+        result=rasqal_new_boolean_literal(b);
+        break;
       }
 
     case RASQAL_EXPR_UMINUS:
@@ -680,29 +707,211 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
         double d= -rasqal_literal_as_floating(l, &error);
         rasqal_free_literal(l);
         if(error)
-          return NULL;
-        return rasqal_new_floating_literal(d);
+          goto failed;
+        result=rasqal_new_floating_literal(d);
+        break;
       }
 
     case RASQAL_EXPR_BOUND:
       {
-        rasqal_literal *l=rasqal_expression_evaluate(query, e->arg1);
+        rasqal_literal *l;
         rasqal_variable* v;
         int b;
 
+        l=rasqal_expression_evaluate(query, e->arg1);
+        if(!l)
+          goto failed;
+        
         v=rasqal_literal_as_variable(l);
         if(!v) {
           rasqal_free_literal(l);
-          return NULL;
+          goto failed;
         }
 
         b=(v->value != NULL);
 
         rasqal_free_literal(l);
-        return rasqal_new_boolean_literal(b);
+        result=rasqal_new_boolean_literal(b);
+        break;
       }
 
+    case RASQAL_EXPR_STR:
+      {
+        rasqal_literal* l;
+        const unsigned char* s;
+        
+        l=rasqal_expression_evaluate(query, e->arg1);
+        if(!l)
+          goto failed;
 
+        s=rasqal_literal_as_string(l);
+        if(!s) {
+          rasqal_free_literal(l);
+          goto failed;
+        }
+        
+        result=rasqal_new_string_literal(s, NULL, NULL, NULL);
+        rasqal_free_literal(l);
+
+        break;
+      }
+      
+    case RASQAL_EXPR_LANG:
+      {
+        rasqal_literal* l;
+        rasqal_variable* v;
+        unsigned char* new_language;
+        int free_literal=1;
+        
+        l=rasqal_expression_evaluate(query, e->arg1);
+        if(!l)
+          goto failed;
+
+        v=rasqal_literal_as_variable(l);
+        if(v) {
+          rasqal_free_literal(l);
+          l=v->value;
+          free_literal=0;
+        }
+
+        if(l->type != RASQAL_LITERAL_STRING) {
+          if(free_literal)
+            rasqal_free_literal(l);
+          goto failed;
+        }
+        
+        if(l->language) {
+          new_language=RASQAL_MALLOC(cstring, strlen(l->language)+1);
+          strcpy(new_language, l->language);
+        } else {
+          new_language=RASQAL_MALLOC(cstring, 2);
+          new_language[0]='-';
+          new_language[1]='\0';
+        }
+        
+        result=rasqal_new_string_literal(new_language, NULL, NULL, NULL);
+
+        if(free_literal)
+          rasqal_free_literal(l);
+
+        break;
+      }
+
+    case RASQAL_EXPR_DATATYPE:
+      {
+        rasqal_literal* l;
+        rasqal_variable* v;
+        int free_literal=1;
+        
+        l=rasqal_expression_evaluate(query, e->arg1);
+        if(!l)
+          goto failed;
+
+        v=rasqal_literal_as_variable(l);
+        if(v) {
+          rasqal_free_literal(l);
+          l=v->value;
+          free_literal=0;
+        }
+
+        if(l->type != RASQAL_LITERAL_STRING) {
+          if(free_literal)
+            rasqal_free_literal(l);
+          goto failed;
+        }
+        
+        if(l->datatype)
+          result=rasqal_new_uri_literal(raptor_uri_copy(l->datatype));
+        else
+          result=NULL;
+
+        if(free_literal)
+          rasqal_free_literal(l);
+
+        break;
+      }
+
+    case RASQAL_EXPR_ISURI:
+      {
+        rasqal_literal *l;
+        rasqal_variable* v;
+        int free_literal=1;
+        int b;
+        
+        l=rasqal_expression_evaluate(query, e->arg1);
+        if(!l)
+          goto failed;
+        
+        v=rasqal_literal_as_variable(l);
+        if(v) {
+          rasqal_free_literal(l);
+          l=v->value;
+          free_literal=0;
+        }
+
+        b=(l->type == RASQAL_LITERAL_URI);
+        
+        if(free_literal)
+          rasqal_free_literal(l);
+
+        result=rasqal_new_boolean_literal(b);
+        break;
+      }
+
+    case RASQAL_EXPR_ISBLANK:
+      {
+        rasqal_literal *l;
+        rasqal_variable* v;
+        int free_literal=1;
+        int b;
+        
+        l=rasqal_expression_evaluate(query, e->arg1);
+        if(!l)
+          goto failed;
+        
+        v=rasqal_literal_as_variable(l);
+        if(v) {
+          rasqal_free_literal(l);
+          l=v->value;
+          free_literal=0;
+        }
+
+        b=(l->type == RASQAL_LITERAL_BLANK);
+
+        if(free_literal)
+          rasqal_free_literal(l);
+
+        result=rasqal_new_boolean_literal(b);
+        break;
+      }
+
+    case RASQAL_EXPR_ISLITERAL:
+      {
+        rasqal_literal *l;
+        rasqal_variable* v;
+        int free_literal=1;
+        int b;
+        
+        l=rasqal_expression_evaluate(query, e->arg1);
+        if(!l)
+          goto failed;
+        
+        v=rasqal_literal_as_variable(l);
+        if(v) {
+          rasqal_free_literal(l);
+          l=v->value;
+          free_literal=0;
+        }
+
+        b=(l->type == RASQAL_LITERAL_STRING);
+
+        if(free_literal)
+          rasqal_free_literal(l);
+
+        result=rasqal_new_boolean_literal(b);
+        break;
+      }
+      
     case RASQAL_EXPR_PLUS:
       {
         rasqal_literal *l1, *l2;
@@ -712,12 +921,12 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
         
         l1=rasqal_expression_evaluate(query, e->arg1);
         if(!l1)
-          return NULL;
+          goto failed;
 
         l2=rasqal_expression_evaluate(query, e->arg2);
         if(!l2) {
           rasqal_free_literal(l1);
-          return NULL;
+          goto failed;
         }
 
         d=rasqal_literal_as_floating(l1, &error1) + 
@@ -725,8 +934,10 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
         rasqal_free_literal(l1);
         rasqal_free_literal(l2);
         if(error || error1 || error2)
-          return NULL;
-        return rasqal_new_floating_literal(d);
+          goto failed;
+
+        result=rasqal_new_floating_literal(d);
+        break;
       }
       
     case RASQAL_EXPR_MINUS:
@@ -738,12 +949,12 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
         
         l1=rasqal_expression_evaluate(query, e->arg1);
         if(!l1)
-          return NULL;
+          goto failed;
 
         l2=rasqal_expression_evaluate(query, e->arg2);
         if(!l2) {
           rasqal_free_literal(l1);
-          return NULL;
+          goto failed;
         }
 
         d=rasqal_literal_as_floating(l1, &error1) -
@@ -751,8 +962,10 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
         rasqal_free_literal(l1);
         rasqal_free_literal(l2);
         if(error || error1 || error2)
-          return NULL;
-        return rasqal_new_floating_literal(d);
+          goto failed;
+
+        result=rasqal_new_floating_literal(d);
+        break;
       }
       
     case RASQAL_EXPR_STAR:
@@ -764,12 +977,12 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
         
         l1=rasqal_expression_evaluate(query, e->arg1);
         if(!l1)
-          return NULL;
+          goto failed;
 
         l2=rasqal_expression_evaluate(query, e->arg2);
         if(!l2) {
           rasqal_free_literal(l1);
-          return NULL;
+          goto failed;
         }
 
         d=rasqal_literal_as_floating(l1, &error1) *
@@ -777,8 +990,10 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
         rasqal_free_literal(l1);
         rasqal_free_literal(l2);
         if(error || error1 || error2)
-          return NULL;
-        return rasqal_new_floating_literal(d);
+          goto failed;
+
+        result=rasqal_new_floating_literal(d);
+        break;
       }
       
     case RASQAL_EXPR_SLASH:
@@ -790,12 +1005,12 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
         
         l1=rasqal_expression_evaluate(query, e->arg1);
         if(!l1)
-          return NULL;
+          goto failed;
 
         l2=rasqal_expression_evaluate(query, e->arg2);
         if(!l2) {
           rasqal_free_literal(l1);
-          return NULL;
+          goto failed;
         }
 
         d=rasqal_literal_as_floating(l1, &error1) /
@@ -803,8 +1018,9 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
         rasqal_free_literal(l1);
         rasqal_free_literal(l2);
         if(error || error1 || error2)
-          return NULL;
-        return rasqal_new_floating_literal(d);
+          goto failed;
+        result=rasqal_new_floating_literal(d);
+        break;
       }
       
     case RASQAL_EXPR_REM:
@@ -816,12 +1032,12 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
         
         l1=rasqal_expression_evaluate(query, e->arg1);
         if(!l1)
-          return NULL;
+          goto failed;
 
         l2=rasqal_expression_evaluate(query, e->arg2);
         if(!l2) {
           rasqal_free_literal(l1);
-          return NULL;
+          goto failed;
         }
 
         i=rasqal_literal_as_integer(l1, &error1) %
@@ -829,8 +1045,10 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
         rasqal_free_literal(l1);
         rasqal_free_literal(l2);
         if(error || error1 || error2)
-          return NULL;
-        return rasqal_new_integer_literal(RASQAL_LITERAL_INTEGER, i);
+          goto failed;
+
+        result=rasqal_new_integer_literal(RASQAL_LITERAL_INTEGER, i);
+        break;
       }
       
     case RASQAL_EXPR_STR_EQ:
@@ -840,20 +1058,22 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
         
         l1=rasqal_expression_evaluate(query, e->arg1);
         if(!l1)
-          return NULL;
+          goto failed;
 
         l2=rasqal_expression_evaluate(query, e->arg2);
         if(!l2) {
           rasqal_free_literal(l1);
-          return NULL;
+          goto failed;
         }
 
         b=(rasqal_literal_compare(l1, l2, RASQAL_COMPARE_NOCASE, &error) == 0);
         rasqal_free_literal(l1);
         rasqal_free_literal(l2);
         if(error)
-          return NULL;
-        return rasqal_new_boolean_literal(b);
+          goto failed;
+
+        result=rasqal_new_boolean_literal(b);
+        break;
       }
       
     case RASQAL_EXPR_STR_NEQ:
@@ -863,20 +1083,22 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
         
         l1=rasqal_expression_evaluate(query, e->arg1);
         if(!l1)
-          return NULL;
+          goto failed;
 
         l2=rasqal_expression_evaluate(query, e->arg2);
         if(!l2) {
           rasqal_free_literal(l1);
-          return NULL;
+          goto failed;
         }
 
         b=(rasqal_literal_compare(l1, l2, RASQAL_COMPARE_NOCASE, &error) != 0);
         rasqal_free_literal(l1);
         rasqal_free_literal(l2);
         if(error)
-          return NULL;
-        return rasqal_new_boolean_literal(b);
+          goto failed;
+
+        result=rasqal_new_boolean_literal(b);
+        break;
       }
 
     case RASQAL_EXPR_TILDE:
@@ -885,8 +1107,10 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
         int i= ~ rasqal_literal_as_integer(l, &error);
         rasqal_free_literal(l);
         if(error)
-          return NULL;
-        return rasqal_new_integer_literal(RASQAL_LITERAL_INTEGER, i);
+          goto failed;
+
+        result=rasqal_new_integer_literal(RASQAL_LITERAL_INTEGER, i);
+        break;
       }
 
     case RASQAL_EXPR_BANG:
@@ -895,8 +1119,10 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
         int b= ! rasqal_literal_as_boolean(l, &error);
         rasqal_free_literal(l);
         if(error)
-          return NULL;
-        return rasqal_new_boolean_literal(b);
+          goto failed;
+
+        result=rasqal_new_boolean_literal(b);
+        break;
       }
 
     case RASQAL_EXPR_STR_MATCH:
@@ -922,11 +1148,11 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
         
         l1=rasqal_expression_evaluate(query, e->arg1);
         if(!l1)
-          return NULL;
+          goto failed;
         match_string=rasqal_literal_as_string(l1);
         if(!match_string) {
           rasqal_free_literal(l1);
-          return NULL;
+          goto failed;
         }
         
         l2=e->literal;
@@ -1001,13 +1227,14 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
         rasqal_free_literal(l1);
 
         if(rc<0)
-          return NULL;
+          goto failed;
         
-        return rasqal_new_boolean_literal(b);
+        result=rasqal_new_boolean_literal(b);
+        break;
       }
 
     case RASQAL_EXPR_LITERAL:
-      return rasqal_new_literal_from_literal(e->literal);
+      result=rasqal_new_literal_from_literal(e->literal);
       break;
 
     case RASQAL_EXPR_FUNCTION:
@@ -1018,7 +1245,18 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
       RASQAL_FATAL2("Unknown operation %d", e->op);
   }
 
-  return NULL;
+  failed:
+
+#ifdef RASQAL_DEBUG
+  RASQAL_DEBUG2("result of %p: ", e);
+  if(result)
+    rasqal_literal_print(result, stderr);
+  else
+    fputs("(NULL)",stderr);
+  fputc('\n', stderr);
+#endif
+  
+  return result;
 }
 
 
@@ -1047,7 +1285,13 @@ static const char* rasqal_op_labels[RASQAL_EXPR_LAST+1]={
   "literal",
   "pattern",
   "function",
-  "bound"
+  "bound",
+  "str",
+  "lang",
+  "datatype",
+  "isUri",
+  "isBlank",
+  "isLiteral"
 };
 
 void
@@ -1102,6 +1346,12 @@ rasqal_expression_print(rasqal_expression* e, FILE* fh)
     case RASQAL_EXPR_BANG:
     case RASQAL_EXPR_UMINUS:
     case RASQAL_EXPR_BOUND:
+    case RASQAL_EXPR_STR:
+    case RASQAL_EXPR_LANG:
+    case RASQAL_EXPR_DATATYPE:
+    case RASQAL_EXPR_ISURI:
+    case RASQAL_EXPR_ISBLANK:
+    case RASQAL_EXPR_ISLITERAL:
       fputs("op ", fh);
       rasqal_expression_print_op(e, fh);
       fputc('(', fh);
