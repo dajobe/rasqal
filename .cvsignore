@@ -1,4 +1,3 @@
-.gdb_history
 *.gz
 *.la
 *.lo
@@ -6,6 +5,7 @@
 *test
 .cvsignore
 .deps
+.gdb_history
 .libs
 COPYING.LIB
 ChangeLog*
@@ -44,7 +44,9 @@ rdql_parser.h
 rdql_parser.output
 rdql_parser.tab.c
 rdql_parser.tab.h
+releases
 roqet
+roqet.html
 setup.sh
 stamp-h*
 test*
