@@ -41,6 +41,7 @@ struct rasqal_sequence_s {
   int capacity;
   void **sequence;
   rasqal_free_handler *free_handler;
+  rasqal_print_handler *print_handler;
 };
 
 
@@ -49,18 +50,15 @@ static int rasqal_sequence_grow(rasqal_sequence *seq);
 
 /* Constructor */
 rasqal_sequence*
-rasqal_new_sequence(int capacity, rasqal_free_handler *free_handler) {
+rasqal_new_sequence(rasqal_free_handler *free_handler,
+                    rasqal_print_handler *print_handler) {
   rasqal_sequence* seq=(rasqal_sequence*)malloc(sizeof(rasqal_sequence));
   if(!seq)
     return NULL;
   seq->size=0;
   seq->capacity=0;
   seq->free_handler=free_handler;
-  
-  if(capacity>0 && rasqal_sequence_ensure(seq, capacity)) {
-    free(seq);
-    return NULL;
-  }
+  seq->print_handler=print_handler;
   
   return seq;
 }
@@ -213,10 +211,17 @@ rasqal_sequence_unshift(rasqal_sequence* seq) {
 }
 
 
+
+void
+rasqal_sequence_print_string(char *data, FILE *fh) 
+{
+  fputs(data, fh);
+}
+
+
 /* print sequence */
 void
-rasqal_sequence_print(rasqal_sequence* seq, FILE* fh,
-                      rasqal_print_handler handler)
+rasqal_sequence_print(rasqal_sequence* seq, FILE* fh)
 {
   int i;
 
@@ -228,7 +233,7 @@ rasqal_sequence_print(rasqal_sequence* seq, FILE* fh,
     if(i)
       fputs(", ", fh);
     if(seq->sequence[i])
-      handler(seq->sequence[i], fh);
+      seq->print_handler(seq->sequence[i], fh);
     else
       fputs("(empty)", fh);
   }
