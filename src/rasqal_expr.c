@@ -262,8 +262,11 @@ rasqal_new_variable(rasqal_query* rq,
   
   for(i=0; i< rasqal_sequence_size(rq->variables_sequence); i++) {
     v=(rasqal_variable*)rasqal_sequence_get_at(rq->variables_sequence, i);
-    if(!strcmp(v->name, name))
+    if(!strcmp(v->name, name)) {
+      /* name already present, do not need a copy */
+      RASQAL_FREE(cstring, name);
       return v;
+    }
   }
     
   v=(rasqal_variable*)calloc(sizeof(rasqal_variable), 1);
