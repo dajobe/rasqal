@@ -491,7 +491,8 @@ rasqal_engine_execute_finish(rasqal_query *query) {
   RASQAL_FREE(rasqal_triple_meta, query->triple_meta);
   query->triple_meta=NULL;
 
-  rasqal_free_triples_source(query->triples_source);
+  if(query->triples_source)
+    rasqal_free_triples_source(query->triples_source);
 
   return 0;
 }
