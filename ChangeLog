@@ -1,3 +1,92 @@
+2004-09-30  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal_query.c (rasqal_query_add_source, rasqal_query_get_source):
+	 Handle NULL
+	query->sources and initialise it first time when adding.
+	(rasqal_query_add_variable, rasqal_query_get_variable,
+	rasqal_query_has_variable, rasqal_query_set_variable): Handle NULL
+	query->selects and initialise it first time when adding.
+	(rasqal_query_add_triple, rasqal_query_get_triple):Handle NULL
+	query->triples and initialise it first time when adding.
+	(rasqal_query_add_constraint, rasqal_query_get_constraint): Handle NULL
+	query->constraints and initialise it first time when adding.
+	(rasqal_query_add_prefix, rasqal_query_get_prefix): Handle NULL
+	query->prefixes and initialise it first time when adding.
+
+	* roqet.c:
+	Added -d URI to specify a data URI to load before running the query.
+
+2004-09-26  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* brql_parser.y:
+	(TriplePatternList) Append constraint to right sequence.
+
+	* brql_parser.y: Merged CommaAndConstraintClause into TriplePatternList
+	to remove another shift/reduce conflict with AND.
+
+	* brql_parser.y: CommaAndConstraintClause tidy
+
+	* brql_parser.y:
+	Removed SOURCE alias for FROM, reducing a shift/reduce cnflict
+
+	* brql_parser.y: URIList tidy
+
+	* fix-bison: Delete yyerrlab1 label only if used in a goto
+
+	* tests/brql/Q-F2F3-1, tests/brql/Q-F2F3-2: F2F3 bits
+
+	* rasqal_general.c: debug messages
+
+	* tests/brql/Q-SOURCE-2, tests/brql/Q-SOURCE-1: PREFIX syntax
+
+	* rasqal.h: rasqal_triples_source_s: remove source_index.
+	rasqal_triples_source_factory: remove UI from new_triples_source
+	method.
+
+	* rasqal_redland.c: rasqal_redland_triples_source_user_data: Add
+	source_uris array of size source_uris_count and source_index to
+	use it when loading data.
+	(rasqal_redland_new_triples_source): Walk through
+	each source URI in turn and load data.
+	(rasqal_redland_free_triples_source): Tidy up new array of uris.
+
+	* rasqal_raptor.c (rasqal_raptor_new_triples_source,
+	rasqal_raptor_free_triples_source): Allocate and free source_uris
+	and source_literals array.
+
+	* rasqal_redland.c (rasqal_redland_new_triples_source):
+	Handle 0 sources
+
+	* rasqal_raptor.c:
+	rasqal_raptor_triples_source_user_data: Add source_uris and
+	source_literals array of size source_uris_count and source_index to
+	use it when loading data.
+	(rasqal_raptor_statement_handler): set origin URI as pointer into
+	URI literals array.
+	(rasqal_raptor_new_triples_source): Remove URI arg.  Walk through
+	each source URI in turn and load data.
+	(rasqal_raptor_triple_match): Remove URi arg, use origin_uri from
+	triple.
+	(rasqal_raptor_free_triples_source): Tidy up new arrays of data.
+	(rasqal_raptor_bind_match): Update call to triple_match with no URI
+	argument.
+
+	* rasqal_engine.c (rasqal_new_triples_source):
+	Do not assume there is just one URI
+	source.
+	(rasqal_triples_source_next_source): Deleted.
+	(rasqal_engine_get_next_result): Remove call to
+	rasqal_triples_source_next_source - sources are not applied in order.
+
+	* brql_parser.y: expect 4
+	(TriplePatternList): Rewrite and add SOURCE, OPTIONAL
+	(ConstraintClause): Removed, now in TriplePatternList
+	(URIList): No commas
+
+	* Makefile.am: Added fix-bison.  Use it for rdql and brql parsers.
+
+	* fix-bison: fix-bison
+
 2004-09-19  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
 	* rasqal_internal.h: Added prototype for rasqal_engine_declare_prefix
