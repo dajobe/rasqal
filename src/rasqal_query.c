@@ -572,18 +572,18 @@ rasqal_query_get_result_bindings(rasqal_query *query,
 
 
 /**
- * rasqal_query_get_result_binding: Get one binding value for the current result
+ * rasqal_query_get_result_binding_value: Get one binding value for the current result
  * @query: &rasqal_query query
  * @offset: offset of binding name into array of known names
  * 
  * Return value: a pointer to a shared &rasqal_literal binding value or NULL on failure
  **/
 rasqal_literal*
-rasqal_query_get_result_binding(rasqal_query *query, int offset) {
+rasqal_query_get_result_binding_value(rasqal_query *query, int offset) {
   if(query->finished)
     return NULL;
 
-  if(offset < query->select_variables_count)
+  if(offset < 0 || offset > query->select_variables_count-1)
     return NULL;
   
   if(query->binding_values)
@@ -592,6 +592,25 @@ rasqal_query_get_result_binding(rasqal_query *query, int offset) {
     return NULL;
   
   return query->binding_values[offset];
+}
+
+
+/**
+ * rasqal_query_get_result_binding_name: Get binding name for the current result
+ * @query: &rasqal_query query
+ * @offset: offset of binding name into array of known names
+ * 
+ * Return value: a pointer to a shared copy of the binding name or NULL on failure
+ **/
+const char*
+rasqal_query_get_result_binding_name(rasqal_query *query, int offset) {
+  if(query->finished)
+    return NULL;
+
+  if(offset < 0 || offset > query->select_variables_count-1)
+    return NULL;
+  
+  return query->variables[offset]->name;
 }
 
 
