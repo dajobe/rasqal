@@ -119,8 +119,9 @@ static int rdql_query_error(rasqal_query* rq, const char *message);
 
 /* expression delimitors */
 
-%token COMMA LPAREN RPAREN
-%token VARPREFIX USING
+%token ',' '(' ')'
+%token '?'
+%token USING
 
 
 /* SC booleans */
@@ -182,7 +183,7 @@ Query : SELECT SelectClause SourceClause WHERE TriplePatternList ConstraintClaus
 }
 ;
 
-VarList : VarList COMMA Var
+VarList : VarList ',' Var
 {
   $$=$1;
   raptor_sequence_push($$, $3);
@@ -229,8 +230,8 @@ SourceClause : SOURCE URIList
 /* Inlined into SourceClause: SourceSelector : URL */
 
 
-/* Jena RDQL allows optional COMMA */
-TriplePatternList : TriplePatternList COMMA TriplePattern
+/* Jena RDQL allows optional ',' */
+TriplePatternList : TriplePatternList ',' TriplePattern
 {
   $$=$1;
   raptor_sequence_push($$, $3);
@@ -253,19 +254,19 @@ TriplePatternList : TriplePatternList COMMA TriplePattern
 
 
 /* FIXME - maybe a better way to do this optional COMMA? */
-TriplePattern : LPAREN VarOrURI COMMA VarOrURI COMMA VarOrLiteral RPAREN
+TriplePattern : '(' VarOrURI ',' VarOrURI ',' VarOrLiteral ')'
 {
   $$=rasqal_new_triple($2, $4, $6);
 }
-| LPAREN VarOrURI VarOrURI COMMA VarOrLiteral RPAREN
+| '(' VarOrURI VarOrURI ',' VarOrLiteral ')'
 {
   $$=rasqal_new_triple($2, $3, $5);
 }
-| LPAREN VarOrURI COMMA VarOrURI VarOrLiteral RPAREN
+| '(' VarOrURI ',' VarOrURI VarOrLiteral ')'
 {
   $$=rasqal_new_triple($2, $4, $5);
 }
-| LPAREN VarOrURI VarOrURI VarOrLiteral RPAREN
+| '(' VarOrURI VarOrURI VarOrLiteral ')'
 {
   $$=rasqal_new_triple($2, $3, $4);
 }
@@ -273,7 +274,7 @@ TriplePattern : LPAREN VarOrURI COMMA VarOrURI COMMA VarOrLiteral RPAREN
 
 
 /* Was:
-ConstraintClause : AND Expression ( ( COMMA | AND ) Expression )*
+ConstraintClause : AND Expression ( ( ',' | AND ) Expression )*
 */
 
 ConstraintClause : AND CommaAndConstraintClause
@@ -286,7 +287,7 @@ ConstraintClause : AND CommaAndConstraintClause
 }
 ;
 
-CommaAndConstraintClause : CommaAndConstraintClause COMMA Expression
+CommaAndConstraintClause : CommaAndConstraintClause ',' Expression
 {
   rasqal_query_add_constraint(((rasqal_query*)rq), $3);
   $$=NULL;
@@ -315,7 +316,7 @@ UsingClause : USING PrefixDeclList
 }
 ;
 
-PrefixDeclList : IDENTIFIER FOR URI_LITERAL COMMA PrefixDeclList 
+PrefixDeclList : IDENTIFIER FOR URI_LITERAL ',' PrefixDeclList 
 {
   $$=((rasqal_query*)rq)->prefixes;
   raptor_sequence_shift($$, rasqal_new_prefix($1, $3));
@@ -487,7 +488,7 @@ UnaryExpressionNotPlusMinus : TILDE UnaryExpression
 {
   $$=rasqal_new_literal_expression($1);
 }
-| LPAREN Expression RPAREN
+| '(' Expression ')'
 {
   $$=$2;
 }
@@ -517,7 +518,7 @@ VarOrLiteral : Var
 }
 ;
 
-Var : VARPREFIX IDENTIFIER
+Var : '?' IDENTIFIER
 {
   $$=rasqal_new_variable((rasqal_query*)rq, $2, NULL);
 }
@@ -559,7 +560,7 @@ Literal : URI_LITERAL
 
 ;
 
-URIList : URI_LITERAL COMMA URIList
+URIList : URI_LITERAL ',' URIList
 {
   $$=$3;
   raptor_sequence_shift($$, $1);

@@ -166,10 +166,10 @@ QUOTEDURI \<[A-Za-z][^>]+\>
 "USING"|"using"   { return USING; }
 "FOR"|"for"       { return FOR; }
 
-","      { return COMMA; } 
-"("      { return LPAREN; } 
-")"      { return RPAREN; } 
-"?"      { BEGIN(ID); return VARPREFIX; }
+","      { return ','; } 
+"("      { return '('; } 
+")"      { return ')'; } 
+"?"  { BEGIN(ID); return '?'; }
 
 "||"         { return SC_OR; }
 "&&"         { return SC_AND; }
@@ -571,17 +571,17 @@ rdql_token_print(int token, YYSTYPE *lval)
     case FOR:
       return "FOR";
 
-    case COMMA:
-      return "COMMA";
+    case ',':
+      return ",";
 
-    case LPAREN:
-      return "LPAREN";
+    case '(':
+      return "(";
 
-    case RPAREN:
-      return "RPAREN";
+    case ')':
+      return "(";
 
-    case VARPREFIX:
-      return "VARPREFIX";
+    case '?':
+      return "?";
 
     case USING:
       return "USING";
