@@ -32,14 +32,15 @@ man_MANS = roqet.1 librasqal.3 rasqal-config.1
 SUBDIRS=data tests docs win32
 
 TESTS=rasqal_expr_test strcasecmp_test rasqal_query_test
+local_tests=
 if RASQAL_QUERY_RDQL
-TESTS += rdql_lexer_test rdql_parser_test
+local_tests += rdql_lexer_test rdql_parser_test
 endif
 if RASQAL_QUERY_BRQL
-TESTS += brql_lexer_test brql_parser_test
+local_tests += brql_lexer_test brql_parser_test
 endif
 
-CLEANFILES=$(TESTS)
+CLEANFILES=$(TESTS) $(local_tests)
 MAINTAINERCLEANFILES=rdql_lexer.c rdql_lexer.h \
 rdql_parser.c rdql_parser.h rdql_parser.output \
 brql_lexer.c brql_lexer.h \
@@ -157,6 +158,9 @@ brql_parser.c: $(srcdir)/brql_parser.y
 endif
 
 
+# These are compiled here and used elsewhere for running tests
+check-local: $(local_tests)
+
 rdql_lexer_test: $(srcdir)/rdql_lexer.c librasqal.la
 	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE @RASQAL_INTERNAL_CPPFLAGS@ $(srcdir)/rdql_lexer.c librasqal.la $(LIBS)
 
@@ -169,13 +173,13 @@ brql_lexer_test: $(srcdir)/brql_lexer.c librasqal.la
 brql_parser_test: $(srcdir)/brql_parser.c librasqal.la
 	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE @RASQAL_INTERNAL_CPPFLAGS@ $(srcdir)/brql_parser.c librasqal.la $(LIBS)
 
-rasqal_expr_test: $(srcdir)/rasqal_expr.c librasqal.la
+rasqal_expr_test$(EXEEXT): $(srcdir)/rasqal_expr.c librasqal.la
 	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE @RASQAL_INTERNAL_CPPFLAGS@ $(srcdir)/rasqal_expr.c librasqal.la $(LIBS)
 
-strcasecmp_test: $(srcdir)/strcasecmp.c
+strcasecmp_test$(EXEEXT): $(srcdir)/strcasecmp.c
 	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE $(srcdir)/strcasecmp.c
 
-rasqal_query_test: $(srcdir)/rasqal_query_test.c librasqal.la
+rasqal_query_test$(EXEEXT): $(srcdir)/rasqal_query_test.c librasqal.la
 	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE $(srcdir)/rasqal_query_test.c librasqal.la $(LIBS)
 
 $(top_builddir)/raptor/libraptor.la:
