@@ -109,7 +109,8 @@ typedef enum {
   RASQAL_EXPR_BANG,
   RASQAL_EXPR_LITERAL,
   RASQAL_EXPR_VARIABLE,
-  RASQAL_EXPR_LAST= RASQAL_EXPR_VARIABLE
+  RASQAL_EXPR_PATTERN,
+  RASQAL_EXPR_LAST= RASQAL_EXPR_PATTERN
 } rasqal_op;
 
 
@@ -122,31 +123,18 @@ struct rasqal_expression_s {
   struct rasqal_expression_s* arg2;
   rasqal_literal* literal;
   rasqal_variable* variable;
+  char *value;
 };
 typedef struct rasqal_expression_s rasqal_expression;
 
 
 
-typedef enum {
-  RASQAL_TERM_UNKNOWN,    /* Unknown term type - illegal */
-  RASQAL_TERM_VAR,
-  RASQAL_TERM_URI,
-  RASQAL_TERM_PATTERN,
-  RASQAL_TERM_LITERAL,
-} rasqal_term_type;
 
-/* variable or URI (string) or pattern (string) or literal (string) */
+/* three expressions */
 typedef struct {
-  rasqal_term_type type;
-  void *value;
-} rasqal_term ;
-
-
-/* three terms */
-typedef struct {
-  rasqal_term* subject;
-  rasqal_term* predicate;
-  rasqal_term* object;
+  rasqal_expression* subject;
+  rasqal_expression* predicate;
+  rasqal_expression* object;
 } rasqal_triple ;
 
 
@@ -209,7 +197,12 @@ RASQAL_API void rasqal_sequence_print_string(char *data, FILE *fh);
 RASQAL_API void rasqal_sequence_print(rasqal_sequence* seq, FILE* fh);
 
 /* Expression class */
-RASQAL_API rasqal_expression* rasqal_new_expression(rasqal_op op, rasqal_expression* arg1, rasqal_expression* arg2, rasqal_literal *literal, rasqal_variable *variable);
+RASQAL_API rasqal_expression* rasqal_new_1op_expression(rasqal_op op, rasqal_expression* arg);
+RASQAL_API rasqal_expression* rasqal_new_2op_expression(rasqal_op op, rasqal_expression* arg1, rasqal_expression* arg2);
+RASQAL_API rasqal_expression* rasqal_new_string_op_expression(rasqal_op op, rasqal_expression* arg1, rasqal_literal* literal);
+RASQAL_API rasqal_expression* rasqal_new_literal_expression(rasqal_literal *literal);
+RASQAL_API rasqal_expression* rasqal_new_variable_expression(rasqal_variable *variable);
+
 RASQAL_API void rasqal_free_expression(rasqal_expression* e);
 RASQAL_API void rasqal_print_expression_op(rasqal_expression* expression, FILE* fh);
 RASQAL_API void rasqal_print_expression(rasqal_expression* e, FILE* fh);
@@ -224,13 +217,8 @@ RASQAL_API rasqal_prefix* rasqal_new_prefix(const char *prefix, const char *uri)
 RASQAL_API void rasqal_free_prefix(rasqal_prefix* prefix);
 RASQAL_API void rasqal_print_prefix(rasqal_prefix* p, FILE* fh);
 
-/* Term class */
-RASQAL_API rasqal_term* rasqal_new_term(rasqal_term_type type, void *value);
-RASQAL_API void rasqal_free_term(rasqal_term* term);
-RASQAL_API void rasqal_print_term(rasqal_term* t, FILE* fh);
-
 /* Triple class */
-RASQAL_API rasqal_triple* rasqal_new_triple(rasqal_term* subject, rasqal_term* predicate, rasqal_term* object);
+RASQAL_API rasqal_triple* rasqal_new_triple(rasqal_expression* subject, rasqal_expression* predicate, rasqal_expression* object);
 RASQAL_API void rasqal_free_triple(rasqal_triple* t);
 RASQAL_API void rasqal_print_triple(rasqal_triple* t, FILE* fh);
 
