@@ -1,3 +1,85 @@
+2005-03-10  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal_query.c (rasqal_graph_pattern_set_origin): Set origin
+	only on this graph pattern's columns/triples.
+
+	* roqet.c: Indenting tidying
+
+2005-03-09  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* roqet.c (roqet_graph_pattern_walk): Print constraints per-graph
+	pattern.
+
+	* rasqal_engine.c (rasqal_graph_pattern_get_constraint): use idx
+
+	* sparql_lexer.l: Remove NOT
+
+	* sparql_parser.y: Updates to grammar structure to match that of
+	the 17 February 2005 WD in
+	http://www.w3.org/TR/2005/WD-rdf-sparql-query-20050217/ Remove
+	unused NOT token 1 shift/reduce conflcit near: URI '(' which can
+	be a cast in a rule part of BuiltinExpression or a Literal.
+
+	* sparql_parser.y (sparql_parse): Use
+	rasqal_engine_query_constraints_has_qname.
+
+	* rdql_parser.y: Construct constraints in parsing via query field
+	constraints_sequence
+	(rasqal_rdql_query_engine_prepare): Init constraints_sequence and
+	after parsing, assign to the main graph pattern and delete it.
+	Then do the qname expansion.
+	(rdql_parse): Remove qname expansion to above function.
+	(main): Use rasqal_query_prepare rather than writing internal
+	fields directly.
+
+	* rasqal.h: Deprecate rasqal_query_add_constraint,
+	rasqal_query_get_constraint_sequence and
+	rasqal_query_get_constraint Added prototypes for
+	rasqal_graph_pattern_add_constraint,
+	rasqal_graph_pattern_get_constraint_sequence and
+	rasqal_graph_pattern_get_constraint
+
+	* rasqal_query.c: Moved constraints code to graph_pattern
+	(rasqal_free_query): Removed constraints code.
+	(rasqal_query_add_source, rasqal_query_get_source_sequence,
+	rasqal_query_get_source, rasqal_query_get_variable_sequence): Add
+	RASQAL_DEPRECATED_MESSAGE pointing at new choice.
+	(rasqal_query_add_constraint,
+	rasqal_query_get_constraint_sequence,
+	rasqal_query_get_constraint): Deprecated to methods on a
+	rasqal_graph_pattern
+	(rasqal_query_print): Remove constraints printing.
+
+	* rasqal_engine.c (rasqal_engine_query_constraints_has_qname):
+	Renamed from rasqal_engine_constraints_has_qname
+	(rasqal_engine_graph_pattern_constraints_has_qname): Added.
+	(rasqal_engine_expand_graph_pattern_constraints_qnames): Renamed
+	from rasqal_engine_expand_constraints_qnames
+	(rasqal_engine_expand_query_constraints_qnames): Added.
+	(rasqal_free_graph_pattern): Free constraints_expression and
+	constraints when present (moved from rasqal_free_query).
+	(rasqal_graph_pattern_add_constraint): Added, based on
+	rasqal_query_add_constraint.
+	(rasqal_graph_pattern_get_constraint_sequence): Added, based on
+	rasqal_query_get_constraint_sequence
+	(rasqal_graph_pattern_get_constraint): Added, based on
+	rasqal_query_get_constraint
+	(rasqal_graph_pattern_print): Add printing of constraints
+	(rasqal_engine_prepare): Build constraints expressions per graph
+	pattern.
+	(rasqal_engine_check_constraint, rasqal_engine_do_step,
+	rasqal_engine_do_optional_step): Operate constraints per-current
+	graph pattern.
+
+	* rasqal_internal.h: RASQAL_DEPRECATED_MESSAGE gains a count so it
+	warns just once.  rasqal_graph_pattern gains constraints,
+	constraints_expression fields.  rasqal_query internal looses
+	constraints.  Gains constraints_equence for rdql parsing use.
+	Added prototypes for rasqal_engine_query_constraints_has_qname,
+	rasqal_engine_graph_pattern_constraints_has_qname,
+	rasqal_engine_expand_query_constraints_qnames and
+	rasqal_engine_expand_graph_pattern_constraints_qnames
+
 2005-03-01  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
 	* roqet.c: Update to use rasqal_data_graph* and methods.
