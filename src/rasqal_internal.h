@@ -84,12 +84,6 @@ void rasqal_system_free(void *ptr);
 #define RASQAL_FATAL2(msg,arg) do {fprintf(stderr, "%s:%d:%s: fatal error: " msg, __FILE__, __LINE__ , __func__, arg); abort();} while(0)
 
 
-#ifdef RASQALDEBUG
-#define YYDEBUG 1
-#define YYERROR_VERBOSE
-#endif
-
-
 typedef struct rasqal_query_engine_factory_s rasqal_query_engine_factory;
 
 
