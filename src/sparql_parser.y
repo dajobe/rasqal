@@ -292,7 +292,8 @@ GraphPattern : GraphPattern PatternElement
 {
   /* FIXME - make graph pattern structure from element */
   $$=$1;
-  raptor_sequence_join($$, $2);
+  if($2)
+    raptor_sequence_join($$, $2);
 }
 | PatternElement
 {
@@ -306,6 +307,7 @@ GraphPattern : GraphPattern PatternElement
 PatternElement : TriplePatternList
 {
   /* FIXME - make a pattern element */
+  $$=$1;
 }
 | '{' GraphPattern '}' /*  ExplicitGroup inlined */
 {
@@ -344,7 +346,7 @@ GraphPattern1 : TriplePattern
 /* SPARQL Grammar: [12] PatternElementForms */
 
 /* This inlines use-once SourceGraphPattern and OptionalGraphPattern */
-PatternElementForms : SOURCE '*' GraphPattern1  /* from SourceGraphPattern */
+PatternElementForms: SOURCE '*' GraphPattern1  /* from SourceGraphPattern */
 {
   /* FIXME - SOURCE * has no defined meaning */
   $$=$3;
@@ -367,6 +369,7 @@ PatternElementForms : SOURCE '*' GraphPattern1  /* from SourceGraphPattern */
 | AND Expression
 {
   rasqal_query_add_constraint(((rasqal_query*)rq), $2);
+  $$=NULL;
 };
 
 
