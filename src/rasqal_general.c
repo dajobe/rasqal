@@ -169,8 +169,7 @@ rasqal_query_engine_register_factory(const char *name, const char *label,
 #if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
   RASQAL_DEBUG4("Received registration for syntax %s '%s' with alias '%s'\n", 
                 name, label, (alias ? alias : "none"));
-  RASQAL_DEBUG3(rasqal_query_register_factory,
-                "URI %s\n", (uri_string ? uri_string : "none"));
+  RASQAL_DEBUG2("URI %s\n", (uri_string ? (const char*)uri_string : (const char*)"none"));
 #endif
   
   query=(rasqal_query_engine_factory*)RASQAL_CALLOC(rasqal_query_engine_factory, 1,
