@@ -176,12 +176,15 @@ QUOTEDURI \<[A-Za-z][^>]+\>
 "DISTINCT"|"distinct"	{ return DISTINCT; } /* SPARQL */
 "LIMIT"|"limit"	{ return LIMIT; } /* SPARQL */
 
-","      { return COMMA; } 
-"("      { return LPAREN; } 
-")"      { return RPAREN; } 
-"["       { return LSQUARE; }
-"]"       { return RSQUARE; }
-"?"      { BEGIN(ID); return VARPREFIX; }
+","      { return ','; } 
+"("      { return '('; } 
+")"      { return ')'; } 
+"["       { return '['; }
+"]"       { return ']'; }
+"?"  { BEGIN(ID); return '?'; }
+"$"  { BEGIN(ID); return '$'; }
+"{"      { return '{'; } 
+"}"      { return '}'; } 
 
 "||"         { return SC_OR; }
 "&&"         { return SC_AND; }
@@ -221,7 +224,7 @@ QUOTEDURI \<[A-Za-z][^>]+\>
 "%"         { return REM; }
 "~"         { return TILDE; }
 "!"         { return BANG; }
-"&"         { return AMP; }
+"&"         { return '&'; }
 
 [0-9]+["lL"]?   { c=yytext[yyleng-1];
                   if (c== 'l' || c == 'L')
@@ -614,23 +617,32 @@ sparql_token_print(int token, YYSTYPE *lval)
     case LIMIT:
       return "LIMIT";
 
-    case COMMA:
-      return "COMMA";
+    case ',':
+      return ",";
 
-    case LPAREN:
-      return "LPAREN";
+    case '(':
+      return "(";
 
-    case RPAREN:
-      return "RPAREN";
+    case ')':
+      return ")";
 
-    case LSQUARE:
-      return "LSQUARE";
+    case '[':
+      return "[";
 
-    case RSQUARE:
-      return "RSQUARE";
+    case ']':
+      return "]";
 
-    case VARPREFIX:
-      return "VARPREFIX";
+    case '{':
+      return "{";
+
+    case '}':
+      return "}";
+
+    case '?':
+      return "?";
+
+    case '$':
+      return "$";
 
     case SC_AND:
       return "SC_AND";
