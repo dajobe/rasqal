@@ -172,7 +172,7 @@ rasqal_free_query(rasqal_query* query)
     RASQAL_FREE(vararray, query->variables);
 
   if(query->variables_declared_in)
-    RASQAL_FREE(graphpatternarray, query->variables_declared_in);
+    RASQAL_FREE(intarray, query->variables_declared_in);
 
   if(query->graph_patterns)
     raptor_free_sequence(query->graph_patterns);
