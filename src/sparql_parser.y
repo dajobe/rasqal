@@ -1011,7 +1011,7 @@ rasqal_init_query_engine_sparql(void) {
   rasqal_query_engine_register_factory("sparql", 
                                        "SPARQL W3C DAWG RDF Query Language",
                                        NULL,
-                                       (const unsigned char*)"http://www.w3.org/2001/sw/DataAccess/rq23/",
+                                       (const unsigned char*)"http://www.w3.org/TR/rdf-sparql-query/",
                                        &rasqal_sparql_query_engine_register_factory);
 }
 
