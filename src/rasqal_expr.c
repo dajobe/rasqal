@@ -128,7 +128,7 @@ rasqal_promote_string_literal_to_native(rasqal_literal *l)
   
   if(!strcmp(raptor_uri_as_string(l->datatype), "http://www.w3.org/2001/XMLSchema#double")) {
     double d=0.0;
-    sscanf(l->value.string, "%1g", &d);
+    sscanf(l->value.string, "%lf", &d);
     free(l->value.string);
 
     raptor_free_uri(l->datatype);
