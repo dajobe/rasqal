@@ -412,9 +412,6 @@ rasqal_new_triples_source(rasqal_query *query) {
   }
   rts->query=query;
 
-  if(!query->sources)
-    return NULL;
-
   if(Triples_Source_Factory.new_triples_source(query, 
                                                Triples_Source_Factory.user_data,
                                                rts->user_data, rts)) {
