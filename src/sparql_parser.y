@@ -52,8 +52,6 @@
 
 #include <sparql_common.h>
 
-#undef RASQAL_DEBUG
-#define RASQAL_DEBUG 2
 
 /* Make verbose error messages for syntax errors */
 /*
