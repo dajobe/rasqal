@@ -892,7 +892,7 @@ sparql_parse(rasqal_query* rq, const unsigned char *string) {
    */
   len= strlen((const char*)string);
   buf= (char *)RASQAL_MALLOC(cstring, len+3);
-  strncpy(buf, string, len);
+  strncpy(buf, (const char*)string, len);
   buf[len]= ' ';
   buf[len+1]= buf[len+2]='\0'; /* YY_END_OF_BUFFER_CHAR; */
   buffer= sparql_lexer__scan_buffer(buf, len+3, rqe->scanner);

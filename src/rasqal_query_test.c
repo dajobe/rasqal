@@ -60,10 +60,10 @@ main(int argc, char **argv) {
   rasqal_query *query = NULL;
   rasqal_query_results *results = NULL;
   raptor_uri *base_uri;
-  char *data_string;
-  char *uri_string;
+  unsigned char *data_string;
+  unsigned char *uri_string;
   const char *query_format=QUERY_FORMAT;
-  char *query_string;
+  unsigned char *query_string;
   int count;
 
   rasqal_init();
@@ -74,8 +74,8 @@ main(int argc, char **argv) {
   }
     
   data_string=raptor_uri_filename_to_uri_string(argv[1]);
-  query_string=(char*)malloc(strlen(data_string)+strlen(query_format)+1);
-  sprintf(query_string, query_format, data_string);
+  query_string=(unsigned char*)malloc(strlen((const char*)data_string)+strlen(query_format)+1);
+  sprintf((char*)query_string, query_format, data_string);
   raptor_free_memory(data_string);
   
   uri_string=raptor_uri_filename_to_uri_string("");
@@ -85,7 +85,7 @@ main(int argc, char **argv) {
   query=rasqal_new_query("rdql", NULL);
 
   printf("%s: preparing query\n", program);
-  if(rasqal_query_prepare(query, query_string,base_uri)) {
+  if(rasqal_query_prepare(query, query_string, base_uri)) {
     fprintf(stderr, "%s: query prepare FAILED\n", program);
     return(1);
   }
@@ -103,10 +103,10 @@ main(int argc, char **argv) {
   while(results && !rasqal_query_results_finished(results)) {
     int i;
     for(i=0; i<rasqal_query_results_get_bindings_count(results); i++) {
-      const char *name=rasqal_query_results_get_binding_name(results, i);
+      const unsigned char *name=rasqal_query_results_get_binding_name(results, i);
       rasqal_literal *value=rasqal_query_results_get_binding_value(results, i);
 
-      printf("result %d: variable %s=", count+1, name);
+      printf("result %d: variable %s=", count+1, (char*)name);
       rasqal_literal_print(value, stdout);
       putchar('\n');
     }
@@ -132,10 +132,10 @@ main(int argc, char **argv) {
   while(results && !rasqal_query_results_finished(results)) {
     int i;
     for(i=0; i<rasqal_query_results_get_bindings_count(results); i++) {
-      const char *name=rasqal_query_results_get_binding_name(results, i);
+      const unsigned char *name=rasqal_query_results_get_binding_name(results, i);
       rasqal_literal *value=rasqal_query_results_get_binding_value(results, i);
 
-      printf("result %d: variable %s=", count+1, name);
+      printf("result %d: variable %s=", count+1, (char*)name);
       rasqal_literal_print(value, stdout);
       putchar('\n');
     }
