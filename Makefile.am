@@ -77,6 +77,9 @@ NEWS: NEWS.html
 @MAINT@librasqal.html: $(srcdir)/librasqal.3
 @MAINT@	-groff -man -Thtml -P-l $< | tidy -asxml -wrap 1000 2>/dev/null | perl $(srcdir)/fix-groff-xhtml $@
 
+pkgconfigdir = $(libdir)/pkgconfig
+pkgconfig_DATA = rasqal.pc
+
 # Memory debugging alternatives
 MEM=@MEM@
 MEM_LIBS=@MEM_LIBS@

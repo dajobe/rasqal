@@ -93,5 +93,5 @@ make prefix=$RPM_BUILD_ROOT%{prefix} libdir=$RPM_BUILD_ROOT%{_libdir} mandir=$RP
 
 
 %changelog
-* Mon Aug 11 20:44:56 BST 2003 <Dave.Beckett@bristol.ac.uk>
+* Mon Aug 11 2003 <Dave.Beckett@bristol.ac.uk>
 - Initial packaging
