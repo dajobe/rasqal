@@ -359,8 +359,9 @@ main(int argc, char *argv[])
     query_string=(char*)calloc(FILE_READ_BUF_SIZE, 1);
     fread(query_string, FILE_READ_BUF_SIZE, 1, stdin);
   } else if(filename) {
+    FILE *fh;
     query_string=(char*)calloc(FILE_READ_BUF_SIZE, 1);
-    FILE *fh=fopen(filename, "r");
+    fh=fopen(filename, "r");
     if(!fh) {
       fprintf(stderr, "%s: file '%s' open failed - %s", 
               program, filename, strerror(errno));
