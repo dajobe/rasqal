@@ -1,3 +1,14 @@
+2004-10-24  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* librasqal.3: Updates for 0.9.3
+
+	* roqet.c (main): Use raptor_www_fetch_to_string from raptor 1.4.0
+
+	* roqet.c:
+	(roqet_get_www_content); Use raptor_stringbuffer_copy_to_string.
+
+	* configure.ac: enable sparql for regular users
+
 2004-10-23  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
 	* configure.ac, Makefile.am: Added rasqal.rdf.in
