@@ -42,16 +42,16 @@
 
 inline int rasqal_literal_as_boolean(rasqal_literal* literal);
 inline int rasqal_literal_as_integer(rasqal_literal* l);
-inline int rasqal_literal_equals(rasqal_literal* l1, rasqal_literal *l2);
+inline int rasqal_literal_compare(rasqal_literal* l1, rasqal_literal *l2, int *error);
 
 inline int rasqal_variable_as_boolean(rasqal_variable* v);
 inline int rasqal_variable_as_integer(rasqal_variable* v);
-inline int rasqal_variable_equals(rasqal_variable* v1, rasqal_variable* v2);
+inline int rasqal_variable_compare(rasqal_variable* v1, rasqal_variable* v2, int *error);
 
-int rasqal_expression_as_boolean(rasqal_expression* e);
-int rasqal_expression_as_integer(rasqal_expression* e);
-int rasqal_expression_equals(rasqal_expression* e1, rasqal_expression* e2);
-rasqal_expression* rasqal_evaluate_expression(rasqal_expression* e);
+inline int rasqal_expression_as_boolean(rasqal_expression* e);
+inline int rasqal_expression_as_integer(rasqal_expression* e);
+inline int rasqal_expression_compare(rasqal_expression* e1, rasqal_expression* e2, int *error);
+rasqal_literal* rasqal_expression_evaluate(rasqal_expression* e);
 
 
 rasqal_literal*
@@ -126,8 +126,9 @@ static const char* rasqal_literal_type_labels[]={
   "floating"
 };
 
-void
-rasqal_print_literal_type(rasqal_literal* literal, FILE* fh)
+
+static void
+rasqal_literal_print_type(rasqal_literal* literal, FILE* fh)
 {
   rasqal_literal_type type=literal->type;
   if(type > RASQAL_LITERAL_LAST)
@@ -136,11 +137,11 @@ rasqal_print_literal_type(rasqal_literal* literal, FILE* fh)
 }
 
 
-void
-rasqal_print_literal(rasqal_literal* l, FILE* fh)
+static void
+rasqal_literal_print(rasqal_literal* l, FILE* fh)
 {
   /*  fputs("literal_", fh); */
-  rasqal_print_literal_type(l, fh);
+  rasqal_literal_print_type(l, fh);
   switch(l->type) {
     case RASQAL_LITERAL_URI:
       fprintf(fh, "<%s>", raptor_uri_as_string(l->value.uri));
@@ -222,10 +223,14 @@ rasqal_literal_as_integer(rasqal_literal* l)
 
 
 inline int
-rasqal_literal_equals(rasqal_literal* l1, rasqal_literal* l2)
+rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int *error)
 {
-  if(l1->type != l2->type)
-    return 1;
+  *error=0;
+  
+  if(l1->type != l2->type) {
+    *error=1;
+    return 0;
+  }
 
   switch(l1->type) {
     case RASQAL_LITERAL_URI:
@@ -235,16 +240,16 @@ rasqal_literal_equals(rasqal_literal* l1, rasqal_literal* l2)
     case RASQAL_LITERAL_BLANK:
     case RASQAL_LITERAL_PATTERN:
     case RASQAL_LITERAL_QNAME:
-      return !strcmp(l1->value.string,l2->value.string);
+      return strcmp(l1->value.string,l2->value.string);
 
     case RASQAL_LITERAL_INTEGER:
     case RASQAL_LITERAL_BOOLEAN:
     case RASQAL_LITERAL_NULL:
-      return l1->value.integer == l2->value.integer;
+      return l2->value.integer - l1->value.integer;
       break;
 
     case RASQAL_LITERAL_FLOATING:
-      return l1->value.floating == l2->value.floating;
+      return l2->value.floating - l1->value.floating;
       break;
 
     default:
@@ -292,12 +297,12 @@ rasqal_free_variable(rasqal_variable* v) {
 
 
 void
-rasqal_print_variable(rasqal_variable* v, FILE* fh)
+rasqal_variable_print(rasqal_variable* v, FILE* fh)
 {
   fprintf(fh, "variable(%s", v->name);
   if(v->value) {
     fputc('=', fh);
-    rasqal_print_expression(v->value, fh);
+    rasqal_expression_print(v->value, fh);
   }
   fputc(')', fh);
 }
@@ -316,9 +321,10 @@ rasqal_variable_as_integer(rasqal_variable* v)
 
 
 inline int
-rasqal_variable_equals(rasqal_variable* v1, rasqal_variable* v2)
+rasqal_variable_compare(rasqal_variable* v1, rasqal_variable* v2, int *error)
 {
-  return rasqal_expression_equals(v1->value, v2->value);
+  *error=0;
+  return rasqal_expression_compare(v1->value, v2->value, error);
 }
 
 void
@@ -330,7 +336,7 @@ rasqal_variable_set_value(rasqal_variable* v, rasqal_expression *e)
 #ifdef RASQAL_DEBUG
   RASQAL_DEBUG2("setting variable %s to value ", v->name);
   if(v->value)
-    rasqal_print_expression(v->value, stderr);
+    rasqal_expression_print(v->value, stderr);
   else
     fputs("(NULL)", stderr);
   fputc('\n', stderr);
@@ -362,7 +368,7 @@ rasqal_free_prefix(rasqal_prefix* p) {
 
 
 void
-rasqal_print_prefix(rasqal_prefix* p, FILE* fh)
+rasqal_prefix_print(rasqal_prefix* p, FILE* fh)
 {
   fprintf(fh, "prefix(%s as %s)", p->prefix, raptor_uri_as_string(p->uri));
 }
@@ -392,14 +398,14 @@ rasqal_free_triple(rasqal_triple* t)
 
 
 void
-rasqal_print_triple(rasqal_triple* t, FILE* fh)
+rasqal_triple_print(rasqal_triple* t, FILE* fh)
 {
   fputs("triple(", fh);
-  rasqal_print_expression(t->subject, fh);
+  rasqal_expression_print(t->subject, fh);
   fputs(", ", fh);
-  rasqal_print_expression(t->predicate, fh);
+  rasqal_expression_print(t->predicate, fh);
   fputs(", ", fh);
-  rasqal_print_expression(t->object, fh);
+  rasqal_expression_print(t->object, fh);
   fputc(')', fh);
 }
 
@@ -465,12 +471,6 @@ rasqal_free_expression(rasqal_expression* e) {
       break;
     case RASQAL_EXPR_AND:
     case RASQAL_EXPR_OR:
-    case RASQAL_EXPR_BIT_AND:
-    case RASQAL_EXPR_BIT_OR:
-    case RASQAL_EXPR_BIT_XOR:
-    case RASQAL_EXPR_LSHIFT:
-    case RASQAL_EXPR_RSIGNEDSHIFT:
-    case RASQAL_EXPR_RUNSIGNEDSHIFT:
     case RASQAL_EXPR_EQ:
     case RASQAL_EXPR_NEQ:
     case RASQAL_EXPR_LT:
@@ -511,7 +511,8 @@ rasqal_free_expression(rasqal_expression* e) {
   free(e);
 }
 
-int
+
+inline int
 rasqal_expression_as_boolean(rasqal_expression* e) {
   switch(e->op) {
     case RASQAL_EXPR_EXPR:
@@ -570,22 +571,28 @@ rasqal_expression_as_variable(rasqal_expression* e) {
   return NULL;
 }
 
-int
-rasqal_expression_equals(rasqal_expression* e1, rasqal_expression* e2) {
-  if(e1->op == RASQAL_EXPR_EXPR)
-    return rasqal_expression_equals(e1->arg1, e2);
-  if(e2->op == RASQAL_EXPR_EXPR)
-    return rasqal_expression_equals(e1, e2->arg1);
 
-  if(e1->op != e2->op)
-    return 1;
+int
+rasqal_expression_compare(rasqal_expression* e1, rasqal_expression* e2,
+                          int *error) {
+  *error=0;
+  
+  if(e1->op == RASQAL_EXPR_EXPR)
+    return rasqal_expression_compare(e1->arg1, e2, error);
+  if(e2->op == RASQAL_EXPR_EXPR)
+    return rasqal_expression_compare(e1, e2->arg1, error);
+
+  if(e1->op != e2->op) {
+    *error=1;
+    return 0;
+  }
   
   switch(e1->op) {
     case RASQAL_EXPR_LITERAL:
-      return rasqal_literal_equals(e1->literal, e1->literal);
+      return rasqal_literal_compare(e1->literal, e1->literal, error);
 
     case RASQAL_EXPR_VARIABLE:
-      return rasqal_variable_equals(e1->variable, e2->variable);
+      return rasqal_variable_compare(e1->variable, e2->variable, error);
 
     default:
       abort();
@@ -599,113 +606,151 @@ rasqal_expression_is_variable(rasqal_expression* e) {
 }
 
 
-rasqal_expression*
-rasqal_evaluate_expression(rasqal_expression* e) {
+rasqal_literal*
+rasqal_expression_evaluate(rasqal_expression* e) {
+  int error=0;
+  
   switch(e->op) {
     case RASQAL_EXPR_EXPR:
-      return rasqal_evaluate_expression(e->arg1);
-      break;
+      return rasqal_expression_evaluate(e->arg1);
 
     case RASQAL_EXPR_AND:
       {
-        int b=rasqal_expression_as_boolean(e->arg1) &&
+        int b=rasqal_expression_as_boolean(e->arg1) && 
               rasqal_expression_as_boolean(e->arg2);
-        rasqal_literal *l=rasqal_new_literal(RASQAL_LITERAL_BOOLEAN, b, 0.0, NULL, NULL);
-        return rasqal_new_literal_expression(l);
+        return rasqal_new_literal(RASQAL_LITERAL_BOOLEAN, b, 0.0, NULL, NULL);
       }
       
     case RASQAL_EXPR_OR:
       {
         int b=rasqal_expression_as_boolean(e->arg1) ||
               rasqal_expression_as_boolean(e->arg2);
-        rasqal_literal *l=rasqal_new_literal(RASQAL_LITERAL_BOOLEAN, b, 0.0, NULL, NULL);
-        return rasqal_new_literal_expression(l);
+        return rasqal_new_literal(RASQAL_LITERAL_BOOLEAN, b, 0.0, NULL, NULL);
       }
-
-    case RASQAL_EXPR_BIT_AND:
-      {
-        int i=rasqal_expression_as_integer(e->arg1) &
-              rasqal_expression_as_integer(e->arg2);
-        rasqal_literal *l=rasqal_new_literal(RASQAL_LITERAL_INTEGER, i, 0.0, NULL, NULL);
-        return rasqal_new_literal_expression(l);
-      }
-
-    case RASQAL_EXPR_BIT_OR:
-      {
-        int i=rasqal_expression_as_integer(e->arg1) |
-              rasqal_expression_as_integer(e->arg2);
-        rasqal_literal *l=rasqal_new_literal(RASQAL_LITERAL_INTEGER, i, 0.0, NULL, NULL);
-        return rasqal_new_literal_expression(l);
-      }
-
-    case RASQAL_EXPR_BIT_XOR:
-     {
-       int i=rasqal_expression_as_integer(e->arg1) ^
-             rasqal_expression_as_integer(e->arg2);
-       rasqal_literal *l=rasqal_new_literal(RASQAL_LITERAL_INTEGER, i, 0.0, NULL, NULL);
-       return rasqal_new_literal_expression(l);
-     }
-
-    case RASQAL_EXPR_LSHIFT:
-     {
-       int i=rasqal_expression_as_integer(e->arg1) <<
-             rasqal_expression_as_integer(e->arg2);
-       rasqal_literal *l=rasqal_new_literal(RASQAL_LITERAL_INTEGER, i, 0.0, NULL, NULL);
-       return rasqal_new_literal_expression(l);
-     }
-
-    case RASQAL_EXPR_RSIGNEDSHIFT:
-     {
-       int i=rasqal_expression_as_integer(e->arg1) >>
-             rasqal_expression_as_integer(e->arg2);
-       rasqal_literal *l=rasqal_new_literal(RASQAL_LITERAL_INTEGER, i, 0.0, NULL, NULL);
-       return rasqal_new_literal_expression(l);
-     }
-
-    case RASQAL_EXPR_RUNSIGNEDSHIFT:
-     {
-       int i=rasqal_expression_as_integer(e->arg1) >>
-             rasqal_expression_as_integer(e->arg2);
-       rasqal_literal *l=rasqal_new_literal(RASQAL_LITERAL_INTEGER, i, 0.0, NULL, NULL);
-       return rasqal_new_literal_expression(l);
-     }
 
     case RASQAL_EXPR_EQ:
       {
-        int b=rasqal_expression_equals(e->arg1, e->arg2);
-        rasqal_literal *l=rasqal_new_literal(RASQAL_LITERAL_BOOLEAN, b, 0.0, NULL, NULL);
-        return rasqal_new_literal_expression(l);
+        int b=(rasqal_expression_compare(e->arg1, e->arg2, &error) == 0);
+        if(error)
+          return NULL;
+        return rasqal_new_literal(RASQAL_LITERAL_BOOLEAN, b, 0.0, NULL, NULL);
       }
 
     case RASQAL_EXPR_NEQ:
       {
-        int b=!rasqal_expression_equals(e->arg1, e->arg2);
-        rasqal_literal *l=rasqal_new_literal(RASQAL_LITERAL_BOOLEAN, b, 0.0, NULL, NULL);
-        return rasqal_new_literal_expression(l);
+        int b=(rasqal_expression_compare(e->arg1, e->arg2, &error) != 0);
+        if(error)
+          return NULL;
+        return rasqal_new_literal(RASQAL_LITERAL_BOOLEAN, b, 0.0, NULL, NULL);
       }
 
     case RASQAL_EXPR_LT:
+      {
+        int b=(rasqal_expression_compare(e->arg1, e->arg2, &error) < 0);
+        if(error)
+          return NULL;
+        return rasqal_new_literal(RASQAL_LITERAL_BOOLEAN, b, 0.0, NULL, NULL);
+      }
+
     case RASQAL_EXPR_GT:
+      {
+        int b=(rasqal_expression_compare(e->arg1, e->arg2, &error) > 0);
+        if(error)
+          return NULL;
+        return rasqal_new_literal(RASQAL_LITERAL_BOOLEAN, b, 0.0, NULL, NULL);
+      }
+
     case RASQAL_EXPR_LE:
+      {
+        int b=(rasqal_expression_compare(e->arg1, e->arg2, &error) <= 0);
+        if(error)
+          return NULL;
+        return rasqal_new_literal(RASQAL_LITERAL_BOOLEAN, b, 0.0, NULL, NULL);
+      }
+
     case RASQAL_EXPR_GE:
+      {
+        int b=(rasqal_expression_compare(e->arg1, e->arg2, &error) >= 0);
+        if(error)
+          return NULL;
+        return rasqal_new_literal(RASQAL_LITERAL_BOOLEAN, b, 0.0, NULL, NULL);
+      }
+
     case RASQAL_EXPR_PLUS:
+      {
+        int i=rasqal_expression_as_integer(e->arg1) +
+              rasqal_expression_as_integer(e->arg2);
+        return rasqal_new_literal(RASQAL_LITERAL_INTEGER, i, 0.0, NULL, NULL);
+      }
+      
     case RASQAL_EXPR_MINUS:
+      {
+        int i=rasqal_expression_as_integer(e->arg1) -
+              rasqal_expression_as_integer(e->arg2);
+        return rasqal_new_literal(RASQAL_LITERAL_INTEGER, i, 0.0, NULL, NULL);
+      }
+      
     case RASQAL_EXPR_STAR:
+      {
+        int i=rasqal_expression_as_integer(e->arg1) *
+              rasqal_expression_as_integer(e->arg2);
+        return rasqal_new_literal(RASQAL_LITERAL_INTEGER, i, 0.0, NULL, NULL);
+      }
+      
     case RASQAL_EXPR_SLASH:
+      {
+        int i=rasqal_expression_as_integer(e->arg1) /
+              rasqal_expression_as_integer(e->arg2);
+        return rasqal_new_literal(RASQAL_LITERAL_INTEGER, i, 0.0, NULL, NULL);
+      }
+      
     case RASQAL_EXPR_REM:
+      {
+        int i=rasqal_expression_as_integer(e->arg1) %
+              rasqal_expression_as_integer(e->arg2);
+        return rasqal_new_literal(RASQAL_LITERAL_INTEGER, i, 0.0, NULL, NULL);
+      }
+      
     case RASQAL_EXPR_STR_EQ:
+      {
+        int b=(rasqal_expression_compare(e->arg1, e->arg2, &error) == 0);
+        if(error)
+          return NULL;
+        return rasqal_new_literal(RASQAL_LITERAL_BOOLEAN, b, 0.0, NULL, NULL);
+      }
+      
     case RASQAL_EXPR_STR_NEQ:
-      break;
+      {
+        int b=(rasqal_expression_compare(e->arg1, e->arg2, &error) != 0);
+        if(error)
+          return NULL;
+        return rasqal_new_literal(RASQAL_LITERAL_BOOLEAN, b, 0.0, NULL, NULL);
+      }
+
     case RASQAL_EXPR_TILDE:
     case RASQAL_EXPR_BANG:
+      /* FIXME */
       break;
+
     case RASQAL_EXPR_STR_MATCH:
     case RASQAL_EXPR_STR_NMATCH:
+      /* FIXME */
       break;
+
     case RASQAL_EXPR_LITERAL:
-      break;
+      {
+        int i=rasqal_literal_as_integer(e->literal);
+        return rasqal_new_literal(RASQAL_LITERAL_INTEGER, i, 0.0, NULL, NULL);
+      }
+
     case RASQAL_EXPR_VARIABLE:
+      {
+        int i=rasqal_variable_as_integer(e->variable);
+        return rasqal_new_literal(RASQAL_LITERAL_INTEGER, i, 0.0, NULL, NULL);
+      }
+
       break;
+
     default:
       abort();
   }
@@ -719,12 +764,6 @@ static const char* rasqal_op_labels[RASQAL_EXPR_LAST+1]={
   "expr",
   "and",
   "or",
-  "bit_and",
-  "bit_or",
-  "bit_xor",
-  "lshift",
-  "rsignedshift",
-  "runsignedshift",
   "eq",
   "neq",
   "lt",
@@ -747,7 +786,7 @@ static const char* rasqal_op_labels[RASQAL_EXPR_LAST+1]={
 };
 
 void
-rasqal_print_expression_op(rasqal_expression* expression, FILE* fh)
+rasqal_expression_print_op(rasqal_expression* expression, FILE* fh)
 {
   rasqal_op op=expression->op;
   if(op > RASQAL_EXPR_LAST)
@@ -757,21 +796,15 @@ rasqal_print_expression_op(rasqal_expression* expression, FILE* fh)
 
 
 void
-rasqal_print_expression(rasqal_expression* e, FILE* fh)
+rasqal_expression_print(rasqal_expression* e, FILE* fh)
 {
   fputs("expr(", fh);
   switch(e->op) {
     case RASQAL_EXPR_EXPR:
-      rasqal_print_expression(e->arg1, fh);
+      rasqal_expression_print(e->arg1, fh);
       break;
     case RASQAL_EXPR_AND:
     case RASQAL_EXPR_OR:
-    case RASQAL_EXPR_BIT_AND:
-    case RASQAL_EXPR_BIT_OR:
-    case RASQAL_EXPR_BIT_XOR:
-    case RASQAL_EXPR_LSHIFT:
-    case RASQAL_EXPR_RSIGNEDSHIFT:
-    case RASQAL_EXPR_RUNSIGNEDSHIFT:
     case RASQAL_EXPR_EQ:
     case RASQAL_EXPR_NEQ:
     case RASQAL_EXPR_LT:
@@ -786,36 +819,36 @@ rasqal_print_expression(rasqal_expression* e, FILE* fh)
     case RASQAL_EXPR_STR_EQ:
     case RASQAL_EXPR_STR_NEQ:
       fputs("op ", fh);
-      rasqal_print_expression_op(e, fh);
+      rasqal_expression_print_op(e, fh);
       fputc('(', fh);
-      rasqal_print_expression(e->arg1, fh);
+      rasqal_expression_print(e->arg1, fh);
       fputs(", ", fh);
-      rasqal_print_expression(e->arg2, fh);
+      rasqal_expression_print(e->arg2, fh);
       fputc(')', fh);
       break;
     case RASQAL_EXPR_STR_MATCH:
     case RASQAL_EXPR_STR_NMATCH:
       fputs("op ", fh);
-      rasqal_print_expression_op(e, fh);
+      rasqal_expression_print_op(e, fh);
       fputc('(', fh);
-      rasqal_print_expression(e->arg1, fh);
+      rasqal_expression_print(e->arg1, fh);
       fputs(", ", fh);
-      rasqal_print_literal(e->literal, fh);
+      rasqal_literal_print(e->literal, fh);
       fputc(')', fh);
       break;
     case RASQAL_EXPR_TILDE:
     case RASQAL_EXPR_BANG:
       fputs("op ", fh);
-      rasqal_print_expression_op(e, fh);
+      rasqal_expression_print_op(e, fh);
       fputc('(', fh);
-      rasqal_print_expression(e->arg1, fh);
+      rasqal_expression_print(e->arg1, fh);
       fputc(')', fh);
       break;
     case RASQAL_EXPR_LITERAL:
-      rasqal_print_literal(e->literal, fh);
+      rasqal_literal_print(e->literal, fh);
       break;
     case RASQAL_EXPR_VARIABLE:
-      rasqal_print_variable(e->variable, fh);
+      rasqal_variable_print(e->variable, fh);
       break;
     case RASQAL_EXPR_PATTERN:
       fprintf(fh, "expr_pattern(%s)", (char*)e->value);
@@ -825,3 +858,58 @@ rasqal_print_expression(rasqal_expression* e, FILE* fh)
   }
   fputc(')', fh);
 }
+
+
+#ifdef STANDALONE
+#include <stdio.h>
+
+int main(int argc, char *argv[]);
+
+
+#define assert_match(function, result, string) do { if(strcmp(result, string)) { fprintf(stderr, #function " failed - returned %s, expected %s\n", result, string); exit(1); } } while(0)
+
+char *program;
+
+int
+main(int argc, char *argv[]) 
+{
+  rasqal_literal *lit1, *lit2;
+  rasqal_expression *expr1, *expr2;
+  rasqal_expression* expr;
+  rasqal_literal* result;
+  int err;
+
+  lit1=rasqal_new_literal(RASQAL_LITERAL_INTEGER, 1, 0.0, NULL, NULL);
+  expr1=rasqal_new_literal_expression(lit1);
+  lit2=rasqal_new_literal(RASQAL_LITERAL_INTEGER, 1, 0.0, NULL, NULL);
+  expr2=rasqal_new_literal_expression(lit2);
+  expr=rasqal_new_2op_expression(RASQAL_EXPR_PLUS, expr1, expr2);
+
+  program=argv[0];
+
+  fprintf(stderr, "%s: expression: ", program);
+  rasqal_expression_print(expr, stderr);
+  fputc('\n', stderr);
+
+  result=rasqal_expression_evaluate(expr);
+
+  if(result) {
+    int bresult;
+    
+    fprintf(stderr, "%s: expression result: \n", program);
+    rasqal_literal_print(result, stderr);
+    fputc('\n', stderr);
+    bresult=rasqal_literal_as_boolean(result);
+    fprintf(stderr, "%s: boolean expression result: %d\n", program, bresult);
+
+  } else
+    fprintf(stderr, "%s: expression failed with error %d\n", program, err);
+
+  rasqal_free_expression(expr);
+
+  if(result)
+    rasqal_free_literal(result);
+
+  return (result != NULL);
+}
+#endif
