@@ -227,7 +227,9 @@ QUOTEDURI \<[A-Za-z][^>]+\>
 }
 
 [0-9]+"."[0-9]*[eE][+-]?[0-9]+[fFdD]?|"."[0-9]+[eE][+-]?[0-9]+[fFdD]?|[0-9]+[eE][+-]?[0-9]+[fFdD]?|[0-9]+[eE][+-]?[0-9]+[fFdD]?|[0-9]+"."[0-9]*  { 
-                        rdql_parser_lval->literal=rasqal_new_floating_literal((const unsigned char*)yytext);
+                        double d;
+                        sscanf((const char*)yytext, "%lf", &d);
+                        rdql_parser_lval->literal=rasqal_new_floating_literal(d);
                         return FLOATING_POINT_LITERAL;
 }
 
