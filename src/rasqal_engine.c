@@ -491,6 +491,10 @@ rasqal_query_graph_pattern_build_declared_in(rasqal_query* query,
        query->variables_declared_in[v->offset] < 0)
       query->variables_declared_in[v->offset]=col;
     
+    if((v=rasqal_literal_as_variable(t->origin)) &&
+       query->variables_declared_in[v->offset] < 0)
+      query->variables_declared_in[v->offset]=col;
+    
   }
   
 }
