@@ -451,10 +451,10 @@ AC_MSG_RESULT($triples_source_library)
 
 dnl RDF Query Languages
 rdql_query_language=no
-brql_query_language=no
+sparql_query_language=no
 
 if test "$USE_MAINTAINER_MODE" = yes; then
-  rdf_query_languages_available="rdql brql"
+  rdf_query_languages_available="rdql sparql"
 else
   rdf_query_languages_available=rdql
 fi
@@ -465,7 +465,7 @@ rdf_query_languages_enabled=
 # symbols must be pulled from acconfig.h into config.h.in
 if test "x" = "y"; then
   AC_DEFINE(RASQAL_QUERY_RDQL, 1, [Building RDQL query])
-  AC_DEFINE(RASQAL_QUERY_BRQL, 1, [Building BRQL query])
+  AC_DEFINE(RASQAL_QUERY_SPARQL, 1, [Building SPARQL query])
 fi
 
 AC_MSG_CHECKING(query languages required)
@@ -487,7 +487,7 @@ for query_language in $query_languages; do
 done
 
 AM_CONDITIONAL(RASQAL_QUERY_RDQL, test $rdql_query_language = yes)
-AM_CONDITIONAL(RASQAL_QUERY_BRQL, test $brql_query_language = yes)
+AM_CONDITIONAL(RASQAL_QUERY_SPARQL, test $sparql_query_language = yes)
 
 
 
@@ -569,7 +569,7 @@ data/Makefile
 tests/Makefile
 tests/rdql/Makefile
 tests/rdql/testsuite/Makefile
-tests/brql/Makefile
+tests/sparql/Makefile
 docs/Makefile
 win32/Makefile
 rasqal.spec
