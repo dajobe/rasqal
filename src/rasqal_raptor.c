@@ -382,7 +382,8 @@ raptor_node_equals(const void *id1,
 
   switch(id1_type) {
     case RAPTOR_IDENTIFIER_TYPE_RESOURCE:
-      if(!raptor_uri_equals((raptor_uri*)id1, (raptor_uri*)id2))
+    case RAPTOR_IDENTIFIER_TYPE_PREDICATE:
+      if(raptor_uri_equals((raptor_uri*)id1, (raptor_uri*)id2))
         return 0;
       break;
 
@@ -398,7 +399,7 @@ raptor_node_equals(const void *id1,
         /* if either is null, the comparison fails */
         if(!id1_literal_datatype || !id2_literal_datatype)
           return 0;
-        if(!raptor_uri_equals(id1_literal_datatype,id1_literal_datatype))
+        if(raptor_uri_equals(id1_literal_datatype,id1_literal_datatype))
           return 0;
       }
 
@@ -415,7 +416,6 @@ raptor_node_equals(const void *id1,
       break;
       
     default:
-      /* case RAPTOR_IDENTIFIER_TYPE_PREDICATE: */
       abort();
   }
 
@@ -528,8 +528,9 @@ rasqal_raptor_next_match(struct rasqal_triples_match_s* rtm, void *user_data)
 
   while(rtmc->cur) {
     rtmc->cur=rtmc->cur->next;
-    if(rtmc->cur && !raptor_statement_compare(rtmc->cur->statement, &rtmc->match))
-      continue;
+    if(rtmc->cur &&
+       raptor_statement_compare(rtmc->cur->statement, &rtmc->match))
+      break;
   }
 }
 
@@ -607,7 +608,14 @@ rasqal_raptor_new_triples_match(rasqal_triples_source *rts, void *user_data,
   raptor_print_statement(&rtmc->match, stderr);
   fputc('\n', stderr);
 #endif
+
+  while(rtmc->cur) {
+    if(raptor_statement_compare(rtmc->cur->statement, &rtmc->match))
+      break;
+    rtmc->cur=rtmc->cur->next;
+  }
   
+    
   RASQAL_DEBUG1("rasqal_new_triples_match done\n");
 
   return rtm;
