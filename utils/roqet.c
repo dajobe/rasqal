@@ -473,7 +473,7 @@ main(int argc, char *argv[])
   } else {
     if(rasqal_query_results_is_bindings(results)) {
       if(!quiet)
-        fprintf(stderr, "%s: Bindings results\n", program);
+        fprintf(stdout, "%s: Query returned bindings results:\n", program);
 
       while(!rasqal_query_results_finished(results)) {
         int i;
@@ -495,8 +495,13 @@ main(int argc, char *argv[])
 
         rasqal_query_results_next(results);
       }
+
+      if(!quiet)
+        fprintf(stderr, "%s: Query returned %d results\n", program, 
+                rasqal_query_results_get_count(results));
+
     } else if (rasqal_query_results_is_boolean(results)) {
-      fprintf(stdout, "%s: Boolean result: %s\n",
+      fprintf(stdout, "%s: Query returned boolean result: %s\n",
               program,
               rasqal_query_results_get_boolean(results) ? "true" : "false");
     }
@@ -504,12 +509,11 @@ main(int argc, char *argv[])
       int triple_count=0;
       
       if(!quiet)
-        fprintf(stderr, "%s: Graph results\n", program);
+        fprintf(stdout, "%s: Query returned graph result:\n", program);
       while(1) {
         rasqal_triple *t=rasqal_query_results_get_triple(results);
         if(!t)
           break;
-        fputs("Triple: ", stdout);
         rasqal_triple_print(t, stdout);
         fputs("\n", stdout);
         triple_count++;
@@ -519,18 +523,12 @@ main(int argc, char *argv[])
       }
 
       if(!quiet)
-        fprintf(stderr, "%s: Returned %d triples\n", program, triple_count);
+        fprintf(stdout, "%s: Total %d triples\n", program, triple_count);
     } else {
-      if(!quiet)
-        fprintf(stderr, "%s: Bindings results\n", program);
-
+      fprintf(stdout, "%s: Query returned unknown result format\n", program);
+      rc=1;
     }
   }
-
-  if(!quiet)
-    fprintf(stderr, "%s: Query returned %d results\n", program, 
-            rasqal_query_results_get_count(results));
-  
 
   rasqal_free_query_results(results);
   
