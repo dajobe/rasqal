@@ -144,6 +144,7 @@ struct rasqal_graph_pattern_s {
 
 };
 
+rasqal_graph_pattern* rasqal_new_graph_pattern(rasqal_query* query);
 rasqal_graph_pattern* rasqal_new_graph_pattern_from_triples(rasqal_query* query, raptor_sequence* triples, int start_column, int end_column, int flags);
 rasqal_graph_pattern* rasqal_new_graph_pattern_from_sequence(rasqal_query* query, raptor_sequence* graph_patterns, int flags);
 void rasqal_free_graph_pattern(rasqal_graph_pattern* gp);
@@ -160,6 +161,10 @@ struct rasqal_query_s {
   unsigned char* query_string;
 
   raptor_namespace_stack* namespaces;
+
+  /* query graph pattern, containing the sequence of graph_patterns below */
+  rasqal_graph_pattern* query_graph_pattern;
+  raptor_sequence* graph_patterns;   /* ... rasqal_graph_pattern*  */
 
   /* sequences of ... */
   raptor_sequence* selects;     /* ... rasqal_variable* names only */
@@ -268,9 +273,6 @@ struct rasqal_query_s {
 
   /* incrementing counter for declaring prefixes in order of appearance */
   int prefix_depth;
-
-  /* sequence of rasqal_graph_pattern* */
-  raptor_sequence* graph_patterns;
 
   /* current position in the sequence */
   int current_graph_pattern;
