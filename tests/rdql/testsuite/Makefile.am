@@ -75,7 +75,7 @@ check-rdql-queries: $(top_builddir)/roqet
 	$(ECHO) "Testing RDQL"; \
 	for test in $(rdql_testsuite_test_files); do \
 	  $(ECHO) $(ECHO_N) "Checking $$test $(ECHO_C)"; \
-	  $(top_builddir)/roqet $(srcdir)/$$test >/dev/null 2>&1; \
+	  $(top_builddir)/roqet $(srcdir)/$$test 2>/dev/null; \
 	  status=$$?; \
 	  if test $$status != 0 -a $$status != 2 ; then \
 	    $(ECHO) FAILED returned status $$status; result=1; \
