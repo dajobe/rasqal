@@ -1,3 +1,19 @@
+2005-01-15  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* sparql_parser.y (URIList):
+	Copy the URI before freeing the rasqal_literal.
+
+2005-01-14  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* tests/sparql/part1/dawg-result-004.n3,
+	tests/sparql/part1/manifest.n3, tests/sparql/part1/dawg-query-004:
+	Import dawg-query-004 dawg-result-004.n3
+
+2005-01-13  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* win32_rasqal_config.h:
+	RASQAL_INTERNAL should be defined in the build configuration
+
 2005-01-12  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
 	* sparql_lexer.l:
