@@ -75,6 +75,12 @@ abort().  This fixed a crash when comparing for equality a variable
 
 <p>Deleted <code>RASQAL_EXPR_PATTERN</code> as it was never used.</p>
 
+<p>Added <code>rasqal_query_get_distinct</code> to get a
+query-specified distinct results flag.</p>
+
+<p>Added <code>rasqal_query_get_limit</code> to get a query-specified
+limit on the number of results.</p>
+
 
 
 <h3>SPARQL Query Language Changes</h3>
@@ -87,6 +93,10 @@ replacing <code>SOURCE</code> and <code>WITH</code> replacing
 and about using <code>[</code>...<code>]</code> instead of
 <code>OPTIONAL</code>.
 </p>
+
+<p>Added recording of <code>DISTINCT</code> and <code>LIMIT</code>
+in the query structures but not yet used by the query engine.</p>
+
 
 
 <h3>RDQL Query Language Changes</h3>
