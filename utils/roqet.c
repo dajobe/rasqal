@@ -163,8 +163,6 @@ roqet_print_results_as_xml(FILE *fh, rasqal_query_results *results)
       const unsigned char *name=rasqal_query_results_get_binding_name(results, i);
       rasqal_literal *l=rasqal_query_results_get_binding_value(results, i);
       int print_end=1;
-      unsigned char *xml_string;
-      int xml_string_len=0;
       size_t len;
       
       if(!l)
@@ -173,18 +171,21 @@ roqet_print_results_as_xml(FILE *fh, rasqal_query_results *results)
       fputs("    <", fh);
       fputs(name, fh);
 
-      if(!l) {
-        fputs("null", fh);
-        return;
-      }
-      
       switch(l->type) {
         case RASQAL_LITERAL_URI:
           roqet_print_xml_attribute(fh, "uri",
                                     raptor_uri_as_string(l->value.uri));
+          fputs("/>\n", fh);
           print_end=0;
           break;
         case RASQAL_LITERAL_STRING:
+          len=strlen(l->string);
+          if(!len) {
+            fputs("/>\n", fh);
+            print_end=0;
+            break;
+          }
+          
           if(l->language)
             roqet_print_xml_attribute(fh, "xml:lang",
                                       (unsigned char *)l->language);
@@ -193,17 +194,23 @@ roqet_print_results_as_xml(FILE *fh, rasqal_query_results *results)
                                       raptor_uri_as_string(l->datatype));
           fputc('>', fh);
 
-          len=strlen(l->string);
-          xml_string_len=raptor_xml_escape_string(l->string, len,
-                                                  NULL, 0, 0,
-                                                  NULL, NULL);
-          xml_string=(unsigned char*)malloc(xml_string_len+1);
+          if(l->datatype &&
+             !strcmp(raptor_uri_as_string(l->datatype),
+                     "http://www.w3.org/1999/02/22-rdf-syntax-ns#XMLLiteral")) {
+            fputs(l->string, fh);
+          } else {
+            int xml_string_len=raptor_xml_escape_string(l->string, len,
+                                                        NULL, 0, 0,
+                                                        NULL, NULL);
+            unsigned char *xml_string=(unsigned char*)malloc(xml_string_len+1);
+            
+            xml_string_len=raptor_xml_escape_string(l->string, len,
+                                                    xml_string, xml_string_len, 0,
+                                                    NULL, NULL);
+            fputs(xml_string, fh);
+            free(xml_string);
+          }
           
-          xml_string_len=raptor_xml_escape_string(l->string, len,
-                                                  xml_string, xml_string_len, 0,
-                                                  NULL, NULL);
-          fputs(xml_string, fh);
-          free(xml_string);
           break;
         case RASQAL_LITERAL_BLANK:
         case RASQAL_LITERAL_PATTERN:
