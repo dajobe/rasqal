@@ -778,14 +778,11 @@ main(int argc, char *argv[])
 {
   const char *program=rasqal_basename(argv[0]);
   char query_string[RDQL_FILE_BUF_SIZE];
-  rasqal_query query; /* static */
-  rasqal_rdql_query_engine rdql; /* static */
-  raptor_locator *locator=&query.locator;
+  rasqal_query *query;
   FILE *fh;
   int rc;
   char *filename=NULL;
-  raptor_uri_handler *uri_handler;
-  void *uri_context;
+  unsigned char *uri_string;
 
 #if RASQAL_DEBUG > 2
   rdql_parser_debug=1;
@@ -810,35 +807,22 @@ main(int argc, char *argv[])
   if(argc>1)
     fclose(fh);
 
-  raptor_uri_init();
+  rasqal_init();
 
-  memset(&query, 0, sizeof(rasqal_query));
-  memset(&rdql, 0, sizeof(rasqal_rdql_query_engine));
+  query=rasqal_new_query("rdql", NULL);
 
-  raptor_uri_get_handler(&uri_handler, &uri_context);
-  query.namespaces=raptor_new_namespaces(uri_handler, uri_context,
-                                         rasqal_query_simple_error,
-                                         &query,
-                                         0);
-  query.variables_sequence=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_variable, (raptor_sequence_print_handler*)rasqal_variable_print);
-  query.prefixes=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_prefix, (raptor_sequence_print_handler*)rasqal_prefix_print);
-  
-  locator->line= locator->column = -1;
-  locator->file= filename;
+  uri_string=raptor_uri_filename_to_uri_string(filename);
+  query->base_uri=raptor_new_uri(uri_string);
 
-  rdql.lineno= 1;
+  rc=rdql_parse(query, (const unsigned char*)query_string);
 
-  query.context=&rdql;
-  query.base_uri=raptor_new_uri(raptor_uri_filename_to_uri_string(filename));
+  rasqal_query_print(query, stdout);
 
-  rasqal_rdql_query_engine_init(&query, "rdql");
+  rasqal_free_query(query);
 
-  rc=rdql_parse(&query, (const unsigned char*)query_string);
+  raptor_free_memory(uri_string);
 
-  raptor_free_namespaces(query.namespaces);
-  raptor_free_sequence(query.prefixes);
-
-  raptor_free_uri(query.base_uri);
+  rasqal_finish();
 
   return rc;
 }
