@@ -1,3 +1,30 @@
+2004-09-06  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal_engine.c (rasqal_engine_execute_init):
+	Init triples_source, triple_meta only
+	if not already done.
+	(rasqal_engine_execute_finish): Free triple_meta and any variables
+	still set if not cleared.
+
+	* rasqal_raptor.c (rasqal_raptor_free_triples_source):
+	Free the rasqal_triple in the loop.
+
+	* rasqal_query.c (rasqal_query_execute): Re-execute if wanted.
+
+	* tests/Makefile.am, tests/dc.rdf: Added dc.rdf
+
+	* Makefile.am, rasqal_query_test.c: Added rasqal_query_test.c
+
+	* rasqal_literal.c (rasqal_literal_expand_qname):
+	Zap old string pointer.
+
+	* rasqal_query.c (rasqal_query_prepare):
+	Allow re-prepare when finished or executed.
+
+	* rasqal_engine.c (rasqal_engine_execute_init):
+	Do not overwrite query->variables on
+	a re-execute init.
+
 2004-08-29  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
 	* rdql_lexer.l: Fix copy_regex_token prototype - delim is not const.
