@@ -1,5 +1,10 @@
 2004-10-10  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
+	* win32/rasqal.dsp: Rename parser, lexer files
+	Add sparql
+
+	* win32_rasqal_config.h: Add RDQL and SPARQL defines
+
 	* rasqal_expr.c: Make all RASQAL_INLINE functions static.
 
 	* rasqal_expr.c: RASQAL_INLINE at start of line
