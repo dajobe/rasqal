@@ -1,3 +1,77 @@
+2004-10-27  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* sparql_lexer.l: In <ID> state with unknown token, return to
+	INITIAL and report the error.
+
+	* rdql_lexer.l: Remove ID state - not used and jams parser with
+	non-matched chars in <ID> state.
+
+	* tests/sparql/Makefile.am: Added syntax dir
+
+	* sparql_parser.y (VarOrURIList):
+	Fix calls to rasqal_new_variable_literal.
+
+	* configure.ac: Added dir tests/sparql/syntax
+
+	* tests/sparql/syntax/Makefile.am,
+	tests/sparql/syntax/describe1.rq: syntax tests for SPARQL
+
+	* tests/sparql/examples/Makefile.am: Remove check-sparql-works
+
+	* tests/rdql/testsuite/Makefile.am: Remove check-rdql-works
+
+	* rasqal_internal.h: Note that describe is a sequence of
+	rasqal_literal*
+
+	* sparql_parser.y (VarOrURIList): Build a list of rasqal_literal*
+
+2004-10-26  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* roqet.c: fix file reading
+
+	* roqet.c: Tidy up after failure to get query document
+
+	* rasqal_raptor.c (rasqal_raptor_error_handler):
+	Added to pass on raptor parser errors to rasqal, and onwards.
+	(rasqal_raptor_new_triples_source): On failure to parser, abort
+	and tidy up.
+
+	* rasqal_query.c (rasqal_free_query):
+	Tidy up any half-constructed rasqal_expression
+	sequence when query parsing/execution fails.
+
+	* sparql_lexer.l (sparql_token_free):
+	Free raptor_uri objects in URI_LITERAL.  Debug function.
+
+	* rdql_lexer.l (rdql_token_free):
+	Free raptor_uri objects in URI_LITERAL.  Debug function.
+
+	* rdql_parser.y (main):
+	Use full rasqal_init/finish sequence since setup and cleanup
+	is rather complex now.
+
+	* rasqal_engine.c (rasqal_new_triples_source):
+	Do not abort when no explict list of sources are given.
+
+	* sparql_lexer.l: More renames
+
+	* rdql_lexer.l: Rename static functions to have rdql_ prefix to
+	aid setting breakpoints in debugging.
+	(<PATTERN>.): Only return PATTERN_LITERAL if rdql_copy_regex_token
+	worked.
+	(rdql_copy_regex_token): Report EOF in regex rather than continue.
+	(rdql_copy_string_token): Fix debug message parameters.
+
+	* sparql_lexer.l: Rename static functions to have sparql_ prefix
+	to aid setting breakpoints in debugging.
+	(<PATTERN>.): Only return PATTERN_LITERAL if sparql_copy_regex_token
+	worked.
+	(sparql_copy_regex_token): Report EOF in regex rather than continue.
+
+	* rasqal-config.1: zap ASCII 160
+
+	* rasqal-config.1: Fix --libtool-libs desc
+
 2004-10-26  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
 	* rdql_lexer.l:
