@@ -21,14 +21,30 @@
  */
 
 
+/* recognise 8-bits */
 %option 8bit
 %option warn nodefault
+
+/* all symbols prefixed by this */
 %option prefix="rdql_lexer_"
-%option outfile="rdql_lexer.c" header-file="rdql_lexer.h"
+
+%option outfile="rdql_lexer.c"
+%option header-file="rdql_lexer.h"
+
 /* Do not emit #include <unistd.h> */
 %option nounistd
 
+/* Never interactive */
+/*  No isatty() check */
+%option never-interactive
+/* Batch scanner */
+%option batch
+
+/* Never use yyunput */
 %option nounput
+
+/* make a yylineno please */
+%option yylineno
 
 
   /* definitions */
@@ -50,6 +66,7 @@
 #include <rasqal_internal.h>
 
 #include <rdql_parser.tab.h>
+
 
 static int skip_c_comment(void);
 
@@ -140,8 +157,7 @@ YYSTYPE rdql_parser_lval;
  		  return INTEGER_LITERAL; 
 }
 
-0[xX][0-9a-fA-F]+   { c=yytext[yyleng+1];
-                      if(c == 'x') 
+0[xX][0-9a-fA-F]+   { if(yytext[yyleng+1] == 'x') 
                         sscanf(yytext+2, "%x", &rdql_parser_lval.integer);
                       else
                         sscanf(yytext+2, "%X", &rdql_parser_lval.integer);
@@ -159,10 +175,11 @@ YYSTYPE rdql_parser_lval;
 \"([^"\\\n\r]|\\[^\n\r])*\"   { rdql_parser_lval.string=copy_string_token(yytext+1, yyleng-2, '"');
                                 return STRING_LITERAL; }
 
-"true"|"false"	{ rdql_parser_lval.integer=(*yytext = 't');
+"true"|"false"	{ rdql_parser_lval.integer=(*yytext == 't');
                   return BOOLEAN_LITERAL; }
 
-"null"	{ return NULL_LITERAL; }
+"null"	{ rdql_parser_lval.integer=0;
+          return NULL_LITERAL; }
 
 [A-Za-z0-9_$\.]+	{ rdql_parser_lval.string=copy_token(yytext, yyleng);
                           return IDENTIFIER; }
