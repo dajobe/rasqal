@@ -372,9 +372,6 @@ main(int argc, char *argv[])
     uri=NULL; /* stdin */
 
 
-  fprintf(stderr, "Query URI '%s'\n", raptor_uri_as_string(uri));
-
-
   if(!base_uri_string) {
     base_uri=raptor_uri_copy(uri);
   } else {
