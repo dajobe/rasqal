@@ -114,8 +114,8 @@ struct rasqal_pattern_graph_s {
   /* An array of items, one per triple in the pattern graph */
   rasqal_triple_meta *triple_meta;
 
-  int first_column;
-  int last_column;
+  int start_column;
+  int end_column;
 
   /* enum rasqal_pattern_flags */
   int flags;
@@ -124,7 +124,7 @@ struct rasqal_pattern_graph_s {
 typedef struct rasqal_pattern_graph_s rasqal_pattern_graph;
 
 
-rasqal_pattern_graph* rasqal_new_pattern_graph(raptor_sequence *triples, int flags);
+rasqal_pattern_graph* rasqal_new_pattern_graph(raptor_sequence *triples, int start_column, int end_column, int flags);
 void rasqal_free_pattern_graph(rasqal_pattern_graph* pg);
 
 
