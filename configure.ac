@@ -184,17 +184,8 @@ AC_SUBST(RASQAL_LIBTOOL_VERSION)
 dnl Checks for library functions.
 AC_CHECK_FUNCS(getopt getopt_long stricmp strcasecmp vsnprintf)
 
-# was AC_REPLACE_FUNCS(strcasecmp) but strcasecmp has two alternatives:
-# the other non-standard function stricmp or a local alternative
-if test $ac_cv_func_stricmp = no -a $ac_cv_func_stricmp = no; then
-  AC_LIBOBJ([strcasecmp])
-fi
-
-ROQET_EXTRA_OBJS=
-if test $ac_cv_func_getopt = no -a $ac_cv_func_getopt_long = no; then
-  ROQET_EXTRA_OBJS='getopt.$(OBJEXT)'
-  AC_SUBST([ROQET_EXTRA_OBJS])
-fi
+AM_CONDITIONAL(STRCASECMP, test $ac_cv_func_stricmp = no -a $ac_cv_func_stricmp = no)
+AM_CONDITIONAL(GETOPT, test $ac_cv_func_getopt = no -a $ac_cv_func_getopt_long = no)
 
 
 AC_MSG_CHECKING(whether need to declare optind)
