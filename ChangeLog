@@ -1,4 +1,67 @@
+2004-09-19  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal_internal.h: Added prototype for rasqal_engine_declare_prefix
+
+	* rasqal_engine.c (rasqal_engine_declare_prefix):
+	Added to declare a namespace
+	prefix/uri once only in a query.
+	(rasqal_engine_declare_prefixes): Use above.
+
+	* rasqal.h: Added declared field to rasqal_prefix
+
+	* brql_parser.y: Initial BRQL updates post DAWG F2F3
+	Deleted OPTIONAL, replaced with []s around set of triples
+	using new terms LSQUARE and RSQUARE
+	Removed USING work and replaced with PREFIX earlier.  Declare
+	prefixes as soon as they appear.
+
+	* brql_lexer.l: Added PREF state for post-PREFIX word handling
+	Define PREFIX, NAME, QNAME more precisely (not checked vs spec)
+	Deleted OPTIONAL
+	Made "PREFIX"/"prefix" set state PREF
+	Added [/LSQUARE and ]/RSQUARE
+	Made <PREF> state handle foo: and : names for namespace prefixes
+
 2004-09-16  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal_internal.h:
+	Added prototype for rasqal_triples_source_next_source
+
+	* rasqal.h: Added origin field to rasqal_triple
+	Added rasqal_triple_set_origin and rasqal_triple_get_origin
+	Made bindings be [4]array
+	Added raptor_uri param to rasqal_triples_soruce_factory method
+	new_triples_source
+
+	* rasqal_redland.c (rasqal_redland_new_triples_match):
+	Added origin, not checked
+
+	* rasqal_raptor.c (rasqal_new_triples_source):
+	Set uri from first in list, call
+	updated factory with that uri.
+	(rasqal_free_triples_source): Tidy triples source and user data
+	only if not alreayd done.
+	(rasqal_triples_source_next_source): Added for switching to next
+	data source.
+	(rasqal_triples_match_bind_match): Handle 4 bindings
+	(rasqal_engine_get_next_result): Handle origin queries and switching
+	to next data source when current one exhausted (goto restart)
+
+	* rasqal_expr.c (rasqal_triple_print): Handle origin.
+	(rasqal_triple_set_origin, rasqal_triple_get_origin): Added
+
+	* rasqal_engine.c (rasqal_new_triples_source):
+	Set uri from first in list, call
+	updated factory with that uri.
+	(rasqal_free_triples_source): Tidy triples source and user data
+	only if not alreayd done.
+	(rasqal_triples_source_next_source): Added for switching to next
+	data source.
+	(rasqal_triples_match_bind_match): Handle 4 bindings
+	(rasqal_engine_get_next_result): Handle origin queries and switching
+	to next data source when current one exhausted (goto restart)
+
+	* brql_parser.y: Added SOURCE ?foo before triple
 
 	* tests/brql/Makefile.am, tests/brql/E.n3, tests/brql/Q-SOURCE-1,
 	tests/brql/Q-SOURCE-2: tests
