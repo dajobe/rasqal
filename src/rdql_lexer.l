@@ -243,14 +243,14 @@ QUOTEDURI \<[A-Za-z][^>]+\>
 
 '([^'\\\n\r]|\\[^\n\r])*'(@{LANGUAGETOKEN})?(^^({QUOTEDURI}|{QNAME}))?    { /*' */
                                if(!rdql_copy_string_token(rq, rdql_parser_lval,
-                                 (const unsigned char*)yytext+1, yyleng-2, '\''))
+                                 (const unsigned char*)yytext+1, yyleng-1, '\''))
                                return STRING_LITERAL;
 		                yyterminate();
 }
 
 \"([^"\\\n\r]|\\[^\n\r])*\"(@{LANGUAGETOKEN})?(^^({QUOTEDURI}|{QNAME}))?   { /* " */
                                 if(!rdql_copy_string_token(rq, rdql_parser_lval,
-                                  (const unsigned char*)yytext+1, yyleng-2, '"'))
+                                  (const unsigned char*)yytext+1, yyleng-1, '"'))
                                 return STRING_LITERAL; 
 		                yyterminate();
 }

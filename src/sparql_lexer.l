@@ -270,12 +270,12 @@ QUOTEDURI \<[A-Za-z][^>]+\>
 
 '([^'\\\n\r]|\\[^\n\r])*'(@{LANGUAGETOKEN})?(^^({QUOTEDURI}|{QNAME}))?    { /*' */
                                sparql_copy_string_token(rq, sparql_parser_lval,
-                                 (const unsigned char*)yytext+1, yyleng-2, '\'');
+                                 (const unsigned char*)yytext+1, yyleng-1, '\'');
                                return STRING_LITERAL; }
 
 \"([^"\\\n\r]|\\[^\n\r])*\"(@{LANGUAGETOKEN})?(^^({QUOTEDURI}|{QNAME}))?   { /* " */
                                 sparql_copy_string_token(rq, sparql_parser_lval,
-                                  (const unsigned char*)yytext+1, yyleng-2, '"');
+                                  (const unsigned char*)yytext+1, yyleng-1, '"');
                                 return STRING_LITERAL; }
 
 "true"|"false"	{ sparql_parser_lval->literal=rasqal_new_boolean_literal(*yytext== 't');
