@@ -102,7 +102,8 @@
 static void rdql_skip_cpp_comment(rasqal_rdql_query_engine *rqe);
 static int rdql_skip_c_comment(rasqal_query *rq);
 
-static unsigned char *rdql_copy_token(rasqal_query *rq, const unsigned char *text, size_t len);
+static unsigned char* rdql_copy_name(rasqal_query *rq, const unsigned char *text, size_t len);
+static unsigned char* rdql_copy_qname(rasqal_query *rq, const unsigned char *text, size_t len);
 static int rdql_copy_regex_token(rasqal_query *rq, YYSTYPE* lval, unsigned char delim);
 static int rdql_copy_string_token(rasqal_query *rq, YYSTYPE* lval, const unsigned char *text, size_t len, int delim);
 
@@ -129,10 +130,14 @@ void rdql_lexer_set_column(int  column_no , yyscan_t yyscanner);
 
 %}
 
-LANGUAGETOKEN [[:alpha:]][[:alnum:]]*
-PREFIX [[:alpha:]][[:alnum:]]*
-NAME [[:alpha:]][[:alnum:]_]*
-QNAME [[:alpha:]][[:alnum:]]*:[[:alpha:]][-[:alnum:]_]*
+LANGUAGETOKEN [A-Za-z][-A-Z_a-z0-9]*
+/* See
+ * http://www.w3.org/TR/xml11/#NT-NameStartChar and 
+ * http://www.w3.org/TR/xml11/#NT-NameChar 
+ */
+PREFIX [A-Za-z\x80-\xff][-A-Z_a-z\x80-\xff0-9]*
+NAME [A-Za-z_\x80-\xff][-A-Z_a-z\x80-\xff0-9]*
+QNAME {PREFIX}:{NAME}*
 /* The initial char conditions are to ensure this doesn't grab < or <= */
 QUOTEDURI \<[A-Za-z][^>]+\>
 
@@ -249,17 +254,17 @@ QUOTEDURI \<[A-Za-z][^>]+\>
 "null"	{ rdql_parser_lval->literal=NULL;
           return NULL_LITERAL; }
 
-<*>{NAME}	{ rdql_parser_lval->name=rdql_copy_token(rq, (const unsigned char*)yytext, yyleng);
+<*>{NAME}	{ rdql_parser_lval->name=rdql_copy_name(rq, (const unsigned char*)yytext, yyleng);
                           BEGIN(INITIAL);
                           return IDENTIFIER; }
-<ID>.	{	BEGIN(INITIAL);
+<ID>.|\r|\n	{	BEGIN(INITIAL);
 		rdql_syntax_error(rq, "Missing variable name after ?", *yytext);
 		return ERROR_TOKEN; }
 
-{QNAME}	{ rdql_parser_lval->name=rdql_copy_token(rq, (const unsigned char*)yytext, yyleng);
+{QNAME}	{ rdql_parser_lval->name=rdql_copy_qname(rq, (const unsigned char*)yytext, yyleng);
                           return QNAME_LITERAL; }
 
-\<{QNAME}\>	{ rdql_parser_lval->name=rdql_copy_token(rq, (const unsigned char*)yytext+1, yyleng-2);
+\<{QNAME}\>	{ rdql_parser_lval->name=rdql_copy_qname(rq, (const unsigned char*)yytext+1, yyleng-2);
                   rdql_syntax_warning(rq, "obsolete <qname> syntax found in \"%s\"", (const unsigned char*)yytext);
                   return QNAME_LITERAL; }
 
@@ -292,10 +297,35 @@ yywrap (yyscan_t yyscanner) {
 
 
 static unsigned char *
-rdql_copy_token(rasqal_query *rq, const unsigned char *text, size_t len) {
+rdql_copy_name(rasqal_query *rq, const unsigned char *text, size_t len) {
   unsigned char *s;
   if(!len)
     len=strlen((const char*)text);
+
+  if(!raptor_xml_name_check(text, len, 11))
+    rdql_syntax_warning(rq, "Invalid XML name \"%s\"", text);
+
+  s=(unsigned char *)malloc(len+1);
+
+  strncpy((char*)s, (const char*)text, len);
+  s[len] = '\0';
+  return s;
+}
+
+
+static unsigned char *
+rdql_copy_qname(rasqal_query *rq, const unsigned char *text, size_t len) {
+  unsigned char *s;
+  unsigned char *p;
+  if(!len)
+    len=strlen((const char*)text);
+
+  p=strchr((const char*)text, ':');
+  if(!raptor_xml_name_check(text, p-text, 11))
+    rdql_syntax_warning(rq, "Invalid XML name \"%s\"", text);
+  if(!raptor_xml_name_check(p+1, len-((p+1)-text), 11))
+    rdql_syntax_warning(rq, "Invalid XML name \"%s\"", p+1);
+
   s=(unsigned char *)malloc(len+1);
 
   strncpy((char*)s, (const char*)text, len);
@@ -481,8 +511,13 @@ rdql_copy_string_token(rasqal_query* rq, YYSTYPE* lval,
       dt[strlen((const char*)dt)-1]='\0';
       dt_uri=raptor_new_uri(dt+1);
     } else {
+      size_t dt_qname_len=strlen((const char*)dt);
+      
+      if(!raptor_xml_name_check(dt, dt_qname_len, 11))
+        rdql_syntax_warning(rq, "Invalid XML name \"%s\"", dt);
+      
       /* the qname is expanded later */
-      dt_qname=(unsigned char *)RASQAL_MALLOC(cstring, strlen((const char*)dt)+1);
+      dt_qname=(unsigned char *)RASQAL_MALLOC(cstring, dt_qname_len+1);
       strcpy((char*)dt_qname, (const char*)dt);
     }
   }
@@ -725,6 +760,10 @@ rdql_token_free(int token, YYSTYPE *lval)
     case IDENTIFIER:
       free(lval->name);
       break;
+    case QNAME_LITERAL:
+      if(lval->name)
+        free(lval->name);
+      break;
     default:
       break;
   }
@@ -750,7 +789,7 @@ main(int argc, char *argv[])
   void *buffer;
 
   rasqal_init();
-  
+
   if(argc > 1) {
     FILE *fh;
     query_string=(char*)calloc(FILE_READ_BUF_SIZE, 1);
@@ -776,6 +815,14 @@ main(int argc, char *argv[])
   yylex_init(&rdql.scanner);
   scanner=rdql.scanner;
 
+#if 0
+  /* set
+   *   %option debug 
+   * above first before enabling this
+   */
+  rdql_lexer_set_debug(1, scanner);
+#endif
+  
   len= strlen((const char*)query_string);
   buf= (char *)RASQAL_MALLOC(cstring, len+3);
   strncpy(buf, query_string, len);
@@ -816,6 +863,8 @@ main(int argc, char *argv[])
   yylex_destroy(scanner);
 
   raptor_free_uri(rq.base_uri);
+
+  free(query_string);
 
   rasqal_finish();
 
