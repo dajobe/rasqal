@@ -51,7 +51,7 @@ AC_PROG_LN_S
 AC_PROG_MAKE_SET
 
 
-AC_PROG_LEX
+AM_PROG_LEX
 if test "$LEX" != flex; then
   LEX="$SHELL $missing_dir/missing flex"
   AC_SUBST(LEX_OUTPUT_ROOT, lex.yy)
@@ -159,14 +159,63 @@ if test -d $srcdir/../librdf -a -r $srcdir/../librdf/rdf_node.c ; then
   have_redland=1
   AC_MSG_RESULT(yes)
   AC_DEFINE(RASQAL_IN_REDLAND, 1, [is this being built inside redland?])
-  REDLAND_LIBS="\$(top_builddir)/../librdf/librdf.la"
-  REDLAND_CFLAGS=" -I\$(srcdir)/../librdf"
+  REDLAND_LIBS="\$(top_builddir)/../librdf/librdf.la\$(top_builddir)/../raptor/libraptor.la "
+  REDLAND_CFLAGS=" -I\$(srcdir)/../librdf -I\$(srcdir)/../raptor"
   AC_SUBST(REDLAND_LIBS)
   AC_SUBST(REDLAND_CFLAGS)
 else
   AC_MSG_RESULT(no)
 fi
 
+
+AC_CHECK_PROG(RAPTOR_CONFIG, raptor-config, raptor-config)
+AC_ARG_WITH(raptor, [  --with-raptor=SOURCE    Pick raptor source - system/internal (default auto)], with_raptor="$withval", with_raptor="auto")
+
+RAPTOR_VERSION=`$RAPTOR_CONFIG --version 2>/dev/null`
+RAPTOR_VERSION_DEC=`$RAPTOR_CONFIG --version-decimal 2>/dev/null`
+
+RAPTOR_MIN_VERSION=1.0.0
+RAPTOR_MIN_VERSION_DEC=`echo $RAPTOR_MIN_VERSION | $AWK -F. '{printf("%d\n", 10000*$1 + 100*$2 + $3)};'`
+
+if test "X$RAPTOR_VERSION" = X; then
+  AC_MSG_ERROR(Raptor RDF parser library missing - please install from http://www.redland.opensource.ac.uk/raptor/)
+fi
+
+
+if test "X$with_raptor" = Xauto; then
+  if test "X$RAPTOR_VERSION" -a $RAPTOR_VERSION_DEC -ge $RAPTOR_MIN_VERSION_DEC; then
+    with_raptor=system
+  else
+    with_raptor=internal
+  fi
+elif test $with_raptor = system; then
+  if test $RAPTOR_VERSION_DEC -lt $RAPTOR_MIN_VERSION_DEC; then
+    AC_MSG_WARN(System raptor $RAPTOR_VERSION is too old - need $RAPTOR_MIN_VERSION)
+    AC_MSG_WARN(Proceeding anyway since --with-raptor=system was given)
+    AC_MSG_WARN(To use the internal raptor use --with-raptor=internal)
+    AC_MSG_WARN(or omit any --with-raptor argument.)
+  fi
+fi
+
+AC_MSG_CHECKING(raptor library source)
+if test $with_raptor = system; then
+  AC_MSG_RESULT(system $RAPTOR_VERSION)
+else
+  RAPTOR_VERSION=internal
+  AC_MSG_RESULT(internal)
+  if test "X$have_redland" = 1; then
+    AC_MSG_ERROR(Redland sources missing in parent directory - cannot use internal)
+  fi
+fi
+
+
+if test $with_raptor = internal; then
+  RASQAL_INTERNAL_CPPFLAGS="-I\$(top_srcdir)/../raptor $RASQAL_INTERNAL_CPPFLAGS"
+  RASQAL_INTERNAL_LIBS="\$(top_builddir)/../raptor/libraptor.la $RASQAL_INTERNAL_LIBS"
+else
+  CPPFLAGS="$CPPFLAGS `$RAPTOR_CONFIG --cflags`"
+  LIBS="$LIBS `$RAPTOR_CONFIG --libs`"
+fi
 
 
 
@@ -185,6 +234,9 @@ STANDARD_CFLAGS="$STANDARD_CFLAGS $CFLAGS"
 if test "$USE_MAINTAINER_MODE" = yes; then
   CFLAGS="$MAINTAINER_CFLAGS $CFLAGS"
 fi
+
+AC_SUBST(RASQAL_INTERNAL_CPPFLAGS)
+AC_SUBST(RASQAL_INTERNAL_LIBS)
 
 AC_SUBST(MEM)
 AC_SUBST(MEM_LIBS)
