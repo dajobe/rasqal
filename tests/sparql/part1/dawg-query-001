@@ -4,4 +4,4 @@ PREFIX foaf: <http://xmlns.com/foaf/0.1/>
 SELECT ?name ?mbox
 WHERE
     (?person foaf:name ?name)
-  [ (?person foaf:mbox	?mbox) ]
+     OPTIONAL (?person foaf:mbox ?mbox)
