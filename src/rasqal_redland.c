@@ -110,22 +110,6 @@ redland_node_to_rasqal_expression(librdf_node *node) {
 }
 
 
-static char*
-rasqal_redland_uri_heuristic_parser_name(librdf_uri *uri) {
-  char *uri_string;
-  size_t len;
-
-  uri_string=librdf_uri_as_counted_string(uri, &len);
-  if(!strncmp(uri_string+len-3, ".nt", 3))
-    return "ntriples";
-  
-  if(!strncmp(uri_string+len-3, ".n3", 3))
-    return "turtle";
-
-  return "rdfxml";
-}
-
-
 typedef struct {
   librdf_model *model;
   librdf_storage *storage;
@@ -153,7 +137,7 @@ rasqal_redland_new_triples_source(rasqal_query* rdf_query, void *user_data,
   rts->triple_present=rasqal_redland_triple_present;
   rts->free_triples_source=rasqal_redland_free_triples_source;
 
-  parser_name=rasqal_redland_uri_heuristic_parser_name(rtsc->uri);
+  parser_name=raptor_guess_parser_name(NULL, NULL, NULL, 0, librdf_uri_as_string(rtsc->uri));
   parser=librdf_new_parser(World, parser_name, NULL, NULL);
   librdf_parser_parse_into_model(parser, rtsc->uri, NULL, rtsc->model);
   librdf_free_parser(parser);
