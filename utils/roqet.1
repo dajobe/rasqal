@@ -1,0 +1,84 @@
+.\"                                      Hey, EMACS: -*- nroff -*-
+.\"
+.\" roqet.1 - Rasqal RDF query test program
+.\"
+.\" $Id$
+.\"
+.\" Copyright (C) 2004 David Beckett - http://purl.org/net/dajobe/
+.\" Institute for Learning and Research Technology - http://www.ilrt.bris.ac.uk/
+.\" University of Bristol - http://www.bristol.ac.uk/
+.\"
+.TH roqet 1 "2004-05-05"
+.\" Please adjust this date whenever revising the manpage.
+.SH NAME
+roqet \- Rasqal RDF parser utility
+.SH SYNOPSIS
+.B roqet
+.RB [ OPTIONS ]
+.IR "<query-URI>"
+.IR "[base-URI]"
+.SH EXAMPLE
+.nf
+.B roqet example.rdql
+.br
+.B roqet -q x.rdql http://example.org/base/
+.br
+.SH DESCRIPTION
+The
+.B roqet
+utility allows the querying of RDF content using the
+.B Rasqal
+RDF query library, emitting the results as variable bindings
+(at present).  The \fIquery-URI\fR can only be a file name
+at present; a future version may allow URIs.
+The optional \fIbase-URI\fR is used as the document URI if present.
+.SH OPTIONS
+roqet uses the usual GNU command line syntax, with long
+options starting with two dashes (`-') if supported by the
+getopt_long function.  Otherwise the short options are only available.
+.TP
+.B \-h, \-\-help
+Show a summary of the options.
+.TP
+.B \-i, \-\-input LANGUAGE
+Set the input query
+.I LANGUAGE
+to one of the allowed languages, presently just 'rdql' (RDQL,
+default).   The list of
+supported languages is given in the help summary given by \-h.
+.TP
+.B \-c, \-\-count
+Only count the triples and produce no other output.
+.TP
+.B \-q, \-\-quiet
+No extra information messages.
+.TP
+.B \-v, \-\-version
+Print the rasqal library version and exit.
+.SH "CONFORMING TO"
+\fIRDQL RDF Data Query Language\fR,
+HP Labs,
+.UR http://www.hpl.hp.com/semweb/rdql.htm
+http://www.hpl.hp.com/semweb/rdql.htm
+.UE
+
+.SH SEE ALSO
+.BR librasqal(3), rasqal-config(1)
+.SH CHANGES
+.br
+.SH AUTHOR
+Dave Beckett - 
+.UR http://purl.org/net/dajobe/
+http://purl.org/net/dajobe/
+.UE
+.br
+.UR
+Institute for Learning and Research Technology (ILRT)
+http://www.ilrt.bristol.ac.uk/
+.UE
+.br
+.UR
+University of Bristol
+http://www.bristol.ac.uk/
+.UE
+
