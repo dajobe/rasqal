@@ -113,6 +113,7 @@ rasqal_new_string_literal(char *string, char *language,
 
   l->type=RASQAL_LITERAL_STRING;
   l->value.string=string;
+  l->language=language;
   l->datatype=datatype;
   l->flags=datatype_qname;
   l->usage=1;
