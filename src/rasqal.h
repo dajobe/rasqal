@@ -177,8 +177,8 @@ RASQAL_API rasqal_query* rasqal_new_query(const char *name, const unsigned char 
 RASQAL_API void rasqal_free_query(rasqal_query* query);
 
 /* Methods */
-RASQAL_API const char* rasqal_query_get_name(rasqal_query *rdf_query);
-RASQAL_API const char* rasqal_query_get_label(rasqal_query *rdf_query);
+RASQAL_API const char* rasqal_query_get_name(rasqal_query* rdf_query);
+RASQAL_API const char* rasqal_query_get_label(rasqal_query* rdf_query);
 RASQAL_API void rasqal_query_set_fatal_error_handler(rasqal_query* query, void *user_data, raptor_message_handler handler);
 RASQAL_API void rasqal_query_set_error_handler(rasqal_query* query, void *user_data, raptor_message_handler handler);
 RASQAL_API void rasqal_query_set_warning_handler(rasqal_query* query, void *user_data, raptor_message_handler handler);
@@ -205,11 +205,11 @@ RASQAL_API rasqal_prefix* rasqal_query_get_prefix(rasqal_query* query, int idx);
 RASQAL_API int rasqal_parse_query(rasqal_query *query, const unsigned char *uri_string, const char *query_string, size_t len);
 
 /* Utility methods */
-RASQAL_API void rasqal_query_print(rasqal_query*, FILE *stream);
+RASQAL_API void rasqal_query_print(rasqal_query* rdf_query, FILE *stream);
 
 /* Query */
-RASQAL_API int rasqal_query_prepare(rasqal_query *rdf_query, const unsigned char *query_string, raptor_uri *base_uri);
-RASQAL_API int rasqal_query_execute(rasqal_query *rdf_query);
+RASQAL_API int rasqal_query_prepare(rasqal_query* rdf_query, const unsigned char *query_string, raptor_uri *base_uri);
+RASQAL_API int rasqal_query_execute(rasqal_query* rdf_query);
 
 RASQAL_API int rasqal_query_get_result_count(rasqal_query *query);
 RASQAL_API int rasqal_query_results_finished(rasqal_query *query);
