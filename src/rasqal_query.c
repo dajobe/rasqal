@@ -39,6 +39,9 @@
 #include "rasqal_internal.h"
 
 
+static void rasqal_query_add_query_result(rasqal_query *query, rasqal_query_results* query_results);
+static void rasqal_query_remove_query_result(rasqal_query *query, rasqal_query_results* query_results);
+
 
 /**
  * rasqal_new_query - Constructor - create a new rasqal_query object
@@ -87,6 +90,9 @@ rasqal_new_query(const char *name, const unsigned char *uri)
                                               0);
 
   query->variables_sequence=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_variable, (raptor_sequence_print_handler*)rasqal_variable_print);
+
+  query->usage=1;
+  
   if(factory->init(query, name)) {
     rasqal_free_query(query);
     return NULL;
@@ -105,6 +111,9 @@ rasqal_new_query(const char *name, const unsigned char *uri)
 void
 rasqal_free_query(rasqal_query* query) 
 {
+  if(--query->usage)
+    return;
+  
   if(query->executed)
     rasqal_engine_execute_finish(query);
 
@@ -563,37 +572,43 @@ rasqal_query_prepare(rasqal_query *query,
  * rasqal_query_execute - Excute a query - run and return results
  * @query: the &rasqal_query object
  *
- * return value: non-0 on failure.
+ * return value: a &rasqal_query_results structure or NULL on failure.
  **/
-int
+rasqal_query_results*
 rasqal_query_execute(rasqal_query *query)
 {
+  rasqal_query_results *query_results;
   int rc=0;
   
   if(query->failed || query->finished)
-    return 1;
+    return NULL;
 
   if(query->executed)
-    return 1;
+    return NULL;
   query->executed=1;
   
   rc=rasqal_engine_execute_init(query);
   if(rc) {
     query->failed=1;
-    return rc;
+    return NULL;
   }
 
   if(query->factory->execute) {
     rc=query->factory->execute(query);
     if(rc) {
       query->failed=1;
-      return rc;
+      return NULL;
     }
   }
 
-  rasqal_query_next_result(query);
+  query_results=(rasqal_query_results*)RASQAL_CALLOC(rasqal_query_results, sizeof(rasqal_query_results), 1);
+  query_results->query=query;
 
-  return query->failed;
+  rasqal_query_add_query_result(query, query_results);
+
+  rasqal_query_results_next(query_results);
+
+  return query_results;
 }
 
 
@@ -631,35 +646,106 @@ rasqal_query_print(rasqal_query* query, FILE *fh)
 }
 
 
+static void
+rasqal_query_add_query_result(rasqal_query *query,
+                              rasqal_query_results* query_results) 
+{
+  query_results->next=query->results;
+  query->results=query_results;
+  /* add reference to ensure query lives as long as this runs */
+  query->usage++;
+}
+
+
+
+static void
+rasqal_query_remove_query_result(rasqal_query *query,
+                                 rasqal_query_results* query_results) 
+{
+  rasqal_query_results *cur, *prev;
+  for(cur=query->results; cur && cur != query_results; cur=cur->next)
+    prev=cur;
+  
+  if(cur == query_results) {
+    if(prev)
+      prev->next=cur->next;
+  }
+  if(cur == query->results && cur != NULL)
+    query->results=cur->next;
+
+  /* remove reference and free if we are the last */
+  rasqal_free_query(query);
+}
+
+
+
+void
+rasqal_free_query_results(rasqal_query_results *query_results) 
+{
+  rasqal_query_remove_query_result(query_results->query, query_results);
+  RASQAL_FREE(rasqal_query_results, query_results);
+}
+
+
 /**
- * rasqal_query_get_result_count - Get number of bindings so far
- * @query: &rasqal_query query
+ * rasqal_query_results_get_count - Get number of bindings so far
+ * @query_results: &rasqal_query_results query_results
  * 
  * Return value: number of bindings found so far
  **/
 int
-rasqal_query_get_result_count(rasqal_query *query)
+rasqal_query_results_get_count(rasqal_query_results *query_results)
 {
+  rasqal_query *query=query_results->query;
+
   return query->result_count;
 }
 
 
 /**
+ * rasqal_query_results_next - Move to the next result
+ * @query_results: &rasqal_query_results query_results
+ * 
+ * Return value: non-0 if failed or results exhausted
+ **/
+int
+rasqal_query_results_next(rasqal_query_results *query_results)
+{
+  rasqal_query *query=query_results->query;
+  int rc;
+  
+  if(query->finished)
+    return 1;
+
+  /* rc<0 error rc=0 end of results,  rc>0 got a result */
+  rc=rasqal_engine_get_next_result(query);
+  if(rc<1)
+    query->finished=1;
+  if(rc<0)
+    query->failed=1;
+  
+  return query->finished;
+}
+
+
+/**
  * rasqal_query_results_finished - Find out if binding results are exhausted
- * @query: &rasqal_query query
+ * @query_results: &rasqal_query_results query_results
  * 
  * Return value: non-0 if results are finished or query failed
  **/
 int
-rasqal_query_results_finished(rasqal_query *query)
+rasqal_query_results_finished(rasqal_query_results *query_results)
 {
+  rasqal_query *query=query_results->query;
+
   return (query->failed || query->finished);
 }
 
 
 /**
- * rasqal_query_get_result_bindings - Get all binding names, values for current result
- * @query: &rasqal_query query
+ * rasqal_query_results_get_bindings - Get all binding names, values for current result
+ * @query_results: &rasqal_query_results query_results
  * @names: pointer to an array of binding names (or NULL)
  * @values: pointer to an array of binding value &rasqal_literal (or NULL)
  * 
@@ -674,10 +760,12 @@ rasqal_query_results_finished(rasqal_query *query)
  * Return value: non-0 if the assignment failed
  **/
 int
-rasqal_query_get_result_bindings(rasqal_query *query,
-                                 const char ***names, 
-                                 rasqal_literal ***values)
+rasqal_query_results_get_bindings(rasqal_query_results *query_results,
+                                  const char ***names, 
+                                  rasqal_literal ***values)
 {
+  rasqal_query *query=query_results->query;
+  
   if(query->finished)
     return 1;
 
@@ -696,15 +784,17 @@ rasqal_query_get_result_bindings(rasqal_query *query,
 
 
 /**
- * rasqal_query_get_result_binding_value - Get one binding value for the current result
- * @query: &rasqal_query query
+ * rasqal_query_results_get_binding_value - Get one binding value for the current result
+ * @query_results: &rasqal_query_results query_results
  * @offset: offset of binding name into array of known names
  * 
  * Return value: a pointer to a shared &rasqal_literal binding value or NULL on failure
  **/
 rasqal_literal*
-rasqal_query_get_result_binding_value(rasqal_query *query, int offset)
+rasqal_query_results_get_binding_value(rasqal_query_results *query_results, int offset)
 {
+  rasqal_query *query=query_results->query;
+
   if(query->finished)
     return NULL;
 
@@ -721,15 +811,17 @@ rasqal_query_get_result_binding_value(rasqal_query *query, int offset)
 
 
 /**
- * rasqal_query_get_result_binding_name - Get binding name for the current result
- * @query: &rasqal_query query
+ * rasqal_query_results_get_binding_name - Get binding name for the current result
+ * @query_results: &rasqal_query_results query_results
  * @offset: offset of binding name into array of known names
  * 
  * Return value: a pointer to a shared copy of the binding name or NULL on failure
  **/
 const char*
-rasqal_query_get_result_binding_name(rasqal_query *query, int offset)
+rasqal_query_results_get_binding_name(rasqal_query_results *query_results, int offset)
 {
+  rasqal_query *query=query_results->query;
+  
   if(query->finished)
     return NULL;
 
@@ -741,16 +833,17 @@ rasqal_query_get_result_binding_name(rasqal_query *query, int offset)
 
 
 /**
- * rasqal_query_get_result_binding_by_name - Get one binding value for a given name in the current result
- * @query: &rasqal_query query
+ * rasqal_query_results_get_binding_by_name - Get one binding value for a given name in the current result
+ * @query_results: &rasqal_query_results query_results
  * @name: variable name
  * 
  * Return value: a pointer to a shared &rasqal_literal binding value or NULL on failure
  **/
 rasqal_literal*
-rasqal_query_get_result_binding_by_name(rasqal_query *query,
-                                        const char *name)
+rasqal_query_results_get_binding_by_name(rasqal_query_results *query_results,
+                                         const char *name)
 {
+  rasqal_query *query=query_results->query;
   int offset= -1;
   int i;
   
@@ -777,39 +870,16 @@ rasqal_query_get_result_binding_by_name(rasqal_query *query,
 
 
 /**
- * rasqal_query_next_result - Move to the next result
- * @query: &rasqal_query query
- * 
- * Return value: non-0 if failed or results exhausted
- **/
-int
-rasqal_query_next_result(rasqal_query *query)
-{
-  int rc;
-  
-  if(query->finished)
-    return 1;
-
-  /* rc<0 error rc=0 end of results,  rc>0 got a result */
-  rc=rasqal_engine_get_next_result(query);
-  if(rc<1)
-    query->finished=1;
-  if(rc<0)
-    query->failed=1;
-  
-  return query->finished;
-}
-
-
-/**
- * rasqal_query_get_bindings_count - Get the number of bound variables in the result
- * @query: &librdf_query query
+ * rasqal_query_results_get_bindings_count - Get the number of bound variables in the result
+ * @query_results: &librdf_query_results query_results
  * 
  * Return value: <0 if failed or results exhausted
  **/
 int
-rasqal_query_get_bindings_count(rasqal_query *query)
+rasqal_query_results_get_bindings_count(rasqal_query_results *query_results)
 {
+  rasqal_query *query=query_results->query;
+
   return query->select_variables_count;
 }
 
