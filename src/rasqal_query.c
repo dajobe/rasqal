@@ -429,12 +429,16 @@ rasqal_query_get_prefix(rasqal_query* query, int idx)
 /**
  * rasqal_query_prepare: Prepare a query - typically parse it
  * @query: the &rasqal_query object
- * @query_string: the query string
+ * @query_string: the query string (or NULL)
  * @base_uri: base URI of query string (optional)
  * 
  * Some query languages may require a base URI to resolve any
  * relative URIs in the query string.  If this is not given,
  * the current directory int the filesystem is used as the base URI.
+ *
+ * The query string may be NULL in which case it is not parsed
+ * and the query parts may be created by API calls such as
+ * rasqal_query_add_source etc.
  *
  * Return value: non-0 on failure.
  **/
@@ -451,9 +455,11 @@ rasqal_query_prepare(rasqal_query *query,
   if(query->prepared)
     return 1;
   query->prepared=1;
-  
-  query->query_string=(char*)RASQAL_MALLOC(cstring, strlen(query_string)+1);
-  strcpy((char*)query->query_string, (const char*)query_string);
+
+  if(query_string) {
+    query->query_string=(char*)RASQAL_MALLOC(cstring, strlen(query_string)+1);
+    strcpy((char*)query->query_string, (const char*)query_string);
+  }
 
   if(base_uri)
     base_uri=raptor_uri_copy(base_uri);
