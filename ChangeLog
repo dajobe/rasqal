@@ -1,5 +1,11 @@
 2005-02-03  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
+	* configure.ac: In maintainer mode, stop if flex is too old, no
+	flex or YACC is not GNU bison.
+
+	* sparql_lexer.l (sparql_copy_string_token): Fix wrong length on
+	checking qname.
+
 	* sparql_lexer.l ({QNAME}): Now assigns a uri using sparql_copy_qname.
 	(sparql_copy_qname): expands and returns a raptor_uri* here.
 	When running standalone as rasqal_lexer_test, ignore unexpanded
