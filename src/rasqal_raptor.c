@@ -259,6 +259,7 @@ rasqal_raptor_free_triples_source(void *user_data) {
 
   while(cur) {
     rasqal_raptor_triple *next=cur->next;
+    rasqal_free_triple(cur->triple);
     RASQAL_FREE(rasqal_raptor_triple, cur);
     cur=next;
   }
