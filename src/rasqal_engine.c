@@ -417,24 +417,28 @@ rasqal_engine_execute_init(rasqal_query *query) {
     rasqal_engine_build_constraints_expression(query);
   }
   
-  query->triples_source=rasqal_new_triples_source(query);
   if(!query->triples_source) {
-    query->failed=1;
-    rasqal_query_error(query, "Failed to make triples source.");
-    return 1;
+    query->triples_source=rasqal_new_triples_source(query);
+    if(!query->triples_source) {
+      query->failed=1;
+      rasqal_query_error(query, "Failed to make triples source.");
+      return 1;
+    }
   }
 
-  query->triple_meta=(rasqal_triple_meta*)RASQAL_CALLOC(rasqal_triple_meta, sizeof(rasqal_triple_meta), triples_size);
-  if(!query->triple_meta)
-    return 1;
-  
-  for(i=0; i<triples_size; i++) {
-    rasqal_triple *t=(rasqal_triple*)raptor_sequence_get_at(query->triples, i);
-
-    query->triple_meta[i].is_exact=
-      !(rasqal_literal_as_variable(t->predicate) ||
-       rasqal_literal_as_variable(t->subject) ||
-       rasqal_literal_as_variable(t->object));
+  if(!query->triple_meta) {
+    query->triple_meta=(rasqal_triple_meta*)RASQAL_CALLOC(rasqal_triple_meta, sizeof(rasqal_triple_meta), triples_size);
+    if(!query->triple_meta)
+      return 1;
+    
+    for(i=0; i<triples_size; i++) {
+      rasqal_triple *t=(rasqal_triple*)raptor_sequence_get_at(query->triples, i);
+      
+      query->triple_meta[i].is_exact=
+        !(rasqal_literal_as_variable(t->predicate) ||
+          rasqal_literal_as_variable(t->subject) ||
+          rasqal_literal_as_variable(t->object));
+    }
   }
 
   query->column=0;
@@ -449,14 +453,34 @@ rasqal_engine_execute_init(rasqal_query *query) {
 
 int
 rasqal_engine_execute_finish(rasqal_query *query) {
-  RASQAL_FREE(rasqal_triple_meta, query->triple_meta);
-  query->triple_meta=NULL;
+  if(query->triple_meta) {
+    RASQAL_FREE(rasqal_triple_meta, query->triple_meta);
+
+    while(query->column >= 0) {
+      rasqal_triple_meta *m=&query->triple_meta[query->column];
+
+      if(m->triples_match) {
+
+        if(m->bindings[0]) 
+          rasqal_variable_set_value(m->bindings[0],  NULL);
+        if(m->bindings[1]) 
+          rasqal_variable_set_value(m->bindings[1],  NULL);
+        if(m->bindings[2]) 
+          rasqal_variable_set_value(m->bindings[2],  NULL);
+
+        rasqal_free_triples_match(m->triples_match);
+        m->triples_match=NULL;
+      }
+    }
+    
+    query->triple_meta=NULL;
+  }
 
   if(query->triples_source) {
     rasqal_free_triples_source(query->triples_source);
     query->triples_source=NULL;
   }
-  
+
   return 0;
 }
 
