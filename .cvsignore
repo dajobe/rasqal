@@ -17,13 +17,6 @@ README
 TODO
 aclocal.m4
 autom4te.cache
-sparql_lexer.c
-sparql_lexer.h
-sparql_parser.c
-sparql_parser.c
-sparql_parser.h
-sparql_parser.h
-sparql_parser.output
 config.cache
 config.guess
 config.log
@@ -41,6 +34,7 @@ old
 rasqal-config
 rasqal-src-config
 rasqal.pc
+rasqal.rdf
 rasqal.spec
 rasqal_config.h
 rasqal_config.h.in
@@ -55,5 +49,12 @@ releases
 roqet
 roqet.html
 setup.sh
+sparql_lexer.c
+sparql_lexer.h
+sparql_parser.c
+sparql_parser.c
+sparql_parser.h
+sparql_parser.h
+sparql_parser.output
 stamp-h*
 test*
