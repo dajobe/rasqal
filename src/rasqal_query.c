@@ -84,31 +84,19 @@ rasqal_parse_query(rasqal_query *query, const char *query_string) {
 
 
 
-static void
-rasqal_print_string(char *data, FILE *fh) 
-{
-  fputs(data, fh);
-}
-
-
 /* Utility methods */
 void
 rasqal_query_print(rasqal_query* query, FILE *fh) {
   fprintf(fh, "selects: ");
-  rasqal_sequence_print(query->selects, fh, 
-                        (rasqal_print_handler)rasqal_print_variable);
+  rasqal_sequence_print(query->selects, fh);
   fprintf(fh, "\nsources: ");
-  rasqal_sequence_print(query->sources, fh, 
-                        (rasqal_print_handler)rasqal_print_string);
+  rasqal_sequence_print(query->sources, fh);
   fprintf(fh, "\ntriples: ");
-  rasqal_sequence_print(query->triples, fh, 
-                        (rasqal_print_handler)rasqal_print_triple);
+  rasqal_sequence_print(query->triples, fh);
   fprintf(fh, "\nconstraints: ");
-  rasqal_sequence_print(query->constraints, fh, 
-                        (rasqal_print_handler)rasqal_print_expression);
+  rasqal_sequence_print(query->constraints, fh);
   fprintf(fh, "\nprefixes: ");
-  rasqal_sequence_print(query->prefixes, fh, 
-                        (rasqal_print_handler)rasqal_print_prefix);
+  rasqal_sequence_print(query->prefixes, fh);
   fputc('\n', fh);
 }
 
