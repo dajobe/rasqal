@@ -174,7 +174,6 @@ Query : SELECT SelectClause SourceClause WHERE TriplePatternList ConstraintClaus
   ((rasqal_query*)rq)->sources=$3;
   ((rasqal_query*)rq)->triples=$5;
   ((rasqal_query*)rq)->constraints=$6;
-  ((rasqal_query*)rq)->prefixes=$7;
 }
 ;
 
@@ -313,17 +312,17 @@ UsingClause : USING PrefixDeclList
 
 PrefixDeclList : IDENTIFIER FOR URI_LITERAL COMMA PrefixDeclList 
 {
-  $$=$5;
+  $$=((rasqal_query*)rq)->prefixes;
   raptor_sequence_shift($$, rasqal_new_prefix($1, $3));
 }
 | IDENTIFIER FOR URI_LITERAL PrefixDeclList 
 {
-  $$=$4;
+  $$=((rasqal_query*)rq)->prefixes;
   raptor_sequence_shift($$, rasqal_new_prefix($1, $3));
 }
 | IDENTIFIER FOR URI_LITERAL
 {
-  $$=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_prefix, (raptor_sequence_print_handler*)rasqal_prefix_print);
+  $$=((rasqal_query*)rq)->prefixes;
   raptor_sequence_push($$, rasqal_new_prefix($1, $3));
 }
 ;
@@ -817,6 +816,7 @@ main(int argc, char *argv[])
                                          &query,
                                          0);
   query.variables_sequence=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_variable, (raptor_sequence_print_handler*)rasqal_variable_print);
+  query.prefixes=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_prefix, (raptor_sequence_print_handler*)rasqal_prefix_print);
   
   locator->line= locator->column = -1;
   locator->file= filename;
@@ -831,6 +831,7 @@ main(int argc, char *argv[])
   rc=rdql_parse(&query, (const unsigned char*)query_string);
 
   raptor_free_namespaces(query.namespaces);
+  raptor_free_sequence(query.prefixes);
 
   raptor_free_uri(query.base_uri);
 
