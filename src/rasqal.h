@@ -309,6 +309,7 @@ RASQAL_API void rasqal_prefix_print(rasqal_prefix* p, FILE* fh);
 
 /* Triple class */
 RASQAL_API rasqal_triple* rasqal_new_triple(rasqal_literal* subject, rasqal_literal* predicate, rasqal_literal* object);
+RASQAL_API rasqal_triple* rasqal_new_triple_from_triple(rasqal_triple* t);
 RASQAL_API void rasqal_free_triple(rasqal_triple* t);
 RASQAL_API void rasqal_triple_print(rasqal_triple* t, FILE* fh);
 RASQAL_API void rasqal_triple_set_origin(rasqal_triple* t, rasqal_literal *l);
