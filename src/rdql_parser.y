@@ -35,7 +35,7 @@
 #include <rasqal.h>
 #include <rasqal_internal.h>
 
-#include <rdql_parser.tab.h>
+#include <rdql_parser.h>
 
 #define YY_DECL int rdql_lexer_lex (YYSTYPE *rdql_parser_lval, yyscan_t yyscanner)
 #include <rdql_lexer.h>

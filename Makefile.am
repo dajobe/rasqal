@@ -35,7 +35,7 @@ TESTS=rasqal_expr_test strcasecmp_test
 
 CLEANFILES=$(TESTS) rdql_lexer_test rdql_parser_test
 MAINTAINERCLEANFILES=rdql_lexer.c rdql_lexer.h \
-rdql_parser.tab.c rdql_parser.tab.h rdql_parser.output
+rdql_parser.c rdql_parser.h rdql_parser.output
 
 MEM=@MEM@
 MEM_LIBS=@MEM_LIBS@
@@ -46,7 +46,7 @@ AM_LDFLAGS=@RASQAL_EXTERNAL_LIBS@ $(MEM_LIBS)
 
 
 librasqal_la_SOURCES = rdql_lexer.c rdql_lexer.h \
-rdql_parser.tab.c rdql_parser.tab.h rdql_common.h \
+rdql_parser.c rdql_parser.h rdql_common.h \
 rasqal_expr.c rasqal_general.c rasqal_query.c \
 rasqal_engine.c rasqal_raptor.c rasqal_literal.c
 if GETOPT
@@ -110,16 +110,18 @@ roqet.html: $(srcdir)/roqet.1 $(srcdir)/fix-groff-xhtml
 
 
 # Actually it needs rdql_parser.h but nevermind
-rdql_lexer.c: $(srcdir)/rdql_lexer.l rdql_parser.tab.c $(srcdir)/fix-flex
+rdql_lexer.c: $(srcdir)/rdql_lexer.l rdql_parser.c $(srcdir)/fix-flex
 	$(LEX) -o$@ $(srcdir)/rdql_lexer.l
 	$(PERL) $(srcdir)/fix-flex $@ > rdql_lexer.t
 	mv rdql_lexer.t $@
+	$(PERL) $(srcdir)/fix-flex rdql_lexer.h > rdql_lexer.t
+	mv rdql_lexer.t rdql_lexer.h
 
-rdql_parser.tab.c: $(srcdir)/rdql_parser.y
+rdql_parser.c: $(srcdir)/rdql_parser.y
 	$(YACC) -b rdql_parser -p rdql_parser_ -d -v $(srcdir)/rdql_parser.y
-	mv $@ rdql_parser.t
-	sed -e '/Suppress GCC warning that yyerrlab1/,/^\#endif/d' rdql_parser.t > $@
-	rm -f rdql_parser.t
+	sed -e '/Suppress GCC warning that yyerrlab1/,/^\#endif/d' rdql_parser.tab.c > $@
+	mv rdql_parser.tab.h rdql_parser.h
+	rm -f rdql_parser.tab.c
 endif
 
 
@@ -128,20 +130,14 @@ check-local: rdql_lexer_test rdql_parser_test
 rdql_lexer_test: $(srcdir)/rdql_lexer.c librasqal.la
 	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE @RASQAL_INTERNAL_CPPFLAGS@ $(srcdir)/rdql_lexer.c librasqal.la $(LIBS)
 
-rdql_parser_test: $(srcdir)/rdql_parser.tab.c librasqal.la
-	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE @RASQAL_INTERNAL_CPPFLAGS@ $(srcdir)/rdql_parser.tab.c librasqal.la $(LIBS)
+rdql_parser_test: $(srcdir)/rdql_parser.c librasqal.la
+	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE @RASQAL_INTERNAL_CPPFLAGS@ $(srcdir)/rdql_parser.c librasqal.la $(LIBS)
 
 rasqal_expr_test: $(srcdir)/rasqal_expr.c librasqal.la
 	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE @RASQAL_INTERNAL_CPPFLAGS@ $(srcdir)/rasqal_expr.c librasqal.la $(LIBS)
 
 strcasecmp_test: $(srcdir)/strcasecmp.c
 	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE $(srcdir)/strcasecmp.c
-
-# The default target insanely deletes *.tab.c - i.e.
-# rdql_parser.tab.c which was NOT built by configure
-# and should not be deleted when cleaning the distribution.
-distclean-compile:
-	exit 0
 
 $(top_builddir)/raptor/libraptor.la:
 	cd $(top_builddir)/raptor && $(MAKE) $(AM_MAKEFLAGS) libraptor.la

@@ -82,7 +82,7 @@
 #include <rasqal.h>
 #include <rasqal_internal.h>
 
-#include <rdql_parser.tab.h>
+#include <rdql_parser.h>
 
 #include <rdql_common.h>
 
