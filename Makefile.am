@@ -46,7 +46,7 @@ EXTRA_roqet_SOURCES = getopt.c
 EXTRA_DIST=ChangeLog \
 README      NEWS      LICENSE.txt \
 README.html NEWS.html LICENSE.html INSTALL.html \
-MPL.html librasqal.html roqet.html \
+MPL.html librasqal.html roqet.html RELEASE.html \
 rdql_lexer.l rdql_parser.y \
 rasqal-config.in rasqal-src-config.in \
 autogen.sh \
