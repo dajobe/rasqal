@@ -19,3 +19,5 @@
 # 
 
 SUBDIRS=simple part1
+
+EXTRA_DIST=check-sparql
