@@ -74,13 +74,15 @@ raptor_statement_as_rasqal_triple(const raptor_statement *statement) {
     /* FIXME - 46 for "<http://www.w3.org/1999/02/22-rdf-syntax-ns#_>" */
     size_t len=46 + 13; 
     unsigned char *buffer=(unsigned char*)RASQAL_MALLOC(cstring, len+1);
+    raptor_uri* uri;
+ 
     if(!buffer)
       return NULL;
 
     sprintf((char*)buffer,
             "<http://www.w3.org/1999/02/22-rdf-syntax-ns#_%d>",
             *((int*)statement->predicate));
-    raptor_uri* uri=raptor_new_uri(buffer);
+    uri=raptor_new_uri(buffer);
     RASQAL_FREE(cstring, buffer);
     p=rasqal_new_uri_literal(uri);
   } else
@@ -116,13 +118,15 @@ raptor_statement_as_rasqal_triple(const raptor_statement *statement) {
     /* FIXME - 46 for "<http://www.w3.org/1999/02/22-rdf-syntax-ns#_>" */
     size_t len=46 + 13; 
     unsigned char *buffer=(unsigned char*)RASQAL_MALLOC(cstring, len+1);
+    raptor_uri* uri;
+
     if(!buffer)
       return NULL;
 
     sprintf((char*)buffer,
             "<http://www.w3.org/1999/02/22-rdf-syntax-ns#_%d>",
             *((int*)statement->predicate));
-    raptor_uri* uri=raptor_new_uri(buffer);
+    uri=raptor_new_uri(buffer);
     RASQAL_FREE(cstring, buffer);
     o=rasqal_new_uri_literal(uri);
   } else {
