@@ -202,8 +202,6 @@ RASQAL_API void rasqal_query_add_prefix(rasqal_query* query, rasqal_prefix* pref
 RASQAL_API raptor_sequence* rasqal_query_get_prefix_sequence(rasqal_query* query);
 RASQAL_API rasqal_prefix* rasqal_query_get_prefix(rasqal_query* query, int idx);
 
-RASQAL_API int rasqal_parse_query(rasqal_query *query, const unsigned char *uri_string, const char *query_string, size_t len);
-
 /* Utility methods */
 RASQAL_API void rasqal_query_print(rasqal_query* query, FILE *stream);
 
