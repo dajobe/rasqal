@@ -415,7 +415,7 @@ main(int argc, char *argv[])
   } else {
     query_string=roqet_get_www_content(uri, NULL, roqet_error_handler);
     if(!query_string || error_count) {
-      fprintf(stderr, "%s: Retrieving URI '%s' content failed\n", 
+      fprintf(stderr, "%s: Retrieving query at URI '%s' failed\n", 
               program, uri_string);
       return(1);
     }
