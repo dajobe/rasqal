@@ -123,10 +123,9 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...);
  */
 %expect 1
 
-
 /* word symbols */
 %token SELECT SOURCE FROM WHERE AND
-%token OPTIONAL PREFIX DESCRIBE CONSTRUCT ASK NOT DISTINCT LIMIT UNION
+%token OPTIONAL PREFIX DESCRIBE CONSTRUCT ASK DISTINCT LIMIT UNION
 %token BASE LOAD BOUND STR LANG DATATYPE ISURI ISBLANK ISLITERAL
 %token GRAPH WITH
 
@@ -165,18 +164,19 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...);
 
 
 %type <seq> SelectClause ConstructClause DescribeClause
-%type <seq> PrefixDeclOpt FromClauseOpt WhereClauseOpt
+%type <seq> PrefixDeclOpt GraphClauseOpt WhereClauseOpt
 %type <seq> VarList VarOrURIList ArgList URIList
-%type <seq> TriplePatternList ConstructPattern
+%type <seq> ConstructPattern
 
-%type <seq> GraphPattern 
+%type <seq> GraphPattern GraphOrPattern GraphAndPattern 
 
-%type <graph_pattern> GraphPattern1 PatternElement PatternElementForms
+%type <graph_pattern> PatternElement
+%type <graph_pattern> NamedGraphPattern OptionalGraphPattern
 
 %type <expr> Expression ConditionalAndExpression ValueLogical
 %type <expr> EqualityExpression RelationalExpression AdditiveExpression
 %type <expr> MultiplicativeExpression UnaryExpression
-%type <expr> UnaryExpressionNotPlusMinus BuiltinExpression
+%type <expr> PrimaryExpression BuiltinExpression
 
 %type <literal> Literal URI BNode
 %type <literal> VarOrLiteral VarOrURI
@@ -190,19 +190,18 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...);
 %%
 
 /* Below here, grammar terms are numbered from
- * http://www.w3.org/2001/sw/DataAccess/rq23/
- * $Revision$ of $Date$
+ * http://www.w3.org/TR/2005/WD-rdf-sparql-query-20050217/
  * except where noted
  */
 
-/* SPARQL Grammar: [1] rq23 Query */
-Query : BaseDeclOpt PrefixDeclOpt ReportFormat LoadClauseOpt FromClauseOpt
-        WhereClauseOpt LimitClauseOpt
+/* SPARQL Grammar: [1] Query */
+Query : BaseDeclOpt PrefixDeclOpt ReportFormat LoadClauseOpt GraphClauseOpt
+        NamedGraphClauseOpt WhereClauseOpt LimitClauseOpt
 {
 }
 ;
 
-/* NEW Grammar Term pulled out of [1] rq23 Query */
+/* NEW Grammar Term pulled out of [1] Query */
 ReportFormat : SelectClause
 {
   ((rasqal_query*)rq)->selects=$1;
@@ -222,10 +221,10 @@ ReportFormat : SelectClause
 }
 ;
 
-/* SPARQL Grammar: [2] rq23 Prolog - merged into Query */
+/* SPARQL Grammar: [2] Prolog - merged into Query */
 
 
-/* SPARQL Grammar: [3] rq23 SelectClause */
+/* SPARQL Grammar: [3] SelectClause */
 SelectClause : SELECT DISTINCT VarList
 {
   $$=$3;
@@ -249,7 +248,7 @@ SelectClause : SELECT DISTINCT VarList
 ;
 
 
-/* SPARQL Grammar: [4] rq23 DescribeClause */
+/* SPARQL Grammar: [4] DescribeClause */
 DescribeClause : DESCRIBE VarOrURIList
 {
   $$=$2;
@@ -273,13 +272,13 @@ ConstructClause : CONSTRUCT ConstructPattern
 ;
 
 
-/* SPARQL Grammar: [6] rq23 AskClause */
+/* SPARQL Grammar: [6] AskClause */
 AskClause : ASK 
 {
 }
 
 
-/* SPARQL Grammar: [7] rq23 LoadClause - renamed for clarity */
+/* SPARQL Grammar: [7] LoadClause - renamed for clarity */
 LoadClauseOpt : LOAD URIList
 {
   /* FIXME */
@@ -290,8 +289,8 @@ LoadClauseOpt : LOAD URIList
 ;
 
 
-/* SPARQL Grammar: [8] rq23 FromClause - renamed for clarity */
-FromClauseOpt : WITH URIList
+/* SPARQL Grammar: [7] GraphClause - renamed for clarity */
+GraphClauseOpt : WITH URIList
 {
   if($2) {
     int i;
@@ -304,7 +303,14 @@ FromClauseOpt : WITH URIList
     raptor_free_sequence($2);
   }
 }
-| FROM URIList
+| /* empty */
+{
+}
+;  
+
+
+/* SPARQL Grammar: [8] NamedGraphClause - renamed for clarity */
+NamedGraphClauseOpt : FROM URIList
 {
   if($2) {
     int i;
@@ -322,9 +328,9 @@ FromClauseOpt : WITH URIList
 ;
 
 
-/* SPARQL Grammar: [9] rq23 SourceSelector - junk */
+/* SPARQL Grammar: [9] SourceSelector - junk */
 
-/* SPARQL Grammar: [10] rq23 WhereClause - remained for clarity */
+/* SPARQL Grammar: [10] WhereClause - remained for clarity */
 WhereClauseOpt :  WHERE GraphPattern
 {
   if($2) {
@@ -338,7 +344,7 @@ WhereClauseOpt :  WHERE GraphPattern
 ;
 
 
-/* SPARQL Grammar: [11] rq23 LimitClause - remained for clarity */
+/* SPARQL Grammar: [11] LimitClause - remained for clarity */
 LimitClauseOpt :  LIMIT INTEGER_LITERAL
 {
   if($2 != NULL)
@@ -349,20 +355,34 @@ LimitClauseOpt :  LIMIT INTEGER_LITERAL
 }
 ;
 
-/* Below here, grammar terms are numbered from
- * http://www.w3.org/TR/2004/WD-rdf-sparql-query-20041012/#grammar
- * except where noted
- */
+/* SPARQL Grammar: [12] GraphPattern */
+GraphPattern : GraphOrPattern
+{
+  $$=$1;
+}
+;
 
-/* SPARQL Grammar: [6] SourceGraphPattern - merged into PatternElementForms */
 
-/* SPARQL Grammar: [7] OptionalGraphPattern - merged into PatternElementForms */
+/* SPARQL Grammar: [13] PatternGroup - merged into GraphPattern */
 
-/* SPARQL Grammar: [8] GraphPattern */
-GraphPattern : GraphPattern PatternElement
+/* SPARQL Grammar: [14] GraphOrPattern */
+GraphOrPattern : GraphAndPattern
+{
+  $$=$1;
+}
+| GraphAndPattern UNION GraphAndPattern 
+{
+  sparql_syntax_warning(((rasqal_query*)rq), "SPARQL UNION ignored");
+  $$=$1;
+}
+;
+
+
+/* SPARQL Grammar: [15] GraphAndPattern */
+GraphAndPattern : GraphAndPattern PatternElement
 {
 #if RASQAL_DEBUG > 1  
-  printf("GraphPattern 1\n  graphpattern=");
+  printf("GraphAndPattern 1\n  graphpattern=");
   raptor_sequence_print($1, stdout);
   printf(", patternelement=");
   if($2)
@@ -379,7 +399,7 @@ GraphPattern : GraphPattern PatternElement
 | PatternElement 
 {
 #if RASQAL_DEBUG > 1  
-  printf("GraphPattern 2\n  patternelement=");
+  printf("GraphAndPattern 2\n  patternelement=");
   if($1)
     rasqal_graph_pattern_print($1, stdout);
   else
@@ -394,58 +414,11 @@ GraphPattern : GraphPattern PatternElement
 ;
 
 
-/* SPARQL Grammar: [9] PatternElement */
-PatternElement : TriplePatternList
+/* SPARQL Grammar: [16] PatternElement */
+PatternElement : TriplePattern
 {
 #if RASQAL_DEBUG > 1  
-  printf("PatternElement 1\n  triplepatternlist=");
-  raptor_sequence_print($1, stdout);
-  fputs("\n\n", stdout);
-#endif
-  
-  if($1) {
-    raptor_sequence *s=((rasqal_query*)rq)->triples;
-    int offset=raptor_sequence_size(s);
-    int triple_pattern_size=raptor_sequence_size($1);
-    
-    raptor_sequence_join(s, $1);
-    raptor_free_sequence($1);
-
-    $$=rasqal_new_graph_pattern_from_triples((rasqal_query*)rq, s, offset, offset+triple_pattern_size-1, 0);
-  } else
-    $$=NULL;
-}
-| '{' GraphPattern '}' /*  ExplicitGroup inlined */
-{
-#if RASQAL_DEBUG > 1  
-  printf("PatternElement 2\n  graphpattern=");
-  raptor_sequence_print($2, stdout);
-  fputs("\n\n", stdout);
-#endif
-  
-  $$=rasqal_new_graph_pattern_from_sequence((rasqal_query*)rq, $2, 0);
-}
-| PatternElementForms
-{
-#if RASQAL_DEBUG > 1  
-  printf("PatternElement 3\n  patternelementforms=");
-  if($1)
-    rasqal_graph_pattern_print($1, stdout);
-  else
-    fputs("NULL", stdout);
-  fputs("\n\n", stdout);
-#endif
-  
-  $$=$1;
-}
-;
-
-
-/* SPARQL Grammar: [10] GraphPattern1 */
-GraphPattern1 : TriplePattern
-{
-#if RASQAL_DEBUG > 1  
-  printf("GraphPattern1 1\n  triplepattern=");
+  printf("PatternElement 1\n  triplepattern=");
   if($1)
     rasqal_triple_print($1, stdout);
   else
@@ -462,40 +435,54 @@ GraphPattern1 : TriplePattern
   } else
     $$=NULL;
 }
-| '{' GraphPattern '}' /*  ExplicitGroup inlined */
+| '{' GraphPattern '}' /*  GroupGraphPattern inlined */
 {
 #if RASQAL_DEBUG > 1  
-  printf("GraphPattern1 2\n  triplepattern=");
+  printf("PatternElement 2\n  graphpattern=");
   raptor_sequence_print($2, stdout);
   fputs("\n\n", stdout);
 #endif
-
+  
   $$=rasqal_new_graph_pattern_from_sequence((rasqal_query*)rq, $2, 0);
 }
-| PatternElementForms
+| NamedGraphPattern
 {
-#if RASQAL_DEBUG > 1  
-  printf("PatternElement 3\n  patternelementforms=");
-  rasqal_graph_pattern_print($1, stdout);
-  fputs("\n\n", stdout);
-#endif
-  
   $$=$1;
+}
+| OptionalGraphPattern
+{
+  $$=$1;
+}
+| AND Expression
+{
+  $$=rasqal_new_graph_pattern_from_triples((rasqal_query*)rq, NULL, 0, 0, 0);
+  rasqal_graph_pattern_add_constraint($$, $2);
 }
 ;
 
+/* SPARQL Grammar: [17] PatternElementAsGroup - junk */
 
-/* SPARQL Grammar: [11] PatternElement1 - merged into GraphPattern1 */
+/* SPARQL Grammar: [18] GroupGraphPattern - inlined into PatternElement */
 
-/* SPARQL Grammar: [12] PatternElementForms */
-
-/* This inlines use-once SourceGraphPattern and OptionalGraphPattern */
-PatternElementForms: GRAPH VarOrURI GraphPattern1 /* from SourceGraphPattern */
+/* SPARQL Grammar: [19] NamedGraphPattern */
+NamedGraphPattern: GRAPH '*' PatternElement
 {
 #if RASQAL_DEBUG > 1  
-  printf("PatternElementForms 1\n  varoruri=");
+  printf("NamedGraphPattern 1\n  patternelement=");
+  rasqal_graph_pattern_print($3, stdout);
+  fputs("\n\n", stdout);
+#endif
+
+  sparql_syntax_warning(((rasqal_query*)rq), "SPARQL GRAPH * ignored");
+
+  $$=$3;
+}
+| GRAPH VarOrURI PatternElement
+{
+#if RASQAL_DEBUG > 1  
+  printf("NamedGraphPattern 2\n  varoruri=");
   rasqal_literal_print($2, stdout);
-  printf(", graphpattern=");
+  printf(", patternelement=");
   rasqal_graph_pattern_print($3, stdout);
   fputs("\n\n", stdout);
 #endif
@@ -505,24 +492,24 @@ PatternElementForms: GRAPH VarOrURI GraphPattern1 /* from SourceGraphPattern */
   rasqal_free_literal($2);
   $$=$3;
 }
-| SOURCE '*' GraphPattern1  /* from SourceGraphPattern */
+|  SOURCE '*' PatternElement
 {
 #if RASQAL_DEBUG > 1  
-  printf("PatternElementForms 2\n  graphpattern=");
+  printf("NamedGraphPattern 3\n  patternelement=");
   rasqal_graph_pattern_print($3, stdout);
   fputs("\n\n", stdout);
 #endif
 
-  /* FIXME - SOURCE * has no defined meaning */
   sparql_syntax_warning(((rasqal_query*)rq), "SPARQL SOURCE * ignored");
+
   $$=$3;
 }
-| SOURCE VarOrURI GraphPattern1 /* from SourceGraphPattern */
+| SOURCE VarOrURI PatternElement
 {
 #if RASQAL_DEBUG > 1  
-  printf("PatternElementForms 3\n  varoruri=");
+  printf("NamedGraphPattern 4\n  varoruri=");
   rasqal_literal_print($2, stdout);
-  printf(", graphpattern=");
+  printf(", patternelement=");
   rasqal_graph_pattern_print($3, stdout);
   fputs("\n\n", stdout);
 #endif
@@ -534,7 +521,11 @@ PatternElementForms: GRAPH VarOrURI GraphPattern1 /* from SourceGraphPattern */
   rasqal_free_literal($2);
   $$=$3;
 }
-| OPTIONAL GraphPattern1 /* from OptionalGraphPattern */
+;
+
+
+/* SPARQL Grammar: [20] OptionalGraphPattern */
+OptionalGraphPattern: OPTIONAL PatternElement
 {
   int i;
   raptor_sequence *s=$2->graph_patterns;
@@ -580,38 +571,12 @@ PatternElementForms: GRAPH VarOrURI GraphPattern1 /* from SourceGraphPattern */
   } else
     $$=NULL;
 }
-| AND Expression
-{
-#if RASQAL_DEBUG > 1  
-  printf("PatternElementForms 6\n expression=");
-  rasqal_expression_print($2, stdout);
-  fputs("\n\n", stdout);
-#endif
-
-  rasqal_query_add_constraint(((rasqal_query*)rq), $2);
-  $$=NULL;
-};
-
-
-/* SPARQL Grammar: [13] SingleTriplePatternOrGroup - merged into PatternElement1, merged into GraphPattern1 */
-
-/* SPARQL Grammar: [14] ExplicitGroup - merged into GraphPattern and GraphPattern1 for clarity */
-
-/* SPARQL Grammar: [15] TriplePatternList */
-TriplePatternList : TriplePatternList TriplePattern
-{
-  $$=$1;
-  raptor_sequence_push($$, $2);
-}
-| TriplePattern
-{
-  $$=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_triple, (raptor_sequence_print_handler*)rasqal_triple_print);
-  raptor_sequence_push($$, $1);
-}
 ;
 
 
-/* SPARQL Grammar: [16] TriplePattern */
+/* SPARQL Grammar: [21] ConstraintPattern - inlined into PatternElement */
+
+/* SPARQL Grammar: [22] TriplePattern */
 TriplePattern : '(' VarOrURI VarOrURI VarOrLiteral ')'
 {
   $$=rasqal_new_triple($2, $3, $4);
@@ -619,7 +584,7 @@ TriplePattern : '(' VarOrURI VarOrURI VarOrLiteral ')'
 ;
 
 
-/* SPARQL Grammar: [15] rq23 ConstructPattern */
+/* SPARQL Grammar: [23] ConstructPattern */
 ConstructPattern : ConstructPattern TripleTemplate
 {
   $$=$1;
@@ -633,7 +598,7 @@ ConstructPattern : ConstructPattern TripleTemplate
 ;
 
 
-/* SPARQL Grammar: [26] rq23 TripleTemplate */
+/* SPARQL Grammar: [24] TripleTemplate */
 TripleTemplate : '(' VarOrURIOrBNode VarOrURI VarOrLiteralOrBNode ')'
 {
   $$=rasqal_new_triple($2, $3, $4);
@@ -718,7 +683,7 @@ URIList : URIList URI
 ;
 
 
-/* SPARQL Grammar: [17] VarOrURI */
+/* SPARQL Grammar: [26] VarOrURI */
 VarOrURI : Var
 {
   $$=rasqal_new_variable_literal($1);
@@ -729,7 +694,7 @@ VarOrURI : Var
 }
 ;
 
-/* SPARQL Grammar: [18] VarOrLiteral */
+/* SPARQL Grammar: [27] VarOrLiteral */
 VarOrLiteral : Var
 {
   $$=rasqal_new_variable_literal($1);
@@ -739,6 +704,10 @@ VarOrLiteral : Var
   $$=$1;
 }
 ;
+
+/* SPARQL Grammar: [28] VarAsNnode - junk */
+
+/* SPARQL Grammar: [29] VarAsExpr - junk */
 
 
 /* NEW Grammar Term */
@@ -764,7 +733,7 @@ VarOrLiteralOrBNode : VarOrLiteral
 ;
 
 
-/* SPARQL Grammar: [31] rq23 BaseDecl */
+/* SPARQL Grammar: [30] BaseDecl */
 BaseDeclOpt : BASE URI_LITERAL
 {
   if(((rasqal_query*)rq)->base_uri)
@@ -778,7 +747,7 @@ BaseDeclOpt : BASE URI_LITERAL
 ;
 
 
-/* SPARQL Grammar: [19] PrefixDecl */
+/* SPARQL Grammar: [31] PrefixDecl */
 PrefixDeclOpt : PrefixDeclOpt PREFIX IDENTIFIER URI_LITERAL
 {
   rasqal_prefix *p=rasqal_new_prefix($3, $4);
@@ -793,7 +762,7 @@ PrefixDeclOpt : PrefixDeclOpt PREFIX IDENTIFIER URI_LITERAL
 ;
 
 
-/* SPARQL Grammar: [20] Expression */
+/* SPARQL Grammar: [32] Expression */
 Expression : ConditionalAndExpression SC_OR Expression
 {
   $$=rasqal_new_2op_expression(RASQAL_EXPR_OR, $1, $3);
@@ -804,9 +773,12 @@ Expression : ConditionalAndExpression SC_OR Expression
 }
 ;
 
-/* SPARQL Grammar: [21] ConditionalOrExpression - merged into Expression */
+/* SPARQL Grammar: [33] ConditionalOrExpression - merged into Expression */
 
-/* SPARQL Grammar: [22] ConditionalAndExpression */
+/* SPARQL Grammar: [34] ConditionalXorExpression - merged into ConditionalOrExpression */
+
+
+/* SPARQL Grammar: [35] ConditionalAndExpression */
 ConditionalAndExpression: ValueLogical SC_AND ConditionalAndExpression
 {
   $$=rasqal_new_2op_expression(RASQAL_EXPR_AND, $1, $3);
@@ -818,7 +790,7 @@ ConditionalAndExpression: ValueLogical SC_AND ConditionalAndExpression
 }
 ;
 
-/* SPARQL Grammar: [23] ValueLogical */
+/* SPARQL Grammar: [36] ValueLogical */
 ValueLogical : EqualityExpression STR_EQ EqualityExpression
 {
   $$=rasqal_new_2op_expression(RASQAL_EXPR_STR_EQ, $1, $3);
@@ -841,11 +813,11 @@ ValueLogical : EqualityExpression STR_EQ EqualityExpression
 }
 ;
 
-/* SPARQL Grammar: [24] StringEqualityExpression - merged into ValueLogical */
+/* SPARQL Grammar: [37] StringEqualityExpression - merged into ValueLogical */
 
-/* SPARQL Grammar: [25] StringComparitor - merged into StringEqualityExpression, merged into ValueLogical */
+/* SPARQL Grammar: [38] NumericalLogical - merged into ValueLogical */
 
-/* SPARQL Grammar: [26] EqualityExpression */
+/* SPARQL Grammar: [39] EqualityExpression */
 EqualityExpression : RelationalExpression EQ RelationalExpression
 {
   $$=rasqal_new_2op_expression(RASQAL_EXPR_EQ, $1, $3);
@@ -860,9 +832,7 @@ EqualityExpression : RelationalExpression EQ RelationalExpression
 }
 ;
 
-/* SPARQL Grammar: [27] RelationalComparitor - merged into EqualityExpression */
-
-/* SPARQL Grammar: [28] RelationalExpression */
+/* SPARQL Grammar: [40] RelationalExpression */
 RelationalExpression : AdditiveExpression LT AdditiveExpression
 {
   $$=rasqal_new_2op_expression(RASQAL_EXPR_LT, $1, $3);
@@ -885,9 +855,9 @@ RelationalExpression : AdditiveExpression LT AdditiveExpression
 }
 ;
 
-/* SPARQL Grammar: [29] NumericComparitor - merged into RelationalExpression */
+/* SPARQL Grammar: [41] NumericExpression - merged into RelationalExpression */
 
-/* SPARQL Grammar: [30] AdditiveExpression */
+/* SPARQL Grammar: [42] AdditiveExpression */
 AdditiveExpression : MultiplicativeExpression '+' AdditiveExpression
 {
   $$=rasqal_new_2op_expression(RASQAL_EXPR_PLUS, $1, $3);
@@ -902,10 +872,7 @@ AdditiveExpression : MultiplicativeExpression '+' AdditiveExpression
 }
 ;
 
-/* SPARQL Grammar: [31] AdditiveOperation - merged into AdditiveExpression */
-
-
-/* SPARQL Grammar: [32] MultiplicativeExpression */
+/* SPARQL Grammar: [43] MultiplicativeExpression */
 MultiplicativeExpression : UnaryExpression '*' MultiplicativeExpression
 {
   $$=rasqal_new_2op_expression(RASQAL_EXPR_STAR, $1, $3);
@@ -924,16 +891,22 @@ MultiplicativeExpression : UnaryExpression '*' MultiplicativeExpression
 }
 ;
 
-/* SPARQL Grammar: [33] MultiplicativeOperation - merged into MultiplicativeExpression */
-
-/* SPARQL Grammar: [34] rq23 UnaryExpression */
-UnaryExpression : '+' BuiltinExpression
-{
-  $$=$2;
-}
-| '-' BuiltinExpression
+/* SPARQL Grammar: [44] UnaryExpression */
+UnaryExpression :  '-' BuiltinExpression
 {
   $$=rasqal_new_1op_expression(RASQAL_EXPR_UMINUS, $2);
+}
+|'~' BuiltinExpression
+{
+  $$=rasqal_new_1op_expression(RASQAL_EXPR_BANG, $2);
+}
+|'!' BuiltinExpression
+{
+  $$=rasqal_new_1op_expression(RASQAL_EXPR_BANG, $2);
+}
+| '+' BuiltinExpression
+{
+  $$=$2;
 }
 | BuiltinExpression
 {
@@ -941,7 +914,7 @@ UnaryExpression : '+' BuiltinExpression
 }
 ;
 
-/* SPARQL Grammar: [45] rq23 UnaryExpression */
+/* SPARQL Grammar: [45] BuiltInExpression */
 BuiltinExpression : BOUND '(' Var ')'
 {
   rasqal_literal *l=rasqal_new_variable_literal($3);
@@ -978,23 +951,23 @@ BuiltinExpression : BOUND '(' Var ')'
   rasqal_expression *e=rasqal_new_literal_expression($3);
   $$=rasqal_new_1op_expression(RASQAL_EXPR_ISLITERAL, e);
 }
-| UnaryExpressionNotPlusMinus
+| URI '(' Expression ')' 
+{
+  /* this is a cast */
+
+  /* shift/reduce conflict here with Literal 'URI' rule */
+
+  $$=NULL;
+}
+| PrimaryExpression
 {
   $$=$1;
 }
 ;
 
 
-/* SPARQL Grammar: [35] UnaryExpressionNotPlusMinus */
-UnaryExpressionNotPlusMinus : '~' UnaryExpression
-{
-  $$=rasqal_new_1op_expression(RASQAL_EXPR_TILDE, $2);
-}
-| '!' UnaryExpression
-{
-  $$=rasqal_new_1op_expression(RASQAL_EXPR_BANG, $2);
-}
-| Var
+/* SPARQL Grammar: [46] PrimaryExpression */
+PrimaryExpression: Var
 {
   rasqal_literal *l=rasqal_new_variable_literal($1);
   $$=rasqal_new_literal_expression(l);
@@ -1016,11 +989,9 @@ UnaryExpressionNotPlusMinus : '~' UnaryExpression
 }
 ;
 
-/* SPARQL Grammar: [36] PrimaryExpression - merged into UnaryExpressionNotPlusMinus */
+/* SPARQL Grammar: [47] FunctionCall - merged into PrimaryExpression */
 
-/* SPARQL Grammar: [37] FunctionCall - merged into UnaryExpressionNotPlusMinus */
-
-/* SPARQL Grammar: [38] ArgList */
+/* SPARQL Grammar: [48] ArgList */
 ArgList : ArgList VarOrLiteral
 {
   $$=$1;
@@ -1033,10 +1004,12 @@ ArgList : ArgList VarOrLiteral
 ;
 
 
-/* SPARQL Grammar: [39] Literal */
-Literal : URI_LITERAL
+/* SPARQL Grammar: [49] VarOrLiteralAsExpr - junk */
+
+/* SPARQL Grammar: [50] Literal */
+Literal : URI
 {
-  $$=rasqal_new_uri_literal($1);
+  $$=$1;
 }
 | INTEGER_LITERAL
 {
@@ -1057,25 +1030,16 @@ Literal : URI_LITERAL
 | NULL_LITERAL
 {
   $$=$1;
-} | QNAME_LITERAL
-{
-  $$=rasqal_new_simple_literal(RASQAL_LITERAL_QNAME, $1);
-  if(rasqal_literal_expand_qname((rasqal_query*)rq, $$)) {
-    sparql_query_error_full((rasqal_query*)rq,
-                            "QName %s cannot be expanded", $1);
-    rasqal_free_literal($$);
-    $$=NULL;
-  }
 }
 ;
 
-/* SPARQL Grammar: [40] NumericLiteral - merged into Literal */
+/* SPARQL Grammar: [51] NumericLiteral - merged into Literal */
 
-/* SPARQL Grammar: [41] TextLiteral - merged into Literal */
+/* SPARQL Grammar: [52] TextLiteral - merged into Literal */
 
-/* SPARQL Grammar: [42] String - made into terminal STRING_LITERAL */
+/* SPARQL Grammar: [53] PatternLiteral - made into terminal PATTERN_LITERAL */
 
-/* SPARQL Grammar: [43] URI */
+/* SPARQL Grammar: [54] URI */
 URI : URI_LITERAL
 {
   $$=rasqal_new_uri_literal($1);
@@ -1091,14 +1055,27 @@ URI : URI_LITERAL
   }
 }
 
-/* SPARQL Grammar: [44] QName - made into terminal QNAME_LITERAL */
+/* SPARQL Grammar: [55] QName - made into terminal QNAME_LITERAL */
 
-/* SPARQL Grammar: [45] QuotedURI - made into terminal URI_LITERAL */
+/* SPARQL Grammar: [56] BNode */
+BNode : BLANK_LITERAL
+{
+  $$=rasqal_new_simple_literal(RASQAL_LITERAL_BLANK, $1);
+}
+;
 
-/* SPARQL Grammar: [46] CommaOpt - merged inline */
+/* SPARQL Grammar: [57] QuotedURI - made into terminal URI_LITERAL */
+
+/* SPARQL Grammar: [58] Integer - made into terminal INTEGER_LITERAL */
+
+/* SPARQL Grammar: [59] FloatingPoint - made into terminal FLOATING_POINT_LITERAL */
 
 
-/* NEW Grammar Term - terminal <VAR> in SPARQL */
+/* SPARQL Grammar: [60] onwards are all lexer items with similar
+ * names or are inlined except for:
+ */
+
+/* SPARQL Grammer: [65] <VAR> */
 Var : '?' IDENTIFIER
 {
   $$=rasqal_new_variable((rasqal_query*)rq, $2, NULL);
@@ -1110,12 +1087,6 @@ Var : '?' IDENTIFIER
 ;
 
 
-/* SPARQL Grammar: [57] rq23 BNode */
-BNode : BLANK_LITERAL
-{
-  $$=rasqal_new_simple_literal(RASQAL_LITERAL_BLANK, $1);
-}
-;
 
 
 %%
