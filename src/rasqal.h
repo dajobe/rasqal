@@ -45,7 +45,11 @@ extern "C" {
 #  define RASQAL_API
 #endif
 
+#ifndef LIBRDF_OBJC_FRAMEWORK
 #include <raptor.h>
+#else
+#include <Redland/raptor.h>
+#endif
 
 /* Public statics */
 extern const char * const rasqal_short_copyright_string;
