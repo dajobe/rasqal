@@ -1204,7 +1204,6 @@ rasqal_engine_do_optional_step(rasqal_query *query, rasqal_graph_pattern *gp) {
 
 
   /* got match */
-#if 1
    
  /* if this is a match but not the last graph pattern in the
   * sequence move to the next graph pattern
@@ -1216,7 +1215,7 @@ rasqal_engine_do_optional_step(rasqal_query *query, rasqal_graph_pattern *gp) {
  }
  
  /* is the last graph pattern so we have a solution */
-#endif
+
   RASQAL_DEBUG1("Got match\n");
 
   return STEP_GOT_MATCH;
