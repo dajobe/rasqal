@@ -62,13 +62,13 @@ CLEANFILES=$(TESTS) rdql_lexer_test rdql_parser_test
 MAINTAINERCLEANFILES=rdql_lexer.c rdql_lexer.h \
 rdql_parser.tab.c rdql_parser.tab.h rdql_parser.output
 
-MEM=@MEM@ `redland-config --cflags`
 # FIXME - for testing
+MEM=@MEM@ `redland-config --cflags`
 MEM_LIBS=@MEM_LIBS@ `redland-config --libs`
 
-AM_CPPFLAGS=@CPPFLAGS@ @RASQAL_INTERNAL_CPPFLAGS@
+AM_CPPFLAGS=@CPPFLAGS@ @RASQAL_INTERNAL_CPPFLAGS@ @RASQAL_EXTERNAL_CPPFLAGS@
 AM_CFLAGS=@CFLAGS@ $(MEM)
-LIBS=@LIBS@ $(MEM_LIBS)
+AM_LDFLAGS=@RASQAL_INTERNAL_LIBS@ @RASQAL_EXTERNAL_LIBS@ $(MEM_LIBS)
 
 LEX=@LEX@
 YACC=@YACC@

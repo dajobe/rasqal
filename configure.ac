@@ -1,4 +1,3 @@
-dnl -*- Mode: sh -*-
 dnl
 dnl configure.ac - autoconf file for rasqal
 dnl (Process this file with autoconf to produce a configure script.)
@@ -68,6 +67,19 @@ AM_MISSING_PROG(AUTOMAKE, automake, $missing_dir)
 AM_MISSING_PROG(AUTOHEADER, autoheader, $missing_dir)
 
 
+release_version=no
+AC_ARG_ENABLE(release, [  --enable-release        Turn on optimizations.  ], \
+ if test "$enableval" = "yes"; then \
+	release_version=yes
+fi;)	
+
+if test $release_version = no; then 
+  CFLAGS=`echo $CFLAGS | sed s/-O2//`
+  CXXFLAGS=`echo $CXXFLAGS | sed s/-O2//`
+  CPPFLAGS=`echo $CPPFLAGS | sed s/-O2//`
+fi
+
+
 
 dnl compiler checks
 # if using gcc...
@@ -79,6 +91,27 @@ else
   MAINTAINER_CFLAGS=
 fi
 
+
+# Externally linked libraries - appear in rasqal-config
+# -Dfoo -Idir
+RASQAL_CPPFLAGS=$CPPFLAGS
+# -Ldir
+RASQAL_LDFLAGS=$LDFLAGS
+# -llib
+RASQAL_LIBS=$LIBS
+
+# Internally linked libraries - never given to users
+# -Dfoo -Idir
+RASQAL_INTERNAL_CPPFLAGS=
+# -Ldir -llib
+RASQAL_INTERNAL_LIBS=
+
+# Libraries linked externally also may be internal - just raptor
+# Currently only substituted into rasqal-src-config.
+# -Dfoo -Idir
+RASQAL_EXTERNAL_CPPFLAGS=
+# -Ldir -llib
+RASQAL_EXTERNAL_LIBS=
 
 
 dnl Checks for header files.
@@ -242,9 +275,8 @@ if test $with_raptor = internal; then
   RASQAL_INTERNAL_CPPFLAGS="-I\$(top_srcdir)/../raptor $RASQAL_INTERNAL_CPPFLAGS"
   RASQAL_INTERNAL_LIBS="\$(top_builddir)/../raptor/libraptor.la $RASQAL_INTERNAL_LIBS"
 else
-  RASQAL_INTERNAL_CPPFLAGS="`$RAPTOR_CONFIG --cflags`"
-  RASQAL_INTERNAL_LIBS="`$RAPTOR_CONFIG --libtool-libs`"
-  RASQAL_EXTERNAL_LIBS="$LIBS `$RAPTOR_CONFIG --libs`"
+  RASQAL_EXTERNAL_CPPFLAGS="`$RAPTOR_CONFIG --cflags` $RASQAL_EXTERNAL_CPPFLAGS"
+  RASQAL_EXTERNAL_LIBS="`$RAPTOR_CONFIG --libs` $RASQAL_EXTERNAL_LIBS"
 fi
 
 
@@ -265,9 +297,11 @@ if test "$USE_MAINTAINER_MODE" = yes; then
   CFLAGS="$MAINTAINER_CFLAGS $CFLAGS"
 fi
 
+AC_SUBST(RASQAL_EXTERNAL_CPPFLAGS)
+AC_SUBST(RASQAL_EXTERNAL_LIBS)
+
 AC_SUBST(RASQAL_INTERNAL_CPPFLAGS)
 AC_SUBST(RASQAL_INTERNAL_LIBS)
-AC_SUBST(RASQAL_EXTERNAL_LIBS)
 
 AC_SUBST(MEM)
 AC_SUBST(MEM_LIBS)
