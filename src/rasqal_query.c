@@ -976,22 +976,24 @@ rasqal_query_execute(rasqal_query *query)
   query->current_triple_result= -1;
   query->ask_result= -1;
   
-  rc=rasqal_engine_execute_init(query);
+  query_results=(rasqal_query_results*)RASQAL_CALLOC(rasqal_query_results, sizeof(rasqal_query_results), 1);
+  query_results->query=query;
+
+  rc=rasqal_engine_execute_init(query, query_results);
   if(rc) {
     query->failed=1;
+    RASQAL_FREE(rasqal_query_results, query_results);
     return NULL;
   }
 
   if(query->factory->execute) {
-    rc=query->factory->execute(query);
+    rc=query->factory->execute(query, query_results);
     if(rc) {
       query->failed=1;
+      RASQAL_FREE(rasqal_query_results, query_results);
       return NULL;
     }
   }
-
-  query_results=(rasqal_query_results*)RASQAL_CALLOC(rasqal_query_results, sizeof(rasqal_query_results), 1);
-  query_results->query=query;
 
   rasqal_query_add_query_result(query, query_results);
 
