@@ -46,8 +46,7 @@
 	* rdql_lexer.l, sparql_lexer.l: words
 
 	* rasqal_engine.c (rasqal_set_triples_source_factory):
-	Export this, to match rasqal.h
-	and add docs.
+	Export this, to match rasqal.h and add docs.
 
 2004-10-17  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
@@ -280,7 +279,7 @@
 
 	* roqet.c: source_uri check
 
-	* brql_parser.y: brql to sparqal (keeping alias)
+	* brql_parser.y: brql to sparql (keeping alias)
 
 	* roqet.c: terminology s/data/source/ -d/-s --data/--source
 
@@ -302,18 +301,18 @@
 
 2004-09-26  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
-	* brql_parser.y:
+	* sparql_parser.y:
 	(TriplePatternList) Append constraint to right sequence.
 
-	* brql_parser.y: Merged CommaAndConstraintClause into TriplePatternList
+	* sparql_parser.y: Merged CommaAndConstraintClause into TriplePatternList
 	to remove another shift/reduce conflict with AND.
 
-	* brql_parser.y: CommaAndConstraintClause tidy
+	* sparql_parser.y: CommaAndConstraintClause tidy
 
-	* brql_parser.y:
+	* sparql_parser.y:
 	Removed SOURCE alias for FROM, reducing a shift/reduce cnflict
 
-	* brql_parser.y: URIList tidy
+	* sparql_parser.y: URIList tidy
 
 	* fix-bison: Delete yyerrlab1 label only if used in a goto
 
@@ -356,13 +355,12 @@
 	argument.
 
 	* rasqal_engine.c (rasqal_new_triples_source):
-	Do not assume there is just one URI
-	source.
+	Do not assume there is just one URI source.
 	(rasqal_triples_source_next_source): Deleted.
 	(rasqal_engine_get_next_result): Remove call to
 	rasqal_triples_source_next_source - sources are not applied in order.
 
-	* brql_parser.y: expect 4
+	* sparql_parser.y: expect 4
 	(TriplePatternList): Rewrite and add SOURCE, OPTIONAL
 	(ConstraintClause): Removed, now in TriplePatternList
 	(URIList): No commas
@@ -376,19 +374,18 @@
 	* rasqal_internal.h: Added prototype for rasqal_engine_declare_prefix
 
 	* rasqal_engine.c (rasqal_engine_declare_prefix):
-	Added to declare a namespace
-	prefix/uri once only in a query.
+	Added to declare a namespace prefix/uri once only in a query.
 	(rasqal_engine_declare_prefixes): Use above.
 
 	* rasqal.h: Added declared field to rasqal_prefix
 
-	* brql_parser.y: Initial BRQL updates post DAWG F2F3
+	* sparql_parser.y: Initial BRQL updates post DAWG F2F3
 	Deleted OPTIONAL, replaced with []s around set of triples
 	using new terms LSQUARE and RSQUARE
 	Removed USING work and replaced with PREFIX earlier.  Declare
 	prefixes as soon as they appear.
 
-	* brql_lexer.l: Added PREF state for post-PREFIX word handling
+	* sparql_lexer.l: Added PREF state for post-PREFIX word handling
 	Define PREFIX, NAME, QNAME more precisely (not checked vs spec)
 	Deleted OPTIONAL
 	Made "PREFIX"/"prefix" set state PREF
@@ -434,7 +431,7 @@
 	(rasqal_engine_get_next_result): Handle origin queries and switching
 	to next data source when current one exhausted (goto restart)
 
-	* brql_parser.y: Added SOURCE ?foo before triple
+	* sparql_parser.y: Added SOURCE ?foo before triple
 
 	* tests/brql/Makefile.am, tests/brql/E.n3, tests/brql/Q-SOURCE-1,
 	tests/brql/Q-SOURCE-2: tests
@@ -447,7 +444,7 @@
 
 	* rasqal.h: docs
 
-	* brql_parser.y (OptionalClause): Make print handler for seq of seq.
+	* sparql_parser.y (OptionalClause): Make print handler for seq of seq.
 
 	* rasqal_engine.c (rasqal_engine_assign_variables): Handle no selects
 
@@ -467,7 +464,7 @@
 
 2004-09-10  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
-	* brql_lexer.l, rdql_lexer.l (main): Use raptor_free_memory
+	* sparql_lexer.l, rdql_lexer.l (main): Use raptor_free_memory
 
 	* tests/brql/Makefile.am: BRQL Makefile
 
@@ -511,7 +508,7 @@
 	* Makefile.am: Remove rdql-testsuite dir.
 	Add BRQL sources and tests
 
-	* brql_common.h, brql_lexer.l, brql_parser.y: BRQL
+	* sparql_common.h, sparql_lexer.l, sparql_parser.y: BRQL
 
 	* tests/rdql/dc.rdf, tests/rdql/example1.rdql,
 	tests/rdql/example2.rdql, tests/rdql/example3.rdql,
@@ -539,14 +536,12 @@
 2004-09-06  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
 	* rasqal_engine.c (rasqal_engine_execute_finish):
-	Don't free triple_meta before
-	checking the columns
+	Don't free triple_meta before checking the columns
 
 	* Makefile.am: Added rasqal_query_test to TESTS
 
 	* rasqal_engine.c (rasqal_engine_execute_init):
-	Init triples_source, triple_meta only
-	if not already done.
+	Init triples_source, triple_meta only if not already done.
 	(rasqal_engine_execute_finish): Free triple_meta and any variables
 	still set if not cleared.
 
