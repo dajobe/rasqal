@@ -92,16 +92,29 @@ typedef enum {
 struct rasqal_literal_s {
   int usage;
   rasqal_literal_type type;
-  const unsigned char *string; /* UTF-8 string, pattern, qname, blank, float types */
+  /* UTF-8 string, pattern, qname, blank, float types */
+  const unsigned char *string;
   union {
-    int integer;  /* integer and boolean types */
-    double floating; /* floating */
-    raptor_uri* uri; /* uri */
-    rasqal_variable* variable; /* variable */
+    /* integer and boolean types */
+    int integer;
+    /* floating */
+    double floating;
+    /* uri (can be temporarily NULL if a qname, see flags below) */
+    raptor_uri* uri;
+    /* variable */
+    rasqal_variable* variable;
   } value;
-  const char *language; /* for string */
-  raptor_uri *datatype;  /* for string */
-  const unsigned char *flags;   /* for pattern; used as datatype qname for string  */
+
+  /* for string */
+  const char *language;
+  raptor_uri *datatype;
+
+  /* various flags for literal types:
+   *  pattern  regex flags
+   *  string   datatype of qname
+   *  uri      qname of URI not yet expanded (temporary)
+   */
+  const unsigned char *flags;
 };
 
 typedef enum {
