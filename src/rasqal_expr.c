@@ -65,6 +65,9 @@ rasqal_new_integer_literal(rasqal_literal_type type, int integer) {
 
   l->type=type;
   l->value.integer=integer;
+  l->string=RASQAL_MALLOC(cstring, 30); /* FIXME */
+  sprintf(l->string, "%d", integer);
+  l->datatype=raptor_new_uri("http://www.w3.org/2001/XMLSchema#integer");
   l->usage=1;
   return l;
 }
@@ -224,14 +227,14 @@ rasqal_free_literal(rasqal_literal* l) {
     case RASQAL_LITERAL_PATTERN:
     case RASQAL_LITERAL_QNAME:
     case RASQAL_LITERAL_FLOATING:
-      if(l->string)
+    case RASQAL_LITERAL_INTEGER: 
+     if(l->string)
         free(l->string);
       if(l->language)
         free(l->language);
       if(l->datatype)
         raptor_free_uri(l->datatype);
       break;
-    case RASQAL_LITERAL_INTEGER:
     case RASQAL_LITERAL_BOOLEAN:
       break;
     case RASQAL_LITERAL_VARIABLE:
@@ -1560,6 +1563,8 @@ main(int argc, char *argv[])
   rasqal_literal* result;
   int error=0;
 
+  raptor_init();
+  
   lit1=rasqal_new_integer_literal(RASQAL_LITERAL_INTEGER, 1);
   expr1=rasqal_new_literal_expression(lit1);
   lit2=rasqal_new_integer_literal(RASQAL_LITERAL_INTEGER, 1);
@@ -1593,6 +1598,8 @@ main(int argc, char *argv[])
 
   if(result)
     rasqal_free_literal(result);
+
+  raptor_finish();
 
   return error;
 }
