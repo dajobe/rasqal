@@ -260,7 +260,8 @@ rasqal_graph_pattern_init(rasqal_graph_pattern *gp)
          query->variables_declared_in[v->offset] == i)
         m->parts= (rasqal_triple_parts)(m->parts | RASQAL_TRIPLE_OBJECT);
 
-      if((v=rasqal_literal_as_variable(t->origin)) &&
+      if(t->origin &&
+         (v=rasqal_literal_as_variable(t->origin)) &&
          query->variables_declared_in[v->offset] == i)
         m->parts= (rasqal_triple_parts)(m->parts | RASQAL_TRIPLE_ORIGIN);
 
