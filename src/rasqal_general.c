@@ -78,6 +78,8 @@ rasqal_init(void)
   raptor_init();
   
   rasqal_init_query_engine_rdql();
+
+  rasqal_redland_init();
 }
 
 
