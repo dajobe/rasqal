@@ -54,6 +54,7 @@ extern const unsigned int rasqal_version_decimal;
 
 /* Public structure */
 typedef struct rasqal_query_s rasqal_query;
+typedef struct rasqal_query_results_s rasqal_query_results;
 typedef struct rasqal_literal_s rasqal_literal;
 
 typedef enum {
@@ -207,19 +208,23 @@ RASQAL_API void rasqal_query_print(rasqal_query* query, FILE *stream);
 
 /* Query */
 RASQAL_API int rasqal_query_prepare(rasqal_query* query, const unsigned char *query_string, raptor_uri *base_uri);
-RASQAL_API int rasqal_query_execute(rasqal_query* query);
-
-RASQAL_API int rasqal_query_get_result_count(rasqal_query *query);
-RASQAL_API int rasqal_query_results_finished(rasqal_query *query);
-RASQAL_API int rasqal_query_get_result_bindings(rasqal_query *query, const char ***names, rasqal_literal ***values);
-RASQAL_API rasqal_literal* rasqal_query_get_result_binding_value(rasqal_query *query, int offset);
-RASQAL_API const char* rasqal_query_get_result_binding_name(rasqal_query *query, int offset);
-RASQAL_API rasqal_literal* rasqal_query_get_result_binding_by_name(rasqal_query *query, const char *name);
-RASQAL_API int rasqal_query_next_result(rasqal_query *query);
-RASQAL_API int rasqal_query_get_bindings_count(rasqal_query *query);
+RASQAL_API rasqal_query_results* rasqal_query_execute(rasqal_query* query);
 
 RASQAL_API void* rasqal_query_get_user_data(rasqal_query *query);
 RASQAL_API void rasqal_query_set_user_data(rasqal_query *query, void *user_data);
+
+/* query results */
+RASQAL_API void rasqal_free_query_results(rasqal_query_results *query_results);
+RASQAL_API int rasqal_query_results_get_count(rasqal_query_results *query_results);
+RASQAL_API int rasqal_query_results_next(rasqal_query_results *query_results);
+RASQAL_API int rasqal_query_results_finished(rasqal_query_results *query_results);
+
+RASQAL_API int rasqal_query_results_get_bindings(rasqal_query_results *query_results, const char ***names, rasqal_literal ***values);
+RASQAL_API rasqal_literal* rasqal_query_results_get_binding_value(rasqal_query_results *query_results, int offset);
+RASQAL_API const char* rasqal_query_results_get_binding_name(rasqal_query_results *query_results, int offset);
+RASQAL_API rasqal_literal* rasqal_query_results_get_binding_by_name(rasqal_query_results *query_results, const char *name);
+RASQAL_API int rasqal_query_results_get_bindings_count(rasqal_query_results *query_results);
+
 
 
 /* Expression class */
