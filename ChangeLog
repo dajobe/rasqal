@@ -1,7 +1,20 @@
 2004-10-10  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
-	* win32/rasqal.dsp: Rename parser, lexer files
-	Add sparql
+	* sparql_lexer.l, sparql_parser.y, rasqal_expr.c,
+	rasqal_query_test.c, rdql_lexer.l, rdql_parser.y: Use
+	rasqal_basename to make 'program' in test code messages.
+
+	* rasqal_engine.c (rasqal_engine_execute_finish): Do a terminating
+	loop through columns.
+
+	* rasqal_internal.h: Added rasqal_basename prototype
+
+	* rasqal_general.c (rasqal_basename): Added utility function
+
+	* rasqal_query_test.c (main):
+	Check prepares and multiple executes work.
+
+	* win32/rasqal.dsp: Rename parser, lexer files.  Add sparql
 
 	* win32_rasqal_config.h: Add RDQL and SPARQL defines
 
