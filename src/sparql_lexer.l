@@ -105,8 +105,8 @@
 static void skip_cpp_comment(rasqal_sparql_query_engine *rqe);
 static int skip_c_comment(rasqal_query *rq);
 
-static unsigned char *copy_token(rasqal_query *rq, const unsigned char *text, size_t len);
-static int copy_regex_token(rasqal_query *rq, YYSTYPE* lval, unsigned char delim);
+static unsigned char *sparql_copy_token(rasqal_query *rq, const unsigned char *text, size_t len);
+static int sparql_copy_regex_token(rasqal_query *rq, YYSTYPE* lval, unsigned char delim);
 static int copy_string_token(rasqal_query *rq, YYSTYPE* lval, const unsigned char *text, size_t len, int delim);
 
 #ifdef RASQAL_DEBUG
@@ -197,9 +197,10 @@ QUOTEDURI \<[A-Za-z][^>]+\>
 
 
 <PATTERN>. { /* first non whitespace */
-             copy_regex_token(rq, sparql_parser_lval, *yytext);
-             BEGIN(INITIAL);
-             return PATTERN_LITERAL;
+             if(!sparql_copy_regex_token(rq, sparql_parser_lval, *yytext)) {
+               BEGIN(INITIAL);
+               return PATTERN_LITERAL;
+             }
          };
 
 
@@ -256,13 +257,13 @@ QUOTEDURI \<[A-Za-z][^>]+\>
 "null"	{ sparql_parser_lval->literal=NULL;
           return NULL_LITERAL; }
 
-<ID>{NAME}	{ sparql_parser_lval->name=copy_token(rq, (const unsigned char*)yytext, yyleng);
+<ID>{NAME}	{ sparql_parser_lval->name=sparql_copy_token(rq, (const unsigned char*)yytext, yyleng);
                           BEGIN(INITIAL);
                           return IDENTIFIER; }
 
 <PREF>[\ \t\v]+ { /* eat up leading whitespace */ }
 <PREF>{PREFIX}":"	{ BEGIN(INITIAL);
-		  	  sparql_parser_lval->name=copy_token(rq, (const unsigned char*)yytext, yyleng-1);
+		  	  sparql_parser_lval->name=sparql_copy_token(rq, (const unsigned char*)yytext, yyleng-1);
                           return IDENTIFIER; }
 <PREF>":"	{ BEGIN(INITIAL);
 		  sparql_parser_lval->name=NULL;
@@ -275,7 +276,7 @@ QUOTEDURI \<[A-Za-z][^>]+\>
                   sparql_syntax_error(rq, "syntax error at '%c'", *yytext);
                   return ERROR_TOKEN;  }
 
-{QNAME}	{ sparql_parser_lval->name=copy_token(rq, (const unsigned char*)yytext, yyleng);
+{QNAME}	{ sparql_parser_lval->name=sparql_copy_token(rq, (const unsigned char*)yytext, yyleng);
                           return QNAME_LITERAL; }
 
 {QUOTEDURI}   { if(yyleng == 2) 
@@ -307,7 +308,7 @@ yywrap (yyscan_t yyscanner) {
 
 
 static unsigned char *
-copy_token(rasqal_query *rq, const unsigned char *text, size_t len) {
+sparql_copy_token(rasqal_query *rq, const unsigned char *text, size_t len) {
   unsigned char *s;
   if(!len)
     len=strlen((const char*)text);
@@ -320,7 +321,7 @@ copy_token(rasqal_query *rq, const unsigned char *text, size_t len) {
 
 
 static int
-copy_regex_token(rasqal_query* rq, YYSTYPE* lval, unsigned char delim) {
+sparql_copy_regex_token(rasqal_query* rq, YYSTYPE* lval, unsigned char delim) {
   rasqal_sparql_query_engine *rqe=(rasqal_sparql_query_engine*)rq->context;
   yyscan_t yyscanner=rqe->scanner;
   unsigned int ind=0;
@@ -332,10 +333,15 @@ copy_regex_token(rasqal_query* rq, YYSTYPE* lval, unsigned char delim) {
 
   if(delim == 'm') {
     /* Handle pattern literal m/foo/ */
-    delim=INPUT_FN(yyscanner);
+    c=INPUT_FN(yyscanner);
+    if(c == EOF) {
+      sparql_syntax_error(rq, "EOF in regex");
+      return 1;
+    }
+    delim=(unsigned char)c;
   }
 
-  while((c=INPUT_FN(yyscanner)) != delim && c) {
+  while((c=INPUT_FN(yyscanner)) && c != EOF && c != delim) {
     /* May add 2 chars - \' */
     if(ind+2 > buffer_len) {
       unsigned char *new_buffer;
@@ -359,9 +365,14 @@ copy_regex_token(rasqal_query* rq, YYSTYPE* lval, unsigned char delim) {
   }
   buffer[ind]='\0';
 
+  if(c == EOF) {
+    sparql_syntax_error(rq, "EOF in regex");
+    return 1;
+  }
+
   /* flags */
   ind=0;
-  while((c=INPUT_FN(yyscanner)) && isalpha(c)) {
+  while((c=INPUT_FN(yyscanner)) && c != EOF && isalpha(c)) {
     if(ind+1 > flags_len) {
       unsigned char *new_flags;
       size_t new_flags_len=flags_len + 5;
@@ -496,8 +507,8 @@ copy_string_token(rasqal_query* rq, YYSTYPE* lval,
   fprintf(stderr, "string='%s', language='%s'\n", 
           string, (language ? language : ""));
   fprintf(stderr, "dt uri='%s',qname='%s'\n",
-          (dt_uri ? raptor_uri_as_string(dt_uri) : ""),
-          (dt_qname ? dt_qname : ""));
+          (dt_uri ? (const char*)raptor_uri_as_string(dt_uri) : ""),
+          (dt_qname ? (const char*)dt_qname : ""));
 #endif
 
   lval->literal=rasqal_new_string_literal(string, language, dt_uri, dt_qname);
