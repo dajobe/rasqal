@@ -351,7 +351,7 @@ PatternElement : TriplePatternList
     raptor_sequence_join(s, $1);
     raptor_free_sequence($1);
 
-    $$=rasqal_new_graph_pattern_from_triples(s, offset, offset+triple_pattern_size-1, 0);
+    $$=rasqal_new_graph_pattern_from_triples((rasqal_query*)rq, s, offset, offset+triple_pattern_size-1, 0);
   } else
     $$=NULL;
 }
@@ -363,7 +363,7 @@ PatternElement : TriplePatternList
   fputs("\n\n", stdout);
 #endif
   
-  $$=rasqal_new_graph_pattern_from_sequence($2, 0);
+  $$=rasqal_new_graph_pattern_from_sequence((rasqal_query*)rq, $2, 0);
 }
 | PatternElementForms
 {
@@ -398,7 +398,7 @@ GraphPattern1 : TriplePattern
     int offset=raptor_sequence_size(s);
     raptor_sequence_push(s, $1);
 
-    $$=rasqal_new_graph_pattern_from_triples(s, offset, offset, 0);
+    $$=rasqal_new_graph_pattern_from_triples((rasqal_query*)rq, s, offset, offset, 0);
   } else
     $$=NULL;
 }
@@ -410,7 +410,7 @@ GraphPattern1 : TriplePattern
   fputs("\n\n", stdout);
 #endif
 
-  $$=rasqal_new_graph_pattern_from_sequence($2, 0);
+  $$=rasqal_new_graph_pattern_from_sequence((rasqal_query*)rq, $2, 0);
 }
 | PatternElementForms
 {
@@ -504,7 +504,7 @@ PatternElementForms: SOURCE '*' GraphPattern1  /* from SourceGraphPattern */
       rasqal_graph_pattern *gp=(rasqal_graph_pattern*)raptor_sequence_get_at($2, i);
       gp->flags |= RASQAL_PATTERN_FLAGS_OPTIONAL;
     }
-    $$=rasqal_new_graph_pattern_from_sequence($2, RASQAL_PATTERN_FLAGS_OPTIONAL);
+    $$=rasqal_new_graph_pattern_from_sequence((rasqal_query*)rq, $2, RASQAL_PATTERN_FLAGS_OPTIONAL);
   } else
     $$=NULL;
 }
