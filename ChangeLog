@@ -1,7 +1,67 @@
+2004-11-21  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal_engine.c (rasqal_new_graph_pattern_from_sequence):
+	Fold sequence of 1 graph pattern into the return value, tidying up.
+	(rasqal_graph_pattern_print): Print just the triple columns that are
+	used.  Print flags using words.
+	(rasqal_graph_pattern_get_next_match): Note failing not-implemented
+	sequence of graph_patterns.
+	(rasqal_engine_prepare): Do not invoke rasqal_query_order_triples -
+	does not make sense to do with the graph_pattern code.
+	(rasqal_engine_get_next_result): Note failing not-implemented
+	sequence of graph_patterns.
+	Debug message when an optional graph pattern failed to patch.
+
+	* rasqal_expr.c (rasqal_variable_set_value): Debug fatal error
+	when there is no name.
+
+2004-11-20  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal_engine.c (rasqal_new_graph_pattern_from_sequence):
+	lose triples argument
+	(rasqal_graph_pattern_get_next_match, rasqal_engine_get_next_result):
+	Check and fail for sequence of graph_patterns.
+
+	* rasqal_internal.h: Update rasqal_new_graph_pattern_from_sequence
+	to lose triples argument
+
+	* rdql_parser.y (rasqal_rdql_query_engine_prepare):
+	Use rasqal_new_graph_pattern_from_triples
+
+	* rasqal_query.c (rasqal_new_query): Init triples here.
+	(rasqal_query_print): Print graph_patterns
+
+	* rasqal_internal.h:
+	Add graph_patterns sequence to rasqal_graph_pattern.
+	Added prototypes for rasqal_new_graph_pattern_from_triples and
+	rasqal_new_graph_pattern_from_sequence
+
+	* rasqal_engine.c (rasqal_new_graph_pattern_from_triples):
+	Renamed from rasqal_new_graph_pattern
+	(rasqal_new_graph_pattern_from_sequence): Added to handle a graph
+	pattern as a sequence of graph patterns.
+	(rasqal_free_graph_pattern): Handle cleanup for sequence.
+	(rasqal_graph_pattern_print): Handle sequence and simplify.
+	(rasqal_engine_execute_init): Abort with messsage if sequence has a
+	NULL graph pattern in it.
+
 2004-11-19  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
-	* sparql_parser.y (rasqal_sparql_query_engine_prepare): Add graph
-	pattern of all triples found.
+	* rasqal_engine.c (rasqal_engine_execute_init): Init
+	current_graph_pattern.
+	(rasqal_engine_get_next_result): Attempt to walk through
+	graph_patterns without failing on optional ones.
+
+	* rasqal_internal.h: Added current_graph_pattern to rasqal_query.
+
+	* sparql_lexer.l (sparql_token_print): Added UNION token
+
+	* sparql_parser.y: Added UNION token
+
+	* sparql_lexer.l: Added UNION|union keyword
+
+	* sparql_parser.y (rasqal_sparql_query_engine_prepare):
+	Add graph pqttern of all triples found.
 
 	* rdql_parser.y (rasqal_rdql_query_engine_prepare): Add graph
 	pattern of all triples found.
