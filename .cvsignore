@@ -43,6 +43,7 @@ rdql_parser.h
 rdql_parser.output
 rdql_parser.tab.c
 rdql_parser.tab.h
+roqet
 setup.sh
 stamp-h*
 test*
