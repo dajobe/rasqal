@@ -587,7 +587,9 @@ sparql_copy_string_token(rasqal_query* rq, YYSTYPE* lval,
       size_t dest_len=0;
       unsigned char *dt_s;
       
-      dt_s=rasqal_escaped_name_to_utf8_string(dt, strlen((const char*)dt), &dest_len,
+      dt_s=rasqal_escaped_name_to_utf8_string(dt,
+                                              strlen((const char*)dt),
+                                              &dest_len,
                                               (raptor_simple_message_handler)sparql_syntax_error, rq);
       if(!dt_s)
         return 1;
