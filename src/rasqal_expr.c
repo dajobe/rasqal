@@ -51,8 +51,6 @@
 
 inline int rasqal_literal_as_integer(rasqal_literal* l, int *error);
 
-inline int rasqal_variable_compare(rasqal_variable* v1, rasqal_variable* v2, int *error);
-
 inline int rasqal_expression_as_boolean(rasqal_expression* e, int *error);
 inline int rasqal_expression_as_integer(rasqal_expression* e, int *error);
 inline int rasqal_expression_compare(rasqal_expression* e1, rasqal_expression* e2, int *error);
@@ -622,12 +620,6 @@ rasqal_variable_print(rasqal_variable* v, FILE* fh)
   fputc(')', fh);
 }
 
-inline int
-rasqal_variable_compare(rasqal_variable* v1, rasqal_variable* v2, int *error)
-{
-  *error=0;
-  return rasqal_literal_compare(v1->value, v2->value, error);
-}
 
 void
 rasqal_variable_set_value(rasqal_variable* v, rasqal_literal *e)
