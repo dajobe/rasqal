@@ -153,8 +153,9 @@ QUOTEDURI \<[A-Za-z][^>]+\>
     rdql_skip_cpp_comment(rqe);
 }
 
-"/*"	{ if(rdql_skip_c_comment(rq)<0)
-            return ERROR_TOKEN; 
+"/*"	{ if(rdql_skip_c_comment(rq) < 0)
+            yyterminate();
+
         }
 
 \r\n|\r|\n     { rqe->lineno++; }
@@ -198,7 +199,7 @@ QUOTEDURI \<[A-Za-z][^>]+\>
                return PATTERN_LITERAL;
              }
              BEGIN(INITIAL);
-             return ERROR_TOKEN;
+	     yyterminate();
          };
 
 
@@ -241,14 +242,18 @@ QUOTEDURI \<[A-Za-z][^>]+\>
 }
 
 '([^'\\\n\r]|\\[^\n\r])*'(@{LANGUAGETOKEN})?(^^({QUOTEDURI}|{QNAME}))?    { /*' */
-                               rdql_copy_string_token(rq, rdql_parser_lval,
-                                 (const unsigned char*)yytext+1, yyleng-2, '\'');
-                               return STRING_LITERAL; }
+                               if(!rdql_copy_string_token(rq, rdql_parser_lval,
+                                 (const unsigned char*)yytext+1, yyleng-2, '\''))
+                               return STRING_LITERAL;
+		                yyterminate();
+}
 
 \"([^"\\\n\r]|\\[^\n\r])*\"(@{LANGUAGETOKEN})?(^^({QUOTEDURI}|{QNAME}))?   { /* " */
-                                rdql_copy_string_token(rq, rdql_parser_lval,
-                                  (const unsigned char*)yytext+1, yyleng-2, '"');
-                                return STRING_LITERAL; }
+                                if(!rdql_copy_string_token(rq, rdql_parser_lval,
+                                  (const unsigned char*)yytext+1, yyleng-2, '"'))
+                                return STRING_LITERAL; 
+		                yyterminate();
+}
 
 "true"|"false"	{ rdql_parser_lval->literal=rasqal_new_boolean_literal(*yytext== 't');
                   return BOOLEAN_LITERAL; }
@@ -260,14 +265,15 @@ QUOTEDURI \<[A-Za-z][^>]+\>
                           BEGIN(INITIAL);
                           return IDENTIFIER; }
 <ID>.|\r|\n	{	BEGIN(INITIAL);
-		rdql_syntax_error(rq, "Missing variable name after ?", *yytext);
-		return ERROR_TOKEN; }
+		rdql_syntax_error(rq, "RDQL syntax error - missing variable name after ?");
+                yyterminate();
+		}
 
 {QNAME}	{ rdql_parser_lval->name=rdql_copy_qname(rq, (const unsigned char*)yytext, yyleng);
                           return QNAME_LITERAL; }
 
 \<{QNAME}\>	{ rdql_parser_lval->name=rdql_copy_qname(rq, (const unsigned char*)yytext+1, yyleng-2);
-                  rdql_syntax_warning(rq, "obsolete <qname> syntax found in \"%s\"", (const unsigned char*)yytext);
+                  rdql_syntax_warning(rq, "Obsolete RDQL <qname> syntax found in \"%s\"", (const unsigned char*)yytext);
                   return QNAME_LITERAL; }
 
 {QUOTEDURI}   { if(yyleng == 2) 
@@ -285,8 +291,8 @@ QUOTEDURI \<[A-Za-z][^>]+\>
 .         	{ if (*yytext == EOF)
                     return EOF;
 
-                  rdql_syntax_error(rq, "syntax error at '%c'", *yytext);
-                  return ERROR_TOKEN;
+                  rdql_syntax_error(rq, "RDQL syntax error at '%s'", yytext);
+                  yyterminate();
 		}
 
 %%
@@ -305,7 +311,7 @@ rdql_copy_name(rasqal_query *rq, const unsigned char *text, size_t len) {
     len=strlen((const char*)text);
 
   if(!raptor_xml_name_check(text, len, 11))
-    rdql_syntax_warning(rq, "Invalid XML name \"%s\"", text);
+    rdql_syntax_warning(rq, "Invalid RDQL name \"%s\"", text);
 
   s=(unsigned char *)malloc(len+1);
 
@@ -324,9 +330,9 @@ rdql_copy_qname(rasqal_query *rq, const unsigned char *text, size_t len) {
 
   p=(unsigned char*)strchr((const char*)text, ':');
   if(!raptor_xml_name_check(text, p-text, 11))
-    rdql_syntax_warning(rq, "Invalid XML name \"%s\"", text);
+    rdql_syntax_warning(rq, "Invalid RDQL name \"%s\"", text);
   if(!raptor_xml_name_check(p+1, len-((p+1)-text), 11))
-    rdql_syntax_warning(rq, "Invalid XML name \"%s\"", p+1);
+    rdql_syntax_warning(rq, "Invalid RDQL name \"%s\"", p+1);
 
   s=(unsigned char *)malloc(len+1);
 
@@ -351,7 +357,7 @@ rdql_copy_regex_token(rasqal_query* rq, YYSTYPE* lval, unsigned char delim) {
     /* Handle pattern literal m/foo/ */
     c=INPUT_FN(yyscanner);
     if(c == EOF) {
-      rdql_syntax_error(rq, "EOF in regex");
+      rdql_syntax_error(rq, "RDQL syntax error - EOF in regex");
       return 1;
     }
     delim=(unsigned char)c;
@@ -382,7 +388,7 @@ rdql_copy_regex_token(rasqal_query* rq, YYSTYPE* lval, unsigned char delim) {
   buffer[ind]='\0';
 
   if(c == EOF) {
-    rdql_syntax_error(rq, "EOF in regex");
+    rdql_syntax_error(rq, "RDQL syntax error - EOF in regex");
     return 1;
   }
 
@@ -455,7 +461,7 @@ rdql_copy_string_token(rasqal_query* rq, YYSTYPE* lval,
         i+= ulen-1;
         
         if(unichar < 0 || unichar > 0x10ffff) {
-          rdql_syntax_error(rq, "Illegal Unicode character with code point #x%lX.", unichar);
+          rdql_syntax_error(rq, "RDQL syntax error - Illegal Unicode character with code point #x%lX.", unichar);
           free(string);
           return 1;
         }
@@ -463,7 +469,7 @@ rdql_copy_string_token(rasqal_query* rq, YYSTYPE* lval,
         d+=raptor_unicode_char_to_utf8(unichar, d);
       } else {
         /* Ignore \x where x isn't the one of: \n \r \t \\ (delim) \u \U */
-        rdql_syntax_warning(rq, "Unknown string escape \\%c in \"%s\"", c, text);
+        rdql_syntax_warning(rq, "Unknown RDQL string escape \\%c in \"%s\"", c, text);
         *d++=c;
       }
     } else if(c== delim) {
@@ -516,7 +522,7 @@ rdql_copy_string_token(rasqal_query* rq, YYSTYPE* lval,
       size_t dt_qname_len=strlen((const char*)dt);
       
       if(!raptor_xml_name_check(dt, dt_qname_len, 11))
-        rdql_syntax_warning(rq, "Invalid XML name \"%s\"", dt);
+        rdql_syntax_warning(rq, "Invalid RDQL name \"%s\"", dt);
       
       /* the qname is expanded later */
       dt_qname=(unsigned char *)RASQAL_MALLOC(cstring, dt_qname_len+1);
@@ -560,7 +566,7 @@ rdql_skip_c_comment(rasqal_query *rq) {
         break;
     }
     if (c == EOF) {
-      rdql_syntax_error(rq, "EOF in comment");
+      rdql_syntax_error(rq, "RDQL syntax error - EOF in comment");
       lines= -1;
       break;
     }
@@ -732,9 +738,6 @@ rdql_token_print(int token, YYSTYPE *lval)
       sprintf(buffer, "IDENTIFIER(%s)", lval->name);
       return buffer;
 
-    case ERROR_TOKEN:
-      return "ERROR";
-
    default:
      RASQAL_DEBUG2("UNKNOWN token %d - add a new case\n", token);
      abort();
@@ -855,7 +858,7 @@ main(int argc, char *argv[])
     printf("token %d\n", token);
 #endif
     rdql_token_free(token, &lval);
-    if(!token || token == EOF || token == ERROR_TOKEN)
+    if(!token || token == EOF)
       break;
   }
 
@@ -870,7 +873,7 @@ main(int argc, char *argv[])
 
   rasqal_finish();
 
-  if(token == ERROR_TOKEN)
+  if(rq.failed)
     return 1;
  
   return 0;
