@@ -119,9 +119,9 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...);
 
 
 /*
- * 1 shift/reduce conflicts
+ * shift/reduce conflicts
  */
-%expect 1
+%expect 2
 
 /* word symbols */
 %token SELECT SOURCE FROM WHERE AND
@@ -170,7 +170,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...);
 
 %type <seq> GraphPattern GraphOrPattern GraphAndPattern 
 
-%type <graph_pattern> PatternElement
+%type <graph_pattern> PatternElement PatternElementConstraint
 %type <graph_pattern> NamedGraphPattern OptionalGraphPattern
 
 %type <expr> Expression ConditionalAndExpression ValueLogical
@@ -384,7 +384,7 @@ GraphOrPattern : GraphAndPattern
 
 
 /* SPARQL Grammar: [15] GraphAndPattern */
-GraphAndPattern : GraphAndPattern PatternElement
+GraphAndPattern : GraphAndPattern PatternElementConstraint
 {
 #if RASQAL_DEBUG > 1  
   printf("GraphAndPattern 1\n  graphpattern=");
@@ -401,7 +401,7 @@ GraphAndPattern : GraphAndPattern PatternElement
   if($2)
     raptor_sequence_push($$, $2);
 }
-| PatternElement 
+| PatternElementConstraint
 {
 #if RASQAL_DEBUG > 1  
   printf("GraphAndPattern 2\n  patternelement=");
@@ -458,12 +458,22 @@ PatternElement : TriplePatternList
 {
   $$=$1;
 }
-| AND Expression
+;
+
+
+/* NEW Grammar Term */
+/* Ensures a constraint gets added to it's adjacent graph pattern */
+PatternElementConstraint : PatternElement
 {
-  $$=rasqal_new_graph_pattern_from_triples((rasqal_query*)rq, NULL, 0, 0, 0);
-  rasqal_graph_pattern_add_constraint($$, $2);
+  $$=$1;
+}
+| PatternElement AND Expression
+{
+  $$=$1;
+  rasqal_graph_pattern_add_constraint($$, $3);
 }
 ;
+
 
 /* NEW Grammar Term */
 TriplePatternList : TriplePatternList TriplePattern
@@ -484,7 +494,7 @@ TriplePatternList : TriplePatternList TriplePattern
 /* SPARQL Grammar: [18] GroupGraphPattern - inlined into PatternElement */
 
 /* SPARQL Grammar: [19] NamedGraphPattern */
-NamedGraphPattern: GRAPH '*' PatternElement
+NamedGraphPattern: GRAPH '*' PatternElementConstraint
 {
 #if RASQAL_DEBUG > 1  
   printf("NamedGraphPattern 1\n  patternelement=");
@@ -496,7 +506,7 @@ NamedGraphPattern: GRAPH '*' PatternElement
 
   $$=$3;
 }
-| GRAPH VarOrURI PatternElement
+| GRAPH VarOrURI PatternElementConstraint
 {
 #if RASQAL_DEBUG > 1  
   printf("NamedGraphPattern 2\n  varoruri=");
@@ -511,7 +521,7 @@ NamedGraphPattern: GRAPH '*' PatternElement
   rasqal_free_literal($2);
   $$=$3;
 }
-|  SOURCE '*' PatternElement
+|  SOURCE '*' PatternElementConstraint
 {
 #if RASQAL_DEBUG > 1  
   printf("NamedGraphPattern 3\n  patternelement=");
@@ -523,7 +533,7 @@ NamedGraphPattern: GRAPH '*' PatternElement
 
   $$=$3;
 }
-| SOURCE VarOrURI PatternElement
+| SOURCE VarOrURI PatternElementConstraint
 {
 #if RASQAL_DEBUG > 1  
   printf("NamedGraphPattern 4\n  varoruri=");
@@ -544,7 +554,7 @@ NamedGraphPattern: GRAPH '*' PatternElement
 
 
 /* SPARQL Grammar: [20] OptionalGraphPattern */
-OptionalGraphPattern: OPTIONAL PatternElement
+OptionalGraphPattern: OPTIONAL PatternElementConstraint
 {
   int i;
   raptor_sequence *s=$2->graph_patterns;
