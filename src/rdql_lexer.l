@@ -613,7 +613,7 @@ rdql_token_print(int token, YYSTYPE *lval)
 int
 rdql_syntax_error(rdql_parser *rp, const char *message, ...)
 {
-  yyscan_t yyscanner=(yyscan_t)rp;
+  yyscan_t yyscanner=rp->scanner;
   va_list arguments;
 
   fprintf(stderr, "%s:%d: ", filename, rdql_lexer_get_lineno(yyscanner));
@@ -630,7 +630,7 @@ rdql_syntax_error(rdql_parser *rp, const char *message, ...)
 int
 rdql_syntax_warning(rdql_parser *rp, const char *message, ...)
 {
-  yyscan_t yyscanner=(yyscan_t)rp;
+  yyscan_t yyscanner=rp->scanner;
   va_list arguments;
 
   fprintf(stderr, "%s:%d: Warning: ", filename, rdql_lexer_get_lineno(yyscanner));
