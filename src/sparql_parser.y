@@ -733,6 +733,7 @@ Literal : URI_LITERAL
 } | QNAME_LITERAL
 {
   $$=rasqal_new_simple_literal(RASQAL_LITERAL_QNAME, $1);
+  rasqal_literal_expand_qname((rasqal_query*)rq, $$);
 }
 ;
 
@@ -750,6 +751,7 @@ URI: URI_LITERAL
 | QNAME_LITERAL
 {
   $$=rasqal_new_simple_literal(RASQAL_LITERAL_QNAME, $1);
+  rasqal_literal_expand_qname((rasqal_query*)rq, $$);
 }
 
 /* SPARQL Grammar: [44] QName - made into terminal QNAME_LITERAL */
@@ -874,11 +876,13 @@ sparql_parse(rasqal_query* rq, const unsigned char *string) {
   if(rq->failed)
     return 1;
   
-  /* Only now can we handle the prefixes and qnames */
-  if(rasqal_engine_declare_prefixes(rq) ||
-     rasqal_engine_expand_triple_qnames(rq) ||
-     rasqal_engine_expand_constraints_qnames(rq))
+  /* FIXME - should check remaining query parts  */
+  if(rasqal_engine_sequence_has_qname(rq->triples) ||
+     rasqal_engine_sequence_has_qname(rq->constructs) ||
+     rasqal_engine_constraints_has_qname(rq)) {
+    sparql_query_error(rq, "Query has unexpanded QNames");
     return 1;
+  }
 
   return 0;
 }
