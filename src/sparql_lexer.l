@@ -105,7 +105,8 @@
 static void sparql_skip_cpp_comment(rasqal_sparql_query_engine *rqe);
 static int sparql_skip_c_comment(rasqal_query *rq);
 
-static unsigned char *sparql_copy_token(rasqal_query *rq, const unsigned char *text, size_t len);
+static unsigned char *sparql_copy_name(rasqal_query *rq, const unsigned char *text, size_t len);
+static unsigned char *sparql_copy_qname(rasqal_query *rq, const unsigned char *text, size_t len);
 static int sparql_copy_regex_token(rasqal_query *rq, YYSTYPE* lval, unsigned char delim);
 static int sparql_copy_string_token(rasqal_query *rq, YYSTYPE* lval, const unsigned char *text, size_t len, int delim);
 
@@ -132,9 +133,13 @@ void sparql_lexer_set_column(int  column_no , yyscan_t yyscanner);
 
 %}
 
-LANGUAGETOKEN [[:alpha:]][[:alnum:]]*
-PREFIX [A-Za-z][-A-Za-z0-9_]*
-NAME [A-Za-z_][-A-Za-z0-9_]*
+LANGUAGETOKEN [A-Za-z][-A-Z_a-z0-9]*
+/* See
+ * http://www.w3.org/TR/xml11/#NT-NameStartChar and 
+ * http://www.w3.org/TR/xml11/#NT-NameChar 
+ */
+PREFIX [A-Za-z\x80-\xff][-A-Z_a-z\x80-\xff0-9]*
+NAME [A-Za-z_\x80-\xff][-A-Z_a-z\x80-\xff0-9]*
 QNAME ":"|{PREFIX}":"|":"{NAME}|{PREFIX}":"{NAME}
 
 /* The initial char conditions are to ensure this doesn't grab < or <= */
@@ -266,30 +271,30 @@ QUOTEDURI \<[A-Za-z][^>]+\>
 "null"	{ sparql_parser_lval->literal=NULL;
           return NULL_LITERAL; }
 
-<ID>{NAME}	{ sparql_parser_lval->name=sparql_copy_token(rq, (const unsigned char*)yytext, yyleng);
+<ID>{NAME}	{ sparql_parser_lval->name=sparql_copy_name(rq, (const unsigned char*)yytext, yyleng);
                           BEGIN(INITIAL);
                           return IDENTIFIER; }
-<ID>.	{	BEGIN(INITIAL);
+<ID>.|\r|\n	{	BEGIN(INITIAL);
 		sparql_syntax_error(rq, "Missing variable name after ?", *yytext);
 		return ERROR_TOKEN; }
 
 
 <PREF>[\ \t\v]+ { /* eat up leading whitespace */ }
 <PREF>{PREFIX}":"	{ BEGIN(INITIAL);
-		  	  sparql_parser_lval->name=sparql_copy_token(rq, (const unsigned char*)yytext, yyleng-1);
+		  	  sparql_parser_lval->name=sparql_copy_name(rq, (const unsigned char*)yytext, yyleng-1);
                           return IDENTIFIER; }
 <PREF>":"	{ BEGIN(INITIAL);
 		  sparql_parser_lval->name=NULL;
                   return IDENTIFIER; }
 
-<PREF>.		{ BEGIN(INITIAL);
+<PREF>.|\r|\n	{ BEGIN(INITIAL);
 		  if (*yytext == EOF)
                     return EOF;
 
                   sparql_syntax_error(rq, "syntax error at '%c'", *yytext);
                   return ERROR_TOKEN;  }
 
-{QNAME}	{ sparql_parser_lval->name=sparql_copy_token(rq, (const unsigned char*)yytext, yyleng);
+{QNAME}	{ sparql_parser_lval->name=sparql_copy_qname(rq, (const unsigned char*)yytext, yyleng);
                           return QNAME_LITERAL; }
 
 {QUOTEDURI}   { if(yyleng == 2) 
@@ -321,10 +326,35 @@ yywrap (yyscan_t yyscanner) {
 
 
 static unsigned char *
-sparql_copy_token(rasqal_query *rq, const unsigned char *text, size_t len) {
+sparql_copy_name(rasqal_query *rq, const unsigned char *text, size_t len) {
   unsigned char *s;
   if(!len)
     len=strlen((const char*)text);
+
+  if(!raptor_xml_name_check(text, len, 11))
+    sparql_syntax_warning(rq, "Invalid XML name \"%s\"", text);
+
+  s=(unsigned char *)malloc(len+1);
+
+  strncpy((char*)s, (const char*)text, len);
+  s[len] = '\0';
+  return s;
+}
+
+
+static unsigned char *
+sparql_copy_qname(rasqal_query *rq, const unsigned char *text, size_t len) {
+  unsigned char *s;
+  unsigned char *p;
+  if(!len)
+    len=strlen((const char*)text);
+
+  p=strchr((const char*)text, ':');
+  if(!raptor_xml_name_check(text, p-text, 11))
+    sparql_syntax_warning(rq, "Invalid XML name \"%s\"", text);
+  if(!raptor_xml_name_check(p+1, len-((p+1)-text), 11))
+    sparql_syntax_warning(rq, "Invalid XML name \"%s\"", p+1);
+
   s=(unsigned char *)malloc(len+1);
 
   strncpy((char*)s, (const char*)text, len);
@@ -787,6 +817,10 @@ sparql_token_free(int token, YYSTYPE *lval)
     case IDENTIFIER:
       free(lval->name);
       break;
+    case QNAME_LITERAL:
+      if(lval->name)
+        free(lval->name);
+      break;
     default:
       break;
   }
@@ -878,6 +912,8 @@ main(int argc, char *argv[])
   yylex_destroy(scanner);
 
   raptor_free_uri(rq.base_uri);
+
+  free(query_string);
 
   rasqal_finish();
 
