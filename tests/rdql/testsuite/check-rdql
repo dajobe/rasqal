@@ -32,8 +32,8 @@ use strict;
 use File::Basename;
 
 
-my $top_srcdir=$ENV{TOP_SRCDIR} || '..';
-my $top_builddir=$ENV{TOP_BUILDDIR} || '..';
+my $top_srcdir=$ENV{TOP_SRCDIR} || '../../..';
+my $top_builddir=$ENV{TOP_BUILDDIR} || '../../..';
 
 my $rdql_testsuite_dir=$top_srcdir."/tests/rdql/testsuite";
 my $roqet=$top_builddir."/roqet";
@@ -63,7 +63,7 @@ sub run_test($$) {
 
   my $cmd;
 
-  $cmd="$roqet $test_file 2>/dev/null";
+  $cmd="$roqet -d $test_file 2>/dev/null";
   warn "$program: Running '$cmd'\n"
     if $debug;
 
@@ -188,7 +188,11 @@ sub run_test($$) {
 
 
 # Argument handling
-die "Usage; $program TEST\n" unless @ARGV<=1;
+if(@ARGV && $ARGV[0] eq '-d') {
+  $debug=1;
+  shift(@ARGV);
+}
+die "Usage; $program [-d] TEST\n" unless @ARGV<=1;
 
 my $unique_test=$ARGV[0];
 
