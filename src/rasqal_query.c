@@ -250,10 +250,10 @@ rasqal_uri_heuristic_parser_name(librdf_uri *uri) {
   size_t len;
 
   uri_string=librdf_uri_as_counted_string(uri, &len);
-  if(strncmp(uri_string+len-3, ".nt", 3))
+  if(!strncmp(uri_string+len-3, ".nt", 3))
     return "ntriples";
   
-  if(strncmp(uri_string+len-3, ".n3", 3))
+  if(!strncmp(uri_string+len-3, ".n3", 3))
     return "turtle";
 
   return "rdfxml";
