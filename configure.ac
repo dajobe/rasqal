@@ -459,11 +459,7 @@ dnl RDF Query Languages
 rdql_query_language=no
 sparql_query_language=no
 
-if test "$USE_MAINTAINER_MODE" = yes; then
-  rdf_query_languages_available="rdql sparql"
-else
-  rdf_query_languages_available=rdql
-fi
+rdf_query_languages_available="rdql sparql"
 rdf_query_languages_enabled=
 
 
