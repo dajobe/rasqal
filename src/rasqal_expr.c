@@ -1236,7 +1236,7 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e) {
         b=1;
 #endif
 
-        fprintf(stderr,"regex match returned %s for '%s' against '%s' (flags=%s)\n", b ? "true " : "false", match_string, pattern, l2->flags ? l2->flags : "");
+        RASQAL_DEBUG5("regex match returned %s for '%s' against '%s' (flags=%s)\n", b ? "true " : "false", match_string, pattern, l2->flags ? l2->flags : "");
         
         if(e->op == RASQAL_EXPR_STR_NMATCH)
           b=1-b;
