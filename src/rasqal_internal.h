@@ -171,6 +171,9 @@ struct rasqal_query_s {
   rasqal_triples_source* triples_source;
 
   rasqal_triples_source_factory* triples_source_factory;
+
+  /* executing variables */
+  int column;
 };
 
 
@@ -240,6 +243,9 @@ int rasqal_engine_expand_triple_qnames(rasqal_query* rq);
 int rasqal_engine_expand_constraints_qnames(rasqal_query* rq);
 int rasqal_engine_build_constraints_expression(rasqal_query* rq);
 int rasqal_engine_assign_variables(rasqal_query* rq);
+
+int rasqal_engine_execute_init(rasqal_query *query);
+int rasqal_engine_execute_finish(rasqal_query *query);
 int rasqal_engine_run(rasqal_query *q);
 
 rasqal_triples_source* rasqal_new_triples_source(rasqal_query *query, raptor_uri* uri);
