@@ -526,6 +526,7 @@ AC_CONFIG_FILES([Makefile
 tests/Makefile
 rdql-testsuite/Makefile
 docs/Makefile
+win32/Makefile
 rasqal.spec
 rasqal.pc])
 AC_CONFIG_FILES([rasqal-config], [chmod +x rasqal-config])
