@@ -126,7 +126,7 @@ typedef struct rasqal_graph_pattern_s rasqal_graph_pattern;
 
 
 rasqal_graph_pattern* rasqal_new_graph_pattern_from_triples(raptor_sequence *triples, int start_column, int end_column, int flags);
-rasqal_graph_pattern* rasqal_new_graph_pattern_from_sequence(raptor_sequence *triples, raptor_sequence *graph_patterns, int flags);
+rasqal_graph_pattern* rasqal_new_graph_pattern_from_sequence(raptor_sequence *graph_patterns, int flags);
 void rasqal_free_graph_pattern(rasqal_graph_pattern* pg);
 void rasqal_graph_pattern_init(rasqal_graph_pattern *gp);
 void rasqal_graph_pattern_adjust(rasqal_graph_pattern* gp, int offset);
