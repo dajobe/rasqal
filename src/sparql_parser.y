@@ -126,6 +126,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...);
 /* word symbols */
 %token SELECT SOURCE FROM WHERE AND
 %token OPTIONAL PREFIX DESCRIBE CONSTRUCT ASK NOT DISTINCT LIMIT UNION
+%token BASE LOAD BOUND
 
 /* expression delimitors */
 
@@ -173,7 +174,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...);
 %type <expr> Expression ConditionalAndExpression ValueLogical
 %type <expr> EqualityExpression RelationalExpression AdditiveExpression
 %type <expr> MultiplicativeExpression UnaryExpression
-%type <expr> UnaryExpressionNotPlusMinus
+%type <expr> UnaryExpressionNotPlusMinus BuiltinExpression
 
 %type <literal> Literal URI VarOrLiteral VarOrURI
 
@@ -184,52 +185,59 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...);
 
 %%
 
+/* Below here, grammar terms are numbered from
+ * http://www.w3.org/2001/sw/DataAccess/rq23/
+ * $Revision$ of $Date$
+ * except where noted
+ */
 
-/* SPARQL Grammar: [1] Query*/
-Query : PrefixDeclOpt ReportFormat PrefixDeclOpt FromClauseOpt WhereClauseOpt
+/* SPARQL Grammar: [1] rq23 Query */
+Query : BaseDeclOpt PrefixDeclOpt ReportFormat LoadClauseOpt FromClauseOpt
+        WhereClauseOpt LimitClauseOpt
 {
 }
 ;
 
-
-/* SPARQL Grammar: [2] ReportFormat */
-ReportFormat : SELECT SelectClause
+/* NEW Grammar Term pulled out of [1] rq23 Query */
+ReportFormat : SelectClause
 {
-  ((rasqal_query*)rq)->selects=$2;
+  ((rasqal_query*)rq)->selects=$1;
 }
-|  CONSTRUCT ConstructClause
+|  ConstructClause
 {
-  ((rasqal_query*)rq)->constructs=$2;
+  ((rasqal_query*)rq)->constructs=$1;
 }
-|  DESCRIBE DescribeClause
+|  DescribeClause
 {
   ((rasqal_query*)rq)->select_is_describe=1;
-  ((rasqal_query*)rq)->describes=$2;
+  ((rasqal_query*)rq)->describes=$1;
 }
-| ASK
+| AskClause
 {
   ((rasqal_query*)rq)->ask=1;
 }
 ;
 
+/* SPARQL Grammar: [2] rq23 Prolog - merged into Query */
 
-/* NEW Grammar Term */
-SelectClause : DISTINCT VarList
+
+/* SPARQL Grammar: [3] rq23 SelectClause */
+SelectClause : SELECT DISTINCT VarList
 {
-  $$=$2;
+  $$=$3;
   ((rasqal_query*)rq)->distinct=1;
 }
-| DISTINCT '*'
+| SELECT DISTINCT '*'
 {
   $$=NULL;
   ((rasqal_query*)rq)->select_all=1;
   ((rasqal_query*)rq)->distinct=1;
 }
-| VarList
+| SELECT VarList
 {
-  $$=$1;
+  $$=$2;
 }
-| '*'
+| SELECT '*'
 {
   $$=NULL;
   ((rasqal_query*)rq)->select_all=1;
@@ -237,12 +245,23 @@ SelectClause : DISTINCT VarList
 ;
 
 
-/* NEW Grammar Term */
-ConstructClause : TriplePatternList
+/* SPARQL Grammar: [4] rq23 DescribeClause */
+DescribeClause : DESCRIBE VarOrURIList
 {
-  $$=$1;
+  $$=$2;
 }
-| '*'
+| DESCRIBE '*'
+{
+  $$=NULL;
+}
+;
+
+/* SPARQL Grammar: [5] rq23 ConstructClause */
+ConstructClause : CONSTRUCT TriplePatternList
+{
+  $$=$2;
+}
+| CONSTRUCT '*'
 {
   $$=NULL;
   ((rasqal_query*)rq)->construct_all=1;
@@ -250,19 +269,24 @@ ConstructClause : TriplePatternList
 ;
 
 
-/* NEW Grammar Term */
-DescribeClause : VarOrURIList
+/* SPARQL Grammar: [6] rq23 AskClause */
+AskClause : ASK 
 {
-  $$=$1;
 }
-| '*'
+
+
+/* SPARQL Grammar: [7] rq23 LoadClause - renamed for clarity */
+LoadClauseOpt : LOAD URIList
 {
-  $$=NULL;
+  /* FIXME */
+}
+| /* empty */
+{
 }
 ;
 
 
-/* SPARQL Grammar: [3] FromClause - renamed for clarity */
+/* SPARQL Grammar: [8] rq23 FromClause - renamed for clarity */
 FromClauseOpt : FROM URIList
 {
   if($2) {
@@ -275,9 +299,10 @@ FromClauseOpt : FROM URIList
 }
 ;
 
-/* SPARQL Grammar: [4] FromSelector - junk */
 
-/* SPARQL Grammar: [5] WhereClause - remained for clarity*/
+/* SPARQL Grammar: [9] rq23 SourceSelector - junk */
+
+/* SPARQL Grammar: [10] rq23 WhereClause - remained for clarity */
 WhereClauseOpt :  WHERE GraphPattern
 {
   if($2) {
@@ -290,6 +315,21 @@ WhereClauseOpt :  WHERE GraphPattern
 }
 ;
 
+
+/* SPARQL Grammar: [11] rq23 LimitClause - remained for clarity */
+LimitClauseOpt :  LIMIT INTEGER_LITERAL
+{
+  /* FIXME */
+}
+| /* empty */
+{
+}
+;
+
+/* Below here, grammar terms are numbered from
+ * http://www.w3.org/TR/2004/WD-rdf-sparql-query-20041012/#grammar
+ * except where noted
+ */
 
 /* SPARQL Grammar: [6] SourceGraphPattern - merged into PatternElementForms */
 
@@ -313,7 +353,7 @@ GraphPattern : GraphPattern PatternElement
   if($2)
     raptor_sequence_push($$, $2);
 }
-| PatternElement
+| PatternElement 
 {
 #if RASQAL_DEBUG > 1  
   printf("GraphPattern 2\n  patternelement=");
@@ -481,6 +521,7 @@ PatternElementForms: SOURCE '*' GraphPattern1  /* from SourceGraphPattern */
     }
   }
   $$=$2;
+  $$->flags |= RASQAL_PATTERN_FLAGS_OPTIONAL;
 }
 | '[' GraphPattern ']' /* from OptionalGraphPattern */
 {
@@ -644,6 +685,20 @@ VarOrLiteral : Var
 ;
 
 
+/* SPARQL Grammar: [31] rq23 BaseDecl */
+BaseDeclOpt : BASE URI_LITERAL
+{
+  if(((rasqal_query*)rq)->base_uri)
+    raptor_free_uri(((rasqal_query*)rq)->base_uri);
+  ((rasqal_query*)rq)->base_uri=$2;
+}
+| /* empty */
+{
+  /* nothing to do */
+}
+;
+
+
 /* SPARQL Grammar: [19] PrefixDecl */
 PrefixDeclOpt : PrefixDeclOpt PREFIX IDENTIFIER URI_LITERAL
 {
@@ -792,20 +847,34 @@ MultiplicativeExpression : UnaryExpression '*' MultiplicativeExpression
 
 /* SPARQL Grammar: [33] MultiplicativeOperation - merged into MultiplicativeExpression */
 
-/* SPARQL Grammar: [34] UnaryExpression */
-UnaryExpression : '+' UnaryExpression
+/* SPARQL Grammar: [34] rq23 UnaryExpression */
+UnaryExpression : '+' BuiltinExpression
 {
   $$=$2;
 }
-| '-' UnaryExpression
+| '-' BuiltinExpression
 {
   $$=rasqal_new_1op_expression(RASQAL_EXPR_UMINUS, $2);
+}
+| BuiltinExpression
+{
+  $$=$1;
+}
+;
+
+/* SPARQL Grammar: [45] rq23 UnaryExpression */
+BuiltinExpression : BOUND '(' Var ')'
+{
+  rasqal_literal *l=rasqal_new_variable_literal($3);
+  rasqal_expression *e=rasqal_new_literal_expression(l);
+  $$=rasqal_new_1op_expression(RASQAL_EXPR_BOUND, e);
 }
 | UnaryExpressionNotPlusMinus
 {
   $$=$1;
 }
 ;
+
 
 /* SPARQL Grammar: [35] UnaryExpressionNotPlusMinus */
 UnaryExpressionNotPlusMinus : '~' UnaryExpression
