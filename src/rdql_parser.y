@@ -278,7 +278,6 @@ ConstraintClause : AND Expression ( ( COMMA | AND ) Expression )*
 
 ConstraintClause : AND CommaAndConstraintClause
 {
-  rasqal_query_add_constraint(((rasqal_query*)rq), $2);
   $$=NULL;
 }
 | /* empty */
@@ -287,20 +286,20 @@ ConstraintClause : AND CommaAndConstraintClause
 }
 ;
 
-CommaAndConstraintClause : Expression COMMA CommaAndConstraintClause
+CommaAndConstraintClause : CommaAndConstraintClause COMMA Expression
 {
-  $$=$3;
-  raptor_sequence_shift($$, $1);
+  rasqal_query_add_constraint(((rasqal_query*)rq), $3);
+  $$=NULL;
 }
-| Expression AND CommaAndConstraintClause
+| CommaAndConstraintClause AND Expression
 {
-  $$=$3;
-  raptor_sequence_shift($$, $1);
+  rasqal_query_add_constraint(((rasqal_query*)rq), $3);
+  $$=NULL;
 }
 | Expression
 {
-  $$=raptor_new_sequence(NULL, (raptor_sequence_print_handler*)rasqal_expression_print);
-  raptor_sequence_push($$, $1);
+  rasqal_query_add_constraint(((rasqal_query*)rq), $1);
+  $$=NULL;
 }
 ;
 
