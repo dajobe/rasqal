@@ -266,7 +266,7 @@ QUOTEDURI \<[A-Za-z][^>]+\>
                     yyterminate();
                           BEGIN(INITIAL);
                           return IDENTIFIER; }
-<ID>.|\r|\n	{	BEGIN(INITIAL);
+<ID>(.|\n)	{	BEGIN(INITIAL);
 		rdql_syntax_error(rq, "RDQL syntax error - missing variable name after ?");
                 yyterminate();
 		}

@@ -289,7 +289,7 @@ QUOTEDURI \<[A-Za-z][^>]+\>
                     yyterminate();
                           BEGIN(INITIAL);
                           return IDENTIFIER; }
-<ID>.|\r|\n	{	BEGIN(INITIAL);
+<ID>(.|\n)	{	BEGIN(INITIAL);
 		sparql_syntax_error(rq, "SPARQL syntax error - missing variable name after ?");
                 yyterminate();
 }
@@ -305,7 +305,7 @@ QUOTEDURI \<[A-Za-z][^>]+\>
 		  sparql_parser_lval->name=NULL;
                   return IDENTIFIER; }
 
-<PREF>.|\r|\n	{ BEGIN(INITIAL);
+<PREF>(.|\n)	{ BEGIN(INITIAL);
 		  if (*yytext == EOF)
                     return EOF;
 
