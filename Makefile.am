@@ -37,7 +37,7 @@ if RASQAL_QUERY_RDQL
 local_tests += rdql_lexer_test rdql_parser_test
 endif
 if RASQAL_QUERY_SPARQL
-local_tests += brql_lexer_test brql_parser_test
+local_tests += sparql_lexer_test sparql_parser_test
 endif
 
 CLEANFILES=$(TESTS) $(local_tests)
@@ -168,10 +168,10 @@ rdql_lexer_test: $(srcdir)/rdql_lexer.c librasqal.la
 rdql_parser_test: $(srcdir)/rdql_parser.c librasqal.la
 	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE @RASQAL_INTERNAL_CPPFLAGS@ $(srcdir)/rdql_parser.c librasqal.la $(LIBS)
 
-brql_lexer_test: $(srcdir)/brql_lexer.c librasqal.la
+sparql_lexer_test: $(srcdir)/brql_lexer.c librasqal.la
 	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE @RASQAL_INTERNAL_CPPFLAGS@ $(srcdir)/brql_lexer.c librasqal.la $(LIBS)
 
-brql_parser_test: $(srcdir)/brql_parser.c librasqal.la
+sparql_parser_test: $(srcdir)/brql_parser.c librasqal.la
 	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE @RASQAL_INTERNAL_CPPFLAGS@ $(srcdir)/brql_parser.c librasqal.la $(LIBS)
 
 rasqal_expr_test$(EXEEXT): $(srcdir)/rasqal_expr.c librasqal.la
