@@ -279,8 +279,12 @@ rasqal_new_variable(rasqal_query* rq,
 
 
 void
-rasqal_free_variable(rasqal_variable* variable) {
-  free(variable);
+rasqal_free_variable(rasqal_variable* v) {
+  if(v->name)
+    RASQAL_FREE(cstring, v->name);
+  if(v->value)
+    rasqal_free_expression(v->value);
+  free(v);
 }
 
 
