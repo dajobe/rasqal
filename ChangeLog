@@ -1,3 +1,46 @@
+2005-01-21  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* tests/rdql/testsuite/Makefile.am: S-03, S-04, S-05 work
+
+	* TODO.html: update sparql words
+
+	* TODO.html: RDQL S-03, S-04, S-05 fixed
+
+	* sparql_lexer.l (PREFIX): Allow \
+	(NAME): Allow \
+	(<ID>{NAME}, <PREF>{PREFIX}, {QNAME}) Terminate when a name is not
+	created.
+	(sparql_copy_name, sparql_copy_qname): Use
+	rasqal_escaped_name_to_utf8_string to turn the escaped name into
+	just UTF-8, then check it is a legal XML name.
+
+	* rdql_lexer.l (PREFIX): Allow \
+	(NAME): Allow \
+	(<*>{NAME}, {QNAME}, <{QNAME}>) Terminate when a name is not
+	created.
+	(rdql_copy_name, rdql_copy_qname): Use
+	rasqal_escaped_name_to_utf8_string to turn the escaped name into
+	just UTF-8, then check it is a legal XML name.
+
+	* rasqal_internal.h: Added prototype for
+	rasqal_escaped_name_to_utf8_string
+
+	* rasqal_general.c (rasqal_escaped_name_to_utf8_string): Added to
+	turn a UTF-8 and/or \u-escaped name as a UTF-8 string.  Intended
+	as a lexer helper function.  A combination of
+	raptor_ntriples_string_as_utf8_string and raptor_ntriples_term
+	with the parsing part stripped out, and just \u, \U allowed,
+	always allowing UTF-8 and working just on full strings.
+
+2005-01-18  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* tests/rdql/testsuite/Makefile.am: Remove S-02 from expected
+	failures now that the formatting matches the expected N-Triples
+	escaped output.
+
+	* rasqal_literal.c (rasqal_literal_print): Print string as
+	N-Triples-escaped using raptor_print_ntriples_string.
+
 2005-01-16  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
 	* rasqal_query.c (rasqal_query_results_write): Copy original
