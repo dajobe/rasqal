@@ -70,6 +70,9 @@ result-T-07.n3 result-T-08.n3 result-T-09.n3 result-T-10.n3
 rdql_testsuite_extra_files=query-dump rdql-tests.n3	\
 README-RDQL-tests.txt copyright.txt
 
+EXPECTED_RDQL_WORKS_FAILURES=test-S-02 test-S-03 test-S-04 test-S-05
+EXPECTED_RDQL_CORRECT_FAILURES_COUNT=6
+
 EXTRA_DIST = README \
 check-rdql \
 $(rdql_testsuite_model_files) \
@@ -98,13 +101,29 @@ check-rdql-works: $(top_builddir)/roqet
 	  fi; \
 	done; \
 	if test $$result = 1 ; then \
-	  echo "FAILED tests:$$fails"; \
-	fi
-	@echo "IGNORING test failures for known bugs in rasqal"; exit 0
+	  echo "Expecting test failures: $(EXPECTED_RDQL_WORKS_FAILURES)"; \
+	  if test "X$$fails" = "X $(EXPECTED_RDQL_WORKS_FAILURES)" ; then \
+	    echo "OK: Ignoring expected test failures"; result=0; \
+          else \
+	    echo "FAILED: failures $$fails does not match expected"; result=1; \
+          fi; \
+	fi; \
+	exit $$result
 
 check-rdql-correct: $(top_builddir)/roqet $(srcdir)/check-rdql
 	@TOP_SRCDIR=$(top_srcdir) TOP_BUILDDIR=$(top_builddir) \
-	  perl $(srcdir)/check-rdql || (echo "IGNORING tests for known bugs in rasqal"; exit 0)
+	  perl $(srcdir)/check-rdql; \
+	result=$$?; \
+	if test $$result != 0 ; then \
+	  echo "Expecting $(EXPECTED_RDQL_CORRECT_FAILURES_COUNT) test failures"; \
+	  if test $$result = $(EXPECTED_RDQL_CORRECT_FAILURES_COUNT) ; then \
+	    echo "OK: Ignoring expected test failures"; result=0; \
+          else \
+	    echo "FAILED: $$result failures does not match expected"; result=1; \
+          fi; \
+	fi; \
+	exit $$result
+
 
 if MAINTAINER_MODE
 clean-tests:
