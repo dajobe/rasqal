@@ -7,7 +7,7 @@
 .\" Institute for Learning and Research Technology - http://www.ilrt.bristol.ac.uk/
 .\" University of Bristol - http://www.bristol.ac.uk/
 .\"
-.TH librasqal 3 "2004-08-03"
+.TH librasqal 3 "2004-10-24"
 .\" Please adjust this date whenever revising the manpage.
 .SH NAME
 librasqal \- Rasqal RDF query library
@@ -66,10 +66,11 @@ The \fIRasqal\fR library provides a high-level interface to
 RDF query parsing, query construction and query execution over
 an RDF graph.  The library provides APIs to each of the steps in
 the process and provides support for handling multiple query language
-syntaxes (at present, only RDQL supported).
+syntaxes.  At present rasqal supports RDQL and the draft W3C SPARQL
+query language.
 .LP
-Rasqal uses the libraptor(3) library for providing URI handling and
-WWW content retrieval.
+Rasqal uses the libraptor(3) library for providing URI handling,
+WWW content retrieval and other support functions.
 .LP
 .SH LIBRARY INITIALISATION AND CLEANUP
 .IP "\fBrasqal_init()\fR"
@@ -285,8 +286,13 @@ Create a new rasqal triple from three literals.
 .SH TRIPLE DESTRUCTOR
 .IP "\fBvoid rasqal_free_triple(rasqal_triple* \fItriple\fP)\fR"
 Destroy a rasqal triple object.
+.SH "TRIPLE METHODS"
 .IP "\fBvoid rasqal_triple_print(rasqal_triple* \fItriple\fP, FILE* \fIfh\fP)\fR"
 Print a triple in a debug format.  This format may change in any release.
+.IP "\fBvoid rasqal_triple_set_origin(rasqal_triple* \fItriple\fP, rasqal_literal *\fIliteral\fP)\fP"
+Set the origin rasqal_literal of the triple, typically a URI literal.
+.IP "\fBrasqal_literal* rasqal_triple_get_origin(rasqal_triple* \fItriple\fP)\fP"
+Get the origin rasqal_literal of the triple.
 .SH "VARIABLE CLASS"
 A class for variable name and literal used to capture a variable
 with optional value binding such as returned as query results by
@@ -352,6 +358,21 @@ sub-expressions.  The order is the first expression at hand and then
 the arguments, if any.  function \fIfn\fP is called at each point
 with the arguments of \fIuser_data\fP and the expression.
 .SH API CHANGES
+.SS 0.9.3
+The struct \fBrasqal_prefix\fP gained a \fIdeclared\fP field.
+.br
+The struct \fBrasqal_triple\fP gained an origin field; not used at
+present but intended to support work on tracking triple provenance
+such as provided by Redland Contexts.
+.br
+Added methods \fBrasqal_triple_set_origin\fP and
+\fBrasqal_triple_get_origin\fP to support the above.
+.br
+struct \fBrasqal_triple_meta\fP now takes a 4-array of bindings,
+the fourth being the origin.
+.br
+Exported function \fBrasqal_set_triples_source_factory\fP publically
+as intended.
 .SS 0.9.2
 Several functions changed their parameters or return values from
 char* to unsigned char* or const unsigned char* to reflect the actual
@@ -420,6 +441,11 @@ All new.
 W3C Member Submission 9 January 2004
 .UR http://www.w3.org/Submission/2004/SUBM-RDQL-20040109/
 http://www.w3.org/Submission/2004/SUBM-RDQL-20040109/
+.UE
+\fISPARQL Query Language for RDF\fR, 
+Eric Prud'hommeaux and Andy Seaborne (ed), W3C Working Draft, 12 October 2004.
+.UR http://www.w3.org/TR/2004/WD-rdf-sparql-query-20041012/
+http://www.w3.org/TR/2004/WD-rdf-sparql-query-20041012/
 .UE
 .SH SEE ALSO
 .BR roqet (1), rasqal-config (1)
