@@ -372,6 +372,7 @@ main(int argc, char *argv[])
   } else {
     raptor_www *www=raptor_www_new();
     if(www) {
+      raptor_www_set_error_handler(www, roqet_error_handler, NULL);
       raptor_www_fetch_to_string(www, uri, (void**)&query_string, NULL,
                                  malloc);
       raptor_www_free(www);
