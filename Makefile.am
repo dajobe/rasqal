@@ -56,7 +56,7 @@ rasqal.pc.in
 
 SUBDIRS=tests rdql-testsuite
 
-TESTS=rasqal_expr_test
+TESTS=rasqal_expr_test strcasecmp_test
 
 CLEANFILES=$(TESTS) rdql_lexer_test rdql_parser_test
 MAINTAINERCLEANFILES=rdql_lexer.c rdql_lexer.h \
@@ -116,3 +116,6 @@ rdql_parser_test: $(srcdir)/rdql_parser.tab.c librasqal.la
 
 rasqal_expr_test: $(srcdir)/rasqal_expr.c librasqal.la
 	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE @RASQAL_INTERNAL_CPPFLAGS@ $(srcdir)/rasqal_expr.c librasqal.la $(LIBS)
+
+strcasecmp_test: $(srcdir)/strcasecmp.c
+	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE $(srcdir)/strcasecmp.c
