@@ -56,7 +56,12 @@ class:</p>
 </tr>
 </table>
 
-<p>Multiple constraints are now ANDed not ORed.</p>
+<p>A new <code>rasqal_free_query_results</code> destructor was created
+to delete the query results.  (There is no public constructor).</p>
+
+<p>Other minor bugs were fixed such as multiple constraints now being
+ANDed and not ORed, and adding defensive code for when queries fail
+and results methods are invoked.</p>
 
 
 <h2 id="rel0_9_0"><a name="rel0_9_0">Rasqal 0.9.0 Changes</a></h2>
