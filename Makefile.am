@@ -29,18 +29,43 @@ noinst_HEADERS = rasqal_internal.h win32_config.h
 
 man_MANS = roqet.1 librasqal.3 rasqal-config.1
 
+SUBDIRS=tests rdql-testsuite docs
+
+TESTS=rasqal_expr_test strcasecmp_test
+
+CLEANFILES=$(TESTS) rdql_lexer_test rdql_parser_test
+MAINTAINERCLEANFILES=rdql_lexer.c rdql_lexer.h \
+rdql_parser.tab.c rdql_parser.tab.h rdql_parser.output
+
+MEM=@MEM@
+MEM_LIBS=@MEM_LIBS@
+
+AM_CPPFLAGS=@CPPFLAGS@ @RASQAL_INTERNAL_CPPFLAGS@ @RASQAL_EXTERNAL_CPPFLAGS@
+AM_CFLAGS=@CFLAGS@ @RASQAL_INTERNAL_CPPFLAGS@ @RASQAL_EXTERNAL_CPPFLAGS@ $(MEM)
+AM_LDFLAGS=@RASQAL_INTERNAL_LIBS@ @RASQAL_EXTERNAL_LIBS@ $(MEM_LIBS)
+
+
 librasqal_la_SOURCES = rdql_lexer.c rdql_lexer.h \
 rdql_parser.tab.c rdql_parser.tab.h rdql_common.h \
 rasqal_expr.c rasqal_general.c rasqal_query.c \
 rasqal_engine.c rasqal_raptor.c rasqal_literal.c
+if GETOPT
+librasqal_la_SOURCES += strcasecmp.c
+endif
 librasqal_la_LDFLAGS = -version-info @RASQAL_LIBTOOL_VERSION@
 librasqal_la_LIBADD = @LTLIBOBJS@ @RASQAL_INTERNAL_LIBS@ @RASQAL_EXTERNAL_LIBS@
 librasqal_la_DEPENDENCIES = @LTLIBOBJS@ @RASQAL_INTERNAL_LIBS@
 
-roqet_SOURCES = roqet.c rasqal_getopt.h
-roqet_LDADD = librasqal.la @RASQAL_INTERNAL_LIBS@ @RASQAL_EXTERNAL_LIBS@
-roqet_DEPENDENCIES = librasqal.la @RASQAL_INTERNAL_LIBS@
-EXTRA_roqet_SOURCES = getopt.c
+
+roqet_SOURCES = roqet.c
+if GETOPT
+roqet_SOURCES += getopt.c rasqal_getopt.h
+endif
+roqet_LDADD = librasqal.la
+
+
+pkgconfigdir = $(libdir)/pkgconfig
+pkgconfig_DATA = rasqal.pc
 
 
 EXTRA_DIST=ChangeLog \
@@ -56,20 +81,6 @@ $(man_MANS) \
 rasqal.pc.in \
 fix-flex
 
-SUBDIRS=tests rdql-testsuite docs
-
-TESTS=rasqal_expr_test strcasecmp_test
-
-CLEANFILES=$(TESTS) rdql_lexer_test rdql_parser_test
-MAINTAINERCLEANFILES=rdql_lexer.c rdql_lexer.h \
-rdql_parser.tab.c rdql_parser.tab.h rdql_parser.output
-
-MEM=@MEM@
-MEM_LIBS=@MEM_LIBS@
-
-AM_CPPFLAGS=@CPPFLAGS@ @RASQAL_INTERNAL_CPPFLAGS@ @RASQAL_EXTERNAL_CPPFLAGS@
-AM_CFLAGS=@CFLAGS@ @RASQAL_INTERNAL_CPPFLAGS@ @RASQAL_EXTERNAL_CPPFLAGS@ $(MEM)
-AM_LDFLAGS=@RASQAL_INTERNAL_LIBS@ @RASQAL_EXTERNAL_LIBS@ $(MEM_LIBS)
 
 LEX=@LEX@
 YACC=@YACC@
@@ -94,9 +105,6 @@ NEWS: NEWS.html
 
 @MAINT@roqet.html: $(srcdir)/roqet.1 $(srcdir)/fix-groff-xhtml $@
 @MAINT@	-groff -man -Thtml -P-l $< | tidy -asxml -wrap 1000 2>/dev/null | perl $(srcdir)/fix-groff-xhtml $@
-
-pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = rasqal.pc
 
 # Actually it needs rdql_parser.h but nevermind
 rdql_lexer.c: $(srcdir)/rdql_lexer.l rdql_parser.tab.c $(srcdir)/fix-flex
