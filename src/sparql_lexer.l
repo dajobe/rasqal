@@ -27,8 +27,7 @@
  * as the one available in Debian GNU/Linux.   Details below
  * near the %option descriptions.
  *
- * SPARQL defined in http://www.w3.org/2001/sw/DataAccess/rq23/ and
- * http://www.w3.org/2004/07/08-SPARQL/
+ * SPARQL defined in http://www.w3.org/TR/rdf-sparql-query/
  *
  */
 
