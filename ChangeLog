@@ -1,5 +1,17 @@
 2004-10-28  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
+	* tests/sparql/check-sparql: Use PATH to find programs.
+	(run-test): More debug messages Add -s $srcdir arg to find
+	manifest
+
+	* tests/sparql/syntax/Makefile.am,
+	tests/sparql/simple/Makefile.am, tests/sparql/part1/Makefile.am,
+	tests/sparql/examples/Makefile.am: Invoke check-sparql with PATH
+	set and -s $(srcdir) arg
+
+	* tests/sparql/simple/manifest.n3, tests/sparql/part1/manifest.n3:
+	Update to latest DAWG tests, no file:
+
 	* sparql_lexer.l, rdql_lexer.l: Remove YY_INPUT since it never worked.
 	(main): Read query string into a buffer and use *_lexer__scan_buffer
 
