@@ -194,7 +194,8 @@ VarList : Var COMMA VarList
 }
 | Var 
 {
-  $$=rasqal_new_sequence((rasqal_free_handler*)rasqal_free_variable, (rasqal_print_handler*)rasqal_print_variable);
+  /* The variables are freed from the raptor_query field variables */
+  $$=rasqal_new_sequence(NULL, (rasqal_print_handler*)rasqal_print_variable);
   rasqal_sequence_push($$, $1);
 }
 ;
@@ -530,7 +531,7 @@ VarOrLiteral : Var
 
 Var : VARPREFIX IDENTIFIER
 {
-  $$=rasqal_new_variable($2, NULL);
+  $$=rasqal_new_variable(rq, $2, NULL);
 }
 ;
 
@@ -798,6 +799,7 @@ main(int argc, char *argv[])
                                          rasqal_query_simple_error,
                                          &query,
                                          0);
+  query.variables_sequence=rasqal_new_sequence((rasqal_free_handler*)rasqal_free_variable, (rasqal_print_handler*)rasqal_print_variable);
   
   locator->line= locator->column = -1;
   locator->file= filename;
