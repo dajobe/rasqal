@@ -89,8 +89,8 @@ extern int sparql_lexer_lex (YYSTYPE *sparql_parser_lval, yyscan_t scanner);
 
 
 static int sparql_parse(rasqal_query* rq, const unsigned char *string);
-static int sparql_query_error(rasqal_query* rq, const char *message);
-
+static void sparql_query_error(rasqal_query* rq, const char *message);
+static void sparql_query_error_full(rasqal_query *rq, const char *message, ...);
 %}
 
 
@@ -733,7 +733,12 @@ Literal : URI_LITERAL
 } | QNAME_LITERAL
 {
   $$=rasqal_new_simple_literal(RASQAL_LITERAL_QNAME, $1);
-  rasqal_literal_expand_qname((rasqal_query*)rq, $$);
+  if(rasqal_literal_expand_qname((rasqal_query*)rq, $$)) {
+    sparql_query_error_full((rasqal_query*)rq,
+                            "QName %s cannot be expanded", $1);
+    rasqal_free_literal($$);
+    $$=NULL;
+  }
 }
 ;
 
@@ -751,7 +756,12 @@ URI: URI_LITERAL
 | QNAME_LITERAL
 {
   $$=rasqal_new_simple_literal(RASQAL_LITERAL_QNAME, $1);
-  rasqal_literal_expand_qname((rasqal_query*)rq, $$);
+  if(rasqal_literal_expand_qname((rasqal_query*)rq, $$)) {
+    sparql_query_error_full((rasqal_query*)rq,
+                            "QName %s cannot be expanded", $1);
+    rasqal_free_literal($$);
+    $$=NULL;
+  }
 }
 
 /* SPARQL Grammar: [44] QName - made into terminal QNAME_LITERAL */
@@ -888,7 +898,7 @@ sparql_parse(rasqal_query* rq, const unsigned char *string) {
 }
 
 
-int
+static void
 sparql_query_error(rasqal_query *rq, const char *msg) {
   rasqal_sparql_query_engine* rqe=(rasqal_sparql_query_engine*)rq->context;
 
@@ -898,8 +908,24 @@ sparql_query_error(rasqal_query *rq, const char *msg) {
 #endif
 
   rasqal_query_error(rq, "%s", msg);
+}
 
-  return 0;
+
+static void
+sparql_query_error_full(rasqal_query *rq, const char *message, ...) {
+  va_list arguments;
+  rasqal_sparql_query_engine* rqe=(rasqal_sparql_query_engine*)rq->context;
+
+  rq->locator.line=rqe->lineno;
+#ifdef RASQAL_SPARQL_USE_ERROR_COLUMNS
+  /*  rq->locator.column=sparql_lexer_get_column(yyscanner);*/
+#endif
+
+  va_start(arguments, message);
+
+  rasqal_query_error_varargs(rq, message, arguments);
+
+  va_end(arguments);
 }
 
 
