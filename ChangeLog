@@ -1,4 +1,30 @@
-2005-03-14  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+2005-03-17  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal_engine.c (rasqal_engine_get_next_result): Finish if the
+	query has no query graph or the query graph has no graph patterns
+	in it.
+
+2005-03-16  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* tests/sparql/syntax/Makefile.am, tests/sparql/syntax/cast1.rq:
+	Added cast1.rq
+
+	* sparql_parser.y (PatternElementConstraint):
+	Added, Taking the AND Expression out of
+	PatternElement, ensuring the constraint gets added to the adjacent
+	graph pattern rather than one with no other content.
+	Replaced all other references to PatternElement with this term.
+	[now have 2 shift/reduce conflicts]
+
+	* rasqal_engine.c (rasqal_query_build_declared_in):
+	Less debug noise for defined
+	variables
+
+	* tests/sparql/syntax/describe1.rq: use ?p in the query
+
+	* tests/sparql/syntax/groups.rq: select ?mbox mentioned in query
+
+2005-03-15  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
 	* Makefile.am, rasqal_engine.c, rasqal_graph_pattern.c,
 	rasqal_internal.h: Move rasqal_graph_pattern to new
