@@ -103,20 +103,6 @@ AM_MISSING_PROG(AUTOMAKE, automake, $missing_dir)
 AM_MISSING_PROG(AUTOHEADER, autoheader, $missing_dir)
 
 
-release_version=no
-AC_ARG_ENABLE(release, [  --enable-release        Turn on optimizations.  ], \
- if test "$enableval" = "yes"; then \
-	release_version=yes
-fi;)	
-
-if test $release_version = no; then 
-  CFLAGS=`echo $CFLAGS | sed s/-O2//`
-  CXXFLAGS=`echo $CXXFLAGS | sed s/-O2//`
-  CPPFLAGS=`echo $CPPFLAGS | sed s/-O2//`
-fi
-
-
-
 dnl compiler checks
 # if using gcc...
 if test "$ac_cv_prog_gcc" = yes; then
