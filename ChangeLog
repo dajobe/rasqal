@@ -1,5 +1,9 @@
 2004-10-25  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
+	* sparql_parser.y (sparql_query_error_full): Added, allowing varags.
+	(Literal, URI): Use above to report failure to expand qnames
+	immediately.
+
 	* sparql_parser.y (Literal, URI):
 	Invoke rasqal_literal_expand_qname when handling a
 	QNAME_LITERAL, RASQAL_LITERAL_QNAME.
