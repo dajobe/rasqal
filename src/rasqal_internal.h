@@ -96,12 +96,27 @@ void rasqal_system_free(void *ptr);
 typedef struct rasqal_query_engine_factory_s rasqal_query_engine_factory;
 
 
+typedef struct {
+  void *user_data;
+  librdf_statement* (*get_match)(void *user_data);
+  void (*next_match)(void *user_data);
+  int (*is_end)(void *user_data);
+  void (*finish)(void *user_data);
+} rasqal_triples_match;
+
+
 typedef struct 
 {
+  /* All the parts of this triple are nodes - no variables */
+  int is_exact;
   librdf_node* nodes[3];
+  /* query statement, made from the nodes above (even when exact) */
   librdf_statement *qstatement;
   librdf_stream *stream;
   rasqal_variable* bindings[3];
+
+  rasqal_triples_match *triples_match;
+  void *user_data; /* for triples_match */
 } rasqal_triple_meta;
 
 
