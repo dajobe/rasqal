@@ -22,6 +22,15 @@
 <li>Add the default prefixes (rdf, rdfs, owl, ... ?)</li>
 <li>Extensions: multiple LIMIT and OFFSET</li>
 <li>Optionals?</li>
+<li>Are keywords case sensitive?  Jena RDQL has an example with
+<tt>SELECT ?select WHERE ...</tt> but @semantics' RDQL tutorial has
+an example with <tt>USING dcq for ...</tt> not <tt>FOR</tt></li>
+<li>Literal languages, datatypes - new <tt>"lit"@lang</tt> and
+<tt>"lit"@lang^^datatype</tt></li>
+<li>Pattern literals seem difficult to recognise without context</li>
+<li>Qnames and URIs - in particular what is <tt>&lt;a:b&gt;</tt> if
+the prefix <tt>a</tt> isn't defined till later</li>
+<li>base URIs?  Lots of &lt;relativeURI&gt; seen.  @base?<li>
 </ul>
 
 <hr />
