@@ -443,6 +443,11 @@ typedef struct rasqal_triples_source_s rasqal_triples_source;
 typedef struct {
   void *user_data; /* user data for triples_source_factory */
   size_t user_data_size; /* size of user data for new_triples_source */
+
+  /**
+   * create a new triples source - returns non-zero on failure
+   * < 0 is a 'no rdf data error', > 0 is an unspecified error
+   */
   int (*new_triples_source)(rasqal_query *query, void *factory_user_data, void *user_data, rasqal_triples_source* rts);
 } rasqal_triples_source_factory;
   
