@@ -505,9 +505,9 @@ main(int argc, char *argv[])
     }
     
     while(!feof(fh)) {
-      char buffer[FILE_READ_BUF_SIZE];
+      unsigned char buffer[FILE_READ_BUF_SIZE];
       size_t read_len;
-      read_len=fread(buffer, 1, FILE_READ_BUF_SIZE, fh);
+      read_len=fread((char*)buffer, 1, FILE_READ_BUF_SIZE, fh);
       if(read_len > 0)
         raptor_stringbuffer_append_counted_string(sb, buffer, read_len, 1);
       if(read_len < FILE_READ_BUF_SIZE)
@@ -517,7 +517,7 @@ main(int argc, char *argv[])
 
     len=raptor_stringbuffer_length(sb);
     query_string=malloc(len+1);
-    raptor_stringbuffer_copy_to_string(sb, query_string, len);
+    raptor_stringbuffer_copy_to_string(sb, (unsigned char*)query_string, len);
     raptor_free_stringbuffer(sb);
   } else {
     raptor_www *www=raptor_www_new();
