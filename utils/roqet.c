@@ -286,10 +286,15 @@ main(int argc, char *argv[])
   query_string=(char*)calloc(RDQL_FILE_BUF_SIZE, 1);
   if(!uri_string) {
     fread(query_string, RDQL_FILE_BUF_SIZE, 1, stdin);
-  } else {
+  } else if(filename) {
     FILE *fh=fopen(filename, "r+");
     fread(query_string, RDQL_FILE_BUF_SIZE, 1, fh);
     fclose(fh);
+  } else {
+    /* FIXME */
+    fprintf(stderr, "%s: Sorry, can only read queries from files now.\n",
+            program);
+    return(1);
   }
 
 
