@@ -62,7 +62,10 @@ int main(int argc, char *argv[]);
 static char *program=NULL;
 
 
-static enum { OUTPUT_FORMAT_SIMPLE } output_format = OUTPUT_FORMAT_SIMPLE;
+static enum {
+  OUTPUT_FORMAT_SIMPLE,
+  OUTPUT_FORMAT_XML
+} output_format = OUTPUT_FORMAT_SIMPLE;
 
 
 int
@@ -104,6 +107,134 @@ static const char *title_format_string="Rasqal RDF query utility %s\n";
 
 
 #define RDQL_FILE_BUF_SIZE 2048
+
+
+static void
+roqet_print_xml_attribute(FILE *handle,
+                          unsigned char *attr, unsigned char *value) 
+{
+  size_t attr_len;
+  size_t len;
+  size_t escaped_len;
+  unsigned char *buffer;
+  unsigned char *p;
+  
+  attr_len=strlen((const char*)attr);
+  len=strlen((const char*)value);
+
+  escaped_len=raptor_xml_escape_string(value, len,
+                                       NULL, 0, '"',
+                                       NULL, NULL);
+
+  buffer=(unsigned char*)malloc(1 + attr_len + 2 + escaped_len + 1 +1);
+  if(!buffer)
+    return;
+  p=buffer;
+  *p++=' ';
+  strncpy((char*)p, (const char*)attr, attr_len);
+  p+= attr_len;
+  *p++='=';
+  *p++='"';
+  raptor_xml_escape_string(value, len,
+                           p, escaped_len, '"',
+                           NULL, NULL);
+  p+= escaped_len;
+  *p++='"';
+  *p++='\0';
+  
+  fputs((const char*)buffer, handle);
+  free(buffer);
+}
+
+
+
+static void
+roqet_print_results_as_xml(FILE *fh, rasqal_query_results *results) 
+{
+  fputs("<results xmlns=\"http://www.w3.org/sw/2001/DataAccess/result1#\">\n\n",
+        fh);
+  
+
+  while(!rasqal_query_results_finished(results)) {
+    int i;
+
+    fputs("  <result>\n", fh);
+    for(i=0; i<rasqal_query_results_get_bindings_count(results); i++) {
+      const unsigned char *name=rasqal_query_results_get_binding_name(results, i);
+      rasqal_literal *l=rasqal_query_results_get_binding_value(results, i);
+      int print_end=1;
+      unsigned char *xml_string;
+      int xml_string_len=0;
+      size_t len;
+      
+      if(!l)
+        continue;
+      
+      fputs("    <", fh);
+      fputs(name, fh);
+
+      if(!l) {
+        fputs("null", fh);
+        return;
+      }
+      
+      switch(l->type) {
+        case RASQAL_LITERAL_URI:
+          roqet_print_xml_attribute(fh, "uri",
+                                    raptor_uri_as_string(l->value.uri));
+          print_end=0;
+          break;
+        case RASQAL_LITERAL_STRING:
+          if(l->language)
+            roqet_print_xml_attribute(fh, "xml:lang",
+                                      (unsigned char *)l->language);
+          if(l->datatype)
+            roqet_print_xml_attribute(fh, "datatype",
+                                      raptor_uri_as_string(l->datatype));
+          fputc('>', fh);
+
+          len=strlen(l->string);
+          xml_string_len=raptor_xml_escape_string(l->string, len,
+                                                  NULL, 0, 0,
+                                                  NULL, NULL);
+          xml_string=(unsigned char*)malloc(xml_string_len+1);
+          
+          xml_string_len=raptor_xml_escape_string(l->string, len,
+                                                  xml_string, xml_string_len, 0,
+                                                  NULL, NULL);
+          fputs(xml_string, fh);
+          free(xml_string);
+          break;
+        case RASQAL_LITERAL_BLANK:
+        case RASQAL_LITERAL_PATTERN:
+        case RASQAL_LITERAL_QNAME:
+        case RASQAL_LITERAL_INTEGER:
+        case RASQAL_LITERAL_BOOLEAN:
+        case RASQAL_LITERAL_FLOATING:
+        case RASQAL_LITERAL_VARIABLE:
+        default:
+          fprintf(stderr, "%s: Cannot turn literal type %d '", program, l->type);
+          rasqal_literal_print_type(l, stderr);
+          fputs("'\n", stderr);
+          abort();
+      }
+
+      if(print_end) {
+        fputs("</", fh);
+        fputs(name, fh);
+        fputs(">\n", fh);
+      }
+    }
+    fputs("  </result>\n\n", fh);
+    
+    rasqal_query_results_next(results);
+  }
+
+  fputs("</results>\n", fh);
+
+}
+
+
 
 int
 main(int argc, char *argv[]) 
@@ -170,10 +301,12 @@ main(int argc, char *argv[])
         if(optarg) {
           if(!strcmp(optarg, "simple"))
             output_format=OUTPUT_FORMAT_SIMPLE;
+          if(!strcmp(optarg, "xml"))
+            output_format=OUTPUT_FORMAT_XML;
           else {
             fprintf(stderr, "%s: invalid argument `%s' for `" HELP_ARG(o, output) "'\n",
                     program, optarg);
-            fprintf(stderr, "Valid arguments are:\n  `simple'   for a simple format (default)\n");
+            fprintf(stderr, "Valid arguments are:\n  `simple'   for a simple format (default)\n  `xml'      for an experimental XML format\n");
             usage=1;
           }
         }
@@ -254,6 +387,7 @@ main(int argc, char *argv[])
     }
     puts(HELP_TEXT("o", "output FORMAT   ", "Set output format to one of:"));
     puts("    'simple'                A simple format (default)");
+    puts("    'xml'                   An experimental XML format");
     puts("\nAdditional options:");
     puts(HELP_TEXT("c", "count           ", "Count triples - no output"));
     puts(HELP_TEXT("q", "quiet           ", "No extra information messages"));
@@ -295,6 +429,9 @@ main(int argc, char *argv[])
     }
   } else
     uri=NULL; /* stdin */
+
+
+  fprintf(stderr, "Query URI '%s'\n", raptor_uri_as_string(uri));
 
 
   if(!base_uri_string) {
@@ -344,16 +481,16 @@ main(int argc, char *argv[])
   if(!quiet) {
     if (filename) {
       if(base_uri_string)
-        fprintf(stdout, "%s: Querying from file %s with base URI %s\n", program,
+        fprintf(stderr, "%s: Querying from file %s with base URI %s\n", program,
                 filename, base_uri_string);
       else
-        fprintf(stdout, "%s: Querying from file %s\n", program, filename);
+        fprintf(stderr, "%s: Querying from file %s\n", program, filename);
     } else {
       if(base_uri_string)
-        fprintf(stdout, "%s: Querying URI %s with base URI %s\n", program,
+        fprintf(stderr, "%s: Querying URI %s with base URI %s\n", program,
                 uri_string, base_uri_string);
       else
-        fprintf(stdout, "%s: Querying URI %s\n", program, uri_string);
+        fprintf(stderr, "%s: Querying URI %s\n", program, uri_string);
     }
   }
   
@@ -368,8 +505,8 @@ main(int argc, char *argv[])
     rasqal_query_add_source(rq, source_uri);
 
   if(!quiet) {
-    fprintf(stdout, "Query:\n");
-    rasqal_query_print(rq, stdout);
+    fprintf(stderr, "Query:\n");
+    rasqal_query_print(rq, stderr);
   }
 
   if(!(results=rasqal_query_execute(rq))) {
@@ -377,32 +514,36 @@ main(int argc, char *argv[])
     rc=1;
   }
 
-  while(!rasqal_query_results_finished(results)) {
-    int i;
+  if(output_format == OUTPUT_FORMAT_XML) 
+    roqet_print_results_as_xml(stdout, results);
+  else {
+    while(!rasqal_query_results_finished(results)) {
+      int i;
 
-    fputs("result: [", stdout);
-    for(i=0; i<rasqal_query_results_get_bindings_count(results); i++) {
-      const unsigned char *name=rasqal_query_results_get_binding_name(results, i);
-      rasqal_literal *value=rasqal_query_results_get_binding_value(results, i);
-      
-      if(i>0)
-        fputs(", ", stdout);
-      fprintf(stdout, "%s=", name);
-      if(value)
-        rasqal_literal_print(value, stdout);
-      else
-        fputs("NULL", stdout);
+      fputs("result: [", stdout);
+      for(i=0; i<rasqal_query_results_get_bindings_count(results); i++) {
+        const unsigned char *name=rasqal_query_results_get_binding_name(results, i);
+        rasqal_literal *value=rasqal_query_results_get_binding_value(results, i);
+
+        if(i>0)
+          fputs(", ", stdout);
+        fprintf(stdout, "%s=", name);
+        if(value)
+          rasqal_literal_print(value, stdout);
+        else
+          fputs("NULL", stdout);
+      }
+      fputs("]\n", stdout);
+
+      rasqal_query_results_next(results);
     }
-    fputs("]\n", stdout);
-    
-    rasqal_query_results_next(results);
   }
 
-
   if(!quiet)
-    fprintf(stdout, "%s: Query returned %d results\n", program, 
+    fprintf(stderr, "%s: Query returned %d results\n", program, 
             rasqal_query_results_get_count(results));
-
+  
+  
   rasqal_free_query_results(results);
   
   rasqal_free_query(rq);
