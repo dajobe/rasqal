@@ -283,7 +283,10 @@ FromClauseOpt : FROM URIList
 /* SPARQL Grammar: [5] WhereClause - remained for clarity*/
 WhereClauseOpt :  WHERE GraphPattern
 {
-  ((rasqal_query*)rq)->graph_patterns=$2;
+  if($2) {
+    raptor_sequence_join(((rasqal_query*)rq)->graph_patterns, $2);
+    raptor_free_sequence($2);
+  }
 }
 | /* empty */
 {
