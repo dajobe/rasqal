@@ -769,22 +769,20 @@ rasqal_engine_get_next_result(rasqal_query *query) {
 
     } /* end check for constraints */
 
-    if(rc < 0)
+    if(rc)
       break;
     
-    if(rc > 0) {
-      /* Got a valid result */
-      query->result_count++;
-      break;
-    }
-
     /* set flag up to continue */
     rc=1;
   }
   
   if(!rc)
     query->finished=1;
-  
+
+  if(rc > 0)
+    /* Got a valid result */
+    query->result_count++;
+
   return rc;
 }
 
