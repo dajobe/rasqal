@@ -81,7 +81,17 @@ rasqal_literal_to_redland_node(librdf_world *world, rasqal_literal* l) {
     librdf_node *node;
     
     sprintf(buffer, "%d", l->value.integer);
-    node=librdf_new_node_from_literal(world, buffer, uri, 0);
+    node=librdf_new_node_from_typed_literal(world, buffer, NULL, uri);
+
+    librdf_free_uri(uri);
+    return node;
+  } else if (l->type == RASQAL_LITERAL_FLOATING) {
+    char buffer[30]; /* FIXME */
+    librdf_uri* uri=librdf_new_uri(world, "http://www.w3.org/2001/XMLSchema#double");
+    librdf_node *node;
+    
+    sprintf(buffer, "%f", l->value.floating);
+    node=librdf_new_node_from_typed_literal(world, buffer, NULL, uri);
 
     librdf_free_uri(uri);
     return node;
@@ -91,8 +101,6 @@ rasqal_literal_to_redland_node(librdf_world *world, rasqal_literal* l) {
       LIBRDF_DEBUG2("Could not convert literal type %d to string", l->type);
       abort();
     }
-
-    /* FIXME floating type should become xsd:what ? */
     return librdf_new_node_from_literal(world, string, NULL, 0);
   }
 
