@@ -565,6 +565,7 @@ abs_top_builddir=`pwd`
 AC_SUBST(abs_top_builddir)
 
 AC_CONFIG_FILES([Makefile
+data/Makefile
 tests/Makefile
 tests/rdql/Makefile
 tests/rdql/testsuite/Makefile

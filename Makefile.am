@@ -29,7 +29,7 @@ noinst_HEADERS = rasqal_internal.h win32_rasqal_config.h
 
 man_MANS = roqet.1 librasqal.3 rasqal-config.1
 
-SUBDIRS=tests docs win32
+SUBDIRS=data tests docs win32
 
 TESTS=rasqal_expr_test strcasecmp_test rasqal_query_test
 if RASQAL_QUERY_RDQL
