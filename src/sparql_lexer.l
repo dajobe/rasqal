@@ -618,6 +618,9 @@ sparql_token_print(int token, YYSTYPE *lval)
     case LIMIT:
       return "LIMIT";
 
+    case UNION:
+      return "UNION";
+
     case ',':
       return ",";
 
