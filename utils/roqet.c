@@ -593,6 +593,11 @@ main(int argc, char *argv[])
   
   rq=rasqal_new_query((const char*)ql_name, (const unsigned char*)ql_uri);
 
+  if(sources) {
+    while(raptor_sequence_size(sources))
+      rasqal_query_add_source(rq, (raptor_uri*)raptor_sequence_pop(sources));
+  }
+
   if(rasqal_query_prepare(rq, (const unsigned char*)query_string, base_uri)) {
     size_t len=strlen(query_string);
     
@@ -606,11 +611,6 @@ main(int argc, char *argv[])
     }
     rc=1;
     goto tidy_query;
-  }
-
-  if(sources) {
-    while(raptor_sequence_size(sources))
-      rasqal_query_add_source(rq, (raptor_uri*)raptor_sequence_pop(sources));
   }
 
   if(dump_query) {
