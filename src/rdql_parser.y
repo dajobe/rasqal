@@ -58,7 +58,6 @@ static rasqal_query* Q;
 /* Interface between lexer and parser */
 %union {
   rasqal_sequence *seq;
-  rasqal_term *term;
   rasqal_variable *variable;
   rasqal_literal *literal;
   rasqal_triple *triple;
@@ -131,8 +130,8 @@ static rasqal_query* Q;
 %type <expr> EqualityExpression RelationalExpression NumericExpression
 %type <expr> AdditiveExpression MultiplicativeExpression UnaryExpression
 %type <expr> UnaryExpressionNotPlusMinus
+%type <expr> VarOrLiteral VarOrURI
 
-%type <term> VarOrLiteral VarOrURI
 %type <variable> Var
 %type <triple> TriplePattern
 %type <literal> PatternLiteral Literal
@@ -300,7 +299,7 @@ PrefixDeclList : IDENTIFIER FOR URI_LITERAL COMMA PrefixDeclList
 
 Expression : ConditionalAndExpression SC_OR Expression
 {
-  $$=rasqal_new_expression(RASQAL_EXPR_OR, $1, $3, NULL, NULL);
+  $$=rasqal_new_2op_expression(RASQAL_EXPR_OR, $1, $3);
 }
 | ConditionalAndExpression
 {
@@ -310,7 +309,7 @@ Expression : ConditionalAndExpression SC_OR Expression
 
 ConditionalAndExpression: ValueLogical SC_AND ConditionalAndExpression
 {
-  $$=rasqal_new_expression(RASQAL_EXPR_AND, $1, $3, NULL, NULL);
+  $$=rasqal_new_2op_expression(RASQAL_EXPR_AND, $1, $3);
 ;
 }
 | ValueLogical
@@ -321,19 +320,19 @@ ConditionalAndExpression: ValueLogical SC_AND ConditionalAndExpression
 
 ValueLogical : InclusiveOrExpression STR_EQ InclusiveOrExpression
 {
-  $$=rasqal_new_expression(RASQAL_EXPR_STR_EQ, $1, $3, NULL, NULL);
+  $$=rasqal_new_2op_expression(RASQAL_EXPR_STR_EQ, $1, $3);
 }
 | InclusiveOrExpression STR_NE InclusiveOrExpression
 {
-  $$=rasqal_new_expression(RASQAL_EXPR_STR_NEQ, $1, $3, NULL, NULL);
+  $$=rasqal_new_2op_expression(RASQAL_EXPR_STR_NEQ, $1, $3);
 }
 | InclusiveOrExpression STR_MATCH PatternLiteral
 {
-  $$=rasqal_new_expression(RASQAL_EXPR_STR_MATCH, $1, NULL, $3, NULL);
+  $$=rasqal_new_string_op_expression(RASQAL_EXPR_STR_MATCH, $1, $3);
 }
 | InclusiveOrExpression STR_NMATCH PatternLiteral
 {
-  $$=rasqal_new_expression(RASQAL_EXPR_STR_NMATCH, $1, NULL, $3, NULL);
+  $$=rasqal_new_string_op_expression(RASQAL_EXPR_STR_NMATCH, $1, $3);
 }
 | InclusiveOrExpression
 {
@@ -344,7 +343,7 @@ ValueLogical : InclusiveOrExpression STR_EQ InclusiveOrExpression
 
 InclusiveOrExpression : ExclusiveOrExpression BIT_OR InclusiveOrExpression
 {
-  $$=rasqal_new_expression(RASQAL_EXPR_BIT_OR, $1, $3, NULL, NULL);
+  $$=rasqal_new_2op_expression(RASQAL_EXPR_BIT_OR, $1, $3);
 }
 | ExclusiveOrExpression
 {
@@ -354,7 +353,7 @@ InclusiveOrExpression : ExclusiveOrExpression BIT_OR InclusiveOrExpression
 
 ExclusiveOrExpression : AndExpression BIT_XOR ExclusiveOrExpression
 {
-  $$=rasqal_new_expression(RASQAL_EXPR_BIT_XOR, $1, $3, NULL, NULL);
+  $$=rasqal_new_2op_expression(RASQAL_EXPR_BIT_XOR, $1, $3);
 }
 | AndExpression
 {
@@ -364,7 +363,7 @@ ExclusiveOrExpression : AndExpression BIT_XOR ExclusiveOrExpression
 
 AndExpression : EqualityExpression BIT_AND AndExpression
 {
-  $$=rasqal_new_expression(RASQAL_EXPR_BIT_AND, $1, $3, NULL, NULL);
+  $$=rasqal_new_2op_expression(RASQAL_EXPR_BIT_AND, $1, $3);
 }
 | EqualityExpression
 {
@@ -374,11 +373,11 @@ AndExpression : EqualityExpression BIT_AND AndExpression
 
 EqualityExpression : RelationalExpression EQ RelationalExpression
 {
-  $$=rasqal_new_expression(RASQAL_EXPR_EQ, $1, $3, NULL, NULL);
+  $$=rasqal_new_2op_expression(RASQAL_EXPR_EQ, $1, $3);
 }
 | RelationalExpression NEQ RelationalExpression
 {
-  $$=rasqal_new_expression(RASQAL_EXPR_NEQ, $1, $3, NULL, NULL);
+  $$=rasqal_new_2op_expression(RASQAL_EXPR_NEQ, $1, $3);
 }
 | RelationalExpression
 {
@@ -388,19 +387,19 @@ EqualityExpression : RelationalExpression EQ RelationalExpression
 
 RelationalExpression : NumericExpression LT NumericExpression
 {
-  $$=rasqal_new_expression(RASQAL_EXPR_LT, $1, $3, NULL, NULL);
+  $$=rasqal_new_2op_expression(RASQAL_EXPR_LT, $1, $3);
 }
 | NumericExpression GT NumericExpression
 {
-  $$=rasqal_new_expression(RASQAL_EXPR_GT, $1, $3, NULL, NULL);
+  $$=rasqal_new_2op_expression(RASQAL_EXPR_GT, $1, $3);
 }
 | NumericExpression LE NumericExpression
 {
-  $$=rasqal_new_expression(RASQAL_EXPR_LE, $1, $3, NULL, NULL);
+  $$=rasqal_new_2op_expression(RASQAL_EXPR_LE, $1, $3);
 }
 | NumericExpression GE NumericExpression
 {
-  $$=rasqal_new_expression(RASQAL_EXPR_GE, $1, $3, NULL, NULL);
+  $$=rasqal_new_2op_expression(RASQAL_EXPR_GE, $1, $3);
 }
 | NumericExpression
 {
@@ -410,15 +409,15 @@ RelationalExpression : NumericExpression LT NumericExpression
 
 NumericExpression : AdditiveExpression LSHIFT NumericExpression
 {
- $$=rasqal_new_expression(RASQAL_EXPR_LSHIFT, $1, $3, NULL, NULL);
+ $$=rasqal_new_2op_expression(RASQAL_EXPR_LSHIFT, $1, $3);
 }
 | AdditiveExpression RSIGNEDSHIFT NumericExpression
 {
- $$=rasqal_new_expression(RASQAL_EXPR_RSIGNEDSHIFT, $1, $3, NULL, NULL);
+ $$=rasqal_new_2op_expression(RASQAL_EXPR_RSIGNEDSHIFT, $1, $3);
 }
 | AdditiveExpression RUNSIGNEDSHIFT NumericExpression
 {
- $$=rasqal_new_expression(RASQAL_EXPR_RUNSIGNEDSHIFT, $1, $3, NULL, NULL);
+ $$=rasqal_new_2op_expression(RASQAL_EXPR_RUNSIGNEDSHIFT, $1, $3);
 }
 | AdditiveExpression
 {
@@ -429,11 +428,11 @@ NumericExpression : AdditiveExpression LSHIFT NumericExpression
 
 AdditiveExpression : MultiplicativeExpression PLUS AdditiveExpression
 {
-  $$=rasqal_new_expression(RASQAL_EXPR_PLUS, $1, $3, NULL, NULL);
+  $$=rasqal_new_2op_expression(RASQAL_EXPR_PLUS, $1, $3);
 }
 | MultiplicativeExpression MINUS AdditiveExpression
 {
-  $$=rasqal_new_expression(RASQAL_EXPR_MINUS, $1, $3, NULL, NULL);
+  $$=rasqal_new_2op_expression(RASQAL_EXPR_MINUS, $1, $3);
 }
 | MultiplicativeExpression
 {
@@ -443,15 +442,15 @@ AdditiveExpression : MultiplicativeExpression PLUS AdditiveExpression
 
 MultiplicativeExpression : UnaryExpression STAR MultiplicativeExpression
 {
-  $$=rasqal_new_expression(RASQAL_EXPR_STAR, $1, $3, NULL, NULL);
+  $$=rasqal_new_2op_expression(RASQAL_EXPR_STAR, $1, $3);
 }
 | UnaryExpression SLASH MultiplicativeExpression
 {
-  $$=rasqal_new_expression(RASQAL_EXPR_SLASH, $1, $3, NULL, NULL);
+  $$=rasqal_new_2op_expression(RASQAL_EXPR_SLASH, $1, $3);
 }
 | UnaryExpression REM MultiplicativeExpression
 {
-  $$=rasqal_new_expression(RASQAL_EXPR_REM, $1, $3, NULL, NULL);
+  $$=rasqal_new_2op_expression(RASQAL_EXPR_REM, $1, $3);
 }
 | UnaryExpression
 {
@@ -461,11 +460,11 @@ MultiplicativeExpression : UnaryExpression STAR MultiplicativeExpression
 
 UnaryExpression : UnaryExpressionNotPlusMinus PLUS UnaryExpression 
 {
-  $$=rasqal_new_expression(RASQAL_EXPR_PLUS, $1, $3, NULL, NULL);
+  $$=rasqal_new_2op_expression(RASQAL_EXPR_PLUS, $1, $3);
 }
 | UnaryExpressionNotPlusMinus MINUS UnaryExpression
 {
-  $$=rasqal_new_expression(RASQAL_EXPR_MINUS, $1, $3, NULL, NULL);
+  $$=rasqal_new_2op_expression(RASQAL_EXPR_MINUS, $1, $3);
 }
 | UnaryExpressionNotPlusMinus
 {
@@ -480,23 +479,24 @@ UnaryExpression : UnaryExpressionNotPlusMinus PLUS UnaryExpression
 
 UnaryExpressionNotPlusMinus : TILDE UnaryExpression
 {
-  $$=rasqal_new_expression(RASQAL_EXPR_TILDE, $2, NULL, NULL, NULL);
+  $$=rasqal_new_1op_expression(RASQAL_EXPR_TILDE, $2);
 }
 | BANG UnaryExpression
 {
-  $$=rasqal_new_expression(RASQAL_EXPR_BANG, $2, NULL, NULL, NULL);
+  $$=rasqal_new_1op_expression(RASQAL_EXPR_BANG, $2);
 }
 | Var
 {
-  $$=rasqal_new_expression(RASQAL_EXPR_VARIABLE, NULL, NULL, NULL, $1);
+  $$=rasqal_new_variable_expression($1);
 }
 | Literal
 {
-  $$=rasqal_new_expression(RASQAL_EXPR_LITERAL, NULL, NULL, $1, NULL);
+  $$=rasqal_new_literal_expression($1);
 }
 | IDENTIFIER LPAREN ArgList RPAREN
 {
-  $$=rasqal_new_expression(RASQAL_EXPR_LITERAL, NULL, NULL, rasqal_new_literal(RASQAL_LITERAL_STRING, 0, 0.0, "functioncall"), NULL);
+  rasqal_literal *l=rasqal_new_literal(RASQAL_LITERAL_STRING, 0, 0.0, "functioncall");
+  $$=rasqal_new_literal_expression(l);
 }
 | LPAREN Expression RPAREN
 {
@@ -511,28 +511,29 @@ ArgList : VarOrLiteral COMMA ArgList
 }
 | VarOrLiteral
 {
-  $$=rasqal_new_sequence(NULL, (rasqal_print_handler*)rasqal_print_term);
+  $$=rasqal_new_sequence(NULL, (rasqal_print_handler*)rasqal_print_expression);
   rasqal_sequence_push($$, $1);
 }
 ;
 
 VarOrURI : Var
 {
-  $$=rasqal_new_term(RASQAL_TERM_VAR, $1);
+  $$=rasqal_new_variable_expression($1);
 }
 | URI_LITERAL
 {
-  $$=rasqal_new_term(RASQAL_TERM_URI, $1);
+  rasqal_literal *l=rasqal_new_literal(RASQAL_LITERAL_URI, 0, 0.0, $1);
+  $$=rasqal_new_literal_expression(l);
 }
 ;
 
 VarOrLiteral : Var
 {
-  $$=rasqal_new_term(RASQAL_TERM_VAR, $1);
+  $$=rasqal_new_variable_expression($1);
 }
 | Literal
 {
-  $$=rasqal_new_term(RASQAL_TERM_LITERAL, $1);
+  $$=rasqal_new_literal_expression($1);
 }
 ;
 
