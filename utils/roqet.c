@@ -352,8 +352,8 @@ main(int argc, char *argv[])
 
   while(!rasqal_query_results_finished(rq)) {
     int i;
-    const char **names;
-    rasqal_literal **values;
+    const char **names=NULL;
+    rasqal_literal **values=NULL;
     
     if(rasqal_query_get_result_bindings(rq, &names, &values))
       break;
