@@ -113,7 +113,7 @@ struct rasqal_query_s {
   raptor_sequence *prefixes;    /* ... rasqal_prefix*              */
   raptor_sequence *constructs;  /* ... rasqal_triple*        BRQL  */
   raptor_sequence *optional_triples; /* ... rasqal_triple*   BRQL  */
-  raptor_sequence *describes;   /* ... rasqal_uri*           BRQL  */
+  raptor_sequence *describes;   /* ... rasqal_literal* (var or URIs) SPARQL */
 
   /* non-0 if DISTINCT was seen in SELECT or DESCRIBE */
   int distinct;
