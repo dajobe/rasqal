@@ -13,6 +13,8 @@
 <h3>General</h3>
 
 <ul>
+<li>Engine: confirm that re-running an execute() on a prepared query
+works and does not leak memory (BUG)</li>
 <li>Engine: generating result sets in RDF test case vocabulary</li>
 <li>Streaming triples from the parser - a Raptor feature request</li>
 <li>Engine: Result constraints - like <code>LIMIT</code> and <code>OFFSET</code> in SQL (extension)</li>
@@ -28,6 +30,7 @@
 
 <h3>RDQL</h3>
 <ul>
+<li>Check difference between FROM and SOURCE, currently they are the same</li>
 <li>RDQL testsuite failures:
 <ul>
 
