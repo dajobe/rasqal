@@ -11,36 +11,36 @@
         rdfs:comment
             "Simple triple match" ;
         mf:action
-            [ qt:query  <file:dawg-tp-01.rq> ;
-              qt:data   <file:data-01.n3> ] ;
-        mf:result  <file:result-tp-01.n3>
+            [ qt:query  <dawg-tp-01.rq> ;
+              qt:data   <data-01.n3> ] ;
+        mf:result  <result-tp-01.n3>
       ]
 
      [  mf:name    "dawg-triple-pattern-002" ;
         rdfs:comment
             "Simple triple match" ;
         mf:action
-            [ qt:query  <file:dawg-tp-02.rq> ;
-              qt:data   <file:data-01.n3> ] ;
-        mf:result  <file:result-tp-02.n3>
+            [ qt:query  <dawg-tp-02.rq> ;
+              qt:data   <data-01.n3> ] ;
+        mf:result  <result-tp-02.n3>
       ]
     
      [  mf:name    "dawg-triple-pattern-003" ;
         rdfs:comment
             "Simple triple match - repeated variable" ;
         mf:action
-            [ qt:query  <file:dawg-tp-03.rq> ;
-              qt:data   <file:data-02.n3> ] ;
-        mf:result  <file:result-tp-03.n3>
+            [ qt:query  <dawg-tp-03.rq> ;
+              qt:data   <data-02.n3> ] ;
+        mf:result  <result-tp-03.n3>
       ]
 
      [  mf:name    "dawg-triple-pattern-004" ;
         rdfs:comment
             "Simple triple match - two triples, common variable" ;
         mf:action
-            [ qt:query  <file:dawg-tp-04.rq> ;
-              qt:data   <file:dawg-data-01.n3> ] ;
-        mf:result  <file:result-tp-04.n3>
+            [ qt:query  <dawg-tp-04.rq> ;
+              qt:data   <dawg-data-01.n3> ] ;
+        mf:result  <result-tp-04.n3>
       ]
 
 
