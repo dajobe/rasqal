@@ -39,7 +39,51 @@ extern "C" {
 #  define RASQAL_API
 #endif
 
-/* RASQAL_API */
+/* Public structure */
+typedef struct rasqal_query_s rasqal_query;
+
+typedef struct rasqal_sequence_s rasqal_sequence;
+
+
+/* RASQAL API */
+
+/* Public functions */
+
+RASQAL_API void rasqal_init(void);
+RASQAL_API void rasqal_finish(void);
+
+
+/* Query class */
+
+/* Create */
+RASQAL_API rasqal_query* rasqal_new_query(const char *name, const unsigned char *uri);
+/* Destroy */
+RASQAL_API void rasqal_free_query(rasqal_query* query);
+
+/* Methods */
+RASQAL_API void rasqal_query_add_source(rasqal_query* query, const unsigned char* uri);
+RASQAL_API rasqal_sequence* rasqal_query_get_source_sequence(rasqal_query* query);
+RASQAL_API const unsigned char* rasqal_query_get_source(rasqal_query* query, int idx);
+
+/* Utility methods */
+RASQAL_API void rasqal_query_print(rasqal_query*, FILE *stream);
+
+
+/* Sequence class */
+
+/* Create */
+RASQAL_API rasqal_sequence* rasqal_new_sequence(int capacity);
+/* Destroy */
+RASQAL_API void rasqal_free_sequence(rasqal_sequence* seq);
+/* Methods */
+RASQAL_API int rasqal_sequence_size(rasqal_sequence* seq);
+RASQAL_API int rasqal_sequence_set_at(rasqal_sequence* seq, int idx, void *data);
+RASQAL_API int rasqal_sequence_push(rasqal_sequence* seq, void *data);
+RASQAL_API int rasqal_sequence_shift(rasqal_sequence* seq, void *data);
+RASQAL_API void* rasqal_sequence_get_at(rasqal_sequence* seq, int idx);
+RASQAL_API void* rasqal_sequence_pop(rasqal_sequence* seq);
+RASQAL_API void* rasqal_sequence_unshift(rasqal_sequence* seq);
+
 
 #ifdef __cplusplus
 }
