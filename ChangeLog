@@ -1,3 +1,43 @@
+2005-01-12  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* sparql_lexer.l:
+	Updated to use yyterminate() when an error is reported, either in the
+	lexer or in a failing function called.
+	Deleted use of ERROR_TOKEN.
+	Mention SPARQL in all the error and warning messages.
+
+	* rdql_lexer.l:
+	Updated to use yyterminate() when an error is reported, either in the
+	lexer or in a failing function called.
+	Deleted use of ERROR_TOKEN.
+	Mention RDQL in all the error and warning messages.
+
+	* sparql_parser.y: Delete ERROR_TOKEN
+	(PatternElementForms): Add SPARQL to warning message.
+	(sparql_parse): Add SPARQL to error message.
+
+	* rdql_parser.y: Delete ERROR_TOKEN
+
+	* rasqal_expr.c (rasqal_expression_evaluate): For STR_MATCH,
+	STR_NMATCH ensure the literal returned from the lhs expression
+	evaluation is always freed.
+
+2005-01-11  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rdql_parser.y (rdql_parse): set parsing debug flag before
+	starting parse when RASQAL_DEBUG > 2
+
+	* rasqal_engine.c (rasqal_engine_do_optional_step): Handle an all
+	optional query and finish all results when first optional
+	finishes.
+
+	* rasqal_query.c (rasqal_query_results_write): Handle NULL
+	base_uri, pass it on the XML writer.
+
+	* tests/sparql/examples/ex2-4a.rq: Kill the , between SELECT vars
+
+	* rasqal_xml.c: Removed, not used
+
 2005-01-10  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
 	* rasqal_raptor.c (rasqal_raptor_finish_triples_match): Free any
