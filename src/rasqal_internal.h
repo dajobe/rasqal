@@ -44,8 +44,14 @@ extern "C" {
 #include <dmalloc.h>
 #endif
 
-/* Can be over-ridden or undefined */
+/* Can be over-ridden or undefined in a config.h file or -Ddefine */
+#ifndef RASQAL_INLINE
 #define RASQAL_INLINE inline
+#endif
+
+#ifdef LIBRDF_DEBUG
+#define RASQAL_DEBUG 1
+#endif
 
 #define RASQAL_MALLOC(type, size) malloc(size)
 #define RASQAL_CALLOC(type, size, count) calloc(size, count)
