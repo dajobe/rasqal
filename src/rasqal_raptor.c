@@ -383,7 +383,7 @@ raptor_node_equals(const void *id1,
   switch(id1_type) {
     case RAPTOR_IDENTIFIER_TYPE_RESOURCE:
     case RAPTOR_IDENTIFIER_TYPE_PREDICATE:
-      if(raptor_uri_equals((raptor_uri*)id1, (raptor_uri*)id2))
+      if(!raptor_uri_equals((raptor_uri*)id1, (raptor_uri*)id2))
         return 0;
       break;
 
@@ -399,7 +399,7 @@ raptor_node_equals(const void *id1,
         /* if either is null, the comparison fails */
         if(!id1_literal_datatype || !id2_literal_datatype)
           return 0;
-        if(raptor_uri_equals(id1_literal_datatype,id1_literal_datatype))
+        if(!raptor_uri_equals(id1_literal_datatype,id1_literal_datatype))
           return 0;
       }
 
@@ -428,19 +428,29 @@ static int
 raptor_statement_compare(raptor_statement* statement, 
                          raptor_statement* partial_statement) 
 {
+  int rc=1;
+  
+#ifdef RASQAL_DEBUG
+  RASQAL_DEBUG1("comparing statement: ");
+  raptor_print_statement(statement, stderr);
+  fprintf(stderr, "to match ");
+  raptor_print_statement(partial_statement, stderr);
+  fputc('\n', stderr);
+#endif
+
   if(partial_statement->subject) {
     if(!raptor_node_equals(statement->subject, statement->subject_type, NULL, NULL,
                            partial_statement->subject, partial_statement->subject_type, NULL, NULL))
-      return 0;
+      rc=0;
   }
 
-  if(partial_statement->predicate) {
+  if(rc && partial_statement->predicate) {
     if(!raptor_node_equals(statement->predicate, statement->predicate_type, NULL, NULL,
                            partial_statement->predicate, partial_statement->predicate_type, NULL, NULL))
-      return 0;
+      rc=0;
   }
 
-  if(partial_statement->object) {
+  if(rc && partial_statement->object) {
     if(!raptor_node_equals(statement->object,
                            statement->object_type,
                            statement->object_literal_datatype,
@@ -449,10 +459,14 @@ raptor_statement_compare(raptor_statement* statement,
                            partial_statement->object_type,
                            partial_statement->object_literal_datatype,
                            partial_statement->object_literal_language))
-      return 0;
+      rc=0;
   }
 
-  return 1;
+#ifdef RASQAL_DEBUG
+  fprintf(stderr, " returning result %d\n", rc);
+#endif
+
+  return rc;
 }
 
 
