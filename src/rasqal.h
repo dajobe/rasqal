@@ -222,7 +222,7 @@ RASQAL_API int rasqal_query_results_finished(rasqal_query_results *query_results
 RASQAL_API int rasqal_query_results_get_bindings(rasqal_query_results *query_results, const char ***names, rasqal_literal ***values);
 RASQAL_API rasqal_literal* rasqal_query_results_get_binding_value(rasqal_query_results *query_results, int offset);
 RASQAL_API const char* rasqal_query_results_get_binding_name(rasqal_query_results *query_results, int offset);
-RASQAL_API rasqal_literal* rasqal_query_results_get_binding_by_name(rasqal_query_results *query_results, const char *name);
+RASQAL_API rasqal_literal* rasqal_query_results_get_binding_value_by_name(rasqal_query_results *query_results, const char *name);
 RASQAL_API int rasqal_query_results_get_bindings_count(rasqal_query_results *query_results);
 
 
