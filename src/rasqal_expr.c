@@ -79,6 +79,9 @@ rasqal_new_floating_literal(const char *string) {
 
   l->type=RASQAL_LITERAL_FLOATING;
   l->value.floating=f;
+  l->string=RASQAL_MALLOC(cstring, 30); /* FIXME */
+  sprintf(l->string, "%1g", f);
+  l->datatype=raptor_new_uri("http://www.w3.org/2001/XMLSchema#double");
   l->usage=1;
   return l;
 }
@@ -220,16 +223,13 @@ rasqal_free_literal(rasqal_literal* l) {
     case RASQAL_LITERAL_BLANK:
     case RASQAL_LITERAL_PATTERN:
     case RASQAL_LITERAL_QNAME:
+    case RASQAL_LITERAL_FLOATING:
       if(l->string)
         free(l->string);
       if(l->language)
         free(l->language);
       if(l->datatype)
         raptor_free_uri(l->datatype);
-      break;
-    case RASQAL_LITERAL_FLOATING:
-      if(l->string)
-        free(l->string);
       break;
     case RASQAL_LITERAL_INTEGER:
     case RASQAL_LITERAL_BOOLEAN:
