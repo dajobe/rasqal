@@ -4,7 +4,7 @@
 #
 # $Id$
 #
-# Copyright (C) 2003-2004, David Beckett http://purl.org/net/dajobe/
+# Copyright (C) 2003-2005, David Beckett http://purl.org/net/dajobe/
 # Institute for Learning and Research Technology http://www.ilrt.bristol.ac.uk/
 # University of Bristol, UK http://www.bristol.ac.uk/
 # 
@@ -44,6 +44,8 @@ endif
 if RASQAL_QUERY_SPARQL
 local_tests += sparql_lexer_test sparql_parser_test
 endif
+
+EXTRA_PROGRAMS=$(TESTS) $(local_tests)
 
 CLEANFILES=$(TESTS) $(local_tests)
 MAINTAINERCLEANFILES=rdql_lexer.c rdql_lexer.h \
@@ -183,26 +185,32 @@ run-rasqal-query-test: $(rasqal_query_test)
 	fi; \
 	exit $$status
 
-rdql_lexer_test: $(srcdir)/rdql_lexer.c librasqal.la
-	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE @RASQAL_INTERNAL_CPPFLAGS@ $(srcdir)/rdql_lexer.c librasqal.la $(LIBS)
+rdql_lexer_test_SOURCES = rdql_lexer.c
+rdql_lexer_test_CPPFLAGS = -DSTANDALONE
+rdql_lexer_test_LDADD = librasqal.la
 
-rdql_parser_test: $(srcdir)/rdql_parser.c librasqal.la
-	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE @RASQAL_INTERNAL_CPPFLAGS@ $(srcdir)/rdql_parser.c librasqal.la $(LIBS)
+rdql_parser_test_SOURCES = rdql_parser.c
+rdql_parser_test_CPPFLAGS = -DSTANDALONE
+rdql_parser_test_LDADD = librasqal.la
 
-sparql_lexer_test: $(srcdir)/sparql_lexer.c librasqal.la
-	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE @RASQAL_INTERNAL_CPPFLAGS@ $(srcdir)/sparql_lexer.c librasqal.la $(LIBS)
+sparql_lexer_test_SOURCES = sparql_lexer.c
+sparql_lexer_test_CPPFLAGS = -DSTANDALONE
+sparql_lexer_test_LDADD = librasqal.la
 
-sparql_parser_test: $(srcdir)/sparql_parser.c librasqal.la
-	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE @RASQAL_INTERNAL_CPPFLAGS@ $(srcdir)/sparql_parser.c librasqal.la $(LIBS)
+sparql_parser_test_SOURCES = sparql_parser.c
+sparql_parser_test_CPPFLAGS = -DSTANDALONE
+sparql_parser_test_LDADD = librasqal.la
 
-rasqal_expr_test$(EXEEXT): $(srcdir)/rasqal_expr.c librasqal.la
-	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE @RASQAL_INTERNAL_CPPFLAGS@ $(srcdir)/rasqal_expr.c librasqal.la $(LIBS)
+rasqal_expr_test_SOURCES = rasqal_expr.c
+rasqal_expr_test_CPPFLAGS = -DSTANDALONE
+rasqal_expr_test_LDADD = librasqal.la
 
-strcasecmp_test$(EXEEXT): $(srcdir)/strcasecmp.c
-	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE $(srcdir)/strcasecmp.c
+strcasecmp_test_SOURCES = strcasecmp.c
+strcasecmp_test_CPPFLAGS = -DSTANDALONE
 
-rasqal_query_test$(EXEEXT): $(srcdir)/rasqal_query_test.c librasqal.la
-	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE $(srcdir)/rasqal_query_test.c librasqal.la $(LIBS)
+rasqal_query_test_SOURCES = rasqal_query_test.c
+rasqal_query_test_CPPFLAGS = -DSTANDALONE
+rasqal_query_test_LDADD = librasqal.la
 
 $(top_builddir)/raptor/libraptor.la:
 	cd $(top_builddir)/raptor && $(MAKE) $(AM_MAKEFLAGS) libraptor.la
