@@ -1043,7 +1043,7 @@ rasqal_engine_get_next_result(rasqal_query *query) {
       /* FIXME - sequence of graph_patterns not implemented, finish */
       RASQAL_DEBUG1("Failing query with sequence of graph_patterns\n");
       step=STEP_FINISHED;
-      break;
+      continue;
     }
 
     if(gp->finished) {
@@ -1087,7 +1087,7 @@ rasqal_engine_get_next_result(rasqal_query *query) {
       if(!(gp->flags & RASQAL_PATTERN_FLAGS_OPTIONAL)) {
         RASQAL_DEBUG2("Non-optional Graph pattern %d failed to match\n",
                       query->current_graph_pattern);
-        break;
+        continue;
       }
 
       RASQAL_DEBUG2("Optional graph pattern %d failed to match\n", 
@@ -1143,7 +1143,7 @@ rasqal_engine_get_next_result(rasqal_query *query) {
           if(optional_matches) {
             RASQAL_DEBUG1("Found some matches, returning a result\n");
             step= STEP_GOT_MATCH;
-            break;
+            continue;
           } else if (gp->matches_returned) {
             RASQAL_DEBUG1("No matches this time, some earlier, backtracking\n");
             rasqal_engine_move_to_graph_pattern(query, 0);
@@ -1152,7 +1152,7 @@ rasqal_engine_get_next_result(rasqal_query *query) {
           } else {
             RASQAL_DEBUG1("No non-optional matches, returning a final result\n");
             step= STEP_GOT_MATCH;
-            break;
+            continue;
           }
 
         }
@@ -1162,7 +1162,7 @@ rasqal_engine_get_next_result(rasqal_query *query) {
       RASQAL_DEBUG2("End of non-optional graph pattern %d\n",
                     query->current_graph_pattern);
 
-      break;
+      continue;
     }
 
     /* got all matches - check any constraints */
@@ -1223,7 +1223,7 @@ rasqal_engine_get_next_result(rasqal_query *query) {
       RASQAL_DEBUG1("Got solution\n");
 
       /* is the last graph pattern so we have a solution */
-      break;
+      continue;
     }
 
   }
