@@ -663,13 +663,17 @@ rdql_parse(rasqal_query* rq, const char *string) {
   rdql_lexer_lex_destroy(rqe->scanner);
   rqe->scanner_set=0;
 
+  /* Parsing failed */
+  if(rq->failed)
+    return 1;
+  
   /* Only now can we handle the prefixes and qnames */
   if(rasqal_engine_declare_prefixes(rq) ||
      rasqal_engine_expand_triple_qnames(rq) ||
      rasqal_engine_expand_constraints_qnames(rq))
     return 1;
 
-  return rq->failed;
+  return 0;
 }
 
 
