@@ -61,9 +61,9 @@ typedef struct {
   int source_index;
 
   /* size of the two arrays below */
-  int source_uris_count;
+  int sources_count;
   
-  /* array of shared pointers into query->source uris */
+  /* array of shared pointers into query->data_graph uris */
   raptor_uri **source_uris;
 
   /* array of URI literals (allocated here) */
@@ -220,27 +220,27 @@ rasqal_raptor_new_triples_source(rasqal_query* rdf_query,
   const char *parser_name;
   int i;
 
-  if(!rdf_query->sources)
+  if(!rdf_query->data_graphs)
     return -1;  /* no data */
 
   rts->new_triples_match=rasqal_raptor_new_triples_match;
   rts->triple_present=rasqal_raptor_triple_present;
   rts->free_triples_source=rasqal_raptor_free_triples_source;
 
-  rtsc->source_uris_count=raptor_sequence_size(rdf_query->sources);
+  rtsc->sources_count=raptor_sequence_size(rdf_query->data_graphs);
   /* no default triple source possible */
-  if(!rtsc->source_uris_count)
+  if(!rtsc->sources_count)
     return -1;  /* no data */
 
-  rtsc->source_uris=(raptor_uri**)RASQAL_CALLOC(raptor_uri_ptr, rtsc->source_uris_count, sizeof(raptor_uri*));
-  rtsc->source_literals=(rasqal_literal**)RASQAL_CALLOC(rasqal_literal_ptr, rtsc->source_uris_count, sizeof(rasqal_literal*));
+  rtsc->source_uris=(raptor_uri**)RASQAL_CALLOC(raptor_uri_ptr, rtsc->sources_count, sizeof(raptor_uri*));
+  rtsc->source_literals=(rasqal_literal**)RASQAL_CALLOC(rasqal_literal_ptr, rtsc->sources_count, sizeof(rasqal_literal*));
 
-  for(i=0; i< rtsc->source_uris_count; i++) {
-    raptor_uri* uri=(raptor_uri*)raptor_sequence_get_at(rdf_query->sources, i);
+  for(i=0; i< rtsc->sources_count; i++) {
+    rasqal_data_graph *dg=(rasqal_data_graph*)raptor_sequence_get_at(rdf_query->data_graphs, i);
+    raptor_uri* uri=dg->uri;
 
     rtsc->source_index=i;
-    /* not allocated here; these are shared pointers into query->sources */
-    rtsc->source_uris[i]=uri;
+    rtsc->source_uris[i]=raptor_uri_copy(uri);
     rtsc->source_literals[i]=rasqal_new_uri_literal(raptor_uri_copy(uri));
 
     parser_name=raptor_guess_parser_name(NULL, NULL, NULL, 0, 
@@ -330,9 +330,8 @@ rasqal_raptor_free_triples_source(void *user_data) {
     cur=next;
   }
 
-  for(i=0; i< rtsc->source_uris_count; i++) {
-    /* not freed here; these are shared pointers into query->sources */
-    /* raptor_free_uri(rtsc->source_uris[i]); */
+  for(i=0; i< rtsc->sources_count; i++) {
+    raptor_free_uri(rtsc->source_uris[i]);
     rasqal_free_literal(rtsc->source_literals[i]);
   }
   RASQAL_FREE(raptor_uri_ptr, rtsc->source_uris);
