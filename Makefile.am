@@ -58,7 +58,7 @@ SUBDIRS=tests rdql-testsuite
 
 TESTS=rasqal_sequence_test
 
-CLEANFILES=$(TESTS) rdql_lexer_test rdql_parser_test rasqal_query_test
+CLEANFILES=$(TESTS) rdql_lexer_test rdql_parser_test
 MAINTAINERCLEANFILES=rdql_lexer.c rdql_lexer.h \
 rdql_parser.tab.c rdql_parser.tab.h rdql_parser.output
 
@@ -107,16 +107,13 @@ rdql_parser.tab.c: $(srcdir)/rdql_parser.y
 	sed -e '/Suppress GCC warning that yyerrlab1/,/^\#endif/d' rdql_parser.t > $@
 	rm -f rdql_parser.t
 
-check-local: rdql_lexer_test rdql_parser_test rasqal_query_test
+check-local: rdql_lexer_test rdql_parser_test
 
 rdql_lexer_test: $(srcdir)/rdql_lexer.c librasqal.la
 	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE @RASQAL_INTERNAL_CPPFLAGS@ $(srcdir)/rdql_lexer.c librasqal.la $(LIBS)
 
 rdql_parser_test: $(srcdir)/rdql_parser.tab.c librasqal.la
 	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE @RASQAL_INTERNAL_CPPFLAGS@ $(srcdir)/rdql_parser.tab.c librasqal.la $(LIBS)
-
-rasqal_query_test: $(srcdir)/rasqal_query.c librasqal.la
-	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE @RASQAL_INTERNAL_CPPFLAGS@ $(srcdir)/rasqal_query.c librasqal.la $(LIBS)
 
 rasqal_sequence_test: $(srcdir)/rasqal_sequence.c librasqal.la
 	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE @RASQAL_INTERNAL_CPPFLAGS@ $(srcdir)/rasqal_sequence.c librasqal.la $(LIBS)
