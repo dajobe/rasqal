@@ -92,8 +92,8 @@ static void skip_cpp_comment(rasqal_rdql_query_engine *rqe);
 static int skip_c_comment(rasqal_query *rq);
 
 static unsigned char *copy_token(rasqal_query *rq, unsigned char *text, size_t len);
-static int copy_regex_token(rasqal_query *rq, unsigned char delim);
-static int copy_string_token(rasqal_query *rq, unsigned char *text, size_t len, int delim);
+static int copy_regex_token(rasqal_query *rq, YYSTYPE* lval,unsigned char delim);
+static int copy_string_token(rasqal_query *rq, YYSTYPE* lval, unsigned char *text, size_t len, int delim);
 
 #ifdef RASQAL_DEBUG
 const char * rdql_token_print(int token, YYSTYPE *lval);
@@ -174,7 +174,7 @@ QUOTEDURI \<[A-Za-z][^>]+\>
 
 
 <PATTERN>. { /* first non whitespace */
-             copy_regex_token(rq, *yytext);
+             copy_regex_token(rq, rdql_parser_lval, *yytext);
              BEGIN(INITIAL);
              return PATTERN_LITERAL;
          };
@@ -215,11 +215,13 @@ QUOTEDURI \<[A-Za-z][^>]+\>
 }
 
 '([^'\\\n\r]|\\[^\n\r])*'(@{LANGUAGETOKEN})?(^^({QUOTEDURI}|{QNAME}))?    { /*' */
-                               copy_string_token(rq, yytext+1, yyleng-2, '\'');
+                               copy_string_token(rq, rdql_parser_lval,
+                                 yytext+1, yyleng-2, '\'');
                                return STRING_LITERAL; }
 
 \"([^"\\\n\r]|\\[^\n\r])*\"(@{LANGUAGETOKEN})?(^^({QUOTEDURI}|{QNAME}))?   { /* " */
-                                copy_string_token(rq, yytext+1, yyleng-2, '"');
+                                copy_string_token(rq, rdql_parser_lval,
+                                  yytext+1, yyleng-2, '"');
                                 return STRING_LITERAL; }
 
 "true"|"false"	{ rdql_parser_lval->integer=(*yytext == 't');
@@ -281,9 +283,8 @@ copy_token(rasqal_query *rq, unsigned char *text, size_t len) {
 
 
 static int
-copy_regex_token(rasqal_query* rq, unsigned char delim) {
+copy_regex_token(rasqal_query* rq, YYSTYPE* lval, unsigned char delim) {
   rasqal_rdql_query_engine *rqe=(rasqal_rdql_query_engine*)rq->context;
-  YYSTYPE* lval=&rqe->lval;
   yyscan_t yyscanner=rqe->scanner;
   int ind=0;
   size_t buffer_len=0;
@@ -351,9 +352,8 @@ copy_regex_token(rasqal_query* rq, unsigned char delim) {
 
 
 static int
-copy_string_token(rasqal_query* rq, unsigned char *text, size_t len, int delim) {
-  rasqal_rdql_query_engine *rqe=(rasqal_rdql_query_engine*)rq->context;
-  YYSTYPE* lval=&rqe->lval;
+copy_string_token(rasqal_query* rq, YYSTYPE* lval,
+                  unsigned char *text, size_t len, int delim) {
   int i;
   unsigned char *s, *d;
   unsigned char *string=(unsigned char *)malloc(len+1);
