@@ -63,11 +63,12 @@ LINK32=link.exe
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 1
-# PROP Output_Dir "Debug"
+# PROP Output_Dir "c:\bin\Debug"
 # PROP Intermediate_Dir "Debug"
+# PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "RASQAL_EXPORTS" /YX /FD /GZ /c
-# ADD CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /I "." /I "../raptor-1.3.2" /I "../redland-0.9.18/librdf" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "RASQAL_EXPORTS" /YX /FD /GZ /c
+# ADD CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /I ".." /I "..\..\raptor-1.3.3" /I "..\..\redland-0.9.19\librdf" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "RASQAL_INTERNAL" /D "_MT" /YX /FD /GZ /c
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x809 /d "_DEBUG"
@@ -77,7 +78,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /debug /machine:I386 /pdbtype:sept
+# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib raptor.lib librdf.lib /nologo /dll /debug /machine:I386 /pdbtype:sept /libpath:"..\..\raptor-1.3.3\win32\Debug" /libpath:"..\..\redland-0.9.19\librdf\win32\Debug"
 
 !ENDIF 
 
@@ -90,47 +91,51 @@ LINK32=link.exe
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 # Begin Source File
 
-SOURCE=.\rasqal_engine.c
+SOURCE=..\getopt.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\rasqal_expr.c
+SOURCE=..\rasqal_engine.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\rasqal_general.c
+SOURCE=..\rasqal_expr.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\rasqal_literal.c
+SOURCE=..\rasqal_general.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\rasqal_query.c
+SOURCE=..\rasqal_literal.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\rasqal_raptor.c
+SOURCE=..\rasqal_query.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\rdql_lexer.c
+SOURCE=..\rasqal_raptor.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\rdql_parser.c
+SOURCE=..\rasqal_redland.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\sparql_lexer.c
+SOURCE=..\rdql_lexer.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\sparql_parser.c
+SOURCE=..\rdql_parser.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\strcasecmp.c
+SOURCE=..\roqet.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\strcasecmp.c
 # End Source File
 # End Group
 # Begin Group "Header Files"
@@ -138,43 +143,51 @@ SOURCE=.\strcasecmp.c
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
 # Begin Source File
 
-SOURCE=.\rasqal.h
+SOURCE=..\rasqal.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\rasqal_getopt.h
+SOURCE=..\rasqal_getopt.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\rasqal_internal.h
+SOURCE=..\rasqal_internal.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\rdql_common.h
+SOURCE=..\rdql_common.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\rdql_lexer.h
+SOURCE=..\rdql_lexer.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\rdql_parser.h
+SOURCE=..\rdql_parser.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\sparql_common.h
+SOURCE=..\rdql_parser.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\sparql_lexer.h
+SOURCE=..\sparql_common.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\sparql_parser.h
+SOURCE=..\sparql_lexer.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\win32_rasqal_config.h
+SOURCE=..\sparql_parser.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\sparql_parser.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\win32_rasqal_config.h
 # End Source File
 # End Group
 # End Target
