@@ -29,7 +29,7 @@ noinst_HEADERS = rasqal_internal.h win32_config.h
 man_MANS = librasqal.3 rasqal-config.1
 
 librasqal_la_SOURCES = rdql_lexer.c rdql_parser.c rdql_parser.h \
-rasqal_general.c
+rasqal_general.c rasqal_query.c rasqal_sequence.c
 librasqal_la_LDFLAGS = -version-info @RASQAL_LIBTOOL_VERSION@
 
 RDQL_EXAMPLES=example1.rdql example2.rdql example3.rdql example4.rdql	\
