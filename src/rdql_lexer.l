@@ -333,7 +333,7 @@ copy_regex_token(rasqal_query* rq, YYSTYPE* lval, unsigned char delim) {
 
       if(new_flags_len<5)
         new_flags_len=5;
-      new_flags=(unsigned char *)malloc(new_flags_len+1);
+      new_flags=(unsigned char *)calloc(1, new_flags_len+1);
       if(flags_len) {
         strncpy(new_flags, flags, flags_len);
         free(flags);
