@@ -283,8 +283,11 @@ struct rasqal_query_s {
    */
   int max_optional_graph_pattern;
 
+  /* result triple - internal, not returned */
+  rasqal_triple *triple;
+  
   /* result triple (SHARED) */
-  raptor_statement triple;
+  raptor_statement statement;
   
   /* current triple in the sequence of triples 'constructs' or -1 */
   int current_triple_result;
