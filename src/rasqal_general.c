@@ -4,7 +4,7 @@
  *
  * $Id$
  *
- * Copyright (C) 2004, David Beckett http://purl.org/net/dajobe/
+ * Copyright (C) 2004-2005, David Beckett http://purl.org/net/dajobe/
  * Institute for Learning and Research Technology http://www.ilrt.bristol.ac.uk/
  * University of Bristol, UK http://www.bristol.ac.uk/
  * 
@@ -57,9 +57,9 @@ static int rasqal_finishing=0;
 /* list of query factories */
 static rasqal_query_engine_factory* query_engines=NULL;
 
-const char * const rasqal_short_copyright_string = "Copyright (C) 2004 David Beckett, ILRT, University of Bristol";
+const char * const rasqal_short_copyright_string = "Copyright (C) 2003-2005 David Beckett, ILRT, University of Bristol";
 
-const char * const rasqal_copyright_string = "Copyright (C) 2004 David Beckett - http://purl.org/net/dajobe/\nInstitute for Learning and Research Technology - http://www.ilrt.bristol.ac.uk/,\nUniversity of Bristol - http://www.bristol.ac.uk/";
+const char * const rasqal_copyright_string = "Copyright (C) 2003-2005 David Beckett - http://purl.org/net/dajobe/\nInstitute for Learning and Research Technology - http://www.ilrt.bristol.ac.uk/,\nUniversity of Bristol - http://www.bristol.ac.uk/";
 
 const char * const rasqal_version_string = VERSION;
 
