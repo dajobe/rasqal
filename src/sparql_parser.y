@@ -332,7 +332,8 @@ WhereClauseOpt :  WHERE GraphPattern
 /* SPARQL Grammar: [11] rq23 LimitClause - remained for clarity */
 LimitClauseOpt :  LIMIT INTEGER_LITERAL
 {
-  /* FIXME */
+  if($2 != NULL)
+    ((rasqal_query*)rq)->limit=$2->value.integer;
 }
 | /* empty */
 {
