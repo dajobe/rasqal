@@ -157,8 +157,8 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...);
 %token <literal> STRING_LITERAL PATTERN_LITERAL INTEGER_LITERAL
 %token <literal> BOOLEAN_LITERAL
 %token <literal> NULL_LITERAL
-%token <uri> URI_LITERAL
-%token <name> QNAME_LITERAL BLANK_LITERAL
+%token <uri> URI_LITERAL URI_LITERAL_BRACE
+%token <name> QNAME_LITERAL BLANK_LITERAL QNAME_LITERAL_BRACE
 
 %token <name> IDENTIFIER
 
@@ -181,6 +181,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...);
 %type <literal> Literal URI BNode
 %type <literal> VarOrLiteral VarOrURI
 %type <literal> VarOrLiteralOrBNode VarOrURIOrBNode
+%type <literal> URIBrace
 
 %type <variable> Var
 
@@ -951,13 +952,10 @@ BuiltinExpression : BOUND '(' Var ')'
   rasqal_expression *e=rasqal_new_literal_expression($3);
   $$=rasqal_new_1op_expression(RASQAL_EXPR_ISLITERAL, e);
 }
-| URI '(' Expression ')' 
+| URIBrace Expression ')' 
 {
-  /* this is a cast */
-
-  /* shift/reduce conflict here with Literal 'URI' rule */
-
-  $$=NULL;
+  raptor_uri* uri=rasqal_literal_as_uri($1);
+  $$=rasqal_new_cast_expression(uri, $2);
 }
 | PrimaryExpression
 {
@@ -1045,6 +1043,22 @@ URI : URI_LITERAL
   $$=rasqal_new_uri_literal($1);
 }
 | QNAME_LITERAL
+{
+  $$=rasqal_new_simple_literal(RASQAL_LITERAL_QNAME, $1);
+  if(rasqal_literal_expand_qname((rasqal_query*)rq, $$)) {
+    sparql_query_error_full((rasqal_query*)rq,
+                            "QName %s cannot be expanded", $1);
+    rasqal_free_literal($$);
+    $$=NULL;
+  }
+}
+
+/* NEW Grammar Term made from SPARQL Grammer: [54] URI + '(' expanded */
+URIBrace : URI_LITERAL_BRACE
+{
+  $$=rasqal_new_uri_literal($1);
+}
+| QNAME_LITERAL_BRACE
 {
   $$=rasqal_new_simple_literal(RASQAL_LITERAL_QNAME, $1);
   if(rasqal_literal_expand_qname((rasqal_query*)rq, $$)) {
