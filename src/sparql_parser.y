@@ -603,14 +603,16 @@ URIList : URIList URI
   raptor_uri* uri=rasqal_literal_as_uri($2);
   $$=$1;
   if(uri)
-    raptor_sequence_push($$, uri);
+    raptor_sequence_push($$, raptor_uri_copy(uri));
+  rasqal_free_literal($2);
 }
 | URIList ',' URI
 {
   raptor_uri* uri=rasqal_literal_as_uri($3);
   $$=$1;
   if(uri)
-    raptor_sequence_push($$, uri);
+    raptor_sequence_push($$, raptor_uri_copy(uri));
+  rasqal_free_literal($3);
 }
 | /* empty */
 {
