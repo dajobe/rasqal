@@ -98,7 +98,7 @@ typedef struct {
   } value;
   char *language; /* string */
   raptor_uri *datatype;  /* for string */
-  char *flags;   /* pattern */
+  char *flags;   /* for pattern; used as datatype qname for string  */
 } rasqal_literal ;
 
 
@@ -230,7 +230,7 @@ rasqal_literal* rasqal_new_integer_literal(rasqal_literal_type type, int integer
 rasqal_literal* rasqal_new_floating_literal(float floating);
 rasqal_literal* rasqal_new_uri_literal(raptor_uri *uri);
 rasqal_literal* rasqal_new_pattern_literal(char *pattern, char *flags);
-rasqal_literal* rasqal_new_string_literal(char *string, char *language, raptor_uri *datatype);
+rasqal_literal* rasqal_new_string_literal(char *string, char *language, raptor_uri *datatype, char *datatype_qname);
 rasqal_literal* rasqal_new_simple_literal(rasqal_literal_type type, char *string);
 rasqal_literal* rasqal_new_boolean_literal(int value);
 
