@@ -151,6 +151,8 @@ rasqal_variable_set_value(rasqal_variable* v, rasqal_literal *e)
     rasqal_free_literal(v->value);
   v->value=e;
 #ifdef RASQAL_DEBUG
+  if(!v->name)
+    RASQAL_FATAL1("variable has no name");
   RASQAL_DEBUG2("setting variable %s to value ", v->name);
   if(v->value)
     rasqal_literal_print(v->value, stderr);
