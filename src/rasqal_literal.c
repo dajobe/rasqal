@@ -552,6 +552,9 @@ rasqal_literal_as_integer(rasqal_literal* l, int *error)
       break;
 
     case RASQAL_LITERAL_BLANK:
+    case RASQAL_LITERAL_URI:
+    case RASQAL_LITERAL_QNAME:
+    case RASQAL_LITERAL_PATTERN:
       *error=1;
       return 0;
       
@@ -605,6 +608,9 @@ rasqal_literal_as_floating(rasqal_literal* l, int *error)
       break;
 
     case RASQAL_LITERAL_BLANK:
+    case RASQAL_LITERAL_URI:
+    case RASQAL_LITERAL_QNAME:
+    case RASQAL_LITERAL_PATTERN:
       *error=1;
       return 0.0;
       
@@ -657,6 +663,8 @@ rasqal_literal_as_string(rasqal_literal* l)
     case RASQAL_LITERAL_FLOATING:
     case RASQAL_LITERAL_STRING:
     case RASQAL_LITERAL_BLANK:
+    case RASQAL_LITERAL_PATTERN:
+    case RASQAL_LITERAL_QNAME:
       return l->string;
 
     case RASQAL_LITERAL_URI:
@@ -756,6 +764,7 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
     switch(lits[i]->type) {
       case RASQAL_LITERAL_URI:
         break;
+
       case RASQAL_LITERAL_STRING:
       case RASQAL_LITERAL_BLANK:
       case RASQAL_LITERAL_PATTERN:
@@ -776,6 +785,9 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
         doubles[i]=lits[i]->value.floating;
         seen_double=1;
         break;
+
+    case RASQAL_LITERAL_VARIABLE:
+      /* this case was dealt with above, retrieving the value */
 
     case RASQAL_LITERAL_UNKNOWN:
       default:
@@ -954,6 +966,11 @@ rasqal_literal_equals(rasqal_literal* l1, rasqal_literal* l2)
       return l1->value.floating == l2->value.floating;
       break;
 
+    case RASQAL_LITERAL_VARIABLE:
+      /* both are variables */
+      return rasqal_literal_equals(l1->value.variable->value,
+                                   l2->value.variable->value);
+      
     case RASQAL_LITERAL_UNKNOWN:
     default:
       abort();
@@ -1057,10 +1074,12 @@ rasqal_literal_as_node(rasqal_literal* l)
 
     case RASQAL_LITERAL_FLOATING:
     case RASQAL_LITERAL_INTEGER:
-      dt_uri=raptor_uri_copy(l->datatype);
-      /* FALLTHROUGH */
+    case RASQAL_LITERAL_BOOLEAN:
+      if(l->type == RASQAL_LITERAL_BOOLEAN)
+        dt_uri=raptor_new_uri((const unsigned char*)"http://www.w3.org/2001/XMLSchema#boolean");
+      else
+        dt_uri=raptor_uri_copy(l->datatype);
 
-    default:
       new_l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, sizeof(rasqal_literal), 1);
 
       new_l->type=RASQAL_LITERAL_STRING;
@@ -1069,6 +1088,18 @@ rasqal_literal_as_node(rasqal_literal* l)
       new_l->datatype=dt_uri;
       new_l->flags=NULL;
       new_l->usage=1;
+      break;
+      
+    case RASQAL_LITERAL_QNAME:
+      /* QNames should be gone by the time expression eval happens */
+
+    case RASQAL_LITERAL_PATTERN:
+      /* FALLTHROUGH */
+
+    case RASQAL_LITERAL_UNKNOWN:
+    default:
+      RASQAL_FATAL2("Cannot turn literal type %d into a node", l->type);
+      abort();
   }
   
   return new_l;
