@@ -202,13 +202,17 @@ roqet_print_results_as_xml(FILE *fh, rasqal_query_results *results)
             int xml_string_len=raptor_xml_escape_string(l->string, len,
                                                         NULL, 0, 0,
                                                         NULL, NULL);
-            unsigned char *xml_string=(unsigned char*)malloc(xml_string_len+1);
-            
-            xml_string_len=raptor_xml_escape_string(l->string, len,
+            if(xml_string_len == (int)len)
+              fputs(l->string, fh);
+            else {
+              unsigned char *xml_string=(unsigned char*)malloc(xml_string_len+1);
+              
+              xml_string_len=raptor_xml_escape_string(l->string, len,
                                                     xml_string, xml_string_len, 0,
-                                                    NULL, NULL);
-            fputs(xml_string, fh);
-            free(xml_string);
+                                                      NULL, NULL);
+              fputs(xml_string, fh);
+              free(xml_string);
+            }
           }
           
           break;
