@@ -356,7 +356,7 @@ copy_string_token(rasqal_query* rq, YYSTYPE* lval,
                   unsigned char *text, size_t len, int delim) {
   int i;
   unsigned char *s, *d;
-  unsigned char *string=(unsigned char *)malloc(len+1);
+  unsigned char *string=(unsigned char *)RASQAL_MALLOC(cstring, len+1);
   unsigned char *language=NULL;
   unsigned char *dt=NULL;
   raptor_uri *dt_uri=NULL;
@@ -438,6 +438,12 @@ copy_string_token(rasqal_query* rq, YYSTYPE* lval,
 
   *d='\0';
 
+  if(language) {
+    unsigned char *new_language=(unsigned char *)RASQAL_MALLOC(cstring, strlen(language)+1);
+    strcpy(new_language, language);
+    language=new_language;
+  }
+  
   if(dt) {
     /* dt can be a URI or qname */
     if(*dt == '<') {
@@ -445,7 +451,8 @@ copy_string_token(rasqal_query* rq, YYSTYPE* lval,
       dt_uri=raptor_new_uri(dt+1);
     } else {
       /* the qname is expanded later */
-      dt_qname=dt;
+      dt_qname=(unsigned char *)RASQAL_MALLOC(cstring, strlen(dt)+1);
+      strcpy(dt_qname, dt);
     }
   }
 
