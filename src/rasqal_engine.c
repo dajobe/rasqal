@@ -260,6 +260,23 @@ rasqal_engine_expand_triple_qnames(rasqal_query* rq)
 }
 
 
+int
+rasqal_engine_assign_variables(rasqal_query* rq)
+{
+  int i;
+
+  rq->select_variables_count=rasqal_sequence_size(rq->selects);
+
+  rq->variables=(rasqal_variable**)RASQAL_MALLOC(varrary, sizeof(rasqal_variable*)*rq->variables_count);
+
+  for(i=0; i< rq->variables_count; i++)
+    rq->variables[i]=(rasqal_variable*)rasqal_sequence_get_at(rq->variables_sequence, i);
+
+  return 0;
+}
+  
+
+
 static librdf_node*
 rasqal_expression_to_redland_node(rasqal_query *q, rasqal_expression* e) {
   if(e->op == RASQAL_EXPR_LITERAL) {
@@ -269,11 +286,17 @@ rasqal_expression_to_redland_node(rasqal_query *q, rasqal_expression* e) {
       return librdf_new_node_from_uri_string(q->world, uri_string);
     } else if (l->type == RASQAL_LITERAL_STRING)
       return librdf_new_node_from_literal(q->world, l->value.string, NULL, 0);
-    else
+    else if (l->type == RASQAL_LITERAL_BLANK)
+      return librdf_new_node_from_blank_identifier(q->world, l->value.string);
+    else {
+      RASQAL_DEBUG2("Unknown literal type %d", l->type);
       abort();
-  } else
+    }
+  } else {
+    RASQAL_DEBUG2("Unknown expr op %d", e->op);
     abort();
-  
+  }
+
   return NULL;
 }
 
@@ -283,13 +306,14 @@ redland_node_to_rasqal_expression(librdf_node *node) {
   rasqal_literal* l;
   
   if(librdf_node_is_resource(node)) {
-    raptor_uri* uri=(raptor_uri*)librdf_node_get_uri(node);
+    raptor_uri* uri=raptor_new_uri(librdf_uri_as_string(librdf_node_get_uri(node)));
     l=rasqal_new_literal(RASQAL_LITERAL_URI, 0, 0.0, NULL, uri);
   } else if(librdf_node_is_literal(node)) {
-    l=rasqal_new_literal(RASQAL_LITERAL_URI, 0, 0.0, librdf_node_get_literal_value(node), NULL);
+    char *new_string=strdup(librdf_node_get_literal_value(node));
+    l=rasqal_new_literal(RASQAL_LITERAL_STRING, 0, 0.0, new_string, NULL);
   } else {
-    /* blank - FIXME */
-    l=rasqal_new_literal(RASQAL_LITERAL_URI, 0, 0.0, librdf_node_get_blank_identifier(node), NULL);
+    char *new_string=strdup(librdf_node_get_blank_identifier(node));
+    l=rasqal_new_literal(RASQAL_LITERAL_BLANK, 0, 0.0, new_string, NULL);
   }
 
   return rasqal_new_literal_expression(l);
@@ -354,7 +378,10 @@ rasqal_select_next(rasqal_query *q, int count) {
     rasqal_variable* bindings[3];
 
     if((var=rasqal_expression_as_variable(t->subject))) {
-      nodes[0]=NULL;
+      if(var->value)
+        nodes[0]=rasqal_expression_to_redland_node(q, var->value);
+      else
+        nodes[0]=NULL;
     } else
       nodes[0]=rasqal_expression_to_redland_node(q, t->subject);
 
@@ -362,7 +389,10 @@ rasqal_select_next(rasqal_query *q, int count) {
     
 
     if((var=rasqal_expression_as_variable(t->predicate))) {
-      nodes[1]=NULL;
+      if(var->value)
+        nodes[1]=rasqal_expression_to_redland_node(q, var->value);
+      else
+        nodes[1]=NULL;
     } else
       nodes[1]=rasqal_expression_to_redland_node(q, t->predicate);
 
@@ -370,7 +400,10 @@ rasqal_select_next(rasqal_query *q, int count) {
     
 
     if((var=rasqal_expression_as_variable(t->object))) {
-      nodes[2]=NULL;
+      if(var->value)
+        nodes[2]=rasqal_expression_to_redland_node(q, var->value);
+      else
+        nodes[2]=NULL;
     } else
       nodes[2]=rasqal_expression_to_redland_node(q, t->object);
 
