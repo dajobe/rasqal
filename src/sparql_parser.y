@@ -102,7 +102,6 @@ static int sparql_query_error(rasqal_query* rq, const char *message);
   rasqal_literal *literal;
   rasqal_triple *triple;
   rasqal_expression *expr;
-  rasqal_prefix *prefix;
   double floating;
   raptor_uri *uri;
   unsigned char *name;
