@@ -661,7 +661,7 @@ rdql_token_print(int token, YYSTYPE *lval)
       return "ERROR";
 
    default:
-     fprintf(stderr, "rdql_token_print: UNKNOWN token %d - add a new case\n", token);
+     RASQAL_DEBUG2("UNKNOWN token %d - add a new case\n", token);
      abort();
   }
 }
