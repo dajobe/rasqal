@@ -1,0 +1,11 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: Rasqal RDF Query Library
+Description: Rasqual provides RDF Query parsing and support
+Version: @VERSION@
+Libs: -L${libdir} -lrasqal @LDFLAGS@ @LIBS@
+Cflags: -I${includedir}
+
