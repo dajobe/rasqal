@@ -65,14 +65,20 @@
   /* definitions */
 
 %{
+
+/* NOTE: These headers are NOT included here are inserted by fix-flex
+ * since otherwise it appears far too late in the generated C
+ */
+
+/*
 #ifdef HAVE_CONFIG_H
 #include <rasqal_config.h>
 #endif
 
 #ifdef WIN32
-#include <win32_config.h>
+#include <win32_rasqal_config.h>
 #endif
-
+*/
 
 #include <stdio.h>
 #include <string.h>
