@@ -374,7 +374,7 @@ static const char* rasqal_literal_type_labels[]={
 };
 
 
-static void
+void
 rasqal_literal_print_type(rasqal_literal* literal, FILE* fh)
 {
   rasqal_literal_type type;

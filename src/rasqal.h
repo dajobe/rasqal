@@ -269,6 +269,7 @@ RASQAL_API rasqal_literal* rasqal_new_variable_literal(rasqal_variable *variable
 RASQAL_API rasqal_literal* rasqal_new_literal_from_literal(rasqal_literal* literal);
 RASQAL_API void rasqal_free_literal(rasqal_literal* literal);
 RASQAL_API void rasqal_literal_print(rasqal_literal* literal, FILE* fh);
+RASQAL_API void rasqal_literal_print_type(rasqal_literal* literal, FILE* fh);
 RASQAL_API rasqal_variable* rasqal_literal_as_variable(rasqal_literal* literal);
 RASQAL_API const unsigned char* rasqal_literal_as_string(rasqal_literal* literal);
 RASQAL_API rasqal_literal* rasqal_literal_as_node(rasqal_literal* literal);
