@@ -126,7 +126,7 @@ rasqal_redland_new_triples_source(rasqal_query* rdf_query, void *user_data,
                                   rasqal_triples_source *rts) {
   rasqal_redland_triples_source_user_data* rtsc=(rasqal_redland_triples_source_user_data*)user_data;
   librdf_parser *parser;
-  char *parser_name;
+  const char *parser_name;
   
   /* FIXME error checking */
   rtsc->uri=librdf_new_uri(World, raptor_uri_as_string(rts->uri));
