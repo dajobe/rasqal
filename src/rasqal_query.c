@@ -678,10 +678,10 @@ rasqal_graph_pattern_get_triple(rasqal_graph_pattern* graph_pattern, int idx)
   if(!graph_pattern->triples)
     return NULL;
 
+  idx += graph_pattern->start_column;
+
   if(idx > graph_pattern->end_column)
     return NULL;
-  
-  idx += graph_pattern->start_column;
   
   return (rasqal_triple*)raptor_sequence_get_at(graph_pattern->triples, idx);
 }
