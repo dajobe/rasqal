@@ -480,16 +480,15 @@ rasqal_triples_match_is_end(struct rasqal_triples_match_s* rtm) {
 }
 
 
+/*
+ * rasqal_engine_prepare - initialise the remainder of the query structures INTERNAL
+ * Does not do any execution prepration - this is once-only stuff.
+ */
 int
-rasqal_engine_execute_init(rasqal_query *query) {
-  int triples_size;
-  int i;
-  
+rasqal_engine_prepare(rasqal_query *query) {
   if(!query->triples)
     return 1;
   
-  triples_size=raptor_sequence_size(query->triples);
-
   if(!query->variables) {
     /* Expand 'SELECT *' and create the query->variables array */
     rasqal_engine_assign_variables(query);
@@ -501,6 +500,20 @@ rasqal_engine_execute_init(rasqal_query *query) {
     rasqal_engine_build_constraints_expression(query);
   }
   
+  return 0;
+}
+
+
+int
+rasqal_engine_execute_init(rasqal_query *query) {
+  int triples_size;
+  int i;
+  
+  if(!query->triples)
+    return 1;
+  
+  triples_size=raptor_sequence_size(query->triples);
+
   if(!query->triples_source) {
     query->triples_source=rasqal_new_triples_source(query);
     if(!query->triples_source) {
