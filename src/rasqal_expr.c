@@ -348,7 +348,7 @@ rasqal_new_prefix(const char *prefix, raptor_uri* uri)
 void
 rasqal_free_prefix(rasqal_prefix* p) {
   if(p->prefix)
-    free(p->prefix);
+    RASQAL_FREE(cstring, p->prefix);
   raptor_free_uri(p->uri);
   RASQAL_FREE(rasqal_prefix, p);
 }
