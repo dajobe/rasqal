@@ -137,7 +137,7 @@ rdql_lexer.c: $(srcdir)/rdql_lexer.l rdql_parser.c $(srcdir)/fix-flex
 
 rdql_parser.c: $(srcdir)/rdql_parser.y
 	$(YACC) -b rdql_parser -p rdql_parser_ -d -v $(srcdir)/rdql_parser.y
-	sed -e '/Suppress GCC warning that yyerrlab1/,/^\#endif/d' rdql_parser.tab.c > $@
+	sed -e '/Suppress GCC warning that yyerrlab1/,/^\#endif/d'  -e "s/rdql_parser.tab.c/$@/" rdql_parser.tab.c > $@
 	mv rdql_parser.tab.h rdql_parser.h
 	rm -f rdql_parser.tab.c
 
@@ -151,7 +151,7 @@ brql_lexer.c: $(srcdir)/brql_lexer.l brql_parser.c $(srcdir)/fix-flex
 
 brql_parser.c: $(srcdir)/brql_parser.y
 	$(YACC) -b brql_parser -p brql_parser_ -d -v $(srcdir)/brql_parser.y
-	sed -e '/Suppress GCC warning that yyerrlab1/,/^\#endif/d' brql_parser.tab.c > $@
+	sed -e '/Suppress GCC warning that yyerrlab1/,/^\#endif/d'  -e "s/brql_parser.tab.c/$@/" brql_parser.tab.c > $@
 	mv brql_parser.tab.h brql_parser.h
 	rm -f brql_parser.tab.c
 endif
