@@ -357,7 +357,11 @@ UnaryExpression : UnaryExpressionNotPlusMinus PLUS UnaryExpression
 }
 | UnaryExpressionNotPlusMinus
 {
-  /* removing this removes the 2 shift/reduce conflicts */
+  /* FIXME - 2 shift/reduce conflicts here
+   *
+   * The original grammar and this one is ambiguous in allowing
+   * PLUS/MINUS in UnaryExpression as well as AdditiveExpression
+   */
 }
 ;
 
