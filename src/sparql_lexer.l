@@ -214,6 +214,7 @@ QUOTEDURI \<[A-Za-z][^>]+\>
 "%"         { return REM; }
 "~"         { return TILDE; }
 "!"         { return BANG; }
+"&"         { return AMP; }
 
 [0-9]+["lL"]?   { c=yytext[yyleng-1];
                   if (c== 'l' || c == 'L')

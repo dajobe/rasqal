@@ -110,6 +110,9 @@ struct rasqal_query_s {
   raptor_sequence *optional_triples; /* ... rasqal_triple*   BRQL  */
   raptor_sequence *describes;   /* ... rasqal_uri*           BRQL  */
 
+  /* non-0 if DISTINCT was seen in SELECT or DESCRIBE */
+  int distinct;
+
   /* non-0 if '*' was seen in SELECT or DESCRIBE (selects will be NULL) */
   int select_all;
 
@@ -120,6 +123,10 @@ struct rasqal_query_s {
   /* CONSTRUCT support */
   /* non-0 if 'CONSTRUCT *' was seen (constructs will be NULL) */
   int construct_all;
+
+  /* ASK support */
+  /* non-0 if 'ASK' was seen (selects, constructs will be NULL) */
+  int ask;
 
   int prepared;
   int executed;
