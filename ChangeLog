@@ -1,5 +1,10 @@
 2005-03-10  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
+	* sparql_lexer.l, rdql_lexer.l: Tidy to use .|\n to match any char
+
+	* rdql_lexer.l, sparql_lexer.l ('-strings, and "-strings): Count
+	passed into sparql_copy_string_token is one too small.
+
 	* rasqal_query.c (rasqal_graph_pattern_set_origin): Set origin
 	only on this graph pattern's columns/triples.
 
