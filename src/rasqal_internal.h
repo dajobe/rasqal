@@ -114,6 +114,8 @@ struct rasqal_pattern_graph_s {
   /* An array of items, one per triple in the pattern graph */
   rasqal_triple_meta *triple_meta;
 
+  int column;
+
   int start_column;
   int end_column;
 
@@ -202,9 +204,6 @@ struct rasqal_query_s {
    */
   raptor_sequence *ordered_triples;
 
-  /* An array of items, one per triple in a query */
-  rasqal_triple_meta *triple_meta;
-
   /* the expression version of the sequence of constraints above - this is
    * where the constraints are freed
    */
@@ -256,6 +255,8 @@ struct rasqal_query_s {
 
   /* incrementing counter for declaring prefixes in order of appearance */
   int prefix_depth;
+
+  rasqal_pattern_graph* graph_pattern;
 };
 
 
