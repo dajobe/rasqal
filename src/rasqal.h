@@ -167,6 +167,7 @@ typedef struct {
   rasqal_literal* subject;
   rasqal_literal* predicate;
   rasqal_literal* object;
+  rasqal_literal* origin;
 } rasqal_triple ;
 
 
@@ -283,6 +284,8 @@ RASQAL_API void rasqal_prefix_print(rasqal_prefix* p, FILE* fh);
 RASQAL_API rasqal_triple* rasqal_new_triple(rasqal_literal* subject, rasqal_literal* predicate, rasqal_literal* object);
 RASQAL_API void rasqal_free_triple(rasqal_triple* t);
 RASQAL_API void rasqal_triple_print(rasqal_triple* t, FILE* fh);
+RASQAL_API void rasqal_triple_set_origin(rasqal_triple* t, rasqal_literal *l);
+RASQAL_API rasqal_literal* rasqal_triple_get_origin(rasqal_triple* t);
 
 /* Variable class */
 RASQAL_API rasqal_variable* rasqal_new_variable(rasqal_query* query, const unsigned char *name, rasqal_literal *value);
@@ -294,7 +297,7 @@ RASQAL_API void rasqal_variable_set_value(rasqal_variable* v, rasqal_literal *l)
 
 struct rasqal_triples_match_s {
   void *user_data;
-  int (*bind_match)(struct rasqal_triples_match_s*, void *user_data, rasqal_variable *bindings[3]);
+  int (*bind_match)(struct rasqal_triples_match_s*, void *user_data, rasqal_variable *bindings[4]);
   void (*next_match)(struct rasqal_triples_match_s*, void *user_data);
   int (*is_end)(struct rasqal_triples_match_s*, void *user_data);
   void (*finish)(struct rasqal_triples_match_s*, void *user_data);
@@ -307,7 +310,8 @@ typedef struct
   /* All the parts of this triple are nodes - no variables */
   int is_exact;
 
-  rasqal_variable* bindings[3];
+  /* triple (subject, predicate, object) and origin (SOURCE in BRQL) */
+  rasqal_variable* bindings[4];
 
   rasqal_triples_match *triples_match;
 
@@ -321,6 +325,9 @@ struct rasqal_triples_source_s {
 
   void *user_data;
 
+  /* Index into the query->sources sequence for current source URI */
+  int source_index;
+  
   /* the triples_source_factory initialises these method */
   rasqal_triples_match* (*new_triples_match)(struct rasqal_triples_source_s* rts, void *user_data, rasqal_triple_meta *m, rasqal_triple *t);
 
@@ -334,7 +341,7 @@ typedef struct rasqal_triples_source_s rasqal_triples_source;
 typedef struct {
   void *user_data; /* user data for triples_source_factory */
   size_t user_data_size; /* size of user data for new_triples_source */
-  int (*new_triples_source)(rasqal_query *query, void *factory_user_data, void *user_data, rasqal_triples_source* rts);
+  int (*new_triples_source)(rasqal_query *query, void *factory_user_data, void *user_data, rasqal_triples_source* rts, raptor_uri *uri);
 } rasqal_triples_source_factory;
   
 
