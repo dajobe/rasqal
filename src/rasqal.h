@@ -105,12 +105,6 @@ typedef enum {
   RASQAL_EXPR_EXPR,
   RASQAL_EXPR_AND,
   RASQAL_EXPR_OR,
-  RASQAL_EXPR_BIT_AND,
-  RASQAL_EXPR_BIT_OR,
-  RASQAL_EXPR_BIT_XOR,
-  RASQAL_EXPR_LSHIFT,
-  RASQAL_EXPR_RSIGNEDSHIFT,
-  RASQAL_EXPR_RUNSIGNEDSHIFT,
   RASQAL_EXPR_EQ,
   RASQAL_EXPR_NEQ,
   RASQAL_EXPR_LT,
@@ -243,8 +237,8 @@ RASQAL_API rasqal_expression* rasqal_new_literal_expression(rasqal_literal *lite
 RASQAL_API rasqal_expression* rasqal_new_variable_expression(rasqal_variable *variable);
 
 RASQAL_API void rasqal_free_expression(rasqal_expression* e);
-RASQAL_API void rasqal_print_expression_op(rasqal_expression* expression, FILE* fh);
-RASQAL_API void rasqal_print_expression(rasqal_expression* e, FILE* fh);
+RASQAL_API void rasqal_expression_print_op(rasqal_expression* expression, FILE* fh);
+RASQAL_API void rasqal_expression_print(rasqal_expression* e, FILE* fh);
 RASQAL_API int rasqal_expression_is_variable(rasqal_expression* e);
 RASQAL_API rasqal_variable* rasqal_expression_as_variable(rasqal_expression* e);
 
@@ -256,17 +250,17 @@ RASQAL_API void rasqal_print_literal(rasqal_literal* literal, FILE* fh);
 
 RASQAL_API rasqal_prefix* rasqal_new_prefix(const char *prefix, raptor_uri *uri);
 RASQAL_API void rasqal_free_prefix(rasqal_prefix* prefix);
-RASQAL_API void rasqal_print_prefix(rasqal_prefix* p, FILE* fh);
+RASQAL_API void rasqal_prefix_print(rasqal_prefix* p, FILE* fh);
 
 /* Triple class */
 RASQAL_API rasqal_triple* rasqal_new_triple(rasqal_expression* subject, rasqal_expression* predicate, rasqal_expression* object);
 RASQAL_API void rasqal_free_triple(rasqal_triple* t);
-RASQAL_API void rasqal_print_triple(rasqal_triple* t, FILE* fh);
+RASQAL_API void rasqal_triple_print(rasqal_triple* t, FILE* fh);
 
 /* Variable class */
 RASQAL_API rasqal_variable* rasqal_new_variable(rasqal_query* rdf_query, const char *name, rasqal_expression *value);
 RASQAL_API void rasqal_free_variable(rasqal_variable* variable);
-RASQAL_API void rasqal_print_variable(rasqal_variable* t, FILE* fh);
+RASQAL_API void rasqal_variable_print(rasqal_variable* t, FILE* fh);
 RASQAL_API void rasqal_variable_set_value(rasqal_variable* v, rasqal_expression *e);
 
 /* rasqal_engine.c */
