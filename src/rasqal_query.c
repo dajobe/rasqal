@@ -461,23 +461,6 @@ rasqal_query_add_variable(rasqal_query* query, rasqal_variable* var)
 
 
 /**
- * rasqal_query_get_variable_sequence - Get the sequence of variables to bind in the query
- * @query: &rasqal_query query object
- *
- * DEPRECATED - use rasqal_query_get_bound_variable_sequence
- *
- * Return value: a &raptor_sequence of &rasqal_variable pointers.
- **/
-raptor_sequence*
-rasqal_query_get_variable_sequence(rasqal_query* query)
-{
-  RASQAL_DEPRECATED_MESSAGE("use rasqal_query_get_bound_variable_sequence");
-
-  return rasqal_query_get_bound_variable_sequence(query);
-}
-
-
-/**
  * rasqal_query_get_bound_variable_sequence - Get the sequence of variables to bind in the query
  * @query: &rasqal_query query object
  *
@@ -577,25 +560,6 @@ rasqal_query_set_variable(rasqal_query* query, const unsigned char *name,
     }
   }
   return 1;
-}
-
-
-/**
- * rasqal_query_add_triple -  Add a matching triple to the query
- * @query: &rasqal_query query object
- * @triple: &rasqal_triple triple
- *
- * DEPRECATED - does not properly construct the query structures
- **/
-void
-rasqal_query_add_triple(rasqal_query* query, rasqal_triple* triple)
-{
-  RASQAL_DEPRECATED_MESSAGE("does not properly construct query structures");
-  
-  if(!query->triples)
-    query->triples=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_triple, (raptor_sequence_print_handler*)rasqal_triple_print);
-  
-  raptor_sequence_shift(query->triples, (void*)triple);
 }
 
 

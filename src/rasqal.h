@@ -284,13 +284,11 @@ RASQAL_API raptor_sequence* rasqal_query_get_data_graph_sequence(rasqal_query* q
 RASQAL_API rasqal_data_graph* rasqal_query_get_data_graph(rasqal_query* query, int idx);
 
 RASQAL_API void rasqal_query_add_variable(rasqal_query* query, rasqal_variable* var);
-RASQAL_API RASQAL_DEPRECATED raptor_sequence* rasqal_query_get_variable_sequence(rasqal_query* query);
 RASQAL_API raptor_sequence* rasqal_query_get_bound_variable_sequence(rasqal_query* query);
 RASQAL_API raptor_sequence* rasqal_query_get_all_variable_sequence(rasqal_query* query);
 RASQAL_API rasqal_variable* rasqal_query_get_variable(rasqal_query* query, int idx);
 RASQAL_API int rasqal_query_has_variable(rasqal_query* query, const unsigned char *name);
 RASQAL_API int rasqal_query_set_variable(rasqal_query* query, const unsigned char *name, rasqal_literal* value);
-RASQAL_API RASQAL_DEPRECATED void rasqal_query_add_triple(rasqal_query* query, rasqal_triple* triple);
 RASQAL_API raptor_sequence* rasqal_query_get_triple_sequence(rasqal_query* query);
 RASQAL_API rasqal_triple* rasqal_query_get_triple(rasqal_query* query, int idx);
 RASQAL_API RASQAL_DEPRECATED void rasqal_query_add_constraint(rasqal_query* query, rasqal_expression* expr);
