@@ -75,8 +75,6 @@ result-T-07.n3 result-T-08.n3 result-T-09.n3 result-T-10.n3
 rdql_testsuite_extra_files=query-dump rdql-tests.n3	\
 README-RDQL-tests.txt copyright.txt
 
-EXPECTED_RDQL_WORKS_FAILURES=test-S-02 test-S-03 test-S-04 test-S-05
-
 EXPECTED_RDQL_CORRECT_FAILURES=1-09 B-01 S-02 S-03 S-04 S-05
 EXPECTED_RDQL_CORRECT_FAILURES_COUNT=6
 
@@ -91,31 +89,7 @@ build-roqet:
 	@(cd $(top_builddir) ; $(MAKE) roqet)
 
 
-check-local: check-rdql-works check-rdql-correct
-
-check-rdql-works: build-roqet
-	@set +e; result=0; \
-	$(ECHO) "Testing RDQL"; \
-	for test in $(rdql_testsuite_test_files); do \
-	  $(ECHO) $(ECHO_N) "Checking $$test $(ECHO_C)"; \
-	  $(top_builddir)/roqet $(srcdir)/$$test >/dev/null 2>&1; \
-	  status=$$?; \
-	  if test $$status != 0 -a $$status != 2 ; then \
-	    $(ECHO) FAILED returned status $$status; result=1; \
-	    fails="$$fails $$test"; \
-	  else \
-	    $(ECHO) ok; \
-	  fi; \
-	done; \
-	if test $$result = 1 ; then \
-	  echo "Expecting test failures: $(EXPECTED_RDQL_WORKS_FAILURES)"; \
-	  if test "X$$fails" = "X $(EXPECTED_RDQL_WORKS_FAILURES)" ; then \
-	    echo "OK: Ignoring expected test failures"; result=0; \
-          else \
-	    echo "FAILED: failures $$fails does not match expected"; result=1; \
-          fi; \
-	fi; \
-	set -e; exit $$result
+check-local: check-rdql-correct
 
 check-rdql-correct: build-roqet $(srcdir)/check-rdql
 	@set +e; \
