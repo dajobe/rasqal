@@ -555,7 +555,7 @@ rasqal_literal_as_integer(rasqal_literal* l, int *error)
  * 
  * Return value: floating value
  **/
-static inline double
+static RASQAL_INLINE double
 rasqal_literal_as_floating(rasqal_literal* l, int *error)
 {
   if(!l)
@@ -637,7 +637,7 @@ rasqal_literal_as_variable(rasqal_literal* l)
 
 
 /* turn the sign of the double into an int, for comparison purposes */
-static inline int
+static RASQAL_INLINE int
 double_to_int(double d) 
 {
   if(d == 0.0)
