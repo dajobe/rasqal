@@ -591,7 +591,7 @@ static int yy_init_globals (yyscan_t yyscanner ) { return 0; };
 int
 rdql_parse(rasqal_query* rq,
            const unsigned char *uri_string, 
-           const char *string) {
+           const char *string, size_t len) {
   rdql_parser rp;
   void *buffer;
   
@@ -606,7 +606,7 @@ rdql_parse(rasqal_query* rq,
   rdql_lexer_lex_init(&rp.scanner);
 
   rdql_lexer_set_extra(&rp, rp.scanner);
-  buffer= rdql_lexer__scan_string(string, rp.scanner);
+  buffer= rdql_lexer__scan_bytes(string, len, rp.scanner);
 
   rdql_parser_parse(&rp);
 
@@ -727,7 +727,7 @@ main(int argc, char *argv[])
 
   uri_string=raptor_uri_filename_to_uri_string(filename);
 
-  rc=rdql_parse(&rq, uri_string, query_string);
+  rc=rdql_parse(&rq, uri_string, query_string, strlen(query_string));
 
   free(uri_string);
 
