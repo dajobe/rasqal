@@ -10,10 +10,6 @@
 
 	* configure.ac: Remove link with expat (!) in posix regex check
 
-2004-08-17  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
-
-	* configure.ac: Remove link with expat (!) in posix regex check
-
 2004-08-13  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
 	* Several fixes for building on win32 from Chris Pointon
