@@ -85,13 +85,14 @@ rdql_parser_error(const char *msg)
 #endif
 
 
-#define GETOPT_STRING "cho:i:qs:v"
+#define GETOPT_STRING "cdho:i:qs:v"
 
 #ifdef HAVE_GETOPT_LONG
 static struct option long_options[] =
 {
   /* name, has_arg, flag, val */
   {"count", 0, 0, 'c'},
+  {"dump-query", 0, 0, 'd'},
   {"help", 0, 0, 'h'},
   {"output", 1, 0, 'o'},
   {"input", 1, 0, 'i'},
@@ -132,6 +133,7 @@ main(int argc, char *argv[])
   int help=0;
   int quiet=0;
   int count=0;
+  int dump_query=0;
   
   program=argv[0];
   if((p=strrchr(program, '/')))
@@ -164,6 +166,10 @@ main(int argc, char *argv[])
         
       case 'c':
         count=1;
+        break;
+
+      case 'd':
+        dump_query=1;
         break;
 
       case 'h':
@@ -263,6 +269,7 @@ main(int argc, char *argv[])
     puts("    'xml'                   An experimental XML format");
     puts("\nAdditional options:");
     puts(HELP_TEXT("c", "count           ", "Count triples - no output"));
+    puts(HELP_TEXT("d", "dump-query      ", "Dump the parsed query"));
     puts(HELP_TEXT("q", "quiet           ", "No extra information messages"));
     puts(HELP_TEXT("s", "source URI      ", "Query against RDF data at source URI"));
     puts(HELP_TEXT("v", "version         ", "Print the Rasqal version"));
@@ -377,9 +384,9 @@ main(int argc, char *argv[])
   if(source_uri)
     rasqal_query_add_source(rq, source_uri);
 
-  if(!quiet) {
+  if(dump_query) {
     fprintf(stderr, "Query:\n");
-    rasqal_query_print(rq, stderr);
+    rasqal_query_print(rq, stdout);
   }
 
   if(!(results=rasqal_query_execute(rq))) {
