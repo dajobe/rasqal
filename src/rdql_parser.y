@@ -617,7 +617,13 @@ rasqal_rdql_query_engine_init(rasqal_query* rdf_query, const char *name) {
  **/
 static void
 rasqal_rdql_query_engine_terminate(rasqal_query* rdf_query) {
-  /* rasqal_rdql_query_engine* rdql=(rasqal_rdql_query_engine*)rdf_query->context; */
+  rasqal_rdql_query_engine* rdql=(rasqal_rdql_query_engine*)rdf_query->context;
+
+  if(rdql->scanner_set) {
+    rdql_lexer_lex_destroy(&rdql->scanner);
+    rdql->scanner_set=0;
+  }
+
 }
 
 
@@ -655,11 +661,15 @@ rdql_parse(rasqal_query* rq, const char *string) {
   rqe->lineno=1;
 
   rdql_lexer_lex_init(&rqe->scanner);
+  rqe->scanner_set=1;
 
   rdql_lexer_set_extra(((rasqal_query*)rq), rqe->scanner);
   buffer= rdql_lexer__scan_string(string, rqe->scanner);
 
   rdql_parser_parse(rq);
+
+  rdql_lexer_lex_destroy(rqe->scanner);
+  rqe->scanner_set=0;
 
   /* Only now can we handle the prefixes and qnames */
   if(rasqal_engine_declare_prefixes(rq) ||
