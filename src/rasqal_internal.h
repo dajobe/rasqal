@@ -274,6 +274,9 @@ void rasqal_free_triples_source(rasqal_triples_source *rts);
 int rasqal_engine_get_next_result(rasqal_query *query);
 void rasqal_engine_assign_binding_values(rasqal_query *query);
 
+/* rasqal_expr.c */
+void rasqal_promote_string_literal_to_native(rasqal_literal *l);
+  
 /* end of RASQAL_INTERNAL */
 #endif
 
