@@ -479,11 +479,26 @@ fi
 MEM=
 MEM_LIBS=
 CPPFLAGS="-DRASQAL_INTERNAL=1 $CPPFLAGS"
+AC_ARG_WITH(dmalloc, [  --with-dmalloc          Use dmalloc debugging library (default=auto)], use_dmalloc="$withval", use_dmalloc="auto") 
+AC_MSG_CHECKING(using dmalloc library)
 if test "$USE_MAINTAINER_MODE" = yes; then
   if test "$ac_cv_header_dmalloc_h" = yes; then
-    MEM=-DRASQAL_MEMORY_DEBUG_DMALLOC=1
-    MEM_LIBS=-ldmalloc
+    if test "X$use_dmalloc" = Xauto; then
+      use_dmalloc=yes
+    fi
+  else
+    use_dmalloc=no
   fi
+  CFLAGS="-DLIBRDF_DEBUG=1 $CFLAGS"
+else
+  use_dmalloc=no
+fi
+AC_MSG_RESULT($use_dmalloc);
+if test $use_dmalloc = yes; then
+  MEM=-DRASQAL_MEMORY_DEBUG_DMALLOC=1
+  MEM_LIBS=-ldmalloc
+fi
+if test "$USE_MAINTAINER_MODE" = yes; then
   CPPFLAGS="-g -DRASQAL_DEBUG=1 $CPPFLAGS"
 fi
 STANDARD_CFLAGS="$STANDARD_CFLAGS $CFLAGS"
