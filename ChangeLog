@@ -1,5 +1,7 @@
 2004-10-29  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
+	* Snapshotted rasqal_0_9_4 for 0.9.4 release
+
 	* configure.ac: Minimum raptor 1.4.1
 
 	* rasqal_raptor.c (ordinal_as_uri):
