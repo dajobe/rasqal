@@ -219,6 +219,25 @@ rasqal_triple_print(rasqal_triple* t, FILE* fh)
   fputs(", ", fh);
   rasqal_literal_print(t->object, fh);
   fputc(')', fh);
+  if(t->origin) {
+    fputs(" with origin(", fh);
+    rasqal_literal_print(t->origin, fh);
+    fputc(')', fh);
+  }
+}
+
+
+void
+rasqal_triple_set_origin(rasqal_triple* t, rasqal_literal* l)
+{
+  t->origin=l;
+}
+
+
+rasqal_literal*
+rasqal_triple_get_origin(rasqal_triple* t)
+{
+  return t->origin;
 }
 
 
