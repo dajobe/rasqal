@@ -120,9 +120,9 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...);
 
 
 /*
- * shift/reduce conflicts
+ * 1 shift/reduce conflicts
  */
-%expect 3
+%expect 1
 
 
 /* word symbols */
@@ -781,21 +781,16 @@ MultiplicativeExpression : UnaryExpression '*' MultiplicativeExpression
 /* SPARQL Grammar: [33] MultiplicativeOperation - merged into MultiplicativeExpression */
 
 /* SPARQL Grammar: [34] UnaryExpression */
-UnaryExpression : UnaryExpressionNotPlusMinus '+' UnaryExpression 
+UnaryExpression : '+' UnaryExpression
 {
-  $$=rasqal_new_2op_expression(RASQAL_EXPR_PLUS, $1, $3);
+  $$=$2;
 }
-| UnaryExpressionNotPlusMinus '-' UnaryExpression
+| '-' UnaryExpression
 {
-  $$=rasqal_new_2op_expression(RASQAL_EXPR_MINUS, $1, $3);
+  $$=rasqal_new_1op_expression(RASQAL_EXPR_UMINUS, $2);
 }
 | UnaryExpressionNotPlusMinus
 {
-  /* FIXME - 2 shift/reduce conflicts here
-   *
-   * The original grammar and this one is ambiguous in allowing
-   * '+'/'-' in UnaryExpression as well as AdditiveExpression
-   */
   $$=$1;
 }
 ;
