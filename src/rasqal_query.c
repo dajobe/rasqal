@@ -276,6 +276,9 @@ rasqal_query_set_feature(rasqal_query *query, rasqal_feature feature, int value)
 void
 rasqal_query_add_source(rasqal_query* query, raptor_uri* uri)
 {
+  if(!query->sources)
+    query->sources=raptor_new_sequence((raptor_sequence_free_handler*)raptor_free_uri, (raptor_sequence_print_handler*)raptor_sequence_print_uri);
+
   raptor_sequence_shift(query->sources, (void*)uri);
 }
 
@@ -303,6 +306,9 @@ rasqal_query_get_source_sequence(rasqal_query* query)
 raptor_uri*
 rasqal_query_get_source(rasqal_query* query, int idx)
 {
+  if(!query->sources)
+    return NULL;
+  
   return (raptor_uri*)raptor_sequence_get_at(query->sources, idx);
 }
 
@@ -318,6 +324,9 @@ rasqal_query_get_source(rasqal_query* query, int idx)
 void
 rasqal_query_add_variable(rasqal_query* query, rasqal_variable* var)
 {
+  if(!query->selects)
+    query->selects=raptor_new_sequence(NULL, (raptor_sequence_print_handler*)rasqal_variable_print);
+
   raptor_sequence_shift(query->selects, (void*)var);
 }
 
@@ -345,6 +354,9 @@ rasqal_query_get_variable_sequence(rasqal_query* query)
 rasqal_variable*
 rasqal_query_get_variable(rasqal_query* query, int idx)
 {
+  if(!query->selects)
+    return NULL;
+  
   return (rasqal_variable*)raptor_sequence_get_at(query->selects, idx);
 }
 
@@ -361,6 +373,9 @@ rasqal_query_has_variable(rasqal_query* query, const unsigned char *name)
 {
   int i;
 
+  if(!query->selects)
+    return 1;
+  
   for(i=0; i< raptor_sequence_size(query->selects); i++) {
     rasqal_variable* v=(rasqal_variable*)raptor_sequence_get_at(query->selects, i);
     if(!strcmp((const char*)v->name, (const char*)name))
@@ -387,6 +402,9 @@ rasqal_query_set_variable(rasqal_query* query, const unsigned char *name,
 {
   int i;
 
+  if(!query->selects)
+    return 1;
+  
   for(i=0; i< raptor_sequence_size(query->selects); i++) {
     rasqal_variable* v=(rasqal_variable*)raptor_sequence_get_at(query->selects, i);
     if(!strcmp((const char*)v->name, (const char*)name)) {
@@ -409,6 +427,9 @@ rasqal_query_set_variable(rasqal_query* query, const unsigned char *name,
 void
 rasqal_query_add_triple(rasqal_query* query, rasqal_triple* triple)
 {
+  if(!query->triples)
+    query->triples=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_triple, (raptor_sequence_print_handler*)rasqal_triple_print);
+  
   raptor_sequence_shift(query->triples, (void*)triple);
 }
 
@@ -436,6 +457,9 @@ rasqal_query_get_triple_sequence(rasqal_query* query)
 rasqal_triple*
 rasqal_query_get_triple(rasqal_query* query, int idx)
 {
+  if(!query->triples)
+    return NULL;
+  
   return (rasqal_triple*)raptor_sequence_get_at(query->triples, idx);
 }
 
@@ -449,6 +473,9 @@ rasqal_query_get_triple(rasqal_query* query, int idx)
 void
 rasqal_query_add_constraint(rasqal_query* query, rasqal_expression* expr)
 {
+  if(!query->constraints)
+    query->constraints=raptor_new_sequence(NULL, (raptor_sequence_print_handler*)rasqal_expression_print);
+  
   raptor_sequence_shift(query->constraints, (void*)expr);
 }
 
@@ -476,6 +503,9 @@ rasqal_query_get_constraint_sequence(rasqal_query* query)
 rasqal_expression*
 rasqal_query_get_constraint(rasqal_query* query, int idx)
 {
+  if(!query->constraints)
+    return NULL;
+
   return (rasqal_expression*)raptor_sequence_get_at(query->constraints, idx);
 }
 
@@ -489,6 +519,9 @@ rasqal_query_get_constraint(rasqal_query* query, int idx)
 void
 rasqal_query_add_prefix(rasqal_query* query, rasqal_prefix* prefix)
 {
+  if(!query->prefixes)
+    query->prefixes=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_prefix, (raptor_sequence_print_handler*)rasqal_prefix_print);
+
   raptor_sequence_shift(query->prefixes, (void*)prefix);
 }
 
@@ -516,6 +549,9 @@ rasqal_query_get_prefix_sequence(rasqal_query* query)
 rasqal_prefix*
 rasqal_query_get_prefix(rasqal_query* query, int idx)
 {
+  if(!query->prefixes)
+    return NULL;
+
   return (rasqal_prefix*)raptor_sequence_get_at(query->prefixes, idx);
 }
 
