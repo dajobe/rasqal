@@ -182,6 +182,22 @@ rasqal_query_order_triples(rasqal_query* query) {
 
 
 int
+rasqal_engine_declare_prefix(rasqal_query *rq, rasqal_prefix *p)
+{
+  if(p->declared)
+    return 0;
+  
+  if(raptor_namespaces_start_namespace_full(rq->namespaces, 
+                                            p->prefix, 
+                                            raptor_uri_as_string(p->uri),
+                                            0))
+    return 1;
+  p->declared=1;
+  return 0;
+}
+
+
+int
 rasqal_engine_declare_prefixes(rasqal_query *rq) 
 {
   int i;
@@ -191,11 +207,7 @@ rasqal_engine_declare_prefixes(rasqal_query *rq)
   
   for(i=0; i< raptor_sequence_size(rq->prefixes); i++) {
     rasqal_prefix* p=(rasqal_prefix*)raptor_sequence_get_at(rq->prefixes, i);
-
-    if(raptor_namespaces_start_namespace_full(rq->namespaces, 
-                                              p->prefix, 
-                                              raptor_uri_as_string(p->uri),
-                                              0))
+    if(rasqal_engine_declare_prefix(rq, p))
       return 1;
   }
 
