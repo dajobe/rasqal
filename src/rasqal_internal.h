@@ -4,8 +4,8 @@
  *
  * $Id$
  *
- * Copyright (C) 2003 David Beckett - http://purl.org/net/dajobe/
- * Institute for Learning and Research Technology - http://www.ilrt.org/
+ * Copyright (C) 2003-2004 David Beckett - http://purl.org/net/dajobe/
+ * Institute for Learning and Research Technology - http://www.ilrt.bris.ac.uk/
  * University of Bristol - http://www.bristol.ac.uk/
  * 
  * This package is Free Software or Open Source available under the
@@ -98,7 +98,7 @@ typedef struct rasqal_query_engine_factory_s rasqal_query_engine_factory;
 
 struct rasqal_triples_match_s {
   void *user_data;
-  librdf_statement* (*get_match)(struct rasqal_triples_match_s*, void *user_data);
+  int (*bind_match)(struct rasqal_triples_match_s*, void *user_data, rasqal_variable *bindings[3]);
   void (*next_match)(struct rasqal_triples_match_s*, void *user_data);
   int (*is_end)(struct rasqal_triples_match_s*, void *user_data);
   void (*finish)(struct rasqal_triples_match_s*, void *user_data);
