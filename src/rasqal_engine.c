@@ -541,7 +541,6 @@ rasqal_engine_execute_init(rasqal_query *query) {
     }
   }
 
-  query->column=0;
   query->abort=0;
   query->result_count=0;
   query->finished=0;
@@ -798,9 +797,7 @@ int
 rasqal_engine_run(rasqal_query *query) {
   int rc=0;
   
-  while(query->column >= 0) {
-    RASQAL_DEBUG2("column %d\n", query->column);
-
+  while(!query->finished) {
     if(query->abort)
       break;
     
