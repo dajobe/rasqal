@@ -60,8 +60,6 @@ static char *program=NULL;
 static enum { OUTPUT_FORMAT_SIMPLE } output_format = OUTPUT_FORMAT_SIMPLE;
 
 
-#include <redland.h>
-
 int
 rdql_parser_error(const char *msg) 
 {
@@ -99,10 +97,6 @@ static struct option long_options[] =
 static const char *title_format_string="Rasqal RDF query utility %s\n";
 
 
-/* FIXME - for now */
-void rasqal_redland_init(librdf_world *world);
-  
-
 #define RDQL_FILE_BUF_SIZE 2048
 
 int
@@ -124,7 +118,6 @@ main(int argc, char *argv[])
   int help=0;
   int quiet=0;
   int count=0;
-  librdf_world *world=NULL;
   
   program=argv[0];
   if((p=strrchr(program, '/')))
@@ -134,12 +127,7 @@ main(int argc, char *argv[])
   argv[0]=program;
   
 
-  world=librdf_new_world();
-  librdf_world_open(world);
-
   rasqal_init();
-
-  rasqal_redland_init(world);
 
   while (!usage && !help)
   {
@@ -383,7 +371,6 @@ main(int argc, char *argv[])
     free(uri_string);
 
   rasqal_finish();
-  librdf_free_world(world);
   
   return (rc);
 }
