@@ -335,6 +335,43 @@ rasqal_query_get_triple(rasqal_query* query, int idx) {
 
 
 /**
+ * rasqal_query_add_constraint: Add a constraint expression to the query
+ * @query: &rasqal_query query object
+ * @expr: &rasqal_expression expr
+ *
+ **/
+void
+rasqal_query_add_constraint(rasqal_query* query, rasqal_expression* expr) {
+  raptor_sequence_shift(query->constraints, (void*)expr);
+}
+
+
+/**
+ * rasqal_query_get_constraint_sequence: Get the sequence of constraints expressions in the query
+ * @query: &rasqal_query query object
+ *
+ * Return value: a &raptor_sequence of &rasqal_expression pointers.
+ **/
+raptor_sequence*
+rasqal_query_get_constraint_sequence(rasqal_query* query) {
+  return query->constraints;
+}
+
+
+/**
+ * rasqal_query_get_constraint: Get a constraint in the sequence of constraint expressions in the query
+ * @query: &rasqal_query query object
+ * @idx: index into the sequence (0 or larger)
+ *
+ * Return value: a &rasqal_expression pointer or NULL if out of the sequence range
+ **/
+rasqal_expression*
+rasqal_query_get_constraint(rasqal_query* query, int idx) {
+  return (rasqal_expression*)raptor_sequence_get_at(query->constraints, idx);
+}
+
+
+/**
  * rasqal_query_prepare: Prepare a query - typically parse it
  * @rdf_query: the &rasqal_query object
  * @query_string: the query string
