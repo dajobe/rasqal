@@ -118,9 +118,15 @@ rasqal_query_print(rasqal_query* query, FILE *fh) {
 #include <locale.h>
 
 
+
+int rdql_parser_error(const char *msg);
+int main(int argc, char *argv[]);
+
+
 extern char *filename;
 extern int lineno;
 char *program;
+
 
 int
 rdql_parser_error(const char *msg) 
@@ -130,9 +136,12 @@ rdql_parser_error(const char *msg)
 }
 
 
+#define RDQL_FILE_BUF_SIZE 2048
+
 int
 main(int argc, char *argv[]) 
-{
+{ 
+  char *query_string=NULL;
   rasqal_query *rq;
   char *ql_name;
   char *ql_uri;
@@ -140,8 +149,8 @@ main(int argc, char *argv[])
 
   program=argv[0];
   
-  if(argc != 4) {
-    fprintf(stderr, "USAGE: %s QUERY-LANGUAGE|- QUERY-URI|- QUERY-STRING\n", 
+  if(argc < 3 || argc > 4) {
+    fprintf(stderr, "USAGE: %s QUERY-LANGUAGE|- QUERY-URI|- [QUERY-STRING|-]\n", 
             program);
     exit(1);
   }
@@ -149,9 +158,15 @@ main(int argc, char *argv[])
   ql_name=!strcmp(argv[1], "-") ? NULL : argv[1];
   ql_uri=!strcmp(argv[1], "-") ? NULL : argv[2];
 
+  if(!argv[2] || !strcmp(argv[2], "-")) {
+    query_string=(char*)calloc(RDQL_FILE_BUF_SIZE, 1);
+    fread(query_string, RDQL_FILE_BUF_SIZE, 1, stdin);
+  } else
+    query_string=argv[3];
+  
   rq=rasqal_new_query(ql_name, ql_uri);
-  if(rasqal_parse_query(rq, argv[3])) {
-    fprintf(stderr, "%s: Parsing query '%s' failed\n", program, argv[3]);
+  if(rasqal_parse_query(rq, query_string)) {
+    fprintf(stderr, "%s: Parsing query '%s' failed\n", program, query_string);
     rc=1;
   }
 
@@ -159,6 +174,10 @@ main(int argc, char *argv[])
   rasqal_query_print(rq, stdout);
 
   rasqal_free_query(rq);
+
+  if(!strcmp(argv[2], "-")) {
+    free(query_string);
+  }
 
   return (rc);
 }
