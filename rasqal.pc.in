@@ -4,7 +4,7 @@ libdir=@libdir@
 includedir=@includedir@
 
 Name: Rasqal RDF Query Library
-Description: Rasqual provides RDF Query parsing and support
+Description: Rasqal RDF Query parsing and execution library
 Requires: raptor >= @RAPTOR_MIN_VERSION@
 Version: @VERSION@
 Libs: -L${libdir} -lrasqal @LDFLAGS@ @LIBS@
