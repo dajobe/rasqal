@@ -229,7 +229,7 @@ QUOTEDURI \<[A-Za-z][^>]+\>
 "true"|"false"	{ rdql_parser_lval->literal=rasqal_new_integer_literal(RASQAL_LITERAL_BOOLEAN, (*yytext== 't'));
                   return BOOLEAN_LITERAL; }
 
-"null"	{ rdql_parser_lval->literal=rasqal_new_integer_literal(RASQAL_LITERAL_NULL, 0);
+"null"	{ rdql_parser_lval->literal=NULL;
           return NULL_LITERAL; }
 
 <*>{NAME}	{ rdql_parser_lval->name=copy_token(rq, yytext, yyleng);

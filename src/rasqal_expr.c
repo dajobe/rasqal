@@ -121,6 +121,7 @@ rasqal_new_string_literal(char *string, char *language,
 }
 
 
+/* used for BLANK and QNAME */
 rasqal_literal*
 rasqal_new_simple_literal(rasqal_literal_type type, char *string) {
   rasqal_literal* l=(rasqal_literal*)calloc(sizeof(rasqal_literal), 1);
@@ -173,7 +174,6 @@ rasqal_free_literal(rasqal_literal* l) {
       break;
     case RASQAL_LITERAL_INTEGER:
     case RASQAL_LITERAL_BOOLEAN:
-    case RASQAL_LITERAL_NULL:
     case RASQAL_LITERAL_FLOATING:
       break;
     default:
@@ -191,7 +191,6 @@ static const char* rasqal_literal_type_labels[]={
   "blank",
   "pattern",
   "boolean",
-  "null",
   "integer",
   "floating"
 };
@@ -200,7 +199,14 @@ static const char* rasqal_literal_type_labels[]={
 static void
 rasqal_literal_print_type(rasqal_literal* literal, FILE* fh)
 {
-  rasqal_literal_type type=literal->type;
+  rasqal_literal_type type;
+
+  if(!literal) {
+    fputs("null", fh);
+    return;
+  }
+  
+  type=literal->type;
   if(type > RASQAL_LITERAL_LAST)
     type=RASQAL_LITERAL_UNKNOWN;
   fputs(rasqal_literal_type_labels[(int)type], fh);
@@ -210,7 +216,11 @@ rasqal_literal_print_type(rasqal_literal* literal, FILE* fh)
 void
 rasqal_literal_print(rasqal_literal* l, FILE* fh)
 {
-  /*  fputs("literal_", fh); */
+  if(!l) {
+    fputs("null", fh);
+    return;
+  }
+  
   rasqal_literal_print_type(l, fh);
   switch(l->type) {
     case RASQAL_LITERAL_URI:
@@ -242,9 +252,6 @@ rasqal_literal_print(rasqal_literal* l, FILE* fh)
       else
         fputs("boolean(false)", fh);
       break;
-    case RASQAL_LITERAL_NULL:
-      fputs("null", fh);
-      break;
     case RASQAL_LITERAL_FLOATING:
       fprintf(fh, " %f", l->value.floating);
       break;
@@ -258,21 +265,26 @@ rasqal_literal_print(rasqal_literal* l, FILE* fh)
 int
 rasqal_literal_as_boolean(rasqal_literal* l)
 {
+  if(!l)
+    return 0;
+  
   switch(l->type) {
     case RASQAL_LITERAL_URI:
       return (l->value.uri) != NULL;
       break;
+      
     case RASQAL_LITERAL_STRING:
     case RASQAL_LITERAL_BLANK:
     case RASQAL_LITERAL_PATTERN:
     case RASQAL_LITERAL_QNAME:
       return (l->value.string) != NULL;
       break;
+
     case RASQAL_LITERAL_INTEGER:
     case RASQAL_LITERAL_BOOLEAN:
-    case RASQAL_LITERAL_NULL:
       return l->value.integer != 0;
       break;
+
     case RASQAL_LITERAL_FLOATING:
       return l->value.floating != 0.0;
       break;
@@ -285,10 +297,12 @@ rasqal_literal_as_boolean(rasqal_literal* l)
 inline int
 rasqal_literal_as_integer(rasqal_literal* l)
 {
+  if(!l)
+    return 0;
+  
   switch(l->type) {
     case RASQAL_LITERAL_INTEGER:
     case RASQAL_LITERAL_BOOLEAN:
-    case RASQAL_LITERAL_NULL:
       return l->value.integer != 0;
       break;
     case RASQAL_LITERAL_FLOATING:
@@ -309,6 +323,9 @@ inline char*
 rasqal_literal_as_string(rasqal_literal* l)
 {
   static char buf[32]; /* fixme */
+
+  if(!l)
+    return NULL;
   
   switch(l->type) {
     case RASQAL_LITERAL_INTEGER:
@@ -316,11 +333,7 @@ rasqal_literal_as_string(rasqal_literal* l)
       return buf;
       
     case RASQAL_LITERAL_BOOLEAN:
-      strcpy(buf, (l->value.integer != 0) ? "true" :"false");
-      return buf;
-
-    case RASQAL_LITERAL_NULL:
-      return NULL;
+      return l->value.integer ? "true" :"false";
 
     case RASQAL_LITERAL_FLOATING:
       sprintf(buf, "%f", l->value.floating);
@@ -342,6 +355,14 @@ inline int
 rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int *error)
 {
   *error=0;
+
+  /* null literals */
+  if(!l1 || !l2) {
+    /* if either is not null, the comparison fails */
+    if(l1 || l2)
+      *error=1;
+    return 0;
+  }
   
   if(l1->type != l2->type) {
     if(!l1->type != RASQAL_LITERAL_INTEGER &&
@@ -368,7 +389,6 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int *error)
 
     case RASQAL_LITERAL_INTEGER:
     case RASQAL_LITERAL_BOOLEAN:
-    case RASQAL_LITERAL_NULL:
       return l2->value.integer - l1->value.integer;
       break;
 
