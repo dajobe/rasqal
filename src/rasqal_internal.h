@@ -279,6 +279,8 @@ void rasqal_query_error_varargs(rasqal_query* query, const char *message, va_lis
 void rasqal_query_warning(rasqal_query* query, const char *message, ...);
 void rasqal_query_warning_varargs(rasqal_query* query, const char *message, va_list arguments);
 
+const char* rasqal_basename(const char *name);
+
 /* rdql_parser.y */
 void rasqal_init_query_engine_rdql (void);
 
