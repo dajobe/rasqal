@@ -616,7 +616,7 @@ rasqal_expression_evaluate(rasqal_expression* e) {
 
     case RASQAL_EXPR_AND:
       {
-        int b=rasqal_expression_as_boolean(e->arg1) && 
+        int b=rasqal_expression_as_boolean(e->arg1) &&
               rasqal_expression_as_boolean(e->arg2);
         return rasqal_new_literal(RASQAL_LITERAL_BOOLEAN, b, 0.0, NULL, NULL);
       }
@@ -728,9 +728,16 @@ rasqal_expression_evaluate(rasqal_expression* e) {
       }
 
     case RASQAL_EXPR_TILDE:
+      {
+        int i= ~ rasqal_expression_as_integer(e->arg1);
+        return rasqal_new_literal(RASQAL_LITERAL_INTEGER, i, 0.0, NULL, NULL);
+      }
+
     case RASQAL_EXPR_BANG:
-      /* FIXME */
-      break;
+      {
+        int b=!rasqal_expression_as_boolean(e->arg1);
+        return rasqal_new_literal(RASQAL_LITERAL_BOOLEAN, b, 0.0, NULL, NULL);
+      }
 
     case RASQAL_EXPR_STR_MATCH:
     case RASQAL_EXPR_STR_NMATCH:
