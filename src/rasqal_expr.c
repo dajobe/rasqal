@@ -120,7 +120,7 @@ rasqal_literal_string_to_native(rasqal_literal *l)
     int i=atoi(l->string);
 
     if(l->language) {
-      free(l->language);
+      RASQAL_FREE(cstring, l->language);
       l->language=NULL;
     }
 
@@ -134,7 +134,7 @@ rasqal_literal_string_to_native(rasqal_literal *l)
     sscanf(l->string, "%lf", &d);
 
     if(l->language) {
-      free(l->language);
+      RASQAL_FREE(cstring, l->language);
       l->language=NULL;
     }
 
@@ -221,9 +221,9 @@ rasqal_free_literal(rasqal_literal* l) {
     case RASQAL_LITERAL_FLOATING:
     case RASQAL_LITERAL_INTEGER: 
      if(l->string)
-        free(l->string);
+        RASQAL_FREE(cstring,l->string);
       if(l->language)
-        free(l->language);
+        RASQAL_FREE(cstring,l->language);
       if(l->datatype)
         raptor_free_uri(l->datatype);
       break;
@@ -240,7 +240,7 @@ rasqal_free_literal(rasqal_literal* l) {
     default:
       abort();
   }
-  free(l);
+  RASQAL_FREE(rasqal_literal, l);
 }
 
 
@@ -605,7 +605,7 @@ rasqal_free_variable(rasqal_variable* v) {
     RASQAL_FREE(cstring, v->name);
   if(v->value)
     rasqal_free_literal(v->value);
-  free(v);
+  RASQAL_FREE(rasqal_variable, v);
 }
 
 
@@ -686,7 +686,7 @@ rasqal_free_triple(rasqal_triple* t)
   rasqal_free_literal(t->subject);
   rasqal_free_literal(t->predicate);
   rasqal_free_literal(t->object);
-  free(t);
+  RASQAL_FREE(rasqal_triple, t);
 }
 
 
@@ -781,7 +781,7 @@ rasqal_free_expression(rasqal_expression* e) {
     default:
       abort();
   }
-  free(e);
+  RASQAL_FREE(rasqal_expression, e);
 }
 
 
@@ -822,7 +822,6 @@ rasqal_expression_foreach(rasqal_expression* e,
     default:
       abort();
   }
-  free(e);
 }
 
 
