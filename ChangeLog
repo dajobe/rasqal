@@ -1,0 +1,1857 @@
+2004-06-13  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* Snapshotted rasqal_0_9_1 for 0.9.1 release
+
+	* configure.ac: Require raptor 1.3.1
+
+	* docs/Makefile.am: README should be maintainer-clean
+
+	* configure.ac: removed dup enable-release
+
+	* configure.ac:
+	Only muck about with removing -O2 from flags in maintainer mode.
+
+	* librasqal.3:
+	Added query results class, moved methods over and renamed.
+
+	* librasqal.3: example updated
+
+2004-06-12  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* Makefile.am: Added local distclean-compile rule to override the
+	insane one automake uses by default: rm -f *.tab.c
+
+	* librasqal.3: Add 0.9.1 changelog
+
+2004-06-01  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal_query.c (rasqal_free_query_results,
+	rasqal_query_results_get_count, rasqal_query_results_next,
+	rasqal_query_results_finished, rasqal_query_results_get_bindings,
+	rasqal_query_results_get_binding_value,
+	rasqal_query_results_get_binding_name,
+	rasqal_query_results_get_binding_value_by_name,
+	rasqal_query_results_get_bindings_count): Defensive checking for
+	non-NULL query_results.
+
+	* docs/kernel-doc:
+	ensure id in the SGML is always same size with md5sum
+
+	* rasqal_query.c (rasqal_query_remove_query_result): Init prev.
+
+	* rasqal_query.c: (rasqal_query_results_get_binding_value_by_name)
+	Renamed from rasqal_query_results_get_binding_by_name.
+
+	* rasqal.h: rasqal_query_results_get_binding_by_name to
+	rasqal_query_results_get_binding_value_by_name
+
+	* roqet.c: Use rasqal_query_results apis
+
+	* rasqal_query.c (rasqal_new_query, rasqal_free_query): Use usage.
+	(rasqal_query_execute): Return a new rasqal_query_results* object
+	and add it to the query object with rasqal_query_add_query_result.
+	(rasqal_query_add_query_result, rasqal_query_remove_query_result): Added
+	(rasqal_free_query_results): Added to destroy rasqal_query_results* object
+	Renamings:
+	rasqal_query_get_result_count => rasqal_query_results_get_count
+	rasqal_query_next_result => rasqal_query_results_next
+	rasqal_query_results_finished => rasqal_query_results_finished
+	rasqal_query_get_result_bindings => rasqal_query_results_get_bindings
+	rasqal_query_get_result_binding_value => rasqal_query_results_get_binding_value
+	rasqal_query_get_result_binding_name => rasqal_query_results_get_binding_name
+	rasqal_query_get_result_binding_by_name => +rasqal_query_results_get_binding_by_name
+	rasqal_query_get_bindings_count => rasqal_query_results_get_bindings_count
+
+	* rasqal_internal.h:
+	rasqal_query_s: Added usage counts, results pointing to active
+	rasqal_query_results* for this query.
+	Added rasqal_query_results_s structure.
+
+	* rasqal.h: Added rasqal_query_results class.
+	Made rasqal_query_execute return a rasqal_query_result*
+	Renamed all rasqal_query*result* methods to be rasqal_query_result_*
+	Added rasqal_free_query_results to tidy up.
+
+	* rasqal_engine.c (rasqal_engine_build_constraints_expression):
+	Use AND between	constraints.
+
+2004-05-30  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* Makefile.am:
+	Don't use RASQAL_INTERNAL_LIBS except in dependencies of librasqal.la
+
+	* rasqal_internal.h: remove duplicate and broken YYDEBUG lines
+
+2004-05-29  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* autogen.sh: Add --enable-maintainer-mode
+
+2004-05-28  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* tests/Makefile.am, rdql-testsuite/Makefile.am:
+	Add set +e, set -e around multiple tests so they only fail at the end.
+
+	* configure.ac: Add flex version check, only in maintainer mode
+
+	* Makefile.am: Make lex and yacc rules be maintainer only.
+
+	* configure.ac: Use automakefile conditionals STRCASECMP and GETOPT
+
+	* Makefile.am: Use automakefile conditionals STRCASECMP and GETOPT
+	for conditional sources.  Re-order the directives slightly.
+
+2004-05-27  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* configure.ac: check for perl
+
+	* Makefile.am: Add fix-flex and use it
+
+	* fix-flex: Fix flex output
+
+2004-05-15  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* configure.ac: Bumped version to 0.9.1
+
+	* Snapshotted rasqal_0_9_0 for 0.9.0 release
+
+	* rdql-testsuite/Makefile.am:
+	Improve checking works/correct against expected failures.
+
+	* rdql-testsuite/Makefile.am:
+	Check works/correct RDQL tests against expected failures.
+
+	* rdql-testsuite/check-rdql: Use portable diff -u in errors
+
+2004-05-14  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* configure.ac: 0.9.0
+
+2004-05-13  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* fix-groff-xhtml: update for rasqal
+
+	* librasqal.3: updated for release
+
+	* rasqal.h: dead prototype
+
+	* rasqal_internal.h, rasqal.h: Export rasqal_literal_as_node.
+
+	* rasqal_redland.c (rasqal_redland_bind_match):
+	use redland_node_to_rasqal_literal
+
+	* rasqal_literal.c (rasqal_literal_equals):
+	Boolean literals compare equal to string
+	literals "true" or "false".
+
+	* rasqal_literal.c: Throughout - use RASQAL_CALLOC
+	(rasqal_literal_as_floating): Added
+	(rasqal_literal_compare): Add more debug messages.
+	Promote to floating right.
+	(rasqal_literal_as_node): Make a new string literal for integer,
+	floating here.
+
+	* rdql-testsuite/check-rdql:
+	Do not hack around roqet emitng integer, floating,
+	Do hack around rapper/raptor 1.3.0 bug
+
+	* rasqal_literal.c (rasqal_literal_compare):
+	In promoting comparisons, check both ways
+	round before turning to next type.
+
+	* rasqal_raptor.c (rasqal_raptor_bind_match):
+	Use rasqal_literal_as_node in setting
+	bindings.
+
+	* rasqal_internal.h: Add rasqal_literal_as_node
+
+	* rasqal_literal.c (rasqal_new_string_literal,
+	rasqal_literal_expand_qname): Discard language if datatype is
+	given.
+
+	* rdql-testsuite/check-rdql:
+	Turn internal integer, floating into typed literals.
+
+2004-05-12  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rdql-testsuite/check-rdql: report failures
+
+2004-05-11  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* TODO.html: words
+
+2004-05-07  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal_query.c (rasqal_query_print):
+	Don't try to print NULL sequences.
+
+	* docs/Makefile.am, docs/api.sgml.in, docs/build-docs,
+	docs/kernel-doc: Rasqal docs and API manual
+
+	* configure.ac, Makefile.am: Added docs
+
+	* rasqal_general.c:
+	Rename various functions, moved from here to rasqal_query.c:
+	rasqal_query_get_name, rasqal_query_get_label,
+	rasqal_query_set_fatal_error_handler, rasqal_query_set_error_handler,
+	rasqal_query_set_warning_handler, rasqal_query_set_feature
+
+	* rasqal_query.c:
+	Rename various functions, moved to this rasqal_query.c:
+	rasqal_query_get_name, rasqal_query_get_label,
+	rasqal_query_set_fatal_error_handler, rasqal_query_set_error_handler,
+	rasqal_query_set_warning_handler, rasqal_query_set_feature
+
+	* rasqal.h: Renames: Now rasqal_query* for the following name:
+	rasqal_get_name, rasqal_get_label,
+	rasqal_set_fatal_error_handler, rasqal_set_error_handler,
+	rasqal_set_warning_handler, rasqal_set_feature
+
+	* rdql_parser.y (rasqal_rdql_query_engine_prepare):
+	Handle NULL query_string.
+
+	* rasqal_internal.h: Internal: rasqal_literal_as_boolean,
+	rasqal_literal_as_integer
+
+	* rasqal.h: Do not export rasqal_literal_as_boolean
+
+	* Makefile.am: Add rasqal_literal.c
+
+	* rasqal_expr.c, rasqal_literal.c:
+	Rasqal literal moved from rasqal_expr.c
+
+	* rasqal_query.c (rasqal_query_prepare): Note query_string can be NULL.
+
+	* roqet.c: Use names/values methods for results, no need for a
+	static array.
+
+	* rasqal_query.c: (rasqal_query_get_bindings_count): Added
+
+	* roqet.c: Don't use uninitialised values, values.
+
+	* rasqal.h: Added rasqal_query_get_bindings_count
+
+	* rasqal_query.c (rasqal_query_prepare):
+	Free raptor-alloced memory with raptor_free_memory.
+	(rasqal_query_get_bindings_count): Added.
+
+	* roqet.c: Add list of valid inputs for -i/--input errors.
+
+	* rasqal_query.c: parameter naming consistency (no code changes)
+	docucomments
+
+2004-05-06  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal.h: Renamed rasqal_query_get_result_binding to
+	rasqal_query_get_result_binding_value.  Added
+	rasqal_query_get_result_binding_name
+
+	* rasqal_query.c (rasqal_query_get_result_binding_value): Renamed from
+	rasqal_query_get_result_binding. Fix dubious offset checking.
+	(rasqal_query_get_result_binding_name): Added.
+
+2004-05-05  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal.h:
+	Added rasqal_query_get_user_data and rasqal_query_set_user_data
+
+	* rasqal_query.c
+	(rasqal_query_get_user_data,rasqal_query_set_user_data): Added
+
+	* rasqal_query.c: docucumments
+
+	* rasqal.spec.in: date
+
+	* rasqal.spec.in, rasqal.pc.in, configure.ac:
+	Use new @RAPTOR_MIN_VERSION@ subst.
+
+	* Makefile.am: Install roqet
+
+	* Makefile.am: Added roqet.1 and roqet.html, add fix-groff-xhtml
+
+	* roqet.1: roqet man page
+
+	* configure.ac: SUBST with_raptor
+
+	* rasqal-src-config.in: sigh, rasqal uses raptor
+
+	* rasqal-src-config.in: One more remaining bad raptor cut'n' paste
+
+	* rdql-testsuite/Makefile.am: Add check-rdql to dist
+
+	* configure.ac: Added build summary.
+
+	* rasqal_raptor.c: (raptor_statement_as_rasqal_triple) C99.
+
+	* configure.ac: Try to find raptor sources better.
+
+	* rdql-testsuite/Makefile.am:
+	Do not die on test failures for known rasqal bugs.
+
+	* rasqal_redland.c (rasqal_redland_new_triples_source):
+	Use rasqal_query_get_source.
+	(rasqal_redland_init, rasqal_redland_finish): Make a new librdf_world
+	here and use it in this module only.
+
+	* rasqal_internal.h:
+	Add prototypes for rasqal_redland_init and rasqal_redland_finish
+
+	* rasqal_general.c (rasqal_finish): Add redland stop code.
+
+	* rasqal_general.c (rasqal_finish): No redland stop code now.
+
+	* rasqal_general.c (rasqal_init, rasqal_finish):
+	Select raptor or redland start/stop
+	code.
+
+	* rasqal_redland.c (rasqal_redland_new_triples_source):
+	Deal with sources here, moved
+	from rasqal_engine_execute_init.
+
+	* rasqal_raptor.c (rasqal_raptor_new_triples_source):
+	Deal with sources here, moved
+	from rasqal_engine_execute_init.
+
+	* rasqal_engine.c (rasqal_new_triples_source): Lose uri argument.
+	(rasqal_engine_execute_init): Do not deal with sources here; push to
+	triples source factories.
+
+	* rasqal_internal.h: rasqal_new_triples_source loses uri argument.
+
+	* rasqal.h: Lose uri field from rasqal_triples_source.
+
+	* Makefile.am: Moved LTLIBOBJS around to allow strcasecmp,
+	rasqal_redland to work right.
+
+	* configure.ac: Added --redland-config
+	Added --with-triples-source=(raptor|redland)
+
+2004-05-04  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal_raptor.c, rasqal_expr.c:
+	raptor now exports raptor_xml_literal_datatype_uri_string
+
+	* rasqal_raptor.c (raptor_statement_as_rasqal_triple):
+	Allocate space for \0 in blank,
+	strings.
+
+	* rasqal_raptor.c (rasqal_raptor_new_triples_source):
+	fail if there is no uri
+
+	* rasqal.h:
+	Added rasqal_query_add_prefix, rasqal_query_get_prefix_sequence
+	and rasqal_query_get_prefix
+
+	* rasqal_query.c (rasqal_query_add_prefix,
+	rasqal_query_get_prefix_sequence, rasqal_query_get_prefix): added,
+	for access to namespace prefixes
+
+	* rasqal.h:
+	Added rasqal_query_add_constraint, rasqal_query_get_constraint_sequence
+	and rasqal_query_get_constraint
+
+	* rasqal_query.c (rasqal_query_add_constraint,
+	rasqal_query_get_constraint_sequence,
+	rasqal_query_get_constraint): added, for access to constraint
+	expressions
+
+	* rasqal.h:
+	Added rasqal_query_add_triple, rasqal_query_get_triple_sequence
+	and rasqal_query_get_triple
+
+	* rasqal_query.c (rasqal_query_add_triple,
+	rasqal_query_get_triple_sequence, rasqal_query_get_triple): added,
+	for access to triples
+
+	* rasqal.h:
+	Updated rasqal_query_add_source, rasqal_query_get_source_sequence,
+	rasqal_query_get_source to use raptor_uri types.
+	Added rasqal_query_add_variable, rasqal_query_get_variable_sequence
+	and rasqal_query_get_variable
+
+	* rasqal_query.c: Docucomments.
+	(rasqal_query_add_source, rasqal_query_get_source_sequence,
+	rasqal_query_get_source): use raptor_uri types.
+	(rasqal_query_add_variable, rasqal_query_get_variable_sequence,
+	rasqal_query_get_variable): added, analagous to above.
+
+2004-05-03  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal_expr.c (rasqal_literal_compare):
+	break after case for floating.
+
+	* rdql-testsuite/check-rdql:
+	check-rdql - Run Rasqal against RDQL testsuite
+
+	* rdql-testsuite/Makefile.am:
+	Add check with roqet and then check it is correct with check-rdql
+
+	* rdql-testsuite/README: RDQL testsuite notes
+
+	* rdql-testsuite/Makefile.am: Updated to RDQL testsuite 2.1a
+	Added maintainer rules to aid importing, updating and patching.
+	Added README
+
+	* rdql-testsuite/tests2turtle.patch: Patch file for RDQL testsuite
+
+	* rdql-testsuite/README-RDQL-tests.txt,
+	rdql-testsuite/copyright.txt, rdql-testsuite/query-dump,
+	rdql-testsuite/rdql-tests.n3, rdql-testsuite/result-T-07.n3,
+	rdql-testsuite/result-T-08.n3, rdql-testsuite/result-T-09.n3,
+	rdql-testsuite/result-T-10.n3, rdql-testsuite/result-B-19.n3,
+	rdql-testsuite/result-B-20.n3, rdql-testsuite/result-S-01.n3,
+	rdql-testsuite/result-S-02.n3, rdql-testsuite/result-S-03.n3,
+	rdql-testsuite/result-S-04.n3, rdql-testsuite/result-S-05.n3,
+	rdql-testsuite/result-T-01.n3, rdql-testsuite/result-T-02.n3,
+	rdql-testsuite/result-T-03.n3, rdql-testsuite/result-T-04.n3,
+	rdql-testsuite/result-T-05.n3, rdql-testsuite/result-T-06.n3,
+	rdql-testsuite/result-B-06.n3, rdql-testsuite/result-B-07.n3,
+	rdql-testsuite/result-B-08.n3, rdql-testsuite/result-B-09.n3,
+	rdql-testsuite/result-B-10.n3, rdql-testsuite/result-B-11.n3,
+	rdql-testsuite/result-B-12.n3, rdql-testsuite/result-B-13.n3,
+	rdql-testsuite/result-B-14.n3, rdql-testsuite/result-B-15.n3,
+	rdql-testsuite/result-B-16.n3, rdql-testsuite/result-B-17.n3,
+	rdql-testsuite/result-B-18.n3, rdql-testsuite/result-9-02.n3,
+	rdql-testsuite/result-A-01.n3, rdql-testsuite/result-A-02.n3,
+	rdql-testsuite/result-B-01.n3, rdql-testsuite/result-B-02.n3,
+	rdql-testsuite/result-B-03.n3, rdql-testsuite/result-B-04.n3,
+	rdql-testsuite/result-B-05.n3, rdql-testsuite/result-8-01.n3,
+	rdql-testsuite/result-8-02.n3, rdql-testsuite/result-8-03.n3,
+	rdql-testsuite/result-8-04.n3, rdql-testsuite/result-8-05.n3,
+	rdql-testsuite/result-9-01.n3, rdql-testsuite/result-6-01.n3,
+	rdql-testsuite/result-6-02.n3, rdql-testsuite/result-6-03.n3,
+	rdql-testsuite/result-6-04.n3, rdql-testsuite/result-7-01.n3,
+	rdql-testsuite/result-7-02.n3, rdql-testsuite/result-7-03.n3,
+	rdql-testsuite/result-7-04.n3, rdql-testsuite/result-4-06.n3,
+	rdql-testsuite/result-4-07.n3, rdql-testsuite/result-5-01.n3,
+	rdql-testsuite/result-5-02.n3, rdql-testsuite/result-5-03.n3,
+	rdql-testsuite/result-5-04.n3, rdql-testsuite/result-3-06.n3,
+	rdql-testsuite/result-3-07.n3, rdql-testsuite/result-4-01.n3,
+	rdql-testsuite/result-4-02.n3, rdql-testsuite/result-4-03.n3,
+	rdql-testsuite/result-4-04.n3, rdql-testsuite/result-4-05.n3,
+	rdql-testsuite/result-2-07.n3, rdql-testsuite/result-2-08.n3,
+	rdql-testsuite/result-2-09.n3, rdql-testsuite/result-2-10.n3,
+	rdql-testsuite/result-3-01.n3, rdql-testsuite/result-3-02.n3,
+	rdql-testsuite/result-3-03.n3, rdql-testsuite/result-3-04.n3,
+	rdql-testsuite/result-3-05.n3, rdql-testsuite/result-1-04.n3,
+	rdql-testsuite/result-1-05.n3, rdql-testsuite/result-1-06.n3,
+	rdql-testsuite/result-1-07.n3, rdql-testsuite/result-1-08.n3,
+	rdql-testsuite/result-1-09.n3, rdql-testsuite/result-1-10.n3,
+	rdql-testsuite/result-2-01.n3, rdql-testsuite/result-2-02.n3,
+	rdql-testsuite/result-2-03.n3, rdql-testsuite/result-2-04.n3,
+	rdql-testsuite/result-2-05.n3, rdql-testsuite/result-2-06.n3,
+	rdql-testsuite/result-0-01.n3, rdql-testsuite/result-0-02.n3,
+	rdql-testsuite/result-0-03.n3, rdql-testsuite/result-0-04.n3,
+	rdql-testsuite/result-1-01.n3, rdql-testsuite/result-1-02.n3,
+	rdql-testsuite/result-1-03.n3, rdql-testsuite/test-T-05,
+	rdql-testsuite/test-T-06, rdql-testsuite/test-T-07,
+	rdql-testsuite/test-T-08, rdql-testsuite/test-T-09,
+	rdql-testsuite/test-T-10, rdql-testsuite/test-B-18,
+	rdql-testsuite/test-B-19, rdql-testsuite/test-B-20,
+	rdql-testsuite/test-S-01, rdql-testsuite/test-S-02,
+	rdql-testsuite/test-S-03, rdql-testsuite/test-S-04,
+	rdql-testsuite/test-S-05, rdql-testsuite/test-T-01,
+	rdql-testsuite/test-T-02, rdql-testsuite/test-T-03,
+	rdql-testsuite/test-T-04, rdql-testsuite/test-B-05,
+	rdql-testsuite/test-B-06, rdql-testsuite/test-B-07,
+	rdql-testsuite/test-B-08, rdql-testsuite/test-B-09,
+	rdql-testsuite/test-B-10, rdql-testsuite/test-B-11,
+	rdql-testsuite/test-B-12, rdql-testsuite/test-B-13,
+	rdql-testsuite/test-B-14, rdql-testsuite/test-B-15,
+	rdql-testsuite/test-B-16, rdql-testsuite/test-B-17,
+	rdql-testsuite/test-8-01, rdql-testsuite/test-8-02,
+	rdql-testsuite/test-8-03, rdql-testsuite/test-8-04,
+	rdql-testsuite/test-8-05, rdql-testsuite/test-9-01,
+	rdql-testsuite/test-9-02, rdql-testsuite/test-A-01,
+	rdql-testsuite/test-A-02, rdql-testsuite/test-B-01,
+	rdql-testsuite/test-B-02, rdql-testsuite/test-B-03,
+	rdql-testsuite/test-B-04, rdql-testsuite/test-5-01,
+	rdql-testsuite/test-5-02, rdql-testsuite/test-5-03,
+	rdql-testsuite/test-5-04, rdql-testsuite/test-6-01,
+	rdql-testsuite/test-6-02, rdql-testsuite/test-6-03,
+	rdql-testsuite/test-6-04, rdql-testsuite/test-7-01,
+	rdql-testsuite/test-7-02, rdql-testsuite/test-7-03,
+	rdql-testsuite/test-7-04, rdql-testsuite/test-3-02,
+	rdql-testsuite/test-3-03, rdql-testsuite/test-3-04,
+	rdql-testsuite/test-3-05, rdql-testsuite/test-3-06,
+	rdql-testsuite/test-3-07, rdql-testsuite/test-4-01,
+	rdql-testsuite/test-4-02, rdql-testsuite/test-4-03,
+	rdql-testsuite/test-4-04, rdql-testsuite/test-4-05,
+	rdql-testsuite/test-4-06, rdql-testsuite/test-4-07,
+	rdql-testsuite/test-1-10, rdql-testsuite/test-2-01,
+	rdql-testsuite/test-2-02, rdql-testsuite/test-2-03,
+	rdql-testsuite/test-2-04, rdql-testsuite/test-2-05,
+	rdql-testsuite/test-2-06, rdql-testsuite/test-2-07,
+	rdql-testsuite/test-2-08, rdql-testsuite/test-2-09,
+	rdql-testsuite/test-2-10, rdql-testsuite/test-3-01,
+	rdql-testsuite/test-0-03, rdql-testsuite/test-0-04,
+	rdql-testsuite/test-1-01, rdql-testsuite/test-1-02,
+	rdql-testsuite/test-1-03, rdql-testsuite/test-1-04,
+	rdql-testsuite/test-1-05, rdql-testsuite/test-1-06,
+	rdql-testsuite/test-1-07, rdql-testsuite/test-1-08,
+	rdql-testsuite/test-1-09, rdql-testsuite/model4.nt,
+	rdql-testsuite/model5.nt, rdql-testsuite/model5.rdf,
+	rdql-testsuite/model6.nt, rdql-testsuite/model7.nt,
+	rdql-testsuite/model8.n3, rdql-testsuite/model9.n3,
+	rdql-testsuite/modelA.nt, rdql-testsuite/test-0-01,
+	rdql-testsuite/test-0-02, rdql-testsuite/vc-db-1.rdf,
+	rdql-testsuite/vc-db-2.rdf, rdql-testsuite/vc-db-3.rdf,
+	rdql-testsuite/model0.nt, rdql-testsuite/model1.nt,
+	rdql-testsuite/model2.nt, rdql-testsuite/model3.nt: Imported RDQL
+	testsuite 2.1a
+
+	* rdql_lexer.l (copy_string_token):
+	Copy language and datatype strings always.
+
+	* rasqal_raptor.c (raptor_statement_as_rasqal_triple):
+	Copy language always.
+
+	* rasqal_expr.c (rasqal_new_string_literal): Delete language for
+	datatyped literals that are not rdf:XMLLiteral.
+	(rasqal_free_literal): Free flags args for string, pattern.
+	(rasqal_literal_expand_qname): Delete language for convereted
+	datatyped literals that are not rdf:XMLLiteral.
+
+2004-05-02  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal_expr.c (rasqal_literal_compare):
+	Fix int promotion - store in ints[].
+
+	* rasqal_raptor.c (rasqal_raptor_triple_match):
+	Use rasqal_literal_equals to compare
+	for matches; do not want type promotion.
+
+	* rasqal.h: Added rasqal_literal_equals
+
+	* rasqal_expr.c (rasqal_literal_compare): Fix ints, doubles setup.
+	(rasqal_literal_equals): Check for equal without promotion.
+
+	* rasqal_expr.c (rasqal_literal_compare):
+	More regular approach to type promotion.
+	Add promotion to strings, typically used for URIs.
+
+	* rasqal_raptor.c (raptor_statement_as_rasqal_triple):
+	Copy literal language, when there is no datatype URI.
+
+2004-05-01  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal_raptor.c (rasqal_raptor_bind_match):
+	Handle intra-triple constraints.
+
+	* rasqal_engine.c (rasqal_engine_get_next_result):
+	Stop checking constraints if there
+	is an error or one returns false.
+
+	* rasqal_expr.c (rasqal_literal_as_integer):
+	Try to turn a string to an int using strtol and checking for failure
+	(rasqal_expression_evaluate): Invert all lt/gt/le/ge check cases,
+	was backwards.
+
+	* rasqal_expr.c (rasqal_expression_evaluate):
+	Fix failing to match regex checks for
+	RASQAL_EXPR_STR_NMATCH
+
+2004-04-30  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal.spec.in: require raptor 1.3.0
+
+2004-04-28  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* librasqal.3: early man page experiment
+
+2004-04-27  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* Makefile.am:
+	Added EXTRA_librasqal_la_SOURCES with strcasecmp.c rasqal_redland.c
+
+	* roqet.c (main): open files mode 'r', not append.
+
+	* roqet.c (main): Report failure of fopen
+
+2004-04-26  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal_raptor.c (rasqal_raptor_bind_match): Copy bound literals
+
+	* rasqal_raptor.c:
+	Switch code to make rasqal_triple objects immediately during
+	parsing, much code reduction.
+
+2004-04-25  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal_raptor.c (raptor_statement_compare): Remove lots of debugging.
+
+	* rasqal_raptor.c (raptor_node_equals):
+	Reverse uri compare check again.
+	(raptor_statement_compare): Lots of debugging.
+
+	* rasqal_raptor.c (rasqal_raptor_statement_handler): Append correctly
+
+	* rasqal_raptor.c (raptor_node_equals):
+	Handle RAPTOR_IDENTIFIER_TYPE_PREDICATE
+	Fix uri check
+	(rasqal_raptor_next_match): Fix compare check.
+	(rasqal_raptor_new_triples_match): get first match here.
+
+	* rasqal_raptor.c (rasqal_raptor_triple_match): Note FIXMEs
+
+	* roqet.c: Don't use redland
+
+	* rasqal_raptor.c: Returns at least 1 result and doesn't crash.
+
+	* rasqal_internal.h: Add rasqal_raptor_init
+
+	* rasqal_general.c (rasqal_init): Call rasqal_raptor_init
+
+	* configure.ac: Remove linking with redland
+
+	* Makefile.am: Remove rasqal_redland.c
+
+	* rasqal_raptor.c: Rasqal triple store implementation with raptor
+
+	* Makefile.am: Added rasqal_raptor.c
+
+2004-04-20  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* Makefile.am: Added strcasecmp.c
+
+	* configure.ac: Added strcasecmp macros, checks
+
+	* rasqal_expr.c (rasqal_expression_compare,rasqal_literal_compare):
+	Added flags arg
+	(rasqal_literal_compare): Use RASQAL_COMPARE_NOCASE for string
+	comparisons to select case independent one.
+	Use case independent compare for languages.
+	(rasqal_expression_evaluate): Pass on error return from regexes as a
+	NULL result.
+
+	* rasqal.h: Added flags arg to rasqal_literal_compare
+
+	* rasqal_internal.h: Added strcasecmp, stricmp macros
+
+	* strcasecmp.c: portable strcasecmp
+
+2004-04-16  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal_expr.c: replace a few wayward free() calls with RASQAL_FREE()
+	(rasqal_expression_foreach): Do not free passed in expression.
+
+	* rasqal.h: rasqal_expression_is_variable deleted
+
+	* rasqal_expr.c (rasqal_expression_is_variable): Deleted, not used.
+
+	* rasqal_expr.c (rasqal_variable_compare): Deleted, not used.
+
+	* rasqal_expr.c (rasqal_expression_as_boolean,
+	rasqal_expression_as_integer): 1-entry switch zapped.
+	(rasqal_expression_compare): 1-entry switches zapped.
+
+	* rasqal_expr.c, rasqal.h: Removed RASQAL_EXPR_EXPR - never used
+
+	* roqet.c: Added -c/--count option.
+	Made quiet flag a local.
+	Tidied help messages to match raptor macros.
+
+	* rdql_parser.y (rdql_parse): Pass on parsing failure earlier.
+
+	* rdql_parser.y (rdql_parse): Pass on parsing failure in return.
+
+	* rasqal_redland.c (rasqal_redland_new_triples_source): Fail (for
+	now) if there is no source URI.
+
+	* rasqal_query.c (rasqal_query_prepare):
+	Fail if already failed or finished.
+	Fail if factory prepare failed.
+	(rasqal_query_execute): Fail if already failed or finished.
+	Fail if engine execution init or factory execution fails.
+	(rasqal_query_results_finished): Also finished if failed.
+
+	* rasqal_general.c (rasqal_query_error_varargs): An error is a failure.
+
+	* rasqal_engine.c: Turn some failures into rasqal_query_error calls.
+	(rasqal_new_triples_source): Handle NULL uri.
+	(rasqal_new_triples_match): Fail if there is no triples_source.
+	(rasqal_engine_execute_init): Fail if no triples_source could be
+	made.
+	(rasqal_engine_get_next_result): Fail if already failed.
+	Fail if one column has no triples_meta.
+
+	* rasqal_engine.c (rasqal_new_triples_source):
+	Handle a source with no URI - i.e. default.
+
+	* rasqal_engine.c (rasqal_engine_execute_init): Handle no sources.
+
+2004-04-15  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal_expr.c, rasqal.h: Export rasqal_literal_compare
+
+	* rasqal_engine.c (rasqal_engine_get_next_result): Handle
+	rasqal_triples_match_bind_match failing, then move on to the next
+	triple.
+
+	* rasqal_redland.c (rasqal_redland_bind_match):
+	Check for repeated bindings and that the
+	triple parts match.
+
+	* rasqal_expr.c (rasqal_variable_get_value): Deleted, not used.
+
+	* rasqal_expr.c (rasqal_literal_string_to_native):
+	Don't free the string or datatype
+	URI when promoting.
+
+	* rdql_lexer.l: Use rasqal_new_boolean_literal for true/false.
+
+	* rasqal_redland.c (rasqal_literal_to_redland_node):
+	Use boolean string also.
+
+	* rasqal_expr.c (rasqal_new_boolean_literal): Store boolean string.
+	(rasqal_literal_as_string): No need for buffer.
+
+	* rasqal_redland.c (rasqal_literal_to_redland_node):
+	Use integer string, uris fields
+	for RASQAL_LITERAL_FLOATING.  Merge that with string, floating.
+
+	* rasqal_expr.c (rasqal_new_floating_literal):
+	Store integer string, datatype uri.
+	(rasqal_free_literal): Tidy that up.
+
+	* rasqal_redland.c (rasqal_literal_to_redland_node):
+	Use floating string, uris fields
+	for RASQAL_LITERAL_FLOATING.
+
+	* rasqal_expr.c (rasqal_new_floating_literal):
+	Store floating string, datatype uri.
+	(rasqal_free_literal): Tidy that up.
+
+	* rdql_parser.y, rdql_lexer.l, rasqal_redland.c, rasqal_expr.c,
+	rasqal.h: rasqal_literal struct changed - moved literal string
+	value out of union and into common part
+
+	* rasqal_engine.c:
+	Use #ifdef RASQAL_DEBUG to wrap various old debugging prints.
+
+	* rdql_lexer.l: (rdql_token_print) Use RASQAL_DEBUG2
+
+	* rasqal_redland.c (rasqal_redland_triple_present):
+	declare variable at start of a block.
+
+	* rasqal_expr.c (rasqal_expression_evaluate):
+	declare regex variables at start of a block.
+
+	* rasqal_internal.h, rasqal_expr.c, rasqal_engine.c:
+	Renamed and moved qname expanding functions from engine to expr
+	source file.
+	Now called rasqal_literal_expand_qname and
+	rasqal_expression_expand_qname
+
+	* rasqal_internal.h, rasqal_expr.c, rasqal_engine.c: Rename
+	rasqal_promote_string_literal_to_native to
+	rasqal_literal_string_to_native
+
+	* rasqal_expr.c (rasqal_promote_string_literal_to_native):
+	scanf takes %lf for double.
+
+	* rdql_lexer.l, rasqal_redland.c, rasqal_expr.c:
+	Switch to %g for printing, formatting C double / xsd:double.
+
+	* rasqal.h, rdql_parser.y, rdql_lexer.l: floating is now a C double
+
+	* rasqal_internal.h: Added rasqal_promote_string_literal_to_native
+
+	* rasqal_engine.c:
+	Make all *as_integer, *as_boolean methods return errors.
+	Change all methods and uses throughout.
+	(rasqal_engine_expand_literal_qname): Use
+	rasqal_promote_string_literal_to_native
+
+	* rasqal_expr.c:
+	Make all *as_integer, *as_boolean methods return errors.
+	Change all methods and uses throughout.
+	(rasqal_promote_string_literal_to_native): Added, to turn RDF datatyped
+	literals into rasqal integer/floating literals.
+	(rasqal_new_string_literal): Use rasqal_promote_string_literal_to_native.
+	(rasqal_literal_compare): An error in converting (rasqal_literal_as_*
+	methods) always makes the comparison return non-0, no error.
+	Make comparisons with one floating number be done as floats.
+
+2004-04-14  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rdql_lexer.l: comment out debug prints
+
+	* rasqal_redland.c (rasqal_literal_to_redland_node):
+	Handle integer and floating
+	rasqal_literal types.
+
+	* rdql_lexer.l (copy_string_token):
+	Make various datatyped literal forms work.
+
+	* rasqal_expr.c (rasqal_new_string_literal): Store language.
+
+	* rasqal_redland.c (rasqal_literal_to_redland_node):
+	use datatype when making librdf nodes.
+	Turn literals into xsd:integer.
+
+	* rasqal_expr.c (rasqal_literal_print): Tidy printing booleans.
+	(rasqal_literal_compare): Check language and datatypes match if
+	present.  If only some present, fail to match.
+
+	* rdql_parser.y (rdql_query_error):
+	Old bug, use %s to format an error string.
+
+	* rdql_parser.y: Remove ArgList and functioncall from pre-note grammar.
+
+	* rasqal_engine.c (rasqal_engine_execute_finish):
+	free triples source only when
+	initialised.
+
+	* rdql_lexer.l:
+	floating point didn't recognise [0-9]+"."[0-9] - without an 'e' or 'E'.
+
+	* rasqal_engine.c (rasqal_engine_get_next_result): Handle no triples.
+
+	* rasqal_expr.c (rasqal_literal_as_string): public.
+
+	* rasqal.h: Export rasqal_literal_as_string
+
+	* rasqal_redland.c (rasqal_literal_to_redland_node):
+	Use rasqal_literal_as_string to
+	turn other types to strings - should be datatypes.
+
+	* rdql_lexer.l (copy_regex_token):
+	calloc buffer so when it is copied, we copy used memory.
+
+	* rdql_lexer.l (copy_token):
+	calloc buffer so when it is copied, we copy used memory.
+
+	* rdql_parser.y, rasqal_redland.c, rasqal_query.c, rasqal_expr.c,
+	rasqal_engine.c, rasqal.h: Change variable from a part of
+	rasqal_expression to part of rasqal_literal with many changes
+	throughout.
+
+	* rdql_lexer.l, rasqal_expr.c, rasqal.h:
+	Kill RASQAL_LITERAL_NULL.  Use NULL pointer instead.
+
+	* rasqal_expr.c (rasqal_expression_evaluate):
+	Make POSIX regex debug message use macro.
+
+	* configure.ac:
+	Default regex-library to posix, no need to require another library.
+
+	* rasqal_expr.c: Fix regex include to use RASQAL_REGEX_* not HAVE...
+	(rasqal_expression_evaluate): Make POSIX regex code work.
+
+	* rasqal_expr.c: Declare prototype for rasqal_literal_as_string.
+	(main): Update use of rasqal_expression_evaluate
+
+	* rasqal_expr.c: Added regex matching using pcre or POSIIX regex.
+	(rasqal_literal_as_string): Added.
+	(rasqal_expression_evaluate): Added query arg, for calling errors.
+	Added regex code for RASQAL_EXPR_STR_MATCH, RASQAL_EXPR_STR_NMATCH
+
+	* rasqal_redland.c:
+	(rasqal_redland_free_triples_source) Do not delete rts user_data here
+
+	* rasqal_general.c (rasqal_vsnprintf): Removed, use raptor_vsnprintf.
+
+	* rasqal_engine.c (rasqal_free_triples_source):
+	Delete rts user_data here, was
+	allocated in this module.
+
+	* rasqal.h: Add query arg to rasqal_expression_evaluate
+
+	* configure.ac: Check for regex libraries - pcre or posix (in libc)
+
+2004-04-13  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rdql_lexer.l (copy_string_token):
+	Copy final char in datatype uri/qname
+
+	* rasqal_query.c (rasqal_new_query):
+	Don't init rdf, rdfs namespaces here.
+
+	* rdql_parser.y (rasqal_rdql_query_engine_init):
+	Initialise rdf, rdfs, owl and xsd prefixes and namespaces here.
+
+	* rdql-testsuite/Makefile.am: Emit roqet output for now.
+
+	* rdql_parser.y, rasqal_redland.c:
+	Update rasqal_new_string_literal call.
+
+	* rasqal_expr.c (rasqal_new_string_literal):
+	Store datatype uri or qnames.
+
+	* rasqal_engine.c (rasqal_engine_expand_qname):
+	Expand literal datatype qnames in literals.
+
+	* rasqal.h:
+	In rasqal_literal overload use of flags field to store datatype qnames.
+	Update rasqal_new_string_literal prototype.
+
+	* rdql_lexer.l (copy_string_token): Handle datatype uris and qnames.
+	(rdql_token_print): Handle printing datatypes uris only.
+
+	* Makefile.am: Compile rasqal_redland against roqet only.
+
+	* rasqal_redland.c: Separate from working as a rasqal internal module.
+	Add fake librdf debug macros while this remains outside librdf.
+	Use world as the triples source factory user data.
+	(rasqal_redland_new_triples_source): Add factory_user_data argument.
+	(rasqal_redland_init): Add world argument, use as factory user_data
+	argument.
+
+	* rasqal_engine.c (rasqal_set_triples_source_factory):
+	Add factory user_data argument.
+	(rasqal_new_triples_source): Pass on factory user_data when creating
+	a new triples source from a triples source factory.
+
+	* rasqal_general.c (rasqal_init): Remove rasqal_redland_init.
+
+	* roqet.c:
+	No more external redland World; use rasqal_redland_init to init
+	redland triple source support.
+
+	* rasqal_expr.c (rasqal_free_literal): Free datatype field.
+	(rasqal_literal_print): Print string literal datatype when present.
+
+	* rasqal_internal.h:
+	Remove rasqal_set_triples_source_factory to public.
+	Remove rasqal_redland_init.
+
+	* rasqal.h: Add datatype URI to rasqal_literal.
+	Added factory user data to rasqal_triples_source_factory.
+	Added prototype for rasqal_set_triples_source_factory.
+
+	* roqet.c (main): Print query result count unless quiet
+
+	* roqet.c (main): Get results using new result api calls.
+
+	* rasqal_redland.c (rasqal_redland_new_triples_source):
+	const parser_name
+
+	* rasqal_query.c (rasqal_free_query):
+	Call rasqal_engine_execute_finish.
+	Tidy variable_names and binding_values.
+	(rasqal_query_prepare): Assign and use prepared.
+	(rasqal_query_execute): Assign and use executed.
+	Do not run rasqal_engine_run here, just pull first result.
+	(rasqal_query_get_result_count): Added
+	(rasqal_query_results_finished): Added
+	(rasqal_query_get_result_bindings): Added
+	(rasqal_query_get_result_binding): Added
+	(rasqal_query_get_result_binding_by_name): Added
+	(rasqal_query_next_result): Added
+
+	* rasqal_engine.c (rasqal_engine_assign_variables):
+	Create rasqal_query fields
+	variable_names and binding_values.
+	(rasqal_engine_execute_init): Initialse new execution rasqal_query
+	fields.
+	(rasqal_engine_get_next_result): Export and handle finished.
+	Added result counting.
+	(rasqal_engine_assign_binding_values): Added, to assign literal
+	binding values to the array.
+
+	* rasqal_internal.h:
+	Added more fields to rasqal_query for query execution: prepared,
+	executed, variable_names, binding_values, result_count, finished.
+	Added prototypes for rasqal_engine_get_next_result,
+	rasqal_engine_assign_binding_values
+
+	* rasqal.h:
+	Added  rasqal_query_get_result_count, rasqal_query_results_finished,
+	rasqal_query_get_result_bindings, rasqal_query_get_result_binding,
+	rasqal_query_get_result_binding_by_name and rasqal_query_next_result
+
+2004-04-12  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* Makefile.am:
+	Add cppflags to AM_CFLAGS to compile tests against external headers
+
+2004-04-10  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rdql_lexer.l (copy_string_token):
+	Use raptor_unicode_char_to_utf8 for correct unicode.
+
+	* rasqal_redland.c (rasqal_redland_uri_heuristic_parser_name): Deleted.
+	(rasqal_redland_new_triples_source): Use raptor_guess_parser_name
+
+	* rasqal_redland.c (redland_node_to_rasqal_expression):
+	Pass on language, datatype.
+
+	* rdql_parser.y:
+	Change token types for integer, boolean, string literal to
+	return literal parts of union.
+	Update to use new rasqal_literal constructor forms.
+
+	* rdql_lexer.l:
+	Use new rasqal_literal constructor forms to return rasqal_literal*
+	here for integer, boolean, string literal tokens.
+	(copy_regex_token): Make a rasqal_literal pattern literal.
+	(rdql_token_print): Fix debug print to match changes.
+
+	* rasqal_redland.c: Use new rasqal_literal constructor forms.
+
+	* rasqal_expr.c:
+	Expand one rasqal_literal constructor to many, per type.
+
+	* rasqal.h: Explain rasqal_literal fields more.
+	Add literal language, pattern flags.
+	Expand one rasqal_literal constructor to many, per type.
+
+	* rasqal_engine.c (rasqal_engine_run): don't print out triples yet.
+
+	* rasqal_expr.c (rasqal_literal_as_integer): Turn string to integer.
+	(rasqal_literal_compare): Promote strings to integers if one if them
+	is an integer.  Wrong way round?
+
+	* rasqal_engine.c (rasqal_engine_expand_triple_qnames): Fix return.
+
+	* rasqal_engine.c (rasqal_engine_execute_init):
+	Do nothing if there are no triples.
+
+	* rasqal_engine.c (rasqal_engine_expand_triple_qnames):
+	Do nothing if there are no
+	triples.
+
+	* rdql_parser.y, rdql_common.h: year
+
+2004-04-09  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal_internal.h, rasqal_expr.c:
+	Replace rasqal_sequence with raptor_sequence.
+
+2004-04-08  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* configure.ac, Makefile.am:
+	More autofoo moving redland-config hack into configure.ac
+
+	* rasqal_query.c, rasqal_engine.c:
+	more replacing rasqal_sequence with raptor_sequence.
+
+	* rasqal.h, rdql_parser.y, rasqal_query.c, rasqal_engine.c:
+	Replace rasqal_sequence with raptor_sequence.
+
+	* Makefile.am: Removed rasqal_sequence
+
+	* rasqal_sequence.c: deleted rasqal_sequence
+
+	* rasqal-src-config.in:
+	Remove --static-libs, substitute with_raptor to get libs and cflags
+	for raptor
+
+	* configure.ac: substitute with_raptor
+
+	* configure.ac, Makefile.am:
+	autofoo fixes to enable compiling against raptor in nearby source
+	tree ../raptor as well as a system copy
+
+2004-04-06  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* configure.ac: Fix check for internal raptor
+
+2004-04-06  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal_redland.c (redland_node_to_rasqal_expression): Remove strdup
+
+	* rasqal_redland.c (rasqal_redland_finish_triples_match): Free context
+
+	* rasqal_sequence.c (rasqal_new_sequence): calloc structure
+
+	* rasqal_redland.c (rasqal_redland_triple_present): logic was inverted.
+
+	* rasqal_engine.c (rasqal_engine_get_next_result):
+	Don't inc column if it's already negative.
+
+	* rdql_lexer.l (copy_regex_token, copy_string_token):
+	Pass in lval; only portable way.
+
+	* rdql_common.h: Remove lval from common struct - not portable.
+
+	* rdql_lexer.l:
+	Use ' as delim for '-quoted strings with copy_string_token.
+
+	* rasqal_engine.c (rasqal_engine_get_next_result,rasqal_engine_run):
+	Document, use return values right.
+
+2004-04-04  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal_query.c (rasqal_query_execute):
+	Call rasqal_engine_execute_init,
+	rasqal_engine_run and rasqal_engine_execute_finish.
+
+	* rasqal_engine.c: Refactoring returning of results.
+	(rasqal_engine_execute_init): Added, setting up execution state.
+	(rasqal_engine_execute_finish): Added, tidying up execution state.
+	(rasqal_engine_get_next_result): Added, with core of
+	rasqal_engine_run code but returning the next result only.
+	(rasqal_engine_run): Uses above function to print results, part of
+	refactoring.
+
+	* rasqal_internal.h: Added column to rasqal_query for executing.
+	Added rasqal_engine_execute_init, rasqal_engine_execute_finish.
+
+2004-03-27  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* configure.ac, autogen.sh: Use some AM_INIT_AUTOMAKE options.
+	Require automake1.7, which requires autoconf 2.54
+
+	* rasqal-src-config.in, rasqal-config.in:
+	Support --help, emit to stdout and exit 0.
+
+2004-03-11  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* configure.ac: Handle old raptor-config, check for raptor sources
+
+2004-02-28  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal_redland.c (rasqal_redland_triple_present):
+	Inline single use of rasqal_triple_to_redland_statement
+
+	* roqet.c: Use World redland global temporarily
+
+	* rasqal_query.c: Moved all redland-specific code to rasqal_redland.c
+	(rasqal_query_execute): Use rasqal_new_triples_source,
+	rasqal_free_triples_source.
+
+	* rasqal_general.c (rasqal_init): Call rasqal_redland_init temporarily.
+
+	* rasqal_engine.c: Moved all redland-specific code to rasqal_redland.c
+	Added Triples_Source_Factory single static.
+	(rasqal_new_triples_source,rasqal_free_triples_source,
+	rasqal_triples_source_triple_present): Added.
+
+	* rasqal_internal.h:
+	Removed redland.h call and moved librdf_* structs to rasqal_redland.c
+	Moved rasqal_triples_match, rasqal_triple_meta,
+	rasqal_triples_source, rasqal_triples_source_factory to public
+	rasqal.h
+	Added rasqal_new_triples_source, rasqal_free_triples_source,
+	rasqal_set_triples_source_factory.
+	Added rasqal_redland_init temporarily.
+
+	* rasqal.h: Added rasqal_triples_match, rasqal_triple_meta,
+	rasqal_triples_source, rasqal_triples_source_factory as public.
+
+	* Makefile.am: Added rasqal-redland.c
+
+	* rasqal_redland.c: Rasqal redland code
+
+	* rasqal_internal.h: dates
+	Update bind_match method
+
+	* rasqal_engine.c (rasqal_engine_expand_constraints_qnames): fix return
+	Moved all redland bits into separate callbacks.
+	(rasqal_redland_bind_match): Renamed from rasqal_redland_get_match.
+	(rasqal_engine_run): Moved remaining use of redland statement
+	into rasqal_redland_bind_match.
+
+	* rasqal.h: dates
+
+	* tests/example_at_7.rdql, tests/example_at_6.rdql, tests/example_at_5.rdql, tests/example_at_4.rdql, tests/example_at_3.rdql, tests/example_at_2.rdql, tests/example_at_1.rdql, tests/example4.rdql:
+	Update to remove <qname> form
+
+	* rdql_lexer.l (WNAME): Allow - after first char of qname
+
+	* rdql_parser.y (CommaAndConstraintClause):
+	Do not free constraints in sequence.
+	(rdql_parse): Call rasqal_engine_expand_constraints_qnames
+
+	* rasqal_query.c (rasqal_free_query): Free new constraints_expression.
+	Added freeing of constraints sequence.
+	(rasqal_query_execute): Call
+	rasqal_engine_build_constraints_expression.
+
+	* rasqal_internal.h: Added constraints_expression to rasqal_query
+
+	* rasqal_expr.c (rasqal_new_literal): Use usage counts
+	(rasqal_new_literal_from_literal): Added, inc usage and return.
+	(rasqal_free_literal): Dec usage count, free on 0.
+	(rasqal_expression_foreach): Added.
+	(rasqal_expression_evaluate): Big update to use evaluate on
+	all expression args and turn into boolean afterwards.
+
+	* rasqal_engine.c (rasqal_engine_expand_qname):
+	Added, helper for use with
+	rasqal_expression_foreach, also used by
+	rasqal_engine_expand_triple_qnames.
+	(rasqal_engine_expand_triple_qnames): Updated to use
+	rasqal_engine_expand_qname.
+	(rasqal_engine_expand_constraints_qnames): Added, to expand
+	any qnames in constraints using rasqal_expression_foreach and
+	rasqal_engine_expand_qname
+	(rasqal_engine_build_constraints_expression): Turn a sequence of
+	constraints into one rasqal_expression ANDed
+
+	* rasqal.h: Add usage to rasqal_literal.
+	Add rasqal_expression_foreach
+	Add rasqal_new_literal_from_literal
+
+	* rasqal_expr.c (rasqal_literal_compare):
+	Fix uri compare (equal/not only)
+	(rasqal_variable_get_value): Added.
+	(rasqal_expression_compare): Match when variables are present,
+	repeat until all are literals.
+
+	* rasqal.h: Export some more functions
+
+	* rasqal_engine.c (rasqal_engine_run):
+	Check constraints and don't match if fails
+
+2004-02-27  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal_expr.c: Added TILDE, BANG
+
+	* rasqal_expr.c (main): Fail if result was NULL
+
+	* rdql_parser.y, rasqal_query.c, rasqal_engine.c:
+	Renamed all expression print methods to follow method naming.
+
+	* rasqal.h: Removed all BIT and SHIFT ops
+	Renamed all expression print methods to follow method naming.
+
+	* Makefile.am: Added rasqal_expr_test
+
+	* rasqal_expr.c: Lots of changes to get expression evaluation working.
+	Renamed all print methods to follow method naming.
+	Made several more utility methods inline.
+	Removed all BIT and SHIFT ops
+	(rasqal_expression_compare): Renamed from rasqal_expression_equals,
+	returning the difference <0, =0, >0
+	(rasqal_expression_evaluate): Renamed from rasqal_evaluate_expression
+	and complete the other ops.
+	(main): Added, evaluating integer1+integer1
+
+	* rasqal-config.in, configure.ac:
+	Added --version-decimal to rasqal-config
+
+	* rasqal-config.1: Added --versiond-decimal
+
+2004-02-25  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal.pc.in, rasqal.spec.in: require raptor 1.2.0+
+
+2004-02-24  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal.spec.in: Require raptor 1.3.0
+	Update the build lines
+	Export library la files
+
+	* rasqal.pc.in: Require raptor 1.3.0 min
+
+	* roqet.c (main): filename now a variable.
+	Don't print query after execution.
+
+	* rasqal_query.c, Makefile.am:
+	Remove rasqal_query_test code, roqet is a replacement
+
+	* rasqal_query.c (rasqal_new_query):
+	Declare rdf and rdfs namespaces by default.  Not
+	sure if this is still needed.
+	(rasqal_query_execute): Expand qnames before ordering, which has
+	problems since it uses functions that don't understand them.
+	(main): Debug messages to stderr, delete some.
+
+	* rasqal_expr.c (rasqal_print_literal): Tweak printing blank nodes.
+
+	* rasqal_engine.c: Make debug statements go to stderr.
+	(rasqal_engine_run): After destroying a triples_match, null the
+	pointer so a new one is made next time for this column.
+
+	* Makefile.am: Add redland-config --cflags to MEM temp
+
+	* rasqal_engine.c: fixme--
+
+	* rasqal_expr.c (rasqal_new_variable): Free duplicate names.
+
+	* rasqal_sequence.c (rasqal_free_sequence): Free the sequence object.
+
+	* rasqal_expr.c (rasqal_free_variable): Free name, value.
+
+	* rdql_common.h: Added scanner_set field.
+
+	* rdql_parser.y (rasqal_rdql_query_engine_terminate):
+	Add scanner_set to free rdql
+	scanner if needed.
+	(rdql_parse): Call rdql_lexer_lex_destroy.
+
+2004-02-23  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal_expr.c (rasqal_free_prefix): RASQAL_FREE
+
+	* rasqal_expr.c (rasqal_free_prefix): Free prefix and uri
+
+	* rasqal_engine.c:
+	rasqal_triples_match methods take struct rasqal_triples_match_s arg.
+	(rasqal_free_triples_match): Added (destructor).
+	(rasqal_triples_match_get_match, rasqal_triples_match_next_match,
+	rasqal_triples_match_is_end): Added, methods rather than direct
+	calls.
+
+	* rasqal_internal.h:
+	rasqal_triples_match methods take struct rasqal_triples_match_s arg.
+
+	* rasqal_expr.c (rasqal_free_expression):
+	Do not call rasqal_free_variable -
+	variables are shared and freed once by the variables_sequence
+	field of rasqal_query.
+
+	* tests/Makefile.am: Remove check-rdql-queries with rasqal_query-test
+
+	* configure.ac, Makefile.am: Added rdql-testsuite
+
+	* rdql-testsuite/Makefile.am: rdql testsuite
+
+	* rasqal_engine.c:
+	Big rewrite of rasqal_select_next to remove the recursion.
+	Added a triplesmatching API skeleton.
+	(rasqal_triple_present): Added.
+	(rasqal_redland_get_match, rasqal_redland_next_match,
+	rasqal_redland_is_end, rasqal_redland_finish_triples_match,
+	rasqal_new_triples_match): Added with rasqal_new_triples_match
+	creating a new rasqal_triples_match structure.
+	(rasqal_engine_run): The non-recursive version of the
+	rasqal_select_next.
+
+	* rasqal_query.c (rasqal_query_execute): Call rasqal_engine_run.
+
+	* rasqal_internal.h:
+	Added struct rasqal_triples_match for wrapping triplesMatch
+	Added is_exact, triples_match, user_data fields to rasqal_triple_meta.
+
+	* rasqal_engine.c (rasqal_select_next):
+	Now internal and uses rasqal_triple_meta
+	for per-triple info.
+	(rasqal_query_run): Added.  Allocates and frees rasqal_triple_meta
+	for each triple in the conjunction.
+
+	* rasqal_internal.h: Added rasqal_triple_meta typedef
+
+	* roqet.c: forbid reading queries except from files
+
+	* rasqal_internal.h: Add SYSTEM_MALLOC/FREE when not debugging.
+
+	* rasqal_query.c (rasqal_uri_heuristic_parser_name): Fix tests.
+
+	* Makefile.am: MEM_LIBS includes redland for testing
+
+	* Makefile.am: fix roqet LDADD
+
+	* rasqal_query.c (rasqal_uri_heuristic_parser_name): Added.  Ewww!
+	(main): Use rasqal_uri_heuristic_parser_name.
+
+	* rasqal.h: Export version and copyright statics
+
+	* Makefile.am: remove roqet extra link
+
+	* Makefile.am: Added no-install roqet utility
+
+	* roqet.c: Rasqal RDF query utility
+
+	* configure.ac: Add getopt_long check
+
+	* getopt.c, rasqal_getopt.h: Public domain getopt
+
+	* configure.ac: Add getopt and checks.
+
+	* rdql_parser.y (SELECT *): Set select_all query field.
+
+	* rasqal_query.c (rasqal_query_execute):
+	Call rasqal_engine_assign_variables.
+
+	* rasqal_internal.h: Added select_all field to rasqal_query.
+
+	* rasqal_engine.c (rasqal_engine_assign_variables):
+	Expand SELECT * to list of variables seen.
+
+	* rasqal.h: Added rasqal_sequence_print_uri
+
+	* rdql_parser.y (URIList):
+	A list of raptor_uri, so use raptor_free_uri to free,
+	and rasqal_sequence_print_uri to print them.
+
+	* rasqal_sequence.c (rasqal_sequence_print_uri): Added.
+
+	* rasqal_engine.c (rasqal_select_next): More debug messages.
+	Move the stream on to return all results.
+
+	* rasqal_query.c (rasqal_query_execute): Use librdf_uri* only.
+
+	* rasqal_expr.c (rasqal_variable_set_value): Debug messages.
+
+	* rasqal_expr.c (rasqal_variable_set_value):
+	Don't return after freeing old value.
+
+2004-02-21  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rdql_parser.y: Update rasqal_new_variable call with rasqal_query arg.
+	(main): Init variables_sequence.
+
+	* rasqal_query.c (rasqal_new_query): Init the variables_sequence.
+	(rasqal_free_query): Delete the variables_sequence.
+
+	* rasqal_internal.h:
+	Added variables_sequence, the primary storage for variable data.
+	Added prototype for rasqal_engine_assign_variables
+
+	* rasqal_expr.c: Added RASQAL_LITERAL_BLANK support.
+	(rasqal_new_variable): Added an rdf_query arg.  Now makes
+	variables unique pointers per query, assigns offsets.
+
+	* rasqal_engine.c (rasqal_engine_assign_variables):
+	Create the static variables array
+	inside the rasqal_query.
+	(rasqal_expression_to_redland_node,redland_node_to_rasqal_expression):
+	Handle blank nodes.
+	(rasqal_select_next): Use previously bound variable values.
+
+	* rasqal.h: variable gets an offset
+	Added RASQAL_LITERAL_BLANK.
+	rasqal_new_variable taks a rdf_query arg.
+
+2004-02-20  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal_internal.h: docs.
+	Added variables, variables_count, select_variables_count.
+
+	* rasqal.h: rasqal_variable now takes a rasqal_expression value.
+	Added prototypes for rasqal_query_set_variable,
+	rasqal_variable_set_value.
+
+	* rasqal_engine.c:
+	(rasqal_expression_to_redland_node,
+	redland_node_to_rasqal_expression,
+	rasqal_triple_to_redland_statement, rasqal_select_next): Added -
+	for testing with redland directly.
+
+	* rasqal_query.c (rasqal_query_set_variable):
+	Added to set variable value.
+	(rasqal_query_execute): Testing configuration using redland directly.
+	(main) global world object initialised here to prevent uri
+	implementation being changed behind the scenes.
+
+	* rasqal_internal.h: Use redland for testing.
+
+	* rasqal_expr.c: rasqal_variable now takes a rasqal_expression value.
+
+	* rdql_parser.y:
+	Handle QNAME_LITERAL in expressions, to allow old <qname> form.
+
+	* rdql_lexer.l: Support <qname> syntax with a warning.
+
+	* Makefile.am: make check-local build the secondary test programs
+
+	* rasqal_query.c (rasqal_query_prepare):
+	Free the uri_string from raptor.
+
+	* rasqal_general.c (rasqal_system_malloc, rasqal_system_free):
+	Added for raptor malloced stuff.
+
+	* rasqal_internal.h: Added rasqal_system_malloc,
+	rasqal_system_free for raptor malloced stuff.
+
+	* rdql_parser.y: not used var
+
+	* rdql_parser.y (rasqal_rdql_query_engine_execute):
+	return 0, note FIXME
+
+	* rasqal_query.c (rasqal_query_execute):
+	Don't call factory execute twice.
+	(main): progname
+
+	* rasqal_engine.c (rasqal_query_order_triples): calloc memory.
+
+	* rasqal_engine.c (rasqal_engine_declare_prefixes):
+	Do no work if there are no
+	prefixes.
+
+	* rdql_parser.y (main): Init/free namespaces
+
+	* rasqal.h: Added prototypes for rasqal_query_has_variable,
+	rasqal_expression_is_variable, rasqal_expression_as_variable.
+
+	* rasqal_query.c (rasqal_new_query): Init namespaces.
+	(raqal_free_query): Free namespaces, ordered_triples.
+	(rasqal_query_has_variable): Added.
+	(rasqal_query_execute): Call rasqal_query_order_triples then
+	factory execute method.
+	(rasqal_query_print): Print ordered_triples if present.
+	(main): Call execute, print query afterwards.
+
+	* rasqal_expr.c (rasqal_expression_as_variable): Added.
+	(rasqal_expression_is_variable): Added.
+
+	* rasqal_engine.c: Rasqal query engine
+
+	* rasqal_internal.h:
+	Added namespaces, ordered_triples fields to rasqal_query.
+	Added prototypes for rasqal_query_order_triples,
+	rasqal_engine_declare_prefixes, rasqal_engine_expand_triple_qnames.
+
+	* rdql_parser.y:
+	(rasqal_rdql_query_engine_init,rasqal_rdql_query_engine_terminate):
+	Removed namespaces code, never called here and should be more
+	general.
+	(rdql_parse): Call new rasqal_engine_declare_prefixes and
+	rasqal_engine_expand_triple_qnames.
+
+	* rdql_common.h:
+	Moved namespaces field from rdql struct to rasqal_query
+
+	* Makefile.am: Added rasqal_engine.c
+	Make all test programs use $(DEFS), $(LIBS)
+
+2004-02-19  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* Makefile.am: rasqal_sequence_test needs librasqal.la
+
+	* Makefile.am:
+	All code needs raptor even if no URIs are being used, at least for
+	the header.
+
+	* rasqal_general.c, rasqal_sequence.c, rasqal_expr.c: Headers
+
+	* rasqal_query.c: Headers.
+	(rasqal_query_prepare): Make a base URI if not given.
+	(main): Tidying.
+
+	* rdql_common.h: ordering struct, lineno.
+
+	* rasqal_general.c (rasqal_get_query_engine_factory): Warning tweak.
+
+	* rdql_parser.y (rdql_parse): Init lines and columns from our lineno.
+	(main): Changes to match.  Use rdql_parse with new form.
+
+	* rdql_lexer.l: More updates to match raptor.
+	Add C++ input defines.
+	Count newlines, also in pattren regex.
+	(main): Don't re-reset the scanner to it's address.
+
+	* rdql_lexer.l, rasqal_general.c, Makefile.am:
+	rdql_lexer_test works again
+
+	* rdql_parser.y, rdql_lexer.l, rdql_common.h, rasqal_query.c,
+	rasqal_internal.h, rasqal_general.c, rasqal.h, configure.ac,
+	Makefile.am: Added a rasqal_query factory, registration,
+	separation of query from implementation.  Imported a lot of raptor
+	code.  It now compiles, doesn't work.
+
+2004-02-15  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal_internal.h: Add locator and base_uri to rasqal_query
+
+	* rasqal_general.c: Big import of code from raptor, not complete.
+	Adding factory code, registration, error handling, enumeration.
+
+	* tests/note-ex3.rdql, tests/note-ex4.rdql, tests/note-ex1.rdql,
+	tests/note-ex2.rdql: Examples from W3C RDQL note
+
+	* tests/Makefile.am: Add examples from RDQL W3C note
+
+	* rdql_lexer.l: Pass QNAME to grammar as string
+	Pass a URI as a raptor_uri
+	(rdql_lexer_simple_error): Added
+
+	* rdql_parser.y: Add raptor_uri to grammar/lexer struct
+	Declare QNAME_LITERAL as string (char*)
+	URI_LITERAL is now a uri (raptor_uri)
+	Update rasqal_new_literal calls.
+	Throughout: rename structs (not complete)
+	(rasqal_rdql_qengine_init): Added
+	(main): Update.
+
+	* rdql_common.h: Rename structure to rasqal_rdql_engine_s
+	Add namespaces
+
+	* rasqal.h: Include raptor.h
+	Use raptor_uri in rasqal_prefix.
+	Added RASQAL_LITERAL_QNAME
+	Use raptor_uri in rasqal_literal.
+	Change rasqal_new_literal, rasqal_new_prefix to use raptor_uri
+
+	* configure.ac: Check for vsnprintf, return values
+
+	* Makefile.am: Added rasqal_expr.c
+	Compile tests with internal cppflags
+
+	* rasqal_expr.c: Rasqal expression classes
+
+2004-02-05  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* configure.ac: Make tests/Makefile
+
+	* tests/Makefile.am: build rasqal_query_test
+
+	* Makefile.am: Moved RDQL tests to tests dir
+
+	* tests/.cvsignore, tests/Makefile.am: Added tests dir
+
+	* example1.rdql, example2.rdql, example3.rdql, example4.rdql,
+	example5.rdql, example_at_1.rdql, example_at_2.rdql,
+	example_at_3.rdql, example_at_4.rdql, example_at_5.rdql,
+	example_at_6.rdql, example_at_7.rdql: Moved rdql tests to tests/
+
+	* rasqal-src-config.in: -lrasql
+
+2004-01-12  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* Makefile.am: Add @RASQAL_INTERNAL_CPPFLAGS@ for some tests that
+	use it to get raptor.
+
+	* configure.ac, Makefile.am: Remove REDLAND_* macros, in-redland checks
+
+2003-10-14  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rdql_parser.y:
+	Add free handlers to all the rasqal_new_sequence calls.
+	(main): use dynamic request/free for rasqal_query so the sequences
+	get freed.
+
+	* rasqal.h: rasqal_parse_query, rdql_parse gain length argument
+
+	* rdql_parser.y (rdql_parse):
+	Updated with length argument.  Use the *scan_bytes method.
+	(main): Update test code for rdql_parse taking query length
+
+	* rasqal_query.c: Updates for rdql_parse taking query length
+
+	* rdql_lexer.l (rdql_token_free):
+	Free string (part of union) only when the token
+	type indicates a string is present.
+	(main): close fh, save memory.
+	Use raw free for raptor-returned memory when debugging.
+
+	* Makefile.am:
+	Gave up and machine-edit rdql_lexer.c output to put an if() around
+	a free with a NULL arg.
+
+	* rdql_parser.y, rdql_lexer.l:
+	(main) Use raptor to turn filename into a URI string
+
+	* Makefile.am: Make librasqal depend on RASQAL_INTERNAL_LIBS
+	Prune MEM lines
+	Make tests use librasqal.la not LIBS
+
+	* configure.ac: Split internal use of libraptor.la and external use of
+	the output of raptor-config --libs
+	Added RASQAL_EXTERNAL_LIBS, RASQAL_LIBTOOLLIBS
+
+	* rasqal-config.in: Tidy exec_prefix.
+	Make libs work right
+
+	* rasqal-config.in: added --libtool-libs
+
+	* configure.ac: Add --with-raptor=internal/system using raptor-config.
+	Handle working inside redland source tree; not tested.
+
+	* rdql_parser.y (rdql_parse): Add uri_string arg.
+	Added fake yy_init_globals to stop compiler warning; rdql_lexer.h
+	wrongly declares a prototype to a static function.
+	(rdql_query_error, rdql_syntax_error, rdql_syntax_warning): Use
+	uri_string, line fields from rdql_parser.
+	(main): Update test code to match changes.
+
+	* rdql_lexer.l:
+	Remove global filename; use uri_string field of rdql_parser
+	(main) Update test code to match.
+
+	* rdql_common.h: rdql_parser_s gains uri_string, line, column.
+
+	* rasqal_query.c:
+	(rasqal_parse_query) Add uri_string arg for base URI and/or error
+	reporting.
+
+	* rasqal.h:
+	rasqal_aprse_query and rdql_parse now take a uri_string for base URI
+	and/or error reporting.
+
+	* rdql_lexer.l: fix standalone error/warning reporting
+
+2003-10-13  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rdql_lexer.l, rdql_parser.y: Add stdarg.h
+
+	* example_at_7.rdql: fix old rdql syntax
+
+	* rdql_lexer.l: Add debugging rdql_syntax_warning
+
+	* configure.ac: back to automake 1.6
+
+	* Makefile.am: Add rdql_common.h
+
+	* configure.ac: Automake 1.7
+
+	* rasqal_internal.h: Add more rdql internal prototypes
+
+	* rdql_parser.y, rdql_lexer.l:
+	Now re-entrant / shared lexer and parsers
+
+	* rdql_common.h: RDQL lexer/parser shared internals
+
+	* rdql_parser.y: Added (regex) flags to lval.
+	Removed bit operators.
+	Removed gramamr rules for bit operators: InclusiveOrExpression,
+	ExclusiveOrExpression, AndExpression no longer used.
+
+	* rdql_lexer.l:
+	Updates for pattern literal and identifier recognition from context.
+	Kill all bit operators.
+	Added regex abbreviations LANGUAGETOKEN, PREFIX, QNAME, QUOTEDURI
+	(copy_regex_token): Added for handling regexes and flags. Not quite
+	working yet.
+	Removed like token.
+
+2003-09-21  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rdql_parser.y: Tidy up after lexing, delete buffers
+
+	* rdql_parser.y: Add PATTERN_LITERAL
+	Kill END (use EOF)
+
+	* rdql_lexer.l:
+	PATTERN_LITERAL now returned using lexer state <PATTERN>
+	Handle some \-escapes in the patterns - guessing
+
+	* rdql_parser.y: Removed term, merged into expression - added pattern.
+	Removed URI from expression, only use as literal uri.
+	Use specific rasql_new_expression* functions.
+
+	* rasqal_general.c:
+	Removed term, merged into expression - added pattern.
+	Remove the 1 use of URI from expression, only use as literal uri.
+	(rasqal_new_1op_expression, rasqal_new_2op_expression,
+	rasqal_new_string_op_expression, rasqal_new_literal_expression,
+	rasqal_new_variable_expression): Added.
+
+	* rasqal.h: Removed term, merged into expression
+
+	* rasqal_general.c:
+	Added start of expression evaluation; committing in order to redo it.
+
+	* rdql_lexer.l: Update notes after those for n3_lexer.l in raptor
+
+2003-08-22  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rdql_lexer.l (skip_cpp_comment): Added
+
+	* rdql_parser.y:
+	Add optional COMMA in lists of vars, triples, inside triples.
+
+	* Makefile.am: Tidy link flags
+
+	* rasqal.h: Added rasqal_compare_strings and rasqal_sequence_sort
+	More RASQAL_API
+
+	* rasqal_sequence.c (rasqal_sequence_ensure): Set min size to 8.
+	(rasqal_sequence_grow): Just double, ensure will make sure
+	it's minimum size is sensible.
+	(rasqal_sequence_set_at): idx+1 is new size.
+	(rasqal_compare_strings): Helper for:
+	(rasqal_sequence_sort): Sort sequences.
+	(main): Add sorting to tests.
+
+	* rasqal_query.c (rasqal_query_print):
+	Update for rasqal_sequence_print calls without
+	print_handler arg.
+
+	* rasqal.h, rdql_parser.y:
+	Update for rasqal_new_sequence calls with print_handler arg.
+
+	* rasqal_sequence.c (rasqal_new_sequence):
+	Lose capacity.  Call now takes free and print
+	handlers.
+	(rasqal_sequence_print_string): Helper, added.
+	(rasqal_sequence_print): Lose print_handler.
+
+	* Makefile.am: Remove -o from $(LINK) lines
+
+	* Makefile.am: Added memory debugging flags
+	flex/yacc output now compile without warnings.
+
+	* rdql_lexer.l: Added missing prototypes not generated by flex.
+
+	* rdql_lexer.l: Tidy and document options.  No more interactive.
+	Fix boolean, null return values.
+
+	* rdql_parser.y: Move C code to section at end of file
+
+	* rdql_parser.y: Prototypes.
+
+	* rasqal_internal.h: Add dmalloc
+
+	* rasqal_query.c: Prototypes.
+	If optional last arg is missing or '-', read from stdin
+
+	* rasqal_query.c: note rdql uri
+
+	* Makefile.am: clean stuff
+	lex -oout
+
+	* rdql_parser.y, rasqal_query.c, rasqal_internal.h,
+	rasqal_general.c, rasqal.h, Makefile.am: Parse tree is now built
+	for RDQL in terms of rasqal sequences, terms, expressions,
+	variables and literals.
+
+	* rasqal_sequence.c:
+	Added rasqal_sequence_print taking a callback method to print the
+	items.
+
+2003-08-21  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal_sequence.c: Added test suite and corrected.
+	Constructor gains a free_handler.
+
+2003-08-14  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rdql_parser.y, rdql_lexer.l, rasqal_internal.h, Makefile.am:
+	Change to rely on flex features - AT&T lex is just too feature light,
+	and the distribution will ship with the generated files anyway.  Flex
+	is pretty widespread.
+	Change to use prefix setting for names inside the lexer
+	and the generated filenames.  Update the calling code to match.
+
+	* rdql_parser.y: Note where shift/reduce conflicts are
+
+2003-08-13  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* Makefile.am: Added example5.rdql
+
+	* example5.rdql: Initial import
+
+	* rdql_parser.y: +stdio
+
+	* rasqal.h: Added outline rasqal query and sequence API prototypes.
+
+	* Makefile.am: Added rasqal_query.c rasqal_sequence.
+
+	* rasqal_query.c, rasqal_sequence.c: Initial import
+
+2003-08-12  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* configure.ac: Bump version to 1.1
+
+	* Snapshotted rasqal_1_0 for 1.0 release
+
+	* rdql_lexer.l: Add <string.h>
+
+	* rasqal.spec.in, Makefile.am: fixes for RPMs
+
+	* rasqal_config.h.in: Not meant to be in CVS
+
+	* fix-groff-xhtml: Import from raptor CVS
+
+	* MPL.html, AUTHORS, INSTALL.html, LICENSE.html: Initial import
+
+	* Makefile.am:
+	Added README.html,  NEWS.html, LICENSE.html, INSTALL.html and
+	librasqal.html
+
+	* NEWS.html, README.html, autogen.sh: Initial import
+
+	* configure.ac: words
+
+	* Makefile.am, configure.ac, example1.rdql, example2.rdql,
+	example3.rdql, example4.rdql, example_at_1.rdql,
+	example_at_2.rdql, example_at_3.rdql, example_at_4.rdql,
+	example_at_5.rdql, example_at_6.rdql, example_at_7.rdql,
+	librasqal.3, rasqal-config.1, rasqal-config.in,
+	rasqal-src-config.in, rasqal.h, rasqal.pc.in, rasqal.spec.in,
+	rasqal_config.h.in, rasqal_general.c, rasqal_internal.h,
+	rdql_lexer.l, rdql_parser.y, win32_config.h: Initial import
