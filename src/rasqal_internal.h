@@ -287,6 +287,7 @@ void rasqal_init_query_engine_brql (void);
 
 /* rasqal_engine.c */
 int rasqal_query_order_triples(rasqal_query* query);
+int rasqal_engine_declare_prefix(rasqal_query *rq, rasqal_prefix *prefix);
 int rasqal_engine_declare_prefixes(rasqal_query *rq);
 int rasqal_engine_expand_triple_qnames(rasqal_query* rq);
 int rasqal_engine_expand_constraints_qnames(rasqal_query* rq);
