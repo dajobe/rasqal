@@ -354,7 +354,8 @@ rasqal_triple_present(rasqal_query *query, rasqal_triple *t)
 
 
 static librdf_statement*
-rasqal_redland_get_match(void *user_data) 
+rasqal_redland_get_match(struct rasqal_triples_match_s* rtm,
+                         void *user_data) 
 {
   rasqal_triple_meta *m=(rasqal_triple_meta *)user_data;
   
@@ -370,7 +371,8 @@ rasqal_redland_get_match(void *user_data)
 
 
 static void
-rasqal_redland_next_match(void *user_data)
+rasqal_redland_next_match(struct rasqal_triples_match_s* rtm,
+                          void *user_data)
 {
   rasqal_triple_meta *m=(rasqal_triple_meta *)user_data;
   
@@ -378,7 +380,8 @@ rasqal_redland_next_match(void *user_data)
 }
 
 static int
-rasqal_redland_is_end(void *user_data)
+rasqal_redland_is_end(struct rasqal_triples_match_s* rtm,
+                      void *user_data)
 {
   rasqal_triple_meta *m=(rasqal_triple_meta *)user_data;
   
@@ -387,19 +390,22 @@ rasqal_redland_is_end(void *user_data)
 
 
 static void
-rasqal_redland_finish_triples_match(void *user_data) {
+rasqal_redland_finish_triples_match(struct rasqal_triples_match_s* rtm,
+                                    void *user_data) {
   rasqal_triple_meta *m=(rasqal_triple_meta *)user_data;
   
   /* FIXME leak nodes[0..2]? */
-  librdf_free_stream(m->stream);
-  m->stream=NULL;
+  if(m->stream) {
+    librdf_free_stream(m->stream);
+    m->stream=NULL;
+  }
   librdf_free_statement(m->qstatement);
 }
 
 
 
 static rasqal_triples_match*
-rasqal_new_triples_match(rasqal_query *query, 
+rasqal_new_triples_match(rasqal_query *query, void *user_data,
                          rasqal_triple_meta *m, rasqal_triple *t) {
   rasqal_triples_match *rtm;
   rasqal_variable* var;
@@ -409,7 +415,7 @@ rasqal_new_triples_match(rasqal_query *query,
   rtm->next_match=rasqal_redland_next_match;
   rtm->is_end=rasqal_redland_is_end;
   rtm->finish=rasqal_redland_finish_triples_match;
-  
+  rtm->user_data=user_data;
 
   /* at least one of the triple terms is a variable and we need to
    * do a triplesMatching() aka librdf_model_find_statements
@@ -472,6 +478,30 @@ rasqal_new_triples_match(rasqal_query *query,
 }
 
 
+static void
+rasqal_free_triples_match(rasqal_triples_match* rtm) {
+  rtm->finish(rtm, rtm->user_data);
+  RASQAL_FREE(rasqal_triples_match, rtm);
+}
+
+
+/* methods */
+static librdf_statement*
+rasqal_triples_match_get_match(struct rasqal_triples_match_s* rtm) {
+  return rtm->get_match(rtm,  rtm->user_data);
+}
+
+static void
+rasqal_triples_match_next_match(struct rasqal_triples_match_s* rtm) {
+  rtm->next_match(rtm,  rtm->user_data);
+}
+
+static int
+rasqal_triples_match_is_end(struct rasqal_triples_match_s* rtm) {
+  return rtm->is_end(rtm,  rtm->user_data);
+}
+
+
 int
 rasqal_engine_run(rasqal_query *query) {
   int i;
@@ -511,8 +541,7 @@ rasqal_engine_run(rasqal_query *query) {
       RASQAL_DEBUG2("exact match OK for column %d\n", column);
     } else if(!m->triples_match) {
       /* Column has no triplesMatch so create a new query */
-      m->triples_match=rasqal_new_triples_match(query, m, t);
-      m->user_data=m;
+      m->triples_match=rasqal_new_triples_match(query, m, m, t);
       if(!m->triples_match) {
         RASQAL_DEBUG2("failed to make new triplesMatch for column %d\n", column);
         /* failed to match */
@@ -524,7 +553,7 @@ rasqal_engine_run(rasqal_query *query) {
 
 
     if(m->triples_match) {
-      if(m->triples_match->is_end(m->user_data)) {
+      if(rasqal_triples_match_is_end(m->triples_match)) {
         RASQAL_DEBUG2("end of triplesMatch for column %d\n", column);
 
         if(m->bindings[0]) 
@@ -534,13 +563,13 @@ rasqal_engine_run(rasqal_query *query) {
         if(m->bindings[2]) 
           rasqal_variable_set_value(m->bindings[2],  NULL);
 
-        m->triples_match->finish(m->user_data);
+        rasqal_free_triples_match(m->triples_match);
         
         column--;
         continue;
       }
 
-      statement=(librdf_statement*)m->triples_match->get_match(m->user_data);
+      statement=rasqal_triples_match_get_match(m->triples_match);
 
       /* set 1 or 2 variable values from the fields of statement */
       if(m->bindings[0]) {
@@ -559,7 +588,7 @@ rasqal_engine_run(rasqal_query *query) {
                                   redland_node_to_rasqal_expression((librdf_statement_get_object(statement))));
       }
 
-      m->triples_match->next_match(m->user_data);
+      rasqal_triples_match_next_match(m->triples_match);
     }
     
     if(column == (triples_size-1)) {
