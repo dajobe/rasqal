@@ -87,6 +87,8 @@ rasqal_init(void)
 
   raptor_init();
 
+  rasqal_uri_init();
+
   /* last one declared is the default - RDQL */
 
 #ifdef RASQAL_QUERY_SPARQL  
@@ -123,12 +125,14 @@ rasqal_finish(void)
   rasqal_finishing=1;
 
   rasqal_delete_query_engine_factories();
-#ifdef RAPTOR_TRIPLES_SOURCE_RAPTOR
-  raptor_finish();
-#endif
+
 #ifdef RAPTOR_TRIPLES_SOURCE_REDLAND
   rasqal_redland_finish();
 #endif
+
+  rasqal_uri_finish();
+
+  raptor_finish();
 
   rasqal_initialising=0;
   rasqal_initialised=0;
@@ -623,6 +627,38 @@ rasqal_escaped_name_to_utf8_string(const unsigned char *src, size_t len,
   return result;
 }
 
+
+raptor_uri* rasqal_xsd_namespace_uri=NULL;
+
+raptor_uri* rasqal_xsd_integer_uri=NULL;
+raptor_uri* rasqal_xsd_double_uri=NULL;
+raptor_uri* rasqal_xsd_boolean_uri=NULL;
+
+
+void
+rasqal_uri_init() 
+{
+  rasqal_xsd_namespace_uri=raptor_new_uri(raptor_xmlschema_datatypes_namespace_uri);
+  
+  rasqal_xsd_integer_uri=raptor_new_uri_from_uri_local_name(rasqal_xsd_namespace_uri, "integer");
+  rasqal_xsd_double_uri=raptor_new_uri_from_uri_local_name(rasqal_xsd_namespace_uri, "double");
+  rasqal_xsd_boolean_uri=raptor_new_uri_from_uri_local_name(rasqal_xsd_namespace_uri, "boolean");
+  
+}
+
+
+void
+rasqal_uri_finish() 
+{
+  if(rasqal_xsd_integer_uri)
+    raptor_free_uri(rasqal_xsd_integer_uri);
+  if(rasqal_xsd_double_uri)
+    raptor_free_uri(rasqal_xsd_double_uri);
+  if(rasqal_xsd_boolean_uri)
+    raptor_free_uri(rasqal_xsd_boolean_uri);
+  if(rasqal_xsd_namespace_uri)
+    raptor_free_uri(rasqal_xsd_namespace_uri);
+}
 
 
 
