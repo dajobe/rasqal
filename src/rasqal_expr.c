@@ -488,7 +488,11 @@ rasqal_free_expression(rasqal_expression* e) {
       rasqal_free_literal(e->literal);
       break;
     case RASQAL_EXPR_VARIABLE:
-      rasqal_free_variable(e->variable);
+      /* It is correct that this is not called here
+       * since all variables are shared and owned by
+       * the rasqal_query sequence variables_sequence */
+
+      /* rasqal_free_variable(e->variable); */
       break;
     default:
       abort();
