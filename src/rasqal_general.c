@@ -472,6 +472,20 @@ rasqal_query_warning_varargs(rasqal_query* query, const char *message,
 
 
 
+/* wrapper */
+const char*
+rasqal_basename(const char *name)
+{
+  char *p;
+  if((p=strrchr(name, '/')))
+    name=p+1;
+  else if((p=strrchr(name, '\\')))
+    name=p+1;
+
+  return name;
+}
+
+
 #if defined (RASQAL_DEBUG) && defined(HAVE_DMALLOC_H) && defined(RASQAL_MEMORY_DEBUG_DMALLOC)
 
 #undef malloc
