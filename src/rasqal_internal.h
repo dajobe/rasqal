@@ -39,9 +39,8 @@ extern "C" {
 #include <dmalloc.h>
 #endif
 
-#ifdef LIBRDF_DEBUG
-#define RASQAL_DEBUG 1
-#endif
+/* FIXME for testing */
+#include <redland.h>
 
 #define RASQAL_MALLOC(type, size) malloc(size)
 #define RASQAL_CALLOC(type, size, count) calloc(size, count)
@@ -133,6 +132,13 @@ struct rasqal_query_s {
   /* query engine specific stuff */
   void *context;
 
+  /* stopping? */
+  int abort;
+  
+  /* FIXME querying a Redland model - for testing */
+  librdf_world *world;
+  librdf_model *model;
+
   struct rasqal_query_engine_factory_s* factory;
 };
 
@@ -200,6 +206,7 @@ void rasqal_init_query_engine_rdql (void);
 int rasqal_query_order_triples(rasqal_query* query);
 int rasqal_engine_declare_prefixes(rasqal_query *rq);
 int rasqal_engine_expand_triple_qnames(rasqal_query* rq);
+int rasqal_select_next(rasqal_query *q, int count);
 
 /* end of RASQAL_INTERNAL */
 #endif
