@@ -52,6 +52,8 @@
 
 #include <sparql_common.h>
 
+#undef RASQAL_DEBUG
+#define RASQAL_DEBUG 2
 
 /* Make verbose error messages for syntax errors */
 /*
@@ -110,6 +112,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...);
   rasqal_literal *literal;
   rasqal_triple *triple;
   rasqal_expression *expr;
+  rasqal_graph_pattern *graph_pattern;
   double floating;
   raptor_uri *uri;
   unsigned char *name;
@@ -165,20 +168,24 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...);
 
 %type <seq> SelectClause ConstructClause DescribeClause
 %type <seq> PrefixDeclOpt FromClauseOpt WhereClauseOpt
-%type <seq> GraphPattern GraphPattern1
 %type <seq> VarList VarOrURIList ArgList URIList
 %type <seq> TriplePatternList
-%type <seq> PatternElement PatternElementForms
+
+%type <seq> GraphPattern 
+
+%type <graph_pattern> GraphPattern1 PatternElement PatternElementForms
 
 %type <expr> Expression ConditionalAndExpression ValueLogical
 %type <expr> EqualityExpression RelationalExpression AdditiveExpression
 %type <expr> MultiplicativeExpression UnaryExpression
 %type <expr> UnaryExpressionNotPlusMinus
-%type <literal> VarOrLiteral VarOrURI
+
+%type <literal> Literal URI VarOrLiteral VarOrURI
 
 %type <variable> Var
+
 %type <triple> TriplePattern
-%type <literal> Literal URI
+
 
 %%
 
@@ -275,7 +282,7 @@ FromClauseOpt : FROM URIList
 /* SPARQL Grammar: [5] WhereClause - remained for clarity*/
 WhereClauseOpt :  WHERE GraphPattern
 {
-  ((rasqal_query*)rq)->triples=$2;
+  ((rasqal_query*)rq)->graph_patterns=$2;
 }
 | /* empty */
 {
@@ -290,15 +297,35 @@ WhereClauseOpt :  WHERE GraphPattern
 /* SPARQL Grammar: [8] GraphPattern */
 GraphPattern : GraphPattern PatternElement
 {
-  /* FIXME - make graph pattern structure from element */
+#if RASQAL_DEBUG > 1  
+  printf("GraphPattern 1\n  graphpattern=");
+  raptor_sequence_print($1, stdout);
+  printf(", patternelement=");
+  if($2)
+    rasqal_graph_pattern_print($2, stdout);
+  else
+    fputs("NULL", stdout);
+  fputs("\n\n", stdout);
+#endif
+
   $$=$1;
   if($2)
-    raptor_sequence_join($$, $2);
+    raptor_sequence_push($$, $2);
 }
 | PatternElement
 {
-  /* FIXME - make a graph pattern structure from element */
-  $$=$1;
+#if RASQAL_DEBUG > 1  
+  printf("GraphPattern 2\n  patternelement=");
+  if($1)
+    rasqal_graph_pattern_print($1, stdout);
+  else
+    fputs("NULL", stdout);
+  fputs("\n\n", stdout);
+#endif
+
+  $$=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_graph_pattern, (raptor_sequence_print_handler*)rasqal_graph_pattern_print);
+  if($1)
+    raptor_sequence_push($$, $1);
 }
 ;
 
@@ -306,16 +333,45 @@ GraphPattern : GraphPattern PatternElement
 /* SPARQL Grammar: [9] PatternElement */
 PatternElement : TriplePatternList
 {
-  /* FIXME - make a pattern element */
-  $$=$1;
+#if RASQAL_DEBUG > 1  
+  printf("PatternElement 1\n  triplepatternlist=");
+  raptor_sequence_print($1, stdout);
+  fputs("\n\n", stdout);
+#endif
+  
+  if($1) {
+    raptor_sequence *s=((rasqal_query*)rq)->triples;
+    int offset=raptor_sequence_size(s);
+    int triple_pattern_size=raptor_sequence_size($1);
+    
+    raptor_sequence_join(s, $1);
+    raptor_free_sequence($1);
+
+    $$=rasqal_new_graph_pattern_from_triples(s, offset, offset+triple_pattern_size-1, 0);
+  } else
+    $$=NULL;
 }
 | '{' GraphPattern '}' /*  ExplicitGroup inlined */
 {
-  $$=$2;
+#if RASQAL_DEBUG > 1  
+  printf("PatternElement 2\n  graphpattern=");
+  raptor_sequence_print($2, stdout);
+  fputs("\n\n", stdout);
+#endif
+  
+  $$=rasqal_new_graph_pattern_from_sequence($2, 0);
 }
 | PatternElementForms
 {
-  /* FIXME - make a pattern element */
+#if RASQAL_DEBUG > 1  
+  printf("PatternElement 3\n  patternelementforms=");
+  if($1)
+    rasqal_graph_pattern_print($1, stdout);
+  else
+    fputs("NULL", stdout);
+  fputs("\n\n", stdout);
+#endif
+  
   $$=$1;
 }
 ;
@@ -324,18 +380,42 @@ PatternElement : TriplePatternList
 /* SPARQL Grammar: [10] GraphPattern1 */
 GraphPattern1 : TriplePattern
 {
-  /* FIXME - make a graphpattern */
-  $$=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_triple, (raptor_sequence_print_handler*)rasqal_triple_print);
-  raptor_sequence_push($$, $1);
+#if RASQAL_DEBUG > 1  
+  printf("GraphPattern1 1\n  triplepattern=");
+  if($1)
+    rasqal_triple_print($1, stdout);
+  else
+    fputs("NULL", stdout);
+  fputs("\n\n", stdout);
+#endif
+
+  if($1) {
+    raptor_sequence *s=((rasqal_query*)rq)->triples;
+    int offset=raptor_sequence_size(s);
+    raptor_sequence_push(s, $1);
+
+    $$=rasqal_new_graph_pattern_from_triples(s, offset, offset, 0);
+  } else
+    $$=NULL;
 }
 | '{' GraphPattern '}' /*  ExplicitGroup inlined */
 {
-  /* FIXME - make a graphpattern */
-  $$=$2;
+#if RASQAL_DEBUG > 1  
+  printf("GraphPattern1 2\n  triplepattern=");
+  raptor_sequence_print($2, stdout);
+  fputs("\n\n", stdout);
+#endif
+
+  $$=rasqal_new_graph_pattern_from_sequence($2, 0);
 }
 | PatternElementForms
 {
-  /* FIXME - make a graphpattern */
+#if RASQAL_DEBUG > 1  
+  printf("PatternElement 3\n  patternelementforms=");
+  rasqal_graph_pattern_print($1, stdout);
+  fputs("\n\n", stdout);
+#endif
+  
   $$=$1;
 }
 ;
@@ -348,6 +428,12 @@ GraphPattern1 : TriplePattern
 /* This inlines use-once SourceGraphPattern and OptionalGraphPattern */
 PatternElementForms: SOURCE '*' GraphPattern1  /* from SourceGraphPattern */
 {
+#if RASQAL_DEBUG > 1  
+  printf("PatternElementForms 1\n  graphpattern=");
+  rasqal_graph_pattern_print($3, stdout);
+  fputs("\n\n", stdout);
+#endif
+
   /* FIXME - SOURCE * has no defined meaning */
   sparql_syntax_warning(((rasqal_query*)rq), "SOURCE * ignored");
   $$=$3;
@@ -355,10 +441,19 @@ PatternElementForms: SOURCE '*' GraphPattern1  /* from SourceGraphPattern */
 | SOURCE VarOrURI GraphPattern1 /* from SourceGraphPattern */
 {
   int i;
+  raptor_sequence *s=$3->graph_patterns;
+  
+#if RASQAL_DEBUG > 1  
+  printf("PatternElementForms 2\n  varoruri=");
+  rasqal_literal_print($2, stdout);
+  printf(", graphpattern=");
+  rasqal_graph_pattern_print($3, stdout);
+  fputs("\n\n", stdout);
+#endif
 
-  /* Flag all the triples in GraphPattern1 with source $2 optional */
-  for(i=0; i < raptor_sequence_size($3); i++) {
-    rasqal_triple *t=(rasqal_triple*)raptor_sequence_get_at($3, i);
+  /* Flag all the triples in GraphPattern1 with origin $2 */
+  for(i=0; i < raptor_sequence_size(s); i++) {
+    rasqal_triple *t=(rasqal_triple*)raptor_sequence_get_at(s, i);
     rasqal_triple_set_origin(t, rasqal_new_literal_from_literal($2));
   }
   rasqal_free_literal($2);
@@ -367,10 +462,17 @@ PatternElementForms: SOURCE '*' GraphPattern1  /* from SourceGraphPattern */
 | OPTIONAL GraphPattern1 /* from OptionalGraphPattern */
 {
   int i;
+  raptor_sequence *s=$2->graph_patterns;
+
+#if RASQAL_DEBUG > 1  
+  printf("PatternElementForms 3\n  graphpattern=");
+  rasqal_graph_pattern_print($2, stdout);
+  fputs("\n\n", stdout);
+#endif
 
   /* Flag all the triples in GraphPattern1 as optional */
-  for(i=0; i < raptor_sequence_size($2); i++) {
-    rasqal_triple *t=(rasqal_triple*)raptor_sequence_get_at($2, i);
+  for(i=0; i < raptor_sequence_size(s); i++) {
+    rasqal_triple *t=(rasqal_triple*)raptor_sequence_get_at(s, i);
     t->flags |= RASQAL_TRIPLE_FLAGS_OPTIONAL;
   }
   $$=$2;
@@ -379,14 +481,28 @@ PatternElementForms: SOURCE '*' GraphPattern1  /* from SourceGraphPattern */
 {
   int i;
 
+#if RASQAL_DEBUG > 1  
+  printf("PatternElementForms 4\n  graphpattern=");
+  raptor_sequence_print($2, stdout);
+  fputs("\n\n", stdout);
+#endif
+
+  /* Make all graph patterns in GraphPattern, optional */
   for(i=0; i < raptor_sequence_size($2); i++) {
-    rasqal_triple *t=(rasqal_triple*)raptor_sequence_get_at($2, i);
-    t->flags |= RASQAL_TRIPLE_FLAGS_OPTIONAL;
+    rasqal_graph_pattern *gp=(rasqal_graph_pattern*)raptor_sequence_get_at($2, i);
+    gp->flags |= RASQAL_PATTERN_FLAGS_OPTIONAL;
   }
-  $$=$2;
+
+  $$=rasqal_new_graph_pattern_from_sequence($2, RASQAL_PATTERN_FLAGS_OPTIONAL);
 }
 | AND Expression
 {
+#if RASQAL_DEBUG > 1  
+  printf("PatternElementForms 4\n expression=");
+  rasqal_expression_print($2, stdout);
+  fputs("\n\n", stdout);
+#endif
+
   rasqal_query_add_constraint(((rasqal_query*)rq), $2);
   $$=NULL;
 };
@@ -869,7 +985,6 @@ static int
 rasqal_sparql_query_engine_prepare(rasqal_query* rdf_query) {
   /* rasqal_sparql_query_engine* sparql=(rasqal_sparql_query_engine*)rdf_query->context; */
   int rc;
-  rasqal_graph_pattern *gp;
   
   if(!rdf_query->query_string)
     return 1;
@@ -878,10 +993,6 @@ rasqal_sparql_query_engine_prepare(rasqal_query* rdf_query) {
   if(rc)
     return rc;
 
-  gp=rasqal_new_graph_pattern(rdf_query->triples,
-                              0, raptor_sequence_size(rdf_query->triples)-1,
-                              0);
-  raptor_sequence_push(rdf_query->graph_patterns, gp);
   return rasqal_engine_prepare(rdf_query);
 }
 
@@ -910,6 +1021,10 @@ sparql_parse(rasqal_query* rq, const unsigned char *string) {
   locator->line=1;
   locator->column= -1; /* No column info */
   locator->byte= -1; /* No bytes info */
+
+#if RASQAL_DEBUG > 2
+  sparql_parser_debug=1;
+#endif
 
   rqe->lineno=1;
 
