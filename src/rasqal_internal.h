@@ -106,7 +106,7 @@ typedef enum {
 /*
  * Pattern graph for executing
  */
-struct rasqal_pattern_graph_s {
+struct rasqal_graph_pattern_s {
   raptor_sequence *triples;     /* ... rasqal_triple*              */
 
   int triples_count;
@@ -123,11 +123,11 @@ struct rasqal_pattern_graph_s {
   int flags;
 };
 
-typedef struct rasqal_pattern_graph_s rasqal_pattern_graph;
+typedef struct rasqal_graph_pattern_s rasqal_graph_pattern;
 
 
-rasqal_pattern_graph* rasqal_new_pattern_graph(raptor_sequence *triples, int start_column, int end_column, int flags);
-void rasqal_free_pattern_graph(rasqal_pattern_graph* pg);
+rasqal_graph_pattern* rasqal_new_graph_pattern(raptor_sequence *triples, int start_column, int end_column, int flags);
+void rasqal_free_graph_pattern(rasqal_graph_pattern* pg);
 
 
 /*
@@ -253,7 +253,7 @@ struct rasqal_query_s {
   /* incrementing counter for declaring prefixes in order of appearance */
   int prefix_depth;
 
-  rasqal_pattern_graph* pattern_graph;
+  rasqal_graph_pattern* graph_pattern;
 };
 
 

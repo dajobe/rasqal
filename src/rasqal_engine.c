@@ -481,11 +481,11 @@ rasqal_triples_match_is_end(struct rasqal_triples_match_s* rtm) {
 
 
 
-rasqal_pattern_graph*
-rasqal_new_pattern_graph(raptor_sequence *triples, 
+rasqal_graph_pattern*
+rasqal_new_graph_pattern(raptor_sequence *triples, 
                          int start_column, int end_column, int flags)
 {
-  rasqal_pattern_graph* pg=(rasqal_pattern_graph*)RASQAL_CALLOC(rasqal_pattern_graph, sizeof(rasqal_pattern_graph), 1);
+  rasqal_graph_pattern* pg=(rasqal_graph_pattern*)RASQAL_CALLOC(rasqal_graph_pattern, sizeof(rasqal_graph_pattern), 1);
 
   pg->triples=triples;
   pg->column=0;
@@ -501,7 +501,7 @@ rasqal_new_pattern_graph(raptor_sequence *triples,
 
 
 void
-rasqal_free_pattern_graph(rasqal_pattern_graph* pg)
+rasqal_free_graph_pattern(rasqal_graph_pattern* pg)
 {
   if(pg->triple_meta) 
     for(;pg->column >= 0; pg->column--) {
@@ -524,7 +524,7 @@ rasqal_free_pattern_graph(rasqal_pattern_graph* pg)
     RASQAL_FREE(rasqal_triple_meta, pg->triple_meta);
   }
 
-  RASQAL_FREE(rasqal_pattern_graph, pg);
+  RASQAL_FREE(rasqal_graph_pattern, pg);
 }
 
 
@@ -533,8 +533,8 @@ rasqal_free_pattern_graph(rasqal_pattern_graph* pg)
  * return: <0 failure, 0 end of results, >0 match
  */
 static int
-rasqal_pattern_graph_get_next_match(rasqal_query *query,
-                                     rasqal_pattern_graph* pg) 
+rasqal_graph_pattern_get_next_match(rasqal_query *query,
+                                     rasqal_graph_pattern* pg) 
 {
   int rc;
 
@@ -676,14 +676,14 @@ rasqal_engine_execute_init(rasqal_query *query) {
     }
   }
 
-  if(query->pattern_graph)
-    rasqal_free_pattern_graph(query->pattern_graph);
+  if(query->graph_pattern)
+    rasqal_free_graph_pattern(query->graph_pattern);
 
   triples_size=raptor_sequence_size(query->triples);
-  query->pattern_graph=rasqal_new_pattern_graph(query->triples,
+  query->graph_pattern=rasqal_new_graph_pattern(query->triples,
                                                 0, triples_size-1,
                                                 0);
-  if(!query->pattern_graph)
+  if(!query->graph_pattern)
     return 1;
   
   query->abort=0;
@@ -697,9 +697,9 @@ rasqal_engine_execute_init(rasqal_query *query) {
 
 int
 rasqal_engine_execute_finish(rasqal_query *query) {
-  if(query->pattern_graph) {
-    rasqal_free_pattern_graph(query->pattern_graph);
-    query->pattern_graph=NULL;
+  if(query->graph_pattern) {
+    rasqal_free_graph_pattern(query->graph_pattern);
+    query->graph_pattern=NULL;
   }
 
   if(query->triples_source) {
@@ -731,7 +731,7 @@ rasqal_engine_get_next_result(rasqal_query *query) {
 
   while(rc > 0) {
     /*  return: <0 failure, 0 end of results, >0 match */
-    rc=rasqal_pattern_graph_get_next_match(query, query->pattern_graph);
+    rc=rasqal_graph_pattern_get_next_match(query, query->graph_pattern);
     if(rc <= 0)
       break;
     
