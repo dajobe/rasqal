@@ -1,5 +1,24 @@
 2004-10-25  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
+	* roqet.c:
+	(roqet_xml_print_xml_attribute, roqet_query_results_print_as_xml):
+	Move experimental XML output code here.
+
+	* Makefile.am: Remove rasqal_xml.c from library for now.
+
+	* rasqal.h: Remove rasqal_query_results_print_as_xml from
+	pre-release public API
+
+	* sparql_parser.y (FromClauseOpt):
+	Store the list of sources got from URIList
+	(URIList): Use rasqal_literal_as_uri to make a list of raptor_uri*
+	from individual rasqal_literal* made by term URI.
+
+	* rasqal_literal.c (rasqal_literal_as_uri):
+	Added for getting a URI out of a literal.
+
+	* rasqal_internal.h: Added rasqal_literal_as_uri
+
 	* sparql_parser.y (sparql_query_error_full): Added, allowing varags.
 	(Literal, URI): Use above to report failure to expand qnames
 	immediately.
