@@ -1,5 +1,24 @@
 2005-01-10  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
+	* rasqal_raptor.c (rasqal_raptor_finish_triples_match): Free any
+	literals copied into the triple used for comparing matches.
+
+	* rasqal_raptor.c (rasqal_raptor_bind_match): Reformatting.
+	(rasqal_raptor_new_triples_match): Set unbound triple matches
+	literal values as shared pointers, not copies of literals.
+
+	* rasqal_redland.c (rasqal_redland_bind_match): Update return
+	value.
+
+	* rasqal_engine.c (rasqal_free_graph_pattern): Zap triple_meta
+	pointer when done.
+
+	* sparql_lexer.l, rdql_lexer.l (<PATTERN>.): Recover state after
+	an error in a regex.
+
+	* rasqal_engine.c (rasqal_graph_pattern_order): Sort using
+	pointers in data, not array pointers.
+
 	* rasqal_query.c (rasqal_free_query): Delete ordered_triples tidy.
 	(rasqal_query_print): Delete ordered_triples print.
 
