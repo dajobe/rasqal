@@ -97,7 +97,7 @@ void rasqal_system_free(void *ptr);
 #define RASQAL_FATAL1(msg) do {fprintf(stderr, "%s:%d:%s: fatal error: " msg, __FILE__, __LINE__ , __func__); abort();} while(0)
 #define RASQAL_FATAL2(msg,arg) do {fprintf(stderr, "%s:%d:%s: fatal error: " msg, __FILE__, __LINE__ , __func__, arg); abort();} while(0)
 
-#define RASQAL_DEPRECATED_MESSAGE(msg) do {fprintf(stderr, "Function %s is deprecated - " msg,  __func__); } while(0)
+#define RASQAL_DEPRECATED_MESSAGE(msg) do {static int warning_given=0; if(!warning_given++) fprintf(stderr, "Function %s is deprecated - " msg,  __func__); } while(0)
 
 
 typedef struct rasqal_query_engine_factory_s rasqal_query_engine_factory;
@@ -134,6 +134,14 @@ struct rasqal_graph_pattern_s {
 
   /* Number of matches returned */
   int matches_returned;
+
+  raptor_sequence *constraints; /* ... rasqal_expression*          */
+  /* the expression version of the sequence of constraints above - this is
+   * where the constraints are freed
+   */
+  rasqal_expression* constraints_expression;
+
+
 };
 
 rasqal_graph_pattern* rasqal_new_graph_pattern_from_triples(rasqal_query *query, raptor_sequence *triples, int start_column, int end_column, int flags);
@@ -158,7 +166,6 @@ struct rasqal_query_s {
   raptor_sequence *data_graphs; /* ... rasqal_data_graph*          */
   raptor_sequence *sources;     /* ... raptor_uri*  (DEPRECATED)   */
   raptor_sequence *triples;     /* ... rasqal_triple*              */
-  raptor_sequence *constraints; /* ... rasqal_expression*          */
   raptor_sequence *prefixes;    /* ... rasqal_prefix*              */
   raptor_sequence *constructs;  /* ... rasqal_triple*       SPARQL */
   raptor_sequence *optional_triples; /* ... rasqal_triple*  SPARQL */
@@ -218,11 +225,6 @@ struct rasqal_query_s {
    */
   rasqal_literal** binding_values;
   
-  /* the expression version of the sequence of constraints above - this is
-   * where the constraints are freed
-   */
-  rasqal_expression* constraints_expression;
-
   /* can be filled with error location information */
   raptor_locator locator;
 
@@ -289,6 +291,9 @@ struct rasqal_query_s {
 
   /* result triple - internal, not returned */
   rasqal_triple *triple;
+  
+  /* sequence of constraints - internal for RDQL parsing, not returned */
+  raptor_sequence *constraints_sequence;
   
   /* result triple (SHARED) */
   raptor_statement statement;
@@ -386,9 +391,11 @@ int rasqal_engine_undeclare_prefix(rasqal_query *rq, rasqal_prefix *prefix);
 int rasqal_engine_declare_prefixes(rasqal_query *rq);
 int rasqal_engine_sequence_has_qname(raptor_sequence *seq);
 int rasqal_engine_expand_triple_qnames(rasqal_query* rq);
-int rasqal_engine_constraints_has_qname(rasqal_query* rq);
-int rasqal_engine_expand_constraints_qnames(rasqal_query* rq);
-int rasqal_engine_build_constraints_expression(rasqal_query* rq);
+int rasqal_engine_query_constraints_has_qname(rasqal_query* gp);
+int rasqal_engine_graph_pattern_constraints_has_qname(rasqal_graph_pattern* gp);
+int rasqal_engine_expand_query_constraints_qnames(rasqal_query* rq);
+int rasqal_engine_expand_graph_pattern_constraints_qnames(rasqal_query *rq, rasqal_graph_pattern* gp);
+int rasqal_engine_build_constraints_expression(rasqal_graph_pattern* gp);
 int rasqal_engine_assign_variables(rasqal_query* rq);
 
 int rasqal_engine_prepare(rasqal_query *query);
