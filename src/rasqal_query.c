@@ -882,7 +882,7 @@ rasqal_graph_pattern_set_origin(rasqal_graph_pattern* graph_pattern,
     int i;
 
     /* Flag all the triples in this graph pattern with origin */
-    for(i=0; i < raptor_sequence_size(s); i++) {
+    for(i= graph_pattern->start_column; i < graph_pattern->end_column; i++) {
       rasqal_triple *t=(rasqal_triple*)raptor_sequence_get_at(s, i);
       rasqal_triple_set_origin(t, rasqal_new_literal_from_literal(origin));
     }
