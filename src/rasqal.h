@@ -185,9 +185,12 @@ RASQAL_API rasqal_query* rasqal_new_query(const char *name, const unsigned char 
 RASQAL_API void rasqal_free_query(rasqal_query* query);
 
 /* Methods */
-RASQAL_API void rasqal_query_add_source(rasqal_query* query, const unsigned char* uri);
+RASQAL_API void rasqal_query_add_source(rasqal_query* query, raptor_uri* uri);
 RASQAL_API raptor_sequence* rasqal_query_get_source_sequence(rasqal_query* query);
-RASQAL_API const unsigned char* rasqal_query_get_source(rasqal_query* query, int idx);
+RASQAL_API raptor_uri* rasqal_query_get_source(rasqal_query* query, int idx);
+RASQAL_API void rasqal_query_add_variable(rasqal_query* query, rasqal_variable* var);
+RASQAL_API raptor_sequence* rasqal_query_get_variable_sequence(rasqal_query* query);
+RASQAL_API rasqal_variable* rasqal_query_get_variable(rasqal_query* query, int idx);
 RASQAL_API int rasqal_query_has_variable(rasqal_query* query, const char *name);
 RASQAL_API int rasqal_query_set_variable(rasqal_query* query, const char *name, rasqal_literal* value);
 
