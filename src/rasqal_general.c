@@ -228,6 +228,7 @@ rasqal_query_engine_register_factory(const char *name, const char *label,
 /**
  * rasqal_get_query_engine_factory - Get a query factory by name
  * @name: the factory name or NULL for the default factory
+ * @uri: the query syntax URI or NULL
  * 
  * Return value: the factory object or NULL if there is no such factory
  **/
