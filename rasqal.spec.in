@@ -88,7 +88,7 @@ install -d $RPM_BUILD_ROOT%{_mandir}/man3
 
 
 %changelog
-* We May 5 2004 <Dave.Beckett@bristol.ac.uk>
+* Wed May 5 2004 <Dave.Beckett@bristol.ac.uk>
 - Ship roqet and roqet.1
 
 * Sat May 1 2004 <Dave.Beckett@bristol.ac.uk>
