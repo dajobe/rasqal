@@ -72,7 +72,7 @@ sub run_test($$) {
   warn "$program: Running '$cmd'\n"
     if $debug;
 
-  my(@vars_order);
+  my(@vars_order)=();
   open(PIPE, "$cmd|") or die "$program: Cannot create pipe from '$cmd' - $!\n";
   open(OUT, "| sort >roqet.out") or die "$program: Cannot create pipe to roqet.out - $!\n";
   while(<PIPE>) {
@@ -183,8 +183,8 @@ sub run_test($$) {
       my $value=$nodes{$binding_node}->{$value_predicate}->[0];
       $results{$variable}=toDebug($value);
     }
-    print OUT "result: [",join(", ",map {$results{$_} ? "$_=$results{$_}" : "$_=undef"} @vars_order),"]\n"
-      if @vars_order;
+    my(@defined_vars)=grep(defined $results{$_}, @vars_order);
+    print OUT "result: [",join(", ",map {"$_=$results{$_}"} @defined_vars),"]\n";
     $count++;
   }
   close(OUT);
