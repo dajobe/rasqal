@@ -64,30 +64,14 @@ rasqal_literal_to_redland_node(librdf_world *world, rasqal_literal* l) {
   if(l->type == RASQAL_LITERAL_URI) {
     char *uri_string=raptor_uri_as_string(l->value.uri);
     return librdf_new_node_from_uri_string(world, uri_string);
-  } else if (l->type == RASQAL_LITERAL_STRING) {
-    librdf_uri* datatype_uri;
-
-    if(l->datatype)
-      datatype_uri=librdf_new_uri_from_uri((librdf_uri*)l->datatype);
-    else
-      datatype_uri=NULL;
+  } else if (l->type == RASQAL_LITERAL_STRING ||
+             l->type == RASQAL_LITERAL_INTEGER ||
+             l->type == RASQAL_LITERAL_FLOATING)
     return librdf_new_node_from_typed_literal(world, l->string, 
-                                              l->language, datatype_uri);
-  } else if (l->type == RASQAL_LITERAL_BLANK)
-    return librdf_new_node_from_blank_identifier(world, l->string);
-  else if (l->type == RASQAL_LITERAL_INTEGER) {
-    char buffer[30]; /* FIXME */
-    librdf_uri* uri=librdf_new_uri(world, "http://www.w3.org/2001/XMLSchema#integer");
-    librdf_node *node;
-    
-    sprintf(buffer, "%d", l->value.integer);
-    node=librdf_new_node_from_typed_literal(world, buffer, NULL, uri);
-
-    librdf_free_uri(uri);
-    return node;
-  } else if (l->type == RASQAL_LITERAL_FLOATING)
-    return librdf_new_node_from_typed_literal(world, l->string, NULL,
+                                              l->language, 
                                               (librdf_uri*)l->datatype);
+  else if (l->type == RASQAL_LITERAL_BLANK)
+    return librdf_new_node_from_blank_identifier(world, l->string);
   else {
     char *string=rasqal_literal_as_string(l);
     if(!string) {
