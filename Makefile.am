@@ -54,7 +54,7 @@ rasqal.spec.in \
 $(man_MANS) \
 rasqal.pc.in
 
-SUBDIRS=tests
+SUBDIRS=tests rdql-testsuite
 
 TESTS=rasqal_sequence_test
 
