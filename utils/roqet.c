@@ -32,6 +32,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdarg.h>
+#ifdef HAVE_ERRNO_H
+#include <errno.h>
+#endif
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
 #else
@@ -284,6 +287,11 @@ main(int argc, char *argv[])
     fread(query_string, RDQL_FILE_BUF_SIZE, 1, stdin);
   } else if(filename) {
     FILE *fh=fopen(filename, "r+");
+    if(!fh) {
+      fprintf(stderr, "%s: file '%s' open failed - %s", 
+              program, filename, strerror(errno));
+      return(1);
+    }
     fread(query_string, RDQL_FILE_BUF_SIZE, 1, fh);
     fclose(fh);
   } else {
