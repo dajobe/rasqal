@@ -269,6 +269,7 @@ else
     AC_MSG_ERROR(Raptor sources missing in parent directory - cannot use internal)
   fi
 fi
+AC_SUBST(with_raptor)
 
 
 if test $with_raptor = internal; then
