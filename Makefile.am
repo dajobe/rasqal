@@ -25,7 +25,7 @@ lib_LTLIBRARIES = librasqal.la
 
 include_HEADERS = rasqal.h
 
-noinst_HEADERS = rasqal_internal.h win32_config.h
+noinst_HEADERS = rasqal_internal.h win32_rasqal_config.h
 
 man_MANS = roqet.1 librasqal.3 rasqal-config.1
 
