@@ -1,4 +1,20 @@
+2004-10-28  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* sparql_lexer.l, rdql_lexer.l: Remove YY_INPUT since it never worked.
+	(main): Read query string into a buffer and use *_lexer__scan_buffer
+
+	* sparql_parser.y (main): Use full rasqal_init/finish sequence
+	since setup and cleanup is rather complex now.
+
 2004-10-27  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* sparql_parser.y (sparql_parse): Added workaround to crash when
+	regex is at very end of input, by appending a space to the parsed
+	query string.
+
+	* rdql_parser.y (rdql_parse): Added workaround to crash when regex
+	is at very end of input, by appending a space to the parsed query
+	string.
 
 	* tests/sparql/check-sparql, tests/rdql/testsuite/check-rdql: OK
 	to assume raptor 1.4.0
