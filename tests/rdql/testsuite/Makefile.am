@@ -80,22 +80,30 @@ $(top_builddir)/roqet:
 	@(cd $(top_builddir) ; $(MAKE) roqet)
 
 
-check-local: check-rdql-queries
+check-local: check-rdql-works check-rdql-correct
 
-check-rdql-queries: $(top_builddir)/roqet
+check-rdql-works: $(top_builddir)/roqet
 	@result=0; \
 	$(ECHO) "Testing RDQL"; \
 	for test in $(rdql_testsuite_test_files); do \
 	  $(ECHO) $(ECHO_N) "Checking $$test $(ECHO_C)"; \
-	  $(top_builddir)/roqet $(srcdir)/$$test 2>/dev/null; \
+	  $(top_builddir)/roqet $(srcdir)/$$test >/dev/null 2>&1; \
 	  status=$$?; \
 	  if test $$status != 0 -a $$status != 2 ; then \
 	    $(ECHO) FAILED returned status $$status; result=1; \
+	    fails="$$fails $$test"; \
 	  else \
 	    $(ECHO) ok; \
 	  fi; \
 	done; \
+	if test $$result = 1 ; then \
+	  echo "FAILED tests:$$fails"; \
+	fi; \
 	exit $$result
+
+check-rdql-correct: $(top_builddir)/roqet $(srcdir)/check-rdql
+	@TOP_SRCDIR=$(top_srcdir) TOP_BUILDDIR=$(top_builddir) \
+	  perl $(srcdir)/check-rdql
 
 if MAINTAINER_MODE
 clean-tests:
