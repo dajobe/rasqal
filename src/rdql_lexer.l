@@ -96,8 +96,6 @@ static unsigned char *copy_token(rdql_parser *rp, unsigned char *text, size_t le
 static int copy_regex_token(rdql_parser *rp, unsigned char delim);
 static int copy_string_token(rdql_parser *rp, unsigned char *text, size_t len, int delim);
 
-char *filename=NULL;
-
 #ifdef RASQAL_DEBUG
 const char * rdql_token_print(int token, YYSTYPE *lval);
 #endif
@@ -380,8 +378,8 @@ copy_string_token(rdql_parser* rp, unsigned char *text, size_t len, int delim) {
 	d+=1;
 
       } else {
-        /* don't handle \x where x isn't one of: \n \r \\ (delim) */
-        rdql_syntax_warning(rp, "Illegal string escape \\%c in \"%s\"", c, text);
+        /* Ignore \x where x isn't the one of: \n \r \t \\ (delim) \u \U */
+        rdql_syntax_warning(rp, "Unknown string escape \\%c in \"%s\"", c, text);
         *d++=c;
       }
     } else if(c== delim) {
@@ -616,7 +614,7 @@ rdql_syntax_error(rdql_parser *rp, const char *message, ...)
   yyscan_t yyscanner=rp->scanner;
   va_list arguments;
 
-  fprintf(stderr, "%s:%d: ", filename, rdql_lexer_get_lineno(yyscanner));
+  fprintf(stderr, "%s:%d: ", rp->uri_string, rdql_lexer_get_lineno(yyscanner));
 
   va_start(arguments, message);
   vfprintf(stderr, message, arguments);
@@ -633,7 +631,7 @@ rdql_syntax_warning(rdql_parser *rp, const char *message, ...)
   yyscan_t yyscanner=rp->scanner;
   va_list arguments;
 
-  fprintf(stderr, "%s:%d: Warning: ", filename, rdql_lexer_get_lineno(yyscanner));
+  fprintf(stderr, "%s:%d: Warning: ", rp->uri_string, rdql_lexer_get_lineno(yyscanner));
 
   va_start(arguments, message);
   vfprintf(stderr, message, arguments);
@@ -661,6 +659,7 @@ int
 main(int argc, char *argv[]) 
 {
   rdql_parser rp;
+  char *filename=NULL;
   int token=EOF;
   FILE *fh;
   YYSTYPE *lval;
@@ -687,6 +686,8 @@ main(int argc, char *argv[])
   scanner=rp.scanner;
   rdql_lexer_set_in(fh, scanner);
   rdql_lexer_set_extra(&rp, scanner);
+
+  rp.uri_string=filename; /* FIXME - need raptor */
 
   while(1) {
     if(rdql_lexer_get_text(scanner) != NULL)
