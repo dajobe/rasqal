@@ -44,6 +44,7 @@ static void rasqal_delete_query_engine_factories(void);
 
 
 /* statics */
+static int rasqal_initialised=0;
 
 /* list of query factories */
 static rasqal_query_engine_factory* query_engines=NULL;
@@ -72,7 +73,7 @@ const unsigned int rasqal_version_decimal = RASQAL_VERSION_DECIMAL;
 void
 rasqal_init(void) 
 {
-  if(query_engines)
+  if(rasqal_initialised++)
     return;
 
   raptor_init();
@@ -104,6 +105,9 @@ rasqal_init(void)
 void
 rasqal_finish(void) 
 {
+  if(--rasqal_initialised)
+    return;
+
   rasqal_delete_query_engine_factories();
 #ifdef RAPTOR_TRIPLES_SOURCE_RAPTOR
   raptor_finish();
