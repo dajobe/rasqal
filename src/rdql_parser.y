@@ -30,6 +30,7 @@
 #endif
 
 #include <stdio.h>
+#include <stdarg.h>
 
 #include <rasqal.h>
 #include <rasqal_internal.h>
