@@ -12,16 +12,15 @@
 	RASQAL_LITERAL_BOOLEAN
 
 	* rasqal_general.c (rasqal_init): Call rasqal_uri_init
-	(rasqal_finish): Call rasqal_uri_finish and always call
-	raptor_finish.
+	(rasqal_finish): Call rasqal_uri_finish and always call raptor_finish.
 	(rasqal_uri_init, rasqal_uri_finish): Added to initialise/free
 	URIs used in the library.
 
-	* rasqal_internal.h: Added interanl URIs rasqal_xsd_namespace_uri,
+	* rasqal_internal.h: Added internal URIs rasqal_xsd_namespace_uri,
 	rasqal_xsd_integer_uri, rasqal_xsd_double_uri and
 	rasqal_xsd_boolean_uri.
-	Added prototypes for rasqal_uri_init and rasqal_uri_finish to make
-	them.
+	Added prototypes for rasqal_uri_init and rasqal_uri_finish to
+	make them.
 
 	* tests/sparql/syntax/cast1.rq: Type check should be xsd:integer.
 
@@ -44,8 +43,7 @@
 	[now have 2 shift/reduce conflicts]
 
 	* rasqal_engine.c (rasqal_query_build_declared_in):
-	Less debug noise for defined
-	variables
+	Less debug noise for defined variables
 
 	* tests/sparql/syntax/describe1.rq: use ?p in the query
 
