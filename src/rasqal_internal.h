@@ -247,9 +247,6 @@ struct rasqal_query_s {
 
   rasqal_triples_source_factory* triples_source_factory;
 
-  /* executing variables */
-  int column;
-
   /* (linked list of) query results made from this query */
   rasqal_query_results *results;
 
