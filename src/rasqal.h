@@ -222,6 +222,7 @@ RASQAL_API void rasqal_sequence_sort(rasqal_sequence* seq, int(*compare)(const v
 
 /* helper for printing sequences of strings */ 
 RASQAL_API void rasqal_sequence_print_string(char *data, FILE *fh);
+RASQAL_API void rasqal_sequence_print_uri(char *data, FILE *fh);
 RASQAL_API void rasqal_sequence_print(rasqal_sequence* seq, FILE* fh);
 
 /* Expression class */
