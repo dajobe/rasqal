@@ -97,7 +97,7 @@ typedef struct {
     raptor_uri *uri; /* uri */
   } value;
   char *language; /* string */
-  /* raptor_uri *datatype;  for string MISSING - FIXME */
+  raptor_uri *datatype;  /* for string */
   char *flags;   /* pattern */
 } rasqal_literal ;
 
@@ -297,10 +297,14 @@ typedef struct rasqal_triples_source_s rasqal_triples_source;
 
 
 typedef struct {
-  size_t user_data_size;
-  int (*new_triples_source)(rasqal_query *query, void *user_data, rasqal_triples_source* rts);
+  void *user_data; /* user data for triples_source_factory */
+  size_t user_data_size; /* size of user data for new_triples_source */
+  int (*new_triples_source)(rasqal_query *query, void *factory_user_data, void *user_data, rasqal_triples_source* rts);
 } rasqal_triples_source_factory;
   
+
+/* set the triples_source_factory */
+void rasqal_set_triples_source_factory(void (*register_fn)(rasqal_triples_source_factory *factory), void* user_data);
 
 #ifdef __cplusplus
 }
