@@ -754,8 +754,10 @@ sparql_token_free(int token, YYSTYPE *lval)
   switch(token) {
     case STRING_LITERAL:
     case PATTERN_LITERAL:
-    case URI_LITERAL:
       rasqal_free_literal(lval->literal);
+      break;
+    case URI_LITERAL:
+      raptor_free_uri(lval->uri);
       break;
     case IDENTIFIER:
       free(lval->name);
