@@ -31,15 +31,15 @@ EXTRA_DIST = \
 $(RDQL_TEST_FILES) \
 dc.rdf
 
-$(top_builddir)/rdql_lexer_test:
+build-rdql-lexer-test:
 	@(cd $(top_builddir) ; $(MAKE) rdql_lexer_test)
 
-$(top_builddir)/rdql_parser_test:
+build-rdql-parser-test:
 	@(cd $(top_builddir) ; $(MAKE) rdql_parser_test)
 
 check-local: check-rdql-lexer check-rdql-parser
 
-check-rdql-lexer: $(top_builddir)/rdql_lexer_test
+check-rdql-lexer: build-rdql-lexer-test
 	@set +e; result=0; \
 	$(ECHO) "Testing legal RDQL lexing"; \
 	for test in $(RDQL_TEST_FILES); do \
@@ -54,7 +54,7 @@ check-rdql-lexer: $(top_builddir)/rdql_lexer_test
 	done; \
 	set -e; exit $$result
 
-check-rdql-parser: $(top_builddir)/rdql_parser_test
+check-rdql-parser: build-rdql-parser-test
 	@set +e; result=0; \
 	$(ECHO) "Testing legal RDQL parsing"; \
 	for test in $(RDQL_TEST_FILES); do \

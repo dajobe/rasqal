@@ -18,6 +18,6 @@
 # full license terms.
 # 
 
-SUBDIRS=simple part1
+SUBDIRS=simple part1 examples
 
 EXTRA_DIST=check-sparql

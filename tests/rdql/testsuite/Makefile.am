@@ -82,13 +82,13 @@ $(rdql_testsuite_test_files) \
 $(rdql_testsuite_result_files) \
 $(rdql_testsuite_extra_files)
 
-$(top_builddir)/roqet:
+build-roqet:
 	@(cd $(top_builddir) ; $(MAKE) roqet)
 
 
 check-local: check-rdql-works check-rdql-correct
 
-check-rdql-works: $(top_builddir)/roqet
+check-rdql-works: build-roqet
 	@set +e; result=0; \
 	$(ECHO) "Testing RDQL"; \
 	for test in $(rdql_testsuite_test_files); do \
@@ -112,7 +112,7 @@ check-rdql-works: $(top_builddir)/roqet
 	fi; \
 	set -e; exit $$result
 
-check-rdql-correct: $(top_builddir)/roqet $(srcdir)/check-rdql
+check-rdql-correct: build-roqet $(srcdir)/check-rdql
 	@set +e; \
 	TOP_SRCDIR=$(top_srcdir) TOP_BUILDDIR=$(top_builddir) \
 	  perl $(srcdir)/check-rdql; \

@@ -37,20 +37,20 @@ $(SPARQL_MODEL_FILES) \
 $(SPARQL_TEST_FILES) \
 $(SPARQL_RESULT_FILES)
 
-$(top_builddir)/roqet:
+build-roqet:
 	@(cd $(top_builddir) ; $(MAKE) roqet)
 
-$(top_builddir)/sparql_lexer_test:
+build-sparql-lexer-test:
 	@(cd $(top_builddir) ; $(MAKE) sparql_lexer_test)
 
-$(top_builddir)/sparql_parser_test:
+build-sparql-parser-test:
 	@(cd $(top_builddir) ; $(MAKE) sparql_parser_test)
 
 
 check-local: check-sparql-lexer check-sparql-parser \
 check-sparql-works check-sparql-correct
 
-check-sparql-lexer: $(top_builddir)/sparql_lexer_test
+check-sparql-lexer: build-sparql-lexer-test
 	@set +e; result=0; \
 	$(ECHO) "Testing legal SPARQL lexing"; \
 	for test in $(SPARQL_TEST_FILES); do \
@@ -65,7 +65,7 @@ check-sparql-lexer: $(top_builddir)/sparql_lexer_test
 	done; \
 	set -e; exit $$result
 
-check-sparql-parser: $(top_builddir)/sparql_parser_test
+check-sparql-parser: build-sparql-parser-test
 	@set +e; result=0; \
 	$(ECHO) "Testing legal SPARQL parsing"; \
 	for test in $(SPARQL_TEST_FILES); do \
@@ -81,7 +81,7 @@ check-sparql-parser: $(top_builddir)/sparql_parser_test
 	done; \
 	set -e; exit $$result
 
-check-sparql-works: $(top_builddir)/roqet
+check-sparql-works: build-roqet
 	@set +e; result=0; \
 	$(ECHO) "Testing SPARQL works"; \
 	for test in $(SPARQL_TEST_FILES); do \
@@ -97,7 +97,7 @@ check-sparql-works: $(top_builddir)/roqet
 	done; \
 	set -e; exit $$result
 
-check-sparql-correct: $(top_builddir)/roqet $(srcdir)/../check-sparql
+check-sparql-correct: build-roqet $(srcdir)/../check-sparql
 	@set +e; \
 	expect=`echo $(EXPECTED_SPARQL_CORRECT_FAILURES) | wc -w`; \
 	$(ECHO) "Testing SPARQL correct"; \
