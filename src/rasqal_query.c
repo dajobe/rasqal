@@ -348,10 +348,10 @@ rasqal_query_add_data_graph(rasqal_query* query,
   
   dg=rasqal_new_data_graph(uri, name_uri, flags);
   
-  raptor_sequence_shift(query->data_graphs, (void*)dg);
+  raptor_sequence_push(query->data_graphs, (void*)dg);
 
   /* FIXME - legacy for rasqal_query_add_source & sources */
-  raptor_sequence_shift(query->sources, (void*)raptor_uri_copy(dg->uri));
+  raptor_sequence_push(query->sources, (void*)raptor_uri_copy(dg->uri));
 
   return 0;
 }
@@ -456,7 +456,7 @@ rasqal_query_add_variable(rasqal_query* query, rasqal_variable* var)
   if(!query->selects)
     query->selects=raptor_new_sequence(NULL, (raptor_sequence_print_handler*)rasqal_variable_print);
 
-  raptor_sequence_shift(query->selects, (void*)var);
+  raptor_sequence_push(query->selects, (void*)var);
 }
 
 
@@ -679,7 +679,7 @@ rasqal_query_add_prefix(rasqal_query* query, rasqal_prefix* prefix)
     }
   }
 
-  raptor_sequence_shift(query->prefixes, (void*)prefix);
+  raptor_sequence_push(query->prefixes, (void*)prefix);
 }
 
 
