@@ -833,15 +833,15 @@ rasqal_query_results_get_binding_name(rasqal_query_results *query_results, int o
 
 
 /**
- * rasqal_query_results_get_binding_by_name - Get one binding value for a given name in the current result
+ * rasqal_query_results_get_binding_value_by_name - Get one binding value for a given name in the current result
  * @query_results: &rasqal_query_results query_results
  * @name: variable name
  * 
  * Return value: a pointer to a shared &rasqal_literal binding value or NULL on failure
  **/
 rasqal_literal*
-rasqal_query_results_get_binding_by_name(rasqal_query_results *query_results,
-                                         const char *name)
+rasqal_query_results_get_binding_value_by_name(rasqal_query_results *query_results,
+                                               const char *name)
 {
   rasqal_query *query=query_results->query;
   int offset= -1;
