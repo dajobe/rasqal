@@ -108,7 +108,7 @@ static int brql_query_error(rasqal_query* rq, const char *message);
 /*
  * shift/reduce conflicts
  */
-%expect 3
+%expect 4
 
 
 /* word symbols */
@@ -150,7 +150,7 @@ static int brql_query_error(rasqal_query* rq, const char *message);
 %token ERROR
 
 
-%type <seq> SelectClause SourceClause ConstraintClause PrefixClause
+%type <seq> SelectClause SourceClause PrefixClause
 %type <seq> CommaAndConstraintClause
 %type <seq> VarList TriplePatternList PrefixDeclList URIList
 %type <seq> ConstructClause
@@ -176,32 +176,29 @@ Document : PrefixClause Query
 ;
 
 
-Query : SELECT SelectClause SourceClause WHERE TriplePatternList ConstraintClause
+Query : SELECT SelectClause SourceClause WHERE TriplePatternList
 {
   ((rasqal_query*)rq)->selects=$2;
   ((rasqal_query*)rq)->sources=$3;
   ((rasqal_query*)rq)->triples=$5;
-  ((rasqal_query*)rq)->constraints=$6;
 }
-|  DESCRIBE VarList SourceClause WHERE TriplePatternList ConstraintClause
+|  DESCRIBE VarList SourceClause WHERE TriplePatternList
 {
   ((rasqal_query*)rq)->selects=$2;
   ((rasqal_query*)rq)->select_is_describe=1;
   ((rasqal_query*)rq)->sources=$3;
   ((rasqal_query*)rq)->triples=$5;
-  ((rasqal_query*)rq)->constraints=$6;
 }
 |  DESCRIBE URIList SourceClause
 {
   ((rasqal_query*)rq)->describes=$2;
   ((rasqal_query*)rq)->select_is_describe=1;
 }
-|  CONSTRUCT ConstructClause SourceClause WHERE TriplePatternList ConstraintClause
+|  CONSTRUCT ConstructClause SourceClause WHERE TriplePatternList
 {
   ((rasqal_query*)rq)->constructs=$2;
   ((rasqal_query*)rq)->sources=$3;
   ((rasqal_query*)rq)->triples=$5;
-  ((rasqal_query*)rq)->constraints=$6;
 }
 ;
 
@@ -247,25 +244,38 @@ SourceClause : SOURCE URIList
 /* Inlined into SourceClause: SourceSelector : URL */
 
 
-TriplePatternList : TriplePattern TriplePatternList
+TriplePatternList : TriplePatternList TriplePattern
 {
-  $$=$2;
-  raptor_sequence_shift($$, $1);
+  $$=$1;
+  raptor_sequence_push($$, $2);
 }
-| SOURCE VarOrURI TriplePattern
+| TriplePatternList SOURCE VarOrURI TriplePattern
 {
-  $$=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_triple, (raptor_sequence_print_handler*)rasqal_triple_print);
-  rasqal_triple_set_origin($3, $2);
+  $$=$1;
+  rasqal_triple_set_origin($4, $3);
+  raptor_sequence_push($$, $4);
+}
+| TriplePatternList LSQUARE TriplePatternList RSQUARE
+{
+  /* FIXME - should join sequence $3 to end of $$ */
+  raptor_free_sequence($3);
+  $$=$1;
+}
+| TriplePatternList OPTIONAL TriplePattern
+{
+  $$=$1;
+  /* FIXME - should record optional triples */
   raptor_sequence_push($$, $3);
 }
-| TriplePattern
+| TriplePatternList AND CommaAndConstraintClause
+{
+  $$=$1;
+  /* FIXME - should append $3 to constraints, an already inited sequence */
+  ((rasqal_query*)rq)->constraints=$3;
+}
+| /* empty */
 {
   $$=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_triple, (raptor_sequence_print_handler*)rasqal_triple_print);
-  raptor_sequence_push($$, $1);
-}
-| LSQUARE TriplePatternList RSQUARE
-{
-  $$=$2;
 }
 ;
 
@@ -280,27 +290,7 @@ TriplePattern : LPAREN VarOrURI VarOrURI VarOrLiteral RPAREN
 }
 ;
 
-/* Was:
-ConstraintClause : AND Expression ( ( COMMA | AND ) Expression )*
-*/
-
-ConstraintClause : AND CommaAndConstraintClause
-{
-  $$=$2;
-}
-| /* empty */
-{
-  $$=NULL;
-}
-;
-
-
-CommaAndConstraintClause : Expression COMMA CommaAndConstraintClause
-{
-  $$=$3;
-  raptor_sequence_shift($$, $1);
-}
-| Expression AND CommaAndConstraintClause
+CommaAndConstraintClause : Expression AND CommaAndConstraintClause
 {
   $$=$3;
   raptor_sequence_shift($$, $1);
@@ -577,10 +567,10 @@ Literal : URI_LITERAL
 
 ;
 
-URIList : URI_LITERAL COMMA URIList
+URIList : URIList URI_LITERAL
 {
-  $$=$3;
-  raptor_sequence_shift($$, $1);
+  $$=$1;
+  raptor_sequence_push($$, $2);
 }
 | URI_LITERAL
 {
