@@ -32,7 +32,7 @@ man_MANS = roqet.1 librasqal.3 rasqal-config.1
 librasqal_la_SOURCES = rdql_lexer.c rdql_lexer.h \
 rdql_parser.tab.c rdql_parser.tab.h rdql_common.h \
 rasqal_expr.c rasqal_general.c rasqal_query.c \
-rasqal_engine.c rasqal_raptor.c
+rasqal_engine.c rasqal_raptor.c rasqal_literal.c
 librasqal_la_LDFLAGS = -version-info @RASQAL_LIBTOOL_VERSION@
 librasqal_la_LIBADD = @LTLIBOBJS@ @RASQAL_INTERNAL_LIBS@ @RASQAL_EXTERNAL_LIBS@
 librasqal_la_DEPENDENCIES = @LTLIBOBJS@ @RASQAL_INTERNAL_LIBS@
