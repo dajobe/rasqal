@@ -7,7 +7,7 @@
 .\" Institute for Learning and Research Technology - http://www.ilrt.bristol.ac.uk/
 .\" University of Bristol - http://www.bristol.ac.uk/
 .\"
-.TH librasqal 3 "2005-02-17"
+.TH librasqal 3 "2005-03-20"
 .\" Please adjust this date whenever revising the manpage.
 .SH NAME
 librasqal \- Rasqal RDF query library
@@ -119,16 +119,13 @@ should be distinct.
 Get the query-specified limit on results returning >= 0 if a
 limit is given, otherwise not specified.
 .IP "\fBvoid rasqal_query_add_source(rasqal_query* \fIquery\fB, raptor_uri* \fIuri\fP)\fR"
-Add a source URI to the sequence of sources in the query.
+DEPRECATED. Add a source URI to the sequence of sources in the query.
 .IP "\fBraptor_sequence* rasqal_query_get_source_sequence(rasqal_query* \fIquery\fB)\fR"
-Get the sequence of sources in the query.
+DEPRECATED. Get the sequence of sources in the query.
 .IP "\fBraptor_uri* rasqal_query_get_source(rasqal_query* \fIquery\fB, int \fIidx\fP)\fR"
-Get one source in the sequence of sources in the queyr.
+DEPRECATED. Get one source in the sequence of sources in the queyr.
 .IP "\fBvoid rasqal_query_add_variable(rasqal_query* \fIquery\fB, rasqal_variable* \fIvar\fP)\fR"
 Add a variable binding to the sequence of bindings in the query.
-.IP "\fBraptor_sequence* rasqal_query_get_variable_sequence(rasqal_query* \fIquery\fB)\fR"
-Deprecated.  Use either \fBrasqal_query_get_bound_variable_sequence\fP
-or \fBrasqal_query_get_all_variable_sequence\fP.
 .IP "\fBraptor_sequence* rasqal_query_get_bound_variable_sequence(rasqal_query* \fIquery\fP)\fR"
 Get the sequence of variables that are returning bindings in the
 query such as when explicitly chosen via \fBSELECT\fP in RDQL or SPARQL
@@ -142,24 +139,24 @@ Return non-0 if the named variable is in the variable bindings of the query.
 .IP "\fBint rasqal_query_set_variable(rasqal_query* \fIquery\fB, const unsigned char *\fIname\fB, rasqal_literal* \fIvalue\fP)\fR"
 Set the query variable \fIname\fP to a literal \fIvalue\fP (the
 variable must already be in the sequence of variable bindings).
-.IP "\fBvoid rasqal_query_add_triple(rasqal_query* \fIquery\fB, rasqal_triple* \fItriple\fP)\fR"
-Add a triple to the sequence of triples to match in the query.
 .IP "\fBraptor_sequence* rasqal_query_get_triple_sequence(rasqal_query* \fIquery\fB)\fR"
 Get the sequence of triples to match in the query.
 .IP "\fBrasqal_triple* rasqal_query_get_triple(rasqal_query* \fIquery\fB, int \fIidx\fP)\fR"
 Get one triple in the sequences of triples to match in the query.
 .IP "\fBvoid rasqal_query_add_constraint(rasqal_query* \fIquery\fB, rasqal_expression* \fIexpr\fP)\fR"
-Add a constraint expression to the sequence of constraints in the query.
+DEPRECATED. Add a constraint expression to the sequence of
+constraints in the query.
 .IP "\fBraptor_sequence* rasqal_query_get_constraint_sequence(rasqal_query* \fIquery\fB)\fR"
-Get the sequence of constraints in the query.
+DEPRECATED. Get the sequence of constraints in the query.
 .IP "\fBrasqal_expression* rasqal_query_get_constraint(rasqal_query* \fIquery\fB, int \fIidx\fP)\fR"
-Get one constraint expression in the sequences of constraint to match in the query.
+DEPRECATED. Get one constraint expression in the sequences of
+constraint to match in the query.
 .IP "\fBvoid rasqal_query_add_prefix(rasqal_query* \fIquery\fB, rasqal_prefix* \fIprefix\fP)\fR"
 Add one namespace prefix/URI to the sequence of prefixes in the query.
 .IP "\fBraptor_sequence* rasqal_query_get_prefix_sequence(rasqal_query* \fIquery\fB)\fR"
 Get the sequence of prefixes in the query.
 .IP "\fBrasqal_prefix* rasqal_query_get_prefix(rasqal_query* \fIquery\fB, int \fIidx\fP)\fR"
-Get one prefix in the sequence of prefixes in the query.
+Get one prefix in the sequence of prefixes in the query at index \fIidx\fP.
 .IP "\fBraptor_sequence* rasqal_query_get_graph_pattern_sequence(rasqal_query* \fIquery\fP)\fR"
 Get the sequence of graph patterns expressions in the query.
 .IP "\fBrasqal_graph_pattern* rasqal_query_get_graph_pattern(rasqal_query* \fIquery\fP, int \fIidx\fP)\fR"
@@ -177,6 +174,15 @@ Execute a query, returning a rasqal_query_results* object or NULL on failure.
 Set some user data to be associated with the query.
 .IP "\fBvoid* rasqal_query_get_user_data(rasqal_query* \fIquery\fP)\fR"
 Get the user data associated with the query.
+.IP "\fBint rasqal_query_add_data_graph(rasqal_query* \fIquery\fP, raptor_uri* \fIuri, raptor_uri* \fIname_uri, int \fIflags\fP)\fR"
+Add a data graph to the query's data sources, constructing a new data
+graph object with URI \fIuri\fI, optional name URI \fIname_uri\fP and
+\fIflags\fP.  See \fBrasqal_new_data_graph\fP for a description of
+the argumetns.
+.IP "\fBraptor_sequence* rasqal_query_get_data_graph_sequence(rasqal_query* \fIquery\fP)\fR"
+Get the sequence of data graphs in the query.
+.IP "\fBrasqal_data_graph* rasqal_query_get_data_graph(rasqal_query* \fIquery\fP, int \fIidx\fP)\fR"
+Get one prefix in the sequence of prefixes in the query at index \fIidx\fP.
 .SH "GRAPH PATTERN CLASS"
 A class for graph patterns in a query - a set of triple patterns)
 with flags and possible sub-graph patterns
@@ -189,6 +195,9 @@ the top-level graph patterns in a query.
 .IP "\fBrasqal_triple* rasqal_graph_pattern_get_triple(rasqal_graph_pattern* \fIgraph_pattern\fP, int \fIidx\fP)\fR"
 Get a rasqal_triple inside a graph pattern at index \fIidx\fP returning NULL
 when the index is out of range.
+.IP "\fBvoid rasqal_graph_pattern_add_sub_graph_pattern(rasqal_graph_pattern* \fIgraph_pattern\fP, rasqal_graph_pattern* \fIsub_graph_pattern\fP)\fR"
+Add a sub-graph pattern \fIsub_graph_pattern\fP to the sequence of
+sub-graph patterns inside the graph pattern.
 .IP "\fBraptor_sequence* rasqal_graph_pattern_get_sub_graph_pattern_sequence(rasqal_graph_pattern* \fIgraph_pattern\fP)\fR"
 Get the sequence of sub-graph patterns inside the graph pattern returning
 NULL if there are no sub-graph patterns.
@@ -198,6 +207,14 @@ returning NULL when the index is out of range.
 .IP "\fBint rasqal_graph_pattern_get_flags(rasqal_graph_pattern* \fIgraph_pattern\fP)\fR"
 Get graph pattern flags, a bitwise or of \fIrasqal_pattern_flags\fP
 enum values, currently only \fBRASQAL_PATTERN_FLAGS_OPTIONAL\fP is defined.
+.IP "\fBint rasqal_graph_pattern_add_constraint(rasqal_graph_pattern* \fIgp\fP, rasqal_expression* \fIexpr\fP)\fR"
+Add a constraint expression \fIexpr\fP to the sequence of constraints in the
+graph pattern.
+.IP "\fBraptor_sequence* rasqal_graph_pattern_get_constraint_sequence(rasqal_graph_pattern* \fIgp\fP)\fR"
+Get the sequence of constraints in the graph pattern.
+.IP "\fBrasqal_expression* rasqal_graph_pattern_get_constraint(rasqal_graph_pattern* \fIgp\fP, int \fIidx\fP)\fR"
+Get one constraint expression in the sequences of constraint to match
+in the graph pattern at index \fIidx\fP.
 .IP "\fBvoid rasqal_graph_pattern_print(rasqal_graph_pattern* \fIgraph_pattern\fP, FILE* \fIfh\fP)\fR"
 Print a graph pattern in a debug format.  This format may change in any release.
 .SH "QUERY RESULTS CLASS"
@@ -420,6 +437,9 @@ Create a new expression over an existing rasqal \fIvariable\fP.
 .IP "\fBrasqal_expression* rasqal_new_function_expression(raptor_uri* \fIname\fP, raptor_sequence* \fIargs\fP)\fR"
 Create a new expression for a function named \fIname\fP and with
 sequence of \fBrasqal_literal*\fP arguments \fIargs\fP.
+.IP "\fBrasqal_expression* rasqal_new_cast_expression(raptor_uri* \fIname, rasqal_expression* \fIvalue\fP)\fR"
+Create a new expression for a casting of \fIvalue\fP to a datatype
+with URI \fIname\fI.
 .SH "EXPRESSION DESTRUCTOR"
 .IP "\fBvoid rasqal_free_expression(rasqal_expression* \fIexpression\fP)\fR"
 Destroy a rasqal expression object.
@@ -437,7 +457,60 @@ Apply the function \fIfn\fP recursively over the expression and it's
 sub-expressions.  The order is the first expression at hand and then
 the arguments, if any.  function \fIfn\fP is called at each point
 with the arguments of \fIuser_data\fP and the expression.
+.SH "DATA GRAPH CLASS"
+A class for graph data sources to query over from a source URI
+with an optional name URI.
+.SH DATA GRAPH CONSTRUCTOR
+.IP "\fBrasqal_data_graph* rasqal_new_data_graph(raptor_uri* \fIuri, raptor_uri* \fIname_uri\fP, int \fIflags)\fR"
+Create a new data graph with source URI \fIuri\fI and optional
+name URI \fIname_uri\fP.  Flags can be 
+\fIRASQAL_DATA_GRAPH_NONE\fP, \fIRASQAL_DATA_GRAPH_NAMED\fP or
+RASQAL_DATA_GRAPH_BACKGROUND\fP.
+.SH DATA GRAPH DESTRUCTOR
+.IP "\fBvoid rasqal_free_data_graph(rasqal_data_graph* \fIdg\fP)\fR"
+Destroy a rasqal data_graph object.
+.IP "\fBvoid rasqal_data_graph_print(rasqal_data_graph* \fIdg\fP, FILE* \fIfh\fP)\fR"
+Print a data graph in a debug format.  This format may change in any release.
 .SH API CHANGES
+.SS 0.9.8
+.LP
+Added a \fIData Graph\fP class with constructor
+\fBrasqal_new_data_graph\fP, destructor
+\fBrasqal_free_data_graph\fP and debug method
+\fBrasqal_data_graph_print\fP.
+.LP
+Added casting expressions with type \fIRASQAL_EXPR_CAST\fP
+and expression constructor \fIrasqal_new_cast_expression\fP
+.LP
+Added a no-arg graph pattern constructor \fBrasqal_new_graph_pattern\fP
+.LP
+Added graph pattern methods
+\fBrasqal_graph_pattern_add_triples\fP to add triples to
+a graph pattern and
+\fBrasqal_graph_pattern_add_sub_graph_pattern\fP to add
+a sub-graph pattern to a graph pattern.
+.LP
+Added graph pattern methods
+\fBrasqal_graph_pattern_add_constraint\fP,
+\fBrasqal_graph_pattern_get_constraint_sequence\fP and
+\fBrasqal_graph_pattern_get_constraint\fP
+to add constraints to a graph pattern.
+.LP
+Added query methods for data graphs:
+\fBrasqal_query_add_data_graph\fP,
+\fBrasqal_query_get_data_graph_sequence\fP,
+\fBrasqal_query_get_data_graph\fP.
+.LP
+Deprecated query methods:
+\fBrasqal_query_add_constraint\fP,
+\fBrasqal_query_get_constraint_sequence\fP
+\fBrasqal_query_get_constraint\fP,
+\fBrasqal_query_add_source\fP,
+\fBrasqal_query_get_source_sequence\fP and
+\fBrasqal_query_get_source\fP.
+.LP
+Removed deprecated query methods:
+\fBrasqal_query_get_variable_sequence\fP and \fBrasqal_query_add_triple\fP.
 .SS 0.9.7
 Export \fIrasqal_graph_pattern\fP typedef for graph patterns
 and added access methods:
