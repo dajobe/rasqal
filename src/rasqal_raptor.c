@@ -183,6 +183,24 @@ rasqal_raptor_statement_handler(void *user_data,
 }
 
 
+static void
+rasqal_raptor_error_handler(void *user_data, 
+                            raptor_locator* locator, const char *message) {
+  rasqal_query* query=(rasqal_query*)user_data;
+
+  query->failed=1;
+
+  if(locator) {
+    int locator_len=raptor_format_locator(NULL, 0, locator);
+    char *buffer=(char*)RASQAL_MALLOC(cstring, locator_len+1);
+    raptor_format_locator(buffer, locator_len, locator);
+
+    rasqal_query_error(query, "Failed to parse %s - %s", buffer, message);
+    RASQAL_FREE(cstring, buffer);
+  } else
+    rasqal_query_error(query, "Failed to parse - %s", message);
+}
+
 
 static int
 rasqal_raptor_new_triples_source(rasqal_query* rdf_query,
@@ -221,11 +239,16 @@ rasqal_raptor_new_triples_source(rasqal_query* rdf_query,
                                          raptor_uri_as_string(uri));
     parser=raptor_new_parser(parser_name);
     raptor_set_statement_handler(parser, rtsc, rasqal_raptor_statement_handler);
+    raptor_set_error_handler(parser, rdf_query, rasqal_raptor_error_handler);
     raptor_parse_uri(parser, uri, NULL);
     raptor_free_parser(parser);
+    if(rdf_query->failed) {
+      rasqal_raptor_free_triples_source(user_data);
+      break;
+    }
   }
 
-  return 0;
+  return rdf_query->failed;
 }
 
 
