@@ -82,18 +82,18 @@ rdql_parser_error(const char *msg)
 #endif
 
 
-#define GETOPT_STRING "cd:ho:i:qv"
+#define GETOPT_STRING "cho:i:qs:v"
 
 #ifdef HAVE_GETOPT_LONG
 static struct option long_options[] =
 {
   /* name, has_arg, flag, val */
   {"count", 0, 0, 'c'},
-  {"data", 1, 0, 'd'},
   {"help", 0, 0, 'h'},
   {"output", 1, 0, 'o'},
   {"input", 1, 0, 'i'},
   {"quiet", 0, 0, 'q'},
+  {"source", 1, 0, 's'},
   {"version", 0, 0, 'v'},
   {NULL, 0, 0, 0}
 };
@@ -112,8 +112,8 @@ main(int argc, char *argv[])
   unsigned char *uri_string=NULL;
   int free_uri_string=0;
   unsigned char *base_uri_string=NULL;
-  unsigned char *data_uri_string=NULL;
-  int free_data_uri_string=0;
+  unsigned char *source_uri_string=NULL;
+  int free_source_uri_string=0;
   rasqal_query *rq;
   rasqal_query_results *results;
   char *ql_name="rdql";
@@ -121,7 +121,7 @@ main(int argc, char *argv[])
   int rc=0;
   raptor_uri *uri=NULL;
   raptor_uri *base_uri=NULL;
-  raptor_uri *data_uri=NULL;
+  raptor_uri *source_uri=NULL;
   char *filename=NULL;
   char *p;
   int usage=0;
@@ -203,8 +203,8 @@ main(int argc, char *argv[])
         quiet=1;
         break;
 
-      case 'd':
-        data_uri_string=(unsigned char*)optarg;
+      case 's':
+        source_uri_string=(unsigned char*)optarg;
         break;
 
       case 'v':
@@ -256,11 +256,11 @@ main(int argc, char *argv[])
     puts("    'simple'                A simple format (default)");
     puts("\nAdditional options:");
     puts(HELP_TEXT("c", "count           ", "Count triples - no output"));
-    puts(HELP_TEXT("d", "data URI        ", "Query RDF data at URI"));
     puts(HELP_TEXT("q", "quiet           ", "No extra information messages"));
+    puts(HELP_TEXT("s", "source URI      ", "Query against RDF data at source URI"));
     puts(HELP_TEXT("v", "version         ", "Print the Rasqal version"));
     puts("\nReport bugs to <redland-dev@lists.librdf.org>.");
-    puts("Rasqal home page: http://www.redland.opensource.ac.uk/rasqal/");
+    puts("Rasqal home page: http://librdf.org/rasqal/");
     exit(0);
   }
 
@@ -308,15 +308,15 @@ main(int argc, char *argv[])
     }
   }
 
-  if(data_uri_string) {
-    if(!access((const char*)data_uri_string, R_OK)) {
-      data_uri_string=raptor_uri_filename_to_uri_string(data_uri_string);
-      free_data_uri_string=1;
+  if(source_uri_string) {
+    if(!access((const char*)source_uri_string, R_OK)) {
+      source_uri_string=raptor_uri_filename_to_uri_string(source_uri_string);
+      free_source_uri_string=1;
     }
-    data_uri=raptor_new_uri(data_uri_string);
+    source_uri=raptor_new_uri(source_uri_string);
     if(!base_uri) {
-      fprintf(stderr, "%s: Failed to create data URI for %s\n",
-              program, data_uri_string);
+      fprintf(stderr, "%s: Failed to create source URI for %s\n",
+              program, source_uri_string);
       return(1);
     }
   }
@@ -364,8 +364,8 @@ main(int argc, char *argv[])
     rc=1;
   }
 
-  if(data_uri)
-    rasqal_query_add_source(rq, data_uri);
+  if(source_uri)
+    rasqal_query_add_source(rq, source_uri);
 
   if(!quiet) {
     fprintf(stdout, "Query:\n");
@@ -409,14 +409,14 @@ main(int argc, char *argv[])
 
   free(query_string);
 
-  if(data_uri)
-    raptor_free_uri(data_uri);
+  if(source_uri)
+    raptor_free_uri(source_uri);
   if(base_uri)
     raptor_free_uri(base_uri);
   if(uri)
     raptor_free_uri(uri);
-  if(free_data_uri_string)
-    raptor_free_memory(data_uri_string);
+  if(free_source_uri_string)
+    raptor_free_memory(source_uri_string);
   if(free_uri_string)
     raptor_free_memory(uri_string);
 
