@@ -208,6 +208,7 @@ SelectClause : VarList
 | STAR
 {
   $$=NULL;
+  ((rasqal_query*)rq)->select_all=1;
 }
 ;
 
