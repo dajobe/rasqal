@@ -816,7 +816,7 @@ rasqal_query_prepare(rasqal_query *query,
   
   query->base_uri=base_uri;
   query->locator.uri=base_uri;
-  query->locator.line= query->locator.column = 0;
+  query->locator.line = query->locator.column = query->locator.byte = -1;
 
   rc=query->factory->prepare(query);
   if(rc)
