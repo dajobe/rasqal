@@ -99,6 +99,7 @@ rdql_parser.tab.c: $(srcdir)/rdql_parser.y
 	sed -e '/Suppress GCC warning that yyerrlab1/,/^\#endif/d' rdql_parser.t > $@
 	rm -f rdql_parser.t
 
+check-local: rdql_lexer_test rdql_parser_test rasqal_query_test
 
 rdql_lexer_test: $(srcdir)/rdql_lexer.c librasqal.la
 	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE @RASQAL_INTERNAL_CPPFLAGS@ $(srcdir)/rdql_lexer.c librasqal.la $(LIBS)
