@@ -107,15 +107,12 @@ static rasqal_query* Q;
 /* literals */
 %token <integer> INTEGER_LITERAL
 %token <floating> FLOATING_POINT_LITERAL
-%token <string> STRING_LITERAL
+%token <string> STRING_LITERAL PATTERN_LITERAL
 %token <integer> BOOLEAN_LITERAL
 %token <integer> NULL_LITERAL 
 %token <string> URI_LITERAL
 
 %token <string> IDENTIFIER
-
-/* end of input */
-%token END
 
 /* syntax error */
 %token ERROR
@@ -543,7 +540,7 @@ Var : VARPREFIX IDENTIFIER
 }
 ;
 
-PatternLiteral: STRING_LITERAL
+PatternLiteral: PATTERN_LITERAL
 {
   $$=rasqal_new_literal(RASQAL_LITERAL_PATTERN, 0, 0.0, $1);
 }
