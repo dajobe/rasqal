@@ -232,6 +232,8 @@ rasqal_engine_expand_literal_qname(void *user_data, rasqal_literal *l) {
       l->datatype=uri;
       RASQAL_FREE(cstring, l->flags);
       l->flags=NULL;
+
+      rasqal_promote_string_literal_to_native(l);
     }
   }
   return 0;
@@ -584,16 +586,23 @@ rasqal_engine_get_next_result(rasqal_query *query) {
           result=rasqal_expression_evaluate(query, expr);
           if(result) {
             int bresult;
+            int error=0;
             
             fprintf(stderr, "constraint %d expression result: \n", c);
             rasqal_literal_print(result, stderr);
             fputc('\n', stderr);
-            bresult=rasqal_literal_as_boolean(result);
-            fprintf(stderr, "constraint %d boolean expression result: %d\n", c, bresult);
+            bresult=rasqal_literal_as_boolean(result, &error);
+            if(error) {
+              fprintf(stderr, "constraint %d boolean expression returned error\n", c);
+              bresult=0;
+            } else
+              fprintf(stderr, "constraint %d boolean expression result: %d\n", c, bresult);
             rasqal_free_literal(result);
             rc=bresult;
-          } else
+          } else {
             fprintf(stderr, "constraint %d expression failed with error\n", c);
+            rc=0;
+          }
           
         }
       } /* end check for constraints */
