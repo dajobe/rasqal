@@ -498,7 +498,7 @@ rasqal_new_graph_pattern_from_triples(raptor_sequence *triples,
   rasqal_graph_pattern* gp=(rasqal_graph_pattern*)RASQAL_CALLOC(rasqal_graph_pattern, sizeof(rasqal_graph_pattern), 1);
 
   gp->triples=triples;
-  gp->column=0;
+  gp->column= -1;
   gp->start_column=start_column;
   gp->end_column=end_column;
   gp->flags=flags;
@@ -531,6 +531,7 @@ rasqal_new_graph_pattern_from_sequence(raptor_sequence *graph_patterns,
     gp->flags=flags;
   }
 
+  gp->column= -1;
   return gp;
 }
 
@@ -543,9 +544,9 @@ rasqal_new_graph_pattern_from_sequence(raptor_sequence *graph_patterns,
 void
 rasqal_free_graph_pattern(rasqal_graph_pattern* gp)
 {
-  if(gp->triple_meta) 
-    for(;gp->column >= 0; gp->column--) {
-      rasqal_triple_meta *m=&gp->triple_meta[gp->column-gp->start_column];
+  if(gp->triple_meta) {
+    while(gp->column >= gp->start_column) {
+      rasqal_triple_meta *m=&gp->triple_meta[gp->column - gp->start_column];
       
       if(m->bindings[0]) 
         rasqal_variable_set_value(m->bindings[0],  NULL);
@@ -560,7 +561,8 @@ rasqal_free_graph_pattern(rasqal_graph_pattern* gp)
         rasqal_free_triples_match(m->triples_match);
         m->triples_match=NULL;
       }
-    
+      gp->column--;
+    }
     RASQAL_FREE(rasqal_triple_meta, gp->triple_meta);
   }
 
@@ -578,13 +580,15 @@ rasqal_free_graph_pattern(rasqal_graph_pattern* gp)
  **/
 void
 rasqal_graph_pattern_init(rasqal_graph_pattern *gp) {
-  int triples_count=gp->end_column - gp->start_column+1;
+  if(gp->triples) {
+    int triples_count=gp->end_column - gp->start_column+1;
 
-  gp->column=0;
-  if(gp->triple_meta)
-    memset(gp->triple_meta, '\0', sizeof(rasqal_triple_meta)*triples_count);
-  else
-    gp->triple_meta=(rasqal_triple_meta*)RASQAL_CALLOC(rasqal_triple_meta, sizeof(rasqal_triple_meta), triples_count);
+    gp->column=gp->start_column;
+    if(gp->triple_meta)
+      memset(gp->triple_meta, '\0', sizeof(rasqal_triple_meta)*triples_count);
+    else
+      gp->triple_meta=(rasqal_triple_meta*)RASQAL_CALLOC(rasqal_triple_meta, sizeof(rasqal_triple_meta), triples_count);
+  }
 }
 
 
@@ -656,7 +660,7 @@ rasqal_graph_pattern_get_next_match(rasqal_query *query,
   }
     
   while(gp->column >= gp->start_column) {
-    rasqal_triple_meta *m=&gp->triple_meta[gp->column-gp->start_column];
+    rasqal_triple_meta *m=&gp->triple_meta[gp->column - gp->start_column];
     rasqal_triple *t=(rasqal_triple*)raptor_sequence_get_at(gp->triples,
                                                             gp->column);
 
