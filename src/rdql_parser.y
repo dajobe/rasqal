@@ -177,17 +177,17 @@ Query : SELECT SelectClause SourceClause WHERE TriplePatternList ConstraintClaus
 }
 ;
 
-VarList : Var COMMA VarList 
+VarList : VarList COMMA Var
 {
-  $$=$3;
-  raptor_sequence_shift($$, $1);
+  $$=$1;
+  raptor_sequence_push($$, $3);
 }
-| Var VarList 
+| VarList Var
 {
-  $$=$2;
-  raptor_sequence_shift($$, $1);
+  $$=$1;
+  raptor_sequence_push($$, $2);
 }
-| Var 
+| Var
 {
   /* The variables are freed from the raptor_query field variables */
   $$=raptor_new_sequence(NULL, (raptor_sequence_print_handler*)rasqal_variable_print);
