@@ -1078,7 +1078,7 @@ rasqal_engine_do_step(rasqal_query *query, rasqal_graph_pattern *gp) {
     return STEP_SEARCHING;
   }
   
-  RASQAL_DEBUG1("Got solution\n");
+  RASQAL_DEBUG1("Got match\n");
   
   return STEP_GOT_MATCH;
 }
@@ -1207,7 +1207,8 @@ rasqal_engine_do_optional_step(rasqal_query *query, rasqal_graph_pattern *gp) {
   }
   
   /* is the last graph pattern so we have a solution */
-  RASQAL_DEBUG1("Got solution\n");
+  RASQAL_DEBUG1("Got match\n");
+
   return STEP_GOT_MATCH;
 }
 
