@@ -284,6 +284,8 @@ rasqal_redland_bind_match(struct rasqal_triples_match_s* rtm,
     }
   }
 
+  /* FIXME contexts */
+
   return 0;
 }
 
@@ -379,6 +381,14 @@ rasqal_redland_new_triples_match(rasqal_triples_source *rts, void *user_data,
 
   m->bindings[2]=var;
   
+  if((var=rasqal_literal_as_variable(t->origin))) {
+    if(var->value)
+      rtmc->match.origin=rasqal_new_literal_from_literal(var->value);
+  } else
+    rtmc->match.origin=rasqal_new_literal_from_literal(t->origin);
+
+  m->bindings[3]=var;
+
 
   rtmc->qstatement=librdf_new_statement_from_nodes(rtsc->world, 
                                                    rtmc->nodes[0],
