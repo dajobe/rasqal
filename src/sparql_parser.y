@@ -144,10 +144,10 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...);
 %left EQ NEQ LT GT LE GE
 
 /* arithmetic operations */
-%left "+" "-" "*" "/" "%"
+%left '+' '-' '*' '/' '%'
 
 /* unary operations */
-%left "~" "!"
+%left '~' '!'
 
 /* literals */
 %token <literal> FLOATING_POINT_LITERAL
