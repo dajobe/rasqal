@@ -1,0 +1,49 @@
+@prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
+@prefix mf:     <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .
+@prefix qt:     <http://www.w3.org/2001/sw/DataAccess/tests/test-query#> .
+
+<>  rdf:type mf:Manifest ;
+    rdfs:comment "Some DAWG test cases" ;
+    mf:entries
+    (
+     [  mf:name    "dawg-triple-pattern-001" ;
+        rdfs:comment
+            "Simple triple match" ;
+        mf:action
+            [ qt:query  <file:dawg-tp-01.rq> ;
+              qt:data   <file:data-01.n3> ] ;
+        mf:result  <file:result-tp-01.n3>
+      ]
+
+     [  mf:name    "dawg-triple-pattern-002" ;
+        rdfs:comment
+            "Simple triple match" ;
+        mf:action
+            [ qt:query  <file:dawg-tp-02.rq> ;
+              qt:data   <file:data-01.n3> ] ;
+        mf:result  <file:result-tp-02.n3>
+      ]
+    
+     [  mf:name    "dawg-triple-pattern-003" ;
+        rdfs:comment
+            "Simple triple match - repeated variable" ;
+        mf:action
+            [ qt:query  <file:dawg-tp-03.rq> ;
+              qt:data   <file:data-02.n3> ] ;
+        mf:result  <file:result-tp-03.n3>
+      ]
+
+     [  mf:name    "dawg-triple-pattern-004" ;
+        rdfs:comment
+            "Simple triple match - two triples, common variable" ;
+        mf:action
+            [ qt:query  <file:dawg-tp-04.rq> ;
+              qt:data   <file:dawg-data-01.n3> ] ;
+        mf:result  <file:result-tp-04.n3>
+      ]
+
+
+
+    # End of tests
+   ).
