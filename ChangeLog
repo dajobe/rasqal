@@ -1,5 +1,7 @@
 2004-10-25  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
+	* tests/rdql/testsuite/check-rdql: Handle empty list of vars
+
 	* Makefile.am:
 	Execute rasqal_query_test specially, passing in full path to
 	$(srcdir)/data/dc.rdf
