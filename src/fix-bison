@@ -13,6 +13,7 @@
 # University of Bristol
 #
 
+my $seen_yyerrlab1=0;
 while(<>) {
    # Fixup pending filename renaming, see above.
    s/^(\#line \d+) (.*)\.tab\.c/$1 $2.c/;
@@ -25,7 +26,9 @@ while(<>) {
      next;
    }
 
-   s/^yyerrlab1://;
+   $seen_yyerrlab1=1 if /goto yyerrlab1/;
+
+   s/^yyerrlab1:// unless $seen_yyerrlab1;
 
    # Do not use macro name for a temporary variable
    s/unsigned int yylineno = /unsigned int yylineno_tmp = /;
