@@ -50,7 +50,6 @@
 
 
 inline int rasqal_literal_as_integer(rasqal_literal* l);
-inline char* rasqal_literal_as_string(rasqal_literal* l);
 inline int rasqal_literal_compare(rasqal_literal* l1, rasqal_literal *l2, int *error);
 
 inline int rasqal_variable_as_boolean(rasqal_variable* v);
@@ -352,7 +351,7 @@ rasqal_literal_as_integer(rasqal_literal* l)
 }
 
 
-inline char*
+char*
 rasqal_literal_as_string(rasqal_literal* l)
 {
   static char buf[32]; /* fixme */
