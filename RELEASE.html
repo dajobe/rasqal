@@ -8,6 +8,78 @@
 
   <h1>Rasqal RDF Query Library - Release Notes</h1>
 
+<h2 id="rel0_9_8"><a name="rel0_9_8">Rasqal 0.9.8 Changes</a></h2>
+
+<p>Not yet released</p>
+
+
+<h3>SPARQL Query Language Changes</h3>
+
+<p>Grammar updated to follow the
+<a href="http://www.w3.org/TR/2005/WD-rdf-sparql-query-20050217/">SPARQL Query Language for RDF</a>,
+W3C Working Draft, 17 February 2005.
+</p>
+
+<p>Added support for casting in constraint expresions for datatyped literals
+with the syntax <em>qname</em><code>(</code><em>literal</em><code>)</code>
+such as <code>xsd:decimal("10")</code>.
+</p>
+
+
+<h3>Query Engine Changes</h3>
+
+<p>Engine now operates over a hierarchy of rasqal_graph_pattern,
+at the root the query has a single <em>query graph</em> rather than
+a sequence of graph patterns.  The query graph contains the sequence now.</p>
+
+<p>Constraints can be applied to any graph pattern, not just at the
+top level of a query.</p>
+
+<p>Added casting expressions type <code>RASQAL_EXPR_CAST</code>
+and constructor <code>rasqal_new_cast_expression</code>.</p>
+
+<p>Fixed setting of a triple origin (SPARQL <code>GRAPH</code>) which
+was not working in 0.9.7</p>
+
+
+<h3>Query API Changes</h3>
+
+<p>Added no-arg constructor
+<code>rasqal_new_graph_pattern</code>
+</p>
+
+<p>Added method
+<code>rasqal_graph_pattern_add_triples</code>
+to add triples to an existing graph pattern.
+</p>
+
+<p>Added method
+<code>rasqal_graph_pattern_add_sub_graph_pattern</code>
+</p>
+
+<p>Deprecated query methods <code>rasqal_query_add_source</code>,
+<code>rasqal_query_get_source_sequence</code> and
+<code>rasqal_query_get_source</code>.  These will be removed in the
+next release.</p>
+
+<p>Added a <em>Data Graph</em> class with constructor
+<code>rasqal_new_data_graph</code>, destructor
+<code>rasqal_free_data_graph</code> and debug method
+<code>rasqal_data_graph_print</code>.
+</p>
+
+<p>Added query methods for data graphs:
+<code>rasqal_query_add_data_graph</code>,
+<code>rasqal_query_get_data_graph_sequence</code>,
+<code>rasqal_query_get_data_graph</code>.
+</p>
+
+<p>Removed functions deprecated in previous version:
+<code>rasqal_query_get_variable_sequence</code>
+and <code>rasqal_query_add_triple</code>.
+</p>
+
+
 <h2 id="rel0_9_7"><a name="rel0_9_7">Rasqal 0.9.7 Changes</a></h2>
 
 <h3>General Changes</h3>
