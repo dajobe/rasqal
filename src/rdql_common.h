@@ -36,8 +36,14 @@ struct rdql_parser_s {
   /* STATIC lexer */
   yyscan_t scanner;
 
-  int warnings;
-  int errors;
+  const char *uri_string;
+
+  /* for error reporting */
+  unsigned int line;
+  unsigned int column;
+
+  unsigned int warnings;
+  unsigned int errors;
 };
 
 
