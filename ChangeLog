@@ -1,3 +1,129 @@
+2005-01-08  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal_engine.c (rasqal_engine_check_constraint): Added, from
+	body of rasqal_engine_get_next_result.
+	(rasqal_engine_do_step): Now just for mandatory graph patterns
+	rasqal_engine_do_optional_step): Added, just for optional graph
+	patterns.
+	(rasqal_engine_get_next_result): Call rasqal_engine_do_step or
+	rasqal_engine_do_optional_step depending on graph pattern optional
+	flag.
+
+	* rasqal_engine.c (rasqal_engine_do_step): Added, from body of
+	rasqal_engine_get_next_result
+	(rasqal_engine_get_next_result): Smaller, see above.
+
+	* rasqal_engine.c: Added rasqal_engine_step and use in
+	(rasqal_engine_get_next_result): Replace step=X; break with
+	step=X; continue to let the loop do the work
+
+	* rasqal_engine.c: Added rasqal_engine_step and use in
+	rasqal_engine_get_next_result
+
+	* rasqal_engine.c (rasqal_engine_move_to_graph_pattern): No need
+	for return
+
+	* rasqal_engine.c (rasqal_engine_get_next_result): Init all
+	matched flags to 0 at start.
+
+	* rasqal_engine.c: Comment out not-used triple ordering code.
+	(rasqal_triples_match_bind_match): Add parts arg and pass on to
+	factory bind_match method.
+	(rasqal_new_graph_pattern_from_triples): Add query arg at start.
+	Init query, finished, matches_returned.
+	(rasqal_new_graph_pattern_from_sequence): Add query arg at start.
+	Init query, finished, matches_returned.
+	(rasqal_free_graph_pattern): Free variables matching the parts.
+	(rasqal_graph_pattern_init): Initialise the triple meta parts
+	depending on the variables_declared_in information.
+	(rasqal_query_build_declared_in): Added to mark which in graph
+	pattern variables are first declared in the query so that they
+	are never bound multiple times.  Also warns of selected but never
+	used variables.
+	(rasqal_graph_pattern_get_next_match): After a triple match ends,
+	free variables matching the parts only.
+	(rasqal_engine_prepare): Disable ordering triples.
+	Call rasqal_query_build_declared_in.
+	(rasqal_engine_move_to_graph_pattern): Helper added for:
+	(rasqal_engine_get_next_result): Many changes trying to get optionals
+	working.
+
+	* rasqal_internal.h: Add query, finished, matches fields to
+	graph_pattern.  Add query arg to start of
+	rasqal_new_graph_pattern_from_triples and
+	rasqal_new_graph_pattern_from_sequence Add variables_declared_in
+	array field, optional_graph_pattern_matches_count field to query.
+
+	* rasqal_redland.c (rasqal_redland_bind_match): Take parts
+	argument and use to just bind those parts of the triple.
+
+	* rasqal_raptor.c (rasqal_raptor_bind_match): Take parts argument
+	and use to just bind those parts of the triple.
+
+	* rdql_parser.y, sparql_parser.y: Add query arg at start of
+	rasqal_new_graph_pattern_from_triples and
+	rasqal_new_graph_pattern_from_sequence calls.
+
+	* rasqal.h: Added triple parts to rasqal_triple_meta.
+
+	* rasqal_query.c (rasqal_free_query):
+	Tidy query->variables_declared_in.
+
+2005-01-06  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal.h: Added rasqal_triple_parts rasqal_triples_match factory
+	method bind_match now takes and returns rasqal_triple_parts,
+	returns 0 on failure
+
+	* rasqal_redland.c, rasqal_raptor.c, rasqal_engine.c, rasqal.h:
+	Invert return value of rasqal_triples_match factory method
+	bind_match.  Now returns 0 on failure.
+
+	* rasqal_engine.c (rasqal_engine_get_next_result): Handle failed
+	constraint by moving to next match.
+
+	* tests/sparql/part1/dawg-data-01.n3,
+	tests/sparql/part1/dawg-result-003.n3: <fred@edu> to <mailto:fred@edu>
+
+	* tests/sparql/check-sparql: Remove =NULL from roqet output to
+	handle optionals
+
+	* rasqal_query.c (rasqal_new_query): Init gp->optional_graph_pattern.
+
+	* rasqal_internal.h: Add finished, matches, optional_graph_pattern
+	to rasqal_graph_pattern Add optional_graph_pattern to
+	rasqal_query.
+
+	* rasqal_engine.c (rasqal_new_graph_pattern_from_triples): Init
+	gp->optional_graph_pattern.
+	(rasqal_graph_pattern_init): Init optional_graph_pattern, finished
+	and matches.
+	(rasqal_graph_pattern_order): Added, to sort graph_patterns in a
+	query into mandatory first, optional last.
+	(rasqal_engine_execute_init): Sort graph_patterns using
+	raptor_sequence_sort and above helper
+	Initialise query->optional_graph_pattern to the index of the first
+	optional graph_pattern.
+	(rasqal_engine_get_next_result): Many changes on the way to getting
+	optionals working.  Track what patterns have ended with the finished
+	flag, and count matches to determine when nothing matched.
+
+2005-01-04  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal_query.c (rasqal_new_query): Init sources sequence always.
+	(rasqal_query_add_source): No need to init sources sequence here.
+
+	* sparql_parser.y (WhereClauseOpt): Don't overwrite
+	query->graph_patterns sequence, append if necessary.
+
+	* sparql_parser.y (FromClauseOpt): Don't overwrite query->sources
+	sequence, append if necessary.
+
+	* rdql_parser.y (Query): Don't overwrite query->sources sequence,
+	append if necessary.
+	(TriplePattern): Append to query->triples sequence, don't
+	overwrite it.
+
 2005-01-03  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
 	* roqet.c (main): Declare query_string as void* to prevent type
