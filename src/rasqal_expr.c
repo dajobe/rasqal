@@ -56,6 +56,16 @@ inline int rasqal_expression_as_integer(rasqal_expression* e, int *error);
 inline int rasqal_expression_compare(rasqal_expression* e1, rasqal_expression* e2, int flags, int *error);
 
 
+/**
+ * rasqal_new_integer_literal - Constructor - Create a new Rasqal integer literal
+ * @type: Type of literal such as RASQAL_LITERAL_INTEGER or RASQAL_LITERAL_BOOLEAN
+ * @integer: int value
+ * 
+ * The integer decimal number is turned into a rasqal integer literal
+ * and given a datatype of xsd:integer
+ * 
+ * Return value: New &rasqal_literal or NULL on failure
+ **/
 rasqal_literal*
 rasqal_new_integer_literal(rasqal_literal_type type, int integer)
 {
@@ -71,6 +81,16 @@ rasqal_new_integer_literal(rasqal_literal_type type, int integer)
 }
 
 
+/**
+ * rasqal_new_floating_literal - Constructor - Create a new Rasqal floating literal from a string
+ * @string: formatted version of floating literal
+ *
+ * The floating point decimal number encoded in the string is
+ * turned into a rasqal floating literal (C double) and given
+ * a datatype of xsd:double.
+ * 
+ * Return value: New &rasqal_literal or NULL on failure
+ **/
 rasqal_literal*
 rasqal_new_floating_literal(const char *string)
 {
@@ -89,6 +109,14 @@ rasqal_new_floating_literal(const char *string)
 }
 
 
+/**
+ * rasqal_new_uri_literal - Constructor - Create a new Rasqal URI literal from a raptor URI
+ * @uri: &raptor_uri uri
+ *
+ * The uri is an input parameter and is stored in the literal, not copied.
+ * 
+ * Return value: New &rasqal_literal or NULL on failure
+ **/
 rasqal_literal*
 rasqal_new_uri_literal(raptor_uri *uri)
 {
@@ -101,6 +129,17 @@ rasqal_new_uri_literal(raptor_uri *uri)
 }
 
 
+/**
+ * rasqal_new_pattern_literal - Constructor - Create a new Rasqal pattern literal
+ * @pattern: regex pattern
+ * @flags: regex flags
+ *
+ * The pattern and flags are input parameters and are stored in the
+ * literal, not copied.  The set of flags recognised depends
+ * on the regex engine and the query language.
+ * 
+ * Return value: New &rasqal_literal or NULL on failure
+ **/
 rasqal_literal*
 rasqal_new_pattern_literal(char *pattern, char *flags)
 {
@@ -114,6 +153,13 @@ rasqal_new_pattern_literal(char *pattern, char *flags)
 }
 
 
+/*
+ * rasqal_literal_string_to_native - INTERNAL Upgrade a literal string to a datatyped literal
+ * @l: &rasqal_literal to operate on inline
+ *
+ * At present this promotes xsd:decimal to RASQAL_LITERAL_INTEGER and
+ * xsd:double to RASQAL_INTEGER_FLOATING.
+ **/
 void
 rasqal_literal_string_to_native(rasqal_literal *l)
 {
@@ -149,6 +195,26 @@ rasqal_literal_string_to_native(rasqal_literal *l)
 }
 
 
+/**
+ * rasqal_new_string_literal - Constructor - Create a new Rasqal string literal
+ * @string: string lexical form
+ * @language: RDF language (xml:lang) (or NULL)
+ * @datatype: datatype URI (or NULL)
+ * @datatype_qname: datatype qname string (or NULL)
+ * 
+ * All parameters are input parameters and if present are stored in
+ * the literal, not copied.
+ * 
+ * The datatype and datatype_qname paramters are alternatives; the
+ * qname is a datatype that cannot be resolved till later since the
+ * prefixes have not yet been declared or checked.
+ * 
+ * If the string literal is datatyped and of certain types recognised
+ * it may be promoted to a different literal type by
+ * rasqal_literal_string_to_native.
+ *
+ * Return value: New &rasqal_literal or NULL on failure
+ **/
 rasqal_literal*
 rasqal_new_string_literal(char *string, char *language,
                           raptor_uri *datatype, char *datatype_qname)
@@ -171,7 +237,16 @@ rasqal_new_string_literal(char *string, char *language,
 }
 
 
-/* used for BLANK and QNAME */
+/**
+ * rasqal_new_simple_literal - Constructor - Create a new Rasqal simple literal
+ * @type: RASQAL_LITERAL_BLANK or RASQAL_LITERAL_BLANK_QNAME
+ * @string: the string value to store
+ * 
+ * The string is an input parameter and is stored in the
+ * literal, not copied.
+ * 
+ * Return value: New &rasqal_literal or NULL on failure
+ **/
 rasqal_literal*
 rasqal_new_simple_literal(rasqal_literal_type type, char *string)
 {
@@ -184,6 +259,12 @@ rasqal_new_simple_literal(rasqal_literal_type type, char *string)
 }
 
 
+/**
+ * rasqal_new_boolean_literal - Constructor - Create a new Rasqal boolean literal
+ * @value: non-0 for true, 0 for false
+ *
+ * Return value: New &rasqal_literal or NULL on failure
+ **/
 rasqal_literal*
 rasqal_new_boolean_literal(int value)
 {
@@ -197,6 +278,14 @@ rasqal_new_boolean_literal(int value)
 }
 
 
+/**
+ * rasqal_new_variable_literal - Constructor - Create a new Rasqal variable literal
+ * @variable: &rasqal_variable to use
+ * 
+ * variable is an input parameter and stored in the literal, not copied.
+ * 
+ * Return value: New &rasqal_literal or NULL on failure
+ **/
 rasqal_literal*
 rasqal_new_variable_literal(rasqal_variable *variable)
 {
@@ -208,6 +297,12 @@ rasqal_new_variable_literal(rasqal_variable *variable)
 }
 
 
+/**
+ * rasqal_new_literal_from_literal - Copy Constructor - create a new rasqal_literal object from an existing rasqal_literal object
+ * @l: &rasqal_literal object to copy
+ * 
+ * Return value: a new &rasqal_literal object or NULL on failure
+ **/
 rasqal_literal*
 rasqal_new_literal_from_literal(rasqal_literal* l)
 {
@@ -216,6 +311,11 @@ rasqal_new_literal_from_literal(rasqal_literal* l)
 }
 
 
+/**
+ * rasqal_free_literal - Destructor - destroy an rasqal_literal object
+ * @l: &rasqal_lietral object
+ * 
+ **/
 void
 rasqal_free_literal(rasqal_literal* l)
 {
@@ -293,6 +393,13 @@ rasqal_literal_print_type(rasqal_literal* literal, FILE* fh)
 }
 
 
+/**
+ * rasqal_literal_print - Print a Rasqal literal in a debug format
+ * @l: the &rasqal_literal object
+ * @fh: the &FILE* handle to print to
+ * 
+ * The print debug format may change in any release.
+ **/
 void
 rasqal_literal_print(rasqal_literal* l, FILE* fh)
 {
@@ -344,6 +451,16 @@ rasqal_literal_print(rasqal_literal* l, FILE* fh)
 
 
 
+/*
+ * rasqal_literal_as_boolean - INTERNAL Return a literal as a boolean value
+ * @l: &rasqal_literal object
+ * @error: pointer to error flag
+ * 
+ * Literals are true if not NULL (uris, strings) or zero (0, 0.0).
+ * Otherwise the error flag is set.
+ * 
+ * Return value: non-0 if true
+ **/
 int
 rasqal_literal_as_boolean(rasqal_literal* l, int *error)
 {
@@ -380,6 +497,18 @@ rasqal_literal_as_boolean(rasqal_literal* l, int *error)
   }
 }
 
+
+/*
+ * rasqal_literal_as_integer - INTERNAL Return a literal as an integer value
+ * @l: &rasqal_literal object
+ * @error: pointer to error flag
+ * 
+ * Integers, booleans and floating literals natural are turned into
+ * integers. If string values are the lexical form of an integer, that is
+ * returned.  Otherwise the error flag is set.
+ * 
+ * Return value: non-0 if true
+ **/
 inline int
 rasqal_literal_as_integer(rasqal_literal* l, int *error)
 {
@@ -417,6 +546,12 @@ rasqal_literal_as_integer(rasqal_literal* l, int *error)
 }
 
 
+/**
+ * rasqal_literal_as_string - Return the string format of a literal
+ * @l: &rasqal_literal object
+ * 
+ * Return value: pointer to a shared string format of the literal.
+ **/
 char*
 rasqal_literal_as_string(rasqal_literal* l)
 {
@@ -442,6 +577,12 @@ rasqal_literal_as_string(rasqal_literal* l)
 }
 
 
+/**
+ * rasqal_literal_as_variable - Get the variable inside a literal
+ * @l: &rasqal_literal object
+ * 
+ * Return value: the &rasqal_variable or NULL if the literal is not a variable
+ **/
 rasqal_variable*
 rasqal_literal_as_variable(rasqal_literal* l)
 {
@@ -459,6 +600,29 @@ double_to_int(double d)
 }
 
 
+/**
+ * rasqal_literal_compare - Compare two literals with type promotion
+ * @l1: &rasqal_literal first literal
+ * @l2: &rasqal_literal second literal
+ * @flags: comparison flags
+ * @error: pointer to error
+ * 
+ * The two literals are compared across their range.  If the types
+ * are not the same, they are promoted.  If one is a floating, the
+ * other is promoted to floating, otherwise for integers, otherwise
+ * to strings (all literals have a string value).
+ *
+ * The comparison returned is as for strcmp, first before second
+ * returns <0.  equal returns 0, and first after second returns >0.
+ * If there is no ordering, such as for URIs, the return value
+ * is 0 for equal, non-0 for different (using raptor_uri_equals).
+ *
+ * flags affects string comparisons and if the
+ * RASQAL_COMPARE_NOCASE bit is set, a case independent
+ * comparison is made.
+ * 
+ * Return value: <0, 0, or >0 as described above.
+ **/
 int
 rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
                        int *error)
@@ -599,7 +763,13 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
 }
 
 
-/* non-zero if equal (no promotion) */
+/**
+ * rasqal_literal_equals - Compare two literals with no type promotion
+ * @l1: &rasqal_literal first literal
+ * @l2: &rasqal_literal second literal
+ * 
+ * Return value: non-0 if equal
+ **/
 int
 rasqal_literal_equals(rasqal_literal* l1, rasqal_literal* l2)
 {
@@ -655,6 +825,19 @@ rasqal_literal_equals(rasqal_literal* l1, rasqal_literal* l2)
 }
 
 
+/**
+ * rasqal_literal_expand_qname - INTERNAL Expand any qname in a literal into a URI
+ * @user_data: &rasqal_query cast as void for use with raptor_sequence_foreach
+ * @l: &rasqal_literal literal
+ * 
+ * Expands any QName inside the literal using prefixes that are
+ * declared in the query that may not have been present when the
+ * literal was first declared.  Intended to be used standalone
+ * as well as with raptor_sequence_foreach which takes a function
+ * signature that this function matches.
+ * 
+ * Return value: non-0 on failure
+ **/
 int
 rasqal_literal_expand_qname(void *user_data, rasqal_literal *l)
 {
