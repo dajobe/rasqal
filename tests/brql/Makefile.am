@@ -36,10 +36,10 @@ $(top_builddir)/roqet:
 	@(cd $(top_builddir) ; $(MAKE) roqet)
 
 $(top_builddir)/brql_lexer_test:
-	@(cd $(top_builddir) ; $(MAKE) roqet/brql_lexer_test)
+	@(cd $(top_builddir) ; $(MAKE) brql_lexer_test)
 
 $(top_builddir)/brql_parser_test:
-	@(cd $(top_builddir) ; $(MAKE) roqet/brql_parser_test)
+	@(cd $(top_builddir) ; $(MAKE) brql_parser_test)
 
 
 check-local: check-brql-lexer check-brql-parser
