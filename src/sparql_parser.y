@@ -108,7 +108,7 @@ static int brql_query_error(rasqal_query* rq, const char *message);
 /*
  * Two shift/reduce
  */
-%expect 5
+%expect 6
 
 
 /* word symbols */
@@ -267,6 +267,12 @@ TriplePatternList : TriplePattern COMMA TriplePatternList
 {
   $$=$2;
   raptor_sequence_shift($$, $1);
+}
+| SOURCE VarOrURI TriplePattern
+{
+  $$=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_triple, (raptor_sequence_print_handler*)rasqal_triple_print);
+  rasqal_triple_set_origin($3, $2);
+  raptor_sequence_push($$, $3);
 }
 | TriplePattern
 {
