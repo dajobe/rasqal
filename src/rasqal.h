@@ -258,6 +258,9 @@ RASQAL_API void rasqal_query_set_error_handler(rasqal_query* query, void *user_d
 RASQAL_API void rasqal_query_set_warning_handler(rasqal_query* query, void *user_data, raptor_message_handler handler);
 RASQAL_API void rasqal_query_set_feature(rasqal_query *query, rasqal_feature feature, int value);
 
+RASQAL_API int rasqal_query_get_distinct(rasqal_query *query);
+RASQAL_API int rasqal_query_get_limit(rasqal_query *query);
+
 RASQAL_API void rasqal_query_add_source(rasqal_query* query, raptor_uri* uri);
 RASQAL_API raptor_sequence* rasqal_query_get_source_sequence(rasqal_query* query);
 RASQAL_API raptor_uri* rasqal_query_get_source(rasqal_query* query, int idx);
