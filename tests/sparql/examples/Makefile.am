@@ -102,8 +102,8 @@ check-sparql-correct: build-roqet $(srcdir)/../check-sparql
 	@set +e; \
 	expect=`echo $(EXPECTED_SPARQL_CORRECT_FAILURES) | wc -w`; \
 	$(ECHO) "Testing SPARQL correct"; \
-	TOP_SRCDIR=$(top_srcdir) TOP_BUILDDIR=$(top_builddir) \
-	  perl $(srcdir)/../check-sparql; \
+	PATH=$(top_builddir):$$PATH \
+	  perl $(srcdir)/../check-sparql -s $(srcdir); \
 	result=$$?; \
 	if test $$result != 0 ; then \
 	  echo "Expecting test failures: $(EXPECTED_SPARQL_CORRECT_FAILURES)"; \

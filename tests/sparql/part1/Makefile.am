@@ -91,7 +91,7 @@ check-sparql-works: build-roqet
 	$(ECHO) "Testing SPARQL works"; \
 	for test in $(SPARQL_TEST_FILES); do \
 	  $(ECHO) $(ECHO_N) "Checking $$test $(ECHO_C)"; \
-	  $(top_builddir)/roqet -i sparql -s dawg-data-01.n3 $(srcdir)/$$test >/dev/null 2>&1; \
+	  $(top_builddir)/roqet -i sparql -s $(srcdir)/dawg-data-01.n3 $(srcdir)/$$test >/dev/null 2>&1; \
 	  status=$$?; \
 	  if test $$status != 0 -a $$status != 2 ; then \
 	    $(ECHO) FAILED returned status $$status; result=1; \
@@ -106,8 +106,8 @@ check-sparql-correct: build-roqet $(srcdir)/../check-sparql
 	@set +e; \
 	expect=`echo $(EXPECTED_SPARQL_CORRECT_FAILURES) | wc -w`; \
 	$(ECHO) "Testing SPARQL correct"; \
-	TOP_SRCDIR=$(top_srcdir) TOP_BUILDDIR=$(top_builddir) \
-	  perl $(srcdir)/../check-sparql; \
+	PATH=$(top_builddir):$$PATH \
+	  perl $(srcdir)/../check-sparql -s $(srcdir); \
 	result=$$?; \
 	if test $$result != 0 ; then \
 	  echo "Expecting test failures: $(EXPECTED_SPARQL_CORRECT_FAILURES)"; \
