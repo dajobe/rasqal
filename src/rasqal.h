@@ -1,10 +1,10 @@
 /* -*- Mode: c; c-basic-offset: 2 -*-
  *
- * rdql.h - Rasqal RDF Query library interfaces and definition
+ * rasqal.h - Rasqal RDF Query library interfaces and definition
  *
  * $Id$
  *
- * Copyright (C) 2003-2004, David Beckett http://purl.org/net/dajobe/
+ * Copyright (C) 2003-2005, David Beckett http://purl.org/net/dajobe/
  * Institute for Learning and Research Technology http://www.ilrt.bristol.ac.uk/
  * University of Bristol, UK http://www.bristol.ac.uk/
  * 
