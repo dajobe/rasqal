@@ -578,7 +578,7 @@ URIList : URI_LITERAL COMMA URIList
 }
 | URI_LITERAL
 {
-  $$=rasqal_new_sequence((rasqal_free_handler*)free, (rasqal_print_handler*)rasqal_sequence_print_string);
+  $$=rasqal_new_sequence((rasqal_free_handler*)raptor_free_uri, (rasqal_print_handler*)rasqal_sequence_print_uri);
   rasqal_sequence_push($$, $1);
 }
 ;
