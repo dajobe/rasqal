@@ -441,6 +441,7 @@ rasqal_free_graph_pattern(rasqal_graph_pattern* gp)
       gp->column--;
     }
     RASQAL_FREE(rasqal_triple_meta, gp->triple_meta);
+    gp->triple_meta=NULL;
   }
 
   if(gp->graph_patterns)
