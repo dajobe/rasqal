@@ -495,6 +495,7 @@ VarOrLiteral : Var
 PrefixDeclOpt : PrefixDeclOpt PREFIX IDENTIFIER URI_LITERAL
 {
   rasqal_prefix *p=rasqal_new_prefix($3, $4);
+  $$=((rasqal_query*)rq)->prefixes;
   raptor_sequence_push($$, p);
   rasqal_engine_declare_prefix(((rasqal_query*)rq), p);
 }
