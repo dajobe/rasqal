@@ -214,9 +214,10 @@ rasqal_new_string_literal(char *string, char *language,
 {
   rasqal_literal* l=(rasqal_literal*)calloc(sizeof(rasqal_literal), 1);
 
-  if(datatype &&
-     strcmp(raptor_uri_as_string(datatype), raptor_xml_literal_datatype_uri_string))
+  if(datatype && language) {
+    RASQAL_FREE(cstring, language);
     language=NULL;
+  }
 
   l->type=RASQAL_LITERAL_STRING;
   l->string=string;
@@ -862,8 +863,7 @@ rasqal_literal_expand_qname(void *user_data, rasqal_literal *l)
       RASQAL_FREE(cstring, l->flags);
       l->flags=NULL;
 
-      if(l->language &&
-         strcmp(raptor_uri_as_string(uri), raptor_xml_literal_datatype_uri_string)) {
+      if(l->language && uri) {
         RASQAL_FREE(cstring, l->language);
         l->language=NULL;
       }
@@ -873,3 +873,33 @@ rasqal_literal_expand_qname(void *user_data, rasqal_literal *l)
   }
   return 0;
 }
+
+
+
+
+/**
+ * rasqal_literal_as_node - Turn a literal into a new RDF string, URI or blank literal
+ * @l: &rasqal_literal object
+ * 
+ * Return value: the new &rasqal_literal or NULL on failure
+ **/
+rasqal_literal*
+rasqal_literal_as_node(rasqal_literal* l)
+{
+  raptor_uri *dt_uri=NULL;
+  
+  switch(l->type) {
+    case RASQAL_LITERAL_URI:
+    case RASQAL_LITERAL_STRING:
+    case RASQAL_LITERAL_BLANK:
+      return rasqal_new_literal_from_literal(l);
+    case RASQAL_LITERAL_FLOATING:
+    case RASQAL_LITERAL_INTEGER:
+      dt_uri=raptor_uri_copy(l->datatype);
+  default:
+    return rasqal_new_string_literal(rasqal_literal_as_string(l), NULL,
+                                     dt_uri, NULL);
+  }
+}
+
+
