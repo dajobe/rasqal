@@ -595,7 +595,7 @@ sparql_copy_string_token(rasqal_query* rq, YYSTYPE* lval,
       dt_p=(unsigned char*)strchr((const char*)dt_s, ':');
       if(!raptor_xml_name_check(dt_s, dt_p-dt_s, 11))
         sparql_syntax_warning(rq, "Invalid SPARQL name \"%s\"", dt_s);
-      if(!raptor_xml_name_check(dt_p+1, dest_len-((dt_p+1)-s), 11))
+      if(!raptor_xml_name_check(dt_p+1, dest_len-((dt_p+1)-dt_s), 11))
         sparql_syntax_warning(rq, "Invalid SPARQL name \"%s\"", dt_p+1);
 
 #ifdef STANDALONE
