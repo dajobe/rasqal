@@ -1,7 +1,7 @@
 2005-01-15  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
-	* sparql_parser.y (URIList):
-	Copy the URI before freeing the rasqal_literal.
+	* sparql_parser.y (URIList): Copy the URI before freeing the
+	rasqal_literal.
 
 2005-01-14  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
@@ -11,22 +11,20 @@
 
 2005-01-13  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
-	* win32_rasqal_config.h:
-	RASQAL_INTERNAL should be defined in the build configuration
+	* win32_rasqal_config.h: RASQAL_INTERNAL should be defined in the
+	build configuration
 
 2005-01-12  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
-	* sparql_lexer.l:
-	Updated to use yyterminate() when an error is reported, either in the
-	lexer or in a failing function called.
-	Deleted use of ERROR_TOKEN.
-	Mention SPARQL in all the error and warning messages.
+	* sparql_lexer.l: Updated to use yyterminate() when an error is
+	reported, either in the lexer or in a failing function called.
+	Deleted use of ERROR_TOKEN.  Mention SPARQL in all the error and
+	warning messages.
 
-	* rdql_lexer.l:
-	Updated to use yyterminate() when an error is reported, either in the
-	lexer or in a failing function called.
-	Deleted use of ERROR_TOKEN.
-	Mention RDQL in all the error and warning messages.
+	* rdql_lexer.l: Updated to use yyterminate() when an error is
+	reported, either in the lexer or in a failing function called.
+	Deleted use of ERROR_TOKEN.  Mention RDQL in all the error and
+	warning messages.
 
 	* sparql_parser.y: Delete ERROR_TOKEN
 	(PatternElementForms): Add SPARQL to warning message.
@@ -78,9 +76,8 @@
 	* rasqal_query.c (rasqal_free_query): Delete ordered_triples tidy.
 	(rasqal_query_print): Delete ordered_triples print.
 
-	* rasqal_engine.c:
-	(rasqal_query_order_triples_score, rasqal_query_order_triples):
-	Deleted - no longer used.
+	* rasqal_engine.c: (rasqal_query_order_triples_score,
+	rasqal_query_order_triples): Deleted - no longer used.
 
 	* rasqal_internal.h:
 	Deleted unused ordered_triples field from rasqal_query.
@@ -106,7 +103,7 @@
 	* rasqal_engine.c (rasqal_engine_move_to_graph_pattern): Use
 	max_optional_graph_patterns to walk through combinations of
 	optional graph patterns.
-	(rasqal_engine_do_optional_step): CHeck against
+	(rasqal_engine_do_optional_step): Check against
 	max_optional_graph_patterns limit and lower it when backtracking.
 	(rasqal_engine_get_next_result): Count # returned values and
 	continue searching when=0.  This is a fixup hack, not a final
@@ -122,12 +119,11 @@
 	solution.
 
 	* rasqal_engine.c (rasqal_engine_move_to_graph_pattern):
-	Take a delta since only ever
-	moving by +1 or -1.
+	Take a delta since only ever moving by +1 or -1.
 	When there are no optionals, just move.
 	When backtracking optionals, re-init the finished graph pattern.
-	(rasqal_engine_do_step, rasqal_engine_do_optional_step): Update calls
-	to above.
+	(rasqal_engine_do_step, rasqal_engine_do_optional_step): Update
+	calls to above.
 
 2005-01-08  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
@@ -187,8 +183,8 @@
 	(rasqal_engine_prepare): Disable ordering triples.
 	Call rasqal_query_build_declared_in.
 	(rasqal_engine_move_to_graph_pattern): Helper added for:
-	(rasqal_engine_get_next_result): Many changes trying to get optionals
-	working.
+	(rasqal_engine_get_next_result): Many changes trying to get
+	optionals working.
 
 	* rasqal_internal.h: Add query, finished, matches fields to
 	graph_pattern.  Add query arg to start of
@@ -282,9 +278,8 @@
 	(main): Set error and fatal_error handlers for query.
 	Remove xml format warning.
 
-	* rasqal_query.c (rasqal_query_results_write):
-	Added docs. Declare own namespace stack
-	and free up elements.
+	* rasqal_query.c (rasqal_query_results_write): Added docs. Declare
+	own namespace stack and free up elements.
 
 	* rasqal.h: Added rasqal_query_results_write
 
@@ -309,9 +304,10 @@
 	<PREF>.: Add \r\n to silence -s warning.
 	{QNAME}: Use sparql_copy_qname
 	(sparql_copy_name): Added and checks XML name is OK.
-	(sparql_copy_qname): Renamed from rdql_copy_token, and checks XML names
-	are OK, before and after :
-	(sparql_token_free): Free qname strings before they are made into URIs.
+	(sparql_copy_qname): Renamed from rdql_copy_token, and checks XML
+	names are OK, before and after :
+	(sparql_token_free): Free qname strings before they are made into
+	URIs.
 	(main): Free query_string.
 
 	* rdql_lexer.l:
@@ -329,16 +325,14 @@
 
 2004-12-08  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
-	* tests/rdql/testsuite/Makefile.am (check-rdql-correct):
-	Set PATH then use -s $(srcdir) rather than
-	lots of envariable passing.
+	* tests/rdql/testsuite/Makefile.am (check-rdql-correct): Set PATH
+	then use -s $(srcdir) rather than lots of envariable passing.
 
-	* tests/rdql/testsuite/check-rdql:
-	Merged in changes from check-sparql - use -s . argument now.
+	* tests/rdql/testsuite/check-rdql: Merged in changes from
+	check-sparql - use -s . argument now.
 
 	* rasqal_engine.c (rasqal_engine_execute_init):
-	Init current_graph_pattern only if there
-	are graph patterns.
+	Init current_graph_pattern only if there are graph patterns.
 	(rasqal_engine_get_next_result): Handle 0 graph patterns.
 
 	* tests/sparql/syntax/Makefile.am: Added manifest.n3
@@ -346,7 +340,8 @@
 
 	* tests/sparql/syntax/manifest.n3: Test manifest
 
-	* tests/sparql/syntax/result-0triples.n3: select with 0 triples result
+	* tests/sparql/syntax/result-0triples.n3: select with 0 triples
+	result
 
 	* tests/sparql/syntax/Makefile.am: Added 0triples.rq
 
@@ -374,7 +369,7 @@
 
 2004-11-29  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
-	* rasqal_expr.c (rasqal_expression_evaluate): UMINUS, PLUS, MINUX,
+	* rasqal_expr.c (rasqal_expression_evaluate): UMINUS, PLUS, MINUS,
 	STAR, SLASH are now done with floating literals.
 
 	* rasqal_internal.h: Export rasqal_literal_as_floating
@@ -423,10 +418,10 @@
 
 2004-11-21  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
-	* rasqal_engine.c (rasqal_new_graph_pattern_from_triples):
-	Init current column to -1 so
-	no execution or tidy happens.
-	(rasqal_free_graph_pattern): Clean up until reach start_column, not 0.
+	* rasqal_engine.c (rasqal_new_graph_pattern_from_triples): Init
+	current column to -1 so no execution or tidy happens.
+	(rasqal_free_graph_pattern): Clean up until reach start_column,
+	not 0.
 	(rasqal_graph_pattern_init): Do triple init work only if there are
 	triples.
 
@@ -647,14 +642,12 @@
 	Rename terminals: PLUS MINUS STAR SLASH REM TILDE BANG to be the
 	single symbol they are.
 
-	* rdql_parser.y, rdql_lexer.l:
-	Rename terminals: COMMA LPAREN RPAREN VARPREFIX to be the single
-	symbol they are.
+	* rdql_parser.y, rdql_lexer.l: Rename terminals: COMMA LPAREN
+	RPAREN VARPREFIX to be the single symbol they are.
 
-	* sparql_lexer.l:
-	Rename terminals: COMMA LPAREN RPAREN LSQUARE RSQUARE LCURLY RCURLY
-	VARPREFIX AMP to be the single symbol they are.
-	Added $ terminal.
+	* sparql_lexer.l: Rename terminals: COMMA LPAREN RPAREN LSQUARE
+	RSQUARE LCURLY RCURLY VARPREFIX AMP to be the single symbol they
+	are.  Added $ terminal.
 
 	* sparql_parser.y: Enable YYERROR_VERBOSE for now
 	Rename terminals: COMMA LPAREN RPAREN LSQUARE RSQUARE LCURLY RCURLY
@@ -668,7 +661,8 @@
 	* tests/sparql/syntax/Makefile.am, tests/sparql/syntax/groups.rq:
 	Added groups.rq
 
-	* rdql_parser.y (ConstraintClause): Don't add constraint sequence here.
+	* rdql_parser.y (ConstraintClause): Don't add constraint sequence
+	here.
 	(CommaAndConstraintClause): Instead, add constraints here.
 
 	* sparql_parser.y (GraphPattern): Use raptor_sequence_join
