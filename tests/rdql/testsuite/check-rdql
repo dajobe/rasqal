@@ -80,8 +80,6 @@ sub run_test($$) {
     }
 
     s/blank \w+/blank _/g;
-    s!integer (\d+)!string("$1"^^<http://www.w3.org/2001/XMLSchema\#integer>)!g;
-    s!floating ([\.\d]+)!string("$1"^^<http://www.w3.org/2001/XMLSchema\#double>)!g;
 
     if (m/^result: \[(.*)\]$/) {
       print OUT "$_\n";
@@ -110,6 +108,10 @@ sub run_test($$) {
   while(<PIPE>) {
     chomp;
     s/\s+\.$//;
+
+    # Raptor 1.3.0 bug
+    s!@([^\^]+)(\^\^<http://www.w3.org/1999/02/22-rdf-syntax-ns#XMLLiteral>)!$2!;
+
     my($subject, $predicate, $object)=split(/ /, $_, 3);
     push(@node_order, $subject)
       unless exists $nodes{$subject} || exists $node_type{$subject};
