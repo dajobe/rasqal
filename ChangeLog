@@ -1,5 +1,11 @@
 2005-02-17  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
+	* roqet.c: Added -n/--dryrun to stop after preparing the query.
+	Added -w/--walk-query to walk and print the query using the API.
+	(roqet_walk_graph_pattern): Added to walk the tree.
+
+	* rasqal_query.c (rasqal_graph_pattern_get_triple): fix range check
+
 	* rasqal_query.c (rasqal_query_add_triple): Deprecated as it
 	doesn't construct the graph patterns and is of little use.
 	(rasqal_query_get_graph_pattern_sequence,
