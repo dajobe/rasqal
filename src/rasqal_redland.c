@@ -141,6 +141,11 @@ rasqal_redland_new_triples_source(rasqal_query* rdf_query,
   const char *parser_name;
   
   rtsc->world=world;
+
+  /* FIXME - no default triple source yet */
+  if(!rts->uri)
+    return 1;
+
   /* FIXME error checking */
   rtsc->uri=librdf_new_uri(world, raptor_uri_as_string(rts->uri));
   rtsc->storage = librdf_new_storage(world, NULL, NULL, NULL);
