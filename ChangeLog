@@ -1,3 +1,105 @@
+2005-01-29  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal_engine.c (rasqal_engine_assign_variables):
+	variables_declared_in is now an array of integer (triple) column
+	numbers not pointers to graph patterns.
+	(rasqal_reset_triple_meta): Return number of variables that were
+	set to NULL.
+	(rasqal_graph_pattern_init): Update to compare triple column
+	numbers, not graph patterns for defining vars.
+	(rasqal_query_build_declared_in): Update for variables_declared_in
+	changed.
+	(rasqal_graph_pattern_get_next_match): Adjust new_bindings_count
+	by number of variables reset by rasqal_reset_triple_meta.  Only
+	run the bind_match factory method if there are triple parts to
+	bind. If it is run, adjust the new_bindings_count when variables
+	are set.
+	(rasqal_engine_do_optional_step): If there were new bindings,
+	return a result otherwise continue searching.
+	(rasqal_engine_get_next_result): Reset new_bindings_count on
+	entry.
+
+	* rasqal_internal.h: rasqal_query: variables_declared_in is now an
+	array of integer column numbers.  Added new_bindings_count
+
+	* rasqal_query.c (rasqal_free_query): tidy free of
+	variables_declared_in, now an intarray.
+
+2005-01-28  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* roqet.c: Add -f / --format to set output syntax format for graph
+	results.
+
+	* roqet.c: Update for rasqal_query_results_get_triple returning a
+	shared raptor_statement.  Use a raptor_serializer to format it.
+
+	* rasqal_query.c (rasqal_free_query): Free rasqal_triple
+	allocated.
+	(rasqal_prefix_id): Prefix a blank node id with 'r'<query result
+	number>'_'
+	(rasqal_query_results_get_triple): Return a shared
+	raptor_statement.
+	(rasqal_query_results_next_triple): Free the internal
+	rasqal_triple before moving on.
+
+	* rasqal_internal.h: Added rasqal_triple internal to rasqal_query
+
+	* rasqal.h: Changed rasqal_query_results_get_triple to return
+	raptor_statement
+
+	* rasqal_internal.h: Added raptor_statement to rasqal_query
+
+2005-01-27  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* tests/rdql/testsuite/check-rdql, tests/sparql/check-sparql
+	(run_test): don't delete test output files here, let main do it.
+
+	* roqet.c: Free returned triple result
+
+	* roqet.c: Tidy the query result messages
+
+	* roqet.c (main): Format bindings, triples and boolean results.
+
+	* rasqal_query.c (rasqal_query_execute): Init
+	current_triple_result.
+	(rasqal_query_results_is_bindings,
+	rasqal_query_results_is_boolean, rasqal_query_results_is_graph):
+	Added to test query result formats.
+	(rasqal_query_results_get_count, rasqal_query_results_next,
+	rasqal_query_results_finished, rasqal_query_results_get_bindings,
+	rasqal_query_results_get_binding_value,
+	rasqal_query_results_get_binding_name,
+	rasqal_query_results_get_binding_value_by_name,
+	rasqal_query_results_get_bindings_count): Fail if result type is
+	not bindings.
+	(rasqal_query_results_get_triple): Added, to get the current
+	triple from a graph result.
+	(rasqal_query_results_next_triple): Added, to move to the next
+	triple in a graph result.
+	(rasqal_query_results_get_boolean): Added, always false for now.
+
+	* rasqal_literal.c (rasqal_literal_as_node): Handle variable
+	values, convert the variable result.
+
+	* rasqal_internal.h: Added current_triple_result to rasqal_query
+
+	* rasqal.h: Added rasqal_query_results_is_bindings,
+	rasqal_query_results_is_boolean, rasqal_query_results_get_boolean,
+	rasqal_query_results_is_graph, rasqal_query_results_get_triple and
+	rasqal_query_results_next_triple
+
+	* rasqal_engine.c (rasqal_engine_assign_variables): Build
+	construct triples when CONSTRUCT * is given
+
+	* rasqal_expr.c (rasqal_new_triple_from_triple): Added copy
+	constructor
+
+	* rasqal.h: Added rasqal_new_triple_from_triple
+
+	* tests/sparql/syntax/Makefile.am,
+	tests/sparql/syntax/construct0.rq,
+	tests/sparql/syntax/construct1.rq: CONSTRUCT syntax
+
 2005-01-24  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
 	* rasqal_expr.c (rasqal_new_function_expression):
