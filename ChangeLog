@@ -1,5 +1,12 @@
 2004-10-16  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
+	* tests/sparql/check-sparql: Destroy duff relative file: URIs only
+
+	* tests/sparql/check-sparql: validate $roqet path
+	No Data::Dumper
+
+	* roqet.c: Remove extra print of query URI
+
 	* roqet.c (roqet_get_www_content): Remove goto.  Fix words.
 
 	* roqet.1: Update for options changes.  Note SPARQL support.
