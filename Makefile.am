@@ -56,7 +56,8 @@ AM_LDFLAGS=@RASQAL_EXTERNAL_LIBS@ $(MEM_LIBS)
 
 librasqal_la_SOURCES = \
 rasqal_expr.c rasqal_general.c rasqal_query.c \
-rasqal_engine.c rasqal_raptor.c rasqal_literal.c
+rasqal_engine.c rasqal_raptor.c rasqal_literal.c \
+rasqal_xml.c
 if RASQAL_QUERY_RDQL
 librasqal_la_SOURCES += rdql_lexer.c rdql_lexer.h \
 rdql_parser.c rdql_parser.h rdql_common.h
