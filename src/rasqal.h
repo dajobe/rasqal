@@ -326,7 +326,7 @@ typedef struct {
   
 
 /* set the triples_source_factory */
-void rasqal_set_triples_source_factory(void (*register_fn)(rasqal_triples_source_factory *factory), void* user_data);
+RASQAL_API void rasqal_set_triples_source_factory(void (*register_fn)(rasqal_triples_source_factory *factory), void* user_data);
 
 #ifdef __cplusplus
 }
