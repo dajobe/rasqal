@@ -327,7 +327,11 @@ rasqal_redland_bind_match(struct rasqal_triples_match_s* rtm,
   /* FIXME contexts */
   /*
   if(bindings[3] && (parts & RASQAL_TRIPLE_ORIGIN)) {
-    ...
+    l=redland_node_to_rasqal_literal((librdf_node*)librdf_stream_get_context(rtmc->stream));
+    RASQAL_DEBUG1("binding origin to variable\n");
+    rasqal_variable_set_value(bindings[3], rasqal_literal_as_node(l));
+    rasqal_free_literal(l);
+    result= (rasqal_triple_parts)(result | RASQAL_TRIPLE_ORIGIN);
   }
   */
 
