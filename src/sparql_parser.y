@@ -108,7 +108,7 @@ static int brql_query_error(rasqal_query* rq, const char *message);
 /*
  * shift/reduce conflicts
  */
-%expect 4
+%expect 3
 
 
 /* word symbols */
@@ -227,11 +227,7 @@ SelectClause : VarList
 }
 ;
 
-SourceClause : SOURCE URIList
-{
-  $$=$2;
-}
-| FROM URIList
+SourceClause : FROM URIList
 {
   $$=$2;
 }
