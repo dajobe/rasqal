@@ -11,7 +11,7 @@
                                 rs:variable "name"
                               ]
                 ] ;
-    rs:solution [ rs:binding  [ rs:value    <fred@edu> ;
+    rs:solution [ rs:binding  [ rs:value    <mailto:fred@edu> ;
                                 rs:variable "mbox"
                               ]
                 ] ;

@@ -26,4 +26,4 @@ _:eve
 
 _:fred
     rdf:type      foaf:Person ;
-    foaf:mbox     <fred@edu> .
+    foaf:mbox     <mailto:fred@edu> .
