@@ -308,220 +308,67 @@ rasqal_engine_assign_variables(rasqal_query* rq)
 }
   
 
+/* static */
+static rasqal_triples_source_factory Triples_Source_Factory;
 
-static librdf_node*
-rasqal_expression_to_redland_node(rasqal_query *q, rasqal_expression* e) {
-  if(e->op == RASQAL_EXPR_LITERAL) {
-    rasqal_literal* l=e->literal;
-    if(l->type == RASQAL_LITERAL_URI) {
-      char *uri_string=raptor_uri_as_string(l->value.uri);
-      return librdf_new_node_from_uri_string(q->world, uri_string);
-    } else if (l->type == RASQAL_LITERAL_STRING)
-      return librdf_new_node_from_literal(q->world, l->value.string, NULL, 0);
-    else if (l->type == RASQAL_LITERAL_BLANK)
-      return librdf_new_node_from_blank_identifier(q->world, l->value.string);
-    else {
-      RASQAL_DEBUG2("Unknown literal type %d", l->type);
-      abort();
-    }
-  } else {
-    RASQAL_DEBUG2("Unknown expr op %d", e->op);
-    abort();
+void
+rasqal_set_triples_source_factory(void (*register_fn)(rasqal_triples_source_factory *factory)) {
+  register_fn(&Triples_Source_Factory);
+}
+
+
+rasqal_triples_source*
+rasqal_new_triples_source(rasqal_query *query, raptor_uri* uri) {
+  rasqal_triples_source* rts;
+
+  rts=(rasqal_triples_source*)RASQAL_CALLOC(rasqal_triples_source, sizeof(rasqal_triples_source), 1);
+  if(!rts)
+    return NULL;
+
+  rts->user_data=RASQAL_CALLOC(user_data,
+                               Triples_Source_Factory.user_data_size, 1);
+  if(!rts->user_data) {
+    RASQAL_FREE(rasqal_triples_source, rts);
+    return NULL;
   }
+  rts->query=query;
+  rts->uri=raptor_uri_copy(uri);
 
-  return NULL;
-}
-
-
-static rasqal_expression*
-redland_node_to_rasqal_expression(librdf_node *node) {
-  rasqal_literal* l;
-  
-  if(librdf_node_is_resource(node)) {
-    raptor_uri* uri=raptor_new_uri(librdf_uri_as_string(librdf_node_get_uri(node)));
-    l=rasqal_new_literal(RASQAL_LITERAL_URI, 0, 0.0, NULL, uri);
-  } else if(librdf_node_is_literal(node)) {
-    char *new_string=strdup(librdf_node_get_literal_value(node));
-    l=rasqal_new_literal(RASQAL_LITERAL_STRING, 0, 0.0, new_string, NULL);
-  } else {
-    char *new_string=strdup(librdf_node_get_blank_identifier(node));
-    l=rasqal_new_literal(RASQAL_LITERAL_BLANK, 0, 0.0, new_string, NULL);
+  if(Triples_Source_Factory.new_triples_source(query, rts->user_data, rts)) {
+    RASQAL_FREE(user_data, rts->user_data);
+    RASQAL_FREE(rasqal_triples_source, rts);
+    return NULL;
   }
-
-  return rasqal_new_literal_expression(l);
-}
-
-
-static librdf_statement*
-rasqal_triple_to_redland_statement(rasqal_query *q, rasqal_triple* t)
-{
-  librdf_node* nodes[3];
-
-  /* ASSUMPTION: all the parts of the triple are not variables */
-  /* FIXME: and no error checks */
-  nodes[0]=rasqal_expression_to_redland_node(q, t->subject);
-  nodes[1]=rasqal_expression_to_redland_node(q, t->predicate);
-  nodes[2]=rasqal_expression_to_redland_node(q, t->object);
-
-  return librdf_new_statement_from_nodes(q->world, nodes[0], nodes[1], nodes[2]);
-}
-
-static int
-rasqal_triple_present(rasqal_query *query, rasqal_triple *t) 
-{
-  librdf_statement *s=rasqal_triple_to_redland_statement(query, t);
   
-  int rc=!librdf_model_contains_statement(query->model, s);
-  librdf_free_statement(s);
-  return rc;
+  return rts;
+}
+
+
+void
+rasqal_free_triples_source(rasqal_triples_source *rts) {
+  rts->free_triples_source(rts->user_data);
+  
+  raptor_free_uri(rts->uri);
+  RASQAL_FREE(rasqal_triples_source, rts);
 }
 
 
 static int
-rasqal_redland_bind_match(struct rasqal_triples_match_s* rtm,
-                          void *user_data,
-                          rasqal_variable* bindings[3]) 
-{
-  rasqal_triple_meta *m=(rasqal_triple_meta *)user_data;
-  
-  librdf_statement* statement=librdf_stream_get_object(m->stream);
-  if(!statement)
-    return 1;
-  
-#ifdef RASQAL_DEBUG
-  RASQAL_DEBUG1("  matched statement ");
-  librdf_statement_print(statement, stderr);
-  fputc('\n', stderr);
-#endif
-
-  /* set 1 or 2 variable values from the fields of statement */
-
-  if(bindings[0]) {
-    RASQAL_DEBUG1("binding subject to variable\n");
-    rasqal_variable_set_value(bindings[0],
-                              redland_node_to_rasqal_expression(librdf_statement_get_subject(statement)));
-  }
-
-  if(bindings[1]) {
-    RASQAL_DEBUG1("binding predicate to variable\n");
-    rasqal_variable_set_value(bindings[1], 
-                              redland_node_to_rasqal_expression(librdf_statement_get_predicate(statement)));
-  }
-
-  if(bindings[2]) {
-    RASQAL_DEBUG1("binding object to variable\n");
-    rasqal_variable_set_value(bindings[2],  
-                              redland_node_to_rasqal_expression(librdf_statement_get_object(statement)));
-  }
-
-  return 0;
+rasqal_triples_source_triple_present(rasqal_triples_source *rts,
+                                     rasqal_triple *t) {
+  return rts->triple_present(rts, rts->user_data, t);
 }
 
 
-static void
-rasqal_redland_next_match(struct rasqal_triples_match_s* rtm,
-                          void *user_data)
-{
-  rasqal_triple_meta *m=(rasqal_triple_meta *)user_data;
-  
-  librdf_stream_next(m->stream);
-}
-
-static int
-rasqal_redland_is_end(struct rasqal_triples_match_s* rtm,
-                      void *user_data)
-{
-  rasqal_triple_meta *m=(rasqal_triple_meta *)user_data;
-  
-  return librdf_stream_end(m->stream);
-}
-
-
-static void
-rasqal_redland_finish_triples_match(struct rasqal_triples_match_s* rtm,
-                                    void *user_data) {
-  rasqal_triple_meta *m=(rasqal_triple_meta *)user_data;
-  
-  if(m->stream) {
-    librdf_free_stream(m->stream);
-    m->stream=NULL;
-  }
-  librdf_free_statement(m->qstatement);
-}
 
 
 
 static rasqal_triples_match*
 rasqal_new_triples_match(rasqal_query *query, void *user_data,
                          rasqal_triple_meta *m, rasqal_triple *t) {
-  rasqal_triples_match *rtm;
-  rasqal_variable* var;
-
-  rtm=(rasqal_triples_match *)RASQAL_CALLOC(rasqal_triples_match, sizeof(rasqal_triples_match), 1);
-  rtm->bind_match=rasqal_redland_bind_match;
-  rtm->next_match=rasqal_redland_next_match;
-  rtm->is_end=rasqal_redland_is_end;
-  rtm->finish=rasqal_redland_finish_triples_match;
-  rtm->user_data=user_data;
-
-  /* at least one of the triple terms is a variable and we need to
-   * do a triplesMatching() aka librdf_model_find_statements
-   *
-   * redland find_statements will do the right thing and internally
-   * pick the most efficient, indexed way to get the answer.
-   */
-
-  if((var=rasqal_expression_as_variable(t->subject))) {
-    if(var->value)
-      m->nodes[0]=rasqal_expression_to_redland_node(query, var->value);
-    else
-      m->nodes[0]=NULL;
-  } else
-    m->nodes[0]=rasqal_expression_to_redland_node(query, t->subject);
-
-  m->bindings[0]=var;
-  
-
-  if((var=rasqal_expression_as_variable(t->predicate))) {
-    if(var->value)
-      m->nodes[1]=rasqal_expression_to_redland_node(query, var->value);
-    else
-      m->nodes[1]=NULL;
-  } else
-    m->nodes[1]=rasqal_expression_to_redland_node(query, t->predicate);
-
-  m->bindings[1]=var;
-  
-
-  if((var=rasqal_expression_as_variable(t->object))) {
-    if(var->value)
-      m->nodes[2]=rasqal_expression_to_redland_node(query, var->value);
-    else
-      m->nodes[2]=NULL;
-  } else
-    m->nodes[2]=rasqal_expression_to_redland_node(query, t->object);
-
-  m->bindings[2]=var;
-  
-
-  m->qstatement=librdf_new_statement_from_nodes(query->world, 
-                                                m->nodes[0],
-                                                m->nodes[1], 
-                                                m->nodes[2]);
-  if(!m->qstatement)
-    return NULL;
-
-#ifdef RASQAL_DEBUG
-  RASQAL_DEBUG1("query statement: ");
-  librdf_statement_print(m->qstatement, stderr);
-  fputc('\n', stderr);
-#endif
-  
-  m->stream=librdf_model_find_statements(query->model, m->qstatement);
-
-  RASQAL_DEBUG1("rasqal_new_triples_match done\n");
-
-  return rtm;
+  return query->triples_source->new_triples_match(query->triples_source,
+                                                  query->triples_source->user_data,
+                                                  m, t);
 }
 
 
@@ -582,7 +429,7 @@ rasqal_engine_run(rasqal_query *query) {
 
     if (m->is_exact) {
       /* exact triple match wanted */
-      if(!rasqal_triple_present(query, t))
+      if(!rasqal_triples_source_triple_present(query->triples_source, t))
         /* failed */
         column--;
       RASQAL_DEBUG2("exact match OK for column %d\n", column);
