@@ -428,29 +428,19 @@ static int
 raptor_statement_compare(raptor_statement* statement, 
                          raptor_statement* partial_statement) 
 {
-  int rc=1;
-  
-#ifdef RASQAL_DEBUG
-  RASQAL_DEBUG1("comparing statement: ");
-  raptor_print_statement(statement, stderr);
-  fprintf(stderr, "to match ");
-  raptor_print_statement(partial_statement, stderr);
-  fputc('\n', stderr);
-#endif
-
   if(partial_statement->subject) {
     if(!raptor_node_equals(statement->subject, statement->subject_type, NULL, NULL,
                            partial_statement->subject, partial_statement->subject_type, NULL, NULL))
-      rc=0;
+      return 0;
   }
 
-  if(rc && partial_statement->predicate) {
+  if(partial_statement->predicate) {
     if(!raptor_node_equals(statement->predicate, statement->predicate_type, NULL, NULL,
                            partial_statement->predicate, partial_statement->predicate_type, NULL, NULL))
-      rc=0;
+      return 0;
   }
 
-  if(rc && partial_statement->object) {
+  if(partial_statement->object) {
     if(!raptor_node_equals(statement->object,
                            statement->object_type,
                            statement->object_literal_datatype,
@@ -459,14 +449,10 @@ raptor_statement_compare(raptor_statement* statement,
                            partial_statement->object_type,
                            partial_statement->object_literal_datatype,
                            partial_statement->object_literal_language))
-      rc=0;
+      return 0;
   }
 
-#ifdef RASQAL_DEBUG
-  fprintf(stderr, " returning result %d\n", rc);
-#endif
-
-  return rc;
+  return 1;
 }
 
 
@@ -616,12 +602,6 @@ rasqal_raptor_new_triples_match(rasqal_triples_source *rts, void *user_data,
 
   m->bindings[2]=var;
   
-
-#ifdef RASQAL_DEBUG
-  RASQAL_DEBUG1("query statement: ");
-  raptor_print_statement(&rtmc->match, stderr);
-  fputc('\n', stderr);
-#endif
 
   while(rtmc->cur) {
     if(raptor_statement_compare(rtmc->cur->statement, &rtmc->match))
