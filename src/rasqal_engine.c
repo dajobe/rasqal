@@ -1126,6 +1126,10 @@ rasqal_engine_do_optional_step(rasqal_query *query, rasqal_graph_pattern *gp) {
   }
   
   if(!rc) {
+    int i;
+    int mandatory_matches=0;
+    int optional_matches=0;
+    
     /* end of graph_pattern results */
     step=STEP_FINISHED;
     
@@ -1139,56 +1143,47 @@ rasqal_engine_do_optional_step(rasqal_query *query, rasqal_graph_pattern *gp) {
     gp->finished=1;
     
     if(query->current_graph_pattern < graph_patterns_size-1) {
+      RASQAL_DEBUG1("More optionals graph patterns to search\n");
       rasqal_engine_move_to_graph_pattern(query, 
                                           query->current_graph_pattern+1);
       return STEP_SEARCHING;
-    } else {
-      int i;
-      int mandatory_matches=0;
-      int optional_matches=0;
-      
-      /* Last optional match ended.
-       * If we got any non optional matches, then we have a result.
-       */
-      for(i=0; i < graph_patterns_size; i++) {
-        rasqal_graph_pattern *gp2=(rasqal_graph_pattern*)raptor_sequence_get_at(query->graph_patterns, i);
-        if(query->optional_graph_pattern >= 0 &&
-           i >= query->optional_graph_pattern)
-          optional_matches += gp2->matched;
-        else
-          mandatory_matches += gp2->matched;
-      }
-      
-      
-      RASQAL_DEBUG2("Graph pattern has %d matches returned\n", 
-                    gp->matches_returned);
-      
-      RASQAL_DEBUG2("Found %d query optional graph pattern matches\n", 
-                    query->optional_graph_pattern_matches_count);
-      
-      RASQAL_DEBUG3("Found %d mandatory matches, %d optional matches\n", 
-                    mandatory_matches, optional_matches);
-      
-      if(optional_matches) {
-        RASQAL_DEBUG1("Found some matches, returning a result\n");
-        return STEP_GOT_MATCH;
-      } else if (gp->matches_returned) {
-        RASQAL_DEBUG1("No matches this time, some earlier, backtracking\n");
-        rasqal_engine_move_to_graph_pattern(query, 0);
-        return STEP_SEARCHING;
-      } else {
-        RASQAL_DEBUG1("No non-optional matches, returning a final result\n");
-        return STEP_GOT_MATCH;
-      }
-      
     }
 
+    /* Last optional match ended.
+     * If we got any non optional matches, then we have a result.
+     */
+    for(i=0; i < graph_patterns_size; i++) {
+      rasqal_graph_pattern *gp2=(rasqal_graph_pattern*)raptor_sequence_get_at(query->graph_patterns, i);
+      if(query->optional_graph_pattern >= 0 &&
+         i >= query->optional_graph_pattern)
+        optional_matches += gp2->matched;
+      else
+        mandatory_matches += gp2->matched;
+    }
     
-    /* otherwise this is the end of the results */
-    RASQAL_DEBUG2("End of non-optional graph pattern %d\n",
-                  query->current_graph_pattern);
     
-    return STEP_FINISHED;
+    RASQAL_DEBUG2("Optional graph pattern has %d matches returned\n", 
+                  gp->matches_returned);
+    
+    RASQAL_DEBUG2("Found %d query optional graph pattern matches\n", 
+                  query->optional_graph_pattern_matches_count);
+    
+    RASQAL_DEBUG3("Found %d mandatory matches, %d optional matches\n", 
+                  mandatory_matches, optional_matches);
+    
+    if(optional_matches) {
+      RASQAL_DEBUG1("Found some matches, returning a result\n");
+      return STEP_GOT_MATCH;
+    } 
+
+    if (gp->matches_returned) {
+      RASQAL_DEBUG1("No matches this time, some earlier, backtracking\n");
+      rasqal_engine_move_to_graph_pattern(query, 0);
+      return STEP_SEARCHING;
+    }
+    
+    RASQAL_DEBUG1("No non-optional matches, returning a final result\n");
+    return STEP_GOT_MATCH;
   }
 
   
@@ -1211,10 +1206,8 @@ rasqal_engine_do_optional_step(rasqal_query *query, rasqal_graph_pattern *gp) {
     return STEP_SEARCHING;
   }
   
-  RASQAL_DEBUG1("Got solution\n");
-  
   /* is the last graph pattern so we have a solution */
-
+  RASQAL_DEBUG1("Got solution\n");
   return STEP_GOT_MATCH;
 }
 
