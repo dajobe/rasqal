@@ -35,11 +35,11 @@
 #endif
 #include <stdarg.h>
 
-#ifdef HAVE_REGEX_PCRE
+#ifdef RASQAL_REGEX_PCRE
 #include <pcre.h>
 #endif
 
-#ifdef HAVE_REGEX_POSIX
+#ifdef RASQAL_REGEX_POSIX
 #include <sys/types.h>
 #include <regex.h>
 #endif
@@ -1180,7 +1180,7 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e) {
           if(*p == 'i')
             flag_i++;
           
-#ifdef HAVE_REGEX_PCRE
+#ifdef RASQAL_REGEX_PCRE
         pcre* re;
         int options=0;
         const char *re_error=NULL;
@@ -1201,7 +1201,6 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e) {
                            0 /* options */,
                            NULL, 0 /* ovector, ovecsize - no matches wanted */
                            );
-          fprintf(stderr,"pcre_exec returned %d - matching '%s' against '%s'\n", rc, match_string, pattern);
           if(rc >= 0)
             b=1;
           else if(rc != PCRE_ERROR_NOMATCH)
@@ -1209,7 +1208,7 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e) {
         }
         
 #endif
-#ifdef HAVE_REGEX_POSIX
+#ifdef RASQAL_REGEX_POSIX
         regex_t reg;
         int rc;
         int options=REG_EXTENDED | REG_NOSUB;
@@ -1225,21 +1224,23 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e) {
                      0, NULL, /* nmatch, regmatch_t pmatch[] - no matches wanted */
                      0 /* eflags */
                      );
-          fprintf(stderr,"regex returned %d - matching '%s' against '%s'\n", rc, match_string, pattern);
           if(!rc)
             b=1;
-          else if (rc != REG_NOMATCH
+          else if (rc != REG_NOMATCH)
             rasqal_query_error(query, "Regex match failed - returned code %d", rc);
         }
         regfree(&reg);
 #endif
-#ifdef HAVE_REGEX_NONE
+#ifdef RASQAL_REGEX_NONE
+        rasqal_query_warning(query, "Regex support missing, cannot compare '%s' to '%s'", match_string, pattern);
         b=1;
 #endif
 
+        fprintf(stderr,"regex match returned %s for '%s' against '%s' (flags=%s)\n", b ? "true " : "false", match_string, pattern, l2->flags ? l2->flags : "");
+        
         if(e->op == RASQAL_EXPR_STR_NMATCH)
           b=1-b;
-        
+
         return rasqal_new_boolean_literal(b);
       }
 
