@@ -197,7 +197,7 @@ VarList : Var COMMA VarList
 }
 | Var 
 {
-  $$=rasqal_new_sequence(NULL, (rasqal_print_handler*)rasqal_print_variable);
+  $$=rasqal_new_sequence((rasqal_free_handler*)rasqal_free_variable, (rasqal_print_handler*)rasqal_print_variable);
   rasqal_sequence_push($$, $1);
 }
 ;
@@ -243,7 +243,7 @@ TriplePatternList : TriplePattern COMMA TriplePatternList
 }
 | TriplePattern
 {
-  $$=rasqal_new_sequence(NULL, (rasqal_print_handler*)rasqal_print_triple);
+  $$=rasqal_new_sequence((rasqal_free_handler*)rasqal_free_triple, (rasqal_print_handler*)rasqal_print_triple);
   rasqal_sequence_push($$, $1);
 }
 ;
@@ -299,7 +299,7 @@ CommaAndConstraintClause : Expression COMMA CommaAndConstraintClause
 }
 | Expression
 {
-  $$=rasqal_new_sequence(NULL, (rasqal_print_handler*)rasqal_print_expression);
+  $$=rasqal_new_sequence((rasqal_free_handler*)rasqal_free_expression, (rasqal_print_handler*)rasqal_print_expression);
   rasqal_sequence_push($$, $1);
 }
 ;
@@ -323,7 +323,7 @@ PrefixDeclList : IDENTIFIER FOR URI_LITERAL COMMA PrefixDeclList
 }
 | IDENTIFIER FOR URI_LITERAL
 {
-  $$=rasqal_new_sequence(NULL, (rasqal_print_handler*)rasqal_print_prefix);
+  $$=rasqal_new_sequence((rasqal_free_handler*)rasqal_free_prefix, (rasqal_print_handler*)rasqal_print_prefix);
   rasqal_sequence_push($$, rasqal_new_prefix($1, $3));
 }
 ;
@@ -500,7 +500,7 @@ ArgList : VarOrLiteral COMMA ArgList
 }
 | VarOrLiteral
 {
-  $$=rasqal_new_sequence(NULL, (rasqal_print_handler*)rasqal_print_expression);
+  $$=rasqal_new_sequence((rasqal_free_handler*)rasqal_free_expression, (rasqal_print_handler*)rasqal_print_expression);
   rasqal_sequence_push($$, $1);
 }
 ;
@@ -571,7 +571,7 @@ URIList : URI_LITERAL COMMA URIList
 }
 | URI_LITERAL
 {
-  $$=rasqal_new_sequence(NULL, (rasqal_print_handler*)rasqal_sequence_print_string);
+  $$=rasqal_new_sequence((rasqal_free_handler*)free, (rasqal_print_handler*)rasqal_sequence_print_string);
   rasqal_sequence_push($$, $1);
 }
 ;
@@ -683,7 +683,7 @@ rdql_syntax_warning(rdql_parser *rp, const char *message, ...)
 int
 main(int argc, char *argv[]) 
 {
-  rasqal_query rq;
+  rasqal_query *rq;
   unsigned char *filename=NULL;
   unsigned char *uri_string;
   char query_string[RDQL_FILE_BUF_SIZE];
@@ -723,11 +723,13 @@ main(int argc, char *argv[])
   if(argc>1)
     fclose(fh);
   
-  memset(&rq, 0, sizeof(rasqal_query));
+  rq=(rasqal_query*)malloc(sizeof(rasqal_query));
 
   uri_string=raptor_uri_filename_to_uri_string(filename);
 
-  rc=rdql_parse(&rq, uri_string, query_string, strlen(query_string));
+  rc=rdql_parse(rq, uri_string, query_string, strlen(query_string));
+
+  rasqal_free_query(rq);
 
   free(uri_string);
 
