@@ -357,6 +357,89 @@ fi
 AC_MSG_RESULT($result)
 
 
+dnl checks for triples source libraries
+have_redland=0
+need_redland=0
+
+AC_CHECK_PROG(REDLAND_CONFIG, redland-config, redland-config)
+AC_ARG_WITH(redland-config, [  --with-redland-config=PATH Location of redland redland-config ()], redland_config="$withval", redland_config="")
+
+if test "X$redland_config" != "X" ; then
+  AC_MSG_CHECKING(for $redland_config)
+
+  if test -f $redland_config ; then
+    REDLAND_CONFIG=$redland_config
+    AC_MSG_RESULT(yes)
+  else
+    AC_MSG_RESULT(no - searching PATH)
+  fi
+fi
+
+if test "X$REDLAND_CONFIG" = "X"; then
+  AC_CHECK_PROGS(REDLAND_CONFIG, redland-config)
+fi
+
+if test "X$REDLAND_CONFIG" != "X"; then
+  REDLAND_VERSION=`$REDLAND_CONFIG --version 2>/dev/null`
+  REDLAND_MIN_VERSION=0.9.16
+
+  # FIXME - could use redland-config --version-decimal at some point
+  REDLAND_VERSION_DEC=`echo $REDLAND_VERSION | $AWK -F. '{printf("%d\n", 10000*$1 + 100*$2 + $3)};'`
+  REDLAND_MIN_VERSION_DEC=`echo $REDLAND_MIN_VERSION | $AWK -F. '{printf("%d\n", 10000*$1 + 100*$2 + $3)};'`
+
+  if test "X$REDLAND_VERSION" = X; then
+    AC_MSG_ERROR(Redland RDF library missing - please install from http://www.redland.opensource.ac.uk/)
+  fi
+
+  if test "X$REDLAND_VERSION" -a $REDLAND_VERSION_DEC -ge $REDLAND_MIN_VERSION_DEC; then
+    have_redland=1
+  else
+    AC_MSG_WARN(System redland $REDLAND_VERSION is too old - need $REDLAND_MIN_VERSION)
+  fi
+fi
+
+
+AC_ARG_WITH(triples-source, [  --with-triples-source=NAME  Use NAME to provide triples - raptor (default), redland], triples_source="$withval", triples_source="raptor") 
+
+for triples_source_name in $triples_source raptor redland; do
+  case $triples_source_name in
+    raptor)
+      AC_DEFINE([RAPTOR_TRIPLES_SOURCE_RAPTOR], 1, [Use raptor to provide triples])
+      break
+      ;;
+
+    redland)
+      if test $have_redland = 1; then
+        need_redland=1
+	AC_DEFINE([RAPTOR_TRIPLES_SOURCE_REDLAND], 1, [Use redland to provide triples])
+        break
+      fi
+      ;;
+
+    *)
+      AC_MSG_ERROR(No known triples source $triples_source_name)
+      ;;
+esac
+done
+
+AC_MSG_CHECKING(triples source libraries available)
+triples_source_libraries_available="raptor $RAPTOR_VERSION"
+if test $have_redland = 1; then
+  triples_source_libraries_available="$triples_source_libraries_available redland $REDLAND_VERSION"
+fi
+AC_MSG_RESULT($triples_source_libraries_available)
+
+
+AC_MSG_CHECKING(triples source library to use)
+triples_source_library=
+if test $need_redland = 1; then
+  triples_source_library="redland $REDLAND_VERSION"
+else
+  triples_source_library="raptor $RAPTOR_VERSION"
+fi
+AC_MSG_RESULT($triples_source_library)
+
+
 if test $with_raptor = internal; then
   RASQAL_INTERNAL_CPPFLAGS="$RASQAL_INTERNAL_CPPFLAGS -I\$(top_srcdir)/../raptor"
   RASQAL_INTERNAL_LIBS="$RASQAL_INTERNAL_LIBS \$(top_builddir)/../raptor/libraptor.la"
@@ -370,6 +453,11 @@ if test $need_regex_pcre = 1; then
   RASQAL_EXTERNAL_LIBS="$RASQAL_EXTERNAL_LIBS `$PCRE_CONFIG --libs`"
 fi
 
+if test $need_redland = 1; then
+  AC_LIBOBJ([rasqal_redland])
+  RASQAL_EXTERNAL_CPPFLAGS="$RASQAL_EXTERNAL_CPPFLAGS `redland-config --cflags`"
+  RASQAL_EXTERNAL_LIBS="$RASQAL_EXTERNAL_LIBS `redland-config --libs`"
+fi
 
 
 # Make final changes to cflags
