@@ -1,0 +1,3 @@
+DESCRIBE data:z
+USING 
+    data FOR <http://example.org/>

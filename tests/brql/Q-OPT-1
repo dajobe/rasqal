@@ -1,0 +1,10 @@
+SELECT *
+WHERE 
+	(?a rdf:type ns:Type1) 
+OPTIONAL
+	// Positive match
+	(?a ns:p2 ?p2)
+USING 
+	rdf   FOR <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+	ns    FOR <http://example.org/ns#>
+	data  FOR <http://example.org/>

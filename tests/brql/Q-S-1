@@ -1,0 +1,3 @@
+SELECT ?x
+WHERE (?x rdf:type ns:Type1)
+USING ns FOR <http://example.org/ns#>
