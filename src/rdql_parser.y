@@ -757,6 +757,8 @@ main(int argc, char *argv[])
   FILE *fh;
   int rc;
   unsigned char *filename=NULL;
+  raptor_uri_handler *uri_handler;
+  void *uri_context;
 
 #if RASQAL_DEBUG > 2
   rdql_parser_debug=1;
@@ -786,6 +788,12 @@ main(int argc, char *argv[])
   memset(&query, 0, sizeof(rasqal_query));
   memset(&rdql, 0, sizeof(rasqal_rdql_query_engine));
 
+  raptor_uri_get_handler(&uri_handler, &uri_context);
+  query.namespaces=raptor_new_namespaces(uri_handler, uri_context,
+                                         rasqal_query_simple_error,
+                                         &query,
+                                         0);
+  
   locator->line= locator->column = -1;
   locator->file= filename;
 
@@ -797,6 +805,8 @@ main(int argc, char *argv[])
   rasqal_rdql_query_engine_init(&query, "rdql");
 
   rc=rdql_parse(&query, query_string);
+
+  raptor_free_namespaces(query.namespaces);
 
   raptor_free_uri(query.base_uri);
 
