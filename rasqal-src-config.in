@@ -68,14 +68,14 @@ while test $# -gt 0; do
 done
   
 
-if test @with_rasqal@ = internal; then
-  config=@abs_top_builddir@/../rasqal/rasqal-src-config
+if test @with_raptor@ = internal; then
+  config=@abs_top_builddir@/../raptor/raptor-src-config
   if test ! -r $config; then
-    echo "rasqal-src-config: Source tree not configured - no rasqal-src-config, exiting" 1>&2
+    echo "rasqal-src-config: Source tree not configured - no raptor-src-config, exiting" 1>&2
     exit 0
   fi
 else
-  config=rasqal-config
+  config=raptor-config
 fi
 
 if test "$echo_cflags" = "yes"; then
