@@ -170,7 +170,7 @@ static int sparql_query_error(rasqal_query* rq, const char *message);
 
 %type <variable> Var
 %type <triple> TriplePattern
-%type <literal> PatternLiteral Literal URI
+%type <literal> Literal URI
 
 %%
 
@@ -536,11 +536,11 @@ ValueLogical : EqualityExpression STR_EQ EqualityExpression
 {
   $$=rasqal_new_2op_expression(RASQAL_EXPR_STR_NEQ, $1, $3);
 }
-| EqualityExpression STR_MATCH PatternLiteral
+| EqualityExpression STR_MATCH PATTERN_LITERAL
 {
   $$=rasqal_new_string_op_expression(RASQAL_EXPR_STR_MATCH, $1, $3);
 }
-| EqualityExpression STR_NMATCH PatternLiteral
+| EqualityExpression STR_NMATCH PATTERN_LITERAL
 {
   $$=rasqal_new_string_op_expression(RASQAL_EXPR_STR_NMATCH, $1, $3);
 }
@@ -760,14 +760,6 @@ Var : VARPREFIX IDENTIFIER
   $$=rasqal_new_variable((rasqal_query*)rq, $2, NULL);
 }
 ;
-
-/* NEW Grammar Term - terminal <PATTERN_LITERAL> in SPARQL */
-PatternLiteral: PATTERN_LITERAL
-{
-  $$=$1;
-}
-;
-
 
 %%
 
