@@ -119,6 +119,3 @@ rasqal_query_test: $(srcdir)/rasqal_query.c librasqal.la
 
 rasqal_sequence_test: $(srcdir)/rasqal_sequence.c librasqal.la
 	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE @RASQAL_INTERNAL_CPPFLAGS@ $(srcdir)/rasqal_sequence.c librasqal.la $(LIBS)
-
-roqet: $(srcdir)/roqet.c librasqal.la
-	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE @RASQAL_INTERNAL_CPPFLAGS@ $(srcdir)/roqet.c librasqal.la $(LIBS)
