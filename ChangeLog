@@ -1,5 +1,17 @@
 2004-08-17  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
+	* rasqal_literal.c (rasqal_literal_as_integer,
+	rasqal_literal_as_floating): Edit casts near strtol, strtod to
+	cause less moaning and still work with C++.
+
+	* LICENSE.html: More LGPL v2.1 fixes
+
+	* win32_rasqal_config.h: 0.9.3
+
+	* configure.ac: Remove link with expat (!) in posix regex check
+
+2004-08-17  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
 	* configure.ac: Remove link with expat (!) in posix regex check
 
 2004-08-13  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
