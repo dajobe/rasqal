@@ -115,12 +115,12 @@ rasqal_raptor_statement_handler(void *user_data,
   triple->next=NULL;
   triple->statement=raptor_copy_statement(statement);
 
-  if(rtsc->tail) {
+  if(rtsc->tail)
     rtsc->tail->next=triple;
-    rtsc->tail=triple;
-  } else
-    rtsc->head=rtsc->head=triple;
+  else
+    rtsc->head=triple;
 
+  rtsc->tail=triple;
 }
 
 
