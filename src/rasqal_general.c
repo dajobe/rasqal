@@ -1,10 +1,10 @@
 /* -*- Mode: c; c-basic-offset: 2 -*-
  *
- * rasqal_general.c - Rasqal general support
+ * rasqal_general.c - Rasqal library startup, shutdown and factories
  *
  * $Id$
  *
- * Copyright (C) 2003 David Beckett - http://purl.org/net/dajobe/
+ * Copyright (C) 2004 David Beckett - http://purl.org/net/dajobe/
  * Institute for Learning and Research Technology - http://www.ilrt.org/
  * University of Bristol - http://www.bristol.ac.uk/
  * 
@@ -29,709 +29,665 @@
 #endif
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
+#ifdef HAVE_STDLIB_H
+#include <stdlib.h>
+#endif
 
-#include <rasqal.h>
-#include <rasqal_internal.h>
-
-
-
-inline int rasqal_literal_as_boolean(rasqal_literal* literal);
-inline int rasqal_literal_as_integer(rasqal_literal* l);
-inline int rasqal_literal_equals(rasqal_literal* l1, rasqal_literal *l2);
-
-inline int rasqal_variable_as_boolean(rasqal_variable* v);
-inline int rasqal_variable_as_integer(rasqal_variable* v);
-inline int rasqal_variable_equals(rasqal_variable* v1, rasqal_variable* v2);
-
-int rasqal_expression_as_boolean(rasqal_expression* e);
-int rasqal_expression_as_integer(rasqal_expression* e);
-int rasqal_expression_equals(rasqal_expression* e1, rasqal_expression* e2);
-rasqal_expression* rasqal_evaluate_expression(rasqal_expression* e);
+#include "rasqal.h"
+#include "rasqal_internal.h"
 
 
-rasqal_literal*
-rasqal_new_literal(rasqal_literal_type type, int integer, float floating,
-                   char *string)
+/* prototypes for helper functions */
+static void rasqal_delete_qengine_factories(void);
+static rasqal_qengine_factory* rasqal_get_qengine_factory(const char *name);
+
+
+/* statics */
+
+/* list of query factories */
+static rasqal_qengine_factory* qengines=NULL;
+
+const char * const rasqal_short_copyright_string = "Copyright (C) 2004 David Beckett, ILRT, University of Bristol";
+
+const char * const rasqal_copyright_string = "Copyright (C) 2004 David Beckett - http://purl.org/net/dajobe/\nInstitute for Learning and Research Technology - http://www.ilrt.bristol.ac.uk/,\nUniversity of Bristol - http://www.bristol.ac.uk/";
+
+const char * const rasqal_version_string = VERSION;
+
+const unsigned int rasqal_version_major = RASQAL_VERSION_MAJOR;
+const unsigned int rasqal_version_minor = RASQAL_VERSION_MINOR;
+const unsigned int rasqal_version_release = RASQAL_VERSION_RELEASE;
+
+const unsigned int rasqal_version_decimal = RASQAL_VERSION_DECIMAL;
+
+
+
+/*
+ * rasqal_init - Initialise the rasqal library
+ * 
+ * Initialises the library.
+ *
+ * MUST be called before using any of the rasqal APIs.
+ **/
+void
+rasqal_init(void) 
 {
-  rasqal_literal* l=(rasqal_literal*)calloc(sizeof(rasqal_literal), 1);
+  if(qengines)
+    return;
 
-  l->type=type;
-  switch(type) {
-    case RASQAL_LITERAL_URI:
-    case RASQAL_LITERAL_STRING:
-    case RASQAL_LITERAL_PATTERN:
-      l->value.string=string;
-      break;
-    case RASQAL_LITERAL_INTEGER:
-    case RASQAL_LITERAL_BOOLEAN:
-    case RASQAL_LITERAL_NULL:
-      l->value.integer=integer;
-      break;
-    case RASQAL_LITERAL_FLOATING:
-      l->value.floating=floating;
-      break;
-    default:
-      abort();
+  rasqal_init_qengine_rdql();
+}
+
+
+/*
+ * rasqal_finish - Terminate the rasqal library
+ *
+ * Cleans up state of the library.
+ **/
+void
+rasqal_finish(void) 
+{
+  rasqal_delete_qengine_factories();
+}
+
+
+/* helper functions */
+
+
+/*
+ * rasqal_delete_qengine_factories - helper function to delete all the registered query engine factories
+ */
+static void
+rasqal_delete_qengine_factories(void)
+{
+  rasqal_qengine_factory *factory, *next;
+  
+  for(factory=qengines; factory; factory=next) {
+    next=factory->next;
+
+    if(factory->finish_factory)
+      factory->finish_factory(factory);
+
+    RASQAL_FREE(rasqal_qengine_factory, factory->name);
+    RASQAL_FREE(rasqal_qengine_factory, factory->label);
+    if(factory->alias)
+      RASQAL_FREE(rasqal_qengine_factory, factory->alias);
+    if(factory->uri_string)
+      RASQAL_FREE(rasqal_qengine_factory, factory->uri_string);
+
+    RASQAL_FREE(rasqal_qengine_factory, factory);
+  }
+  qengines=NULL;
+}
+
+
+/* class methods */
+
+/*
+ * rasqal_query_register_factory - Register a syntax handled by a query factory
+ * @name: the short syntax name
+ * @label: readable label for syntax
+ * @uri_string: URI string of the syntax (or NULL)
+ * @factory: pointer to function to call to register the factory
+ * 
+ * INTERNAL
+ *
+ **/
+void
+rasqal_query_register_factory(const char *name, const char *label,
+                               const char *alias,
+                               const unsigned char *uri_string,
+                               void (*factory) (rasqal_qengine_factory*)) 
+{
+  rasqal_qengine_factory *query, *h;
+  char *name_copy, *label_copy, *alias_copy;
+  unsigned char *uri_string_copy;
+  
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
+  RASQAL_DEBUG4("Received registration for syntax %s '%s' with alias '%s'\n", 
+                name, label, (alias ? alias : "none"));
+  RASQAL_DEBUG4(rasqal_query_register_factory,
+                "URI %s\n", (uri_string ? uri_string : "none"));
+#endif
+  
+  query=(rasqal_qengine_factory*)RASQAL_CALLOC(rasqal_qengine_factory, 1,
+                                               sizeof(rasqal_qengine_factory));
+  if(!query)
+    RASQAL_FATAL1("Out of memory\n");
+
+  for(h = qengines; h; h = h->next ) {
+    if(!strcmp(h->name, name) ||
+       (alias && !strcmp(h->name, alias))) {
+      RASQAL_FATAL2("query %s already registered\n", h->name);
+    }
   }
   
-  return l;
-}
-
-
-void
-rasqal_free_literal(rasqal_literal* l) {
-  switch(l->type) {
-    case RASQAL_LITERAL_URI:
-    case RASQAL_LITERAL_STRING:
-    case RASQAL_LITERAL_PATTERN:
-      if(l->value.string)
-        free(l->value.string);
-      break;
-    case RASQAL_LITERAL_INTEGER:
-    case RASQAL_LITERAL_BOOLEAN:
-    case RASQAL_LITERAL_NULL:
-    case RASQAL_LITERAL_FLOATING:
-      break;
-    default:
-      abort();
+  name_copy=(char*)RASQAL_CALLOC(cstring, strlen(name)+1, 1);
+  if(!name_copy) {
+    RASQAL_FREE(rasqal_query, query);
+    RASQAL_FATAL1("Out of memory\n");
   }
-  free(l);
-}
-
-
-static const char* rasqal_literal_type_labels[]={
-  "UNKNOWN",
-  "uri",
-  "string",
-  "pattern",
-  "boolean",
-  "null",
-  "integer",
-  "floating"
-};
-
-void
-rasqal_print_literal_type(rasqal_literal* literal, FILE* fh)
-{
-  rasqal_literal_type type=literal->type;
-  if(type > RASQAL_LITERAL_LAST)
-    type=RASQAL_LITERAL_UNKNOWN;
-  fputs(rasqal_literal_type_labels[(int)type], fh);
-}
-
-
-void
-rasqal_print_literal(rasqal_literal* l, FILE* fh)
-{
-  /*  fputs("literal_", fh); */
-  rasqal_print_literal_type(l, fh);
-  switch(l->type) {
-    case RASQAL_LITERAL_URI:
-    case RASQAL_LITERAL_STRING:
-    case RASQAL_LITERAL_PATTERN:
-      fprintf(fh, "(%s)", l->value.string);
-      break;
-    case RASQAL_LITERAL_INTEGER:
-      fprintf(fh, " %d", l->value.integer);
-      break;
-    case RASQAL_LITERAL_BOOLEAN:
-      if(l->value.integer)
-        fputs("boolean(true)", fh);
-      else
-        fputs("boolean(false)", fh);
-      break;
-    case RASQAL_LITERAL_NULL:
-      fputs("null", fh);
-      break;
-    case RASQAL_LITERAL_FLOATING:
-      fprintf(fh, " %f", l->value.floating);
-      break;
-    default:
-      abort();
+  strcpy(name_copy, name);
+  query->name=name_copy;
+        
+  label_copy=(char*)RASQAL_CALLOC(cstring, strlen(label)+1, 1);
+  if(!label_copy) {
+    RASQAL_FREE(rasqal_query, query);
+    RASQAL_FATAL1("Out of memory\n");
   }
-}
+  strcpy(label_copy, label);
+  query->label=label_copy;
 
-
-
-inline int
-rasqal_literal_as_boolean(rasqal_literal* l)
-{
-  switch(l->type) {
-    case RASQAL_LITERAL_URI:
-    case RASQAL_LITERAL_STRING:
-    case RASQAL_LITERAL_PATTERN:
-      return (l->value.string) != NULL;
-      break;
-    case RASQAL_LITERAL_INTEGER:
-    case RASQAL_LITERAL_BOOLEAN:
-    case RASQAL_LITERAL_NULL:
-      return l->value.integer != 0;
-      break;
-    case RASQAL_LITERAL_FLOATING:
-      return l->value.floating != 0.0;
-      break;
-
-    default:
-      abort();
+  if(uri_string) {
+    uri_string_copy=(unsigned char*)RASQAL_CALLOC(cstring, strlen((const char*)uri_string)+1, 1);
+    if(!uri_string_copy) {
+    RASQAL_FREE(rasqal_query, query);
+    RASQAL_FATAL1("Out of memory\n");
+    }
+    strcpy((char*)uri_string_copy, (const char*)uri_string);
+    query->uri_string=uri_string_copy;
   }
-}
-
-inline int
-rasqal_literal_as_integer(rasqal_literal* l)
-{
-  switch(l->type) {
-    case RASQAL_LITERAL_INTEGER:
-    case RASQAL_LITERAL_BOOLEAN:
-    case RASQAL_LITERAL_NULL:
-      return l->value.integer != 0;
-      break;
-    case RASQAL_LITERAL_FLOATING:
-      return (int)l->value.floating;
-      break;
-
-    default:
-      abort();
+        
+  if(alias) {
+    alias_copy=(char*)RASQAL_CALLOC(cstring, strlen(alias)+1, 1);
+    if(!alias_copy) {
+      RASQAL_FREE(rasqal_query, query);
+      RASQAL_FATAL1("Out of memory\n");
+    }
+    strcpy(alias_copy, alias);
+    query->alias=alias_copy;
   }
-}
 
-
-inline int
-rasqal_literal_equals(rasqal_literal* l1, rasqal_literal* l2)
-{
-  if(l1->type != l2->type)
-    return 1;
-
-  switch(l1->type) {
-    case RASQAL_LITERAL_URI:
-    case RASQAL_LITERAL_STRING:
-    case RASQAL_LITERAL_PATTERN:
-      return !strcmp(l1->value.string,l2->value.string);
-
-    case RASQAL_LITERAL_INTEGER:
-    case RASQAL_LITERAL_BOOLEAN:
-    case RASQAL_LITERAL_NULL:
-      return l1->value.integer == l2->value.integer;
-      break;
-
-    case RASQAL_LITERAL_FLOATING:
-      return l1->value.floating == l2->value.floating;
-      break;
-
-    default:
-      abort();
-  }
-}
-
-
-rasqal_variable*
-rasqal_new_variable(const char *name, const char *value) 
-{
-  rasqal_variable* v=(rasqal_variable*)calloc(sizeof(rasqal_variable), 1);
-
-  v->name=name;
-  v->value=value;
-
-  return v;
-}
-
-
-void
-rasqal_free_variable(rasqal_variable* variable) {
-  free(variable);
-}
-
-
-void
-rasqal_print_variable(rasqal_variable* v, FILE* fh)
-{
-  if(v->value)
-    fprintf(fh, "variable(%s=%s)", v->name, v->value);
-  else
-    fprintf(fh, "variable(%s)", v->name);
-}
-
-inline int
-rasqal_variable_as_boolean(rasqal_variable* v)
-{
-  return v->value != NULL;
-}
-
-inline int
-rasqal_variable_as_integer(rasqal_variable* v)
-{
-  if(!v->value)
-    return 0;
-  else
-    return atoi(v->value);
-}
-
-
-inline int
-rasqal_variable_equals(rasqal_variable* v1, rasqal_variable* v2)
-{
-  if(!v1->value  || !v2->value)
-    return 0;
-  else
-    return !strcmp(v1->value, v2->value);
-}
-
-
-
-rasqal_prefix*
-rasqal_new_prefix(const char *prefix, const char *uri) 
-{
-  rasqal_prefix* p=(rasqal_prefix*)calloc(sizeof(rasqal_prefix), 1);
-
-  p->prefix=prefix;
-  p->uri=uri;
-
-  return p;
-}
-
-
-void
-rasqal_free_prefix(rasqal_prefix* prefix) {
-  free(prefix);
-}
-
-
-void
-rasqal_print_prefix(rasqal_prefix* p, FILE* fh)
-{
-  fprintf(fh, "prefix(%s as %s)", p->prefix, p->uri);
-}
-
-
-
-rasqal_triple*
-rasqal_new_triple(rasqal_expression* subject, rasqal_expression* predicate, rasqal_expression* object)
-{
-  rasqal_triple* t=(rasqal_triple*)calloc(sizeof(rasqal_triple), 1);
-
-  t->subject=subject;
-  t->predicate=predicate;
-  t->object=object;
-
-  return t;
-}
-
-void
-rasqal_free_triple(rasqal_triple* t)
-{
-  rasqal_free_expression(t->subject);
-  rasqal_free_expression(t->predicate);
-  rasqal_free_expression(t->object);
-  free(t);
-}
-
-
-void
-rasqal_print_triple(rasqal_triple* t, FILE* fh)
-{
-  fputs("triple(", fh);
-  rasqal_print_expression(t->subject, fh);
-  fputs(", ", fh);
-  rasqal_print_expression(t->predicate, fh);
-  fputs(", ", fh);
-  rasqal_print_expression(t->object, fh);
-  fputc(')', fh);
-}
-
-
-rasqal_expression*
-rasqal_new_1op_expression(rasqal_op op, rasqal_expression* arg)
-{
-  rasqal_expression* e=(rasqal_expression*)calloc(sizeof(rasqal_expression), 1);
-  e->op=op;
-  e->arg1=arg;
-  return e;
-}
-
-rasqal_expression*
-rasqal_new_2op_expression(rasqal_op op,
-                          rasqal_expression* arg1, 
-                          rasqal_expression* arg2)
-{
-  rasqal_expression* e=(rasqal_expression*)calloc(sizeof(rasqal_expression), 1);
-  e->op=op;
-  e->arg1=arg1;
-  e->arg2=arg2;
-  return e;
-}
-
-rasqal_expression*
-rasqal_new_string_op_expression(rasqal_op op,
-                                rasqal_expression* arg1,
-                                rasqal_literal* literal)
-{
-  rasqal_expression* e=(rasqal_expression*)calloc(sizeof(rasqal_expression), 1);
-  e->op=op;
-  e->arg1=arg1;
-  e->literal=literal;
-  return e;
-}
-
-rasqal_expression*
-rasqal_new_literal_expression(rasqal_literal *literal)
-{
-  rasqal_expression* e=(rasqal_expression*)calloc(sizeof(rasqal_expression), 1);
-  e->op=RASQAL_EXPR_LITERAL;
-  e->literal=literal;
-  return e;
-}
-
-
-rasqal_expression*
-rasqal_new_variable_expression(rasqal_variable *variable)
-{
-  rasqal_expression* e=(rasqal_expression*)calloc(sizeof(rasqal_expression), 1);
-  e->op=RASQAL_EXPR_VARIABLE;
-  e->variable=variable;
-  return e;
-}
-
-
-void
-rasqal_free_expression(rasqal_expression* e) {
-  switch(e->op) {
-    case RASQAL_EXPR_EXPR:
-      rasqal_free_expression(e->arg1);
-      break;
-    case RASQAL_EXPR_AND:
-    case RASQAL_EXPR_OR:
-    case RASQAL_EXPR_BIT_AND:
-    case RASQAL_EXPR_BIT_OR:
-    case RASQAL_EXPR_BIT_XOR:
-    case RASQAL_EXPR_LSHIFT:
-    case RASQAL_EXPR_RSIGNEDSHIFT:
-    case RASQAL_EXPR_RUNSIGNEDSHIFT:
-    case RASQAL_EXPR_EQ:
-    case RASQAL_EXPR_NEQ:
-    case RASQAL_EXPR_LT:
-    case RASQAL_EXPR_GT:
-    case RASQAL_EXPR_LE:
-    case RASQAL_EXPR_GE:
-    case RASQAL_EXPR_PLUS:
-    case RASQAL_EXPR_MINUS:
-    case RASQAL_EXPR_STAR:
-    case RASQAL_EXPR_SLASH:
-    case RASQAL_EXPR_REM:
-    case RASQAL_EXPR_STR_EQ:
-    case RASQAL_EXPR_STR_NEQ:
-      rasqal_free_expression(e->arg1);
-      rasqal_free_expression(e->arg2);
-      break;
-    case RASQAL_EXPR_TILDE:
-    case RASQAL_EXPR_BANG:
-      rasqal_free_expression(e->arg1);
-      break;
-    case RASQAL_EXPR_STR_MATCH:
-    case RASQAL_EXPR_STR_NMATCH:
-      rasqal_free_expression(e->arg1);
-      /* FALLTHROUGH */
-    case RASQAL_EXPR_LITERAL:
-      rasqal_free_literal(e->literal);
-      break;
-    case RASQAL_EXPR_VARIABLE:
-      rasqal_free_variable(e->variable);
-      break;
-    default:
-      abort();
-  }
-  free(e);
-}
-
-int
-rasqal_expression_as_boolean(rasqal_expression* e) {
-  switch(e->op) {
-    case RASQAL_EXPR_EXPR:
-      return rasqal_expression_as_boolean(e->arg1);
-
-    case RASQAL_EXPR_LITERAL:
-      return rasqal_literal_as_boolean(e->literal);
-      break;
-
-    case RASQAL_EXPR_VARIABLE:
-      return rasqal_variable_as_boolean(e->variable);
-      break;
-
-    default:
-      abort();
-  }
-}
-
-
-int
-rasqal_expression_as_integer(rasqal_expression* e) {
-  switch(e->op) {
-    case RASQAL_EXPR_EXPR:
-      return rasqal_expression_as_integer(e->arg1);
-
-    case RASQAL_EXPR_LITERAL:
-      return rasqal_literal_as_integer(e->literal);
-      break;
-
-    case RASQAL_EXPR_VARIABLE:
-      return rasqal_variable_as_integer(e->variable);
-      break;
-
-    default:
-      abort();
-  }
-}
-
-
-int
-rasqal_expression_equals(rasqal_expression* e1, rasqal_expression* e2) {
-  if(e1->op == RASQAL_EXPR_EXPR)
-    return rasqal_expression_equals(e1->arg1, e2);
-  if(e2->op == RASQAL_EXPR_EXPR)
-    return rasqal_expression_equals(e1, e2->arg1);
-
-  if(e1->op != e2->op)
-    return 1;
+  /* Call the query registration function on the new object */
+  (*factory)(query);
   
-  switch(e1->op) {
-    case RASQAL_EXPR_LITERAL:
-      return rasqal_literal_equals(e1->literal, e1->literal);
-
-    case RASQAL_EXPR_VARIABLE:
-      return rasqal_variable_equals(e1->variable, e2->variable);
-
-    default:
-      abort();
-  }
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
+  RASQAL_DEBUG3("%s has context size %d\n", name, query->context_length);
+#endif
+  
+  query->next = qengines;
+  qengines = query;
 }
 
 
-rasqal_expression*
-rasqal_evaluate_expression(rasqal_expression* e) {
-  switch(e->op) {
-    case RASQAL_EXPR_EXPR:
-      return rasqal_evaluate_expression(e->arg1);
-      break;
+/**
+ * rasqal_get_qengine_factory - Get a query factory by name
+ * @name: the factory name or NULL for the default factory
+ * 
+ * Return value: the factory object or NULL if there is no such factory
+ **/
+static rasqal_qengine_factory*
+rasqal_get_qengine_factory (const char *name) 
+{
+  rasqal_qengine_factory *factory;
 
-    case RASQAL_EXPR_AND:
-      {
-        int b=rasqal_expression_as_boolean(e->arg1) &&
-              rasqal_expression_as_boolean(e->arg2);
-        rasqal_literal *l=rasqal_new_literal(RASQAL_LITERAL_BOOLEAN, b, 0.0, NULL);
-        return rasqal_new_literal_expression(l);
-      }
+  /* return 1st query if no particular one wanted - why? */
+  if(!name) {
+    factory=qengines;
+    if(!factory) {
+      RASQAL_DEBUG1("No (default) qengines registered\n");
+      return NULL;
+    }
+  } else {
+    for(factory=qengines; factory; factory=factory->next) {
+      if(!strcmp(factory->name, name) ||
+         (factory->alias && !strcmp(factory->alias, name)))
+        break;
+    }
+    /* else FACTORY name not found */
+    if(!factory) {
+      RASQAL_DEBUG2("No query with name %s found\n", name);
+      return NULL;
+    }
+  }
+        
+  return factory;
+}
+
+
+/**
+ * rasqal_languages_enumerate - Get information on query languages
+ * @counter: index into the list of syntaxes
+ * @name: pointer to store the name of the syntax (or NULL)
+ * @label: pointer to store syntax readable label (or NULL)
+ * @uri_string: pointer to store syntax URI string (or NULL)
+ * 
+ * Return value: non 0 on failure of if counter is out of range
+ **/
+int
+rasqal_languages_enumerate(const unsigned int counter,
+                           const char **name, const char **label,
+                           const unsigned char **uri_string)
+{
+  unsigned int i;
+  rasqal_qengine_factory *factory=qengines;
+
+  if(!factory || counter < 0)
+    return 1;
+
+  for(i=0; factory && i<=counter ; i++, factory=factory->next) {
+    if(i == counter) {
+      if(name)
+        *name=factory->name;
+      if(label)
+        *label=factory->label;
+      if(uri_string)
+        *uri_string=factory->uri_string;
+      return 0;
+    }
+  }
+        
+  return 1;
+}
+
+
+/*
+ * rasqal_language_name_check -  Check name of a query language
+ * @name: the query language name
+ *
+ * Return value: non 0 if name is a known query language
+ */
+int
+rasqal_language_name_check(const char *name) {
+  return (rasqal_get_qengine_factory(name) != NULL);
+}
+
+
+/**
+ * rasqal_get_name: Return the short name for the query
+ * @query: &rasqal_query query object
+ **/
+const char*
+rasqal_get_name(rasqal_query *rdf_query) 
+{
+  return rdf_query->factory->name;
+}
+
+
+/**
+ * rasqal_get_label: Return a readable label for the query
+ * @query: &rasqal_query query object
+ **/
+const char*
+rasqal_get_label(rasqal_query *rdf_query) 
+{
+  return rdf_query->factory->label;
+}
+
+
+/*
+ * rasqal_new_query - Constructor - create a new rasqal_query object
+ * @name: the query name
+ *
+ * Return value: a new &rasqal_query object or NULL on failure
+ */
+rasqal_query*
+rasqal_new_query(const char *name) {
+  rasqal_qengine_factory* factory;
+  rasqal_query* rdf_query;
+
+  factory=rasqal_get_qengine_factory(name);
+  if(!factory)
+    return NULL;
+
+  rdf_query=(rasqal_query*)RASQAL_CALLOC(rasqal_query, 1, 
+                                         sizeof(rasqal_query));
+  if(!rdf_query)
+    return NULL;
+  
+  rdf_query->context=(char*)RASQAL_CALLOC(rasqal_query_context, 1,
+                                          factory->context_length);
+  if(!rdf_query->context) {
+    rasqal_free_query(rdf_query);
+    return NULL;
+  }
+  
+  rdf_query->factory=factory;
+
+  rdf_query->failed=0;
+
+  if(factory->init(rdf_query, name)) {
+    rasqal_free_query(rdf_query);
+    return NULL;
+  }
+  
+  return rdf_query;
+}
+
+
+
+/**
+ * rasqal_start_parse: Start a parse of content with base URI
+ * @rdf_query: 
+ * @uri: base URI or NULL if no base URI is required
+ * 
+ * Only the N-Triples query has an optional base URI.
+ * 
+ * Return value: non-0 on failure.
+ **/
+int
+rasqal_start_parse(rasqal_query *rdf_query, rasqal_uri *uri) 
+{
+  if(uri)
+    uri=rasqal_uri_copy(uri);
+  
+  if(rdf_query->base_uri)
+    rasqal_free_uri(rdf_query->base_uri);
+
+  rdf_query->base_uri=uri;
+  rdf_query->locator.uri=uri;
+  rdf_query->locator.line= rdf_query->locator.column = 0;
+
+  return rdf_query->factory->start(rdf_query);
+}
+
+
+
+
+/**
+ * rasqal_free_query - Destructor - destroy a rasqal_query object
+ * @query: &rasqal_query object
+ * 
+ **/
+void
+rasqal_free_query(rasqal_query* rdf_query) 
+{
+  if(rdf_query->factory)
+    rdf_query->factory->terminate(rdf_query);
+
+  if(rdf_query->context)
+    RASQAL_FREE(rasqal_query_context, rdf_query->context);
+
+  if(rdf_query->base_uri)
+    rasqal_free_uri(rdf_query->base_uri);
+
+  RASQAL_FREE(rasqal_query, rdf_query);
+}
+
+
+
+/*
+ * rasqal_query_fatal_error - Fatal Error from a query - Internal
+ **/
+void
+rasqal_query_fatal_error(rasqal_query* query, const char *message, ...)
+{
+  va_list arguments;
+
+  va_start(arguments, message);
+
+  rasqal_query_fatal_error_varargs(query, message, arguments);
+  
+  va_end(arguments);
+}
+
+
+#ifndef va_copy
+#ifdef __va_copy
+#define va_copy(dest,src) __va_copy(dest,src)
+#else
+#define va_copy(dest,src) (dest) = (src)
+#endif
+#endif
+
+/* Compatiblity wrapper */
+char*
+rasqal_vsnprintf(const char *message, va_list arguments) 
+{
+  char empty_buffer[1];
+  int len;
+  char *buffer=NULL;
+  va_list args_copy;
+
+#ifdef HAVE_C99_VSNPRINTF
+  /* copy for re-use */
+  va_copy(args_copy, arguments);
+  len=vsnprintf(empty_buffer, 1, message, args_copy)+1;
+  va_end(args_copy);
+
+  if(len<=0)
+    return NULL;
+  
+  buffer=(char*)RASQAL_MALLOC(cstring, len);
+  if(buffer) {
+    /* copy for re-use */
+    va_copy(args_copy, arguments);
+    vsnprintf(buffer, len, message, args_copy);
+    va_end(args_copy);
+  }
+#else
+  /* This vsnprintf doesn't return number of bytes required */
+  int size=2;
       
-    case RASQAL_EXPR_OR:
-      {
-        int b=rasqal_expression_as_boolean(e->arg1) ||
-              rasqal_expression_as_boolean(e->arg2);
-        rasqal_literal *l=rasqal_new_literal(RASQAL_LITERAL_BOOLEAN, b, 0.0, NULL);
-        return rasqal_new_literal_expression(l);
-      }
-
-    case RASQAL_EXPR_BIT_AND:
-      {
-        int i=rasqal_expression_as_integer(e->arg1) &
-              rasqal_expression_as_integer(e->arg2);
-        rasqal_literal *l=rasqal_new_literal(RASQAL_LITERAL_INTEGER, i, 0.0, NULL);
-        return rasqal_new_literal_expression(l);
-      }
-
-    case RASQAL_EXPR_BIT_OR:
-      {
-        int i=rasqal_expression_as_integer(e->arg1) |
-              rasqal_expression_as_integer(e->arg2);
-        rasqal_literal *l=rasqal_new_literal(RASQAL_LITERAL_INTEGER, i, 0.0, NULL);
-        return rasqal_new_literal_expression(l);
-      }
-
-    case RASQAL_EXPR_BIT_XOR:
-     {
-       int i=rasqal_expression_as_integer(e->arg1) ^
-             rasqal_expression_as_integer(e->arg2);
-        rasqal_literal *l=rasqal_new_literal(RASQAL_LITERAL_INTEGER, i, 0.0, NULL);
-        return rasqal_new_literal_expression(l);
-      }
-
-    case RASQAL_EXPR_LSHIFT:
-     {
-       int i=rasqal_expression_as_integer(e->arg1) <<
-             rasqal_expression_as_integer(e->arg2);
-        rasqal_literal *l=rasqal_new_literal(RASQAL_LITERAL_INTEGER, i, 0.0, NULL);
-        return rasqal_new_literal_expression(l);
-      }
-
-    case RASQAL_EXPR_RSIGNEDSHIFT:
-     {
-       int i=rasqal_expression_as_integer(e->arg1) >>
-             rasqal_expression_as_integer(e->arg2);
-        rasqal_literal *l=rasqal_new_literal(RASQAL_LITERAL_INTEGER, i, 0.0, NULL);
-        return rasqal_new_literal_expression(l);
-      }
-
-    case RASQAL_EXPR_RUNSIGNEDSHIFT:
-     {
-       int i=rasqal_expression_as_integer(e->arg1) >>
-             rasqal_expression_as_integer(e->arg2);
-        rasqal_literal *l=rasqal_new_literal(RASQAL_LITERAL_INTEGER, i, 0.0, NULL);
-        return rasqal_new_literal_expression(l);
-      }
-
-    case RASQAL_EXPR_EQ:
-      {
-        int b=rasqal_expression_equals(e->arg1, e->arg2);
-        rasqal_literal *l=rasqal_new_literal(RASQAL_LITERAL_BOOLEAN, b, 0.0, NULL);
-        return rasqal_new_literal_expression(l);
-      }
-
-    case RASQAL_EXPR_NEQ:
-      {
-        int b=!rasqal_expression_equals(e->arg1, e->arg2);
-        rasqal_literal *l=rasqal_new_literal(RASQAL_LITERAL_BOOLEAN, b, 0.0, NULL);
-        return rasqal_new_literal_expression(l);
-      }
-
-    case RASQAL_EXPR_LT:
-    case RASQAL_EXPR_GT:
-    case RASQAL_EXPR_LE:
-    case RASQAL_EXPR_GE:
-    case RASQAL_EXPR_PLUS:
-    case RASQAL_EXPR_MINUS:
-    case RASQAL_EXPR_STAR:
-    case RASQAL_EXPR_SLASH:
-    case RASQAL_EXPR_REM:
-    case RASQAL_EXPR_STR_EQ:
-    case RASQAL_EXPR_STR_NEQ:
+  while(1) {
+    buffer=(char*)RASQAL_MALLOC(cstring, size+1);
+    if(!buffer)
       break;
-    case RASQAL_EXPR_TILDE:
-    case RASQAL_EXPR_BANG:
+    
+    /* copy for re-use */
+    va_copy(args_copy, arguments);
+    len=vsnprintf(buffer, size, message, args_copy);
+    va_end(args_copy);
+
+    if(len>=0)
       break;
-    case RASQAL_EXPR_STR_MATCH:
-    case RASQAL_EXPR_STR_NMATCH:
-      break;
-    case RASQAL_EXPR_LITERAL:
-      break;
-    case RASQAL_EXPR_VARIABLE:
-      break;
-    default:
-      abort();
+    RASQAL_FREE(cstring, buffer);
+    size+=4;
+  }
+#endif
+
+  return buffer;
+}
+
+
+/*
+ * rasqal_query_fatal_error_varargs - Fatal Error from a query - Internal
+ **/
+void
+rasqal_query_fatal_error_varargs(rasqal_query* query, const char *message,
+                                 va_list arguments)
+{
+  query->failed=1;
+
+  if(query->fatal_error_handler) {
+    char *buffer=rasqal_vsnprintf(message, arguments);
+    if(!buffer) {
+      fprintf(stderr, "rasqal_query_fatal_error_varargs: Out of memory\n");
+      return;
+    }
+
+    query->fatal_error_handler(query->fatal_error_user_data, 
+                                &query->locator, buffer); 
+    RASQAL_FREE(cstring, buffer);
+    abort();
   }
 
-  return NULL;
+  raptor_print_locator(stderr, &query->locator);
+  fprintf(stderr, " rasqal fatal error - ");
+  vfprintf(stderr, message, arguments);
+  fputc('\n', stderr);
+
+  abort();
 }
 
 
-static const char* rasqal_op_labels[RASQAL_EXPR_LAST+1]={
-  "UNKNOWN",
-  "expr",
-  "and",
-  "or",
-  "bit_and",
-  "bit_or",
-  "bit_xor",
-  "lshift",
-  "rsignedshift",
-  "runsignedshift",
-  "eq",
-  "neq",
-  "lt",
-  "gt",
-  "le",
-  "ge",
-  "plus",
-  "minus",
-  "star",
-  "slash",
-  "rem",
-  "str_eq",
-  "str_ne",
-  "str_match",
-  "str_nmatch",
-  "tilde",
-  "bang",
-  "literal",
-  "variable",
-};
-
+/*
+ * rasqal_query_error - Error from a query - Internal
+ **/
 void
-rasqal_print_expression_op(rasqal_expression* expression, FILE* fh)
+rasqal_query_error(rasqal_query* query, const char *message, ...)
 {
-  rasqal_op op=expression->op;
-  if(op > RASQAL_EXPR_LAST)
-    op=RASQAL_EXPR_UNKNOWN;
-  fputs(rasqal_op_labels[(int)op], fh);
+  va_list arguments;
+
+  va_start(arguments, message);
+
+  rasqal_query_error_varargs(query, message, arguments);
+  
+  va_end(arguments);
 }
 
 
+/*
+ * rasqal_query_simple_error - Error from a query - Internal
+ *
+ * Matches the rasqal_simple_message_handler API but same as
+ * rasqal_query_error 
+ **/
 void
-rasqal_print_expression(rasqal_expression* e, FILE* fh)
+rasqal_query_simple_error(void* query, const char *message, ...)
 {
-  fputs("expr(", fh);
-  switch(e->op) {
-    case RASQAL_EXPR_EXPR:
-      rasqal_print_expression(e->arg1, fh);
-      break;
-    case RASQAL_EXPR_AND:
-    case RASQAL_EXPR_OR:
-    case RASQAL_EXPR_BIT_AND:
-    case RASQAL_EXPR_BIT_OR:
-    case RASQAL_EXPR_BIT_XOR:
-    case RASQAL_EXPR_LSHIFT:
-    case RASQAL_EXPR_RSIGNEDSHIFT:
-    case RASQAL_EXPR_RUNSIGNEDSHIFT:
-    case RASQAL_EXPR_EQ:
-    case RASQAL_EXPR_NEQ:
-    case RASQAL_EXPR_LT:
-    case RASQAL_EXPR_GT:
-    case RASQAL_EXPR_LE:
-    case RASQAL_EXPR_GE:
-    case RASQAL_EXPR_PLUS:
-    case RASQAL_EXPR_MINUS:
-    case RASQAL_EXPR_STAR:
-    case RASQAL_EXPR_SLASH:
-    case RASQAL_EXPR_REM:
-    case RASQAL_EXPR_STR_EQ:
-    case RASQAL_EXPR_STR_NEQ:
-      fputs("op ", fh);
-      rasqal_print_expression_op(e, fh);
-      fputc('(', fh);
-      rasqal_print_expression(e->arg1, fh);
-      fputs(", ", fh);
-      rasqal_print_expression(e->arg2, fh);
-      fputc(')', fh);
-      break;
-    case RASQAL_EXPR_STR_MATCH:
-    case RASQAL_EXPR_STR_NMATCH:
-      fputs("op ", fh);
-      rasqal_print_expression_op(e, fh);
-      fputc('(', fh);
-      rasqal_print_expression(e->arg1, fh);
-      fputs(", ", fh);
-      rasqal_print_literal(e->literal, fh);
-      fputc(')', fh);
-      break;
-    case RASQAL_EXPR_TILDE:
-    case RASQAL_EXPR_BANG:
-      fputs("op ", fh);
-      rasqal_print_expression_op(e, fh);
-      fputc('(', fh);
-      rasqal_print_expression(e->arg1, fh);
-      fputc(')', fh);
-      break;
-    case RASQAL_EXPR_LITERAL:
-      rasqal_print_literal(e->literal, fh);
-      break;
-    case RASQAL_EXPR_VARIABLE:
-      rasqal_print_variable(e->variable, fh);
-      break;
-    case RASQAL_EXPR_PATTERN:
-      fprintf(fh, "expr_pattern(%s)", (char*)e->value);
-      break;
-    default:
-      abort();
+  va_list arguments;
+
+  va_start(arguments, message);
+
+  rasqal_query_error_varargs((rasqal_query*)query, message, arguments);
+  
+  va_end(arguments);
+}
+
+
+/*
+ * rasqal_query_error_varargs - Error from a query - Internal
+ **/
+void
+rasqal_query_error_varargs(rasqal_query* query, const char *message, 
+                           va_list arguments)
+{
+  if(query->error_handler) {
+    char *buffer=rasqal_vsnprintf(message, arguments);
+    if(!buffer) {
+      fprintf(stderr, "rasqal_query_error_varargs: Out of memory\n");
+      return;
+    }
+    query->error_handler(query->error_user_data, 
+                          &query->locator, buffer);
+    RASQAL_FREE(cstring, buffer);
+    return;
   }
-  fputc(')', fh);
+
+  raptor_print_locator(stderr, &query->locator);
+  fprintf(stderr, " rasqal error - ");
+  vfprintf(stderr, message, arguments);
+  fputc('\n', stderr);
 }
 
+
+/*
+ * rasqal_query_warning - Warning from a query - Internal
+ **/
+void
+rasqal_query_warning(rasqal_query* query, const char *message, ...)
+{
+  va_list arguments;
+
+  va_start(arguments, message);
+
+  rasqal_query_warning_varargs(query, message, arguments);
+
+  va_end(arguments);
+}
+
+
+/*
+ * rasqal_query_warning - Warning from a query - Internal
+ **/
+void
+rasqal_query_warning_varargs(rasqal_query* query, const char *message, 
+                             va_list arguments)
+{
+
+  if(query->warning_handler) {
+    char *buffer=rasqal_vsnprintf(message, arguments);
+    if(!buffer) {
+      fprintf(stderr, "rasqal_query_warning_varargs: Out of memory\n");
+      return;
+    }
+    query->warning_handler(query->warning_user_data,
+                            &query->locator, buffer);
+    RASQAL_FREE(cstring, buffer);
+    return;
+  }
+
+  raptor_print_locator(stderr, &query->locator);
+  fprintf(stderr, " rasqal warning - ");
+  vfprintf(stderr, message, arguments);
+  fputc('\n', stderr);
+}
+
+
+
+/* PUBLIC FUNCTIONS */
+
+/**
+ * rasqal_set_fatal_error_handler - Set the query error handling function
+ * @query: the query
+ * @user_data: user data to pass to function
+ * @handler: pointer to the function
+ * 
+ * The function will receive callbacks when the query fails.
+ * 
+ **/
+void
+rasqal_set_fatal_error_handler(rasqal_query* query, void *user_data,
+                               raptor_message_handler handler)
+{
+  query->fatal_error_user_data=user_data;
+  query->fatal_error_handler=handler;
+}
+
+
+/**
+ * rasqal_set_error_handler - Set the query error handling function
+ * @query: the query
+ * @user_data: user data to pass to function
+ * @handler: pointer to the function
+ * 
+ * The function will receive callbacks when the query fails.
+ * 
+ **/
+void
+rasqal_set_error_handler(rasqal_query* query, void *user_data,
+                         raptor_message_handler handler)
+{
+  query->error_user_data=user_data;
+  query->error_handler=handler;
+}
+
+
+/**
+ * rasqal_set_warning_handler - Set the query warning handling function
+ * @query: the query
+ * @user_data: user data to pass to function
+ * @handler: pointer to the function
+ * 
+ * The function will receive callbacks when the query gives a warning.
+ * 
+ **/
+void
+rasqal_set_warning_handler(rasqal_query* query, void *user_data,
+                           raptor_message_handler handler)
+{
+  query->warning_user_data=user_data;
+  query->warning_handler=handler;
+}
+
+
+/**
+ * rasqal_set_feature - Set various query features
+ * @query: &rasqal_query query object
+ * @feature: feature to set from enumerated &rasqal_feature values
+ * @value: integer feature value
+ * 
+ * feature can be one of:
+ **/
+void
+rasqal_set_feature(rasqal_query *query, rasqal_feature feature, int value)
+{
+  switch(feature) {
+      
+    default:
+      break;
+  }
+}
 
 
