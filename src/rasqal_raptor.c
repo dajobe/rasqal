@@ -162,18 +162,13 @@ rasqal_raptor_statement_handler(void *user_data,
 
 static int
 rasqal_raptor_new_triples_source(rasqal_query* rdf_query,
-                                  void *factory_user_data,
-                                  void *user_data,
-                                  rasqal_triples_source *rts) {
+                                 void *factory_user_data,
+                                 void *user_data,
+                                 rasqal_triples_source *rts,
+                                 raptor_uri *uri) {
   rasqal_raptor_triples_source_user_data* rtsc=(rasqal_raptor_triples_source_user_data*)user_data;
   raptor_parser *parser;
   const char *parser_name;
-  raptor_uri* uri=NULL;
-
-  if(!rdf_query->sources)
-    return 1;
-  
-  uri=(raptor_uri*)raptor_sequence_get_at(rdf_query->sources, 0);
 
   /* no default triple source possible */
   if(!uri)
@@ -202,6 +197,7 @@ rasqal_raptor_new_triples_source(rasqal_query* rdf_query,
  * rasqal_raptor_triple_match:
  * @triple: &rasqal_triple to match against
  * @match: &rasqal_triple with wildcards
+ * @origin_uri: &raptor_uri of the origin to match against
  * 
  * Match a rasqal_triple against a rasqal_triple with NULL
  * signifying wildcard fields in the rasqal_triple.
@@ -209,27 +205,26 @@ rasqal_raptor_new_triples_source(rasqal_query* rdf_query,
  * Return value: non-0 on match
  **/
 static int
-rasqal_raptor_triple_match(rasqal_triple *triple, rasqal_triple *match) {
-  int error=0;
-  
+rasqal_raptor_triple_match(rasqal_triple *triple, rasqal_triple *match,
+                           raptor_uri* origin_uri) {
   if(match->subject) {
     if(!rasqal_literal_equals(triple->subject, match->subject))
-      return 0;
-    if(error)
       return 0;
   }
 
   if(match->predicate) {
     if(!rasqal_literal_equals(triple->predicate, match->predicate))
       return 0;
-    if(error)
-      return 0;
   }
 
   if(match->object) {
     if(!rasqal_literal_equals(triple->object, match->object))
       return 0;
-    if(error)
+  }
+  
+  if(match->origin && match->origin->type == RASQAL_LITERAL_URI ) {
+    raptor_uri* match_uri=match->origin->value.uri;
+    if(!raptor_uri_equals(match_uri, origin_uri))
       return 0;
   }
   
@@ -246,7 +241,7 @@ rasqal_raptor_triple_present(rasqal_triples_source *rts, void *user_data,
   rasqal_raptor_triple *triple;
 
   for(triple=rtsc->head; triple; triple=triple->next) {
-    if(rasqal_raptor_triple_match(triple->triple, t))
+    if(rasqal_raptor_triple_match(triple->triple, t, rtsc->uri))
       return 1;
   }
 
@@ -282,14 +277,15 @@ rasqal_raptor_register_triples_source_factory(rasqal_triples_source_factory *fac
 
 typedef struct {
   rasqal_raptor_triple *cur;
+  rasqal_raptor_triples_source_user_data* source_context;
   rasqal_triple match;
 } rasqal_raptor_triples_match_context;
 
 
 static int
 rasqal_raptor_bind_match(struct rasqal_triples_match_s* rtm,
-                          void *user_data,
-                          rasqal_variable* bindings[3]) 
+                         void *user_data,
+                         rasqal_variable* bindings[4]) 
 {
   rasqal_raptor_triples_match_context* rtmc=(rasqal_raptor_triples_match_context*)rtm->user_data;
   int error=0;
@@ -303,7 +299,7 @@ rasqal_raptor_bind_match(struct rasqal_triples_match_s* rtm,
     RASQAL_FATAL1("  matched NO statement - BUG\n");
 #endif
 
-  /* set 1 or 2 variable values from the fields of statement */
+  /* set variable values from the fields of statement */
 
   if(bindings[0]) {
     RASQAL_DEBUG1("binding subject to variable\n");
@@ -357,6 +353,12 @@ rasqal_raptor_bind_match(struct rasqal_triples_match_s* rtm,
     }
   }
 
+  if(bindings[3]) {
+    rasqal_literal *l=rasqal_new_uri_literal(raptor_uri_copy(rtmc->source_context->uri));
+    RASQAL_DEBUG1("binding origin to variable\n");
+    rasqal_variable_set_value(bindings[3], l);
+  }
+
   return 0;
 }
 
@@ -370,7 +372,7 @@ rasqal_raptor_next_match(struct rasqal_triples_match_s* rtm, void *user_data)
   while(rtmc->cur) {
     rtmc->cur=rtmc->cur->next;
     if(rtmc->cur &&
-       rasqal_raptor_triple_match(rtmc->cur->triple, &rtmc->match))
+       rasqal_raptor_triple_match(rtmc->cur->triple, &rtmc->match, rtmc->source_context->uri))
       break;
   }
 }
@@ -395,8 +397,8 @@ rasqal_raptor_finish_triples_match(struct rasqal_triples_match_s* rtm,
 
 static rasqal_triples_match*
 rasqal_raptor_new_triples_match(rasqal_triples_source *rts, void *user_data,
-                                 rasqal_triple_meta *m, rasqal_triple *t) {
-   rasqal_raptor_triples_source_user_data* rtsc=(rasqal_raptor_triples_source_user_data*)user_data;
+                                rasqal_triple_meta *m, rasqal_triple *t) {
+  rasqal_raptor_triples_source_user_data* rtsc=(rasqal_raptor_triples_source_user_data*)user_data;
   rasqal_triples_match *rtm;
   rasqal_raptor_triples_match_context* rtmc;
   rasqal_variable* var;
@@ -411,8 +413,9 @@ rasqal_raptor_new_triples_match(rasqal_triples_source *rts, void *user_data,
 
   rtm->user_data=rtmc;
 
+  rtmc->source_context=rtsc;
   rtmc->cur=rtsc->head;
-
+  
   /* at least one of the triple terms is a variable and we need to
    * do a triplesMatching() over the list of stored raptor_statements
    */
@@ -444,8 +447,18 @@ rasqal_raptor_new_triples_match(rasqal_triples_source *rts, void *user_data,
   m->bindings[2]=var;
   
 
+  if(t->origin) {
+    if((var=rasqal_literal_as_variable(t->origin))) {
+      if(var->value)
+        rtmc->match.origin=rasqal_new_literal_from_literal(var->value);
+    } else
+      rtmc->match.origin=rasqal_new_literal_from_literal(t->origin);
+    m->bindings[3]=var;
+  }
+  
+
   while(rtmc->cur) {
-    if(rasqal_raptor_triple_match(rtmc->cur->triple, &rtmc->match))
+    if(rasqal_raptor_triple_match(rtmc->cur->triple, &rtmc->match, rtmc->source_context->uri))
       break;
     rtmc->cur=rtmc->cur->next;
   }

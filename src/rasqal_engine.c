@@ -316,6 +316,7 @@ rasqal_set_triples_source_factory(void (*register_fn)(rasqal_triples_source_fact
 rasqal_triples_source*
 rasqal_new_triples_source(rasqal_query *query) {
   rasqal_triples_source* rts;
+  raptor_uri *uri;
   
   rts=(rasqal_triples_source*)RASQAL_CALLOC(rasqal_triples_source, sizeof(rasqal_triples_source), 1);
   if(!rts)
@@ -329,9 +330,16 @@ rasqal_new_triples_source(rasqal_query *query) {
   }
   rts->query=query;
 
+  if(!query->sources)
+    return NULL;
+
+  rts->source_index=0;
+  uri=(raptor_uri*)raptor_sequence_get_at(query->sources, rts->source_index);
+
   if(Triples_Source_Factory.new_triples_source(query, 
                                                Triples_Source_Factory.user_data,
-                                               rts->user_data, rts)) {
+                                               rts->user_data, rts,
+                                               uri)) {
     RASQAL_FREE(user_data, rts->user_data);
     RASQAL_FREE(rasqal_triples_source, rts);
     return NULL;
@@ -343,8 +351,11 @@ rasqal_new_triples_source(rasqal_query *query) {
 
 void
 rasqal_free_triples_source(rasqal_triples_source *rts) {
-  rts->free_triples_source(rts->user_data);
-  RASQAL_FREE(user_data, rts->user_data);
+  if(rts->user_data) {
+    rts->free_triples_source(rts->user_data);
+    RASQAL_FREE(user_data, rts->user_data);
+    rts->user_data=NULL;
+  }
   
   RASQAL_FREE(rasqal_triples_source, rts);
 }
@@ -357,6 +368,38 @@ rasqal_triples_source_triple_present(rasqal_triples_source *rts,
 }
 
 
+int
+rasqal_triples_source_next_source(rasqal_triples_source *rts) 
+{
+  raptor_uri *uri;
+
+  if(!rts->user_data)
+    return 1;
+  
+  rts->free_triples_source(rts->user_data);
+
+  rts->source_index++;
+  uri=(raptor_uri*)raptor_sequence_get_at(rts->query->sources, 
+                                          rts->source_index);
+  if(!uri) {
+    RASQAL_FREE(user_data, rts->user_data);
+    rts->user_data=NULL;
+    return 1;
+  }
+
+  memset(rts->user_data, '\0', Triples_Source_Factory.user_data_size);
+  
+  if(Triples_Source_Factory.new_triples_source(rts->query, 
+                                               Triples_Source_Factory.user_data,
+                                               rts->user_data, rts,
+                                               uri)) {
+    RASQAL_FREE(user_data, rts->user_data);
+    rts->user_data=NULL;
+    return 1;
+  }
+  
+  return 0;
+}
 
 
 
@@ -382,7 +425,7 @@ rasqal_free_triples_match(rasqal_triples_match* rtm) {
 /* methods */
 static int
 rasqal_triples_match_bind_match(struct rasqal_triples_match_s* rtm, 
-                                rasqal_variable *bindings[3]) {
+                                rasqal_variable *bindings[4]) {
   return rtm->bind_match(rtm,  rtm->user_data, bindings);
 }
 
@@ -464,6 +507,8 @@ rasqal_engine_execute_finish(rasqal_query *query) {
         rasqal_variable_set_value(m->bindings[1],  NULL);
       if(m->bindings[2]) 
         rasqal_variable_set_value(m->bindings[2],  NULL);
+      if(m->bindings[3]) 
+        rasqal_variable_set_value(m->bindings[3],  NULL);
 
       if(m->triples_match) {
         rasqal_free_triples_match(m->triples_match);
@@ -503,6 +548,8 @@ rasqal_engine_get_next_result(rasqal_query *query) {
     return -1;
   
   triples_size=raptor_sequence_size(query->triples);
+
+  restart:
   
   while(query->column >= 0) {
     rasqal_triple_meta *m=&query->triple_meta[query->column];
@@ -548,6 +595,8 @@ rasqal_engine_get_next_result(rasqal_query *query) {
           rasqal_variable_set_value(m->bindings[1],  NULL);
         if(m->bindings[2]) 
           rasqal_variable_set_value(m->bindings[2],  NULL);
+        if(m->bindings[3]) 
+          rasqal_variable_set_value(m->bindings[3],  NULL);
 
         rasqal_free_triples_match(m->triples_match);
         m->triples_match=NULL;
@@ -625,8 +674,14 @@ rasqal_engine_get_next_result(rasqal_query *query) {
   }
 
   if(query->column < 0) {
-    rc=0;
-    query->finished=1;
+    if(!rasqal_triples_source_next_source(query->triples_source)) {
+      /* There is another source so query again */
+      query->column=0;
+      goto restart;
+    } else {
+      rc=0;
+      query->finished=1;
+    }
   }
   
   return rc;
