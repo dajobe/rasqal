@@ -116,7 +116,7 @@ RASQAL_EXTERNAL_LIBS=
 
 dnl Checks for header files.
 AC_HEADER_STDC
-AC_CHECK_HEADERS(errno.h stdlib.h unistd.h string.h dmalloc.h getopt.h)
+AC_CHECK_HEADERS(errno.h stdlib.h unistd.h string.h dmalloc.h getopt.h regex.h)
 
 
 dnl Checks for typedefs, structures, and compiler characteristics.
@@ -206,28 +206,6 @@ AC_TRY_LINK([#ifdef HAVE_GETOPT_H
 
 
 
-if test $ac_cv_func_vsnprintf = yes; then
-  AC_MSG_CHECKING(vsnprintf has C99 compatible return value)
-  AC_TRY_RUN([#include <stdarg.h>
-int is_c99(char *s, ...) {
-  char buffer[32];
-  va_list args;
-  int r;
-  va_start(args, s);
-  r = vsnprintf(buffer, 5, s, args);
-  va_end(args);
-
-  return (r == 7);
-}
-
-int main(int argc, char* argv) {
-  return is_c99("1234567");
-}], AC_MSG_RESULT(no),
-    AC_DEFINE(HAVE_C99_VSNPRINTF, 1, [vsnprint has C99 compatible return value])
-    AC_MSG_RESULT(yes))
-fi
-
-
 AC_CHECK_PROG(RAPTOR_CONFIG, raptor-config, raptor-config)
 AC_ARG_WITH(raptor, [  --with-raptor=SOURCE    Pick raptor source - system/internal (default auto)], with_raptor="$withval", with_raptor="auto")
 
@@ -269,20 +247,131 @@ else
     AC_MSG_ERROR(Raptor sources missing in parent directory - cannot use internal)
   fi
 fi
-AC_SUBST(with_raptor)
 
 
-RASQAL_EXTERNAL_CPPFLAGS="`redland-config --cflags` $RASQAL_EXTERNAL_CPPFLAGS"
-RASQAL_EXTERNAL_LIBS="`redland-config --libs` $RASQAL_EXTERNAL_LIBS"
+dnl Checks for regex libraries
+have_regex_pcre=0
+have_regex_posix=0
+need_regex_pcre=0
+need_regex_posix=0
 
-if test $with_raptor = internal; then
-  RASQAL_INTERNAL_CPPFLAGS="-I\$(top_srcdir)/../raptor $RASQAL_INTERNAL_CPPFLAGS"
-  RASQAL_INTERNAL_LIBS="\$(top_builddir)/../raptor/libraptor.la $RASQAL_INTERNAL_LIBS"
-else
-  RASQAL_EXTERNAL_CPPFLAGS="`$RAPTOR_CONFIG --cflags` $RASQAL_EXTERNAL_CPPFLAGS"
-  RASQAL_EXTERNAL_LIBS="`$RAPTOR_CONFIG --libs` $RASQAL_EXTERNAL_LIBS"
+AC_CHECK_PROG(PCRE_CONFIG, pcre-config, pcre-config)
+AC_ARG_WITH(pcre, [  --with-pcre-config=PATH    Location of PCRE pcre-config (auto)], pcre_config="$withval", pcre_config="")
+
+if test "X$pcre_config" != "X" ; then
+  AC_MSG_CHECKING(for $pcre_config)
+
+  if test -f $pcre_config ; then
+    PCRE_CONFIG=$pcre_config
+    AC_MSG_RESULT(yes)
+  else
+    AC_MSG_RESULT(no - searching PATH)
+  fi
+fi
+if test "X$PCRE_CONFIG" = "X"; then
+  AC_CHECK_PROGS(PCRE_CONFIG, pcre-config)
 fi
 
+
+AC_MSG_CHECKING(for pcre)
+PCRE_VERSION=`$PCRE_CONFIG --version 2>/dev/null`
+PCRE_MIN_VERSION=3.9
+
+PCRE_VERSION_DEC=`echo $PCRE_VERSION | $AWK -F. '{printf("%d\n", 100*$1 + $2)};'`
+PCRE_MIN_VERSION_DEC=`echo $PCRE_MIN_VERSION | $AWK -F. '{printf("%d\n", 100*$1 + $2)};'`
+if test "X$PCRE_VERSION" = X; then
+  AC_MSG_RESULT(not present)
+elif test "X$PCRE_VERSION" -a $PCRE_VERSION_DEC -ge $PCRE_MIN_VERSION_DEC; then
+  have_regex_pcre=1
+  AC_MSG_RESULT($PCRE_VERSION)
+else
+  AC_MSG_WARN($PCRE_VERSION - too old - need $PCRE_MIN_VERSION)
+fi
+
+if test $have_regex_pcre = 1; then
+  AC_DEFINE(HAVE_REGEX_PCRE, 1, [have PCRE regex - Perl Compatible Regular Expressions])
+fi
+
+
+AC_MSG_CHECKING(for posix regex library)
+oLIBS="$LIBS"
+if test $ac_cv_header_regex_h = yes; then
+  LIBS="$LIBS -lexpat"
+  AC_TRY_RUN([#include <sys/types.h>
+              #include <regex.h>
+             main() {regex_t reg; char *pat="abc"; regcomp(&reg, pat, 0);}],
+             worked=yes, worked=no, worked=no)
+  if test $worked = yes; then
+    have_regex_posix=1
+  fi
+fi
+
+LIBS="$oLIBS"
+
+if test $have_regex_posix = 1; then
+  AC_MSG_RESULT(yes)
+  AC_DEFINE(HAVE_REGEX_PCRE, 1, [have PCRE regex - Perl Compatible Regular Expressions])
+else
+  AC_MSG_RESULT(no)
+fi
+
+
+
+AC_ARG_WITH(regex-library, [  --with-regex-library=NAME  Use regex library - pcre, posix (auto)], regex_library="$withval", regex_library="") 
+
+for regex_library_name in $regex_library pcre posix; do
+  case $regex_library_name in
+    pcre)
+      if test $have_regex_pcre = 1; then
+        need_regex_pcre=1
+        AC_DEFINE(RASQAL_REGEX_PCRE, 1, [Use PCRE regex library])
+        break
+      fi
+      ;;
+
+    posix)
+      if test $have_regex_posix = 1; then
+        need_regex_posix=1
+        AC_DEFINE(RASQAL_REGEX_POSIX, 1, [Use posix regex library])
+        break
+      fi
+      ;;
+
+    *)
+      AC_MSG_ERROR(No such regex library $regex_library_name)
+      ;;
+esac
+done
+
+AC_MSG_CHECKING(regex library to use)
+result=
+if test $need_regex_pcre = 1; then
+  result=pcre
+elif test $need_regex_posix = 1; then
+  result=posix
+else
+  result=none
+  AC_DEFINE(RASQAL_REGEX_NONE, 1, [Use no regex library])
+  AC_MSG_WARN(No regex library available - please install pcre or a POSIX regex library)
+fi
+AC_MSG_RESULT($result)
+
+
+if test $with_raptor = internal; then
+  RASQAL_INTERNAL_CPPFLAGS="$RASQAL_INTERNAL_CPPFLAGS -I\$(top_srcdir)/../raptor"
+  RASQAL_INTERNAL_LIBS="$RASQAL_INTERNAL_LIBS \$(top_builddir)/../raptor/libraptor.la"
+else
+  RASQAL_EXTERNAL_CPPFLAGS="$RASQAL_EXTERNAL_CPPFLAGS `$RAPTOR_CONFIG --cflags`"
+  RASQAL_EXTERNAL_LIBS="$RASQAL_EXTERNAL_LIBS `$RAPTOR_CONFIG --libs`"
+fi
+
+if test $need_regex_pcre = 1; then
+  RASQAL_EXTERNAL_CPPFLAGS="$RASQAL_EXTERNAL_CPPFLAGS `$PCRE_CONFIG --cflags`"
+  RASQAL_EXTERNAL_LIBS="$RASQAL_EXTERNAL_LIBS `$PCRE_CONFIG --libs`"
+fi
+
+RASQAL_EXTERNAL_CPPFLAGS="$RASQAL_EXTERNAL_CPPFLAGS `redland-config --cflags`"
+RASQAL_EXTERNAL_LIBS="$RASQAL_EXTERNAL_LIBS `redland-config --libs`"
 
 
 # Make final changes to cflags
