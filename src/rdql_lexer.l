@@ -68,6 +68,7 @@
 #include <rdql_parser.tab.h>
 
 
+static void skip_cpp_comment(void);
 static int skip_c_comment(void);
 
 static unsigned char *copy_token(unsigned char *text, size_t len);
@@ -103,14 +104,15 @@ int rdql_lexer_lex_destroy(void);
   int c;
 
 
-"//"[^\r\n]*	{ /* C++ comment */
+"//"	{ /* C++ comment */
+    skip_cpp_comment();
     lineno++;
 }
 
 "/*"	{ int l=skip_c_comment();
-          lineno+=l;
-          if(!l)
+          if(l<0)
             return ERROR; 
+          lineno+=l;
         }
 
 [\r\n]+     { lineno++; }
@@ -274,11 +276,22 @@ skip_c_comment(void) {
     }
     if (c == EOF) {
       fprintf(stderr, "%s:%d: EOF in comment\n", filename, lineno);
-      lines=0;
+      lines= -1;
       break;
     }
   }
   return lines;
+}
+
+
+static void
+skip_cpp_comment(void) {
+  int c;
+  
+  while ((c=input()) != EOF)
+    if(c == '\r' || c == '\n')
+      break;
+  return;
 }
 
 
