@@ -208,7 +208,7 @@ roqet_print_results_as_xml(FILE *fh, rasqal_query_results *results)
               unsigned char *xml_string=(unsigned char*)malloc(xml_string_len+1);
               
               xml_string_len=raptor_xml_escape_string(l->string, len,
-                                                    xml_string, xml_string_len, 0,
+                                                      xml_string, xml_string_len, 0,
                                                       NULL, NULL);
               fputs(xml_string, fh);
               free(xml_string);
