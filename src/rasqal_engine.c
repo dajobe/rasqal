@@ -426,6 +426,11 @@ rasqal_reset_triple_meta(rasqal_triple_meta* m)
 {
   int resets=0;
   
+  if(m->triples_match) {
+    rasqal_free_triples_match(m->triples_match);
+    m->triples_match=NULL;
+  }
+
   if(m->bindings[0] && (m->parts & RASQAL_TRIPLE_SUBJECT)) {
     rasqal_variable_set_value(m->bindings[0],  NULL);
     resets++;
@@ -491,9 +496,11 @@ rasqal_graph_pattern_init(rasqal_graph_pattern *gp) {
     int i;
     
     gp->column=gp->start_column;
-    if(gp->triple_meta)
+    if(gp->triple_meta) {
+      /* reset any previous execution */
+      rasqal_reset_triple_meta(gp->triple_meta);
       memset(gp->triple_meta, '\0', sizeof(rasqal_triple_meta)*triples_count);
-    else
+    } else
       gp->triple_meta=(rasqal_triple_meta*)RASQAL_CALLOC(rasqal_triple_meta, sizeof(rasqal_triple_meta), triples_count);
 
     for(i=gp->start_column; i <= gp->end_column; i++) {
