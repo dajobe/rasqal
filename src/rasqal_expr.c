@@ -1305,8 +1305,27 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
       break;
       
     case RASQAL_EXPR_CAST:
-      RASQAL_FATAL1("No cast expressions yet");
-      break;
+      {
+        rasqal_literal *l1;
+        const unsigned char *string;
+        unsigned char *new_string;
+        raptor_uri *uri;
+        
+        l1=rasqal_expression_evaluate(query, e->arg1);
+        if(!l1)
+          goto failed;
+
+        string=rasqal_literal_as_string(l1);
+        new_string=(unsigned char*)RASQAL_MALLOC(string, strlen((const char*)string)+1);
+        strcpy((char*)new_string, (const char*)string);
+        uri=raptor_uri_copy(e->name);
+
+        rasqal_free_literal(l1);
+
+        result=rasqal_new_string_literal(new_string, NULL, uri, NULL);
+        break;
+      }
+
 
     case RASQAL_EXPR_UNKNOWN:
     default:
