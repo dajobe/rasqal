@@ -8,7 +8,7 @@
 .\" Institute for Learning and Research Technology - http://www.ilrt.bris.ac.uk/
 .\" University of Bristol - http://www.bristol.ac.uk/
 .\"
-.TH roqet 1 "2005-01-15"
+.TH roqet 1 "2005-01-29"
 .\" Please adjust this date whenever revising the manpage.
 .SH NAME
 roqet \- Rasqal RDF parser utility
@@ -23,24 +23,32 @@ roqet \- Rasqal RDF parser utility
 .br
 .B roqet -q x.rdql http://example.org/base/
 .br
-.B roqet -i sparql http://example.org/query.sparql
+.B roqet -i sparql -o xml http://example.org/query.rq
 .br
 .SH DESCRIPTION
 The
 .B roqet
-utility allows the querying of RDF content using the
+utility allows querying of RDF content using the
 .B Rasqal
-RDF query library, emitting the results as variable bindings
-(at present).  The query is read from \fIquery-URI\fR and
-the optional \fIbase-URI\fR is used as the base URI if present.
+RDF query library, printing the results in variable bindings,
+RDF graph or boolean format.  The query is read from \fIquery-URI\fR and
+the optional \fIbase-URI\fR is used as the base URI of the query if present.
 .SH OPTIONS
 roqet uses the usual GNU command line syntax, with long
 options starting with two dashes (`-') if supported by the
-getopt_long function.  Otherwise the short options are only available.
+getopt_long function.  Otherwise only the short options are available.
 .TP
 .B \-h, \-\-help
 Show a summary of the options.
 .TP
+.B \-f, \-\-format FORMAT
+Set the graph query result output
+.I FORMAT
+to 'ntriples' (N-Triples, default), 'rdfxml' (RDF/XML)
+or 'rss-1.0' (RSS 1.0, also an RDF/XML syntax).
+.IP
+The list of formats
+depends on what libraptor(3) was built with.
 .B \-i, \-\-input LANGUAGE
 Set the input query
 .I LANGUAGE
@@ -49,9 +57,10 @@ to one of 'rdql' (RDF Data Query Language, default) and 'sparql'
 supported languages is given in the help summary given by \-h.
 .TP
 .B \-o, \-\-output FORMAT
-Set the query result output
+Set the variable bindings query result output
 .I FORMAT
-to 'simple' (default) or 'xml' (an experimental XML format)
+to 'simple' for a simpel text format (default) 
+or 'xml' for the SPARQL variable bindings XML result format.
 .TP
 .B \-c, \-\-count
 Only count the triples and produce no other output.
@@ -84,8 +93,14 @@ W3C Working Draft, 12 October 2004.  Work in progress.
 .UR http://www.w3.org/TR/2004/WD-rdf-sparql-query-20041012/
 http://www.w3.org/TR/2004/WD-rdf-sparql-query-20041012/
 .UE
+\fISPARQL Variable Binding Results XML Format\fR,
+Edited by Dave Beckett,
+W3C Working Draft, 21 December 2004. WOrk in progress.
+.UR http://www.w3.org/TR/2004/WD-rdf-sparql-XMLres-20041221/
+http://www.w3.org/TR/2004/WD-rdf-sparql-XMLres-20041221/
+.UE
 .SH SEE ALSO
-.BR librasqal(3), rasqal-config(1)
+.BR librasqal(3), rasqal-config(1), libraptor(3)
 .SH CHANGES
 .br
 .SH AUTHOR
