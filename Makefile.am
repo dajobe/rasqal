@@ -79,7 +79,8 @@ rasqal.spec.in \
 fix-groff-xhtml \
 $(man_MANS) \
 rasqal.pc.in \
-fix-flex
+fix-flex \
+rasqal_query_test.c
 
 
 LEX=@LEX@
@@ -138,6 +139,9 @@ rasqal_expr_test: $(srcdir)/rasqal_expr.c librasqal.la
 
 strcasecmp_test: $(srcdir)/strcasecmp.c
 	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE $(srcdir)/strcasecmp.c
+
+rasqal_query_test: $(srcdir)/rasqal_query_test.c librasqal.la
+	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE $(srcdir)/rasqal_query_test.c librasqal.la $(LIBS)
 
 $(top_builddir)/raptor/libraptor.la:
 	cd $(top_builddir)/raptor && $(MAKE) $(AM_MAKEFLAGS) libraptor.la
