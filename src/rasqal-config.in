@@ -19,7 +19,6 @@
 #
 
 prefix=@prefix@
-exec_prefix=@exec_prefix@
 
 if test "@includedir@" != /usr/include ; then
   includes="-I@includedir@"
@@ -88,6 +87,7 @@ while test $# -gt 0; do
   shift
 done
   
+exec_prefix=@exec_prefix@
 
 if test "$echo_prefix" = "yes"; then
   echo $prefix
@@ -96,7 +96,7 @@ if test "$echo_cflags" = "yes"; then
   echo $includes
 fi
 if test "$echo_libs" = "yes"; then
-  echo -L@libdir@ -lrasqal @LDFLAGS@ @LIBS@
+  echo -L@libdir@ -lrasqal @RASQAL_EXTERNAL_LIBS@
 fi
 if test "$echo_libtool_libs" = "yes"; then
   echo @libdir@/@RASQAL_LIBTOOLLIBS@
