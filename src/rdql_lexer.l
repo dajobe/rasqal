@@ -61,7 +61,7 @@
 %option yylineno
 
 
-%x PATTERN
+%x PATTERN ID
 
   /* definitions */
 
@@ -77,6 +77,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 
 #include <rasqal.h>
 #include <rasqal_internal.h>
@@ -88,7 +89,8 @@ static void skip_cpp_comment(void);
 static int skip_c_comment(void);
 
 static unsigned char *copy_token(unsigned char *text, size_t len);
-unsigned char *copy_string_token(unsigned char *text, size_t len, int delim);
+static int copy_regex_token(unsigned char delim, YYSTYPE* lval);
+static int copy_string_token(unsigned char *text, size_t len, int delim, YYSTYPE* lval);
 
 char *filename=NULL;
 int lineno=1;
@@ -113,6 +115,11 @@ int rdql_lexer_lex_destroy(void);
 
 %}
 
+LANGUAGETOKEN [[:alpha:]][[:alnum:]]*
+PREFIX [[:alpha:]][[:alnum:]]*
+QNAME [[:alpha:]][[:alnum:]]*:[[:alpha:]][[:alnum:]]*
+/* The initial char conditions are to ensure this doesn't grab < or <= */
+QUOTEDURI \<[A-Za-z][^>]+\>
 
 %%
   /* rules */
@@ -148,7 +155,7 @@ int rdql_lexer_lex_destroy(void);
 ","      { return COMMA; } 
 "("      { return LPAREN; } 
 ")"      { return RPAREN; } 
-"?"      { return VARPREFIX; }
+"?"      { BEGIN(ID); return VARPREFIX; }
 
 "||"         { return SC_OR; }
 "&&"         { return SC_AND; }
@@ -156,87 +163,26 @@ int rdql_lexer_lex_destroy(void);
 "EQ"|"eq"  { return STR_EQ; }
 "NE"|"NE"  { return STR_NE; }
 
-"=~"|"~~"|"LIKE"|"like"  { BEGIN(PATTERN); return STR_MATCH; }
+"=~"|"~~"  { BEGIN(PATTERN); return STR_MATCH; }
 "!~"       { BEGIN(PATTERN); return STR_NMATCH; }
 
-
-<PATTERN>[\ \t\v]+   {
+<PATTERN>[ \t\v\r\n]+   {
 	;
 }
 
 <PATTERN>. { /* first non whitespace */
-             int delim=*yytext;
-             int ind=0;
-             size_t buffer_len=0;
-             unsigned char *buffer=NULL;
-
-             if(delim == 'm') {
-               /* Handle pattern literal m/foo/ */
-               delim=input();
-             }
-
-             while((c=input()) != delim && c) {
-               if(c== '\\') {
-                 c=input();
-                 if(!c)
-                   break;
-                 if(c!=delim)
-                   switch(c) {
-                     case '\\':
-                       break;
-                     case 'r':
-                       c='\r';
-                       break;
-                     case 't':
-                       c='\t';
-                       break;
-                     case 'n':
-                       c='\n';
-                       break;
-                     default:
-                       printf("Ignoring unknown pattern string escape \\%c", c);
-                       continue;
-                   }
-               }
-               if(ind+1 > buffer_len) {
-                 unsigned char *new_buffer;
-                 size_t new_buffer_len=buffer_len <<1;
-
-                 if(new_buffer_len<10)
-                   new_buffer_len=10;
-                 new_buffer=(unsigned char *)malloc(new_buffer_len+1);
-                 if(buffer_len) {
-                   strncpy(new_buffer, buffer, buffer_len);
-                   free(buffer);
-                 }
-                 buffer=new_buffer;
-                 buffer_len=new_buffer_len;
-               }
-               buffer[ind++]=c;
-               
-             }
-             buffer[ind]='\0';
-
-             rdql_parser_lval.string=buffer;
-             BEGIN(0);
+             copy_regex_token(*yytext, &rdql_parser_lval);
+             BEGIN(INITIAL);
              return PATTERN_LITERAL;
          };
 
 
-"|"      { return BIT_OR; }
-"^"     { return BIT_XOR; }
-"&"     { return BIT_AND; }
-
 "=="            { return EQ; }
 "!="            { return NEQ; }
-"<"/[^A-Za-z<=] { return LT; }
+"<"/[^A-Za-z=]  { return LT; }
 ">"             { return GT; }
 "<="         { return LE; }
 ">="         { return GE; }
-
-"<<"         { return LSHIFT; }
-">>"         { return RSIGNEDSHIFT; }
-">>>"        { return RUNSIGNEDSHIFT; }
 
 "+"         { return PLUS; }
 "-"         { return MINUS; }
@@ -265,10 +211,12 @@ int rdql_lexer_lex_destroy(void);
                         return FLOATING_POINT_LITERAL;
 }
 
-'([^'\\\n\r]|\\[^\n\r])*'    { rdql_parser_lval.string=copy_string_token(yytext+1, yyleng-2, '\"');
+'([^'\\\n\r]|\\[^\n\r])*'(@{LANGUAGETOKEN})?(^^({QUOTEDURI}|{QNAME}))?    { /*' */
+                               copy_string_token(yytext+1, yyleng-2, '\"', &rdql_parser_lval);
                                return STRING_LITERAL; }
 
-\"([^"\\\n\r]|\\[^\n\r])*\"   { rdql_parser_lval.string=copy_string_token(yytext+1, yyleng-2, '"');
+\"([^"\\\n\r]|\\[^\n\r])*\"(@{LANGUAGETOKEN})?(^^({QUOTEDURI}|{QNAME}))?   { /* " */
+                                copy_string_token(yytext+1, yyleng-2, '"', &rdql_parser_lval);
                                 return STRING_LITERAL; }
 
 "true"|"false"	{ rdql_parser_lval.integer=(*yytext == 't');
@@ -277,11 +225,12 @@ int rdql_lexer_lex_destroy(void);
 "null"	{ rdql_parser_lval.integer=0;
           return NULL_LITERAL; }
 
-[A-Za-z0-9_$\.]+	{ rdql_parser_lval.string=copy_token(yytext, yyleng);
+<*>[[:alpha:]][[:alnum:]_$\.]*	{ rdql_parser_lval.string=copy_token(yytext, yyleng);
+                          BEGIN(INITIAL);
                           return IDENTIFIER; }
 
-\<[A-Za-z][^>]+\>   { rdql_parser_lval.string=copy_token(yytext+1, yyleng-2);
-                      return URI_LITERAL; }
+{QUOTEDURI}   { rdql_parser_lval.string=copy_token(yytext+1, yyleng-2);
+                return URI_LITERAL; }
 
 \#              { while((c=input()) != '\n' && c)
                     ;
@@ -290,7 +239,7 @@ int rdql_lexer_lex_destroy(void);
 .         	{ if (*yytext == EOF)
                     return EOF;
                   printf("%s:%d: Syntax error at '%s'\n", filename,
-                         lineno, yytext);
+                         yylineno, yytext);
                   return ERROR;
 		}
 
@@ -303,7 +252,8 @@ yywrap (void) {
 }
 
 
-unsigned char *copy_token(unsigned char *text, size_t len) {
+static unsigned char *
+copy_token(unsigned char *text, size_t len) {
   unsigned char *s;
   if(!len)
     len=strlen(text);
@@ -315,24 +265,162 @@ unsigned char *copy_token(unsigned char *text, size_t len) {
 }
 
 
-unsigned char *copy_string_token(unsigned char *text, size_t len, int delim) {
+static int
+copy_regex_token(unsigned char delim, YYSTYPE* lval) {
+  int ind=0;
+  size_t buffer_len=0;
+  unsigned char *buffer=NULL;
+  size_t flags_len=0;
+  unsigned char *flags=NULL;
+  char c;
+
+  if(delim == 'm') {
+    /* Handle pattern literal m/foo/ */
+    delim=input();
+  }
+
+  while((c=input()) != delim && c) {
+    /* May add 2 chars - \' */
+    if(ind+2 > buffer_len) {
+      unsigned char *new_buffer;
+      size_t new_buffer_len=buffer_len <<1;
+
+      if(new_buffer_len<10)
+        new_buffer_len=10;
+      new_buffer=(unsigned char *)malloc(new_buffer_len+1);
+      if(buffer_len) {
+        strncpy(new_buffer, buffer, buffer_len);
+        free(buffer);
+      }
+      buffer=new_buffer;
+      buffer_len=new_buffer_len;
+    }
+    buffer[ind++]=c;
+    if(c == '\\') {
+      c=input();
+      buffer[ind++]=c;
+    }
+  }
+  buffer[ind]='\0';
+  lval->string=buffer;
+
+  /* flags */
+  ind=0;
+  while((c=input()) && isalpha(c)) {
+    if(ind+1 > flags_len) {
+      unsigned char *new_flags;
+      size_t new_flags_len=flags_len + 5;
+
+      if(new_flags_len<5)
+        new_flags_len=5;
+      new_flags=(unsigned char *)malloc(new_flags_len+1);
+      if(flags_len) {
+        strncpy(new_flags, flags, flags_len);
+        free(flags);
+      }
+      flags=new_flags;
+      flags_len=new_flags_len;
+    }
+    flags[ind++]=c;
+  }
+  if(flags) {
+    flags[ind]='\0';
+    lval->flags=flags;
+  }
+
+  return 0;
+}
+
+
+static int
+copy_string_token(unsigned char *text, size_t len, int delim, YYSTYPE* lval) {
   int i;
   unsigned char *s, *d;
-  unsigned char *string;
-  string=(unsigned char *)malloc(len+1);
+  unsigned char *string=(unsigned char *)malloc(len+1);
+  unsigned char *language=NULL;
+  unsigned char *dt=NULL;
+
   for(s=text, d=string, i=0; i<len; s++, i++) {
-    if(*s == '\\' ) {
+    unsigned char c=*s;
+
+    if(c == '\\' ) {
       s++; i++;
-      if(*s == '\n' || *s == '\r' || *s == '\\' || *s == delim)
-        *d++=*s;
-      else {
+      c=*s;
+      if(c == 'n')
+        *d++= '\n';
+      else if(c == 'r')
+        *d++= '\r';
+      else if(c == 't')
+        *d++= '\t';
+      else if(c == '\\' || c == delim)
+        *d++=c;
+      else if (c == 'u' || c == 'U') {
+        int ulen=(c == 'u') ? 4 : 8;
+        unsigned long unichar=0;
+        
+        s++; i++;
+        if(i+ulen > len) {
+          printf("\\%c over end of line", c);
+          free(string);
+          return 1;
+        }
+        
+        sscanf(s, ((ulen == 4) ? "%04lx" : "%08lx"), &unichar);
+        s+= ulen-1;
+        i+= ulen-1;
+        
+        if(unichar < 0 || unichar > 0x10ffff) {
+          printf("Illegal Unicode character with code point #x%lX.", unichar);
+          free(string);
+          return 1;
+        }
+          
+/* FIXME - need to link with raptor */
+#if 0
+        d+=raptor_unicode_char_to_utf8(unichar, d);
+#endif
+	d+=1;
+
+      } else {
         /* don't handle \x where x isn't one of: \n \r \\ (delim) */
+        printf("Warning: Illegal string escape \\%c in \"%s\"", c, text);
+        *d++=c;
       }
-    } else
-      *d++=*s;
-  }
+    } else if(c== delim) {
+        s++; i++;
+        c=*s;
+        if(c=='@') {
+          *d++='\0';
+          s++; i++;
+          language=d;
+          while(i<len) {
+            *d++=*s++; i++;
+            if(!isalpha(*s) || !isdigit(*s))
+              break;
+          }
+        }
+        if(c=='^') {
+          *d++='\0';
+          s++; i++;
+          /* FIXME assuming ^^ */
+          s++; i++;
+          dt=d;
+          while(i<len) {
+            *d++=*s++; i++;
+            if(!isalpha(*s) || !isdigit(*s))
+              break;
+          }
+          /* *d='\0' below */
+        }
+        break;
+   } else
+    *d++=c;
+  } /* end of for */
+
   *d='\0';
-  return string;
+
+  lval->string=string;
+  return 0;
 }
 
 
@@ -438,15 +526,6 @@ rdql_token_print(int token)
     case STR_EQ:
       return "STR_EQ";
 
-    case BIT_AND:
-      return "BIT_AND";
-
-    case BIT_XOR:
-      return "BIT_XOR";
-
-    case BIT_OR:
-      return "BIT_OR";
-
     case GE:
       return "GE";
 
@@ -464,15 +543,6 @@ rdql_token_print(int token)
 
     case EQ:
       return "EQ";
-
-    case RUNSIGNEDSHIFT:
-      return "RUNSIGNEDSHIFT";
-
-    case RSIGNEDSHIFT:
-      return "RSIGNEDSHIFT";
-
-    case LSHIFT:
-      return "LSHIFT";
 
     case REM:
       return "REM";
@@ -508,7 +578,8 @@ rdql_token_print(int token)
       return buffer;
 
     case PATTERN_LITERAL:
-      sprintf(buffer, "PATTERN_LITERAL(%s)", rdql_parser_lval.string);
+      sprintf(buffer, "PATTERN_LITERAL(%s,%s)", rdql_parser_lval.string,
+              (rdql_parser_lval.flags ? (char*)rdql_parser_lval.flags : "-"));
       return buffer;
 
     case BOOLEAN_LITERAL:
