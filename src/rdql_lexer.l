@@ -86,13 +86,9 @@
 #include <rasqal_internal.h>
 
 #include <rdql_parser.tab.h>
+
 #include <rdql_common.h>
 
-#include <raptor.h>
-
-#ifdef RASQAL_IN_REDLAND
-#include <librdf.h>
-#endif
 
 
 static void skip_cpp_comment(rdql_parser *rp);
@@ -114,11 +110,16 @@ int rdql_lexer_lex (YYSTYPE *rdql_parser_lval, yyscan_t yyscanner);
 int rdql_lexer_get_column(yyscan_t yyscanner);
 void rdql_lexer_set_column(int  column_no , yyscan_t yyscanner);
 
+#ifdef STANDALONE
+static void rdql_lexer_simple_error(void *rp, const char *message, ...);
+#endif
+
 %}
 
 LANGUAGETOKEN [[:alpha:]][[:alnum:]]*
 PREFIX [[:alpha:]][[:alnum:]]*
-QNAME [[:alpha:]][[:alnum:]]*:[[:alpha:]][[:alnum:]]*
+NAME [[:alpha:]][[:alnum:]_]*
+QNAME [[:alpha:]][[:alnum:]]*:[[:alpha:]][[:alnum:]_]*
 /* The initial char conditions are to ensure this doesn't grab < or <= */
 QUOTEDURI \<[A-Za-z][^>]+\>
 
@@ -224,12 +225,20 @@ QUOTEDURI \<[A-Za-z][^>]+\>
 "null"	{ rdql_parser_lval->integer=0;
           return NULL_LITERAL; }
 
-<*>[[:alpha:]][[:alnum:]_$\.]*	{ rdql_parser_lval->string=copy_token(rp, yytext, yyleng);
+<*>{NAME}	{ rdql_parser_lval->string=copy_token(rp, yytext, yyleng);
                           BEGIN(INITIAL);
                           return IDENTIFIER; }
 
-{QUOTEDURI}   { rdql_parser_lval->string=copy_token(rp, yytext+1, yyleng-2);
-                return URI_LITERAL; }
+{QNAME}	{ rdql_parser_lval->string=copy_token(rp, yytext, yyleng);
+                          return QNAME_LITERAL; }
+
+{QUOTEDURI}   { if(yyleng == 2) 
+                  rdql_parser_lval->uri=raptor_uri_copy(rp->base_uri);
+                else {
+                  yytext[yyleng-1]='\0';
+                  rdql_parser_lval->uri=raptor_new_uri_relative_to_base(rp->base_uri, (const unsigned char*)yytext+1);
+                 }
+                 return URI_LITERAL; }
 
 \#              { while((c=input(yyscanner)) != '\n' && c)
                     ;
@@ -596,6 +605,10 @@ rdql_token_print(int token, YYSTYPE *lval)
       sprintf(buffer, "URI_LITERAL(%s)", lval->string);
       return buffer;
 
+    case QNAME_LITERAL:
+      sprintf(buffer, "QNAME_LITERAL(%s)", lval->string);
+      return buffer;
+
     case IDENTIFIER:
       sprintf(buffer, "IDENTIFIER(%s)", lval->string);
       return buffer;
@@ -613,6 +626,21 @@ rdql_token_print(int token, YYSTYPE *lval)
 
 
 #ifdef STANDALONE
+static void
+rdql_lexer_simple_error(void *context, const char *message, ...)
+{
+  rdql_parser* rp=(rdql_parser*)context;
+  yyscan_t yyscanner=rp->scanner;
+  va_list arguments;
+
+  fprintf(stderr, "%s:%d: ", rp->uri_string, rdql_lexer_get_lineno(yyscanner));
+
+  va_start(arguments, message);
+  vfprintf(stderr, message, arguments);
+  va_end(arguments);
+
+  fputc('\n', stderr);
+}
 
 int
 rdql_syntax_error(rdql_parser *rp, const char *message, ...)
@@ -710,6 +738,7 @@ main(int argc, char *argv[])
   rdql_lexer_set_extra(&rp, scanner);
 
   rp.uri_string=raptor_uri_filename_to_uri_string(filename);
+  rp.base_uri=raptor_new_uri(rp.uri_string);
 
   while(1) {
     if(rdql_lexer_get_text(scanner) != NULL)
