@@ -145,7 +145,7 @@ QUOTEDURI \<[A-Za-z][^>]+\>
 }
 
 "/*"	{ if(skip_c_comment(rq)<0)
-            return ERROR; 
+            return ERROR_TOKEN; 
         }
 
 \r\n|\r|\n     { rqe->lineno++; }
@@ -268,7 +268,7 @@ QUOTEDURI \<[A-Za-z][^>]+\>
                     return EOF;
 
                   sparql_syntax_error(rq, "syntax error at '%c'", *yytext);
-                  return ERROR;  }
+                  return ERROR_TOKEN;  }
 
 {QNAME}	{ sparql_parser_lval->name=copy_token(rq, (const unsigned char*)yytext, yyleng);
                           return QNAME_LITERAL; }
@@ -289,7 +289,7 @@ QUOTEDURI \<[A-Za-z][^>]+\>
                     return EOF;
 
                   sparql_syntax_error(rq, "syntax error at '%c'", *yytext);
-                  return ERROR;
+                  return ERROR_TOKEN;
 		}
 
 %%
@@ -716,7 +716,7 @@ sparql_token_print(int token, YYSTYPE *lval)
       sprintf(buffer, "IDENTIFIER(%s)", lval->name);
       return buffer;
 
-    case ERROR:
+    case ERROR_TOKEN:
       return "ERROR";
 
    default:
@@ -807,7 +807,7 @@ main(int argc, char *argv[])
     printf("token %d\n", token);
 #endif
     sparql_token_free(token, &lval);
-    if(!token || token == EOF || token == ERROR)
+    if(!token || token == EOF || token == ERROR_TOKEN)
       break;
   }
 
@@ -819,7 +819,7 @@ main(int argc, char *argv[])
 
   rasqal_finish();
 
-  if(token==ERROR)
+  if(token == ERROR_TOKEN)
     return 1;
  
   return 0;

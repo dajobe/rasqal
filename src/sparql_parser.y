@@ -152,7 +152,7 @@ static int sparql_query_error(rasqal_query* rq, const char *message);
 %token <name> IDENTIFIER
 
 /* syntax error */
-%token ERROR
+%token ERROR_TOKEN
 
 
 %type <seq> SelectClause ConstructClause DescribeClause
