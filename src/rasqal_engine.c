@@ -343,12 +343,12 @@ rasqal_triple_to_redland_statement(rasqal_query *q, rasqal_triple* t)
 }
 
 
-
-int
+static int
 rasqal_select_next(rasqal_query *q, int count) {
+  rasqal_triple_meta *m=&q->triple_meta[count];
   rasqal_triple* t;
   int rc=0;
-
+  
   if(q->abort)
     return 0;
 
@@ -380,82 +380,80 @@ rasqal_select_next(rasqal_query *q, int count) {
      * redland find_statements will do the right thing and internally
      * pick the most efficient, indexed way to get the answer.
      */
-    librdf_node* nodes[3];
-    librdf_statement *qstatement;
-    librdf_stream *stream=NULL;
     rasqal_variable* var;
-    rasqal_variable* bindings[3];
 
     if((var=rasqal_expression_as_variable(t->subject))) {
       if(var->value)
-        nodes[0]=rasqal_expression_to_redland_node(q, var->value);
+        m->nodes[0]=rasqal_expression_to_redland_node(q, var->value);
       else
-        nodes[0]=NULL;
+        m->nodes[0]=NULL;
     } else
-      nodes[0]=rasqal_expression_to_redland_node(q, t->subject);
+      m->nodes[0]=rasqal_expression_to_redland_node(q, t->subject);
 
-    bindings[0]=var;
+    m->bindings[0]=var;
     
 
     if((var=rasqal_expression_as_variable(t->predicate))) {
       if(var->value)
-        nodes[1]=rasqal_expression_to_redland_node(q, var->value);
+        m->nodes[1]=rasqal_expression_to_redland_node(q, var->value);
       else
-        nodes[1]=NULL;
+        m->nodes[1]=NULL;
     } else
-      nodes[1]=rasqal_expression_to_redland_node(q, t->predicate);
+      m->nodes[1]=rasqal_expression_to_redland_node(q, t->predicate);
 
-    bindings[1]=var;
+    m->bindings[1]=var;
     
 
     if((var=rasqal_expression_as_variable(t->object))) {
       if(var->value)
-        nodes[2]=rasqal_expression_to_redland_node(q, var->value);
+        m->nodes[2]=rasqal_expression_to_redland_node(q, var->value);
       else
-        nodes[2]=NULL;
+        m->nodes[2]=NULL;
     } else
-      nodes[2]=rasqal_expression_to_redland_node(q, t->object);
+      m->nodes[2]=rasqal_expression_to_redland_node(q, t->object);
 
-    bindings[2]=var;
+    m->bindings[2]=var;
     
 
-    qstatement=librdf_new_statement_from_nodes(q->world, 
-                                               nodes[0], nodes[1], nodes[2]);
-    if(!qstatement)
+    m->qstatement=librdf_new_statement_from_nodes(q->world, 
+                                                  m->nodes[0],
+                                                  m->nodes[1], 
+                                                  m->nodes[2]);
+    if(!m->qstatement)
       return 1;
 
     printf("query statement at depth %d: ", count);
-    librdf_statement_print(qstatement, stdout);
+    librdf_statement_print(m->qstatement, stdout);
     fputc('\n', stdout);
     
-    stream=librdf_model_find_statements(q->model, qstatement);
+    m->stream=librdf_model_find_statements(q->model, m->qstatement);
 
-    if(!stream)
+    if(!m->stream)
       return 1;
     
-    while(!librdf_stream_end(stream)) {
+    while(!librdf_stream_end(m->stream)) {
       librdf_statement* statement;
 
-      statement=librdf_stream_get_object(stream);
+      statement=librdf_stream_get_object(m->stream);
 
       printf("  depth %d: matched statement ", count);
       librdf_statement_print(statement, stdout);
       fputc('\n', stdout);
 
       /* set 1 or 2 variable values from the fields of statement */
-      if(bindings[0]) {
+      if(m->bindings[0]) {
         RASQAL_DEBUG2("depth %d: binding subject to variable\n", count);
-        rasqal_variable_set_value(bindings[0], 
+        rasqal_variable_set_value(m->bindings[0], 
                                   redland_node_to_rasqal_expression(librdf_statement_get_subject(statement)));
       }
-      if(bindings[1])  {
+      if(m->bindings[1])  {
         RASQAL_DEBUG2("depth %d: binding predicate to variable\n", count);
-        rasqal_variable_set_value(bindings[1], 
+        rasqal_variable_set_value(m->bindings[1], 
                                   redland_node_to_rasqal_expression((librdf_statement_get_predicate(statement))));
       }
-      if(bindings[2])  {
+      if(m->bindings[2])  {
         RASQAL_DEBUG2("depth %d: binding object to variable\n", count);
-        rasqal_variable_set_value(bindings[2], 
+        rasqal_variable_set_value(m->bindings[2], 
                                   redland_node_to_rasqal_expression((librdf_statement_get_object(statement))));
       }
 
@@ -463,25 +461,25 @@ rasqal_select_next(rasqal_query *q, int count) {
       rc=rasqal_select_next(q, count+1);
 
       if(rc) {
-        librdf_free_stream(stream);
+        librdf_free_stream(m->stream);
         return 1;
       }
 
-      librdf_stream_next(stream);
+      librdf_stream_next(m->stream);
     }
     printf("end of stream at depth %d\n", count);
 
-    if(bindings[0]) 
-      rasqal_variable_set_value(bindings[0],  NULL);
-    if(bindings[1]) 
-      rasqal_variable_set_value(bindings[1],  NULL);
-    if(bindings[2]) 
-      rasqal_variable_set_value(bindings[2],  NULL);
+    if(m->bindings[0]) 
+      rasqal_variable_set_value(m->bindings[0],  NULL);
+    if(m->bindings[1]) 
+      rasqal_variable_set_value(m->bindings[1],  NULL);
+    if(m->bindings[2]) 
+      rasqal_variable_set_value(m->bindings[2],  NULL);
 
     /* FIXME leak nodes[0..2]? */
 
-    librdf_free_stream(stream);
-    librdf_free_statement(qstatement);
+    librdf_free_stream(m->stream);
+    librdf_free_statement(m->qstatement);
   }
 
   printf("rasqal_select_next done\n");
@@ -489,3 +487,20 @@ rasqal_select_next(rasqal_query *q, int count) {
   return 0;
 }
 
+
+int
+rasqal_engine_run(rasqal_query *query) {
+  int rc;
+  int triples_size=rasqal_sequence_size(query->triples);
+
+  query->triple_meta=(rasqal_triple_meta*)RASQAL_CALLOC(rasqal_triple_meta, sizeof(rasqal_triple_meta), triples_size);
+  if(!query->triple_meta)
+    return 1;
+  
+  rc=rasqal_select_next(query, 0);
+  
+  RASQAL_FREE(rasqal_triple_meta, query->triple_meta);
+  query->triple_meta=NULL;
+
+  return rc;
+}
