@@ -1,5 +1,10 @@
 2004-10-25  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
+	* rasqal_expr.c (rasqal_prefix_print): Handle NULL prefix
+
+	* configure.ac:
+	Do a 'return 0' after regcomp check to ensure the program exits ok
+
 	* tests/rdql/testsuite/check-rdql: Handle empty list of vars
 
 	* Makefile.am:
