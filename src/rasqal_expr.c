@@ -335,7 +335,8 @@ rasqal_variable_set_value(rasqal_variable* v, rasqal_expression *e)
 rasqal_prefix*
 rasqal_new_prefix(const char *prefix, raptor_uri* uri) 
 {
-  rasqal_prefix* p=(rasqal_prefix*)calloc(sizeof(rasqal_prefix), 1);
+  rasqal_prefix* p=(rasqal_prefix*)RASQAL_CALLOC(rasqal_prefix,
+                                                 sizeof(rasqal_prefix), 1);
 
   p->prefix=prefix;
   p->uri=uri;
@@ -345,8 +346,11 @@ rasqal_new_prefix(const char *prefix, raptor_uri* uri)
 
 
 void
-rasqal_free_prefix(rasqal_prefix* prefix) {
-  free(prefix);
+rasqal_free_prefix(rasqal_prefix* p) {
+  if(p->prefix)
+    free(p->prefix);
+  raptor_free_uri(p->uri);
+  RASQAL_FREE(rasqal_prefix, p);
 }
 
 
