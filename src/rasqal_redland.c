@@ -4,9 +4,6 @@
  *
  * $Id$
  * 
- * FIXME This is presently part of rasqal but will move to be part of
- * redland before rasqal releases.
- *
  * Copyright (C) 2004 David Beckett - http://purl.org/net/dajobe/
  * Institute for Learning and Research Technology - http://www.ilrt.bris.ac.uk/
  * University of Bristol - http://www.bristol.ac.uk/
@@ -148,6 +145,7 @@ rasqal_redland_new_triples_source(rasqal_query* rdf_query,
   rasqal_redland_triples_source_user_data* rtsc=(rasqal_redland_triples_source_user_data*)user_data;
   librdf_parser *parser;
   const char *parser_name;
+  int i;
   
   if(!rdf_query->sources)
     return 1;
@@ -172,15 +170,18 @@ rasqal_redland_new_triples_source(rasqal_query* rdf_query,
   for(i=0; i< rtsc->source_uris_count; i++) {
     raptor_uri* uri=(raptor_uri*)raptor_sequence_get_at(rdf_query->sources, i);
     librdf_stream *stream;
+    librdf_node *node;
     
     rtsc->source_index=i;
     rtsc->source_uris[i]=librdf_new_uri(world, raptor_uri_as_string(uri));
 
-    parser_name=raptor_guess_parser_name(NULL, NULL, NULL, 0, librdf_uri_as_string(rtsc->uri));
+    parser_name=raptor_guess_parser_name(NULL, NULL, NULL, 0, raptor_uri_as_string(uri));
     parser=librdf_new_parser(world, parser_name, NULL, NULL);
-    stream=librdf_parser_parse_as_stream(parser, uri, NULL);
-    librdf_model_add_statements_context(model, stream, rtsc->source_uris[i]);
+    stream=librdf_parser_parse_as_stream(parser, (librdf_uri*)uri, NULL);
+    node=librdf_new_node_from_uri(world, (librdf_uri*)rtsc->source_uris[i]);
+    librdf_model_context_add_statements(rtsc->model, node, stream);
     librdf_free_stream(stream);
+    librdf_free_node(node);
     librdf_free_parser(parser);
   }
 
@@ -215,13 +216,13 @@ rasqal_redland_triple_present(rasqal_triples_source *rts, void *user_data,
 static void
 rasqal_redland_free_triples_source(void *user_data) {
   rasqal_redland_triples_source_user_data* rtsc=(rasqal_redland_triples_source_user_data*)user_data;
-
+  int i;
+  
   for(i=0; i< rtsc->source_uris_count; i++) {
     librdf_free_uri(rtsc->source_uris[i]);
   }
   RASQAL_FREE(librdf_uri_ptr, rtsc->source_uris);
   
-  librdf_free_uri(rtsc->uri);
   librdf_free_model(rtsc->model);
   librdf_free_storage(rtsc->storage);
 }
@@ -237,6 +238,7 @@ rasqal_redland_register_triples_source_factory(rasqal_triples_source_factory *fa
 
 typedef struct {
   librdf_node* nodes[3];
+  librdf_node* origin;
   /* query statement, made from the nodes above (even when exact) */
   librdf_statement *qstatement;
   librdf_stream *stream;
@@ -408,13 +410,15 @@ rasqal_redland_new_triples_match(rasqal_triples_source *rts, void *user_data,
 
   m->bindings[2]=var;
   
-  if((var=rasqal_literal_as_variable(t->origin))) {
-    if(var->value)
-      rtmc->match.origin=rasqal_new_literal_from_literal(var->value);
-  } else
-    rtmc->match.origin=rasqal_new_literal_from_literal(t->origin);
 
-  m->bindings[3]=var;
+  if(t->origin) {
+    if((var=rasqal_literal_as_variable(t->origin))) {
+      if(var->value)
+        rtmc->origin=rasqal_literal_to_redland_node(rtsc->world, var->value);
+    } else
+      rtmc->origin=rasqal_literal_to_redland_node(rtsc->world, t->origin);
+    m->bindings[3]=var;
+  }
 
 
   rtmc->qstatement=librdf_new_statement_from_nodes(rtsc->world, 
