@@ -80,6 +80,8 @@ sub run_test($$) {
     }
 
     s/blank \w+/blank _/g;
+    s!integer (\d+)!string("$1"^^<http://www.w3.org/2001/XMLSchema\#integer>)!g;
+    s!floating ([\.\d]+)!string("$1"^^<http://www.w3.org/2001/XMLSchema\#double>)!g;
 
     if (m/^result: \[(.*)\]$/) {
       print OUT "$_\n";
@@ -88,8 +90,6 @@ sub run_test($$) {
 	$vars =~ s/=uri<[^>]+>//g;
 	$vars =~ s/=string\("[^"]+"[^)]*\)//g; # "
 	$vars =~ s/=blank _//g;
-	$vars =~ s/=integer \d+//g; # FIXME - rasqal bug
-	$vars =~ s/=floating [\.\d]+//g; # FIXME - rasqal bug
 	$vars =~ s/,//g;
 	@vars_order=split(/ /, $vars);
       }
@@ -161,8 +161,8 @@ sub run_test($$) {
     for my $binding_node (@{$nodes{$node}->{$binding_predicate}}) {
       my $variable=$nodes{$binding_node}->{$variable_predicate}->[0];
       $variable=~ s/^"(.*)"$/$1/;
-      my $value=toDebug($nodes{$binding_node}->{$value_predicate}->[0]);
-      $results{$variable}=${value};
+      my $value=$nodes{$binding_node}->{$value_predicate}->[0];
+      $results{$variable}=toDebug($value);
     }
     print OUT "result: [",join(", ",map {"$_=$results{$_}"} @vars_order),"]\n";
     $count++;
