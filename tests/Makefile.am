@@ -33,6 +33,10 @@ $(top_builddir)/rdql_lexer_test:
 $(top_builddir)/rdql_parser_test:
 	@(cd $(top_builddir) ; $(MAKE) rdql_parser_test)
 
+$(top_builddir)/rasqal_query_test:
+	@(cd $(top_builddir) ; $(MAKE) rasqal_query_test)
+
+
 check-local: check-rdql-lexer check-rdql-parser check-rdql-queries
 
 check-rdql-lexer: $(top_builddir)/rdql_lexer_test
