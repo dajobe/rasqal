@@ -53,7 +53,7 @@ inline int rasqal_literal_as_integer(rasqal_literal* l, int *error);
 
 inline int rasqal_expression_as_boolean(rasqal_expression* e, int *error);
 inline int rasqal_expression_as_integer(rasqal_expression* e, int *error);
-inline int rasqal_expression_compare(rasqal_expression* e1, rasqal_expression* e2, int *error);
+inline int rasqal_expression_compare(rasqal_expression* e1, rasqal_expression* e2, int flags, int *error);
 
 
 rasqal_literal*
@@ -435,7 +435,8 @@ double_to_int(double d)
 
 
 int
-rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int *error)
+rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
+                       int *error)
 {
   int errori=0;
   *error=0;
@@ -501,7 +502,7 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int *error)
         /* if either is null, the comparison fails */
         if(!l1->language || !l2->language)
           return 1;
-        if(strcmp(l1->language,l2->language))
+        if(rasqal_strcasecmp(l1->language,l2->language))
           return 1;
       }
 
@@ -512,12 +513,15 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int *error)
         if(!raptor_uri_equals(l1->datatype,l2->datatype))
           return 1;
       }
-      return strcmp(l1->string,l2->string);
-
+      
+      /* FALLTHROUGH */
     case RASQAL_LITERAL_BLANK:
     case RASQAL_LITERAL_PATTERN:
     case RASQAL_LITERAL_QNAME:
-      return strcmp(l1->string,l2->string);
+      if(flags & RASQAL_COMPARE_NOCASE)
+        return rasqal_strcasecmp(l1->string,l2->string);
+      else
+        return strcmp(l1->string,l2->string);
 
     case RASQAL_LITERAL_INTEGER:
     case RASQAL_LITERAL_BOOLEAN:
@@ -845,11 +849,11 @@ rasqal_expression_as_integer(rasqal_expression* e, int *error) {
 
 int
 rasqal_expression_compare(rasqal_expression* e1, rasqal_expression* e2,
-                          int *error) {
+                          int flags, int *error) {
   *error=0;
   
   if(e1->op == RASQAL_EXPR_LITERAL && e1->op == e2->op)
-    return rasqal_literal_compare(e1->literal, e2->literal, error);
+    return rasqal_literal_compare(e1->literal, e2->literal, flags, error);
 
   if(e1->op !=RASQAL_EXPR_LITERAL)
     RASQAL_FATAL2("Unexpected e1 op %d\n", e1->op);
@@ -928,7 +932,7 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e) {
           return NULL;
         }
 
-        b=(rasqal_literal_compare(l1, l2, &error) == 0);
+        b=(rasqal_literal_compare(l1, l2, 0, &error) == 0);
         rasqal_free_literal(l1);
         rasqal_free_literal(l2);
         if(error)
@@ -951,7 +955,7 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e) {
           return NULL;
         }
 
-        b=(rasqal_literal_compare(l1, l2, &error) != 0);
+        b=(rasqal_literal_compare(l1, l2, 0, &error) != 0);
         rasqal_free_literal(l1);
         rasqal_free_literal(l2);
         if(error)
@@ -974,7 +978,7 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e) {
           return NULL;
         }
 
-        b=(rasqal_literal_compare(l1, l2, &error) < 0);
+        b=(rasqal_literal_compare(l1, l2, 0, &error) < 0);
         rasqal_free_literal(l1);
         rasqal_free_literal(l2);
         if(error)
@@ -997,7 +1001,7 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e) {
           return NULL;
         }
 
-        b=(rasqal_literal_compare(l1, l2, &error) > 0);
+        b=(rasqal_literal_compare(l1, l2, 0, &error) > 0);
         rasqal_free_literal(l1);
         rasqal_free_literal(l2);
         if(error)
@@ -1020,7 +1024,7 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e) {
           return NULL;
         }
 
-        b=(rasqal_literal_compare(l1, l2, &error) <= 0);
+        b=(rasqal_literal_compare(l1, l2, 0, &error) <= 0);
         rasqal_free_literal(l1);
         rasqal_free_literal(l2);
         if(error)
@@ -1043,7 +1047,7 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e) {
           return NULL;
         }
 
-        b=(rasqal_literal_compare(l1, l2, &error) >= 0);
+        b=(rasqal_literal_compare(l1, l2, 0, &error) >= 0);
         rasqal_free_literal(l1);
         rasqal_free_literal(l2);
         if(error)
@@ -1196,7 +1200,7 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e) {
           return NULL;
         }
 
-        b=(rasqal_literal_compare(l1, l2, &error) == 0);
+        b=(rasqal_literal_compare(l1, l2, RASQAL_COMPARE_NOCASE, &error) == 0);
         rasqal_free_literal(l1);
         rasqal_free_literal(l2);
         if(error)
@@ -1219,7 +1223,7 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e) {
           return NULL;
         }
 
-        b=(rasqal_literal_compare(l1, l2, &error) != 0);
+        b=(rasqal_literal_compare(l1, l2, RASQAL_COMPARE_NOCASE, &error) != 0);
         rasqal_free_literal(l1);
         rasqal_free_literal(l2);
         if(error)
@@ -1256,6 +1260,7 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e) {
         char *match_string;
         char *pattern;
         rasqal_literal *l1, *l2;
+        int rc=0;
 #ifdef RASQAL_REGEX_PCRE
         pcre* re;
         int options=0;
@@ -1264,7 +1269,6 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e) {
 #endif
 #ifdef RASQAL_REGEX_POSIX
         regex_t reg;
-        int rc;
         int options=REG_EXTENDED | REG_NOSUB;
 #endif
         
@@ -1291,17 +1295,19 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e) {
           rasqal_query_error(query, "Regex compile of '%s' failed - %s",
                              pattern, re_error);
         else {
-          int rc=pcre_exec(re, 
-                           NULL, /* no study */
-                           match_string, strlen(match_string),
-                           0 /* startoffset */,
-                           0 /* options */,
-                           NULL, 0 /* ovector, ovecsize - no matches wanted */
-                           );
+          rc=pcre_exec(re, 
+                       NULL, /* no study */
+                       match_string, strlen(match_string),
+                       0 /* startoffset */,
+                       0 /* options */,
+                       NULL, 0 /* ovector, ovecsize - no matches wanted */
+                       );
           if(rc >= 0)
             b=1;
-          else if(rc != PCRE_ERROR_NOMATCH)
+          else if(rc != PCRE_ERROR_NOMATCH) {
             rasqal_query_error(query, "Regex match failed - returned code %d", rc);
+            rc= -1;
+          }
         }
         
 #endif
@@ -1311,23 +1317,27 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e) {
           options |=REG_ICASE;
         
         rc=regcomp(&reg, pattern, options);
-        if(rc)
+        if(rc) {
           rasqal_query_error(query, "Regex compile of '%s' failed", pattern);
-        else {
+          rc= -1;
+        } else {
           rc=regexec(&reg, match_string, 
                      0, NULL, /* nmatch, regmatch_t pmatch[] - no matches wanted */
                      0 /* eflags */
                      );
           if(!rc)
             b=1;
-          else if (rc != REG_NOMATCH)
+          else if (rc != REG_NOMATCH) {
             rasqal_query_error(query, "Regex match failed - returned code %d", rc);
+            rc= -1;
+          }
         }
         regfree(&reg);
 #endif
 #ifdef RASQAL_REGEX_NONE
         rasqal_query_warning(query, "Regex support missing, cannot compare '%s' to '%s'", match_string, pattern);
         b=1;
+        rc= -1;
 #endif
 
         RASQAL_DEBUG5("regex match returned %s for '%s' against '%s' (flags=%s)\n", b ? "true " : "false", match_string, pattern, l2->flags ? l2->flags : "");
@@ -1335,6 +1345,9 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e) {
         if(e->op == RASQAL_EXPR_STR_NMATCH)
           b=1-b;
 
+        if(rc<0)
+          return NULL;
+        
         return rasqal_new_boolean_literal(b);
       }
 
