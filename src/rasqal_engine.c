@@ -313,9 +313,9 @@ rasqal_set_triples_source_factory(void (*register_fn)(rasqal_triples_source_fact
 
 
 rasqal_triples_source*
-rasqal_new_triples_source(rasqal_query *query, raptor_uri* uri) {
+rasqal_new_triples_source(rasqal_query *query) {
   rasqal_triples_source* rts;
-
+  
   rts=(rasqal_triples_source*)RASQAL_CALLOC(rasqal_triples_source, sizeof(rasqal_triples_source), 1);
   if(!rts)
     return NULL;
@@ -327,8 +327,6 @@ rasqal_new_triples_source(rasqal_query *query, raptor_uri* uri) {
     return NULL;
   }
   rts->query=query;
-  if(uri)
-    rts->uri=raptor_uri_copy(uri);
 
   if(Triples_Source_Factory.new_triples_source(query, 
                                                Triples_Source_Factory.user_data,
@@ -347,7 +345,6 @@ rasqal_free_triples_source(rasqal_triples_source *rts) {
   rts->free_triples_source(rts->user_data);
   RASQAL_FREE(user_data, rts->user_data);
   
-  raptor_free_uri(rts->uri);
   RASQAL_FREE(rasqal_triples_source, rts);
 }
 
@@ -401,7 +398,6 @@ rasqal_triples_match_is_end(struct rasqal_triples_match_s* rtm) {
 
 int
 rasqal_engine_execute_init(rasqal_query *query) {
-  raptor_uri* source;
   int triples_size;
   int i;
   
@@ -419,16 +415,10 @@ rasqal_engine_execute_init(rasqal_query *query) {
 
   rasqal_engine_build_constraints_expression(query);
 
-  if(query->sources)
-    source=(raptor_uri*)raptor_sequence_get_at(query->sources, 0);
-  else
-    source=NULL;
-
-  query->triples_source=rasqal_new_triples_source(query, source);
+  query->triples_source=rasqal_new_triples_source(query);
   if(!query->triples_source) {
     query->failed=1;
-    rasqal_query_error(query, "Failed to make a triple source for %s",
-                       (source ? (const char*)raptor_uri_as_string(source) : "default source"));
+    rasqal_query_error(query, "Failed to make triples source.");
     return 1;
   }
 
