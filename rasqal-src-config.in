@@ -76,7 +76,7 @@ if test "$echo_cflags" = "yes"; then
   echo -I@abs_top_srcdir@
 fi
 if test "$echo_libs" = "yes"; then
-  echo '-L@abs_top_builddir@/.libs -lrdfquery @LDFLAGS@ @LIBS@'
+  echo '-L@abs_top_builddir@/.libs -lrasqal @LDFLAGS@ @LIBS@'
 fi
 if test "$echo_static_libs" = "yes"; then
   echo '@abs_top_builddir@/.libs/rasqal.a @LDFLAGS@ @LIBS@'
