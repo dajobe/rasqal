@@ -1,5 +1,9 @@
 2004-09-30  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
+	* tests/sparql/check-sparql: -warnings, new perl only
+
+	* roqet.c: On query failure (prepare or execute) tidy and exit
+
 	* tests/rdql/testsuite/Makefile.am: count expected failures the old way
 
 	* tests/rdql/testsuite/check-rdql, tests/sparql/check-sparql:
