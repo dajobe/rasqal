@@ -264,6 +264,7 @@ rasqal_redland_finish_triples_match(struct rasqal_triples_match_s* rtm,
     rtmc->stream=NULL;
   }
   librdf_free_statement(rtmc->qstatement);
+  RASQAL_FREE(rasqal_redland_triples_match_context, rtmc);
 }
 
 
