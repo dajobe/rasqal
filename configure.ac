@@ -113,7 +113,7 @@ dnl compiler checks
 # if using gcc...
 if test "$ac_cv_prog_gcc" = yes; then
   STANDARD_CFLAGS=
-  MAINTAINER_CFLAGS="-Wall -Wshadow -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wredundant-decls"
+  MAINTAINER_CFLAGS="-Wall -Wshadow -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wredundant-decls -Wswitch-enum"
 else
   STANDARD_CFLAGS=
   MAINTAINER_CFLAGS=
