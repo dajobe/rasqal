@@ -12,8 +12,10 @@ Group:     Development/Libraries
 Source:    http://www.redland.opensource.ac.uk/dist/source/%{name}-%{version}.tar.gz
 URL:       http://www.redland.opensource.ac.uk/rasqal/
 BuildRoot: /tmp/%{name}-%{version}
+BuildRequires: raptor-devel >= 1.3.0
 Packager:  Dave Beckett <Dave.Beckett@bristol.ac.uk>
 Docdir: %{_docdir}
+Requires: raptor
 
 %description
 
@@ -23,6 +25,7 @@ RDF Query Language.
 Summary: Libraries, includes etc to develop with the Rasqal RDF query library
 Group: Development/Libraries
 Requires: rasqal = %{version}
+Requires: raptor >= 1.3.0
 
 %description devel
 Libraries, includes etc to develop with the Rasqal RDF query language library.
@@ -33,32 +36,20 @@ Libraries, includes etc to develop with the Rasqal RDF query language library.
 %build
 # Needed for snapshot releases.
 if [ ! -f configure ]; then
-%ifarch alpha
-  CFLAGS="$RPM_OPT_FLAGS" ./autogen.sh --host=alpha-redhat-linux --prefix=%prefix --sysconfdir="/etc" --mandir=%{_mandir} --libdir=%{_libdir}
-%else
   CFLAGS="$RPM_OPT_FLAGS" ./autogen.sh --prefix=%prefix --sysconfdir="/etc" --mandir=%{_mandir} --libdir=%{_libdir}
-%endif
 else
-%ifarch alpha
-  CFLAGS="$RPM_OPT_FLAGS" ./configure --host=alpha-redhat-linux --prefix=%prefix --sysconfdir="/etc" --mandir=%{_mandir} --libdir=%{_libdir}
-%else
   CFLAGS="$RPM_OPT_FLAGS" ./configure --prefix=%prefix --sysconfdir="/etc" --mandir=%{_mandir} --libdir=%{_libdir}
-%endif
 fi
 
-if [ "$SMP" != "" ]; then
-  (make "MAKE=make -k -j $SMP"; exit 0)
-else
-  make
-fi
+%{__make} OPTIMIZE="$RPM_OPT_FLAGS"
 
 %install
-[ -n "$RPM_BUILD_ROOT" -a "$RPM_BUILD_ROOT" != / ] && rm -rf $RPM_BUILD_ROOT
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
 
 install -d $RPM_BUILD_ROOT%{_mandir}/man1
 install -d $RPM_BUILD_ROOT%{_mandir}/man3
 
-make prefix=$RPM_BUILD_ROOT%{prefix} libdir=$RPM_BUILD_ROOT%{_libdir} mandir=$RPM_BUILD_ROOT%{_mandir} install
+%makeinstall prefix=$RPM_BUILD_ROOT%{prefix} libdir=$RPM_BUILD_ROOT%{_libdir} mandir=$RPM_BUILD_ROOT%{_mandir}
 
 %clean
 [ -n "$RPM_BUILD_ROOT" -a "$RPM_BUILD_ROOT" != / ] && rm -rf $RPM_BUILD_ROOT
@@ -74,7 +65,7 @@ make prefix=$RPM_BUILD_ROOT%{prefix} libdir=$RPM_BUILD_ROOT%{_libdir} mandir=$RP
 %doc MPL.html
 %doc %{_mandir}/man3/librasqal.3*
 
-%{_libdir}/lib*.so.*
+%{_libdir}/librasqal*.so.*
 
 
 %files devel
@@ -85,13 +76,18 @@ make prefix=$RPM_BUILD_ROOT%{prefix} libdir=$RPM_BUILD_ROOT%{_libdir} mandir=$RP
 %doc INSTALL.html
 %doc %{_mandir}/man1/rasqal-config.1*
 
-%{_libdir}/lib*.so
-%{_libdir}/*a
-%{_libdir}/pkgconfig/rasqal.pc
-%{prefix}/include/*
 %{prefix}/bin/rasqal-config
+%{_libdir}/librasqal*.a
+%{_libdir}/librasqal*.la
+%{_libdir}/librasqal*.so
+%{_libdir}/pkgconfig/rasqal.pc
+
+%{prefix}/include/*
 
 
 %changelog
+* Mon Feb 24 2004 <Dave.Beckett@bristol.ac.uk>
+- Requires raptor
+
 * Mon Aug 11 2003 <Dave.Beckett@bristol.ac.uk>
 - Initial packaging
