@@ -756,8 +756,19 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
   for(i=0; i<2; i++) {
     if(lits[i]->type == RASQAL_LITERAL_VARIABLE) {
       lits[i]=lits[i]->value.variable->value;
+
+      /* Need to re-check for NULL values */
+      if(!lits[i]) {
+        /* A null value, so the comparison fails */
+        RASQAL_DEBUG2("literal %d is a variable with no value\n", i);
+        if(lits[1-i])
+          *error=1;
+        return 0;
+      }
+
       RASQAL_DEBUG3("literal %d is a variable, value is a %s\n", i,
                     rasqal_literal_type_labels[lits[i]->type]);
+
     }
     
 
