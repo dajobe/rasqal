@@ -212,7 +212,7 @@ QUOTEDURI \<[A-Za-z][^>]+\>
 }
 
 [0-9]+"."[0-9]*[eE][+-]?[0-9]+[fFdD]?|"."[0-9]+[eE][+-]?[0-9]+[fFdD]?|[0-9]+[eE][+-]?[0-9]+[fFdD]?|[0-9]+[eE][+-]?[0-9]+[fFdD]?|[0-9]+"."[0-9]*  { 
-                        sscanf(yytext, "%f", &rdql_parser_lval->floating);
+                        sscanf(yytext, "%lf", &rdql_parser_lval->floating);
                         return FLOATING_POINT_LITERAL;
 }
 

@@ -94,7 +94,7 @@ struct rasqal_literal_s {
   union {
     char *string; /* string, pattern, qname, blank types */
     int integer;  /* integer and boolean types */
-    float floating; /* floating */
+    double floating; /* floating */
     raptor_uri *uri; /* uri */
     rasqal_variable* variable; /* variable */
   } value;
@@ -237,7 +237,7 @@ RASQAL_API rasqal_literal* rasqal_new_variable_literal(rasqal_variable *variable
 RASQAL_API rasqal_literal* rasqal_new_literal_from_literal(rasqal_literal* l);
 RASQAL_API void rasqal_free_literal(rasqal_literal* l);
 RASQAL_API void rasqal_literal_print(rasqal_literal* literal, FILE* fh);
-RASQAL_API int rasqal_literal_as_boolean(rasqal_literal* literal);
+RASQAL_API int rasqal_literal_as_boolean(rasqal_literal* literal, int *error);
 RASQAL_API rasqal_variable* rasqal_literal_as_variable(rasqal_literal* l);
 RASQAL_API char* rasqal_literal_as_string(rasqal_literal* l);
 

@@ -97,7 +97,7 @@ static int rdql_query_error(rasqal_query* rq, const char *message);
   rasqal_literal *literal;
   rasqal_triple *triple;
   rasqal_expression *expr;
-  float floating;
+  double floating;
   raptor_uri *uri;
   char *name;
 }
