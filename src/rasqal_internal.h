@@ -39,11 +39,8 @@ extern "C" {
 #include <dmalloc.h>
 #endif
 
-#if defined(WIN32) || defined(_WIN32)
-#define RASQAL_INLINE
-#else
+/* Can be over-ridden or undefined */
 #define RASQAL_INLINE inline
-#endif
 
 #define RASQAL_MALLOC(type, size) malloc(size)
 #define RASQAL_CALLOC(type, size, count) calloc(size, count)
