@@ -93,7 +93,7 @@ check-local: check-rdql-correct
 
 check-rdql-correct: build-roqet $(srcdir)/check-rdql
 	@set +e; \
-	PATH=$(top_builddir):$$PATH \
+	PATH=$(top_builddir)@RAPPER_PATH@:$$PATH \
 	  perl $(srcdir)/check-rdql -s $(srcdir); \
 	result=$$?; \
 	if test $$result != 0 ; then \

@@ -496,9 +496,11 @@ AM_CONDITIONAL(RASQAL_QUERY_SPARQL, test $sparql_query_language = yes)
 if test $with_raptor = internal; then
   RASQAL_INTERNAL_CPPFLAGS="$RASQAL_INTERNAL_CPPFLAGS -I\$(top_srcdir)/../raptor"
   RASQAL_INTERNAL_LIBS="$RASQAL_INTERNAL_LIBS \$(top_builddir)/../raptor/libraptor.la"
+  RAPPER_PATH=":\$(top_srcdir)/../raptor"
 else
   RASQAL_EXTERNAL_CPPFLAGS="$RASQAL_EXTERNAL_CPPFLAGS `$RAPTOR_CONFIG --cflags`"
   RASQAL_EXTERNAL_LIBS="$RASQAL_EXTERNAL_LIBS `$RAPTOR_CONFIG --libs`"
+  RAPPER_PATH=""
 fi
 
 if test $need_regex_pcre = 1; then
@@ -548,6 +550,7 @@ AC_SUBST(RASQAL_EXTERNAL_LIBS)
 
 AC_SUBST(RASQAL_INTERNAL_CPPFLAGS)
 AC_SUBST(RASQAL_INTERNAL_LIBS)
+AC_SUBST(RAPPER_PATH)
 
 AC_SUBST(MEM)
 AC_SUBST(MEM_LIBS)
