@@ -72,12 +72,8 @@ README-RDQL-tests.txt copyright.txt
 
 EXPECTED_RDQL_WORKS_FAILURES=test-S-02 test-S-03 test-S-04 test-S-05
 
-# without pcre or posix regex
 EXPECTED_RDQL_CORRECT_FAILURES=1-09 B-01 S-02 S-03 S-04 S-05
 EXPECTED_RDQL_CORRECT_FAILURES_COUNT=6
-# with
-EXPECTED_RDQL_CORRECT_FAILURES2=1-09 B-01
-EXPECTED_RDQL_CORRECT_FAILURES_COUNT2=2
 
 EXTRA_DIST = README \
 check-rdql \
@@ -122,10 +118,8 @@ check-rdql-correct: $(top_builddir)/roqet $(srcdir)/check-rdql
 	  perl $(srcdir)/check-rdql; \
 	result=$$?; \
 	if test $$result != 0 ; then \
-	  echo "Expecting test failures: $(EXPECTED_RDQL_CORRECT_FAILURES) or $(EXPECTED_RDQL_CORRECT_FAILURES2)"; \
+	  echo "Expecting test failures: $(EXPECTED_RDQL_CORRECT_FAILURES)"; \
 	  if test $$result = $(EXPECTED_RDQL_CORRECT_FAILURES_COUNT) ; then \
-	    echo "OK: Ignoring expected test failures"; result=0; \
-	  elif test $$result = $(EXPECTED_RDQL_CORRECT_FAILURES_COUNT2) ; then \
 	    echo "OK: Ignoring expected test failures"; result=0; \
           else \
 	    echo "FAILED: $$result failures does not match expected $(EXPECTED_RDQL_CORRECT_FAILURES_COUNT)"; result=1; \
