@@ -63,7 +63,7 @@ sub run_test($$) {
 
   my $cmd;
 
-  $cmd="$roqet -d $test_file 2>/dev/null";
+  $cmd="$roqet -d $test_file 2>roqet.err";
   warn "$program: Running '$cmd'\n"
     if $debug;
 
@@ -96,6 +96,18 @@ sub run_test($$) {
   close(PIPE);
   close(OUT);
 
+  open(ERR, "<roqet.err") or die "$program: Cannot open roqet.err - $!\n";
+  my(@errs)=();
+  while(<ERR>) {
+    chomp;
+    push(@errs, "$test_file:$1: $2") if /(\d+) rasqal error - (.*)$/;
+  }
+  close(ERR);
+  if(@errs) {
+    warn "$program: $test FAILED - query returned errors:\n  ".join("\n  ",@errs)."\n";
+    return 1;
+  }
+  
   $cmd="rapper -i turtle -q -o ntriples $result_file";
 
   my(@node_order);
@@ -219,7 +231,7 @@ for my $entry (@entries) {
   $result++ if $rc;
 }
 
-unlink "roqet.out", "result.out", "diff.out"
+unlink "roqet.out", "result.out", "diff.out", "roqet.err"
   unless $unique_test;
 
 warn "$0: FAILED tests: @failed\n"
