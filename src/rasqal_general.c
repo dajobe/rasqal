@@ -76,8 +76,16 @@ rasqal_init(void)
     return;
 
   raptor_init();
-  
+
+  /* last one declared is the default - RDQL */
+
+#ifdef RASQAL_QUERY_BRQL  
+  rasqal_init_query_engine_brql();
+#endif
+
+#ifdef RASQAL_QUERY_RDQL
   rasqal_init_query_engine_rdql();
+#endif
 
 #ifdef RAPTOR_TRIPLES_SOURCE_RAPTOR
   rasqal_raptor_init();
