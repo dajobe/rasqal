@@ -160,7 +160,7 @@ rasqal_redland_triple_present(rasqal_triples_source *rts, void *user_data,
 
   s=librdf_new_statement_from_nodes(World, nodes[0], nodes[1], nodes[2]);
   
-  int rc=!librdf_model_contains_statement(rtsc->model, s);
+  int rc=librdf_model_contains_statement(rtsc->model, s);
   librdf_free_statement(s);
   return rc;
 }
