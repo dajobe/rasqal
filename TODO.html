@@ -13,13 +13,11 @@
 <h3><a name="general">General</a></h3>
 
 <ul>
-<li>Engine: generating result sets in RDF test case vocabulary</li>
 <li>Engine: result constraints - like <code>LIMIT</code> and <code>OFFSET</code> in SQL (extension)</li>
-<li>Engine: optional triples (extension)</li>
 <li>Engine: multiple sources (extension)</li>
 <li>Engine: constructing of triples (like SeRQL <code>construct</code>)</li>
 <li>Engine: handling distinct results</li>
-<li>QL: SeRQL - needs many engine changes (construct, optionals, multiple sources, distinct, paths, anon variables, predicates) - <a href="http://www.openrdf.org/doc/users/ch05.html">The SeRQL query language</a> in Sesame user manual.</li>
+<li>QL: SeRQL - needs many engine changes (construct, multiple sources, distinct, paths, anon variables, predicates) - <a href="http://www.openrdf.org/doc/users/ch05.html">The SeRQL query language</a> in Sesame user manual.</li>
 <li>QL: Squish - should be just syntax - <a href="http://swordfish.rdfweb.org/rdfquery/squish-bnf.html">Squish BNF</a></li> 
 <li>QL: <a href="http://www.guha.com/rdfdb/query.html">RDFDB query language</a> - should be just syntax</li>
 <li>QL: RQL, others - functional requirements not determined</li>
@@ -38,8 +36,6 @@ Unimplemented sections primarily include 4-7, parts of 8 and 9-11 but
 are not limited to those sections.  Detail of unimplemented parts are
 as follows:</p>
 <ul>
-<li><a href="http://www.w3.org/TR/2004/WD-rdf-sparql-query-20041012/#optionals">4 Including Optional Values</a></li>
-<li><a href="http://www.w3.org/TR/2004/WD-rdf-sparql-query-20041012/#OptionalMatching">4.1 Optional Matching</a> (<code>OPTIONAL</code> and <code>[</code> ...<code>]</code>)</li>
 <li><a href="http://www.w3.org/TR/2004/WD-rdf-sparql-query-20041012/#OptionalMultiple">4.2 Multiple Optional Blocks</a></li>
 <li><a href="http://www.w3.org/TR/2004/WD-rdf-sparql-query-20041012/#NestedPatterns">5 Nested Patterns</a> (<code>( (</code> ... <code>) )</code>)</li>
 <li><a href="http://www.w3.org/TR/2004/WD-rdf-sparql-query-20041012/#alternatives">6 More Pattern Matching &#x2013; Alternatives</a> (skeleton section)</li>
@@ -75,8 +71,6 @@ The test case and result seem to be inconsistent.  The test says "No match:
 the value in the model is datatyped." however result-B-01.n3 has 1
 result solution.</li>
 
-<li>S-02: UTF-8 in prefix - not yet in the RDQL lexer</li>
-
 <li>S-03: UTF-8 in qname - not yet in the RDQL lexer.</li>
 
 <li>S-04, S-05: \uHHH unicode in prefix - not yet in the RDQL lexer.</li>
@@ -94,6 +88,11 @@ result solution.</li>
 release version where appropriate.</p>
 
 <ul>
+<li>Engine: generating result sets in XML vocabulary (0.9.5)</li>
+<li>SPARQL <a href="http://www.w3.org/TR/2004/WD-rdf-sparql-query-20041012/#optionals">Optional Values</a> (0.9.5)</li>
+<li>SPARQL <a href="http://www.w3.org/TR/2004/WD-rdf-sparql-query-20041012/#OptionalMatching">Optional Matching</a> - <code>OPTIONAL</code> and <code>[</code> ...<code>]</code> (0.9.5)</li>
+<li>Engine: optional triples (0.9.5)</li>
+<li>RDQL: Allow UTF-8 in prefix to the RDQL lexer; enabling RDQL testsuite test S-02 to pass (0.9.5)</li>
 <li>Engine: re-running an execute() on a prepared query
 works and does not leak memory (0.9.3)</li>
 <li>RDQL: Checked that blank nodes are not allowed in RDQL queries.</li>
