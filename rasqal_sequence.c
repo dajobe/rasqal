@@ -40,6 +40,7 @@ struct rasqal_sequence_s {
   int size;
   int capacity;
   void **sequence;
+  rasqal_free_handler *free_handler;
 };
 
 
@@ -48,12 +49,13 @@ static int rasqal_sequence_grow(rasqal_sequence *seq);
 
 /* Constructor */
 rasqal_sequence*
-rasqal_new_sequence(int capacity) {
+rasqal_new_sequence(int capacity, rasqal_free_handler *free_handler) {
   rasqal_sequence* seq=(rasqal_sequence*)malloc(sizeof(rasqal_sequence));
   if(!seq)
     return NULL;
   seq->size=0;
   seq->capacity=0;
+  seq->free_handler=free_handler;
   
   if(capacity>0 && rasqal_sequence_ensure(seq, capacity)) {
     free(seq);
@@ -68,8 +70,11 @@ rasqal_new_sequence(int capacity) {
 void
 rasqal_free_sequence(rasqal_sequence* seq) {
   int i;
-  for(i=0; i< seq->size; i++)
-    free(seq->sequence[i]);
+
+  if(seq->free_handler)
+    for(i=0; i< seq->size; i++)
+      if(seq->sequence[i])
+        seq->free_handler(seq->sequence[i]);
 
   if(seq->sequence)
     free(seq->sequence);
@@ -92,6 +97,7 @@ rasqal_sequence_ensure(rasqal_sequence *seq, int capacity) {
   }
 
   seq->sequence=new_sequence;
+  seq->capacity=capacity;
   return 0;
 }
 
@@ -122,14 +128,17 @@ rasqal_sequence_set_at(rasqal_sequence* seq, int idx, void *data) {
       return 1;
   }
     
-  if(seq->sequence[idx])
-    free(seq->sequence[idx]);
+  if(seq->sequence[idx] && seq->free_handler)
+    seq->free_handler(seq->sequence[idx]);
   
   seq->sequence[idx]=data;
+  if(idx+1 > seq->size)
+    seq->size=idx+1;
   return 0;
 }
 
 
+/* add to end of sequence */
 int
 rasqal_sequence_push(rasqal_sequence* seq, void *data) {
   if(seq->size == seq->capacity) {
@@ -143,6 +152,7 @@ rasqal_sequence_push(rasqal_sequence* seq, void *data) {
 }
 
 
+/* add to start of sequence */
 int
 rasqal_sequence_shift(rasqal_sequence* seq, void *data) {
   int i;
@@ -152,7 +162,7 @@ rasqal_sequence_shift(rasqal_sequence* seq, void *data) {
       return 1;
   }
 
-  for(i=seq->size-1; i>0; i--)
+  for(i=seq->size; i>0; i--)
     seq->sequence[i]=seq->sequence[i-1];
   
   seq->sequence[0]=data;
@@ -169,6 +179,7 @@ rasqal_sequence_get_at(rasqal_sequence* seq, int idx) {
   return seq->sequence[idx];
 }
 
+/* remove from end of sequence */
 void*
 rasqal_sequence_pop(rasqal_sequence* seq) {
   void *data;
@@ -183,6 +194,7 @@ rasqal_sequence_pop(rasqal_sequence* seq) {
   return data;
 }
 
+/* remove from start of sequence */
 void*
 rasqal_sequence_unshift(rasqal_sequence* seq) {
   void *data;
@@ -195,6 +207,62 @@ rasqal_sequence_unshift(rasqal_sequence* seq) {
   seq->size--;
   for(i=0; i<seq->size; i++)
     seq->sequence[i]=seq->sequence[i+1];
-
+  seq->sequence[i]=NULL;
+  
   return data;
 }
+
+
+#ifdef STANDALONE
+#include <stdio.h>
+
+int main(int argc, char *argv[]);
+
+
+#define assert_match(function, result, string) do { if(strcmp(result, string)) { fprintf(stderr, #function " failed - returned %s, expected %s\n", result, string); exit(1); } } while(0)
+
+
+int
+main(int argc, char *argv[]) 
+{
+  rasqal_sequence* seq=rasqal_new_sequence(20, NULL);
+  char *s;
+  
+  rasqal_sequence_set_at(seq, 0, "second");
+
+  rasqal_sequence_push(seq, "third");
+
+  rasqal_sequence_shift(seq, "first");
+
+  s=(char*)rasqal_sequence_get_at(seq, 0);
+  assert_match(rasqal_sequence_get_at, s, "first");
+
+  s=(char*)rasqal_sequence_get_at(seq, 1);
+  assert_match(rasqal_sequence_get_at, s, "second");
+  
+  s=(char*)rasqal_sequence_get_at(seq, 2);
+  assert_match(rasqal_sequence_get_at, s, "third");
+  
+  if(rasqal_sequence_size(seq) !=3)
+    exit(1);
+
+  s=(char*)rasqal_sequence_pop(seq);
+  assert_match(rasqal_sequence_get_at, s, "third");
+
+  if(rasqal_sequence_size(seq) !=2)
+    exit(1);
+
+  s=(char*)rasqal_sequence_unshift(seq);
+  assert_match(rasqal_sequence_get_at, s, "first");
+
+  if(rasqal_sequence_size(seq) !=1)
+    exit(1);
+
+  s=(char*)rasqal_sequence_get_at(seq, 0);
+  assert_match(rasqal_sequence_get_at, s, "second");
+  
+  rasqal_free_sequence(seq);
+
+  return (0);
+}
+#endif
