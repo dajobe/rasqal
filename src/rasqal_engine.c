@@ -195,9 +195,23 @@ rasqal_engine_declare_prefix(rasqal_query *rq, rasqal_prefix *p)
   if(raptor_namespaces_start_namespace_full(rq->namespaces, 
                                             p->prefix, 
                                             raptor_uri_as_string(p->uri),
-                                            0))
+                                            rq->prefix_depth))
     return 1;
   p->declared=1;
+  rq->prefix_depth++;
+  return 0;
+}
+
+
+int
+rasqal_engine_undeclare_prefix(rasqal_query *rq, rasqal_prefix *prefix)
+{
+  if(!prefix->declared) {
+    prefix->declared=1;
+    return 0;
+  }
+  
+  raptor_namespaces_end_for_depth(rq->namespaces, prefix->depth);
   return 0;
 }
 
