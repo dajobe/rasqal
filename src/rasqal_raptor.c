@@ -357,11 +357,11 @@ typedef struct {
 } rasqal_raptor_triples_match_context;
 
 
-static int
+static rasqal_triple_parts
 rasqal_raptor_bind_match(struct rasqal_triples_match_s* rtm,
                          void *user_data,
-                         rasqal_variable* bindings[4]) 
-{
+                         rasqal_variable* bindings[4],
+                         rasqal_triple_parts parts) {
   rasqal_raptor_triples_match_context* rtmc=(rasqal_raptor_triples_match_context*)rtm->user_data;
   int error=0;
   
@@ -376,12 +376,12 @@ rasqal_raptor_bind_match(struct rasqal_triples_match_s* rtm,
 
   /* set variable values from the fields of statement */
 
-  if(bindings[0]) {
+  if(bindings[0] && (parts & RASQAL_TRIPLE_SUBJECT)) {
     RASQAL_DEBUG1("binding subject to variable\n");
     rasqal_variable_set_value(bindings[0], rasqal_literal_as_node(rtmc->cur->triple->subject));
   }
 
-  if(bindings[1]) {
+  if(bindings[1] && (parts & RASQAL_TRIPLE_PREDICATE)) {
     if(bindings[0] == bindings[1]) {
       if(rasqal_literal_compare(rtmc->cur->triple->subject,
                                 rtmc->cur->triple->predicate, 0, &error))
@@ -396,7 +396,7 @@ rasqal_raptor_bind_match(struct rasqal_triples_match_s* rtm,
     }
   }
 
-  if(bindings[2]) {
+  if(bindings[2] && (parts & RASQAL_TRIPLE_OBJECT)) {
     int bind=1;
     
     if(bindings[0] == bindings[2]) {
@@ -428,7 +428,7 @@ rasqal_raptor_bind_match(struct rasqal_triples_match_s* rtm,
     }
   }
 
-  if(bindings[3]) {
+  if(bindings[3] && (parts & RASQAL_TRIPLE_ORIGIN)) {
     rasqal_literal *l=rasqal_new_literal_from_literal(rtmc->cur->triple->origin);
     RASQAL_DEBUG1("binding origin to variable\n");
     rasqal_variable_set_value(bindings[3], l);
