@@ -19,7 +19,7 @@
 # 
 # 
 
-EXTRA_DIST=api.sgml.in api.sgml \
+EXTRA_DIST=api.sgml.in api.sgml README.html README \
 build-docs api \
 kernel-doc
 
@@ -29,7 +29,7 @@ DOC_C_FILES=$(DOC_CLASSES:%=$(srcdir)/../rasqal%.c)
 API_DOCBOOK_FILES=$(DOC_CLASSES:%=%.sgml)
 API_HTML_FILES=$(DOC_CLASSES:%=api_%.html)
 
-CLEANFILES=
+CLEANFILES=README
 MAINTAINERCLEANFILES=api.sgml api $(API_DOCBOOK_FILES) \
 $(API_HTML_FILES)
 
@@ -82,5 +82,8 @@ else
 clean-local:
 	rm -rf $(API_DOCBOOK_FILES) api.junk DBTOHTML* pod2htm*
 endif
+
+README: README.html
+	$(LYNX) $(LYNXARGS) $< > $@
 
 @SET_MAKE@
