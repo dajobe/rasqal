@@ -910,6 +910,6 @@ main(int argc, char *argv[])
   if(result)
     rasqal_free_literal(result);
 
-  return (result != NULL);
+  return (result == NULL);
 }
 #endif
