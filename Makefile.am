@@ -119,9 +119,9 @@ rdql_lexer.c: $(srcdir)/rdql_lexer.l rdql_parser.c $(srcdir)/fix-flex
 
 rdql_parser.c: $(srcdir)/rdql_parser.y
 	$(YACC) -b rdql_parser -p rdql_parser_ -d -v $(srcdir)/rdql_parser.y
-	sed -e '/Suppress GCC warning that yyerrlab1/,/^\#endif/d' rdql_parser.c > $@
-	mv rdql_parser.h rdql_parser.h
-	rm -f rdql_parser.c
+	sed -e '/Suppress GCC warning that yyerrlab1/,/^\#endif/d' rdql_parser.tab.c > $@
+	mv rdql_parser.tab.h rdql_parser.h
+	rm -f rdql_parser.tab.c
 endif
 
 
