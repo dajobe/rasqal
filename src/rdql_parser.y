@@ -92,7 +92,7 @@ static int rdql_query_error(rasqal_query* rq, const char *message);
 
 /* Interface between lexer and parser */
 %union {
-  rasqal_sequence *seq;
+  raptor_sequence *seq;
   rasqal_variable *variable;
   rasqal_literal *literal;
   rasqal_triple *triple;
@@ -185,18 +185,18 @@ Query : SELECT SelectClause SourceClause WHERE TriplePatternList ConstraintClaus
 VarList : Var COMMA VarList 
 {
   $$=$3;
-  rasqal_sequence_shift($$, $1);
+  raptor_sequence_shift($$, $1);
 }
 | Var VarList 
 {
   $$=$2;
-  rasqal_sequence_shift($$, $1);
+  raptor_sequence_shift($$, $1);
 }
 | Var 
 {
   /* The variables are freed from the raptor_query field variables */
-  $$=rasqal_new_sequence(NULL, (rasqal_print_handler*)rasqal_variable_print);
-  rasqal_sequence_push($$, $1);
+  $$=raptor_new_sequence(NULL, (raptor_sequence_print_handler*)rasqal_variable_print);
+  raptor_sequence_push($$, $1);
 }
 ;
 
@@ -233,17 +233,17 @@ SourceClause : SOURCE URIList
 TriplePatternList : TriplePattern COMMA TriplePatternList
 {
   $$=$3;
-  rasqal_sequence_shift($$, $1);
+  raptor_sequence_shift($$, $1);
 }
 | TriplePattern TriplePatternList
 {
   $$=$2;
-  rasqal_sequence_shift($$, $1);
+  raptor_sequence_shift($$, $1);
 }
 | TriplePattern
 {
-  $$=rasqal_new_sequence((rasqal_free_handler*)rasqal_free_triple, (rasqal_print_handler*)rasqal_triple_print);
-  rasqal_sequence_push($$, $1);
+  $$=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_triple, (raptor_sequence_print_handler*)rasqal_triple_print);
+  raptor_sequence_push($$, $1);
 }
 ;
 
@@ -289,17 +289,17 @@ ConstraintClause : AND CommaAndConstraintClause
 CommaAndConstraintClause : Expression COMMA CommaAndConstraintClause
 {
   $$=$3;
-  rasqal_sequence_shift($$, $1);
+  raptor_sequence_shift($$, $1);
 }
 | Expression AND CommaAndConstraintClause
 {
   $$=$3;
-  rasqal_sequence_shift($$, $1);
+  raptor_sequence_shift($$, $1);
 }
 | Expression
 {
-  $$=rasqal_new_sequence(NULL, (rasqal_print_handler*)rasqal_expression_print);
-  rasqal_sequence_push($$, $1);
+  $$=raptor_new_sequence(NULL, (raptor_sequence_print_handler*)rasqal_expression_print);
+  raptor_sequence_push($$, $1);
 }
 ;
 
@@ -318,12 +318,12 @@ UsingClause : USING PrefixDeclList
 PrefixDeclList : IDENTIFIER FOR URI_LITERAL COMMA PrefixDeclList 
 {
   $$=$5;
-  rasqal_sequence_shift($$, rasqal_new_prefix($1, $3));
+  raptor_sequence_shift($$, rasqal_new_prefix($1, $3));
 }
 | IDENTIFIER FOR URI_LITERAL
 {
-  $$=rasqal_new_sequence((rasqal_free_handler*)rasqal_free_prefix, (rasqal_print_handler*)rasqal_prefix_print);
-  rasqal_sequence_push($$, rasqal_new_prefix($1, $3));
+  $$=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_prefix, (raptor_sequence_print_handler*)rasqal_prefix_print);
+  raptor_sequence_push($$, rasqal_new_prefix($1, $3));
 }
 ;
 
@@ -495,12 +495,12 @@ UnaryExpressionNotPlusMinus : TILDE UnaryExpression
 ArgList : VarOrLiteral COMMA ArgList
 {
   $$=$3;
-  rasqal_sequence_shift($$, $1);
+  raptor_sequence_shift($$, $1);
 }
 | VarOrLiteral
 {
-  $$=rasqal_new_sequence((rasqal_free_handler*)rasqal_free_expression, (rasqal_print_handler*)rasqal_expression_print);
-  rasqal_sequence_push($$, $1);
+  $$=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_expression, (raptor_sequence_print_handler*)rasqal_expression_print);
+  raptor_sequence_push($$, $1);
 }
 ;
 
@@ -575,12 +575,12 @@ Literal : URI_LITERAL
 URIList : URI_LITERAL COMMA URIList
 {
   $$=$3;
-  rasqal_sequence_shift($$, $1);
+  raptor_sequence_shift($$, $1);
 }
 | URI_LITERAL
 {
-  $$=rasqal_new_sequence((rasqal_free_handler*)raptor_free_uri, (rasqal_print_handler*)rasqal_sequence_print_uri);
-  rasqal_sequence_push($$, $1);
+  $$=raptor_new_sequence((raptor_sequence_free_handler*)raptor_free_uri, (raptor_sequence_print_handler*)raptor_sequence_print_uri);
+  raptor_sequence_push($$, $1);
 }
 ;
 
@@ -811,7 +811,7 @@ main(int argc, char *argv[])
                                          rasqal_query_simple_error,
                                          &query,
                                          0);
-  query.variables_sequence=rasqal_new_sequence((rasqal_free_handler*)rasqal_free_variable, (rasqal_print_handler*)rasqal_variable_print);
+  query.variables_sequence=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_variable, (raptor_sequence_print_handler*)rasqal_variable_print);
   
   locator->line= locator->column = -1;
   locator->file= filename;

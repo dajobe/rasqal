@@ -85,7 +85,7 @@ rasqal_new_query(const char *name, const unsigned char *uri) {
                                          "rdfs", RAPTOR_RDF_SCHEMA_URI,0);
 
 
-  rdf_query->variables_sequence=rasqal_new_sequence((rasqal_free_handler*)rasqal_free_variable, (rasqal_print_handler*)rasqal_variable_print);
+  rdf_query->variables_sequence=raptor_new_sequence((raptor_free_handler*)rasqal_free_variable, (raptor_print_handler*)rasqal_variable_print);
 
 
   if(factory->init(rdf_query, name)) {
@@ -122,21 +122,21 @@ rasqal_free_query(rasqal_query* rdf_query)
     RASQAL_FREE(cstring, rdf_query->query_string);
 
   if(rdf_query->selects)
-    rasqal_free_sequence(rdf_query->selects);
+    raptor_free_sequence(rdf_query->selects);
   if(rdf_query->sources)
-    rasqal_free_sequence(rdf_query->sources);
+    raptor_free_sequence(rdf_query->sources);
   if(rdf_query->triples)
-    rasqal_free_sequence(rdf_query->triples);
+    raptor_free_sequence(rdf_query->triples);
   if(rdf_query->constraints)
-    rasqal_free_sequence(rdf_query->constraints);
+    raptor_free_sequence(rdf_query->constraints);
   if(rdf_query->prefixes)
-    rasqal_free_sequence(rdf_query->prefixes);
+    raptor_free_sequence(rdf_query->prefixes);
   if(rdf_query->ordered_triples)
-    rasqal_free_sequence(rdf_query->ordered_triples);
+    raptor_free_sequence(rdf_query->ordered_triples);
   if(rdf_query->variables)
     RASQAL_FREE(vararray, rdf_query->variables);
   if(rdf_query->variables_sequence)
-    rasqal_free_sequence(rdf_query->variables_sequence);
+    raptor_free_sequence(rdf_query->variables_sequence);
   if(rdf_query->constraints_expression)
     rasqal_free_expression(rdf_query->constraints_expression);
 
@@ -171,17 +171,17 @@ rasqal_get_label(rasqal_query *rdf_query)
 
 void
 rasqal_query_add_source(rasqal_query* query, const unsigned char* uri) {
-  rasqal_sequence_shift(query->sources, (void*)uri);
+  raptor_sequence_shift(query->sources, (void*)uri);
 }
 
-rasqal_sequence*
+raptor_sequence*
 rasqal_query_get_source_sequence(rasqal_query* query) {
   return query->sources;
 }
 
 const unsigned char *
 rasqal_query_get_source(rasqal_query* query, int idx) {
-  return rasqal_sequence_get_at(query->sources, idx);
+  return raptor_sequence_get_at(query->sources, idx);
 }
 
 
@@ -189,8 +189,8 @@ int
 rasqal_query_has_variable(rasqal_query* query, const char *name) {
   int i;
 
-  for(i=0; i< rasqal_sequence_size(query->selects); i++) {
-    rasqal_variable* v=rasqal_sequence_get_at(query->selects, i);
+  for(i=0; i< raptor_sequence_size(query->selects); i++) {
+    rasqal_variable* v=raptor_sequence_get_at(query->selects, i);
     if(!strcmp(v->name, name))
       return 1;
   }
@@ -203,8 +203,8 @@ rasqal_query_set_variable(rasqal_query* query, const char *name,
                           rasqal_expression* value) {
   int i;
 
-  for(i=0; i< rasqal_sequence_size(query->selects); i++) {
-    rasqal_variable* v=rasqal_sequence_get_at(query->selects, i);
+  for(i=0; i< raptor_sequence_size(query->selects); i++) {
+    rasqal_variable* v=raptor_sequence_get_at(query->selects, i);
     if(!strcmp(v->name, name)) {
       if(v->value)
         rasqal_free_expression(v->value);
@@ -287,18 +287,18 @@ rasqal_query_execute(rasqal_query *rdf_query)
 void
 rasqal_query_print(rasqal_query* query, FILE *fh) {
   fprintf(fh, "selects: ");
-  rasqal_sequence_print(query->selects, fh);
+  raptor_sequence_print(query->selects, fh);
   fprintf(fh, "\nsources: ");
-  rasqal_sequence_print(query->sources, fh);
+  raptor_sequence_print(query->sources, fh);
   fprintf(fh, "\ntriples: ");
-  rasqal_sequence_print(query->triples, fh);
+  raptor_sequence_print(query->triples, fh);
   if(query->ordered_triples) {
     fprintf(fh, "\nordered triples: ");
-    rasqal_sequence_print(query->ordered_triples, fh);
+    raptor_sequence_print(query->ordered_triples, fh);
   }
   fprintf(fh, "\nconstraints: ");
-  rasqal_sequence_print(query->constraints, fh);
+  raptor_sequence_print(query->constraints, fh);
   fprintf(fh, "\nprefixes: ");
-  rasqal_sequence_print(query->prefixes, fh);
+  raptor_sequence_print(query->prefixes, fh);
   fputc('\n', fh);
 }

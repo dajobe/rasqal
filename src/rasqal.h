@@ -55,8 +55,6 @@ extern const unsigned int rasqal_version_decimal;
 /* Public structure */
 typedef struct rasqal_query_s rasqal_query;
 
-typedef struct rasqal_sequence_s rasqal_sequence;
-
 typedef enum {
   RASQAL_FEATURE_LAST
 } rasqal_feature;
@@ -186,7 +184,7 @@ RASQAL_API void rasqal_free_query(rasqal_query* query);
 
 /* Methods */
 RASQAL_API void rasqal_query_add_source(rasqal_query* query, const unsigned char* uri);
-RASQAL_API rasqal_sequence* rasqal_query_get_source_sequence(rasqal_query* query);
+RASQAL_API raptor_sequence* rasqal_query_get_source_sequence(rasqal_query* query);
 RASQAL_API const unsigned char* rasqal_query_get_source(rasqal_query* query, int idx);
 RASQAL_API int rasqal_query_has_variable(rasqal_query* query, const char *name);
 RASQAL_API int rasqal_query_set_variable(rasqal_query* query, const char *name, rasqal_expression* value);
@@ -201,34 +199,6 @@ RASQAL_API int rasqal_query_prepare(rasqal_query *rdf_query, const unsigned char
 RASQAL_API int rasqal_query_execute(rasqal_query *rdf_query);
 
 
-
-
-/* Sequence class */
-
-typedef void* (rasqal_free_handler(void*));
-typedef void (rasqal_print_handler(void *object, FILE *fh));
-
-/* Create */
-RASQAL_API rasqal_sequence* rasqal_new_sequence(rasqal_free_handler* free_handler, rasqal_print_handler* print_handler);
-/* Destroy */
-RASQAL_API void rasqal_free_sequence(rasqal_sequence* seq);
-/* Methods */
-RASQAL_API int rasqal_sequence_size(rasqal_sequence* seq);
-RASQAL_API int rasqal_sequence_set_at(rasqal_sequence* seq, int idx, void *data);
-RASQAL_API int rasqal_sequence_push(rasqal_sequence* seq, void *data);
-RASQAL_API int rasqal_sequence_shift(rasqal_sequence* seq, void *data);
-RASQAL_API void* rasqal_sequence_get_at(rasqal_sequence* seq, int idx);
-RASQAL_API void* rasqal_sequence_pop(rasqal_sequence* seq);
-RASQAL_API void* rasqal_sequence_unshift(rasqal_sequence* seq);
-
-RASQAL_API int rasqal_compare_strings(const void *a, const void *b);
-
-RASQAL_API void rasqal_sequence_sort(rasqal_sequence* seq, int(*compare)(const void *, const void *));
-
-/* helper for printing sequences of strings */ 
-RASQAL_API void rasqal_sequence_print_string(char *data, FILE *fh);
-RASQAL_API void rasqal_sequence_print_uri(char *data, FILE *fh);
-RASQAL_API void rasqal_sequence_print(rasqal_sequence* seq, FILE* fh);
 
 /* Expression class */
 RASQAL_API rasqal_expression* rasqal_new_1op_expression(rasqal_op op, rasqal_expression* arg);

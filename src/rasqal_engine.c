@@ -55,7 +55,7 @@ rasqal_query_order_triples_score(rasqal_query* query,
                                  int* position) {
   int i;
   rasqal_triple* nt=NULL;
-  int triples_size=rasqal_sequence_size(query->triples);
+  int triples_size=raptor_sequence_size(query->triples);
   int next_score=0;
   int next_i= -1;
   
@@ -64,7 +64,7 @@ rasqal_query_order_triples_score(rasqal_query* query,
 #endif
 
   for(i=0; i< triples_size; i++) {
-    rasqal_triple* t=rasqal_sequence_get_at(query->triples, i);
+    rasqal_triple* t=raptor_sequence_get_at(query->triples, i);
     rasqal_variable* v;
 
     if((v=rasqal_expression_as_variable(t->subject))) {
@@ -98,7 +98,7 @@ rasqal_query_order_triples_score(rasqal_query* query,
 
   /* Pick triples providing least result variables first */
   for(i=0; i< triples_size; i++) {
-    rasqal_triple* t=rasqal_sequence_get_at(query->triples, i);
+    rasqal_triple* t=raptor_sequence_get_at(query->triples, i);
     if(!ord[i].seen && (!nt || (ord[i].score < next_score))) {
 #if RASQAL_DEBUG >2
       RASQAL_DEBUG4("chose triple %i with score %d, less than %d\n", 
@@ -124,22 +124,22 @@ int
 rasqal_query_order_triples(rasqal_query* query) {
   int i;
   rq_ordering* ord;
-  int triples_size=rasqal_sequence_size(query->triples);
+  int triples_size=raptor_sequence_size(query->triples);
 #ifdef RASQAL_DEBUG
   int ordering_changed=0;
 #endif
 
   if(query->ordered_triples)
-    rasqal_free_sequence(query->ordered_triples);
+    raptor_free_sequence(query->ordered_triples);
 
   /* NOTE: Shared triple pointers with the query->triples - 
    * entries in the ordered_triples sequence are not freed 
    */
-  query->ordered_triples=rasqal_new_sequence(NULL, (rasqal_print_handler*)rasqal_triple_print);
+  query->ordered_triples=raptor_new_sequence(NULL, (raptor_print_handler*)rasqal_triple_print);
 
   if(triples_size == 1) {
-    rasqal_sequence_push(query->ordered_triples, 
-                         rasqal_sequence_get_at(query->triples, 0));
+    raptor_sequence_push(query->ordered_triples, 
+                         raptor_sequence_get_at(query->triples, 0));
     return 0;
   }
   
@@ -154,7 +154,7 @@ rasqal_query_order_triples(rasqal_query* query) {
     if(!nt)
       break;
 
-    rasqal_sequence_push(query->ordered_triples, nt);
+    raptor_sequence_push(query->ordered_triples, nt);
 
     ord[original_i].seen=1;
 #ifdef RASQAL_DEBUG
@@ -189,8 +189,8 @@ rasqal_engine_declare_prefixes(rasqal_query *rq)
   if(!rq->prefixes)
     return 0;
   
-  for(i=0; i< rasqal_sequence_size(rq->prefixes); i++) {
-    rasqal_prefix* p=rasqal_sequence_get_at(rq->prefixes, i);
+  for(i=0; i< raptor_sequence_size(rq->prefixes); i++) {
+    rasqal_prefix* p=raptor_sequence_get_at(rq->prefixes, i);
 
     if(raptor_namespaces_start_namespace_full(rq->namespaces, 
                                               p->prefix, 
@@ -230,8 +230,8 @@ rasqal_engine_expand_triple_qnames(rasqal_query* rq)
   int i;
   
   /* expand qnames in triples */
-  for(i=0; i< rasqal_sequence_size(rq->triples); i++) {
-    rasqal_triple* t=rasqal_sequence_get_at(rq->triples, i);
+  for(i=0; i< raptor_sequence_size(rq->triples); i++) {
+    rasqal_triple* t=raptor_sequence_get_at(rq->triples, i);
     if(rasqal_engine_expand_qname(rq, t->subject) ||
        rasqal_engine_expand_qname(rq, t->predicate) ||
        rasqal_engine_expand_qname(rq, t->object))
@@ -251,8 +251,8 @@ rasqal_engine_expand_constraints_qnames(rasqal_query* rq)
     return 0;
   
   /* expand qnames in constraint expressions */
-  for(i=0; i<rasqal_sequence_size(rq->constraints); i++) {
-    rasqal_expression* e=(rasqal_expression*)rasqal_sequence_get_at(rq->constraints, i);
+  for(i=0; i<raptor_sequence_size(rq->constraints); i++) {
+    rasqal_expression* e=(rasqal_expression*)raptor_sequence_get_at(rq->constraints, i);
     if(rasqal_expression_foreach(e, rasqal_engine_expand_qname, rq))
       return 1;
   }
@@ -270,8 +270,8 @@ rasqal_engine_build_constraints_expression(rasqal_query* rq)
   if(!rq->constraints)
     return 0;
   
-  for(i=rasqal_sequence_size(rq->constraints)-1; i>=0 ; i--) {
-    rasqal_expression* e=rasqal_sequence_get_at(rq->constraints, i);
+  for(i=raptor_sequence_size(rq->constraints)-1; i>=0 ; i--) {
+    rasqal_expression* e=raptor_sequence_get_at(rq->constraints, i);
     if(!newe)
       newe=e;
     else
@@ -291,18 +291,18 @@ rasqal_engine_assign_variables(rasqal_query* rq)
 
   /* If 'SELECT *' was given, make the selects be a list of all variables */
   if(rq->select_all) {
-    rq->selects=rasqal_new_sequence(NULL, (rasqal_print_handler*)rasqal_variable_print);
+    rq->selects=raptor_new_sequence(NULL, (raptor_print_handler*)rasqal_variable_print);
     
     for(i=0; i< rq->variables_count; i++)
-      rasqal_sequence_push(rq->selects, rasqal_sequence_get_at(rq->variables_sequence, i));
+      raptor_sequence_push(rq->selects, raptor_sequence_get_at(rq->variables_sequence, i));
   }
   
-  rq->select_variables_count=rasqal_sequence_size(rq->selects);
+  rq->select_variables_count=raptor_sequence_size(rq->selects);
 
   rq->variables=(rasqal_variable**)RASQAL_MALLOC(varrary, sizeof(rasqal_variable*)*rq->variables_count);
 
   for(i=0; i< rq->variables_count; i++)
-    rq->variables[i]=(rasqal_variable*)rasqal_sequence_get_at(rq->variables_sequence, i);
+    rq->variables[i]=(rasqal_variable*)raptor_sequence_get_at(rq->variables_sequence, i);
 
   return 0;
 }
@@ -400,7 +400,7 @@ rasqal_triples_match_is_end(struct rasqal_triples_match_s* rtm) {
 int
 rasqal_engine_execute_init(rasqal_query *query) {
   raptor_uri* source;
-  int triples_size=rasqal_sequence_size(query->triples);
+  int triples_size=raptor_sequence_size(query->triples);
   int i;
   
   /* Expand 'SELECT *' and create the query->variables array */
@@ -412,7 +412,7 @@ rasqal_engine_execute_init(rasqal_query *query) {
 
   rasqal_engine_build_constraints_expression(query);
 
-  source=rasqal_sequence_get_at(query->sources, 0);
+  source=raptor_sequence_get_at(query->sources, 0);
 
   query->triples_source=rasqal_new_triples_source(query, source);
   
@@ -421,7 +421,7 @@ rasqal_engine_execute_init(rasqal_query *query) {
     return 1;
   
   for(i=0; i<triples_size; i++) {
-    rasqal_triple *t=rasqal_sequence_get_at(query->triples, i);
+    rasqal_triple *t=raptor_sequence_get_at(query->triples, i);
 
     query->triple_meta[i].is_exact=
       !(rasqal_expression_as_variable(t->predicate) ||
@@ -452,12 +452,12 @@ rasqal_engine_execute_finish(rasqal_query *query) {
  */
 static int
 rasqal_engine_get_next_result(rasqal_query *query) {
-  int triples_size=rasqal_sequence_size(query->triples);
+  int triples_size=raptor_sequence_size(query->triples);
   int rc=0;
   
   while(query->column >= 0) {
     rasqal_triple_meta *m=&query->triple_meta[query->column];
-    rasqal_triple *t=rasqal_sequence_get_at(query->triples, query->column);
+    rasqal_triple *t=raptor_sequence_get_at(query->triples, query->column);
 
     if (m->is_exact) {
       /* exact triple match wanted */
@@ -512,11 +512,11 @@ rasqal_engine_get_next_result(rasqal_query *query) {
       /* check any constraints */
       if(query->constraints) {
         int c;
-        for(c=0; c< rasqal_sequence_size(query->constraints); c++) {
+        for(c=0; c< raptor_sequence_size(query->constraints); c++) {
           rasqal_expression* expr;
           rasqal_literal* result;
           
-          expr=(rasqal_expression*)rasqal_sequence_get_at(query->constraints, c);
+          expr=(rasqal_expression*)raptor_sequence_get_at(query->constraints, c);
           fprintf(stderr, "constraint %d expression: ", c);
           rasqal_expression_print(expr, stderr);
           fputc('\n', stderr);
@@ -575,10 +575,10 @@ rasqal_engine_run(rasqal_query *query) {
     if(rc > 0) {
       /* matched ok, so print out the variable bindings */
       fprintf(stdout, "result: ");
-      rasqal_sequence_print(query->selects, stdout);
+      raptor_sequence_print(query->selects, stdout);
       fputc('\n', stdout);
       fprintf(stdout, "result as triples: ");
-      rasqal_sequence_print(query->triples, stdout);
+      raptor_sequence_print(query->triples, stdout);
       fputc('\n', stdout);
     }
     rc=0;
