@@ -305,10 +305,15 @@ QUOTEDURI \<[A-Za-z][^>]+\>
                   yyterminate();
 }
 
-{QNAME}	{ sparql_parser_lval->name=sparql_copy_qname(rq, (const unsigned char*)yytext, yyleng);
-	  if(!sparql_parser_lval->name)
-	    yyterminate();
-                          return QNAME_LITERAL; }
+{QNAME}	{	if(yyleng > 2 && yytext[0] == '_' && yytext[1] == ':') {
+ 		  sparql_parser_lval->name=sparql_copy_name(rq, (unsigned char*)yytext+2, yyleng-2);
+		  return BLANK_LITERAL;
+                }
+		sparql_parser_lval->name=sparql_copy_qname(rq, (const unsigned char*)yytext, yyleng);
+		if(!sparql_parser_lval->name)
+		  yyterminate();
+ 		return QNAME_LITERAL;
+}
 
 {QUOTEDURI}   { if(yyleng == 2) 
                   sparql_parser_lval->uri=raptor_uri_copy(rq->base_uri);
@@ -814,6 +819,10 @@ sparql_token_print(int token, YYSTYPE *lval)
       sprintf(buffer, "IDENTIFIER(%s)", lval->name);
       return buffer;
 
+    case BLANK_LITERAL:
+      sprintf(buffer, "BLANK_LITERAL(%s)", lval->name);
+      return buffer;
+
    default:
      RASQAL_DEBUG2("UNKNOWN token %d - add a new case\n", token);
      abort();
@@ -839,6 +848,7 @@ sparql_token_free(int token, YYSTYPE *lval)
       raptor_free_uri(lval->uri);
       break;
     case IDENTIFIER:
+    case BLANK_LITERAL:
       free(lval->name);
       break;
     case QNAME_LITERAL:
