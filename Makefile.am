@@ -43,8 +43,8 @@ endif
 CLEANFILES=$(TESTS) $(local_tests)
 MAINTAINERCLEANFILES=rdql_lexer.c rdql_lexer.h \
 rdql_parser.c rdql_parser.h rdql_parser.output \
-brql_lexer.c brql_lexer.h \
-brql_parser.c brql_parser.h brql_parser.output
+sparql_lexer.c sparql_lexer.h \
+sparql_parser.c sparql_parser.h sparql_parser.output
 
 MEM=@MEM@
 MEM_LIBS=@MEM_LIBS@
@@ -63,8 +63,8 @@ librasqal_la_SOURCES += rdql_lexer.c rdql_lexer.h \
 rdql_parser.c rdql_parser.h rdql_common.h
 endif
 if RASQAL_QUERY_SPARQL
-librasqal_la_SOURCES += brql_lexer.c brql_lexer.h \
-brql_parser.c brql_parser.h brql_common.h
+librasqal_la_SOURCES += sparql_lexer.c sparql_lexer.h \
+sparql_parser.c sparql_parser.h sparql_common.h
 endif
 
 if GETOPT
@@ -91,7 +91,7 @@ README      NEWS      LICENSE.txt \
 README.html NEWS.html LICENSE.html INSTALL.html \
 MPL.html librasqal.html roqet.html RELEASE.html \
 rdql_lexer.l rdql_parser.y \
-brql_lexer.l brql_parser.y \
+sparql_lexer.l sparql_parser.y \
 rasqal-config.in rasqal-src-config.in \
 autogen.sh \
 rasqal.spec.in \
@@ -143,19 +143,19 @@ rdql_parser.c: $(srcdir)/rdql_parser.y $(srcdir)/fix-bison
 	mv rdql_parser.tab.h rdql_parser.h
 	rm -f rdql_parser.tab.c
 
-# Actually it needs brql_parser.h but nevermind
-brql_lexer.c: $(srcdir)/brql_lexer.l brql_parser.c $(srcdir)/fix-flex
-	$(LEX) -o$@ $(srcdir)/brql_lexer.l
-	$(PERL) $(srcdir)/fix-flex $@ > brql_lexer.t
-	mv brql_lexer.t $@
-	$(PERL) $(srcdir)/fix-flex brql_lexer.h > brql_lexer.t
-	mv brql_lexer.t brql_lexer.h
+# Actually it needs sparql_parser.h but nevermind
+sparql_lexer.c: $(srcdir)/sparql_lexer.l sparql_parser.c $(srcdir)/fix-flex
+	$(LEX) -o$@ $(srcdir)/sparql_lexer.l
+	$(PERL) $(srcdir)/fix-flex $@ > sparql_lexer.t
+	mv sparql_lexer.t $@
+	$(PERL) $(srcdir)/fix-flex sparql_lexer.h > sparql_lexer.t
+	mv sparql_lexer.t sparql_lexer.h
 
-brql_parser.c: $(srcdir)/brql_parser.y $(srcdir)/fix-bison
-	$(YACC) -b brql_parser -p brql_parser_ -d -v $(srcdir)/brql_parser.y
-	$(PERL) $(srcdir)/fix-bison brql_parser.tab.c > $@
-	mv brql_parser.tab.h brql_parser.h
-	rm -f brql_parser.tab.c
+sparql_parser.c: $(srcdir)/sparql_parser.y $(srcdir)/fix-bison
+	$(YACC) -b sparql_parser -p sparql_parser_ -d -v $(srcdir)/sparql_parser.y
+	$(PERL) $(srcdir)/fix-bison sparql_parser.tab.c > $@
+	mv sparql_parser.tab.h sparql_parser.h
+	rm -f sparql_parser.tab.c
 endif
 
 
@@ -168,11 +168,11 @@ rdql_lexer_test: $(srcdir)/rdql_lexer.c librasqal.la
 rdql_parser_test: $(srcdir)/rdql_parser.c librasqal.la
 	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE @RASQAL_INTERNAL_CPPFLAGS@ $(srcdir)/rdql_parser.c librasqal.la $(LIBS)
 
-sparql_lexer_test: $(srcdir)/brql_lexer.c librasqal.la
-	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE @RASQAL_INTERNAL_CPPFLAGS@ $(srcdir)/brql_lexer.c librasqal.la $(LIBS)
+sparql_lexer_test: $(srcdir)/sparql_lexer.c librasqal.la
+	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE @RASQAL_INTERNAL_CPPFLAGS@ $(srcdir)/sparql_lexer.c librasqal.la $(LIBS)
 
-sparql_parser_test: $(srcdir)/brql_parser.c librasqal.la
-	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE @RASQAL_INTERNAL_CPPFLAGS@ $(srcdir)/brql_parser.c librasqal.la $(LIBS)
+sparql_parser_test: $(srcdir)/sparql_parser.c librasqal.la
+	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE @RASQAL_INTERNAL_CPPFLAGS@ $(srcdir)/sparql_parser.c librasqal.la $(LIBS)
 
 rasqal_expr_test$(EXEEXT): $(srcdir)/rasqal_expr.c librasqal.la
 	$(LINK) $(DEFS) $(CPPFLAGS) -I$(srcdir) -I. -DSTANDALONE @RASQAL_INTERNAL_CPPFLAGS@ $(srcdir)/rasqal_expr.c librasqal.la $(LIBS)

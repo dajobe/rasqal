@@ -80,7 +80,7 @@ rasqal_init(void)
   /* last one declared is the default - RDQL */
 
 #ifdef RASQAL_QUERY_SPARQL  
-  rasqal_init_query_engine_brql();
+  rasqal_init_query_engine_sparql();
 #endif
 
 #ifdef RASQAL_QUERY_RDQL

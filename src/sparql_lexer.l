@@ -1,6 +1,6 @@
 /* -*- Mode: c; c-basic-offset: 2 -*-
  *
- * brql_lexer.l - Rasqal BRQL lexer - making tokens for brql grammar generator
+ * sparql_lexer.l - Rasqal SPARQL lexer - making tokens for sparql grammar generator
  *
  * $Id$
  *
@@ -18,12 +18,12 @@
  * full license terms.
  * 
  * To generate the C files from this source, rather than use the
- * shipped brql_lexer.c/.h needs a patched version of flex 2.5.31 such
+ * shipped sparql_lexer.c/.h needs a patched version of flex 2.5.31 such
  * as the one available in Debian GNU/Linux.   Details below
  * near the %option descriptions.
  *
- * BRQL defined in http://www.w3.org/2001/sw/DataAccess/rq23/ and
- * http://www.w3.org/2004/07/08-BRQL/
+ * SPARQL defined in http://www.w3.org/2001/sw/DataAccess/rq23/ and
+ * http://www.w3.org/2004/07/08-SPARQL/
  *
  */
 
@@ -33,16 +33,16 @@
 %option warn nodefault
 
 /* all symbols prefixed by this */
-%option prefix="brql_lexer_"
+%option prefix="sparql_lexer_"
 
-/* This is not needed, flex is invoked -obrql_lexer.c */
-%option outfile="brql_lexer.c"
+/* This is not needed, flex is invoked -osparql_lexer.c */
+%option outfile="sparql_lexer.c"
 
 /* Emit a C header file for prototypes
  * Only available in flex 2.5.13 or newer.
  * It was renamed to header-file in flex 2.5.19
  */
-%option header-file="brql_lexer.h"
+%option header-file="sparql_lexer.h"
 
 /* Do not emit #include <unistd.h>
  * Only available in flex 2.5.7 or newer.
@@ -91,13 +91,13 @@
 #include <rasqal.h>
 #include <rasqal_internal.h>
 
-#include <brql_parser.h>
+#include <sparql_parser.h>
 
-#include <brql_common.h>
+#include <sparql_common.h>
 
 
 
-static void skip_cpp_comment(rasqal_brql_query_engine *rqe);
+static void skip_cpp_comment(rasqal_sparql_query_engine *rqe);
 static int skip_c_comment(rasqal_query *rq);
 
 static unsigned char *copy_token(rasqal_query *rq, const unsigned char *text, size_t len);
@@ -105,11 +105,11 @@ static int copy_regex_token(rasqal_query *rq, YYSTYPE* lval, unsigned char delim
 static int copy_string_token(rasqal_query *rq, YYSTYPE* lval, const unsigned char *text, size_t len, int delim);
 
 #ifdef RASQAL_DEBUG
-const char * brql_token_print(int token, YYSTYPE *lval);
+const char * sparql_token_print(int token, YYSTYPE *lval);
 #endif
 
-int brql_lexer_lex (YYSTYPE *brql_parser_lval, yyscan_t yyscanner);
-#define YY_DECL int brql_lexer_lex (YYSTYPE *brql_parser_lval, yyscan_t yyscanner)
+int sparql_lexer_lex (YYSTYPE *sparql_parser_lval, yyscan_t yyscanner);
+#define YY_DECL int sparql_lexer_lex (YYSTYPE *sparql_parser_lval, yyscan_t yyscanner)
 
 #ifdef __cplusplus
 #define INPUT_FN yyinput
@@ -118,9 +118,9 @@ int brql_lexer_lex (YYSTYPE *brql_parser_lval, yyscan_t yyscanner);
 #endif
 
 
-/* Missing brql_lexer.c/h prototypes */
-int brql_lexer_get_column(yyscan_t yyscanner);
-void brql_lexer_set_column(int  column_no , yyscan_t yyscanner);
+/* Missing sparql_lexer.c/h prototypes */
+int sparql_lexer_get_column(yyscan_t yyscanner);
+void sparql_lexer_set_column(int  column_no , yyscan_t yyscanner);
 
 %}
 
@@ -137,7 +137,7 @@ QUOTEDURI \<[A-Za-z][^>]+\>
 
   int c;
   rasqal_query *rq=(rasqal_query*)yyextra;
-  rasqal_brql_query_engine *rqe=(rasqal_brql_query_engine*)rq->context;
+  rasqal_sparql_query_engine *rqe=(rasqal_sparql_query_engine*)rq->context;
 
 
 "//"	{ /* C++ comment */
@@ -162,13 +162,13 @@ QUOTEDURI \<[A-Za-z][^>]+\>
 "USING"|"using"   { return USING; }
 "FOR"|"for"       { return FOR; }
 "PREFIX"|"prefix" { BEGIN(PREF);
-		return PREFIX; } /* BRQL */
-"DESCRIBE"|"describe"	{ return DESCRIBE; } /* BRQL */
-"CONSTRUCT"|"construct"	{ return CONSTRUCT; } /* BRQL */
-"ASK"|"ask"	{ return ASK; } /* BRQL */
-"NOT"|"not"	{ return NOT; } /* BRQL */
-"DISTINCT"|"distinct"	{ return DISTINCT; } /* BRQL */
-"LIMIT"|"limit"	{ return LIMIT; } /* BRQL */
+		return PREFIX; } /* SPARQL */
+"DESCRIBE"|"describe"	{ return DESCRIBE; } /* SPARQL */
+"CONSTRUCT"|"construct"	{ return CONSTRUCT; } /* SPARQL */
+"ASK"|"ask"	{ return ASK; } /* SPARQL */
+"NOT"|"not"	{ return NOT; } /* SPARQL */
+"DISTINCT"|"distinct"	{ return DISTINCT; } /* SPARQL */
+"LIMIT"|"limit"	{ return LIMIT; } /* SPARQL */
 
 ","      { return COMMA; } 
 "("      { return LPAREN; } 
@@ -194,7 +194,7 @@ QUOTEDURI \<[A-Za-z][^>]+\>
 
 
 <PATTERN>. { /* first non whitespace */
-             copy_regex_token(rq, brql_parser_lval, *yytext);
+             copy_regex_token(rq, sparql_parser_lval, *yytext);
              BEGIN(INITIAL);
              return PATTERN_LITERAL;
          };
@@ -218,7 +218,7 @@ QUOTEDURI \<[A-Za-z][^>]+\>
 [0-9]+["lL"]?   { c=yytext[yyleng-1];
                   if (c== 'l' || c == 'L')
                     yytext[yyleng-1]='\0';
-                  brql_parser_lval->literal=rasqal_new_integer_literal(RASQAL_LITERAL_INTEGER, atoi(yytext));
+                  sparql_parser_lval->literal=rasqal_new_integer_literal(RASQAL_LITERAL_INTEGER, atoi(yytext));
  		  return INTEGER_LITERAL; 
 }
 
@@ -227,58 +227,58 @@ QUOTEDURI \<[A-Za-z][^>]+\>
                         sscanf(yytext+2, "%x", &i);
                       else
                         sscanf(yytext+2, "%X", &i);
-                      brql_parser_lval->literal=rasqal_new_integer_literal(RASQAL_LITERAL_INTEGER, i);
+                      sparql_parser_lval->literal=rasqal_new_integer_literal(RASQAL_LITERAL_INTEGER, i);
                       return INTEGER_LITERAL; 
 }
 
 [0-9]+"."[0-9]*[eE][+-]?[0-9]+[fFdD]?|"."[0-9]+[eE][+-]?[0-9]+[fFdD]?|[0-9]+[eE][+-]?[0-9]+[fFdD]?|[0-9]+[eE][+-]?[0-9]+[fFdD]?|[0-9]+"."[0-9]*  { 
-                        brql_parser_lval->literal=rasqal_new_floating_literal((const unsigned char*)yytext);
+                        sparql_parser_lval->literal=rasqal_new_floating_literal((const unsigned char*)yytext);
                         return FLOATING_POINT_LITERAL;
 }
 
 '([^'\\\n\r]|\\[^\n\r])*'(@{LANGUAGETOKEN})?(^^({QUOTEDURI}|{QNAME}))?    { /*' */
-                               copy_string_token(rq, brql_parser_lval,
+                               copy_string_token(rq, sparql_parser_lval,
                                  (const unsigned char*)yytext+1, yyleng-2, '\'');
                                return STRING_LITERAL; }
 
 \"([^"\\\n\r]|\\[^\n\r])*\"(@{LANGUAGETOKEN})?(^^({QUOTEDURI}|{QNAME}))?   { /* " */
-                                copy_string_token(rq, brql_parser_lval,
+                                copy_string_token(rq, sparql_parser_lval,
                                   (const unsigned char*)yytext+1, yyleng-2, '"');
                                 return STRING_LITERAL; }
 
-"true"|"false"	{ brql_parser_lval->literal=rasqal_new_boolean_literal(*yytext== 't');
+"true"|"false"	{ sparql_parser_lval->literal=rasqal_new_boolean_literal(*yytext== 't');
                   return BOOLEAN_LITERAL; }
 
-"null"	{ brql_parser_lval->literal=NULL;
+"null"	{ sparql_parser_lval->literal=NULL;
           return NULL_LITERAL; }
 
-<ID>{NAME}	{ brql_parser_lval->name=copy_token(rq, (const unsigned char*)yytext, yyleng);
+<ID>{NAME}	{ sparql_parser_lval->name=copy_token(rq, (const unsigned char*)yytext, yyleng);
                           BEGIN(INITIAL);
                           return IDENTIFIER; }
 
 <PREF>[\ \t\v]+ { /* eat up leading whitespace */ }
 <PREF>{PREFIX}":"	{ BEGIN(INITIAL);
-		  	  brql_parser_lval->name=copy_token(rq, (const unsigned char*)yytext, yyleng-1);
+		  	  sparql_parser_lval->name=copy_token(rq, (const unsigned char*)yytext, yyleng-1);
                           return IDENTIFIER; }
 <PREF>":"	{ BEGIN(INITIAL);
-		  brql_parser_lval->name=NULL;
+		  sparql_parser_lval->name=NULL;
                   return IDENTIFIER; }
 
 <PREF>.		{ BEGIN(INITIAL);
 		  if (*yytext == EOF)
                     return EOF;
 
-                  brql_syntax_error(rq, "syntax error at '%c'", *yytext);
+                  sparql_syntax_error(rq, "syntax error at '%c'", *yytext);
                   return ERROR;  }
 
-{QNAME}	{ brql_parser_lval->name=copy_token(rq, (const unsigned char*)yytext, yyleng);
+{QNAME}	{ sparql_parser_lval->name=copy_token(rq, (const unsigned char*)yytext, yyleng);
                           return QNAME_LITERAL; }
 
 {QUOTEDURI}   { if(yyleng == 2) 
-                  brql_parser_lval->uri=raptor_uri_copy(rq->base_uri);
+                  sparql_parser_lval->uri=raptor_uri_copy(rq->base_uri);
                 else {
                   yytext[yyleng-1]='\0';
-                  brql_parser_lval->uri=raptor_new_uri_relative_to_base(rq->base_uri, (const unsigned char*)yytext+1);
+                  sparql_parser_lval->uri=raptor_new_uri_relative_to_base(rq->base_uri, (const unsigned char*)yytext+1);
                  }
                  return URI_LITERAL; }
 
@@ -289,7 +289,7 @@ QUOTEDURI \<[A-Za-z][^>]+\>
 .         	{ if (*yytext == EOF)
                     return EOF;
 
-                  brql_syntax_error(rq, "syntax error at '%c'", *yytext);
+                  sparql_syntax_error(rq, "syntax error at '%c'", *yytext);
                   return ERROR;
 		}
 
@@ -317,7 +317,7 @@ copy_token(rasqal_query *rq, const unsigned char *text, size_t len) {
 
 static int
 copy_regex_token(rasqal_query* rq, YYSTYPE* lval, unsigned char delim) {
-  rasqal_brql_query_engine *rqe=(rasqal_brql_query_engine*)rq->context;
+  rasqal_sparql_query_engine *rqe=(rasqal_sparql_query_engine*)rq->context;
   yyscan_t yyscanner=rqe->scanner;
   unsigned int ind=0;
   size_t buffer_len=0;
@@ -424,7 +424,7 @@ copy_string_token(rasqal_query* rq, YYSTYPE* lval,
         i+= ulen-1;
         
         if(unichar < 0 || unichar > 0x10ffff) {
-          brql_syntax_error(rq, "Illegal Unicode character with code point #x%lX.", unichar);
+          sparql_syntax_error(rq, "Illegal Unicode character with code point #x%lX.", unichar);
           free(string);
           return 1;
         }
@@ -432,7 +432,7 @@ copy_string_token(rasqal_query* rq, YYSTYPE* lval,
         d+=raptor_unicode_char_to_utf8(unichar, d);
       } else {
         /* Ignore \x where x isn't the one of: \n \r \t \\ (delim) \u \U */
-        brql_syntax_warning(rq, "Unknown string escape \\%c in \"%s\"", c, text);
+        sparql_syntax_warning(rq, "Unknown string escape \\%c in \"%s\"", c, text);
         *d++=c;
       }
     } else if(c== delim) {
@@ -504,7 +504,7 @@ copy_string_token(rasqal_query* rq, YYSTYPE* lval,
 
 static int
 skip_c_comment(rasqal_query *rq) {
-  rasqal_brql_query_engine *rqe=(rasqal_brql_query_engine*)rq->context;
+  rasqal_sparql_query_engine *rqe=(rasqal_sparql_query_engine*)rq->context;
   yyscan_t yyscanner=rqe->scanner;
   int lines=0;
   int c;
@@ -524,7 +524,7 @@ skip_c_comment(rasqal_query *rq) {
         break;
     }
     if (c == EOF) {
-      brql_syntax_error(rq, "EOF in comment");
+      sparql_syntax_error(rq, "EOF in comment");
       lines= -1;
       break;
     }
@@ -534,7 +534,7 @@ skip_c_comment(rasqal_query *rq) {
 
 
 static void
-skip_cpp_comment(rasqal_brql_query_engine *rqe) {
+skip_cpp_comment(rasqal_sparql_query_engine *rqe) {
   yyscan_t yyscanner=rqe->scanner;
   int c;
   
@@ -548,7 +548,7 @@ skip_cpp_comment(rasqal_brql_query_engine *rqe) {
 #ifdef RASQAL_DEBUG
 
 const char *
-brql_token_print(int token, YYSTYPE *lval)
+sparql_token_print(int token, YYSTYPE *lval)
 {
   static char buffer[2048];
 
@@ -737,7 +737,7 @@ brql_token_print(int token, YYSTYPE *lval)
 
 #ifdef STANDALONE
 static void
-brql_token_free(int token, YYSTYPE *lval)
+sparql_token_free(int token, YYSTYPE *lval)
 {
   if(!token)
     return;
@@ -761,7 +761,7 @@ int
 main(int argc, char *argv[]) 
 {
   rasqal_query rq;
-  rasqal_brql_query_engine brql;
+  rasqal_sparql_query_engine sparql;
   yyscan_t scanner;
   int token=EOF;
   FILE *fh;
@@ -785,16 +785,16 @@ main(int argc, char *argv[])
   }
 
   memset(&rq, 0, sizeof(rasqal_query));
-  memset(&brql, 0, sizeof(rasqal_brql_query_engine));
+  memset(&sparql, 0, sizeof(rasqal_sparql_query_engine));
 
-  yylex_init(&brql.scanner);
-  scanner=brql.scanner;
-  brql_lexer_set_in(fh, scanner);
-  brql_lexer_set_extra(&rq, scanner);
+  yylex_init(&sparql.scanner);
+  scanner=sparql.scanner;
+  sparql_lexer_set_in(fh, scanner);
+  sparql_lexer_set_extra(&rq, scanner);
 
   /* Initialise enough of the parser and locator to get error messages */
-  rq.context=&brql;
-  brql.lineno=1;
+  rq.context=&sparql;
+  sparql.lineno=1;
   rq.locator.file=filename;
   rq.locator.column= -1;
 
@@ -804,15 +804,15 @@ main(int argc, char *argv[])
 
   while(1) {
     memset(&lval, 0, sizeof(YYSTYPE));
-    if(brql_lexer_get_text(scanner) != NULL)
-      printf("yyinput '%s'\n", brql_lexer_get_text(scanner));
+    if(sparql_lexer_get_text(scanner) != NULL)
+      printf("yyinput '%s'\n", sparql_lexer_get_text(scanner));
     token=yylex(&lval, scanner);
 #ifdef RASQAL_DEBUG
-    printf("token %s\n", brql_token_print(token, &lval));
+    printf("token %s\n", sparql_token_print(token, &lval));
 #else
     printf("token %d\n", token);
 #endif
-    brql_token_free(token, &lval);
+    sparql_token_free(token, &lval);
     if(!token || token == EOF || token == ERROR)
       break;
   }

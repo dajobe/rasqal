@@ -1,6 +1,6 @@
 /* -*- Mode: c; c-basic-offset: 2 -*-
  *
- * brql_parser.y - Rasqal BRQL parser - over tokens from brql grammar lexer
+ * sparql_parser.y - Rasqal SPARQL parser - over tokens from sparql grammar lexer
  *
  * $Id$
  *
@@ -17,8 +17,8 @@
  * See LICENSE.html or LICENSE.txt at the top of this package for the
  * full license terms.
  * 
- * BRQL defined in http://www.w3.org/2001/sw/DataAccess/rq23/ and
- * http://www.w3.org/2004/07/08-BRQL/
+ * SPARQL defined in http://www.w3.org/2001/sw/DataAccess/rq23/ and
+ * http://www.w3.org/2004/07/08-SPARQL/
  *
  */
 
@@ -37,12 +37,12 @@
 #include <rasqal.h>
 #include <rasqal_internal.h>
 
-#include <brql_parser.h>
+#include <sparql_parser.h>
 
-#define YY_DECL int brql_lexer_lex (YYSTYPE *brql_parser_lval, yyscan_t yyscanner)
-#include <brql_lexer.h>
+#define YY_DECL int sparql_lexer_lex (YYSTYPE *sparql_parser_lval, yyscan_t yyscanner)
+#include <sparql_lexer.h>
 
-#include <brql_common.h>
+#include <sparql_common.h>
 
 
 /* Make verbose error messages for syntax errors */
@@ -56,32 +56,32 @@
 #endif
 
 /* the lexer does not seem to track this */
-#undef RASQAL_BRQL_USE_ERROR_COLUMNS
+#undef RASQAL_SPARQL_USE_ERROR_COLUMNS
 
-/* Missing brql_lexer.c/h prototypes */
-int brql_lexer_get_column(yyscan_t yyscanner);
+/* Missing sparql_lexer.c/h prototypes */
+int sparql_lexer_get_column(yyscan_t yyscanner);
 /* Not used here */
-/* void brql_lexer_set_column(int  column_no , yyscan_t yyscanner);*/
+/* void sparql_lexer_set_column(int  column_no , yyscan_t yyscanner);*/
 
 
 /* What the lexer wants */
-extern int brql_lexer_lex (YYSTYPE *brql_parser_lval, yyscan_t scanner);
-#define YYLEX_PARAM ((rasqal_brql_query_engine*)(((rasqal_query*)rq)->context))->scanner
+extern int sparql_lexer_lex (YYSTYPE *sparql_parser_lval, yyscan_t scanner);
+#define YYLEX_PARAM ((rasqal_sparql_query_engine*)(((rasqal_query*)rq)->context))->scanner
 
 /* Pure parser argument (a void*) */
 #define YYPARSE_PARAM rq
 
 /* Make the yyerror below use the rdf_parser */
 #undef yyerror
-#define yyerror(message) brql_query_error((rasqal_query*)rq, message)
+#define yyerror(message) sparql_query_error((rasqal_query*)rq, message)
 
 /* Make lex/yacc interface as small as possible */
 #undef yylex
-#define yylex brql_lexer_lex
+#define yylex sparql_lexer_lex
 
 
-static int brql_parse(rasqal_query* rq, const unsigned char *string);
-static int brql_query_error(rasqal_query* rq, const char *message);
+static int sparql_parse(rasqal_query* rq, const unsigned char *string);
+static int sparql_query_error(rasqal_query* rq, const char *message);
 
 %}
 
@@ -571,7 +571,7 @@ URIList : URIList URI_LITERAL
 /* Support functions */
 
 
-/* This is declared in brql_lexer.h but never used, so we always get
+/* This is declared in sparql_lexer.h but never used, so we always get
  * a warning unless this dummy code is here.  Used once below in an error case.
  */
 static int yy_init_globals (yyscan_t yyscanner ) { return 0; };
@@ -579,13 +579,13 @@ static int yy_init_globals (yyscan_t yyscanner ) { return 0; };
 
 
 /**
- * rasqal_brql_query_engine_init - Initialise the BRQL query engine
+ * rasqal_sparql_query_engine_init - Initialise the SPARQL query engine
  *
  * Return value: non 0 on failure
  **/
 static int
-rasqal_brql_query_engine_init(rasqal_query* rdf_query, const char *name) {
-  /* rasqal_brql_query_engine* brql=(rasqal_brql_query_engine*)rdf_query->context; */
+rasqal_sparql_query_engine_init(rasqal_query* rdf_query, const char *name) {
+  /* rasqal_sparql_query_engine* sparql=(rasqal_sparql_query_engine*)rdf_query->context; */
 
   /* Initialise rdf, rdfs, owl and xsd prefixes and namespaces */
   raptor_namespaces_start_namespace_full(rdf_query->namespaces, 
@@ -606,37 +606,37 @@ rasqal_brql_query_engine_init(rasqal_query* rdf_query, const char *name) {
 
 
 /**
- * rasqal_brql_query_engine_terminate - Free the BRQL query engine
+ * rasqal_sparql_query_engine_terminate - Free the SPARQL query engine
  *
  * Return value: non 0 on failure
  **/
 static void
-rasqal_brql_query_engine_terminate(rasqal_query* rdf_query) {
-  rasqal_brql_query_engine* brql=(rasqal_brql_query_engine*)rdf_query->context;
+rasqal_sparql_query_engine_terminate(rasqal_query* rdf_query) {
+  rasqal_sparql_query_engine* sparql=(rasqal_sparql_query_engine*)rdf_query->context;
 
-  if(brql->scanner_set) {
-    brql_lexer_lex_destroy(brql->scanner);
-    brql->scanner_set=0;
+  if(sparql->scanner_set) {
+    sparql_lexer_lex_destroy(sparql->scanner);
+    sparql->scanner_set=0;
   }
 
 }
 
 
 static int
-rasqal_brql_query_engine_prepare(rasqal_query* rdf_query) {
-  /* rasqal_brql_query_engine* brql=(rasqal_brql_query_engine*)rdf_query->context; */
+rasqal_sparql_query_engine_prepare(rasqal_query* rdf_query) {
+  /* rasqal_sparql_query_engine* sparql=(rasqal_sparql_query_engine*)rdf_query->context; */
 
   if(rdf_query->query_string)
-    return brql_parse(rdf_query, rdf_query->query_string);
+    return sparql_parse(rdf_query, rdf_query->query_string);
   else
     return 0;
 }
 
 
 static int
-rasqal_brql_query_engine_execute(rasqal_query* rdf_query) 
+rasqal_sparql_query_engine_execute(rasqal_query* rdf_query) 
 {
-  /* rasqal_brql_query_engine* brql=(rasqal_brql_query_engine*)rdf_query->context; */
+  /* rasqal_sparql_query_engine* sparql=(rasqal_sparql_query_engine*)rdf_query->context; */
   
   /* FIXME: not implemented */
   return 0;
@@ -644,8 +644,8 @@ rasqal_brql_query_engine_execute(rasqal_query* rdf_query)
 
 
 static int
-brql_parse(rasqal_query* rq, const unsigned char *string) {
-  rasqal_brql_query_engine* rqe=(rasqal_brql_query_engine*)rq->context;
+sparql_parse(rasqal_query* rq, const unsigned char *string) {
+  rasqal_sparql_query_engine* rqe=(rasqal_sparql_query_engine*)rq->context;
   raptor_locator *locator=&rq->locator;
   void *buffer;
 
@@ -658,15 +658,15 @@ brql_parse(rasqal_query* rq, const unsigned char *string) {
 
   rqe->lineno=1;
 
-  brql_lexer_lex_init(&rqe->scanner);
+  sparql_lexer_lex_init(&rqe->scanner);
   rqe->scanner_set=1;
 
-  brql_lexer_set_extra(((rasqal_query*)rq), rqe->scanner);
-  buffer= brql_lexer__scan_string((const char*)string, rqe->scanner);
+  sparql_lexer_set_extra(((rasqal_query*)rq), rqe->scanner);
+  buffer= sparql_lexer__scan_string((const char*)string, rqe->scanner);
 
-  brql_parser_parse(rq);
+  sparql_parser_parse(rq);
 
-  brql_lexer_lex_destroy(rqe->scanner);
+  sparql_lexer_lex_destroy(rqe->scanner);
   rqe->scanner_set=0;
 
   /* Parsing failed */
@@ -684,12 +684,12 @@ brql_parse(rasqal_query* rq, const unsigned char *string) {
 
 
 int
-brql_query_error(rasqal_query *rq, const char *msg) {
-  rasqal_brql_query_engine* rqe=(rasqal_brql_query_engine*)rq->context;
+sparql_query_error(rasqal_query *rq, const char *msg) {
+  rasqal_sparql_query_engine* rqe=(rasqal_sparql_query_engine*)rq->context;
 
   rq->locator.line=rqe->lineno;
-#ifdef RASQAL_BRQL_USE_ERROR_COLUMNS
-  /*  rq->locator.column=brql_lexer_get_column(yyscanner);*/
+#ifdef RASQAL_SPARQL_USE_ERROR_COLUMNS
+  /*  rq->locator.column=sparql_lexer_get_column(yyscanner);*/
 #endif
 
   rasqal_query_error(rq, "%s", msg);
@@ -699,14 +699,14 @@ brql_query_error(rasqal_query *rq, const char *msg) {
 
 
 int
-brql_syntax_error(rasqal_query *rq, const char *message, ...)
+sparql_syntax_error(rasqal_query *rq, const char *message, ...)
 {
-  rasqal_brql_query_engine *rqe=(rasqal_brql_query_engine*)rq->context;
+  rasqal_sparql_query_engine *rqe=(rasqal_sparql_query_engine*)rq->context;
   va_list arguments;
 
   rq->locator.line=rqe->lineno;
-#ifdef RASQAL_BRQL_USE_ERROR_COLUMNS
-  /*  rp->locator.column=brql_lexer_get_column(yyscanner);*/
+#ifdef RASQAL_SPARQL_USE_ERROR_COLUMNS
+  /*  rp->locator.column=sparql_lexer_get_column(yyscanner);*/
 #endif
 
   va_start(arguments, message);
@@ -718,14 +718,14 @@ brql_syntax_error(rasqal_query *rq, const char *message, ...)
 
 
 int
-brql_syntax_warning(rasqal_query *rq, const char *message, ...)
+sparql_syntax_warning(rasqal_query *rq, const char *message, ...)
 {
-  rasqal_brql_query_engine *rqe=(rasqal_brql_query_engine*)rq->context;
+  rasqal_sparql_query_engine *rqe=(rasqal_sparql_query_engine*)rq->context;
   va_list arguments;
 
   rq->locator.line=rqe->lineno;
-#ifdef RASQAL_BRQL_USE_ERROR_COLUMNS
-  /*  rq->locator.column=brql_lexer_get_column(yyscanner);*/
+#ifdef RASQAL_SPARQL_USE_ERROR_COLUMNS
+  /*  rq->locator.column=sparql_lexer_get_column(yyscanner);*/
 #endif
 
   va_start(arguments, message);
@@ -737,24 +737,24 @@ brql_syntax_warning(rasqal_query *rq, const char *message, ...)
 
 
 static void
-rasqal_brql_query_engine_register_factory(rasqal_query_engine_factory *factory)
+rasqal_sparql_query_engine_register_factory(rasqal_query_engine_factory *factory)
 {
-  factory->context_length = sizeof(rasqal_brql_query_engine);
+  factory->context_length = sizeof(rasqal_sparql_query_engine);
 
-  factory->init      = rasqal_brql_query_engine_init;
-  factory->terminate = rasqal_brql_query_engine_terminate;
-  factory->prepare   = rasqal_brql_query_engine_prepare;
-  factory->execute   = rasqal_brql_query_engine_execute;
+  factory->init      = rasqal_sparql_query_engine_init;
+  factory->terminate = rasqal_sparql_query_engine_terminate;
+  factory->prepare   = rasqal_sparql_query_engine_prepare;
+  factory->execute   = rasqal_sparql_query_engine_execute;
 }
 
 
 void
-rasqal_init_query_engine_brql (void) {
+rasqal_init_query_engine_sparql (void) {
   rasqal_query_engine_register_factory("sparql", 
                                        "SPARQL W3C DAWG RDF Query Language",
-                                       "brql",
+                                       "sparql",
                                        (const unsigned char*)"http://www.w3.org/2001/sw/DataAccess/rq23/",
-                                       &rasqal_brql_query_engine_register_factory);
+                                       &rasqal_sparql_query_engine_register_factory);
 }
 
 
@@ -763,14 +763,14 @@ rasqal_init_query_engine_brql (void) {
 #include <stdio.h>
 #include <locale.h>
 
-#define BRQL_FILE_BUF_SIZE 2048
+#define SPARQL_FILE_BUF_SIZE 2048
 
 int
 main(int argc, char *argv[]) 
 {
-  char query_string[BRQL_FILE_BUF_SIZE];
+  char query_string[SPARQL_FILE_BUF_SIZE];
   rasqal_query query; /* static */
-  rasqal_brql_query_engine brql; /* static */
+  rasqal_sparql_query_engine sparql; /* static */
   raptor_locator *locator=&query.locator;
   FILE *fh;
   int rc;
@@ -779,7 +779,7 @@ main(int argc, char *argv[])
   void *uri_context;
 
 #if RASQAL_DEBUG > 2
-  brql_parser_debug=1;
+  sparql_parser_debug=1;
 #endif
 
   if(argc > 1) {
@@ -795,8 +795,8 @@ main(int argc, char *argv[])
     fh = stdin;
   }
 
-  memset(query_string, 0, BRQL_FILE_BUF_SIZE);
-  fread(query_string, BRQL_FILE_BUF_SIZE, 1, fh);
+  memset(query_string, 0, SPARQL_FILE_BUF_SIZE);
+  fread(query_string, SPARQL_FILE_BUF_SIZE, 1, fh);
   
   if(argc>1)
     fclose(fh);
@@ -804,7 +804,7 @@ main(int argc, char *argv[])
   raptor_uri_init();
 
   memset(&query, 0, sizeof(rasqal_query));
-  memset(&brql, 0, sizeof(rasqal_brql_query_engine));
+  memset(&sparql, 0, sizeof(rasqal_sparql_query_engine));
 
   raptor_uri_get_handler(&uri_handler, &uri_context);
   query.namespaces=raptor_new_namespaces(uri_handler, uri_context,
@@ -816,14 +816,14 @@ main(int argc, char *argv[])
   locator->line= locator->column = -1;
   locator->file= filename;
 
-  brql.lineno= 1;
+  sparql.lineno= 1;
 
-  query.context=&brql;
+  query.context=&sparql;
   query.base_uri=raptor_new_uri(raptor_uri_filename_to_uri_string(filename));
 
-  rasqal_brql_query_engine_init(&query, "brql");
+  rasqal_sparql_query_engine_init(&query, "sparql");
 
-  rc=brql_parse(&query, (const unsigned char*)query_string);
+  rc=sparql_parse(&query, (const unsigned char*)query_string);
 
   raptor_free_namespaces(query.namespaces);
 

@@ -282,8 +282,8 @@ void rasqal_query_warning_varargs(rasqal_query* query, const char *message, va_l
 /* rdql_parser.y */
 void rasqal_init_query_engine_rdql (void);
 
-/* brql_parser.y */
-void rasqal_init_query_engine_brql (void);
+/* sparql_parser.y */
+void rasqal_init_query_engine_sparql (void);
 
 /* rasqal_engine.c */
 int rasqal_query_order_triples(rasqal_query* query);

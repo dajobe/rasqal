@@ -1,6 +1,6 @@
 /* -*- Mode: c; c-basic-offset: 2 -*-
  *
- * brql_common.h - BRQL lexer/parser shared internals
+ * sparql_common.h - SPARQL lexer/parser shared internals
  *
  * $Id$
  *
@@ -19,22 +19,22 @@
  * 
  */
 
-#ifndef BRQL_COMMON_H
-#define BRQL_COMMON_H
+#ifndef SPARQL_COMMON_H
+#define SPARQL_COMMON_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 
-/* brql_parser.y */
-int brql_syntax_error(rasqal_query *rq, const char *message, ...);
-int brql_syntax_warning(rasqal_query *rq, const char *message, ...);
+/* sparql_parser.y */
+int sparql_syntax_error(rasqal_query *rq, const char *message, ...);
+int sparql_syntax_warning(rasqal_query *rq, const char *message, ...);
 
-int brql_query_lex(void);
+int sparql_query_lex(void);
 
 
-struct rasqal_brql_query_engine_s {
+struct rasqal_sparql_query_engine_s {
   /* STATIC lexer */
   yyscan_t scanner;
 
@@ -45,7 +45,7 @@ struct rasqal_brql_query_engine_s {
 };
 
 
-typedef struct rasqal_brql_query_engine_s rasqal_brql_query_engine;
+typedef struct rasqal_sparql_query_engine_s rasqal_sparql_query_engine;
 
 
 #ifdef __cplusplus
