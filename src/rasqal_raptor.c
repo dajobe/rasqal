@@ -49,7 +49,20 @@ typedef struct rasqal_raptor_triple_s rasqal_raptor_triple;
 typedef struct {
   rasqal_raptor_triple *head;
   rasqal_raptor_triple *tail;
-  raptor_uri *uri;
+
+  /* index used while reading triples into the two arrays below.
+   * This is used to connect a triple to the URI literal of the source
+   */
+  int source_index;
+
+  /* size of the two arrays below */
+  int source_uris_count;
+  
+  /* array of shared pointers into query->source uris */
+  raptor_uri **source_uris;
+
+  /* array of URI literals (allocated here) */
+  rasqal_literal **source_literals;
 } rasqal_raptor_triples_source_user_data;
 
 
@@ -150,6 +163,12 @@ rasqal_raptor_statement_handler(void *user_data,
   triple->next=NULL;
   triple->triple=raptor_statement_as_rasqal_triple(statement);
 
+  /* this origin URI literal is shared amongst the triples and
+   * freed only in rasqal_raptor_free_triples_source
+   */
+  rasqal_triple_set_origin(triple->triple, 
+                           rtsc->source_literals[rtsc->source_index]);
+
   if(rtsc->tail)
     rtsc->tail->next=triple;
   else
@@ -164,30 +183,39 @@ static int
 rasqal_raptor_new_triples_source(rasqal_query* rdf_query,
                                  void *factory_user_data,
                                  void *user_data,
-                                 rasqal_triples_source *rts,
-                                 raptor_uri *uri) {
+                                 rasqal_triples_source *rts) {
   rasqal_raptor_triples_source_user_data* rtsc=(rasqal_raptor_triples_source_user_data*)user_data;
   raptor_parser *parser;
   const char *parser_name;
+  int i;
 
-  /* no default triple source possible */
-  if(!uri)
+  if(!rdf_query->sources)
     return 1;
-
-  rtsc->uri=raptor_uri_copy(uri);
 
   rts->new_triples_match=rasqal_raptor_new_triples_match;
   rts->triple_present=rasqal_raptor_triple_present;
   rts->free_triples_source=rasqal_raptor_free_triples_source;
 
-  parser_name=raptor_guess_parser_name(NULL, NULL, NULL, 0, 
-                                       raptor_uri_as_string(rtsc->uri));
-  parser=raptor_new_parser(parser_name);
-  raptor_set_statement_handler(parser, rtsc, rasqal_raptor_statement_handler);
+  rtsc->source_uris_count=raptor_sequence_size(rdf_query->sources);
+  /* no default triple source possible */
+  if(!rtsc->source_uris_count)
+    return 1;
 
-  raptor_parse_uri(parser, rtsc->uri, NULL);
+  for(i=0; i< rtsc->source_uris_count; i++) {
+    raptor_uri* uri=(raptor_uri*)raptor_sequence_get_at(rdf_query->sources, i);
 
-  raptor_free_parser(parser);
+    rtsc->source_index=i;
+    /* not allocated here; these are shared pointers into query->sources */
+    rtsc->source_uris[i]=uri;
+    rtsc->source_literals[i]=rasqal_new_uri_literal(raptor_uri_copy(uri));
+
+    parser_name=raptor_guess_parser_name(NULL, NULL, NULL, 0, 
+                                         raptor_uri_as_string(uri));
+    parser=raptor_new_parser(parser_name);
+    raptor_set_statement_handler(parser, rtsc, rasqal_raptor_statement_handler);
+    raptor_parse_uri(parser, uri, NULL);
+    raptor_free_parser(parser);
+  }
 
   return 0;
 }
@@ -197,7 +225,6 @@ rasqal_raptor_new_triples_source(rasqal_query* rdf_query,
  * rasqal_raptor_triple_match:
  * @triple: &rasqal_triple to match against
  * @match: &rasqal_triple with wildcards
- * @origin_uri: &raptor_uri of the origin to match against
  * 
  * Match a rasqal_triple against a rasqal_triple with NULL
  * signifying wildcard fields in the rasqal_triple.
@@ -205,8 +232,7 @@ rasqal_raptor_new_triples_source(rasqal_query* rdf_query,
  * Return value: non-0 on match
  **/
 static int
-rasqal_raptor_triple_match(rasqal_triple *triple, rasqal_triple *match,
-                           raptor_uri* origin_uri) {
+rasqal_raptor_triple_match(rasqal_triple *triple, rasqal_triple *match) {
   if(match->subject) {
     if(!rasqal_literal_equals(triple->subject, match->subject))
       return 0;
@@ -223,8 +249,9 @@ rasqal_raptor_triple_match(rasqal_triple *triple, rasqal_triple *match,
   }
   
   if(match->origin && match->origin->type == RASQAL_LITERAL_URI ) {
+    raptor_uri* triple_uri=triple->origin->value.uri;
     raptor_uri* match_uri=match->origin->value.uri;
-    if(!raptor_uri_equals(match_uri, origin_uri))
+    if(!raptor_uri_equals(triple_uri, match_uri))
       return 0;
   }
   
@@ -241,7 +268,7 @@ rasqal_raptor_triple_present(rasqal_triples_source *rts, void *user_data,
   rasqal_raptor_triple *triple;
 
   for(triple=rtsc->head; triple; triple=triple->next) {
-    if(rasqal_raptor_triple_match(triple->triple, t, rtsc->uri))
+    if(rasqal_raptor_triple_match(triple->triple, t))
       return 1;
   }
 
@@ -254,15 +281,22 @@ static void
 rasqal_raptor_free_triples_source(void *user_data) {
   rasqal_raptor_triples_source_user_data* rtsc=(rasqal_raptor_triples_source_user_data*)user_data;
   rasqal_raptor_triple *cur=rtsc->head;
+  int i;
 
   while(cur) {
     rasqal_raptor_triple *next=cur->next;
+    rasqal_triple_set_origin(cur->triple, NULL); /* shared URI literal */
     rasqal_free_triple(cur->triple);
     RASQAL_FREE(rasqal_raptor_triple, cur);
     cur=next;
   }
 
-  raptor_free_uri(rtsc->uri);
+  for(i=0; i< rtsc->source_uris_count; i++) {
+    /* not freed here; these are shared pointers into query->sources */
+    /* raptor_free_uri(rtsc->source_uris[i]); */
+    rasqal_free_literal(rtsc->source_literals[i]);
+  }
+  
 }
 
 
@@ -354,7 +388,7 @@ rasqal_raptor_bind_match(struct rasqal_triples_match_s* rtm,
   }
 
   if(bindings[3]) {
-    rasqal_literal *l=rasqal_new_uri_literal(raptor_uri_copy(rtmc->source_context->uri));
+    rasqal_literal *l=rasqal_new_literal_from_literal(rtmc->cur->triple->origin);
     RASQAL_DEBUG1("binding origin to variable\n");
     rasqal_variable_set_value(bindings[3], l);
   }
@@ -372,7 +406,7 @@ rasqal_raptor_next_match(struct rasqal_triples_match_s* rtm, void *user_data)
   while(rtmc->cur) {
     rtmc->cur=rtmc->cur->next;
     if(rtmc->cur &&
-       rasqal_raptor_triple_match(rtmc->cur->triple, &rtmc->match, rtmc->source_context->uri))
+       rasqal_raptor_triple_match(rtmc->cur->triple, &rtmc->match))
       break;
   }
 }
@@ -458,7 +492,7 @@ rasqal_raptor_new_triples_match(rasqal_triples_source *rts, void *user_data,
   
 
   while(rtmc->cur) {
-    if(rasqal_raptor_triple_match(rtmc->cur->triple, &rtmc->match, rtmc->source_context->uri))
+    if(rasqal_raptor_triple_match(rtmc->cur->triple, &rtmc->match))
       break;
     rtmc->cur=rtmc->cur->next;
   }
