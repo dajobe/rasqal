@@ -1,5 +1,8 @@
 2004-10-25  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
+	* win32_rasqal_config.h, configure.ac, NEWS.html:
+	Bumped version to 0.9.4
+
 	* Snapshotted rasqal_0_9_3 for 0.9.3 release
 
 	* configure.ac: Use AC_TRY_LINK for regcomp test; no need to run it.
