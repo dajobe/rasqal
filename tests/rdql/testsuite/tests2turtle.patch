@@ -1,6 +1,6 @@
-diff -cr rdql-testsuite.orig/result-B-07.n3 rdql-testsuite/result-B-07.n3
-*** rdql-testsuite.orig/result-B-07.n3	Fri Oct 24 12:02:22 2003
---- rdql-testsuite/result-B-07.n3	Mon May  3 21:44:52 2004
+diff -cr testsuite.orig/result-B-07.n3 testsuite/result-B-07.n3
+*** testsuite.orig/result-B-07.n3	Fri Oct 24 12:02:22 2003
+--- testsuite/result-B-07.n3	Mon May  3 21:44:52 2004
 ***************
 *** 1,4 ****
 --- 1,5 ----
@@ -26,9 +26,9 @@ diff -cr rdql-testsuite.orig/result-B-07.n3 rdql-testsuite/result-B-07.n3
                             rs:variable "z"
                           ] ;
                   rs:binding
-diff -cr rdql-testsuite.orig/result-B-20.n3 rdql-testsuite/result-B-20.n3
-*** rdql-testsuite.orig/result-B-20.n3	Fri Oct 24 12:02:31 2003
---- rdql-testsuite/result-B-20.n3	Mon May  3 21:42:25 2004
+diff -cr testsuite.orig/result-B-20.n3 testsuite/result-B-20.n3
+*** testsuite.orig/result-B-20.n3	Fri Oct 24 12:02:31 2003
+--- testsuite/result-B-20.n3	Mon May  3 21:42:25 2004
 ***************
 *** 1,11 ****
   @prefix rs:      <http://jena.hpl.hp.com/2003/03/result-set#> .

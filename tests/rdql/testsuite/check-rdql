@@ -35,7 +35,7 @@ use File::Basename;
 my $top_srcdir=$ENV{TOP_SRCDIR} || '..';
 my $top_builddir=$ENV{TOP_BUILDDIR} || '..';
 
-my $rdql_testsuite_dir=$top_srcdir."/rdql-testsuite";
+my $rdql_testsuite_dir=$top_srcdir."/tests/rdql/testsuite";
 my $roqet=$top_builddir."/roqet";
 
 my $rs='http://jena.hpl.hp.com/2003/03/result-set#';
