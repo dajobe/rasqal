@@ -288,17 +288,17 @@ rasqal_raptor_bind_match(struct rasqal_triples_match_s* rtm,
 
   if(bindings[0]) {
     RASQAL_DEBUG1("binding subject to variable\n");
-    rasqal_variable_set_value(bindings[0], rtmc->cur->triple->subject);
+    rasqal_variable_set_value(bindings[0], rasqal_new_literal_from_literal(rtmc->cur->triple->subject));
   }
 
   if(bindings[1]) {
     RASQAL_DEBUG1("binding predicate to variable\n");
-    rasqal_variable_set_value(bindings[1], rtmc->cur->triple->predicate);
+    rasqal_variable_set_value(bindings[1], rasqal_new_literal_from_literal(rtmc->cur->triple->predicate));
   }
 
   if(bindings[2]) {
     RASQAL_DEBUG1("binding object to variable\n");
-    rasqal_variable_set_value(bindings[2],  rtmc->cur->triple->object);
+    rasqal_variable_set_value(bindings[2],  rasqal_new_literal_from_literal(rtmc->cur->triple->object));
   }
 
   return 0;
