@@ -38,87 +38,19 @@
 #include <rdql_lexer.h>
 
 
-inline int rdql_parser_lex(void);
+/* Prototypes */ 
 int rdql_parser_error(const char *msg);
 
 
+/* Make lex/yacc interface as small as possible */
 inline int
 rdql_parser_lex(void) {
   return rdql_lexer_lex();
 }
 
-
+/* GLOBAL - FIXME */
 static rasqal_query* Q;
  
-int
-rdql_parse(rasqal_query* rq, const char *query_string) {
-  void *buffer;
-
-  /* FIXME LOCKING or re-entrant parser/lexer */
-
-  Q=rq;
-
-  buffer= rdql_lexer__scan_string(query_string);
-  rdql_lexer__switch_to_buffer(buffer);
-  rdql_parser_parse();
-
-  rq=Q;
-  
-  Q=NULL;
-
-  /* FIXME UNLOCKING or re-entrant parser/lexer */
-  
-  return 0;
-}
-
-
-#ifdef STANDALONE
-#include <stdio.h>
-#include <locale.h>
-
-extern char *filename;
-extern int lineno;
- 
-int
-yyerror(const char *msg)
-{
-  fprintf(stderr, "%s:%d: %s\n", filename, lineno, msg);
-  return (0);
-}
-
-extern FILE* rdql_lexer_in;
-
-
-#define RDQL_FILE_BUF_SIZE 2048
-
-int
-main(int argc, char *argv[]) 
-{
-  rasqal_query RQ;
-  char query_string[RDQL_FILE_BUF_SIZE];
-  FILE *fh;
-  
-  if(argc > 1) {
-    filename=argv[1];
-    fh = fopen(argv[1], "r");
-  } else {
-    filename="<stdin>";
-    fh = stdin;
-    puts("> ");
-    fflush(stdout);
-  }
-
-  memset(query_string, 0, RDQL_FILE_BUF_SIZE);
-  fread(query_string, RDQL_FILE_BUF_SIZE, 1, fh);
-  
-  if(argc>1)
-    fclose(fh);
-  
-  rdql_parse(&RQ, query_string);
-
-  return (0);
-}
-#endif
 
 %}
 
@@ -632,3 +564,76 @@ URIList : URI_LITERAL COMMA URIList
   rasqal_sequence_push($$, $1);
 }
 ;
+
+%%
+
+
+/* Support functions */
+
+int
+rdql_parse(rasqal_query* rq, const char *query_string) {
+  void *buffer;
+
+  /* FIXME LOCKING or re-entrant parser/lexer */
+
+  Q=rq;
+
+  buffer= rdql_lexer__scan_string(query_string);
+  rdql_lexer__switch_to_buffer(buffer);
+  rdql_parser_parse();
+
+  rq=Q;
+  
+  Q=NULL;
+
+  /* FIXME UNLOCKING or re-entrant parser/lexer */
+  
+  return 0;
+}
+
+
+#ifdef STANDALONE
+#include <stdio.h>
+#include <locale.h>
+
+extern char *filename;
+extern int lineno;
+ 
+int
+yyerror(const char *msg)
+{
+  fprintf(stderr, "%s:%d: %s\n", filename, lineno, msg);
+  return (0);
+}
+
+
+#define RDQL_FILE_BUF_SIZE 2048
+
+int
+main(int argc, char *argv[]) 
+{
+  rasqal_query RQ;
+  char query_string[RDQL_FILE_BUF_SIZE];
+  FILE *fh;
+  
+  if(argc > 1) {
+    filename=argv[1];
+    fh = fopen(argv[1], "r");
+  } else {
+    filename="<stdin>";
+    fh = stdin;
+    puts("> ");
+    fflush(stdout);
+  }
+
+  memset(query_string, 0, RDQL_FILE_BUF_SIZE);
+  fread(query_string, RDQL_FILE_BUF_SIZE, 1, fh);
+  
+  if(argc>1)
+    fclose(fh);
+  
+  rdql_parse(&RQ, query_string);
+
+  return (0);
+}
+#endif
