@@ -97,6 +97,8 @@ rasqal_new_query(const char *name, const unsigned char *uri)
 
   query->prefixes=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_prefix, (raptor_sequence_print_handler*)rasqal_prefix_print);
 
+  query->graph_patterns=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_graph_pattern, (raptor_sequence_print_handler*)rasqal_graph_pattern_print);
+
   query->usage=1;
   
   if(factory->init(query, name)) {
@@ -166,6 +168,9 @@ rasqal_free_query(rasqal_query* query)
 
   if(query->variables_sequence)
     raptor_free_sequence(query->variables_sequence);
+  
+  if(query->graph_patterns)
+    raptor_free_sequence(query->graph_patterns);
 
   if(query->constraints_expression) {
     rasqal_free_expression(query->constraints_expression);
