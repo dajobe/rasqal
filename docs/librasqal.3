@@ -1,0 +1,122 @@
+.\"
+.\" librasqal.3 - Rasqal library manual page
+.\"
+.\" $Id$
+.\"
+.\" Copyright (C) 2004 David Beckett - http://purl.org/net/dajobe/
+.\" Institute for Learning and Research Technology - http://www.ilrt.bristol.ac.uk/
+.\" University of Bristol - http://www.bristol.ac.uk/
+.\"
+.TH librasqal 3 "2004-04-27"
+.\" Please adjust this date whenever revising the manpage.
+.SH NAME
+librasqal \- Rasqal RDF query library
+.SH SYNOPSIS
+.nf
+.B #include <rasqal.h>
+.br
+
+.br
+.BI rasqal_init();
+.br
+.BI "raptor_uri *" base_uri =rasqal_new_uri( "\(dqhttp://example.org/foo\(dq" );
+.br
+.BI "rasqal_query *" rq =rasqal_new_query( "\(dqrdql\(dq" , NULL);
+.br
+.BI "const char *" query_string "=\(dqselect * from <http://example.org/data.rdf>\(dq;"
+.br
+.BI rasqal_query_prepare( rq , query_string , base_uri );
+.br
+.BI rasqal_query_execute( rq );
+.br
+.BI "while(!rasqal_query_results_finished(rq))\ {"
+.br
+.BI "\ \ const char **" names;
+.br
+.BI "\ \ rasqal_literal **" values;
+.br
+.BI "\ \ rasqal_query_get_result_bindings(" rq , &names , &values)
+.br
+.BI "\ \ /* ... */"
+.br
+.BI "\ \ rasqal_query_next_result(" rq );
+.br
+.BI }
+.br
+.BI rasqal_free_query( rq );
+.br
+.BI raptor_free_uri( base_uri );
+.br
+.BI rasqal_finish();
+.br
+
+.B cc file.c -lrasqal
+.br
+.fi
+.SH DESCRIPTION
+The \fIRasqal\fR library provides a high-level interface to 
+RDF query parsing, query construction and query execution over
+an RDF graph.  The library provides APIs to each of the steps in
+the process and provides support for handling multiple query language
+syntaxes (at present, only RDQL supported).
+.LP
+Rasqal uses the libraptor(3) library for providing URI handling and
+WWW content retrieval.
+.LP
+.SH LIBRARY INITIALISATION AND CLEANUP
+.IP "\fBrasqal_init()\fR"
+.IP "\fBrasqal_finish()\fR"
+Initialise and cleanup the library.  These must be called before
+any rasqal_query is created or used.
+.SH QUERY CONSTRUCTORS
+.IP "\fBrasqal_query* rasqal_new_query(ql_name, ql_uri)\fR"
+Create a new rasqal query object for the query with name
+\fIname\fR currently only "rdql" for
+RDF Data Query Language.
+.SH QUERY DESTRUCTORS
+.IP "\fBvoid rasqal_free_query(rasqal_query *\fIquery\fB)\fR"
+Destroy a rasqal query object.
+.SH "QUERY METHODS"
+Blah blah FIXME
+.SH "LITERAL CLASS"
+Rasqal has a rasqal_literal class for the values returned as parts of
+the triples in bindings.  
+.SH "LITERAL CONSTRUCTORS"
+There a several constructors for rasqal_literal to build them from
+char* strings and existing rasqal_literal objects.
+.IP "\fBrasqal_literal* rasqal_new_literal(void* \fIparam\fB)\fR"
+Create a rasqal URI from a string URI-reference
+FIXME
+.SH "LITERAL DESTRUCTOR"
+.IP "\fBvoid rasqal_free_literal(rasqal_uri* \fIliteral\fB)\fR"
+Destroy a rasqal literal object.
+.SH "LITERAL METHODS"
+.IP "\fBint rasqal_literal_FIXME(rasqal_uri* \fIliteral\fB)\fR"
+FIXME
+.SH API CHANGES
+.SS 0.2.0
+All new.
+.br
+.SH "CONFORMING TO"
+\fIRDQL - A Query Language for RDF\fR, Andy Seaborne,
+W3C Member Submission 9 January 2004
+.UR http://www.w3.org/Submission/2004/SUBM-RDQL-20040109/
+http://www.w3.org/Submission/2004/SUBM-RDQL-20040109/
+.UE
+.SH SEE ALSO
+.BR roqet (1), rasqal-config (1)
+.SH AUTHOR
+Dave Beckett - 
+.UR http://purl.org/net/dajobe/
+http://purl.org/net/dajobe/
+.UE
+.br
+.UR
+Institute for Learning and Research Technology (ILRT)
+http://www.ilrt.bristol.ac.uk/
+.UE
+.br
+.UR
+University of Bristol
+http://www.bristol.ac.uk/
+.UE
