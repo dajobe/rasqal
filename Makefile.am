@@ -102,10 +102,10 @@ NEWS: NEWS.html
 
 
 if MAINTAINER_MODE
-librasqal.html: $(srcdir)/librasqal.3 $(srcdir)/fix-groff-xhtml $@
+librasqal.html: $(srcdir)/librasqal.3 $(srcdir)/fix-groff-xhtml
 	-groff -man -Thtml -P-l $< | tidy -asxml -wrap 1000 2>/dev/null | perl $(srcdir)/fix-groff-xhtml $@
 
-roqet.html: $(srcdir)/roqet.1 $(srcdir)/fix-groff-xhtml $@
+roqet.html: $(srcdir)/roqet.1 $(srcdir)/fix-groff-xhtml
 	-groff -man -Thtml -P-l $< | tidy -asxml -wrap 1000 2>/dev/null | perl $(srcdir)/fix-groff-xhtml $@
 
 
