@@ -219,6 +219,9 @@ RASQAL_API rasqal_literal* rasqal_query_get_result_binding(rasqal_query *query, 
 RASQAL_API rasqal_literal* rasqal_query_get_result_binding_by_name(rasqal_query *query, const char *name);
 RASQAL_API int rasqal_query_next_result(rasqal_query *query);
 
+RASQAL_API void* rasqal_query_get_user_data(rasqal_query *query);
+RASQAL_API void rasqal_query_set_user_data(rasqal_query *query, void *user_data);
+
 
 /* Expression class */
 RASQAL_API rasqal_expression* rasqal_new_1op_expression(rasqal_op op, rasqal_expression* arg);
