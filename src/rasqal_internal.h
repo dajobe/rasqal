@@ -107,6 +107,8 @@ typedef enum {
  * Pattern graph for executing
  */
 struct rasqal_graph_pattern_s {
+  rasqal_query *query;
+  
   raptor_sequence *triples;          /* ... rasqal_triple*         */
   raptor_sequence *graph_patterns;   /* ... rasqal_graph_pattern*  */
 
@@ -124,18 +126,21 @@ struct rasqal_graph_pattern_s {
   /* enum rasqal_pattern_flags */
   int flags;
 
-  /* used for detecting end of optional graph patterns */
+  /* true when this graph pattern matched last time */
+  int matched;
+
+  /* true when an optional graph pattern finished last time round */
   int finished;
 
-  /* count of matches for this graph pattern */
-  int matches;
+  /* Number of matches returned */
+  int matches_returned;
 };
 
 typedef struct rasqal_graph_pattern_s rasqal_graph_pattern;
 
 
-rasqal_graph_pattern* rasqal_new_graph_pattern_from_triples(raptor_sequence *triples, int start_column, int end_column, int flags);
-rasqal_graph_pattern* rasqal_new_graph_pattern_from_sequence(raptor_sequence *graph_patterns, int flags);
+rasqal_graph_pattern* rasqal_new_graph_pattern_from_triples(rasqal_query *query, raptor_sequence *triples, int start_column, int end_column, int flags);
+rasqal_graph_pattern* rasqal_new_graph_pattern_from_sequence(rasqal_query *query, raptor_sequence *graph_patterns, int flags);
 void rasqal_free_graph_pattern(rasqal_graph_pattern* pg);
 void rasqal_graph_pattern_init(rasqal_graph_pattern *gp);
 void rasqal_graph_pattern_adjust(rasqal_graph_pattern* gp, int offset);
@@ -191,6 +196,11 @@ struct rasqal_query_s {
   rasqal_variable **variables;
   int variables_count;
   int select_variables_count;
+
+  /* array of size variables_count
+   * pointing to rasqal_graph_pattern* where variable[i] is declared
+   */
+  rasqal_graph_pattern **variables_declared_in;
 
   /* holds one copy of all the variables - this is where they are freed */
   raptor_sequence* variables_sequence;
@@ -264,7 +274,7 @@ struct rasqal_query_s {
   /* incrementing counter for declaring prefixes in order of appearance */
   int prefix_depth;
 
-  /* sequence of rasqal_graph-pattern* */
+  /* sequence of rasqal_graph_pattern* */
   raptor_sequence *graph_patterns;
 
   /* current position in the sequence */
@@ -272,6 +282,9 @@ struct rasqal_query_s {
 
   /* first graph_pattern in sequence with flags RASQAL_TRIPLE_FLAGS_OPTIONAL */
   int optional_graph_pattern;
+
+  /* Count of all optional matches for the current mandatory matches */
+  int optional_graph_pattern_matches_count;
 };
 
 
