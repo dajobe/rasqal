@@ -486,6 +486,8 @@ rasqal_triples_match_is_end(struct rasqal_triples_match_s* rtm) {
  */
 int
 rasqal_engine_prepare(rasqal_query *query) {
+  int i;
+
   if(!query->triples)
     return 1;
   
@@ -500,6 +502,17 @@ rasqal_engine_prepare(rasqal_query *query) {
     rasqal_engine_build_constraints_expression(query);
   }
 
+  for(i=0; i < raptor_sequence_size(query->triples); i++) {
+    rasqal_triple *t=(rasqal_triple*)raptor_sequence_get_at(query->triples, i);
+    
+    t->flags |= RASQAL_TRIPLE_FLAGS_EXACT;
+    if(rasqal_literal_as_variable(t->predicate) ||
+       rasqal_literal_as_variable(t->subject) ||
+       rasqal_literal_as_variable(t->object))
+      t->flags &= ~RASQAL_TRIPLE_FLAGS_EXACT;
+  }
+
+
   return 0;
 }
 
@@ -512,8 +525,6 @@ rasqal_engine_execute_init(rasqal_query *query) {
   if(!query->triples)
     return 1;
   
-  triples_size=raptor_sequence_size(query->triples);
-
   if(!query->triples_source) {
     query->triples_source=rasqal_new_triples_source(query);
     if(!query->triples_source) {
@@ -523,24 +534,16 @@ rasqal_engine_execute_init(rasqal_query *query) {
     }
   }
 
-  if(!query->pattern_graph) {
-    query->pattern_graph=rasqal_new_pattern_graph(query->triples,
-                                                  0, triples_size-1,
-                                                  0);
-    if(!query->pattern_graph)
-      return 1;
+  if(query->pattern_graph)
+    rasqal_free_pattern_graph(query->pattern_graph);
 
-    for(i=0; i<triples_size; i++) {
-      rasqal_triple *t=(rasqal_triple*)raptor_sequence_get_at(query->triples, i);
-      
-      t->flags |= RASQAL_TRIPLE_FLAGS_EXACT;
-      if(rasqal_literal_as_variable(t->predicate) ||
-         rasqal_literal_as_variable(t->subject) ||
-         rasqal_literal_as_variable(t->object))
-        t->flags &= ~RASQAL_TRIPLE_FLAGS_EXACT;
-    }
-  }
-
+  triples_size=raptor_sequence_size(query->triples);
+  query->pattern_graph=rasqal_new_pattern_graph(query->triples,
+                                                0, triples_size-1,
+                                                0);
+  if(!query->pattern_graph)
+    return 1;
+  
   query->abort=0;
   query->result_count=0;
   query->finished=0;
