@@ -31,6 +31,30 @@
 <li>Check if blank nodes are allowed, they are not in the test suite (CONFORMANCE)</li>
 <li>RDQL tests allow UTF-8 and \uHHHH for prefixes, local names</li>
 <li>LIMIT and OFFSET result constraints, after engine supports them.  AKT's Triplestore implementation of RDQL has this option. (extension)</li>
+<li>RDQL testsuite failures:
+<ul>
+
+<li>1-09: relies on the odd prefix definition
+<code>&lt;prefix:/r-1&gt;</code></li>
+
+<li>B-01: comment in the test says "No match: the value in the model is
+datatyped." however result-B-01.n3 has 1 result solution.</li>
+
+<li>B-07, B-15, B-16, B-20: floating and integer values should be
+string literals (BUG)</li>
+
+<li>S-02: utf8 prefix - not in the RDQL lexer</li>
+
+<li>S-03: utf8 qname - not in the RDQL lexer</li>
+
+<li>S-04, S-05: \u unicode prefix - not in the RDQL lexer</li>
+
+<li>B-17, B-18: boolean literals fail to match the string literals
+"true"/"false".  It is not clear how to resolve this.</li>
+
+</ul>
+</li>
+
 </ul>
 
 
