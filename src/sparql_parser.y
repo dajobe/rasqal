@@ -289,8 +289,7 @@ GraphPattern : GraphPattern PatternElement
 {
   /* FIXME - make graph pattern structure from element */
   $$=$1;
-  while(raptor_sequence_size($2) >0)
-    raptor_sequence_push($$, raptor_sequence_pop($2));
+  raptor_sequence_join($$, $2);
 }
 | PatternElement
 {
@@ -364,13 +363,7 @@ PatternElementForms : SOURCE STAR GraphPattern1  /* from SourceGraphPattern */
 }
 | AND Expression
 {
-  raptor_sequence* cons;
-  
-  /* FIXME - should append $2 to constraints, an already inited sequence */
-  cons=raptor_new_sequence(NULL, (raptor_sequence_print_handler*)rasqal_expression_print);
-  raptor_sequence_push(cons, $2);
-  
-  ((rasqal_query*)rq)->constraints=cons;
+  rasqal_query_add_constraint(((rasqal_query*)rq), $2);
 };
 
 
