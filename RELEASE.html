@@ -10,7 +10,90 @@
 
 <h2 id="rel0_9_5"><a name="rel0_9_5">Rasqal 0.9.5 Changes</a></h2>
 
-<p>Nothing yet</p>
+<p>FIXME - not yet released.</p>
+
+<p>This release adds graph patterns and optionals for handling
+SPARQL optionals.
+</p>
+
+<p>Added <code>rasqal_query_results_write</code> method to write
+variable binding query results to a <code>raptor_iostream</code> in
+the XML format defined by
+<a href="http://www.w3.org/TR/2004/WD-rdf-sparql-XMLres-20041221/">SPARQL Variable Binding Results XML Format</a>, W3C Working Draft, 21 December 2004.
+</p>
+
+<p>Requires <a href="http://librdf.org/raptor/">Raptor</a> 1.4.4
+for the XML Writer API.</p>
+
+<p>Added <code>rasqal_graph_pattern</code> class for handling
+matching a set of triple patterns in an <code>rasqal_query</code>.
+RDQL only has one of these wheras SPARQL may have many, and they may
+be nested.</p>
+
+
+<h3>Query Engine</h3>
+
+<p>Updated the query engine to work with multiple graph patterns
+rather than a single set of triple patterns.  The graph patterns may
+be optional, which is used to implement SPARQL optionals.  Nested
+graph patterns are constructed but cannot yet be executed.
+</p>
+
+<p>Added a unary minus expression type.</p>
+
+<p>Improved the type promotion for expression evaluation.  Try to
+evaluate strings as doubles or integers if the operation contains one
+double or integer respectively.</p>
+
+<p>Fixed a memory leak with string matches/non-matches.</p>
+
+
+<h3>SPARQL Query Language</h3>
+
+<p>Optional graph patterns <code>OPTIONAL</code> and
+<code>[</code> ... <code>]</code> now work.</p>
+
+<p>Added the <code>{</code> ... <code>}</code> group syntax and
+removed the <code>(</code> ... <code>)</code> form.</p>
+
+<p><code>$</code> was added as an allowed variable prefixes.</p>
+
+<p>A warning was added to show <code>SOURCE *</code> is ignored.</p>
+
+<p>Added the <code>UNION</code> keyword, unsupported.</p>
+
+<p>Rasqal now passes the
+<a href="http://www.w3.org/2001/sw/DataAccess/">DAWG</a>
+SPARQL 
+<a href="http://www.w3.org/2001/sw/DataAccess/tests/">test cases</a>:
+Optional triples (dawg-opt-query-001, dawg-opt-query-002,
+dawg-opt-query-003, dawg-opt-query-004)
+and examples from query WD (sparql-query-example-2.1a,
+sparql-query-example-2.2a, sparql-query-example-2.3a,
+sparql-query-example-2.4a, sparql-query-example-3)
+</p>
+
+<p>Allow UTF-8 qname prefixes and check name against XML constraints.</p>
+
+<p>Recover lexer state from errors in regexes.</p>
+
+<p>Terminate the lexer on a syntax error, rather than produce
+multiple errors.</p>
+
+
+<h3>RDQL Query Language</h3>
+
+<p>The lexer now handles UTF-8 qname prefixes, enabling RDQL
+testsuite test S-02 to pass.</p>
+
+<p>Allow UTF-8 qname prefixes and check name against XML
+constraints.</p>
+
+<p>Recover lexer state from errors in regexes.</p>
+
+<p>Terminate the lexer on a syntax error, rather than produce
+multiple errors.</p>
+
 
 
 <h2 id="rel0_9_4"><a name="rel0_9_4">Rasqal 0.9.4 Changes</a></h2>
