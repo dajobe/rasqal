@@ -226,7 +226,7 @@ QUOTEDURI \<[A-Za-z][^>]+\>
                                   yytext+1, yyleng-2, '"');
                                 return STRING_LITERAL; }
 
-"true"|"false"	{ rdql_parser_lval->literal=rasqal_new_integer_literal(RASQAL_LITERAL_BOOLEAN, (*yytext== 't'));
+"true"|"false"	{ rdql_parser_lval->literal=rasqal_new_boolean_literal(*yytext== 't');
                   return BOOLEAN_LITERAL; }
 
 "null"	{ rdql_parser_lval->literal=NULL;
