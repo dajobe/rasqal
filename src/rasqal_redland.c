@@ -64,16 +64,35 @@ rasqal_literal_to_redland_node(librdf_world *world, rasqal_literal* l) {
   if(l->type == RASQAL_LITERAL_URI) {
     char *uri_string=raptor_uri_as_string(l->value.uri);
     return librdf_new_node_from_uri_string(world, uri_string);
-  } else if (l->type == RASQAL_LITERAL_STRING)
-    return librdf_new_node_from_literal(world, l->value.string, NULL, 0);
-  else if (l->type == RASQAL_LITERAL_BLANK)
+  } else if (l->type == RASQAL_LITERAL_STRING) {
+    librdf_uri* datatype_uri;
+
+    if(l->datatype)
+      datatype_uri=librdf_new_uri_from_uri((librdf_uri*)l->datatype);
+    else
+      datatype_uri=NULL;
+    return librdf_new_node_from_typed_literal(world, l->value.string, 
+                                              l->language, datatype_uri);
+  } else if (l->type == RASQAL_LITERAL_BLANK)
     return librdf_new_node_from_blank_identifier(world, l->value.string);
-  else {
+  else if (l->type == RASQAL_LITERAL_INTEGER) {
+    char buffer[30]; /* FIXME */
+    librdf_uri* uri=librdf_new_uri(world, "http://www.w3.org/2001/XMLSchema#integer");
+    librdf_node *node;
+    
+    sprintf(buffer, "%d", l->value.integer);
+    node=librdf_new_node_from_literal(world, buffer, uri, 0);
+
+    librdf_free_uri(uri);
+    return node;
+  } else {
     char *string=rasqal_literal_as_string(l);
     if(!string) {
       LIBRDF_DEBUG2("Could not convert literal type %d to string", l->type);
       abort();
     }
+
+    /* FIXME floating type should become xsd:what ? */
     return librdf_new_node_from_literal(world, string, NULL, 0);
   }
 
@@ -86,7 +105,7 @@ redland_node_to_rasqal_literal(librdf_node *node) {
   rasqal_literal* l;
   
   if(librdf_node_is_resource(node)) {
-    raptor_uri* uri=raptor_new_uri(librdf_uri_as_string(librdf_node_get_uri(node)));
+    raptor_uri* uri=(raptor_uri*)librdf_new_uri_from_uri(librdf_node_get_uri(node));
     l=rasqal_new_uri_literal(uri);
   } else if(librdf_node_is_literal(node)) {
     char *string;
@@ -105,7 +124,7 @@ redland_node_to_rasqal_literal(librdf_node *node) {
     }
     uri=librdf_node_get_literal_value_datatype_uri(node);
     if(uri)
-      new_datatype=raptor_new_uri(librdf_uri_as_string(uri));
+      new_datatype=(raptor_uri*)librdf_new_uri_from_uri(uri);
     l=rasqal_new_string_literal(new_string, new_language, new_datatype, NULL);
   } else {
     char *blank=librdf_node_get_blank_identifier(node);
