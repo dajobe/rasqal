@@ -545,7 +545,7 @@ rasqal_engine_get_next_result(rasqal_query *query) {
       if(rc)
         return rc;
       
-    } else
+    } else if (query->column >=0)
       query->column++;
 
   }
