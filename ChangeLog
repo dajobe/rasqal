@@ -1,5 +1,22 @@
 2005-03-10  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
+	* sparql_lexer.l: and {QUOTEDURI} add optional ')' and return
+	URI_LITERAL_BRACE, QNAME_LITERAL_BRACE instead of URI_LITERAL /
+	QNAME_LITERAL.
+
+	* sparql_parser.y:
+	Added tokens URI_LITERAL_BRACE QNAME_LITERAL_BRACE for URI+'(' and QNAME+'('
+	(URIBrace): Added for handling the two above, replacing two
+	alternatives in BuiltinExpression, removing a conflict.
+
+	* rasqal_expr.c (rasqal_new_cast_expression): Added for type casting
+	(rasqal_free_expression, rasqal_expression_foreach,
+	rasqal_expression_evaluate, rasqal_expression_print): Added
+	RASQAL_EXPR_CAST support
+
+	* rasqal.h: Added RASQAL_EXPR_CAST for sparql type casting
+	Added prototype for rasqal_new_cast_expression
+
 	* sparql_lexer.l, rdql_lexer.l: Tidy to use .|\n to match any char
 
 	* rdql_lexer.l, sparql_lexer.l ('-strings, and "-strings): Count
