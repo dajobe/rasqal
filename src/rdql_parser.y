@@ -149,7 +149,7 @@ static int rdql_query_error(rasqal_query* rq, const char *message);
 
 %type <seq> SelectClause SourceClause ConstraintClause UsingClause
 %type <seq> CommaAndConstraintClause
-%type <seq> VarList TriplePatternList PrefixDeclList ArgList URIList
+%type <seq> VarList TriplePatternList PrefixDeclList URIList
 
 %type <expr> Expression ConditionalAndExpression ValueLogical
 %type <expr> EqualityExpression RelationalExpression NumericExpression
@@ -478,26 +478,9 @@ UnaryExpressionNotPlusMinus : TILDE UnaryExpression
 {
   $$=rasqal_new_literal_expression($1);
 }
-| IDENTIFIER LPAREN ArgList RPAREN
-{
-  rasqal_literal *l=rasqal_new_string_literal("functioncall", NULL, NULL, NULL);
-  $$=rasqal_new_literal_expression(l);
-}
 | LPAREN Expression RPAREN
 {
   $$=$2;
-}
-;
-
-ArgList : VarOrLiteral COMMA ArgList
-{
-  $$=$3;
-  raptor_sequence_shift($$, $1);
-}
-| VarOrLiteral
-{
-  $$=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_expression, (raptor_sequence_print_handler*)rasqal_expression_print);
-  raptor_sequence_push($$, $1);
 }
 ;
 
