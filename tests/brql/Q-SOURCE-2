@@ -1,0 +1,7 @@
+SELECT ?source, ?x
+FROM <D.n3>, <E.n3>
+WHERE 
+	SOURCE <D.n3> (?x rdf:type ns:Type1) 
+USING 
+	ns    FOR <http://example.org/ns#>
+
