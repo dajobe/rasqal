@@ -19,9 +19,11 @@ librasqal \- Rasqal RDF query library
 .br
 .BI rasqal_init();
 .br
+.BI "rasqal_query_results *" results ;
+.br
 .BI "raptor_uri *" base_uri =raptor_new_uri( "\(dqhttp://example.org/foo\(dq" );
 .br
-.BI "rasqal_query *" rq =rasqal_new_query( "\(dqrdql\(dq" , NULL);
+.BI "rasqal_query *" rq =rasqal_new_query( "\(dqrdql\(dq" , NULL );
 .br
 .BI "const char *" query_string "=\(dqselect * from <http://example.org/data.rdf>\(dq;"
 .br
@@ -29,23 +31,25 @@ librasqal \- Rasqal RDF query library
 .br
 .BI rasqal_query_prepare( rq , query_string , base_uri );
 .br
-.BI rasqal_query_execute( rq );
+.BI "" results =rasqal_query_execute( rq );
 .br
-.BI "while(!rasqal_query_results_finished(" rq "))\ {"
+.BI "while(!rasqal_query_results_finished(" results "))\ {"
 .br
-.BI "\ for(" i "=0;" i "<rasqal_query_get_bindings_count(" rq ");" i "++) {"
+.BI "\ for(" i "=0;" i "<rasqal_query_results_get_bindings_count(" results ");" i "++) {"
 .br
-.BI "\ \ const char *" name "=rasqal_query_get_result_binding_name(" rq , i );
+.BI "\ \ const char *" name "=rasqal_query_results_get_binding_name(" results , i );
 .br
-.BI "\ \ rasqal_literal *" value "=rasqal_query_get_result_binding_value(" rq, i);
+.BI "\ \ rasqal_literal *" value "=rasqal_query_results_get_binding_value(" results, i);
 .br
 .BI "\ \ /* ... */"
 .br
 .BI "\ }"
 .br
-.BI "\ rasqal_query_next_result(" rq );
+.BI "\ rasqal_query_results_next(" results );
 .br
 .BI }
+.br
+.BI rasqal_free_query_results( results );
 .br
 .BI rasqal_free_query( rq );
 .br
@@ -342,7 +346,7 @@ methods from \fBrasqal_query\fR.
 Made \fBrasqal_query_execute\fR return a \fBrasqal_query_result*\fR.
 .br
 Renamed all \fBrasqal_query\fR\fI*result*\fP methods to be rasqal_query_result_*
-Added rasqal_free_query_results to tidy up.
+Added \fBrasqal_free_query_results\fP to tidy up.
 .ta \w'rasqal_query_get_result_binding_by_name  'u+\n(Spu
 .LP
 \fIOLD API (0.9.0)	NEW API (0.9.1+)\fR
@@ -357,9 +361,9 @@ Added rasqal_free_query_results to tidy up.
 .br
 \fBrasqal_query_get_result_binding_value\fR	\fBrasqal_query_results_get_binding_value\fR
 .br
-\fBrasqal_query_get_result_binding_name\fR	\fBrasqal_query_results_get_binding_value_by_name\fR
+\fBrasqal_query_get_result_binding_name\fR	\fBrasqal_query_results_get_binding_name\fR
 .br
-\fBrasqal_query_get_result_binding_by_name\fR	\fBrasqal_query_results_get_binding_by_name\fR
+\fBrasqal_query_get_result_binding_by_name\fR	\fBrasqal_query_results_get_binding_value_by_name\fR
 .br
 \fBrasqal_query_get_bindings_count\fR	\fBrasqal_query_results_get_bindings_count\fR
 .br
