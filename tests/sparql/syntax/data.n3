@@ -1,2 +1,2 @@
-@prefix ex: <http://example.org/#>
+@prefix ex: <http://example.org/#> .
 ex:foo ex:bar ex:baz .
