@@ -1307,7 +1307,8 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e) {
           else if(rc != PCRE_ERROR_NOMATCH) {
             rasqal_query_error(query, "Regex match failed - returned code %d", rc);
             rc= -1;
-          }
+          } else
+            rc=0;
         }
         
 #endif
@@ -1330,7 +1331,8 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e) {
           else if (rc != REG_NOMATCH) {
             rasqal_query_error(query, "Regex match failed - returned code %d", rc);
             rc= -1;
-          }
+          } else
+            rc= 0;
         }
         regfree(&reg);
 #endif
