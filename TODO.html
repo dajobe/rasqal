@@ -13,7 +13,7 @@
 <h3>General</h3>
 
 <ul>
-<li>Engine: comparisons between integer and floats are done as integers (BUG)</li>
+<li>Engine: comparisons between integer and floats return integers, so 0.1 compared to 0 might return 0 rather than, more correctly non-0 (BUG)</li>
 <li>streaming triples parser - a Raptor feature request</li>
 <li>Engine: Result constraints - like <code>LIMIT</code> and <code>OFFSET</code> in SQL (extension)</li>
 <li>Engine: Optional triples (extension)</li>
@@ -46,6 +46,7 @@
 release version where appropriate.</p>
 
 <ul>
+<li>Engine/Redland/RDQL: recognise xsd:integer as integer, xsd:double as floating</li>
 <li>RDQL: Updated for changes in
 <a href="http://www.w3.org/Submission/2004/SUBM-RDQL-20040109/">RDQL - A Query Language for RDF, W3C Member Submission 9 January 2004</a></li>
 <li>Engine: base URIs handled</li>
