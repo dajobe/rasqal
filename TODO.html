@@ -37,9 +37,10 @@ However this syntax is not in the
 <a href="http://www.w3.org/Submission/2004/SUBM-RDQL-20040109/">RDQL - A Query Language for RDF, W3C Member Submission 9 January 2004</a>.
 Legacy syntax.</li>
 
-<li>B-01: comment in the test says "No match: the value in the model is
-datatyped." however result-B-01.n3 has 1 result solution.  The comment
-is in error.</li>
+<li>B-01: string literal fails to match xsd:string datatyped string literal.
+The test case and result are inconsistent.  The test says "No match:
+the value in the model is datatyped." however result-B-01.n3 has 1
+result solution.</li>
 
 <li>B-17: boolean literals fail to match the string literals
 "true"/"false".  It is not clear how to resolve this - in the RDQL
