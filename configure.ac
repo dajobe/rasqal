@@ -244,6 +244,7 @@ abs_top_builddir=`pwd`
 AC_SUBST(abs_top_builddir)
 
 AC_CONFIG_FILES([Makefile
+tests/Makefile
 rasqal.spec
 rasqal.pc])
 AC_CONFIG_FILES([rasqal-config], [chmod +x rasqal-config])
