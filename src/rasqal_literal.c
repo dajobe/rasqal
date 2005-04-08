@@ -189,7 +189,8 @@ rasqal_literal_string_to_native(rasqal_literal *l)
 
   if(raptor_uri_equals(l->datatype, rasqal_xsd_boolean_uri)) {
     int b=0;
-    if(!strcmp(l->string, "true") || !strcmp(l->string, "TRUE"))
+    if(!strcmp((const char*)l->string, "true") || 
+       !strcmp((const char*)l->string, "TRUE"))
        b=1;
     
     if(l->language) {

@@ -640,9 +640,9 @@ rasqal_uri_init()
 {
   rasqal_xsd_namespace_uri=raptor_new_uri(raptor_xmlschema_datatypes_namespace_uri);
   
-  rasqal_xsd_integer_uri=raptor_new_uri_from_uri_local_name(rasqal_xsd_namespace_uri, "integer");
-  rasqal_xsd_double_uri=raptor_new_uri_from_uri_local_name(rasqal_xsd_namespace_uri, "double");
-  rasqal_xsd_boolean_uri=raptor_new_uri_from_uri_local_name(rasqal_xsd_namespace_uri, "boolean");
+  rasqal_xsd_integer_uri=raptor_new_uri_from_uri_local_name(rasqal_xsd_namespace_uri, (const unsigned char*)"integer");
+  rasqal_xsd_double_uri=raptor_new_uri_from_uri_local_name(rasqal_xsd_namespace_uri, (const unsigned char*)"double");
+  rasqal_xsd_boolean_uri=raptor_new_uri_from_uri_local_name(rasqal_xsd_namespace_uri, (const unsigned char*)"boolean");
   
 }
 
