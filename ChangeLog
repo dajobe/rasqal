@@ -1,3 +1,7 @@
+2005-04-10  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* Snapshotted rasqal_0_9_8 for 0.9.8 release
+
 2005-03-21  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
 	* rasqal_graph_pattern.c (rasqal_graph_pattern_init): Set origin
