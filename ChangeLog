@@ -1,5 +1,8 @@
 2005-04-10  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
+	* win32_rasqal_config.h, configure.ac, RELEASE.html, NEWS.html:
+	Bumped version to 0.9.9
+
 	* Snapshotted rasqal_0_9_8 for 0.9.8 release
 
 2005-03-21  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
