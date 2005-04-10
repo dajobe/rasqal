@@ -25,7 +25,7 @@ dnl the licenses in COPYING.LIB, COPYING and LICENSE-2.0.txt respectively.
 dnl 
 
 
-AC_INIT(Rasqal RDF Query Library, 0.9.8, redland-dev@lists.librdf.org, rasqal)
+AC_INIT(Rasqal RDF Query Library, 0.9.9, redland-dev@lists.librdf.org, rasqal)
 AC_PREREQ(2.50)
 AC_CONFIG_SRCDIR(rdql_parser.y)
 AC_REVISION($Revision$)
