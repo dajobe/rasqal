@@ -557,32 +557,6 @@ OptionalGraphPattern: OPTIONAL PatternElementConstraint
   $$=$2;
   $$->flags |= RASQAL_PATTERN_FLAGS_OPTIONAL;
 }
-| '[' GraphPattern ']' /* from OptionalGraphPattern */
-{
-  int i;
-
-#if RASQAL_DEBUG > 1  
-  printf("PatternElementForms 5\n  graphpattern=");
-  if($2)
-    raptor_sequence_print($2, stdout);
-  else
-    fputs("NULL", stdout);
-  fputs("\n\n", stdout);
-#endif
-
-  /* FIXME - deprecated */
-  sparql_syntax_warning(((rasqal_query*)rq), "Use OPTIONAL {} instead of [] for optional triples in SPARQL (2005-02-17 WD)");
-
-  if($2) {
-    /* Make all graph patterns in GraphPattern, optional */
-    for(i=0; i < raptor_sequence_size($2); i++) {
-      rasqal_graph_pattern *gp=(rasqal_graph_pattern*)raptor_sequence_get_at($2, i);
-      gp->flags |= RASQAL_PATTERN_FLAGS_OPTIONAL;
-    }
-    $$=rasqal_new_graph_pattern_from_sequence((rasqal_query*)rq, $2, RASQAL_PATTERN_FLAGS_OPTIONAL);
-  } else
-    $$=NULL;
-}
 ;
 
 
