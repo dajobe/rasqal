@@ -181,7 +181,6 @@ QUOTEDURI \<[A-Za-z][^>]+\>
 "UNION"|"union"       { return UNION; }
 "OPTIONAL"|"OPTIONAL" { return OPTIONAL; }
 "BASE"|"base" { return BASE; }
-"LOAD"|"load" { return LOAD; }
 "BOUND"|"bound" { return BOUND; }
 "STR"|"str" { return STR; }
 "LANG"|"lang" { return LANG; }
@@ -741,9 +740,6 @@ sparql_token_print(int token, YYSTYPE *lval)
 
     case BASE:
       return "BASE";
-
-    case LOAD:
-      return "LOAD";
 
     case BOUND:
       return "BOUND";
