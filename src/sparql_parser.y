@@ -124,7 +124,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...);
 %expect 2
 
 /* word symbols */
-%token SELECT SOURCE FROM WHERE AND
+%token SELECT FROM WHERE AND
 %token OPTIONAL PREFIX DESCRIBE CONSTRUCT ASK DISTINCT LIMIT UNION
 %token BASE LOAD BOUND STR LANG DATATYPE ISURI ISBLANK ISLITERAL
 %token GRAPH WITH
@@ -526,37 +526,6 @@ NamedGraphPattern: GRAPH '*' PatternElementConstraint
   rasqal_graph_pattern_print($3, stdout);
   fputs("\n\n", stdout);
 #endif
-
-  rasqal_graph_pattern_set_origin($3, $2);
-
-  rasqal_free_literal($2);
-  $$=$3;
-}
-|  SOURCE '*' PatternElementConstraint
-{
-#if RASQAL_DEBUG > 1  
-  printf("NamedGraphPattern 3\n  patternelement=");
-  rasqal_graph_pattern_print($3, stdout);
-  fputs("\n\n", stdout);
-#endif
-
-  /* FIXME */
-  sparql_syntax_warning(((rasqal_query*)rq), "SPARQL SOURCE * ignored");
-
-  $$=$3;
-}
-| SOURCE VarOrURI PatternElementConstraint
-{
-#if RASQAL_DEBUG > 1  
-  printf("NamedGraphPattern 4\n  varoruri=");
-  rasqal_literal_print($2, stdout);
-  printf(", patternelement=");
-  rasqal_graph_pattern_print($3, stdout);
-  fputs("\n\n", stdout);
-#endif
-
-  /* FIXME - deprecated */
-  sparql_syntax_warning(((rasqal_query*)rq), "Use GRAPH instead of SOURCE in SPARQL (2005-02-17 WD)");
 
   rasqal_graph_pattern_set_origin($3, $2);
 

@@ -168,7 +168,6 @@ QUOTEDURI \<[A-Za-z][^>]+\>
 }
 
 "SELECT"|"select" { return SELECT; }
-"SOURCE"|"source" { return SOURCE; }
 "FROM"|"from"     { return FROM; } 
 "WHERE"|"where"   { return WHERE; } 
 "AND"|"and"       { return AND; } 
@@ -706,9 +705,6 @@ sparql_token_print(int token, YYSTYPE *lval)
   switch(token) {
     case SELECT:
       return "SELECT";
-
-    case SOURCE:
-      return "SOURCE";
 
     case FROM:
       return "FROM";
