@@ -196,7 +196,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...);
  */
 
 /* SPARQL Grammar: [1] Query */
-Query : BaseDeclOpt PrefixDeclOpt ReportFormat LoadClauseOpt GraphClauseOpt
+Query : BaseDeclOpt PrefixDeclOpt ReportFormat GraphClauseOpt
         NamedGraphClauseOpt WhereClauseOpt LimitClauseOpt
 {
 }
@@ -260,7 +260,7 @@ DescribeClause : DESCRIBE VarOrURIList
 }
 ;
 
-/* SPARQL Grammar: [5] rq23 ConstructClause */
+/* SPARQL Grammar: [5] ConstructClause */
 ConstructClause : CONSTRUCT ConstructPattern
 {
   $$=$2;
@@ -277,26 +277,6 @@ ConstructClause : CONSTRUCT ConstructPattern
 AskClause : ASK 
 {
 }
-
-
-/* SPARQL Grammar: [7] LoadClause - renamed for clarity */
-LoadClauseOpt : LOAD URIList
-{
-  if($2) {
-    int i;
-    
-    for(i=0; i < raptor_sequence_size($2); i++) {
-      raptor_uri* uri=(raptor_uri*)raptor_sequence_get_at($2, i);
-      rasqal_query_add_data_graph((rasqal_query*)rq, uri, uri, RASQAL_DATA_GRAPH_NAMED);
-    }
-    
-    raptor_free_sequence($2);
-  }
-}
-| /* empty */
-{
-}
-;
 
 
 /* SPARQL Grammar: [7] GraphClause - renamed for clarity */
