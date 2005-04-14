@@ -196,6 +196,9 @@ struct rasqal_query_s {
   /* result limit LIMIT (>=0) or <0 if not given */
   int limit;
 
+  /* result offset OFFSET (>=0) or <0 if not given */
+  int offset;
+
   /* non-0 if '*' was seen in SELECT or DESCRIBE (selects will be NULL) */
   int select_all;
 
