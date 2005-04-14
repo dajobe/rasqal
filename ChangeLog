@@ -1,7 +1,74 @@
+2005-04-14  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* tests/sparql/syntax/cast1.rq, tests/sparql/syntax/cast0.rq: AND
+	to FILTER
+
+	* tests/sparql/syntax/Makefile.am: Added offset0.rq
+
+	* sparql_parser.y: Added tokens FILTER OFFSET A Now up to
+	expecting 3 shift/reduce (filter + offset can both be missing)
+	Added LimitClauseOpt OffsetClauseOpt types
+	(Query): Added OffsetClause
+	(OffsetClauseOpt): Added, not in 2005-02-17 SPARQL WD
+	(PatternElementConstraint): Deprecate AND (removed 2005-04-19
+	SPARQL WD) and add FILTER.
+
+	* roqet.c (roqet_query_walk): Print any result offset
+	(main): Fix help message
+
+	* tests/sparql/syntax/offset0.rq: LIMIT and OFFSET test
+
+	* rasqal_engine.c (rasqal_engine_query_constraints_has_qname):
+	Handle no query_graph_pattern present.
+
+	* sparql_lexer.l: Added FILTER, OFFSET, A tokens
+
+	* rasqal_query.c (rasqal_query_get_offset): Added, returning the
+	query results offset.
+	(rasqal_query_print): Print query results offset
+
+	* rasqal.h: Added rasqal_query_get_offset prototype.
+
+	* rasqal_internal.h: Added offset to query structure
+
+2005-04-11  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* sparql_lexer.l: Deleted keyword LOAD
+
+	* sparql_parser.y (LoadClauseOpt): Deleted, along with old keyword LOAD
+
+	* sparql_parser.y: Removed deprecated [ ... ] syntax for optionals
+
+	* sparql_parser.y, sparql_lexer.l: Removed deprecated SOURCE keyword
+
+	* configure.ac: Added tests/sparql/survey/Makefile
+
+	* tests/sparql/Makefile.am: Added survey dir
+
+	* tests/sparql/survey/result-survey-12.ttl,
+	tests/sparql/survey/result-survey-13.ttl,
+	tests/sparql/survey/result-survey-2.ttl,
+	tests/sparql/survey/result-survey-3.ttl,
+	tests/sparql/survey/result-survey-8.ttl,
+	tests/sparql/survey/result-survey-9.ttl,
+	tests/sparql/survey/survey-sample.ttl,
+	tests/sparql/survey/query-survey-2.rq,
+	tests/sparql/survey/query-survey-3.rq,
+	tests/sparql/survey/query-survey-8.rq,
+	tests/sparql/survey/query-survey-9.rq,
+	tests/sparql/survey/result-survey-1.ttl,
+	tests/sparql/survey/result-survey-10.ttl,
+	tests/sparql/survey/result-survey-11.ttl,
+	tests/sparql/survey/.cvsignore, tests/sparql/survey/Makefile.am,
+	tests/sparql/survey/query-survey-1.rq,
+	tests/sparql/survey/query-survey-10.rq,
+	tests/sparql/survey/query-survey-11.rq,
+	tests/sparql/survey/query-survey-12.rq,
+	tests/sparql/survey/query-survey-13.rq: dawg survey tests
+
 2005-04-10  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
-	* win32_rasqal_config.h, configure.ac, RELEASE.html, NEWS.html:
-	Bumped version to 0.9.9
+	* win32_rasqal_config.h, configure.ac: Bumped version to 0.9.9
 
 	* Snapshotted rasqal_0_9_8 for 0.9.8 release
 
