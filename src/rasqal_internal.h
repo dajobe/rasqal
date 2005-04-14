@@ -455,6 +455,16 @@ extern raptor_uri* rasqal_xsd_boolean_uri;
 void rasqal_uri_init(void);
 void rasqal_uri_finish(void);
 
+/* rasqal_literal.c */
+typedef struct {
+  raptor_sequence *triples;
+  rasqal_literal *value;
+} rasqal_formula;
+
+rasqal_formula* rasqal_new_formula(void);
+void rasqal_free_formula(rasqal_formula* formula);
+void rasqal_formula_print(rasqal_formula* formula, FILE *stream);
+
 
 /* end of RASQAL_INTERNAL */
 #endif
