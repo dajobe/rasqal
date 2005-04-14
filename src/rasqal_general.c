@@ -634,6 +634,12 @@ raptor_uri* rasqal_xsd_integer_uri=NULL;
 raptor_uri* rasqal_xsd_double_uri=NULL;
 raptor_uri* rasqal_xsd_boolean_uri=NULL;
 
+raptor_uri* rasqal_rdf_namespace_uri=NULL;
+
+raptor_uri* rasqal_rdf_first_uri=NULL;
+raptor_uri* rasqal_rdf_rest_uri=NULL;
+raptor_uri* rasqal_rdf_nil_uri=NULL;
+
 
 void
 rasqal_uri_init() 
@@ -643,6 +649,12 @@ rasqal_uri_init()
   rasqal_xsd_integer_uri=raptor_new_uri_from_uri_local_name(rasqal_xsd_namespace_uri, (const unsigned char*)"integer");
   rasqal_xsd_double_uri=raptor_new_uri_from_uri_local_name(rasqal_xsd_namespace_uri, (const unsigned char*)"double");
   rasqal_xsd_boolean_uri=raptor_new_uri_from_uri_local_name(rasqal_xsd_namespace_uri, (const unsigned char*)"boolean");
+
+  rasqal_rdf_namespace_uri=raptor_new_uri(raptor_rdf_namespace_uri);
+
+  rasqal_rdf_first_uri=raptor_new_uri_from_uri_local_name(rasqal_rdf_namespace_uri, (const unsigned char*)"first");
+  rasqal_rdf_rest_uri=raptor_new_uri_from_uri_local_name(rasqal_rdf_namespace_uri, (const unsigned char*)"rest");
+  rasqal_rdf_nil_uri=raptor_new_uri_from_uri_local_name(rasqal_rdf_namespace_uri, (const unsigned char*)"nil");
   
 }
 
@@ -658,7 +670,147 @@ rasqal_uri_finish()
     raptor_free_uri(rasqal_xsd_boolean_uri);
   if(rasqal_xsd_namespace_uri)
     raptor_free_uri(rasqal_xsd_namespace_uri);
+
+  if(rasqal_rdf_first_uri)
+    raptor_free_uri(rasqal_rdf_first_uri);
+  if(rasqal_rdf_rest_uri)
+    raptor_free_uri(rasqal_rdf_rest_uri);
+  if(rasqal_rdf_nil_uri)
+    raptor_free_uri(rasqal_rdf_nil_uri);
+  if(rasqal_rdf_namespace_uri)
+    raptor_free_uri(rasqal_rdf_namespace_uri);
+
 }
+
+
+
+/**
+ * rasqal_query_set_default_generate_bnodeid_parameters - Set default bnodeid generation parameters
+ * @rdf_query: &rasqal_parse object
+ * @prefix: prefix string
+ * @base: integer base identifier
+ *
+ * Sets the parameters for the default algorithm used to generate
+ * blank node IDs.  The default algorithm uses both @prefix and @base
+ * to generate a new identifier.  The exact identifier generated is
+ * not guaranteed to be a strict concatenation of @prefix and @base
+ * but will use both parts.
+ *
+ * For finer control of the generated identifiers, use
+ * &rasqal_set_default_generate_bnodeid_handler.
+ *
+ * If prefix is NULL, the default prefix is used (currently "bnodeid")
+ * If base is less than 1, it is initialised to 1.
+ * 
+ **/
+void
+rasqal_query_set_default_generate_bnodeid_parameters(rasqal_query* rdf_query, 
+                                                     char *prefix, int base)
+{
+  char *prefix_copy=NULL;
+  size_t length=0;
+
+  if(--base<0)
+    base=0;
+
+  if(prefix) {
+    length=strlen(prefix);
+    
+    prefix_copy=(char*)RASQAL_MALLOC(cstring, length+1);
+    if(!prefix_copy)
+      return;
+    strcpy(prefix_copy, prefix);
+  }
+  
+  if(rdf_query->default_generate_bnodeid_handler_prefix)
+    RASQAL_FREE(cstring, rdf_query->default_generate_bnodeid_handler_prefix);
+
+  rdf_query->default_generate_bnodeid_handler_prefix=prefix_copy;
+  rdf_query->default_generate_bnodeid_handler_prefix_length=length;
+  rdf_query->default_generate_bnodeid_handler_base=base;
+}
+
+
+/**
+ * rasqal_query_set_generate_bnodeid_handler - Set the generate blank node ID handler function for the query
+ * @query: &rasqal_query query object
+ * @user_data: user data pointer for callback
+ * @handler: generate blank ID callback function
+ *
+ * Sets the function to generate blank node IDs for the query.
+ * The handler is called with a pointer to the rasqal_query, the
+ * &user_data pointer and a user_bnodeid which is the value of
+ * a user-provided blank node identifier (may be NULL).
+ * It can either be returned directly as the generated value when present or
+ * modified.  The passed in value must be free()d if it is not used.
+ *
+ * If handler is NULL, the default method is used
+ * 
+ **/
+void
+rasqal_query_set_generate_bnodeid_handler(rasqal_query* query,
+                                          void *user_data,
+                                          rasqal_generate_bnodeid_handler handler)
+{
+  query->generate_bnodeid_handler_user_data=user_data;
+  query->generate_bnodeid_handler=handler;
+}
+
+
+static unsigned char*
+rasqal_default_generate_bnodeid_handler(void *user_data,
+                                        unsigned char *user_bnodeid) 
+{
+  rasqal_query *rdf_query=(rasqal_query *)user_data;
+  int id;
+  unsigned char *buffer;
+  int length;
+  int tmpid;
+
+  if(user_bnodeid)
+    return user_bnodeid;
+
+  id=++rdf_query->default_generate_bnodeid_handler_base;
+
+  tmpid=id;
+  length=2; /* min length 1 + \0 */
+  while(tmpid/=10)
+    length++;
+
+  if(rdf_query->default_generate_bnodeid_handler_prefix)
+    length += rdf_query->default_generate_bnodeid_handler_prefix_length;
+  else
+    length += 7; /* bnodeid */
+  
+  buffer=(unsigned char*)RASQAL_MALLOC(cstring, length);
+  if(!buffer)
+    return NULL;
+  if(rdf_query->default_generate_bnodeid_handler_prefix) {
+    strncpy((char*)buffer, rdf_query->default_generate_bnodeid_handler_prefix,
+            rdf_query->default_generate_bnodeid_handler_prefix_length);
+    sprintf((char*)buffer + rdf_query->default_generate_bnodeid_handler_prefix_length,
+            "%d", id);
+  } else 
+    sprintf((char*)buffer, "bnodeid%d", id);
+
+  return buffer;
+}
+
+
+/*
+ * rasqal_query_generate_bnodeid - Default generate id - internal
+ */
+unsigned char*
+rasqal_query_generate_bnodeid(rasqal_query* rdf_query,
+                              unsigned char *user_bnodeid)
+{
+  if(rdf_query->generate_bnodeid_handler)
+    return rdf_query->generate_bnodeid_handler(rdf_query, 
+                                               rdf_query->generate_bnodeid_handler_user_data, user_bnodeid);
+  else
+    return rasqal_default_generate_bnodeid_handler(rdf_query, user_bnodeid);
+}
+
 
 
 
