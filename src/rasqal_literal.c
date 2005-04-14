@@ -1141,3 +1141,38 @@ rasqal_literal_as_node(rasqal_literal* l)
   
   return new_l;
 }
+
+
+rasqal_formula*
+rasqal_new_formula(void) 
+{
+  return (rasqal_formula*)RASQAL_CALLOC(rasqal_formula, sizeof(rasqal_formula), 1);
+}
+
+void
+rasqal_free_formula(rasqal_formula* formula)
+{
+  if(formula->triples)
+    raptor_free_sequence(formula->triples);
+  if(formula->value)
+    rasqal_free_literal(formula->value);
+  RASQAL_FREE(rasqal_formula, formula);
+}
+  
+
+void
+rasqal_formula_print(rasqal_formula* formula, FILE *stream)
+{
+  fputs("formula(triples=", stream);
+  if(formula->triples)
+    raptor_sequence_print(formula->triples, stream);
+  else
+    fputs("[]", stream);
+  fputs(", value=", stream);
+  if(formula->value)
+    rasqal_literal_print(formula->value, stream);
+  else
+    fputs("NULL", stream);
+  fputc(')', stream);
+}
+
