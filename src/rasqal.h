@@ -246,6 +246,9 @@ typedef enum {
 } rasqal_pattern_flags;
 
 
+typedef unsigned char* (*rasqal_generate_bnodeid_handler)(rasqal_query* query, void *user_data, unsigned char *user_bnodeid);
+
+
 /* RASQAL API */
 
 /* Public functions */
@@ -272,6 +275,8 @@ RASQAL_API void rasqal_query_set_fatal_error_handler(rasqal_query* query, void *
 RASQAL_API void rasqal_query_set_error_handler(rasqal_query* query, void *user_data, raptor_message_handler handler);
 RASQAL_API void rasqal_query_set_warning_handler(rasqal_query* query, void *user_data, raptor_message_handler handler);
 RASQAL_API void rasqal_query_set_feature(rasqal_query *query, rasqal_feature feature, int value);
+RASQAL_API void rasqal_query_set_default_generate_bnodeid_parameters(rasqal_query* rdf_query, char *prefix, int base);
+RASQAL_API void rasqal_query_set_generate_bnodeid_handler(rasqal_query* query, void *user_data, rasqal_generate_bnodeid_handler handler);
 
 RASQAL_API int rasqal_query_get_distinct(rasqal_query *query);
 RASQAL_API int rasqal_query_get_limit(rasqal_query *query);
