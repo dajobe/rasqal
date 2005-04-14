@@ -121,13 +121,13 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...);
 /*
  * shift/reduce conflicts
  */
-%expect 2
+%expect 3
 
 /* word symbols */
 %token SELECT FROM WHERE AND
 %token OPTIONAL PREFIX DESCRIBE CONSTRUCT ASK DISTINCT LIMIT UNION
 %token BASE LOAD BOUND STR LANG DATATYPE ISURI ISBLANK ISLITERAL
-%token GRAPH WITH
+%token GRAPH WITH FILTER OFFSET A
 
 /* expression delimitors */
 
@@ -165,6 +165,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...);
 
 %type <seq> SelectClause ConstructClause DescribeClause
 %type <seq> PrefixDeclOpt GraphClauseOpt WhereClauseOpt
+%type <seq> LimitClauseOpt OffsetClauseOpt
 %type <seq> VarList VarOrURIList ArgList URIList
 %type <seq> ConstructPattern TriplePatternList
 
@@ -197,7 +198,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...);
 
 /* SPARQL Grammar: [1] Query */
 Query : BaseDeclOpt PrefixDeclOpt ReportFormat GraphClauseOpt
-        NamedGraphClauseOpt WhereClauseOpt LimitClauseOpt
+        NamedGraphClauseOpt WhereClauseOpt LimitClauseOpt OffsetClauseOpt
 {
 }
 ;
@@ -349,6 +350,17 @@ LimitClauseOpt :  LIMIT INTEGER_LITERAL
 }
 ;
 
+/* NEW Grammar Term: OffsetClauseOpt */
+OffsetClauseOpt :  OFFSET INTEGER_LITERAL
+{
+  if($2 != NULL)
+    ((rasqal_query*)rq)->offset=$2->value.integer;
+}
+| /* empty */
+{
+}
+;
+
 /* SPARQL Grammar: [12] GraphPattern */
 GraphPattern : GraphOrPattern
 {
@@ -458,6 +470,14 @@ PatternElementConstraint : PatternElement
   $$=$1;
 }
 | PatternElement AND Expression
+{
+  /* FIXME - deprecated */
+  sparql_syntax_warning(((rasqal_query*)rq), "Use FILTER instead of AND in SPARQL (2005-04-19)");
+
+  $$=$1;
+  rasqal_graph_pattern_add_constraint($$, $3);
+}
+| PatternElement FILTER Expression
 {
   $$=$1;
   rasqal_graph_pattern_add_constraint($$, $3);
