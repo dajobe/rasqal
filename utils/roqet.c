@@ -235,6 +235,9 @@ roqet_query_walk(rasqal_query *rq, FILE *fh) {
   i=rasqal_query_get_limit(rq);
   if(i >= 0)
     fprintf(fh, "query asks for result limits %d\n", i);
+  i=rasqal_query_get_offset(rq);
+  if(i >= 0)
+    fprintf(fh, "query asks for result offset %d\n", i);
   
   while(1) {
     rasqal_graph_pattern* gp=rasqal_query_get_graph_pattern(rq, gp_index);
@@ -482,7 +485,7 @@ main(int argc, char *argv[])
     puts(HELP_TEXT("q", "quiet           ", "No extra information messages"));
     puts(HELP_TEXT("s", "source URI      ", "Query against RDF data at source URI"));
     puts(HELP_TEXT("v", "version         ", "Print the Rasqal version"));
-    puts(HELP_TEXT("d", "walk-query      ", "Walk the prepared query using the API"));
+    puts(HELP_TEXT("w", "walk-query      ", "Walk the prepared query using the API"));
     puts("\nReport bugs to <redland-dev@lists.librdf.org>.");
     puts("Rasqal home page: http://librdf.org/rasqal/");
     exit(0);
