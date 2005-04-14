@@ -88,7 +88,7 @@ rasqal_new_graph_pattern_from_triples(rasqal_query* query,
  * rasqal_new_graph_pattern_from_sequence - create a new graph pattern from a sequence of graph_patterns
  * @query: &rasqal_graph_pattern query object
  * @graph_patterns: sequence containing the graph patterns
- * @flags: enum &rasqal_triple_flags such as RASQAL_TRIPLE_FLAGS_OPTIONAL
+ * @flags: enum &rasqal_pattern_flags such as RASQAL_PATTERN_FLAGS_OPTIONAL
  * 
  * Return value: a new &rasqal_graph_pattern object or NULL on failure
  **/
