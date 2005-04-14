@@ -193,6 +193,9 @@ QUOTEDURI \<[A-Za-z][^>]+\>
 "FILTER"|"filter"       { return FILTER; } 
 "OFFSET"|"offset" { return OFFSET; }
 "a" { return A; }
+"ORDER"|"order" { return ORDER; }
+"BY"|"by" { return BY; }
+"REGEX"|"regex" { return REGEX; }
 
 ","      { return ','; } 
 "("      { return '('; } 
@@ -203,12 +206,14 @@ QUOTEDURI \<[A-Za-z][^>]+\>
 "$"  { BEGIN(ID); return '$'; }
 "{"      { return '{'; } 
 "}"      { return '}'; } 
+"."      { return '.'; } 
+";"      { return ';'; } 
 
 "||"         { return SC_OR; }
 "&&"         { return SC_AND; }
 
-"EQ"|"eq"  { return STR_EQ; }
-"NE"|"NE"  { return STR_NE; }
+"EQ"|"eq"  { /* FIXME remove old token */ return STR_EQ; }
+"NE"|"ne"  { /* FIXME remove old token */ return STR_NE; }
 
 "=~"|"~~"  { BEGIN(PATTERN); return STR_MATCH; }
 "!~"       { BEGIN(PATTERN); return STR_NMATCH; }
@@ -230,7 +235,8 @@ QUOTEDURI \<[A-Za-z][^>]+\>
          };
 
 
-"=="            { return EQ; }
+"="            { return EQ; }
+"=="            { /* FIXME remove old token */ return EQ; }
 "!="            { return NEQ; }
 "<"/[^A-Za-z=]  { return LT; }
 ">"             { return GT; }
@@ -780,6 +786,15 @@ sparql_token_print(int token, YYSTYPE *lval)
     case A:
       return "a";
       
+    case ORDER:
+      return "ORDER";
+      
+    case BY:
+      return "BY";
+      
+    case REGEX:
+      return "REGEX";
+      
     case ',':
       return ",";
 
@@ -800,6 +815,12 @@ sparql_token_print(int token, YYSTYPE *lval)
 
     case '}':
       return "}";
+
+    case '.':
+      return ".";
+
+    case ';':
+      return ";";
 
     case '?':
       return "?";
