@@ -267,6 +267,14 @@ struct rasqal_query_s {
   raptor_message_handler error_handler;
   raptor_message_handler warning_handler;
 
+  int default_generate_bnodeid_handler_base;
+  char *default_generate_bnodeid_handler_prefix;
+  size_t default_generate_bnodeid_handler_prefix_length;
+
+  void *generate_bnodeid_handler_user_data;
+  rasqal_generate_bnodeid_handler generate_bnodeid_handler;
+
+
   /* query engine specific stuff */
   void* context;
 
@@ -383,6 +391,8 @@ const char* rasqal_basename(const char* name);
 
 unsigned char* rasqal_escaped_name_to_utf8_string(const unsigned char* src, size_t len, size_t* dest_lenp, raptor_simple_message_handler error_handler, void* error_data);
 
+unsigned char* rasqal_query_generate_bnodeid(rasqal_query* rdf_query, unsigned char *user_bnodeid);
+
 /* rdql_parser.y */
 void rasqal_init_query_engine_rdql (void);
 
@@ -452,6 +462,10 @@ extern raptor_uri* rasqal_xsd_namespace_uri;
 extern raptor_uri* rasqal_xsd_integer_uri;
 extern raptor_uri* rasqal_xsd_double_uri;
 extern raptor_uri* rasqal_xsd_boolean_uri;
+extern raptor_uri* rasqal_rdf_namespace_uri;
+extern raptor_uri* rasqal_rdf_first_uri;
+extern raptor_uri* rasqal_rdf_rest_uri;
+extern raptor_uri* rasqal_rdf_nil_uri;
 void rasqal_uri_init(void);
 void rasqal_uri_finish(void);
 
