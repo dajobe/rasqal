@@ -137,6 +137,9 @@ rasqal_engine_sequence_has_qname(raptor_sequence *seq)
 int
 rasqal_engine_query_constraints_has_qname(rasqal_query* rq) 
 {
+  if(!rq->query_graph_pattern)
+    return 0;
+  
   return rasqal_engine_graph_pattern_constraints_has_qname(rq->query_graph_pattern);
 }
 
