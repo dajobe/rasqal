@@ -324,6 +324,21 @@ rasqal_query_get_limit(rasqal_query *query)
 
 
 /**
+ * rasqal_query_get_offset - Get the query-specified offset on results
+ * @query: &rasqal_query query object
+ *
+ * This is the offset given in the query on the number of results allowed.
+ *
+ * Return value: integer >=0 if a offset is given, otherwise <0
+ **/
+int
+rasqal_query_get_offset(rasqal_query *query)
+{
+  return query->offset;
+}
+
+
+/**
  * rasqal_query_add_data_graph - Add a data graph to the query
  * @query: &rasqal_query query object
  * @uri: &raptor_uri source uri for retrieval
@@ -977,6 +992,8 @@ rasqal_query_print(rasqal_query* query, FILE *fh)
     fputs("query results distinct: yes\n", fh);
   if(query->limit >= 0)
     fprintf(fh, "query results limit: %d\n", query->limit);
+  if(query->offset >= 0)
+    fprintf(fh, "query results offset: %d\n", query->offset);
 
   fprintf(fh, "data graphs: ");
   if(query->data_graphs)
