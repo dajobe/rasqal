@@ -29,7 +29,7 @@ SPARQL_MODEL_FILES= \
 dawg-data-01.n3
 
 SPARQL_TEST_FILES= \
-dawg-query-001 dawg-query-002 dawg-query-003 dawg-query-004
+dawg-query-001.rq dawg-query-002.rq dawg-query-003.rq dawg-query-004.rq
 
 EXPECTED_SPARQL_CORRECT_FAILURES=
 

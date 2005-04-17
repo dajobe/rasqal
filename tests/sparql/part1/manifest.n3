@@ -10,7 +10,7 @@
         rdfs:comment
             "Optional triples: single optional triple case." ;
         mf:action
-            [ qt:query  <dawg-query-001> ;
+            [ qt:query  <dawg-query-001.rq> ;
               qt:data   <dawg-data-01.n3> ] ;
         mf:result  <dawg-result-001.n3>
       ]
@@ -19,7 +19,7 @@
         rdfs:comment
             "Optional triples: multiple triples in one optional clause. Must find a name for each person known." ;
         mf:action
-            [ qt:query  <dawg-query-002> ;
+            [ qt:query  <dawg-query-002.rq> ;
               qt:data   <dawg-data-01.n3> ] ;
        mf:result  <dawg-result-002.n3>
       ]
@@ -28,7 +28,7 @@
         rdfs:comment
             "Optional triples: multiple optional clauses." ;
         mf:action
-            [ qt:query  <dawg-query-003> ;
+            [ qt:query  <dawg-query-003.rq> ;
               qt:data   <dawg-data-01.n3> ] ;
        mf:result  <dawg-result-003.n3>
       ]
@@ -37,7 +37,7 @@
         rdfs:comment
             "Optional triples: just a single optional clauses." ;
         mf:action
-            [ qt:query  <dawg-query-004> ;
+            [ qt:query  <dawg-query-004.rq> ;
               qt:data   <dawg-data-01.n3> ] ;
        mf:result  <dawg-result-004.n3>
       ]

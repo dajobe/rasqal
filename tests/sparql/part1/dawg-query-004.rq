@@ -3,4 +3,4 @@
 PREFIX foaf: <http://xmlns.com/foaf/0.1/>
 SELECT ?name
 WHERE
-  OPTIONAL (?person foaf:name ?name)
+  { OPTIONAL { ?person foaf:name ?name } }
