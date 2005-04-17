@@ -189,7 +189,7 @@ QUOTEDURI \<[A-Za-z][^>]+\>
 "ISBLANK"|"isblank" { return ISBLANK; }
 "ISLITERAL"|"isliteral" { return ISLITERAL; }
 "GRAPH"|"graph" { return GRAPH; }
-"WITH"|"with" { return WITH; }
+"NAMED"|"named" { return NAMED; }
 "FILTER"|"filter"       { return FILTER; } 
 "OFFSET"|"offset" { return OFFSET; }
 "a" { return A; }
@@ -774,8 +774,8 @@ sparql_token_print(int token, YYSTYPE *lval)
     case GRAPH:
       return "GRAPH";
       
-    case WITH:
-      return "WITH";
+    case NAMED:
+      return "NAMED";
       
     case FILTER:
       return "FILTER";
