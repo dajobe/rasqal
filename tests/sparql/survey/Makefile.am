@@ -23,7 +23,7 @@
 # the licenses in COPYING.LIB, COPYING and LICENSE-2.0.txt respectively.
 # 
 
-SPARQL_MANIFEST_FILES= manifest.n3
+SPARQL_MANIFEST_FILES= manifest.ttl
 
 SPARQL_MODEL_FILES= \
 survey-sample.ttl
