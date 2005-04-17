@@ -99,16 +99,9 @@ rasqal_new_graph_pattern_from_sequence(rasqal_query* query,
 {
   rasqal_graph_pattern* gp;
 
-  if(raptor_sequence_size(graph_patterns)==1) {
-    /* fold sequence of 1 graph_pattern */
-    RASQAL_DEBUG1("Folding sequence of 1 graph_patterns\n");
-    gp=(rasqal_graph_pattern*)raptor_sequence_pop(graph_patterns);
-    raptor_free_sequence(graph_patterns);
-  } else {
-    gp=rasqal_new_graph_pattern(query);
-    gp->graph_patterns=graph_patterns;
-    gp->flags=flags;
-  }
+  gp=rasqal_new_graph_pattern(query);
+  gp->graph_patterns=graph_patterns;
+  gp->flags=flags;
 
   gp->column= -1;
   gp->optional_graph_pattern= -1;
@@ -379,5 +372,3 @@ rasqal_graph_pattern_print(rasqal_graph_pattern* gp, FILE* fh)
   }
   fputs(")", fh);
 }
-
-
