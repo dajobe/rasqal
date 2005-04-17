@@ -1,7 +1,7 @@
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix ex: <http://example.org/survey-sample/ontology/> .
-@prefix: <http://example.org/survey-sample/> .
+@prefix : <http://example.org/survey-sample/> .
 @prefix dc: <http://purl.org/dc/elements/1.1/> .
 @prefix acm: <http://daml.umbc.edu/ontologies/topic-ont#> .
 
@@ -33,10 +33,10 @@ ex:year a rdf:Property ;
        ex:pages "08" ;
        ex:title "An Overview of RDF Query Languages" ;
        ex:author [ a rdf:Seq ;
-		   rdf:li :person01 ; 
-		   rdf:li :person02 ;
-		   rdf:li :person03 ;
-		   rdf:li :person04
+		   rdf:_1 :person01 ; 
+		   rdf:_2 :person02 ;
+		   rdf:_3 :person03 ;
+		   rdf:_4 :person04
 		  ] .
 
 ex:email a rdf:Property ;

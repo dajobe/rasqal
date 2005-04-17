@@ -1,4 +1,4 @@
-select ?R where
+select DISTINCT ?R where
  { ?R ?x ?y.
-   FILTER regex(str(?R), "http://example.org/survey-sample/")
+   FILTER regex(str(?R), "http://example.org/")
 }

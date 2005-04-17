@@ -5,7 +5,7 @@
 []    rdf:type    rs:ResultSet ;
       rs:resultVariable  "title" ;
       rs:solution
-                  [ rs:binding  [ rs:value     "Query languages"@en ;
+                  [ rs:binding  [ rs:value     "Query Languages"@en ;
                                   rs:variable  "title"
                                 ]
 		  ] ;
@@ -16,6 +16,36 @@
 		  ] ;
       rs:solution
                   [ rs:binding  [ rs:value     "An Overview of RDF Query Languages" ;
+                                  rs:variable  "title"
+                                ] 
+		  ] ;
+      rs:solution
+                  [ rs:binding  [ rs:value     "Information Systems"@en ;
+                                  rs:variable  "title"
+                                ] 
+		  ] ;
+      rs:solution
+                  [ rs:binding  [ rs:value     "Informationsysteme"@de ;
+                                  rs:variable  "title"
+                                ] 
+		  ] ;
+      rs:solution
+                  [ rs:binding  [ rs:value     "Database Management"@en ;
+                                  rs:variable  "title"
+                                ] 
+		  ] ;
+      rs:solution
+                  [ rs:binding  [ rs:value     "Datenbankmanagement"@de ;
+                                  rs:variable  "title"
+                                ] 
+		  ] ;
+      rs:solution
+                  [ rs:binding  [ rs:value     "Languages"@en ;
+                                  rs:variable  "title"
+                                ] 
+		  ] ;
+      rs:solution
+                  [ rs:binding  [ rs:value     "Sprachen"@de ;
                                   rs:variable  "title"
                                 ] 
 		  ] .

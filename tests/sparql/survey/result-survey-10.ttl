@@ -66,27 +66,27 @@
                                 ]
 		  ] ;
       rs:solution
-                  [ rs:binding  [ rs:value <http://exampl.org/survey-sample/person01> ;
+                  [ rs:binding  [ rs:value <http://example.org/survey-sample/person01> ;
                                   rs:variable  "R"
                                 ]
 		  ] ;
       rs:solution
-                  [ rs:binding  [ rs:value <http://exampl.org/survey-sample/person02> ;
+                  [ rs:binding  [ rs:value <http://example.org/survey-sample/person02> ;
                                   rs:variable  "R"
                                 ]
 		  ] ;
       rs:solution
-                  [ rs:binding  [ rs:value <http://exampl.org/survey-sample/person03> ;
+                  [ rs:binding  [ rs:value <http://example.org/survey-sample/person03> ;
                                   rs:variable  "R"
                                 ]
 		  ] ;
       rs:solution
-                  [ rs:binding  [ rs:value <http://exampl.org/survey-sample/person04> ;
+                  [ rs:binding  [ rs:value <http://example.org/survey-sample/person04> ;
                                   rs:variable  "R"
                                 ]
 		  ] ;
       rs:solution
-                  [ rs:binding  [ rs:value ex:Paper ;
+                  [ rs:binding  [ rs:value <http://example.org/survey-sample/Paper> ;
                                   rs:variable  "R"
                                 ]
 		  ] ;
