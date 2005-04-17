@@ -1,2 +1,2 @@
 SELECT *
-WHERE ( ?a ?a ?b )
+WHERE { ?a ?a ?b . }

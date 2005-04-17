@@ -1,5 +1,6 @@
 @prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dawgt:   <http://www.w3.org/2001/sw/DataAccess/tests/test-dawg#> .
 @prefix mf:     <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .
 @prefix qt:     <http://www.w3.org/2001/sw/DataAccess/tests/test-query#> .
 
@@ -13,7 +14,8 @@
         mf:action
             [ qt:query  <dawg-tp-01.rq> ;
               qt:data   <data-01.n3> ] ;
-        mf:result  <result-tp-01.n3>
+        mf:result  <result-tp-01.n3> ;
+        dawgt:approval dawgt:Approved
       ]
 
      [  mf:name    "dawg-triple-pattern-002" ;
@@ -22,7 +24,8 @@
         mf:action
             [ qt:query  <dawg-tp-02.rq> ;
               qt:data   <data-01.n3> ] ;
-        mf:result  <result-tp-02.n3>
+        mf:result  <result-tp-02.n3> ;
+        dawgt:approval dawgt:Approved
       ]
     
      [  mf:name    "dawg-triple-pattern-003" ;
@@ -31,7 +34,8 @@
         mf:action
             [ qt:query  <dawg-tp-03.rq> ;
               qt:data   <data-02.n3> ] ;
-        mf:result  <result-tp-03.n3>
+        mf:result  <result-tp-03.n3> ;
+        dawgt:approval dawgt:Approved
       ]
 
      [  mf:name    "dawg-triple-pattern-004" ;
@@ -40,7 +44,8 @@
         mf:action
             [ qt:query  <dawg-tp-04.rq> ;
               qt:data   <dawg-data-01.n3> ] ;
-        mf:result  <result-tp-04.n3>
+        mf:result  <result-tp-04.n3> ;
+        dawgt:approval dawgt:Approved
       ]
 
 
