@@ -216,6 +216,9 @@ rasqal_engine_build_constraints_expression(rasqal_graph_pattern* gp)
 {
   rasqal_expression* newe=NULL;
   int i;
+
+  if(!gp)
+    return 1;
   
   /* build constraints in sub graph patterns */
   if(gp->graph_patterns) {
@@ -515,6 +518,9 @@ rasqal_query_build_declared_in(rasqal_query* query)
   int i;
   rasqal_graph_pattern *gp=query->query_graph_pattern;
 
+  if(!gp)
+    return;
+  
   rasqal_query_graph_pattern_build_declared_in(query, gp);
 
   for(i=0; i< query->variables_count; i++) {
@@ -701,21 +707,23 @@ rasqal_engine_execute_init(rasqal_query* query, rasqal_query_results *results)
     }
   }
 
-  gp=query->query_graph_pattern;
-
-  rasqal_graph_pattern_init(gp);
-  
   query->abort=0;
   query->result_count=0;
   query->finished=0;
   query->failed=0;
   
-  if(gp->graph_patterns && raptor_sequence_size(gp->graph_patterns))
-    gp->current_graph_pattern= 0;
-  else
-    /* FIXME - no graph patterns in query */
-    gp->current_graph_pattern= -1;
+  gp=query->query_graph_pattern;
+
+  if(gp) {
+    rasqal_graph_pattern_init(gp);
   
+    if(gp->graph_patterns && raptor_sequence_size(gp->graph_patterns))
+      gp->current_graph_pattern= 0;
+    else
+      /* FIXME - no graph patterns in query */
+      gp->current_graph_pattern= -1;
+  }
+    
   return 0;
 }
 
