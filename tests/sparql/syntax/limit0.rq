@@ -1,5 +1,5 @@
 prefix ex: <http://example.org/#>
 select *
-with <data.n3>
-where ($x ex:bar ex:baz)
+from <data.n3>
+where { $x ex:bar ex:baz }
 limit 5
