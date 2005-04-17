@@ -170,7 +170,6 @@ QUOTEDURI \<[A-Za-z][^>]+\>
 "SELECT"|"select" { return SELECT; }
 "FROM"|"from"     { return FROM; } 
 "WHERE"|"where"   { return WHERE; } 
-"AND"|"and"       { return AND; } 
 "PREFIX"|"prefix" { BEGIN(PREF);
 		return PREFIX; }
 "DESCRIBE"|"describe"	{ return DESCRIBE; }
@@ -719,9 +718,6 @@ sparql_token_print(int token, YYSTYPE *lval)
 
     case WHERE:
       return "WHERE";
-
-    case AND:
-      return "AND";
 
     case PREFIX:
       return "PREFIX";
