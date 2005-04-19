@@ -90,6 +90,9 @@ check-sparql-parser: build-sparql-parser-test
 	    $(ECHO) ok; \
 	  fi; \
 	done; \
+	if test $$result != 0 ; then \
+	  echo "FAILED tests:$$fails"; \
+	fi; \
 	set -e; exit $$result
 
 check-sparql-correct: build-roqet $(srcdir)/../check-sparql
@@ -105,7 +108,11 @@ check-sparql-correct: build-roqet $(srcdir)/../check-sparql
 	    echo "OK: Ignoring expected test failures"; result=0; \
           else \
 	    echo "FAILED: $$result failures does not match expected $$expect"; result=1; \
+	    fails="$$fails $$test"; \
           fi; \
+	fi; \
+	if test $$result != 0 ; then \
+	  echo "FAILED tests:$$fails"; \
 	fi; \
 	set -e; exit $$result
 
@@ -120,13 +127,19 @@ check-bad-sparql: build-sparql-parser-test
 	    $(ECHO) "ok"; \
 	  elif test $$status -eq 2; then \
 	    $(ECHO) "FAILED - parsing succeeded with a warning"; result=1; \
+	    fails="$$fails $$test"; \
 	  elif test $$status -eq 0 ; then \
 	    $(ECHO) "FAILED - parsing succeeded but should have failed"; \
+	    fails="$$fails $$test"; \
 	    cat $$name.res; result=1; \
 	  else \
 	    $(ECHO) "FAILED - parsing failed with unknown status $$status"; \
+	    fails="$$fails $$test"; \
 	    cat $$name.res; result=1; \
 	  fi; \
 	  rm -f $$name.res $$name.err ; \
 	done; \
+	if test $$result != 0 ; then \
+	  echo "FAILED tests:$$fails"; \
+	fi; \
 	set -e; exit $$result
