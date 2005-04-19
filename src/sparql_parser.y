@@ -162,9 +162,10 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...);
 
 
 %type <seq> SelectClause ConstructClause DescribeClause
-%type <seq> VarList VarOrURIList ArgList
+%type <seq> VarList VarOrURIList ArgList TriplesList
+%type <seq> ConstructTemplate
 
-%type <formula> ConstructTemplate Triples
+%type <formula> Triples
 %type <formula> PropertyList ObjectList ItemList Collection
 %type <formula> Subject Predicate Object TriplesNode
 
@@ -293,12 +294,7 @@ DescribeClause : DESCRIBE VarOrURIList
 /* SPARQL Grammar: rq23 [7] ConstructClause */
 ConstructClause : CONSTRUCT ConstructTemplate
 {
-  if($2) {
-    $$=$2->triples;
-    $2->triples=NULL;
-    rasqal_free_formula($2);
-  } else
-    $$=NULL;
+  $$=$2;
 }
 | CONSTRUCT '*'
 {
@@ -567,11 +563,44 @@ UnionGraphPattern : GraphPattern UNION GraphPattern
 
 
 /* SPARQL Grammar: rq23 [27] ConstructTemplate */
-ConstructTemplate:  '{' Triples DotOptional '}'
+ConstructTemplate:  '{' TriplesList DotOptional '}'
 {
   $$=$2;
 }
 ;
+
+
+TriplesList: TriplesList '.' Triples
+{
+  if($3) {
+    raptor_sequence *t=$3->triples;
+
+    raptor_sequence_join($1, t);
+
+    $3->triples=NULL;
+    rasqal_free_formula($3);
+  }
+  
+}
+| Triples
+{
+#if RASQAL_DEBUG > 1  
+  printf("TriplesList 2\n  Triples=");
+  if($1)
+    rasqal_formula_print($1, stdout);
+  else
+    fputs("NULL", stdout);
+  fputs("\n\n", stdout);
+#endif
+
+  if($1) {
+    $$=$1->triples;
+    $1->triples=NULL;
+    rasqal_free_formula($1);
+  } else
+    $$=NULL;
+}
+
 
 
 /* SPARQL Grammar: rq23 [28] Triples */
