@@ -1,4 +1,172 @@
+2005-04-19  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal_graph_pattern.c (rasqal_new_graph_pattern): Init columns
+	to defaults here.
+
+	* rasqal_engine.c (rasqal_engine_make_basic_graph_pattern): Added.
+
+	* rasqal_internal.h: Added rasqal_engine_make_basic_graph_pattern
+	prototype.
+
+	* sparql_parser.y (rasqal_sparql_query_engine_prepare): Call
+	rasqal_engine_make_basic_graph_pattern on the top level subgraph
+	patterns.
+
+	* tests/sparql/syntax/Makefile.am: Print failure summaries
+
+	* tests/sparql/syntax/offset0.rq, tests/sparql/syntax/cast1.rq,
+	tests/sparql/syntax/cast0.rq: updates for turtle sparql syntax
+
+	* tests/sparql/check-sparql: Read manfiest.ttl or manifest.n3
+
+	* tests/rdql/testsuite/check-rdql, tests/sparql/check-sparql: Emit
+	failing roqet line when roqet returns errors.
+
+	* tests/rdql/testsuite/check-rdql, tests/sparql/check-sparql: Emit
+	failing roqet line on FAILURE
+
+2005-04-17  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* sparql_parser.y: Updates to SPARQL rq23 around $Revision: 1.303
+	$ of $Date: 2005/04/16 17:13:51 $ Removed AND, WITH.  Added NAMED.
+	Removed many %type that were used with NULL value or none.
+	(DatasetClauseOpt, DefaultGraphClause): Added after rq23
+	(NamedGraphClauseList): Added
+	(PatternElementsList): Renamed from PatternElementList and now in
+	rq23, returns a graph pattern.  FILTER handled here, not in older
+	PatternElementConstraint.
+	(PatternElementConstraint): Deleted.
+	(ItemList): Moved adjacent to Collection which it serves.
+	(URIList): Deleted, no longer used.
+
+	* rasqal_engine.c (rasqal_engine_build_constraints_expression):
+	Handle no graph pattern.
+	(rasqal_engine_execute_init): Handle no graph pattern.
+
+	* tests/sparql/syntax/groups.rq, tests/sparql/syntax/describe1.rq,
+	tests/sparql/syntax/construct1.rq, tests/sparql/syntax/limit0.rq,
+	tests/sparql/syntax/distinct0.rq,
+	tests/sparql/syntax/construct2.rq,
+	tests/sparql/syntax/construct0.rq, tests/sparql/syntax/ask0.rq:
+	Update to turtle query syntax
+
+	* rasqal_graph_pattern.c (rasqal_new_graph_pattern_from_sequence):
+	Do not flatten gps.
+
+	* tests/sparql/part1/dawg-query-003,
+	tests/sparql/part1/dawg-query-003.rq,
+	tests/sparql/part1/dawg-query-004,
+	tests/sparql/part1/dawg-query-004.rq,
+	tests/sparql/part1/manifest.n3, tests/sparql/part1/Makefile.am,
+	tests/sparql/part1/dawg-query-001,
+	tests/sparql/part1/dawg-query-001.rq,
+	tests/sparql/part1/dawg-query-002,
+	tests/sparql/part1/dawg-query-002.rq: Updated to turtle query
+	syntax and renamed dawg-query-001.rq dawg-query-002.rq
+	dawg-query-003.rq dawg-query-004.rq
+
+	* tests/sparql/examples/ex2-1a.rq,
+	tests/sparql/examples/ex2-1b.rq, tests/sparql/examples/ex2-1c.rq,
+	tests/sparql/examples/ex2-1e.rq, tests/sparql/examples/ex2-2a.rq,
+	tests/sparql/examples/ex2-3a.rq, tests/sparql/examples/ex2-4a.rq,
+	tests/sparql/examples/manifest.n3: update to turtle syntax
+	queries, latest naming
+
+	* tests/sparql/simple/data-03.n3,
+	tests/sparql/simple/dawg-tp-05.rq: import from dawg
+
+	* tests/sparql/simple/dawg-tp-01.rq,
+	tests/sparql/simple/dawg-tp-02.rq,
+	tests/sparql/simple/dawg-tp-03.rq,
+	tests/sparql/simple/dawg-tp-04.rq,
+	tests/sparql/simple/manifest.n3: update to turtle syntax queries
+
+	* rdql_parser.y (rasqal_rdql_query_engine_prepare): Init query
+	graph pattern.
+
+	* rasqal_query.c (rasqal_new_query): Start with a NULL query graph
+	pattern.
+
+	* sparql_lexer.l: -AND
+
+	* sparql_lexer.l: -WITH, +NAMED
+
+	* tests/sparql/survey/manifest.ttl: Added manifest.ttl
+
+	* tests/sparql/survey/query-survey-8.rq,
+	tests/sparql/survey/query-survey-9.rq,
+	tests/sparql/survey/result-survey-10.ttl,
+	tests/sparql/survey/result-survey-3.ttl,
+	tests/sparql/survey/survey-sample.ttl,
+	tests/sparql/survey/query-survey-1.rq,
+	tests/sparql/survey/query-survey-10.rq,
+	tests/sparql/survey/query-survey-11.rq,
+	tests/sparql/survey/query-survey-12.rq,
+	tests/sparql/survey/query-survey-13.rq,
+	tests/sparql/survey/query-survey-2.rq,
+	tests/sparql/survey/query-survey-3.rq: Update to latest DAWG
+	versions of test
+
+	* tests/sparql/survey/Makefile.am: manifest file is manifest.ttl
+
+	* autogen.sh: allow envariables to override the programs
+
 2005-04-14  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* sparql_parser.y: First set of sparql turtle syntax changes Added
+	%token: ORDER, BY, REGEX Added %type: OrderClauseOpt,
+	PatternElementList, DotOptional, ConstructTemplate, Triples,
+	PropertyList, ObjectList, ItemList Collection, Subject, Predicate
+	Object, TriplesNode, GraphPattern, GraphGraphPattern,
+	UnionGraphPattern (based on rq23) Removed %type: VarOrURIOrBNode
+	as turtle syntax rules cover it Many terms renamed to match rq23
+	terms, updated to use formula.  Other changes:
+	(Query): Added OrderClauseOpt
+	(BaseDeclOpt, PrefixDeclOpt): moved in source, no change.
+	(WhereClauseOpt): Just assign GraphPattern value
+	(OrderClauseOpt): Skeletal and incomplete.
+	(GraphPattern): Take a list of .-separated triples, with optional
+	.  or an empty {}
+	(DotOptional): Added
+	(Triples, PropertyList, ObjectList, ItemList, Subject, Predicate,
+	Object, Collection): imported for turtle and updated to pass
+	around rasqal_formula and use them to store triples + literal
+	value.
+	(TriplesNode): Imported from rq23 partially.
+	(BuiltinExpression): Added REGEX
+
+	* sparql_lexer.l: Added tokens: ORDER, By, REGEX, ., ; for rq23
+	sparql Noted FIXME to remove old comparison ops EQ/eq, NE/ne, ==,
+	!=
+
+	* rasqal.h: Added rasqal_generate_bnodeid_handler typedef.  Added
+	prototypes for
+	rasqal_query_set_default_generate_bnodeid_parameters and
+	rasqal_query_set_generate_bnodeid_handler
+
+	* rasqal_graph_pattern.c: docs
+
+	* rasqal_internal.h: Added bnodeid handler params to query.
+	Added prototype for rasqal_query_set_generate_bnodeid_handler.
+	Added extern references for rasqal_rdf_namespace_uri,
+	rasqal_rdf_first_uri, rasqal_rdf_rest_uri and rasqal_rdf_nil_uri
+
+	* rasqal_general.c:
+	Add rdf uris for namespace, rdf:first, rdf:rest, rdf:nul
+	(rasqal_uri_init, rasqal_uri_finish): Init and tidy up above.
+	(rasqal_query_set_default_generate_bnodeid_parameters,
+	rasqal_query_set_generate_bnodeid_handler,
+	rasqal_default_generate_bnodeid_handler,
+	rasqal_query_generate_bnodeid): Added, import from raptor.
+
+	* rasqal_literal.c: Added rasqal_formula for sparql parser.
+	(rasqal_new_formula): Added constructor
+	(rasqal_free_formula): Added destructor
+	(rasqal_formula_print): Added print method, for sequences of formulas
+
+	* rasqal_internal.h: Added rasqal_formula for sparql parser.
+	Added prototypes for rasqal_new_formula, rasqal_free_formula and
+	rasqal_formula_print
 
 	* tests/sparql/syntax/cast1.rq, tests/sparql/syntax/cast0.rq: AND
 	to FILTER
