@@ -114,12 +114,12 @@ sub run_test($$$$$) {
   close(ERR);
   if(@errs) {
     warn "$program: $test_file FAILED - query returned errors:\n  ".join("\n  ",@errs)."\n";
+    warn "Failing program was:\n";
+    warn "  $roqet_cmd\n";
     return 1;
   }
 
-  my $parser='-g';
-  #$parser='-i turtle';
-  my $cmd="$rapper $parser -q -o ntriples $result_file";
+  my $cmd="$rapper -g -q -o ntriples $result_file";
 
   my(@node_order);
   my(%nodes);
