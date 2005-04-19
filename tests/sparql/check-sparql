@@ -240,7 +240,6 @@ $srcdir.="/" unless $srcdir =~ m%/$%;
 
 my $manifest_file=undef;
 for my $file (@manifest_files) {
-  warn "checking $srcdir$file\n";
   next unless -r $srcdir.$file;
   $manifest_file=$file;
 }
