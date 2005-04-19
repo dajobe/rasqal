@@ -167,34 +167,35 @@ QUOTEDURI \<[A-Za-z][^>]+\>
 	;
 }
 
-"SELECT"|"select" { return SELECT; }
-"FROM"|"from"     { return FROM; } 
-"WHERE"|"where"   { return WHERE; } 
-"PREFIX"|"prefix" { BEGIN(PREF);
+[Ss][Ee][Ll][Ee][Cc][Tt] { return SELECT; }
+[Ff][Rr][Oo][Mm] { return FROM; }
+[Ww][Hh][Ee][Rr][Ee] { return WHERE; }
+[Pp][Rr][Ee][Ff][Ii][Xx] { BEGIN(PREF);
 		return PREFIX; }
-"DESCRIBE"|"describe"	{ return DESCRIBE; }
-"CONSTRUCT"|"construct"	{ return CONSTRUCT; }
-"ASK"|"ask"	{ return ASK; }
-"DISTINCT"|"distinct"	{ return DISTINCT; }
-"LIMIT"|"limit"	{ return LIMIT; }
-"UNION"|"union"       { return UNION; }
-"OPTIONAL"|"OPTIONAL" { return OPTIONAL; }
-"BASE"|"base" { return BASE; }
-"BOUND"|"bound" { return BOUND; }
-"STR"|"str" { return STR; }
-"LANG"|"lang" { return LANG; }
-"DATATYPE"|"datatype" { return DATATYPE; }
-"ISURI"|"isuri" { return ISURI; }
-"ISBLANK"|"isblank" { return ISBLANK; }
-"ISLITERAL"|"isliteral" { return ISLITERAL; }
-"GRAPH"|"graph" { return GRAPH; }
-"NAMED"|"named" { return NAMED; }
-"FILTER"|"filter"       { return FILTER; } 
-"OFFSET"|"offset" { return OFFSET; }
+[Dd][Ee][Ss][Cc][Rr][Ii][Bb][Ee] { return DESCRIBE; }
+[Cc][Oo][Nn][Ss][Tt][Rr][Uu][Cc][Tt] { return CONSTRUCT; }
+[Aa][Ss][Kk] { return ASK; }
+[Dd][Ii][Ss][Tt][Ii][Nn][Cc][Tt] { return DISTINCT; }
+[Ll][Ii][Mm][Ii][Tt] { return LIMIT; }
+[Uu][Nn][Ii][Oo][Nn] { return UNION; }
+[Oo][Pp][Tt][Ii][Oo][Nn][Aa][Ll] { return OPTIONAL; }
+[Bb][Aa][Ss][Ee] { return BASE; }
+[Bb][Oo][Uu][Nn][Dd] { return BOUND; }
+[Ss][Tt][Rr] { return STR; }
+[Ll][Aa][Nn][Gg] { return LANG; }
+[Dd][Aa][Tt][Aa][Tt][Yy][Pp][Ee] { return DATATYPE; }
+[Ii][Ss][Uu][Rr][Ii] { return ISURI; }
+[Ii][Ss][Bb][Ll][Aa][Nn][Kk] { return ISBLANK; }
+[Ii][Ss][Ll][Ii][Tt][Ee][Rr][Aa][Ll] { return ISLITERAL; }
+[Gg][Rr][Aa][Pp][Hh] { return GRAPH; }
+[Nn][Aa][Mm][Ee][Dd] { return NAMED; }
+[Ff][Ii][Ll][Tt][Ee][Rr] { return FILTER; }
+[Oo][Ff][Ff][Ss][Ee][Tt] { return OFFSET; }
+[Oo][Rr][Dd][Ee][Rr] { return ORDER; }
+[Bb][Yy] { return BY; }
+[Rr][Ee][Gg][Ee][Xx] { return REGEX; }
+
 "a" { return A; }
-"ORDER"|"order" { return ORDER; }
-"BY"|"by" { return BY; }
-"REGEX"|"regex" { return REGEX; }
 
 ","      { return ','; } 
 "("      { return '('; } 
