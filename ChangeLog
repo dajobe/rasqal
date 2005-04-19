@@ -1,5 +1,52 @@
 2005-04-19  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
+	* rasqal_expr.c (rasqal_expression_evaluate): Handle unbound
+	variable values in RASQAL_EXPR_DATATYPE, RASQAL_EXPR_ISURI,
+	RASQAL_EXPR_ISBLANK, RASQAL_EXPR_ISLITERAL
+
+	* sparql_lexer.l: Make keyword tokens case independent not just
+	upper or lowercase.
+
+	* tests/sparql/examples/Makefile.am: Update for new example files
+
+	* sparql_parser.y: No conflicts
+
+	* tests/sparql/examples/ex11.2.3.1_0.n3,
+	tests/sparql/examples/ex11.2.3.1_0.rq,
+	tests/sparql/examples/ex11.2.3.1_1.n3,
+	tests/sparql/examples/ex11.2.3.1_1.rq,
+	tests/sparql/examples/ex11.2.3.2_0.n3,
+	tests/sparql/examples/ex11.2.3.2_0.rq,
+	tests/sparql/examples/ex11.2.3.2_1.rq,
+	tests/sparql/examples/ex11.2.3.3_0.n3,
+	tests/sparql/examples/ex11.2.3.3_0.rq,
+	tests/sparql/examples/ex11.2.3.4_0.n3,
+	tests/sparql/examples/ex11.2.3.4_0.rq,
+	tests/sparql/examples/ex11.2.3.5_0.n3,
+	tests/sparql/examples/ex11.2.3.5_0.rq,
+	tests/sparql/examples/ex11.2.3.6_0.n3,
+	tests/sparql/examples/ex11.2.3.6_0.rq,
+	tests/sparql/examples/ex11.2.3.7_0.n3,
+	tests/sparql/examples/ex11.2.3.7_0.rq,
+	tests/sparql/examples/ex11.2.3.8_0.n3,
+	tests/sparql/examples/ex11.2.3.8_0.rq,
+	tests/sparql/examples/ex11_0.n3, tests/sparql/examples/ex11_0.rq,
+	tests/sparql/examples/ex3.rq,
+	tests/sparql/examples/ex11.2.3.1_0-result.n3,
+	tests/sparql/examples/ex11.2.3.1_1-result.n3,
+	tests/sparql/examples/ex11.2.3.2_0-result.n3,
+	tests/sparql/examples/ex11.2.3.2_1-result.n3,
+	tests/sparql/examples/ex11.2.3.3_0-result.n3,
+	tests/sparql/examples/ex11.2.3.4_0-result.n3,
+	tests/sparql/examples/ex11.2.3.5_0-result.n3,
+	tests/sparql/examples/ex11.2.3.6_0-result.n3,
+	tests/sparql/examples/ex11.2.3.7_0-result.n3,
+	tests/sparql/examples/ex11.2.3.8_0-result.n3,
+	tests/sparql/examples/ex11_0-result.n3,
+	tests/sparql/examples/manifest.n3: Imported updated examples
+
+	* tests/sparql/check-sparql: remove debug print
+
 	* sparql_parser.y: Make construct work again.
 	Now %type <seq>: TriplesList ConstructTemplate
 	(ConstructClause): Take triples from seq ConstructTemplate
