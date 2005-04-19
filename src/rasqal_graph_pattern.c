@@ -56,6 +56,11 @@ rasqal_new_graph_pattern(rasqal_query* query) {
 
   gp->query=query;
 
+  gp->column= -1;
+  gp->optional_graph_pattern= -1;
+  gp->start_column= -1;
+  gp->end_column= -1;
+
   return gp;
 }
 
@@ -103,8 +108,6 @@ rasqal_new_graph_pattern_from_sequence(rasqal_query* query,
   gp->graph_patterns=graph_patterns;
   gp->flags=flags;
 
-  gp->column= -1;
-  gp->optional_graph_pattern= -1;
   gp->finished=0;
   gp->matches_returned=0;
 
