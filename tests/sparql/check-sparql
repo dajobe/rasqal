@@ -49,7 +49,7 @@ my $value_predicate="<${rs}value>";
 my $binding_predicate="<${rs}binding>";
 my $solution_predicate="<${rs}solution>";
 
-my $manifest_file="manifest.n3";
+my(@manifest_files)=qw(manifest.ttl manifest.n3);
 my $mf='http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#';
 my $qt='http://www.w3.org/2001/sw/DataAccess/tests/test-query#';
 
@@ -238,9 +238,14 @@ my $unique_test=$ARGV[0];
 
 $srcdir.="/" unless $srcdir =~ m%/$%;
 
-
-die "$program: $srcdir.$manifest_file not found\n"
-  unless -r $srcdir.$manifest_file;
+my $manifest_file=undef;
+for my $file (@manifest_files) {
+  warn "checking $srcdir$file\n";
+  next unless -r $srcdir.$file;
+  $manifest_file=$file;
+}
+die "$program: No manifest file found in $srcdir\n"
+  unless defined $manifest_file;
 
 
 my(%triples);
