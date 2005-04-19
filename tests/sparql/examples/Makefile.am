@@ -4,7 +4,7 @@
 #
 # $Id$
 #
-# Copyright (C) 2004, David Beckett http://purl.org/net/dajobe/
+# Copyright (C) 2004-2005, David Beckett http://purl.org/net/dajobe/
 # Institute for Learning and Research Technology http://www.ilrt.bristol.ac.uk/
 # University of Bristol, UK http://www.bristol.ac.uk/
 # 
@@ -26,27 +26,26 @@
 SPARQL_MANIFEST_FILES= manifest.n3
 
 SPARQL_MODEL_FILES= \
-ex2-1a.n3 ex2-1d.n3 ex2-1f.n3 \
-ex2-2a.n3 \
-ex2-3a.n3 \
-ex2-4a.n3 \
-ex3.n3
+ex2-1a.n3 ex2-1d.n3 ex2-1f.n3 ex2-2a.n3 ex2-3a.n3 ex2-4a.n3 ex3.n3	\
+ex11.2.3.1_0.n3 ex11.2.3.1_1.n3 ex11.2.3.2_0.n3 ex11.2.3.3_0.n3		\
+ex11.2.3.4_0.n3 ex11.2.3.5_0.n3 ex11.2.3.6_0.n3 ex11.2.3.7_0.n3		\
+ex11.2.3.8_0.n3 ex11_0.n3
 
 SPARQL_TEST_FILES= \
-ex2-1a.rq ex2-1b.rq ex2-1c.rq ex2-1e.rq \
-ex2-2a.rq \
-ex2-3a.rq \
-ex2-4a.rq \
-ex3.rq
+ex2-1a.rq ex2-1b.rq ex2-1c.rq ex2-1e.rq ex2-2a.rq ex2-3a.rq ex2-4a.rq	\
+ex3.rq ex11.2.3.1_0.rq ex11.2.3.1_1.rq ex11.2.3.2_0.rq			\
+ex11.2.3.2_1.rq ex11.2.3.3_0.rq ex11.2.3.4_0.rq ex11.2.3.5_0.rq		\
+ex11.2.3.6_0.rq ex11.2.3.7_0.rq ex11.2.3.8_0.rq ex11_0.rq
 
 EXPECTED_SPARQL_CORRECT_FAILURES=
 
 SPARQL_RESULT_FILES= \
-ex2-1a-result.n3 \
-ex2-2a-result.n3 \
-ex2-3a-result.n3 \
-ex2-4a-result.n3 \
-ex3-result.n3
+ex2-1a-result.n3 ex2-2a-result.n3 ex2-3a-result.n3 ex2-4a-result.n3	\
+ex3-result.n3 ex11.2.3.1_0-result.n3 ex11.2.3.1_1-result.n3		\
+ex11.2.3.2_0-result.n3 ex11.2.3.2_1-result.n3 ex11.2.3.3_0-result.n3	\
+ex11.2.3.4_0-result.n3 ex11.2.3.5_0-result.n3 ex11.2.3.6_0-result.n3	\
+ex11.2.3.7_0-result.n3 ex11.2.3.8_0-result.n3 ex11_0-result.n3
+
 
 EXTRA_DIST= \
 $(SPARQL_MANIFEST_FILES) \
