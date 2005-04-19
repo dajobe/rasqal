@@ -875,6 +875,8 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
           rasqal_free_literal(l);
           l=v->value;
           free_literal=0;
+          if(!l)
+            goto failed;
         }
 
         if(l->type != RASQAL_LITERAL_STRING) {
@@ -910,6 +912,8 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
           rasqal_free_literal(l);
           l=v->value;
           free_literal=0;
+          if(!l)
+            goto failed;
         }
 
         b=(l->type == RASQAL_LITERAL_URI);
@@ -937,6 +941,8 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
           rasqal_free_literal(l);
           l=v->value;
           free_literal=0;
+          if(!l)
+            goto failed;
         }
 
         b=(l->type == RASQAL_LITERAL_BLANK);
@@ -964,6 +970,8 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
           rasqal_free_literal(l);
           l=v->value;
           free_literal=0;
+          if(!l)
+            goto failed;
         }
 
         b=(l->type == RASQAL_LITERAL_STRING);
