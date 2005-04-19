@@ -69,16 +69,14 @@ sub run_test($$$$$) {
   die "$program: No such RDQL result suite test $result_file\n"
     unless -r $result_file;
 
-  my $cmd;
-
   my(@args)=(map "-s $_", @data_files);
   my $args_s=join(" ",@args);
-  $cmd="$roqet -d -i rdql $args_s $test_file 2>roqet.err";
-  warn "$program: Running '$cmd'\n"
+  my $roqet_cmd="$roqet -d -i rdql $args_s $test_file 2>roqet.err";
+  warn "$program: Running '$roqet_cmd'\n"
     if $debug;
 
   my(@vars_order)=();
-  open(PIPE, "$cmd|") or die "$program: Cannot create pipe from '$cmd' - $!\n";
+  open(PIPE, "$roqet_cmd|") or die "$program: Cannot create pipe from '$roqet_cmd' - $!\n";
   open(OUT, "| sort >roqet.out") or die "$program: Cannot create pipe to roqet.out - $!\n";
   while(<PIPE>) {
     chomp;
@@ -121,7 +119,7 @@ sub run_test($$$$$) {
 
   my $parser='-g';
   #$parser='-i turtle';
-  $cmd="$rapper $parser -q -o ntriples $result_file";
+  my $cmd="$rapper $parser -q -o ntriples $result_file";
 
   my(@node_order);
   my(%nodes);
@@ -197,7 +195,10 @@ sub run_test($$$$$) {
   $cmd="diff -c result.out roqet.out > diff.out";
   my $rc=system($cmd);
   if($rc) {
-    warn "$program: $name FAILED - difference is:\n";
+    warn "$program: $name FAILED\n";
+    warn "Failing program was:\n";
+    warn "  $roqet_cmd\n";
+    warn "Difference is:\n";
     system("cat diff.out");
     warn "$program: Expected $count results\n";
     return 1;
