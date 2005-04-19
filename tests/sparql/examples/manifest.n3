@@ -56,5 +56,95 @@
         mf:result  <ex3-result.n3>
       ]
 
+     [  mf:name    "sparql-query-example-Testing-Values-0" ;
+        rdfs:comment
+            "Example from section 11" ;
+        mf:action
+            [ qt:query  <ex11_0.rq> ;
+              qt:data   <ex11_0.n3> ] ;
+        mf:result  <ex11_0-result.n3>
+      ]
+
+     [  mf:name    "sparql-query-example-Testing-Values-RDFterm-equal" ;
+        rdfs:comment
+            "Example from section 11.2.3.1" ;
+        mf:action
+            [ qt:query  <ex11.2.3.1_0.rq> ;
+              qt:data   <ex11.2.3.1_0.n3> ] ;
+        mf:result  <ex11.2.3.1_0-result.n3>
+      ]
+
+     [  mf:name    "sparql-query-example-Testing-Values-RDFterm-equal-2" ;
+        rdfs:comment
+            "2nd Example from section 11.2.3.1" ;
+        mf:action
+            [ qt:query  <ex11.2.3.1_1.rq> ;
+              qt:data   <ex11.2.3.1_1.n3> ] ;
+        mf:result  <ex11.2.3.1_1-result.n3>
+      ]
+
+     [  mf:name    "sparql-query-example-Testing-Values-bound" ;
+        rdfs:comment
+            "Example from section 11.2.3.2" ;
+        mf:action
+            [ qt:query  <ex11.2.3.2_0.rq> ;
+              qt:data   <ex11.2.3.2_0.n3> ] ;
+        mf:result  <ex11.2.3.2_0-result.n3>
+      ]
+
+     [  mf:name    "sparql-query-example-Testing-Values-bound-2" ;
+        rdfs:comment
+            "2nd Example from section 11.2.3.2" ;
+        mf:action
+            [ qt:query  <ex11.2.3.2_1.rq> ;
+              qt:data   <ex11.2.3.2_0.n3> ] ;
+        mf:result  <ex11.2.3.2_1-result.n3>
+      ]
+
+     [  mf:name    "sparql-query-example-Testing-Values-isURI" ;
+        rdfs:comment
+            "Example from section 11.2.3.3" ;
+        mf:action
+            [ qt:query  <ex11.2.3.3_0.rq> ;
+              qt:data   <ex11.2.3.3_0.n3> ] ;
+        mf:result  <ex11.2.3.3_0-result.n3>
+      ]
+
+     [  mf:name    "sparql-query-example-Testing-Values-isBlank" ;
+        rdfs:comment
+            "Example from section 11.2.3.4" ;
+        mf:action
+            [ qt:query  <ex11.2.3.4_0.rq> ;
+              qt:data   <ex11.2.3.4_0.n3> ] ;
+        mf:result  <ex11.2.3.4_0-result.n3>
+      ]
+
+     [  mf:name    "sparql-query-example-Testing-Values-isLiteral" ;
+        rdfs:comment
+            "Example from section 11.2.3.5" ;
+        mf:action
+            [ qt:query  <ex11.2.3.5_0.rq> ;
+              qt:data   <ex11.2.3.5_0.n3> ] ;
+        mf:result  <ex11.2.3.5_0-result.n3>
+      ]
+
+     [  mf:name    "sparql-query-example-Testing-Values-str" ;
+        rdfs:comment
+            "Example from section 11.2.3.6" ;
+        mf:action
+            [ qt:query  <ex11.2.3.6_0.rq> ;
+              qt:data   <ex11.2.3.6_0.n3> ] ;
+        mf:result  <ex11.2.3.6_0-result.n3>
+      ]
+
+     [  mf:name    "sparql-query-example-Testing-Values-lang" ;
+        rdfs:comment
+            "Example from section 11.2.3.7" ;
+        mf:action
+            [ qt:query  <ex11.2.3.7_0.rq> ;
+              qt:data   <ex11.2.3.7_0.n3> ] ;
+        mf:result  <ex11.2.3.7_0-result.n3>
+      ]
+
     # End of tests
    ).
