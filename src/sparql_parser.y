@@ -119,7 +119,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...);
 /*
  * shift/reduce conflicts
  */
-%expect 1
+%expect 0
 
 /* word symbols */
 %token SELECT FROM WHERE
