@@ -1,5 +1,12 @@
 2005-04-19  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
+	* sparql_parser.y: Make construct work again.
+	Now %type <seq>: TriplesList ConstructTemplate
+	(ConstructClause): Take triples from seq ConstructTemplate
+	(ConstructTemplate): Use TriplesList
+	(TriplesList): Added, making a raptor_sequence of triples from
+	triples in Triples formulas.
+
 	* rasqal_graph_pattern.c (rasqal_new_graph_pattern): Init columns
 	to defaults here.
 
