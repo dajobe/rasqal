@@ -1204,3 +1204,124 @@ rasqal_engine_assign_binding_values(rasqal_query *query)
   for(i=0; i< query->select_variables_count; i++)
     query->binding_values[i]=query->variables[i]->value;
 }
+
+
+void
+rasqal_engine_make_basic_graph_pattern(rasqal_graph_pattern *gp)
+{
+  int merge_gp_ok=0;
+  int i;
+
+#ifdef RASQAL_DEBUG
+  printf("rasqal_engine_make_basic_graph_pattern: Checking graph pattern %X:\n  ", gp);
+  rasqal_graph_pattern_print(gp, stdout);
+  fputs("\n", stdout);
+  RASQAL_DEBUG3("Columns %d to %d\n", gp->start_column, gp->end_column);
+#endif
+    
+  if(gp->graph_patterns) {
+    RASQAL_DEBUG2("Doing sub-graph patterns of %X\n", gp);
+    for(i=0; i < raptor_sequence_size(gp->graph_patterns); i++) {
+      rasqal_graph_pattern *sgp=(rasqal_graph_pattern*)raptor_sequence_get_at(gp->graph_patterns, i);
+      rasqal_engine_make_basic_graph_pattern(sgp);
+    }
+    RASQAL_DEBUG2("Sub-graph patterns of %X done\n", gp);
+  }
+
+  if(gp->graph_patterns) {
+    /* check if ALL sub-graph patterns are either:
+     * 1) a single triple
+     * 2) a single constraint
+     * No flags
+     */
+    for(i=0; i < raptor_sequence_size(gp->graph_patterns); i++) {
+      rasqal_graph_pattern *sgp=(rasqal_graph_pattern*)raptor_sequence_get_at(gp->graph_patterns, i);
+
+#if 0
+      if((gp->flags & RASQAL_PATTERN_FLAGS_OPTIONAL) &&
+         (sgp->flags & RASQAL_PATTERN_FLAGS_OPTIONAL)) {
+        merge_gp_ok=0;
+        break;
+      }
+      
+      if(!(gp->flags & RASQAL_PATTERN_FLAGS_OPTIONAL) &&
+         (sgp->flags & RASQAL_PATTERN_FLAGS_OPTIONAL)) {
+        merge_gp_ok=0;
+        break;
+      }
+#endif
+ 
+      /* not ok if there are >1 triples */
+      if(sgp->triples && (sgp->end_column-sgp->end_column+1) > 1) {
+        merge_gp_ok=0;
+        break;
+      }
+      
+      /* not ok if there >1 constraints */
+      if(sgp->constraints && raptor_sequence_size(sgp->constraints) != 1) {
+        merge_gp_ok=0;
+        break;
+      }
+      
+      /* not ok if there are triples and constraints */
+      if(sgp->triples && sgp->constraints) {
+        merge_gp_ok=0;
+        break;
+      }
+
+      /* was at least 1 OK sub graph-pattern */
+      merge_gp_ok=1;
+    }
+  }
+
+  if(merge_gp_ok) {
+    RASQAL_DEBUG2("OK to merge sub-graphpatterns of %X\n", gp);
+
+    RASQAL_DEBUG3("Initial columns %d to %d\n", gp->start_column, gp->end_column);
+    while(raptor_sequence_size(gp->graph_patterns) > 0) {
+      rasqal_graph_pattern *sgp=(rasqal_graph_pattern*)raptor_sequence_unshift(gp->graph_patterns);
+      if(sgp->triples) {
+        /* we know start = end */
+        int column=sgp->start_column;
+        
+        /* if this is our first triple, save a free/alloc */
+        gp->triples=sgp->triples;
+        sgp->triples=NULL;
+
+        if((gp->start_column < 0) || column < gp->start_column)
+          gp->start_column=column;
+        if((gp->end_column < 0) || column > gp->end_column)
+          gp->end_column=column;
+
+        RASQAL_DEBUG2("Moved a triple from column %d\n", column);
+        RASQAL_DEBUG3("Columns now %d to %d\n", gp->start_column, gp->end_column);
+      }
+     
+      if(sgp->constraints) {
+        /* we know it's length 1 so pop=unshift */
+        rasqal_expression* e=(rasqal_expression*)raptor_sequence_pop(sgp->constraints);
+        raptor_sequence_push(gp->constraints, e);
+        RASQAL_DEBUG1("Moved a constraint\n");
+      }
+ 
+      gp->flags |= sgp->flags;
+
+      rasqal_free_graph_pattern(sgp);
+    }
+
+    /* Delete any evidence of sub graph patterns */
+    raptor_free_sequence(gp->graph_patterns);
+    gp->graph_patterns=NULL;
+  } else {
+    RASQAL_DEBUG2("NOT OK to merge sub-graphpatterns of %X\n", gp);
+  }
+
+#ifdef RASQAL_DEBUG
+  if(merge_gp_ok) {
+    printf("rasqal_engine_make_basic_graph_pattern: Giving GP %X:\n  ", gp);
+    rasqal_graph_pattern_print(gp, stdout);
+    fputs("\n\n", stdout);
+  }
+#endif
+    
+}
