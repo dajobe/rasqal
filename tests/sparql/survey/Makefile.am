@@ -92,7 +92,7 @@ check-sparql-works: build-roqet
 	@set +e; result=0; \
 	$(ECHO) "Testing SPARQL works"; \
 	for test in $(SPARQL_TEST_FILES); do \
-          data=data-01.n3; \
+          data=survey-sample.ttl; \
 	  $(ECHO) $(ECHO_N) "Checking $$test $(ECHO_C)"; \
 	  $(top_builddir)/roqet -i sparql -s $(srcdir)/$$data $(srcdir)/$$test >/dev/null 2>&1; \
 	  status=$$?; \
