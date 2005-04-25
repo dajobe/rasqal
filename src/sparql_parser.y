@@ -1396,7 +1396,7 @@ UnaryExpression :  '-' BuiltinExpression
 ;
 
 /* SPARQL Grammar: [45] BuiltInExpression */
-BuiltinExpression : BOUND '(' Var ')'
+BuiltinExpression: BOUND '(' Var ')'
 {
   rasqal_literal *l=rasqal_new_variable_literal($3);
   rasqal_expression *e=rasqal_new_literal_expression(l);
@@ -1447,12 +1447,6 @@ BuiltinExpression : BOUND '(' Var ')'
   rasqal_literal* l=rasqal_new_pattern_literal(pattern, flags);
   $$=rasqal_new_string_op_expression(RASQAL_EXPR_STR_MATCH, $3, l);
 }
-| URIBrace Expression ')' 
-{
-  raptor_uri* uri=rasqal_literal_as_uri($1);
-  $$=rasqal_new_cast_expression(raptor_uri_copy(uri), $2);
-  rasqal_free_literal($1);
-}
 | FunctionCall
 {
   $$=$1;
@@ -1482,10 +1476,15 @@ PrimaryExpression: Var
 ;
 
 /* SPARQL Grammar: [47] FunctionCall */
-FunctionCall: URI '(' ArgList ')'
+FunctionCall: URIBrace ArgList ')'
 {
   raptor_uri* uri=rasqal_literal_as_uri($1);
-  $$=rasqal_new_function_expression(raptor_uri_copy(uri), $3);
+  /* FIXME - pick one */
+#if 0
+  $$=rasqal_new_cast_expression(raptor_uri_copy(uri), $2);
+#else
+  $$=rasqal_new_function_expression(raptor_uri_copy(uri), $2);
+#endif
   rasqal_free_literal($1);
 }
 
