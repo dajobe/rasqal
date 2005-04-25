@@ -125,7 +125,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...);
 %token SELECT FROM WHERE
 %token OPTIONAL PREFIX DESCRIBE CONSTRUCT ASK DISTINCT LIMIT UNION
 %token BASE BOUND STR LANG DATATYPE ISURI ISBLANK ISLITERAL
-%token GRAPH NAMED FILTER OFFSET A ORDER BY REGEX
+%token GRAPH NAMED FILTER OFFSET A ORDER BY REGEX ASC DESC
 
 /* expression delimitors */
 

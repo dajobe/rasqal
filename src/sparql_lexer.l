@@ -194,6 +194,8 @@ QUOTEDURI \<[A-Za-z][^>]+\>
 [Oo][Rr][Dd][Ee][Rr] { return ORDER; }
 [Bb][Yy] { return BY; }
 [Rr][Ee][Gg][Ee][Xx] { return REGEX; }
+[Aa][Ss][Cc] { return ASC; }
+[Dd][Ee][Ss][Cc] { return DESC; } 
 
 "a" { return A; }
 
