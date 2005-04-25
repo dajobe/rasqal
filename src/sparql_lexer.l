@@ -67,7 +67,7 @@
 %option reentrant
 
 
-%x PATTERN ID PREF LITERAL
+%x PATTERN ID PREF LITERAL LITERAL2
 
   /* definitions */
 
@@ -297,6 +297,21 @@ QUOTEDURI \<[A-Za-z][^>]+\>
                     return EOF;
 
                   sparql_syntax_error(rq, "syntax error at %c - \"\"\"string was not terminated", *yytext);
+                  yyterminate();  }
+
+
+\'\'\'				{ BEGIN(LITERAL2); }
+
+<LITERAL2>(.|\n)*\'\'\'	{ sparql_copy_string_token(rq, sparql_parser_lval, 
+                            (unsigned char*)yytext, yyleng-3, '\'');
+                          BEGIN(INITIAL);
+                          return STRING_LITERAL; }
+
+<LITERAL2>(.|\n)	{ BEGIN(INITIAL);
+		  if (*yytext == EOF)
+                    return EOF;
+
+                  sparql_syntax_error(rq, "syntax error at %c - '''string was not terminated", *yytext);
                   yyterminate();  }
 
 
