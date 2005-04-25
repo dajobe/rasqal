@@ -107,6 +107,8 @@ rasqal_new_query(const char *name, const unsigned char *uri)
   query->distinct= 0;
   query->limit= -1;
 
+  query->order_conditions_sequence=NULL;
+
   query->usage=1;
   
   if(factory->init(query, name)) {
@@ -180,6 +182,9 @@ rasqal_free_query(rasqal_query* query)
 
   if(query->query_graph_pattern)
     rasqal_free_graph_pattern(query->query_graph_pattern);
+
+  if(query->order_conditions_sequence)
+    raptor_free_sequence(query->order_conditions_sequence);
 
   /* Do this last since most everything above could refer to a variable */
   if(query->variables_sequence)
