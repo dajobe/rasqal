@@ -1,3 +1,122 @@
+2005-04-25  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* sparql_parser.y (OrderClauseOpt): Use OrderConditionList and
+	store it in query field order_conditions_seequence.
+	(OrderConditionList): Added, making a raptor_sequence of
+	expressions
+	(OrderCondition): Implemented ASC/DESC/none
+	(OrderExpression): Added, using FunctionCall or Var
+	(ItemList): Init $$->triples and set formula.
+	(PrimaryExpression): Use FunctionCall
+	(FunctionCall): Restored, now it's used twice.
+
+	* rasqal.h: Added RASQAL_EXPR_ORDER_COND_ASC,
+	RASQAL_EXPR_ORDER_COND_DESC and RASQAL_EXPR_ORDER_COND_NONE
+
+	* rasqal_internal.h: Added order_conditions_sequence to query
+
+	* rasqal_query.c (rasqal_query_print): Print order conditions.
+
+	* rasqal_query.c (rasqal_new_query,rasqal_free_query): Init and
+	free order_conditions_sequence
+
+	* rasqal_expr.c (rasqal_free_expression,
+	rasqal_expression_foreach, rasqal_expression_evaluate,
+	rasqal_expression_print): Added cases for
+	RASQAL_EXPR_ORDER_COND_ASC, RASQAL_EXPR_ORDER_COND_DESC and
+	RASQAL_EXPR_ORDER_COND_NONE
+
+	* sparql_lexer.l: ASC, DESC take following [ too
+	(sparql_token_print): Added ASC, DESC
+
+	* sparql_parser.y, sparql_lexer.l: Added ASC, DESC
+
+	* sparql_lexer.l (PREFIX, NAME): Allow . after first char
+
+	* sparql_lexer.l: Added '''strings''' (not in Turtle)
+
+	* sparql_lexer.l: Added """string""" literals
+
+	* tests/sparql/SyntaxFull/syntax-union-01.rq,
+	tests/sparql/SyntaxFull/syntax-union-02.rq,
+	tests/sparql/SyntaxFull/syntax-struct-09.rq,
+	tests/sparql/SyntaxFull/syntax-struct-10.rq,
+	tests/sparql/SyntaxFull/syntax-struct-07.rq,
+	tests/sparql/SyntaxFull/syntax-struct-08.rq,
+	tests/sparql/SyntaxFull/syntax-struct-06.rq,
+	tests/sparql/SyntaxFull/syntax-struct-03.rq,
+	tests/sparql/SyntaxFull/syntax-struct-04.rq,
+	tests/sparql/SyntaxFull/syntax-struct-05.rq,
+	tests/sparql/SyntaxFull/syntax-query-pat-04.rq,
+	tests/sparql/SyntaxFull/syntax-query-pat-05.rq,
+	tests/sparql/SyntaxFull/syntax-struct-01.rq,
+	tests/sparql/SyntaxFull/syntax-struct-02.rq,
+	tests/sparql/SyntaxFull/syntax-qname-14.rq,
+	tests/sparql/SyntaxFull/syntax-query-pat-01.rq,
+	tests/sparql/SyntaxFull/syntax-query-pat-02.rq,
+	tests/sparql/SyntaxFull/syntax-query-pat-03.rq,
+	tests/sparql/SyntaxFull/syntax-qname-12.rq,
+	tests/sparql/SyntaxFull/syntax-qname-13.rq,
+	tests/sparql/SyntaxFull/syntax-qname-11.rq,
+	tests/sparql/SyntaxFull/syntax-qname-09.rq,
+	tests/sparql/SyntaxFull/syntax-qname-10.rq,
+	tests/sparql/SyntaxFull/syntax-qname-07.rq,
+	tests/sparql/SyntaxFull/syntax-qname-08.rq,
+	tests/sparql/SyntaxFull/syntax-pat-04.rq,
+	tests/sparql/SyntaxFull/syntax-pat-03.rq,
+	tests/sparql/SyntaxFull/syntax-pat-01.rq,
+	tests/sparql/SyntaxFull/syntax-pat-02.rq,
+	tests/sparql/SyntaxFull/syntax-order-04.rq,
+	tests/sparql/SyntaxFull/syntax-order-05.rq,
+	tests/sparql/SyntaxFull/syntax-order-01.rq,
+	tests/sparql/SyntaxFull/syntax-order-02.rq,
+	tests/sparql/SyntaxFull/syntax-order-03.rq,
+	tests/sparql/SyntaxFull/syntax-lit-14.rq,
+	tests/sparql/SyntaxFull/syntax-lit-13.rq,
+	tests/sparql/SyntaxFull/syntax-lit-12.rq,
+	tests/sparql/SyntaxFull/syntax-lit-11.rq,
+	tests/sparql/SyntaxFull/syntax-lit-10.rq,
+	tests/sparql/SyntaxFull/syntax-lit-09.rq,
+	tests/sparql/SyntaxFull/syntax-lit-07.rq,
+	tests/sparql/SyntaxFull/syntax-lit-08.rq,
+	tests/sparql/SyntaxFull/syntax-lit-06.rq,
+	tests/sparql/SyntaxFull/syntax-lit-05.rq,
+	tests/sparql/SyntaxFull/syntax-lit-04.rq,
+	tests/sparql/SyntaxFull/syntax-lit-02.rq,
+	tests/sparql/SyntaxFull/syntax-lit-03.rq,
+	tests/sparql/SyntaxFull/syntax-lists-03.rq,
+	tests/sparql/SyntaxFull/syntax-lists-04.rq,
+	tests/sparql/SyntaxFull/syntax-lists-05.rq,
+	tests/sparql/SyntaxFull/syntax-lit-01.rq,
+	tests/sparql/SyntaxFull/syntax-lists-01.rq,
+	tests/sparql/SyntaxFull/syntax-lists-02.rq,
+	tests/sparql/SyntaxFull/syntax-forms-01.rq,
+	tests/sparql/SyntaxFull/syntax-forms-02.rq,
+	tests/sparql/SyntaxFull/syntax-forms-03.arq,
+	tests/sparql/SyntaxFull/syntax-expr-04.rq,
+	tests/sparql/SyntaxFull/syntax-expr-05.rq,
+	tests/sparql/SyntaxFull/syntax-expr-06.rq,
+	tests/sparql/SyntaxFull/syntax-expr-01.rq,
+	tests/sparql/SyntaxFull/syntax-expr-02.rq,
+	tests/sparql/SyntaxFull/syntax-expr-03.rq,
+	tests/sparql/SyntaxFull/syntax-bnodes-07.rq,
+	tests/sparql/SyntaxFull/syntax-bnodes-08.rq,
+	tests/sparql/SyntaxFull/syntax-bnodes-09.rq,
+	tests/sparql/SyntaxFull/syntax-basic-05.rq,
+	tests/sparql/SyntaxFull/syntax-basic-06.rq,
+	tests/sparql/SyntaxFull/syntax-bnodes-06.rq,
+	tests/sparql/SyntaxFull/syntax-basic-01.rq,
+	tests/sparql/SyntaxFull/syntax-basic-02.rq,
+	tests/sparql/SyntaxFull/syntax-basic-03.rq,
+	tests/sparql/SyntaxFull/syntax-basic-04.rq,
+	tests/sparql/Makefile.am, tests/sparql/SyntaxFull/Makefile.am,
+	tests/sparql/SyntaxFull/manifest.ttl, configure.ac: Added
+	SyntaxFull tests from dawg
+
+2005-04-20  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* tests/sparql/survey/Makefile.am: data is survey-sample.ttl
+
 2005-04-19  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
 	* rasqal_expr.c (rasqal_expression_evaluate): Handle unbound
