@@ -137,8 +137,8 @@ LANGUAGETOKEN [A-Za-z][-A-Z_a-z0-9]*
  * http://www.w3.org/TR/xml11/#NT-NameStartChar and 
  * http://www.w3.org/TR/xml11/#NT-NameChar 
  */
-PREFIX [A-Za-z\\\x80-\xff][-A-Z_a-z\\\x80-\xff0-9]*
-NAME [A-Za-z_\\\x80-\xff][-A-Z_a-z\\\x80-\xff0-9]*
+PREFIX [A-Za-z\\\x80-\xff][-A-Z_a-z\\\x80-\xff0-9\.]*
+NAME [A-Za-z_\\\x80-\xff][-A-Z_a-z\\\x80-\xff0-9\.]*
 QNAME ":"|{PREFIX}":"|":"{NAME}|{PREFIX}":"{NAME}
 BNAME "_:"{NAME}
 
