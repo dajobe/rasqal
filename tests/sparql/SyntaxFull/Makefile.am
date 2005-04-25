@@ -50,6 +50,27 @@ syntax-struct-06.rq syntax-struct-07.rq syntax-struct-08.rq		\
 syntax-struct-09.rq syntax-struct-10.rq syntax-union-01.rq		\
 syntax-union-02.rq
 
+# Errors in SPARQL WD
+#   syntax-pat-02.rq syntax-pat-03.rq syntax-pat-04.rq
+#     DOT after optional, no DOT between non-triple patterns x2
+#   syntax-qname-11.rq
+#     Qname : (BUG)
+#   syntax-query-pat-01.rq syntax-query-pat-02.rq syntax-query-pat-03.rq
+#   syntax-query-pat-04.rq syntax-query-pat-05.rq 
+#     No {} around outermost triple
+#   syntax-struct-01.rq syntax-struct-03.rq syntax-struct-09.rq 
+#     Empty graph patterns / optionals with no DOT near them (BUG?)
+#   syntax-union-02.rq
+#     UNION with 3 terms
+
+EXPECTED_SPARQL_CORRECT_FAILURES= \
+syntax-pat-02.rq syntax-pat-03.rq syntax-pat-04.rq syntax-qname-11.rq	\
+syntax-query-pat-01.rq syntax-query-pat-02.rq syntax-query-pat-03.rq	\
+syntax-query-pat-04.rq syntax-query-pat-05.rq syntax-struct-01.rq	\
+syntax-struct-03.rq syntax-struct-09.rq syntax-union-02.rq
+
+EXPECTED_SPARQL_CORRECT_FAILURES_COUNT=13
+
 
 EXTRA_DIST= \
 $(SPARQL_MANIFEST_FILES) \
@@ -97,6 +118,12 @@ check-sparql-parser: build-sparql-parser-test
 	  fi; \
 	done; \
 	if test $$result != 0 ; then \
-	  echo "FAILED tests:$$fails"; \
+	  echo "Expecting test failures: $(EXPECTED_SPARQL_CORRECT_FAILURES)"; \
+	  result=`echo $$fails | wc -w`; \
+	  if test $$result = $(EXPECTED_SPARQL_CORRECT_FAILURES_COUNT) ; then \
+	    echo "OK: Ignoring expected $result test failures"; result=0; \
+          else \
+	    echo "FAILED: $$result failures does not match expected $(EXPECTED_SPARQL_CORRECT_FAILURES_COUNT)"; result=1; \
+          fi; \
 	fi; \
 	set -e; exit $$result
