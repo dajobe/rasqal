@@ -194,8 +194,8 @@ QUOTEDURI \<[A-Za-z][^>]+\>
 [Oo][Rr][Dd][Ee][Rr] { return ORDER; }
 [Bb][Yy] { return BY; }
 [Rr][Ee][Gg][Ee][Xx] { return REGEX; }
-[Aa][Ss][Cc] { return ASC; }
-[Dd][Ee][Ss][Cc] { return DESC; } 
+[Aa][Ss][Cc]\[ { return ASC; }
+[Dd][Ee][Ss][Cc]\[ { return DESC; } 
 
 "a" { return A; }
 
@@ -823,6 +823,12 @@ sparql_token_print(int token, YYSTYPE *lval)
       
     case REGEX:
       return "REGEX";
+      
+    case ASC:
+      return "ASC[";
+      
+    case DESC:
+      return "DESC[";
       
     case ',':
       return ",";
