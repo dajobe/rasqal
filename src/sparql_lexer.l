@@ -67,7 +67,7 @@
 %option reentrant
 
 
-%x PATTERN ID PREF
+%x PATTERN ID PREF LITERAL
 
   /* definitions */
 
@@ -284,6 +284,21 @@ QUOTEDURI \<[A-Za-z][^>]+\>
                                 sparql_copy_string_token(rq, sparql_parser_lval,
                                   (const unsigned char*)yytext+1, yyleng-1, '"');
                                 return STRING_LITERAL; }
+
+\"\"\"				{ BEGIN(LITERAL); }
+
+<LITERAL>(.|\n)*\"\"\"	{ sparql_copy_string_token(rq, sparql_parser_lval, 
+                            (unsigned char*)yytext, yyleng-3, '"'); /* ' */
+                          BEGIN(INITIAL);
+                          return STRING_LITERAL; }
+
+<LITERAL>(.|\n)	{ BEGIN(INITIAL);
+		  if (*yytext == EOF)
+                    return EOF;
+
+                  sparql_syntax_error(rq, "syntax error at %c - \"\"\"string was not terminated", *yytext);
+                  yyterminate();  }
+
 
 "true"|"false"	{ sparql_parser_lval->literal=rasqal_new_boolean_literal(*yytext== 't');
                   return BOOLEAN_LITERAL; }
