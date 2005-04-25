@@ -1035,6 +1035,10 @@ rasqal_query_print(rasqal_query* query, FILE *fh)
     fprintf(fh, "\nquery graph pattern: ");
     rasqal_graph_pattern_print(query->query_graph_pattern, fh);
   }
+  if(query->order_conditions_sequence) {
+    fprintf(fh, "\nquery order conditions: ");
+    raptor_sequence_print(query->order_conditions_sequence, fh);
+  }
   fputc('\n', fh);
 }
 
