@@ -354,6 +354,11 @@ WhereClauseOpt:  WHERE GraphPattern
 {
   ((rasqal_query*)rq)->query_graph_pattern=$2;
 }
+| GraphPattern
+{
+  sparql_syntax_warning(((rasqal_query*)rq), "WHERE omitted");
+  ((rasqal_query*)rq)->query_graph_pattern=$1;
+}
 | /* empty */
 ;
 
@@ -1445,9 +1450,15 @@ BuiltinExpression : BOUND '(' Var ')'
 | URIBrace Expression ')' 
 {
   raptor_uri* uri=rasqal_literal_as_uri($1);
-  $$=rasqal_new_cast_expression(uri, $2);
+  $$=rasqal_new_cast_expression(raptor_uri_copy(uri), $2);
+  rasqal_free_literal($1);
 }
-| PrimaryExpression
+| FunctionCall
+{
+  $$=$1;
+}
+|
+PrimaryExpression
 {
   $$=$1;
 }
@@ -1464,35 +1475,37 @@ PrimaryExpression: Var
 {
   $$=rasqal_new_literal_expression($1);
 }
-| '&' QNAME_LITERAL '(' ArgList ')'
+| '(' Expression ')'
 {
-  /* FIXME - do something with the function name, args */
-  raptor_free_sequence($4);
-
-  $$=NULL;
-}
-| FunctionCall 
-{
-  $$=$1;
+  $$=$2;
 }
 ;
 
 /* SPARQL Grammar: [47] FunctionCall */
-FunctionCall: '(' Expression ')'
+FunctionCall: URI '(' ArgList ')'
 {
-  $$=$2;
+  raptor_uri* uri=rasqal_literal_as_uri($1);
+  $$=rasqal_new_function_expression(raptor_uri_copy(uri), $3);
+  rasqal_free_literal($1);
 }
 
 
 /* SPARQL Grammar: [48] ArgList */
-ArgList : ArgList VarOrLiteral
+ArgList : ArgList ',' Expression
 {
   $$=$1;
-  raptor_sequence_push($$, $2);
+  if($3)
+    raptor_sequence_push($$, $3);
+}
+| Expression
+{
+  $$=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_expression, (raptor_sequence_print_handler*)rasqal_expression_print);
+  if($1)
+    raptor_sequence_push($$, $1);
 }
 | /* empty */
 {
-  $$=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_literal, (raptor_sequence_print_handler*)rasqal_literal_print);
+  $$=NULL;
 }
 ;
 
