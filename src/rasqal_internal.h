@@ -316,6 +316,10 @@ struct rasqal_query_s {
 
   /* boolean ASK result >0 true, 0 false or -1 uninitialised */
   int ask_result;
+
+  /* sequence of order condition expressions */
+  raptor_sequence* order_conditions_sequence;
+
 };
 
 
