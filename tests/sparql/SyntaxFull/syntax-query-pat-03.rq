@@ -1,0 +1,7 @@
+# Trailing DOT in a query pattern
+PREFIX : <http:/example.org/ns#> 
+SELECT *
+WHERE
+  :a :p ?x .
+  :x :p ?x .
+  :x :p ?x ; :q ?v .
