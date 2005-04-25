@@ -163,7 +163,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...);
 
 %type <seq> SelectClause ConstructClause DescribeClause
 %type <seq> VarList VarOrURIList ArgList TriplesList
-%type <seq> ConstructTemplate
+%type <seq> ConstructTemplate OrderConditionList
 
 %type <formula> Triples
 %type <formula> PropertyList ObjectList ItemList Collection
@@ -177,7 +177,8 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...);
 %type <expr> Expression ConditionalAndExpression ValueLogical
 %type <expr> EqualityExpression RelationalExpression AdditiveExpression
 %type <expr> MultiplicativeExpression UnaryExpression
-%type <expr> PrimaryExpression BuiltinExpression
+%type <expr> PrimaryExpression BuiltinExpression FunctionCall
+%type <expr> OrderCondition OrderExpression
 
 %type <literal> Literal URI BNode
 %type <literal> VarOrLiteral VarOrURI
@@ -358,19 +359,56 @@ WhereClauseOpt:  WHERE GraphPattern
 
 
 /* SPARQL Grammar: rq23 [14] OrderClause - remained for clarity */
-OrderClauseOpt :  ORDER BY
+OrderClauseOpt:  ORDER BY OrderConditionList
 {
-  /* FIXME order clause ignored */
+  ((rasqal_query*)rq)->order_conditions_sequence=$3;
 }
 | /* empty */
 ;
 
 
-/* SPARQL Grammar: rq23 [15] OrderCondition - ignored */
+/* NEW Grammar Term pulled out of [14] OrderClauseOpt */
+OrderConditionList: OrderConditionList OrderCondition
+{
+  $$=$1;
+  if($2)
+    raptor_sequence_push($$, $2);
+}
+| OrderCondition
+{
+  $$=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_expression, (raptor_sequence_print_handler*)rasqal_expression_print);
+  if($1)
+    raptor_sequence_push($$, $1);
+}
+;
 
+
+/* SPARQL Grammar: rq23 [15] OrderCondition */
+OrderCondition: ASC OrderExpression ']'
+{
+  $$=rasqal_new_1op_expression(RASQAL_EXPR_ORDER_COND_ASC, $2);
+}
+| DESC OrderExpression ']'
+{
+  $$=rasqal_new_1op_expression(RASQAL_EXPR_ORDER_COND_DESC, $2);
+}
+| OrderExpression
+{
+  $$=rasqal_new_1op_expression(RASQAL_EXPR_ORDER_COND_NONE, $1);
+}
+;
 
 /* SPARQL Grammar: rq23 [16] OrderExpression - ignored */
-
+OrderExpression: FunctionCall 
+{
+  $$=$1;
+}
+| Var
+{
+  rasqal_literal* l=rasqal_new_variable_literal($1);
+  $$=rasqal_new_literal_expression(l);
+}
+;
 
 /* SPARQL Grammar: rq23 [17] LimitClause - remained for clarity */
 LimitClauseOpt :  LIMIT INTEGER_LITERAL
@@ -971,6 +1009,15 @@ ItemList: ItemList Object
     $2->value=NULL;
     
     $$=$2;
+
+    if(!$$->triples) {
+#ifdef RASQAL_DEBUG
+      $$->triples=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_triple,
+                                      (raptor_sequence_print_handler*)rasqal_triple_print);
+#else
+      $$->triples=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_triple, NULL);
+#endif
+    }
     raptor_sequence_push($$->triples, triple);
 #if RASQAL_DEBUG > 1  
     printf(" objectList is now ");
@@ -997,7 +1044,7 @@ ItemList: ItemList Object
   if(!$1)
     $$=NULL;
   else {
-    $$=rasqal_new_formula();
+    formula=rasqal_new_formula();
     triple=rasqal_new_triple(NULL, NULL, $1->value);
     $1->value=NULL;
     
@@ -1424,13 +1471,18 @@ PrimaryExpression: Var
 
   $$=NULL;
 }
-| '(' Expression ')'
+| FunctionCall 
 {
-  $$=$2;
+  $$=$1;
 }
 ;
 
-/* SPARQL Grammar: [47] FunctionCall - merged into PrimaryExpression */
+/* SPARQL Grammar: [47] FunctionCall */
+FunctionCall: '(' Expression ')'
+{
+  $$=$2;
+}
+
 
 /* SPARQL Grammar: [48] ArgList */
 ArgList : ArgList VarOrLiteral
