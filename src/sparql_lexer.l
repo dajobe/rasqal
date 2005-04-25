@@ -143,7 +143,7 @@ QNAME ":"|{PREFIX}":"|":"{NAME}|{PREFIX}":"{NAME}
 BNAME "_:"{NAME}
 
 /* The initial char conditions are to ensure this doesn't grab < or <= */
-QUOTEDURI \<[A-Za-z][^>]+\>
+QUOTEDURI \<[^<= ][^>]*\>|\<\>
 
 %%
   /* rules */
