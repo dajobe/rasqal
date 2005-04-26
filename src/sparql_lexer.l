@@ -67,7 +67,7 @@
 %option reentrant
 
 
-%x PATTERN ID PREF LITERAL LITERAL2
+%x ID PREF LITERAL LITERAL2
 
   /* definitions */
 
@@ -106,7 +106,6 @@ static int sparql_skip_c_comment(rasqal_query *rq);
 
 static unsigned char *sparql_copy_name(rasqal_query *rq, const unsigned char *text, size_t len);
 static raptor_uri* sparql_copy_qname(rasqal_query *rq, const unsigned char *text, size_t len);
-static int sparql_copy_regex_token(rasqal_query *rq, YYSTYPE* lval, unsigned char delim);
 static int sparql_copy_string_token(rasqal_query *rq, YYSTYPE* lval, const unsigned char *text, size_t len, int delim);
 
 #ifdef RASQAL_DEBUG
@@ -213,29 +212,6 @@ QUOTEDURI \<[^<= ][^>]*\>|\<\>
 
 "||"         { return SC_OR; }
 "&&"         { return SC_AND; }
-
-"EQ"|"eq"  { /* FIXME remove old token */ return STR_EQ; }
-"NE"|"ne"  { /* FIXME remove old token */ return STR_NE; }
-
-"=~"|"~~"  { BEGIN(PATTERN); return STR_MATCH; }
-"!~"       { BEGIN(PATTERN); return STR_NMATCH; }
-
-<PATTERN>[ \t\v]+   {
-	;
-}
-
-<PATTERN>\r\n|\r|\n     { rqe->lineno++; }
-
-
-<PATTERN>. { /* first non whitespace */
-             if(!sparql_copy_regex_token(rq, sparql_parser_lval, *yytext)) {
-               BEGIN(INITIAL);
-               return PATTERN_LITERAL;
-             }
-             BEGIN(INITIAL);
-             yyterminate();
-         };
-
 
 "="            { return EQ; }
 "=="            { /* FIXME remove old token */ return EQ; }
@@ -451,83 +427,6 @@ sparql_copy_qname(rasqal_query *rq, const unsigned char *text, size_t len) {
   RASQAL_FREE(cstring, s);
   
   return uri;
-}
-
-
-static int
-sparql_copy_regex_token(rasqal_query* rq, YYSTYPE* lval, unsigned char delim) {
-  rasqal_sparql_query_engine *rqe=(rasqal_sparql_query_engine*)rq->context;
-  yyscan_t yyscanner=rqe->scanner;
-  unsigned int ind=0;
-  size_t buffer_len=0;
-  unsigned char *buffer=NULL;
-  size_t flags_len=0;
-  unsigned char *flags=NULL;
-  char c;
-
-  if(delim == 'm') {
-    /* Handle pattern literal m/foo/ */
-    c=INPUT_FN(yyscanner);
-    if(c == EOF) {
-      sparql_syntax_error(rq, "SPARQL syntax error - EOF in regex");
-      return 1;
-    }
-    delim=(unsigned char)c;
-  }
-
-  while((c=INPUT_FN(yyscanner)) && c != EOF && c != delim) {
-    /* May add 2 chars - \' */
-    if(ind+2 > buffer_len) {
-      unsigned char *new_buffer;
-      size_t new_buffer_len=buffer_len <<1;
-
-      if(new_buffer_len<10)
-        new_buffer_len=10;
-      new_buffer=(unsigned char *)calloc(1, new_buffer_len+1);
-      if(buffer_len) {
-        strncpy((char*)new_buffer, (const char*)buffer, buffer_len);
-        free(buffer);
-      }
-      buffer=new_buffer;
-      buffer_len=new_buffer_len;
-    }
-    buffer[ind++]=c;
-    if(c == '\\') {
-      c=INPUT_FN(yyscanner);
-      buffer[ind++]=c;
-    }
-  }
-  buffer[ind]='\0';
-
-  if(c == EOF) {
-    sparql_syntax_error(rq, "SPARQL syntax error - EOF in regex");
-    return 1;
-  }
-
-  /* flags */
-  ind=0;
-  while((c=INPUT_FN(yyscanner)) && c != EOF && isalpha(c)) {
-    if(ind+1 > flags_len) {
-      unsigned char *new_flags;
-      size_t new_flags_len=flags_len + 5;
-
-      if(new_flags_len<5)
-        new_flags_len=5;
-      new_flags=(unsigned char *)calloc(1, new_flags_len+1);
-      if(flags_len) {
-        strncpy((char*)new_flags, (const char*)flags, flags_len);
-        free(flags);
-      }
-      flags=new_flags;
-      flags_len=new_flags_len;
-    }
-    flags[ind++]=c;
-  }
-  if(flags)
-    flags[ind]='\0';
-
-  lval->literal=rasqal_new_pattern_literal(buffer, (const char*)flags);
-  return 0;
 }
 
 
@@ -868,18 +767,6 @@ sparql_token_print(int token, YYSTYPE *lval)
 
     case SC_OR:
       return "SC_OR";
-
-    case STR_NMATCH:
-      return "STR_NMATCH";
-
-    case STR_MATCH:
-      return "STR_MATCH";
-
-    case STR_NE:
-      return "STR_NE";
-
-    case STR_EQ:
-      return "STR_EQ";
 
     case GE:
       return "GE";
