@@ -599,7 +599,7 @@ UnionGraphPattern : GraphPattern UNION OptionalGraphPatternList
 ;
 
 /* NEW Grammar Term pulled out of rq23 [25] UnionGraphPattern */
-OptionalGraphPatternList: OptionalGraphPatternList GraphPattern
+OptionalGraphPatternList: OptionalGraphPatternList UNION GraphPattern
 | GraphPattern
 ;
 
