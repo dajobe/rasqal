@@ -808,6 +808,8 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
       {
         rasqal_literal* l;
         const unsigned char* s;
+        unsigned char* new_s;
+        size_t len;
         
         l=rasqal_expression_evaluate(query, e->arg1);
         if(!l)
@@ -819,7 +821,12 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
           goto failed;
         }
         
-        result=rasqal_new_string_literal(s, NULL, NULL, NULL);
+        len=strlen(s);
+
+        new_s=(unsigned char *)RASQAL_MALLOC(cstring, len+1);
+        strncpy(new_s, s, len+1);
+
+        result=rasqal_new_string_literal(new_s, NULL, NULL, NULL);
         rasqal_free_literal(l);
 
         break;
@@ -1296,7 +1303,7 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
         rc= -1;
 #endif
 
-        RASQAL_DEBUG5("regex match returned %s for '%s' against '%s' (flags=%s)\n", b ? "true " : "false", match_string, pattern, l2->flags ? (char*)l2->flags : "");
+        RASQAL_DEBUG5("regex match returned %s for '%s' against '%s' (flags=%s)\n", b ? "true" : "false", match_string, pattern, l2->flags ? (char*)l2->flags : "");
         
         if(e->op == RASQAL_EXPR_STR_NMATCH)
           b=1-b;
