@@ -136,10 +136,26 @@ LANGUAGETOKEN [A-Za-z][-A-Z_a-z0-9]*
  * http://www.w3.org/TR/xml11/#NT-NameStartChar and 
  * http://www.w3.org/TR/xml11/#NT-NameChar 
  */
-PREFIX [A-Za-z\\\x80-\xff][-A-Z_a-z\\\x80-\xff0-9\.]*
-NAME [A-Za-z_\\\x80-\xff][-A-Z_a-z\\\x80-\xff0-9\.]*
-QNAME ":"|{PREFIX}":"|":"{NAME}|{PREFIX}":"{NAME}
-BNAME "_:"{NAME}
+
+/* rq23 [86] NCCHAR1 */
+NCCHAR1 [A-Za-z\\\x80-\xff]
+/* rq23 [87] NCCHAR = NCCHAR1 + '_' + '-' + .' + [0-9]*/
+NCCHAR [-0-9A-Za-z\\\x80-\xff\.]
+/* rq23 [88] NCCHAR_PREFIX */
+NCNAME_PREFIX {NCCHAR1}{NCCHAR}*
+/* Taken from rq23 [89] NCNAME first clause = NCCHAR1 + '_' */
+NCCHARU [A-Za-z_\\\x80-\xff]
+/* rq23 [89] NCNAME */
+NCNAME {NCCHARU}{NCCHAR}*
+/* Taken from rq23 [90] VARNAME = NCCHAR1 set + '_' */
+NCCHARV [0-9A-Za-z_\\\x80-\xff]
+/* rq23 [90] VARNAME but cannot start with _, [0-9] or #B7 */
+VARNAME {NCCHAR1}{NCCHARV}*
+
+/* rq23 [74] QNAME */
+QNAME ":"|{NCNAME_PREFIX}":"|":"{NCNAME}|{NCNAME_PREFIX}":"{NCNAME}
+/* rq23 [75] BNODE_LABEL renamed */
+BNAME "_:"{NCNAME}
 
 /* The initial char conditions are to ensure this doesn't grab < or <= */
 QUOTEDURI \<[^<= ][^>]*\>|\<\>
@@ -299,7 +315,7 @@ QUOTEDURI \<[^<= ][^>]*\>|\<\>
 "null"	{ sparql_parser_lval->literal=NULL;
           return NULL_LITERAL; }
 
-<ID>{NAME}	{ sparql_parser_lval->name=sparql_copy_name(rq, (const unsigned char*)yytext, yyleng);
+<ID>{VARNAME}	{ sparql_parser_lval->name=sparql_copy_name(rq, (const unsigned char*)yytext, yyleng);
 		  if(!sparql_parser_lval->name)
                     yyterminate();
                           BEGIN(INITIAL);
@@ -311,7 +327,7 @@ QUOTEDURI \<[^<= ][^>]*\>|\<\>
 
 
 <PREF>[\ \t\v]+ { /* eat up leading whitespace */ }
-<PREF>{PREFIX}":"	{ BEGIN(INITIAL);
+<PREF>{NCNAME_PREFIX}":"	{ BEGIN(INITIAL);
 		  	  sparql_parser_lval->name=sparql_copy_name(rq, (const unsigned char*)yytext, yyleng-1);
 			  if(!sparql_parser_lval->name)
 			    yyterminate();
