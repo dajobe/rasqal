@@ -147,6 +147,8 @@ sub run_test($$$$$) {
   sub toDebug($) {
     my $str=shift;
 
+    return undef if !defined $str;
+
     return "NULL" if $str eq "<${rs}undefined>";
 
     return $str if $str =~ s/^(".*")(@.*)(\^\^<.*>)$/string($1$2$3)/;
