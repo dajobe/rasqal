@@ -168,7 +168,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...);
 
 %type <graph_pattern> GraphPattern PatternElement
 %type <graph_pattern> GraphGraphPattern OptionalGraphPattern
-%type <graph_pattern> UnionGraphPattern
+%type <graph_pattern> UnionGraphPattern UnionGraphPatternList
 %type <graph_pattern> PatternElementsList
 
 %type <expr> Expression ConditionalAndExpression
@@ -431,7 +431,7 @@ OffsetClauseOpt :  OFFSET INTEGER_LITERAL
 ;
 
 /* SPARQL Grammar: rq23 [19] GraphPattern */
-GraphPattern : '{' PatternElementsList DotOptional '}'
+GraphPattern: '{' PatternElementsList DotOptional '}'
 {
 #if RASQAL_DEBUG > 1  
   printf("GraphPattern 1\n  GraphPattern=");
@@ -590,17 +590,29 @@ GraphGraphPattern: GRAPH VarOrURI GraphPattern
 
 
 /* SPARQL Grammar: rq23 [25] UnionGraphPattern */
-UnionGraphPattern : GraphPattern UNION OptionalGraphPatternList
+UnionGraphPattern: GraphPattern UNION UnionGraphPatternList
 {
+  $$=$3;
+  raptor_sequence_push($$->graph_patterns, $1);
   /* FIXME - union graph pattern type */
   sparql_syntax_warning(((rasqal_query*)rq), "SPARQL UNION ignored");
-  $$=$1;
 }
 ;
 
 /* NEW Grammar Term pulled out of rq23 [25] UnionGraphPattern */
-OptionalGraphPatternList: OptionalGraphPatternList UNION GraphPattern
+UnionGraphPatternList: UnionGraphPatternList UNION GraphPattern
+{
+  $$=$1;
+  if($3)
+    raptor_sequence_push($$->graph_patterns, $3);
+}
 | GraphPattern
+{
+  raptor_sequence *seq=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_graph_pattern, (raptor_sequence_print_handler*)rasqal_graph_pattern_print);
+  if($1)
+    raptor_sequence_push(seq, $1);
+  $$=rasqal_new_graph_pattern_from_sequence((rasqal_query*)rq, seq, 0);
+}
 ;
 
 
