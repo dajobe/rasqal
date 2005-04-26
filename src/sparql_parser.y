@@ -548,24 +548,30 @@ PatternElement: Triples
 /* SPARQL Grammar: rq23 [23] OptionalGraphPattern */
 OptionalGraphPattern: OPTIONAL GraphPattern
 {
-  int i;
-  raptor_sequence *s=$2->graph_patterns;
-
 #if RASQAL_DEBUG > 1  
   printf("PatternElementForms 4\n  graphpattern=");
-  rasqal_graph_pattern_print($2, stdout);
+  if($2)
+    rasqal_graph_pattern_print($2, stdout);
+  else
+    fputs("NULL", stdout);
   fputs("\n\n", stdout);
 #endif
 
-  if(s) {
-    /* Flag all the triples in GraphPattern1 as optional */
-    for(i=0; i < raptor_sequence_size(s); i++) {
-      rasqal_triple *t=(rasqal_triple*)raptor_sequence_get_at(s, i);
-      t->flags |= RASQAL_TRIPLE_FLAGS_OPTIONAL;
+  if($2) {
+    int i;
+    raptor_sequence *s=$2->graph_patterns;
+
+    if(s) {
+      /* Flag all the triples in GraphPattern1 as optional */
+      for(i=0; i < raptor_sequence_size(s); i++) {
+        rasqal_triple *t=(rasqal_triple*)raptor_sequence_get_at(s, i);
+        t->flags |= RASQAL_TRIPLE_FLAGS_OPTIONAL;
+      }
     }
+    $2->flags |= RASQAL_PATTERN_FLAGS_OPTIONAL;
   }
+
   $$=$2;
-  $$->flags |= RASQAL_PATTERN_FLAGS_OPTIONAL;
 }
 ;
 
