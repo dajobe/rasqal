@@ -349,8 +349,12 @@ rasqal_graph_pattern_print(rasqal_graph_pattern* gp, FILE* fh)
 {
   fputs("graph_pattern(", fh);
   if(gp->triples) {
+    int size=gp->end_column - gp->start_column +1;
     int i;
-    fputs("over triples[", fh);
+    if(size != 1)
+      fprintf(fh, "over %d triples[", size);
+    else
+      fputs("over 1 triple[", fh);
 
     for(i=gp->start_column; i <= gp->end_column; i++) {
       rasqal_triple *t=(rasqal_triple*)raptor_sequence_get_at(gp->triples, i);
@@ -361,7 +365,11 @@ rasqal_graph_pattern_print(rasqal_graph_pattern* gp, FILE* fh)
     fputs("]", fh);
   }
   if(gp->graph_patterns) {
-    fputs("over graph_patterns", fh);
+    int size=raptor_sequence_size(gp->graph_patterns);
+    if(size !=1)
+      fprintf(fh, "over %d graph_patterns", size);
+    else
+      fputs("over 1 graph_pattern", fh);
     raptor_sequence_print(gp->graph_patterns, fh);
   }
   if(gp->constraints) {
