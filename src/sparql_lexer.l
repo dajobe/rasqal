@@ -230,7 +230,6 @@ QUOTEDURI \<[^<= ][^>]*\>|\<\>
 "&&"         { return SC_AND; }
 
 "="            { return EQ; }
-"=="            { /* FIXME remove old token */ return EQ; }
 "!="            { return NEQ; }
 "<"/[^A-Za-z=]  { return LT; }
 ">"             { return GT; }
