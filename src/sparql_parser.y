@@ -593,12 +593,17 @@ GraphGraphPattern: GRAPH VarOrURI GraphPattern
 
 
 /* SPARQL Grammar: rq23 [25] UnionGraphPattern */
-UnionGraphPattern : GraphPattern UNION GraphPattern 
+UnionGraphPattern : GraphPattern UNION OptionalGraphPatternList
 {
   /* FIXME - union graph pattern type */
   sparql_syntax_warning(((rasqal_query*)rq), "SPARQL UNION ignored");
   $$=$1;
 }
+;
+
+/* NEW Grammar Term pulled out of rq23 [25] UnionGraphPattern */
+OptionalGraphPatternList: OptionalGraphPatternList GraphPattern
+| /* empty */
 ;
 
 
