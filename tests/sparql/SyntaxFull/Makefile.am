@@ -121,7 +121,7 @@ check-sparql-parser: build-sparql-parser-test
 	  echo "Expecting test failures: $(EXPECTED_SPARQL_CORRECT_FAILURES)"; \
 	  result=`echo $$fails | wc -w`; \
 	  if test $$result = $(EXPECTED_SPARQL_CORRECT_FAILURES_COUNT) ; then \
-	    echo "OK: Ignoring expected $result test failures"; result=0; \
+	    echo "OK: Ignoring expected $$result test failures"; result=0; \
           else \
 	    echo "FAILED: $$result failures does not match expected $(EXPECTED_SPARQL_CORRECT_FAILURES_COUNT)"; result=1; \
           fi; \
