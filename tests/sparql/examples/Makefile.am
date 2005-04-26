@@ -37,7 +37,27 @@ ex3.rq ex11.2.3.1_0.rq ex11.2.3.1_1.rq ex11.2.3.2_0.rq			\
 ex11.2.3.2_1.rq ex11.2.3.3_0.rq ex11.2.3.4_0.rq ex11.2.3.5_0.rq		\
 ex11.2.3.6_0.rq ex11.2.3.7_0.rq ex11.2.3.8_0.rq ex11_0.rq
 
-EXPECTED_SPARQL_CORRECT_FAILURES=
+# sparql-query-example-Testing-Values-0
+#   dateTime datatype compare
+# sparql-query-example-Testing-Values-RDFterm-equal
+#   RDF term equality
+# sparql-query-example-Testing-Values-RDFterm-equal-2
+#   dateTime datatype equality
+# sparql-query-example-Testing-Values-bound
+#   bound and dateTime datatype compare
+# sparql-query-example-Testing-Values-isBlank
+#   isBlank()
+# sparql-query-example-Testing-Values-str
+#   regex over str.  TEST BUG? Why is ?mbox=string("alice@work.example")
+
+EXPECTED_SPARQL_CORRECT_FAILURES= \
+sparql-query-example-Testing-Values-0			\
+sparql-query-example-Testing-Values-RDFterm-equal	\
+sparql-query-example-Testing-Values-RDFterm-equal-2	\
+sparql-query-example-Testing-Values-bound		\
+sparql-query-example-Testing-Values-isBlank		\
+sparql-query-example-Testing-Values-str
+
 
 SPARQL_RESULT_FILES= \
 ex2-1a-result.n3 ex2-2a-result.n3 ex2-3a-result.n3 ex2-4a-result.n3	\
