@@ -1212,7 +1212,7 @@ rasqal_engine_make_basic_graph_pattern(rasqal_graph_pattern *gp)
   int merge_gp_ok=0;
   int i;
 
-#ifdef RASQAL_DEBUG
+#if RASQAL_DEBUG > 1
   printf("rasqal_engine_make_basic_graph_pattern: Checking graph pattern %X:\n  ", gp);
   rasqal_graph_pattern_print(gp, stdout);
   fputs("\n", stdout);
@@ -1220,12 +1220,16 @@ rasqal_engine_make_basic_graph_pattern(rasqal_graph_pattern *gp)
 #endif
     
   if(gp->graph_patterns) {
+#if RASQAL_DEBUG > 1
     RASQAL_DEBUG2("Doing sub-graph patterns of %X\n", gp);
+#endif
     for(i=0; i < raptor_sequence_size(gp->graph_patterns); i++) {
       rasqal_graph_pattern *sgp=(rasqal_graph_pattern*)raptor_sequence_get_at(gp->graph_patterns, i);
       rasqal_engine_make_basic_graph_pattern(sgp);
     }
+#if RASQAL_DEBUG > 1
     RASQAL_DEBUG2("Sub-graph patterns of %X done\n", gp);
+#endif
   }
 
   if(gp->graph_patterns) {
@@ -1275,9 +1279,11 @@ rasqal_engine_make_basic_graph_pattern(rasqal_graph_pattern *gp)
   }
 
   if(merge_gp_ok) {
+#if RASQAL_DEBUG > 1
     RASQAL_DEBUG2("OK to merge sub-graphpatterns of %X\n", gp);
 
     RASQAL_DEBUG3("Initial columns %d to %d\n", gp->start_column, gp->end_column);
+#endif
     while(raptor_sequence_size(gp->graph_patterns) > 0) {
       rasqal_graph_pattern *sgp=(rasqal_graph_pattern*)raptor_sequence_unshift(gp->graph_patterns);
       if(sgp->triples) {
@@ -1293,15 +1299,19 @@ rasqal_engine_make_basic_graph_pattern(rasqal_graph_pattern *gp)
         if((gp->end_column < 0) || column > gp->end_column)
           gp->end_column=column;
 
+#if RASQAL_DEBUG > 1
         RASQAL_DEBUG2("Moved a triple from column %d\n", column);
         RASQAL_DEBUG3("Columns now %d to %d\n", gp->start_column, gp->end_column);
+#endif
       }
      
       if(sgp->constraints) {
         /* we know it's length 1 so pop=unshift */
         rasqal_expression* e=(rasqal_expression*)raptor_sequence_pop(sgp->constraints);
         raptor_sequence_push(gp->constraints, e);
+#if RASQAL_DEBUG > 1
         RASQAL_DEBUG1("Moved a constraint\n");
+#endif
       }
  
       gp->flags |= sgp->flags;
@@ -1313,10 +1323,12 @@ rasqal_engine_make_basic_graph_pattern(rasqal_graph_pattern *gp)
     raptor_free_sequence(gp->graph_patterns);
     gp->graph_patterns=NULL;
   } else {
+#if RASQAL_DEBUG > 1
     RASQAL_DEBUG2("NOT OK to merge sub-graphpatterns of %X\n", gp);
+#endif
   }
 
-#ifdef RASQAL_DEBUG
+#if RASQAL_DEBUG > 1
   if(merge_gp_ok) {
     printf("rasqal_engine_make_basic_graph_pattern: Giving GP %X:\n  ", gp);
     rasqal_graph_pattern_print(gp, stdout);
