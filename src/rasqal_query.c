@@ -106,6 +106,7 @@ rasqal_new_query(const char *name, const unsigned char *uri)
 
   query->distinct= 0;
   query->limit= -1;
+  query->offset= -1;
 
   query->order_conditions_sequence=NULL;
 
