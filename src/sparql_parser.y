@@ -1406,16 +1406,36 @@ CallExpression: STR '(' VarOrLiteral ')'
 {
   /* FIXME - regex needs more thought */
   const unsigned char* pattern=rasqal_literal_as_string($5);
-  rasqal_literal* l=rasqal_new_pattern_literal(pattern, NULL);
+  size_t len=strlen(pattern);
+  unsigned char* npattern;
+  rasqal_literal* l;
+
+  npattern=(unsigned char *)RASQAL_MALLOC(cstring, len+1);
+  strncpy(npattern, pattern, len+1);
+  l=rasqal_new_pattern_literal(npattern, NULL);
   $$=rasqal_new_string_op_expression(RASQAL_EXPR_STR_MATCH, $3, l);
+  rasqal_free_literal($5);
 }
 | REGEX '(' Expression ',' Literal ',' Literal ')'
 {
   /* FIXME - regex needs more thought */
   const unsigned char* pattern=rasqal_literal_as_string($5);
+  size_t p_len=strlen(pattern);
+  unsigned char* npattern;
   const char* flags=(const char*)rasqal_literal_as_string($7);
-  rasqal_literal* l=rasqal_new_pattern_literal(pattern, flags);
+  size_t f_len=strlen(flags);
+  unsigned char* nflags;
+  rasqal_literal* l;
+
+  npattern=(unsigned char *)RASQAL_MALLOC(cstring, p_len+1);
+  strncpy(npattern, pattern, p_len+1);
+  nflags=(unsigned char *)RASQAL_MALLOC(cstring, f_len+1);
+  strncpy(nflags, flags, f_len+1);
+  l=rasqal_new_pattern_literal(npattern, flags);
+
   $$=rasqal_new_string_op_expression(RASQAL_EXPR_STR_MATCH, $3, l);
+  rasqal_free_literal($5);
+  rasqal_free_literal($7);
 }
 | BOUND '(' Var ')'
 {
