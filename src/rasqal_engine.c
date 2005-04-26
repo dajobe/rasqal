@@ -534,7 +534,7 @@ rasqal_query_build_declared_in(rasqal_query* query)
 #endif
     } else 
       rasqal_query_warning(query, 
-                           "Variable %s was selected but is unused in query.\n", 
+                           "Variable %s was selected but is unused in query.", 
                            v->name);
   }
 
