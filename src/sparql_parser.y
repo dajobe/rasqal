@@ -501,7 +501,7 @@ PatternElementsList: PatternElementsList '.' PatternElement
 
 
 /* SPARQL Grammar: rq23 [22] PatternElement */
-PatternElement : Triples
+PatternElement: Triples
 {
 #if RASQAL_DEBUG > 1  
   printf("PatternElement 1\n  Triples=");
@@ -594,6 +594,13 @@ UnionGraphPattern: GraphPattern UNION UnionGraphPatternList
 {
   $$=$3;
   raptor_sequence_push($$->graph_patterns, $1);
+
+#if RASQAL_DEBUG > 1  
+  printf("UnionGraphPattern\n  graphpattern=");
+  rasqal_graph_pattern_print($$, stdout);
+  fputs("\n\n", stdout);
+#endif
+
   /* FIXME - union graph pattern type */
   sparql_syntax_warning(((rasqal_query*)rq), "SPARQL UNION ignored");
 }
