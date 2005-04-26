@@ -60,16 +60,14 @@ syntax-union-02.rq
 #     No {} around outermost triple
 #   syntax-struct-01.rq syntax-struct-03.rq syntax-struct-09.rq 
 #     Empty graph patterns / optionals with no DOT near them (BUG?)
-#   syntax-union-02.rq
-#     UNION with 3 terms
 
 EXPECTED_SPARQL_CORRECT_FAILURES= \
 syntax-pat-02.rq syntax-pat-03.rq syntax-pat-04.rq syntax-qname-11.rq	\
 syntax-query-pat-01.rq syntax-query-pat-02.rq syntax-query-pat-03.rq	\
 syntax-query-pat-04.rq syntax-query-pat-05.rq syntax-struct-01.rq	\
-syntax-struct-03.rq syntax-struct-09.rq syntax-union-02.rq
+syntax-struct-03.rq syntax-struct-09.rq
 
-EXPECTED_SPARQL_CORRECT_FAILURES_COUNT=13
+EXPECTED_SPARQL_CORRECT_FAILURES_COUNT=12
 
 
 EXTRA_DIST= \
