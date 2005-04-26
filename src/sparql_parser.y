@@ -1679,22 +1679,7 @@ rasqal_sparql_query_engine_prepare(rasqal_query* rdf_query) {
     return 1;
   }
 
-  /* FIXME.  This is a bit of a hack.  Fold the basic patterns and
-   * then make a new top graph pattern so the query engine always
-   * sees a sequence of graph patterns at the top.  It should
-   * operate fine on a graph pattern with just triples but it
-   * doesn't seem to.
-   */
-  if(rdf_query->query_graph_pattern) {
-    raptor_sequence *seq;
-
-    rasqal_engine_make_basic_graph_pattern(rdf_query->query_graph_pattern);
-    
-    seq=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_graph_pattern, (raptor_sequence_print_handler*)rasqal_graph_pattern_print);
-    raptor_sequence_push(seq, rdf_query->query_graph_pattern);
-    
-    rdf_query->query_graph_pattern=rasqal_new_graph_pattern_from_sequence(rdf_query, seq, 0);
-  }
+  rasqal_engine_make_basic_graph_pattern(rdf_query->query_graph_pattern);
   
 
   return rasqal_engine_prepare(rdf_query);
