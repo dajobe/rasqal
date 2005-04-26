@@ -1315,7 +1315,8 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
       break;
 
     case RASQAL_EXPR_FUNCTION:
-      RASQAL_FATAL1("No function expressions yet");
+      rasqal_query_warning(query, "No function expressions support at present.  Returning false.");
+      result=rasqal_new_boolean_literal(0);
       break;
       
     case RASQAL_EXPR_CAST:
