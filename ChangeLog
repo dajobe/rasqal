@@ -1,4 +1,96 @@
+2005-04-26  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* tests/sparql/examples/Makefile.am: Annotate failures.
+
+	* sparql_parser.y: less super-debuggy
+
+	* sparql_parser.y:
+	(CallExpression) Copy the string from rasqal_literal_as_string
+	when making pattern literals or flags. Free the unused literal
+	args.
+
+	* rasqal_expr.c:
+	(rasqal_expression_evaluate) For the RASQAL_EXPR_STR operation,
+	copy the string from rasqal_literal_as_string.
+
+	* sparql_parser.y (rasqal_sparql_query_engine_prepare): Restore
+	hack to build an outer list of GPs if the folding made it all into
+	one.
+
+	* sparql_parser.y (rasqal_sparql_query_engine_prepare): Just call
+	rasqal_engine_make_basic_graph_pattern on the query graph pattern.
+
+	* rasqal_engine.c (rasqal_engine_make_basic_graph_pattern): More
+	debug messages.  Always merge a GP with a GP of size 1 inside.
+	Ignore any inner OPTIONAL GPs Merge sequences of triples if seen.
+
+	* tests/sparql/SyntaxFull/Makefile.am: syntax-struct-01.rq no
+	longer crashes
+
+	* sparql_parser.y (OptionalGraphPattern): Don't die if no
+	GraphPattern.
+
+	* sparql_parser.y: Debug messages
+
+	* rasqal_graph_pattern.c (rasqal_graph_pattern_print): Print graph
+	pattern/triple sequence sizes.
+
+	* rasqal_query.c (rasqal_new_query): Set initial offset to unset
+	(<0)
+
+	* rasqal_engine.c (rasqal_query_build_declared_in): warning
+	wording
+
+	* rasqal_engine.c (rasqal_query_build_declared_in): No \n in
+	warning.
+
+	* sparql_parser.y (UnionGraphPatternList): Added.
+	(UnionGraphPattern): Make a graph pattern with the contained union
+	graphs.  Renamed from OptionalGraphPatternList.
+
+	* tests/sparql/SyntaxFull/Makefile.am: Fixed syntax-union-02.rq
+
+	* sparql_parser.y (OptionalGraphPatternList): Require UNION
+	between GPs
+
+	* tests/sparql/SyntaxFull/Makefile.am: Typo
+
+	* rasqal_expr.c (rasqal_expression_evaluate): Warn and then return
+	false for function expressions - not implemented.
+
+	* sparql_parser.y: Removed string operators STR_EQ STR_NE
+	STR_MATCH STR_NMATCH
+	(OptionalGraphPatternList): List cannnot be empty Lots of renaming
+	of grammar terms to match rq23 / WD 19 April 2005
+	(RelationalExpression): Renamed from ValueLogical and merged with
+	former RelationalExpression.
+	(CallExpression): Renamed from BuiltinExpression and reordered to
+	match rq23
+
+	* sparql_lexer.l: Removed regex pattern literals, PATTERN state,
+	sparql_copy_regex_token, EQ/eq, NE/NE, =~, ~~, !~
+
+	* sparql_parser.y (OptionalGraphPatternList): Added, to allow
+	GraphPattern UNION GraphPattern*
+
+	* rasqal_engine.c (rasqal_engine_make_basic_graph_pattern):
+	Verbose debugging if RASQAL_DEBUG > 1
+
 2005-04-25  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* tests/sparql/SyntaxFull/Makefile.am: Note failures so far
+
+	* sparql_parser.y (BuiltinExpression): Move URIBrace work into
+	FunctionCall
+	(FunctionCall): Pick cast or function, I choose function
+
+	* sparql_lexer.l: Widen QUOTEDURI and include <>
+
+	* sparql_parser.y (WhereClauseOpt): Warn WHERE omitted.
+	(BuiltinExpression): Call FunctionCall
+	(PrimaryExpression): Add '(' Expression ')'
+	(FunctionCall): Add URI name.
+	(ArgList): Now a list of expressions
 
 	* sparql_parser.y (OrderClauseOpt): Use OrderConditionList and
 	store it in query field order_conditions_seequence.
