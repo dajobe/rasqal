@@ -1,4 +1,33 @@
+2005-04-27  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* tests/sparql/examples/ex11.2.3.5_0-result.n3,
+	tests/sparql/examples/ex11.2.3.5_0.n3,
+	tests/sparql/examples/ex11.2.3.6_0-result.n3: Fix what I think are
+	test query/data bugs
+
+	* tests/sparql/examples/Makefile.am: Added ex11_1.rq
+	ex11_1-result.n3 Note which query files have the failing query.
+
+	* tests/sparql/examples/ex11_1-result.n3,
+	tests/sparql/examples/ex11_1.rq: example ex11_1
+
+	* tests/sparql/examples/manifest.n3,
+	tests/sparql/examples/ex11.2.3.6_0-result.n3,
+	tests/sparql/examples/ex11_0-result.n3: Sync tests to dawg
+
 2005-04-26  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* tests/rdql/testsuite/check-rdql, tests/sparql/check-sparql
+	(toDebug): Handle no value.
+
+	* tests/sparql/survey/Makefile.am: Added expected failures
+
+	* sparql_lexer.l: Remove == token
+
+	* sparql_lexer.l: Align name tokens with rq23 post WD 2005-04-19
+	CVS 1.326
+
+	* tests/sparql/bound/bound1.rq: new turtley syntax
 
 	* tests/sparql/examples/Makefile.am: Annotate failures.
 
