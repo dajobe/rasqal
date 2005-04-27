@@ -218,10 +218,14 @@ struct rasqal_query_s {
   int executed;
   
   /* variable name/value table built from all distinct variables seen
-   * in selects, triples, constraints.  An array of size variables_count
+   * in selects, triples, constraints and anonymous (no name, cannot
+   * be selected or refered to).  An array of size variables_count
    *
    * The first select_variables_count of this array are from the selects
    * and are typically returned to the user.
+   *
+   * Anonymous variables appear at the end of the 'variables' array but
+   * are taken from the anon_variables_sequence.
    */
   rasqal_variable** variables;
   int variables_count;
@@ -234,6 +238,11 @@ struct rasqal_query_s {
 
   /* holds one copy of all the variables - this is where they are freed */
   raptor_sequence* variables_sequence;
+
+  /* holds one copy of all anonymous variables - this is where they are freed */
+  raptor_sequence* anon_variables_sequence;
+
+  int anon_variables_count;
 
   /* array of variable names to bind or NULL if no variables wanted
    * (size select_variables_count+1, last NULL)
