@@ -8,7 +8,7 @@
     rs:solution [ rs:binding  [ rs:value    "Alice" ;
                                 rs:variable "name"
                               ] ;
-		  rs:binding  [ rs:value    <alice@work.example> ;
+		  rs:binding  [ rs:value    <mailto:alice@work.example> ;
                                 rs:variable "mbox"
                               ]
                 ] .

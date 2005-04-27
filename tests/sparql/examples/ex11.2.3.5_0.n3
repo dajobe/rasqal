@@ -6,4 +6,4 @@ _:a  foaf:name       "Alice".
 _:a  foaf:mbox       <mailto:alice@work.example> .
 
 _:b  foaf:name       "Bob" .
-_:b  foaf:mbox       "bob@work.example" .
+_:b  foaf:mbox       <mailto:bob@work.example> .
