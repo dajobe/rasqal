@@ -247,6 +247,43 @@ rasqal_engine_build_constraints_expression(rasqal_graph_pattern* gp)
 }
 
 
+static void
+rasqal_engine_convert_blank_node_to_anonymous_variable(rasqal_query *rq,
+                                                       rasqal_literal *l) {
+  rasqal_variable* v;
+  
+  v=rasqal_new_variable_typed(rq, 
+                              RASQAL_VARIABLE_TYPE_ANONYMOUS,
+                              l->string, NULL);
+
+  /* Convert the blank node literal into a variable literal */
+  l->string=NULL;
+
+  l->type=RASQAL_LITERAL_VARIABLE;
+  l->value.variable=v;
+}
+
+
+static int
+rasqal_engine_build_anonymous_variables(rasqal_query* rq)
+{
+  int i;
+  raptor_sequence *s=rq->triples;
+  
+  for(i=0; i < raptor_sequence_size(s); i++) {
+    rasqal_triple* t=(rasqal_triple*)raptor_sequence_get_at(s, i);
+    if(t->subject->type == RASQAL_LITERAL_BLANK)
+      rasqal_engine_convert_blank_node_to_anonymous_variable(rq, t->subject);
+    if(t->predicate->type == RASQAL_LITERAL_BLANK)
+      rasqal_engine_convert_blank_node_to_anonymous_variable(rq, t->predicate);
+    if(t->object->type == RASQAL_LITERAL_BLANK)
+      rasqal_engine_convert_blank_node_to_anonymous_variable(rq, t->object);
+  }
+
+  return 0;
+}
+
+
 int
 rasqal_engine_assign_variables(rasqal_query* rq)
 {
@@ -668,6 +705,9 @@ rasqal_engine_prepare(rasqal_query *query)
     return 1;
   
   if(!query->variables) {
+
+    rasqal_engine_build_anonymous_variables(query);
+
     /* Expand 'SELECT *' and create the query->variables array */
     rasqal_engine_assign_variables(query);
 
