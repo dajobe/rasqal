@@ -35,28 +35,28 @@ SPARQL_TEST_FILES= \
 ex2-1a.rq ex2-1b.rq ex2-1c.rq ex2-1e.rq ex2-2a.rq ex2-3a.rq ex2-4a.rq	\
 ex3.rq ex11.2.3.1_0.rq ex11.2.3.1_1.rq ex11.2.3.2_0.rq			\
 ex11.2.3.2_1.rq ex11.2.3.3_0.rq ex11.2.3.4_0.rq ex11.2.3.5_0.rq		\
-ex11.2.3.6_0.rq ex11.2.3.7_0.rq ex11.2.3.8_0.rq ex11_0.rq
+ex11.2.3.6_0.rq ex11.2.3.7_0.rq ex11.2.3.8_0.rq ex11_0.rq ex11_1.rq
 
-# sparql-query-example-Testing-Values-0
-#   dateTime datatype compare
-# sparql-query-example-Testing-Values-RDFterm-equal
-#   RDF term equality
-# sparql-query-example-Testing-Values-RDFterm-equal-2
-#   dateTime datatype equality
-# sparql-query-example-Testing-Values-bound
-#   bound and dateTime datatype compare
-# sparql-query-example-Testing-Values-isBlank
-#   isBlank()
-# sparql-query-example-Testing-Values-str
-#   regex over str.  TEST BUG? Why is ?mbox=string("alice@work.example")
+# sparql-query-example-Testing-Values-1 (ex11_1.rq)
+#   FILTER dateTime datatype compare
+# sparql-query-example-Testing-Values-RDFterm-equal (ex11.2.3.1_0.rq)
+#   FILTER RDF term equality
+# sparql-query-example-Testing-Values-RDFterm-equal-2 (ex11.2.3.1_1.rq)
+#   FILTER dateTime datatype equality
+# sparql-query-example-Testing-Values-bound (ex11.2.3.2_0.rq)
+#   FILTER bound and dateTime datatype compare
+# sparql-query-example-Testing-Values-isBlank (ex11.2.3.4_0.rq)
+#   FILTER isBlank()
+# sparql-query-example-Testing-Values-isLiteral (ex11.2.3.5_0.rq)
+#   FILTER isLiteral()
 
 EXPECTED_SPARQL_CORRECT_FAILURES= \
-sparql-query-example-Testing-Values-0			\
+sparql-query-example-Testing-Values-1			\
 sparql-query-example-Testing-Values-RDFterm-equal	\
 sparql-query-example-Testing-Values-RDFterm-equal-2	\
 sparql-query-example-Testing-Values-bound		\
 sparql-query-example-Testing-Values-isBlank		\
-sparql-query-example-Testing-Values-str
+sparql-query-example-Testing-Values-isLiteral
 
 
 SPARQL_RESULT_FILES= \
@@ -64,7 +64,8 @@ ex2-1a-result.n3 ex2-2a-result.n3 ex2-3a-result.n3 ex2-4a-result.n3	\
 ex3-result.n3 ex11.2.3.1_0-result.n3 ex11.2.3.1_1-result.n3		\
 ex11.2.3.2_0-result.n3 ex11.2.3.2_1-result.n3 ex11.2.3.3_0-result.n3	\
 ex11.2.3.4_0-result.n3 ex11.2.3.5_0-result.n3 ex11.2.3.6_0-result.n3	\
-ex11.2.3.7_0-result.n3 ex11.2.3.8_0-result.n3 ex11_0-result.n3
+ex11.2.3.7_0-result.n3 ex11.2.3.8_0-result.n3 ex11_0-result.n3		\
+ex11_1-result.n3
 
 
 EXTRA_DIST= \
@@ -127,7 +128,7 @@ check-sparql-correct: build-roqet $(srcdir)/../check-sparql
 	if test $$result != 0 ; then \
 	  echo "Expecting test failures: $(EXPECTED_SPARQL_CORRECT_FAILURES)"; \
 	  if test $$result = $$expect ; then \
-	    echo "OK: Ignoring expected test failures"; result=0; \
+	    echo "OK: Ignoring $$expect expected test failures"; result=0; \
           else \
 	    echo "FAILED: $$result failures does not match expected $$expect"; result=1; \
           fi; \
