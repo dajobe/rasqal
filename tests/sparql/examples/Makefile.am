@@ -49,6 +49,8 @@ ex11.2.3.6_0.rq ex11.2.3.7_0.rq ex11.2.3.8_0.rq ex11_0.rq ex11_1.rq
 #   FILTER isBlank()
 # sparql-query-example-Testing-Values-isLiteral (ex11.2.3.5_0.rq)
 #   FILTER isLiteral()
+# sparql-query-example-Testing-Values-str
+#   FILTER str()
 
 EXPECTED_SPARQL_CORRECT_FAILURES= \
 sparql-query-example-Testing-Values-1			\
@@ -56,7 +58,8 @@ sparql-query-example-Testing-Values-RDFterm-equal	\
 sparql-query-example-Testing-Values-RDFterm-equal-2	\
 sparql-query-example-Testing-Values-bound		\
 sparql-query-example-Testing-Values-isBlank		\
-sparql-query-example-Testing-Values-isLiteral
+sparql-query-example-Testing-Values-isLiteral		\
+sparql-query-example-Testing-Values-str
 
 
 SPARQL_RESULT_FILES= \
