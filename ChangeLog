@@ -1,5 +1,14 @@
 2005-04-27  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
+	* tests/sparql/survey/Makefile.am: fix failure count
+
+	* tests/sparql/syntax/cast1.rq: no == operator
+
+	* tests/sparql/survey/Makefile.am,
+	tests/sparql/simple/Makefile.am, tests/sparql/part1/Makefile.am,
+	tests/sparql/bound/Makefile.am: Remove check-sparql-works targets
+	- check-sparql-correct does it better and using manifest
+
 	* tests/sparql/examples/ex11.2.3.5_0-result.n3,
 	tests/sparql/examples/ex11.2.3.5_0.n3,
 	tests/sparql/examples/ex11.2.3.6_0-result.n3: Fix what I think are
