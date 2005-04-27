@@ -65,6 +65,10 @@ syntax-union-02.rq
 #
 # Excluding anything with optional WHERE which gives a warning
 
+SPARQL_MANIFEST_FILES= manifest.ttl
+
+SPARQL_MODEL_FILES= empty.nt
+
 EXPECTED_SPARQL_PARSER_FAILURES= \
 syntax-pat-02.rq syntax-pat-03.rq syntax-pat-04.rq syntax-qname-11.rq	\
 syntax-query-pat-01.rq syntax-query-pat-02.rq syntax-query-pat-03.rq	\
@@ -75,6 +79,8 @@ EXPECTED_SPARQL_PARSER_FAILURES_COUNT=11
 
 
 EXTRA_DIST= \
+$(SPARQL_MANIFEST_FILES) \
+$(SPARQL_MODEL_FILES) \
 $(SPARQL_MANIFEST_FILES) \
 $(SPARQL_TEST_FILES)
 
