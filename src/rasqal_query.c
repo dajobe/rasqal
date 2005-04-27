@@ -95,6 +95,8 @@ rasqal_new_query(const char *name, const unsigned char *uri)
 
   query->variables_sequence=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_variable, (raptor_sequence_print_handler*)rasqal_variable_print);
 
+  query->anon_variables_sequence=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_variable, (raptor_sequence_print_handler*)rasqal_variable_print);
+
   query->triples=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_triple, (raptor_sequence_print_handler*)rasqal_triple_print);
   
   query->prefixes=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_prefix, (raptor_sequence_print_handler*)rasqal_prefix_print);
@@ -187,7 +189,10 @@ rasqal_free_query(rasqal_query* query)
   if(query->order_conditions_sequence)
     raptor_free_sequence(query->order_conditions_sequence);
 
-  /* Do this last since most everything above could refer to a variable */
+  /* Do thes last since most everything above could refer to a variable */
+  if(query->anon_variables_sequence)
+    raptor_free_sequence(query->anon_variables_sequence);
+
   if(query->variables_sequence)
     raptor_free_sequence(query->variables_sequence);
 
@@ -1047,6 +1052,10 @@ rasqal_query_print(rasqal_query* query, FILE *fh)
   if(query->variables_sequence) {
     fprintf(fh, "\nall variables: "); 
     raptor_sequence_print(query->variables_sequence, fh);
+  }
+  if(query->anon_variables_sequence) {
+    fprintf(fh, "\nanonymous variables: "); 
+    raptor_sequence_print(query->anon_variables_sequence, fh);
   }
   if(query->selects) {
     fprintf(fh, "\nbound variables: "); 
