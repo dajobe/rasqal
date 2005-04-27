@@ -102,25 +102,47 @@ rasqal_data_graph_print(rasqal_data_graph* dg, FILE* fh)
 
 
 /**
- * rasqal_new_variable - Constructor - Create a new Rasqal variable
+ * rasqal_new_variable_typed - Constructor - Create a new typed Rasqal variable
  * @rq: &rasqal_query to associate the variable with
+ * @name: variable type defined by enumeration rasqal_variable_type
  * @name: variable name
  * @value: variable &rasqal_literal value (or NULL)
  * 
  * The variable must be associated with a query, since variable
  * names are only significant with a single query.
  * 
+ * The @name and @value become owned by the rasqal_variable structure
+ *
  * Return value: a new &rasqal_variable or NULL on failure.
  **/
 rasqal_variable*
-rasqal_new_variable(rasqal_query* rq,
-                    const unsigned char *name, rasqal_literal *value) 
+rasqal_new_variable_typed(rasqal_query* rq,
+                          rasqal_variable_type type, 
+                          const unsigned char *name, rasqal_literal *value)
 {
   int i;
   rasqal_variable* v;
+  raptor_sequence* seq;
+  int* count_p;
+
+  switch(type) {
+    case RASQAL_VARIABLE_TYPE_ANONYMOUS:
+      seq=rq->anon_variables_sequence;
+      count_p=&rq->anon_variables_count;
+      break;
+    case RASQAL_VARIABLE_TYPE_NORMAL:
+      seq=rq->variables_sequence;
+      count_p=&rq->variables_count;
+      break;
+
+    case RASQAL_VARIABLE_TYPE_UNKNOWN:
+    default:
+      RASQAL_DEBUG2("Unknown variable type %d", type);
+      return NULL;
+  }
   
-  for(i=0; i< raptor_sequence_size(rq->variables_sequence); i++) {
-    v=(rasqal_variable*)raptor_sequence_get_at(rq->variables_sequence, i);
+  for(i=0; i< raptor_sequence_size(seq); i++) {
+    v=(rasqal_variable*)raptor_sequence_get_at(seq, i);
     if(!strcmp((const char*)v->name, (const char*)name)) {
       /* name already present, do not need a copy */
       RASQAL_FREE(cstring, name);
@@ -130,13 +152,39 @@ rasqal_new_variable(rasqal_query* rq,
     
   v=(rasqal_variable*)RASQAL_CALLOC(rasqal_variable, sizeof(rasqal_variable), 1);
 
-  v->name=name;
-  v->value=value;
-  v->offset=rq->variables_count++;
+  v->type= type;
+  v->name= name;
+  v->value= value;
+  v->offset= (*count_p)++;
 
-  raptor_sequence_push(rq->variables_sequence, v);
+  raptor_sequence_push(seq, v);
   
   return v;
+}
+
+
+/**
+ * rasqal_new_variable - Constructor - Create a new Rasqal normal variable
+ * @rq: &rasqal_query to associate the variable with
+ * @name: variable name
+ * @value: variable &rasqal_literal value (or NULL)
+ * 
+ * The variable must be associated with a query, since variable
+ * names are only significant with a single query.
+ *
+ * This creates a regular variable that can be returned of type
+ * RASQAL_VARIABLE_TYPE_NORMAL.  Use rasqal_new_variable_typed
+ * to create other variables.
+ * 
+ * The @name and @value become owned by the rasqal_variable structure
+ *
+ * Return value: a new &rasqal_variable or NULL on failure.
+ **/
+rasqal_variable*
+rasqal_new_variable(rasqal_query* rq,
+                    const unsigned char *name, rasqal_literal *value) 
+{
+  return rasqal_new_variable_typed(rq, RASQAL_VARIABLE_TYPE_NORMAL, name, value);
 }
 
 
@@ -167,7 +215,10 @@ rasqal_free_variable(rasqal_variable* v)
 void
 rasqal_variable_print(rasqal_variable* v, FILE* fh)
 {
-  fprintf(fh, "variable(%s", v->name);
+  if(v->type == RASQAL_VARIABLE_TYPE_ANONYMOUS)
+    fprintf(fh, "anon-variable(%s", v->name);
+  else
+    fprintf(fh, "variable(%s", v->name);
   if(v->value) {
     fputc('=', fh);
     rasqal_literal_print(v->value, fh);
