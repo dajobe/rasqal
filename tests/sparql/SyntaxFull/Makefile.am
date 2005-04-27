@@ -25,6 +25,8 @@
 
 SPARQL_MANIFEST_FILES= manifest.ttl
 
+SPARQL_MODEL_FILES= empty.nt
+
 SPARQL_TEST_FILES= \
 syntax-basic-01.rq syntax-basic-02.rq syntax-basic-03.rq		\
 syntax-basic-04.rq syntax-basic-05.rq syntax-basic-06.rq		\
@@ -64,10 +66,6 @@ syntax-union-02.rq
 #     Empty graph patterns / optionals with no DOT near them (BUG)
 #
 # Excluding anything with optional WHERE which gives a warning
-
-SPARQL_MANIFEST_FILES= manifest.ttl
-
-SPARQL_MODEL_FILES= empty.nt
 
 EXPECTED_SPARQL_PARSER_FAILURES= \
 syntax-pat-02.rq syntax-pat-03.rq syntax-pat-04.rq syntax-qname-11.rq	\
