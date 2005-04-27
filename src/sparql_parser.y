@@ -1430,7 +1430,7 @@ CallExpression: STR '(' VarOrLiteral ')'
   strncpy(npattern, pattern, p_len+1);
   nflags=(unsigned char *)RASQAL_MALLOC(cstring, f_len+1);
   strncpy(nflags, flags, f_len+1);
-  l=rasqal_new_pattern_literal(npattern, flags);
+  l=rasqal_new_pattern_literal(npattern, nflags);
 
   $$=rasqal_new_string_op_expression(RASQAL_EXPR_STR_MATCH, $3, l);
   rasqal_free_literal($5);
