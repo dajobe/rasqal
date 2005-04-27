@@ -315,6 +315,18 @@ rasqal_query_get_distinct(rasqal_query *query)
 
 
 /**
+ * rasqal_query_set_distinct - Set the query distinct results flag
+ * @query: &rasqal_query query object
+ * @is_distinct: non-0 if distinct
+ **/
+void
+rasqal_query_set_distinct(rasqal_query *query, int is_distinct)
+{
+  query->distinct= (is_distinct != 0) ? 1 : 0;
+}
+
+
+/**
  * rasqal_query_get_limit - Get the query-specified limit on results
  * @query: &rasqal_query query object
  *
@@ -330,6 +342,20 @@ rasqal_query_get_limit(rasqal_query *query)
 
 
 /**
+ * rasqal_query_set_limit - Set the query-specified limit on results
+ * @query: &rasqal_query query object
+ * @limit: the limit on results, >=0 to set a limit, <0 to have no limit
+ *
+ * This is the limit given in the query on the number of results allowed.
+ **/
+void
+rasqal_query_set_limit(rasqal_query *query, int limit)
+{
+  query->limit=limit;
+}
+
+
+/**
  * rasqal_query_get_offset - Get the query-specified offset on results
  * @query: &rasqal_query query object
  *
@@ -341,6 +367,20 @@ int
 rasqal_query_get_offset(rasqal_query *query)
 {
   return query->offset;
+}
+
+
+/**
+ * rasqal_query_set_offset - Set the query-specified offset on results
+ * @query: &rasqal_query query object
+ * @offset: offset for results, >=0 to set an offset, <0 to have no offset
+ *
+ * This is the offset given in the query on the number of results allowed.
+ **/
+void
+rasqal_query_set_offset(rasqal_query *query, int offset)
+{
+  query->offset=offset;
 }
 
 
