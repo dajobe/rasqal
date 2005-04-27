@@ -44,11 +44,11 @@ result-survey-11.ttl result-survey-12.ttl result-survey-13.ttl
 # survey-10
 #   distinct
 # survey-13
-#   casting does not work
+#   FILTER casting does not work
 EXPECTED_SPARQL_CORRECT_FAILURES= \
 survey-1 survey-2 survey-3 survey-8 survey-9 survey-10 survey-11 survey-13
 
-EXPECTED_SPARQL_CORRECT_FAILURES_COUNT=1
+EXPECTED_SPARQL_CORRECT_FAILURES_COUNT=8
 
 EXTRA_DIST= \
 $(SPARQL_MANIFEST_FILES) \
