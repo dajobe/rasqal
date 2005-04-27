@@ -28,7 +28,9 @@ SPARQL_MANIFEST_FILES= manifest.ttl
 SPARQL_TEST_FILES= \
 syntax-basic-01.rq syntax-basic-02.rq syntax-basic-03.rq		\
 syntax-basic-04.rq syntax-basic-05.rq syntax-basic-06.rq		\
-syntax-bnodes-06.rq syntax-bnodes-07.rq syntax-bnodes-08.rq		\
+syntax-bnodes-01.rq syntax-bnodes-02.rq syntax-bnodes-03.rq             \
+syntax-bnodes-04.rq syntax-bnodes-06.rq syntax-bnodes-07.rq             \
+syntax-bnodes-08.rq							\
 syntax-bnodes-09.rq syntax-expr-01.rq syntax-expr-02.rq			\
 syntax-expr-03.rq syntax-expr-04.rq syntax-expr-05.rq			\
 syntax-expr-06.rq syntax-forms-01.rq syntax-forms-02.rq			\
@@ -63,13 +65,13 @@ syntax-union-02.rq
 #
 # Excluding anything with optional WHERE which gives a warning
 
-EXPECTED_SPARQL_CORRECT_FAILURES= \
+EXPECTED_SPARQL_PARSER_FAILURES= \
 syntax-pat-02.rq syntax-pat-03.rq syntax-pat-04.rq syntax-qname-11.rq	\
 syntax-query-pat-01.rq syntax-query-pat-02.rq syntax-query-pat-03.rq	\
 syntax-query-pat-04.rq syntax-query-pat-05.rq \
 syntax-struct-03.rq syntax-struct-09.rq
 
-EXPECTED_SPARQL_CORRECT_FAILURES_COUNT=11
+EXPECTED_SPARQL_PARSER_FAILURES_COUNT=11
 
 
 EXTRA_DIST= \
@@ -118,12 +120,12 @@ check-sparql-parser: build-sparql-parser-test
 	  fi; \
 	done; \
 	if test $$result != 0 ; then \
-	  echo "Expecting test failures: $(EXPECTED_SPARQL_CORRECT_FAILURES)"; \
+	  echo "Expecting test failures: $(EXPECTED_SPARQL_PARSER_FAILURES)"; \
 	  result=`echo $$fails | wc -w`; \
-	  if test $$result = $(EXPECTED_SPARQL_CORRECT_FAILURES_COUNT) ; then \
+	  if test $$result = $(EXPECTED_SPARQL_PARSER_FAILURES_COUNT) ; then \
 	    echo "OK: Ignoring expected $$result test failures"; result=0; \
           else \
-	    echo "FAILED: $$result failures $$fails does not match expected $(EXPECTED_SPARQL_CORRECT_FAILURES_COUNT)"; result=1; \
+	    echo "FAILED: $$result failures $$fails does not match expected $(EXPECTED_SPARQL_PARSER_FAILURES_COUNT)"; result=1; \
           fi; \
 	fi; \
 	set -e; exit $$result
