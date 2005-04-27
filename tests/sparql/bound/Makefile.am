@@ -51,7 +51,7 @@ build-sparql-parser-test:
 
 
 check-local: check-sparql-lexer check-sparql-parser \
-check-sparql-works check-sparql-correct
+check-sparql-correct
 
 check-sparql-lexer: build-sparql-lexer-test
 	@set +e; result=0; \
@@ -74,23 +74,6 @@ check-sparql-parser: build-sparql-parser-test
 	for test in $(SPARQL_TEST_FILES); do \
 	  $(ECHO) $(ECHO_N) "Checking $$test $(ECHO_C)"; \
 	  $(top_builddir)/sparql_parser_test $(srcdir)/$$test >/dev/null; \
-	  status=$$?; \
-	  if test $$status != 0 -a $$status != 2 ; then \
-	    $(ECHO) FAILED returned status $$status; result=1; \
-	    fails="$$fails $$test"; \
-	  else \
-	    $(ECHO) ok; \
-	  fi; \
-	done; \
-	set -e; exit $$result
-
-check-sparql-works: build-roqet
-	@set +e; result=0; \
-	$(ECHO) "Testing SPARQL works"; \
-	for test in $(SPARQL_TEST_FILES); do \
-          data=$(SPARQL_MODEL_FILES); \
-	  $(ECHO) $(ECHO_N) "Checking $$test $(ECHO_C)"; \
-	  $(top_builddir)/roqet -i sparql -s $(srcdir)/$$data $(srcdir)/$$test >/dev/null 2>&1; \
 	  status=$$?; \
 	  if test $$status != 0 -a $$status != 2 ; then \
 	    $(ECHO) FAILED returned status $$status; result=1; \
