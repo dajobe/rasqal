@@ -65,6 +65,15 @@
         mf:result  <ex11_0-result.n3>
       ]
 
+     [  mf:name    "sparql-query-example-Testing-Values-1" ;
+        rdfs:comment
+            "2nd Example from section 11" ;
+        mf:action
+            [ qt:query  <ex11_1.rq> ;
+              qt:data   <ex11_0.n3> ] ;
+        mf:result  <ex11_1-result.n3>
+      ]
+
      [  mf:name    "sparql-query-example-Testing-Values-RDFterm-equal" ;
         rdfs:comment
             "Example from section 11.2.3.1" ;

@@ -8,8 +8,4 @@
     rs:solution [ rs:binding  [ rs:value    _:a ;
                                 rs:variable "annot"
                               ]
-                ] ;
-    rs:solution [ rs:binding  [ rs:value    _:b ;
-                                rs:variable "annot"
-                              ]
                 ] .
