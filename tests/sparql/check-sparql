@@ -63,7 +63,7 @@ sub run_test($$$$$) {
   my($name, $dir, $test_file, $data_files_ref, $result_file)=@_;
   my(@data_files)=@$data_files_ref;
 
-  warn "run_test($name, $dir, $test_file, ",join("; ",@data_files)," $result_file)\n"
+  warn "run_test($name, $dir, $test_file, ",join("; ",@data_files)," ",($result_file||"NONE"),")\n"
     if $debug;
 
   my(@args)=(map "-s $_", @data_files);
@@ -119,30 +119,33 @@ sub run_test($$$$$) {
     return 1;
   }
 
-  my $cmd="$rapper -g -q -o ntriples $result_file";
-
+  my $cmd;
   my(@node_order);
   my(%nodes);
   my(%node_type);
 
-  warn "$program: Opening pipe from '$cmd'\n"
-    if $debug;
-  open(PIPE, "$cmd |");
-  while(<PIPE>) {
-    chomp;
-    s/\s+\.$//;
+  if(defined $result_file) {
+    $cmd="$rapper -g -q -o ntriples $result_file";
 
-    my($subject, $predicate, $object)=split(/ /, $_, 3);
-    push(@node_order, $subject)
-      unless exists $nodes{$subject} || exists $node_type{$subject};
+    warn "$program: Opening pipe from '$cmd'\n"
+      if $debug;
+    open(PIPE, "$cmd |");
+    while(<PIPE>) {
+      chomp;
+      s/\s+\.$//;
 
-    if ($predicate eq "<${rdf}type>") {
-      $node_type{$subject}=$object;
-    } else {
-      push(@{$nodes{$subject}->{$predicate}}, $object);
+      my($subject, $predicate, $object)=split(/ /, $_, 3);
+      push(@node_order, $subject)
+	unless exists $nodes{$subject} || exists $node_type{$subject};
+
+      if ($predicate eq "<${rdf}type>") {
+	$node_type{$subject}=$object;
+      } else {
+	push(@{$nodes{$subject}->{$predicate}}, $object);
+      }
     }
+    close(PIPE);
   }
-  close(PIPE);
 
   sub toDebug($) {
     my $str=shift;
@@ -166,9 +169,6 @@ sub run_test($$$$$) {
   }
 
 
-  open(OUT, "|sort >result.out")
-    or die "$program: Cannot create pipe to result.out - $!\n";
-
   # Find ResultSet node
   my $resultset_node=undef;
   for my $node (@node_order) {
@@ -177,6 +177,15 @@ sub run_test($$$$$) {
     $resultset_node=$node;
     last;
   }
+
+  if(!defined $resultset_node) {
+    # No result defined
+    warn "$program: $name OK (no result)\n";
+    return 0;
+  }
+
+  open(OUT, "|sort >result.out")
+    or die "$program: Cannot create pipe to result.out - $!\n";
 
   my $count=0;
   for my $node (@{$nodes{$resultset_node}->{$solution_predicate}}) {
@@ -286,10 +295,13 @@ while($list_node) {
     if $debug;
   
   my $result_node=$triples{$entry_node}->{"<${mf}result>"}->[0];
-  my $result_file=($result_node =~ /^<(.+)>$/, $1);
-  $result_file =~ s,^file:([^/]+),$1,;
+  my $result_file=undef;
+  if(defined $result_node) {
+    $result_file=($result_node =~ /^<(.+)>$/, $1);
+    $result_file =~ s,^file:([^/]+),$1,;
+  }
 
-  print "Entry result_file=$result_file\n"
+  print "Entry result_file=".($result_file || "NONE")."\n"
     if $debug;
 
   my $action_node=$triples{$entry_node}->{"<${mf}action>"}->[0];
