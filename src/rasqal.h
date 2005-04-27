@@ -94,11 +94,19 @@ typedef struct {
 } rasqal_prefix;
 
 
+typedef enum {
+  RASQAL_VARIABLE_TYPE_UNKNOWN   = 0,
+  RASQAL_VARIABLE_TYPE_NORMAL    = 1,
+  RASQAL_VARIABLE_TYPE_ANONYMOUS = 2
+} rasqal_variable_type;
+
+
 /* variable binding */
 typedef struct {
   const unsigned char *name;
   struct rasqal_literal_s *value;
   int offset;   /* offset in the rasqal_query variables array */
+  rasqal_variable_type type;     /* variable type */
 } rasqal_variable;
 
 
@@ -282,8 +290,11 @@ RASQAL_API void rasqal_query_set_default_generate_bnodeid_parameters(rasqal_quer
 RASQAL_API void rasqal_query_set_generate_bnodeid_handler(rasqal_query* query, void *user_data, rasqal_generate_bnodeid_handler handler);
 
 RASQAL_API int rasqal_query_get_distinct(rasqal_query *query);
+RASQAL_API void rasqal_query_set_distinct(rasqal_query *query, int is_distinct);
 RASQAL_API int rasqal_query_get_limit(rasqal_query *query);
+RASQAL_API void rasqal_query_set_limit(rasqal_query *query, int limit);
 RASQAL_API int rasqal_query_get_offset(rasqal_query *query);
+RASQAL_API boid rasqal_query_set_offset(rasqal_query *query, int limit);
 
 RASQAL_API RASQAL_DEPRECATED void rasqal_query_add_source(rasqal_query* query, raptor_uri* uri);
 RASQAL_API RASQAL_DEPRECATED raptor_sequence* rasqal_query_get_source_sequence(rasqal_query* query);
@@ -415,6 +426,7 @@ RASQAL_API void rasqal_triple_set_flags(rasqal_triple* t, unsigned int flags);
 RASQAL_API unsigned int rasqal_triple_get_flags(rasqal_triple* t);
 
 /* Variable class */
+RASQAL_API rasqal_variable* rasqal_new_variable_typed(rasqal_query* rq, rasqal_variable_type type, const unsigned char *name, rasqal_literal *value);
 RASQAL_API rasqal_variable* rasqal_new_variable(rasqal_query* query, const unsigned char *name, rasqal_literal *value);
 RASQAL_API void rasqal_free_variable(rasqal_variable* variable);
 RASQAL_API void rasqal_variable_print(rasqal_variable* t, FILE* fh);
