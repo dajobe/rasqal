@@ -243,7 +243,6 @@ QUOTEDURI \<[^<= ][^>]*\>|\<\>
 "%"         { return '%'; }
 "~"         { return '~'; }
 "!"         { return '!'; }
-"&"         { return '&'; }
 
 [0-9]+["lL"]?   { c=yytext[yyleng-1];
                   if (c== 'l' || c == 'L')
@@ -849,11 +848,6 @@ sparql_token_print(int token, YYSTYPE *lval)
       }
       return buffer;
 
-    case PATTERN_LITERAL:
-      sprintf(buffer, "PATTERN_LITERAL(%s,%s)", lval->literal->string,
-              (lval->literal->flags ? (char*)lval->literal->flags : "-"));
-      return buffer;
-
     case BOOLEAN_LITERAL:
       return (lval->literal->value.integer ? "BOOLEAN_LITERAL(true)" : "BOOLEAN_LITERAL(false)");
 
@@ -902,7 +896,6 @@ sparql_token_free(int token, YYSTYPE *lval)
   
   switch(token) {
     case STRING_LITERAL:
-    case PATTERN_LITERAL:
       rasqal_free_literal(lval->literal);
       break;
     case URI_LITERAL:

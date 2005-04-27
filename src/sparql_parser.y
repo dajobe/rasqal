@@ -134,9 +134,6 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...);
 %token ',' '(' ')' '[' ']' '{' '}'
 %token '?' '$'
 
-/* function call indicator */
-%token '&'
-
 /* SC booleans */
 %left SC_OR SC_AND
 
@@ -151,7 +148,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...);
 
 /* literals */
 %token <literal> FLOATING_POINT_LITERAL
-%token <literal> STRING_LITERAL PATTERN_LITERAL INTEGER_LITERAL
+%token <literal> STRING_LITERAL INTEGER_LITERAL
 %token <literal> BOOLEAN_LITERAL
 %token <literal> NULL_LITERAL
 %token <uri> URI_LITERAL URI_LITERAL_BRACE
