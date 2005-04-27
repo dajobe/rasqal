@@ -294,7 +294,7 @@ RASQAL_API void rasqal_query_set_distinct(rasqal_query *query, int is_distinct);
 RASQAL_API int rasqal_query_get_limit(rasqal_query *query);
 RASQAL_API void rasqal_query_set_limit(rasqal_query *query, int limit);
 RASQAL_API int rasqal_query_get_offset(rasqal_query *query);
-RASQAL_API boid rasqal_query_set_offset(rasqal_query *query, int limit);
+RASQAL_API void rasqal_query_set_offset(rasqal_query *query, int limit);
 
 RASQAL_API RASQAL_DEPRECATED void rasqal_query_add_source(rasqal_query* query, raptor_uri* uri);
 RASQAL_API RASQAL_DEPRECATED raptor_sequence* rasqal_query_get_source_sequence(rasqal_query* query);
