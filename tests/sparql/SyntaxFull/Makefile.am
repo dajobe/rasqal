@@ -31,9 +31,7 @@ SPARQL_TEST_FILES= \
 syntax-basic-01.rq syntax-basic-02.rq syntax-basic-03.rq		\
 syntax-basic-04.rq syntax-basic-05.rq syntax-basic-06.rq		\
 syntax-bnodes-01.rq syntax-bnodes-02.rq syntax-bnodes-03.rq             \
-syntax-bnodes-04.rq syntax-bnodes-06.rq syntax-bnodes-07.rq             \
-syntax-bnodes-08.rq							\
-syntax-bnodes-09.rq syntax-expr-01.rq syntax-expr-02.rq			\
+syntax-bnodes-04.rq syntax-expr-01.rq syntax-expr-02.rq			\
 syntax-expr-03.rq syntax-expr-04.rq syntax-expr-05.rq			\
 syntax-expr-06.rq syntax-forms-01.rq syntax-forms-02.rq			\
 syntax-lists-01.rq syntax-lists-02.rq syntax-lists-03.rq		\
@@ -46,9 +44,8 @@ syntax-order-03.rq syntax-order-04.rq syntax-order-05.rq		\
 syntax-pat-01.rq syntax-pat-02.rq syntax-pat-03.rq syntax-pat-04.rq	\
 syntax-qname-07.rq syntax-qname-08.rq syntax-qname-09.rq		\
 syntax-qname-10.rq syntax-qname-11.rq syntax-qname-12.rq		\
-syntax-qname-13.rq syntax-qname-14.rq syntax-query-pat-01.rq		\
-syntax-query-pat-02.rq syntax-query-pat-03.rq syntax-query-pat-04.rq	\
-syntax-query-pat-05.rq syntax-struct-01.rq syntax-struct-02.rq		\
+syntax-qname-13.rq syntax-qname-14.rq \
+syntax-struct-01.rq syntax-struct-02.rq		\
 syntax-struct-03.rq syntax-struct-04.rq syntax-struct-05.rq		\
 syntax-struct-06.rq syntax-struct-07.rq syntax-struct-08.rq		\
 syntax-struct-09.rq syntax-struct-10.rq syntax-union-01.rq		\
@@ -59,9 +56,6 @@ syntax-union-02.rq
 #     DOT after optional, no DOT between non-triple patterns x2 (BUG)
 #   syntax-qname-11.rq
 #     Qname : (BUG)
-#   syntax-query-pat-01.rq syntax-query-pat-02.rq syntax-query-pat-03.rq
-#   syntax-query-pat-04.rq syntax-query-pat-05.rq 
-#     No {} around outermost triple
 #   syntax-struct-03.rq syntax-struct-09.rq 
 #     Empty graph patterns / optionals with no DOT near them (BUG)
 #
@@ -69,11 +63,9 @@ syntax-union-02.rq
 
 EXPECTED_SPARQL_PARSER_FAILURES= \
 syntax-pat-02.rq syntax-pat-03.rq syntax-pat-04.rq syntax-qname-11.rq	\
-syntax-query-pat-01.rq syntax-query-pat-02.rq syntax-query-pat-03.rq	\
-syntax-query-pat-04.rq syntax-query-pat-05.rq \
 syntax-struct-03.rq syntax-struct-09.rq
 
-EXPECTED_SPARQL_PARSER_FAILURES_COUNT=11
+EXPECTED_SPARQL_PARSER_FAILURES_COUNT=6
 
 
 EXTRA_DIST= \
