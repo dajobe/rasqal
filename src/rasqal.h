@@ -332,6 +332,7 @@ RASQAL_API raptor_sequence* rasqal_query_get_prefix_sequence(rasqal_query* query
 RASQAL_API rasqal_prefix* rasqal_query_get_prefix(rasqal_query* query, int idx);
 
 /* graph patterns */
+RASQAL_API rasqal_graph_pattern* rasqal_query_get_query_graph_pattern(rasqal_query* query);
 RASQAL_API raptor_sequence* rasqal_query_get_graph_pattern_sequence(rasqal_query* query);
 RASQAL_API rasqal_graph_pattern* rasqal_query_get_graph_pattern(rasqal_query* query, int idx);
 RASQAL_API void rasqal_graph_pattern_add_sub_graph_pattern(rasqal_graph_pattern* graph_pattern, rasqal_graph_pattern* sub_graph_pattern);
