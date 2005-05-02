@@ -178,6 +178,7 @@ Document : Query
 Query : SELECT SelectClause SourceClause WHERE TriplePatternList ConstraintClause UsingClause
 {
   ((rasqal_query*)rq)->selects=$2;
+  ((rasqal_query*)rq)->verb=RASQAL_QUERY_VERB_SELECT;
 
   if($3) {
     int i;
@@ -223,7 +224,7 @@ SelectClause : VarList
 | '*'
 {
   $$=NULL;
-  ((rasqal_query*)rq)->select_all=1;
+  ((rasqal_query*)rq)->wildcard=1;
 }
 ;
 
