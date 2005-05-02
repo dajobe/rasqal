@@ -556,19 +556,8 @@ OptionalGraphPattern: OPTIONAL GraphPattern
   fputs("\n\n", stdout);
 #endif
 
-  if($2) {
-    int i;
-    raptor_sequence *s=$2->graph_patterns;
-
-    if(s) {
-      /* Flag all the triples in GraphPattern1 as optional */
-      for(i=0; i < raptor_sequence_size(s); i++) {
-        rasqal_triple *t=(rasqal_triple*)raptor_sequence_get_at(s, i);
-        t->flags |= RASQAL_TRIPLE_FLAGS_OPTIONAL;
-      }
-    }
+  if($2)
     $2->flags |= RASQAL_PATTERN_FLAGS_OPTIONAL;
-  }
 
   $$=$2;
 }
