@@ -288,6 +288,7 @@ int
 rasqal_engine_assign_variables(rasqal_query* rq)
 {
   int i;
+  int offset;
 
   /* If 'SELECT *' was given, make the selects be a list of all variables */
   if(rq->wildcard) {
@@ -318,14 +319,22 @@ rasqal_engine_assign_variables(rasqal_query* rq)
     rq->binding_values=(rasqal_literal**)RASQAL_MALLOC(rasqal_literals,sizeof(rasqal_literal*)*(rq->select_variables_count+1));
   }
   
-  rq->variables=(rasqal_variable**)RASQAL_MALLOC(varrary, sizeof(rasqal_variable*)*rq->variables_count);
-  rq->variables_declared_in=(int*)RASQAL_CALLOC(intarray, sizeof(int), rq->variables_count+1);
+  rq->variables=(rasqal_variable**)RASQAL_MALLOC(varrary, sizeof(rasqal_variable*)*(rq->variables_count + rq->anon_variables_count));
+  rq->variables_declared_in=(int*)RASQAL_CALLOC(intarray, sizeof(int), rq->variables_count + rq->anon_variables_count + 1);
 
+  offset=0;
   for(i=0; i< rq->variables_count; i++) {
-    rq->variables_declared_in[i]= -1;
-    rq->variables[i]=(rasqal_variable*)raptor_sequence_get_at(rq->variables_sequence, i);
-    if(i< rq->select_variables_count)
-      rq->variable_names[i]=rq->variables[i]->name;
+    rq->variables_declared_in[offset]= -1;
+    rq->variables[offset]=(rasqal_variable*)raptor_sequence_get_at(rq->variables_sequence, i);
+    if(i < rq->select_variables_count)
+      rq->variable_names[offset]=rq->variables[offset]->name;
+    offset++;
+  }
+
+  for(i=0; i< rq->anon_variables_count; i++) {
+    rq->variables_declared_in[offset]= -1;
+    rq->variables[offset]=(rasqal_variable*)raptor_sequence_get_at(rq->anon_variables_sequence, i);
+    offset++;
   }
 
   if(rq->variable_names) {
@@ -495,6 +504,19 @@ rasqal_reset_triple_meta(rasqal_triple_meta* m)
 }
 
 
+static RASQAL_INLINE void
+rasqal_query_graph_pattern_build_declared_in_variable(rasqal_query* query,
+                                                      rasqal_variable *v,
+                                                      int col)
+{
+  if(!v)
+    return;
+  
+  if(query->variables_declared_in[v->offset] < 0)
+    query->variables_declared_in[v->offset]=col;
+}
+
+
 /**
  * rasqal_query_graph_pattern_build_declared_in - Mark where variables are first declared in a graph_pattern
  * @query; the &rasqal_query to find the variables in
@@ -520,25 +542,20 @@ rasqal_query_graph_pattern_build_declared_in(rasqal_query* query,
     
   for(col=gp->start_column; col <= gp->end_column; col++) {
     rasqal_triple *t=(rasqal_triple*)raptor_sequence_get_at(gp->triples, col);
-    rasqal_variable* v;
-    
-    if((v=rasqal_literal_as_variable(t->subject)) &&
-       query->variables_declared_in[v->offset] < 0)
-      query->variables_declared_in[v->offset]=col;
-    
-    if((v=rasqal_literal_as_variable(t->predicate)) &&
-       query->variables_declared_in[v->offset] < 0)
-      query->variables_declared_in[v->offset]=col;
-    
-    if((v=rasqal_literal_as_variable(t->object)) &&
-       query->variables_declared_in[v->offset] < 0)
-      query->variables_declared_in[v->offset]=col;
-    
-    if(t->origin &&
-       (v=rasqal_literal_as_variable(t->origin)) &&
-       query->variables_declared_in[v->offset] < 0)
-      query->variables_declared_in[v->offset]=col;
-    
+
+    rasqal_query_graph_pattern_build_declared_in_variable(query,
+                                                          rasqal_literal_as_variable(t->subject),
+                                                          col);
+    rasqal_query_graph_pattern_build_declared_in_variable(query,
+                                                          rasqal_literal_as_variable(t->predicate),
+                                                          col);
+    rasqal_query_graph_pattern_build_declared_in_variable(query,
+                                                          rasqal_literal_as_variable(t->object),
+                                                          col);
+    if(t->origin)
+      rasqal_query_graph_pattern_build_declared_in_variable(query,
+                                                            rasqal_literal_as_variable(t->origin),
+                                                            col);
   }
   
 }
@@ -1079,6 +1096,17 @@ rasqal_engine_do_optional_step(rasqal_query *query,
    return STEP_SEARCHING;
  }
  
+
+  if(outergp->constraints_expression) {
+    step=rasqal_engine_check_constraint(query, outergp);
+    if(step != STEP_GOT_MATCH) {
+      /* The constraint failed or we have an error - no bindings count */
+      query->new_bindings_count=0;
+      return STEP_SEARCHING;
+    }
+  }
+
+
  /* is the last graph pattern so we have a solution */
 
   RASQAL_DEBUG1("Got match\n");
@@ -1365,14 +1393,15 @@ rasqal_engine_make_basic_graph_pattern(rasqal_graph_pattern *gp)
       }
      
       if(sgp->constraints) {
-        /* we know it's length 1 so pop=unshift */
-        rasqal_expression* e=(rasqal_expression*)raptor_sequence_pop(sgp->constraints);
-        raptor_sequence_push(gp->constraints, e);
+        while(raptor_sequence_size(sgp->constraints) > 0) {
+          rasqal_expression* e=(rasqal_expression*)raptor_sequence_pop(sgp->constraints);
+          rasqal_graph_pattern_add_constraint(gp, e);
 #if RASQAL_DEBUG > 1
-        RASQAL_DEBUG1("Moved a constraint\n");
+          RASQAL_DEBUG1("Moved a constraint\n");
 #endif
+        }
       }
- 
+      
       gp->flags |= sgp->flags;
 
       rasqal_free_graph_pattern(sgp);
@@ -1381,6 +1410,10 @@ rasqal_engine_make_basic_graph_pattern(rasqal_graph_pattern *gp)
     /* Delete any evidence of sub graph patterns */
     raptor_free_sequence(gp->graph_patterns);
     gp->graph_patterns=NULL;
+
+    /* update constraints expression after possible change */
+    rasqal_engine_build_constraints_expression(gp);
+
   } else {
 #if RASQAL_DEBUG > 1
     RASQAL_DEBUG2("NOT OK to merge sub-graphpatterns of %p\n", gp);
