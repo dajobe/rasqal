@@ -263,6 +263,14 @@ rasqal_graph_pattern_init(rasqal_graph_pattern *gp)
 
       RASQAL_DEBUG4("Graph pattern %p Triple %d has parts %d\n",
                     gp, i, m->parts);
+
+      /* exact if there are no variables in the triple parts */
+      m->is_exact = 1;
+      if(rasqal_literal_as_variable(t->predicate) ||
+         rasqal_literal_as_variable(t->subject) ||
+         rasqal_literal_as_variable(t->object))
+        m->is_exact = 0;
+
     }
 
   }
