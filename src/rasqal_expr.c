@@ -322,13 +322,6 @@ rasqal_free_triple(rasqal_triple* t)
 }
 
 
-static const char *rasqal_triple_flag_strings[RASQAL_TRIPLE_FLAGS_LAST+1]={
-  NULL,
-  "EXACT",
-  "OPTIONAL"
-};
-
-
 void
 rasqal_triple_print(rasqal_triple* t, FILE* fh)
 {
@@ -342,24 +335,6 @@ rasqal_triple_print(rasqal_triple* t, FILE* fh)
   if(t->origin) {
     fputs(" with origin(", fh);
     rasqal_literal_print(t->origin, fh);
-    fputc(')', fh);
-  }
-  if(t->flags) {
-    unsigned int f=t->flags;
-    unsigned int b=1;
-    int seen=0;
-    
-    fputs(" with flags(", fh);
-    while(f && b <= RASQAL_TRIPLE_FLAGS_LAST) {
-      if(seen)
-        fputs(", ", fh);
-      if(f & b) {
-        fputs(rasqal_triple_flag_strings[b], fh);
-        seen=1;
-        f &= ~b;
-      }
-      b <<= 1;
-    }
     fputc(')', fh);
   }
 }
@@ -382,6 +357,7 @@ rasqal_triple_get_origin(rasqal_triple* t)
 void
 rasqal_triple_set_flags(rasqal_triple* t, unsigned int flags)
 {
+  RASQAL_DEPRECATED_MESSAGE("rasqal_triple flags are going away");
   t->flags=flags;
 }
 
@@ -389,6 +365,7 @@ rasqal_triple_set_flags(rasqal_triple* t, unsigned int flags)
 unsigned int
 rasqal_triple_get_flags(rasqal_triple* t)
 {
+  RASQAL_DEPRECATED_MESSAGE("rasqal_triple flags are going away");
   return t->flags;
 }
 
