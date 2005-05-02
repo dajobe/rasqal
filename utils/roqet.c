@@ -211,7 +211,7 @@ roqet_graph_pattern_walk(rasqal_graph_pattern *gp, int gp_index,
       break;
 
     fwrite(spaces, sizeof(char), indent, fh);
-    fprintf(fh, "constraint %d: ", triple_index);
+    fprintf(fh, "constraint %d: ", gp_index);
     rasqal_expression_print(expr, fh);
     fputc('\n', fh);
 
@@ -226,8 +226,8 @@ roqet_graph_pattern_walk(rasqal_graph_pattern *gp, int gp_index,
     
 static void
 roqet_query_walk(rasqal_query *rq, FILE *fh) {
-  int gp_index=0;
   int i;
+  rasqal_graph_pattern* gp;
 
   i=rasqal_query_get_distinct(rq);
   if(i != 0)
@@ -239,14 +239,11 @@ roqet_query_walk(rasqal_query *rq, FILE *fh) {
   if(i >= 0)
     fprintf(fh, "query asks for result offset %d\n", i);
   
-  while(1) {
-    rasqal_graph_pattern* gp=rasqal_query_get_graph_pattern(rq, gp_index);
-    if(!gp)
-      break;
-    
-    roqet_graph_pattern_walk(gp, gp_index, fh, 2);
-    gp_index++;
-  }
+  gp=rasqal_query_get_query_graph_pattern(rq);
+  if(!gp)
+    return;
+
+  roqet_graph_pattern_walk(gp, 0, fh, 2);
 }
 
 
