@@ -1028,6 +1028,14 @@ rasqal_query_execute(rasqal_query *query)
 }
 
 
+static const char* rasqal_query_verb_labels[RASQAL_QUERY_VERB_LAST+1]={
+  "Unknown",
+  "SELECT",
+  "CONSTRUCT",
+  "DESCRIBE",
+  "ASK"
+};
+
 /* Utility methods */
 
 /**
@@ -1039,6 +1047,12 @@ rasqal_query_execute(rasqal_query *query)
 void
 rasqal_query_print(rasqal_query* query, FILE *fh)
 {
+  if(query->verb <= RASQAL_QUERY_VERB_UNKNOWN || 
+     query->verb > RASQAL_QUERY_VERB_LAST)
+    fputs("query verb: UNKNOWN\n", fh);
+  else
+    fprintf(fh, "query verb: %s\n", rasqal_query_verb_labels[(int)query->verb]);
+  
   if(query->distinct)
     fputs("query results distinct: yes\n", fh);
   if(query->limit >= 0)
@@ -1153,8 +1167,7 @@ rasqal_free_query_results(rasqal_query_results *query_results) {
 int
 rasqal_query_results_is_bindings(rasqal_query_results *query_results) {
   rasqal_query *query=query_results->query;
-  return (query->selects || query->select_all) && 
-         !query->select_is_describe;
+  return (query->verb == RASQAL_QUERY_VERB_SELECT);
 }
 
 
@@ -1167,7 +1180,7 @@ rasqal_query_results_is_bindings(rasqal_query_results *query_results) {
 int
 rasqal_query_results_is_boolean(rasqal_query_results *query_results) {
   rasqal_query *query=query_results->query;
-  return query->ask;
+  return (query->verb == RASQAL_QUERY_VERB_ASK);
 }
  
 
@@ -1180,7 +1193,8 @@ rasqal_query_results_is_boolean(rasqal_query_results *query_results) {
 int
 rasqal_query_results_is_graph(rasqal_query_results *query_results) {
   rasqal_query *query=query_results->query;
-  return query->constructs || query->select_is_describe;
+  return (query->verb == RASQAL_QUERY_VERB_CONSTRUCT ||
+          query->verb == RASQAL_QUERY_VERB_DESCRIBE);
 }
 
 
@@ -1450,6 +1464,19 @@ void
 rasqal_query_set_user_data(rasqal_query *query, void *user_data)
 {
   query->user_data=user_data;
+}
+
+
+/**
+ * rasqal_query_get_verb - Get the query verb
+ * @query: &rasqal_query
+ *
+ * Return value: the operating verb of the query of type rasqal_query_verb
+ **/
+rasqal_query_verb
+rasqal_query_get_verb(rasqal_query *query)
+{
+  return query->verb;
 }
 
 
