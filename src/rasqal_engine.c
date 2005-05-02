@@ -607,7 +607,7 @@ rasqal_graph_pattern_get_next_match(rasqal_query *query,
       gp->column--;
       rc= -1;
       return rc;
-    } else if (t->flags & RASQAL_TRIPLE_FLAGS_EXACT) {
+    } else if (m->is_exact) {
       /* exact triple match wanted */
       if(!rasqal_triples_source_triple_present(query->triples_source, t)) {
         /* failed */
@@ -674,7 +674,7 @@ rasqal_graph_pattern_get_next_match(rasqal_query *query,
       /* Done all conjunctions */ 
       
       /* exact match, so column must have ended */
-      if(t->flags & RASQAL_TRIPLE_FLAGS_EXACT)
+      if(m->is_exact)
         gp->column--;
 
       /* return with result (rc is 1) */
@@ -699,8 +699,6 @@ rasqal_graph_pattern_get_next_match(rasqal_query *query,
 int
 rasqal_engine_prepare(rasqal_query *query)
 {
-  int i;
-
   if(!query->triples)
     return 1;
   
@@ -715,17 +713,6 @@ rasqal_engine_prepare(rasqal_query *query)
     
     rasqal_engine_build_constraints_expression(query->query_graph_pattern);
   }
-
-  for(i=0; i < raptor_sequence_size(query->triples); i++) {
-    rasqal_triple *t=(rasqal_triple*)raptor_sequence_get_at(query->triples, i);
-    
-    t->flags |= RASQAL_TRIPLE_FLAGS_EXACT;
-    if(rasqal_literal_as_variable(t->predicate) ||
-       rasqal_literal_as_variable(t->subject) ||
-       rasqal_literal_as_variable(t->object))
-      t->flags &= ~RASQAL_TRIPLE_FLAGS_EXACT;
-  }
-
 
   return 0;
 }
