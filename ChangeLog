@@ -1,8 +1,28 @@
 2005-05-02  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
-	* rasqal_engine.c (rasqal_engine_assign_variables):
-	Use the wildcard flag for SELECT *
-	and CONSTRUCT *
+	* rasqal_engine.c (rasqal_engine_assign_variables): Add anonymous
+	variables to the variables/variables_declared_in arrays.
+	(rasqal_query_graph_pattern_build_declared_in_variable): Added
+	helper.
+	(rasqal_query_graph_pattern_build_declared_in): Use above
+	(rasqal_engine_do_optional_step): Check any outermost constraint
+	expression if there is a match.
+	(rasqal_engine_make_basic_graph_pattern): Use
+	rasqal_graph_pattern_add_constraint when moving constraints.
+	Rebuild constraints expression after moving constraints.
+
+	* tests/sparql/survey/Makefile.am: 5 failures now
+
+	* roqet.c (roqet_query_walk): Start from top graph pattern, not
+	contents of it.
+
+	* rasqal_query.c (rasqal_query_get_query_graph_pattern): Added to
+	get the top graph pattern.
+
+	* rasqal.h: Added prototype for rasqal_query_get_query_graph_pattern
+
+	* rasqal_engine.c (rasqal_engine_assign_variables): Use the
+	wildcard flag for SELECT * and CONSTRUCT *
 
 	* rasqal_query.c: Added rasqal_query_verb_labels for debug printing.
 	(rasqal_query_print): Print out the query verb.
