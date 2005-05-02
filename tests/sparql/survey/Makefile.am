@@ -39,16 +39,20 @@ result-survey-8.ttl result-survey-9.ttl result-survey-10.ttl	\
 result-survey-11.ttl result-survey-12.ttl result-survey-13.ttl
 
 # Test failures
-# survey-1 survey-2 survey-3 survey-8 survey-9 survey-11
-#   bnode in query as variable
+# survey-2
+#   anon variables?
+# survey-3
+#   UNION
 # survey-10
 #   distinct
+# survey-11
+#   anon variables?
 # survey-13
-#   FILTER casting does not work
+#   FILTER casting does not work
 EXPECTED_SPARQL_CORRECT_FAILURES= \
-survey-1 survey-2 survey-3 survey-8 survey-9 survey-10 survey-11 survey-13
+survey-2 survey-3 survey-10 survey-11 survey-13
 
-EXPECTED_SPARQL_CORRECT_FAILURES_COUNT=8
+EXPECTED_SPARQL_CORRECT_FAILURES_COUNT=5
 
 EXTRA_DIST= \
 $(SPARQL_MANIFEST_FILES) \
