@@ -260,6 +260,18 @@ typedef enum {
 typedef unsigned char* (*rasqal_generate_bnodeid_handler)(rasqal_query* query, void *user_data, unsigned char *user_bnodeid);
 
 
+/* Query verbs  */
+typedef enum {
+  RASQAL_QUERY_VERB_UNKNOWN   = 0,
+  RASQAL_QUERY_VERB_SELECT    = 1,
+  RASQAL_QUERY_VERB_CONSTRUCT = 2,
+  RASQAL_QUERY_VERB_DESCRIBE  = 3,
+  RASQAL_QUERY_VERB_ASK       = 4,
+
+  RASQAL_QUERY_VERB_LAST=RASQAL_QUERY_VERB_ASK
+} rasqal_query_verb;
+
+
 /* RASQAL API */
 
 /* Public functions */
@@ -289,6 +301,7 @@ RASQAL_API void rasqal_query_set_feature(rasqal_query *query, rasqal_feature fea
 RASQAL_API void rasqal_query_set_default_generate_bnodeid_parameters(rasqal_query* rdf_query, char *prefix, int base);
 RASQAL_API void rasqal_query_set_generate_bnodeid_handler(rasqal_query* query, void *user_data, rasqal_generate_bnodeid_handler handler);
 
+RASQAL_API rasqal_query_verb rasqal_query_get_verb(rasqal_query *query);
 RASQAL_API int rasqal_query_get_distinct(rasqal_query *query);
 RASQAL_API void rasqal_query_set_distinct(rasqal_query *query, int is_distinct);
 RASQAL_API int rasqal_query_get_limit(rasqal_query *query);
