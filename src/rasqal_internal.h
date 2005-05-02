@@ -179,7 +179,10 @@ struct rasqal_query_s {
 
   /* query graph pattern, containing the sequence of graph_patterns below */
   rasqal_graph_pattern* query_graph_pattern;
-
+  
+  /* the query verb - in SPARQL terms: SELECT, CONSTRUCT, DESCRIBE or ASK */
+  rasqal_query_verb verb;
+  
   /* sequences of ... */
   raptor_sequence* selects;     /* ... rasqal_variable* names only */
   raptor_sequence* data_graphs; /* ... rasqal_data_graph*          */
@@ -199,20 +202,8 @@ struct rasqal_query_s {
   /* result offset OFFSET (>=0) or <0 if not given */
   int offset;
 
-  /* non-0 if '*' was seen in SELECT or DESCRIBE (selects will be NULL) */
-  int select_all;
-
-  /* DESCRIBE support */
-  /* non-0 if selects array above was given by DESCRIBE */
-  int select_is_describe;
-
-  /* CONSTRUCT support */
-  /* non-0 if 'CONSTRUCT *' was seen (constructs will be NULL) */
-  int construct_all;
-
-  /* ASK support */
-  /* non-0 if 'ASK' was seen (selects, constructs will be NULL) */
-  int ask;
+  /* non-0 if '*' was seen after a verb (the appropriate list such as selects or constructs will be NULL) */
+  int wildcard;
 
   int prepared;
   int executed;
