@@ -1,4 +1,94 @@
+2005-05-02  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal_engine.c (rasqal_engine_execute_init): Transform the
+	query graph pattern for execution purposes - make basic graph
+	patterns and make sure the top is always a sequence of graph
+	patterns, for now.
+
+	* sparql_parser.y (rasqal_sparql_query_engine_prepare): Remove the
+	building of basic graph patterns from here. Just build the
+	simplest graph pattern and let the execution engine change it if
+	it needs to.
+
+	* rdql_parser.y (rasqal_rdql_query_engine_prepare): Just build the
+	simplest graph pattern here, let the executionengine change it if
+	it needs to.
+
+2005-05-01  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* tests/sparql/SyntaxFull/Makefile.am: Updated for tests updates,
+	removals for required top level graph pattern.
+
+	* tests/sparql/SyntaxFull/syntax-bnodes-06.rq,
+	tests/sparql/SyntaxFull/syntax-bnodes-07.rq,
+	tests/sparql/SyntaxFull/syntax-bnodes-08.rq,
+	tests/sparql/SyntaxFull/syntax-bnodes-09.rq: Removed renamed
+	syntax-bnodes tests
+
+	* tests/sparql/SyntaxFull/syntax-query-pat-03.rq,
+	tests/sparql/SyntaxFull/syntax-query-pat-04.rq,
+	tests/sparql/SyntaxFull/syntax-query-pat-05.rq,
+	tests/sparql/SyntaxFull/syntax-query-pat-01.rq,
+	tests/sparql/SyntaxFull/syntax-query-pat-02.rq: Removed WHERE
+	no {} tests
+
 2005-04-27  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* tests/sparql/examples/Makefile.am:
+	sparql-query-example-Testing-Values-str works with right data
+
+	* tests/sparql/examples/Makefile.am:
+	sparql-query-example-Testing-Values-str fails
+
+	* sparql_parser.y (CallExpression): use nflags for pattern
+	expression flags
+
+	* tests/sparql/SyntaxFull/Makefile.am: fix dup terms
+
+	* tests/sparql/SyntaxFull/Makefile.am: Added empty.nt
+
+	* tests/sparql/SyntaxFull/empty.nt: empty.nt
+
+	* tests/sparql/SyntaxFull/syntax-bnodes-04.rq,
+	tests/sparql/SyntaxFull/syntax-bnodes-03.rq,
+	tests/sparql/SyntaxFull/syntax-bnodes-02.rq,
+	tests/sparql/SyntaxFull/syntax-bnodes-01.rq,
+	tests/sparql/SyntaxFull/manifest.ttl,
+	tests/sparql/SyntaxFull/Makefile.am: Added syntax-bnodes-01,02,03
+	and 04
+
+	* tests/sparql/check-sparql: Handle no result in manifest
+
+	* rasqal_engine.c
+	(rasqal_engine_convert_blank_node_to_anonymous_variable): Helper added.
+	(rasqal_engine_build_anonymous_variables): Added to turn bnodes
+	inside graph pattern triples into variables.  ISSUE: should not do
+	this with construct triples
+
+	* rasqal_query.c (rasqal_new_query, rasqal_free_query): init/free
+	anon_variables_sequence
+	(rasqal_query_print): Print anonymous variables
+
+	* rasqal_expr.c (rasqal_new_variable_typed): Added with type
+	parameter.
+	(rasqal_new_variable): Changed to use it.
+	(rasqal_variable_print): Print variable type.
+
+	* rasqal_internal.h: Added anon_variables_sequence and
+	anon_variables_count
+
+	* rasqal.h: typo
+
+	* rasqal.h: Added rasqal_variable_type enum.  rasqal_variable
+	gained field 'type' Added prototypes for
+	rasqal_query_set_distinct, rasqal_query_set_limit,
+	rasqal_query_set_offset and rasqal_new_variable_typed
+
+	* rasqal_query.c (rasqal_query_set_distinct,
+	rasqal_query_set_limit, rasqal_query_set_offset): Added.
+
+	* sparql_parser.y, sparql_lexer.l:
+	Removed unused tokens PATTERN_LITERAL and '&'.
 
 	* tests/sparql/survey/Makefile.am: fix failure count
 
