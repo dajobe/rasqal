@@ -1,5 +1,53 @@
 2005-05-02  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
+	* rasqal_engine.c (rasqal_engine_assign_variables):
+	Use the wildcard flag for SELECT *
+	and CONSTRUCT *
+
+	* rasqal_query.c: Added rasqal_query_verb_labels for debug printing.
+	(rasqal_query_print): Print out the query verb.
+	(rasqal_query_results_is_bindings, rasqal_query_results_is_boolean,
+	rasqal_query_results_is_graph): Use the query verb to decide this.
+	(rasqal_query_get_verb): Added.
+
+	* sparql_parser.y (Report):
+	Set the query verb to SELECT, CONSTRUCT, DESCRIBE or ASK.
+	Do not use select_is_describe or ask.
+	(SelectClause): Set wildcard flag with SELECT (DISTINCT) *
+	(ConstructClause): Set the wildcard flag with CONSTRUCT *
+
+	* rdql_parser.y (Query): Set query verb to SELECT.
+	(SelectClause): Set wildcard flag with SELECT *
+
+	* rasqal_internal.h:
+	rasqal_query gains a verb and wildcard fields replacing select_all,
+	select_is_describe, construct_all and ask
+
+	* rasqal.h: Added rasqal_query_verb enum.
+	Added prototype for rasqal_query_get_verb
+
+	* sparql_parser.y (OptionalGraphPattern):
+	Do not set optional flags on triples.
+
+	* rasqal_graph_pattern.c (rasqal_graph_pattern_init):
+	Record triple_meta is_exact field.
+
+	* rasqal_expr.c: Removed rasqal_triple_flag_strings
+	(rasqal_triple_print): Removed printing flags.
+	(rasqal_triple_set_flags, rasqal_triple_get_flags): Note deprecated.
+
+	* rasqal_engine.c (rasqal_graph_pattern_get_next_match):
+	Use triple_meta file is_exact
+	instead of rasqal_triple flag field
+	(rasqal_engine_prepare): No longer init triple flags.
+
+	* rasqal.h:
+	Deprecated rasqal_triple flags field. - the value EXACT was only
+	used in the execution engine and properly lives in
+	rasqal_triple_meta. The value OPTIONAL was never used.
+	Added is_exact file to rasqal_triple_meta.
+	Deprecated rasqal_triple_set_flags and rasqal_triple_get_flags.
+
 	* rasqal_engine.c (rasqal_engine_execute_init): Transform the
 	query graph pattern for execution purposes - make basic graph
 	patterns and make sure the top is always a sequence of graph
