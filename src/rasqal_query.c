@@ -780,6 +780,19 @@ rasqal_query_get_prefix(rasqal_query* query, int idx)
 
 
 /**
+ * rasqal_query_get_query_graph_pattern - Get the top query graph pattern
+ * @query: &rasqal_query query object
+ *
+ * Return value: a &rasqal_graph_pattern of the top query graph pattern
+ **/
+rasqal_graph_pattern*
+rasqal_query_get_query_graph_pattern(rasqal_query* query)
+{
+  return query->query_graph_pattern;
+}
+
+
+/**
  * rasqal_query_get_graph_pattern_sequence - Get the sequence of graph_patterns expressions inside the top query graph pattern
  * @query: &rasqal_query query object
  *
