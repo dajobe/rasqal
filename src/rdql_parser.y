@@ -659,9 +659,7 @@ rasqal_rdql_query_engine_prepare(rasqal_query* rdf_query) {
                                            0, raptor_sequence_size(rdf_query->triples)-1,
                                            0);
 
-  rdf_query->query_graph_pattern=rasqal_new_graph_pattern(rdf_query);
-  rasqal_graph_pattern_add_sub_graph_pattern(rdf_query->query_graph_pattern,
-                                             gp);
+  rdf_query->query_graph_pattern=gp;
 
   /* Now assign the constraints to the graph pattern */
   while(raptor_sequence_size(rdf_query->constraints_sequence)) {
