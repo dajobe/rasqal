@@ -228,10 +228,10 @@ typedef struct rasqal_expression_s rasqal_expression;
 /* Extra flags for triples */
 typedef enum {
 
-  /* true when all of subject, predicate, object are given */
+  /* Not used - was only used internally in the execution engine */
   RASQAL_TRIPLE_FLAGS_EXACT=1,
 
-  /* true when the triple is an optional match */
+  /* Not used - this is now a property of a graph pattern */
   RASQAL_TRIPLE_FLAGS_OPTIONAL=2,
 
   RASQAL_TRIPLE_FLAGS_LAST=RASQAL_TRIPLE_FLAGS_OPTIONAL
@@ -422,8 +422,8 @@ RASQAL_API void rasqal_free_triple(rasqal_triple* t);
 RASQAL_API void rasqal_triple_print(rasqal_triple* t, FILE* fh);
 RASQAL_API void rasqal_triple_set_origin(rasqal_triple* t, rasqal_literal *l);
 RASQAL_API rasqal_literal* rasqal_triple_get_origin(rasqal_triple* t);
-RASQAL_API void rasqal_triple_set_flags(rasqal_triple* t, unsigned int flags);
-RASQAL_API unsigned int rasqal_triple_get_flags(rasqal_triple* t);
+RASQAL_API RASQAL_DEPRECATED void rasqal_triple_set_flags(rasqal_triple* t, unsigned int flags);
+RASQAL_API RASQAL_DEPRECATED unsigned int rasqal_triple_get_flags(rasqal_triple* t);
 
 /* Variable class */
 RASQAL_API rasqal_variable* rasqal_new_variable_typed(rasqal_query* rq, rasqal_variable_type type, const unsigned char *name, rasqal_literal *value);
@@ -473,6 +473,9 @@ typedef struct
 
   /* parts of the triple*/
   rasqal_triple_parts parts;
+
+  /* non-0 if all parts of the triple are given */
+  int is_exact;
 } rasqal_triple_meta;
 
 
