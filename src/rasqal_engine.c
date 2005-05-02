@@ -290,7 +290,7 @@ rasqal_engine_assign_variables(rasqal_query* rq)
   int i;
 
   /* If 'SELECT *' was given, make the selects be a list of all variables */
-  if(rq->select_all) {
+  if(rq->wildcard) {
     rq->selects=raptor_new_sequence(NULL, (raptor_sequence_print_handler*)rasqal_variable_print);
     
     for(i=0; i< rq->variables_count; i++)
@@ -298,7 +298,7 @@ rasqal_engine_assign_variables(rasqal_query* rq)
   }
 
   /* If 'CONSTRUCT *' was given, make the constructs be all triples */
-  if(rq->construct_all) {
+  if(rq->wildcard) {
     raptor_sequence *s;
     
     rq->constructs=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_triple, (raptor_sequence_print_handler*)rasqal_triple_print);
