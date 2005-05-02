@@ -40,13 +40,13 @@ result-survey-11.ttl result-survey-12.ttl result-survey-13.ttl
 
 # Test failures
 # survey-2
-#   anon variables?
+#   recursive graph patterns (bgp + optional gp)
 # survey-3
 #   UNION
 # survey-10
 #   distinct
 # survey-11
-#   anon variables?
+#   bad turtle syntax: [ :b :c ] .
 # survey-13
 #   FILTER casting does not work
 EXPECTED_SPARQL_CORRECT_FAILURES= \
