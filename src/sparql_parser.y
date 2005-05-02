@@ -204,19 +204,21 @@ Query : BaseDeclOpt PrefixDeclOpt ReportFormat
 ReportFormat : SelectClause
 {
   ((rasqal_query*)rq)->selects=$1;
+  ((rasqal_query*)rq)->verb=RASQAL_QUERY_VERB_SELECT;
 }
 |  ConstructClause
 {
   ((rasqal_query*)rq)->constructs=$1;
+  ((rasqal_query*)rq)->verb=RASQAL_QUERY_VERB_CONSTRUCT;
 }
 |  DescribeClause
 {
-  ((rasqal_query*)rq)->select_is_describe=1;
   ((rasqal_query*)rq)->describes=$1;
+  ((rasqal_query*)rq)->verb=RASQAL_QUERY_VERB_DESCRIBE;
 }
 | AskClause
 {
-  ((rasqal_query*)rq)->ask=1;
+  ((rasqal_query*)rq)->verb=RASQAL_QUERY_VERB_ASK;
 }
 ;
 
@@ -261,7 +263,7 @@ SelectClause : SELECT DISTINCT VarList
 | SELECT DISTINCT '*'
 {
   $$=NULL;
-  ((rasqal_query*)rq)->select_all=1;
+  ((rasqal_query*)rq)->wildcard=1;
   ((rasqal_query*)rq)->distinct=1;
 }
 | SELECT VarList
@@ -271,7 +273,7 @@ SelectClause : SELECT DISTINCT VarList
 | SELECT '*'
 {
   $$=NULL;
-  ((rasqal_query*)rq)->select_all=1;
+  ((rasqal_query*)rq)->wildcard=1;
 }
 ;
 
@@ -289,14 +291,14 @@ DescribeClause : DESCRIBE VarOrURIList
 
 
 /* SPARQL Grammar: rq23 [7] ConstructClause */
-ConstructClause : CONSTRUCT ConstructTemplate
+ConstructClause: CONSTRUCT ConstructTemplate
 {
   $$=$2;
 }
 | CONSTRUCT '*'
 {
   $$=NULL;
-  ((rasqal_query*)rq)->construct_all=1;
+  ((rasqal_query*)rq)->wildcard=1;
 }
 ;
 
