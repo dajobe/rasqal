@@ -582,6 +582,7 @@ tests/sparql/syntax/Makefile
 tests/sparql/bound/Makefile
 tests/sparql/survey/Makefile
 tests/sparql/SyntaxFull/Makefile
+tests/sparql/sort/Makefile
 docs/Makefile
 win32/Makefile
 rasqal.spec
