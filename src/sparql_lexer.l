@@ -149,8 +149,8 @@ NCCHARU [A-Za-z_\\\x80-\xff]
 NCNAME {NCCHARU}{NCCHAR}*
 /* Taken from rq23 [90] VARNAME = NCCHAR1 set + '_' */
 NCCHARV [0-9A-Za-z_\\\x80-\xff]
-/* rq23 [90] VARNAME but cannot start with _, [0-9] or #B7 */
-VARNAME {NCCHAR1}{NCCHARV}*
+/* rq23 [90] VARNAME  */
+VARNAME {NCCHARV}{NCCHARV}*
 
 /* rq23 [74] QNAME */
 QNAME ":"|{NCNAME_PREFIX}":"|":"{NCNAME}|{NCNAME_PREFIX}":"{NCNAME}
