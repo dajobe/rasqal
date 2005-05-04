@@ -1,4 +1,41 @@
+2005-05-04  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* sparql_lexer.l (VARNAME): Use NCCHARV to allow vars to start
+	with _, [0-9] too.
+
+	* tests/sparql/SyntaxFull/.cvsignore: ignore autostuff
+
+2005-05-03  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* configure.ac: Added tests/sparql/sort dir
+
+	* tests/sparql/Makefile.am: Added sort dir
+
+	* tests/sparql/sort/result-sort-3.rdf,
+	tests/sparql/sort/result-sort-4.rdf,
+	tests/sparql/sort/result-sort-5.rdf,
+	tests/sparql/sort/result-sort-6.rdf,
+	tests/sparql/sort/result-sort-7.rdf,
+	tests/sparql/sort/result-sort-8.rdf,
+	tests/sparql/sort/query-sort-5.rq,
+	tests/sparql/sort/query-sort-6.rq,
+	tests/sparql/sort/result-sort-1.rdf,
+	tests/sparql/sort/result-sort-2.rdf,
+	tests/sparql/sort/query-sort-3.rq,
+	tests/sparql/sort/query-sort-4.rq, tests/sparql/sort/manifest.ttl,
+	tests/sparql/sort/query-sort-1.rq,
+	tests/sparql/sort/query-sort-2.rq,
+	tests/sparql/sort/data-sort-1.ttl,
+	tests/sparql/sort/data-sort-3.ttl,
+	tests/sparql/sort/data-sort-4.ttl,
+	tests/sparql/sort/data-sort-6.ttl,
+	tests/sparql/sort/data-sort-7.ttl,
+	tests/sparql/sort/data-sort-8.ttl, tests/sparql/sort/.cvsignore,
+	tests/sparql/sort/Makefile.am: added dawg sort tests
+
 2005-05-02  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* tests/sparql/survey/Makefile.am: More diagnosis of failures
 
 	* rasqal_engine.c (rasqal_engine_assign_variables): Add anonymous
 	variables to the variables/variables_declared_in arrays.
