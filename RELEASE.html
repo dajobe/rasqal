@@ -13,6 +13,114 @@
 <p>Not yet released.
 </p>
 
+<h3>SPARQL Query Language Changes</h3>
+
+<p>Grammar updated to follow the
+<a href="http://www.w3.org/TR/2005/WD-rdf-sparql-query-20050419/">SPARQL Query Language for RDF</a>,
+W3C Working Draft, 19 April 2005.  This changes many parts of the syntax:
+</p>
+<ul>
+<li>Turtle/N3 style for triples with abbreviations</li>
+<li><code>{</code> ... <code>}</code> around triple patterns</li>
+<li><code>OPTIONAL</code> instead of <code>[]</code></li>
+<li><code>GRAPH</code> replaces <code>SOURCE</code></li>
+<li><code>FROM NAMED</code> replaces <code>LOAD</code></li>
+<li><code>FILTER</code> replaces <code>AND</code></li>
+<li><code>REGEX</code> replaces <code>?var =~ /match/flags</code>
+and <code>!~</code></li>
+<li>Added <code>LIMIT</code>, <code>OFFSET</code> and
+<code>ORDER BY</code> with <code>ASC[]</code> and <code>DESC[]</code></li>
+<li>Changed function syntax to remove <code>&amp;</code></li>
+<li>Removed old operator tokens: <code>ne</code>, <code>eq</code>, <code>==</code></li>
+</ul>
+
+<p>(Note: the query engine does not support sorting amongst other
+recently added SPARQL features)</p>
+
+<p>SPARQL keywords are now case independent rather than just upper
+or lowercase.</p>
+
+<p>Added """long literals""" after N3 (and soon, Turtle)
+and '''long literals''' for SPARQL only.
+</p>
+
+<p>Added many SPARQL tests from DAWG most not yet approved by the
+working group. Not all pass either because not implemented or
+known bugs.</p>
+
+
+<h3>Query Engine Changes</h3>
+
+<p>Moved some engine-specific operations from RDQL and SPARQL parser.
+</p>
+
+<p>Added internal <code>rasqal_formula</code> class for the Turtle
+part of the SPARQL parser
+</p>
+
+
+
+<h3>Query API Changes</h3>
+
+<p>Added bnode identifier generation functions:
+<code>rasqal_query_set_default_generate_bnodeid_parameters</code>,
+<code>rasqal_query_set_generate_bnodeid_handler</code>,
+<code>rasqal_default_generate_bnodeid_handler</code>,
+<code>rasqal_query_generate_bnodeid</code> based on the raptor API for
+generating blank node identifiers in the Turtle/N3 triple style.
+</p>
+
+<p>Added <code>order_conditions_sequence</code> to query structure
+and added access methods:
+<code>rasqal_query_get_order_conditions_sequence</code> and
+<code>rasqal_query_get_order_condition</code>.
+</p>
+
+<p>Added expressions for SPARQL ordering conditions:
+<code>RASQAL_EXPR_ORDER_COND_ASC</code>,
+<code>RASQAL_EXPR_ORDER_COND_DESC</code> and
+<code>RASQAL_EXPR_ORDER_COND_NONE</code>.
+</p>
+
+
+<p>Added types for variables in two version - normal and anonymous
+with an new enum <code>rasqal_variable_type</code> and
+<code>rasqal_new_variable_typed</code> to allow creating them.
+</p>
+
+<p>Completed the distinct/limit and offset get/set methods by adding:
+<code>rasqal_query_set_distinct</code>, <code>rasqal_query_set_limit</code>
+<code>rasqal_query_get_offset</code> and
+<code>rasqal_query_set_offset</code>
+</p>
+
+<p>Deprecated the <code>rasqal_triple</code> flags field - the value
+<code>RASQAL_TRIPLE_FLAGS_EXACT</code> was only used in internals of
+the execution engine. The value
+<code>RASQAL_TRIPLE_FLAGS_OPTIONAL</code> was never used.  Optionals
+are now noted on graph patterns.  Deprecated
+<code>rasqal_triple_set_flags</code> and
+<code>rasqal_triple_get_flags</code>.
+</p>
+
+<p>Added enum <code>rasqal_query_verb</code> for the main query verbs:
+<code>RASQAL_QUERY_VERB_SELECT</code>
+<code>RASQAL_QUERY_VERB_CONSTRUCT</code>
+<code>RASQAL_QUERY_VERB_DESCRIBE</code> and
+<code>RASQAL_QUERY_VERB_ASK</code>.
+Added method <code>rasqal_query_get_verb</code> to access the verb.
+</p>
+
+<p>Added <code>rasqal_query_get_query_graph_pattern</code> to get the
+top graph pattern.</p>
+
+<p>Added <code>rasqal_query_get_wildcard</code> to get the query verb
+wildcard flag such as with SPARQL <code>SELECT *</code>
+</p>
+
+
+
+
 
 <h2 id="rel0_9_8"><a name="rel0_9_8">Rasqal 0.9.8 Changes</a></h2>
 
