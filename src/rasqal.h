@@ -302,6 +302,7 @@ RASQAL_API void rasqal_query_set_default_generate_bnodeid_parameters(rasqal_quer
 RASQAL_API void rasqal_query_set_generate_bnodeid_handler(rasqal_query* query, void *user_data, rasqal_generate_bnodeid_handler handler);
 
 RASQAL_API rasqal_query_verb rasqal_query_get_verb(rasqal_query *query);
+RASQAL_API int rasqal_query_get_wildcard(rasqal_query *query);
 RASQAL_API int rasqal_query_get_distinct(rasqal_query *query);
 RASQAL_API void rasqal_query_set_distinct(rasqal_query *query, int is_distinct);
 RASQAL_API int rasqal_query_get_limit(rasqal_query *query);
