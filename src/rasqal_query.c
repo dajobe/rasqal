@@ -1494,6 +1494,19 @@ rasqal_query_get_verb(rasqal_query *query)
 
 
 /**
+ * rasqal_query_get_wildcard - Get the query verb is wildcard flag
+ * @query: &rasqal_query
+ *
+ * Return value: non-0 if the query verb was a wildcard (such as SELECT *)
+ **/
+int
+rasqal_query_get_wildcard(rasqal_query *query)
+{
+  return query->wildcard;
+}
+
+
+/**
  * rasqal_query_get_order_conditions_sequence - Get the sequence of query ordering conditions
  * @query: &rasqal_query query object
  *
