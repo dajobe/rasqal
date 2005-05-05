@@ -1494,6 +1494,36 @@ rasqal_query_get_verb(rasqal_query *query)
 
 
 /**
+ * rasqal_query_get_order_conditions_sequence - Get the sequence of query ordering conditions
+ * @query: &rasqal_query query object
+ *
+ * Return value: a &raptor_sequence of &raptor_expression pointers.
+ **/
+raptor_sequence*
+rasqal_query_get_order_conditions_sequence(rasqal_query* query)
+{
+  return query->order_conditions_sequence;
+}
+
+
+/**
+ * rasqal_query_get_order_condition - Get a query ordering expression in the sequence of query ordering conditions
+ * @query: &rasqal_query query object
+ * @idx: index into the sequence (0 or larger)
+ *
+ * Return value: a &rasqal_expression pointer or NULL if out of the sequence range
+ **/
+rasqal_expression*
+rasqal_query_get_order_condition(rasqal_query* query, int idx)
+{
+  if(!query->order_conditions_sequence)
+    return NULL;
+  
+  return (rasqal_expression*)raptor_sequence_get_at(query->order_conditions_sequence, idx);
+}
+
+
+/**
  * rasqal_query_results_write - Write the query results to an iostream in a format
  * @iostr: &raptor_iostream to write the query to
  * @results: &rasqal_query_results query results format
