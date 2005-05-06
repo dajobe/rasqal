@@ -64,16 +64,16 @@ part of the SPARQL parser
 
 <p>Added bnode identifier generation functions:
 <code>rasqal_query_set_default_generate_bnodeid_parameters</code>,
-<code>rasqal_query_set_generate_bnodeid_handler</code>,
-<code>rasqal_default_generate_bnodeid_handler</code>,
-<code>rasqal_query_generate_bnodeid</code> based on the raptor API for
-generating blank node identifiers in the Turtle/N3 triple style.
+<code>rasqal_query_set_generate_bnodeid_handler</code> based on the
+raptor API for generating blank node identifiers in the Turtle/N3
+triple style.
 </p>
 
-<p>Added <code>order_conditions_sequence</code> to query structure
-and added access methods:
+<p>Added <code>order_conditions_sequence</code> to the query
+structure to store query ordering conditions and added access methods
 <code>rasqal_query_get_order_conditions_sequence</code> and
-<code>rasqal_query_get_order_condition</code>.
+<code>rasqal_query_get_order_condition</code> to read the resulting
+expressions.
 </p>
 
 <p>Added expressions for SPARQL ordering conditions:
@@ -89,7 +89,8 @@ with an new enum <code>rasqal_variable_type</code> and
 </p>
 
 <p>Completed the distinct/limit and offset get/set methods by adding:
-<code>rasqal_query_set_distinct</code>, <code>rasqal_query_set_limit</code>
+<code>rasqal_query_set_distinct</code>,
+<code>rasqal_query_set_limit</code>,
 <code>rasqal_query_get_offset</code> and
 <code>rasqal_query_set_offset</code>
 </p>
