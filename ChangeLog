@@ -1,3 +1,9 @@
+2005-05-06  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* librasqal.3: Updated for 0.9.9
+
+	* rasqal_query.c: typo
+
 2005-05-05  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
 	* rasqal_query.c (rasqal_query_get_wildcard): Added
