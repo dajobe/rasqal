@@ -7,7 +7,7 @@
 .\" Institute for Learning and Research Technology - http://www.ilrt.bristol.ac.uk/
 .\" University of Bristol - http://www.bristol.ac.uk/
 .\"
-.TH librasqal 3 "2005-03-20"
+.TH librasqal 3 "2005-05-06"
 .\" Please adjust this date whenever revising the manpage.
 .SH NAME
 librasqal \- Rasqal RDF query library
@@ -115,9 +115,18 @@ features are defined.
 .IP "\fBint rasqal_query_get_distinct(rasqal_query* \fIquery\fP)\fR"
 Get the query distinct results flag, returning non-0 if the results
 should be distinct.
+.IP "\fBvoid rasqal_query_set_distinct(rasqal_query* \fIquery\fP, int \fIdistinct\fP)\fR"
+Set the query distinct results flag.
 .IP "\fBint rasqal_query_get_limit(rasqal_query* \fIquery\fP)\fR"
 Get the query-specified limit on results returning >= 0 if a
 limit is given, otherwise not specified.
+.IP "\fBvoid rasqal_query_set_limit(rasqal_query* \fIquery\fP, int \fIlimit\fP)\fR"
+Set the query limit value.
+.IP "\fBint rasqal_query_get_offset(rasqal_query* \fIquery\fP)\fR"
+Get the query-specified offset on results returning >= 0 if a
+offset is given, otherwise not specified.
+.IP "\fBvoid rasqal_query_set_offset(rasqal_query* \fIquery\fP, int \fIoffset\fP)\fR"
+Set the query offset value.
 .IP "\fBvoid rasqal_query_add_source(rasqal_query* \fIquery\fB, raptor_uri* \fIuri\fP)\fR"
 DEPRECATED. Add a source URI to the sequence of sources in the query.
 .IP "\fBraptor_sequence* rasqal_query_get_source_sequence(rasqal_query* \fIquery\fB)\fR"
@@ -133,7 +142,7 @@ or all variables mentioned with \fBSELECT *\fP.
 .IP "\fBraptor_sequence* rasqal_query_get_all_variable_sequence(rasqal_query* \fIquery\fP)\fR"
 Get the sequence of all variables mentioned in the query.
 .IP "\fBrasqal_variable* rasqal_query_get_variable(rasqal_query* \fIquery\fB, int \fIidx\fP)\fR"
-Get one variable binding in the sequence of variable bindings in the queyr.
+Get one variable binding in the sequence of variable bindings in the query.
 .IP "\fBint rasqal_query_has_variable(rasqal_query* \fIquery\fB, const unsigned char *\fIname\fB)\fR"
 Return non-0 if the named variable is in the variable bindings of the query.
 .IP "\fBint rasqal_query_set_variable(rasqal_query* \fIquery\fB, const unsigned char *\fIname\fB, rasqal_literal* \fIvalue\fP)\fR"
@@ -183,6 +192,31 @@ the argumetns.
 Get the sequence of data graphs in the query.
 .IP "\fBrasqal_data_graph* rasqal_query_get_data_graph(rasqal_query* \fIquery\fP, int \fIidx\fP)\fR"
 Get one prefix in the sequence of prefixes in the query at index \fIidx\fP.
+.IP "\fBraptor_sequence* rasqal_query_get_order_conditions_sequence(rasqal_query* \fIquery\fP)\fR"
+Get the sequence of all result ordering conditions in the query, each
+of which is a \fIrasqal_expression\fP.
+.IP "\fBrasqal_expression* rasqal_query_get_order_condition(rasqal_query* \fIquery\fP, int \fIidx\fP)\fR"
+Get one result ordering condition expression in the sequence.
+.IP "\fBrasqal_query_verb rasqal_query_get_verb(rasqal_query* \fIquery\fP)\fR"
+Get the main \fIquery\fP verb.
+.IP "\fBint rasqal_query_get_wildcard(rasqal_query* \fIquery\fP)\fR"
+Get the \fIquery\fP verb wildcard flag signifying \* in RDQL and SPARQL
+after the query verb.
+.IP "\fBrasqal_graph_pattern* rasqal_query_get_query_graph_pattern(rasqal_query* \fIquery\fP)\fR"
+Get the top query graph pattern of \fIquery\fP.
+.IP "\fBvoid rasqal_query_set_default_generate_bnodeid_parameters(rasqal_query* \fIrdf_query\fP, char* \fIprefix\fP, int \fIbase\fP)\fR"
+Control the default method for generation of IDs for blank nodes.
+The method uses a short string \fIprefix\fR and an integer
+\fIbase\fR to generate the identifier which is not guaranteed to
+be a strict concatenation.  If \fIprefix\fR is NULL, the
+default is used.  If base is less than 1, it is initialised to 1.
+.IP "\fBvoid rasqal_query_set_generate_bnodeid_handler(rasqal_query* \fIquery\fP, void* \fIuser_data\fP, rasqal_generate_bnodeid_handler \fIhandler\fP)\fR"
+Allow full customisation of the generated IDs by setting a callback
+\fIhandler\fR and associated \fIuser_data\fR that is called whenever
+a blank node or bag identifier is required.  The memory returned
+is deallocated inside rasqal.  Some systems require this to be
+allocated inside the same library, in which case the 
+\fBrasqal_alloc_memory\fP function may be useful.
 .SH "GRAPH PATTERN CLASS"
 A class for graph patterns in a query - a set of triple patterns)
 with flags and possible sub-graph patterns
@@ -383,10 +417,9 @@ Set the origin rasqal_literal of the triple, typically a URI literal.
 .IP "\fBrasqal_literal* rasqal_triple_get_origin(rasqal_triple* \fItriple\fP)\fP"
 Get the origin rasqal_literal of the triple.
 .IP "\fBvoid rasqal_triple_set_flags(rasqal_triple* \fItriple\fP, unsigned int \fIflags\fP)\fP"
-Set triple flags.  Currently only \fBRASQAL_TRIPLE_FLAGS_EXACT\fP
-and \fBRASQAL_TRIPLE_FLAGS_OPTIONAL\fP are defined.
+DEPRECATED in rasqal 0.9.9+.  Do not use.
 .IP "\fBunsigned int rasqal_triple_get_flags(rasqal_triple* \fItriple\fP)\fP"
-Get triple flags as set by \fBrasqal_triple_set_flags\fP.
+DEPRECATED in rasqal 0.9.9+.  Do not use.
 .SH "VARIABLE CLASS"
 A class for variable name and literal used to capture a variable
 with optional value binding such as returned as query results by
@@ -395,7 +428,13 @@ in rasqal.h
 .SH "VARIABLE CONSTRUCTOR"
 .IP "\fBrasqal_variable* rasqal_new_variable(rasqal_query* \fIquery\fP, const unsigned char *\fIname\fB, rasqal_literal* \fIvalue\fP)\fR"
 Create a new rasqal variable scoped to a Rasqal \fIquery\fP, with required
-\fIname\fP and optional rasqal_literal \fIvalue\fP
+\fIname\fP and optional rasqal_literal \fIvalue\fP.  This creates a
+variable of type RASQAL_VARIABLE_TYPE_NORMAL.
+.IP "\fBrasqal_variable* rasqal_new_variable_typed(rasqal_query* \fIrq\fP, rasqal_variable_type \fItype\fP, const unsigned char *\fIname\fP, rasqal_literal* \fIvalue\fP)\fR"
+Create a new rasqal variable scoped to a Rasqal \fIquery\fP, with required
+\fIname\fP, optional rasqal_literal \fIvalue\fP and type \fItype\fP
+either
+RASQAL_VARIABLE_TYPE_NORMAL or RASQAL_VARIABLE_TYPE_ANONYMOUS
 .SH "VARIABLE DESTRUCTOR"
 .IP "\fBvoid rasqal_free_variable(rasqal_variable* \fIvariable\fP)\fR"
 Destroy a rasqal variable object.
@@ -472,6 +511,36 @@ Destroy a rasqal data_graph object.
 .IP "\fBvoid rasqal_data_graph_print(rasqal_data_graph* \fIdg\fP, FILE* \fIfh\fP)\fR"
 Print a data graph in a debug format.  This format may change in any release.
 .SH API CHANGES
+.SS 0.9.9
+.LP
+Added query methods
+\fBrasqal_query_get_offset\fP,
+\fBrasqal_query_get_order_condition\fP,
+\fBrasqal_query_get_order_conditions_sequence\fP,
+\fBrasqal_query_get_query_graph_pattern\fP,
+\fBrasqal_query_get_verb\fP,
+\fBrasqal_query_get_wildcard\fP.
+\fBrasqal_query_set_default_generate_bnodeid_parameters\fP,
+\fBrasqal_query_set_distinct\fP,
+\fBrasqal_query_set_generate_bnodeid_handler\fP,
+\fBrasqal_query_set_limit\fP and
+\fBrasqal_query_set_offset\fP.
+.LP
+Added expressions \fBRASQAL_EXPR_ORDER_COND_ASC\fP,
+\fBRASQAL_EXPR_ORDER_COND_DESC\fP and \fBRASQAL_EXPR_ORDER_COND_NONE\fP.
+.LP
+Added enum \fBrasqal_variable_type\fP for typing variables.
+.LP
+Added variable constructor \fBrasqal_new_variable_typed\fP to create
+typed variables.
+.LP
+Added enum \fBrasqal_query_verb\fP for the main query verbs with
+values \fBRASQAL_QUERY_VERB_SELECT\fP,
+\fBRASQAL_QUERY_VERB_CONSTRUCT\fP \fBRASQAL_QUERY_VERB_DESCRIBE\fP
+and \fBRASQAL_QUERY_VERB_ASK\fP.
+.LP
+Deprecated the \fBrasqal_triple\fP flags field and the triple methods
+\fBrasqal_triple_set_flags\fP and \fBrasqal_triple_get_flags\fP.
 .SS 0.9.8
 .LP
 Added a \fIData Graph\fP class with constructor
