@@ -1510,7 +1510,7 @@ rasqal_query_get_wildcard(rasqal_query *query)
  * rasqal_query_get_order_conditions_sequence - Get the sequence of query ordering conditions
  * @query: &rasqal_query query object
  *
- * Return value: a &raptor_sequence of &raptor_expression pointers.
+ * Return value: a &raptor_sequence of &rasqal_expression pointers.
  **/
 raptor_sequence*
 rasqal_query_get_order_conditions_sequence(rasqal_query* query)
