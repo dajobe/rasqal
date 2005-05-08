@@ -1888,8 +1888,6 @@ rasqal_query_results_write_xml_result2(raptor_iostream *iostr,
   raptor_xml_element *results_element;
   raptor_qname* result_qname;
   raptor_xml_element *result_element;
-  raptor_qname* binding_qname;
-  raptor_xml_element *binding_element;
   raptor_qname* qname1;
   raptor_xml_element *element1;
   raptor_qname **attrs;
@@ -2024,18 +2022,8 @@ rasqal_query_results_write_xml_result2(raptor_iostream *iostr,
   result_qname=raptor_new_qname_from_namespace_local_name(res_ns, 
                                                           (const unsigned char*)"result",
                                                           NULL);
-  
-  /* declare result element for later multiple use */
-  binding_qname=raptor_new_qname_from_namespace_local_name(res_ns, 
-                                                           (const unsigned char*)"binding",
-                                                          NULL);
-  
   base_uri_copy=base_uri ? raptor_uri_copy(base_uri) : NULL;
   result_element=raptor_new_xml_element(result_qname,
-                                        NULL, /* language */
-                                        base_uri_copy);
-
-  binding_element=raptor_new_xml_element(binding_qname,
                                         NULL, /* language */
                                         base_uri_copy);
 
@@ -2047,10 +2035,29 @@ rasqal_query_results_write_xml_result2(raptor_iostream *iostr,
     raptor_xml_writer_raw_counted(xml_writer, (const unsigned char*)"\n", 1);
 
     for(i=0; i<rasqal_query_results_get_bindings_count(results); i++) {
+      const unsigned char *name=rasqal_query_results_get_binding_name(results, i);
+      raptor_qname* binding_qname;
+      raptor_xml_element *binding_element;
       rasqal_literal *l=rasqal_query_results_get_binding_value(results, i);
       size_t len;
 
+
       /*       <binding> */
+      binding_qname=raptor_new_qname_from_namespace_local_name(res_ns, 
+                                                               (const unsigned char*)"binding",
+                                                               NULL);
+      
+      base_uri_copy=base_uri ? raptor_uri_copy(base_uri) : NULL;
+      binding_element=raptor_new_xml_element(binding_qname,
+                                             NULL, /* language */
+                                             base_uri_copy);
+      attrs=(raptor_qname **)raptor_alloc_memory(sizeof(raptor_qname*));
+      attrs[0]=raptor_new_qname_from_namespace_local_name(res_ns, 
+                                                          (const unsigned char*)"name",
+                                                          name);
+      raptor_xml_element_set_attributes(binding_element, attrs, 1);
+      
+
       raptor_xml_writer_raw_counted(xml_writer, (const unsigned char*)"      ", 6);
       raptor_xml_writer_start_element(xml_writer, binding_element);
 
@@ -2153,6 +2160,8 @@ rasqal_query_results_write_xml_result2(raptor_iostream *iostr,
       /*       </binding> */
       raptor_xml_writer_end_element(xml_writer, binding_element);
       raptor_xml_writer_raw_counted(xml_writer, (const unsigned char*)"\n", 1);
+      
+      raptor_free_xml_element(binding_element);
     }
 
     raptor_xml_writer_raw_counted(xml_writer, (const unsigned char*)"    ", 4);
