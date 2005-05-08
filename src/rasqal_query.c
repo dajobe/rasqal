@@ -2094,7 +2094,7 @@ rasqal_query_results_write_xml_result2(raptor_iostream *iostr,
                                           base_uri_copy);
           
           raptor_xml_writer_start_element(xml_writer, element1);
-          raptor_xml_writer_cdata(xml_writer, (const unsigned char*)raptor_uri_as_string(l->value.uri));
+          raptor_xml_writer_cdata(xml_writer, (const unsigned char*)l->string);
           raptor_xml_writer_end_element(xml_writer, element1);
           break;
 
