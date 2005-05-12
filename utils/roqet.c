@@ -192,7 +192,7 @@ roqet_graph_pattern_walk(rasqal_graph_pattern *gp, int gp_index,
   if(gp_index >= 0)
     fprintf(fh, " #%d", gp_index);
   if(flags != 0)
-    fprintf(fh, "with flags %d", flags);
+    fprintf(fh, " with flags %d", flags);
   fputs(" {\n", fh);
   
   indent+= 2;
