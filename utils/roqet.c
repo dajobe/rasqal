@@ -163,88 +163,171 @@ roqet_error_handler(void *user_data,
 static const char *spaces="                                                                                  ";
 
 static void
+roqet_write_indent(FILE *fh, int indent) 
+{
+  if(indent > 0)
+    fwrite(spaces, sizeof(char), indent, fh);
+}
+
+  
+
+static void
 roqet_graph_pattern_walk(rasqal_graph_pattern *gp, int gp_index,
                          FILE *fh, int indent) {
   int triple_index=0;
   int flags;
-      
+  int seen;
+  raptor_sequence *seq;
+  
   flags=rasqal_graph_pattern_get_flags(gp);
   
-  fwrite(spaces, sizeof(char), indent, fh);
-  fprintf(fh, "graph pattern %d with flags %d\n", gp_index, flags);
+  roqet_write_indent(fh, indent);
+  fputs("graph pattern", fh);
+  if(gp_index >= 0)
+    fprintf(fh, " #%d", gp_index);
+  if(flags != 0)
+    fprintf(fh, "with flags %d", flags);
+  fputs(" {\n", fh);
   
   indent+= 2;
 
+  /* look for triples */
+  seen=0;
   while(1) {
     rasqal_triple* t=rasqal_graph_pattern_get_triple(gp, triple_index);
     if(!t)
       break;
     
-    fwrite(spaces, sizeof(char), indent, fh);
-    fprintf(fh, "triple %d: ", triple_index);
+    if(!seen) {
+      roqet_write_indent(fh, indent);
+      fputs("triples {\n", fh);
+      seen=1;
+    }
+    roqet_write_indent(fh, indent+2);
+    fprintf(fh, "triple #%d { ", triple_index);
     rasqal_triple_print(t, fh);
-    fputc('\n', fh);
+    fputs(" }\n", fh);
 
     triple_index++;
   }
-
-  /* look for sub graph patterns */
-  gp_index=0;
-  while(1) {
-    rasqal_graph_pattern* sgp=rasqal_graph_pattern_get_sub_graph_pattern(gp, gp_index);
-    if(!sgp)
-      break;
-
-    roqet_graph_pattern_walk(sgp, gp_index, fh, indent);
-    gp_index++;
+  if(seen) {
+    roqet_write_indent(fh, indent);
+    fputs("}\n", fh);
   }
 
-  if(gp_index > 0) {
-    fwrite(spaces, sizeof(char), indent, fh);
-    fprintf(fh, "found %d sub-graph patterns\n", gp_index);
+
+  /* look for sub-graph patterns */
+  seq=rasqal_graph_pattern_get_sub_graph_pattern_sequence(gp);
+  if(seq && raptor_sequence_size(seq) > 0) {
+    roqet_write_indent(fh, indent);
+    fprintf(fh, "sub-graph patterns (%d) {\n", raptor_sequence_size(seq));
+
+    gp_index=0;
+    while(1) {
+      rasqal_graph_pattern* sgp=rasqal_graph_pattern_get_sub_graph_pattern(gp, gp_index);
+      if(!sgp)
+        break;
+      
+      roqet_graph_pattern_walk(sgp, gp_index, fh, indent+2);
+      gp_index++;
+    }
+
+    roqet_write_indent(fh, indent);
+    fputs("}\n", fh);
   }
+  
 
   /* look for constraints */
-  gp_index=0;
-  while(1) {
-    rasqal_expression* expr=rasqal_graph_pattern_get_constraint(gp, gp_index);
-    if(!expr)
-      break;
+  seq=rasqal_graph_pattern_get_constraint_sequence(gp);
+  if(seq && raptor_sequence_size(seq) > 0) {
+    roqet_write_indent(fh, indent);
+    fprintf(fh, "constraints (%d) {\n", raptor_sequence_size(seq));
 
-    fwrite(spaces, sizeof(char), indent, fh);
-    fprintf(fh, "constraint %d: ", gp_index);
-    rasqal_expression_print(expr, fh);
-    fputc('\n', fh);
+    gp_index=0;
+    while(1) {
+      rasqal_expression* expr=rasqal_graph_pattern_get_constraint(gp, gp_index);
+      if(!expr)
+        break;
+      
+      roqet_write_indent(fh, indent);
+      fprintf(fh, "constraint %d: ", gp_index);
+      rasqal_expression_print(expr, fh);
+      fputc('\n', fh);
+      
+      gp_index++;
+    }
 
-    gp_index++;
+    roqet_write_indent(fh, indent);
+    fputs("}\n", fh);
   }
+  
 
-  fputc('\n', fh);
-
+  indent-=2;
+  
+  roqet_write_indent(fh, indent);
+  fputs("}\n", fh);
 }
 
 
     
 static void
-roqet_query_walk(rasqal_query *rq, FILE *fh) {
+roqet_query_walk(rasqal_query *rq, FILE *fh, int indent) {
+  rasqal_query_verb verb;
   int i;
   rasqal_graph_pattern* gp;
+  raptor_sequence *seq;
+
+  verb=rasqal_query_get_verb(rq);
+  roqet_write_indent(fh, indent);
+  fprintf(fh, "query verb: %s\n", rasqal_query_verb_as_string(verb));
 
   i=rasqal_query_get_distinct(rq);
-  if(i != 0)
+  if(i != 0) {
+    roqet_write_indent(fh, indent);
     fprintf(fh, "query asks for distinct results\n");
+  }
+  
   i=rasqal_query_get_limit(rq);
-  if(i >= 0)
+  if(i >= 0) {
+    roqet_write_indent(fh, indent);
     fprintf(fh, "query asks for result limits %d\n", i);
+  }
+  
   i=rasqal_query_get_offset(rq);
-  if(i >= 0)
+  if(i >= 0) {
+    roqet_write_indent(fh, indent);
     fprintf(fh, "query asks for result offset %d\n", i);
+  }
   
   gp=rasqal_query_get_query_graph_pattern(rq);
   if(!gp)
     return;
 
-  roqet_graph_pattern_walk(gp, 0, fh, 2);
+
+  seq=rasqal_query_get_construct_triples_sequence(rq);
+  if(seq && raptor_sequence_size(seq) > 0) {
+    roqet_write_indent(fh, indent);
+    fprintf(fh, "query construct triples (%d) {\n", 
+            raptor_sequence_size(seq));
+    i=0;
+    while(1) {
+      rasqal_triple* t=rasqal_query_get_construct_triple(rq, i);
+      if(!t)
+        break;
+    
+      roqet_write_indent(fh, indent+2);
+      fprintf(fh, "triple #%d { ", i);
+      rasqal_triple_print(t, fh);
+      fputs(" }\n", fh);
+
+      i++;
+    }
+    roqet_write_indent(fh, indent);
+    fputs("}\n", fh);
+  }
+
+  fputs("query ", fh);
+  roqet_graph_pattern_walk(gp, -1, fh, indent);
 }
 
 
@@ -629,7 +712,7 @@ main(int argc, char *argv[])
 
   if(walk_query) {
     fprintf(stderr, "%s: walking query structure\n", program);
-    roqet_query_walk(rq, stdout);
+    roqet_query_walk(rq, stdout, 0);
   }
   
   if(dump_query) {
