@@ -651,35 +651,37 @@ main(int argc, char *argv[])
   } else {
     if(rasqal_query_results_is_bindings(results)) {
       if(!quiet)
-        fprintf(stdout, "%s: Query returned bindings results:\n", program);
+        fprintf(stdout, "%s: Query has a variable bindings result\n", program);
 
       while(!rasqal_query_results_finished(results)) {
-        int i;
-
-        fputs("result: [", stdout);
-        for(i=0; i<rasqal_query_results_get_bindings_count(results); i++) {
-          const unsigned char *name=rasqal_query_results_get_binding_name(results, i);
-          rasqal_literal *value=rasqal_query_results_get_binding_value(results, i);
-
-          if(i>0)
-            fputs(", ", stdout);
-          fprintf(stdout, "%s=", name);
-          if(value)
-            rasqal_literal_print(value, stdout);
-          else
-            fputs("NULL", stdout);
+        if(!count) {
+          int i;
+          
+          fputs("result: [", stdout);
+          for(i=0; i<rasqal_query_results_get_bindings_count(results); i++) {
+            const unsigned char *name=rasqal_query_results_get_binding_name(results, i);
+            rasqal_literal *value=rasqal_query_results_get_binding_value(results, i);
+            
+            if(i>0)
+              fputs(", ", stdout);
+            fprintf(stdout, "%s=", name);
+            if(value)
+              rasqal_literal_print(value, stdout);
+            else
+              fputs("NULL", stdout);
+          }
+          fputs("]\n", stdout);
         }
-        fputs("]\n", stdout);
-
+        
         rasqal_query_results_next(results);
       }
 
       if(!quiet)
-        fprintf(stderr, "%s: Query returned %d results\n", program, 
+        fprintf(stdout, "%s: Query returned %d results\n", program, 
                 rasqal_query_results_get_count(results));
 
     } else if (rasqal_query_results_is_boolean(results)) {
-      fprintf(stdout, "%s: Query returned boolean result: %s\n",
+      fprintf(stdout, "%s: Query has a boolean result: %s\n",
               program,
               rasqal_query_results_get_boolean(results) ? "true" : "false");
     }
@@ -687,7 +689,7 @@ main(int argc, char *argv[])
       int triple_count=0;
       
       if(!quiet)
-        fprintf(stdout, "%s: Query returned graph result:\n", program);
+        fprintf(stdout, "%s: Query has a graph result:\n", program);
 
       serializer=raptor_new_serializer(serializer_syntax_name);
       if(!serializer) {
