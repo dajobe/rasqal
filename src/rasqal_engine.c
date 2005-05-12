@@ -1215,7 +1215,6 @@ rasqal_engine_get_next_result(rasqal_query *query)
     }
 
     /* Got a valid result */
-    query->result_count++;
 #ifdef RASQAL_DEBUG
     RASQAL_DEBUG1("Returning solution[");
     for(i=0; i< query->select_variables_count; i++) {
