@@ -334,6 +334,8 @@ rasqal_engine_assign_variables(rasqal_query* rq)
   for(i=0; i< rq->anon_variables_count; i++) {
     rq->variables_declared_in[offset]= -1;
     rq->variables[offset]=(rasqal_variable*)raptor_sequence_get_at(rq->anon_variables_sequence, i);
+    /* only now can we make this offset absolute into the full list of vars */
+    rq->variables[offset]->offset += rq->variables_count;
     offset++;
   }
 
