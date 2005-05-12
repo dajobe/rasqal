@@ -1,3 +1,42 @@
+2005-05-12  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* roqet.c: Make -c/--count work properly.  Print count to stdout.
+	Tidy result format wording.
+
+	* rasqal_query.c (rasqal_query_results_get_count):
+	Adjust the returned count by any offset.
+	(rasqal_query_results_next): Implement limit and offset.
+	Addresses Issue#0000005 - http://bugs.librdf.org/mantis/view.php?id=5
+
+	* rasqal_query.c (rasqal_query_results_next): Adjust result_count
+	here.
+
+	* rasqal_engine.c (rasqal_engine_get_next_result): Move
+	result_count to rasqal_query_results_next.
+
+2005-05-08  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal_query.c (rasqal_query_results_write_xml_20041221): Check
+	only variable bindings are asked for.
+	(rasqal_query_results_write_xml_result2): Check only variable
+	bindings or boolean are asked for.  Add boolean results format.
+
+	* rasqal_query.c (rasqal_query_results_write_xml_result2):
+	Write <binding> with name attribute.
+
+	* rasqal_query.c (rasqal_query_results_write_xml_result2): Write
+	out bnode strings right.
+
+	* roqet.c: Default to unpublished version2 of the XML results format.
+
+	* rasqal_query.c (rasqal_query_results_write_xml_20041221): Added,
+	renamed from rasqal_query_results_write contents to emit the
+	2004-12-21 XML format
+	(rasqal_query_results_write_xml_result2): Added, to emit the
+	unpublished version2 of the XML format.
+	(rasqal_query_results_write): Call above functions depending on
+	the format_uri.
+
 2005-05-06  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
 	* librasqal.3: Updated for 0.9.9
