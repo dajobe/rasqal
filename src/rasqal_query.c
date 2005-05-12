@@ -1221,13 +1221,18 @@ rasqal_query_results_is_graph(rasqal_query_results *query_results) {
 int
 rasqal_query_results_get_count(rasqal_query_results *query_results)
 {
+  rasqal_query *query;
+
   if(!query_results)
     return -1;
 
   if(!rasqal_query_results_is_bindings(query_results))
     return -1;
   
-  return query_results->query->result_count;
+  query=query_results->query;
+  if(query->offset > 0)
+    return query->result_count - query->offset;
+  return query->result_count;
 }
 
 
@@ -1241,7 +1246,6 @@ int
 rasqal_query_results_next(rasqal_query_results *query_results)
 {
   rasqal_query *query;
-  int rc;
   
   if(!query_results)
     return 1;
@@ -1253,14 +1257,50 @@ rasqal_query_results_next(rasqal_query_results *query_results)
   if(query->finished)
     return 1;
 
-  /* rc<0 error rc=0 end of results,  rc>0 got a result */
-  rc=rasqal_engine_get_next_result(query);
-  if(rc < 1) /* <0 failure OR =0 end of results */
-    query->finished=1;
-  if(rc < 0) /* <0 failure */
-    query->failed=1;
-  if(rc > 0) /* >0 match */
+  while(1) {
+    int rc;
+    
+    /* rc<0 error rc=0 end of results,  rc>0 got a result */
+    rc=rasqal_engine_get_next_result(query);
+
+    if(rc < 1) {
+      /* <0 failure OR =0 end of results */
+      query->finished=1;
+      break;
+    }
+    
+    if(rc < 0) {
+      /* <0 failure */
+      query->failed=1;
+      break;
+    }
+    
+    /* otherwise is >0 match */
     query->result_count++;
+    
+    if(query->offset > 0) {
+      /* offset */
+      if(query->result_count <= query->offset)
+        continue;
+      
+      if(query->limit >= 0) {
+        /* offset and limit */
+        if(query->result_count > (query->offset + query->limit)) {
+          query->finished=1;
+          query->result_count--;
+        }
+      }
+      
+    } else if(query->limit >= 0) {
+      /* limit */
+      if(query->result_count > query->limit) {
+        query->finished=1;
+        query->result_count--;
+        }
+    }
+    break;
+
+  } /* while */
   
   return query->finished;
 }
