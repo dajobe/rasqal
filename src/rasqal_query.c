@@ -821,6 +821,36 @@ rasqal_query_get_graph_pattern(rasqal_query* query, int idx)
 
 
 /**
+ * rasqal_query_get_construct_triples_sequence - Get the sequence of triples for a construct
+ * @query: &rasqal_query query object
+ *
+ * Return value: a &raptor_sequence of &rasqal_triples pointers.
+ **/
+raptor_sequence*
+rasqal_query_get_construct_triples_sequence(rasqal_query* query)
+{
+  return query->constructs;
+}
+
+
+/**
+ * rasqal_query_get_construct_triple - Get a triple in the sequence of construct triples
+ * @query: &rasqal_query query object
+ * @idx: index into the sequence (0 or larger)
+ *
+ * Return value: a &rasqal_triple pointer or NULL if out of the sequence range
+ **/
+rasqal_triple*
+rasqal_query_get_construct_triple(rasqal_query* query, int idx)
+{
+  if(!query->constructs)
+    return NULL;
+
+  return (rasqal_triple*)raptor_sequence_get_at(query->constructs, idx);
+}
+
+
+/**
  * rasqal_graph_pattern_add_sub_graph_pattern - Add a sub graph pattern to a graph pattern 
  * @graph_pattern: graph pattern to add to
  * @sub_graph_pattern: graph pattern to add inside
@@ -1053,6 +1083,23 @@ static const char* rasqal_query_verb_labels[RASQAL_QUERY_VERB_LAST+1]={
 /* Utility methods */
 
 /**
+ * rasqal_query_verb_as_string - Get a string forthe the query verb
+ * @verb: the &rasqal_query_verb verb of the query
+ * 
+ * Return value: pointer to a shared string label for the query verb
+ **/
+const char*
+rasqal_query_verb_as_string(rasqal_query_verb verb)
+{
+  if(verb <= RASQAL_QUERY_VERB_UNKNOWN || 
+     verb > RASQAL_QUERY_VERB_LAST)
+    verb=RASQAL_QUERY_VERB_UNKNOWN;
+
+  return rasqal_query_verb_labels[(int)verb];
+}
+  
+
+/**
  * rasqal_query_print - Print a query in a debug format
  * @query: the &rasqal_query object
  * @fh: the &FILE* handle to print to.
@@ -1061,11 +1108,7 @@ static const char* rasqal_query_verb_labels[RASQAL_QUERY_VERB_LAST+1]={
 void
 rasqal_query_print(rasqal_query* query, FILE *fh)
 {
-  if(query->verb <= RASQAL_QUERY_VERB_UNKNOWN || 
-     query->verb > RASQAL_QUERY_VERB_LAST)
-    fputs("query verb: UNKNOWN\n", fh);
-  else
-    fprintf(fh, "query verb: %s\n", rasqal_query_verb_labels[(int)query->verb]);
+  fprintf(fh, "query verb: %s\n", rasqal_query_verb_as_string(query->verb));
   
   if(query->distinct)
     fputs("query results distinct: yes\n", fh);
