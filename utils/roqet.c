@@ -68,9 +68,10 @@ static char *program=NULL;
 
 
 static enum {
-  OUTPUT_FORMAT_SIMPLE,
-  OUTPUT_FORMAT_XML
-} output_format = OUTPUT_FORMAT_SIMPLE;
+  RESULTS_FORMAT_SIMPLE,
+  RESULTS_FORMAT_XML_V1,
+  RESULTS_FORMAT_XML_V2
+} results_format = RESULTS_FORMAT_SIMPLE;
 
 
 int
@@ -90,7 +91,7 @@ rdql_parser_error(const char *msg)
 #endif
 
 
-#define GETOPT_STRING "cdf:ho:i:nqs:vw"
+#define GETOPT_STRING "cdf:ho:r:i:nqs:vw"
 
 #ifdef HAVE_GETOPT_LONG
 static struct option long_options[] =
@@ -99,9 +100,10 @@ static struct option long_options[] =
   {"count", 0, 0, 'c'},
   {"dump-query", 0, 0, 'd'},
   {"dryrun", 0, 0, 'n'},
-  {"format", 1, 0, 'f'},
   {"help", 0, 0, 'h'},
-  {"output", 1, 0, 'o'},
+  {"format", 1, 0, 'f'}, /* deprecated for -r/--results */
+  {"output", 1, 0, 'o'}, /* deprecated for -r/--results */
+  {"results", 1, 0, 'r'},
   {"input", 1, 0, 'i'},
   {"quiet", 0, 0, 'q'},
   {"source", 1, 0, 's'},
@@ -127,7 +129,8 @@ static const char *title_format_string="Rasqal RDF query utility %s\n";
 
 static int
 roqet_query_results_print_as_xml(rasqal_query_results *results, FILE *fh,
-                                 raptor_uri* base_uri)
+                                 raptor_uri* base_uri,
+                                 int format)
 {
   raptor_iostream *iostr;
   raptor_uri* uri;
@@ -135,9 +138,12 @@ roqet_query_results_print_as_xml(rasqal_query_results *results, FILE *fh,
   iostr=raptor_new_iostream_to_file_handle(fh);
   if(!iostr)
     return 1;
-  
-/*  uri=raptor_new_uri((const unsigned char*)"http://www.w3.org/TR/2004/WD-rdf-sparql-XMLres-20041221/"); */
-  uri=raptor_new_uri((const unsigned char*)"http://www.w3.org/2001/sw/DataAccess/rf1/result2");
+
+  if(format == RESULTS_FORMAT_XML_V1)
+    uri=raptor_new_uri((const unsigned char*)"http://www.w3.org/TR/2004/WD-rdf-sparql-XMLres-20041221/");
+  else /* RESULTS_FORMAT_XML_V2 */
+    uri=raptor_new_uri((const unsigned char*)"http://www.w3.org/2001/sw/DataAccess/rf1/result2");
+
   rasqal_query_results_write(iostr, results, uri, base_uri);
 
   raptor_free_uri(uri);
@@ -398,30 +404,6 @@ main(int argc, char *argv[])
         dump_query=1;
         break;
 
-      case 'f':
-        if(optarg) {
-          if(raptor_serializer_syntax_name_check(optarg))
-            serializer_syntax_name=optarg;
-          else {
-            int i;
-            
-            fprintf(stderr, "%s: invalid argument `%s' for `" HELP_ARG(o, output) "'\n",
-                    program, optarg);
-            fprintf(stderr, "Valid arguments are:\n");
-            for(i=0; 1; i++) {
-              const char *help_name;
-              const char *help_label;
-              if(raptor_serializers_enumerate(i, &help_name, &help_label, NULL, NULL))
-                break;
-              printf("  %-12s for %s\n", help_name, help_label);
-            }
-            usage=1;
-            break;
-            
-          }
-        }
-        break;
-
       case 'h':
         help=1;
         break;
@@ -430,17 +412,32 @@ main(int argc, char *argv[])
         dryrun=1;
         break;
 
+      case 'f':
       case 'o':
+        fprintf(stderr,
+                "%s: %s has been deprecated. Please use %s to set the results format\n",
+                program,
+                ((c == 'f') ? HELP_ARG(f, format) : HELP_ARG(o, output)), 
+                HELP_ARG(r, results));
+        /* FALLTHROUGH */
+
+      case 'r':
         if(optarg) {
           if(!strcmp(optarg, "simple"))
-            output_format=OUTPUT_FORMAT_SIMPLE;
-          if(!strcmp(optarg, "xml"))
-            output_format=OUTPUT_FORMAT_XML;
+            results_format=RESULTS_FORMAT_SIMPLE;
+          else if(!strcmp(optarg, "xml"))
+            results_format=RESULTS_FORMAT_XML_V2;
+          else if(!strcmp(optarg, "xml-v1"))
+            results_format=RESULTS_FORMAT_XML_V1;
+          else if(raptor_serializer_syntax_name_check(optarg))
+            serializer_syntax_name=optarg;
           else {
-            fprintf(stderr, "%s: invalid argument `%s' for `" HELP_ARG(o, output) "'\n",
+            fprintf(stderr, 
+                    "%s: invalid argument `%s' for `" HELP_ARG(r, results) "'\n",
                     program, optarg);
-            fprintf(stderr, "Valid arguments are:\n  `simple'   for a simple format (default)\n  `xml'      for SPARQL variable bindings XML format\n");
             usage=1;
+            break;
+            
           }
         }
         break;
@@ -532,18 +529,6 @@ main(int argc, char *argv[])
     puts("Run an RDF query giving variable bindings or RDF triples.");
     puts("\nMain options:");
     puts(HELP_TEXT("h", "help            ", "Print this help, then exit"));
-    puts(HELP_TEXT("f FORMAT", "format FORMAT", "Set graph result format to one of:"));
-    for(i=0; 1; i++) {
-      const char *help_name;
-      const char *help_label;
-      if(raptor_serializers_enumerate(i, &help_name, &help_label, NULL, NULL))
-        break;
-      printf("    %-15s         %s", help_name, help_label);
-      if(!i)
-        puts(" (default)");
-      else
-        putchar('\n');
-    }
     puts(HELP_TEXT("i", "input LANGUAGE  ", "Set query language name to one of:"));
     for(i=0; 1; i++) {
       const char *help_name;
@@ -556,9 +541,23 @@ main(int argc, char *argv[])
       else
         putchar('\n');
     }
-    puts(HELP_TEXT("o", "output FORMAT   ", "Set variable binding result format to one of:"));
-    puts("    simple                  A simple text format (default)");
-    puts("    xml                     SPARQL variable bindings XML format");
+    puts(HELP_TEXT("r", "results FORMAT  ", "Set query results format to one of:"));
+    puts("    For variable bindings and boolean results:");
+    puts("      simple                A simple text format (default)");
+    puts("      xml                   SPARQL Query Results XML format V2");
+    puts("      xml-v1                SPARQL Query Results XML format V1");
+    puts("    For RDF graph results:");
+    for(i=0; 1; i++) {
+      const char *help_name;
+      const char *help_label;
+      if(raptor_serializers_enumerate(i, &help_name, &help_label, NULL, NULL))
+        break;
+      printf("      %-15s       %s", help_name, help_label);
+      if(!i)
+        puts(" (default)");
+      else
+        putchar('\n');
+    }
     puts("\nAdditional options:");
     puts(HELP_TEXT("c", "count           ", "Count triples - no output"));
     puts(HELP_TEXT("d", "dump-query      ", "Dump the parsed query"));
@@ -729,8 +728,10 @@ main(int argc, char *argv[])
     goto tidy_query;
   }
 
-  if(output_format == OUTPUT_FORMAT_XML) {
-    roqet_query_results_print_as_xml(results, stdout, base_uri);
+  if(results_format == RESULTS_FORMAT_XML_V1 ||
+     results_format == RESULTS_FORMAT_XML_V2) {
+    roqet_query_results_print_as_xml(results, stdout, base_uri, 
+                                     results_format);
   } else {
     if(rasqal_query_results_is_bindings(results)) {
       if(!quiet)
