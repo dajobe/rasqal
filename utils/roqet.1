@@ -8,7 +8,7 @@
 .\" Institute for Learning and Research Technology - http://www.ilrt.bris.ac.uk/
 .\" University of Bristol - http://www.bristol.ac.uk/
 .\"
-.TH roqet 1 "2005-02-24"
+.TH roqet 1 "2005-05-13"
 .\" Please adjust this date whenever revising the manpage.
 .SH NAME
 roqet \- Rasqal RDF query utility
@@ -21,9 +21,9 @@ roqet \- Rasqal RDF query utility
 .nf
 .B roqet example.rdql
 .br
-.B roqet -q x.rdql http://example.org/base/
+.B roqet -q -i rdql x.rdql http://example.org/base/
 .br
-.B roqet -i sparql -o xml http://example.org/query.rq
+.B roqet -i sparql -r xml http://example.org/query.rq
 .br
 .SH DESCRIPTION
 The
@@ -40,27 +40,30 @@ getopt_long function.  Otherwise only the short options are available.
 .TP
 .B \-h, \-\-help
 Show a summary of the options.
-.TP
-.B \-f, \-\-format FORMAT
-Set the graph query result output
-.I FORMAT
-to 'ntriples' (N-Triples, default), 'rdfxml' (RDF/XML)
-or 'rss-1.0' (RSS 1.0, also an RDF/XML syntax).
-.IP
-The list of formats
-depends on what libraptor(3) was built with.
 .B \-i, \-\-input LANGUAGE
 Set the input query
 .I LANGUAGE
-to one of 'rdql' (RDF Data Query Language, default) and 'sparql'
-(SPARQL Query Language for RDF).   The list of
+to one of'sparql' (SPARQL Query Language for RDF, default)
+or 'rdql' (RDF Data Query Language).   The list of
 supported languages is given in the help summary given by \-h.
 .TP
-.B \-o, \-\-output FORMAT
-Set the variable bindings query result output
+.B \-r, \-\-results FORMAT
+Set the query results format.
+.IP
+For variable bindings, the values of
 .I FORMAT
-to 'simple' for a simpel text format (default) 
-or 'xml' for the SPARQL variable bindings XML result format.
+are 'simple' for a simple text format (default), 'xml'
+for the SPARQL Query Results XML format V2
+or 'xml-v1' for the SPARQL Query Results XML format V1
+.IP
+For RDF graph results, the values of
+.I FORMAT
+are 'ntriples' (N-Triples, default), 'rdfxml-abbrev'
+(RDF/XML Abbreviated), 'rdfxml' (RDF/XML), 
+or 'rss-1.0' (RSS 1.0, also an RDF/XML syntax).
+.IP
+The exact list of formats depends on what libraptor(3) was built with
+but is given correct in the usage message with \-h.
 .TP
 .B \-c, \-\-count
 Only count the triples and produce no other output.
@@ -95,13 +98,13 @@ http://www.w3.org/Submission/2004/SUBM-RDQL-20040109/
 .br
 \fISPARQL Query Language for RDF\fR,
 Edited by Eric Prud'hommeaux and Andy Seaborne,
-W3C Working Draft, 12 October 2004.  Work in progress.
-.UR http://www.w3.org/TR/2004/WD-rdf-sparql-query-20041012/
-http://www.w3.org/TR/2004/WD-rdf-sparql-query-20041012/
+W3C Working Draft, 19 April 2005.  Work in progress.
+.UR http://www.w3.org/TR/2005/WD-rdf-sparql-query-20050419/
+http://www.w3.org/TR/2005/WD-rdf-sparql-query-20050419/
 .UE
 \fISPARQL Variable Binding Results XML Format\fR,
 Edited by Dave Beckett,
-W3C Working Draft, 21 December 2004. WOrk in progress.
+W3C Working Draft, 21 December 2004. Work in progress.
 .UR http://www.w3.org/TR/2004/WD-rdf-sparql-XMLres-20041221/
 http://www.w3.org/TR/2004/WD-rdf-sparql-XMLres-20041221/
 .UE
