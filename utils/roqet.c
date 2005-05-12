@@ -256,9 +256,9 @@ roqet_graph_pattern_walk(rasqal_graph_pattern *gp, int gp_index,
         break;
       
       roqet_write_indent(fh, indent+2);
-      fprintf(fh, "constraint %d: ", gp_index);
+      fprintf(fh, "constraint #%d { ", gp_index);
       rasqal_expression_print(expr, fh);
-      fputc('\n', fh);
+      fputs("}\n", fh);
       
       gp_index++;
     }
