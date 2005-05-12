@@ -763,8 +763,6 @@ rasqal_engine_execute_init(rasqal_query* query, rasqal_query_results *results)
    * engine doesn't do this yet.
    */
   if(query->query_graph_pattern) {
-    rasqal_engine_make_basic_graph_pattern(query->query_graph_pattern);
-
     if(query->query_graph_pattern->triples) {
       raptor_sequence *seq;
       seq=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_graph_pattern, (raptor_sequence_print_handler*)rasqal_graph_pattern_print);

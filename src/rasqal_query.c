@@ -1021,6 +1021,10 @@ rasqal_query_prepare(rasqal_query *query,
   rc=query->factory->prepare(query);
   if(rc)
     query->failed=1;
+
+  if(query->query_graph_pattern)
+    rasqal_engine_make_basic_graph_pattern(query->query_graph_pattern);
+
   return rc;
 }
 
