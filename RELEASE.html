@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="iso-8859-1"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
@@ -48,8 +48,18 @@ and '''long literals''' for SPARQL only.
 working group. Not all pass either because not implemented or
 known bugs.</p>
 
+<p>Added the revised 
+<em>SPARQL Query Results XML Format</em> (the latest version not yet published)
+support to <code>rasqal_query_results_write</code> when called with
+format URI <code>http://www.w3.org/2001/sw/DataAccess/rf1/result2</code>.
+</p>
+
 
 <h3>Query Engine Changes</h3>
+
+<p>Uses the query results limit and offset information to skip
+initial results (offset) and provide a maximum number of results (limit).
+</p>
 
 <p>Moved some engine-specific operations from RDQL and SPARQL parser.
 </p>
