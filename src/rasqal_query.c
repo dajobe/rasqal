@@ -1255,10 +1255,12 @@ rasqal_query_results_next(rasqal_query_results *query_results)
 
   /* rc<0 error rc=0 end of results,  rc>0 got a result */
   rc=rasqal_engine_get_next_result(query);
-  if(rc < 1)
+  if(rc < 1) /* <0 failure OR =0 end of results */
     query->finished=1;
-  if(rc < 0)
+  if(rc < 0) /* <0 failure */
     query->failed=1;
+  if(rc > 0) /* >0 match */
+    query->result_count++;
   
   return query->finished;
 }
