@@ -347,9 +347,11 @@ RASQAL_API void rasqal_graph_pattern_print(rasqal_graph_pattern* gp, FILE* fh);
 RASQAL_API int rasqal_graph_pattern_add_constraint(rasqal_graph_pattern* gp, rasqal_expression* expr);
 RASQAL_API raptor_sequence* rasqal_graph_pattern_get_constraint_sequence(rasqal_graph_pattern* gp);
 RASQAL_API rasqal_expression* rasqal_graph_pattern_get_constraint(rasqal_graph_pattern* gp, int idx);
-
+RASQAL_API raptor_sequence* rasqal_query_get_construct_triples_sequence(rasqal_query* query);
+RASQAL_API rasqal_triple* rasqal_query_get_construct_triple(rasqal_query* query, int idx);
 
 /* Utility methods */
+RASQAL_API const char* rasqal_query_verb_as_string(rasqal_query_verb verb);
 RASQAL_API void rasqal_query_print(rasqal_query* query, FILE *stream);
 
 /* Query */
