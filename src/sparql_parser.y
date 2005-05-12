@@ -698,10 +698,10 @@ Triples: Subject PropertyList
 #endif
   }
 
-  if($1) {
+  if($1 && $2) {
     if($1->triples) {
       raptor_sequence *seq=$2->triples;
-      
+
       raptor_sequence_join($1->triples, seq);
       $2->triples=$1->triples;
       $1->triples=seq;
