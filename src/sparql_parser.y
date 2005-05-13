@@ -324,6 +324,7 @@ DefaultGraphClause : FROM URI
   if($2) {
     raptor_uri* uri=rasqal_literal_as_uri($2);
     rasqal_query_add_data_graph((rasqal_query*)rq, uri, uri, RASQAL_DATA_GRAPH_BACKGROUND);
+    rasqal_free_literal($2);
   }
 }
 ;  
@@ -340,6 +341,7 @@ NamedGraphClause: FROM NAMED URI
   if($3) {
     raptor_uri* uri=rasqal_literal_as_uri($3);
     rasqal_query_add_data_graph((rasqal_query*)rq, uri, uri, RASQAL_DATA_GRAPH_NAMED);
+    rasqal_free_literal($3);
   }
 }
 ;
