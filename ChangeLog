@@ -1,6 +1,70 @@
+2005-05-13  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* sparql_parser.y: ItemList is now a raptor_sequence of rasqal_formula.
+	(ItemList): Update to do that, copy over any underlying triples
+	(Collection): Walk the list of formula to create the RDF collection
+	triples.
+
 2005-05-12  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
-	* roqet.c: Make -c/--count work properly.  Print count to stdout.
+	* tests/sparql/survey/Makefile.am: survey-11 works
+
+	* rasqal_engine.c (rasqal_engine_assign_variables): adjust anon
+	variables offsets to point to absolute index in full list of
+	variables (rasqal_query field variables)
+
+	* sparql_parser.y (Triples): When predicate list is empty, return
+	subject formula.
+
+	* sparql_parser.y (Triples): Protect when list is empty
+
+	* sparql_parser.y (Triples):
+	Copy along any triples from subject formula.
+
+	* rasqal_query.c, rasqal_engine.c (rasqal_query_prepare,
+	rasqal_engine_execute_init): Move
+	rasqal_engine_make_basic_graph_pattern call to
+	rasqal_query_prepare after factory has prepared (parsed)
+
+	* roqet.c: Really make sparql the default
+
+	* roqet.c (roqet_graph_pattern_walk): space
+
+	* roqet.c (roqet_graph_pattern_walk): Add {}s around constraints
+
+	* roqet.c (roqet_query_walk): Print bound variables.
+
+	* roqet.1: Updates for 0.9.9
+	Do not mention deprecated -f/--format and -o/--output.
+	Merge -f and -o into in -r/--results and complete the list.
+	Added V1 and V2 of sparql query results xml format.
+	For -i, note sparql is default query language.
+
+	* rasqal_general.c (rasqal_init):
+	sparql is now the default query language.
+
+	* roqet.c: Deprecated -f/--format and -o/--output both now in
+	-r/--results.  Add V1 and V2 xml results formats.  Deleted invalid
+	argument help for -r, see usage instead.
+
+	* roqet.c (roqet_write_indent): Added.
+	(roqet_graph_pattern_walk): Add lots of {...}s around blocks.  use
+	#number for gps, triples.  Change to use roqet_write_indent.
+	(roqet_query_walk): Take indent arg, use it with roqet_write_indent.
+	Walk constructed triples.
+
+	* rasqal_query.c (rasqal_query_get_construct_triples_sequence,
+	rasqal_query_get_construct_triple): Added, to get access to construct
+	triples via API.
+	(rasqal_query_verb_as_string): Added to get a string for a verb.
+	(rasqal_query_print): Use the above.
+
+	* rasqal.h:
+	Added prototypes for rasqal_query_get_construct_triples_sequence and
+	rasqal_query_get_construct_triple
+
+	* roqet.c: Make -c/--count work properly.
+	Print count to stdout.
 	Tidy result format wording.
 
 	* rasqal_query.c (rasqal_query_results_get_count):
