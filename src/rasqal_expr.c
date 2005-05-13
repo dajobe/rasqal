@@ -849,10 +849,10 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
           goto failed;
         }
         
-        len=strlen(s);
+        len=strlen((const char*)s);
 
         new_s=(unsigned char *)RASQAL_MALLOC(cstring, len+1);
-        strncpy(new_s, s, len+1);
+        strncpy((char*)new_s, (const char*)s, len+1);
 
         result=rasqal_new_string_literal(new_s, NULL, NULL, NULL);
         rasqal_free_literal(l);

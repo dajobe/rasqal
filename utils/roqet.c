@@ -317,7 +317,7 @@ roqet_query_walk(rasqal_query *rq, FILE *fh, int indent) {
 
       if(i > 0)
         fputs(", ", fh);
-      fputs(v->name, fh);
+      fputs((const char*)v->name, fh);
 
       i++;
     }

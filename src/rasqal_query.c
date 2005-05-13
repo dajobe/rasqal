@@ -2031,19 +2031,21 @@ rasqal_query_results_write_xml_result2(raptor_iostream *iostr,
     raptor_namespace* xsi_ns;
     raptor_namespace* xs_ns;
     xsi_ns=raptor_new_namespace(nstack,
-                                "xsi",
+                                (const unsigned char*)"xsi",
                                 (const unsigned char*)"http://www.w3.org/2001/XMLSchema-instance",
                                 0);
     raptor_xml_element_declare_namespace(sparql_element, xsi_ns);
     
     xs_ns=raptor_new_namespace(nstack,
-                               "xs",
+                               (const unsigned char*)"xs",
                                (const unsigned char*)"http://www.w3.org/2001/XMLSchema",
                                0);
     raptor_xml_element_declare_namespace(sparql_element, xs_ns);
 
     attrs=(raptor_qname **)raptor_alloc_memory(sizeof(raptor_qname*));
-    attrs[0]=raptor_new_qname_from_namespace_local_name(xsi_ns, (const unsigned char*)"schemaLocation",  "http://www.w3.org/2001/sw/DataAccess/rf1/result2.xsd");
+    attrs[0]=raptor_new_qname_from_namespace_local_name(xsi_ns,
+                                                        (const unsigned char*)"schemaLocation",  
+                                                        (const unsigned char*)"http://www.w3.org/2001/sw/DataAccess/rf1/result2.xsd");
     raptor_xml_element_set_attributes(sparql_element, attrs, 1);
   }
   
