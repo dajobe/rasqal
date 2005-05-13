@@ -160,9 +160,10 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...);
 %type <seq> SelectClause ConstructClause DescribeClause
 %type <seq> VarList VarOrURIList ArgList TriplesList
 %type <seq> ConstructTemplate OrderConditionList
+%type <seq> ItemList
 
 %type <formula> Triples
-%type <formula> PropertyList ObjectList ItemList Collection
+%type <formula> PropertyList ObjectList Collection
 %type <formula> Subject Predicate Object TriplesNode
 
 %type <graph_pattern> GraphPattern PatternElement
@@ -705,6 +706,12 @@ Triples: Subject PropertyList
       raptor_sequence_join($1->triples, seq);
       $2->triples=$1->triples;
       $1->triples=seq;
+
+#if RASQAL_DEBUG > 1  
+    printf(" after joining formula=");
+    rasqal_formula_print($2, stdout);
+    printf("\n\n");
+#endif
     }
   }
 
@@ -906,7 +913,7 @@ ObjectList: ObjectList ',' Object
     raptor_sequence_push($$->triples, triple);
 
 #if RASQAL_DEBUG > 1  
-    printf(" objectList is now ");
+    printf(" formula is now ");
     rasqal_formula_print($$, stdout);
     printf("\n\n");
 #endif
@@ -1018,12 +1025,11 @@ TriplesNode: '[' PropertyList ']'
 
 
 /* NEW Grammar Term pulled out of rq23 [38] Collection, based on Turtle */
+/* Sequence of formula */
 ItemList: ItemList Object
 {
-  rasqal_triple *triple;
-
 #if RASQAL_DEBUG > 1  
-  printf("Objectlist 1\n");
+  printf("ItemList 1\n");
   if($2) {
     printf(" Object=");
     rasqal_formula_print($2, stdout);
@@ -1032,43 +1038,28 @@ ItemList: ItemList Object
     printf(" and empty Object\n");
   if($1) {
     printf(" ItemList=");
-    rasqal_formula_print($1, stdout);
+    raptor_sequence_print($1, stdout);
     printf("\n");
   } else
-    printf(" and empty ObjectList\n");
+    printf(" and empty ItemList\n");
 #endif
 
   if(!$2)
     $$=NULL;
   else {
-    triple=rasqal_new_triple(NULL, NULL, $2->value);
-    $2->value=NULL;
-    
-    $$=$2;
-
-    if(!$$->triples) {
-#ifdef RASQAL_DEBUG
-      $$->triples=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_triple,
-                                      (raptor_sequence_print_handler*)rasqal_triple_print);
-#else
-      $$->triples=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_triple, NULL);
-#endif
-    }
-    raptor_sequence_push($$->triples, triple);
+    raptor_sequence_push($$, $2);
 #if RASQAL_DEBUG > 1  
-    printf(" objectList is now ");
-    raptor_sequence_print($$->triples, stdout);
+    printf(" itemList is now ");
+    raptor_sequence_print($$, stdout);
     printf("\n\n");
 #endif
   }
+
 }
 | Object
 {
-  rasqal_triple *triple;
-  rasqal_formula *formula;
-
 #if RASQAL_DEBUG > 1  
-  printf("ObjectList 2\n");
+  printf("ItemList 2\n");
   if($1) {
     printf(" Object=");
     rasqal_formula_print($1, stdout);
@@ -1077,29 +1068,21 @@ ItemList: ItemList Object
     printf(" and empty Object\n");
 #endif
 
-  if(!$1)
-    $$=NULL;
-  else {
-    formula=rasqal_new_formula();
-    triple=rasqal_new_triple(NULL, NULL, $1->value);
-    $1->value=NULL;
-    
+  $$=NULL;
+  if($1) {
 #ifdef RASQAL_DEBUG
-
-    formula->triples=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_triple,
-                           (raptor_sequence_print_handler*)rasqal_triple_print);
+    $$=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_formula,
+                           (raptor_sequence_print_handler*)rasqal_formula_print);
 #else
-    formula->triples=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_triple, NULL);
+    $$=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_formula, NULL);
 #endif
-    raptor_sequence_push(formula->triples, triple);
+    
+    raptor_sequence_push($$, $1);
 #if RASQAL_DEBUG > 1  
-    printf(" ObjectList is now ");
-    raptor_sequence_print(formula->triples, stdout);
+    printf(" ItemList is now ");
+    raptor_sequence_print($$, stdout);
     printf("\n\n");
 #endif
-    formula->value=NULL;
-
-    $$=formula;
   }
 }
 ;
@@ -1113,53 +1096,56 @@ Collection: '(' ItemList ')'
   rasqal_literal* first_identifier;
   rasqal_literal* rest_identifier;
   rasqal_literal* object;
-  raptor_sequence *seq=$2->triples;
 
-  $$=$2;
-  
 #if RASQAL_DEBUG > 1  
   printf("Collection\n ItemList=");
-  raptor_sequence_print(seq, stdout);
+  raptor_sequence_print($2, stdout);
   printf("\n");
 #endif
 
   first_identifier=rasqal_new_uri_literal(raptor_uri_copy(rasqal_rdf_first_uri));
   rest_identifier=rasqal_new_uri_literal(raptor_uri_copy(rasqal_rdf_rest_uri));
   
-  /* non-empty property list, handle it  */
-#if RASQAL_DEBUG > 1  
-  printf("resource\n propertyList=");
-  raptor_sequence_print(seq, stdout);
-  printf("\n");
-#endif
-
   object=rasqal_new_uri_literal(raptor_uri_copy(rasqal_rdf_nil_uri));
 
-  for(i=raptor_sequence_size(seq)-1; i>=0; i--) {
-    rasqal_triple* t2=(rasqal_triple*)raptor_sequence_get_at(seq, i);
+  $$=rasqal_new_formula();
+#ifdef RASQAL_DEBUG
+  $$->triples=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_triple,
+                                      (raptor_sequence_print_handler*)rasqal_triple_print);
+#else
+  $$->triples=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_triple, NULL);
+#endif
+  
+  for(i=raptor_sequence_size($2)-1; i>=0; i--) {
+    rasqal_formula* f=(rasqal_formula*)raptor_sequence_get_at($2, i);
     const unsigned char *blank_id=rasqal_query_generate_bnodeid(rdf_query, NULL);
     rasqal_literal* blank=rasqal_new_simple_literal(RASQAL_LITERAL_BLANK, blank_id);
-    t2->subject=rasqal_new_literal_from_literal(blank);
-    t2->predicate=rasqal_new_literal_from_literal(first_identifier);
-    /* t2->object already set to the value we want */
+    rasqal_triple *t2;
 
-    /* add new triple we needed */
+    /* Move existing formula triples */
+    if(f->triples)
+      raptor_sequence_join($$->triples, f->triples);
+
+    /* add new triples we needed */
+    t2=rasqal_new_triple(rasqal_new_literal_from_literal(blank),
+                         rasqal_new_literal_from_literal(first_identifier),
+                         rasqal_new_literal_from_literal(f->value));
+    raptor_sequence_push($$->triples, t2);
+
     t2=rasqal_new_triple(rasqal_new_literal_from_literal(blank),
                          rasqal_new_literal_from_literal(rest_identifier),
                          rasqal_new_literal_from_literal(object));
-    raptor_sequence_push(seq, t2);
+    raptor_sequence_push($$->triples, t2);
 
     rasqal_free_literal(object);
 
     object=blank;
   }
 
-  if($$->value)
-    rasqal_free_literal($$->value);
   $$->value=object;
   
 #if RASQAL_DEBUG > 1
-  printf(" after substitution objectList=");
+  printf(" after substitution collection=");
   rasqal_formula_print($$, stdout);
   printf("\n\n");
 #endif
