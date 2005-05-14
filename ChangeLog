@@ -1,4 +1,17 @@
+2005-05-14  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* sparql_parser.y (TriplesList):
+	Do not lose triples sequence after sequence join.
+
+	* rasqal_expr.c: docs
+
 2005-05-13  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* sparql_parser.y, roqet.c, rasqal_query.c, rasqal_expr.c:
+	Casts for C++
+
+	* sparql_parser.y (DefaultGraphClause, NamedGraphClause):
+	Free URI literal
 
 	* sparql_parser.y: ItemList is now a raptor_sequence of rasqal_formula.
 	(ItemList): Update to do that, copy over any underlying triples
