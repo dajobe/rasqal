@@ -104,7 +104,7 @@ rasqal_data_graph_print(rasqal_data_graph* dg, FILE* fh)
 /**
  * rasqal_new_variable_typed - Constructor - Create a new typed Rasqal variable
  * @rq: &rasqal_query to associate the variable with
- * @name: variable type defined by enumeration rasqal_variable_type
+ * @type: variable type defined by enumeration rasqal_variable_type
  * @name: variable name
  * @value: variable &rasqal_literal value (or NULL)
  * 
