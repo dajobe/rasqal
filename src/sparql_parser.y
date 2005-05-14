@@ -637,11 +637,9 @@ ConstructTemplate:  '{' TriplesList DotOptional '}'
 TriplesList: TriplesList '.' Triples
 {
   if($3) {
-    raptor_sequence *t=$3->triples;
+    if($3->triples)
+      raptor_sequence_join($1, $3->triples);
 
-    raptor_sequence_join($1, t);
-
-    $3->triples=NULL;
     rasqal_free_formula($3);
   }
   
