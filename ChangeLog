@@ -1,5 +1,8 @@
 2005-05-17  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
+	* rasqal_general.c, rasqal_literal.c, rasqal.h, rasqal_engine.c,
+	rasqal_expr.c: Casts for RASQAL_FREE.
+
 	* rdql_lexer.l, sparql_lexer.l: Use RASQAL_MALLOC/CALLOC/FREE
 
 	* configure.ac: Added --with-memory-signing rasqal signing memory
