@@ -431,12 +431,19 @@ static rasqal_triples_match*
 rasqal_new_triples_match(rasqal_query *query, void *user_data,
                          rasqal_triple_meta *m, rasqal_triple *t)
 {
+  rasqal_triples_match* rtm;
+
   if(!query->triples_source)
     return NULL;
   
-  return query->triples_source->new_triples_match(query->triples_source,
-                                                  query->triples_source->user_data,
-                                                  m, t);
+  rtm=(rasqal_triples_match *)RASQAL_CALLOC(rasqal_triples_match, sizeof(rasqal_triples_match), 1);
+  if(query->triples_source->init_triples_match(rtm,
+                                                 query->triples_source,
+                                                 query->triples_source->user_data,
+                                                 m, t))
+    RASQAL_FREE(rasqal_triples_match, rtm);
+
+  return rtm;
 }
 
 
