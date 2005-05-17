@@ -72,7 +72,7 @@ typedef struct {
 
 
 /* prototypes */
-static rasqal_triples_match* rasqal_raptor_new_triples_match(rasqal_triples_source *rts, void *user_data, rasqal_triple_meta *m, rasqal_triple *t);
+static int rasqal_raptor_init_triples_match(rasqal_triples_match* rtm, rasqal_triples_source *rts, void *user_data, rasqal_triple_meta *m, rasqal_triple *t);
 static int rasqal_raptor_triple_present(rasqal_triples_source *rts, void *user_data, rasqal_triple *t);
 static void rasqal_raptor_free_triples_source(void *user_data);
 
@@ -223,7 +223,7 @@ rasqal_raptor_new_triples_source(rasqal_query* rdf_query,
   if(!rdf_query->data_graphs)
     return -1;  /* no data */
 
-  rts->new_triples_match=rasqal_raptor_new_triples_match;
+  rts->init_triples_match=rasqal_raptor_init_triples_match;
   rts->triple_present=rasqal_raptor_triple_present;
   rts->free_triples_source=rasqal_raptor_free_triples_source;
 
@@ -489,15 +489,14 @@ rasqal_raptor_finish_triples_match(struct rasqal_triples_match_s* rtm,
 }
 
 
-static rasqal_triples_match*
-rasqal_raptor_new_triples_match(rasqal_triples_source *rts, void *user_data,
-                                rasqal_triple_meta *m, rasqal_triple *t) {
+static int
+rasqal_raptor_init_triples_match(rasqal_triples_match* rtm,
+                                 rasqal_triples_source *rts, void *user_data,
+                                 rasqal_triple_meta *m, rasqal_triple *t) {
   rasqal_raptor_triples_source_user_data* rtsc=(rasqal_raptor_triples_source_user_data*)user_data;
-  rasqal_triples_match *rtm;
   rasqal_raptor_triples_match_context* rtmc;
   rasqal_variable* var;
 
-  rtm=(rasqal_triples_match *)RASQAL_CALLOC(rasqal_triples_match, sizeof(rasqal_triples_match), 1);
   rtm->bind_match=rasqal_raptor_bind_match;
   rtm->next_match=rasqal_raptor_next_match;
   rtm->is_end=rasqal_raptor_is_end;
@@ -558,9 +557,9 @@ rasqal_raptor_new_triples_match(rasqal_triples_source *rts, void *user_data,
   }
   
     
-  RASQAL_DEBUG1("rasqal_new_triples_match done\n");
+  RASQAL_DEBUG1("rasqal_init_triples_match done\n");
 
-  return rtm;
+  return 0;
 }
 
 
