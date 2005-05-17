@@ -227,7 +227,7 @@ AC_TRY_LINK([#ifdef HAVE_GETOPT_H
 
 # raptor is REQUIRED despite the checking here
 AC_CHECK_PROG(RAPTOR_CONFIG, raptor-config, raptor-config)
-AC_ARG_WITH(raptor, [  --with-raptor=SOURCE    Pick raptor source - system/internal (default auto)], with_raptor="$withval", with_raptor="auto")
+AC_ARG_WITH(raptor, [  --with-raptor=SOURCE        Pick raptor source - system/internal (default auto)], with_raptor="$withval", with_raptor="auto")
 
 RAPTOR_MIN_VERSION=1.4.4
 AC_SUBST(RAPTOR_MIN_VERSION)
@@ -276,7 +276,7 @@ need_regex_pcre=0
 need_regex_posix=0
 
 AC_CHECK_PROG(PCRE_CONFIG, pcre-config, pcre-config)
-AC_ARG_WITH(pcre, [  --with-pcre-config=PATH    Location of PCRE pcre-config (auto)], pcre_config="$withval", pcre_config="")
+AC_ARG_WITH(pcre, [  --with-pcre-config=PATH     Location of PCRE pcre-config (auto)], pcre_config="$withval", pcre_config="")
 
 if test "X$pcre_config" != "X" ; then
   AC_MSG_CHECKING(for $pcre_config)
@@ -336,7 +336,7 @@ fi
 
 
 
-AC_ARG_WITH(regex-library, [  --with-regex-library=NAME  Use regex library - posix, pcre (auto)], regex_library="$withval", regex_library="") 
+AC_ARG_WITH(regex-library, [  --with-regex-library=NAME   Use regex library - posix, pcre (auto)], regex_library="$withval", regex_library="") 
 
 for regex_library_name in $regex_library posix pcre; do
   case $regex_library_name in
@@ -381,7 +381,7 @@ have_redland=0
 need_redland=0
 
 AC_CHECK_PROG(REDLAND_CONFIG, redland-config, redland-config)
-AC_ARG_WITH(redland-config, [  --with-redland-config=PATH Location of redland redland-config ()], redland_config="$withval", redland_config="")
+AC_ARG_WITH(redland-config, [  --with-redland-config=PATH  Location of redland redland-config ()], redland_config="$withval", redland_config="")
 
 if test "X$redland_config" != "X" ; then
   AC_MSG_CHECKING(for $redland_config)
@@ -519,7 +519,7 @@ fi
 MEM=
 MEM_LIBS=
 CPPFLAGS="-DRASQAL_INTERNAL=1 $CPPFLAGS"
-AC_ARG_WITH(dmalloc, [  --with-dmalloc          Use dmalloc debugging library (default=no)], use_dmalloc="$withval", use_dmalloc="no") 
+AC_ARG_WITH(dmalloc, [  --with-dmalloc              Use dmalloc debugging library (default=no)], use_dmalloc="$withval", use_dmalloc="no") 
 AC_MSG_CHECKING(using dmalloc library)
 if test "$USE_MAINTAINER_MODE" = yes; then
   if test "$ac_cv_header_dmalloc_h" = yes; then
@@ -540,6 +540,17 @@ fi
 if test "$USE_MAINTAINER_MODE" = yes; then
   CPPFLAGS="-g -DRASQAL_DEBUG=1 $CPPFLAGS"
 fi
+AC_ARG_WITH(memory-sign, [  --with-memory-signing       Sign allocated memory (default=auto)], use_memory_signing="$withval", use_memory_signing="auto") 
+AC_MSG_CHECKING(using memory signing)
+if test "$USE_MAINTAINER_MODE" = yes -a "X$use_memory_signing" = Xauto; then
+  use_memory_signing=yes
+fi
+AC_MSG_RESULT($use_memory_signing);
+if test $use_memory_signing = yes; then
+  MEM=-DRASQAL_MEMORY_SIGN=1
+  MEM_LIBS=
+fi
+
 STANDARD_CFLAGS="$STANDARD_CFLAGS $CFLAGS"
 if test "$USE_MAINTAINER_MODE" = yes; then
   CFLAGS="$MAINTAINER_CFLAGS $CFLAGS"
