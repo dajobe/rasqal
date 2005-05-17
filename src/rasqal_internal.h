@@ -53,9 +53,24 @@ extern "C" {
 #define RASQAL_DEBUG 1
 #endif
 
+#if defined(RASQAL_MEMORY_SIGN)
+#define RASQAL_SIGN_KEY 0x08A59A10
+void* rasqal_sign_malloc(size_t size);
+void* rasqal_sign_calloc(size_t nmemb, size_t size);
+void* rasqal_sign_realloc(void *ptr, size_t size);
+void rasqal_sign_free(void *ptr);
+  
+#define RASQAL_MALLOC(type, size)   rasqal_sign_malloc(size)
+#define RASQAL_CALLOC(type, nmemb, size) rasqal_sign_calloc(nmemb, size)
+#define RASQAL_REALLOC(type, ptr, size) rasqal_sign_realloc(ptr, size)
+#define RASQAL_FREE(type, ptr)   rasqal_sign_free(ptr)
+
+#else
 #define RASQAL_MALLOC(type, size) malloc(size)
 #define RASQAL_CALLOC(type, size, count) calloc(size, count)
 #define RASQAL_FREE(type, ptr)   free((void*)ptr)
+
+#endif
 
 #ifdef RASQAL_DEBUG
 /* Debugging messages */
@@ -96,6 +111,7 @@ void rasqal_system_free(void *ptr);
 /* Fatal errors - always happen */
 #define RASQAL_FATAL1(msg) do {fprintf(stderr, "%s:%d:%s: fatal error: " msg, __FILE__, __LINE__ , __func__); abort();} while(0)
 #define RASQAL_FATAL2(msg,arg) do {fprintf(stderr, "%s:%d:%s: fatal error: " msg, __FILE__, __LINE__ , __func__, arg); abort();} while(0)
+#define RASQAL_FATAL3(msg,arg1,arg2) do {fprintf(stderr, "%s:%d:%s: fatal error: " msg, __FILE__, __LINE__ , __func__, arg1, arg2); abort();} while(0)
 
 #define RASQAL_DEPRECATED_MESSAGE(msg) do {static int warning_given=0; if(!warning_given++) fprintf(stderr, "Function %s is deprecated - " msg,  __func__); } while(0)
 
