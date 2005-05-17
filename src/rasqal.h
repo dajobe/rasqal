@@ -445,8 +445,8 @@ RASQAL_API RASQAL_DEPRECATED void rasqal_triple_set_flags(rasqal_triple* t, unsi
 RASQAL_API RASQAL_DEPRECATED unsigned int rasqal_triple_get_flags(rasqal_triple* t);
 
 /* Variable class */
-RASQAL_API rasqal_variable* rasqal_new_variable_typed(rasqal_query* rq, rasqal_variable_type type, const unsigned char *name, rasqal_literal *value);
-RASQAL_API rasqal_variable* rasqal_new_variable(rasqal_query* query, const unsigned char *name, rasqal_literal *value);
+RASQAL_API rasqal_variable* rasqal_new_variable_typed(rasqal_query* rq, rasqal_variable_type type, unsigned char *name, rasqal_literal *value);
+RASQAL_API rasqal_variable* rasqal_new_variable(rasqal_query* query, unsigned char *name, rasqal_literal *value);
 RASQAL_API void rasqal_free_variable(rasqal_variable* variable);
 RASQAL_API void rasqal_variable_print(rasqal_variable* t, FILE* fh);
 RASQAL_API void rasqal_variable_set_value(rasqal_variable* v, rasqal_literal *l);

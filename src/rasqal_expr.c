@@ -118,7 +118,7 @@ rasqal_data_graph_print(rasqal_data_graph* dg, FILE* fh)
 rasqal_variable*
 rasqal_new_variable_typed(rasqal_query* rq,
                           rasqal_variable_type type, 
-                          const unsigned char *name, rasqal_literal *value)
+                          unsigned char *name, rasqal_literal *value)
 {
   int i;
   rasqal_variable* v;
@@ -182,7 +182,7 @@ rasqal_new_variable_typed(rasqal_query* rq,
  **/
 rasqal_variable*
 rasqal_new_variable(rasqal_query* rq,
-                    const unsigned char *name, rasqal_literal *value) 
+                    unsigned char *name, rasqal_literal *value) 
 {
   return rasqal_new_variable_typed(rq, RASQAL_VARIABLE_TYPE_NORMAL, name, value);
 }
@@ -197,7 +197,7 @@ void
 rasqal_free_variable(rasqal_variable* v)
 {
   if(v->name)
-    RASQAL_FREE(cstring, v->name);
+    RASQAL_FREE(cstring, (void*)v->name);
   if(v->value)
     rasqal_free_literal(v->value);
   RASQAL_FREE(rasqal_variable, v);
@@ -272,7 +272,7 @@ void
 rasqal_free_prefix(rasqal_prefix* p)
 {
   if(p->prefix)
-    RASQAL_FREE(cstring, p->prefix);
+    RASQAL_FREE(cstring, (void*)p->prefix);
   raptor_free_uri(p->uri);
   RASQAL_FREE(rasqal_prefix, p);
 }

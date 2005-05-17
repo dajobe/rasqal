@@ -164,7 +164,7 @@ rasqal_literal_string_to_native(rasqal_literal *l)
     int i=atoi((const char*)l->string);
 
     if(l->language) {
-      RASQAL_FREE(cstring, l->language);
+      RASQAL_FREE(cstring, (void*)l->language);
       l->language=NULL;
     }
 
@@ -178,7 +178,7 @@ rasqal_literal_string_to_native(rasqal_literal *l)
     sscanf((char*)l->string, "%lf", &d);
 
     if(l->language) {
-      RASQAL_FREE(cstring, l->language);
+      RASQAL_FREE(cstring, (void*)l->language);
       l->language=NULL;
     }
 
@@ -194,7 +194,7 @@ rasqal_literal_string_to_native(rasqal_literal *l)
        b=1;
     
     if(l->language) {
-      RASQAL_FREE(cstring, l->language);
+      RASQAL_FREE(cstring, (void*)l->language);
       l->language=NULL;
     }
 
@@ -238,7 +238,7 @@ rasqal_new_string_literal(const unsigned char *string,
   rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, sizeof(rasqal_literal), 1);
 
   if(datatype && language) {
-    RASQAL_FREE(cstring, language);
+    RASQAL_FREE(cstring, (void*)language);
     language=NULL;
   }
 
@@ -353,15 +353,15 @@ rasqal_free_literal(rasqal_literal* l)
     case RASQAL_LITERAL_FLOATING:
     case RASQAL_LITERAL_INTEGER: 
      if(l->string)
-        RASQAL_FREE(cstring,l->string);
+        RASQAL_FREE(cstring, (void*)l->string);
       if(l->language)
-        RASQAL_FREE(cstring,l->language);
+        RASQAL_FREE(cstring, (void*)l->language);
       if(l->datatype)
         raptor_free_uri(l->datatype);
       if(l->type == RASQAL_LITERAL_STRING ||
          l->type == RASQAL_LITERAL_PATTERN) {
         if(l->flags)
-          RASQAL_FREE(cstring, l->flags);
+          RASQAL_FREE(cstring, (void*)l->flags);
       }
       break;
 
@@ -1041,7 +1041,7 @@ rasqal_literal_expand_qname(void *user_data, rasqal_literal *l)
                                                rasqal_query_simple_error, rq);
     if(!uri)
       return 1;
-    RASQAL_FREE(cstring, l->string);
+    RASQAL_FREE(cstring, (void*)l->string);
     l->string=NULL;
     l->type=RASQAL_LITERAL_URI;
     l->value.uri=uri;
@@ -1057,11 +1057,11 @@ rasqal_literal_expand_qname(void *user_data, rasqal_literal *l)
       if(!uri)
         return 1;
       l->datatype=uri;
-      RASQAL_FREE(cstring, l->flags);
+      RASQAL_FREE(cstring, (void*)l->flags);
       l->flags=NULL;
 
       if(l->language && uri) {
-        RASQAL_FREE(cstring, l->language);
+        RASQAL_FREE(cstring, (void*)l->language);
         l->language=NULL;
       }
 

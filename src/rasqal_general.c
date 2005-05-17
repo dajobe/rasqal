@@ -157,12 +157,12 @@ rasqal_delete_query_engine_factories(void)
     if(factory->finish_factory)
       factory->finish_factory(factory);
 
-    RASQAL_FREE(rasqal_query_engine_factory, factory->name);
-    RASQAL_FREE(rasqal_query_engine_factory, factory->label);
+    RASQAL_FREE(rasqal_query_engine_factory, (void*)factory->name);
+    RASQAL_FREE(rasqal_query_engine_factory, (void*)factory->label);
     if(factory->alias)
-      RASQAL_FREE(rasqal_query_engine_factory, factory->alias);
+      RASQAL_FREE(rasqal_query_engine_factory, (void*)factory->alias);
     if(factory->uri_string)
-      RASQAL_FREE(rasqal_query_engine_factory, factory->uri_string);
+      RASQAL_FREE(rasqal_query_engine_factory, (void*)factory->uri_string);
 
     RASQAL_FREE(rasqal_query_engine_factory, factory);
   }

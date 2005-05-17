@@ -254,7 +254,7 @@ rasqal_engine_convert_blank_node_to_anonymous_variable(rasqal_query *rq,
   
   v=rasqal_new_variable_typed(rq, 
                               RASQAL_VARIABLE_TYPE_ANONYMOUS,
-                              l->string, NULL);
+                              (unsigned char*)l->string, NULL);
 
   /* Convert the blank node literal into a variable literal */
   l->string=NULL;
