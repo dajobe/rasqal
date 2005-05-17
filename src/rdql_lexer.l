@@ -379,10 +379,10 @@ rdql_copy_regex_token(rasqal_query* rq, YYSTYPE* lval, unsigned char delim) {
 
       if(new_buffer_len<10)
         new_buffer_len=10;
-      new_buffer=(unsigned char *)calloc(1, new_buffer_len+1);
+      new_buffer=(unsigned char *)RASQAL_CALLOC(cstring, 1, new_buffer_len+1);
       if(buffer_len) {
         strncpy((char*)new_buffer, (const char*)buffer, buffer_len);
-        free(buffer);
+        RASQAL_FREE(cstring, buffer);
       }
       buffer=new_buffer;
       buffer_len=new_buffer_len;
@@ -409,10 +409,10 @@ rdql_copy_regex_token(rasqal_query* rq, YYSTYPE* lval, unsigned char delim) {
 
       if(new_flags_len<5)
         new_flags_len=5;
-      new_flags=(unsigned char *)calloc(1, new_flags_len+1);
+      new_flags=(unsigned char *)RASQAL_CALLOC(cstring, 1, new_flags_len+1);
       if(flags_len) {
         strncpy((char*)new_flags, (const char*)flags, flags_len);
-        free(flags);
+        RASQAL_FREE(cstring, flags);
       }
       flags=new_flags;
       flags_len=new_flags_len;
@@ -460,7 +460,7 @@ rdql_copy_string_token(rasqal_query* rq, YYSTYPE* lval,
         s++; i++;
         if(i+ulen > len) {
           printf("\\%c over end of line", c);
-          free(string);
+          RASQAL_FREE(cstring, string);
           return 1;
         }
         
@@ -470,7 +470,7 @@ rdql_copy_string_token(rasqal_query* rq, YYSTYPE* lval,
         
         if(unichar < 0 || unichar > 0x10ffff) {
           rdql_syntax_error(rq, "RDQL syntax error - Illegal Unicode character with code point #x%lX.", unichar);
-          free(string);
+          RASQAL_FREE(cstring, string);
           return 1;
         }
           
@@ -771,11 +771,11 @@ rdql_token_free(int token, YYSTYPE *lval)
       raptor_free_uri(lval->uri);
       break;
     case IDENTIFIER:
-      free(lval->name);
+      RASQAL_FREE(cstring, lval->name);
       break;
     case QNAME_LITERAL:
       if(lval->name)
-        free(lval->name);
+        RASQAL_FREE(cstring, lval->name);
       break;
     default:
       break;
@@ -805,7 +805,7 @@ main(int argc, char *argv[])
 
   if(argc > 1) {
     FILE *fh;
-    query_string=(char*)calloc(FILE_READ_BUF_SIZE, 1);
+    query_string=(char*)RASQAL_CALLOC(cstring, FILE_READ_BUF_SIZE, 1);
     filename=argv[1];
     fh=fopen(filename, "r");
     if(fh) {
@@ -818,7 +818,7 @@ main(int argc, char *argv[])
     }
   } else {
     filename="<stdin>";
-    query_string=(char*)calloc(FILE_READ_BUF_SIZE, 1);
+    query_string=(char*)RASQAL_CALLOC(cstring, FILE_READ_BUF_SIZE, 1);
     fread(query_string, FILE_READ_BUF_SIZE, 1, stdin);
   }
 
@@ -877,7 +877,7 @@ main(int argc, char *argv[])
 
   raptor_free_uri(rq.base_uri);
 
-  free(query_string);
+  RASQAL_FREE(cstring, query_string);
 
   rasqal_finish();
 

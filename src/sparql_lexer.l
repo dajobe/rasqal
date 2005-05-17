@@ -477,7 +477,7 @@ sparql_copy_string_token(rasqal_query* rq, YYSTYPE* lval,
         s++; i++;
         if(i+ulen > len) {
           printf("\\%c over end of line", c);
-          free(string);
+          RASQAL_FREE(cstring, string);
           return 1;
         }
         
@@ -487,7 +487,7 @@ sparql_copy_string_token(rasqal_query* rq, YYSTYPE* lval,
         
         if(unichar < 0 || unichar > 0x10ffff) {
           sparql_syntax_error(rq, "SPARQL syntax error - illegal Unicode character with code point #x%lX.", unichar);
-          free(string);
+          RASQAL_FREE(cstring, string);
           return 1;
         }
           
@@ -570,7 +570,7 @@ sparql_copy_string_token(rasqal_query* rq, YYSTYPE* lval,
         RASQAL_FREE(cstring, dt_s);
         if(language)
           RASQAL_FREE(cstring, language);
-        free(string);
+        RASQAL_FREE(cstring, string);
         return 1;
       }
   
@@ -582,7 +582,7 @@ sparql_copy_string_token(rasqal_query* rq, YYSTYPE* lval,
       if(!dt_uri) {
         if(language)
           RASQAL_FREE(cstring, language);
-        free(string);
+        RASQAL_FREE(cstring, string);
         return 1;
       }
 #endif
@@ -903,11 +903,11 @@ sparql_token_free(int token, YYSTYPE *lval)
       break;
     case IDENTIFIER:
     case BLANK_LITERAL:
-      free(lval->name);
+      RASQAL_FREE(cstring, lval->name);
       break;
     case QNAME_LITERAL:
       if(lval->name)
-        free(lval->name);
+        RASQAL_FREE(cstring, lval->name);
       break;
     default:
       break;
@@ -937,7 +937,7 @@ main(int argc, char *argv[])
   
   if(argc > 1) {
     FILE *fh;
-    query_string=(char*)calloc(FILE_READ_BUF_SIZE, 1);
+    query_string=(char*)RASQAL_CALLOC(cstring, FILE_READ_BUF_SIZE, 1);
     filename=argv[1];
     fh=fopen(filename, "r");
     if(fh) {
@@ -950,7 +950,7 @@ main(int argc, char *argv[])
     }
   } else {
     filename="<stdin>";
-    query_string=(char*)calloc(FILE_READ_BUF_SIZE, 1);
+    query_string=(char*)RASQAL_CALLOC(cstring, FILE_READ_BUF_SIZE, 1);
     fread(query_string, FILE_READ_BUF_SIZE, 1, stdin);
   }
 
@@ -1001,7 +1001,7 @@ main(int argc, char *argv[])
 
   raptor_free_uri(rq.base_uri);
 
-  free(query_string);
+  RASQAL_FREE(cstring, query_string);
 
   rasqal_finish();
 
