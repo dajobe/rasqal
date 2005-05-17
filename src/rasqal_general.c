@@ -814,6 +814,72 @@ rasqal_query_generate_bnodeid(rasqal_query* rdf_query,
 
 
 
+#if defined (RASQAL_DEBUG) && defined(RASQAL_MEMORY_SIGN)
+void*
+rasqal_sign_malloc(size_t size)
+{
+  int *p;
+  
+  size += sizeof(int);
+  
+  p=(int*)malloc(size);
+  *p++ = RASQAL_SIGN_KEY;
+  return p;
+}
+
+void*
+rasqal_sign_calloc(size_t nmemb, size_t size)
+{
+  int *p;
+  
+  /* turn into bytes */
+  size = nmemb*size + sizeof(int);
+  
+  p=(int*)calloc(1, size);
+  *p++ = RASQAL_SIGN_KEY;
+  return p;
+}
+
+void*
+rasqal_sign_realloc(void *ptr, size_t size)
+{
+  int *p;
+
+  if(!ptr)
+    return rasqal_sign_malloc(size);
+  
+  p=(int*)ptr;
+  p--;
+
+  if(*p != RASQAL_SIGN_KEY)
+    RASQAL_FATAL3("memory signature %08X != %08X", *p, RASQAL_SIGN_KEY);
+
+  size += sizeof(int);
+  
+  p=(int*)realloc(p, size);
+  *p++= RASQAL_SIGN_KEY;
+  return p;
+}
+
+void
+rasqal_sign_free(void *ptr)
+{
+  int *p;
+
+  if(!ptr)
+    return;
+  
+  p=(int*)ptr;
+  p--;
+
+  if(*p != RASQAL_SIGN_KEY)
+    RASQAL_FATAL3("memory signature %08X != %08X", *p, RASQAL_SIGN_KEY);
+
+  free(p);
+}
+#endif
+
+
 #if defined (RASQAL_DEBUG) && defined(HAVE_DMALLOC_H) && defined(RASQAL_MEMORY_DEBUG_DMALLOC)
 
 #undef malloc
