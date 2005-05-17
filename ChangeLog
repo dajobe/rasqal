@@ -1,3 +1,19 @@
+2005-05-17  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rdql_lexer.l, sparql_lexer.l: Use RASQAL_MALLOC/CALLOC/FREE
+
+	* configure.ac: Added --with-memory-signing rasqal signing memory
+	debugging
+
+	* rasqal_general.c (rasqal_sign_malloc, rasqal_sign_calloc,
+	rasqal_sign_realloc, rasqal_sign_free): Added rasqal signing
+	memory debugging trigged by RASQAL_MEMORY_SIGN.
+
+	* rasqal_internal.h: Added rasqal signing memory debugging trigged
+	by RASQAL_MEMORY_SIGN
+
+	* rasqal_query_test.c (main): Use RASQAL_MALLOC/FREE
+
 2005-05-14  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
 	* sparql_parser.y (TriplesList):
