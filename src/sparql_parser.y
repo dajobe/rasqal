@@ -614,7 +614,8 @@ UnionGraphPatternList: UnionGraphPatternList UNION GraphPattern
 }
 | GraphPattern
 {
-  raptor_sequence *seq=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_graph_pattern, (raptor_sequence_print_handler*)rasqal_graph_pattern_print);
+  raptor_sequence *seq;
+  seq=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_graph_pattern, (raptor_sequence_print_handler*)rasqal_graph_pattern_print);
   if($1)
     raptor_sequence_push(seq, $1);
   $$=rasqal_new_graph_pattern_from_sequence((rasqal_query*)rq, seq, 0);
@@ -902,14 +903,9 @@ ObjectList: ObjectList ',' Object
     
     triple=rasqal_new_triple(NULL, NULL, object);
 
-    if(!$$->triples) {
-#ifdef RASQAL_DEBUG
-      $$->triples=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_triple,
-                                      (raptor_sequence_print_handler*)rasqal_triple_print);
-#else
-      $$->triples=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_triple, NULL);
-#endif
-    }
+    if(!$$->triples)
+      $$->triples=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_triple, (raptor_sequence_print_handler*)rasqal_triple_print);
+
     raptor_sequence_push($$->triples, triple);
 
 #if RASQAL_DEBUG > 1  
@@ -1069,21 +1065,15 @@ ItemList: ItemList Object
 #endif
 
   $$=NULL;
-  if($1) {
-#ifdef RASQAL_DEBUG
-    $$=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_formula,
-                           (raptor_sequence_print_handler*)rasqal_formula_print);
-#else
-    $$=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_formula, NULL);
-#endif
-    
-    raptor_sequence_push($$, $1);
+  if($1)
+    $$=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_formula, (raptor_sequence_print_handler*)rasqal_formula_print);
+
+  raptor_sequence_push($$, $1);
 #if RASQAL_DEBUG > 1  
-    printf(" ItemList is now ");
-    raptor_sequence_print($$, stdout);
-    printf("\n\n");
+  printf(" ItemList is now ");
+  raptor_sequence_print($$, stdout);
+  printf("\n\n");
 #endif
-  }
 }
 ;
 
@@ -1109,13 +1099,8 @@ Collection: '(' ItemList ')'
   object=rasqal_new_uri_literal(raptor_uri_copy(rasqal_rdf_nil_uri));
 
   $$=rasqal_new_formula();
-#ifdef RASQAL_DEBUG
-  $$->triples=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_triple,
-                                      (raptor_sequence_print_handler*)rasqal_triple_print);
-#else
-  $$->triples=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_triple, NULL);
-#endif
-  
+  $$->triples=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_triple, (raptor_sequence_print_handler*)rasqal_triple_print);
+
   for(i=raptor_sequence_size($2)-1; i>=0; i--) {
     rasqal_formula* f=(rasqal_formula*)raptor_sequence_get_at($2, i);
     const unsigned char *blank_id=rasqal_query_generate_bnodeid(rdf_query, NULL);
