@@ -13,6 +13,19 @@
 <p>Not yet released.
 </p>
 
+<h3>General Changes</h3>
+
+<p>SPARQL is now the default query language</p>
+
+<p>Added a signing memory debugging system to aid checking when
+rasqal-allocated memory is freed in another library or vice-versa
+enabled by <code>--with-memory-signing</code> configure option
+(defaults to on in maintainer mode).</p>
+
+<p>Fixed a few internal malloc/frees to use RASQAL_MALLOC / RASQAL_FREE
+so that the above signed memory system worked.</p>
+
+
 <h3>SPARQL Query Language Changes</h3>
 
 <p>Grammar updated to follow the
@@ -129,7 +142,25 @@ top graph pattern.</p>
 wildcard flag such as with SPARQL <code>SELECT *</code>
 </p>
 
+<p>Added <code>rasqal_query_get_construct_triples_sequence</code> and
+<code>rasqal_query_get_construct_triple</code> to get the triples
+made from a SPARQL <code>CONSTRUCT</code> query.</p>
 
+
+<h3><code>roqet</code> utility program changes</h3>
+
+<p>Updated roqet to include better query structure walking with
+<code>-w</code> / <code>--walk</code> including listing query verb,
+distinct, limit, offset flags, construct triples and easier to read
+groupings of graph patterns and triples.</p>
+
+<p>Deprecated roqet arguments <code>-f</code> / <code>--format</code>
+and <code>-o</code> / <code>--output</code> in place of
+<code>-r</code> / <code>--results</code> as both choose the query
+results format.
+</p>
+
+<p>SPARQL is now the default query language for roqet.</p>
 
 
 
