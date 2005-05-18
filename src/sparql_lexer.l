@@ -140,15 +140,15 @@ LANGUAGETOKEN [A-Za-z][-A-Z_a-z0-9]*
 /* rq23 [86] NCCHAR1 */
 NCCHAR1 [A-Za-z\\\x80-\xff]
 /* rq23 [87] NCCHAR = NCCHAR1 + '_' + '-' + .' + [0-9]*/
-NCCHAR [-0-9A-Za-z\\\x80-\xff\.]
+NCCHAR [-A-Za-z\\\x80-\xff_\.0-9]
 /* rq23 [88] NCCHAR_PREFIX */
 NCNAME_PREFIX {NCCHAR1}{NCCHAR}*
 /* Taken from rq23 [89] NCNAME first clause = NCCHAR1 + '_' */
-NCCHARU [A-Za-z_\\\x80-\xff]
+NCCHARU [A-Za-z\\\x80-\xff_]
 /* rq23 [89] NCNAME */
 NCNAME {NCCHARU}{NCCHAR}*
-/* Taken from rq23 [90] VARNAME = NCCHAR1 set + '_' */
-NCCHARV [0-9A-Za-z_\\\x80-\xff]
+/* Taken from rq23 [90] VARNAME = NCCHAR1 set + '_' + [0-9] */
+NCCHARV [A-Za-z\\\x80-\xff_0-9]
 /* rq23 [90] VARNAME  */
 VARNAME {NCCHARV}{NCCHARV}*
 
