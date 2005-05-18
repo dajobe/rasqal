@@ -814,6 +814,63 @@ rasqal_query_generate_bnodeid(rasqal_query* rdf_query,
 
 
 
+/**
+ * rasqal_free_memory - Free memory allocated inside rasqal.
+ * @ptr: memory pointer
+ * 
+ * Some systems require memory allocated in a library to
+ * be deallocated in that library.  This function allows
+ * memory allocated by rasqal to be freed.
+ *
+ **/
+void
+rasqal_free_memory(void *ptr)
+{
+  RASQAL_FREE(void, ptr);
+}
+
+
+/**
+ * rasqal_alloc_memory - Allocate memory inside rasqal.
+ * @size: size of memory to allocate
+ * 
+ * Some systems require memory allocated in a library to
+ * be deallocated in that library.  This function allows
+ * memory to be allocated inside the rasqal shared library
+ * that can be freed inside rasqal either internally or via
+ * rasqal_free_memory.
+ *
+ * Return value: the address of the allocated memory or NULL on failure
+ *
+ **/
+void*
+rasqal_alloc_memory(size_t size)
+{
+  return RASQAL_MALLOC(void, size);
+}
+
+
+/**
+ * rasqal_calloc_memory - Allocate zeroed array of items inside rasqal.
+ * @nmemb: number of members
+ * @size: size of item
+ * 
+ * Some systems require memory allocated in a library to
+ * be deallocated in that library.  This function allows
+ * memory to be allocated inside the rasqal shared library
+ * that can be freed inside rasqal either internally or via
+ * rasqal_free_memory.
+ *
+ * Return value: the address of the allocated memory or NULL on failure
+ *
+ **/
+void*
+rasqal_calloc_memory(size_t nmemb, size_t size)
+{
+  return RASQAL_CALLOC(void, nmemb, size);
+}
+
+
 #if defined (RASQAL_DEBUG) && defined(RASQAL_MEMORY_SIGN)
 void*
 rasqal_sign_malloc(size_t size)
