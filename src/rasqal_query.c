@@ -1087,7 +1087,7 @@ static const char* rasqal_query_verb_labels[RASQAL_QUERY_VERB_LAST+1]={
 /* Utility methods */
 
 /**
- * rasqal_query_verb_as_string - Get a string forthe the query verb
+ * rasqal_query_verb_as_string - Get a string for the query verb
  * @verb: the &rasqal_query_verb verb of the query
  * 
  * Return value: pointer to a shared string label for the query verb
