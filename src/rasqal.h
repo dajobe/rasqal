@@ -451,6 +451,11 @@ RASQAL_API void rasqal_free_variable(rasqal_variable* variable);
 RASQAL_API void rasqal_variable_print(rasqal_variable* t, FILE* fh);
 RASQAL_API void rasqal_variable_set_value(rasqal_variable* v, rasqal_literal *l);
 
+/* memory functions */
+RASQAL_API void rasqal_free_memory(void *ptr);
+RASQAL_API void* rasqal_alloc_memory(size_t size);
+RASQAL_API void* rasqal_calloc_memory(size_t nmemb, size_t size);
+
 /* rasqal_engine.c */
 
 typedef enum {
