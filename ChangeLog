@@ -1,5 +1,23 @@
 2005-05-18  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
+	* sparql_parser.y: Add print handler to all sequences, not
+	conditional on debugging.
+
+	* configure.ac: default memory-signing no
+
+	* rasqal_general.c:
+	(rasqal_free_memory, rasqal_alloc_memory, rasqal_calloc_memory):
+	Added, for allocating and freeingmemory inside rasqal.
+
+	* rasqal.h: Added prototypes for rasqal_free_memory,
+	rasqal_alloc_memory and rasqal_calloc_memory
+
+	* librasqal.3: Updates for 0.9.9
+
+	* rasqal_query.c: thethe
+
+	* configure.ac, roqet.c: Bugs to http://bugs.librdf.org/
+
 	* sparql_lexer.l (NCCHAR): Add _ which the comment says but wasn't
 	actually done.
 	(NCCHARV): Adjust comment to match regex
