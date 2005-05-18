@@ -7,7 +7,7 @@
 .\" Institute for Learning and Research Technology - http://www.ilrt.bristol.ac.uk/
 .\" University of Bristol - http://www.bristol.ac.uk/
 .\"
-.TH librasqal 3 "2005-05-06"
+.TH librasqal 3 "2005-05-18"
 .\" Please adjust this date whenever revising the manpage.
 .SH NAME
 librasqal \- Rasqal RDF query library
@@ -94,6 +94,8 @@ Create a new rasqal query object for the query syntax with name
 \fIname\fR.  Currently "rdql" for the RDF Data Query Language
 and "sparql" for the SPARQL query language are recognised.
 A language may alternatively be identified by a URI \fIuri\fP.
+If \fIname\fR and \fIuri\fP are both NULL the default query language
+is selected, currently "sparql".
 .SH "QUERY DESTRUCTOR"
 .IP "\fBvoid rasqal_free_query(rasqal_query* \fIquery\fB)\fR"
 Destroy a rasqal query object.
@@ -217,6 +219,12 @@ a blank node or bag identifier is required.  The memory returned
 is deallocated inside rasqal.  Some systems require this to be
 allocated inside the same library, in which case the 
 \fBrasqal_alloc_memory\fP function may be useful.
+.IP "\fBrasqal_query_verb_as_string(rasqal_query_verb \fIverb\fP)\fR"
+Get a string for the query \fIverb\fP.
+.IP "\fBraptor_sequence* rasqal_query_get_construct_triples_sequence(rasqal_query* \fIquery\fP)\fR"
+Get the sequence of triples for a construct.
+.IP "\fBrasqal_triple* rasqal_query_get_construct_triple(rasqal_query* \fIquery\fP, int \fIidx\fP)\fR"
+Get a triple in the sequence of construct triples.
 .SH "GRAPH PATTERN CLASS"
 A class for graph patterns in a query - a set of triple patterns)
 with flags and possible sub-graph patterns
@@ -272,9 +280,11 @@ format.  Only one of these will be non-0 for any result.
 .IP "\fBint rasqal_query_results_write(raptor_iostream *\fIiostr\fP, rasqal_query_results *\fIresults\fP, raptor_uri *\fIformat_uri\fP, raptor_uri *\fIbase_uri\fP)\fR"
 Write the query results in a syntax to the \fIiostr\fP iostream, the
 format of the syntax is given by the \fIformat_uri\fP URI, with
-an optional base URI \fIbase_uri\fP that may be used.  The only
-value of \fIformat_uri\fP currently supported is
-\fIhttp://www.w3.org/TR/2004/WD-rdf-sparql-XMLres-20041221/\fP.
+an optional base URI \fIbase_uri\fP that may be used.  The
+values of \fIformat_uri\fP currently supported are
+\fIhttp://www.w3.org/TR/2004/WD-rdf-sparql-XMLres-20041221/\fP
+and
+\fIhttp://www.w3.org/2001/sw/DataAccess/rf1/result2\fP
 .SH "QUERY VARIABLE BINDINGS RESULTS METHODS"
 .IP "\fBint rasqal_query_results_get_count(rasqal_query_results *\fIquery_result\fP)\fR"
 Get the current number of variable bindings results returned.
@@ -514,6 +524,8 @@ Print a data graph in a debug format.  This format may change in any release.
 .SS 0.9.9
 .LP
 Added query methods
+\fBrasqal_query_get_construct_triple\fP,
+\fBrasqal_query_get_construct_triples_sequence\fP,
 \fBrasqal_query_get_offset\fP,
 \fBrasqal_query_get_order_condition\fP,
 \fBrasqal_query_get_order_conditions_sequence\fP,
@@ -538,6 +550,8 @@ Added enum \fBrasqal_query_verb\fP for the main query verbs with
 values \fBRASQAL_QUERY_VERB_SELECT\fP,
 \fBRASQAL_QUERY_VERB_CONSTRUCT\fP \fBRASQAL_QUERY_VERB_DESCRIBE\fP
 and \fBRASQAL_QUERY_VERB_ASK\fP.
+.LP
+Added \fBrasqal_query_verb_as_string\fP to get a strign for a query verb.
 .LP
 Deprecated the \fBrasqal_triple\fP flags field and the triple methods
 \fBrasqal_triple_set_flags\fP and \fBrasqal_triple_get_flags\fP.
