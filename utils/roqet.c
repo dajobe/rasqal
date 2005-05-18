@@ -585,7 +585,7 @@ main(int argc, char *argv[])
     puts(HELP_TEXT("s", "source URI      ", "Query against RDF data at source URI"));
     puts(HELP_TEXT("v", "version         ", "Print the Rasqal version"));
     puts(HELP_TEXT("w", "walk-query      ", "Walk the prepared query using the API"));
-    puts("\nReport bugs to <redland-dev@lists.librdf.org>.");
+    puts("\nReport bugs to http://bugs.librdf.org/");
     puts("Rasqal home page: http://librdf.org/rasqal/");
     exit(0);
   }
