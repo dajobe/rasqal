@@ -1,3 +1,9 @@
+2005-05-19  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal.h: RASQAL_API before public statics
+
+	* win32_rasqal_config.h: Added #define YY_NO_UNISTD_H
+
 2005-05-18  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
 	* sparql_parser.y: Add print handler to all sequences, not
