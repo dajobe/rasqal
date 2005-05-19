@@ -1,5 +1,7 @@
 EXTRA_DIST=\
-rasqal.dsp rasqal.dsw
+README.txt \
+rasqal.dsp rasqal.dsw rasqal.vcproj
+
 
 
 # Make some empty dirs that may be needed
