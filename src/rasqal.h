@@ -26,8 +26,8 @@
 
 
 
-#ifndef RDQL_H
-#define RDQL_H
+#ifndef RASQAL_H
+#define RASQAL_H
 
 
 #ifdef __cplusplus
@@ -67,13 +67,13 @@ extern "C" {
 #endif
 
 /* Public statics */
-extern const char * const rasqal_short_copyright_string;
-extern const char * const rasqal_copyright_string;
-extern const char * const rasqal_version_string;
-extern const unsigned int rasqal_version_major;
-extern const unsigned int rasqal_version_minor;
-extern const unsigned int rasqal_version_release;
-extern const unsigned int rasqal_version_decimal;
+RASQAL_API extern const char * const rasqal_short_copyright_string;
+RASQAL_API extern const char * const rasqal_copyright_string;
+RASQAL_API extern const char * const rasqal_version_string;
+RASQAL_API extern const unsigned int rasqal_version_major;
+RASQAL_API extern const unsigned int rasqal_version_minor;
+RASQAL_API extern const unsigned int rasqal_version_release;
+RASQAL_API extern const unsigned int rasqal_version_decimal;
 
 
 /* Public structure */
