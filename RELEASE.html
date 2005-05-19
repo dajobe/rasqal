@@ -10,9 +10,6 @@
 
 <h2 id="rel0_9_9"><a name="rel0_9_9">Rasqal 0.9.9 Changes</a></h2>
 
-<p>Not yet released.
-</p>
-
 <h3>General Changes</h3>
 
 <p>SPARQL is now the default query language</p>
@@ -80,6 +77,11 @@ initial results (offset) and provide a maximum number of results (limit).
 <p>Added internal <code>rasqal_formula</code> class for the Turtle
 part of the SPARQL parser
 </p>
+
+<p><strong>Deprecated</strong> the <code>rasqal_triples_source</code>
+factory method <code>new_triples_match</code>.  It is replaced by a
+new method <code>init_triples_match</code> and will be removed from
+the next release.</p>
 
 
 
