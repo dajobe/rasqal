@@ -509,6 +509,9 @@ struct rasqal_triples_source_s {
 
   void *user_data;
 
+  /* DEPRECATED METHOD */
+  rasqal_triples_match* (*new_triples_match)(struct rasqal_triples_source_s* rts, void *user_data, rasqal_triple_meta *m, rasqal_triple *t);
+
   /* the triples_source_factory initialises these method */
   int (*init_triples_match)(rasqal_triples_match* rtm, struct rasqal_triples_source_s* rts, void *user_data, rasqal_triple_meta *m, rasqal_triple *t);
 
