@@ -89,6 +89,7 @@ extern "C" {
 
 /* flex: const is available */
 #define YY_USE_CONST
+#define YY_NO_UNISTD_H
 
 #undef RASQAL_INLINE
 #define RASQAL_INLINE __inline
