@@ -1,5 +1,9 @@
 2005-05-19  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
+	* Snapshotted rasqal_0_9_9 for 0.9.9 release
+
+2005-05-19  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
 	* rasqal_engine.c (rasqal_new_triples_match): Restore but
 	deprecate rasqal_triples_source factory method new_triples_match
 	for now.
