@@ -136,6 +136,11 @@ The default when this option is omitted is to enable all query languages.
 </p>
 </dd>
 
+<dt><tt>--with-memory-signing</tt><br /></dt>
+<dd><p>Enable signing of memory allocations so that when memory is
+allocated with malloc() and released free(), a check is made that the
+memory was allocated in the same library.</p></dd>
+
 <dt><tt>--with-regex-library=NAME</tt><br /></dt>
 <dd><p>Pick a regex library to use - either <tt>pcre</tt> (default)
 for the <a href="http://www.pcre.org/">PCRE</a>
