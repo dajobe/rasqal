@@ -459,24 +459,14 @@ rasqal_new_triples_match(rasqal_query *query, void *user_data,
   if(!query->triples_source)
     return NULL;
 
-  if(query->triples_source->new_triples_match) {
-    /* DEPRECATED */
-    static int warning_given=0;
-    if(!warning_given++)
-      fprintf(stderr, "Calling deprecated rasqal_triples_source factory method new_triples_match (will go in rasqal 0.9.10+)\n");
-
-    rtm=query->triples_source->new_triples_match(query->triples_source,
-                                                 query->triples_source->user_data,
-                                                 m, t);
-  } else {
-    rtm=(rasqal_triples_match *)RASQAL_CALLOC(rasqal_triples_match, sizeof(rasqal_triples_match), 1);
-    if(query->triples_source->init_triples_match(rtm,
-                                                 query->triples_source,
-                                                 query->triples_source->user_data,
-                                                 m, t))
-      RASQAL_FREE(rasqal_triples_match, rtm);
+  rtm=(rasqal_triples_match *)RASQAL_CALLOC(rasqal_triples_match, sizeof(rasqal_triples_match), 1);
+  if(query->triples_source->init_triples_match(rtm,
+                                               query->triples_source,
+                                               query->triples_source->user_data,
+                                               m, t)) {
+    RASQAL_FREE(rasqal_triples_match, rtm);
+    rtm=NULL;
   }
-  
 
   return rtm;
 }
