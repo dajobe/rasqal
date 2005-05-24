@@ -386,7 +386,7 @@ static rasqal_triples_source_factory Triples_Source_Factory;
  * called with the user data for some query and rasqal_triples_source.
  * 
  **/
-RASQAL_API void
+void
 rasqal_set_triples_source_factory(void (*register_fn)(rasqal_triples_source_factory *factory), void* user_data) {
   Triples_Source_Factory.user_data=user_data;
   register_fn(&Triples_Source_Factory);
