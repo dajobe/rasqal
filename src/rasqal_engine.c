@@ -539,11 +539,6 @@ rasqal_reset_triple_meta(rasqal_triple_meta* m)
     resets++;
   }
   
-  if(m->triples_match) {
-    rasqal_free_triples_match(m->triples_match);
-    m->triples_match=NULL;
-  }
-
   return resets;
 }
 
