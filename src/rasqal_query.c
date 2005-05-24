@@ -104,7 +104,6 @@ rasqal_new_query(const char *name, const unsigned char *uri)
 
   query->query_graph_pattern=NULL;
 
-  query->sources=raptor_new_sequence((raptor_sequence_free_handler*)raptor_free_uri, (raptor_sequence_print_handler*)raptor_sequence_print_uri);
   query->data_graphs=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_data_graph, (raptor_sequence_print_handler*)rasqal_data_graph_print);
 
   query->distinct= 0;
@@ -156,8 +155,6 @@ rasqal_free_query(rasqal_query* query)
 
   if(query->data_graphs)
     raptor_free_sequence(query->data_graphs);
-  if(query->sources)
-    raptor_free_sequence(query->sources);
   if(query->selects)
     raptor_free_sequence(query->selects);
   if(query->describes)
@@ -417,9 +414,6 @@ rasqal_query_add_data_graph(rasqal_query* query,
   
   raptor_sequence_push(query->data_graphs, (void*)dg);
 
-  /* FIXME - legacy for rasqal_query_add_source & sources */
-  raptor_sequence_push(query->sources, (void*)raptor_uri_copy(dg->uri));
-
   return 0;
 }
 
@@ -451,61 +445,6 @@ rasqal_query_get_data_graph(rasqal_query* query, int idx)
     return NULL;
   
   return (rasqal_data_graph*)raptor_sequence_get_at(query->data_graphs, idx);
-}
-
-
-/**
- * rasqal_query_add_source - Add a source URI to the query
- * @query: &rasqal_query query object
- * @uri: &raptor_uri uri
- *
- * DEPRECATED - should use rasqal_query_add_data_graph
- *
- **/
-void
-rasqal_query_add_source(rasqal_query* query, raptor_uri* uri)
-{
-  RASQAL_DEPRECATED_MESSAGE("use rasqal_query_add_data_graph");
-
-  rasqal_query_add_data_graph(query, uri, uri, RASQAL_DATA_GRAPH_NAMED);
-}
-
-
-/**
- * rasqal_query_get_source_sequence - Get the sequence of source URIs
- * @query: &rasqal_query query object
- *
- * DEPRECATED - should use rasqal_query_get_data_graph_sequence
- *
- * Return value: a &raptor_sequence of &raptor_uri pointers.
- **/
-raptor_sequence*
-rasqal_query_get_source_sequence(rasqal_query* query)
-{
-  RASQAL_DEPRECATED_MESSAGE("use rasqal_query_get_data_graph_sequence");
-
-  return query->sources;
-}
-
-
-/**
- * rasqal_query_get_source - Get a source URI in the sequence of sources
- * @query: &rasqal_query query object
- * @idx: index into the sequence (0 or larger)
- *
- * DEPRECATED - should use rasqal_query_get_data_graph
- *
- * Return value: a &raptor_uri pointer or NULL if out of the sequence range
- **/
-raptor_uri*
-rasqal_query_get_source(rasqal_query* query, int idx)
-{
-  RASQAL_DEPRECATED_MESSAGE("use rasqal_query_get_data_graph");
-
-  if(!query->sources)
-    return NULL;
-  
-  return (raptor_uri*)raptor_sequence_get_at(query->sources, idx);
 }
 
 
@@ -657,69 +596,6 @@ rasqal_query_get_triple(rasqal_query* query, int idx)
     return NULL;
   
   return (rasqal_triple*)raptor_sequence_get_at(query->triples, idx);
-}
-
-
-/**
- * rasqal_query_add_constraint - Add a constraint expression to the query
- * @query: &rasqal_query query object
- * @expr: &rasqal_expression expr
- *
- * DEPRECATED - use rasqal_graph_pattern_add_constraint on a rasqal_graph_pattern
- *
- **/
-void
-rasqal_query_add_constraint(rasqal_query* query, rasqal_expression* expr)
-{
-  rasqal_graph_pattern* gp;
-  
-  RASQAL_DEPRECATED_MESSAGE("please use rasqal_graph_pattern_add_constraint on a rasqal_graph_pattern");
-
-  gp=(rasqal_graph_pattern*)query->query_graph_pattern;
-  rasqal_graph_pattern_add_constraint(gp, expr);
-}
-
-
-/**
- * rasqal_query_get_constraint_sequence - Get the sequence of constraints expressions in the query
- * @query: &rasqal_query query object
- *
- * DEPRECATED - get constraints per rasqal_graph_pattern using
- * rasqal_graph_pattern_get_constraint_sequence
- *
- * Return value: a &raptor_sequence of &rasqal_expression pointers.
- **/
-raptor_sequence*
-rasqal_query_get_constraint_sequence(rasqal_query* query)
-{
-  rasqal_graph_pattern* gp;
-  
-  RASQAL_DEPRECATED_MESSAGE("get constraints per rasqal_graph_pattern using rasqal_graph_pattern_get_constraint_sequence");
-
-  gp=(rasqal_graph_pattern*)query->query_graph_pattern;
-  return rasqal_graph_pattern_get_constraint_sequence(gp);
-}
-
-
-/**
- * rasqal_query_get_constraint - Get a constraint in the sequence of constraint expressions in the query
- * @query: &rasqal_query query object
- * @idx: index into the sequence (0 or larger)
- *
- * DEPRECATED - get constraints per rasqal_graph_pattern using
- * rasqal_graph_pattern_get_constraint
- *
- * Return value: a &rasqal_expression pointer or NULL if out of the sequence range
- **/
-rasqal_expression*
-rasqal_query_get_constraint(rasqal_query* query, int idx)
-{
-  rasqal_graph_pattern* gp;
-  
-  RASQAL_DEPRECATED_MESSAGE("get constraints per rasqal_graph_pattern using rasqal_graph_pattern_get_constraint");
-
-  gp=(rasqal_graph_pattern*)query->query_graph_pattern;
-  return rasqal_graph_pattern_get_constraint(gp, idx);
 }
 
 
