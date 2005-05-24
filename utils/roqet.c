@@ -91,7 +91,7 @@ rdql_parser_error(const char *msg)
 #endif
 
 
-#define GETOPT_STRING "cdf:ho:r:i:nqs:vw"
+#define GETOPT_STRING "cdhi:nr:qs:vw"
 
 #ifdef HAVE_GETOPT_LONG
 static struct option long_options[] =
@@ -101,11 +101,9 @@ static struct option long_options[] =
   {"dump-query", 0, 0, 'd'},
   {"dryrun", 0, 0, 'n'},
   {"help", 0, 0, 'h'},
-  {"format", 1, 0, 'f'}, /* deprecated for -r/--results */
-  {"output", 1, 0, 'o'}, /* deprecated for -r/--results */
-  {"results", 1, 0, 'r'},
   {"input", 1, 0, 'i'},
   {"quiet", 0, 0, 'q'},
+  {"results", 1, 0, 'r'},
   {"source", 1, 0, 's'},
   {"version", 0, 0, 'v'},
   {"walk-query", 0, 0, 'w'},
@@ -430,15 +428,6 @@ main(int argc, char *argv[])
       case 'n':
         dryrun=1;
         break;
-
-      case 'f':
-      case 'o':
-        fprintf(stderr,
-                "%s: %s has been deprecated. Please use %s to set the results format\n",
-                program,
-                ((c == 'f') ? HELP_ARG(f, format) : HELP_ARG(o, output)), 
-                HELP_ARG(r, results));
-        /* FALLTHROUGH */
 
       case 'r':
         if(optarg) {
