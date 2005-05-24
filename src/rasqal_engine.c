@@ -284,32 +284,55 @@ rasqal_engine_build_anonymous_variables(rasqal_query* rq)
 }
 
 
+static int
+rasqal_engine_expand_wildcards(rasqal_query* rq)
+{
+  int i;
+  raptor_sequence *s;
+  int rc=0;
+
+  if(!rq->wildcard)
+    return rc;
+  
+  switch(rq->verb) {
+    case  RASQAL_QUERY_VERB_SELECT:
+    /* If 'SELECT *' was given, make the selects be a list of all variables */
+      rq->selects=raptor_new_sequence(NULL, (raptor_sequence_print_handler*)rasqal_variable_print);
+      
+      for(i=0; i< rq->variables_count; i++)
+        raptor_sequence_push(rq->selects, raptor_sequence_get_at(rq->variables_sequence, i));
+      break;
+      
+    case RASQAL_QUERY_VERB_CONSTRUCT:
+      /* If 'CONSTRUCT *' was given, make the constructs be all triples */
+      rq->constructs=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_triple, (raptor_sequence_print_handler*)rasqal_triple_print);
+      s=((rasqal_query*)rq)->triples;
+      
+      for(i=0; i < raptor_sequence_size(s); i++) {
+        rasqal_triple *t=(rasqal_triple*)raptor_sequence_get_at(s, i);
+        raptor_sequence_push(rq->constructs, rasqal_new_triple_from_triple(t));
+      }
+      break;
+
+    case RASQAL_QUERY_VERB_UNKNOWN:
+    case RASQAL_QUERY_VERB_DESCRIBE:
+    case RASQAL_QUERY_VERB_ASK:
+    default:
+      rasqal_query_error(rq, "Cannot use wildcard * with query verb ",
+                         rasqal_query_verb_as_string(rq->verb));
+      rc=1;
+      break;
+  }
+
+  return rc;
+}
+
+
 int
 rasqal_engine_assign_variables(rasqal_query* rq)
 {
   int i;
   int offset;
-
-  /* If 'SELECT *' was given, make the selects be a list of all variables */
-  if(rq->wildcard) {
-    rq->selects=raptor_new_sequence(NULL, (raptor_sequence_print_handler*)rasqal_variable_print);
-    
-    for(i=0; i< rq->variables_count; i++)
-      raptor_sequence_push(rq->selects, raptor_sequence_get_at(rq->variables_sequence, i));
-  }
-
-  /* If 'CONSTRUCT *' was given, make the constructs be all triples */
-  if(rq->wildcard) {
-    raptor_sequence *s;
-    
-    rq->constructs=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_triple, (raptor_sequence_print_handler*)rasqal_triple_print);
-    s=((rasqal_query*)rq)->triples;
-
-    for(i=0; i < raptor_sequence_size(s); i++) {
-      rasqal_triple *t=(rasqal_triple*)raptor_sequence_get_at(s, i);
-      raptor_sequence_push(rq->constructs, rasqal_new_triple_from_triple(t));
-    }
-  }
 
   if(rq->selects)
     rq->select_variables_count=raptor_sequence_size(rq->selects);
@@ -744,7 +767,10 @@ rasqal_engine_prepare(rasqal_query *query)
 
     rasqal_engine_build_anonymous_variables(query);
 
-    /* Expand 'SELECT *' and create the query->variables array */
+    /* Expand 'SELECT *' and 'CONSTRUCT *' */
+    rasqal_engine_expand_wildcards(query);
+
+    /* create the query->variables array */
     rasqal_engine_assign_variables(query);
 
     rasqal_query_build_declared_in(query);
