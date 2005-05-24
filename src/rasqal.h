@@ -310,9 +310,6 @@ RASQAL_API void rasqal_query_set_limit(rasqal_query *query, int limit);
 RASQAL_API int rasqal_query_get_offset(rasqal_query *query);
 RASQAL_API void rasqal_query_set_offset(rasqal_query *query, int limit);
 
-RASQAL_API RASQAL_DEPRECATED void rasqal_query_add_source(rasqal_query* query, raptor_uri* uri);
-RASQAL_API RASQAL_DEPRECATED raptor_sequence* rasqal_query_get_source_sequence(rasqal_query* query);
-RASQAL_API RASQAL_DEPRECATED raptor_uri* rasqal_query_get_source(rasqal_query* query, int idx);
 RASQAL_API int rasqal_query_add_data_graph(rasqal_query* query, raptor_uri* uri, raptor_uri* name_uri, int flags);
 RASQAL_API raptor_sequence* rasqal_query_get_data_graph_sequence(rasqal_query* query);
 RASQAL_API rasqal_data_graph* rasqal_query_get_data_graph(rasqal_query* query, int idx);
@@ -325,9 +322,6 @@ RASQAL_API int rasqal_query_has_variable(rasqal_query* query, const unsigned cha
 RASQAL_API int rasqal_query_set_variable(rasqal_query* query, const unsigned char *name, rasqal_literal* value);
 RASQAL_API raptor_sequence* rasqal_query_get_triple_sequence(rasqal_query* query);
 RASQAL_API rasqal_triple* rasqal_query_get_triple(rasqal_query* query, int idx);
-RASQAL_API RASQAL_DEPRECATED void rasqal_query_add_constraint(rasqal_query* query, rasqal_expression* expr);
-RASQAL_API RASQAL_DEPRECATED raptor_sequence* rasqal_query_get_constraint_sequence(rasqal_query* query);
-RASQAL_API RASQAL_DEPRECATED rasqal_expression* rasqal_query_get_constraint(rasqal_query* query, int idx);
 RASQAL_API void rasqal_query_add_prefix(rasqal_query* query, rasqal_prefix* prefix);
 RASQAL_API raptor_sequence* rasqal_query_get_prefix_sequence(rasqal_query* query);
 RASQAL_API rasqal_prefix* rasqal_query_get_prefix(rasqal_query* query, int idx);
@@ -441,8 +435,6 @@ RASQAL_API void rasqal_free_triple(rasqal_triple* t);
 RASQAL_API void rasqal_triple_print(rasqal_triple* t, FILE* fh);
 RASQAL_API void rasqal_triple_set_origin(rasqal_triple* t, rasqal_literal *l);
 RASQAL_API rasqal_literal* rasqal_triple_get_origin(rasqal_triple* t);
-RASQAL_API RASQAL_DEPRECATED void rasqal_triple_set_flags(rasqal_triple* t, unsigned int flags);
-RASQAL_API RASQAL_DEPRECATED unsigned int rasqal_triple_get_flags(rasqal_triple* t);
 
 /* Variable class */
 RASQAL_API rasqal_variable* rasqal_new_variable_typed(rasqal_query* rq, rasqal_variable_type type, unsigned char *name, rasqal_literal *value);
@@ -508,9 +500,6 @@ struct rasqal_triples_source_s {
   rasqal_query *query;
 
   void *user_data;
-
-  /* DEPRECATED METHOD */
-  rasqal_triples_match* (*new_triples_match)(struct rasqal_triples_source_s* rts, void *user_data, rasqal_triple_meta *m, rasqal_triple *t);
 
   /* the triples_source_factory initialises these method */
   int (*init_triples_match)(rasqal_triples_match* rtm, struct rasqal_triples_source_s* rts, void *user_data, rasqal_triple_meta *m, rasqal_triple *t);
