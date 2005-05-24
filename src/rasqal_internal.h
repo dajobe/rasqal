@@ -202,7 +202,6 @@ struct rasqal_query_s {
   /* sequences of ... */
   raptor_sequence* selects;     /* ... rasqal_variable* names only */
   raptor_sequence* data_graphs; /* ... rasqal_data_graph*          */
-  raptor_sequence* sources;     /* ... raptor_uri*  (DEPRECATED)   */
   raptor_sequence* triples;     /* ... rasqal_triple*              */
   raptor_sequence* prefixes;    /* ... rasqal_prefix*              */
   raptor_sequence* constructs;  /* ... rasqal_triple*       SPARQL */
