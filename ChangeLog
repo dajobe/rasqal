@@ -1,8 +1,51 @@
+2005-05-24  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* roqet.c: Removed deprecated flags -f and -o
+
+	* rasqal_expr.c (rasqal_triple_set_flags,
+	rasqal_triple_get_flags): Removed deprecated functions.
+
+	* rasqal_engine.c (rasqal_new_triples_match): Removed
+	rasqal_triples_source deprecated factory method new_triples_match.
+
+	* rasqal_query.c:
+	(rasqal_new_query, rasqal_free_query,
+	rasqal_query_add_data_graph): Removed rasqal_query deprecated list
+	sources.
+	(rasqal_query_add_source, rasqal_query_get_source_sequence,
+	rasqal_query_get_source, rasqal_query_add_constraint,
+	rasqal_query_get_constraint_sequence,
+	rasqal_query_get_constraint): Removed deprecated functions.
+
+	* rasqal_internal.h: Removed rasqal_query deprecated list sources.
+
+	* rasqal.h: Removed deprecated functions: rasqal_query_add_source,
+	rasqal_query_get_source_sequence, rasqal_query_get_source,
+	rasqal_query_add_constraint, rasqal_query_get_constraint_sequence,
+	rasqal_query_get_constraint, rasqal_triple_set_flags and
+	rasqal_triple_get_flags.  Removed rasqal_triples_source deprecated
+	factory method new_triples_match
+
+	* rasqal_engine.c (rasqal_set_triples_source_factory): Does not
+	need RASQAL_API in the C
+
+	* rasqal_engine.c (rasqal_reset_triple_meta): Removed code that
+	will never be called, freeing triples_match field for the second
+	time
+
+	* rasqal_engine.c (rasqal_engine_expand_wildcards): Added,
+	containing code from rasqal_engine_assign_variables to handle
+	wildcard *.  Handle remaining query verbs.
+	(rasqal_engine_assign_variables): Moved wildcard handling code
+	above.
+	(rasqal_engine_prepare): Call rasqal_engine_expand_wildcards.
+
 2005-05-19  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* win32_rasqal_config.h, configure.ac:
+	Bumped version to 0.9.10
 
 	* Snapshotted rasqal_0_9_9 for 0.9.9 release
-
-2005-05-19  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
 	* rasqal_engine.c (rasqal_new_triples_match): Restore but
 	deprecate rasqal_triples_source factory method new_triples_match
