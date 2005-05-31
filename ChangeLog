@@ -1,3 +1,50 @@
+2005-05-31  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* roqet.c (roqet_graph_pattern_walk): Print graph pattern operator
+
+	* sparql_parser.y: Updates for graph pattern operators, not flags.
+	(GraphPattern): Set group graph pattern operator.
+	(PatternElementsList): Start off with an unknown grpah pattern
+	operator, to catch missing cases.
+	(PatternElement): Set basic graph pattern operator.
+	(OptionalGraphPattern): Set optional graph pattern operator.
+	(GraphGraphPattern): Set graph graph pattern operator.
+	(UnionGraphPattern): Set union graph pattern operator.
+
+	* rdql_parser.y (rasqal_rdql_query_engine_prepare): Make a root
+	basic graph pattern.
+
+	* rasqal_engine.c (rasqal_engine_get_next_result): Print the graph
+	pattern operator and update to check for optional step by
+	operator.
+	(rasqal_engine_make_basic_graph_pattern): Fold in a set of
+	sub-graph patterns that are all basic graph patterns.
+
+	* rasqal_graph_pattern.c (rasqal_new_graph_pattern_from_sequence,
+	rasqal_graph_pattern_add_triples): Final argument is now a graph
+	pattern operator.
+	(rasqal_graph_pattern_order): Sort optionals by operator.
+	(rasqal_graph_pattern_init): Check for graph pattern operator.
+	(rasqal_graph_pattern_get_operator,
+	rasqal_graph_pattern_operator_as_string): Added.
+	(rasqal_graph_pattern_print): Print the graph pattern operator.
+
+	* rasqal_query.c (rasqal_graph_pattern_get_flags): Deprecated,
+	always returns 0.
+
+	* rasqal_internal.h: Added operator field to rasqal_graph_pattern.
+	Change final argument of rasqal_new_graph_pattern_from_sequence
+	and rasqal_graph_pattern_add_triples to operator.
+
+	* rasqal.h: Added rasqal_graph_pattern_operator Deprecated
+	rasqal_graph_pattern_get_flags Added prototypes for
+	rasqal_graph_pattern_get_operator and
+	rasqal_graph_pattern_operator_as_string
+
+	* sparql_parser.y: Update grammar doc references to use SPARQL
+	Query Language for RDF, 19 April 2005
+	http://www.w3.org/TR/2005/WD-rdf-sparql-query-20050419/
+
 2005-05-24  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
 	* roqet.c: Removed deprecated flags -f and -o
