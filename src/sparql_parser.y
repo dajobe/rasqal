@@ -23,8 +23,8 @@
  * the licenses in COPYING.LIB, COPYING and LICENSE-2.0.txt respectively.
  *
  * References:
- *   SPARQL Query Language for RDF
- *   http://www.w3.org/TR/rdf-sparql-query/
+ *   SPARQL Query Language for RDF, 19 April 2005
+ *   http://www.w3.org/TR/2005/WD-rdf-sparql-query-20050419/
  *
  * Editor's draft of above http://www.w3.org/2001/sw/DataAccess/rq23/
  *
@@ -223,10 +223,10 @@ ReportFormat : SelectClause
 }
 ;
 
-/* SPARQL Grammar: rq23 [2] Prolog - merged into Query */
+/* SPARQL Grammar: [2] Prolog - merged into Query */
 
 
-/* SPARQL Grammar: rq23 [3] BaseDecl */
+/* SPARQL Grammar: [3] BaseDecl */
 BaseDeclOpt : BASE URI_LITERAL
 {
   if(((rasqal_query*)rq)->base_uri)
@@ -240,7 +240,7 @@ BaseDeclOpt : BASE URI_LITERAL
 ;
 
 
-/* SPARQL Grammar: rq23 [4] PrefixDecl */
+/* SPARQL Grammar: [4] PrefixDecl */
 PrefixDeclOpt : PrefixDeclOpt PREFIX IDENTIFIER URI_LITERAL
 {
   rasqal_prefix *p=rasqal_new_prefix($3, $4);
@@ -255,7 +255,7 @@ PrefixDeclOpt : PrefixDeclOpt PREFIX IDENTIFIER URI_LITERAL
 ;
 
 
-/* SPARQL Grammar: rq23 [5] SelectClause */
+/* SPARQL Grammar: [5] SelectClause */
 SelectClause : SELECT DISTINCT VarList
 {
   $$=$3;
@@ -279,7 +279,7 @@ SelectClause : SELECT DISTINCT VarList
 ;
 
 
-/* SPARQL Grammar: rq23 [6] DescribeClause */
+/* SPARQL Grammar: [6] DescribeClause */
 DescribeClause : DESCRIBE VarOrURIList
 {
   $$=$2;
@@ -291,7 +291,7 @@ DescribeClause : DESCRIBE VarOrURIList
 ;
 
 
-/* SPARQL Grammar: rq23 [7] ConstructClause */
+/* SPARQL Grammar: [7] ConstructClause */
 ConstructClause: CONSTRUCT ConstructTemplate
 {
   $$=$2;
@@ -304,21 +304,21 @@ ConstructClause: CONSTRUCT ConstructTemplate
 ;
 
 
-/* SPARQL Grammar: rq23 [8] AskClause */
+/* SPARQL Grammar: [8] AskClause */
 AskClause : ASK 
 {
   /* FIXME - do ask */
 }
 
 
-/* SPARQL Grammar: rq23 [9] DatasetClause */
+/* SPARQL Grammar: [9] DatasetClause */
 DatasetClauseOpt : DefaultGraphClause
 | DefaultGraphClause NamedGraphClauseList
 | /* empty */
 ;
 
 
-/* SPARQL Grammar: rq23 [10] DefaultGraphClause */
+/* SPARQL Grammar: [10] DefaultGraphClause */
 DefaultGraphClause : FROM URI
 {
   if($2) {
@@ -335,7 +335,7 @@ NamedGraphClauseList: NamedGraphClauseList NamedGraphClause
 | NamedGraphClause
 ;
 
-/* SPARQL Grammar: rq23 [11] NamedGraphClause */
+/* SPARQL Grammar: [11] NamedGraphClause */
 NamedGraphClause: FROM NAMED URI
 {
   if($3) {
@@ -347,10 +347,10 @@ NamedGraphClause: FROM NAMED URI
 ;
 
 
-/* SPARQL Grammar: rq23 [12] SourceSelector - junk */
+/* SPARQL Grammar: [12] SourceSelector - junk */
 
 
-/* SPARQL Grammar: rq23 [13] WhereClause - remained for clarity */
+/* SPARQL Grammar: [13] WhereClause - remained for clarity */
 WhereClauseOpt:  WHERE GraphPattern
 {
   ((rasqal_query*)rq)->query_graph_pattern=$2;
@@ -364,7 +364,7 @@ WhereClauseOpt:  WHERE GraphPattern
 ;
 
 
-/* SPARQL Grammar: rq23 [14] OrderClause - remained for clarity */
+/* SPARQL Grammar: [14] OrderClause - remained for clarity */
 OrderClauseOpt:  ORDER BY OrderConditionList
 {
   ((rasqal_query*)rq)->order_conditions_sequence=$3;
@@ -389,7 +389,7 @@ OrderConditionList: OrderConditionList OrderCondition
 ;
 
 
-/* SPARQL Grammar: rq23 [15] OrderCondition */
+/* SPARQL Grammar: [15] OrderCondition */
 OrderCondition: ASC OrderExpression ']'
 {
   $$=rasqal_new_1op_expression(RASQAL_EXPR_ORDER_COND_ASC, $2);
@@ -404,7 +404,7 @@ OrderCondition: ASC OrderExpression ']'
 }
 ;
 
-/* SPARQL Grammar: rq23 [16] OrderExpression - ignored */
+/* SPARQL Grammar: [16] OrderExpression - ignored */
 OrderExpression: FunctionCall 
 {
   $$=$1;
@@ -416,7 +416,7 @@ OrderExpression: FunctionCall
 }
 ;
 
-/* SPARQL Grammar: rq23 [17] LimitClause - remained for clarity */
+/* SPARQL Grammar: [17] LimitClause - remained for clarity */
 LimitClauseOpt :  LIMIT INTEGER_LITERAL
 {
   if($2 != NULL)
@@ -425,7 +425,7 @@ LimitClauseOpt :  LIMIT INTEGER_LITERAL
 | /* empty */
 ;
 
-/* SPARQL Grammar: rq23 [18] OffsetClause - remained for clarity */
+/* SPARQL Grammar: [18] OffsetClause - remained for clarity */
 OffsetClauseOpt :  OFFSET INTEGER_LITERAL
 {
   if($2 != NULL)
@@ -434,7 +434,7 @@ OffsetClauseOpt :  OFFSET INTEGER_LITERAL
 | /* empty */
 ;
 
-/* SPARQL Grammar: rq23 [19] GraphPattern */
+/* SPARQL Grammar: [19] GraphPattern */
 GraphPattern: '{' PatternElementsList DotOptional '}'
 {
 #if RASQAL_DEBUG > 1  
@@ -451,13 +451,15 @@ GraphPattern: '{' PatternElementsList DotOptional '}'
 }
 ;
 
-/* NEW Grammar Term pulled out of rq23 [21] PatternElementsListTail */
+/* NEW Grammar Term pulled out of [21] PatternElementsListTail */
 DotOptional: '.'
 | /* empty */
 ;
 
 
-/* SPARQL Grammar Term: rq23 [20] PatternElementsList and rq23[21] PatternElementsListTail */
+/* SPARQL Grammar Term: [20] PatternElementsList and 
+ * SPARQL Grammar Term: [21] PatternElementsListTail
+ */
 PatternElementsList: PatternElementsList '.' PatternElement
 {
   rasqal_graph_pattern *mygp=$1;
@@ -504,7 +506,7 @@ PatternElementsList: PatternElementsList '.' PatternElement
 ;
 
 
-/* SPARQL Grammar: rq23 [22] PatternElement */
+/* SPARQL Grammar: [22] PatternElement */
 PatternElement: Triples
 {
 #if RASQAL_DEBUG > 1  
@@ -549,7 +551,7 @@ PatternElement: Triples
 ;
 
 
-/* SPARQL Grammar: rq23 [23] OptionalGraphPattern */
+/* SPARQL Grammar: [23] OptionalGraphPattern */
 OptionalGraphPattern: OPTIONAL GraphPattern
 {
 #if RASQAL_DEBUG > 1  
@@ -569,7 +571,7 @@ OptionalGraphPattern: OPTIONAL GraphPattern
 ;
 
 
-/* SPARQL Grammar: rq23 [24] GraphGraphPattern */
+/* SPARQL Grammar: [24] GraphGraphPattern */
 GraphGraphPattern: GRAPH VarOrURI GraphPattern
 {
 #if RASQAL_DEBUG > 1  
@@ -588,7 +590,7 @@ GraphGraphPattern: GRAPH VarOrURI GraphPattern
 ;
 
 
-/* SPARQL Grammar: rq23 [25] UnionGraphPattern */
+/* SPARQL Grammar: [25] UnionGraphPattern */
 UnionGraphPattern: GraphPattern UNION UnionGraphPatternList
 {
   $$=$3;
@@ -605,7 +607,7 @@ UnionGraphPattern: GraphPattern UNION UnionGraphPatternList
 }
 ;
 
-/* NEW Grammar Term pulled out of rq23 [25] UnionGraphPattern */
+/* NEW Grammar Term pulled out of [25] UnionGraphPattern */
 UnionGraphPatternList: UnionGraphPatternList UNION GraphPattern
 {
   $$=$1;
@@ -623,10 +625,10 @@ UnionGraphPatternList: UnionGraphPatternList UNION GraphPattern
 ;
 
 
-/* SPARQL Grammar: rq23 [26] Constraint - inlined into PatternElement */
+/* SPARQL Grammar: [26] Constraint - inlined into PatternElement */
 
 
-/* SPARQL Grammar: rq23 [27] ConstructTemplate */
+/* SPARQL Grammar: [27] ConstructTemplate */
 ConstructTemplate:  '{' TriplesList DotOptional '}'
 {
   $$=$2;
@@ -634,7 +636,7 @@ ConstructTemplate:  '{' TriplesList DotOptional '}'
 ;
 
 
-/* NEW Grammar Term pulled out of rq23 [227] ConstructTemplate */
+/* NEW Grammar Term pulled out of [27] ConstructTemplate */
 TriplesList: TriplesList '.' Triples
 {
   if($3) {
@@ -666,7 +668,7 @@ TriplesList: TriplesList '.' Triples
 
 
 
-/* SPARQL Grammar: rq23 [28] Triples */
+/* SPARQL Grammar: [28] Triples */
 Triples: Subject PropertyList
 {
   int i;
@@ -726,7 +728,10 @@ Triples: Subject PropertyList
 ;
 
 
-/* SPARQL Grammar: rq23 [29] PropertyList, rq23 [30] PropertyListNotEmpty, rq23 [31] PropertyListTail */
+/* SPARQL Grammar: [29] PropertyList
+ * SPARQL Grammar: [30] PropertyListNotEmpty
+ * SPARQL Grammar: [31] PropertyListTail
+ */
 PropertyList: PropertyList ';' Predicate ObjectList
 {
   int i;
@@ -846,7 +851,9 @@ PropertyList: PropertyList ';' Predicate ObjectList
 ;
 
 
-/* SPARQL Grammar: rq23 [32] ObjectList and rq23 [33] ObjectTail */
+/* SPARQL Grammar: [32] ObjectList
+ * SPARQL Grammar: [33] ObjectTail
+ */
 ObjectList: ObjectList ',' Object
 {
   rasqal_triple *triple;
@@ -965,7 +972,7 @@ Object: VarOrLiteralOrBlankNode
 ;
 
 
-/* SPARQL Grammar: rq23 [36] TriplesNode */
+/* SPARQL Grammar: [36] TriplesNode */
 TriplesNode: '[' PropertyList ']'
 {
   int i;
@@ -1020,7 +1027,9 @@ TriplesNode: '[' PropertyList ']'
 ;
 
 
-/* NEW Grammar Term pulled out of rq23 [38] Collection, based on Turtle */
+/* SPARQL Grammar: [37] BlankNodePropertyList - junk */
+
+/* NEW Grammar Term pulled out of [38] Collection, based on Turtle */
 /* Sequence of formula */
 ItemList: ItemList Object
 {
@@ -1078,7 +1087,7 @@ ItemList: ItemList Object
 ;
 
 
-/* SPARQL Grammar: rq23 [38] Collection */
+/* SPARQL Grammar: [38] Collection */
 Collection: '(' ItemList ')'
 {
   int i;
@@ -1205,7 +1214,11 @@ VarList : VarList Var
 ;
 
 
-/* SPARQL Grammar: rq23 [41] VarOrURI */
+/* SPARQL Grammar: [39] GraphNode - junk, mostly replaced by Object */
+
+/* SPARQL Grammar: [40] VarOrTerm - junk, mostly replaced by Object */
+
+/* SPARQL Grammar: [41] VarOrURI */
 VarOrURI : Var
 {
   $$=rasqal_new_variable_literal($1);
@@ -1240,7 +1253,23 @@ VarOrLiteralOrBlankNode : VarOrLiteral
 ;
 
 
-/* SPARQL Grammar: rq23 [45] Expression */
+/* SPARQL Grammar: [42] VarOrBNodeOrURI - junk? */
+
+/* SPARQL Grammar: [43] Var */
+Var : '?' IDENTIFIER
+{
+  $$=rasqal_new_variable((rasqal_query*)rq, $2, NULL);
+}
+| '$' IDENTIFIER
+{
+  $$=rasqal_new_variable((rasqal_query*)rq, $2, NULL);
+}
+;
+
+
+/* SPARQL Grammar: [44] GraphTerm - junk? */
+
+/* SPARQL Grammar: [45] Expression */
 Expression : ConditionalAndExpression SC_OR Expression
 {
   $$=rasqal_new_2op_expression(RASQAL_EXPR_OR, $1, $3);
@@ -1251,12 +1280,9 @@ Expression : ConditionalAndExpression SC_OR Expression
 }
 ;
 
-/* SPARQL Grammar: rq23 [46] ConditionalOrExpression - merged into Expression */
+/* SPARQL Grammar: [46] ConditionalOrExpression - merged into Expression */
 
-/* SPARQL Grammar: rq23 [47] ConditionalXorExpression - merged into ConditionalOrExpression */
-
-
-/* SPARQL Grammar: rq23 [48] ConditionalAndExpression */
+/* SPARQL Grammar: [47] ConditionalAndExpression */
 ConditionalAndExpression: RelationalExpression SC_AND RelationalExpression
 {
   $$=rasqal_new_2op_expression(RASQAL_EXPR_AND, $1, $3);
@@ -1268,9 +1294,9 @@ ConditionalAndExpression: RelationalExpression SC_AND RelationalExpression
 }
 ;
 
-/* SPARQL Grammar: rq23 [48] ValueLogical - merged into ConditionalAndExpression */
+/* SPARQL Grammar: [48] ValueLogical - merged into ConditionalAndExpression */
 
-/* SPARQL Grammar: rq23 [49] RelationalExpression */
+/* SPARQL Grammar: [49] RelationalExpression */
 RelationalExpression : AdditiveExpression EQ AdditiveExpression
 {
   $$=rasqal_new_2op_expression(RASQAL_EXPR_EQ, $1, $3);
@@ -1301,9 +1327,9 @@ RelationalExpression : AdditiveExpression EQ AdditiveExpression
 }
 ;
 
-/* SPARQL Grammar: rq23 [50] NumericExpression - merged into AdditiveExpression */
+/* SPARQL Grammar: [50] NumericExpression - merged into AdditiveExpression */
 
-/* SPARQL Grammar: rq23 [51] AdditiveExpression */
+/* SPARQL Grammar: [51] AdditiveExpression */
 AdditiveExpression : MultiplicativeExpression '+' AdditiveExpression
 {
   $$=rasqal_new_2op_expression(RASQAL_EXPR_PLUS, $1, $3);
@@ -1318,7 +1344,7 @@ AdditiveExpression : MultiplicativeExpression '+' AdditiveExpression
 }
 ;
 
-/* SPARQL Grammar: rq23 [52] MultiplicativeExpression */
+/* SPARQL Grammar: [52] MultiplicativeExpression */
 MultiplicativeExpression : UnaryExpression '*' MultiplicativeExpression
 {
   $$=rasqal_new_2op_expression(RASQAL_EXPR_STAR, $1, $3);
@@ -1337,7 +1363,7 @@ MultiplicativeExpression : UnaryExpression '*' MultiplicativeExpression
 }
 ;
 
-/* SPARQL Grammar: rq23 [53] UnaryExpression */
+/* SPARQL Grammar: [53] UnaryExpression */
 UnaryExpression :  '-' CallExpression
 {
   $$=rasqal_new_1op_expression(RASQAL_EXPR_UMINUS, $2);
@@ -1360,7 +1386,7 @@ UnaryExpression :  '-' CallExpression
 }
 ;
 
-/* SPARQL Grammar: rq23 [54] CallExpression */
+/* SPARQL Grammar: [54] CallExpression */
 CallExpression: STR '(' VarOrLiteral ')'
 {
   rasqal_expression *e=rasqal_new_literal_expression($3);
@@ -1443,7 +1469,7 @@ CallExpression: STR '(' VarOrLiteral ')'
 ;
 
 
-/* SPARQL Grammar: rq23 [55] PrimaryExpression */
+/* SPARQL Grammar: [55] PrimaryExpression */
 PrimaryExpression: Var
 {
   rasqal_literal *l=rasqal_new_variable_literal($1);
@@ -1459,7 +1485,7 @@ PrimaryExpression: Var
 }
 ;
 
-/* SPARQL Grammar: rq23 [56] FunctionCall */
+/* SPARQL Grammar: [56] FunctionCall */
 FunctionCall: URIBrace ArgList ')'
 {
   raptor_uri* uri=rasqal_literal_as_uri($1);
@@ -1473,7 +1499,7 @@ FunctionCall: URIBrace ArgList ')'
 }
 
 
-/* SPARQL Grammar: rq23 [57] ArgList */
+/* SPARQL Grammar: [57] ArgList */
 ArgList : ArgList ',' Expression
 {
   $$=$1;
@@ -1493,7 +1519,7 @@ ArgList : ArgList ',' Expression
 ;
 
 
-/* SPARQL Grammar: rq23 [58] RDFTerm - junk */
+/* SPARQL Grammar: [58] RDFTerm - junk? */
 
 /* NEW Grammar: Literal */
 Literal : URI
@@ -1522,15 +1548,15 @@ Literal : URI
 }
 ;
 
-/* SPARQL Grammar: rq23 [59] NumericLiteral - merged into Literal */
+/* SPARQL Grammar: [59] NumericLiteral - merged into Literal */
 
-/* SPARQL Grammar: rq23 [60] RDFLiteral - merged into Literal */
+/* SPARQL Grammar: [60] RDFLiteral - merged into Literal */
 
-/* SPARQL Grammar: rq23 [61] BooleanLiteral - merged into Literal */
+/* SPARQL Grammar: [61] BooleanLiteral - merged into Literal */
 
-/* SPARQL Grammar: rq23 [62] String - merged into Literal */
+/* SPARQL Grammar: [62] String - merged into Literal */
 
-/* SPARQL Grammar: rq23 [63] URI */
+/* SPARQL Grammar: [63] URI */
 URI : URI_LITERAL
 {
   $$=rasqal_new_uri_literal($1);
@@ -1546,7 +1572,7 @@ URI : URI_LITERAL
   }
 }
 
-/* NEW Grammar Term made from SPARQL Grammer: rq23 [63] URI + '(' expanded */
+/* NEW Grammar Term made from SPARQL Grammer: [63] URI + '(' expanded */
 URIBrace : URI_LITERAL_BRACE
 {
   $$=rasqal_new_uri_literal($1);
@@ -1562,36 +1588,25 @@ URIBrace : URI_LITERAL_BRACE
   }
 }
 
-/* SPARQL Grammar: rq23 [64] QName - made into terminal QNAME_LITERAL */
+/* SPARQL Grammar: [64] QName - made into terminal QNAME_LITERAL */
 
-/* SPARQL Grammar: rq23 [65] BlankNode (includes [] ) */
+/* SPARQL Grammar: [65] BlankNode (includes [] ) */
 BlankNode : BLANK_LITERAL
 {
   $$=rasqal_new_simple_literal(RASQAL_LITERAL_BLANK, $1);
 }
 ;
 
-/* SPARQL Grammar: rq23 [66] QuotedURIref - made into terminal URI_LITERAL */
+/* SPARQL Grammar: [66] QuotedURIref - made into terminal URI_LITERAL */
 
-/* SPARQL Grammar: rq23 [67] Integer - made into terminal INTEGER_LITERAL */
+/* SPARQL Grammar: [67] Integer - made into terminal INTEGER_LITERAL */
 
-/* SPARQL Grammar: rq23 [68] FloatingPoint - made into terminal FLOATING_POINT_LITERAL */
+/* SPARQL Grammar: [68] FloatingPoint - made into terminal FLOATING_POINT_LITERAL */
 
 
-/* SPARQL Grammar: rq23 [69] onwards are all lexer items with similar
- * names or are inlined except for:
+/* SPARQL Grammar: [69] onwards are all lexer items with similar
+ * names or are inlined. [73] <VAR> is replaced with [43] Var
  */
-
-/* SPARQL Grammer: rq23 [73] <VAR> */
-Var : '?' IDENTIFIER
-{
-  $$=rasqal_new_variable((rasqal_query*)rq, $2, NULL);
-}
-| '$' IDENTIFIER
-{
-  $$=rasqal_new_variable((rasqal_query*)rq, $2, NULL);
-}
-;
 
 
 
