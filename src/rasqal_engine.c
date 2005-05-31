@@ -1192,7 +1192,7 @@ rasqal_engine_get_next_result(rasqal_query *query)
     
     RASQAL_DEBUG3("Handling graph_pattern %d %s\n",
                   outergp->current_graph_pattern,
-                  (gp->flags & RASQAL_PATTERN_FLAGS_OPTIONAL) ? "(OPTIONAL)" : "");
+                  rasqal_graph_pattern_operator_as_string(gp->operator));
 
     if(gp->graph_patterns) {
       /* FIXME - sequence of graph_patterns not implemented, finish */
@@ -1202,7 +1202,7 @@ rasqal_engine_get_next_result(rasqal_query *query)
     }
 
     gp->matched=0;
-    optional_step=(gp->flags & RASQAL_PATTERN_FLAGS_OPTIONAL);
+    optional_step=(gp->operator == RASQAL_GRAPH_PATTERN_OPERATOR_OPTIONAL);
     
     if(optional_step)
       step=rasqal_engine_do_optional_step(query, outergp, gp);
@@ -1347,14 +1347,14 @@ rasqal_engine_make_basic_graph_pattern(rasqal_graph_pattern *gp)
     /* check if ALL sub-graph patterns are either:
      * 1) a single triple
      * 2) a single constraint
-     * No flags
+     * Same operators
      */
     for(i=0; i < raptor_sequence_size(gp->graph_patterns); i++) {
       rasqal_graph_pattern *sgp=(rasqal_graph_pattern*)raptor_sequence_get_at(gp->graph_patterns, i);
 
-      if(sgp->flags & RASQAL_PATTERN_FLAGS_OPTIONAL) {
+      if(sgp->operator != RASQAL_GRAPH_PATTERN_OPERATOR_BASIC) {
 #if RASQAL_DEBUG > 1
-        RASQAL_DEBUG2("Found optional flag in sub-graph pattern %p\n", sgp);
+        RASQAL_DEBUG2("Found non-basic graph pattern in sub-graph pattern %p\n", sgp);
 #endif
         merge_gp_ok=0;
         break;
@@ -1431,8 +1431,6 @@ rasqal_engine_make_basic_graph_pattern(rasqal_graph_pattern *gp)
         }
       }
       
-      gp->flags |= sgp->flags;
-
       rasqal_free_graph_pattern(sgp);
     }
 
