@@ -179,18 +179,17 @@ static void
 roqet_graph_pattern_walk(rasqal_graph_pattern *gp, int gp_index,
                          FILE *fh, int indent) {
   int triple_index=0;
-  int flags;
+  rasqal_graph_pattern_operator operator;
   int seen;
   raptor_sequence *seq;
   
-  flags=rasqal_graph_pattern_get_flags(gp);
+  operator=rasqal_graph_pattern_get_operator(gp);
   
   roqet_write_indent(fh, indent);
-  fputs("graph pattern", fh);
+  fprintf(fh, "%s graph pattern", 
+          rasqal_graph_pattern_operator_as_string(operator));
   if(gp_index >= 0)
     fprintf(fh, " #%d", gp_index);
-  if(flags != 0)
-    fprintf(fh, " with flags %d", flags);
   fputs(" {\n", fh);
   
   indent+= 2;
