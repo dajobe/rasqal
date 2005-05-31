@@ -272,6 +272,24 @@ typedef enum {
 } rasqal_query_verb;
 
 
+/* Graph pattern operators  */
+typedef enum {
+  RASQAL_GRAPH_PATTERN_OPERATOR_UNKNOWN   = 0,
+  /* Basic - just triple patterns and constraints */
+  RASQAL_GRAPH_PATTERN_OPERATOR_BASIC     = 1,
+  /* Optional - set of graph patterns (ANDed) and constraints */
+  RASQAL_GRAPH_PATTERN_OPERATOR_OPTIONAL  = 2,
+  /* Union - set of graph patterns (UNIONed) and constraints */
+  RASQAL_GRAPH_PATTERN_OPERATOR_UNION     = 3,
+  /* Group - set of graph patterns (ANDed) and constraints */
+  RASQAL_GRAPH_PATTERN_OPERATOR_GROUP     = 4,
+  /* Graph - a graph term + a graph pattern and constraints */
+  RASQAL_GRAPH_PATTERN_OPERATOR_GRAPH     = 5,
+
+  RASQAL_GRAPH_PATTERN_OPERATOR_LAST=RASQAL_GRAPH_PATTERN_OPERATOR_GRAPH
+} rasqal_graph_pattern_operator;
+
+
 /* RASQAL API */
 
 /* Public functions */
@@ -336,7 +354,9 @@ RASQAL_API void rasqal_graph_pattern_add_sub_graph_pattern(rasqal_graph_pattern*
 RASQAL_API rasqal_triple* rasqal_graph_pattern_get_triple(rasqal_graph_pattern* graph_pattern, int idx);
 RASQAL_API raptor_sequence* rasqal_graph_pattern_get_sub_graph_pattern_sequence(rasqal_graph_pattern* graph_pattern);
 RASQAL_API rasqal_graph_pattern* rasqal_graph_pattern_get_sub_graph_pattern(rasqal_graph_pattern* graph_pattern, int idx);
-RASQAL_API int rasqal_graph_pattern_get_flags(rasqal_graph_pattern* graph_pattern);
+RASQAL_API RASQAL_DEPRECATED int rasqal_graph_pattern_get_flags(rasqal_graph_pattern* graph_pattern);
+RASQAL_API rasqal_graph_pattern_operator rasqal_graph_pattern_get_operator(rasqal_graph_pattern* graph_pattern);
+RASQAL_API const char* rasqal_graph_pattern_operator_as_string(rasqal_graph_pattern_operator verb);
 RASQAL_API void rasqal_graph_pattern_print(rasqal_graph_pattern* gp, FILE* fh);
 RASQAL_API int rasqal_graph_pattern_add_constraint(rasqal_graph_pattern* gp, rasqal_expression* expr);
 RASQAL_API raptor_sequence* rasqal_graph_pattern_get_constraint_sequence(rasqal_graph_pattern* gp);
