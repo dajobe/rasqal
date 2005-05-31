@@ -797,14 +797,15 @@ rasqal_graph_pattern_get_sub_graph_pattern(rasqal_graph_pattern* graph_pattern, 
  * rasqal_graph_pattern_get_flags - Get the graph pattern flags 
  * @graph_pattern: &rasqal_graph_pattern graph pattern object
  * 
- * The flags are a bitwise OR of the values of the rasqal_pattern_flags enum.
+ * DEPRECATED: Always returns 0
  *
- * Return value: flags
+ * Return value: 0
  **/
 int
 rasqal_graph_pattern_get_flags(rasqal_graph_pattern* graph_pattern)
 {
-  return graph_pattern->flags;
+  RASQAL_DEPRECATED_MESSAGE("use rasqal_graph_pattern_get_operator");
+  return 0;
 }
 
 
