@@ -444,6 +444,8 @@ GraphPattern: '{' PatternElementsList DotOptional '}'
 #endif
 
   $$=$2;
+  if($$)
+    $$->operator = RASQAL_GRAPH_PATTERN_OPERATOR_GROUP;
 }
 | '{' DotOptional '}' /* empty list */
 {
@@ -501,7 +503,8 @@ PatternElementsList: PatternElementsList '.' PatternElement
   if($1)
     raptor_sequence_push(seq, $1);
 
-  $$=rasqal_new_graph_pattern_from_sequence((rasqal_query*)rq, seq, 0);
+  $$=rasqal_new_graph_pattern_from_sequence((rasqal_query*)rq, seq, 
+                                            RASQAL_GRAPH_PATTERN_OPERATOR_UNKNOWN);
 }
 ;
 
@@ -528,7 +531,7 @@ PatternElement: Triples
 
     rasqal_free_formula($1);
 
-    $$=rasqal_new_graph_pattern_from_triples((rasqal_query*)rq, s, offset, offset+triple_pattern_size-1, 0);
+    $$=rasqal_new_graph_pattern_from_triples((rasqal_query*)rq, s, offset, offset+triple_pattern_size-1, RASQAL_GRAPH_PATTERN_OPERATOR_BASIC);
   } else
     $$=NULL;
 }
@@ -564,7 +567,7 @@ OptionalGraphPattern: OPTIONAL GraphPattern
 #endif
 
   if($2)
-    $2->flags |= RASQAL_PATTERN_FLAGS_OPTIONAL;
+    $2->operator = RASQAL_GRAPH_PATTERN_OPERATOR_OPTIONAL;
 
   $$=$2;
 }
@@ -583,6 +586,7 @@ GraphGraphPattern: GRAPH VarOrURI GraphPattern
 #endif
 
   rasqal_graph_pattern_set_origin($3, $2);
+  $3->operator = RASQAL_GRAPH_PATTERN_OPERATOR_GRAPH;
 
   rasqal_free_literal($2);
   $$=$3;
@@ -602,8 +606,6 @@ UnionGraphPattern: GraphPattern UNION UnionGraphPatternList
   fputs("\n\n", stdout);
 #endif
 
-  /* FIXME - union graph pattern type */
-  sparql_syntax_warning(((rasqal_query*)rq), "SPARQL UNION ignored");
 }
 ;
 
@@ -620,7 +622,9 @@ UnionGraphPatternList: UnionGraphPatternList UNION GraphPattern
   seq=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_graph_pattern, (raptor_sequence_print_handler*)rasqal_graph_pattern_print);
   if($1)
     raptor_sequence_push(seq, $1);
-  $$=rasqal_new_graph_pattern_from_sequence((rasqal_query*)rq, seq, 0);
+  $$=rasqal_new_graph_pattern_from_sequence((rasqal_query*)rq,
+                                            seq,
+                                            RASQAL_GRAPH_PATTERN_OPERATOR_UNION);
 }
 ;
 
