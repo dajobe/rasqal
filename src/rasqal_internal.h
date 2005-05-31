@@ -124,6 +124,9 @@ typedef struct rasqal_query_engine_factory_s rasqal_query_engine_factory;
  */
 struct rasqal_graph_pattern_s {
   rasqal_query* query;
+
+  /* operator for this graph pattern's contents */
+  rasqal_graph_pattern_operator operator;
   
   raptor_sequence* triples;          /* ... rasqal_triple*         */
   raptor_sequence* graph_patterns;   /* ... rasqal_graph_pattern*  */
@@ -150,9 +153,6 @@ struct rasqal_graph_pattern_s {
   /* Count of all optional matches for the current mandatory matches */
   int optional_graph_pattern_matches_count;
 
-  /* enum rasqal_pattern_flags */
-  int flags;
-
   /* true when this graph pattern matched last time */
   int matched;
 
@@ -173,13 +173,12 @@ struct rasqal_graph_pattern_s {
 
 rasqal_graph_pattern* rasqal_new_graph_pattern(rasqal_query* query);
 rasqal_graph_pattern* rasqal_new_graph_pattern_from_triples(rasqal_query* query, raptor_sequence* triples, int start_column, int end_column, int flags);
-rasqal_graph_pattern* rasqal_new_graph_pattern_from_sequence(rasqal_query* query, raptor_sequence* graph_patterns, int flags);
+rasqal_graph_pattern* rasqal_new_graph_pattern_from_sequence(rasqal_query* query, raptor_sequence* graph_patterns, rasqal_graph_pattern_operator operator);
 void rasqal_free_graph_pattern(rasqal_graph_pattern* gp);
 void rasqal_graph_pattern_init(rasqal_graph_pattern* gp);
 void rasqal_graph_pattern_adjust(rasqal_graph_pattern* gp, int offset);
 void rasqal_graph_pattern_set_origin(rasqal_graph_pattern* graph_pattern, rasqal_literal* origin);
-void rasqal_graph_pattern_add_triples(rasqal_graph_pattern* gp, raptor_sequence* triples, int start_column, int end_column, int flags);
-
+void rasqal_graph_pattern_add_triples(rasqal_graph_pattern* gp, raptor_sequence* triples, int start_column, int end_column, rasqal_graph_pattern_operator operator);
 int rasqal_reset_triple_meta(rasqal_triple_meta* m);
 
 
