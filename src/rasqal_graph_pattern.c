@@ -209,9 +209,12 @@ rasqal_graph_pattern_init(rasqal_graph_pattern *gp)
   rasqal_query *query=gp->query;
   
   gp->optional_graph_pattern= -1;
+  gp->current_graph_pattern= -1;
 
   if(gp->graph_patterns) {
     int i;
+
+    gp->current_graph_pattern=0;
     
     /* sort graph patterns, optional graph triples last */
     raptor_sequence_sort(gp->graph_patterns, rasqal_graph_pattern_order);
