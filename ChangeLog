@@ -1,3 +1,65 @@
+2005-06-01  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal_graph_pattern.c (rasqal_graph_pattern_init): Add init of
+	current_graph_pattern field when there are sub-graph patterns.
+	Moved from rasqal_engine_execute_init.
+
+	* rasqal_engine.c (rasqal_engine_execute_init): Move init of
+	current_graph_pattern field into rasqal_graph_pattern_init
+
+	* tests/sparql/examples/ex11.2.3.1_0-result.n3,
+	tests/sparql/examples/ex11.2.3.2_0-result.n3,
+	tests/sparql/examples/ex11.2.3.5_0-result.n3,
+	tests/sparql/examples/ex11_0-result.n3,
+	tests/sparql/examples/ex11_1-result.n3: Updated DAWG
+	tests. Examples
+
+	* tests/sparql/sort/query-sort-6.rq,
+	tests/sparql/sort/query-sort-5.rq,
+	tests/sparql/sort/query-sort-4.rq,
+	tests/sparql/sort/query-sort-3.rq,
+	tests/sparql/sort/query-sort-2.rq: Updated DAWG tests. using ASC()
+	and DESC()
+
+	* tests/sparql/sort/manifest.ttl: Updated DAWG tests. rdfs:comment
+
+	* tests/sparql/SyntaxFull/Makefile.am: 10 failures
+
+	* tests/sparql/SyntaxFull/Makefile.am: note latest failures
+
+	* tests/sparql/SyntaxFull/Makefile.am: Added new tests
+
+	* tests/sparql/SyntaxFull/manifest.ttl: Updated DAWG tests. Added
+	tests syntax-bnodes-0[567] syntax-limit-offset-0[789] and
+	syntax-order[06]
+
+	* tests/sparql/SyntaxFull/syntax-limit-offset-07.rq,
+	tests/sparql/SyntaxFull/syntax-limit-offset-08.rq,
+	tests/sparql/SyntaxFull/syntax-limit-offset-09.rq: Updated DAWG
+	tests.  Tests for limit and offset
+
+	* tests/sparql/SyntaxFull/syntax-bnodes-03.rq,
+	tests/sparql/SyntaxFull/syntax-bnodes-04.rq,
+	tests/sparql/SyntaxFull/syntax-bnodes-05.rq,
+	tests/sparql/SyntaxFull/syntax-bnodes-06.rq,
+	tests/sparql/SyntaxFull/syntax-bnodes-07.rq: Updated DAWG tests.
+	More bnodes forms
+
+	* tests/sparql/SyntaxFull/syntax-order-02.rq,
+	tests/sparql/SyntaxFull/syntax-order-03.rq,
+	tests/sparql/SyntaxFull/syntax-order-04.rq,
+	tests/sparql/SyntaxFull/syntax-order-05.rq,
+	tests/sparql/SyntaxFull/syntax-order-06.rq: Updated DAWG
+	tests. ASC/DESC using () not []s
+
+	* tests/sparql/examples/Makefile.am:
+	sparql-query-example-Testing-Values-RDFterm-equal now passes
+
+	* sparql_parser.y (OrderCondition): Accept ASC() and DESC()
+	deprecating ASC[] and DESC[]
+
+	* sparql_lexer.l: ASC and DESC are just the tokens, no [
+
 2005-05-31  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
 	* roqet.c (roqet_graph_pattern_walk): Print graph pattern operator
