@@ -67,6 +67,24 @@
                qt:data   <empty.nt> ]
          # No result
       ]
+      [  mf:name    "syntax-bnodes-05.rq" ;
+         mf:action  
+             [ qt:query  <syntax-bnodes-05.rq> ; 
+               qt:data   <empty.nt> ]
+         # No result
+      ]
+      [  mf:name    "syntax-bnodes-06.rq" ;
+         mf:action  
+             [ qt:query  <syntax-bnodes-06.rq> ; 
+               qt:data   <empty.nt> ]
+         # No result
+      ]
+      [  mf:name    "syntax-bnodes-07.rq" ;
+         mf:action  
+             [ qt:query  <syntax-bnodes-07.rq> ; 
+               qt:data   <empty.nt> ]
+         # No result
+      ]
       [  mf:name    "syntax-expr-01.rq" ;
          mf:action  
              [ qt:query  <syntax-expr-01.rq> ; 
@@ -115,9 +133,21 @@
                qt:data   <empty.nt> ]
          # No result
       ]
-      [  mf:name    "syntax-forms-03.arq" ;
+      [  mf:name    "syntax-limit-offset-07.rq" ;
          mf:action  
-             [ qt:query  <syntax-forms-03.arq> ; 
+             [ qt:query  <syntax-limit-offset-07.rq> ; 
+               qt:data   <empty.nt> ]
+         # No result
+      ]
+      [  mf:name    "syntax-limit-offset-08.rq" ;
+         mf:action  
+             [ qt:query  <syntax-limit-offset-08.rq> ; 
+               qt:data   <empty.nt> ]
+         # No result
+      ]
+      [  mf:name    "syntax-limit-offset-09.rq" ;
+         mf:action  
+             [ qt:query  <syntax-limit-offset-09.rq> ; 
                qt:data   <empty.nt> ]
          # No result
       ]
@@ -262,6 +292,12 @@
       [  mf:name    "syntax-order-05.rq" ;
          mf:action  
              [ qt:query  <syntax-order-05.rq> ; 
+               qt:data   <empty.nt> ]
+         # No result
+      ]
+      [  mf:name    "syntax-order-06.rq" ;
+         mf:action  
+             [ qt:query  <syntax-order-06.rq> ; 
                qt:data   <empty.nt> ]
          # No result
       ]
