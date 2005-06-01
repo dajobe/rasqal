@@ -31,7 +31,9 @@ SPARQL_TEST_FILES= \
 syntax-basic-01.rq syntax-basic-02.rq syntax-basic-03.rq		\
 syntax-basic-04.rq syntax-basic-05.rq syntax-basic-06.rq		\
 syntax-bnodes-01.rq syntax-bnodes-02.rq syntax-bnodes-03.rq             \
-syntax-bnodes-04.rq syntax-expr-01.rq syntax-expr-02.rq			\
+syntax-bnodes-04.rq syntax-bnodes-05.rq syntax-bnodes-06.rq		\
+syntax-bnodes-07.rq							\
+syntax-expr-01.rq syntax-expr-02.rq					\
 syntax-expr-03.rq syntax-expr-04.rq syntax-expr-05.rq			\
 syntax-expr-06.rq syntax-forms-01.rq syntax-forms-02.rq			\
 syntax-lists-01.rq syntax-lists-02.rq syntax-lists-03.rq		\
@@ -41,6 +43,7 @@ syntax-lit-06.rq syntax-lit-07.rq syntax-lit-08.rq syntax-lit-09.rq	\
 syntax-lit-10.rq syntax-lit-11.rq syntax-lit-12.rq syntax-lit-13.rq	\
 syntax-lit-14.rq syntax-order-01.rq syntax-order-02.rq			\
 syntax-order-03.rq syntax-order-04.rq syntax-order-05.rq		\
+syntax-order-06.rq		\
 syntax-pat-01.rq syntax-pat-02.rq syntax-pat-03.rq syntax-pat-04.rq	\
 syntax-qname-07.rq syntax-qname-08.rq syntax-qname-09.rq		\
 syntax-qname-10.rq syntax-qname-11.rq syntax-qname-12.rq		\
@@ -62,6 +65,7 @@ syntax-union-02.rq
 # Excluding anything with optional WHERE which gives a warning
 
 EXPECTED_SPARQL_PARSER_FAILURES= \
+syntax-bnodes-03.rq syntax-bnodes-04.rq syntax-order-02.rq \
 syntax-pat-02.rq syntax-pat-03.rq syntax-pat-04.rq syntax-qname-11.rq	\
 syntax-struct-03.rq syntax-struct-09.rq
 
