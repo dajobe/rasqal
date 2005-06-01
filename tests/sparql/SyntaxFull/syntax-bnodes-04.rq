@@ -1,3 +1,2 @@
-PREFIX : <http://example.org/ns#> 
-SELECT *
-WHERE { [ :p :q ; ] }
+PREFIX : <http://example.org/ns#>
+SELECT * WHERE { :x _:a :q }
