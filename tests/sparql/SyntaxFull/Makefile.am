@@ -75,7 +75,7 @@ syntax-bnodes-03.rq syntax-bnodes-04.rq syntax-order-02.rq		\
 syntax-order-06.rq syntax-pat-02.rq syntax-pat-03.rq syntax-pat-04.rq	\
 syntax-qname-11.rq syntax-struct-03.rq syntax-struct-09.rq
 
-EXPECTED_SPARQL_PARSER_FAILURES_COUNT=6
+EXPECTED_SPARQL_PARSER_FAILURES_COUNT=10
 
 
 EXTRA_DIST= \
