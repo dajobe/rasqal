@@ -178,7 +178,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...);
 %type <expr> OrderCondition OrderExpression
 
 %type <literal> Literal URI BlankNode
-%type <literal> VarOrLiteral VarOrURI
+%type <literal> VarOrLiteral VarOrURI VarOrBnodeOrURI
 %type <literal> VarOrLiteralOrBlankNode
 %type <literal> URIBrace
 
@@ -955,7 +955,7 @@ Subject: VarOrLiteralOrBlankNode
 
 
 /* NEW Grammar Term from Turtle */
-Predicate: VarOrURI
+Predicate: VarOrBnodeOrURI
 {
   $$=rasqal_new_formula();
   $$->value=$1;
@@ -1269,7 +1269,22 @@ VarOrLiteralOrBlankNode : VarOrLiteral
 ;
 
 
-/* SPARQL Grammar: [42] VarOrBNodeOrURI - junk? */
+/* SPARQL Grammar: [42] VarOrBNodeOrURI */
+VarOrBnodeOrURI: VarOrURI
+{
+  $$=$1;
+}
+| BlankNode
+{
+  $$=$1;
+}
+| '[' ']'
+{
+  const unsigned char *id=rasqal_query_generate_bnodeid((rasqal_query*)rq, NULL);
+
+  $$=rasqal_new_simple_literal(RASQAL_LITERAL_BLANK, id);
+}
+;
 
 /* SPARQL Grammar: [43] Var */
 Var : '?' IDENTIFIER
