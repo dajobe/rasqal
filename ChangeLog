@@ -1,5 +1,10 @@
 2005-06-01  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
+	* tests/sparql/SyntaxFull/Makefile.am: crashes stopped
+
+	* sparql_parser.y (VarOrBnodeOrURI): Added, used for Predicate and
+	allows explicit bnode or []
+
 	* rasqal_graph_pattern.c (rasqal_graph_pattern_init): Add init of
 	current_graph_pattern field when there are sub-graph patterns.
 	Moved from rasqal_engine_execute_init.
