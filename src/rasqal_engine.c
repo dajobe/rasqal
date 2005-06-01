@@ -808,15 +808,8 @@ rasqal_engine_execute_init(rasqal_query* query, rasqal_query_results *results)
 
   gp=query->query_graph_pattern;
 
-  if(gp) {
+  if(gp)
     rasqal_graph_pattern_init(gp);
-  
-    if(gp->graph_patterns && raptor_sequence_size(gp->graph_patterns))
-      gp->current_graph_pattern= 0;
-    else
-      /* FIXME - no graph patterns in query */
-      gp->current_graph_pattern= -1;
-  }
     
   return 0;
 }
