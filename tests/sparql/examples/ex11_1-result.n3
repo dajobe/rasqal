@@ -4,7 +4,7 @@
 []  <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>
                 rs:ResultSet ;
     rs:resultVariable
-                "title", "price" ;
+                "annot" ;
     rs:solution [ rs:binding  [ rs:value    _:a ;
                                 rs:variable "annot"
                               ]

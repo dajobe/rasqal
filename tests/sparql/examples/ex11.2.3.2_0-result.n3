@@ -8,6 +8,4 @@
     rs:solution [ rs:binding  [ rs:value    "Alice" ;
                                 rs:variable "name"
                               ] ;
-                  rs:binding  [ rs:variable "givenName"
-                              ]
                 ] .

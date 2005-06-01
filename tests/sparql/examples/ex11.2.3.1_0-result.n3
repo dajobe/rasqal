@@ -4,11 +4,18 @@
 []  <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>
                 rs:ResultSet ;
     rs:resultVariable
-                "title", "price" ;
-    rs:solution [ rs:binding  [ rs:value    "name1" ;
-                                rs:variable "Alice"
+                "name1", "name2" ;
+    rs:solution [ rs:binding  [ rs:value    "Alice" ;
+                                rs:variable "name1"
                               ] ;
-		  rs:binding  [ rs:value    "name2" ;
-                                rs:variable "Ms A."
+                  rs:binding  [ rs:value    "Ms A." ;
+                                rs:variable "name2"
+                              ]
+                ] ;
+    rs:solution [ rs:binding  [ rs:value    "Ms A." ;
+                                rs:variable "name1"
+                              ] ;
+                  rs:binding  [ rs:value    "Alice" ;
+                                rs:variable "name2"
                               ]
                 ] .
