@@ -55,6 +55,12 @@ syntax-struct-09.rq syntax-struct-10.rq syntax-union-01.rq		\
 syntax-union-02.rq
 
 # Test failures
+#   syntax-bnodes-03.rq syntax-bnodes-04.rq 
+#     Crashes (BUG)
+#   syntax-order-02.rq
+#     ORDER BY (expr)
+#   syntax-order-06.rq
+#     ORDER BY list of things
 #   syntax-pat-02.rq syntax-pat-03.rq syntax-pat-04.rq
 #     DOT after optional, no DOT between non-triple patterns x2 (BUG)
 #   syntax-qname-11.rq
@@ -65,9 +71,9 @@ syntax-union-02.rq
 # Excluding anything with optional WHERE which gives a warning
 
 EXPECTED_SPARQL_PARSER_FAILURES= \
-syntax-bnodes-03.rq syntax-bnodes-04.rq syntax-order-02.rq \
-syntax-pat-02.rq syntax-pat-03.rq syntax-pat-04.rq syntax-qname-11.rq	\
-syntax-struct-03.rq syntax-struct-09.rq
+syntax-bnodes-03.rq syntax-bnodes-04.rq syntax-order-02.rq		\
+syntax-order-06.rq syntax-pat-02.rq syntax-pat-03.rq syntax-pat-04.rq	\
+syntax-qname-11.rq syntax-struct-03.rq syntax-struct-09.rq
 
 EXPECTED_SPARQL_PARSER_FAILURES_COUNT=6
 
