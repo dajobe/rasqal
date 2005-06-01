@@ -1,4 +1,4 @@
 PREFIX :      <http://example.org/ns#> 
 SELECT *
 { ?s ?p ?o }
-ORDER BY DESC[:func(?s, ?o)]
+ORDER BY DESC(?o)
