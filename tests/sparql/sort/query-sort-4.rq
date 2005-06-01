@@ -5,4 +5,4 @@ SELECT ?name ?emp
 WHERE { ?x foaf:name ?name ;
            ex:empId ?emp
       }
-ORDER BY ASC[?emp]
+ORDER BY ASC(?emp)

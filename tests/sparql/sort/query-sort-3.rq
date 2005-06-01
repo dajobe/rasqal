@@ -3,4 +3,4 @@ SELECT ?name ?mbox
 WHERE { ?x foaf:name ?name .
            OPTIONAL { ?x foaf:mbox ?mbox }
       }
-ORDER BY ASC[?mbox]
+ORDER BY ASC(?mbox)
