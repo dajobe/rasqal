@@ -390,13 +390,25 @@ OrderConditionList: OrderConditionList OrderCondition
 
 
 /* SPARQL Grammar: [15] OrderCondition */
-OrderCondition: ASC OrderExpression ']'
+OrderCondition: ASC '(' OrderExpression ')'
 {
-  $$=rasqal_new_1op_expression(RASQAL_EXPR_ORDER_COND_ASC, $2);
+  $$=rasqal_new_1op_expression(RASQAL_EXPR_ORDER_COND_ASC, $3);
 }
-| DESC OrderExpression ']'
+| DESC '(' OrderExpression ')'
 {
-  $$=rasqal_new_1op_expression(RASQAL_EXPR_ORDER_COND_DESC, $2);
+  $$=rasqal_new_1op_expression(RASQAL_EXPR_ORDER_COND_DESC, $3);
+}
+| ASC '[' OrderExpression ']'
+{
+  /* FIXME - deprecated */
+  sparql_syntax_warning(((rasqal_query*)rq), "Use ASC() instead of ASC[] in SPARQL (after 2005-04-19 WD)");
+  $$=rasqal_new_1op_expression(RASQAL_EXPR_ORDER_COND_ASC, $3);
+}
+| DESC '[' OrderExpression ']'
+{
+  /* FIXME - deprecated */
+  sparql_syntax_warning(((rasqal_query*)rq), "Use ASC() instead of ASC[] in SPARQL (after 2005-04-19 WD)");
+  $$=rasqal_new_1op_expression(RASQAL_EXPR_ORDER_COND_DESC, $3);
 }
 | OrderExpression
 {
