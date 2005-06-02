@@ -1,5 +1,34 @@
 2005-06-02  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
+	* tests/sparql/SyntaxFull/Makefile.am: Update lists
+
+	* tests/sparql/SyntaxFull/syntax-forms-03.arq: Remove unused tests
+
+	* tests/sparql/SyntaxFull/syntax-query-pat-01.rq,
+	tests/sparql/SyntaxFull/syntax-query-pat-02.rq,
+	tests/sparql/SyntaxFull/syntax-query-pat-03.rq,
+	tests/sparql/SyntaxFull/syntax-query-pat-04.rq,
+	tests/sparql/SyntaxFull/syntax-query-pat-05.rq: Delete old tests
+
+	* tests/sparql/SyntaxFull/syntax-bnodes-08.rq,
+	tests/sparql/SyntaxFull/syntax-bnodes-09.rq: Remove unused tests
+
+	* tests/sparql/SyntaxFull/Makefile.am: Added check-sparql-correct
+	target
+
+	* tests/sparql/SyntaxFull/syntax-bnodes-08.rq,
+	tests/sparql/SyntaxFull/syntax-bnodes-09.rq,
+	tests/sparql/SyntaxFull/syntax-query-pat-01.rq,
+	tests/sparql/SyntaxFull/syntax-query-pat-02.rq,
+	tests/sparql/SyntaxFull/syntax-query-pat-03.rq,
+	tests/sparql/SyntaxFull/syntax-query-pat-04.rq,
+	tests/sparql/SyntaxFull/syntax-query-pat-05.rq: Added
+	syntax-bnodes-08.rq syntax-bnodes-09.rq syntax-query-pat-01.rq
+	syntax-query-pat-02.rq syntax-query-pat-03.rq
+	syntax-query-pat-04.rq syntax-query-pat-05.rq tests
+
+	* tests/sparql/SyntaxFull/Makefile.am: 3 to 1 failure
+
 	* rasqal_xsd_datatypes.c: Pull in libxml schema headers
 
 	* sparql_parser.y (OrderClauseOpt, LimitClauseOpt,
