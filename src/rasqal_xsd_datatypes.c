@@ -43,6 +43,12 @@
 #include "rasqal_internal.h"
 
 
+/* libxml2 datatypes */
+#include <libxml/xmlschemas.h>
+#include <libxml/xmlschemastypes.h>
+#include <libxml/schemasInternals.h>
+
+
 /*
  *
  * References
