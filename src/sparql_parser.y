@@ -163,7 +163,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...);
 %type <seq> ItemList
 
 %type <formula> Triples
-%type <formula> PropertyList ObjectList Collection
+%type <formula> PropertyList PropertyListTail ObjectList Collection
 %type <formula> Subject Predicate Object TriplesNode
 
 %type <graph_pattern> GraphPattern PatternElement
@@ -456,8 +456,6 @@ GraphPattern: '{' PatternElementsList DotOptional '}'
 #endif
 
   $$=$2;
-  if($$)
-    $$->operator = RASQAL_GRAPH_PATTERN_OPERATOR_GROUP;
 }
 | '{' DotOptional '}' /* empty list */
 {
@@ -474,7 +472,7 @@ DotOptional: '.'
 /* SPARQL Grammar Term: [20] PatternElementsList and 
  * SPARQL Grammar Term: [21] PatternElementsListTail
  */
-PatternElementsList: PatternElementsList '.' PatternElement
+PatternElementsList: PatternElementsList DotOptional PatternElement
 {
   rasqal_graph_pattern *mygp=$1;
   
@@ -490,8 +488,10 @@ PatternElementsList: PatternElementsList '.' PatternElement
 #endif
 
   $$=mygp;
-  if($3)
-    raptor_sequence_push(mygp->graph_patterns, $3);
+  if($3) {
+    raptor_sequence_push($$->graph_patterns, $3);
+    $$->operator = RASQAL_GRAPH_PATTERN_OPERATOR_GROUP;
+  }
 }
 | PatternElementsList '.' FILTER Expression
 {
@@ -516,7 +516,7 @@ PatternElementsList: PatternElementsList '.' PatternElement
     raptor_sequence_push(seq, $1);
 
   $$=rasqal_new_graph_pattern_from_sequence((rasqal_query*)rq, seq, 
-                                            RASQAL_GRAPH_PATTERN_OPERATOR_UNKNOWN);
+                                            RASQAL_GRAPH_PATTERN_OPERATOR_BASIC);
 }
 ;
 
@@ -681,7 +681,7 @@ TriplesList: TriplesList '.' Triples
   } else
     $$=NULL;
 }
-
+;
 
 
 /* SPARQL Grammar: [28] Triples */
@@ -746,34 +746,37 @@ Triples: Subject PropertyList
 
 /* SPARQL Grammar: [29] PropertyList
  * SPARQL Grammar: [30] PropertyListNotEmpty
- * SPARQL Grammar: [31] PropertyListTail
  */
-PropertyList: PropertyList ';' Predicate ObjectList
+PropertyList: Predicate ObjectList PropertyListTail
 {
   int i;
   
 #if RASQAL_DEBUG > 1  
   printf("PropertyList 1\n Predicate=");
-  rasqal_formula_print($3, stdout);
-  printf("\n ObjectList=");
-  rasqal_formula_print($4, stdout);
-  printf("\n PropertyList=");
   rasqal_formula_print($1, stdout);
-  printf("\n\n");
+  printf("\n ObjectList=");
+  rasqal_formula_print($2, stdout);
+  printf("\n PropertyListTail=");
+  if($3 != NULL)
+    rasqal_formula_print($3, stdout);
+  else
+    fputs("NULL", stdout);
+  printf("\n");
 #endif
   
-  if($4 == NULL) {
+  if($2 == NULL) {
 #if RASQAL_DEBUG > 1  
     printf(" empty ObjectList not processed\n");
 #endif
-  } else if($3 && $4) {
-    raptor_sequence *seq=$4->triples;
-    rasqal_literal *predicate=$3->value;
+  } else if($1 && $2) {
+    raptor_sequence *seq=$2->triples;
+    rasqal_literal *predicate=$1->value;
 
     /* non-empty property list, handle it  */
     for(i=0; i<raptor_sequence_size(seq); i++) {
       rasqal_triple* t2=(rasqal_triple*)raptor_sequence_get_at(seq, i);
-      t2->predicate=(rasqal_literal*)rasqal_new_literal_from_literal(predicate);
+      if(!t2->predicate)
+        t2->predicate=(rasqal_literal*)rasqal_new_literal_from_literal(predicate);
     }
   
 #if RASQAL_DEBUG > 1  
@@ -783,86 +786,46 @@ PropertyList: PropertyList ';' Predicate ObjectList
 #endif
   }
 
-  if($1 == NULL) {
-#if RASQAL_DEBUG > 1  
-    printf(" empty PropertyList not copied\n\n");
-#endif
-  } else if ($3 && $4 && $1) {
-    raptor_sequence *seq=$4->triples;
+  if ($1 && $2) {
+    raptor_sequence *seq=$2->triples;
+
+    if(!$3) {
+      $3=rasqal_new_formula();
+      $3->triples=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_triple, (raptor_sequence_print_handler*)rasqal_triple_print);
+    }
 
     for(i=0; i < raptor_sequence_size(seq); i++) {
       rasqal_triple* t2=(rasqal_triple*)raptor_sequence_get_at(seq, i);
-      raptor_sequence_push($1->triples, t2);
+      raptor_sequence_push($3->triples, t2);
     }
     while(raptor_sequence_size(seq))
       raptor_sequence_pop(seq);
 
 #if RASQAL_DEBUG > 1  
     printf(" after appending ObjectList (reverse order)=");
-    rasqal_formula_print($1, stdout);
+    rasqal_formula_print($3, stdout);
     printf("\n\n");
 #endif
 
-    rasqal_free_formula($4);
-  }
-
-  if($3)
-    rasqal_free_formula($3);
-
-  $$=$1;
-}
-| Predicate ObjectList
-{
-  int i;
-#if RASQAL_DEBUG > 1  
-  printf("PropertyList 2\n Predicate=");
-  rasqal_formula_print($1, stdout);
-  if($2) {
-    printf("\n ObjectList=");
-    rasqal_formula_print($2, stdout);
-    printf("\n");
-  } else
-    printf("\n and empty ObjectList\n");
-#endif
-
-  if($1 && $2) {
-    raptor_sequence *seq=$2->triples;
-    rasqal_literal *predicate=$1->value;
-    
-    for(i=0; i<raptor_sequence_size(seq); i++) {
-      rasqal_triple* t2=(rasqal_triple*)raptor_sequence_get_at(seq, i);
-      if(t2->predicate)
-        continue;
-      t2->predicate=(rasqal_literal*)rasqal_new_literal_from_literal(predicate);
-    }
-
-#if RASQAL_DEBUG > 1  
-    printf(" after substitution ObjectList=");
-    raptor_sequence_print(seq, stdout);
-    printf("\n\n");
-#endif
+    rasqal_free_formula($2);
   }
 
   if($1)
     rasqal_free_formula($1);
 
+  $$=$3;
+}
+;
+
+
+/* SPARQL Grammar: [31] PropertyListTail */
+PropertyListTail: ';' PropertyList
+{
   $$=$2;
 }
-|
+| /* empty */
 {
-#if RASQAL_DEBUG > 1  
-  printf("Propertylist 4\n empty returning NULL\n\n");
-#endif
   $$=NULL;
-}
-| PropertyList ';'
-{
-  $$=$1;
-#if RASQAL_DEBUG > 1  
-  printf("PropertyList 5\n trailing semicolon returning existing list ");
-  rasqal_formula_print($$, stdout);
-  printf("\n\n");
-#endif
 }
 ;
 
@@ -1278,12 +1241,6 @@ VarOrBnodeOrURI: VarOrURI
 {
   $$=$1;
 }
-| '[' ']'
-{
-  const unsigned char *id=rasqal_query_generate_bnodeid((rasqal_query*)rq, NULL);
-
-  $$=rasqal_new_simple_literal(RASQAL_LITERAL_BLANK, id);
-}
 ;
 
 /* SPARQL Grammar: [43] Var */
@@ -1625,6 +1582,10 @@ URIBrace : URI_LITERAL_BRACE
 BlankNode : BLANK_LITERAL
 {
   $$=rasqal_new_simple_literal(RASQAL_LITERAL_BLANK, $1);
+} | '[' ']'
+{
+  const unsigned char *id=rasqal_query_generate_bnodeid((rasqal_query*)rq, NULL);
+  $$=rasqal_new_simple_literal(RASQAL_LITERAL_BLANK, id);
 }
 ;
 
