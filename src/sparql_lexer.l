@@ -231,7 +231,7 @@ QUOTEDURI \<[^<= ][^>]*\>|\<\>
 
 "="            { return EQ; }
 "!="            { return NEQ; }
-"<"/[^A-Za-z=]  { return LT; }
+"<"/[^A-Za-z=>]  { return LT; }
 ">"             { return GT; }
 "<="         { return LE; }
 ">="         { return GE; }
