@@ -120,13 +120,19 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...);
 
 /*
  * shift/reduce conflicts
- *  6 in region of
- *    Triples: Subject . PropertyListOpt
- *  for all the tokens: A, [, ?, $, URI/QNAME/BLANK LITERALs
- *  either accepting PropertyListOpt (reduce, the right choice, $default)
- *  or ending the triple at the subject (shift, the wrong choice)
+ * 6 in region of
+ *   Triples: Subject *HERE* PropertyListOpt
+ * for all the tokens: A, [, ?, $, URI/QNAME/BLANK LITERALs
+ * either accepting PropertyListOpt (reduce, the right choice, $default)
+ * or ending the triple at the subject (shift, the wrong choice)
+ *
+ * 6 in region of
+ *   PropertyListTail: ';' *HERE* PropertyListOpt
+ * for all the same tokens as above
+ * accepting PropertyListOpt (reduce, $default)
+ * or ending the list (shift, the wrong choice)
  */
-%expect 6
+%expect 12
 
 /* word symbols */
 %token SELECT FROM WHERE
@@ -760,12 +766,12 @@ Triples: Subject PropertyListOpt
 ;
 
 
+/* NEW Grammar Term pulled out of rq23 [29] PropertyList */
 PropertyListOpt: PropertyList
 {
   $$=$1;
 }
-|
-/* */
+| /* empty */
 {
   $$=NULL;
 }
@@ -847,7 +853,7 @@ PropertyList: Predicate ObjectList PropertyListTail
 
 
 /* SPARQL Grammar: [31] PropertyListTail */
-PropertyListTail: ';' PropertyList
+PropertyListTail: ';' PropertyListOpt
 {
   $$=$2;
 }
