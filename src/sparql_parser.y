@@ -120,8 +120,13 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...);
 
 /*
  * shift/reduce conflicts
+ *  6 in region of
+ *    Triples: Subject . PropertyListOpt
+ *  for all the tokens: A, [, ?, $, URI/QNAME/BLANK LITERALs
+ *  either accepting PropertyListOpt (reduce, the right choice, $default)
+ *  or ending the triple at the subject (shift, the wrong choice)
  */
-%expect 0
+%expect 6
 
 /* word symbols */
 %token SELECT FROM WHERE
