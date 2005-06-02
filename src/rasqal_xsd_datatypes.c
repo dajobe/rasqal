@@ -472,7 +472,7 @@ main(int argc, char *argv[]) {
   rasqal_literal *fn_result;
 
 
-  raptor_init();
+  rasqal_init();
 
   xsd_uri=raptor_new_uri(raptor_xmlschema_datatypes_namespace_uri);
   dateTime_uri=raptor_new_uri_from_uri_local_name(xsd_uri, (const unsigned char*)"dateTime");
@@ -514,7 +514,7 @@ main(int argc, char *argv[]) {
   raptor_free_uri(xsd_uri);
   raptor_free_uri(dateTime_uri);
 
-  raptor_finish();
+  rasqal_finish();
 
   return 0;
 }
