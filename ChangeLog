@@ -1,5 +1,11 @@
 2005-06-02  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
+	* tests/sparql/SyntaxFull/Makefile.am: 0 failures now
+
+	* sparql_parser.y: Document the 12 shift/reduce conflicts now.
+	(PropertyListOpt): Docs.
+	(PropertyListTail): Use PropertyListOpt to allow ending on a ';'
+
 	* sparql_parser.y (AskClause): ASK is done
 
 	* tests/sparql/SyntaxFull/Makefile.am: Update lists
