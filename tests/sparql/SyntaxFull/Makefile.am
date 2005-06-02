@@ -57,17 +57,13 @@ syntax-union-02.rq
 # Test failures
 #   syntax-bnodes-06.rq
 #     Optional ; in "[ :p :q ; ]"
-#   syntax-order-02.rq
-#     ORDER BY (expr)
-#   syntax-order-06.rq
-#     ORDER BY list of things
 #
 # Excluding anything with optional WHERE which gives a warning
 
 EXPECTED_SPARQL_PARSER_FAILURES= \
-syntax-bnodes-06.rq syntax-order-02.rq syntax-order-06.rq
+syntax-bnodes-06.rq
 
-EXPECTED_SPARQL_PARSER_FAILURES_COUNT=3
+EXPECTED_SPARQL_PARSER_FAILURES_COUNT=1
 
 
 EXTRA_DIST= \
