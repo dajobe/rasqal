@@ -181,7 +181,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...);
 %type <expr> RelationalExpression AdditiveExpression
 %type <expr> MultiplicativeExpression UnaryExpression
 %type <expr> PrimaryExpression CallExpression FunctionCall
-%type <expr> OrderCondition OrderExpression
+%type <expr> OrderCondition
 
 %type <literal> Literal URI BlankNode
 %type <literal> VarOrLiteral VarOrURI VarOrBnodeOrURI
@@ -370,16 +370,20 @@ WhereClauseOpt:  WHERE GraphPattern
 ;
 
 
-/* SPARQL Grammar: [14] OrderClause - remained for clarity */
+/* SPARQL Grammar: rq23 [14] OrderClause - remained for clarity */
 OrderClauseOpt:  ORDER BY OrderConditionList
 {
-  ((rasqal_query*)rq)->order_conditions_sequence=$3;
+  if(((rasqal_query*)rq)->verb == RASQAL_QUERY_VERB_ASK) {
+    sparql_query_error((rasqal_query*)rq, "ORDER BY cannot be used with ASK");
+  } else {
+    ((rasqal_query*)rq)->order_conditions_sequence=$3;
+  }
 }
 | /* empty */
 ;
 
 
-/* NEW Grammar Term pulled out of [14] OrderClauseOpt */
+/* NEW Grammar Term pulled out of rq23 [14] OrderClauseOpt */
 OrderConditionList: OrderConditionList OrderCondition
 {
   $$=$1;
@@ -396,49 +400,51 @@ OrderConditionList: OrderConditionList OrderCondition
 
 
 /* SPARQL Grammar: [15] OrderCondition */
-OrderCondition: ASC '(' OrderExpression ')'
+OrderCondition: ASC '(' Expression ')'
 {
   $$=rasqal_new_1op_expression(RASQAL_EXPR_ORDER_COND_ASC, $3);
 }
-| DESC '(' OrderExpression ')'
+| DESC '(' Expression ')'
 {
   $$=rasqal_new_1op_expression(RASQAL_EXPR_ORDER_COND_DESC, $3);
 }
-| ASC '[' OrderExpression ']'
+| ASC '[' Expression ']'
 {
-  /* FIXME - deprecated */
-  sparql_syntax_warning(((rasqal_query*)rq), "Use ASC() instead of ASC[] in SPARQL (after 2005-04-19 WD)");
+  /* FIXME - may be deprecated in next WD */
   $$=rasqal_new_1op_expression(RASQAL_EXPR_ORDER_COND_ASC, $3);
 }
-| DESC '[' OrderExpression ']'
+| DESC '[' Expression ']'
 {
-  /* FIXME - deprecated */
-  sparql_syntax_warning(((rasqal_query*)rq), "Use ASC() instead of ASC[] in SPARQL (after 2005-04-19 WD)");
+  /* FIXME - may be deprecated in next WD */
   $$=rasqal_new_1op_expression(RASQAL_EXPR_ORDER_COND_DESC, $3);
 }
-| OrderExpression
+| FunctionCall 
 {
   $$=rasqal_new_1op_expression(RASQAL_EXPR_ORDER_COND_NONE, $1);
-}
-;
-
-/* SPARQL Grammar: [16] OrderExpression - ignored */
-OrderExpression: FunctionCall 
-{
-  $$=$1;
 }
 | Var
 {
   rasqal_literal* l=rasqal_new_variable_literal($1);
-  $$=rasqal_new_literal_expression(l);
+  rasqal_expression *e=rasqal_new_literal_expression(l);
+  $$=rasqal_new_1op_expression(RASQAL_EXPR_ORDER_COND_NONE, e);
+}
+| '(' Expression ')'
+{
+  $$=rasqal_new_1op_expression(RASQAL_EXPR_ORDER_COND_NONE, $2);
 }
 ;
+
 
 /* SPARQL Grammar: [17] LimitClause - remained for clarity */
 LimitClauseOpt :  LIMIT INTEGER_LITERAL
 {
-  if($2 != NULL)
-    ((rasqal_query*)rq)->limit=$2->value.integer;
+  if(((rasqal_query*)rq)->verb == RASQAL_QUERY_VERB_ASK) {
+    sparql_query_error((rasqal_query*)rq, "LIMIT cannot be used with ASK");
+  } else {
+    if($2 != NULL)
+      ((rasqal_query*)rq)->limit=$2->value.integer;
+  }
+  
 }
 | /* empty */
 ;
@@ -446,8 +452,12 @@ LimitClauseOpt :  LIMIT INTEGER_LITERAL
 /* SPARQL Grammar: [18] OffsetClause - remained for clarity */
 OffsetClauseOpt :  OFFSET INTEGER_LITERAL
 {
-  if($2 != NULL)
-    ((rasqal_query*)rq)->offset=$2->value.integer;
+  if(((rasqal_query*)rq)->verb == RASQAL_QUERY_VERB_ASK) {
+    sparql_query_error((rasqal_query*)rq, "LIMIT cannot be used with ASK");
+  } else {
+    if($2 != NULL)
+      ((rasqal_query*)rq)->offset=$2->value.integer;
+  }
 }
 | /* empty */
 ;
