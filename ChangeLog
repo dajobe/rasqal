@@ -1,3 +1,27 @@
+2005-06-02  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* tests/sparql/SyntaxFull/Makefile.am: from 4 to 3 failures
+
+	* sparql_lexer.l: Ensure <> does not get grabbed as LT GT
+
+	* tests/sparql/SyntaxFull/Makefile.am: from 8 to 4 failures
+
+	* sparql_parser.y: Added PropertyListOpt as an outer triple in
+	SPARQL can be just a subject [ :a :b ]
+	(ObjectTail): Added to tidy up Object lists, remove duplicates.
+
+	* rasqal_graph_pattern.c (rasqal_graph_pattern_print): No \n after (
+
+	* sparql_parser.y (GraphPattern):
+	Do not set graph pattern operator here.
+	(PropertyListTail): Added after last WD grammer to aid in allowing
+	a trailing ;
+	(PatternElementsList): Set default operator to basic.
+	(PropertyList): Use PropertyListTail
+	(PropertyList): Added
+	(VarOrBnodeOrURI): Moved '[' ']' to BlankNode.
+	(BlankNode): Allow '[' ']' in all cases.
+
 2005-06-01  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
 	* tests/sparql/SyntaxFull/Makefile.am: crashes stopped
