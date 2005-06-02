@@ -163,7 +163,8 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...);
 %type <seq> ItemList
 
 %type <formula> Triples
-%type <formula> PropertyList PropertyListTail ObjectList Collection
+%type <formula> PropertyListOpt PropertyList PropertyListTail 
+%type <formula> ObjectList ObjectTail Collection
 %type <formula> Subject Predicate Object TriplesNode
 
 %type <graph_pattern> GraphPattern PatternElement
@@ -685,12 +686,12 @@ TriplesList: TriplesList '.' Triples
 
 
 /* SPARQL Grammar: [28] Triples */
-Triples: Subject PropertyList
+Triples: Subject PropertyListOpt
 {
   int i;
 
 #if RASQAL_DEBUG > 1  
-  printf("triples 1\n subject=");
+  printf("Triples 1\n subject=");
   rasqal_formula_print($1, stdout);
   if($2) {
     printf("\n propertyList (reverse order to syntax)=");
@@ -740,6 +741,18 @@ Triples: Subject PropertyList
     $$=$2;
   } else
     $$=$1;
+}
+;
+
+
+PropertyListOpt: PropertyList
+{
+  $$=$1;
+}
+|
+/* */
+{
+  $$=NULL;
 }
 ;
 
@@ -830,76 +843,64 @@ PropertyListTail: ';' PropertyList
 ;
 
 
-/* SPARQL Grammar: [32] ObjectList
- * SPARQL Grammar: [33] ObjectTail
- */
-ObjectList: ObjectList ',' Object
+/* SPARQL Grammar: [32] ObjectList */
+ObjectList: Object ObjectTail
 {
   rasqal_triple *triple;
 
 #if RASQAL_DEBUG > 1  
   printf("ObjectList 1\n");
-  if($3) {
-    printf(" object=\n");
-    rasqal_formula_print($3, stdout);
-    printf("\n");
-  } else  
-    printf(" and empty object\n");
-  if($1) {
-    printf(" ObjectList=");
-    rasqal_formula_print($1, stdout);
+  printf(" Object=\n");
+  rasqal_formula_print($1, stdout);
+  printf("\n");
+  if($2) {
+    printf(" ObjectTail=");
+    rasqal_formula_print($2, stdout);
     printf("\n");
   } else
-    printf(" and empty ObjectList\n");
+    printf(" and empty ObjectTail\n");
 #endif
 
-  if(!$3)
-    $$=NULL;
-  else {
-    triple=rasqal_new_triple(NULL, NULL, $3->value);
-    $3->value=NULL;
-    
-    $$=$1;
-    raptor_sequence_push($$->triples, triple);
-#if RASQAL_DEBUG > 1  
-    printf(" objectList is now ");
-    raptor_sequence_print($$->triples, stdout);
-    printf("\n\n");
-#endif
-  }
-}
-| Object
-{
-  rasqal_triple *triple;
+  if($2)
+    $$=$2;
+  else
+    $$=rasqal_new_formula();
   
-#if RASQAL_DEBUG > 1  
-  printf("ObjectList 2\n");
-  if($1) {
-    printf(" Object=");
-    rasqal_formula_print($1, stdout);
-    printf("\n");
-  } else  
-    printf(" and empty Object\n");
-#endif
+  triple=rasqal_new_triple(NULL, NULL, $1->value);
+  $1->value=NULL;
 
-  $$=$1;
+  if(!$$->triples)
+    $$->triples=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_triple, (raptor_sequence_print_handler*)rasqal_triple_print);
 
-  if($$) {
-    rasqal_literal* object=rasqal_new_literal_from_literal($1->value);
-    
-    triple=rasqal_new_triple(NULL, NULL, object);
+  raptor_sequence_push($$->triples, triple);
 
-    if(!$$->triples)
-      $$->triples=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_triple, (raptor_sequence_print_handler*)rasqal_triple_print);
-
-    raptor_sequence_push($$->triples, triple);
-
-#if RASQAL_DEBUG > 1  
-    printf(" formula is now ");
-    rasqal_formula_print($$, stdout);
-    printf("\n\n");
-#endif
+  if($1->triples) {
+    raptor_sequence *seq=$$->triples;
+      
+    raptor_sequence_join($1->triples, seq);
+    $$->triples=$1->triples;
+    $1->triples=seq;
   }
+
+  rasqal_free_formula($1);
+
+#if RASQAL_DEBUG > 1  
+  printf(" objectList is now ");
+  raptor_sequence_print($$->triples, stdout);
+  printf("\n\n");
+#endif
+}
+;
+
+
+/* SPARQL Grammar: [33] ObjectTail */
+ObjectTail: ',' ObjectList
+{
+  $$=$2;
+}
+| /* empty */
+{
+  $$=NULL;
 }
 ;
 
@@ -992,8 +993,8 @@ TriplesNode: '[' PropertyList ']'
     }
 
 #if RASQAL_DEBUG > 1
-    printf(" after substitution ObjectList=");
-    raptor_sequence_print(seq, stdout);
+    printf(" after substitution formula=");
+    rasqal_formula_print($$, stdout);
     printf("\n\n");
 #endif
   }
