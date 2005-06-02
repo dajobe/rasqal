@@ -1,5 +1,19 @@
 2005-06-02  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
+	* rasqal_xsd_datatypes.c: Pull in libxml schema headers
+
+	* sparql_parser.y (OrderClauseOpt, LimitClauseOpt,
+	OffsetClauseOpt): Check that ORDER BY is not used with ASK, LIMIT
+	or OFFSET rather than put in grammar now.
+	(OrderCondition): Allow FunctionCall, Var and '(' Expression ')'
+	after rq23 latest.
+
+	* Makefile.am: Added XML2_CONFIG for datatypes testing
+
+	* rasqal_xsd_datatypes.c (main): run rasqal_init/finish.
+
+	* sparql_parser.y: Document 6 shift/reduce
+
 	* tests/sparql/SyntaxFull/Makefile.am: from 4 to 3 failures
 
 	* sparql_lexer.l: Ensure <> does not get grabbed as LT GT
