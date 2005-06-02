@@ -1,5 +1,7 @@
 2005-06-02  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
+	* sparql_parser.y (AskClause): ASK is done
+
 	* tests/sparql/SyntaxFull/Makefile.am: Update lists
 
 	* tests/sparql/SyntaxFull/syntax-forms-03.arq: Remove unused tests
