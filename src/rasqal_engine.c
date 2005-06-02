@@ -1337,10 +1337,10 @@ rasqal_engine_make_basic_graph_pattern(rasqal_graph_pattern *gp)
 
 
   if(gp->graph_patterns && raptor_sequence_size(gp->graph_patterns) != 1) {
-    /* check if ALL sub-graph patterns are either:
+    /* check if ALL sub-graph patterns are basic graph patterns
+     * and either:
      * 1) a single triple
      * 2) a single constraint
-     * Same operators
      */
     for(i=0; i < raptor_sequence_size(gp->graph_patterns); i++) {
       rasqal_graph_pattern *sgp=(rasqal_graph_pattern*)raptor_sequence_get_at(gp->graph_patterns, i);
@@ -1431,6 +1431,10 @@ rasqal_engine_make_basic_graph_pattern(rasqal_graph_pattern *gp)
     raptor_free_sequence(gp->graph_patterns);
     gp->graph_patterns=NULL;
 
+    /* Update this operator */
+    if(gp->operator == RASQAL_GRAPH_PATTERN_OPERATOR_GROUP)
+      gp->operator=RASQAL_GRAPH_PATTERN_OPERATOR_BASIC;
+    
     /* update constraints expression after possible change */
     rasqal_engine_build_constraints_expression(gp);
 
