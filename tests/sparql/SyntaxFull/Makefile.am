@@ -57,15 +57,12 @@ syntax-struct-09.rq syntax-struct-10.rq					\
 syntax-union-01.rq syntax-union-02.rq
 
 # Test failures
-#   syntax-bnodes-06.rq
-#     Optional ; in "[ :p :q ; ]"
-#
+#   None.
 # Excluding anything with optional WHERE which gives a warning
 
-EXPECTED_SPARQL_PARSER_FAILURES= \
-syntax-bnodes-06.rq
+EXPECTED_SPARQL_PARSER_FAILURES=
 
-EXPECTED_SPARQL_PARSER_FAILURES_COUNT=1
+EXPECTED_SPARQL_PARSER_FAILURES_COUNT=0
 
 
 EXTRA_DIST= \
