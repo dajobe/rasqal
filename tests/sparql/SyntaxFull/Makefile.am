@@ -123,3 +123,14 @@ check-sparql-parser: build-sparql-parser-test
           fi; \
 	fi; \
 	set -e; exit $$result
+
+check-sparql-correct: build-roqet $(srcdir)/../check-sparql
+	@set +e; \
+	$(ECHO) "Testing SPARQL correct"; \
+	PATH=$(top_builddir)@RAPPER_PATH@:$$PATH \
+	  perl $(srcdir)/../check-sparql -s $(srcdir); \
+	result=$$?; \
+	if test $$result != 0 ; then \
+	    echo "FAILED: $$result failures"; \
+	fi; \
+	set -e; exit $$result
