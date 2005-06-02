@@ -61,15 +61,13 @@ syntax-union-02.rq
 #     ORDER BY (expr)
 #   syntax-order-06.rq
 #     ORDER BY list of things
-#   syntax-qname-11.rq
-#     URI "<>"
 #
 # Excluding anything with optional WHERE which gives a warning
 
 EXPECTED_SPARQL_PARSER_FAILURES= \
-syntax-bnodes-06.rq syntax-order-02.rq syntax-order-06.rq syntax-qname-11.rq
+syntax-bnodes-06.rq syntax-order-02.rq syntax-order-06.rq
 
-EXPECTED_SPARQL_PARSER_FAILURES_COUNT=4
+EXPECTED_SPARQL_PARSER_FAILURES_COUNT=3
 
 
 EXTRA_DIST= \
