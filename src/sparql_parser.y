@@ -313,7 +313,7 @@ ConstructClause: CONSTRUCT ConstructTemplate
 /* SPARQL Grammar: [8] AskClause */
 AskClause : ASK 
 {
-  /* FIXME - do ask */
+  /* nothing to do */
 }
 
 
