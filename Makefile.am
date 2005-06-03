@@ -113,8 +113,6 @@ rasqal_query_test.c
 LEX=@LEX@
 YACC=@YACC@
 
-XML2_CONFIG=xml2-config
-
 # Create some text files from HTML sources
 LYNX=lynx
 HTML_TO_TEXT=TERM=vt100 $(LYNX) -dump -nolist
@@ -214,9 +212,8 @@ rasqal_query_test_CPPFLAGS = -DSTANDALONE
 rasqal_query_test_LDADD = librasqal.la @RASQAL_EXTERNAL_LIBS@ $(MEM_LIBS)
 
 rasqal_xsd_datatypes_test_SOURCES = rasqal_xsd_datatypes.c
-rasqal_xsd_datatypes_test_CPPFLAGS = -DSTANDALONE `$(XML2_CONFIG) --cflags` 
+rasqal_xsd_datatypes_test_CPPFLAGS = -DSTANDALONE
 rasqal_xsd_datatypes_test_LDADD = librasqal.la @RASQAL_EXTERNAL_LIBS@ $(MEM_LIBS)
-rasqal_xsd_datatypes_test_LDFLAGS = `$(XML2_CONFIG) --libs`
 
 $(top_builddir)/raptor/libraptor.la:
 	cd $(top_builddir)/raptor && $(MAKE) $(AM_MAKEFLAGS) libraptor.la
