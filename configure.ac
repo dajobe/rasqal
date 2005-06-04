@@ -396,7 +396,6 @@ fi
 
 
 have_libxml=0
-have_libxml_lib=0
 need_libxml=0
 
 AC_MSG_CHECKING(for libxml2 library)
@@ -411,14 +410,12 @@ if test "X$XML_CONFIG" != X; then
   AC_MSG_RESULT(yes - version $LIBXML_VERSION)
   if test $libxml_version_dec -lt $libxml_min_version_dec; then
      AC_MSG_WARN(Using libxml $LIBXML_VERSION is unsupported - $libxml_min_version or newer required.)
-     have_libxml_lib=0
-     have_libxml=0
   else
     AC_CHECK_HEADERS(libxml/xmlschemas.h libxml/xmlschemastypes.h libxml/schemasInternals.h)
     if test "$ac_cv_header_libxml_xmlschemas_h" = no; then
       AC_MSG_WARN(libxml library found but not xml schema headers - disabling)
-      have_libxml_lib=0
-      have_libxml=0
+    else
+      have_libxml=1
     fi
   fi
 else
@@ -428,14 +425,19 @@ CPPFLAGS="$oCPPFLAGS"
 LIBS="$oLIBS"
 
 
-AC_ARG_ENABLE(datatypes, [  --enable-datatypes        Turn on datatypes], \
- if test "$enableval" = "yes" -o "$USE_MAINTAINER_MODE" = yes; then \
-	if test $have_libxml = 1; then \
-	  need_libxml=1; \
-        else \
-          AC_MSG_WARN(libxml not available for datatype support) \
-	fi \
-fi;)
+AC_MSG_CHECKING(enable datatypes support)
+datatypes=no
+AC_ARG_ENABLE(datatypes, [  --enable-datatypes        Turn on datatypes], datatypes="$enableval")
+if test "X$datatypes" = Xyes -o "$USE_MAINTAINER_MODE" = yes; then
+  if test $have_libxml = 1; then
+    need_libxml=1;
+    AC_MSG_RESULT(yes)
+   else
+    AC_MSG_RESULT(no - libxml with XML schema datatypes not available)
+  fi
+else
+  AC_MSG_RESULT(yes)
+fi
 
 
 dnl checks for triples source libraries
