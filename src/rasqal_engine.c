@@ -804,7 +804,7 @@ rasqal_engine_execute_init(rasqal_query* query, rasqal_query_results *results)
       query->query_graph_pattern=rasqal_new_graph_pattern_from_sequence(query, seq, RASQAL_GRAPH_PATTERN_OPERATOR_GROUP);
 
 #ifdef RASQAL_DEBUG
-      RASQAL_DEBUG1("Restructed top level single graph pattern to be a sequence of GPs.  Query graph pattern now\n");
+      RASQAL_DEBUG1("Restructured top level single graph pattern to be a sequence of GPs, now:\n");
       rasqal_query_print(query, stderr);
 #endif
     }
