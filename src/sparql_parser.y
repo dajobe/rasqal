@@ -510,10 +510,8 @@ PatternElementsList: PatternElementsList DotOptional PatternElement
 #endif
 
   $$=mygp;
-  if($3) {
+  if($3)
     raptor_sequence_push($$->graph_patterns, $3);
-    $$->operator = RASQAL_GRAPH_PATTERN_OPERATOR_GROUP;
-  }
 }
 | PatternElementsList '.' FILTER Expression
 {
@@ -538,7 +536,7 @@ PatternElementsList: PatternElementsList DotOptional PatternElement
     raptor_sequence_push(seq, $1);
 
   $$=rasqal_new_graph_pattern_from_sequence((rasqal_query*)rq, seq, 
-                                            RASQAL_GRAPH_PATTERN_OPERATOR_BASIC);
+                                            RASQAL_GRAPH_PATTERN_OPERATOR_GROUP);
 }
 ;
 
