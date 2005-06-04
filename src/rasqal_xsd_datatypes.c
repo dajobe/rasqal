@@ -44,9 +44,11 @@
 
 
 /* libxml2 datatypes */
+#ifdef HAVE_LIBXML_XMLSCHEMAS_H
 #include <libxml/xmlschemas.h>
 #include <libxml/xmlschemastypes.h>
 #include <libxml/schemasInternals.h>
+#endif
 
 
 /*
