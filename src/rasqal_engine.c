@@ -797,10 +797,16 @@ rasqal_engine_execute_init(rasqal_query* query, rasqal_query_results *results)
   if(query->query_graph_pattern) {
     if(query->query_graph_pattern->triples) {
       raptor_sequence *seq;
+
       seq=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_graph_pattern, (raptor_sequence_print_handler*)rasqal_graph_pattern_print);
       raptor_sequence_push(seq, query->query_graph_pattern);
       
-      query->query_graph_pattern=rasqal_new_graph_pattern_from_sequence(query, seq, 0);
+      query->query_graph_pattern=rasqal_new_graph_pattern_from_sequence(query, seq, RASQAL_GRAPH_PATTERN_OPERATOR_GROUP);
+
+#ifdef RASQAL_DEBUG
+      RASQAL_DEBUG1("Restructed top level single graph pattern to be a sequence of GPs.  Query graph pattern now\n");
+      rasqal_query_print(query, stderr);
+#endif
     }
     
   }
