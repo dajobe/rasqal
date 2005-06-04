@@ -1,4 +1,21 @@
+2005-06-04  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* configure.ac: Check for libxml2, add xml2-config and xmlschema
+	header files.
+	Added --enable-datatypes method to enable linking libxml for
+	datatypes.
+
+	* rasqal_xsd_datatypes.c: Protect xml includes with
+	HAVE_LIBXML_XMLSCHEMAS_H
+
+2005-06-03  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* Makefile.am: Remove XML2_CONFIG
+
 2005-06-02  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal_engine.c (rasqal_engine_make_basic_graph_pattern): Change
+	resulting graph parent pattern operator to BASIC if it was GROUP
 
 	* tests/sparql/SyntaxFull/Makefile.am: 0 failures now
 
