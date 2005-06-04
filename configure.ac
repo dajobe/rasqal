@@ -30,6 +30,8 @@ AC_PREREQ(2.50)
 AC_CONFIG_SRCDIR(rdql_parser.y)
 AC_REVISION($Revision$)
 
+libxml_min_version=2.4.0
+
 AM_INIT_AUTOMAKE([1.7 check-news std-options -Wall])
 AM_CONFIG_HEADER(rasqal_config.h)
 AM_MAINTAINER_MODE
@@ -376,6 +378,66 @@ fi
 AC_MSG_RESULT($result)
 
 
+AC_ARG_WITH(xml2-config, [  --with-xml2-config=PATH   Location of libxml xml2-config []], xml2_config="$withval", xml2_config="")
+
+if test "X$xml2_config" != "X" ; then
+  AC_MSG_CHECKING(for $xml2_config)
+
+  if test -f $xml2_config ; then
+    XML_CONFIG=$xml2_config
+    AC_MSG_RESULT(yes)
+  else
+    AC_MSG_RESULT(no - searching PATH)
+  fi
+fi
+if test "X$XML_CONFIG" = "X"; then
+  AC_CHECK_PROGS(XML_CONFIG, xml2-config)
+fi
+
+
+have_libxml=0
+have_libxml_lib=0
+need_libxml=0
+
+AC_MSG_CHECKING(for libxml2 library)
+oCPPFLAGS="$CPPFLAGS"
+oLIBS="$LIBS"
+if test "X$XML_CONFIG" != X; then
+  LIBS="$LIBS `$XML_CONFIG --libs`"
+  CPPFLAGS="`$XML_CONFIG --cflags` $CPPFLAGS"
+  LIBXML_VERSION=`$XML_CONFIG --version`
+  libxml_version_dec=`echo $LIBXML_VERSION | awk -F. '{printf("%d\n", 10000*$1 + 100*$2 + $3)};'`
+  libxml_min_version_dec=`echo $libxml_min_version | awk -F. '{printf("%d\n", 10000*$1 + 100*$2 + $3)};'`
+  AC_MSG_RESULT(yes - version $LIBXML_VERSION)
+  if test $libxml_version_dec -lt $libxml_min_version_dec; then
+     AC_MSG_WARN(Using libxml $LIBXML_VERSION is unsupported - $libxml_min_version or newer required.)
+     have_libxml_lib=0
+     have_libxml=0
+  else
+    AC_CHECK_HEADERS(libxml/xmlschemas.h libxml/xmlschemastypes.h libxml/schemasInternals.h)
+    if test "$ac_cv_header_libxml_xmlschemas_h" = no; then
+      AC_MSG_WARN(libxml library found but not xml schema headers - disabling)
+      have_libxml_lib=0
+      have_libxml=0
+    fi
+  fi
+else
+  AC_MSG_RESULT(no)
+fi
+CPPFLAGS="$oCPPFLAGS"
+LIBS="$oLIBS"
+
+
+AC_ARG_ENABLE(datatypes, [  --enable-datatypes        Turn on datatypes], \
+ if test "$enableval" = "yes" -o "$USE_MAINTAINER_MODE" = yes; then \
+	if test $have_libxml = 1; then \
+	  need_libxml=1; \
+        else \
+          AC_MSG_WARN(libxml not available for datatype support) \
+	fi \
+fi;)
+
+
 dnl checks for triples source libraries
 have_redland=0
 need_redland=0
@@ -512,6 +574,11 @@ if test $need_redland = 1; then
   AC_LIBOBJ([rasqal_redland])
   RASQAL_EXTERNAL_CPPFLAGS="$RASQAL_EXTERNAL_CPPFLAGS `redland-config --cflags`"
   RASQAL_EXTERNAL_LIBS="$RASQAL_EXTERNAL_LIBS `redland-config --libs`"
+fi
+
+if test $need_libxml = 1; then
+  LIBS="$LIBS `$XML_CONFIG --libs`"
+  CPPFLAGS="`$XML_CONFIG --cflags` $CPPFLAGS"
 fi
 
 
