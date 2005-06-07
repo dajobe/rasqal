@@ -281,10 +281,14 @@ format.  Only one of these will be non-0 for any result.
 Write the query results in a syntax to the \fIiostr\fP iostream, the
 format of the syntax is given by the \fIformat_uri\fP URI, with
 an optional base URI \fIbase_uri\fP that may be used.  The
-values of \fIformat_uri\fP currently supported are
-\fIhttp://www.w3.org/TR/2004/WD-rdf-sparql-XMLres-20041221/\fP
-and
+values of \fIformat_uri\fP currently supported are the URIs
+\fIhttp://www.w3.org/TR/2005/WD-rdf-sparql-XMLres-20050527/\fP and
 \fIhttp://www.w3.org/2001/sw/DataAccess/rf1/result2\fP
+for the second version of the SPARQL XML results format
+and the URIs
+\fIhttp://www.w3.org/TR/2004/WD-rdf-sparql-XMLres-20041221/\fP and
+\fIhttp://www.w3.org/2001/sw/DataAccess/rf1/result\fP
+for the first version (do not use long term).
 .SH "QUERY VARIABLE BINDINGS RESULTS METHODS"
 .IP "\fBint rasqal_query_results_get_count(rasqal_query_results *\fIquery_result\fP)\fR"
 Get the current number of variable bindings results returned.
