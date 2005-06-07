@@ -1,5 +1,24 @@
 2005-06-07  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
+	* configure.ac: Added tests/sparql/ValueTesting
+
+	* tests/sparql/Makefile.am, tests/sparql/ValueTesting/.cvsignore,
+	tests/sparql/ValueTesting/Makefile.am,
+	tests/sparql/ValueTesting/extendedType-0.n3,
+	tests/sparql/ValueTesting/extendedType-eq-pass-result.n3,
+	tests/sparql/ValueTesting/extendedType-eq-pass.rq,
+	tests/sparql/ValueTesting/extendedType-ne-fail-result.n3,
+	tests/sparql/ValueTesting/extendedType-ne-fail.rq,
+	tests/sparql/ValueTesting/manifest.n3: Added ValueTesting
+
+	* rasqal_engine.c (rasqal_engine_make_basic_graph_pattern): Allow
+	OPTIONAL to gather up inner basic graph patterns.  Print operator
+	type when debugging.
+
+	* rasqal_engine.c (rasqal_engine_make_basic_graph_pattern): More
+	debug explanations of why merging/not merging.  Only work on a
+	GROUP graph pattern.
+
 	* rasqal_query.c (rasqal_new_query, rasqal_free_query): Init/free
 	query->results_sequence.  Added internal rasqal_query_result_row
 	(rasqal_new_query_result_row): Added to make a row out from a copy
