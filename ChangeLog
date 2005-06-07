@@ -1,4 +1,20 @@
+2005-06-07  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* sparql_parser.y (PatternElementsList 2): Added debugging.
+
+	* sparql_parser.y (PatternElementsList): Doesn't need mygp
+
 2005-06-04  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal_engine.c (rasqal_engine_execute_init): Update the hack
+	modification to report it with a debug dump after, and set top
+	graph pattern operator to GROUP
+
+	* sparql_parser.y (PatternElementsList): Set graph pattern
+	operator to GROUP bydefault.
+
+	* configure.ac: Simplify libxml check Add message/report for
+	datatypes support
 
 	* configure.ac: Check for libxml2, add xml2-config and xmlschema
 	header files.
