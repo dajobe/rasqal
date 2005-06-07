@@ -334,6 +334,9 @@ struct rasqal_query_s {
   /* sequence of order condition expressions */
   raptor_sequence* order_conditions_sequence;
 
+  /* INTERNAL sequence of results for ordering */
+  raptor_sequence* results_sequence;
+
 };
 
 
