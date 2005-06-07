@@ -496,8 +496,6 @@ DotOptional: '.'
  */
 PatternElementsList: PatternElementsList DotOptional PatternElement
 {
-  rasqal_graph_pattern *mygp=$1;
-  
 #if RASQAL_DEBUG > 1  
   printf("PatternElementList 1\n  PatternElementList=");
   rasqal_graph_pattern_print($1, stdout);
@@ -509,7 +507,7 @@ PatternElementsList: PatternElementsList DotOptional PatternElement
   fputs("\n\n", stdout);
 #endif
 
-  $$=mygp;
+  $$=$1;
   if($3)
     raptor_sequence_push($$->graph_patterns, $3);
 }
