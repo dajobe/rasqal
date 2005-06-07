@@ -861,7 +861,7 @@ rasqal_graph_pattern_set_origin(rasqal_graph_pattern* graph_pattern,
  * 
  * Some query languages may require a base URI to resolve any
  * relative URIs in the query string.  If this is not given,
- * the current directory int the filesystem is used as the base URI.
+ * the current directory in the filesystem is used as the base URI.
  *
  * The query string may be NULL in which case it is not parsed
  * and the query parts may be created by API calls such as
