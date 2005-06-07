@@ -5,18 +5,4 @@
 []  <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>
                 rs:ResultSet ;
     rs:resultVariable
-                "a1", "a2" ;
-    rs:solution [ rs:binding  [ rs:value    loc:a ;
-                                rs:variable "a1"
-                              ] ;
-		  rs:binding  [ rs:value    loc:a ;
-                                rs:variable "a2"
-                              ]
-                ] ;
-    rs:solution [ rs:binding  [ rs:value    loc:b ;
-                                rs:variable "a1"
-                              ] ;
-		  rs:binding  [ rs:value    loc:b ;
-                                rs:variable "a2"
-                              ]
-                ] .
+                "a1", "a2" .
