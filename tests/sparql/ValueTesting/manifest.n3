@@ -1,0 +1,34 @@
+@prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dawgt:   <http://www.w3.org/2001/sw/DataAccess/tests/test-dawg#> .
+@prefix mf:     <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .
+@prefix qt:     <http://www.w3.org/2001/sw/DataAccess/tests/test-query#> .
+
+<>  rdf:type mf:Manifest ;
+    rdfs:comment "Value Testing Tests" ;
+    mf:entries
+    ([  mf:name    "extendedType-eq-pass" ;
+        rdfs:comment
+            "only opaque types with identical lexical and datatypes can be tested for =" ;
+        mf:action
+            [ qt:data   <extendedType-0.n3> ;
+              qt:query  <extendedType-eq-pass.rq> ] ;
+        mf:result  <extendedType-eq-pass-result.n3> ;
+        dawgt:approval dawgt:NotApproved
+      ]
+
+     [  mf:name    "extendedType-ne-fail" ;
+        rdfs:comment
+            "opaque types can not be tested for !=" ;
+        rdfs:seeAlso
+            <http://www.w3.org/2005/04/26-dawg-irc#T15-21-30> ;
+        mf:action
+            [ qt:data   <extendedType-0.n3> ;
+              qt:query  <extendedType-ne-fail.rq> ] ;
+        mf:result  <extendedType-ne-fail-result.n3> ;
+        dawgt:approval dawgt:NotApproved
+      ]
+
+     
+    # End of tests
+   ).

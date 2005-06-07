@@ -23,6 +23,7 @@
 # the licenses in COPYING.LIB, COPYING and LICENSE-2.0.txt respectively.
 # 
 
-SUBDIRS=simple part1 examples bound syntax survey SyntaxFull sort
+SUBDIRS=simple part1 examples bound syntax survey SyntaxFull sort \
+ValueTesting
 
 EXTRA_DIST=check-sparql
