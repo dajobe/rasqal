@@ -1363,7 +1363,7 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
   case RASQAL_EXPR_ORDER_COND_ASC:
   case RASQAL_EXPR_ORDER_COND_DESC:
   case RASQAL_EXPR_ORDER_COND_NONE:
-      RASQAL_FATAL1("No order conditions yet");
+      result=rasqal_expression_evaluate(query, e->arg1);
       break;
 
     case RASQAL_EXPR_UNKNOWN:
