@@ -1517,6 +1517,7 @@ rasqal_query_get_order_condition(rasqal_query* query, int idx)
  *
  * http://www.w3.org/TR/2004/WD-rdf-sparql-XMLres-20041221/
  * http://www.w3.org/2001/sw/DataAccess/rf1/result
+ *
  * If the writing succeeds, the query results will be exhausted.
  * 
  * Return value: non-0 on failure
