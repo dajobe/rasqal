@@ -34,8 +34,7 @@ query-sort-1.rq query-sort-2.rq query-sort-3.rq query-sort-4.rq	\
 query-sort-5.rq query-sort-6.rq
 
 # Test failures
-EXPECTED_SPARQL_CORRECT_FAILURES= \
-foo
+EXPECTED_SPARQL_CORRECT_FAILURES= sort-3 sort-4 sort-6 sort-7
 
 SPARQL_RESULT_FILES= \
 result-sort-1.rdf result-sort-2.rdf result-sort-3.rdf	\
