@@ -1,5 +1,42 @@
 2005-06-07  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
+	* rasqal_query.c (rasqal_new_query, rasqal_free_query): Init/free
+	query->results_sequence.  Added internal rasqal_query_result_row
+	(rasqal_new_query_result_row): Added to make a row out from a copy
+	of all of the values of the current query result including the
+	values of the ordering expressions for this row.
+	(rasqal_free_query_result_row): Added to free a row.
+	(rasqal_query_result_row_print): Added to print a row.
+	(rasqal_engine_query_results_sort): Sequence helper function to do
+	the query results ordering using rasqal_literal_compare.
+	(rasqal_query_execute): If an ordering condition sequence is
+	present, gather all the results, order them and store them in
+	query->results_sequence.
+	(rasqal_query_results_next, rasqal_query_results_get_bindings,
+	rasqal_query_results_get_binding_value,
+	rasqal_query_results_get_binding_value_by_name): Handle getting
+	ordered result values from query->results_sequence.
+
+	* rasqal_expr.c (rasqal_expression_evaluate): Return the
+	expression argumetn for ordering conditions.
+
+	* tests/sparql/sort/Makefile.am: Fail 4 now it does something
+
+	* tests/sparql/check-sparql: Handle sorted results by not sorting,
+	and unsorted results by sorting.  Clear?
+
+	* rasqal_internal.h: rasqal_query structure gains internal
+	results_sequence
+
+	* rasqal_literal.c (rasqal_literal_as_node): Handle unbound
+	variable values.
+
+	* librasqal.3: rasqal_query_results_write: Note 2005-05-27 WD and
+	add format uris
+
+	* rasqal_query.c (rasqal_query_results_write): Note 2005-05-27 WD
+	and add format uris
+
 	* sparql_parser.y (PatternElementsList 2): Added debugging.
 
 	* sparql_parser.y (PatternElementsList): Doesn't need mygp
