@@ -1511,10 +1511,12 @@ rasqal_query_get_order_condition(rasqal_query* query, int idx)
  * @base_uri: &raptor_uri base URI of the output format
  * 
  * The supported URIs for the format_uri are:
- * http://www.w3.org/TR/2004/WD-rdf-sparql-XMLres-20041221/
  *
+ * http://www.w3.org/TR/2005/WD-rdf-sparql-XMLres-20050527/
  * http://www.w3.org/2001/sw/DataAccess/rf1/result2
  *
+ * http://www.w3.org/TR/2004/WD-rdf-sparql-XMLres-20041221/
+ * http://www.w3.org/2001/sw/DataAccess/rf1/result
  * If the writing succeeds, the query results will be exhausted.
  * 
  * Return value: non-0 on failure
@@ -1528,18 +1530,23 @@ rasqal_query_results_write(raptor_iostream *iostr,
   /*
    * SPARQL XML Results 2004-12-21
    * http://www.w3.org/TR/2004/WD-rdf-sparql-XMLres-20041221/
+   * http://www.w3.org/2001/sw/DataAccess/rf1/result
    */
   if(!strcmp((const char*)raptor_uri_as_string(format_uri),
-            "http://www.w3.org/TR/2004/WD-rdf-sparql-XMLres-20041221/"))
+            "http://www.w3.org/2001/sw/DataAccess/rf1/result") ||
+     !strcmp((const char*)raptor_uri_as_string(format_uri),
+             "http://www.w3.org/TR/2004/WD-rdf-sparql-XMLres-20041221/"))
     return rasqal_query_results_write_xml_20041221(iostr, results, base_uri);
 
   /*
-   * SPARQL XML Results 2005-XX-YY (to appear)
-   * http://www.w3.org/TR/2004/WD-rdf-sparql-XMLres-2005XXYY/
+   * SPARQL XML Results 2005-05-27 (to appear)
+   * http://www.w3.org/TR/2005/WD-rdf-sparql-XMLres-20050527/
    * http://www.w3.org/2001/sw/DataAccess/rf1/result2
    */
   if(!strcmp((const char*)raptor_uri_as_string(format_uri),
-            "http://www.w3.org/2001/sw/DataAccess/rf1/result2"))
+            "http://www.w3.org/2001/sw/DataAccess/rf1/result2") ||
+     !strcmp((const char*)raptor_uri_as_string(format_uri),
+             "http://www.w3.org/TR/2005/WD-rdf-sparql-XMLres-20050527/"))
     return rasqal_query_results_write_xml_result2(iostr, results, base_uri);
 
   return 1;
