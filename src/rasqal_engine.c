@@ -1330,9 +1330,11 @@ rasqal_engine_make_basic_graph_pattern(rasqal_graph_pattern *gp)
     return;
   }
 
-  if(!gp->operator != RASQAL_GRAPH_PATTERN_OPERATOR_GROUP) {
+  if(gp->operator != RASQAL_GRAPH_PATTERN_OPERATOR_GROUP &&
+     gp->operator != RASQAL_GRAPH_PATTERN_OPERATOR_OPTIONAL) {
 #if RASQAL_DEBUG > 1
-    RASQAL_DEBUG2("Ending graph patterns %p - not a GROUP\n", gp);
+    RASQAL_DEBUG3("Ending graph patterns %p - operator %s\n", gp,
+                  rasqal_graph_pattern_operator_as_string(gp->operator));
 #endif
     return;
   }
@@ -1365,7 +1367,9 @@ rasqal_engine_make_basic_graph_pattern(rasqal_graph_pattern *gp)
     
     if(sgp->operator != RASQAL_GRAPH_PATTERN_OPERATOR_BASIC) {
 #if RASQAL_DEBUG > 1
-      RASQAL_DEBUG2("Found non-basic graph pattern in sub-graph pattern %p\n", sgp);
+      RASQAL_DEBUG3("Found %s sub-graph pattern %p\n",
+                    rasqal_graph_pattern_operator_as_string(sgp->operator), 
+                    sgp);
 #endif
       merge_gp_ok=0;
       break;
@@ -1406,7 +1410,7 @@ rasqal_engine_make_basic_graph_pattern(rasqal_graph_pattern *gp)
   
   if(merge_gp_ok) {
 #if RASQAL_DEBUG > 1
-    RASQAL_DEBUG2("OK to merge sub-graphpatterns of %p\n", gp);
+    RASQAL_DEBUG2("OK to merge sub-graph patterns of %p\n", gp);
 
     RASQAL_DEBUG3("Initial columns %d to %d\n", gp->start_column, gp->end_column);
 #endif
@@ -1448,7 +1452,7 @@ rasqal_engine_make_basic_graph_pattern(rasqal_graph_pattern *gp)
     raptor_free_sequence(gp->graph_patterns);
     gp->graph_patterns=NULL;
 
-    /* Update this operator */
+    /* Update operator GROUP => BASIC, but do not change OPTIONAL */
     if(gp->operator == RASQAL_GRAPH_PATTERN_OPERATOR_GROUP)
       gp->operator=RASQAL_GRAPH_PATTERN_OPERATOR_BASIC;
     
@@ -1457,7 +1461,7 @@ rasqal_engine_make_basic_graph_pattern(rasqal_graph_pattern *gp)
 
   } else {
 #if RASQAL_DEBUG > 1
-    RASQAL_DEBUG2("NOT OK to merge sub-graphpatterns of %p\n", gp);
+    RASQAL_DEBUG2("NOT OK to merge sub-graph patterns of %p\n", gp);
 #endif
   }
 
