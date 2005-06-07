@@ -513,6 +513,15 @@ PatternElementsList: PatternElementsList DotOptional PatternElement
 }
 | PatternElementsList '.' FILTER Expression
 {
+#if RASQAL_DEBUG > 1  
+  printf("PatternElementsList 2\n  PatternElementsList=");
+  rasqal_graph_pattern_print($1, stdout);
+  printf(", expression=");
+  rasqal_expression_print($4, stdout);
+  fputs("\n\n", stdout);
+#endif
+
+
   $$=$1;
   rasqal_graph_pattern_add_constraint($$, $4);
 }
@@ -521,7 +530,7 @@ PatternElementsList: PatternElementsList DotOptional PatternElement
   raptor_sequence *seq;
 
 #if RASQAL_DEBUG > 1  
-  printf("PatternElementsList 2\n  PatternElement=");
+  printf("PatternElementsList 3\n  PatternElement=");
   if($1)
     rasqal_graph_pattern_print($1, stdout);
   else
