@@ -71,10 +71,14 @@ sub run_test($$$$$) {
   my $roqet_cmd="$roqet -d -i sparql $args_s $test_file 2>roqet.err";
   warn "$program: Running '$roqet_cmd'\n"
     if $debug;
+  
+  my $sorted=0;
+
+  my $sort="sort";
 
   my(@vars_order);
   open(PIPE, "$roqet_cmd|") or die "$program: Cannot create pipe from '$roqet_cmd' - $!\n";
-  open(OUT, "| sort >roqet.out") or die "$program: Cannot create pipe to roqet.out - $!\n";
+  my $first_result=1;
   while(<PIPE>) {
     chomp;
     if(/^(?:selects|bound variables): \[(.*)\]$/) {
@@ -85,6 +89,11 @@ sub run_test($$$$$) {
     }
 
     s/blank \w+/blank _/g;
+
+    if (m/query order conditions:/) {
+      $sorted=1;
+      $sort=$sorted ? "cat " : "sort ";
+    }
 
     if (m/^result: \[(.*)\]$/) {
       my $line=$_;
@@ -99,10 +108,20 @@ sub run_test($$$$$) {
       }
       $line =~ s/,?\s+\w+=NULL//g;
       $line =~ s/\w+=NULL,\s+//g;
+
+      if($first_result) {
+        open(OUT, "|$sort >roqet.out") or die "$program: Cannot create pipe to roqet.out - $!\n";
+	$first_result=0;
+      }
+
       print OUT "$line\n";
     }
   }
   close(PIPE);
+
+  if($first_result) {
+    open(OUT, ">roqet.out") or die "$program: Cannot create pipe to roqet.out - $!\n";
+  }
   close(OUT);
 
   open(ERR, "<roqet.err") or die "$program: Cannot open roqet.err - $!\n";
@@ -184,7 +203,7 @@ sub run_test($$$$$) {
     return 0;
   }
 
-  open(OUT, "|sort >result.out")
+  open(OUT, "|$sort >result.out")
     or die "$program: Cannot create pipe to result.out - $!\n";
 
   my $count=0;
