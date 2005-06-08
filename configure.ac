@@ -30,8 +30,6 @@ AC_PREREQ(2.50)
 AC_CONFIG_SRCDIR(rdql_parser.y)
 AC_REVISION($Revision$)
 
-libxml_min_version=2.4.0
-
 AM_INIT_AUTOMAKE([1.7 check-news std-options -Wall])
 AM_CONFIG_HEADER(rasqal_config.h)
 AM_MAINTAINER_MODE
@@ -65,9 +63,9 @@ if test "$LEX" != flex; then
   AC_SUBST(LEXLIB, '')
 fi
 
+FLEX_MIN_VERSION=2.5.19
+FLEX_REC_VERSION=2.5.31
 if test "$USE_MAINTAINER_MODE" = yes; then
-  FLEX_MIN_VERSION=2.5.19
-  FLEX_REC_VERSION=2.5.31
   AC_MSG_CHECKING(flex version)
   if test "X$LEX" != "X:"; then
     FLEX_VERSION=`$LEX -V 2>&1 | awk '{print $NF}'`
@@ -142,7 +140,10 @@ RASQAL_INTERNAL_LIBS=
 RASQAL_EXTERNAL_CPPFLAGS=
 # -Ldir -llib
 RASQAL_EXTERNAL_LIBS=
-
+# Extra pkgconfig requires
+PKGCONFIG_REQUIRES=
+PKGCONFIG_LIBS=
+PKGCONFIG_CFLAGS=
 
 dnl Checks for header files.
 AC_HEADER_STDC
@@ -398,6 +399,7 @@ fi
 have_libxml=0
 need_libxml=0
 
+LIBXML_MIN_VERSION=2.4.0
 AC_MSG_CHECKING(for libxml2 library)
 oCPPFLAGS="$CPPFLAGS"
 oLIBS="$LIBS"
@@ -406,10 +408,10 @@ if test "X$XML_CONFIG" != X; then
   CPPFLAGS="`$XML_CONFIG --cflags` $CPPFLAGS"
   LIBXML_VERSION=`$XML_CONFIG --version`
   libxml_version_dec=`echo $LIBXML_VERSION | awk -F. '{printf("%d\n", 10000*$1 + 100*$2 + $3)};'`
-  libxml_min_version_dec=`echo $libxml_min_version | awk -F. '{printf("%d\n", 10000*$1 + 100*$2 + $3)};'`
+  LIBXML_MIN_VERSION_dec=`echo $LIBXML_MIN_VERSION | awk -F. '{printf("%d\n", 10000*$1 + 100*$2 + $3)};'`
   AC_MSG_RESULT(yes - version $LIBXML_VERSION)
-  if test $libxml_version_dec -lt $libxml_min_version_dec; then
-     AC_MSG_WARN(Using libxml $LIBXML_VERSION is unsupported - $libxml_min_version or newer required.)
+  if test $libxml_version_dec -lt $LIBXML_MIN_VERSION_dec; then
+     AC_MSG_WARN(Using libxml $LIBXML_VERSION is unsupported - $LIBXML_MIN_VERSION or newer required.)
   else
     AC_CHECK_HEADERS(libxml/xmlschemas.h libxml/xmlschemastypes.h libxml/schemasInternals.h)
     if test "$ac_cv_header_libxml_xmlschemas_h" = no; then
@@ -458,9 +460,9 @@ if test "X$redland_config" != "X" ; then
   fi
 fi
 
+REDLAND_MIN_VERSION=0.9.16
 if test "X$REDLAND_CONFIG" != "X"; then
   REDLAND_VERSION=`$REDLAND_CONFIG --version 2>/dev/null`
-  REDLAND_MIN_VERSION=0.9.16
 
   REDLAND_VERSION_DEC=`$REDLAND_CONFIG --version-decimal 2>/dev/null`
   REDLAND_MIN_VERSION_DEC=`echo $REDLAND_MIN_VERSION | $AWK -F. '{printf("%d\n", 10000*$1 + 100*$2 + $3)};'`
@@ -568,19 +570,28 @@ else
 fi
 
 if test $need_regex_pcre = 1; then
-  RASQAL_EXTERNAL_CPPFLAGS="$RASQAL_EXTERNAL_CPPFLAGS `$PCRE_CONFIG --cflags`"
-  RASQAL_EXTERNAL_LIBS="$RASQAL_EXTERNAL_LIBS `$PCRE_CONFIG --libs`"
+  C=`$PCRE_CONFIG --cflags`
+  L=`$PCRE_CONFIG --libs`
+  RASQAL_EXTERNAL_CPPFLAGS="$RASQAL_EXTERNAL_CPPFLAGS $C"
+  RASQAL_EXTERNAL_LIBS="$RASQAL_EXTERNAL_LIBS $L"
+
+  PKGCONFIG_CFLAGS="PKGCONFIG_CFLAGS $C"
+  PKGCONFIG_LIBS="PKGCONFIG_LIBS $L"
+  unset C
+  unset L
 fi
 
 if test $need_redland = 1; then
   AC_LIBOBJ([rasqal_redland])
   RASQAL_EXTERNAL_CPPFLAGS="$RASQAL_EXTERNAL_CPPFLAGS `redland-config --cflags`"
   RASQAL_EXTERNAL_LIBS="$RASQAL_EXTERNAL_LIBS `redland-config --libs`"
+  PKGCONFIG_REQUIRES="$PKGCONFIG_REQUIRES, redland >= $REDLAND_MIN_VERSION"
 fi
 
 if test $need_libxml = 1; then
-  LIBS="$LIBS `$XML_CONFIG --libs`"
-  CPPFLAGS="`$XML_CONFIG --cflags` $CPPFLAGS"
+  RASQAL_EXTERNAL_CPPFLAGS="$RASQAL_EXTERNAL_CPPFLAGS `$XML_CONFIG --cflags`"
+  RASQAL_EXTERNAL_LIBS="$RASQAL_EXTERNAL_LIBS `$XML_CONFIG --libs`"
+  PKGCONFIG_REQUIRES="$PKGCONFIG_REQUIRES, libxml-2.0 >= $LIBXML_MIN_VERSION"
 fi
 
 
@@ -640,6 +651,10 @@ AC_SUBST(ECHO_C)
 
 RASQAL_LIBTOOLLIBS=librasqal.la
 AC_SUBST(RASQAL_LIBTOOLLIBS)
+
+AC_SUBST(PKGCONFIG_REQUIRES)
+AC_SUBST(PKGCONFIG_LIBS)
+AC_SUBST(PKGCONFIG_CFLAGS)
 
 abs_top_srcdir=`cd $srcdir; pwd`
 AC_SUBST(abs_top_srcdir)
