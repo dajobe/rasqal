@@ -454,7 +454,6 @@ rasqal_free_expression(rasqal_expression* e)
     case RASQAL_EXPR_ISLITERAL:
     case RASQAL_EXPR_ORDER_COND_ASC:
     case RASQAL_EXPR_ORDER_COND_DESC:
-    case RASQAL_EXPR_ORDER_COND_NONE:
       rasqal_free_expression(e->arg1);
       break;
     case RASQAL_EXPR_STR_MATCH:
@@ -519,7 +518,6 @@ rasqal_expression_foreach(rasqal_expression* e,
     case RASQAL_EXPR_CAST:
     case RASQAL_EXPR_ORDER_COND_ASC:
     case RASQAL_EXPR_ORDER_COND_DESC:
-    case RASQAL_EXPR_ORDER_COND_NONE:
       return fn(user_data, e) ||
         rasqal_expression_foreach(e->arg1, fn, user_data);
       break;
@@ -1362,7 +1360,6 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
 
   case RASQAL_EXPR_ORDER_COND_ASC:
   case RASQAL_EXPR_ORDER_COND_DESC:
-  case RASQAL_EXPR_ORDER_COND_NONE:
       result=rasqal_expression_evaluate(query, e->arg1);
       break;
 
@@ -1419,8 +1416,7 @@ static const char* rasqal_op_labels[RASQAL_EXPR_LAST+1]={
   "isLiteral",
   "cast",
   "order asc",
-  "order desc",
-  "order none"
+  "order desc"
 };
 
 void
@@ -1483,7 +1479,6 @@ rasqal_expression_print(rasqal_expression* e, FILE* fh)
     case RASQAL_EXPR_ISLITERAL:
     case RASQAL_EXPR_ORDER_COND_ASC:
     case RASQAL_EXPR_ORDER_COND_DESC:
-    case RASQAL_EXPR_ORDER_COND_NONE:
       fputs("op ", fh);
       rasqal_expression_print_op(e, fh);
       fputc('(', fh);

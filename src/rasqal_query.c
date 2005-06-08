@@ -1053,20 +1053,20 @@ rasqal_engine_query_results_sort(const void *a, const void *b)
         
     if(!result)
       continue;
-    
-    if(e->op == RASQAL_EXPR_ORDER_COND_ASC) {
-      /* nop */
-    } else if(e->op == RASQAL_EXPR_ORDER_COND_DESC) {
+
+    if(e->op == RASQAL_EXPR_ORDER_COND_DESC)
       result= -result;
+    else {
+      /* Order condition is RASQAL_EXPR_ORDER_COND_ASC so nothing to do */
     }
-     
+    
     if(result)
       break;
   }
 
-  /* still equal?  make sort stable by using their address */
+  /* still equal?  make sort stable by using the object addresses */
   if(!result)
-    result=row_a - row_b;
+    result= row_b - row_a;
   
   return result;
 }
