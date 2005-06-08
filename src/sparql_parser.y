@@ -416,12 +416,12 @@ OrderCondition: ASC '(' Expression ')'
 }
 | ASC '[' Expression ']'
 {
-  /* FIXME - may be deprecated in next WD */
+  RASQAL_DEPRECATED_WARNING(rq, "ORDER BY ASC[] is deprecated and replaced by ORDER BY ASC()");
   $$=rasqal_new_1op_expression(RASQAL_EXPR_ORDER_COND_ASC, $3);
 }
 | DESC '[' Expression ']'
 {
-  /* FIXME - may be deprecated in next WD */
+  RASQAL_DEPRECATED_WARNING(rq, "ORDER BY DESC[] is deprecated and replaced by ORDER BY DESC()");
   $$=rasqal_new_1op_expression(RASQAL_EXPR_ORDER_COND_DESC, $3);
 }
 | FunctionCall 
