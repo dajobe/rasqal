@@ -1,4 +1,23 @@
+2005-06-08  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal_query.c (rasqal_query_execute): When sorting, set
+	finished flag if there are no results.
+	(rasqal_query_results_next): When sorting, set finished flag if
+	match or exceed number of results.
+	(rasqal_query_results_get_binding_value,
+	rasqal_query_results_get_binding_value_by_name): When sorting, set
+	finished flag if current row is beyond results.
+
 2005-06-07  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* tests/sparql/ValueTesting/extendedType-ne-fail.rq,
+	tests/sparql/ValueTesting/extendedType-eq-pass-result.n3: Update
+	to DAWG cvs
+
+	* tests/sparql/ValueTesting/extendedType-eq-pass-result.n3: delete
+	results from extendedType-eq-pass-result.n3
+
+	* tests/sparql/ValueTesting/Makefile.am: 2 fail
 
 	* configure.ac: Added tests/sparql/ValueTesting
 
