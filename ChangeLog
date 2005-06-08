@@ -1,5 +1,44 @@
 2005-06-08  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
+	* win32_rasqal_config.h: Undefine OPTIONAL as something in win32
+	defines it.
+
+	* sparql_parser.y, roqet.c, rasqal_query.c, rasqal_internal.h,
+	rasqal_graph_pattern.c, rasqal_engine.c: Rename
+	rasqal_graph_pattern_operator variables called 'operator' to 'op'
+	for C++.  Other casts for C++
+
+	* rasqal_internal.h: Added RASQAL_DEPRECATED_WARNING to generate a
+	rasqal warning once only.
+
+	* sparql_parser.y (OrderCondition): Use RASQAL_DEPRECATED_WARNING
+	to explain ASC[] and DESC[] have been replaced.
+
+	* sparql_parser.y (OrderCondition): Use RASQAL_EXPR_ORDER_COND_ASC
+	or DESC not NONE which is deleted.
+
+	* rasqal_query.c, rasqal_expr.c, rasqal.h: Deleted
+	RASQAL_EXPR_ORDER_COND_NONE
+
+	* rasqal_query.c (rasqal_engine_query_results_sort): If result is
+	0 at the end, use the difference between the object pointers to
+	create a stable sort when duplicates occur.
+
+	* Makefile.am: Do not build rasqal_xsd_datatypes_test unless
+	RASQAL_DATATYPES makefile conditional is enabled.
+
+	* configure.ac: Add makefile conditional RASQAL_DATATYPES true
+	when datatypes enabled.
+
+	* rasqal.pc.in: Add PKGCONFIG_REQUIRES, PKGCONFIG_LIBS and
+	PKGCONFIG_CFLAGS
+
+	* configure.ac: Tidy specification of min versions
+	Added pkgconfig specific additions: +PKGCONFIG_REQUIRES, PKGCONFIG_LIBS
+	and PKGCONFIG_CFLAGS substituted into rasqal.pc.in
+	Add PCRE cflags, libs to PKGCONFIG cflags/libs when used.
+	Add libxml-2.0 to PKGCONFIG requires when used.
+
 	* rasqal_query.c (rasqal_query_execute): When sorting, set
 	finished flag if there are no results.
 	(rasqal_query_results_next): When sorting, set finished flag if
