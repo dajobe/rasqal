@@ -426,17 +426,20 @@ OrderCondition: ASC '(' Expression ')'
 }
 | FunctionCall 
 {
-  $$=rasqal_new_1op_expression(RASQAL_EXPR_ORDER_COND_NONE, $1);
+  /* The direction of ordering is ascending by default */
+  $$=rasqal_new_1op_expression(RASQAL_EXPR_ORDER_COND_ASC, $1);
 }
 | Var
 {
   rasqal_literal* l=rasqal_new_variable_literal($1);
   rasqal_expression *e=rasqal_new_literal_expression(l);
-  $$=rasqal_new_1op_expression(RASQAL_EXPR_ORDER_COND_NONE, e);
+  /* The direction of ordering is ascending by default */
+  $$=rasqal_new_1op_expression(RASQAL_EXPR_ORDER_COND_ASC, e);
 }
 | '(' Expression ')'
 {
-  $$=rasqal_new_1op_expression(RASQAL_EXPR_ORDER_COND_NONE, $2);
+  /* The direction of ordering is ascending by default */
+  $$=rasqal_new_1op_expression(RASQAL_EXPR_ORDER_COND_ASC, $2);
 }
 ;
 
