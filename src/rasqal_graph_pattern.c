@@ -71,7 +71,7 @@ rasqal_new_graph_pattern(rasqal_query* query) {
  * @triples: triples sequence containing the graph pattern
  * @start_column: first triple in the pattern
  * @end_column: last triple in the pattern
- * @flags: enum &rasqal_triple_flags such as RASQAL_TRIPLE_FLAGS_OPTIONAL
+ * @op: enum &rasqal_graph_pattern_operator operator
  * 
  * Return value: a new &rasqal_graph_pattern object or NULL on failure
  **/
@@ -79,12 +79,12 @@ rasqal_graph_pattern*
 rasqal_new_graph_pattern_from_triples(rasqal_query* query,
                                       raptor_sequence *triples,
                                       int start_column, int end_column,
-                                      int flags)
+                                      rasqal_graph_pattern_operator op)
 {
   rasqal_graph_pattern* gp=rasqal_new_graph_pattern(query);
 
   rasqal_graph_pattern_add_triples(gp, 
-                                   triples, start_column, end_column, flags);
+                                   triples, start_column, end_column, op);
   return gp;
 }
 
@@ -101,13 +101,13 @@ rasqal_new_graph_pattern_from_triples(rasqal_query* query,
 rasqal_graph_pattern*
 rasqal_new_graph_pattern_from_sequence(rasqal_query* query,
                                        raptor_sequence *graph_patterns, 
-                                       rasqal_graph_pattern_operator operator)
+                                       rasqal_graph_pattern_operator op)
 {
   rasqal_graph_pattern* gp;
 
   gp=rasqal_new_graph_pattern(query);
   gp->graph_patterns=graph_patterns;
-  gp->operator=operator;
+  gp->op=op;
 
   gp->finished=0;
   gp->matches_returned=0;
@@ -131,7 +131,7 @@ void
 rasqal_graph_pattern_add_triples(rasqal_graph_pattern* gp,
                                  raptor_sequence* triples,
                                  int start_column, int end_column,
-                                 rasqal_graph_pattern_operator operator)
+                                 rasqal_graph_pattern_operator op)
 {
   gp->triples=triples;
   gp->column= -1;
@@ -140,7 +140,7 @@ rasqal_graph_pattern_add_triples(rasqal_graph_pattern* gp,
   gp->optional_graph_pattern= -1;
   gp->finished=0;
   gp->matches_returned=0;
-  gp->operator=operator;
+  gp->op=op;
 }
 
 
@@ -193,8 +193,8 @@ rasqal_graph_pattern_order(const void *a, const void *b)
   rasqal_graph_pattern *gp_a=*(rasqal_graph_pattern**)a;
   rasqal_graph_pattern *gp_b=*(rasqal_graph_pattern**)b;
 
-  return (gp_a->operator == RASQAL_GRAPH_PATTERN_OPERATOR_OPTIONAL) -
-         (gp_b->operator == RASQAL_GRAPH_PATTERN_OPERATOR_OPTIONAL);
+  return (gp_a->op == RASQAL_GRAPH_PATTERN_OPERATOR_OPTIONAL) -
+         (gp_b->op == RASQAL_GRAPH_PATTERN_OPERATOR_OPTIONAL);
 }
 
 
@@ -223,7 +223,7 @@ rasqal_graph_pattern_init(rasqal_graph_pattern *gp)
       rasqal_graph_pattern *sgp=(rasqal_graph_pattern*)raptor_sequence_get_at(gp->graph_patterns, i);
       rasqal_graph_pattern_init(sgp);
       
-      if((sgp->operator == RASQAL_GRAPH_PATTERN_OPERATOR_OPTIONAL) &&
+      if((sgp->op == RASQAL_GRAPH_PATTERN_OPERATOR_OPTIONAL) &&
          gp->optional_graph_pattern < 0)
         gp->optional_graph_pattern=i;
     }
@@ -361,7 +361,7 @@ rasqal_graph_pattern_get_constraint(rasqal_graph_pattern* gp, int idx)
 rasqal_graph_pattern_operator
 rasqal_graph_pattern_get_operator(rasqal_graph_pattern* graph_pattern)
 {
-  return graph_pattern->operator;
+  return graph_pattern->op;
 }
 
 
@@ -382,13 +382,13 @@ static const char* rasqal_graph_pattern_operator_labels[RASQAL_GRAPH_PATTERN_OPE
  * Return value: pointer to a shared string label for the query verb
  **/
 const char*
-rasqal_graph_pattern_operator_as_string(rasqal_graph_pattern_operator operator)
+rasqal_graph_pattern_operator_as_string(rasqal_graph_pattern_operator op)
 {
-  if(operator <= RASQAL_GRAPH_PATTERN_OPERATOR_UNKNOWN || 
-     operator > RASQAL_GRAPH_PATTERN_OPERATOR_LAST)
-    operator=RASQAL_GRAPH_PATTERN_OPERATOR_UNKNOWN;
+  if(op <= RASQAL_GRAPH_PATTERN_OPERATOR_UNKNOWN || 
+     op > RASQAL_GRAPH_PATTERN_OPERATOR_LAST)
+    op=RASQAL_GRAPH_PATTERN_OPERATOR_UNKNOWN;
 
-  return rasqal_graph_pattern_operator_labels[(int)operator];
+  return rasqal_graph_pattern_operator_labels[(int)op];
 }
   
 
@@ -403,7 +403,7 @@ rasqal_graph_pattern_operator_as_string(rasqal_graph_pattern_operator operator)
 void
 rasqal_graph_pattern_print(rasqal_graph_pattern* gp, FILE* fh)
 {
-  fprintf(fh, "graph pattern %s(", rasqal_graph_pattern_operator_as_string(gp->operator));
+  fprintf(fh, "graph pattern %s(", rasqal_graph_pattern_operator_as_string(gp->op));
   if(gp->triples) {
     int size=gp->end_column - gp->start_column +1;
     int i;

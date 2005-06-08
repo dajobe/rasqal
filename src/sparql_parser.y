@@ -416,12 +416,12 @@ OrderCondition: ASC '(' Expression ')'
 }
 | ASC '[' Expression ']'
 {
-  RASQAL_DEPRECATED_WARNING(rq, "ORDER BY ASC[] is deprecated and replaced by ORDER BY ASC()");
+  RASQAL_DEPRECATED_WARNING((rasqal_query*)rq, "ORDER BY ASC[] is deprecated and replaced by ORDER BY ASC()");
   $$=rasqal_new_1op_expression(RASQAL_EXPR_ORDER_COND_ASC, $3);
 }
 | DESC '[' Expression ']'
 {
-  RASQAL_DEPRECATED_WARNING(rq, "ORDER BY DESC[] is deprecated and replaced by ORDER BY DESC()");
+  RASQAL_DEPRECATED_WARNING((rasqal_query*)rq, "ORDER BY DESC[] is deprecated and replaced by ORDER BY DESC()");
   $$=rasqal_new_1op_expression(RASQAL_EXPR_ORDER_COND_DESC, $3);
 }
 | FunctionCall 
@@ -609,7 +609,7 @@ OptionalGraphPattern: OPTIONAL GraphPattern
 #endif
 
   if($2)
-    $2->operator = RASQAL_GRAPH_PATTERN_OPERATOR_OPTIONAL;
+    $2->op = RASQAL_GRAPH_PATTERN_OPERATOR_OPTIONAL;
 
   $$=$2;
 }
@@ -628,7 +628,7 @@ GraphGraphPattern: GRAPH VarOrURI GraphPattern
 #endif
 
   rasqal_graph_pattern_set_origin($3, $2);
-  $3->operator = RASQAL_GRAPH_PATTERN_OPERATOR_GRAPH;
+  $3->op = RASQAL_GRAPH_PATTERN_OPERATOR_GRAPH;
 
   rasqal_free_literal($2);
   $$=$3;

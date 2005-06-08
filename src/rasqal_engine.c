@@ -1191,7 +1191,7 @@ rasqal_engine_get_next_result(rasqal_query *query)
     
     RASQAL_DEBUG3("Handling graph_pattern %d %s\n",
                   outergp->current_graph_pattern,
-                  rasqal_graph_pattern_operator_as_string(gp->operator));
+                  rasqal_graph_pattern_operator_as_string(gp->op));
 
     if(gp->graph_patterns) {
       /* FIXME - sequence of graph_patterns not implemented, finish */
@@ -1201,7 +1201,7 @@ rasqal_engine_get_next_result(rasqal_query *query)
     }
 
     gp->matched=0;
-    optional_step=(gp->operator == RASQAL_GRAPH_PATTERN_OPERATOR_OPTIONAL);
+    optional_step=(gp->op == RASQAL_GRAPH_PATTERN_OPERATOR_OPTIONAL);
     
     if(optional_step)
       step=rasqal_engine_do_optional_step(query, outergp, gp);
@@ -1330,11 +1330,11 @@ rasqal_engine_make_basic_graph_pattern(rasqal_graph_pattern *gp)
     return;
   }
 
-  if(gp->operator != RASQAL_GRAPH_PATTERN_OPERATOR_GROUP &&
-     gp->operator != RASQAL_GRAPH_PATTERN_OPERATOR_OPTIONAL) {
+  if(gp->op != RASQAL_GRAPH_PATTERN_OPERATOR_GROUP &&
+     gp->op != RASQAL_GRAPH_PATTERN_OPERATOR_OPTIONAL) {
 #if RASQAL_DEBUG > 1
     RASQAL_DEBUG3("Ending graph patterns %p - operator %s\n", gp,
-                  rasqal_graph_pattern_operator_as_string(gp->operator));
+                  rasqal_graph_pattern_operator_as_string(gp->op));
 #endif
     return;
   }
@@ -1365,10 +1365,10 @@ rasqal_engine_make_basic_graph_pattern(rasqal_graph_pattern *gp)
   for(i=0; i < raptor_sequence_size(gp->graph_patterns); i++) {
     rasqal_graph_pattern *sgp=(rasqal_graph_pattern*)raptor_sequence_get_at(gp->graph_patterns, i);
     
-    if(sgp->operator != RASQAL_GRAPH_PATTERN_OPERATOR_BASIC) {
+    if(sgp->op != RASQAL_GRAPH_PATTERN_OPERATOR_BASIC) {
 #if RASQAL_DEBUG > 1
       RASQAL_DEBUG3("Found %s sub-graph pattern %p\n",
-                    rasqal_graph_pattern_operator_as_string(sgp->operator), 
+                    rasqal_graph_pattern_operator_as_string(sgp->op), 
                     sgp);
 #endif
       merge_gp_ok=0;
@@ -1453,8 +1453,8 @@ rasqal_engine_make_basic_graph_pattern(rasqal_graph_pattern *gp)
     gp->graph_patterns=NULL;
 
     /* Update operator GROUP => BASIC, but do not change OPTIONAL */
-    if(gp->operator == RASQAL_GRAPH_PATTERN_OPERATOR_GROUP)
-      gp->operator=RASQAL_GRAPH_PATTERN_OPERATOR_BASIC;
+    if(gp->op == RASQAL_GRAPH_PATTERN_OPERATOR_GROUP)
+      gp->op=RASQAL_GRAPH_PATTERN_OPERATOR_BASIC;
     
     /* update constraints expression after possible change */
     rasqal_engine_build_constraints_expression(gp);
