@@ -37,7 +37,10 @@ man_MANS = roqet.1 librasqal.3 rasqal-config.1
 SUBDIRS=data tests docs win32
 
 TESTS=rasqal_expr_test strcasecmp_test
-local_tests=rasqal_query_test rasqal_xsd_datatypes_test
+local_tests=rasqal_query_test
+if RASQAL_DATATYPES
+local_tests += rasqal_xsd_datatypes_test
+endif
 if RASQAL_QUERY_RDQL
 local_tests += rdql_lexer_test rdql_parser_test
 endif
@@ -212,7 +215,7 @@ rasqal_query_test_CPPFLAGS = -DSTANDALONE
 rasqal_query_test_LDADD = librasqal.la @RASQAL_EXTERNAL_LIBS@ $(MEM_LIBS)
 
 rasqal_xsd_datatypes_test_SOURCES = rasqal_xsd_datatypes.c
-rasqal_xsd_datatypes_test_CPPFLAGS = -DSTANDALONE
+rasqal_xsd_datatypes_test_CPPFLAGS = -DSTANDALONE @RASQAL_EXTERNAL_CPPFLAGS@
 rasqal_xsd_datatypes_test_LDADD = librasqal.la @RASQAL_EXTERNAL_LIBS@ $(MEM_LIBS)
 
 $(top_builddir)/raptor/libraptor.la:
