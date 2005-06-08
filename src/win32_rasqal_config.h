@@ -49,6 +49,9 @@ extern "C" {
 #define stricmp _stricmp
 #define strnicmp _strnicmp
 
+/* This is a SPARQL token define */
+#undef OPTIONAL
+
 #define HAVE_C99_VSNPRINTF 1
 
 /* for access() which is POSIX but doesn't seem to have the defines in VC */
