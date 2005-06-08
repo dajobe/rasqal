@@ -1055,7 +1055,7 @@ rasqal_engine_query_results_sort(const void *a, const void *b)
       continue;
     
     if(e->op == RASQAL_EXPR_ORDER_COND_ASC) {
-      result= result;
+      /* nop */
     } else if(e->op == RASQAL_EXPR_ORDER_COND_DESC) {
       result= -result;
     }
@@ -1064,6 +1064,10 @@ rasqal_engine_query_results_sort(const void *a, const void *b)
       break;
   }
 
+  /* still equal?  make sort stable by using their address */
+  if(!result)
+    result=row_a - row_b;
+  
   return result;
 }
 
