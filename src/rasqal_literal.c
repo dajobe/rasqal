@@ -743,8 +743,7 @@ double_to_int(double d)
  *
  * The comparison returned is as for strcmp, first before second
  * returns <0.  equal returns 0, and first after second returns >0.
- * If there is no ordering, such as for URIs, the return value
- * is 0 for equal, non-0 for different (using raptor_uri_equals).
+ * For URIs, the string value is used for the comparsion.
  *
  * flags affects string comparisons and if the
  * RASQAL_COMPARE_NOCASE bit is set, a case independent
@@ -897,7 +896,8 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
 
   switch(type) {
     case RASQAL_LITERAL_URI:
-      return !raptor_uri_equals(lits[0]->value.uri,lits[1]->value.uri);
+      return strcmp((const char*)raptor_uri_as_string(lits[0]->value.uri),
+                    (const char*)raptor_uri_as_string(lits[1]->value.uri));
 
     case RASQAL_LITERAL_STRING:
       if(lits[0]->language || lits[1]->language) {
@@ -909,11 +909,17 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
       }
 
       if(lits[0]->datatype || lits[1]->datatype) {
-        /* if either is null, the comparison fails */
+        int result;
+        
+        /* if either is NULL, do not compare */
         if(!lits[0]->datatype || !lits[1]->datatype)
-          return 1;
-        if(!raptor_uri_equals(lits[0]->datatype,lits[1]->datatype))
-          return 1;
+          return lits[0]->datatype ? 1 : -1;
+
+        result=strcmp((const char*)raptor_uri_as_string(lits[0]->datatype),
+                      (const char*)raptor_uri_as_string(lits[1]->datatype));
+
+        if(result)
+          return result;
       }
       
       /* FALLTHROUGH */
