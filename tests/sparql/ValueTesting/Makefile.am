@@ -32,7 +32,7 @@ SPARQL_TEST_FILES= \
 extendedType-eq-pass.rq extendedType-ne-fail.rq
 
 # Test failures
-EXPECTED_SPARQL_CORRECT_FAILURES= extendedType-eq-pass extendedType-ne-fail
+EXPECTED_SPARQL_CORRECT_FAILURES= extendedType-ne-fail
 
 SPARQL_RESULT_FILES= \
 extendedType-eq-pass-result.n3 extendedType-ne-fail-result.n3
