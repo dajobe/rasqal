@@ -1,5 +1,7 @@
 2005-06-09  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
+	* Snapshotted rasqal_0_9_10 for 0.9.10 release
+
 	* tests/sparql/ValueTesting/Makefile.am: extendedType-eq-pass
 	passes
 
