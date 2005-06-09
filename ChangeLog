@@ -1,5 +1,7 @@
 2005-06-09  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
+	* win32_rasqal_config.h, configure.ac: Bumped version to 0.9.11
+
 	* Snapshotted rasqal_0_9_10 for 0.9.10 release
 
 	* tests/sparql/ValueTesting/Makefile.am: extendedType-eq-pass
