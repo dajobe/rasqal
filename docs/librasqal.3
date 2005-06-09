@@ -7,7 +7,7 @@
 .\" Institute for Learning and Research Technology - http://www.ilrt.bristol.ac.uk/
 .\" University of Bristol - http://www.bristol.ac.uk/
 .\"
-.TH librasqal 3 "2005-05-18"
+.TH librasqal 3 "2005-06-09"
 .\" Please adjust this date whenever revising the manpage.
 .SH NAME
 librasqal \- Rasqal RDF query library
@@ -123,18 +123,14 @@ Set the query distinct results flag.
 Get the query-specified limit on results returning >= 0 if a
 limit is given, otherwise not specified.
 .IP "\fBvoid rasqal_query_set_limit(rasqal_query* \fIquery\fP, int \fIlimit\fP)\fR"
-Set the query limit value.
+Set the query results limit.  No more than \fIlimit\fP results will
+be returned.
 .IP "\fBint rasqal_query_get_offset(rasqal_query* \fIquery\fP)\fR"
 Get the query-specified offset on results returning >= 0 if a
 offset is given, otherwise not specified.
 .IP "\fBvoid rasqal_query_set_offset(rasqal_query* \fIquery\fP, int \fIoffset\fP)\fR"
-Set the query offset value.
-.IP "\fBvoid rasqal_query_add_source(rasqal_query* \fIquery\fB, raptor_uri* \fIuri\fP)\fR"
-DEPRECATED. Add a source URI to the sequence of sources in the query.
-.IP "\fBraptor_sequence* rasqal_query_get_source_sequence(rasqal_query* \fIquery\fB)\fR"
-DEPRECATED. Get the sequence of sources in the query.
-.IP "\fBraptor_uri* rasqal_query_get_source(rasqal_query* \fIquery\fB, int \fIidx\fP)\fR"
-DEPRECATED. Get one source in the sequence of sources in the queyr.
+Set the query results offset.  The first \fIoffset\fP results will
+be not be returned.
 .IP "\fBvoid rasqal_query_add_variable(rasqal_query* \fIquery\fB, rasqal_variable* \fIvar\fP)\fR"
 Add a variable binding to the sequence of bindings in the query.
 .IP "\fBraptor_sequence* rasqal_query_get_bound_variable_sequence(rasqal_query* \fIquery\fP)\fR"
@@ -154,14 +150,6 @@ variable must already be in the sequence of variable bindings).
 Get the sequence of triples to match in the query.
 .IP "\fBrasqal_triple* rasqal_query_get_triple(rasqal_query* \fIquery\fB, int \fIidx\fP)\fR"
 Get one triple in the sequences of triples to match in the query.
-.IP "\fBvoid rasqal_query_add_constraint(rasqal_query* \fIquery\fB, rasqal_expression* \fIexpr\fP)\fR"
-DEPRECATED. Add a constraint expression to the sequence of
-constraints in the query.
-.IP "\fBraptor_sequence* rasqal_query_get_constraint_sequence(rasqal_query* \fIquery\fB)\fR"
-DEPRECATED. Get the sequence of constraints in the query.
-.IP "\fBrasqal_expression* rasqal_query_get_constraint(rasqal_query* \fIquery\fB, int \fIidx\fP)\fR"
-DEPRECATED. Get one constraint expression in the sequences of
-constraint to match in the query.
 .IP "\fBvoid rasqal_query_add_prefix(rasqal_query* \fIquery\fB, rasqal_prefix* \fIprefix\fP)\fR"
 Add one namespace prefix/URI to the sequence of prefixes in the query.
 .IP "\fBraptor_sequence* rasqal_query_get_prefix_sequence(rasqal_query* \fIquery\fB)\fR"
@@ -202,7 +190,7 @@ Get one result ordering condition expression in the sequence.
 .IP "\fBrasqal_query_verb rasqal_query_get_verb(rasqal_query* \fIquery\fP)\fR"
 Get the main \fIquery\fP verb.
 .IP "\fBint rasqal_query_get_wildcard(rasqal_query* \fIquery\fP)\fR"
-Get the \fIquery\fP verb wildcard flag signifying \* in RDQL and SPARQL
+Get the \fIquery\fP verb wildcard flag signifying * in RDQL and SPARQL
 after the query verb.
 .IP "\fBrasqal_graph_pattern* rasqal_query_get_query_graph_pattern(rasqal_query* \fIquery\fP)\fR"
 Get the top query graph pattern of \fIquery\fP.
@@ -246,9 +234,11 @@ NULL if there are no sub-graph patterns.
 .IP "\fBrasqal_graph_pattern* rasqal_graph_pattern_get_sub_graph_pattern(rasqal_graph_pattern* \fIgraph_pattern\fP, int \fIidx\fP)\fR"
 Get a sub-graph pattern inside the graph pattern at index \fIidx\fP
 returning NULL when the index is out of range.
+.IP "\fBrasqal_graph_pattern_operator rasqal_graph_pattern_get_operator(rasqal_graph_pattern* \fIgraph_pattern\fP)\fR"
+Get the graph pattern operator to determine how the graph pattern
+should be interpreted.
 .IP "\fBint rasqal_graph_pattern_get_flags(rasqal_graph_pattern* \fIgraph_pattern\fP)\fR"
-Get graph pattern flags, a bitwise or of \fIrasqal_pattern_flags\fP
-enum values, currently only \fBRASQAL_PATTERN_FLAGS_OPTIONAL\fP is defined.
+Deprecated.  Use \fBrasqal_graph_pattern_get_operator\fP instead.
 .IP "\fBint rasqal_graph_pattern_add_constraint(rasqal_graph_pattern* \fIgp\fP, rasqal_expression* \fIexpr\fP)\fR"
 Add a constraint expression \fIexpr\fP to the sequence of constraints in the
 graph pattern.
@@ -258,7 +248,10 @@ Get the sequence of constraints in the graph pattern.
 Get one constraint expression in the sequences of constraint to match
 in the graph pattern at index \fIidx\fP.
 .IP "\fBvoid rasqal_graph_pattern_print(rasqal_graph_pattern* \fIgraph_pattern\fP, FILE* \fIfh\fP)\fR"
-Print a graph pattern in a debug format.  This format may change in any release.
+Print a graph pattern in a debug format.  This format may change in
+any release.
+.IP "\fBconst char* rasqal_graph_pattern_operator_as_string(rasqal_graph_pattern_operator \fIop\fP)"
+Utility function to get a graph pattern operator as a string.
 .SH "QUERY RESULTS CLASS"
 A class for the results of a query.  The results can be in different
 formats - variable bindings, RDF graphs as a sequence of triples
@@ -525,6 +518,26 @@ Destroy a rasqal data_graph object.
 .IP "\fBvoid rasqal_data_graph_print(rasqal_data_graph* \fIdg\fP, FILE* \fIfh\fP)\fR"
 Print a data graph in a debug format.  This format may change in any release.
 .SH API CHANGES
+.SS 0.9.10
+.LP
+Added an \fBrasqal_graph_pattern_operator\fP enumerated type.
+with the following (useful) values:
+\fBRASQAL_GRAPH_PATTERN_OPERATOR_BASIC\fP (for triple patterns),
+\fBRASQAL_GRAPH_PATTERN_OPERATOR_OPTIONAL\fP (for SPARQL OPTIONAL),
+\fBRASQAL_GRAPH_PATTERN_OPERATOR_UNION\fP,
+\fBRASQAL_GRAPH_PATTERN_OPERATOR_GROUP\fP and
+\fBRASQAL_GRAPH_PATTERN_OPERATOR_GRAPH\fP (for SPARQL GRAPH).
+.LP
+Added graph pattern method \fBrasqal_graph_pattern_get_operator\fB
+Deprecated \fBrasqal_graph_pattern_get_flags\fP replaced by the above.
+Added helper function \fBrasqal_graph_pattern_operator_as_string\fP.
+.LP
+Modified the type of the final argument of
+\fBrasqal_new_graph_pattern_from_sequence\fP and
+\fBrasqal_graph_pattern_add_triples\fP from an integer to a
+\fBrasqal_graph_pattern_operator\fP enumeration.
+.LP
+Removed documentation of removed functions deprecated in 0.9.9.
 .SS 0.9.9
 .LP
 Added query methods
