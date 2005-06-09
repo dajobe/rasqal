@@ -917,12 +917,14 @@ typedef struct {
   rasqal_literal** values;
   int order_size;
   rasqal_literal** order_values;
+  int offset;
 } rasqal_query_result_row;
 
 
 
 static rasqal_query_result_row*
-rasqal_new_query_result_row(rasqal_query_results* query_results)
+rasqal_new_query_result_row(rasqal_query_results* query_results,
+                            int offset)
 {
   rasqal_query *query=query_results->query;
   int size;
@@ -960,6 +962,8 @@ rasqal_new_query_result_row(rasqal_query_results* query_results)
     }
   }
 
+  row->offset=offset;
+  
   return row;
 }
 
@@ -1024,29 +1028,55 @@ rasqal_query_result_row_print(rasqal_query_result_row* row, FILE* fh)
     }
     fputs("]", fh);
   }
-  fputs("]", fh);
+
+  fprintf(fh, " offset %d]", row->offset);
 }
 
 
 static int
-rasqal_engine_query_results_sort(const void *a, const void *b)
+rasqal_engine_query_results_compare(const void *a, const void *b)
 {
   rasqal_query_result_row *row_a=*(rasqal_query_result_row**)a;
   rasqal_query_result_row *row_b=*(rasqal_query_result_row**)b;
-  rasqal_query_results* results=row_a->results;
-  rasqal_query* query=results->query;
+  rasqal_query_results* results;
+  rasqal_query* query;
   int result=0;
   int i;
-  
+
+  results=row_a->results;
+  query=results->query;
+
   for(i=0; i < row_a->order_size; i++) {
     rasqal_expression* e=(rasqal_expression*)raptor_sequence_get_at(query->order_conditions_sequence, i);
     int error=0;
+    rasqal_literal* literal_a=row_a->order_values[i];
+    rasqal_literal* literal_b=row_b->order_values[i];
     
-    result=rasqal_literal_compare(row_a->order_values[i], 
-                                  row_b->order_values[i], 
-                                  0 /* flags */, &error);
+#ifdef RASQAL_DEBUG
+    fprintf(stderr, "Comparing ");
+    rasqal_literal_print(literal_a, stderr);
+    fputs(" to ", stderr);
+    rasqal_literal_print(literal_b, stderr);
+    fputs("\n", stderr);
+#endif
+
+    if(!literal_a || !literal_b) {
+      if(!literal_a && !literal_b)
+        result= 0;
+      else
+        result= literal_a ? 1 : -1;
+#ifdef RASQAL_DEBUG
+      RASQAL_DEBUG2("Got one NULL literal comparison, returning %d\n", result);
+#endif
+      break;
+    }
+    
+    result=rasqal_literal_compare(literal_a, literal_b, 0 /* flags */, &error);
 
     if(error) {
+#ifdef RASQAL_DEBUG
+      RASQAL_DEBUG2("Got literal comparison error at expression %d, returning 0\n", i);
+#endif
       result=0;
       break;
     }
@@ -1056,17 +1086,21 @@ rasqal_engine_query_results_sort(const void *a, const void *b)
 
     if(e->op == RASQAL_EXPR_ORDER_COND_DESC)
       result= -result;
-    else {
-      /* Order condition is RASQAL_EXPR_ORDER_COND_ASC so nothing to do */
-    }
+    /* else Order condition is RASQAL_EXPR_ORDER_COND_ASC so nothing to do */
     
-    if(result)
-      break;
+#ifdef RASQAL_DEBUG
+    RASQAL_DEBUG3("Returning comparison result %d at expression %d\n", result, i);
+#endif
+    break;
   }
 
-  /* still equal?  make sort stable by using the object addresses */
-  if(!result)
-    result= row_b - row_a;
+  /* still equal?  make sort stable by using the original order */
+  if(!result) {
+    result= row_b->offset - row_a->offset;
+#ifdef RASQAL_DEBUG
+    RASQAL_DEBUG2("Got equality result so using offsets, returning %d\n", result);
+#endif
+  }
   
   return result;
 }
@@ -1116,6 +1150,7 @@ rasqal_query_execute(rasqal_query *query)
 
   if(query->order_conditions_sequence) {
     raptor_sequence* seq;
+    int offset=0;
 
     /* get all query results and order them */
     seq=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_query_result_row, (raptor_sequence_print_handler*)rasqal_query_result_row_print);
@@ -1135,7 +1170,7 @@ rasqal_query_execute(rasqal_query *query)
       if(query->finished)
         break;
       
-      row=rasqal_new_query_result_row(query_results);
+      row=rasqal_new_query_result_row(query_results, offset++);
       raptor_sequence_push(seq, row);
     }
 
@@ -1150,7 +1185,7 @@ rasqal_query_execute(rasqal_query *query)
 
       /* sort results by the order sequence */
       raptor_sequence_sort(query->results_sequence, 
-                           rasqal_engine_query_results_sort);
+                           rasqal_engine_query_results_compare);
 
 #ifdef RASQAL_DEBUG
       fputs("results after sorting: ", stderr);
