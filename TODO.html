@@ -24,15 +24,15 @@
 
 <h3><a name="sparql">SPARQL</a></h3>
 
-<p>Rasqal 0.9.3+ provides support for the SPARQL language,
-as defined in
+<p>Rasqal 0.9.9+ provides support for the SPARQL language as defined in
 <a href="http://www.w3.org/TR/2005/WD-rdf-sparql-query-20050419/">SPARQL Query Language for RDF</a>,
 W3C Working Draft, 19 April 2005.</p>
 
-<p>Rasqal currently implements the functionality in common with RDQL
-plus graph patterns, optionals, constructed triples, boolean results
-and some built-in functions.  The unimplemented parts from the above
-SPARQL working draft are approximately as follows:</p>
+<p>Rasqal currently can read all the syntax and implements the
+functionality in common with RDQL plus graph patterns, optionals,
+constructed triples, boolean results, ordering query results and some
+built-in functions.  The unimplemented parts from the above SPARQL
+working draft are approximately as follows:</p>
 <ul>
 <li><a href="http://www.w3.org/TR/2005/WD-rdf-sparql-query-20050419/#GroupPatterns" class="tocxref">4.1 Group Graph Patterns</a></li>
 <li><a href="http://www.w3.org/TR/2005/WD-rdf-sparql-query-20050419/#MultipleOptionals">5.3 Multiple Optional Blocks</a></li>
@@ -84,6 +84,7 @@ result solution.</li>
 release version where appropriate.</p>
 
 <ul>
+<li>Engine: result ordering (0.9.10)</li>
 <li>Engine: result constraints - like <code>LIMIT</code> and <code>OFFSET</code> in SQL (0.9.9)</li>
 <li>SPARQL: <code>BOUND</code> from <a href="http://www.w3.org/TR/2005/WD-rdf-sparql-query-20050419/#func-isBound">11.2.1.2 sop:bound</a> (0.9.6)</li>
 <li>SPARQL: <a href="http://www.w3.org/TR/2005/WD-rdf-sparql-query-20050419/#ask">10.4 Asking "yes or no" questions</a> (<code>ASK</code>) (0.9.6)</li>
