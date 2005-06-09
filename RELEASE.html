@@ -8,6 +8,93 @@
 
   <h1>Rasqal RDF Query Library - Release Notes</h1>
 
+<h2 id="rel0_9_10"><a name="rel0_9_10">Rasqal 0.9.10 Changes</a></h2>
+
+<h3>General Changes</h3>
+
+<p>The query engine now supports ordering query results, in SPARQL
+this is the <code>ORDER BY</code> clause.</p>
+
+
+<h3>SPARQL Query Language Changes</h3>
+
+<p>The SPARQL parser now passes (accepts) all the 70+
+<em>SyntaxFull</em> tests in the RDF Data Access Working Group (DAWG)
+test suite for SPARQL.  This mostly means accepting optional
+punctuation in some places.
+</p>
+
+<p>Sorting results with <code>ORDER BY</code> now partially works
+however comparison is not done with the SPARQL literal comparison
+rules (after XQuery) but using the existing RDQL-style "string-y"
+comparisons.
+</p>
+
+<p>Allow <code>&lt;&gt;</code> as a URI.</p>
+
+<p>The SPARQL parser now accepts some changes made by the DAWG after
+the last published working draft:
+<a href="http://www.w3.org/TR/2005/WD-rdf-sparql-query-20050419/">SPARQL Query Language for RDF</a>,
+W3C Working Draft, 19 April 2005.  This includes:</p>
+
+<ul>
+<li>In <code>ORDER BY</code>
+<code>ASC(</code>expression<code>)</code> replaces <code>ASC[...]</code>,
+<code>DESC(</code>expression<code>)</code> replaces <code>DESC[...]</code>,
+and it also accepts <code>ORDER BY (</code>expression<code>)</code>.
+<code>ORDER BY </code>func()<code></code> is accepted although at
+present no extension function support is available that could use it.
+</li>
+
+<li><code>[]</code> can be used in the triple predicate position
+as an anonymous existential variable</li>
+
+<li>Enforce that ASK queries cannot use <code>ORDER BY</code>,
+<code>LIMIT</code> or <code>OFFSET</code></li>
+
+</ul>
+
+<p>Omitting <code>WHERE</code> gives a warning.  Don't do that!</p>
+
+
+<h3>Query Engine Changes</h3>
+
+<p>The query engine now allows sorting of results (<code>ORDER BY</code>
+in SPARQL).  It performs comparisons using the existing RDQL style
+and does not yet support the SPARQL literal comparison rules.  Sorting
+can be done by a sequence of expressions, ascending or descending.
+If the final result is equality, the object pointers are used.</p>
+
+<p>Note: removal of duplicates is not supported yet.</p>
+
+<p>Some test code for datatypes support was added, not enabled by
+default and not yet useful.</p>
+
+
+<h3>Query API Changes</h3>
+
+<p>Removed functions deprecated in 0.9.9.</p>
+
+<p>Added <code>rasqal_graph_pattern_operator</code> enumeration with
+values for the main SPARQL graph patterns, graph pattern class method
+<code>rasqal_graph_pattern_get_operator</code> and graph pattern
+utility function <code>rasqal_graph_pattern_operator_as_string</code></p>
+
+<p>Modified the type of the final argument of
+<code>rasqal_new_graph_pattern_from_sequence</code> and
+<code>rasqal_graph_pattern_add_triples</code> from an integer to a
+<code>rasqal_graph_pattern_operator</code> enumeration.</p>
+
+<p>Deprecated function <code>rasqal_graph_pattern_get_flags</code>
+now always returning 0 replaced by the graph pattern operator
+functions listed above .</p>
+
+
+<h3><code>roqet</code> utility program changes</h3>
+
+<p>Removed deprecated flags -f and -o</p>
+
+
 <h2 id="rel0_9_9"><a name="rel0_9_9">Rasqal 0.9.9 Changes</a></h2>
 
 <h3>General Changes</h3>
