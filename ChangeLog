@@ -1,3 +1,26 @@
+2005-06-09  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* tests/sparql/ValueTesting/Makefile.am: extendedType-eq-pass
+	passes
+
+	* rasqal_query.c (rasqal_new_query_result_row): Added offset to
+	store original sort order in case it is needed to order two
+	identical literals.
+	(rasqal_query_result_row_print): Print offset.
+	(rasqal_engine_query_results_compare): Renamed from
+	rasqal_engine_query_results_sort.  Lots more debug messages and
+	checks.  Order NULL literals before other types.
+	(rasqal_query_execute): Pass result offset into
+	rasqal_new_query_result_row.
+
+	* rasqal_literal.c (rasqal_literal_compare): Make comparison
+	stable for URIs and datatyped strings - use strcmp on string
+	values of URIs.
+
+	* tests/sparql/sort/Makefile.am: sort-3 works
+
+	* librasqal.3: Updates for 0.9.10
+
 2005-06-08  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
 	* win32_rasqal_config.h: Undefine OPTIONAL as something in win32
