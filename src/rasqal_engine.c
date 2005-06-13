@@ -1474,3 +1474,36 @@ rasqal_engine_make_basic_graph_pattern(rasqal_graph_pattern *gp)
 #endif
     
 }
+
+
+/**
+ * rasqal_engine_check_limit_offset - Check the query result count is in the limit and offset range if any
+ *
+ * Return value: before range -1, in range 0, after range 1
+ */
+int
+rasqal_engine_check_limit_offset(rasqal_query *query)
+{
+  if(query->offset > 0) {
+    /* offset */
+    if(query->result_count <= query->offset)
+      return -1;
+    
+    if(query->limit >= 0) {
+      /* offset and limit */
+      if(query->result_count > (query->offset + query->limit)) {
+        query->finished=1;
+        query->result_count--;
+      }
+    }
+    
+  } else if(query->limit >= 0) {
+    /* limit */
+    if(query->result_count > query->limit) {
+      query->finished=1;
+      query->result_count--;
+    }
+  }
+
+  return query->finished;
+}
