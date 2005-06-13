@@ -12,10 +12,11 @@
 	the triples and constraints from a source to a destination graph
 	pattern.
 	(rasqal_engine_make_basic_graph_pattern): Use
-	rasqal_engine_join_basic_graph_patterns to merge: 1) a group of
-	all basic graph patterns 2) an optional group of all basic graph
-	patterns 3) a graph pattern with 1 sub-graph pattern Have to play
-	some games with graph pattern operators.
+	rasqal_engine_join_basic_graph_patterns to merge:
+	1) a group of all basic graph patterns
+	2) an optional group of all basic graph patterns
+	3) a graph pattern with 1 sub-graph pattern
+	Have to play some games with graph pattern operators.
 	(rasqal_engine_merge_basic_graph_patterns): Use
 	rasqal_engine_join_basic_graph_patterns to merge all basic graph
 	patterns in a group into group of a single basic graph pattern of
