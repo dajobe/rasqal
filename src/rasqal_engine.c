@@ -1310,6 +1310,69 @@ rasqal_engine_assign_binding_values(rasqal_query *query)
 
 
 void
+rasqal_engine_join_basic_graph_patterns(rasqal_graph_pattern *dest_gp,
+                                        rasqal_graph_pattern *src_gp)
+{
+  if(dest_gp->op != RASQAL_GRAPH_PATTERN_OPERATOR_BASIC) {
+    RASQAL_DEBUG3("Destination graph pattern %p is operator %s, ending\n", dest_gp, 
+                  rasqal_graph_pattern_operator_as_string(dest_gp->op));
+    return;
+  }
+
+  if(src_gp->op != RASQAL_GRAPH_PATTERN_OPERATOR_BASIC) {
+    RASQAL_DEBUG3("Source graph pattern %p is operator %s, ending\n", src_gp,
+                  rasqal_graph_pattern_operator_as_string(src_gp->op));
+    return;
+  }
+
+#if RASQAL_DEBUG > 1
+  RASQAL_DEBUG2("Joining graph pattern %p\n  ", src_gp);
+  rasqal_graph_pattern_print(src_gp, stdout);
+  fprintf(stdout, "\nto graph pattern %p\n  ", dest_gp);
+  rasqal_graph_pattern_print(dest_gp, stdout);
+  fputs("\n", stdout);
+#endif
+    
+
+  if(src_gp->triples) {
+    int start_c=src_gp->start_column;
+    int end_c=src_gp->end_column;
+    
+    /* if this is our first triple, save a free/alloc */
+    dest_gp->triples=src_gp->triples;
+    src_gp->triples=NULL;
+    
+    if((dest_gp->start_column < 0) || start_c < dest_gp->start_column)
+      dest_gp->start_column=start_c;
+    if((dest_gp->end_column < 0) || end_c > dest_gp->end_column)
+      dest_gp->end_column=end_c;
+    
+#if RASQAL_DEBUG > 1
+    RASQAL_DEBUG3("Moved triples from columns %d to %d\n", start_c, end_c);
+    RASQAL_DEBUG3("Columns now %d to %d\n", dest_gp->start_column, dest_gp->end_column);
+#endif
+  }
+  
+  if(src_gp->constraints) {
+    while(raptor_sequence_size(src_gp->constraints) > 0) {
+      rasqal_expression* e=(rasqal_expression*)raptor_sequence_pop(src_gp->constraints);
+      rasqal_graph_pattern_add_constraint(dest_gp, e);
+#if RASQAL_DEBUG > 1
+      RASQAL_DEBUG1("Moved a constraint\n");
+#endif
+    }
+  }
+
+
+#if RASQAL_DEBUG > 1
+  RASQAL_DEBUG2("Result graph pattern %p\n  ", dest_gp);
+  rasqal_graph_pattern_print(dest_gp, stdout);
+  fputs("\n", stdout);
+#endif
+}
+
+
+void
 rasqal_engine_make_basic_graph_pattern(rasqal_graph_pattern *gp)
 {
   int merge_gp_ok=0;
@@ -1409,52 +1472,40 @@ rasqal_engine_make_basic_graph_pattern(rasqal_graph_pattern *gp)
   merge_check_done:
   
   if(merge_gp_ok) {
+    int op;
+    raptor_sequence *seq;
+    
 #if RASQAL_DEBUG > 1
     RASQAL_DEBUG2("OK to merge sub-graph patterns of %p\n", gp);
 
     RASQAL_DEBUG3("Initial columns %d to %d\n", gp->start_column, gp->end_column);
 #endif
-    while(raptor_sequence_size(gp->graph_patterns) > 0) {
-      rasqal_graph_pattern *sgp=(rasqal_graph_pattern*)raptor_sequence_unshift(gp->graph_patterns);
-      if(sgp->triples) {
-        int start_c=sgp->start_column;
-        int end_c=sgp->end_column;
-        
-        /* if this is our first triple, save a free/alloc */
-        gp->triples=sgp->triples;
-        sgp->triples=NULL;
 
-        if((gp->start_column < 0) || start_c < gp->start_column)
-          gp->start_column=start_c;
-        if((gp->end_column < 0) || end_c > gp->end_column)
-          gp->end_column=end_c;
-
-#if RASQAL_DEBUG > 1
-        RASQAL_DEBUG3("Moved triples from columns %d to %d\n", start_c, end_c);
-        RASQAL_DEBUG3("Columns now %d to %d\n", gp->start_column, gp->end_column);
-#endif
+    /* Pretend dest is an empty basic graph pattern */
+    op=gp->op;
+    gp->op=RASQAL_GRAPH_PATTERN_OPERATOR_BASIC;
+    seq=gp->graph_patterns;
+    gp->graph_patterns=NULL;
+    
+    while(raptor_sequence_size(seq) > 0) {
+      rasqal_graph_pattern *sgp=(rasqal_graph_pattern*)raptor_sequence_unshift(seq);
+      if(sgp->op != RASQAL_GRAPH_PATTERN_OPERATOR_BASIC) {
+        /* assume this is a container of 1 GP, so promote that op */
+        op=sgp->op;
+        sgp->op=RASQAL_GRAPH_PATTERN_OPERATOR_BASIC;
       }
-     
-      if(sgp->constraints) {
-        while(raptor_sequence_size(sgp->constraints) > 0) {
-          rasqal_expression* e=(rasqal_expression*)raptor_sequence_pop(sgp->constraints);
-          rasqal_graph_pattern_add_constraint(gp, e);
-#if RASQAL_DEBUG > 1
-          RASQAL_DEBUG1("Moved a constraint\n");
-#endif
-        }
-      }
-      
+      rasqal_engine_join_basic_graph_patterns(gp, sgp);
       rasqal_free_graph_pattern(sgp);
     }
 
     /* Delete any evidence of sub graph patterns */
-    raptor_free_sequence(gp->graph_patterns);
-    gp->graph_patterns=NULL;
+    raptor_free_sequence(seq);
 
     /* Update operator GROUP => BASIC, but do not change OPTIONAL */
-    if(gp->op == RASQAL_GRAPH_PATTERN_OPERATOR_GROUP)
+    if(op == RASQAL_GRAPH_PATTERN_OPERATOR_GROUP)
       gp->op=RASQAL_GRAPH_PATTERN_OPERATOR_BASIC;
+    else
+      gp->op=op;
     
     /* update constraints expression after possible change */
     rasqal_engine_build_constraints_expression(gp);
@@ -1506,4 +1557,98 @@ rasqal_engine_check_limit_offset(rasqal_query *query)
   }
 
   return query->finished;
+}
+
+
+void
+rasqal_engine_merge_basic_graph_patterns(rasqal_graph_pattern *gp)
+{
+  int i;
+  int size;
+  int bgp_count;
+  rasqal_graph_pattern *dest_bgp;
+  raptor_sequence *seq;
+  
+#if RASQAL_DEBUG > 1
+  printf("rasqal_engine_merge_basic_graph_patterns: Checking graph pattern %p:\n  ", gp);
+  rasqal_graph_pattern_print(gp, stdout);
+  fputs("\n", stdout);
+  RASQAL_DEBUG3("Columns %d to %d\n", gp->start_column, gp->end_column);
+#endif
+    
+  if(!gp->graph_patterns) {
+#if RASQAL_DEBUG > 1
+    RASQAL_DEBUG2("Ending graph patterns %p - no sub-graph patterns\n", gp);
+#endif
+    return;
+  }
+
+  if(gp->op != RASQAL_GRAPH_PATTERN_OPERATOR_GROUP) {
+#if RASQAL_DEBUG > 1
+    RASQAL_DEBUG3("Ending graph patterns %p - operator %s\n", gp,
+                  rasqal_graph_pattern_operator_as_string(gp->op));
+#endif
+    return;
+  }
+
+  size=raptor_sequence_size(gp->graph_patterns);
+#if RASQAL_DEBUG > 1
+  RASQAL_DEBUG3("Doing %d sub-graph patterns of %p\n", size, gp);
+#endif
+  for(i=0; i < size; i++) {
+    rasqal_graph_pattern *sgp=(rasqal_graph_pattern*)raptor_sequence_get_at(gp->graph_patterns, i);
+    rasqal_engine_merge_basic_graph_patterns(sgp);
+  }
+#if RASQAL_DEBUG > 1
+  RASQAL_DEBUG2("Sub-graph patterns of %p done\n", gp);
+#endif
+
+
+  /* count basic graph patterns */
+  bgp_count=0;
+  dest_bgp=NULL; /* destination basic graph pattern */
+  for(i=0; i < raptor_sequence_size(gp->graph_patterns); i++) {
+    rasqal_graph_pattern *sgp=(rasqal_graph_pattern*)raptor_sequence_get_at(gp->graph_patterns, i);
+    
+    if(sgp->op == RASQAL_GRAPH_PATTERN_OPERATOR_BASIC) {
+      bgp_count++;
+      if(!dest_bgp)
+        dest_bgp=sgp;
+    }
+  }
+
+
+#if RASQAL_DEBUG > 1
+  RASQAL_DEBUG3("Found %d basic sub-graph patterns in %p\n", bgp_count, gp);
+#endif
+  if(bgp_count < 2)
+    return;
+    
+#if RASQAL_DEBUG > 1
+  RASQAL_DEBUG3("OK to merge %d basic sub-graph patterns of %p\n", bgp_count, gp);
+
+  RASQAL_DEBUG3("Initial columns %d to %d\n", gp->start_column, gp->end_column);
+#endif
+  seq=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_graph_pattern, (raptor_sequence_print_handler*)rasqal_graph_pattern_print);
+  while(raptor_sequence_size(gp->graph_patterns) > 0) {
+    rasqal_graph_pattern *sgp=(rasqal_graph_pattern*)raptor_sequence_unshift(gp->graph_patterns);
+    if(sgp->op == RASQAL_GRAPH_PATTERN_OPERATOR_BASIC &&
+       sgp != dest_bgp) {
+      rasqal_engine_join_basic_graph_patterns(dest_bgp, sgp);
+      rasqal_free_graph_pattern(sgp);
+    } else
+      raptor_sequence_push(seq, sgp);
+  }
+  raptor_free_sequence(gp->graph_patterns);
+  gp->graph_patterns=seq;
+
+  /* update constraints expression after possible change */
+  rasqal_engine_build_constraints_expression(gp);
+
+#if RASQAL_DEBUG > 1
+  RASQAL_DEBUG2("Ending graph pattern %p\n  ", gp);
+  rasqal_graph_pattern_print(gp, stdout);
+  fputs("\n\n", stdout);
+#endif
+    
 }
