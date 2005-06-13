@@ -39,8 +39,6 @@ result-survey-8.ttl result-survey-9.ttl result-survey-10.ttl	\
 result-survey-11.ttl result-survey-12.ttl result-survey-13.ttl
 
 # Test failures
-# survey-2
-#   recursive graph patterns (bgp + optional gp)
 # survey-3
 #   UNION
 # survey-10
@@ -48,9 +46,9 @@ result-survey-11.ttl result-survey-12.ttl result-survey-13.ttl
 # survey-13
 #   FILTER casting does not work
 EXPECTED_SPARQL_CORRECT_FAILURES= \
-survey-2 survey-3 survey-10 survey-13
+survey-3 survey-10 survey-13
 
-EXPECTED_SPARQL_CORRECT_FAILURES_COUNT=4
+EXPECTED_SPARQL_CORRECT_FAILURES_COUNT=3
 
 EXTRA_DIST= \
 $(SPARQL_MANIFEST_FILES) \
