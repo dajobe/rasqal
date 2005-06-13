@@ -1,3 +1,49 @@
+2005-06-13  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* tests/sparql/examples/Makefile.am:
+	sparql-query-example-Testing-Values-isBlank now works
+
+	* tests/sparql/survey/Makefile.am: survey-2 now works.
+
+	* rasqal_query.c (rasqal_query_prepare): Call
+	rasqal_engine_merge_basic_graph_patterns
+
+	* rasqal_engine.c (rasqal_engine_join_basic_graph_patterns): Move
+	the triples and constraints from a source to a destination graph
+	pattern.
+	(rasqal_engine_make_basic_graph_pattern): Use
+	rasqal_engine_join_basic_graph_patterns to merge: 1) a group of
+	all basic graph patterns 2) an optional group of all basic graph
+	patterns 3) a graph pattern with 1 sub-graph pattern Have to play
+	some games with graph pattern operators.
+	(rasqal_engine_merge_basic_graph_patterns): Use
+	rasqal_engine_join_basic_graph_patterns to merge all basic graph
+	patterns in a group into group of a single basic graph pattern of
+	all the triples and constraints.
+
+	* rasqal_internal.h: Added prototypes for
+	rasqal_engine_join_basic_graph_patterns and
+	rasqal_engine_merge_basic_graph_patterns
+
+	* rasqal_query.c (rasqal_query_execute): For ordering results,
+	directly use rasqal_engine_get_next_result to avoid doing limit
+	and offset checks too early.  Start off from result_count 1.
+	(rasqal_query_results_next): For ordered results, handle limit and
+	offset with a loop and a check with
+	rasqal_engine_check_limit_offset.  For streaming results, move
+	check code to rasqal_engine_check_limit_offset and use it.
+	(rasqal_query_results_get_bindings,
+	rasqal_query_results_get_binding_value,
+	rasqal_query_results_get_binding_value_by_name): For ordered
+	results, use result_count-1 as an index.
+
+	* rasqal_engine.c (rasqal_engine_check_limit_offset): Added to
+	check the current query result is in the range specified by limit
+	and offset
+
+	* rasqal_internal.h: Added prototype for
+	rasqal_engine_check_limit_offset
+
 2005-06-09  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
 	* win32_rasqal_config.h, configure.ac: Bumped version to 0.9.11
