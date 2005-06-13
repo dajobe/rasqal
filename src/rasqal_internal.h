@@ -440,6 +440,7 @@ int rasqal_engine_execute_init(rasqal_query* query, rasqal_query_results* query_
 int rasqal_engine_execute_finish(rasqal_query* query);
 int rasqal_engine_run(rasqal_query* q);
 void rasqal_engine_make_basic_graph_pattern(rasqal_graph_pattern *gp);
+int rasqal_engine_check_limit_offset(rasqal_query *query);
 
 rasqal_triples_source* rasqal_new_triples_source(rasqal_query* query);
 void rasqal_free_triples_source(rasqal_triples_source* rts);
