@@ -1,3 +1,15 @@
+2005-06-14  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal_engine.c (rasqal_select_NULL_last_compare): Added helper
+	for removing duplicate select variables.
+	(rasqal_engine_assign_variables): Look for duplicate select
+	variables, warn about them and remove them by sorting and then
+	deleting NULL variables.
+
+	* tests/sparql/syntax/Makefile.am: Added select-dup.rq
+
+	* tests/sparql/syntax/select-dup.rq: Test for duplicates in select
+
 2005-06-13  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
 	* tests/sparql/examples/Makefile.am:
