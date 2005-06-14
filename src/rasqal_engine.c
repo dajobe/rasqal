@@ -328,14 +328,68 @@ rasqal_engine_expand_wildcards(rasqal_query* rq)
 }
 
 
+static int
+rasqal_select_NULL_last_compare(const void *a, const void *b)
+{
+  rasqal_variable *var_a=*(rasqal_variable**)a;
+  rasqal_variable *var_b=*(rasqal_variable**)b;
+
+  /* Put NULLs last */
+  if(!var_a || !var_b) {
+    if(!var_a && !var_b)
+      return (unsigned long)b - (unsigned long)a;
+    else
+      return var_a ? -1 : 1;
+  }
+  return var_b - var_a;
+}
+
+
 int
 rasqal_engine_assign_variables(rasqal_query* rq)
 {
   int i;
   int offset;
 
-  if(rq->selects)
+  if(rq->selects) {
+    int modified=0;
+
     rq->select_variables_count=raptor_sequence_size(rq->selects);
+    for(i=0; i < rq->select_variables_count; i++) {
+      int j;
+      rasqal_variable *v=(rasqal_variable*)raptor_sequence_get_at(rq->selects, i);
+      int warned=0;
+      if(!v)
+        continue;
+      
+      for(j=0; j < rq->select_variables_count; j++) {
+        rasqal_variable *v2=(rasqal_variable*)raptor_sequence_get_at(rq->selects, j);
+        if(j == i)
+          continue;
+        
+        if(v == v2) {
+          if(!warned) {
+            rasqal_query_warning(rq, "Variable %s duplicated in SELECT.", 
+                                 v->name);
+            warned=1;
+          }
+          raptor_sequence_set_at(rq->selects, j, NULL);
+          modified=1;
+        }
+      }
+    }
+
+    if(modified) {
+      /* Delete NULLs - sort to put NULLs last */
+      raptor_sequence_sort(rq->selects, rasqal_select_NULL_last_compare);
+      do {
+      /* and pop them from the end until they are gone */
+        raptor_sequence_pop(rq->selects);
+        rq->select_variables_count=raptor_sequence_size(rq->selects);
+      } while(!raptor_sequence_get_at(rq->selects, 
+                                      rq->select_variables_count-1));
+    }
+  }
 
   if(rq->select_variables_count) {
     rq->variable_names=(const unsigned char**)RASQAL_MALLOC(cstrings,sizeof(const unsigned char*)*(rq->select_variables_count+1));
