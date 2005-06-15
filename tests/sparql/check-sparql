@@ -58,7 +58,12 @@ my $debug=0;
 my $srcdir='.';
 
 
-
+# plural('result', 's', 2);
+sub plural($$$) {
+  my($word,$multiple,$count)=@_;
+  return ($count == 1) ? $count." ".$word : $count." ".$word.$multiple;
+}
+  
 sub run_test($$$$$) {
   my($name, $dir, $test_file, $data_files_ref, $result_file)=@_;
   my(@data_files)=@$data_files_ref;
@@ -75,6 +80,8 @@ sub run_test($$$$$) {
   my $sorted=0;
 
   my $sort="sort";
+
+  my $roqet_results=0;
 
   my(@vars_order);
   open(PIPE, "$roqet_cmd|") or die "$program: Cannot create pipe from '$roqet_cmd' - $!\n";
@@ -115,6 +122,7 @@ sub run_test($$$$$) {
       }
 
       print OUT "$line\n";
+      $roqet_results++;
     }
   }
   close(PIPE);
@@ -132,7 +140,7 @@ sub run_test($$$$$) {
   }
   close(ERR);
   if(@errs) {
-    warn "$program: $test_file FAILED - query returned errors:\n  ".join("\n  ",@errs)."\n";
+    warn "$program: test '$test_file' FAILED - query returned errors:\n  ".join("\n  ",@errs)."\n";
     warn "Failing program was:\n";
     warn "  $roqet_cmd\n";
     return 1;
@@ -226,12 +234,12 @@ sub run_test($$$$$) {
   $cmd="diff -c result.out roqet.out > diff.out";
   my $rc=system($cmd);
   if($rc) {
-    warn "$program: $name FAILED\n";
+    warn "$program: '$name' FAILED\n";
     warn "Failing program was:\n";
     warn "  $roqet_cmd\n";
     warn "Difference is:\n";
     system("cat diff.out");
-    warn "$program: Expected $count results\n";
+    warn "$program: Expected ".plural("result","s",$count).", got $roqet_results\n";
     return 1;
   } else {
     warn "$program: $name OK\n";
@@ -370,6 +378,6 @@ for my $test (@tests) {
 unlink "roqet.out", "result.out", "diff.out", "roqet.err"
   unless $unique_test;
 
-warn "$0: FAILED tests: @failed\n"
+warn "$0: FAILED tests: '".join("', '", @failed)."'\n"
   if @failed;
 exit $result;
