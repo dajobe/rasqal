@@ -32,7 +32,15 @@ SPARQL_TEST_FILES= \
 query-bev-1.rq query-bev-2.rq query-bev-3.rq \
 query-bev-4.rq query-bev-5.rq query-bev-6.rq
 
-EXPECTED_SPARQL_CORRECT_FAILURES=
+EXPECTED_SPARQL_CORRECT_FAILURES= \
+"Test 'boolean effective value' - true" \
+"Test 'boolean effective value' - false" \
+"Test 'boolean effective value' - \&\&" \
+"Test 'boolean effective value' - \|\| Test" \
+"'boolean effective value' - optional Test" \
+"'boolean effective value' - unknown types"
+
+EXPECTED_SPARQL_CORRECT_FAILURES_COUNT= 6
 
 SPARQL_RESULT_FILES= \
 result-bev-1.ttl result-bev-2.ttl result-bev-3.ttl \
@@ -92,7 +100,7 @@ check-sparql-parser: build-sparql-parser-test
 
 check-sparql-correct: build-roqet $(srcdir)/../check-sparql
 	@set +e; \
-	expect=`echo $(EXPECTED_SPARQL_CORRECT_FAILURES) | wc -w`; \
+	expect=$(EXPECTED_SPARQL_CORRECT_FAILURES_COUNT); \
 	$(ECHO) "Testing SPARQL correct"; \
 	PATH=$(top_builddir)@RAPPER_PATH@:$$PATH \
 	  perl $(srcdir)/../check-sparql -s $(srcdir); \
