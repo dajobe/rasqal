@@ -31,7 +31,8 @@ regex-data-01.n3
 SPARQL_TEST_FILES= \
 regex-query-001.rq regex-query-002.rq regex-query-003.rq regex-query-004.rq
 
-EXPECTED_SPARQL_CORRECT_FAILURES=
+EXPECTED_SPARQL_CORRECT_FAILURES= \
+regex-query-003
 
 SPARQL_RESULT_FILES= \
 regex-result-001.n3 \
