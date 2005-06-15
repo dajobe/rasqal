@@ -1,0 +1,6 @@
+PREFIX ex: <http://example.com/#>
+SELECT ?val
+WHERE {
+	ex:foo rdf:value ?val .
+	FILTER regex(?val, "DeFghI", "i")
+}
