@@ -681,6 +681,11 @@ tests/sparql/survey/Makefile
 tests/sparql/SyntaxFull/Makefile
 tests/sparql/sort/Makefile
 tests/sparql/ValueTesting/Makefile
+tests/sparql/regex/Makefile
+tests/sparql/Expr1/Makefile
+tests/sparql/Expr2/Makefile
+tests/sparql/ExprBuiltins/Makefile
+tests/sparql/ExprEquals/Makefile
 docs/Makefile
 win32/Makefile
 rasqal.spec
