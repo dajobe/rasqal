@@ -32,7 +32,8 @@ SPARQL_TEST_FILES= \
 q-blank-1.rq q-datatype-1.rq q-str-1.rq q-str-2.rq q-str-3.rq \
 q-str-4.rq q-uri-1.rq
 
-EXPECTED_SPARQL_CORRECT_FAILURES=
+EXPECTED_SPARQL_CORRECT_FAILURES= \
+str-1 str-2 str-4 datatype-1
 
 SPARQL_RESULT_FILES= \
 result-blank-1.ttl result-datatype-1.ttl result-str-1.ttl \
