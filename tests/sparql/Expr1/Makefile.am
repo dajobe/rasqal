@@ -31,7 +31,10 @@ data-1.ttl
 SPARQL_TEST_FILES= \
 expr-1.rq expr-2.rq expr-3.rq
 
-EXPECTED_SPARQL_CORRECT_FAILURES=
+EXPECTED_SPARQL_CORRECT_FAILURES= \
+"OPTIONAL-FILTER" "OPTIONAL - Outer FILTER"
+
+EXPECTED_SPARQL_CORRECT_FAILURES_COUNT = 2
 
 SPARQL_RESULT_FILES= \
 expr-1-result.ttl expr-2-result.ttl expr-3-result.ttl
@@ -90,7 +93,7 @@ check-sparql-parser: build-sparql-parser-test
 
 check-sparql-correct: build-roqet $(srcdir)/../check-sparql
 	@set +e; \
-	expect=`echo $(EXPECTED_SPARQL_CORRECT_FAILURES) | wc -w`; \
+	expect=$(EXPECTED_SPARQL_CORRECT_FAILURES_COUNT); \
 	$(ECHO) "Testing SPARQL correct"; \
 	PATH=$(top_builddir)@RAPPER_PATH@:$$PATH \
 	  perl $(srcdir)/../check-sparql -s $(srcdir); \
