@@ -148,17 +148,23 @@ rasqal_new_pattern_literal(const unsigned char *pattern,
 /*
  * rasqal_literal_string_to_native - INTERNAL Upgrade a datatyped literal string to an internal typed literal
  * @l: &rasqal_literal to operate on inline
+ * @error_handler: error handling function
+ * @error_data: data for error handle
  *
  * At present this promotes datatyped literals
  * xsd:integer to RASQAL_LITERAL_INTEGER
  * xsd:double to RASQAL_LITERAL_FLOATING
  * xsd:boolean to RASQAL_LITERAL_BOOLEAN
+ *
+ * Return value: non-0 on failure
  **/
-void
-rasqal_literal_string_to_native(rasqal_literal *l)
+int
+rasqal_literal_string_to_native(rasqal_literal *l,
+                                raptor_simple_message_handler error_handler,
+                                void *error_data)
 {
   if(!l->datatype)
-    return;
+    return 0;
 
   if(raptor_uri_equals(l->datatype, rasqal_xsd_integer_uri)) {
     int i=atoi((const char*)l->string);
@@ -170,12 +176,20 @@ rasqal_literal_string_to_native(rasqal_literal *l)
 
     l->type=RASQAL_LITERAL_INTEGER;
     l->value.integer=i;
-    return;
+    return 0;
   }
   
   if(raptor_uri_equals(l->datatype, rasqal_xsd_double_uri)) {
     double d=0.0;
-    sscanf((char*)l->string, "%lf", &d);
+    int n;
+
+    n=sscanf((char*)l->string, "%lf", &d);
+    if(n != 1) {
+      if(error_handler)
+        error_handler(error_data, "Illegal floating point string '%s'",
+                      l->string);
+      return 1;
+    }
 
     if(l->language) {
       RASQAL_FREE(cstring, (void*)l->language);
@@ -184,7 +198,7 @@ rasqal_literal_string_to_native(rasqal_literal *l)
 
     l->type=RASQAL_LITERAL_FLOATING;
     l->value.floating=d;
-    return;
+    return 0;
   }
 
   if(raptor_uri_equals(l->datatype, rasqal_xsd_boolean_uri)) {
@@ -203,9 +217,10 @@ rasqal_literal_string_to_native(rasqal_literal *l)
 
     l->type=RASQAL_LITERAL_BOOLEAN;
     l->value.integer=b;
-    return;
+    return 0;
   }
 
+  return 0;
 }
 
 
@@ -249,7 +264,11 @@ rasqal_new_string_literal(const unsigned char *string,
   l->flags=datatype_qname;
   l->usage=1;
 
-  rasqal_literal_string_to_native(l);
+  if(rasqal_literal_string_to_native(l, NULL, NULL)) {
+    rasqal_free_literal(l);
+    l=NULL;
+  }
+    
   return l;
 }
 
@@ -1071,7 +1090,10 @@ rasqal_literal_expand_qname(void *user_data, rasqal_literal *l)
         l->language=NULL;
       }
 
-      rasqal_literal_string_to_native(l);
+      if(rasqal_literal_string_to_native(l, rasqal_query_simple_error, rq)) {
+        rasqal_free_literal(l);
+        return 1;
+      }
     }
   }
   return 0;
