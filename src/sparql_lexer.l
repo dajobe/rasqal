@@ -252,30 +252,42 @@ QUOTEDURI \<[^<= ][^>]*\>|\<\>
 }
 
 0[xX][0-9a-fA-F]+   { int i;
+                      int n;
                       if(yytext[yyleng+1] == 'x') 
-                        sscanf(yytext+2, "%x", &i);
+                        n=sscanf(yytext+2, "%x", &i);
                       else
-                        sscanf(yytext+2, "%X", &i);
+                        n=sscanf(yytext+2, "%X", &i);
+                      if(n != 1) {
+                        sparql_syntax_error(rq, "SPARQL syntax error - Illegal hex constant %c%c%c",
+                                          yytext[0], yytext[1], yytext[2]);
+                        yyterminate();
+                      }
                       sparql_parser_lval->literal=rasqal_new_integer_literal(RASQAL_LITERAL_INTEGER, i);
                       return INTEGER_LITERAL; 
 }
 
 [0-9]+"."[0-9]*[eE][+-]?[0-9]+[fFdD]?|"."[0-9]+[eE][+-]?[0-9]+[fFdD]?|[0-9]+[eE][+-]?[0-9]+[fFdD]?|[0-9]+[eE][+-]?[0-9]+[fFdD]?|[0-9]+"."[0-9]*  { 
                         double d;
-                        sscanf((const char*)yytext, "%lf", &d);
+                        int n;
+                        
+                        n=sscanf((const char*)yytext, "%lf", &d);
+                        if(n != 1) {
+                          sparql_syntax_error(rq, "SPARQL syntax error - Illegal floating point constant %s", yytext);
+                          yyterminate();
+                        }
                         sparql_parser_lval->literal=rasqal_new_floating_literal(d);
                         return FLOATING_POINT_LITERAL;
 }
 
 '([^'\\\n\r]|\\[^\n\r])*'(@{LANGUAGETOKEN})?(^^({QUOTEDURI}|{QNAME}))?    { /*' */
-                               sparql_copy_string_token(rq, sparql_parser_lval,
-                                 (const unsigned char*)yytext+1, yyleng-1, '\'');
-                               return STRING_LITERAL; }
+                        sparql_copy_string_token(rq, sparql_parser_lval,
+                          (const unsigned char*)yytext+1, yyleng-1, '\'');
+                        return STRING_LITERAL; }
 
 \"([^"\\\n\r]|\\[^\n\r])*\"(@{LANGUAGETOKEN})?(^^({QUOTEDURI}|{QNAME}))?   { /* " */
-                                sparql_copy_string_token(rq, sparql_parser_lval,
-                                  (const unsigned char*)yytext+1, yyleng-1, '"');
-                                return STRING_LITERAL; }
+                        sparql_copy_string_token(rq, sparql_parser_lval,
+                          (const unsigned char*)yytext+1, yyleng-1, '"');
+                        return STRING_LITERAL; }
 
 \"\"\"				{ BEGIN(LITERAL); }
 
@@ -473,6 +485,7 @@ sparql_copy_string_token(rasqal_query* rq, YYSTYPE* lval,
       else if (c == 'u' || c == 'U') {
         int ulen=(c == 'u') ? 4 : 8;
         unsigned long unichar=0;
+        int n;
         
         s++; i++;
         if(i+ulen > len) {
@@ -481,12 +494,18 @@ sparql_copy_string_token(rasqal_query* rq, YYSTYPE* lval,
           return 1;
         }
         
-        sscanf((const char*)s, ((ulen == 4) ? "%04lx" : "%08lx"), &unichar);
+        n=sscanf((const char*)s, ((ulen == 4) ? "%04lx" : "%08lx"), &unichar);
+        if(n != 1) {
+          sparql_syntax_error(rq, "SPARQL syntax error - Illegal Uncode escape '%c%s...'", c, s);
+          RASQAL_FREE(cstring, string);
+          return 1;
+        }
+
         s+= ulen-1;
         i+= ulen-1;
         
         if(unichar < 0 || unichar > 0x10ffff) {
-          sparql_syntax_error(rq, "SPARQL syntax error - illegal Unicode character with code point #x%lX.", unichar);
+          sparql_syntax_error(rq, "SPARQL syntax error - Illegal Unicode character with code point #x%lX.", unichar);
           RASQAL_FREE(cstring, string);
           return 1;
         }
