@@ -1,3 +1,119 @@
+2005-06-17  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* Fixes for GCC 4.0 warnings:
+
+	* sparql_lexer.l, rdql_lexer.l: Check for sscanf failure and
+	return errors for hex, floating, \u and \U constants.
+
+	* rasqal_literal.c (rasqal_literal_string_to_native): Add error
+	handler and data args.  Use it if sscanf fails on converting a
+	float string.
+	(rasqal_new_string_literal): If rasqal_literal_string_to_native
+	fails, tidy up and return NULL.
+	(rasqal_literal_expand_qname): if rasqal_literal_string_to_native
+	fails, tidy up and return 1.
+
+	* rasqal_internal.h: Update rasqal_literal_string_to_native
+	prototype to take an error handler and data.
+
+	* rasqal_general.c (rasqal_escaped_name_to_utf8_string): Check for
+	sscanf failure with \u and \U such as \uGHIJ which isn't hex.
+
+	* rasqal.spec.in: License not Copyright header
+
+2005-06-15  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* tests/sparql/check-sparql: updated messages
+
+	* tests/sparql/regex/Makefile.am: 1 failure
+
+	* tests/sparql/ExprEquals/Makefile.am: 4 failures.  Add explicit
+	count.
+
+	* tests/sparql/ExprBuiltins/Makefile.am: 4 failures
+
+	* tests/sparql/Expr2/Makefile.am: 6 failures.  Add explict count.
+
+	* tests/sparql/Expr1/Makefile.am: 2 failures.  Add explict count.
+
+	* tests/sparql/ExprBuiltins/Makefile.am: manifest.ttl
+
+	* configure.ac: Add tests/sparql regex, Expr1, Expr2,
+	ExprBuiltins, ExprEquals dirs
+
+	* tests/sparql/Expr1/.cvsignore, tests/sparql/Expr2/.cvsignore,
+	tests/sparql/ExprBuiltins/.cvsignore,
+	tests/sparql/ExprEquals/.cvsignore, tests/sparql/regex/.cvsignore:
+	ignores for tests
+
+	* tests/sparql/Expr1/Makefile.am, tests/sparql/Expr1/data-1.ttl,
+	tests/sparql/Expr1/expr-1-result.ttl,
+	tests/sparql/Expr1/expr-1.rq,
+	tests/sparql/Expr1/expr-2-result.ttl,
+	tests/sparql/Expr1/expr-2.rq,
+	tests/sparql/Expr1/expr-3-result.ttl,
+	tests/sparql/Expr1/expr-3.rq, tests/sparql/Expr1/manifest.n3,
+	tests/sparql/Expr2/Makefile.am, tests/sparql/Expr2/data-1.ttl,
+	tests/sparql/Expr2/data-2.ttl, tests/sparql/Expr2/manifest.n3,
+	tests/sparql/Expr2/query-bev-1.rq,
+	tests/sparql/Expr2/query-bev-2.rq,
+	tests/sparql/Expr2/query-bev-3.rq,
+	tests/sparql/Expr2/query-bev-4.rq,
+	tests/sparql/Expr2/query-bev-5.rq,
+	tests/sparql/Expr2/query-bev-6.rq,
+	tests/sparql/Expr2/result-bev-1.ttl,
+	tests/sparql/Expr2/result-bev-2.ttl,
+	tests/sparql/Expr2/result-bev-3.ttl,
+	tests/sparql/Expr2/result-bev-4.ttl,
+	tests/sparql/Expr2/result-bev-5.ttl,
+	tests/sparql/Expr2/result-bev-6.ttl,
+	tests/sparql/ExprBuiltins/Makefile.am,
+	tests/sparql/ExprBuiltins/data-builtin-1.ttl,
+	tests/sparql/ExprBuiltins/manifest.ttl,
+	tests/sparql/ExprBuiltins/q-blank-1.rq,
+	tests/sparql/ExprBuiltins/q-datatype-1.rq,
+	tests/sparql/ExprBuiltins/q-str-1.rq,
+	tests/sparql/ExprBuiltins/q-str-2.rq,
+	tests/sparql/ExprBuiltins/q-str-3.rq,
+	tests/sparql/ExprBuiltins/q-str-4.rq,
+	tests/sparql/ExprBuiltins/q-uri-1.rq,
+	tests/sparql/ExprBuiltins/result-blank-1.ttl,
+	tests/sparql/ExprBuiltins/result-datatype-1.ttl,
+	tests/sparql/ExprBuiltins/result-str-1.ttl,
+	tests/sparql/ExprBuiltins/result-str-2.ttl,
+	tests/sparql/ExprBuiltins/result-str-3.ttl,
+	tests/sparql/ExprBuiltins/result-str-4.ttl,
+	tests/sparql/ExprBuiltins/result-uri-1.ttl,
+	tests/sparql/ExprEquals/Makefile.am,
+	tests/sparql/ExprEquals/data-eq.ttl,
+	tests/sparql/ExprEquals/manifest.n3,
+	tests/sparql/ExprEquals/query-eq-1.rq,
+	tests/sparql/ExprEquals/query-eq-2.rq,
+	tests/sparql/ExprEquals/query-eq-3.rq,
+	tests/sparql/ExprEquals/query-eq-4.rq,
+	tests/sparql/ExprEquals/query-eq-5.rq,
+	tests/sparql/ExprEquals/query-eq2-1.rq,
+	tests/sparql/ExprEquals/query-eq2-2.rq,
+	tests/sparql/ExprEquals/result-eq-1.ttl,
+	tests/sparql/ExprEquals/result-eq-2.ttl,
+	tests/sparql/ExprEquals/result-eq-3.ttl,
+	tests/sparql/ExprEquals/result-eq-4.ttl,
+	tests/sparql/ExprEquals/result-eq-5.ttl,
+	tests/sparql/ExprEquals/result-eq2-1.ttl,
+	tests/sparql/ExprEquals/result-eq2-2.ttl,
+	tests/sparql/Makefile.am, tests/sparql/regex/Makefile.am,
+	tests/sparql/regex/manifest.n3,
+	tests/sparql/regex/regex-data-01.n3,
+	tests/sparql/regex/regex-query-001.rq,
+	tests/sparql/regex/regex-query-002.rq,
+	tests/sparql/regex/regex-query-003.rq,
+	tests/sparql/regex/regex-query-004.rq,
+	tests/sparql/regex/regex-result-001.n3,
+	tests/sparql/regex/regex-result-002.n3,
+	tests/sparql/regex/regex-result-003.n3,
+	tests/sparql/regex/regex-result-004.n3: Import Expr1 Expr2
+	ExprBuiltins ExprEquals regex from DAWG tests
+
 2005-06-14  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
 	* rasqal_engine.c (rasqal_select_NULL_last_compare): Added helper
