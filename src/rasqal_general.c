@@ -535,7 +535,8 @@ rasqal_escaped_name_to_utf8_string(const unsigned char *src, size_t len,
   unsigned long unichar=0;
   unsigned char *result;
   unsigned char *dest;
-
+  int n;
+  
   result=(unsigned char*)RASQAL_MALLOC(cstring, len+1);
   if(!result)
     return NULL;
@@ -594,8 +595,13 @@ rasqal_escaped_name_to_utf8_string(const unsigned char *src, size_t len,
           return 0;
         }
         
-        sscanf((const char*)p, ((ulen == 4) ? "%04lx" : "%08lx"), &unichar);
-
+        n=sscanf((const char*)p, ((ulen == 4) ? "%04lx" : "%08lx"), &unichar);
+        if(n != 1) {
+          if(error_handler)
+            error_handler(error_data, "Bad %c escape", c);
+          break;
+        }
+        
         p+=ulen;
         len-=ulen;
         
