@@ -85,6 +85,11 @@ extern "C" {
 #include <io.h>
 #include <memory.h>
 
+/* This is a SPARQL token define */
+#ifdef OPTIONAL
+#undef OPTIONAL
+#endif
+
 /* bison: output uses ERROR in an enum which breaks if this is defined */
 #ifdef ERROR
 #undef ERROR
@@ -92,7 +97,8 @@ extern "C" {
 
 /* flex: const is available */
 #define YY_USE_CONST
-#define YY_NO_UNISTD_H
+/* looks like the .c files define this anyway */
+/* #define YY_NO_UNISTD_H */
 
 #undef RASQAL_INLINE
 #define RASQAL_INLINE __inline
