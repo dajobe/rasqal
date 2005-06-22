@@ -95,7 +95,7 @@ pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = rasqal.pc
 
 
-EXTRA_DIST=ChangeLog \
+EXTRA_DIST=ChangeLog ChangeLog.1 ChangeLog.2 \
 README      NEWS      LICENSE.txt \
 README.html NEWS.html LICENSE.html INSTALL.html \
 librasqal.html roqet.html RELEASE.html \
