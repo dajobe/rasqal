@@ -1,5 +1,7 @@
 2005-06-22  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
+	* Makefile.am: Added ChangeLog.1 ChangeLog.2
+
 	* win32_rasqal_config.h: win32 fixes from John Barstow.
 
 2005-06-17  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
