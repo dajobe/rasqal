@@ -1,3 +1,7 @@
+2005-06-22  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* win32_rasqal_config.h: win32 fixes from John Barstow.
+
 2005-06-17  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
 	* Fixes for GCC 4.0 warnings:
