@@ -126,14 +126,18 @@ typedef struct {
 
 typedef enum {
   RASQAL_LITERAL_UNKNOWN,
-  RASQAL_LITERAL_URI,
+  RASQAL_LITERAL_URI,      /* r:URI */
   RASQAL_LITERAL_QNAME,
-  RASQAL_LITERAL_STRING,
-  RASQAL_LITERAL_BLANK,
+  RASQAL_LITERAL_STRING,   /* r:Literal RDF literal (includes xsd:string ) */
+  RASQAL_LITERAL_BLANK,    /* r:bNode RDF blank node */
   RASQAL_LITERAL_PATTERN,
-  RASQAL_LITERAL_BOOLEAN,
-  RASQAL_LITERAL_INTEGER,
-  RASQAL_LITERAL_FLOATING,
+  RASQAL_LITERAL_BOOLEAN,  /* xsd:boolean */
+  RASQAL_LITERAL_INTEGER,  /* xsd:integer */
+  RASQAL_LITERAL_DOUBLE,   /* xsd:double  */
+  RASQAL_LITERAL_FLOATING = RASQAL_LITERAL_DOUBLE,
+  RASQAL_LITERAL_FLOAT,    /* xsd:float    */
+  RASQAL_LITERAL_DECIMAL,  /* xsd:decimal  */
+  RASQAL_LITERAL_DATETIME, /* xsd:dateTime */
   RASQAL_LITERAL_VARIABLE,
   RASQAL_LITERAL_LAST= RASQAL_LITERAL_VARIABLE
 } rasqal_literal_type;
@@ -141,12 +145,12 @@ typedef enum {
 struct rasqal_literal_s {
   int usage;
   rasqal_literal_type type;
-  /* UTF-8 string, pattern, qname, blank, float types */
+  /* UTF-8 string, pattern, qname, blank, double, float, decimal, datetime */
   const unsigned char *string;
   union {
     /* integer and boolean types */
     int integer;
-    /* floating */
+    /* double and float */
     double floating;
     /* uri (can be temporarily NULL if a qname, see flags below) */
     raptor_uri* uri;
@@ -423,7 +427,8 @@ RASQAL_API int rasqal_expression_foreach(rasqal_expression* expr, rasqal_express
 
 /* Literal class */
 RASQAL_API rasqal_literal* rasqal_new_integer_literal(rasqal_literal_type type, int integer);
-RASQAL_API rasqal_literal* rasqal_new_floating_literal(double f);
+RASQAL_API RASQAL_DEPRECATED rasqal_literal* rasqal_new_floating_literal(double f);
+RASQAL_API rasqal_literal* rasqal_new_double_literal(double f);
 RASQAL_API rasqal_literal* rasqal_new_uri_literal(raptor_uri* uri);
 RASQAL_API rasqal_literal* rasqal_new_pattern_literal(const unsigned char *pattern, const char *flags);
 RASQAL_API rasqal_literal* rasqal_new_string_literal(const unsigned char *string, const char *language, raptor_uri *datatype, const unsigned char *datatype_qname);
