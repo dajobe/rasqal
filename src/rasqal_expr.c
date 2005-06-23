@@ -787,7 +787,7 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
         rasqal_free_literal(l);
         if(error)
           goto failed;
-        result=rasqal_new_floating_literal(d);
+        result=rasqal_new_double_literal(d);
         break;
       }
 
@@ -1030,7 +1030,7 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
         if(error || error1 || error2)
           goto failed;
 
-        result=rasqal_new_floating_literal(d);
+        result=rasqal_new_double_literal(d);
         break;
       }
       
@@ -1058,7 +1058,7 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
         if(error || error1 || error2)
           goto failed;
 
-        result=rasqal_new_floating_literal(d);
+        result=rasqal_new_double_literal(d);
         break;
       }
       
@@ -1086,7 +1086,7 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
         if(error || error1 || error2)
           goto failed;
 
-        result=rasqal_new_floating_literal(d);
+        result=rasqal_new_double_literal(d);
         break;
       }
       
@@ -1113,7 +1113,7 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
         rasqal_free_literal(l2);
         if(error || error1 || error2)
           goto failed;
-        result=rasqal_new_floating_literal(d);
+        result=rasqal_new_double_literal(d);
         break;
       }
       

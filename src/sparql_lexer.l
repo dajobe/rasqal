@@ -275,7 +275,7 @@ QUOTEDURI \<[^<= ][^>]*\>|\<\>
                           sparql_syntax_error(rq, "SPARQL syntax error - Illegal floating point constant %s", yytext);
                           yyterminate();
                         }
-                        sparql_parser_lval->literal=rasqal_new_floating_literal(d);
+                        sparql_parser_lval->literal=rasqal_new_double_literal(d);
                         return FLOATING_POINT_LITERAL;
 }
 

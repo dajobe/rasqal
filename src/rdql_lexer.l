@@ -250,7 +250,7 @@ QUOTEDURI \<[A-Za-z][^>]+\>
                           rdql_syntax_error(rq, "RDQL syntax error - Illegal floating point constant %s", yytext);
                           yyterminate();
                         }
-                        rdql_parser_lval->literal=rasqal_new_floating_literal(d);
+                        rdql_parser_lval->literal=rasqal_new_double_literal(d);
                         return FLOATING_POINT_LITERAL;
 }
 
