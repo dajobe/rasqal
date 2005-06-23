@@ -508,10 +508,10 @@ rasqal_literal_print(rasqal_literal* l, FILE* fh)
       fprintf(fh, " float(%g)", l->value.floating);
       break;
     case RASQAL_LITERAL_DECIMAL:
-      fprintf(fh, " decimal(%g)", l->string);
+      fprintf(fh, " decimal(%s)", l->string);
       break;
     case RASQAL_LITERAL_DATETIME:
-      fprintf(fh, " datetime(%g)", l->string);
+      fprintf(fh, " datetime(%s)", l->string);
       break;
 
     case RASQAL_LITERAL_UNKNOWN:
