@@ -487,6 +487,7 @@ void rasqal_redland_finish(void);
 extern raptor_uri* rasqal_xsd_namespace_uri;
 extern raptor_uri* rasqal_xsd_integer_uri;
 extern raptor_uri* rasqal_xsd_double_uri;
+extern raptor_uri* rasqal_xsd_float_uri;
 extern raptor_uri* rasqal_xsd_boolean_uri;
 extern raptor_uri* rasqal_rdf_namespace_uri;
 extern raptor_uri* rasqal_rdf_first_uri;
