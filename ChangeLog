@@ -1,5 +1,8 @@
 2005-06-23  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
+	* rasqal_literal.c (rasqal_literal_print):
+	Fix formats for decimal, datetime
+
 	* rasqal_query.c (rasqal_query_results_write_xml_20041221,
 	rasqal_query_results_write_xml_result2,
 	rasqal_query_results_get_triple): Handle RASQAL_LITERAL_FLOAT (as
