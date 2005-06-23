@@ -2094,8 +2094,11 @@ rasqal_query_results_write_xml_20041221(raptor_iostream *iostr,
         case RASQAL_LITERAL_QNAME:
         case RASQAL_LITERAL_INTEGER:
         case RASQAL_LITERAL_BOOLEAN:
-        case RASQAL_LITERAL_FLOATING:
+        case RASQAL_LITERAL_DOUBLE:
+        case RASQAL_LITERAL_FLOAT:
         case RASQAL_LITERAL_VARIABLE:
+        case RASQAL_LITERAL_DECIMAL:
+        case RASQAL_LITERAL_DATETIME:
 
         case RASQAL_LITERAL_UNKNOWN:
         default:
@@ -2461,8 +2464,11 @@ rasqal_query_results_write_xml_result2(raptor_iostream *iostr,
         case RASQAL_LITERAL_QNAME:
         case RASQAL_LITERAL_INTEGER:
         case RASQAL_LITERAL_BOOLEAN:
-        case RASQAL_LITERAL_FLOATING:
+        case RASQAL_LITERAL_DOUBLE:
+        case RASQAL_LITERAL_FLOAT:
         case RASQAL_LITERAL_VARIABLE:
+        case RASQAL_LITERAL_DECIMAL:
+        case RASQAL_LITERAL_DATETIME:
 
         case RASQAL_LITERAL_UNKNOWN:
         default:
@@ -2598,8 +2604,11 @@ rasqal_query_results_get_triple(rasqal_query_results *query_results) {
     case RASQAL_LITERAL_PATTERN:
     case RASQAL_LITERAL_BOOLEAN:
     case RASQAL_LITERAL_INTEGER:
-    case RASQAL_LITERAL_FLOATING:
+    case RASQAL_LITERAL_DOUBLE:
+    case RASQAL_LITERAL_FLOAT:
     case RASQAL_LITERAL_VARIABLE:
+    case RASQAL_LITERAL_DECIMAL:
+    case RASQAL_LITERAL_DATETIME:
       /* QNames should be gone by the time expression eval happens
        * Everything else is removed by rasqal_literal_as_node() above. 
        */
@@ -2625,8 +2634,11 @@ rasqal_query_results_get_triple(rasqal_query_results *query_results) {
     case RASQAL_LITERAL_PATTERN:
     case RASQAL_LITERAL_BOOLEAN:
     case RASQAL_LITERAL_INTEGER:
-    case RASQAL_LITERAL_FLOATING:
+    case RASQAL_LITERAL_DOUBLE:
+    case RASQAL_LITERAL_FLOAT:
     case RASQAL_LITERAL_VARIABLE:
+    case RASQAL_LITERAL_DECIMAL:
+    case RASQAL_LITERAL_DATETIME:
       /* QNames should be gone by the time expression eval happens
        * Everything else is removed by rasqal_literal_as_node() above. 
        */
@@ -2667,8 +2679,11 @@ rasqal_query_results_get_triple(rasqal_query_results *query_results) {
     case RASQAL_LITERAL_PATTERN:
     case RASQAL_LITERAL_BOOLEAN:
     case RASQAL_LITERAL_INTEGER:
-    case RASQAL_LITERAL_FLOATING:
+    case RASQAL_LITERAL_DOUBLE:
+    case RASQAL_LITERAL_FLOAT:
     case RASQAL_LITERAL_VARIABLE:
+    case RASQAL_LITERAL_DECIMAL:
+    case RASQAL_LITERAL_DATETIME:
       /* QNames should be gone by the time expression eval happens
        * Everything else is removed by rasqal_literal_as_node() above. 
        */
