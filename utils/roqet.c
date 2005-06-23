@@ -91,7 +91,7 @@ rdql_parser_error(const char *msg)
 #endif
 
 
-#define GETOPT_STRING "cdhi:nr:qs:vw"
+#define GETOPT_STRING "cde:hi:nr:qs:vw"
 
 #ifdef HAVE_GETOPT_LONG
 static struct option long_options[] =
@@ -100,6 +100,7 @@ static struct option long_options[] =
   {"count", 0, 0, 'c'},
   {"dump-query", 0, 0, 'd'},
   {"dryrun", 0, 0, 'n'},
+  {"exec", 1, 0, 'e'},
   {"help", 0, 0, 'h'},
   {"input", 1, 0, 'i'},
   {"quiet", 0, 0, 'q'},
@@ -357,6 +358,7 @@ roqet_query_walk(rasqal_query *rq, FILE *fh, int indent) {
 int
 main(int argc, char *argv[]) 
 { 
+  int query_from_string=0;
   void *query_string=NULL;
   unsigned char *uri_string=NULL;
   int free_uri_string=0;
@@ -418,6 +420,13 @@ main(int argc, char *argv[])
 
       case 'd':
         dump_query=1;
+        break;
+
+      case 'e':
+	if(optarg) {
+          query_string=optarg;
+          query_from_string=1;
+        }
         break;
 
       case 'h':
@@ -510,9 +519,15 @@ main(int argc, char *argv[])
     }
     
   }
-
-  if(optind != argc-1 && optind != argc-2 && !help && !usage) {
-    usage=2; /* Title and usage */
+  
+  if(!help && !usage) {
+    if(query_string) {
+      if(optind != argc && optind != argc-1)
+        usage=2; /* Title and usage */
+    } else {
+      if(optind != argc-1 && optind != argc-2)
+        usage=2; /* Title and usage */
+    }
   }
 
   
@@ -531,11 +546,14 @@ main(int argc, char *argv[])
     int i;
     
     printf("Usage: %s [OPTIONS] <query URI> [base URI]\n", program);
+    printf("       %s [OPTIONS] -e <query string> [base URI]\n", program);
     printf(title_format_string, rasqal_version_string);
     puts(rasqal_short_copyright_string);
     puts("Run an RDF query giving variable bindings or RDF triples.");
+    puts("Normal operation is to execute the query retrieved from URI <query URI>");
+    puts("and print the results in a simple text format.");
     puts("\nMain options:");
-    puts(HELP_TEXT("h", "help            ", "Print this help, then exit"));
+    puts(HELP_TEXT("e", "exec QUERY      ", "Execute QUERY string instead of <query URI>"));
     puts(HELP_TEXT("i", "input LANGUAGE  ", "Set query language name to one of:"));
     for(i=0; 1; i++) {
       const char *help_name;
@@ -568,6 +586,7 @@ main(int argc, char *argv[])
     puts("\nAdditional options:");
     puts(HELP_TEXT("c", "count           ", "Count triples - no output"));
     puts(HELP_TEXT("d", "dump-query      ", "Dump the parsed query"));
+    puts(HELP_TEXT("h", "help            ", "Print this help, then exit"));
     puts(HELP_TEXT("n", "dryrun          ", "Prepare but do not run the query"));
     puts(HELP_TEXT("q", "quiet           ", "No extra information messages"));
     puts(HELP_TEXT("s", "source URI      ", "Query against RDF data at source URI"));
@@ -579,40 +598,46 @@ main(int argc, char *argv[])
   }
 
 
-  if(optind == argc-1)
-    uri_string=(unsigned char*)argv[optind];
-  else {
-    uri_string=(unsigned char*)argv[optind++];
-    base_uri_string=(unsigned char*)argv[optind];
-  }
-
-  /* If uri_string is "path-to-file", turn it into a file: URI */
-  if(!strcmp((const char*)uri_string, "-")) {
-    if(!base_uri_string) {
-      fprintf(stderr, "%s: A Base URI is required when reading from standard input.\n",
-              program);
-      return(1);
+  if(query_string) {
+    if(optind == argc-1)
+      base_uri_string=(unsigned char*)argv[optind];
+  } else {
+    if(optind == argc-1)
+      uri_string=(unsigned char*)argv[optind];
+    else {
+      uri_string=(unsigned char*)argv[optind++];
+      base_uri_string=(unsigned char*)argv[optind];
     }
-    uri_string=NULL;
-  } else if(!access((const char*)uri_string, R_OK)) {
-    filename=(char*)uri_string;
-    uri_string=raptor_uri_filename_to_uri_string(filename);
-    free_uri_string=1;
-  }
-
-  if(uri_string) {
-    uri=raptor_new_uri(uri_string);
-    if(!uri) {
-      fprintf(stderr, "%s: Failed to create URI for %s\n",
-              program, uri_string);
-      return(1);
+    
+    /* If uri_string is "path-to-file", turn it into a file: URI */
+    if(!strcmp((const char*)uri_string, "-")) {
+      if(!base_uri_string) {
+        fprintf(stderr, "%s: A Base URI is required when reading from standard input.\n",
+                program);
+        return(1);
+      }
+      uri_string=NULL;
+    } else if(!access((const char*)uri_string, R_OK)) {
+      filename=(char*)uri_string;
+      uri_string=raptor_uri_filename_to_uri_string(filename);
+      free_uri_string=1;
     }
-  } else
-    uri=NULL; /* stdin */
-
+    
+    if(uri_string) {
+      uri=raptor_new_uri(uri_string);
+      if(!uri) {
+        fprintf(stderr, "%s: Failed to create URI for %s\n",
+                program, uri_string);
+        return(1);
+      }
+    } else
+      uri=NULL; /* stdin */
+  }
+  
 
   if(!base_uri_string) {
-    base_uri=raptor_uri_copy(uri);
+    if(uri)
+      base_uri=raptor_uri_copy(uri);
   } else {
     base_uri=raptor_new_uri(base_uri_string);
     if(!base_uri) {
@@ -622,9 +647,12 @@ main(int argc, char *argv[])
     }
   }
 
-  if(!uri_string) {
+  if(query_string) {
+    /* NOP - already got it */
+  } else if(!uri_string) {
     query_string=calloc(FILE_READ_BUF_SIZE, 1);
     fread(query_string, FILE_READ_BUF_SIZE, 1, stdin);
+    query_from_string=0;
   } else if(filename) {
     raptor_stringbuffer *sb=raptor_new_stringbuffer();
     size_t len;
@@ -653,6 +681,7 @@ main(int argc, char *argv[])
     query_string=malloc(len+1);
     raptor_stringbuffer_copy_to_string(sb, (unsigned char*)query_string, len);
     raptor_free_stringbuffer(sb);
+    query_from_string=0;
   } else {
     raptor_www *www=raptor_www_new();
     if(www) {
@@ -666,17 +695,25 @@ main(int argc, char *argv[])
       rc=1;
       goto tidy_setup;
     }
+    query_from_string=0;
   }
 
 
   if(!quiet) {
-    if (filename) {
+    if(query_from_string) {
+      if(base_uri_string)
+        fprintf(stderr, "%s: Running query '%s' with base URI %s\n", program,
+                (char*)query_string, base_uri_string);
+      else
+        fprintf(stderr, "%s: Running query '%s'\n", program,
+                (char*)query_string);
+    } else if(filename) {
       if(base_uri_string)
         fprintf(stderr, "%s: Querying from file %s with base URI %s\n", program,
                 filename, base_uri_string);
       else
         fprintf(stderr, "%s: Querying from file %s\n", program, filename);
-    } else {
+    } else if(uri_string) {
       if(base_uri_string)
         fprintf(stderr, "%s: Querying URI %s with base URI %s\n", program,
                 uri_string, base_uri_string);
@@ -819,7 +856,8 @@ main(int argc, char *argv[])
  tidy_query:  
   rasqal_free_query(rq);
 
-  free(query_string);
+  if(!query_from_string)
+    free(query_string);
 
  tidy_setup:
 
