@@ -1,3 +1,44 @@
+2005-06-23  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal_query.c (rasqal_query_results_write_xml_20041221,
+	rasqal_query_results_write_xml_result2,
+	rasqal_query_results_get_triple): Handle RASQAL_LITERAL_FLOAT (as
+	a double), RASQAL_LITERAL_DECIMAL (as a string) and
+	RASQAL_LITERAL_DATETIME (as a string).
+
+	* rasqal_literal.c (rasqal_new_double_literal): Added, based on
+	rasqal_new_floating_literal.
+	(rasqal_new_floating_literal): Now a wrapper around the above.
+	(rasqal_literal_string_to_native): Promote xsd:float too.
+	(rasqal_free_literal, rasqal_literal_print,
+	rasqal_literal_as_boolean, rasqal_literal_as_integer,
+	rasqal_literal_as_floating, rasqal_literal_as_string,
+	rasqal_literal_compare, rasqal_literal_equals,
+	rasqal_literal_as_node): Handle RASQAL_LITERAL_FLOAT (as a
+	double), RASQAL_LITERAL_DECIMAL (as a string) and
+	RASQAL_LITERAL_DATETIME (as a string).
+
+	* rasqal_redland.c: Use RASQAL_LITERAL_DOUBLE instead of
+	RASQAL_LITERAL_FLOATING
+
+	* sparql_lexer.l, rdql_lexer.l, rasqal_expr.c: Replace
+	rasqal_new_floating_literal with rasqal_new_double_literal
+
+	* rasqal_general.c: Added rasqal_xsd_float_uri URI constant.
+	(rasqal_uri_init, rasqal_uri_finish): Init/free it.
+
+	* rasqal_internal.h: Added rasqal_xsd_float_uri.
+
+	* rasqal.h: Added RASQAL_LITERAL_DOUBLE (formerly
+	RASQAL_LITERAL_FLOATING), RASQAL_LITERAL_FLOAT,
+	RASQAL_LITERAL_DECIMAL and RASQAL_LITERAL_DATETIME.  float uses
+	the 'double floating' field.  decimal and datetime use the string
+	field, for now.  Deprecated rasqal_new_floating_literal Added
+	prototype for rasqal_new_double_literal
+
+	* roqet.c: Added a -e/--exec option to execute a query string
+	directly.  Usage updated to show the two forms.
+
 2005-06-22  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
 	* Makefile.am: Added ChangeLog.1 ChangeLog.2
