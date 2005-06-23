@@ -80,23 +80,30 @@ rasqal_new_integer_literal(rasqal_literal_type type, int integer)
 
 
 /**
- * rasqal_new_floating_literal - Constructor - Create a new Rasqal floating literal
- * @f: floating literal double
+ * rasqal_new_double_literal - Constructor - Create a new Rasqal double literal
+ * @d: double literal
  * 
  * Return value: New &rasqal_literal or NULL on failure
  **/
 rasqal_literal*
-rasqal_new_floating_literal(double f)
+rasqal_new_double_literal(double d)
 {
   rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, sizeof(rasqal_literal), 1);
 
-  l->type=RASQAL_LITERAL_FLOATING;
-  l->value.floating=f;
+  l->type=RASQAL_LITERAL_DOUBLE;
+  l->value.floating=d;
   l->string=(unsigned char*)RASQAL_MALLOC(cstring, 30); /* FIXME */
-  sprintf((char*)l->string, "%1g", f);
+  sprintf((char*)l->string, "%1g", d);
   l->datatype=raptor_uri_copy(rasqal_xsd_double_uri);
   l->usage=1;
   return l;
+}
+
+
+rasqal_literal*
+rasqal_new_floating_literal(double d)
+{
+  return rasqal_new_double_literal(d);
 }
 
 
@@ -153,7 +160,8 @@ rasqal_new_pattern_literal(const unsigned char *pattern,
  *
  * At present this promotes datatyped literals
  * xsd:integer to RASQAL_LITERAL_INTEGER
- * xsd:double to RASQAL_LITERAL_FLOATING
+ * xsd:double to RASQAL_LITERAL_DOUBLE
+ * xsd:float to RASQAL_LITERAL_FLOAT
  * xsd:boolean to RASQAL_LITERAL_BOOLEAN
  *
  * Return value: non-0 on failure
@@ -179,7 +187,8 @@ rasqal_literal_string_to_native(rasqal_literal *l,
     return 0;
   }
   
-  if(raptor_uri_equals(l->datatype, rasqal_xsd_double_uri)) {
+  if(raptor_uri_equals(l->datatype, rasqal_xsd_double_uri) ||
+     raptor_uri_equals(l->datatype, rasqal_xsd_float_uri)) {
     double d=0.0;
     int n;
 
@@ -196,7 +205,8 @@ rasqal_literal_string_to_native(rasqal_literal *l,
       l->language=NULL;
     }
 
-    l->type=RASQAL_LITERAL_FLOATING;
+    l->type= raptor_uri_equals(l->datatype, rasqal_xsd_float_uri) ?
+      RASQAL_LITERAL_FLOAT : RASQAL_LITERAL_DOUBLE;
     l->value.floating=d;
     return 0;
   }
@@ -369,8 +379,11 @@ rasqal_free_literal(rasqal_literal* l)
     case RASQAL_LITERAL_BLANK:
     case RASQAL_LITERAL_PATTERN:
     case RASQAL_LITERAL_QNAME:
-    case RASQAL_LITERAL_FLOATING:
+    case RASQAL_LITERAL_DOUBLE:
     case RASQAL_LITERAL_INTEGER: 
+    case RASQAL_LITERAL_FLOAT:
+    case RASQAL_LITERAL_DECIMAL:
+    case RASQAL_LITERAL_DATETIME:
      if(l->string)
         RASQAL_FREE(cstring, (void*)l->string);
       if(l->language)
@@ -404,7 +417,7 @@ rasqal_free_literal(rasqal_literal* l)
 }
 
 
-static const char* rasqal_literal_type_labels[]={
+static const char* rasqal_literal_type_labels[RASQAL_LITERAL_LAST+1]={
   "UNKNOWN",
   "uri",
   "qname",
@@ -413,7 +426,10 @@ static const char* rasqal_literal_type_labels[]={
   "pattern",
   "boolean",
   "integer",
-  "floating",
+  "double",
+  "float",
+  "decimal",
+  "datetime",
   "variable"
 };
 
@@ -482,11 +498,20 @@ rasqal_literal_print(rasqal_literal* l, FILE* fh)
     case RASQAL_LITERAL_BOOLEAN:
       fprintf(fh, "(%s)", l->string);
       break;
-    case RASQAL_LITERAL_FLOATING:
+    case RASQAL_LITERAL_DOUBLE:
       fprintf(fh, " %g", l->value.floating);
       break;
     case RASQAL_LITERAL_VARIABLE:
       rasqal_variable_print(l->value.variable, fh);
+      break;
+    case RASQAL_LITERAL_FLOAT:
+      fprintf(fh, " float(%g)", l->value.floating);
+      break;
+    case RASQAL_LITERAL_DECIMAL:
+      fprintf(fh, " decimal(%g)", l->string);
+      break;
+    case RASQAL_LITERAL_DATETIME:
+      fprintf(fh, " datetime(%g)", l->string);
       break;
 
     case RASQAL_LITERAL_UNKNOWN:
@@ -522,6 +547,8 @@ rasqal_literal_as_boolean(rasqal_literal* l, int *error)
     case RASQAL_LITERAL_BLANK:
     case RASQAL_LITERAL_PATTERN:
     case RASQAL_LITERAL_QNAME:
+    case RASQAL_LITERAL_DECIMAL:
+    case RASQAL_LITERAL_DATETIME:
       return (l->string) != NULL;
       break;
 
@@ -530,7 +557,8 @@ rasqal_literal_as_boolean(rasqal_literal* l, int *error)
       return l->value.integer != 0;
       break;
 
-    case RASQAL_LITERAL_FLOATING:
+    case RASQAL_LITERAL_DOUBLE:
+    case RASQAL_LITERAL_FLOAT:
       return l->value.floating != 0.0;
       break;
 
@@ -550,7 +578,7 @@ rasqal_literal_as_boolean(rasqal_literal* l, int *error)
  * @l: &rasqal_literal object
  * @error: pointer to error flag
  * 
- * Integers, booleans and floating literals natural are turned into
+ * Integers, booleans, double and float literals natural are turned into
  * integers. If string values are the lexical form of an integer, that is
  * returned.  Otherwise the error flag is set.
  * 
@@ -568,7 +596,8 @@ rasqal_literal_as_integer(rasqal_literal* l, int *error)
       return l->value.integer != 0;
       break;
 
-    case RASQAL_LITERAL_FLOATING:
+    case RASQAL_LITERAL_DOUBLE:
+    case RASQAL_LITERAL_FLOAT:
       return (int)l->value.floating;
       break;
 
@@ -600,6 +629,8 @@ rasqal_literal_as_integer(rasqal_literal* l, int *error)
     case RASQAL_LITERAL_URI:
     case RASQAL_LITERAL_QNAME:
     case RASQAL_LITERAL_PATTERN:
+    case RASQAL_LITERAL_DECIMAL:
+    case RASQAL_LITERAL_DATETIME:
       *error=1;
       return 0;
       
@@ -615,7 +646,7 @@ rasqal_literal_as_integer(rasqal_literal* l, int *error)
  * @l: &rasqal_literal object
  * @error: pointer to error flag
  * 
- * Integers, booleans and floating literals natural are turned into
+ * Integers, booleans, double and float literals natural are turned into
  * integers. If string values are the lexical form of an floating, that is
  * returned.  Otherwise the error flag is set.
  * 
@@ -633,7 +664,8 @@ rasqal_literal_as_floating(rasqal_literal* l, int *error)
       return (double)l->value.integer;
       break;
 
-    case RASQAL_LITERAL_FLOATING:
+    case RASQAL_LITERAL_DOUBLE:
+    case RASQAL_LITERAL_FLOAT:
       return l->value.floating;
       break;
 
@@ -656,6 +688,8 @@ rasqal_literal_as_floating(rasqal_literal* l, int *error)
     case RASQAL_LITERAL_URI:
     case RASQAL_LITERAL_QNAME:
     case RASQAL_LITERAL_PATTERN:
+    case RASQAL_LITERAL_DECIMAL:
+    case RASQAL_LITERAL_DATETIME:
       *error=1;
       return 0.0;
       
@@ -705,11 +739,14 @@ rasqal_literal_as_string(rasqal_literal* l)
   switch(l->type) {
     case RASQAL_LITERAL_BOOLEAN:
     case RASQAL_LITERAL_INTEGER:
-    case RASQAL_LITERAL_FLOATING:
+    case RASQAL_LITERAL_DOUBLE:
     case RASQAL_LITERAL_STRING:
     case RASQAL_LITERAL_BLANK:
     case RASQAL_LITERAL_PATTERN:
     case RASQAL_LITERAL_QNAME:
+    case RASQAL_LITERAL_FLOAT:
+    case RASQAL_LITERAL_DECIMAL:
+    case RASQAL_LITERAL_DATETIME:
       return l->string;
 
     case RASQAL_LITERAL_URI:
@@ -756,8 +793,8 @@ double_to_int(double d)
  * @error: pointer to error
  * 
  * The two literals are compared across their range.  If the types
- * are not the same, they are promoted.  If one is a floating, the
- * other is promoted to floating, otherwise for integers, otherwise
+ * are not the same, they are promoted.  If one is a double or float, the
+ * other is promoted to double, otherwise for integers, otherwise
  * to strings (all literals have a string value).
  *
  * The comparison returned is as for strcmp, first before second
@@ -824,6 +861,8 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
       case RASQAL_LITERAL_BLANK:
       case RASQAL_LITERAL_PATTERN:
       case RASQAL_LITERAL_QNAME:
+      case RASQAL_LITERAL_DECIMAL:
+      case RASQAL_LITERAL_DATETIME:
         strings[i]=lits[i]->string;
         seen_string=1;
       break;
@@ -836,15 +875,16 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
         seen_int=1;
         break;
     
-      case RASQAL_LITERAL_FLOATING:
+      case RASQAL_LITERAL_DOUBLE:
+      case RASQAL_LITERAL_FLOAT:
         doubles[i]=lits[i]->value.floating;
         seen_double=1;
         break;
 
-    case RASQAL_LITERAL_VARIABLE:
-      /* this case was dealt with above, retrieving the value */
-
-    case RASQAL_LITERAL_UNKNOWN:
+      case RASQAL_LITERAL_VARIABLE:
+        /* this case was dealt with above, retrieving the value */
+        
+      case RASQAL_LITERAL_UNKNOWN:
       default:
         abort();
     }
@@ -859,7 +899,7 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
 
     type=seen_string ? RASQAL_LITERAL_STRING : RASQAL_LITERAL_INTEGER;
     if((seen_int & seen_double) || (seen_int & seen_string))
-      type=RASQAL_LITERAL_FLOATING;
+      type=RASQAL_LITERAL_DOUBLE;
     if(seen_boolean & seen_string)
       type=RASQAL_LITERAL_STRING;
   } else
@@ -872,7 +912,7 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
       continue;
     
     switch(type) {
-      case RASQAL_LITERAL_FLOATING:
+      case RASQAL_LITERAL_DOUBLE:
         doubles[i]=rasqal_literal_as_floating(lits[i], &errori);
         /* failure always means no match */
         if(errori)
@@ -945,6 +985,8 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
     case RASQAL_LITERAL_BLANK:
     case RASQAL_LITERAL_PATTERN:
     case RASQAL_LITERAL_QNAME:
+    case RASQAL_LITERAL_DECIMAL:
+    case RASQAL_LITERAL_DATETIME:
       if(flags & RASQAL_COMPARE_NOCASE)
         return rasqal_strcasecmp((const char*)strings[0], (const char*)strings[1]);
       else
@@ -955,7 +997,8 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
       return ints[1] - ints[0];
       break;
 
-    case RASQAL_LITERAL_FLOATING:
+    case RASQAL_LITERAL_DOUBLE:
+    case RASQAL_LITERAL_FLOAT:
       return double_to_int(doubles[1] - doubles[0]);
       break;
 
@@ -1016,6 +1059,8 @@ rasqal_literal_equals(rasqal_literal* l1, rasqal_literal* l2)
     case RASQAL_LITERAL_BLANK:
     case RASQAL_LITERAL_PATTERN:
     case RASQAL_LITERAL_QNAME:
+    case RASQAL_LITERAL_DECIMAL:
+    case RASQAL_LITERAL_DATETIME:
       return !strcmp((const char*)l1->string, (const char*)l2->string);
       break;
       
@@ -1024,7 +1069,8 @@ rasqal_literal_equals(rasqal_literal* l1, rasqal_literal* l2)
       return l1->value.integer == l2->value.integer;
       break;
 
-    case RASQAL_LITERAL_FLOATING:
+    case RASQAL_LITERAL_DOUBLE:
+    case RASQAL_LITERAL_FLOAT:
       return l1->value.floating == l2->value.floating;
       break;
 
@@ -1142,9 +1188,12 @@ rasqal_literal_as_node(rasqal_literal* l)
         return NULL;
       break;
 
-    case RASQAL_LITERAL_FLOATING:
+    case RASQAL_LITERAL_DOUBLE:
+    case RASQAL_LITERAL_FLOAT:
     case RASQAL_LITERAL_INTEGER:
     case RASQAL_LITERAL_BOOLEAN:
+    case RASQAL_LITERAL_DECIMAL:
+    case RASQAL_LITERAL_DATETIME:
       if(l->type == RASQAL_LITERAL_BOOLEAN)
         dt_uri=raptor_uri_copy(rasqal_xsd_boolean_uri);
       else
