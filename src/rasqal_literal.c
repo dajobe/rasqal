@@ -994,12 +994,12 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
 
     case RASQAL_LITERAL_INTEGER:
     case RASQAL_LITERAL_BOOLEAN:
-      return ints[1] - ints[0];
+      return ints[0] - ints[1];
       break;
 
     case RASQAL_LITERAL_DOUBLE:
     case RASQAL_LITERAL_FLOAT:
-      return double_to_int(doubles[1] - doubles[0]);
+      return double_to_int(doubles[0] - doubles[1]);
       break;
 
     default:
