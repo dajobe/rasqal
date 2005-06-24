@@ -699,7 +699,7 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
           goto failed;
         }
 
-        b=(rasqal_literal_compare(l1, l2, 0, &error) > 0);
+        b=(rasqal_literal_compare(l1, l2, 0, &error) < 0);
         rasqal_free_literal(l1);
         rasqal_free_literal(l2);
         if(error)
@@ -723,7 +723,7 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
           goto failed;
         }
 
-        b=(rasqal_literal_compare(l1, l2, 0, &error) < 0);
+        b=(rasqal_literal_compare(l1, l2, 0, &error) > 0);
         rasqal_free_literal(l1);
         rasqal_free_literal(l2);
         if(error)
@@ -747,7 +747,7 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
           goto failed;
         }
 
-        b=(rasqal_literal_compare(l1, l2, 0, &error) >= 0);
+        b=(rasqal_literal_compare(l1, l2, 0, &error) <= 0);
         rasqal_free_literal(l1);
         rasqal_free_literal(l2);
         if(error)
@@ -771,7 +771,7 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
           goto failed;
         }
 
-        b=(rasqal_literal_compare(l1, l2, 0, &error) <= 0);
+        b=(rasqal_literal_compare(l1, l2, 0, &error) >= 0);
         rasqal_free_literal(l1);
         rasqal_free_literal(l2);
         if(error)
