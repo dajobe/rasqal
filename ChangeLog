@@ -1,3 +1,49 @@
+2005-06-24  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal_query.c: Moved rasqal_query_result_row to
+	rasqal-internal.h
+	(rasqal_new_query_result_row): Handle no order_conditions_sequence
+	present.  Set NULL literal values when they appear, as from
+	OPTIONAL.
+	(rasqal_query_results_update): Added, based on core of
+	rasqal_query_results_next to get next result from query engine,
+	including offsets.
+	(rasqal_query_execute): Use rasqal_query_results_update when not
+	sorting and make a query_results->row
+	(rasqal_free_query_results): Free any row field used.
+	(rasqal_query_results_get_bindings,
+	rasqal_query_results_get_binding_value,
+	rasqal_query_results_get_binding_value_by_name): Return row
+	values, using query_results row field for stream results.
+
+	* rasqal_raptor.c (rasqal_raptor_bind_match): Use
+	rasqal_new_literal_from_literal when binding literal values, do
+	not turn them into nodes this early.
+
+	* tests/sparql/sort/Makefile.am: sort-4 sort-7 pass now only fail
+	sort-6
+
+	* rasqal_expr.c (rasqal_expression_evaluate): For case
+	RASQAL_EXPR_LT, RASQAL_EXPR_GT, RASQAL_EXPR_LE, RASQAL_EXPR_GE -
+	invert the test for the result of rasqal_literal_compare test as
+	it was totally backwards for ints and doubles.
+
+	* rasqal_literal.c (rasqal_literal_compare): Return correct <0, 0,
+	>0 for integers and doubles.  It was formerly negative the right
+	result.
+
+	* rasqal_internal.h: Added struct rasqal_query_result_row internal
+	for now.  rasqal_query_results gains field row for use as the
+	current result row when streaming results.
+
+	* tests/sparql/check-sparql: tidy messages
+
+	* rasqal_query.c (rasqal_new_query_result_row): Just do
+	allocations here, and use rasqal_query_result_row_update to update
+	the contents from the current query engine result.
+	(rasqal_query_result_row_update): Added, updating the given row
+	with the current query engine result.
+
 2005-06-23  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
 	* rasqal_literal.c (rasqal_literal_print):
