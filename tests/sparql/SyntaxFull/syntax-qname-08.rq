@@ -1,3 +1,5 @@
-PREFIX : <http://example.org/ns#> 
+BASE   <http://example.org/>
+PREFIX :  <#> 
+PREFIX x.:  <x#> 
 SELECT *
-WHERE { :x :p :z . }
+WHERE { :a.  x.:  : . }

@@ -4,5 +4,5 @@ SELECT  ?v1 ?v2
 WHERE
     { ?x1 :p ?v1 .
       ?x2 :p ?v2 . 
-      FILTER ( ?v1 = ?v2 ) .
+      FILTER ( ?v1 != ?v2 ) .
     }

@@ -1,3 +1,4 @@
-PREFIX : <http://example.org/ns#> 
+BASE   <http://example.org/>
+PREFIX :  <#> 
 SELECT *
-{ ?x :p ?z }
+WHERE { : : : . }

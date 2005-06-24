@@ -5,5 +5,5 @@ WHERE
     { ?a :p ?v . 
       OPTIONAL
         { ?a :q ?w } . 
-      FILTER ?w .
+      FILTER (?w) .
     }

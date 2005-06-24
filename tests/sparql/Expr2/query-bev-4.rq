@@ -3,5 +3,5 @@ PREFIX  : <http://example.org/ns#>
 SELECT  ?a
 WHERE
     { ?a :p ?v . 
-      FILTER "false"^^xsd:boolean || ?v .
+      FILTER ("false"^^xsd:boolean || ?v) .
     }
