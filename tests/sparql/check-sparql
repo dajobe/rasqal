@@ -207,7 +207,7 @@ sub run_test($$$$$) {
 
   if(!defined $resultset_node) {
     # No result defined
-    warn "$program: $name OK (no result)\n";
+    warn "$program: '$name' OK (no result)\n";
     return 0;
   }
 
@@ -242,7 +242,7 @@ sub run_test($$$$$) {
     warn "$program: Expected ".plural("result","s",$count).", got $roqet_results\n";
     return 1;
   } else {
-    warn "$program: $name OK\n";
+    warn "$program: '$name' OK\n";
     return 0;
   }
 
@@ -378,6 +378,6 @@ for my $test (@tests) {
 unlink "roqet.out", "result.out", "diff.out", "roqet.err"
   unless $unique_test;
 
-warn "$0: FAILED tests: '".join("', '", @failed)."'\n"
+warn "$0: FAILED tests: '".join("' '", @failed)."'\n"
   if @failed;
 exit $result;
