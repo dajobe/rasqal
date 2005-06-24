@@ -384,6 +384,27 @@ struct rasqal_query_engine_factory_s {
 
 
 /*
+ * A row of query results 
+ */
+typedef struct {
+  /* Query results this row is associated with */
+  rasqal_query_results* results;
+
+  /* current row number in the sequence of rows*/
+  int offset;
+
+  /* values for each variable in the query sequence of values */
+  int size;
+  rasqal_literal** values;
+
+  /* literal values for ORDER BY expressions evaluated for this row */
+  /* number of expressions (can be 0) */
+  int order_size;
+  rasqal_literal** order_values;
+} rasqal_query_result_row;
+
+
+/*
  * A query result for some query
  */
 struct rasqal_query_results_s {
@@ -392,6 +413,9 @@ struct rasqal_query_results_s {
 
   /* next query result */
   rasqal_query_results *next;
+
+  /* current row of results */
+  rasqal_query_result_row* row;
 };
     
 
