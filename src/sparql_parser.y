@@ -94,6 +94,8 @@ extern int sparql_lexer_lex (YYSTYPE *sparql_parser_lval, yyscan_t scanner);
 static int sparql_parse(rasqal_query* rq, const unsigned char *string);
 static void sparql_query_error(rasqal_query* rq, const char *message);
 static void sparql_query_error_full(rasqal_query *rq, const char *message, ...);
+static int sparql_is_builtin_xsd_datatype(raptor_uri* uri);
+
 %}
 
 
@@ -1507,12 +1509,15 @@ PrimaryExpression: Var
 FunctionCall: URIBrace ArgList ')'
 {
   raptor_uri* uri=rasqal_literal_as_uri($1);
-  /* FIXME - pick one */
-#if 0
-  $$=rasqal_new_cast_expression(raptor_uri_copy(uri), $2);
-#else
-  $$=rasqal_new_function_expression(raptor_uri_copy(uri), $2);
-#endif
+  
+  uri=raptor_uri_copy(uri);
+  if(raptor_sequence_size($2) == 1 &&
+     sparql_is_builtin_xsd_datatype(uri)) {
+    rasqal_expression* e=(rasqal_expression*)raptor_sequence_pop($2);
+    $$=rasqal_new_cast_expression(uri, e);
+    raptor_free_sequence($2);
+  } else
+    $$=rasqal_new_function_expression(uri, $2);
   rasqal_free_literal($1);
 }
 
@@ -1644,6 +1649,19 @@ BlankNode : BLANK_LITERAL
  */
 static int yy_init_globals (yyscan_t yyscanner ) { return 0; };
 
+
+static int
+sparql_is_builtin_xsd_datatype(raptor_uri* uri) 
+{
+  return (raptor_uri_equals(uri, rasqal_xsd_boolean_uri) ||
+          raptor_uri_equals(uri, rasqal_xsd_string_uri) ||
+          raptor_uri_equals(uri, rasqal_xsd_double_uri) ||
+          raptor_uri_equals(uri, rasqal_xsd_float_uri) ||
+          raptor_uri_equals(uri, rasqal_xsd_decimal_uri) ||
+          raptor_uri_equals(uri, rasqal_xsd_integer_uri) ||
+          raptor_uri_equals(uri, rasqal_xsd_datetime_uri)
+          );
+}
 
 
 /**
