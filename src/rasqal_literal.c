@@ -39,6 +39,8 @@
 #include <stdlib.h>
 #endif
 #include <stdarg.h>
+/* for isnan() */
+#include <math.h>
 
 #ifdef RASQAL_REGEX_PCRE
 #include <pcre.h>
@@ -73,6 +75,7 @@ rasqal_new_integer_literal(rasqal_literal_type type, int integer)
   l->value.integer=integer;
   l->string=(unsigned char*)RASQAL_MALLOC(cstring, 30); /* FIXME */
   sprintf((char*)l->string, "%d", integer);
+  l->string_len=strlen((const char*)l->string);
   l->datatype=raptor_uri_copy(rasqal_xsd_integer_uri);
   l->usage=1;
   return l;
@@ -94,6 +97,7 @@ rasqal_new_double_literal(double d)
   l->value.floating=d;
   l->string=(unsigned char*)RASQAL_MALLOC(cstring, 30); /* FIXME */
   sprintf((char*)l->string, "%1g", d);
+  l->string_len=strlen((const char*)l->string);
   l->datatype=raptor_uri_copy(rasqal_xsd_double_uri);
   l->usage=1;
   return l;
@@ -146,6 +150,7 @@ rasqal_new_pattern_literal(const unsigned char *pattern,
 
   l->type=RASQAL_LITERAL_PATTERN;
   l->string=pattern;
+  l->string_len=strlen((const char*)pattern);
   l->flags=(const unsigned char*)flags;
   l->usage=1;
   return l;
@@ -223,7 +228,8 @@ rasqal_literal_string_to_native(rasqal_literal *l,
     }
 
     /* static string for boolean */
-    l->string=(const unsigned char*)(b ? "true":"false");
+    l->string=(const unsigned char*)(b ? "true" : "false");
+    l->string_len=(b ? 4 : 5);
 
     l->type=RASQAL_LITERAL_BOOLEAN;
     l->value.integer=b;
@@ -269,6 +275,7 @@ rasqal_new_string_literal(const unsigned char *string,
 
   l->type=RASQAL_LITERAL_STRING;
   l->string=string;
+  l->string_len=strlen((const char*)string);
   l->language=language;
   l->datatype=datatype;
   l->flags=datatype_qname;
@@ -301,6 +308,7 @@ rasqal_new_simple_literal(rasqal_literal_type type,
 
   l->type=type;
   l->string=string;
+  l->string_len=strlen((const char*)string);
   l->usage=1;
   return l;
 }
@@ -320,7 +328,8 @@ rasqal_new_boolean_literal(int value)
   l->type=RASQAL_LITERAL_BOOLEAN;
   l->value.integer=value;
   /* static string for boolean */
-  l->string=(const unsigned char*)(value ? "true":"false");
+  l->string=(const unsigned char*)(value ? "true" : "false");
+  l->string_len=(value ? 4 : 5);
   l->usage=1;
   return l;
 }
@@ -1107,8 +1116,7 @@ rasqal_literal_expand_qname(void *user_data, rasqal_literal *l)
   if(l->type == RASQAL_LITERAL_QNAME) {
     /* expand a literal qname */
     raptor_uri *uri=raptor_qname_string_to_uri(rq->namespaces,
-                                               l->string, 
-                                               strlen((const char*)l->string),
+                                               l->string, l->string_len,
                                                rasqal_query_simple_error, rq);
     if(!uri)
       return 1;
@@ -1202,7 +1210,8 @@ rasqal_literal_as_node(rasqal_literal* l)
       new_l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, sizeof(rasqal_literal), 1);
 
       new_l->type=RASQAL_LITERAL_STRING;
-      new_l->string=(unsigned char*)RASQAL_MALLOC(cstring, strlen((const char*)l->string)+1);
+      new_l->string_len=strlen((const char*)l->string);
+      new_l->string=(unsigned char*)RASQAL_MALLOC(cstring, new_l->string_len+1);
       strcpy((char*)new_l->string, (const char*)l->string);
       new_l->datatype=dt_uri;
       new_l->flags=NULL;
@@ -1222,6 +1231,57 @@ rasqal_literal_as_node(rasqal_literal* l)
   }
   
   return new_l;
+}
+
+
+/*
+ * rasqal_literal_ebv - INTERNAL Get the rasqal_literal effective boolean value
+ * @l: &rasqal_literal literal
+ * 
+ * Return value: non-0 if EBV is true, else false
+ **/
+int
+rasqal_literal_ebv(rasqal_literal* l) 
+{
+  rasqal_variable* v;
+  /* Result is true unless... */
+  int b=1;
+  
+  v=rasqal_literal_as_variable(l);
+  if(v) {
+    if(v->value == NULL) {
+      /* ... The operand is unbound */
+      b=0;
+      goto done;
+    }
+    l=v->value;
+  }
+  
+  if(l->type == RASQAL_LITERAL_BOOLEAN && !l->value.integer) {
+    /* ... The operand is an xs:boolean with a FALSE value. */
+    b=0;
+  } else if(l->type == RASQAL_LITERAL_STRING && 
+            !l->datatype && !l->string_len) {
+    /* ... The operand is a 0-length untyped RDF literal or xs:string. */
+    b=0;
+  } else if((l->type == RASQAL_LITERAL_INTEGER && !l->value.integer) ||
+            ((l->type == RASQAL_LITERAL_DOUBLE || 
+              l->type == RASQAL_LITERAL_FLOAT) &&
+             !l->value.floating)
+            ) {
+    /* ... The operand is any numeric type with a value of 0. */
+    /* FIXME - deal with decimal */
+    b=0;
+  } else if((l->type == RASQAL_LITERAL_DOUBLE || 
+             l->type == RASQAL_LITERAL_FLOAT) &&
+            isnan(l->value.floating)
+            ) {
+    /* ... The operand is an xs:double or xs:float with a value of NaN */
+    b=0;
+  }
+  
+  done:
+  return b;
 }
 
 
