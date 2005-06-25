@@ -147,6 +147,8 @@ struct rasqal_literal_s {
   rasqal_literal_type type;
   /* UTF-8 string, pattern, qname, blank, double, float, decimal, datetime */
   const unsigned char *string;
+  unsigned int string_len;
+  
   union {
     /* integer and boolean types */
     int integer;
