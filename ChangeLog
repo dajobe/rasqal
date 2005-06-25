@@ -1,4 +1,73 @@
+2005-06-25  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* tests/sparql/survey/Makefile.am: survey-13 now passes.  now 2
+	failures
+
+	* rasqal_query.c (rasqal_query_results_write_xml_20041221,
+	rasqal_query_results_write_xml_result2): Use string_len rather
+	than strlen().
+
+	* rasqal_internal.h: Added prototype for rasqal_literal_ebv.
+	Added constants rasqal_xsd_decimal_uri, rasqal_xsd_datetime_uri
+	and rasqal_xsd_string_uri.
+
+	* rasqal_literal.c (rasqal_new_integer_literal,
+	rasqal_new_double_literal, rasqal_new_pattern_literal,
+	rasqal_new_string_literal, rasqal_new_simple_literal,
+	rasqal_new_boolean_literal): Initialise the string_len field.
+	(rasqal_literal_string_to_native): Initialise string_len field
+	when turning into a boolean.
+	(rasqal_literal_expand_qname): Use string_len field to initialise
+	raptor_qname_string_to_uri.
+	(rasqal_literal_as_node): When making a new typed literal,
+	initialise string_len field.
+	(rasqal_literal_ebv): Added, to return the Effective Boolean
+	Value (EBV) of a literal.
+
+	* rasqal.h: rasqal_literal gains string_len field.
+
+	* sparql_parser.y (sparql_is_builtin_xsd_datatype): Added to check
+	for the types that sparql supports.
+	(FunctionCall): Use sparql_is_builtin_xsd_datatype to distinguish
+	a cast from a function - name is the datatype URI, has 1 arg.
+
+	* rasqal_general.c: Added constants rasqal_xsd_decimal_uri,
+	rasqal_xsd_datetime_uri and rasqal_xsd_string_uri constants.
+	(rasqal_uri_init, rasqal_uri_finish): Init and free
+	rasqal_xsd_decimal_uri, rasqal_xsd_datetime_uri and
+	rasqal_xsd_string_uri.
+
 2005-06-24  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* tests/sparql/SyntaxFull/syntax-qname-07.rq,
+	tests/sparql/SyntaxFull/syntax-qname-08.rq,
+	tests/sparql/ValueTesting/extendedType-0.n3,
+	tests/sparql/regex/regex-query-001.rq,
+	tests/sparql/regex/regex-query-002.rq,
+	tests/sparql/regex/regex-query-003.rq,
+	tests/sparql/regex/regex-query-004.rq,
+	tests/sparql/Expr1/expr-1.rq, tests/sparql/Expr1/expr-2.rq,
+	tests/sparql/Expr1/expr-3.rq, tests/sparql/Expr2/query-bev-1.rq,
+	tests/sparql/Expr2/query-bev-3.rq,
+	tests/sparql/Expr2/query-bev-4.rq,
+	tests/sparql/Expr2/query-bev-5.rq,
+	tests/sparql/Expr2/query-bev-6.rq,
+	tests/sparql/ExprBuiltins/q-datatype-1.rq,
+	tests/sparql/ExprBuiltins/q-str-1.rq,
+	tests/sparql/ExprBuiltins/q-str-2.rq,
+	tests/sparql/ExprBuiltins/q-str-3.rq,
+	tests/sparql/ExprBuiltins/q-str-4.rq,
+	tests/sparql/ExprEquals/query-eq-1.rq,
+	tests/sparql/ExprEquals/query-eq-2.rq,
+	tests/sparql/ExprEquals/query-eq-3.rq,
+	tests/sparql/ExprEquals/query-eq-4.rq,
+	tests/sparql/ExprEquals/query-eq-5.rq,
+	tests/sparql/ExprEquals/query-eq2-1.rq,
+	tests/sparql/ExprEquals/query-eq2-2.rq,
+	tests/sparql/SyntaxFull/manifest.ttl,
+	tests/sparql/SyntaxFull/syntax-expr-01.rq,
+	tests/sparql/SyntaxFull/syntax-expr-05.rq,
+	tests/sparql/SyntaxFull/syntax-expr-06.rq: Updates from DAWG CVS
 
 	* rasqal_query.c: Moved rasqal_query_result_row to
 	rasqal-internal.h
