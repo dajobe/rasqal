@@ -2067,7 +2067,6 @@ rasqal_query_results_write_xml_20041221(raptor_iostream *iostr,
     for(i=0; i<rasqal_query_results_get_bindings_count(results); i++) {
       const unsigned char *name=rasqal_query_results_get_binding_name(results, i);
       rasqal_literal *l=rasqal_query_results_get_binding_value(results, i);
-      size_t len;
 
       qname1=raptor_new_qname_from_namespace_local_name(res_ns, 
                                                         (const unsigned char*)name,
@@ -2115,8 +2114,6 @@ rasqal_query_results_write_xml_20041221(raptor_iostream *iostr,
 
           break;
         case RASQAL_LITERAL_STRING:
-          len=strlen((const char*)l->string);
-          
           if(l->language || l->datatype) {
             attrs=(raptor_qname **)raptor_alloc_memory(sizeof(raptor_qname*));
 
@@ -2137,7 +2134,8 @@ rasqal_query_results_write_xml_20041221(raptor_iostream *iostr,
 
 
           raptor_xml_writer_cdata_counted(xml_writer,
-                                          (const unsigned char*)l->string, len);
+                                          (const unsigned char*)l->string,
+                                          l->string_len);
 
           raptor_xml_writer_end_element(xml_writer, element1);
           
@@ -2409,8 +2407,6 @@ rasqal_query_results_write_xml_result2(raptor_iostream *iostr,
       raptor_qname* binding_qname;
       raptor_xml_element *binding_element;
       rasqal_literal *l=rasqal_query_results_get_binding_value(results, i);
-      size_t len;
-
 
       /*       <binding> */
       binding_qname=raptor_new_qname_from_namespace_local_name(res_ns, 
@@ -2485,8 +2481,6 @@ rasqal_query_results_write_xml_result2(raptor_iostream *iostr,
                                           NULL, /* language */
                                           base_uri_copy);
 
-          len=strlen((const char*)l->string);
-          
           if(l->language || l->datatype) {
             attrs=(raptor_qname **)raptor_alloc_memory(sizeof(raptor_qname*));
 
@@ -2507,7 +2501,8 @@ rasqal_query_results_write_xml_result2(raptor_iostream *iostr,
 
 
           raptor_xml_writer_cdata_counted(xml_writer,
-                                          (const unsigned char*)l->string, len);
+                                          (const unsigned char*)l->string, 
+                                          l->string_len);
 
           raptor_xml_writer_end_element(xml_writer, element1);
           
