@@ -485,6 +485,7 @@ int rasqal_literal_has_qname(rasqal_literal* l);
 int rasqal_literal_expand_qname(void* user_data, rasqal_literal* l);
 int rasqal_expression_has_qname(void* user_data, rasqal_expression* e);
 int rasqal_expression_expand_qname(void* user_data, rasqal_expression* e);
+int rasqal_literal_ebv(rasqal_literal* l);
 
 /* strcasecmp.c */
 #ifdef HAVE_STRCASECMP
@@ -513,6 +514,9 @@ extern raptor_uri* rasqal_xsd_integer_uri;
 extern raptor_uri* rasqal_xsd_double_uri;
 extern raptor_uri* rasqal_xsd_float_uri;
 extern raptor_uri* rasqal_xsd_boolean_uri;
+extern raptor_uri* rasqal_xsd_decimal_uri;
+extern raptor_uri* rasqal_xsd_datetime_uri;
+extern raptor_uri* rasqal_xsd_string_uri;
 extern raptor_uri* rasqal_rdf_namespace_uri;
 extern raptor_uri* rasqal_rdf_first_uri;
 extern raptor_uri* rasqal_rdf_rest_uri;
