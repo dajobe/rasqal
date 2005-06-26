@@ -1,3 +1,57 @@
+2005-06-26  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal_engine.c (rasqal_engine_prepare): Call
+	rasqal_engine_query_fold_expressions.
+	(rasqal_engine_expression_foreach_fold): Added to use with
+	rasqal_expression_foreach.
+	(rasqal_engine_expression_fold): Added, to fold an expression tree
+	until no changes are made.
+	(rasqal_engine_graph_pattern_fold_expressions): Added, to fold
+	expressions inside a graph pattern - in sub graph patterns and in
+	constraint expression.
+	(rasqal_engine_query_fold_expressions): Added, to fold expressions
+	inside a graph - in graph patterns and order conditions.
+
+	* rasqal_expr.c (rasqal_expression_clear): Added, to deallocate a
+	static rasqal_expression.
+	(rasqal_free_expression): Use above.
+	(rasqal_expression_foreach): Do current node explicitly first,
+	before op check is done so that the user function could change the
+	op potentially.  Handle op LITERAL and op FUNCTION correctly.
+	(rasqal_expression_is_constant): Added to check if the expression
+	tree is a constant expression.
+	(rasqal_expression_convert_to_literal): Convert an expression tree
+	into a literal in-situ.
+
+	* rasqal_literal.c (rasqal_literal_is_constant): Added returning
+	non-0 if literal is a constant i.e. not a variable.
+
+	* rasqal_internal.h: Added prototypes for
+	rasqal_engine_expression_fold,
+	rasqal_engine_graph_pattern_fold_expressions,
+	rasqal_engine_query_fold_expressions, rasqal_literal_is_constant,
+	rasqal_expression_is_constant, rasqal_expression_clear and
+	rasqal_expression_convert_to_literal.
+
+	* tests/sparql/examples/Makefile.am:
+	sparql-query-example-Testing-Values-isLiteral works.  3 fail now.
+
+	* tests/sparql/examples/ex11_0.n3,
+	tests/sparql/examples/ex11.2.3.5_0.n3,
+	tests/sparql/examples/ex11.2.3.2_0.n3,
+	tests/sparql/examples/ex11.2.3.1_1.n3: Date fixes from DAWG CVS
+
+	* tests/sparql/examples/ex11_1.rq,
+	tests/sparql/examples/ex11_0.rq,
+	tests/sparql/examples/ex11.2.3.7_0.rq,
+	tests/sparql/examples/ex11.2.3.2_1.rq,
+	tests/sparql/examples/ex11.2.3.2_0.rq,
+	tests/sparql/examples/ex11.2.3.1_1.rq,
+	tests/sparql/examples/ex11.2.3.1_0.rq: Update for FILTER()
+
+	* tests/sparql/examples/Makefile.am:
+	Correct test failures, count remains same
+
 2005-06-25  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
 	* tests/sparql/survey/Makefile.am: survey-13 now passes.  now 2
