@@ -4,5 +4,5 @@
 
 _:a  foaf:name       "Alice".
 
-_:b  foaf:givenname  "Bob" .
+_:b  foaf:givenName  "Bob" .
 _:b  dc:created      "2005-04-04T04:04:04Z"^^xs:dateTime .
