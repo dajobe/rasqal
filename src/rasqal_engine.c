@@ -815,6 +815,8 @@ rasqal_engine_prepare(rasqal_query *query)
     rasqal_query_build_declared_in(query);
     
     rasqal_engine_build_constraints_expression(query->query_graph_pattern);
+
+    rasqal_engine_query_fold_expressions(query);
   }
 
   return 0;
@@ -1705,4 +1707,119 @@ rasqal_engine_merge_basic_graph_patterns(rasqal_graph_pattern *gp)
   fputs("\n\n", stdout);
 #endif
     
+}
+
+
+struct folding_state {
+  rasqal_query* query;
+  int changes;
+  int failed;
+};
+  
+
+static int
+rasqal_engine_expression_foreach_fold(void *user_data, rasqal_expression *e)
+{
+  struct folding_state *st=(struct folding_state*)user_data;
+  rasqal_literal* l;
+
+  /* skip if already a  literal or this expression tree is not constant */
+  if(e->op == RASQAL_EXPR_LITERAL || !rasqal_expression_is_constant(e))
+    return 0;
+  
+#ifdef RASQAL_DEBUG
+  RASQAL_DEBUG2("folding expression %p: ", e);
+  rasqal_expression_print(e, stderr);
+  fprintf(stderr, "\n");
+#endif
+  
+  l=rasqal_expression_evaluate(st->query, e);
+  if(!l) {
+    st->failed++;
+    return 1;
+  }
+
+  /* In-situ conversion of 'e' to a literal expression */
+  rasqal_expression_convert_to_literal(e, l);
+  
+#ifdef RASQAL_DEBUG
+  RASQAL_DEBUG1("folded expression now: ");
+  rasqal_expression_print(e, stderr);
+  fputc('\n', stderr);
+#endif
+
+  /* change made */
+  st->changes++;
+  
+  return 0;
+}
+
+
+int
+rasqal_engine_expression_fold(rasqal_query* rq, rasqal_expression* e)
+{
+  struct folding_state st;
+
+  st.query=rq;
+  while(1) {
+    st.changes=0;
+    st.failed=0;
+    rasqal_expression_foreach(e, rasqal_engine_expression_foreach_fold, 
+                              (void*)&st);
+    if(!st.changes || st.failed)
+      break;
+  }
+
+  return st.failed;
+}
+
+
+int
+rasqal_engine_graph_pattern_fold_expressions(rasqal_query* rq,
+                                             rasqal_graph_pattern* gp)
+{
+  if(!gp)
+    return 1;
+  
+  /* fold expressions in sub graph patterns */
+  if(gp->graph_patterns) {
+    int i;
+    
+    for(i=0; i < raptor_sequence_size(gp->graph_patterns); i++) {
+      rasqal_graph_pattern *sgp=(rasqal_graph_pattern*)raptor_sequence_get_at(gp->graph_patterns, i);
+      if(rasqal_engine_graph_pattern_fold_expressions(rq, sgp))
+        return 1;
+    }
+  }
+
+  if(gp->constraints_expression)
+    return rasqal_engine_expression_fold(rq, gp->constraints_expression);
+
+  return 0;
+}
+
+
+int
+rasqal_engine_query_fold_expressions(rasqal_query* rq)
+{
+  rasqal_graph_pattern *gp=rq->query_graph_pattern;
+  int order_size;
+
+  if(gp)
+    rasqal_engine_graph_pattern_fold_expressions(rq, gp);
+
+  if(!rq->order_conditions_sequence)
+    return 0;
+  
+  order_size=raptor_sequence_size(rq->order_conditions_sequence);
+  if(order_size) {
+    int i;
+    
+    for(i=0; i < order_size; i++) {
+      rasqal_expression* e=(rasqal_expression*)raptor_sequence_get_at(rq->order_conditions_sequence, i);
+      rasqal_engine_expression_fold(rq, e);
+    }
+  }
+
+  return 0;
 }
