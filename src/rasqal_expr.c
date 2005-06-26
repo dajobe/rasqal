@@ -421,7 +421,7 @@ rasqal_new_cast_expression(raptor_uri* name, rasqal_expression *value)
 
 
 void
-rasqal_free_expression(rasqal_expression* e)
+rasqal_expression_clear(rasqal_expression* e)
 {
   switch(e->op) {
     case RASQAL_EXPR_AND:
@@ -476,6 +476,13 @@ rasqal_free_expression(rasqal_expression* e)
     default:
       RASQAL_FATAL2("Unknown operation %d", e->op);
   }
+}
+
+
+void
+rasqal_free_expression(rasqal_expression* e)
+{
+  rasqal_expression_clear(e);
   RASQAL_FREE(rasqal_expression, e);
 }
 
@@ -485,6 +492,14 @@ rasqal_expression_foreach(rasqal_expression* e,
                           rasqal_expression_foreach_fn fn,
                           void *user_data)
 {
+  int i;
+  int result=0;
+
+  /* This ordering allows fn to potentially edit 'e' in-place */
+  result=fn(user_data, e);
+  if(result)
+    return result;
+
   switch(e->op) {
     case RASQAL_EXPR_AND:
     case RASQAL_EXPR_OR:
@@ -501,9 +516,8 @@ rasqal_expression_foreach(rasqal_expression* e,
     case RASQAL_EXPR_REM:
     case RASQAL_EXPR_STR_EQ:
     case RASQAL_EXPR_STR_NEQ:
-      return fn(user_data, e) ||
-        rasqal_expression_foreach(e->arg1, fn, user_data) ||
-        rasqal_expression_foreach(e->arg2, fn, user_data);
+      return rasqal_expression_foreach(e->arg1, fn, user_data) ||
+             rasqal_expression_foreach(e->arg2, fn, user_data);
       break;
     case RASQAL_EXPR_TILDE:
     case RASQAL_EXPR_BANG:
@@ -518,14 +532,23 @@ rasqal_expression_foreach(rasqal_expression* e,
     case RASQAL_EXPR_CAST:
     case RASQAL_EXPR_ORDER_COND_ASC:
     case RASQAL_EXPR_ORDER_COND_DESC:
-      return fn(user_data, e) ||
-        rasqal_expression_foreach(e->arg1, fn, user_data);
+      return rasqal_expression_foreach(e->arg1, fn, user_data);
       break;
     case RASQAL_EXPR_STR_MATCH:
     case RASQAL_EXPR_STR_NMATCH:
+      return fn(user_data, e->arg1);
+      break;
     case RASQAL_EXPR_LITERAL:
+      return 0;
     case RASQAL_EXPR_FUNCTION:
-      return fn(user_data, e);
+      for(i=0; i<raptor_sequence_size(e->args); i++) {
+        rasqal_expression* e2=(rasqal_expression*)raptor_sequence_get_at(e->args, i);
+        if(!rasqal_expression_foreach(e2, fn, user_data)) {
+          result=0;
+          break;
+        }
+      }
+      return result;
       break;
 
     case RASQAL_EXPR_UNKNOWN:
@@ -1524,6 +1547,7 @@ rasqal_expression_has_qname(void *user_data, rasqal_expression *e)
   return 0;
 }
 
+
 /* for use with rasqal_expression_foreach and user_data=rasqal_query */
 int
 rasqal_expression_expand_qname(void *user_data, rasqal_expression *e)
@@ -1533,6 +1557,93 @@ rasqal_expression_expand_qname(void *user_data, rasqal_expression *e)
 
   return 0;
 }
+
+
+int
+rasqal_expression_is_constant(rasqal_expression* e) 
+{
+  int i;
+  int result=0;
+  
+  switch(e->op) {
+    case RASQAL_EXPR_AND:
+    case RASQAL_EXPR_OR:
+    case RASQAL_EXPR_EQ:
+    case RASQAL_EXPR_NEQ:
+    case RASQAL_EXPR_LT:
+    case RASQAL_EXPR_GT:
+    case RASQAL_EXPR_LE:
+    case RASQAL_EXPR_GE:
+    case RASQAL_EXPR_PLUS:
+    case RASQAL_EXPR_MINUS:
+    case RASQAL_EXPR_STAR:
+    case RASQAL_EXPR_SLASH:
+    case RASQAL_EXPR_REM:
+    case RASQAL_EXPR_STR_EQ:
+    case RASQAL_EXPR_STR_NEQ:
+      result=rasqal_expression_is_constant(e->arg1) &&
+             rasqal_expression_is_constant(e->arg2);
+      break;
+    case RASQAL_EXPR_STR_MATCH:
+    case RASQAL_EXPR_STR_NMATCH:
+      result=rasqal_expression_is_constant(e->arg1) &&
+             rasqal_literal_is_constant(e->literal);
+      break;
+    case RASQAL_EXPR_TILDE:
+    case RASQAL_EXPR_BANG:
+    case RASQAL_EXPR_UMINUS:
+    case RASQAL_EXPR_BOUND:
+    case RASQAL_EXPR_STR:
+    case RASQAL_EXPR_LANG:
+    case RASQAL_EXPR_DATATYPE:
+    case RASQAL_EXPR_ISURI:
+    case RASQAL_EXPR_ISBLANK:
+    case RASQAL_EXPR_ISLITERAL:
+    case RASQAL_EXPR_ORDER_COND_ASC:
+    case RASQAL_EXPR_ORDER_COND_DESC:
+      result=rasqal_expression_is_constant(e->arg1);
+      break;
+
+    case RASQAL_EXPR_LITERAL:
+      result=rasqal_literal_is_constant(e->literal);
+      break;
+
+    case RASQAL_EXPR_FUNCTION:
+      result=1;
+      for(i=0; i<raptor_sequence_size(e->args); i++) {
+        rasqal_expression* e2=(rasqal_expression*)raptor_sequence_get_at(e->args, i);
+        if(!rasqal_expression_is_constant(e2)) {
+          result=0;
+          break;
+        }
+      }
+      break;
+
+    case RASQAL_EXPR_CAST:
+      result=rasqal_expression_is_constant(e->arg1);
+      break;
+
+    case RASQAL_EXPR_UNKNOWN:
+    default:
+      RASQAL_FATAL2("Unknown operation %d", e->op);
+  }
+  
+  return result;
+}
+
+
+void
+rasqal_expression_convert_to_literal(rasqal_expression* e, rasqal_literal* l)
+{
+  /* update expression 'e' in place */
+  rasqal_expression_clear(e);
+
+  bzero(e, sizeof(rasqal_expression));
+  e->op=RASQAL_EXPR_LITERAL;
+  e->literal=l;
+}
+
+  
 
 #endif /* not STANDALONE */
 
