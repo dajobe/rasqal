@@ -467,7 +467,10 @@ void rasqal_engine_join_basic_graph_patterns(rasqal_graph_pattern *dest_gp, rasq
 void rasqal_engine_make_basic_graph_pattern(rasqal_graph_pattern *gp);
 int rasqal_engine_check_limit_offset(rasqal_query *query);
 void rasqal_engine_merge_basic_graph_patterns(rasqal_graph_pattern *gp);
-
+int rasqal_engine_expression_fold(rasqal_query* rq, rasqal_expression* e);
+int rasqal_engine_graph_pattern_fold_expressions(rasqal_query* rq, rasqal_graph_pattern* gp);
+int rasqal_engine_query_fold_expressions(rasqal_query* rq);
+  
 rasqal_triples_source* rasqal_new_triples_source(rasqal_query* query);
 void rasqal_free_triples_source(rasqal_triples_source* rts);
 int rasqal_triples_source_next_source(rasqal_triples_source* rts);
@@ -483,9 +486,13 @@ raptor_uri* rasqal_literal_as_uri(rasqal_literal* l);
 int rasqal_literal_string_to_native(rasqal_literal *l, raptor_simple_message_handler error_handler, void *error_data);
 int rasqal_literal_has_qname(rasqal_literal* l);
 int rasqal_literal_expand_qname(void* user_data, rasqal_literal* l);
+int rasqal_literal_is_constant(rasqal_literal* l);
 int rasqal_expression_has_qname(void* user_data, rasqal_expression* e);
 int rasqal_expression_expand_qname(void* user_data, rasqal_expression* e);
 int rasqal_literal_ebv(rasqal_literal* l);
+int rasqal_expression_is_constant(rasqal_expression* e);
+void rasqal_expression_clear(rasqal_expression* e);
+void rasqal_expression_convert_to_literal(rasqal_expression* e, rasqal_literal* l);
 
 /* strcasecmp.c */
 #ifdef HAVE_STRCASECMP
