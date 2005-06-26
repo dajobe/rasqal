@@ -3,4 +3,4 @@ PREFIX dc:   <http://purl.org/dc/elements/1.1/>
 SELECT ?name
  WHERE { ?x foaf:name  ?name .
          OPTIONAL { ?x dc:created ?created } .
-         FILTER !bound(?created) }
+         FILTER ( !bound(?created)) }

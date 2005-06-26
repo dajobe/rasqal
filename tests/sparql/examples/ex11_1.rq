@@ -5,4 +5,5 @@ PREFIX xsd:    <http://www.w3.org/2001/XMLSchema#>
 SELECT ?annot
 WHERE { ?annot  a:annotates  <http://www.w3.org/TR/rdf-sparql-query/> .
         ?annot  dc:created   ?date .
-        FILTER xsd:dateTime(?date) < xsd:dateTime("2005-01-01T00:00Z") }
+        FILTER ( xsd:dateTime(?date) < xsd:dateTime("2005-01-01T00:00:00Z") )
+      }

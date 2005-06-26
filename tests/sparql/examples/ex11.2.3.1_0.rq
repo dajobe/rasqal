@@ -4,5 +4,5 @@ SELECT ?name1 ?name2
             foaf:mbox  ?mbox1 .
          ?y foaf:name  ?name2 ;
             foaf:mbox  ?mbox2 .
-         FILTER ?mbox1 = ?mbox2 && ?name1 != ?name2
+         FILTER ( ?mbox1 = ?mbox2 && ?name1 != ?name2 )
        }
