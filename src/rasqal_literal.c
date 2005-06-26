@@ -1285,6 +1285,39 @@ rasqal_literal_ebv(rasqal_literal* l)
 }
 
 
+/*
+ * rasqal_literal_Is_constant - INTERNAL Check if a literal is a constant
+ * @l: &rasqal_literal literal
+ * 
+ * Return value: non-0 if literal is a constant
+ **/
+int
+rasqal_literal_is_constant(rasqal_literal* l)
+{
+  switch(l->type) {
+    case RASQAL_LITERAL_URI:
+    case RASQAL_LITERAL_BLANK:
+    case RASQAL_LITERAL_STRING:
+    case RASQAL_LITERAL_PATTERN:
+    case RASQAL_LITERAL_QNAME:
+    case RASQAL_LITERAL_INTEGER:
+    case RASQAL_LITERAL_BOOLEAN:
+    case RASQAL_LITERAL_DOUBLE:
+    case RASQAL_LITERAL_FLOAT:
+    case RASQAL_LITERAL_DECIMAL:
+    case RASQAL_LITERAL_DATETIME:
+      return 1;
+
+    case RASQAL_LITERAL_VARIABLE:
+      return 0;
+
+    case RASQAL_LITERAL_UNKNOWN:
+    default:
+      abort();
+  }
+}
+
+
 rasqal_formula*
 rasqal_new_formula(void) 
 {
