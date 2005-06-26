@@ -37,7 +37,7 @@ ex3.rq ex11.2.3.1_0.rq ex11.2.3.1_1.rq ex11.2.3.2_0.rq			\
 ex11.2.3.2_1.rq ex11.2.3.3_0.rq ex11.2.3.4_0.rq ex11.2.3.5_0.rq		\
 ex11.2.3.6_0.rq ex11.2.3.7_0.rq ex11.2.3.8_0.rq ex11_0.rq ex11_1.rq
 
-# sparql-query-example-Testing-Values-1 (ex11_1.rq)
+# sparql-query-example-Testing-Values-0 (ex11_0.rq)
 #   FILTER dateTime datatype compare
 # sparql-query-example-Testing-Values-RDFterm-equal-2 (ex11.2.3.1_1.rq)
 #   FILTER dateTime datatype equality
@@ -47,7 +47,7 @@ ex11.2.3.6_0.rq ex11.2.3.7_0.rq ex11.2.3.8_0.rq ex11_0.rq ex11_1.rq
 #   FILTER isLiteral()
 
 EXPECTED_SPARQL_CORRECT_FAILURES= \
-sparql-query-example-Testing-Values-1			\
+sparql-query-example-Testing-Values-0			\
 sparql-query-example-Testing-Values-RDFterm-equal-2	\
 sparql-query-example-Testing-Values-bound		\
 sparql-query-example-Testing-Values-isLiteral
