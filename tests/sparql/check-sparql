@@ -143,6 +143,8 @@ sub run_test($$$$$) {
     warn "$program: test '$test_file' FAILED - query returned errors:\n  ".join("\n  ",@errs)."\n";
     warn "Failing program was:\n";
     warn "  $roqet_cmd\n";
+    my $r=$roqet_cmd; $r =~ s,file:[^ ]+/,,g;
+    warn "  OR $r\n";
     return 1;
   }
 
@@ -237,6 +239,8 @@ sub run_test($$$$$) {
     warn "$program: '$name' FAILED\n";
     warn "Failing program was:\n";
     warn "  $roqet_cmd\n";
+    my $r=$roqet_cmd; $r =~ s,file:[^ ]+/,,g;
+    warn "  OR $r\n";
     warn "Difference is:\n";
     system("cat diff.out");
     warn "$program: Expected ".plural("result","s",$count).", got $roqet_results\n";
