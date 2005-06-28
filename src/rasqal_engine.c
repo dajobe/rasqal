@@ -44,6 +44,26 @@
 #include "rasqal_internal.h"
 
 
+typedef enum {
+  STEP_UNKNOWN,
+  STEP_SEARCHING,
+  STEP_GOT_MATCH,
+  STEP_FINISHED,
+  STEP_ERROR,
+
+  STEP_LAST=STEP_ERROR
+} rasqal_engine_step;
+
+
+static const char * rasqal_engine_step_names[STEP_LAST+1]={
+  "<unknown>",
+  "searching",
+  "got match",
+  "finished",
+  "error"
+};
+
+
 int
 rasqal_engine_declare_prefix(rasqal_query *rq, rasqal_prefix *p)
 {
@@ -928,26 +948,6 @@ rasqal_engine_move_to_graph_pattern(rasqal_graph_pattern *gp,
 }
 
 
-typedef enum {
-  STEP_UNKNOWN,
-  STEP_SEARCHING,
-  STEP_GOT_MATCH,
-  STEP_FINISHED,
-  STEP_ERROR,
-
-  STEP_LAST=STEP_ERROR
-} rasqal_engine_step;
-
-
-static const char * rasqal_engine_step_names[STEP_LAST+1]={
-  "<unknown>",
-  "searching",
-  "got match",
-  "finished",
-  "error"
-};
-
-
 static rasqal_engine_step
 rasqal_engine_check_constraint(rasqal_query *query, rasqal_graph_pattern *gp)
 {
@@ -1528,7 +1528,7 @@ rasqal_engine_make_basic_graph_pattern(rasqal_graph_pattern *gp)
   merge_check_done:
   
   if(merge_gp_ok) {
-    int op;
+    rasqal_graph_pattern_operator op;
     raptor_sequence *seq;
     
 #if RASQAL_DEBUG > 1
