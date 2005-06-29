@@ -33,12 +33,10 @@ query-eq-1.rq query-eq-2.rq query-eq-3.rq query-eq-4.rq query-eq-5.rq	\
 query-eq2-1.rq query-eq2-2.rq
 
 EXPECTED_SPARQL_CORRECT_FAILURES= \
-"Equality 1-1" \
-"Equality 1-2" \
 "Equality - 2 var - test equals" \
 "Equality - 2 var - test not equals"
 
-EXPECTED_SPARQL_CORRECT_FAILURES_COUNT= 4
+EXPECTED_SPARQL_CORRECT_FAILURES_COUNT= 2
 
 SPARQL_RESULT_FILES= \
 result-eq-1.ttl result-eq-2.ttl result-eq-3.ttl result-eq-4.ttl	\
