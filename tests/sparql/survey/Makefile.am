@@ -41,12 +41,10 @@ result-survey-11.ttl result-survey-12.ttl result-survey-13.ttl
 # Test failures
 # survey-3
 #   UNION
-# survey-10
-#   distinct
 EXPECTED_SPARQL_CORRECT_FAILURES= \
-survey-3 survey-10
+survey-3
 
-EXPECTED_SPARQL_CORRECT_FAILURES_COUNT=2
+EXPECTED_SPARQL_CORRECT_FAILURES_COUNT=1
 
 EXTRA_DIST= \
 $(SPARQL_MANIFEST_FILES) \
