@@ -1,3 +1,68 @@
+2005-06-29  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal_query.c: Added alternate results sorting using
+	RASQAL_TREE define trigger to merge into a b-tree.
+	(rasqal_query_result_row_update): Pass query compare_flags
+	argument to rasqal_expression_evaluate.
+	(rasqal_query_result_literal_sequence_compare): Added with main
+	contant from rasqal_engine_query_results_compare.  Operates over
+	arrays of values of the given size.
+	(rasqal_query_results_row_compare): Call above for order
+	conditions or row values to handle ORDER BY(with/without DISTINCT)
+	or DISTINCT alone.
+	(rasqal_query_results_compare): Added.
+	(rasqal_new_tree_node, rasqal_free_tree_node, rasqal_new_tree,
+	rasqal_free_tree, rasqal_tree_node_add_row, rasqal_tree_add_row,
+	rasqal_tree_node_write_indent, rasqal_tree_node_print_internal,
+	rasqal_tree_print, rasqal_tree_node_visit, rasqal_tree_visit,
+	rasqal_tree_add_to_sequence): Added to implement tree of rows
+	sorted on add with optional distinct results.
+	(rasqal_query_execute): Add alternate tree results collation
+	enabled by RASQAL_TREE implementing distinct.
+
+	* tests/sparql/sort/Makefile.am: sort-6 now passes.  no sort
+	failures
+
+	* tests/sparql/ExprEquals/Makefile.am: "Equality 1-1" and
+	"Equality 1-2" now pass.  down to 2 failures
+
+	* rasqal_engine.c (rasqal_engine_check_constraint,
+	rasqal_engine_expression_foreach_fold): Use flags argument
+	in. rasqal_expression_evaluate taken from query compare_flags
+	field.
+
+	* sparql_parser.y (rasqal_sparql_query_engine_init): Set query
+	compare_flags to RASQAL_COMPARE_XQUERY enabling XQuery comparison
+	and promotions.
+
+	* rasqal_expr.c (rasqal_expression_evaluate): Added flags
+	argument, to pass down to rasqal_literal_compare.  Pass it down to
+	internal uses of rasqal_expression_evaluate also.
+
+	* rasqal_literal.c: rasqal_literal_type_labels reordered to match
+	changes to rasqal_literal_type in rasqal.h
+	(rasqal_literal_compare): Added RASQAL_COMPARE_XQUERY to use
+	XQuery comparison and type promotions.  When the above flag is
+	set, only promote numeric types and otherwise compare different
+	types using the order in rasqal_literal_type enum.
+
+	* rasqal_internal.h: rasqal_query gains compare_flags structure
+
+	* roqet.c: spaces 80
+
+	* rasqal.h: Reordered the types in rasqal_literal_type to make
+	them useful for sparql type promotion.  Added define
+	RASQAL_COMPARE_XQUERY Added flags argument to
+	rasqal_expression_evaluate prototype.
+
+	* roqet.c (roqet_write_indent): Handle any depth indenting.
+
+2005-06-28  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal_engine.c: Fixes for C++.
+
+	* tests/sparql/check-sparql: Warn short form of cmd lines
+
 2005-06-26  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
 	* rasqal_engine.c (rasqal_engine_prepare): Call
