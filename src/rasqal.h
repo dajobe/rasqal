@@ -124,13 +124,24 @@ typedef struct {
 } rasqal_data_graph;
 
 
+/**
+ * The order in the following enumeration is significant as it encodes
+ * the SPARQL term ordering conditions:
+ *   Blank Nodes << IRIS << RDF literals << typed literals
+ * which coresponds to in enum values
+ *   BLANK << URI << STRING << 
+ *     (BOOLEAN | INTEGER | DOUBLE | FLOAT | DECIMAL | DATETIME)
+ *     (RASQAL_LITERAL_FIRST_XSD ... RASQAL_LITERAL_LAST_XSD)
+ * Not used (internal): PATTERN, QNAME, VARIABLE
+ *
+ * See &rasqal_literal_compare() when used with flags
+ * RASQAL_COMPARE_XQUERY.
+ */
 typedef enum {
   RASQAL_LITERAL_UNKNOWN,
-  RASQAL_LITERAL_URI,      /* r:URI */
-  RASQAL_LITERAL_QNAME,
-  RASQAL_LITERAL_STRING,   /* r:Literal RDF literal (includes xsd:string ) */
   RASQAL_LITERAL_BLANK,    /* r:bNode RDF blank node */
-  RASQAL_LITERAL_PATTERN,
+  RASQAL_LITERAL_URI,      /* r:URI */
+  RASQAL_LITERAL_STRING,   /* r:Literal RDF literal (includes xsd:string ) */
   RASQAL_LITERAL_BOOLEAN,  /* xsd:boolean */
   RASQAL_LITERAL_INTEGER,  /* xsd:integer */
   RASQAL_LITERAL_DOUBLE,   /* xsd:double  */
@@ -138,6 +149,10 @@ typedef enum {
   RASQAL_LITERAL_FLOAT,    /* xsd:float    */
   RASQAL_LITERAL_DECIMAL,  /* xsd:decimal  */
   RASQAL_LITERAL_DATETIME, /* xsd:dateTime */
+  RASQAL_LITERAL_FIRST_XSD = RASQAL_LITERAL_BOOLEAN,
+  RASQAL_LITERAL_LAST_XSD = RASQAL_LITERAL_DATETIME,
+  RASQAL_LITERAL_PATTERN,
+  RASQAL_LITERAL_QNAME,
   RASQAL_LITERAL_VARIABLE,
   RASQAL_LITERAL_LAST= RASQAL_LITERAL_VARIABLE
 } rasqal_literal_type;
@@ -411,6 +426,10 @@ RASQAL_API void rasqal_free_data_graph(rasqal_data_graph* dg);
 RASQAL_API void rasqal_data_graph_print(rasqal_data_graph* dg, FILE* fh);
 
 
+/* Flags for rasqal_expression_evaluate or rasqal_literal_compare */
+#define RASQAL_COMPARE_NOCASE 1
+#define RASQAL_COMPARE_XQUERY 2
+
 /* Expression class */
 RASQAL_API rasqal_expression* rasqal_new_1op_expression(rasqal_op op, rasqal_expression* arg);
 RASQAL_API rasqal_expression* rasqal_new_2op_expression(rasqal_op op, rasqal_expression* arg1, rasqal_expression* arg2);
@@ -423,7 +442,7 @@ RASQAL_API rasqal_expression* rasqal_new_cast_expression(raptor_uri* name, rasqa
 RASQAL_API void rasqal_free_expression(rasqal_expression* expr);
 RASQAL_API void rasqal_expression_print_op(rasqal_expression* expr, FILE* fh);
 RASQAL_API void rasqal_expression_print(rasqal_expression* expr, FILE* fh);
-RASQAL_API rasqal_literal* rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* expr);
+RASQAL_API rasqal_literal* rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* expr, int flags);
 typedef int (*rasqal_expression_foreach_fn)(void *user_data, rasqal_expression *e);
 RASQAL_API int rasqal_expression_foreach(rasqal_expression* expr, rasqal_expression_foreach_fn fn, void *user_data);
 
@@ -446,7 +465,6 @@ RASQAL_API rasqal_variable* rasqal_literal_as_variable(rasqal_literal* literal);
 RASQAL_API const unsigned char* rasqal_literal_as_string(rasqal_literal* literal);
 RASQAL_API rasqal_literal* rasqal_literal_as_node(rasqal_literal* literal);
 
-#define RASQAL_COMPARE_NOCASE 1
 RASQAL_API int rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags, int *error);
 RASQAL_API int rasqal_literal_equals(rasqal_literal* l1, rasqal_literal* l2);
 
