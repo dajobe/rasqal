@@ -1686,7 +1686,7 @@ main(int argc, char *argv[])
   rasqal_expression_print(expr, stderr);
   fputc('\n', stderr);
 
-  result=rasqal_expression_evaluate(NULL, expr);
+  result=rasqal_expression_evaluate(NULL, expr, 0);
 
   if(result) {
     int bresult;
