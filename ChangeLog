@@ -1,5 +1,11 @@
 2005-06-29  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
+	* rasqal_query.c (rasqal_query_execute): Do the result making outside
+	 #ifdef RASQAL_DEBUG ... #endif
+	Oops!
+
+	* rasqal_expr.c (main): Add flags arg to rasqal_expression_evaluate
+
 	* tests/sparql/survey/Makefile.am: survey-10 works.  now 1 failure
 
 	* rasqal_query.c: Added alternate results sorting using
