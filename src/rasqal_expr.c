@@ -595,7 +595,8 @@ rasqal_expression_compare(rasqal_expression* e1, rasqal_expression* e2,
 
 
 rasqal_literal*
-rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
+rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e,
+                           int flags)
 {
   int error=0;
   rasqal_literal* result=NULL;
@@ -612,7 +613,7 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
         rasqal_literal *l;
         int b;
         
-        l=rasqal_expression_evaluate(query, e->arg1);
+        l=rasqal_expression_evaluate(query, e->arg1, flags);
         if(!l)
           goto failed;
         b=rasqal_literal_as_boolean(l, &error);
@@ -621,7 +622,7 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
           goto failed;
 
         if(b) {
-          l=rasqal_expression_evaluate(query, e->arg2);
+          l=rasqal_expression_evaluate(query, e->arg2, flags);
           if(!l)
             goto failed;
           b=rasqal_literal_as_boolean(l, &error);
@@ -638,7 +639,7 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
         rasqal_literal *l;
         int b;
         
-        l=rasqal_expression_evaluate(query, e->arg1);
+        l=rasqal_expression_evaluate(query, e->arg1, flags);
         if(!l)
           goto failed;
         b=rasqal_literal_as_boolean(l, &error);
@@ -647,7 +648,7 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
           goto failed;
 
         if(!b) {
-          l=rasqal_expression_evaluate(query, e->arg2);
+          l=rasqal_expression_evaluate(query, e->arg2, flags);
           if(!l)
             goto failed;
           b=rasqal_literal_as_boolean(l, &error);
@@ -664,17 +665,17 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
         rasqal_literal *l1, *l2;
         int b;
         
-        l1=rasqal_expression_evaluate(query, e->arg1);
+        l1=rasqal_expression_evaluate(query, e->arg1, flags);
         if(!l1)
           goto failed;
 
-        l2=rasqal_expression_evaluate(query, e->arg2);
+        l2=rasqal_expression_evaluate(query, e->arg2, flags);
         if(!l2) {
           rasqal_free_literal(l1);
           goto failed;
         }
 
-        b=(rasqal_literal_compare(l1, l2, 0, &error) == 0);
+        b=(rasqal_literal_compare(l1, l2, flags, &error) == 0);
         rasqal_free_literal(l1);
         rasqal_free_literal(l2);
         if(error)
@@ -688,17 +689,17 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
         rasqal_literal *l1, *l2;
         int b;
         
-        l1=rasqal_expression_evaluate(query, e->arg1);
+        l1=rasqal_expression_evaluate(query, e->arg1, flags);
         if(!l1)
           goto failed;
 
-        l2=rasqal_expression_evaluate(query, e->arg2);
+        l2=rasqal_expression_evaluate(query, e->arg2, flags);
         if(!l2) {
           rasqal_free_literal(l1);
           goto failed;
         }
 
-        b=(rasqal_literal_compare(l1, l2, 0, &error) != 0);
+        b=(rasqal_literal_compare(l1, l2, flags, &error) != 0);
         rasqal_free_literal(l1);
         rasqal_free_literal(l2);
         if(error)
@@ -712,17 +713,17 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
         rasqal_literal *l1, *l2;
         int b;
         
-        l1=rasqal_expression_evaluate(query, e->arg1);
+        l1=rasqal_expression_evaluate(query, e->arg1, flags);
         if(!l1)
           goto failed;
 
-        l2=rasqal_expression_evaluate(query, e->arg2);
+        l2=rasqal_expression_evaluate(query, e->arg2, flags);
         if(!l2) {
           rasqal_free_literal(l1);
           goto failed;
         }
 
-        b=(rasqal_literal_compare(l1, l2, 0, &error) < 0);
+        b=(rasqal_literal_compare(l1, l2, flags, &error) < 0);
         rasqal_free_literal(l1);
         rasqal_free_literal(l2);
         if(error)
@@ -736,17 +737,17 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
         rasqal_literal *l1, *l2;
         int b;
         
-        l1=rasqal_expression_evaluate(query, e->arg1);
+        l1=rasqal_expression_evaluate(query, e->arg1, flags);
         if(!l1)
           goto failed;
 
-        l2=rasqal_expression_evaluate(query, e->arg2);
+        l2=rasqal_expression_evaluate(query, e->arg2, flags);
         if(!l2) {
           rasqal_free_literal(l1);
           goto failed;
         }
 
-        b=(rasqal_literal_compare(l1, l2, 0, &error) > 0);
+        b=(rasqal_literal_compare(l1, l2, flags, &error) > 0);
         rasqal_free_literal(l1);
         rasqal_free_literal(l2);
         if(error)
@@ -760,17 +761,17 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
         rasqal_literal *l1, *l2;
         int b;
         
-        l1=rasqal_expression_evaluate(query, e->arg1);
+        l1=rasqal_expression_evaluate(query, e->arg1, flags);
         if(!l1)
           goto failed;
 
-        l2=rasqal_expression_evaluate(query, e->arg2);
+        l2=rasqal_expression_evaluate(query, e->arg2, flags);
         if(!l2) {
           rasqal_free_literal(l1);
           goto failed;
         }
 
-        b=(rasqal_literal_compare(l1, l2, 0, &error) <= 0);
+        b=(rasqal_literal_compare(l1, l2, flags, &error) <= 0);
         rasqal_free_literal(l1);
         rasqal_free_literal(l2);
         if(error)
@@ -784,17 +785,17 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
         rasqal_literal *l1, *l2;
         int b;
         
-        l1=rasqal_expression_evaluate(query, e->arg1);
+        l1=rasqal_expression_evaluate(query, e->arg1, flags);
         if(!l1)
           goto failed;
 
-        l2=rasqal_expression_evaluate(query, e->arg2);
+        l2=rasqal_expression_evaluate(query, e->arg2, flags);
         if(!l2) {
           rasqal_free_literal(l1);
           goto failed;
         }
 
-        b=(rasqal_literal_compare(l1, l2, 0, &error) >= 0);
+        b=(rasqal_literal_compare(l1, l2, flags, &error) >= 0);
         rasqal_free_literal(l1);
         rasqal_free_literal(l2);
         if(error)
@@ -805,7 +806,7 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
 
     case RASQAL_EXPR_UMINUS:
       {
-        rasqal_literal *l=rasqal_expression_evaluate(query, e->arg1);
+        rasqal_literal *l=rasqal_expression_evaluate(query, e->arg1, flags);
         double d= -rasqal_literal_as_floating(l, &error);
         rasqal_free_literal(l);
         if(error)
@@ -820,7 +821,7 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
         rasqal_variable* v;
         int b;
 
-        l=rasqal_expression_evaluate(query, e->arg1);
+        l=rasqal_expression_evaluate(query, e->arg1, flags);
         if(!l)
           goto failed;
         
@@ -844,7 +845,7 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
         unsigned char* new_s;
         size_t len;
         
-        l=rasqal_expression_evaluate(query, e->arg1);
+        l=rasqal_expression_evaluate(query, e->arg1, flags);
         if(!l)
           goto failed;
 
@@ -872,7 +873,7 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
         unsigned char* new_language;
         int free_literal=1;
         
-        l=rasqal_expression_evaluate(query, e->arg1);
+        l=rasqal_expression_evaluate(query, e->arg1, flags);
         if(!l)
           goto failed;
 
@@ -912,7 +913,7 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
         rasqal_variable* v;
         int free_literal=1;
         
-        l=rasqal_expression_evaluate(query, e->arg1);
+        l=rasqal_expression_evaluate(query, e->arg1, flags);
         if(!l)
           goto failed;
 
@@ -949,7 +950,7 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
         int free_literal=1;
         int b;
         
-        l=rasqal_expression_evaluate(query, e->arg1);
+        l=rasqal_expression_evaluate(query, e->arg1, flags);
         if(!l)
           goto failed;
         
@@ -978,7 +979,7 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
         int free_literal=1;
         int b;
         
-        l=rasqal_expression_evaluate(query, e->arg1);
+        l=rasqal_expression_evaluate(query, e->arg1, flags);
         if(!l)
           goto failed;
         
@@ -1007,7 +1008,7 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
         int free_literal=1;
         int b;
         
-        l=rasqal_expression_evaluate(query, e->arg1);
+        l=rasqal_expression_evaluate(query, e->arg1, flags);
         if(!l)
           goto failed;
         
@@ -1036,11 +1037,11 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
         int error1=0;
         int error2=0;
         
-        l1=rasqal_expression_evaluate(query, e->arg1);
+        l1=rasqal_expression_evaluate(query, e->arg1, flags);
         if(!l1)
           goto failed;
 
-        l2=rasqal_expression_evaluate(query, e->arg2);
+        l2=rasqal_expression_evaluate(query, e->arg2, flags);
         if(!l2) {
           rasqal_free_literal(l1);
           goto failed;
@@ -1064,11 +1065,11 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
         int error1=0;
         int error2=0;
         
-        l1=rasqal_expression_evaluate(query, e->arg1);
+        l1=rasqal_expression_evaluate(query, e->arg1, flags);
         if(!l1)
           goto failed;
 
-        l2=rasqal_expression_evaluate(query, e->arg2);
+        l2=rasqal_expression_evaluate(query, e->arg2, flags);
         if(!l2) {
           rasqal_free_literal(l1);
           goto failed;
@@ -1092,11 +1093,11 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
         int error1=0;
         int error2=0;
         
-        l1=rasqal_expression_evaluate(query, e->arg1);
+        l1=rasqal_expression_evaluate(query, e->arg1, flags);
         if(!l1)
           goto failed;
 
-        l2=rasqal_expression_evaluate(query, e->arg2);
+        l2=rasqal_expression_evaluate(query, e->arg2, flags);
         if(!l2) {
           rasqal_free_literal(l1);
           goto failed;
@@ -1120,11 +1121,11 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
         int error1=0;
         int error2=0;
         
-        l1=rasqal_expression_evaluate(query, e->arg1);
+        l1=rasqal_expression_evaluate(query, e->arg1, flags);
         if(!l1)
           goto failed;
 
-        l2=rasqal_expression_evaluate(query, e->arg2);
+        l2=rasqal_expression_evaluate(query, e->arg2, flags);
         if(!l2) {
           rasqal_free_literal(l1);
           goto failed;
@@ -1147,11 +1148,11 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
         int error1=0;
         int error2=0;
         
-        l1=rasqal_expression_evaluate(query, e->arg1);
+        l1=rasqal_expression_evaluate(query, e->arg1, flags);
         if(!l1)
           goto failed;
 
-        l2=rasqal_expression_evaluate(query, e->arg2);
+        l2=rasqal_expression_evaluate(query, e->arg2, flags);
         if(!l2) {
           rasqal_free_literal(l1);
           goto failed;
@@ -1173,17 +1174,18 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
         rasqal_literal *l1, *l2;
         int b;
         
-        l1=rasqal_expression_evaluate(query, e->arg1);
+        l1=rasqal_expression_evaluate(query, e->arg1, flags);
         if(!l1)
           goto failed;
 
-        l2=rasqal_expression_evaluate(query, e->arg2);
+        l2=rasqal_expression_evaluate(query, e->arg2, flags);
         if(!l2) {
           rasqal_free_literal(l1);
           goto failed;
         }
 
-        b=(rasqal_literal_compare(l1, l2, RASQAL_COMPARE_NOCASE, &error) == 0);
+        b=(rasqal_literal_compare(l1, l2, flags | RASQAL_COMPARE_NOCASE,
+                                  &error) == 0);
         rasqal_free_literal(l1);
         rasqal_free_literal(l2);
         if(error)
@@ -1198,17 +1200,18 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
         rasqal_literal *l1, *l2;
         int b;
         
-        l1=rasqal_expression_evaluate(query, e->arg1);
+        l1=rasqal_expression_evaluate(query, e->arg1, flags);
         if(!l1)
           goto failed;
 
-        l2=rasqal_expression_evaluate(query, e->arg2);
+        l2=rasqal_expression_evaluate(query, e->arg2, flags);
         if(!l2) {
           rasqal_free_literal(l1);
           goto failed;
         }
 
-        b=(rasqal_literal_compare(l1, l2, RASQAL_COMPARE_NOCASE, &error) != 0);
+        b=(rasqal_literal_compare(l1, l2, flags | RASQAL_COMPARE_NOCASE, 
+                                  &error) != 0);
         rasqal_free_literal(l1);
         rasqal_free_literal(l2);
         if(error)
@@ -1220,7 +1223,7 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
 
     case RASQAL_EXPR_TILDE:
       {
-        rasqal_literal *l=rasqal_expression_evaluate(query, e->arg1);
+        rasqal_literal *l=rasqal_expression_evaluate(query, e->arg1, flags);
         int i= ~ rasqal_literal_as_integer(l, &error);
         rasqal_free_literal(l);
         if(error)
@@ -1232,7 +1235,7 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
 
     case RASQAL_EXPR_BANG:
       {
-        rasqal_literal *l=rasqal_expression_evaluate(query, e->arg1);
+        rasqal_literal *l=rasqal_expression_evaluate(query, e->arg1, flags);
         int b= ! rasqal_literal_as_boolean(l, &error);
         rasqal_free_literal(l);
         if(error)
@@ -1263,7 +1266,7 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
         int options=REG_EXTENDED | REG_NOSUB;
 #endif
         
-        l1=rasqal_expression_evaluate(query, e->arg1);
+        l1=rasqal_expression_evaluate(query, e->arg1, flags);
         if(!l1)
           goto failed;
         match_string=rasqal_literal_as_string(l1);
@@ -1366,7 +1369,7 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
         unsigned char *new_string;
         raptor_uri *uri;
         
-        l1=rasqal_expression_evaluate(query, e->arg1);
+        l1=rasqal_expression_evaluate(query, e->arg1, flags);
         if(!l1)
           goto failed;
 
@@ -1383,7 +1386,7 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e)
 
   case RASQAL_EXPR_ORDER_COND_ASC:
   case RASQAL_EXPR_ORDER_COND_DESC:
-      result=rasqal_expression_evaluate(query, e->arg1);
+      result=rasqal_expression_evaluate(query, e->arg1, flags);
       break;
 
     case RASQAL_EXPR_UNKNOWN:
