@@ -1547,11 +1547,11 @@ rasqal_query_execute(rasqal_query *query)
     fputs("tree result: ", stderr);
     rasqal_tree_print(tree, stderr);
     fputs("\n", stderr);
+#endif
 
     rasqal_tree_visit(tree, rasqal_tree_add_to_sequence, (void*)seq);
 
     rasqal_free_tree(tree);
-#endif
 #else
 #endif
     query->results_sequence=seq;
