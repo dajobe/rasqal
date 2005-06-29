@@ -1,5 +1,7 @@
 2005-06-29  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
+	* tests/sparql/survey/Makefile.am: survey-10 works.  now 1 failure
+
 	* rasqal_query.c: Added alternate results sorting using
 	RASQAL_TREE define trigger to merge into a b-tree.
 	(rasqal_query_result_row_update): Pass query compare_flags
