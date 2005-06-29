@@ -962,7 +962,8 @@ rasqal_engine_check_constraint(rasqal_query *query, rasqal_graph_pattern *gp)
   fputc('\n', stderr);
 #endif
     
-  result=rasqal_expression_evaluate(query, gp->constraints_expression);
+  result=rasqal_expression_evaluate(query, gp->constraints_expression, 
+                                    query->compare_flags);
   if(!result)
     return STEP_ERROR;
   
@@ -1733,7 +1734,7 @@ rasqal_engine_expression_foreach_fold(void *user_data, rasqal_expression *e)
   fprintf(stderr, "\n");
 #endif
   
-  l=rasqal_expression_evaluate(st->query, e);
+  l=rasqal_expression_evaluate(st->query, e, st->query->compare_flags);
   if(!l) {
     st->failed++;
     return 1;
