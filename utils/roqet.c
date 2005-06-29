@@ -165,7 +165,7 @@ roqet_error_handler(void *user_data,
 }
 
 #define SPACES_LENGTH 80
-static const char spaces[SPACES_LENGTH+1]="                                                                                  ";
+static const char spaces[SPACES_LENGTH+1]="                                                                                ";
 
 static void
 roqet_write_indent(FILE *fh, int indent) 
