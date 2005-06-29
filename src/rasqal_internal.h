@@ -338,6 +338,8 @@ struct rasqal_query_s {
   /* INTERNAL sequence of results for ordering */
   raptor_sequence* results_sequence;
 
+  /* INTERNAL rasqal_literal_compare / rasqal_expression_evaluate flags */
+  int compare_flags;
 };
 
 
