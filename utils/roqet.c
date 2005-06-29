@@ -164,14 +164,17 @@ roqet_error_handler(void *user_data,
   error_count++;
 }
 
-
-static const char *spaces="                                                                                  ";
+#define SPACES_LENGTH 80
+static const char spaces[SPACES_LENGTH+1]="                                                                                  ";
 
 static void
 roqet_write_indent(FILE *fh, int indent) 
 {
-  if(indent > 0)
-    fwrite(spaces, sizeof(char), indent, fh);
+  while(indent > 0) {
+    int sp=(indent > SPACES_LENGTH) ? SPACES_LENGTH : indent;
+    fwrite(spaces, sizeof(char), sp, fh);
+    indent -= sp;
+  }
 }
 
   
