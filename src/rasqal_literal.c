@@ -426,19 +426,25 @@ rasqal_free_literal(rasqal_literal* l)
 }
 
 
+/* 
+ * The order here must match that of rasqal_literal_type
+ * in rasqal.h and is significant as rasqal_literal_compare
+ * uses it for type comparisons with the RASQAL_COMPARE_XQUERY
+ * flag.
+ */
 static const char* rasqal_literal_type_labels[RASQAL_LITERAL_LAST+1]={
   "UNKNOWN",
-  "uri",
-  "qname",
-  "string",
   "blank",
-  "pattern",
+  "uri",
+  "string",
   "boolean",
   "integer",
   "double",
   "float",
   "decimal",
   "datetime",
+  "pattern",
+  "qname",
   "variable"
 };
 
@@ -810,9 +816,9 @@ double_to_int(double d)
  * returns <0.  equal returns 0, and first after second returns >0.
  * For URIs, the string value is used for the comparsion.
  *
- * flags affects string comparisons and if the
- * RASQAL_COMPARE_NOCASE bit is set, a case independent
- * comparison is made.
+ * flag bits affects comparisons:
+ *   RASQAL_COMPARE_NOCASE: use case independent string comparisons
+ *   RASQAL_COMPARE_XQUERY: use XQuery comparison and type promotion rules
  * 
  * Return value: <0, 0, or >0 as described above.
  **/
@@ -831,6 +837,7 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
   int seen_int=0;
   int seen_double=0;
   int seen_boolean=0;
+  int seen_numeric=0;
   
   *error=0;
 
@@ -866,28 +873,36 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
       case RASQAL_LITERAL_URI:
         break;
 
+      case RASQAL_LITERAL_DECIMAL:
+        seen_numeric++;
+        strings[i]=lits[i]->string;
+        break;
+
       case RASQAL_LITERAL_STRING:
       case RASQAL_LITERAL_BLANK:
       case RASQAL_LITERAL_PATTERN:
       case RASQAL_LITERAL_QNAME:
-      case RASQAL_LITERAL_DECIMAL:
       case RASQAL_LITERAL_DATETIME:
         strings[i]=lits[i]->string;
-        seen_string=1;
-      break;
+        seen_string++;
+        break;
 
       case RASQAL_LITERAL_BOOLEAN:
         seen_boolean=1;
-
+        ints[i]=lits[i]->value.integer;
+        break;
+        
       case RASQAL_LITERAL_INTEGER:
         ints[i]=lits[i]->value.integer;
-        seen_int=1;
+        seen_int++;
+        seen_numeric++;
         break;
     
       case RASQAL_LITERAL_DOUBLE:
       case RASQAL_LITERAL_FLOAT:
         doubles[i]=lits[i]->value.floating;
-        seen_double=1;
+        seen_double++;
+        seen_numeric++;
         break;
 
       case RASQAL_LITERAL_VARIABLE:
@@ -906,11 +921,22 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
                   rasqal_literal_type_labels[lits[0]->type],
                   rasqal_literal_type_labels[lits[1]->type]);
 
-    type=seen_string ? RASQAL_LITERAL_STRING : RASQAL_LITERAL_INTEGER;
-    if((seen_int & seen_double) || (seen_int & seen_string))
-      type=RASQAL_LITERAL_DOUBLE;
-    if(seen_boolean & seen_string)
-      type=RASQAL_LITERAL_STRING;
+    if(flags & RASQAL_COMPARE_XQUERY) { 
+      int type0=(int)lits[0]->type;
+      int type1=(int)lits[1]->type;
+      RASQAL_DEBUG3("xquery literal compare types %d vs %d\n", type0, type1);
+      if(seen_numeric != 2) {
+        return type0 - type1;
+      }
+      /* FIXME - promote all numeric to double or int for now */
+      type=seen_double ? RASQAL_LITERAL_DOUBLE : RASQAL_LITERAL_INTEGER;
+    } else {
+      type=seen_string ? RASQAL_LITERAL_STRING : RASQAL_LITERAL_INTEGER;
+      if((seen_int & seen_double) || (seen_int & seen_string))
+        type=RASQAL_LITERAL_DOUBLE;
+      if(seen_boolean & seen_string)
+        type=RASQAL_LITERAL_STRING;
+    }
   } else
     type=lits[0]->type;
   
