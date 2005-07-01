@@ -147,7 +147,8 @@ PKGCONFIG_CFLAGS=
 
 dnl Checks for header files.
 AC_HEADER_STDC
-AC_CHECK_HEADERS(errno.h stdlib.h unistd.h string.h dmalloc.h getopt.h regex.h)
+AC_CHECK_HEADERS(errno.h stdlib.h unistd.h string.h dmalloc.h getopt.h regex.h sys/time.h)
+AC_HEADER_TIME
 
 
 dnl Checks for typedefs, structures, and compiler characteristics.
