@@ -391,7 +391,6 @@
              [ qt:query  <syntax-qname-08.rq> ; 
                qt:data   <empty.nt> ] ;
          # No result
-         dawgt:approval dawgt:Approved
       ]
       [  mf:name    "syntax-qname-09.rq" ;
          mf:action  
@@ -433,7 +432,6 @@
              [ qt:query  <syntax-qname-14.rq> ; 
                qt:data   <empty.nt> ] ;
          # No result
-         dawgt:approval dawgt:Approved
       ]
       [  mf:name    "syntax-struct-01.rq" ;
          mf:action  
