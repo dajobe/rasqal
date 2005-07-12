@@ -28,7 +28,9 @@
  * near the %option descriptions.
  *
  * SPARQL defined in http://www.w3.org/TR/rdf-sparql-query/
+ *   http://www.w3.org/TR/2005/WD-rdf-sparql-query-20050419/
  *
+ * Editor's draft of above http://www.w3.org/2001/sw/DataAccess/rq23/
  */
 
 
@@ -101,10 +103,38 @@
 
 
 
-static void sparql_skip_cpp_comment(rasqal_sparql_query_engine *rqe);
 static int sparql_skip_c_comment(rasqal_query *rq);
 
-static unsigned char *sparql_copy_name(rasqal_query *rq, const unsigned char *text, size_t len);
+/*
+ * Extra checks beyond valid Namespaces in XML 1.1 name
+ *
+ * SPARQL_NAME_CHECK_VARNAME (token VARNAME)
+ *   No '_' allowed as the first character.
+ *   No '.' allowed.
+ *   No '-' allowed.
+ *
+ * SPARQL_NAME_CHECK_PREFIX (token NCNAME_PREFIX)
+ *   No '_' allowed as the first character.
+ *   No '.' allowed as the last character.
+ *
+ * SPARQL_NAME_CHECK_NCNAME (token NCNAME)
+ *   No '.' allowed as the first character.
+ *   No '.' allowed as the last character.
+ *
+*/
+typedef enum {
+  SPARQL_NAME_CHECK_NO_UL_FIRST  = 1,
+  SPARQL_NAME_CHECK_NO_DOT_LAST  = 2,
+  SPARQL_NAME_CHECK_NO_DOT_MINUS = 4,
+
+  SPARQL_NAME_CHECK_VARNAME = SPARQL_NAME_CHECK_NO_UL_FIRST | SPARQL_NAME_CHECK_NO_DOT_MINUS,
+  SPARQL_NAME_CHECK_PREFIX  = SPARQL_NAME_CHECK_NO_UL_FIRST | SPARQL_NAME_CHECK_NO_DOT_LAST,
+  SPARQL_NAME_CHECK_NCNAME  = SPARQL_NAME_CHECK_NO_DOT_LAST
+} sparql_name_check_flags;
+
+
+static int rasqal_sparql_name_check(const unsigned char *string, size_t length, sparql_name_check_flags check_flags);
+static unsigned char *sparql_copy_name(rasqal_query *rq, const unsigned char *text, size_t len, sparql_name_check_flags check_flags);
 static raptor_uri* sparql_copy_qname(rasqal_query *rq, const unsigned char *text, size_t len);
 static int sparql_copy_string_token(rasqal_query *rq, YYSTYPE* lval, const unsigned char *text, size_t len, int delim);
 
@@ -129,33 +159,76 @@ int sparql_lexer_lex (YYSTYPE *sparql_parser_lval, yyscan_t yyscanner);
 int sparql_lexer_get_column(yyscan_t yyscanner);
 void sparql_lexer_set_column(int  column_no , yyscan_t yyscanner);
 
+
 %}
 
 LANGUAGETOKEN [A-Za-z][-A-Z_a-z0-9]*
-/* See
- * http://www.w3.org/TR/xml11/#NT-NameStartChar and 
- * http://www.w3.org/TR/xml11/#NT-NameChar 
+
+
+/*
+ * rq23 is http://www.w3.org/2001/sw/DataAccess/rq23/
+ * CVS ID 1.420 2005/07/12 15:38:40
  */
 
-/* rq23 [86] NCCHAR1 */
-NCCHAR1 [A-Za-z\\\x80-\xff]
-/* rq23 [87] NCCHAR = NCCHAR1 + '_' + '-' + .' + [0-9]*/
-NCCHAR [-A-Za-z\\\x80-\xff_\.0-9]
-/* rq23 [88] NCCHAR_PREFIX */
-NCNAME_PREFIX {NCCHAR1}{NCCHAR}*
-/* Taken from rq23 [89] NCNAME first clause = NCCHAR1 + '_' */
-NCCHARU [A-Za-z\\\x80-\xff_]
-/* rq23 [89] NCNAME */
-NCNAME {NCCHARU}{NCCHAR}*
-/* Taken from rq23 [90] VARNAME = NCCHAR1 set + '_' + [0-9] */
-NCCHARV [A-Za-z\\\x80-\xff_0-9]
-/* rq23 [90] VARNAME  */
-VARNAME {NCCHARV}{NCCHARV}*
 
-/* rq23 [74] QNAME */
-QNAME ":"|{NCNAME_PREFIX}":"|":"{NCNAME}|{NCNAME_PREFIX}":"{NCNAME}
-/* rq23 [75] BNODE_LABEL renamed */
+/* rq23 [81] NCCHAR1 ::= [A-Z] | [a-z] | [#x00C0-#x00D6] | [#x00D8-#x00F6] |
+ *   [#x00F8-#x02FF] | [#x0370-#x037D] | [#x037F-#x1FFF] |
+ *   [#x200C-#x200D] | [#x2070-#x218F] | [#x2C00-#x2FEF] |
+ *   [#x3001-#xD7FF] | [#xF900-#xFDCF] | [#xFDF0-#xFFFD] |
+ *   [#x10000-#xEFFFF]
+ *
+ * This is an XML 1.1 NameStartChar
+ *   http://www.w3.org/TR/2004/REC-xml11-20040204/#NT-NameStartChar
+ * except
+ *   No '_' allowed.
+ */
+NCCHAR1 [A-Za-z\\\x80-\xff]
+
+/* rq23 [82]  VARNAME ::= ( NCCHAR1 | [0-9] ) 
+ *   ( NCCHAR1 | "_" | [0-9] | #x00B7 | [#x0300-#x036F] | [#x203F-#x2040] )*
+ *
+ * This is an Namespaces in XML 1.1 Name except:
+ *   No '_' allowed as the first character.
+ *   No '.' allowed.
+ *   No '-' allowed.
+ */
+VARNAME ({NCCHAR1}|[0-9])({NCCHAR1}|"_"|[0-9])*
+
+/* rq23 [83]  NCCHAR ::= 
+ *   NCCHAR1 | '_' | '-' | [0-9] | #x00B7 | [#x0300-#x036F] | [#x203F-#x2040]
+ *
+ * This is XML 1.1 NameChar
+ *   http://www.w3.org/TR/2004/REC-xml11-20040204/#NT-NameChar
+ * except:
+ *   No '.' allowed.
+ */
+NCCHAR {NCCHAR1}|"-"|"_"|[0-9]
+
+/* rq23 [84]  NCNAME_PREFIX ::= NCCHAR1 ((NCCHAR|".")* NCCHAR)?
+ *
+ * This is an Namespaces in XML 1.1 Name except:
+ *   No '_' allowed as the first character.
+ *   No '.' allowed as the last character.
+ */
+NCNAME_PREFIX {NCCHAR1}(({NCCHAR}|".")*{NCCHAR})?
+
+/* rq23 [85]  NCNAME ::= ( "_" | NCCHAR1 ) ((NCCHAR|".")* NCCHAR)?
+ *
+ * This is an Namespaces in XML 1.1 Name except:
+ *   No '.' allowed as the last character.
+ */
+NCNAME ("_"|{NCCHAR1})(({NCCHAR}|".")*{NCCHAR})?
+
+/* rq23 [67] QNAME_NS ::= NCNAME_PREFIX? ':'
+ * Inlined into in rule <PREF>{NCNAME_PREFIX}":" below 
+ */
+
+/* rq23 [68] QNAME ::= NCNAME_PREFIX? ':' NCNAME? */
+QNAME {NCNAME_PREFIX}?":"{NCNAME}?
+
+/* rq23 [69] BNODE_LABEL (renamed to BNAME) ::= '_:' NCNAME */
 BNAME "_:"{NCNAME}
+
 
 /* The initial char conditions are to ensure this doesn't grab < or <= */
 QUOTEDURI \<[^<= ][^>]*\>|\<\>
@@ -168,12 +241,14 @@ QUOTEDURI \<[^<= ][^>]*\>|\<\>
   rasqal_sparql_query_engine *rqe=(rasqal_sparql_query_engine*)rq->context;
 
 
-"//"	{ /* C++ comment */
-    	sparql_skip_cpp_comment(rqe);
+"//"[^\r\n]*\r\n|\r|\n	{ /* C++ comment */
+        rqe->lineno++;
 }
 
-"/*"	{ if(sparql_skip_c_comment(rq) < 0)
+"/*"	{ int lines=sparql_skip_c_comment(rq);
+          if(lines < 0)
             yyterminate();
+          rqe->lineno += lines;
         }
 
 \r\n|\r|\n     { rqe->lineno++; }
@@ -325,7 +400,7 @@ QUOTEDURI \<[^<= ][^>]*\>|\<\>
 "null"	{ sparql_parser_lval->literal=NULL;
           return NULL_LITERAL; }
 
-<ID>{VARNAME}	{ sparql_parser_lval->name=sparql_copy_name(rq, (const unsigned char*)yytext, yyleng);
+<ID>{VARNAME}	{ sparql_parser_lval->name=sparql_copy_name(rq, (const unsigned char*)yytext, yyleng, SPARQL_NAME_CHECK_VARNAME);
 		  if(!sparql_parser_lval->name)
                     yyterminate();
                           BEGIN(INITIAL);
@@ -338,7 +413,7 @@ QUOTEDURI \<[^<= ][^>]*\>|\<\>
 
 <PREF>[\ \t\v]+ { /* eat up leading whitespace */ }
 <PREF>{NCNAME_PREFIX}":"	{ BEGIN(INITIAL);
-		  	  sparql_parser_lval->name=sparql_copy_name(rq, (const unsigned char*)yytext, yyleng-1);
+		  	  sparql_parser_lval->name=sparql_copy_name(rq, (const unsigned char*)yytext, yyleng-1, SPARQL_NAME_CHECK_PREFIX);
 			  if(!sparql_parser_lval->name)
 			    yyterminate();
                           return IDENTIFIER; }
@@ -364,7 +439,7 @@ QUOTEDURI \<[^<= ][^>]*\>|\<\>
  		return have_brace ? URI_LITERAL_BRACE : URI_LITERAL;
 }
 
-{BNAME}	{	sparql_parser_lval->name=sparql_copy_name(rq, (unsigned char*)yytext+2, yyleng-2);
+{BNAME}	{	sparql_parser_lval->name=sparql_copy_name(rq, (unsigned char*)yytext+2, yyleng-2, SPARQL_NAME_CHECK_NCNAME);
 		return BLANK_LITERAL;
 }
 
@@ -400,8 +475,33 @@ yywrap (yyscan_t yyscanner) {
 }
 
 
+static int
+rasqal_sparql_name_check(const unsigned char *string, size_t length,
+                         sparql_name_check_flags check_flags)
+{
+  if(!raptor_xml_name_check(string, length, 11)) /* 11 = XML 1.1 */
+    return 0;
+  
+  if((check_flags & SPARQL_NAME_CHECK_NO_UL_FIRST) && *string == '_')
+    return 0;
+
+  if((check_flags & SPARQL_NAME_CHECK_NO_DOT_LAST) && string[length-1] == '.')
+    return 0;
+
+  if(check_flags & SPARQL_NAME_CHECK_NO_DOT_MINUS) {
+    int i;
+    for(i=0; i<length; i++)
+      if(string[i] == '.' || string[i] == '-')
+        return 0;
+  }
+  
+  return 1;
+}
+
+
 static unsigned char *
-sparql_copy_name(rasqal_query *rq, const unsigned char *text, size_t len) {
+sparql_copy_name(rasqal_query *rq, const unsigned char *text, size_t len,
+                 sparql_name_check_flags check_flags) {
   size_t dest_len=0;
   unsigned char *s;
 
@@ -411,7 +511,7 @@ sparql_copy_name(rasqal_query *rq, const unsigned char *text, size_t len) {
   if(!s)
     return s;
 
-  if(!raptor_xml_name_check(s, dest_len, 11))
+  if(!rasqal_sparql_name_check(s, dest_len, check_flags))
     sparql_syntax_warning(rq, "Invalid SPARQL name \"%s\"", s);
 
   return s;
@@ -432,9 +532,9 @@ sparql_copy_qname(rasqal_query *rq, const unsigned char *text, size_t len) {
     return NULL;
 
   p=(unsigned char*)strchr((const char*)s, ':');
-  if(!raptor_xml_name_check(s, p-s, 11))
+  if(!rasqal_sparql_name_check(s, p-s, SPARQL_NAME_CHECK_PREFIX))
     sparql_syntax_warning(rq, "Invalid SPARQL name \"%s\"", s);
-  if(!raptor_xml_name_check(p+1, dest_len-((p+1)-s), 11))
+  if(!rasqal_sparql_name_check(p+1, dest_len-((p+1)-s), SPARQL_NAME_CHECK_NCNAME))
     sparql_syntax_warning(rq, "Invalid SPARQL name \"%s\"", p+1);
 
 #ifdef STANDALONE
@@ -575,9 +675,10 @@ sparql_copy_string_token(rasqal_query* rq, YYSTYPE* lval,
         return 1;
 
       dt_p=(unsigned char*)strchr((const char*)dt_s, ':');
-      if(!raptor_xml_name_check(dt_s, dt_p-dt_s, 11))
+      if(!rasqal_sparql_name_check(dt_s, dt_p-dt_s, SPARQL_NAME_CHECK_PREFIX))
         sparql_syntax_warning(rq, "Invalid SPARQL name \"%s\"", dt_s);
-      if(!raptor_xml_name_check(dt_p+1, dest_len-((dt_p+1)-dt_s), 11))
+      if(!rasqal_sparql_name_check(dt_p+1, dest_len-((dt_p+1)-dt_s), 
+                                   SPARQL_NAME_CHECK_NCNAME))
         sparql_syntax_warning(rq, "Invalid SPARQL name \"%s\"", dt_p+1);
 
 #ifdef STANDALONE
@@ -627,16 +728,19 @@ sparql_skip_c_comment(rasqal_query *rq) {
   yyscan_t yyscanner=rqe->scanner;
   int lines=0;
   int c;
+  int lastc= -1;
   
   while(1) {
     while ((c=INPUT_FN(yyscanner)) != '*' && c!= EOF) {
-      if(c == '\r' || c == '\n')
+      if(c == '\r' || (c == '\n' && lastc != '\r'))
         lines++;
+      lastc= c;
     }
     if( c == '*') {
       while ((c=INPUT_FN(yyscanner)) == '*') {
-        if(c == '\r' || c == '\n')
+        if(c == '\r' || (c == '\n' && lastc != '\r'))
           lines++;
+        lastc= c;
       }
 
       if(c == '/')
@@ -647,20 +751,9 @@ sparql_skip_c_comment(rasqal_query *rq) {
       lines= -1;
       break;
     }
+    lastc= c;
   }
   return lines;
-}
-
-
-static void
-sparql_skip_cpp_comment(rasqal_sparql_query_engine *rqe) {
-  yyscan_t yyscanner=rqe->scanner;
-  int c;
-  
-  while ((c=INPUT_FN(yyscanner)) != EOF)
-    if(c == '\r' || c == '\n')
-      break;
-  return;
 }
 
 
