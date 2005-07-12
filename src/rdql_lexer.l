@@ -99,7 +99,6 @@
 
 
 
-static void rdql_skip_cpp_comment(rasqal_rdql_query_engine *rqe);
 static int rdql_skip_c_comment(rasqal_query *rq);
 
 static unsigned char* rdql_copy_name(rasqal_query *rq, const unsigned char *text, size_t len);
@@ -149,13 +148,14 @@ QUOTEDURI \<[A-Za-z][^>]+\>
   rasqal_rdql_query_engine *rqe=(rasqal_rdql_query_engine*)rq->context;
 
 
-"//"	{ /* C++ comment */
-    rdql_skip_cpp_comment(rqe);
+"//"[^\r\n]*\r\n|\r|\n	{ /* C++ comment */
+        rqe->lineno++;
 }
 
-"/*"	{ if(rdql_skip_c_comment(rq) < 0)
+"/*"	{ int lines=rdql_skip_c_comment(rq);
+          if(lines < 0)
             yyterminate();
-
+          rqe->lineno += lines;
         }
 
 \r\n|\r|\n     { rqe->lineno++; }
@@ -600,18 +600,6 @@ rdql_skip_c_comment(rasqal_query *rq) {
     }
   }
   return lines;
-}
-
-
-static void
-rdql_skip_cpp_comment(rasqal_rdql_query_engine *rqe) {
-  yyscan_t yyscanner=rqe->scanner;
-  int c;
-  
-  while ((c=INPUT_FN(yyscanner)) != EOF)
-    if(c == '\r' || c == '\n')
-      break;
-  return;
 }
 
 
