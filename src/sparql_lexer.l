@@ -241,7 +241,7 @@ QUOTEDURI \<[^<= ][^>]*\>|\<\>
   rasqal_sparql_query_engine *rqe=(rasqal_sparql_query_engine*)rq->context;
 
 
-"//"[^\r\n]*\r\n|\r|\n	{ /* C++ comment */
+"//"[^\r\n]*(\r\n|\r|\n)	{ /* C++ comment */
         rqe->lineno++;
 }
 
@@ -455,8 +455,8 @@ QUOTEDURI \<[^<= ][^>]*\>|\<\>
                  }
                  return have_brace ? URI_LITERAL_BRACE : URI_LITERAL; }
 
-\#              { while((c=INPUT_FN(yyscanner)) != '\n' && c)
-                    ;
+\#[^\r\n]*(\r\n|\r|\n)	{ /* # comment */
+        	rqe->lineno++;
                 }
 
 .         	{ if (*yytext == EOF)
