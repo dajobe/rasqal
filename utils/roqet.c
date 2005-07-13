@@ -70,7 +70,8 @@ static char *program=NULL;
 static enum {
   RESULTS_FORMAT_SIMPLE,
   RESULTS_FORMAT_XML_V1,
-  RESULTS_FORMAT_XML_V2
+  RESULTS_FORMAT_XML_V2,
+  RESULTS_FORMAT_XML_V3
 } results_format = RESULTS_FORMAT_SIMPLE;
 
 
@@ -140,8 +141,10 @@ roqet_query_results_print_as_xml(rasqal_query_results *results, FILE *fh,
 
   if(format == RESULTS_FORMAT_XML_V1)
     uri=raptor_new_uri((const unsigned char*)"http://www.w3.org/TR/2004/WD-rdf-sparql-XMLres-20041221/");
-  else /* RESULTS_FORMAT_XML_V2 */
+  else if(format == RESULTS_FORMAT_XML_V2)
     uri=raptor_new_uri((const unsigned char*)"http://www.w3.org/2001/sw/DataAccess/rf1/result2");
+  else /* RESULTS_FORMAT_XML_V3 (default) */
+    uri=raptor_new_uri((const unsigned char*)"http://www.w3.org/2005/06/sparqlResults");
 
   rasqal_query_results_write(iostr, results, uri, base_uri);
 
@@ -445,6 +448,8 @@ main(int argc, char *argv[])
           if(!strcmp(optarg, "simple"))
             results_format=RESULTS_FORMAT_SIMPLE;
           else if(!strcmp(optarg, "xml"))
+            results_format=RESULTS_FORMAT_XML_V3;
+          else if(!strcmp(optarg, "xml-v2"))
             results_format=RESULTS_FORMAT_XML_V2;
           else if(!strcmp(optarg, "xml-v1"))
             results_format=RESULTS_FORMAT_XML_V1;
@@ -572,8 +577,9 @@ main(int argc, char *argv[])
     puts(HELP_TEXT("r", "results FORMAT  ", "Set query results format to one of:"));
     puts("    For variable bindings and boolean results:");
     puts("      simple                A simple text format (default)");
-    puts("      xml                   SPARQL Query Results XML format V2");
-    puts("      xml-v1                SPARQL Query Results XML format V1");
+    puts("      xml                   SPARQL Query Results XML format");
+    puts("      xml-v2                SPARQL Query Results XML format V2 (2005-05-27)");
+    puts("      xml-v1                SPARQL Query Results XML format V1 (2004-12-21)");
     puts("    For RDF graph results:");
     for(i=0; 1; i++) {
       const char *help_name;
@@ -775,8 +781,7 @@ main(int argc, char *argv[])
     goto tidy_query;
   }
 
-  if(results_format == RESULTS_FORMAT_XML_V1 ||
-     results_format == RESULTS_FORMAT_XML_V2) {
+  if(results_format != RESULTS_FORMAT_SIMPLE) {
     roqet_query_results_print_as_xml(results, stdout, base_uri, 
                                      results_format);
   } else {
