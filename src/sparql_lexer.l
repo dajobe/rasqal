@@ -479,6 +479,9 @@ static int
 rasqal_sparql_name_check(const unsigned char *string, size_t length,
                          sparql_name_check_flags check_flags)
 {
+  if(!length)
+    return 1;
+
   if(!raptor_xml_name_check(string, length, 11)) /* 11 = XML 1.1 */
     return 0;
   
@@ -512,7 +515,7 @@ sparql_copy_name(rasqal_query *rq, const unsigned char *text, size_t len,
     return s;
 
   if(!rasqal_sparql_name_check(s, dest_len, check_flags))
-    sparql_syntax_warning(rq, "Invalid SPARQL name \"%s\"", s);
+    sparql_syntax_error(rq, "Invalid SPARQL name \"%s\"", s);
 
   return s;
 }
@@ -533,9 +536,9 @@ sparql_copy_qname(rasqal_query *rq, const unsigned char *text, size_t len) {
 
   p=(unsigned char*)strchr((const char*)s, ':');
   if(!rasqal_sparql_name_check(s, p-s, SPARQL_NAME_CHECK_PREFIX))
-    sparql_syntax_warning(rq, "Invalid SPARQL name \"%s\"", s);
+    sparql_syntax_error(rq, "Invalid SPARQL name \"%s\"", s);
   if(!rasqal_sparql_name_check(p+1, dest_len-((p+1)-s), SPARQL_NAME_CHECK_NCNAME))
-    sparql_syntax_warning(rq, "Invalid SPARQL name \"%s\"", p+1);
+    sparql_syntax_error(rq, "Invalid SPARQL name \"%s\"", p+1);
 
 #ifdef STANDALONE
   /* lexer test cannot declare namespaces - so just ignore expansion */
@@ -676,10 +679,10 @@ sparql_copy_string_token(rasqal_query* rq, YYSTYPE* lval,
 
       dt_p=(unsigned char*)strchr((const char*)dt_s, ':');
       if(!rasqal_sparql_name_check(dt_s, dt_p-dt_s, SPARQL_NAME_CHECK_PREFIX))
-        sparql_syntax_warning(rq, "Invalid SPARQL name \"%s\"", dt_s);
+        sparql_syntax_error(rq, "Invalid SPARQL name \"%s\"", dt_s);
       if(!rasqal_sparql_name_check(dt_p+1, dest_len-((dt_p+1)-dt_s), 
                                    SPARQL_NAME_CHECK_NCNAME))
-        sparql_syntax_warning(rq, "Invalid SPARQL name \"%s\"", dt_p+1);
+        sparql_syntax_error(rq, "Invalid SPARQL name \"%s\"", dt_p+1);
 
 #ifdef STANDALONE
       /* lexer test cannot declare namespaces - so just ignore expansion */
