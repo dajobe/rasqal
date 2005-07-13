@@ -3031,7 +3031,7 @@ rasqal_query_results_write_xml_result3(raptor_iostream *iostr,
                                           NULL, /* language */
                                           base_uri_copy);
 
-    raptor_xml_writer_raw_counted(xml_writer, (const unsigned char*)"    ", 4);
+    raptor_xml_writer_raw_counted(xml_writer, (const unsigned char*)"  ", 2);
     raptor_xml_writer_start_element(xml_writer, result_element);
     if(rasqal_query_results_get_boolean(results))
       raptor_xml_writer_raw_counted(xml_writer, (const unsigned char*)"true", 4);
