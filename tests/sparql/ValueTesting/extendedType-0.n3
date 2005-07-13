@@ -1,5 +1,3 @@
-# $Id$
-
 @prefix r: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix loc: <http://www.w3.org/2001/sw/DataAccess/tests/data/ValueTesting/extendedType-0#> .
 @prefix air: <http://www.daml.org/2001/10/html/airport-ont#> .

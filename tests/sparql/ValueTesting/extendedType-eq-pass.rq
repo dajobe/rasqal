@@ -9,4 +9,4 @@ SELECT ?a1 ?a2
             loc:location ?l2 .
         ?l2 loc:rotational ?rot2 .
         FILTER ?rot1 = ?rot2}
-	ORDER BY ASC [?a1]
+	ORDER BY ASC(?a1)
