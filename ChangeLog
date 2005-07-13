@@ -1,3 +1,56 @@
+2005-07-13  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* sparql_lexer.l (// comment rule, # comment rule):
+	Use better grab-till-newline form.
+
+	* tests/sparql/SyntaxFull/manifest.ttl,
+	tests/sparql/ValueTesting/extendedType-0.n3,
+	tests/sparql/ValueTesting/extendedType-eq-pass.rq,
+	tests/sparql/regex/regex-query-003.rq,
+	tests/sparql/regex/regex-query-004.rq: Update tests from DAWG CVS
+
+	* sparql_lexer.l (rasqal_sparql_name_check):
+	Ignore 0 length names - checked in parser.
+	Make all name problems into errors rather than warnings.
+
+2005-07-12  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* sparql_lexer.l: Reference rq23
+	Added sparql_name_check_flags enum for sparql name checking.
+	Updated SPARQL name tokens to match latest rq23 - lots of comments.
+	(// C++ comment rule): Use pattern to find end of line with multiple
+	line endings.  Count line.
+	(/* C comment block rule): Use returned lines to bump the current
+	line number.
+	(<ID>{VARNAME} rule): Check varnames.
+	(<PREF>{NCNAME_PREFIX}":" rule): Check prefix.
+	({BNAME} rule): Check ncname.
+	(rasqal_sparql_name_check): Added to do XML Name 1.1 check and
+	others.
+	(sparql_copy_name): Add check_flag and use it with
+	rasqal_sparql_name_check instead of raptor_xml_name_check.
+	(sparql_copy_qname, sparql_copy_string_token): Use
+	rasqal_sparql_name_check instead of raptor_xml_name_check.
+	(sparql_skip_cpp_comment): Deleted.
+
+	* rdql_lexer.l (// C++ comment rule):
+	Use pattern to find end of line with multiple
+	line endings.  Count line.
+	(/* C comment block rule): Use returned lines to bump the current
+	line number.
+	(rdql_skip_cpp_comment): Deleted.
+
+	* tests/sparql/SyntaxFull/manifest.ttl,
+	tests/sparql/SyntaxFull/syntax-qname-08.rq,
+	tests/sparql/SyntaxFull/syntax-qname-14.rq: Updates from DAWG
+	tests
+
+2005-07-01  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* configure.ac: time headers
+
+	* configure.ac: Test for srandomdev
+
 2005-06-29  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
 	* rasqal_query.c (rasqal_query_execute): Do the result making outside
