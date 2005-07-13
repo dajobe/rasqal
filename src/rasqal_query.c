@@ -2175,7 +2175,7 @@ rasqal_query_results_write(raptor_iostream *iostr,
 {
   /*
    * SPARQL XML Results 2005-??-?? (to appear)
-   * http://www.w3.org/2001/sw/DataAccess/rf1/result
+   * http://www.w3.org/2005/06/sparqlResults
    */
   if(!format_uri ||
      !strcmp((const char*)raptor_uri_as_string(format_uri),
