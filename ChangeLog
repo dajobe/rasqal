@@ -1,4 +1,34 @@
+2005-07-14  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* Makefile.am: rasqal_skiplist_test is in TESTS
+
+	* rasqal_internal.h, rasqal_skiplist.c: Moved internal struct
+	rasqal_skiplist_node into rasqal_skiplist.c again.
+
+	* rasqal_internal.h, rasqal_skiplist.c: Moved rasqal_skiplist
+	headers into rasqal_internal.h for now.
+
+	* rasqal_skiplist.c: Skip list implememntation
+
+	* Makefile.am: Added rasqal_skiplist.c and rasqal_skiplist_test
+
 2005-07-13  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal_query.c (rasqal_query_results_write_xml_result3): Indent
+	<boolean> by 2
+
+	* roqet.c: Added new xml format with URI
+	http://www.w3.org/2005/06/sparqlResults and made old one available
+	via xml-v2
+
+	* rasqal_query.c (rasqal_query_results_write): comments docs for
+	URI http://www.w3.org/2005/06/sparqlResults.
+
+	* rasqal_query.c (rasqal_query_results_write): Allow NULL URI for
+	default format.  Add format V3 with URi
+	http://www.w3.org/2005/06/sparqlResults.
+	(rasqal_query_results_write_xml_result3): Added for latest format
+	and new namespace.
 
 	* sparql_lexer.l (// comment rule, # comment rule):
 	Use better grab-till-newline form.
