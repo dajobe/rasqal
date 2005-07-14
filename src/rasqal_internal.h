@@ -573,35 +573,6 @@ RASQAL_API unsigned int rasqal_skiplist_get_size(rasqal_skiplist* list);
 /* End of potential public header items for rasqal_skiplist.c */
 
 
-typedef struct rasqal_skiplist_node_s rasqal_skiplist_node;
-
-struct rasqal_skiplist_s {
-  /* list header */
-  rasqal_skiplist_node* head;
-
-  /* current level of list */
-  int level;
-
-  /* number of entries in list */
-  int size;
-
-  /* flags from bitor of enum rasqal_skiplist_flags values */
-  int flags;
-
-  /* random bits management for choosing level */
-  unsigned int random_bits;
-  unsigned int random_bits_left;
-
-  /* item comparison function returning for A<B: <0, A=B: 0, A>B: >0 */
-  rasqal_compare_fn* compare_fn;
-
-  /* item free item (key, value pair) function */
-  rasqal_free_fn* free_fn;
-
-  /* print (key,value) pair function */
-  rasqal_skiplist_print_handler* print_fn;
-};
-
 /* class init / finish */
 void rasqal_skiplist_init(void);
 void rasqal_skiplist_init_with_seed(unsigned long seed);
