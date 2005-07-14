@@ -36,7 +36,8 @@ man_MANS = roqet.1 librasqal.3 rasqal-config.1
 
 SUBDIRS=data tests docs win32
 
-TESTS=rasqal_expr_test strcasecmp_test
+TESTS=rasqal_expr_test strcasecmp_test rasqal_skiplist_test
+
 local_tests=rasqal_query_test
 if RASQAL_DATATYPES
 local_tests += rasqal_xsd_datatypes_test
@@ -46,9 +47,6 @@ local_tests += rdql_lexer_test rdql_parser_test
 endif
 if RASQAL_QUERY_SPARQL
 local_tests += sparql_lexer_test sparql_parser_test
-endif
-if MAINTAINER_MODE
-local_tests += rasqal_skiplist_test
 endif
 
 EXTRA_PROGRAMS=$(TESTS) $(local_tests)
