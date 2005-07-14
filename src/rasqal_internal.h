@@ -546,7 +546,7 @@ void rasqal_formula_print(rasqal_formula* formula, FILE *stream);
 
 /* rasqal_skiplist.c */
 
-/* The following should be public eventually in rasqal.h or whereverx */
+/* The following should be public eventually in rasqal.h or raptor.h or ...? */
 
 typedef int (rasqal_compare_fn)(const void *a, const void *b);
 typedef void (rasqal_free_fn)(const void *key, const void *value);
