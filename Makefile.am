@@ -47,6 +47,9 @@ endif
 if RASQAL_QUERY_SPARQL
 local_tests += sparql_lexer_test sparql_parser_test
 endif
+if MAINTAINER_MODE
+local_tests += rasqal_skiplist_test
+endif
 
 EXTRA_PROGRAMS=$(TESTS) $(local_tests)
 
@@ -65,7 +68,7 @@ AM_CFLAGS=@CFLAGS@ @RASQAL_INTERNAL_CPPFLAGS@ @RASQAL_EXTERNAL_CPPFLAGS@ $(MEM)
 librasqal_la_SOURCES = \
 rasqal_expr.c rasqal_general.c rasqal_query.c \
 rasqal_engine.c rasqal_raptor.c rasqal_literal.c \
-rasqal_graph_pattern.c
+rasqal_graph_pattern.c rasqal_skiplist.c
 
 if RASQAL_QUERY_RDQL
 librasqal_la_SOURCES += rdql_lexer.c rdql_lexer.h \
@@ -217,6 +220,10 @@ rasqal_query_test_LDADD = librasqal.la @RASQAL_EXTERNAL_LIBS@ $(MEM_LIBS)
 rasqal_xsd_datatypes_test_SOURCES = rasqal_xsd_datatypes.c
 rasqal_xsd_datatypes_test_CPPFLAGS = -DSTANDALONE @RASQAL_EXTERNAL_CPPFLAGS@
 rasqal_xsd_datatypes_test_LDADD = librasqal.la @RASQAL_EXTERNAL_LIBS@ $(MEM_LIBS)
+
+rasqal_skiplist_test_SOURCES = rasqal_skiplist.c
+rasqal_skiplist_test_CPPFLAGS = -DSTANDALONE @RASQAL_EXTERNAL_CPPFLAGS@
+rasqal_skiplist_test_LDADD = librasqal.la @RASQAL_EXTERNAL_LIBS@ $(MEM_LIBS)
 
 $(top_builddir)/raptor/libraptor.la:
 	cd $(top_builddir)/raptor && $(MAKE) $(AM_MAKEFLAGS) libraptor.la
