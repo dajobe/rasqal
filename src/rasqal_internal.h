@@ -544,6 +544,75 @@ void rasqal_free_formula(rasqal_formula* formula);
 void rasqal_formula_print(rasqal_formula* formula, FILE *stream);
 
 
+/* rasqal_skiplist.c */
+
+/* The following should be public eventually in rasqal.h or whereverx */
+
+typedef int (rasqal_compare_fn)(const void *a, const void *b);
+typedef void (rasqal_free_fn)(const void *key, const void *value);
+typedef void (rasqal_skiplist_print_handler(const void *key, const void *value, FILE *fh));
+
+typedef struct rasqal_skiplist_s rasqal_skiplist;
+
+typedef enum {
+  RASQAL_SKIPLIST_FLAG_NONE=0,
+  RASQAL_SKIPLIST_FLAG_DUPLICATES=1
+} rasqal_skiplist_flags;
+
+/* constructor / destructor */
+RASQAL_API rasqal_skiplist* rasqal_new_skiplist(rasqal_compare_fn* compare_fn, rasqal_free_fn* free_fn, rasqal_skiplist_print_handler* print_fn, int flags);
+RASQAL_API void rasqal_free_skiplist(rasqal_skiplist* list);
+
+/* methods */
+RASQAL_API int rasqal_skiplist_insert(rasqal_skiplist* list, void* key, void* value);
+RASQAL_API int rasqal_skiplist_delete(rasqal_skiplist* list, void* key);
+RASQAL_API void* rasqal_skiplist_find(rasqal_skiplist* list, void* key);
+RASQAL_API void rasqal_skiplist_print(rasqal_skiplist* list, FILE *fh);
+RASQAL_API unsigned int rasqal_skiplist_get_size(rasqal_skiplist* list);
+
+/* End of potential public header items for rasqal_skiplist.c */
+
+
+typedef struct rasqal_skiplist_node_s rasqal_skiplist_node;
+
+struct rasqal_skiplist_s {
+  /* list header */
+  rasqal_skiplist_node* head;
+
+  /* current level of list */
+  int level;
+
+  /* number of entries in list */
+  int size;
+
+  /* flags from bitor of enum rasqal_skiplist_flags values */
+  int flags;
+
+  /* random bits management for choosing level */
+  unsigned int random_bits;
+  unsigned int random_bits_left;
+
+  /* item comparison function returning for A<B: <0, A=B: 0, A>B: >0 */
+  rasqal_compare_fn* compare_fn;
+
+  /* item free item (key, value pair) function */
+  rasqal_free_fn* free_fn;
+
+  /* print (key,value) pair function */
+  rasqal_skiplist_print_handler* print_fn;
+};
+
+/* class init / finish */
+void rasqal_skiplist_init(void);
+void rasqal_skiplist_init_with_seed(unsigned long seed);
+
+void rasqal_skiplist_finish(void);
+
+/* internal functions */
+void rasqal_skiplist_dump(rasqal_skiplist* list, FILE *fh);
+
+
+
 /* end of RASQAL_INTERNAL */
 #endif
 
