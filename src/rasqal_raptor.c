@@ -217,7 +217,6 @@ rasqal_raptor_new_triples_source(rasqal_query* rdf_query,
                                  rasqal_triples_source *rts) {
   rasqal_raptor_triples_source_user_data* rtsc=(rasqal_raptor_triples_source_user_data*)user_data;
   raptor_parser *parser;
-  const char *parser_name;
   int i;
 
   if(!rdf_query->data_graphs)
@@ -243,9 +242,7 @@ rasqal_raptor_new_triples_source(rasqal_query* rdf_query,
     rtsc->source_uris[i]=raptor_uri_copy(uri);
     rtsc->source_literals[i]=rasqal_new_uri_literal(raptor_uri_copy(uri));
 
-    parser_name=raptor_guess_parser_name(NULL, NULL, NULL, 0, 
-                                         raptor_uri_as_string(uri));
-    parser=raptor_new_parser(parser_name);
+    parser=raptor_new_parser("guess");
     raptor_set_statement_handler(parser, rtsc, rasqal_raptor_statement_handler);
     raptor_set_error_handler(parser, rdf_query, rasqal_raptor_error_handler);
     raptor_parse_uri(parser, uri, dg->name_uri);
