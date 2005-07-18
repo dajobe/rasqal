@@ -1,4 +1,13 @@
+2005-07-18  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal_raptor.c (rasqal_raptor_new_triples_source):
+	Use raptor guess parser.
+
+	* configure.ac: Require raptor 1.4.8 for guess parser.
+
 2005-07-14  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* sparql_parser.y: Update to rq23 CVS 1.423 2005/07/14 12:04:17
 
 	* Makefile.am: rasqal_skiplist_test is in TESTS
 
