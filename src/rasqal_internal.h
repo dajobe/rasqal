@@ -517,7 +517,7 @@ void rasqal_redland_finish(void);
 #endif  
 
 
-/* raptor_general.c */
+/* rasqal_general.c */
 extern raptor_uri* rasqal_xsd_namespace_uri;
 extern raptor_uri* rasqal_xsd_integer_uri;
 extern raptor_uri* rasqal_xsd_double_uri;
@@ -581,6 +581,10 @@ void rasqal_skiplist_finish(void);
 
 /* internal functions */
 void rasqal_skiplist_dump(rasqal_skiplist* list, FILE *fh);
+
+
+#define RASQAL_XSD_BOOLEAN_TRUE (const unsigned char*)"true"
+#define RASQAL_XSD_BOOLEAN_FALSE (const unsigned char*)"false"
 
 
 
