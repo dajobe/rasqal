@@ -2677,9 +2677,9 @@ rasqal_query_results_write_xml_result2(raptor_iostream *iostr,
     raptor_xml_writer_raw_counted(xml_writer, (const unsigned char*)"    ", 4);
     raptor_xml_writer_start_element(xml_writer, result_element);
     if(rasqal_query_results_get_boolean(results))
-      raptor_xml_writer_raw_counted(xml_writer, (const unsigned char*)"true", 4);
+      raptor_xml_writer_raw(xml_writer, RASQAL_XSD_BOOLEAN_TRUE);
     else
-      raptor_xml_writer_raw_counted(xml_writer, (const unsigned char*)"false", 5);
+      raptor_xml_writer_raw(xml_writer, RASQAL_XSD_BOOLEAN_FALSE);
     raptor_xml_writer_end_element(xml_writer, result_element);
     raptor_xml_writer_raw_counted(xml_writer, (const unsigned char*)"\n", 1);
 
@@ -3034,9 +3034,9 @@ rasqal_query_results_write_xml_result3(raptor_iostream *iostr,
     raptor_xml_writer_raw_counted(xml_writer, (const unsigned char*)"  ", 2);
     raptor_xml_writer_start_element(xml_writer, result_element);
     if(rasqal_query_results_get_boolean(results))
-      raptor_xml_writer_raw_counted(xml_writer, (const unsigned char*)"true", 4);
+      raptor_xml_writer_raw(xml_writer, RASQAL_XSD_BOOLEAN_TRUE);
     else
-      raptor_xml_writer_raw_counted(xml_writer, (const unsigned char*)"false", 5);
+      raptor_xml_writer_raw(xml_writer, RASQAL_XSD_BOOLEAN_FALSE);
     raptor_xml_writer_end_element(xml_writer, result_element);
     raptor_xml_writer_raw_counted(xml_writer, (const unsigned char*)"\n", 1);
 
@@ -3055,6 +3055,19 @@ rasqal_query_results_write_xml_result3(raptor_iostream *iostr,
   results_element=raptor_new_xml_element(results_qname,
                                          NULL, /* language */
                                          base_uri_copy);
+
+  attrs=(raptor_qname **)raptor_alloc_memory(2*sizeof(raptor_qname*));
+  i=(rasqal_query_get_order_condition(query, 0) != NULL);
+  attrs[0]=raptor_new_qname_from_namespace_local_name(res_ns, 
+                                                      (const unsigned char*)"ordered", 
+                                                      i ? RASQAL_XSD_BOOLEAN_TRUE : RASQAL_XSD_BOOLEAN_FALSE);
+  
+  i=rasqal_query_get_distinct(query);
+  attrs[1]=raptor_new_qname_from_namespace_local_name(res_ns, 
+                                                      (const unsigned char*)"distinct",
+                                                      i ? RASQAL_XSD_BOOLEAN_TRUE : RASQAL_XSD_BOOLEAN_FALSE);
+  raptor_xml_element_set_attributes(results_element, attrs, 2);
+
   raptor_xml_writer_raw_counted(xml_writer, (const unsigned char*)"  ", 2);
   raptor_xml_writer_start_element(xml_writer, results_element);
   raptor_xml_writer_raw_counted(xml_writer, (const unsigned char*)"\n", 1);
