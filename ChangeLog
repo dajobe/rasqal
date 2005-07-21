@@ -1,3 +1,20 @@
+2005-07-21  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal_query.c (rasqal_query_results_write_xml_result2,
+	rasqal_query_results_write_xml_result3): Use
+	RASQAL_XSD_BOOLEAN_TRUE and RASQAL_XSD_BOOLEAN_FALSE for boolean
+	result value.
+	(rasqal_query_results_write_xml_result3): Add ordered and distinct
+	attributes to <results> element.
+
+	* rasqal_literal.c (rasqal_literal_string_to_native,
+	rasqal_new_boolean_literal): Use RASQAL_XSD_BOOLEAN_TRUE and
+	RASQAL_XSD_BOOLEAN_FALSE.
+
+	* rasqal_internal.h: Added RASQAL_XSD_BOOLEAN_TRUE and
+	RASQAL_XSD_BOOLEAN_FALSE, maybe could be pointers to a shared
+	string but compilers can work it out.
+
 2005-07-18  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
 	* rasqal_raptor.c (rasqal_raptor_new_triples_source):
