@@ -228,7 +228,7 @@ rasqal_literal_string_to_native(rasqal_literal *l,
     }
 
     /* static string for boolean */
-    l->string=(const unsigned char*)(b ? "true" : "false");
+    l->string=b ? RASQAL_XSD_BOOLEAN_TRUE : RASQAL_XSD_BOOLEAN_FALSE;
     l->string_len=(b ? 4 : 5);
 
     l->type=RASQAL_LITERAL_BOOLEAN;
@@ -327,8 +327,7 @@ rasqal_new_boolean_literal(int value)
 
   l->type=RASQAL_LITERAL_BOOLEAN;
   l->value.integer=value;
-  /* static string for boolean */
-  l->string=(const unsigned char*)(value ? "true" : "false");
+  l->string=value ? RASQAL_XSD_BOOLEAN_TRUE : RASQAL_XSD_BOOLEAN_FALSE;
   l->string_len=(value ? 4 : 5);
   l->usage=1;
   return l;
