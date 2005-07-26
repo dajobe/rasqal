@@ -148,7 +148,7 @@ roqet_query_results_print_as_xml(rasqal_query_results *results, FILE *fh,
   else if(format == RESULTS_FORMAT_XML_V2)
     uri=raptor_new_uri((const unsigned char*)"http://www.w3.org/2001/sw/DataAccess/rf1/result2");
   else /* RESULTS_FORMAT_XML_V3 (default) */
-    uri=raptor_new_uri((const unsigned char*)"http://www.w3.org/2005/06/sparqlResults");
+    uri=raptor_new_uri((const unsigned char*)"http://www.w3.org/2005/sparql-results#");
 
   rasqal_query_results_write(iostr, results, uri, base_uri);
 
