@@ -1,3 +1,9 @@
+2005-07-26  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* roqet.c, rasqal_query.c:
+	Changed results namespace from http://www.w3.org/2005/06/sparqlResults
+	to http://www.w3.org/2005/sparql-results#
+
 2005-07-21  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
 	* rasqal_query.c (rasqal_query_results_write_xml_result2,
