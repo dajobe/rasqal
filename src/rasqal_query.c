@@ -2923,7 +2923,7 @@ rasqal_query_results_write_xml_result3(raptor_iostream *iostr,
 
   res_ns=raptor_new_namespace(nstack,
                               NULL,
-                              (const unsigned char*)"http://www.w3.org/2005/sparql-Results#",
+                              (const unsigned char*)"http://www.w3.org/2005/sparql-results#",
                               0);
 
 
