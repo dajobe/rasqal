@@ -179,7 +179,7 @@ roqet_write_indent(FILE *fh, int indent)
 {
   while(indent > 0) {
     int sp=(indent > SPACES_LENGTH) ? SPACES_LENGTH : indent;
-    fwrite(spaces, sizeof(char), sp, fh);
+    (void)fwrite(spaces, sizeof(char), sp, fh);
     indent -= sp;
   }
 }
@@ -664,7 +664,12 @@ main(int argc, char *argv[])
     /* NOP - already got it */
   } else if(!uri_string) {
     query_string=calloc(FILE_READ_BUF_SIZE, 1);
-    fread(query_string, FILE_READ_BUF_SIZE, 1, stdin);
+    rc=fread(query_string, FILE_READ_BUF_SIZE, 1, stdin);
+    if(ferror(stdin)) {
+      fprintf(stderr, "%s: query string stdin read failed - %s\n",
+              program, strerror(errno));
+      return(1);
+    }
     query_from_string=0;
   } else if(filename) {
     raptor_stringbuffer *sb=raptor_new_stringbuffer();
@@ -685,8 +690,15 @@ main(int argc, char *argv[])
       read_len=fread((char*)buffer, 1, FILE_READ_BUF_SIZE, fh);
       if(read_len > 0)
         raptor_stringbuffer_append_counted_string(sb, buffer, read_len, 1);
-      if(read_len < FILE_READ_BUF_SIZE)
+      if(read_len < FILE_READ_BUF_SIZE) {
+        if(ferror(fh)) {
+          fprintf(stderr, "%s: file '%s' read failed - %s\n",
+                  program, filename, strerror(errno));
+          fclose(fh);
+          return(1);
+        }
         break;
+      }
     }
     fclose(fh);
 
@@ -756,10 +768,10 @@ main(int argc, char *argv[])
     
     fprintf(stderr, "%s: Parsing query '", program);
     if(len > MAX_QUERY_ERROR_REPORT_LEN) {
-      fwrite(query_string, MAX_QUERY_ERROR_REPORT_LEN, sizeof(char), stderr);
+      (void)fwrite(query_string, MAX_QUERY_ERROR_REPORT_LEN, sizeof(char), stderr);
       fprintf(stderr, "...' (%d bytes) failed\n", (int)len);
     } else {
-      fwrite(query_string, len, sizeof(char), stderr);
+      (void)fwrite(query_string, len, sizeof(char), stderr);
       fputs("' failed\n", stderr);
     }
     rc=1;

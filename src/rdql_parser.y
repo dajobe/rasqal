@@ -863,7 +863,15 @@ main(int argc, char *argv[])
   }
 
   memset(query_string, 0, RDQL_FILE_BUF_SIZE);
-  fread(query_string, RDQL_FILE_BUF_SIZE, 1, fh);
+  rc=fread(query_string, RDQL_FILE_BUF_SIZE, 1, fh);
+  if(rc < RDQL_FILE_BUF_SIZE) {
+    if(ferror(fh)) {
+      fprintf(stderr, "%s: file '%s' read failed - %s\n",
+              program, filename, strerror(errno));
+      fclose(fh);
+      return(1);
+    }
+  }
   
   if(argc>1)
     fclose(fh);

@@ -197,7 +197,7 @@ rasqal_map_node_write_indent(FILE *fh, int indent)
 {
   while(indent > 0) {
     int sp=(indent > SPACES_LENGTH) ? SPACES_LENGTH : indent;
-    fwrite(rasqal_map_node_spaces, sizeof(char), sp, fh);
+    (void)fwrite(rasqal_map_node_spaces, sizeof(char), sp, fh);
     indent -= sp;
   }
 }
