@@ -83,9 +83,9 @@ static void
 rasqal_free_map_node(rasqal_map_node *node, rasqal_kv_free_fn* free_fn) 
 {
   if(node->prev)
-    return rasqal_free_map_node(node->prev, free_fn);
+    rasqal_free_map_node(node->prev, free_fn);
   if(node->next)
-    return rasqal_free_map_node(node->next, free_fn);
+    rasqal_free_map_node(node->next, free_fn);
 
   free_fn(node->key, node->value);
 
