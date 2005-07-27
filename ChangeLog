@@ -1,5 +1,16 @@
 2005-07-27  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
+	* rasqal_query.c (rasqal_query_execute):
+	For a stored sequence of result rows, use
+	result_count as an offset so initialise to 0 always
+	(rasqal_query_results_next, rasqal_query_results_get_bindings,
+	rasqal_query_results_get_binding_value,
+	rasqal_query_results_get_binding_value_by_name): Adjust to use offset.
+
+	* rasqal_query.c: Removed RASQAL_MAP define; it's the default now.
+
+	* rasqal_skiplist.c (main): Update for new rasqal_new_skiplist API
+
 	* rasqal_query.c: General: rasqal_tree renamed to rasqal_map and
 	code moved to rasqal_map.c
 	(rasqal_new_query_result_row, rasqal_free_query_result_row):
