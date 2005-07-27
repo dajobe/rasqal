@@ -1536,6 +1536,8 @@ rasqal_query_execute(rasqal_query *query)
 #ifdef RASQAL_TREE
       if(!rasqal_tree_add_row(tree, row))
         offset++;
+      else /* duplicate, and not added so delete it */
+        rasqal_free_query_result_row(row);
 #else
       raptor_sequence_push(seq, row);
       offset++;
