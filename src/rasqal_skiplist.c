@@ -83,10 +83,11 @@ struct rasqal_skiplist_s {
   rasqal_compare_fn* compare_fn;
 
   /* item free item (key, value pair) function */
-  rasqal_free_fn* free_fn;
+  rasqal_kv_free_fn* free_fn;
 
-  /* print (key,value) pair function */
-  rasqal_skiplist_print_handler* print_fn;
+  /* print (key,value) functions */
+  raptor_sequence_print_handler* print_key_fn;
+  raptor_sequence_print_handler* print_value_fn;
 };
 
 
@@ -150,8 +151,9 @@ rasqal_skiplist_finish(void)
  */
 rasqal_skiplist*
 rasqal_new_skiplist(rasqal_compare_fn* compare_fn,
-                    rasqal_free_fn* free_fn,
-                    rasqal_skiplist_print_handler* print_fn,
+                    rasqal_kv_free_fn* free_fn,
+                    raptor_sequence_print_handler* print_key_fn,
+                    raptor_sequence_print_handler* print_value_fn,
                     int flags)
 {
   int i;
@@ -162,7 +164,8 @@ rasqal_new_skiplist(rasqal_compare_fn* compare_fn,
     return NULL;
   
   list->compare_fn=compare_fn;
-  list->print_fn=print_fn;
+  list->print_key_fn=print_key_fn;
+  list->print_value_fn=print_value_fn;
   
   list->head=(rasqal_skiplist_node*)RASQAL_MALLOC(rasqal_skiplist_node,
                                                   sizeof(rasqal_skiplist_node) + RASQAL_SKIPLIST_MAX_LEVEL*sizeof(rasqal_skiplist_node* ));
@@ -380,13 +383,22 @@ rasqal_skiplist_node_print(rasqal_skiplist* list,
                            rasqal_skiplist_node* node, FILE *fh)
 {
   fputs("{", fh);
-  if(list->print_fn)
-    list->print_fn(node->key, node->value, fh);
-  else {
+  if(!node->key)
+    fputs("NULL", fh);
+  else if(list->print_key_fn)
+    list->print_key_fn(node->key, fh);
+  else
     fprintf(fh, "key %p", node->key);
-    fputs(" : ", fh);
+
+  fputs(" : ", fh);
+
+  if(!node->value)
+    fputs("NULL", fh);
+  else if(list->print_value_fn)
+    list->print_value_fn(node->value, fh);
+  else
     fprintf(fh, "data %p", node->value);
-  }
+
   fputs("}", fh);
 }
 
