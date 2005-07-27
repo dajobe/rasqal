@@ -77,15 +77,15 @@ static int rasqal_raptor_triple_present(rasqal_triples_source *rts, void *user_d
 static void rasqal_raptor_free_triples_source(void *user_data);
 
 
-static
-raptor_uri* ordinal_as_uri(int ordinal) 
+static raptor_uri* 
+ordinal_as_uri(int ordinal) 
 {
   int t=ordinal;
   size_t len; 
   unsigned char *buffer;
   raptor_uri* uri;
   
-  len=raptor_rdf_namespace_uri_len + 1; /* 1 for '_' */
+  len=raptor_rdf_namespace_uri_len + 1 + 1; /* 1 for min-length, 1 for '_' */
   while(t/=10)
     len++;
   buffer=(unsigned char*)RASQAL_MALLOC(cstring, len+1);
