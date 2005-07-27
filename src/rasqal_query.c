@@ -44,8 +44,6 @@
 #include "rasqal_internal.h"
 
 
-#define RASQAL_MAP 1
-
 static void rasqal_query_add_query_result(rasqal_query *query, rasqal_query_results* query_results);
 static void rasqal_query_remove_query_result(rasqal_query *query, rasqal_query_results* query_results);
 static int rasqal_query_results_write_xml_20041221(raptor_iostream *iostr, rasqal_query_results *results, raptor_uri *base_uri);
@@ -1191,7 +1189,6 @@ rasqal_query_result_row_compare(const void *a, const void *b)
 }
 
 
-#ifdef RASQAL_MAP
 static void
 rasqal_map_add_to_sequence(void *key, void *value, void *user_data)
 {
@@ -1199,7 +1196,6 @@ rasqal_map_add_to_sequence(void *key, void *value, void *user_data)
   row=rasqal_new_query_result_row_from_query_result_row((rasqal_query_result_row*)key);
   raptor_sequence_push((raptor_sequence*)user_data, row);
 }
-#endif
 
 
 /**
@@ -1318,25 +1314,17 @@ rasqal_query_execute(rasqal_query *query)
 
   rasqal_query_add_query_result(query, query_results);
 
-  if(query->order_conditions_sequence
-#ifdef RASQAL_MAP
-     || query->distinct
-#endif
-     ) {
-#ifdef RASQAL_MAP
+  if(query->order_conditions_sequence || query->distinct) {
     rasqal_map* map=NULL;
-#endif
     raptor_sequence* seq;
     int offset=0;
 
-#ifdef RASQAL_MAP
     /* make a row:NULL map */
     map=rasqal_new_map(rasqal_query_result_row_compare,
                        rasqal_map_free_query_result_row, 
                        rasqal_map_print_query_result_row,
                        NULL,
                        0);
-#endif
 
     /* get all query results and order them */
     seq=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_query_result_row, (raptor_sequence_print_handler*)rasqal_query_result_row_print);
@@ -1357,10 +1345,8 @@ rasqal_query_execute(rasqal_query *query)
         query->finished=1;
         query->failed=1;
 
-#ifdef RASQAL_MAP
         if(map)
           rasqal_free_map(map);
-#endif
         raptor_free_sequence(seq);
         seq=NULL;
         break;
@@ -1369,7 +1355,6 @@ rasqal_query_execute(rasqal_query *query)
       /* otherwise is >0 match */
       row=rasqal_new_query_result_row(query_results, offset);
 
-#ifdef RASQAL_MAP
       /* after this, row is owned by map */
       if(!rasqal_map_add_kv(map, row, NULL)) {
         offset++;
@@ -1383,14 +1368,8 @@ rasqal_query_execute(rasqal_query *query)
         rasqal_free_query_result_row(row);
         row=NULL;
       }
-#else
-      raptor_sequence_push(seq, row);
-      offset++;
-#endif
-
     }
 
-#ifdef RASQAL_MAP
 #ifdef RASQAL_DEBUG
     if(map) {
       fputs("resulting map ", stderr);
@@ -1403,32 +1382,11 @@ rasqal_query_execute(rasqal_query *query)
       rasqal_map_visit(map, rasqal_map_add_to_sequence, (void*)seq);
       rasqal_free_map(map);
     }
-#else
-#endif
     query->results_sequence=seq;
 
     if(query->results_sequence) {
-#ifdef RASQAL_MAP
-      /* already sorted */
-#else
-#ifdef RASQAL_DEBUG
-      fputs("results before sorting: ", stderr);
-      raptor_sequence_print(query->results_sequence,  stderr);
-      fputs("\n", stderr);
-#endif
-      
-      /* sort results by the order sequence */
-      raptor_sequence_sort(query->results_sequence, 
-                           rasqal_compare_query_result_row);
-
-#ifdef RASQAL_DEBUG
-      fputs("results after sorting: ", stderr);
-      raptor_sequence_print(query->results_sequence,  stderr);
-      fputs("\n", stderr);
-#endif
-
-#endif
       query->finished= (raptor_sequence_size(query->results_sequence) == 0);
+
       /* Reset to first result an index into sequence of results
        *
        * Note: this is a result count NOT an index so when not immediately
