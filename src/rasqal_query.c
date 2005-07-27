@@ -44,14 +44,13 @@
 #include "rasqal_internal.h"
 
 
-#define RASQAL_TREE 1
+#define RASQAL_MAP 1
 
 static void rasqal_query_add_query_result(rasqal_query *query, rasqal_query_results* query_results);
 static void rasqal_query_remove_query_result(rasqal_query *query, rasqal_query_results* query_results);
 static int rasqal_query_results_write_xml_20041221(raptor_iostream *iostr, rasqal_query_results *results, raptor_uri *base_uri);
 static int rasqal_query_results_write_xml_result2(raptor_iostream *iostr, rasqal_query_results *results, raptor_uri *base_uri);
 static int rasqal_query_results_write_xml_result3(raptor_iostream *iostr, rasqal_query_results *results, raptor_uri *base_uri);
-static int rasqal_query_results_row_compare(rasqal_query_result_row *row_a, rasqal_query_result_row *row_b);
 
 /**
  * rasqal_new_query - Constructor - create a new rasqal_query object
@@ -937,6 +936,7 @@ rasqal_new_query_result_row(rasqal_query_results* query_results, int offset)
   row=(rasqal_query_result_row*)RASQAL_CALLOC(rasqal_query_result_row,
                                               sizeof(rasqal_query_result_row),
                                               1);
+  row->usage=1;
   row->results=query_results;
 
   row->size=size;
@@ -956,14 +956,26 @@ rasqal_new_query_result_row(rasqal_query_results* query_results, int offset)
   }
   
   rasqal_query_result_row_update(row, offset);
-
+  
   return row;
 }
+
+
+static rasqal_query_result_row*
+rasqal_new_query_result_row_from_query_result_row(rasqal_query_result_row* row)
+{
+  row->usage++;
+  return row;
+}
+
 
 
 static void 
 rasqal_free_query_result_row(rasqal_query_result_row* row)
 {
+  if(--row->usage)
+    return;
+  
   if(row->values) {
     int i; 
     for(i=0; i < row->size; i++) {
@@ -1090,7 +1102,7 @@ rasqal_query_result_literal_sequence_compare(rasqal_query* query,
       e=(rasqal_expression*)raptor_sequence_get_at(expr_sequence, i);
 
 #ifdef RASQAL_DEBUG
-    fprintf(stderr, "Comparing ");
+    RASQAL_DEBUG1("Comparing ");
     rasqal_literal_print(literal_a, stderr);
     fputs(" to ", stderr);
     rasqal_literal_print(literal_b, stderr);
@@ -1137,259 +1149,56 @@ rasqal_query_result_literal_sequence_compare(rasqal_query* query,
 
 
 static int
-rasqal_query_results_row_compare(rasqal_query_result_row *row_a,
-                                 rasqal_query_result_row *row_b)
+rasqal_query_result_row_compare(const void *a, const void *b)
 {
+  rasqal_query_result_row* row_a;
+  rasqal_query_result_row* row_b;
   rasqal_query_results* results;
   rasqal_query* query;
   int result=0;
 
+  row_a=*(rasqal_query_result_row**)a;
+  row_b=*(rasqal_query_result_row**)b;
   results=row_a->results;
   query=results->query;
-
-  if(row_a->order_size) {
-    result=rasqal_query_result_literal_sequence_compare(query,
-                                                        row_a->order_values,
-                                                        row_b->order_values,
-                                                        query->order_conditions_sequence,
-                                                        row_a->order_size);
-  } else if(query->distinct) {
+  
+  if(query->distinct) {
     result=rasqal_query_result_literal_sequence_compare(query,
                                                         row_a->values,
                                                         row_b->values,
                                                         NULL,
                                                         row_a->size);
+    if(!result)
+      /* duplicate, so return that */
+      return 0;
   }
-
+  
+  /* now order it */
+  result=rasqal_query_result_literal_sequence_compare(query,
+                                                      row_a->order_values,
+                                                      row_b->order_values,
+                                                      query->order_conditions_sequence,
+                                                      row_a->order_size);
+  
   /* still equal?  make sort stable by using the original order */
   if(!result) {
-    if(query->distinct) {
-#ifdef RASQAL_DEBUG
-      RASQAL_DEBUG2("Got equality result with distinct, so returning %d\n", 
-                    result);
-#endif
-    } else {
-      result= row_b->offset - row_a->offset;
-#ifdef RASQAL_DEBUG
+    result= row_a->offset - row_b->offset;
     RASQAL_DEBUG2("Got equality result so using offsets, returning %d\n",
                   result);
-#endif
-    }
   }
   
   return result;
 }
 
 
-#ifdef RASQAL_TREE
-#else
-static int
-rasqal_query_results_compare(const void *a, const void *b)
+#ifdef RASQAL_MAP
+static void
+rasqal_map_add_to_sequence(void *key, void *value, void *user_data)
 {
-  return rasqal_query_results_row_compare(*(rasqal_query_result_row**)a,
-                                          *(rasqal_query_result_row**)b);
-}
-#endif
-
-
-#ifdef RASQAL_TREE
-struct rasqal_tree_node_s
-{
-  struct rasqal_tree_s* tree;
-  struct rasqal_tree_node_s* prev;
-  struct rasqal_tree_node_s* next;
   rasqal_query_result_row* row;
-};
-
-struct rasqal_tree_s {
-  struct rasqal_tree_node_s* root;
-  int allow_duplicates;
-};
-
-typedef struct rasqal_tree_node_s rasqal_tree_node;
-typedef struct rasqal_tree_s rasqal_tree;
-
-
-static rasqal_tree_node*
-rasqal_new_tree_node(rasqal_tree* tree, rasqal_query_result_row* row) 
-{
-  rasqal_tree_node *node;
-  node=(rasqal_tree_node*)RASQAL_CALLOC(rasqal_tree_node, 1, sizeof(rasqal_tree_node));
-  if(!node)
-    return NULL;
-  node->tree=tree;
-  node->row=row;
-  return node;
+  row=rasqal_new_query_result_row_from_query_result_row((rasqal_query_result_row*)key);
+  raptor_sequence_push((raptor_sequence*)user_data, row);
 }
-
-
-static void
-rasqal_free_tree_node(rasqal_tree_node *node) 
-{
-  if(node->prev)
-    return rasqal_free_tree_node(node->prev);
-  if(node->next)
-    return rasqal_free_tree_node(node->next);
-  if(node->row)
-    rasqal_free_query_result_row(node->row);
-
-  RASQAL_FREE(rasqal_tree_node, node);
-}
-
-
-static rasqal_tree*
-rasqal_new_tree(int allow_duplicates)
-{
-  rasqal_tree *tree;
-  tree=(rasqal_tree*)RASQAL_CALLOC(rasqal_tree, 1, sizeof(rasqal_tree));
-  if(!tree)
-    return NULL;
-  tree->allow_duplicates=allow_duplicates;
-
-  return tree;
-}
-
-
-static void
-rasqal_free_tree(rasqal_tree *tree) 
-{
-  if(tree->root)
-    rasqal_free_tree_node(tree->root);
-
-  RASQAL_FREE(rasqal_tree, tree);
-}
-
-
-static int
-rasqal_tree_node_add_row(rasqal_tree_node* node, rasqal_query_result_row *row) 
-{
-  int result;
-
-  result=rasqal_query_results_row_compare(row, node->row);
-  if(result < 0) {
-    if(node->prev)
-      return rasqal_tree_node_add_row(node->prev, row);
-    node->prev=rasqal_new_tree_node(node->tree, row);
-    return 0;
-  } else if(!result) {
-    if(!node->tree->allow_duplicates) {
-      /* duplicate and not allowed */
-      return 1;
-    }
-    /* duplicate, fall through  */
-  } 
-
-  /* result > 0 */
-  if(node->next)
-    return rasqal_tree_node_add_row(node->next, row);
-
-  node->next=rasqal_new_tree_node(node->tree, row);
-  return 0;
-}
-
-
-static int
-rasqal_tree_add_row(rasqal_tree* tree, rasqal_query_result_row *row) 
-{
-  if(!tree->root) {
-    tree->root=rasqal_new_tree_node(tree, row);
-    return 0;
-  }
-  
-  return rasqal_tree_node_add_row(tree->root, row);
-}
-
-
-#define SPACES_LENGTH 80
-static const char rasqal_tree_node_spaces[SPACES_LENGTH+1]="                                                                                ";
-
-
-static void
-rasqal_tree_node_write_indent(FILE *fh, int indent) 
-{
-  while(indent > 0) {
-    int sp=(indent > SPACES_LENGTH) ? SPACES_LENGTH : indent;
-    fwrite(rasqal_tree_node_spaces, sizeof(char), sp, fh);
-    indent -= sp;
-  }
-}
-
-  
-
-static void
-rasqal_tree_node_print_internal(rasqal_tree_node* node, FILE* fh, int indent)
-{
-  fprintf(fh, "node %p {\n", node);
-  indent+=2;
-  rasqal_tree_node_write_indent(fh, indent);
-
-  fputs("prev: ", fh);
-  if(node->prev)
-    rasqal_tree_node_print_internal(node->prev, fh, indent);
-  else
-    fputs("NULL\n", fh);
-
-  rasqal_tree_node_write_indent(fh, indent);
-
-  fputs("next: ", fh);
-  if(node->next)
-    rasqal_tree_node_print_internal(node->next, fh, indent);
-  else
-    fputs("NULL\n", fh);
-  rasqal_tree_node_write_indent(fh, indent);
-
-  fputs("row: ", fh);
-  if(node->row)
-    rasqal_query_result_row_print(node->row, fh);
-  else
-    fputs("NULL", fh);
-  fputs("\n", fh);
-
-  indent-=2;
-  rasqal_tree_node_write_indent(fh, indent);
-  fputs("}\n", fh);
-}
-
-
-static void
-rasqal_tree_print(rasqal_tree* tree, FILE* fh)
-{
-  fprintf(fh, "tree duplicates=%s {\n", tree->allow_duplicates ? "yes" : "no");
-  if(tree->root)
-    rasqal_tree_node_print_internal(tree->root, fh, 2);
-  fputs("}\n", fh);
-}
-
-
-typedef void (*visit_fn)(rasqal_tree_node* node, void *user_data);
-
-
-static void
-rasqal_tree_node_visit(rasqal_tree_node* node, visit_fn fn, void *user_data)
-{
-  if(node->prev)
-    rasqal_tree_node_visit(node->prev, fn, user_data);
-  fn(node, user_data);
-  if(node->next)
-    rasqal_tree_node_visit(node->next, fn, user_data);
-}
-
-
-static void
-rasqal_tree_visit(rasqal_tree* tree, visit_fn fn, void *user_data)
-{
-  if(tree->root)
-    rasqal_tree_node_visit(tree->root, fn, user_data);
-}
-
-
-static void
-rasqal_tree_add_to_sequence(rasqal_tree_node* node, void *user_data)
-{
-  raptor_sequence_push((raptor_sequence*)user_data, node->row);
-  node->row=NULL;
-}
-
 #endif
 
 
@@ -1448,6 +1257,26 @@ rasqal_query_results_update(rasqal_query_results *query_results)
 }
 
 
+static void
+rasqal_map_print_query_result_row(void *object, FILE *fh)
+{
+  if(object)
+    rasqal_query_result_row_print((rasqal_query_result_row*)object, fh);
+  else
+    fputs("NULL", fh);
+}
+
+
+static void
+rasqal_map_free_query_result_row(const void *key, const void *value)
+{
+  if(key)
+    rasqal_free_query_result_row((rasqal_query_result_row*)key);
+  if(value)
+    rasqal_free_query_result_row((rasqal_query_result_row*)value);
+}
+
+
 /**
  * rasqal_query_execute - Excute a query - run and return results
  * @query: the &rasqal_query object
@@ -1490,19 +1319,25 @@ rasqal_query_execute(rasqal_query *query)
   rasqal_query_add_query_result(query, query_results);
 
   if(query->order_conditions_sequence
-#ifdef RASQAL_TREE
+#ifdef RASQAL_MAP
      || query->distinct
 #endif
      ) {
-#ifdef RASQAL_TREE
-    rasqal_tree* tree=NULL;
+#ifdef RASQAL_MAP
+    rasqal_map* map=NULL;
 #endif
     raptor_sequence* seq;
     int offset=0;
 
-#ifdef RASQAL_TREE
-    tree=rasqal_new_tree(!query->distinct);
+#ifdef RASQAL_MAP
+    /* make a row:NULL map */
+    map=rasqal_new_map(rasqal_query_result_row_compare,
+                       rasqal_map_free_query_result_row, 
+                       rasqal_map_print_query_result_row,
+                       NULL,
+                       0);
 #endif
+
     /* get all query results and order them */
     seq=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_query_result_row, (raptor_sequence_print_handler*)rasqal_query_result_row_print);
     while(1) {
@@ -1522,8 +1357,9 @@ rasqal_query_execute(rasqal_query *query)
         query->finished=1;
         query->failed=1;
 
-#ifdef RASQAL_TREE
-        rasqal_free_tree(tree);
+#ifdef RASQAL_MAP
+        if(map)
+          rasqal_free_map(map);
 #endif
         raptor_free_sequence(seq);
         seq=NULL;
@@ -1533,11 +1369,20 @@ rasqal_query_execute(rasqal_query *query)
       /* otherwise is >0 match */
       row=rasqal_new_query_result_row(query_results, offset);
 
-#ifdef RASQAL_TREE
-      if(!rasqal_tree_add_row(tree, row))
+#ifdef RASQAL_MAP
+      /* after this, row is owned by map */
+      if(!rasqal_map_add_kv(map, row, NULL)) {
         offset++;
-      else /* duplicate, and not added so delete it */
+      } else {
+       /* duplicate, and not added so delete it */
+#ifdef RASQAL_DEBUG
+        RASQAL_DEBUG1("Got duplicate row ");
+        rasqal_query_result_row_print(row, stderr);
+        fputc('\n', stderr);
+#endif
         rasqal_free_query_result_row(row);
+        row=NULL;
+      }
 #else
       raptor_sequence_push(seq, row);
       offset++;
@@ -1545,22 +1390,25 @@ rasqal_query_execute(rasqal_query *query)
 
     }
 
-#ifdef RASQAL_TREE
+#ifdef RASQAL_MAP
 #ifdef RASQAL_DEBUG
-    fputs("tree result: ", stderr);
-    rasqal_tree_print(tree, stderr);
-    fputs("\n", stderr);
+    if(map) {
+      fputs("resulting map ", stderr);
+      rasqal_map_print(map, stderr);
+      fputs("\n", stderr);
+    }
 #endif
 
-    rasqal_tree_visit(tree, rasqal_tree_add_to_sequence, (void*)seq);
-
-    rasqal_free_tree(tree);
+    if(map) {
+      rasqal_map_visit(map, rasqal_map_add_to_sequence, (void*)seq);
+      rasqal_free_map(map);
+    }
 #else
 #endif
     query->results_sequence=seq;
 
     if(query->results_sequence) {
-#ifdef RASQAL_TREE
+#ifdef RASQAL_MAP
       /* already sorted */
 #else
 #ifdef RASQAL_DEBUG
@@ -1571,7 +1419,7 @@ rasqal_query_execute(rasqal_query *query)
       
       /* sort results by the order sequence */
       raptor_sequence_sort(query->results_sequence, 
-                           rasqal_query_results_compare);
+                           rasqal_compare_query_result_row);
 
 #ifdef RASQAL_DEBUG
       fputs("results after sorting: ", stderr);
