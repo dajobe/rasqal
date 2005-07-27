@@ -145,7 +145,9 @@ rasqal_skiplist_finish(void)
  * rasqal_new_skiplist - Constructor - Create a new Rasqal skiplist
  * @compare_fn: function to compare two keys
  * @free_fn: function to delete a (key, value) item pair (or NULL)
- * @print_fn: function to print a (key, value) item pair (or NULL)
+ * @print_key_fn: function to print a key function
+ * @print_value_fn: function to print a key function
+ * @flags: set to RASQAL_SKIPLIST_FLAG_DUPLICATES to allow duplicates
  *
  * Return value: a new &rasqal_skiplist or NULL on failure.
  */

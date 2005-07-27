@@ -94,7 +94,7 @@ rasqal_free_map_node(rasqal_map_node *node, rasqal_kv_free_fn* free_fn)
 
 
 /**
- * rasqal_new_map: Create a (key:value) map
+ * rasqal_new_map - Constructor - Create a (key:value) map
  * @compare_fn: comparison function for keys
  * @free_fn: free function for (key, value) pair
  * @print_key_fn: print a key function (or NULL)
@@ -126,7 +126,7 @@ rasqal_new_map(rasqal_compare_fn* compare_fn,
 
 
 /**
- * rasqal_free_map: Destroy a (key:value) map
+ * rasqal_free_map - Destructor - Destroy a (key:value) map
  * @map: the &rasqal_map to free
  * 
  **/
