@@ -1,4 +1,46 @@
+2005-07-27  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal_query.c: General: rasqal_tree renamed to rasqal_map and
+	code moved to rasqal_map.c
+	(rasqal_new_query_result_row, rasqal_free_query_result_row):
+	Init/use usage counting.
+	(rasqal_new_query_result_row_from_query_result_row): Added.
+	(rasqal_query_result_row_compare): Take void* args, like a qsort()
+	compare Do a distinct comparison on values before an ordering, if
+	needed and discard duplicates there.
+	(rasqal_map_print_query_result_row,
+	rasqal_map_free_query_result_row): Added as rasqal_map helpers.
+	(rasqal_query_execute): Make a new map, not tree, calling above
+	helpers.
+
+	* rasqal_map.c: autodocs
+
+	* rasqal_map.c (rasqal_free_map_node): follow subtrees
+	recursively.
+
+	* rasqal_skiplist.c: rasqal_skiplist_s gains split key/value print
+	handler methods
+	(rasqal_new_skiplist): Split print_fn into print_key_fn and
+	print_value_fn
+	(rasqal_skiplist_node_print): Use new functions.
+
+	* rasqal_internal.h: rasqal_query_result_row gains usage count
+	Changed skiplist API to split key/value print handler methods
+	Added rasqal_map class, methods.
+
+	* Makefile.am: Added rasqal_map.c
+
+	* rasqal_map.c: Rasqal simple Key:Value Map with duplicates
+	allowed
+
+	* rasqal_query.c (rasqal_query_execute): If added a duplicate,
+	free the row.
+
+	* rasqal_raptor.c (ordinal_as_uri): off by 1 in making ordinal URI.
+
 2005-07-26  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal_query.c: sparql-results
 
 	* roqet.c, rasqal_query.c:
 	Changed results namespace from http://www.w3.org/2005/06/sparqlResults
