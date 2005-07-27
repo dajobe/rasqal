@@ -486,12 +486,9 @@ rasqal_skiplist_int_compare(const void *a, const void *b)
 }
 
 static void
-rasqal_skiplist_int_pair_print(const void *key, const void *value, FILE *fh)
+rasqal_skiplist_int_print(void *int_p, FILE *fh)
 {
-  int* key_i=(int*)key;
-  int* value_i=(int*)value;
-
-  fprintf(fh,"%d:%d", *key_i, *value_i);
+  fprintf(fh,"%d", *(int*)int_p);
 }
 
 
@@ -525,7 +522,8 @@ main(int argc, char *argv[])
   
   list=rasqal_new_skiplist(rasqal_skiplist_int_compare,
                            NULL,
-                           rasqal_skiplist_int_pair_print,
+                           rasqal_skiplist_int_print,
+                           rasqal_skiplist_int_print,
                            0);
   if(!list) {
     fprintf(stderr, "%s: Creating new skiplist failed\n", program);
@@ -547,8 +545,8 @@ main(int argc, char *argv[])
   
   for(i = 0; i < size; i++) {
     if(rasqal_skiplist_insert(list, &keys[i], &values[i])) {
-      fprintf(stderr, "%s: insert failed for ", program);
-      rasqal_skiplist_int_pair_print(&keys[i], &values[i], stderr);
+      fprintf(stderr, "%s: insert failed for %d:%d ", program,
+              keys[i], values[i]);
       fputs("\n", stderr);
     }
   }
