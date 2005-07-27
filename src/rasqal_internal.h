@@ -389,6 +389,9 @@ struct rasqal_query_engine_factory_s {
  * A row of query results 
  */
 typedef struct {
+  /* reference count */
+  int usage;
+
   /* Query results this row is associated with */
   rasqal_query_results* results;
 
@@ -549,8 +552,7 @@ void rasqal_formula_print(rasqal_formula* formula, FILE *stream);
 /* The following should be public eventually in rasqal.h or raptor.h or ...? */
 
 typedef int (rasqal_compare_fn)(const void *a, const void *b);
-typedef void (rasqal_free_fn)(const void *key, const void *value);
-typedef void (rasqal_skiplist_print_handler(const void *key, const void *value, FILE *fh));
+typedef void (rasqal_kv_free_fn)(const void *key, const void *value);
 
 typedef struct rasqal_skiplist_s rasqal_skiplist;
 
@@ -560,7 +562,7 @@ typedef enum {
 } rasqal_skiplist_flags;
 
 /* constructor / destructor */
-RASQAL_API rasqal_skiplist* rasqal_new_skiplist(rasqal_compare_fn* compare_fn, rasqal_free_fn* free_fn, rasqal_skiplist_print_handler* print_fn, int flags);
+RASQAL_API rasqal_skiplist* rasqal_new_skiplist(rasqal_compare_fn* compare_fn, rasqal_kv_free_fn* free_fn, raptor_sequence_print_handler* print_key_fn, raptor_sequence_print_handler* print_value_fn, int flags);
 RASQAL_API void rasqal_free_skiplist(rasqal_skiplist* list);
 
 /* methods */
@@ -586,6 +588,17 @@ void rasqal_skiplist_dump(rasqal_skiplist* list, FILE *fh);
 #define RASQAL_XSD_BOOLEAN_TRUE (const unsigned char*)"true"
 #define RASQAL_XSD_BOOLEAN_FALSE (const unsigned char*)"false"
 
+
+/* rasqal_map.c */
+typedef struct rasqal_map_s rasqal_map;
+
+typedef void (*rasqal_map_visit_fn)(void *key, void *value, void *user_data);
+
+rasqal_map* rasqal_new_map(rasqal_compare_fn* compare_fn, rasqal_kv_free_fn* free_fn, raptor_sequence_print_handler* print_key_fn, raptor_sequence_print_handler* print_value_fn, int flags);
+void rasqal_free_map(rasqal_map *map);
+int rasqal_map_add_kv(rasqal_map* map, void* key, void *value);
+void rasqal_map_visit(rasqal_map* map, rasqal_map_visit_fn fn, void *user_data);
+void rasqal_map_print(rasqal_map* map, FILE* fh);
 
 
 /* end of RASQAL_INTERNAL */
