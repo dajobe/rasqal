@@ -93,6 +93,16 @@ rasqal_free_map_node(rasqal_map_node *node, rasqal_kv_free_fn* free_fn)
 }
 
 
+/**
+ * rasqal_new_map: Create a (key:value) map
+ * @compare_fn: comparison function for keys
+ * @free_fn: free function for (key, value) pair
+ * @print_key_fn: print a key function (or NULL)
+ * @print_value_fn: print a value function (or NULL)
+ * @flags: non-0 to allow duplicates
+ * 
+ * Return value: a new &rasqal_map or NULL on failure
+ **/
 rasqal_map*
 rasqal_new_map(rasqal_compare_fn* compare_fn,
                rasqal_kv_free_fn* free_fn,
@@ -115,6 +125,11 @@ rasqal_new_map(rasqal_compare_fn* compare_fn,
 }
 
 
+/**
+ * rasqal_free_map: Destroy a (key:value) map
+ * @map: the &rasqal_map to free
+ * 
+ **/
 void
 rasqal_free_map(rasqal_map *map)
 {
@@ -201,6 +216,13 @@ rasqal_map_node_visit(rasqal_map_node* node,
 }
 
 
+/**
+ * rasqal_map_visit: walk all entries in a (key:value) map
+ * @map: the &rasqal_map to visit
+ * @fn: user function to call with key, value and @user_data
+ * @user_data: user data to pass to visit function
+ * 
+ **/
 void
 rasqal_map_visit(rasqal_map* map, rasqal_map_visit_fn fn, void *user_data)
 {
@@ -279,6 +301,12 @@ rasqal_map_node_print_visit(void *key, void *value, void *user_data)
 }
 
 
+/**
+ * rasqal_map_print: print a (key:value) map in a debug format
+ * @map: &rasqal_map to print
+ * @fh: FILE handle to write to.
+ * 
+ **/
 void
 rasqal_map_print(rasqal_map* map, FILE* fh)
 {
