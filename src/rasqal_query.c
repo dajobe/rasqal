@@ -1387,12 +1387,8 @@ rasqal_query_execute(rasqal_query *query)
     if(query->results_sequence) {
       query->finished= (raptor_sequence_size(query->results_sequence) == 0);
 
-      /* Reset to first result an index into sequence of results
-       *
-       * Note: this is a result count NOT an index so when not immediately
-       * finished (i.e. empty results or error) start from result 1.
-       */
-      query->result_count= query->finished ? 0: 1;
+      /* Reset to first result an index into sequence of results */
+      query->result_count= 0;
     }
   } else {
     /* No order sequence */
@@ -1640,7 +1636,7 @@ rasqal_query_results_next(rasqal_query_results *query_results)
 
     while(1) {
       query->result_count++;
-      if(query->result_count > size) {
+      if(query->result_count >= size) {
         query->finished=1;
         break;
       }
@@ -1720,7 +1716,7 @@ rasqal_query_results_get_bindings(rasqal_query_results *query_results,
 
     if(query->results_sequence)
       /* Ordered Results */
-      row=(rasqal_query_result_row*)raptor_sequence_get_at(query->results_sequence, query->result_count-1);
+      row=(rasqal_query_result_row*)raptor_sequence_get_at(query->results_sequence, query->result_count);
     else
       /* Streamed Results */
       row=query_results->row;
@@ -1761,7 +1757,7 @@ rasqal_query_results_get_binding_value(rasqal_query_results *query_results,
   
   /* Ordered Results */
   if(query->results_sequence)
-    row=(rasqal_query_result_row*)raptor_sequence_get_at(query->results_sequence, query->result_count-1);
+    row=(rasqal_query_result_row*)raptor_sequence_get_at(query->results_sequence, query->result_count);
   else
     row=query_results->row;
 
@@ -1840,7 +1836,7 @@ rasqal_query_results_get_binding_value_by_name(rasqal_query_results *query_resul
   
   /* Ordered Results */
   if(query->results_sequence)
-    row=(rasqal_query_result_row*)raptor_sequence_get_at(query->results_sequence, query->result_count-1);
+    row=(rasqal_query_result_row*)raptor_sequence_get_at(query->results_sequence, query->result_count);
   else
     row=query_results->row;
   
