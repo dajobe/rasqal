@@ -1,5 +1,23 @@
 2005-07-28  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
+	* tests/sparql/syntax/manifest.n3,
+	tests/sparql/syntax/Makefile.am: distinct-with-undef-var
+
+	* tests/sparql/syntax/distinct-undef.rq,
+	tests/sparql/syntax/result-distinct-undef.ttl: tests for distinct
+	with an undef var
+
+	* rasqal_query.c (rasqal_query_result_literal_sequence_compare):
+	Two NULL literals means equality not a final comparison result, so
+	keep searching.
+
+	* tests/sparql/syntax/Makefile.am,
+	tests/sparql/syntax/manifest.n3,
+	tests/sparql/syntax/order-distinct.rq,
+	tests/sparql/syntax/order.ttl,
+	tests/sparql/syntax/result-order-distinct.ttl: Added order and
+	distinct check
+
 	* sparql_parser.y (PatternElement):
 	Error recovery from NULL triples but do return a
 	graph pattern of some sort.
