@@ -569,18 +569,15 @@ PatternElement: Triples
     raptor_sequence *s=((rasqal_query*)rq)->triples;
     raptor_sequence *t=$1->triples;
     int offset=raptor_sequence_size(s);
-    int triple_pattern_size;
+    int triple_pattern_size=0;
 
     if(t) {
       triple_pattern_size=raptor_sequence_size(t);
-    
       raptor_sequence_join(s, t);
+    }
+    rasqal_free_formula($1);
 
-      rasqal_free_formula($1);
-
-      $$=rasqal_new_graph_pattern_from_triples((rasqal_query*)rq, s, offset, offset+triple_pattern_size-1, RASQAL_GRAPH_PATTERN_OPERATOR_BASIC);
-    } else
-      $$=NULL;
+    $$=rasqal_new_graph_pattern_from_triples((rasqal_query*)rq, s, offset, offset+triple_pattern_size-1, RASQAL_GRAPH_PATTERN_OPERATOR_BASIC);
   } else
     $$=NULL;
 }
