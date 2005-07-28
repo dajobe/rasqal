@@ -1110,12 +1110,13 @@ rasqal_query_result_literal_sequence_compare(rasqal_query* query,
     if(!literal_a || !literal_b) {
       if(!literal_a && !literal_b)
         result= 0;
-      else
+      else {
         result= literal_a ? 1 : -1;
 #ifdef RASQAL_DEBUG
-      RASQAL_DEBUG2("Got one NULL literal comparison, returning %d\n", result);
+        RASQAL_DEBUG2("Got one NULL literal comparison, returning %d\n", result);
 #endif
-      break;
+        break;
+      }
     }
     
     result=rasqal_literal_compare(literal_a, literal_b, query->compare_flags,
