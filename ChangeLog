@@ -1,4 +1,20 @@
+2005-07-28  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* sparql_parser.y (PatternElement):
+	Error recovery from NULL triples but do return a
+	graph pattern of some sort.
+
+	* sparql_parser.y (PatternElement):
+	Error recovery - do not die when triples is NULL.
+
 2005-07-27  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* sparql_parser.y, roqet.c, rdql_parser.y, rasqal_map.c:
+	gcc4 ignored return warning fixes:
+	Discard fwrite() return values since fprintf/fputs() aren't checked.
+	Check fread() return values and throw a user error.
+
+	* rasqal_skiplist.c, rasqal_map.c: autodocs
 
 	* rasqal_query.c (rasqal_query_execute):
 	For a stored sequence of result rows, use
