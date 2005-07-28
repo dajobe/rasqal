@@ -16,5 +16,14 @@
         mf:result  <result-0triples.n3>
       ]
 
+     [  mf:name    "order-by-distinct" ;
+        rdfs:comment
+            "ORDER BY and DISTINCT with different variables" ;
+        mf:action
+            [ qt:query  <order-distinct.rq> ;
+              qt:data   <order.ttl> ] ;
+        mf:result  <result-order-distinct.ttl>
+      ]
+
     # End of tests
    ).

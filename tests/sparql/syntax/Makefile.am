@@ -26,13 +26,13 @@
 SPARQL_MANIFEST_FILES= manifest.n3
 
 SPARQL_MODEL_FILES= \
-data.n3
+data.n3 order.ttl
 
 SPARQL_TEST_FILES= \
 describe1.rq groups.rq 0triples.rq \
 construct0.rq construct1.rq construct2.rq \
 ask0.rq distinct0.rq limit0.rq cast0.rq cast1.rq offset0.rq \
-select-dup.rq
+select-dup.rq order-distinct.rq
 
 SPARQL_BAD_TEST_FILES= \
 nojam.rq
@@ -40,7 +40,7 @@ nojam.rq
 EXPECTED_SPARQL_CORRECT_FAILURES=
 
 SPARQL_RESULT_FILES= \
-result-0triples.n3
+result-0triples.n3 result-order-distinct.ttl
 
 EXTRA_DIST= \
 $(SPARQL_MANIFEST_FILES) \
