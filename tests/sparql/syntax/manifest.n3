@@ -25,5 +25,14 @@
         mf:result  <result-order-distinct.ttl>
       ]
 
+     [  mf:name    "distinct-with-undef-var" ;
+        rdfs:comment
+            "SELECT DISTINCT with an undefined variable" ;
+        mf:action
+            [ qt:query  <distinct-undef.rq> ;
+              qt:data   <data.n3> ] ;
+        mf:result  <result-distinct-undef.ttl>
+      ]
+
     # End of tests
    ).
