@@ -63,6 +63,7 @@ autoheader=${AUTOHEADER-autoheader}
 autoheader_vers=0
 libtoolize=${LIBTOOLIZE-libtoolize}
 libtoolize_vers=0
+gtkdocize=${GTKDOCIZE-gtkdocize}
 
 here=`pwd`
 while [ $# -ne 0 ] ; do
@@ -262,6 +263,9 @@ do
       echo "$program: Running $libtoolize --copy --automake"
       $DRYRUN rm -f ltmain.sh libtool
       $DRYRUN $libtoolize --copy --automake
+
+      echo "$program: Running $gtkdocize"
+      $DRYRUN $gtkdocize
 
       echo "$program: Running $aclocal $aclocal_args"
       $DRYRUN $aclocal $aclocal_args
