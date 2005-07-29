@@ -114,6 +114,8 @@ fix-flex fix-bison \
 rasqal_query_test.c
 
 
+DISTCHECK_CONFIGURE_FLAGS=--enable-gtk-doc
+
 LEX=@LEX@
 YACC=@YACC@
 
