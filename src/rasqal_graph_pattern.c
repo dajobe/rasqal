@@ -45,10 +45,12 @@
 
 
 /**
- * rasqal_new_graph_pattern - create a new graph pattern object
- * @query: &rasqal_graph_pattern query object
+ * rasqal_new_graph_pattern:
+ * @query: #rasqal_graph_pattern query object
+ *
+ * Create a new graph pattern object.
  * 
- * Return value: a new &rasqal_graph_pattern object or NULL on failure
+ * Return value: a new #rasqal_graph_pattern object or NULL on failure
  **/
 rasqal_graph_pattern*
 rasqal_new_graph_pattern(rasqal_query* query) {
@@ -66,14 +68,16 @@ rasqal_new_graph_pattern(rasqal_query* query) {
 
 
 /**
- * rasqal_new_graph_pattern_from_triples - create a new graph pattern object over triples
- * @query: &rasqal_graph_pattern query object
+ * rasqal_new_graph_pattern_from_triples:
+ * @query: #rasqal_graph_pattern query object
  * @triples: triples sequence containing the graph pattern
  * @start_column: first triple in the pattern
  * @end_column: last triple in the pattern
- * @op: enum &rasqal_graph_pattern_operator operator
+ * @op: enum #rasqal_graph_pattern_operator operator
+ *
+ * Create a new graph pattern object over triples.
  * 
- * Return value: a new &rasqal_graph_pattern object or NULL on failure
+ * Return value: a new #rasqal_graph_pattern object or NULL on failure
  **/
 rasqal_graph_pattern*
 rasqal_new_graph_pattern_from_triples(rasqal_query* query,
@@ -90,13 +94,15 @@ rasqal_new_graph_pattern_from_triples(rasqal_query* query,
 
 
 /**
- * rasqal_new_graph_pattern_from_sequence - create a new graph pattern from a sequence of graph_patterns
- * @query: &rasqal_graph_pattern query object
+ * rasqal_new_graph_pattern_from_sequence:
+ * @query: #rasqal_graph_pattern query object
  * @graph_patterns: sequence containing the graph patterns
- * @operator: enum &rasqal_graph_pattern_operator such as
+ * @operator: enum #rasqal_graph_pattern_operator such as
  * RASQAL_GRAPH_PATTERN_OPERATOR_OPTIONAL
+ *
+ * Create a new graph pattern from a sequence of graph_patterns.
  * 
- * Return value: a new &rasqal_graph_pattern object or NULL on failure
+ * Return value: a new #rasqal_graph_pattern object or NULL on failure
  **/
 rasqal_graph_pattern*
 rasqal_new_graph_pattern_from_sequence(rasqal_query* query,
@@ -117,15 +123,17 @@ rasqal_new_graph_pattern_from_sequence(rasqal_query* query,
 
 
 /**
- * rasqal_graph_pattern_add_triples - add triples to a graph pattern object
- * @graph_pattern: &rasqal_graph_pattern object
+ * rasqal_graph_pattern_add_triples:
+ * @graph_pattern: #rasqal_graph_pattern object
  * @triples: triples sequence containing the graph pattern
  * @start_column: first triple in the pattern
  * @end_column: last triple in the pattern
- * @operator: enum &rasqal_graph_pattern_operator such as 
+ * @operator: enum #rasqal_graph_pattern_operator such as 
  *   RASQAL_GRAPH_PATTERN_OPERATOR_OPTIONAL
+ *
+ * Add triples to a graph pattern object.
  * 
- * Return value: a new &rasqal_graph_pattern object or NULL on failure
+ * Return value: a new #rasqal_graph_pattern object or NULL on failure
  **/
 void
 rasqal_graph_pattern_add_triples(rasqal_graph_pattern* gp,
@@ -145,8 +153,10 @@ rasqal_graph_pattern_add_triples(rasqal_graph_pattern* gp,
 
 
 /**
- * rasqal_free_graph_pattern - free a graph pattern object
- * @gp: &rasqal_graph_pattern object
+ * rasqal_free_graph_pattern:
+ * @gp: #rasqal_graph_pattern object
+ *
+ * Free a graph pattern object.
  * 
  **/
 void
@@ -199,8 +209,10 @@ rasqal_graph_pattern_order(const void *a, const void *b)
 
 
 /**
- * rasqal_graph_pattern_init - initialise a graph pattern for execution
- * @gp &rasqal_graph_pattern object
+ * rasqal_graph_pattern_init:
+ * @gp: #rasqal_graph_pattern object
+ *
+ * Initialise a graph pattern for execution.
  * 
  **/
 void
@@ -287,9 +299,11 @@ rasqal_graph_pattern_init(rasqal_graph_pattern *gp)
 
 
 /**
- * rasqal_graph_pattern_adjust - Adjust the column in a graph pattern by the offset
- * @gp: &rasqal_graph_pattern graph pattern
+ * rasqal_graph_pattern_adjust:
+ * @gp: #rasqal_graph_pattern graph pattern
  * @offset: adjustment
+ *
+ * Adjust the column in a graph pattern by the offset.
  * 
  **/
 void
@@ -301,9 +315,11 @@ rasqal_graph_pattern_adjust(rasqal_graph_pattern* gp, int offset)
 
 
 /**
- * rasqal_graph_pattern_add_constraint - Add a constraint expression to the graph_pattern
- * @query: &rasqal_graph_pattern query object
- * @expr: &rasqal_expression expr
+ * rasqal_graph_pattern_add_constraint:
+ * @query: #rasqal_graph_pattern query object
+ * @expr: #rasqal_expression expr
+ *
+ * Add a constraint expression to the graph_pattern.
  *
  * Return value: non-0 on failure
  **/
@@ -320,10 +336,12 @@ rasqal_graph_pattern_add_constraint(rasqal_graph_pattern* gp,
 
 
 /**
- * rasqal_graph_pattern_get_constraint_sequence - Get the sequence of constraints expressions in the query
- * @query: &rasqal_graph_pattern query object
+ * rasqal_graph_pattern_get_constraint_sequence:
+ * @query: #rasqal_graph_pattern query object
  *
- * Return value: a &raptor_sequence of &rasqal_expression pointers.
+ * Get the sequence of constraints expressions in the query.
+ *
+ * Return value: a #raptor_sequence of #rasqal_expression pointers.
  **/
 raptor_sequence*
 rasqal_graph_pattern_get_constraint_sequence(rasqal_graph_pattern* gp)
@@ -333,11 +351,13 @@ rasqal_graph_pattern_get_constraint_sequence(rasqal_graph_pattern* gp)
 
 
 /**
- * rasqal_graph_pattern_get_constraint - Get a constraint in the sequence of constraint expressions in the query
- * @query: &rasqal_graph_pattern query object
+ * rasqal_graph_pattern_get_constraint:
+ * @query: #rasqal_graph_pattern query object
  * @idx: index into the sequence (0 or larger)
  *
- * Return value: a &rasqal_expression pointer or NULL if out of the sequence range
+ * Get a constraint in the sequence of constraint expressions in the query.
+ *
+ * Return value: a #rasqal_expression pointer or NULL if out of the sequence range
  **/
 rasqal_expression*
 rasqal_graph_pattern_get_constraint(rasqal_graph_pattern* gp, int idx)
@@ -350,8 +370,10 @@ rasqal_graph_pattern_get_constraint(rasqal_graph_pattern* gp, int idx)
 
 
 /**
- * rasqal_graph_pattern_get_operator - Get the graph pattern operator 
- * @graph_pattern: &rasqal_graph_pattern graph pattern object
+ * rasqal_graph_pattern_get_operator:
+ * @graph_pattern: #rasqal_graph_pattern graph pattern object
+ *
+ * Get the graph pattern operator .
  * 
  * The operator for the given graph pattern. See also
  * rasqal_graph_pattern_operator_as_string().
@@ -376,8 +398,10 @@ static const char* rasqal_graph_pattern_operator_labels[RASQAL_GRAPH_PATTERN_OPE
 
 
 /**
- * rasqal_graph_pattern_operator_as_string - Get a string for the query verb
- * @verb: the &rasqal_graph_pattern_operator verb of the query
+ * rasqal_graph_pattern_operator_as_string:
+ * @verb: the #rasqal_graph_pattern_operator verb of the query
+ *
+ * Get a string for the query verb.
  * 
  * Return value: pointer to a shared string label for the query verb
  **/
@@ -393,9 +417,11 @@ rasqal_graph_pattern_operator_as_string(rasqal_graph_pattern_operator op)
   
 
 /**
- * rasqal_graph_pattern_print - Print a Rasqal graph_pattern in a debug format
- * @v: the &rasqal_graph_pattern object
- * @fh: the &FILE* handle to print to
+ * rasqal_graph_pattern_print:
+ * @v: the #rasqal_graph_pattern object
+ * @fh: the #FILE* handle to print to
+ *
+ * Print a #rasqal_graph_pattern in a debug format.
  * 
  * The print debug format may change in any release.
  * 

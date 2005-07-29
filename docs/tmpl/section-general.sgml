@@ -1,0 +1,114 @@
+<!-- ##### SECTION Title ##### -->
+General information
+
+<!-- ##### SECTION Short_Description ##### -->
+
+
+<!-- ##### SECTION Long_Description ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION See_Also ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION Stability_Level ##### -->
+
+
+<!-- ##### VARIABLE rasqal_version_decimal ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### VARIABLE rasqal_version_major ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### VARIABLE rasqal_version_minor ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### VARIABLE rasqal_version_release ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### FUNCTION rasqal_init ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### FUNCTION rasqal_finish ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### ENUM rasqal_feature ##### -->
+<para>
+
+</para>
+
+@RASQAL_FEATURE_LAST: 
+
+<!-- ##### FUNCTION rasqal_language_name_check ##### -->
+<para>
+
+</para>
+
+@name: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_languages_enumerate ##### -->
+<para>
+
+</para>
+
+@counter: 
+@name: 
+@label: 
+@uri_string: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_alloc_memory ##### -->
+<para>
+
+</para>
+
+@size: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_calloc_memory ##### -->
+<para>
+
+</para>
+
+@nmemb: 
+@size: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_free_memory ##### -->
+<para>
+
+</para>
+
+@ptr: 
+
+

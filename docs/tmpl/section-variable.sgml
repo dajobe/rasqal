@@ -1,0 +1,89 @@
+<!-- ##### SECTION Title ##### -->
+Variables
+
+<!-- ##### SECTION Short_Description ##### -->
+
+
+<!-- ##### SECTION Long_Description ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION See_Also ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION Stability_Level ##### -->
+
+
+<!-- ##### STRUCT rasqal_variable ##### -->
+<para>
+
+</para>
+
+@name: 
+@value: 
+@offset: 
+@type: 
+
+<!-- ##### FUNCTION rasqal_new_variable ##### -->
+<para>
+
+</para>
+
+@query: 
+@name: 
+@value: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_new_variable_typed ##### -->
+<para>
+
+</para>
+
+@rq: 
+@type: 
+@name: 
+@value: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_free_variable ##### -->
+<para>
+
+</para>
+
+@variable: 
+
+
+<!-- ##### FUNCTION rasqal_variable_print ##### -->
+<para>
+
+</para>
+
+@t: 
+@fh: 
+
+
+<!-- ##### FUNCTION rasqal_variable_set_value ##### -->
+<para>
+
+</para>
+
+@v: 
+@l: 
+
+
+<!-- ##### ENUM rasqal_variable_type ##### -->
+<para>
+
+</para>
+
+@RASQAL_VARIABLE_TYPE_UNKNOWN: 
+@RASQAL_VARIABLE_TYPE_NORMAL: 
+@RASQAL_VARIABLE_TYPE_ANONYMOUS: 
+

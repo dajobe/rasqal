@@ -1,0 +1,217 @@
+<!-- ##### SECTION Title ##### -->
+Expressions
+
+<!-- ##### SECTION Short_Description ##### -->
+
+
+<!-- ##### SECTION Long_Description ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION See_Also ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION Stability_Level ##### -->
+
+
+<!-- ##### TYPEDEF rasqal_expression ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### ENUM rasqal_op ##### -->
+<para>
+
+</para>
+
+@RASQAL_EXPR_UNKNOWN: 
+@RASQAL_EXPR_AND: 
+@RASQAL_EXPR_OR: 
+@RASQAL_EXPR_EQ: 
+@RASQAL_EXPR_NEQ: 
+@RASQAL_EXPR_LT: 
+@RASQAL_EXPR_GT: 
+@RASQAL_EXPR_LE: 
+@RASQAL_EXPR_GE: 
+@RASQAL_EXPR_UMINUS: 
+@RASQAL_EXPR_PLUS: 
+@RASQAL_EXPR_MINUS: 
+@RASQAL_EXPR_STAR: 
+@RASQAL_EXPR_SLASH: 
+@RASQAL_EXPR_REM: 
+@RASQAL_EXPR_STR_EQ: 
+@RASQAL_EXPR_STR_NEQ: 
+@RASQAL_EXPR_STR_MATCH: 
+@RASQAL_EXPR_STR_NMATCH: 
+@RASQAL_EXPR_TILDE: 
+@RASQAL_EXPR_BANG: 
+@RASQAL_EXPR_LITERAL: 
+@RASQAL_EXPR_FUNCTION: 
+@RASQAL_EXPR_BOUND: 
+@RASQAL_EXPR_STR: 
+@RASQAL_EXPR_LANG: 
+@RASQAL_EXPR_DATATYPE: 
+@RASQAL_EXPR_ISURI: 
+@RASQAL_EXPR_ISBLANK: 
+@RASQAL_EXPR_ISLITERAL: 
+@RASQAL_EXPR_CAST: 
+@RASQAL_EXPR_ORDER_COND_ASC: 
+@RASQAL_EXPR_ORDER_COND_DESC: 
+@RASQAL_EXPR_LAST: 
+
+<!-- ##### ENUM rasqal_pattern_flags ##### -->
+<para>
+
+</para>
+
+@RASQAL_PATTERN_FLAGS_OPTIONAL: 
+@RASQAL_PATTERN_FLAGS_LAST: 
+
+<!-- ##### MACRO RASQAL_COMPARE_NOCASE ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO RASQAL_COMPARE_XQUERY ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### FUNCTION rasqal_new_1op_expression ##### -->
+<para>
+
+</para>
+
+@op: 
+@arg: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_new_2op_expression ##### -->
+<para>
+
+</para>
+
+@op: 
+@arg1: 
+@arg2: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_new_cast_expression ##### -->
+<para>
+
+</para>
+
+@name: 
+@value: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_new_function_expression ##### -->
+<para>
+
+</para>
+
+@name: 
+@args: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_new_literal_expression ##### -->
+<para>
+
+</para>
+
+@literal: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_new_string_op_expression ##### -->
+<para>
+
+</para>
+
+@op: 
+@arg1: 
+@literal: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_new_variable_expression ##### -->
+<para>
+
+</para>
+
+@variable: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_free_expression ##### -->
+<para>
+
+</para>
+
+@expr: 
+
+
+<!-- ##### FUNCTION rasqal_expression_evaluate ##### -->
+<para>
+
+</para>
+
+@query: 
+@expr: 
+@flags: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_expression_foreach ##### -->
+<para>
+
+</para>
+
+@expr: 
+@fn: 
+@user_data: 
+@Returns: 
+
+
+<!-- ##### USER_FUNCTION rasqal_expression_foreach_fn ##### -->
+<para>
+
+</para>
+
+@user_data: 
+@e: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_expression_print ##### -->
+<para>
+
+</para>
+
+@expr: 
+@fh: 
+
+
+<!-- ##### FUNCTION rasqal_expression_print_op ##### -->
+<para>
+
+</para>
+
+@expr: 
+@fh: 
+
+

@@ -1,0 +1,143 @@
+<!-- ##### SECTION Title ##### -->
+Graph patterns
+
+<!-- ##### SECTION Short_Description ##### -->
+
+
+<!-- ##### SECTION Long_Description ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION See_Also ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION Stability_Level ##### -->
+
+
+<!-- ##### TYPEDEF rasqal_graph_pattern ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### FUNCTION rasqal_graph_pattern_add_constraint ##### -->
+<para>
+
+</para>
+
+@gp: 
+@expr: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_graph_pattern_add_sub_graph_pattern ##### -->
+<para>
+
+</para>
+
+@graph_pattern: 
+@sub_graph_pattern: 
+
+
+<!-- ##### FUNCTION rasqal_graph_pattern_get_constraint ##### -->
+<para>
+
+</para>
+
+@gp: 
+@idx: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_graph_pattern_get_constraint_sequence ##### -->
+<para>
+
+</para>
+
+@gp: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_graph_pattern_get_flags ##### -->
+<para>
+
+</para>
+
+@graph_pattern: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_graph_pattern_get_operator ##### -->
+<para>
+
+</para>
+
+@graph_pattern: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_graph_pattern_get_sub_graph_pattern ##### -->
+<para>
+
+</para>
+
+@graph_pattern: 
+@idx: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_graph_pattern_get_sub_graph_pattern_sequence ##### -->
+<para>
+
+</para>
+
+@graph_pattern: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_graph_pattern_get_triple ##### -->
+<para>
+
+</para>
+
+@graph_pattern: 
+@idx: 
+@Returns: 
+
+
+<!-- ##### ENUM rasqal_graph_pattern_operator ##### -->
+<para>
+
+</para>
+
+@RASQAL_GRAPH_PATTERN_OPERATOR_UNKNOWN: 
+@RASQAL_GRAPH_PATTERN_OPERATOR_BASIC: 
+@RASQAL_GRAPH_PATTERN_OPERATOR_OPTIONAL: 
+@RASQAL_GRAPH_PATTERN_OPERATOR_UNION: 
+@RASQAL_GRAPH_PATTERN_OPERATOR_GROUP: 
+@RASQAL_GRAPH_PATTERN_OPERATOR_GRAPH: 
+@RASQAL_GRAPH_PATTERN_OPERATOR_LAST: 
+
+<!-- ##### FUNCTION rasqal_graph_pattern_operator_as_string ##### -->
+<para>
+
+</para>
+
+@verb: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_graph_pattern_print ##### -->
+<para>
+
+</para>
+
+@gp: 
+@fh: 
+
+

@@ -688,6 +688,7 @@ tests/sparql/Expr2/Makefile
 tests/sparql/ExprBuiltins/Makefile
 tests/sparql/ExprEquals/Makefile
 docs/Makefile
+docs/version.xml
 win32/Makefile
 rasqal.spec
 rasqal.rdf

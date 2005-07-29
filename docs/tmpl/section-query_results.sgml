@@ -1,0 +1,178 @@
+<!-- ##### SECTION Title ##### -->
+Query Results
+
+<!-- ##### SECTION Short_Description ##### -->
+
+
+<!-- ##### SECTION Long_Description ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION See_Also ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION Stability_Level ##### -->
+
+
+<!-- ##### TYPEDEF rasqal_query_results ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### FUNCTION rasqal_free_query_results ##### -->
+<para>
+
+</para>
+
+@query_results: 
+
+
+<!-- ##### FUNCTION rasqal_query_results_finished ##### -->
+<para>
+
+</para>
+
+@query_results: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_query_results_get_binding_name ##### -->
+<para>
+
+</para>
+
+@query_results: 
+@offset: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_query_results_get_binding_value ##### -->
+<para>
+
+</para>
+
+@query_results: 
+@offset: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_query_results_get_binding_value_by_name ##### -->
+<para>
+
+</para>
+
+@query_results: 
+@name: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_query_results_get_bindings ##### -->
+<para>
+
+</para>
+
+@query_results: 
+@names: 
+@values: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_query_results_get_bindings_count ##### -->
+<para>
+
+</para>
+
+@query_results: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_query_results_get_boolean ##### -->
+<para>
+
+</para>
+
+@query_results: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_query_results_get_count ##### -->
+<para>
+
+</para>
+
+@query_results: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_query_results_get_triple ##### -->
+<para>
+
+</para>
+
+@query_results: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_query_results_is_bindings ##### -->
+<para>
+
+</para>
+
+@query_results: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_query_results_is_boolean ##### -->
+<para>
+
+</para>
+
+@query_results: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_query_results_is_graph ##### -->
+<para>
+
+</para>
+
+@query_results: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_query_results_next ##### -->
+<para>
+
+</para>
+
+@query_results: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_query_results_next_triple ##### -->
+<para>
+
+</para>
+
+@query_results: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_query_results_write ##### -->
+<para>
+
+</para>
+
+@iostr: 
+@results: 
+@format_uri: 
+@base_uri: 
+@Returns: 
+
+

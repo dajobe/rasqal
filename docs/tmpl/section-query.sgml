@@ -1,0 +1,465 @@
+<!-- ##### SECTION Title ##### -->
+Query
+
+<!-- ##### SECTION Short_Description ##### -->
+
+
+<!-- ##### SECTION Long_Description ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION See_Also ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION Stability_Level ##### -->
+
+
+<!-- ##### TYPEDEF rasqal_query ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### ENUM rasqal_query_verb ##### -->
+<para>
+
+</para>
+
+@RASQAL_QUERY_VERB_UNKNOWN: 
+@RASQAL_QUERY_VERB_SELECT: 
+@RASQAL_QUERY_VERB_CONSTRUCT: 
+@RASQAL_QUERY_VERB_DESCRIBE: 
+@RASQAL_QUERY_VERB_ASK: 
+@RASQAL_QUERY_VERB_LAST: 
+
+<!-- ##### FUNCTION rasqal_new_query ##### -->
+<para>
+
+</para>
+
+@name: 
+@uri: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_free_query ##### -->
+<para>
+
+</para>
+
+@query: 
+
+
+<!-- ##### FUNCTION rasqal_query_add_data_graph ##### -->
+<para>
+
+</para>
+
+@query: 
+@uri: 
+@name_uri: 
+@flags: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_query_add_prefix ##### -->
+<para>
+
+</para>
+
+@query: 
+@prefix: 
+
+
+<!-- ##### FUNCTION rasqal_query_add_variable ##### -->
+<para>
+
+</para>
+
+@query: 
+@var: 
+
+
+<!-- ##### FUNCTION rasqal_query_execute ##### -->
+<para>
+
+</para>
+
+@query: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_query_get_all_variable_sequence ##### -->
+<para>
+
+</para>
+
+@query: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_query_get_bound_variable_sequence ##### -->
+<para>
+
+</para>
+
+@query: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_query_get_construct_triple ##### -->
+<para>
+
+</para>
+
+@query: 
+@idx: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_query_get_construct_triples_sequence ##### -->
+<para>
+
+</para>
+
+@query: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_query_get_data_graph ##### -->
+<para>
+
+</para>
+
+@query: 
+@idx: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_query_get_data_graph_sequence ##### -->
+<para>
+
+</para>
+
+@query: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_query_get_distinct ##### -->
+<para>
+
+</para>
+
+@query: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_query_get_graph_pattern ##### -->
+<para>
+
+</para>
+
+@query: 
+@idx: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_query_get_graph_pattern_sequence ##### -->
+<para>
+
+</para>
+
+@query: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_query_get_label ##### -->
+<para>
+
+</para>
+
+@query: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_query_get_limit ##### -->
+<para>
+
+</para>
+
+@query: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_query_get_name ##### -->
+<para>
+
+</para>
+
+@query: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_query_get_offset ##### -->
+<para>
+
+</para>
+
+@query: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_query_get_order_condition ##### -->
+<para>
+
+</para>
+
+@query: 
+@idx: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_query_get_order_conditions_sequence ##### -->
+<para>
+
+</para>
+
+@query: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_query_get_prefix ##### -->
+<para>
+
+</para>
+
+@query: 
+@idx: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_query_get_prefix_sequence ##### -->
+<para>
+
+</para>
+
+@query: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_query_get_query_graph_pattern ##### -->
+<para>
+
+</para>
+
+@query: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_query_get_triple ##### -->
+<para>
+
+</para>
+
+@query: 
+@idx: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_query_get_triple_sequence ##### -->
+<para>
+
+</para>
+
+@query: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_query_get_user_data ##### -->
+<para>
+
+</para>
+
+@query: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_query_get_variable ##### -->
+<para>
+
+</para>
+
+@query: 
+@idx: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_query_get_verb ##### -->
+<para>
+
+</para>
+
+@query: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_query_get_wildcard ##### -->
+<para>
+
+</para>
+
+@query: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_query_has_variable ##### -->
+<para>
+
+</para>
+
+@query: 
+@name: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_query_prepare ##### -->
+<para>
+
+</para>
+
+@query: 
+@query_string: 
+@base_uri: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_query_print ##### -->
+<para>
+
+</para>
+
+@query: 
+@stream: 
+
+
+<!-- ##### FUNCTION rasqal_query_set_default_generate_bnodeid_parameters ##### -->
+<para>
+
+</para>
+
+@rdf_query: 
+@prefix: 
+@base: 
+
+
+<!-- ##### FUNCTION rasqal_query_set_distinct ##### -->
+<para>
+
+</para>
+
+@query: 
+@is_distinct: 
+
+
+<!-- ##### FUNCTION rasqal_query_set_error_handler ##### -->
+<para>
+
+</para>
+
+@query: 
+@user_data: 
+@handler: 
+
+
+<!-- ##### FUNCTION rasqal_query_set_fatal_error_handler ##### -->
+<para>
+
+</para>
+
+@query: 
+@user_data: 
+@handler: 
+
+
+<!-- ##### FUNCTION rasqal_query_set_feature ##### -->
+<para>
+
+</para>
+
+@query: 
+@feature: 
+@value: 
+
+
+<!-- ##### FUNCTION rasqal_query_set_generate_bnodeid_handler ##### -->
+<para>
+
+</para>
+
+@query: 
+@user_data: 
+@handler: 
+
+
+<!-- ##### FUNCTION rasqal_query_set_limit ##### -->
+<para>
+
+</para>
+
+@query: 
+@limit: 
+
+
+<!-- ##### FUNCTION rasqal_query_set_offset ##### -->
+<para>
+
+</para>
+
+@query: 
+@limit: 
+
+
+<!-- ##### FUNCTION rasqal_query_set_user_data ##### -->
+<para>
+
+</para>
+
+@query: 
+@user_data: 
+
+
+<!-- ##### FUNCTION rasqal_query_set_variable ##### -->
+<para>
+
+</para>
+
+@query: 
+@name: 
+@value: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_query_set_warning_handler ##### -->
+<para>
+
+</para>
+
+@query: 
+@user_data: 
+@handler: 
+
+
+<!-- ##### FUNCTION rasqal_query_verb_as_string ##### -->
+<para>
+
+</para>
+
+@verb: 
+@Returns: 
+
+

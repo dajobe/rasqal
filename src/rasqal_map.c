@@ -94,14 +94,16 @@ rasqal_free_map_node(rasqal_map_node *node, rasqal_kv_free_fn* free_fn)
 
 
 /**
- * rasqal_new_map - Constructor - Create a (key:value) map
+ * rasqal_new_map:
  * @compare_fn: comparison function for keys
  * @free_fn: free function for (key, value) pair
  * @print_key_fn: print a key function (or NULL)
  * @print_value_fn: print a value function (or NULL)
  * @flags: non-0 to allow duplicates
+ *
+ * Constructor - Create a (key:value) map.
  * 
- * Return value: a new &rasqal_map or NULL on failure
+ * Return value: a new #rasqal_map or NULL on failure
  **/
 rasqal_map*
 rasqal_new_map(rasqal_compare_fn* compare_fn,
@@ -126,8 +128,10 @@ rasqal_new_map(rasqal_compare_fn* compare_fn,
 
 
 /**
- * rasqal_free_map - Destructor - Destroy a (key:value) map
- * @map: the &rasqal_map to free
+ * rasqal_free_map:
+ * @map: the #rasqal_map to free
+ *
+ * Destructor - Destroy a (key:value) map.
  * 
  **/
 void
@@ -169,10 +173,12 @@ rasqal_map_node_add_kv(rasqal_map_node* node, void *key, void *value)
 
 
 /**
- * rasqal_map_add_kv: Add a (key, value) pair to the map.
- * @map: &rasqal_map adding to
+ * rasqal_map_add_kv:
+ * @map: #rasqal_map adding to
  * @key: key data
  * @value: value data (or NULL)
+ *
+ * Add a (key, value) pair to the map.
  * 
  * Return value: non-0 on failure including adding a duplicate.
  **/
@@ -217,10 +223,12 @@ rasqal_map_node_visit(rasqal_map_node* node,
 
 
 /**
- * rasqal_map_visit: walk all entries in a (key:value) map
- * @map: the &rasqal_map to visit
+ * rasqal_map_visit:
+ * @map: the #rasqal_map to visit
  * @fn: user function to call with key, value and @user_data
  * @user_data: user data to pass to visit function
+ *
+ * Walk all entries in a (key:value) map.
  * 
  **/
 void
@@ -302,9 +310,11 @@ rasqal_map_node_print_visit(void *key, void *value, void *user_data)
 
 
 /**
- * rasqal_map_print: print a (key:value) map in a debug format
- * @map: &rasqal_map to print
+ * rasqal_map_print:
+ * @map: #rasqal_map to print
  * @fh: FILE handle to write to.
+ *
+ * Print a (key:value) map in a debug format.
  * 
  **/
 void

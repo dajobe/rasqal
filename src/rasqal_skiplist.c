@@ -142,14 +142,16 @@ rasqal_skiplist_finish(void)
 
 
 /**
- * rasqal_new_skiplist - Constructor - Create a new Rasqal skiplist
+ * rasqal_new_skiplist:
  * @compare_fn: function to compare two keys
  * @free_fn: function to delete a (key, value) item pair (or NULL)
  * @print_key_fn: function to print a key function
  * @print_value_fn: function to print a key function
  * @flags: set to RASQAL_SKIPLIST_FLAG_DUPLICATES to allow duplicates
  *
- * Return value: a new &rasqal_skiplist or NULL on failure.
+ * Constructor - Create a new Rasqal skiplist.
+ *
+ * Return value: a new #rasqal_skiplist or NULL on failure.
  */
 rasqal_skiplist*
 rasqal_new_skiplist(rasqal_compare_fn* compare_fn,
@@ -202,7 +204,7 @@ rasqal_free_skiplist_node(rasqal_skiplist* list, rasqal_skiplist_node* node)
 
 /**
  * rasqal_free_skiplist - Destructor - Destroy a Rasqal skiplist object
- * @list: &rasqal_skiplist object
+ * @list: #rasqal_skiplist object
  *
  */
 void
@@ -245,7 +247,7 @@ rasqal_skiplist_get_random_level(rasqal_skiplist *list)
 
 /**
  * rasqal_skiplist_insert - Add a (key, value) pair to a skiplist
- * @list: &rasqal_skiplist object
+ * @list: #rasqal_skiplist object
  * @key: pointer to key
  * @value: pointer to value
  * 
@@ -307,7 +309,7 @@ rasqal_skiplist_insert(rasqal_skiplist* list,
 
 /**
  * rasqal_skiplist_delete - Delete a (key, value) pair from a skiplist
- * @list: &rasqal_skiplist object
+ * @list: #rasqal_skiplist object
  * @key: pointer to key
  * @value: pointer to value
  * 
@@ -353,7 +355,7 @@ rasqal_skiplist_delete(rasqal_skiplist* list, void* key)
 
 /**
  * rasqal_skiplist_find - Find a value in a skiplist for a given key
- * @list: &rasqal_skiplist object
+ * @list: #rasqal_skiplist object
  * @key: pointer to key
  * 
  * Return value: value pointer or NULL if not found
@@ -407,8 +409,8 @@ rasqal_skiplist_node_print(rasqal_skiplist* list,
 
 /**
  * rasqal_skiplist_print - Print a Rasqal skiplist in a debug format
- * @list: the &rasqal_skiplist object
- * @fh: the &FILE* handle to print to
+ * @list: the #rasqal_skiplist object
+ * @fh: the #FILE* handle to print to
  * 
  * The print debug format may change in any release.
  * 
@@ -461,7 +463,7 @@ rasqal_skiplist_dump(rasqal_skiplist* list, FILE *fh)
 
 /**
  * rasqal_skiplist_get_size - Get the number of items in a skiplist
- * @list: &rasqal_skiplist object
+ * @list: #rasqal_skiplist object
  * 
  * Return value: the number of items in the skiplist (0 or more)
  */

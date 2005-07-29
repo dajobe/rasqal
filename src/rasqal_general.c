@@ -259,9 +259,11 @@ rasqal_query_engine_register_factory(const char *name, const char *label,
 
 
 /**
- * rasqal_get_query_engine_factory - Get a query factory by name
+ * rasqal_get_query_engine_factory:
  * @name: the factory name or NULL for the default factory
  * @uri: the query syntax URI or NULL
+ *
+ * Get a query factory by name.
  * 
  * Return value: the factory object or NULL if there is no such factory
  **/
@@ -297,11 +299,13 @@ rasqal_get_query_engine_factory (const char *name, const unsigned char *uri)
 
 
 /**
- * rasqal_languages_enumerate - Get information on query languages
+ * rasqal_languages_enumerate:
  * @counter: index into the list of syntaxes
  * @name: pointer to store the name of the syntax (or NULL)
  * @label: pointer to store syntax readable label (or NULL)
  * @uri_string: pointer to store syntax URI string (or NULL)
+ *
+ * Get information on query languages.
  * 
  * Return value: non 0 on failure of if counter is out of range
  **/
@@ -513,12 +517,14 @@ rasqal_basename(const char *name)
 
 
 /**
- * rasqal_escaped_name_to_utf8_string - get a UTF-8 and/or \u-escaped name as UTF-8
+ * rasqal_escaped_name_to_utf8_string:
  * @src: source name string
  * @len: length of source name string
  * @dest_lenp: pointer to store result string (or NULL)
  * @error_handler: error handling function
  * @error_data: data for error handle
+ *
+ * Get a UTF-8 and/or \u-escaped name as UTF-8.
  *
  * If dest_lenp is not NULL, the length of the resulting string is
  * stored at the pointed size_t.
@@ -708,7 +714,7 @@ rasqal_uri_finish()
 
 /**
  * rasqal_query_set_default_generate_bnodeid_parameters - Set default bnodeid generation parameters
- * @rdf_query: &rasqal_parse object
+ * @rdf_query: #rasqal_query object
  * @prefix: prefix string
  * @base: integer base identifier
  *
@@ -719,7 +725,7 @@ rasqal_uri_finish()
  * but will use both parts.
  *
  * For finer control of the generated identifiers, use
- * &rasqal_set_default_generate_bnodeid_handler.
+ * rasqal_set_default_generate_bnodeid_handler()
  *
  * If prefix is NULL, the default prefix is used (currently "bnodeid")
  * If base is less than 1, it is initialised to 1.
@@ -754,14 +760,16 @@ rasqal_query_set_default_generate_bnodeid_parameters(rasqal_query* rdf_query,
 
 
 /**
- * rasqal_query_set_generate_bnodeid_handler - Set the generate blank node ID handler function for the query
- * @query: &rasqal_query query object
+ * rasqal_query_set_generate_bnodeid_handler:
+ * @query: #rasqal_query query object
  * @user_data: user data pointer for callback
  * @handler: generate blank ID callback function
  *
+ * Set the generate blank node ID handler function for the query.
+ *
  * Sets the function to generate blank node IDs for the query.
  * The handler is called with a pointer to the rasqal_query, the
- * &user_data pointer and a user_bnodeid which is the value of
+ * @user_data pointer and a user_bnodeid which is the value of
  * a user-provided blank node identifier (may be NULL).
  * It can either be returned directly as the generated value when present or
  * modified.  The passed in value must be free()d if it is not used.
@@ -837,8 +845,10 @@ rasqal_query_generate_bnodeid(rasqal_query* rdf_query,
 
 
 /**
- * rasqal_free_memory - Free memory allocated inside rasqal.
+ * rasqal_free_memory:
  * @ptr: memory pointer
+ *
+ * Free memory allocated inside rasqal.
  * 
  * Some systems require memory allocated in a library to
  * be deallocated in that library.  This function allows
@@ -853,8 +863,10 @@ rasqal_free_memory(void *ptr)
 
 
 /**
- * rasqal_alloc_memory - Allocate memory inside rasqal.
+ * rasqal_alloc_memory:
  * @size: size of memory to allocate
+ *
+ * Allocate memory inside rasqal.
  * 
  * Some systems require memory allocated in a library to
  * be deallocated in that library.  This function allows
@@ -873,9 +885,11 @@ rasqal_alloc_memory(size_t size)
 
 
 /**
- * rasqal_calloc_memory - Allocate zeroed array of items inside rasqal.
+ * rasqal_calloc_memory:
  * @nmemb: number of members
  * @size: size of item
+ *
+ * Allocate zeroed array of items inside rasqal.
  * 
  * Some systems require memory allocated in a library to
  * be deallocated in that library.  This function allows

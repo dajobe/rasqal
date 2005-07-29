@@ -1,9 +1,9 @@
-*.sgml
+*.stamp
 .cvsignore
 Makefile
 Makefile.in
 README
-api
-api.junk
-gnome-doc
-kernel-doc
+html
+xml
+tmpl
+version.xml

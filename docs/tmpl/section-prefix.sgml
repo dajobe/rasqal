@@ -1,0 +1,58 @@
+<!-- ##### SECTION Title ##### -->
+Prefixes
+
+<!-- ##### SECTION Short_Description ##### -->
+
+
+<!-- ##### SECTION Long_Description ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION See_Also ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION Stability_Level ##### -->
+
+
+<!-- ##### STRUCT rasqal_prefix ##### -->
+<para>
+
+</para>
+
+@prefix: 
+@uri: 
+@declared: 
+@depth: 
+
+<!-- ##### FUNCTION rasqal_new_prefix ##### -->
+<para>
+
+</para>
+
+@prefix: 
+@uri: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_free_prefix ##### -->
+<para>
+
+</para>
+
+@prefix: 
+
+
+<!-- ##### FUNCTION rasqal_prefix_print ##### -->
+<para>
+
+</para>
+
+@p: 
+@fh: 
+
+

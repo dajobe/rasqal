@@ -449,9 +449,11 @@ static rasqal_triples_source_factory Triples_Source_Factory;
 
 
 /**
- * rasqal_set_triples_source_factory - Register the factory to return triple sources
+ * rasqal_set_triples_source_factory:
  * @register_fn: registration function
  * @user_data: user data for registration
+ *
+ * Register the factory to return triple sources.
  * 
  * Registers the factory that returns triples sources.  Note that
  * there is only one of these per runtime. 
@@ -620,9 +622,11 @@ rasqal_query_graph_pattern_build_declared_in_variable(rasqal_query* query,
 }
 
 
-/**
- * rasqal_query_graph_pattern_build_declared_in - Mark where variables are first declared in a graph_pattern
- * @query; the &rasqal_query to find the variables in
+/*
+ * rasqal_query_graph_pattern_build_declared_in:
+ * @query; the #rasqal_query to find the variables in
+ *
+ * Mark where variables are first declared in a graph_pattern.
  * 
  **/
 static void
@@ -664,9 +668,11 @@ rasqal_query_graph_pattern_build_declared_in(rasqal_query* query,
 }
 
 
-/**
- * rasqal_query_build_declared_in - Mark where variables are first declared
- * @query; the &rasqal_query to find the variables in
+/*
+ * rasqal_query_build_declared_in:
+ * @query; the #rasqal_query to find the variables in
+ *
+ * Mark where variables are first declared.
  * 
  **/
 static void
@@ -1585,7 +1591,9 @@ rasqal_engine_make_basic_graph_pattern(rasqal_graph_pattern *gp)
 
 
 /**
- * rasqal_engine_check_limit_offset - Check the query result count is in the limit and offset range if any
+ * rasqal_engine_check_limit_offset:
+ *
+ * Check the query result count is in the limit and offset range if any.
  *
  * Return value: before range -1, in range 0, after range 1
  */

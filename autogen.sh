@@ -283,7 +283,7 @@ done
 
 rm -f config.cache
 
-conf_flags="--enable-maintainer-mode"
+conf_flags="--enable-maintainer-mode --enable-gtk-doc"
 
 AUTOMAKE=$automake
 AUTOCONF=$autoconf

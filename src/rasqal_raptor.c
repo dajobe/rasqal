@@ -259,8 +259,10 @@ rasqal_raptor_new_triples_source(rasqal_query* rdf_query,
 
 /**
  * rasqal_raptor_triple_match:
- * @triple: &rasqal_triple to match against
- * @match: &rasqal_triple with wildcards
+ * @triple: #rasqal_triple to match against
+ * @match: #rasqal_triple with wildcards
+ *
+ * .
  * 
  * Match a rasqal_triple against a rasqal_triple with NULL
  * signifying wildcard fields in the rasqal_triple.

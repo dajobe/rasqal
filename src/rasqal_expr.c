@@ -102,18 +102,20 @@ rasqal_data_graph_print(rasqal_data_graph* dg, FILE* fh)
 
 
 /**
- * rasqal_new_variable_typed - Constructor - Create a new typed Rasqal variable
- * @rq: &rasqal_query to associate the variable with
+ * rasqal_new_variable_typed:
+ * @rq: #rasqal_query to associate the variable with
  * @type: variable type defined by enumeration rasqal_variable_type
  * @name: variable name
- * @value: variable &rasqal_literal value (or NULL)
+ * @value: variable #rasqal_literal value (or NULL)
+ *
+ * Constructor - Create a new typed Rasqal variable.
  * 
  * The variable must be associated with a query, since variable
  * names are only significant with a single query.
  * 
  * The @name and @value become owned by the rasqal_variable structure
  *
- * Return value: a new &rasqal_variable or NULL on failure.
+ * Return value: a new #rasqal_variable or NULL on failure.
  **/
 rasqal_variable*
 rasqal_new_variable_typed(rasqal_query* rq,
@@ -164,10 +166,12 @@ rasqal_new_variable_typed(rasqal_query* rq,
 
 
 /**
- * rasqal_new_variable - Constructor - Create a new Rasqal normal variable
- * @rq: &rasqal_query to associate the variable with
+ * rasqal_new_variable:
+ * @rq: #rasqal_query to associate the variable with
  * @name: variable name
- * @value: variable &rasqal_literal value (or NULL)
+ * @value: variable #rasqal_literal value (or NULL)
+ *
+ * Constructor - Create a new Rasqal normal variable.
  * 
  * The variable must be associated with a query, since variable
  * names are only significant with a single query.
@@ -178,7 +182,7 @@ rasqal_new_variable_typed(rasqal_query* rq,
  * 
  * The @name and @value become owned by the rasqal_variable structure
  *
- * Return value: a new &rasqal_variable or NULL on failure.
+ * Return value: a new #rasqal_variable or NULL on failure.
  **/
 rasqal_variable*
 rasqal_new_variable(rasqal_query* rq,
@@ -189,8 +193,10 @@ rasqal_new_variable(rasqal_query* rq,
 
 
 /**
- * rasqal_free_variable - Destructor - Destroy a Rasqal variable object
- * @v: &rasqal_variable object
+ * rasqal_free_variable:
+ * @v: #rasqal_variable object
+ *
+ * Destructor - Destroy a Rasqal variable object.
  *
  **/
 void
@@ -205,9 +211,11 @@ rasqal_free_variable(rasqal_variable* v)
 
 
 /**
- * rasqal_variable_print - Print a Rasqal variable in a debug format
- * @v: the &rasqal_variable object
- * @fh: the &FILE* handle to print to
+ * rasqal_variable_print:
+ * @v: the #rasqal_variable object
+ * @fh: the #FILE* handle to print to
+ *
+ * Print a Rasqal variable in a debug format.
  * 
  * The print debug format may change in any release.
  * 
@@ -228,9 +236,11 @@ rasqal_variable_print(rasqal_variable* v, FILE* fh)
 
 
 /**
- * rasqal_variable_set_value - Set the value of a Rasqal variable
- * @v: the &rasqal_variable object
- * @e: the &rasqal_literal value to set (or NULL)
+ * rasqal_variable_set_value:
+ * @v: the #rasqal_variable object
+ * @e: the #rasqal_literal value to set (or NULL)
+ *
+ * Set the value of a Rasqal variable.
  * 
  * The variable value is an input parameter and is copied in, not shared.
  * If the variable value is NULL, any existing value is deleted.

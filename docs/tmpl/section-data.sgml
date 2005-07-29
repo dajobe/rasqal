@@ -1,0 +1,67 @@
+<!-- ##### SECTION Title ##### -->
+Data Graphs
+
+<!-- ##### SECTION Short_Description ##### -->
+
+
+<!-- ##### SECTION Long_Description ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION See_Also ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SECTION Stability_Level ##### -->
+
+
+<!-- ##### STRUCT rasqal_data_graph ##### -->
+<para>
+
+</para>
+
+@uri: 
+@name_uri: 
+@flags: 
+
+<!-- ##### FUNCTION rasqal_new_data_graph ##### -->
+<para>
+
+</para>
+
+@uri: 
+@name_uri: 
+@flags: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_free_data_graph ##### -->
+<para>
+
+</para>
+
+@dg: 
+
+
+<!-- ##### ENUM rasqal_data_graph_flags ##### -->
+<para>
+
+</para>
+
+@RASQAL_DATA_GRAPH_NONE: 
+@RASQAL_DATA_GRAPH_NAMED: 
+@RASQAL_DATA_GRAPH_BACKGROUND: 
+
+<!-- ##### FUNCTION rasqal_data_graph_print ##### -->
+<para>
+
+</para>
+
+@dg: 
+@fh: 
+
+
