@@ -695,6 +695,9 @@ rasqal.pc])
 AC_CONFIG_FILES([rasqal-config], [chmod +x rasqal-config])
 AC_CONFIG_FILES([rasqal-src-config], [chmod +x rasqal-src-config])
 
+dnl Check for gtk-doc and docbook
+GTK_DOC_CHECK([1.4])
+
 AC_OUTPUT
 
 AC_MSG_RESULT([
