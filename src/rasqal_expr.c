@@ -293,6 +293,15 @@ rasqal_variable_set_value(rasqal_variable* v, rasqal_literal* l)
 }
 
 
+/**
+ * rasqal_new_prefix:
+ * @prefix: Short prefix string to stand for URI or NULL.
+ * @uri: Name #raptor_uri.
+ * 
+ * Constructor - create a new #rasqal_prefix.
+ * 
+ * Return value: a new #rasqal_prefix or NULL on failure.
+ **/
 rasqal_prefix*
 rasqal_new_prefix(const unsigned char *prefix, raptor_uri* uri) 
 {
@@ -306,6 +315,12 @@ rasqal_new_prefix(const unsigned char *prefix, raptor_uri* uri)
 }
 
 
+/**
+ * rasqal_free_prefix:
+ * @p: #rasqal_prefix object.
+ * 
+ * Destructor - destroy a #rasqal_prefix object.
+ **/
 void
 rasqal_free_prefix(rasqal_prefix* p)
 {
@@ -333,6 +348,18 @@ rasqal_prefix_print(rasqal_prefix* p, FILE* fh)
 
 
 
+/**
+ * rasqal_new_triple:
+ * @subject: Triple subject.
+ * @predicate: Triple predicate.
+ * @object: Triple object.
+ * 
+ * Constructor - create a new #rasqal_triple triple or triple pattern.
+ * 
+ * The triple origin can be set with rasqal_triple_set_origin().
+ *
+ * Return value: a new #rasqal_triple or NULL on failure.
+ **/
 rasqal_triple*
 rasqal_new_triple(rasqal_literal* subject, rasqal_literal* predicate, rasqal_literal* object)
 {
@@ -345,8 +372,18 @@ rasqal_new_triple(rasqal_literal* subject, rasqal_literal* predicate, rasqal_lit
   return t;
 }
 
+
+/**
+ * rasqal_new_triple_from_triple:
+ * @t: Triple to copy.
+ * 
+ * Copy constructor - create a new #rasqal_triple from an existing one.
+ * 
+ * Return value: a new #rasqal_triple or NULL on failure.
+ **/
 rasqal_triple*
-rasqal_new_triple_from_triple(rasqal_triple* t) {
+rasqal_new_triple_from_triple(rasqal_triple* t)
+{
   rasqal_triple* newt=(rasqal_triple*)RASQAL_CALLOC(rasqal_triple,sizeof(rasqal_triple), 1);
 
   newt->subject=rasqal_new_literal_from_literal(t->subject);
@@ -356,6 +393,13 @@ rasqal_new_triple_from_triple(rasqal_triple* t) {
   return newt;
 }
 
+
+/**
+ * rasqal_free_triple:
+ * @t: #rasqal_triple object.
+ * 
+ * Destructor - destroy a #rasqal_triple object.
+ **/
 void
 rasqal_free_triple(rasqal_triple* t)
 {
@@ -416,7 +460,7 @@ rasqal_triple_set_origin(rasqal_triple* t, rasqal_literal* l)
  * 
  * Get the origin field of a #rasqal_triple.
  * 
- * Return value: 
+ * Return value: The triple origin or NULL.
  **/
 rasqal_literal*
 rasqal_triple_get_origin(rasqal_triple* t)
@@ -550,6 +594,13 @@ rasqal_expression_clear(rasqal_expression* e)
 }
 
 
+/**
+ * rasqal_free_expression:
+ * @e: #rasqal_expression object
+ * 
+ * Destructor - destroy a #rasqal_expression object.
+ *
+ **/
 void
 rasqal_free_expression(rasqal_expression* e)
 {

@@ -71,10 +71,10 @@ const unsigned int rasqal_version_decimal = RASQAL_VERSION_DECIMAL;
 
 
 
-/*
- * rasqal_init - Initialise the rasqal library
+/**
+ * rasqal_init
  * 
- * Initialises the library.
+ * Initialise the rasqal library.
  *
  * MUST be called before using any of the rasqal APIs.
  **/
@@ -112,10 +112,12 @@ rasqal_init(void)
 }
 
 
-/*
- * rasqal_finish - Terminate the rasqal library
+/**
+ * rasqal_finish:
  *
- * Cleans up state of the library.
+ * Terminate the rasqal library.
+ *
+ * Must be called to clean up any resources used by the library.
  **/
 void
 rasqal_finish(void) 

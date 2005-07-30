@@ -91,8 +91,11 @@ typedef struct rasqal_graph_pattern_s rasqal_graph_pattern;
 
 /**
  * rasqal_feature:
+ * @RASQAL_FEATURE_LAST: Internal.
  *
- * Query features.  None currently defined.
+ * Query features.
+ *
+ * None currently defined.
  */
 typedef enum {
   RASQAL_FEATURE_LAST
@@ -101,10 +104,15 @@ typedef enum {
 
 /**
  * rasqal_prefix:
+ * @prefix: short prefix string
+ * @uri: URI associated with the prefix.
+ * @declared: Internal flag.
+ * @depth: Internal flag.
  *
- * Rasqal namespace (prefix, uri) pair.  Also includes flags
- * for making when they are declared and at what XML element depth
- * when used in XML formats.
+ * Namespace (prefix, uri) pair.
+ *
+ * Includes internal flags used for marking when prefixes are
+ * declared and at what XML element depth when used in XML formats.
  */
 typedef struct {
   const unsigned char *prefix;
@@ -116,10 +124,14 @@ typedef struct {
 
 /**
  * rasqal_variable_type:
+ * @RASQAL_VARIABLE_TYPE_NORMAL: The regular variable type.
+ * @RASQAL_VARIABLE_TYPE_ANONYMOUS: Anonymous variable type.
+ * @RASQAL_VARIABLE_TYPE_UNKNOWN: Internal.
  *
- * Rasqal variable types.  NORMAL is the regular variable,
- * ANONYMOUS can be used in queries but cannot be used in SELECT or
- * returned in a result.
+ * Rasqal variable types.
+ *
+ * ANONYMOUS can be used in queries but cannot be returned in a
+ * result.
  */
 typedef enum {
   RASQAL_VARIABLE_TYPE_UNKNOWN   = 0,
@@ -130,27 +142,33 @@ typedef enum {
 
 /**
  * rasqal_variable:
+ * @name: Variable name.
+ * @value: Variable value or NULL if unbound.
+ * @offset: Internal.
+ * @type: Variable type.
  *
- * Rasqal binding between a variable name and a #rasqal_literal value.
- * of a type #rasqal_variable_type.
+ * Binding between a variable name and a value.
  *
- * Also includes internal flags for recording the offset into the
- * (internal) variables array.
+ * Includes internal field @offset for recording the offset into the
+ * (internal) rasqal_query variables array.
  */
 typedef struct {
   const unsigned char *name;
   struct rasqal_literal_s *value;
-  int offset;   /* offset in the rasqal_query variables array */
-  rasqal_variable_type type;     /* variable type */
+  int offset;
+  rasqal_variable_type type;
 } rasqal_variable;
 
 
 /**
  * rasqal_data_graph_flags:
+ * @RASQAL_DATA_GRAPH_NONE: Internal.
+ * @RASQAL_DATA_GRAPH_NAMED: Graphs with a source and name.
+ * @RASQAL_DATA_GRAPH_BACKGROUND: Graphs with a source only.
  *
- * Flags for the type of #rasqal_data_graph as used by
- * rasqal_query_add_data_graph().  NAMED graphs make use of the graph
- * name URI, BACKGROUND graphs do not.  See #rasqal_data_graph.
+ * Flags for the type of #rasqal_data_graph.
+ *
+ * These are used by rasqal_query_add_data_graph(). See #rasqal_data_graph.
  */
 typedef enum {
   RASQAL_DATA_GRAPH_NONE  = 0,
@@ -161,58 +179,99 @@ typedef enum {
 
 /**
  * rasqal_data_graph:
+ * @uri: source URI
+ * @name_uri: name of graph for #RASQAL_DATA_NAMED
+ * @flags: #RASQAL_DATA_GRAPH_NAMED or #RASQAL_DATA_GRAPH_BACKGROUND
  *
- * A source of RDF data for querying.  The URI is the original source
- * (base URI) of the content.  It may also have an additional name
- * @name_uri as long as the flags are RASQAL_DATA_NAMED.
+ * A source of RDF data for querying. 
+ *
+ * The #uri is the original source (base URI) of the content.  It may
+ * also have an additional name @name_uri as long as @flags is
+ * #RASQAL_DATA_NAMED
  */
 typedef struct {
-  /** source URI */
   raptor_uri* uri;
-  /** name of graph for RASQAL_DATA_NAMED */
   raptor_uri* name_uri;
-  /* RASQAL_DATA_GRAPH_NAMED or RASQAL_DATA_GRAPH_BACKGROUND */
   int flags;
 } rasqal_data_graph;
 
 
 /**
  * rasqal_literal_type:
+ * @RASQAL_LITERAL_BLANK: RDF blank node literal (SPARQL r:bNode)
+ * @RASQAL_LITERAL_URI: RDF URI Literal (SPARQL r:URI)
+ * @RASQAL_LITERAL_STRING: RDF Literal / xsd:string (SPARQL r:Literal)
+ * @RASQAL_LITERAL_BOOLEAN: Boolean literal xsd:boolean.
+ * @RASQAL_LITERAL_INTEGER: Integer literal xsd:integer.
+ * @RASQAL_LITERAL_DOUBLE: Double floating point literal xsd:double.
+ * @RASQAL_LITERAL_FLOATING: Deprecated #RASQAL_LITERAL_DOUBLE.
+ * @RASQAL_LITERAL_FLOAT: Floating point literal xsd:float.
+ * @RASQAL_LITERAL_DECIMAL: Decimal integer xsd:decimal.
+ * @RASQAL_LITERAL_DATETIME: Date/Time literal xsd:dateTime.
+ * @RASQAL_LITERAL_PATTERN: Pattern literal for a regex.
+ * @RASQAL_LITERAL_QNAME: XML Qname literal.
+ * @RASQAL_LITERAL_VARIABLE: Variable literal.
+ * @RASQAL_LITERAL_UNKNOWN: Internal.
+ * @RASQAL_LITERAL_FIRST_XSD: Internal.
+ * @RASQAL_LITERAL_LAST_XSD: Internal.
+ * @RASQAL_LITERAL_LAST: Internal.
  *
- * Rasqal literal types
+ * Types of literal.
  *
- * The order in the following enumeration is significant as it encodes
+ * The order in the enumeration is significant as it encodes
  * the SPARQL term ordering conditions:
+ *
  *   Blank Nodes << IRIS << RDF literals << typed literals
+ *
  * which coresponds to in enum values
+ *
  *   BLANK << URI << STRING << 
  *     (BOOLEAN | INTEGER | DOUBLE | FLOAT | DECIMAL | DATETIME)
  *     (RASQAL_LITERAL_FIRST_XSD ... RASQAL_LITERAL_LAST_XSD)
+ *
  * Not used (internal): PATTERN, QNAME, VARIABLE
  *
  * See rasqal_literal_compare() when used with flags
- * RASQAL_COMPARE_XQUERY.
+ * #RASQAL_COMPARE_XQUERY
  */
 typedef enum {
+  /* internal */
   RASQAL_LITERAL_UNKNOWN,
-  RASQAL_LITERAL_BLANK,    /* r:bNode RDF blank node */
-  RASQAL_LITERAL_URI,      /* r:URI */
-  RASQAL_LITERAL_STRING,   /* r:Literal RDF literal (includes xsd:string ) */
-  RASQAL_LITERAL_BOOLEAN,  /* xsd:boolean */
-  RASQAL_LITERAL_INTEGER,  /* xsd:integer */
-  RASQAL_LITERAL_DOUBLE,   /* xsd:double  */
+  RASQAL_LITERAL_BLANK,
+  RASQAL_LITERAL_URI,
+  RASQAL_LITERAL_STRING,
+  RASQAL_LITERAL_BOOLEAN,
+  RASQAL_LITERAL_INTEGER,
+  RASQAL_LITERAL_DOUBLE,
+  /* deprecated */
   RASQAL_LITERAL_FLOATING = RASQAL_LITERAL_DOUBLE,
-  RASQAL_LITERAL_FLOAT,    /* xsd:float    */
-  RASQAL_LITERAL_DECIMAL,  /* xsd:decimal  */
-  RASQAL_LITERAL_DATETIME, /* xsd:dateTime */
+  RASQAL_LITERAL_FLOAT,
+  RASQAL_LITERAL_DECIMAL,
+  RASQAL_LITERAL_DATETIME,
+  /* internal */
   RASQAL_LITERAL_FIRST_XSD = RASQAL_LITERAL_BOOLEAN,
+  /* internal */
   RASQAL_LITERAL_LAST_XSD = RASQAL_LITERAL_DATETIME,
   RASQAL_LITERAL_PATTERN,
   RASQAL_LITERAL_QNAME,
   RASQAL_LITERAL_VARIABLE,
+  /* internal */
   RASQAL_LITERAL_LAST= RASQAL_LITERAL_VARIABLE
 } rasqal_literal_type;
 
+
+/**
+ * rasqal_literal:
+ * @usage: Usage count.
+ * @type: Type of literal.
+ * @string: String form of literal for literal types UTF-8 string, pattern, qname, blank, double, float, decimal, datetime.
+ * @string_len: Length of @string.
+ * @value: Alternate value content.
+ * @language: Language for string literal type.
+ * @datatype: Datatype for string literal type.
+ * @flags: Flags for literal types
+ *
+ */
 struct rasqal_literal_s {
   int usage;
   rasqal_literal_type type;
@@ -246,12 +305,47 @@ struct rasqal_literal_s {
 
 /**
  * rasqal_op:
+ * @RASQAL_EXPR_AND: Expression for AND(A, B)
+ * @RASQAL_EXPR_OR: Expression for OR(A, B)
+ * @RASQAL_EXPR_EQ: Expression for A equals B
+ * @RASQAL_EXPR_NEQ: Expression for A not equals B.
+ * @RASQAL_EXPR_LT: Expression for A less than B.
+ * @RASQAL_EXPR_GT: Expression for A greather than B.
+ * @RASQAL_EXPR_LE: Expression for A less than or equal to B.
+ * @RASQAL_EXPR_GE: Expression for A greater than or equal to B.
+ * @RASQAL_EXPR_UMINUS: Expression for -A.
+ * @RASQAL_EXPR_PLUS: Expression for +A.
+ * @RASQAL_EXPR_MINUS: Expression for A-B.
+ * @RASQAL_EXPR_STAR: Expression for A*B.
+ * @RASQAL_EXPR_SLASH: Expression for A/B.
+ * @RASQAL_EXPR_REM: Expression for A/B remainder.
+ * @RASQAL_EXPR_STR_EQ: Expression for A string equals B.
+ * @RASQAL_EXPR_STR_NEQ: Expression for A string not-equals B.
+ * @RASQAL_EXPR_STR_MATCH: Expression for string A matches regex B with flags.
+ * @RASQAL_EXPR_STR_NMATCH: Expression for string A not-matches regex B with flags.
+ * @RASQAL_EXPR_TILDE: Expression for binary not A.
+ * @RASQAL_EXPR_BANG: Expression for logical not A.
+ * @RASQAL_EXPR_LITERAL: Expression for a #rasqal_literal.
+ * @RASQAL_EXPR_FUNCTION: Expression for a function A with arguments (B...).
+ * @RASQAL_EXPR_BOUND: Expression for SPARQL ISBOUND(A).
+ * @RASQAL_EXPR_STR: Expression for SPARQL STR(A).
+ * @RASQAL_EXPR_LANG: Expression for SPARQL LANG(A).
+ * @RASQAL_EXPR_DATATYPE: Expression for SPARQL DATATYPE(A).
+ * @RASQAL_EXPR_ISURI: Expression for SPARQL ISURI(A).
+ * @RASQAL_EXPR_ISBLANK: Expression for SPARQL ISBLANK(A).
+ * @RASQAL_EXPR_ISLITERAL: Expression for SPARQL ISLITERAL(A).
+ * @RASQAL_EXPR_CAST: Expression for cast literal A to type B.
+ * @RASQAL_EXPR_ORDER_COND_ASC: Expression for SPARQL order condition ascending.
+ * @RASQAL_EXPR_ORDER_COND_DESC: Expression for SPARQL order condition descending.
+ * @RASQAL_EXPR_UNKNOWN: Internal
+ * @RASQAL_EXPR_LAST: Internal
  *
  * Rasqal expression operators.  A mixture of unary, binary and
  * tertiary operators (string matches).  Also includes casting and
  * two ordering operators from ORDER BY in SPARQL.
  */
 typedef enum {
+  /* internal */
   RASQAL_EXPR_UNKNOWN,
   RASQAL_EXPR_AND,
   RASQAL_EXPR_OR,
@@ -285,6 +379,7 @@ typedef enum {
   RASQAL_EXPR_CAST,
   RASQAL_EXPR_ORDER_COND_ASC,
   RASQAL_EXPR_ORDER_COND_DESC,
+  /* internal */
   RASQAL_EXPR_LAST= RASQAL_EXPR_ORDER_COND_DESC
 } rasqal_op;
 
@@ -314,6 +409,9 @@ typedef struct rasqal_expression_s rasqal_expression;
 
 /**
  * rasqal_triple_flags:
+ * @RASQAL_TRIPLE_FLAGS_EXACT: Not used.
+ * @RASQAL_TRIPLE_FLAGS_OPTIONAL: Not used.
+ * @RASQAL_TRIPLE_FLAGS_LAST: Internal.
  *
  * Flags for triple patterns.
  */
@@ -331,6 +429,11 @@ typedef enum {
 
 /**
  * rasqal_triple:
+ * @subject: Triple subject.
+ * @predicate: Triple predicate.
+ * @object: Triple object.
+ * @origin: Triple origin.
+ * @flags: Or of enum #rasqal_triple_flags bits.
  *
  * A triple pattern or RDF triple.
  *
@@ -342,17 +445,18 @@ typedef struct {
   rasqal_literal* predicate;
   rasqal_literal* object;
   rasqal_literal* origin;
-  unsigned int flags; /* | of enum rasqal_triple_flags bits */
+  unsigned int flags;
 } rasqal_triple;
 
 
-/*
+/**
  * rasqal_pattern_flags:
+ * @RASQAL_PATTERN_FLAGS_OPTIONAL: True when the graph pattern is an optional match.
+ * @RASQAL_PATTERN_FLAGS_LAST: Internal
  *
  * Flags for #rasqal_graph_pattern.
  */
 typedef enum {
-  /* true when the graph pattern is an optional match */
   RASQAL_PATTERN_FLAGS_OPTIONAL=1,
 
   RASQAL_PATTERN_FLAGS_LAST=RASQAL_PATTERN_FLAGS_OPTIONAL
@@ -362,34 +466,49 @@ typedef enum {
 typedef unsigned char* (*rasqal_generate_bnodeid_handler)(rasqal_query* query, void *user_data, unsigned char *user_bnodeid);
 
 
-/*
+/**
  * rasqal_query_verb:
+ * @RASQAL_QUERY_VERB_SELECT: RDQL/SPARQL query select verb. 
+ * @RASQAL_QUERY_VERB_CONSTRUCT: SPARQL query construct verb.
+ * @RASQAL_QUERY_VERB_DESCRIBE: SPARQL query describe verb.
+ * @RASQAL_QUERY_VERB_ASK: SPARQL query ask verb.
+ * @RASQAL_QUERY_VERB_UNKNOWN: Internal
+ * @RASQAL_QUERY_VERB_LAST: Internal
  *
- * Query verbs.
+ * Query main operation verbs describing the major type of query
+ * being performed.
  */
 typedef enum {
+  /* internal */
   RASQAL_QUERY_VERB_UNKNOWN   = 0,
   RASQAL_QUERY_VERB_SELECT    = 1,
   RASQAL_QUERY_VERB_CONSTRUCT = 2,
   RASQAL_QUERY_VERB_DESCRIBE  = 3,
   RASQAL_QUERY_VERB_ASK       = 4,
 
+  /* internal */
   RASQAL_QUERY_VERB_LAST=RASQAL_QUERY_VERB_ASK
 } rasqal_query_verb;
 
 
-/* Graph pattern operators  */
+/**
+ * rasqal_graph_pattern_operator:
+ * @RASQAL_GRAPH_PATTERN_OPERATOR_BASIC: Just triple patterns and constraints.
+ * @RASQAL_GRAPH_PATTERN_OPERATOR_OPTIONAL: Set of graph patterns (ANDed) and constraints.
+ * @RASQAL_GRAPH_PATTERN_OPERATOR_UNION: Set of graph patterns (UNIONed) and constraints.
+ * @RASQAL_GRAPH_PATTERN_OPERATOR_GROUP: Set of graph patterns (ANDed) and constraints.
+ * @RASQAL_GRAPH_PATTERN_OPERATOR_GRAPH: A graph term + a graph pattern and constraints.
+ * @RASQAL_GRAPH_PATTERN_OPERATOR_UNKNOWN: Internal.
+ * @RASQAL_GRAPH_PATTERN_OPERATOR_LAST: Internal.
+ *
+ * Graph pattern operators
+ */
 typedef enum {
   RASQAL_GRAPH_PATTERN_OPERATOR_UNKNOWN   = 0,
-  /* Basic - just triple patterns and constraints */
   RASQAL_GRAPH_PATTERN_OPERATOR_BASIC     = 1,
-  /* Optional - set of graph patterns (ANDed) and constraints */
   RASQAL_GRAPH_PATTERN_OPERATOR_OPTIONAL  = 2,
-  /* Union - set of graph patterns (UNIONed) and constraints */
   RASQAL_GRAPH_PATTERN_OPERATOR_UNION     = 3,
-  /* Group - set of graph patterns (ANDed) and constraints */
   RASQAL_GRAPH_PATTERN_OPERATOR_GROUP     = 4,
-  /* Graph - a graph term + a graph pattern and constraints */
   RASQAL_GRAPH_PATTERN_OPERATOR_GRAPH     = 5,
 
   RASQAL_GRAPH_PATTERN_OPERATOR_LAST=RASQAL_GRAPH_PATTERN_OPERATOR_GRAPH
@@ -591,9 +710,18 @@ RASQAL_API
 void rasqal_data_graph_print(rasqal_data_graph* dg, FILE* fh);
 
 
-/* Flags for rasqal_expression_evaluate or rasqal_literal_compare */
-#define RASQAL_COMPARE_NOCASE 1
-#define RASQAL_COMPARE_XQUERY 2
+/**
+ * rasqal_compare_flags:
+ * @RASQAL_COMPARE_NOCASE: String comparisons are case independent.
+ * @RASQAL_COMPARE_XQUERY: XQuery comparsion rules apply.
+ *
+ * Flags for rasqal_expression_evaluate() or rasqal_literal_compare().
+ */
+typedef enum {
+  RASQAL_COMPARE_NOCASE = 1,
+  RASQAL_COMPARE_XQUERY = 2
+} rasqal_compare_flags;
+
 
 /* Expression class */
 RASQAL_API
@@ -612,11 +740,11 @@ RASQAL_API
 rasqal_expression* rasqal_new_cast_expression(raptor_uri* name, rasqal_expression *value);
 
 RASQAL_API
-void rasqal_free_expression(rasqal_expression* expr);
+void rasqal_free_expression(rasqal_expression* e);
 RASQAL_API
 void rasqal_expression_print_op(rasqal_expression* expr, FILE* fh);
 RASQAL_API
-void rasqal_expression_print(rasqal_expression* expr, FILE* fh);
+void rasqal_expression_print(rasqal_expression* e, FILE* fh);
 RASQAL_API
 rasqal_literal* rasqal_expression_evaluate(rasqal_query* query, rasqal_expression* expr, int flags);
 typedef int (*rasqal_expression_foreach_fn)(void *user_data, rasqal_expression *e);
@@ -666,7 +794,7 @@ int rasqal_literal_equals(rasqal_literal* l1, rasqal_literal* l2);
 RASQAL_API
 rasqal_prefix* rasqal_new_prefix(const unsigned char* prefix, raptor_uri* uri);
 RASQAL_API
-void rasqal_free_prefix(rasqal_prefix* prefix);
+void rasqal_free_prefix(rasqal_prefix* p);
 RASQAL_API
 void rasqal_prefix_print(rasqal_prefix* p, FILE* fh);
 
@@ -704,8 +832,18 @@ void* rasqal_alloc_memory(size_t size);
 RASQAL_API
 void* rasqal_calloc_memory(size_t nmemb, size_t size);
 
+
 /* rasqal_engine.c */
 
+/**
+ * rasqal_triple_parts:
+ * @RASQAL_TRIPLE_SUBJECT: Subject present in a triple.
+ * @RASQAL_TRIPLE_PREDICATE: Predicate present in a triple.
+ * @RASQAL_TRIPLE_OBJECT: Object present in a triple.
+ * @RASQAL_TRIPLE_ORIGIN: Origin present in a triple.
+ *
+ * Flags for parts of a triple.
+ */
 typedef enum {
   RASQAL_TRIPLE_SUBJECT  = 1,
   RASQAL_TRIPLE_PREDICATE= 2,
@@ -713,27 +851,42 @@ typedef enum {
   RASQAL_TRIPLE_ORIGIN   = 8
 } rasqal_triple_parts;
 
+
+/**
+ * rasqal_triples_match:
+ * @user_data: User data pointer for factory methods.
+ * @bind_match: The [4]array (s,p,o,origin) bindings against the current triple match only touching triple parts given. Returns parts that were bound or 0 on failure.
+ * @next_match: Move to next match.
+ * @is_end: Check for end of triple match - return non-0 if is end.
+ * @finish: Finish triples match and destroy any allocated memory.
+ * 
+ * Triples match structure as initialised by #rasqal_triples_source
+ * method init_triples_match.
+ */
 struct rasqal_triples_match_s {
   void *user_data;
 
-  /* the [4]array (s,p,o,origin) bindings against the current triple match
-   * only touching triple parts given.
-   * returns parts that were bound or 0 on failure
-   */
   rasqal_triple_parts (*bind_match)(struct rasqal_triples_match_s*, void *user_data, rasqal_variable *bindings[4], rasqal_triple_parts parts);
 
-  /* move to next match */
   void (*next_match)(struct rasqal_triples_match_s*, void *user_data);
 
-  /* check for end of triple match - return non-0 if is end */
   int (*is_end)(struct rasqal_triples_match_s*, void *user_data);
 
-  /* finish triples match and destroy any allocated memory */
   void (*finish)(struct rasqal_triples_match_s*, void *user_data);
 };
 typedef struct rasqal_triples_match_s rasqal_triples_match;
 
 
+/**
+ * rasqal_triple_meta:
+ * @bindings: Variable bindings for this triple+origin to set.
+ * @triples_match: The matcher that is setting these bindings.
+ * @context: Context data used by the matcher.
+ * @parts: Parts of the triple to match/bindings to set.
+ * @is_exact: non-0 if all parts of the triple are given
+ *
+ * Triple matching metadata for one triple pattern.
+ */
 typedef struct 
 {
   /* triple (subject, predicate, object) and origin */
@@ -743,21 +896,27 @@ typedef struct
 
   void *context;
 
-  /* parts of the triple*/
   rasqal_triple_parts parts;
 
-  /* non-0 if all parts of the triple are given */
   int is_exact;
 } rasqal_triple_meta;
 
 
+/**
+ * rasqal_triples_source:
+ * @query: Source for this query.
+ * @user_data: Context user data passed into the factory methods.
+ * @init_triples_match: Factory method to initalise a new #rasqal_triples_match.
+ * @triple_present: Factory method to return presence or absence of a complete triple.
+ * @free_triples_source: Factory method to deallocate resources.
+ *
+ * Triples source as initialised by a #rasqal_triples_source_factory.
+ */
 struct rasqal_triples_source_s {
-  /* A source for this query */
   rasqal_query* query;
 
   void *user_data;
 
-  /* the triples_source_factory initialises these method */
   int (*init_triples_match)(rasqal_triples_match* rtm, struct rasqal_triples_source_s* rts, void *user_data, rasqal_triple_meta *m, rasqal_triple *t);
 
   int (*triple_present)(struct rasqal_triples_source_s* rts, void *user_data, rasqal_triple *t);
@@ -769,18 +928,17 @@ typedef struct rasqal_triples_source_s rasqal_triples_source;
 
 /**
  * rasqal_triples_source_factory:
+ * @user_data: User data for triples_source_factory.
+ * @user_data_size: Size Of @user_data for new_triples_source.
+ * @new_triples_source: Create a new triples source - returns non-zero on failure &lt; 0 is a 'no rdf data error', &gt; 0 is an unspecified error..
  *
  * A factory that initialises #rasqal_triples_source structures
  * to returning matches to a triple pattern.
  */
 typedef struct {
-  void *user_data; /* user data for triples_source_factory */
-  size_t user_data_size; /* size of user data for new_triples_source */
+  void *user_data;
+  size_t user_data_size;
 
-  /*
-   * create a new triples source - returns non-zero on failure
-   * < 0 is a 'no rdf data error', > 0 is an unspecified error
-   */
   int (*new_triples_source)(rasqal_query* query, void *factory_user_data, void *user_data, rasqal_triples_source* rts);
 } rasqal_triples_source_factory;
   

@@ -108,10 +108,20 @@ rasqal_new_double_literal(double d)
 }
 
 
+/**
+ * rasqal_new_floating_literal:
+ * @f:  floating literal
+ * 
+ * @Deprecated: Use rasqal_new_double_literal().
+ *
+ * Constructor - Create a new Rasqal double literal.
+ *
+ * Return value: New #rasqal_literal or NULL on failure
+ **/
 rasqal_literal*
-rasqal_new_floating_literal(double d)
+rasqal_new_floating_literal(double f)
 {
-  return rasqal_new_double_literal(d);
+  return rasqal_new_double_literal(f);
 }
 
 
@@ -468,17 +478,25 @@ static const char* rasqal_literal_type_labels[RASQAL_LITERAL_LAST+1]={
 };
 
 
+/**
+ * rasqal_literal_print_type:
+ * @l: the #rasqal_literal object
+ * @fh: the #FILE* handle to print to
+ * 
+ * Print a string form for a rasqal literal type.
+ *
+ **/
 void
-rasqal_literal_print_type(rasqal_literal* literal, FILE* fh)
+rasqal_literal_print_type(rasqal_literal* l, FILE* fh)
 {
   rasqal_literal_type type;
 
-  if(!literal) {
+  if(!l) {
     fputs("null", fh);
     return;
   }
   
-  type=literal->type;
+  type=l->type;
   if(type > RASQAL_LITERAL_LAST)
     type=RASQAL_LITERAL_UNKNOWN;
   fputs(rasqal_literal_type_labels[(int)type], fh);

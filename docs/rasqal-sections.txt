@@ -27,9 +27,8 @@ rasqal_data_graph_print
 <FILE>section-expression</FILE>
 rasqal_expression
 rasqal_op
+rasqal_compare_flags
 rasqal_pattern_flags
-RASQAL_COMPARE_NOCASE
-RASQAL_COMPARE_XQUERY
 rasqal_new_1op_expression
 rasqal_new_2op_expression
 rasqal_new_cast_expression
@@ -96,7 +95,6 @@ rasqal_prefix_print
 
 <SECTION>
 <FILE>section-query</FILE>
-rasqal_query
 rasqal_query_verb
 rasqal_new_query
 rasqal_free_query
@@ -147,7 +145,6 @@ rasqal_query_verb_as_string
 
 <SECTION>
 <FILE>section-query_results</FILE>
-rasqal_query_results
 rasqal_free_query_results
 rasqal_query_results_finished
 rasqal_query_results_get_binding_name
@@ -191,17 +188,24 @@ rasqal_variable_type
 </SECTION>
 
 <SECTION>
+<FILE>section-triples_source</FILE>
+rasqal_triples_match
+rasqal_triples_source
+rasqal_triples_source_factory
+rasqal_set_triples_source_factory
+</SECTION>
+
+
+<SECTION>
 <FILE>section-unused</FILE>
 RASQAL_API
 RASQAL_DEPRECATED
 rasqal_expression_s
+rasqal_query
+rasqal_query_results
 rasqal_literal_s
 rasqal_triples_match_s
 rasqal_triples_source_s
 rasqal_variable_s
-rasqal_set_triples_source_factory
-rasqal_triples_match
-rasqal_triples_source
-rasqal_triples_source_factory
 </SECTION>
 
