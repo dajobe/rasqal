@@ -2,19 +2,20 @@
 Expressions
 
 <!-- ##### SECTION Short_Description ##### -->
-
+Query language expressions.
 
 <!-- ##### SECTION Long_Description ##### -->
 <para>
-
+Expressions form an expression tree that can be evaluated using
+rasqal_expression_evaluate() over #rasqal_op operators, #rasqal_literal
+constants and #rasqal_variable values bound in some
+#rasqal_query_result.  The result is a #rasqal_literal value.
 </para>
-
 
 <!-- ##### SECTION See_Also ##### -->
 <para>
 
 </para>
-
 
 <!-- ##### SECTION Stability_Level ##### -->
 
@@ -65,6 +66,14 @@ Expressions
 @RASQAL_EXPR_ORDER_COND_DESC: 
 @RASQAL_EXPR_LAST: 
 
+<!-- ##### ENUM rasqal_compare_flags ##### -->
+<para>
+
+</para>
+
+@RASQAL_COMPARE_NOCASE: 
+@RASQAL_COMPARE_XQUERY: 
+
 <!-- ##### ENUM rasqal_pattern_flags ##### -->
 <para>
 
@@ -72,20 +81,6 @@ Expressions
 
 @RASQAL_PATTERN_FLAGS_OPTIONAL: 
 @RASQAL_PATTERN_FLAGS_LAST: 
-
-<!-- ##### MACRO RASQAL_COMPARE_NOCASE ##### -->
-<para>
-
-</para>
-
-
-
-<!-- ##### MACRO RASQAL_COMPARE_XQUERY ##### -->
-<para>
-
-</para>
-
-
 
 <!-- ##### FUNCTION rasqal_new_1op_expression ##### -->
 <para>
@@ -162,7 +157,7 @@ Expressions
 
 </para>
 
-@expr: 
+@e: 
 
 
 <!-- ##### FUNCTION rasqal_expression_evaluate ##### -->
@@ -171,7 +166,7 @@ Expressions
 </para>
 
 @query: 
-@expr: 
+@e: 
 @flags: 
 @Returns: 
 
@@ -202,7 +197,7 @@ Expressions
 
 </para>
 
-@expr: 
+@e: 
 @fh: 
 
 
@@ -211,7 +206,7 @@ Expressions
 
 </para>
 
-@expr: 
+@e: 
 @fh: 
 
 
