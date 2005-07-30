@@ -1,0 +1,5 @@
+<TYPEDEF>
+<NAME>rasqal_graph_pattern</NAME>
+rasqal_graph_pattern;
+</TYPEDEF>
+
