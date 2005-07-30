@@ -316,7 +316,7 @@ rasqal_graph_pattern_adjust(rasqal_graph_pattern* gp, int offset)
 
 /**
  * rasqal_graph_pattern_add_constraint:
- * @query: #rasqal_graph_pattern query object
+ * @gp: #rasqal_graph_pattern query object
  * @expr: #rasqal_expression expr
  *
  * Add a constraint expression to the graph_pattern.
@@ -337,7 +337,7 @@ rasqal_graph_pattern_add_constraint(rasqal_graph_pattern* gp,
 
 /**
  * rasqal_graph_pattern_get_constraint_sequence:
- * @query: #rasqal_graph_pattern query object
+ * @gp: #rasqal_graph_pattern object
  *
  * Get the sequence of constraints expressions in the query.
  *
@@ -352,7 +352,7 @@ rasqal_graph_pattern_get_constraint_sequence(rasqal_graph_pattern* gp)
 
 /**
  * rasqal_graph_pattern_get_constraint:
- * @query: #rasqal_graph_pattern query object
+ * @gp: #rasqal_graph_pattern query object
  * @idx: index into the sequence (0 or larger)
  *
  * Get a constraint in the sequence of constraint expressions in the query.
@@ -399,7 +399,7 @@ static const char* rasqal_graph_pattern_operator_labels[RASQAL_GRAPH_PATTERN_OPE
 
 /**
  * rasqal_graph_pattern_operator_as_string:
- * @verb: the #rasqal_graph_pattern_operator verb of the query
+ * @op: the #rasqal_graph_pattern_operator verb of the query
  *
  * Get a string for the query verb.
  * 
@@ -418,7 +418,7 @@ rasqal_graph_pattern_operator_as_string(rasqal_graph_pattern_operator op)
 
 /**
  * rasqal_graph_pattern_print:
- * @v: the #rasqal_graph_pattern object
+ * @gp: the #rasqal_graph_pattern object
  * @fh: the #FILE* handle to print to
  *
  * Print a #rasqal_graph_pattern in a debug format.

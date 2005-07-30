@@ -167,8 +167,11 @@ typedef enum {
  * @name_uri as long as the flags are RASQAL_DATA_NAMED.
  */
 typedef struct {
+  /** source URI */
   raptor_uri* uri;
+  /** name of graph for RASQAL_DATA_NAMED */
   raptor_uri* name_uri;
+  /* RASQAL_DATA_GRAPH_NAMED or RASQAL_DATA_GRAPH_BACKGROUND */
   int flags;
 } rasqal_data_graph;
 
@@ -430,28 +433,28 @@ void rasqal_query_set_error_handler(rasqal_query* query, void *user_data, raptor
 RASQAL_API
 void rasqal_query_set_warning_handler(rasqal_query* query, void *user_data, raptor_message_handler handler);
 RASQAL_API
-void rasqal_query_set_feature(rasqal_query *query, rasqal_feature feature, int value);
+void rasqal_query_set_feature(rasqal_query* query, rasqal_feature feature, int value);
 RASQAL_API
 void rasqal_query_set_default_generate_bnodeid_parameters(rasqal_query* rdf_query, char *prefix, int base);
 RASQAL_API
 void rasqal_query_set_generate_bnodeid_handler(rasqal_query* query, void *user_data, rasqal_generate_bnodeid_handler handler);
 
 RASQAL_API
-rasqal_query_verb rasqal_query_get_verb(rasqal_query *query);
+rasqal_query_verb rasqal_query_get_verb(rasqal_query* query);
 RASQAL_API
-int rasqal_query_get_wildcard(rasqal_query *query);
+int rasqal_query_get_wildcard(rasqal_query* query);
 RASQAL_API
-int rasqal_query_get_distinct(rasqal_query *query);
+int rasqal_query_get_distinct(rasqal_query* query);
 RASQAL_API
-void rasqal_query_set_distinct(rasqal_query *query, int is_distinct);
+void rasqal_query_set_distinct(rasqal_query* query, int is_distinct);
 RASQAL_API
-int rasqal_query_get_limit(rasqal_query *query);
+int rasqal_query_get_limit(rasqal_query* query);
 RASQAL_API
-void rasqal_query_set_limit(rasqal_query *query, int limit);
+void rasqal_query_set_limit(rasqal_query* query, int limit);
 RASQAL_API
-int rasqal_query_get_offset(rasqal_query *query);
+int rasqal_query_get_offset(rasqal_query* query);
 RASQAL_API
-void rasqal_query_set_offset(rasqal_query *query, int limit);
+void rasqal_query_set_offset(rasqal_query* query, int offset);
 
 RASQAL_API
 int rasqal_query_add_data_graph(rasqal_query* query, raptor_uri* uri, raptor_uri* name_uri, int flags);
@@ -507,7 +510,7 @@ int rasqal_graph_pattern_get_flags(rasqal_graph_pattern* graph_pattern);
 RASQAL_API
 rasqal_graph_pattern_operator rasqal_graph_pattern_get_operator(rasqal_graph_pattern* graph_pattern);
 RASQAL_API
-const char* rasqal_graph_pattern_operator_as_string(rasqal_graph_pattern_operator verb);
+const char* rasqal_graph_pattern_operator_as_string(rasqal_graph_pattern_operator op);
 RASQAL_API
 void rasqal_graph_pattern_print(rasqal_graph_pattern* gp, FILE* fh);
 RASQAL_API
@@ -525,7 +528,7 @@ rasqal_triple* rasqal_query_get_construct_triple(rasqal_query* query, int idx);
 RASQAL_API
 const char* rasqal_query_verb_as_string(rasqal_query_verb verb);
 RASQAL_API
-void rasqal_query_print(rasqal_query* query, FILE *stream);
+void rasqal_query_print(rasqal_query* query, FILE* fh);
 
 /* Query */
 RASQAL_API
@@ -534,9 +537,9 @@ RASQAL_API
 rasqal_query_results* rasqal_query_execute(rasqal_query* query);
 
 RASQAL_API
-void* rasqal_query_get_user_data(rasqal_query *query);
+void* rasqal_query_get_user_data(rasqal_query* query);
 RASQAL_API
-void rasqal_query_set_user_data(rasqal_query *query, void *user_data);
+void rasqal_query_set_user_data(rasqal_query* query, void *user_data);
 
 /* query results */
 RASQAL_API
@@ -615,7 +618,7 @@ void rasqal_expression_print_op(rasqal_expression* expr, FILE* fh);
 RASQAL_API
 void rasqal_expression_print(rasqal_expression* expr, FILE* fh);
 RASQAL_API
-rasqal_literal* rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* expr, int flags);
+rasqal_literal* rasqal_expression_evaluate(rasqal_query* query, rasqal_expression* expr, int flags);
 typedef int (*rasqal_expression_foreach_fn)(void *user_data, rasqal_expression *e);
 RASQAL_API
 int rasqal_expression_foreach(rasqal_expression* expr, rasqal_expression_foreach_fn fn, void *user_data);
@@ -626,7 +629,7 @@ rasqal_literal* rasqal_new_integer_literal(rasqal_literal_type type, int integer
 RASQAL_API RASQAL_DEPRECATED
 rasqal_literal* rasqal_new_floating_literal(double f);
 RASQAL_API
-rasqal_literal* rasqal_new_double_literal(double f);
+rasqal_literal* rasqal_new_double_literal(double d);
 RASQAL_API
 rasqal_literal* rasqal_new_uri_literal(raptor_uri* uri);
 RASQAL_API
@@ -641,19 +644,19 @@ RASQAL_API
 rasqal_literal* rasqal_new_variable_literal(rasqal_variable *variable);
 
 RASQAL_API
-rasqal_literal* rasqal_new_literal_from_literal(rasqal_literal* literal);
+rasqal_literal* rasqal_new_literal_from_literal(rasqal_literal* l);
 RASQAL_API
-void rasqal_free_literal(rasqal_literal* literal);
+void rasqal_free_literal(rasqal_literal* l);
 RASQAL_API
-void rasqal_literal_print(rasqal_literal* literal, FILE* fh);
+void rasqal_literal_print(rasqal_literal* l, FILE* fh);
 RASQAL_API
-void rasqal_literal_print_type(rasqal_literal* literal, FILE* fh);
+void rasqal_literal_print_type(rasqal_literal* l, FILE* fh);
 RASQAL_API
-rasqal_variable* rasqal_literal_as_variable(rasqal_literal* literal);
+rasqal_variable* rasqal_literal_as_variable(rasqal_literal* l);
 RASQAL_API
-const unsigned char* rasqal_literal_as_string(rasqal_literal* literal);
+const unsigned char* rasqal_literal_as_string(rasqal_literal* l);
 RASQAL_API
-rasqal_literal* rasqal_literal_as_node(rasqal_literal* literal);
+rasqal_literal* rasqal_literal_as_node(rasqal_literal* l);
 
 RASQAL_API
 int rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags, int *error);
@@ -685,13 +688,13 @@ rasqal_literal* rasqal_triple_get_origin(rasqal_triple* t);
 RASQAL_API
 rasqal_variable* rasqal_new_variable_typed(rasqal_query* rq, rasqal_variable_type type, unsigned char *name, rasqal_literal *value);
 RASQAL_API
-rasqal_variable* rasqal_new_variable(rasqal_query* query, unsigned char *name, rasqal_literal *value);
+rasqal_variable* rasqal_new_variable(rasqal_query* rq, unsigned char *name, rasqal_literal *value);
 RASQAL_API
-void rasqal_free_variable(rasqal_variable* variable);
+void rasqal_free_variable(rasqal_variable* v);
 RASQAL_API
-void rasqal_variable_print(rasqal_variable* t, FILE* fh);
+void rasqal_variable_print(rasqal_variable* v, FILE* fh);
 RASQAL_API
-void rasqal_variable_set_value(rasqal_variable* v, rasqal_literal *l);
+void rasqal_variable_set_value(rasqal_variable* v, rasqal_literal* l);
 
 /* memory functions */
 RASQAL_API
@@ -750,7 +753,7 @@ typedef struct
 
 struct rasqal_triples_source_s {
   /* A source for this query */
-  rasqal_query *query;
+  rasqal_query* query;
 
   void *user_data;
 
@@ -778,7 +781,7 @@ typedef struct {
    * create a new triples source - returns non-zero on failure
    * < 0 is a 'no rdf data error', > 0 is an unspecified error
    */
-  int (*new_triples_source)(rasqal_query *query, void *factory_user_data, void *user_data, rasqal_triples_source* rts);
+  int (*new_triples_source)(rasqal_query* query, void *factory_user_data, void *user_data, rasqal_triples_source* rts);
 } rasqal_triples_source_factory;
   
 

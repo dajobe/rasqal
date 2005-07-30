@@ -238,7 +238,7 @@ rasqal_variable_print(rasqal_variable* v, FILE* fh)
 /**
  * rasqal_variable_set_value:
  * @v: the #rasqal_variable object
- * @e: the #rasqal_literal value to set (or NULL)
+ * @l: the #rasqal_literal value to set (or NULL)
  *
  * Set the value of a Rasqal variable.
  * 
@@ -247,11 +247,11 @@ rasqal_variable_print(rasqal_variable* v, FILE* fh)
  * 
  **/
 void
-rasqal_variable_set_value(rasqal_variable* v, rasqal_literal *e)
+rasqal_variable_set_value(rasqal_variable* v, rasqal_literal* l)
 {
   if(v->value)
     rasqal_free_literal(v->value);
-  v->value=e;
+  v->value=l;
 #ifdef RASQAL_DEBUG
   if(!v->name)
     RASQAL_FATAL1("variable has no name");

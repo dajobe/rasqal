@@ -44,8 +44,8 @@
 #include "rasqal_internal.h"
 
 
-static void rasqal_query_add_query_result(rasqal_query *query, rasqal_query_results* query_results);
-static void rasqal_query_remove_query_result(rasqal_query *query, rasqal_query_results* query_results);
+static void rasqal_query_add_query_result(rasqal_query* query, rasqal_query_results* query_results);
+static void rasqal_query_remove_query_result(rasqal_query* query, rasqal_query_results* query_results);
 static int rasqal_query_results_write_xml_20041221(raptor_iostream *iostr, rasqal_query_results *results, raptor_uri *base_uri);
 static int rasqal_query_results_write_xml_result2(raptor_iostream *iostr, rasqal_query_results *results, raptor_uri *base_uri);
 static int rasqal_query_results_write_xml_result3(raptor_iostream *iostr, rasqal_query_results *results, raptor_uri *base_uri);
@@ -221,7 +221,7 @@ rasqal_free_query(rasqal_query* query)
  * Return value: shared string label value
  **/
 const char*
-rasqal_query_get_name(rasqal_query *query)
+rasqal_query_get_name(rasqal_query* query)
 {
   return query->factory->name;
 }
@@ -236,7 +236,7 @@ rasqal_query_get_name(rasqal_query *query)
  * Return value: shared string label value
  **/
 const char*
-rasqal_query_get_label(rasqal_query *query)
+rasqal_query_get_label(rasqal_query* query)
 {
   return query->factory->label;
 }
@@ -313,7 +313,7 @@ rasqal_query_set_warning_handler(rasqal_query* query, void *user_data,
  * feature can be one of:
  **/
 void
-rasqal_query_set_feature(rasqal_query *query, 
+rasqal_query_set_feature(rasqal_query* query, 
                          rasqal_feature feature, int value)
 {
   switch(feature) {
@@ -334,7 +334,7 @@ rasqal_query_set_feature(rasqal_query *query,
  * Return value: non-0 if the results should be distinct
  **/
 int
-rasqal_query_get_distinct(rasqal_query *query)
+rasqal_query_get_distinct(rasqal_query* query)
 {
   return query->distinct;
 }
@@ -349,7 +349,7 @@ rasqal_query_get_distinct(rasqal_query *query)
  *
  **/
 void
-rasqal_query_set_distinct(rasqal_query *query, int is_distinct)
+rasqal_query_set_distinct(rasqal_query* query, int is_distinct)
 {
   query->distinct= (is_distinct != 0) ? 1 : 0;
 }
@@ -366,7 +366,7 @@ rasqal_query_set_distinct(rasqal_query *query, int is_distinct)
  * Return value: integer >=0 if a limit is given, otherwise <0
  **/
 int
-rasqal_query_get_limit(rasqal_query *query)
+rasqal_query_get_limit(rasqal_query* query)
 {
   return query->limit;
 }
@@ -382,7 +382,7 @@ rasqal_query_get_limit(rasqal_query *query)
  * This is the limit given in the query on the number of results allowed.
  **/
 void
-rasqal_query_set_limit(rasqal_query *query, int limit)
+rasqal_query_set_limit(rasqal_query* query, int limit)
 {
   query->limit=limit;
 }
@@ -399,7 +399,7 @@ rasqal_query_set_limit(rasqal_query *query, int limit)
  * Return value: integer >=0 if a offset is given, otherwise <0
  **/
 int
-rasqal_query_get_offset(rasqal_query *query)
+rasqal_query_get_offset(rasqal_query* query)
 {
   return query->offset;
 }
@@ -415,7 +415,7 @@ rasqal_query_get_offset(rasqal_query *query)
  * This is the offset given in the query on the number of results allowed.
  **/
 void
-rasqal_query_set_offset(rasqal_query *query, int offset)
+rasqal_query_set_offset(rasqal_query* query, int offset)
 {
   query->offset=offset;
 }
@@ -952,7 +952,7 @@ rasqal_graph_pattern_set_origin(rasqal_graph_pattern* graph_pattern,
  * Return value: non-0 on failure.
  **/
 int
-rasqal_query_prepare(rasqal_query *query,
+rasqal_query_prepare(rasqal_query* query,
                      const unsigned char *query_string,
                      raptor_uri *base_uri)
 {
@@ -1002,7 +1002,7 @@ static int rasqal_query_result_row_update(rasqal_query_result_row* row, int offs
 static rasqal_query_result_row*
 rasqal_new_query_result_row(rasqal_query_results* query_results, int offset)
 {
-  rasqal_query *query=query_results->query;
+  rasqal_query* query=query_results->query;
   int size;
   int order_size;
   rasqal_query_result_row* row;
@@ -1080,7 +1080,7 @@ static int
 rasqal_query_result_row_update(rasqal_query_result_row* row, int offset)
 {
   rasqal_query_results *query_results=row->results;
-  rasqal_query *query;
+  rasqal_query* query;
   int i;
   
   if(!rasqal_query_results_is_bindings(query_results))
@@ -1291,7 +1291,7 @@ rasqal_map_add_to_sequence(void *key, void *value, void *user_data)
 static int
 rasqal_query_results_update(rasqal_query_results *query_results)
 {
-  rasqal_query *query;
+  rasqal_query* query;
 
   if(!query_results)
     return 1;
@@ -1366,7 +1366,7 @@ rasqal_map_free_query_result_row(const void *key, const void *value)
  * return value: a #rasqal_query_results structure or NULL on failure.
  **/
 rasqal_query_results*
-rasqal_query_execute(rasqal_query *query)
+rasqal_query_execute(rasqal_query* query)
 {
   rasqal_query_results *query_results;
   int rc=0;
@@ -1519,7 +1519,7 @@ rasqal_query_verb_as_string(rasqal_query_verb verb)
 /**
  * rasqal_query_print:
  * @query: the #rasqal_query object
- * @fh: the &FILE* handle to print to.
+ * @fh: the #FILE* handle to print to.
  *
  * Print a query in a debug format.
  * 
@@ -1584,7 +1584,7 @@ rasqal_query_print(rasqal_query* query, FILE *fh)
 
 
 static void
-rasqal_query_add_query_result(rasqal_query *query,
+rasqal_query_add_query_result(rasqal_query* query,
                               rasqal_query_results* query_results) 
 {
   query_results->next=query->results;
@@ -1596,7 +1596,7 @@ rasqal_query_add_query_result(rasqal_query *query,
 
 
 static void
-rasqal_query_remove_query_result(rasqal_query *query,
+rasqal_query_remove_query_result(rasqal_query* query,
                                  rasqal_query_results* query_results) 
 {
   rasqal_query_results *cur, *prev=NULL;
@@ -1625,7 +1625,7 @@ rasqal_query_remove_query_result(rasqal_query *query,
  **/
 void
 rasqal_free_query_results(rasqal_query_results *query_results) {
-  rasqal_query *query;
+  rasqal_query* query;
 
   if(!query_results)
     return;
@@ -1649,7 +1649,7 @@ rasqal_free_query_results(rasqal_query_results *query_results) {
  **/
 int
 rasqal_query_results_is_bindings(rasqal_query_results *query_results) {
-  rasqal_query *query=query_results->query;
+  rasqal_query* query=query_results->query;
   return (query->verb == RASQAL_QUERY_VERB_SELECT);
 }
 
@@ -1664,7 +1664,7 @@ rasqal_query_results_is_bindings(rasqal_query_results *query_results) {
  **/
 int
 rasqal_query_results_is_boolean(rasqal_query_results *query_results) {
-  rasqal_query *query=query_results->query;
+  rasqal_query* query=query_results->query;
   return (query->verb == RASQAL_QUERY_VERB_ASK);
 }
  
@@ -1679,7 +1679,7 @@ rasqal_query_results_is_boolean(rasqal_query_results *query_results) {
  **/
 int
 rasqal_query_results_is_graph(rasqal_query_results *query_results) {
-  rasqal_query *query=query_results->query;
+  rasqal_query* query=query_results->query;
   return (query->verb == RASQAL_QUERY_VERB_CONSTRUCT ||
           query->verb == RASQAL_QUERY_VERB_DESCRIBE);
 }
@@ -1696,7 +1696,7 @@ rasqal_query_results_is_graph(rasqal_query_results *query_results) {
 int
 rasqal_query_results_get_count(rasqal_query_results *query_results)
 {
-  rasqal_query *query;
+  rasqal_query* query;
 
   if(!query_results)
     return -1;
@@ -1722,7 +1722,7 @@ rasqal_query_results_get_count(rasqal_query_results *query_results)
 int
 rasqal_query_results_next(rasqal_query_results *query_results)
 {
-  rasqal_query *query;
+  rasqal_query* query;
   
   if(!query_results)
     return 1;
@@ -1802,7 +1802,7 @@ rasqal_query_results_get_bindings(rasqal_query_results *query_results,
                                   const unsigned char ***names, 
                                   rasqal_literal ***values)
 {
-  rasqal_query *query;
+  rasqal_query* query;
   
   if(!query_results)
     return 1;
@@ -1847,7 +1847,7 @@ rasqal_literal*
 rasqal_query_results_get_binding_value(rasqal_query_results *query_results, 
                                        int offset)
 {
-  rasqal_query *query;
+  rasqal_query* query;
   rasqal_query_result_row* row=NULL;
 
   if(!query_results)
@@ -1891,7 +1891,7 @@ const unsigned char*
 rasqal_query_results_get_binding_name(rasqal_query_results *query_results, 
                                       int offset)
 {
-  rasqal_query *query;
+  rasqal_query* query;
 
   if(!query_results)
     return NULL;
@@ -1923,7 +1923,7 @@ rasqal_query_results_get_binding_value_by_name(rasqal_query_results *query_resul
 {
   int offset= -1;
   int i;
-  rasqal_query *query;
+  rasqal_query* query;
   rasqal_query_result_row* row=NULL;
 
   if(!query_results)
@@ -1991,7 +1991,7 @@ rasqal_query_results_get_bindings_count(rasqal_query_results *query_results)
  * Return value: user data as set by rasqal_query_set_user_data
  **/
 void*
-rasqal_query_get_user_data(rasqal_query *query)
+rasqal_query_get_user_data(rasqal_query* query)
 {
   return query->user_data;
 }
@@ -2006,7 +2006,7 @@ rasqal_query_get_user_data(rasqal_query *query)
  *
  **/
 void
-rasqal_query_set_user_data(rasqal_query *query, void *user_data)
+rasqal_query_set_user_data(rasqal_query* query, void *user_data)
 {
   query->user_data=user_data;
 }
@@ -2021,7 +2021,7 @@ rasqal_query_set_user_data(rasqal_query *query, void *user_data)
  * Return value: the operating verb of the query of type rasqal_query_verb
  **/
 rasqal_query_verb
-rasqal_query_get_verb(rasqal_query *query)
+rasqal_query_get_verb(rasqal_query* query)
 {
   return query->verb;
 }
@@ -2036,7 +2036,7 @@ rasqal_query_get_verb(rasqal_query *query)
  * Return value: non-0 if the query verb was a wildcard (such as SELECT *)
  **/
 int
-rasqal_query_get_wildcard(rasqal_query *query)
+rasqal_query_get_wildcard(rasqal_query* query)
 {
   return query->wildcard;
 }
@@ -3226,7 +3226,7 @@ rasqal_prefix_id(int prefix_id, unsigned char *string) {
  **/
 raptor_statement*
 rasqal_query_results_get_triple(rasqal_query_results *query_results) {
-  rasqal_query *query;
+  rasqal_query* query;
   int rc;
   rasqal_triple *t;
   rasqal_literal *s, *p, *o;
@@ -3389,7 +3389,7 @@ rasqal_query_results_get_triple(rasqal_query_results *query_results) {
  **/
 int
 rasqal_query_results_next_triple(rasqal_query_results *query_results) {
-  rasqal_query *query;
+  rasqal_query* query;
   int rc;
   
   if(!query_results)
@@ -3437,7 +3437,7 @@ rasqal_query_results_next_triple(rasqal_query_results *query_results) {
  */
 int
 rasqal_query_results_get_boolean(rasqal_query_results *query_results) {
-  rasqal_query *query;
+  rasqal_query* query;
   int rc;
   
   if(!query_results)
