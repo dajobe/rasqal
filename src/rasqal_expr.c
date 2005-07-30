@@ -316,6 +316,15 @@ rasqal_free_prefix(rasqal_prefix* p)
 }
 
 
+/**
+ * rasqal_prefix_print:
+ * @p: #rasqal_prefix object.
+ * @fh: The #FILE* handle to print to.
+ *
+ * Print a Rasqal prefix in a debug format.
+ * 
+ * The print debug format may change in any release.
+ **/
 void
 rasqal_prefix_print(rasqal_prefix* p, FILE* fh)
 {
@@ -360,6 +369,15 @@ rasqal_free_triple(rasqal_triple* t)
 }
 
 
+/**
+ * rasqal_triple_print:
+ * @t: #rasqal_triple object.
+ * @fh: The #FILE* handle to print to.
+ * 
+ * Print a Rasqal triple in a debug format.
+ * 
+ * The print debug format may change in any release.
+ **/
 void
 rasqal_triple_print(rasqal_triple* t, FILE* fh)
 {
@@ -378,6 +396,13 @@ rasqal_triple_print(rasqal_triple* t, FILE* fh)
 }
 
 
+/**
+ * rasqal_triple_set_origin:
+ * @t: The triple object. 
+ * @l: The #rasqal_literal object to set as origin.
+ * 
+ * Set the origin field of a #rasqal_triple.
+ **/
 void
 rasqal_triple_set_origin(rasqal_triple* t, rasqal_literal* l)
 {
@@ -385,6 +410,14 @@ rasqal_triple_set_origin(rasqal_triple* t, rasqal_literal* l)
 }
 
 
+/**
+ * rasqal_triple_get_origin:
+ * @t: The triple object. 
+ * 
+ * Get the origin field of a #rasqal_triple.
+ * 
+ * Return value: 
+ **/
 rasqal_literal*
 rasqal_triple_get_origin(rasqal_triple* t)
 {
@@ -1493,6 +1526,15 @@ rasqal_expression_print_op(rasqal_expression* expression, FILE* fh)
 }
 
 
+/**
+ * rasqal_expression_print:
+ * @e: #rasqal_expression object.
+ * @fh: The #FILE* handle to print to.
+ * 
+ * Print a Rasqal expression in a debug format.
+ * 
+ * The print debug format may change in any release.
+ **/
 void
 rasqal_expression_print(rasqal_expression* e, FILE* fh)
 {

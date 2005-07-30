@@ -336,9 +336,11 @@ rasqal_languages_enumerate(const unsigned int counter,
 }
 
 
-/*
- * rasqal_language_name_check -  Check name of a query language
+/**
+ * rasqal_language_name_check:
  * @name: the query language name
+ *
+ * Check name of a query language.
  *
  * Return value: non 0 if name is a known query language
  */

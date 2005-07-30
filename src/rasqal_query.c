@@ -283,7 +283,7 @@ rasqal_query_set_error_handler(rasqal_query* query, void *user_data,
 
 
 /**
- * rasqal_set_warning_handler:
+ * rasqal_query_set_warning_handler:
  * @query: the query
  * @user_data: user data to pass to function
  * @handler: pointer to the function
@@ -842,7 +842,7 @@ rasqal_graph_pattern_get_triple(rasqal_graph_pattern* graph_pattern, int idx)
 
 /**
  * rasqal_graph_pattern_get_sub_graph_pattern_sequence:
- * @graph_pattern: 
+ * @graph_pattern: #rasqal_graph_pattern graph pattern object
  *
  * Get the sequence of graph patterns inside a graph pattern .
  * 
