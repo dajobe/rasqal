@@ -9,12 +9,10 @@ Literals
 
 </para>
 
-
 <!-- ##### SECTION See_Also ##### -->
 <para>
 
 </para>
-
 
 <!-- ##### SECTION Stability_Level ##### -->
 
@@ -62,7 +60,7 @@ Literals
 
 </para>
 
-@f: 
+@d: 
 @Returns: 
 
 
@@ -140,7 +138,7 @@ Literals
 
 </para>
 
-@literal: 
+@l: 
 @Returns: 
 
 
@@ -149,7 +147,7 @@ Literals
 
 </para>
 
-@literal: 
+@l: 
 
 
 <!-- ##### FUNCTION rasqal_literal_as_node ##### -->
@@ -157,7 +155,7 @@ Literals
 
 </para>
 
-@literal: 
+@l: 
 @Returns: 
 
 
@@ -166,7 +164,7 @@ Literals
 
 </para>
 
-@literal: 
+@l: 
 @Returns: 
 
 
@@ -175,7 +173,7 @@ Literals
 
 </para>
 
-@literal: 
+@l: 
 @Returns: 
 
 
@@ -206,7 +204,7 @@ Literals
 
 </para>
 
-@literal: 
+@l: 
 @fh: 
 
 
@@ -215,7 +213,7 @@ Literals
 
 </para>
 
-@literal: 
+@l: 
 @fh: 
 
 

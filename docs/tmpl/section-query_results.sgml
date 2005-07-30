@@ -9,20 +9,12 @@ Query Results
 
 </para>
 
-
 <!-- ##### SECTION See_Also ##### -->
 <para>
 
 </para>
 
-
 <!-- ##### SECTION Stability_Level ##### -->
-
-
-<!-- ##### TYPEDEF rasqal_query_results ##### -->
-<para>
-
-</para>
 
 
 <!-- ##### FUNCTION rasqal_free_query_results ##### -->

@@ -9,12 +9,10 @@ Prefixes
 
 </para>
 
-
 <!-- ##### SECTION See_Also ##### -->
 <para>
 
 </para>
-
 
 <!-- ##### SECTION Stability_Level ##### -->
 
@@ -44,7 +42,7 @@ Prefixes
 
 </para>
 
-@prefix: 
+@p: 
 
 
 <!-- ##### FUNCTION rasqal_prefix_print ##### -->

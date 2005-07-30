@@ -9,12 +9,10 @@ Variables
 
 </para>
 
-
 <!-- ##### SECTION See_Also ##### -->
 <para>
 
 </para>
-
 
 <!-- ##### SECTION Stability_Level ##### -->
 
@@ -34,7 +32,7 @@ Variables
 
 </para>
 
-@query: 
+@rq: 
 @name: 
 @value: 
 @Returns: 
@@ -57,7 +55,7 @@ Variables
 
 </para>
 
-@variable: 
+@v: 
 
 
 <!-- ##### FUNCTION rasqal_variable_print ##### -->
@@ -65,7 +63,7 @@ Variables
 
 </para>
 
-@t: 
+@v: 
 @fh: 
 
 

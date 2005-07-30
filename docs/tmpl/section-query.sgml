@@ -9,20 +9,12 @@ Query
 
 </para>
 
-
 <!-- ##### SECTION See_Also ##### -->
 <para>
 
 </para>
 
-
 <!-- ##### SECTION Stability_Level ##### -->
-
-
-<!-- ##### TYPEDEF rasqal_query ##### -->
-<para>
-
-</para>
 
 
 <!-- ##### ENUM rasqal_query_verb ##### -->
@@ -344,7 +336,7 @@ Query
 </para>
 
 @query: 
-@stream: 
+@fh: 
 
 
 <!-- ##### FUNCTION rasqal_query_set_default_generate_bnodeid_parameters ##### -->
@@ -421,7 +413,7 @@ Query
 </para>
 
 @query: 
-@limit: 
+@offset: 
 
 
 <!-- ##### FUNCTION rasqal_query_set_user_data ##### -->

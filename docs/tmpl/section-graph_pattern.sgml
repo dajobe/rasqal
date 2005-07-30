@@ -9,12 +9,10 @@ Graph patterns
 
 </para>
 
-
 <!-- ##### SECTION See_Also ##### -->
 <para>
 
 </para>
-
 
 <!-- ##### SECTION Stability_Level ##### -->
 
@@ -128,7 +126,7 @@ Graph patterns
 
 </para>
 
-@verb: 
+@op: 
 @Returns: 
 
 
