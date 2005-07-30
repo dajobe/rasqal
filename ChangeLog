@@ -1,4 +1,69 @@
+2005-07-30  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* rasqal_expr.c, rasqal.h: autodocs
+
+	* docs/tmpl/section-variable.sgml, docs/tmpl/section-unused.sgml,
+	docs/tmpl/section-query_results.sgml,
+	docs/tmpl/section-triple.sgml, docs/tmpl/section-query.sgml,
+	docs/tmpl/section-literal.sgml, docs/tmpl/section-prefix.sgml,
+	docs/tmpl/section-general.sgml,
+	docs/tmpl/section-graph_pattern.sgml: Updated templates.
+
+	* docs/tmpl/section-expression.sgml: short and long desc add
+	rasqal_compare_flags not #defines
+
+	* docs/tmpl/section-data.sgml: short and long desc
+
+	* docs/rasqal-overrides.txt: override some things to hide
+	internals.
+
+	* docs/rasqal-sections.txt, docs/rasqal-docs.xml,
+	rasqal_literal.c, rasqal_expr.c, rasqal_general.c, rasqal.h: more
+	autodocs
+
+	* rasqal_query.c, rasqal_general.c, rasqal_expr.c: more autodocs
+	and fixes for gtk-doc style
+
+	* rasqal_expr.c: autodocs for rasqal_data_graph
+
+	* rasqal_query.c, rasqal_expr.c, rasqal_graph_pattern.c, rasqal.h:
+	Source code arg fixes for gtk-doc
+
+2005-07-29  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* docs/rasqal.types: empty types for gtk-doc
+
+	* docs/README.html: gtk-doc
+
+	* Makefile.am: Added DISTCHECK_CONFIGURE_FLAGS
+
+	* rasqal.spec.in: Updated for gtk-doc locations
+
+	* docs/tmpl/section-data.sgml, docs/tmpl/section-expression.sgml,
+	docs/tmpl/section-general.sgml,
+	docs/tmpl/section-graph_pattern.sgml,
+	docs/tmpl/section-literal.sgml, docs/tmpl/section-prefix.sgml,
+	docs/tmpl/section-query.sgml,
+	docs/tmpl/section-query_results.sgml,
+	docs/tmpl/section-triple.sgml, docs/tmpl/section-unused.sgml,
+	docs/tmpl/section-variable.sgml, docs/rasqal-overrides.txt,
+	autogen.sh, configure.ac, docs/.cvsignore, docs/Makefile.am,
+	docs/api.sgml.in, docs/build-docs, docs/kernel-doc,
+	docs/rasqal-docs.xml, docs/rasqal-sections.txt, rasqal.h,
+	rasqal_engine.c, rasqal_expr.c, rasqal_general.c,
+	rasqal_graph_pattern.c, rasqal_literal.c, rasqal_map.c,
+	rasqal_query.c, rasqal_raptor.c, rasqal_skiplist.c: Switch to
+	gtkdoc for autodocs.  Adjust source code comment style.
+
+	* docs/version.xml.in: version xml
+
+	* autogen.sh: run gtkdocize
+
+	* configure.ac: require gtk-doc 1.4
+
 2005-07-28  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* roqet.1: Update for newer result formats.
 
 	* tests/sparql/syntax/manifest.n3,
 	tests/sparql/syntax/Makefile.am: distinct-with-undef-var
