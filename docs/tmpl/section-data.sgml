@@ -2,19 +2,20 @@
 Data Graphs
 
 <!-- ##### SECTION Short_Description ##### -->
-
+RDF graph sources for triples.
 
 <!-- ##### SECTION Long_Description ##### -->
 <para>
-
+Data graphs are used in the query to describe RDF graphs that can be
+used to query against.  The graphs can be used either with #raptor_uri
+to name the graph, or without a name.  The query language determines
+which graphs are used in the query.
 </para>
-
 
 <!-- ##### SECTION See_Also ##### -->
 <para>
 
 </para>
-
 
 <!-- ##### SECTION Stability_Level ##### -->
 
