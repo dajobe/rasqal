@@ -742,11 +742,11 @@ rasqal_expression* rasqal_new_cast_expression(raptor_uri* name, rasqal_expressio
 RASQAL_API
 void rasqal_free_expression(rasqal_expression* e);
 RASQAL_API
-void rasqal_expression_print_op(rasqal_expression* expr, FILE* fh);
+void rasqal_expression_print_op(rasqal_expression* e, FILE* fh);
 RASQAL_API
 void rasqal_expression_print(rasqal_expression* e, FILE* fh);
 RASQAL_API
-rasqal_literal* rasqal_expression_evaluate(rasqal_query* query, rasqal_expression* expr, int flags);
+rasqal_literal* rasqal_expression_evaluate(rasqal_query* query, rasqal_expression* e, int flags);
 typedef int (*rasqal_expression_foreach_fn)(void *user_data, rasqal_expression *e);
 RASQAL_API
 int rasqal_expression_foreach(rasqal_expression* expr, rasqal_expression_foreach_fn fn, void *user_data);

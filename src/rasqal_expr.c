@@ -716,6 +716,17 @@ rasqal_expression_compare(rasqal_expression* e1, rasqal_expression* e2,
 }
 
 
+/**
+ * rasqal_expression_evaluate:
+ * @query: #rasqal_query this expression belongs to
+ * @e: The expression to evaluate.
+ * @flags: Flags for rasqal_literal_compare() and RASQAL_COMPARE_NOCASE for string matches.
+ * 
+ * Evaluate a #rasqal_expression tree to give a #rasqal_literal result
+ * or error.
+ * 
+ * Return value: a #rasqal_literal value or NULL on failure.
+ **/
 rasqal_literal*
 rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e,
                            int flags)
@@ -1568,9 +1579,9 @@ static const char* rasqal_op_labels[RASQAL_EXPR_LAST+1]={
 };
 
 void
-rasqal_expression_print_op(rasqal_expression* expression, FILE* fh)
+rasqal_expression_print_op(rasqal_expression* e, FILE* fh)
 {
-  rasqal_op op=expression->op;
+  rasqal_op op=e->op;
   if(op > RASQAL_EXPR_LAST)
     op=RASQAL_EXPR_UNKNOWN;
   fputs(rasqal_op_labels[(int)op], fh);
