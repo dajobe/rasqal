@@ -36,7 +36,7 @@ roqet_LDADD = $(top_builddir)/src/librasqal.la @RASQAL_EXTERNAL_LIBS@ $(MEM_LIBS
 EXTRA_DIST= roqet.html
 
 if MAINTAINER_MODE
-oqet.html: $(srcdir)/roqet.1 $(srcdir)/../fix-groff-xhtml
+roqet.html: $(srcdir)/roqet.1 $(srcdir)/../fix-groff-xhtml
 	-groff -man -Thtml -P-l $< | tidy -asxml -wrap 1000 2>/dev/null | perl $(srcdir)/../fix-groff-xhtml $@
 
 endif
