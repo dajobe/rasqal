@@ -86,14 +86,14 @@ $(rdql_testsuite_result_files) \
 $(rdql_testsuite_extra_files)
 
 build-roqet:
-	@(cd $(top_builddir) ; $(MAKE) roqet)
+	@(cd $(top_builddir)/utils ; $(MAKE) roqet)
 
 
 check-local: check-rdql-correct
 
 check-rdql-correct: build-roqet $(srcdir)/check-rdql
 	@set +e; \
-	PATH=$(top_builddir)@RAPPER_PATH@:$$PATH \
+	PATH=$(top_builddir)/utils:$(top_builddir)@RAPPER_PATH@:$$PATH \
 	  perl $(srcdir)/check-rdql -s $(srcdir); \
 	result=$$?; \
 	if test $$result != 0 ; then \

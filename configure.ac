@@ -27,11 +27,11 @@ dnl
 
 AC_INIT(Rasqal RDF Query Library, 0.9.11, http://bugs.librdf.org/, rasqal)
 AC_PREREQ(2.50)
-AC_CONFIG_SRCDIR(rdql_parser.y)
+AC_CONFIG_SRCDIR(src/rasqal_general.c)
 AC_REVISION($Revision$)
 
 AM_INIT_AUTOMAKE([1.7 check-news std-options -Wall])
-AM_CONFIG_HEADER(rasqal_config.h)
+AM_CONFIG_HEADER(src/rasqal_config.h)
 AM_MAINTAINER_MODE
 
 release_version=no
@@ -669,6 +669,9 @@ AC_SUBST(abs_top_builddir)
 
 AC_CONFIG_FILES([Makefile
 data/Makefile
+docs/Makefile
+docs/version.xml
+src/Makefile
 tests/Makefile
 tests/rdql/Makefile
 tests/rdql/testsuite/Makefile
@@ -687,13 +690,12 @@ tests/sparql/Expr1/Makefile
 tests/sparql/Expr2/Makefile
 tests/sparql/ExprBuiltins/Makefile
 tests/sparql/ExprEquals/Makefile
-docs/Makefile
-docs/version.xml
+utils/Makefile
 win32/Makefile
 rasqal.spec
 rasqal.rdf
 rasqal.pc])
-AC_CONFIG_FILES([rasqal-config], [chmod +x rasqal-config])
+AC_CONFIG_FILES([src/rasqal-config], [chmod +x src/rasqal-config])
 AC_CONFIG_FILES([rasqal-src-config], [chmod +x rasqal-src-config])
 
 dnl Check for gtk-doc and docbook

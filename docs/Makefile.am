@@ -34,11 +34,11 @@ DOC_MAIN_SGML_FILE=rasqal-docs.xml
 SCAN_OPTIONS=
 
 # The directory containing the source code. Relative to $(srcdir)
-DOC_SOURCE_DIR=..
+DOC_SOURCE_DIR=../src
 
 # Used for dependencies
-HFILE_GLOB=$(top_srcdir)/rasqal.h
-CFILE_GLOB=$(top_srcdir)/rasqal_*.c
+HFILE_GLOB=$(top_srcdir)/src/rasqal.h
+CFILE_GLOB=$(top_srcdir)/src/rasqal_*.c
 
 IGNORE_CFILES= \
 getopt.c \
@@ -86,6 +86,8 @@ FIXXREF_OPTIONS=
 
 include $(top_srcdir)/gtk-doc.make
 
+man_MANS = librasqal.3
+
 EXTRA_DIST+= README.html README \
 version.xml.in
 
@@ -94,6 +96,12 @@ CLEANFILES+= README
 # Create some text files from HTML sources
 LYNX=lynx
 LYNXARGS=-dump -nolist
+
+if MAINTAINER_MODE
+librasqal.html: $(srcdir)/librasqal.3 $(srcdir)/../fix-groff-xhtml
+	-groff -man -Thtml -P-l $< | tidy -asxml -wrap 1000 2>/dev/null | perl $(srcdir)/../fix-groff-xhtml $@
+endif
+
 
 README: README.html
 	$(LYNX) $(LYNXARGS) $< > $@

@@ -84,8 +84,8 @@ else
 fi
 
 if test "$echo_cflags" = "yes"; then
-  echo -I@abs_top_srcdir@  `$config --cflags`
+  echo -I@abs_top_srcdir@/src  `$config --cflags`
 fi
 if test "$echo_libs" = "yes"; then
-  echo -L@abs_top_builddir@/.libs -lrasqal @LDFLAGS@ `$config --libs`
+  echo -L@abs_top_builddir@/src/.libs -lrasqal @LDFLAGS@ `$config --libs`
 fi

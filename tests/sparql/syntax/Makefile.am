@@ -50,13 +50,13 @@ $(SPARQL_BAD_TEST_FILES) \
 $(SPARQL_RESULT_FILES)
 
 build-roqet:
-	@(cd $(top_builddir) ; $(MAKE) roqet)
+	@(cd $(top_builddir)/utils ; $(MAKE) roqet)
 
 build-sparql-lexer-test:
-	@(cd $(top_builddir) ; $(MAKE) sparql_lexer_test)
+	@(cd $(top_builddir)/src ; $(MAKE) sparql_lexer_test)
 
 build-sparql-parser-test:
-	@(cd $(top_builddir) ; $(MAKE) sparql_parser_test)
+	@(cd $(top_builddir)/src ; $(MAKE) sparql_parser_test)
 
 
 check-local: check-sparql-lexer check-sparql-parser check-bad-sparql \
@@ -67,7 +67,7 @@ check-sparql-lexer: build-sparql-lexer-test
 	$(ECHO) "Testing legal SPARQL lexing"; \
 	for test in $(SPARQL_TEST_FILES); do \
 	  $(ECHO) $(ECHO_N) "Checking $$test $(ECHO_C)"; \
-	  $(top_builddir)/sparql_lexer_test $(srcdir)/$$test >/dev/null; \
+	  $(top_builddir)/src/sparql_lexer_test $(srcdir)/$$test >/dev/null; \
 	  status=$$?; \
 	  if test $$status != 0 -a $$status != 2 ; then \
 	    $(ECHO) FAILED returned status $$status; result=1; \
@@ -82,7 +82,7 @@ check-sparql-parser: build-sparql-parser-test
 	$(ECHO) "Testing legal SPARQL parsing"; \
 	for test in $(SPARQL_TEST_FILES); do \
 	  $(ECHO) $(ECHO_N) "Checking $$test $(ECHO_C)"; \
-	  $(top_builddir)/sparql_parser_test $(srcdir)/$$test >/dev/null; \
+	  $(top_builddir)/src/sparql_parser_test $(srcdir)/$$test >/dev/null; \
 	  status=$$?; \
 	  if test $$status != 0 -a $$status != 2 ; then \
 	    $(ECHO) FAILED returned status $$status; result=1; \
@@ -100,7 +100,7 @@ check-sparql-correct: build-roqet $(srcdir)/../check-sparql
 	@set +e; \
 	expect=`echo $(EXPECTED_SPARQL_CORRECT_FAILURES) | wc -w`; \
 	$(ECHO) "Testing SPARQL correct"; \
-	PATH=$(top_builddir)@RAPPER_PATH@:$$PATH \
+	PATH=$(top_builddir)/utils:$(top_builddir)@RAPPER_PATH@:$$PATH \
 	  perl $(srcdir)/../check-sparql -s $(srcdir); \
 	result=$$?; \
 	if test $$result != 0 ; then \
@@ -122,7 +122,7 @@ check-bad-sparql: build-sparql-parser-test
 	$(ECHO) "Testing bad SPARQL fails"; \
 	for test in $(SPARQL_BAD_TEST_FILES); do \
 	  $(ECHO) $(ECHO_N) "Checking $$test $(ECHO_C)"; \
-	  $(top_builddir)/sparql_parser_test $(srcdir)/$$test >$$name.res 2> $$name.err; \
+	  $(top_builddir)/src/sparql_parser_test $(srcdir)/$$test >$$name.res 2> $$name.err; \
 	  status=$$?; \
 	  if test $$status -eq 1 ; then \
 	    $(ECHO) "ok"; \

@@ -37,10 +37,10 @@ $(RDQL_TEST_FILES) \
 dc.rdf
 
 build-rdql-lexer-test:
-	@(cd $(top_builddir) ; $(MAKE) rdql_lexer_test)
+	@(cd $(top_builddir)/src ; $(MAKE) rdql_lexer_test)
 
 build-rdql-parser-test:
-	@(cd $(top_builddir) ; $(MAKE) rdql_parser_test)
+	@(cd $(top_builddir)/src ; $(MAKE) rdql_parser_test)
 
 check-local: check-rdql-lexer check-rdql-parser
 
@@ -49,7 +49,7 @@ check-rdql-lexer: build-rdql-lexer-test
 	$(ECHO) "Testing legal RDQL lexing"; \
 	for test in $(RDQL_TEST_FILES); do \
 	  $(ECHO) $(ECHO_N) "Checking $$test $(ECHO_C)"; \
-	  $(top_builddir)/rdql_lexer_test $(srcdir)/$$test >/dev/null; \
+	  $(top_builddir)/src/rdql_lexer_test $(srcdir)/$$test >/dev/null; \
 	  status=$$?; \
 	  if test $$status != 0 -a $$status != 2 ; then \
 	    $(ECHO) FAILED returned status $$status; result=1; \
@@ -64,7 +64,7 @@ check-rdql-parser: build-rdql-parser-test
 	$(ECHO) "Testing legal RDQL parsing"; \
 	for test in $(RDQL_TEST_FILES); do \
 	  $(ECHO) $(ECHO_N) "Checking $$test $(ECHO_C)"; \
-	  $(top_builddir)/rdql_parser_test $(srcdir)/$$test >/dev/null; \
+	  $(top_builddir)/src/rdql_parser_test $(srcdir)/$$test >/dev/null; \
 	  status=$$?; \
 	  if test $$status != 0 -a $$status != 2 ; then \
 	    $(ECHO) FAILED returned status $$status; result=1; \
