@@ -267,7 +267,7 @@ if test $with_raptor = system; then
 else
   RAPTOR_VERSION=internal
   AC_MSG_RESULT(internal)
-  if test ! -r $srcdir/../raptor/raptor_internal.h; then
+  if test ! -r $srcdir/../raptor/src/raptor_general.c; then
     AC_MSG_ERROR(Raptor sources missing from $srcdir/../raptor directory - cannot use internal)
   fi
 fi
@@ -566,9 +566,9 @@ AM_CONDITIONAL(RASQAL_QUERY_SPARQL, test $sparql_query_language = yes)
 
 
 if test $with_raptor = internal; then
-  RASQAL_INTERNAL_CPPFLAGS="$RASQAL_INTERNAL_CPPFLAGS -I\$(top_srcdir)/../raptor"
-  RASQAL_INTERNAL_LIBS="$RASQAL_INTERNAL_LIBS \$(top_builddir)/../raptor/libraptor.la"
-  RAPPER_PATH=":\$(top_srcdir)/../raptor"
+  RASQAL_INTERNAL_CPPFLAGS="$RASQAL_INTERNAL_CPPFLAGS -I\$(top_srcdir)/../raptor/src"
+  RASQAL_INTERNAL_LIBS="$RASQAL_INTERNAL_LIBS \$(top_builddir)/../raptor/src/libraptor.la"
+  RAPPER_PATH=":\$(top_srcdir)/../raptor/utils"
 else
   RASQAL_EXTERNAL_CPPFLAGS="$RASQAL_EXTERNAL_CPPFLAGS `$RAPTOR_CONFIG --cflags`"
   RASQAL_EXTERNAL_LIBS="$RASQAL_EXTERNAL_LIBS `$RAPTOR_CONFIG --libs`"
