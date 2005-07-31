@@ -25,7 +25,7 @@
 
 noinst_SCRIPTS = rasqal-src-config
 
-SUBDIRS=src tests docs data win32
+SUBDIRS=src utils tests docs data win32
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = rasqal.pc
