@@ -73,7 +73,7 @@ librasqal_la_SOURCES += sparql_lexer.c sparql_lexer.h \
 sparql_parser.c sparql_parser.h sparql_common.h
 endif
 
-if GETOPT
+if STRCASECMP
 librasqal_la_SOURCES += strcasecmp.c
 endif
 librasqal_la_LDFLAGS = -version-info @RASQAL_LIBTOOL_VERSION@
