@@ -89,6 +89,7 @@ include $(top_srcdir)/gtk-doc.make
 man_MANS = librasqal.3
 
 EXTRA_DIST+= README.html README \
+$(man_MANS) \
 version.xml.in
 
 CLEANFILES+= README

@@ -33,7 +33,9 @@ roqet_SOURCES += getopt.c rasqal_getopt.h
 endif
 roqet_LDADD = $(top_builddir)/src/librasqal.la @RASQAL_EXTERNAL_LIBS@ $(MEM_LIBS)
 
-EXTRA_DIST= roqet.html
+EXTRA_DIST= \
+$(man_MANS) \
+roqet.html
 
 if MAINTAINER_MODE
 roqet.html: $(srcdir)/roqet.1 $(srcdir)/../fix-groff-xhtml
