@@ -1,5 +1,6 @@
 *.la
 *.lo
+*test
 .cvsignore
 .deps
 .gdb_history
@@ -23,3 +24,5 @@ sparql_parser.c
 sparql_parser.h
 sparql_parser.h
 sparql_parser.output
+stamp-h*
+test*
