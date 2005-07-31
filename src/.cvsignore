@@ -1,0 +1,8 @@
+*.la
+*.lo
+.cvsignore
+.deps
+.gdb_history
+.libs
+Makefile
+Makefile.in
