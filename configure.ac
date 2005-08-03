@@ -699,7 +699,7 @@ AC_CONFIG_FILES([src/rasqal-config], [chmod +x src/rasqal-config])
 AC_CONFIG_FILES([rasqal-src-config], [chmod +x rasqal-src-config])
 
 dnl Check for gtk-doc and docbook
-GTK_DOC_CHECK([1.4])
+GTK_DOC_CHECK([1.3])
 
 AC_OUTPUT
 
