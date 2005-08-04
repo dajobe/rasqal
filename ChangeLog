@@ -1,3 +1,24 @@
+2005-08-04  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* src/rasqal_engine.c (rasqal_engine_join_graph_patterns): Renamed
+	from rasqal_engine_join_basic_graph_patterns.  Warn if types are
+	different.  Merge sub graph sequences.
+	(rasqal_engine_make_basic_graph_pattern): Operate over unions
+	recursively for any lower-level basic graph patterns.  Don't merge
+	if all sub-graph patterns aren't of the same type.  Never merge
+	union sequences of size>1
+
+	* src/rasqal_internal.h: rasqal_engine_join_basic_graph_patterns
+	now rasqal_engine_join_graph_patterns
+
+2005-08-03  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* configure.ac: gtk-doc 1.3 is ok
+
+2005-08-01  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* utils/Makefile.am: Add AM_CPPFLAGS and AM_CFLAGS back
+
 2005-07-31  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
 	* Source re-organisation - librasqal code moved to new src/ dir.
