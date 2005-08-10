@@ -1582,6 +1582,10 @@ rasqal_engine_make_basic_graph_pattern(rasqal_graph_pattern *gp)
     
     while(raptor_sequence_size(seq) > 0) {
       rasqal_graph_pattern *sgp=(rasqal_graph_pattern*)raptor_sequence_unshift(seq);
+      if(sgp->op == RASQAL_GRAPH_PATTERN_OPERATOR_UNION)
+        /* this only happens when we have BASIC over 1 UNION */
+        gp->op=RASQAL_GRAPH_PATTERN_OPERATOR_UNION;
+
       /* fake this so that the join happens */
       sgp->op=gp->op;
       rasqal_engine_join_graph_patterns(gp, sgp);
