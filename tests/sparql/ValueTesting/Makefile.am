@@ -29,13 +29,22 @@ SPARQL_MODEL_FILES= \
 extendedType-0.n3
 
 SPARQL_TEST_FILES= \
-extendedType-eq-pass.rq extendedType-ne-fail.rq
+extendedType-eq-pass.rq \
+extendedType-ne-fail.rq \
+extendedType-literal-eq.rq \
+extendedType-literal-ne.rq \
+extendedType-graph.rq
 
 # Test failures
-EXPECTED_SPARQL_CORRECT_FAILURES= extendedType-ne-fail
+EXPECTED_SPARQL_CORRECT_FAILURES= extendedType-ne-fail \
+extendedType-literal-ne
 
 SPARQL_RESULT_FILES= \
-extendedType-eq-pass-result.n3 extendedType-ne-fail-result.n3
+extendedType-eq-pass-result.n3 \
+extendedType-ne-fail-result.n3 \
+extendedType-literal-eq-result.n3 \
+extendedType-literal-ne-result.n3 \
+extendedType-graph-result.n3
 
 
 EXTRA_DIST= \
