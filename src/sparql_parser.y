@@ -1563,8 +1563,9 @@ PrimaryExpression: BrackettedExpression
 }
 | FunctionCall
 {
-  /* FIXME: rq23 grammar has "IRIref ArgList?".
-   * This is different to FunctionCall which requires an ArgList
+  /* rq23 grammar has "IRIref ArgList?" here which is confusing
+   * shorthand for  FunctionCall | IRIref.  IRIref is covered below
+   * by RDFTerm.
    */
   $$=$1;
 }
