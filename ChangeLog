@@ -1,5 +1,27 @@
 2005-08-10  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
+	* src/rasqal_engine.c (rasqal_engine_merge_graph_patterns):
+	Renamed from rasqal_engine_make_basic_graph_pattern and added some
+	docucomments.  It no longer handles UNIONS - they are never
+	merged, the code was just handling them in order to descend down
+	the tree, now done by the visitor calling this function. Remove
+	calling lower sub-GPs.
+	(rasqal_engine_merge_triples): Renamed from
+	rasqal_engine_merge_basic_graph_patterns and added some
+	docucomments.
+
+	* src/rasqal_internal.h: Added rasqal_graph_pattern_visit_fn
+	typdef.  Added prototype for rasqal_query_graph_pattern_visit
+
+	* src/rasqal_query.c (rasqal_query_prepare): Rewrite to use
+	rasqal_query_graph_pattern_visit to do graph pattern transforms.
+	(rasqal_graph_pattern_visit): Added, called by:
+	(rasqal_query_graph_pattern_visit): Added to walk all graph
+	patterns in a query.
+
+	* src/rasqal_engine.c (rasqal_engine_make_basic_graph_pattern): Do
+	not lose sub-grpah pattern UNION type.
+
 	* src/sparql_parser.y (PrimaryExpression): Explain rq23 weirdness
 
 	* tests/sparql/survey/query-survey-13.rq,
