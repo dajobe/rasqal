@@ -154,7 +154,7 @@ static int sparql_is_builtin_xsd_datatype(raptor_uri* uri);
 %left EQ NEQ LT GT LE GE
 
 /* arithmetic operations */
-%left '+' '-' '*' '/' '%'
+%left '+' '-' '*' '/'
 
 /* unary operations */
 %left '~' '!'
@@ -208,7 +208,7 @@ static int sparql_is_builtin_xsd_datatype(raptor_uri* uri);
  */
 
 /* SPARQL Grammar: [1] Query */
-Query : BaseDeclOpt PrefixDeclOpt ReportFormat
+Query: BaseDeclOpt PrefixDeclOpt ReportFormat
         DatasetClauseOpt WhereClauseOpt 
         OrderClauseOpt LimitClauseOpt OffsetClauseOpt
 {
@@ -217,7 +217,7 @@ Query : BaseDeclOpt PrefixDeclOpt ReportFormat
 
 
 /* NEW Grammar Term pulled out of [1] Query */
-ReportFormat : SelectClause
+ReportFormat: SelectClause
 {
   ((rasqal_query*)rq)->selects=$1;
   ((rasqal_query*)rq)->verb=RASQAL_QUERY_VERB_SELECT;
@@ -242,7 +242,7 @@ ReportFormat : SelectClause
 
 
 /* SPARQL Grammar: [3] BaseDecl */
-BaseDeclOpt : BASE URI_LITERAL
+BaseDeclOpt: BASE URI_LITERAL
 {
   if(((rasqal_query*)rq)->base_uri)
     raptor_free_uri(((rasqal_query*)rq)->base_uri);
@@ -256,7 +256,7 @@ BaseDeclOpt : BASE URI_LITERAL
 
 
 /* SPARQL Grammar: [4] PrefixDecl */
-PrefixDeclOpt : PrefixDeclOpt PREFIX IDENTIFIER URI_LITERAL
+PrefixDeclOpt: PrefixDeclOpt PREFIX IDENTIFIER URI_LITERAL
 {
   rasqal_prefix *p=rasqal_new_prefix($3, $4);
   raptor_sequence *seq=((rasqal_query*)rq)->prefixes;
@@ -271,7 +271,7 @@ PrefixDeclOpt : PrefixDeclOpt PREFIX IDENTIFIER URI_LITERAL
 
 
 /* SPARQL Grammar: [5] SelectClause */
-SelectClause : SELECT DISTINCT VarList
+SelectClause: SELECT DISTINCT VarList
 {
   $$=$3;
   ((rasqal_query*)rq)->distinct=1;
@@ -295,7 +295,7 @@ SelectClause : SELECT DISTINCT VarList
 
 
 /* SPARQL Grammar: [6] DescribeClause */
-DescribeClause : DESCRIBE VarOrIRIrefList
+DescribeClause: DESCRIBE VarOrIRIrefList
 {
   $$=$2;
 }
@@ -320,21 +320,21 @@ ConstructClause: CONSTRUCT ConstructTemplate
 
 
 /* SPARQL Grammar: [8] AskClause */
-AskClause : ASK 
+AskClause: ASK 
 {
   /* nothing to do */
 }
 
 
 /* SPARQL Grammar: rq23 [9] DatasetClause */
-DatasetClauseOpt : DatasetClauseOpt FROM DefaultGraphClause
+DatasetClauseOpt: DatasetClauseOpt FROM DefaultGraphClause
 | DatasetClauseOpt FROM NamedGraphClause
 | /* empty */
 ;
 
 
 /* SPARQL Grammar: rq23 [10] DefaultGraphClause */
-DefaultGraphClause : IRIref
+DefaultGraphClause: IRIref
 {
   if($1) {
     raptor_uri* uri=rasqal_literal_as_uri($1);
@@ -445,7 +445,7 @@ OrderCondition: ASC BrackettedExpression
 
 
 /* SPARQL Grammar: rq23 [17] LimitClause - remained for clarity */
-LimitClauseOpt :  LIMIT INTEGER_LITERAL
+LimitClauseOpt:  LIMIT INTEGER_LITERAL
 {
   if(((rasqal_query*)rq)->verb == RASQAL_QUERY_VERB_ASK) {
     sparql_query_error((rasqal_query*)rq, "LIMIT cannot be used with ASK");
@@ -459,7 +459,7 @@ LimitClauseOpt :  LIMIT INTEGER_LITERAL
 ;
 
 /* SPARQL Grammar: rq23 [18] OffsetClause - remained for clarity */
-OffsetClauseOpt :  OFFSET INTEGER_LITERAL
+OffsetClauseOpt:  OFFSET INTEGER_LITERAL
 {
   if(((rasqal_query*)rq)->verb == RASQAL_QUERY_VERB_ASK) {
     sparql_query_error((rasqal_query*)rq, "LIMIT cannot be used with ASK");
@@ -1186,7 +1186,7 @@ Collection: '(' ItemList ')'
 
 
 /* NEW Grammar Term */
-VarOrIRIrefList : VarOrIRIrefList Var
+VarOrIRIrefList: VarOrIRIrefList Var
 {
   $$=$1;
   raptor_sequence_push($$, rasqal_new_variable_literal($2));
@@ -1221,7 +1221,7 @@ VarOrIRIrefList : VarOrIRIrefList Var
 
 
 /* NEW Grammar Term */
-VarList : VarList Var
+VarList: VarList Var
 {
   $$=$1;
   raptor_sequence_push($$, $2);
@@ -1245,7 +1245,7 @@ VarList : VarList Var
 /* SPARQL Grammar: rq23 [38] VarOrTerm - junk, mostly replaced by Object */
 
 /* SPARQL Grammar: rq23 [41] VarOrIRIref */
-VarOrIRIref : Var
+VarOrIRIref: Var
 {
   $$=rasqal_new_variable_literal($1);
 }
@@ -1257,7 +1257,7 @@ VarOrIRIref : Var
 
 
 /* NEW Grammar Term: VarOrLiteral */
-VarOrLiteral : Var
+VarOrLiteral: Var
 {
   $$=rasqal_new_variable_literal($1);
 }
@@ -1268,7 +1268,7 @@ VarOrLiteral : Var
 ;
 
 /* SPARQL Grammar Term: rq23 [40] VarOrBlankNodeOrIRIref */
-VarOrBlankNodeOrIRIref : VarOrLiteral
+VarOrBlankNodeOrIRIref: VarOrLiteral
 {
   $$=$1;
 }
@@ -1291,7 +1291,7 @@ VarOrBnodeOrURI: VarOrIRIref
 ;
 
 /* SPARQL Grammar: rq23 [41] Var */
-Var : '?' IDENTIFIER
+Var: '?' IDENTIFIER
 {
   $$=rasqal_new_variable((rasqal_query*)rq, $2, NULL);
 }
@@ -1339,7 +1339,7 @@ ConditionalAndExpression: ConditionalAndExpression SC_AND RelationalExpression
 /* SPARQL Grammar: rq23 [46] ValueLogical - merged into RelationalExpression */
 
 /* SPARQL Grammar: rq23 [47] RelationalExpression */
-RelationalExpression : AdditiveExpression EQ AdditiveExpression
+RelationalExpression: AdditiveExpression EQ AdditiveExpression
 {
   $$=rasqal_new_2op_expression(RASQAL_EXPR_EQ, $1, $3);
 }
@@ -1372,7 +1372,7 @@ RelationalExpression : AdditiveExpression EQ AdditiveExpression
 /* SPARQL Grammar: rq23 [48] NumericExpression - merged into AdditiveExpression */
 
 /* SPARQL Grammar: rq23 [49] AdditiveExpression */
-AdditiveExpression : MultiplicativeExpression '+' AdditiveExpression
+AdditiveExpression: MultiplicativeExpression '+' AdditiveExpression
 {
   $$=rasqal_new_2op_expression(RASQAL_EXPR_PLUS, $1, $3);
 }
@@ -1467,7 +1467,7 @@ BuiltInCall: STR '(' VarOrLiteral ')'
 
 
 /* SPARQL Grammar: rq23 [54] RegexExpression */
-RegexExpression : REGEX '(' Expression ',' RDFTerm ')'
+RegexExpression: REGEX '(' Expression ',' RDFTerm ')'
 {
   /* FIXME - RDFTerm should be Expression */
   /* FIXME - regex needs more thought */
@@ -1525,7 +1525,7 @@ FunctionCall: IRIrefBrace ArgList ')'
 
 
 /* SPARQL Grammar: rq23 [55] ArgList */
-ArgList : ArgList ',' Expression
+ArgList: ArgList ',' Expression
 {
   $$=$1;
   if($3)
@@ -1581,7 +1581,7 @@ PrimaryExpression: BrackettedExpression
 
 
 /* SPARQL Grammar: rq23 [58] RDFTerm */
-RDFTerm : IRIref
+RDFTerm: IRIref
 {
   $$=$1;
 }
@@ -1616,7 +1616,7 @@ RDFTerm : IRIref
 /* SPARQL Grammar: rq23 [62] String - merged into RDFTerm */
 
 /* SPARQL Grammar: rq23 [63] IRIref */
-IRIref : URI_LITERAL
+IRIref: URI_LITERAL
 {
   $$=rasqal_new_uri_literal($1);
 }
@@ -1634,7 +1634,7 @@ IRIref : URI_LITERAL
 
 
 /* NEW Grammar Term made from SPARQL Grammer: rq23 [63] IRIref + '(' expanded */
-IRIrefBrace : URI_LITERAL_BRACE
+IRIrefBrace: URI_LITERAL_BRACE
 {
   $$=rasqal_new_uri_literal($1);
 }
@@ -1654,7 +1654,7 @@ IRIrefBrace : URI_LITERAL_BRACE
 /* SPARQL Grammar: rq23 [64] QName - made into terminal QNAME_LITERAL */
 
 /* SPARQL Grammar: rq23 [65] BlankNode */
-BlankNode : BLANK_LITERAL
+BlankNode: BLANK_LITERAL
 {
   $$=rasqal_new_simple_literal(RASQAL_LITERAL_BLANK, $1);
 } | '[' ']'
