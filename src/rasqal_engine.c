@@ -1438,8 +1438,31 @@ rasqal_engine_join_graph_patterns(rasqal_graph_pattern *dest_gp,
 }
 
 
+#undef RASQAL_DEBUG 2
+#define RASQAL_DEBUG 2
+
+/*
+ * rasqal_engine_merge_graph_patterns:
+ * @query: query (not used here)
+ * @gp: current graph pattern
+ * @data: visit data (not used here)
+ *
+ * Merge graph patterns where possible
+ *
+ * When size = 1 (never for UNION)
+ * GROUP { A } -> A
+ * OPTIONAL { A } -> OPTIONAL { A }
+ *
+ * When size > 1
+ * GROUP { BASIC{2,} } -> merge-BASIC
+ * OPTIONAL { BASIC{2,} } -> OPTIONAL { merge-BASIC }
+ *
+ * Never merged: UNION
+ */
 void
-rasqal_engine_make_basic_graph_pattern(rasqal_graph_pattern *gp)
+rasqal_engine_merge_graph_patterns(rasqal_query* query,
+                                   rasqal_graph_pattern* gp,
+                                   void* data)
 {
   rasqal_graph_pattern_operator op;
   int merge_gp_ok=0;
@@ -1448,24 +1471,24 @@ rasqal_engine_make_basic_graph_pattern(rasqal_graph_pattern *gp)
   int size;
 
 #if RASQAL_DEBUG > 1
-  printf("rasqal_engine_make_basic_graph_pattern: Checking graph pattern %p:\n  ", gp);
+  printf("rasqal_engine_merge_graph_patterns: Checking graph pattern %p:\n  ", gp);
   rasqal_graph_pattern_print(gp, stdout);
   fputs("\n", stdout);
   RASQAL_DEBUG3("Columns %d to %d\n", gp->start_column, gp->end_column);
 #endif
-    
+
   if(!gp->graph_patterns) {
 #if RASQAL_DEBUG > 1
-    RASQAL_DEBUG2("Ending graph patterns %p - no sub-graph patterns\n", gp);
+    RASQAL_DEBUG3("Ending graph pattern %p - operator %s: no sub-graph patterns\n", gp,
+                  rasqal_graph_pattern_operator_as_string(gp->op));
 #endif
     return;
   }
 
   if(gp->op != RASQAL_GRAPH_PATTERN_OPERATOR_GROUP &&
-     gp->op != RASQAL_GRAPH_PATTERN_OPERATOR_UNION &&
      gp->op != RASQAL_GRAPH_PATTERN_OPERATOR_OPTIONAL) {
 #if RASQAL_DEBUG > 1
-    RASQAL_DEBUG3("Ending graph patterns %p - operator %s\n", gp,
+    RASQAL_DEBUG3("Ending graph patterns %p - operator %s: not GROUP or OPTIONAL\n", gp,
                   rasqal_graph_pattern_operator_as_string(gp->op));
 #endif
     return;
@@ -1491,7 +1514,6 @@ rasqal_engine_make_basic_graph_pattern(rasqal_graph_pattern *gp)
         all_gp_op_same=0;
       }
     }
-    rasqal_engine_make_basic_graph_pattern(sgp);
   }
 #if RASQAL_DEBUG > 1
   RASQAL_DEBUG2("Sub-graph patterns of %p done\n", gp);
@@ -1507,11 +1529,6 @@ rasqal_engine_make_basic_graph_pattern(rasqal_graph_pattern *gp)
     goto merge_check_done;
   }
 
-  if(gp->op == RASQAL_GRAPH_PATTERN_OPERATOR_UNION) {
-    merge_gp_ok=0;
-    goto merge_check_done;
-  }
-    
 
   /* check if ALL sub-graph patterns are basic graph patterns
    * and either:
@@ -1576,14 +1593,14 @@ rasqal_engine_make_basic_graph_pattern(rasqal_graph_pattern *gp)
     /* Pretend dest is an empty basic graph pattern */
     seq=gp->graph_patterns;
     gp->graph_patterns=NULL;
-    /* Update operator GROUP => BASIC, but do not change OPTIONAL or UNION */
+    /* Update operator GROUP => BASIC, but do not change OPTIONAL */
     if(gp->op == RASQAL_GRAPH_PATTERN_OPERATOR_GROUP)
       gp->op=RASQAL_GRAPH_PATTERN_OPERATOR_BASIC;
     
     while(raptor_sequence_size(seq) > 0) {
       rasqal_graph_pattern *sgp=(rasqal_graph_pattern*)raptor_sequence_unshift(seq);
       if(sgp->op == RASQAL_GRAPH_PATTERN_OPERATOR_UNION)
-        /* this only happens when we have BASIC over 1 UNION */
+        /* this happens with GROUP { UNION } */
         gp->op=RASQAL_GRAPH_PATTERN_OPERATOR_UNION;
 
       /* fake this so that the join happens */
@@ -1650,8 +1667,26 @@ rasqal_engine_check_limit_offset(rasqal_query *query)
 }
 
 
+/*
+ * rasqal_engine_merge_triples:
+ * @query: query (not used here)
+ * @gp: current graph pattern
+ * @data: visit data (not used here)
+ *
+ * Move triples in sub-basic graph patterns up to a containing group
+ * graph pattern.
+ *
+ * For group graph pattern move all triples
+ *  from { { a } { b } { c }  D... } 
+ *  to { a b c  D... }
+ *  if the types of a, b, c are all BASIC GPs (just triples)
+ *   D... is anything else
+ * 
+ */
 void
-rasqal_engine_merge_basic_graph_patterns(rasqal_graph_pattern *gp)
+rasqal_engine_merge_triples(rasqal_query* query,
+                            rasqal_graph_pattern* gp,
+                            void* data)
 {
   int i;
   int size;
@@ -1660,7 +1695,7 @@ rasqal_engine_merge_basic_graph_patterns(rasqal_graph_pattern *gp)
   raptor_sequence *seq;
   
 #if RASQAL_DEBUG > 1
-  printf("rasqal_engine_merge_basic_graph_patterns: Checking graph pattern %p:\n  ", gp);
+  printf("rasqal_engine_merge_triples: Checking graph pattern %p:\n  ", gp);
   rasqal_graph_pattern_print(gp, stdout);
   fputs("\n", stdout);
   RASQAL_DEBUG3("Columns %d to %d\n", gp->start_column, gp->end_column);
@@ -1682,21 +1717,10 @@ rasqal_engine_merge_basic_graph_patterns(rasqal_graph_pattern *gp)
   }
 
   size=raptor_sequence_size(gp->graph_patterns);
-#if RASQAL_DEBUG > 1
-  RASQAL_DEBUG3("Doing %d sub-graph patterns of %p\n", size, gp);
-#endif
-  for(i=0; i < size; i++) {
-    rasqal_graph_pattern *sgp=(rasqal_graph_pattern*)raptor_sequence_get_at(gp->graph_patterns, i);
-    rasqal_engine_merge_basic_graph_patterns(sgp);
-  }
-#if RASQAL_DEBUG > 1
-  RASQAL_DEBUG2("Sub-graph patterns of %p done\n", gp);
-#endif
-
 
   /* count basic graph patterns */
   bgp_count=0;
-  dest_bgp=NULL; /* destination basic graph pattern */
+  dest_bgp=NULL; /* destination graph pattern */
   for(i=0; i < raptor_sequence_size(gp->graph_patterns); i++) {
     rasqal_graph_pattern *sgp=(rasqal_graph_pattern*)raptor_sequence_get_at(gp->graph_patterns, i);
     
@@ -1736,6 +1760,8 @@ rasqal_engine_merge_basic_graph_patterns(rasqal_graph_pattern *gp)
   rasqal_engine_build_constraints_expression(gp);
 
 #if RASQAL_DEBUG > 1
+  RASQAL_DEBUG3("Ending columns %d to %d\n", gp->start_column, gp->end_column);
+
   RASQAL_DEBUG2("Ending graph pattern %p\n  ", gp);
   rasqal_graph_pattern_print(gp, stdout);
   fputs("\n\n", stdout);
