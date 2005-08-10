@@ -1,5 +1,13 @@
 2005-08-10  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
+	* src/sparql_parser.y (PrimaryExpression): Explain rq23 weirdness
+
+	* tests/sparql/survey/query-survey-13.rq,
+	tests/sparql/survey/query-survey-11.rq,
+	tests/sparql/survey/query-survey-10.rq: FILTER() syntax
+
+	* rasqal.spec.in: Use %configure
+
 	* src/sparql_lexer.l: Remove '%' as a token.
 	(sparql_token_print): Remove '%'
 
