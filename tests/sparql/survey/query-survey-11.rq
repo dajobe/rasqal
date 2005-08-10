@@ -3,5 +3,5 @@ SELECT ?de
 WHERE
 {
   [ rdfs:label ?de, "Database Management"@en ].
-  FILTER lang(?de) = "de"
+  FILTER ( lang(?de) = "de" )
 }
