@@ -14,6 +14,7 @@
             [ qt:query  <ex2-1a.rq> ;
               qt:data   <ex2-1a.n3> ] ;
         mf:result  <ex2-1a-result.n3> ;
+	dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005JanMar/0358> ;
         dawgt:approval dawgt:Approved
       ]
 
@@ -24,6 +25,7 @@
             [ qt:query  <ex2-2a.rq> ;
               qt:data   <ex2-2a.n3> ] ;
         mf:result  <ex2-2a-result.n3> ;
+	dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005JanMar/0358> ;
         dawgt:approval dawgt:Approved
       ]
 
@@ -34,6 +36,7 @@
             [ qt:query  <ex2-3a.rq> ;
               qt:data   <ex2-3a.n3> ] ;
         mf:result  <ex2-3a-result.n3> ;
+	dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005JanMar/0358> ;
         dawgt:approval dawgt:Approved
       ]
 
@@ -44,6 +47,7 @@
             [ qt:query  <ex2-4a.rq> ;
               qt:data   <ex2-4a.n3> ] ;
         mf:result  <ex2-4a-result.n3> ;
+	dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005JanMar/0358> ;
         dawgt:approval dawgt:Approved
       ]
 

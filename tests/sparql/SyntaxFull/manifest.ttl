@@ -13,6 +13,7 @@
              [ qt:query  <syntax-basic-01.rq> ; 
                qt:data   <empty.nt> ] ;
          # No result
+	 dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005AprJun/0411> ;
          dawgt:approval dawgt:Approved
       ]
       [  mf:name    "syntax-basic-02.rq" ;
@@ -20,6 +21,7 @@
              [ qt:query  <syntax-basic-02.rq> ; 
                qt:data   <empty.nt> ] ;
          # No result
+	 dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005AprJun/0411> ;
          dawgt:approval dawgt:Approved
       ]
       [  mf:name    "syntax-basic-03.rq" ;
@@ -27,6 +29,7 @@
              [ qt:query  <syntax-basic-03.rq> ; 
                qt:data   <empty.nt> ] ;
          # No result
+	 dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005AprJun/0411> ;
          dawgt:approval dawgt:Approved
       ]
       [  mf:name    "syntax-basic-04.rq" ;
@@ -34,6 +37,7 @@
              [ qt:query  <syntax-basic-04.rq> ; 
                qt:data   <empty.nt> ] ;
          # No result
+	 dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005AprJun/0411> ;
          dawgt:approval dawgt:Approved
       ]
       [  mf:name    "syntax-basic-05.rq" ;
@@ -41,6 +45,7 @@
              [ qt:query  <syntax-basic-05.rq> ; 
                qt:data   <empty.nt> ] ;
          # No result
+	 dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005AprJun/0411> ;
          dawgt:approval dawgt:Approved
       ]
       [  mf:name    "syntax-basic-06.rq" ;
@@ -48,6 +53,7 @@
              [ qt:query  <syntax-basic-06.rq> ; 
                qt:data   <empty.nt> ] ;
          # No result
+	 dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005AprJun/0411> ;
          dawgt:approval dawgt:Approved
       ]
       [  mf:name    "syntax-bnodes-01.rq" ;
@@ -55,6 +61,7 @@
              [ qt:query  <syntax-bnodes-01.rq> ; 
                qt:data   <empty.nt> ] ;
          # No result
+	 dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005AprJun/0411> ;
          dawgt:approval dawgt:Approved
       ]
       [  mf:name    "syntax-bnodes-02.rq" ;
@@ -62,6 +69,7 @@
              [ qt:query  <syntax-bnodes-02.rq> ; 
                qt:data   <empty.nt> ] ;
          # No result
+	 dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005AprJun/0411> ;
          dawgt:approval dawgt:Approved
       ]
       [  mf:name    "syntax-bnodes-03.rq" ;
@@ -69,6 +77,7 @@
              [ qt:query  <syntax-bnodes-03.rq> ; 
                qt:data   <empty.nt> ] ;
          # No result
+	 dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005AprJun/0411> ;
          dawgt:approval dawgt:Approved
       ]
       [  mf:name    "syntax-bnodes-04.rq" ;
@@ -76,6 +85,7 @@
              [ qt:query  <syntax-bnodes-04.rq> ; 
                qt:data   <empty.nt> ] ;
          # No result
+	 dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005AprJun/0411> ;
          dawgt:approval dawgt:Approved
       ]
       [  mf:name    "syntax-bnodes-05.rq" ;
@@ -83,6 +93,7 @@
              [ qt:query  <syntax-bnodes-05.rq> ; 
                qt:data   <empty.nt> ] ;
          # No result
+	 dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005AprJun/0411> ;
          dawgt:approval dawgt:Approved
       ]
       [  mf:name    "syntax-bnodes-06.rq" ;
@@ -90,6 +101,7 @@
              [ qt:query  <syntax-bnodes-06.rq> ; 
                qt:data   <empty.nt> ] ;
          # No result
+	 dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005AprJun/0411> ;
          dawgt:approval dawgt:Approved
       ]
       [  mf:name    "syntax-bnodes-07.rq" ;
@@ -97,6 +109,7 @@
              [ qt:query  <syntax-bnodes-07.rq> ; 
                qt:data   <empty.nt> ] ;
          # No result
+	 dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005AprJun/0411> ;
          dawgt:approval dawgt:Approved
       ]
       [  mf:name    "syntax-expr-01.rq" ;
@@ -104,6 +117,7 @@
              [ qt:query  <syntax-expr-01.rq> ; 
                qt:data   <empty.nt> ] ;
          # No result
+	 dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005AprJun/0411> ;
          dawgt:approval dawgt:Approved
       ]
       [  mf:name    "syntax-expr-02.rq" ;
@@ -111,6 +125,7 @@
              [ qt:query  <syntax-expr-02.rq> ; 
                qt:data   <empty.nt> ] ;
          # No result
+	 dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005AprJun/0411> ;
          dawgt:approval dawgt:Approved
       ]
       [  mf:name    "syntax-expr-03.rq" ;
@@ -118,6 +133,7 @@
              [ qt:query  <syntax-expr-03.rq> ; 
                qt:data   <empty.nt> ] ;
          # No result
+	 dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005AprJun/0411> ;
          dawgt:approval dawgt:Approved
       ]
       [  mf:name    "syntax-expr-04.rq" ;
@@ -125,6 +141,7 @@
              [ qt:query  <syntax-expr-04.rq> ; 
                qt:data   <empty.nt> ] ;
          # No result
+	 dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005AprJun/0411> ;
          dawgt:approval dawgt:Approved
       ]
       [  mf:name    "syntax-expr-05.rq" ;
@@ -132,6 +149,7 @@
              [ qt:query  <syntax-expr-05.rq> ; 
                qt:data   <empty.nt> ] ;
          # No result
+	 dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005AprJun/0411> ;
          dawgt:approval dawgt:Approved
       ]
       [  mf:name    "syntax-expr-06.rq" ;
@@ -139,6 +157,7 @@
              [ qt:query  <syntax-expr-06.rq> ; 
                qt:data   <empty.nt> ] ;
          # No result
+	 dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005AprJun/0411> ;
          dawgt:approval dawgt:Approved
       ]
       [  mf:name    "syntax-forms-01.rq" ;
@@ -146,6 +165,7 @@
              [ qt:query  <syntax-forms-01.rq> ; 
                qt:data   <empty.nt> ] ;
          # No result
+	 dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005AprJun/0411> ;
          dawgt:approval dawgt:Approved
       ]
       [  mf:name    "syntax-forms-02.rq" ;
@@ -153,6 +173,7 @@
              [ qt:query  <syntax-forms-02.rq> ; 
                qt:data   <empty.nt> ] ;
          # No result
+	 dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005AprJun/0411> ;
          dawgt:approval dawgt:Approved
       ]
       [  mf:name    "syntax-limit-offset-07.rq" ;
@@ -160,6 +181,7 @@
              [ qt:query  <syntax-limit-offset-07.rq> ; 
                qt:data   <empty.nt> ] ;
          # No result
+	 dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005AprJun/0411> ;
          dawgt:approval dawgt:Approved
       ]
       [  mf:name    "syntax-limit-offset-08.rq" ;
@@ -167,6 +189,7 @@
              [ qt:query  <syntax-limit-offset-08.rq> ; 
                qt:data   <empty.nt> ] ;
          # No result
+	 dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005AprJun/0411> ;
          dawgt:approval dawgt:Approved
       ]
       [  mf:name    "syntax-limit-offset-09.rq" ;
@@ -174,6 +197,7 @@
              [ qt:query  <syntax-limit-offset-09.rq> ; 
                qt:data   <empty.nt> ] ;
          # No result
+	 dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005AprJun/0411> ;
          dawgt:approval dawgt:Approved
       ]
       [  mf:name    "syntax-lists-01.rq" ;
@@ -181,6 +205,7 @@
              [ qt:query  <syntax-lists-01.rq> ; 
                qt:data   <empty.nt> ] ;
          # No result
+	 dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005AprJun/0411> ;
          dawgt:approval dawgt:Approved
       ]
       [  mf:name    "syntax-lists-02.rq" ;
@@ -188,6 +213,7 @@
              [ qt:query  <syntax-lists-02.rq> ; 
                qt:data   <empty.nt> ] ;
          # No result
+	 dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005AprJun/0411> ;
          dawgt:approval dawgt:Approved
       ]
       [  mf:name    "syntax-lists-03.rq" ;
@@ -195,6 +221,7 @@
              [ qt:query  <syntax-lists-03.rq> ; 
                qt:data   <empty.nt> ] ;
          # No result
+	 dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005AprJun/0411> ;
          dawgt:approval dawgt:Approved
       ]
       [  mf:name    "syntax-lists-04.rq" ;
@@ -202,6 +229,7 @@
              [ qt:query  <syntax-lists-04.rq> ; 
                qt:data   <empty.nt> ] ;
          # No result
+	 dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005AprJun/0411> ;
          dawgt:approval dawgt:Approved
       ]
       [  mf:name    "syntax-lists-05.rq" ;
@@ -209,6 +237,7 @@
              [ qt:query  <syntax-lists-05.rq> ; 
                qt:data   <empty.nt> ] ;
          # No result
+	 dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005AprJun/0411> ;
          dawgt:approval dawgt:Approved
       ]
       [  mf:name    "syntax-lit-01.rq" ;
@@ -216,6 +245,7 @@
              [ qt:query  <syntax-lit-01.rq> ; 
                qt:data   <empty.nt> ] ;
          # No result
+	 dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005AprJun/0411> ;
          dawgt:approval dawgt:Approved
       ]
       [  mf:name    "syntax-lit-02.rq" ;
@@ -223,6 +253,7 @@
              [ qt:query  <syntax-lit-02.rq> ; 
                qt:data   <empty.nt> ] ;
          # No result
+	 dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005AprJun/0411> ;
          dawgt:approval dawgt:Approved
       ]
       [  mf:name    "syntax-lit-03.rq" ;
@@ -230,6 +261,7 @@
              [ qt:query  <syntax-lit-03.rq> ; 
                qt:data   <empty.nt> ] ;
          # No result
+	 dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005AprJun/0411> ;
          dawgt:approval dawgt:Approved
       ]
       [  mf:name    "syntax-lit-04.rq" ;
@@ -237,6 +269,7 @@
              [ qt:query  <syntax-lit-04.rq> ; 
                qt:data   <empty.nt> ] ;
          # No result
+	 dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005AprJun/0411> ;
          dawgt:approval dawgt:Approved
       ]
       [  mf:name    "syntax-lit-05.rq" ;
@@ -244,6 +277,7 @@
              [ qt:query  <syntax-lit-05.rq> ; 
                qt:data   <empty.nt> ] ;
          # No result
+	 dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005AprJun/0411> ;
          dawgt:approval dawgt:Approved
       ]
       [  mf:name    "syntax-lit-06.rq" ;
@@ -251,6 +285,7 @@
              [ qt:query  <syntax-lit-06.rq> ; 
                qt:data   <empty.nt> ] ;
          # No result
+	 dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005AprJun/0411> ;
          dawgt:approval dawgt:Approved
       ]
       [  mf:name    "syntax-lit-07.rq" ;
@@ -258,6 +293,7 @@
              [ qt:query  <syntax-lit-07.rq> ; 
                qt:data   <empty.nt> ] ;
          # No result
+	 dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005AprJun/0411> ;
          dawgt:approval dawgt:Approved
       ]
       [  mf:name    "syntax-lit-08.rq" ;
@@ -265,6 +301,7 @@
              [ qt:query  <syntax-lit-08.rq> ; 
                qt:data   <empty.nt> ] ;
          # No result
+	 dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005AprJun/0411> ;
          dawgt:approval dawgt:Approved
       ]
       [  mf:name    "syntax-lit-09.rq" ;
@@ -272,6 +309,7 @@
              [ qt:query  <syntax-lit-09.rq> ; 
                qt:data   <empty.nt> ] ;
          # No result
+	 dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005AprJun/0411> ;
          dawgt:approval dawgt:Approved
       ]
       [  mf:name    "syntax-lit-10.rq" ;
@@ -279,6 +317,7 @@
              [ qt:query  <syntax-lit-10.rq> ; 
                qt:data   <empty.nt> ] ;
          # No result
+	 dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005AprJun/0411> ;
          dawgt:approval dawgt:Approved
       ]
       [  mf:name    "syntax-lit-11.rq" ;
@@ -286,6 +325,7 @@
              [ qt:query  <syntax-lit-11.rq> ; 
                qt:data   <empty.nt> ] ;
          # No result
+	 dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005AprJun/0411> ;
          dawgt:approval dawgt:Approved
       ]
       [  mf:name    "syntax-lit-12.rq" ;
@@ -293,6 +333,7 @@
              [ qt:query  <syntax-lit-12.rq> ; 
                qt:data   <empty.nt> ] ;
          # No result
+	 dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005AprJun/0411> ;
          dawgt:approval dawgt:Approved
       ]
       [  mf:name    "syntax-lit-13.rq" ;
@@ -300,6 +341,7 @@
              [ qt:query  <syntax-lit-13.rq> ; 
                qt:data   <empty.nt> ] ;
          # No result
+	 dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005AprJun/0411> ;
          dawgt:approval dawgt:Approved
       ]
       [  mf:name    "syntax-lit-14.rq" ;
@@ -307,6 +349,7 @@
              [ qt:query  <syntax-lit-14.rq> ; 
                qt:data   <empty.nt> ] ;
          # No result
+	 dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005AprJun/0411> ;
          dawgt:approval dawgt:Approved
       ]
       [  mf:name    "syntax-order-01.rq" ;
@@ -314,6 +357,7 @@
              [ qt:query  <syntax-order-01.rq> ; 
                qt:data   <empty.nt> ] ;
          # No result
+	 dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005AprJun/0411> ;
          dawgt:approval dawgt:Approved
       ]
       [  mf:name    "syntax-order-02.rq" ;
@@ -321,6 +365,7 @@
              [ qt:query  <syntax-order-02.rq> ; 
                qt:data   <empty.nt> ] ;
          # No result
+	 dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005AprJun/0411> ;
          dawgt:approval dawgt:Approved
       ]
       [  mf:name    "syntax-order-03.rq" ;
@@ -328,6 +373,7 @@
              [ qt:query  <syntax-order-03.rq> ; 
                qt:data   <empty.nt> ] ;
          # No result
+	 dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005AprJun/0411> ;
          dawgt:approval dawgt:Approved
       ]
       [  mf:name    "syntax-order-04.rq" ;
@@ -335,6 +381,7 @@
              [ qt:query  <syntax-order-04.rq> ; 
                qt:data   <empty.nt> ] ;
          # No result
+	 dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005AprJun/0411> ;
          dawgt:approval dawgt:Approved
       ]
       [  mf:name    "syntax-order-05.rq" ;
@@ -342,6 +389,7 @@
              [ qt:query  <syntax-order-05.rq> ; 
                qt:data   <empty.nt> ] ;
          # No result
+	 dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005AprJun/0411> ;
          dawgt:approval dawgt:Approved
       ]
       [  mf:name    "syntax-order-06.rq" ;
@@ -349,6 +397,7 @@
              [ qt:query  <syntax-order-06.rq> ; 
                qt:data   <empty.nt> ] ;
          # No result
+	 dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005AprJun/0411> ;
          dawgt:approval dawgt:Approved
       ]
       [  mf:name    "syntax-pat-01.rq" ;
@@ -356,6 +405,7 @@
              [ qt:query  <syntax-pat-01.rq> ; 
                qt:data   <empty.nt> ] ;
          # No result
+	 dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005AprJun/0411> ;
          dawgt:approval dawgt:Approved
       ]
       [  mf:name    "syntax-pat-02.rq" ;
@@ -363,6 +413,7 @@
              [ qt:query  <syntax-pat-02.rq> ; 
                qt:data   <empty.nt> ] ;
          # No result
+	 dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005AprJun/0411> ;
          dawgt:approval dawgt:Approved
       ]
       [  mf:name    "syntax-pat-03.rq" ;
@@ -370,6 +421,7 @@
              [ qt:query  <syntax-pat-03.rq> ; 
                qt:data   <empty.nt> ] ;
          # No result
+	 dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005AprJun/0411> ;
          dawgt:approval dawgt:Approved
       ]
       [  mf:name    "syntax-pat-04.rq" ;
@@ -377,6 +429,7 @@
              [ qt:query  <syntax-pat-04.rq> ; 
                qt:data   <empty.nt> ] ;
          # No result
+	 dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005AprJun/0411> ;
          dawgt:approval dawgt:Approved
       ]
       [  mf:name    "syntax-qname-07.rq" ;
@@ -384,6 +437,7 @@
              [ qt:query  <syntax-qname-07.rq> ; 
                qt:data   <empty.nt> ] ;
          # No result
+	 dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005AprJun/0411> ;
          dawgt:approval dawgt:Approved
       ]
       [  mf:name    "syntax-qname-08.rq" ;
@@ -391,6 +445,7 @@
              [ qt:query  <syntax-qname-08.rq> ; 
                qt:data   <empty.nt> ] ;
          # No result
+	 dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005AprJun/0411> ;
          dawgt:approval dawgt:Approved
       ]
       [  mf:name    "syntax-qname-09.rq" ;
@@ -398,6 +453,7 @@
              [ qt:query  <syntax-qname-09.rq> ; 
                qt:data   <empty.nt> ] ;
          # No result
+	 dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005AprJun/0411> ;
          dawgt:approval dawgt:Approved
       ]
       [  mf:name    "syntax-qname-10.rq" ;
@@ -405,6 +461,7 @@
              [ qt:query  <syntax-qname-10.rq> ; 
                qt:data   <empty.nt> ] ;
          # No result
+	 dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005AprJun/0411> ;
          dawgt:approval dawgt:Approved
       ]
       [  mf:name    "syntax-qname-11.rq" ;
@@ -412,6 +469,7 @@
              [ qt:query  <syntax-qname-11.rq> ; 
                qt:data   <empty.nt> ] ;
          # No result
+	 dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005AprJun/0411> ;
          dawgt:approval dawgt:Approved
       ]
       [  mf:name    "syntax-qname-12.rq" ;
@@ -419,6 +477,7 @@
              [ qt:query  <syntax-qname-12.rq> ; 
                qt:data   <empty.nt> ] ;
          # No result
+	 dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005AprJun/0411> ;
          dawgt:approval dawgt:Approved
       ]
       [  mf:name    "syntax-qname-13.rq" ;
@@ -426,6 +485,7 @@
              [ qt:query  <syntax-qname-13.rq> ; 
                qt:data   <empty.nt> ] ;
          # No result
+	 dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005AprJun/0411> ;
          dawgt:approval dawgt:Approved
       ]
       [  mf:name    "syntax-qname-14.rq" ;
@@ -433,6 +493,7 @@
              [ qt:query  <syntax-qname-14.rq> ; 
                qt:data   <empty.nt> ] ;
          # No result
+	 dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005AprJun/0411> ;
          dawgt:approval dawgt:Approved
       ]
       [  mf:name    "syntax-struct-01.rq" ;
@@ -440,6 +501,7 @@
              [ qt:query  <syntax-struct-01.rq> ; 
                qt:data   <empty.nt> ] ;
          # No result
+	 dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005AprJun/0411> ;
          dawgt:approval dawgt:Approved
       ]
       [  mf:name    "syntax-struct-02.rq" ;
@@ -447,6 +509,7 @@
              [ qt:query  <syntax-struct-02.rq> ; 
                qt:data   <empty.nt> ] ;
          # No result
+	 dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005AprJun/0411> ;
          dawgt:approval dawgt:Approved
       ]
       [  mf:name    "syntax-struct-03.rq" ;
@@ -454,6 +517,7 @@
              [ qt:query  <syntax-struct-03.rq> ; 
                qt:data   <empty.nt> ] ;
          # No result
+	 dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005AprJun/0411> ;
          dawgt:approval dawgt:Approved
       ]
       [  mf:name    "syntax-struct-04.rq" ;
@@ -461,6 +525,7 @@
              [ qt:query  <syntax-struct-04.rq> ; 
                qt:data   <empty.nt> ] ;
          # No result
+	 dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005AprJun/0411> ;
          dawgt:approval dawgt:Approved
       ]
       [  mf:name    "syntax-struct-05.rq" ;
@@ -468,6 +533,7 @@
              [ qt:query  <syntax-struct-05.rq> ; 
                qt:data   <empty.nt> ] ;
          # No result
+	 dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005AprJun/0411> ;
          dawgt:approval dawgt:Approved
       ]
       [  mf:name    "syntax-struct-06.rq" ;
@@ -475,6 +541,7 @@
              [ qt:query  <syntax-struct-06.rq> ; 
                qt:data   <empty.nt> ] ;
          # No result
+	 dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005AprJun/0411> ;
          dawgt:approval dawgt:Approved
       ]
       [  mf:name    "syntax-struct-07.rq" ;
@@ -482,6 +549,7 @@
              [ qt:query  <syntax-struct-07.rq> ; 
                qt:data   <empty.nt> ] ;
          # No result
+	 dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005AprJun/0411> ;
          dawgt:approval dawgt:Approved
       ]
       [  mf:name    "syntax-struct-08.rq" ;
@@ -489,6 +557,7 @@
              [ qt:query  <syntax-struct-08.rq> ; 
                qt:data   <empty.nt> ] ;
          # No result
+	 dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005AprJun/0411> ;
          dawgt:approval dawgt:Approved
       ]
       [  mf:name    "syntax-struct-09.rq" ;
@@ -496,6 +565,7 @@
              [ qt:query  <syntax-struct-09.rq> ; 
                qt:data   <empty.nt> ] ;
          # No result
+	 dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005AprJun/0411> ;
          dawgt:approval dawgt:Approved
       ]
       [  mf:name    "syntax-struct-10.rq" ;
@@ -503,6 +573,7 @@
              [ qt:query  <syntax-struct-10.rq> ; 
                qt:data   <empty.nt> ] ;
          # No result
+	 dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005AprJun/0411> ;
          dawgt:approval dawgt:Approved
       ]
       [  mf:name    "syntax-union-01.rq" ;
@@ -510,6 +581,7 @@
              [ qt:query  <syntax-union-01.rq> ; 
                qt:data   <empty.nt> ] ;
          # No result
+	 dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005AprJun/0411> ;
          dawgt:approval dawgt:Approved
       ]
       [  mf:name    "syntax-union-02.rq" ;
@@ -517,6 +589,7 @@
              [ qt:query  <syntax-union-02.rq> ; 
                qt:data   <empty.nt> ] ;
          # No result
+	 dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005AprJun/0411> ;
          dawgt:approval dawgt:Approved
       ]
       [  mf:name    "keyword FILTER as a namespace prefix" ;

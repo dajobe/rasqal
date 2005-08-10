@@ -14,6 +14,7 @@
             [ qt:query  <query-sort-1.rq> ;
               qt:data   <data-sort-1.ttl> ] ;
          mf:result  <result-sort-1.rdf> ;
+	 dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005AprJun/0248.html>;
 	 dawgt:approval dawgt:Approved
       ]
       [  mf:name    "sort-2" ;

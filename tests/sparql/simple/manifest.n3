@@ -15,6 +15,7 @@
             [ qt:query  <dawg-tp-01.rq> ;
               qt:data   <data-01.n3> ] ;
         mf:result  <result-tp-01.n3> ;
+	dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005JanMar/0358> ;
         dawgt:approval dawgt:Approved
       ]
 
@@ -25,6 +26,7 @@
             [ qt:query  <dawg-tp-02.rq> ;
               qt:data   <data-01.n3> ] ;
         mf:result  <result-tp-02.n3> ;
+	dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005JanMar/0358> ;
         dawgt:approval dawgt:Approved
       ]
     
@@ -35,6 +37,7 @@
             [ qt:query  <dawg-tp-03.rq> ;
               qt:data   <data-02.n3> ] ;
         mf:result  <result-tp-03.n3> ;
+	dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005JanMar/0358> ;
         dawgt:approval dawgt:Approved
       ]
 
@@ -45,6 +48,7 @@
             [ qt:query  <dawg-tp-04.rq> ;
               qt:data   <dawg-data-01.n3> ] ;
         mf:result  <result-tp-04.n3> ;
+	dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2005JanMar/0358> ;
         dawgt:approval dawgt:Approved
       ]
 
