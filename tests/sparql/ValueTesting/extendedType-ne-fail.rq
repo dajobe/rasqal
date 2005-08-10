@@ -1,3 +1,6 @@
+# Opaque types can not be tested for != .
+# $Id: extendedType-ne-fail.rq,v 1.3 2005/08/02 03:30:20 eric Exp $
+
 PREFIX loc: <http://www.w3.org/2001/sw/DataAccess/tests/data/ValueTesting/extendedType-0#>
 PREFIX wgs: <http://www.w3.org/2003/01/geo/wgs84_pos#>
 PREFIX air: <http://www.daml.org/2001/10/html/airport-ont#>
@@ -8,4 +11,4 @@ SELECT ?a1 ?a2
         ?a2 air:name ?name2 ;
             loc:location ?l2 .
         ?l2 loc:rotational ?rot2 .
-        FILTER ?rot1 != ?rot2 }
+        FILTER (?rot1 != ?rot2) }
