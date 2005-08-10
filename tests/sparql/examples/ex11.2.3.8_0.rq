@@ -3,4 +3,4 @@ PREFIX xsd:  <http://www.w3.org/2001/XMLSchema#>
 PREFIX eg:   <http://biometrics.example/ns#>
 SELECT ?name ?size
  WHERE { ?x foaf:name  ?name ; eg:shoeSize  ?size .
-         FILTER datatype(?size) = xsd:int }
+         FILTER ( datatype(?size) = xsd:int ) }

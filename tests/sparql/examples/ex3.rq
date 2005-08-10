@@ -3,6 +3,6 @@ PREFIX  ns: <http://example.org/ns#>
 SELECT  ?title ?price
 WHERE
     { ?x ns:price ?price . 
-      FILTER ?price < 30 .
+      FILTER ( ?price < 30 ) .
       ?x dc:title ?title .
     }
