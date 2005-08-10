@@ -987,8 +987,11 @@ rasqal_query_prepare(rasqal_query* query,
     query->failed=1;
 
   if(query->query_graph_pattern) {
-    rasqal_engine_merge_basic_graph_patterns(query->query_graph_pattern);
-    rasqal_engine_make_basic_graph_pattern(query->query_graph_pattern);
+    rasqal_query_graph_pattern_visit(query, rasqal_engine_merge_triples,
+                                     NULL);
+
+    rasqal_query_graph_pattern_visit(query, rasqal_engine_merge_graph_patterns,
+                                     NULL);
   }
 
   return rc;
@@ -3473,3 +3476,39 @@ rasqal_query_results_get_boolean(rasqal_query_results *query_results) {
   return query->ask_result;
 }
 
+
+static void
+rasqal_graph_pattern_visit(rasqal_query* query, rasqal_graph_pattern* gp, 
+                           rasqal_graph_pattern_visit_fn visit_fn, void* data)
+{
+  raptor_sequence *seq;
+  
+  seq=rasqal_graph_pattern_get_sub_graph_pattern_sequence(gp);
+  if(seq && raptor_sequence_size(seq) > 0) {
+    int gp_index=0;
+    while(1) {
+      rasqal_graph_pattern* sgp;
+      sgp=rasqal_graph_pattern_get_sub_graph_pattern(gp, gp_index);
+      if(!sgp)
+        break;
+      
+      visit_fn(query, sgp, data);
+      gp_index++;
+    }
+  }
+
+  visit_fn(query, gp, data);
+}
+
+    
+void
+rasqal_query_graph_pattern_visit(rasqal_query* query, 
+                                 rasqal_graph_pattern_visit_fn visit_fn, 
+                                 void* data)
+{
+  rasqal_graph_pattern* gp=rasqal_query_get_query_graph_pattern(query);
+  if(!gp)
+    return;
+
+  rasqal_graph_pattern_visit(query, gp, visit_fn, data);
+}
