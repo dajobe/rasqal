@@ -315,7 +315,6 @@ QUOTEDURI \<[^<= ][^>]*\>|\<\>
 "-"         { return '-'; }
 "*"         { return '*'; }
 "/"         { return '/'; }
-"%"         { return '%'; }
 "~"         { return '~'; }
 "!"         { return '!'; }
 
@@ -914,9 +913,6 @@ sparql_token_print(int token, YYSTYPE *lval)
 
     case EQ:
       return "EQ";
-
-    case '%':
-      return "%";
 
     case '/':
       return "/";
