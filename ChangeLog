@@ -1,3 +1,16 @@
+2005-08-11  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* src/sparql_parser.y (rasqal_sparql_query_engine_init):
+	Do not declare any namespaces by
+	default.
+
+	* tests/sparql/syntax/Makefile.am: Added namespaces.rq
+
+	* tests/sparql/syntax/namespaces.rq: namespaces.rq
+
+	* rasqal.spec.in: - Update Source:
+	- Use %makeinstall
+
 2005-08-10  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
 	* src/rasqal_engine.c (rasqal_engine_merge_graph_patterns):
