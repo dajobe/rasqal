@@ -1,5 +1,9 @@
 2005-08-11  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
+	* src/rasqal_engine.c: restore undef RASQAL_DEBUG
+
+	* tests/sparql/part1/dawg-query-003.rq: Declare rdf:
+
 	* src/sparql_parser.y (rasqal_sparql_query_engine_init):
 	Do not declare any namespaces by
 	default.
