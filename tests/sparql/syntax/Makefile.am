@@ -35,7 +35,7 @@ ask0.rq distinct0.rq limit0.rq cast0.rq cast1.rq offset0.rq \
 select-dup.rq order-distinct.rq distinct-undef.rq
 
 SPARQL_BAD_TEST_FILES= \
-nojam.rq
+nojam.rq namespaces.rq
 
 EXPECTED_SPARQL_CORRECT_FAILURES=
 
