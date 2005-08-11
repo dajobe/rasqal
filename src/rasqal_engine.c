@@ -1438,9 +1438,6 @@ rasqal_engine_join_graph_patterns(rasqal_graph_pattern *dest_gp,
 }
 
 
-#undef RASQAL_DEBUG 2
-#define RASQAL_DEBUG 2
-
 /*
  * rasqal_engine_merge_graph_patterns:
  * @query: query (not used here)
