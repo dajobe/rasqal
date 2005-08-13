@@ -733,8 +733,6 @@ rasqal_expression* rasqal_new_string_op_expression(rasqal_op op, rasqal_expressi
 RASQAL_API
 rasqal_expression* rasqal_new_literal_expression(rasqal_literal* literal);
 RASQAL_API
-rasqal_expression* rasqal_new_variable_expression(rasqal_variable *variable);
-RASQAL_API
 rasqal_expression* rasqal_new_function_expression(raptor_uri* name, raptor_sequence* args);
 RASQAL_API
 rasqal_expression* rasqal_new_cast_expression(raptor_uri* name, rasqal_expression *value);
@@ -748,8 +746,12 @@ void rasqal_expression_print(rasqal_expression* e, FILE* fh);
 RASQAL_API
 rasqal_literal* rasqal_expression_evaluate(rasqal_query* query, rasqal_expression* e, int flags);
 typedef int (*rasqal_expression_foreach_fn)(void *user_data, rasqal_expression *e);
+RASQAL_API RASQAL_DEPRECATED
+int rasqal_expression_foreach(rasqal_expression* e, rasqal_expression_foreach_fn fn, void *user_data);
+typedef int (*rasqal_expression_visit_fn)(void *user_data, rasqal_expression *e);
 RASQAL_API
-int rasqal_expression_foreach(rasqal_expression* expr, rasqal_expression_foreach_fn fn, void *user_data);
+int rasqal_expression_visit(rasqal_expression* e, rasqal_expression_visit_fn fn, void *user_data);
+
 
 /* Literal class */
 RASQAL_API
