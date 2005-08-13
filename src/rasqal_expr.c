@@ -469,6 +469,26 @@ rasqal_triple_get_origin(rasqal_triple* t)
 }
 
 
+/**
+ * rasqal_new_1op_expression:
+ * @op: Expression operator
+ * @arg: Operand 1 
+ * 
+ * Constructor - create a new 1-operand expression.
+ *
+ * The operators are:
+ * #RASQAL_EXPR_TILDE #RASQAL_EXPR_BANG #RASQAL_EXPR_UMINUS
+ * #RASQAL_EXPR_BOUND #RASQAL_EXPR_STR #RASQAL_EXPR_LANG
+ * #RASQAL_EXPR_DATATYPE #RASQAL_EXPR_ISURI #RASQAL_EXPR_ISBLANK
+ * #RASQAL_EXPR_ISLITERAL #RASQAL_EXPR_ORDER_COND_ASC
+ * #RASQAL_EXPR_ORDER_COND_DESC
+ *
+ * #RASQAL_EXPR_BANG and #RASQAL_EXPR_UMINUS are used by RDQL and
+ * SPARQL.  #RASQAL_EXPR_TILDE by RDQL only.  The rest by SPARQL
+ * only.
+ * 
+ * Return value: a new #rasqal_expression object or NULL on failure
+ **/
 rasqal_expression*
 rasqal_new_1op_expression(rasqal_op op, rasqal_expression* arg)
 {
@@ -478,6 +498,27 @@ rasqal_new_1op_expression(rasqal_op op, rasqal_expression* arg)
   return e;
 }
 
+
+/**
+ * rasqal_new_2op_expression:
+ * @op: Expression operator
+ * @arg1: Operand 1 
+ * @arg2: Operand 2
+ * 
+ * Constructor - create a new 2-operand expression.
+ * 
+ * The operators are:
+ * #RASQAL_EXPR_AND #RASQAL_EXPR_OR #RASQAL_EXPR_EQ
+ * #RASQAL_EXPR_NEQ #RASQAL_EXPR_LT #RASQAL_EXPR_GT #RASQAL_EXPR_LE
+ * #RASQAL_EXPR_GE #RASQAL_EXPR_PLUS #RASQAL_EXPR_MINUS
+ * #RASQAL_EXPR_STAR #RASQAL_EXPR_SLASH #RASQAL_EXPR_REM
+ * #RASQAL_EXPR_STR_EQ #RASQAL_EXPR_STR_NEQ
+ *
+ * #RASQAL_EXPR_REM #RASQAL_EXPR_STR_EQ and #RASQAL_EXPR_STR_NEQ are
+ * not used by SPARQL. #RASQAL_EXPR_REM is used by RDQL.
+ * 
+ * Return value: a new #rasqal_expression object or NULL on failure
+ **/
 rasqal_expression*
 rasqal_new_2op_expression(rasqal_op op,
                           rasqal_expression* arg1, 
@@ -490,6 +531,21 @@ rasqal_new_2op_expression(rasqal_op op,
   return e;
 }
 
+
+/**
+ * rasqal_new_string_op_expression:
+ * @op: Expression operator
+ * @arg1: Operand 1 
+ * @literal: Literal operand 2
+ * 
+ * Constructor - create a new expression with one expression and one string operand.
+ *
+ * The operators are:
+ * #RASQAL_EXPR_STR_MATCH (RDQL, SPARQL) and
+ * #RASQAL_EXPR_STR_NMATCH (RDQL)
+ *
+ * Return value: a new #rasqal_expression object or NULL on failure
+ **/
 rasqal_expression*
 rasqal_new_string_op_expression(rasqal_op op,
                                 rasqal_expression* arg1,
@@ -502,6 +558,15 @@ rasqal_new_string_op_expression(rasqal_op op,
   return e;
 }
 
+
+/**
+ * rasqal_new_literal_expression:
+ * @literal: Literal operand 1
+ * 
+ * Constructor - create a new expression for a #rasqal_literal
+ * 
+ * Return value: a new #rasqal_expression object or NULL on failure
+ **/
 rasqal_expression*
 rasqal_new_literal_expression(rasqal_literal *literal)
 {
@@ -512,6 +577,15 @@ rasqal_new_literal_expression(rasqal_literal *literal)
 }
 
 
+/**
+ * rasqal_new_function_expression:
+ * @name: function name
+ * @args: sequence of #rasqal_expression function arguments
+ * 
+ * Constructor - create a new expression for a function with expression arguments
+ * 
+ * Return value: a new #rasqal_expression object or NULL on failure
+ **/
 rasqal_expression*
 rasqal_new_function_expression(raptor_uri* name,
                                raptor_sequence* args)
@@ -524,6 +598,15 @@ rasqal_new_function_expression(raptor_uri* name,
 }
 
 
+/**
+ * rasqal_new_cast_expression:
+ * @name: cast datatype URI
+ * @value: expression value to cast to @datatype type
+ * 
+ * Constructor - create a new expression for casting and expression to a datatype
+ * 
+ * Return value: a new #rasqal_expression object or NULL on failure
+ **/
 rasqal_expression*
 rasqal_new_cast_expression(raptor_uri* name, rasqal_expression *value) 
 {
@@ -535,6 +618,15 @@ rasqal_new_cast_expression(raptor_uri* name, rasqal_expression *value)
 }
 
 
+/**
+ * rasqal_expression_clear:
+ * @e: expression
+ * 
+ * Empty an expression of contained content.
+ *
+ * Intended to be used to deallocate resources from a statically
+ * declared #rasqal_expression such as on a stack.
+ **/
 void
 rasqal_expression_clear(rasqal_expression* e)
 {
@@ -609,10 +701,45 @@ rasqal_free_expression(rasqal_expression* e)
 }
 
 
+/**
+ * rasqal_expression_foreach:
+ * @e: #rasqal_expression to visit
+ * @fn: visit function
+ * @user_data: user data to pass to visit function
+ * 
+ * Visit a user function over a #rasqal_expression
+ * 
+ * @deprecated: Use rasqal_expression_visit() instead.
+ *
+ * Return value: 0 if the visit was truncated.
+ **/
 int
 rasqal_expression_foreach(rasqal_expression* e, 
                           rasqal_expression_foreach_fn fn,
                           void *user_data)
+{
+  RASQAL_DEPRECATED_MESSAGE("use rasqal_expression_visit");
+
+  return rasqal_expression_visit(e, (rasqal_expression_visit_fn)fn, user_data);
+}
+
+
+/**
+ * rasqal_expression_visit:
+ * @e:  #rasqal_expression to visit
+ * @fn: visit function
+ * @user_data: user data to pass to visit function
+ * 
+ * Visit a user function over a #rasqal_expression
+ * 
+ * If the user function @fn returns 0, the visit is truncated.
+ *
+ * Return value: 0 if the visit was truncated.
+ **/
+int
+rasqal_expression_visit(rasqal_expression* e, 
+                        rasqal_expression_visit_fn fn,
+                        void *user_data)
 {
   int i;
   int result=0;
@@ -638,8 +765,8 @@ rasqal_expression_foreach(rasqal_expression* e,
     case RASQAL_EXPR_REM:
     case RASQAL_EXPR_STR_EQ:
     case RASQAL_EXPR_STR_NEQ:
-      return rasqal_expression_foreach(e->arg1, fn, user_data) ||
-             rasqal_expression_foreach(e->arg2, fn, user_data);
+      return rasqal_expression_visit(e->arg1, fn, user_data) ||
+             rasqal_expression_visit(e->arg2, fn, user_data);
       break;
     case RASQAL_EXPR_TILDE:
     case RASQAL_EXPR_BANG:
@@ -654,7 +781,7 @@ rasqal_expression_foreach(rasqal_expression* e,
     case RASQAL_EXPR_CAST:
     case RASQAL_EXPR_ORDER_COND_ASC:
     case RASQAL_EXPR_ORDER_COND_DESC:
-      return rasqal_expression_foreach(e->arg1, fn, user_data);
+      return rasqal_expression_visit(e->arg1, fn, user_data);
       break;
     case RASQAL_EXPR_STR_MATCH:
     case RASQAL_EXPR_STR_NMATCH:
@@ -665,7 +792,7 @@ rasqal_expression_foreach(rasqal_expression* e,
     case RASQAL_EXPR_FUNCTION:
       for(i=0; i<raptor_sequence_size(e->args); i++) {
         rasqal_expression* e2=(rasqal_expression*)raptor_sequence_get_at(e->args, i);
-        if(!rasqal_expression_foreach(e2, fn, user_data)) {
+        if(!rasqal_expression_visit(e2, fn, user_data)) {
           result=0;
           break;
         }
@@ -1578,6 +1705,16 @@ static const char* rasqal_op_labels[RASQAL_EXPR_LAST+1]={
   "order desc"
 };
 
+
+/**
+ * rasqal_expression_print_op:
+ * @e: the #rasqal_expression object
+ * @fh: the #FILE* handle to print to
+ * 
+ * Print a rasqal expression operator in a debug format.
+ *
+ * The print debug format may change in any release.
+ **/
 void
 rasqal_expression_print_op(rasqal_expression* e, FILE* fh)
 {
@@ -1682,7 +1819,7 @@ rasqal_expression_print(rasqal_expression* e, FILE* fh)
 }
 
 
-/* for use with rasqal_expression_foreach and user_data=rasqal_query */
+/* for use with rasqal_expression_visit and user_data=rasqal_query */
 int
 rasqal_expression_has_qname(void *user_data, rasqal_expression *e)
 {
@@ -1693,7 +1830,7 @@ rasqal_expression_has_qname(void *user_data, rasqal_expression *e)
 }
 
 
-/* for use with rasqal_expression_foreach and user_data=rasqal_query */
+/* for use with rasqal_expression_visit and user_data=rasqal_query */
 int
 rasqal_expression_expand_qname(void *user_data, rasqal_expression *e)
 {

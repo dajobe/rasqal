@@ -185,7 +185,7 @@ rasqal_engine_graph_pattern_constraints_has_qname(rasqal_graph_pattern* gp)
   /* check for qnames in constraint expressions */
   for(i=0; i<raptor_sequence_size(gp->constraints); i++) {
     rasqal_expression* e=(rasqal_expression*)raptor_sequence_get_at(gp->constraints, i);
-    if(rasqal_expression_foreach(e, rasqal_expression_has_qname, gp))
+    if(rasqal_expression_visit(e, rasqal_expression_has_qname, gp))
       return 1;
   }
 
@@ -215,7 +215,7 @@ rasqal_engine_expand_graph_pattern_constraints_qnames(rasqal_query *rq,
   /* expand qnames in constraint expressions */
   for(i=0; i<raptor_sequence_size(gp->constraints); i++) {
     rasqal_expression* e=(rasqal_expression*)raptor_sequence_get_at(gp->constraints, i);
-    if(rasqal_expression_foreach(e, rasqal_expression_expand_qname, rq))
+    if(rasqal_expression_visit(e, rasqal_expression_expand_qname, rq))
       return 1;
   }
 
@@ -1821,8 +1821,8 @@ rasqal_engine_expression_fold(rasqal_query* rq, rasqal_expression* e)
   while(1) {
     st.changes=0;
     st.failed=0;
-    rasqal_expression_foreach(e, rasqal_engine_expression_foreach_fold, 
-                              (void*)&st);
+    rasqal_expression_visit(e, rasqal_engine_expression_foreach_fold, 
+                            (void*)&st);
     if(!st.changes || st.failed)
       break;
   }

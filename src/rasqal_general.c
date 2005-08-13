@@ -61,18 +61,49 @@ const char * const rasqal_short_copyright_string = "Copyright (C) 2003-2005 Davi
 
 const char * const rasqal_copyright_string = "Copyright (C) 2003-2005 David Beckett - http://purl.org/net/dajobe/\nInstitute for Learning and Research Technology - http://www.ilrt.bristol.ac.uk/,\nUniversity of Bristol - http://www.bristol.ac.uk/";
 
+/**
+ * rasqal_version_string:
+ *
+ * Library full version as a string.
+ *
+ * See also #rasqal_version_decimal.
+ */
 const char * const rasqal_version_string = VERSION;
 
+/**
+ * rasqal_version_major:
+ *
+ * Library major version number as a decimal integer.
+ */
 const unsigned int rasqal_version_major = RASQAL_VERSION_MAJOR;
+
+/**
+ * rasqal_version_minor:
+ *
+ * Library minor version number as a decimal integer.
+ */
 const unsigned int rasqal_version_minor = RASQAL_VERSION_MINOR;
+
+/**
+ * rasqal_version_release:
+ *
+ * Library release version number as a decimal integer.
+ */
 const unsigned int rasqal_version_release = RASQAL_VERSION_RELEASE;
 
+/**
+ * rasqal_version_decimal:
+ *
+ * Library full version as a decimal integer.
+ *
+ * See also #rasqal_version_string.
+ */
 const unsigned int rasqal_version_decimal = RASQAL_VERSION_DECIMAL;
 
 
 
 /**
- * rasqal_init
+ * rasqal_init:
  * 
  * Initialise the rasqal library.
  *
