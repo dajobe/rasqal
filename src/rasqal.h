@@ -748,9 +748,14 @@ rasqal_literal* rasqal_expression_evaluate(rasqal_query* query, rasqal_expressio
 
 /**
  * rasqal_expression_foreach_fn:
+ * @user_data: user data passed in with rasqal_expression_foreach()
+ * @e: current expression
  *
- * User function to visit an expression and operate on it.  Deprecated
- * for #rasqal_expression_visit_fn and function rasqal_expression_visit()
+ * User function to visit an expression and operate on it.  
+ *
+ * @deprecated: Use #rasqal_expression_visit_fn and rasqal_expression_visit()
+ *
+ * Return value: 0 to truncate the visit
  */
 typedef int (*rasqal_expression_foreach_fn)(void *user_data, rasqal_expression *e);
 
@@ -759,9 +764,13 @@ int rasqal_expression_foreach(rasqal_expression* e, rasqal_expression_foreach_fn
 
 /**
  * rasqal_expression_visit_fn:
+ * @user_data: user data passed in with rasqal_expression_visit()
+ * @e: current expression
  *
  * User function to visit an expression and operate on it with
  * rasqal_expression_visit()
+ *
+ * Return value: 0 to truncate the visit
  */
 typedef int (*rasqal_expression_visit_fn)(void *user_data, rasqal_expression *e);
 RASQAL_API
