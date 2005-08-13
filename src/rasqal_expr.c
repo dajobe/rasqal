@@ -477,14 +477,14 @@ rasqal_triple_get_origin(rasqal_triple* t)
  * Constructor - create a new 1-operand expression.
  *
  * The operators are:
- * #RASQAL_EXPR_TILDE #RASQAL_EXPR_BANG #RASQAL_EXPR_UMINUS
- * #RASQAL_EXPR_BOUND #RASQAL_EXPR_STR #RASQAL_EXPR_LANG
- * #RASQAL_EXPR_DATATYPE #RASQAL_EXPR_ISURI #RASQAL_EXPR_ISBLANK
- * #RASQAL_EXPR_ISLITERAL #RASQAL_EXPR_ORDER_COND_ASC
- * #RASQAL_EXPR_ORDER_COND_DESC
+ * @RASQAL_EXPR_TILDE @RASQAL_EXPR_BANG @RASQAL_EXPR_UMINUS
+ * @RASQAL_EXPR_BOUND @RASQAL_EXPR_STR @RASQAL_EXPR_LANG
+ * @RASQAL_EXPR_DATATYPE @RASQAL_EXPR_ISURI @RASQAL_EXPR_ISBLANK
+ * @RASQAL_EXPR_ISLITERAL @RASQAL_EXPR_ORDER_COND_ASC
+ * @RASQAL_EXPR_ORDER_COND_DESC
  *
- * #RASQAL_EXPR_BANG and #RASQAL_EXPR_UMINUS are used by RDQL and
- * SPARQL.  #RASQAL_EXPR_TILDE by RDQL only.  The rest by SPARQL
+ * @RASQAL_EXPR_BANG and @RASQAL_EXPR_UMINUS are used by RDQL and
+ * SPARQL.  @RASQAL_EXPR_TILDE by RDQL only.  The rest by SPARQL
  * only.
  * 
  * Return value: a new #rasqal_expression object or NULL on failure
@@ -508,14 +508,14 @@ rasqal_new_1op_expression(rasqal_op op, rasqal_expression* arg)
  * Constructor - create a new 2-operand expression.
  * 
  * The operators are:
- * #RASQAL_EXPR_AND #RASQAL_EXPR_OR #RASQAL_EXPR_EQ
- * #RASQAL_EXPR_NEQ #RASQAL_EXPR_LT #RASQAL_EXPR_GT #RASQAL_EXPR_LE
- * #RASQAL_EXPR_GE #RASQAL_EXPR_PLUS #RASQAL_EXPR_MINUS
- * #RASQAL_EXPR_STAR #RASQAL_EXPR_SLASH #RASQAL_EXPR_REM
- * #RASQAL_EXPR_STR_EQ #RASQAL_EXPR_STR_NEQ
+ * @RASQAL_EXPR_AND @RASQAL_EXPR_OR @RASQAL_EXPR_EQ
+ * @RASQAL_EXPR_NEQ @RASQAL_EXPR_LT @RASQAL_EXPR_GT @RASQAL_EXPR_LE
+ * @RASQAL_EXPR_GE @RASQAL_EXPR_PLUS @RASQAL_EXPR_MINUS
+ * @RASQAL_EXPR_STAR @RASQAL_EXPR_SLASH @RASQAL_EXPR_REM
+ * @RASQAL_EXPR_STR_EQ @RASQAL_EXPR_STR_NEQ
  *
- * #RASQAL_EXPR_REM #RASQAL_EXPR_STR_EQ and #RASQAL_EXPR_STR_NEQ are
- * not used by SPARQL. #RASQAL_EXPR_REM is used by RDQL.
+ * @RASQAL_EXPR_REM @RASQAL_EXPR_STR_EQ and @RASQAL_EXPR_STR_NEQ are
+ * not used by SPARQL. @RASQAL_EXPR_REM is used by RDQL.
  * 
  * Return value: a new #rasqal_expression object or NULL on failure
  **/
@@ -541,8 +541,8 @@ rasqal_new_2op_expression(rasqal_op op,
  * Constructor - create a new expression with one expression and one string operand.
  *
  * The operators are:
- * #RASQAL_EXPR_STR_MATCH (RDQL, SPARQL) and
- * #RASQAL_EXPR_STR_NMATCH (RDQL)
+ * @RASQAL_EXPR_STR_MATCH (RDQL, SPARQL) and
+ * @RASQAL_EXPR_STR_NMATCH (RDQL)
  *
  * Return value: a new #rasqal_expression object or NULL on failure
  **/

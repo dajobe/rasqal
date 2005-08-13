@@ -907,7 +907,7 @@ rasqal_free_memory(void *ptr)
  * be deallocated in that library.  This function allows
  * memory to be allocated inside the rasqal shared library
  * that can be freed inside rasqal either internally or via
- * rasqal_free_memory.
+ * rasqal_free_memory().
  *
  * Return value: the address of the allocated memory or NULL on failure
  *
@@ -930,7 +930,7 @@ rasqal_alloc_memory(size_t size)
  * be deallocated in that library.  This function allows
  * memory to be allocated inside the rasqal shared library
  * that can be freed inside rasqal either internally or via
- * rasqal_free_memory.
+ * rasqal_free_memory().
  *
  * Return value: the address of the allocated memory or NULL on failure
  *
