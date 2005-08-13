@@ -38,10 +38,12 @@ rasqal_new_string_op_expression
 rasqal_new_variable_expression
 rasqal_free_expression
 rasqal_expression_evaluate
-rasqal_expression_foreach
 rasqal_expression_foreach_fn
+rasqal_expression_foreach
 rasqal_expression_print
 rasqal_expression_print_op
+rasqal_expression_visit_fn
+rasqal_expression_visit
 </SECTION>
 
 <SECTION>
