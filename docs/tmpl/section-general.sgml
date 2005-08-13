@@ -1,12 +1,16 @@
 <!-- ##### SECTION Title ##### -->
-General information
+General library facilities
 
 <!-- ##### SECTION Short_Description ##### -->
-
+Startup and shutdown, memory handling, version checks and misc functions.
 
 <!-- ##### SECTION Long_Description ##### -->
 <para>
-
+The functions in this section cover general library features such
+as startup and shutdown, checking the current library version and
+dealing with memory allocation and freeing.  It also provides
+functions to enumerate and check the supported query languages,
+their names, labels and URI.
 </para>
 
 <!-- ##### SECTION See_Also ##### -->
@@ -108,5 +112,14 @@ General information
 </para>
 
 @ptr: 
+
+
+<!-- ##### MACRO RASQAL_DEPRECATED ##### -->
+<para>
+When defined before a function, indicates that the function
+has been deprecated and may be replaced in a future release.
+With some versions of gcc this may give a compilation warning.
+</para>
+
 
 

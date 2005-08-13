@@ -2,11 +2,14 @@
 Triples
 
 <!-- ##### SECTION Short_Description ##### -->
-
+Triple pattern or RDF triple.
 
 <!-- ##### SECTION Long_Description ##### -->
 <para>
-
+An object for a triple pattern or an RDF triple in a query.  It
+contains the three parts of an RDF triple - subject, predicate,
+object as well as origin for matching triples in some graph (such as
+with the SPARQL <literal>GRAPH</literal>).
 </para>
 
 <!-- ##### SECTION See_Also ##### -->

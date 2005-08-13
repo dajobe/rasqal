@@ -2,11 +2,38 @@
 Query
 
 <!-- ##### SECTION Short_Description ##### -->
-
+Query object API, parsing and execution
 
 <!-- ##### SECTION Long_Description ##### -->
 <para>
+This class provides the main interface to the library.  A query
+can be constructed by parsing a string, retrieving it from a URI
+and/or constructing it via API methods to build the query expression.
+</para>
 
+<para>The query structures can be read via methods to return
+the query verb rasqal_query_get_verb(),
+the #rasqal_data_graph RDF data sources with rasqal_query_get_data_graph() etc.,
+the #rasqal_graph_pattern tree with rasqal_query_get_query_graph_pattern(),
+the sequence of order conditions with rasqal_query_get_order_condition() etc.,
+the #rasqal_variable selected to return with
+rasqal_query_get_bound_variable_sequence() or rasqal_query_get_all_variable_sequence(),
+and so on.
+</para>
+
+<para>
+To process a query string, the rasqal_query_prepare() method
+parses the query string in some query language and initialises
+the #rasqal_query structures.
+</para>
+
+<para>
+The query can be evaluated with the internal query engine against
+some source of matches using rasqal_query_execute() to give an
+#rasqal_query_results.  There are multiple forms of results that
+can include variable bindings, a boolean or an RDF graph that
+can be tested for with methods on #rasqal_query_results and
+then retrieved.
 </para>
 
 <!-- ##### SECTION See_Also ##### -->

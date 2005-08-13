@@ -2,11 +2,13 @@
 Prefixes
 
 <!-- ##### SECTION Short_Description ##### -->
-
+XML QName-style prefixes made from a URI and a short text prefix.
 
 <!-- ##### SECTION Long_Description ##### -->
 <para>
-
+Used inside a #rasqal_query to declare syntax prefix abbreviations
+for URIs.  Once a #rasqal_query is constructed, these are for information
+only.
 </para>
 
 <!-- ##### SECTION See_Also ##### -->

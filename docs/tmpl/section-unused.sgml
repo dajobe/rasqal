@@ -1,8 +1,8 @@
 <!-- ##### SECTION Title ##### -->
-section-unused
+Unused items
 
 <!-- ##### SECTION Short_Description ##### -->
-
+Not used
 
 <!-- ##### SECTION Long_Description ##### -->
 <para>
@@ -18,13 +18,6 @@ section-unused
 
 
 <!-- ##### MACRO RASQAL_API ##### -->
-<para>
-
-</para>
-
-
-
-<!-- ##### MACRO RASQAL_DEPRECATED ##### -->
 <para>
 
 </para>

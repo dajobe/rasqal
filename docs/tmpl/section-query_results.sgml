@@ -2,11 +2,22 @@
 Query Results
 
 <!-- ##### SECTION Short_Description ##### -->
-
+Query results as variable bindings, boolean or RDF graphs.
 
 <!-- ##### SECTION Long_Description ##### -->
 <para>
+A query results object is only ever constructed by the internal
+query engine evaluating a #rasqal_query with rasqal_query_execute().
+It provides interface to the multiple types of result supported.
+</para>
 
+<para>
+There are a large set of methods for returning all or parts of a
+variable binding query result including the names, values or
+individuals.  A boolean result is straightforward to get with
+rasqal_query_results_get_boolean() and an RDF graph returns a
+sequence of raptor triples than can be easily passed to the Raptor
+library for serializing to a syntax.
 </para>
 
 <!-- ##### SECTION See_Also ##### -->

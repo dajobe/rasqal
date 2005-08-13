@@ -143,15 +143,6 @@ constants and #rasqal_variable values bound in some
 @Returns: 
 
 
-<!-- ##### FUNCTION rasqal_new_variable_expression ##### -->
-<para>
-
-</para>
-
-@variable: 
-@Returns: 
-
-
 <!-- ##### FUNCTION rasqal_free_expression ##### -->
 <para>
 
@@ -171,17 +162,6 @@ constants and #rasqal_variable values bound in some
 @Returns: 
 
 
-<!-- ##### FUNCTION rasqal_expression_foreach ##### -->
-<para>
-
-</para>
-
-@expr: 
-@fn: 
-@user_data: 
-@Returns: 
-
-
 <!-- ##### USER_FUNCTION rasqal_expression_foreach_fn ##### -->
 <para>
 
@@ -190,6 +170,19 @@ constants and #rasqal_variable values bound in some
 @user_data: 
 @e: 
 @Returns: 
+
+
+<!-- ##### FUNCTION rasqal_expression_foreach ##### -->
+<para>
+
+</para>
+
+@e: 
+@fn: 
+@user_data: 
+@Returns: 
+<!-- # Unused Parameters # -->
+@expr: 
 
 
 <!-- ##### FUNCTION rasqal_expression_print ##### -->
@@ -208,5 +201,26 @@ constants and #rasqal_variable values bound in some
 
 @e: 
 @fh: 
+
+
+<!-- ##### USER_FUNCTION rasqal_expression_visit_fn ##### -->
+<para>
+
+</para>
+
+@user_data: 
+@e: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_expression_visit ##### -->
+<para>
+
+</para>
+
+@e: 
+@fn: 
+@user_data: 
+@Returns: 
 
 

@@ -1,12 +1,14 @@
 <!-- ##### SECTION Title ##### -->
-Literals
+Literal
 
 <!-- ##### SECTION Short_Description ##### -->
-
+RDF literals and RDF query-specific literals.
 
 <!-- ##### SECTION Long_Description ##### -->
 <para>
-
+A class for handling RDF terms (URI, blank nodes, strings, datatyped
+literals) as well as those natively used in a query such as
+boolean, double, floating, integer, regex pattern and variables.
 </para>
 
 <!-- ##### SECTION See_Also ##### -->

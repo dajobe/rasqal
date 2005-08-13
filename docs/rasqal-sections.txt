@@ -12,6 +12,7 @@ rasqal_languages_enumerate
 rasqal_alloc_memory
 rasqal_calloc_memory
 rasqal_free_memory
+RASQAL_DEPRECATED
 </SECTION>
 
 <SECTION>
@@ -35,7 +36,6 @@ rasqal_new_cast_expression
 rasqal_new_function_expression
 rasqal_new_literal_expression
 rasqal_new_string_op_expression
-rasqal_new_variable_expression
 rasqal_free_expression
 rasqal_expression_evaluate
 rasqal_expression_foreach_fn
@@ -201,7 +201,6 @@ rasqal_set_triples_source_factory
 <SECTION>
 <FILE>section-unused</FILE>
 RASQAL_API
-RASQAL_DEPRECATED
 rasqal_expression_s
 rasqal_query
 rasqal_query_results
