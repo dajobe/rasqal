@@ -1,19 +1,50 @@
+2005-08-13  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* docs/tmpl/section-unused.sgml, docs/tmpl/section-variable.sgml,
+	docs/tmpl/section-query_results.sgml,
+	docs/tmpl/section-triple.sgml, docs/tmpl/section-prefix.sgml,
+	docs/tmpl/section-query.sgml,
+	docs/tmpl/section-graph_pattern.sgml,
+	docs/tmpl/section-literal.sgml, docs/tmpl/section-expression.sgml,
+	docs/tmpl/section-general.sgml, docs/rasqal-sections.txt: autodocs
+	- sections intros
+
+	* src/rasqal.h, src/rasqal_expr.c, src/rasqal_general.c,
+	src/rasqal_engine.c: autodocs
+
+	* src/rasqal.h: Remove unused rasqal_new_variable_expression
+	prototype.  Deprecate rasqal_expression_foreach for
+	rasqal_expression_visit Add rasqal_expression_visit prototype and
+	rasqal_expression_visit_fn.
+
+	* docs/rasqal-sections.txt: Add rasqal_expression_visit_fn
+	rasqal_expression_visit
+
 2005-08-11  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* autogen.sh: programs spello
+
+	* autogen.sh: Add gtkdocize and swig (for bindings) only if seen
+	in top-level configure.ac Add swig-specific version check,
+	different from gnu style
+
+	* autogen.sh: update autogen.sh again
+
+	* autogen.sh: Rewrite with functions, generalize to any redland
+	package.  Add docs.
 
 	* src/rasqal_engine.c: restore undef RASQAL_DEBUG
 
 	* tests/sparql/part1/dawg-query-003.rq: Declare rdf:
 
-	* src/sparql_parser.y (rasqal_sparql_query_engine_init):
-	Do not declare any namespaces by
-	default.
+	* src/sparql_parser.y (rasqal_sparql_query_engine_init): Do not
+	declare any namespaces by default.
 
 	* tests/sparql/syntax/Makefile.am: Added namespaces.rq
 
 	* tests/sparql/syntax/namespaces.rq: namespaces.rq
 
-	* rasqal.spec.in: - Update Source:
-	- Use %makeinstall
+	* rasqal.spec.in: - Update Source: - Use %makeinstall
 
 2005-08-10  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
