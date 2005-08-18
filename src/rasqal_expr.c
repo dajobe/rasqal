@@ -1186,16 +1186,13 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e,
             goto failed;
         }
 
-        if(l->type != RASQAL_LITERAL_STRING) {
+        if(!l->datatype) {
           if(free_literal)
             rasqal_free_literal(l);
           goto failed;
         }
         
-        if(l->datatype)
-          result=rasqal_new_uri_literal(raptor_uri_copy(l->datatype));
-        else
-          result=NULL;
+        result=rasqal_new_uri_literal(raptor_uri_copy(l->datatype));
 
         if(free_literal)
           rasqal_free_literal(l);
