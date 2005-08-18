@@ -20,6 +20,7 @@ config.sub
 configure
 compile
 dmalloc*
+gtk-doc.make
 install-sh
 librasqal.html
 libtool
