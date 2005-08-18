@@ -98,6 +98,7 @@ rasqal_prefix_print
 <SECTION>
 <FILE>section-query</FILE>
 rasqal_query_verb
+rasqal_query
 rasqal_new_query
 rasqal_free_query
 rasqal_query_add_data_graph
@@ -147,6 +148,7 @@ rasqal_query_verb_as_string
 
 <SECTION>
 <FILE>section-query_results</FILE>
+rasqal_query_results
 rasqal_free_query_results
 rasqal_query_results_finished
 rasqal_query_results_get_binding_name
@@ -202,8 +204,6 @@ rasqal_set_triples_source_factory
 <FILE>section-unused</FILE>
 RASQAL_API
 rasqal_expression_s
-rasqal_query
-rasqal_query_results
 rasqal_literal_s
 rasqal_triples_match_s
 rasqal_triples_source_s
