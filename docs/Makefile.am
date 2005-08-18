@@ -41,11 +41,9 @@ HFILE_GLOB=$(top_srcdir)/src/rasqal.h
 CFILE_GLOB=$(top_srcdir)/src/rasqal_*.c
 
 IGNORE_CFILES= \
-getopt.c \
 rasqal_xsd_datatypes.c \
 rdql_lexer.c \
 rdql_parser.c \
-roqet.c \
 sparql_lexer.c \
 sparql_parser.c \
 strcasecmp.c
@@ -61,8 +59,7 @@ IGNORE_HFILES= \
 	sparql_common.h \
 	sparql_lexer.h \
 	sparql_parser.h \
-	win32_rasqal_config.h \
-	$(IGNORE_CFILES)
+	win32_rasqal_config.h
 
 # CFLAGS and LDFLAGS for compiling scan program. Only needed
 # if $(DOC_MODULE).types is non-empty.
@@ -70,7 +67,7 @@ AM_CPPFLAGS =
 GTKDOC_LIBS =
 
 # Extra options to supply to gtkdoc-mkdb
-MKDB_OPTIONS=--sgml-mode --output-format=xml
+MKDB_OPTIONS=--sgml-mode --output-format=xml --ignore-files="$(IGNORE_CFILES)"
 
 # Extra options to supply to gtkdoc-mktmpl
 MKTMPL_OPTIONS=
