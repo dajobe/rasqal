@@ -1,5 +1,5 @@
-*.log
 *.rq
+*.gz
 .cvsignore
 COPYING
 COPYING.LIB
@@ -19,6 +19,7 @@ config.status
 config.sub
 configure
 compile
+depcomp
 dmalloc*
 gtk-doc.make
 install-sh
