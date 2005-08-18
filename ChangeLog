@@ -1,3 +1,16 @@
+2005-08-18  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* src/rasqal_query.c (rasqal_graph_pattern_visit): Make this
+	recursive.
+
+	* tests/sparql/ExprBuiltins/Makefile.am: datatype-1 works
+
+	* src/rasqal_expr.c (rasqal_expression_evaluate):
+	For datatype, if is a typed literal it
+	has a datatype field then return that, otherwise fail.
+
+	* tests/sparql/ExprBuiltins/Makefile.am: str-1 passes
+
 2005-08-13  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
 	* docs/tmpl/section-unused.sgml, docs/tmpl/section-variable.sgml,
