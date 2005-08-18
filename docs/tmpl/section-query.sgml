@@ -56,6 +56,12 @@ then retrieved.
 @RASQAL_QUERY_VERB_ASK: 
 @RASQAL_QUERY_VERB_LAST: 
 
+<!-- ##### TYPEDEF rasqal_query ##### -->
+<para>
+The query object.
+</para>
+
+
 <!-- ##### FUNCTION rasqal_new_query ##### -->
 <para>
 

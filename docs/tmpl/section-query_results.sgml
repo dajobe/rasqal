@@ -28,6 +28,13 @@ library for serializing to a syntax.
 <!-- ##### SECTION Stability_Level ##### -->
 
 
+<!-- ##### TYPEDEF rasqal_query_results ##### -->
+<para>
+The query results object.  Cannot be constructed, only returned by
+an execution of a query on a #rasqal_query object.
+</para>
+
+
 <!-- ##### FUNCTION rasqal_free_query_results ##### -->
 <para>
 
