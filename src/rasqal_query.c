@@ -3492,7 +3492,7 @@ rasqal_graph_pattern_visit(rasqal_query* query, rasqal_graph_pattern* gp,
       if(!sgp)
         break;
       
-      visit_fn(query, sgp, data);
+      rasqal_graph_pattern_visit(query, sgp, visit_fn, data);
       gp_index++;
     }
   }
