@@ -18,6 +18,7 @@ config.log
 config.status
 config.sub
 configure
+compile
 dmalloc*
 install-sh
 librasqal.html
