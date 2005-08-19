@@ -10,10 +10,10 @@ Graph patterns form a a tree structure that build a #rasqal_query
 top-level graph pattern (see rasqal_query_get_query_graph_pattern())
 which may have sub-graph patterns.  Graph patterns at the leaf of the
 tree operate over triple patterns (#rasqal_triple) matching the
-RDF triples in the data sources for #RASQAL_GRAPH_PATTERN_OPERATOR_BASIC
-or #RASQAL_GRAPH_PATTERN_OPERATOR_OPTIONAL.  Other graph patterns
+RDF triples in the data sources for %RASQAL_GRAPH_PATTERN_OPERATOR_BASIC
+or %RASQAL_GRAPH_PATTERN_OPERATOR_OPTIONAL.  Other graph patterns
 operators operate over sub graph patterns and group them, union them
-or apply a GRAPH matching keyword (#RASQAL_GRAPH_PATTERN_OPERATOR_GRAPH).
+or apply a GRAPH matching keyword (%RASQAL_GRAPH_PATTERN_OPERATOR_GRAPH).
 </para>
 
 <!-- ##### SECTION See_Also ##### -->
