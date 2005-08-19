@@ -154,7 +154,7 @@ typedef enum {
  */
 typedef struct {
   const unsigned char *name;
-  struct rasqal_literal_s *value;
+  rasqal_literal* value;
   int offset;
   rasqal_variable_type type;
 } rasqal_variable;
@@ -180,14 +180,14 @@ typedef enum {
 /**
  * rasqal_data_graph:
  * @uri: source URI
- * @name_uri: name of graph for #RASQAL_DATA_NAMED
- * @flags: #RASQAL_DATA_GRAPH_NAMED or #RASQAL_DATA_GRAPH_BACKGROUND
+ * @name_uri: name of graph for %RASQAL_DATA_NAMED
+ * @flags: %RASQAL_DATA_GRAPH_NAMED or %RASQAL_DATA_GRAPH_BACKGROUND
  *
  * A source of RDF data for querying. 
  *
  * The #uri is the original source (base URI) of the content.  It may
  * also have an additional name @name_uri as long as @flags is
- * #RASQAL_DATA_NAMED
+ * %RASQAL_DATA_NAMED
  */
 typedef struct {
   raptor_uri* uri;
@@ -204,7 +204,7 @@ typedef struct {
  * @RASQAL_LITERAL_BOOLEAN: Boolean literal xsd:boolean.
  * @RASQAL_LITERAL_INTEGER: Integer literal xsd:integer.
  * @RASQAL_LITERAL_DOUBLE: Double floating point literal xsd:double.
- * @RASQAL_LITERAL_FLOATING: Deprecated #RASQAL_LITERAL_DOUBLE.
+ * @RASQAL_LITERAL_FLOATING: Deprecated %RASQAL_LITERAL_DOUBLE.
  * @RASQAL_LITERAL_FLOAT: Floating point literal xsd:float.
  * @RASQAL_LITERAL_DECIMAL: Decimal integer xsd:decimal.
  * @RASQAL_LITERAL_DATETIME: Date/Time literal xsd:dateTime.
@@ -232,7 +232,7 @@ typedef struct {
  * Not used (internal): PATTERN, QNAME, VARIABLE
  *
  * See rasqal_literal_compare() when used with flags
- * #RASQAL_COMPARE_XQUERY
+ * %RASQAL_COMPARE_XQUERY
  */
 typedef enum {
   /* internal */

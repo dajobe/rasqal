@@ -65,11 +65,11 @@ static RASQAL_INLINE int rasqal_expression_compare(rasqal_expression* e1, rasqal
  * rasqal_new_data_graph:
  * @uri: source URI
  * @name_uri: name of graph (or NULL)
- * @flags: #RASQAL_DATA_GRAPH_NAMED or #RASQAL_DATA_GRAPH_BACKGROUND
+ * @flags: %RASQAL_DATA_GRAPH_NAMED or %RASQAL_DATA_GRAPH_BACKGROUND
  * 
  * Constructor - create a new #rasqal_data_graph.
  * 
- * The name_uri is only used when the flags are #RASQAL_DATA_GRAPH_NAMED.
+ * The name_uri is only used when the flags are %RASQAL_DATA_GRAPH_NAMED.
  * 
  * Return value: a new #rasqal_data_graph or NULL on failure.
  **/
