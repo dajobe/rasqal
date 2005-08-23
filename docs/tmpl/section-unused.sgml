@@ -29,6 +29,7 @@ Not used
 
 </para>
 
+@usage: 
 @op: 
 @arg1: 
 @arg2: 
@@ -37,18 +38,6 @@ Not used
 @value: 
 @name: 
 @args: 
-
-<!-- ##### TYPEDEF rasqal_query ##### -->
-<para>
-
-</para>
-
-
-<!-- ##### TYPEDEF rasqal_query_results ##### -->
-<para>
-
-</para>
-
 
 <!-- ##### STRUCT rasqal_literal_s ##### -->
 <para>
