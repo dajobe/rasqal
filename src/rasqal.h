@@ -393,6 +393,8 @@ struct rasqal_variable_s;
  * literal or variable 
  */
 struct rasqal_expression_s {
+  int usage; /* reference count - 1 for itself */
+
   rasqal_op op;
   struct rasqal_expression_s* arg1;
   struct rasqal_expression_s* arg2;
@@ -736,6 +738,8 @@ RASQAL_API
 rasqal_expression* rasqal_new_function_expression(raptor_uri* name, raptor_sequence* args);
 RASQAL_API
 rasqal_expression* rasqal_new_cast_expression(raptor_uri* name, rasqal_expression *value);
+RASQAL_API
+rasqal_expression* rasqal_new_expression_from_expression(rasqal_expression* e);
 
 RASQAL_API
 void rasqal_free_expression(rasqal_expression* e);
