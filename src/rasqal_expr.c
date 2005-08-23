@@ -493,6 +493,7 @@ rasqal_expression*
 rasqal_new_1op_expression(rasqal_op op, rasqal_expression* arg)
 {
   rasqal_expression* e=(rasqal_expression*)RASQAL_CALLOC(rasqal_expression, sizeof(rasqal_expression), 1);
+  e->usage=1;
   e->op=op;
   e->arg1=arg;
   return e;
@@ -525,6 +526,7 @@ rasqal_new_2op_expression(rasqal_op op,
                           rasqal_expression* arg2)
 {
   rasqal_expression* e=(rasqal_expression*)RASQAL_CALLOC(rasqal_expression, sizeof(rasqal_expression), 1);
+  e->usage=1;
   e->op=op;
   e->arg1=arg1;
   e->arg2=arg2;
@@ -552,6 +554,7 @@ rasqal_new_string_op_expression(rasqal_op op,
                                 rasqal_literal* literal)
 {
   rasqal_expression* e=(rasqal_expression*)RASQAL_CALLOC(rasqal_expression, sizeof(rasqal_expression), 1);
+  e->usage=1;
   e->op=op;
   e->arg1=arg1;
   e->literal=literal;
@@ -571,6 +574,7 @@ rasqal_expression*
 rasqal_new_literal_expression(rasqal_literal *literal)
 {
   rasqal_expression* e=(rasqal_expression*)RASQAL_CALLOC(rasqal_expression, sizeof(rasqal_expression), 1);
+  e->usage=1;
   e->op=RASQAL_EXPR_LITERAL;
   e->literal=literal;
   return e;
@@ -591,6 +595,7 @@ rasqal_new_function_expression(raptor_uri* name,
                                raptor_sequence* args)
 {
   rasqal_expression* e=(rasqal_expression*)RASQAL_CALLOC(rasqal_expression, sizeof(rasqal_expression), 1);
+  e->usage=1;
   e->op=RASQAL_EXPR_FUNCTION;
   e->name=name;
   e->args=args;
@@ -611,6 +616,7 @@ rasqal_expression*
 rasqal_new_cast_expression(raptor_uri* name, rasqal_expression *value) 
 {
   rasqal_expression* e=(rasqal_expression*)RASQAL_CALLOC(rasqal_expression, sizeof(rasqal_expression), 1);
+  e->usage=1;
   e->op=RASQAL_EXPR_CAST;
   e->name=name;
   e->arg1=value;
@@ -687,6 +693,22 @@ rasqal_expression_clear(rasqal_expression* e)
 
 
 /**
+ * rasqal_new_expression_from_expression:
+ * @l: #rasqal_expression object to copy
+ *
+ * Copy Constructor - create a new #rasqal_expression object from an existing rasqal_expression object.
+ * 
+ * Return value: a new #rasqal_expression object or NULL on failure
+ **/
+rasqal_expression*
+rasqal_new_expression_from_expression(rasqal_expression* e)
+{
+  e->usage++;
+  return e;
+}
+
+
+/**
  * rasqal_free_expression:
  * @e: #rasqal_expression object
  * 
@@ -696,6 +718,9 @@ rasqal_expression_clear(rasqal_expression* e)
 void
 rasqal_free_expression(rasqal_expression* e)
 {
+  if(--e->usage)
+    return;
+
   rasqal_expression_clear(e);
   RASQAL_FREE(rasqal_expression, e);
 }
