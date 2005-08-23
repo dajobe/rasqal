@@ -694,7 +694,7 @@ rasqal_expression_clear(rasqal_expression* e)
 
 /**
  * rasqal_new_expression_from_expression:
- * @l: #rasqal_expression object to copy
+ * @e: #rasqal_expression object to copy
  *
  * Copy Constructor - create a new #rasqal_expression object from an existing rasqal_expression object.
  * 
