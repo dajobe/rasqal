@@ -1465,7 +1465,7 @@ rasqal_engine_join_graph_patterns(rasqal_graph_pattern *dest_gp,
  *
  * Never merged: UNION
  */
-void
+int
 rasqal_engine_merge_graph_patterns(rasqal_query* query,
                                    rasqal_graph_pattern* gp,
                                    void* data)
@@ -1488,7 +1488,7 @@ rasqal_engine_merge_graph_patterns(rasqal_query* query,
     RASQAL_DEBUG3("Ending graph pattern %p - operator %s: no sub-graph patterns\n", gp,
                   rasqal_graph_pattern_operator_as_string(gp->op));
 #endif
-    return;
+    return 0;
   }
 
   if(gp->op != RASQAL_GRAPH_PATTERN_OPERATOR_GROUP &&
@@ -1497,7 +1497,7 @@ rasqal_engine_merge_graph_patterns(rasqal_query* query,
     RASQAL_DEBUG3("Ending graph patterns %p - operator %s: not GROUP or OPTIONAL\n", gp,
                   rasqal_graph_pattern_operator_as_string(gp->op));
 #endif
-    return;
+    return 0;
   }
 
   size=raptor_sequence_size(gp->graph_patterns);
@@ -1634,7 +1634,8 @@ rasqal_engine_merge_graph_patterns(rasqal_query* query,
     fputs("\n\n", stdout);
   }
 #endif
-    
+
+  return 0;
 }
 
 
@@ -1689,7 +1690,7 @@ rasqal_engine_check_limit_offset(rasqal_query *query)
  *   D... is anything else
  * 
  */
-void
+int
 rasqal_engine_merge_triples(rasqal_query* query,
                             rasqal_graph_pattern* gp,
                             void* data)
@@ -1711,7 +1712,7 @@ rasqal_engine_merge_triples(rasqal_query* query,
 #if RASQAL_DEBUG > 1
     RASQAL_DEBUG2("Ending graph patterns %p - no sub-graph patterns\n", gp);
 #endif
-    return;
+    return 0;
   }
 
   if(gp->op != RASQAL_GRAPH_PATTERN_OPERATOR_GROUP) {
@@ -1719,7 +1720,7 @@ rasqal_engine_merge_triples(rasqal_query* query,
     RASQAL_DEBUG3("Ending graph patterns %p - operator %s\n", gp,
                   rasqal_graph_pattern_operator_as_string(gp->op));
 #endif
-    return;
+    return 0;
   }
 
   size=raptor_sequence_size(gp->graph_patterns);
@@ -1742,7 +1743,7 @@ rasqal_engine_merge_triples(rasqal_query* query,
   RASQAL_DEBUG3("Found %d basic sub-graph patterns in %p\n", bgp_count, gp);
 #endif
   if(bgp_count < 2)
-    return;
+    return 0;
     
 #if RASQAL_DEBUG > 1
   RASQAL_DEBUG3("OK to merge %d basic sub-graph patterns of %p\n", bgp_count, gp);
@@ -1772,7 +1773,8 @@ rasqal_engine_merge_triples(rasqal_query* query,
   rasqal_graph_pattern_print(gp, stdout);
   fputs("\n\n", stdout);
 #endif
-    
+
+  return 0;
 }
 
 
