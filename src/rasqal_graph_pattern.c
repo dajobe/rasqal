@@ -460,3 +460,49 @@ rasqal_graph_pattern_print(rasqal_graph_pattern* gp, FILE* fh)
   }
   fputs(")", fh);
 }
+
+
+/**
+ * rasqal_graph_pattern_visit:
+ * @query: #rasqal_query to operate on
+ * @graph_pattern: #rasqal_graph_pattern graph pattern
+ * @visit_fn: pointer to function to apply that takes user data and graph pattern parameters
+ * @user_data: user data for applied function 
+ * 
+ * Visit a user function over a #rasqal_graph_pattern
+ *
+ * If the user function @fn returns 0, the visit is truncated.
+ *
+ * Return value: 0 if the visit was truncated.
+ **/
+int
+rasqal_graph_pattern_visit(rasqal_query *query,
+                           rasqal_graph_pattern* gp,
+                           rasqal_graph_pattern_visit_fn visit_fn,
+                           void *user_data)
+{
+  raptor_sequence *seq;
+  int result;
+  
+  result=visit_fn(query, gp, user_data);
+  if(result)
+    return result;
+  
+  seq=rasqal_graph_pattern_get_sub_graph_pattern_sequence(gp);
+  if(seq && raptor_sequence_size(seq) > 0) {
+    int gp_index=0;
+    while(1) {
+      rasqal_graph_pattern* sgp;
+      sgp=rasqal_graph_pattern_get_sub_graph_pattern(gp, gp_index);
+      if(!sgp)
+        break;
+      
+      result=rasqal_graph_pattern_visit(query, sgp, visit_fn, user_data);
+      if(result)
+        return result;
+      gp_index++;
+    }
+  }
+
+  return 0;
+}
