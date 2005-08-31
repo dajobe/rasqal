@@ -163,7 +163,6 @@ static int sparql_is_builtin_xsd_datatype(raptor_uri* uri);
 %token <literal> FLOATING_POINT_LITERAL
 %token <literal> STRING_LITERAL INTEGER_LITERAL
 %token <literal> BOOLEAN_LITERAL
-%token <literal> NULL_LITERAL
 %token <uri> URI_LITERAL URI_LITERAL_BRACE
 %token <name> QNAME_LITERAL BLANK_LITERAL QNAME_LITERAL_BRACE
 
@@ -1599,10 +1598,6 @@ RDFTerm: IRIref
   $$=$1;
 }
 | BOOLEAN_LITERAL
-{
-  $$=$1;
-}
-| NULL_LITERAL
 {
   $$=$1;
 }

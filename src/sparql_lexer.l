@@ -396,9 +396,6 @@ QUOTEDURI \<[^<= ][^>]*\>|\<\>
 "true"|"false"	{ sparql_parser_lval->literal=rasqal_new_boolean_literal(*yytext== 't');
                   return BOOLEAN_LITERAL; }
 
-"null"	{ sparql_parser_lval->literal=NULL;
-          return NULL_LITERAL; }
-
 <ID>{VARNAME}	{ sparql_parser_lval->name=sparql_copy_name(rq, (const unsigned char*)yytext, yyleng, SPARQL_NAME_CHECK_VARNAME);
 		  if(!sparql_parser_lval->name)
                     yyterminate();
@@ -961,9 +958,6 @@ sparql_token_print(int token, YYSTYPE *lval)
 
     case BOOLEAN_LITERAL:
       return (lval->literal->value.integer ? "BOOLEAN_LITERAL(true)" : "BOOLEAN_LITERAL(false)");
-
-    case NULL_LITERAL:
-      return "NULL_LITERAL";
 
     case URI_LITERAL:
       sprintf(buffer, "URI_LITERAL(%s)", raptor_uri_as_string(lval->uri));
