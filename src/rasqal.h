@@ -517,6 +517,20 @@ typedef enum {
 } rasqal_graph_pattern_operator;
 
 
+/**
+ * rasqal_graph_pattern_visit_fn:
+ * @query: #rasqal_query containing the graph pattern
+ * @gp: current graph_pattern
+ * @user_data: user data passed in
+ *
+ * User function to visit an graph_pattern and operate on it with
+ * rasqal_graph_pattern_visit() or rasqal_query_graph_pattern_visit()
+ *
+ * Return value: 0 to truncate the visit
+ */
+typedef int (*rasqal_graph_pattern_visit_fn)(rasqal_query* query, rasqal_graph_pattern* gp, void *data);
+
+
 /* RASQAL API */
 
 /* Public functions */
@@ -610,6 +624,12 @@ RASQAL_API
 raptor_sequence* rasqal_query_get_order_conditions_sequence(rasqal_query* query);
 RASQAL_API
 rasqal_expression* rasqal_query_get_order_condition(rasqal_query* query, int idx);
+RASQAL_API
+raptor_sequence* rasqal_query_get_construct_triples_sequence(rasqal_query* query);
+RASQAL_API
+rasqal_triple* rasqal_query_get_construct_triple(rasqal_query* query, int idx);
+RASQAL_API
+void rasqal_query_graph_pattern_visit(rasqal_query* query, rasqal_graph_pattern_visit_fn visit_fn, void* data);
 
 /* graph patterns */
 RASQAL_API
@@ -641,9 +661,7 @@ raptor_sequence* rasqal_graph_pattern_get_constraint_sequence(rasqal_graph_patte
 RASQAL_API
 rasqal_expression* rasqal_graph_pattern_get_constraint(rasqal_graph_pattern* gp, int idx);
 RASQAL_API
-raptor_sequence* rasqal_query_get_construct_triples_sequence(rasqal_query* query);
-RASQAL_API
-rasqal_triple* rasqal_query_get_construct_triple(rasqal_query* query, int idx);
+int rasqal_graph_pattern_visit(rasqal_query* query, rasqal_graph_pattern *gp, rasqal_graph_pattern_visit_fn fn, void* user_data);
 
 /* Utility methods */
 RASQAL_API
