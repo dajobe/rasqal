@@ -1,4 +1,67 @@
+2005-08-31  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* src/rasqal_internal.h: Updated
+	erasqal_engine_merge_graph_patterns and
+	rasqal_engine_merge_triples prototypes to return an int status.
+
+	* src/rasqal_engine.c:
+	(rasqal_engine_merge_graph_patterns, rasqal_engine_merge_triples):
+	Visitor function now returns a status.
+
+	* src/rasqal_query.c: Moved rasqal_graph_pattern_visit to
+	rasqal_graph_pattern.c
+
+	* src/rasqal.h: Added rasqal_graph_pattern_visit_fn.  Added
+	prototype for rasqal_graph_pattern_visit
+
+	* src/rasqal_graph_pattern.c (rasqal_graph_pattern_visit:): Moved
+	from rasqal_query.c
+
+	* docs/tmpl/section-expression.sgml,
+	docs/tmpl/section-query_results.sgml: docs
+
+	* src/sparql_lexer.l, src/sparql_parser.y: Remove NULL_LITERAL -
+	not in SPARQL
+
+2005-08-23  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* docs/tmpl/section-triples_source.sgml: section title
+
+	* docs/tmpl/section-triples_source.sgml, src/rasqal_expr.c:
+	autodocs
+
+	* docs/rasqal-sections.txt: Added
+	rasqal_new_expression_from_expression
+
+	* src/rasqal_expr.c: Added usage count to rasqal_expression
+	constructors
+	(rasqal_new_expression_from_expression): Added copy constructor.
+
+	* src/rasqal_engine.c (rasqal_engine_join_graph_patterns): Move
+	constraints taking care to copy then free correctly.
+
+	* src/rasqal.h: Added usage count to rasqal_expression.  Added
+	rasqal_new_expression_from_expression prototype.
+
+2005-08-19  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* src/rasqal.h, src/rasqal_expr.c: autodocs fixes - use %RASQAL_
+
+	* docs/tmpl/section-graph_pattern.sgml: use %RASQAL
+
 2005-08-18  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* docs/tmpl/section-query_results.sgml,
+	docs/tmpl/section-literal.sgml, docs/tmpl/section-query.sgml:
+	document literal, query, query_results types
+
+	* docs/rasqal-sections.txt: Add rasqal_query and
+	rasqal_query_results
+
+	* docs/rasqal-overrides.txt: override rasqal_query and
+	rasqal_query_results
+
+	* docs/Makefile.am: Make gtkdoc-mkdb ignore the C files
 
 	* src/rasqal_query.c (rasqal_graph_pattern_visit): Make this
 	recursive.
