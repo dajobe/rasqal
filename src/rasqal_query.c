@@ -3477,30 +3477,6 @@ rasqal_query_results_get_boolean(rasqal_query_results *query_results) {
 }
 
 
-static void
-rasqal_graph_pattern_visit(rasqal_query* query, rasqal_graph_pattern* gp, 
-                           rasqal_graph_pattern_visit_fn visit_fn, void* data)
-{
-  raptor_sequence *seq;
-  
-  seq=rasqal_graph_pattern_get_sub_graph_pattern_sequence(gp);
-  if(seq && raptor_sequence_size(seq) > 0) {
-    int gp_index=0;
-    while(1) {
-      rasqal_graph_pattern* sgp;
-      sgp=rasqal_graph_pattern_get_sub_graph_pattern(gp, gp_index);
-      if(!sgp)
-        break;
-      
-      rasqal_graph_pattern_visit(query, sgp, visit_fn, data);
-      gp_index++;
-    }
-  }
-
-  visit_fn(query, gp, data);
-}
-
-    
 void
 rasqal_query_graph_pattern_visit(rasqal_query* query, 
                                  rasqal_graph_pattern_visit_fn visit_fn, 
