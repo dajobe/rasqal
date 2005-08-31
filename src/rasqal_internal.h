@@ -440,13 +440,11 @@ void rasqal_query_warning_varargs(rasqal_query* query, const char* message, va_l
 
 const char* rasqal_basename(const char* name);
 
+
+/* rasqal_graph_pattern.c */
 unsigned char* rasqal_escaped_name_to_utf8_string(const unsigned char* src, size_t len, size_t* dest_lenp, raptor_simple_message_handler error_handler, void* error_data);
 
 unsigned char* rasqal_query_generate_bnodeid(rasqal_query* rdf_query, unsigned char *user_bnodeid);
-
-typedef void (rasqal_graph_pattern_visit_fn)(rasqal_query* query, rasqal_graph_pattern* gp, void *data);
-void rasqal_query_graph_pattern_visit(rasqal_query* query, rasqal_graph_pattern_visit_fn visit_fn, void* data);
-
 
 /* rdql_parser.y */
 void rasqal_init_query_engine_rdql (void);
@@ -474,8 +472,8 @@ int rasqal_engine_execute_finish(rasqal_query* query);
 int rasqal_engine_run(rasqal_query* q);
 void rasqal_engine_join_graph_patterns(rasqal_graph_pattern *dest_gp, rasqal_graph_pattern *src_gp);
 int rasqal_engine_check_limit_offset(rasqal_query *query);
-void rasqal_engine_merge_triples(rasqal_query* query, rasqal_graph_pattern* gp, void* data);
-void rasqal_engine_merge_graph_patterns(rasqal_query* query, rasqal_graph_pattern* gp, void* data);
+int rasqal_engine_merge_triples(rasqal_query* query, rasqal_graph_pattern* gp, void* data);
+int rasqal_engine_merge_graph_patterns(rasqal_query* query, rasqal_graph_pattern* gp, void* data);
 int rasqal_engine_expression_fold(rasqal_query* rq, rasqal_expression* e);
 int rasqal_engine_graph_pattern_fold_expressions(rasqal_query* rq, rasqal_graph_pattern* gp);
 int rasqal_engine_query_fold_expressions(rasqal_query* rq);
