@@ -143,6 +143,15 @@ constants and #rasqal_variable values bound in some
 @Returns: 
 
 
+<!-- ##### FUNCTION rasqal_new_expression_from_expression ##### -->
+<para>
+
+</para>
+
+@e: 
+@Returns: 
+
+
 <!-- ##### FUNCTION rasqal_free_expression ##### -->
 <para>
 
