@@ -273,6 +273,69 @@ else
 fi
 
 
+AC_CHECK_PROG(REDLAND_CONFIG, redland-config, redland-config)
+AC_ARG_WITH(redland-config, [  --with-redland-config=PATH  Location of redland redland-config ()], redland_config="$withval", redland_config="")
+
+if test "X$redland_config" != "X" ; then
+  AC_MSG_CHECKING(for $redland_config)
+
+  if test -f $redland_config ; then
+    REDLAND_CONFIG=$redland_config
+    AC_MSG_RESULT(yes)
+  else
+    AC_MSG_RESULT(no - searching PATH)
+  fi
+fi
+
+with_redland=auto
+AC_ARG_WITH(redland, [  --with-redland=SOURCE        Pick redland source - system/internal (default auto)], with_redland="$withval", with_redland="auto")
+
+REDLAND_MIN_VERSION=0.9.6
+AC_SUBST(REDLAND_MIN_VERSION)
+if test "X$with_redland" = Xauto; then
+  if test "X$REDLAND_CONFIG" != X; then
+    with_redland=system
+  elif test -r $srcdir/../redland/redland-src-config; then
+    REDLAND_CONFIG=$srcdir/../redland/redland-src-config
+    with_redland=internal
+  fi
+elif test "X$with_redland" = Xinternal; then
+  if test -r $srcdir/../redland/redland-src-config; then
+    REDLAND_CONFIG=$srcdir/../redland/redland-src-config
+    with_redland=internal
+  else
+    AC_MSG_WARN(No internal redland found in $srcdir/../redland)
+    with_redland=system
+  fi
+fi
+
+have_redland=0
+if test "X$REDLAND_CONFIG" != X; then
+  REDLAND_VERSION=`$REDLAND_CONFIG --version 2>/dev/null`
+
+  REDLAND_VERSION_DEC=`$REDLAND_CONFIG --version-decimal 2>/dev/null`
+  REDLAND_MIN_VERSION_DEC=`echo $REDLAND_MIN_VERSION | $AWK -F. '{printf("%d\n", 10000*$1 + 100*$2 + $3)};'`
+
+  if test "X$REDLAND_VERSION" -a $REDLAND_VERSION_DEC -ge $REDLAND_MIN_VERSION_DEC; then
+    with_redland=system
+  else
+    AC_MSG_WARN(System redland $REDLAND_VERSION is too old - need $REDLAND_MIN_VERSION)
+  fi
+  have_redland=1
+fi
+AC_SUBST(with_redland)
+
+AC_MSG_CHECKING(redland library source)
+if test $with_redland = system; then
+  AC_MSG_RESULT(system $REDLAND_VERSION)
+elif test $with_redland = internal; then
+  REDLAND_VERSION=internal
+  AC_MSG_RESULT(internal)
+else
+  AC_MSG_RESULT(none)
+fi
+
+
 dnl Checks for regex libraries
 have_regex_pcre=0
 have_regex_posix=0
@@ -449,41 +512,7 @@ AM_CONDITIONAL(RASQAL_DATATYPES, test "X$datatypes" = Xyes)
 
 
 dnl checks for triples source libraries
-have_redland=0
 need_redland=0
-
-AC_CHECK_PROG(REDLAND_CONFIG, redland-config, redland-config)
-AC_ARG_WITH(redland-config, [  --with-redland-config=PATH  Location of redland redland-config ()], redland_config="$withval", redland_config="")
-
-if test "X$redland_config" != "X" ; then
-  AC_MSG_CHECKING(for $redland_config)
-
-  if test -f $redland_config ; then
-    REDLAND_CONFIG=$redland_config
-    AC_MSG_RESULT(yes)
-  else
-    AC_MSG_RESULT(no - searching PATH)
-  fi
-fi
-
-REDLAND_MIN_VERSION=0.9.16
-if test "X$REDLAND_CONFIG" != "X"; then
-  REDLAND_VERSION=`$REDLAND_CONFIG --version 2>/dev/null`
-
-  REDLAND_VERSION_DEC=`$REDLAND_CONFIG --version-decimal 2>/dev/null`
-  REDLAND_MIN_VERSION_DEC=`echo $REDLAND_MIN_VERSION | $AWK -F. '{printf("%d\n", 10000*$1 + 100*$2 + $3)};'`
-
-  if test "X$REDLAND_VERSION" = X; then
-    AC_MSG_ERROR(Redland RDF library missing - please install from http://librdf.org/)
-  fi
-
-  if test "X$REDLAND_VERSION" -a $REDLAND_VERSION_DEC -ge $REDLAND_MIN_VERSION_DEC; then
-    have_redland=1
-  else
-    AC_MSG_WARN(System redland $REDLAND_VERSION is too old - need $REDLAND_MIN_VERSION)
-  fi
-fi
-
 
 AC_ARG_WITH(triples-source, [  --with-triples-source=NAME  Use NAME to provide triples - raptor (default), redland], triples_source="$withval", triples_source="raptor") 
 
@@ -589,9 +618,15 @@ fi
 
 if test $need_redland = 1; then
   AC_LIBOBJ([rasqal_redland])
-  RASQAL_EXTERNAL_CPPFLAGS="$RASQAL_EXTERNAL_CPPFLAGS `redland-config --cflags`"
-  RASQAL_EXTERNAL_LIBS="$RASQAL_EXTERNAL_LIBS `redland-config --libs`"
-  PKGCONFIG_REQUIRES="$PKGCONFIG_REQUIRES, redland >= $REDLAND_MIN_VERSION"
+
+  if test $with_redland = internal; then
+    RASQAL_INTERNAL_CPPFLAGS="$RASQAL_INTERNAL_CPPFLAGS `$REDLAND_CONFIG --cflags`"
+    RASQAL_INTERNAL_LIBS="$RASQAL_INTERNAL_LIBS `$REDLAND_CONFIG --libtool-libs`"
+  else
+    RASQAL_EXTERNAL_CPPFLAGS="$RASQAL_EXTERNAL_CPPFLAGS `$REDLAND_CONFIG --cflags`"
+    RASQAL_EXTERNAL_LIBS="$RASQAL_EXTERNAL_LIBS `$REDLAND_CONFIG --libs`"
+    PKGCONFIG_REQUIRES="$PKGCONFIG_REQUIRES, redland >= $REDLAND_MIN_VERSION"
+  fi
 fi
 
 if test $need_libxml = 1; then
