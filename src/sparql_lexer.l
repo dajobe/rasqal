@@ -393,7 +393,10 @@ QUOTEDURI \<[^<= ][^>]*\>|\<\>
                   yyterminate();  }
 
 
-"true"|"false"	{ sparql_parser_lval->literal=rasqal_new_boolean_literal(*yytext== 't');
+[Tt][Rr][Uu][Ee]	{ sparql_parser_lval->literal=rasqal_new_boolean_literal(1);
+                  return BOOLEAN_LITERAL; }
+
+[Ff][Aa][Ll][Ss][Ee]	{ sparql_parser_lval->literal=rasqal_new_boolean_literal(0);
                   return BOOLEAN_LITERAL; }
 
 <ID>{VARNAME}	{ sparql_parser_lval->name=sparql_copy_name(rq, (const unsigned char*)yytext, yyleng, SPARQL_NAME_CHECK_VARNAME);
