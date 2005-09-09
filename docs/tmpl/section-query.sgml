@@ -372,6 +372,16 @@ then retrieved.
 @fh: 
 
 
+<!-- ##### FUNCTION rasqal_query_graph_pattern_visit ##### -->
+<para>
+
+</para>
+
+@query: 
+@visit_fn: 
+@data: 
+
+
 <!-- ##### FUNCTION rasqal_query_set_default_generate_bnodeid_parameters ##### -->
 <para>
 

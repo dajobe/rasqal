@@ -146,3 +146,26 @@ or apply a GRAPH matching keyword (%RASQAL_GRAPH_PATTERN_OPERATOR_GRAPH).
 @fh: 
 
 
+<!-- ##### USER_FUNCTION rasqal_graph_pattern_visit_fn ##### -->
+<para>
+
+</para>
+
+@query: 
+@gp: 
+@user_data: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_graph_pattern_visit ##### -->
+<para>
+
+</para>
+
+@query: 
+@gp: 
+@fn: 
+@user_data: 
+@Returns: 
+
+
