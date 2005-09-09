@@ -211,6 +211,5 @@ rasqal_expression_s
 rasqal_literal_s
 rasqal_triples_match_s
 rasqal_triples_source_s
-rasqal_variable_s
 </SECTION>
 
