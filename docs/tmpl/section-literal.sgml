@@ -21,14 +21,7 @@ boolean, double, floating, integer, regex pattern and variables.
 
 <!-- ##### TYPEDEF rasqal_literal ##### -->
 <para>
-Literal object class of several types described by #rasqal_literal_type.
-Specialised constructors are available for all literal types:
-rasqal_new_boolean_literal(), rasqal_new_double_literal(),
-rasqal_new_floating_literal(), rasqal_new_integer_literal(),
-rasqal_new_pattern_literal(), rasqal_new_simple_literal(),
-rasqal_new_string_literal(), rasqal_new_uri_literal(),
-rasqal_new_variable_literal() and copy constructor
-rasqal_new_literal_from_literal().
+
 </para>
 
 
