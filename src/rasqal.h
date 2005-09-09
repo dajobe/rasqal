@@ -290,6 +290,8 @@ typedef enum {
  * @datatype: Datatype for string literal type.
  * @flags: Flags for literal types
  *
+ * Rasqal literal class.
+ *
  */
 struct rasqal_literal_s {
   int usage;
