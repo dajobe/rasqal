@@ -1,5 +1,24 @@
 2005-09-09  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
+	* Reached 100% function and structure coverage according to
+	gtkdoc-mkdb: 100% symbol docs coverage (190 symbols documented, 0
+	symbols incomplete, 0 not documented)
+
+	* src/rasqal.h: autodocs
+
+	* docs/rasqal-sections.txt: No rasqal_variable_s
+
+	* src/rasqal_query.c (rasqal_query_graph_pattern_visit): autodocs
+
+	* docs/tmpl/section-graph_pattern.sgml, docs/tmpl/section-query.sgml:
+	add new fns
+
+	* docs/tmpl/section-literal.sgml: remove dup text
+
+	* src/rasqal_graph_pattern.c: autodocs
+
+	* docs/rasqal-sections.txt: add new fns
+
 	* src/Makefile.am, utils/Makefile.am: Include
 	@RASQAL_INTERNAL_LIBS@ in linking flags to ensure internal raptor
 	is used.
