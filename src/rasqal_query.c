@@ -3477,6 +3477,16 @@ rasqal_query_results_get_boolean(rasqal_query_results *query_results) {
 }
 
 
+/**
+ * rasqal_query_graph_pattern_visit:
+ * @query: query
+ * @visit_fn: user function to operate on
+ * @data: user data to pass to function
+ * 
+ * Visit all graph patterns in a query with a user function @visit_fn.
+ *
+ * See also rasqal_graph_pattern_visit().
+ **/
 void
 rasqal_query_graph_pattern_visit(rasqal_query* query, 
                                  rasqal_graph_pattern_visit_fn visit_fn, 
