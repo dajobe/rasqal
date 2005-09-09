@@ -58,6 +58,7 @@ MEM_LIBS=@MEM_LIBS@
 
 AM_CPPFLAGS=@CPPFLAGS@ @RASQAL_INTERNAL_CPPFLAGS@ @RASQAL_EXTERNAL_CPPFLAGS@
 AM_CFLAGS=@CFLAGS@ @RASQAL_INTERNAL_CPPFLAGS@ @RASQAL_EXTERNAL_CPPFLAGS@ $(MEM)
+AM_LDFLAGS=@RASQAL_INTERNAL_LIBS@ @RASQAL_EXTERNAL_LIBS@ $(MEM_LIBS)
 
 librasqal_la_SOURCES = \
 rasqal_expr.c rasqal_general.c rasqal_query.c \
@@ -149,38 +150,38 @@ run-rasqal-query-test: $(rasqal_query_test)
 
 rdql_lexer_test_SOURCES = rdql_lexer.c
 rdql_lexer_test_CPPFLAGS = -DSTANDALONE
-rdql_lexer_test_LDADD = librasqal.la @RASQAL_EXTERNAL_LIBS@ $(MEM_LIBS)
+rdql_lexer_test_LDADD = librasqal.la
 
 rdql_parser_test_SOURCES = rdql_parser.c
 rdql_parser_test_CPPFLAGS = -DSTANDALONE
-rdql_parser_test_LDADD = librasqal.la @RASQAL_EXTERNAL_LIBS@ $(MEM_LIBS)
+rdql_parser_test_LDADD = librasqal.la
 
 sparql_lexer_test_SOURCES = sparql_lexer.c
 sparql_lexer_test_CPPFLAGS = -DSTANDALONE
-sparql_lexer_test_LDADD = librasqal.la @RASQAL_EXTERNAL_LIBS@ $(MEM_LIBS)
+sparql_lexer_test_LDADD = librasqal.la
 
 sparql_parser_test_SOURCES = sparql_parser.c
 sparql_parser_test_CPPFLAGS = -DSTANDALONE
-sparql_parser_test_LDADD = librasqal.la @RASQAL_EXTERNAL_LIBS@ $(MEM_LIBS)
+sparql_parser_test_LDADD = librasqal.la
 
 rasqal_expr_test_SOURCES = rasqal_expr.c
 rasqal_expr_test_CPPFLAGS = -DSTANDALONE
-rasqal_expr_test_LDADD = librasqal.la @RASQAL_EXTERNAL_LIBS@ $(MEM_LIBS)
+rasqal_expr_test_LDADD = librasqal.la
 
 strcasecmp_test_SOURCES = strcasecmp.c
 strcasecmp_test_CPPFLAGS = -DSTANDALONE
 
 rasqal_query_test_SOURCES = rasqal_query_test.c
 rasqal_query_test_CPPFLAGS = -DSTANDALONE
-rasqal_query_test_LDADD = librasqal.la @RASQAL_EXTERNAL_LIBS@ $(MEM_LIBS)
+rasqal_query_test_LDADD = librasqal.la
 
 rasqal_xsd_datatypes_test_SOURCES = rasqal_xsd_datatypes.c
 rasqal_xsd_datatypes_test_CPPFLAGS = -DSTANDALONE @RASQAL_EXTERNAL_CPPFLAGS@
-rasqal_xsd_datatypes_test_LDADD = librasqal.la @RASQAL_EXTERNAL_LIBS@ $(MEM_LIBS)
+rasqal_xsd_datatypes_test_LDADD = librasqal.la
 
 rasqal_skiplist_test_SOURCES = rasqal_skiplist.c
 rasqal_skiplist_test_CPPFLAGS = -DSTANDALONE @RASQAL_EXTERNAL_CPPFLAGS@
-rasqal_skiplist_test_LDADD = librasqal.la @RASQAL_EXTERNAL_LIBS@ $(MEM_LIBS)
+rasqal_skiplist_test_LDADD = librasqal.la
 
 $(top_builddir)/../raptor/libraptor.la:
 	cd $(top_builddir)/../raptor && $(MAKE) $(AM_MAKEFLAGS) libraptor.la

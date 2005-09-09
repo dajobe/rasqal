@@ -29,12 +29,13 @@ man_MANS = roqet.1
 
 AM_CPPFLAGS=@CPPFLAGS@ @RASQAL_INTERNAL_CPPFLAGS@ @RASQAL_EXTERNAL_CPPFLAGS@
 AM_CFLAGS=@CFLAGS@ @RASQAL_INTERNAL_CPPFLAGS@ @RASQAL_EXTERNAL_CPPFLAGS@ $(MEM)
+AM_LDFLAGS=@RASQAL_INTERNAL_LIBS@ @RASQAL_EXTERNAL_LIBS@ $(MEM_LIBS)
 
 roqet_SOURCES = roqet.c
 if GETOPT
 roqet_SOURCES += getopt.c rasqal_getopt.h
 endif
-roqet_LDADD = $(top_builddir)/src/librasqal.la @RASQAL_EXTERNAL_LIBS@ $(MEM_LIBS)
+roqet_LDADD = $(top_builddir)/src/librasqal.la
 
 EXTRA_DIST= \
 $(man_MANS) \
