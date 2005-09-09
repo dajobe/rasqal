@@ -1,7 +1,19 @@
+2005-09-09  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* src/Makefile.am, utils/Makefile.am: Include
+	@RASQAL_INTERNAL_LIBS@ in linking flags to ensure internal raptor
+	is used.
+
+2005-09-01  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* src/sparql_lexer.l: "true" and "false" are now case independent
+
 2005-08-31  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
+	* configure.ac: Added --with-redland-config
+
 	* src/rasqal_internal.h: Updated
-	erasqal_engine_merge_graph_patterns and
+	rasqal_engine_merge_graph_patterns and
 	rasqal_engine_merge_triples prototypes to return an int status.
 
 	* src/rasqal_engine.c:
