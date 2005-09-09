@@ -528,7 +528,7 @@ typedef enum {
  *
  * Return value: 0 to truncate the visit
  */
-typedef int (*rasqal_graph_pattern_visit_fn)(rasqal_query* query, rasqal_graph_pattern* gp, void *data);
+typedef int (*rasqal_graph_pattern_visit_fn)(rasqal_query* query, rasqal_graph_pattern* gp, void *user_data);
 
 
 /* RASQAL API */

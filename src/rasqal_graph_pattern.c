@@ -465,8 +465,8 @@ rasqal_graph_pattern_print(rasqal_graph_pattern* gp, FILE* fh)
 /**
  * rasqal_graph_pattern_visit:
  * @query: #rasqal_query to operate on
- * @graph_pattern: #rasqal_graph_pattern graph pattern
- * @visit_fn: pointer to function to apply that takes user data and graph pattern parameters
+ * @gp: #rasqal_graph_pattern graph pattern
+ * @fn: pointer to function to apply that takes user data and graph pattern parameters
  * @user_data: user data for applied function 
  * 
  * Visit a user function over a #rasqal_graph_pattern
@@ -478,13 +478,13 @@ rasqal_graph_pattern_print(rasqal_graph_pattern* gp, FILE* fh)
 int
 rasqal_graph_pattern_visit(rasqal_query *query,
                            rasqal_graph_pattern* gp,
-                           rasqal_graph_pattern_visit_fn visit_fn,
+                           rasqal_graph_pattern_visit_fn fn,
                            void *user_data)
 {
   raptor_sequence *seq;
   int result;
   
-  result=visit_fn(query, gp, user_data);
+  result=fn(query, gp, user_data);
   if(result)
     return result;
   
@@ -497,7 +497,7 @@ rasqal_graph_pattern_visit(rasqal_query *query,
       if(!sgp)
         break;
       
-      result=rasqal_graph_pattern_visit(query, sgp, visit_fn, user_data);
+      result=rasqal_graph_pattern_visit(query, sgp, fn, user_data);
       if(result)
         return result;
       gp_index++;
