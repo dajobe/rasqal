@@ -62,6 +62,8 @@ rasqal_graph_pattern_get_triple
 rasqal_graph_pattern_operator
 rasqal_graph_pattern_operator_as_string
 rasqal_graph_pattern_print
+rasqal_graph_pattern_visit_fn
+rasqal_graph_pattern_visit
 </SECTION>
 
 <SECTION>
@@ -133,6 +135,7 @@ rasqal_query_get_wildcard
 rasqal_query_has_variable
 rasqal_query_prepare
 rasqal_query_print
+rasqal_query_graph_pattern_visit
 rasqal_query_set_default_generate_bnodeid_parameters
 rasqal_query_set_distinct
 rasqal_query_set_error_handler
