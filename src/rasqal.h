@@ -35,6 +35,12 @@ extern "C" {
 #endif
 
 
+/**
+ * RASQAL_API:
+ *
+ * Macro for wrapping API function call declarations.
+ *
+ */
 #ifdef WIN32
 #  ifdef RASQAL_INTERNAL
 #    define RASQAL_API _declspec(dllexport)
@@ -404,8 +410,6 @@ typedef enum {
   RASQAL_EXPR_LAST= RASQAL_EXPR_ORDER_COND_DESC
 } rasqal_op;
 
-
-struct rasqal_variable_s;
 
 /**
  * rasqal_expression:
@@ -1015,6 +1019,68 @@ typedef struct {
 /* set the triples_source_factory */
 RASQAL_API
 void rasqal_set_triples_source_factory(void (*register_fn)(rasqal_triples_source_factory *factory), void* user_data);
+
+
+/* The info below is solely for gtk-doc - ignore it */
+
+/**
+ * rasqal_expression_s:
+ * @usage: Internal
+ * @op: Internal
+ * @arg1: Internal
+ * @arg2: Internal
+ * @literal: Internal
+ * @variable: Internal
+ * @value: Internal
+ * @name: Internal
+ * @args: Internal
+ *
+ * Internal - see #rasqal_expression.
+ *
+ */
+
+/**
+ * rasqal_literal_s:
+ * @usage: Internal
+ * @type: Internal
+ * @string: Internal
+ * @string_len: Internal
+ *
+ * Internal - see #rasqal_literal.
+ *
+ */
+
+/**
+ * rasqal_triples_match_s:
+ * @user_data: Internal
+ * @bind_match: Internal
+ * @next_match: Internal
+ * @is_end: Internal
+ * @finish: Internal
+ *
+ * Internal - see #rasqal_triples_match.
+ *
+ */
+
+/**
+ * rasqal_triples_source_s:
+ * @query: Internal
+ * @user_data: Internal
+ * @init_triples_match: Internal
+ * @triple_present: Internal
+ * @free_triples_source: Internal
+ *
+ * Internal - see #rasqal_triples_source.
+ *
+ */
+  
+/**
+ * rasqal_variable_s:
+ *
+ * Internal.
+ *
+ */
+
 
 #ifdef __cplusplus
 }
