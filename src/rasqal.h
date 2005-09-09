@@ -84,9 +84,28 @@ extern const unsigned int rasqal_version_decimal;
 
 
 /* Public structures */
+
+/**
+ * rasqal_query:
+ *
+ * Rasqal query class.
+ */
 typedef struct rasqal_query_s rasqal_query;
+
+/**
+ * rasqal_query_results:
+ *
+ * Rasqal query results class.
+ */
 typedef struct rasqal_query_results_s rasqal_query_results;
+
 typedef struct rasqal_literal_s rasqal_literal;
+
+/**
+ * rasqal_graph_pattern:
+ *
+ * Rasqal graph pattern class.
+ */
 typedef struct rasqal_graph_pattern_s rasqal_graph_pattern;
 
 /**
