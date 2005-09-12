@@ -65,28 +65,41 @@ sub plural($$$) {
   return ($count == 1) ? $count." ".$word : $count." ".$word.$multiple;
 }
   
-sub run_test($$$$$) {
-  my($name, $dir, $test_file, $data_files_ref, $result_file)=@_;
+sub run_test($$$$$$) {
+  my($name, $dir, $test_file, $data_files_ref, $result_file,$expect_fail)=@_;
   my(@data_files)=@$data_files_ref;
 
-  warn "run_test($name, $dir, $test_file, ",join("; ",@data_files)," ",($result_file||"NONE"),")\n"
+  warn "run_test($name, dir $dir, query $test_file, data ",join("; ",@data_files),", result ",($result_file||"none"),", expect ",($expect_fail ? "failure":"success"),")\n"
     if $debug;
 
   my(@args)=(map "-s $_", @data_files);
   my $args_s=join(" ",@args);
-  my $roqet_cmd="$roqet -d -i sparql $args_s $test_file 2>roqet.err";
-  warn "$program: Running '$roqet_cmd'\n"
-    if $debug;
-  
-  my $sorted=0;
-
+  my $roqet_tmp='roqet.tmp';
+  my $roqet_cmd="$roqet -d -i sparql $args_s $test_file 2>roqet.err > $roqet_tmp";
   my $sort="sort";
 
-  my $roqet_results=0;
+  warn "$program: Running '$roqet_cmd'\n"
+    if $debug;
+  system($roqet_cmd);
+  my $rc=$? >>8;
+  if($rc) {
+    return 1 if $expect_fail;
 
-  my(@vars_order);
-  open(PIPE, "$roqet_cmd|") or die "$program: Cannot create pipe from '$roqet_cmd' - $!\n";
+    warn "$program: test '$test_file' FAILED - query command failed (result $rc):\n";
+    warn "Failing program was:\n";
+    warn "  $roqet_cmd\n";
+    my $r=$roqet_cmd; $r =~ s,file:[^ ]+/,,g;
+    warn "  OR $r\n";
+    return 1;
+  }
+
+  open(PIPE, "<$roqet_tmp") or die "$program: Cannot read $roqet_tmp - $!\n";
+
+  my $sorted=0;
   my $first_result=1;
+  my $roqet_results=0;
+  my(@vars_order);
+
   while(<PIPE>) {
     chomp;
     if(/^(?:selects|bound variables): \[(.*)\]$/) {
@@ -127,6 +140,7 @@ sub run_test($$$$$) {
     }
   }
   close(PIPE);
+  unlink $roqet_tmp;
 
   if($first_result) {
     open(OUT, ">roqet.out") or die "$program: Cannot create pipe to roqet.out - $!\n";
@@ -235,7 +249,7 @@ sub run_test($$$$$) {
   close(OUT);
 
   $cmd="diff -c result.out roqet.out > diff.out";
-  my $rc=system($cmd);
+  $rc=system($cmd);
   if($rc) {
     warn "$program: '$name' FAILED\n";
     warn "Failing program was:\n";
@@ -355,8 +369,11 @@ while($list_node) {
     if $debug;
 
   my $query_node;
-  if($query_type && $query_type eq "<${mfx}TestSyntax>") {
+  my $expect_fail=0;
+  if($query_type && ($query_type eq "<${mfx}TestSyntax>" ||
+		     $query_type eq "<${mfx}TestBadSyntax>")) {
     $query_node=$action_node;
+    $expect_fail=1 if $query_type eq "<${mfx}TestBadSyntax>";
   } else {
     $query_node=$triples{$action_node}->{"<${qt}query>"}->[0];
   }
@@ -371,7 +388,7 @@ while($list_node) {
       if $debug;
     
     if (!$unique_test || ($unique_test && $name eq $unique_test)) {
-      push(@tests, [$name, $srcdir, $query_file, [ @data_files], $result_file]);
+      push(@tests, [$name, $srcdir, $query_file, [ @data_files], $result_file, $expect_fail]);
       last if $unique_test;
     }
   } else {
@@ -387,14 +404,15 @@ my(@failed);
 
 my $result=0;
 for my $test (@tests) {
-  my($name, $dir, $test_file, $data_files_ref, $result_file)=@$test;
+  my($name, $dir, $test_file, $data_files_ref, $result_file,$expect_fail)=@$test;
 
-  my $rc = run_test($name, $dir, $test_file, $data_files_ref, $result_file);
+  my $rc = run_test($name, $dir, $test_file, $data_files_ref, $result_file,$expect_fail);
+  $rc=!$rc if $expect_fail;
   push(@failed, $name) if $rc;
   $result++ if $rc;
 }
 
-unlink "roqet.out", "result.out", "diff.out", "roqet.err"
+unlink "roqet.out", "result.out", "diff.out", "roqet.err", "roqet.tmp"
   unless $unique_test;
 
 warn "$0: FAILED tests: '".join("' '", @failed)."'\n"
