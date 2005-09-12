@@ -6,7 +6,7 @@
 #
 # USAGE check-sparql [-d] [-s SRCDIR] [TEST]
 # 
-# Copyright (C) 2004, David Beckett http://purl.org/net/dajobe/
+# Copyright (C) 2004-2005, David Beckett http://purl.org/net/dajobe/
 # Institute for Learning and Research Technology http://www.ilrt.bristol.ac.uk/
 # University of Bristol, UK http://www.bristol.ac.uk/
 # 
@@ -51,6 +51,7 @@ my $solution_predicate="<${rs}solution>";
 
 my(@manifest_files)=qw(manifest.ttl manifest.n3);
 my $mf='http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#';
+my $mfx='http://jena.hpl.hp.com/2005/05/test-manifest-extra#';
 my $qt='http://www.w3.org/2001/sw/DataAccess/tests/test-query#';
 
 my $program=basename $0;
@@ -349,18 +350,32 @@ while($list_node) {
     push(@data_files, $data_file);
   }
 
-  my $query_node=$triples{$action_node}->{"<${qt}query>"}->[0];
-  my $query_file=($query_node =~ /^<(.+)>$/, $1);
-  $query_file =~ s,^file:([^/]+),$1,;
-
-  print "Entry data_files=",join(", ",@data_files),"\n"
-    if $debug;
-  print "Entry query_file=$query_file\n"
+  my $query_type=$triples{$entry_node}->{"<${rdf}type>"}->[0];
+  warn "Query type is $query_type\n"
     if $debug;
 
-  if (!$unique_test || ($unique_test && $name eq $unique_test)) {
-    push(@tests, [$name, $srcdir, $query_file, [ @data_files], $result_file]);
-    last if $unique_test;
+  my $query_node;
+  if($query_type && $query_type eq "<${mfx}TestSyntax>") {
+    $query_node=$action_node;
+  } else {
+    $query_node=$triples{$action_node}->{"<${qt}query>"}->[0];
+  }
+
+  if($query_node) {
+    my $query_file=($query_node =~ /^<(.+)>$/, $1);
+    $query_file =~ s,^file:([^/]+),$1,;
+
+    print "Entry data_files=",join(", ",@data_files),"\n"
+      if $debug;
+    print "Entry query_file=$query_file\n"
+      if $debug;
+    
+    if (!$unique_test || ($unique_test && $name eq $unique_test)) {
+      push(@tests, [$name, $srcdir, $query_file, [ @data_files], $result_file]);
+      last if $unique_test;
+    }
+  } else {
+    warn "$program: No query found for test $name\n";
   }
 
   $list_node=$triples{$list_node}->{"<${rdf}rest>"}->[0];
