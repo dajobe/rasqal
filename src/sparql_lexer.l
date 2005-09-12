@@ -449,8 +449,18 @@ QUOTEDURI \<[^<= ][^>]*\>|\<\>
 		if(yyleng == 2) 
                   sparql_parser_lval->uri=raptor_uri_copy(rq->base_uri);
                 else {
+                  unsigned char* uri_string;
+
                   yytext[yyleng-1]='\0';
-                  sparql_parser_lval->uri=raptor_new_uri_relative_to_base(rq->base_uri, (const unsigned char*)yytext+1);
+                  uri_string=rasqal_escaped_name_to_utf8_string((unsigned char*)yytext+1,
+                                                                yyleng-1,
+                                                                NULL,
+                                                                (raptor_simple_message_handler)sparql_syntax_error, rq);
+                  if(!uri_string)
+                    yyterminate();
+
+                  sparql_parser_lval->uri=raptor_new_uri_relative_to_base(rq->base_uri, uri_string);
+                  RASQAL_FREE(cstring, uri_string);
                  }
                  return have_brace ? URI_LITERAL_BRACE : URI_LITERAL; }
 
@@ -478,6 +488,13 @@ static int
 rasqal_sparql_name_check(const unsigned char *string, size_t length,
                          sparql_name_check_flags check_flags)
 {
+#if RASQAL_DEBUG > 2
+  RASQAL_DEBUG1("Checking name '");
+  if(length)
+     fwrite(string, length, sizeof(unsigned char), stderr);
+  fprintf(stderr, "' (length %d), flags %d\n", length, (int)check_flags);
+#endif
+
   if(!length)
     return 1;
 
@@ -535,9 +552,9 @@ sparql_copy_qname(rasqal_query *rq, const unsigned char *text, size_t len) {
 
   p=(unsigned char*)strchr((const char*)s, ':');
   if(!rasqal_sparql_name_check(s, p-s, SPARQL_NAME_CHECK_PREFIX))
-    sparql_syntax_error(rq, "Invalid SPARQL name \"%s\"", s);
+    sparql_syntax_error(rq, "Invalid SPARQL prefix name \"%s\"", s);
   if(!rasqal_sparql_name_check(p+1, dest_len-((p+1)-s), SPARQL_NAME_CHECK_NCNAME))
-    sparql_syntax_error(rq, "Invalid SPARQL name \"%s\"", p+1);
+    sparql_syntax_error(rq, "Invalid SPARQL local name \"%s\"", p+1);
 
 #ifdef STANDALONE
   /* lexer test cannot declare namespaces - so just ignore expansion */
@@ -678,10 +695,10 @@ sparql_copy_string_token(rasqal_query* rq, YYSTYPE* lval,
 
       dt_p=(unsigned char*)strchr((const char*)dt_s, ':');
       if(!rasqal_sparql_name_check(dt_s, dt_p-dt_s, SPARQL_NAME_CHECK_PREFIX))
-        sparql_syntax_error(rq, "Invalid SPARQL name \"%s\"", dt_s);
+        sparql_syntax_error(rq, "Invalid SPARQL prefix name \"%s\"", dt_s);
       if(!rasqal_sparql_name_check(dt_p+1, dest_len-((dt_p+1)-dt_s), 
                                    SPARQL_NAME_CHECK_NCNAME))
-        sparql_syntax_error(rq, "Invalid SPARQL name \"%s\"", dt_p+1);
+        sparql_syntax_error(rq, "Invalid SPARQL local name \"%s\"", dt_p+1);
 
 #ifdef STANDALONE
       /* lexer test cannot declare namespaces - so just ignore expansion */
