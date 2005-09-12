@@ -630,8 +630,10 @@ GraphGraphPattern: GRAPH VarOrIRIref GroupGraphPattern
   fputs("\n\n", stdout);
 #endif
 
-  rasqal_graph_pattern_set_origin($3, $2);
-  $3->op = RASQAL_GRAPH_PATTERN_OPERATOR_GRAPH;
+  if($3) {
+    rasqal_graph_pattern_set_origin($3, $2);
+    $3->op = RASQAL_GRAPH_PATTERN_OPERATOR_GRAPH;
+  }
 
   rasqal_free_literal($2);
   $$=$3;
