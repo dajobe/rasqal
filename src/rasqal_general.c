@@ -570,7 +570,8 @@ unsigned char*
 rasqal_escaped_name_to_utf8_string(const unsigned char *src, size_t len,
                                    size_t *dest_lenp,
                                    raptor_simple_message_handler error_handler,
-                                   void *error_data) {
+                                   void *error_data)
+{
   const unsigned char *p=src;
   size_t ulen=0;
   unsigned long unichar=0;
@@ -669,7 +670,7 @@ rasqal_escaped_name_to_utf8_string(const unsigned char *src, size_t len,
   *dest='\0';
 
   if(dest_lenp)
-    *dest_lenp=p-src;
+    *dest_lenp=dest-result;
 
   return result;
 }
