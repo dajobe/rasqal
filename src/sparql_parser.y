@@ -170,7 +170,7 @@ static int sparql_is_builtin_xsd_datatype(raptor_uri* uri);
 
 
 %type <seq> SelectClause ConstructClause DescribeClause
-%type <seq> VarList VarOrIRIrefList ArgList TriplesList
+%type <seq> VarList VarOrIRIrefList ArgList ConstructTriplesList
 %type <seq> ConstructTemplate OrderConditionList
 %type <seq> ItemList
 
@@ -693,7 +693,7 @@ Constraint: FILTER BrackettedExpression
 
 
 /* SPARQL Grammar: rq23 [26] ConstructTemplate */
-ConstructTemplate:  '{' TriplesList DotOptional '}'
+ConstructTemplate:  '{' ConstructTriplesList DotOptional '}'
 {
   $$=$2;
 }
@@ -701,7 +701,7 @@ ConstructTemplate:  '{' TriplesList DotOptional '}'
 
 
 /* NEW Grammar Term pulled out of rq23 [27] ConstructTemplate */
-TriplesList: TriplesList '.' Triples
+ConstructTriplesList: ConstructTriplesList '.' Triples
 {
   if($3) {
     if($3->triples)
@@ -714,7 +714,7 @@ TriplesList: TriplesList '.' Triples
 | Triples
 {
 #if RASQAL_DEBUG > 1  
-  printf("TriplesList 2\n  Triples=");
+  printf("ConstructTriplesList 2\n  Triples=");
   if($1)
     rasqal_formula_print($1, stdout);
   else
@@ -728,6 +728,10 @@ TriplesList: TriplesList '.' Triples
     rasqal_free_formula($1);
   } else
     $$=NULL;
+}
+| /* empty */
+{
+  $$=NULL;
 }
 ;
 
