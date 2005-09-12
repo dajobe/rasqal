@@ -725,6 +725,10 @@ tests/sparql/Expr1/Makefile
 tests/sparql/Expr2/Makefile
 tests/sparql/ExprBuiltins/Makefile
 tests/sparql/ExprEquals/Makefile
+tests/sparql/SyntaxDev/Makefile
+tests/sparql/SyntaxDev/Syntax-SPARQL/Makefile
+tests/sparql/SyntaxDev/Syntax-SPARQL2/Makefile
+tests/sparql/SyntaxDev/Syntax-SPARQL3/Makefile
 utils/Makefile
 win32/Makefile
 rasqal.spec

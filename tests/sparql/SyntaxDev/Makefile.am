@@ -4,7 +4,7 @@
 #
 # $Id$
 #
-# Copyright (C) 2004, David Beckett http://purl.org/net/dajobe/
+# Copyright (C) 2005, David Beckett http://purl.org/net/dajobe/
 # Institute for Learning and Research Technology http://www.ilrt.bristol.ac.uk/
 # University of Bristol, UK http://www.bristol.ac.uk/
 # 
@@ -23,9 +23,4 @@
 # the licenses in COPYING.LIB, COPYING and LICENSE-2.0.txt respectively.
 # 
 
-SUBDIRS=simple part1 examples bound syntax survey SyntaxFull sort \
-ValueTesting \
-regex Expr1 Expr2 ExprBuiltins ExprEquals \
-SyntaxDev
-
-EXTRA_DIST=check-sparql
+SUBDIRS=Syntax-SPARQL Syntax-SPARQL2 Syntax-SPARQL3
