@@ -73,6 +73,9 @@ sub run_test($$$$$$) {
     if $debug;
 
   my(@args)=(map "-s $_", @data_files);
+  # No execution possible if there is no data
+  push(@args, "-n") if !@data_files;
+
   my $args_s=join(" ",@args);
   my $roqet_tmp='roqet.tmp';
   my $roqet_cmd="$roqet -d -i sparql $args_s $test_file 2>roqet.err > $roqet_tmp";
@@ -90,6 +93,8 @@ sub run_test($$$$$$) {
     warn "  $roqet_cmd\n";
     my $r=$roqet_cmd; $r =~ s,file:[^ ]+/,,g;
     warn "  OR $r\n";
+    system("cat roqet.err");
+    unlink $roqet_tmp;
     return 1;
   }
 
