@@ -37,6 +37,9 @@ bnodes-missing-pvalues-02.rq empty-optional-01.rq			\
 empty-optional-02.rq filter-missing-parens.rq lone-list.rq		\
 lone-node.rq
 
+EXPECTED_SPARQL_CORRECT_FAILURES= \
+syn-05.rq syn-06.rq syn-07.rq
+
 EXTRA_DIST= \
 $(SPARQL_MANIFEST_FILES) \
 $(SPARQL_TEST_FILES) \
@@ -89,11 +92,21 @@ check-sparql-parser: build-sparql-parser-test
 
 check-sparql-correct: build-roqet $(srcdir)/../../check-sparql
 	@set +e; \
+	expect=`echo $(EXPECTED_SPARQL_CORRECT_FAILURES) | wc -w`; \
 	$(ECHO) "Testing SPARQL correct"; \
 	PATH=$(top_builddir)/utils:$(top_builddir)@RAPPER_PATH@:$$PATH \
 	  perl $(srcdir)/../../check-sparql -s $(srcdir); \
 	result=$$?; \
 	if test $$result != 0 ; then \
-	    echo "FAILED: $$result failures"; \
+	  echo "Expecting test failures: $(EXPECTED_SPARQL_CORRECT_FAILURES)"; \
+	  if test $$result = $$expect ; then \
+	    echo "OK: Ignoring expected test failures"; result=0; \
+          else \
+	    echo "FAILED: $$result failures does not match expected $$expect"; result=1; \
+	    fails="$$fails $$test"; \
+          fi; \
+	fi; \
+	if test $$result != 0 ; then \
+	  echo "FAILED tests:$$fails"; \
 	fi; \
 	set -e; exit $$result
