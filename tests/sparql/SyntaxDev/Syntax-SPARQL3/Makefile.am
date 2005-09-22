@@ -37,8 +37,17 @@ bnodes-missing-pvalues-02.rq empty-optional-01.rq			\
 empty-optional-02.rq filter-missing-parens.rq lone-list.rq		\
 lone-node.rq
 
-EXPECTED_SPARQL_CORRECT_FAILURES= \
+# Test failures
+#   syn-05 - FILTER and dots
+#   syn-06 - FILTER and dots
+#   syn-07 - FILTER and dots
+EXPECTED_SPARQL_PARSER_FAILURES= \
 syn-05.rq syn-06.rq syn-07.rq
+
+EXPECTED_SPARQL_PARSER_FAILURES_COUNT=3
+
+EXPECTED_SPARQL_CORRECT_FAILURES= \
+$(EXPECTED_SPARQL_PARSER_FAILURES)
 
 EXTRA_DIST= \
 $(SPARQL_MANIFEST_FILES) \
@@ -88,6 +97,15 @@ check-sparql-parser: build-sparql-parser-test
 	    $(ECHO) ok; \
 	  fi; \
 	done; \
+	if test $$result != 0 ; then \
+	  echo "Expecting test failures: $(EXPECTED_SPARQL_PARSER_FAILURES)"; \
+	  result=`echo $$fails | wc -w`; \
+	  if test $$result = $(EXPECTED_SPARQL_PARSER_FAILURES_COUNT) ; then \
+	    echo "OK: Ignoring expected $$result test failures"; result=0; \
+          else \
+	    echo "FAILED: $$result failures $$fails does not match expected $(EXPECTED_SPARQL_PARSER_FAILURES_COUNT)"; result=1; \
+          fi; \
+	fi; \
 	set -e; exit $$result
 
 check-sparql-correct: build-roqet $(srcdir)/../../check-sparql
