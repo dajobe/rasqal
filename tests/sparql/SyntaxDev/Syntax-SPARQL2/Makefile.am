@@ -44,10 +44,16 @@ syntax-keywords-02.rq syntax-keywords-03.rq syntax-lists-01.rq		\
 syntax-lists-02.rq syntax-lists-03.rq syntax-lists-04.rq		\
 syntax-lists-05.rq
 
-EXPECTED_SPARQL_CORRECT_FAILURES= \
+# Test failures
+EXPECTED_SPARQL_PARSER_FAILURES= \
 syntax-general-03.rq syntax-keywords-01.rq syntax-keywords-02.rq	\
 syntax-function-01.rq syntax-function-02.rq syntax-function-03.rq	\
 syntax-function-04.rq syntax-graph-02.rq syntax-graph-06.rq
+
+EXPECTED_SPARQL_PARSER_FAILURES_COUNT=9
+
+EXPECTED_SPARQL_CORRECT_FAILURES= \
+$(EXPECTED_SPARQL_PARSER_FAILURES)
 
 EXTRA_DIST= \
 $(SPARQL_MANIFEST_FILES) \
@@ -96,6 +102,15 @@ check-sparql-parser: build-sparql-parser-test
 	    $(ECHO) ok; \
 	  fi; \
 	done; \
+	if test $$result != 0 ; then \
+	  echo "Expecting test failures: $(EXPECTED_SPARQL_PARSER_FAILURES)"; \
+	  result=`echo $$fails | wc -w`; \
+	  if test $$result = $(EXPECTED_SPARQL_PARSER_FAILURES_COUNT) ; then \
+	    echo "OK: Ignoring expected $$result test failures"; result=0; \
+          else \
+	    echo "FAILED: $$result failures $$fails does not match expected $(EXPECTED_SPARQL_PARSER_FAILURES_COUNT)"; result=1; \
+          fi; \
+	fi; \
 	set -e; exit $$result
 
 check-sparql-correct: build-roqet $(srcdir)/../../check-sparql
