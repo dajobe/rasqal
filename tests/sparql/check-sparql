@@ -86,7 +86,7 @@ sub run_test($$$$$$) {
   system($roqet_cmd);
   my $rc=$? >>8;
   if($rc) {
-    if ($expect_fail) {
+    if($expect_fail) {
       warn "$program: '$name' OK (got expected failure)\n";
       return 1;
     }
@@ -233,7 +233,7 @@ sub run_test($$$$$$) {
   if(!defined $resultset_node) {
     # No result defined
     warn "$program: '$name' OK (no result)\n";
-    return 0;
+    return $expect_fail ? 1 : 0;
   }
 
   open(OUT, "|$sort >result.out")
