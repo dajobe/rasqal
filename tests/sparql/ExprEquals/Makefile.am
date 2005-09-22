@@ -34,9 +34,10 @@ query-eq2-1.rq query-eq2-2.rq
 
 EXPECTED_SPARQL_CORRECT_FAILURES= \
 "Equality - 2 var - test equals" \
-"Equality - 2 var - test not equals"
+"Equality - 2 var - test not equals" \
+"Equality - 2 var - test equals -- graph"
 
-EXPECTED_SPARQL_CORRECT_FAILURES_COUNT= 2
+EXPECTED_SPARQL_CORRECT_FAILURES_COUNT= 3
 
 SPARQL_RESULT_FILES= \
 result-eq-1.ttl result-eq-2.ttl result-eq-3.ttl result-eq-4.ttl	\
