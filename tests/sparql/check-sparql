@@ -86,7 +86,10 @@ sub run_test($$$$$$) {
   system($roqet_cmd);
   my $rc=$? >>8;
   if($rc) {
-    return 1 if $expect_fail;
+    if ($expect_fail) {
+      warn "$program: '$name' OK (got expected failure)\n";
+      return 1;
+    }
 
     warn "$program: test '$test_file' FAILED - query command failed (result $rc):\n";
     warn "Failing program was:\n";
