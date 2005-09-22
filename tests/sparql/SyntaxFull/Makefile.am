@@ -54,15 +54,21 @@ syntax-struct-01.rq syntax-struct-02.rq					\
 syntax-struct-03.rq syntax-struct-04.rq syntax-struct-05.rq		\
 syntax-struct-06.rq syntax-struct-07.rq syntax-struct-08.rq		\
 syntax-struct-09.rq syntax-struct-10.rq					\
-syntax-union-01.rq syntax-union-02.rq
+syntax-union-01.rq syntax-union-02.rq \
+syntax-keywords-01.rq syntax-keywords-02.rq syntax-keywords-03.rq \
+syntax-qname-01.rq syntax-qname-02.rq syntax-qname-03.rq \
+syntax-qname-04.rq syntax-qname-05.rq syntax-qname-06.rq \
+syntax-struct-11.rq syntax-struct-12.rq
 
 # Test failures
-#   None.
+#   syntax-keywords-01.rq - FILTER
+#   syntax-keywords-02.rq - FILTER
 # Excluding anything with optional WHERE which gives a warning
 
-EXPECTED_SPARQL_PARSER_FAILURES=
+EXPECTED_SPARQL_PARSER_FAILURES= \
+syntax-keywords-01.rq syntax-keywords-02.rq 
 
-EXPECTED_SPARQL_PARSER_FAILURES_COUNT=0
+EXPECTED_SPARQL_PARSER_FAILURES_COUNT=2
 
 
 EXTRA_DIST= \
