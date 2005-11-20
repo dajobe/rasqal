@@ -32,7 +32,7 @@ noinst_HEADERS = rasqal_internal.h win32_rasqal_config.h
 
 man_MANS = rasqal-config.1
 
-TESTS=rasqal_expr_test strcasecmp_test rasqal_skiplist_test
+TESTS=rasqal_expr_test strcasecmp_test
 
 local_tests=rasqal_query_test
 if RASQAL_DATATYPES
@@ -63,7 +63,7 @@ AM_LDFLAGS=@RASQAL_INTERNAL_LIBS@ @RASQAL_EXTERNAL_LIBS@ $(MEM_LIBS)
 librasqal_la_SOURCES = \
 rasqal_expr.c rasqal_general.c rasqal_query.c \
 rasqal_engine.c rasqal_raptor.c rasqal_literal.c \
-rasqal_graph_pattern.c rasqal_skiplist.c rasqal_map.c
+rasqal_graph_pattern.c rasqal_map.c
 
 if RASQAL_QUERY_RDQL
 librasqal_la_SOURCES += rdql_lexer.c rdql_lexer.h \
@@ -178,10 +178,6 @@ rasqal_query_test_LDADD = librasqal.la
 rasqal_xsd_datatypes_test_SOURCES = rasqal_xsd_datatypes.c
 rasqal_xsd_datatypes_test_CPPFLAGS = -DSTANDALONE @RASQAL_EXTERNAL_CPPFLAGS@
 rasqal_xsd_datatypes_test_LDADD = librasqal.la
-
-rasqal_skiplist_test_SOURCES = rasqal_skiplist.c
-rasqal_skiplist_test_CPPFLAGS = -DSTANDALONE @RASQAL_EXTERNAL_CPPFLAGS@
-rasqal_skiplist_test_LDADD = librasqal.la
 
 $(top_builddir)/../raptor/libraptor.la:
 	cd $(top_builddir)/../raptor && $(MAKE) $(AM_MAKEFLAGS) libraptor.la

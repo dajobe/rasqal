@@ -549,42 +549,10 @@ void rasqal_free_formula(rasqal_formula* formula);
 void rasqal_formula_print(rasqal_formula* formula, FILE *stream);
 
 
-/* rasqal_skiplist.c */
-
 /* The following should be public eventually in rasqal.h or raptor.h or ...? */
 
 typedef int (rasqal_compare_fn)(const void *a, const void *b);
 typedef void (rasqal_kv_free_fn)(const void *key, const void *value);
-
-typedef struct rasqal_skiplist_s rasqal_skiplist;
-
-typedef enum {
-  RASQAL_SKIPLIST_FLAG_NONE=0,
-  RASQAL_SKIPLIST_FLAG_DUPLICATES=1
-} rasqal_skiplist_flags;
-
-/* constructor / destructor */
-RASQAL_API rasqal_skiplist* rasqal_new_skiplist(rasqal_compare_fn* compare_fn, rasqal_kv_free_fn* free_fn, raptor_sequence_print_handler* print_key_fn, raptor_sequence_print_handler* print_value_fn, int flags);
-RASQAL_API void rasqal_free_skiplist(rasqal_skiplist* list);
-
-/* methods */
-RASQAL_API int rasqal_skiplist_insert(rasqal_skiplist* list, void* key, void* value);
-RASQAL_API int rasqal_skiplist_delete(rasqal_skiplist* list, void* key);
-RASQAL_API void* rasqal_skiplist_find(rasqal_skiplist* list, void* key);
-RASQAL_API void rasqal_skiplist_print(rasqal_skiplist* list, FILE *fh);
-RASQAL_API unsigned int rasqal_skiplist_get_size(rasqal_skiplist* list);
-
-/* End of potential public header items for rasqal_skiplist.c */
-
-
-/* class init / finish */
-void rasqal_skiplist_init(void);
-void rasqal_skiplist_init_with_seed(unsigned long seed);
-
-void rasqal_skiplist_finish(void);
-
-/* internal functions */
-void rasqal_skiplist_dump(rasqal_skiplist* list, FILE *fh);
 
 
 #define RASQAL_XSD_BOOLEAN_TRUE (const unsigned char*)"true"
