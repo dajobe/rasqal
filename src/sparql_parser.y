@@ -1438,6 +1438,10 @@ BuiltInCall: STR '(' VarOrLiteral ')'
   rasqal_expression *e=rasqal_new_literal_expression($3);
   $$=rasqal_new_1op_expression(RASQAL_EXPR_LANG, e);
 }
+| LANGMATCHES '(' Expression ',' Expression ')'
+{
+  $$=rasqal_new_2op_expression(RASQAL_EXPR_LANGMATCHES, $3, $5);
+}
 | DATATYPE '(' VarOrLiteral ')'
 {
   rasqal_expression *e=rasqal_new_literal_expression($3);
