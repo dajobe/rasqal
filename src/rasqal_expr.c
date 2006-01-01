@@ -899,52 +899,84 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e,
     case RASQAL_EXPR_AND:
       {
         rasqal_literal *l;
-        int b;
+        int b1;
+        int b2;
+        int error1=0;
+        int error2=0;
         
         l=rasqal_expression_evaluate(query, e->arg1, flags);
         if(!l)
-          goto failed;
-        b=rasqal_literal_as_boolean(l, &error);
+          error1=1;
+        else
+          b1=rasqal_literal_as_boolean(l, &error1);
         rasqal_free_literal(l);
+
+        l=rasqal_expression_evaluate(query, e->arg2, flags);
+        if(!l)
+          error2=1;
+        else
+          b2=rasqal_literal_as_boolean(l, &error2);
+        rasqal_free_literal(l);
+
+        /* See http://www.w3.org/TR/2005/WD-rdf-sparql-query-20051123/#truthTable */
+        if(!error1 && !error2) {
+          /* No type error, answer is A && B */
+          b1 = b1 && b2;
+        } else {
+          if((!b1 && error2) || (error1 && !b2))
+            /* F && E => F.   E && F => F. */
+            b1=0;
+          else
+            /* Otherwise E */
+            error=1;
+        }
+
         if(error)
           goto failed;
-
-        if(b) {
-          l=rasqal_expression_evaluate(query, e->arg2, flags);
-          if(!l)
-            goto failed;
-          b=rasqal_literal_as_boolean(l, &error);
-          rasqal_free_literal(l);
-          if(error)
-            goto failed;
-        }
-        result=rasqal_new_boolean_literal(b);
+        else
+          result=rasqal_new_boolean_literal(b1);
         break;
       }
       
     case RASQAL_EXPR_OR:
       {
         rasqal_literal *l;
-        int b;
+        int b1;
+        int b2;
+        int error1=0;
+        int error2=0;
         
         l=rasqal_expression_evaluate(query, e->arg1, flags);
         if(!l)
-          goto failed;
-        b=rasqal_literal_as_boolean(l, &error);
+          error1=1;
+        else
+          b1=rasqal_literal_as_boolean(l, &error1);
         rasqal_free_literal(l);
+
+        l=rasqal_expression_evaluate(query, e->arg2, flags);
+        if(!l)
+          error2=1;
+        else
+          b2=rasqal_literal_as_boolean(l, &error2);
+        rasqal_free_literal(l);
+
+        /* See http://www.w3.org/TR/2005/WD-rdf-sparql-query-20051123/#truthTable */
+        if(!error1 && !error2) {
+          /* No type error, answer is A || B */
+          b1= b1 || b2;
+        } else {
+          if((b1 && error2) || (error1 && b2))
+            /* T || E => T.   E || T => T */
+            b1=1;
+          else
+            /* Otherwise E */
+            error=1;
+        }
+
         if(error)
           goto failed;
-
-        if(!b) {
-          l=rasqal_expression_evaluate(query, e->arg2, flags);
-          if(!l)
-            goto failed;
-          b=rasqal_literal_as_boolean(l, &error);
-          rasqal_free_literal(l);
-          if(error)
-            goto failed;
-        }
-        result=rasqal_new_boolean_literal(b);
+        else
+          result=rasqal_new_boolean_literal(b1);
         break;
       }
 
