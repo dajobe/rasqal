@@ -1,3 +1,22 @@
+2006-01-01  Dave Beckett  <dave@dajobe.org>
+
+	* src/sparql_lexer.l:
+	Allow _ at the start of sparql variable names, as changed in
+	http://www.w3.org/TR/2005/WD-rdf-sparql-query-20051123/
+	(enum sparql_name_check_flags): Remove SPARQL_NAME_CHECK_NO_UL_FIRST
+	for varname.
+	(NCCHAR1p): Renamed from NCCHAR1 - no _.
+	(NCCHAR1): Added to aloow _
+	(VARNAME, NCCHAR, NCNAME): No need to use _ here, NCCHAR1 has it.
+	(NCNAME_PREFIX): Use NCCHAR1p at start, no _ still.
+
+	* src/sparql_parser.y, src/sparql_lexer.l:
+	Added LANGMATCHES token (case independent) new in
+	http://www.w3.org/TR/2005/WD-rdf-sparql-query-20051123/
+
+	* src/sparql_lexer.l:
+	Allow isiri (case independent) returning ISURI token
+
 2005-12-21  Dave Beckett <dave@dajobe.org>
 
 	* docs/librasqal.3, utils/roqet.1, fix-groff-xhtml,
