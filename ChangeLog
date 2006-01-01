@@ -1,4 +1,72 @@
+2005-12-21  Dave Beckett <dave@dajobe.org>
+
+	* docs/librasqal.3, utils/roqet.1, fix-groff-xhtml,
+	rasqal-src-config.in, RELEASE.html, TODO.html, configure.ac,
+	NEWS.html, README.html, LICENSE.html, Makefile.am, INSTALL.html:
+	updated urls
+
+2005-11-20  Dave Beckett <dave@dajobe.org>
+
+	* src/Makefile.am, src/rasqal_internal.h: Disable skiplist code
+	for now (don't ship it)
+
+2005-09-22  Dave Beckett <dave@dajobe.org>
+
+	* tests/sparql/SyntaxFull/Makefile.am: Add new tests, 2 fail
+
+	* tests/sparql/SyntaxFull/Makefile.am: Added new tests, 2 fail
+
+	* tests/sparql/SyntaxFull/syntax-keywords-01.rq,
+	tests/sparql/SyntaxFull/syntax-keywords-02.rq,
+	tests/sparql/SyntaxFull/syntax-keywords-03.rq,
+	tests/sparql/SyntaxFull/syntax-qname-01.rq,
+	tests/sparql/SyntaxFull/syntax-qname-02.rq,
+	tests/sparql/SyntaxFull/syntax-qname-03.rq,
+	tests/sparql/SyntaxFull/syntax-qname-04.rq,
+	tests/sparql/SyntaxFull/syntax-qname-05.rq,
+	tests/sparql/SyntaxFull/syntax-qname-06.rq,
+	tests/sparql/SyntaxFull/syntax-struct-11.rq,
+	tests/sparql/SyntaxFull/syntax-struct-12.rq,
+	tests/sparql/ExprEquals/Makefile.am,
+	tests/sparql/ExprEquals/query-eq-graph-1.rq,
+	tests/sparql/ExprEquals/query-eq-graph-2.rq,
+	tests/sparql/ExprEquals/query-eq-graph-3.rq,
+	tests/sparql/ExprEquals/query-eq-graph-4.rq,
+	tests/sparql/ExprEquals/query-eq-graph-5.rq,
+	tests/sparql/ExprEquals/query-eq2-graph-1.rq,
+	tests/sparql/ExprEquals/result-eq-graph-1.ttl,
+	tests/sparql/ExprEquals/result-eq-graph-2.ttl,
+	tests/sparql/ExprEquals/result-eq-graph-3.ttl,
+	tests/sparql/ExprEquals/result-eq-graph-4.ttl,
+	tests/sparql/ExprEquals/result-eq-graph-5.ttl: Added new tests
+
+	* tests/sparql/SyntaxDev/Syntax-SPARQL2/Makefile.am: Added the 9
+	EXPECTED_SPARQL_PARSER_FAILURES
+
+	* tests/sparql/SyntaxDev/Syntax-SPARQL3/Makefile.am: Added 3
+	EXPECTED_SPARQL_PARSER_FAILURES: syn-05.rq syn-06.rq syn-07.rq
+
+	* tests/sparql/SyntaxDev/Syntax-SPARQL3/Makefile.am: ADded 3
+	EXPECTED_SPARQL_CORRECT_FAILURES: syn-05.rq syn-06.rq syn-07.rq
+
+	* tests/sparql/check-sparql: If returning no results and expect
+	fail, return 1
+
+	* tests/sparql/SyntaxDev/Syntax-SPARQL2/Makefile.am: Added 9
+	EXPECTED_SPARQL_CORRECT_FAILURES
+
+	* tests/sparql/ExprEquals/Makefile.am: Failures +1: "Equality - 2
+	var - test equals -- graph", total 3
+
+	* tests/sparql/check-sparql: report if expected failure happens OK
+	early on
+
+	* tests/sparql/ExprEquals/manifest.n3: Update to DAWG CVS
+
 2005-09-12  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
+
+	* src/sparql_parser.y (ConstructTriplesList): renamed from
+	TriplesList and allow an empty list.
 
 	* src/sparql_parser.y (GraphGraphPattern): Handle return of NULL
 	graph pattern
@@ -473,8 +541,6 @@
 
 	* docs/rasqal.types: empty types for gtk-doc
 
-	* docs/README.html: gtk-doc
-
 	* Makefile.am: Added DISTCHECK_CONFIGURE_FLAGS
 
 	* rasqal.spec.in: Updated for gtk-doc locations
@@ -523,28 +589,28 @@
 	tests/sparql/syntax/result-order-distinct.ttl: Added order and
 	distinct check
 
-	* sparql_parser.y (PatternElement):
-	Error recovery from NULL triples but do return a
-	graph pattern of some sort.
+	* sparql_parser.y (PatternElement): Error recovery from NULL
+	triples but do return a graph pattern of some sort.
 
-	* sparql_parser.y (PatternElement):
-	Error recovery - do not die when triples is NULL.
+	* sparql_parser.y (PatternElement): Error recovery - do not die
+	when triples is NULL.
 
 2005-07-27  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
-	* sparql_parser.y, roqet.c, rdql_parser.y, rasqal_map.c:
-	gcc4 ignored return warning fixes:
-	Discard fwrite() return values since fprintf/fputs() aren't checked.
-	Check fread() return values and throw a user error.
+	* sparql_parser.y, roqet.c, rdql_parser.y, rasqal_map.c: gcc4
+	ignored return warning fixes: Discard fwrite() return values since
+	fprintf/fputs() aren't checked.  Check fread() return values and
+	throw a user error.
 
 	* rasqal_skiplist.c, rasqal_map.c: autodocs
 
-	* rasqal_query.c (rasqal_query_execute):
-	For a stored sequence of result rows, use
-	result_count as an offset so initialise to 0 always
+	* rasqal_query.c (rasqal_query_execute): For a stored sequence of
+	result rows, use result_count as an offset so initialise to 0
+	always
 	(rasqal_query_results_next, rasqal_query_results_get_bindings,
 	rasqal_query_results_get_binding_value,
-	rasqal_query_results_get_binding_value_by_name): Adjust to use offset.
+	rasqal_query_results_get_binding_value_by_name): Adjust to use
+	offset.
 
 	* rasqal_query.c: Removed RASQAL_MAP define; it's the default now.
 
@@ -687,9 +753,8 @@
 	rasqal_sparql_name_check instead of raptor_xml_name_check.
 	(sparql_skip_cpp_comment): Deleted.
 
-	* rdql_lexer.l (// C++ comment rule):
-	Use pattern to find end of line with multiple
-	line endings.  Count line.
+	* rdql_lexer.l (// C++ comment rule): Use pattern to find end of
+	line with multiple line endings.  Count line.
 	(/* C comment block rule): Use returned lines to bump the current
 	line number.
 	(rdql_skip_cpp_comment): Deleted.
@@ -703,7 +768,7 @@
 
 	* configure.ac: time headers
 
-	* configure.ac: Test for srandomdev
+	* configure.ac: Test for srandomdev for skiplists
 
 2005-06-29  Dave Beckett  <Dave.Beckett@bristol.ac.uk>
 
@@ -762,8 +827,6 @@
 	types using the order in rasqal_literal_type enum.
 
 	* rasqal_internal.h: rasqal_query gains compare_flags structure
-
-	* roqet.c: spaces 80
 
 	* rasqal.h: Reordered the types in rasqal_literal_type to make
 	them useful for sparql type promotion.  Added define
@@ -1039,11 +1102,6 @@
 
 	* configure.ac: Add tests/sparql regex, Expr1, Expr2,
 	ExprBuiltins, ExprEquals dirs
-
-	* tests/sparql/Expr1/.cvsignore, tests/sparql/Expr2/.cvsignore,
-	tests/sparql/ExprBuiltins/.cvsignore,
-	tests/sparql/ExprEquals/.cvsignore, tests/sparql/regex/.cvsignore:
-	ignores for tests
 
 	* tests/sparql/Expr1/Makefile.am, tests/sparql/Expr1/data-1.ttl,
 	tests/sparql/Expr1/expr-1-result.ttl,

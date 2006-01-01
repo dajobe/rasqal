@@ -23,6 +23,117 @@ result.  This matches the SPARQL query result semantics.
 <p>More cases with optional graph patterns (SPARQL
 <code>OPTIONAL</code>s) are now executed correctly.</p>
 
+<p>Duplicated <code>SELECT</code> variables are now detected, give a
+warning and removed.
+</p>
+
+<p>Check for invalid <code>\u</code><em>HHHH</em> and
+<code>\U</code><em>HHHHHHHH</em> hex escapes and floating point
+number formats.</p>
+ 
+<p><code>roqet</code> gains -e/--exec option to execute a query
+string directly rather than via a file or URI containing the query.
+</p>
+
+<p>Added types for xsd:float (C float) and xsd:double (C double);
+xsd:decimal (handled as a string) and xsd:datetime (as a string).
+</p>
+
+<p>Added <code>rasqal_new_double_literal</code>.
+</p>
+
+<p>Fixed (a compare b) between integers and doubles to be the right sign.
+</p>
+
+<p>Do not promote literals early on in comparisons to strings "perl
+style" but do the best type-based comparsion as late as possible.
+</p>
+
+<p>Added rasqal_literal_ebv to get the Effective Boolean Value (EBV)
+of a literal.</p>
+
+<p>Added rasqal_literal_is_constant returning non-0 if literal is a
+constant i.e. not a variable.
+</p>
+
+<p>Added rasqal_expression_clear to deallocate a static
+rasqal_expression.
+</p>
+
+<p>The enum types in rasqal_literal_type were reordered to make them
+match sparql type promotion.</p>
+
+<p>Added define RASQAL_COMPARE_XQUERY flags for use with
+rasqal_expression_evaluate to ask for use of XQuery comparison and
+type promotions.
+</p>
+
+<p>Query engine now implements <code>DISTINCT</code> results
+including with <code>ORDER BY</code>.
+</p>
+
+<p>RDQL and SPARQL lexers now count line numbers correctly over
+multi-line comments.</p>
+
+<p>Updated the changes to the SPARQL names for variable, prefix and
+QNames.
+</p>
+
+<p>roqet now write out XML results format in format with version URI
+http://www.w3.org/2005/06/sparqlResults and short name "xml".  The
+previous version is available with short name "xml-v2".  The latest
+version now writes <code>ordered</code> and <code>distinct</code>
+boolean-valued attributes on the <code>results</code> element.
+</p>
+
+<p>rasqal requires raptor 1.4.8 to get the <em>guess</em> parser that
+uses URI/name and mime type returned from protocol request (if
+available) to choose the correct parser.
+</p>
+
+<p>Added an internal rasqal_map key:value map for use with result
+duplicate detection and ordering.
+</p>
+
+
+<p>A major source code regoranisation moved all library source code
+to the src/ dir, roqet to utils/ and other documentation to docs/.</p>
+
+<p>Many more function documentation were added to the sources for use
+by gtk-doc.</p>
+
+
+<h3>Configuration Changes</h3>
+
+<p>The autogen.sh script for building from CVS was revamped to be
+more modular.</p>
+
+<p><code>configure</code> now takes an <code>--enable-gtk-doc</code>
+option to enable building of the documentation using the
+<code>gtk-doc</code> utility.  It is by default enabled only if the
+utility is available.
+</p>
+
+
+<h3>Documentation Changes</h3>
+
+<p>The GNOME <code>gtk-doc</code> program is now used to
+automatically extract documentation from source comments into
+reference documentation.  This is then merged with templates and
+additional documentation to provide a reference manual for rasqal
+as XML document which is turned into HTML along with GNOME devhelp
+support.</p>
+
+<p>This new documentation intended to replace the librasqal manual
+page/web page as easier to read document with scope for better
+expanding with more detail of rasqal including examples and tutorial
+information.  The manual page will continue to contain the summary
+information for the present.
+</p>
+
+
+
+
 
 <h2 id="rel0_9_10"><a name="rel0_9_10">Rasqal 0.9.10 Changes</a></h2>
 
