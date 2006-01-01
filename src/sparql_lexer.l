@@ -274,7 +274,7 @@ QUOTEDURI \<[^<= ][^>]*\>|\<\>
 [Ss][Tt][Rr] { return STR; }
 [Ll][Aa][Nn][Gg] { return LANG; }
 [Dd][Aa][Tt][Aa][Tt][Yy][Pp][Ee] { return DATATYPE; }
-[Ii][Ss][Uu][Rr][Ii] { return ISURI; }
+[Ii][Ss][UuIi][Rr][Ii] { return ISURI; }
 [Ii][Ss][Bb][Ll][Aa][Nn][Kk] { return ISBLANK; }
 [Ii][Ss][Ll][Ii][Tt][Ee][Rr][Aa][Ll] { return ISLITERAL; }
 [Gg][Rr][Aa][Pp][Hh] { return GRAPH; }
