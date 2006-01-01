@@ -286,6 +286,7 @@ QUOTEDURI \<[^<= ][^>]*\>|\<\>
 [Rr][Ee][Gg][Ee][Xx] { return REGEX; }
 [Aa][Ss][Cc] { return ASC; }
 [Dd][Ee][Ss][Cc] { return DESC; } 
+[Ll][Aa][Nn][Gg][Mm][Aa][Tt][Cc][Hh][Ee][Ss] { return LANGMATCHES; } 
 
 "a" { return A; }
 
@@ -873,6 +874,9 @@ sparql_token_print(int token, YYSTYPE *lval)
       
     case DESC:
       return "DESC[";
+      
+    case LANGMATCHES:
+      return "LANGMATCHES";
       
     case ',':
       return ",";
