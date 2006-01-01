@@ -257,10 +257,23 @@ BaseDeclOpt: BASE URI_LITERAL
 /* SPARQL Grammar: [4] PrefixDecl */
 PrefixDeclOpt: PrefixDeclOpt PREFIX IDENTIFIER URI_LITERAL
 {
-  rasqal_prefix *p=rasqal_new_prefix($3, $4);
   raptor_sequence *seq=((rasqal_query*)rq)->prefixes;
-  raptor_sequence_push(seq, p);
-  rasqal_engine_declare_prefix(((rasqal_query*)rq), p);
+  unsigned const char* prefix_string=$3;
+  size_t l=0;
+
+  if(prefix_string)
+    l=strlen((const char*)prefix_string);
+  
+  if(raptor_namespaces_find_namespace(((rasqal_query*)rq)->namespaces, prefix_string, l)) {
+    /* A prefix may be defined only once */
+    sparql_syntax_warning(((rasqal_query*)rq), 
+                          "PREFIX %s can be defined only once.",
+                          prefix_string ? prefix_string : ":");
+  } else {
+    rasqal_prefix *p=rasqal_new_prefix(prefix_string, $4);
+    raptor_sequence_push(seq, p);
+    rasqal_engine_declare_prefix(((rasqal_query*)rq), p);
+  }
 }
 | /* empty */
 {
