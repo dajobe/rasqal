@@ -109,7 +109,6 @@ static int sparql_skip_c_comment(rasqal_query *rq);
  * Extra checks beyond valid Namespaces in XML 1.1 name
  *
  * SPARQL_NAME_CHECK_VARNAME (token VARNAME)
- *   No '_' allowed as the first character.
  *   No '.' allowed.
  *   No '-' allowed.
  *
@@ -127,7 +126,7 @@ typedef enum {
   SPARQL_NAME_CHECK_NO_DOT_LAST  = 2,
   SPARQL_NAME_CHECK_NO_DOT_MINUS = 4,
 
-  SPARQL_NAME_CHECK_VARNAME = SPARQL_NAME_CHECK_NO_UL_FIRST | SPARQL_NAME_CHECK_NO_DOT_MINUS,
+  SPARQL_NAME_CHECK_VARNAME = SPARQL_NAME_CHECK_NO_DOT_MINUS,
   SPARQL_NAME_CHECK_PREFIX  = SPARQL_NAME_CHECK_NO_UL_FIRST | SPARQL_NAME_CHECK_NO_DOT_LAST,
   SPARQL_NAME_CHECK_NCNAME  = SPARQL_NAME_CHECK_NO_DOT_LAST
 } sparql_name_check_flags;
@@ -171,7 +170,7 @@ LANGUAGETOKEN [A-Za-z][-A-Z_a-z0-9]*
  */
 
 
-/* rq23 [81] NCCHAR1 ::= [A-Z] | [a-z] | [#x00C0-#x00D6] | [#x00D8-#x00F6] |
+/* [85] NCCHAR1p ::= [A-Z] | [a-z] | [#x00C0-#x00D6] | [#x00D8-#x00F6] |
  *   [#x00F8-#x02FF] | [#x0370-#x037D] | [#x037F-#x1FFF] |
  *   [#x200C-#x200D] | [#x2070-#x218F] | [#x2C00-#x2FEF] |
  *   [#x3001-#xD7FF] | [#xF900-#xFDCF] | [#xFDF0-#xFFFD] |
@@ -182,42 +181,47 @@ LANGUAGETOKEN [A-Za-z][-A-Z_a-z0-9]*
  * except
  *   No '_' allowed.
  */
-NCCHAR1 [A-Za-z\\\x80-\xff]
+NCCHAR1p [A-Za-z\\\x80-\xff]
 
-/* rq23 [82]  VARNAME ::= ( NCCHAR1 | [0-9] ) 
- *   ( NCCHAR1 | "_" | [0-9] | #x00B7 | [#x0300-#x036F] | [#x203F-#x2040] )*
+/* [86] NCCHAR1 ::= NCCHAR1p | '_'
+ * This is an XML 1.1 NameStartChar
+ *   http://www.w3.org/TR/2004/REC-xml11-20040204/#NT-NameStartChar
+ */
+NCCHAR1 [A-Za-z\\\x80-\xff_]
+
+/* [87]  VARNAME ::= ( NCCHAR1 | _ ) 
+ *   ( NCCHAR1 | [0-9] | #x00B7 | [#x0300-#x036F] | [#x203F-#x2040] )*
  *
  * This is an Namespaces in XML 1.1 Name except:
- *   No '_' allowed as the first character.
  *   No '.' allowed.
  *   No '-' allowed.
  */
-VARNAME ({NCCHAR1}|[0-9])({NCCHAR1}|"_"|[0-9])*
+VARNAME ({NCCHAR1}|[0-9])({NCCHAR1}|[0-9])*
 
-/* rq23 [83]  NCCHAR ::= 
- *   NCCHAR1 | '_' | '-' | [0-9] | #x00B7 | [#x0300-#x036F] | [#x203F-#x2040]
+/* [88]  NCCHAR ::= 
+ *   NCCHAR1 | '-' | [0-9] | #x00B7 | [#x0300-#x036F] | [#x203F-#x2040]
  *
  * This is XML 1.1 NameChar
  *   http://www.w3.org/TR/2004/REC-xml11-20040204/#NT-NameChar
  * except:
  *   No '.' allowed.
  */
-NCCHAR {NCCHAR1}|"-"|"_"|[0-9]
+NCCHAR {NCCHAR1}|"-"|[0-9]
 
-/* rq23 [84]  NCNAME_PREFIX ::= NCCHAR1 ((NCCHAR|".")* NCCHAR)?
+/* [89]  NCNAME_PREFIX ::= NCCHAR1p ((NCCHAR|".")* NCCHAR)?
  *
  * This is an Namespaces in XML 1.1 Name except:
  *   No '_' allowed as the first character.
  *   No '.' allowed as the last character.
  */
-NCNAME_PREFIX {NCCHAR1}(({NCCHAR}|".")*{NCCHAR})?
+NCNAME_PREFIX {NCCHAR1p}(({NCCHAR}|".")*{NCCHAR})?
 
-/* rq23 [85]  NCNAME ::= ( "_" | NCCHAR1 ) ((NCCHAR|".")* NCCHAR)?
+/* [90]  NCNAME ::= NCCHAR1 ((NCCHAR|".")* NCCHAR)?
  *
  * This is an Namespaces in XML 1.1 Name except:
  *   No '.' allowed as the last character.
  */
-NCNAME ("_"|{NCCHAR1})(({NCCHAR}|".")*{NCCHAR})?
+NCNAME {NCCHAR1}(({NCCHAR}|".")*{NCCHAR})?
 
 /* rq23 [67] QNAME_NS ::= NCNAME_PREFIX? ':'
  * Inlined into in rule <PREF>{NCNAME_PREFIX}":" below 
