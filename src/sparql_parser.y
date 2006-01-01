@@ -268,7 +268,7 @@ PrefixDeclOpt: PrefixDeclOpt PREFIX IDENTIFIER URI_LITERAL
     /* A prefix may be defined only once */
     sparql_syntax_warning(((rasqal_query*)rq), 
                           "PREFIX %s can be defined only once.",
-                          prefix_string ? prefix_string : ":");
+                          prefix_string ? (const char*)prefix_string : ":");
   } else {
     rasqal_prefix *p=rasqal_new_prefix(prefix_string, $4);
     raptor_sequence_push(seq, p);
