@@ -479,6 +479,7 @@ rasqal_triple_get_origin(rasqal_triple* t)
  * The operators are:
  * @RASQAL_EXPR_TILDE @RASQAL_EXPR_BANG @RASQAL_EXPR_UMINUS
  * @RASQAL_EXPR_BOUND @RASQAL_EXPR_STR @RASQAL_EXPR_LANG
+ * @RASQAL_EXPR_LANGMATCHES
  * @RASQAL_EXPR_DATATYPE @RASQAL_EXPR_ISURI @RASQAL_EXPR_ISBLANK
  * @RASQAL_EXPR_ISLITERAL @RASQAL_EXPR_ORDER_COND_ASC
  * @RASQAL_EXPR_ORDER_COND_DESC
@@ -652,6 +653,7 @@ rasqal_expression_clear(rasqal_expression* e)
     case RASQAL_EXPR_REM:
     case RASQAL_EXPR_STR_EQ:
     case RASQAL_EXPR_STR_NEQ:
+    case RASQAL_EXPR_LANGMATCHES:
       rasqal_free_expression(e->arg1);
       rasqal_free_expression(e->arg2);
       break;
@@ -790,6 +792,7 @@ rasqal_expression_visit(rasqal_expression* e,
     case RASQAL_EXPR_REM:
     case RASQAL_EXPR_STR_EQ:
     case RASQAL_EXPR_STR_NEQ:
+    case RASQAL_EXPR_LANGMATCHES:
       return rasqal_expression_visit(e->arg1, fn, user_data) ||
              rasqal_expression_visit(e->arg2, fn, user_data);
       break;
@@ -1189,6 +1192,55 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e,
         if(free_literal)
           rasqal_free_literal(l);
 
+        break;
+      }
+
+    case RASQAL_EXPR_LANGMATCHES:
+      {
+        rasqal_literal *l1, *l2;
+        const unsigned char* s1;
+        const unsigned char* s2;
+        int b;
+        
+        l1=rasqal_expression_evaluate(query, e->arg1, flags);
+        if(!l1)
+          goto failed;
+
+        l2=rasqal_expression_evaluate(query, e->arg2, flags);
+        if(!l2) {
+          rasqal_free_literal(l1);
+          goto failed;
+        }
+
+        /* Returns true if language-range (first argument) matches
+         * language-tag (second argument) per Tags for the
+         * Identification of Languages [RFC3066] section 2.5. RFC3066
+         * ( http://www.ietf.org/rfc/rfc3066.txt )
+         * defines a case-insensitive, hierarchical matching
+         * algorithm which operates on ISO-defined subtags for
+         * language and country codes, and user defined subtags. In
+         * SPARQL, a language-range of "*" matches any non-empty
+         * language-tag string.
+         * -- http://www.w3.org/TR/rdf-sparql-query/#func-langMatches
+         */
+
+        s1=rasqal_literal_as_string(l1);
+        s2=rasqal_literal_as_string(l2);
+        rasqal_free_literal(l1);
+        rasqal_free_literal(l2);
+
+        if(s1 && s2 && *s1 && *s2) {
+          /* Two non-empty arguments */
+          if(s1[0] == '*' && !s1[1])
+            b= 1;
+          else
+            /* FIXME - this is not a language compare */
+            b= (rasqal_strcasecmp((const char*)s1, (const char*)s2) == 0);
+        } else
+          /* FIXME - false may not be the right answer for all strings */
+          b=0;
+
+        result=rasqal_new_boolean_literal(b);
         break;
       }
 
@@ -1776,6 +1828,7 @@ rasqal_expression_print(rasqal_expression* e, FILE* fh)
     case RASQAL_EXPR_REM:
     case RASQAL_EXPR_STR_EQ:
     case RASQAL_EXPR_STR_NEQ:
+    case RASQAL_EXPR_LANGMATCHES:
       fputs("op ", fh);
       rasqal_expression_print_op(e, fh);
       fputc('(', fh);
@@ -1885,6 +1938,7 @@ rasqal_expression_is_constant(rasqal_expression* e)
     case RASQAL_EXPR_REM:
     case RASQAL_EXPR_STR_EQ:
     case RASQAL_EXPR_STR_NEQ:
+    case RASQAL_EXPR_LANGMATCHES:
       result=rasqal_expression_is_constant(e->arg1) &&
              rasqal_expression_is_constant(e->arg2);
       break;
