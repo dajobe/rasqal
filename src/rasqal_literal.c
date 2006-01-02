@@ -191,7 +191,7 @@ rasqal_new_decimal_literal(const unsigned char *decimal)
   l->type=RASQAL_LITERAL_DECIMAL;
   l->string_len=strlen((const char*)decimal);
   l->string=(unsigned char*)RASQAL_MALLOC(cstring, l->string_len+1);
-  strcpy((char*)l->string, decimal);
+  strcpy((char*)l->string, (const char*)decimal);
   l->datatype=raptor_uri_copy(rasqal_xsd_decimal_uri);
   l->usage=1;
   return l;
