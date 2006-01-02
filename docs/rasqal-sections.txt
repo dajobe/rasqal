@@ -71,6 +71,7 @@ rasqal_graph_pattern_visit
 rasqal_literal
 rasqal_literal_type
 rasqal_new_boolean_literal
+rasqal_new_decimal_literal
 rasqal_new_double_literal
 rasqal_new_floating_literal
 rasqal_new_integer_literal

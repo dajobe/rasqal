@@ -57,6 +57,15 @@ boolean, double, floating, integer, regex pattern and variables.
 @Returns: 
 
 
+<!-- ##### FUNCTION rasqal_new_decimal_literal ##### -->
+<para>
+
+</para>
+
+@decimal: 
+@Returns: 
+
+
 <!-- ##### FUNCTION rasqal_new_double_literal ##### -->
 <para>
 
