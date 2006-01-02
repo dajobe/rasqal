@@ -175,6 +175,29 @@ rasqal_new_pattern_literal(const unsigned char *pattern,
 }
 
 
+/**
+ * rasqal_new_decimal_literal:
+ * @d: decimal literal
+ *
+ * Constructor - Create a new Rasqal decimal literal.
+ * 
+ * Return value: New #rasqal_literal or NULL on failure
+ **/
+rasqal_literal*
+rasqal_new_decimal_literal(const unsigned char *decimal)
+{
+  rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, sizeof(rasqal_literal), 1);
+
+  l->type=RASQAL_LITERAL_DECIMAL;
+  l->string_len=strlen((const char*)decimal);
+  l->string=(unsigned char*)RASQAL_MALLOC(cstring, l->string_len+1);
+  strcpy((char*)l->string, decimal);
+  l->datatype=raptor_uri_copy(rasqal_xsd_decimal_uri);
+  l->usage=1;
+  return l;
+}
+
+
 /*
  * rasqal_literal_string_to_native - INTERNAL Upgrade a datatyped literal string to an internal typed literal
  * @l: #rasqal_literal to operate on inline
