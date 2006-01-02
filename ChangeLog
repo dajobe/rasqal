@@ -1,17 +1,85 @@
 2006-01-01  Dave Beckett  <dave@dajobe.org>
 
-	* src/sparql_lexer.l:
-	Allow _ at the start of sparql variable names, as changed in
+	* tests/sparql/ExprEquals/result-eq2-graph-1.ttl: new result
+
+	* src/sparql_parser.y: Updates for SPARQL Query Language for RDF,
+	23 November 2005
+	http://www.w3.org/TR/2005/WD-rdf-sparql-query-20051123/ Including
+	many renamings of tokens to match grammar.
+	(DECIMAL_LITERAL): Added.
+	(GraphNodeListNotEmpty): Renamed from ItemList
+	(GraphNode): Renamed from Object
+	(GraphTerm): Renamed from RDFTerm. Added DECIMAL_LITERAL option.
+	(VarOrTerm): Added.
+	(VarOrBnodeOrURI): Replaced by VarOrBlankNodeOrIRIref.
+	(Select/Construct/Describe/AskQuery): Renamed from *Clause.
+	(Prolog): Re-added.
+	(BuiltInCall): Added LANGMATCHES option.
+
+	* src/sparql_lexer.l (DECIMAl, DOUBLE, EXPONENT): Added.  Support
+	SPARQL decimal and double literal syntax and return new
+	DECIMAL_LITERAL when there is a '.' else FLOATING_LITERAL with an
+	EXPONENT
+
+	* src/rasqal_literal.c (rasqal_new_decimal_literal): Added to make
+	a decimal literal
+	(xsd:decimal).
+
+	* src/rasqal.h: Added prototype for rasqal_new_decimal_literal
+
+	* tests/sparql/SyntaxDev/Syntax-SPARQL2/Makefile.am:
+	syntax-general-03.rq and syntax-function-01.rq now work (7
+	failures remain)
+
+	* tests/sparql/ExprEquals/result-eq2-1.ttl,
+	tests/sparql/ExprEquals/query-eq-2.rq,
+	tests/sparql/ExprEquals/query-eq-graph-2.rq,
+	tests/sparql/ExprEquals/Makefile.am,
+	tests/sparql/ExprEquals/data-eq.ttl,
+	tests/sparql/ExprEquals/manifest.n3: Updates for decimal syntax
+	changes and equality rules
+
+	* src/sparql_parser.y (PrefixDeclOpt): gcc const string warning
+	fix.
+
+	* src/sparql_parser.y (PrefixDeclOpt): Generate a warning if a
+	PREFIX appears more than once.  Check added after update in
 	http://www.w3.org/TR/2005/WD-rdf-sparql-query-20051123/
-	(enum sparql_name_check_flags): Remove SPARQL_NAME_CHECK_NO_UL_FIRST
-	for varname.
+
+	* src/rasqal_expr.c (rasqal_expression_evaluate): Added SPARQL
+	trinary logic evaluation of AND and OR expressions for T,F,E
+	following the truth table in
+	http://www.w3.org/TR/2005/WD-rdf-sparql-query-20051123/#truthTable
+
+	* src/rasqal_expr.c (rasqal_expression_clear,
+	rasqal_expression_visit, rasqal_expression_print,
+	rasqal_expression_is_constant): Added SPARQL_EXPR_LANGMATCHEs to
+	switch statements as a new 2-argument expression.
+	(rasqal_expression_evaluate): Added a simple evaluation for
+	SPARQL_EXPR_LANGMATCHES that handles '*' and otherwise does a case
+	independent string compare.  This is not a full implementation by
+	any means.  Support for the new SPARQL keyword langMatches added
+	in http://www.w3.org/TR/2005/WD-rdf-sparql-query-20051123/
+
+	* src/sparql_parser.y (BuiltInCall): Added SPARQL langMatches
+	2-argument expresson after addition in
+	http://www.w3.org/TR/2005/WD-rdf-sparql-query-20051123/
+
+	* src/rasqal.h: Added SPARQL_EXPR_LANGMATCHES for SPARQL
+	langMatches expression
+
+	* src/sparql_lexer.l: Allow _ at the start of sparql variable
+	names, as changed in
+	http://www.w3.org/TR/2005/WD-rdf-sparql-query-20051123/
+	(enum sparql_name_check_flags): Remove
+	SPARQL_NAME_CHECK_NO_UL_FIRST for varname.
 	(NCCHAR1p): Renamed from NCCHAR1 - no _.
 	(NCCHAR1): Added to aloow _
 	(VARNAME, NCCHAR, NCNAME): No need to use _ here, NCCHAR1 has it.
 	(NCNAME_PREFIX): Use NCCHAR1p at start, no _ still.
 
-	* src/sparql_parser.y, src/sparql_lexer.l:
-	Added LANGMATCHES token (case independent) new in
+	* src/sparql_parser.y, src/sparql_lexer.l: Added LANGMATCHES token
+	(case independent) new in
 	http://www.w3.org/TR/2005/WD-rdf-sparql-query-20051123/
 
 	* src/sparql_lexer.l:
