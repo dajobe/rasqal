@@ -30,21 +30,20 @@ data-eq.ttl
 
 SPARQL_TEST_FILES= \
 query-eq-1.rq query-eq-2.rq query-eq-3.rq query-eq-4.rq query-eq-5.rq	\
-query-eq2-1.rq query-eq2-2.rq \
+query-eq2-1.rq query-eq2-2.rq query-eq2-graph-1.rq \
 query-eq-graph-1.rq query-eq-graph-2.rq query-eq-graph-3.rq	\
 query-eq-graph-4.rq query-eq-graph-5.rq
 
 EXPECTED_SPARQL_CORRECT_FAILURES= \
 "Equality - 2 var - test equals" \
-"Equality - 2 var - test not equals" \
-"Equality - 2 var - test equals -- graph"
+"Equality - 2 var - test not equals"
 
-EXPECTED_SPARQL_CORRECT_FAILURES_COUNT= 3
+EXPECTED_SPARQL_CORRECT_FAILURES_COUNT= 2
 
 SPARQL_RESULT_FILES= \
 result-eq-1.ttl result-eq-2.ttl result-eq-3.ttl result-eq-4.ttl	\
 result-eq-5.ttl \
-result-eq2-1.ttl result-eq2-2.ttl \
+result-eq2-1.ttl result-eq2-2.ttl result-eq2-graph-1.ttl \
 result-eq-graph-1.ttl result-eq-graph-2.ttl \
 result-eq-graph-3.ttl result-eq-graph-4.ttl \
 result-eq-graph-5.ttl
