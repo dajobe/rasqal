@@ -845,6 +845,8 @@ RASQAL_API
 rasqal_literal* rasqal_new_boolean_literal(int value);
 RASQAL_API
 rasqal_literal* rasqal_new_variable_literal(rasqal_variable *variable);
+RASQAL_API
+rasqal_literal* rasqal_new_decimal_literal(const unsigned char *decimal);
 
 RASQAL_API
 rasqal_literal* rasqal_new_literal_from_literal(rasqal_literal* l);
