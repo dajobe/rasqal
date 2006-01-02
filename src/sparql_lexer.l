@@ -237,6 +237,12 @@ BNAME "_:"{NCNAME}
 /* The initial char conditions are to ensure this doesn't grab < or <= */
 QUOTEDURI \<[^<= ][^>]*\>|\<\>
 
+
+DECIMAL [0-9]+"."[0-9]*|"."[0-9]+
+DOUBLE [0-9]+"."[0-9]*{EXPONENT}|"."([0-9])+{EXPONENT}|([0-9])+{EXPONENT}
+EXPONENT [eE][+-]?[0-9]+
+
+
 %%
   /* rules */
 
@@ -345,7 +351,20 @@ QUOTEDURI \<[^<= ][^>]*\>|\<\>
                       return INTEGER_LITERAL; 
 }
 
-[0-9]+"."[0-9]*[eE][+-]?[0-9]+[fFdD]?|"."[0-9]+[eE][+-]?[0-9]+[fFdD]?|[0-9]+[eE][+-]?[0-9]+[fFdD]?|[0-9]+[eE][+-]?[0-9]+[fFdD]?|[0-9]+"."[0-9]*  { 
+[-+]?{DECIMAL}  { 
+                        double d;
+                        int n;
+                        
+                        n=sscanf((const char*)yytext, "%lf", &d);
+                        if(n != 1) {
+                          sparql_syntax_error(rq, "SPARQL syntax error - Illegal decimal constant %s", yytext);
+                          yyterminate();
+                        }
+                        sparql_parser_lval->literal=rasqal_new_decimal_literal((const unsigned char*)yytext);
+                        return DECIMAL_LITERAL;
+}
+
+[-+]?{DOUBLE} {
                         double d;
                         int n;
                         
@@ -1009,6 +1028,10 @@ sparql_token_print(int token, YYSTYPE *lval)
 
     case BLANK_LITERAL:
       sprintf(buffer, "BLANK_LITERAL(%s)", lval->name);
+      return buffer;
+
+    case DECIMAL_LITERAL:
+      sprintf(buffer, "DECIMAL_LITERAL(%s)", lval->literal->string);
       return buffer;
 
    default:
