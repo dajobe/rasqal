@@ -177,7 +177,7 @@ rasqal_new_pattern_literal(const unsigned char *pattern,
 
 /**
  * rasqal_new_decimal_literal:
- * @d: decimal literal
+ * @decimal: decimal literal
  *
  * Constructor - Create a new Rasqal decimal literal.
  * 
