@@ -64,6 +64,7 @@ constants and #rasqal_variable values bound in some
 @RASQAL_EXPR_CAST: 
 @RASQAL_EXPR_ORDER_COND_ASC: 
 @RASQAL_EXPR_ORDER_COND_DESC: 
+@RASQAL_EXPR_LANGMATCHES: 
 @RASQAL_EXPR_LAST: 
 
 <!-- ##### ENUM rasqal_compare_flags ##### -->
