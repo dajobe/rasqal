@@ -1,4 +1,4 @@
-# $Id: manifest.n3,v 1.6 2005/08/03 13:54:17 sharris2 Exp $
+# $Id: manifest.n3,v 1.8 2005/12/20 15:14:41 sharris2 Exp $
 
 @prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
@@ -63,6 +63,26 @@
         dawgt:approval dawgt:NotApproved
       ]
 
-     
+     [  mf:name    "typePromotion-decimal-decimal-pass" ;
+        rdfs:comment
+            "Positive test: product of type promotion within the xsd:decimal type tree." ;
+        mf:action
+            [ qt:data   <typePromotion-0.n3> ;
+              qt:query  <typePromotion-decimal-decimal-pass.rq> ] ;
+        mf:result  <typePromotion-decimal-decimal-pass-result.n3> ;
+        dawgt:approval dawgt:NotApproved
+      ]
+
+     [  rdf:type mf:TestBadSyntax ;
+	mf:name    "typePromotion-decimal-decimal-fail" ;
+        rdfs:comment
+            "Negative test: product of type promotion within the xsd:decimal type tree." ;
+        mf:action
+            [ qt:data   <typePromotion-0.n3> ;
+              qt:query  <typePromotion-decimal-decimal-fail.rq> ] ;
+        mf:result  <typePromotion-decimal-decimal-fail-result.n3> ;
+        dawgt:approval dawgt:NotApproved
+      ]
+
     # End of tests
    ).
