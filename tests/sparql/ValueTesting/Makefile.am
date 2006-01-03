@@ -36,7 +36,9 @@ extendedType-literal-ne.rq \
 extendedType-graph.rq
 
 # Test failures
-EXPECTED_SPARQL_CORRECT_FAILURES= extendedType-ne-fail \
+EXPECTED_SPARQL_CORRECT_FAILURES= \
+typePromotion-decimal-decimal-fail \
+extendedType-ne-fail \
 extendedType-literal-ne
 
 SPARQL_RESULT_FILES= \
