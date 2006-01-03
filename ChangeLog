@@ -68,8 +68,7 @@
 	EXPONENT
 
 	* src/rasqal_literal.c (rasqal_new_decimal_literal): Added to make
-	a decimal literal
-	(xsd:decimal).
+	a decimal literal (xsd:decimal).
 
 	* src/rasqal.h: Added prototype for rasqal_new_decimal_literal
 
