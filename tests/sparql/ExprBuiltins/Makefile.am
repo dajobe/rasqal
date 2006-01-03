@@ -34,9 +34,10 @@ q-str-4.rq q-uri-1.rq
 
 
 # str-2: result-str-2.ttl relies on [[rs:value 01]] provding a lex form "01"
-# str-4: str comparison to empty literal
 EXPECTED_SPARQL_CORRECT_FAILURES= \
-str-2 str-4
+str-2 \
+datatype-1 \
+LangMatches-1 LangMatches-2 LangMatches-3 LangMatches-4
 
 SPARQL_RESULT_FILES= \
 result-blank-1.ttl result-datatype-1.ttl result-str-1.ttl \
