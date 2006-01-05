@@ -2203,10 +2203,6 @@ rasqal_query_results_write_xml_20041221(raptor_iostream *iostr,
                               (const unsigned char*)"http://www.w3.org/2001/sw/DataAccess/rf1/result",
                               0);
 
-  raptor_xml_writer_raw(xml_writer,
-                        (const unsigned char*)"<?xml version=\"1.0\"?>\n");
-
-
   sparql_qname=raptor_new_qname_from_namespace_local_name(res_ns,
                                                           (const unsigned char*)"sparql",
                                                           NULL); /* no attribute value - element */
@@ -2494,10 +2490,6 @@ rasqal_query_results_write_xml_result2(raptor_iostream *iostr,
                               NULL,
                               (const unsigned char*)"http://www.w3.org/2001/sw/DataAccess/rf1/result2",
                               0);
-
-
-  raptor_xml_writer_raw(xml_writer,
-                        (const unsigned char*)"<?xml version=\"1.0\"?>\n");
 
 
   sparql_qname=raptor_new_qname_from_namespace_local_name(res_ns,
@@ -2870,10 +2862,6 @@ rasqal_query_results_write_xml_result3(raptor_iostream *iostr,
                               NULL,
                               (const unsigned char*)"http://www.w3.org/2005/sparql-results#",
                               0);
-
-
-  raptor_xml_writer_raw(xml_writer,
-                        (const unsigned char*)"<?xml version=\"1.0\"?>\n");
 
 
   sparql_qname=raptor_new_qname_from_namespace_local_name(res_ns,
