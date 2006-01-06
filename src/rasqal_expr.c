@@ -1210,19 +1210,12 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e,
           free_literal=0;
         }
 
-        if(l->type != RASQAL_LITERAL_STRING) {
-          if(free_literal)
-            rasqal_free_literal(l);
-          goto failed;
-        }
-        
-        if(l->language) {
+        if(l->type == RASQAL_LITERAL_STRING && l->language) {
           new_language=(unsigned char*)RASQAL_MALLOC(cstring, strlen(l->language)+1);
           strcpy((char*)new_language, l->language);
         } else {
-          new_language=(unsigned char*)RASQAL_MALLOC(cstring, 2);
-          new_language[0]='-';
-          new_language[1]='\0';
+          new_language=(unsigned char*)RASQAL_MALLOC(cstring, 1);
+          *new_language='\0';
         }
         
         result=rasqal_new_string_literal(new_language, NULL, NULL, NULL);
@@ -1261,15 +1254,16 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e,
          * language-tag string.
          * -- http://www.w3.org/TR/rdf-sparql-query/#func-langMatches
          */
-
+        
+        /* FIXME - seems to me it got the description of '*' in the 
+         * wrong argument position
+         */
         s1=rasqal_literal_as_string(l1);
         s2=rasqal_literal_as_string(l2);
-        rasqal_free_literal(l1);
-        rasqal_free_literal(l2);
 
         if(s1 && s2 && *s1 && *s2) {
           /* Two non-empty arguments */
-          if(s1[0] == '*' && !s1[1])
+          if(s2[0] == '*' && !s2[1])
             b= 1;
           else
             /* FIXME - this is not a language compare */
@@ -1277,6 +1271,9 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e,
         } else
           /* FIXME - false may not be the right answer for all strings */
           b=0;
+
+        rasqal_free_literal(l1);
+        rasqal_free_literal(l2);
 
         result=rasqal_new_boolean_literal(b);
         break;
@@ -1826,7 +1823,8 @@ static const char* rasqal_op_labels[RASQAL_EXPR_LAST+1]={
   "isLiteral",
   "cast",
   "order asc",
-  "order desc"
+  "order desc",
+  "langMatches"
 };
 
 
