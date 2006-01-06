@@ -341,41 +341,51 @@ have_regex_posix=0
 need_regex_pcre=0
 need_regex_posix=0
 
-AC_CHECK_PROG(PCRE_CONFIG, pcre-config, pcre-config)
-AC_ARG_WITH(pcre, [  --with-pcre-config=PATH     Location of PCRE pcre-config (auto)], pcre_config="$withval", pcre_config="")
+AC_ARG_ENABLE(pcre,
+	[  --disable-pcre                  Disable PCRE support (default auto)],
+	[enable_pcre=$enableval], [enable_pcre="auto"])
 
-if test "X$pcre_config" != "X" ; then
-  AC_MSG_CHECKING(for $pcre_config)
+if test "x$enable_pcre" != "xno" ; then
 
-  if test -f $pcre_config ; then
-    PCRE_CONFIG=$pcre_config
-    AC_MSG_RESULT(yes)
-  else
-    AC_MSG_RESULT(no - searching PATH)
+  AC_CHECK_PROG(PCRE_CONFIG, pcre-config, pcre-config)
+  AC_ARG_WITH(pcre, [  --with-pcre-config=PATH     Location of PCRE pcre-config (auto)], pcre_config="$withval", pcre_config="")
+
+  if test "X$pcre_config" != "X" ; then
+    AC_MSG_CHECKING(for $pcre_config)
+
+    if test -f $pcre_config ; then
+      PCRE_CONFIG=$pcre_config
+      AC_MSG_RESULT(yes)
+    else
+      AC_MSG_RESULT(no - searching PATH)
+    fi
   fi
-fi
-if test "X$PCRE_CONFIG" = "X"; then
-  AC_CHECK_PROGS(PCRE_CONFIG, pcre-config)
-fi
+  if test "X$PCRE_CONFIG" = "X"; then
+    AC_CHECK_PROGS(PCRE_CONFIG, pcre-config)
+  fi
 
 
-AC_MSG_CHECKING(for pcre)
-PCRE_VERSION=`$PCRE_CONFIG --version 2>/dev/null`
-PCRE_MIN_VERSION=3.9
+  AC_MSG_CHECKING(for pcre)
+  PCRE_VERSION=`$PCRE_CONFIG --version 2>/dev/null`
+  PCRE_MIN_VERSION=3.9
 
-PCRE_VERSION_DEC=`echo $PCRE_VERSION | $AWK -F. '{printf("%d\n", 100*$1 + $2)};'`
-PCRE_MIN_VERSION_DEC=`echo $PCRE_MIN_VERSION | $AWK -F. '{printf("%d\n", 100*$1 + $2)};'`
-if test "X$PCRE_VERSION" = X; then
-  AC_MSG_RESULT(not present)
-elif test "X$PCRE_VERSION" -a $PCRE_VERSION_DEC -ge $PCRE_MIN_VERSION_DEC; then
-  have_regex_pcre=1
-  AC_MSG_RESULT($PCRE_VERSION)
-else
-  AC_MSG_WARN($PCRE_VERSION - too old - need $PCRE_MIN_VERSION)
-fi
+  PCRE_VERSION_DEC=`echo $PCRE_VERSION | $AWK -F. '{printf("%d\n", 100*$1 + $2)};'`
+  PCRE_MIN_VERSION_DEC=`echo $PCRE_MIN_VERSION | $AWK -F. '{printf("%d\n", 100*$1 + $2)};'`
+  if test "X$PCRE_VERSION" = X; then
+    AC_MSG_RESULT(not present)
+  elif test "X$PCRE_VERSION" -a $PCRE_VERSION_DEC -ge $PCRE_MIN_VERSION_DEC; then
+    have_regex_pcre=1
+    AC_MSG_RESULT($PCRE_VERSION)
+  else
+    AC_MSG_WARN($PCRE_VERSION - too old - need $PCRE_MIN_VERSION)
+  fi
 
-if test $have_regex_pcre = 1; then
-  AC_DEFINE(HAVE_REGEX_PCRE, 1, [have PCRE regex - Perl Compatible Regular Expressions])
+  if test $have_regex_pcre = 1; then
+    AC_DEFINE(HAVE_REGEX_PCRE, 1, [have PCRE regex - Perl Compatible Regular Expressions])
+  elif test "x$enable_pcre" = "xyes"; then
+    AC_MSG_ERROR(PCRE requested but not found)
+  fi
+
 fi
 
 
@@ -442,57 +452,68 @@ fi
 AC_MSG_RESULT($result)
 
 
-AC_ARG_WITH(xml2-config, [  --with-xml2-config=PATH   Location of libxml xml2-config []], xml2_config="$withval", xml2_config="")
-
-if test "X$xml2_config" != "X" ; then
-  AC_MSG_CHECKING(for $xml2_config)
-
-  if test -f $xml2_config ; then
-    XML_CONFIG=$xml2_config
-    AC_MSG_RESULT(yes)
-  else
-    AC_MSG_RESULT(no - searching PATH)
-  fi
-fi
-if test "X$XML_CONFIG" = "X"; then
-  AC_CHECK_PROGS(XML_CONFIG, xml2-config)
-fi
-
-
 have_libxml=0
 need_libxml=0
 
-LIBXML_MIN_VERSION=2.4.0
-AC_MSG_CHECKING(for libxml2 library)
-oCPPFLAGS="$CPPFLAGS"
-oLIBS="$LIBS"
-if test "X$XML_CONFIG" != X; then
-  LIBS="$LIBS `$XML_CONFIG --libs`"
-  CPPFLAGS="`$XML_CONFIG --cflags` $CPPFLAGS"
-  LIBXML_VERSION=`$XML_CONFIG --version`
-  libxml_version_dec=`echo $LIBXML_VERSION | awk -F. '{printf("%d\n", 10000*$1 + 100*$2 + $3)};'`
-  LIBXML_MIN_VERSION_dec=`echo $LIBXML_MIN_VERSION | awk -F. '{printf("%d\n", 10000*$1 + 100*$2 + $3)};'`
-  AC_MSG_RESULT(yes - version $LIBXML_VERSION)
-  if test $libxml_version_dec -lt $LIBXML_MIN_VERSION_dec; then
-     AC_MSG_WARN(Using libxml $LIBXML_VERSION is unsupported - $LIBXML_MIN_VERSION or newer required.)
-  else
-    AC_CHECK_HEADERS(libxml/xmlschemas.h libxml/xmlschemastypes.h libxml/schemasInternals.h)
-    if test "$ac_cv_header_libxml_xmlschemas_h" = no; then
-      AC_MSG_WARN(libxml library found but not xml schema headers - disabling)
+AC_ARG_ENABLE(xml2,
+	[  --disable-xml2                  Disable XML2 support (default auto)],
+	[enable_xml2=$enableval], [enable_xml2="auto"])
+
+if test "x$enable_xml2" != "xno" ; then
+
+  AC_ARG_WITH(xml2-config, [  --with-xml2-config=PATH     Location of libxml xml2-config ()], xml2_config="$withval", xml2_config="")
+
+  if test "X$xml2_config" != "X" ; then
+    AC_MSG_CHECKING(for $xml2_config)
+
+    if test -f $xml2_config ; then
+      XML_CONFIG=$xml2_config
+      AC_MSG_RESULT(yes)
     else
-      have_libxml=1
+      AC_MSG_RESULT(no - searching PATH)
     fi
   fi
-else
-  AC_MSG_RESULT(no)
-fi
-CPPFLAGS="$oCPPFLAGS"
-LIBS="$oLIBS"
+  if test "X$XML_CONFIG" = "X"; then
+    AC_CHECK_PROGS(XML_CONFIG, xml2-config)
+  fi
 
+
+  LIBXML_MIN_VERSION=2.4.0
+  AC_MSG_CHECKING(for libxml2 library)
+  oCPPFLAGS="$CPPFLAGS"
+  oLIBS="$LIBS"
+  if test "X$XML_CONFIG" != X; then
+    LIBS="$LIBS `$XML_CONFIG --libs`"
+    CPPFLAGS="`$XML_CONFIG --cflags` $CPPFLAGS"
+    LIBXML_VERSION=`$XML_CONFIG --version`
+    libxml_version_dec=`echo $LIBXML_VERSION | awk -F. '{printf("%d\n", 10000*$1 + 100*$2 + $3)};'`
+    LIBXML_MIN_VERSION_dec=`echo $LIBXML_MIN_VERSION | awk -F. '{printf("%d\n", 10000*$1 + 100*$2 + $3)};'`
+    AC_MSG_RESULT(yes - version $LIBXML_VERSION)
+    if test $libxml_version_dec -lt $LIBXML_MIN_VERSION_dec; then
+       AC_MSG_WARN(Using libxml $LIBXML_VERSION is unsupported - $LIBXML_MIN_VERSION or newer required.)
+    else
+      AC_CHECK_HEADERS(libxml/xmlschemas.h libxml/xmlschemastypes.h libxml/schemasInternals.h)
+      if test "$ac_cv_header_libxml_xmlschemas_h" = no; then
+        AC_MSG_WARN(libxml library found but not xml schema headers - disabling)
+      else
+        have_libxml=1
+      fi
+    fi
+  else
+    AC_MSG_RESULT(no)
+  fi
+  CPPFLAGS="$oCPPFLAGS"
+  LIBS="$oLIBS"
+
+  if test $have_libxml = 0 && test "x$enable_xml2" = "xyes" ; then
+    AC_MSG_ERROR(libxml2 requested but not found)
+  fi
+
+fi
 
 AC_MSG_CHECKING(enable datatypes support)
 datatypes=no
-AC_ARG_ENABLE(datatypes, [  --enable-datatypes        Turn on datatypes], datatypes="$enableval")
+AC_ARG_ENABLE(datatypes, [  --enable-datatypes              Turn on datatypes], datatypes="$enableval")
 if test "X$datatypes" = Xno -a "$USE_MAINTAINER_MODE" = yes; then
   datatypes=yes
 fi
