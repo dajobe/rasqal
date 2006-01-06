@@ -26,12 +26,13 @@
 SPARQL_MANIFEST_FILES= manifest.ttl
 
 SPARQL_MODEL_FILES= \
-data-builtin-1.ttl
+data-builtin-1.ttl \
+data-langMatches.ttl
 
 SPARQL_TEST_FILES= \
 q-blank-1.rq q-datatype-1.rq q-str-1.rq q-str-2.rq q-str-3.rq \
-q-str-4.rq q-uri-1.rq
-
+q-str-4.rq q-uri-1.rq \
+q-langMatches-1.rq q-langMatches-2.rq q-langMatches-3.rq q-langMatches-4.rq
 
 # str-2: result-str-2.ttl relies on [[rs:value 01]] provding a lex form "01"
 # datatype-1 - relies on lexical form of double being same as in .ttl
@@ -45,7 +46,9 @@ LangMatches-2 LangMatches-3 LangMatches-4
 
 SPARQL_RESULT_FILES= \
 result-blank-1.ttl result-datatype-1.ttl result-str-1.ttl \
-result-str-2.ttl result-str-3.ttl result-str-4.ttl result-uri-1.ttl
+result-str-2.ttl result-str-3.ttl result-str-4.ttl result-uri-1.ttl \
+result-langMatches-1.ttl result-langMatches-2.ttl \
+result-langMatches-3.ttl result-langMatches-4.ttl
 
 EXTRA_DIST= \
 $(SPARQL_MANIFEST_FILES) \
