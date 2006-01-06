@@ -1,3 +1,15 @@
+2006-01-06  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal.h: rasqal_op: RASQAL_EXPR_LANGMATCHES is last
+
+	* src/rasqal_expr.c (rasqal_expression_evaluate):
+	Make LANG() return "" for non-literals
+	as tests depend on it.  Return "" not "-".
+	Update LANGMATCHES() to make the wildcard the second arg; still does
+	not do proper subtag matches.
+
+	* tests/sparql/ExprBuiltins/Makefile.am: q-langMatches-1 works
+
 2006-01-05  Dave Beckett <dave@dajobe.org>
 
 	* src/rasqal_query.c:
