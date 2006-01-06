@@ -1,3 +1,9 @@
+2006-01-05  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_query.c:
+	Do not emit XML header here as raptor 1.4.8 xml writer does that
+	automatically now.
+
 2006-01-03  Dave Beckett <dave@dajobe.org>
 
 	* tests/sparql/ValueTesting/Makefile.am: Added expected test
