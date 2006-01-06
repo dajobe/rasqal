@@ -26,14 +26,17 @@
 SPARQL_MANIFEST_FILES= manifest.n3
 
 SPARQL_MODEL_FILES= \
-extendedType-0.n3
+extendedType-0.n3 \
+typePromotion-0.n3
 
 SPARQL_TEST_FILES= \
 extendedType-eq-pass.rq \
 extendedType-ne-fail.rq \
 extendedType-literal-eq.rq \
 extendedType-literal-ne.rq \
-extendedType-graph.rq
+extendedType-graph.rq \
+typePromotion-decimal-decimal-fail.rq \
+typePromotion-decimal-decimal-pass.rq
 
 # Test failures
 EXPECTED_SPARQL_CORRECT_FAILURES= \
@@ -46,8 +49,9 @@ extendedType-eq-pass-result.n3 \
 extendedType-ne-fail-result.n3 \
 extendedType-literal-eq-result.n3 \
 extendedType-literal-ne-result.n3 \
-extendedType-graph-result.n3
-
+extendedType-graph-result.n3 \
+typePromotion-decimal-decimal-fail-result.n3 \
+typePromotion-decimal-decimal-pass-result.n3
 
 EXTRA_DIST= \
 $(SPARQL_MANIFEST_FILES) \
