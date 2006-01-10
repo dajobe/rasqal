@@ -1,5 +1,9 @@
 2006-01-10  Dave Beckett  <dave@dajobe.org>
 
+	* src/rasqal_engine.c (rasqal_graph_pattern_get_next_match,
+	rasqal_engine_get_next_result): Return errors when query fails due
+	to unimplemented sequence/union of graph patterns.
+
 	* src/rasqal_query.c (rasqal_query_results_get_triple,
 	rasqal_query_results_next_triple): Do not crash with DESCRIBE,
 	return an empty graph always.
