@@ -1,4 +1,17 @@
+2006-01-10  Dave Beckett  <dave@dajobe.org>
+
+	* src/rasqal_query.c (rasqal_query_results_get_triple,
+	rasqal_query_results_next_triple): Do not crash with DESCRIBE,
+	return an empty graph always.
+	Fixes Issue#0000050 - http://bugs.librdf.org/mantis/view.php?id=50
+
 2006-01-06  Dave Beckett <dave@dajobe.org>
+
+	* configure.ac:
+	Add --disable-pcre and --disable-xml2 options to configure to
+	prevent	automatic use of libpcre or libxml2 when found.  Patch
+	from Mike Frysinger.
+	Addresses Issue#0000052 - http://bugs.librdf.org/mantis/view.php?id=52
 
 	* src/rasqal.h: rasqal_op: RASQAL_EXPR_LANGMATCHES is last
 
