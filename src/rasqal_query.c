@@ -3233,6 +3233,9 @@ rasqal_query_results_get_triple(rasqal_query_results *query_results) {
   if(query->finished)
     return NULL;
 
+  if(query->verb == RASQAL_QUERY_VERB_DESCRIBE)
+    return NULL;
+  
   if((query->current_triple_result < 0)||
      query->current_triple_result >= raptor_sequence_size(query->constructs)) {
     /* rc<0 error rc=0 end of results,  rc>0 got a result */
@@ -3393,6 +3396,9 @@ rasqal_query_results_next_triple(rasqal_query_results *query_results) {
   if(query->finished)
     return 1;
 
+  if(query->verb == RASQAL_QUERY_VERB_DESCRIBE)
+    return 1;
+  
   if(query->triple) {
     rasqal_free_triple(query->triple);
     query->triple=NULL;
