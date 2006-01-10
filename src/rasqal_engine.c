@@ -717,6 +717,10 @@ rasqal_graph_pattern_get_next_match(rasqal_query *query,
 
   if(gp->graph_patterns) {
     /* FIXME - sequence of graph_patterns not implemented, finish */
+    rasqal_query_error(query,
+                       "Graph pattern %s operation is not implemented yet. Ending query execution.", 
+                       rasqal_graph_pattern_operator_as_string(gp->op));
+    
     RASQAL_DEBUG1("Failing query with sequence of graph_patterns\n");
     return 0;
   }
@@ -1233,6 +1237,7 @@ rasqal_engine_get_next_result(rasqal_query *query)
   outergp=query->query_graph_pattern;
   if(!outergp || !outergp->graph_patterns) {
     /* FIXME - no graph patterns in query - end results */
+    rasqal_query_error(query, "No graph patterns in query. Ending query execution.");
     query->finished=1;
     return 0;
   }
@@ -1240,6 +1245,7 @@ rasqal_engine_get_next_result(rasqal_query *query)
   graph_patterns_size=raptor_sequence_size(outergp->graph_patterns);
   if(!graph_patterns_size) {
     /* FIXME - no graph patterns in query - end results */
+    rasqal_query_error(query, "No graph patterns in query. Ending query execution.");
     query->finished=1;
     return 0;
   }
@@ -1258,6 +1264,10 @@ rasqal_engine_get_next_result(rasqal_query *query)
 
     if(gp->graph_patterns) {
       /* FIXME - sequence of graph_patterns not implemented, finish */
+      rasqal_query_error(query,
+                         "Graph pattern %s operation is not implemented yet. Ending query execution.", 
+                         rasqal_graph_pattern_operator_as_string(gp->op));
+
       RASQAL_DEBUG1("Failing query with sequence of graph_patterns\n");
       step=STEP_FINISHED;
       break;
