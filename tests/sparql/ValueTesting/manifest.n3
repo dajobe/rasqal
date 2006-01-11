@@ -1,4 +1,4 @@
-# $Id: manifest.n3,v 1.8 2005/12/20 15:14:41 sharris2 Exp $
+# $Id: manifest.n3,v 1.9 2006/01/05 18:14:48 eric Exp $
 
 @prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
@@ -81,6 +81,46 @@
             [ qt:data   <typePromotion-0.n3> ;
               qt:query  <typePromotion-decimal-decimal-fail.rq> ] ;
         mf:result  <typePromotion-decimal-decimal-fail-result.n3> ;
+        dawgt:approval dawgt:NotApproved
+      ]
+
+     [  mf:name    "boolean-equiv-FALSE" ;
+        rdfs:comment
+            "FALSE = legal boolean values." ;
+        mf:action
+            [ qt:data   <boolean-0.n3> ;
+              qt:query  <boolean-equiv-FALSE.rq> ] ;
+        mf:result  <boolean-equiv-FALSE-result.n3> ;
+        dawgt:approval dawgt:NotApproved
+      ]
+
+     [  mf:name    "boolean-equiv-TRUE" ;
+        rdfs:comment
+            "TRUE = legal boolean values." ;
+        mf:action
+            [ qt:data   <boolean-0.n3> ;
+              qt:query  <boolean-equiv-TRUE.rq> ] ;
+        mf:result  <boolean-equiv-TRUE-result.n3> ;
+        dawgt:approval dawgt:NotApproved
+      ]
+
+     [  mf:name    "boolean-equiv-xsdType" ;
+        rdfs:comment
+            "Various lexical forms of xsd:boolean equal each other." ;
+        mf:action
+            [ qt:data   <boolean-0.n3> ;
+              qt:query  <boolean-equiv-xsdType.rq> ] ;
+        mf:result  <boolean-equiv-xsdType-result.n3> ;
+        dawgt:approval dawgt:NotApproved
+      ]
+
+     [  mf:name    "boolean-logical-OR" ;
+        rdfs:comment
+            "Various lexical forms of xsd:boolean equal an EBV.." ;
+        mf:action
+            [ qt:data   <boolean-0.n3> ;
+              qt:query  <boolean-logical-OR.rq> ] ;
+        mf:result  <boolean-logical-OR-result.n3> ;
         dawgt:approval dawgt:NotApproved
       ]
 

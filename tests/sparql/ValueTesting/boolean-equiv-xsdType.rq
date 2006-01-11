@@ -1,0 +1,9 @@
+# Various lexical forms of xsd:boolean equal each other
+# $Id$
+
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+SELECT ?one ?two
+ WHERE { ?one rdfs:value ?oneL .
+         ?two rdfs:value ?twoL .
+         FILTER ( ?oneL = ?twoL ) }
