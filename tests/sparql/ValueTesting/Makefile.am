@@ -26,10 +26,15 @@
 SPARQL_MANIFEST_FILES= manifest.n3
 
 SPARQL_MODEL_FILES= \
+boolean-0.n3 \
 extendedType-0.n3 \
 typePromotion-0.n3
 
 SPARQL_TEST_FILES= \
+boolean-equiv-FALSE.rq \
+boolean-equiv-TRUE.rq \
+boolean-equiv-xsdType.rq \
+boolean-logical-OR.rq \
 extendedType-eq-pass.rq \
 extendedType-ne-fail.rq \
 extendedType-literal-eq.rq \
@@ -45,6 +50,10 @@ extendedType-ne-fail \
 extendedType-literal-ne
 
 SPARQL_RESULT_FILES= \
+boolean-equiv-FALSE-result.n3 \
+boolean-equiv-TRUE-result.n3 \
+boolean-equiv-xsdType-result.n3 \
+boolean-logical-OR-result.n3 \
 extendedType-eq-pass-result.n3 \
 extendedType-ne-fail-result.n3 \
 extendedType-literal-eq-result.n3 \
