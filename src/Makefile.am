@@ -169,6 +169,7 @@ rasqal_expr_test_LDADD = librasqal.la
 
 strcasecmp_test_SOURCES = strcasecmp.c
 strcasecmp_test_CPPFLAGS = -DSTANDALONE
+strcasecmp_test_LDADD = librasqal.la
 
 rasqal_query_test_SOURCES = rasqal_query_test.c
 rasqal_query_test_CPPFLAGS = -DSTANDALONE
