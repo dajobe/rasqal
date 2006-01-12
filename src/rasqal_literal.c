@@ -4,9 +4,8 @@
  *
  * $Id$
  *
- * Copyright (C) 2003-2005, David Beckett http://purl.org/net/dajobe/
- * Institute for Learning and Research Technology http://www.ilrt.bristol.ac.uk/
- * University of Bristol, UK http://www.bristol.ac.uk/
+ * Copyright (C) 2003-2006, David Beckett http://purl.org/net/dajobe/
+ * Copyright (C) 2003-2005, University of Bristol, UK http://www.bristol.ac.uk/
  * 
  * This package is Free Software and part of Redland http://librdf.org/
  * 
@@ -260,7 +259,8 @@ rasqal_literal_string_to_native(rasqal_literal *l,
   if(raptor_uri_equals(l->datatype, rasqal_xsd_boolean_uri)) {
     int b=0;
     if(!strcmp((const char*)l->string, "true") || 
-       !strcmp((const char*)l->string, "TRUE"))
+       !strcmp((const char*)l->string, "TRUE") ||
+       !strcmp((const char*)l->string, "1"))
        b=1;
     
     if(l->language) {
