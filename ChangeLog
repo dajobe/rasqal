@@ -1,3 +1,24 @@
+2006-01-12  Dave Beckett  <dave@dajobe.org>
+
+	* tests/sparql/ValueTesting/Makefile.am: Add boolean tests to dist.
+
+	* src/rasqal_literal.c (rasqal_literal_string_to_native):
+	Accept "1" as an xsd:boolean true.
+
+2006-01-11  Dave Beckett  <dave@dajobe.org>
+
+	* tests/sparql/ValueTesting/boolean-0.n3,
+	tests/sparql/ValueTesting/boolean-equiv-FALSE-result.n3,
+	tests/sparql/ValueTesting/boolean-equiv-FALSE.rq,
+	tests/sparql/ValueTesting/boolean-equiv-TRUE-result.n3,
+	tests/sparql/ValueTesting/boolean-equiv-TRUE.rq,
+	tests/sparql/ValueTesting/boolean-equiv-xsdType-result.n3,
+	tests/sparql/ValueTesting/boolean-equiv-xsdType.rq,
+	tests/sparql/ValueTesting/boolean-logical-OR-result.n3,
+	tests/sparql/ValueTesting/boolean-logical-OR.rq,
+	tests/sparql/ValueTesting/manifest.n3: Added more boolean tests
+	from DAWG (unapproved)
+
 2006-01-10  Dave Beckett  <dave@dajobe.org>
 
 	* src/rasqal_engine.c (rasqal_graph_pattern_get_next_match,
