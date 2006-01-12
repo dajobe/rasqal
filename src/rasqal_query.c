@@ -4,9 +4,8 @@
  *
  * $Id$
  *
- * Copyright (C) 2003-2005, David Beckett http://purl.org/net/dajobe/
- * Institute for Learning and Research Technology http://www.ilrt.bristol.ac.uk/
- * University of Bristol, UK http://www.bristol.ac.uk/
+ * Copyright (C) 2003-2006, David Beckett http://purl.org/net/dajobe/
+ * Copyright (C) 2003-2005, University of Bristol, UK http://www.bristol.ac.uk/
  * 
  * This package is Free Software and part of Redland http://librdf.org/
  * 
@@ -3222,6 +3221,7 @@ rasqal_query_results_get_triple(rasqal_query_results *query_results) {
   rasqal_triple *t;
   rasqal_literal *s, *p, *o;
   raptor_statement *rs;
+  int skipped;
   
   if(!query_results)
     return NULL;
@@ -3235,140 +3235,191 @@ rasqal_query_results_get_triple(rasqal_query_results *query_results) {
 
   if(query->verb == RASQAL_QUERY_VERB_DESCRIBE)
     return NULL;
-  
-  if((query->current_triple_result < 0)||
-     query->current_triple_result >= raptor_sequence_size(query->constructs)) {
-    /* rc<0 error rc=0 end of results,  rc>0 got a result */
-    rc=rasqal_engine_get_next_result(query);
-    if(rc < 1)
-      query->finished=1;
-    if(rc < 0)
-      query->failed=1;
-  
-    if(query->finished || query->failed)
-      return NULL;
 
-    query->current_triple_result=0;
-  }
+  skipped=0;
+  while(1) {
+    if(skipped ||
+       ((query->current_triple_result < 0)||
+        query->current_triple_result >= raptor_sequence_size(query->constructs))) {
+      /* rc<0 error rc=0 end of results,  rc>0 got a result */
+      rc=rasqal_engine_get_next_result(query);
+      if(rc < 1)
+        query->finished=1;
+      if(rc < 0)
+        query->failed=1;
 
+      if(query->finished || query->failed) {
+        rs=NULL;
+        break;
+      }
 
-  t=(rasqal_triple*)raptor_sequence_get_at(query->constructs,
-                                           query->current_triple_result);
-
-  rs=&query->statement;
-
-  s=rasqal_literal_as_node(t->subject);
-  switch(s->type) {
-    case RASQAL_LITERAL_URI:
-      rs->subject=s->value.uri;
-      rs->subject_type=RAPTOR_IDENTIFIER_TYPE_RESOURCE;
-      break;
-
-    case RASQAL_LITERAL_BLANK:
-      s->string=rasqal_prefix_id(query->result_count, 
-                                 (unsigned char*)s->string);
-
-      rs->subject=s->string;
-      rs->subject_type=RAPTOR_IDENTIFIER_TYPE_ANONYMOUS;
-      break;
-
-    case RASQAL_LITERAL_QNAME:
-    case RASQAL_LITERAL_PATTERN:
-    case RASQAL_LITERAL_BOOLEAN:
-    case RASQAL_LITERAL_INTEGER:
-    case RASQAL_LITERAL_DOUBLE:
-    case RASQAL_LITERAL_FLOAT:
-    case RASQAL_LITERAL_VARIABLE:
-    case RASQAL_LITERAL_DECIMAL:
-    case RASQAL_LITERAL_DATETIME:
-      /* QNames should be gone by the time expression eval happens
-       * Everything else is removed by rasqal_literal_as_node() above. 
-       */
-
-    case RASQAL_LITERAL_STRING:
-      /* string [literal] subjects are not RDF */
-
-    case RASQAL_LITERAL_UNKNOWN:
-    default:
-      /* case RASQAL_LITERAL_STRING: */
-      RASQAL_FATAL2("Triple with non-URI/blank subject type %d", s->type);
-      break;
-  }
-  
-  p=rasqal_literal_as_node(t->predicate);
-  switch(p->type) {
-    case RASQAL_LITERAL_URI:
-      rs->predicate=p->value.uri;
-      rs->predicate_type=RAPTOR_IDENTIFIER_TYPE_RESOURCE;
-      break;
-
-    case RASQAL_LITERAL_QNAME:
-    case RASQAL_LITERAL_PATTERN:
-    case RASQAL_LITERAL_BOOLEAN:
-    case RASQAL_LITERAL_INTEGER:
-    case RASQAL_LITERAL_DOUBLE:
-    case RASQAL_LITERAL_FLOAT:
-    case RASQAL_LITERAL_VARIABLE:
-    case RASQAL_LITERAL_DECIMAL:
-    case RASQAL_LITERAL_DATETIME:
-      /* QNames should be gone by the time expression eval happens
-       * Everything else is removed by rasqal_literal_as_node() above. 
-       */
-
-    case RASQAL_LITERAL_BLANK:
-    case RASQAL_LITERAL_STRING:
-      /* blank node or string [literal] predicates are not RDF */
-
-    case RASQAL_LITERAL_UNKNOWN:
-    default:
-      RASQAL_FATAL2("Triple with non-URI predicatge type %d", p->type);
-      break;
-  }
-
-  o=rasqal_literal_as_node(t->object);
-  switch(o->type) {
-    case RASQAL_LITERAL_URI:
-      rs->object=o->value.uri;
-      rs->object_type=RAPTOR_IDENTIFIER_TYPE_RESOURCE;
-      break;
-
-    case RASQAL_LITERAL_BLANK:
-      o->string=rasqal_prefix_id(query->result_count, 
-                                 (unsigned char*)o->string);
-
-      rs->object=o->string;
-      rs->object_type=RAPTOR_IDENTIFIER_TYPE_ANONYMOUS;
-      break;
+      query->current_triple_result=0;
       
-    case RASQAL_LITERAL_STRING:
-      rs->object=o->string;
-      rs->object_literal_language=(const unsigned char*)o->language;
-      rs->object_literal_datatype=o->datatype;
-      rs->object_type=RAPTOR_IDENTIFIER_TYPE_LITERAL;
-      break;
+      skipped=0;
+    }
 
-    case RASQAL_LITERAL_QNAME:
-    case RASQAL_LITERAL_PATTERN:
-    case RASQAL_LITERAL_BOOLEAN:
-    case RASQAL_LITERAL_INTEGER:
-    case RASQAL_LITERAL_DOUBLE:
-    case RASQAL_LITERAL_FLOAT:
-    case RASQAL_LITERAL_VARIABLE:
-    case RASQAL_LITERAL_DECIMAL:
-    case RASQAL_LITERAL_DATETIME:
-      /* QNames should be gone by the time expression eval happens
-       * Everything else is removed by rasqal_literal_as_node() above. 
-       */
 
-    case RASQAL_LITERAL_UNKNOWN:
-    default:
-      RASQAL_FATAL2("Triple with unknown object type %d", o->type);
-      break;
+    t=(rasqal_triple*)raptor_sequence_get_at(query->constructs,
+                                             query->current_triple_result);
+
+    rs=&query->statement;
+
+    s=rasqal_literal_as_node(t->subject);
+    if(!s) {
+      rasqal_query_warning(query, "Triple with unbound subject skipped");
+      skipped=1;
+      continue;
+    }
+    switch(s->type) {
+      case RASQAL_LITERAL_URI:
+        rs->subject=s->value.uri;
+        rs->subject_type=RAPTOR_IDENTIFIER_TYPE_RESOURCE;
+        break;
+
+      case RASQAL_LITERAL_BLANK:
+        s->string=rasqal_prefix_id(query->result_count, 
+                                   (unsigned char*)s->string);
+
+        rs->subject=s->string;
+        rs->subject_type=RAPTOR_IDENTIFIER_TYPE_ANONYMOUS;
+        break;
+
+      case RASQAL_LITERAL_QNAME:
+      case RASQAL_LITERAL_PATTERN:
+      case RASQAL_LITERAL_BOOLEAN:
+      case RASQAL_LITERAL_INTEGER:
+      case RASQAL_LITERAL_DOUBLE:
+      case RASQAL_LITERAL_FLOAT:
+      case RASQAL_LITERAL_VARIABLE:
+      case RASQAL_LITERAL_DECIMAL:
+      case RASQAL_LITERAL_DATETIME:
+        /* QNames should be gone by the time expression eval happens
+         * Everything else is removed by rasqal_literal_as_node() above. 
+         */
+
+      case RASQAL_LITERAL_STRING:
+        /* string [literal] subjects are not RDF */
+
+      case RASQAL_LITERAL_UNKNOWN:
+      default:
+        /* case RASQAL_LITERAL_STRING: */
+        rasqal_query_warning(query, "Triple with non-URI/blank node subject skipped");
+        skipped=1;
+        break;
+    }
+    if(skipped) {
+      if(s)
+        rasqal_free_literal(s);
+      continue;
+    }
+    
+
+    p=rasqal_literal_as_node(t->predicate);
+    if(!p) {
+      rasqal_query_warning(query, "Triple with unbound predicate skipped");
+      rasqal_free_literal(s);
+      skipped=1;
+      continue;
+    }
+    switch(p->type) {
+      case RASQAL_LITERAL_URI:
+        rs->predicate=p->value.uri;
+        rs->predicate_type=RAPTOR_IDENTIFIER_TYPE_RESOURCE;
+        break;
+
+      case RASQAL_LITERAL_QNAME:
+      case RASQAL_LITERAL_PATTERN:
+      case RASQAL_LITERAL_BOOLEAN:
+      case RASQAL_LITERAL_INTEGER:
+      case RASQAL_LITERAL_DOUBLE:
+      case RASQAL_LITERAL_FLOAT:
+      case RASQAL_LITERAL_VARIABLE:
+      case RASQAL_LITERAL_DECIMAL:
+      case RASQAL_LITERAL_DATETIME:
+        /* QNames should be gone by the time expression eval happens
+         * Everything else is removed by rasqal_literal_as_node() above. 
+         */
+
+      case RASQAL_LITERAL_BLANK:
+      case RASQAL_LITERAL_STRING:
+        /* blank node or string [literal] predicates are not RDF */
+
+      case RASQAL_LITERAL_UNKNOWN:
+      default:
+        rasqal_query_warning(query, "Triple with non-URI predicate skipped");
+        skipped=1;
+        break;
+    }
+    if(skipped) {
+      rasqal_free_literal(s);
+      if(p)
+        rasqal_free_literal(p);
+      continue;
+    }
+
+    o=rasqal_literal_as_node(t->object);
+    if(!o) {
+      rasqal_query_warning(query, "Triple with unbound object skipped");
+      rasqal_free_literal(s);
+      rasqal_free_literal(p);
+      skipped=1;
+      continue;
+    }
+    switch(o->type) {
+      case RASQAL_LITERAL_URI:
+        rs->object=o->value.uri;
+        rs->object_type=RAPTOR_IDENTIFIER_TYPE_RESOURCE;
+        break;
+
+      case RASQAL_LITERAL_BLANK:
+        o->string=rasqal_prefix_id(query->result_count, 
+                                   (unsigned char*)o->string);
+
+        rs->object=o->string;
+        rs->object_type=RAPTOR_IDENTIFIER_TYPE_ANONYMOUS;
+        break;
+
+      case RASQAL_LITERAL_STRING:
+        rs->object=o->string;
+        rs->object_literal_language=(const unsigned char*)o->language;
+        rs->object_literal_datatype=o->datatype;
+        rs->object_type=RAPTOR_IDENTIFIER_TYPE_LITERAL;
+        break;
+
+      case RASQAL_LITERAL_QNAME:
+      case RASQAL_LITERAL_PATTERN:
+      case RASQAL_LITERAL_BOOLEAN:
+      case RASQAL_LITERAL_INTEGER:
+      case RASQAL_LITERAL_DOUBLE:
+      case RASQAL_LITERAL_FLOAT:
+      case RASQAL_LITERAL_VARIABLE:
+      case RASQAL_LITERAL_DECIMAL:
+      case RASQAL_LITERAL_DATETIME:
+        /* QNames should be gone by the time expression eval happens
+         * Everything else is removed by rasqal_literal_as_node() above. 
+         */
+
+      case RASQAL_LITERAL_UNKNOWN:
+      default:
+        rasqal_query_warning(query, "Triple with unknown object skipped");
+        skipped=1;
+        break;
+    }
+    if(skipped) {
+      rasqal_free_literal(s);
+      rasqal_free_literal(p);
+      if(o)
+        rasqal_free_literal(o);
+      continue;
+    }
+
+    /* for saving s, p, o for later disposal */
+    query->triple=rasqal_new_triple(s, p, o);
+
+    /* got triple, return it */
+    break;
   }
-
-  /* for saving s, p, o for later disposal */
-  query->triple=rasqal_new_triple(s, p, o);
-
+  
   return rs;
 }
 
