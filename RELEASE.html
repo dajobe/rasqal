@@ -13,33 +13,86 @@
 <p>Not yet released.
 </p>
 
-<h3>Query Engine Changes</h3>
-
-<p>When query result sorting is used with limit and offset, they now
-work correctly, performing the limit and offset after ordering the
-result.  This matches the SPARQL query result semantics.
-</p>
-
-<p>More cases with optional graph patterns (SPARQL
-<code>OPTIONAL</code>s) are now executed correctly.</p>
+<h3>General Changes</h3>
 
 <p>Duplicated <code>SELECT</code> variables are now detected, give a
 warning and removed.
 </p>
 
-<p>Check for invalid <code>\u</code><em>HHHH</em> and
+<p>rasqal requires raptor 1.4.8 to get the <em>guess</em> parser that
+uses URI/name and mime type returned from protocol request (if
+available) to choose the correct parser.
+</p>
+
+<p>Added an internal rasqal_map key:value map for use with result
+duplicate detection and ordering.
+</p>
+
+<p>A major source code regoranisation moved all library source code
+to the src/ dir, roqet to utils/ and other documentation to docs/.</p>
+
+<p>Many more function documentation were added to the sources for use
+by gtk-doc.</p>
+
+
+<h3>SPARQL Query Language Changes</h3>
+
+<p>Updated to the 
+<a href="http://www.w3.org/TR/2005/WD-rdf-sparql-query-20051123/">SPARQL Query Language for RDF W3C Working Draft 23 November 2005</a>:</p>
+<ul>
+<li>Added <code>isIRI</code> keywords.</li>
+<li>Updated the name definitions to allow initial _ in variable names.</li>
+<li>Changed the decimal and double literal syntax.</li>
+<li>Allow negative numeric literals.</li>
+<li>Change the AND and OR logic when an error is present.</li>
+</uk>
+
+<p>Added a post 2005-11-23 SPARQL WD syntax change: added
+<code>langMatches</code> operator and initial query engine support.
+</p>
+
+<p>Invalid <code>\u</code><em>HHHH</em> and
 <code>\U</code><em>HHHHHHHH</em> hex escapes and floating point
-number formats.</p>
+number formats are detected and warned.</p>
  
-<p><code>roqet</code> gains -e/--exec option to execute a query
-string directly rather than via a file or URI containing the query.
+<p>Updates to the query engine make <code>DISTINCT</code>
+and <code>ORDER BY</code> now work, including with <code>LIMIT</code>.
 </p>
 
-<p>Added types for xsd:float (C float) and xsd:double (C double);
-xsd:decimal (handled as a string) and xsd:datetime (as a string).
+<p>The lexer now counts line numbers correctly over multi-line
+comments.</p>
+
+<p>Updated changes to the valid characters allowed in SPARQL names
+for variable, prefix and QNames.</p>
+
+
+<h3>RDQL Query Language Changes</h3>
+
+<p>The lexer now counts line numbers correctly over multi-line
+comments.</p>
+
+
+<h3>Query Engine Changes</h3>
+
+<p>When query result sorting is used with limit
+(SPARQL <code>LIMIT</code>) and offset, they now work correctly,
+performing the limit and offset after ordering the result.  This
+matches the SPARQL query result semantics.
 </p>
 
-<p>Added <code>rasqal_new_double_literal</code>.
+<p>The query engine now implements distinct results
+(SPARQL <code>DISTINCT</code>) including with ordering
+(SPARQL <code>ORDER BY</code>).
+</p>
+
+<p>More cases with optional graph patterns (SPARQL
+<code>OPTIONAL</code>s) are now executed correctly.
+Note: this does <em>not</em> mean all cases work, there are known
+problems with executing optional clauses.</p>
+
+<p>Added types for <code>xsd:float</code> (C float)
+and <code>xsd:double</code> (C double); <code>xsd:decimal</code>
+(handled as a string) and <code>xsd:datetime</code> (as a string).
 </p>
 
 <p>Fixed (a compare b) between integers and doubles to be the right sign.
@@ -48,6 +101,11 @@ xsd:decimal (handled as a string) and xsd:datetime (as a string).
 <p>Do not promote literals early on in comparisons to strings "perl
 style" but do the best type-based comparsion as late as possible.
 </p>
+
+
+<h3>Query API Changes</h3>
+
+<p>Added <code>rasqal_new_double_literal</code>.</p>
 
 <p>Added rasqal_literal_ebv to get the Effective Boolean Value (EBV)
 of a literal.</p>
@@ -68,15 +126,11 @@ rasqal_expression_evaluate to ask for use of XQuery comparison and
 type promotions.
 </p>
 
-<p>Query engine now implements <code>DISTINCT</code> results
-including with <code>ORDER BY</code>.
-</p>
 
-<p>RDQL and SPARQL lexers now count line numbers correctly over
-multi-line comments.</p>
+<h3><code>roqet</code> utility program changes</h3>
 
-<p>Updated the changes to the SPARQL names for variable, prefix and
-QNames.
+<p><code>roqet</code> gains -e/--exec option to execute a query
+string directly rather than via a file or URI containing the query.
 </p>
 
 <p>roqet now write out XML results format in format with version URI
@@ -84,31 +138,6 @@ http://www.w3.org/2005/06/sparqlResults and short name "xml".  The
 previous version is available with short name "xml-v2".  The latest
 version now writes <code>ordered</code> and <code>distinct</code>
 boolean-valued attributes on the <code>results</code> element.
-</p>
-
-<p>rasqal requires raptor 1.4.8 to get the <em>guess</em> parser that
-uses URI/name and mime type returned from protocol request (if
-available) to choose the correct parser.
-</p>
-
-<p>Added an internal rasqal_map key:value map for use with result
-duplicate detection and ordering.
-</p>
-
-
-<p>A major source code regoranisation moved all library source code
-to the src/ dir, roqet to utils/ and other documentation to docs/.</p>
-
-<p>Many more function documentation were added to the sources for use
-by gtk-doc.</p>
-
-<p>Updated to the 
-<a href="http://www.w3.org/TR/2005/WD-rdf-sparql-query-20051123/">SPARQL Query Language for RDF W3C Working Draft 23 November 2005</a>.
-Added <code>langMatches</code> and <code>isIRI</code> keywords and
-initial query engine support, updated the name definitions to allow initial
-_ in variable names, changed the decimal and double literal
-syntax, allow negative numeric literals and change the AND and OR logic when
-an error is present.
 </p>
 
 <h3>Configuration Changes</h3>
@@ -138,9 +167,6 @@ expanding with more detail of rasqal including examples and tutorial
 information.  The manual page will continue to contain the summary
 information for the present.
 </p>
-
-
-
 
 
 <h2 id="rel0_9_10"><a name="rel0_9_10">Rasqal 0.9.10 Changes</a></h2>
