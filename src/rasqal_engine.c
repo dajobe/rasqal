@@ -1667,7 +1667,6 @@ rasqal_engine_check_limit_offset(rasqal_query *query)
       /* offset and limit */
       if(query->result_count > (query->offset + query->limit)) {
         query->finished=1;
-        query->result_count--;
       }
     }
     
@@ -1675,7 +1674,6 @@ rasqal_engine_check_limit_offset(rasqal_query *query)
     /* limit */
     if(query->result_count > query->limit) {
       query->finished=1;
-      query->result_count--;
     }
   }
 
