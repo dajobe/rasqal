@@ -15,7 +15,8 @@
 	rasqal_query_results_get_binding_value,
 	rasqal_query_results_get_binding_value_by_name): Adjusted to use
 	result_count offset -1.
-
+	Fixes Issue#0000064 - http://bugs.librdf.org/mantis/view.php?id=64
+	
 	* src/rasqal_engine.c (rasqal_engine_check_limit_offset): Do not
 	muck about with result_count here.
 
