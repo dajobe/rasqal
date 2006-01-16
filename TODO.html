@@ -24,31 +24,32 @@
 
 <h3><a name="sparql">SPARQL</a></h3>
 
-<p>Rasqal 0.9.9+ provides support for the SPARQL language as defined in
-<a href="http://www.w3.org/TR/2005/WD-rdf-sparql-query-20050721/">SPARQL Query Language for RDF</a>,
-W3C Working Draft, 21 July 2005.</p>
+<p>Rasqal provides support for the SPARQL language as defined in
+<a href="http://www.w3.org/TR/2005/WD-rdf-sparql-query-20051123/">SPARQL Query Language for RDF</a>,
+W3C Working Draft, 23 November 2005.</p>
 
 <p>Rasqal currently can read all the syntax and implements the
-functionality in common with RDQL plus graph patterns, optionals,
-constructed triples, boolean results, ordering query results and some
-built-in functions.  The unimplemented parts from the above SPARQL
-working draft are approximately as follows:</p>
+functionality in common with RDQL plus graph patterns; partial
+optionals; constructed triples; boolean results; distincting,
+ordering and limiting query results and some built-in functions.  The
+unimplemented parts from the above SPARQL working draft are
+approximately as follows:</p>
 <ul>
-<li><a href="http://www.w3.org/TR/2005/WD-rdf-sparql-query-20050721/#GroupPatterns" class="tocxref">4.1 Group Graph Patterns</a></li>
-<li><a href="http://www.w3.org/TR/2005/WD-rdf-sparql-query-20050721/#MultipleOptionals">5.3 Multiple Optional Blocks</a></li>
-<li><a href="http://www.w3.org/TR/2005/WD-rdf-sparql-query-20050721/#OptionalMatchingNested">5.5 Nested Optional Graph Patterns</a></li>
-<li><a href="http://www.w3.org/TR/2005/WD-rdf-sparql-query-20050721/#unionOp">6.1 Joining Patterns with UNION</a></li>
-<li><a href="http://www.w3.org/TR/2005/WD-rdf-sparql-query-20050721/#rdfDataset">7 RDF Dataset</a></li>
-<li><a href="http://www.w3.org/TR/2005/WD-rdf-sparql-query-20050721/#queryDataset">8 Querying the Dataset</a></li>
-<li><a href="http://www.w3.org/TR/2005/WD-rdf-sparql-query-20050721/#accessByLabel">8.1 Accessing Graph Names</a></li>
-<li><a href="http://www.w3.org/TR/2005/WD-rdf-sparql-query-20050721/#restrictByLabel">8.2 Restricting by Graph IRI</a></li>
-<li><a href="http://www.w3.org/TR/2005/WD-rdf-sparql-query-20050721/#restrictInQuery">8.3 Restricting via Solution</a></li>
-<li><a href="http://www.w3.org/TR/2005/WD-rdf-sparql-query-20050721/#namedAndDefaultGraph">8.4 Named and Default Graphs</a></li>
-<li><a href="http://www.w3.org/TR/2005/WD-rdf-sparql-query-20050721/#unnamedGraph">9.1 Specifying the default Graph</a></li>
-<li><a href="http://www.w3.org/TR/2005/WD-rdf-sparql-query-20050721/#namedGraphs">9.2 Specifying Named Graphs</a></li>
-<li><a href="http://www.w3.org/TR/2005/WD-rdf-sparql-query-20050721/#specDataset">9.3 Combining FROM and FROM NAMED</a></li>
-<li><a href="http://www.w3.org/TR/2005/WD-rdf-sparql-query-20050721/#operandDataTypes" class="tocxref">11.1 Operand Data Types</a> </li>
-<li><a href="http://www.w3.org/TR/2005/WD-rdf-sparql-query-20050721/#FuncAndOp">11.2 SPARQL Functions and Operators</a></li>
+<li><a href="http://www.w3.org/TR/2005/WD-rdf-sparql-query-20051123/#GroupPatterns" class="tocxref">4.1 Group Graph Patterns</a></li>
+<li><a href="http://www.w3.org/TR/2005/WD-rdf-sparql-query-20051123/#MultipleOptionals">5.3 Multiple Optional Blocks</a></li>
+<li><a href="http://www.w3.org/TR/2005/WD-rdf-sparql-query-20051123/#OptionalMatchingNested">5.5 Nested Optional Graph Patterns</a></li>
+<li><a href="http://www.w3.org/TR/2005/WD-rdf-sparql-query-20051123/#unionOp">6.1 Joining Patterns with UNION</a></li>
+<li><a href="http://www.w3.org/TR/2005/WD-rdf-sparql-query-20051123/#rdfDataset">7 RDF Dataset</a></li>
+<li><a href="http://www.w3.org/TR/2005/WD-rdf-sparql-query-20051123/#queryDataset">8 Querying the Dataset</a></li>
+<li><a href="http://www.w3.org/TR/2005/WD-rdf-sparql-query-20051123/#accessByLabel">8.1 Accessing Graph Names</a></li>
+<li><a href="http://www.w3.org/TR/2005/WD-rdf-sparql-query-20051123/#restrictByLabel">8.2 Restricting by Graph IRI</a></li>
+<li><a href="http://www.w3.org/TR/2005/WD-rdf-sparql-query-20051123/#restrictInQuery">8.3 Restricting via Solution</a></li>
+<li><a href="http://www.w3.org/TR/2005/WD-rdf-sparql-query-20051123/#namedAndDefaultGraph">8.4 Named and Default Graphs</a></li>
+<li><a href="http://www.w3.org/TR/2005/WD-rdf-sparql-query-20051123/#unnamedGraph">9.1 Specifying the default Graph</a></li>
+<li><a href="http://www.w3.org/TR/2005/WD-rdf-sparql-query-20051123/#namedGraphs">9.2 Specifying Named Graphs</a></li>
+<li><a href="http://www.w3.org/TR/2005/WD-rdf-sparql-query-20051123/#specDataset">9.3 Combining FROM and FROM NAMED</a></li>
+<li><a href="http://www.w3.org/TR/2005/WD-rdf-sparql-query-20051123/#operandDataTypes" class="tocxref">11.1 Operand Data Types</a> </li>
+<li><a href="http://www.w3.org/TR/2005/WD-rdf-sparql-query-20051123/#FuncAndOp">11.2 SPARQL Functions and Operators</a></li>
 </ul>
 
 
@@ -82,6 +83,7 @@ result solution.</li>
 release version where appropriate.</p>
 
 <ul>
+<li>Engine: result distinct, limit and ordering (0.9.11)</li>
 <li>Engine: result ordering (0.9.10)</li>
 <li>Engine: result constraints - like <code>LIMIT</code> and <code>OFFSET</code> in SQL (0.9.9)</li>
 <li>SPARQL: <code>BOUND</code> from <a href="http://www.w3.org/TR/2005/WD-rdf-sparql-query-20050419/#func-isBound">11.2.1.2 sop:bound</a> (0.9.6)</li>

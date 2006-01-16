@@ -10,26 +10,26 @@
 
 <h2 id="rel0_9_11"><a name="rel0_9_11">Rasqal 0.9.11 Changes</a></h2>
 
-<p>Not yet released.
-</p>
-
 <h3>General Changes</h3>
 
 <p>Duplicated <code>SELECT</code> variables are now detected, give a
-warning and removed.
+warning and are removed.
 </p>
 
-<p>rasqal requires raptor 1.4.8 to get the <em>guess</em> parser that
-uses URI/name and mime type returned from protocol request (if
-available) to choose the correct parser.
+<p>Rasqal now requires <a href="http://librdf.org/raptor/">raptor</a>
+1.4.8 or newer to get the <em>guess</em> parser that uses URI/name
+and mime type returned from protocol request (if available) to choose
+the correct parser.
 </p>
 
-<p>Added an internal rasqal_map key:value map for use with result
-duplicate detection and ordering.
+<p>Added an internal <code>rasqal_map</code> key : value map for use
+with result duplicate detection and ordering.
 </p>
 
 <p>A major source code regoranisation moved all library source code
-to the src/ dir, roqet to utils/ and other documentation to docs/.</p>
+to the <code>src/</code> dir, roqet to <code>utils/</code> and other
+documentation to <code>docs/</code>.  This should only affect
+packagers, not any functionality.</p>
 
 <p>Many more function documentation were added to the sources for use
 by gtk-doc.</p>
@@ -45,7 +45,7 @@ by gtk-doc.</p>
 <li>Changed the decimal and double literal syntax.</li>
 <li>Allow negative numeric literals.</li>
 <li>Change the AND and OR logic when an error is present.</li>
-</uk>
+</ul>
 
 <p>Added a post 2005-11-23 SPARQL WD syntax change: added
 <code>langMatches</code> operator and initial query engine support.
@@ -114,14 +114,14 @@ of a literal.</p>
 constant i.e. not a variable.
 </p>
 
-<p>Added rasqal_expression_clear to deallocate a static
-rasqal_expression.
+<p>Added <code>rasqal_expression_clear</code> to deallocate a static
+<code>rasqal_expression</code>.
 </p>
 
-<p>The enum types in rasqal_literal_type were reordered to make them
-match sparql type promotion.</p>
+<p>The enum types in <code>rasqal_literal_type</code> were reordered
+to make them match sparql type promotion.</p>
 
-<p>Added define RASQAL_COMPARE_XQUERY flags for use with
+<p>Added define <code>RASQAL_COMPARE_XQUERY</code> flags for use with
 rasqal_expression_evaluate to ask for use of XQuery comparison and
 type promotions.
 </p>
@@ -133,12 +133,14 @@ type promotions.
 string directly rather than via a file or URI containing the query.
 </p>
 
-<p>roqet now write out XML results format in format with version URI
-http://www.w3.org/2005/06/sparqlResults and short name "xml".  The
-previous version is available with short name "xml-v2".  The latest
-version now writes <code>ordered</code> and <code>distinct</code>
-boolean-valued attributes on the <code>results</code> element.
+<p>Now writes out XML results format in format with version URI
+<code>http://www.w3.org/2005/06/sparqlResults</code> and short name
+"xml".  The previous version is available with short name "xml-v2".
+The latest version now writes <code>ordered</code>
+and <code>distinct</code> boolean-valued attributes on
+the <code>results</code> element.
 </p>
+
 
 <h3>Configuration Changes</h3>
 
@@ -164,8 +166,10 @@ support.</p>
 <p>This new documentation intended to replace the librasqal manual
 page/web page as easier to read document with scope for better
 expanding with more detail of rasqal including examples and tutorial
-information.  The manual page will continue to contain the summary
-information for the present.
+information.
+The <a href="http://librdf.org/rasqal/librasqal.html">librasqal</a>
+manual page will continue to contain the summary information for the
+present.
 </p>
 
 

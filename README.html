@@ -41,7 +41,7 @@ and file-by-file changes in the CVS <a href="ChangeLog">ChangeLog</a>.</p>
 <li>An RDF <a href="docs/api/query.html">query</a> construction and access API.</li>
 <li>A query execution engine including constraint expression evaluation.</li>
 <li>A query result binding API.</li>
-<li>Query language support for <a href="http://www.w3.org/TR/2005/WD-rdf-sparql-query-20050721/">SPARQL</a>.</li>
+<li>Query language support for <a href="http://www.w3.org/TR/2005/WD-rdf-sparql-query-20051123/">SPARQL</a>.</li>
 <li>Query language support for <a href="http://www.w3.org/Submission/2004/SUBM-RDQL-20040109/">RDQL</a>.</li>
 <li>Triple store querying APIs to support running over external RDF graphs.</li>
 <li>No memory leaks.</li>
@@ -74,21 +74,19 @@ over graphs stored in Redland.
 
 <h3>SPARQL Query Language for RDF</h3>
 
-<p>Rasqal provides initial support for the W3C SPARQL Query Language
+<p>Rasqal provides support for the W3C SPARQL Query Language
 being developed by the W3C
 <a href="http://www.w3.org/2001/sw/DataAccess/">RDF Data Access Working Group</a>,
 as defined in
-<a href="http://www.w3.org/TR/2005/WD-rdf-sparql-query-20050721/">SPARQL Query Language for RDF</a>,
-W3C Working Draft, 21 July 2005.
-It currently implements primarily the functionality in common with RDQL
-with some additions.
+<a href="http://www.w3.org/TR/2005/WD-rdf-sparql-query-20051123/">SPARQL Query Language for RDF</a>, W3C Working Draft 23 November 2005.
+It currently implements the core functionality but is not a
+complete implementation.
 For further information on the state, see the Rasqal
 <a href="TODO.html#sparql">todo / bugs list</a>.</p>
 
 <h3>RDF Data Query Language (RDQL)</h3>
 
-<p>Rasqal provides a complete parser and query constructor for the RDQL
-language, as defined in
+<p>Rasqal provides a complete implementation of the RDQL language, as defined in
 <a href="http://www.w3.org/Submission/2004/SUBM-RDQL-20040109/">RDQL - A Query Language for RDF</a>,
 W3C Member Submission 9 January 2004
 based on the earlier versions in Jena defined in
@@ -98,9 +96,10 @@ and the
 The
 <a href="http://www.hpl.hp.com/semweb/doc/tutorial/RDQL/">Jena RDQL Tutorial</a>
 gives an introduction on the language.
-Rasqal currently passes the majority of the
-<a href="http://jena.hpl.hp.com/2003/07/query/">Jena RDQL test suite</a>.
-Further information on the status of the RDQL support is given in the
+Rasqal currently passes all the
+<a href="http://jena.hpl.hp.com/2003/07/query/">Jena RDQL test suite</a>
+bar a couple.
+Detail of the status of the RDQL support is given in the
 Rasqal <a href="TODO.html#rdql">todo / bugs list</a>.</p>
 
 
