@@ -1,3 +1,7 @@
+2006-01-16  Dave Beckett  <dave@dajobe.org>
+
+	* src/win32_rasqal_config.h, configure.ac: Bumped version to 0.9.12
+
 2006-01-15  Dave Beckett  <dave@dajobe.org>
 
 	* tests/rdql/testsuite/README-RDQL-tests.txt,
