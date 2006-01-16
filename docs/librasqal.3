@@ -3,10 +3,10 @@
 .\"
 .\" $Id$
 .\"
-.\" Copyright (C) 2004-2005 David Beckett - http://purl.org/net/dajobe/
+.\" Copyright (C) 2004-2006 David Beckett - http://purl.org/net/dajobe/
 .\" Copyright (C) 2004-2005 University of Bristol - http://www.bristol.ac.uk/
 .\"
-.TH librasqal 3 "2005-12-20"
+.TH librasqal 3 "2006-01-15"
 .\" Please adjust this date whenever revising the manpage.
 .SH NAME
 librasqal \- Rasqal RDF query library
@@ -251,6 +251,11 @@ Print a graph pattern in a debug format.  This format may change in
 any release.
 .IP "\fBconst char* rasqal_graph_pattern_operator_as_string(rasqal_graph_pattern_operator \fIop\fP)"
 Utility function to get a graph pattern operator as a string.
+.IP "\fBint rasqal_graph_pattern_visit(rasqal_graph_pattern* \fIgraph_pattern\fP, rasqal_graph_pattern_visit_fn \fIfn\fP, void *\fIuser_data\fP)\fR"
+Visit a user function \fIfn\fP recursively over the graph pattern and it's
+sub-graph patterns.  The order is the first graph pattern at hand and then
+the arguments, if any.  function \fIfn\fP is called at each point
+with the arguments of \fIuser_data\fP and the graph pattern.
 .SH "QUERY RESULTS CLASS"
 A class for the results of a query.  The results can be in different
 formats - variable bindings, RDF graphs as a sequence of triples
@@ -336,10 +341,15 @@ There a several constructors for rasqal_literal to build them from
 simple types and existing rasqal_literal objects.  NOTE: Any objects
 or strings passed into these constructors becomed owned by the
 literal object except where noted.
+.IP "\fBrasqal_literal* rasqal_new_decimal_literal(const unsigned char* \fIdecimal\fP)\fR"
+Create a new decimal literal from string \fIdecimal\fP.
+.IP "\fBrasqal_literal* rasqal_new_double_literal(double \fId\fP)\fR"
+Create a new double literal from a \fId\fP.
 .IP "\fBrasqal_literal* rasqal_new_integer_literal(rasqal_literal_type \fItype\fP, int \fIinteger\fP)\fR"
 Create a new integer literal of an integral type, either type
 RASQAL_LITERAL_INTEGER or RASQAL_LITERAL_BOOLEAN.
 .IP "\fBrasqal_literal* rasqal_new_floating_literal(double \fIf\fP)\fR"
+DEPRECATED.  Use \fBrasqal_new_double_literal\fP.
 Create a new floating literal from a \fIf\fP.
 .IP "\fBrasqal_literal* rasqal_new_uri_literal(raptor_uri* \fIuri\fP)\fR"
 Create a new URI literal from a raptor_uri \fIuri\fP.
@@ -382,13 +392,13 @@ Return a new rasqal literal into one suitable for a node in an RDF triple
 or binding - as a URI, literal string (or datatyped) or blank node.
 The returned literal is owned by the caller and must be freed by
 rasqal_free_literal.
-.IP "\fBint rasqal_literal_compare(rasqal_literal* \fIliteral\fP1, rasqal_literal* \fIliteral\fP2, int \fIflags\fP, int* \fIerror\fP)\fR"
+.IP "\fBint rasqal_literal_compare(rasqal_literal* \fIliteral\fP1, rasqal_literal* \fIliteral\fP2, rasqal_compare_flags \fIflags\fP, int* \fIerror\fP)\fR"
 Compare two literals with type promotion across their range.  If the
 types are not the same, they are promoted.  If one is a floating, the
 other is promoted to floating, otherwise for integers, otherwise as
 strings (all literals have a string value).
 .IP
-flags affects string comparisons and if the
+flags affects string comparisons.  If the
 RASQAL_COMPARE_NOCASE bit is set, a case independent
 comparison is made.
 .IP
@@ -485,6 +495,9 @@ sequence of \fBrasqal_literal*\fP arguments \fIargs\fP.
 .IP "\fBrasqal_expression* rasqal_new_cast_expression(raptor_uri* \fIname, rasqal_expression* \fIvalue\fP)\fR"
 Create a new expression for a casting of \fIvalue\fP to a datatype
 with URI \fIname\fI.
+.SH "EXPRESSION COPY CONSTRUCTOR"
+.IP "\fBrasqal_expression* rasqal_new_expression_from_expression(rasqal_expression* \fIexpression\fP)\fR"
+Copy an existing rasqal expression object.
 .SH "EXPRESSION DESTRUCTOR"
 .IP "\fBvoid rasqal_free_expression(rasqal_expression* \fIexpression\fP)\fR"
 Destroy a rasqal expression object.
@@ -494,10 +507,18 @@ Print an expression operator in a debug format.  This format may
 change in any release.
 .IP "\fBvoid rasqal_expression_print(rasqal_expression* \fIexpression\fP, FILE* \fIfh\fP)\fR"
 Print an expression in a debug format.  This format may change in any release.
-.IP "\fBrasqal_literal* rasqal_expression_evaluate(rasqal_query* \fIquery\fP, rasqal_expression* \fIexpression\fP)\fR"
+.IP "\fBrasqal_literal* rasqal_expression_evaluate(rasqal_query* \fIquery\fP, rasqal_expression* \fIexpression\fP, rasqal_compare_flags \fIflags\fP)\fR"
 Evalute an expression, returning a rasqal boolean with the result or
-NULL on failure.
+NULL on failure.  If \fIflags\fP are \fBRASQAL_COMPARE_XQUERY\fP then XQuery
+comparison and type promotions are used.
+.IP "\fBint rasqal_expression_visit(rasqal_expression* \fIexpression\fP, rasqal_expression_visit_fn \fIfn\fP, void *\fIuser_data\fP)\fR"
+Visit a user function \fIfn\fP recursively over the expression and it's
+sub-expressions.  The order is the first expression at hand and then
+the arguments, if any.  function \fIfn\fP is called at each point
+with the arguments of \fIuser_data\fP and the expression.
 .IP "\fBint rasqal_expression_foreach(rasqal_expression* \fIexpression\fP, rasqal_expression_foreach_fn \fIfn\fP, void *\fIuser_data\fP)\fR"
+DEPRECATED.  Use \fBrasqal_expression_visit\fP instead.
+.IP
 Apply the function \fIfn\fP recursively over the expression and it's
 sub-expressions.  The order is the first expression at hand and then
 the arguments, if any.  function \fIfn\fP is called at each point
@@ -517,6 +538,40 @@ Destroy a rasqal data_graph object.
 .IP "\fBvoid rasqal_data_graph_print(rasqal_data_graph* \fIdg\fP, FILE* \fIfh\fP)\fR"
 Print a data graph in a debug format.  This format may change in any release.
 .SH API CHANGES
+.SS 0.9.11
+.LP
+Added enum \fBrasqal_compare_flags\fP
+flags for \fBrasqal_expression_evaluate\fP or \fBrasqal_literal_compare\fP.
+.LP
+Function \fBrasqal_expression_evaluate\fP gains a flag argument.
+.LP
+Added \fBrasqal_expression_visit\fP and type for visitor function
+\fBrasqal_expression_visit_fn\fP.
+.LP
+Added \fBrasqal_new_expression_from_expression\fP.
+.LP
+Deprecated \fBrasqal_expression_foreach\fP, replaced by
+\fBrasqal_expression_visit\fP.
+.LP
+Remove unused \fBrasqal_new_variable_expression\fP prototype.
+.LP
+Added \fBrasqal_graph_pattern_visit\fP and
+type for visitor function \fBrasqal_graph_pattern_visit_fn\fP.
+.LP
+Added \fBrasqal_new_decimal_literal\fP.
+.LP
+Deprecated \fBrasqal_new_floating_literal\fP replaced by new
+\fBrasqal_new_double_literal\fP.
+.LP
+Added rasqal_op type \fBRASQAL_EXPR_LANGMATCHES\fP for SPARQL langMatches().
+.LP
+Added \fBrasqal_literal\fP types:
+\fBRASQAL_LITERAL_DECIMAL\fP,
+\fBRASQAL_LITERAL_DATETIME\fP,
+\fBRASQAL_LITERAL_DOUBLE\fP (replacing deprecated \fBRASQAL_LITERAL_FLOATING\fP)
+and \fBRASQAL_LITERAL_FLOAT\fP.
+.LP
+Reordered the \fBrasqal_literal\fP types in the enum.
 .SS 0.9.10
 .LP
 Added an \fBrasqal_graph_pattern_operator\fP enumerated type.
@@ -755,22 +810,22 @@ Added \fBrasqal_free_query_results\fP to tidy up.
 All new.
 .br
 .SH "CONFORMING TO"
+\fISPARQL Query Language for RDF\fR, 
+Eric Prud'hommeaux and Andy Seaborne (eds), W3C Working Draft, 23 November 2005.
+.UR http://www.w3.org/TR/2005/WD-rdf-sparql-query-20051123/
+http://www.w3.org/TR/2005/WD-rdf-sparql-query-20051123/
+.UE
+.LP
 \fIRDQL - A Query Language for RDF\fR, Andy Seaborne,
 W3C Member Submission 9 January 2004
 .UR http://www.w3.org/Submission/2004/SUBM-RDQL-20040109/
 http://www.w3.org/Submission/2004/SUBM-RDQL-20040109/
 .UE
 .LP
-\fISPARQL Query Language for RDF\fR, 
-Eric Prud'hommeaux and Andy Seaborne (ed), W3C Working Draft, 17 February 2005.
-.UR http://www.w3.org/TR/2005/WD-rdf-sparql-query-20050217/
-http://www.w3.org/TR/2005/WD-rdf-sparql-query-20050217/
-.UE
-.LP
-\fISPARQL Variable Binding Results XML Format\fR, 
-Dave Beckett (ed), W3C Working Draft, 21 December 2004.
-.UR http://www.w3.org/TR/2004/WD-rdf-sparql-XMLres-20041221/
-http://www.w3.org/TR/2004/WD-rdf-sparql-XMLres-20041221/
+\fISPARQL Query Results XML Format\fR, 
+Dave Beckett (ed), W3C Working Draft, 1 August 2005.
+.UR http://www.w3.org/TR/2005/WD-rdf-sparql-XMLres-20050801/
+http://www.w3.org/TR/2005/WD-rdf-sparql-XMLres-20050801/
 .UE
 .SH SEE ALSO
 .BR roqet (1), rasqal-config (1)
