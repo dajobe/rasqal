@@ -147,7 +147,7 @@ QUOTEDURI \<[A-Za-z][^>]+\>
   rasqal_rdql_query_engine *rqe=(rasqal_rdql_query_engine*)rq->context;
 
 
-"//"[^\r\n]*\r\n|\r|\n	{ /* C++ comment */
+"//"[^\r\n]*(\r\n|\r|\n)	{ /* C++ comment */
         rqe->lineno++;
 }
 
