@@ -66,7 +66,7 @@ extern "C" {
  */
 
 /* Release version as a decimal */
-#define RASQAL_VERSION_DECIMAL 911
+#define RASQAL_VERSION_DECIMAL 912
 
 /* Major version number */
 #define RASQAL_VERSION_MAJOR 0
@@ -75,10 +75,10 @@ extern "C" {
 #define RASQAL_VERSION_MINOR 9
 
 /* Release version number */
-#define RASQAL_VERSION_RELEASE 11
+#define RASQAL_VERSION_RELEASE 12
 
 /* Version number of package */
-#define VERSION "0.9.11"
+#define VERSION "0.9.12"
 
 #include <windows.h>
 #include <io.h>
