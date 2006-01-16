@@ -1,5 +1,7 @@
 2006-01-15  Dave Beckett  <dave@dajobe.org>
 
+	* Snapshotted rasqal_0_9_11 for 0.9.11 release
+
 	* docs/librasqal.3: Updates for 0.9.11
 
 	* fix-groff-xhtml: style edits
