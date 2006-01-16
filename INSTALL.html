@@ -29,31 +29,25 @@ however Raptor is also required.</p>
 <a href="http://sourceforge.net/projects/librdf/">SourceForge site</a>.</p>
 
 
-<h2>1.2 Getting the sources from CVS</h2>
+<h2>1.2 Getting the sources from Subversion</h2>
 
-<p>Note that using this rather than the bundles may require having
-some extra development tools.  Presently this includes the 
+<p>Building from development sources rather than from a release
+may required some extra development tools.  Presently this includes the 
 <a href="http://lex.sourceforge.net/">flex scanner generator</a>
 version 2.5.31 or later.</p>
 
+<p><strong>NOTE</strong>: Rasqal switched to use
+<a href="http://subversion.tigris.org/">Subversion</a>
+for version control after the 0.9.11 release.  If you were
+using CVS, you will need to re-check out the sources.</p>
+
 <pre>
-  # sh, bash, ...
-  CVSROOT=:pserver:anonymous@cvs.librdf.org:/cvsroot
-  export CVSROOT
-  # csh, tcsh, ...
-  setenv CVSROOT :pserver:anonymous@cvs.librdf.org:/cvsroot
-
-  cvs login
-Logging in to :pserver:anonymous@cvs.librdf.org:2401/cvsroot
-CVS password: 
-  [return]
-
-  cvs checkout redland/rasqal
-
-  cd redland/rasqal
+  svn checkout http://svn.librdf.org/repository/rasqal/trunk/
+  mv trunk rasqal
+  cd rasqal
 </pre>
 
-<p>At this stage, or after a <tt>cvs update</tt> you will
+<p>At this stage, or after a <tt>svn update</tt> you will
 need to create the automake and autoconf derived files, as described
 below in <a href="#sec-create-configure">Create the configure program</a>
 by using the <code>autogen.sh</code> script.</p>
@@ -70,7 +64,7 @@ versions.</p>
 
 <p>Requirements: 
 the <a href="http://librdf.org/raptor/">Raptor RDF parser toolkit</a> version 1.4.4 or later
-(plus flex and bison as specified above, when building from CVS).
+(plus flex and bison as specified above, when building from Subversion).
 Recommended: <a href="http://www.pcre.org/">PCRE</a> regex library
 or another implementing the POSIX regex API.  If neither is
 present some of the tests will fail and the query engine will
@@ -111,7 +105,7 @@ below for what these are):</p>
 <p>The automake and autoconf tools have many different versions and
 at present development is being done with automake 1.8.3 (minimum
 version 1.7), autoconf 2.59 (minimum version 2.54) and libtool 1.5.4
-(minimum version 1.4).  These are only needed when compiling from CVS
+(minimum version 1.4).  These are only needed when compiling from Subversion
 sources.  autogen.sh enforces the requirements.  In future
 development will move to require automake 1.8, autoconf 2.58 and
 libtool 1.5.</p>
@@ -121,7 +115,7 @@ libtool 1.5.</p>
 (2.5.4 will not work) and
 <a href="http://www.gnu.org/software/bison/bison.html">GNU Bison</a>
 to build lexers and parsers.
-These are only required when building from CVS.</p>
+These are only required when building from Subversion.</p>
 
 
 <h3>2.2 Options for <tt>configure</tt></h3>
