@@ -1,9 +1,0 @@
-*.stamp
-.cvsignore
-Makefile
-Makefile.in
-README
-html
-xml
-tmpl
-version.xml
