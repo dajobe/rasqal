@@ -107,24 +107,45 @@ style" but do the best type-based comparsion as late as possible.
 
 <p>Added <code>rasqal_new_double_literal</code>.</p>
 
-<p>Added rasqal_literal_ebv to get the Effective Boolean Value (EBV)
-of a literal.</p>
-
-<p>Added rasqal_literal_is_constant returning non-0 if literal is a
-constant i.e. not a variable.
+<p>Added <code>rasqal_graph_pattern_visit</code> and type for visitor
+function <code>rasqal_graph_pattern_visit_fn</code>.
 </p>
 
-<p>Added <code>rasqal_expression_clear</code> to deallocate a static
-<code>rasqal_expression</code>.
+<p>Added <code>rasqal_new_expression_from_expression</code>.</p>
+
+<p>Added <code>rasqal_expression_visit</code> and type for visitor
+function <code>rasqal_expression_visit_fn</code>.
+</p>
+
+<p>Deprecated function <code>rasqal_new_floating_literal</code> replaced by
+new <code>rasqal_new_double_literal</code>.
+</p>
+
+<p>Deprecated function <code>rasqal_expression_foreach</code>,
+replaced by new <code>rasqal_expression_visit</code>.
+</p>
+
+<p>Function <code>rasqal_expression_evaluate</code> gains a flag
+argument of new enum <code>rasqal_compare_flags</code>.</p>
+
+<p>Added enum <code>rasqal_compare_flags</code> flags for
+<code>rasqal_expression_evaluate</code> or
+<code>rasqal_literal_compare</code>.  Type
+<code>RASQAL_COMPARE_XQUERY</code> can be used with
+to ask for use of XQuery comparison and type promotions.
+</p>
+
+<p>Added <code>rasqal_literal</code> types:
+<code>RASQAL_LITERAL_DECIMAL</code>,
+<code>RASQAL_LITERAL_DATETIME</code>,
+<code>RASQAL_LITERAL_DOUBLE</code> (replacing deprecated
+<code>RASQAL_LITERAL_FLOATING</code>) and
+<code>RASQAL_LITERAL_FLOAT</code>.  Reordered the
+<code>rasqal_literal</code> types in the enum.
 </p>
 
 <p>The enum types in <code>rasqal_literal_type</code> were reordered
 to make them match sparql type promotion.</p>
-
-<p>Added define <code>RASQAL_COMPARE_XQUERY</code> flags for use with
-rasqal_expression_evaluate to ask for use of XQuery comparison and
-type promotions.
-</p>
 
 
 <h3><code>roqet</code> utility program changes</h3>
