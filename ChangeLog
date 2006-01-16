@@ -1,5 +1,9 @@
 2006-01-15  Dave Beckett  <dave@dajobe.org>
 
+	* docs/librasqal.3: Updates for 0.9.11
+
+	* fix-groff-xhtml: style edits
+
 	* src/rasqal_query.c: Change results indexing when using ORDER;
 	the query->results_count is now a count (again) so starts from 1
 	when there is at least 1 result, indexing into item 0 of the
