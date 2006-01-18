@@ -34,5 +34,9 @@ while(<>) {
    s/unsigned int yylineno = /unsigned int yylineno_tmp = /;
    s/yyrule - 1, yylineno\)/yyrule - 1, yylineno_tmp\)/;
 
+   # Do not (re)define prototypes that the system did better
+   next if m%^void \*malloc\s*\(%;
+   next if m%^void free\s*\(%;
+
   print;
 }
