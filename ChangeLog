@@ -1,5 +1,22 @@
 2006-01-17  Dave Beckett  <dave@dajobe.org>
 
+	* src/sparql_parser.y: Major update to align with SPARQL grammar
+	terms.  Not yet completed.  Down to 1 shift/reduce conflict
+	Renamed many terms to match SPARQL (rq23) tokens.
+	Subject => VarOrTerm, Predicate => Verb,
+	PropertyList => PropertyListOpt,
+	PropertyListTail => PropertyListTailOpt
+	(PatternElement, PatternsEelementList, UnionGraphPattern,
+	UnionGraphPatternList): Deleted
+	(TriplesDotListOpt, Triples1 TriplesOpt, PropertyListNotEmpty,
+	GroupOrUnionGraphPattern, GroupOrUnionGraphPatternList,
+	GraphPatternNotTriples GraphPattern1Opt): Added.
+
+	* src/fix-bison: Remove malloc/free prototypes
+
+	* tests/sparql/ValueTesting/Makefile.am: sort test and query files
+	by name
+
 	* tests/sparql/ValueTesting/Makefile.am,
 	tests/sparql/ValueTesting/boolean-0.n3,
 	tests/sparql/ValueTesting/boolean-EBV-canonical-result.n3,
