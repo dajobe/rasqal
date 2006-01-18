@@ -38,21 +38,22 @@ boolean-false-canonical.rq \
 boolean-logical-OR.rq \
 boolean-true-canonical.rq \
 extendedType-eq-pass.rq \
-extendedType-ne-fail.rq \
+extendedType-graph.rq \
 extendedType-literal-eq.rq \
 extendedType-literal-ne.rq \
-extendedType-graph.rq \
+extendedType-ne-fail.rq \
+extendedType-ne-pass.rq \
 typePromotion-decimal-decimal-fail.rq \
 typePromotion-decimal-decimal-pass.rq
 
 # Test failures
 EXPECTED_SPARQL_CORRECT_FAILURES= \
-extendedType-ne-fail \
-extendedType-literal-ne \
-typePromotion-decimal-decimal-fail \
+boolean-EBV-canonical \
 boolean-false-canonical \
 boolean-true-canonical \
-boolean-EBV-canonical
+extendedType-literal-ne \
+extendedType-ne-fail \
+typePromotion-decimal-decimal-fail
 
 SPARQL_RESULT_FILES= \
 boolean-EBV-canonical-result.n3 \
@@ -63,10 +64,10 @@ boolean-false-canonical-result.n3 \
 boolean-logical-OR-result.n3 \
 boolean-true-canonical-result.n3 \
 extendedType-eq-pass-result.n3 \
-extendedType-ne-fail-result.n3 \
+extendedType-graph-result.n3 \
 extendedType-literal-eq-result.n3 \
 extendedType-literal-ne-result.n3 \
-extendedType-graph-result.n3 \
+extendedType-ne-fail-result.n3 \
 typePromotion-decimal-decimal-fail-result.n3 \
 typePromotion-decimal-decimal-pass-result.n3
 
