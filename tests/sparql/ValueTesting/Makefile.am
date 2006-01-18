@@ -30,10 +30,13 @@ extendedType-0.n3 \
 typePromotion-0.n3
 
 SPARQL_TEST_FILES= \
+boolean-EBV-canonical.rq \
 boolean-equiv-FALSE.rq \
 boolean-equiv-TRUE.rq \
 boolean-equiv-xsdType.rq \
+boolean-false-canonical.rq \
 boolean-logical-OR.rq \
+boolean-true-canonical.rq \
 extendedType-eq-pass.rq \
 extendedType-ne-fail.rq \
 extendedType-literal-eq.rq \
@@ -44,15 +47,21 @@ typePromotion-decimal-decimal-pass.rq
 
 # Test failures
 EXPECTED_SPARQL_CORRECT_FAILURES= \
-typePromotion-decimal-decimal-fail \
 extendedType-ne-fail \
-extendedType-literal-ne
+extendedType-literal-ne \
+typePromotion-decimal-decimal-fail \
+boolean-false-canonical \
+boolean-true-canonical \
+boolean-EBV-canonical
 
 SPARQL_RESULT_FILES= \
+boolean-EBV-canonical-result.n3 \
 boolean-equiv-FALSE-result.n3 \
 boolean-equiv-TRUE-result.n3 \
 boolean-equiv-xsdType-result.n3 \
+boolean-false-canonical-result.n3 \
 boolean-logical-OR-result.n3 \
+boolean-true-canonical-result.n3 \
 extendedType-eq-pass-result.n3 \
 extendedType-ne-fail-result.n3 \
 extendedType-literal-eq-result.n3 \

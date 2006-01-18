@@ -1,4 +1,4 @@
-# $Id: manifest.n3,v 1.9 2006/01/05 18:14:48 eric Exp $
+# $Id: manifest.n3,v 1.11 2006/01/13 01:18:37 eric Exp $
 
 @prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
@@ -116,11 +116,41 @@
 
      [  mf:name    "boolean-logical-OR" ;
         rdfs:comment
-            "Various lexical forms of xsd:boolean equal an EBV.." ;
+            "Various lexical forms of xsd:boolean equal an EBV." ;
         mf:action
             [ qt:data   <boolean-0.n3> ;
               qt:query  <boolean-logical-OR.rq> ] ;
         mf:result  <boolean-logical-OR-result.n3> ;
+        dawgt:approval dawgt:NotApproved
+      ]
+
+     [  mf:name    "boolean-false-canonical" ;
+        rdfs:comment
+            "Lexical form of FALSE" ;
+        mf:action
+            [ qt:data   <boolean-0.n3> ;
+              qt:query  <boolean-false-canonical.rq> ] ;
+        mf:result  <boolean-false-canonical-result.n3> ;
+        dawgt:approval dawgt:NotApproved
+      ]
+
+     [  mf:name    "boolean-true-canonical" ;
+        rdfs:comment
+            "Lexical form of TRUE" ;
+        mf:action
+            [ qt:data   <boolean-0.n3> ;
+              qt:query  <boolean-true-canonical.rq> ] ;
+        mf:result  <boolean-true-canonical-result.n3> ;
+        dawgt:approval dawgt:NotApproved
+      ]
+
+     [  mf:name    "boolean-EBV-canonical" ;
+        rdfs:comment
+            "Lexical form of EBV" ;
+        mf:action
+            [ qt:data   <boolean-0.n3> ;
+              qt:query  <boolean-EBV-canonical.rq> ] ;
+        mf:result  <boolean-EBV-canonical-result.n3> ;
         dawgt:approval dawgt:NotApproved
       ]
 
