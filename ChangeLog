@@ -1,4 +1,25 @@
+2006-01-17  Dave Beckett  <dave@dajobe.org>
+
+	* tests/sparql/ValueTesting/Makefile.am,
+	tests/sparql/ValueTesting/boolean-0.n3,
+	tests/sparql/ValueTesting/boolean-EBV-canonical-result.n3,
+	tests/sparql/ValueTesting/boolean-EBV-canonical.rq,
+	tests/sparql/ValueTesting/boolean-equiv-FALSE.rq,
+	tests/sparql/ValueTesting/boolean-equiv-TRUE.rq,
+	tests/sparql/ValueTesting/boolean-equiv-xsdType.rq,
+	tests/sparql/ValueTesting/boolean-false-canonical-result.n3,
+	tests/sparql/ValueTesting/boolean-false-canonical.rq,
+	tests/sparql/ValueTesting/boolean-logical-OR.rq,
+	tests/sparql/ValueTesting/boolean-true-canonical-result.n3,
+	tests/sparql/ValueTesting/boolean-true-canonical.rq,
+	tests/sparql/ValueTesting/manifest.n3: Added
+	boolean-true-canonical boolean-EBV-canonical from DAWG CVS
+
 2006-01-16  Dave Beckett  <dave@dajobe.org>
+
+	* rasqal.rdf.in: use download.librdf.org
+
+	* utils/roqet.1: Document --exec and update synopsis for exec use.
 
 	* src/win32_rasqal_config.h, configure.ac: Bumped version to 0.9.12
 
