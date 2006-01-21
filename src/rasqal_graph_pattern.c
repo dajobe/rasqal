@@ -174,23 +174,11 @@ rasqal_free_graph_pattern(rasqal_graph_pattern* gp)
   if(gp->graph_patterns)
     raptor_free_sequence(gp->graph_patterns);
   
-  if(gp->constraints_expression) {
+  if(gp->constraints_expression)
     rasqal_free_expression(gp->constraints_expression);
-    if(gp->constraints)
-      raptor_free_sequence(gp->constraints);
-  } else if(gp->constraints) {
-    int i;
-    
-    /* free rasqal_expressions that are normally assembled into an
-     * expression tree pointed at query->constraints_expression
-     * when query construction succeeds.
-     */
-    for(i=0; i< raptor_sequence_size(gp->constraints); i++) {
-      rasqal_expression* e=(rasqal_expression*)raptor_sequence_get_at(gp->constraints, i);
-      rasqal_free_expression(e);
-    }
+
+  if(gp->constraints)
     raptor_free_sequence(gp->constraints);
-  }
 
   RASQAL_FREE(rasqal_graph_pattern, gp);
 }
@@ -327,7 +315,7 @@ rasqal_graph_pattern_add_constraint(rasqal_graph_pattern* gp,
                                     rasqal_expression* expr)
 {
   if(!gp->constraints)
-    gp->constraints=raptor_new_sequence(NULL, (raptor_sequence_print_handler*)rasqal_expression_print);
+    gp->constraints=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_expression, (raptor_sequence_print_handler*)rasqal_expression_print);
   raptor_sequence_push(gp->constraints, (void*)expr);
 
   return 0;
