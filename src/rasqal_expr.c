@@ -2040,10 +2040,13 @@ rasqal_expression_is_constant(rasqal_expression* e)
 void
 rasqal_expression_convert_to_literal(rasqal_expression* e, rasqal_literal* l)
 {
+  int usage=e->usage;
+
   /* update expression 'e' in place */
   rasqal_expression_clear(e);
 
   bzero(e, sizeof(rasqal_expression));
+  e->usage=usage;
   e->op=RASQAL_EXPR_LITERAL;
   e->literal=l;
 }
