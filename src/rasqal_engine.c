@@ -254,6 +254,7 @@ rasqal_engine_build_constraints_expression(rasqal_graph_pattern* gp)
   
   for(i=raptor_sequence_size(gp->constraints)-1; i>=0 ; i--) {
     rasqal_expression* e=(rasqal_expression*)raptor_sequence_get_at(gp->constraints, i);
+    e=rasqal_new_expression_from_expression(e);
     if(!newe)
       newe=e;
     else
@@ -1433,18 +1434,12 @@ rasqal_engine_join_graph_patterns(rasqal_graph_pattern *dest_gp,
     
     for(i=0; i< raptor_sequence_size(src_gp->constraints); i++) {
       rasqal_expression* e=(rasqal_expression*)raptor_sequence_get_at(src_gp->constraints, i);
-      rasqal_graph_pattern_add_constraint(dest_gp,
-                                          rasqal_new_expression_from_expression(e));
+      e=rasqal_new_expression_from_expression(e);
+      rasqal_graph_pattern_add_constraint(dest_gp, e);
 #if RASQAL_DEBUG > 1
       RASQAL_DEBUG1("Moved a constraint\n");
 #endif
     }
-
-    /* Delete source constrains expression and sequence */
-    rasqal_free_expression(src_gp->constraints_expression);
-    raptor_free_sequence(src_gp->constraints);
-    src_gp->constraints_expression=NULL;
-    src_gp->constraints=NULL;
   }
 
 
@@ -1626,9 +1621,6 @@ rasqal_engine_merge_graph_patterns(rasqal_query* query,
 
     /* Delete any evidence of sub graph patterns */
     raptor_free_sequence(seq);
-
-    /* update constraints expression after possible change */
-    rasqal_engine_build_constraints_expression(gp);
 
   } else {
 #if RASQAL_DEBUG > 1
