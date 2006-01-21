@@ -28,3 +28,25 @@ regex Expr1 Expr2 ExprBuiltins ExprEquals \
 SyntaxDev
 
 EXTRA_DIST=check-sparql
+
+check-sparql-lexer: check-sparql-lexer-recursive
+
+check-sparql-parser: check-sparql-parser-recursive
+
+check-sparql-lexer-recursive check-sparql-parser-recursive:
+	@failcom='exit 1'; \
+	for f in x $$MAKEFLAGS; do \
+	  case $$f in \
+	    *=* | --[!k]*);; \
+	    *k*) failcom='fail=yes';; \
+	  esac; \
+	done; \
+	target=`echo $@ | sed s/-recursive//`; \
+	list='$(SUBDIRS)'; for subdir in $$list; do \
+	  echo "Making $$target in $$subdir"; \
+	  if test "$$subdir" != "."; then \
+	    (cd $$subdir && $(MAKE) $(AM_MAKEFLAGS) $$target ) \
+	    || eval $$failcom; \
+	  fi; \
+	done; \
+	test -z "$$fail"
