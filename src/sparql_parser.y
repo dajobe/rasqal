@@ -459,16 +459,6 @@ OrderCondition: ASC BrackettedExpression
 {
   $$=rasqal_new_1op_expression(RASQAL_EXPR_ORDER_COND_DESC, $2);
 }
-| ASC '[' Expression ']'
-{
-  RASQAL_DEPRECATED_WARNING((rasqal_query*)rq, "ORDER BY ASC[] is deprecated and replaced by ORDER BY ASC()");
-  $$=rasqal_new_1op_expression(RASQAL_EXPR_ORDER_COND_ASC, $3);
-}
-| DESC '[' Expression ']'
-{
-  RASQAL_DEPRECATED_WARNING((rasqal_query*)rq, "ORDER BY DESC[] is deprecated and replaced by ORDER BY DESC()");
-  $$=rasqal_new_1op_expression(RASQAL_EXPR_ORDER_COND_DESC, $3);
-}
 | FunctionCall 
 {
   /* The direction of ordering is ascending by default */
