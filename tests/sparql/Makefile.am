@@ -33,7 +33,9 @@ check-sparql-lexer: check-sparql-lexer-recursive
 
 check-sparql-parser: check-sparql-parser-recursive
 
-check-sparql-lexer-recursive check-sparql-parser-recursive:
+check-sparql-correct: check-sparql-correct-recursive
+
+check-sparql-lexer-recursive check-sparql-parser-recursive  check-sparql-correct-recursive:
 	@failcom='exit 1'; \
 	for f in x $$MAKEFLAGS; do \
 	  case $$f in \
