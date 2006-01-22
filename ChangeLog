@@ -1,3 +1,56 @@
+2006-01-21  Dave Beckett  <dave@dajobe.org>
+
+	* tests/sparql/part1/Makefile.am: dawg-opt-query-003 now fails
+
+	* tests/sparql/examples/Makefile.am: sparql-query-example-e now
+	fails
+
+	* tests/sparql/ValueTesting/extendedType-ne-pass.rq: removed
+	unused test extendedType-ne-pass.rq
+
+	* tests/sparql/ValueTesting/Makefile.am: Remove
+	extendedType-ne-pass.rq from distribution, old syntax and not in
+	the dawg test suite.
+
+	* tests/sparql/SyntaxFull/Makefile.am: Now no expected failures
+
+	* src/sparql_parser.y: Put tests in debug messages around
+	additional optional values.
+	(FunctionCall): For a function with no arguments, create an empty
+	sequence here as it is not done in ArgsList.
+
+	* src/rasqal_query.c: (rasqal_query_prepare): Call
+	rasqal_engine_build_constraints_expression here.
+
+	* src/rasqal_engine.c: (rasqal_engine_prepare,
+	rasqal_engine_merge_triples): Remove
+	rasqal_engine_build_constraints_expression, done by
+	rasqal_query_prepare.
+	
+2006-01-20  Dave Beckett  <dave@dajobe.org>
+
+	* tests/sparql/SyntaxDev/Makefile.am: Added check-sparql-lexer and
+	check-sparql-parser recursive tasks
+
+	* tests/sparql/Makefile.am: Added check-sparql-lexer and
+	check-sparql-parser recursive tasks
+
+	* src/rasqal_graph_pattern.c: (rasqal_free_graph_pattern): Let
+	raptor_free_sequence tidy up constraints and
+	rasqal_free_expression do the tree of expressions.
+	(rasqal_graph_pattern_add_constraint): Init destructor when making
+	a new sequence.
+
+	* src/rasqal_expr.c: (rasqal_expression_convert_to_literal): Copy
+	usage to new expression literal.
+
+	* src/rasqal_engine.c:
+	(rasqal_engine_build_constraints_expression): Copy expressions
+	when building, easier to keep clear.
+	(rasqal_engine_join_graph_patterns): Tidy long line.  Do not
+	delete parts of source gp expressions, the destructor will do that
+	anyway.
+
 2006-01-17  Dave Beckett  <dave@dajobe.org>
 
 	* src/sparql_parser.y: Major update to align with SPARQL grammar
