@@ -844,8 +844,6 @@ rasqal_engine_prepare(rasqal_query *query)
 
     rasqal_query_build_declared_in(query);
     
-    rasqal_engine_build_constraints_expression(query->query_graph_pattern);
-
     rasqal_engine_query_fold_expressions(query);
   }
 
@@ -1761,9 +1759,6 @@ rasqal_engine_merge_triples(rasqal_query* query,
   }
   raptor_free_sequence(gp->graph_patterns);
   gp->graph_patterns=seq;
-
-  /* update constraints expression after possible change */
-  rasqal_engine_build_constraints_expression(gp);
 
 #if RASQAL_DEBUG > 1
   RASQAL_DEBUG3("Ending columns %d to %d\n", gp->start_column, gp->end_column);
