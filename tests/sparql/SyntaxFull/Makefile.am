@@ -59,15 +59,12 @@ syntax-qname-01.rq syntax-qname-02.rq syntax-qname-03.rq \
 syntax-qname-04.rq syntax-qname-05.rq syntax-qname-06.rq \
 syntax-struct-11.rq syntax-struct-12.rq
 
-# Test failures
-#   syntax-keywords-01.rq - FILTER
-#   syntax-keywords-02.rq - FILTER
+# No test failures
 # Excluding anything with optional WHERE which gives a warning
 
-EXPECTED_SPARQL_PARSER_FAILURES= \
-syntax-keywords-01.rq syntax-keywords-02.rq 
+EXPECTED_SPARQL_PARSER_FAILURES=
 
-EXPECTED_SPARQL_PARSER_FAILURES_COUNT=2
+EXPECTED_SPARQL_PARSER_FAILURES_COUNT=0
 
 
 EXTRA_DIST= \
