@@ -991,6 +991,9 @@ rasqal_query_prepare(rasqal_query* query,
 
     rasqal_query_graph_pattern_visit(query, rasqal_engine_merge_graph_patterns,
                                      NULL);
+
+    rasqal_engine_build_constraints_expression(query->query_graph_pattern);
+
   }
 
   return rc;
