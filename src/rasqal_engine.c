@@ -1923,3 +1923,25 @@ rasqal_engine_new_graph_pattern_from_formula(rasqal_query* query,
 }
 
 
+rasqal_graph_pattern*
+rasqal_engine_group_2_graph_patterns(rasqal_query* query,
+                                     rasqal_graph_pattern* first_gp,
+                                     rasqal_graph_pattern* second_gp)
+{
+  if(!first_gp && !second_gp)
+    return NULL;
+  
+  if(first_gp && second_gp) {
+    raptor_sequence *seq;
+
+    seq=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_graph_pattern, (raptor_sequence_print_handler*)rasqal_graph_pattern_print);
+    raptor_sequence_push(seq, first_gp);
+    raptor_sequence_push(seq, second_gp);
+
+    first_gp=rasqal_new_graph_pattern_from_sequence(query, seq,
+                                                    RASQAL_GRAPH_PATTERN_OPERATOR_GROUP);
+  } else if(!first_gp)
+    first_gp=second_gp;
+
+  return first_gp;
+}
