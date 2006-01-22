@@ -163,7 +163,7 @@ static int sparql_is_builtin_xsd_datatype(raptor_uri* uri);
 %type <seq> ConstructTemplate OrderConditionList
 %type <seq> GraphNodeListNotEmpty TriplesDotListOpt
 
-%type <formula> Triples Triples1 TriplesOpt
+%type <formula> Triples TriplesSameSubject TriplesOpt
 %type <formula> PropertyList PropertyListTailOpt PropertyListNotEmpty
 %type <formula> ObjectList ObjectTail Collection
 %type <formula> VarOrTerm Verb GraphNode TriplesNode
@@ -750,8 +750,8 @@ ConstructTemplate:  '{' ConstructTriplesOpt '}'
 ;
 
 
-/* SPARQL Grammer: [27] ConstructTriples renamed for clarity */
-ConstructTriplesOpt: Triples1 '.' ConstructTriplesOpt
+/* SPARQL Grammar: [27] ConstructTriples renamed for clarity */
+ConstructTriplesOpt: TriplesSameSubject '.' ConstructTriplesOpt
 {
   $$=NULL;
   
@@ -770,7 +770,7 @@ ConstructTriplesOpt: Triples1 '.' ConstructTriplesOpt
   }
 
 }
-| Triples1
+| TriplesSameSubject
 {
   $$=NULL;
   
@@ -788,8 +788,8 @@ ConstructTriplesOpt: Triples1 '.' ConstructTriplesOpt
 ;
 
 
-/* SPARQL Grammer: [28] Triples */
-Triples: Triples1 TriplesDotListOpt
+/* SPARQL Grammar: rq23 [28] TriplesSameSubject */
+Triples: TriplesSameSubject TriplesDotListOpt
 {
   if($2) {
     if($2)
@@ -801,7 +801,7 @@ Triples: Triples1 TriplesDotListOpt
 ;
 
 
-/* New Grammer Term pulled out of [28] Triples */
+/* New Grammar Term pulled out of [28] Triples */
 TriplesDotListOpt: '.' Triples
 {
   if($2) {
@@ -823,7 +823,7 @@ TriplesDotListOpt: '.' Triples
 ;
 
 
-/* New Grammer Term pulled out of [28] Triples */
+/* New Grammar Term pulled out of [28] Triples */
 TriplesOpt: Triples
 {
   $$=$1;
@@ -836,13 +836,13 @@ TriplesOpt: Triples
 
 
 
-/* SPARQL Grammar: [29] Triples1 */
-Triples1: VarOrTerm PropertyListNotEmpty
+/* SPARQL Grammar: [29] TriplesSameSubject */
+TriplesSameSubject: VarOrTerm PropertyListNotEmpty
 {
   int i;
 
 #if RASQAL_DEBUG > 1  
-  printf("Triples1 1\n subject=");
+  printf("TriplesSameSubject 1\n subject=");
   rasqal_formula_print($1, stdout);
   if($2) {
     printf("\n propertyList (reverse order to syntax)=");
@@ -898,7 +898,7 @@ Triples1: VarOrTerm PropertyListNotEmpty
   int i;
 
 #if RASQAL_DEBUG > 1  
-  printf("Triples1 2\n subject=");
+  printf("TriplesSameSubject 2\n subject=");
   rasqal_formula_print($1, stdout);
   if($2) {
     printf("\n propertyList (reverse order to syntax)=");
@@ -1730,7 +1730,7 @@ IRIref: URI_LITERAL
 ;
 
 
-/* NEW Grammar Term made from SPARQL Grammer: [63] IRIref + '(' expanded */
+/* NEW Grammar Term made from SPARQL Grammar: [63] IRIref + '(' expanded */
 IRIrefBrace: URI_LITERAL_BRACE
 {
   $$=rasqal_new_uri_literal($1);
