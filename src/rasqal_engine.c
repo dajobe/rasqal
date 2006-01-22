@@ -1885,3 +1885,41 @@ rasqal_engine_query_fold_expressions(rasqal_query* rq)
 
   return 0;
 }
+
+
+/**
+ * rasqal_engine_new_graph_pattern_from_formula:
+ * @query: #rasqal_graph_pattern query object
+ * @formula: triples sequence containing the graph pattern
+ * @op: enum #rasqal_graph_pattern_operator operator
+ *
+ * Create a new graph pattern object over a formula.
+ * 
+ * Return value: a new #rasqal_graph_pattern object or NULL on failure
+ **/
+rasqal_graph_pattern*
+rasqal_engine_new_graph_pattern_from_formula(rasqal_query* query,
+                                             rasqal_formula* formula,
+                                             rasqal_graph_pattern_operator op)
+{
+  rasqal_graph_pattern* gp;
+  raptor_sequence *triples=query->triples;
+  raptor_sequence *formula_triples=formula->triples;
+  int offset=raptor_sequence_size(triples);
+  int triple_pattern_size=0;
+
+  if(formula_triples) {
+    /* Move formula triples to end of main triples sequence */
+    triple_pattern_size=raptor_sequence_size(formula_triples);
+    raptor_sequence_join(triples, formula_triples);
+  }
+
+  rasqal_free_formula(formula);
+
+  gp=rasqal_new_graph_pattern(query);
+  rasqal_graph_pattern_add_triples(gp, triples, 
+                                   offset, offset+triple_pattern_size-1, op);
+  return gp;
+}
+
+
