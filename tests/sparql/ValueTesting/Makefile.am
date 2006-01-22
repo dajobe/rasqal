@@ -42,9 +42,11 @@ extendedType-graph.rq \
 extendedType-literal-eq.rq \
 extendedType-literal-ne.rq \
 extendedType-ne-fail.rq \
-extendedType-ne-pass.rq \
 typePromotion-decimal-decimal-fail.rq \
 typePromotion-decimal-decimal-pass.rq
+
+# This file is not used in the tests and has old syntax:
+# extendedType-ne-pass.rq
 
 # Test failures
 EXPECTED_SPARQL_CORRECT_FAILURES= \
