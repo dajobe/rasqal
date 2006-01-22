@@ -1384,6 +1384,9 @@ void
 rasqal_engine_join_graph_patterns(rasqal_graph_pattern *dest_gp,
                                   rasqal_graph_pattern *src_gp)
 {
+  if(!src_gp || !dest_gp)
+    return;
+
   if(src_gp->op != dest_gp->op) {
     RASQAL_DEBUG3("Source operator %s != Destination operator %s, ending\n",
                   rasqal_graph_pattern_operator_as_string(src_gp->op),
