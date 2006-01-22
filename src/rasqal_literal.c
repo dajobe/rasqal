@@ -1449,3 +1449,30 @@ rasqal_formula_print(rasqal_formula* formula, FILE *stream)
   fputc(')', stream);
 }
 
+
+rasqal_formula*
+rasqal_formula_join(rasqal_formula* first_formula, 
+                    rasqal_formula* second_formula)
+{
+  if(!first_formula && !second_formula)
+    return NULL;
+
+  if(!first_formula)
+    return second_formula;
+  
+  if(!second_formula)
+    return first_formula;
+  
+  if(first_formula->triples || second_formula->triples) {
+    if(!first_formula->triples) {
+      first_formula->triples=second_formula->triples;
+      second_formula->triples=NULL;
+    } else if(second_formula->triples)
+      raptor_sequence_join(first_formula->triples, second_formula->triples);
+    
+    rasqal_free_formula(second_formula);
+  }
+  
+  return first_formula;
+}
+
