@@ -541,7 +541,7 @@ GraphPattern: TriplesOpt GraphPattern1Opt
     rasqal_formula_print($1, stdout);
   else
     fputs("NULL", stdout);
-  fputs("  GraphPattern1Opt=\n", stdout);
+  fputs("  GraphPattern1Opt=", stdout);
   if($2)
     rasqal_graph_pattern_print($2, stdout);
   else
@@ -585,7 +585,10 @@ GraphPattern1Opt: GraphPatternNotTriples DotOptional GraphPattern
 {
 #if RASQAL_DEBUG > 1  
   printf("GraphPattern1Opt 1\n  GraphPatternNotTriples=");
-  rasqal_graph_pattern_print($1, stdout);
+  if($1)
+    rasqal_graph_pattern_print($1, stdout);
+  else
+    fputs("NULL", stdout);
   printf(", GraphPattern=");
   if($3)
     rasqal_graph_pattern_print($3, stdout);
@@ -667,7 +670,10 @@ GraphGraphPattern: GRAPH VarOrBlankNodeOrIRIref GroupGraphPattern
   printf("GraphGraphPattern 2\n  varoruri=");
   rasqal_literal_print($2, stdout);
   printf(", graphpattern=");
-  rasqal_graph_pattern_print($3, stdout);
+  if($3)
+    rasqal_graph_pattern_print($3, stdout);
+  else
+    fputs("NULL", stdout);
   fputs("\n\n", stdout);
 #endif
 
@@ -1618,6 +1624,10 @@ FunctionCall: IRIrefBrace ArgList ')'
   raptor_uri* uri=rasqal_literal_as_uri($1);
   
   uri=raptor_uri_copy(uri);
+
+  if(!$2)
+    $2=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_expression, (raptor_sequence_print_handler*)rasqal_expression_print);
+
   if(raptor_sequence_size($2) == 1 &&
      sparql_is_builtin_xsd_datatype(uri)) {
     rasqal_expression* e=(rasqal_expression*)raptor_sequence_pop($2);
