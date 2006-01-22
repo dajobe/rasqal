@@ -123,7 +123,7 @@ static int sparql_is_builtin_xsd_datatype(raptor_uri* uri);
  * shift/reduce conflicts
  * FIXME: document this
  */
-%expect 1
+%expect 12
 
 /* word symbols */
 %token SELECT FROM WHERE
@@ -161,17 +161,19 @@ static int sparql_is_builtin_xsd_datatype(raptor_uri* uri);
 %type <seq> SelectQuery ConstructQuery DescribeQuery
 %type <seq> VarList VarOrIRIrefList ArgList ConstructTriplesOpt
 %type <seq> ConstructTemplate OrderConditionList
-%type <seq> GraphNodeListNotEmpty TriplesDotListOpt
+%type <seq> GraphNodeListNotEmpty
 
-%type <formula> Triples TriplesSameSubject TriplesOpt
+%type <formula> TriplesSameSubject TriplesSameSubjectDotListOpt
 %type <formula> PropertyList PropertyListTailOpt PropertyListNotEmpty
 %type <formula> ObjectList ObjectTail Collection
 %type <formula> VarOrTerm Verb GraphNode TriplesNode
+%type <formula> BlockOfTriplesOpt
 
 %type <graph_pattern> GroupGraphPattern GraphPattern
 %type <graph_pattern> GraphGraphPattern OptionalGraphPattern
 %type <graph_pattern> GroupOrUnionGraphPattern GroupOrUnionGraphPatternList
-%type <graph_pattern> GraphPatternNotTriples GraphPattern1Opt
+%type <graph_pattern> GraphPatternNotTriples
+%type <graph_pattern> BasicGraphPattern BasicGraphPatternRestOpt
 
 %type <expr> Expression ConditionalOrExpression ConditionalAndExpression
 %type <expr> RelationalExpression AdditiveExpression
@@ -495,6 +497,7 @@ LimitClauseOpt:  LIMIT INTEGER_LITERAL
 | /* empty */
 ;
 
+
 /* SPARQL Grammar: [18] OffsetClause - remained for clarity */
 OffsetClauseOpt:  OFFSET INTEGER_LITERAL
 {
@@ -510,11 +513,13 @@ OffsetClauseOpt:  OFFSET INTEGER_LITERAL
 | /* empty */
 ;
 
+
 /* SPARQL Grammar: [19] GroupGraphPattern */
 GroupGraphPattern: '{' GraphPattern '}'
 {
   $$=$2;
 }
+
 
 /* NEW Grammar Term */
 DotOptional: '.'
@@ -523,92 +528,128 @@ DotOptional: '.'
 
 
 /* SPARQL Grammar: [20] GraphPattern */
-GraphPattern: TriplesOpt GraphPattern1Opt
+GraphPattern: BasicGraphPattern GraphPatternNotTriples DotOptional GraphPattern
 {
 #if RASQAL_DEBUG > 1  
-  printf("GraphPattern\n  TriplesOpt=");
-  if($1)
-    rasqal_formula_print($1, stdout);
-  else
-    fputs("NULL", stdout);
-  fputs("  GraphPattern1Opt=", stdout);
-  if($2)
-    rasqal_graph_pattern_print($2, stdout);
-  else
-    fputs("NULL", stdout);
-  fputs("\n\n", stdout);
-#endif
-
-  if($1) {
-    raptor_sequence *s=((rasqal_query*)rq)->triples;
-    raptor_sequence *t=$1->triples;
-    int offset=raptor_sequence_size(s);
-    int triple_pattern_size=0;
-    rasqal_graph_pattern *triple_gp;
-    raptor_sequence *seq;
-
-    if(t) {
-      triple_pattern_size=raptor_sequence_size(t);
-      raptor_sequence_join(s, t);
-    }
-    rasqal_free_formula($1);
-
-    triple_gp=rasqal_new_graph_pattern_from_triples((rasqal_query*)rq, s, offset, offset+triple_pattern_size-1, RASQAL_GRAPH_PATTERN_OPERATOR_BASIC);
-
-    seq=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_graph_pattern, (raptor_sequence_print_handler*)rasqal_graph_pattern_print);
-    raptor_sequence_push(seq, triple_gp);
-    if($2)
-      raptor_sequence_push(seq, $2);
-    $$=rasqal_new_graph_pattern_from_sequence((rasqal_query*)rq,
-                                            seq,
-                                            RASQAL_GRAPH_PATTERN_OPERATOR_GROUP);
-
-  } else
-    $$=$2;
-
-}
-;
-
-
-/* NEW Grammar Term taken from [20] GraphPattern */
-GraphPattern1Opt: GraphPatternNotTriples DotOptional GraphPattern
-{
-#if RASQAL_DEBUG > 1  
-  printf("GraphPattern1Opt 1\n  GraphPatternNotTriples=");
+  printf("GraphPattern 1\n  BasicGraphPattern=");
   if($1)
     rasqal_graph_pattern_print($1, stdout);
   else
     fputs("NULL", stdout);
-  printf(", GraphPattern=");
-  if($3)
-    rasqal_graph_pattern_print($3, stdout);
+  printf(", GraphPatternNotTriples=");
+  if($2)
+    rasqal_graph_pattern_print($2, stdout);
   else
     fputs("NULL", stdout);
-  fputs("\n\n", stdout);
+  printf(", GraphPattern=");
+  if($4)
+    rasqal_graph_pattern_print($4, stdout);
+  else
+    fputs("NULL", stdout);
+  fputs("\n", stdout);
 #endif
 
-  $$=$1;
-  if($3)
-    raptor_sequence_push($$->graph_patterns, $3);
+  $$=$4;
+  /* push ($1,$2) to start of $4 graph sequence */
+  if($2)
+    raptor_sequence_shift($$->graph_patterns, $2);
+  if($1)
+    raptor_sequence_shift($$->graph_patterns, $1);
+
+#if RASQAL_DEBUG > 1
+  printf("  after grouping graph pattern=");
+  if($$)
+    rasqal_graph_pattern_print($$, stdout);
+  else
+    fputs("NULL", stdout);
+  printf("\n\n");
+#endif
 }
-| Constraint DotOptional GraphPattern
+| BasicGraphPattern 
+{
+  raptor_sequence *seq;
+
+  seq=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_graph_pattern, (raptor_sequence_print_handler*)rasqal_graph_pattern_print);
+  if($1)
+    raptor_sequence_push(seq, $1);
+  $$=rasqal_new_graph_pattern_from_sequence((rasqal_query*)rq, seq,
+                                            RASQAL_GRAPH_PATTERN_OPERATOR_GROUP);
+}
+;
+
+
+/* SPARQL Grammar Term rq23 [21]  BasicGraphPattern */
+BasicGraphPattern: BlockOfTriplesOpt BasicGraphPatternRestOpt
+{
+  rasqal_graph_pattern* formula_gp=NULL;
+
+#if RASQAL_DEBUG > 1  
+  printf("BasicGraphPattern\n  BlockOfTriplesOpt=");
+  if($1)
+    rasqal_formula_print($1, stdout);
+  else
+    fputs("NULL", stdout);
+  printf(", BasicGraphPatternRestOpt=");
+  if($2)
+    rasqal_graph_pattern_print($2, stdout);
+  else
+    fputs("NULL", stdout);
+  fputs("\n", stdout);
+#endif
+
+  if($1)
+    formula_gp=rasqal_engine_new_graph_pattern_from_formula((rasqal_query*)rq, $1, RASQAL_GRAPH_PATTERN_OPERATOR_BASIC);
+
+  if(formula_gp) {
+    if($2) {
+      rasqal_engine_join_graph_patterns(formula_gp, $2);
+      rasqal_free_graph_pattern($2);
+    }
+    $$=formula_gp;
+  } else
+    $$=$2;
+
+#if RASQAL_DEBUG > 1  
+  printf("  after joining graph pattern=");
+  if($$)
+    rasqal_graph_pattern_print($$, stdout);
+  else
+    fputs("NULL", stdout);
+  printf("\n\n");
+#endif
+}
+;
+
+
+/* NEW Grammar Term taken from rq23 [21] BasicGraphPattern:
+ *   ( Constraint '.'?  BasicGraphPattern )?
+ */
+BasicGraphPatternRestOpt: Constraint DotOptional BasicGraphPattern
 {
 #if RASQAL_DEBUG > 1  
-  printf("GraphPattern1Opt 2\n  Constraint=");
+  printf("GraphPatternRestOpt 1\n  Constraint=");
   rasqal_expression_print($1, stdout);
   printf(", GraphPattern=");
   if($3)
     rasqal_graph_pattern_print($3, stdout);
   else
     fputs("NULL", stdout);
-  fputs("\n\n", stdout);
+  fputs("\n", stdout);
 #endif
 
   $$=$3;
   if(!$$)
-    $$=rasqal_new_graph_pattern_from_triples((rasqal_query*)rq, NULL, 0, 0, RASQAL_GRAPH_PATTERN_OPERATOR_BASIC);
+    $$=rasqal_new_graph_pattern_from_triples((rasqal_query*)rq, NULL, -1, -1, RASQAL_GRAPH_PATTERN_OPERATOR_BASIC);
 
   rasqal_graph_pattern_add_constraint($$, $1);
+#if RASQAL_DEBUG > 1  
+  printf("  after adding constraint, graph pattern=");
+  if($$)
+    rasqal_graph_pattern_print($$, stdout);
+  else
+    fputs("NULL", stdout);
+  printf("\n\n");
+#endif
 }
 | /* empty */
 {
@@ -617,7 +658,80 @@ GraphPattern1Opt: GraphPatternNotTriples DotOptional GraphPattern
 ;
 
 
-/* SPARQL Grammar: [21] GraphPatternNotTriples */
+/* SPARQL Grammar: rq23 [22] BlockOfTriples */
+BlockOfTriplesOpt: TriplesSameSubject TriplesSameSubjectDotListOpt
+{
+#if RASQAL_DEBUG > 1  
+  printf("BlockOfTriplesOpt\n  TriplesSameSubject=");
+  if($1)
+    rasqal_formula_print($1, stdout);
+  else
+    fputs("NULL", stdout);
+  fputs("  TriplesSameSubjectDotListOpt=", stdout);
+  if($2)
+    rasqal_formula_print($2, stdout);
+  else
+    fputs("NULL", stdout);
+  fputs("\n\n", stdout);
+#endif
+
+
+  /* $1 and $2 are freed as necessary */
+  $$=rasqal_formula_join($1, $2);
+#if RASQAL_DEBUG > 1  
+  printf("  after joining formula=");
+  rasqal_formula_print($$, stdout);
+  printf("\n\n");
+#endif
+}
+| /* empty */
+{
+  $$=NULL;
+}
+;
+
+
+
+/* New Grammar Term pulled out of rq23 [22] BlockOfTriples 
+ * ( '.'  TriplesSameSubject? )*
+ */
+TriplesSameSubjectDotListOpt: TriplesSameSubjectDotListOpt TriplesSameSubject
+{
+#if RASQAL_DEBUG > 1  
+  printf("TriplesSameSubjectDotTriplesOpt\n  TriplesSameSubjectDotListOpt=");
+  if($1)
+    rasqal_formula_print($1, stdout);
+  else
+    fputs("NULL", stdout);
+  fputs("  TriplesSameSubject=", stdout);
+  if($2)
+    rasqal_formula_print($2, stdout);
+  else
+    fputs("NULL", stdout);
+  fputs("\n", stdout);
+#endif
+
+  /* $1 and $2 are freed as necessary */
+  $$=rasqal_formula_join($1, $2);
+
+#if RASQAL_DEBUG > 1  
+  printf("  after joining formula=");
+  rasqal_formula_print($$, stdout);
+  printf("\n\n");
+#endif
+}
+| TriplesSameSubjectDotListOpt '.'
+{
+  $$=$1;
+}
+| /* empty */
+{
+  $$=NULL;
+}
+;
+
+
+/* SPARQL Grammar: rq23 [23] GraphPatternNotTriples */
 GraphPatternNotTriples: OptionalGraphPattern
 {
   $$=$1;
@@ -633,7 +747,7 @@ GraphPatternNotTriples: OptionalGraphPattern
 ;
 
 
-/* SPARQL Grammar: [22] OptionalGraphPattern */
+/* SPARQL Grammar: rq23 [24] OptionalGraphPattern */
 OptionalGraphPattern: OPTIONAL GroupGraphPattern
 {
 #if RASQAL_DEBUG > 1  
@@ -653,7 +767,7 @@ OptionalGraphPattern: OPTIONAL GroupGraphPattern
 ;
 
 
-/* SPARQL Grammar: [23] GraphGraphPattern */
+/* SPARQL Grammar: rq23 [25] GraphGraphPattern */
 GraphGraphPattern: GRAPH VarOrBlankNodeOrIRIref GroupGraphPattern
 {
 #if RASQAL_DEBUG > 1  
@@ -678,7 +792,7 @@ GraphGraphPattern: GRAPH VarOrBlankNodeOrIRIref GroupGraphPattern
 ;
 
 
-/* SPARQL Grammar: [24] GroupOrUnionGraphPattern */
+/* SPARQL Grammar: rq23 [26] GroupOrUnionGraphPattern */
 GroupOrUnionGraphPattern: GroupGraphPattern UNION GroupOrUnionGraphPatternList
 {
   $$=$3;
@@ -696,7 +810,7 @@ GroupOrUnionGraphPattern: GroupGraphPattern UNION GroupOrUnionGraphPatternList
 }
 ;
 
-/* NEW Grammar Term pulled out of [24] GroupOrUnionGraphPattern */
+/* NEW Grammar Term pulled out of rq23 [26] GroupOrUnionGraphPattern */
 GroupOrUnionGraphPatternList: GroupOrUnionGraphPatternList UNION GroupGraphPattern
 {
   $$=$1;
@@ -716,7 +830,7 @@ GroupOrUnionGraphPatternList: GroupOrUnionGraphPatternList UNION GroupGraphPatte
 ;
 
 
-/* SPARQL Grammar: [25] Constraint */
+/* SPARQL Grammar: rq23 [27] Constraint */
 Constraint: FILTER BrackettedExpression
 {
   $$=$2;
@@ -732,7 +846,7 @@ Constraint: FILTER BrackettedExpression
 ;
 
 
-/* SPARQL Grammar: [26] ConstructTemplate */
+/* SPARQL Grammar: rq23 [28] ConstructTemplate */
 ConstructTemplate:  '{' ConstructTriplesOpt '}'
 {
   $$=$2;
@@ -740,11 +854,11 @@ ConstructTemplate:  '{' ConstructTriplesOpt '}'
 ;
 
 
-/* SPARQL Grammar: [27] ConstructTriples renamed for clarity */
+/* SPARQL Grammar: rq23 [29] ConstructTriples renamed for clarity */
 ConstructTriplesOpt: TriplesSameSubject '.' ConstructTriplesOpt
 {
   $$=NULL;
-  
+ 
   if($1) {
     $$=$1->triples;
     $1->triples=NULL;
@@ -759,7 +873,7 @@ ConstructTriplesOpt: TriplesSameSubject '.' ConstructTriplesOpt
     raptor_free_sequence($3);
   }
 
-}
+ }
 | TriplesSameSubject
 {
   $$=NULL;
@@ -778,55 +892,7 @@ ConstructTriplesOpt: TriplesSameSubject '.' ConstructTriplesOpt
 ;
 
 
-/* SPARQL Grammar: rq23 [28] TriplesSameSubject */
-Triples: TriplesSameSubject TriplesDotListOpt
-{
-  if($2) {
-    if($2)
-      raptor_sequence_join($1->triples, $2);
-    raptor_free_sequence($2);
-  }
-  $$=$1;
-}
-;
-
-
-/* New Grammar Term pulled out of [28] Triples */
-TriplesDotListOpt: '.' Triples
-{
-  if($2) {
-    $$=$2->triples;
-    $2->triples=NULL;
-    rasqal_free_formula($2);
-  } else
-    $$=NULL;
-  
-}
-| '.'
-{
-  $$=NULL;
-}
-| /* empty */
-{
-  $$=NULL;
-}
-;
-
-
-/* New Grammar Term pulled out of [28] Triples */
-TriplesOpt: Triples
-{
-  $$=$1;
-}
-| /* empty */
-{
-  $$=NULL;
-}
-;
-
-
-
-/* SPARQL Grammar: [29] TriplesSameSubject */
+/* SPARQL Grammar: rq23 [30] TriplesSameSubject */
 TriplesSameSubject: VarOrTerm PropertyListNotEmpty
 {
   int i;
@@ -854,34 +920,18 @@ TriplesSameSubject: VarOrTerm PropertyListNotEmpty
       t2->subject=rasqal_new_literal_from_literal(subject);
     }
 #if RASQAL_DEBUG > 1  
-    printf(" after substitution propertyList=");
+    printf("  after substitution propertyList=");
     rasqal_formula_print($2, stdout);
-    printf("\n\n");
+    printf("\n");
 #endif
   }
 
-  if($1) {
-    if($2 && $1->triples) {
-      raptor_sequence *seq=$2->triples;
-      
-      raptor_sequence_join($1->triples, seq);
-      $2->triples=$1->triples;
-      $1->triples=seq;
-
+  $$=rasqal_formula_join($1, $2);
 #if RASQAL_DEBUG > 1  
-    printf(" after joining formula=");
-    rasqal_formula_print($2, stdout);
-    printf("\n\n");
+  printf("  after joining formula=");
+  rasqal_formula_print($$, stdout);
+  printf("\n\n");
 #endif
-    }
-  }
-
-  if($2) {
-    if($1)
-      rasqal_free_formula($1);
-    $$=$2;
-  } else
-    $$=$1;
 }
 | TriplesNode PropertyList
 {
@@ -910,39 +960,23 @@ TriplesSameSubject: VarOrTerm PropertyListNotEmpty
       t2->subject=rasqal_new_literal_from_literal(subject);
     }
 #if RASQAL_DEBUG > 1  
-    printf(" after substitution propertyList=");
+    printf("  after substitution propertyList=");
     rasqal_formula_print($2, stdout);
     printf("\n\n");
 #endif
   }
 
-  if($1) {
-    if($2 && $1->triples) {
-      raptor_sequence *seq=$2->triples;
-      
-      raptor_sequence_join($1->triples, seq);
-      $2->triples=$1->triples;
-      $1->triples=seq;
-
+  $$=rasqal_formula_join($1, $2);
 #if RASQAL_DEBUG > 1  
-    printf(" after joining formula=");
-    rasqal_formula_print($2, stdout);
-    printf("\n\n");
+  printf("  after joining formula=");
+  rasqal_formula_print($$, stdout);
+  printf("\n\n");
 #endif
-    }
-  }
-
-  if($2) {
-    if($1)
-      rasqal_free_formula($1);
-    $$=$2;
-  } else
-    $$=$1;
 }
 ;
 
 
-/* SPARQL Grammar: [30] PropertyList */
+/* SPARQL Grammar: rq23 [31] PropertyList */
 PropertyList: PropertyListNotEmpty
 {
   $$=$1;
@@ -954,7 +988,7 @@ PropertyList: PropertyListNotEmpty
 ;
 
 
-/* SPARQL Grammar: [31] PropertyListNotEmpty */
+/* SPARQL Grammar: rq23 [32] PropertyListNotEmpty */
 PropertyListNotEmpty: Verb ObjectList PropertyListTailOpt
 {
   int i;
@@ -988,7 +1022,7 @@ PropertyListNotEmpty: Verb ObjectList PropertyListTailOpt
     }
   
 #if RASQAL_DEBUG > 1  
-    printf(" after substitution ObjectList=");
+    printf("  after substitution ObjectList=");
     raptor_sequence_print(seq, stdout);
     printf("\n");
 #endif
@@ -1010,7 +1044,7 @@ PropertyListNotEmpty: Verb ObjectList PropertyListTailOpt
       raptor_sequence_pop(seq);
 
 #if RASQAL_DEBUG > 1  
-    printf(" after appending ObjectList (reverse order)=");
+    printf("  after appending ObjectList (reverse order)=");
     rasqal_formula_print($3, stdout);
     printf("\n\n");
 #endif
@@ -1026,7 +1060,7 @@ PropertyListNotEmpty: Verb ObjectList PropertyListTailOpt
 ;
 
 
-/* NEW Grammar Term pulled out of [31] PropertyListNotEmpty */
+/* NEW Grammar Term pulled out of rq23 [32] PropertyListNotEmpty */
 PropertyListTailOpt: ';' PropertyList
 {
   $$=$2;
@@ -1038,9 +1072,10 @@ PropertyListTailOpt: ';' PropertyList
 ;
 
 
-/* SPARQL Grammar: [32] ObjectList */
+/* SPARQL Grammar: rq23 [33] ObjectList */
 ObjectList: GraphNode ObjectTail
 {
+  rasqal_formula *formula=NULL;
   rasqal_triple *triple;
 
 #if RASQAL_DEBUG > 1  
@@ -1057,38 +1092,33 @@ ObjectList: GraphNode ObjectTail
 #endif
 
   if($2)
-    $$=$2;
+    formula=$2;
   else
-    $$=rasqal_new_formula();
+    formula=rasqal_new_formula();
   
   triple=rasqal_new_triple(NULL, NULL, $1->value);
   $1->value=NULL;
 
-  if(!$$->triples)
-    $$->triples=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_triple, (raptor_sequence_print_handler*)rasqal_triple_print);
+  if(!formula->triples)
+    formula->triples=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_triple, (raptor_sequence_print_handler*)rasqal_triple_print);
 
-  raptor_sequence_push($$->triples, triple);
+  raptor_sequence_push(formula->triples, triple);
 
-  if($1->triples) {
-    raptor_sequence *seq=$$->triples;
-      
-    raptor_sequence_join($1->triples, seq);
-    $$->triples=$1->triples;
-    $1->triples=seq;
-  }
-
-  rasqal_free_formula($1);
+  $$=rasqal_formula_join($1, formula);
 
 #if RASQAL_DEBUG > 1  
   printf(" objectList is now ");
-  raptor_sequence_print($$->triples, stdout);
+  if($$)
+    raptor_sequence_print($$->triples, stdout);
+  else
+    fputs("NULL", stdout);
   printf("\n\n");
 #endif
 }
 ;
 
 
-/* NEW Grammar Term pulled out of [32] ObjectList */
+/* NEW Grammar Term pulled out of rq23 [33] ObjectList */
 ObjectTail: ',' ObjectList
 {
   $$=$2;
@@ -1100,8 +1130,7 @@ ObjectTail: ',' ObjectList
 ;
 
 
-/* SPARQL Grammar: [33] Verb */
-/* FIXME: does not match SPARQL grammar */
+/* SPARQL Grammar: rq23 [34] Verb */
 Verb: VarOrBlankNodeOrIRIref
 {
   $$=rasqal_new_formula();
@@ -1122,11 +1151,13 @@ Verb: VarOrBlankNodeOrIRIref
 ;
 
 
-/* SPARQL Grammar: [34] TriplesNode 
- * SPARQL Grammar: [35] BlankNodePropertyList (allowing empty case)
- */
-/* FIXME: does not match SPARQL grammar */
-TriplesNode: '[' PropertyList ']'
+/* SPARQL Grammar: rq23 [35] TriplesNode */
+TriplesNode: Collection
+{
+  $$=$1;
+}
+|
+'[' PropertyListNotEmpty ']'
 {
   int i;
   const unsigned char *id=rasqal_query_generate_bnodeid((rasqal_query*)rq, NULL);
@@ -1166,21 +1197,17 @@ TriplesNode: '[' PropertyList ']'
     }
 
 #if RASQAL_DEBUG > 1
-    printf(" after substitution formula=");
+    printf("  after substitution formula=");
     rasqal_formula_print($$, stdout);
     printf("\n\n");
 #endif
   }
   
 }
-| Collection
-{
-  $$=$1;
-}
 ;
 
 
-/* SPARQL Grammar: [36] Collection (allowing empty case) */
+/* SPARQL Grammar: rq23 [37] Collection (allowing empty case) */
 Collection: '(' GraphNodeListNotEmpty ')'
 {
   int i;
@@ -1232,7 +1259,7 @@ Collection: '(' GraphNodeListNotEmpty ')'
   $$->value=object;
   
 #if RASQAL_DEBUG > 1
-  printf(" after substitution collection=");
+  printf("  after substitution collection=");
   rasqal_formula_print($$, stdout);
   printf("\n\n");
 #endif
@@ -1240,19 +1267,10 @@ Collection: '(' GraphNodeListNotEmpty ')'
   rasqal_free_literal(first_identifier);
   rasqal_free_literal(rest_identifier);
 }
-|  '(' ')'
-{
-#if RASQAL_DEBUG > 1  
-  printf("Collection\n empty\n");
-#endif
-
-  $$=rasqal_new_formula();
-  $$->value=rasqal_new_uri_literal(raptor_uri_copy(rasqal_rdf_nil_uri));
-}
+;
 
 
-
-/* NEW Grammar Term pulled out of [36] Collection */
+/* NEW Grammar Term pulled out of rq23 [37] Collection */
 /* Sequence of formula */
 GraphNodeListNotEmpty: GraphNodeListNotEmpty GraphNode
 {
@@ -1310,7 +1328,7 @@ GraphNodeListNotEmpty: GraphNodeListNotEmpty GraphNode
 ;
 
 
-/* SPARQL Grammar: [37] GraphNode */
+/* SPARQL Grammar: rq23 [38] GraphNode */
 GraphNode: VarOrTerm
 {
   $$=$1;
@@ -1322,7 +1340,7 @@ GraphNode: VarOrTerm
 ;
 
 
-/* SPARQL Grammar Term: [38] VarOrTerm */
+/* SPARQL Grammar Term: rq23 [39] VarOrTerm */
 VarOrTerm: Var
 {
   $$=rasqal_new_formula();
@@ -1335,7 +1353,7 @@ VarOrTerm: Var
 }
 ;
 
-/* SPARQL Grammar: [39] VarOrIRIref */
+/* SPARQL Grammar: rq23 [40] VarOrIRIref */
 VarOrIRIref: Var
 {
   $$=rasqal_new_variable_literal($1);
@@ -1347,7 +1365,7 @@ VarOrIRIref: Var
 ;
 
 
-/* SPARQL Grammar Term: [40] VarOrBlankNodeOrIRIref */
+/* SPARQL Grammar Term: rq23 [41] VarOrBlankNodeOrIRIref */
 VarOrBlankNodeOrIRIref: Var
 {
   $$=rasqal_new_variable_literal($1);
@@ -1362,7 +1380,7 @@ VarOrBlankNodeOrIRIref: Var
 }
 ;
 
-/* SPARQL Grammar: [41] Var */
+/* SPARQL Grammar: rq23 [42] Var */
 Var: '?' IDENTIFIER
 {
   $$=rasqal_new_variable((rasqal_query*)rq, $2, NULL);
@@ -1374,9 +1392,8 @@ Var: '?' IDENTIFIER
 ;
 
 
-/* SPARQL Grammar: [42] GraphTerm */
+/* SPARQL Grammar: rq23 [43] GraphTerm */
 /* + and - for numerics is in the lexer */
-/* FIXME - token NIL () is removed here - what does it evaluate to? */
 GraphTerm: IRIref
 {
   $$=$1;
@@ -1405,9 +1422,13 @@ GraphTerm: IRIref
 {
   $$=$1;
 }
+|  '(' ')'
+{
+  $$=rasqal_new_uri_literal(raptor_uri_copy(rasqal_rdf_nil_uri));
+}
 ;
 
-/* SPARQL Grammar: [43] Expression */
+/* SPARQL Grammar: rq23 [44] Expression */
 Expression: ConditionalOrExpression
 {
   $$=$1;
@@ -1415,7 +1436,7 @@ Expression: ConditionalOrExpression
 ;
 
 
-/* SPARQL Grammar: [44] ConditionalOrExpression */
+/* SPARQL Grammar: rq23 [45] ConditionalOrExpression */
 ConditionalOrExpression: ConditionalOrExpression SC_OR ConditionalAndExpression
 {
   $$=rasqal_new_2op_expression(RASQAL_EXPR_OR, $1, $3);
