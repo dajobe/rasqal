@@ -548,6 +548,7 @@ void rasqal_free_formula(rasqal_formula* formula);
 void rasqal_formula_print(rasqal_formula* formula, FILE *stream);
 rasqal_formula* rasqal_formula_join(rasqal_formula* first_formula, rasqal_formula* second_formula);
 rasqal_graph_pattern* rasqal_engine_new_graph_pattern_from_formula(rasqal_query* query, rasqal_formula* formula, rasqal_graph_pattern_operator op);
+rasqal_graph_pattern* rasqal_engine_group_2_graph_patterns(rasqal_query* query, rasqal_graph_pattern* first_gp, rasqal_graph_pattern* second_gp);
 
 /* The following should be public eventually in rasqal.h or raptor.h or ...? */
 
