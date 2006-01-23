@@ -57,6 +57,8 @@
 #define RASQAL_DEBUG 2
 */
 
+#define DEBUG_FH stdout
+
 /* Make verbose error messages for syntax errors */
 #define YYERROR_VERBOSE 1
 
@@ -531,22 +533,22 @@ DotOptional: '.'
 GraphPattern: BasicGraphPattern GraphPatternNotTriples DotOptional GraphPattern
 {
 #if RASQAL_DEBUG > 1  
-  printf("GraphPattern 1\n  BasicGraphPattern=");
+  fprintf(DEBUG_FH, "GraphPattern 1\n  BasicGraphPattern=");
   if($1)
-    rasqal_graph_pattern_print($1, stdout);
+    rasqal_graph_pattern_print($1, DEBUG_FH);
   else
-    fputs("NULL", stdout);
-  printf(", GraphPatternNotTriples=");
+    fputs("NULL", DEBUG_FH);
+  fprintf(DEBUG_FH, ", GraphPatternNotTriples=");
   if($2)
-    rasqal_graph_pattern_print($2, stdout);
+    rasqal_graph_pattern_print($2, DEBUG_FH);
   else
-    fputs("NULL", stdout);
-  printf(", GraphPattern=");
+    fputs("NULL", DEBUG_FH);
+  fprintf(DEBUG_FH, ", GraphPattern=");
   if($4)
-    rasqal_graph_pattern_print($4, stdout);
+    rasqal_graph_pattern_print($4, DEBUG_FH);
   else
-    fputs("NULL", stdout);
-  fputs("\n", stdout);
+    fputs("NULL", DEBUG_FH);
+  fputs("\n", DEBUG_FH);
 #endif
 
   $$=$4;
@@ -557,12 +559,12 @@ GraphPattern: BasicGraphPattern GraphPatternNotTriples DotOptional GraphPattern
     raptor_sequence_shift($$->graph_patterns, $1);
 
 #if RASQAL_DEBUG > 1
-  printf("  after grouping graph pattern=");
+  fprintf(DEBUG_FH, "  after grouping graph pattern=");
   if($$)
-    rasqal_graph_pattern_print($$, stdout);
+    rasqal_graph_pattern_print($$, DEBUG_FH);
   else
-    fputs("NULL", stdout);
-  printf("\n\n");
+    fputs("NULL", DEBUG_FH);
+  fprintf(DEBUG_FH, "\n\n");
 #endif
 }
 | BasicGraphPattern 
@@ -570,12 +572,12 @@ GraphPattern: BasicGraphPattern GraphPatternNotTriples DotOptional GraphPattern
   raptor_sequence *seq;
 
 #if RASQAL_DEBUG > 1  
-  printf("GraphPattern 2\n  BasicGraphPattern=");
+  fprintf(DEBUG_FH, "GraphPattern 2\n  BasicGraphPattern=");
   if($1)
-    rasqal_graph_pattern_print($1, stdout);
+    rasqal_graph_pattern_print($1, DEBUG_FH);
   else
-    fputs("NULL", stdout);
-  fputs("\n", stdout);
+    fputs("NULL", DEBUG_FH);
+  fputs("\n", DEBUG_FH);
 #endif
 
   seq=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_graph_pattern, (raptor_sequence_print_handler*)rasqal_graph_pattern_print);
@@ -585,12 +587,12 @@ GraphPattern: BasicGraphPattern GraphPatternNotTriples DotOptional GraphPattern
   $$=rasqal_new_graph_pattern_from_sequence((rasqal_query*)rq, seq,
                                             RASQAL_GRAPH_PATTERN_OPERATOR_GROUP);
 #if RASQAL_DEBUG > 1  
-  printf("  after grouping graph pattern=");
+  fprintf(DEBUG_FH, "  after grouping graph pattern=");
   if($$)
-    rasqal_graph_pattern_print($$, stdout);
+    rasqal_graph_pattern_print($$, DEBUG_FH);
   else
-    fputs("NULL", stdout);
-  printf("\n\n");
+    fputs("NULL", DEBUG_FH);
+  fprintf(DEBUG_FH, "\n\n");
 #endif
 }
 ;
@@ -600,22 +602,22 @@ GraphPattern: BasicGraphPattern GraphPatternNotTriples DotOptional GraphPattern
 BasicGraphPattern: BlockOfTriplesOpt Constraint DotOptional BasicGraphPattern
 {
 #if RASQAL_DEBUG > 1  
-  printf("BasicGraphPattern 1\n  BlockOfTriplesOpt=");
+  fprintf(DEBUG_FH, "BasicGraphPattern 1\n  BlockOfTriplesOpt=");
   if($1)
-    rasqal_formula_print($1, stdout);
+    rasqal_formula_print($1, DEBUG_FH);
   else
-    fputs("NULL", stdout);
-  printf(", Constraint=");
+    fputs("NULL", DEBUG_FH);
+  fprintf(DEBUG_FH, ", Constraint=");
   if($2)
-    rasqal_expression_print($2, stdout);
+    rasqal_expression_print($2, DEBUG_FH);
   else
-    fputs("NULL", stdout);
-  printf(", BasicGraphPattern=");
+    fputs("NULL", DEBUG_FH);
+  fprintf(DEBUG_FH, ", BasicGraphPattern=");
   if($4)
-    rasqal_graph_pattern_print($4, stdout);
+    rasqal_graph_pattern_print($4, DEBUG_FH);
   else
-    fputs("NULL", stdout);
-  fputs("\n", stdout);
+    fputs("NULL", DEBUG_FH);
+  fputs("\n", DEBUG_FH);
 #endif
 
   $$=$4;
@@ -633,12 +635,12 @@ BasicGraphPattern: BlockOfTriplesOpt Constraint DotOptional BasicGraphPattern
     rasqal_graph_pattern_add_constraint($$, $2);
   
 #if RASQAL_DEBUG > 1  
-  printf("  after grouping graph pattern=");
+  fprintf(DEBUG_FH, "  after grouping graph pattern=");
   if($$)
-    rasqal_graph_pattern_print($$, stdout);
+    rasqal_graph_pattern_print($$, DEBUG_FH);
   else
-    fputs("NULL", stdout);
-  printf("\n\n");
+    fputs("NULL", DEBUG_FH);
+  fprintf(DEBUG_FH, "\n\n");
 #endif
 }
 | BlockOfTriplesOpt
@@ -647,12 +649,12 @@ BasicGraphPattern: BlockOfTriplesOpt Constraint DotOptional BasicGraphPattern
   raptor_sequence *seq;
 
 #if RASQAL_DEBUG > 1  
-  printf("BasicGraphPattern 2\n  BlockOfTriplesOpt=");
+  fprintf(DEBUG_FH, "BasicGraphPattern 2\n  BlockOfTriplesOpt=");
   if($1)
-    rasqal_formula_print($1, stdout);
+    rasqal_formula_print($1, DEBUG_FH);
   else
-    fputs("NULL", stdout);
-  fputs("\n", stdout);
+    fputs("NULL", DEBUG_FH);
+  fputs("\n", DEBUG_FH);
 #endif
 
   if($1)
@@ -668,12 +670,12 @@ BasicGraphPattern: BlockOfTriplesOpt Constraint DotOptional BasicGraphPattern
                                             RASQAL_GRAPH_PATTERN_OPERATOR_GROUP);
 
 #if RASQAL_DEBUG > 1  
-  printf("  after, group graph pattern=");
+  fprintf(DEBUG_FH, "  after, group graph pattern=");
   if($$)
-    rasqal_graph_pattern_print($$, stdout);
+    rasqal_graph_pattern_print($$, DEBUG_FH);
   else
-    fputs("NULL", stdout);
-  printf("\n\n");
+    fputs("NULL", DEBUG_FH);
+  fprintf(DEBUG_FH, "\n\n");
 #endif
 }
 ;
@@ -683,26 +685,26 @@ BasicGraphPattern: BlockOfTriplesOpt Constraint DotOptional BasicGraphPattern
 BlockOfTriplesOpt: TriplesSameSubject TriplesSameSubjectDotListOpt
 {
 #if RASQAL_DEBUG > 1  
-  printf("BlockOfTriplesOpt\n  TriplesSameSubject=");
+  fprintf(DEBUG_FH, "BlockOfTriplesOpt\n  TriplesSameSubject=");
   if($1)
-    rasqal_formula_print($1, stdout);
+    rasqal_formula_print($1, DEBUG_FH);
   else
-    fputs("NULL", stdout);
-  fputs("  TriplesSameSubjectDotListOpt=", stdout);
+    fputs("NULL", DEBUG_FH);
+  fputs("  TriplesSameSubjectDotListOpt=", DEBUG_FH);
   if($2)
-    rasqal_formula_print($2, stdout);
+    rasqal_formula_print($2, DEBUG_FH);
   else
-    fputs("NULL", stdout);
-  fputs("\n", stdout);
+    fputs("NULL", DEBUG_FH);
+  fputs("\n", DEBUG_FH);
 #endif
 
 
   /* $1 and $2 are freed as necessary */
   $$=rasqal_formula_join($1, $2);
 #if RASQAL_DEBUG > 1  
-  printf("  after joining formula=");
-  rasqal_formula_print($$, stdout);
-  printf("\n\n");
+  fprintf(DEBUG_FH, "  after joining formula=");
+  rasqal_formula_print($$, DEBUG_FH);
+  fprintf(DEBUG_FH, "\n\n");
 #endif
 }
 | /* empty */
@@ -719,26 +721,26 @@ BlockOfTriplesOpt: TriplesSameSubject TriplesSameSubjectDotListOpt
 TriplesSameSubjectDotListOpt: TriplesSameSubjectDotListOpt TriplesSameSubject
 {
 #if RASQAL_DEBUG > 1  
-  printf("TriplesSameSubjectDotTriplesOpt\n  TriplesSameSubjectDotListOpt=");
+  fprintf(DEBUG_FH, "TriplesSameSubjectDotTriplesOpt\n  TriplesSameSubjectDotListOpt=");
   if($1)
-    rasqal_formula_print($1, stdout);
+    rasqal_formula_print($1, DEBUG_FH);
   else
-    fputs("NULL", stdout);
-  fputs("  TriplesSameSubject=", stdout);
+    fputs("NULL", DEBUG_FH);
+  fputs("  TriplesSameSubject=", DEBUG_FH);
   if($2)
-    rasqal_formula_print($2, stdout);
+    rasqal_formula_print($2, DEBUG_FH);
   else
-    fputs("NULL", stdout);
-  fputs("\n", stdout);
+    fputs("NULL", DEBUG_FH);
+  fputs("\n", DEBUG_FH);
 #endif
 
   /* $1 and $2 are freed as necessary */
   $$=rasqal_formula_join($1, $2);
 
 #if RASQAL_DEBUG > 1  
-  printf("  after joining formula=");
-  rasqal_formula_print($$, stdout);
-  printf("\n\n");
+  fprintf(DEBUG_FH, "  after joining formula=");
+  rasqal_formula_print($$, DEBUG_FH);
+  fprintf(DEBUG_FH, "\n\n");
 #endif
 }
 | TriplesSameSubjectDotListOpt '.'
@@ -772,12 +774,12 @@ GraphPatternNotTriples: OptionalGraphPattern
 OptionalGraphPattern: OPTIONAL GroupGraphPattern
 {
 #if RASQAL_DEBUG > 1  
-  printf("PatternElementForms 4\n  graphpattern=");
+  fprintf(DEBUG_FH, "PatternElementForms 4\n  graphpattern=");
   if($2)
-    rasqal_graph_pattern_print($2, stdout);
+    rasqal_graph_pattern_print($2, DEBUG_FH);
   else
-    fputs("NULL", stdout);
-  fputs("\n\n", stdout);
+    fputs("NULL", DEBUG_FH);
+  fputs("\n\n", DEBUG_FH);
 #endif
 
   if($2)
@@ -792,14 +794,14 @@ OptionalGraphPattern: OPTIONAL GroupGraphPattern
 GraphGraphPattern: GRAPH VarOrBlankNodeOrIRIref GroupGraphPattern
 {
 #if RASQAL_DEBUG > 1  
-  printf("GraphGraphPattern 2\n  varoruri=");
-  rasqal_literal_print($2, stdout);
-  printf(", graphpattern=");
+  fprintf(DEBUG_FH, "GraphGraphPattern 2\n  varoruri=");
+  rasqal_literal_print($2, DEBUG_FH);
+  fprintf(DEBUG_FH, ", graphpattern=");
   if($3)
-    rasqal_graph_pattern_print($3, stdout);
+    rasqal_graph_pattern_print($3, DEBUG_FH);
   else
-    fputs("NULL", stdout);
-  fputs("\n\n", stdout);
+    fputs("NULL", DEBUG_FH);
+  fputs("\n\n", DEBUG_FH);
 #endif
 
   if($3) {
@@ -820,9 +822,9 @@ GroupOrUnionGraphPattern: GroupGraphPattern UNION GroupOrUnionGraphPatternList
   raptor_sequence_push($$->graph_patterns, $1);
 
 #if RASQAL_DEBUG > 1  
-  printf("UnionGraphPattern\n  graphpattern=");
-  rasqal_graph_pattern_print($$, stdout);
-  fputs("\n\n", stdout);
+  fprintf(DEBUG_FH, "UnionGraphPattern\n  graphpattern=");
+  rasqal_graph_pattern_print($$, DEBUG_FH);
+  fputs("\n\n", DEBUG_FH);
 #endif
 }
 | GroupGraphPattern
@@ -919,14 +921,14 @@ TriplesSameSubject: VarOrTerm PropertyListNotEmpty
   int i;
 
 #if RASQAL_DEBUG > 1  
-  printf("TriplesSameSubject 1\n subject=");
-  rasqal_formula_print($1, stdout);
+  fprintf(DEBUG_FH, "TriplesSameSubject 1\n subject=");
+  rasqal_formula_print($1, DEBUG_FH);
   if($2) {
-    printf("\n propertyList (reverse order to syntax)=");
-    rasqal_formula_print($2, stdout);
-    printf("\n");
+    fprintf(DEBUG_FH, "\n propertyList (reverse order to syntax)=");
+    rasqal_formula_print($2, DEBUG_FH);
+    fprintf(DEBUG_FH, "\n");
   } else     
-    printf("\n and empty propertyList\n");
+    fprintf(DEBUG_FH, "\n and empty propertyList\n");
 #endif
 
   if($2) {
@@ -941,17 +943,17 @@ TriplesSameSubject: VarOrTerm PropertyListNotEmpty
       t2->subject=rasqal_new_literal_from_literal(subject);
     }
 #if RASQAL_DEBUG > 1  
-    printf("  after substitution propertyList=");
-    rasqal_formula_print($2, stdout);
-    printf("\n");
+    fprintf(DEBUG_FH, "  after substitution propertyList=");
+    rasqal_formula_print($2, DEBUG_FH);
+    fprintf(DEBUG_FH, "\n");
 #endif
   }
 
   $$=rasqal_formula_join($1, $2);
 #if RASQAL_DEBUG > 1  
-  printf("  after joining formula=");
-  rasqal_formula_print($$, stdout);
-  printf("\n\n");
+  fprintf(DEBUG_FH, "  after joining formula=");
+  rasqal_formula_print($$, DEBUG_FH);
+  fprintf(DEBUG_FH, "\n\n");
 #endif
 }
 | TriplesNode PropertyList
@@ -959,14 +961,14 @@ TriplesSameSubject: VarOrTerm PropertyListNotEmpty
   int i;
 
 #if RASQAL_DEBUG > 1  
-  printf("TriplesSameSubject 2\n subject=");
-  rasqal_formula_print($1, stdout);
+  fprintf(DEBUG_FH, "TriplesSameSubject 2\n subject=");
+  rasqal_formula_print($1, DEBUG_FH);
   if($2) {
-    printf("\n propertyList (reverse order to syntax)=");
-    rasqal_formula_print($2, stdout);
-    printf("\n");
+    fprintf(DEBUG_FH, "\n propertyList (reverse order to syntax)=");
+    rasqal_formula_print($2, DEBUG_FH);
+    fprintf(DEBUG_FH, "\n");
   } else     
-    printf("\n and empty propertyList\n");
+    fprintf(DEBUG_FH, "\n and empty propertyList\n");
 #endif
 
   if($2) {
@@ -981,17 +983,17 @@ TriplesSameSubject: VarOrTerm PropertyListNotEmpty
       t2->subject=rasqal_new_literal_from_literal(subject);
     }
 #if RASQAL_DEBUG > 1  
-    printf("  after substitution propertyList=");
-    rasqal_formula_print($2, stdout);
-    printf("\n");
+    fprintf(DEBUG_FH, "  after substitution propertyList=");
+    rasqal_formula_print($2, DEBUG_FH);
+    fprintf(DEBUG_FH, "\n");
 #endif
   }
 
   $$=rasqal_formula_join($1, $2);
 #if RASQAL_DEBUG > 1  
-  printf("  after joining formula=");
-  rasqal_formula_print($$, stdout);
-  printf("\n\n");
+  fprintf(DEBUG_FH, "  after joining formula=");
+  rasqal_formula_print($$, DEBUG_FH);
+  fprintf(DEBUG_FH, "\n\n");
 #endif
 }
 ;
@@ -1015,21 +1017,21 @@ PropertyListNotEmpty: Verb ObjectList PropertyListTailOpt
   int i;
   
 #if RASQAL_DEBUG > 1  
-  printf("PropertyList 1\n Verb=");
-  rasqal_formula_print($1, stdout);
-  printf("\n ObjectList=");
-  rasqal_formula_print($2, stdout);
-  printf("\n PropertyListTail=");
+  fprintf(DEBUG_FH, "PropertyList 1\n Verb=");
+  rasqal_formula_print($1, DEBUG_FH);
+  fprintf(DEBUG_FH, "\n ObjectList=");
+  rasqal_formula_print($2, DEBUG_FH);
+  fprintf(DEBUG_FH, "\n PropertyListTail=");
   if($3 != NULL)
-    rasqal_formula_print($3, stdout);
+    rasqal_formula_print($3, DEBUG_FH);
   else
-    fputs("NULL", stdout);
-  printf("\n");
+    fputs("NULL", DEBUG_FH);
+  fprintf(DEBUG_FH, "\n");
 #endif
   
   if($2 == NULL) {
 #if RASQAL_DEBUG > 1  
-    printf(" empty ObjectList not processed\n");
+    fprintf(DEBUG_FH, " empty ObjectList not processed\n");
 #endif
   } else if($1 && $2) {
     raptor_sequence *seq=$2->triples;
@@ -1043,9 +1045,9 @@ PropertyListNotEmpty: Verb ObjectList PropertyListTailOpt
     }
   
 #if RASQAL_DEBUG > 1  
-    printf("  after substitution ObjectList=");
-    raptor_sequence_print(seq, stdout);
-    printf("\n");
+    fprintf(DEBUG_FH, "  after substitution ObjectList=");
+    raptor_sequence_print(seq, DEBUG_FH);
+    fprintf(DEBUG_FH, "\n");
 #endif
   }
 
@@ -1065,9 +1067,9 @@ PropertyListNotEmpty: Verb ObjectList PropertyListTailOpt
       raptor_sequence_pop(seq);
 
 #if RASQAL_DEBUG > 1  
-    printf("  after appending ObjectList (reverse order)=");
-    rasqal_formula_print($3, stdout);
-    printf("\n\n");
+    fprintf(DEBUG_FH, "  after appending ObjectList (reverse order)=");
+    rasqal_formula_print($3, DEBUG_FH);
+    fprintf(DEBUG_FH, "\n\n");
 #endif
 
     rasqal_free_formula($2);
@@ -1100,16 +1102,16 @@ ObjectList: GraphNode ObjectTail
   rasqal_triple *triple;
 
 #if RASQAL_DEBUG > 1  
-  printf("ObjectList 1\n");
-  printf(" GraphNode=\n");
-  rasqal_formula_print($1, stdout);
-  printf("\n");
+  fprintf(DEBUG_FH, "ObjectList 1\n");
+  fprintf(DEBUG_FH, " GraphNode=\n");
+  rasqal_formula_print($1, DEBUG_FH);
+  fprintf(DEBUG_FH, "\n");
   if($2) {
-    printf(" ObjectTail=");
-    rasqal_formula_print($2, stdout);
-    printf("\n");
+    fprintf(DEBUG_FH, " ObjectTail=");
+    rasqal_formula_print($2, DEBUG_FH);
+    fprintf(DEBUG_FH, "\n");
   } else
-    printf(" and empty ObjectTail\n");
+    fprintf(DEBUG_FH, " and empty ObjectTail\n");
 #endif
 
   if($2)
@@ -1128,12 +1130,12 @@ ObjectList: GraphNode ObjectTail
   $$=rasqal_formula_join($1, formula);
 
 #if RASQAL_DEBUG > 1  
-  printf(" objectList is now ");
+  fprintf(DEBUG_FH, " objectList is now ");
   if($$)
-    raptor_sequence_print($$->triples, stdout);
+    raptor_sequence_print($$->triples, DEBUG_FH);
   else
-    fputs("NULL", stdout);
-  printf("\n\n");
+    fputs("NULL", DEBUG_FH);
+  fprintf(DEBUG_FH, "\n\n");
 #endif
 }
 ;
@@ -1162,7 +1164,7 @@ Verb: VarOrBlankNodeOrIRIref
   raptor_uri *uri;
 
 #if RASQAL_DEBUG > 1  
-  printf("verb Verb=rdf:type (a)\n");
+  fprintf(DEBUG_FH, "verb Verb=rdf:type (a)\n");
 #endif
 
   uri=raptor_new_uri_for_rdf_concept("type");
@@ -1195,18 +1197,18 @@ TriplesNode: Collection
 
   if($2 == NULL) {
 #if RASQAL_DEBUG > 1  
-    printf("TriplesNode\n PropertyList=");
-    rasqal_formula_print($$, stdout);
-    printf("\n");
+    fprintf(DEBUG_FH, "TriplesNode\n PropertyList=");
+    rasqal_formula_print($$, DEBUG_FH);
+    fprintf(DEBUG_FH, "\n");
 #endif
   } else {
     raptor_sequence *seq=$2->triples;
 
     /* non-empty property list, handle it  */
 #if RASQAL_DEBUG > 1  
-    printf("TriplesNode\n PropertyList=");
-    raptor_sequence_print(seq, stdout);
-    printf("\n");
+    fprintf(DEBUG_FH, "TriplesNode\n PropertyList=");
+    raptor_sequence_print(seq, DEBUG_FH);
+    fprintf(DEBUG_FH, "\n");
 #endif
 
     for(i=0; i<raptor_sequence_size(seq); i++) {
@@ -1218,9 +1220,9 @@ TriplesNode: Collection
     }
 
 #if RASQAL_DEBUG > 1
-    printf("  after substitution formula=");
-    rasqal_formula_print($$, stdout);
-    printf("\n\n");
+    fprintf(DEBUG_FH, "  after substitution formula=");
+    rasqal_formula_print($$, DEBUG_FH);
+    fprintf(DEBUG_FH, "\n\n");
 #endif
   }
   
@@ -1238,9 +1240,9 @@ Collection: '(' GraphNodeListNotEmpty ')'
   rasqal_literal* object;
 
 #if RASQAL_DEBUG > 1  
-  printf("Collection\n GraphNodeListNotEmpty=");
-  raptor_sequence_print($2, stdout);
-  printf("\n");
+  fprintf(DEBUG_FH, "Collection\n GraphNodeListNotEmpty=");
+  raptor_sequence_print($2, DEBUG_FH);
+  fprintf(DEBUG_FH, "\n");
 #endif
 
   first_identifier=rasqal_new_uri_literal(raptor_uri_copy(rasqal_rdf_first_uri));
@@ -1280,9 +1282,9 @@ Collection: '(' GraphNodeListNotEmpty ')'
   $$->value=object;
   
 #if RASQAL_DEBUG > 1
-  printf("  after substitution collection=");
-  rasqal_formula_print($$, stdout);
-  printf("\n\n");
+  fprintf(DEBUG_FH, "  after substitution collection=");
+  rasqal_formula_print($$, DEBUG_FH);
+  fprintf(DEBUG_FH, "\n\n");
 #endif
 
   rasqal_free_literal(first_identifier);
@@ -1296,19 +1298,19 @@ Collection: '(' GraphNodeListNotEmpty ')'
 GraphNodeListNotEmpty: GraphNodeListNotEmpty GraphNode
 {
 #if RASQAL_DEBUG > 1  
-  printf("GraphNodeListNotEmpty 1\n");
+  fprintf(DEBUG_FH, "GraphNodeListNotEmpty 1\n");
   if($2) {
-    printf(" GraphNode=");
-    rasqal_formula_print($2, stdout);
-    printf("\n");
+    fprintf(DEBUG_FH, " GraphNode=");
+    rasqal_formula_print($2, DEBUG_FH);
+    fprintf(DEBUG_FH, "\n");
   } else  
-    printf(" and empty GraphNode\n");
+    fprintf(DEBUG_FH, " and empty GraphNode\n");
   if($1) {
-    printf(" GraphNodeListNotEmpty=");
-    raptor_sequence_print($1, stdout);
-    printf("\n");
+    fprintf(DEBUG_FH, " GraphNodeListNotEmpty=");
+    raptor_sequence_print($1, DEBUG_FH);
+    fprintf(DEBUG_FH, "\n");
   } else
-    printf(" and empty GraphNodeListNotEmpty\n");
+    fprintf(DEBUG_FH, " and empty GraphNodeListNotEmpty\n");
 #endif
 
   if(!$2)
@@ -1316,9 +1318,9 @@ GraphNodeListNotEmpty: GraphNodeListNotEmpty GraphNode
   else {
     raptor_sequence_push($$, $2);
 #if RASQAL_DEBUG > 1  
-    printf(" itemList is now ");
-    raptor_sequence_print($$, stdout);
-    printf("\n\n");
+    fprintf(DEBUG_FH, " itemList is now ");
+    raptor_sequence_print($$, DEBUG_FH);
+    fprintf(DEBUG_FH, "\n\n");
 #endif
   }
 
@@ -1326,13 +1328,13 @@ GraphNodeListNotEmpty: GraphNodeListNotEmpty GraphNode
 | GraphNode
 {
 #if RASQAL_DEBUG > 1  
-  printf("GraphNodeListNotEmpty 2\n");
+  fprintf(DEBUG_FH, "GraphNodeListNotEmpty 2\n");
   if($1) {
-    printf(" GraphNode=");
-    rasqal_formula_print($1, stdout);
-    printf("\n");
+    fprintf(DEBUG_FH, " GraphNode=");
+    rasqal_formula_print($1, DEBUG_FH);
+    fprintf(DEBUG_FH, "\n");
   } else  
-    printf(" and empty GraphNode\n");
+    fprintf(DEBUG_FH, " and empty GraphNode\n");
 #endif
 
   $$=NULL;
@@ -1341,9 +1343,9 @@ GraphNodeListNotEmpty: GraphNodeListNotEmpty GraphNode
 
   raptor_sequence_push($$, $1);
 #if RASQAL_DEBUG > 1  
-  printf(" GraphNodeListNotEmpty is now ");
-  raptor_sequence_print($$, stdout);
-  printf("\n\n");
+  fprintf(DEBUG_FH, " GraphNodeListNotEmpty is now ");
+  raptor_sequence_print($$, DEBUG_FH);
+  fprintf(DEBUG_FH, "\n\n");
 #endif
 }
 ;
@@ -2101,7 +2103,7 @@ main(int argc, char *argv[])
 
   rc=rasqal_query_prepare(query, (const unsigned char*)query_string, base_uri);
 
-  rasqal_query_print(query, stdout);
+  rasqal_query_print(query, DEBUG_FH);
 
   rasqal_free_query(query);
 
