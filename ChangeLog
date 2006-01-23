@@ -1,4 +1,80 @@
+2006-01-22  Dave Beckett  <dave@dajobe.org>
+
+	* src/sparql_parser.y, src/sparql_lexer.l: Delete ~ token - long
+	gone from SPARQL.
+
+	* src/sparql_parser.y: Define DEBUG_FH as where debug messages go,
+	rather than burn in stdout.
+
+	* src/sparql_parser.y:
+	(BasicGraphPatternRestOpt): Deleted, merged into BasicGraphPattern
+	(GraphPattern): Added more verbose debug messages.
+	(BasicGraphPattern): Inlined BasicGraphPatternRestOpt.  This is
+	now always a group.  Constraint are moved from the empty graph
+	pattern they are created on, onto the group graph pattern.
+	BlockOfTriplesOpt is pushed to the start of the group each time.
+	For the BasicGraphPattern alone, the new group is initialised,
+	possibly being empty.
+
+	* src/rasqal_query.c: (rasqal_query_prepare): Use a loop with a
+	modified flag to repeat modifying query until nothing more is
+	done.  Add super verbose debug messages.  Make
+	rasqal_engine_merge_graph_patterns visit the query graph pattern.
+
+	* src/rasqal_engine.c: (rasqal_engine_move_constraints): Added, to
+	move constraints about when merging graph patterns in
+	rasqal_engine_join_graph_patterns
+	(rasqal_engine_merge_graph_patterns): Set modified flag when
+	changes happen.  If result is basic but contains graph patterns,
+	turn it back to a group type.
+	(rasqal_engine_merge_triples): Set modified flag.
+	(rasqal_engine_remove_empty_group_graph_patterns): Added to remove
+	empty - zero length - sequences of graph patterns in groups.
+
+	* src/rasqal_internal.h: Add prototypes for
+	rasqal_engine_remove_empty_group_graph_patterns and
+	rasqal_engine_move_constraints
+
+	* src/sparql_parser.y: Update for rq23 changes.
+	(TriplesDotListOpt): Added.
+	(TriplesSameSubject, TriplesSameSubjectDotListOpt,
+	BlockOfTriplesOpt): Added, rougly replacing Triples and
+	TriplesOpt.
+	(BasicGraphPattern, BasicGraphPatternRestOpt): Added, roughly
+	replacing GraphPattern1Opt
+
+	* tests/sparql/examples/Makefile.am: sparql-query-example-e works
+	again
+
+	* tests/sparql/SyntaxDev/Makefile.am: Added check-sparql-correct
+	to recursive rules
+
+	* tests/sparql/Makefile.am: Added check-sparql-correct to
+	recursive rules
+
+	* src/rasqal_engine.c: (rasqal_engine_join_graph_patterns):
+	Protect from NULL args.
+
+	* src/rasqal_engine.c: (rasqal_engine_group_2_graph_patterns): Added.
+
+	* src/rasqal_internal.h: Added prototype for
+	rasqal_engine_group_2_graph_patterns
+
+	* src/rasqal_engine.c:
+	(rasqal_engine_new_graph_pattern_from_formula): Added.
+
+	* src/rasqal_internal.h: Added prototypes for rasqal_formula_join
+	and rasqal_engine_new_graph_pattern_from_formula
+
+	* src/rasqal_literal.c: (rasqal_formula_join): Added.
+
 2006-01-21  Dave Beckett  <dave@dajobe.org>
+
+	* src/sparql_parser.y: (OrderCondition): Removed deprecated ASC[]
+	and DESC[] syntax.
+
+	* src/sparql_parser.y: (TriplesSameSubject): Renamed from
+	Triples1, after rq23.
 
 	* tests/sparql/part1/Makefile.am: dawg-opt-query-003 now fails
 
