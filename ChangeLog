@@ -1,5 +1,55 @@
 2006-01-22  Dave Beckett  <dave@dajobe.org>
 
+	* tests/sparql/SyntaxDev/Syntax-SPARQL3/Makefile.am: All tests
+	pass
+
+	* tests/sparql/SyntaxDev/Syntax-SPARQL2/Makefile.am: All tests
+	pass
+
+	* tests/sparql/part1/Makefile.am: dawg-opt-query-003 passes (again).
+	All tests now pass.
+
+	* tests/sparql/ValueTesting/Makefile.am: adjust failures order to
+	match manifest
+
+	* tests/sparql/regex/Makefile.am: regex-query-003 passes. All
+	tests now pass.
+
+	* src/sparql_parser.y: (RegexExpression): Build new
+	RASQAL_EXPR_REGEX expressions.
+
+	* src/rasqal_engine.c: (rasqal_engine_check_constraint): On an
+	error return - type error - return false rather than failing
+	query.
+
+	* src/rasqal_literal.c: (rasqal_literal_as_string_flags) :Added,
+	with flags and error to allow default failure for as_string on URI
+	literals when flags is set to
+	RASQAL_COMPARE_XQUERY. (rasqal_literal_as_string): Rewritten to
+	wrap rasqal_literal_as_string_flags.
+
+	* src/rasqal_expr.c: (rasqal_new_3op_expression): Added, for new
+	3-expression arg RASQAL_EXPR_REGEX
+	(rasqal_expression_clear, rasqal_expression_visit,
+	rasqal_expression_evaluate, rasqal_expression_print,
+	rasqal_expression_is_constant): Added support for
+	RASQAL_EXPR_REGEX.
+	(rasqal_expression_evaluate): Use rasqal_literal_as_string_flags
+	for conversions and return failure if error is set.  For EXPR_STR
+	ignore RASQAL_COMPARE_XQUERY flag to allow explicit stringify to
+	work.  Add EXPR_REGEX using same code as RASQAL_EXPR_STR_N?MATCH
+	but with expression arguments for literal and flags.  Modify
+	EXPR_CAST to use rasqal_literal_as_string_flags.
+	(array rasqal_op_labels): Add regex.
+
+	* src/rasqal.h: rasqal_op gains RASQAL_EXPR_REGEX value
+	rasqal_expression gains arg3 field.  Added
+	rasqal_new_3op_expression for new 3-expression arg
+	RASQAL_EXPR_REGEX Added rasqal_literal_as_string_flags
+
+	* tests/sparql/examples/Makefile.am: sparql-query-example-e broken
+	again
+
 	* src/sparql_parser.y, src/sparql_lexer.l: Delete ~ token - long
 	gone from SPARQL.
 
