@@ -173,7 +173,7 @@ static int sparql_is_builtin_xsd_datatype(raptor_uri* uri);
 %type <graph_pattern> GraphGraphPattern OptionalGraphPattern
 %type <graph_pattern> GroupOrUnionGraphPattern GroupOrUnionGraphPatternList
 %type <graph_pattern> GraphPatternNotTriples
-%type <graph_pattern> BasicGraphPattern BasicGraphPatternRestOpt
+%type <graph_pattern> BasicGraphPattern
 
 %type <expr> Expression ConditionalOrExpression ConditionalAndExpression
 %type <expr> RelationalExpression AdditiveExpression
@@ -569,91 +569,112 @@ GraphPattern: BasicGraphPattern GraphPatternNotTriples DotOptional GraphPattern
 {
   raptor_sequence *seq;
 
+#if RASQAL_DEBUG > 1  
+  printf("GraphPattern 2\n  BasicGraphPattern=");
+  if($1)
+    rasqal_graph_pattern_print($1, stdout);
+  else
+    fputs("NULL", stdout);
+  fputs("\n", stdout);
+#endif
+
   seq=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_graph_pattern, (raptor_sequence_print_handler*)rasqal_graph_pattern_print);
   if($1)
     raptor_sequence_push(seq, $1);
+
   $$=rasqal_new_graph_pattern_from_sequence((rasqal_query*)rq, seq,
                                             RASQAL_GRAPH_PATTERN_OPERATOR_GROUP);
+#if RASQAL_DEBUG > 1  
+  printf("  after grouping graph pattern=");
+  if($$)
+    rasqal_graph_pattern_print($$, stdout);
+  else
+    fputs("NULL", stdout);
+  printf("\n\n");
+#endif
 }
 ;
 
 
 /* SPARQL Grammar Term rq23 [21]  BasicGraphPattern */
-BasicGraphPattern: BlockOfTriplesOpt BasicGraphPatternRestOpt
+BasicGraphPattern: BlockOfTriplesOpt Constraint DotOptional BasicGraphPattern
 {
-  rasqal_graph_pattern* formula_gp=NULL;
-
 #if RASQAL_DEBUG > 1  
-  printf("BasicGraphPattern\n  BlockOfTriplesOpt=");
+  printf("BasicGraphPattern 1\n  BlockOfTriplesOpt=");
   if($1)
     rasqal_formula_print($1, stdout);
   else
     fputs("NULL", stdout);
-  printf(", BasicGraphPatternRestOpt=");
+  printf(", Constraint=");
   if($2)
-    rasqal_graph_pattern_print($2, stdout);
+    rasqal_expression_print($2, stdout);
+  else
+    fputs("NULL", stdout);
+  printf(", BasicGraphPattern=");
+  if($4)
+    rasqal_graph_pattern_print($4, stdout);
+  else
+    fputs("NULL", stdout);
+  fputs("\n", stdout);
+#endif
+
+  $$=$4;
+  /* push $1 to start of $4 graph sequence */
+  if($1) {
+    rasqal_graph_pattern *gp;
+    
+    gp=rasqal_engine_new_graph_pattern_from_formula((rasqal_query*)rq, $1,
+                                                    RASQAL_GRAPH_PATTERN_OPERATOR_BASIC);
+
+    raptor_sequence_shift($$->graph_patterns, gp);
+  }
+  
+  if($2)
+    rasqal_graph_pattern_add_constraint($$, $2);
+  
+#if RASQAL_DEBUG > 1  
+  printf("  after grouping graph pattern=");
+  if($$)
+    rasqal_graph_pattern_print($$, stdout);
+  else
+    fputs("NULL", stdout);
+  printf("\n\n");
+#endif
+}
+| BlockOfTriplesOpt
+{
+  rasqal_graph_pattern *formula_gp=NULL;
+  raptor_sequence *seq;
+
+#if RASQAL_DEBUG > 1  
+  printf("BasicGraphPattern 2\n  BlockOfTriplesOpt=");
+  if($1)
+    rasqal_formula_print($1, stdout);
   else
     fputs("NULL", stdout);
   fputs("\n", stdout);
 #endif
 
   if($1)
-    formula_gp=rasqal_engine_new_graph_pattern_from_formula((rasqal_query*)rq, $1, RASQAL_GRAPH_PATTERN_OPERATOR_BASIC);
+    formula_gp=rasqal_engine_new_graph_pattern_from_formula((rasqal_query*)rq, $1,
+                                                            RASQAL_GRAPH_PATTERN_OPERATOR_BASIC);
+  
+  seq=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_graph_pattern, (raptor_sequence_print_handler*)rasqal_graph_pattern_print);
+  if(formula_gp)
+    raptor_sequence_push(seq, formula_gp);
 
-  if(formula_gp) {
-    if($2) {
-      rasqal_engine_join_graph_patterns(formula_gp, $2);
-      rasqal_free_graph_pattern($2);
-    }
-    $$=formula_gp;
-  } else
-    $$=$2;
+  $$=rasqal_new_graph_pattern_from_sequence((rasqal_query*)rq,
+                                            seq,
+                                            RASQAL_GRAPH_PATTERN_OPERATOR_GROUP);
 
 #if RASQAL_DEBUG > 1  
-  printf("  after joining graph pattern=");
+  printf("  after, group graph pattern=");
   if($$)
     rasqal_graph_pattern_print($$, stdout);
   else
     fputs("NULL", stdout);
   printf("\n\n");
 #endif
-}
-;
-
-
-/* NEW Grammar Term taken from rq23 [21] BasicGraphPattern:
- *   ( Constraint '.'?  BasicGraphPattern )?
- */
-BasicGraphPatternRestOpt: Constraint DotOptional BasicGraphPattern
-{
-#if RASQAL_DEBUG > 1  
-  printf("GraphPatternRestOpt 1\n  Constraint=");
-  rasqal_expression_print($1, stdout);
-  printf(", GraphPattern=");
-  if($3)
-    rasqal_graph_pattern_print($3, stdout);
-  else
-    fputs("NULL", stdout);
-  fputs("\n", stdout);
-#endif
-
-  $$=$3;
-  if(!$$)
-    $$=rasqal_new_graph_pattern_from_triples((rasqal_query*)rq, NULL, -1, -1, RASQAL_GRAPH_PATTERN_OPERATOR_BASIC);
-
-  rasqal_graph_pattern_add_constraint($$, $1);
-#if RASQAL_DEBUG > 1  
-  printf("  after adding constraint, graph pattern=");
-  if($$)
-    rasqal_graph_pattern_print($$, stdout);
-  else
-    fputs("NULL", stdout);
-  printf("\n\n");
-#endif
-}
-| /* empty */
-{
-  $$=NULL;
 }
 ;
 
@@ -672,7 +693,7 @@ BlockOfTriplesOpt: TriplesSameSubject TriplesSameSubjectDotListOpt
     rasqal_formula_print($2, stdout);
   else
     fputs("NULL", stdout);
-  fputs("\n\n", stdout);
+  fputs("\n", stdout);
 #endif
 
 
@@ -962,7 +983,7 @@ TriplesSameSubject: VarOrTerm PropertyListNotEmpty
 #if RASQAL_DEBUG > 1  
     printf("  after substitution propertyList=");
     rasqal_formula_print($2, stdout);
-    printf("\n\n");
+    printf("\n");
 #endif
   }
 
