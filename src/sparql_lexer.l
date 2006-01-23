@@ -325,7 +325,6 @@ EXPONENT [eE][+-]?[0-9]+
 "-"         { return '-'; }
 "*"         { return '*'; }
 "/"         { return '/'; }
-"~"         { return '~'; }
 "!"         { return '!'; }
 
 [0-9]+["lL"]?   { c=yytext[yyleng-1];
@@ -971,9 +970,6 @@ sparql_token_print(int token, YYSTYPE *lval)
 
     case '!':
       return "!";
-
-    case '~':
-      return "~";
 
     case INTEGER_LITERAL:
       sprintf(buffer, "INTEGER_LITERAL(%d)", lval->literal->value.integer);
