@@ -1,5 +1,14 @@
 2006-01-22  Dave Beckett  <dave@dajobe.org>
 
+	* tests/sparql/Expr1/Makefile.am, tests/sparql/Expr2/Makefile.am,
+	tests/sparql/ExprBuiltins/Makefile.am,
+	tests/sparql/ExprEquals/Makefile.am,
+	tests/sparql/SyntaxDev/Syntax-SPARQL2/Makefile.am,
+	tests/sparql/SyntaxDev/Syntax-SPARQL3/Makefile.am,
+	tests/sparql/part1/Makefile.am, tests/sparql/survey/Makefile.am,
+	tests/sparql/syntax/Makefile.am: Edit failures reporting message
+	for consistency
+
 	* tests/sparql/SyntaxDev/Syntax-SPARQL3/Makefile.am: All tests
 	pass
 
