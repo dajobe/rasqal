@@ -44,12 +44,9 @@ syntax-lists-02.rq syntax-lists-03.rq syntax-lists-04.rq		\
 syntax-lists-05.rq
 
 # Test failures
-EXPECTED_SPARQL_PARSER_FAILURES= \
-syntax-function-01.rq syntax-function-02.rq syntax-function-03.rq	\
-syntax-function-04.rq syntax-general-03.rq \
-syntax-graph-02.rq syntax-graph-06.rq
+EXPECTED_SPARQL_PARSER_FAILURES=
 
-EXPECTED_SPARQL_PARSER_FAILURES_COUNT=7
+EXPECTED_SPARQL_PARSER_FAILURES_COUNT=0
 
 EXPECTED_SPARQL_CORRECT_FAILURES= \
 $(EXPECTED_SPARQL_PARSER_FAILURES)
