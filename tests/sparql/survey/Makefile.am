@@ -104,7 +104,7 @@ check-sparql-correct: build-roqet $(srcdir)/../check-sparql
 	if test $$result != 0 ; then \
 	  echo "Expecting test failures: $(EXPECTED_SPARQL_CORRECT_FAILURES)"; \
 	  if test $$result = $(EXPECTED_SPARQL_CORRECT_FAILURES_COUNT) ; then \
-	    echo "OK: Ignoring expected $$result test failures"; result=0; \
+	    echo "OK: Ignoring $$result expected test failures"; result=0; \
           else \
 	    echo "FAILED: $$result failures does not match expected $(EXPECTED_SPARQL_CORRECT_FAILURES_COUNT)"; result=1; \
           fi; \
