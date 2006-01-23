@@ -802,15 +802,22 @@ rasqal_literal_as_uri(rasqal_literal* l)
 
 
 /**
- * rasqal_literal_as_string:
+ * rasqal_literal_as_string_flags:
  * @l: #rasqal_literal object
+ * @flags: comparison flags
+ * @error: pointer to error
  *
- * Return the string format of a literal.
+ * Return the string format of a literal according to flags.
  * 
+ * flag bits affects conversion:
+ *   RASQAL_COMPARE_XQUERY: use XQuery conversion rules
+ * 
+ * If @error is not NULL, *error is set to non-0 on error
+ *
  * Return value: pointer to a shared string format of the literal.
  **/
 const unsigned char*
-rasqal_literal_as_string(rasqal_literal* l)
+rasqal_literal_as_string_flags(rasqal_literal* l, int flags, int *error)
 {
   if(!l)
     return NULL;
@@ -829,10 +836,16 @@ rasqal_literal_as_string(rasqal_literal* l)
       return l->string;
 
     case RASQAL_LITERAL_URI:
+      if(flags & RASQAL_COMPARE_XQUERY) {
+        if(error)
+          *error=1;
+        return NULL;
+      }
       return raptor_uri_as_string(l->value.uri);
 
     case RASQAL_LITERAL_VARIABLE:
-      return rasqal_literal_as_string(l->value.variable->value);
+      return rasqal_literal_as_string_flags(l->value.variable->value, flags,
+                                            error);
 
     case RASQAL_LITERAL_UNKNOWN:
     default:
@@ -840,6 +853,20 @@ rasqal_literal_as_string(rasqal_literal* l)
   }
 }
 
+
+/**
+ * rasqal_literal_as_string:
+ * @l: #rasqal_literal object
+ *
+ * Return the string format of a literal.
+ * 
+ * Return value: pointer to a shared string format of the literal.
+ **/
+const unsigned char*
+rasqal_literal_as_string(rasqal_literal* l)
+{
+  return rasqal_literal_as_string_flags(l, 0, NULL);
+}
 
 /**
  * rasqal_literal_as_variable:
@@ -888,6 +915,8 @@ double_to_int(double d)
  *   RASQAL_COMPARE_NOCASE: use case independent string comparisons
  *   RASQAL_COMPARE_XQUERY: use XQuery comparison and type promotion rules
  * 
+ * If @error is not NULL, *error is set to non-0 on error
+ *
  * Return value: <0, 0, or >0 as described above.
  **/
 int
