@@ -986,14 +986,50 @@ rasqal_query_prepare(rasqal_query* query,
     query->failed=1;
 
   if(query->query_graph_pattern) {
-    rasqal_query_graph_pattern_visit(query, rasqal_engine_merge_triples,
-                                     NULL);
+    int modified;
+    
+#if RASQAL_DEBUG > 1
+    fputs("Initial query graph pattern:\n  ", stdout);
+    rasqal_graph_pattern_print(query->query_graph_pattern, stdout);
+    fputs("\n", stdout);
+#endif
 
-    rasqal_query_graph_pattern_visit(query, rasqal_engine_merge_graph_patterns,
-                                     NULL);
+    do {
+      modified=0;
+      
+      rasqal_query_graph_pattern_visit(query, 
+                                       rasqal_engine_merge_triples,
+                                       &modified);
+      
+#if RASQAL_DEBUG > 1
+      fprintf(stdout, "modified=%d after merge triples, query graph pattern now:\n  ", modified);
+      rasqal_graph_pattern_print(query->query_graph_pattern, stdout);
+      fputs("\n", stdout);
+#endif
 
+      rasqal_query_graph_pattern_visit(query,
+                                       rasqal_engine_remove_empty_group_graph_patterns,
+                                       &modified);
+      
+#if RASQAL_DEBUG > 1
+      fprintf(stdout, "modified=%d after remove empty groups, query graph pattern now:\n  ", modified);
+      rasqal_graph_pattern_print(query->query_graph_pattern, stdout);
+      fputs("\n", stdout);
+#endif
+
+      rasqal_query_graph_pattern_visit(query, 
+                                       rasqal_engine_merge_graph_patterns,
+                                       &modified);
+
+#if RASQAL_DEBUG > 1
+      fprintf(stdout, "modified=%d  after merge graph patterns, query graph pattern now:\n  ", modified);
+      rasqal_graph_pattern_print(query->query_graph_pattern, stdout);
+      fputs("\n", stdout);
+#endif
+
+    } while(modified);
+    
     rasqal_engine_build_constraints_expression(query->query_graph_pattern);
-
   }
 
   return rc;
