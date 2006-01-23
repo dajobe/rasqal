@@ -148,7 +148,6 @@ static int sparql_is_builtin_xsd_datatype(raptor_uri* uri);
 %left '+' '-' '*' '/'
 
 /* unary operations */
-%left '~' '!'
 
 /* literals */
 %token <literal> FLOATING_POINT_LITERAL
