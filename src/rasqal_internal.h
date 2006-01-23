@@ -476,6 +476,7 @@ int rasqal_engine_merge_graph_patterns(rasqal_query* query, rasqal_graph_pattern
 int rasqal_engine_expression_fold(rasqal_query* rq, rasqal_expression* e);
 int rasqal_engine_graph_pattern_fold_expressions(rasqal_query* rq, rasqal_graph_pattern* gp);
 int rasqal_engine_query_fold_expressions(rasqal_query* rq);
+int rasqal_engine_remove_empty_group_graph_patterns(rasqal_query* query, rasqal_graph_pattern* gp, void* data);
   
 rasqal_triples_source* rasqal_new_triples_source(rasqal_query* query);
 void rasqal_free_triples_source(rasqal_triples_source* rts);
@@ -483,6 +484,7 @@ int rasqal_triples_source_next_source(rasqal_triples_source* rts);
 
 int rasqal_engine_get_next_result(rasqal_query* query);
 void rasqal_engine_assign_binding_values(rasqal_query* query);
+void rasqal_engine_move_constraints(rasqal_graph_pattern* dest_gp, rasqal_graph_pattern* src_gp);
 
 /* rasqal_expr.c */
 int rasqal_literal_as_boolean(rasqal_literal* literal, int* error);
