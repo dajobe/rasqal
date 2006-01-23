@@ -1611,42 +1611,13 @@ BuiltInCall: STR '(' Expression ')'
 
 
 /* SPARQL Grammar: [54] RegexExpression */
-RegexExpression: REGEX '(' Expression ',' GraphTerm ')'
+RegexExpression: REGEX '(' Expression ',' Expression ')'
 {
-  /* FIXME - GraphTerm should be Expression */
-  /* FIXME - regex needs more thought */
-  const unsigned char* pattern=rasqal_literal_as_string($5);
-  size_t len=strlen((const char*)pattern);
-  unsigned char* npattern;
-  rasqal_literal* l;
-
-  npattern=(unsigned char *)RASQAL_MALLOC(cstring, len+1);
-  strncpy((char*)npattern, (const char*)pattern, len+1);
-  l=rasqal_new_pattern_literal(npattern, NULL);
-  $$=rasqal_new_string_op_expression(RASQAL_EXPR_STR_MATCH, $3, l);
-  rasqal_free_literal($5);
+  $$=rasqal_new_3op_expression(RASQAL_EXPR_REGEX, $3, $5, NULL);
 }
-| REGEX '(' Expression ',' GraphTerm ',' GraphTerm ')'
+| REGEX '(' Expression ',' Expression ',' Expression ')'
 {
-  /* FIXME - GraphTerm-s should be Expression-s */
-  /* FIXME - regex needs more thought */
-  const unsigned char* pattern=rasqal_literal_as_string($5);
-  size_t p_len=strlen((const char*)pattern);
-  unsigned char* npattern;
-  const char* flags=(const char*)rasqal_literal_as_string($7);
-  size_t f_len=strlen(flags);
-  char* nflags;
-  rasqal_literal* l;
-
-  npattern=(unsigned char *)RASQAL_MALLOC(cstring, p_len+1);
-  strncpy((char*)npattern, (const char*)pattern, p_len+1);
-  nflags=(char *)RASQAL_MALLOC(cstring, f_len+1);
-  strncpy(nflags, flags, f_len+1);
-  l=rasqal_new_pattern_literal(npattern, nflags);
-
-  $$=rasqal_new_string_op_expression(RASQAL_EXPR_STR_MATCH, $3, l);
-  rasqal_free_literal($5);
-  rasqal_free_literal($7);
+  $$=rasqal_new_3op_expression(RASQAL_EXPR_REGEX, $3, $5, $7);
 }
 ;
 
