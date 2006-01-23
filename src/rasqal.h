@@ -347,8 +347,9 @@ struct rasqal_literal_s {
  * @RASQAL_EXPR_REM: Expression for A/B remainder.
  * @RASQAL_EXPR_STR_EQ: Expression for A string equals B.
  * @RASQAL_EXPR_STR_NEQ: Expression for A string not-equals B.
- * @RASQAL_EXPR_STR_MATCH: Expression for string A matches regex B with flags.
- * @RASQAL_EXPR_STR_NMATCH: Expression for string A not-matches regex B with flags.
+ * @RASQAL_EXPR_STR_MATCH: Expression for string A matches literal regex B with flags.
+ * @RASQAL_EXPR_STR_NMATCH: Expression for string A not-matches literal regex B with flags.
+ * @RASQAL_EXPR_STR_REGEX: Expression for string A matches expression regex B with flags.
  * @RASQAL_EXPR_TILDE: Expression for binary not A.
  * @RASQAL_EXPR_BANG: Expression for logical not A.
  * @RASQAL_EXPR_LITERAL: Expression for a #rasqal_literal.
@@ -407,8 +408,9 @@ typedef enum {
   RASQAL_EXPR_ORDER_COND_ASC,
   RASQAL_EXPR_ORDER_COND_DESC,
   RASQAL_EXPR_LANGMATCHES,
+  RASQAL_EXPR_REGEX,
   /* internal */
-  RASQAL_EXPR_LAST= RASQAL_EXPR_LANGMATCHES
+  RASQAL_EXPR_LAST= RASQAL_EXPR_REGEX
 } rasqal_op;
 
 
@@ -424,6 +426,7 @@ struct rasqal_expression_s {
   rasqal_op op;
   struct rasqal_expression_s* arg1;
   struct rasqal_expression_s* arg2;
+  struct rasqal_expression_s* arg3; /* optional 3rd arg for EXPR_REGEX */
   rasqal_literal* literal;
   rasqal_variable* variable;
   unsigned char *value; /* UTF-8 value */
@@ -775,6 +778,8 @@ rasqal_expression* rasqal_new_1op_expression(rasqal_op op, rasqal_expression* ar
 RASQAL_API
 rasqal_expression* rasqal_new_2op_expression(rasqal_op op, rasqal_expression* arg1, rasqal_expression* arg2);
 RASQAL_API
+rasqal_expression* rasqal_new_3op_expression(rasqal_op op, rasqal_expression* arg1,  rasqal_expression* arg2, rasqal_expression* arg3);
+RASQAL_API
 rasqal_expression* rasqal_new_string_op_expression(rasqal_op op, rasqal_expression* arg1, rasqal_literal* literal);
 RASQAL_API
 rasqal_expression* rasqal_new_literal_expression(rasqal_literal* literal);
@@ -859,6 +864,8 @@ RASQAL_API
 rasqal_variable* rasqal_literal_as_variable(rasqal_literal* l);
 RASQAL_API
 const unsigned char* rasqal_literal_as_string(rasqal_literal* l);
+RASQAL_API
+const unsigned char* rasqal_literal_as_string_flags(rasqal_literal* l, int flags, int *error);
 RASQAL_API
 rasqal_literal* rasqal_literal_as_node(rasqal_literal* l);
 
