@@ -972,21 +972,25 @@ rasqal_engine_check_constraint(rasqal_query *query, rasqal_graph_pattern *gp)
     
   result=rasqal_expression_evaluate(query, gp->constraints_expression, 
                                     query->compare_flags);
-  if(!result)
-    return STEP_ERROR;
-  
 #ifdef RASQAL_DEBUG
   RASQAL_DEBUG1("constraint expression result:\n");
-  rasqal_literal_print(result, stderr);
+  if(!result)
+    fputs("type error", stderr);
+  else
+    rasqal_literal_print(result, stderr);
   fputc('\n', stderr);
 #endif
-  bresult=rasqal_literal_as_boolean(result, &error);
-  if(error) {
-    RASQAL_DEBUG1("constraint boolean expression returned error\n");
-    step= STEP_ERROR;
-  } else
-    RASQAL_DEBUG2("constraint boolean expression result: %d\n", bresult);
-  rasqal_free_literal(result);
+  if(!result)
+    bresult=0;
+  else {
+    bresult=rasqal_literal_as_boolean(result, &error);
+    if(error) {
+      RASQAL_DEBUG1("constraint boolean expression returned error\n");
+      step= STEP_ERROR;
+    } else
+      RASQAL_DEBUG2("constraint boolean expression result: %d\n", bresult);
+    rasqal_free_literal(result);
+  }
 
   if(!bresult)
     /* Constraint failed so move to try next match */
