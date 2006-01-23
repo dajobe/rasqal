@@ -535,6 +535,36 @@ rasqal_new_2op_expression(rasqal_op op,
 
 
 /**
+ * rasqal_new_3op_expression:
+ * @op: Expression operator
+ * @arg1: Operand 1 
+ * @arg2: Operand 2
+ * @arg3: Operand 3 (may be NULL)
+ * 
+ * Constructor - create a new 3-operand expression.
+ * 
+ * The only operator is:
+ * @RASQAL_EXPR_REGEX
+ *
+ * Return value: a new #rasqal_expression object or NULL on failure
+ **/
+rasqal_expression*
+rasqal_new_3op_expression(rasqal_op op,
+                          rasqal_expression* arg1, 
+                          rasqal_expression* arg2,
+                          rasqal_expression* arg3)
+{
+  rasqal_expression* e=(rasqal_expression*)RASQAL_CALLOC(rasqal_expression, sizeof(rasqal_expression), 1);
+  e->usage=1;
+  e->op=op;
+  e->arg1=arg1;
+  e->arg2=arg2;
+  e->arg3=arg3;
+  return e;
+}
+
+
+/**
  * rasqal_new_string_op_expression:
  * @op: Expression operator
  * @arg1: Operand 1 
@@ -655,6 +685,12 @@ rasqal_expression_clear(rasqal_expression* e)
     case RASQAL_EXPR_LANGMATCHES:
       rasqal_free_expression(e->arg1);
       rasqal_free_expression(e->arg2);
+      break;
+    case RASQAL_EXPR_REGEX:
+      rasqal_free_expression(e->arg1);
+      rasqal_free_expression(e->arg2);
+      if(e->arg3)
+        rasqal_free_expression(e->arg3);
       break;
     case RASQAL_EXPR_TILDE:
     case RASQAL_EXPR_BANG:
@@ -794,6 +830,11 @@ rasqal_expression_visit(rasqal_expression* e,
     case RASQAL_EXPR_LANGMATCHES:
       return rasqal_expression_visit(e->arg1, fn, user_data) ||
              rasqal_expression_visit(e->arg2, fn, user_data);
+      break;
+    case RASQAL_EXPR_REGEX:
+      return rasqal_expression_visit(e->arg1, fn, user_data) ||
+             rasqal_expression_visit(e->arg2, fn, user_data) ||
+             (e->arg3 && rasqal_expression_visit(e->arg3, fn, user_data));
       break;
     case RASQAL_EXPR_TILDE:
     case RASQAL_EXPR_BANG:
@@ -1174,8 +1215,12 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e,
         if(!l)
           goto failed;
 
-        s=rasqal_literal_as_string(l);
-        if(!s) {
+        /* Note: flags removes RASQAL_COMPARE_XQUERY as this is the
+         * explicit stringify operation
+         */
+        s=rasqal_literal_as_string_flags(l, (flags & ~RASQAL_COMPARE_XQUERY),
+                                         &error);
+        if(!s || error) {
           rasqal_free_literal(l);
           goto failed;
         }
@@ -1257,10 +1302,13 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e,
         /* FIXME - seems to me it got the description of '*' in the 
          * wrong argument position
          */
-        s1=rasqal_literal_as_string(l1);
-        s2=rasqal_literal_as_string(l2);
 
-        if(s1 && s2 && *s1 && *s2) {
+        s1=rasqal_literal_as_string_flags(l1, flags, &error);
+        s2=rasqal_literal_as_string_flags(l2, flags, &error);
+
+        if(error) {
+          b=0;
+        } else if(s1 && s2 && *s1 && *s2) {
           /* Two non-empty arguments */
           if(s2[0] == '*' && !s2[1])
             b= 1;
@@ -1627,13 +1675,15 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e,
 
     case RASQAL_EXPR_STR_MATCH:
     case RASQAL_EXPR_STR_NMATCH: 
+    case RASQAL_EXPR_REGEX: 
       {
         int b=0;
         int flag_i=0; /* flags contains i */
         const unsigned char *p;
         const unsigned char *match_string;
         const unsigned char *pattern;
-        rasqal_literal *l1, *l2;
+        const unsigned char *regex_flags;
+        rasqal_literal *l1, *l2, *l3;
         int rc=0;
 #ifdef RASQAL_REGEX_PCRE
         pcre* re;
@@ -1649,16 +1699,39 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e,
         l1=rasqal_expression_evaluate(query, e->arg1, flags);
         if(!l1)
           goto failed;
-        match_string=rasqal_literal_as_string(l1);
-        if(!match_string) {
+
+        match_string=rasqal_literal_as_string_flags(l1, flags, &error);
+        if(error || !match_string) {
           rasqal_free_literal(l1);
           goto failed;
         }
         
-        l2=e->literal;
+        l3=NULL;
+        regex_flags=NULL;
+        if(e->op == RASQAL_EXPR_REGEX) {
+          l2=rasqal_expression_evaluate(query, e->arg2, flags);
+          if(!l2) {
+            rasqal_free_literal(l1);
+            goto failed;
+          }
+
+          if(e->arg3) {
+            l3=rasqal_expression_evaluate(query, e->arg3, flags);
+            if(!l3) {
+              rasqal_free_literal(l1);
+              rasqal_free_literal(l2);
+              goto failed;
+            }
+            regex_flags=l3->string;
+          }
+          
+        } else {
+          l2=e->literal;
+          regex_flags=l2->flags;
+        }
         pattern=l2->string;
         
-        for(p=l2->flags; p && *p; p++)
+        for(p=regex_flags; p && *p; p++)
           if(*p == 'i')
             flag_i++;
           
@@ -1725,7 +1798,12 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e,
           b=1-b;
 
         rasqal_free_literal(l1);
-
+        if(e->op == RASQAL_EXPR_REGEX) {
+          rasqal_free_literal(l2);
+          if(l3)
+            rasqal_free_literal(l3);
+        }
+        
         if(rc<0)
           goto failed;
         
@@ -1753,7 +1831,11 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e,
         if(!l1)
           goto failed;
 
-        string=rasqal_literal_as_string(l1);
+        string=rasqal_literal_as_string_flags(l1, flags, &error);
+        if(error) {
+          rasqal_free_literal(l1);
+          goto failed;
+        }
         new_string=(unsigned char*)RASQAL_MALLOC(string, strlen((const char*)string)+1);
         strcpy((char*)new_string, (const char*)string);
         uri=raptor_uri_copy(e->name);
@@ -1823,7 +1905,8 @@ static const char* rasqal_op_labels[RASQAL_EXPR_LAST+1]={
   "cast",
   "order asc",
   "order desc",
-  "langMatches"
+  "langMatches",
+  "regex"
 };
 
 
@@ -1876,12 +1959,18 @@ rasqal_expression_print(rasqal_expression* e, FILE* fh)
     case RASQAL_EXPR_STR_EQ:
     case RASQAL_EXPR_STR_NEQ:
     case RASQAL_EXPR_LANGMATCHES:
+    case RASQAL_EXPR_REGEX:
       fputs("op ", fh);
       rasqal_expression_print_op(e, fh);
       fputc('(', fh);
       rasqal_expression_print(e->arg1, fh);
       fputs(", ", fh);
       rasqal_expression_print(e->arg2, fh);
+      /* There is only one 3-op expression and it's handled here */
+      if(e->op == RASQAL_EXPR_REGEX && e->arg3) {
+        fputs(", ", fh);
+        rasqal_expression_print(e->arg3, fh);
+      }
       fputc(')', fh);
       break;
     case RASQAL_EXPR_STR_MATCH:
@@ -1988,6 +2077,11 @@ rasqal_expression_is_constant(rasqal_expression* e)
     case RASQAL_EXPR_LANGMATCHES:
       result=rasqal_expression_is_constant(e->arg1) &&
              rasqal_expression_is_constant(e->arg2);
+      break;
+    case RASQAL_EXPR_REGEX:
+      result=rasqal_expression_is_constant(e->arg1) &&
+             rasqal_expression_is_constant(e->arg2) &&
+             (e->arg3 && rasqal_expression_is_constant(e->arg3));
       break;
     case RASQAL_EXPR_STR_MATCH:
     case RASQAL_EXPR_STR_NMATCH:
