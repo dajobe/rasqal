@@ -50,12 +50,12 @@ typePromotion-decimal-decimal-pass.rq
 
 # Test failures
 EXPECTED_SPARQL_CORRECT_FAILURES= \
-boolean-EBV-canonical \
+extendedType-ne-fail \
+extendedType-literal-ne \
+typePromotion-decimal-decimal-pass \
 boolean-false-canonical \
 boolean-true-canonical \
-extendedType-literal-ne \
-extendedType-ne-fail \
-typePromotion-decimal-decimal-fail
+boolean-EBV-canonical
 
 SPARQL_RESULT_FILES= \
 boolean-EBV-canonical-result.n3 \
