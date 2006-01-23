@@ -36,14 +36,9 @@ bnodes-missing-pvalues-02.rq empty-optional-01.rq			\
 empty-optional-02.rq filter-missing-parens.rq lone-list.rq		\
 lone-node.rq
 
-# Test failures
-#   syn-05 - FILTER and dots
-#   syn-06 - FILTER and dots
-#   syn-07 - FILTER and dots
-EXPECTED_SPARQL_PARSER_FAILURES= \
-syn-05.rq syn-06.rq syn-07.rq
+EXPECTED_SPARQL_PARSER_FAILURES=
 
-EXPECTED_SPARQL_PARSER_FAILURES_COUNT=3
+EXPECTED_SPARQL_PARSER_FAILURES_COUNT=0
 
 EXPECTED_SPARQL_CORRECT_FAILURES= \
 $(EXPECTED_SPARQL_PARSER_FAILURES)
