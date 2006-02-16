@@ -573,6 +573,15 @@ int rasqal_map_add_kv(rasqal_map* map, void* key, void *value);
 void rasqal_map_visit(rasqal_map* map, rasqal_map_visit_fn fn, void *user_data);
 void rasqal_map_print(rasqal_map* map, FILE* fh);
 
+/* rasqal_query.c */
+int rasqal_query_result_row_update(rasqal_query_result_row* row, int offset);
+int rasqal_query_results_update(rasqal_query_results *query_results);
+void rasqal_query_remove_query_result(rasqal_query* query, rasqal_query_results* query_results);
+
+/* rasqal_query_results.c */
+void rasqal_free_query_result_row(rasqal_query_result_row* row);
+void rasqal_query_result_row_print(rasqal_query_result_row* row, FILE* fh);
+int rasqal_query_result_row_compare(const void *a, const void *b);
 
 /* end of RASQAL_INTERNAL */
 #endif
