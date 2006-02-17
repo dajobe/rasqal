@@ -74,7 +74,8 @@ static enum {
   RESULTS_FORMAT_SIMPLE,
   RESULTS_FORMAT_XML_V1,
   RESULTS_FORMAT_XML_V2,
-  RESULTS_FORMAT_XML_V3
+  RESULTS_FORMAT_XML_V3,
+  RESULTS_FORMAT_JSON
 } results_format = RESULTS_FORMAT_SIMPLE;
 
 
@@ -146,6 +147,8 @@ roqet_query_results_print_as_xml(rasqal_query_results *results, FILE *fh,
     uri=raptor_new_uri((const unsigned char*)"http://www.w3.org/TR/2004/WD-rdf-sparql-XMLres-20041221/");
   else if(format == RESULTS_FORMAT_XML_V2)
     uri=raptor_new_uri((const unsigned char*)"http://www.w3.org/2001/sw/DataAccess/rf1/result2");
+  else if(format == RESULTS_FORMAT_JSON)
+    uri=raptor_new_uri((const unsigned char*)"http://www.mindswap.org/%7Ekendall/sparql-results-json/");
   else /* RESULTS_FORMAT_XML_V3 (default) */
     uri=raptor_new_uri((const unsigned char*)"http://www.w3.org/2005/sparql-results#");
 
@@ -450,6 +453,8 @@ main(int argc, char *argv[])
         if(optarg) {
           if(!strcmp(optarg, "simple"))
             results_format=RESULTS_FORMAT_SIMPLE;
+          else if(!strcmp(optarg, "json"))
+            results_format=RESULTS_FORMAT_JSON;
           else if(!strcmp(optarg, "xml"))
             results_format=RESULTS_FORMAT_XML_V3;
           else if(!strcmp(optarg, "xml-v2"))
@@ -583,6 +588,7 @@ main(int argc, char *argv[])
     puts("      xml                   SPARQL Query Results XML format");
     puts("      xml-v2                SPARQL Query Results XML format V2 (2005-05-27)");
     puts("      xml-v1                SPARQL Query Results XML format V1 (2004-12-21)");
+    puts("      json                  SPARQL Query Results in JSON");
     puts("    For RDF graph results:");
     for(i=0; 1; i++) {
       const char *help_name;
