@@ -2166,21 +2166,27 @@ rasqal_query_results_write_json1(raptor_iostream *iostr,
       if(!l) {
         raptor_iostream_write_string(iostr, "\"type\": \"unbound\", \"value\": null");
       } else switch(l->type) {
+        const unsigned char* str;
+        size_t len;
+        
         case RASQAL_LITERAL_URI:
           raptor_iostream_write_string(iostr, "\"type\": \"uri\", \"value\": \"");
-          raptor_iostream_write_string(iostr, (const unsigned char*)raptor_uri_as_string(l->value.uri));
+          str=(const unsigned char*)raptor_uri_as_counted_string(l->value.uri, &len);
+          raptor_iostream_write_string_ntriples(iostr, str, len, '"');
           raptor_iostream_write_byte(iostr, '"');
           break;
 
         case RASQAL_LITERAL_BLANK:
           raptor_iostream_write_string(iostr, "\"type\": \"bnode\", \"value\": \"");
-          raptor_iostream_write_string(iostr, (const unsigned char*)l->string);
+          raptor_iostream_write_string_ntriples(iostr, (const unsigned char*)l->string, 
+                                                l->string_len, '"');
           raptor_iostream_write_byte(iostr, '"');
           break;
 
         case RASQAL_LITERAL_STRING:
           raptor_iostream_write_string(iostr, "\"type\": \"literal\", \"value\": \"");
-          raptor_iostream_write_counted_string(iostr, (const unsigned char*)l->string, l->string_len);
+          raptor_iostream_write_string_ntriples(iostr, (const unsigned char*)l->string,
+                                                l->string_len, '"');
           raptor_iostream_write_byte(iostr, '"');
 
           if(l->language) {
@@ -2189,9 +2195,10 @@ rasqal_query_results_write_json1(raptor_iostream *iostr,
             raptor_iostream_write_byte(iostr, '"');
           }
           
-          if(l->language) {
+          if(l->datatype) {
             raptor_iostream_write_string(iostr, ",\n      \"datatype\" : \"");
-            raptor_iostream_write_string(iostr, (const unsigned char*)raptor_uri_as_string(l->datatype));
+            str=(const unsigned char*)raptor_uri_as_counted_string(l->datatype, &len);
+            raptor_iostream_write_string_ntriples(iostr, str, len, '"');
             raptor_iostream_write_byte(iostr, '"');
           }
           
