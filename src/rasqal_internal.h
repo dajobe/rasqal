@@ -577,6 +577,7 @@ void rasqal_map_print(rasqal_map* map, FILE* fh);
 int rasqal_query_result_row_update(rasqal_query_result_row* row, int offset);
 int rasqal_query_results_update(rasqal_query_results *query_results);
 void rasqal_query_remove_query_result(rasqal_query* query, rasqal_query_results* query_results);
+unsigned char* rasqal_prefix_id(int prefix_id, unsigned char *string);
 
 /* rasqal_query_results.c */
 void rasqal_free_query_result_row(rasqal_query_result_row* row);
