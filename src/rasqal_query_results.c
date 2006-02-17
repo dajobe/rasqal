@@ -2089,7 +2089,7 @@ rasqal_query_results_write_json1(raptor_iostream *iostr,
   }
   
   
-  raptor_iostream_write_counted_string(iostr, "{\n", 3);
+  raptor_iostream_write_counted_string(iostr, "{\n", 2);
   
   /* Header */
   raptor_iostream_write_counted_string(iostr, "  \"head\": {\n", 12);
