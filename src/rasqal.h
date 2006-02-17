@@ -349,7 +349,7 @@ struct rasqal_literal_s {
  * @RASQAL_EXPR_STR_NEQ: Expression for A string not-equals B.
  * @RASQAL_EXPR_STR_MATCH: Expression for string A matches literal regex B with flags.
  * @RASQAL_EXPR_STR_NMATCH: Expression for string A not-matches literal regex B with flags.
- * @RASQAL_EXPR_STR_REGEX: Expression for string A matches expression regex B with flags.
+ * @RASQAL_EXPR_REGEX: Expression for string A matches expression regex B with flags.
  * @RASQAL_EXPR_TILDE: Expression for binary not A.
  * @RASQAL_EXPR_BANG: Expression for logical not A.
  * @RASQAL_EXPR_LITERAL: Expression for a #rasqal_literal.
