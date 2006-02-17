@@ -1580,8 +1580,9 @@ rasqal_query_get_order_condition(rasqal_query* query, int idx)
 }
 
 
-static RASQAL_INLINE unsigned char*
-rasqal_prefix_id(int prefix_id, unsigned char *string) {
+unsigned char*
+rasqal_prefix_id(int prefix_id, unsigned char *string)
+{
   int tmpid=prefix_id;
   unsigned char* buffer;
   size_t length=strlen((const char*)string)+4;  /* "r" +... + "_" +... \0 */
