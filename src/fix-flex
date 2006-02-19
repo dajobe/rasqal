@@ -9,8 +9,8 @@
 #  perl fix-flex $output > $tmp
 #  mv $tmp $output
 #
-# (C) Copyright 2004 Dave Beckett <Dave.Beckett@bristol.ac.uk>
-# University of Bristol
+# Copyright (C) 2004-2006, David Beckett http://purl.org/net/dajobe/
+# Copyright (C) 2004, University of Bristol, UK http://www.bristol.ac.uk/
 #
 
 print <<'EOT';
