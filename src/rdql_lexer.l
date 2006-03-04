@@ -405,6 +405,11 @@ rdql_copy_regex_token(rasqal_query* rq, YYSTYPE* lval, unsigned char delim) {
       buffer[ind++]=c;
     }
   }
+
+  if(!buffer) {
+    buffer_len=0;
+    buffer=(unsigned char *)RASQAL_CALLOC(cstring, 1, buffer_len+1);
+  }
   buffer[ind]='\0';
 
   if(c == EOF) {
