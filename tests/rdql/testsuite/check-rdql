@@ -70,7 +70,7 @@ sub run_test($$$$$) {
 
   my(@args)=(map "-s $_", @data_files);
   my $args_s=join(" ",@args);
-  my $roqet_cmd="$roqet -d structure -i rdql $args_s $test_file 2>roqet.err";
+  my $roqet_cmd="$roqet -d debug -i rdql $args_s $test_file 2>roqet.err";
   warn "$program: Running '$roqet_cmd'\n"
     if $debug;
 
