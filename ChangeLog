@@ -1,5 +1,31 @@
 2006-03-05  Dave Beckett  <dave@dajobe.org>
 
+	* tests/sparql/check-sparql: Use -d debug as check-sparql relies
+	on that to get var names
+
+	* tests/rdql/testsuite/check-rdql: Use -d debug as check-sparql
+	relies on that to get var names
+
+	* tests/sparql/check-sparql: Update for new roqet args
+
+	* tests/rdql/testsuite/check-rdql: Update for new roqet args
+
+	* src/rasqal_query.c: (rasqal_query_write_sparql_20060125): Handle
+	order conditions.
+
+	* utils/roqet.c: -d/--dump-query now takes an argument with values
+	'debug' (same as old -d), 'structure' (same as -w) and new
+	'sparql' using rasqal_query_write -w deprectated for '-w
+	structure'
+
+	* configure.ac: Require raptor 1.4.9 now
+
+	* src/rasqal_query.c: Fix AND and OR SPARQL write tokens.
+	(rasqal_query_write_sparql_graph_pattern): Always print outer ()s
+	for FILTER.
+
+2006-03-05  Dave Beckett  <dave@dajobe.org>
+
 	* src/rasqal_query.c: (rasqal_query_write): Added to write a query
 	structure into a syntax onto a raptor_iostream.  Implements
 	writing SPARQL format when format_uri is NULL,
