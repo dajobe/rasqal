@@ -32,6 +32,7 @@ rasqal_compare_flags
 rasqal_pattern_flags
 rasqal_new_1op_expression
 rasqal_new_2op_expression
+rasqal_new_3op_expression
 rasqal_new_cast_expression
 rasqal_new_function_expression
 rasqal_new_literal_expression
@@ -84,6 +85,7 @@ rasqal_new_literal_from_literal
 rasqal_free_literal
 rasqal_literal_as_node
 rasqal_literal_as_string
+rasqal_literal_as_string_flags
 rasqal_literal_as_variable
 rasqal_literal_compare
 rasqal_literal_equals
@@ -149,6 +151,7 @@ rasqal_query_set_user_data
 rasqal_query_set_variable
 rasqal_query_set_warning_handler
 rasqal_query_verb_as_string
+rasqal_query_write
 </SECTION>
 
 <SECTION>
