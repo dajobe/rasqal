@@ -1,3 +1,61 @@
+2006-03-05  Dave Beckett  <dave@dajobe.org>
+
+	* src/rasqal_query.c: (rasqal_query_write): Added to write a query
+	structure into a syntax onto a raptor_iostream.  Implements
+	writing SPARQL format when format_uri is NULL,
+	http://www.w3.org/TR/rdf-sparql-query/ or
+	http://www.w3.org/TR/2006/WD-rdf-sparql-query-20060220/
+
+	* src/rasqal.h: (rasqal_query_write): Added to write a query
+	structure into a syntax onto a raptor_iostream.
+
+2006-03-04  Dave Beckett  <dave@dajobe.org>
+
+	* src/rdql_lexer.l: (rdql_copy_regex_token): Handle empty regex //
+	Fixes issue#0000071 http://bugs.librdf.org/mantis/view.php?id=71
+
+2006-02-19  Dave Beckett  <dave@dajobe.org>
+
+	* src/fix-flex, src/fix-bison: 2006
+
+	* AUTHORS: update me
+
+2006-02-16  Dave Beckett  <dave@dajobe.org>
+
+	* src/rasqal_query_results.c: (rasqal_query_results_write_json1):
+	Don't write a null
+
+	* src/rasqal.h: doc fix. RASQAL_EXPR_REGEX not
+	RASQAL_EXPR_STR_REGEX
+
+	* src/rasqal_query_results.c: (rasqal_query_results_write_json1):
+	Use raptor_iostream_write_string_ntriples to do at least some core
+	needed escapes for writing URIs and literals as strings.
+
+	* utils/roqet.c: Added -r json with format_uri
+	http://www.mindswap.org/%7Ekendall/sparql-results-json/
+
+	* src/rasqal_query_results.c: (rasqal_query_results_write): Add
+	JSON results with URI identifier
+	http://www.mindswap.org/%7Ekendall/sparql-results-json/
+	(raptor_iostream_write_json_boolean): Added to support:
+	(rasqal_query_results_write_json1): Added for SPARQL Query Results
+	in JSON (http://json.org/) draft Defined in
+	http://www.mindswap.org/%7Ekendall/sparql-results-json/ Version:
+	alt-ser-sparql.rst,v 1.3 2006/02/16 16:03:08 k Exp
+
+	* src/rasqal_internal.h: Add internal rasqal_prefix_id prototype
+
+	* src/rasqal_query.c: (rasqal_prefix_id): Internal but no longer
+	inline static.
+
+	* src/Makefile.am, src/rasqal_internal.h, src/rasqal_query.c,
+	src/rasqal_query_results.c: split query into query+results files
+
+	* src/rasqal_query_results.c (from
+	/rasqal/trunk/src/rasqal_query.c:5450): copied rasqal_query.c
+	rasqal_query_results.c to split query from results
+
 2006-01-22  Dave Beckett  <dave@dajobe.org>
 
 	* tests/sparql/Expr1/Makefile.am, tests/sparql/Expr2/Makefile.am,
