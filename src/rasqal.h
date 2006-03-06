@@ -659,6 +659,8 @@ RASQAL_API
 rasqal_triple* rasqal_query_get_construct_triple(rasqal_query* query, int idx);
 RASQAL_API
 void rasqal_query_graph_pattern_visit(rasqal_query* query, rasqal_graph_pattern_visit_fn visit_fn, void* data);
+RASQAL_API
+int rasqal_query_write(raptor_iostream* iostr, rasqal_query* query, raptor_uri* format_uri, raptor_uri* base_uri);
 
 /* graph patterns */
 RASQAL_API
