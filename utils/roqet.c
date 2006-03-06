@@ -96,14 +96,14 @@ rdql_parser_error(const char *msg)
 #endif
 
 
-#define GETOPT_STRING "cde:hi:nr:qs:vw"
+#define GETOPT_STRING "cd:e:hi:nr:qs:vw"
 
 #ifdef HAVE_GETOPT_LONG
 static struct option long_options[] =
 {
   /* name, has_arg, flag, val */
   {"count", 0, 0, 'c'},
-  {"dump-query", 0, 0, 'd'},
+  {"dump-query", 1, 0, 'd'},
   {"dryrun", 0, 0, 'n'},
   {"exec", 1, 0, 'e'},
   {"help", 0, 0, 'h'},
@@ -366,6 +366,22 @@ roqet_query_walk(rasqal_query *rq, FILE *fh, int indent) {
 }
 
 
+typedef enum {
+  QUERY_OUTPUT_UNKNOWN,
+  QUERY_OUTPUT_DEBUG,
+  QUERY_OUTPUT_STRUCTURE,
+  QUERY_OUTPUT_SPARQL,
+  QUERY_OUTPUT_LAST= QUERY_OUTPUT_SPARQL
+} query_output_format;
+
+const char* query_output_format_labels[QUERY_OUTPUT_LAST+1][2]={
+  { NULL, NULL },
+  { "debug", "Debug query dump (output format may change)" },
+  { "structure", "Query structure walk (output format may change)" },
+  { "sparql", "SPARQL" }
+};
+
+
 
 int
 main(int argc, char *argv[]) 
@@ -388,13 +404,12 @@ main(int argc, char *argv[])
   int help=0;
   int quiet=0;
   int count=0;
-  int dump_query=0;
   int dryrun=0;
-  int walk_query=0;
   raptor_sequence* source_uris=NULL;
   raptor_serializer* serializer=NULL;
   const char *serializer_syntax_name="ntriples";
-
+  query_output_format output_format= QUERY_OUTPUT_UNKNOWN;
+  
   program=argv[0];
   if((p=strrchr(program, '/')))
     program=p+1;
@@ -431,8 +446,29 @@ main(int argc, char *argv[])
         break;
 
       case 'd':
-        dump_query=1;
+        output_format= QUERY_OUTPUT_UNKNOWN;
+        if(optarg) {
+          int i;
+
+          for(i=1; i <= QUERY_OUTPUT_LAST; i++)
+            if(!strcmp(optarg, query_output_format_labels[i][0])) {
+              output_format=i;
+              break;
+            }
+            
+        }
+        if(output_format == QUERY_OUTPUT_UNKNOWN) {
+          int i;
+          fprintf(stderr,
+                  "%s: invalid argument `%s' for `" HELP_ARG(d, dump-query) "'\n",
+                  program, optarg);
+          for(i=1; i <= QUERY_OUTPUT_LAST; i++)
+            printf("  %-12s for %s\n", query_output_format_labels[i][0],
+                   query_output_format_labels[i][1]);
+          usage=1;
+        }
         break;
+        
 
       case 'e':
 	if(optarg) {
@@ -529,7 +565,10 @@ main(int argc, char *argv[])
         exit(0);
 
       case 'w':
-        walk_query=1;
+        fprintf(stderr,
+                "%s: WARNING: `-w' is deprecated.  Please use `" HELP_ARG(d, dump-query) " structure' instead.\n",
+                program);
+        output_format=QUERY_OUTPUT_STRUCTURE;
         break;
 
     }
@@ -602,14 +641,17 @@ main(int argc, char *argv[])
         putchar('\n');
     }
     puts("\nAdditional options:");
-    puts(HELP_TEXT("c", "count           ", "Count triples - no output"));
-    puts(HELP_TEXT("d", "dump-query      ", "Dump the parsed query"));
-    puts(HELP_TEXT("h", "help            ", "Print this help, then exit"));
-    puts(HELP_TEXT("n", "dryrun          ", "Prepare but do not run the query"));
-    puts(HELP_TEXT("q", "quiet           ", "No extra information messages"));
-    puts(HELP_TEXT("s", "source URI      ", "Query against RDF data at source URI"));
-    puts(HELP_TEXT("v", "version         ", "Print the Rasqal version"));
-    puts(HELP_TEXT("w", "walk-query      ", "Walk the prepared query using the API"));
+    puts(HELP_TEXT("c", "count            ", "Count triples - no output"));
+    puts(HELP_TEXT("d", "dump-query FORMAT", "Print the parsed query out in FORMAT:"));
+    for(i=1; i <= QUERY_OUTPUT_LAST; i++)
+      printf("      %-15s        %s\n", query_output_format_labels[i][0],
+             query_output_format_labels[i][1]);
+    puts(HELP_TEXT("h", "help             ", "Print this help, then exit"));
+    puts(HELP_TEXT("n", "dryrun           ", "Prepare but do not run the query"));
+    puts(HELP_TEXT("q", "quiet            ", "No extra information messages"));
+    puts(HELP_TEXT("s", "source URI       ", "Query against RDF data at source URI"));
+    puts(HELP_TEXT("v", "version          ", "Print the Rasqal version"));
+    puts(HELP_TEXT("w", "walk-query       ", "Print query.  Same as '-d structure'"));
     puts("\nReport bugs to http://bugs.librdf.org/");
     puts("Rasqal home page: http://librdf.org/rasqal/");
     exit(0);
@@ -783,14 +825,32 @@ main(int argc, char *argv[])
     goto tidy_query;
   }
 
-  if(walk_query) {
-    fprintf(stderr, "%s: walking query structure\n", program);
-    roqet_query_walk(rq, stdout, 0);
-  }
+  if(output_format != QUERY_OUTPUT_UNKNOWN) {
+    if(!quiet)
+      fprintf(stderr, "Query:\n");
+    switch(output_format) {
+    case QUERY_OUTPUT_DEBUG:
+      rasqal_query_print(rq, stdout);
+      break;
   
-  if(dump_query) {
-    fprintf(stderr, "Query:\n");
-    rasqal_query_print(rq, stdout);
+    case QUERY_OUTPUT_STRUCTURE:
+      roqet_query_walk(rq, stdout, 0);
+      break;
+      
+    case QUERY_OUTPUT_SPARQL:
+      if(1) {
+        raptor_iostream* iostr=raptor_new_iostream_to_file_handle(stdout);
+        rasqal_query_write(iostr, rq, NULL, base_uri);
+        raptor_free_iostream(iostr);
+      }
+      break;
+      
+    case QUERY_OUTPUT_UNKNOWN:
+    default:
+      fprintf(stderr, "%s: Unknown query output format %d\n", program,
+              output_format);
+      abort();
+    }
   }
 
   if(dryrun)
