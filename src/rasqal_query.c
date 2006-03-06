@@ -1778,8 +1778,8 @@ rasqal_query_write_indent(raptor_iostream* iostr, int indent)
 
 static const char* rasqal_sparql_op_labels[RASQAL_EXPR_LAST+1]={
   NULL, /* UNKNOWN */
-  "AND",
-  "OR",
+  "&&",
+  "||",
   "=",
   "!=",
   "<",
@@ -2021,9 +2021,9 @@ rasqal_query_write_sparql_graph_pattern(sparql_writer_context *wc,
         break;
       
       rasqal_query_write_indent(iostr, indent);
-      raptor_iostream_write_string(iostr, "FILTER ");
+      raptor_iostream_write_counted_string(iostr, "FILTER( ", 8);
       rasqal_query_write_sparql_expression(wc, iostr, expr);
-      raptor_iostream_write_byte(iostr, '\n');
+      raptor_iostream_write_counted_string(iostr, " )\n", 3);
       
       gp_index++;
     }
