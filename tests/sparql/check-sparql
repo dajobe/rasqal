@@ -77,7 +77,7 @@ sub run_test($$$$$$) {
 
   my $args_s=join(" ",@args);
   my $roqet_tmp='roqet.tmp';
-  my $roqet_cmd="$roqet -d -i sparql $args_s $test_file 2>roqet.err > $roqet_tmp";
+  my $roqet_cmd="$roqet -d structure -i sparql $args_s $test_file 2>roqet.err > $roqet_tmp";
   my $sort="sort";
 
   warn "$program: Running '$roqet_cmd'\n"
