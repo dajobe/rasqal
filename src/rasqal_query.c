@@ -2154,15 +2154,24 @@ rasqal_query_write_sparql_20060125(raptor_iostream *iostr,
     rasqal_query_write_sparql_graph_pattern(&wc, iostr,
                                             query->query_graph_pattern, 
                                             -1, 0);
-  }
-
-  if(query->order_conditions_sequence) {
-    raptor_iostream_write_string(iostr, "\nquery order conditions: ");
-    //raptor_sequence_print(query->order_conditions_sequence, fh);
     raptor_iostream_write_byte(iostr, '\n');
   }
 
-  if(query->limit || query->offset) {
+  if(query->order_conditions_sequence) {
+    raptor_iostream_write_counted_string(iostr, "ORDER BY ", 9);
+    for(i=0; 1; i++) {
+      rasqal_expression* expr=rasqal_query_get_order_condition(query, i);
+      if(!expr)
+        break;
+
+      if(i > 0)
+        raptor_iostream_write_byte(iostr, ' ');
+      rasqal_query_write_sparql_expression(&wc, iostr, expr);
+    }
+    raptor_iostream_write_byte(iostr, '\n');
+  }
+
+  if(query->limit >=0 || query->offset >= 0) {
     if(query->limit >= 0) {
       raptor_iostream_write_counted_string(iostr, "LIMIT ", 7);
       raptor_iostream_write_decimal(iostr, query->limit);
