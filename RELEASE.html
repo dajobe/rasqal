@@ -13,6 +13,77 @@
 <p>Not yet released.
 </p>
 
+<h3>General Changes</h3>
+
+<p>Rasqal now requires <a href="http://librdf.org/raptor/">raptor</a>
+1.4.9 or newer.
+</p>
+
+<h3>Configuration and Build Changes</h3>
+
+<p>Now using subversion.</p>
+
+
+<h3><code>roqet</code> utility Changes</h3>
+
+<p>Alter <code>-d</code> (<code>--dump-query</code>) to take ana
+argument of the query format to dump.  It can now take values
+<code>debug</code>, <code>structure</code> or <code>sparql</code>.
+</p>
+
+<p>Added <code>-r json</code> for JSON output. based on the draft
+defined in http://www.mindswap.org/%7Ekendall/sparql-results-json/
+</p>
+
+
+<h3>SPARQL Query Language Changes</h3>
+
+<p>Major update to align with SPARQL grammar terms.  Not yet
+completed.  All DAWG syntax tests now parse.</p>
+
+<p>Updated SPARQL tests from DAWG CVS</p>
+
+<p>Finally removed long deprecated <code>ASC[]</code> and
+<code>DESC[]</code> syntax.</p>
+
+<h3>RDQL Query Language Changes</h3>
+
+<p>Handle empty regex <code>//</code>
+Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=71">Issue#0000071</a>
+</p>
+
+
+<h3>Query Engine Changes</h3>
+
+<p>Some updates to handle latest changes to SPARQL grammar.</p>
+
+<p>Added <code>RASQAL_EXPR_REGEX</code> 3-arg operation to match
+the SPARQL <code>regex()</code> 2/3-arg function.</p>
+
+
+<h3>Query API Changes</h3>
+
+<p>Added <code>rasqal_query_write</code> to write a query
+structure into a syntax onto a raptor_iostream.  Implements
+writing SPARQL format with format URI NULL,
+http://www.w3.org/TR/rdf-sparql-query/ or
+http://www.w3.org/TR/2006/WD-rdf-sparql-query-20060220/.
+</p>
+
+<p>Added a <a href="http://json.org/">JSON</a>
+SPARQL query results format with format URI identifier
+http://www.mindswap.org/%7Ekendall/sparql-results-json/
+based on the draft defined in
+http://www.mindswap.org/%7Ekendall/sparql-results-json/
+Implemented document with version
+<code>alt-ser-sparql.rst,v 1.3 2006/02/16 16:03:08 k Exp</code>.
+</p>
+
+
+<h3>Documentation Changes</h3>
+
+<p>Updated roqet.1 for --exec option and new usages.</p>
+
 
 <h2 id="rel0_9_11"><a name="rel0_9_11">Rasqal 0.9.11 Changes</a></h2>
 
