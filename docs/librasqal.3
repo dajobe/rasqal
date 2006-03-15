@@ -6,7 +6,7 @@
 .\" Copyright (C) 2004-2006 David Beckett - http://purl.org/net/dajobe/
 .\" Copyright (C) 2004-2005 University of Bristol - http://www.bristol.ac.uk/
 .\"
-.TH librasqal 3 "2006-01-15"
+.TH librasqal 3 "2006-03-14"
 .\" Please adjust this date whenever revising the manpage.
 .SH NAME
 librasqal \- Rasqal RDF query library
@@ -212,6 +212,9 @@ Get a string for the query \fIverb\fP.
 Get the sequence of triples for a construct.
 .IP "\fBrasqal_triple* rasqal_query_get_construct_triple(rasqal_query* \fIquery\fP, int \fIidx\fP)\fR"
 Get a triple in the sequence of construct triples.
+.IP "\fBint rasqal_query_write(raptor_iostream* \fIiostr\fP, rasqal_query* \fIquery\fP, raptor_uri* \fIformat_uri\fP, raptor_uri* \fPbase_uri\fP)\fR"
+Write a formatted query to a raptor iostream \fIiostr\fP in format described by
+URI \fIformat_uri\fP using base URI \fIbase_uri\fP for relative URIs (or NULL).
 .SH "GRAPH PATTERN CLASS"
 A class for graph patterns in a query - a set of triple patterns)
 with flags and possible sub-graph patterns
@@ -387,6 +390,11 @@ Print a literal in a debug format.  This format may change in any release.
 Return a rasqal literal as a variable, if it is one, otherwise return NULL.
 .IP "\fBconst unsigned char* rasqal_literal_as_string(rasqal_literal* \fIliteral\fP)\fR"
 Return a rasqal literal as a string value.  This always succeeds.
+.UP "\fBconst unsigned char* rasqal_literal_as_string_flags(rasqal_literal* \fIliteral\fP, int \fIflags\fP, int* \fIerror\fP)\fR"
+Return a rasqal literal as a string value according to \fIflags\fP.  The
+only defined string value at present is \fBRASQAL_COMPARE_XQUERY\fP to
+use XQuery conversion rules.  If \fIerror\fP is not NULL, it will be
+set to non-0 if there is an error.
 .IP "\fBrasqal_literal* rasqal_literal_as_node(rasqal_literal* \fIliteral\fP)\fR"
 Return a new rasqal literal into one suitable for a node in an RDF triple
 or binding - as a URI, literal string (or datatyped) or blank node.
@@ -482,6 +490,8 @@ and take one, two or more complex parameters.
 Create a new expression with a 1-argument operator.
 .IP "\fBrasqal_expression* rasqal_new_2op_expression(rasqal_op \fIop\fP, rasqal_expression* \fIarg1\fP, rasqal_expression* \fIarg2\fP)\fR"
 Create a new expression with a 2-argument operator.
+.IP "\fBrasqal_expression* rasqal_new_2op_expression(rasqal_op \fIop\fP, rasqal_expression* \fIarg1\fP, rasqal_expression* \fIarg2\fP, rasqal_expression* \fIarg3\fP)\fR"
+Create a new expression with a 3-argument operator.
 .IP "\fBrasqal_expression* rasqal_new_string_op_expression(rasqal_op \fIop\fP, rasqal_expression* \fIarg1\fP, rasqal_literal* \fIliteral\fP)\fR"
 Create a new expression with a 2-argument operator, the second of
 which is a literal string.
@@ -538,6 +548,16 @@ Destroy a rasqal data_graph object.
 .IP "\fBvoid rasqal_data_graph_print(rasqal_data_graph* \fIdg\fP, FILE* \fIfh\fP)\fR"
 Print a data graph in a debug format.  This format may change in any release.
 .SH API CHANGES
+.SS 0.9.12
+Added \fBRASQAL_EXPR_REGEX\fP to rasqal_op
+.LP
+Added arg3 field to rasqal_expression for the REGEX operation.
+.LP
+Added \fBrasqal_query_write\fP
+.LP
+Added \fBrasqal_new_3op_expression\fP
+.LP
+Added \fBrasqal_literal_as_string_flags\fP
 .SS 0.9.11
 .LP
 Added enum \fBrasqal_compare_flags\fP
