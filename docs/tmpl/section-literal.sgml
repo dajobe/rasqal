@@ -179,6 +179,17 @@ boolean, double, floating, integer, regex pattern and variables.
 @Returns: 
 
 
+<!-- ##### FUNCTION rasqal_literal_as_string_flags ##### -->
+<para>
+
+</para>
+
+@l: 
+@flags: 
+@error: 
+@Returns: 
+
+
 <!-- ##### FUNCTION rasqal_literal_as_variable ##### -->
 <para>
 

@@ -498,3 +498,15 @@ then retrieved.
 @Returns: 
 
 
+<!-- ##### FUNCTION rasqal_query_write ##### -->
+<para>
+
+</para>
+
+@iostr: 
+@query: 
+@format_uri: 
+@base_uri: 
+@Returns: 
+
+
