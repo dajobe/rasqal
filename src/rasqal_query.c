@@ -1658,7 +1658,7 @@ rasqal_query_write_sparql_uri(sparql_writer_context *wc,
 
   qname=raptor_namespaces_qname_from_uri(wc->nstack, uri, 10);
   if(qname) {
-    raptor_namespace* nspace=raptor_qname_get_namespace(qname);
+    const raptor_namespace* nspace=raptor_qname_get_namespace(qname);
     if(!raptor_namespace_get_prefix(nspace))
       raptor_iostream_write_byte(iostr, ':');
     raptor_iostream_write_qname(iostr, qname);
