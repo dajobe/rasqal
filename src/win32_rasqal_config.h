@@ -108,6 +108,18 @@ extern "C" {
 /* Building SPARQL query */
 #define RASQAL_QUERY_SPARQL 1
 
+/* Use raptor to provide triples */
+#define RAPTOR_TRIPLES_SOURCE_RAPTOR 1
+
+/* Use redland to provide triples */
+/* #define RAPTOR_TRIPLES_SOURCE_REDLAND 1 */
+
+/* Use PCRE regex library */
+#define RASQAL_REGEX_PCRE 1
+
+#ifdef _DEBUG
+#define RASQAL_DEBUG 1
+#endif
 
 #ifdef __cplusplus
 }
