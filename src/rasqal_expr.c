@@ -2139,7 +2139,7 @@ rasqal_expression_convert_to_literal(rasqal_expression* e, rasqal_literal* l)
   /* update expression 'e' in place */
   rasqal_expression_clear(e);
 
-  bzero(e, sizeof(rasqal_expression));
+  memset(e, 0, sizeof(rasqal_expression));
   e->usage=usage;
   e->op=RASQAL_EXPR_LITERAL;
   e->literal=l;
