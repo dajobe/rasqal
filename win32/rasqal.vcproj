@@ -2,9 +2,7 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="7.10"
-	Name="rasqal"
-	SccProjectName=""
-	SccLocalPath="">
+	Name="rasqal">
 	<Platforms>
 		<Platform
 			Name="Win32"/>
@@ -21,12 +19,12 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..;..\..\raptor;..\..\librdf"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;RASQAL_INTERNAL;_MT"
+				AdditionalIncludeDirectories="..\src;..\..\raptor\src;..\..\librdf;..\..\..\pcre\6.4\pcre-6.4-src"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;RASQAL_INTERNAL;_MT;PCRE_STATIC"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
-				PrecompiledHeaderFile=".\Debug/rasqal.pch"
+				PrecompiledHeaderFile=""
 				AssemblerListingLocation=".\Debug/"
 				ObjectFile=".\Debug/"
 				ProgramDataBaseFileName=".\Debug/"
@@ -38,10 +36,10 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="odbc32.lib odbccp32.lib raptor.lib librdf.lib"
+				AdditionalDependencies="raptor.lib librdf.lib pcre.lib"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
-				AdditionalLibraryDirectories="..\..\raptor\win32\Debug;..\..\librdf\win32\Debug"
+				AdditionalLibraryDirectories="..\..\raptor\win32\Debug;..\..\librdf\win32\Debug;..\..\..\pcre\6.4\pcre-6.4-src\pcre\Debug"
 				GenerateDebugInformation="TRUE"
 				ProgramDatabaseFile="c:\bin\Debug/rasqal.pdb"
 				TargetMachine="1"/>
@@ -85,13 +83,13 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="2"
-				AdditionalIncludeDirectories="..;..\..\raptor;..\..\librdf"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;RASQAL_INTERNAL;_MT"
+				AdditionalIncludeDirectories="..\src;..\..\raptor\src;..\..\librdf;..\..\..\pcre\6.4\pcre-6.4-src"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;RASQAL_INTERNAL;_MT;PCRE_STATIC"
 				StringPooling="FALSE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="FALSE"
 				UsePrecompiledHeader="0"
-				PrecompiledHeaderFile=".\Release/rasqal.pch"
+				PrecompiledHeaderFile=""
 				AssemblerListingLocation=".\Release/"
 				ObjectFile=".\Release/"
 				ProgramDataBaseFileName=".\Release/"
@@ -103,10 +101,10 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="raptor.lib librdf.lib"
+				AdditionalDependencies="raptor.lib librdf.lib pcre.lib"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
-				AdditionalLibraryDirectories="..\..\raptor\win32\Release;..\..\librdf\win32\Release"
+				AdditionalLibraryDirectories="..\..\raptor\win32\Release;..\..\librdf\win32\Release;..\..\..\pcre\6.4\pcre-6.4-src\pcre\Release"
 				ProgramDatabaseFile=".\Release/rasqal.pdb"
 				ImportLibrary=".\Release/rasqal.lib"
 				TargetMachine="1"/>
@@ -147,275 +145,80 @@
 			Name="Source Files"
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
 			<File
-				RelativePath="..\getopt.c">
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_MBCS;_USRDLL;RASQAL_INTERNAL;_MT;$(NoInherit)"
-						BasicRuntimeChecks="3"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;RASQAL_EXPORTS;$(NoInherit)"/>
-				</FileConfiguration>
+				RelativePath="..\src\rasqal_engine.c">
 			</File>
 			<File
-				RelativePath="..\rasqal_engine.c">
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_MBCS;_USRDLL;RASQAL_INTERNAL;_MT;$(NoInherit)"
-						BasicRuntimeChecks="3"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;RASQAL_EXPORTS;$(NoInherit)"/>
-				</FileConfiguration>
+				RelativePath="..\src\rasqal_expr.c">
 			</File>
 			<File
-				RelativePath="..\rasqal_expr.c">
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_MBCS;_USRDLL;RASQAL_INTERNAL;_MT;$(NoInherit)"
-						BasicRuntimeChecks="3"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;RASQAL_EXPORTS;$(NoInherit)"/>
-				</FileConfiguration>
+				RelativePath="..\src\rasqal_general.c">
 			</File>
 			<File
-				RelativePath="..\rasqal_general.c">
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_MBCS;_USRDLL;RASQAL_INTERNAL;_MT;$(NoInherit)"
-						BasicRuntimeChecks="3"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;RASQAL_EXPORTS;$(NoInherit)"/>
-				</FileConfiguration>
+				RelativePath="..\src\rasqal_graph_pattern.c">
 			</File>
 			<File
-				RelativePath="..\rasqal_literal.c">
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_MBCS;_USRDLL;RASQAL_INTERNAL;_MT;$(NoInherit)"
-						BasicRuntimeChecks="3"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;RASQAL_EXPORTS;$(NoInherit)"/>
-				</FileConfiguration>
+				RelativePath="..\src\rasqal_literal.c">
 			</File>
 			<File
-				RelativePath="..\rasqal_query.c">
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_MBCS;_USRDLL;RASQAL_INTERNAL;_MT;$(NoInherit)"
-						BasicRuntimeChecks="3"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;RASQAL_EXPORTS;$(NoInherit)"/>
-				</FileConfiguration>
+				RelativePath="..\src\rasqal_map.c">
 			</File>
 			<File
-				RelativePath="..\rasqal_raptor.c">
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_MBCS;_USRDLL;RASQAL_INTERNAL;_MT;$(NoInherit)"
-						BasicRuntimeChecks="3"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;RASQAL_EXPORTS;$(NoInherit)"/>
-				</FileConfiguration>
+				RelativePath="..\src\rasqal_query.c">
 			</File>
 			<File
-				RelativePath="..\rasqal_redland.c">
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_MBCS;_USRDLL;RASQAL_INTERNAL;_MT;$(NoInherit)"
-						BasicRuntimeChecks="3"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;RASQAL_EXPORTS;$(NoInherit)"/>
-				</FileConfiguration>
+				RelativePath="..\src\rasqal_raptor.c">
 			</File>
 			<File
-				RelativePath="..\rdql_lexer.c">
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_MBCS;_USRDLL;RASQAL_INTERNAL;_MT;$(NoInherit)"
-						BasicRuntimeChecks="3"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;RASQAL_EXPORTS;$(NoInherit)"/>
-				</FileConfiguration>
+				RelativePath="..\src\rasqal_redland.c">
 			</File>
 			<File
-				RelativePath="..\rdql_parser.c">
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_MBCS;_USRDLL;RASQAL_INTERNAL;_MT;$(NoInherit)"
-						BasicRuntimeChecks="3"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;RASQAL_EXPORTS;$(NoInherit)"/>
-				</FileConfiguration>
+				RelativePath="..\src\rasqal_xsd_datatypes.c">
 			</File>
 			<File
-				RelativePath="..\roqet.c">
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_MBCS;_USRDLL;RASQAL_INTERNAL;_MT;$(NoInherit)"
-						BasicRuntimeChecks="3"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;RASQAL_EXPORTS;$(NoInherit)"/>
-				</FileConfiguration>
+				RelativePath="..\src\rdql_lexer.c">
 			</File>
 			<File
-				RelativePath="..\sparql_lexer.c">
+				RelativePath="..\src\rdql_parser.c">
 			</File>
 			<File
-				RelativePath="..\sparql_parser.c">
+				RelativePath="..\src\sparql_lexer.c">
 			</File>
 			<File
-				RelativePath="..\strcasecmp.c">
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_MBCS;_USRDLL;RASQAL_INTERNAL;_MT;$(NoInherit)"
-						BasicRuntimeChecks="3"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;RASQAL_EXPORTS;$(NoInherit)"/>
-				</FileConfiguration>
+				RelativePath="..\src\sparql_parser.c">
+			</File>
+			<File
+				RelativePath="..\src\strcasecmp.c">
 			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl">
 			<File
-				RelativePath="..\rasqal.h">
+				RelativePath="..\src\rasqal.h">
 			</File>
 			<File
-				RelativePath="..\rasqal_getopt.h">
+				RelativePath="..\src\rasqal_internal.h">
 			</File>
 			<File
-				RelativePath="..\rasqal_internal.h">
+				RelativePath="..\src\rdql_common.h">
 			</File>
 			<File
-				RelativePath="..\rdql_common.h">
+				RelativePath="..\src\rdql_lexer.h">
 			</File>
 			<File
-				RelativePath="..\rdql_lexer.h">
+				RelativePath="..\src\rdql_parser.h">
 			</File>
 			<File
-				RelativePath="..\rdql_parser.h">
+				RelativePath="..\src\sparql_common.h">
 			</File>
 			<File
-				RelativePath="..\rdql_parser.h">
+				RelativePath="..\src\sparql_lexer.h">
 			</File>
 			<File
-				RelativePath="..\sparql_common.h">
+				RelativePath="..\src\sparql_parser.h">
 			</File>
 			<File
-				RelativePath="..\sparql_lexer.h">
-			</File>
-			<File
-				RelativePath="..\sparql_parser.h">
-			</File>
-			<File
-				RelativePath="..\win32_rasqal_config.h">
+				RelativePath="..\src\win32_rasqal_config.h">
 			</File>
 		</Filter>
 	</Files>
