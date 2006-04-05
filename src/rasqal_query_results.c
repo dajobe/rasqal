@@ -991,10 +991,12 @@ rasqal_query_results_write(raptor_iostream *iostr,
 
   /*
    * SPARQL Query Results in JSON (http://json.org/) draft
-   * Defined in http://www.mindswap.org/%7Ekendall/sparql-results-json/
-   * Version: alt-ser-sparql.rst,v 1.3 2006/02/16 16:03:08 k Exp
+   * Defined in http://www.w3.org/2001/sw/DataAccess/json-sparql/
+   * Version: 1.6 $ of $Date: 2006/04/05 15:55:17
    */
   if(!strcmp((const char*)raptor_uri_as_string(format_uri),
+             "http://www.w3.org/2001/sw/DataAccess/json-sparql/") ||
+     !strcmp((const char*)raptor_uri_as_string(format_uri),
              "http://www.mindswap.org/%7Ekendall/sparql-results-json/"))
     return rasqal_query_results_write_json1(iostr, results, base_uri);
 
