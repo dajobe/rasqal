@@ -179,5 +179,5 @@ rasqal_xsd_datatypes_test_SOURCES = rasqal_xsd_datatypes.c
 rasqal_xsd_datatypes_test_CPPFLAGS = -DSTANDALONE @RASQAL_EXTERNAL_CPPFLAGS@
 rasqal_xsd_datatypes_test_LDADD = librasqal.la
 
-$(top_builddir)/../raptor/libraptor.la:
-	cd $(top_builddir)/../raptor && $(MAKE) $(AM_MAKEFLAGS) libraptor.la
+$(top_builddir)/../raptor/src/libraptor.la:
+	cd $(top_builddir)/../raptor/src && $(MAKE) $(AM_MAKEFLAGS) libraptor.la
