@@ -27,7 +27,7 @@ SUBDIRS=testsuite
 RDQL_TEST_FILES= \
 example1.rdql example2.rdql example3.rdql example4.rdql example5.rdql \
 example_at_1.rdql example_at_2.rdql example_at_3.rdql example_at_4.rdql \
-example_at_5.rdql example_at_6.rdql example_at_7.rdql example_at_8.rdql \
+example_at_5.rdql example_at_6.rdql example_at_7.rdql \
 note-ex1.rdql note-ex2.rdql note-ex3.rdql note-ex4.rdql
 
 
