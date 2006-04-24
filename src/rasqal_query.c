@@ -2233,6 +2233,7 @@ rasqal_query_write(raptor_iostream* iostr, rasqal_query* query,
 
 /**
  * rasqal_query_iostream_write_escaped_counted_string:
+ * @query: #rasqal_query object
  * @iostr: #raptor_iostream to write the escaped string to
  * @string: string to escape
  * @len: Length of string to escape
@@ -2257,6 +2258,7 @@ rasqal_query_iostream_write_escaped_counted_string(rasqal_query* query,
 
 /**
  * rasqal_query_escape_counted_string:
+ * @query: #rasqal_query object
  * @string: string to escape
  * @len: Length of string to escape
  * @output_len_p: Pointer to store length of output string (or NULL)
