@@ -752,6 +752,12 @@ int rasqal_query_results_next_triple(rasqal_query_results *query_results);
 RASQAL_API
 int rasqal_query_results_write(raptor_iostream *iostr, rasqal_query_results *results, raptor_uri *format_uri, raptor_uri *base_uri);
 
+RASQAL_API
+int rasqal_query_iostream_write_escaped_counted_string(rasqal_query* query, raptor_iostream* iostr, const unsigned char* string, size_t len);
+RASQAL_API
+unsigned char* rasqal_query_escape_counted_string(rasqal_query* query, const unsigned char *string, size_t len, size_t* output_len_p);
+
+
 /* Data graph class */
 RASQAL_API
 rasqal_data_graph* rasqal_new_data_graph(raptor_uri* uri, raptor_uri* name_uri, int flags);
