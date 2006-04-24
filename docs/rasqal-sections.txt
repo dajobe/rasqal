@@ -152,6 +152,8 @@ rasqal_query_set_variable
 rasqal_query_set_warning_handler
 rasqal_query_verb_as_string
 rasqal_query_write
+rasqal_query_iostream_write_escaped_counted_string
+rasqal_query_escape_counted_string
 </SECTION>
 
 <SECTION>
