@@ -525,6 +525,21 @@ rasqal_query_get_bound_variable_sequence(rasqal_query* query)
 
 
 /**
+ * rasqal_query_get_anonymous_variable_sequence:
+ * @query: #rasqal_query query object
+ *
+ * Get the sequence of anonymous variables mentioned in the query.
+ *
+ * Return value: a #raptor_sequence of #rasqal_variable pointers.
+ **/
+raptor_sequence*
+rasqal_query_get_anonymous_variable_sequence(rasqal_query* query)
+{
+  return query->anon_variables_sequence;
+}
+
+
+/**
  * rasqal_query_get_all_variable_sequence:
  * @query: #rasqal_query query object
  *
@@ -535,7 +550,7 @@ rasqal_query_get_bound_variable_sequence(rasqal_query* query)
 raptor_sequence*
 rasqal_query_get_all_variable_sequence(rasqal_query* query)
 {
-  return query->selects;
+  return query->variables_sequence;
 }
 
 
