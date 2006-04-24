@@ -2229,3 +2229,66 @@ rasqal_query_write(raptor_iostream* iostr, rasqal_query* query,
 
   return 1;
 }
+
+
+/**
+ * rasqal_query_iostream_write_escaped_counted_string:
+ * @iostr: #raptor_iostream to write the escaped string to
+ * @string: string to escape
+ * @len: Length of string to escape
+ * 
+ * Write a string to an iostream in escaped form suitable for the query string.
+ * 
+ * Return value: non-0 on failure
+ **/
+int
+rasqal_query_iostream_write_escaped_counted_string(rasqal_query* query,
+                                                   raptor_iostream* iostr,
+                                                   const unsigned char* string,
+                                                   size_t len)
+{
+  if(query->factory->iostream_write_escaped_counted_string)
+    return query->factory->iostream_write_escaped_counted_string(query, iostr, 
+                                                                 string, len);
+  else
+    return 1;
+}
+
+
+/**
+ * rasqal_query_escape_counted_string:
+ * @string: string to escape
+ * @len: Length of string to escape
+ * @output_len_p: Pointer to store length of output string (or NULL)
+ * 
+ * Convert a string into an escaped form suitable for the query string.
+ * 
+ * The returned string must be freed by the caller with
+ * rasqal_free_memory()
+ *
+ * Return value: the escaped string or NULL on failure.
+ **/
+unsigned char*
+rasqal_query_escape_counted_string(rasqal_query* query,
+                                   const unsigned char* string, 
+                                   size_t len,
+                                   size_t* output_len_p)
+{
+  raptor_iostream* iostr;
+  void *output_string=NULL;
+  int rc;
+  
+  iostr=raptor_new_iostream_to_string(&output_string, output_len_p,
+                                      rasqal_alloc_memory);
+  if(!iostr)
+    return NULL;
+  rc=rasqal_query_iostream_write_escaped_counted_string(query, iostr,
+                                                        string, len);
+  raptor_free_iostream(iostr);
+  if(rc && output_string) {
+    rasqal_free_memory(output_string);
+    output_string=NULL;
+  }
+  
+  return output_string;
+}
