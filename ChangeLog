@@ -1,3 +1,50 @@
+2006-04-23  Dave Beckett  <dave@dajobe.org>
+
+	* docs/rasqal-sections.txt: Added
+	rasqal_query_iostream_write_escaped_counted_string and
+	rasqal_query_escape_counted_string
+
+	* src/sparql_parser.y: (rasqal_sparql_query_engine_iostream_write_escaped_counted_string):
+	Added to implement factory method
+	iostream_write_escaped_counted_string
+
+
+	* src/rasqal.h: Added prototypes for
+	rasqal_query_iostream_write_escaped_counted_string and
+	rasqal_query_escape_counted_string
+
+	* src/rasqal_query.c: (rasqal_query_iostream_write_escaped_counted_string,
+	rasqal_query_escape_counted_string): Added.
+
+	* src/rasqal_internal.h: rasqal_query_engine_factory_s gains
+	factory method iostream_write_escaped_counted_string
+
+2006-04-22  Dave Beckett  <dave@dajobe.org>
+
+	* tests/rdql/Makefile.am, tests/rdql/example_at_8.rdql: Remove
+	obsolete syntax example_at_8.rdql
+
+	* src/Makefile.am: tweak sibling raptor dir
+
+2006-04-05  Dave Beckett  <dave@dajobe.org>
+
+	* src/rasqal_query_results.c: Updated sparql json url
+
+2006-03-27  Dave Beckett  <dave@dajobe.org>
+
+	* win32/rasqal.vcproj: rasqal win32 build files update from John Barstow
+
+	* src/win32_rasqal_config.h: rasqal win32 build files update from
+	John Barstow
+
+	* src/rasqal_expr.c: (rasqal_expression_convert_to_literal): Use
+	standard memset not older bzero
+
+2006-03-18  Dave Beckett  <dave@dajobe.org>
+
+	* src/rasqal_query.c: (rasqal_query_write_sparql_uri): const for
+	raptor_qname_get_namespace
+
 2006-03-05  Dave Beckett  <dave@dajobe.org>
 
 	* tests/sparql/check-sparql: Use -d debug as check-sparql relies
