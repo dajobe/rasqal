@@ -381,6 +381,9 @@ struct rasqal_query_engine_factory_s {
 
   /* finish the query engine factory */
   void (*finish_factory)(rasqal_query_engine_factory* factory);
+
+  /* Write a string to an iostream in escaped form suitable for the query */
+  int (*iostream_write_escaped_counted_string)(rasqal_query* rq, raptor_iostream* iostr, const unsigned char* string, size_t len);
 };
 
 
