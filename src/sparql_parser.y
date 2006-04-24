@@ -1992,6 +1992,24 @@ sparql_syntax_warning(rasqal_query *rq, const char *message, ...)
 }
 
 
+static int
+rasqal_sparql_query_engine_iostream_write_escaped_counted_string(rasqal_query* query,
+                                                                 raptor_iostream* iostr,
+                                                                 const unsigned char* string,
+                                                                 size_t len)
+{
+  const char delim='"';
+  
+  raptor_iostream_write_byte(iostr, delim);
+  if(raptor_iostream_write_string_ntriples(iostr, string, len, delim))
+    return 1;
+  
+  raptor_iostream_write_byte(iostr, delim);
+
+  return 0;
+}
+
+
 static void
 rasqal_sparql_query_engine_register_factory(rasqal_query_engine_factory *factory)
 {
@@ -2001,6 +2019,7 @@ rasqal_sparql_query_engine_register_factory(rasqal_query_engine_factory *factory
   factory->terminate = rasqal_sparql_query_engine_terminate;
   factory->prepare   = rasqal_sparql_query_engine_prepare;
   factory->execute   = rasqal_sparql_query_engine_execute;
+  factory->iostream_write_escaped_counted_string = rasqal_sparql_query_engine_iostream_write_escaped_counted_string;
 }
 
 
