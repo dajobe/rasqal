@@ -55,6 +55,9 @@ rasqal_graph_pattern*
 rasqal_new_graph_pattern(rasqal_query* query) {
   rasqal_graph_pattern* gp=(rasqal_graph_pattern*)RASQAL_CALLOC(rasqal_graph_pattern, sizeof(rasqal_graph_pattern), 1);
 
+  if(!query)
+    return NULL;
+  
   gp->query=query;
 
   gp->column= -1;
@@ -84,7 +87,14 @@ rasqal_new_graph_pattern_from_triples(rasqal_query* query,
                                       int start_column, int end_column,
                                       rasqal_graph_pattern_operator op)
 {
-  rasqal_graph_pattern* gp=rasqal_new_graph_pattern(query);
+  rasqal_graph_pattern* gp;
+
+  if(!triples)
+    return NULL;
+  
+  gp=rasqal_new_graph_pattern(query);
+  if(!gp)
+    return NULL;
 
   rasqal_graph_pattern_add_triples(gp, 
                                    triples, start_column, end_column, op);
@@ -111,6 +121,9 @@ rasqal_new_graph_pattern_from_sequence(rasqal_query* query,
   rasqal_graph_pattern* gp;
 
   gp=rasqal_new_graph_pattern(query);
+  if(!gp)
+    return NULL;
+  
   gp->graph_patterns=graph_patterns;
   gp->op=op;
 
