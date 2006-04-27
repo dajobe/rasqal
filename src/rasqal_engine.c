@@ -851,9 +851,57 @@ rasqal_engine_prepare(rasqal_query *query)
 }
 
 
+typedef void* rasqal_engine_gp_data;
+
+static rasqal_engine_gp_data*
+rasqal_new_gp_data(void) 
+{
+  return NULL;
+}
+
+
+static void
+rasqal_free_gp_data(void *gp_data) 
+{
+  return;
+}
+
+
+static void*
+rasqal_new_engine_execution_data(rasqal_query* query, 
+                                 rasqal_query_results* query_results) 
+{
+  rasqal_engine_execution_data* execution_data;
+  int i;
+
+  execution_data=RASQAL_MALLOC(rasqal_engine_execution_data, sizeof(rasqal_engine_execution_data));
+  execution_data->seq=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_gp_data, NULL);
+  for(i=0; i < query->graph_pattern_count; i++) {
+    rasqal_engine_gp_data* gp_data=rasqal_new_gp_data();
+    raptor_sequence_set_at(execution_data->seq, i, gp_data);
+  }
+
+  return execution_data;
+}
+
+
+static void
+rasqal_free_engine_execution_data(rasqal_query* query, 
+                                  rasqal_query_results* query_results,
+                                  void *data) 
+{
+  rasqal_engine_execution_data* execution_data=(rasqal_engine_execution_data*)data;
+
+  if(execution_data->seq)
+    raptor_free_sequence(execution_data->seq);
+  RASQAL_FREE(rasqal_engine_execution_data, execution_data);
+}
+
+
 int
 rasqal_engine_execute_init(rasqal_query* query, rasqal_query_results *results) 
 {
+  rasqal_engine_execution_data* execution_data;
   rasqal_graph_pattern *gp;
   
   if(!query->triples)
@@ -867,11 +915,16 @@ rasqal_engine_execute_init(rasqal_query* query, rasqal_query_results *results)
     }
   }
 
+  execution_data=rasqal_new_engine_execution_data(query, results);
+  results->execution_data=execution_data;
+  results->free_execution_data=rasqal_free_engine_execution_data;
+
   query->abort=0;
-  query->result_count=0;
   query->finished=0;
   query->failed=0;
-  
+
+  rasqal_query_results_init(results);
+
   /* FIXME.  This is hack.  If the structure is a single GP with no sub-GPs
    * then make a new top graph pattern so the query engine always
    * sees a sequence of graph patterns at the top.  It should
@@ -1665,23 +1718,25 @@ rasqal_engine_merge_graph_patterns(rasqal_query* query,
  * Return value: before range -1, in range 0, after range 1
  */
 int
-rasqal_engine_check_limit_offset(rasqal_query *query)
+rasqal_engine_check_limit_offset(rasqal_query_results *query_results)
 {
+  rasqal_query* query=query_results->query;
+
   if(query->offset > 0) {
     /* offset */
-    if(query->result_count <= query->offset)
+    if(query_results->result_count <= query->offset)
       return -1;
     
     if(query->limit >= 0) {
       /* offset and limit */
-      if(query->result_count > (query->offset + query->limit)) {
+      if(query_results->result_count > (query->offset + query->limit)) {
         query->finished=1;
       }
     }
     
   } else if(query->limit >= 0) {
     /* limit */
-    if(query->result_count > query->limit) {
+    if(query_results->result_count > query->limit) {
       query->finished=1;
     }
   }
