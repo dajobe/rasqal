@@ -952,6 +952,7 @@ rasqal_query_prepare_count_graph_patterns(rasqal_query* query,
                                           void* data)
 {
   gp->gp_index=(query->graph_pattern_count++);
+  return 0;
 }
 
 
@@ -1052,8 +1053,10 @@ rasqal_query_prepare(rasqal_query* query,
 
     } while(modified);
 
+    /* Label all graph patterns with an index 0.. for use in discovering
+     * the size of the graph pattern execution data array
+     */
     query->graph_pattern_count=0;
-    
     rasqal_query_graph_pattern_visit(query, 
                                      rasqal_query_prepare_count_graph_patterns,
                                      NULL);
