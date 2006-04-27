@@ -168,7 +168,8 @@ struct rasqal_graph_pattern_s {
    */
   rasqal_expression* constraints_expression;
 
-
+  /* index of the graph pattern in the query (0.. query->graph_pattern_count-1) */
+  int gp_index;
 };
 
 rasqal_graph_pattern* rasqal_new_graph_pattern(rasqal_query* query);
@@ -295,9 +296,6 @@ struct rasqal_query_s {
   /* stopping? */
   int abort;
 
-  /* how many results already found */
-  int result_count;
-
   /* non-0 if got all results */
   int finished;
 
@@ -339,6 +337,9 @@ struct rasqal_query_s {
 
   /* INTERNAL rasqal_literal_compare / rasqal_expression_evaluate flags */
   int compare_flags;
+
+  /* Number of graph patterns in this query */
+  int graph_pattern_count;
 };
 
 
@@ -411,6 +412,15 @@ typedef struct {
 } rasqal_query_result_row;
 
 
+/* The execution data here is a sequence of
+ * rasqal_graph_pattern_data execution data of size
+ * query->graph_pattern_count with each rasqal_graph_pattern_data
+ */
+typedef struct {
+  raptor_sequence* seq;
+} rasqal_engine_execution_data;
+
+
 /*
  * A query result for some query
  */
@@ -418,6 +428,15 @@ struct rasqal_query_results_s {
   /* query that this was executed over */
   rasqal_query* query;
 
+  /* how many results already found */
+  int result_count;
+
+  /* execution data - depends on execution engine */
+  void* execution_data;
+
+  /* pointer to function that tidies the query_results execution data above */
+  void (*free_execution_data)(rasqal_query* query, struct rasqal_query_results_s* query_results, void *execution_data);
+  
   /* next query result */
   rasqal_query_results *next;
 
@@ -473,7 +492,7 @@ int rasqal_engine_execute_init(rasqal_query* query, rasqal_query_results* query_
 int rasqal_engine_execute_finish(rasqal_query* query);
 int rasqal_engine_run(rasqal_query* q);
 void rasqal_engine_join_graph_patterns(rasqal_graph_pattern *dest_gp, rasqal_graph_pattern *src_gp);
-int rasqal_engine_check_limit_offset(rasqal_query *query);
+int rasqal_engine_check_limit_offset(rasqal_query_results* query_results);
 int rasqal_engine_merge_triples(rasqal_query* query, rasqal_graph_pattern* gp, void* data);
 int rasqal_engine_merge_graph_patterns(rasqal_query* query, rasqal_graph_pattern* gp, void* data);
 int rasqal_engine_expression_fold(rasqal_query* rq, rasqal_expression* e);
@@ -577,6 +596,7 @@ void rasqal_map_visit(rasqal_map* map, rasqal_map_visit_fn fn, void *user_data);
 void rasqal_map_print(rasqal_map* map, FILE* fh);
 
 /* rasqal_query.c */
+void rasqal_query_results_init(rasqal_query_results* query_results);
 int rasqal_query_result_row_update(rasqal_query_result_row* row, int offset);
 int rasqal_query_results_update(rasqal_query_results *query_results);
 void rasqal_query_remove_query_result(rasqal_query* query, rasqal_query_results* query_results);
