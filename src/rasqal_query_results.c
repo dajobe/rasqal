@@ -244,6 +244,9 @@ rasqal_free_query_results(rasqal_query_results *query_results) {
   if(query_results->row)
     rasqal_free_query_result_row(query_results->row);
 
+  if(query_results->execution_data && query_results->free_execution_data)
+    query_results->free_execution_data(query, query_results, query_results->execution_data);
+  
   query=query_results->query;
   rasqal_query_remove_query_result(query, query_results);
   RASQAL_FREE(rasqal_query_results, query_results);
@@ -317,8 +320,8 @@ rasqal_query_results_get_count(rasqal_query_results *query_results)
   
   query=query_results->query;
   if(query->offset > 0)
-    return query->result_count - query->offset;
-  return query->result_count;
+    return query_results->result_count - query->offset;
+  return query_results->result_count;
 }
 
 
@@ -348,21 +351,21 @@ rasqal_query_results_next(rasqal_query_results *query_results)
     int size=raptor_sequence_size(query->results_sequence);
 
     while(1) {
-      if(query->result_count >= size) {
+      if(query_results->result_count >= size) {
         query->finished=1;
         break;
       }
 
-      query->result_count++;
+      query_results->result_count++;
 
       /* finished if beyond result range */
-      if(rasqal_engine_check_limit_offset(query) > 0) {
-        query->result_count--;
+      if(rasqal_engine_check_limit_offset(query_results) > 0) {
+        query_results->result_count--;
         break;
       }
       
       /* continue if before start of result range */
-      if(rasqal_engine_check_limit_offset(query) < 0)
+      if(rasqal_engine_check_limit_offset(query_results) < 0)
         continue;
 
       /* else got result or finished */
@@ -371,7 +374,7 @@ rasqal_query_results_next(rasqal_query_results *query_results)
   } else {
     rasqal_query_results_update(query_results);
     if(!query->finished)
-      rasqal_query_result_row_update(query_results->row, query->result_count);
+      rasqal_query_result_row_update(query_results->row, query_results->result_count);
   }
 
   return query->finished;
@@ -442,7 +445,7 @@ rasqal_query_results_get_bindings(rasqal_query_results *query_results,
 
     if(query->results_sequence)
       /* Ordered Results */
-      row=(rasqal_query_result_row*)raptor_sequence_get_at(query->results_sequence, query->result_count-1);
+      row=(rasqal_query_result_row*)raptor_sequence_get_at(query->results_sequence, query_results->result_count-1);
     else
       /* Streamed Results */
       row=query_results->row;
@@ -485,7 +488,7 @@ rasqal_query_results_get_binding_value(rasqal_query_results *query_results,
   
   /* Ordered Results */
   if(query->results_sequence)
-    row=(rasqal_query_result_row*)raptor_sequence_get_at(query->results_sequence, query->result_count-1);
+    row=(rasqal_query_result_row*)raptor_sequence_get_at(query->results_sequence, query_results->result_count-1);
   else
     row=query_results->row;
 
@@ -568,7 +571,7 @@ rasqal_query_results_get_binding_value_by_name(rasqal_query_results *query_resul
   
   /* Ordered Results */
   if(query->results_sequence)
-    row=(rasqal_query_result_row*)raptor_sequence_get_at(query->results_sequence, query->result_count-1);
+    row=(rasqal_query_result_row*)raptor_sequence_get_at(query->results_sequence, query_results->result_count-1);
   else
     row=query_results->row;
   
@@ -677,7 +680,7 @@ rasqal_query_results_get_triple(rasqal_query_results *query_results) {
         break;
 
       case RASQAL_LITERAL_BLANK:
-        s->string=rasqal_prefix_id(query->result_count, 
+        s->string=rasqal_prefix_id(query_results->result_count, 
                                    (unsigned char*)s->string);
 
         rs->subject=s->string;
@@ -772,7 +775,7 @@ rasqal_query_results_get_triple(rasqal_query_results *query_results) {
         break;
 
       case RASQAL_LITERAL_BLANK:
-        o->string=rasqal_prefix_id(query->result_count, 
+        o->string=rasqal_prefix_id(query_results->result_count, 
                                    (unsigned char*)o->string);
 
         rs->object=o->string;
