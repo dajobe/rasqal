@@ -665,6 +665,54 @@ rasqal_query_get_triple(rasqal_query* query, int idx)
 }
 
 
+int
+rasqal_query_declare_prefix(rasqal_query *rq, rasqal_prefix *p)
+{
+  if(p->declared)
+    return 0;
+  
+  if(raptor_namespaces_start_namespace_full(rq->namespaces, 
+                                            p->prefix, 
+                                            raptor_uri_as_string(p->uri),
+                                            rq->prefix_depth))
+    return 1;
+  p->declared=1;
+  rq->prefix_depth++;
+  return 0;
+}
+
+
+static int
+rasqal_query_undeclare_prefix(rasqal_query *rq, rasqal_prefix *prefix)
+{
+  if(!prefix->declared) {
+    prefix->declared=1;
+    return 0;
+  }
+  
+  raptor_namespaces_end_for_depth(rq->namespaces, prefix->depth);
+  return 0;
+}
+
+
+int
+rasqal_query_declare_prefixes(rasqal_query *rq) 
+{
+  int i;
+  
+  if(!rq->prefixes)
+    return 0;
+  
+  for(i=0; i< raptor_sequence_size(rq->prefixes); i++) {
+    rasqal_prefix* p=(rasqal_prefix*)raptor_sequence_get_at(rq->prefixes, i);
+    if(rasqal_query_declare_prefix(rq, p))
+      return 1;
+  }
+
+  return 0;
+}
+
+
 /**
  * rasqal_query_add_prefix:
  * @query: #rasqal_query query object
@@ -684,7 +732,7 @@ rasqal_query_add_prefix(rasqal_query* query, rasqal_prefix* prefix)
     for(i=0; i< raptor_sequence_size(query->prefixes); i++) {
       rasqal_prefix* p=(rasqal_prefix*)raptor_sequence_get_at(query->prefixes, i);
       if(strcmp((const char*)p->prefix, (const char*)prefix->prefix)) {
-        rasqal_engine_undeclare_prefix(query, p);
+        rasqal_query_undeclare_prefix(query, p);
         break;
       }
     }

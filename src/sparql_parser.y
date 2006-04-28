@@ -269,7 +269,7 @@ PrefixDeclOpt: PrefixDeclOpt PREFIX IDENTIFIER URI_LITERAL
   } else {
     rasqal_prefix *p=rasqal_new_prefix(prefix_string, $4);
     raptor_sequence_push(seq, p);
-    rasqal_engine_declare_prefix(((rasqal_query*)rq), p);
+    rasqal_query_declare_prefix(((rasqal_query*)rq), p);
   }
 }
 | /* empty */
