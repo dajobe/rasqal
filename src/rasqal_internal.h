@@ -479,10 +479,6 @@ void rasqal_init_query_engine_rdql (void);
 void rasqal_init_query_engine_sparql (void);
 
 /* rasqal_engine.c */
-int rasqal_query_order_triples(rasqal_query* query);
-int rasqal_engine_declare_prefix(rasqal_query* rq, rasqal_prefix* prefix);
-int rasqal_engine_undeclare_prefix(rasqal_query* rq, rasqal_prefix* prefix);
-int rasqal_engine_declare_prefixes(rasqal_query* rq);
 int rasqal_engine_sequence_has_qname(raptor_sequence* seq);
 int rasqal_engine_expand_triple_qnames(rasqal_query* rq);
 int rasqal_engine_query_constraints_has_qname(rasqal_query* gp);
@@ -608,6 +604,8 @@ void rasqal_map_print(rasqal_map* map, FILE* fh);
 /* rasqal_query.c */
 void rasqal_query_remove_query_result(rasqal_query* query, rasqal_query_results* query_results);
 unsigned char* rasqal_prefix_id(int prefix_id, unsigned char *string);
+int rasqal_query_declare_prefix(rasqal_query* rq, rasqal_prefix* prefix);
+int rasqal_query_declare_prefixes(rasqal_query* rq);
 
 /* rasqal_query_results.c */
 rasqal_query_results* rasqal_new_query_results(rasqal_query* query);
