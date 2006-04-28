@@ -434,7 +434,10 @@ rasqal_graph_pattern_operator_as_string(rasqal_graph_pattern_operator op)
 void
 rasqal_graph_pattern_print(rasqal_graph_pattern* gp, FILE* fh)
 {
-  fprintf(fh, "graph pattern %s(", rasqal_graph_pattern_operator_as_string(gp->op));
+  fputs("graph pattern", fh);
+  if(gp->gp_index >= 0)
+    fprintf(fh, "[%d]", gp->gp_index);
+  fprintf(fh, " %s(", rasqal_graph_pattern_operator_as_string(gp->op));
   if(gp->triples) {
     int size=gp->end_column - gp->start_column +1;
     int i;
