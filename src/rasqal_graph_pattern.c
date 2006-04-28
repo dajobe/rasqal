@@ -65,6 +65,11 @@ rasqal_new_graph_pattern(rasqal_query* query) {
   gp->start_column= -1;
   gp->end_column= -1;
 
+  /* This is initialised by rasqal_query_prepare_count_graph_patterns() inside
+   * rasqal_query_prepare()
+   */
+  gp->gp_index= -1;
+
   return gp;
 }
 
