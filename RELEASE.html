@@ -15,9 +15,21 @@
 
 <h3>General Changes</h3>
 
+<p>Added <a href="http://json.org/">JSON</a> as a query results
+format based on the
+<a href="http://www.w3.org/2001/sw/DataAccess/json-sparql/">Serializing SPARQL Query Results in JSON</a>
+draft.
+</p>
+
+<p>Added query writing to a <code>raptor_iostream</code> which allows
+reading in one query language and writing in another.  The only
+useful consequence of this now is that it enables <code>roqet</code>
+to become an RDQL to SPARQL translator.</p.
+
 <p>Rasqal now requires <a href="http://librdf.org/raptor/">raptor</a>
 1.4.9 or newer.
 </p>
+
 
 <h3>Configuration and Build Changes</h3>
 
@@ -29,11 +41,16 @@
 <p>Altered the <code>-d</code> (<code>--dump-query</code>) option to
 now take an argument of the query format to dump.  The values it can
 take are <code>debug</code>, <code>structure</code> or
-<code>sparql</code>.  </p>
+<code>sparql</code>.</p>
+
+<p>To convert a query from RDQL to SPARQL, use:</p>
+<pre>
+roqet -q -i rdql -d sparql -n query.rdql > query.sparql
+</pre>
 
 <p>Added <code>-r json</code> for <a href="http://json.org/">JSON</a>
-query results output. based on the draft defined in
-<a href="http://www.w3.org/2001/sw/DataAccess/json-sparql/">http://www.w3.org/2001/sw/DataAccess/json-sparql/</a>
+query results output based on the draft defined in the
+<a href="http://www.w3.org/2001/sw/DataAccess/json-sparql/">Serializing SPARQL Query Results in JSON</a> draft
 </p>
 
 
@@ -46,6 +63,7 @@ completed.  All DAWG syntax tests now parse.</p>
 
 <p>Finally removed long deprecated <code>ASC[]</code> and
 <code>DESC[]</code> syntax.</p>
+
 
 <h3>RDQL Query Language Changes</h3>
 
@@ -60,6 +78,13 @@ Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=71">Issue#0000071</a>
 
 <p>Added <code>RASQAL_EXPR_REGEX</code> 3-arg operation to match
 the SPARQL <code>regex()</code> 2/3-arg function.</p>
+
+<p>Many internal changes to move more of the query execution state
+from inside <code>rasqal_query</code> to
+inside <code>rasqal_query_results</code> and related structures.
+This is not yet complete but when done, you will be able to execute
+the same query more than once at the same time.
+</p>
 
 
 <h3>Query API Changes</h3>
@@ -79,6 +104,24 @@ based on the draft defined in
 <a href="http://www.w3.org/2001/sw/DataAccess/json-sparql/">http://www.w3.org/2001/sw/DataAccess/json-sparql/</a>
 Implemented document with version
 <code>alt-ser-sparql.rst,v 1.3 2006/02/16 16:03:08 k Exp</code>.
+</p>
+
+<p><code>rasqal_query_get_all_variable_sequence</code> was corrected to match the
+definition - return all variables, not just the bound (<code>SELECT</code>ed) ones.
+Fixes  <a href="http://bugs.librdf.org/mantis/view.php?id=79">Issue#00000079</a>.
+</p>
+
+<p>Added <code>rasqal_query_get_anonymous_variable_sequence</code> to return
+only anonymous variables after change above.
+</p>
+
+
+<h3>IOstream class Changes</h3>
+
+<p>Added
+<code>rasqal_query_iostream_write_escaped_counted_string</code> and
+<code>rasqal_query_escape_counted_string</code>
+to format an escaped string suitable for using inside a query.
 </p>
 
 
