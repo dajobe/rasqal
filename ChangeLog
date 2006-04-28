@@ -1,4 +1,104 @@
+2006-04-27  Dave Beckett  <dave@dajobe.org>
+
+	* src/rasqal_engine.c: (rasqal_new_triples_source,
+	rasqal_new_engine_execution_data, rasqal_engine_execute_init,
+	rasqal_engine_execute_finish, rasqal_engine_do_optional_step,
+	rasqal_engine_get_next_result, rasqal_engine_run): Take
+	rasqal_query_results arg and use finish/failed fields off
+	query_results.
+
+	* src/rasqal_query_results.c: (rasqal_free_query_results): Call
+	rasqal_engine_execute_finish.
+	(rasqal_query_results_next, rasqal_query_results_finished,
+	rasqal_query_results_get_bindings,
+	rasqal_query_results_get_binding_value,
+	rasqal_query_results_get_binding_name,
+	rasqal_query_results_get_binding_value_by_name,
+	rasqal_query_results_get_bindings_count,
+	rasqal_query_results_get_triple, rasqal_query_results_next_triple,
+	rasqal_query_results_get_boolean, rasqal_query_results_write): Use
+	query_results->finished and failed.  Tidy formatting and error
+	check arguments for NULLs.
+
+	* src/rasqal_query.c: (rasqal_free_query): Moved
+	rasqal_engine_execute_finish to rasqal_free_query_results.
+	(rasqal_query_results_update): Use query_results->finished and
+	query_results arg for rasqal_engine_get_next_result.
+	(rasqal_query_results_init): Init executed, abort, finished,
+	failed and ask_result fields.
+	(rasqal_query_execute): Remove init of query deleted fields
+	finished, executed, ask_result.  Use query_results->failed.  Call
+	rasqal_engine_execute_init and rasqal_engine_get_next_result with
+	query_results arg.
+
+	* src/rasqal_internal.h: rasqal_query_results gains fields abort,
+	finished, executed, ask_result moved from rasqal_query
+	rasqal_query_results gains failed field
+	rasqal_engine_execute_init, rasqal_engine_execute_finish and
+	rasqal_engine_run, rasqal_new_triples_source,
+	rasqal_engine_get_next_result now take rasqal_query_results* args.
+
+	* src/rasqal_query.c: (rasqal_query_prepare_count_graph_patterns):
+	Return 0
+
+	* src/rasqal_engine.c: (rasqal_new_gp_data, rasqal_free_gp_data):
+	Added.
+	(rasqal_new_engine_execution_data,
+	rasqal_free_engine_execution_data): Added to build
+	query-engine-specific data for this query engine.
+	(rasqal_engine_execute_init): Construct execution_data and store
+	in the results. Run rasqal_query_results_init.
+	(rasqal_engine_check_limit_offset): Use query_results arg.
+
+	* src/rasqal_query_results.c: Updates to rename
+	query->result_count to query_results->result_count
+
+	* src/rasqal_query.c: (rasqal_query_prepare_count_graph_patterns):
+	Added to give each graph pattern a unique index.
+	(rasqal_query_prepare): Call
+	rasqal_query_prepare_count_graph_patterns after all other graph
+	pattern munging is finished to prepare for storing execution data
+	per-gp.
+	(rasqal_query_results_updaet): Rename query->result_count to
+	query_results->result_count and rasqal_engine_check_limit_offset
+	now taking a query_results arg.
+	(rasqal_new_query_results): Added, pulled out of
+	rasqal_query_execute.
+	(rasqal_query_results_init): Added, to re-initialise a results
+	object in-situ.
+	(rasqal_query_execute): Use rasqal_new_query_results and update
+	for query->result_count to query_results->result_count and
+	rasqal_engine_check_limit_offset with query_results arg.
+
+	* src/rasqal_graph_pattern.c: (rasqal_new_graph_pattern,
+	rasqal_new_graph_pattern_from_triples,
+	rasqal_new_graph_pattern_from_sequence): Protect from NULL query
+	arg.
+	(rasqal_new_graph_pattern_from_triples): Protect from NULL triples
+	arg.
+
+	* src/rasqal_internal.h: rasqal_graph_pattern_s gains a gp_index
+	field to give each rasqal_graph_pattern a unique index
+	rasqal_query_s loses result_count field and gains
+	graph_pattern_count rasqal_engine_execution_data added with
+	skeleton content rasqal_query_results_s gains result_count,
+	execution_data and free_execution_data handler fields
+	rasqal_engine_check_limit_offset now takes a rasqal_query_results
+	parameter added prototype for rasqal_query_results_init
+
+2006-04-26  Dave Beckett  <dave@dajobe.org>
+
+	* src/rasqal.h: Added prototype for
+	rasqal_query_get_anonymous_variable_sequence
+
 2006-04-23  Dave Beckett  <dave@dajobe.org>
+
+	* src/rasqal_query.c:
+	(rasqal_query_get_anonymous_variable_sequence): Added to return
+	only anonymous variables.
+	(rasqal_query_get_all_variable_sequence): Corrected to match the
+	definition - return all variables, not just the bound (SELECTed) ones.
+	Fixes Issue#00000079 http://bugs.librdf.org/mantis/view.php?id=79
 
 	* docs/rasqal-sections.txt: Added
 	rasqal_query_iostream_write_escaped_counted_string and
