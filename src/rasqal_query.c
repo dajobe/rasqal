@@ -139,9 +139,6 @@ rasqal_free_query(rasqal_query* query)
   if(--query->usage)
     return;
   
-  if(query->executed)
-    rasqal_engine_execute_finish(query);
-
   if(query->factory)
     query->factory->terminate(query);
 
@@ -1184,24 +1181,24 @@ rasqal_query_results_update(rasqal_query_results *query_results)
 
   query=query_results->query;
 
-  if(query->finished)
+  if(query_results->finished)
     return 1;
 
   while(1) {
     int rc;
     
     /* rc<0 error rc=0 end of results,  rc>0 got a result */
-    rc=rasqal_engine_get_next_result(query);
+    rc=rasqal_engine_get_next_result(query_results);
 
     if(rc < 1) {
       /* <0 failure OR =0 end of results */
-      query->finished=1;
+      query_results->finished=1;
       break;
     }
     
     if(rc < 0) {
       /* <0 failure */
-      query->failed=1;
+      query_results->failed=1;
       break;
     }
     
@@ -1223,7 +1220,7 @@ rasqal_query_results_update(rasqal_query_results *query_results)
 
   } /* while */
 
-  return query->finished;
+  return query_results->finished;
 }
 
 
@@ -1273,6 +1270,11 @@ void
 rasqal_query_results_init(rasqal_query_results* query_results)
 {
   query_results->result_count=0;
+  query_results->executed=0;
+  query_results->abort=0;
+  query_results->finished=0;
+  query_results->failed=0;
+  query_results->ask_result= -1;
 }
 
 
@@ -1288,34 +1290,31 @@ rasqal_query_results_init(rasqal_query_results* query_results)
 rasqal_query_results*
 rasqal_query_execute(rasqal_query* query)
 {
-  rasqal_query_results *query_results;
+  rasqal_query_results *query_results=NULL;
   int rc=0;
   
   if(query->failed)
     return NULL;
 
-  query->finished=0;
-  query->executed=1;
   query->current_triple_result= -1;
-  query->ask_result= -1;
 
   query_results=rasqal_new_query_results(query);
 
-  rc=rasqal_engine_execute_init(query, query_results);
+  rc=rasqal_engine_execute_init(query_results);
   if(rc) {
-    query->failed=1;
-    RASQAL_FREE(rasqal_query_results, query_results);
+    rasqal_free_query_results(query_results);
     return NULL;
   }
 
   if(query->factory->execute) {
     rc=query->factory->execute(query, query_results);
     if(rc) {
-      query->failed=1;
-      RASQAL_FREE(rasqal_query_results, query_results);
+      rasqal_free_query_results(query_results);
       return NULL;
     }
   }
+
+  query_results->executed=1;
 
   rasqal_query_add_query_result(query, query_results);
 
@@ -1340,15 +1339,15 @@ rasqal_query_execute(rasqal_query* query)
        * so that this function does the regular query results next
        * operation.
        */
-      rc=rasqal_engine_get_next_result(query);
+      rc=rasqal_engine_get_next_result(query_results);
       if(rc < 1)
         /* <0 failure OR =0 end of results */
         break;
       
       if(rc < 0) {
         /* <0 failure */
-        query->finished=1;
-        query->failed=1;
+        query_results->finished=1;
+        query_results->failed=1;
 
         if(map)
           rasqal_free_map(map);
@@ -1390,9 +1389,9 @@ rasqal_query_execute(rasqal_query* query)
     query->results_sequence=seq;
 
     if(query->results_sequence) {
-      query->finished= (raptor_sequence_size(query->results_sequence) == 0);
+      query_results->finished= (raptor_sequence_size(query->results_sequence) == 0);
 
-      if(query->finished) {
+      if(query_results->finished) {
         query_results->result_count= 0;
       } else {
         /* Reset to first result, index-1 into sequence of results */
