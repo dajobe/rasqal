@@ -514,3 +514,22 @@ rasqal_graph_pattern_visit(rasqal_query *query,
 
   return 0;
 }
+
+
+/**
+ * rasqal_graph_pattern_get_index:
+ * @gp: #rasqal_graph_pattern graph pattern
+ * 
+ * Get the graph pattern absolute index in the array of graph patterns.
+ * 
+ * The graph pattern index is assigned when rasqal_query_prepare() is
+ * run on a query containing a graph pattern.
+ *
+ * Return value: index or <0 if no index has been assigned yet
+ **/
+int
+rasqal_graph_pattern_get_index(rasqal_graph_pattern* gp)
+{
+  return gp->gp_index;
+}
+
