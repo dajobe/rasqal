@@ -201,6 +201,8 @@ roqet_graph_pattern_walk(rasqal_graph_pattern *gp, int gp_index,
   roqet_write_indent(fh, indent);
   fprintf(fh, "%s graph pattern", 
           rasqal_graph_pattern_operator_as_string(op));
+  if(gp->gp_index >= 0)
+    fprintf(fh, "[%d]", gp->gp_index);
   if(gp_index >= 0)
     fprintf(fh, " #%d", gp_index);
   fputs(" {\n", fh);
