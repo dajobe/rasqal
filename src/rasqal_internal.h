@@ -221,7 +221,6 @@ struct rasqal_query_s {
   int wildcard;
 
   int prepared;
-  int executed;
   
   /* variable name/value table built from all distinct variables seen
    * in selects, triples, constraints and anonymous (no name, cannot
@@ -268,7 +267,7 @@ struct rasqal_query_s {
   /* base URI of this query for resolving relative URIs in queries */
   raptor_uri* base_uri;
 
-  /* non 0 if parser had fatal error and cannot continue */
+  /* non 0 if query had fatal error in parsing and cannot be executed */
   int failed;
 
   /* stuff for our user */
@@ -292,12 +291,6 @@ struct rasqal_query_s {
 
   /* query engine specific stuff */
   void* context;
-
-  /* stopping? */
-  int abort;
-
-  /* non-0 if got all results */
-  int finished;
 
   struct rasqal_query_engine_factory_s* factory;
 
@@ -325,9 +318,6 @@ struct rasqal_query_s {
   
   /* current triple in the sequence of triples 'constructs' or -1 */
   int current_triple_result;
-
-  /* boolean ASK result >0 true, 0 false or -1 uninitialised */
-  int ask_result;
 
   /* sequence of order condition expressions */
   raptor_sequence* order_conditions_sequence;
@@ -425,6 +415,18 @@ typedef struct {
  * A query result for some query
  */
 struct rasqal_query_results_s {
+  /* stopping? */
+  int abort;
+
+  /* non-0 if got all results */
+  int finished;
+
+  /* non-0 if query has been executed */
+  int executed;
+
+  /* non 0 if query had fatal error and cannot be executed */
+  int failed;
+
   /* query that this was executed over */
   rasqal_query* query;
 
@@ -442,6 +444,9 @@ struct rasqal_query_results_s {
 
   /* current row of results */
   rasqal_query_result_row* row;
+
+  /* boolean ASK result >0 true, 0 false or -1 uninitialised */
+  int ask_result;
 };
     
 
@@ -488,9 +493,9 @@ int rasqal_engine_build_constraints_expression(rasqal_graph_pattern* gp);
 int rasqal_engine_assign_variables(rasqal_query* rq);
 
 int rasqal_engine_prepare(rasqal_query* query);
-int rasqal_engine_execute_init(rasqal_query* query, rasqal_query_results* query_results);
-int rasqal_engine_execute_finish(rasqal_query* query);
-int rasqal_engine_run(rasqal_query* q);
+int rasqal_engine_execute_init(rasqal_query_results* query_results);
+int rasqal_engine_execute_finish(rasqal_query_results* query_results);
+int rasqal_engine_run(rasqal_query_results* query_results);
 void rasqal_engine_join_graph_patterns(rasqal_graph_pattern *dest_gp, rasqal_graph_pattern *src_gp);
 int rasqal_engine_check_limit_offset(rasqal_query_results* query_results);
 int rasqal_engine_merge_triples(rasqal_query* query, rasqal_graph_pattern* gp, void* data);
@@ -500,11 +505,11 @@ int rasqal_engine_graph_pattern_fold_expressions(rasqal_query* rq, rasqal_graph_
 int rasqal_engine_query_fold_expressions(rasqal_query* rq);
 int rasqal_engine_remove_empty_group_graph_patterns(rasqal_query* query, rasqal_graph_pattern* gp, void* data);
   
-rasqal_triples_source* rasqal_new_triples_source(rasqal_query* query);
+rasqal_triples_source* rasqal_new_triples_source(rasqal_query_results* query_results);
 void rasqal_free_triples_source(rasqal_triples_source* rts);
 int rasqal_triples_source_next_source(rasqal_triples_source* rts);
 
-int rasqal_engine_get_next_result(rasqal_query* query);
+int rasqal_engine_get_next_result(rasqal_query_results* query_results);
 void rasqal_engine_assign_binding_values(rasqal_query* query);
 void rasqal_engine_move_constraints(rasqal_graph_pattern* dest_gp, rasqal_graph_pattern* src_gp);
 
