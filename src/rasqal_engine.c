@@ -470,7 +470,9 @@ rasqal_set_triples_source_factory(void (*register_fn)(rasqal_triples_source_fact
 
 
 rasqal_triples_source*
-rasqal_new_triples_source(rasqal_query *query) {
+rasqal_new_triples_source(rasqal_query_results* query_results)
+{
+  rasqal_query* query=query_results->query;
   rasqal_triples_source* rts;
   int rc=0;
   
@@ -490,7 +492,7 @@ rasqal_new_triples_source(rasqal_query *query) {
                                                Triples_Source_Factory.user_data,
                                                rts->user_data, rts);
   if(rc) {
-    query->failed=1;
+    query_results->failed=1;
     if(rc > 0) {
       rasqal_query_error(query, "Failed to make triples source.");
     } else {
@@ -868,9 +870,9 @@ rasqal_free_gp_data(void *gp_data)
 
 
 static void*
-rasqal_new_engine_execution_data(rasqal_query* query, 
-                                 rasqal_query_results* query_results) 
+rasqal_new_engine_execution_data(rasqal_query_results* query_results) 
 {
+  rasqal_query* query=query_results->query;
   rasqal_engine_execution_data* execution_data;
   int i;
 
@@ -899,8 +901,9 @@ rasqal_free_engine_execution_data(rasqal_query* query,
 
 
 int
-rasqal_engine_execute_init(rasqal_query* query, rasqal_query_results *results) 
+rasqal_engine_execute_init(rasqal_query_results* query_results) 
 {
+  rasqal_query* query=query_results->query;
   rasqal_engine_execution_data* execution_data;
   rasqal_graph_pattern *gp;
   
@@ -908,22 +911,18 @@ rasqal_engine_execute_init(rasqal_query* query, rasqal_query_results *results)
     return 1;
   
   if(!query->triples_source) {
-    query->triples_source=rasqal_new_triples_source(query);
+    query->triples_source=rasqal_new_triples_source(query_results);
     if(!query->triples_source) {
-      query->failed=1;
+      query_results->failed=1;
       return 1;
     }
   }
 
-  execution_data=rasqal_new_engine_execution_data(query, results);
-  results->execution_data=execution_data;
-  results->free_execution_data=rasqal_free_engine_execution_data;
+  execution_data=rasqal_new_engine_execution_data(query_results);
+  query_results->execution_data=execution_data;
+  query_results->free_execution_data=rasqal_free_engine_execution_data;
 
-  query->abort=0;
-  query->finished=0;
-  query->failed=0;
-
-  rasqal_query_results_init(results);
+  rasqal_query_results_init(query_results);
 
   /* FIXME.  This is hack.  If the structure is a single GP with no sub-GPs
    * then make a new top graph pattern so the query engine always
@@ -959,8 +958,10 @@ rasqal_engine_execute_init(rasqal_query* query, rasqal_query_results *results)
 
 
 int
-rasqal_engine_execute_finish(rasqal_query *query)
+rasqal_engine_execute_finish(rasqal_query_results *query_results)
 {
+  rasqal_query* query=query_results->query;
+
   if(query->triples_source) {
     rasqal_free_triples_source(query->triples_source);
     query->triples_source=NULL;
@@ -1105,10 +1106,11 @@ rasqal_engine_do_step(rasqal_query *query,
 
 
 static rasqal_engine_step
-rasqal_engine_do_optional_step(rasqal_query *query, 
+rasqal_engine_do_optional_step(rasqal_query_results* query_results, 
                                rasqal_graph_pattern *outergp,
                                rasqal_graph_pattern *gp)
 {
+  rasqal_query* query=query_results->query;
   int graph_patterns_size=raptor_sequence_size(outergp->graph_patterns);
   rasqal_engine_step step=STEP_SEARCHING;
   int rc;
@@ -1117,7 +1119,7 @@ rasqal_engine_do_optional_step(rasqal_query *query,
     if(!outergp->current_graph_pattern) {
       step=STEP_FINISHED;
       RASQAL_DEBUG1("Ended first graph pattern - finished\n");
-      query->finished=1;
+      query_results->finished=1;
       return STEP_FINISHED;
     }
     
@@ -1272,18 +1274,19 @@ rasqal_engine_do_optional_step(rasqal_query *query,
  * return: <0 failure, 0 end of results, >0 match
  */
 int
-rasqal_engine_get_next_result(rasqal_query *query)
+rasqal_engine_get_next_result(rasqal_query_results *query_results)
 {
+  rasqal_query* query=query_results->query;
   int graph_patterns_size;
   rasqal_engine_step step;
   int i;
   rasqal_graph_pattern *outergp;
   
   
-  if(query->failed)
+  if(query_results->failed)
     return -1;
 
-  if(query->finished)
+  if(query_results->finished)
     return 0;
 
   if(!query->triples)
@@ -1293,7 +1296,7 @@ rasqal_engine_get_next_result(rasqal_query *query)
   if(!outergp || !outergp->graph_patterns) {
     /* FIXME - no graph patterns in query - end results */
     rasqal_query_error(query, "No graph patterns in query. Ending query execution.");
-    query->finished=1;
+    query_results->finished=1;
     return 0;
   }
   
@@ -1301,7 +1304,7 @@ rasqal_engine_get_next_result(rasqal_query *query)
   if(!graph_patterns_size) {
     /* FIXME - no graph patterns in query - end results */
     rasqal_query_error(query, "No graph patterns in query. Ending query execution.");
-    query->finished=1;
+    query_results->finished=1;
     return 0;
   }
 
@@ -1332,7 +1335,7 @@ rasqal_engine_get_next_result(rasqal_query *query)
     optional_step=(gp->op == RASQAL_GRAPH_PATTERN_OPERATOR_OPTIONAL);
     
     if(optional_step)
-      step=rasqal_engine_do_optional_step(query, outergp, gp);
+      step=rasqal_engine_do_optional_step(query_results, outergp, gp);
     else
       step=rasqal_engine_do_step(query, outergp, gp);
 
@@ -1362,7 +1365,7 @@ rasqal_engine_get_next_result(rasqal_query *query)
   
   
   if(step != STEP_GOT_MATCH)
-    query->finished=1;
+    query_results->finished=1;
 
   if(step == STEP_GOT_MATCH) {
     for(i=0; i < graph_patterns_size; i++) {
@@ -1394,16 +1397,17 @@ rasqal_engine_get_next_result(rasqal_query *query)
 
 
 int
-rasqal_engine_run(rasqal_query *query)
+rasqal_engine_run(rasqal_query_results* query_results)
 {
+  rasqal_query* query=query_results->query;
   int rc=0;
   
-  while(!query->finished) {
-    if(query->abort)
+  while(!query_results->finished) {
+    if(query_results->abort)
       break;
     
     /* rc<0 error rc=0 end of results,  rc>0 finished */
-    rc=rasqal_engine_get_next_result(query);
+    rc=rasqal_engine_get_next_result(query_results);
     if(rc<1)
       break;
     
@@ -1730,18 +1734,18 @@ rasqal_engine_check_limit_offset(rasqal_query_results *query_results)
     if(query->limit >= 0) {
       /* offset and limit */
       if(query_results->result_count > (query->offset + query->limit)) {
-        query->finished=1;
+        query_results->finished=1;
       }
     }
     
   } else if(query->limit >= 0) {
     /* limit */
     if(query_results->result_count > query->limit) {
-      query->finished=1;
+      query_results->finished=1;
     }
   }
 
-  return query->finished;
+  return query_results->finished;
 }
 
 
