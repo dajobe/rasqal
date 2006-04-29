@@ -1,4 +1,130 @@
+2006-04-29  Dave Beckett  <dave@dajobe.org>
+
+	* src/rasqal_engine.c: Moved triples_source, new_bindings_count,
+	current_triple_result and results_sequence fields from
+	rasqal_query_s to rasqal_query_results_s
+	(rasqal_new_triples_match,
+	rasqal_engine_graph_pattern_get_next_match,
+	rasqal_engine_execute_finish, rasqal_engine_do_step,
+	rasqal_engine_do_optional_step, rasqal_engine_get_next_result,
+	rasqal_engine_get_results_values, rasqal_engine_get_result_value,
+	rasqal_engine_execute_order): Use query_results arg and update for
+	changes above.
+
+	* src/rasqal_query_results.c: (rasqal_query_results_init,
+	rasqal_free_query_results): Init and free
+	query_results->triples_source and query_results->results_sequence.
+	(rasqal_query_results_get_triple,
+	rasqal_query_results_next_triple): Use
+	query_results->triples_source and
+	query_results->current_triple_result
+
+	* src/sparql_parser.y: Comments SPARQL 2006-04-06
+
+	* src/rasqal_query.c: (rasqal_new_query): Moved
+	query->results_sequence to query_results.
+	9rasqal_query_write_sparql_20060406): Renamed from
+	rasqal_query_write_sparql_20060125.
+	(rasqal_query_write): Accept SPARQL 2006-04-06 and use as the
+	default URI.
+
+	* src/rasqal_internal.h: Moved triples_source, new_bindings_count,
+	current_triple_result and results_sequence fields from
+	rasqal_query_s to rasqal_query_results_s
+
+	* src/sparql_parser.y: SPARQL grammar updates for SPARQL CR -
+	mostly a rename and some re-ordering of rules since it was already
+	based on an earlier pre-CR rq23 draft.
+	(FilteredBasicGraphPattern): Renamed from BasicGraphPattern)
+	IRIrefOrFunction remains unused/deleted since the lexer does the
+	work for us.
+
+2006-04-28  Dave Beckett  <dave@dajobe.org>
+
+	* src/rasqal_engine.c, src/rasqal_query.c, src/rdql_parser.y,
+	src/sparql_parser.y: rasqal_query_declare_prefix and
+	rasqal_query_declare_prefixes in rasqal_query.c replace
+	rasqal_engine_declare_prefix, rasqal_engine_undeclare_prefix and
+	rasqal_engine_declare_prefixes in rasqal_engine.c since they
+	operate before query execution
+
+	* src/rasqal_internal.h: rasqal_query_declare_prefix and
+	rasqal_query_declare_prefixes replace
+	rasqal_engine_declare_prefix, rasqal_engine_undeclare_prefix and
+	rasqal_engine_declare_prefixes
+
+	* src/rasqal_engine.c: Many new functions moved from
+	rasqal_query.c and rasqal_query_results.c:
+	rasqal_engine_query_result_row_update
+	rasqal_engine_new_query_result_row,
+	rasqal_engine_new_query_result_row_from_query_result_row,
+	rasqal_engine_free_query_result_row,
+	rasqal_engine_get_results_values, rasqal_engine_get_result_value,
+	rasqal_engine_query_result_row_print,
+	rasqal_query_result_literal_sequence_compare,
+	rasqal_engine_query_result_row_compare,
+	rasqal_engine_query_results_update,
+	rasqal_engine_map_free_query_result_row,
+	rasqal_engine_map_print_query_result_row,
+	rasqal_engine_map_add_to_sequence, rasqal_engine_execute_order,
+	rasqal_engine_execute_next
+
+	* src/rasqal_query_results.c: (rasqal_new_query_results,
+	rasqal_query_results_init): Added from rasqal_query.c and now in
+	public API.
+	(rasqal_query_result_row_print,
+	rasqal_query_result_literal_sequence_compare,
+	rasqal_query_result_row_compare): Moved to rasqal_engine.c and
+	renamed.
+	(rasqal_free_query_results): Call renamed
+	rasqal_engine_free_query_result_row
+	(rasqal_query_results_next): Bulk of code moved to new
+	rasqal_engine_execute_next() in rasqal_engine.c
+	(rasqal_query_results_get_bindings): Results part moved to
+	rasqal_engine_get_results_values() in rasqal_engine.c.
+	9rasqal_query_results_get_binding_value,
+	rasqal_query_results_get_binding_value_by_name): Result part moved
+	to rasqal_engine_get_result_value() in rasqal_engine.c
+
+	* src/rasqal_query.c: (rasqal_new_query_result_row,
+	rasqal_new_query_result_row_from_query_result_row,
+	rasqal_query_result_row_update, rasqal_query_results_update,
+	rasqal_map_free_query_result_row,
+	rasqal_map_print_query_result_row, rasqal_map_add_to_sequence):
+	Moved to rasqal_engine.c and renamed.
+	(rasqal_new_query_results, rasqal_query_results_init): Moved to
+	rasqal_query_results.c and now public.
+	(rasqal_query_execute): Moved bulk of code to new
+	rasqal_engine_execute_order().
+
+	* src/rasqal_internal.h: Added prototypes for:
+	rasqal_engine_execute_order, rasqal_engine_free_query_result_row,
+	rasqal_engine_get_results_values, rasqal_engine_get_result_value,
+	rasqal_engine_execute_next, rasqal_new_query_results and and
+	rasqal_query_results_init.  Removed several prototypes now not
+	shared between modules (and moved to rasqal_engine.c):
+	rasqal_query_results_init, rasqal_query_result_row_update,
+	rasqal_query_results_update, rasqal_free_query_result_row,
+	rasqal_query_result_row_print and rasqal_query_result_row_compare
+
 2006-04-27  Dave Beckett  <dave@dajobe.org>
+
+	* utils/roqet.c: (roqet_graph_pattern_walk): Use
+	rasqal_graph_pattern_get_index
+
+	* src/rasqal_graph_pattern.c: (rasqal_graph_pattern_get_index):
+	Added.
+
+	* src/rasqal.h: Added rasqal_graph_pattern_get_index prototype
+
+	* utils/roqet.c: (roqet_graph_pattern_walk): Display the
+	graph_pattern index
+
+	* src/rasqal_graph_pattern.c: (rasqal_graph_pattern_print):
+	Display the graph_pattern index
+
+	* src/rasqal_graph_pattern.c: (rasqal_new_graph_pattern): Set
+	unused gp_index to -1.
 
 	* src/rasqal_engine.c: (rasqal_new_triples_source,
 	rasqal_new_engine_execution_data, rasqal_engine_execute_init,
