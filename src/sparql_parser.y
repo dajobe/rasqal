@@ -22,8 +22,8 @@
  * the licenses in COPYING.LIB, COPYING and LICENSE-2.0.txt respectively.
  *
  * References:
- *   SPARQL Query Language for RDF, 23 November 2005
- *   http://www.w3.org/TR/2005/WD-rdf-sparql-query-20051123/
+ *   SPARQL Query Language for RDF, W3C Candidate Recommendation 6 April 2006
+ *   http://www.w3.org/TR/2006/CR-rdf-sparql-query-20060406/
  *
  * Editor's draft of above http://www.w3.org/2001/sw/DataAccess/rq23/
  *
