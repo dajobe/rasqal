@@ -44,7 +44,7 @@
 
 
 static void rasqal_query_add_query_result(rasqal_query* query, rasqal_query_results* query_results);
-static int rasqal_query_write_sparql_20060125(raptor_iostream *iostr, rasqal_query* query, raptor_uri *base_uri);
+static int rasqal_query_write_sparql_20060406(raptor_iostream *iostr, rasqal_query* query, raptor_uri *base_uri);
 
 
 
@@ -113,8 +113,6 @@ rasqal_new_query(const char *name, const unsigned char *uri)
 
   query->order_conditions_sequence=NULL;
 
-  query->results_sequence=NULL;
-  
   query->usage=1;
   
   if(factory->init(query, name)) {
@@ -187,9 +185,6 @@ rasqal_free_query(rasqal_query* query)
 
   if(query->order_conditions_sequence)
     raptor_free_sequence(query->order_conditions_sequence);
-
-  if(query->results_sequence)
-    raptor_free_sequence(query->results_sequence);
 
   /* Do this last since most everything above could refer to a variable */
   if(query->anon_variables_sequence)
@@ -1131,8 +1126,6 @@ rasqal_query_execute(rasqal_query* query)
   if(query->failed)
     return NULL;
 
-  query->current_triple_result= -1;
-
   query_results=rasqal_new_query_results(query);
 
   rc=rasqal_engine_execute_init(query_results);
@@ -1842,7 +1835,7 @@ rasqal_query_write_sparql_graph_pattern(sparql_writer_context *wc,
 
     
 static int
-rasqal_query_write_sparql_20060125(raptor_iostream *iostr, 
+rasqal_query_write_sparql_20060406(raptor_iostream *iostr, 
                                    rasqal_query* query, raptor_uri *base_uri)
 {
   int i;
@@ -2008,8 +2001,8 @@ rasqal_query_write_sparql_20060125(raptor_iostream *iostr,
  * 
  * The supported URIs for the format_uri are:
  *
- * Default: SPARQL Query Language 2006-02-20
- * http://www.w3.org/TR/2006/WD-rdf-sparql-query-20060220/
+ * Default: SPARQL Query Language 2006-04-06
+ * http://www.w3.org/TR/2006/CR-rdf-sparql-query-20060406/
  *
  * Return value: non-0 on failure
  **/
@@ -2017,18 +2010,14 @@ int
 rasqal_query_write(raptor_iostream* iostr, rasqal_query* query,
                    raptor_uri* format_uri, raptor_uri* base_uri)
 {
-  /*
-   * DEFAULT format:
-   *
-   * SPARQL Query Language 2006-02-20
-   * http://www.w3.org/TR/2006/WD-rdf-sparql-query-20060220/
-   */
   if(!format_uri ||
      !strcmp((const char*)raptor_uri_as_string(format_uri),
              "http://www.w3.org/TR/rdf-sparql-query/") ||
      !strcmp((const char*)raptor_uri_as_string(format_uri),
-             "http://www.w3.org/TR/2006/WD-rdf-sparql-query-20060220/"))
-    return rasqal_query_write_sparql_20060125(iostr, query, base_uri);
+             "http://www.w3.org/TR/2006/WD-rdf-sparql-query-20060220/") ||
+     !strcmp((const char*)raptor_uri_as_string(format_uri),
+             "http://www.w3.org/TR/2006/CR-rdf-sparql-query-20060406/"))
+    return rasqal_query_write_sparql_20060406(iostr, query, base_uri);
 
   return 1;
 }
