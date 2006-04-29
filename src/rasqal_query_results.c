@@ -72,6 +72,8 @@ rasqal_query_results_init(rasqal_query_results* query_results)
   query_results->finished=0;
   query_results->failed=0;
   query_results->ask_result= -1;
+  query_results->current_triple_result= -1;
+  query_results->results_sequence=NULL;
 }
 
 
@@ -100,6 +102,9 @@ rasqal_free_query_results(rasqal_query_results* query_results)
   if(query_results->execution_data && query_results->free_execution_data)
     query_results->free_execution_data(query, query_results, query_results->execution_data);
   
+  if(query_results->results_sequence)
+    raptor_free_sequence(query_results->results_sequence);
+
   query=query_results->query;
   rasqal_query_remove_query_result(query, query_results);
   RASQAL_FREE(rasqal_query_results, query_results);
@@ -420,8 +425,8 @@ rasqal_query_results_get_triple(rasqal_query_results* query_results)
   skipped=0;
   while(1) {
     if(skipped ||
-       ((query->current_triple_result < 0)||
-        query->current_triple_result >= raptor_sequence_size(query->constructs))) {
+       ((query_results->current_triple_result < 0)||
+        query_results->current_triple_result >= raptor_sequence_size(query->constructs))) {
       /* rc<0 error rc=0 end of results,  rc>0 got a result */
       rc=rasqal_engine_get_next_result(query_results);
       if(rc < 1)
@@ -434,14 +439,14 @@ rasqal_query_results_get_triple(rasqal_query_results* query_results)
         break;
       }
 
-      query->current_triple_result=0;
+      query_results->current_triple_result=0;
       
       skipped=0;
     }
 
 
     t=(rasqal_triple*)raptor_sequence_get_at(query->constructs,
-                                             query->current_triple_result);
+                                             query_results->current_triple_result);
 
     rs=&query->statement;
 
@@ -634,7 +639,7 @@ rasqal_query_results_next_triple(rasqal_query_results* query_results)
     query->triple=NULL;
   }
 
-  if(++query->current_triple_result >= raptor_sequence_size(query->constructs)) {
+  if(++query_results->current_triple_result >= raptor_sequence_size(query->constructs)) {
     /* rc<0 error rc=0 end of results,  rc>0 got a result */
     rc=rasqal_engine_get_next_result(query_results);
     if(rc < 1)
@@ -644,7 +649,7 @@ rasqal_query_results_next_triple(rasqal_query_results* query_results)
     if(query_results->finished || query_results->failed)
       return 1;
 
-    query->current_triple_result=0;
+    query_results->current_triple_result=0;
   }
   
   return 0;
