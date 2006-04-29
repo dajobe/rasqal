@@ -294,8 +294,6 @@ struct rasqal_query_s {
 
   struct rasqal_query_engine_factory_s* factory;
 
-  rasqal_triples_source* triples_source;
-
   rasqal_triples_source_factory* triples_source_factory;
 
   /* (linked list of) query results made from this query */
@@ -303,9 +301,6 @@ struct rasqal_query_s {
 
   /* incrementing counter for declaring prefixes in order of appearance */
   int prefix_depth;
-
-  /* New variables bound from during the current 'next result' run */
-  int new_bindings_count;
 
   /* result triple - internal, not returned */
   rasqal_triple* triple;
@@ -316,14 +311,8 @@ struct rasqal_query_s {
   /* result triple (SHARED) */
   raptor_statement statement;
   
-  /* current triple in the sequence of triples 'constructs' or -1 */
-  int current_triple_result;
-
   /* sequence of order condition expressions */
   raptor_sequence* order_conditions_sequence;
-
-  /* INTERNAL sequence of results for ordering */
-  raptor_sequence* results_sequence;
 
   /* INTERNAL rasqal_literal_compare / rasqal_expression_evaluate flags */
   int compare_flags;
@@ -447,6 +436,17 @@ struct rasqal_query_results_s {
 
   /* boolean ASK result >0 true, 0 false or -1 uninitialised */
   int ask_result;
+
+  /* New variables bound from during the current 'next result' run */
+  int new_bindings_count;
+
+  rasqal_triples_source* triples_source;
+
+  /* current triple in the sequence of triples 'constructs' or -1 */
+  int current_triple_result;
+
+  /* INTERNAL sequence of results for ordering */
+  raptor_sequence* results_sequence;
 };
     
 
