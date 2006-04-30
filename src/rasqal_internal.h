@@ -302,14 +302,8 @@ struct rasqal_query_s {
   /* incrementing counter for declaring prefixes in order of appearance */
   int prefix_depth;
 
-  /* result triple - internal, not returned */
-  rasqal_triple* triple;
-  
   /* sequence of constraints - internal for RDQL parsing, not returned */
   raptor_sequence* constraints_sequence;
-  
-  /* result triple (SHARED) */
-  raptor_statement statement;
   
   /* sequence of order condition expressions */
   raptor_sequence* order_conditions_sequence;
@@ -445,6 +439,14 @@ struct rasqal_query_results_s {
   /* current triple in the sequence of triples 'constructs' or -1 */
   int current_triple_result;
 
+  /* constructed triple result (SHARED) */
+  raptor_statement result_triple;
+
+  /* INTERNAL triple used to store literals for subject, predicate, object
+   * never returned
+   */
+  rasqal_triple* triple;
+  
   /* INTERNAL sequence of results for ordering */
   raptor_sequence* results_sequence;
 };
