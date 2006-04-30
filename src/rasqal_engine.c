@@ -1353,6 +1353,9 @@ rasqal_engine_get_next_result(rasqal_query_results *query_results)
 int
 rasqal_engine_run(rasqal_query_results* query_results)
 {
+#ifdef RASQAL_DEBUG
+  rasqal_query* query=query_results->query;
+#endif
   int rc=0;
   
   while(!query_results->finished) {
