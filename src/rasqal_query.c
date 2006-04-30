@@ -193,9 +193,6 @@ rasqal_free_query(rasqal_query* query)
   if(query->variables_sequence)
     raptor_free_sequence(query->variables_sequence);
 
-  if(query->triple)
-    rasqal_free_triple(query->triple);
-  
   RASQAL_FREE(rasqal_query, query);
 }
 
