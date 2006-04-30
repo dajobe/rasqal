@@ -204,8 +204,6 @@ constants and #rasqal_variable values bound in some
 @fn: 
 @user_data: 
 @Returns: 
-<!-- # Unused Parameters # -->
-@expr: 
 
 
 <!-- ##### FUNCTION rasqal_expression_print ##### -->
