@@ -510,3 +510,27 @@ then retrieved.
 @Returns: 
 
 
+<!-- ##### FUNCTION rasqal_query_iostream_write_escaped_counted_string ##### -->
+<para>
+
+</para>
+
+@query: 
+@iostr: 
+@string: 
+@len: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_query_escape_counted_string ##### -->
+<para>
+
+</para>
+
+@query: 
+@string: 
+@len: 
+@output_len_p: 
+@Returns: 
+
+
