@@ -253,7 +253,7 @@ rasqal_query_results_get_bindings(rasqal_query_results* query_results,
 {
   rasqal_query* query;
   
-  if(!query_results || query_results->failed || query_results->finished)
+  if(!query_results)
     return 1;
   
   if(!rasqal_query_results_is_bindings(query_results))
@@ -285,7 +285,7 @@ rasqal_query_results_get_binding_value(rasqal_query_results* query_results,
 {
   rasqal_query* query;
 
-  if(!query_results || query_results->failed || query_results->finished)
+  if(!query_results)
     return NULL;
   
   if(!rasqal_query_results_is_bindings(query_results))
@@ -314,7 +314,7 @@ rasqal_query_results_get_binding_name(rasqal_query_results* query_results,
 {
   rasqal_query* query;
 
-  if(!query_results || query_results->failed || query_results->finished)
+  if(!query_results)
     return NULL;
   
   if(!rasqal_query_results_is_bindings(query_results))
@@ -346,7 +346,7 @@ rasqal_query_results_get_binding_value_by_name(rasqal_query_results* query_resul
   rasqal_query* query;
   rasqal_literal* value=NULL;
 
-  if(!query_results || query_results->failed || query_results->finished)
+  if(!query_results)
     return NULL;
   
   if(!rasqal_query_results_is_bindings(query_results))
