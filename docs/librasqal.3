@@ -6,7 +6,7 @@
 .\" Copyright (C) 2004-2006 David Beckett - http://purl.org/net/dajobe/
 .\" Copyright (C) 2004-2005 University of Bristol - http://www.bristol.ac.uk/
 .\"
-.TH librasqal 3 "2006-03-14"
+.TH librasqal 3 "2006-05-03"
 .\" Please adjust this date whenever revising the manpage.
 .SH NAME
 librasqal \- Rasqal RDF query library
@@ -140,6 +140,8 @@ or all variables mentioned with \fBSELECT *\fP.
 Get the sequence of all variables mentioned in the query.
 .IP "\fBrasqal_variable* rasqal_query_get_variable(rasqal_query* \fIquery\fB, int \fIidx\fP)\fR"
 Get one variable binding in the sequence of variable bindings in the query.
+.IP "\fBraptor_sequence* rasqal_query_get_anonymous_variable_sequence(rasqal_query* \fIquery\fP)\fR"
+Get the raptor_sequence of anonymous variables mentioned in the query.
 .IP "\fBint rasqal_query_has_variable(rasqal_query* \fIquery\fB, const unsigned char *\fIname\fB)\fR"
 Return non-0 if the named variable is in the variable bindings of the query.
 .IP "\fBint rasqal_query_set_variable(rasqal_query* \fIquery\fB, const unsigned char *\fIname\fB, rasqal_literal* \fIvalue\fP)\fR"
@@ -215,6 +217,16 @@ Get a triple in the sequence of construct triples.
 .IP "\fBint rasqal_query_write(raptor_iostream* \fIiostr\fP, rasqal_query* \fIquery\fP, raptor_uri* \fIformat_uri\fP, raptor_uri* \fPbase_uri\fP)\fR"
 Write a formatted query to a raptor iostream \fIiostr\fP in format described by
 URI \fIformat_uri\fP using base URI \fIbase_uri\fP for relative URIs (or NULL).
+.IP "\fBint rasqal_query_iostream_write_escaped_counted_string(rasqal_query* \fIquery\fP, raptor_iostream* \fIiostr\fP, const unsigned char* \fIstring\fP, size_t \fIlen\fP)\fR"
+Write a string to an iostream in an escaped form suitable for the
+query string.  Uses \fBrasqal_query_escape_counted_string\fP to
+perform the escaping.
+.IP "\fBunsigned char* rasqal_query_escape_counted_string(rasqal_query* query, const unsigned char *string, size_t len, size_t* output_len_p)\fR"
+Convert a \fIstring\fP of length \fIlen\fP into an escaped form
+suitable for the query string.  If \fIoutput_len\fP is not NULL, it
+is a pointer to the location to store the output string lenght.
+The returned string must be freed by the caller with
+\fBrasqal_free_memory\fP.
 .SH "GRAPH PATTERN CLASS"
 A class for graph patterns in a query - a set of triple patterns)
 with flags and possible sub-graph patterns
@@ -249,6 +261,10 @@ Get the sequence of constraints in the graph pattern.
 .IP "\fBrasqal_expression* rasqal_graph_pattern_get_constraint(rasqal_graph_pattern* \fIgp\fP, int \fIidx\fP)\fR"
 Get one constraint expression in the sequences of constraint to match
 in the graph pattern at index \fIidx\fP.
+.IP "\fBint rasqal_graph_pattern_get_index(rasqal_graph_pattern* \fIgraph_pattern\fP)\fR"
+Get the graph pattern absolute index in the array of graph patterns.
+The index is assigned when \fBrasqal_query_prepare\P is run on the
+query containing the graph pattern.
 .IP "\fBvoid rasqal_graph_pattern_print(rasqal_graph_pattern* \fIgraph_pattern\fP, FILE* \fIfh\fP)\fR"
 Print a graph pattern in a debug format.  This format may change in
 any release.
@@ -549,6 +565,13 @@ Destroy a rasqal data_graph object.
 Print a data graph in a debug format.  This format may change in any release.
 .SH API CHANGES
 .SS 0.9.12
+Added \fBrasqal_query_iostream_write_escaped_counted_string\fP
+and \fBrasqal_query_escape_counted_string\fP
+.LP
+Added \fBrasqal_query_get_anonymous_variable_sequence\fP
+.LP
+Added \fBrasqal_graph_pattern_get_index\fP
+.LP
 Added \fBRASQAL_EXPR_REGEX\fP to rasqal_op
 .LP
 Added arg3 field to rasqal_expression for the REGEX operation.
@@ -831,9 +854,9 @@ All new.
 .br
 .SH "CONFORMING TO"
 \fISPARQL Query Language for RDF\fR, 
-Eric Prud'hommeaux and Andy Seaborne (eds), W3C Working Draft, 23 November 2005.
-.UR http://www.w3.org/TR/2005/WD-rdf-sparql-query-20051123/
-http://www.w3.org/TR/2005/WD-rdf-sparql-query-20051123/
+Eric Prud'hommeaux and Andy Seaborne (eds), W3C Candidate Recommendation, 6 April 2006.
+.UR http://www.w3.org/TR/2006/CR-rdf-sparql-query-20060406/
+http://www.w3.org/TR/2006/CR-rdf-sparql-query-20060406/
 .UE
 .LP
 \fIRDQL - A Query Language for RDF\fR, Andy Seaborne,
@@ -843,9 +866,9 @@ http://www.w3.org/Submission/2004/SUBM-RDQL-20040109/
 .UE
 .LP
 \fISPARQL Query Results XML Format\fR, 
-Dave Beckett (ed), W3C Working Draft, 1 August 2005.
-.UR http://www.w3.org/TR/2005/WD-rdf-sparql-XMLres-20050801/
-http://www.w3.org/TR/2005/WD-rdf-sparql-XMLres-20050801/
+Jeen Broekstra and Dave Beckett (eds), W3C Candidate Recommendation, 6 April 2006.
+.UR http://www.w3.org/TR/2006/CR-rdf-sparql-XMLres-20060406/
+http://www.w3.org/TR/2006/CR-rdf-sparql-XMLres-20060406/
 .UE
 .SH SEE ALSO
 .BR roqet (1), rasqal-config (1)
