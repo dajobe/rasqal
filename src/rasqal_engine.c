@@ -54,6 +54,7 @@ typedef enum {
 } rasqal_engine_step;
 
 
+#ifdef RASQAL_DEBUG
 static const char * rasqal_engine_step_names[STEP_LAST+1]={
   "<unknown>",
   "searching",
@@ -61,7 +62,7 @@ static const char * rasqal_engine_step_names[STEP_LAST+1]={
   "finished",
   "error"
 };
-
+#endif
 
 int
 rasqal_engine_expand_triple_qnames(rasqal_query* rq)
@@ -1352,7 +1353,6 @@ rasqal_engine_get_next_result(rasqal_query_results *query_results)
 int
 rasqal_engine_run(rasqal_query_results* query_results)
 {
-  rasqal_query* query=query_results->query;
   int rc=0;
   
   while(!query_results->finished) {
