@@ -88,7 +88,7 @@ rasqal_query_results_init(rasqal_query_results* query_results)
 void
 rasqal_free_query_results(rasqal_query_results* query_results)
 {
-  rasqal_query* query;
+  rasqal_query* query=query_results->query;
 
   if(!query_results)
     return;
