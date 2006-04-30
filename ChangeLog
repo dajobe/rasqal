@@ -1,3 +1,7 @@
+2006-04-30  Dave Beckett  <dave@dajobe.org>
+
+	* Snapshotted rasqal_0_9_12 for 0.9.12 release
+
 2006-04-29  Dave Beckett  <dave@dajobe.org>
 
 	* src/rasqal_query_results.c: (rasqal_free_query_results): Add
