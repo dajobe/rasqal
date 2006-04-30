@@ -1385,16 +1385,6 @@ rasqal_engine_run(rasqal_query_results* query_results)
 
 
 void
-rasqal_engine_assign_binding_values(rasqal_query *query)
-{
-  int i;
-  
-  for(i=0; i< query->select_variables_count; i++)
-    query->binding_values[i]=query->variables[i]->value;
-}
-
-
-void
 rasqal_engine_move_constraints(rasqal_graph_pattern* dest_gp, 
                                rasqal_graph_pattern* src_gp)
 {
@@ -2062,7 +2052,8 @@ rasqal_engine_query_result_row_update(rasqal_query_result_row* row, int offset)
     return 1;
 
   query=query_results->query;
-  rasqal_engine_assign_binding_values(query);
+  for(i=0; i< query->select_variables_count; i++)
+    query->binding_values[i]=query->variables[i]->value;
 
   for(i=0; i < row->size; i++) {
     rasqal_literal *l=query->binding_values[i];
