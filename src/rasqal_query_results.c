@@ -105,6 +105,9 @@ rasqal_free_query_results(rasqal_query_results* query_results)
   if(query_results->results_sequence)
     raptor_free_sequence(query_results->results_sequence);
 
+  if(query_results->triple)
+    rasqal_free_triple(query_results->triple);
+  
   query=query_results->query;
   rasqal_query_remove_query_result(query, query_results);
   RASQAL_FREE(rasqal_query_results, query_results);
@@ -448,7 +451,7 @@ rasqal_query_results_get_triple(rasqal_query_results* query_results)
     t=(rasqal_triple*)raptor_sequence_get_at(query->constructs,
                                              query_results->current_triple_result);
 
-    rs=&query->statement;
+    rs=&query_results->result_triple;
 
     s=rasqal_literal_as_node(t->subject);
     if(!s) {
@@ -600,7 +603,7 @@ rasqal_query_results_get_triple(rasqal_query_results* query_results)
     }
 
     /* for saving s, p, o for later disposal */
-    query->triple=rasqal_new_triple(s, p, o);
+    query_results->triple=rasqal_new_triple(s, p, o);
 
     /* got triple, return it */
     break;
@@ -634,9 +637,9 @@ rasqal_query_results_next_triple(rasqal_query_results* query_results)
   if(query->verb == RASQAL_QUERY_VERB_DESCRIBE)
     return 1;
   
-  if(query->triple) {
-    rasqal_free_triple(query->triple);
-    query->triple=NULL;
+  if(query_results->triple) {
+    rasqal_free_triple(query_results->triple);
+    query_results->triple=NULL;
   }
 
   if(++query_results->current_triple_result >= raptor_sequence_size(query->constructs)) {
