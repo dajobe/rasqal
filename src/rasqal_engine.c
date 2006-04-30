@@ -2499,7 +2499,7 @@ rasqal_engine_execute_order(rasqal_query_results* query_results)
 
 #ifdef RASQAL_DEBUG
     if(map) {
-      fputs("resulting map ", stderr);
+      fputs("resulting ", stderr);
       rasqal_map_print(map, stderr);
       fputs("\n", stderr);
     }
