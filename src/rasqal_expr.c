@@ -939,8 +939,8 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e,
     case RASQAL_EXPR_AND:
       {
         rasqal_literal *l;
-        int b1;
-        int b2;
+        int b1=0;
+        int b2=0;
         int error1=0;
         int error2=0;
         
@@ -981,8 +981,8 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e,
     case RASQAL_EXPR_OR:
       {
         rasqal_literal *l;
-        int b1;
-        int b2;
+        int b1=0;
+        int b2=0;
         int error1=0;
         int error2=0;
         
