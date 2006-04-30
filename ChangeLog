@@ -1,5 +1,16 @@
 2006-04-30  Dave Beckett  <dave@dajobe.org>
 
+	* src/rasqal_expr.c: (rasqal_expression_evaluate): RASQAL_EXPR_AND
+	and RASQAL_EXPR_OR - initialise b1 and b2 to prevent a gcc
+	warning.  They were never used unitialised by the logic but gcc
+	couldn't tell.
+
+	* src/rasqal_query_results.c: (rasqal_free_query_results):
+	Initialise query; happily it wasn't used in 0.9.12 use case
+
+	* src/rasqal_engine.c: Only define rasqal_engine_step_names for
+	RASQAL_DEBUG
+
 	* Snapshotted rasqal_0_9_12 for 0.9.12 release
 
 2006-04-29  Dave Beckett  <dave@dajobe.org>
