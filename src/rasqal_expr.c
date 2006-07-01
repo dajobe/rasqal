@@ -947,16 +947,18 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e,
         l=rasqal_expression_evaluate(query, e->arg1, flags);
         if(!l)
           error1=1;
-        else
+        else {
           b1=rasqal_literal_as_boolean(l, &error1);
-        rasqal_free_literal(l);
+          rasqal_free_literal(l);
+        }
 
         l=rasqal_expression_evaluate(query, e->arg2, flags);
         if(!l)
           error2=1;
-        else
+        else {
           b2=rasqal_literal_as_boolean(l, &error2);
-        rasqal_free_literal(l);
+          rasqal_free_literal(l);
+        }
 
         /* See http://www.w3.org/TR/2005/WD-rdf-sparql-query-20051123/#truthTable */
         if(!error1 && !error2) {
@@ -989,16 +991,18 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e,
         l=rasqal_expression_evaluate(query, e->arg1, flags);
         if(!l)
           error1=1;
-        else
+        else {
           b1=rasqal_literal_as_boolean(l, &error1);
-        rasqal_free_literal(l);
+          rasqal_free_literal(l);
+        }
 
         l=rasqal_expression_evaluate(query, e->arg2, flags);
         if(!l)
           error2=1;
-        else
+        else {
           b2=rasqal_literal_as_boolean(l, &error2);
-        rasqal_free_literal(l);
+          rasqal_free_literal(l);
+        }
 
         /* See http://www.w3.org/TR/2005/WD-rdf-sparql-query-20051123/#truthTable */
         if(!error1 && !error2) {
