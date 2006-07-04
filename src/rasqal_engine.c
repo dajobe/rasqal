@@ -565,6 +565,48 @@ rasqal_reset_triple_meta(rasqal_triple_meta* m)
 }
 
 
+typedef struct {
+  rasqal_graph_pattern* gp;
+  
+  /* An array of items, one per triple in the pattern graph */
+  rasqal_triple_meta* triple_meta;
+
+} rasqal_engine_gp_data;
+
+
+static rasqal_engine_gp_data*
+rasqal_new_gp_data(rasqal_graph_pattern* gp) 
+{
+  rasqal_engine_gp_data* gp_data;
+  
+  gp_data=(rasqal_engine_gp_data*)RASQAL_MALLOC(rasqal_engine_gp_data, sizeof(rasqal_engine_gp_data));
+  gp_data->gp=gp;
+  
+  return gp_data;
+}
+
+
+static void
+rasqal_free_gp_data(rasqal_engine_gp_data* gp_data)
+{
+  rasqal_graph_pattern* gp=gp_data->gp;
+
+  if(gp_data->triple_meta) {
+    while(gp->column >= gp->start_column) {
+      rasqal_triple_meta *m;
+      m=&gp_data->triple_meta[gp->column - gp->start_column];
+      rasqal_reset_triple_meta(m);
+      gp->column--;
+    }
+    RASQAL_FREE(rasqal_triple_meta, gp_data->triple_meta);
+    gp_data->triple_meta=NULL;
+  }
+
+  RASQAL_FREE(rasqal_engine_gp_data, gp_data);
+  return;
+}
+
+
 static RASQAL_INLINE void
 rasqal_query_graph_pattern_build_declared_in_variable(rasqal_query* query,
                                                       rasqal_variable *v,
@@ -671,6 +713,13 @@ rasqal_engine_graph_pattern_get_next_match(rasqal_query_results* query_results,
 {
   rasqal_query* query=query_results->query;
   int rc;
+  rasqal_engine_gp_data* gp_data;
+  rasqal_engine_execution_data* execution_data;
+
+  execution_data=query_results->execution_data;
+  gp_data=(rasqal_engine_gp_data*)raptor_sequence_get_at(execution_data->seq, 
+                                                         gp->gp_index);
+
 
   if(gp->graph_patterns) {
     /* FIXME - sequence of graph_patterns not implemented, finish */
@@ -683,9 +732,11 @@ rasqal_engine_graph_pattern_get_next_match(rasqal_query_results* query_results,
   }
     
   while(gp->column >= gp->start_column) {
-    rasqal_triple_meta *m=&gp->triple_meta[gp->column - gp->start_column];
-    rasqal_triple *t=(rasqal_triple*)raptor_sequence_get_at(gp->triples,
-                                                            gp->column);
+    rasqal_triple_meta *m;
+    rasqal_triple *t;
+
+    m=&gp_data->triple_meta[gp->column - gp->start_column];
+    t=(rasqal_triple*)raptor_sequence_get_at(gp->triples, gp->column);
 
     rc=1;
 
@@ -808,22 +859,6 @@ rasqal_engine_prepare(rasqal_query *query)
 }
 
 
-typedef void* rasqal_engine_gp_data;
-
-static rasqal_engine_gp_data*
-rasqal_new_gp_data(void) 
-{
-  return NULL;
-}
-
-
-static void
-rasqal_free_gp_data(void *gp_data) 
-{
-  return;
-}
-
-
 static void*
 rasqal_new_engine_execution_data(rasqal_query_results* query_results) 
 {
@@ -834,7 +869,11 @@ rasqal_new_engine_execution_data(rasqal_query_results* query_results)
   execution_data=RASQAL_MALLOC(rasqal_engine_execution_data, sizeof(rasqal_engine_execution_data));
   execution_data->seq=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_gp_data, NULL);
   for(i=0; i < query->graph_pattern_count; i++) {
-    rasqal_engine_gp_data* gp_data=rasqal_new_gp_data();
+    rasqal_graph_pattern* gp;
+    rasqal_engine_gp_data* gp_data;
+    
+    gp=(rasqal_graph_pattern*)raptor_sequence_get_at(query->graph_patterns_sequence, i);
+    gp_data=rasqal_new_gp_data(gp);
     raptor_sequence_set_at(execution_data->seq, i, gp_data);
   }
 
@@ -852,6 +891,109 @@ rasqal_free_engine_execution_data(rasqal_query* query,
   if(execution_data->seq)
     raptor_free_sequence(execution_data->seq);
   RASQAL_FREE(rasqal_engine_execution_data, execution_data);
+}
+
+
+static int
+rasqal_engine_graph_pattern_order(const void *a, const void *b)
+{
+  rasqal_graph_pattern *gp_a=*(rasqal_graph_pattern**)a;
+  rasqal_graph_pattern *gp_b=*(rasqal_graph_pattern**)b;
+
+  return (gp_a->op == RASQAL_GRAPH_PATTERN_OPERATOR_OPTIONAL) -
+         (gp_b->op == RASQAL_GRAPH_PATTERN_OPERATOR_OPTIONAL);
+}
+
+
+static void
+rasqal_engine_graph_pattern_init(rasqal_query_results* query_results,
+                                 rasqal_graph_pattern *gp)
+{
+  rasqal_query *query=query_results->query;
+  rasqal_engine_execution_data* execution_data;
+  rasqal_engine_gp_data* gp_data;
+
+  execution_data=query_results->execution_data;
+  gp_data=(rasqal_engine_gp_data*)raptor_sequence_get_at(execution_data->seq, 
+                                                         gp->gp_index);
+  
+  gp->optional_graph_pattern= -1;
+  gp->current_graph_pattern= -1;
+
+  if(gp->graph_patterns) {
+    int i;
+
+    gp->current_graph_pattern=0;
+    
+    /* sort graph patterns, optional graph triples last */
+    raptor_sequence_sort(gp->graph_patterns, rasqal_engine_graph_pattern_order);
+  
+    for(i=0; i < raptor_sequence_size(gp->graph_patterns); i++) {
+      rasqal_graph_pattern *sgp=(rasqal_graph_pattern*)raptor_sequence_get_at(gp->graph_patterns, i);
+      rasqal_engine_graph_pattern_init(query_results, sgp);
+      
+      if((sgp->op == RASQAL_GRAPH_PATTERN_OPERATOR_OPTIONAL) &&
+         gp->optional_graph_pattern < 0)
+        gp->optional_graph_pattern=i;
+    }
+
+  }
+  
+  if(gp->triples) {
+    int triples_count=gp->end_column - gp->start_column+1;
+    int i;
+    
+    gp->column=gp->start_column;
+    if(gp_data->triple_meta) {
+      /* reset any previous execution */
+      rasqal_reset_triple_meta(gp_data->triple_meta);
+      memset(gp_data->triple_meta, '\0', sizeof(rasqal_triple_meta)*triples_count);
+    } else
+      gp_data->triple_meta=(rasqal_triple_meta*)RASQAL_CALLOC(rasqal_triple_meta, sizeof(rasqal_triple_meta), triples_count);
+
+    for(i=gp->start_column; i <= gp->end_column; i++) {
+      rasqal_triple_meta *m;
+      rasqal_triple *t;
+      rasqal_variable* v;
+
+      t=(rasqal_triple*)raptor_sequence_get_at(gp->triples, i);
+      m=&gp_data->triple_meta[i - gp->start_column];
+      m->parts=(rasqal_triple_parts)0;
+      
+      if((v=rasqal_literal_as_variable(t->subject)) &&
+         query->variables_declared_in[v->offset] == i)
+        m->parts= (rasqal_triple_parts)(m->parts | RASQAL_TRIPLE_SUBJECT);
+      
+      if((v=rasqal_literal_as_variable(t->predicate)) &&
+         query->variables_declared_in[v->offset] == i)
+        m->parts= (rasqal_triple_parts)(m->parts | RASQAL_TRIPLE_PREDICATE);
+      
+      if((v=rasqal_literal_as_variable(t->object)) &&
+         query->variables_declared_in[v->offset] == i)
+        m->parts= (rasqal_triple_parts)(m->parts | RASQAL_TRIPLE_OBJECT);
+
+      if(t->origin &&
+         (v=rasqal_literal_as_variable(t->origin)) &&
+         query->variables_declared_in[v->offset] == i)
+        m->parts= (rasqal_triple_parts)(m->parts | RASQAL_TRIPLE_ORIGIN);
+
+      RASQAL_DEBUG4("Graph pattern %p Triple %d has parts %d\n",
+                    gp, i, m->parts);
+
+      /* exact if there are no variables in the triple parts */
+      m->is_exact = 1;
+      if(rasqal_literal_as_variable(t->predicate) ||
+         rasqal_literal_as_variable(t->subject) ||
+         rasqal_literal_as_variable(t->object))
+        m->is_exact = 0;
+
+    }
+
+  }
+
+  gp->matched= 0;
+  gp->finished= 0;
+  gp->matches_returned= 0;
 }
 
 
@@ -906,7 +1048,7 @@ rasqal_engine_execute_init(rasqal_query_results* query_results)
   gp=query->query_graph_pattern;
 
   if(gp)
-    rasqal_graph_pattern_init(gp);
+    rasqal_engine_graph_pattern_init(query_results, gp);
     
   return 0;
 }
@@ -925,7 +1067,8 @@ rasqal_engine_execute_finish(rasqal_query_results* query_results)
 
 
 static void
-rasqal_engine_move_to_graph_pattern(rasqal_graph_pattern *gp,
+rasqal_engine_move_to_graph_pattern(rasqal_query_results* query_results,
+                                    rasqal_graph_pattern *gp,
                                     int delta)
 {
   int graph_patterns_size=raptor_sequence_size(gp->graph_patterns);
@@ -946,7 +1089,7 @@ rasqal_engine_move_to_graph_pattern(rasqal_graph_pattern *gp,
       RASQAL_DEBUG1("Moved to first optional graph pattern\n");
       for(i=gp->current_graph_pattern; i < graph_patterns_size; i++) {
         rasqal_graph_pattern *gp2=(rasqal_graph_pattern*)raptor_sequence_get_at(gp->graph_patterns, i);
-        rasqal_graph_pattern_init(gp2);
+        rasqal_engine_graph_pattern_init(query_results, gp2);
       }
       gp->max_optional_graph_pattern=graph_patterns_size-1;
     }
@@ -956,7 +1099,7 @@ rasqal_engine_move_to_graph_pattern(rasqal_graph_pattern *gp,
 
     if(gp->current_graph_pattern > gp->optional_graph_pattern) {
       rasqal_graph_pattern *gp2=(rasqal_graph_pattern*)raptor_sequence_get_at(gp->graph_patterns, gp->current_graph_pattern);
-      rasqal_graph_pattern_init(gp2);
+      rasqal_engine_graph_pattern_init(query_results, gp2);
     }
     gp->current_graph_pattern--;
   }
@@ -1051,7 +1194,7 @@ rasqal_engine_do_step(rasqal_query_results* query_results,
    */
   if(outergp->current_graph_pattern < graph_patterns_size-1) {
     RASQAL_DEBUG1("Not last graph pattern\n");
-    rasqal_engine_move_to_graph_pattern(outergp, +1);
+    rasqal_engine_move_to_graph_pattern(query_results, outergp, +1);
     return STEP_SEARCHING;
   }
   
@@ -1081,7 +1224,7 @@ rasqal_engine_do_optional_step(rasqal_query_results* query_results,
                   outergp->current_graph_pattern);
     
     /* backtrack optionals */
-    rasqal_engine_move_to_graph_pattern(outergp, -1);
+    rasqal_engine_move_to_graph_pattern(query_results, outergp, -1);
     return STEP_SEARCHING;
   }
   
@@ -1124,7 +1267,7 @@ rasqal_engine_do_optional_step(rasqal_query_results* query_results,
     
     if(outergp->current_graph_pattern < outergp->max_optional_graph_pattern) {
       RASQAL_DEBUG1("More optionals graph patterns to search\n");
-      rasqal_engine_move_to_graph_pattern(outergp, +1);
+      rasqal_engine_move_to_graph_pattern(query_results, outergp, +1);
       return STEP_SEARCHING;
     }
 
@@ -1167,7 +1310,7 @@ rasqal_engine_do_optional_step(rasqal_query_results* query_results,
       }
 
       RASQAL_DEBUG1("No matches this time, some earlier, backtracking\n");
-      rasqal_engine_move_to_graph_pattern(outergp, -1);
+      rasqal_engine_move_to_graph_pattern(query_results, outergp, -1);
       return STEP_SEARCHING;
     }
 
@@ -1199,7 +1342,7 @@ rasqal_engine_do_optional_step(rasqal_query_results* query_results,
   */
  if(outergp->current_graph_pattern < graph_patterns_size-1) {
    RASQAL_DEBUG1("Not last graph pattern\n");
-   rasqal_engine_move_to_graph_pattern(outergp, +1);
+   rasqal_engine_move_to_graph_pattern(query_results, outergp, +1);
    return STEP_SEARCHING;
  }
  
