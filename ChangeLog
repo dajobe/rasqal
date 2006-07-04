@@ -1,4 +1,58 @@
+2006-07-04  Dave Beckett  <dave@dajobe.org>
+
+	* src/rasqal_engine.c: Typedef rasqal_engine_gp_data gains gp and
+	triple_meta field.
+	(rasqal_new_gp_data): Init gp field.
+	(rasqal_free_gp_data): Tidy up triple_meta field content.
+	(rasqal_engine_graph_pattern_get_next_match): Get
+	rasqal_engine_gp_data from sequence of gp_data.  Take
+	rasqal_triple_meta from that data.
+	(rasqal_new_engine_execution_data): Init rasqal_engine_gp_data for
+	all graph patterns.
+	(rasqal_engine_graph_pattern_order): Renamed from
+	rasqal_graph_pattern_order.
+	(rasqal_engine_graph_pattern_init): Renamed from
+	rasqal_graph_pattern_init.
+	(rasqal_engine_execute_init): Call
+	rasqal_engine_graph_pattern_init.
+	(rasqal_engine_move_to_graph_pattern): Gains query_results arg.
+	(rasqal_engine_do_step, rasqal_engine_do_optional_step): Call
+	rasqal_engine_move_to_graph_pattern with query_results arg.
+
+	* src/rasqal_graph_pattern.c: (rasqal_free_graph_pattern): Remove
+	triple_meta cleanup.
+	(rasqal_graph_pattern_order): Deleted and renamed to
+	rasqal_free_gp_data.
+	(rasqal_graph_pattern_init): Deleted and renamed to
+	rasqal_engine_graph_pattern_init.
+
+2006-07-03  Dave Beckett  <dave@dajobe.org>
+
+	* src/rasqal_query.c: (rasqal_free_query): Free graph_patterns_sequence
+	(rasqal_query_prepare_count_graph_patterns): Add next graph
+	pattern to index sequence.
+	(rasqal_query_prepare): Initialise graph_patterns_sequence using
+	rasqal_query_graph_pattern_visit with
+	rasqal_query_prepare_count_graph_patterns.
+
+	* src/rasqal_internal.h: (struct rasqal_graph_pattern_s): Remove
+	triple_meta field, now in engine's
+	rasqal_engine_gp_data. rasqal_graph_pattern_init prototype removed.
+	(struct rasqal_query_s): Add graph_patterns_sequence for getting
+	graph pattern by an index.
+
+2006-07-01  Dave Beckett  <dave@dajobe.org>
+
+	* src/rasqal_expr.c: (rasqal_expression_evaluate): For AND and OR
+	ops, do not free a NULL literal when tidying up on error.
+	Fixes Issue#0000095 http://bugs.librdf.org/mantis/view.php?id=95
+
 2006-04-30  Dave Beckett  <dave@dajobe.org>
+
+	* docs/librasqal.3: Updated for 0.9.12 (too late for release)
+
+	* src/rasqal_engine.c: (rasqal_engine_run): Restore query when
+	RASQAL_DEBUG is present
 
 	* src/rasqal_expr.c: (rasqal_expression_evaluate): RASQAL_EXPR_AND
 	and RASQAL_EXPR_OR - initialise b1 and b2 to prevent a gcc
