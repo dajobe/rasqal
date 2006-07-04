@@ -193,6 +193,9 @@ rasqal_free_query(rasqal_query* query)
   if(query->variables_sequence)
     raptor_free_sequence(query->variables_sequence);
 
+  if(query->graph_patterns_sequence)
+    raptor_free_sequence(query->graph_patterns_sequence);
+
   RASQAL_FREE(rasqal_query, query);
 }
 
@@ -988,7 +991,11 @@ rasqal_query_prepare_count_graph_patterns(rasqal_query* query,
                                           rasqal_graph_pattern* gp,
                                           void* data)
 {
+  raptor_sequence* seq=(raptor_sequence*)data;
+
   gp->gp_index=(query->graph_pattern_count++);
+  raptor_sequence_push(seq, gp);
+  
   return 0;
 }
 
@@ -1094,9 +1101,15 @@ rasqal_query_prepare(rasqal_query* query,
      * the size of the graph pattern execution data array
      */
     query->graph_pattern_count=0;
+
+    /* This sequence stoees shared pointers to the grpah patterns it
+     * finds, indexed by the gp_index
+     */
+    query->graph_patterns_sequence=raptor_new_sequence(NULL, NULL);
+
     rasqal_query_graph_pattern_visit(query, 
                                      rasqal_query_prepare_count_graph_patterns,
-                                     NULL);
+                                     query->graph_patterns_sequence);
     
     rasqal_engine_build_constraints_expression(query->query_graph_pattern);
   }
