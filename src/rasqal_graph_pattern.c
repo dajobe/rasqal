@@ -179,16 +179,6 @@ rasqal_graph_pattern_add_triples(rasqal_graph_pattern* gp,
 void
 rasqal_free_graph_pattern(rasqal_graph_pattern* gp)
 {
-  if(gp->triple_meta) {
-    while(gp->column >= gp->start_column) {
-      rasqal_triple_meta *m=&gp->triple_meta[gp->column - gp->start_column];
-      rasqal_reset_triple_meta(m);
-      gp->column--;
-    }
-    RASQAL_FREE(rasqal_triple_meta, gp->triple_meta);
-    gp->triple_meta=NULL;
-  }
-
   if(gp->graph_patterns)
     raptor_free_sequence(gp->graph_patterns);
   
@@ -199,107 +189,6 @@ rasqal_free_graph_pattern(rasqal_graph_pattern* gp)
     raptor_free_sequence(gp->constraints);
 
   RASQAL_FREE(rasqal_graph_pattern, gp);
-}
-
-
-static int
-rasqal_graph_pattern_order(const void *a, const void *b)
-{
-  rasqal_graph_pattern *gp_a=*(rasqal_graph_pattern**)a;
-  rasqal_graph_pattern *gp_b=*(rasqal_graph_pattern**)b;
-
-  return (gp_a->op == RASQAL_GRAPH_PATTERN_OPERATOR_OPTIONAL) -
-         (gp_b->op == RASQAL_GRAPH_PATTERN_OPERATOR_OPTIONAL);
-}
-
-
-/**
- * rasqal_graph_pattern_init:
- * @gp: #rasqal_graph_pattern object
- *
- * Initialise a graph pattern for execution.
- * 
- **/
-void
-rasqal_graph_pattern_init(rasqal_graph_pattern *gp)
-{
-  rasqal_query *query=gp->query;
-  
-  gp->optional_graph_pattern= -1;
-  gp->current_graph_pattern= -1;
-
-  if(gp->graph_patterns) {
-    int i;
-
-    gp->current_graph_pattern=0;
-    
-    /* sort graph patterns, optional graph triples last */
-    raptor_sequence_sort(gp->graph_patterns, rasqal_graph_pattern_order);
-  
-    for(i=0; i < raptor_sequence_size(gp->graph_patterns); i++) {
-      rasqal_graph_pattern *sgp=(rasqal_graph_pattern*)raptor_sequence_get_at(gp->graph_patterns, i);
-      rasqal_graph_pattern_init(sgp);
-      
-      if((sgp->op == RASQAL_GRAPH_PATTERN_OPERATOR_OPTIONAL) &&
-         gp->optional_graph_pattern < 0)
-        gp->optional_graph_pattern=i;
-    }
-
-  }
-  
-  if(gp->triples) {
-    int triples_count=gp->end_column - gp->start_column+1;
-    int i;
-    
-    gp->column=gp->start_column;
-    if(gp->triple_meta) {
-      /* reset any previous execution */
-      rasqal_reset_triple_meta(gp->triple_meta);
-      memset(gp->triple_meta, '\0', sizeof(rasqal_triple_meta)*triples_count);
-    } else
-      gp->triple_meta=(rasqal_triple_meta*)RASQAL_CALLOC(rasqal_triple_meta, sizeof(rasqal_triple_meta), triples_count);
-
-    for(i=gp->start_column; i <= gp->end_column; i++) {
-      rasqal_triple_meta *m=&gp->triple_meta[i - gp->start_column];
-      rasqal_triple *t=(rasqal_triple*)raptor_sequence_get_at(gp->triples, i);
-      rasqal_variable* v;
-
-      m->parts=(rasqal_triple_parts)0;
-      
-      if((v=rasqal_literal_as_variable(t->subject)) &&
-         query->variables_declared_in[v->offset] == i)
-        m->parts= (rasqal_triple_parts)(m->parts | RASQAL_TRIPLE_SUBJECT);
-      
-      if((v=rasqal_literal_as_variable(t->predicate)) &&
-         query->variables_declared_in[v->offset] == i)
-        m->parts= (rasqal_triple_parts)(m->parts | RASQAL_TRIPLE_PREDICATE);
-      
-      if((v=rasqal_literal_as_variable(t->object)) &&
-         query->variables_declared_in[v->offset] == i)
-        m->parts= (rasqal_triple_parts)(m->parts | RASQAL_TRIPLE_OBJECT);
-
-      if(t->origin &&
-         (v=rasqal_literal_as_variable(t->origin)) &&
-         query->variables_declared_in[v->offset] == i)
-        m->parts= (rasqal_triple_parts)(m->parts | RASQAL_TRIPLE_ORIGIN);
-
-      RASQAL_DEBUG4("Graph pattern %p Triple %d has parts %d\n",
-                    gp, i, m->parts);
-
-      /* exact if there are no variables in the triple parts */
-      m->is_exact = 1;
-      if(rasqal_literal_as_variable(t->predicate) ||
-         rasqal_literal_as_variable(t->subject) ||
-         rasqal_literal_as_variable(t->object))
-        m->is_exact = 0;
-
-    }
-
-  }
-
-  gp->matched= 0;
-  gp->finished= 0;
-  gp->matches_returned= 0;
 }
 
 
