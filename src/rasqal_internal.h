@@ -131,9 +131,6 @@ struct rasqal_graph_pattern_s {
   raptor_sequence* triples;          /* ... rasqal_triple*         */
   raptor_sequence* graph_patterns;   /* ... rasqal_graph_pattern*  */
 
-  /* An array of items, one per triple in the pattern graph */
-  rasqal_triple_meta* triple_meta;
-
   int column;
 
   int start_column;
@@ -176,7 +173,6 @@ rasqal_graph_pattern* rasqal_new_graph_pattern(rasqal_query* query);
 rasqal_graph_pattern* rasqal_new_graph_pattern_from_triples(rasqal_query* query, raptor_sequence* triples, int start_column, int end_column, rasqal_graph_pattern_operator op);
 rasqal_graph_pattern* rasqal_new_graph_pattern_from_sequence(rasqal_query* query, raptor_sequence* graph_patterns, rasqal_graph_pattern_operator op);
 void rasqal_free_graph_pattern(rasqal_graph_pattern* gp);
-void rasqal_graph_pattern_init(rasqal_graph_pattern* gp);
 void rasqal_graph_pattern_adjust(rasqal_graph_pattern* gp, int offset);
 void rasqal_graph_pattern_set_origin(rasqal_graph_pattern* graph_pattern, rasqal_literal* origin);
 void rasqal_graph_pattern_add_triples(rasqal_graph_pattern* gp, raptor_sequence* triples, int start_column, int end_column, rasqal_graph_pattern_operator op);
@@ -313,6 +309,9 @@ struct rasqal_query_s {
 
   /* Number of graph patterns in this query */
   int graph_pattern_count;
+  
+  /* Graph pattern shared pointers by gp index (after prepare) */
+  raptor_sequence* graph_patterns_sequence;
 };
 
 
