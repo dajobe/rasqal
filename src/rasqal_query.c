@@ -1215,47 +1215,47 @@ rasqal_query_print(rasqal_query* query, FILE *fh)
   if(query->offset >= 0)
     fprintf(fh, "query results offset: %d\n", query->offset);
 
-  fprintf(fh, "data graphs: ");
+  fputs("data graphs: ", fh);
   if(query->data_graphs)
     raptor_sequence_print(query->data_graphs, fh);
   if(query->variables_sequence) {
-    fprintf(fh, "\nall variables: "); 
+    fputs("\nall variables: ", fh); 
     raptor_sequence_print(query->variables_sequence, fh);
   }
   if(query->anon_variables_sequence) {
-    fprintf(fh, "\nanonymous variables: "); 
+    fputs("\nanonymous variables: ", fh); 
     raptor_sequence_print(query->anon_variables_sequence, fh);
   }
   if(query->selects) {
-    fprintf(fh, "\nbound variables: "); 
+    fputs("\nbound variables: ", fh); 
     raptor_sequence_print(query->selects, fh);
   }
   if(query->describes) {
-    fprintf(fh, "\ndescribes: ");
+    fputs("\ndescribes: ", fh);
     raptor_sequence_print(query->describes, fh);
   }
   if(query->triples) {
-    fprintf(fh, "\ntriples: ");
+    fputs("\ntriples: ", fh);
     raptor_sequence_print(query->triples, fh);
   }
   if(query->optional_triples) {
-    fprintf(fh, "\noptional triples: ");
+    fputs("\noptional triples: ", fh);
     raptor_sequence_print(query->optional_triples, fh);
   }
   if(query->constructs) {
-    fprintf(fh, "\nconstructs: ");
+    fputs("\nconstructs: ", fh);
     raptor_sequence_print(query->constructs, fh);
   }
   if(query->prefixes) {
-    fprintf(fh, "\nprefixes: ");
+    fputs("\nprefixes: ", fh);
     raptor_sequence_print(query->prefixes, fh);
   }
   if(query->query_graph_pattern) {
-    fprintf(fh, "\nquery graph pattern: ");
+    fputs("\nquery graph pattern: ", fh);
     rasqal_graph_pattern_print(query->query_graph_pattern, fh);
   }
   if(query->order_conditions_sequence) {
-    fprintf(fh, "\nquery order conditions: ");
+    fputs("\nquery order conditions: ", fh);
     raptor_sequence_print(query->order_conditions_sequence, fh);
   }
   fputc('\n', fh);
