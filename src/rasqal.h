@@ -41,10 +41,14 @@ extern "C" {
  *
  */
 #ifdef WIN32
-#  ifdef RASQAL_INTERNAL
-#    define RASQAL_API _declspec(dllexport)
+#  ifdef RASQAL_STATIC
+#    define RASQAL_API
 #  else
-#    define RASQAL_API _declspec(dllimport)
+#    ifdef RASQAL_INTERNAL
+#      define RASQAL_API _declspec(dllexport)
+#    else
+#      define RASQAL_API _declspec(dllimport)
+#    endif
 #  endif
 #else
 #  define RASQAL_API
