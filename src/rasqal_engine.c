@@ -579,7 +579,7 @@ rasqal_new_gp_data(rasqal_graph_pattern* gp)
 {
   rasqal_engine_gp_data* gp_data;
   
-  gp_data=(rasqal_engine_gp_data*)RASQAL_MALLOC(rasqal_engine_gp_data, sizeof(rasqal_engine_gp_data));
+  gp_data=(rasqal_engine_gp_data*)RASQAL_CALLOC(rasqal_engine_gp_data, sizeof(rasqal_engine_gp_data), 1);
   gp_data->gp=gp;
   
   return gp_data;
