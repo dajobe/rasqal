@@ -1902,7 +1902,7 @@ rasqal_query_write_sparql_20060406(raptor_iostream *iostr,
     var_seq=query->selects;
   
   if(var_seq && query->wildcard)
-    raptor_iostream_write_counted_string(iostr, " *\n", 3);
+    raptor_iostream_write_counted_string(iostr, " *", 2);
   else if(var_seq) {
     int count=raptor_sequence_size(var_seq);
     for(i=0; i < count; i++) {
@@ -1910,8 +1910,8 @@ rasqal_query_write_sparql_20060406(raptor_iostream *iostr,
       raptor_iostream_write_counted_string(iostr, " ?", 2);
       raptor_iostream_write_string(iostr, v->name);
     }
-    raptor_iostream_write_byte(iostr, '\n');
   }
+  raptor_iostream_write_byte(iostr, '\n');
 
   if(query->data_graphs) {
     for(i=0; 1; i++) {
