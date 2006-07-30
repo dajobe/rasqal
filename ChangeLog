@@ -1,4 +1,28 @@
+2006-07-30  Dave Beckett  <dave@dajobe.org>
+
+	* src/rasqal_query.c: (rasqal_query_execute): Add
+	query/query_results link early so reference counting is done
+	right.
+	Fixes Issue#0000095 http://bugs.librdf.org/mantis/view.php?id=95
+
+2006-07-05  Dave Beckett  <dave@dajobe.org>
+
+	* src/rasqal_query.c: (rasqal_query_print): Rewrite many fprintf
+	to fputs
+
 2006-07-04  Dave Beckett  <dave@dajobe.org>
+
+	* src/rasqal_engine.c: (rasqal_new_gp_data): Zero new structure
+
+	* src/rasqal.h: Correct win32 static linking of rasqal
+	Fixes Issue#0000100 http://bugs.librdf.org/mantis/view.php?id=100
+
+	* configure.ac: allow PKGCONFIG_REQUIRES to append correctly to an
+	empty string
+
+	* configure.ac, rasqal.pc.in: Fix PKGCONFIG vars not substituted
+	correctly in configure.ac and remove @LDFLAGS from rasqal.pc.in.
+	Fixes Issue#0000098 http://bugs.librdf.org/mantis/view.php?id=98
 
 	* src/rasqal_engine.c: Typedef rasqal_engine_gp_data gains gp and
 	triple_meta field.
