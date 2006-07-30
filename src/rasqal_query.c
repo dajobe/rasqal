@@ -1137,6 +1137,9 @@ rasqal_query_execute(rasqal_query* query)
     return NULL;
 
   query_results=rasqal_new_query_results(query);
+  if(query_results)
+    rasqal_query_add_query_result(query, query_results);
+
 
   rc=rasqal_engine_execute_init(query_results);
   if(rc) {
@@ -1158,9 +1161,6 @@ rasqal_query_execute(rasqal_query* query)
     rasqal_free_query_results(query_results);
     query_results=NULL;
   }
-
-  if(query_results)
-    rasqal_query_add_query_result(query, query_results);
 
   return query_results;
 }
