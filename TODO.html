@@ -18,8 +18,6 @@
 <h3><a name="general">General</a></h3>
 
 <ul>
-<li>Engine: multiple data graphs (extension)</li>
-<li>Engine: handling distinct results</li>
 <li>QL: SeRQL - needs many engine changes (multiple sources, distinct, paths, anon variables, anon predicates) - <a href="http://www.openrdf.org/doc/users/ch05.html">The SeRQL query language</a> in Sesame user manual.</li>
 <li>QL: Squish - should be just syntax - <a href="http://swordfish.rdfweb.org/rdfquery/squish-bnf.html">Squish BNF</a></li> 
 <li>QL: <a href="http://www.guha.com/rdfdb/query.html">RDFDB query language</a> - should be just syntax</li>
@@ -30,31 +28,30 @@
 <h3><a name="sparql">SPARQL</a></h3>
 
 <p>Rasqal provides support for the SPARQL language as defined in
-<a href="http://www.w3.org/TR/2005/WD-rdf-sparql-query-20051123/">SPARQL Query Language for RDF</a>,
-W3C Working Draft, 23 November 2005.</p>
+<a href="http://www.w3.org/TR/2006/CR-rdf-sparql-query-20060406/">SPARQL Query Language for RDF</a> W3C Candidate Rec, 6 April 2006.</p>
 
 <p>Rasqal currently can read all the syntax and implements the
 functionality in common with RDQL plus graph patterns; partial
 optionals; constructed triples; boolean results; distincting,
 ordering and limiting query results and some built-in functions.  The
-unimplemented parts from the above SPARQL working draft are
+unimplemented parts from the above SPARQL document are
 approximately as follows:</p>
 <ul>
-<li><a href="http://www.w3.org/TR/2005/WD-rdf-sparql-query-20051123/#GroupPatterns" class="tocxref">4.1 Group Graph Patterns</a></li>
-<li><a href="http://www.w3.org/TR/2005/WD-rdf-sparql-query-20051123/#MultipleOptionals">5.3 Multiple Optional Graph Patterns</a></li>
-<li><a href="http://www.w3.org/TR/2005/WD-rdf-sparql-query-20051123/#OptionalMatchingNested">5.5 Nested Optional Graph Patterns</a></li>
-<li><a href="http://www.w3.org/TR/2005/WD-rdf-sparql-query-20051123/#unionOp">6.1 Joining Patterns with UNION</a></li>
-<li><a href="http://www.w3.org/TR/2005/WD-rdf-sparql-query-20051123/#rdfDataset">7 RDF Dataset</a></li>
-<li><a href="http://www.w3.org/TR/2005/WD-rdf-sparql-query-20051123/#queryDataset">8 Querying the Dataset</a></li>
-<li><a href="http://www.w3.org/TR/2005/WD-rdf-sparql-query-20051123/#accessByLabel">8.1 Accessing Graph Names</a></li>
-<li><a href="http://www.w3.org/TR/2005/WD-rdf-sparql-query-20051123/#restrictByLabel">8.2 Restricting by Graph IRI</a></li>
-<li><a href="http://www.w3.org/TR/2005/WD-rdf-sparql-query-20051123/#restrictInQuery">8.3 Restricting by Bound Variables</a></li>
-<li><a href="http://www.w3.org/TR/2005/WD-rdf-sparql-query-20051123/#namedAndDefaultGraph">8.4 Named and Default Graphs</a></li>
-<li><a href="http://www.w3.org/TR/2005/WD-rdf-sparql-query-20051123/#unnamedGraph">9.1 Specifying the default Graph</a></li>
-<li><a href="http://www.w3.org/TR/2005/WD-rdf-sparql-query-20051123/#namedGraphs">9.2 Specifying Named Graphs</a></li>
-<li><a href="http://www.w3.org/TR/2005/WD-rdf-sparql-query-20051123/#specDataset">9.3 Combining FROM and FROM NAMED</a></li>
-<li><a href="http://www.w3.org/TR/2005/WD-rdf-sparql-query-20051123/#operandDataTypes" class="tocxref">11.1 Operand Data Types</a> </li>
-<li><a href="http://www.w3.org/TR/2005/WD-rdf-sparql-query-20051123/#FuncAndOp">11.2 SPARQL Functions and Operators</a></li>
+<li><a href="http://www.w3.org/TR/2006/CR-rdf-sparql-query-20060406/#GroupPatterns" class="tocxref">4.1 Group Graph Patterns</a></li>
+<li><a href="http://www.w3.org/TR/2006/CR-rdf-sparql-query-20060406/#MultipleOptionals">5.3 Multiple Optional Graph Patterns</a></li>
+<li><a href="http://www.w3.org/TR/2006/CR-rdf-sparql-query-20060406/#OptionalMatchingNested">5.5 Nested Optional Graph Patterns</a></li>
+<li><a href="http://www.w3.org/TR/2006/CR-rdf-sparql-query-20060406/#unionOp">6.1 Joining Patterns with UNION</a></li>
+<li><a href="http://www.w3.org/TR/2006/CR-rdf-sparql-query-20060406/#rdfDataset">7 RDF Dataset</a></li>
+<li><a href="http://www.w3.org/TR/2006/CR-rdf-sparql-query-20060406/#queryDataset">8 Querying the Dataset</a></li>
+<li><a href="http://www.w3.org/TR/2006/CR-rdf-sparql-query-20060406/#accessByLabel">8.1 Accessing Graph Names</a></li>
+<li><a href="http://www.w3.org/TR/2006/CR-rdf-sparql-query-20060406/#restrictByLabel">8.2 Restricting by Graph IRI</a></li>
+<li><a href="http://www.w3.org/TR/2006/CR-rdf-sparql-query-20060406/#restrictInQuery">8.3 Restricting by Bound Variables</a></li>
+<li><a href="http://www.w3.org/TR/2006/CR-rdf-sparql-query-20060406/#namedAndDefaultGraph">8.4 Named and Default Graphs</a></li>
+<li><a href="http://www.w3.org/TR/2006/CR-rdf-sparql-query-20060406/#unnamedGraph">9.1 Specifying the default Graph</a></li>
+<li><a href="http://www.w3.org/TR/2006/CR-rdf-sparql-query-20060406/#namedGraphs">9.2 Specifying Named Graphs</a></li>
+<li><a href="http://www.w3.org/TR/2006/CR-rdf-sparql-query-20060406/#specDataset">9.3 Combining FROM and FROM NAMED</a></li>
+<li><a href="http://www.w3.org/TR/2006/CR-rdf-sparql-query-20060406/#operandDataTypes" class="tocxref">11.1 Operand Data Types</a> </li>
+<li><a href="http://www.w3.org/TR/2006/CR-rdf-sparql-query-20060406/#FuncAndOp">11.2 SPARQL Functions and Operators</a></li>
 </ul>
 
 
@@ -77,7 +74,7 @@ result solution.</li>
 
 </ul>
 </li>
-<li>LIMIT and OFFSET result constraints, after engine supports them.  AKT's Triplestore implementation of RDQL has this option. (extension)</li>
+<li>LIMIT and OFFSET result constraints, now that the engine supports them.  AKT's Triplestore implementation of RDQL has this option. (extension)</li>
 <li>Error recovery - when parsing a query fails, memory is leaked because the lists of selects, constraints etc. are lost when some part fails.  This requires understanding error recovery in Yacc/Bison.</li>
 </ul>
 
@@ -91,6 +88,7 @@ release version where appropriate.</p>
 <li>Engine: result distinct, limit and ordering (0.9.11)</li>
 <li>Engine: result ordering (0.9.10)</li>
 <li>Engine: result constraints - like <code>LIMIT</code> and <code>OFFSET</code> in SQL (0.9.9)</li>
+<li>Engine: multiple data graphs (0.9.7)</li>
 <li>SPARQL: <code>BOUND</code> from <a href="http://www.w3.org/TR/2005/WD-rdf-sparql-query-20050419/#func-isBound">11.2.1.2 sop:bound</a> (0.9.6)</li>
 <li>SPARQL: <a href="http://www.w3.org/TR/2005/WD-rdf-sparql-query-20050419/#ask">10.4 Asking "yes or no" questions</a> (<code>ASK</code>) (0.9.6)</li>
 <li>SPARQL: <a href="http://www.w3.org/TR/2005/WD-rdf-sparql-query-20050419/#construct">10.2 Constructing an Output Graph</a> (<code>CONSTRUCT</code> with triples and <code>CONSTRUCT *</code>) (0.9.6)</li>
