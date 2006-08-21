@@ -128,13 +128,22 @@ static int rdql_query_error(rasqal_query* rq, const char *message);
 
 
 /* SC booleans */
-%left SC_OR SC_AND
+%left SC_OR "||"
+%left SC_AND "&&"
 
 /* string operations */
-%left STR_EQ STR_NE STR_MATCH STR_NMATCH
+%left STR_EQ "eq"
+%left STR_NE "ne"
+%left STR_MATCH "=~"
+%left STR_NMATCH "!~"
 
 /* operations */
-%left EQ NEQ LT GT LE GE
+%left EQ "="
+%left NEQ "!="
+%left LT "<"
+%left GT ">"
+%left LE "<="
+%left GE ">="
 
 /* arithmetic operations */
 %left '+' '-' '*' '/' '%'
@@ -143,14 +152,16 @@ static int rdql_query_error(rasqal_query* rq, const char *message);
 %left '~' '!'
 
 /* literals */
-%token <literal> FLOATING_POINT_LITERAL
-%token <literal> STRING_LITERAL PATTERN_LITERAL INTEGER_LITERAL
-%token <literal> BOOLEAN_LITERAL
-%token <literal> NULL_LITERAL 
-%token <uri> URI_LITERAL
-%token <name> QNAME_LITERAL
+%token <literal> FLOATING_POINT_LITERAL "floating point literal"
+%token <literal> STRING_LITERAL "string literal"
+%token <literal> INTEGER_LITERAL "integer literal"
+%token <literal> PATTERN_LITERAL "pattern literal"
+%token <literal> BOOLEAN_LITERAL "boolean literal"
+%token <literal> NULL_LITERAL "null"
+%token <uri> URI_LITERAL "URI literal"
+%token <name> QNAME_LITERAL "QName literal"
 
-%token <name> IDENTIFIER
+%token <name> IDENTIFIER "identifier"
 
 
 %type <seq> SelectClause SourceClause ConstraintClause UsingClause
@@ -166,6 +177,10 @@ static int rdql_query_error(rasqal_query* rq, const char *message);
 %type <variable> Var
 %type <triple> TriplePattern
 %type <literal> PatternLiteral Literal
+
+%destructor { rasqal_free_literal($$); } FLOATING_POINT_LITERAL STRING_LITERAL INTEGER_LITERAL PATTERN_LITERAL BOOLEAN_LITERAL NULL_LITERAL
+%destructor { raptor_free_uri($$); } URI_LITERAL
+%destructor { RASQAL_FREE(cstring, $$); } QNAME_LITERAL IDENTIFIER
 
 %%
 
