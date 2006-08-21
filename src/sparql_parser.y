@@ -129,9 +129,16 @@ static int sparql_is_builtin_xsd_datatype(raptor_uri* uri);
 
 /* word symbols */
 %token SELECT FROM WHERE
-%token OPTIONAL PREFIX DESCRIBE CONSTRUCT ASK DISTINCT LIMIT UNION
-%token BASE BOUND STR LANG DATATYPE ISURI ISBLANK ISLITERAL
-%token GRAPH NAMED FILTER OFFSET A ORDER BY REGEX ASC DESC LANGMATCHES
+%token OPTIONAL DESCRIBE CONSTRUCT ASK DISTINCT LIMIT UNION
+%token PREFIX BASE BOUND
+%token GRAPH NAMED FILTER OFFSET ORDER BY REGEX ASC DESC LANGMATCHES
+%token A "a"
+%token STR "str"
+%token LANG "lang"
+%token DATATYPE "datatype"
+%token ISURI "isUri"
+%token ISBLANK "isBlank"
+%token  ISLITERAL "isLiteral"
 
 /* expression delimitors */
 
@@ -139,10 +146,17 @@ static int sparql_is_builtin_xsd_datatype(raptor_uri* uri);
 %token '?' '$'
 
 /* SC booleans */
-%left SC_OR SC_AND
+%left SC_OR "||"
+%left SC_AND "&&"
 
 /* operations */
-%left EQ NEQ LT GT LE GE
+%left EQ "="
+%left NEQ "!="
+%left LT "<"
+%left GT ">"
+%left LE "<="
+%left GE ">="
+
 
 /* arithmetic operations */
 %left '+' '-' '*' '/'
@@ -150,13 +164,18 @@ static int sparql_is_builtin_xsd_datatype(raptor_uri* uri);
 /* unary operations */
 
 /* literals */
-%token <literal> FLOATING_POINT_LITERAL
-%token <literal> STRING_LITERAL INTEGER_LITERAL
-%token <literal> BOOLEAN_LITERAL DECIMAL_LITERAL
-%token <uri> URI_LITERAL URI_LITERAL_BRACE
-%token <name> QNAME_LITERAL BLANK_LITERAL QNAME_LITERAL_BRACE
+%token <literal> FLOATING_POINT_LITERAL "floating point literal"
+%token <literal> STRING_LITERAL "string literal"
+%token <literal> INTEGER_LITERAL "integer literal"
+%token <literal> BOOLEAN_LITERAL "boolean literal"
+%token <literal> DECIMAL_LITERAL "decimal literal"
+%token <uri> URI_LITERAL "URI literal"
+%token <uri> URI_LITERAL_BRACE "URI literal ("
+%token <name> QNAME_LITERAL "QName literal"
+%token <name> QNAME_LITERAL_BRACE "QName literal ("
+%token <name> BLANK_LITERAL "blank node literal"
 
-%token <name> IDENTIFIER
+%token <name> IDENTIFIER "identifier"
 
 
 %type <seq> SelectQuery ConstructQuery DescribeQuery
@@ -189,6 +208,10 @@ static int sparql_is_builtin_xsd_datatype(raptor_uri* uri);
 
 %type <variable> Var
 
+
+%destructor { rasqal_free_literal($$); } FLOATING_POINT_LITERAL STRING_LITERAL INTEGER_LITERAL BOOLEAN_LITERAL DECIMAL_LITERAL
+%destructor { raptor_free_uri($$); } URI_LITERAL URI_LITERAL_BRACE
+%destructor { RASQAL_FREE(cstring, $$); } QNAME_LITERAL QNAME_LITERAL_BRACE BLANK_LITERAL IDENTIFIER
 
 %%
 
