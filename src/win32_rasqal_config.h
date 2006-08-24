@@ -48,6 +48,9 @@ extern "C" {
 #define stricmp _stricmp
 #define strnicmp _strnicmp
 
+#include <float.h>
+#define isnan _isnan
+
 /* This is a SPARQL token define */
 #undef OPTIONAL
 
