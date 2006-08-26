@@ -1,4 +1,46 @@
+2006-08-25  Dave Beckett  <dave@dajobe.org>
+
+	* src/rasqal_expr.c: (rasqal_expression_evaluate):
+	RASQAL_EXPR_LANG - Fail if a variable has an undefined value
+	rather than try to execute a NULL pointer.
+	Fixes issue #0000113 http://bugs.librdf.org/mantis/view.php?id=113
+
+2006-08-23  Dave Beckett  <dave@dajobe.org>
+
+	* src/win32_rasqal_config.h: Include float.h and #define isnan.
+	Fixes Issue #0000111 http://bugs.librdf.org/mantis/view.php?id=111
+
+2006-08-20  Dave Beckett  <dave@dajobe.org>
+
+	* autogen.sh: Track where programs are discovered.
+
+	* src/rdql_parser.y: Added labels for some tokens to enable better
+	error messages. Add %destructor to tidy up tokens when doing error
+	recovery.
+
+	* src/sparql_parser.y: Added labels for some tokens to enable
+	better error messages. Add %destructor to tidy up tokens when
+	doing error recovery.
+
+	* configure.ac: flex check - warn before failing
+
+	* configure.ac: recommend flex 2.5.33
+
+	* configure.ac: Update to point at main flex site whichq finally
+	gets 2.5.33 after 9 years
+
+2006-08-18  Dave Beckett  <dave@dajobe.org>
+
+	* configure.ac: Strip more -O flags from incoming CFLAGS, CXXFLAGS
+	and CPPFLAGS.
+
+	* configure.ac: Patch configure.ac to remove un-necessary tests
+	for C++ or F77++ compilers that libtool stupidly insists on
+
 2006-07-30  Dave Beckett  <dave@dajobe.org>
+
+	* src/rasqal_query.c: (rasqal_query_write_sparql_20060406): Add
+	newline after verb when there are no args.
 
 	* src/rasqal_query.c: (rasqal_query_execute): Add
 	query/query_results link early so reference counting is done
