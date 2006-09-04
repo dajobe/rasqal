@@ -761,6 +761,11 @@ RASQAL_API
 int rasqal_query_results_write(raptor_iostream *iostr, rasqal_query_results *results, raptor_uri *format_uri, raptor_uri *base_uri);
 
 RASQAL_API
+int rasqal_query_results_syntaxes_enumerate(const unsigned int counter, const char **name, const char **label, const unsigned char **uri_string);
+RASQAL_API
+raptor_uri* rasqal_query_results_get_results_format_uri_by_name(const char* name);
+
+RASQAL_API
 int rasqal_query_iostream_write_escaped_counted_string(rasqal_query* query, raptor_iostream* iostr, const unsigned char* string, size_t len);
 RASQAL_API
 unsigned char* rasqal_query_escape_counted_string(rasqal_query* query, const unsigned char *string, size_t len, size_t* output_len_p);
