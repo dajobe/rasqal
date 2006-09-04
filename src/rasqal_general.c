@@ -136,6 +136,8 @@ rasqal_init(void)
   rasqal_redland_init();
 #endif
 
+  rasqal_init_query_results();
+
   rasqal_initialising=0;
   rasqal_initialised=1;
   rasqal_finishing=0;
@@ -155,6 +157,8 @@ rasqal_finish(void)
   if(!rasqal_initialised || rasqal_finishing)
     return;
   rasqal_finishing=1;
+
+  rasqal_finish_query_results();
 
   rasqal_delete_query_engine_factories();
 
