@@ -1,3 +1,36 @@
+2006-09-03  Dave Beckett  <dave@dajobe.org>
+
+	* utils/roqet.c: Remove hard-coded query results format enum and
+	use rasqal_query_results_syntaxes_enumerate to discover them and
+	rasqal_query_results_get_results_format_uri_by_name to find them
+	by user-specified name (-r NAME).
+	(roqet_query_results_print_as_xml): Deleted.
+
+	* src/rasqal_query_results.c: Added factory for constructing query
+	results into a syntax: rasqal_query_results_format_factory.
+	(rasqal_query_results_format_register_factory and
+	rasqal_free_query_results_format_factory): Added.
+	(rasqal_init_query_results): Added, registering all the query
+	syntax formats using rasqal_query_results_format_register_factory.
+	(rasqal_finish_query_results): Added.
+	(rasqal_query_results_syntaxes_enumerate): Added to get info on
+	query results syntaxes.
+	(rasqal_query_results_write): Find and then use factory function
+	writer to do all the work.
+	(rasqal_query_results_get_results_format_uri_by_name): Added to
+	get the URI for a query result format from it's short name.
+
+	* src/rasqal.h: Added prototypes for
+	rasqal_query_results_syntaxes_enumerate and
+	rasqal_query_results_get_results_format_uri_by_name
+
+	* src/rasqal_internal.h: Add prototypes for
+	rasqal_init_query_results and rasqal_finish_query_results
+
+	* src/rasqal_general.c: (rasqal_init): Call
+	rasqal_init_query_results
+	(rasqal_finish): Call rasqal_finish_query_results
+
 2006-08-25  Dave Beckett  <dave@dajobe.org>
 
 	* src/rasqal_expr.c: (rasqal_expression_evaluate):
