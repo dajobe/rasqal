@@ -43,6 +43,11 @@
 #include "rasqal_internal.h"
 
 
+/* local prototypes */
+static void rasqal_engine_graph_pattern_reset(rasqal_query_results* query_results, rasqal_graph_pattern *gp);
+
+
+
 typedef enum {
   STEP_UNKNOWN,
   STEP_SEARCHING,
@@ -906,6 +911,55 @@ rasqal_engine_graph_pattern_order(const void *a, const void *b)
 
 
 static void
+rasqal_engine_graph_pattern_reset(rasqal_query_results* query_results,
+                                  rasqal_graph_pattern *gp)
+{
+  rasqal_engine_execution_data* execution_data;
+  rasqal_engine_gp_data* gp_data;
+
+  execution_data=query_results->execution_data;
+  gp_data=(rasqal_engine_gp_data*)raptor_sequence_get_at(execution_data->seq, 
+                                                         gp->gp_index);
+
+  gp->optional_graph_pattern= -1;
+  gp->current_graph_pattern= -1;
+
+
+  if(gp->graph_patterns)
+    gp->current_graph_pattern=0;
+
+  if(gp->triples) {
+    int triples_count=gp->end_column - gp->start_column+1;
+    
+    gp->column=gp->start_column;
+    if(gp_data->triple_meta) {
+      /* reset any previous execution */
+      rasqal_reset_triple_meta(gp_data->triple_meta);
+      memset(gp_data->triple_meta, '\0', sizeof(rasqal_triple_meta)*triples_count);
+    } else
+      gp_data->triple_meta=(rasqal_triple_meta*)RASQAL_CALLOC(rasqal_triple_meta, sizeof(rasqal_triple_meta), triples_count);
+
+  }
+
+  RASQAL_DEBUG2("Reset graph pattern %p\n", gp);
+
+
+  gp->matched= 0;
+  gp->finished= 0;
+  gp->matches_returned= 0;
+}
+
+
+
+/*
+ * rasqal_engine_graph_pattern_init:
+ * @query_results: query results to work with
+ * @gp: graph pattern in query results.
+ *
+ * Internal - once only per execution initialisation of a graph pattern.
+ * 
+ **/
+static void
 rasqal_engine_graph_pattern_init(rasqal_query_results* query_results,
                                  rasqal_graph_pattern *gp)
 {
@@ -917,14 +971,11 @@ rasqal_engine_graph_pattern_init(rasqal_query_results* query_results,
   gp_data=(rasqal_engine_gp_data*)raptor_sequence_get_at(execution_data->seq, 
                                                          gp->gp_index);
   
-  gp->optional_graph_pattern= -1;
-  gp->current_graph_pattern= -1;
-
+  rasqal_engine_graph_pattern_reset(query_results, gp);
+  
   if(gp->graph_patterns) {
     int i;
 
-    gp->current_graph_pattern=0;
-    
     /* sort graph patterns, optional graph triples last */
     raptor_sequence_sort(gp->graph_patterns, rasqal_engine_graph_pattern_order);
   
@@ -940,17 +991,8 @@ rasqal_engine_graph_pattern_init(rasqal_query_results* query_results,
   }
   
   if(gp->triples) {
-    int triples_count=gp->end_column - gp->start_column+1;
     int i;
     
-    gp->column=gp->start_column;
-    if(gp_data->triple_meta) {
-      /* reset any previous execution */
-      rasqal_reset_triple_meta(gp_data->triple_meta);
-      memset(gp_data->triple_meta, '\0', sizeof(rasqal_triple_meta)*triples_count);
-    } else
-      gp_data->triple_meta=(rasqal_triple_meta*)RASQAL_CALLOC(rasqal_triple_meta, sizeof(rasqal_triple_meta), triples_count);
-
     for(i=gp->start_column; i <= gp->end_column; i++) {
       rasqal_triple_meta *m;
       rasqal_triple *t;
@@ -991,9 +1033,6 @@ rasqal_engine_graph_pattern_init(rasqal_query_results* query_results,
 
   }
 
-  gp->matched= 0;
-  gp->finished= 0;
-  gp->matches_returned= 0;
 }
 
 
