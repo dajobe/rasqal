@@ -49,6 +49,187 @@ static int rasqal_query_results_write_xml_result3(raptor_iostream *iostr, rasqal
 static int rasqal_query_results_write_json1(raptor_iostream *iostr, rasqal_query_results* results, raptor_uri *base_uri);
 
 
+typedef int (*rasqal_query_results_writer)(raptor_iostream *iostr,
+                                           rasqal_query_results* results,
+                                           raptor_uri *base_uri);
+
+typedef struct {
+  /* query results format name */
+  const char* name;
+
+  /* query results format name */
+  const char* label;
+
+  /* query results format URI (or NULL) */
+  const unsigned char* uri_string;
+  
+  rasqal_query_results_writer writer;
+} rasqal_query_results_format_factory;
+
+static raptor_sequence* query_results_formats;
+
+
+static
+void rasqal_query_results_format_register_factory(const char *name,
+                                                  const char *label,
+                                                  const unsigned char* uri_string,
+                                                  rasqal_query_results_writer writer) 
+{
+  rasqal_query_results_format_factory* factory;
+
+  factory=RASQAL_MALLOC(query_results_format_factory, 
+                        sizeof(rasqal_query_results_format_factory));
+
+  factory->name=name;
+  factory->label=label;
+  factory->uri_string=uri_string;
+  factory->writer=writer;
+
+  raptor_sequence_push(query_results_formats, factory);
+}
+
+
+
+static
+void rasqal_free_query_results_format_factory(rasqal_query_results_format_factory* factory) 
+{
+  RASQAL_FREE(query_results_format_factory, factory);
+}
+
+
+void
+rasqal_init_query_results(void)
+{
+  rasqal_query_results_writer fn;
+
+  query_results_formats=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_query_results_format_factory, NULL);
+
+  /*
+   * SPARQL XML Results 2006-01-25
+   * http://www.w3.org/TR/2006/WD-rdf-sparql-XMLres-20060125/
+   */
+  fn=&rasqal_query_results_write_xml_result3;
+  rasqal_query_results_format_register_factory("xml",
+                                               "SPARQL Query Results Format 2006-01-25",
+                                               (unsigned char*)"http://www.w3.org/2005/sparql-results#",
+                                               fn);
+  rasqal_query_results_format_register_factory(NULL,
+                                               NULL,
+                                               (unsigned char*)"http://www.w3.org/TR/2006/WD-rdf-sparql-XMLres-20060125/",
+                                               fn);
+
+  /*
+   * SPARQL XML Results 2005-05-27
+   * http://www.w3.org/TR/2005/WD-rdf-sparql-XMLres-20050527/
+   * http://www.w3.org/2001/sw/DataAccess/rf1/result2
+   */
+  fn=&rasqal_query_results_write_xml_result2;
+  rasqal_query_results_format_register_factory("xml-v2",
+                                               "SPARQL Query Results Format 2005-05-27",
+                                               (unsigned char*)"http://www.w3.org/2001/sw/DataAccess/rf1/result2",
+                                               fn);
+  
+  rasqal_query_results_format_register_factory(NULL,
+                                               NULL,
+                                               (unsigned char*)"http://www.w3.org/TR/2005/WD-rdf-sparql-XMLres-20050527/",
+                                               fn);
+  
+  /*
+   * SPARQL XML Results 2004-12-21
+   * http://www.w3.org/TR/2004/WD-rdf-sparql-XMLres-20041221/
+   * http://www.w3.org/2001/sw/DataAccess/rf1/result
+   */
+  fn=&rasqal_query_results_write_xml_20041221;
+  rasqal_query_results_format_register_factory("xml-v1",
+                                               "SPARQL Query Results Format 2004-12-21",
+                                               (unsigned char*)"http://www.w3.org/2001/sw/DataAccess/rf1/result",
+                                               fn);
+  rasqal_query_results_format_register_factory(NULL,
+                                               NULL,
+                                               (unsigned char*)"http://www.w3.org/TR/2004/WD-rdf-sparql-XMLres-20041221/",
+                                               fn);
+
+  /*
+   * SPARQL Query Results in JSON (http://json.org/) draft
+   * Defined in http://www.w3.org/2001/sw/DataAccess/json-sparql/
+   * Version: 1.6 $ of $Date: 2006/04/05 15:55:17
+   */
+  fn=&rasqal_query_results_write_json1;
+  rasqal_query_results_format_register_factory("json",
+                                               "JSON",
+                                               (unsigned char*)"http://www.w3.org/2001/sw/DataAccess/json-sparql/",
+                                               fn);
+  rasqal_query_results_format_register_factory(NULL,
+                                               NULL,
+                                               (unsigned char*)"http://www.mindswap.org/%7Ekendall/sparql-results-json/",
+                                               fn);
+}
+
+
+void
+rasqal_finish_query_results(void)
+{
+  raptor_free_sequence(query_results_formats);
+}
+
+
+/**
+ * rasqal_query_results_syntaxes_enumerate:
+ * @counter: index into the list of query result syntaxes
+ * @name: pointer to store the name of the query result syntax (or NULL)
+ * @label: pointer to store query result syntax readable label (or NULL)
+ * @uri_string: pointer to store query result syntax URI string (or NULL)
+ *
+ * Get information on query result syntaxes.
+ * 
+ * Return value: non 0 on failure of if counter is out of range
+ **/
+int
+rasqal_query_results_syntaxes_enumerate(const unsigned int counter,
+                                        const char **name, const char **label,
+                                        const unsigned char **uri_string)
+{
+  rasqal_query_results_format_factory *factory;
+  int i;
+  int real_counter;
+  
+  if(counter < 0)
+    return 1;
+
+  real_counter=0;
+  for(i=0; 1; i++) {
+    factory=(rasqal_query_results_format_factory*)raptor_sequence_get_at(query_results_formats, i);
+    if(!factory)
+      break;
+
+    if(factory->name) {
+      if(real_counter == counter)
+        break;
+      real_counter++;
+    }
+  }
+
+  if(!factory)
+    return 1;
+
+  if(name)
+    *name=factory->name;
+  if(label)
+    *label=factory->label;
+  if(uri_string)
+    *uri_string=factory->uri_string;
+  return 0;
+}
+
+
+/*
+ * rasqal_new_query_results:
+ * @query: query object
+ * 
+ * Internal -  create a query result for a query
+ * 
+ * Return value: a new query result object or NULL on failure
+ **/
 rasqal_query_results*  
 rasqal_new_query_results(rasqal_query* query)
 {
@@ -729,6 +910,9 @@ rasqal_query_results_get_boolean(rasqal_query_results* query_results)
  *
  * If the writing succeeds, the query results will be exhausted.
  * 
+ * See rasqal_query_results_syntaxes_enumerate() to get the
+ * list of syntax URIs and their description. 
+ *
  * Return value: non-0 on failure
  **/
 int
@@ -737,57 +921,63 @@ rasqal_query_results_write(raptor_iostream *iostr,
                            raptor_uri *format_uri,
                            raptor_uri *base_uri)
 {
+  rasqal_query_results_format_factory *factory;
+  int i;
+
   if(!results || results->failed || results->finished)
     return 1;
+
+  for(i=0; 1; i++) {
+    factory=(rasqal_query_results_format_factory*)raptor_sequence_get_at(query_results_formats,
+                                                                         i);
+    if(!factory)
+      break;
+
+    if(!format_uri)
+      /* the default is the first registered format */
+      break;
+    
+    if(!strcmp((const char*)raptor_uri_as_string(format_uri),
+               (const char*)factory->uri_string))
+      break;
+  }
   
-  /*
-   * DEFAULT format:
-   *
-   * SPARQL XML Results 2006-01-25
-   * http://www.w3.org/TR/2006/WD-rdf-sparql-XMLres-20060125/
-   */
-  if(!format_uri ||
-     !strcmp((const char*)raptor_uri_as_string(format_uri),
-             "http://www.w3.org/2005/sparql-results#") ||
-     !strcmp((const char*)raptor_uri_as_string(format_uri),
-             "http://www.w3.org/TR/2006/WD-rdf-sparql-XMLres-20060125/"))
-    return rasqal_query_results_write_xml_result3(iostr, results, base_uri);
+  if(!factory)
+    return 1;
 
-  /*
-   * SPARQL XML Results 2005-05-27
-   * http://www.w3.org/TR/2005/WD-rdf-sparql-XMLres-20050527/
-   * http://www.w3.org/2001/sw/DataAccess/rf1/result2
-   */
-  if(!strcmp((const char*)raptor_uri_as_string(format_uri),
-            "http://www.w3.org/2001/sw/DataAccess/rf1/result2") ||
-     !strcmp((const char*)raptor_uri_as_string(format_uri),
-             "http://www.w3.org/TR/2005/WD-rdf-sparql-XMLres-20050527/"))
-    return rasqal_query_results_write_xml_result2(iostr, results, base_uri);
-
-  /*
-   * SPARQL XML Results 2004-12-21
-   * http://www.w3.org/TR/2004/WD-rdf-sparql-XMLres-20041221/
-   * http://www.w3.org/2001/sw/DataAccess/rf1/result
-   */
-  if(!strcmp((const char*)raptor_uri_as_string(format_uri),
-            "http://www.w3.org/2001/sw/DataAccess/rf1/result") ||
-     !strcmp((const char*)raptor_uri_as_string(format_uri),
-             "http://www.w3.org/TR/2004/WD-rdf-sparql-XMLres-20041221/"))
-    return rasqal_query_results_write_xml_20041221(iostr, results, base_uri);
-
-  /*
-   * SPARQL Query Results in JSON (http://json.org/) draft
-   * Defined in http://www.w3.org/2001/sw/DataAccess/json-sparql/
-   * Version: 1.6 $ of $Date: 2006/04/05 15:55:17
-   */
-  if(!strcmp((const char*)raptor_uri_as_string(format_uri),
-             "http://www.w3.org/2001/sw/DataAccess/json-sparql/") ||
-     !strcmp((const char*)raptor_uri_as_string(format_uri),
-             "http://www.mindswap.org/%7Ekendall/sparql-results-json/"))
-    return rasqal_query_results_write_json1(iostr, results, base_uri);
+  return factory->writer(iostr, results, base_uri);
+}
 
 
-  return 1;
+/**
+ * rasqal_query_results_get_results_format_uri_by_name:
+ * @name: short name for format
+ *
+ * Get the URI identifying a query results format
+ * 
+ * See rasqal_query_results_syntaxes_enumerate() to get the
+ * list of short name, description and result format URIs for
+ * each query results format.
+ *
+ * Return value: #raptor_uri or NULl on failure
+ **/
+raptor_uri*
+rasqal_query_results_get_results_format_uri_by_name(const char* name)
+{
+  rasqal_query_results_format_factory *factory;
+  int i;
+
+  for(i=0; 1; i++) {
+    factory=(rasqal_query_results_format_factory*)raptor_sequence_get_at(query_results_formats, i);
+    if(!factory)
+      break;
+
+    if(factory->name &&
+       !strcmp(factory->name, (const char*)name))
+      return raptor_new_uri(factory->uri_string);
+  }
+  
+  return NULL;
 }
 
 
