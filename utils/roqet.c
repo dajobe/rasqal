@@ -70,15 +70,6 @@ int main(int argc, char *argv[]);
 static char *program=NULL;
 
 
-static enum {
-  RESULTS_FORMAT_SIMPLE,
-  RESULTS_FORMAT_XML_V1,
-  RESULTS_FORMAT_XML_V2,
-  RESULTS_FORMAT_XML_V3,
-  RESULTS_FORMAT_JSON
-} results_format = RESULTS_FORMAT_SIMPLE;
-
-
 int
 rdql_parser_error(const char *msg) 
 {
@@ -129,37 +120,6 @@ static const char *title_format_string="Rasqal RDF query utility %s\n";
 #endif
 
 #define MAX_QUERY_ERROR_REPORT_LEN 512
-
-
-static int
-roqet_query_results_print_as_xml(rasqal_query_results *results, FILE *fh,
-                                 raptor_uri* base_uri,
-                                 int format)
-{
-  raptor_iostream *iostr;
-  raptor_uri* uri;
-  
-  iostr=raptor_new_iostream_to_file_handle(fh);
-  if(!iostr)
-    return 1;
-
-  if(format == RESULTS_FORMAT_XML_V1)
-    uri=raptor_new_uri((const unsigned char*)"http://www.w3.org/TR/2004/WD-rdf-sparql-XMLres-20041221/");
-  else if(format == RESULTS_FORMAT_XML_V2)
-    uri=raptor_new_uri((const unsigned char*)"http://www.w3.org/2001/sw/DataAccess/rf1/result2");
-  else if(format == RESULTS_FORMAT_JSON)
-    uri=raptor_new_uri((const unsigned char*)"http://www.mindswap.org/%7Ekendall/sparql-results-json/");
-  else /* RESULTS_FORMAT_XML_V3 (default) */
-    uri=raptor_new_uri((const unsigned char*)"http://www.w3.org/2005/sparql-results#");
-
-  rasqal_query_results_write(iostr, results, uri, base_uri);
-
-  raptor_free_uri(uri);
-
-  raptor_free_iostream(iostr);
-  
-  return 0;
-}
 
 
 static void
@@ -413,6 +373,7 @@ main(int argc, char *argv[])
   raptor_serializer* serializer=NULL;
   const char *serializer_syntax_name="ntriples";
   query_output_format output_format= QUERY_OUTPUT_UNKNOWN;
+  raptor_uri* results_format_uri=NULL;
   
   program=argv[0];
   if((p=strrchr(program, '/')))
@@ -491,25 +452,20 @@ main(int argc, char *argv[])
 
       case 'r':
         if(optarg) {
+          if(results_format_uri)
+            raptor_free_uri(results_format_uri);
+
           if(!strcmp(optarg, "simple"))
-            results_format=RESULTS_FORMAT_SIMPLE;
-          else if(!strcmp(optarg, "json"))
-            results_format=RESULTS_FORMAT_JSON;
-          else if(!strcmp(optarg, "xml"))
-            results_format=RESULTS_FORMAT_XML_V3;
-          else if(!strcmp(optarg, "xml-v2"))
-            results_format=RESULTS_FORMAT_XML_V2;
-          else if(!strcmp(optarg, "xml-v1"))
-            results_format=RESULTS_FORMAT_XML_V1;
-          else if(raptor_serializer_syntax_name_check(optarg))
-            serializer_syntax_name=optarg;
+            results_format_uri=NULL;
           else {
-            fprintf(stderr, 
-                    "%s: invalid argument `%s' for `" HELP_ARG(r, results) "'\n",
-                    program, optarg);
-            usage=1;
-            break;
-            
+            results_format_uri=rasqal_query_results_get_results_format_uri_by_name(optarg);
+            if(!results_format_uri) {
+              fprintf(stderr, 
+                      "%s: invalid argument `%s' for `" HELP_ARG(r, results) "'\n",
+                      program, optarg);
+              usage=1;
+              break;
+            }
           }
         }
         break;
@@ -628,10 +584,13 @@ main(int argc, char *argv[])
     puts(HELP_TEXT("r", "results FORMAT  ", "Set query results format to one of:"));
     puts("    For variable bindings and boolean results:");
     puts("      simple                A simple text format (default)");
-    puts("      xml                   SPARQL Query Results XML format");
-    puts("      xml-v2                SPARQL Query Results XML format V2 (2005-05-27)");
-    puts("      xml-v1                SPARQL Query Results XML format V1 (2004-12-21)");
-    puts("      json                  SPARQL Query Results in JSON");
+    for(i=0; i < raptor_get_feature_count(); i++) {
+      const char *name;
+      const char *label;
+      if(!rasqal_query_results_syntaxes_enumerate(i, &name, &label, 
+                                                  NULL))
+        printf("      %-10s            %s\n", name, label);
+    }
     puts("    For RDF graph results:");
     for(i=0; 1; i++) {
       const char *help_name;
@@ -866,9 +825,18 @@ main(int argc, char *argv[])
     goto tidy_query;
   }
 
-  if(results_format != RESULTS_FORMAT_SIMPLE) {
-    roqet_query_results_print_as_xml(results, stdout, base_uri, 
-                                     results_format);
+  if(results_format_uri != NULL) {
+    raptor_iostream *iostr;
+  
+    iostr=raptor_new_iostream_to_file_handle(stdout);
+    if(!iostr) {
+      fprintf(stderr, "%s: Creating output iostream failed\n", program);
+      rc=1;
+      goto tidy_query;
+    }
+
+    rasqal_query_results_write(iostr, results, results_format_uri, base_uri);
+    raptor_free_iostream(iostr);
   } else {
     if(rasqal_query_results_is_bindings(results)) {
       if(!quiet)
@@ -947,6 +915,9 @@ main(int argc, char *argv[])
   rasqal_free_query_results(results);
   
  tidy_query:  
+  if(results_format_uri)
+    raptor_free_uri(results_format_uri);
+
   rasqal_free_query(rq);
 
   if(!query_from_string)
