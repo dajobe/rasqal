@@ -22,6 +22,8 @@
 # the licenses in COPYING.LIB, COPYING and LICENSE-2.0.txt respectively.
 # 
 
+local_tests=rasqal_order_test
+
 SUBDIRS=
 if RASQAL_QUERY_RDQL
 SUBDIRS += rdql
@@ -29,3 +31,36 @@ endif
 if RASQAL_QUERY_SPARQL
 SUBDIRS += sparql
 endif
+
+EXTRA_PROGRAMS=$(local_tests)
+
+CLEANFILES=$(local_tests)
+
+rasqal_order_test_SOURCES = rasqal_order_test.c
+rasqal_order_test_CPPFLAGS = -DSTANDALONE
+rasqal_order_test_LDADD = $(top_builddir)/src/librasqal.la
+
+
+# These are compiled here and used elsewhere for running tests
+check-local: $(local_tests) run-rasqal-order-test
+
+run-rasqal-order-test: rasqal_order_test
+	@tst=rasqal_order_test; \
+	status=0; \
+	if test -f ./$$tst; then dir=./; \
+	elif test -f $$tst; then dir=; \
+	else dir="$(top_srcdir)/"; fi; \
+	if $${dir}$$tst $(top_srcdir)/data/animals.nt; then \
+	  echo "PASS: $$tst"; \
+	else \
+	  echo "FAIL: $$tst"; \
+	  status=1; \
+	fi; \
+	exit $$status
+
+
+$(top_builddir)/src/librasqal.la:
+	cd $(top_builddir)/src && $(MAKE) librasqal.la
+
+$(top_builddir)/../raptor/src/libraptor.la:
+	cd $(top_builddir)/../raptor/src && $(MAKE) $(AM_MAKEFLAGS) libraptor.la
