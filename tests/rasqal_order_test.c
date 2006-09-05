@@ -54,9 +54,7 @@ SELECT $animal \
 FROM <%s> \
 WHERE { \
   $zoo ex:hasAnimal $animal \
-} ORDER BY $animal LIMIT 10"
-
-#define EXPECTED_RESULTS_COUNT 10
+} ORDER BY $animal LIMIT %d OFFSET %d"
 
 #else
 #define NO_QUERY_LANGUAGE
@@ -85,6 +83,7 @@ main(int argc, char **argv) {
   unsigned char *query_string;
   int count;
   int failures=0;
+  int i;
   
   rasqal_init();
   
@@ -92,70 +91,76 @@ main(int argc, char **argv) {
     fprintf(stderr, "USAGE: %s <path to animals.nt>\n", program);
     return(1);
   }
-    
-  data_string=raptor_uri_filename_to_uri_string(argv[1]);
-  query_string=(unsigned char*)RASQAL_MALLOC(cstring, strlen((const char*)data_string)+strlen(query_format)+1);
-  sprintf((char*)query_string, query_format, data_string);
-  raptor_free_memory(data_string);
-  
+
   uri_string=raptor_uri_filename_to_uri_string("");
   base_uri=raptor_new_uri(uri_string);  
   raptor_free_memory(uri_string);
 
-  query=rasqal_new_query(query_language_name, NULL);
-  if(!query) {
-    fprintf(stderr, "%s: creating query in language %s FAILED\n", program,
-            query_language_name);
-    return(1);
-  }
 
-  printf("%s: preparing %s query\n", program, query_language_name);
-  if(rasqal_query_prepare(query, query_string, base_uri)) {
-    fprintf(stderr, "%s: %s query prepare FAILED\n", program, 
-            query_language_name);
-    return(1);
-  }
+  for(i=0; i<2; i++) {
+    int limit=10-5*i;
+    int offset=0+5*i;
 
-  RASQAL_FREE(cstring, query_string);
+    data_string=raptor_uri_filename_to_uri_string(argv[1]);
+    query_string=(unsigned char*)RASQAL_MALLOC(cstring, strlen((const char*)data_string)+strlen(query_format)+1);
+    sprintf((char*)query_string, query_format, data_string, limit, offset);
+    raptor_free_memory(data_string);
 
-  printf("%s: executing query\n", program);
-  results=rasqal_query_execute(query);
-  if(!results) {
-    fprintf(stderr, "%s: query execution FAILED\n", program);
-    return(1);
-  }
-
-  printf("%s: checking results\n", program);
-  count=0;
-  while(results && !rasqal_query_results_finished(results)) {
-    const unsigned char *name=(const unsigned char *)"animal";
-    rasqal_literal *value=rasqal_query_results_get_binding_value_by_name(results, name);
-    
-    const unsigned char *s=rasqal_literal_as_string(value);
-    const char *answer=animalsList[count];
-    if(strcmp((const char*)s, answer)) {
-      printf("result %d FAILED: %s='", count+1, (char*)name);
-      rasqal_literal_print(value, stdout);
-      printf("' expected value '%s'\n", answer);
-      failures++;
+    query=rasqal_new_query(query_language_name, NULL);
+    if(!query) {
+      fprintf(stderr, "%s: creating query %d in language %s FAILED\n", 
+              program, i, query_language_name);
+      return(1);
     }
-    rasqal_query_results_next(results);
-    count++;
+
+    printf("%s: preparing %s query %d\n", program, query_language_name, i);
+    if(rasqal_query_prepare(query, query_string, base_uri)) {
+      fprintf(stderr, "%s: %s query prepare %d FAILED\n", program, 
+              query_language_name, i);
+      return(1);
+    }
+
+    RASQAL_FREE(cstring, query_string);
+
+    printf("%s: executing query %d limit %d offset %d\n", program, i,
+           limit, offset);
+    results=rasqal_query_execute(query);
+    if(!results) {
+      fprintf(stderr, "%s: query execution %d FAILED\n", program, i);
+      return(1);
+    }
+
+    printf("%s: checking results %d\n", program, i);
+    count=0;
+    while(results && !rasqal_query_results_finished(results)) {
+      const unsigned char *name=(const unsigned char *)"animal";
+      rasqal_literal *value=rasqal_query_results_get_binding_value_by_name(results, name);
+      const char *answer=animalsList[count+offset];
+
+      if(strcmp((const char*)rasqal_literal_as_string(value), answer)) {
+        printf("result %d FAILED: %s=", count, (char*)name);
+        rasqal_literal_print(value, stdout);
+        printf(" expected value '%s'\n", answer);
+        failures++;
+      }
+      rasqal_query_results_next(results);
+      count++;
+    }
+    if(results)
+      rasqal_free_query_results(results);
+
+    printf("%s: checking results %d count\n", program, i);
+    if(count != limit) {
+      printf("%s: query execution %d returned %d results, expected %d\n", 
+             program, i, count, limit);
+      return(1);
+    }
+
+    rasqal_free_query(query);
+
+    printf("%s: query %d OK\n", program, i);
   }
-  if(results)
-    rasqal_free_query_results(results);
-
-  printf("%s: checking count\n", program);
-  if(count != EXPECTED_RESULTS_COUNT) {
-    fprintf(stderr, "%s: query execution 2 returned %d results, expected %d\n", 
-            program, count, EXPECTED_RESULTS_COUNT);
-    return(1);
-  }
-
-  printf("%s: done\n", program);
-
-  rasqal_free_query(query);
-
+  
   raptor_free_uri(base_uri);
 
   rasqal_finish();
