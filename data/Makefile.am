@@ -1,1 +1,2 @@
-EXTRA_DIST=dc.rdf
+EXTRA_DIST=dc.rdf animals.nt
+
