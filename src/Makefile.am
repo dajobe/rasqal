@@ -133,7 +133,7 @@ endif
 # These are compiled here and used elsewhere for running tests
 check-local: $(local_tests) run-rasqal-query-test
 
-run-rasqal-query-test: $(rasqal_query_test)
+run-rasqal-query-test: rasqal_query_test
 	@tst=rasqal_query_test; \
 	status=0; \
 	if test -f ./$$tst; then dir=./; \
