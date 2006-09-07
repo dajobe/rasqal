@@ -1856,7 +1856,7 @@ rasqal_engine_check_limit_offset(rasqal_query_results *query_results)
 
   if(query->offset > 0) {
     /* offset */
-    if(query_results->result_count <= query->offset)
+    if((query_results->result_count-1) <= query->offset)
       return -1;
     
     if(query->limit >= 0) {
@@ -2699,15 +2699,27 @@ rasqal_engine_execute_order(rasqal_query_results* query_results)
     if(query_results->results_sequence) {
       query_results->finished= (raptor_sequence_size(query_results->results_sequence) == 0);
 
-      if(query_results->finished) {
-        query_results->result_count= 0;
-      } else {
+      if(!query->limit)
+        query_results->finished=1;
+
+      if(!query_results->finished) {
+        int size=raptor_sequence_size(query_results->results_sequence);
+
         /* Reset to first result, index-1 into sequence of results */
         query_results->result_count= 1;
 
-        /* check for finished immediately (LIMIT 0) */
-        rasqal_engine_check_limit_offset(query_results);
+        /* skip past any OFFSET */
+        if(query->offset > 0) {
+          query_results->result_count += query->offset;
+          if(query_results->result_count >= size)
+            query_results->finished=1;
+        }
+        
       }
+
+      if(query_results->finished)
+        query_results->result_count= 0;
+
     }
   } else {
     /* No order sequence */
