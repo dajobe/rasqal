@@ -136,28 +136,16 @@ struct rasqal_graph_pattern_s {
   int start_column;
   int end_column;
 
-  /* first graph_pattern in sequence with flags RASQAL_TRIPLE_FLAGS_OPTIONAL */
-  int optional_graph_pattern;
-
-  /* current position in the sequence */
-  int current_graph_pattern;
-
   /* Max optional graph pattern allowed so far to stop backtracking
    * going over old graph patterns
    */
   int max_optional_graph_pattern;
-
-  /* Count of all optional matches for the current mandatory matches */
-  int optional_graph_pattern_matches_count;
 
   /* true when this graph pattern matched last time */
   int matched;
 
   /* true when an optional graph pattern finished last time round */
   int finished;
-
-  /* Number of matches returned */
-  int matches_returned;
 
   raptor_sequence *constraints; /* ... rasqal_expression*          */
   /* the expression version of the sequence of constraints above - this is
