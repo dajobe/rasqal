@@ -97,9 +97,18 @@ main(int argc, char **argv) {
   raptor_free_memory(uri_string);
 
 
-  for(i=0; i<2; i++) {
-    int limit=10-5*i;
-    int offset=0+5*i;
+  for(i=0; i<6; i++) {
+    int limit=9-3*i;
+    int offset=0+3*i;
+
+    if(i==4) {
+      limit=8;
+      offset=1;
+    } else if (i==5) {
+      limit=1;
+      offset=8;
+    }
+    
 
     data_string=raptor_uri_filename_to_uri_string(argv[1]);
     query_string=(unsigned char*)RASQAL_MALLOC(cstring, strlen((const char*)data_string)+strlen(query_format)+1);
@@ -130,7 +139,7 @@ main(int argc, char **argv) {
       return(1);
     }
 
-    printf("%s: checking results %d\n", program, i);
+    printf("%s: checking query %d results\n", program, i);
     count=0;
     while(results && !rasqal_query_results_finished(results)) {
       const unsigned char *name=(const unsigned char *)"animal";
@@ -149,9 +158,9 @@ main(int argc, char **argv) {
     if(results)
       rasqal_free_query_results(results);
 
-    printf("%s: checking results %d count\n", program, i);
+    printf("%s: checking query %d results count\n", program, i);
     if(count != limit) {
-      printf("%s: query execution %d returned %d results, expected %d\n", 
+      printf("%s: query execution %d FAILED returning %d results, expected %d\n", 
              program, i, count, limit);
       return(1);
     }
