@@ -61,12 +61,16 @@ AC_PROG_MAKE_SET
 
 
 AM_PROG_LEX
-if test "$LEX" != flex; then
-  LEX="$SHELL $missing_dir/missing flex"
-  AC_SUBST(LEX_OUTPUT_ROOT, lex.yy)
-  AC_SUBST(LEXLIB, '')
+if test $LEX != : ; then
+  if echo "$LEX" | grep flex >/dev/null 2>&1; then
+    :
+  else
+    LEX="$SHELL $missing_dir/missing flex"
+    AC_SUBST(LEX_OUTPUT_ROOT, lex.yy)
+    AC_SUBST(LEXLIB, '')
+  fi
 fi
-
+ 
 FLEX_MIN_VERSION=2.5.19
 FLEX_REC_VERSION=2.5.33
 if test "$USE_MAINTAINER_MODE" = yes; then
