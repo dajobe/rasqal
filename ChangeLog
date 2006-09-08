@@ -1,3 +1,52 @@
+2006-09-07  Dave Beckett  <dave@dajobe.org>
+
+	* src/rasqal_graph_pattern.c: (rasqal_new_graph_pattern,
+	rasqal_graph_pattern_add_triples): Delete fields moved to gp_data.
+
+	* src/rasqal_engine.c: rasqal_engine_gp_data gains
+	optional_graph_pattern, current_graph_pattern,
+	optional_graph_pattern_matches_count and matches_returned
+	(rasqal_new_gp_data, rasqal_free_gp_data): Init, free new fields.
+	(rasqal_new_engine_execution_data,
+	rasqal_engine_graph_pattern_reset): Add new fields.
+	(rasqal_engine_graph_pattern_init, rasqal_engine_execute_init,
+	rasqal_engine_move_to_graph_pattern, rasqal_engine_do_step,
+	rasqal_engine_do_optional_step, rasqal_engine_get_next_result):
+	Updates to use gp_data not gp for moved fields.
+
+2006-09-06  Dave Beckett  <dave@dajobe.org>
+
+	* src/rasqal_internal.h: (struct rasqal_graph_pattern_s): Loses
+	fields optional_graph_pattern, current_graph_pattern,
+	optional_graph_pattern_matches_count and matches_returned into
+	execution graph pattern data.
+
+	* src/rasqal_engine.c: (rasqal_engine_check_limit_offset): Another
+	off-by-1 in offsets
+	(rasqal_engine_execute_order): Skip initial offset of results in
+	an ordering.
+
+	* tests/rasqal_order_test.c: (main): Add limit/offset=1 tests
+
+2006-09-04  Dave Beckett  <dave@dajobe.org>
+
+	* tests/rasqal_order_test.c: Add limit & offset testing
+
+	* tests/Makefile.am, tests/rasqal_order_test.c: Added query result
+	order test
+
+	* src/Makefile.am: run-rasqal-query-test: build rasqal_query_test
+
+	* data/Makefile.am: added animals.nt
+
+	* data/animals.nt: Animals
+
+	* src/rasqal_engine.c: (rasqal_engine_graph_pattern_reset): Added,
+	taking the resetting part of graph pattern initialising out of
+	rasqal_engine_graph_pattern_init.
+	(rasqal_engine_graph_pattern_init): Now just does once-only
+	initialising, rest moved to new rasqal_engine_graph_pattern_reset.
+
 2006-09-03  Dave Beckett  <dave@dajobe.org>
 
 	* utils/roqet.c: Remove hard-coded query results format enum and
