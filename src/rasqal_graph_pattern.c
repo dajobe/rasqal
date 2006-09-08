@@ -61,7 +61,6 @@ rasqal_new_graph_pattern(rasqal_query* query) {
   gp->query=query;
 
   gp->column= -1;
-  gp->optional_graph_pattern= -1;
   gp->start_column= -1;
   gp->end_column= -1;
 
@@ -133,7 +132,6 @@ rasqal_new_graph_pattern_from_sequence(rasqal_query* query,
   gp->op=op;
 
   gp->finished=0;
-  gp->matches_returned=0;
 
   return gp;
 }
@@ -162,9 +160,7 @@ rasqal_graph_pattern_add_triples(rasqal_graph_pattern* gp,
   gp->column= -1;
   gp->start_column=start_column;
   gp->end_column=end_column;
-  gp->optional_graph_pattern= -1;
   gp->finished=0;
-  gp->matches_returned=0;
   gp->op=op;
 }
 
