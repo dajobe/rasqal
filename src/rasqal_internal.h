@@ -131,8 +131,6 @@ struct rasqal_graph_pattern_s {
   raptor_sequence* triples;          /* ... rasqal_triple*         */
   raptor_sequence* graph_patterns;   /* ... rasqal_graph_pattern*  */
 
-  int column;
-
   int start_column;
   int end_column;
 

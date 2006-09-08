@@ -576,6 +576,9 @@ typedef struct {
   /* An array of items, one per triple in the pattern graph */
   rasqal_triple_meta* triple_meta;
 
+  /* Executing column in the current graph pattern */
+  int column;
+
   /* first graph_pattern in sequence with flags RASQAL_TRIPLE_FLAGS_OPTIONAL */
   int optional_graph_pattern;
 
@@ -601,6 +604,7 @@ rasqal_new_gp_data(rasqal_graph_pattern* gp)
   
   gp_data->optional_graph_pattern= -1;
   gp_data->matches_returned=0;
+  gp_data->column= -1;
 
   return gp_data;
 }
@@ -612,11 +616,11 @@ rasqal_free_gp_data(rasqal_engine_gp_data* gp_data)
   rasqal_graph_pattern* gp=gp_data->gp;
 
   if(gp_data->triple_meta) {
-    while(gp->column >= gp->start_column) {
+    while(gp_data->column >= gp->start_column) {
       rasqal_triple_meta *m;
-      m=&gp_data->triple_meta[gp->column - gp->start_column];
+      m=&gp_data->triple_meta[gp_data->column - gp->start_column];
       rasqal_reset_triple_meta(m);
-      gp->column--;
+      gp_data->column--;
     }
     RASQAL_FREE(rasqal_triple_meta, gp_data->triple_meta);
     gp_data->triple_meta=NULL;
@@ -751,40 +755,40 @@ rasqal_engine_graph_pattern_get_next_match(rasqal_query_results* query_results,
     return 0;
   }
     
-  while(gp->column >= gp->start_column) {
+  while(gp_data->column >= gp->start_column) {
     rasqal_triple_meta *m;
     rasqal_triple *t;
 
-    m=&gp_data->triple_meta[gp->column - gp->start_column];
-    t=(rasqal_triple*)raptor_sequence_get_at(gp->triples, gp->column);
+    m=&gp_data->triple_meta[gp_data->column - gp->start_column];
+    t=(rasqal_triple*)raptor_sequence_get_at(gp->triples, gp_data->column);
 
     rc=1;
 
     if(!m) {
       /* error recovery - no match */
-      gp->column--;
+      gp_data->column--;
       rc= -1;
       return rc;
     } else if (m->is_exact) {
       /* exact triple match wanted */
       if(!rasqal_triples_source_triple_present(query_results->triples_source, t)) {
         /* failed */
-        RASQAL_DEBUG2("exact match failed for column %d\n", gp->column);
-        gp->column--;
+        RASQAL_DEBUG2("exact match failed for column %d\n", gp_data->column);
+        gp_data->column--;
       } else
-        RASQAL_DEBUG2("exact match OK for column %d\n", gp->column);
+        RASQAL_DEBUG2("exact match OK for column %d\n", gp_data->column);
     } else if(!m->triples_match) {
       /* Column has no triplesMatch so create a new query */
       m->triples_match=rasqal_new_triples_match(query_results, m, m, t);
       if(!m->triples_match) {
         rasqal_query_error(query, "Failed to make a triple match for column%d",
-                           gp->column);
+                           gp_data->column);
         /* failed to match */
-        gp->column--;
+        gp_data->column--;
         rc= -1;
         return rc;
       }
-      RASQAL_DEBUG2("made new triplesMatch for column %d\n", gp->column);
+      RASQAL_DEBUG2("made new triplesMatch for column %d\n", gp_data->column);
     }
 
 
@@ -794,13 +798,13 @@ rasqal_engine_graph_pattern_get_next_match(rasqal_query_results* query_results,
       if(rasqal_triples_match_is_end(m->triples_match)) {
         int resets=0;
 
-        RASQAL_DEBUG2("end of triplesMatch for column %d\n", gp->column);
+        RASQAL_DEBUG2("end of triplesMatch for column %d\n", gp_data->column);
         resets=rasqal_reset_triple_meta(m);
         query_results->new_bindings_count-= resets;
         if(query_results->new_bindings_count < 0)
           query_results->new_bindings_count=0;
 
-        gp->column--;
+        gp_data->column--;
         continue;
       }
 
@@ -808,7 +812,7 @@ rasqal_engine_graph_pattern_get_next_match(rasqal_query_results* query_results,
         parts=rasqal_triples_match_bind_match(m->triples_match, m->bindings,
                                               m->parts);
         RASQAL_DEBUG3("bind_match for column %d returned parts %d\n",
-                      gp->column, parts);
+                      gp_data->column, parts);
         if(!parts)
           rc=0;
         if(parts & RASQAL_TRIPLE_SUBJECT)
@@ -820,7 +824,7 @@ rasqal_engine_graph_pattern_get_next_match(rasqal_query_results* query_results,
         if(parts & RASQAL_TRIPLE_ORIGIN)
           query_results->new_bindings_count++;
       } else {
-        RASQAL_DEBUG2("Nothing to bind_match for column %d\n", gp->column);
+        RASQAL_DEBUG2("Nothing to bind_match for column %d\n", gp_data->column);
       }
       
       rasqal_triples_match_next_match(m->triples_match);
@@ -828,21 +832,21 @@ rasqal_engine_graph_pattern_get_next_match(rasqal_query_results* query_results,
         continue;
     }
     
-    if(gp->column == gp->end_column) {
+    if(gp_data->column == gp->end_column) {
       /* Done all conjunctions */ 
       
       /* exact match, so column must have ended */
       if(m->is_exact)
-        gp->column--;
+        gp_data->column--;
 
       /* return with result (rc is 1) */
       return rc;
-    } else if (gp->column >= gp->start_column)
-      gp->column++;
+    } else if (gp_data->column >= gp->start_column)
+      gp_data->column++;
 
   }
 
-  if(gp->column < gp->start_column)
+  if(gp_data->column < gp->start_column)
     rc=0;
   
   return rc;
@@ -942,7 +946,7 @@ rasqal_engine_graph_pattern_reset(rasqal_query_results* query_results,
 
   gp_data->optional_graph_pattern= -1;
   gp_data->current_graph_pattern= -1;
-
+  gp_data->column= -1;
 
   if(gp->graph_patterns)
     gp_data->current_graph_pattern=0;
@@ -950,7 +954,7 @@ rasqal_engine_graph_pattern_reset(rasqal_query_results* query_results,
   if(gp->triples) {
     int triples_count=gp->end_column - gp->start_column+1;
     
-    gp->column=gp->start_column;
+    gp_data->column=gp->start_column;
     if(gp_data->triple_meta) {
       /* reset any previous execution */
       rasqal_reset_triple_meta(gp_data->triple_meta);

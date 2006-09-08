@@ -60,7 +60,6 @@ rasqal_new_graph_pattern(rasqal_query* query) {
   
   gp->query=query;
 
-  gp->column= -1;
   gp->start_column= -1;
   gp->end_column= -1;
 
@@ -157,7 +156,6 @@ rasqal_graph_pattern_add_triples(rasqal_graph_pattern* gp,
                                  rasqal_graph_pattern_operator op)
 {
   gp->triples=triples;
-  gp->column= -1;
   gp->start_column=start_column;
   gp->end_column=end_column;
   gp->finished=0;
