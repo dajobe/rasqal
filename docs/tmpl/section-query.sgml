@@ -128,6 +128,15 @@ then retrieved.
 @Returns: 
 
 
+<!-- ##### FUNCTION rasqal_query_get_anonymous_variable_sequence ##### -->
+<para>
+
+</para>
+
+@query: 
+@Returns: 
+
+
 <!-- ##### FUNCTION rasqal_query_get_bound_variable_sequence ##### -->
 <para>
 
