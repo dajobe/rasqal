@@ -1,0 +1,57 @@
+# -*- Mode: Makefile -*-
+#
+# Makefile.am - automake file for Rasqal query engine tests
+#
+# $Id:$
+#
+# Copyright (C) 2004-2006, David Beckett http://purl.org/net/dajobe/
+# 
+# This package is Free Software and part of Redland http://librdf.org/
+# 
+# It is licensed under the following three licenses as alternatives:
+#   1. GNU Lesser General Public License (LGPL) V2.1 or any newer version
+#   2. GNU General Public License (GPL) V2 or any newer version
+#   3. Apache License, V2.0 or any newer version
+# 
+# You may not use this file except in compliance with at least one of
+# the above three licenses.
+# 
+# See LICENSE.html or LICENSE.txt at the top of this package for the
+# complete terms and further detail along with the license texts for
+# the licenses in COPYING.LIB, COPYING and LICENSE-2.0.txt respectively.
+# 
+
+local_tests=rasqal_order_test
+
+EXTRA_PROGRAMS=$(local_tests)
+
+CLEANFILES=$(local_tests)
+
+rasqal_order_test_SOURCES = rasqal_order_test.c
+rasqal_order_test_CPPFLAGS = -DSTANDALONE -I$(top_srcdir)/src
+rasqal_order_test_LDADD = $(top_builddir)/src/librasqal.la
+
+
+# These are compiled here and used elsewhere for running tests
+check-local: $(local_tests) run-rasqal-order-test
+
+run-rasqal-order-test: rasqal_order_test
+	@tst=rasqal_order_test; \
+	status=0; \
+	if test -f ./$$tst; then dir=./; \
+	elif test -f $$tst; then dir=; \
+	else dir="$(top_srcdir)/"; fi; \
+	if $${dir}$$tst $(top_srcdir)/data/animals.nt; then \
+	  echo "PASS: $$tst"; \
+	else \
+	  echo "FAIL: $$tst"; \
+	  status=1; \
+	fi; \
+	exit $$status
+
+
+$(top_builddir)/src/librasqal.la:
+	cd $(top_builddir)/src && $(MAKE) librasqal.la
+
+$(top_builddir)/../raptor/src/libraptor.la:
+	cd $(top_builddir)/../raptor/src && $(MAKE) $(AM_MAKEFLAGS) libraptor.la
