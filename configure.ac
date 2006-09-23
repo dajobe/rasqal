@@ -742,6 +742,7 @@ docs/Makefile
 docs/version.xml
 src/Makefile
 tests/Makefile
+tests/engine/Makefile
 tests/rdql/Makefile
 tests/rdql/testsuite/Makefile
 tests/sparql/Makefile
