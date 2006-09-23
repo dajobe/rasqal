@@ -1,4 +1,17 @@
+2006-09-08  Dave Beckett  <dave@dajobe.org>
+
+	* docs/tmpl/section-graph_pattern.sgml,
+	docs/tmpl/section-query.sgml,
+	docs/tmpl/section-query_results.sgml: Updated for new functions
+
+	* configure.ac: Allow LEX to be set to things that aren't exactly
+	'flex'
+
 2006-09-07  Dave Beckett  <dave@dajobe.org>
+
+	* src/rasqal_engine.c, src/rasqal_graph_pattern.c,
+	src/rasqal_internal.h: Move column field from graph_pattern to
+	execution data
 
 	* src/rasqal_graph_pattern.c: (rasqal_new_graph_pattern,
 	rasqal_graph_pattern_add_triples): Delete fields moved to gp_data.
