@@ -796,24 +796,26 @@ rasqal_engine_graph_pattern_get_next_match(rasqal_query_results* query_results,
                     gp_data->column);
       m->executed=1;
       
-    } else if(!m->triples_match) {
-      /* Column has no triplesMatch so create a new query */
-      m->triples_match=rasqal_new_triples_match(query_results, m, m, t);
-      if(!m->triples_match) {
-        rasqal_query_error(query, "Failed to make a triple match for column%d",
-                           gp_data->column);
-        /* failed to match */
-        gp_data->column--;
-        rc= -1;
-        return rc;
-      }
-      RASQAL_DEBUG2("made new triplesMatch for column %d\n", gp_data->column);
-    }
-
-
-    if(m->triples_match) {
+    } else {
+      /* triple pattern match wanted */
       int parts;
-      
+
+      if(!m->triples_match) {
+        /* Column has no triplesMatch so create a new query */
+        m->triples_match=rasqal_new_triples_match(query_results, m, m, t);
+        if(!m->triples_match) {
+          rasqal_query_error(query,
+                             "Failed to make a triple match for column%d",
+                             gp_data->column);
+          /* failed to match */
+          gp_data->column--;
+          rc= -1;
+          return rc;
+        }
+        RASQAL_DEBUG2("made new triplesMatch for column %d\n", gp_data->column);
+      }
+
+
       if(rasqal_triples_match_is_end(m->triples_match)) {
         int resets=0;
 
@@ -848,10 +850,11 @@ rasqal_engine_graph_pattern_get_next_match(rasqal_query_results* query_results,
       } else {
         RASQAL_DEBUG2("Nothing to bind_match for column %d\n", gp_data->column);
       }
-      
+
       rasqal_triples_match_next_match(m->triples_match);
       if(!rc)
         continue;
+
     }
     
     if(gp_data->column == gp->end_column) {
