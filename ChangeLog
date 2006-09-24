@@ -5,6 +5,7 @@
 	(rasqal_engine_graph_pattern_get_next_match): When an exact triple
 	match is performed, set the executed flag and next time backtrack.
 	Also set the flag when a pattern triple match is executed.
+	Fixes Issue #0000094 http://bugs.librdf.org/mantis/view.php?id=94
 
 	* src/rasqal.h: rasqal_triple_meta gains executed field
 
