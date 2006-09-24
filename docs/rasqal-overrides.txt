@@ -13,3 +13,8 @@ rasqal_graph_query* query;
 rasqal_graph_query_results* query_results;
 </TYPEDEF>
 
+<TYPEDEF>
+<NAME>rasqal_query_results_formatter</NAME>
+rasqal_graph_query_results_formatter* query_results_formatter;
+</TYPEDEF>
+
