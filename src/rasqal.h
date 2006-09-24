@@ -1013,7 +1013,11 @@ typedef struct
 
   rasqal_triple_parts parts;
 
+  /* non-0 if the associated triple pattern contains no variables */
   int is_exact;
+
+  /* non-0 if the triple pattern has been fully executed */
+  int executed;
 } rasqal_triple_meta;
 
 
