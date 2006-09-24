@@ -829,6 +829,28 @@ rasqal_query_results_get_boolean(rasqal_query_results* query_results)
  *
  * Get information on query result syntaxes.
  * 
+ * The current list of format names/URI is given below however
+ * the results of this function will always return the latest.
+ *
+ * Default format (counter = 0): SPARQL XML Results 2006-01-25 name 'xml'
+ * http://www.w3.org/TR/2006/WD-rdf-sparql-XMLres-20060125/
+ * http://www.w3.org/2005/sparql-results#
+ *
+ * JSON name 'json'
+ * http://www.w3.org/2001/sw/DataAccess/json-sparql/
+ *
+ * Older formats:
+ *
+ * Name "xml-v2"
+ * http://www.w3.org/TR/2005/WD-rdf-sparql-XMLres-20050527/
+ * http://www.w3.org/2001/sw/DataAccess/rf1/result2
+ *
+ * Name "xml-v1": 
+ * http://www.w3.org/TR/2004/WD-rdf-sparql-XMLres-20041221/
+ * http://www.w3.org/2001/sw/DataAccess/rf1/result
+ *
+ * If the writing succeeds, the query results will be exhausted.
+ * 
  * Return value: non 0 on failure of if counter is out of range
  **/
 int
@@ -907,10 +929,10 @@ rasqal_get_query_results_formatter_factory(const char *name, raptor_uri* uri)
  *
  * Constructor - create a new rasqal_query_results_formatter object.
  *
- * A query results format can be named or identified by a URI, either
- * of which is optional.  The default query results format will be used
+ * A query results format can be named or identified by a URI, both
+ * of which are optional.  The default query results format will be used
  * if both are NULL.  rasqal_query_results_formats_enumerate() returns
- * information on the known names, labels and URIs.
+ * information on the known query results names, labels and URIs.
  *
  * Return value: a new #rasqal_query_results_formatter object or NULL on failure
  */
@@ -978,23 +1000,11 @@ rasqal_query_results_formatter_write(raptor_iostream *iostr,
  *
  * Write the query results to an iostream in a format.
  * 
- * The supported URIs for the format_uri are:
- *
- * Default: SPARQL XML Results 2006-01-25
- * http://www.w3.org/TR/2006/WD-rdf-sparql-XMLres-20060125/
- * http://www.w3.org/2005/sparql-results#
- *
- * Older formats:
- * http://www.w3.org/TR/2005/WD-rdf-sparql-XMLres-20050527/
- * http://www.w3.org/2001/sw/DataAccess/rf1/result2
- *
- * http://www.w3.org/TR/2004/WD-rdf-sparql-XMLres-20041221/
- * http://www.w3.org/2001/sw/DataAccess/rf1/result
- *
- * If the writing succeeds, the query results will be exhausted.
- * 
- * See rasqal_query_results_formats_enumerate() to get the
- * list of syntax URIs and their description. 
+ * This uses the #rasqal_query_results_formatter class
+ * and the rasqal_query_results_formatter_write() method
+ * to perform the formatting. See
+ * rasqal_query_results_formats_enumerate() 
+ * for obtaining the supported format URIs at run time.
  *
  * Return value: non-0 on failure
  **/
