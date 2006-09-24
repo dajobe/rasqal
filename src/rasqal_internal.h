@@ -437,6 +437,32 @@ struct rasqal_query_results_s {
 };
     
 
+typedef int (*rasqal_query_results_writer)(raptor_iostream *iostr,
+                                           rasqal_query_results* results,
+                                           raptor_uri *base_uri);
+
+typedef struct {
+  /* query results format name */
+  const char* name;
+
+  /* query results format name */
+  const char* label;
+
+  /* query results format URI (or NULL) */
+  const unsigned char* uri_string;
+  
+  rasqal_query_results_writer writer;
+} rasqal_query_results_format_factory;
+
+
+/*
+ * A query results formatter for some query_results
+ */
+struct rasqal_query_results_formatter_s {
+  rasqal_query_results_format_factory* factory;
+};
+
+
 /* rasqal_general.c */
 char* rasqal_vsnprintf(const char* message, va_list arguments);
 
