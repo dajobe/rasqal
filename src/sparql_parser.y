@@ -988,7 +988,7 @@ TriplesSameSubject: VarOrTerm PropertyListNotEmpty
   fprintf(DEBUG_FH, "TriplesSameSubject 1\n subject=");
   rasqal_formula_print($1, DEBUG_FH);
   if($2) {
-    fprintf(DEBUG_FH, "\n propertyList (reverse order to syntax)=");
+    fprintf(DEBUG_FH, "\n propertyList=");
     rasqal_formula_print($2, DEBUG_FH);
     fprintf(DEBUG_FH, "\n");
   } else     
@@ -1028,7 +1028,7 @@ TriplesSameSubject: VarOrTerm PropertyListNotEmpty
   fprintf(DEBUG_FH, "TriplesSameSubject 2\n subject=");
   rasqal_formula_print($1, DEBUG_FH);
   if($2) {
-    fprintf(DEBUG_FH, "\n propertyList (reverse order to syntax)=");
+    fprintf(DEBUG_FH, "\n propertyList=");
     rasqal_formula_print($2, DEBUG_FH);
     fprintf(DEBUG_FH, "\n");
   } else     
