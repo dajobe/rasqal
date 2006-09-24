@@ -1,3 +1,65 @@
+2006-09-23  Dave Beckett  <dave@dajobe.org>
+
+	* src/rasqal_engine.c: (rasqal_reset_triple_meta): Reset executed
+	flag.
+	(rasqal_engine_graph_pattern_get_next_match): When an exact triple
+	match is performed, set the executed flag and next time backtrack.
+	Also set the flag when a pattern triple match is executed.
+
+	* src/rasqal.h: rasqal_triple_meta gains executed field
+
+	* src/rasqal_query_results.c: autodocs
+
+	* docs/rasqal-sections.txt: Remove
+	rasqal_query_results_syntaxes_enumerate
+
+	* docs/tmpl/section-query_results_formatter.sgml: Title
+
+	* docs/rasqal-overrides.txt: rasqal_graph_query_results_formatter
+
+	* docs/tmpl/section-query_results_formatter.sgml: Short + long
+	descriptions
+
+	* docs/rasqal-docs.xml: Added file section-query_results_formatter.xml
+
+	* docs/rasqal-sections.txt: Added section-query_results_formatter FILE
+
+	* utils/roqet.c: Update to use new rasqal_query_results_formatter class.
+
+	* src/rasqal_query_results.c: Reorganised to create a
+	rasqal_query_results_formatter class for formatting query results.
+	(rasqal_query_results_formats_enumerate): Added, renamed from
+	rasqal_query_results_syntaxes_enumerate.
+	(rasqal_get_query_results_formatter_factory): Added helper
+	function.
+	(rasqal_new_query_results_formatter): Added new constructor
+	(rasqal_free_query_results_formatter): Added new destructor
+	(rasqal_query_results_formatter_write): Added new writer method.
+	(rasqal_query_results_get_results_format_uri_by_name): Deleted
+	public function now handled by constructor.
+
+	* src/rasqal_internal.h: Added rasqal_query_results_writer typedef.
+	Added rasqal_query_results_format_factory
+	Added struct rasqal_query_results_formatter_s
+
+	* src/rasqal.h: Added rasqal_query_results_formatter class
+	Added rasqal_query_results_formats_enumerate prototype (was
+	rasqal_query_results_syntaxes_enumerate)
+	Added rasqal_new_query_results_formatter,
+	rasqal_free_query_results_formatter and
+	rasqal_query_results_formatter_write prototypes.
+	Deleted rasqal_query_results_get_results_format_uri_by_name prototype.
+
+	* tests/engine/Makefile.am: Automakefile for query engine tests
+
+	* tests/Makefile.am, tests/engine,
+	tests/engine/rasqal_order_test.c (from
+	/rasqal/trunk/tests/rasqal_order_test.c:11290),
+	tests/rasqal_order_test.c: Add engine test dir and move order test
+	there
+
+	* configure.ac: Added test/engine/Makefile
+
 2006-09-08  Dave Beckett  <dave@dajobe.org>
 
 	* docs/tmpl/section-graph_pattern.sgml,
