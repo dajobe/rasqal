@@ -1,5 +1,5 @@
 <!-- ##### SECTION Title ##### -->
-section-query_results_formatter
+Query Results Formatter
 
 <!-- ##### SECTION Short_Description ##### -->
 Query results formatted into a syntax.
@@ -14,12 +14,10 @@ which allows turning the syntax into a string, writing to a file
 handle or other custom destination.
 </para>
 
-
 <!-- ##### SECTION See_Also ##### -->
 <para>
 
 </para>
-
 
 <!-- ##### SECTION Stability_Level ##### -->
 
