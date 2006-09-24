@@ -732,12 +732,50 @@ rasqal_query_build_declared_in(rasqal_query* query)
 
 
 /*
+ * rasqal_engine_group_graph_pattern_get_next_match:
+ * @query_results:
+ * @gp: 
+ *
+ * Get the next match in a group graph pattern
  *
  * return: <0 failure, 0 end of results, >0 match
  */
 static int
-rasqal_engine_graph_pattern_get_next_match(rasqal_query_results* query_results,
-                                           rasqal_graph_pattern* gp) 
+rasqal_engine_group_graph_pattern_get_next_match(rasqal_query_results* query_results,
+                                                 rasqal_graph_pattern* gp)
+{
+  rasqal_query* query=query_results->query;
+#if 0
+  rasqal_engine_gp_data* gp_data;
+  rasqal_engine_execution_data* execution_data;
+
+  execution_data=query_results->execution_data;
+  gp_data=(rasqal_engine_gp_data*)raptor_sequence_get_at(execution_data->seq, 
+                                                         gp->gp_index);
+#endif
+
+  /* FIXME - sequence of graph_patterns not implemented, finish */
+  rasqal_query_error(query,
+                     "Graph pattern %s operation is not implemented yet. Ending query execution.", 
+                     rasqal_graph_pattern_operator_as_string(gp->op));
+  
+  RASQAL_DEBUG1("Failing query with sequence of graph_patterns\n");
+  return 0;
+}
+
+
+/*
+ * rasqal_engine_triple_graph_pattern_get_next_match:
+ * @query_results:
+ * @gp: 
+ *
+ * Get the next match in a triple graph pattern
+ *
+ * return: <0 failure, 0 end of results, >0 match
+ */
+static int
+rasqal_engine_triple_graph_pattern_get_next_match(rasqal_query_results* query_results,
+                                                  rasqal_graph_pattern* gp) 
 {
   rasqal_query* query=query_results->query;
   int rc;
@@ -749,16 +787,6 @@ rasqal_engine_graph_pattern_get_next_match(rasqal_query_results* query_results,
                                                          gp->gp_index);
 
 
-  if(gp->graph_patterns) {
-    /* FIXME - sequence of graph_patterns not implemented, finish */
-    rasqal_query_error(query,
-                       "Graph pattern %s operation is not implemented yet. Ending query execution.", 
-                       rasqal_graph_pattern_operator_as_string(gp->op));
-    
-    RASQAL_DEBUG1("Failing query with sequence of graph_patterns\n");
-    return 0;
-  }
-    
   while(gp_data->column >= gp->start_column) {
     rasqal_triple_meta *m;
     rasqal_triple *t;
@@ -875,6 +903,22 @@ rasqal_engine_graph_pattern_get_next_match(rasqal_query_results* query_results,
     rc=0;
   
   return rc;
+}
+
+
+
+/*
+ *
+ * return: <0 failure, 0 end of results, >0 match
+ */
+static int
+rasqal_engine_graph_pattern_get_next_match(rasqal_query_results* query_results,
+                                           rasqal_graph_pattern* gp) 
+{
+  if(gp->graph_patterns)
+    return rasqal_engine_group_graph_pattern_get_next_match(query_results, gp);
+  else
+    return rasqal_engine_triple_graph_pattern_get_next_match(query_results, gp);
 }
 
 
