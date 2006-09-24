@@ -373,7 +373,7 @@ main(int argc, char *argv[])
   raptor_serializer* serializer=NULL;
   const char *serializer_syntax_name="ntriples";
   query_output_format output_format= QUERY_OUTPUT_UNKNOWN;
-  raptor_uri* results_format_uri=NULL;
+  rasqal_query_results_formatter* results_formatter=NULL;
   
   program=argv[0];
   if((p=strrchr(program, '/')))
@@ -452,14 +452,14 @@ main(int argc, char *argv[])
 
       case 'r':
         if(optarg) {
-          if(results_format_uri)
-            raptor_free_uri(results_format_uri);
+          if(results_formatter)
+            rasqal_free_query_results_formatter(results_formatter);
 
           if(!strcmp(optarg, "simple"))
-            results_format_uri=NULL;
+            results_formatter=NULL;
           else {
-            results_format_uri=rasqal_query_results_get_results_format_uri_by_name(optarg);
-            if(!results_format_uri) {
+            results_formatter=rasqal_new_query_results_formatter(optarg, NULL);
+            if(!results_formatter) {
               fprintf(stderr, 
                       "%s: invalid argument `%s' for `" HELP_ARG(r, results) "'\n",
                       program, optarg);
@@ -587,8 +587,8 @@ main(int argc, char *argv[])
     for(i=0; i < raptor_get_feature_count(); i++) {
       const char *name;
       const char *label;
-      if(!rasqal_query_results_syntaxes_enumerate(i, &name, &label, 
-                                                  NULL))
+      if(!rasqal_query_results_formats_enumerate(i, &name, &label, 
+                                                 NULL))
         printf("      %-10s            %s\n", name, label);
     }
     puts("    For RDF graph results:");
@@ -825,7 +825,7 @@ main(int argc, char *argv[])
     goto tidy_query;
   }
 
-  if(results_format_uri != NULL) {
+  if(results_formatter != NULL) {
     raptor_iostream *iostr;
   
     iostr=raptor_new_iostream_to_file_handle(stdout);
@@ -835,7 +835,8 @@ main(int argc, char *argv[])
       goto tidy_query;
     }
 
-    rasqal_query_results_write(iostr, results, results_format_uri, base_uri);
+    rasqal_query_results_formatter_write(iostr, results_formatter,
+                                         results, base_uri);
     raptor_free_iostream(iostr);
   } else {
     if(rasqal_query_results_is_bindings(results)) {
@@ -915,8 +916,8 @@ main(int argc, char *argv[])
   rasqal_free_query_results(results);
   
  tidy_query:  
-  if(results_format_uri)
-    raptor_free_uri(results_format_uri);
+  if(results_formatter)
+    rasqal_free_query_results_formatter(results_formatter);
 
   rasqal_free_query(rq);
 
