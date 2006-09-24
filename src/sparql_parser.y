@@ -1100,6 +1100,7 @@ PropertyListNotEmpty: Verb ObjectList PropertyListTailOpt
   } else if($1 && $2) {
     raptor_sequence *seq=$2->triples;
     rasqal_literal *predicate=$1->value;
+    rasqal_formula *formula;
 
     /* non-empty property list, handle it  */
     for(i=0; i<raptor_sequence_size(seq); i++) {
@@ -1113,25 +1114,22 @@ PropertyListNotEmpty: Verb ObjectList PropertyListTailOpt
     raptor_sequence_print(seq, DEBUG_FH);
     fprintf(DEBUG_FH, "\n");
 #endif
-  }
 
-  if ($1 && $2) {
-    raptor_sequence *seq=$2->triples;
-
-    if(!$3) {
-      $3=rasqal_new_formula();
-      $3->triples=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_triple, (raptor_sequence_print_handler*)rasqal_triple_print);
-    }
+    formula=rasqal_new_formula();
+    formula->triples=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_triple, (raptor_sequence_print_handler*)rasqal_triple_print);
 
     for(i=0; i < raptor_sequence_size(seq); i++) {
       rasqal_triple* t2=(rasqal_triple*)raptor_sequence_get_at(seq, i);
-      raptor_sequence_push($3->triples, t2);
+      raptor_sequence_push(formula->triples, t2);
     }
+
     while(raptor_sequence_size(seq))
       raptor_sequence_pop(seq);
 
+    $3=rasqal_formula_join(formula, $3);
+
 #if RASQAL_DEBUG > 1  
-    fprintf(DEBUG_FH, "  after appending ObjectList (reverse order)=");
+    fprintf(DEBUG_FH, "  after appending ObjectList=");
     rasqal_formula_print($3, DEBUG_FH);
     fprintf(DEBUG_FH, "\n\n");
 #endif
@@ -1178,20 +1176,17 @@ ObjectList: GraphNode ObjectTail
     fprintf(DEBUG_FH, " and empty ObjectTail\n");
 #endif
 
-  if($2)
-    formula=$2;
-  else
-    formula=rasqal_new_formula();
+  formula=rasqal_new_formula();
   
   triple=rasqal_new_triple(NULL, NULL, $1->value);
   $1->value=NULL;
 
-  if(!formula->triples)
-    formula->triples=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_triple, (raptor_sequence_print_handler*)rasqal_triple_print);
+  formula->triples=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_triple, (raptor_sequence_print_handler*)rasqal_triple_print);
 
   raptor_sequence_push(formula->triples, triple);
 
-  $$=rasqal_formula_join($1, formula);
+  $$=rasqal_formula_join(formula, $1);
+  $$=rasqal_formula_join(formula, $2);
 
 #if RASQAL_DEBUG > 1  
   fprintf(DEBUG_FH, " objectList is now ");
