@@ -526,11 +526,13 @@ rasqal_triples_match_bind_match(struct rasqal_triples_match_s* rtm,
   return rtm->bind_match(rtm,  rtm->user_data, bindings, parts);
 }
 
+
 static void
 rasqal_triples_match_next_match(struct rasqal_triples_match_s* rtm)
 {
   rtm->next_match(rtm,  rtm->user_data);
 }
+
 
 static int
 rasqal_triples_match_is_end(struct rasqal_triples_match_s* rtm)
@@ -565,6 +567,8 @@ rasqal_reset_triple_meta(rasqal_triple_meta* m)
     rasqal_variable_set_value(m->bindings[3],  NULL);
     resets++;
   }
+
+  m->executed=0;
   
   return resets;
 }
@@ -769,14 +773,29 @@ rasqal_engine_graph_pattern_get_next_match(rasqal_query_results* query_results,
       gp_data->column--;
       rc= -1;
       return rc;
-    } else if (m->is_exact) {
+    }
+    
+    if(m->executed) {
+      RASQAL_DEBUG2("triplesMatch already executed in column %d\n", 
+                    gp_data->column);
+      gp_data->column--;
+      continue;
+    }
+      
+    if (m->is_exact) {
       /* exact triple match wanted */
+
       if(!rasqal_triples_source_triple_present(query_results->triples_source, t)) {
         /* failed */
         RASQAL_DEBUG2("exact match failed for column %d\n", gp_data->column);
         gp_data->column--;
       } else
         RASQAL_DEBUG2("exact match OK for column %d\n", gp_data->column);
+
+      RASQAL_DEBUG2("end of exact triplesMatch for column %d\n", 
+                    gp_data->column);
+      m->executed=1;
+      
     } else if(!m->triples_match) {
       /* Column has no triplesMatch so create a new query */
       m->triples_match=rasqal_new_triples_match(query_results, m, m, t);
@@ -798,7 +817,10 @@ rasqal_engine_graph_pattern_get_next_match(rasqal_query_results* query_results,
       if(rasqal_triples_match_is_end(m->triples_match)) {
         int resets=0;
 
-        RASQAL_DEBUG2("end of triplesMatch for column %d\n", gp_data->column);
+        RASQAL_DEBUG2("end of pattern triplesMatch for column %d\n",
+                      gp_data->column);
+        m->executed=1;
+
         resets=rasqal_reset_triple_meta(m);
         query_results->new_bindings_count-= resets;
         if(query_results->new_bindings_count < 0)
