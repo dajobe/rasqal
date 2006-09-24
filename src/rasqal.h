@@ -108,6 +108,13 @@ typedef struct rasqal_query_s rasqal_query;
  */
 typedef struct rasqal_query_results_s rasqal_query_results;
 
+/**
+ * rasqal_query_results_formatter:
+ *
+ * Rasqal query results formatter class.
+ */
+typedef struct rasqal_query_results_formatter_s rasqal_query_results_formatter;
+
 typedef struct rasqal_literal_s rasqal_literal;
 
 /**
@@ -761,9 +768,13 @@ RASQAL_API
 int rasqal_query_results_write(raptor_iostream *iostr, rasqal_query_results *results, raptor_uri *format_uri, raptor_uri *base_uri);
 
 RASQAL_API
-int rasqal_query_results_syntaxes_enumerate(const unsigned int counter, const char **name, const char **label, const unsigned char **uri_string);
+int rasqal_query_results_formats_enumerate(const unsigned int counter, const char **name, const char **label, const unsigned char **uri_string);
 RASQAL_API
-raptor_uri* rasqal_query_results_get_results_format_uri_by_name(const char* name);
+rasqal_query_results_formatter* rasqal_new_query_results_formatter(const char *name, raptor_uri* uri);
+RASQAL_API
+void rasqal_free_query_results_formatter(rasqal_query_results_formatter* formatter);
+RASQAL_API
+int rasqal_query_results_formatter_write(raptor_iostream *iostr, rasqal_query_results_formatter* formatter, rasqal_query_results* results, raptor_uri *base_uri);
 
 RASQAL_API
 int rasqal_query_iostream_write_escaped_counted_string(rasqal_query* query, raptor_iostream* iostr, const unsigned char* string, size_t len);
