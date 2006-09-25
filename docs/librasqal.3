@@ -6,7 +6,7 @@
 .\" Copyright (C) 2004-2006 David Beckett - http://purl.org/net/dajobe/
 .\" Copyright (C) 2004-2005 University of Bristol - http://www.bristol.ac.uk/
 .\"
-.TH librasqal 3 "2006-05-03"
+.TH librasqal 3 "2006-09-24"
 .\" Please adjust this date whenever revising the manpage.
 .SH NAME
 librasqal \- Rasqal RDF query library
@@ -61,12 +61,12 @@ librasqal \- Rasqal RDF query library
 .br
 .fi
 .SH DESCRIPTION
-The \fIRasqal\fR library provides a high-level interface to 
-RDF query parsing, query construction and query execution over
-an RDF graph.  The library provides APIs to each of the steps in
-the process and provides support for handling multiple query language
-syntaxes.  At present Rasqal supports RDQL and the draft W3C SPARQL
-query languages.
+The \fIRasqal\fR library provides a high-level interface to RDF query
+parsing, query construction, query execution over an RDF graph and
+query results manipulation and formatting.  The library provides APIs
+to each of the steps in the process and provides support for handling
+multiple query language syntaxes.  At present Rasqal supports the
+W3C draft SPARQL query language and RDQL. 
 .LP
 Rasqal uses the libraptor(3) library for providing URI handling,
 WWW content retrieval and other support functions.
@@ -297,14 +297,9 @@ format.  Only one of these will be non-0 for any result.
 Write the query results in a syntax to the \fIiostr\fP iostream, the
 format of the syntax is given by the \fIformat_uri\fP URI, with
 an optional base URI \fIbase_uri\fP that may be used.  The
-values of \fIformat_uri\fP currently supported are the URIs
-\fIhttp://www.w3.org/TR/2005/WD-rdf-sparql-XMLres-20050527/\fP and
-\fIhttp://www.w3.org/2001/sw/DataAccess/rf1/result2\fP
-for the second version of the SPARQL XML results format
-and the URIs
-\fIhttp://www.w3.org/TR/2004/WD-rdf-sparql-XMLres-20041221/\fP and
-\fIhttp://www.w3.org/2001/sw/DataAccess/rf1/result\fP
-for the first version (do not use long term).
+values of \fIformat_uri\fP supported are provided by at runtime
+by the function \fBrasqal_query_results_formats_enumerate()\fP.
+This uses the \fBlibrdf_query_results_formatter\fP class internally.
 .SH "QUERY VARIABLE BINDINGS RESULTS METHODS"
 .IP "\fBint rasqal_query_results_get_count(rasqal_query_results *\fIquery_result\fP)\fR"
 Get the current number of variable bindings results returned.
@@ -349,6 +344,27 @@ shared pointer.  (Graph results format only).
 .IP "\fBint rasqal_query_results_next_triple(rasqal_query_results *\fIquery_results\fP)\fR"
 Move to the next triple in the RDF graph results, returning non-0
 at end of results or on failure. (Graph results format only).
+.SH "QUERY RESULTS FORMATTER CLASS"
+A class for formatting the results of a query into a syntax.
+.SH "QUERY RESULTS FORMATTER CONSTRUCTOR"
+.IP "\fBrasqal_query_results_formatter* rasqal_new_query_results_formatter(const char *name, raptor_uri* uri)\fP"
+Create a new query results formatter for the \fIname\fP or \fIuri\fP.
+The  \fBrasqal_query_results_formats_enumerate()\fP function returns
+the allowed names and/or uris.  If \fIname\fP and \fIuri\fP are both
+NULL, the default query results format is used.
+.SH "QUERY RESULTS FORMATTER DESTRUCTOR"
+.IP "\fBvoid rasqal_free_query_results_formatter(rasqal_query_results_formatter* formatter)\fP"
+Destroy a rasqal query results formatter object.
+.SH "QUERY RESULTS FORMATTER METHODS"
+.IP "\fBint rasqal_query_results_formatter_write(raptor_iostream* \fIiostr\fP, rasqal_query_results_formatter* \fIformatter\fP, rasqal_query_results* \fIresults\fP, raptor_uri* \fIbase_uri\fP)\fP"
+Write the query \fIresults\fP formatted in a syntax to the \fIiostr\fP iostream
+an optional base URI \fIbase_uri\fP.
+.SH "QUERY RESULTS FORMATTER STATIC METHODS"
+.IP "\fBint rasqal_query_results_formats_enumerate(const unsigned int \fIcounter\fP, const char** \fIname\fP, const char** \fIlabel\fP, const unsigned char** \fIuri_string\fP)\fP"
+Get query results formats information by \fIcounter\fP.  When 
+counter is 0, this returns the default query results format.  The
+\fIname\fP, \fIlabel\fP and/or \fIuri_string\fP may be returned if
+they are not NULL.
 .SH "LITERAL CLASS"
 A class for the values returned as parts of triples and in variable
 bindings. The rasqal_literal structure is public and defined in
@@ -564,6 +580,14 @@ Destroy a rasqal data_graph object.
 .IP "\fBvoid rasqal_data_graph_print(rasqal_data_graph* \fIdg\fP, FILE* \fIfh\fP)\fR"
 Print a data graph in a debug format.  This format may change in any release.
 .SH API CHANGES
+.SS 0.9.13
+Added \fBrasqal_query_results_formatter class\fP with
+constructor \fBrasqal_new_query_results_formatter\fP
+destructor \fBrasqal_free_query_results_formatter\fP and method
+\fBrasqal_query_results_formatter_write\fP.
+.LP
+Added \fBrasqal_query_results_formats_enumerate\fP for listing
+supported formats.
 .SS 0.9.12
 Added \fBrasqal_query_iostream_write_escaped_counted_string\fP
 and \fBrasqal_query_escape_counted_string\fP
