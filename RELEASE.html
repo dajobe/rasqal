@@ -13,6 +13,77 @@
 <p>Not yet released.
 </p>
 
+<!-- changes up to svn r11314 at 2006-09-24 21:14 -->
+
+<h3>General Changes</h3>
+
+<p>Added a new <code>rasqal_query_results_formatter</code> class
+</p>
+
+<p>Many internal query engine changes, mostly to separate query and
+query_results internals so that eventually the run-time execution
+context is entirely separated from the static query structure.
+</p>
+
+
+<h3>Configuration and Build Changes</h3>
+
+<p>Allow shell variable <code>LEX</code> to be set to things that
+aren't exactly <code>flex</code> Recommend flex 2.5.33 and update
+configure to point at the main flex site whichq finally gets 2.5.33
+after 9 years.</p>
+
+<p><code>PKGCONFIG</code> vars not substituted
+correctly in configure.ac.  Remove @LDFLAGS from rasqal.pc.in.
+Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=98">Issue#0000098</a>.
+</p>
+
+<p>Win32 build fixes.Correct win32 static linking of rasqal.
+(Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=100">Issue#0000100</a>)
+and include float.h and <code>#define isnan</code> on win32.
+(Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=111">Issue#0000111</a>).
+</p>
+
+
+
+<h3>SPARQL Query Language Changes</h3>
+
+<p>Added labels to grammar tokens using bison to give better error messages.</p>
+
+<h3>RDQL Query Language Changes</h3>
+
+<p>Added labels to grammar tokens using bison to give better error messages.</p>
+
+<h3>Query Engine Changes</h3>
+
+<p>Merge only all adjacent sequences of basic graph pattern triples, not
+anything with triples such as optional BGP triples.
+Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=80">Issue#0000080</a>.
+</p>
+
+<p>When an exact triple match is present, do not execute a query forever.
+Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=94">Issue#0000094</a>.
+</p>
+
+<p> Fail if a variable argument to <code>LANG()</code> has an
+undefined value rather than try to execute a NULL pointer.
+Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=113">Issue#0000113</a>.
+</p>
+
+<p>Add query/query_results link early so reference counting is done right.
+Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=95">Issue#0000095</a>.
+</p>
+
+<h3>Query API Changes</h3>
+
+<p>Added a new <code>rasqal_query_results_formatter</code> class to
+format <code>librdf_query_results</code> into a syntax.  Also added
+a <code>rasqal_query_results_formats_enumerate()</code> function to
+enumerate all the supported formats.  The query results
+method <code>rasqal_query_results_write()</code> was changed to use
+this class internally.
+</p>
+
 
 <h2 id="rel0_9_12"><a name="rel0_9_12">Rasqal 0.9.12 Changes</a></h2>
 
