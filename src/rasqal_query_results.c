@@ -832,21 +832,22 @@ rasqal_query_results_get_boolean(rasqal_query_results* query_results)
  * The current list of format names/URI is given below however
  * the results of this function will always return the latest.
  *
- * Default format (counter = 0): SPARQL XML Results 2006-01-25 name '<literal>xml</literal>'
- * http://www.w3.org/TR/2006/WD-rdf-sparql-XMLres-20060125/
+ * Default format (counter = 0): SPARQL XML Results 2006-01-25
+ * name '<literal>xml</literal>'
+ * URIs http://www.w3.org/TR/2006/WD-rdf-sparql-XMLres-20060125/
  * http://www.w3.org/2005/sparql-results#
  *
  * JSON name '<literal>json</literal>'
- * http://www.w3.org/2001/sw/DataAccess/json-sparql/
+ * URI http://www.w3.org/2001/sw/DataAccess/json-sparql/
  *
  * Older formats:
  *
  * Name '<literal>xml-v2</literal>'
- * http://www.w3.org/TR/2005/WD-rdf-sparql-XMLres-20050527/
+ * URIs http://www.w3.org/TR/2005/WD-rdf-sparql-XMLres-20050527/
  * http://www.w3.org/2001/sw/DataAccess/rf1/result2
  *
  * Name '<literal>xml-v1</literal>': 
- * http://www.w3.org/TR/2004/WD-rdf-sparql-XMLres-20041221/
+ * URIs http://www.w3.org/TR/2004/WD-rdf-sparql-XMLres-20041221/
  * http://www.w3.org/2001/sw/DataAccess/rf1/result
  *
  * If the writing succeeds, the query results will be exhausted.
