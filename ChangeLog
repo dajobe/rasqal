@@ -1,4 +1,26 @@
+2006-09-24  Dave Beckett  <dave@dajobe.org>
+
+	* src/sparql_parser.y: Fix debug messages since
+	propertyListNotEmpty is now ordered forward.
+
+	* src/sparql_parser.y: (PropertyListNotEmpty, ObjectList): Take
+	more care not to reverse order of triple patterns as they appeared
+	in the query.
+
+	* src/rasqal_engine.c: (rasqal_engine_merge_triples): Merge only
+	all adjacent sequences of basic graph pattern triples, not
+	anything with triples such as optional BGP triples.
+	Fixes Issue #0000080 http://bugs.librdf.org/mantis/view.php?id=80
+
+	* ChangeLog: add fix bug note
+	* src/rasqal_engine.c: (rasqal_engine_group_graph_pattern_get_next_match,
+	rasqal_engine_triple_graph_pattern_get_next_match): Added from the
+	content of rasqal_engine_graph_pattern_get_next_match.
+
 2006-09-23  Dave Beckett  <dave@dajobe.org>
+
+	* src/rasqal_engine.c: (rasqal_engine_graph_pattern_get_next_match):
+	Tidy code
 
 	* src/rasqal_engine.c: (rasqal_reset_triple_meta): Reset executed
 	flag.
