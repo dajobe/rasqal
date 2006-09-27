@@ -2723,12 +2723,10 @@ rasqal_engine_query_results_update(rasqal_query_results *query_results)
     if(rc < 1) {
       /* <0 failure OR =0 end of results */
       query_results->finished=1;
-      break;
-    }
-    
-    if(rc < 0) {
+
       /* <0 failure */
-      query_results->failed=1;
+      if(rc < 0)
+        query_results->failed=1;
       break;
     }
     
@@ -2811,7 +2809,7 @@ rasqal_engine_execute_order(rasqal_query_results* query_results)
        * operation.
        */
       rc=rasqal_engine_get_next_result(query_results);
-      if(rc < 1)
+      if(rc == 0)
         /* <0 failure OR =0 end of results */
         break;
       
