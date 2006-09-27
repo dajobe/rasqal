@@ -329,8 +329,10 @@ rasqal_raptor_free_triples_source(void *user_data) {
   }
 
   for(i=0; i< rtsc->sources_count; i++) {
-    raptor_free_uri(rtsc->source_uris[i]);
-    rasqal_free_literal(rtsc->source_literals[i]);
+    if(rtsc->source_uris[i])
+      raptor_free_uri(rtsc->source_uris[i]);
+    if(rtsc->source_literals[i])
+      rasqal_free_literal(rtsc->source_literals[i]);
   }
   RASQAL_FREE(raptor_uri_ptr, rtsc->source_uris);
   RASQAL_FREE(raptor_literal_ptr, rtsc->source_literals);
