@@ -173,27 +173,6 @@ library for serializing to a syntax.
 @Returns: 
 
 
-<!-- ##### FUNCTION rasqal_query_results_syntaxes_enumerate ##### -->
-<para>
-
-</para>
-
-@counter: 
-@name: 
-@label: 
-@uri_string: 
-@Returns: 
-
-
-<!-- ##### FUNCTION rasqal_query_results_get_results_format_uri_by_name ##### -->
-<para>
-
-</para>
-
-@name: 
-@Returns: 
-
-
 <!-- ##### FUNCTION rasqal_query_results_write ##### -->
 <para>
 
