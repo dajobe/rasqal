@@ -21,7 +21,7 @@
 # the licenses in COPYING.LIB, COPYING and LICENSE-2.0.txt respectively.
 # 
 
-local_tests=rasqal_order_test
+local_tests=rasqal_order_test rasqal_graph_test
 
 EXTRA_PROGRAMS=$(local_tests)
 
@@ -31,22 +31,29 @@ rasqal_order_test_SOURCES = rasqal_order_test.c
 rasqal_order_test_CPPFLAGS = -DSTANDALONE -I$(top_srcdir)/src
 rasqal_order_test_LDADD = $(top_builddir)/src/librasqal.la
 
+rasqal_graph_test_SOURCES = rasqal_graph_test.c
+rasqal_graph_test_CPPFLAGS = -DSTANDALONE -I$(top_srcdir)/src
+rasqal_graph_test_LDADD = $(top_builddir)/src/librasqal.la
+
 
 # These are compiled here and used elsewhere for running tests
-check-local: $(local_tests) run-rasqal-order-test
+check-local: $(local_tests) run-rasqal-tests
 
-run-rasqal-order-test: rasqal_order_test
-	@tst=rasqal_order_test; \
+run-rasqal-tests: rasqal_order_test rasqal_graph_test
+	@tests="rasqal_order_test rasqal_graph_test"; \
 	status=0; \
-	if test -f ./$$tst; then dir=./; \
-	elif test -f $$tst; then dir=; \
-	else dir="$(top_srcdir)/"; fi; \
-	if $${dir}$$tst $(top_srcdir)/data/animals.nt; then \
-	  echo "PASS: $$tst"; \
-	else \
-	  echo "FAIL: $$tst"; \
-	  status=1; \
-	fi; \
+	for tst in $$tests; do \
+	  if test -f ./$$tst; then dir=./; \
+	  elif test -f $$tst; then dir=; \
+	  else dir="$(top_srcdir)/"; fi; \
+	  if $${dir}$$tst $(top_srcdir)/data/; then \
+	    echo "PASS: $$tst"; \
+	  else \
+	    echo "FAIL: $$tst"; \
+	    status=1; \
+	    break; \
+	  fi; \
+	done; \
 	exit $$status
 
 
