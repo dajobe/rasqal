@@ -51,7 +51,7 @@ static const char* animalsList[27]={ "aardvark", "badger", "cow", "dog",
 #define QUERY_FORMAT "\
 PREFIX ex: <http://ex.example.org#> \
 SELECT $animal \
-FROM <%s> \
+FROM <%s/%s> \
 WHERE { \
   $zoo ex:hasAnimal $animal \
 } ORDER BY $animal LIMIT %d OFFSET %d"
@@ -73,22 +73,18 @@ main(int argc, char **argv) {
 int
 main(int argc, char **argv) {
   const char *program=rasqal_basename(argv[0]);
-  rasqal_query *query = NULL;
-  rasqal_query_results *results = NULL;
   raptor_uri *base_uri;
-  unsigned char *data_string;
   unsigned char *uri_string;
   const char *query_language_name=QUERY_LANGUAGE;
   const char *query_format=QUERY_FORMAT;
-  unsigned char *query_string;
-  int count;
+  static const char* animals="animals.nt";
   int failures=0;
   int i;
   
   rasqal_init();
   
   if(argc != 2) {
-    fprintf(stderr, "USAGE: %s <path to animals.nt>\n", program);
+    fprintf(stderr, "USAGE: %s <path to data directory>\n", program);
     return(1);
   }
 
@@ -98,6 +94,11 @@ main(int argc, char **argv) {
 
 
   for(i=0; i<6; i++) {
+    rasqal_query *query = NULL;
+    rasqal_query_results *results = NULL;
+    unsigned char *data_dir_string;
+    unsigned char *query_string;
+    int count;
     int limit=9-3*i;
     int offset=0+3*i;
 
@@ -110,10 +111,11 @@ main(int argc, char **argv) {
     }
     
 
-    data_string=raptor_uri_filename_to_uri_string(argv[1]);
-    query_string=(unsigned char*)RASQAL_MALLOC(cstring, strlen((const char*)data_string)+strlen(query_format)+1);
-    sprintf((char*)query_string, query_format, data_string, limit, offset);
-    raptor_free_memory(data_string);
+    data_dir_string=raptor_uri_filename_to_uri_string(argv[1]);
+    query_string=(unsigned char*)RASQAL_MALLOC(cstring, strlen((const char*)data_dir_string)+strlen(animals)+strlen(query_format)+1);
+    sprintf((char*)query_string, query_format, data_dir_string, animals,
+            limit, offset);
+    raptor_free_memory(data_dir_string);
 
     query=rasqal_new_query(query_language_name, NULL);
     if(!query) {
