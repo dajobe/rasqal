@@ -1338,7 +1338,12 @@ rasqal_engine_do_step(rasqal_query_results* query_results,
       return step;
   }
 
-
+  if(outergp->constraints_expression) {
+    step=rasqal_engine_check_constraint(query, outergp);
+    if(step != STEP_GOT_MATCH)
+      return step;
+  }
+ 
   /* got match */
   RASQAL_DEBUG1("Got match\n");
   gp->matched=1;
