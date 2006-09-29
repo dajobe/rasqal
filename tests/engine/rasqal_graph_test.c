@@ -50,7 +50,7 @@ static const char* graph_files[DATA_GRAPH_COUNT] = {
 };
 
 
-#define QUERY_VARIABLES_MAX_COUNT 2
+#define QUERY_VARIABLES_MAX_COUNT 3
 
 struct test
 {
@@ -70,7 +70,7 @@ struct test
 
 
 
-#define QUERY_COUNT 1
+#define QUERY_COUNT 2
 
 
 static const struct test tests[QUERY_COUNT] = {
@@ -87,6 +87,22 @@ WHERE\
     .data_graphs = { 0, 1, -1 },
     .value_answers = { "mercury", "orange" },
     .graph_answers = { 0, 1 },
+    .value_var = "value",
+    .graph_var = "graph",
+  },
+  { .query_language = "sparql",
+    .query_string = "\
+PREFIX : <http://example.org/>\
+SELECT ?graph ?value \
+WHERE\
+{\
+  GRAPH ?graph { ?var :a ?value } \
+}\
+",  
+    .expected_count =  3,
+    .data_graphs = { 0, 1, 2 },
+    .value_answers = { "venus", "apple", "red" },
+    .graph_answers = { 0, 1, 2 },
     .value_var = "value",
     .graph_var = "graph",
   }
@@ -233,7 +249,8 @@ main(int argc, char **argv) {
     if(results)
       rasqal_free_query_results(results);
 
-    printf("%s: checking query %d results count\n", program, i);
+    printf("%s: query %d results count returned %d results\n", program, i,
+           count);
     if(count != tests[i].expected_count) {
       printf("%s: query execution %d FAILED returning %d results, expected %d\n", 
              program, i, count, tests[i].expected_count);
