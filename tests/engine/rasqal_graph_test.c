@@ -42,14 +42,27 @@
 #ifdef RASQAL_QUERY_SPARQL
 
 
+#define DATA_GRAPH_COUNT 3
+static const char* graph_files[DATA_GRAPH_COUNT] = {
+  "graph-a.ttl",
+  "graph-b.ttl",
+  "graph-c.ttl"
+};
+
+
 #define QUERY_VARIABLES_MAX_COUNT 2
 
 struct test
 {
   const char *query_language;
   const char *query_string;
+  /* expected result count */
   int expected_count;
+  /* data graph offsets (<0 for not used) */
+  int data_graphs[DATA_GRAPH_COUNT];
+  /* expected value answers */
   const char* value_answers[QUERY_VARIABLES_MAX_COUNT];
+  /* expected graph answers */
   int graph_answers[QUERY_VARIABLES_MAX_COUNT];
   const char* value_var;
   const char* graph_var;
@@ -71,6 +84,7 @@ WHERE\
 }\
 ",  
     .expected_count =  2,
+    .data_graphs = { 0, 1, -1 },
     .value_answers = { "mercury", "orange" },
     .graph_answers = { 0, 1 },
     .value_var = "value",
@@ -78,13 +92,6 @@ WHERE\
   }
 };
 
-
-#define GRAPH_COUNT 3
-static const char* graph_files[GRAPH_COUNT] = {
-  "graph-a.ttl",
-  "graph-b.ttl",
-  "graph-c.ttl"
-};
 
 #else
 #define NO_QUERY_LANGUAGE
@@ -109,7 +116,7 @@ main(int argc, char **argv) {
   raptor_uri* data_dir_uri;
   unsigned char *uri_string;
   int i;
-  raptor_uri* graph_uris[GRAPH_COUNT];
+  raptor_uri* graph_uris[DATA_GRAPH_COUNT];
   
   rasqal_init();
   
@@ -125,7 +132,7 @@ main(int argc, char **argv) {
 
   data_dir_string=raptor_uri_filename_to_uri_string(argv[1]);
   data_dir_uri=raptor_new_uri(data_dir_string);
-  for(i=0; i < GRAPH_COUNT; i++)
+  for(i=0; i < DATA_GRAPH_COUNT; i++)
     graph_uris[i]=raptor_new_uri_relative_to_base(data_dir_uri,
                                                   (const unsigned char*)graph_files[i]);
   
@@ -156,9 +163,13 @@ main(int argc, char **argv) {
       goto tidy_query;
     }
 
-    for(j=0; j < GRAPH_COUNT; j++)
-      rasqal_query_add_data_graph(query, graph_uris[j], graph_uris[j],
-                                  RASQAL_DATA_GRAPH_NAMED);
+    for(j=0; j < DATA_GRAPH_COUNT; j++) {
+      int offset=tests[i].data_graphs[j];
+      if(offset >= 0)
+        rasqal_query_add_data_graph(query, 
+                                    graph_uris[offset], graph_uris[offset],
+                                    RASQAL_DATA_GRAPH_NAMED);
+    }
     
 
     printf("%s: executing query %d\n", program, i);
@@ -241,7 +252,7 @@ main(int argc, char **argv) {
     }
   }
 
-  for(i=0; i < GRAPH_COUNT; i++) {
+  for(i=0; i < DATA_GRAPH_COUNT; i++) {
     if(graph_uris[i])
       raptor_free_uri(graph_uris[i]);
   }
