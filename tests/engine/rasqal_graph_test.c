@@ -41,35 +41,50 @@
 
 #ifdef RASQAL_QUERY_SPARQL
 
-#define QUERY_LANGUAGE "sparql"
+
+#define QUERY_VARIABLES_MAX_COUNT 2
+
+struct test
+{
+  const char *query_language;
+  const char *query_string;
+  int expected_count;
+  const char* value_answers[QUERY_VARIABLES_MAX_COUNT];
+  int graph_answers[QUERY_VARIABLES_MAX_COUNT];
+  const char* value_var;
+  const char* graph_var;
+};
+
+
 
 #define QUERY_COUNT 1
-static int expected_count[QUERY_COUNT]={ 2 };
 
-static const char* answers[QUERY_COUNT][2] = {
-  { "mercury", "orange" }
-};
-static const int graph_answers[QUERY_COUNT][2] = {
-  { 0, 1 }
-};
 
-#define GRAPH_COUNT 2
-static const char* graph_files[GRAPH_COUNT] = {
-  "graph-a.ttl",
-  "graph-b.ttl"
-};
-
-#define QUERY_VALUE_VAR ((const unsigned char *)"value")
-#define QUERY_GRAPH_VAR ((const unsigned char *)"graph")
-
-#define QUERY_FORMAT "\
+static const struct test tests[QUERY_COUNT] = {
+  { .query_language = "sparql",
+    .query_string = "\
 PREFIX : <http://example.org/>\
 SELECT ?graph ?value \
 WHERE\
 {\
   GRAPH ?graph { :x :b ?value } \
 }\
-"
+",  
+    .expected_count =  2,
+    .value_answers = { "mercury", "orange" },
+    .graph_answers = { 0, 1 },
+    .value_var = "value",
+    .graph_var = "graph",
+  }
+};
+
+
+#define GRAPH_COUNT 3
+static const char* graph_files[GRAPH_COUNT] = {
+  "graph-a.ttl",
+  "graph-b.ttl",
+  "graph-c.ttl"
+};
 
 #else
 #define NO_QUERY_LANGUAGE
@@ -119,8 +134,8 @@ main(int argc, char **argv) {
   for(i=0; i < QUERY_COUNT; i++) {
     rasqal_query *query = NULL;
     rasqal_query_results *results = NULL;
-    const char *query_language_name=QUERY_LANGUAGE;
-    const unsigned char *query_format=(const unsigned char *)QUERY_FORMAT;
+    const char *query_language_name=tests[i].query_language;
+    const unsigned char *query_string=(const unsigned char *)tests[i].query_string;
     int count;
     int query_failed=0;
     int j;
@@ -134,7 +149,7 @@ main(int argc, char **argv) {
     }
 
     printf("%s: preparing %s query %d\n", program, query_language_name, i);
-    if(rasqal_query_prepare(query, query_format, base_uri)) {
+    if(rasqal_query_prepare(query, query_string, base_uri)) {
       fprintf(stderr, "%s: %s query prepare %d FAILED\n", program, 
               query_language_name, i);
       query_failed=1;
@@ -161,13 +176,15 @@ main(int argc, char **argv) {
       rasqal_literal *value;
       rasqal_literal *graph_value;
       raptor_uri* graph_uri;
-      const char *value_answer=answers[i][count];
-      raptor_uri* graph_answer=graph_uris[graph_answers[i][count]];
-
+      const char *value_answer=tests[i].value_answers[count];
+      raptor_uri* graph_answer=graph_uris[tests[i].graph_answers[count]];
+      const unsigned char* graph_var=(const unsigned char*)tests[i].graph_var;
+      const unsigned char* value_var=(const unsigned char*)tests[i].value_var;
+      
       value=rasqal_query_results_get_binding_value_by_name(results, 
-                                                           QUERY_VALUE_VAR);
+                                                           value_var);
       if(strcmp((const char*)rasqal_literal_as_string(value), value_answer)) {
-        printf("result %d FAILED: %s=", count, (char*)QUERY_VALUE_VAR);
+        printf("result %d FAILED: %s=", count, (char*)value_var);
         rasqal_literal_print(value, stdout);
         printf(" expected value '%s'\n", value_answer);
         query_failed=1;
@@ -175,15 +192,15 @@ main(int argc, char **argv) {
       }
 
       graph_value=rasqal_query_results_get_binding_value_by_name(results, 
-                                                                 QUERY_GRAPH_VAR);
+                                                                 graph_var);
       if(!graph_value) {
-        printf("variable '%s' is not in the result\n", QUERY_GRAPH_VAR);
+        printf("variable '%s' is not in the result\n", graph_var);
         query_failed=1;
         break;
       }
       
       if(graph_value->type != RASQAL_LITERAL_URI) {
-        printf("variable '%s' is type %d expected %d\n", QUERY_GRAPH_VAR,
+        printf("variable '%s' is type %d expected %d\n", graph_var,
                graph_value->type, RASQAL_LITERAL_URI);
         query_failed=1;
         break;
@@ -191,7 +208,7 @@ main(int argc, char **argv) {
       
       graph_uri=graph_value->value.uri;
       if(!raptor_uri_equals(graph_uri, graph_answer)) {
-        printf("result %d FAILED: %s=", count, (char*)QUERY_GRAPH_VAR);
+        printf("result %d FAILED: %s=", count, (char*)graph_var);
         rasqal_literal_print(graph_value, stdout);
         printf(" expected URI value <%s>\n", 
                raptor_uri_as_string(graph_answer));
@@ -206,9 +223,9 @@ main(int argc, char **argv) {
       rasqal_free_query_results(results);
 
     printf("%s: checking query %d results count\n", program, i);
-    if(count != expected_count[i]) {
+    if(count != tests[i].expected_count) {
       printf("%s: query execution %d FAILED returning %d results, expected %d\n", 
-             program, i, count, expected_count[i]);
+             program, i, count, tests[i].expected_count);
       query_failed=1;
     }
 
