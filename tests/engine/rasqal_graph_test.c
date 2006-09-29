@@ -120,13 +120,10 @@ main(int argc, char **argv) {
     rasqal_query *query = NULL;
     rasqal_query_results *results = NULL;
     const char *query_language_name=QUERY_LANGUAGE;
-    const char *query_format=QUERY_FORMAT;
-    unsigned char *query_string;
+    const unsigned char *query_format=(const unsigned char *)QUERY_FORMAT;
     int count;
     int query_failed=0;
     int j;
-
-    query_string=(unsigned char*)query_format;
 
     query=rasqal_new_query(query_language_name, NULL);
     if(!query) {
@@ -137,14 +134,12 @@ main(int argc, char **argv) {
     }
 
     printf("%s: preparing %s query %d\n", program, query_language_name, i);
-    if(rasqal_query_prepare(query, query_string, base_uri)) {
+    if(rasqal_query_prepare(query, query_format, base_uri)) {
       fprintf(stderr, "%s: %s query prepare %d FAILED\n", program, 
               query_language_name, i);
       query_failed=1;
       goto tidy_query;
     }
-
-    //RASQAL_FREE(cstring, query_string);
 
     for(j=0; j < GRAPH_COUNT; j++)
       rasqal_query_add_data_graph(query, graph_uris[j], graph_uris[j],
@@ -198,7 +193,8 @@ main(int argc, char **argv) {
       if(!raptor_uri_equals(graph_uri, graph_answer)) {
         printf("result %d FAILED: %s=", count, (char*)QUERY_GRAPH_VAR);
         rasqal_literal_print(graph_value, stdout);
-        printf(" expected URI value <%s>\n", raptor_uri_as_string(graph_answer));
+        printf(" expected URI value <%s>\n", 
+               raptor_uri_as_string(graph_answer));
         query_failed=1;
         break;
       }
