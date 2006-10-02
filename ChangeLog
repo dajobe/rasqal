@@ -1,3 +1,43 @@
+2006-09-28  Dave Beckett  <dave@dajobe.org>
+
+	* tests/engine/rasqal_graph_test.c: Added 2nd query
+
+	* tests/engine/rasqal_graph_test.c: parameterise the input data graphs
+
+	* tests/engine/rasqal_graph_test.c: Add tests structure to make
+	this more data driven.
+
+	* data/graph-c.ttl: add graph-c.ttl
+
+	* data/Makefile.am: graph-c.ttl
+
+	* tests/engine/rasqal_graph_test.c: Rasqal RDF Query GRAPH Tests
+
+2006-09-27  Dave Beckett  <dave@dajobe.org>
+
+	* src/rasqal_engine.c: (rasqal_engine_do_step): Added a hack to
+	check an outer constraint expression.
+	Fixes Issue#0000129 http://bugs.librdf.org/mantis/view.php?id=129
+
+	* tests/engine/Makefile.am: Added rasqal_graph_test.c.
+	Invoke all tests with the data dir
+
+	* tests/engine/rasqal_order_test.c: Take data dir as a parameter.
+
+2006-09-26  Dave Beckett  <dave@dajobe.org>
+
+	* docs/tmpl/section-query_results.sgml: update
+
+	* data/Makefile.am, data/graph-a.ttl, data/graph-b.ttl: Add graph
+	test data files
+
+	* src/rasqal_raptor.c: (rasqal_raptor_free_triples_source): Free
+	source URIs and literals only if allocated.
+
+	* src/rasqal_engine.c: (rasqal_engine_query_results_update): Fix
+	logic to set failed flag as well as finished flag when
+	rasqal_engine_get_next_result fails.
+
 2006-09-24  Dave Beckett  <dave@dajobe.org>
 
 	* src/sparql_parser.y: Fix debug messages since
