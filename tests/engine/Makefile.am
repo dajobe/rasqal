@@ -25,14 +25,16 @@ local_tests=rasqal_order_test rasqal_graph_test
 
 EXTRA_PROGRAMS=$(local_tests)
 
+AM_CPPFLAGS=@RASQAL_INTERNAL_CPPFLAGS@ @RASQAL_EXTERNAL_CPPFLAGS@ -I$(top_srcdir)/src
+AM_CFLAGS=@RASQAL_INTERNAL_CPPFLAGS@ @RASQAL_EXTERNAL_CPPFLAGS@ $(MEM)
+AM_LDFLAGS=@RASQAL_INTERNAL_LIBS@ @RASQAL_EXTERNAL_LIBS@ $(MEM_LIBS)
+
 CLEANFILES=$(local_tests)
 
 rasqal_order_test_SOURCES = rasqal_order_test.c
-rasqal_order_test_CPPFLAGS = -DSTANDALONE -I$(top_srcdir)/src
 rasqal_order_test_LDADD = $(top_builddir)/src/librasqal.la
 
 rasqal_graph_test_SOURCES = rasqal_graph_test.c
-rasqal_graph_test_CPPFLAGS = -DSTANDALONE -I$(top_srcdir)/src
 rasqal_graph_test_LDADD = $(top_builddir)/src/librasqal.la
 
 
