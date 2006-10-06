@@ -1,3 +1,38 @@
+2006-10-05  Dave Beckett  <dave@dajobe.org>
+
+	* utils/roqet.c: const
+
+	* src/rasqal_literal.c, src/rasqal_query.c,
+	src/rasqal_query_results.c, src/rdql_common.h, src/rdql_lexer.l,
+	src/sparql_common.h, src/sparql_lexer.l, src/sparql_parser.y: Add
+	some casting around error/warning handlers. Fix a few
+	signed/unsigned comparisons
+
+	* src/rasqal_general.c: (rasqal_languages_enumerate,
+	rasqal_escaped_name_to_utf8_string): Discard tests for unsigned
+	int < 0.
+	(rasqal_uri_init, rasqal_uri_finish): Use ANSI style void
+	declaration.
+
+	* src/rasqal_engine.c: (rasqal_engine_expand_wildcards): Add
+	missing format arg in error.
+
+	* configure.ac: In maintainer mode, add all the supported -W
+	options to the MAINTAINER_CFLAGS
+
+	* src/rasqal_internal.h: Added RASQAL_PRINTF_FORMAT to allow
+	declaring of functions with a printf-style format argument declare
+	many error/warning/*varargs prototypes with it if they take a
+	printf-style format argument.
+
+2006-10-01  Dave Beckett  <dave@dajobe.org>
+
+	* tests/engine/Makefile.am: Add AM_CPPFLAGS/CFLAGS to allow
+	compiling out of source dir with external raptor
+
+	* utils/Makefile.am: Tidy AM_CPPFLAGS/CFLAGS to remove duplicated
+	symbols
+
 2006-09-28  Dave Beckett  <dave@dajobe.org>
 
 	* tests/engine/rasqal_graph_test.c: Added 2nd query
