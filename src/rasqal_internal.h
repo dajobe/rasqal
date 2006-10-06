@@ -43,6 +43,13 @@ extern "C" {
 #include <dmalloc.h>
 #endif
 
+#if __GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ > 4)
+#define RASQAL_PRINTF_FORMAT(string_index, first_to_check_index) \
+  __attribute__((__format__(__printf__, string_index, first_to_check_index)))
+#else
+#define RASQAL_PRINTF_FORMAT(string_index, first_to_check_index)
+#endif
+
 /* Can be over-ridden or undefined in a config.h file or -Ddefine */
 #ifndef RASQAL_INLINE
 #define RASQAL_INLINE inline
@@ -469,13 +476,13 @@ char* rasqal_vsnprintf(const char* message, va_list arguments);
 void rasqal_query_engine_register_factory(const char* name, const char* label, const char* alias, const unsigned char* uri_string, void (*factory) (rasqal_query_engine_factory*));
 rasqal_query_engine_factory* rasqal_get_query_engine_factory (const char* name, const unsigned char* uri);
 
-void rasqal_query_fatal_error(rasqal_query* query, const char* message, ...);
-void rasqal_query_fatal_error_varargs(rasqal_query* query, const char* message, va_list arguments);
-void rasqal_query_error(rasqal_query* query, const char* message, ...);
-void rasqal_query_simple_error(void* query, const char* message, ...);
-void rasqal_query_error_varargs(rasqal_query* query, const char* message, va_list arguments);
-void rasqal_query_warning(rasqal_query* query, const char* message, ...);
-void rasqal_query_warning_varargs(rasqal_query* query, const char* message, va_list arguments);
+void rasqal_query_fatal_error(rasqal_query* query, const char* message, ...) RASQAL_PRINTF_FORMAT(2, 3);
+void rasqal_query_fatal_error_varargs(rasqal_query* query, const char* message, va_list arguments) RASQAL_PRINTF_FORMAT(2, 0);
+void rasqal_query_error(rasqal_query* query, const char* message, ...) RASQAL_PRINTF_FORMAT(2, 3);
+void rasqal_query_simple_error(void* query, const char* message, ...) RASQAL_PRINTF_FORMAT(2, 3);
+void rasqal_query_error_varargs(rasqal_query* query, const char* message, va_list arguments) RASQAL_PRINTF_FORMAT(2, 0);
+void rasqal_query_warning(rasqal_query* query, const char* message, ...) RASQAL_PRINTF_FORMAT(2, 3);
+void rasqal_query_warning_varargs(rasqal_query* query, const char* message, va_list arguments) RASQAL_PRINTF_FORMAT(2, 0);
 
 const char* rasqal_basename(const char* name);
 
