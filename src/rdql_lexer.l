@@ -492,7 +492,7 @@ rdql_copy_string_token(rasqal_query* rq, YYSTYPE* lval,
         s+= ulen-1;
         i+= ulen-1;
         
-        if(unichar < 0 || unichar > 0x10ffff) {
+        if(unichar > 0x10ffff) {
           rdql_syntax_error(rq, "RDQL syntax error - Illegal Unicode character with code point #x%lX.", unichar);
           RASQAL_FREE(cstring, string);
           return 1;

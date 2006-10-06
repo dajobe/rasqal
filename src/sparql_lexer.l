@@ -531,7 +531,7 @@ rasqal_sparql_name_check(const unsigned char *string, size_t length,
 
   if(check_flags & SPARQL_NAME_CHECK_NO_DOT_MINUS) {
     int i;
-    for(i=0; i<length; i++)
+    for(i=0; i < (int)length; i++)
       if(string[i] == '.' || string[i] == '-')
         return 0;
   }
@@ -589,7 +589,7 @@ sparql_copy_qname(rasqal_query *rq, const unsigned char *text, size_t len) {
   
   uri=raptor_qname_string_to_uri(rq->namespaces,
                                  s, dest_len,
-                                 rasqal_query_simple_error, rq);
+                                 (raptor_simple_message_handler)rasqal_query_simple_error, rq);
 #endif
   RASQAL_FREE(cstring, s);
   
@@ -645,7 +645,7 @@ sparql_copy_string_token(rasqal_query* rq, YYSTYPE* lval,
         s+= ulen-1;
         i+= ulen-1;
         
-        if(unichar < 0 || unichar > 0x10ffff) {
+        if(unichar > 0x10ffff) {
           sparql_syntax_error(rq, "SPARQL syntax error - Illegal Unicode character with code point #x%lX.", unichar);
           RASQAL_FREE(cstring, string);
           return 1;
@@ -737,7 +737,7 @@ sparql_copy_string_token(rasqal_query* rq, YYSTYPE* lval,
   
       dt_uri=raptor_qname_string_to_uri(rq->namespaces,
                                         dt_s, dest_len,
-                                        rasqal_query_simple_error, rq);
+                                        (raptor_simple_message_handler)rasqal_query_simple_error, rq);
       RASQAL_FREE(cstring, dt_s);
 
       if(!dt_uri) {

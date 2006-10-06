@@ -32,8 +32,8 @@ extern "C" {
 
 
 /* sparql_parser.y */
-int sparql_syntax_error(rasqal_query *rq, const char *message, ...);
-int sparql_syntax_warning(rasqal_query *rq, const char *message, ...);
+int sparql_syntax_error(rasqal_query *rq, const char *message, ...) RASQAL_PRINTF_FORMAT(2, 3);
+int sparql_syntax_warning(rasqal_query *rq, const char *message, ...) RASQAL_PRINTF_FORMAT(2, 3);
 
 int sparql_query_lex(void);
 

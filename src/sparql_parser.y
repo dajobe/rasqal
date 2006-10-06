@@ -94,7 +94,7 @@ extern int sparql_lexer_lex (YYSTYPE *sparql_parser_lval, yyscan_t scanner);
 
 static int sparql_parse(rasqal_query* rq, const unsigned char *string);
 static void sparql_query_error(rasqal_query* rq, const char *message);
-static void sparql_query_error_full(rasqal_query *rq, const char *message, ...);
+static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) RASQAL_PRINTF_FORMAT(2, 3);
 static int sparql_is_builtin_xsd_datatype(raptor_uri* uri);
 
 %}

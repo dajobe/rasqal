@@ -861,11 +861,8 @@ rasqal_query_results_formats_enumerate(const unsigned int counter,
 {
   rasqal_query_results_format_factory *factory;
   int i;
-  int real_counter;
+  unsigned int real_counter;
   
-  if(counter < 0)
-    return 1;
-
   real_counter=0;
   for(i=0; 1; i++) {
     factory=(rasqal_query_results_format_factory*)raptor_sequence_get_at(query_results_formats, i);
@@ -1077,12 +1074,12 @@ rasqal_query_results_write_xml_20041221(raptor_iostream *iostr,
   raptor_uri_get_handler(&uri_handler, &uri_context);
 
   nstack=raptor_new_namespaces(uri_handler, uri_context,
-                               rasqal_query_simple_error, query,
+                               (raptor_simple_message_handler)rasqal_query_simple_error, query,
                                1);
   xml_writer=raptor_new_xml_writer(nstack,
                                    uri_handler, uri_context,
                                    iostr,
-                                   rasqal_query_simple_error, query,
+                                   (raptor_simple_message_handler)rasqal_query_simple_error, query,
                                    1);
   if(!xml_writer)
     return 1;
@@ -1248,7 +1245,7 @@ rasqal_query_results_write_xml_20041221(raptor_iostream *iostr,
               attrs[0]=raptor_new_qname(nstack,
                                         (const unsigned char*)"xml:lang",
                                         (const unsigned char*)l->language,
-                                        rasqal_query_simple_error, query);
+                                        (raptor_simple_message_handler)rasqal_query_simple_error, query);
             else
               attrs[0]=raptor_new_qname_from_namespace_local_name(res_ns, 
                                                                   (const unsigned char*)"datatype",
@@ -1365,12 +1362,12 @@ rasqal_query_results_write_xml_result2(raptor_iostream *iostr,
   raptor_uri_get_handler(&uri_handler, &uri_context);
 
   nstack=raptor_new_namespaces(uri_handler, uri_context,
-                               rasqal_query_simple_error, query,
+                               (raptor_simple_message_handler)rasqal_query_simple_error, query,
                                1);
   xml_writer=raptor_new_xml_writer(nstack,
                                    uri_handler, uri_context,
                                    iostr,
-                                   rasqal_query_simple_error, query,
+                                   (raptor_simple_message_handler)rasqal_query_simple_error, query,
                                    1);
   if(!xml_writer)
     return 1;
@@ -1614,7 +1611,7 @@ rasqal_query_results_write_xml_result2(raptor_iostream *iostr,
               attrs[0]=raptor_new_qname(nstack,
                                         (const unsigned char*)"xml:lang",
                                         (const unsigned char*)l->language,
-                                        rasqal_query_simple_error, query);
+                                        (raptor_simple_message_handler)rasqal_query_simple_error, query);
             else
               attrs[0]=raptor_new_qname_from_namespace_local_name(res_ns, 
                                                                   (const unsigned char*)"datatype",
@@ -1737,12 +1734,12 @@ rasqal_query_results_write_xml_result3(raptor_iostream *iostr,
   raptor_uri_get_handler(&uri_handler, &uri_context);
 
   nstack=raptor_new_namespaces(uri_handler, uri_context,
-                               rasqal_query_simple_error, query,
+                               (raptor_simple_message_handler)rasqal_query_simple_error, query,
                                1);
   xml_writer=raptor_new_xml_writer(nstack,
                                    uri_handler, uri_context,
                                    iostr,
-                                   rasqal_query_simple_error, query,
+                                   (raptor_simple_message_handler)rasqal_query_simple_error, query,
                                    1);
   if(!xml_writer)
     return 1;
@@ -1997,7 +1994,7 @@ rasqal_query_results_write_xml_result3(raptor_iostream *iostr,
               attrs[0]=raptor_new_qname(nstack,
                                         (const unsigned char*)"xml:lang",
                                         (const unsigned char*)l->language,
-                                        rasqal_query_simple_error, query);
+                                        (raptor_simple_message_handler)rasqal_query_simple_error, query);
             else
               attrs[0]=raptor_new_qname_from_namespace_local_name(res_ns, 
                                                                   (const unsigned char*)"datatype",

@@ -924,7 +924,7 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
                        int *error)
 {
   rasqal_literal *lits[2];
-  int type;
+  unsigned int type;
   int i;
   int ints[2];
   double doubles[2];
@@ -1242,7 +1242,7 @@ rasqal_literal_expand_qname(void *user_data, rasqal_literal *l)
     /* expand a literal qname */
     raptor_uri *uri=raptor_qname_string_to_uri(rq->namespaces,
                                                l->string, l->string_len,
-                                               rasqal_query_simple_error, rq);
+                                               (raptor_simple_message_handler)rasqal_query_simple_error, rq);
     if(!uri)
       return 1;
     RASQAL_FREE(cstring, (void*)l->string);
@@ -1257,7 +1257,7 @@ rasqal_literal_expand_qname(void *user_data, rasqal_literal *l)
       uri=raptor_qname_string_to_uri(rq->namespaces,
                                      l->flags, 
                                      strlen((const char*)l->flags),
-                                     rasqal_query_simple_error, rq);
+                                     (raptor_simple_message_handler)rasqal_query_simple_error, rq);
       if(!uri)
         return 1;
       l->datatype=uri;
@@ -1269,7 +1269,7 @@ rasqal_literal_expand_qname(void *user_data, rasqal_literal *l)
         l->language=NULL;
       }
 
-      if(rasqal_literal_string_to_native(l, rasqal_query_simple_error, rq)) {
+      if(rasqal_literal_string_to_native(l, (raptor_simple_message_handler)rasqal_query_simple_error, rq)) {
         rasqal_free_literal(l);
         return 1;
       }

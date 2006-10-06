@@ -32,8 +32,8 @@ extern "C" {
 
 
 /* rdql_parser.y */
-int rdql_syntax_error(rasqal_query *rq, const char *message, ...);
-int rdql_syntax_warning(rasqal_query *rq, const char *message, ...);
+int rdql_syntax_error(rasqal_query *rq, const char *message, ...) RASQAL_PRINTF_FORMAT(2, 3);
+int rdql_syntax_warning(rasqal_query *rq, const char *message, ...) RASQAL_PRINTF_FORMAT(2, 3);
 
 int rdql_query_lex(void);
 

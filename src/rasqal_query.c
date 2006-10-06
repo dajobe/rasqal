@@ -91,7 +91,7 @@ rasqal_new_query(const char *name, const unsigned char *uri)
 
   raptor_uri_get_handler(&uri_handler, &uri_context);
   query->namespaces=raptor_new_namespaces(uri_handler, uri_context,
-                                          rasqal_query_simple_error,
+                                          (raptor_simple_message_handler)rasqal_query_simple_error,
                                           query,
                                           0);
 
@@ -1859,7 +1859,7 @@ rasqal_query_write_sparql_20060406(raptor_iostream *iostr,
 
   raptor_uri_get_handler(&uri_handler, &uri_context);
   wc.nstack=raptor_new_namespaces(uri_handler, uri_context,
-                                  rasqal_query_simple_error,
+                                  (raptor_simple_message_handler)rasqal_query_simple_error,
                                   query,
                                   1);
 
