@@ -357,7 +357,7 @@ main(int argc, char *argv[])
   unsigned char *base_uri_string=NULL;
   rasqal_query *rq;
   rasqal_query_results *results;
-  char *ql_name="sparql";
+  const char *ql_name="sparql";
   char *ql_uri=NULL;
   int rc=0;
   raptor_uri *uri=NULL;
