@@ -1079,7 +1079,7 @@ main(int argc, char *argv[])
   int token=EOF;
   YYSTYPE lval;
   const unsigned char *uri_string;
-  char *filename=NULL;
+  const char *filename=NULL;
   char *buf=NULL;
   size_t len;
   void *buffer;

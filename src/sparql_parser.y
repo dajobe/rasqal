@@ -2076,7 +2076,7 @@ main(int argc, char *argv[])
   rasqal_query *query;
   FILE *fh;
   int rc;
-  char *filename=NULL;
+  const char *filename=NULL;
   raptor_uri* base_uri=NULL;
   unsigned char *uri_string;
 
