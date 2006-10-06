@@ -296,7 +296,7 @@ rasqal_engine_expand_wildcards(rasqal_query* rq)
     case RASQAL_QUERY_VERB_DESCRIBE:
     case RASQAL_QUERY_VERB_ASK:
     default:
-      rasqal_query_error(rq, "Cannot use wildcard * with query verb ",
+      rasqal_query_error(rq, "Cannot use wildcard * with query verb %s",
                          rasqal_query_verb_as_string(rq->verb));
       rc=1;
       break;
