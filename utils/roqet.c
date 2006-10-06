@@ -584,7 +584,7 @@ main(int argc, char *argv[])
     puts(HELP_TEXT("r", "results FORMAT  ", "Set query results format to one of:"));
     puts("    For variable bindings and boolean results:");
     puts("      simple                A simple text format (default)");
-    for(i=0; i < raptor_get_feature_count(); i++) {
+    for(i=0; i < (int)raptor_get_feature_count(); i++) {
       const char *name;
       const char *label;
       if(!rasqal_query_results_formats_enumerate(i, &name, &label, 
