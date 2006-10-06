@@ -353,7 +353,7 @@ rasqal_languages_enumerate(const unsigned int counter,
   unsigned int i;
   rasqal_query_engine_factory *factory=query_engines;
 
-  if(!factory || counter < 0)
+  if(!factory)
     return 1;
 
   for(i=0; factory && i<=counter ; i++, factory=factory->next) {
@@ -595,7 +595,7 @@ rasqal_escaped_name_to_utf8_string(const unsigned char *src, size_t len,
     if(c > 0x7f) {
       /* just copy the UTF-8 bytes through */
       size_t unichar_len=raptor_utf8_to_unicode_char(NULL, (const unsigned char*)p, len+1);
-      if(unichar_len < 0 || unichar_len > len) {
+      if(unichar_len > len) {
         if(error_handler)
           error_handler(error_data, "UTF-8 encoding error at character %d (0x%02X) found.", c, c);
         /* UTF-8 encoding had an error or ended in the middle of a string */
@@ -650,7 +650,7 @@ rasqal_escaped_name_to_utf8_string(const unsigned char *src, size_t len,
         p+=ulen;
         len-=ulen;
         
-        if(unichar < 0 || unichar > 0x10ffff) {
+        if(unichar > 0x10ffff) {
           if(error_handler)
             error_handler(error_data, "Illegal Unicode character with code point #x%lX.", unichar);
           break;
@@ -697,7 +697,7 @@ raptor_uri* rasqal_rdf_nil_uri=NULL;
 
 
 void
-rasqal_uri_init() 
+rasqal_uri_init(void) 
 {
   rasqal_xsd_namespace_uri=raptor_new_uri(raptor_xmlschema_datatypes_namespace_uri);
   
@@ -719,7 +719,7 @@ rasqal_uri_init()
 
 
 void
-rasqal_uri_finish() 
+rasqal_uri_finish(void) 
 {
   if(rasqal_xsd_integer_uri)
     raptor_free_uri(rasqal_xsd_integer_uri);
