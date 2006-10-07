@@ -256,30 +256,7 @@ rasqal_map_node_print_visit(void *key, void *value, void *user_data)
   fh=pi->fh;
   indent=pi->indent;
 
-#if RASQAL_DEBUG >2
-  fprintf(fh, "node %p {\n", node);
-  indent+=2;
   rasqal_map_node_write_indent(fh, indent);
-
-  fputs("prev: ", fh);
-  if(node->prev)
-    rasqal_map_node_print_internal(node->prev, fh, indent);
-  else
-    fputs("NULL\n", fh);
-
-  rasqal_map_node_write_indent(fh, indent);
-
-  fputs("next: ", fh);
-  if(node->next)
-    rasqal_map_node_print_internal(node->next, fh, indent);
-  else
-    fputs("NULL\n", fh);
-  rasqal_map_node_write_indent(fh, indent);
-
-  fputs("node: ", fh);
-#else
-  rasqal_map_node_write_indent(fh, indent);
-#endif
   fputs("{key: ", fh);
   if(!key)
     fputs("NULL", fh);
@@ -298,13 +275,6 @@ rasqal_map_node_print_visit(void *key, void *value, void *user_data)
     fprintf(fh, "%p", value);
 
   fputs("}\n", fh);
-
-#if RASQAL_DEBUG >2
-  fputs("\n", fh);
-  indent-=2;
-  rasqal_map_node_write_indent(fh, indent);
-  fputs("}\n", fh);
-#endif
 }
 
 
