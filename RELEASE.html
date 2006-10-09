@@ -13,7 +13,7 @@
 <p>Not yet released.
 </p>
 
-<!-- changes up to svn r11361 at 2006-10-02 22:09 -->
+<!-- changes up to svn r11476 10-08 21:33 -->
 
 <h3>General Changes</h3>
 
@@ -44,7 +44,16 @@ and include float.h and <code>#define isnan</code> on win32.
 (Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=111">Issue#0000111</a>).
 </p>
 
+<p>In maintainer mode, add all the supported compiler <code>-W</code>
+warning flags to the CFLAGS.
+</p>
 
+<p>Declare several rasqal functions with GCC printf-formatting
+attributes when using a new enough GCC.</p>
+
+<p>Remove broken debug messages.
+<a href="http://bugs.librdf.org/mantis/view.php?id=131">#0000131</a>.
+</p>
 
 <h3>SPARQL Query Language Changes</h3>
 
