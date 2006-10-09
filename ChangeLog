@@ -1,4 +1,17 @@
+2006-10-07  Dave Beckett  <dave@dajobe.org>
+
+	* src/rasqal_map.c: (rasqal_map_node_print_visit): Delete old
+	debug messages.
+	Fixes Issue#0000131 http://bugs.librdf.org/mantis/view.php?id=131
+
 2006-10-05  Dave Beckett  <dave@dajobe.org>
+
+	* configure.ac: More -W flags
+
+	* src/rdql_lexer.l, src/rdql_parser.y, src/sparql_lexer.l,
+	src/sparql_parser.y: Casts
+
+	* utils/roqet.c: int cast
 
 	* utils/roqet.c: const
 
