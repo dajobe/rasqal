@@ -81,13 +81,15 @@ rdql_parser_error(const char *msg)
 #ifdef HAVE_GETOPT_LONG
 #define HELP_TEXT(short, long, description) "  -" short ", --" long "  " description
 #define HELP_ARG(short, long) "--" #long
+#define HELP_PAD "\n                           "
 #else
 #define HELP_TEXT(short, long, description) "  -" short "  " description
 #define HELP_ARG(short, long) "-" #short
+#define HELP_PAD "\n      "
 #endif
 
 
-#define GETOPT_STRING "cd:e:hi:nr:qs:vw"
+#define GETOPT_STRING "cd:e:f:hi:nr:qs:vw"
 
 #ifdef HAVE_GETOPT_LONG
 static struct option long_options[] =
@@ -97,6 +99,7 @@ static struct option long_options[] =
   {"dump-query", 1, 0, 'd'},
   {"dryrun", 0, 0, 'n'},
   {"exec", 1, 0, 'e'},
+  {"feature", 1, 0, 'f'},
   {"help", 0, 0, 'h'},
   {"input", 1, 0, 'i'},
   {"quiet", 0, 0, 'q'},
@@ -374,6 +377,9 @@ main(int argc, char *argv[])
   const char *serializer_syntax_name="ntriples";
   query_output_format output_format= QUERY_OUTPUT_UNKNOWN;
   rasqal_query_results_formatter* results_formatter=NULL;
+  rasqal_feature query_feature=(rasqal_feature)-1;
+  int query_feature_value= -1;
+  unsigned char* query_feature_string_value=NULL;
   
   program=argv[0];
   if((p=strrchr(program, '/')))
@@ -439,6 +445,62 @@ main(int argc, char *argv[])
 	if(optarg) {
           query_string=optarg;
           query_from_string=1;
+        }
+        break;
+
+      case 'f':
+        if(optarg) {
+          if(!strcmp(optarg, "help")) {
+            int i;
+            
+            fprintf(stderr, "%s: Valid query features are:\n", program);
+            for(i=0; i < (int)rasqal_get_feature_count(); i++) {
+              const char *feature_name;
+              const char *feature_label;
+              if(!rasqal_features_enumerate((rasqal_feature)i, &feature_name, NULL, &feature_label)) {
+                const char *feature_type=(rasqal_feature_value_type((rasqal_feature)i) == 0) ? "" : " (string)";
+                printf("  %-20s  %s%s\n", feature_name, feature_label, 
+                       feature_type);
+              }
+            }
+            fputs("Features are set with `" HELP_ARG(f, feature) " FEATURE=VALUE or `-f FEATURE'\nand take a decimal integer VALUE except where noted, defaulting to 1 if omitted.\n", stderr);
+
+            rasqal_finish();
+            exit(0);
+          } else {
+            int i;
+            size_t arg_len=strlen(optarg);
+            
+            for(i=0; i < (int)rasqal_get_feature_count(); i++) {
+              const char *feature_name;
+              size_t len;
+              
+              if(rasqal_features_enumerate((rasqal_feature)i, &feature_name, NULL, NULL))
+                continue;
+              len=strlen(feature_name);
+              if(!strncmp(optarg, feature_name, len)) {
+                query_feature=(rasqal_feature)i;
+                if(rasqal_feature_value_type(query_feature) == 0) {
+                  if(len < arg_len && optarg[len] == '=')
+                    query_feature_value=atoi(&optarg[len+1]);
+                  else if(len == arg_len)
+                    query_feature_value=1;
+                } else {
+                  if(len < arg_len && optarg[len] == '=')
+                    query_feature_string_value=(unsigned char*)&optarg[len+1];
+                  else if(len == arg_len)
+                    query_feature_string_value=(unsigned char*)"";
+                }
+                break;
+              }
+            }
+            
+            if(query_feature_value < 0 && !query_feature_string_value) {
+              fprintf(stderr, "%s: invalid argument `%s' for `" HELP_ARG(f, feature) "'\nTry '%s " HELP_ARG(f, feature) " help' for a list of valid features\n",
+                      program, optarg, program);
+              usage=1;
+            }
+          }
         }
         break;
 
@@ -609,6 +671,7 @@ main(int argc, char *argv[])
     for(i=1; i <= QUERY_OUTPUT_LAST; i++)
       printf("      %-15s        %s\n", query_output_format_labels[i][0],
              query_output_format_labels[i][1]);
+    puts(HELP_TEXT("f FEATURE(=VALUE)", "feature FEATURE(=VALUE)", HELP_PAD "Set query features" HELP_PAD "Use `-f help' for a list of valid features"));
     puts(HELP_TEXT("h", "help             ", "Print this help, then exit"));
     puts(HELP_TEXT("n", "dryrun           ", "Prepare but do not run the query"));
     puts(HELP_TEXT("q", "quiet            ", "No extra information messages"));
@@ -760,6 +823,12 @@ main(int argc, char *argv[])
   rq=rasqal_new_query((const char*)ql_name, (const unsigned char*)ql_uri);
   rasqal_query_set_error_handler(rq, NULL, roqet_error_handler);
   rasqal_query_set_fatal_error_handler(rq, NULL, roqet_error_handler);
+
+  if(query_feature_value >= 0)
+    rasqal_query_set_feature(rq, query_feature, query_feature_value);
+  if(query_feature_string_value)
+    rasqal_query_set_feature_string(rq, query_feature,
+                                    query_feature_string_value);
   
   if(source_uris) {
     while(raptor_sequence_size(source_uris)) {
