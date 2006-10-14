@@ -300,18 +300,104 @@ rasqal_query_set_warning_handler(rasqal_query* query, void *user_data,
  *
  * Set various query features.
  * 
- * feature can be one of:
+ * The allowed features are available via rasqal_features_enumerate().
+ *
+ * Return value: non 0 on failure or if the feature is unknown
  **/
-void
-rasqal_query_set_feature(rasqal_query* query, 
-                         rasqal_feature feature, int value)
+int
+rasqal_query_set_feature(rasqal_query* query, rasqal_feature feature, int value)
 {
   switch(feature) {
+    case RASQAL_FEATURE_NO_NET:
+      query->features[(int)feature]=value;
+      break;
       
-    case RASQAL_FEATURE_LAST:
     default:
       break;
   }
+
+  return 0;
+}
+
+
+/**
+ * rasqal_query_set_feature_string:
+ * @query: #rasqal_query query object
+ * @feature: feature to set from enumerated #rasqal_feature values
+ * @value: feature value
+ *
+ * Set query features with string values.
+ * 
+ * The allowed features are available via rasqal_features_enumerate().
+ * If the feature type is integer, the value is interpreted as an integer.
+ *
+ * Return value: non 0 on failure or if the feature is unknown
+ **/
+int
+rasqal_query_set_feature_string(rasqal_query *query, 
+                                rasqal_feature feature, 
+                                const unsigned char *value)
+{
+  int value_is_string=(rasqal_feature_value_type(feature) == 1);
+  if(!value_is_string)
+    return rasqal_query_set_feature(query, feature, atoi((const char*)value));
+
+  return -1;
+}
+
+
+/**
+ * rasqal_query_get_feature:
+ * @query: #rasqal_query query object
+ * @feature: feature to get value
+ *
+ * Get various query features.
+ * 
+ * The allowed features are available via rasqal_features_enumerate().
+ *
+ * Note: no feature value is negative
+ *
+ * Return value: feature value or < 0 for an illegal feature
+ **/
+int
+rasqal_query_get_feature(rasqal_query *query, rasqal_feature feature)
+{
+  int result= -1;
+  
+  switch(feature) {
+    case RASQAL_FEATURE_NO_NET:
+      result=(query->features[(int)feature] != 0);
+      break;
+
+    default:
+      break;
+  }
+  
+  return result;
+}
+
+
+/**
+ * rasqal_query_get_feature_string:
+ * @query: #rasqal_query query object
+ * @feature: feature to get value
+ *
+ * Get query features with string values.
+ * 
+ * The allowed features are available via rasqal_features_enumerate().
+ * If a string is returned, it must be freed by the caller.
+ *
+ * Return value: feature value or NULL for an illegal feature or no value
+ **/
+const unsigned char *
+rasqal_query_get_feature_string(rasqal_query *query, 
+                                rasqal_feature feature)
+{
+  int value_is_string=(rasqal_feature_value_type(feature) == 1);
+  if(!value_is_string)
+    return NULL;
+  
+  return NULL;
 }
 
 
