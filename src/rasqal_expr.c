@@ -408,6 +408,8 @@ rasqal_free_triple(rasqal_triple* t)
     rasqal_free_literal(t->predicate);
   if(t->object)
     rasqal_free_literal(t->object);
+  if(t->origin)
+    rasqal_free_literal(t->origin);
   RASQAL_FREE(rasqal_triple, t);
 }
 
