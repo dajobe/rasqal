@@ -1,3 +1,8 @@
+2006-10-13  Dave Beckett  <dave@dajobe.org>
+
+	* src/rasqal_expr.c: (rasqal_free_triple): Free any origin.
+	Fixes Issue#0000133 http://bugs.librdf.org/mantis/view.php?id=133
+
 2006-10-07  Dave Beckett  <dave@dajobe.org>
 
 	* src/rasqal_map.c: (rasqal_map_node_print_visit): Delete old
