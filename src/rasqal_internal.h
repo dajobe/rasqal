@@ -305,6 +305,9 @@ struct rasqal_query_s {
   
   /* Graph pattern shared pointers by gp index (after prepare) */
   raptor_sequence* graph_patterns_sequence;
+
+  /* Features */
+  int features[RASQAL_FEATURE_LAST+1];
 };
 
 
