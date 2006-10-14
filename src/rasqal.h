@@ -126,6 +126,7 @@ typedef struct rasqal_graph_pattern_s rasqal_graph_pattern;
 
 /**
  * rasqal_feature:
+ * @RASQAL_FEATURE_NO_NET: Deny network requests.
  * @RASQAL_FEATURE_LAST: Internal.
  *
  * Query features.
@@ -133,7 +134,8 @@ typedef struct rasqal_graph_pattern_s rasqal_graph_pattern;
  * None currently defined.
  */
 typedef enum {
-  RASQAL_FEATURE_LAST
+  RASQAL_FEATURE_NO_NET,
+  RASQAL_FEATURE_LAST = RASQAL_FEATURE_NO_NET
 } rasqal_feature;
 
 
@@ -580,6 +582,15 @@ void rasqal_init(void);
 RASQAL_API
 void rasqal_finish(void);
 
+/* Features */
+RASQAL_API
+int rasqal_features_enumerate(const rasqal_feature feature, const char **name, raptor_uri **uri, const char **label);
+RASQAL_API
+unsigned int rasqal_get_feature_count(void);
+RASQAL_API
+rasqal_feature rasqal_feature_from_uri(raptor_uri *uri);
+RASQAL_API
+int rasqal_feature_value_type(const rasqal_feature feature);
 
 RASQAL_API
 int rasqal_languages_enumerate(const unsigned int counter, const char **name, const char **label, const unsigned char **uri_string);
@@ -608,7 +619,13 @@ void rasqal_query_set_error_handler(rasqal_query* query, void *user_data, raptor
 RASQAL_API
 void rasqal_query_set_warning_handler(rasqal_query* query, void *user_data, raptor_message_handler handler);
 RASQAL_API
-void rasqal_query_set_feature(rasqal_query* query, rasqal_feature feature, int value);
+int rasqal_query_set_feature(rasqal_query* query, rasqal_feature feature, int value);
+RASQAL_API
+int rasqal_query_set_feature_string(rasqal_query *query, rasqal_feature feature, const unsigned char *value);
+RASQAL_API
+int rasqal_query_get_feature(rasqal_query *query, rasqal_feature feature);
+RASQAL_API
+const unsigned char* rasqal_query_get_feature_string(rasqal_query *query, rasqal_feature feature);
 RASQAL_API
 void rasqal_query_set_default_generate_bnodeid_parameters(rasqal_query* rdf_query, char *prefix, int base);
 RASQAL_API
