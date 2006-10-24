@@ -12,6 +12,10 @@ rasqal_languages_enumerate
 rasqal_alloc_memory
 rasqal_calloc_memory
 rasqal_free_memory
+rasqal_feature_from_uri
+rasqal_feature_value_type
+rasqal_features_enumerate
+rasqal_get_feature_count
 RASQAL_DEPRECATED
 </SECTION>
 
@@ -145,7 +149,6 @@ rasqal_query_set_default_generate_bnodeid_parameters
 rasqal_query_set_distinct
 rasqal_query_set_error_handler
 rasqal_query_set_fatal_error_handler
-rasqal_query_set_feature
 rasqal_query_set_generate_bnodeid_handler
 rasqal_query_set_limit
 rasqal_query_set_offset
@@ -156,6 +159,10 @@ rasqal_query_verb_as_string
 rasqal_query_write
 rasqal_query_iostream_write_escaped_counted_string
 rasqal_query_escape_counted_string
+rasqal_query_set_feature
+rasqal_query_set_feature_string
+rasqal_query_get_feature
+rasqal_query_get_feature_string
 </SECTION>
 
 <SECTION>
