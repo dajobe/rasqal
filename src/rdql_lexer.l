@@ -306,7 +306,7 @@ QUOTEDURI \<[A-Za-z][^>]+\>
                     ;
                 }
 
-.         	{ if (*yytext == EOF)
+.         	{ if (!*yytext)
                     return EOF;
 
                   rdql_syntax_error(rq, "RDQL syntax error at '%s'", yytext);
@@ -371,7 +371,7 @@ rdql_copy_regex_token(rasqal_query* rq, YYSTYPE* lval, unsigned char delim) {
   unsigned char *buffer=NULL;
   size_t flags_len=0;
   unsigned char *flags=NULL;
-  char c;
+  int c;
 
   if(delim == 'm') {
     /* Handle pattern literal m/foo/ */
