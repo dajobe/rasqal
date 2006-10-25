@@ -393,7 +393,7 @@ EXPONENT [eE][+-]?[0-9]+
                           return STRING_LITERAL; }
 
 <LITERAL>(.|\n)	{ BEGIN(INITIAL);
-		  if (*yytext == EOF)
+		  if (!*yytext)
                     return EOF;
 
                   sparql_syntax_error(rq, "syntax error at %c - \"\"\"string was not terminated", *yytext);
@@ -408,7 +408,7 @@ EXPONENT [eE][+-]?[0-9]+
                           return STRING_LITERAL; }
 
 <LITERAL2>(.|\n)	{ BEGIN(INITIAL);
-		  if (*yytext == EOF)
+		  if (!*yytext)
                     return EOF;
 
                   sparql_syntax_error(rq, "syntax error at %c - '''string was not terminated", *yytext);
@@ -443,7 +443,7 @@ EXPONENT [eE][+-]?[0-9]+
                   return IDENTIFIER; }
 
 <PREF>(.|\n)	{ BEGIN(INITIAL);
-		  if (*yytext == EOF)
+		  if (!*yytext)
                     return EOF;
 
                   sparql_syntax_error(rq, "SPARQL syntax error at '%c'", *yytext);
@@ -490,7 +490,7 @@ EXPONENT [eE][+-]?[0-9]+
         	rqe->lineno++;
                 }
 
-.         	{ if (*yytext == EOF)
+.         	{ if (!*yytext)
                     return EOF;
 
                   sparql_syntax_error(rq, "SPARQL syntax error at '%c'", *yytext);
