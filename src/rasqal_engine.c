@@ -1134,7 +1134,6 @@ rasqal_engine_execute_init(rasqal_query_results* query_results)
   rasqal_query* query=query_results->query;
   rasqal_engine_execution_data* execution_data;
   rasqal_graph_pattern *gp;
-  int extra_gp_index;
   
   if(!query->triples)
     return 1;
@@ -1148,18 +1147,7 @@ rasqal_engine_execute_init(rasqal_query_results* query_results)
   }
 
 
-  /* FIXME.  This is support for the hack below to have one more graph
-   * pattern 
-   */
-  extra_gp_index=(query->graph_pattern_count++);
-
-  execution_data=rasqal_new_engine_execution_data(query_results);
-  query_results->execution_data=execution_data;
-  query_results->free_execution_data=rasqal_free_engine_execution_data;
-
-  rasqal_query_results_init(query_results);
-
-  /* FIXME.  This is hack.  If the structure is a single GP with no sub-GPs
+  /* FIXME.  This is a hack.  If the structure is a single GP with no sub-GPs
    * then make a new top graph pattern so the query engine always
    * sees a sequence of graph patterns at the top.  It should
    * operate fine on a graph pattern with just triples but the 
@@ -1173,7 +1161,12 @@ rasqal_engine_execute_init(rasqal_query_results* query_results)
       raptor_sequence_push(seq, query->query_graph_pattern);
       
       query->query_graph_pattern=rasqal_new_graph_pattern_from_sequence(query, seq, RASQAL_GRAPH_PATTERN_OPERATOR_GROUP);
-      query->query_graph_pattern->gp_index=extra_gp_index;
+      /* Add new graph pattern to the sequence of known graph patterns
+       * See rasqal_query_prepare_count_graph_patterns() 
+       */
+      query->query_graph_pattern->gp_index=(query->graph_pattern_count++);
+      raptor_sequence_push(query->graph_patterns_sequence, 
+                           query->query_graph_pattern);
 
 #ifdef RASQAL_DEBUG
       RASQAL_DEBUG1("Restructured top level single graph pattern to be a sequence of GPs, now:\n");
@@ -1183,6 +1176,12 @@ rasqal_engine_execute_init(rasqal_query_results* query_results)
     
   }
   
+
+  execution_data=rasqal_new_engine_execution_data(query_results);
+  query_results->execution_data=execution_data;
+  query_results->free_execution_data=rasqal_free_engine_execution_data;
+
+  rasqal_query_results_init(query_results);
 
   gp=query->query_graph_pattern;
 
