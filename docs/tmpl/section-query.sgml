@@ -430,16 +430,6 @@ then retrieved.
 @handler: 
 
 
-<!-- ##### FUNCTION rasqal_query_set_feature ##### -->
-<para>
-
-</para>
-
-@query: 
-@feature: 
-@value: 
-
-
 <!-- ##### FUNCTION rasqal_query_set_generate_bnodeid_handler ##### -->
 <para>
 
@@ -540,6 +530,48 @@ then retrieved.
 @string: 
 @len: 
 @output_len_p: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_query_set_feature ##### -->
+<para>
+
+</para>
+
+@query: 
+@feature: 
+@value: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_query_set_feature_string ##### -->
+<para>
+
+</para>
+
+@query: 
+@feature: 
+@value: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_query_get_feature ##### -->
+<para>
+
+</para>
+
+@query: 
+@feature: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_query_get_feature_string ##### -->
+<para>
+
+</para>
+
+@query: 
+@feature: 
 @Returns: 
 
 
