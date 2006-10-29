@@ -1,3 +1,50 @@
+2006-10-29  Dave Beckett  <dave@dajobe.org>
+
+	* docs/tmpl/section-general.sgml, docs/tmpl/section-query.sgml: docs
+
+2006-10-24  Dave Beckett  <dave@dajobe.org>
+
+	* src/rasqal_engine.c: (rasqal_engine_execute_init): Add hacky
+	top-level graph before rasqal_query_results_init() is run so that
+	the gp_data gets set correctly.
+
+	* src/sparql_lexer.l: Look for NULL *yytext at end of input
+	instead of EOF
+
+	* src/rdql_lexer.l: Look for NULL *yytext at end of input instead
+	of EOF
+	(rdql_copy_regex_token): int c since it may return EOF which may
+	be negative.
+
+2006-10-23  Dave Beckett  <dave@dajobe.org>
+
+	* docs/rasqal-sections.txt: add new functions about features
+
+2006-10-14  Dave Beckett  <dave@dajobe.org>
+
+	* utils/roqet.c: Added -f/--feature option to set query features
+
+	* src/rasqal_raptor.c: (rasqal_raptor_new_triples_source): Use
+	RASQAL_FEATURE_NO_NET to enable parser RAPTOR_FEATURE_NO_NET
+
+	* src/rasqal.h: Added rasqal_feature RASQAL_FEATURE_NO_NET Added
+	prototypes for rasqal_features_enumerate,
+	rasqal_get_feature_count, rasqal_feature_from_uri,
+	rasqal_feature_value_type, rasqal_query_set_feature_string,
+	rasqal_query_get_feature, rasqal_query_get_feature_string.
+	Prototype of rasqal_query_set_feature changed to return an int.
+
+	* src/rasqal_internal.h: rasqal_query_s gains features table
+
+	* src/rasqal_query.c: (rasqal_query_set_feature): Now returns an
+	int and has a feature.
+	(rasqal_query_set_feature_string, rasqal_query_get_feature,
+	rasqal_query_get_feature_string): Added.
+
+	* src/rasqal_feature.c: Added rasqal_feature.c
+
+	* src/Makefile.am: Added rasqal_feature.c
+
 2006-10-13  Dave Beckett  <dave@dajobe.org>
 
 	* src/rasqal_expr.c: (rasqal_free_triple): Free any origin.
