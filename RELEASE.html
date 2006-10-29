@@ -13,7 +13,7 @@
 <p>Not yet released.
 </p>
 
-<!-- changes up to svn r11476 10-08 21:33 -->
+<!-- changes up to svn r11548 2006-10-29 09:13 PST -->
 
 <h3>General Changes</h3>
 
@@ -24,6 +24,9 @@
 query_results internals so that eventually the run-time execution
 context is entirely separated from the static query structure.
 </p>
+
+<p>Added query features system with one initial feature 
+<code>RASQAL_FEATURE_NO_NET</code>.</p>
 
 
 <h3>Configuration and Build Changes</h3>
@@ -59,9 +62,17 @@ attributes when using a new enough GCC.</p>
 
 <p>Added labels to grammar tokens using bison to give better error messages.</p>
 
+<p>Fix looking for EOF in an unsigned variable since it may be negative
+on some systems.</p>
+
+
 <h3>RDQL Query Language Changes</h3>
 
 <p>Added labels to grammar tokens using bison to give better error messages.</p>
+
+<p>Fix looking for EOF in an unsigned variable since it may be negative
+on some systems.</p>
+
 
 <h3>Query Engine Changes</h3>
 
@@ -89,8 +100,13 @@ Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=118">Issue#0000118</a>.
 </p>
 
 <p>Added a hack to check an outer constraint expression.
-Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=129">Issue#0000129 </a>.
+Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=129">Issue#0000129</a>.
 </p>
+
+<p>Free origins (<code>GRAPH</code> nodes) in triples to prevent memory leak.
+Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=133">Issue#0000133</a>.
+</p>
+
 
 
 <h3>Query API Changes</h3>
@@ -101,6 +117,25 @@ a <code>rasqal_query_results_formats_enumerate()</code> function to
 enumerate all the supported formats.  The query results
 method <code>rasqal_query_results_write()</code> was changed to use
 this class internally.
+</p>
+
+<p>Added a new feature system to allow setting parameters on
+the query parser/engine.  Initially have one
+feature <code>RASQAL_FEATURE_NO_NET</code> that prevents
+network requests during a query execution.
+Added functions:
+rasqal_features_enumerate,
+rasqal_get_feature_count,
+rasqal_feature_from_uri,
+rasqal_feature_value_type,
+rasqal_query_set_feature,
+rasqal_query_set_feature_string,
+rasqal_query_get_feature,
+rasqal_query_get_feature_string
+</p>
+
+<p><cod>roqet</code> gained a <code>-f</code>
+/ <code>--feature</code> option to set query features.
 </p>
 
 
