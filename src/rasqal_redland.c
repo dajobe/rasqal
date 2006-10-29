@@ -383,7 +383,7 @@ rasqal_redland_init_triples_match(rasqal_triples_match* rtm,
   rtm->is_end=rasqal_redland_is_end;
   rtm->finish=rasqal_redland_finish_triples_match;
 
-  rtmc=(rasqal_redland_triples_match_context*)LIBRDF_CALLOC(rasqal_redland_triples_match_context, sizeof(rasqal_redland_triples_match_context), 1);
+  rtmc=(rasqal_redland_triples_match_context*)LIBRDF_CALLOC(rasqal_redland_triples_match_context, 1, sizeof(rasqal_redland_triples_match_context));
 
   rtm->user_data=rtmc;
 

@@ -507,7 +507,7 @@ rasqal_raptor_init_triples_match(rasqal_triples_match* rtm,
   rtm->is_end=rasqal_raptor_is_end;
   rtm->finish=rasqal_raptor_finish_triples_match;
 
-  rtmc=(rasqal_raptor_triples_match_context*)RASQAL_CALLOC(rasqal_raptor_triples_match_context, sizeof(rasqal_raptor_triples_match_context), 1);
+  rtmc=(rasqal_raptor_triples_match_context*)RASQAL_CALLOC(rasqal_raptor_triples_match_context, 1, sizeof(rasqal_raptor_triples_match_context));
 
   rtm->user_data=rtmc;
 

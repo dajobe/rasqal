@@ -53,7 +53,7 @@
  **/
 rasqal_graph_pattern*
 rasqal_new_graph_pattern(rasqal_query* query) {
-  rasqal_graph_pattern* gp=(rasqal_graph_pattern*)RASQAL_CALLOC(rasqal_graph_pattern, sizeof(rasqal_graph_pattern), 1);
+  rasqal_graph_pattern* gp=(rasqal_graph_pattern*)RASQAL_CALLOC(rasqal_graph_pattern, 1, sizeof(rasqal_graph_pattern));
 
   if(!query)
     return NULL;

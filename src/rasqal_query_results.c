@@ -169,7 +169,7 @@ rasqal_new_query_results(rasqal_query* query)
 {
   rasqal_query_results* query_results;
     
-  query_results=(rasqal_query_results*)RASQAL_CALLOC(rasqal_query_results, sizeof(rasqal_query_results), 1);
+  query_results=(rasqal_query_results*)RASQAL_CALLOC(rasqal_query_results, 1, sizeof(rasqal_query_results));
   query_results->query=query;
 
   rasqal_query_results_init(query_results);
@@ -944,7 +944,7 @@ rasqal_new_query_results_formatter(const char *name, raptor_uri* uri)
   if(!factory)
     return NULL;
 
-  formatter=(rasqal_query_results_formatter*)RASQAL_CALLOC(rasqal_query_results_formatter, sizeof(rasqal_query_results_formatter), 1);
+  formatter=(rasqal_query_results_formatter*)RASQAL_CALLOC(rasqal_query_results_formatter, 1, sizeof(rasqal_query_results_formatter));
   formatter->factory=factory;
   
   return formatter;

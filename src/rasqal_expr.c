@@ -75,8 +75,8 @@ static RASQAL_INLINE int rasqal_expression_compare(rasqal_expression* e1, rasqal
 rasqal_data_graph*
 rasqal_new_data_graph(raptor_uri* uri, raptor_uri* name_uri, int flags)
 {
-  rasqal_data_graph* dg=(rasqal_data_graph*)RASQAL_CALLOC(rasqal_data_graph,
-                                                      sizeof(rasqal_data_graph), 1);
+  rasqal_data_graph* dg=(rasqal_data_graph*)RASQAL_CALLOC(rasqal_data_graph, 1,
+                                                      sizeof(rasqal_data_graph));
   dg->uri=raptor_uri_copy(uri);
   if(name_uri)
     dg->name_uri=raptor_uri_copy(name_uri);
@@ -179,7 +179,7 @@ rasqal_new_variable_typed(rasqal_query* rq,
     }
   }
     
-  v=(rasqal_variable*)RASQAL_CALLOC(rasqal_variable, sizeof(rasqal_variable), 1);
+  v=(rasqal_variable*)RASQAL_CALLOC(rasqal_variable, 1, sizeof(rasqal_variable));
 
   v->type= type;
   v->name= name;
@@ -304,8 +304,8 @@ rasqal_variable_set_value(rasqal_variable* v, rasqal_literal* l)
 rasqal_prefix*
 rasqal_new_prefix(const unsigned char *prefix, raptor_uri* uri) 
 {
-  rasqal_prefix* p=(rasqal_prefix*)RASQAL_CALLOC(rasqal_prefix,
-                                                 sizeof(rasqal_prefix), 1);
+  rasqal_prefix* p=(rasqal_prefix*)RASQAL_CALLOC(rasqal_prefix, 1,
+                                                 sizeof(rasqal_prefix));
 
   p->prefix=prefix;
   p->uri=uri;
@@ -362,7 +362,7 @@ rasqal_prefix_print(rasqal_prefix* p, FILE* fh)
 rasqal_triple*
 rasqal_new_triple(rasqal_literal* subject, rasqal_literal* predicate, rasqal_literal* object)
 {
-  rasqal_triple* t=(rasqal_triple*)RASQAL_CALLOC(rasqal_triple,sizeof(rasqal_triple), 1);
+  rasqal_triple* t=(rasqal_triple*)RASQAL_CALLOC(rasqal_triple, 1, sizeof(rasqal_triple));
 
   t->subject=subject;
   t->predicate=predicate;
@@ -383,7 +383,7 @@ rasqal_new_triple(rasqal_literal* subject, rasqal_literal* predicate, rasqal_lit
 rasqal_triple*
 rasqal_new_triple_from_triple(rasqal_triple* t)
 {
-  rasqal_triple* newt=(rasqal_triple*)RASQAL_CALLOC(rasqal_triple,sizeof(rasqal_triple), 1);
+  rasqal_triple* newt=(rasqal_triple*)RASQAL_CALLOC(rasqal_triple, 1, sizeof(rasqal_triple));
 
   newt->subject=rasqal_new_literal_from_literal(t->subject);
   newt->predicate=rasqal_new_literal_from_literal(t->predicate);
@@ -494,7 +494,7 @@ rasqal_triple_get_origin(rasqal_triple* t)
 rasqal_expression*
 rasqal_new_1op_expression(rasqal_op op, rasqal_expression* arg)
 {
-  rasqal_expression* e=(rasqal_expression*)RASQAL_CALLOC(rasqal_expression, sizeof(rasqal_expression), 1);
+  rasqal_expression* e=(rasqal_expression*)RASQAL_CALLOC(rasqal_expression, 1, sizeof(rasqal_expression));
   e->usage=1;
   e->op=op;
   e->arg1=arg;
@@ -527,7 +527,7 @@ rasqal_new_2op_expression(rasqal_op op,
                           rasqal_expression* arg1, 
                           rasqal_expression* arg2)
 {
-  rasqal_expression* e=(rasqal_expression*)RASQAL_CALLOC(rasqal_expression, sizeof(rasqal_expression), 1);
+  rasqal_expression* e=(rasqal_expression*)RASQAL_CALLOC(rasqal_expression, 1, sizeof(rasqal_expression));
   e->usage=1;
   e->op=op;
   e->arg1=arg1;
@@ -556,7 +556,7 @@ rasqal_new_3op_expression(rasqal_op op,
                           rasqal_expression* arg2,
                           rasqal_expression* arg3)
 {
-  rasqal_expression* e=(rasqal_expression*)RASQAL_CALLOC(rasqal_expression, sizeof(rasqal_expression), 1);
+  rasqal_expression* e=(rasqal_expression*)RASQAL_CALLOC(rasqal_expression, 1, sizeof(rasqal_expression));
   e->usage=1;
   e->op=op;
   e->arg1=arg1;
@@ -585,7 +585,7 @@ rasqal_new_string_op_expression(rasqal_op op,
                                 rasqal_expression* arg1,
                                 rasqal_literal* literal)
 {
-  rasqal_expression* e=(rasqal_expression*)RASQAL_CALLOC(rasqal_expression, sizeof(rasqal_expression), 1);
+  rasqal_expression* e=(rasqal_expression*)RASQAL_CALLOC(rasqal_expression, 1, sizeof(rasqal_expression));
   e->usage=1;
   e->op=op;
   e->arg1=arg1;
@@ -605,7 +605,7 @@ rasqal_new_string_op_expression(rasqal_op op,
 rasqal_expression*
 rasqal_new_literal_expression(rasqal_literal *literal)
 {
-  rasqal_expression* e=(rasqal_expression*)RASQAL_CALLOC(rasqal_expression, sizeof(rasqal_expression), 1);
+  rasqal_expression* e=(rasqal_expression*)RASQAL_CALLOC(rasqal_expression, 1, sizeof(rasqal_expression));
   e->usage=1;
   e->op=RASQAL_EXPR_LITERAL;
   e->literal=literal;
@@ -626,7 +626,7 @@ rasqal_expression*
 rasqal_new_function_expression(raptor_uri* name,
                                raptor_sequence* args)
 {
-  rasqal_expression* e=(rasqal_expression*)RASQAL_CALLOC(rasqal_expression, sizeof(rasqal_expression), 1);
+  rasqal_expression* e=(rasqal_expression*)RASQAL_CALLOC(rasqal_expression, 1, sizeof(rasqal_expression));
   e->usage=1;
   e->op=RASQAL_EXPR_FUNCTION;
   e->name=name;
@@ -647,7 +647,7 @@ rasqal_new_function_expression(raptor_uri* name,
 rasqal_expression*
 rasqal_new_cast_expression(raptor_uri* name, rasqal_expression *value) 
 {
-  rasqal_expression* e=(rasqal_expression*)RASQAL_CALLOC(rasqal_expression, sizeof(rasqal_expression), 1);
+  rasqal_expression* e=(rasqal_expression*)RASQAL_CALLOC(rasqal_expression, 1, sizeof(rasqal_expression));
   e->usage=1;
   e->op=RASQAL_EXPR_CAST;
   e->name=name;

@@ -375,7 +375,7 @@ rasqal_engine_assign_variables(rasqal_query* rq)
   }
   
   rq->variables=(rasqal_variable**)RASQAL_MALLOC(varrary, sizeof(rasqal_variable*)*(rq->variables_count + rq->anon_variables_count));
-  rq->variables_declared_in=(int*)RASQAL_CALLOC(intarray, sizeof(int), rq->variables_count + rq->anon_variables_count + 1);
+  rq->variables_declared_in=(int*)RASQAL_CALLOC(intarray, rq->variables_count + rq->anon_variables_count + 1, sizeof(int));
 
   offset=0;
   for(i=0; i< rq->variables_count; i++) {
@@ -434,12 +434,12 @@ rasqal_new_triples_source(rasqal_query_results* query_results)
   rasqal_triples_source* rts;
   int rc=0;
   
-  rts=(rasqal_triples_source*)RASQAL_CALLOC(rasqal_triples_source, sizeof(rasqal_triples_source), 1);
+  rts=(rasqal_triples_source*)RASQAL_CALLOC(rasqal_triples_source, 1, sizeof(rasqal_triples_source));
   if(!rts)
     return NULL;
 
-  rts->user_data=RASQAL_CALLOC(user_data,
-                               Triples_Source_Factory.user_data_size, 1);
+  rts->user_data=RASQAL_CALLOC(user_data, 1,
+                               Triples_Source_Factory.user_data_size);
   if(!rts->user_data) {
     RASQAL_FREE(rasqal_triples_source, rts);
     return NULL;
@@ -495,8 +495,8 @@ rasqal_new_triples_match(rasqal_query_results* query_results, void *user_data,
   if(!query_results->triples_source)
     return NULL;
 
-  rtm=(rasqal_triples_match *)RASQAL_CALLOC(rasqal_triples_match,
-                                            sizeof(rasqal_triples_match), 1);
+  rtm=(rasqal_triples_match *)RASQAL_CALLOC(rasqal_triples_match, 1,
+                                            sizeof(rasqal_triples_match));
   if(query_results->triples_source->init_triples_match(rtm,
                                                query_results->triples_source,
                                                query_results->triples_source->user_data,
@@ -603,7 +603,7 @@ rasqal_new_gp_data(rasqal_graph_pattern* gp)
 {
   rasqal_engine_gp_data* gp_data;
   
-  gp_data=(rasqal_engine_gp_data*)RASQAL_CALLOC(rasqal_engine_gp_data, sizeof(rasqal_engine_gp_data), 1);
+  gp_data=(rasqal_engine_gp_data*)RASQAL_CALLOC(rasqal_engine_gp_data, 1, sizeof(rasqal_engine_gp_data));
   gp_data->gp=gp;
   
   gp_data->optional_graph_pattern= -1;
@@ -1029,7 +1029,7 @@ rasqal_engine_graph_pattern_reset(rasqal_query_results* query_results,
       rasqal_reset_triple_meta(gp_data->triple_meta);
       memset(gp_data->triple_meta, '\0', sizeof(rasqal_triple_meta)*triples_count);
     } else
-      gp_data->triple_meta=(rasqal_triple_meta*)RASQAL_CALLOC(rasqal_triple_meta, sizeof(rasqal_triple_meta), triples_count);
+      gp_data->triple_meta=(rasqal_triple_meta*)RASQAL_CALLOC(rasqal_triple_meta, triples_count, sizeof(rasqal_triple_meta));
 
   }
 
@@ -2451,15 +2451,14 @@ rasqal_engine_new_query_result_row(rasqal_query_results* query_results, int offs
 
   size=rasqal_query_results_get_bindings_count(query_results);
 
-  row=(rasqal_query_result_row*)RASQAL_CALLOC(rasqal_query_result_row,
-                                              sizeof(rasqal_query_result_row),
-                                              1);
+  row=(rasqal_query_result_row*)RASQAL_CALLOC(rasqal_query_result_row, 1,
+                                              sizeof(rasqal_query_result_row));
   row->usage=1;
   row->results=query_results;
 
   row->size=size;
-  row->values=(rasqal_literal**)RASQAL_CALLOC(array, sizeof(rasqal_literal*), 
-                                              size);
+  row->values=(rasqal_literal**)RASQAL_CALLOC(array, size,
+					      sizeof(rasqal_literal*));
 
   if(query->order_conditions_sequence)
     order_size=raptor_sequence_size(query->order_conditions_sequence);
@@ -2468,9 +2467,8 @@ rasqal_engine_new_query_result_row(rasqal_query_results* query_results, int offs
   
   if(order_size) {
     row->order_size=order_size;
-    row->order_values=(rasqal_literal**)RASQAL_CALLOC(array, 
-                                                      sizeof(rasqal_literal*),
-                                                      order_size);
+    row->order_values=(rasqal_literal**)RASQAL_CALLOC(array,  order_size,
+                                                      sizeof(rasqal_literal*));
   }
   
   rasqal_engine_query_result_row_update(row, offset);

@@ -70,7 +70,7 @@
 rasqal_literal*
 rasqal_new_integer_literal(rasqal_literal_type type, int integer)
 {
-  rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, sizeof(rasqal_literal), 1);
+  rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(rasqal_literal));
 
   l->type=type;
   l->value.integer=integer;
@@ -94,7 +94,7 @@ rasqal_new_integer_literal(rasqal_literal_type type, int integer)
 rasqal_literal*
 rasqal_new_double_literal(double d)
 {
-  rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, sizeof(rasqal_literal), 1);
+  rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(rasqal_literal));
 
   l->type=RASQAL_LITERAL_DOUBLE;
   l->value.floating=d;
@@ -137,7 +137,7 @@ rasqal_new_floating_literal(double f)
 rasqal_literal*
 rasqal_new_uri_literal(raptor_uri *uri)
 {
-  rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, sizeof(rasqal_literal), 1);
+  rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(rasqal_literal));
 
   l->type=RASQAL_LITERAL_URI;
   l->value.uri=uri;
@@ -163,7 +163,7 @@ rasqal_literal*
 rasqal_new_pattern_literal(const unsigned char *pattern, 
                            const char *flags)
 {
-  rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, sizeof(rasqal_literal), 1);
+  rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(rasqal_literal));
 
   l->type=RASQAL_LITERAL_PATTERN;
   l->string=pattern;
@@ -185,7 +185,7 @@ rasqal_new_pattern_literal(const unsigned char *pattern,
 rasqal_literal*
 rasqal_new_decimal_literal(const unsigned char *decimal)
 {
-  rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, sizeof(rasqal_literal), 1);
+  rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(rasqal_literal));
 
   l->type=RASQAL_LITERAL_DECIMAL;
   l->string_len=strlen((const char*)decimal);
@@ -309,7 +309,7 @@ rasqal_new_string_literal(const unsigned char *string,
                           raptor_uri *datatype, 
                           const unsigned char *datatype_qname)
 {
-  rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, sizeof(rasqal_literal), 1);
+  rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(rasqal_literal));
 
   if(datatype && language) {
     RASQAL_FREE(cstring, (void*)language);
@@ -349,7 +349,7 @@ rasqal_literal*
 rasqal_new_simple_literal(rasqal_literal_type type, 
                           const unsigned char *string)
 {
-  rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, sizeof(rasqal_literal), 1);
+  rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(rasqal_literal));
 
   l->type=type;
   l->string=string;
@@ -370,7 +370,7 @@ rasqal_new_simple_literal(rasqal_literal_type type,
 rasqal_literal*
 rasqal_new_boolean_literal(int value)
 {
-  rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, sizeof(rasqal_literal), 1);
+  rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(rasqal_literal));
 
   l->type=RASQAL_LITERAL_BOOLEAN;
   l->value.integer=value;
@@ -394,7 +394,7 @@ rasqal_new_boolean_literal(int value)
 rasqal_literal*
 rasqal_new_variable_literal(rasqal_variable *variable)
 {
-  rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, sizeof(rasqal_literal), 1);
+  rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(rasqal_literal));
   l->type=RASQAL_LITERAL_VARIABLE;
   l->value.variable=variable;
   l->usage=1;
@@ -1334,7 +1334,7 @@ rasqal_literal_as_node(rasqal_literal* l)
       else
         dt_uri=raptor_uri_copy(l->datatype);
 
-      new_l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, sizeof(rasqal_literal), 1);
+      new_l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(rasqal_literal));
 
       new_l->type=RASQAL_LITERAL_STRING;
       new_l->string_len=strlen((const char*)l->string);
@@ -1448,7 +1448,7 @@ rasqal_literal_is_constant(rasqal_literal* l)
 rasqal_formula*
 rasqal_new_formula(void) 
 {
-  return (rasqal_formula*)RASQAL_CALLOC(rasqal_formula, sizeof(rasqal_formula), 1);
+  return (rasqal_formula*)RASQAL_CALLOC(rasqal_formula, 1, sizeof(rasqal_formula));
 }
 
 void
