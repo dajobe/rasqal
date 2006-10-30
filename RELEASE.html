@@ -10,11 +10,6 @@
 
 <h2 id="rel0_9_13"><a name="rel0_9_13">Rasqal 0.9.13 Changes</a></h2>
 
-<p>Not yet released.
-</p>
-
-<!-- changes up to svn r11548 2006-10-29 09:13 PST -->
-
 <h3>General Changes</h3>
 
 <p>Added a new <code>rasqal_query_results_formatter</code> class.
@@ -124,17 +119,17 @@ the query parser/engine.  Initially have one
 feature <code>RASQAL_FEATURE_NO_NET</code> that prevents
 network requests during a query execution.
 Added functions:
-rasqal_features_enumerate,
-rasqal_get_feature_count,
-rasqal_feature_from_uri,
-rasqal_feature_value_type,
-rasqal_query_set_feature,
-rasqal_query_set_feature_string,
-rasqal_query_get_feature,
-rasqal_query_get_feature_string
+<code>rasqal_features_enumerate</code>,
+<code>rasqal_get_feature_count</code>,
+<code>rasqal_feature_from_uri</code>,
+<code>rasqal_feature_value_type</code>,
+<code>rasqal_query_set_feature</code>,
+<code>rasqal_query_set_feature_string</code>,
+<code>rasqal_query_get_feature</code>,
+<code>rasqal_query_get_feature_string</code>.
 </p>
 
-<p><cod>roqet</code> gained a <code>-f</code>
+<p><code>roqet</code> gained a <code>-f</code>
 / <code>--feature</code> option to set query features.
 </p>
 
@@ -152,7 +147,7 @@ draft.
 <p>Added query writing to a <code>raptor_iostream</code> which allows
 reading in one query language and writing in another.  The only
 useful consequence of this now is that it enables <code>roqet</code>
-to become an RDQL to SPARQL translator.</p.
+to become an RDQL to SPARQL translator.</p>
 
 <p>Rasqal now requires <a href="http://librdf.org/raptor/">raptor</a>
 1.4.9 or newer.
