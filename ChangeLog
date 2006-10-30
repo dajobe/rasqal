@@ -1,5 +1,11 @@
 2006-10-29  Dave Beckett  <dave@dajobe.org>
 
+	* src/rasqal_engine.c, src/rasqal_expr.c,
+	src/rasqal_graph_pattern.c, src/rasqal_literal.c,
+	src/rasqal_query_results.c, src/rasqal_raptor.c,
+	src/rasqal_redland.c: Correct calls to calloc() - count first,
+	then size.
+
 	* docs/tmpl/section-general.sgml, docs/tmpl/section-query.sgml: docs
 
 2006-10-24  Dave Beckett  <dave@dajobe.org>
