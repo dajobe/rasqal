@@ -6,7 +6,7 @@
 .\" Copyright (C) 2004-2006 David Beckett - http://purl.org/net/dajobe/
 .\" Copyright (C) 2004-2005 University of Bristol - http://www.bristol.ac.uk/
 .\"
-.TH librasqal 3 "2006-09-24"
+.TH librasqal 3 "2006-10-29"
 .\" Please adjust this date whenever revising the manpage.
 .SH NAME
 librasqal \- Rasqal RDF query library
@@ -87,6 +87,44 @@ The counter should start from 0 and be incremented by 1
 until the function returns non-zero.
 .IP "\fBint rasqal_language_name_check(const char *\fIname\fB)\fR"
 Check \fIname\fP is a known query language name.
+.IP "\fBint rasqal_query_set_feature(rasqal_query* \fIquery\fP, rasqal_feature \fIfeature\fP, int \fIvalue\fP)\fR"
+Set a query feature \fIfeature\fR to a particular integer \fIvalue\fR.
+Returns non 0 on failure or if the feature is unknown.
+The current defined parser features are:
+  \fIFeature                                 Values\fR
+  \fBRASQAL_FEATURE_NO_NET\fR                   Boolean (non 0 true)
+.P
+If the \fIno_net\fR
+feature is true (default false) then network requests are denied.
+.IP "\fBint rasqal_query_set_feature_string(rasqal_query* \fIquery\fP, rasqal_feature \fIfeature\fP, const unsigned char* \fIvalue\fP)\fR"
+Set a query feature \fIfeature\fR to a particular string \fIvalue\fR.
+Returns non 0 on failure or if the feature is unknown.
+The current defined query features are given in
+\fBrasqal_query_set_feature\fP and at present only take integer values. If
+an integer value feature is set with this function, \fIvalue\fP is
+interpreted as an integer and then that value is used.
+.IP "\fBint rasqal_query_get_feature(rasqal_query* \fIquery\fP, rasqal_feature \fIfeature\fP)\fR"
+Get a query feature integer value.  The allowed \fIfeature\fP values
+and types are given under \fBrasqal_features_enumerate\fP.
+.IP "\fBconst unsigned char* rasqal_query_get_feature_string(rasqal_query* \fIquery\fP, rasqal_feature \fIfeature\fP)\fR"
+Get a query feature string value. The allowed \fIfeature\fP values
+and types are given under \fBrasqal_features_enumerate\fP.
+.IP "\fBint rasqal_features_enumerate(const rasqal_feature \fIfeature\fP, const char** \fIname\fP, raptor_uri** \fIuri\fP, const char** \fIlabel\fP)\fR"
+Return the name, URI, string label (all optional)
+for a query \fIfeature\fP, returning non-zero if no such feature exists.
+.IP "\fBunsigned int rasqal_get_feature_count(void)\fR"
+Get the count of rasqal features defined which can be
+found with \fBrasqal_features_enumerate\fP.
+.P
+Rasqal features have URIs that are constructed from the URI
+\fIhttp://feature.librdf.org/rasqal-\fP and the \fIname\fP
+so for example feature \fInoNet\fP
+has URI \fIhttp://feature.librdf.org/rasqal-noNet\fP
+.IP "\fBrasqal_feature rasqal_feature_from_uri(raptor_uri* \fIuri\fP)\fR"
+Turn a URI \fIuri\fR into a rasqal feature identifier, or <0 if the
+feature is unknown.  The URIs are described below rasqal_query_set_feature.
+.IP "\fBint rasqal_feature_value_type(const rasqal_feature \fIfeature\fP)\fR"
+Get a rasqal feature value tyype - integer or string.
 .SH "QUERY CONSTRUCTOR"
 .IP "\fBrasqal_query* rasqal_new_query(const char *\fIname\fB, const unsigned char *\fIuri\fP)\fR"
 Create a new rasqal query object for the query syntax with name
@@ -109,10 +147,6 @@ Set the fatal error handler callback.
 Set the error handler callback.
 .IP "\fBvoid rasqal_query_set_warning_handler(rasqal_query* \fIquery\fB, void *\fIuser_data\fP, raptor_message_handler \fIhandler\fP)\fR"
 Set the warning handler callback.
-.IP "\fBvoid rasqal_query_set_feature(rasqal_query* \fIquery\fP, rasqal_feature \fIfeature\fP, int \fIvalue\fP)\fR"
-Set a query feature \fIfeature\fR to a particular \fIvalue\fR.
-Returns non 0 on failure or if the feature is unknown.  No current
-features are defined.
 .IP "\fBint rasqal_query_get_distinct(rasqal_query* \fIquery\fP)\fR"
 Get the query distinct results flag, returning non-0 if the results
 should be distinct.
@@ -581,6 +615,14 @@ Destroy a rasqal data_graph object.
 Print a data graph in a debug format.  This format may change in any release.
 .SH API CHANGES
 .SS 0.9.13
+Added rasqal_feature system with single feature
+\fBRASQAL_FEATURE_NO_NET\fP and functions
+\fBrasqal_feature_from_uri\fP, \fBrasqal_feature_value_type\fP,
+\fBrasqal_features_enumerate\fP, \fBrasqal_get_feature_count\fP,
+\fBrasqal_query_get_feature\fP, \fBrasqal_query_get_feature_string\fP,
+\fBrasqal_query_set_feature\fP and \fBrasqal_query_set_feature_string\fP.
+int.
+.LP
 Added \fBrasqal_query_results_formatter class\fP with
 constructor \fBrasqal_new_query_results_formatter\fP
 destructor \fBrasqal_free_query_results_formatter\fP and method
