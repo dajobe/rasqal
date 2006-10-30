@@ -70,9 +70,9 @@ static const char *rasqal_feature_uri_prefix="http://feature.librdf.org/rasqal-"
  * @label: pointer to feature label (or NULL)
  * @flags: flags to match
  * 
- * Internal: Get list of syntax features.
+ * Internal: Get list of rasqal features.
  *
- * If @uri is not NULL, a pointer toa new raptor_uri is returned
+ * If @uri is not NULL, a pointer to a new raptor_uri is returned
  * that must be freed by the caller with rasqal_free_uri().
  *
  * Return value: 0 on success, <0 on failure, >0 if feature is unknown
@@ -116,9 +116,9 @@ rasqal_features_enumerate_common(const rasqal_feature feature,
  * @uri: pointer to store feature URI (or NULL)
  * @label: pointer to feature label (or NULL)
  *
- * Get list of syntax features.
+ * Get list of rasqal features.
  * 
- * If uri is not NULL, a pointer toa new raptor_uri is returned
+ * If uri is not NULL, a pointer to a new raptor_uri is returned
  * that must be freed by the caller with raptor_free_uri().
  *
  * Return value: 0 on success, <0 on failure, >0 if feature is unknown
