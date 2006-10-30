@@ -7,7 +7,7 @@
 .\" Copyright (C) 2004-2005 David Beckett - http://purl.org/net/dajobe/
 .\" Copyright (C) 2004-2005 University of Bristol - http://www.bristol.ac.uk/
 .\"
-.TH roqet 1 "2006-01-16"
+.TH roqet 1 "2006-10-29"
 .\" Please adjust this date whenever revising the manpage.
 .SH NAME
 roqet \- Rasqal RDF query utility
@@ -58,9 +58,10 @@ For variable bindings, the values of
 .I FORMAT
 are 'simple' for a simple text format (default), 'xml'
 for the SPARQL Query Results XML format, 'xml-v2' for
-the version of the 2005-05-27 working draft
-or 'xml-v1' for the version of the 2004-12-21 working draft.
-The older formats may be removed in future releases.
+the version of the 2005-05-27 working draft,
+'xml-v1' for the version of the 2004-12-21 working draft
+and 'json' for a JSON version of the results.
+The older xml formats may be removed in future releases.
 .IP
 For RDF graph results, the values of
 .I FORMAT
@@ -74,16 +75,26 @@ but is given correct in the usage message with \-h.
 .B \-c, \-\-count
 Only count the triples and produce no other output.
 .TP
-.B \-d, \-\-dump-query
-Print a debugging dump of the constructed query.
+.B \-d, \-\-dump\-query FORMAT
+Print the parsed query out in a given
+.I FORMAT
+one of 'debug', 'structure' or 'sparql'
 .TP
-.B \-n, \-\-dryrun
-Prepare the query but do not execute it.
-.TP
-.B \-n, \-\-exec QUERY
+.B \-e, \-\-exec QUERY
 Execute the query in the argument
 .I QUERY
 instead of reading the query from a URI.
+.TP
+.B \-f, \-\-feature NAME(=VALUE)
+Set query feature
+.I NAME
+to the
+.I VALUE
+or integer 1 if omitted.
+The known features can be shown with \fB-f help\fP or \fB--feature help\fP.
+.TP
+.B \-n, \-\-dryrun
+Prepare the query but do not execute it.
 .TP
 .B \-q, \-\-quiet
 No extra information messages.
@@ -101,29 +112,34 @@ Print the rasqal library version and exit.
 .B \-w, \-\-walk-query
 Walk the query and display it using the API.
 .SH "CONFORMING TO"
-\fISPARQL Query Language for RDF\fR,
-Edited by Eric Prud'hommeaux and Andy Seaborne (eds),
-W3C Working Draft, 23 November 2005.  Work in progress.
-.UR http://www.w3.org/TR/2005/WD-rdf-sparql-query-20051123/
-http://www.w3.org/TR/2005/WD-rdf-sparql-query-20051123/
+\fISPARQL Query Language for RDF\fR, 
+Eric Prud'hommeaux and Andy Seaborne (eds), W3C Candidate Recommendation, 6 April 2006.
+.UR http://www.w3.org/TR/2006/CR-rdf-sparql-query-20060406/
+http://www.w3.org/TR/2006/CR-rdf-sparql-query-20060406/
 .UE
-.br
+.LP
+\fISPARQL Query Results XML Format\fR, 
+Jeen Broekstra and Dave Beckett (eds), W3C Candidate Recommendation, 6 April 2006.
+.UR http://www.w3.org/TR/2006/CR-rdf-sparql-XMLres-20060406/
+http://www.w3.org/TR/2006/CR-rdf-sparql-XMLres-20060406/
+.UE
+.LP
 \fISPARQL Query Results XML Format\fR,
 Edited by Dave Beckett,
 W3C Working Draft, 27 May 2005. Work in progress.
 .UR http://www.w3.org/TR/2005/WD-rdf-sparql-XMLres-20050527/
 http://www.w3.org/TR/2005/WD-rdf-sparql-XMLres-20050527/
 .UE
-.br
+.LP
 \fISPARQL Variable Binding Results XML Format\fR,
 Edited by Dave Beckett,
 W3C Working Draft, 21 December 2004. Work in progress.
 .UR http://www.w3.org/TR/2004/WD-rdf-sparql-XMLres-20041221/
 http://www.w3.org/TR/2004/WD-rdf-sparql-XMLres-20041221/
 .UE
-.br
-\fIRDQL RDF Data Query Language\fR,
-HP Labs,
+.LP
+\fIRDQL - A Query Language for RDF\fR, Andy Seaborne,
+W3C Member Submission 9 January 2004
 .UR http://www.w3.org/Submission/2004/SUBM-RDQL-20040109/
 http://www.w3.org/Submission/2004/SUBM-RDQL-20040109/
 .UE
