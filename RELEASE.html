@@ -60,6 +60,9 @@ attributes when using a new enough GCC.</p>
 <p>Fix looking for EOF in an unsigned variable since it may be negative
 on some systems.</p>
 
+<p>The query engine now implements SPARQL <code>GRAPH</code> matching.
+</p>
+
 
 <h3>RDQL Query Language Changes</h3>
 
@@ -70,6 +73,9 @@ on some systems.</p>
 
 
 <h3>Query Engine Changes</h3>
+
+<p>The query engine now implements SPARQL <code>GRAPH</code> matching.
+</p>
 
 <p>Merge only all adjacent sequences of basic graph pattern triples, not
 anything with triples such as optional BGP triples.
@@ -85,7 +91,7 @@ undefined value rather than try to execute a NULL pointer.
 Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=113">Issue#0000113</a>.
 </p>
 
-<p>Add query/query_results link early so reference counting is done right.
+<p>Add query / query_results link early so reference counting is done right.
 Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=95">Issue#0000095</a>.
 </p>
 
