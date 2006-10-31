@@ -2,6 +2,9 @@
 
 	* Snapshotted rasqal_0_9_13 for 0.9.13 release
 
+	* src/rasqal_raptor.c: (rasqal_raptor_new_triples_source): Check
+	for RAPTOR_FEATURE_NO_NET before using it.
+
 2006-10-29  Dave Beckett  <dave@dajobe.org>
 
 	* src/rasqal_engine.c, src/rasqal_expr.c,
