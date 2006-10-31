@@ -245,10 +245,12 @@ rasqal_raptor_new_triples_source(rasqal_query* rdf_query,
     raptor_set_statement_handler(parser, rtsc, rasqal_raptor_statement_handler);
     raptor_set_error_handler(parser, rdf_query, rasqal_raptor_error_handler);
 
+#ifdef RAPTOR_FEATURE_NO_NET
     if(rdf_query->features[RASQAL_FEATURE_NO_NET])
       raptor_set_feature(parser, RAPTOR_FEATURE_NO_NET,
                          rdf_query->features[RASQAL_FEATURE_NO_NET]);
-    
+#endif
+
     raptor_parse_uri(parser, uri, dg->name_uri);
     raptor_free_parser(parser);
     if(rdf_query->failed) {
