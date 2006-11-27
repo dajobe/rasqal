@@ -517,7 +517,7 @@ if test "x$enable_xml2" != "xno" ; then
   fi
 
 
-  LIBXML_MIN_VERSION=2.4.0
+  LIBXML_MIN_VERSION=2.6.8
   AC_MSG_CHECKING(for libxml2 library)
   oCPPFLAGS="$CPPFLAGS"
   oLIBS="$LIBS"
