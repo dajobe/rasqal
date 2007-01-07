@@ -196,6 +196,9 @@ rasqal_free_query(rasqal_query* query)
   if(query->graph_patterns_sequence)
     raptor_free_sequence(query->graph_patterns_sequence);
 
+  if(query->query_results_formatter_name)
+    RASQAL_FREE(cstring, query->query_results_formatter_name);
+
   RASQAL_FREE(rasqal_query, query);
 }
 
