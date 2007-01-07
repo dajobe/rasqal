@@ -308,6 +308,12 @@ struct rasqal_query_s {
 
   /* Features */
   int features[RASQAL_FEATURE_LAST+1];
+
+  /* Name of requested query results syntax.  If present, this
+   * is the name used for constructing a rasqal_query_formatter
+   * from the results.
+   */
+  const char* query_results_formatter_name;
 };
 
 
@@ -462,6 +468,9 @@ typedef struct {
   const unsigned char* uri_string;
   
   rasqal_query_results_writer writer;
+
+  /* MIME Type of the constructed syntax */
+  const char* mime_type;
 } rasqal_query_results_format_factory;
 
 
@@ -470,6 +479,8 @@ typedef struct {
  */
 struct rasqal_query_results_formatter_s {
   rasqal_query_results_format_factory* factory;
+
+  const char *mime_type;
 };
 
 
