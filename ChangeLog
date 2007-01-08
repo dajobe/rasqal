@@ -1,3 +1,47 @@
+2007-01-07  Dave Beckett  <dave@dajobe.org>
+
+	* src/rasqal_query_results.c: (rasqal_query_results_format_register_factory):
+	Gains mime_type arg.
+	(rasqal_init_query_results): Add mime type to query result format
+	registrations.
+	(rasqal_query_results_is_bindings,
+	rasqal_query_results_is_boolean, rasqal_query_results_is_graph):
+	True only if no results formatter is specified.
+	(rasqal_query_results_is_syntax): Added to check if a query result
+	is a syntax.
+	(rasqal_query_results_formats_enumerate_full): Added to return
+	mime type also.
+	(rasqal_get_query_results_formatter_factory): Add mime type arg.
+	(rasqal_query_results_formats_check): Added to check if a
+	formatter exists for the given name, uri and/or mime type.
+	(rasqal_new_query_results_formatter_by_mime_type): Added to
+	construct a formatter by mime type alone.
+	(rasqal_query_results_formatter_get_mime_type): Added to get the
+	mime type of a built formatter.
+
+	* src/rasqal.h: Added prototypes for
+	rasqal_query_results_is_syntax,
+	rasqal_query_results_formats_enumerate_full,
+	rasqal_query_results_formats_check,
+	rasqal_new_query_results_formatter_by_mime_type and
+	rasqal_query_results_formatter_get_mime_type.
+
+	* src/rasqal_query.c: (rasqal_free_query): Free
+	query_results_formatter_name if set.
+
+	* src/rasqal_internal.h: struct rasqal_query_s gains
+	query_results_formatter_name field
+
+2006-11-26  Dave Beckett  <dave@dajobe.org>
+
+	* configure.ac: libxml minimum version is now 2.6.8 since 2.6.7
+	crashes on PPC64 Linux.  2.6.8 was released March 2004 so this
+	should be no burden.
+
+2006-11-21  Dave Beckett  <dave@dajobe.org>
+
+	* configure.ac: Minimum raptor version is 1.4.11
+
 2006-10-30  Dave Beckett  <dave@dajobe.org>
 
 	* Snapshotted rasqal_0_9_13 for 0.9.13 release
