@@ -4,7 +4,7 @@
  *
  * $Id$
  *
- * Copyright (C) 2004-2006, David Beckett http://purl.org/net/dajobe/
+ * Copyright (C) 2004-2007, David Beckett http://purl.org/net/dajobe/
  * Copyright (C) 2004-2005, University of Bristol, UK http://www.bristol.ac.uk/
  * 
  * This package is Free Software and part of Redland http://librdf.org/
@@ -584,6 +584,7 @@ main(int argc, char *argv[])
       case 'v':
         fputs(rasqal_version_string, stdout);
         fputc('\n', stdout);
+        rasqal_finish();
         exit(0);
 
       case 'w':
@@ -611,23 +612,36 @@ main(int argc, char *argv[])
   if(usage) {
     if(usage>1) {
       fprintf(stderr, title_format_string, rasqal_version_string);
-      fputs(rasqal_short_copyright_string, stderr);
+      fputs("Rasqal home page: ", stderr);
+      fputs(rasqal_home_url_string, stderr);
       fputc('\n', stderr);
+      fputs(rasqal_copyright_string, stderr);
+      fputs("\nLicense: ", stderr);
+      fputs(rasqal_license_string, stderr);
+      fputs("\n\n", stderr);
     }
     fprintf(stderr, "Try `%s " HELP_ARG(h, help) "' for more information.\n",
                     program);
+    rasqal_finish();
+
     exit(1);
   }
 
   if(help) {
     int i;
     
-    printf("Usage: %s [OPTIONS] <query URI> [base URI]\n", program);
-    printf("       %s [OPTIONS] -e <query string> [base URI]\n", program);
     printf(title_format_string, rasqal_version_string);
-    puts(rasqal_short_copyright_string);
     puts("Run an RDF query giving variable bindings or RDF triples.");
-    puts("Normal operation is to execute the query retrieved from URI <query URI>");
+    printf("Usage: %s [OPTIONS] <query URI> [base URI]\n", program);
+    printf("       %s [OPTIONS] -e <query string> [base URI]\n\n", program);
+
+    fputs(rasqal_copyright_string, stdout);
+    fputs("\nLicense: ", stdout);
+    puts(rasqal_license_string);
+    fputs("Rasqal home page: ", stdout);
+    puts(rasqal_home_url_string);
+
+    puts("\nNormal operation is to execute the query retrieved from URI <query URI>");
     puts("and print the results in a simple text format.");
     puts("\nMain options:");
     puts(HELP_TEXT("e", "exec QUERY      ", "Execute QUERY string instead of <query URI>"));
@@ -679,7 +693,9 @@ main(int argc, char *argv[])
     puts(HELP_TEXT("v", "version          ", "Print the Rasqal version"));
     puts(HELP_TEXT("w", "walk-query       ", "Print query.  Same as '-d structure'"));
     puts("\nReport bugs to http://bugs.librdf.org/");
-    puts("Rasqal home page: http://librdf.org/rasqal/");
+
+    rasqal_finish();
+    
     exit(0);
   }
 
