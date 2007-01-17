@@ -1,6 +1,19 @@
+2007-01-16  Dave Beckett  <dave@dajobe.org>
+
+	* utils/roqet.c: 2007
+	Use rasqal_license_string and rasqal_home_url_string
+	Add some more rasqal_finish() before exit
+
+	* src/rasqal.h: Added prototypes for rasqal_license_string and
+	rasqal_home_url_string
+
+	* src/rasqal_general.c: 2007
+	Added rasqal_license_string and rasqal_home_url_string
+
 2007-01-07  Dave Beckett  <dave@dajobe.org>
 
-	* src/rasqal_query_results.c: (rasqal_query_results_format_register_factory):
+	* src/rasqal_query_results.c:
+	(rasqal_query_results_format_register_factory):
 	Gains mime_type arg.
 	(rasqal_init_query_results): Add mime type to query result format
 	registrations.
