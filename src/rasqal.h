@@ -90,6 +90,10 @@ RASQAL_API
 extern const unsigned int rasqal_version_release;
 RASQAL_API
 extern const unsigned int rasqal_version_decimal;
+RAPTOR_API
+extern const char * const rasqal_license_string;
+RAPTOR_API
+extern const char * const rasqal_home_url_string;
 
 
 /* Public structures */
