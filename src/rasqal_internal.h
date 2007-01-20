@@ -4,7 +4,7 @@
  *
  * $Id$
  *
- * Copyright (C) 2003-2006, David Beckett http://purl.org/net/dajobe/
+ * Copyright (C) 2003-2007, David Beckett http://purl.org/net/dajobe/
  * Copyright (C) 2003-2005, University of Bristol, UK http://www.bristol.ac.uk/
  * 
  * This package is Free Software and part of Redland http://librdf.org/
@@ -297,6 +297,9 @@ struct rasqal_query_s {
   /* sequence of order condition expressions */
   raptor_sequence* order_conditions_sequence;
 
+  /* sequence of group by condition expressions */
+  raptor_sequence* group_conditions_sequence;
+
   /* INTERNAL rasqal_literal_compare / rasqal_expression_evaluate flags */
   int compare_flags;
 
@@ -314,6 +317,9 @@ struct rasqal_query_s {
    * from the results.
    */
   const char* query_results_formatter_name;
+
+  /* EXPLAIN was given */
+  int explain;
 };
 
 
@@ -511,6 +517,7 @@ void rasqal_init_query_engine_rdql (void);
 
 /* sparql_parser.y */
 void rasqal_init_query_engine_sparql (void);
+void rasqal_init_query_engine_laqrs (void);
 
 /* rasqal_engine.c */
 int rasqal_engine_sequence_has_qname(raptor_sequence* seq);
@@ -566,13 +573,16 @@ void rasqal_expression_convert_to_literal(rasqal_expression* e, rasqal_literal* 
 
 /* strcasecmp.c */
 #ifdef HAVE_STRCASECMP
-#define rasqal_strcasecmp strcasecmp
-#define rasqal_strncasecmp strncasecmp
+#  define rasqal_strcasecmp strcasecmp
+#  define rasqal_strncasecmp strncasecmp
 #else
-#ifdef HAVE_STRICMP
-#define rasqal_strcasecmp stricmp
-#define rasqal_strncasecmp strnicmp
-#endif
+#  ifdef HAVE_STRICMP
+#    define rasqal_strcasecmp stricmp
+#    define rasqal_strncasecmp strnicmp
+#   else
+int rasqal_strcasecmp(const char* s1, const char* s2);
+int rasqal_strncasecmp(const char* s1, const char* s2, size_t n);
+#  endif
 #endif
 
 /* rasqal_raptor.c */
