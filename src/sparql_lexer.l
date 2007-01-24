@@ -4,7 +4,7 @@
  *
  * $Id$
  *
- * Copyright (C) 2004-2006, David Beckett http://purl.org/net/dajobe/
+ * Copyright (C) 2004-2007, David Beckett http://purl.org/net/dajobe/
  * Copyright (C) 2004-2005, University of Bristol, UK http://www.bristol.ac.uk/
  * 
  * This package is Free Software and part of Redland http://librdf.org/
@@ -68,7 +68,7 @@
 %option reentrant
 
 
-%x ID PREF LITERAL LITERAL2
+%x ID SPID PREF LITERAL LITERAL2
 
   /* definitions */
 
@@ -296,6 +296,11 @@ EXPONENT [eE][+-]?[0-9]+
 [Aa][Ss][Cc] { return ASC; }
 [Dd][Ee][Ss][Cc] { return DESC; } 
 [Ll][Aa][Nn][Gg][Mm][Aa][Tt][Cc][Hh][Ee][Ss] { return LANGMATCHES; } 
+[Ee][Xx][Pp][Ll][Aa][Ii][Nn] { return EXPLAIN; }
+[Gg][Rr][Oo][Uu][Pp] { return GROUP; }
+[Cc][Oo][Uu][Nn][Tt] { return COUNT; }
+[Aa][Ss] { BEGIN(SPID); return AS; }
+
 
 "a" { return A; }
 
@@ -431,6 +436,19 @@ EXPONENT [eE][+-]?[0-9]+
                 yyterminate();
 }
 
+<SPID>[\ \t\v]+	{ /* eat up leading whitespace */
+	;
+}
+<SPID>{VARNAME}	{ sparql_parser_lval->name=sparql_copy_name(rq, (const unsigned char*)yytext, yyleng, SPARQL_NAME_CHECK_VARNAME);
+		  if(!sparql_parser_lval->name)
+                    yyterminate();
+                          BEGIN(INITIAL);
+                          return IDENTIFIER; }
+
+<SPID>(.|\n)	{	BEGIN(INITIAL);
+		sparql_syntax_error(rq, "SPARQL syntax error - missing variable name after ?");
+                yyterminate();
+}
 
 <PREF>[\ \t\v]+ { /* eat up leading whitespace */ }
 <PREF>{NCNAME_PREFIX}":"	{ BEGIN(INITIAL);
@@ -970,6 +988,18 @@ sparql_token_print(int token, YYSTYPE *lval)
 
     case '!':
       return "!";
+
+    case EXPLAIN:
+      return "EXPLAIN";
+
+    case GROUP:
+      return "GROUP";
+
+    case COUNT:
+      return "COUNT";
+
+    case AS:
+      return "AS";
 
     case INTEGER_LITERAL:
       sprintf(buffer, "INTEGER_LITERAL(%d)", lval->literal->value.integer);
