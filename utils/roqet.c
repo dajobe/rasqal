@@ -254,6 +254,17 @@ roqet_graph_pattern_walk(rasqal_graph_pattern *gp, int gp_index,
 
     
 static void
+roqet_query_write_variable(FILE* fh, rasqal_variable* v)
+{
+  fputs((const char*)v->name, fh);
+  if(v->expression) {
+    fputc('=', fh);
+    rasqal_expression_print(v->expression, fh);
+  }
+}
+
+
+static void
 roqet_query_walk(rasqal_query *rq, FILE *fh, int indent) {
   rasqal_query_verb verb;
   int i;
@@ -294,8 +305,7 @@ roqet_query_walk(rasqal_query *rq, FILE *fh, int indent) {
 
       if(i > 0)
         fputs(", ", fh);
-      fputs((const char*)v->name, fh);
-
+      roqet_query_write_variable(fh, v);
       i++;
     }
     fputc('\n', fh);
