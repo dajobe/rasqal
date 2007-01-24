@@ -1141,7 +1141,7 @@ rasqal_query_results_write(raptor_iostream *iostr,
   rasqal_query_results_formatter *formatter;
   int status;
   
-  if(!results || results->failed || results->finished)
+  if(!results || results->failed)
     return 1;
 
   formatter=rasqal_new_query_results_formatter(NULL, format_uri);
