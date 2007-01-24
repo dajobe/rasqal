@@ -4,7 +4,7 @@
  *
  * $Id$
  *
- * Copyright (C) 2004-2006, David Beckett http://purl.org/net/dajobe/
+ * Copyright (C) 2004-2007, David Beckett http://purl.org/net/dajobe/
  * Copyright (C) 2004-2004, University of Bristol, UK http://www.bristol.ac.uk/
  * 
  * This package is Free Software and part of Redland http://librdf.org/
@@ -46,6 +46,9 @@ struct rasqal_sparql_query_engine_s {
 
   /* for error reporting */
   unsigned int lineno;
+
+  /* SPARQL extended */
+  int extended;
 };
 
 
