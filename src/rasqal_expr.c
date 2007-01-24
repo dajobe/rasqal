@@ -4,7 +4,7 @@
  *
  * $Id$
  *
- * Copyright (C) 2003-2006, David Beckett http://purl.org/net/dajobe/
+ * Copyright (C) 2003-2007, David Beckett http://purl.org/net/dajobe/
  * Copyright (C) 2003-2005, University of Bristol, UK http://www.bristol.ac.uk/
  * 
  * This package is Free Software and part of Redland http://librdf.org/
@@ -233,6 +233,8 @@ rasqal_free_variable(rasqal_variable* v)
     RASQAL_FREE(cstring, (void*)v->name);
   if(v->value)
     rasqal_free_literal(v->value);
+  if(v->expression)
+    rasqal_free_expression(v->expression);
   RASQAL_FREE(rasqal_variable, v);
 }
 
@@ -254,6 +256,10 @@ rasqal_variable_print(rasqal_variable* v, FILE* fh)
     fprintf(fh, "anon-variable(%s", v->name);
   else
     fprintf(fh, "variable(%s", v->name);
+  if(v->expression) {
+    fputc('=', fh);
+    rasqal_expression_print(v->expression, fh);
+  }
   if(v->value) {
     fputc('=', fh);
     rasqal_literal_print(v->value, fh);
@@ -471,6 +477,29 @@ rasqal_triple_get_origin(rasqal_triple* t)
 
 
 /**
+ * rasqal_new_0op_expression:
+ * @op: Expression operator
+ * 
+ * Constructor - create a new 0-operand (constant) expression.
+ *
+ * The operators are:
+ * @RASQAL_EXPR_VARSTAR
+ *
+ * The only operator here is the '*' in COUNT(*) as used by LAQRS.
+ * 
+ * Return value: a new #rasqal_expression object or NULL on failure
+ **/
+rasqal_expression*
+rasqal_new_0op_expression(rasqal_op op)
+{
+  rasqal_expression* e=(rasqal_expression*)RASQAL_CALLOC(rasqal_expression, 1, sizeof(rasqal_expression));
+  e->usage=1;
+  e->op=op;
+  return e;
+}
+
+
+/**
  * rasqal_new_1op_expression:
  * @op: Expression operator
  * @arg: Operand 1 
@@ -483,7 +512,8 @@ rasqal_triple_get_origin(rasqal_triple* t)
  * @RASQAL_EXPR_LANGMATCHES
  * @RASQAL_EXPR_DATATYPE @RASQAL_EXPR_ISURI @RASQAL_EXPR_ISBLANK
  * @RASQAL_EXPR_ISLITERAL @RASQAL_EXPR_ORDER_COND_ASC
- * @RASQAL_EXPR_ORDER_COND_DESC
+ * @RASQAL_EXPR_ORDER_COND_DESC @RASQAL_EXPR_GROUP_COND_ASC
+ * @RASQAL_EXPR_GROUP_COND_DESC @RASQAL_EXPR_COUNT
  *
  * @RASQAL_EXPR_BANG and @RASQAL_EXPR_UMINUS are used by RDQL and
  * SPARQL.  @RASQAL_EXPR_TILDE by RDQL only.  The rest by SPARQL
@@ -706,6 +736,9 @@ rasqal_expression_clear(rasqal_expression* e)
     case RASQAL_EXPR_ISLITERAL:
     case RASQAL_EXPR_ORDER_COND_ASC:
     case RASQAL_EXPR_ORDER_COND_DESC:
+    case RASQAL_EXPR_GROUP_COND_ASC:
+    case RASQAL_EXPR_GROUP_COND_DESC:
+    case RASQAL_EXPR_COUNT:
       rasqal_free_expression(e->arg1);
       break;
     case RASQAL_EXPR_STR_MATCH:
@@ -722,6 +755,10 @@ rasqal_expression_clear(rasqal_expression* e)
     case RASQAL_EXPR_CAST:
       raptor_free_uri(e->name);
       rasqal_free_expression(e->arg1);
+      break;
+
+    case RASQAL_EXPR_VARSTAR:
+      /* constants */
       break;
       
     case RASQAL_EXPR_UNKNOWN:
@@ -851,6 +888,9 @@ rasqal_expression_visit(rasqal_expression* e,
     case RASQAL_EXPR_CAST:
     case RASQAL_EXPR_ORDER_COND_ASC:
     case RASQAL_EXPR_ORDER_COND_DESC:
+    case RASQAL_EXPR_GROUP_COND_ASC:
+    case RASQAL_EXPR_GROUP_COND_DESC:
+    case RASQAL_EXPR_COUNT:
       return rasqal_expression_visit(e->arg1, fn, user_data);
       break;
     case RASQAL_EXPR_STR_MATCH:
@@ -870,6 +910,11 @@ rasqal_expression_visit(rasqal_expression* e,
       return result;
       break;
 
+    case RASQAL_EXPR_VARSTAR:
+      /* constants */
+      return 0;
+      break;
+      
     case RASQAL_EXPR_UNKNOWN:
     default:
       RASQAL_FATAL2("Unknown operation %d", e->op);
@@ -1854,11 +1899,18 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e,
         break;
       }
 
-  case RASQAL_EXPR_ORDER_COND_ASC:
-  case RASQAL_EXPR_ORDER_COND_DESC:
+    case RASQAL_EXPR_ORDER_COND_ASC:
+    case RASQAL_EXPR_ORDER_COND_DESC:
+    case RASQAL_EXPR_GROUP_COND_ASC:
+    case RASQAL_EXPR_GROUP_COND_DESC:
+    case RASQAL_EXPR_COUNT:
       result=rasqal_expression_evaluate(query, e->arg1, flags);
       break;
 
+    case RASQAL_EXPR_VARSTAR:
+      /* constants */
+      break;
+      
     case RASQAL_EXPR_UNKNOWN:
     default:
       RASQAL_FATAL2("Unknown operation %d", e->op);
@@ -1914,7 +1966,11 @@ static const char* rasqal_op_labels[RASQAL_EXPR_LAST+1]={
   "order asc",
   "order desc",
   "langMatches",
-  "regex"
+  "regex",
+  "group asc",
+  "group desc",
+  "count",
+  "varstar"
 };
 
 
@@ -2003,6 +2059,9 @@ rasqal_expression_print(rasqal_expression* e, FILE* fh)
     case RASQAL_EXPR_ISLITERAL:
     case RASQAL_EXPR_ORDER_COND_ASC:
     case RASQAL_EXPR_ORDER_COND_DESC:
+    case RASQAL_EXPR_GROUP_COND_ASC:
+    case RASQAL_EXPR_GROUP_COND_DESC:
+    case RASQAL_EXPR_COUNT:
       fputs("op ", fh);
       rasqal_expression_print_op(e, fh);
       fputc('(', fh);
@@ -2030,6 +2089,10 @@ rasqal_expression_print(rasqal_expression* e, FILE* fh)
       fputc(')', fh);
       break;
 
+    case RASQAL_EXPR_VARSTAR:
+      fputs("varstar", fh);
+      break;
+      
     case RASQAL_EXPR_UNKNOWN:
     default:
       RASQAL_FATAL2("Unknown operation %d", e->op);
@@ -2108,6 +2171,9 @@ rasqal_expression_is_constant(rasqal_expression* e)
     case RASQAL_EXPR_ISLITERAL:
     case RASQAL_EXPR_ORDER_COND_ASC:
     case RASQAL_EXPR_ORDER_COND_DESC:
+    case RASQAL_EXPR_GROUP_COND_ASC:
+    case RASQAL_EXPR_GROUP_COND_DESC:
+    case RASQAL_EXPR_COUNT:
       result=rasqal_expression_is_constant(e->arg1);
       break;
 
@@ -2130,6 +2196,10 @@ rasqal_expression_is_constant(rasqal_expression* e)
       result=rasqal_expression_is_constant(e->arg1);
       break;
 
+    case RASQAL_EXPR_VARSTAR:
+      result=0;
+      break;
+      
     case RASQAL_EXPR_UNKNOWN:
     default:
       RASQAL_FATAL2("Unknown operation %d", e->op);
