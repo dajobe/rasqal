@@ -4,7 +4,7 @@
  *
  * $Id$
  *
- * Copyright (C) 2004-2006, David Beckett http://purl.org/net/dajobe/
+ * Copyright (C) 2004-2007, David Beckett http://purl.org/net/dajobe/
  * Copyright (C) 2004-2005, University of Bristol, UK http://www.bristol.ac.uk/
  * 
  * This package is Free Software and part of Redland http://librdf.org/
@@ -138,9 +138,12 @@ static int sparql_is_builtin_xsd_datatype(raptor_uri* uri);
 %token DATATYPE "datatype"
 %token ISURI "isUri"
 %token ISBLANK "isBlank"
-%token  ISLITERAL "isLiteral"
+%token ISLITERAL "isLiteral"
+/* LAQRS */
+%token EXPLAIN GROUP COUNT AS
 
-/* expression delimitors */
+
+/* expression delimiters */
 
 %token ',' '(' ')' '[' ']' '{' '}'
 %token '?' '$'
@@ -179,7 +182,7 @@ static int sparql_is_builtin_xsd_datatype(raptor_uri* uri);
 
 
 %type <seq> SelectQuery ConstructQuery DescribeQuery
-%type <seq> VarList VarOrIRIrefList ArgList ConstructTriplesOpt
+%type <seq> SelectExpressionList VarOrIRIrefList ArgList ConstructTriplesOpt
 %type <seq> ConstructTemplate OrderConditionList
 %type <seq> GraphNodeListNotEmpty
 
@@ -200,13 +203,13 @@ static int sparql_is_builtin_xsd_datatype(raptor_uri* uri);
 %type <expr> MultiplicativeExpression UnaryExpression
 %type <expr> BuiltInCall RegexExpression FunctionCall
 %type <expr> BrackettedExpression PrimaryExpression
-%type <expr> OrderCondition Constraint
+%type <expr> OrderCondition Constraint SelectExpression
 
 %type <literal> GraphTerm IRIref BlankNode
 %type <literal> VarOrIRIref VarOrBlankNodeOrIRIref
 %type <literal> IRIrefBrace
 
-%type <variable> Var
+%type <variable> Var VarName
 
 
 %destructor { rasqal_free_literal($$); } FLOATING_POINT_LITERAL STRING_LITERAL INTEGER_LITERAL BOOLEAN_LITERAL DECIMAL_LITERAL
@@ -221,10 +224,26 @@ static int sparql_is_builtin_xsd_datatype(raptor_uri* uri);
  */
 
 /* SPARQL Grammar: [1] Query */
-Query: Prolog ReportFormat
+Query: Prolog ExplainOpt ReportFormat
         DatasetClauseOpt WhereClauseOpt 
-        OrderClauseOpt LimitClauseOpt OffsetClauseOpt
+        GroupClauseOpt OrderClauseOpt LimitClauseOpt OffsetClauseOpt
 {
+}
+;
+
+/* LAQRS */
+ExplainOpt: EXPLAIN
+{
+  rasqal_sparql_query_engine* sparql=(rasqal_sparql_query_engine*)(((rasqal_query*)rq)->context);
+
+  if(sparql->extended)
+    ((rasqal_query*)rq)->explain=1;
+  else
+    sparql_syntax_error((rasqal_query*)rq, "EXPLAIN cannot be used with SPARQL");
+}
+|
+{
+  /* nothing to do */
 }
 ;
 
@@ -303,7 +322,7 @@ PrefixDeclOpt: PrefixDeclOpt PREFIX IDENTIFIER URI_LITERAL
 
 
 /* SPARQL Grammar: [5] SelectQuery */
-SelectQuery: SELECT DISTINCT VarList
+SelectQuery: SELECT DISTINCT SelectExpressionList
 {
   $$=$3;
   ((rasqal_query*)rq)->distinct=1;
@@ -314,7 +333,7 @@ SelectQuery: SELECT DISTINCT VarList
   ((rasqal_query*)rq)->wildcard=1;
   ((rasqal_query*)rq)->distinct=1;
 }
-| SELECT VarList
+| SELECT SelectExpressionList
 {
   $$=$2;
 }
@@ -327,15 +346,27 @@ SelectQuery: SELECT DISTINCT VarList
 
 
 /* NEW Grammar Term pulled out of [5] SelectQuery */
-VarList: VarList Var
+SelectExpressionList: SelectExpressionList Var
 {
   $$=$1;
   raptor_sequence_push($$, $2);
 }
-| VarList ',' Var
+| SelectExpressionList ',' Var
 {
   $$=$1;
   raptor_sequence_push($$, $3);
+}
+| SelectExpressionList SelectExpression AS VarName
+{
+  rasqal_sparql_query_engine* sparql=(rasqal_sparql_query_engine*)(((rasqal_query*)rq)->context);
+
+  if(!sparql->extended)
+    sparql_syntax_error((rasqal_query*)rq, "SELECT Expression AS Variable cannot be used with SPARQL");
+  else {
+    $$=$1;
+    $4->expression=$2;
+    raptor_sequence_push($$, $4);
+  }
 }
 | Var 
 {
@@ -345,6 +376,26 @@ VarList: VarList Var
 }
 ;
 
+
+SelectExpression: COUNT '(' Expression ')'
+{
+  $$=rasqal_new_1op_expression(RASQAL_EXPR_COUNT, $3);
+}
+| COUNT '(' '*' ')'
+{
+  rasqal_expression* vs;
+  vs=rasqal_new_0op_expression(RASQAL_EXPR_VARSTAR);
+  $$=rasqal_new_1op_expression(RASQAL_EXPR_COUNT, vs);
+}
+| '(' COUNT '(' Expression ')' ')'
+{
+  $$=rasqal_new_1op_expression(RASQAL_EXPR_COUNT, $4);
+}
+| '(' Expression ')'
+{
+  $$=$2;
+}
+;
 
 /* SPARQL Grammar: [6] DescribeQuery */
 DescribeQuery: DESCRIBE VarOrIRIrefList
@@ -447,8 +498,37 @@ WhereClauseOpt:  WHERE GroupGraphPattern
 
 /* SPARQL Grammar: [14] SolutionModifier - merged into SelectQuery etc. */
 
+/* LAQRS */
+GroupClauseOpt: GROUP BY OrderConditionList
+{
+  rasqal_sparql_query_engine* sparql=(rasqal_sparql_query_engine*)(((rasqal_query*)rq)->context);
+
+  if(!sparql->extended)
+    sparql_syntax_error((rasqal_query*)rq, "GROUP BY cannot be used with SPARQL");
+  else if(((rasqal_query*)rq)->verb == RASQAL_QUERY_VERB_ASK) {
+    sparql_query_error((rasqal_query*)rq, "GROUP BY cannot be used with ASK");
+  } else {
+    raptor_sequence *seq=$3;
+    ((rasqal_query*)rq)->group_conditions_sequence=seq;
+    if(seq) {
+      int i;
+      
+      for(i=0; i < raptor_sequence_size(seq); i++) {
+        rasqal_expression* e=(rasqal_expression*)raptor_sequence_get_at(seq, i);
+        if(e->op == RASQAL_EXPR_ORDER_COND_ASC)
+          e->op = RASQAL_EXPR_GROUP_COND_ASC;
+        else
+          e->op = RASQAL_EXPR_GROUP_COND_DESC;
+      }
+    }
+  }
+}
+| /* empty */
+;
+
+
 /* SPARQL Grammar: [15] OrderClause - remained for clarity */
-OrderClauseOpt:  ORDER BY OrderConditionList
+OrderClauseOpt: ORDER BY OrderConditionList
 {
   if(((rasqal_query*)rq)->verb == RASQAL_QUERY_VERB_ASK) {
     sparql_query_error((rasqal_query*)rq, "ORDER BY cannot be used with ASK");
@@ -1470,15 +1550,23 @@ VarOrBlankNodeOrIRIref: Var
 ;
 
 /* SPARQL Grammar: [44] Var */
-Var: '?' IDENTIFIER
+Var: '?' VarName
 {
-  $$=rasqal_new_variable((rasqal_query*)rq, $2, NULL);
+  $$=$2;
 }
-| '$' IDENTIFIER
+| '$' VarName
 {
-  $$=rasqal_new_variable((rasqal_query*)rq, $2, NULL);
+  $$=$2;
 }
 ;
+
+/* NEW Grammar Term made from SPARQL Grammar: [44] Var */
+VarName: IDENTIFIER
+{
+  $$=rasqal_new_variable((rasqal_query*)rq, $1, NULL);
+}
+;
+
 
 
 /* SPARQL Grammar: [45] GraphTerm */
@@ -1833,9 +1921,11 @@ sparql_is_builtin_xsd_datatype(raptor_uri* uri)
  **/
 static int
 rasqal_sparql_query_engine_init(rasqal_query* rdf_query, const char *name) {
-  /* rasqal_sparql_query_engine* sparql=(rasqal_sparql_query_engine*)rdf_query->context; */
+  rasqal_sparql_query_engine* rqe=(rasqal_sparql_query_engine*)rdf_query->context;
 
   rdf_query->compare_flags = RASQAL_COMPARE_XQUERY;
+
+  rqe->extended = (strcmp(name, "laqrs") == 0);
   return 0;
 }
 
@@ -1997,7 +2087,7 @@ sparql_syntax_error(rasqal_query *rq, const char *message, ...)
   rasqal_query_error_varargs(rq, message, arguments);
   va_end(arguments);
 
-   return (0);
+  return (0);
 }
 
 
@@ -2016,7 +2106,7 @@ sparql_syntax_warning(rasqal_query *rq, const char *message, ...)
   rasqal_query_warning_varargs(rq, message, arguments);
   va_end(arguments);
 
-   return (0);
+  return (0);
 }
 
 
@@ -2060,6 +2150,14 @@ rasqal_init_query_engine_sparql(void) {
                                        &rasqal_sparql_query_engine_register_factory);
 }
 
+void
+rasqal_init_query_engine_laqrs(void) {
+  rasqal_query_engine_register_factory("laqrs", 
+                                       "LAQRS adds to Querying RDF in SPARQL",
+                                       NULL,
+                                       NULL,
+                                       &rasqal_sparql_query_engine_register_factory);
+}
 
 
 #ifdef STANDALONE
