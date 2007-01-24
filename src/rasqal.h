@@ -4,7 +4,7 @@
  *
  * $Id$
  *
- * Copyright (C) 2003-2006, David Beckett http://purl.org/net/dajobe/
+ * Copyright (C) 2003-2007, David Beckett http://purl.org/net/dajobe/
  * Copyright (C) 2003-2005, University of Bristol, UK http://www.bristol.ac.uk/
  * 
  * This package is Free Software and part of Redland http://librdf.org/
@@ -181,6 +181,9 @@ typedef enum {
 } rasqal_variable_type;
 
 
+/* forward reference */
+struct rasqal_expression_s;
+
 /**
  * rasqal_variable:
  * @name: Variable name.
@@ -198,6 +201,7 @@ typedef struct {
   rasqal_literal* value;
   int offset;
   rasqal_variable_type type;
+  struct rasqal_expression_s* expression;
 } rasqal_variable;
 
 
@@ -382,6 +386,10 @@ struct rasqal_literal_s {
  * @RASQAL_EXPR_CAST: Expression for cast literal A to type B.
  * @RASQAL_EXPR_ORDER_COND_ASC: Expression for SPARQL order condition ascending.
  * @RASQAL_EXPR_ORDER_COND_DESC: Expression for SPARQL order condition descending.
+ * @RASQAL_EXPR_GROUP_COND_ASC: Expression for LAQRS group condition ascending.
+ * @RASQAL_EXPR_GROUP_COND_DESC: Expression for LAQRS group condition descending.
+ * @RASQAL_EXPR_COUNT: Expression for LAQRS select COUNT()
+ * @RASQAL_EXPR_VARSTAR: Expression for LAQRS select Variable *
  * @RASQAL_EXPR_UNKNOWN: Internal
  * @RASQAL_EXPR_LAST: Internal
  *
@@ -426,8 +434,12 @@ typedef enum {
   RASQAL_EXPR_ORDER_COND_DESC,
   RASQAL_EXPR_LANGMATCHES,
   RASQAL_EXPR_REGEX,
+  RASQAL_EXPR_GROUP_COND_ASC,
+  RASQAL_EXPR_GROUP_COND_DESC,
+  RASQAL_EXPR_COUNT,
+  RASQAL_EXPR_VARSTAR,
   /* internal */
-  RASQAL_EXPR_LAST= RASQAL_EXPR_REGEX
+  RASQAL_EXPR_LAST= RASQAL_EXPR_VARSTAR
 } rasqal_op;
 
 
@@ -644,6 +656,10 @@ int rasqal_query_get_distinct(rasqal_query* query);
 RASQAL_API
 void rasqal_query_set_distinct(rasqal_query* query, int is_distinct);
 RASQAL_API
+int rasqal_query_get_explain(rasqal_query* query);
+RASQAL_API
+void rasqal_query_set_explain(rasqal_query* query, int is_explain);
+RASQAL_API
 int rasqal_query_get_limit(rasqal_query* query);
 RASQAL_API
 void rasqal_query_set_limit(rasqal_query* query, int limit);
@@ -687,6 +703,10 @@ RASQAL_API
 raptor_sequence* rasqal_query_get_order_conditions_sequence(rasqal_query* query);
 RASQAL_API
 rasqal_expression* rasqal_query_get_order_condition(rasqal_query* query, int idx);
+RASQAL_API
+raptor_sequence* rasqal_query_get_group_conditions_sequence(rasqal_query* query);
+RASQAL_API
+rasqal_expression* rasqal_query_get_group_condition(rasqal_query* query, int idx);
 RASQAL_API
 raptor_sequence* rasqal_query_get_construct_triples_sequence(rasqal_query* query);
 RASQAL_API
@@ -838,6 +858,8 @@ typedef enum {
 
 
 /* Expression class */
+RASQAL_API
+rasqal_expression* rasqal_new_0op_expression(rasqal_op op);
 RASQAL_API
 rasqal_expression* rasqal_new_1op_expression(rasqal_op op, rasqal_expression* arg);
 RASQAL_API
