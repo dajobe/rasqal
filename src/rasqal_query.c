@@ -4,7 +4,7 @@
  *
  * $Id$
  *
- * Copyright (C) 2003-2006, David Beckett http://purl.org/net/dajobe/
+ * Copyright (C) 2003-2007, David Beckett http://purl.org/net/dajobe/
  * Copyright (C) 2003-2005, University of Bristol, UK http://www.bristol.ac.uk/
  * 
  * This package is Free Software and part of Redland http://librdf.org/
@@ -45,7 +45,6 @@
 
 static void rasqal_query_add_query_result(rasqal_query* query, rasqal_query_results* query_results);
 static int rasqal_query_write_sparql_20060406(raptor_iostream *iostr, rasqal_query* query, raptor_uri *base_uri);
-
 
 
 /**
@@ -112,6 +111,7 @@ rasqal_new_query(const char *name, const unsigned char *uri)
   query->offset= -1;
 
   query->order_conditions_sequence=NULL;
+  query->group_conditions_sequence=NULL;
 
   query->usage=1;
   
@@ -185,6 +185,9 @@ rasqal_free_query(rasqal_query* query)
 
   if(query->order_conditions_sequence)
     raptor_free_sequence(query->order_conditions_sequence);
+
+  if(query->group_conditions_sequence)
+    raptor_free_sequence(query->group_conditions_sequence);
 
   /* Do this last since most everything above could refer to a variable */
   if(query->anon_variables_sequence)
@@ -431,6 +434,36 @@ void
 rasqal_query_set_distinct(rasqal_query* query, int is_distinct)
 {
   query->distinct= (is_distinct != 0) ? 1 : 0;
+}
+
+
+/**
+ * rasqal_query_get_explain:
+ * @query: #rasqal_query query object
+ *
+ * Get the query explain results flag.
+ *
+ * Return value: non-0 if the results should be explain
+ **/
+int
+rasqal_query_get_explain(rasqal_query* query)
+{
+  return query->explain;
+}
+
+
+/**
+ * rasqal_query_set_explain:
+ * @query: #rasqal_query query object
+ * @is_explain: non-0 if explain
+ *
+ * Set the query explain results flag.
+ *
+ **/
+void
+rasqal_query_set_explain(rasqal_query* query, int is_explain)
+{
+  query->explain= (is_explain != 0) ? 1 : 0;
 }
 
 
@@ -1299,6 +1332,8 @@ rasqal_query_print(rasqal_query* query, FILE *fh)
   
   if(query->distinct)
     fputs("query results distinct: yes\n", fh);
+  if(query->explain)
+    fputs("query results explain: yes\n", fh);
   if(query->limit >= 0)
     fprintf(fh, "query results limit: %d\n", query->limit);
   if(query->offset >= 0)
@@ -1346,6 +1381,10 @@ rasqal_query_print(rasqal_query* query, FILE *fh)
   if(query->order_conditions_sequence) {
     fputs("\nquery order conditions: ", fh);
     raptor_sequence_print(query->order_conditions_sequence, fh);
+  }
+  if(query->group_conditions_sequence) {
+    fputs("\nquery group conditions: ", fh);
+    raptor_sequence_print(query->group_conditions_sequence, fh);
   }
   fputc('\n', fh);
 }
@@ -1478,6 +1517,40 @@ rasqal_query_get_order_condition(rasqal_query* query, int idx)
 }
 
 
+/**
+ * rasqal_query_get_group_conditions_sequence:
+ * @query: #rasqal_query query object
+ *
+ * Get the sequence of query grouping conditions.
+ *
+ * Return value: a #raptor_sequence of #rasqal_expression pointers.
+ **/
+raptor_sequence*
+rasqal_query_get_group_conditions_sequence(rasqal_query* query)
+{
+  return query->group_conditions_sequence;
+}
+
+
+/**
+ * rasqal_query_get_group_condition:
+ * @query: #rasqal_query query object
+ * @idx: index into the sequence (0 or larger)
+ *
+ * Get a query grouping expression in the sequence of query grouping conditions.
+ *
+ * Return value: a #rasqal_expression pointer or NULL if out of the sequence range
+ **/
+rasqal_expression*
+rasqal_query_get_group_condition(rasqal_query* query, int idx)
+{
+  if(!query->group_conditions_sequence)
+    return NULL;
+  
+  return (rasqal_expression*)raptor_sequence_get_at(query->group_conditions_sequence, idx);
+}
+
+
 unsigned char*
 rasqal_prefix_id(int prefix_id, unsigned char *string)
 {
@@ -1530,15 +1603,21 @@ typedef struct
   raptor_namespace_stack *nstack;
 } sparql_writer_context;
 
+static void rasqal_query_write_sparql_expression(sparql_writer_context *wc, raptor_iostream* iostr, rasqal_expression* e);
+
 
 static void
 rasqal_query_write_sparql_variable(sparql_writer_context *wc,
                                    raptor_iostream* iostr, rasqal_variable* v)
 {
+  if(v->expression) {
+    rasqal_query_write_sparql_expression(wc, iostr, v->expression);
+    raptor_iostream_write_counted_string(iostr, " AS ", 4);
+  }
   if(v->type == RASQAL_VARIABLE_TYPE_ANONYMOUS)
     raptor_iostream_write_counted_string(iostr, "_:", 2);
-  else
-      raptor_iostream_write_byte(iostr, '?');
+  else if(!v->expression)
+    raptor_iostream_write_byte(iostr, '?');
   raptor_iostream_write_string(iostr, v->name);
 }
 
@@ -1703,10 +1782,13 @@ static const char* rasqal_sparql_op_labels[RASQAL_EXPR_LAST+1]={
   "isBLANK",
   "isLITERAL",
   NULL, /* CAST */
-  "ASC",
-  "DESC",
+  "ASC",   /* ORDER BY ASC */
+  "DESC",  /* ORDER BY DESC */
   "LANGMATCHES",
-  "REGEX"
+  "REGEX",
+  "ASC",   /* GROUP BY ASC */
+  "DESC",  /* GROUP BY DESC */
+  "COUNT"
 };
 
 
@@ -1771,6 +1853,9 @@ rasqal_query_write_sparql_expression(sparql_writer_context *wc,
     case RASQAL_EXPR_ISLITERAL:
     case RASQAL_EXPR_ORDER_COND_ASC:
     case RASQAL_EXPR_ORDER_COND_DESC:
+    case RASQAL_EXPR_GROUP_COND_ASC:
+    case RASQAL_EXPR_GROUP_COND_DESC:
+    case RASQAL_EXPR_COUNT:
       rasqal_query_write_sparql_expression_op(wc, iostr, e);
       raptor_iostream_write_counted_string(iostr, "( ", 2);
       rasqal_query_write_sparql_expression(wc, iostr, e->arg1);
@@ -1829,6 +1914,10 @@ rasqal_query_write_sparql_expression(sparql_writer_context *wc,
       abort();
       break;
 
+    case RASQAL_EXPR_VARSTAR:
+      raptor_iostream_write_byte(iostr, '*');
+      break;
+      
     case RASQAL_EXPR_UNKNOWN:
     default:
       RASQAL_FATAL2("Unknown operation %d", e->op);
@@ -1980,8 +2069,13 @@ rasqal_query_write_sparql_20060406(raptor_iostream *iostr,
     raptor_namespaces_start_namespace(wc.nstack, nspace);
   }
 
-  raptor_iostream_write_string(iostr,
-                               rasqal_query_verb_as_string(query->verb));
+  if(query->explain)
+    raptor_iostream_write_counted_string(iostr, "EXPLAIN ", 8);
+
+  if(query->verb != RASQAL_QUERY_VERB_CONSTRUCT)
+    raptor_iostream_write_string(iostr,
+                                 rasqal_query_verb_as_string(query->verb));
+
   if(query->distinct)
     raptor_iostream_write_counted_string(iostr, " DISTINCT", 9);
 
@@ -1996,8 +2090,8 @@ rasqal_query_write_sparql_20060406(raptor_iostream *iostr,
     int count=raptor_sequence_size(var_seq);
     for(i=0; i < count; i++) {
       rasqal_variable* v=(rasqal_variable*)raptor_sequence_get_at(var_seq, i);
-      raptor_iostream_write_counted_string(iostr, " ?", 2);
-      raptor_iostream_write_string(iostr, v->name);
+      raptor_iostream_write_byte(iostr, ' ');
+      rasqal_query_write_sparql_variable(&wc, iostr, v);
     }
   }
   raptor_iostream_write_byte(iostr, '\n');
@@ -2049,6 +2143,20 @@ rasqal_query_write_sparql_20060406(raptor_iostream *iostr,
     rasqal_query_write_sparql_graph_pattern(&wc, iostr,
                                             query->query_graph_pattern, 
                                             -1, 0);
+    raptor_iostream_write_byte(iostr, '\n');
+  }
+
+  if(query->group_conditions_sequence) {
+    raptor_iostream_write_counted_string(iostr, "GROUP BY ", 9);
+    for(i=0; 1; i++) {
+      rasqal_expression* expr=rasqal_query_get_group_condition(query, i);
+      if(!expr)
+        break;
+
+      if(i > 0)
+        raptor_iostream_write_byte(iostr, ' ');
+      rasqal_query_write_sparql_expression(&wc, iostr, expr);
+    }
     raptor_iostream_write_byte(iostr, '\n');
   }
 
