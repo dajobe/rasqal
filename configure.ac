@@ -5,7 +5,7 @@ dnl (Process this file with autoconf to produce a configure script.)
 dnl
 dnl $Id$
 dnl
-dnl Copyright (C) 2003-2005, David Beckett http://purl.org/net/dajobe/
+dnl Copyright (C) 2003-2007, David Beckett http://purl.org/net/dajobe/
 dnl Copyright (C) 2003-2005, University of Bristol, UK http://www.bristol.ac.uk/
 dnl 
 dnl This package is Free Software and part of Redland http://librdf.org/
@@ -624,8 +624,12 @@ AC_MSG_RESULT($triples_source_library)
 dnl RDF Query Languages
 rdql_query_language=no
 sparql_query_language=no
+laqrs_query_language=no
 
 rdf_query_languages_available="rdql sparql"
+if test "$USE_MAINTAINER_MODE" = yes; then
+  rdf_query_languages_available="$rdf_query_languages_available laqrs"
+fi
 rdf_query_languages_enabled=
 
 
@@ -633,6 +637,7 @@ rdf_query_languages_enabled=
 # symbols must be pulled from acconfig.h into config.h.in
 if test "x" = "y"; then
   AC_DEFINE(RASQAL_QUERY_RDQL, 1, [Building RDQL query])
+  AC_DEFINE(RASQAL_QUERY_LAQRS, 1, [Building LAQRS query])
   AC_DEFINE(RASQAL_QUERY_SPARQL, 1, [Building SPARQL query])
 fi
 
@@ -655,6 +660,7 @@ for query_language in $query_languages; do
 done
 
 AM_CONDITIONAL(RASQAL_QUERY_RDQL, test $rdql_query_language = yes)
+AM_CONDITIONAL(RASQAL_QUERY_LAQRS, test $laqrs_query_language = yes)
 AM_CONDITIONAL(RASQAL_QUERY_SPARQL, test $sparql_query_language = yes)
 
 
