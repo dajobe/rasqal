@@ -4,7 +4,7 @@
  *
  * $Id$
  *
- * Copyright (C) 2004-2006, David Beckett http://purl.org/net/dajobe/
+ * Copyright (C) 2004-2007, David Beckett http://purl.org/net/dajobe/
  * Copyright (C) 2004-2005, University of Bristol, UK http://www.bristol.ac.uk/
  * 
  * This package is Free Software and part of Redland http://librdf.org/
@@ -721,7 +721,7 @@ rasqal_query_build_declared_in(rasqal_query* query)
       RASQAL_DEBUG4("Variable %s (%d) was declared in column %d\n",
                     v->name, i, column);
 #endif
-    } else 
+    } else if(!v->expression)
       rasqal_query_warning(query, 
                            "Variable %s was selected but is unused in the query.", 
                            v->name);
