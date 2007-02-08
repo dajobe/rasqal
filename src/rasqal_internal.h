@@ -215,8 +215,9 @@ struct rasqal_query_s {
    * in selects, triples, constraints and anonymous (no name, cannot
    * be selected or refered to).  An array of size variables_count
    *
-   * The first select_variables_count of this array are from the selects
-   * and are typically returned to the user.
+   * The first select_variables_count of this array are from the
+   * selects.  The selected variables only are typically returned to
+   * the user.
    *
    * Anonymous variables appear at the end of the 'variables' array but
    * are taken from the anon_variables_sequence.
@@ -239,13 +240,13 @@ struct rasqal_query_s {
   int anon_variables_count;
 
   /* array of variable names to bind or NULL if no variables wanted
-   * (size select_variables_count+1, last NULL)
+   * (size (select_variables_count OR construct_variables_count)+1, last NULL)
    * indexes into the names in variables_sequence above.
    */
   const unsigned char** variable_names;
 
   /* array of result binding values, per result or NULL if no variables wanted
-   * (size select_variables_count) 
+   * (size select_variables_count or construct_variables_count) 
    * indexes into the values in variables_sequence above, per-binding
    */
   rasqal_literal** binding_values;
