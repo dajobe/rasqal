@@ -51,6 +51,8 @@ struct rasqal_raptor_triple_s {
 typedef struct rasqal_raptor_triple_s rasqal_raptor_triple;
 
 typedef struct {
+  rasqal_query* query;
+
   rasqal_raptor_triple *head;
   rasqal_raptor_triple *tail;
 
@@ -62,11 +64,16 @@ typedef struct {
   /* size of the two arrays below */
   int sources_count;
   
-  /* array of shared pointers into query->data_graph uris */
-  raptor_uri **source_uris;
+  /* shared pointers into query->data_graph uris */
+  raptor_uri* source_uri;
 
   /* array of URI literals (allocated here) */
   rasqal_literal **source_literals;
+
+  /* genid base for mapping user bnodes */
+  unsigned char* mapped_id_base;
+  /* length of above string */
+  int mapped_id_base_len;
 } rasqal_raptor_triples_source_user_data;
 
 
@@ -209,6 +216,30 @@ rasqal_raptor_error_handler(void *user_data,
 }
 
 
+static unsigned char*
+rasqal_raptor_generate_id_handler(void *user_data,
+                                  raptor_genid_type type,
+                                  unsigned char *user_bnodeid) 
+{
+  rasqal_raptor_triples_source_user_data* rtsc=(rasqal_raptor_triples_source_user_data*)user_data;
+  if(user_bnodeid) {
+    unsigned char *mapped_id=RASQAL_MALLOC(cstring, 
+                                           rtsc->mapped_id_base_len + 1 + 
+                                           strlen((const char*)user_bnodeid) + 1);
+    strncpy((char*)mapped_id,  (const char*)rtsc->mapped_id_base, 
+            rtsc->mapped_id_base_len);
+    mapped_id[rtsc->mapped_id_base_len]='_';
+    strcpy((char*)(mapped_id+rtsc->mapped_id_base_len+1),
+           (const char*)user_bnodeid);
+
+    raptor_free_memory(user_bnodeid);
+    return mapped_id;
+  }
+  
+  return rasqal_query_get_genid(rtsc->query, (const unsigned char*)"genid", -1);
+}
+
+
 static int
 rasqal_raptor_new_triples_source(rasqal_query* rdf_query,
                                  void *factory_user_data,
@@ -230,20 +261,27 @@ rasqal_raptor_new_triples_source(rasqal_query* rdf_query,
   if(!rtsc->sources_count)
     return -1;  /* no data */
 
-  rtsc->source_uris=(raptor_uri**)RASQAL_CALLOC(raptor_uri_ptr, rtsc->sources_count, sizeof(raptor_uri*));
   rtsc->source_literals=(rasqal_literal**)RASQAL_CALLOC(rasqal_literal_ptr, rtsc->sources_count, sizeof(rasqal_literal*));
+
+  rtsc->query=rdf_query;
 
   for(i=0; i< rtsc->sources_count; i++) {
     rasqal_data_graph *dg=(rasqal_data_graph*)raptor_sequence_get_at(rdf_query->data_graphs, i);
     raptor_uri* uri=dg->uri;
 
     rtsc->source_index=i;
-    rtsc->source_uris[i]=raptor_uri_copy(uri);
+    rtsc->source_uri=raptor_uri_copy(uri);
     rtsc->source_literals[i]=rasqal_new_uri_literal(raptor_uri_copy(uri));
+    rtsc->mapped_id_base=rasqal_query_get_genid(rdf_query,
+                                                (const unsigned char*)"graphid",
+                                                i);
+    rtsc->mapped_id_base_len=strlen((const char*)rtsc->mapped_id_base);
 
     parser=raptor_new_parser("guess");
     raptor_set_statement_handler(parser, rtsc, rasqal_raptor_statement_handler);
     raptor_set_error_handler(parser, rdf_query, rasqal_raptor_error_handler);
+    raptor_set_generate_id_handler(parser, rtsc,
+                                   rasqal_raptor_generate_id_handler);
 
 #ifdef RAPTOR_FEATURE_NO_NET
     if(rdf_query->features[RASQAL_FEATURE_NO_NET])
@@ -253,6 +291,12 @@ rasqal_raptor_new_triples_source(rasqal_query* rdf_query,
 
     raptor_parse_uri(parser, uri, dg->name_uri);
     raptor_free_parser(parser);
+
+    raptor_free_uri(rtsc->source_uri);
+    /* This is freed in rasqal_raptor_free_triples_source() */
+    /* rasqal_free_literal(rtsc->source_literal); */
+    RASQAL_FREE(cstring, rtsc->mapped_id_base);
+    
     if(rdf_query->failed) {
       rasqal_raptor_free_triples_source(user_data);
       break;
@@ -336,14 +380,10 @@ rasqal_raptor_free_triples_source(void *user_data) {
   }
 
   for(i=0; i< rtsc->sources_count; i++) {
-    if(rtsc->source_uris[i])
-      raptor_free_uri(rtsc->source_uris[i]);
     if(rtsc->source_literals[i])
       rasqal_free_literal(rtsc->source_literals[i]);
   }
-  RASQAL_FREE(raptor_uri_ptr, rtsc->source_uris);
   RASQAL_FREE(raptor_literal_ptr, rtsc->source_literals);
-  
 }
 
 
