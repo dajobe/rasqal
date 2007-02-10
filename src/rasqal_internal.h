@@ -322,9 +322,6 @@ struct rasqal_query_s {
   /* EXPLAIN was given */
   int explain;
 
-  /* base ID - initialised once */
-  int genid_base;
-  
   /* generated counter - increments at every generation */
   int genid_counter;
 };
