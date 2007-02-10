@@ -115,6 +115,8 @@ rasqal_new_query(const char *name, const unsigned char *uri)
 
   query->usage=1;
   
+  query->genid_counter=1;
+  
   if(factory->init(query, name)) {
     rasqal_free_query(query);
     return NULL;
@@ -2299,3 +2301,31 @@ rasqal_query_escape_counted_string(rasqal_query* query,
   
   return output_string;
 }
+
+
+unsigned char*
+rasqal_query_get_genid(rasqal_query* query, const unsigned char* base, 
+                       int counter)
+{
+  int tmpcounter;
+  int length;
+  unsigned char *buffer;
+
+  /* This is read-only and thread safe */
+  if(counter < 0)
+    counter= query->genid_counter++;
+  
+  length=strlen((const char*)base)+1;  /* base + (int) + "\0" */
+  tmpcounter=counter;
+  while(tmpcounter/=10)
+    length++;
+  
+  buffer=(unsigned char*)RASQAL_MALLOC(cstring, length);
+  if(!buffer)
+    return NULL;
+
+  sprintf((char*)buffer, "%s%d", base, counter);
+  return buffer;
+}
+
+
