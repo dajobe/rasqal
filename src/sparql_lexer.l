@@ -300,7 +300,8 @@ EXPONENT [eE][+-]?[0-9]+
 [Gg][Rr][Oo][Uu][Pp] { return GROUP; }
 [Cc][Oo][Uu][Nn][Tt] { return COUNT; }
 [Aa][Ss] { BEGIN(SPID); return AS; }
-
+[Dd][Ee][Ll][Ee][Tt][Ee]  { return DELETE; }
+[Ii][Nn][Ss][Ee][Rr][Tt]  { return INSERT; }
 
 "a" { return A; }
 
