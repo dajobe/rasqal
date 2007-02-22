@@ -141,6 +141,7 @@ static int sparql_is_builtin_xsd_datatype(raptor_uri* uri);
 %token ISLITERAL "isLiteral"
 /* LAQRS */
 %token EXPLAIN GROUP COUNT AS
+%token DELETE INSERT
 
 
 /* expression delimiters */
@@ -267,6 +268,14 @@ ReportFormat: SelectQuery
 | AskQuery
 {
   ((rasqal_query*)rq)->verb=RASQAL_QUERY_VERB_ASK;
+}
+| DeleteQuery
+{
+  ((rasqal_query*)rq)->verb=RASQAL_QUERY_VERB_DELETE;
+}
+| InsertQuery
+{
+  ((rasqal_query*)rq)->verb=RASQAL_QUERY_VERB_INSERT;
 }
 ;
 
@@ -446,6 +455,29 @@ AskQuery: ASK
 {
   /* nothing to do */
 }
+;
+
+
+/* LAQRS */
+DeleteQuery: DELETE
+{
+  rasqal_sparql_query_engine* sparql=(rasqal_sparql_query_engine*)(((rasqal_query*)rq)->context);
+
+  if(!sparql->extended)
+    sparql_syntax_error((rasqal_query*)rq, "DELETE cannot be used with SPARQL");
+}
+;
+
+
+/* LAQRS */
+InsertQuery: INSERT
+{
+  rasqal_sparql_query_engine* sparql=(rasqal_sparql_query_engine*)(((rasqal_query*)rq)->context);
+
+  if(!sparql->extended)
+    sparql_syntax_error((rasqal_query*)rq, "INSERT cannot be used with SPARQL");
+}
+;
 
 
 /* SPARQL Grammar: [9] DatasetClause */
