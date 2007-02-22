@@ -1,3 +1,96 @@
+2007-02-21  Dave Beckett  <dave@dajobe.org>
+
+	* src/sparql_lexer.l: Added LAQRS DELETE and INSERT
+
+	* src/sparql_parser.y: (DeleteQuery, InsertQuery): Added.
+
+	* src/rasqal_query.c: Add rasqal_query_verb_labels labels for
+	DELETE and INSERT.
+
+	* src/rasqal_engine.c: (rasqal_engine_expand_wildcards):
+	Handle switch RASQAL_QUERY_VERB_DELETE and RASQAL_QUERY_VERB_INSERT
+	(rasqal_engine_assign_variables): Init size to 0
+
+	* src/rasqal.h: Added LAQRS RASQAL_QUERY_VERB_DELETE and
+	RASQAL_QUERY_VERB_INSERT
+
+2007-02-17  Dave Beckett  <dave@dajobe.org>
+
+	* utils/roqet.1: -r words
+
+2007-02-09  Dave Beckett  <dave@dajobe.org>
+
+	* src/rasqal_raptor.c: rasqal_raptor_triples_source_user_data
+	gains query field, source_uri field replacing list of URIs and
+	mapped_id_base, mapped_id_base_len.
+	(rasqal_raptor_generate_id_handler): Added, to either add the
+	user_bnodeid to a graph-specific base, or to generate an ID
+	otherwise.
+	(rasqal_raptor_new_triples_source): Init uris each time, keep
+	literals around till destruction.  Set the generated ID handler
+	for raptor to rasqal_raptor_generate_id_handler.
+	(rasqal_raptor_free_triples_source): Do not free URIs in list, or
+	uris array.
+
+	* src/rasqal_query.c: (rasqal_query_get_genid): Added simple genid
+	generation from a single counter held in the query plus a given
+	base.
+
+	* src/rasqal_internal.h: Remove genid_bsae again
+
+	* src/rasqal_internal.h: Added rasqal_query_get_genid
+
+2007-02-08  Dave Beckett  <dave@dajobe.org>
+
+	* src/rasqal_query.c: (rasqal_query_write_sparql_graph_pattern):
+	Write GRAPH parameter correctly in output.
+
+2007-02-07  Dave Beckett  <dave@dajobe.org>
+
+	* src/rasqal_query_results.c: (rasqal_query_results_get_triple,
+	rasqal_query_results_next_triple): Simplify and use
+	rasqal_engine_execute_next to handle limit and offset.  This patch
+	with the previous commits
+	Fixes Issue#0000167 http://bugs.librdf.org/mantis/view.php?id=167
+
+	* src/rasqal_engine.c: (rasqal_engine_assign_variables): Abstract
+	from assigning variables just for a select, also assign them for a
+	construct but put them in the variables_sequence.
+	(rasqal_engine_get_next_result,
+	rasqal_engine_query_result_row_update,
+	rasqal_engine_new_query_result_row): Use size of variables from
+	either variables_sequence for construct, otherwise
+	select_variables_count.
+	(rasqal_engine_query_result_row_update,
+	rasqal_engine_new_query_result_row,
+	rasqal_engine_query_results_update): Allow graph results to call
+	this.
+	(rasqal_engine_query_result_row_print): Work for construct too.
+	(rasqal_engine_bind_construct_variables): Added, to substitute in
+	variable bindings from a ordered query result row.
+	(rasqal_engine_execute_order): Run
+	rasqal_engine_bind_construct_variables after ordering.
+	(rasqal_engine_execute_next): Run
+	rasqal_engine_bind_construct_variables after getting next result.
+
+	* src/rasqal_internal.h: docs - variables may be bound when
+	constructs triples are present as well as when selects variables
+	are around
+
+	* src/rasqal_query_results.c: (rasqal_query_results_get_triple,
+	rasqal_query_results_next_triple): Check limit when getting
+	results for triples, such as SPARQL CONSTRUCT.  offset may work
+	but not tested much.  Addresses issue
+	http://bugs.librdf.org/mantis/view.php?id=167
+
+2007-01-24  Dave Beckett  <dave@dajobe.org>
+
+	* utils/roqet.c: (roqet_query_write_variable): Added.
+	(roqet_query_walk): Use above to print out a variable with
+	possible expression value.
+
+	* configure.ac: Added LAQRS query language - maintainer only.
+
 2007-01-23  Dave Beckett  <dave@dajobe.org>
 
 	* src/sparql_parser.y: Added LAQRS tokens EXPLAIN GROUP COUNT AS
