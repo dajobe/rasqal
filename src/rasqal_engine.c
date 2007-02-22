@@ -295,6 +295,8 @@ rasqal_engine_expand_wildcards(rasqal_query* rq)
     case RASQAL_QUERY_VERB_UNKNOWN:
     case RASQAL_QUERY_VERB_DESCRIBE:
     case RASQAL_QUERY_VERB_ASK:
+    case RASQAL_QUERY_VERB_DELETE:
+    case RASQAL_QUERY_VERB_INSERT:
     default:
       rasqal_query_error(rq, "Cannot use wildcard * with query verb %s",
                          rasqal_query_verb_as_string(rq->verb));
@@ -328,7 +330,7 @@ rasqal_engine_assign_variables(rasqal_query* rq)
 {
   int i;
   int offset;
-  int size;
+  int size=0;
   raptor_sequence* var_sequence=NULL;
   
   if(rq->constructs)
