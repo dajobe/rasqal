@@ -1295,7 +1295,9 @@ static const char* rasqal_query_verb_labels[RASQAL_QUERY_VERB_LAST+1]={
   "SELECT",
   "CONSTRUCT",
   "DESCRIBE",
-  "ASK"
+  "ASK",
+  "DELETE",
+  "INSERT"
 };
 
 /* Utility methods */
