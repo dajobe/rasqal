@@ -2742,60 +2742,6 @@ rasqal_engine_query_result_row_compare(const void *a, const void *b)
 }
 
 
-/* NOT USED - NON LAZY */
-#if 0
-static int
-rasqal_engine_query_results_update(rasqal_query_results *query_results)
-{
-  if(!query_results)
-    return 1;
-  
-  if(!rasqal_query_results_is_bindings(query_results) &&
-     !rasqal_query_results_is_graph(query_results))
-    return 1;
-
-  if(query_results->finished)
-    return 1;
-
-  while(1) {
-    int rc;
-    
-    /* rc<0 error rc=0 end of results,  rc>0 got a result */
-    rc=rasqal_engine_get_next_result(query_results);
-
-    if(rc < 1) {
-      /* <0 failure OR =0 end of results */
-      query_results->finished=1;
-
-      /* <0 failure */
-      if(rc < 0)
-        query_results->failed=1;
-      break;
-    }
-    
-    /* otherwise is >0 match */
-    query_results->result_count++;
-
-    /* finished if beyond result range */
-    if(rasqal_engine_check_limit_offset(query_results) > 0) {
-      query_results->result_count--;
-      break;
-    }
-
-    /* continue if before start of result range */
-    if(rasqal_engine_check_limit_offset(query_results) < 0)
-      continue;
-
-    /* else got result or finished */
-    break;
-
-  } /* while */
-
-  return query_results->finished;
-}
-#endif
-
-
 static void
 rasqal_engine_map_free_query_result_row(const void *key, const void *value)
 {
