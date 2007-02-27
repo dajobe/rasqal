@@ -2650,32 +2650,50 @@ rasqal_engine_execute_run(rasqal_query_results* query_results)
   rasqal_query *query=query_results->query;
   int rc=0;
   rasqal_engine_execution_data* execution_data;
+  rasqal_graph_pattern *outergp;
+  rasqal_engine_gp_data* outergp_data;
+  int size;
+  
+  /* start at the outer graph pattern */
+  outergp=query->query_graph_pattern;
+  if(!outergp || !outergp->graph_patterns) {
+    rasqal_query_error(query, "No graph patterns in query. Ending query execution.");
+    query_results->finished=1;
+    /* FIXME this should be a failure - fix test/sparql/syntax/0triples.rq */
+    return 0;
+  }
+  
 
   /* LAZY: was if(query->order_conditions_sequence || query->distinct) */
   /* NON LAZY: always store results */
 
+  /* Initialise execution data */
   execution_data=query_results->execution_data;
   execution_data->offset=0;
   execution_data->map=NULL;
   if(query->order_conditions_sequence || query->distinct)
-    /* make a row:NULL map only if necessary  */
+    /* get all query results and order them if have a map
+     * make a row:NULL map only if necessary
+     */
     execution_data->map=rasqal_new_map(rasqal_engine_query_result_row_compare,
                                        rasqal_engine_map_free_query_result_row, 
                                        rasqal_engine_map_print_query_result_row,
                                        NULL,
                                        0);
-
-  
-  /* get all query results and order them if have a map */
   query_results->results_sequence=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_engine_free_query_result_row, (raptor_sequence_print_handler*)rasqal_engine_query_result_row_print);
+
+
+  if(query->constructs)
+    size=raptor_sequence_size(query->variables_sequence);
+  else
+    size=query->select_variables_count;
+
+
+  /* Execution loop */
   while(1) {
     int graph_patterns_size;
     rasqal_engine_step step;
     int i;
-    rasqal_graph_pattern *outergp;
-    rasqal_engine_gp_data* outergp_data;
-    int size;
-    
     if(query_results->failed) {
       rc= -1;
       break;
@@ -2691,15 +2709,6 @@ rasqal_engine_execute_run(rasqal_query_results* query_results)
       break;
     }
 
-    outergp=query->query_graph_pattern;
-    if(!outergp || !outergp->graph_patterns) {
-      /* FIXME - no graph patterns in query - end results */
-      rasqal_query_error(query, "No graph patterns in query. Ending query execution.");
-      query_results->finished=1;
-      rc= 0;
-      break;
-    }
-  
     graph_patterns_size=raptor_sequence_size(outergp->graph_patterns);
     if(!graph_patterns_size) {
       /* FIXME - no graph patterns in query - end results */
@@ -2711,13 +2720,7 @@ rasqal_engine_execute_run(rasqal_query_results* query_results)
 
     outergp_data=(rasqal_engine_gp_data*)raptor_sequence_get_at(execution_data->seq, 
                                                                 outergp->gp_index);
-    
     query_results->new_bindings_count=0;
-    
-    if(query->constructs)
-      size=raptor_sequence_size(query->variables_sequence);
-    else
-      size=query->select_variables_count;
     
     step=STEP_SEARCHING;
     while(step == STEP_SEARCHING) {
@@ -2849,7 +2852,7 @@ rasqal_engine_execute_run(rasqal_query_results* query_results)
     query_results->finished=1;
   
   if(!query_results->finished) {
-    int size=raptor_sequence_size(query_results->results_sequence);
+    int results_size=raptor_sequence_size(query_results->results_sequence);
     
     /* Reset to first result, index-1 into sequence of results */
     query_results->result_count= 1;
@@ -2857,11 +2860,11 @@ rasqal_engine_execute_run(rasqal_query_results* query_results)
     /* skip past any OFFSET */
     if(query->offset > 0) {
       query_results->result_count += query->offset;
-      if(query_results->result_count >= size)
+      if(query_results->result_count >= results_size)
         query_results->finished=1;
     }
     
-    }
+  }
   
   if(query_results->finished)
     query_results->result_count= 0;
