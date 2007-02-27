@@ -2742,6 +2742,8 @@ rasqal_engine_query_result_row_compare(const void *a, const void *b)
 }
 
 
+/* NOT USED - NON LAZY */
+#if 0
 static int
 rasqal_engine_query_results_update(rasqal_query_results *query_results)
 {
@@ -2791,6 +2793,7 @@ rasqal_engine_query_results_update(rasqal_query_results *query_results)
 
   return query_results->finished;
 }
+#endif
 
 
 static void
@@ -2843,28 +2846,31 @@ rasqal_engine_bind_construct_variables(rasqal_query_results* query_results)
 
 
 int
-rasqal_engine_execute_order(rasqal_query_results* query_results)
+rasqal_engine_execute_run(rasqal_query_results* query_results)
 {
   rasqal_query *query=query_results->query;
   int rc=0;
-  /* LAZY: was if(query->order_conditions_sequence || query->distinct) */
-  rasqal_map* map=NULL;
-  raptor_sequence* seq;
   int offset=0;
 
+  rasqal_engine_execution_data* execution_data;
+
+  execution_data=query_results->execution_data;
+
+  /* LAZY: was if(query->order_conditions_sequence || query->distinct) */
   /* NON LAZY: always store results */
 
   if(query->order_conditions_sequence || query->distinct) {
     /* make a row:NULL map only if necessary  */
-    map=rasqal_new_map(rasqal_engine_query_result_row_compare,
-                       rasqal_engine_map_free_query_result_row, 
-                       rasqal_engine_map_print_query_result_row,
-                       NULL,
-                       0);
-  }
+    execution_data->map=rasqal_new_map(rasqal_engine_query_result_row_compare,
+                                       rasqal_engine_map_free_query_result_row, 
+                                       rasqal_engine_map_print_query_result_row,
+                                       NULL,
+                                       0);
+  } else
+    execution_data->map=NULL;
   
   /* get all query results and order them if have a map */
-  seq=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_engine_free_query_result_row, (raptor_sequence_print_handler*)rasqal_engine_query_result_row_print);
+  query_results->results_sequence=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_engine_free_query_result_row, (raptor_sequence_print_handler*)rasqal_engine_query_result_row_print);
   while(1) {
     rasqal_query_result_row* row;
     
@@ -2882,24 +2888,24 @@ rasqal_engine_execute_order(rasqal_query_results* query_results)
       query_results->finished=1;
       query_results->failed=1;
       
-      if(map)
-        rasqal_free_map(map);
-      raptor_free_sequence(seq);
-      seq=NULL;
+      if(execution_data->map)
+        rasqal_free_map(execution_data->map);
+      raptor_free_sequence(query_results->results_sequence);
+      query_results->results_sequence=NULL;
       break;
     }
     
     /* otherwise is >0 match */
     row=rasqal_engine_new_query_result_row(query_results, offset);
 
-    if(!map) {
+    if(!execution_data->map) {
       /* not ordering and not distinct */
-      raptor_sequence_push(seq, row);
+      raptor_sequence_push(query_results->results_sequence, row);
     } else {
       /* ordering or distinct */
 
       /* after this, row is owned by map */
-      if(!rasqal_map_add_kv(map, row, NULL)) {
+      if(!rasqal_map_add_kv(execution_data->map, row, NULL)) {
         offset++;
       } else {
         /* duplicate, and not added so delete it */
@@ -2915,18 +2921,19 @@ rasqal_engine_execute_order(rasqal_query_results* query_results)
   }
   
 #ifdef RASQAL_DEBUG
-  if(map) {
+  if(execution_data->map) {
     fputs("resulting ", stderr);
-    rasqal_map_print(map, stderr);
+    rasqal_map_print(execution_data->map, stderr);
     fputs("\n", stderr);
   }
 #endif
   
-  if(map) {
-    rasqal_map_visit(map, rasqal_engine_map_add_to_sequence, (void*)seq);
-    rasqal_free_map(map);
+  if(execution_data->map) {
+    rasqal_map_visit(execution_data->map,
+                     rasqal_engine_map_add_to_sequence, 
+                     (void*)query_results->results_sequence);
+    rasqal_free_map(execution_data->map);
   }
-  query_results->results_sequence=seq;
   
   if(query_results->results_sequence) {
     query_results->finished= (raptor_sequence_size(query_results->results_sequence) == 0);

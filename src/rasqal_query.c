@@ -1281,7 +1281,7 @@ rasqal_query_execute(rasqal_query* query)
 
   query_results->executed=1;
 
-  if(rasqal_engine_execute_order(query_results)) {
+  if(rasqal_engine_execute_run(query_results)) {
     rasqal_free_query_results(query_results);
     query_results=NULL;
   }

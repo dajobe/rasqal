@@ -396,12 +396,17 @@ typedef struct {
 } rasqal_query_result_row;
 
 
+typedef struct rasqal_map_s rasqal_map;
+
 /* The execution data here is a sequence of
  * rasqal_graph_pattern_data execution data of size
  * query->graph_pattern_count with each rasqal_graph_pattern_data
  */
 typedef struct {
   raptor_sequence* seq;
+
+  /* for ordering results during execution */
+  rasqal_map* map;
 } rasqal_engine_execution_data;
 
 
@@ -553,7 +558,7 @@ int rasqal_triples_source_next_source(rasqal_triples_source* rts);
 int rasqal_engine_get_next_result(rasqal_query_results* query_results);
 void rasqal_engine_assign_binding_values(rasqal_query* query);
 void rasqal_engine_move_constraints(rasqal_graph_pattern* dest_gp, rasqal_graph_pattern* src_gp);
-int rasqal_engine_execute_order(rasqal_query_results* query_results);
+int rasqal_engine_execute_run(rasqal_query_results* query_results);
 void rasqal_engine_free_query_result_row(rasqal_query_result_row* row);
 rasqal_literal** rasqal_engine_get_results_values(rasqal_query_results* query_results);
 rasqal_literal* rasqal_engine_get_result_value(rasqal_query_results* query_results, int offset);
@@ -639,8 +644,6 @@ typedef void (rasqal_kv_free_fn)(const void *key, const void *value);
 
 
 /* rasqal_map.c */
-typedef struct rasqal_map_s rasqal_map;
-
 typedef void (*rasqal_map_visit_fn)(void *key, void *value, void *user_data);
 
 rasqal_map* rasqal_new_map(rasqal_compare_fn* compare_fn, rasqal_kv_free_fn* free_fn, raptor_sequence_print_handler* print_key_fn, raptor_sequence_print_handler* print_value_fn, int flags);
