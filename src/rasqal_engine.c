@@ -2853,19 +2853,18 @@ void rasqal_engine_store_query_results(rasqal_query_results* query_results)
   
   execution_data=query_results->execution_data;
 
-  /* otherwise is >0 match */
   row=rasqal_engine_new_query_result_row(query_results, execution_data->offset);
   
-  if(!execution_data->map) {
+  if(!execution_data->map)
     /* not ordering and not distinct */
     raptor_sequence_push(query_results->results_sequence, row);
-  } else {
+  else {
     /* ordering or distinct */
     
     /* after this, row is owned by map */
-    if(!rasqal_map_add_kv(execution_data->map, row, NULL)) {
+    if(!rasqal_map_add_kv(execution_data->map, row, NULL))
       execution_data->offset++;
-    } else {
+    else {
       /* duplicate, and not added so delete it */
 #ifdef RASQAL_DEBUG
       RASQAL_DEBUG1("Got duplicate row ");
@@ -2873,7 +2872,6 @@ void rasqal_engine_store_query_results(rasqal_query_results* query_results)
       fputc('\n', stderr);
 #endif
       rasqal_engine_free_query_result_row(row);
-      row=NULL;
     }
   }
 }
@@ -2928,6 +2926,7 @@ rasqal_engine_execute_run(rasqal_query_results* query_results)
       break;
     }
 
+    /* otherwise is >0 match */
     rasqal_engine_store_query_results(query_results);
     
   }
