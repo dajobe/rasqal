@@ -2317,7 +2317,7 @@ rasqal_query_get_genid(rasqal_query* query, const unsigned char* base,
   if(counter < 0)
     counter= query->genid_counter++;
   
-  length=strlen((const char*)base)+1;  /* base + (int) + "\0" */
+  length=strlen((const char*)base)+2;  /* base + (int) + "\0" */
   tmpcounter=counter;
   while(tmpcounter/=10)
     length++;
