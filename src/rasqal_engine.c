@@ -2854,14 +2854,16 @@ rasqal_engine_execute_order(rasqal_query_results* query_results)
 
   /* NON LAZY: always store results */
 
-  /* make a row:NULL map */
-  map=rasqal_new_map(rasqal_engine_query_result_row_compare,
-                     rasqal_engine_map_free_query_result_row, 
-                     rasqal_engine_map_print_query_result_row,
-                     NULL,
-                     0);
+  if(query->order_conditions_sequence || query->distinct) {
+    /* make a row:NULL map only if necessary  */
+    map=rasqal_new_map(rasqal_engine_query_result_row_compare,
+                       rasqal_engine_map_free_query_result_row, 
+                       rasqal_engine_map_print_query_result_row,
+                       NULL,
+                       0);
+  }
   
-  /* get all query results and order them */
+  /* get all query results and order them if have a map */
   seq=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_engine_free_query_result_row, (raptor_sequence_print_handler*)rasqal_engine_query_result_row_print);
   while(1) {
     rasqal_query_result_row* row;
@@ -2889,19 +2891,26 @@ rasqal_engine_execute_order(rasqal_query_results* query_results)
     
     /* otherwise is >0 match */
     row=rasqal_engine_new_query_result_row(query_results, offset);
-    
-    /* after this, row is owned by map */
-    if(!rasqal_map_add_kv(map, row, NULL)) {
-      offset++;
+
+    if(!map) {
+      /* not ordering and not distinct */
+      raptor_sequence_push(seq, row);
     } else {
-      /* duplicate, and not added so delete it */
+      /* ordering or distinct */
+
+      /* after this, row is owned by map */
+      if(!rasqal_map_add_kv(map, row, NULL)) {
+        offset++;
+      } else {
+        /* duplicate, and not added so delete it */
 #ifdef RASQAL_DEBUG
-      RASQAL_DEBUG1("Got duplicate row ");
-      rasqal_engine_query_result_row_print(row, stderr);
-      fputc('\n', stderr);
+        RASQAL_DEBUG1("Got duplicate row ");
+        rasqal_engine_query_result_row_print(row, stderr);
+        fputc('\n', stderr);
 #endif
-      rasqal_engine_free_query_result_row(row);
-      row=NULL;
+        rasqal_engine_free_query_result_row(row);
+        row=NULL;
+      }
     }
   }
   
