@@ -807,8 +807,12 @@ rasqal_query_results_next_triple(rasqal_query_results* query_results)
 int
 rasqal_query_results_get_boolean(rasqal_query_results* query_results)
 {
+  rasqal_query* query;
   int rc;
+  int saved_limit;
   
+  query=query_results->query;
+
   if(!query_results || query_results->failed || query_results->finished)
     return -1;
   
@@ -818,23 +822,28 @@ rasqal_query_results_get_boolean(rasqal_query_results* query_results)
   if(query_results->ask_result >= 0)
     return query_results->ask_result;
 
-  /* rc<0 error rc=0 end of results,  rc>0 got a result */
-  rc=rasqal_engine_get_next_result(query_results);
-  if(rc < 1) {
+  /* FIXME: With removal of LAZY evaluation, ASK now evalutes entire
+   * queries so artificially set a LIMIT 1 to limit the damage.
+   */
+  saved_limit=query->limit;
+  query->limit=1;
+  rc=rasqal_engine_execute_run(query_results);
+  query->limit=saved_limit;
+
+  if(query_results->finished) {
     /* error or end of results */
-    query_results->finished= 1;
     query_results->ask_result= 0; /* false */
-  }
-  if(rc < 0) {
+  } else if(query_results->results_sequence && 
+            raptor_sequence_size(query_results->results_sequence)> 0 ) {
+    /* ok */
+    query_results->ask_result= 1; /* true */
+  } else {
     /* error */
     query_results->failed= 1;
     query_results->ask_result= -1; /* error */
   }
-  if(rc > 0) {
-    /* ok */
-    query_results->ask_result= 1; /* true */
-  }
-
+  query_results->finished= 1;
+  
   return query_results->ask_result;
 }
 
