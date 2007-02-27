@@ -2845,16 +2845,51 @@ rasqal_engine_bind_construct_variables(rasqal_query_results* query_results)
 }
 
 
+static
+void rasqal_engine_store_query_results(rasqal_query_results* query_results) 
+{
+  rasqal_query_result_row* row;
+  rasqal_engine_execution_data* execution_data;
+  
+  execution_data=query_results->execution_data;
+
+  /* otherwise is >0 match */
+  row=rasqal_engine_new_query_result_row(query_results, execution_data->offset);
+  
+  if(!execution_data->map) {
+    /* not ordering and not distinct */
+    raptor_sequence_push(query_results->results_sequence, row);
+  } else {
+    /* ordering or distinct */
+    
+    /* after this, row is owned by map */
+    if(!rasqal_map_add_kv(execution_data->map, row, NULL)) {
+      execution_data->offset++;
+    } else {
+      /* duplicate, and not added so delete it */
+#ifdef RASQAL_DEBUG
+      RASQAL_DEBUG1("Got duplicate row ");
+      rasqal_engine_query_result_row_print(row, stderr);
+      fputc('\n', stderr);
+#endif
+      rasqal_engine_free_query_result_row(row);
+      row=NULL;
+    }
+  }
+}
+
+
 int
 rasqal_engine_execute_run(rasqal_query_results* query_results)
 {
   rasqal_query *query=query_results->query;
   int rc=0;
-  int offset=0;
 
   rasqal_engine_execution_data* execution_data;
 
   execution_data=query_results->execution_data;
+
+  execution_data->offset=0;
 
   /* LAZY: was if(query->order_conditions_sequence || query->distinct) */
   /* NON LAZY: always store results */
@@ -2872,8 +2907,6 @@ rasqal_engine_execute_run(rasqal_query_results* query_results)
   /* get all query results and order them if have a map */
   query_results->results_sequence=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_engine_free_query_result_row, (raptor_sequence_print_handler*)rasqal_engine_query_result_row_print);
   while(1) {
-    rasqal_query_result_row* row;
-    
     /* query_results->results_sequence is NOT assigned before here 
      * so that this function does the regular query results next
      * operation.
@@ -2894,30 +2927,9 @@ rasqal_engine_execute_run(rasqal_query_results* query_results)
       query_results->results_sequence=NULL;
       break;
     }
+
+    rasqal_engine_store_query_results(query_results);
     
-    /* otherwise is >0 match */
-    row=rasqal_engine_new_query_result_row(query_results, offset);
-
-    if(!execution_data->map) {
-      /* not ordering and not distinct */
-      raptor_sequence_push(query_results->results_sequence, row);
-    } else {
-      /* ordering or distinct */
-
-      /* after this, row is owned by map */
-      if(!rasqal_map_add_kv(execution_data->map, row, NULL)) {
-        offset++;
-      } else {
-        /* duplicate, and not added so delete it */
-#ifdef RASQAL_DEBUG
-        RASQAL_DEBUG1("Got duplicate row ");
-        rasqal_engine_query_result_row_print(row, stderr);
-        fputc('\n', stderr);
-#endif
-        rasqal_engine_free_query_result_row(row);
-        row=NULL;
-      }
-    }
   }
   
 #ifdef RASQAL_DEBUG

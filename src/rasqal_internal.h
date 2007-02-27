@@ -405,6 +405,9 @@ typedef struct rasqal_map_s rasqal_map;
 typedef struct {
   raptor_sequence* seq;
 
+  /* offset into stored results sequence */
+  int offset;
+
   /* for ordering results during execution */
   rasqal_map* map;
 } rasqal_engine_execution_data;
