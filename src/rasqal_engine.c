@@ -2825,6 +2825,7 @@ rasqal_engine_execute_run(rasqal_query_results* query_results)
   }
 
 
+  /* Got a result set or an ordered map */
   
 #ifdef RASQAL_DEBUG
   if(execution_data->map) {
@@ -2835,38 +2836,37 @@ rasqal_engine_execute_run(rasqal_query_results* query_results)
 #endif
   
   if(execution_data->map) {
+    /* Got a map so need to form the results set in the order wanted */
     rasqal_map_visit(execution_data->map,
                      rasqal_engine_map_add_to_sequence, 
                      (void*)query_results->results_sequence);
     rasqal_free_map(execution_data->map);
   }
   
-  if(query_results->results_sequence) {
-    query_results->finished= (raptor_sequence_size(query_results->results_sequence) == 0);
+  query_results->finished= (raptor_sequence_size(query_results->results_sequence) == 0);
     
-    if(!query->limit)
-      query_results->finished=1;
+  if(!query->limit)
+    query_results->finished=1;
+  
+  if(!query_results->finished) {
+    int size=raptor_sequence_size(query_results->results_sequence);
     
-    if(!query_results->finished) {
-      int size=raptor_sequence_size(query_results->results_sequence);
-      
-      /* Reset to first result, index-1 into sequence of results */
-      query_results->result_count= 1;
-      
-      /* skip past any OFFSET */
-      if(query->offset > 0) {
-        query_results->result_count += query->offset;
-        if(query_results->result_count >= size)
-          query_results->finished=1;
-      }
-      
+    /* Reset to first result, index-1 into sequence of results */
+    query_results->result_count= 1;
+    
+    /* skip past any OFFSET */
+    if(query->offset > 0) {
+      query_results->result_count += query->offset;
+      if(query_results->result_count >= size)
+        query_results->finished=1;
     }
     
-    if(query_results->finished)
-      query_results->result_count= 0;
-    else
-      rasqal_engine_bind_construct_variables(query_results);
-  }
+    }
+  
+  if(query_results->finished)
+    query_results->result_count= 0;
+  else
+    rasqal_engine_bind_construct_variables(query_results);
 
   /* LAZY: was
     } else {
