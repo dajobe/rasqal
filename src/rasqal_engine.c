@@ -1688,43 +1688,6 @@ rasqal_engine_get_next_result(rasqal_query_results *query_results)
 }
 
 
-int
-rasqal_engine_run(rasqal_query_results* query_results)
-{
-#ifdef RASQAL_DEBUG
-  rasqal_query* query=query_results->query;
-#endif
-  int rc=0;
-  
-  while(!query_results->finished) {
-    if(query_results->abort)
-      break;
-    
-    /* rc<0 error rc=0 end of results,  rc>0 finished */
-    rc=rasqal_engine_get_next_result(query_results);
-    if(rc<1)
-      break;
-    
-    if(rc > 0) {
-      /* matched ok, so print out the variable bindings */
-#ifdef RASQAL_DEBUG
-      RASQAL_DEBUG1("result: ");
-      raptor_sequence_print(query->selects, stderr);
-      fputc('\n', stderr);
-#if 0
-      RASQAL_DEBUG1("result as triples: ");
-      raptor_sequence_print(query->triples, stderr);
-      fputc('\n', stderr);
-#endif
-#endif
-    }
-    rc=0;
-  }
-  
-  return rc;
-}
-
-
 void
 rasqal_engine_move_constraints(rasqal_graph_pattern* dest_gp, 
                                rasqal_graph_pattern* src_gp)
