@@ -669,10 +669,9 @@ rasqal_rdql_query_engine_prepare(rasqal_query* rdf_query) {
   if(rc)
     return rc;
 
-  gp=rasqal_new_graph_pattern_from_triples(rdf_query,
-                                           rdf_query->triples,
-                                           0, raptor_sequence_size(rdf_query->triples)-1,
-                                           RASQAL_GRAPH_PATTERN_OPERATOR_BASIC);
+  gp=rasqal_new_basic_graph_pattern(rdf_query,
+                                    rdf_query->triples,
+                                    0, raptor_sequence_size(rdf_query->triples)-1);
 
   rdf_query->query_graph_pattern=gp;
 
