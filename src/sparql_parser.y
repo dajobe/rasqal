@@ -759,8 +759,7 @@ FilteredBasicGraphPattern: BlockOfTriplesOpt Constraint DotOptional FilteredBasi
   if($1) {
     rasqal_graph_pattern *gp;
     
-    gp=rasqal_engine_new_graph_pattern_from_formula((rasqal_query*)rq, $1,
-                                                    RASQAL_GRAPH_PATTERN_OPERATOR_BASIC);
+    gp=rasqal_engine_new_basic_graph_pattern_from_formula((rasqal_query*)rq, $1);
 
     raptor_sequence_shift($$->graph_patterns, gp);
   }
@@ -792,8 +791,7 @@ FilteredBasicGraphPattern: BlockOfTriplesOpt Constraint DotOptional FilteredBasi
 #endif
 
   if($1)
-    formula_gp=rasqal_engine_new_graph_pattern_from_formula((rasqal_query*)rq, $1,
-                                                            RASQAL_GRAPH_PATTERN_OPERATOR_BASIC);
+    formula_gp=rasqal_engine_new_basic_graph_pattern_from_formula((rasqal_query*)rq, $1);
   
   seq=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_graph_pattern, (raptor_sequence_print_handler*)rasqal_graph_pattern_print);
   if(formula_gp)
