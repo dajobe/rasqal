@@ -1261,9 +1261,10 @@ rasqal_query_execute(rasqal_query* query)
     return NULL;
 
   query_results=rasqal_new_query_results(query);
-  if(query_results)
-    rasqal_query_add_query_result(query, query_results);
-
+  if(!query_results)
+    return NULL;
+  
+  rasqal_query_add_query_result(query, query_results);
 
   rc=rasqal_engine_execute_init(query_results);
   if(rc) {
