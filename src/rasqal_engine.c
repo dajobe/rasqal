@@ -940,6 +940,9 @@ rasqal_engine_triple_graph_pattern_get_next_match(rasqal_query_results* query_re
 
 
 /*
+ * rasqal_engine_graph_pattern_get_next_match:
+ *
+ * INTERNAL
  *
  * return: <0 failure, 0 end of results, >0 match
  */
@@ -956,8 +959,13 @@ rasqal_engine_graph_pattern_get_next_match(rasqal_query_results* query_results,
 
 
 /*
- * rasqal_engine_prepare - initialise the remainder of the query structures INTERNAL
+ * rasqal_engine_prepare:
+ *
+ * INTERNAL - initialise the remainder of the query structures
+ *
  * Does not do any execution prepration - this is once-only stuff.
+ *
+ * Return value: non-0 on failure
  */
 int
 rasqal_engine_prepare(rasqal_query *query)
