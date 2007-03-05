@@ -965,6 +965,15 @@ rasqal_engine_prepare(rasqal_query *query)
 }
 
 
+/*
+ * rasqal_new_engine_execution_data:
+ * @query_results: query results object
+ * 
+ * INTERNAL - Initialize the per-query-results execution data and the
+ * per-graph pattern execution data
+ * 
+ * Return value: pointer to the execution data array or NULL on failure.
+ **/
 static void*
 rasqal_new_engine_execution_data(rasqal_query_results* query_results) 
 {
@@ -1141,6 +1150,17 @@ rasqal_engine_graph_pattern_init(rasqal_query_results* query_results,
 }
 
 
+/*
+ * rasqal_engine_execute_init:
+ * @query_results: query results object
+ * 
+ * INTERNAL - Prepare a query results for execution
+ *
+ * Initialises all the per-query results and all per-graph pattern
+ * state for all grpah patterns in the query
+ * 
+ * Return value: non-0 on failure
+ **/
 int
 rasqal_engine_execute_init(rasqal_query_results* query_results) 
 {
@@ -1191,10 +1211,12 @@ rasqal_engine_execute_init(rasqal_query_results* query_results)
   
 
   execution_data=rasqal_new_engine_execution_data(query_results);
+
+  /* reset query_results to empty */
+  rasqal_query_results_reset(query_results);
+
   query_results->execution_data=execution_data;
   query_results->free_execution_data=rasqal_free_engine_execution_data;
-
-  rasqal_query_results_init(query_results);
 
   gp=query->query_graph_pattern;
 
