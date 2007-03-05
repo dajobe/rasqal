@@ -146,12 +146,6 @@ struct rasqal_graph_pattern_s {
    */
   int max_optional_graph_pattern;
 
-  /* true when this graph pattern matched last time */
-  int matched;
-
-  /* true when an optional graph pattern finished last time round */
-  int finished;
-
   raptor_sequence *constraints; /* ... rasqal_expression*          */
   /* the expression version of the sequence of constraints above - this is
    * where the constraints are freed
