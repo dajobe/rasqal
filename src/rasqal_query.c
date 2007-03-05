@@ -42,6 +42,11 @@
 #include "rasqal.h"
 #include "rasqal_internal.h"
 
+#if 1
+#undef RASQAL_NO_GP_MERGE
+#else
+#define RASQAL_NO_GP_MERGE 1
+#endif
 
 static void rasqal_query_add_query_result(rasqal_query* query, rasqal_query_results* query_results);
 static int rasqal_query_write_sparql_20060406(raptor_iostream *iostr, rasqal_query* query, raptor_uri *base_uri);
@@ -1178,6 +1183,7 @@ rasqal_query_prepare(rasqal_query* query,
     query->failed=1;
 
   if(query->query_graph_pattern) {
+#ifndef RASQAL_NO_GP_MERGE
     int modified;
     
 #if RASQAL_DEBUG > 1
@@ -1220,6 +1226,7 @@ rasqal_query_prepare(rasqal_query* query,
 #endif
 
     } while(modified);
+#endif
 
     /* Label all graph patterns with an index 0.. for use in discovering
      * the size of the graph pattern execution data array
