@@ -45,7 +45,7 @@
 
 /* local prototypes */
 static void rasqal_engine_graph_pattern_reset(rasqal_query_results* query_results, rasqal_graph_pattern *gp);
-
+static void rasqal_free_engine_execution_data(rasqal_query* query, rasqal_query_results* query_results, void *data);
 
 
 typedef enum {
@@ -596,6 +596,13 @@ rasqal_reset_triple_meta(rasqal_triple_meta* m)
 
 
 typedef struct {
+  int (*execute_init)(rasqal_query_results* query_results, rasqal_graph_pattern* gp);
+  int (*execute_bind)(rasqal_query_results* query_results, rasqal_graph_pattern* gp);
+  int (*execute_finish)(rasqal_query_results* query_results, rasqal_graph_pattern* gp);
+} rasqal_engine_execute_gp_handler;
+
+
+typedef struct {
   rasqal_graph_pattern* gp;
   
   /* An array of items, one per triple in the pattern graph */
@@ -616,6 +623,8 @@ typedef struct {
   /* Number of matches returned */
   int matches_returned;
 
+  /* Functions to use to execute the query against this graph pattern */
+  rasqal_engine_execute_gp_handler* handler;
 } rasqal_engine_gp_data;
 
 
@@ -625,6 +634,9 @@ rasqal_new_engine_gp_data(rasqal_graph_pattern* gp)
   rasqal_engine_gp_data* gp_data;
   
   gp_data=(rasqal_engine_gp_data*)RASQAL_CALLOC(rasqal_engine_gp_data, 1, sizeof(rasqal_engine_gp_data));
+  if(!gp_data)
+    return NULL;
+  
   gp_data->gp=gp;
   
   gp_data->optional_graph_pattern= -1;
@@ -973,6 +985,17 @@ rasqal_engine_prepare(rasqal_query *query)
 }
 
 
+
+static rasqal_engine_execute_gp_handler rasqal_engine_execute_gp_handlers[RASQAL_GRAPH_PATTERN_OPERATOR_LAST+1]={
+  { NULL, NULL, NULL }, /* unknown */
+  { NULL, NULL, NULL }, /* basic */
+  { NULL, NULL, NULL }, /* optional */
+  { NULL, NULL, NULL }, /* union */
+  { NULL, NULL, NULL }, /* group */
+  { NULL, NULL, NULL }, /* graph */
+};
+
+
 /*
  * rasqal_new_engine_execution_data:
  * @query_results: query results object
@@ -990,7 +1013,13 @@ rasqal_new_engine_execution_data(rasqal_query_results* query_results)
   int i;
 
   execution_data=RASQAL_MALLOC(rasqal_engine_execution_data, sizeof(rasqal_engine_execution_data));
+  if(!execution_data)
+    return NULL;
   execution_data->seq=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_gp_data, NULL);
+  if(!execution_data->seq) {
+    rasqal_free_engine_execution_data(query, query_results, execution_data);
+    return NULL;
+  }
 
   if(query->graph_patterns_sequence) {
     for(i=0; i < query->graph_pattern_count; i++) {
@@ -999,10 +1028,15 @@ rasqal_new_engine_execution_data(rasqal_query_results* query_results)
     
       gp=(rasqal_graph_pattern*)raptor_sequence_get_at(query->graph_patterns_sequence, i);
       gp_data=rasqal_new_engine_gp_data(gp);
+      if(!gp_data) {
+        rasqal_free_engine_execution_data(query, query_results, execution_data);
+        return NULL;
+      }
+      gp_data->handler=&rasqal_engine_execute_gp_handlers[gp->op];
+      
       raptor_sequence_set_at(execution_data->seq, i, gp_data);
     }
   }
-  
 
   return execution_data;
 }
@@ -1011,7 +1045,7 @@ rasqal_new_engine_execution_data(rasqal_query_results* query_results)
 static void
 rasqal_free_engine_execution_data(rasqal_query* query, 
                                   rasqal_query_results* query_results,
-                                  void *data) 
+                                  void *data)
 {
   rasqal_engine_execution_data* execution_data=(rasqal_engine_execution_data*)data;
 
