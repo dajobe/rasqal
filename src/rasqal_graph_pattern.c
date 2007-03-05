@@ -49,31 +49,40 @@
  *
  * Create a new graph pattern object.
  * 
+ * NOTE: This does not initialise the graph pattern completely
+ * but relies on other operations
+ *
  * Return value: a new #rasqal_graph_pattern object or NULL on failure
  **/
 rasqal_graph_pattern*
 rasqal_new_graph_pattern(rasqal_query* query) {
-  rasqal_graph_pattern* gp=(rasqal_graph_pattern*)RASQAL_CALLOC(rasqal_graph_pattern, 1, sizeof(rasqal_graph_pattern));
+  rasqal_graph_pattern* gp;
 
   if(!query)
     return NULL;
   
-  gp->query=query;
+  gp=(rasqal_graph_pattern*)RASQAL_CALLOC(rasqal_graph_pattern, 1, sizeof(rasqal_graph_pattern));
+  if(!gp)
+    return NULL;
 
+  gp->op = RASQAL_GRAPH_PATTERN_OPERATOR_UNKNOWN;
+  
+  gp->query=query;
+  gp->triples= NULL;
   gp->start_column= -1;
   gp->end_column= -1;
-
   /* This is initialised by rasqal_query_prepare_count_graph_patterns() inside
    * rasqal_query_prepare()
    */
   gp->gp_index= -1;
+  gp->finished=0;
 
   return gp;
 }
 
 
 /**
- * rasqal_new_graph_pattern_from_triples:
+ * rasqal_new_basic_graph_pattern:
  * @query: #rasqal_graph_pattern query object
  * @triples: triples sequence containing the graph pattern
  * @start_column: first triple in the pattern
@@ -85,10 +94,9 @@ rasqal_new_graph_pattern(rasqal_query* query) {
  * Return value: a new #rasqal_graph_pattern object or NULL on failure
  **/
 rasqal_graph_pattern*
-rasqal_new_graph_pattern_from_triples(rasqal_query* query,
-                                      raptor_sequence *triples,
-                                      int start_column, int end_column,
-                                      rasqal_graph_pattern_operator op)
+rasqal_new_basic_graph_pattern(rasqal_query* query,
+                               raptor_sequence *triples,
+                               int start_column, int end_column)
 {
   rasqal_graph_pattern* gp;
 
@@ -99,8 +107,12 @@ rasqal_new_graph_pattern_from_triples(rasqal_query* query,
   if(!gp)
     return NULL;
 
-  rasqal_graph_pattern_add_triples(gp, 
-                                   triples, start_column, end_column, op);
+  gp->op=RASQAL_GRAPH_PATTERN_OPERATOR_BASIC;
+
+  gp->triples=triples;
+  gp->start_column=start_column;
+  gp->end_column=end_column;
+
   return gp;
 }
 
@@ -127,39 +139,11 @@ rasqal_new_graph_pattern_from_sequence(rasqal_query* query,
   if(!gp)
     return NULL;
   
-  gp->graph_patterns=graph_patterns;
   gp->op=op;
 
-  gp->finished=0;
+  gp->graph_patterns=graph_patterns;
 
   return gp;
-}
-
-
-/**
- * rasqal_graph_pattern_add_triples:
- * @graph_pattern: #rasqal_graph_pattern object
- * @triples: triples sequence containing the graph pattern
- * @start_column: first triple in the pattern
- * @end_column: last triple in the pattern
- * @operator: enum #rasqal_graph_pattern_operator such as 
- *   RASQAL_GRAPH_PATTERN_OPERATOR_OPTIONAL
- *
- * Add triples to a graph pattern object.
- * 
- * Return value: a new #rasqal_graph_pattern object or NULL on failure
- **/
-void
-rasqal_graph_pattern_add_triples(rasqal_graph_pattern* gp,
-                                 raptor_sequence* triples,
-                                 int start_column, int end_column,
-                                 rasqal_graph_pattern_operator op)
-{
-  gp->triples=triples;
-  gp->start_column=start_column;
-  gp->end_column=end_column;
-  gp->finished=0;
-  gp->op=op;
 }
 
 
