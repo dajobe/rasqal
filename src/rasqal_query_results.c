@@ -182,14 +182,14 @@ rasqal_new_query_results(rasqal_query* query)
   query_results=(rasqal_query_results*)RASQAL_CALLOC(rasqal_query_results, 1, sizeof(rasqal_query_results));
   query_results->query=query;
 
-  rasqal_query_results_init(query_results);
+  rasqal_query_results_reset(query_results);
   
   return query_results;
 }
 
 
 void
-rasqal_query_results_init(rasqal_query_results* query_results)
+rasqal_query_results_reset(rasqal_query_results* query_results)
 {
   query_results->result_count=0;
   query_results->executed=0;
