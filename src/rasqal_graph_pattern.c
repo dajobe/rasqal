@@ -43,19 +43,23 @@
 #include "rasqal_internal.h"
 
 
-/**
+/*
  * rasqal_new_graph_pattern:
  * @query: #rasqal_graph_pattern query object
+ * @op: enum #rasqal_graph_pattern_operator operator
  *
- * Create a new graph pattern object.
+ * INTERNAL - Create a new graph pattern object.
  * 
  * NOTE: This does not initialise the graph pattern completely
- * but relies on other operations
+ * but relies on other operations.  The empty graph pattern
+ * has no triples and no sub-graphs.
  *
  * Return value: a new #rasqal_graph_pattern object or NULL on failure
  **/
 rasqal_graph_pattern*
-rasqal_new_graph_pattern(rasqal_query* query) {
+rasqal_new_graph_pattern(rasqal_query* query, 
+                         rasqal_graph_pattern_operator op)
+{
   rasqal_graph_pattern* gp;
 
   if(!query)
@@ -65,7 +69,7 @@ rasqal_new_graph_pattern(rasqal_query* query) {
   if(!gp)
     return NULL;
 
-  gp->op = RASQAL_GRAPH_PATTERN_OPERATOR_UNKNOWN;
+  gp->op = op;
   
   gp->query=query;
   gp->triples= NULL;
@@ -81,15 +85,14 @@ rasqal_new_graph_pattern(rasqal_query* query) {
 }
 
 
-/**
+/*
  * rasqal_new_basic_graph_pattern:
  * @query: #rasqal_graph_pattern query object
  * @triples: triples sequence containing the graph pattern
  * @start_column: first triple in the pattern
  * @end_column: last triple in the pattern
- * @op: enum #rasqal_graph_pattern_operator operator
  *
- * Create a new graph pattern object over triples.
+ * INTERNAL - Create a new graph pattern object over triples.
  * 
  * Return value: a new #rasqal_graph_pattern object or NULL on failure
  **/
@@ -103,11 +106,9 @@ rasqal_new_basic_graph_pattern(rasqal_query* query,
   if(!triples)
     return NULL;
   
-  gp=rasqal_new_graph_pattern(query);
+  gp=rasqal_new_graph_pattern(query, RASQAL_GRAPH_PATTERN_OPERATOR_BASIC);
   if(!gp)
     return NULL;
-
-  gp->op=RASQAL_GRAPH_PATTERN_OPERATOR_BASIC;
 
   gp->triples=triples;
   gp->start_column=start_column;
@@ -117,14 +118,14 @@ rasqal_new_basic_graph_pattern(rasqal_query* query,
 }
 
 
-/**
+/*
  * rasqal_new_graph_pattern_from_sequence:
  * @query: #rasqal_graph_pattern query object
  * @graph_patterns: sequence containing the graph patterns
  * @operator: enum #rasqal_graph_pattern_operator such as
  * RASQAL_GRAPH_PATTERN_OPERATOR_OPTIONAL
  *
- * Create a new graph pattern from a sequence of graph_patterns.
+ * INTERNAL - Create a new graph pattern from a sequence of graph_patterns.
  * 
  * Return value: a new #rasqal_graph_pattern object or NULL on failure
  **/
@@ -135,23 +136,20 @@ rasqal_new_graph_pattern_from_sequence(rasqal_query* query,
 {
   rasqal_graph_pattern* gp;
 
-  gp=rasqal_new_graph_pattern(query);
+  gp=rasqal_new_graph_pattern(query, op);
   if(!gp)
     return NULL;
   
-  gp->op=op;
-
   gp->graph_patterns=graph_patterns;
-
   return gp;
 }
 
 
-/**
+/*
  * rasqal_free_graph_pattern:
  * @gp: #rasqal_graph_pattern object
  *
- * Free a graph pattern object.
+ * INTERNAL - Free a graph pattern object.
  * 
  **/
 void
@@ -170,12 +168,12 @@ rasqal_free_graph_pattern(rasqal_graph_pattern* gp)
 }
 
 
-/**
+/*
  * rasqal_graph_pattern_adjust:
  * @gp: #rasqal_graph_pattern graph pattern
  * @offset: adjustment
  *
- * Adjust the column in a graph pattern by the offset.
+ * INTERNAL - Adjust the column in a graph pattern by the offset.
  * 
  **/
 void

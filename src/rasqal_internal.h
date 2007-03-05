@@ -162,7 +162,7 @@ struct rasqal_graph_pattern_s {
   int gp_index;
 };
 
-rasqal_graph_pattern* rasqal_new_graph_pattern(rasqal_query* query);
+rasqal_graph_pattern* rasqal_new_graph_pattern(rasqal_query* query, rasqal_graph_pattern_operator op);
 rasqal_graph_pattern* rasqal_new_basic_graph_pattern(rasqal_query* query, raptor_sequence* triples, int start_column, int end_column);
 rasqal_graph_pattern* rasqal_new_graph_pattern_from_sequence(rasqal_query* query, raptor_sequence* graph_patterns, rasqal_graph_pattern_operator op);
 void rasqal_free_graph_pattern(rasqal_graph_pattern* gp);

@@ -1069,12 +1069,12 @@ rasqal_graph_pattern_get_flags(rasqal_graph_pattern* graph_pattern)
 }
 
 
-/**
+/*
  * rasqal_graph_pattern_set_origin:
  * @graph_pattern: #rasqal_graph_pattern graph pattern object
  * @origin: #rasqal_literal variable or URI
  *
- * Get the graph pattern triple origin.
+ * INTERNAL - Set the graph pattern triple origin.
  * 
  * All triples in this graph pattern or contained graph patterns are set
  * to have the given origin.
