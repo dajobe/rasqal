@@ -2104,7 +2104,7 @@ rasqal_engine_query_fold_expressions(rasqal_query* rq)
 
 
 /**
- * rasqal_engine_new_graph_pattern_from_formula:
+ * rasqal_engine_new_basic_graph_pattern_from_formula:
  * @query: #rasqal_graph_pattern query object
  * @formula: triples sequence containing the graph pattern
  * @op: enum #rasqal_graph_pattern_operator operator
@@ -2114,9 +2114,8 @@ rasqal_engine_query_fold_expressions(rasqal_query* rq)
  * Return value: a new #rasqal_graph_pattern object or NULL on failure
  **/
 rasqal_graph_pattern*
-rasqal_engine_new_graph_pattern_from_formula(rasqal_query* query,
-                                             rasqal_formula* formula,
-                                             rasqal_graph_pattern_operator op)
+rasqal_engine_new_basic_graph_pattern_from_formula(rasqal_query* query,
+                                                   rasqal_formula* formula)
 {
   rasqal_graph_pattern* gp;
   raptor_sequence *triples=query->triples;
@@ -2132,9 +2131,9 @@ rasqal_engine_new_graph_pattern_from_formula(rasqal_query* query,
 
   rasqal_free_formula(formula);
 
-  gp=rasqal_new_graph_pattern(query);
-  rasqal_graph_pattern_add_triples(gp, triples, 
-                                   offset, offset+triple_pattern_size-1, op);
+  gp=rasqal_new_basic_graph_pattern(query, triples, 
+                                    offset, 
+                                    offset+triple_pattern_size-1);
   return gp;
 }
 
