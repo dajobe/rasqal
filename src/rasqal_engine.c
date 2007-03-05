@@ -1221,37 +1221,6 @@ rasqal_engine_execute_init(rasqal_query_results* query_results)
     }
   }
 
-
-  /* FIXME.  This is a hack.  If the structure is a single GP with no sub-GPs
-   * then make a new top graph pattern so the query engine always
-   * sees a sequence of graph patterns at the top.  It should
-   * operate fine on a graph pattern with just triples but the 
-   * engine doesn't do this yet.
-   */
-  if(query->query_graph_pattern) {
-    if(query->query_graph_pattern->triples) {
-      raptor_sequence *seq;
-
-      seq=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_graph_pattern, (raptor_sequence_print_handler*)rasqal_graph_pattern_print);
-      raptor_sequence_push(seq, query->query_graph_pattern);
-      
-      query->query_graph_pattern=rasqal_new_graph_pattern_from_sequence(query, seq, RASQAL_GRAPH_PATTERN_OPERATOR_GROUP);
-      /* Add new graph pattern to the sequence of known graph patterns
-       * See rasqal_query_prepare_count_graph_patterns() 
-       */
-      query->query_graph_pattern->gp_index=(query->graph_pattern_count++);
-      raptor_sequence_push(query->graph_patterns_sequence, 
-                           query->query_graph_pattern);
-
-#ifdef RASQAL_DEBUG
-      RASQAL_DEBUG1("Restructured top level single graph pattern to be a sequence of GPs, now:\n");
-      rasqal_query_print(query, stderr);
-#endif
-    }
-    
-  }
-  
-
   execution_data=rasqal_new_engine_execution_data(query_results);
 
   /* reset query_results to empty */
