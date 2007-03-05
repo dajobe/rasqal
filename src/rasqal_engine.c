@@ -620,7 +620,7 @@ typedef struct {
 
 
 static rasqal_engine_gp_data*
-rasqal_new_gp_data(rasqal_graph_pattern* gp) 
+rasqal_new_engine_gp_data(rasqal_graph_pattern* gp) 
 {
   rasqal_engine_gp_data* gp_data;
   
@@ -998,7 +998,7 @@ rasqal_new_engine_execution_data(rasqal_query_results* query_results)
       rasqal_engine_gp_data* gp_data;
     
       gp=(rasqal_graph_pattern*)raptor_sequence_get_at(query->graph_patterns_sequence, i);
-      gp_data=rasqal_new_gp_data(gp);
+      gp_data=rasqal_new_engine_gp_data(gp);
       raptor_sequence_set_at(execution_data->seq, i, gp_data);
     }
   }
