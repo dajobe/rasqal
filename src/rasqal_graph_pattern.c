@@ -79,7 +79,6 @@ rasqal_new_graph_pattern(rasqal_query* query,
    * rasqal_query_prepare()
    */
   gp->gp_index= -1;
-  gp->finished=0;
 
   return gp;
 }
