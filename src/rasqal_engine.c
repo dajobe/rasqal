@@ -764,39 +764,6 @@ rasqal_query_build_declared_in(rasqal_query* query)
 
 
 /*
- * rasqal_engine_group_graph_pattern_get_next_match:
- * @query_results:
- * @gp: 
- *
- * Get the next match in a group graph pattern
- *
- * return: <0 failure, 0 end of results, >0 match
- */
-static int
-rasqal_engine_group_graph_pattern_get_next_match(rasqal_query_results* query_results,
-                                                 rasqal_graph_pattern* gp)
-{
-  rasqal_query* query=query_results->query;
-#if 0
-  rasqal_engine_gp_data* gp_data;
-  rasqal_engine_execution_data* execution_data=NULL;
-
-  execution_data=query_results->execution_data;
-  gp_data=(rasqal_engine_gp_data*)raptor_sequence_get_at(execution_data->seq, 
-                                                         gp->gp_index);
-#endif
-
-  /* FIXME - sequence of graph_patterns not implemented, finish */
-  rasqal_query_error(query,
-                     "Graph pattern %s operation is not implemented yet. Ending query execution.", 
-                     rasqal_graph_pattern_operator_as_string(gp->op));
-  
-  RASQAL_DEBUG1("Failing query with sequence of graph_patterns\n");
-  return 0;
-}
-
-
-/*
  * rasqal_engine_triple_graph_pattern_get_next_match:
  * @query_results:
  * @gp: 
@@ -940,25 +907,6 @@ rasqal_engine_triple_graph_pattern_get_next_match(rasqal_query_results* query_re
 
 
 /*
- * rasqal_engine_graph_pattern_get_next_match:
- *
- * INTERNAL
- *
- * return: <0 failure, 0 end of results, >0 match
- */
-static int
-rasqal_engine_graph_pattern_get_next_match(rasqal_query_results* query_results,
-                                           rasqal_graph_pattern* gp) 
-{
-  if(gp->graph_patterns)
-    return rasqal_engine_group_graph_pattern_get_next_match(query_results, gp);
-  else
-    return rasqal_engine_triple_graph_pattern_get_next_match(query_results, gp);
-}
-
-
-
-/*
  * rasqal_engine_prepare:
  *
  * INTERNAL - initialise the remainder of the query structures
@@ -1070,7 +1018,7 @@ rasqal_optional_graph_pattern_execute_bind(rasqal_query_results* query_results,
   rasqal_engine_gp_data* outergp_data;
   rasqal_engine_execution_data* execution_data=NULL;
   int graph_patterns_size=raptor_sequence_size(gp->graph_patterns);
-
+  
   execution_data=query_results->execution_data;
   gp_data=(rasqal_engine_gp_data*)raptor_sequence_get_at(execution_data->seq, 
                                                          gp->gp_index);
@@ -1092,8 +1040,8 @@ rasqal_optional_graph_pattern_execute_bind(rasqal_query_results* query_results,
   
   
   /*  return: <0 failure, 0 end of results, >0 match */
-  rc=rasqal_engine_graph_pattern_get_next_match(query_results, gp);
-  
+  rc=0; /* FIXME */
+
   RASQAL_DEBUG3("Graph pattern %d returned %d\n",
                 gp_data->current_graph_pattern, rc);
   
