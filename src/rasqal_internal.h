@@ -665,7 +665,7 @@ void rasqal_init_query_results(void);
 void rasqal_finish_query_results(void);
 
 rasqal_query_results* rasqal_new_query_results(rasqal_query* query);
-void rasqal_query_results_init(rasqal_query_results* query_results);
+void rasqal_query_results_reset(rasqal_query_results* query_results);
 
 /* end of RASQAL_INTERNAL */
 #endif
