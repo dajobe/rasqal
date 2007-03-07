@@ -1028,6 +1028,58 @@ rasqal_basic_graph_pattern_execute_bind(rasqal_query_results* query_results,
 
 
 static int
+rasqal_optional_graph_pattern_execute_init(rasqal_query_results* query_results,
+                                           rasqal_graph_pattern* gp)
+{
+  rasqal_engine_gp_data* gp_data;
+  rasqal_engine_execution_data* execution_data=NULL;
+
+  execution_data=query_results->execution_data;
+  gp_data=(rasqal_engine_gp_data*)raptor_sequence_get_at(execution_data->seq, 
+                                                         gp->gp_index);
+  
+  if(gp->triples)
+    rasqal_basic_graph_pattern_execute_init(query_results, gp);
+
+  if(gp->graph_patterns) {
+    gp_data->start_graph_pattern= 0;
+    gp_data->current_graph_pattern= -1;
+  }
+
+  return 0;
+}
+
+
+static rasqal_engine_step
+rasqal_optional_graph_pattern_execute_bind(rasqal_query_results* query_results,
+                                           rasqal_graph_pattern* gp)
+{
+  rasqal_engine_execution_data* execution_data=NULL;
+  rasqal_engine_gp_data* gp_data;
+  rasqal_engine_step step=STEP_IGNORE;
+  
+  execution_data=query_results->execution_data;
+  gp_data=(rasqal_engine_gp_data*)raptor_sequence_get_at(execution_data->seq, 
+                                                         gp->gp_index);
+
+  if(gp_data->finished)
+    return STEP_IGNORE;
+  
+  if(gp->triples)
+    step=rasqal_basic_graph_pattern_execute_bind(query_results, gp);
+  
+  if(gp->graph_patterns && (step == STEP_GOT_MATCH || step == STEP_IGNORE))
+    step=rasqal_group_graph_pattern_execute_bind(query_results, gp);
+
+  if(step == STEP_FINISHED) {
+    gp_data->finished=1;
+    step=STEP_IGNORE;
+  }
+  return step;
+}
+
+
+static int
 rasqal_group_graph_pattern_execute_init(rasqal_query_results* query_results,
                                         rasqal_graph_pattern* gp)
 {
@@ -1142,7 +1194,9 @@ static rasqal_engine_execute_gp_handler rasqal_engine_execute_gp_handlers[RASQAL
   { rasqal_basic_graph_pattern_execute_init,
     rasqal_basic_graph_pattern_execute_bind, 
     NULL }, /* basic */
-  { NULL, NULL, NULL }, /* optional */
+  { rasqal_optional_graph_pattern_execute_init,
+    rasqal_optional_graph_pattern_execute_bind,
+    NULL }, /* optional */
   { NULL, NULL, NULL }, /* union */
   { rasqal_group_graph_pattern_execute_init, 
     rasqal_group_graph_pattern_execute_bind, 
