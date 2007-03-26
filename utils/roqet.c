@@ -444,7 +444,8 @@ main(int argc, char *argv[])
                   "%s: invalid argument `%s' for `" HELP_ARG(d, dump-query) "'\n",
                   program, optarg);
           for(i=1; i <= QUERY_OUTPUT_LAST; i++)
-            printf("  %-12s for %s\n", query_output_format_labels[i][0],
+            fprintf(stderr, 
+                    "  %-12s for %s\n", query_output_format_labels[i][0],
                    query_output_format_labels[i][1]);
           usage=1;
         }
@@ -469,7 +470,7 @@ main(int argc, char *argv[])
               const char *feature_label;
               if(!rasqal_features_enumerate((rasqal_feature)i, &feature_name, NULL, &feature_label)) {
                 const char *feature_type=(rasqal_feature_value_type((rasqal_feature)i) == 0) ? "" : " (string)";
-                printf("  %-20s  %s%s\n", feature_name, feature_label, 
+                fprintf(stderr, "  %-20s  %s%s\n", feature_name, feature_label, 
                        feature_type);
               }
             }
@@ -556,7 +557,7 @@ main(int argc, char *argv[])
             const char *help_label;
             if(rasqal_languages_enumerate(i, &help_name, &help_label, NULL))
               break;
-            printf("  %-12s for %s\n", help_name, help_label);
+            fprintf(stderr, "  %-12s for %s\n", help_name, help_label);
           }
           usage=1;
 	}
@@ -936,7 +937,7 @@ main(int argc, char *argv[])
   } else {
     if(rasqal_query_results_is_bindings(results)) {
       if(!quiet)
-        fprintf(stdout, "%s: Query has a variable bindings result\n", program);
+        fprintf(stderr, "%s: Query has a variable bindings result\n", program);
 
       while(!rasqal_query_results_finished(results)) {
         if(!count) {
@@ -962,25 +963,23 @@ main(int argc, char *argv[])
       }
 
       if(!quiet)
-        fprintf(stdout, "%s: Query returned %d results\n", program, 
+        fprintf(stderr, "%s: Query returned %d results\n", program, 
                 rasqal_query_results_get_count(results));
 
     } else if (rasqal_query_results_is_boolean(results)) {
-      fprintf(stdout, "%s: Query has a boolean result: %s\n",
-              program,
+      fprintf(stderr, "%s: Query has a boolean result: %s\n", program,
               rasqal_query_results_get_boolean(results) ? "true" : "false");
     }
     else if (rasqal_query_results_is_graph(results)) {
       int triple_count=0;
       
       if(!quiet)
-        fprintf(stdout, "%s: Query has a graph result:\n", program);
+        fprintf(stderr, "%s: Query has a graph result:\n", program);
 
       serializer=raptor_new_serializer(serializer_syntax_name);
       if(!serializer) {
-        fprintf(stderr, 
-                "%s: Failed to create raptor serializer type %s\n", program,
-                serializer_syntax_name);
+        fprintf(stderr, "%s: Failed to create raptor serializer type %s\n",
+                program, serializer_syntax_name);
         return(1);
       }
 
@@ -1001,9 +1000,9 @@ main(int argc, char *argv[])
       raptor_free_serializer(serializer);
 
       if(!quiet)
-        fprintf(stdout, "%s: Total %d triples\n", program, triple_count);
+        fprintf(stderr, "%s: Total %d triples\n", program, triple_count);
     } else {
-      fprintf(stdout, "%s: Query returned unknown result format\n", program);
+      fprintf(stderr, "%s: Query returned unknown result format\n", program);
       rc=1;
     }
   }
