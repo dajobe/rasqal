@@ -863,6 +863,10 @@ rasqal_engine_triple_graph_pattern_get_next_match(rasqal_query_results* query_re
         m->executed=1;
 
         resets=rasqal_reset_triple_meta(m);
+        matches -= resets;
+        if(matches < 0)
+          matches=0;
+
         gp_data->column--;
         continue;
       }
@@ -901,17 +905,19 @@ rasqal_engine_triple_graph_pattern_get_next_match(rasqal_query_results* query_re
 
       /* return with result (rc is 1) */
       rc=1;
-      break;
+      goto done;
     } else if (gp_data->column >= gp->start_column)
       gp_data->column++;
 
-  }
+  } /* end while gp_data->column >= gp->start_column */
 
-  if(rc > 0) {
-    if(gp_data->column < gp->start_column)
-      rc=0;
+
+  if(gp_data->column < gp->start_column)
+    rc=0;
+  
+  done:
+  if(rc > 0)
     *matches_p=matches;
-  }
 
   return rc;
 }
