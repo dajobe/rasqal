@@ -275,6 +275,7 @@ EXPONENT [eE][+-]?[0-9]+
 [Cc][Oo][Nn][Ss][Tt][Rr][Uu][Cc][Tt] { return CONSTRUCT; }
 [Aa][Ss][Kk] { return ASK; }
 [Dd][Ii][Ss][Tt][Ii][Nn][Cc][Tt] { return DISTINCT; }
+[Rr][Ee][Dd][Uu][Cc][Ee][Dd] { return REDUCED; }
 [Ll][Ii][Mm][Ii][Tt] { return LIMIT; }
 [Uu][Nn][Ii][Oo][Nn] { return UNION; }
 [Oo][Pp][Tt][Ii][Oo][Nn][Aa][Ll] { return OPTIONAL; }
