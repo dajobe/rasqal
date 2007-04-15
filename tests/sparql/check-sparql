@@ -57,6 +57,7 @@ my $program=basename $0;
 my $debug=0;
 my $srcdir='.';
 
+$debug=1 if defined $ENV{'RASQAL_DEBUG'};
 
 # plural('result', 's', 2);
 sub plural($$$) {
@@ -176,7 +177,7 @@ sub run_test($$$$$$) {
   my(%node_type);
 
   if(defined $result_file) {
-    $cmd="$rapper -g -q -o ntriples $result_file";
+    $cmd="$rapper -q -i turtle -o ntriples $result_file";
 
     warn "$program: Opening pipe from '$cmd'\n"
       if $debug;
