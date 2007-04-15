@@ -1,3 +1,192 @@
+2007-03-25  Dave Beckett  <dave@dajobe.org>
+
+	* utils/roqet.c: Print all informational and help messages to
+	stderr.  Only results of querying and the help (-h/--help) message
+	goes to stdout now.
+
+2007-03-07  Dave Beckett  <dave@dajobe.org>
+
+	* src/rasqal_engine.c: (rasqal_optional_graph_pattern_execute_init,
+	rasqal_optional_graph_pattern_execute_bind): Restored.
+
+2007-03-06  Dave Beckett  <dave@dajobe.org>
+
+	* src/rasqal_engine.c: Removed rasqal_engine_gp_data unused fields
+	optional_graph_pattern, optional_graph_pattern_matches_count,
+	matches_returned Added rasqal_engine_gp_data field matches
+	(rasqal_engine_triple_graph_pattern_get_next_match): Side effect
+	return matches count.
+	(rasqal_basic_graph_pattern_execute_bind): Count matches.
+	(rasqal_group_graph_pattern_execute_init): Init start and current
+	graph patterns.
+	(rasqal_group_graph_pattern_execute_bind): Count matches, use
+	start_graph_pattern for backtracing.
+	(asqal_engine_graph_pattern_init): Merged
+	rasqal_engine_graph_pattern_reset and
+	rasqal_engine_graph_pattern_init
+	(rasqal_engine_move_to_graph_pattern): Deleted.
+	(rasqal_engine_execute_run_graph_pattern): Return step
+	(rasqal_engine_execute_run): Use step and pass on counts.
+
+	* src/rasqal_internal.h: removed new_bindings_count
+
+2007-03-04  Dave Beckett  <dave@dajobe.org>
+
+	* src/rasqal_engine.c: Add STEP_IGNORE to handle things such as
+	empty group graph patterns that neither bind nor otherwise affect
+	the results.  Restore rasqal_engine_step_names table.
+	rasqal_engine_execute_gp_handler method execute_bind returns a
+	rasqal_engine_step
+	(rasqal_basic_graph_pattern_execute_bind): Return step. Still
+	works.
+	(rasqal_optional_graph_pattern_execute_bind): Return steps. Still
+	untested.
+	(rasqal_group_graph_pattern_execute_init): Added. Works.
+	(rasqal_group_graph_pattern_execute_bind): Added. Works.
+	(rasqal_engine_execute_run_graph_pattern): Convert from step to
+	rc.  Testing state: src/ tests/rdql tests all work.
+
+	* src/rasqal_query.c: Define RASQAL_NO_GP_MERGE to enable/disable
+	empty graph merging
+
+	* src/rasqal_engine.c: Remove
+	rasqal_engine_group_graph_pattern_get_next_match
+
+	* src/rasqal_engine.c: docs
+
+	* src/rasqal_engine.c: Here we go.  Throughout replace "graph
+	pattern POINTER" with "graph pattern INDEX"
+	(rasqal_basic_graph_pattern_execute_init): Added, with code from
+	rasqal_engine_graph_pattern_reset for triples.
+	(rasqal_basic_graph_pattern_execute_bind): Added, with code from
+	rasqal_engine_do_step for triples and calling
+	rasqal_engine_triple_graph_pattern_get_next_match to do the triple
+	pattern matching.  WORKS on a trivial example.
+	(rasqal_optional_graph_pattern_execute_bind): Added, with code
+	from rasqal_engine_do_optional_step. UNTESTED.
+	rasqal_engine_execute_gp_handlers table does basic init/bind,
+	optional bind.
+	(rasqal_engine_graph_pattern_order): Removed.
+	(rasqal_engine_graph_pattern_reset): Do less, moved into
+	gp-specific init.
+	(rasqal_engine_graph_pattern_init): Can return failure.
+	(rasqal_engine_do_step, rasqal_engine_do_optional_step): Merged
+	above.
+	(rasqal_engine_store_query_results): Debug messages here.
+	(rasqal_engine_execute_run_graph_pattern): Added to call the
+	execute_bind handler method.
+	(rasqal_engine_execute_run): Remove outer_gp and old code, use
+	rasqal_engine_execute_run_graph_pattern to do the work.
+
+	* src/rasqal_engine.c: struct rasqal_engine_gp_data gains matched,
+	finished fields
+	(rasqal_engine_graph_pattern_reset): Init matched, finished fields
+	(rasqal_engine_graph_pattern_init): Remove sort.
+	(rasqal_engine_do_step, rasqal_engine_do_optional_step,
+	rasqal_engine_execute_run): use gp_data->matched, finished
+
+	* src/rasqal_internal.h: struct rasqal_graph_pattern loses
+	matched, finished fields
+
+	* src/rasqal_graph_pattern.c: (rasqal_new_graph_pattern): Lose
+	finished field.
+
+	* src/rasqal_engine.c: (rasqal_engine_execute_init): Remove hack
+	to restructure top-level GP
+
+	* src/rasqal_engine.c: typedef rasqal_engine_execute_gp_handler
+	Added handler field to rasqal_engine_gp_data
+	(rasqal_new_engine_gp_data): Error checking Added NULL
+	rasqal_engine_execute_gp_handlers array.
+	(rasqal_new_engine_execution_data): Init handler field.
+
+	* src/rasqal_engine.c: Rename rasqal_new_engine_gp_data from
+	rasqal_new_gp_data
+
+	* src/rasqal_engine.c, src/rasqal_graph_pattern.c,
+	src/rasqal_internal.h, src/rasqal_query.c: Docucomments.
+	(rasqal_new_graph_pattern): Add op arg and use it.
+
+	* src/rasqal_engine.c: Docs.  Use rasqal_query_results_reset call
+	replacing rasqal_query_results_init
+
+	* src/rasqal_query_results.c: (rasqal_query_results_reset) Renamed
+	from rasqal_query_results_init
+
+	* src/rasqal_internal.h: rasqal_query_results_reset renamed from
+	rasqal_query_results_init
+
+	* src/rasqal_query.c: (rasqal_query_execute): Handle failing to
+	make query results object.
+
+	* src/sparql_parser.y: Use
+	rasqal_engine_new_basic_graph_pattern_from_formula.
+
+	* src/rdql_parser.y: Use rasqal_new_basic_graph_pattern.
+
+	* src/rasqal_engine.c:
+	(rasqal_engine_new_basic_graph_pattern_from_formula): renamed from
+	rasqal_engine_new_graph_pattern_from_formula
+	Use rasqal_new_basic_graph_pattern.
+
+	* src/rasqal_internal.h: Added rasqal_new_basic_graph_pattern
+	renamed from rasqal_new_graph_pattern_from_triples.  Removed
+	rasqal_graph_pattern_add_triples Added
+	rasqal_engine_new_basic_graph_pattern_from_formula renamed from
+	rasqal_engine_new_graph_pattern_from_formula
+
+	* src/rasqal_graph_pattern.c: (rasqal_new_graph_pattern): Warning
+	this is mostly internal and does not init all fields.
+	(rasqal_new_basic_graph_pattern): Renamed from
+	rasqal_new_graph_pattern_from_triples - API change.
+	(rasqal_new_graph_pattern_from_sequence): Tidied.
+	(rasqal_graph_pattern_add_triples): Removed - API change.
+
+2007-02-27  Dave Beckett  <dave@dajobe.org>
+
+	* src/rasqal_engine.c: (rasqal_engine_execute_run): Pull out
+	invariants to top.
+
+	* src/rasqal_engine.c: (rasqal_engine_execute_run): Tidy inlining more
+
+	* src/rasqal_engine.c: (rasqal_engine_execute_run): Tidy inlining
+
+2007-02-26  Dave Beckett  <dave@dajobe.org>
+
+	* src/rasqal_engine.c: (rasqal_engine_execute_run): Inline
+	rasqal_engine_get_next_result into here.
+
+	* src/rasqal_query_results.c: (rasqal_query_results_get_boolean):
+	Remove rasqal_engine_get_next_result and use
+	rasqal_engine_execute_run then look for sequence size.
+
+	* src/rasqal_query.c: (rasqal_query_get_genid): one more byte
+
+	* src/rasqal_engine.c, src/rasqal_internal.h: (rasqal_engine_run):
+	Removed, never called
+
+	* src/rasqal_engine.c: removed rasqal_engine_query_results_update
+
+	* src/rasqal_engine.c: tidy
+
+	* src/rasqal_engine.c,
+	src/rasqal_internal.h: (rasqal_engine_store_query_results): Added.
+	Store offset in rasqal_engine_execution_data
+
+	* src/rasqal_engine.c, src/rasqal_internal.h, src/rasqal_query.c:
+	Move rasqal_map inside rasqal_engine_execute_data
+
+	* src/rasqal_engine.c: (rasqal_engine_execute_order): Do less work
+	when not ordering or distinct, just store results in seq.
+
+	* src/rasqal_engine.c: (rasqal_engine_execute_next): LAZY removal:
+	Always use results in order_conditions_sequence.
+
+	* src/rasqal_engine.c: (order_conditions_sequence): LAZY removal:
+	Always store results in order_conditions_sequence.
+
+	* docs/tmpl/section-query.sgml: new docs
+
 2007-02-21  Dave Beckett  <dave@dajobe.org>
 
 	* src/sparql_lexer.l: Added LAQRS DELETE and INSERT
