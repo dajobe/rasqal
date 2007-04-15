@@ -418,7 +418,9 @@ rasqal_query_get_feature_string(rasqal_query *query,
  * rasqal_query_get_distinct:
  * @query: #rasqal_query query object
  *
- * Get the query distinct results flag.
+ * Get the query distinct mode
+ *
+ * See rasqal_query_set_distinct() for the distinct modes.
  *
  * Return value: non-0 if the results should be distinct
  **/
@@ -432,15 +434,23 @@ rasqal_query_get_distinct(rasqal_query* query)
 /**
  * rasqal_query_set_distinct:
  * @query: #rasqal_query query object
- * @is_distinct: non-0 if distinct
+ * @distinct_mode: distinct mode
  *
- * Set the query distinct results flag.
+ * Set the query distinct results mode.
+ *
+ * The allowed @distinct_mode values are:
+ * 0 if not given
+ * 1 if DISTINCT: ensure solutions are unique
+ * 2 if SPARQL REDUCED: permit elimination of some non-unique solutions 
  *
  **/
 void
-rasqal_query_set_distinct(rasqal_query* query, int is_distinct)
+rasqal_query_set_distinct(rasqal_query* query, int distinct_mode)
 {
-  query->distinct= (is_distinct != 0) ? 1 : 0;
+  if(distinct_mode >= 0 && distinct_mode <= 2)
+    query->distinct= distinct_mode;
+  else
+    query->distinct= 0;
 }
 
 
@@ -1343,7 +1353,8 @@ rasqal_query_print(rasqal_query* query, FILE *fh)
   fprintf(fh, "query verb: %s\n", rasqal_query_verb_as_string(query->verb));
   
   if(query->distinct)
-    fputs("query results distinct: yes\n", fh);
+    fprintf(fh, "query results distinct mode: %s\n",
+            (query->distinct == 1 ? "distinct" : "reduced"));
   if(query->explain)
     fputs("query results explain: yes\n", fh);
   if(query->limit >= 0)
@@ -2094,8 +2105,12 @@ rasqal_query_write_sparql_20060406(raptor_iostream *iostr,
     raptor_iostream_write_string(iostr,
                                  rasqal_query_verb_as_string(query->verb));
 
-  if(query->distinct)
-    raptor_iostream_write_counted_string(iostr, " DISTINCT", 9);
+  if(query->distinct) {
+    if(query->distinct == 1)
+      raptor_iostream_write_counted_string(iostr, " DISTINCT", 9);
+    else
+      raptor_iostream_write_counted_string(iostr, " REDUCED", 8);
+  }
 
   if(query->verb == RASQAL_QUERY_VERB_DESCRIBE)
     var_seq=query->describes;
