@@ -658,7 +658,7 @@ int rasqal_query_get_wildcard(rasqal_query* query);
 RASQAL_API
 int rasqal_query_get_distinct(rasqal_query* query);
 RASQAL_API
-void rasqal_query_set_distinct(rasqal_query* query, int is_distinct);
+void rasqal_query_set_distinct(rasqal_query* query, int distinct_mode);
 RASQAL_API
 int rasqal_query_get_explain(rasqal_query* query);
 RASQAL_API
