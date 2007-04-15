@@ -1,3 +1,45 @@
+2007-04-15  Dave Beckett  <dave@dajobe.org>
+
+	* src/rasqal_engine.c: (rasqal_engine_query_result_row_compare):
+	Only do distinct=1 DISTINCT, no code for REDUCE yet.
+
+	* src/rasqal_query_results.c:
+	(rasqal_query_results_write_xml_result3): Allow for a potential
+	new output argument reduced=true/false.  Not yet enabled.
+
+	* src/rasqal_query.c: (rasqal_query_get_distinct): Rename arg to
+	distinct_mode.
+	(rasqal_query_set_distinct): Rename arg to distinct_mode and
+	accept values 0, 1 and 2.
+	(rasqal_query_print, rasqal_query_write_sparql_20060406): Print
+	distinct or reduced.
+
+2007-04-14  Dave Beckett  <dave@dajobe.org>
+
+	* src/rasqal.h: Alter rasqal_query_set_distinct arg to be named
+	distinct_mode (no API change)
+
+	* src/rasqal_internal.h: (struct rasqal_query_s): distinct now
+	takes 0, 1 or 2 to allow for REDUCED.
+
+	* src/sparql_parser.y: Add REDUCED token
+	(SelectQuery): Add REDUCED wherever DISTINCT can go
+
+	* src/sparql_lexer.l: Add REDUCED keyword
+
+	* tests/rdql/testsuite/check-rdql: add debug if RASQAL_DEBUG set
+
+	* tests/sparql/check-sparql: hardcode turtle as input type add
+	debug if RASQAL_DEBUG set
+
+	* tests/rdql/testsuite/check-rdql: hardcode turtle as input type
+
+2007-04-08  Dave Beckett  <dave@dajobe.org>
+
+	* src/rasqal_engine.c:
+	(rasqal_engine_triple_graph_pattern_get_next_match): Fix revision
+	with an exact match in a 1 TP query.
+
 2007-03-25  Dave Beckett  <dave@dajobe.org>
 
 	* utils/roqet.c: Print all informational and help messages to
