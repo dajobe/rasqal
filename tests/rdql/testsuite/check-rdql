@@ -118,7 +118,7 @@ sub run_test($$$$$) {
     return 1;
   }
 
-  my $cmd="$rapper -g -q -o ntriples $result_file";
+  my $cmd="$rapper -q -i turtle -o ntriples $result_file";
 
   my(@node_order);
   my(%nodes);
