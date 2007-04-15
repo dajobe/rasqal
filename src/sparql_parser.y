@@ -129,7 +129,7 @@ static int sparql_is_builtin_xsd_datatype(raptor_uri* uri);
 
 /* word symbols */
 %token SELECT FROM WHERE
-%token OPTIONAL DESCRIBE CONSTRUCT ASK DISTINCT LIMIT UNION
+%token OPTIONAL DESCRIBE CONSTRUCT ASK DISTINCT REDUCED LIMIT UNION
 %token PREFIX BASE BOUND
 %token GRAPH NAMED FILTER OFFSET ORDER BY REGEX ASC DESC LANGMATCHES
 %token A "a"
@@ -341,6 +341,17 @@ SelectQuery: SELECT DISTINCT SelectExpressionList
   $$=NULL;
   ((rasqal_query*)rq)->wildcard=1;
   ((rasqal_query*)rq)->distinct=1;
+}
+| SELECT REDUCED SelectExpressionList
+{
+  $$=$3;
+  ((rasqal_query*)rq)->distinct=2;
+}
+| SELECT REDUCED '*'
+{
+  $$=NULL;
+  ((rasqal_query*)rq)->wildcard=1;
+  ((rasqal_query*)rq)->distinct=2;
 }
 | SELECT SelectExpressionList
 {
