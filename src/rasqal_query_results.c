@@ -1996,17 +1996,28 @@ rasqal_query_results_write_xml_result3(raptor_iostream *iostr,
                                          NULL, /* language */
                                          base_uri_copy);
 
-  attrs=(raptor_qname **)raptor_alloc_memory(2*sizeof(raptor_qname*));
+  attrs=(raptor_qname **)raptor_alloc_memory(3*sizeof(raptor_qname*));
   i=(rasqal_query_get_order_condition(query, 0) != NULL);
   attrs[0]=raptor_new_qname_from_namespace_local_name(res_ns, 
                                                       (const unsigned char*)"ordered", 
                                                       i ? RASQAL_XSD_BOOLEAN_TRUE : RASQAL_XSD_BOOLEAN_FALSE);
   
-  i=rasqal_query_get_distinct(query);
+  i=(rasqal_query_get_distinct(query) == 1);
   attrs[1]=raptor_new_qname_from_namespace_local_name(res_ns, 
                                                       (const unsigned char*)"distinct",
                                                       i ? RASQAL_XSD_BOOLEAN_TRUE : RASQAL_XSD_BOOLEAN_FALSE);
+
+#if 1
   raptor_xml_element_set_attributes(results_element, attrs, 2);
+#else
+  /* FIXME: Does SPARQL results format change? */
+  i=(rasqal_query_get_distinct(query) == 2);
+  attrs[2]=raptor_new_qname_from_namespace_local_name(res_ns, 
+                                                      (const unsigned char*)"reduced",
+                                                      i ? RASQAL_XSD_BOOLEAN_TRUE : RASQAL_XSD_BOOLEAN_FALSE);
+
+  raptor_xml_element_set_attributes(results_element, attrs, 3);
+#endif
 
   raptor_xml_writer_raw_counted(xml_writer, (const unsigned char*)"  ", 2);
   raptor_xml_writer_start_element(xml_writer, results_element);
