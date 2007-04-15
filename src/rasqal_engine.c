@@ -2447,11 +2447,13 @@ rasqal_engine_query_result_row_compare(const void *a, const void *b)
   query=results->query;
   
   if(query->distinct) {
-    result=rasqal_query_result_literal_sequence_compare(query,
-                                                        row_a->values,
-                                                        row_b->values,
-                                                        NULL,
-                                                        row_a->size);
+    if(query->distinct == 1)
+      result=rasqal_query_result_literal_sequence_compare(query,
+                                                          row_a->values,
+                                                          row_b->values,
+                                                          NULL,
+                                                          row_a->size);
+    
     if(!result)
       /* duplicate, so return that */
       return 0;
