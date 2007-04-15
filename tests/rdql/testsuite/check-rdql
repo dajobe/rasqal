@@ -52,6 +52,7 @@ my $program=basename $0;
 my $debug=0;
 my $srcdir='.';
 
+$debug=1 if defined $ENV{'RASQAL_DEBUG'};
 
 
 sub run_test($$$$$) {
