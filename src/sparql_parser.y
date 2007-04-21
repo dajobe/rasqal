@@ -336,31 +336,14 @@ SelectQuery: SELECT DISTINCT SelectExpressionList
   $$=$3;
   ((rasqal_query*)rq)->distinct=1;
 }
-| SELECT DISTINCT '*'
-{
-  $$=NULL;
-  ((rasqal_query*)rq)->wildcard=1;
-  ((rasqal_query*)rq)->distinct=1;
-}
 | SELECT REDUCED SelectExpressionList
 {
   $$=$3;
   ((rasqal_query*)rq)->distinct=2;
 }
-| SELECT REDUCED '*'
-{
-  $$=NULL;
-  ((rasqal_query*)rq)->wildcard=1;
-  ((rasqal_query*)rq)->distinct=2;
-}
 | SELECT SelectExpressionList
 {
   $$=$2;
-}
-| SELECT '*'
-{
-  $$=NULL;
-  ((rasqal_query*)rq)->wildcard=1;
 }
 ;
 
@@ -393,6 +376,10 @@ SelectExpressionList: SelectExpressionList Var
   /* The variables are freed from the raptor_query field variables */
   $$=raptor_new_sequence(NULL, (raptor_sequence_print_handler*)rasqal_variable_print);
   raptor_sequence_push($$, $1);
+} | '*'
+{
+  $$=NULL;
+  ((rasqal_query*)rq)->wildcard=1;
 }
 ;
 
