@@ -785,6 +785,7 @@ tests/Makefile
 tests/engine/Makefile
 tests/rdql/Makefile
 tests/rdql/testsuite/Makefile
+tests/laqrs/Makefile
 tests/sparql/Makefile
 tests/sparql/simple/Makefile
 tests/sparql/part1/Makefile
