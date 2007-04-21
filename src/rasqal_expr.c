@@ -2225,6 +2225,35 @@ rasqal_expression_convert_to_literal(rasqal_expression* e, rasqal_literal* l)
 
   
 
+
+/* for use with rasqal_expression_visit and user_data=rasqal_query */
+static int
+rasqal_expression_has_variable(void *user_data, rasqal_expression *e)
+{
+  rasqal_variable* v;
+  const unsigned char* name=((rasqal_variable*)user_data)->name;
+
+  if(e->op != RASQAL_EXPR_LITERAL)
+    return 0;
+  
+  v=rasqal_literal_as_variable(e->literal);
+  if(!v)
+    return 0;
+  
+  if(!strcmp((const char*)v->name, (const char*)name))
+    return 1;
+
+  return 0;
+}
+
+
+int
+rasqal_expression_mentions_variable(rasqal_expression* e, rasqal_variable* v)
+{
+  return rasqal_expression_visit(e, rasqal_expression_has_variable, v);
+}
+
+
 #endif /* not STANDALONE */
 
 
