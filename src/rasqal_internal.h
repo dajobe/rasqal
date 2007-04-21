@@ -576,6 +576,7 @@ int rasqal_literal_ebv(rasqal_literal* l);
 int rasqal_expression_is_constant(rasqal_expression* e);
 void rasqal_expression_clear(rasqal_expression* e);
 void rasqal_expression_convert_to_literal(rasqal_expression* e, rasqal_literal* l);
+int rasqal_expression_mentions_variable(rasqal_expression* e, rasqal_variable* v);
 
 /* strcasecmp.c */
 #ifdef HAVE_STRCASECMP
