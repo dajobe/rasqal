@@ -150,16 +150,16 @@ static int sparql_is_builtin_xsd_datatype(raptor_uri* uri);
 %token '?' '$'
 
 /* SC booleans */
-%left SC_OR "||"
-%left SC_AND "&&"
+%left "||"
+%left "&&"
 
 /* operations */
-%left EQ "="
-%left NEQ "!="
-%left LT "<"
-%left GT ">"
-%left LE "<="
-%left GE ">="
+%left "="
+%left "!="
+%left "<"
+%left ">"
+%left "<="
+%left ">="
 
 
 /* arithmetic operations */
@@ -1655,7 +1655,7 @@ Expression: ConditionalOrExpression
 
 
 /* SPARQL Grammar: [47] ConditionalOrExpression */
-ConditionalOrExpression: ConditionalOrExpression SC_OR ConditionalAndExpression
+ConditionalOrExpression: ConditionalOrExpression "||" ConditionalAndExpression
 {
   $$=rasqal_new_2op_expression(RASQAL_EXPR_OR, $1, $3);
 }
@@ -1667,7 +1667,7 @@ ConditionalOrExpression: ConditionalOrExpression SC_OR ConditionalAndExpression
 
 
 /* SPARQL Grammar: [48] ConditionalAndExpression */
-ConditionalAndExpression: ConditionalAndExpression SC_AND RelationalExpression
+ConditionalAndExpression: ConditionalAndExpression "&&" RelationalExpression
 {
   $$=rasqal_new_2op_expression(RASQAL_EXPR_AND, $1, $3);
 ;
@@ -1681,27 +1681,27 @@ ConditionalAndExpression: ConditionalAndExpression SC_AND RelationalExpression
 /* SPARQL Grammar: [49] ValueLogical - merged into RelationalExpression */
 
 /* SPARQL Grammar: [50] RelationalExpression */
-RelationalExpression: AdditiveExpression EQ AdditiveExpression
+RelationalExpression: AdditiveExpression "=" AdditiveExpression
 {
   $$=rasqal_new_2op_expression(RASQAL_EXPR_EQ, $1, $3);
 }
-| AdditiveExpression NEQ AdditiveExpression
+| AdditiveExpression "!=" AdditiveExpression
 {
   $$=rasqal_new_2op_expression(RASQAL_EXPR_NEQ, $1, $3);
 }
-| AdditiveExpression LT AdditiveExpression
+| AdditiveExpression "<" AdditiveExpression
 {
   $$=rasqal_new_2op_expression(RASQAL_EXPR_LT, $1, $3);
 }
-| AdditiveExpression GT AdditiveExpression
+| AdditiveExpression ">" AdditiveExpression
 {
   $$=rasqal_new_2op_expression(RASQAL_EXPR_GT, $1, $3);
 }
-| AdditiveExpression LE AdditiveExpression
+| AdditiveExpression "<=" AdditiveExpression
 {
   $$=rasqal_new_2op_expression(RASQAL_EXPR_LE, $1, $3);
 }
-| AdditiveExpression GE AdditiveExpression
+| AdditiveExpression ">=" AdditiveExpression
 {
   $$=rasqal_new_2op_expression(RASQAL_EXPR_GE, $1, $3);
 }
