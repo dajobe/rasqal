@@ -31,3 +31,6 @@ endif
 if RASQAL_QUERY_SPARQL
 SUBDIRS += sparql
 endif
+if RASQAL_QUERY_LAQRS
+SUBDIRS += laqrs
+endif
