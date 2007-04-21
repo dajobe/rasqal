@@ -396,11 +396,17 @@ SelectExpressionTerm: Var
 {
   rasqal_sparql_query_engine* sparql=(rasqal_sparql_query_engine*)(((rasqal_query*)rq)->context);
 
+  $$=NULL;
   if(!sparql->extended)
-    sparql_syntax_error((rasqal_query*)rq, "SELECT Expression AS Variable cannot be used with SPARQL");
+    sparql_syntax_error((rasqal_query*)rq, "SELECT expression AS Variable cannot be used with SPARQL");
   else {
-    $$=$3;
-    $3->expression=$1;
+    if(rasqal_expression_mentions_variable($1, $3)) {
+      sparql_query_error_full((rasqal_query*)rq, "SELECT expression contains the AS variable name '%s'", $3->name);
+    } else {
+      $$=$3;
+      $3->expression=$1;
+    }
+
   }
 }
 ;
@@ -412,28 +418,34 @@ SelectExpressionTerm: Var
 SelectExpression: COUNT '(' Expression ')'
 {
   rasqal_sparql_query_engine* sparql=(rasqal_sparql_query_engine*)(((rasqal_query*)rq)->context);
-  if(!sparql->extended)
+
+  if(!sparql->extended) {
     sparql_syntax_error((rasqal_query*)rq, "COUNT cannot be used with SPARQL");
-  $$=rasqal_new_1op_expression(RASQAL_EXPR_COUNT, $3);
+    $$=NULL;
+  } else
+    $$=rasqal_new_1op_expression(RASQAL_EXPR_COUNT, $3);
 }
 | COUNT '(' '*' ')'
 {
   rasqal_sparql_query_engine* sparql=(rasqal_sparql_query_engine*)(((rasqal_query*)rq)->context);
-  rasqal_expression* vs;
 
-  if(!sparql->extended)
+  if(!sparql->extended) {
     sparql_syntax_error((rasqal_query*)rq, "COUNT cannot be used with SPARQL");
-
-  vs=rasqal_new_0op_expression(RASQAL_EXPR_VARSTAR);
-  $$=rasqal_new_1op_expression(RASQAL_EXPR_COUNT, vs);
+    $$=NULL;
+  } else {
+    rasqal_expression* vs=rasqal_new_0op_expression(RASQAL_EXPR_VARSTAR);
+    $$=rasqal_new_1op_expression(RASQAL_EXPR_COUNT, vs);
+  }
 }
 | '(' COUNT '(' Expression ')' ')'
 {
   rasqal_sparql_query_engine* sparql=(rasqal_sparql_query_engine*)(((rasqal_query*)rq)->context);
-  if(!sparql->extended)
-    sparql_syntax_error((rasqal_query*)rq, "COUNT cannot be used with SPARQL");
 
-  $$=rasqal_new_1op_expression(RASQAL_EXPR_COUNT, $4);
+  if(!sparql->extended) {
+    sparql_syntax_error((rasqal_query*)rq, "COUNT cannot be used with SPARQL");
+    $$=NULL;
+  } else    
+    $$=rasqal_new_1op_expression(RASQAL_EXPR_COUNT, $4);
 }
 | '(' Expression ')'
 {
