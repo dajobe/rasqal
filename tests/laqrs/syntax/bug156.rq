@@ -1,3 +1,2 @@
-# parser fails this syntax
 SELECT COUNT(?c) AS x
 WHERE { ?a ?b ?c }
