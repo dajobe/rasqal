@@ -2205,6 +2205,19 @@ rasqal_init_query_engine_laqrs(void) {
 #include <stdio.h>
 #include <locale.h>
 
+#ifdef HAVE_GETOPT_H
+#include <getopt.h>
+#else
+#include <rasqal_getopt.h>
+#endif
+
+#ifdef NEED_OPTIND_DECLARATION
+extern int optind;
+extern char *optarg;
+#endif
+
+#define GETOPT_STRING "di:"
+
 #define SPARQL_FILE_BUF_SIZE 2048
 
 int
@@ -2218,20 +2231,74 @@ main(int argc, char *argv[])
   const char *filename=NULL;
   raptor_uri* base_uri=NULL;
   unsigned char *uri_string;
+  const char* query_languages[2]={"sparql", "laqrs"};
+  const char* query_language;
+  int usage=0;
+  int fh_opened_here=0;
+  
+  query_language=query_languages[0];
+  
+  while(!usage) {
+    int c = getopt (argc, argv, GETOPT_STRING);
 
+    if (c == -1)
+      break;
+
+    switch (c) {
+      case 0:
+      case '?': /* getopt() - unknown option */
+        usage=1;
+        break;
+        
+      case 'd':
 #if RASQAL_DEBUG > 2
-  sparql_parser_debug=1;
+        sparql_parser_debug=1;
 #endif
+        break;
+  
+      case 'i':
+        if(optarg) {
+          if(!strcmp(optarg, "laqrs")) {
+            query_language=query_languages[1];
+          } else if(!strcmp(optarg, "sparql")) {
+            query_language=query_languages[0];
+          } else {
+            fprintf(stderr, "-i laqrs or -i sparql only\n");
+            usage=1;
+          }
+        }
+        break;
+    }
+  }
 
-  if(argc > 1) {
-    filename=argv[1];
-    fh = fopen(argv[1], "r");
+  if((argc-optind)>1) {
+    fprintf(stderr, "%s: Too many arguments.\n", program);
+    usage=1;
+  }
+  
+  if(usage) {
+    fprintf(stderr, "SPARQL/LAQRS parser test for Rasqal %s\n", 
+            rasqal_version_string);
+    fprintf(stderr, "USAGE: %s [OPTIONS] [QUERY-FILE]\n", program);
+    fprintf(stderr, "OPTIONS:\n");
+#if RASQAL_DEBUG > 2
+    fprintf(stderr, " -d           Bison parser debugging\n");
+#endif
+    fprintf(stderr, " -i LANGUAGE  Set query language\n");
+    rasqal_finish();
+    exit(1);
+  }
+
+ if(optind == argc-1) {
+    filename=argv[optind];
+    fh = fopen(argv[optind], "r");
     if(!fh) {
       fprintf(stderr, "%s: Cannot open file %s - %s\n", program, filename,
               strerror(errno));
       exit(1);
     }
-  } else {
+    fh_opened_here=1;
+ } else {
     filename="<stdin>";
     fh = stdin;
   }
@@ -2247,12 +2314,12 @@ main(int argc, char *argv[])
     }
   }
   
-  if(argc>1)
+  if(fh_opened_here)
     fclose(fh);
 
   rasqal_init();
 
-  query=rasqal_new_query("sparql", NULL);
+  query=rasqal_new_query(query_language, NULL);
 
   uri_string=raptor_uri_filename_to_uri_string(filename);
   base_uri=raptor_new_uri(uri_string);
