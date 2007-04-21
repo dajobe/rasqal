@@ -232,8 +232,14 @@ QNAME {NCNAME_PREFIX}?":"{NCNAME}?
 /* rq23 [69] BNODE_LABEL (renamed to BNAME) ::= '_:' NCNAME */
 BNAME "_:"{NCNAME}
 
+/* a blank node name written inside a URI - this is an illegal
+ * URI form and for convienence 
+ */
+BNAME2 "<_:"{NCNAME}">"
 
-/* The initial char conditions are to ensure this doesn't grab < or <= */
+/* The initial char conditions are to ensure this doesn't grab < or <= 
+ * as operators.  starting with <_: is caught by BNAME2 above.
+ **/
 QUOTEDURI \<[^<= ][^>]*\>|\<\>
 
 
@@ -481,6 +487,10 @@ EXPONENT [eE][+-]?[0-9]+
 }
 
 {BNAME}	{	sparql_parser_lval->name=sparql_copy_name(rq, (unsigned char*)yytext+2, yyleng-2, SPARQL_NAME_CHECK_NCNAME);
+		return BLANK_LITERAL;
+}
+
+{BNAME2}	{	sparql_parser_lval->name=sparql_copy_name(rq, (unsigned char*)yytext+3, yyleng-4, SPARQL_NAME_CHECK_NCNAME);
 		return BLANK_LITERAL;
 }
 
