@@ -1,0 +1,428 @@
+#!/usr/bin/perl -w
+#
+# check-laqrs - Run Rasqal against LAQRS tests
+#
+# $Id:$
+#
+# USAGE check-laqrs [-d] [-s SRCDIR] [TEST]
+# 
+# Copyright (C) 2004-2006, David Beckett http://purl.org/net/dajobe/
+# Copyright (C) 2004-2005, University of Bristol, UK http://www.bristol.ac.uk/
+# 
+# This package is Free Software and part of Redland http://librdf.org/
+# 
+# It is licensed under the following three licenses as alternatives:
+#   1. GNU Lesser General Public License (LGPL) V2.1 or any newer version
+#   2. GNU General Public License (GPL) V2 or any newer version
+#   3. Apache License, V2.0 or any newer version
+# 
+# You may not use this file except in compliance with at least one of
+# the above three licenses.
+# 
+# See LICENSE.html or LICENSE.txt at the top of this package for the
+# complete terms and further detail along with the license texts for
+# the licenses in COPYING.LIB, COPYING and LICENSE-2.0.txt respectively.
+# 
+#
+# Requires:
+#   roqet (from rasqal) compiled in the parent directory
+#   rapper (from raptor 1.3.0) in the PATH
+#
+# Depends on a variety of rasqal internal debug print formats
+# and has some bug workarounds - see FIXME.
+# 
+
+
+use strict;
+use File::Basename;
+
+
+my $roqet="roqet";
+my $rapper="rapper";
+
+
+my $rdf='http://www.w3.org/1999/02/22-rdf-syntax-ns#';
+my $rs='http://www.w3.org/2001/sw/DataAccess/tests/result-set#';
+my $variable_predicate="<${rs}variable>";
+my $value_predicate="<${rs}value>";
+my $binding_predicate="<${rs}binding>";
+my $solution_predicate="<${rs}solution>";
+
+my(@manifest_files)=qw(manifest.ttl manifest.n3);
+my $mf='http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#';
+my $mfx='http://jena.hpl.hp.com/2005/05/test-manifest-extra#';
+my $qt='http://www.w3.org/2001/sw/DataAccess/tests/test-query#';
+
+my $program=basename $0;
+my $debug=0;
+my $srcdir='.';
+
+$debug=1 if defined $ENV{'RASQAL_DEBUG'};
+
+# plural('result', 's', 2);
+sub plural($$$) {
+  my($word,$multiple,$count)=@_;
+  return ($count == 1) ? $count." ".$word : $count." ".$word.$multiple;
+}
+  
+sub run_test($$$$$$) {
+  my($name, $dir, $test_file, $data_files_ref, $result_file,$expect_fail)=@_;
+  my(@data_files)=@$data_files_ref;
+
+  warn "run_test($name, dir $dir, query $test_file, data ",join("; ",@data_files),", result ",($result_file||"none"),", expect ",($expect_fail ? "failure":"success"),")\n"
+    if $debug;
+
+  my(@args)=(map "-s $_", @data_files);
+  # No execution possible if there is no data
+  push(@args, "-n") if !@data_files;
+
+  my $args_s=join(" ",@args);
+  my $roqet_tmp='roqet.tmp';
+  my $roqet_cmd="$roqet -d debug -i laqrs $args_s $test_file 2>roqet.err > $roqet_tmp";
+  my $sort="sort";
+
+  warn "$program: Running '$roqet_cmd'\n"
+    if $debug;
+  system($roqet_cmd);
+  my $rc=$? >>8;
+  if($rc) {
+    if($expect_fail) {
+      warn "$program: '$name' OK (got expected failure)\n";
+      return 1;
+    }
+
+    warn "$program: test '$test_file' FAILED - query command failed (result $rc):\n";
+    warn "Failing program was:\n";
+    warn "  $roqet_cmd\n";
+    my $r=$roqet_cmd; $r =~ s,file:[^ ]+/,,g;
+    warn "  OR $r\n";
+    system("cat roqet.err");
+    unlink $roqet_tmp;
+    return 1;
+  }
+
+  open(PIPE, "<$roqet_tmp") or die "$program: Cannot read $roqet_tmp - $!\n";
+
+  my $sorted=0;
+  my $first_result=1;
+  my $roqet_results=0;
+  my(@vars_order);
+
+  while(<PIPE>) {
+    chomp;
+    if(/^(?:selects|bound variables): \[(.*)\]$/) {
+      my $vars=$1;
+      $vars =~ s/variable\(([^)]+)\)/$1/g; # ) ]
+      $vars =~ s/,//g;
+      @vars_order=split(/ /, $vars);
+    }
+
+    s/blank \w+/blank _/g;
+
+    if (m/query order conditions:/) {
+      $sorted=1;
+      $sort=$sorted ? "cat " : "sort ";
+    }
+
+    if (m/^result: \[(.*)\]$/) {
+      my $line=$_;
+      if(!@vars_order) {
+	my $vars=$1;
+	$vars =~ s/=uri<[^>]+>//g;
+	$vars =~ s/=string\("[^"]+"[^)]*\)//g; # "
+	$vars =~ s/=blank _//g;
+	$vars =~ s/=NULL//g;
+	$vars =~ s/,//g;
+	@vars_order=split(/ /, $vars);
+      }
+      $line =~ s/,?\s+\w+=NULL//g;
+      $line =~ s/\w+=NULL,\s+//g;
+
+      if($first_result) {
+        open(OUT, "|$sort >roqet.out") or die "$program: Cannot create pipe to roqet.out - $!\n";
+	$first_result=0;
+      }
+
+      print OUT "$line\n";
+      $roqet_results++;
+    }
+  }
+  close(PIPE);
+  unlink $roqet_tmp;
+
+  if($first_result) {
+    open(OUT, ">roqet.out") or die "$program: Cannot create pipe to roqet.out - $!\n";
+  }
+  close(OUT);
+
+  open(ERR, "<roqet.err") or die "$program: Cannot open roqet.err - $!\n";
+  my(@errs)=();
+  while(<ERR>) {
+    chomp;
+    push(@errs, "$test_file:$1: $2") if /(\d+) rasqal error - (.*)$/;
+  }
+  close(ERR);
+  if(@errs) {
+    warn "$program: test '$test_file' FAILED - query returned errors:\n  ".join("\n  ",@errs)."\n";
+    warn "Failing program was:\n";
+    warn "  $roqet_cmd\n";
+    my $r=$roqet_cmd; $r =~ s,file:[^ ]+/,,g;
+    warn "  OR $r\n";
+    return 1;
+  }
+
+  my $cmd;
+  my(@node_order);
+  my(%nodes);
+  my(%node_type);
+
+  if(defined $result_file) {
+    $cmd="$rapper -q -i turtle -o ntriples $result_file";
+
+    warn "$program: Opening pipe from '$cmd'\n"
+      if $debug;
+    open(PIPE, "$cmd |");
+    while(<PIPE>) {
+      chomp;
+      s/\s+\.$//;
+
+      my($subject, $predicate, $object)=split(/ /, $_, 3);
+      push(@node_order, $subject)
+	unless exists $nodes{$subject} || exists $node_type{$subject};
+
+      if ($predicate eq "<${rdf}type>") {
+	$node_type{$subject}=$object;
+      } else {
+	push(@{$nodes{$subject}->{$predicate}}, $object);
+      }
+    }
+    close(PIPE);
+  }
+
+  sub toDebug($) {
+    my $str=shift;
+
+    return undef if !defined $str;
+
+    return "NULL" if $str eq "<${rs}undefined>";
+
+    return $str if $str =~ s/^(".*")(@.*)(\^\^<.*>)$/string($1$2$3)/;
+
+    return $str if $str =~ s/^(".*"\^\^<.*>)$/string($1)/;
+
+    return $str if $str =~ s/^(".*"@.*)$/string($1)/;
+
+    return $str if $str =~ s/^(".*")$/string($1)/;
+
+    return $str if $str =~ s/^(<.*>)$/uri$1/;
+
+    #return $str if $str =~ s/^_:(.*)$/blank $1/;
+    return $str if $str =~ s/^_:(.*)$/blank _/;
+  }
+
+
+  # Find ResultSet node
+  my $resultset_node=undef;
+  for my $node (@node_order) {
+    my $type=$node_type{$node};
+    next if !$type || $type ne "<${rs}ResultSet>";
+    $resultset_node=$node;
+    last;
+  }
+
+  if(!defined $resultset_node) {
+    # No result defined
+    warn "$program: '$name' OK (no result)\n";
+    return $expect_fail ? 1 : 0;
+  }
+
+  open(OUT, "|$sort >result.out")
+    or die "$program: Cannot create pipe to result.out - $!\n";
+
+  my $count=0;
+  for my $node (@{$nodes{$resultset_node}->{$solution_predicate}}) {
+    # Get binding nodes
+    my(%results);
+    for my $binding_node (@{$nodes{$node}->{$binding_predicate}}) {
+      my $variable=$nodes{$binding_node}->{$variable_predicate}->[0];
+      $variable=~ s/^"(.*)"$/$1/;
+      my $value=$nodes{$binding_node}->{$value_predicate}->[0];
+      $results{$variable}=toDebug($value);
+    }
+
+    my(@defined_vars)=grep(defined $results{$_}, @vars_order);
+    print OUT "result: [",join(", ",map {"$_=$results{$_}"} @defined_vars),"]\n";
+    $count++;
+  }
+  close(OUT);
+
+  $cmd="diff -c result.out roqet.out > diff.out";
+  $rc=system($cmd);
+  if($rc) {
+    warn "$program: '$name' FAILED\n";
+    warn "Failing program was:\n";
+    warn "  $roqet_cmd\n";
+    my $r=$roqet_cmd; $r =~ s,file:[^ ]+/,,g;
+    warn "  OR $r\n";
+    warn "Difference is:\n";
+    system("cat diff.out");
+    warn "$program: Expected ".plural("result","s",$count).", got $roqet_results\n";
+    return 1;
+  } else {
+    warn "$program: '$name' OK\n";
+    return 0;
+  }
+
+}
+
+
+
+
+# Argument handling
+my $usage=0;
+
+while(@ARGV && $ARGV[0] =~ /^-(.+)$/) {
+  local $_=shift(@ARGV);
+  if(/^-d/) {
+    $debug=1;
+  } elsif (/^-s$/) {
+    if(!@ARGV) {
+      $usage=1;
+      last;
+    } else {
+      $srcdir=shift @ARGV;
+    }
+  }
+}
+
+$usage=1 if @ARGV >1;
+
+die "USAGE: $program [-d] [-s srcdir] [TEST]\n" if $usage;
+
+my $unique_test=$ARGV[0];
+
+$srcdir.="/" unless $srcdir =~ m%/$%;
+
+my $manifest_file=undef;
+for my $file (@manifest_files) {
+  next unless -r $srcdir.$file;
+  $manifest_file=$file;
+}
+die "$program: No manifest file found in $srcdir\n"
+  unless defined $manifest_file;
+
+
+my(%triples);
+my $entries_node;
+my $cmd="$rapper -q -i turtle -o ntriples $srcdir$manifest_file";
+open(MF, "$cmd |") 
+  or die "Cannot open pipe from '$cmd' - $!\n";
+while(<MF>) {
+  chomp;
+  s/\s+\.$//;
+  my($s,$p,$o)=split(/ /,$_,3);
+  die "no p in '$_'\n" unless defined $p;
+  die "no o in '$_'\n" unless defined $o;
+  push(@{$triples{$s}->{$p}}, $o);
+  $entries_node=$o if $p eq "<${mf}entries>";
+}
+close(MF);
+
+print "Entries node is '$entries_node'\n"
+  if $debug;
+my $list_node=$entries_node;
+
+my(@tests);
+while($list_node) {
+  warn "List node is '$list_node'\n"
+    if $debug;
+
+  my $entry_node=$triples{$list_node}->{"<${rdf}first>"}->[0];
+
+  warn "Entry node is '$entry_node'\n"
+    if $debug;
+
+  my $name=$triples{$entry_node}->{"<${mf}name>"}->[0];
+  $name =~ s/^\"(.*)\"$/$1/;
+
+  warn "Entry name=$name\n"
+    if $debug;
+  
+  my $result_node=$triples{$entry_node}->{"<${mf}result>"}->[0];
+  my $result_file=undef;
+  if(defined $result_node) {
+    $result_file=($result_node =~ /^<(.+)>$/, $1);
+    $result_file =~ s,^file:([^/]+),$1,;
+  }
+
+  print "Entry result_file=".($result_file || "NONE")."\n"
+    if $debug;
+
+  my $action_node=$triples{$entry_node}->{"<${mf}action>"}->[0];
+
+  print "Entry action_node $action_node\n"
+     if $debug;
+  
+  my(@data_files)=();
+  for my $data_node (@{$triples{$action_node}->{"<${qt}data>"}}) { 
+    print "Entry data_node $data_node\n"
+     if $debug;
+    my $data_file=($data_node =~ /^<(.+)>$/, $1);
+    $data_file =~ s,^file:([^/]+),$1,;
+    push(@data_files, $data_file);
+  }
+
+  my $query_type=$triples{$entry_node}->{"<${rdf}type>"}->[0];
+  warn "Query type is $query_type\n"
+    if $debug;
+
+  my $query_node;
+  my $expect_fail=0;
+  if($query_type && ($query_type eq "<${mfx}TestSyntax>" ||
+		     $query_type eq "<${mfx}TestBadSyntax>")) {
+    $query_node=$action_node;
+    $expect_fail=1 if $query_type eq "<${mfx}TestBadSyntax>";
+  } else {
+    $query_node=$triples{$action_node}->{"<${qt}query>"}->[0];
+  }
+
+  if($query_node) {
+    my $query_file=($query_node =~ /^<(.+)>$/, $1);
+    $query_file =~ s,^file:([^/]+),$1,;
+
+    print "Entry data_files=",join(", ",@data_files),"\n"
+      if $debug;
+    print "Entry query_file=$query_file\n"
+      if $debug;
+    
+    if (!$unique_test || ($unique_test && $name eq $unique_test)) {
+      push(@tests, [$name, $srcdir, $query_file, [ @data_files], $result_file, $expect_fail]);
+      last if $unique_test;
+    }
+  } else {
+    warn "$program: No query found for test $name\n";
+  }
+
+  $list_node=$triples{$list_node}->{"<${rdf}rest>"}->[0];
+  last if $list_node eq "<${rdf}nil>";
+}
+
+
+my(@failed);
+
+my $result=0;
+for my $test (@tests) {
+  my($name, $dir, $test_file, $data_files_ref, $result_file,$expect_fail)=@$test;
+
+  my $rc = run_test($name, $dir, $test_file, $data_files_ref, $result_file,$expect_fail);
+  $rc=!$rc if $expect_fail;
+  push(@failed, $name) if $rc;
+  $result++ if $rc;
+}
+
+unlink "roqet.out", "result.out", "diff.out", "roqet.err", "roqet.tmp"
+  unless $unique_test;
+
+warn "$0: FAILED tests: '".join("' '", @failed)."'\n"
+  if @failed;
+exit $result;

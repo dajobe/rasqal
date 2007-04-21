@@ -1,0 +1,3 @@
+# parser fails this syntax
+SELECT ?a COUNT(?c) AS c
+WHERE { ?a ?b ?c }
