@@ -185,7 +185,7 @@ static int sparql_is_builtin_xsd_datatype(raptor_uri* uri);
 %type <seq> SelectQuery ConstructQuery DescribeQuery
 %type <seq> SelectExpressionList VarOrIRIrefList ArgList ConstructTriplesOpt
 %type <seq> ConstructTemplate OrderConditionList
-%type <seq> GraphNodeListNotEmpty
+%type <seq> GraphNodeListNotEmpty SelectExpressionListTail
 
 %type <formula> TriplesSameSubject TriplesSameSubjectDotListOpt
 %type <formula> PropertyList PropertyListTailOpt PropertyListNotEmpty
@@ -210,7 +210,7 @@ static int sparql_is_builtin_xsd_datatype(raptor_uri* uri);
 %type <literal> VarOrIRIref VarOrBlankNodeOrIRIref
 %type <literal> IRIrefBrace
 
-%type <variable> Var VarName
+%type <variable> Var VarName SelectExpressionTerm
 
 
 %destructor { rasqal_free_literal($$); } FLOATING_POINT_LITERAL STRING_LITERAL INTEGER_LITERAL BOOLEAN_LITERAL DECIMAL_LITERAL
@@ -348,35 +348,14 @@ SelectQuery: SELECT DISTINCT SelectExpressionList
 ;
 
 
-/* NEW Grammar Term pulled out of [5] SelectQuery */
-SelectExpressionList: SelectExpressionList Var
+/* NEW Grammar Term pulled out of [5] SelectQuery
+ * A list of SelectExpressionTerm OR a NULL list and a wildcard
+ */
+SelectExpressionList: SelectExpressionListTail
 {
   $$=$1;
-  raptor_sequence_push($$, $2);
 }
-| SelectExpressionList ',' Var
-{
-  $$=$1;
-  raptor_sequence_push($$, $3);
-}
-| SelectExpressionList SelectExpression AS VarName
-{
-  rasqal_sparql_query_engine* sparql=(rasqal_sparql_query_engine*)(((rasqal_query*)rq)->context);
-
-  if(!sparql->extended)
-    sparql_syntax_error((rasqal_query*)rq, "SELECT Expression AS Variable cannot be used with SPARQL");
-  else {
-    $$=$1;
-    $4->expression=$2;
-    raptor_sequence_push($$, $4);
-  }
-}
-| Var 
-{
-  /* The variables are freed from the raptor_query field variables */
-  $$=raptor_new_sequence(NULL, (raptor_sequence_print_handler*)rasqal_variable_print);
-  raptor_sequence_push($$, $1);
-} | '*'
+| '*'
 {
   $$=NULL;
   ((rasqal_query*)rq)->wildcard=1;
@@ -384,18 +363,76 @@ SelectExpressionList: SelectExpressionList Var
 ;
 
 
+/* NEW Grammar Term pulled out of [5] SelectQuery 
+ * Non-empty list of SelectExpressionTerm with optional commas
+ */
+SelectExpressionListTail: SelectExpressionListTail SelectExpressionTerm
+{
+  $$=$1;
+  raptor_sequence_push($$, $2);
+}
+| SelectExpressionListTail ',' SelectExpressionTerm
+{
+  $$=$1;
+  raptor_sequence_push($$, $3);
+}
+| SelectExpressionTerm
+{
+  /* The variables are freed from the raptor_query field variables */
+  $$=raptor_new_sequence(NULL, (raptor_sequence_print_handler*)rasqal_variable_print);
+  raptor_sequence_push($$, $1);
+}
+;
+
+
+/* NEW Grammar Term pulled out of [5] SelectQuery 
+ * A variable (?x) or a select expression assigned to a name (x) with AS
+ */
+SelectExpressionTerm: Var
+{
+  $$=$1;
+}
+| SelectExpression AS VarName
+{
+  rasqal_sparql_query_engine* sparql=(rasqal_sparql_query_engine*)(((rasqal_query*)rq)->context);
+
+  if(!sparql->extended)
+    sparql_syntax_error((rasqal_query*)rq, "SELECT Expression AS Variable cannot be used with SPARQL");
+  else {
+    $$=$3;
+    $3->expression=$1;
+  }
+}
+;
+
+
+/* NEW Grammar Term pulled out of [5] SelectQuery 
+ *
+ */
 SelectExpression: COUNT '(' Expression ')'
 {
+  rasqal_sparql_query_engine* sparql=(rasqal_sparql_query_engine*)(((rasqal_query*)rq)->context);
+  if(!sparql->extended)
+    sparql_syntax_error((rasqal_query*)rq, "COUNT cannot be used with SPARQL");
   $$=rasqal_new_1op_expression(RASQAL_EXPR_COUNT, $3);
 }
 | COUNT '(' '*' ')'
 {
+  rasqal_sparql_query_engine* sparql=(rasqal_sparql_query_engine*)(((rasqal_query*)rq)->context);
   rasqal_expression* vs;
+
+  if(!sparql->extended)
+    sparql_syntax_error((rasqal_query*)rq, "COUNT cannot be used with SPARQL");
+
   vs=rasqal_new_0op_expression(RASQAL_EXPR_VARSTAR);
   $$=rasqal_new_1op_expression(RASQAL_EXPR_COUNT, vs);
 }
 | '(' COUNT '(' Expression ')' ')'
 {
+  rasqal_sparql_query_engine* sparql=(rasqal_sparql_query_engine*)(((rasqal_query*)rq)->context);
+  if(!sparql->extended)
+    sparql_syntax_error((rasqal_query*)rq, "COUNT cannot be used with SPARQL");
+
   $$=rasqal_new_1op_expression(RASQAL_EXPR_COUNT, $4);
 }
 | '(' Expression ')'
