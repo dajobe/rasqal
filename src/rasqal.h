@@ -457,7 +457,6 @@ struct rasqal_expression_s {
   struct rasqal_expression_s* arg2;
   struct rasqal_expression_s* arg3; /* optional 3rd arg for EXPR_REGEX */
   rasqal_literal* literal;
-  rasqal_variable* variable;
   unsigned char *value; /* UTF-8 value */
 
   /* for extension function qname(args...) and cast-to-uri */
