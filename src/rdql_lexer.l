@@ -515,7 +515,7 @@ rdql_copy_string_token(rasqal_query* rq, YYSTYPE* lval,
         language=(char*)d;
         while(i<=len) {
           c=*s++; i++;
-          if(!isalpha(c) && !isdigit(c))
+          if(!isalpha(c) && !isdigit(c) && c != '-')
             break;
           *d++=c;
         }
