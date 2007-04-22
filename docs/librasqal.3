@@ -3,10 +3,10 @@
 .\"
 .\" $Id$
 .\"
-.\" Copyright (C) 2004-2006 David Beckett - http://purl.org/net/dajobe/
+.\" Copyright (C) 2004-2007 David Beckett - http://purl.org/net/dajobe/
 .\" Copyright (C) 2004-2005 University of Bristol - http://www.bristol.ac.uk/
 .\"
-.TH librasqal 3 "2006-10-29"
+.TH librasqal 3 "2007-04-22"
 .\" Please adjust this date whenever revising the manpage.
 .SH NAME
 librasqal \- Rasqal RDF query library
@@ -65,8 +65,8 @@ The \fIRasqal\fR library provides a high-level interface to RDF query
 parsing, query construction, query execution over an RDF graph and
 query results manipulation and formatting.  The library provides APIs
 to each of the steps in the process and provides support for handling
-multiple query language syntaxes.  At present Rasqal supports the
-W3C draft SPARQL query language and RDQL. 
+multiple query language syntaxes.  At present Rasqal partially supports the 
+W3C draft SPARQL query language and fully supports RDQL. 
 .LP
 Rasqal uses the libraptor(3) library for providing URI handling,
 WWW content retrieval and other support functions.
@@ -148,10 +148,10 @@ Set the error handler callback.
 .IP "\fBvoid rasqal_query_set_warning_handler(rasqal_query* \fIquery\fB, void *\fIuser_data\fP, raptor_message_handler \fIhandler\fP)\fR"
 Set the warning handler callback.
 .IP "\fBint rasqal_query_get_distinct(rasqal_query* \fIquery\fP)\fR"
-Get the query distinct results flag, returning non-0 if the results
-should be distinct.
-.IP "\fBvoid rasqal_query_set_distinct(rasqal_query* \fIquery\fP, int \fIdistinct\fP)\fR"
-Set the query distinct results flag.
+Get the query distinct mode flag as described in \fBrasqal_query_set_distinct()\fP
+.IP "\fBvoid rasqal_query_set_distinct(rasqal_query* \fIquery\fP, int \fImode\fP)\fR"
+Set the query distinct results mode: 0 (none), 1 (SPARQL DISTINCT) or 2
+(SPARQL REDUCE).
 .IP "\fBint rasqal_query_get_limit(rasqal_query* \fIquery\fP)\fR"
 Get the query-specified limit on results returning >= 0 if a
 limit is given, otherwise not specified.
@@ -248,6 +248,11 @@ Get a string for the query \fIverb\fP.
 Get the sequence of triples for a construct.
 .IP "\fBrasqal_triple* rasqal_query_get_construct_triple(rasqal_query* \fIquery\fP, int \fIidx\fP)\fR"
 Get a triple in the sequence of construct triples.
+.IP "\fBraptor_sequence* rasqal_query_get_group_conditions_sequence(rasqal_query* \fIquery\fP)\fP"
+Get the sequence of result group bys in the graph pattern.
+.IP "\fBrasqal_expression* rasqal_query_get_group_condition(rasqal_query* \fIquery\fP, int \fIidx\fP)\fP"
+Get one group by expression in the sequences of result group bys
+in the graph pattern at index \fIidx\fP.
 .IP "\fBint rasqal_query_write(raptor_iostream* \fIiostr\fP, rasqal_query* \fIquery\fP, raptor_uri* \fIformat_uri\fP, raptor_uri* \fPbase_uri\fP)\fR"
 Write a formatted query to a raptor iostream \fIiostr\fP in format described by
 URI \fIformat_uri\fP using base URI \fIbase_uri\fP for relative URIs (or NULL).
@@ -322,9 +327,10 @@ There is no public constructor for this class, the
 .IP "\fBrasqal_free_query_results(rasqal_query_results *\fIquery_results\fP)\fR"
 Destroy a rasqal query results object.
 .SH "QUERY RESULTS METHODS"
-.IP "\fBint rasqal_query_results_is_bindings(rasqal_query_results *\fIquery_results\fP)\fR"
-.IP "\fBint rasqal_query_results_is_boolean(rasqal_query_results *\fIquery_results\fP)\fR"
-.IP "\fBint rasqal_query_results_is_graph(rasqal_query_results *\fIquery_results\fP)\fR"
+.IP "\fBint rasqal_query_results_is_bindings(rasqal_query_results* \fIquery_results\fP)\fR"
+.IP "\fBint rasqal_query_results_is_boolean(rasqal_query_results* \fIquery_results\fP)\fR"
+.IP "\fBint rasqal_query_results_is_graph(rasqal_query_results* \fIquery_results\fP)\fR"
+.IP "\fBint rasqal_query_results_is_syntax(rasqal_query_results* \fIquery_results\fP);\fR"
 Return non-0 if the \fBrasqal_query_results\fP is of the given
 format.  Only one of these will be non-0 for any result.
 .IP "\fBint rasqal_query_results_write(raptor_iostream *\fIiostr\fP, rasqal_query_results *\fIresults\fP, raptor_uri *\fIformat_uri\fP, raptor_uri *\fIbase_uri\fP)\fR"
@@ -381,11 +387,17 @@ at end of results or on failure. (Graph results format only).
 .SH "QUERY RESULTS FORMATTER CLASS"
 A class for formatting the results of a query into a syntax.
 .SH "QUERY RESULTS FORMATTER CONSTRUCTOR"
-.IP "\fBrasqal_query_results_formatter* rasqal_new_query_results_formatter(const char *name, raptor_uri* uri)\fP"
+.IP "\fBrasqal_query_results_formatter* rasqal_new_query_results_formatter(const char *\fIname\fP, raptor_uri* \fIuri\fP)\fP"
 Create a new query results formatter for the \fIname\fP or \fIuri\fP.
 The  \fBrasqal_query_results_formats_enumerate()\fP function returns
 the allowed names and/or uris.  If \fIname\fP and \fIuri\fP are both
 NULL, the default query results format is used.
+.IP "\fBrasqal_query_results_formatter* rasqal_new_query_results_formatter_by_mime_type(const char *\fImime_type\fP)\fP"
+Create a new query results formatter for the output \fImime_type\fP.
+The  \fBrasqal_query_results_formats_enumerate_full()\fP function returns
+the allowed names, uris and mime types.
+\fBrasqal_query_results_formatter_get_mime_type()\fP can return the
+mime type of a constructed object.
 .SH "QUERY RESULTS FORMATTER DESTRUCTOR"
 .IP "\fBvoid rasqal_free_query_results_formatter(rasqal_query_results_formatter* formatter)\fP"
 Destroy a rasqal query results formatter object.
@@ -393,12 +405,24 @@ Destroy a rasqal query results formatter object.
 .IP "\fBint rasqal_query_results_formatter_write(raptor_iostream* \fIiostr\fP, rasqal_query_results_formatter* \fIformatter\fP, rasqal_query_results* \fIresults\fP, raptor_uri* \fIbase_uri\fP)\fP"
 Write the query \fIresults\fP formatted in a syntax to the \fIiostr\fP iostream
 an optional base URI \fIbase_uri\fP.
+.IP "\fBconst char* rasqal_query_results_formatter_get_mime_type(rasqal_query_results_formatter* \fIformatter\fP)\fP"
+Get the mime type of the selected formatter.
 .SH "QUERY RESULTS FORMATTER STATIC METHODS"
 .IP "\fBint rasqal_query_results_formats_enumerate(const unsigned int \fIcounter\fP, const char** \fIname\fP, const char** \fIlabel\fP, const unsigned char** \fIuri_string\fP)\fP"
 Get query results formats information by \fIcounter\fP.  When 
 counter is 0, this returns the default query results format.  The
 \fIname\fP, \fIlabel\fP and/or \fIuri_string\fP may be returned if
 they are not NULL.
+.IP "\fBint rasqal_query_results_formats_enumerate_full(const unsigned int \fIcounter\fP, const char **\fIname\fP, const char **\fIlabel\fP, const unsigned char **\fIuri_string\fP, const char **\fImime_type\fP)\fP"
+Get query results formats information by \fIcounter\fP..  When 
+counter is 0, this returns the default query results format.  The
+\fIname\fP, \fIlabel\fP, \fIuri_string\fP and/or \fImime_type\fP
+may be returned if they are not NULL.
+.IP "\fBint rasqal_query_results_formats_check(const char *name, raptor_uri* uri, const char *mime_type)\fP"
+Check if a query results formatter with the given \fIname\fP,
+\fIuri\fP or \fImime_type\fP exists, as would be used by
+the constructors \fBrasqal_new_query_results_formatter()\fP
+or \fBrasqal_new_query_results_formatter_by_mime_type()\fP if called.
 .SH "LITERAL CLASS"
 A class for the values returned as parts of triples and in variable
 bindings. The rasqal_literal structure is public and defined in
@@ -552,6 +576,8 @@ A class for constraint expressions over literals and variables.  The
 expression operators are defined in rasqal.h as enum rasqal_op
 and take one, two or more complex parameters.
 .SH "EXPRESSION CONSTRUCTORS"
+.IP "\fBrasqal_expression* rasqal_new_0op_expression(rasqal_op \fIop\fP)\fR"
+Create a new expression with a 0-argument operator.
 .IP "\fBrasqal_expression* rasqal_new_1op_expression(rasqal_op \fIop\fP, rasqal_expression* arg)\fR"
 Create a new expression with a 1-argument operator.
 .IP "\fBrasqal_expression* rasqal_new_2op_expression(rasqal_op \fIop\fP, rasqal_expression* \fIarg1\fP, rasqal_expression* \fIarg2\fP)\fR"
@@ -614,6 +640,38 @@ Destroy a rasqal data_graph object.
 .IP "\fBvoid rasqal_data_graph_print(rasqal_data_graph* \fIdg\fP, FILE* \fIfh\fP)\fR"
 Print a data graph in a debug format.  This format may change in any release.
 .SH API CHANGES
+.SS 0.9.14
+Added \fBrasqal_new_0op_expression\fP.
+.LP
+Added \fBrasqal_new_query_results_formatter_by_mime_type\fP
+and \fBrasqal_query_results_formatter_get_mime_type\fP.
+.LP
+Added \fBrasqal_query_results_formats_check\fP and
+\fBrasqal_query_results_formats_enumerate_full\fP.
+.LP
+Added \Brasqal_query_results_is_syntax\fP.
+.LP
+Added query results group by accessor methods:
+\fBrasqal_query_get_group_conditions_sequence\fP and
+\fBrasqal_query_get_group_condition\fP for LAQRS.
+.LP
+\fBrasqal_query_set_distinct\fP now takes a mode argument.
+.LP
+Added new query verbs \fBRASQAL_QUERY_VERB_DELETE\fP
+and \fBRASQAL_QUERY_VERB_INSERT\fP for LAQRS.
+.LP
+\fBrasqal_expression\fP structure looses an unused field \fBvariable\fP.
+.LP
+Added \fBrasqal_expression\fP types
+\fBRASQAL_EXPR_GROUP_COND_ASC\fP,
+\fBRASQAL_EXPR_GROUP_COND_DESC\fP,
+\fBRASQAL_EXPR_COUNT\fP and
+\fBRASQAL_EXPR_VARSTAR\fP for LAQRS.
+.LP
+\fBrasqal_variable\fP structure gains a new field \fBexpression\fP for LAQRS..
+.LP
+Added static variables \fBrasqal_license_string\fP
+and \fBrasqal_home_url_string\fP
 .SS 0.9.13
 Added rasqal_feature system with single feature
 \fBRASQAL_FEATURE_NO_NET\fP and functions
