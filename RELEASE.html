@@ -39,7 +39,7 @@ API support (but no query engine support) for:</p>
 <li><code>EXPLAIN</code> as a keyword allowed before any query.  Returned by <code>rasqal_query_get_explain()</code></li>
 <li><code>INSERT</code> via query verb <code>RASQAL_QUERY_VERB_INSERT</code></li>
 <li><code>COUNT()</code> and COUNT(*) via new expressions <code>RASQAL_EXPR_COUNT</code> and <code>RASQAL_EXPR_VARSTAR</code></li>
-<li><code>SELECT </code><em>expression<em> <code>AS</code> <em>variable</em> via the new expression field of rasqal_variable</li>
+<li><code>SELECT </code><em>expression</em> <code>AS</code> <em>variable</em> via the new expression field of rasqal_variable</li>
 <li><code>GROUP BY</code> results via rasqal_query_get_group_conditions_sequence() and rasqal_query_get_group_condition() and new expressions <code>RASQAL_EXPR_GROUP_COND_ASC</code> and <code>RASQAL_EXPR_GROUP_COND_DESC</code></li>
 </ul>
 <p>Repeating <b>THERE IS NO QUERY ENGINE SUPPORT FOR ANY OF THE ABOVE</b></p>
