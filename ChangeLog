@@ -1,5 +1,9 @@
 2007-04-22  Dave Beckett  <dave@dajobe.org>
 
+	* docs/librasqal.3: rasqal_query_get_explain
+
+	* docs/librasqal.3: 0.9.14 from 6 months ago
+
 	* autogen.sh: Update autogen.sh
 
 	* rasqal.pc.in: Add Libs.private
