@@ -1,5 +1,22 @@
 2007-04-21  Dave Beckett  <dave@dajobe.org>
 
+	* utils/roqet.c: Declare any query namespaces in the output
+	serializer
+
+	* utils/roqet.c: Allow -r to take a serializer argument.  Check it
+	with raptor_serializer_syntax_name_check
+
+	* tests/Makefile.am: No local_tests here for 6 months
+
+	* tests/laqrs/Makefile.am, tests/laqrs/check-laqrs: remove
+	check-laqrs
+
+	* tests/laqrs/syntax/Makefile.am: bad
+
+	* tests/laqrs/syntax/Makefile.am, tests/laqrs/syntax/bug156.rq,
+	tests/laqrs/syntax/count.rq (from
+	/rasqal/trunk/tests/laqrs/syntax/bug156.rq:12071): renames
+
 	* tests/laqrs/syntax/bad-select-expr.rq: comment
 
 	* tests/laqrs/syntax/bug156.rq: remove comment
