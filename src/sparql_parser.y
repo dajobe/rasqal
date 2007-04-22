@@ -205,12 +205,13 @@ static int sparql_is_builtin_xsd_datatype(raptor_uri* uri);
 %type <expr> BuiltInCall RegexExpression FunctionCall
 %type <expr> BrackettedExpression PrimaryExpression
 %type <expr> OrderCondition Constraint SelectExpression
+%type <expr> AggregateExpression CountAggregateExpression
 
 %type <literal> GraphTerm IRIref BlankNode
 %type <literal> VarOrIRIref VarOrBlankNodeOrIRIref
 %type <literal> IRIrefBrace
 
-%type <variable> Var VarName SelectExpressionTerm
+%type <variable> Var VarName SelectTerm
 
 
 %destructor { rasqal_free_literal($$); } FLOATING_POINT_LITERAL STRING_LITERAL INTEGER_LITERAL BOOLEAN_LITERAL DECIMAL_LITERAL
@@ -349,7 +350,7 @@ SelectQuery: SELECT DISTINCT SelectExpressionList
 
 
 /* NEW Grammar Term pulled out of [5] SelectQuery
- * A list of SelectExpressionTerm OR a NULL list and a wildcard
+ * A list of SelectTerm OR a NULL list and a wildcard
  */
 SelectExpressionList: SelectExpressionListTail
 {
@@ -364,19 +365,19 @@ SelectExpressionList: SelectExpressionListTail
 
 
 /* NEW Grammar Term pulled out of [5] SelectQuery 
- * Non-empty list of SelectExpressionTerm with optional commas
+ * Non-empty list of SelectTerm with optional commas
  */
-SelectExpressionListTail: SelectExpressionListTail SelectExpressionTerm
+SelectExpressionListTail: SelectExpressionListTail SelectTerm
 {
   $$=$1;
   raptor_sequence_push($$, $2);
 }
-| SelectExpressionListTail ',' SelectExpressionTerm
+| SelectExpressionListTail ',' SelectTerm
 {
   $$=$1;
   raptor_sequence_push($$, $3);
 }
-| SelectExpressionTerm
+| SelectTerm
 {
   /* The variables are freed from the raptor_query field variables */
   $$=raptor_new_sequence(NULL, (raptor_sequence_print_handler*)rasqal_variable_print);
@@ -388,7 +389,7 @@ SelectExpressionListTail: SelectExpressionListTail SelectExpressionTerm
 /* NEW Grammar Term pulled out of [5] SelectQuery 
  * A variable (?x) or a select expression assigned to a name (x) with AS
  */
-SelectExpressionTerm: Var
+SelectTerm: Var
 {
   $$=$1;
 }
@@ -412,10 +413,30 @@ SelectExpressionTerm: Var
 ;
 
 
-/* NEW Grammar Term pulled out of [5] SelectQuery 
- *
- */
-SelectExpression: COUNT '(' Expression ')'
+/* NEW Grammar Term pulled out of [5] SelectQuery */
+SelectExpression: AggregateExpression
+{
+  $$=$1;
+}
+| '(' AggregateExpression ')'
+{
+  $$=$2;
+}
+| '(' Expression ')'
+{
+  $$=$2;
+}
+;
+
+
+AggregateExpression: CountAggregateExpression
+{
+  $$=$1;
+}
+;
+
+
+CountAggregateExpression: COUNT '(' Expression ')'
 {
   rasqal_sparql_query_engine* sparql=(rasqal_sparql_query_engine*)(((rasqal_query*)rq)->context);
 
@@ -437,21 +458,8 @@ SelectExpression: COUNT '(' Expression ')'
     $$=rasqal_new_1op_expression(RASQAL_EXPR_COUNT, vs);
   }
 }
-| '(' COUNT '(' Expression ')' ')'
-{
-  rasqal_sparql_query_engine* sparql=(rasqal_sparql_query_engine*)(((rasqal_query*)rq)->context);
-
-  if(!sparql->extended) {
-    sparql_syntax_error((rasqal_query*)rq, "COUNT cannot be used with SPARQL");
-    $$=NULL;
-  } else    
-    $$=rasqal_new_1op_expression(RASQAL_EXPR_COUNT, $4);
-}
-| '(' Expression ')'
-{
-  $$=$2;
-}
 ;
+
 
 /* SPARQL Grammar: [6] DescribeQuery */
 DescribeQuery: DESCRIBE VarOrIRIrefList
