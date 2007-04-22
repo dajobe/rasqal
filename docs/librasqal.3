@@ -248,6 +248,8 @@ Get a string for the query \fIverb\fP.
 Get the sequence of triples for a construct.
 .IP "\fBrasqal_triple* rasqal_query_get_construct_triple(rasqal_query* \fIquery\fP, int \fIidx\fP)\fR"
 Get a triple in the sequence of construct triples.
+.IP "\fBint rasqal_query_get_explain(rasqal_query* \fIquery\fP)\fR"
+Get whether explain was given in the query.
 .IP "\fBraptor_sequence* rasqal_query_get_group_conditions_sequence(rasqal_query* \fIquery\fP)\fP"
 Get the sequence of result group bys in the graph pattern.
 .IP "\fBrasqal_expression* rasqal_query_get_group_condition(rasqal_query* \fIquery\fP, int \fIidx\fP)\fP"
@@ -659,6 +661,8 @@ Added query results group by accessor methods:
 .LP
 Added new query verbs \fBRASQAL_QUERY_VERB_DELETE\fP
 and \fBRASQAL_QUERY_VERB_INSERT\fP for LAQRS.
+.LP
+Added \fBrasqal_query_get_explain\fP
 .LP
 \fBrasqal_expression\fP structure looses an unused field \fBvariable\fP.
 .LP
