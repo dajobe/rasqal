@@ -25,7 +25,10 @@ LAQRS_MODEL_FILES= \
 data.n3
 
 LAQRS_TEST_FILES= \
-count.rq \
+count1.rq \
+count2.rq \
+count3.rq \
+count4.rq \
 coverage.rq \
 explain.rq \
 delete.rq
