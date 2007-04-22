@@ -976,6 +976,8 @@ main(int argc, char *argv[])
     }
     else if (rasqal_query_results_is_graph(results)) {
       int triple_count=0;
+      rasqal_prefix* prefix;
+      int i;
       
       if(!quiet)
         fprintf(stderr, "%s: Query has a graph result:\n", program);
@@ -986,6 +988,10 @@ main(int argc, char *argv[])
                 program, serializer_syntax_name);
         return(1);
       }
+
+      /* Declare any query namespaces in the output serializer */
+      for(i=0; (prefix=rasqal_query_get_prefix(rq, i)); i++)
+        raptor_serialize_set_namespace(serializer, prefix->uri, prefix->prefix);
 
       raptor_serialize_start_to_file_handle(serializer, base_uri, stdout);
 
