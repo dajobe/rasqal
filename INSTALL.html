@@ -12,7 +12,7 @@
 
 <p>Rasqal requires the
 <a href="http://librdf.org/raptor/">Raptor RDF parser toolkit</a>
-version 1.4.9 or later for parsing RDF, retrieving WWW content and
+version 1.4.11 or later for parsing RDF, retrieving WWW content and
 other utility classes and libraries.  It can also use
 <a href="http://librdf.org/">Redland</a>
 as an alternate triple store and enabled by
@@ -64,7 +64,7 @@ versions.</p>
 
 <p>Requirements: 
 the <a href="http://librdf.org/raptor/">Raptor RDF parser toolkit</a>
-version 1.4.9 or later
+version 1.4.11 or later
 (plus flex and bison as specified above, when building from Subversion).
 Recommended: <a href="http://www.pcre.org/">PCRE</a> regex library
 or another implementing the POSIX regex API.  If neither is
@@ -72,12 +72,7 @@ present some of the tests will fail and the query engine will
 fail to handle regex matches.
 </p>
 
-<p>Rasqal is developed and built on x86 GNU/Linux
-(Redhat Fedora Core 4, Debian unstable) but is also regularly tested on
-sparc Sun Solaris, x86 FreeBSD, ppc Apple OSX
-and as part of Redland on several other systems via the
-<a href="http://sourceforge.net/">SourceForge</a> compile farm
-(typically Alpha Linux, AMD IA64 Linux, FreeBSD, NetBSD, OpenBSD, Solarix x86).
+<p>Rasqal is developed and built on x86 GNU/Linux and PPC Apple OSX.
 </p>
 
 
@@ -135,8 +130,9 @@ These are only required when building from Subversion.</p>
 <dl>
 <dt><tt>--enable-query-languages=LANGUAGES</tt><br /></dt>
 <dd><p>Pick the RDF query languages to build from the list:<br />
-<code>rdql sparqal</code><br />
-The default when this option is omitted is to enable all query languages.
+<code>rdql sparql laqrs</code><br />
+The default when this option is omitted is to enable all query languages
+except the experimental one, laqrs.
 </p>
 </dd>
 
@@ -226,7 +222,7 @@ raptor was compiled</p>
 
 <hr />
 
-<p>Copyright (C) 2003-2006 <a href="http://purl.org/net/dajobe/">Dave Beckett</a><br />Copyright (C) 2003-2005 <a href="http://www.bristol.ac.uk/">University of Bristol</a></p>
+<p>Copyright (C) 2003-2007 <a href="http://purl.org/net/dajobe/">Dave Beckett</a><br />Copyright (C) 2003-2005 <a href="http://www.bristol.ac.uk/">University of Bristol</a></p>
 
 </body>
 </html>
