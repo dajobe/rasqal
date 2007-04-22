@@ -533,11 +533,15 @@ main(int argc, char *argv[])
           else {
             results_formatter=rasqal_new_query_results_formatter(optarg, NULL);
             if(!results_formatter) {
-              fprintf(stderr, 
-                      "%s: invalid argument `%s' for `" HELP_ARG(r, results) "'\n",
-                      program, optarg);
-              usage=1;
-              break;
+              if(raptor_serializer_syntax_name_check(optarg))
+                serializer_syntax_name=optarg;
+              else {
+                fprintf(stderr, 
+                        "%s: invalid argument `%s' for `" HELP_ARG(r, results) "'\n",
+                        program, optarg);
+                usage=1;
+                break;
+              }
             }
           }
         }
