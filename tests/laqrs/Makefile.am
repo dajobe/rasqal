@@ -22,5 +22,3 @@
 # 
 
 SUBDIRS=syntax
-
-EXTRA_DIST=check-laqrs
