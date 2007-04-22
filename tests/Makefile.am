@@ -22,8 +22,6 @@
 # the licenses in COPYING.LIB, COPYING and LICENSE-2.0.txt respectively.
 # 
 
-local_tests=rasqal_order_test
-
 SUBDIRS= engine
 if RASQAL_QUERY_RDQL
 SUBDIRS += rdql
