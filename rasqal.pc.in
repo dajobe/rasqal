@@ -7,6 +7,7 @@ Name: Rasqal RDF Query Library
 Description: Rasqal RDF Query parsing and execution library
 Requires: raptor >= @RAPTOR_MIN_VERSION@ @PKGCONFIG_REQUIRES@
 Version: @VERSION@
-Libs: -L${libdir} -lrasqal @LIBS@ @PKGCONFIG_LIBS@
-Cflags: -I${includedir} @PKGCONFIG_CFLAGS@
+Libs: -L${libdir} -lrasqal
+Libs.private: @LIBS@ @PKGCONFIG_LIBS@ @RASQAL_EXTERNAL_LIBS@
+Cflags: -I${includedir} @PKGCONFIG_CFLAGS@ @RASQAL_EXTERNAL_CPPFLAGS@
 
