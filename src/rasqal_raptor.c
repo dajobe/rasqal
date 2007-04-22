@@ -223,9 +223,10 @@ rasqal_raptor_generate_id_handler(void *user_data,
 {
   rasqal_raptor_triples_source_user_data* rtsc=(rasqal_raptor_triples_source_user_data*)user_data;
   if(user_bnodeid) {
-    unsigned char *mapped_id=RASQAL_MALLOC(cstring, 
-                                           rtsc->mapped_id_base_len + 1 + 
-                                           strlen((const char*)user_bnodeid) + 1);
+    unsigned char *mapped_id;
+    mapped_id=(unsigned char*)RASQAL_MALLOC(cstring, 
+                                            rtsc->mapped_id_base_len + 1 + 
+                                            strlen((const char*)user_bnodeid) + 1);
     strncpy((char*)mapped_id,  (const char*)rtsc->mapped_id_base, 
             rtsc->mapped_id_base_len);
     mapped_id[rtsc->mapped_id_base_len]='_';

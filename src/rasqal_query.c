@@ -2309,10 +2309,10 @@ rasqal_query_escape_counted_string(rasqal_query* query,
                                    size_t* output_len_p)
 {
   raptor_iostream* iostr;
-  void *output_string=NULL;
+  unsigned char* output_string=NULL;
   int rc;
   
-  iostr=raptor_new_iostream_to_string(&output_string, output_len_p,
+  iostr=raptor_new_iostream_to_string((void**)&output_string, output_len_p,
                                       rasqal_alloc_memory);
   if(!iostr)
     return NULL;

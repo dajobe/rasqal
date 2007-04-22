@@ -61,8 +61,8 @@ void rasqal_query_results_format_register_factory(const char *name,
 {
   rasqal_query_results_format_factory* factory;
 
-  factory=RASQAL_MALLOC(query_results_format_factory, 
-                        sizeof(rasqal_query_results_format_factory));
+  factory=(rasqal_query_results_format_factory*)RASQAL_MALLOC(query_results_format_factory, 
+                                                              sizeof(rasqal_query_results_format_factory));
 
   factory->name=name;
   factory->label=label;
@@ -2205,12 +2205,12 @@ rasqal_query_results_write_xml_result3(raptor_iostream *iostr,
 
 static
 void raptor_iostream_write_json_boolean(raptor_iostream* iostr, 
-                                        const char* name, int bool)
+                                        const char* name, int json_bool)
 {
   raptor_iostream_write_string(iostr, name);
   raptor_iostream_write_counted_string(iostr, "\" : ",4);
 
-  if(bool)
+  if(json_bool)
     raptor_iostream_write_counted_string(iostr, "true", 4);
   else
     raptor_iostream_write_counted_string(iostr, "false", 5);

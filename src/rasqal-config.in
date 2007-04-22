@@ -2,7 +2,7 @@
 #
 # $Id$
 #
-# Copyright (C) 2003-2006, David Beckett http://purl.org/net/dajobe/
+# Copyright (C) 2003-2007, David Beckett http://purl.org/net/dajobe/
 # Copyright (C) 2003-2004, University of Bristol, UK http://www.bristol.ac.uk/
 # 
 # This package is Free Software and part of Redland http://librdf.org/
@@ -41,6 +41,7 @@ known values for OPTION are:
   --prefix[=DIR]        change rasqal prefix [default $prefix]
   --libs                print library linking information
   --libtool-libs        print linking information for use with libtool
+  --private-libs        print library private/static linking information
   --cflags              print pre-processor and compiler flags
   --help                display this help and exit
   --version             output version information
@@ -85,6 +86,9 @@ while test $# -gt 0; do
     --libtool-libs)
       echo_libtool_libs=yes
       ;;
+    --private-libs)
+      echo_private_libs=yes
+      ;;
     --help|--usage)
       usage 0
       ;;
@@ -105,8 +109,11 @@ if test "$echo_cflags" = "yes"; then
   echo $includes
 fi
 if test "$echo_libs" = "yes"; then
-  echo -L@libdir@ -lrasqal @RASQAL_EXTERNAL_LIBS@
+  echo -L@libdir@ -lrasqal
 fi
 if test "$echo_libtool_libs" = "yes"; then
   echo @libdir@/@RASQAL_LIBTOOLLIBS@
+fi
+if test "$echo_private_libs" = "yes"; then
+  echo @LIBS@ @RASQAL_EXTERNAL_LIBS@
 fi

@@ -924,7 +924,7 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
                        int *error)
 {
   rasqal_literal *lits[2];
-  unsigned int type;
+  int type;
   int i;
   int ints[2];
   double doubles[2];

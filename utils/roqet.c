@@ -433,7 +433,7 @@ main(int argc, char *argv[])
 
           for(i=1; i <= QUERY_OUTPUT_LAST; i++)
             if(!strcmp(optarg, query_output_format_labels[i][0])) {
-              output_format=i;
+              output_format=(query_output_format)i;
               break;
             }
             
