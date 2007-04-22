@@ -155,6 +155,15 @@ library for serializing to a syntax.
 @Returns: 
 
 
+<!-- ##### FUNCTION rasqal_query_results_is_syntax ##### -->
+<para>
+
+</para>
+
+@query_results: 
+@Returns: 
+
+
 <!-- ##### FUNCTION rasqal_query_results_next ##### -->
 <para>
 

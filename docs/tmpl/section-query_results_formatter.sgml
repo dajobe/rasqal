@@ -22,6 +22,17 @@ handle or other custom destination.
 <!-- ##### SECTION Stability_Level ##### -->
 
 
+<!-- ##### FUNCTION rasqal_query_results_formats_check ##### -->
+<para>
+
+</para>
+
+@name: 
+@uri: 
+@mime_type: 
+@Returns: 
+
+
 <!-- ##### FUNCTION rasqal_query_results_formats_enumerate ##### -->
 <para>
 
@@ -31,6 +42,19 @@ handle or other custom destination.
 @name: 
 @label: 
 @uri_string: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_query_results_formats_enumerate_full ##### -->
+<para>
+
+</para>
+
+@counter: 
+@name: 
+@label: 
+@uri_string: 
+@mime_type: 
 @Returns: 
 
 
@@ -50,12 +74,30 @@ handle or other custom destination.
 @Returns: 
 
 
+<!-- ##### FUNCTION rasqal_new_query_results_formatter_by_mime_type ##### -->
+<para>
+
+</para>
+
+@mime_type: 
+@Returns: 
+
+
 <!-- ##### FUNCTION rasqal_free_query_results_formatter ##### -->
 <para>
 
 </para>
 
 @formatter: 
+
+
+<!-- ##### FUNCTION rasqal_query_results_formatter_get_mime_type ##### -->
+<para>
+
+</para>
+
+@formatter: 
+@Returns: 
 
 
 <!-- ##### FUNCTION rasqal_query_results_formatter_write ##### -->

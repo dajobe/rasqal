@@ -195,6 +195,34 @@ then retrieved.
 @Returns: 
 
 
+<!-- ##### FUNCTION rasqal_query_get_explain ##### -->
+<para>
+
+</para>
+
+@query: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_query_get_group_condition ##### -->
+<para>
+
+</para>
+
+@query: 
+@idx: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_query_get_group_conditions_sequence ##### -->
+<para>
+
+</para>
+
+@query: 
+@Returns: 
+
+
 <!-- ##### FUNCTION rasqal_query_get_graph_pattern ##### -->
 <para>
 
@@ -410,6 +438,15 @@ then retrieved.
 
 @query: 
 @distinct_mode: 
+
+
+<!-- ##### FUNCTION rasqal_query_set_explain ##### -->
+<para>
+
+</para>
+
+@query: 
+@is_explain: 
 
 
 <!-- ##### FUNCTION rasqal_query_set_error_handler ##### -->

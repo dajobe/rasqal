@@ -88,6 +88,15 @@ constants and #rasqal_variable values bound in some
 @RASQAL_PATTERN_FLAGS_OPTIONAL: 
 @RASQAL_PATTERN_FLAGS_LAST: 
 
+<!-- ##### FUNCTION rasqal_new_0op_expression ##### -->
+<para>
+
+</para>
+
+@op: 
+@Returns: 
+
+
 <!-- ##### FUNCTION rasqal_new_1op_expression ##### -->
 <para>
 
