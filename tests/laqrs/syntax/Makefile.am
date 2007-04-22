@@ -38,7 +38,7 @@ EXPECTED_LAQRS_CORRECT_FAILURES=
 EXTRA_DIST= \
 $(LAQRS_MODEL_FILES) \
 $(LAQRS_TEST_FILES) \
-$(SPARQL_BAD_TEST_FILES)
+$(LAQRS_BAD_TEST_FILES)
 
 build-sparql-parser-test:
 	@(cd $(top_builddir)/src ; $(MAKE) sparql_parser_test)
@@ -66,8 +66,8 @@ check-laqrs-parser: build-sparql-parser-test
 
 check-bad-laqrs: build-sparql-parser-test
 	@set +e; result=0; \
-	$(ECHO) "Testing bad SPARQL fails"; \
-	for test in $(SPARQL_BAD_TEST_FILES); do \
+	$(ECHO) "Testing bad LAQRS fails"; \
+	for test in $(LAQRS_BAD_TEST_FILES); do \
 	  $(ECHO) $(ECHO_N) "Checking $$test $(ECHO_C)"; \
 	  $(top_builddir)/src/sparql_parser_test -i laqrs $(srcdir)/$$test >$$name.res 2> $$name.err; \
 	  status=$$?; \
