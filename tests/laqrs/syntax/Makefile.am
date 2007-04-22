@@ -25,13 +25,13 @@ LAQRS_MODEL_FILES= \
 data.n3
 
 LAQRS_TEST_FILES= \
-bug156.rq \
+count.rq \
 coverage.rq \
 explain.rq \
 delete.rq
 
 LAQRS_BAD_TEST_FILES= \
-bug156-2.rq
+bad-select-expr.rq
 
 EXPECTED_LAQRS_CORRECT_FAILURES=
 
