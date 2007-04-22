@@ -8,6 +8,142 @@
 
   <h1>Rasqal RDF Query Library - Release Notes</h1>
 
+<h2 id="rel0_9_14"><a name="rel0_9_14">Rasqal 0.9.14 Changes</a></h2>
+
+<p>Not yet released.</p>
+
+<h3>General Changes</h3>
+
+<p>Added syntax and API support (but no query engine support)
+for <b>experimental</b> extensions to SPARQL called
+<em>LAQRS</em>: LAQRS Adds to Querying RDF in SPARQL.
+</p>
+
+<p>Added many new APIs</p>
+
+<p>Fixed issues:</p>
+<ul>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=152">Issue#0000152</a>: Allow <code>&lt;_:NAME&gt;</code> to work as <code>_:NAME</code> in SPARQL.</li>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=160">Issue#0000160</a>: foo</li>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=167">Issue#0000167</a>: foo</li>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=182">Issue#0000182</a>: Allow '-' in SPARQL language tags (and RDQL)</li>
+</ul>
+
+
+<h3>LAQRS Adds to Querying RDF in SPARQL (LAQRS)</h3>
+
+<p>LAQRS is <b>experimental</b> and Rasqal provides only syntax and
+API support (but no query engine support) for:</p>
+<ul>
+<li><code>DELETE</code> via query verb <code>RASQAL_QUERY_VERB_DELETE</code></li>
+<li><code>EXPLAIN</code> as a keyword allowed before any query.  Returned by <code>rasqal_query_get_explain()</code></li>
+<li><code>INSERT</code> via query verb <code>RASQAL_QUERY_VERB_INSERT</code></li>
+<li><code>COUNT()</code> and COUNT(*) via new expressions <code>RASQAL_EXPR_COUNT</code> and <code>RASQAL_EXPR_VARSTAR</code></li>
+<li><code>SELECT </code><em>expression<em> <code>AS</code> <em>variable</em> via the new expression field of rasqal_variable</li>
+<li><code>GROUP BY</code> results via rasqal_query_get_group_conditions_sequence() and rasqal_query_get_group_condition() and new expressions <code>RASQAL_EXPR_GROUP_COND_ASC</code> and <code>RASQAL_EXPR_GROUP_COND_DESC</code></li>
+</ul>
+<p>Repeating <b>THERE IS NO QUERY ENGINE SUPPORT FOR ANY OF THE ABOVE</b></p>
+
+
+<h3>Query Results Formatter</h3>
+
+<p>Easier discovery and creation of query results in a syntax
+by MIME Type.  In other words, easier to make JSON from query results.
+Added the possibility that a query's native result is a syntax only.</p>
+
+<h3>SPARQL Changes</h3>
+<p>Updated for SPARQL WD of FIXME: Added <code>REDUCED</code> token.
+</p>
+
+<h3><code>roqet</code> Changes</h3>
+<p><code>roqet</code> can use -r to generate a chosen result syntax
+for bindings results or triples (using raptor).  roqet now generates
+namespace declarations for triples when serializing output. The result
+is that they are used when the serializer does such as generating
+RDF/XML or Turtle output.
+</p>
+
+<h3>Query Engine Changes</h3>
+
+<p>Many query engine internal changes, but these remain unsupported:
+OPTIONAL (partially working), GROUP (no support), UNION (no support)
+SELECT REDUCED (no support).
+</p>
+
+<h3>Rasqal Public API Changes</h3>
+
+<p>Added a constructor to create a constant/0-operand expression:</p>
+<pre>
+rasqal_expression* rasqal_new_0op_expression(rasqal_op op);
+</pre>
+
+<p>Added query results formatter constructor by required mime type
+and a method to return the mime type of a selected formatter:</p>
+<pre>
+rasqal_query_results_formatter* rasqal_new_query_results_formatter_by_mime_type(const char *mime_type);
+const char* rasqal_query_results_formatter_get_mime_type(rasqal_query_results_formatter *formatter);
+</pre>
+
+<p>Added query results static functions to enumerate possible results
+formats, their names, labels and mime type.  For example there are
+several versions of SPARQL XML results formats possible as well as
+the SPARQL-in-JSON format</p>
+<pre>
+int rasqal_query_results_formats_check(const char *name, raptor_uri* uri, const char *mime_type);
+int rasqal_query_results_formats_enumerate_full(const unsigned int counter, const char **name, const char **label, const unsigned char **uri_string, const char **mime_type);
+</pre>
+
+<p>Added a query results method to check if result is syntax (rather
+than bindings, boolean or triples):</p>
+<pre>
+int rasqal_query_results_is_syntax(rasqal_query_results* query_results);
+</pre>
+
+<p>Added query result group by accessor methods:</p>
+<pre>
+raptor_sequence* rasqal_query_get_group_conditions_sequence(rasqal_query* query);
+rasqal_expression* rasqal_query_get_group_condition(rasqal_query* query, int idx);
+</pre>
+
+<p>Added a query method to get the explain flag:</p>
+<pre>
+int rasqal_query_get_explain(rasqal_query* query);
+</pre>
+
+<p><code>rasqal_query_set_distinct</code>
+now takes a mode (0, 1 DISTINCT, 2 REDUCE) rather than a boolean flag.
+</p>
+
+<p>Added new query verbs:</p>
+<ul>
+<li><code>RASQAL_QUERY_VERB_DELETE</code>: LAQRS query delete verb.</li>
+<li><code>RASQAL_QUERY_VERB_INSERT</code>: LAQRS query insert verb.</li>
+</ul>
+
+<p><code>rasqal_expression</code> lost the unused
+<code>rasqal_variable*</code> field <code>variable</code>
+</p>
+
+<p>Added <code>rasqal_expression</code> expression types:</p>
+<ul>
+<li><code>RASQAL_EXPR_GROUP_COND_ASC</code>: Expression for LAQRS group condition ascending.</li>
+<li><code>RASQAL_EXPR_GROUP_COND_DESC</code>: Expression for LAQRS group condition descending.</li>
+<li><code>RASQAL_EXPR_COUNT</code>: Expression for LAQRS select COUNT()</li>
+<li><code>RASQAL_EXPR_VARSTAR</code>: Expression for LAQRS select Variable *</li>
+</ul>
+
+<p><code>rasqal_variable</code> now has
+a <code>rasqal_expression*</code> field <code>expression</code>.
+</p>
+
+<p>Added variables:</p>
+<pre>
+extern const char * const rasqal_license_string;
+extern const char * const rasqal_home_url_string;
+</pre>
+
+
+
 <h2 id="rel0_9_13"><a name="rel0_9_13">Rasqal 0.9.13 Changes</a></h2>
 
 <h3>General Changes</h3>
