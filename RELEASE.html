@@ -19,7 +19,8 @@ for <b>experimental</b> extensions to SPARQL called
 <em>LAQRS</em>: LAQRS Adds to Querying RDF in SPARQL.
 </p>
 
-<p>Added many new APIs</p>
+<p>Updated the query results formatter to allow better introspection
+of supported formats.</p>
 
 <p>Fixed issues:</p>
 <ul>
@@ -83,9 +84,7 @@ a <code>rasqal_expression*</code> field <code>expression</code>.
 </p>
 
 
-
-
-<h3>Query Results Formatter</h3>
+<h3>Query Results Formatter Changes</h3>
 
 <p>Made it easier to discover and create of query results in a syntax
 by using a MIME Type.</p>
@@ -119,8 +118,7 @@ int rasqal_query_results_formats_check(const char *name,
 </pre>
 
 
-
-<h3>SPARQL Changes</h3>
+<h3>SPARQL Query Language Changes</h3>
 
 <p>Updated for the SPARQL Working Draft of FIXME.</p>
 
@@ -129,18 +127,6 @@ distinct flag from a boolean to a mode.
 <code>rasqal_query_get_distinct</code> and
 <code>rasqal_query_set_distinct</code> now takes a mode (0, 1
 DISTINCT, 2 REDUCE) rather than the former boolean flag.
-</p>
-
-
-<h3><code>roqet</code> Changes</h3>
-
-<p><code>roqet</code> can use -r to generate a chosen result syntax
-for bindings results or triples (using raptor).</p>
-
-<p>roqet now generates namespace declarations for triples when
-serializing output. The result is that they are used when the
-serializer handles them such as generating RDF/XML (Abbreviated)
-or Turtle.
 </p>
 
 
@@ -153,11 +139,22 @@ a method to check for that:</p>
 int rasqal_query_results_is_syntax(rasqal_query_results* query_results);
 </pre>
 
-
 <p>Many query engine internal changes, but these remain unsupported:
 OPTIONAL graph pattern (partially working), GROUP graph pattern (no
 support), UNION graph pattern (no support) and new <code>SELECT
 REDUCED</code> (no support).
+</p>
+
+
+<h3><code>roqet</code> Utility Changes</h3>
+
+<p><code>roqet</code> can use -r to generate a chosen result syntax
+for bindings results or triples (using raptor).</p>
+
+<p>roqet now generates namespace declarations for triples when
+serializing output. The result is that they are used when the
+serializer handles them such as generating RDF/XML (Abbreviated)
+or Turtle.
 </p>
 
 
