@@ -135,10 +135,12 @@ DISTINCT, 2 REDUCE) rather than the former boolean flag.
 <h3><code>roqet</code> Changes</h3>
 
 <p><code>roqet</code> can use -r to generate a chosen result syntax
-for bindings results or triples (using raptor).  roqet now generates
-namespace declarations for triples when serializing output. The result
-is that they are used when the serializer does such as generating
-RDF/XML or Turtle output.
+for bindings results or triples (using raptor).</p>
+
+<p>roqet now generates namespace declarations for triples when
+serializing output. The result is that they are used when the
+serializer handles them such as generating RDF/XML (Abbreviated)
+or Turtle.
 </p>
 
 
@@ -153,8 +155,9 @@ int rasqal_query_results_is_syntax(rasqal_query_results* query_results);
 
 
 <p>Many query engine internal changes, but these remain unsupported:
-OPTIONAL (partially working), GROUP (no support), UNION (no support)
-SELECT REDUCED (no support).
+OPTIONAL graph pattern (partially working), GROUP graph pattern (no
+support), UNION graph pattern (no support) and new <code>SELECT
+REDUCED</code> (no support).
 </p>
 
 
@@ -164,11 +167,10 @@ SELECT REDUCED (no support).
 <code>rasqal_variable*</code> field <code>variable</code>
 </p>
 
-<p>Added variables:</p>
-<pre>
-extern const char * const rasqal_license_string;
-extern const char * const rasqal_home_url_string;
-</pre>
+<p>Added exported variables to return the license string
+in <code>rasqal_license_string</code>
+and home page in <code>rasqal_home_url_string</code>
+</p>
 
 
 
