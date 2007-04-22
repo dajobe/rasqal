@@ -1135,7 +1135,6 @@ void rasqal_set_triples_source_factory(void (*register_fn)(rasqal_triples_source
  * @arg2: Internal
  * @arg3: Internal
  * @literal: Internal
- * @variable: Internal
  * @value: Internal
  * @name: Internal
  * @args: Internal
