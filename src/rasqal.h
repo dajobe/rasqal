@@ -190,6 +190,7 @@ struct rasqal_expression_s;
  * @value: Variable value or NULL if unbound.
  * @offset: Internal.
  * @type: Variable type.
+ * @expression: Expression when the variable is a computed SELECT expression 
  *
  * Binding between a variable name and a value.
  *
