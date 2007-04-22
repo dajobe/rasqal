@@ -120,14 +120,17 @@ int rasqal_query_results_formats_check(const char *name,
 
 <h3>SPARQL Query Language Changes</h3>
 
-<p>Updated for the SPARQL Working Draft of FIXME.</p>
-
-<p>Added <code>REDUCED</code> token.  This entailed changing the
+<p>Updated for the
+<a href="http://www.w3.org/TR/2007/WD-rdf-sparql-query-20070326/">SPARQL Query Language for RDF</a>, W3C Working Draft 26 March 2007</p>
+<ul>
+<li>Added <code>REDUCED</code> token.  This entailed changing the
 distinct flag from a boolean to a mode.
 <code>rasqal_query_get_distinct</code> and
 <code>rasqal_query_set_distinct</code> now takes a mode (0, 1
-DISTINCT, 2 REDUCE) rather than the former boolean flag.
-</p>
+DISTINCT, 2 REDUCED) rather than the former boolean flag.
+There is no query engine support for REDUCED at present.
+</li>
+</ul>
 
 
 <h3>Query Engine Changes</h3>
