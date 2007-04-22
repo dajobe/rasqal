@@ -1,4 +1,21 @@
+2007-04-22  Dave Beckett  <dave@dajobe.org>
+
+	* autogen.sh: Update autogen.sh
+
+	* rasqal.pc.in: Add Libs.private
+
+	* src/rasqal-config.in, src/rasqal_engine.c, src/rasqal_literal.c,
+	src/rasqal_query.c, src/rasqal_query_results.c,
+	src/rasqal_raptor.c, utils/roqet.c: casts for C++
+
+	* docs/tmpl/section-expression.sgml, docs/tmpl/section-query.sgml,
+	docs/tmpl/section-query_results.sgml,
+	docs/tmpl/section-query_results_formatter.sgml: docs
+
 2007-04-21  Dave Beckett  <dave@dajobe.org>
+
+
+	* src/rasqal.h: variable has @expression field.
 
 	* src/rasqal_engine.c, src/rasqal_internal.h: Revert query engine
 	back to 'working' optionals.  At least working as well as they did
