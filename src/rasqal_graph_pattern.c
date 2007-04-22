@@ -56,7 +56,7 @@
  *
  * Return value: a new #rasqal_graph_pattern object or NULL on failure
  **/
-rasqal_graph_pattern*
+static rasqal_graph_pattern*
 rasqal_new_graph_pattern(rasqal_query* query, 
                          rasqal_graph_pattern_operator op)
 {
