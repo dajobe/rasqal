@@ -1,3 +1,67 @@
+2007-04-21  Dave Beckett  <dave@dajobe.org>
+
+	* tests/laqrs/syntax/bad-select-expr.rq: comment
+
+	* tests/laqrs/syntax/bug156.rq: remove comment
+
+	* src/sparql_parser.y: (SelectExpressionTerm): Do not allow a
+	select expression to contain the variable name it is named for.
+	(SelectExpression): Tidy error returns.
+
+	* src/rasqal_internal.h: Added rasqal_expression_mentions_variable
+	prototype
+
+	* src/rasqal_expr.c: (rasqal_expression_has_variable): Added.
+	(rasqal_expression_mentions_variable): Added to check if an
+	expression mentions a rasqal_variable.
+
+	* src/rasqal.h: rasqal_expression does not need a rasqal_variable
+	field.
+
+	* tests/laqrs, tests/laqrs/Makefile.am, tests/laqrs/check-laqrs,
+	tests/laqrs/syntax, tests/laqrs/syntax/Makefile.am,
+	tests/laqrs/syntax/bad-select-expr.rq,
+	tests/laqrs/syntax/bug156.rq, tests/laqrs/syntax/coverage.rq,
+	tests/laqrs/syntax/data.n3, tests/laqrs/syntax/delete.rq,
+	tests/laqrs/syntax/explain.rq: laqrs
+
+	* src/sparql_parser.y: (SelectExpressionListTail): A list or a
+	wildcard.
+	(SelectExpressionListTail): Added to ensure select expression list
+	is always 1 or more item.
+	(SelectExpressionTerm): A variable ?var or a select expression
+	assigned to a name
+	(SelectExpression): Docs and forbid COUNT in sparql.
+
+	* src/sparql_parser.y: Move '*' to SelectExpressionList from
+	SelectQuery
+
+	* src/sparql_parser.y: Revert: Remove unused terminals SC_OR
+	SC_AND EQ NEQ LT GT with their raw lexer tokens.
+
+	* src/sparql_parser.y: Remove unused terminals SC_OR SC_AND EQ NEQ
+	LT GT with their raw lexer tokens.
+
+	* src/sparql_parser.y: Add getopt() simple handling for -d and -i
+	LANGUAGE for sparql and laqrs.
+
+	* configure.ac: Added tests/laqrs/syntax/Makefile
+
+	* configure.ac: add tests/laqrs/Makefile
+
+	* tests/Makefile.am: Add laqrs sub dir
+
+	* src/rdql_lexer.l: Allow '-' in language tags
+
+	* src/sparql_lexer.l: Allow '-' in language tags
+	Fixes Issue#0000182 http://bugs.librdf.org/mantis/view.php?id=182
+
+	* src/sparql_lexer.l: Make <_:NAME> (an illegal URI) act like _:NAME.
+	Fixes Issue#0000152 http://bugs.librdf.org/mantis/view.php?id=152
+
+	* tests/sparql/syntax/Makefile.am,
+	tests/sparql/syntax/blankuri.rq: added blankuri.rq
+
 2007-04-15  Dave Beckett  <dave@dajobe.org>
 
 	* src/rasqal_engine.c: (rasqal_engine_query_result_row_compare):
