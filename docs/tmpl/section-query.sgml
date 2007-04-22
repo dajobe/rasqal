@@ -409,7 +409,7 @@ then retrieved.
 </para>
 
 @query: 
-@is_distinct: 
+@distinct_mode: 
 
 
 <!-- ##### FUNCTION rasqal_query_set_error_handler ##### -->
