@@ -1,5 +1,28 @@
 2007-04-21  Dave Beckett  <dave@dajobe.org>
 
+	* src/rasqal_engine.c, src/rasqal_internal.h: Revert query engine
+	back to 'working' optionals.  At least working as well as they did
+	in the last release
+
+	* src/rasqal.h: rasqal_expression has no variable
+
+	* docs/tmpl/section-unused.sgml: expression no variable
+
+	* docs/tmpl/section-query.sgml: rasqal_query_set_distinct
+
+	* src/rasqal_graph_pattern.c: (rasqal_new_graph_pattern): Make
+	static, only used here.
+
+	* src/sparql_parser.y: (SelectTerm): Renamed from
+	SelectExpressionTerm
+	(SelectExpression): Uses AggregateExpression or Expression.
+	(AggregateExpression): Added, just using CountAggregateExpression.
+	(CountAggregateExpression): Added for COUNT(expr) and COUNT(*)
+
+	* tests/laqrs/syntax/Makefile.am, tests/laqrs/syntax/count1.rq,
+	tests/laqrs/syntax/count2.rq, tests/laqrs/syntax/count3.rq,
+	tests/laqrs/syntax/count4.rq: more COUNT tests
+
 	* utils/roqet.c: Declare any query namespaces in the output
 	serializer
 
@@ -11,15 +34,9 @@
 	* tests/laqrs/Makefile.am, tests/laqrs/check-laqrs: remove
 	check-laqrs
 
-	* tests/laqrs/syntax/Makefile.am: bad
-
-	* tests/laqrs/syntax/Makefile.am, tests/laqrs/syntax/bug156.rq,
-	tests/laqrs/syntax/count.rq (from
-	/rasqal/trunk/tests/laqrs/syntax/bug156.rq:12071): renames
+	* tests/laqrs/syntax/Makefile.am: renames
 
 	* tests/laqrs/syntax/bad-select-expr.rq: comment
-
-	* tests/laqrs/syntax/bug156.rq: remove comment
 
 	* src/sparql_parser.y: (SelectExpressionTerm): Do not allow a
 	select expression to contain the variable name it is named for.
@@ -52,12 +69,6 @@
 
 	* src/sparql_parser.y: Move '*' to SelectExpressionList from
 	SelectQuery
-
-	* src/sparql_parser.y: Revert: Remove unused terminals SC_OR
-	SC_AND EQ NEQ LT GT with their raw lexer tokens.
-
-	* src/sparql_parser.y: Remove unused terminals SC_OR SC_AND EQ NEQ
-	LT GT with their raw lexer tokens.
 
 	* src/sparql_parser.y: Add getopt() simple handling for -d and -i
 	LANGUAGE for sparql and laqrs.
