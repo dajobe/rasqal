@@ -44,75 +44,7 @@ API support (but no query engine support) for:</p>
 </ul>
 <p>Repeating <b>THERE IS NO QUERY ENGINE SUPPORT FOR ANY OF THE ABOVE</b></p>
 
-
-<h3>Query Results Formatter</h3>
-
-<p>Easier discovery and creation of query results in a syntax
-by MIME Type.  In other words, easier to make JSON from query results.
-Added the possibility that a query's native result is a syntax only.</p>
-
-<h3>SPARQL Changes</h3>
-<p>Updated for SPARQL WD of FIXME: Added <code>REDUCED</code> token.
-</p>
-
-<h3><code>roqet</code> Changes</h3>
-<p><code>roqet</code> can use -r to generate a chosen result syntax
-for bindings results or triples (using raptor).  roqet now generates
-namespace declarations for triples when serializing output. The result
-is that they are used when the serializer does such as generating
-RDF/XML or Turtle output.
-</p>
-
-<h3>Query Engine Changes</h3>
-
-<p>Many query engine internal changes, but these remain unsupported:
-OPTIONAL (partially working), GROUP (no support), UNION (no support)
-SELECT REDUCED (no support).
-</p>
-
-<h3>Rasqal Public API Changes</h3>
-
-<p>Added a constructor to create a constant/0-operand expression:</p>
-<pre>
-rasqal_expression* rasqal_new_0op_expression(rasqal_op op);
-</pre>
-
-<p>Added query results formatter constructor by required mime type
-and a method to return the mime type of a selected formatter:</p>
-<pre>
-rasqal_query_results_formatter* rasqal_new_query_results_formatter_by_mime_type(const char *mime_type);
-const char* rasqal_query_results_formatter_get_mime_type(rasqal_query_results_formatter *formatter);
-</pre>
-
-<p>Added query results static functions to enumerate possible results
-formats, their names, labels and mime type.  For example there are
-several versions of SPARQL XML results formats possible as well as
-the SPARQL-in-JSON format</p>
-<pre>
-int rasqal_query_results_formats_check(const char *name, raptor_uri* uri, const char *mime_type);
-int rasqal_query_results_formats_enumerate_full(const unsigned int counter, const char **name, const char **label, const unsigned char **uri_string, const char **mime_type);
-</pre>
-
-<p>Added a query results method to check if result is syntax (rather
-than bindings, boolean or triples):</p>
-<pre>
-int rasqal_query_results_is_syntax(rasqal_query_results* query_results);
-</pre>
-
-<p>Added query result group by accessor methods:</p>
-<pre>
-raptor_sequence* rasqal_query_get_group_conditions_sequence(rasqal_query* query);
-rasqal_expression* rasqal_query_get_group_condition(rasqal_query* query, int idx);
-</pre>
-
-<p>Added a query method to get the explain flag:</p>
-<pre>
-int rasqal_query_get_explain(rasqal_query* query);
-</pre>
-
-<p><code>rasqal_query_set_distinct</code>
-now takes a mode (0, 1 DISTINCT, 2 REDUCE) rather than a boolean flag.
-</p>
+<p>The API changes for LAQRS are as follows:</p>
 
 <p>Added new query verbs:</p>
 <ul>
@@ -120,9 +52,25 @@ now takes a mode (0, 1 DISTINCT, 2 REDUCE) rather than a boolean flag.
 <li><code>RASQAL_QUERY_VERB_INSERT</code>: LAQRS query insert verb.</li>
 </ul>
 
-<p><code>rasqal_expression</code> lost the unused
-<code>rasqal_variable*</code> field <code>variable</code>
-</p>
+<p>Added a constructor to create a constant/0-operand expression
+(for COUNT):</p>
+<pre>
+rasqal_expression* rasqal_new_0op_expression(rasqal_op op);
+</pre>
+
+<p>Added a query method to get the explain flag:</p>
+<pre>
+int rasqal_query_get_explain(rasqal_query* query);
+</pre>
+
+<p>Added query result group by accessor methods:</p>
+<pre>
+raptor_sequence*
+rasqal_query_get_group_conditions_sequence(rasqal_query* query);
+
+rasqal_expression*
+rasqal_query_get_group_condition(rasqal_query* query, int idx);
+</pre>
 
 <p>Added <code>rasqal_expression</code> expression types:</p>
 <ul>
@@ -134,6 +82,88 @@ now takes a mode (0, 1 DISTINCT, 2 REDUCE) rather than a boolean flag.
 
 <p><code>rasqal_variable</code> now has
 a <code>rasqal_expression*</code> field <code>expression</code>.
+</p>
+
+
+
+
+<h3>Query Results Formatter</h3>
+
+<p>Easier discovery and creation of query results in a syntax
+by MIME Type.  In other words, easier to make JSON from query results.
+Added the possibility that a query's native result is a syntax only.</p>
+
+<p>Added query results formatter constructor by required mime type:</p>
+<pre>
+rasqal_query_results_formatter*
+rasqal_new_query_results_formatter_by_mime_type(const char *mime_type);
+</pre>
+<p>Added a method to return the mime type of a selected formatter:</p>
+<pre>
+const char*
+rasqal_query_results_formatter_get_mime_type(
+  rasqal_query_results_formatter *formatter);
+</pre>
+
+<p>Added another query results formatter static method to enumerate
+possible results formats, their names, labels and (new) mime type.</p>
+<pre>
+int
+rasqal_query_results_formats_enumerate_full(const unsigned int counter,
+  const char **name, const char **label,
+  const unsigned char **uri_string, const char **mime_type);
+</pre>
+
+<p>Added a static method to check for support for a query results
+format.</p>
+<pre>
+int rasqal_query_results_formats_check(const char *name,
+  raptor_uri* uri, const char *mime_type);
+</pre>
+
+<p>Added a query results method to check if a query result is
+natively syntax (rather than natively bindings, boolean or
+triples) and can only be read as such:</p>
+<pre>
+int rasqal_query_results_is_syntax(rasqal_query_results* query_results);
+</pre>
+
+
+
+<h3>SPARQL Changes</h3>
+
+<p>Updated for the SPARQL Working Draft of FIXME.</p>
+
+<p>Added <code>REDUCED</code> token.  This entailed changing the
+distinct flag from a boolean to a mode.
+<code>rasqal_query_get_distinct</code> and
+<code>rasqal_query_set_distinct</code> now takes a mode (0, 1
+DISTINCT, 2 REDUCE) rather than the former boolean flag.
+</p>
+
+
+<h3><code>roqet</code> Changes</h3>
+
+<p><code>roqet</code> can use -r to generate a chosen result syntax
+for bindings results or triples (using raptor).  roqet now generates
+namespace declarations for triples when serializing output. The result
+is that they are used when the serializer does such as generating
+RDF/XML or Turtle output.
+</p>
+
+
+<h3>Query Engine Changes</h3>
+
+<p>Many query engine internal changes, but these remain unsupported:
+OPTIONAL (partially working), GROUP (no support), UNION (no support)
+SELECT REDUCED (no support).
+</p>
+
+
+<h3>Other Changes</h3>
+
+<p><code>rasqal_expression</code> lost the unused
+<code>rasqal_variable*</code> field <code>variable</code>
 </p>
 
 <p>Added variables:</p>
