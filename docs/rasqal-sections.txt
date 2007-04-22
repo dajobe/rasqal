@@ -34,6 +34,7 @@ rasqal_expression
 rasqal_op
 rasqal_compare_flags
 rasqal_pattern_flags
+rasqal_new_0op_expression
 rasqal_new_1op_expression
 rasqal_new_2op_expression
 rasqal_new_3op_expression
@@ -124,6 +125,9 @@ rasqal_query_get_construct_triples_sequence
 rasqal_query_get_data_graph
 rasqal_query_get_data_graph_sequence
 rasqal_query_get_distinct
+rasqal_query_get_explain
+rasqal_query_get_group_condition
+rasqal_query_get_group_conditions_sequence
 rasqal_query_get_graph_pattern
 rasqal_query_get_graph_pattern_sequence
 rasqal_query_get_label
@@ -147,6 +151,7 @@ rasqal_query_print
 rasqal_query_graph_pattern_visit
 rasqal_query_set_default_generate_bnodeid_parameters
 rasqal_query_set_distinct
+rasqal_query_set_explain
 rasqal_query_set_error_handler
 rasqal_query_set_fatal_error_handler
 rasqal_query_set_generate_bnodeid_handler
@@ -181,6 +186,7 @@ rasqal_query_results_get_triple
 rasqal_query_results_is_bindings
 rasqal_query_results_is_boolean
 rasqal_query_results_is_graph
+rasqal_query_results_is_syntax
 rasqal_query_results_next
 rasqal_query_results_next_triple
 rasqal_query_results_write
@@ -188,10 +194,14 @@ rasqal_query_results_write
 
 <SECTION>
 <FILE>section-query_results_formatter</FILE>
+rasqal_query_results_formats_check
 rasqal_query_results_formats_enumerate
+rasqal_query_results_formats_enumerate_full
 rasqal_query_results_formatter
 rasqal_new_query_results_formatter
+rasqal_new_query_results_formatter_by_mime_type
 rasqal_free_query_results_formatter
+rasqal_query_results_formatter_get_mime_type
 rasqal_query_results_formatter_write
 </SECTION>
 
