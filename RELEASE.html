@@ -46,13 +46,11 @@ API support (but no query engine support) for:</p>
 
 <p>The API changes for LAQRS are as follows:</p>
 
-<p>Added new query verbs:</p>
-<ul>
-<li><code>RASQAL_QUERY_VERB_DELETE</code>: LAQRS query delete verb.</li>
-<li><code>RASQAL_QUERY_VERB_INSERT</code>: LAQRS query insert verb.</li>
-</ul>
+<p>Added new query verbs <code>RASQAL_QUERY_VERB_DELETE</code> and
+<code>RASQAL_QUERY_VERB_INSERT</code>
+</p>
 
-<p>Added a constructor to create a constant/0-operand expression
+<p>Added a constructor to create a constant or 0-operand expression
 (for COUNT):</p>
 <pre>
 rasqal_expression* rasqal_new_0op_expression(rasqal_op op);
@@ -63,7 +61,7 @@ rasqal_expression* rasqal_new_0op_expression(rasqal_op op);
 int rasqal_query_get_explain(rasqal_query* query);
 </pre>
 
-<p>Added query result group by accessor methods:</p>
+<p>Added a query method to get the 'group by' condition expressions:</p>
 <pre>
 raptor_sequence*
 rasqal_query_get_group_conditions_sequence(rasqal_query* query);
@@ -74,10 +72,10 @@ rasqal_query_get_group_condition(rasqal_query* query, int idx);
 
 <p>Added <code>rasqal_expression</code> expression types:</p>
 <ul>
-<li><code>RASQAL_EXPR_GROUP_COND_ASC</code>: Expression for LAQRS group condition ascending.</li>
-<li><code>RASQAL_EXPR_GROUP_COND_DESC</code>: Expression for LAQRS group condition descending.</li>
-<li><code>RASQAL_EXPR_COUNT</code>: Expression for LAQRS select COUNT()</li>
-<li><code>RASQAL_EXPR_VARSTAR</code>: Expression for LAQRS select Variable *</li>
+<li><code>RASQAL_EXPR_GROUP_COND_ASC</code> for group condition ascending.</li>
+<li><code>RASQAL_EXPR_GROUP_COND_DESC</code> for group condition descending.</li>
+<li><code>RASQAL_EXPR_COUNT</code> for select <code>COUNT()</code></li>
+<li><code>RASQAL_EXPR_VARSTAR</code> for select <code>COUNT(*)</code></li>
 </ul>
 
 <p><code>rasqal_variable</code> now has
@@ -89,9 +87,8 @@ a <code>rasqal_expression*</code> field <code>expression</code>.
 
 <h3>Query Results Formatter</h3>
 
-<p>Easier discovery and creation of query results in a syntax
-by MIME Type.  In other words, easier to make JSON from query results.
-Added the possibility that a query's native result is a syntax only.</p>
+<p>Made it easier to discover and create of query results in a syntax
+by using a MIME Type.</p>
 
 <p>Added query results formatter constructor by required mime type:</p>
 <pre>
@@ -121,13 +118,6 @@ int rasqal_query_results_formats_check(const char *name,
   raptor_uri* uri, const char *mime_type);
 </pre>
 
-<p>Added a query results method to check if a query result is
-natively syntax (rather than natively bindings, boolean or
-triples) and can only be read as such:</p>
-<pre>
-int rasqal_query_results_is_syntax(rasqal_query_results* query_results);
-</pre>
-
 
 
 <h3>SPARQL Changes</h3>
@@ -153,6 +143,14 @@ RDF/XML or Turtle output.
 
 
 <h3>Query Engine Changes</h3>
+
+<p>Added the possibility that a query's native result is a syntax
+(rather than natively bindings, boolean or triples) and added
+a method to check for that:</p>
+<pre>
+int rasqal_query_results_is_syntax(rasqal_query_results* query_results);
+</pre>
+
 
 <p>Many query engine internal changes, but these remain unsupported:
 OPTIONAL (partially working), GROUP (no support), UNION (no support)
