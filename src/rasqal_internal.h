@@ -156,7 +156,6 @@ struct rasqal_graph_pattern_s {
   int gp_index;
 };
 
-rasqal_graph_pattern* rasqal_new_graph_pattern(rasqal_query* query, rasqal_graph_pattern_operator op);
 rasqal_graph_pattern* rasqal_new_basic_graph_pattern(rasqal_query* query, raptor_sequence* triples, int start_column, int end_column);
 rasqal_graph_pattern* rasqal_new_graph_pattern_from_sequence(rasqal_query* query, raptor_sequence* graph_patterns, rasqal_graph_pattern_operator op);
 void rasqal_free_graph_pattern(rasqal_graph_pattern* gp);
@@ -447,6 +446,9 @@ struct rasqal_query_results_s {
 
   /* boolean ASK result >0 true, 0 false or -1 uninitialised */
   int ask_result;
+
+  /* New variables bound from during the current 'next result' run */
+  int new_bindings_count;
 
   rasqal_triples_source* triples_source;
 
