@@ -10,8 +10,6 @@
 
 <h2 id="rel0_9_14"><a name="rel0_9_14">Rasqal 0.9.14 Changes</a></h2>
 
-<p>Not yet released.</p>
-
 <h3>General Changes</h3>
 
 <p>Added syntax and API support (but no query engine support)
@@ -44,7 +42,22 @@ API support (but no query engine support) for:</p>
 <li><code>SELECT </code><em>expression</em> <code>AS</code> <em>variable</em> via the new expression field of rasqal_variable</li>
 <li><code>GROUP BY</code> results via rasqal_query_get_group_conditions_sequence() and rasqal_query_get_group_condition() and new expressions <code>RASQAL_EXPR_GROUP_COND_ASC</code> and <code>RASQAL_EXPR_GROUP_COND_DESC</code></li>
 </ul>
+
 <p>Repeating <b>THERE IS NO QUERY ENGINE SUPPORT FOR ANY OF THE ABOVE</b></p>
+
+<p>LAQRS is not enabled by default in Rasqal (unless using
+maintainer mode or building from Subversion).  To enable it,
+configure Rasqal like this:</p>
+<pre>
+$ ./configure '--enable-query-languages=sparql rdql laqrs'
+...
+
+Rasqal build summary:
+  RDF query languages available : rdql sparql
+  RDF query languages enabled   : sparql rdql laqrs
+  Triples source                : raptor 1.4.15
+$
+</pre>
 
 <p>The API changes for LAQRS are as follows:</p>
 
@@ -83,6 +96,26 @@ rasqal_query_get_group_condition(rasqal_query* query, int idx);
 <p><code>rasqal_variable</code> now has
 a <code>rasqal_expression*</code> field <code>expression</code>.
 </p>
+
+
+<h3>Configuration and Build Changes</h3>
+
+<p>The pkgconfig rasqal.pc file and the <code>rasqal-config</code>
+script now separates directly linked shared libraries and indirectly
+linked ones.  This prevents unnecessary references to libraries.  The
+regular libraries includes -L plus <code>-lrasqal</code> and the
+dynamic and static libraries are available with:</p>
+<ul>
+<li><code>pkgconfig rasqal --static --libs</code></li>
+<li><code>rasqal-config --libs --private-libs</code></li>
+</ul>
+
+<p>So for example to statically link with rasqal, use either:</p>
+<pre>
+$ cc .. -o foo foo.c `pkgconfig rasqal --static --libs`
+
+$ cc .. -o foo foo.c `rasqal-config --libs --private-libs`
+</pre>
 
 
 <h3>Query Results Formatter Changes</h3>
@@ -1455,7 +1488,7 @@ It is all new.
 
 <hr />
 
-<p>Copyright (C) 2004-2006 <a href="http://purl.org/net/dajobe/">Dave Beckett</a><br />Copyright (C) 2003-2005 <a href="http://www.bristol.ac.uk/">University of Bristol</a></p>
+<p>Copyright (C) 2004-2007 <a href="http://purl.org/net/dajobe/">Dave Beckett</a><br />Copyright (C) 2003-2005 <a href="http://www.bristol.ac.uk/">University of Bristol</a></p>
 
 </body>
 </html>
