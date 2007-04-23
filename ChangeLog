@@ -1,5 +1,7 @@
 2007-04-22  Dave Beckett  <dave@dajobe.org>
 
+	* Snapshotted rasqal_0_9_14 for 0.9.14 release (SVN 12127)
+
 	* docs/librasqal.3: rasqal_query_get_explain
 
 	* docs/librasqal.3: 0.9.14 from 6 months ago
