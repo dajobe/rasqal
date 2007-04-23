@@ -924,7 +924,7 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
                        int *error)
 {
   rasqal_literal *lits[2];
-  int type;
+  rasqal_literal_type type;
   int i;
   int ints[2];
   double doubles[2];
@@ -1077,6 +1077,15 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
                       i, rasqal_literal_type_labels[lits[i]->type], ints[i]);
         break;
     
+      case RASQAL_LITERAL_UNKNOWN:
+      case RASQAL_LITERAL_BLANK:
+      case RASQAL_LITERAL_URI:
+      case RASQAL_LITERAL_FLOAT:
+      case RASQAL_LITERAL_DECIMAL:
+      case RASQAL_LITERAL_DATETIME:
+      case RASQAL_LITERAL_PATTERN:
+      case RASQAL_LITERAL_QNAME:
+      case RASQAL_LITERAL_VARIABLE:
       default:
         *error=1;
         return 0;
@@ -1134,6 +1143,8 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
       return double_to_int(doubles[0] - doubles[1]);
       break;
 
+    case RASQAL_LITERAL_UNKNOWN:
+    case RASQAL_LITERAL_VARIABLE:
     default:
       abort();
   }
