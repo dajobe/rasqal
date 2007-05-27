@@ -41,6 +41,10 @@ extern "C" {
  *
  */
 #ifdef WIN32
+#  ifdef __GNUC__
+#    undef _declspec
+#    define _declspec(x) __declspec(x)
+#  endif
 #  ifdef RASQAL_STATIC
 #    define RASQAL_API
 #  else
