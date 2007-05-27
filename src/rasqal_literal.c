@@ -268,7 +268,9 @@ rasqal_literal_string_to_native(rasqal_literal *l,
       l->language=NULL;
     }
 
-    /* static string for boolean */
+    /* Free passed in string */
+    RASQAL_FREE(cstring, (void*)l->string);
+    /* and replace with a static string */
     l->string=b ? RASQAL_XSD_BOOLEAN_TRUE : RASQAL_XSD_BOOLEAN_FALSE;
     l->string_len=(b ? 4 : 5);
 
@@ -460,6 +462,8 @@ rasqal_free_literal(rasqal_literal* l)
 
     case RASQAL_LITERAL_BOOLEAN:
       /* static l->string for boolean, does not need freeing */
+      if(l->datatype)
+        raptor_free_uri(l->datatype);
       break;
 
     case RASQAL_LITERAL_VARIABLE:
