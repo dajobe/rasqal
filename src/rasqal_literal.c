@@ -750,6 +750,7 @@ rasqal_literal_as_floating(rasqal_literal* l, int *error)
       return l->value.floating;
       break;
 
+    case RASQAL_LITERAL_DECIMAL:
     case RASQAL_LITERAL_STRING:
       {
         char *eptr=NULL;
@@ -769,7 +770,6 @@ rasqal_literal_as_floating(rasqal_literal* l, int *error)
     case RASQAL_LITERAL_URI:
     case RASQAL_LITERAL_QNAME:
     case RASQAL_LITERAL_PATTERN:
-    case RASQAL_LITERAL_DECIMAL:
     case RASQAL_LITERAL_DATETIME:
       *error=1;
       return 0.0;
@@ -1053,7 +1053,7 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
         /* failure always means no match */
         if(errori)
           return 1;
-        RASQAL_DEBUG4("promoted literal %d (type %s) to a floating, with value %g\n", 
+        RASQAL_DEBUG4("promoted literal %d (type %s) to a double, with value %g\n", 
                       i, rasqal_literal_type_labels[lits[i]->type], doubles[i]);
         break;
 
