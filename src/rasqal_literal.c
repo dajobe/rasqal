@@ -604,13 +604,23 @@ rasqal_literal_print(rasqal_literal* l, FILE* fh)
 
 
 /*
- * rasqal_literal_as_boolean - INTERNAL Return a literal as a boolean value
+ * rasqal_literal_as_boolean:
  * @l: #rasqal_literal object
  * @error: pointer to error flag
  * 
- * Literals are true if not NULL (uris, strings) or zero (0, 0.0).
- * Otherwise the error flag is set.
- * 
+ * INTERNAL: Return a literal as a boolean value
+ *
+ * SPARQL Effective Boolean Value (EBV) rules:
+ *  - If the argument is a typed literal with a datatype of xsd:boolean, the
+ *    EBV is the value of that argument.
+ *  - If the argument is a plain literal or a typed literal with a datatype of
+ *    xsd:string, the EBV is false if the operand value has zero length;
+ *    otherwise the EBV is true.
+ *  - If the argument is a numeric type or a typed literal with a datatype
+ *    derived from a numeric type, the EBV is false if the operand value is NaN
+ *    or is numerically equal to zero; otherwise the EBV is true.
+ *  - All other arguments, including unbound arguments, produce a type error.
+ *
  * Return value: non-0 if true
  **/
 int
@@ -620,17 +630,27 @@ rasqal_literal_as_boolean(rasqal_literal* l, int *error)
     return 0;
   
   switch(l->type) {
-    case RASQAL_LITERAL_URI:
-      return (l->value.uri) != NULL;
-      break;
-      
     case RASQAL_LITERAL_STRING:
+      if (l->datatype) {
+        if (raptor_uri_equals(l->datatype, rasqal_xsd_string_uri)) {
+          /* typed literal with xsd:string datatype -> true if non-empty */
+          return l->string && *l->string;
+        }
+        /* typed literal with other datatype -> type error */
+        *error = 1;
+        return 0;
+      }
+      /* plain literal -> true if non-empty */
+      return l->string && *l->string;
+
+    case RASQAL_LITERAL_URI:
     case RASQAL_LITERAL_BLANK:
     case RASQAL_LITERAL_PATTERN:
     case RASQAL_LITERAL_QNAME:
     case RASQAL_LITERAL_DECIMAL:
     case RASQAL_LITERAL_DATETIME:
-      return (l->string) != NULL;
+      *error = 1;
+      return 0;
       break;
 
     case RASQAL_LITERAL_INTEGER:
@@ -640,7 +660,7 @@ rasqal_literal_as_boolean(rasqal_literal* l, int *error)
 
     case RASQAL_LITERAL_DOUBLE:
     case RASQAL_LITERAL_FLOAT:
-      return l->value.floating != 0.0;
+      return l->value.floating != 0.0 && !isnan(l->value.floating);
       break;
 
     case RASQAL_LITERAL_VARIABLE:
