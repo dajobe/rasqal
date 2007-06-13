@@ -34,6 +34,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
 #endif
@@ -958,6 +959,75 @@ rasqal_expression_compare(rasqal_expression* e1, rasqal_expression* e2,
 }
 
 
+/* 
+ * rasqal_language_matches:
+ * @lang_tag: language tag such as "en" or "en-US" or "ab-cd-ef"
+ * @lang_range: language range such as "*" (SPARQL) or "en" or "ab-cd"
+ *
+ * INTERNAL - Match a language tag against a language range
+ *
+ * Returns true if @lang_range matches @lang_tag per
+ *   Matching of Language Tags [RFC4647] section 2.1
+ * RFC4647 defines a case-insensitive, hierarchical matching
+ * algorithm which operates on ISO-defined subtags for language and
+ * country codes, and user defined subtags.
+ *
+ * (Note: RFC3066 section 2.5 matching is identical to
+ * RFC4647 section 3.3.1 Basic Filtering )
+ * 
+ * In SPARQL, a language-range of "*" matches any non-empty @lang_tag string.
+ * See http://www.w3.org/TR/2007/WD-rdf-sparql-query-20070326/#func-langMatches
+ *
+ * Return value: non-0 if true
+ */
+static int
+rasqal_language_matches(const unsigned char* lang_tag,
+                        const unsigned char* lang_range) 
+{
+  int b= 0;
+
+  /* Simple range string "*" matches anything including NULL lang_tag */
+  if(lang_range && lang_range[0] == '*') {
+    if(!lang_range[1])
+      b = 1;
+    return b;
+  }
+  
+  if(!(lang_tag && lang_range && *lang_tag && *lang_range)) {
+    /* One of the arguments is NULL or the empty string */
+    return 0;
+  }
+
+  /* Now have two non-empty arguments */
+
+  while (1) {
+    char tag_c   = tolower(*lang_tag++);
+    char range_c = tolower(*lang_range++);
+    if ((!tag_c && !range_c) || (!range_c && tag_c == '-')) {
+      /* EITHER
+       *   The end of both strings (thus everything previous matched
+       *   such as e.g. tag "fr-CA" matching range "fr-ca")
+       * OR
+       *   The end of the range and end of the tag prefix (e.g. tag
+       *   "en-US" matching range "en")
+       * means a match
+       */
+      b = 1;
+      break;
+    } 
+    if (range_c != tag_c) {
+      /* If a difference was found - including one of the
+       * strings being shorter than the other, it means no match
+       * (b is set to 0 above)
+       */
+      break;
+    }
+  }
+
+  return b;
+}
+      
+
 /**
  * rasqal_expression_evaluate:
  * @query: #rasqal_query this expression belongs to
@@ -1291,7 +1361,6 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e,
       {
         rasqal_literal* l;
         rasqal_variable* v;
-        unsigned char* new_language;
         int free_literal=1;
         
         l=rasqal_expression_evaluate(query, e->arg1, flags);
@@ -1307,16 +1376,19 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e,
             goto failed;
         }
 
-        if(l->type == RASQAL_LITERAL_STRING && l->language) {
-          new_language=(unsigned char*)RASQAL_MALLOC(cstring, strlen(l->language)+1);
-          strcpy((char*)new_language, l->language);
-        } else {
-          new_language=(unsigned char*)RASQAL_MALLOC(cstring, 1);
-          *new_language='\0';
+        if(l->type == RASQAL_LITERAL_STRING) {
+          unsigned char* new_language;
+          if(l->language) {
+            new_language=(unsigned char*)RASQAL_MALLOC(cstring,
+                                                       strlen(l->language)+1);
+            strcpy((char*)new_language, l->language);
+          } else  {
+            new_language=(unsigned char*)RASQAL_MALLOC(cstring, 1);
+            *new_language='\0';
+          }
+          result=rasqal_new_string_literal(new_language, NULL, NULL, NULL);
         }
         
-        result=rasqal_new_string_literal(new_language, NULL, NULL, NULL);
-
         if(free_literal)
           rasqal_free_literal(l);
 
@@ -1340,38 +1412,14 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e,
           goto failed;
         }
 
-        /* Returns true if language-range (first argument) matches
-         * language-tag (second argument) per Tags for the
-         * Identification of Languages [RFC3066] section 2.5. RFC3066
-         * ( http://www.ietf.org/rfc/rfc3066.txt )
-         * defines a case-insensitive, hierarchical matching
-         * algorithm which operates on ISO-defined subtags for
-         * language and country codes, and user defined subtags. In
-         * SPARQL, a language-range of "*" matches any non-empty
-         * language-tag string.
-         * -- http://www.w3.org/TR/rdf-sparql-query/#func-langMatches
-         */
-        
-        /* FIXME - seems to me it got the description of '*' in the 
-         * wrong argument position
-         */
-
         s1=rasqal_literal_as_string_flags(l1, flags, &error);
         s2=rasqal_literal_as_string_flags(l2, flags, &error);
 
-        if(error) {
+        if(error)
           b=0;
-        } else if(s1 && s2 && *s1 && *s2) {
-          /* Two non-empty arguments */
-          if(s2[0] == '*' && !s2[1])
-            b= 1;
-          else
-            /* FIXME - this is not a language compare */
-            b= (rasqal_strcasecmp((const char*)s1, (const char*)s2) == 0);
-        } else
-          /* FIXME - false may not be the right answer for all strings */
-          b=0;
-
+        else
+          b=rasqal_language_matches(s1, s2);
+        
         rasqal_free_literal(l1);
         rasqal_free_literal(l2);
 
