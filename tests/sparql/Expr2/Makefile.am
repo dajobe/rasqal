@@ -32,14 +32,10 @@ query-bev-1.rq query-bev-2.rq query-bev-3.rq \
 query-bev-4.rq query-bev-5.rq query-bev-6.rq
 
 EXPECTED_SPARQL_CORRECT_FAILURES= \
-"Test 'boolean effective value' - true" \
-"Test 'boolean effective value' - false" \
-"Test 'boolean effective value' - \&\&" \
-"Test 'boolean effective value' - \|\| Test" \
 "'boolean effective value' - optional Test" \
 "'boolean effective value' - unknown types"
 
-EXPECTED_SPARQL_CORRECT_FAILURES_COUNT= 6
+EXPECTED_SPARQL_CORRECT_FAILURES_COUNT= 2
 
 SPARQL_RESULT_FILES= \
 result-bev-1.ttl result-bev-2.ttl result-bev-3.ttl \
