@@ -36,13 +36,9 @@ q-iri-1.rq q-uri-1.rq
 
 # str-2: result-str-2.ttl relies on [[rs:value 01]] provding a lex form "01"
 # datatype-1 - relies on lexical form of double being same as in .ttl
-# langMatches-2 - I don't do lang match properly for subtags
-# langMatches-3 } I think the answer is wrong or the WD.
-# langMatches-4 } depends on answer to langMatches("", "*")
 EXPECTED_SPARQL_CORRECT_FAILURES= \
 str-2 \
-datatype-1 \
-LangMatches-2 LangMatches-3 LangMatches-4
+datatype-1
 
 SPARQL_RESULT_FILES= \
 result-blank-1.ttl result-datatype-1.ttl result-str-1.ttl \
