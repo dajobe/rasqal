@@ -1813,6 +1813,7 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e,
           } else
             rc=0;
         }
+        pcre_free(re);
         
 #endif
         
