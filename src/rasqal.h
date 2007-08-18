@@ -54,6 +54,12 @@ extern "C" {
 #      define RASQAL_API _declspec(dllimport)
 #    endif
 #  endif
+#elif defined(__SYMBIAN32__)
+#  ifdef RASQAL_INTERNAL
+#    define RASQAL_API __declspec(dllexport)
+#  else
+#    define RASQAL_API __declspec(dllimport)
+#  endif
 #else
 #  define RASQAL_API
 #endif
