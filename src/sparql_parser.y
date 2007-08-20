@@ -576,7 +576,6 @@ WhereClauseOpt:  WHERE GroupGraphPattern
 }
 | GroupGraphPattern
 {
-  sparql_syntax_warning(((rasqal_query*)rq), "WHERE omitted");
   ((rasqal_query*)rq)->query_graph_pattern=$1;
 }
 | /* empty */
