@@ -1183,9 +1183,8 @@ rasqal_query_prepare(rasqal_query* query,
     base_uri=raptor_new_uri(uri_string);
     raptor_free_memory(uri_string);
   }
-  
-  query->base_uri=base_uri;
-  query->locator.uri=base_uri;
+
+  rasqal_query_set_base_uri(query, base_uri);
   query->locator.line = query->locator.column = query->locator.byte = -1;
 
   rc=query->factory->prepare(query);
@@ -2354,3 +2353,11 @@ rasqal_query_get_genid(rasqal_query* query, const unsigned char* base,
 }
 
 
+void
+rasqal_query_set_base_uri(rasqal_query* query, raptor_uri* base_uri)
+{
+  if(query->base_uri)
+    raptor_free_uri(query->base_uri);
+  query->base_uri=base_uri;
+  query->locator.uri=base_uri;
+}
