@@ -292,9 +292,7 @@ Prolog: BaseDeclOpt PrefixDeclOpt
 /* SPARQL Grammar: [3] BaseDecl */
 BaseDeclOpt: BASE URI_LITERAL
 {
-  if(((rasqal_query*)rq)->base_uri)
-    raptor_free_uri(((rasqal_query*)rq)->base_uri);
-  ((rasqal_query*)rq)->base_uri=$2;
+  rasqal_query_set_base_uri((rasqal_query*)rq, $2);
 }
 | /* empty */
 {
