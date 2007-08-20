@@ -544,7 +544,7 @@ rasqal_sparql_name_check(const unsigned char *string, size_t length,
   RASQAL_DEBUG1("Checking name '");
   if(length)
      fwrite(string, length, sizeof(unsigned char), stderr);
-  fprintf(stderr, "' (length %d), flags %d\n", length, (int)check_flags);
+  fprintf(stderr, "' (length %d), flags %d\n", (int)length, (int)check_flags);
 #endif
 
   if(!length)
