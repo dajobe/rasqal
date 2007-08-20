@@ -986,13 +986,6 @@ rasqal_language_matches(const unsigned char* lang_tag,
 {
   int b= 0;
 
-  /* Simple range string "*" matches anything including NULL lang_tag */
-  if(lang_range && lang_range[0] == '*') {
-    if(!lang_range[1])
-      b = 1;
-    return b;
-  }
-  
   if(!(lang_tag && lang_range && *lang_tag && *lang_range)) {
     /* One of the arguments is NULL or the empty string */
     return 0;
@@ -1000,6 +993,15 @@ rasqal_language_matches(const unsigned char* lang_tag,
 
   /* Now have two non-empty arguments */
 
+  /* Simple range string "*" matches anything excluding NULL/empty
+   * lang_tag (checked above)
+   */
+  if(lang_range[0] == '*') {
+    if(!lang_range[1])
+      b = 1;
+    return b;
+  }
+  
   while (1) {
     char tag_c   = tolower(*lang_tag++);
     char range_c = tolower(*lang_range++);
