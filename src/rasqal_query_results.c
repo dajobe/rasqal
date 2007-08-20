@@ -847,6 +847,9 @@ rasqal_query_results_get_boolean(rasqal_query_results* query_results)
   rc=rasqal_engine_execute_run(query_results);
   query->limit=saved_limit;
 
+  /* get the first value and maybe set finished flag */
+  (void)rasqal_engine_get_results_values(query_results);
+
   if(query_results->finished) {
     /* error or end of results */
     query_results->ask_result= 0; /* false */
