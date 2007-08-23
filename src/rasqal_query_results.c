@@ -819,7 +819,7 @@ rasqal_query_results_next_triple(rasqal_query_results* query_results)
  * The return value is only meaningful if this is a boolean
  * query result - see rasqal_query_results_is_boolean()
  *
- * Return value: boolean query result - >0 is true, 0 is false, <0 on error or finished
+ * Return value: boolean query result - >0 is true, 0 is false, <0 on error
  */
 int
 rasqal_query_results_get_boolean(rasqal_query_results* query_results)
@@ -828,7 +828,7 @@ rasqal_query_results_get_boolean(rasqal_query_results* query_results)
   
   query=query_results->query;
 
-  if(!query_results || query_results->failed || query_results->finished)
+  if(!query_results || query_results->failed)
     return -1;
   
   if(!rasqal_query_results_is_boolean(query_results))
