@@ -2761,6 +2761,7 @@ rasqal_engine_query_results_update(rasqal_query_results *query_results)
     return 1;
   
   if(!rasqal_query_results_is_bindings(query_results) &&
+     !rasqal_query_results_is_boolean(query_results) &&
      !rasqal_query_results_is_graph(query_results))
     return 1;
 
