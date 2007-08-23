@@ -825,8 +825,6 @@ int
 rasqal_query_results_get_boolean(rasqal_query_results* query_results)
 {
   rasqal_query* query;
-  int rc;
-  int saved_limit;
   
   query=query_results->query;
 
@@ -839,29 +837,7 @@ rasqal_query_results_get_boolean(rasqal_query_results* query_results)
   if(query_results->ask_result >= 0)
     return query_results->ask_result;
 
-  /* FIXME: With removal of LAZY evaluation, ASK now evalutes entire
-   * queries so artificially set a LIMIT 1 to limit the damage.
-   */
-  saved_limit=query->limit;
-  query->limit=1;
-  rc=rasqal_engine_execute_run(query_results);
-  query->limit=saved_limit;
-
-  /* get the first value and maybe set finished flag */
-  (void)rasqal_engine_get_results_values(query_results);
-
-  if(query_results->finished) {
-    /* error or end of results */
-    query_results->ask_result= 0; /* false */
-  } else if(query_results->results_sequence && 
-            raptor_sequence_size(query_results->results_sequence)> 0 ) {
-    /* ok */
-    query_results->ask_result= 1; /* true */
-  } else {
-    /* error */
-    query_results->failed= 1;
-    query_results->ask_result= -1; /* error */
-  }
+  query_results->ask_result= (query_results->result_count > 0) ? 1 : 0;
   query_results->finished= 1;
   
   return query_results->ask_result;
