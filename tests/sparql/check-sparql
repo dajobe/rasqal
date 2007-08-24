@@ -65,6 +65,87 @@ sub plural($$$) {
   return ($count == 1) ? $count." ".$word : $count." ".$word.$multiple;
 }
   
+
+sub toDebug($) {
+  my $str=shift;
+
+  return undef if !defined $str;
+
+  return "NULL" if $str eq "<${rs}undefined>";
+
+  return $str if $str =~ s/^(".*")(@.*)(\^\^<.*>)$/string($1$2$3)/;
+
+  return $str if $str =~ s/^(".*"\^\^<.*>)$/string($1)/;
+
+  return $str if $str =~ s/^(".*"@.*)$/string($1)/;
+
+  return $str if $str =~ s/^(".*")$/string($1)/;
+
+  return $str if $str =~ s/^(<.*>)$/uri$1/;
+
+  #return $str if $str =~ s/^_:(.*)$/blank $1/;
+  return $str if $str =~ s/^_:(.*)$/blank _/;
+}
+
+sub read_turtle_results_file($) {
+  my($result_file)=@_;
+  my(@node_order);
+  my(%nodes);
+  my(%node_type);
+
+  my $cmd="$rapper -q -i turtle -o ntriples $result_file";
+
+  warn "$program: Opening pipe from '$cmd'\n"
+    if $debug;
+  open(PIPE, "$cmd |");
+  while(<PIPE>) {
+    chomp;
+    s/\s+\.$//;
+
+    my($subject, $predicate, $object)=split(/ /, $_, 3);
+    push(@node_order, $subject)
+	unless exists $nodes{$subject} || exists $node_type{$subject};
+
+    if ($predicate eq "<${rdf}type>") {
+	$node_type{$subject}=$object;
+    } else {
+	push(@{$nodes{$subject}->{$predicate}}, $object);
+    }
+  }
+  close(PIPE);
+
+  my(%results)=(rows => []);
+
+  # Find ResultSet node
+  my $resultset_node=undef;
+  for my $node (@node_order) {
+    my $type=$node_type{$node};
+    next if !$type || $type ne "<${rs}ResultSet>";
+    $resultset_node=$node;
+    last;
+  }
+  
+  if(!defined $resultset_node) {
+    # No result defined
+    return undef;
+  }
+  
+  for my $node (@{$nodes{$resultset_node}->{$solution_predicate}}) {
+    # Get binding nodes
+    my $row={};
+    for my $binding_node (@{$nodes{$node}->{$binding_predicate}}) {
+      my $variable=$nodes{$binding_node}->{$variable_predicate}->[0];
+      $variable=~ s/^"(.*)"$/$1/;
+      my $value=$nodes{$binding_node}->{$value_predicate}->[0];
+      $row->{$variable}=toDebug($value);
+    }
+    
+    push(@{$results{rows}}, $row);
+  }
+  return \%results;
+}
+
+
 sub run_test($$$$$$) {
   my($name, $dir, $test_file, $data_files_ref, $result_file,$expect_fail)=@_;
   my(@data_files)=@$data_files_ref;
@@ -172,89 +253,23 @@ sub run_test($$$$$$) {
   }
 
   my $cmd;
-  my(@node_order);
-  my(%nodes);
-  my(%node_type);
+
+  my $results=undef;
 
   if(defined $result_file) {
-    $cmd="$rapper -q -i turtle -o ntriples $result_file";
-
-    warn "$program: Opening pipe from '$cmd'\n"
-      if $debug;
-    open(PIPE, "$cmd |");
-    while(<PIPE>) {
-      chomp;
-      s/\s+\.$//;
-
-      my($subject, $predicate, $object)=split(/ /, $_, 3);
-      push(@node_order, $subject)
-	unless exists $nodes{$subject} || exists $node_type{$subject};
-
-      if ($predicate eq "<${rdf}type>") {
-	$node_type{$subject}=$object;
-      } else {
-	push(@{$nodes{$subject}->{$predicate}}, $object);
-      }
-    }
-    close(PIPE);
+    $results=read_turtle_results_file($result_file);
   }
 
-  sub toDebug($) {
-    my $str=shift;
-
-    return undef if !defined $str;
-
-    return "NULL" if $str eq "<${rs}undefined>";
-
-    return $str if $str =~ s/^(".*")(@.*)(\^\^<.*>)$/string($1$2$3)/;
-
-    return $str if $str =~ s/^(".*"\^\^<.*>)$/string($1)/;
-
-    return $str if $str =~ s/^(".*"@.*)$/string($1)/;
-
-    return $str if $str =~ s/^(".*")$/string($1)/;
-
-    return $str if $str =~ s/^(<.*>)$/uri$1/;
-
-    #return $str if $str =~ s/^_:(.*)$/blank $1/;
-    return $str if $str =~ s/^_:(.*)$/blank _/;
-  }
-
-
-  # Find ResultSet node
-  my $resultset_node=undef;
-  for my $node (@node_order) {
-    my $type=$node_type{$node};
-    next if !$type || $type ne "<${rs}ResultSet>";
-    $resultset_node=$node;
-    last;
-  }
-
-  if(!defined $resultset_node) {
-    # No result defined
+  if(!defined $results) {
     warn "$program: '$name' OK (no result)\n";
     return $expect_fail ? 1 : 0;
-  }
-
-  my(@results)=();
-  for my $node (@{$nodes{$resultset_node}->{$solution_predicate}}) {
-    # Get binding nodes
-    my $row={};
-    for my $binding_node (@{$nodes{$node}->{$binding_predicate}}) {
-      my $variable=$nodes{$binding_node}->{$variable_predicate}->[0];
-      $variable=~ s/^"(.*)"$/$1/;
-      my $value=$nodes{$binding_node}->{$value_predicate}->[0];
-      $row->{$variable}=toDebug($value);
-    }
-
-    push(@results, $row);
   }
 
   open(OUT, "|$sort >result.out")
     or die "$program: Cannot create pipe to result.out - $!\n";
 
   my $count=0;
-  for my $row (@results) {
+  for my $row (@{$results->{rows}}) {
     my(@defined_vars)=grep(defined $row->{$_}, @vars_order);
     print OUT "result: [",join(", ",map {"$_=$row->{$_}"} @defined_vars),"]\n";
     $count++;
