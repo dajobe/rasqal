@@ -25,7 +25,7 @@
 SUBDIRS=simple part1 examples bound syntax survey SyntaxFull sort \
 ValueTesting \
 regex Expr1 Expr2 ExprBuiltins ExprEquals \
-SyntaxDev
+SyntaxDev BNodes
 
 EXTRA_DIST=check-sparql
 
