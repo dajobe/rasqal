@@ -97,7 +97,7 @@ sub read_rdf_results_file($) {
 
   warn "$program: Opening pipe from '$cmd'\n"
     if $debug;
-  open(PIPE, "$cmd |");
+  open(PIPE, "$cmd 2>rapper.err |");
   while(<PIPE>) {
     chomp;
     s/\s+\.$//;
@@ -114,6 +114,24 @@ sub read_rdf_results_file($) {
   }
   close(PIPE);
 
+  open(ERR, "<rapper.err") or die "$program: Cannot open rapper.err - $!\n";
+  my(@errs)=();
+  while(<ERR>) {
+    chomp;
+    push(@errs, "$result_file: $1") if m{rapper: Error - (?:URI \S+) - (.*)$};
+  }
+  close(ERR);
+  if(@errs) {
+    warn "$program: parsing '$result_file' FAILED - rapper returned errors:\n  ".join("\n  ",@errs)."\n";
+    warn "Failing program was:\n";
+    warn "  $cmd\n";
+    my $r=$cmd; $r =~ s,file:[^ ]+/,,g;
+    warn "  OR $r\n";
+    return undef;
+  }
+
+  unlink "rapper.err";
+
   my(%results)=(rows => []);
 
   # Find ResultSet node
@@ -127,7 +145,7 @@ sub read_rdf_results_file($) {
   
   if(!defined $resultset_node) {
     # No result defined
-    return undef;
+    return {expect_empty => 1};
   }
   
   for my $node (@{$nodes{$resultset_node}->{$solution_predicate}}) {
@@ -166,6 +184,8 @@ sub run_test($$$$$$) {
     if $debug;
   system($roqet_cmd);
   my $rc=$? >>8;
+  warn "$program: roqet returned code $rc\n"
+    if $debug;
   if($rc) {
     if($expect_fail) {
       warn "$program: '$name' OK (got expected failure)\n";
@@ -254,13 +274,17 @@ sub run_test($$$$$$) {
 
   my $cmd;
 
-  my $results=undef;
+  my $results={expect_empty => 1};
 
   if(defined $result_file) {
     $results=read_rdf_results_file($result_file);
   }
 
   if(!defined $results) {
+    return 1;
+  }
+
+  if(exists $results->{expect_empty}) {
     warn "$program: '$name' OK (no result)\n";
     return $expect_fail ? 1 : 0;
   }
