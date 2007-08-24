@@ -35,6 +35,8 @@
 
 use strict;
 use File::Basename;
+use XML::Simple;
+#use XML::SAX::Writer;
 
 
 my $roqet="roqet";
@@ -164,6 +166,79 @@ sub read_rdf_results_file($) {
 }
 
 
+sub read_srx_results_file($) {
+  my($result_file)=@_;
+
+  my(%results)=(rows => []);
+
+  $result_file =~ s%^file://%%;
+
+#   my $writer = XML::SAX::Writer->new();
+#   my $filter = XML::Simple->new(
+#     ForceArray => 1,
+#     KeyAttr => ['name'],
+#     DataHandler => sub {
+#       my $simple = shift;
+#       my $data = shift;
+#       # Modify $data here
+#       $simple->XMLout($data, Handler => $writer);
+#     }
+#   );
+#   my $parser = XML::SAX::ParserFactory->parser(Handler => $filter);
+#   my $ref = $parser->parse_uri($result_file);
+  my $ref = XMLin($result_file, ForceArray=> ['results', 'result'], KeyAttr => {binding => 'name'});
+
+  #use Data::Dumper;
+
+  my $results_el=$ref->{results};
+  return {expect_empty => 1}
+    unless defined $results_el;
+  
+  #print "IN>>>\n", Dumper($results_el);
+
+  for my $result (@$results_el) {
+    my($row)={};
+    #print "ROW>>>\n";
+    #print Dumper($result);
+    my $bindings=$result->{result};
+
+    for my $binding (@$bindings) {
+
+      $binding=$binding->{binding};
+      #print "BINDING>>>\n", Dumper($binding);
+
+      if(ref($binding) eq 'HASH' && $binding->{name}) {
+	$binding={$binding->{name} => $binding};
+      }
+      while(my($variable,$raw)=each %{$binding}) {
+	my $value;
+	if($raw->{uri}) {
+	  $value="uri<".$raw->{uri}.">";
+	} elsif($raw->{literal}) {
+	  my $lit=$raw->{literal};
+	  $lit={content => $lit}
+	    if !ref($lit);
+	  if($lit->{datatype}) {
+	    $value="string(\"".$lit->{content}."\"^^<".$lit->{datatype}.">)";
+	  } else {
+	    $value="string(\"".$lit->{content}."\")";
+	  }
+	} elsif($raw->{blank}) {
+	  $value="blank ";
+	} else {
+	  $value=$raw;
+	}
+        $row->{$variable}=$value;
+      }
+    }
+    push(@{$results{rows}}, $row);
+  }
+
+  #print "OUT>>>", Dumper(\%results);
+  return \%results;
+}
+
+
 sub run_test($$$$$$) {
   my($name, $dir, $test_file, $data_files_ref, $result_file,$expect_fail)=@_;
   my(@data_files)=@$data_files_ref;
@@ -277,7 +352,11 @@ sub run_test($$$$$$) {
   my $results={expect_empty => 1};
 
   if(defined $result_file) {
-    $results=read_rdf_results_file($result_file);
+    if($result_file =~ /\.srx$/) {
+      $results=read_srx_results_file($result_file);
+    } else {
+      $results=read_rdf_results_file($result_file);
+    }
   }
 
   if(!defined $results) {
