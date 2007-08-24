@@ -664,6 +664,10 @@ void rasqal_query_set_base_uri(rasqal_query* rq, raptor_uri* base_uri);
 void rasqal_init_query_results(void);
 void rasqal_finish_query_results(void);
 
+/* rasqal_result_foramts.c */
+void rasqal_init_result_formats(void);
+void rasqal_finish_result_formats(void);
+
 rasqal_query_results* rasqal_new_query_results(rasqal_query* query);
 void rasqal_query_results_reset(rasqal_query_results* query_results);
 

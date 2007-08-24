@@ -145,6 +145,7 @@ rasqal_init(void)
 #endif
 
   rasqal_init_query_results();
+  rasqal_init_result_formats();
 
   rasqal_initialising=0;
   rasqal_initialised=1;
@@ -166,6 +167,7 @@ rasqal_finish(void)
     return;
   rasqal_finishing=1;
 
+  rasqal_finish_result_formats();
   rasqal_finish_query_results();
 
   rasqal_delete_query_engine_factories();
