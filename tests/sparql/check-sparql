@@ -87,13 +87,13 @@ sub toDebug($) {
   return $str if $str =~ s/^_:(.*)$/blank _/;
 }
 
-sub read_turtle_results_file($) {
+sub read_rdf_results_file($) {
   my($result_file)=@_;
   my(@node_order);
   my(%nodes);
   my(%node_type);
 
-  my $cmd="$rapper -q -i turtle -o ntriples $result_file";
+  my $cmd="$rapper -q -g -o ntriples $result_file";
 
   warn "$program: Opening pipe from '$cmd'\n"
     if $debug;
@@ -257,7 +257,7 @@ sub run_test($$$$$$) {
   my $results=undef;
 
   if(defined $result_file) {
-    $results=read_turtle_results_file($result_file);
+    $results=read_rdf_results_file($result_file);
   }
 
   if(!defined $results) {
