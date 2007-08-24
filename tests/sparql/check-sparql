@@ -236,22 +236,27 @@ sub run_test($$$$$$) {
     return $expect_fail ? 1 : 0;
   }
 
-  open(OUT, "|$sort >result.out")
-    or die "$program: Cannot create pipe to result.out - $!\n";
-
-  my $count=0;
+  my(@results)=();
   for my $node (@{$nodes{$resultset_node}->{$solution_predicate}}) {
     # Get binding nodes
-    my(%results);
+    my $row={};
     for my $binding_node (@{$nodes{$node}->{$binding_predicate}}) {
       my $variable=$nodes{$binding_node}->{$variable_predicate}->[0];
       $variable=~ s/^"(.*)"$/$1/;
       my $value=$nodes{$binding_node}->{$value_predicate}->[0];
-      $results{$variable}=toDebug($value);
+      $row->{$variable}=toDebug($value);
     }
 
-    my(@defined_vars)=grep(defined $results{$_}, @vars_order);
-    print OUT "result: [",join(", ",map {"$_=$results{$_}"} @defined_vars),"]\n";
+    push(@results, $row);
+  }
+
+  open(OUT, "|$sort >result.out")
+    or die "$program: Cannot create pipe to result.out - $!\n";
+
+  my $count=0;
+  for my $row (@results) {
+    my(@defined_vars)=grep(defined $row->{$_}, @vars_order);
+    print OUT "result: [",join(", ",map {"$_=$row->{$_}"} @defined_vars),"]\n";
     $count++;
   }
   close(OUT);
