@@ -6,7 +6,7 @@
 #
 # USAGE check-sparql [-d] [-s SRCDIR] [TEST]
 # 
-# Copyright (C) 2004-2006, David Beckett http://purl.org/net/dajobe/
+# Copyright (C) 2004-2007, David Beckett http://purl.org/net/dajobe/
 # Copyright (C) 2004-2005, University of Bristol, UK http://www.bristol.ac.uk/
 # 
 # This package is Free Software and part of Redland http://librdf.org/
@@ -36,7 +36,6 @@
 use strict;
 use File::Basename;
 use XML::Simple;
-#use XML::SAX::Writer;
 
 
 my $roqet="roqet";
@@ -173,19 +172,6 @@ sub read_srx_results_file($) {
 
   $result_file =~ s%^file://%%;
 
-#   my $writer = XML::SAX::Writer->new();
-#   my $filter = XML::Simple->new(
-#     ForceArray => 1,
-#     KeyAttr => ['name'],
-#     DataHandler => sub {
-#       my $simple = shift;
-#       my $data = shift;
-#       # Modify $data here
-#       $simple->XMLout($data, Handler => $writer);
-#     }
-#   );
-#   my $parser = XML::SAX::ParserFactory->parser(Handler => $filter);
-#   my $ref = $parser->parse_uri($result_file);
   my $ref = XMLin($result_file, ForceArray=> ['results', 'result'], KeyAttr => {binding => 'name'});
 
   #use Data::Dumper;
