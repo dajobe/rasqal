@@ -206,6 +206,8 @@ sub read_srx_results_file($) {
 	    if !ref($lit);
 	  if($lit->{datatype}) {
 	    $value="string(\"".$lit->{content}."\"^^<".$lit->{datatype}.">)";
+	  } elsif($lit->{'xml:lang'}) {
+	    $value="string(\"".$lit->{content}."\"@".$lit->{'xml:lang'}.")";
 	  } else {
 	    $value="string(\"".$lit->{content}."\")";
 	  }
