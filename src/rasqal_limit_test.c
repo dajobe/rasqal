@@ -154,11 +154,8 @@ main(int argc, char **argv) {
         return(1);
       }
 
-      if(test->limit >=0)
-        rasqal_query_set_limit(query, test->limit);
-
-      if(test->offset >=0)
-        rasqal_query_set_offset(query, test->offset);
+      rasqal_query_set_limit(query, test->limit);
+      rasqal_query_set_offset(query, test->offset);
 
 #if RASQAL_DEBUG > 1
       fprintf(stderr, "%s: executing query %d test %d\n", program, query_i,
@@ -198,7 +195,7 @@ main(int argc, char **argv) {
         }
         if(failed) {
           fprintf(stderr,
-                  "%s: query %d test %d result %d value '%s' expected value '%s'\n",
+                  "%s: query %d test %d result %d FAILED returning value '%s' expected value '%s'\n",
                   program, query_i, test_i, result_i, (str ? str: "NULL"),
                   expected_str);
           test_ok=0;
@@ -211,13 +208,14 @@ main(int argc, char **argv) {
         rasqal_free_query_results(results);
 
       if(!test_ok) {
-        fprintf(stderr, "%s: query %d test %d limit %d offset %d failed\n",
+        fprintf(stderr, "%s: query %d test %d limit %d offset %d FAILED\n",
                 program, query_i, test_i, test->limit, test->offset);
       } else {
         if(result_i != test->expected_count) {
           fprintf(stderr,
-                  "%s: test %d limit %d offset %d returned %d results, expected %d\n",
-                  program, test_i, test->limit, test->offset, result_i,
+                  "%s: query %d test %d limit %d offset %d FAILED returned %d results, expected %d\n",
+                  program, 
+                  query_i, test_i, test->limit, test->offset, result_i,
                   test->expected_count);
           test_ok=0;
         }
