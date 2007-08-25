@@ -33,7 +33,7 @@ man_MANS = rasqal-config.1
 
 TESTS=rasqal_expr_test strcasecmp_test
 
-local_tests=rasqal_query_test
+local_tests=rasqal_query_test rasqal_limit_test
 if RASQAL_DATATYPES
 local_tests += rasqal_xsd_datatypes_test
 endif
@@ -87,7 +87,8 @@ sparql_lexer.l sparql_parser.y \
 rasqal-config.in \
 $(man_MANS) \
 fix-flex fix-bison \
-rasqal_query_test.c
+rasqal_query_test.c \
+rasqal_limit_test.c
 
 
 LEX=@LEX@
@@ -147,6 +148,20 @@ run-rasqal-query-test: rasqal_query_test
 	fi; \
 	exit $$status
 
+run-rasqal-limit-test: rasqal_limit_test
+	@tst=rasqal_limit_test; \
+	status=0; \
+	if test -f ./$$tst; then dir=./; \
+	elif test -f $$tst; then dir=; \
+	else dir="$(top_srcdir)/"; fi; \
+	if $${dir}$$tst $(top_srcdir)/data/letters.nt; then \
+	  echo "PASS: $$tst"; \
+	else \
+	  echo "FAIL: $$tst"; \
+	  status=1; \
+	fi; \
+	exit $$status
+
 rdql_lexer_test_SOURCES = rdql_lexer.c
 rdql_lexer_test_CPPFLAGS = -DSTANDALONE
 rdql_lexer_test_LDADD = librasqal.la
@@ -174,6 +189,10 @@ strcasecmp_test_LDADD = librasqal.la
 rasqal_query_test_SOURCES = rasqal_query_test.c
 rasqal_query_test_CPPFLAGS = -DSTANDALONE
 rasqal_query_test_LDADD = librasqal.la
+
+rasqal_limit_test_SOURCES = rasqal_limit_test.c
+rasqal_limit_test_CPPFLAGS = -DSTANDALONE
+rasqal_limit_test_LDADD = librasqal.la
 
 rasqal_xsd_datatypes_test_SOURCES = rasqal_xsd_datatypes.c
 rasqal_xsd_datatypes_test_CPPFLAGS = -DSTANDALONE @RASQAL_EXTERNAL_CPPFLAGS@

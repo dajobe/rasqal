@@ -2023,7 +2023,7 @@ rasqal_engine_check_limit_offset(rasqal_query_results *query_results)
 
   if(query->offset > 0) {
     /* offset */
-    if((query_results->result_count-1) <= query->offset)
+    if(query_results->result_count <= query->offset)
       return -1;
     
     if(query->limit >= 0) {
