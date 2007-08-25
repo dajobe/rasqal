@@ -693,6 +693,9 @@ rasqal_literal_as_integer(rasqal_literal* l, int *error)
   
   switch(l->type) {
     case RASQAL_LITERAL_INTEGER:
+      return l->value.integer;
+      break;
+
     case RASQAL_LITERAL_BOOLEAN:
       return l->value.integer != 0;
       break;
