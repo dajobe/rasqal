@@ -721,6 +721,11 @@ OrderCondition: ASC BrackettedExpression
   /* The direction of ordering is ascending by default */
   $$=rasqal_new_1op_expression(RASQAL_EXPR_ORDER_COND_ASC, $1);
 }
+| BuiltInCall
+{
+  /* The direction of ordering is ascending by default */
+  $$=rasqal_new_1op_expression(RASQAL_EXPR_ORDER_COND_ASC, $1);
+}
 ;
 
 
