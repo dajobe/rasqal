@@ -271,7 +271,7 @@ Var VarName SelectTerm
 /* SPARQL Grammar: [1] Query */
 Query: Prolog ExplainOpt ReportFormat
         DatasetClauseOpt WhereClauseOpt 
-        GroupClauseOpt OrderClauseOpt LimitClauseOpt OffsetClauseOpt
+GroupClauseOpt OrderClauseOpt LimitOffsetOpt
 {
 }
 ;
@@ -654,6 +654,18 @@ GroupClauseOpt: GROUP BY OrderConditionList
 ;
 
 
+/* NEW Grammar Term pulled out of [1] Query */
+LimitOffsetOpt: LimitClause OffsetClause
+| OffsetClause LimitClause
+| LimitClause
+| OffsetClause
+| /* empty */
+{ 
+}
+;
+
+
+
 /* SPARQL Grammar: [15] OrderClause - remained for clarity */
 OrderClauseOpt: ORDER BY OrderConditionList
 {
@@ -713,7 +725,7 @@ OrderCondition: ASC BrackettedExpression
 
 
 /* SPARQL Grammar: [17] LimitClause - remained for clarity */
-LimitClauseOpt:  LIMIT INTEGER_LITERAL
+LimitClause:  LIMIT INTEGER_LITERAL
 {
   if(((rasqal_query*)rq)->verb == RASQAL_QUERY_VERB_ASK) {
     sparql_query_error((rasqal_query*)rq, "LIMIT cannot be used with ASK");
@@ -725,12 +737,11 @@ LimitClauseOpt:  LIMIT INTEGER_LITERAL
   }
   
 }
-| /* empty */
 ;
 
 
 /* SPARQL Grammar: [18] OffsetClause - remained for clarity */
-OffsetClauseOpt:  OFFSET INTEGER_LITERAL
+OffsetClause:  OFFSET INTEGER_LITERAL
 {
   if(((rasqal_query*)rq)->verb == RASQAL_QUERY_VERB_ASK) {
     sparql_query_error((rasqal_query*)rq, "LIMIT cannot be used with ASK");
@@ -741,7 +752,6 @@ OffsetClauseOpt:  OFFSET INTEGER_LITERAL
     }
   }
 }
-| /* empty */
 ;
 
 
