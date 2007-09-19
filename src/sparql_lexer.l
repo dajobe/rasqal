@@ -345,9 +345,6 @@ EXPONENT [eE][+-]?[0-9]+
  		  return INTEGER_LITERAL; 
 }
 
-"+"         { return '+'; }
-"-"         { return '-'; }
-
 0[xX][0-9a-fA-F]+   { int i;
                       int n;
                       if(yytext[yyleng+1] == 'x') 
@@ -388,6 +385,10 @@ EXPONENT [eE][+-]?[0-9]+
                         sparql_parser_lval->literal=rasqal_new_double_literal(d);
                         return FLOATING_POINT_LITERAL;
 }
+
+"+"         { return '+'; }
+"-"         { return '-'; }
+
 
 '([^'\\\n\r]|\\[^\n\r])*'(@{LANGUAGETOKEN})?(^^({QUOTEDURI}|{QNAME}))?    { /*' */
                         sparql_copy_string_token(rq, sparql_parser_lval,
