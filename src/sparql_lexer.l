@@ -334,18 +334,19 @@ EXPONENT [eE][+-]?[0-9]+
 "<="         { return LE; }
 ">="         { return GE; }
 
-"+"         { return '+'; }
-"-"         { return '-'; }
 "*"         { return '*'; }
 "/"         { return '/'; }
 "!"         { return '!'; }
 
-[0-9]+["lL"]?   { c=yytext[yyleng-1];
+[-+]?[0-9]+["lL"]?   { c=yytext[yyleng-1];
                   if (c== 'l' || c == 'L')
                     yytext[yyleng-1]='\0';
                   sparql_parser_lval->literal=rasqal_new_integer_literal(RASQAL_LITERAL_INTEGER, atoi(yytext));
  		  return INTEGER_LITERAL; 
 }
+
+"+"         { return '+'; }
+"-"         { return '-'; }
 
 0[xX][0-9a-fA-F]+   { int i;
                       int n;
