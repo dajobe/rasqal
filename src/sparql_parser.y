@@ -214,36 +214,36 @@ static int sparql_is_builtin_xsd_datatype(raptor_uri* uri);
 %type <variable> Var VarName SelectTerm
 
 
-%destructor { rasqal_free_literal($$); }
+%destructor { if($$) rasqal_free_literal($$); }
 FLOATING_POINT_LITERAL STRING_LITERAL INTEGER_LITERAL BOOLEAN_LITERAL DECIMAL_LITERAL
 
-%destructor { raptor_free_uri($$); }
+%destructor { if($$) raptor_free_uri($$); }
 URI_LITERAL URI_LITERAL_BRACE
 
-%destructor { RASQAL_FREE(cstring, $$); }
+%destructor { if($$) RASQAL_FREE(cstring, $$); }
 QNAME_LITERAL QNAME_LITERAL_BRACE BLANK_LITERAL IDENTIFIER
 
-%destructor { raptor_free_sequence($$); }
+%destructor { if($$) raptor_free_sequence($$); }
 SelectQuery ConstructQuery DescribeQuery
 SelectExpressionList VarOrIRIrefList ArgList ConstructTriplesOpt
 ConstructTemplate OrderConditionList
 GraphNodeListNotEmpty SelectExpressionListTail
 
-%destructor { rasqal_free_formula($$); }
+%destructor { if($$) rasqal_free_formula($$); }
 TriplesSameSubject TriplesSameSubjectDotListOpt
 PropertyList PropertyListTailOpt PropertyListNotEmpty
 ObjectList ObjectTail Collection
 VarOrTerm Verb GraphNode TriplesNode
 BlockOfTriplesOpt BlankNodePropertyList
 
-%destructor { rasqal_free_graph_pattern($$); }
+%destructor { if($$) rasqal_free_graph_pattern($$); }
 GroupGraphPattern GraphPattern
 GraphGraphPattern OptionalGraphPattern
 GroupOrUnionGraphPattern GroupOrUnionGraphPatternList
 GraphPatternNotTriples
 FilteredBasicGraphPattern
 
-%destructor { rasqal_free_expression($$); }
+%destructor { if($$) rasqal_free_expression($$); }
 Expression ConditionalOrExpression ConditionalAndExpression
 RelationalExpression AdditiveExpression
 MultiplicativeExpression UnaryExpression
@@ -252,12 +252,12 @@ BrackettedExpression PrimaryExpression
 OrderCondition Constraint SelectExpression
 AggregateExpression CountAggregateExpression
 
-%destructor { rasqal_free_literal($$); }
+%destructor { if($$) rasqal_free_literal($$); }
 GraphTerm IRIref BlankNode
 VarOrIRIref VarOrBlankNodeOrIRIref
 IRIrefBrace
 
-%destructor { rasqal_free_variable($$); }
+%destructor { if($$) rasqal_free_variable($$); }
 Var VarName SelectTerm
 
 
