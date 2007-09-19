@@ -554,28 +554,25 @@ check-sparql - run SPARQL tests
 
 check-sparql [options] [test ...]
 
- Options:
-   -d, --debug
-   -e, --earl EARL
-   -h, --help
-   -m, --manifest MANIFEST
-   -s, --srcdir DIR
-
 =head1 OPTIONS
 
 =over 8
 
 =item B<--debug>
-Debug
+
+Enable extra debugging output.
 
 =item B<--help>
-Help
+
+Give command help summary.
 
 =item B<--manifest> MANIFEST
-Set the input test manifest
+
+Set the input test MANIFEST file
 
 =item B<--earl> EARL
-Set the output test EARL summary file
+
+Set the output test EARL summary file.
 
 =back
 
