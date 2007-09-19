@@ -39,6 +39,8 @@ use Getopt::Long;
 use Pod::Usage;
 
 my $roqet="roqet";
+my $rasqal_url="http://librdf.org/rasqal/";
+my $rasqal_version="SVN 12547";
 my $rapper="rapper";
 
 
@@ -51,7 +53,6 @@ my $solution_predicate="<${rs}solution>";
 
 my(@manifest_files)=qw(manifest.ttl manifest.n3);
 my $mf='http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#';
-my $mfx='http://jena.hpl.hp.com/2005/05/test-manifest-extra#';
 my $qt='http://www.w3.org/2001/sw/DataAccess/tests/test-query#';
 
 my $program=basename $0;
@@ -234,9 +235,13 @@ sub read_srx_results_file($) {
 }
 
 
-sub run_test($$$$$$) {
-  my($name, $dir, $test_file, $data_files_ref, $result_file,$expect_fail)=@_;
-  my(@data_files)=@$data_files_ref;
+sub run_test {
+  my($config)=@_;
+  my($name,$dir,$test_file,$result_file,$expect_fail)=
+    ($config->{name}, $config->{dir}, $config->{test_file}, 
+     $config->{result_file}, $config->{expect_fail});
+  my($test_uri)=$config->{test_uri};
+  my(@data_files)=@{$config->{data_files}};
 
   warn "run_test($name, dir $dir, query $test_file, data ",join("; ",@data_files),", result ",($result_file||"none"),", expect ",($expect_fail ? "failure":"success"),")\n"
     if $debug;
@@ -262,7 +267,7 @@ sub run_test($$$$$$) {
       return 1;
     }
 
-    warn "$program: test '$test_file' FAILED - query command failed (result $rc):\n";
+    warn "$program: test '$test_file' ($test_uri) FAILED - query command failed (result $rc):\n";
     warn "Failing program was:\n";
     warn "  $roqet_cmd\n";
     my $r=$roqet_cmd; $r =~ s,file:[^ ]+/,,g;
@@ -334,7 +339,7 @@ sub run_test($$$$$$) {
   }
   close(ERR);
   if(@errs) {
-    warn "$program: test '$test_file' FAILED - query returned errors:\n  ".join("\n  ",@errs)."\n";
+    warn "$program: test '$test_file' ($test_uri) FAILED - query returned errors:\n  ".join("\n  ",@errs)."\n";
     warn "Failing program was:\n";
     warn "  $roqet_cmd\n";
     my $r=$roqet_cmd; $r =~ s,file:[^ ]+/,,g;
@@ -377,7 +382,7 @@ sub run_test($$$$$$) {
   $cmd="diff -c result.out roqet.out > diff.out";
   $rc=system($cmd);
   if($rc) {
-    warn "$program: '$name' FAILED\n";
+    warn "$program: '$name' FAILED ($test_uri) \n";
     warn "Failing program was:\n";
     warn "  $roqet_cmd\n";
     my $r=$roqet_cmd; $r =~ s,file:[^ ]+/,,g;
@@ -409,7 +414,6 @@ GetOptions(
   'help|h|?' => \$usage
 ) || pod2usage(2);
 
-use Data::Dumper;
 pod2usage(-verbose => 2) if $usage;
 pod2usage("$0: Too many tests given.\n") if (@ARGV > 1);
 
@@ -493,29 +497,39 @@ while($list_node) {
 
   my $query_node;
   my $expect_fail=0;
-  if($query_type && ($query_type eq "<${mfx}TestSyntax>" ||
-		     $query_type eq "<${mfx}TestBadSyntax>")) {
+  if($query_type && ($query_type eq "<${mf}PositiveSyntaxTest>" ||
+		     $query_type eq "<${mf}NegativeSyntaxTest>")) {
     $query_node=$action_node;
-    $expect_fail=1 if $query_type eq "<${mfx}TestBadSyntax>";
+    $expect_fail=1 if $query_type eq "<${mf}NegativeSyntaxTest>";
   } else {
     $query_node=$triples{$action_node}->{"<${qt}query>"}->[0];
   }
 
+  my $query_file=undef;
   if($query_node) {
-    my $query_file=($query_node =~ /^<(.+)>$/, $1);
-    $query_file =~ s,^file:([^/]+),$1,;
+    $query_file=($query_node =~ /^<(.+)>$/, $1);
+    $query_file =~ s,^file:/*,/,;
 
     print "Entry data_files=",join(", ",@data_files),"\n"
       if $debug;
     print "Entry query_file=$query_file\n"
       if $debug;
-    
-    if (!$unique_test || ($unique_test && $name eq $unique_test)) {
-      push(@tests, [$name, $srcdir, $query_file, [ @data_files], $result_file, $expect_fail]);
-      last if $unique_test;
-    }
-  } else {
-    warn "$program: No query found for test $name\n";
+  }
+  my $test_uri=$entry_node; $test_uri =~ s/^<(.+)>$/$1/;
+  my $test_type=$query_type; $test_type =~ s/^<(.+)>$/$1/ if defined $test_type;
+
+  if (!$unique_test || ($unique_test && $name eq $unique_test)) {
+    push(@tests, {name => $name,
+		  dir => $srcdir,
+		  test_file => $query_file,
+		  data_files => \@data_files,
+		  result_file => $result_file,
+		  expect_fail => $expect_fail,
+		  test_type => $test_type,
+		  test_uri => $test_uri
+	 } );
+
+    last if $unique_test;
   }
 
   $list_node=$triples{$list_node}->{"<${rdf}rest>"}->[0];
@@ -527,22 +541,86 @@ my(@failed);
 my(@passed);
 my $result=0;
 for my $test (@tests) {
-  my($name, $dir, $test_file, $data_files_ref, $result_file,$expect_fail)=@$test;
+  my($config)=$test;
 
-  my $rc = run_test($name, $dir, $test_file, $data_files_ref, $result_file,$expect_fail);
-  $rc=!$rc if $expect_fail;
-  push(@failed, $name) if $rc;
-  push(@passed, $name) if !$rc;
-  $result++ if $rc;
+  my $rc = run_test($config);
+
+  $rc=!$rc 
+    if $config->{expect_fail};
+
+  if($rc) {
+    push(@failed, $config);
+  } else {
+    push(@passed, $config);
+  }
 }
 
 unlink "roqet.out", "result.out", "diff.out", "roqet.err", "roqet.tmp"
   unless $unique_test;
 
-warn "$0: ".scalar(@failed)." FAILED tests: '".join("' '", @failed)."'\n"
-  if @failed;
-warn "$0: Summary: ".scalar(@failed)." failed ".scalar(@passed)." passed\n";
-exit $result;
+if($earl_report_file) {
+  my $is_new=(!-r $earl_report_file);
+  open(OUT, ">>$earl_report_file") 
+    or die "Cannot write to $earl_report_file - $!\n";
+  print OUT <<"EOT"
+\@prefix doap: <http://usefulinc.com/ns/doap\#> .
+\@prefix earl: <http://www.w3.org/ns/earl\#> .
+\@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+\@prefix xsd: <http://www.w3.org/2001/XMLSchema\#> .
+
+ _:author a foaf:Person;
+     foaf:homepage <http://www.dajobe.org/>;
+     foaf:name "Dave Beckett". 
+
+ <${rasqal_url}> a doap:Project;
+     doap:name "Rasqal";
+     doap:release
+       [ a doap:Version;
+         doap:created "2007-09-18"^^xsd:date ;
+         doap:name "rasqal ${rasqal_version}"].
+EOT
+    if $is_new;
+
+  for my $config (@failed) {
+    my $test_uri=$config->{test_uri};
+    print OUT <<"EOT";
+  [] a earl:Assertion;
+     earl:assertedBy _:author;
+     earl:result [
+       a earl:TestResult;
+       earl:outcome earl:fail
+     ];
+     earl:subject <${rasqal_url}>;
+     earl:test <$test_uri> .
+EOT
+  }
+  for my $config (@passed) {
+    my $test_uri=$config->{test_uri};
+    print OUT <<"EOT";
+  [] a earl:Assertion;
+     earl:assertedBy _:author;
+     earl:result [
+       a earl:TestResult;
+       earl:outcome earl:pass
+     ];
+     earl:subject <${rasqal_url}>;
+     earl:test <$test_uri> .
+EOT
+  }
+  close(OUT);
+}
+
+
+my $failed_count=scalar(@failed);
+
+warn "$program: $failed_count FAILED tests:\n  " .
+     join("\n  ", map { $_->{name}. ($debug ? " (".$_->{test_uri}.")" : "") } @failed) .
+     "\n"
+  if $failed_count;
+warn "$program: Summary: ".scalar(@failed)." tests failed ".scalar(@passed)." tests passed\n";
+
+
+exit ($failed_count > 0);
 
 __END__
 
