@@ -620,7 +620,7 @@ warn "$program: $failed_count FAILED tests:\n  " .
 warn "$program: Summary: ".scalar(@failed)." tests failed ".scalar(@passed)." tests passed\n";
 
 
-exit ($failed_count > 0);
+exit $failed_count;
 
 __END__
 
