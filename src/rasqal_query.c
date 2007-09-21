@@ -82,52 +82,57 @@ rasqal_new_query(const char *name, const unsigned char *uri)
   if(!query)
     return NULL;
   
-  query->context=(char*)RASQAL_CALLOC(rasqal_query_context, 1,
-                                      factory->context_length);
-  if(!query->context) {
-    rasqal_free_query(query);
-    return NULL;
-  }
-  
+  /* set usage first to 1 so we can clean up with rasqal_free_query() on error */
+  query->usage=1;
+
   query->factory=factory;
 
-  query->failed=0;
+  query->limit= -1;
+  query->offset= -1;
 
+  query->genid_counter=1;
+
+  query->context=(char*)RASQAL_CALLOC(rasqal_query_context, 1,
+                                      factory->context_length);
+  if(!query->context)
+    goto tidy;
+  
   raptor_uri_get_handler(&uri_handler, &uri_context);
   query->namespaces=raptor_new_namespaces(uri_handler, uri_context,
                                           (raptor_simple_message_handler)rasqal_query_simple_error,
                                           query,
                                           0);
+  if(!query->namespaces)
+    goto tidy;
 
   query->variables_sequence=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_variable, (raptor_sequence_print_handler*)rasqal_variable_print);
+  if(!query->variables_sequence)
+    goto tidy;
 
   query->anon_variables_sequence=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_variable, (raptor_sequence_print_handler*)rasqal_variable_print);
+  if(!query->anon_variables_sequence)
+    goto tidy;
 
   query->triples=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_triple, (raptor_sequence_print_handler*)rasqal_triple_print);
+  if(!query->triples)
+    goto tidy;
   
   query->prefixes=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_prefix, (raptor_sequence_print_handler*)rasqal_prefix_print);
-
-  query->query_graph_pattern=NULL;
+  if(!query->prefixes)
+    goto tidy;
 
   query->data_graphs=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_data_graph, (raptor_sequence_print_handler*)rasqal_data_graph_print);
+  if(!query->data_graphs)
+    goto tidy;
 
-  query->distinct= 0;
-  query->limit= -1;
-  query->offset= -1;
-
-  query->order_conditions_sequence=NULL;
-  query->group_conditions_sequence=NULL;
-
-  query->usage=1;
-  
-  query->genid_counter=1;
-  
-  if(factory->init(query, name)) {
-    rasqal_free_query(query);
-    return NULL;
-  }
+  if(factory->init(query, name))
+    goto tidy;
   
   return query;
+
+  tidy:
+  rasqal_free_query(query);
+  return NULL;
 }
 
 
