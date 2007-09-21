@@ -581,9 +581,10 @@ rasqal_query_add_data_graph(rasqal_query* query,
     return 1;
   
   dg=rasqal_new_data_graph(uri, name_uri, flags);
-  
-  raptor_sequence_push(query->data_graphs, (void*)dg);
-
+  if(!dg)
+    return 1;
+  if(raptor_sequence_push(query->data_graphs, (void*)dg))
+    return 1;
   return 0;
 }
 
@@ -635,8 +636,11 @@ rasqal_query_get_data_graph(rasqal_query* query, int idx)
 void
 rasqal_query_add_variable(rasqal_query* query, rasqal_variable* var)
 {
-  if(!query->selects)
+  if(!query->selects) {
     query->selects=raptor_new_sequence(NULL, (raptor_sequence_print_handler*)rasqal_variable_print);
+    if(!query->selects)
+      RASQAL_FATAL1("Out of memory\n");
+  }
 
   raptor_sequence_push(query->selects, (void*)var);
 }
@@ -864,9 +868,11 @@ rasqal_query_declare_prefixes(rasqal_query *rq)
 void
 rasqal_query_add_prefix(rasqal_query* query, rasqal_prefix* prefix)
 {
-  if(!query->prefixes)
+  if(!query->prefixes) {
     query->prefixes=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_prefix, (raptor_sequence_print_handler*)rasqal_prefix_print);
-  else {
+    if(!query->prefixes)
+      RASQAL_FATAL1("Out of memory\n");
+  } else {
     int i;
     for(i=0; i< raptor_sequence_size(query->prefixes); i++) {
       rasqal_prefix* p=(rasqal_prefix*)raptor_sequence_get_at(query->prefixes, i);
@@ -1007,8 +1013,11 @@ void
 rasqal_graph_pattern_add_sub_graph_pattern(rasqal_graph_pattern* graph_pattern,
                                            rasqal_graph_pattern* sub_graph_pattern)
 {
-  if(!graph_pattern->graph_patterns)
+  if(!graph_pattern->graph_patterns) {
     graph_pattern->graph_patterns=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_graph_pattern, (raptor_sequence_print_handler*)rasqal_graph_pattern_print);
+    if(!graph_pattern->graph_patterns)
+      RASQAL_FATAL1("Out of memory\n");
+  }
   raptor_sequence_push(graph_pattern->graph_patterns, sub_graph_pattern);
 }
 
@@ -1247,10 +1256,12 @@ rasqal_query_prepare(rasqal_query* query,
      */
     query->graph_pattern_count=0;
 
-    /* This sequence stoees shared pointers to the grpah patterns it
+    /* This sequence stores shared pointers to the graph patterns it
      * finds, indexed by the gp_index
      */
     query->graph_patterns_sequence=raptor_new_sequence(NULL, NULL);
+    if(!query->graph_patterns_sequence)
+      return 1;
 
     rasqal_query_graph_pattern_visit(query, 
                                      rasqal_query_prepare_count_graph_patterns,
@@ -1285,6 +1296,9 @@ rasqal_query_execute(rasqal_query* query)
   if(!query_results)
     return NULL;
   
+  /* set executed flag early to enable cleanup on error */
+  query_results->executed=1;
+
   rasqal_query_add_query_result(query, query_results);
 
   rc=rasqal_engine_execute_init(query_results);
@@ -1300,8 +1314,6 @@ rasqal_query_execute(rasqal_query* query)
       return NULL;
     }
   }
-
-  query_results->executed=1;
 
   if(rasqal_engine_execute_run(query_results)) {
     rasqal_free_query_results(query_results);
