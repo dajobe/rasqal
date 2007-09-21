@@ -2079,7 +2079,7 @@ static void
 rasqal_sparql_query_engine_terminate(rasqal_query* rdf_query) {
   rasqal_sparql_query_engine* sparql=(rasqal_sparql_query_engine*)rdf_query->context;
 
-  if(sparql->scanner_set) {
+  if(sparql && sparql->scanner_set) {
     sparql_lexer_lex_destroy(sparql->scanner);
     sparql->scanner_set=0;
   }
