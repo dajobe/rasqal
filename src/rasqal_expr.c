@@ -997,6 +997,7 @@ rasqal_expression_visit(rasqal_expression* e,
     case RASQAL_EXPR_UNKNOWN:
     default:
       RASQAL_FATAL2("Unknown operation %d", e->op);
+      return -1; /* keep some compilers happy */
   }
 }
 
@@ -1008,6 +1009,7 @@ rasqal_expression_as_boolean(rasqal_expression* e, int *error)
     return rasqal_literal_as_boolean(e->literal, error);
 
   abort();
+  return 0; /* keep some compilers happy */
 }
 
 
@@ -1018,6 +1020,7 @@ rasqal_expression_as_integer(rasqal_expression* e, int *error)
     return rasqal_literal_as_integer(e->literal, error);
 
   abort();
+  return 0; /* keep some compilers happy */
 }
 
 
@@ -1034,6 +1037,7 @@ rasqal_expression_compare(rasqal_expression* e1, rasqal_expression* e2,
     RASQAL_FATAL2("Unexpected e1 op %d\n", e1->op);
   else
     RASQAL_FATAL2("Unexpected e2 op %d\n", e2->op);
+  return 0; /* keep some compilers happy */
 }
 
 
