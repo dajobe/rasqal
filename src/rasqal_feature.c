@@ -73,7 +73,7 @@ static const char *rasqal_feature_uri_prefix="http://feature.librdf.org/rasqal-"
  * Internal: Get list of rasqal features.
  *
  * If @uri is not NULL, a pointer to a new raptor_uri is returned
- * that must be freed by the caller with rasqal_free_uri().
+ * that must be freed by the caller with raptor_free_uri().
  *
  * Return value: 0 on success, <0 on failure, >0 if feature is unknown
  **/
