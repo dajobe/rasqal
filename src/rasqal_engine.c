@@ -1963,7 +1963,7 @@ rasqal_engine_merge_graph_patterns(rasqal_query* query,
     }
     
     /* not ok if there are >1 triples */
-    if(sgp->triples && (sgp->end_column-sgp->end_column+1) > 1) {
+    if(sgp->triples && (sgp->end_column-sgp->start_column+1) > 1) {
 #if RASQAL_DEBUG > 1
       RASQAL_DEBUG2("Found >1 triples in sub-graph pattern #%d\n", sgp->gp_index);
 #endif
