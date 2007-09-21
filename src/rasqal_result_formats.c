@@ -62,6 +62,8 @@ void rasqal_query_results_format_register_factory(const char *name,
   factory=(rasqal_query_results_format_factory*)RASQAL_MALLOC(query_results_format_factory, 
                                                               sizeof(rasqal_query_results_format_factory));
 
+  if(!factory)
+    RASQAL_FATAL1("Out of memory\n");
   factory->name=name;
   factory->label=label;
   factory->uri_string=uri_string;
@@ -86,6 +88,8 @@ rasqal_init_result_formats(void)
   rasqal_query_results_writer fn;
 
   query_results_formats=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_query_results_format_factory, NULL);
+  if(!query_results_formats)
+    RASQAL_FATAL1("Out of memory\n");
 
   /*
    * SPARQL XML Results 2007-06-14
@@ -125,7 +129,10 @@ rasqal_init_result_formats(void)
 void
 rasqal_finish_result_formats(void)
 {
-  raptor_free_sequence(query_results_formats);
+  if(query_results_formats) {
+    raptor_free_sequence(query_results_formats);
+    query_results_formats = NULL;
+  }
 }
 
 
@@ -298,6 +305,9 @@ rasqal_new_query_results_formatter(const char *name, raptor_uri* uri)
     return NULL;
 
   formatter=(rasqal_query_results_formatter*)RASQAL_CALLOC(rasqal_query_results_formatter, 1, sizeof(rasqal_query_results_formatter));
+  if(!formatter)
+    return NULL;
+
   formatter->factory=factory;
 
   formatter->mime_type=factory->mime_type;
@@ -336,6 +346,9 @@ rasqal_new_query_results_formatter_by_mime_type(const char *mime_type)
     return NULL;
 
   formatter=(rasqal_query_results_formatter*)RASQAL_CALLOC(rasqal_query_results_formatter, 1, sizeof(rasqal_query_results_formatter));
+  if(!formatter)
+    return NULL;
+
   formatter->factory=factory;
 
   formatter->mime_type=factory->mime_type;
