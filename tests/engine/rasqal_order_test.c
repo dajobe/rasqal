@@ -49,11 +49,11 @@ static const char* animalsList[27]={ "aardvark", "badger", "cow", "dog",
   "uakari", "vole", "whale", "xantus", "yak", "zebra", NULL };
 
 #define QUERY_FORMAT "\
-PREFIX ex: <http://ex.example.org#> \
-SELECT $animal \
-FROM <%s/%s> \
-WHERE { \
-  $zoo ex:hasAnimal $animal \
+PREFIX ex: <http://ex.example.org#> \n\
+SELECT $animal \n\
+FROM <%s/%s> \n\
+WHERE { \n\
+  $zoo ex:hasAnimal $animal \n\
 } ORDER BY $animal LIMIT %d OFFSET %d"
 
 #else
@@ -126,8 +126,8 @@ main(int argc, char **argv) {
 
     printf("%s: preparing %s query %d\n", program, query_language_name, i);
     if(rasqal_query_prepare(query, query_string, base_uri)) {
-      fprintf(stderr, "%s: %s query prepare %d FAILED\n", program, 
-              query_language_name, i);
+      fprintf(stderr, "%s: %s query prepare %d '%s' FAILED\n", program, 
+              query_language_name, i, query_string);
       return(1);
     }
 
