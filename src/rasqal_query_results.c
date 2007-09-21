@@ -104,10 +104,12 @@ rasqal_query_results_reset(rasqal_query_results* query_results)
 void
 rasqal_free_query_results(rasqal_query_results* query_results)
 {
-  rasqal_query* query=query_results->query;
+  rasqal_query* query;
 
   if(!query_results)
     return;
+
+  query=query_results->query;
   
   if(query_results->executed)
     rasqal_engine_execute_finish(query_results);
@@ -124,7 +126,6 @@ rasqal_free_query_results(rasqal_query_results* query_results)
   if(query_results->triple)
     rasqal_free_triple(query_results->triple);
   
-  query=query_results->query;
   rasqal_query_remove_query_result(query, query_results);
   RASQAL_FREE(rasqal_query_results, query_results);
 }
