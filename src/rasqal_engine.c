@@ -1103,6 +1103,8 @@ rasqal_engine_graph_pattern_init(rasqal_query_results* query_results,
   execution_data=(rasqal_engine_execution_data*)query_results->execution_data;
   gp_data=(rasqal_engine_gp_data*)raptor_sequence_get_at(execution_data->seq, 
                                                          gp->gp_index);
+  if(!gp_data)
+    return -1;
   
   gp_data->optional_graph_pattern= -1;
   gp_data->current_graph_pattern= -1;
@@ -1155,9 +1157,12 @@ rasqal_engine_graph_pattern_init(rasqal_query_results* query_results,
       rasqal_triple *t;
       rasqal_variable* v;
 
-      t=(rasqal_triple*)raptor_sequence_get_at(gp->triples, i);
       m=&gp_data->triple_meta[i - gp->start_column];
+      if(!m)
+        return -1;
       m->parts=(rasqal_triple_parts)0;
+
+      t=(rasqal_triple*)raptor_sequence_get_at(gp->triples, i);
       
       if((v=rasqal_literal_as_variable(t->subject)) &&
          query->variables_declared_in[v->offset] == i)
