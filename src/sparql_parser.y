@@ -92,7 +92,7 @@ extern int sparql_lexer_lex (YYSTYPE *sparql_parser_lval, yyscan_t scanner);
 #define yylex sparql_lexer_lex
 
 
-static int sparql_parse(rasqal_query* rq, const unsigned char *string);
+static int sparql_parse(rasqal_query* rq);
 static void sparql_query_error(rasqal_query* rq, const char *message);
 static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) RASQAL_PRINTF_FORMAT(2, 3);
 static int sparql_is_builtin_xsd_datatype(raptor_uri* uri);
@@ -2095,7 +2095,7 @@ rasqal_sparql_query_engine_prepare(rasqal_query* rdf_query) {
   if(!rdf_query->query_string)
     return 1;
   
-  rc=sparql_parse(rdf_query, rdf_query->query_string);
+  rc=sparql_parse(rdf_query);
   if(rc)
     return rc;
 
@@ -2123,14 +2123,12 @@ rasqal_sparql_query_engine_execute(rasqal_query* rdf_query,
 
 
 static int
-sparql_parse(rasqal_query* rq, const unsigned char *string) {
+sparql_parse(rasqal_query* rq) {
   rasqal_sparql_query_engine* rqe=(rasqal_sparql_query_engine*)rq->context;
   raptor_locator *locator=&rq->locator;
-  char *buf=NULL;
-  size_t len;
   void *buffer;
 
-  if(!string || !*string)
+  if(!rq->query_string)
     return yy_init_globals(NULL); /* 0 but a way to use yy_init_globals */
 
   locator->line=1;
@@ -2148,27 +2146,9 @@ sparql_parse(rasqal_query* rq, const unsigned char *string) {
 
   sparql_lexer_set_extra(((rasqal_query*)rq), rqe->scanner);
 
-  /* This
-   *   buffer= sparql_lexer__scan_string((const char*)string, rqe->scanner);
-   * is replaced by the code below.  
-   * 
-   * The extra space appended to the buffer is the least-pain
-   * workaround to the lexer crashing by reading EOF twice in
-   * sparql_copy_regex_token; at least as far as I can diagnose.  The
-   * fix here costs little to add as the above function does
-   * something very similar to this anyway.
-   */
-  len= strlen((const char*)string);
-  buf= (char *)RASQAL_MALLOC(cstring, len+3);
-  strncpy(buf, (const char*)string, len);
-  buf[len]= ' ';
-  buf[len+1]= buf[len+2]='\0'; /* YY_END_OF_BUFFER_CHAR; */
-  buffer= sparql_lexer__scan_buffer(buf, len+3, rqe->scanner);
+  buffer= sparql_lexer__scan_buffer((char*)rq->query_string, rq->query_string_length, rqe->scanner);
 
   sparql_parser_parse(rq);
-
-  if(buf)
-    RASQAL_FREE(cstring, buf);
 
   sparql_lexer_lex_destroy(rqe->scanner);
   rqe->scanner_set=0;

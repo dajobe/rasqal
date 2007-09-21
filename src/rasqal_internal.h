@@ -171,6 +171,7 @@ struct rasqal_query_s {
   int usage; /* reference count - 1 for itself, plus for query_results */
   
   unsigned char* query_string;
+  int query_string_length; /* length including NULs */
 
   raptor_namespace_stack* namespaces;
 

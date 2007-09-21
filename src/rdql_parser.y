@@ -86,7 +86,7 @@ extern int rdql_lexer_lex (YYSTYPE *rdql_parser_lval, yyscan_t scanner);
 #define yylex rdql_lexer_lex
 
 
-static int rdql_parse(rasqal_query* rq, const unsigned char *string);
+static int rdql_parse(rasqal_query* rq);
 static int rdql_query_error(rasqal_query* rq, const char *message);
 
 %}
@@ -665,7 +665,7 @@ rasqal_rdql_query_engine_prepare(rasqal_query* rdf_query) {
   /* for RDQL only, before the graph pattern is made */
   rdf_query->constraints_sequence=raptor_new_sequence(NULL, (raptor_sequence_print_handler*)rasqal_expression_print);
   
-  rc=rdql_parse(rdf_query, rdf_query->query_string);
+  rc=rdql_parse(rdf_query);
   if(rc)
     return rc;
 
@@ -704,14 +704,12 @@ rasqal_rdql_query_engine_execute(rasqal_query* rdf_query,
 
 
 static int
-rdql_parse(rasqal_query* rq, const unsigned char *string) {
+rdql_parse(rasqal_query* rq) {
   rasqal_rdql_query_engine* rqe=(rasqal_rdql_query_engine*)rq->context;
   raptor_locator *locator=&rq->locator;
-  char *buf=NULL;
-  size_t len;
   void *buffer;
   
-  if(!string || !*string)
+  if(!rq->query_string)
     return yy_init_globals(NULL); /* 0 but a way to use yy_init_globals */
 
   locator->line=1;
@@ -729,27 +727,9 @@ rdql_parse(rasqal_query* rq, const unsigned char *string) {
 
   rdql_lexer_set_extra(((rasqal_query*)rq), rqe->scanner);
 
-  /* This
-   *   buffer= rdql_lexer__scan_string((const char*)string, rqe->scanner);
-   * is replaced by the code below.  
-   * 
-   * The extra space appended to the buffer is the least-pain
-   * workaround to the lexer crashing by reading EOF twice in
-   * rdql_copy_regex_token; at least as far as I can diagnose.  The
-   * fix here costs little to add as the above function does
-   * something very similar to this anyway.
-   */
-  len= strlen((const char*)string);
-  buf= (char *)RASQAL_MALLOC(cstring, len+3);
-  strncpy(buf, (const char*)string, len);
-  buf[len]= ' ';
-  buf[len+1]= buf[len+2]='\0'; /* YY_END_OF_BUFFER_CHAR; */
-  buffer= rdql_lexer__scan_buffer(buf, len+3, rqe->scanner);
+  buffer= rdql_lexer__scan_buffer((char*)rq->query_string, rq->query_string_length, rqe->scanner);
 
   rdql_parser_parse(rq);
-
-  if(buf)
-    RASQAL_FREE(cstring, buf);
 
   rdql_lexer_lex_destroy(rqe->scanner);
   rqe->scanner_set=0;

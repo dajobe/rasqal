@@ -1186,8 +1186,29 @@ rasqal_query_prepare(rasqal_query* query,
   query->prepared=1;
 
   if(query_string) {
-    query->query_string=(unsigned char*)RASQAL_MALLOC(cstring, strlen((const char*)query_string)+1);
-    strcpy((char*)query->query_string, (const char*)query_string);
+    /* flex lexers require two NULs at the end of the lexed buffer.
+     * Add them here instead of parser to allow resource cleanup on error.
+     *  
+     * flex manual:
+     *
+     * Function: YY_BUFFER_STATE yy_scan_buffer (char *base, yy_size_t size)
+     * which scans in place the buffer starting at `base', consisting of
+     * `size' bytes, the last two bytes of which _must_ be
+     * `YY_END_OF_BUFFER_CHAR' (ASCII NUL).  These last two bytes are not
+     * scanned; thus, scanning consists of `base[0]' through
+     * `base[size-2]', inclusive.
+     */
+    int len=strlen((const char*)query_string)+3; /* +3 for " \0\0" */
+    unsigned char *query_string_copy=(unsigned char*)RASQAL_MALLOC(cstring, len);
+    if(!query_string_copy) {
+      query->failed=1;
+      return 1;
+    }
+    strcpy((char*)query_string_copy, (const char*)query_string);
+    query_string_copy[len-3]=' ';
+    query_string_copy[len-2]=query_string_copy[len-1]='\0';
+    query->query_string=query_string_copy;
+    query->query_string_length=len;
   }
 
   if(base_uri)
