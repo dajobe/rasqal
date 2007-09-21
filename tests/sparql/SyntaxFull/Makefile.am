@@ -59,13 +59,18 @@ syntax-qname-01.rq syntax-qname-02.rq syntax-qname-03.rq \
 syntax-qname-04.rq syntax-qname-05.rq syntax-qname-06.rq \
 syntax-struct-11.rq syntax-struct-12.rq
 
-# No test failures
-# Excluding anything with optional WHERE which gives a warning
+# 2 test failures
+# Unary +/- confused with operators (2007-09-20)
+EXPECTED_SPARQL_PARSER_FAILURES= \
+syntax-order-02.rq syntax-order-06.rq
 
-EXPECTED_SPARQL_PARSER_FAILURES=
+EXPECTED_SPARQL_PARSER_FAILURES_COUNT= 2
 
-EXPECTED_SPARQL_PARSER_FAILURES_COUNT=0
+EXPECTED_SPARQL_CORRECT_FAILURES= \
+$(EXPECTED_SPARQL_PARSER_FAILURES)
 
+EXPECTED_SPARQL_CORRECT_FAILURES_COUNT = \
+$(EXPECTED_SPARQL_PARSER_FAILURES_COUNT)
 
 EXTRA_DIST= \
 $(SPARQL_MANIFEST_FILES) \
@@ -127,11 +132,21 @@ check-sparql-parser: build-sparql-parser-test
 
 check-sparql-correct: build-roqet $(srcdir)/../check-sparql
 	@set +e; \
+	expect=$(EXPECTED_SPARQL_CORRECT_FAILURES_COUNT); \
 	$(ECHO) "Testing SPARQL correct"; \
 	PATH=$(top_builddir)/utils:$(top_builddir)@RAPPER_PATH@:$$PATH \
 	  perl $(srcdir)/../check-sparql -s $(srcdir); \
 	result=$$?; \
 	if test $$result != 0 ; then \
-	    echo "FAILED: $$result failures"; \
+	  echo "Expecting test failures: $(EXPECTED_SPARQL_CORRECT_FAILURES)"; \
+	  if test $$result = $$expect ; then \
+	    echo "OK: Ignoring $$expect expected test failures"; result=0; \
+          else \
+	    echo "FAILED: $$result failures does not match expected $$expect"; result=1; \
+	    fails="$$fails $$test"; \
+          fi; \
+	fi; \
+	if test $$result != 0 ; then \
+	  echo "FAILED tests:$$fails"; \
 	fi; \
 	set -e; exit $$result
