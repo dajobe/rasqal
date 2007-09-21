@@ -163,7 +163,7 @@ rasqal_init(void)
 void
 rasqal_finish(void) 
 {
-  if(!rasqal_initialised || rasqal_finishing)
+  if((!rasqal_initialised && !rasqal_initialising) || rasqal_finishing)
     return;
   rasqal_finishing=1;
 
