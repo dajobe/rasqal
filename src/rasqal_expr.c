@@ -68,6 +68,7 @@ static RASQAL_INLINE int rasqal_expression_compare(rasqal_expression* e1, rasqal
  * @flags: %RASQAL_DATA_GRAPH_NAMED or %RASQAL_DATA_GRAPH_BACKGROUND
  * 
  * Constructor - create a new #rasqal_data_graph.
+ * Takes ownership of uri and name_uri.
  * 
  * The name_uri is only used when the flags are %RASQAL_DATA_GRAPH_NAMED.
  * 
@@ -78,10 +79,16 @@ rasqal_new_data_graph(raptor_uri* uri, raptor_uri* name_uri, int flags)
 {
   rasqal_data_graph* dg=(rasqal_data_graph*)RASQAL_CALLOC(rasqal_data_graph, 1,
                                                       sizeof(rasqal_data_graph));
-  dg->uri=raptor_uri_copy(uri);
-  if(name_uri)
-    dg->name_uri=raptor_uri_copy(name_uri);
-  dg->flags=flags;
+  if(dg) {  
+    dg->uri=raptor_uri_copy(uri);
+    if(name_uri)
+      dg->name_uri=raptor_uri_copy(name_uri);
+    dg->flags=flags;
+  } else {
+    raptor_free_uri(uri);
+    if(name_uri)
+      raptor_free_uri(name_uri);
+  }
 
   return dg;
 }
@@ -181,13 +188,22 @@ rasqal_new_variable_typed(rasqal_query* rq,
   }
     
   v=(rasqal_variable*)RASQAL_CALLOC(rasqal_variable, 1, sizeof(rasqal_variable));
+  if(v) {
+    v->type= type;
+    v->name= name;
+    v->value= value;
+    v->offset= (*count_p);
 
-  v->type= type;
-  v->name= name;
-  v->value= value;
-  v->offset= (*count_p)++;
+    if(raptor_sequence_push(seq, v))
+      return NULL;
 
-  raptor_sequence_push(seq, v);
+    /* Increment count only after sequence push succeeded */
+    (*count_p)++;
+  } else {
+    RASQAL_FREE(cstring, name);
+    if(value)
+      rasqal_free_literal(value);
+  }
   
   return v;
 }
@@ -305,6 +321,7 @@ rasqal_variable_set_value(rasqal_variable* v, rasqal_literal* l)
  * @uri: Name #raptor_uri.
  * 
  * Constructor - create a new #rasqal_prefix.
+ * Takes ownership of prefix and uri.
  * 
  * Return value: a new #rasqal_prefix or NULL on failure.
  **/
@@ -314,8 +331,13 @@ rasqal_new_prefix(const unsigned char *prefix, raptor_uri* uri)
   rasqal_prefix* p=(rasqal_prefix*)RASQAL_CALLOC(rasqal_prefix, 1,
                                                  sizeof(rasqal_prefix));
 
-  p->prefix=prefix;
-  p->uri=uri;
+  if(p) {  
+    p->prefix=prefix;
+    p->uri=uri;
+  } else {
+    RASQAL_FREE(cstring, prefix);
+    raptor_free_uri(uri);
+  }
 
   return p;
 }
@@ -332,7 +354,8 @@ rasqal_free_prefix(rasqal_prefix* p)
 {
   if(p->prefix)
     RASQAL_FREE(cstring, (void*)p->prefix);
-  raptor_free_uri(p->uri);
+  if(p->uri)
+    raptor_free_uri(p->uri);
   RASQAL_FREE(rasqal_prefix, p);
 }
 
@@ -361,6 +384,7 @@ rasqal_prefix_print(rasqal_prefix* p, FILE* fh)
  * @object: Triple object.
  * 
  * Constructor - create a new #rasqal_triple triple or triple pattern.
+ * Takes ownership of the literals passed in.
  * 
  * The triple origin can be set with rasqal_triple_set_origin().
  *
@@ -371,9 +395,18 @@ rasqal_new_triple(rasqal_literal* subject, rasqal_literal* predicate, rasqal_lit
 {
   rasqal_triple* t=(rasqal_triple*)RASQAL_CALLOC(rasqal_triple, 1, sizeof(rasqal_triple));
 
-  t->subject=subject;
-  t->predicate=predicate;
-  t->object=object;
+  if(t) {
+    t->subject=subject;
+    t->predicate=predicate;
+    t->object=object;
+  } else {
+    if(subject)
+      rasqal_free_literal(subject);
+    if(predicate)
+      rasqal_free_literal(predicate);
+    if(object)
+      rasqal_free_literal(object);
+  }
 
   return t;
 }
@@ -392,9 +425,11 @@ rasqal_new_triple_from_triple(rasqal_triple* t)
 {
   rasqal_triple* newt=(rasqal_triple*)RASQAL_CALLOC(rasqal_triple, 1, sizeof(rasqal_triple));
 
-  newt->subject=rasqal_new_literal_from_literal(t->subject);
-  newt->predicate=rasqal_new_literal_from_literal(t->predicate);
-  newt->object=rasqal_new_literal_from_literal(t->object);
+  if(newt) {
+    newt->subject=rasqal_new_literal_from_literal(t->subject);
+    newt->predicate=rasqal_new_literal_from_literal(t->predicate);
+    newt->object=rasqal_new_literal_from_literal(t->object);
+  }
 
   return newt;
 }
@@ -494,8 +529,10 @@ rasqal_expression*
 rasqal_new_0op_expression(rasqal_op op)
 {
   rasqal_expression* e=(rasqal_expression*)RASQAL_CALLOC(rasqal_expression, 1, sizeof(rasqal_expression));
-  e->usage=1;
-  e->op=op;
+  if(e) {
+    e->usage=1;
+    e->op=op;
+  }
   return e;
 }
 
@@ -506,6 +543,7 @@ rasqal_new_0op_expression(rasqal_op op)
  * @arg: Operand 1 
  * 
  * Constructor - create a new 1-operand expression.
+ * Takes ownership of the operand expression.
  *
  * The operators are:
  * @RASQAL_EXPR_TILDE @RASQAL_EXPR_BANG @RASQAL_EXPR_UMINUS
@@ -526,9 +564,13 @@ rasqal_expression*
 rasqal_new_1op_expression(rasqal_op op, rasqal_expression* arg)
 {
   rasqal_expression* e=(rasqal_expression*)RASQAL_CALLOC(rasqal_expression, 1, sizeof(rasqal_expression));
-  e->usage=1;
-  e->op=op;
-  e->arg1=arg;
+  if(e) {
+    e->usage=1;
+    e->op=op;
+    e->arg1=arg;
+  } else {
+    rasqal_free_expression(arg);
+  }
   return e;
 }
 
@@ -540,6 +582,7 @@ rasqal_new_1op_expression(rasqal_op op, rasqal_expression* arg)
  * @arg2: Operand 2
  * 
  * Constructor - create a new 2-operand expression.
+ * Takes ownership of the operand expressions.
  * 
  * The operators are:
  * @RASQAL_EXPR_AND @RASQAL_EXPR_OR @RASQAL_EXPR_EQ
@@ -559,10 +602,15 @@ rasqal_new_2op_expression(rasqal_op op,
                           rasqal_expression* arg2)
 {
   rasqal_expression* e=(rasqal_expression*)RASQAL_CALLOC(rasqal_expression, 1, sizeof(rasqal_expression));
-  e->usage=1;
-  e->op=op;
-  e->arg1=arg1;
-  e->arg2=arg2;
+  if(e) {
+    e->usage=1;
+    e->op=op;
+    e->arg1=arg1;
+    e->arg2=arg2;
+  } else {
+    rasqal_free_expression(arg1);
+    rasqal_free_expression(arg2);
+  }
   return e;
 }
 
@@ -575,6 +623,7 @@ rasqal_new_2op_expression(rasqal_op op,
  * @arg3: Operand 3 (may be NULL)
  * 
  * Constructor - create a new 3-operand expression.
+ * Takes ownership of the operands.
  * 
  * The only operator is:
  * @RASQAL_EXPR_REGEX
@@ -588,11 +637,17 @@ rasqal_new_3op_expression(rasqal_op op,
                           rasqal_expression* arg3)
 {
   rasqal_expression* e=(rasqal_expression*)RASQAL_CALLOC(rasqal_expression, 1, sizeof(rasqal_expression));
-  e->usage=1;
-  e->op=op;
-  e->arg1=arg1;
-  e->arg2=arg2;
-  e->arg3=arg3;
+  if(e) {
+    e->usage=1;
+    e->op=op;
+    e->arg1=arg1;
+    e->arg2=arg2;
+    e->arg3=arg3;
+  } else {
+    rasqal_free_expression(arg1);
+    rasqal_free_expression(arg2);
+    rasqal_free_expression(arg3);
+  }
   return e;
 }
 
@@ -604,6 +659,7 @@ rasqal_new_3op_expression(rasqal_op op,
  * @literal: Literal operand 2
  * 
  * Constructor - create a new expression with one expression and one string operand.
+ * Takes ownership of the operands.
  *
  * The operators are:
  * @RASQAL_EXPR_STR_MATCH (RDQL, SPARQL) and
@@ -617,10 +673,15 @@ rasqal_new_string_op_expression(rasqal_op op,
                                 rasqal_literal* literal)
 {
   rasqal_expression* e=(rasqal_expression*)RASQAL_CALLOC(rasqal_expression, 1, sizeof(rasqal_expression));
-  e->usage=1;
-  e->op=op;
-  e->arg1=arg1;
-  e->literal=literal;
+  if(e) {
+    e->usage=1;
+    e->op=op;
+    e->arg1=arg1;
+    e->literal=literal;
+  } else {
+    rasqal_free_expression(arg1);
+    rasqal_free_literal(literal);
+  }
   return e;
 }
 
@@ -630,6 +691,7 @@ rasqal_new_string_op_expression(rasqal_op op,
  * @literal: Literal operand 1
  * 
  * Constructor - create a new expression for a #rasqal_literal
+ * Takes ownership of the operand literal.
  * 
  * Return value: a new #rasqal_expression object or NULL on failure
  **/
@@ -637,9 +699,13 @@ rasqal_expression*
 rasqal_new_literal_expression(rasqal_literal *literal)
 {
   rasqal_expression* e=(rasqal_expression*)RASQAL_CALLOC(rasqal_expression, 1, sizeof(rasqal_expression));
-  e->usage=1;
-  e->op=RASQAL_EXPR_LITERAL;
-  e->literal=literal;
+  if(e) {  
+    e->usage=1;
+    e->op=RASQAL_EXPR_LITERAL;
+    e->literal=literal;
+  } else {
+    rasqal_free_literal(literal);
+  }
   return e;
 }
 
@@ -649,7 +715,8 @@ rasqal_new_literal_expression(rasqal_literal *literal)
  * @name: function name
  * @args: sequence of #rasqal_expression function arguments
  * 
- * Constructor - create a new expression for a function with expression arguments
+ * Constructor - create a new expression for a function with expression arguments.
+ * Takes ownership of the function uri and arguments.
  * 
  * Return value: a new #rasqal_expression object or NULL on failure
  **/
@@ -658,10 +725,15 @@ rasqal_new_function_expression(raptor_uri* name,
                                raptor_sequence* args)
 {
   rasqal_expression* e=(rasqal_expression*)RASQAL_CALLOC(rasqal_expression, 1, sizeof(rasqal_expression));
-  e->usage=1;
-  e->op=RASQAL_EXPR_FUNCTION;
-  e->name=name;
-  e->args=args;
+  if(e) {
+    e->usage=1;
+    e->op=RASQAL_EXPR_FUNCTION;
+    e->name=name;
+    e->args=args;
+  } else {
+    raptor_free_uri(name);
+    raptor_free_sequence(args);
+  }
   return e;
 }
 
@@ -671,7 +743,8 @@ rasqal_new_function_expression(raptor_uri* name,
  * @name: cast datatype URI
  * @value: expression value to cast to @datatype type
  * 
- * Constructor - create a new expression for casting and expression to a datatype
+ * Constructor - create a new expression for casting and expression to a datatype.
+ * Takes ownership of the datatype uri and expression value.
  * 
  * Return value: a new #rasqal_expression object or NULL on failure
  **/
@@ -679,10 +752,15 @@ rasqal_expression*
 rasqal_new_cast_expression(raptor_uri* name, rasqal_expression *value) 
 {
   rasqal_expression* e=(rasqal_expression*)RASQAL_CALLOC(rasqal_expression, 1, sizeof(rasqal_expression));
-  e->usage=1;
-  e->op=RASQAL_EXPR_CAST;
-  e->name=name;
-  e->arg1=value;
+  if(e) {
+    e->usage=1;
+    e->op=RASQAL_EXPR_CAST;
+    e->name=name;
+    e->arg1=value;
+  } else {
+    raptor_free_uri(name);
+    rasqal_free_expression(value);
+  }
   return e;
 }
 
