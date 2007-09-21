@@ -559,21 +559,21 @@ rasqal_triples_match_bind_match(struct rasqal_triples_match_s* rtm,
                                 rasqal_variable *bindings[4],
                                 rasqal_triple_parts parts)
 {
-  return rtm->bind_match(rtm,  rtm->user_data, bindings, parts);
+  return rtm->bind_match(rtm, rtm->user_data, bindings, parts);
 }
 
 
 static void
 rasqal_triples_match_next_match(struct rasqal_triples_match_s* rtm)
 {
-  rtm->next_match(rtm,  rtm->user_data);
+  rtm->next_match(rtm, rtm->user_data);
 }
 
 
 static int
 rasqal_triples_match_is_end(struct rasqal_triples_match_s* rtm)
 {
-  return rtm->is_end(rtm,  rtm->user_data);
+  return rtm->is_end(rtm, rtm->user_data);
 }
 
 
