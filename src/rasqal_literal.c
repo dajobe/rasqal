@@ -715,6 +715,7 @@ rasqal_literal_as_boolean(rasqal_literal* l, int *error)
     case RASQAL_LITERAL_UNKNOWN:
     default:
       abort();
+      return 0; /* keep some compilers happy */
   }
 }
 
@@ -786,6 +787,7 @@ rasqal_literal_as_integer(rasqal_literal* l, int *error)
     case RASQAL_LITERAL_UNKNOWN:
     default:
       abort();
+      return 0; /* keep some compilers happy */
   }
 }
 
@@ -845,6 +847,7 @@ rasqal_literal_as_floating(rasqal_literal* l, int *error)
     case RASQAL_LITERAL_UNKNOWN:
     default:
       abort();
+      return 0.0; /* keep some compilers happy */
   }
 }
 
@@ -922,6 +925,7 @@ rasqal_literal_as_string_flags(rasqal_literal* l, int flags, int *error)
     case RASQAL_LITERAL_UNKNOWN:
     default:
       abort();
+      return NULL; /* keep some compilers happy */
   }
 }
 
@@ -1219,6 +1223,7 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
     case RASQAL_LITERAL_VARIABLE:
     default:
       abort();
+      return 0; /* keep some compilers happy */
   }
 }
 
@@ -1299,6 +1304,7 @@ rasqal_literal_equals(rasqal_literal* l1, rasqal_literal* l2)
     case RASQAL_LITERAL_UNKNOWN:
     default:
       abort();
+      return 0; /* keep some compilers happy */
   }
 }
 
@@ -1389,7 +1395,7 @@ rasqal_literal*
 rasqal_literal_as_node(rasqal_literal* l)
 {
   raptor_uri *dt_uri=NULL;
-  rasqal_literal* new_l;
+  rasqal_literal* new_l=NULL;
   
   switch(l->type) {
     case RASQAL_LITERAL_URI:
@@ -1526,6 +1532,7 @@ rasqal_literal_is_constant(rasqal_literal* l)
     case RASQAL_LITERAL_UNKNOWN:
     default:
       abort();
+      return 0; /* keep some compilers happy */
   }
 }
 
