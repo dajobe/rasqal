@@ -2128,7 +2128,7 @@ rasqal_engine_merge_triples(rasqal_query* query,
     rasqal_graph_pattern *dest_bgp;
     raptor_sequence *seq;
     int i, j;
-    int first, last;
+    int first=0, last=0;
     int size=raptor_sequence_size(gp->graph_patterns);
     
     /* find first basic graph pattern starting at offset */
