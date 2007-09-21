@@ -21,7 +21,7 @@
 # the licenses in COPYING.LIB, COPYING and LICENSE-2.0.txt respectively.
 # 
 
-local_tests=rasqal_order_test rasqal_graph_test
+local_tests=rasqal_order_test$(EXEEXT) rasqal_graph_test$(EXEEXT)
 
 EXTRA_PROGRAMS=$(local_tests)
 
