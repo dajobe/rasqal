@@ -188,6 +188,29 @@ rasqal_finish(void)
 
 /* helper functions */
 
+/*
+ * rasqal_free_query_engine_factory - delete a query engine factory
+ */
+static void
+rasqal_free_query_engine_factory(rasqal_query_engine_factory *factory)
+{
+  if(factory) {
+    if(factory->finish_factory)
+      factory->finish_factory(factory);
+
+    if(factory->name)
+      RASQAL_FREE(rasqal_query_engine_factory, (void*)factory->name);
+    if(factory->label)
+      RASQAL_FREE(rasqal_query_engine_factory, (void*)factory->label);
+    if(factory->alias)
+      RASQAL_FREE(rasqal_query_engine_factory, (void*)factory->alias);
+    if(factory->uri_string)
+      RASQAL_FREE(rasqal_query_engine_factory, (void*)factory->uri_string);
+
+    RASQAL_FREE(rasqal_query_engine_factory, factory);
+  }
+}
+
 
 /*
  * rasqal_delete_query_engine_factories - helper function to delete all the registered query engine factories
@@ -199,18 +222,7 @@ rasqal_delete_query_engine_factories(void)
   
   for(factory=query_engines; factory; factory=next) {
     next=factory->next;
-
-    if(factory->finish_factory)
-      factory->finish_factory(factory);
-
-    RASQAL_FREE(rasqal_query_engine_factory, (void*)factory->name);
-    RASQAL_FREE(rasqal_query_engine_factory, (void*)factory->label);
-    if(factory->alias)
-      RASQAL_FREE(rasqal_query_engine_factory, (void*)factory->alias);
-    if(factory->uri_string)
-      RASQAL_FREE(rasqal_query_engine_factory, (void*)factory->uri_string);
-
-    RASQAL_FREE(rasqal_query_engine_factory, factory);
+    rasqal_free_query_engine_factory(factory);
   }
   query_engines=NULL;
 }
@@ -247,7 +259,7 @@ rasqal_query_engine_register_factory(const char *name, const char *label,
   query=(rasqal_query_engine_factory*)RASQAL_CALLOC(rasqal_query_engine_factory, 1,
                                                     sizeof(rasqal_query_engine_factory));
   if(!query)
-    RASQAL_FATAL1("Out of memory\n");
+    goto tidy_noquery;
 
   for(h = query_engines; h; h = h->next ) {
     if(!strcmp(h->name, name) ||
@@ -257,37 +269,29 @@ rasqal_query_engine_register_factory(const char *name, const char *label,
   }
   
   name_copy=(char*)RASQAL_CALLOC(cstring, strlen(name)+1, 1);
-  if(!name_copy) {
-    RASQAL_FREE(rasqal_query, query);
-    RASQAL_FATAL1("Out of memory\n");
-  }
+  if(!name_copy)
+    goto tidy;
   strcpy(name_copy, name);
   query->name=name_copy;
         
   label_copy=(char*)RASQAL_CALLOC(cstring, strlen(label)+1, 1);
-  if(!label_copy) {
-    RASQAL_FREE(rasqal_query, query);
-    RASQAL_FATAL1("Out of memory\n");
-  }
+  if(!label_copy)
+    goto tidy;
   strcpy(label_copy, label);
   query->label=label_copy;
 
   if(uri_string) {
     uri_string_copy=(unsigned char*)RASQAL_CALLOC(cstring, strlen((const char*)uri_string)+1, 1);
-    if(!uri_string_copy) {
-    RASQAL_FREE(rasqal_query, query);
-    RASQAL_FATAL1("Out of memory\n");
-    }
+    if(!uri_string_copy)
+      goto tidy;
     strcpy((char*)uri_string_copy, (const char*)uri_string);
     query->uri_string=uri_string_copy;
   }
         
   if(alias) {
     alias_copy=(char*)RASQAL_CALLOC(cstring, strlen(alias)+1, 1);
-    if(!alias_copy) {
-      RASQAL_FREE(rasqal_query, query);
-      RASQAL_FATAL1("Out of memory\n");
-    }
+    if(!alias_copy)
+      goto tidy;
     strcpy(alias_copy, alias);
     query->alias=alias_copy;
   }
@@ -301,6 +305,14 @@ rasqal_query_engine_register_factory(const char *name, const char *label,
   
   query->next = query_engines;
   query_engines = query;
+
+  return;
+
+  tidy:
+  rasqal_free_query_engine_factory(query);
+  tidy_noquery:
+  rasqal_finish();
+  RASQAL_FATAL1("Out of memory\n");
 }
 
 
