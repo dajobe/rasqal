@@ -1589,7 +1589,10 @@ rasqal_formula_join(rasqal_formula* first_formula,
       first_formula->triples=second_formula->triples;
       second_formula->triples=NULL;
     } else if(second_formula->triples)
-      raptor_sequence_join(first_formula->triples, second_formula->triples);
+      if(raptor_sequence_join(first_formula->triples, second_formula->triples)) {
+        rasqal_free_formula(first_formula);
+        first_formula=NULL;
+      }
     
     rasqal_free_formula(second_formula);
   }
