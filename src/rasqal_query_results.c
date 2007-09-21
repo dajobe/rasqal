@@ -83,7 +83,6 @@ void
 rasqal_query_results_reset(rasqal_query_results* query_results)
 {
   query_results->result_count=0;
-  query_results->executed=0;
   query_results->abort=0;
   query_results->finished=0;
   query_results->failed=0;
