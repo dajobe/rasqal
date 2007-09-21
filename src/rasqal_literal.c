@@ -71,14 +71,19 @@ rasqal_literal*
 rasqal_new_integer_literal(rasqal_literal_type type, int integer)
 {
   rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(rasqal_literal));
-
-  l->type=type;
-  l->value.integer=integer;
-  l->string=(unsigned char*)RASQAL_MALLOC(cstring, 30); /* FIXME */
-  sprintf((char*)l->string, "%d", integer);
-  l->string_len=strlen((const char*)l->string);
-  l->datatype=raptor_uri_copy(rasqal_xsd_integer_uri);
-  l->usage=1;
+  if(l) {
+    l->type=type;
+    l->value.integer=integer;
+    l->string=(unsigned char*)RASQAL_MALLOC(cstring, 30); /* FIXME */
+    if(!l->string) {
+      rasqal_free_literal(l);
+      return NULL;
+    }
+    sprintf((char*)l->string, "%d", integer);
+    l->string_len=strlen((const char*)l->string);
+    l->datatype=raptor_uri_copy(rasqal_xsd_integer_uri);
+    l->usage=1;
+  }
   return l;
 }
 
@@ -95,14 +100,19 @@ rasqal_literal*
 rasqal_new_double_literal(double d)
 {
   rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(rasqal_literal));
-
-  l->type=RASQAL_LITERAL_DOUBLE;
-  l->value.floating=d;
-  l->string=(unsigned char*)RASQAL_MALLOC(cstring, 30); /* FIXME */
-  sprintf((char*)l->string, "%1g", d);
-  l->string_len=strlen((const char*)l->string);
-  l->datatype=raptor_uri_copy(rasqal_xsd_double_uri);
-  l->usage=1;
+  if(l) {
+    l->type=RASQAL_LITERAL_DOUBLE;
+    l->value.floating=d;
+    l->string=(unsigned char*)RASQAL_MALLOC(cstring, 30); /* FIXME */
+    if(!l->string) {
+      rasqal_free_literal(l);
+      return NULL;
+    }
+    sprintf((char*)l->string, "%1g", d);
+    l->string_len=strlen((const char*)l->string);
+    l->datatype=raptor_uri_copy(rasqal_xsd_double_uri);
+    l->usage=1;
+  }
   return l;
 }
 
@@ -131,6 +141,7 @@ rasqal_new_floating_literal(double f)
  * Constructor - Create a new Rasqal URI literal from a raptor URI.
  *
  * The uri is an input parameter and is stored in the literal, not copied.
+ * The uri is freed also on failure.
  * 
  * Return value: New #rasqal_literal or NULL on failure
  **/
@@ -138,10 +149,13 @@ rasqal_literal*
 rasqal_new_uri_literal(raptor_uri *uri)
 {
   rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(rasqal_literal));
-
-  l->type=RASQAL_LITERAL_URI;
-  l->value.uri=uri;
-  l->usage=1;
+  if(l) {
+    l->type=RASQAL_LITERAL_URI;
+    l->value.uri=uri;
+    l->usage=1;
+  } else {
+    raptor_free_uri(uri);
+  }
   return l;
 }
 
@@ -154,8 +168,9 @@ rasqal_new_uri_literal(raptor_uri *uri)
  * Constructor - Create a new Rasqal pattern literal.
  *
  * The pattern and flags are input parameters and are stored in the
- * literal, not copied.  The set of flags recognised depends
- * on the regex engine and the query language.
+ * literal, not copied. They are freed also on failure.
+ * The set of flags recognised depends on the regex engine and the query
+ * language.
  * 
  * Return value: New #rasqal_literal or NULL on failure
  **/
@@ -164,12 +179,17 @@ rasqal_new_pattern_literal(const unsigned char *pattern,
                            const char *flags)
 {
   rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(rasqal_literal));
-
-  l->type=RASQAL_LITERAL_PATTERN;
-  l->string=pattern;
-  l->string_len=strlen((const char*)pattern);
-  l->flags=(const unsigned char*)flags;
-  l->usage=1;
+  if(l) {
+    l->type=RASQAL_LITERAL_PATTERN;
+    l->string=pattern;
+    l->string_len=strlen((const char*)pattern);
+    l->flags=(const unsigned char*)flags;
+    l->usage=1;
+  } else {
+    if(flags)
+      RASQAL_FREE(cstring, (void*)flags);
+    RASQAL_FREE(cstring, (void*)pattern);
+  }
   return l;
 }
 
@@ -186,13 +206,18 @@ rasqal_literal*
 rasqal_new_decimal_literal(const unsigned char *decimal)
 {
   rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(rasqal_literal));
-
-  l->type=RASQAL_LITERAL_DECIMAL;
-  l->string_len=strlen((const char*)decimal);
-  l->string=(unsigned char*)RASQAL_MALLOC(cstring, l->string_len+1);
-  strcpy((char*)l->string, (const char*)decimal);
-  l->datatype=raptor_uri_copy(rasqal_xsd_decimal_uri);
-  l->usage=1;
+  if(l) {
+    l->type=RASQAL_LITERAL_DECIMAL;
+    l->string_len=strlen((const char*)decimal);
+    l->string=(unsigned char*)RASQAL_MALLOC(cstring, l->string_len+1);
+    if(!l->string) {
+      rasqal_free_literal(l);
+      return NULL;
+    }
+    strcpy((char*)l->string, (const char*)decimal);
+    l->datatype=raptor_uri_copy(rasqal_xsd_decimal_uri);
+    l->usage=1;
+  }
   return l;
 }
 
@@ -293,7 +318,7 @@ rasqal_literal_string_to_native(rasqal_literal *l,
  * Constructor - Create a new Rasqal string literal.
  * 
  * All parameters are input parameters and if present are stored in
- * the literal, not copied.
+ * the literal, not copied. They are freed also on failure.
  * 
  * The datatype and datatype_qname parameters are alternatives; the
  * qname is a datatype that cannot be resolved till later since the
@@ -312,23 +337,32 @@ rasqal_new_string_literal(const unsigned char *string,
                           const unsigned char *datatype_qname)
 {
   rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(rasqal_literal));
+  if(l) {
+    if(datatype && language) {
+      RASQAL_FREE(cstring, (void*)language);
+      language=NULL;
+    }
 
-  if(datatype && language) {
-    RASQAL_FREE(cstring, (void*)language);
-    language=NULL;
-  }
+    l->type=RASQAL_LITERAL_STRING;
+    l->string=string;
+    l->string_len=strlen((const char*)string);
+    l->language=language;
+    l->datatype=datatype;
+    l->flags=datatype_qname;
+    l->usage=1;
 
-  l->type=RASQAL_LITERAL_STRING;
-  l->string=string;
-  l->string_len=strlen((const char*)string);
-  l->language=language;
-  l->datatype=datatype;
-  l->flags=datatype_qname;
-  l->usage=1;
-
-  if(rasqal_literal_string_to_native(l, NULL, NULL)) {
-    rasqal_free_literal(l);
-    l=NULL;
+    if(rasqal_literal_string_to_native(l, NULL, NULL)) {
+      rasqal_free_literal(l);
+      l=NULL;
+    }
+  } else {
+    if(language)
+      RASQAL_FREE(cstring, (void*)language);
+    if(datatype)
+      RASQAL_FREE(cstring, (void*)datatype);
+    if(datatype_qname)
+      RASQAL_FREE(cstring, (void*)datatype_qname);
+    RASQAL_FREE(cstring, (void*)string);
   }
     
   return l;
@@ -343,7 +377,7 @@ rasqal_new_string_literal(const unsigned char *string,
  * Constructor - Create a new Rasqal simple literal.
  * 
  * The string is an input parameter and is stored in the
- * literal, not copied.
+ * literal, not copied. It is freed also on failure.
  * 
  * Return value: New #rasqal_literal or NULL on failure
  **/
@@ -352,11 +386,14 @@ rasqal_new_simple_literal(rasqal_literal_type type,
                           const unsigned char *string)
 {
   rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(rasqal_literal));
-
-  l->type=type;
-  l->string=string;
-  l->string_len=strlen((const char*)string);
-  l->usage=1;
+  if(l) {
+    l->type=type;
+    l->string=string;
+    l->string_len=strlen((const char*)string);
+    l->usage=1;
+  } else {
+    RASQAL_FREE(cstring, (void*)string);
+  }
   return l;
 }
 
@@ -373,12 +410,13 @@ rasqal_literal*
 rasqal_new_boolean_literal(int value)
 {
   rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(rasqal_literal));
-
-  l->type=RASQAL_LITERAL_BOOLEAN;
-  l->value.integer=value;
-  l->string=value ? RASQAL_XSD_BOOLEAN_TRUE : RASQAL_XSD_BOOLEAN_FALSE;
-  l->string_len=(value ? 4 : 5);
-  l->usage=1;
+  if(l) {
+    l->type=RASQAL_LITERAL_BOOLEAN;
+    l->value.integer=value;
+    l->string=value ? RASQAL_XSD_BOOLEAN_TRUE : RASQAL_XSD_BOOLEAN_FALSE;
+    l->string_len=(value ? 4 : 5);
+    l->usage=1;
+  }
   return l;
 }
 
@@ -397,9 +435,16 @@ rasqal_literal*
 rasqal_new_variable_literal(rasqal_variable *variable)
 {
   rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(rasqal_literal));
-  l->type=RASQAL_LITERAL_VARIABLE;
-  l->value.variable=variable;
-  l->usage=1;
+  if(l) {
+    l->type=RASQAL_LITERAL_VARIABLE;
+    l->value.variable=variable;
+    l->usage=1;
+  }
+
+  /* Do not rasqal_free_variable(variable) on error since
+   * all variables are shared and owned by rasqal_query
+   * variables_sequence */
+
   return l;
 }
 
@@ -1373,14 +1418,16 @@ rasqal_literal_as_node(rasqal_literal* l)
         dt_uri=raptor_uri_copy(l->datatype);
 
       new_l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(rasqal_literal));
-
-      new_l->type=RASQAL_LITERAL_STRING;
-      new_l->string_len=strlen((const char*)l->string);
-      new_l->string=(unsigned char*)RASQAL_MALLOC(cstring, new_l->string_len+1);
-      strcpy((char*)new_l->string, (const char*)l->string);
-      new_l->datatype=dt_uri;
-      new_l->flags=NULL;
-      new_l->usage=1;
+      if(new_l) {
+        new_l->type=RASQAL_LITERAL_STRING;
+        new_l->string_len=strlen((const char*)l->string);
+        new_l->string=(unsigned char*)RASQAL_MALLOC(cstring, new_l->string_len+1);
+        if(new_l->string)
+          strcpy((char*)new_l->string, (const char*)l->string);
+        new_l->datatype=dt_uri;
+        new_l->flags=NULL;
+        new_l->usage=1;
+      }
       break;
       
     case RASQAL_LITERAL_QNAME:
