@@ -1118,9 +1118,11 @@ rasqal_engine_graph_pattern_init(rasqal_query_results* query_results,
       /* reset any previous execution */
       rasqal_reset_triple_meta(gp_data->triple_meta);
       memset(gp_data->triple_meta, '\0', sizeof(rasqal_triple_meta)*triples_count);
-    } else
+    } else {
       gp_data->triple_meta=(rasqal_triple_meta*)RASQAL_CALLOC(rasqal_triple_meta, triples_count, sizeof(rasqal_triple_meta));
-
+      if(!gp_data)
+        return -1;
+    }
   }
 
   if(gp->graph_patterns) {
