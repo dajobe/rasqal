@@ -997,7 +997,8 @@ rasqal_engine_prepare(rasqal_query *query)
     rasqal_engine_expand_wildcards(query);
 
     /* create the query->variables array */
-    rasqal_engine_assign_variables(query);
+    if(rasqal_engine_assign_variables(query))
+      return 1;
 
     rasqal_query_build_declared_in(query);
     
