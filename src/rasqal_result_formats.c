@@ -371,37 +371,6 @@ rasqal_free_query_results_formatter(rasqal_query_results_formatter* formatter)
 
 
 /*
- * rasqal_query_results_new_xml_element:
- * @ns: namespace
- * @name: element name
- * @base_uri: base uri or NULL
- *
- * Internal helper - create a new xml_element.
- */
-static raptor_xml_element*
-rasqal_query_results_new_xml_element(raptor_namespace *ns,
-                                 const unsigned char *name,
-                                 raptor_uri *base_uri)
-{
-  raptor_uri *base_uri_copy;
-  raptor_qname *qname;
-  raptor_xml_element *element=NULL;
-
-  /* no attribute value - element */
-  qname=raptor_new_qname_from_namespace_local_name(ns, name, NULL);
-  if(qname) {
-    base_uri_copy=base_uri ? raptor_uri_copy(base_uri) : NULL;
-    element=raptor_new_xml_element(qname, /*language=*/NULL, base_uri_copy);
-    if(!element) {
-      raptor_free_qname(qname);
-      if(base_uri_copy)
-        raptor_free_uri(base_uri_copy);
-    }
-  }
-  return element;
-}
-
-/*
  * rasqal_query_results_write_xml_result4:
  * @iostr: #raptor_iostream to write the query to
  * @results: #rasqal_query_results query results format
@@ -465,9 +434,9 @@ rasqal_query_results_write_xml_result4(raptor_iostream *iostr,
   if(!res_ns)
     goto tidy;
 
-  sparql_element=rasqal_query_results_new_xml_element(res_ns,
-                                                      (const unsigned char*)"sparql",
-                                                      base_uri);
+  sparql_element=raptor_new_xml_element_from_namespace_local_name(res_ns,
+                                                                  (const unsigned char*)"sparql",
+                                                                  base_uri);
   if(!sparql_element)
     goto tidy;
 
@@ -493,9 +462,9 @@ rasqal_query_results_write_xml_result4(raptor_iostream *iostr,
   raptor_xml_writer_raw_counted(xml_writer, (const unsigned char*)"\n", 1);
 
   /*   <head> */
-  element1=rasqal_query_results_new_xml_element(res_ns,
-                                                (const unsigned char*)"head",
-                                                base_uri);
+  element1=raptor_new_xml_element_from_namespace_local_name(res_ns,
+                                                            (const unsigned char*)"head",
+                                                            base_uri);
   if(!element1)
     goto tidy;
 
@@ -511,9 +480,9 @@ rasqal_query_results_write_xml_result4(raptor_iostream *iostr,
         break;
       
       /*     <variable name="x"/> */
-      variable_element=rasqal_query_results_new_xml_element(res_ns,
-                                                            (const unsigned char*)"variable",
-                                                            base_uri);
+      variable_element=raptor_new_xml_element_from_namespace_local_name(res_ns,
+                                                                        (const unsigned char*)"variable",
+                                                                        base_uri);
       if(!variable_element)
         goto tidy;
       
@@ -553,9 +522,9 @@ rasqal_query_results_write_xml_result4(raptor_iostream *iostr,
 
   /* Boolean Results */
   if(rasqal_query_results_is_boolean(results)) {
-    result_element=rasqal_query_results_new_xml_element(res_ns,
-                                                      (const unsigned char*)"boolean",
-                                                      base_uri);
+    result_element=raptor_new_xml_element_from_namespace_local_name(res_ns,
+                                                                    (const unsigned char*)"boolean",
+                                                                    base_uri);
     if(!result_element)
       goto tidy;
 
@@ -575,9 +544,9 @@ rasqal_query_results_write_xml_result4(raptor_iostream *iostr,
   /* Variable Binding Results */
 
   /*   <results> */
-  results_element=rasqal_query_results_new_xml_element(res_ns,
-                                                       (const unsigned char*)"results",
-                                                       base_uri);
+  results_element=raptor_new_xml_element_from_namespace_local_name(res_ns,
+                                                                   (const unsigned char*)"results",
+                                                                   base_uri);
   if(!results_element)
     goto tidy;
 
@@ -587,9 +556,9 @@ rasqal_query_results_write_xml_result4(raptor_iostream *iostr,
 
 
   /* declare result element for later multiple use */
-  result_element=rasqal_query_results_new_xml_element(res_ns,
-                                                      (const unsigned char*)"result",
-                                                      base_uri);
+  result_element=raptor_new_xml_element_from_namespace_local_name(res_ns,
+                                                                  (const unsigned char*)"result",
+                                                                  base_uri);
   if(!result_element)
     goto tidy;
 
@@ -604,9 +573,9 @@ rasqal_query_results_write_xml_result4(raptor_iostream *iostr,
       rasqal_literal *l=rasqal_query_results_get_binding_value(results, i);
 
       /*       <binding> */
-      binding_element=rasqal_query_results_new_xml_element(res_ns,
-                                                           (const unsigned char*)"binding",
-                                                           base_uri);
+      binding_element=raptor_new_xml_element_from_namespace_local_name(res_ns,
+                                                                       (const unsigned char*)"binding",
+                                                                       base_uri);
       if(!binding_element)
         goto tidy;
 
@@ -628,18 +597,18 @@ rasqal_query_results_write_xml_result4(raptor_iostream *iostr,
       raptor_xml_writer_start_element(xml_writer, binding_element);
 
       if(!l) {
-        element1=rasqal_query_results_new_xml_element(res_ns,
-                                                      (const unsigned char*)"unbound",
-                                                      base_uri);
+        element1=raptor_new_xml_element_from_namespace_local_name(res_ns,
+                                                                  (const unsigned char*)"unbound",
+                                                                  base_uri);
         if(!element1)
           goto tidy;
         raptor_xml_writer_empty_element(xml_writer, element1);
 
       } else switch(l->type) {
         case RASQAL_LITERAL_URI:
-          element1=rasqal_query_results_new_xml_element(res_ns,
-                                                        (const unsigned char*)"uri",
-                                                        base_uri);
+          element1=raptor_new_xml_element_from_namespace_local_name(res_ns,
+                                                                    (const unsigned char*)"uri",
+                                                                    base_uri);
           if(!element1)
             goto tidy;
           
@@ -650,9 +619,9 @@ rasqal_query_results_write_xml_result4(raptor_iostream *iostr,
           break;
 
         case RASQAL_LITERAL_BLANK:
-          element1=rasqal_query_results_new_xml_element(res_ns,
-                                                        (const unsigned char*)"bnode",
-                                                        base_uri);
+          element1=raptor_new_xml_element_from_namespace_local_name(res_ns,
+                                                                    (const unsigned char*)"bnode",
+                                                                    base_uri);
           if(!element1)
             goto tidy;
           
@@ -662,9 +631,9 @@ rasqal_query_results_write_xml_result4(raptor_iostream *iostr,
           break;
 
         case RASQAL_LITERAL_STRING:
-          element1=rasqal_query_results_new_xml_element(res_ns,
-                                                        (const unsigned char*)"literal",
-                                                        base_uri);
+          element1=raptor_new_xml_element_from_namespace_local_name(res_ns,
+                                                                    (const unsigned char*)"literal",
+                                                                    base_uri);
           if(!element1)
             goto tidy;
 
