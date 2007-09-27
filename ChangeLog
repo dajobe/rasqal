@@ -1,3 +1,359 @@
+2007-09-26  Dave Beckett <dave@dajobe.org>
+
+	* autogen.sh: autogen.sh with perl version grep script
+
+2007-09-26  Lauri Aalto <laalto@iki.fi>
+
+	* src, tests/engine, tests/laqrs, tests/laqrs/syntax, utils:
+	Props: ignore .exes, Makefile, Makefile.in
+
+2007-09-25  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_result_formats.c: (rasqal_query_results_write_xml_result4)
+	Refactoring: Replaced rasqal_query_results_new_xml_element() with
+	raptor_new_xml_element_from_namespace_local_name().
+
+2007-09-24  Lauri Aalto <laalto@iki.fi>
+
+	* autogen.sh: Do not compare versions as decimal, e.g. automake
+	1.10 should be treated newer than 1.7.
+	(update_prog_version) Convert [z.]x.y version strings to 100x+y.
+
+2007-09-21  Lauri Aalto <laalto@iki.fi>
+
+	* src/sparql_parser.y: (rasqal_sparql_query_engine_terminate)
+	Clean up nicely even if could not init query engine.
+
+	* src/rasqal_internal.h, src/rasqal_query.c, src/rdql_parser.y,
+	src/sparql_parser.y: (rasqal queries) Added query string length
+	field to rasqal_query_s. Moved padding query strings with two
+	YY_END_OF_BUFFER_CHARs (NULs) from bison parsers to
+	rasqal_query_prepare() - prevents a memory leak if there's an
+	error parsing the string. Removed query_string from *_parse()
+	prototypes as the query string is already available in the query
+	structure passed in.
+
+	* src/rasqal_result_formats.c: (rasqal_query_results_write_xml_result4)
+	Check for alloc failures and clean up on error.
+
+	* src/rasqal_query_results.c: (rasqal_query_results_reset) Do not
+	clear executed flag to allow cleanup on partially initialized
+	results.
+
+	* src/rasqal_general.c: rasqal_general: Check for alloc failures
+	and clean up on error.
+
+	* src/rasqal_general.c: (rasqal_finish) Allow cleanup even if init
+	was incomplete
+
+	* src/rasqal_engine.c: (rasqal_engine_merge_graph_patterns) Fix
+	constant 1 > 1 check for the number of triples.
+
+	* src/rasqal_engine.c: (rasqal_engine_graph_pattern_init)
+	Robustness fixes
+
+	* src/rasqal_engine.c: (rasqal_free_gp_data) Check against
+	negative start_column
+
+	* src/rasqal_engine.c: (rasqal_engine_graph_pattern_init) Check
+	for alloc failure
+
+	* src/rasqal_engine.c: (rasqal_engine_merge_triples) Fix compiler
+	warning about uninitialized variables.
+
+	* src/rasqal_engine.c: (rasqal_engine_prepare) Check
+	rasqal_engine_assign_variables() return value.
+
+	* src/rasqal_engine.c: rasqal_engine: Check for alloc failures and
+	clean up on errors.
+
+	* src/rasqal_expr.c: rasqal_expr: Fix compiler warnings about not
+	returning a value from a non-void function (for compilers that do
+	not recognize abort() as non-returning function).
+
+	* src/rasqal_expr.c: rasqal_expr: Check for alloc failures and
+	clean up on errors.
+
+	* src/rasqal_graph_pattern.c: rasqal_graph_pattern: Check for
+	alloc failures and clean up on errors.
+
+	* src/rasqal_literal.c: (rasqal_formula_join) Free formulas and
+	return NULL on error.
+
+	* src/rasqal_literal.c: rasqal_literal: Fix compiler warnings
+	about uninitialized variables. Fix compiler warnings about not
+	returning a value from a non-void function (for compilers that do
+	not recognize abort() as non-returning function).
+
+	* src/rasqal_literal.c: rasqal_literal: Check for alloc
+	failures. Clean up on failure.
+
+	* src/rasqal_query.c: rasqal_query: Check for alloc
+	failures. Clean up on failure.
+
+	* src/rasqal_query.c: (rasqal_new_query) Check for alloc
+	failures. Clean up on failure.
+
+	* src/rasqal_query.c: (rasqal_query_escape_counted_string) Fix
+	compiler warning about type punning.
+
+	* src/rasqal_query_results.c: (rasqal_free_query_results) Do not
+	indirect query_results before making sure it is not NULL.
+
+	* src/rasqal_query_results.c: (rasqal_new_query_results) Check for
+	alloc failure
+
+	* src/rasqal_result_formats.c: rasqal_result_formats: Check for
+	alloc failures. Clean up on failure.
+
+	* src/fix-bison: bison parsers / fix-bison: Fix compiler warning
+	about empty declarations (remove semicolon).
+
+	* src/rasqal_feature.c: Fix typos in comments
+
+	* Makefile.am, autogen.sh, configure.ac, data/Makefile.am,
+	docs/Makefile.am, src/Makefile.am, tests/Makefile.am,
+	tests/engine/Makefile.am, tests/laqrs/Makefile.am,
+	tests/laqrs/syntax/Makefile.am, tests/rdql/Makefile.am,
+	tests/rdql/testsuite/Makefile.am, tests/sparql/Expr1/Makefile.am,
+	tests/sparql/Expr2/Makefile.am,
+	tests/sparql/ExprBuiltins/Makefile.am,
+	tests/sparql/ExprEquals/Makefile.am, tests/sparql/Makefile.am,
+	tests/sparql/SyntaxDev/Makefile.am,
+	tests/sparql/SyntaxDev/Syntax-SPARQL/Makefile.am,
+	tests/sparql/SyntaxDev/Syntax-SPARQL2/Makefile.am,
+	tests/sparql/SyntaxDev/Syntax-SPARQL3/Makefile.am,
+	tests/sparql/SyntaxFull/Makefile.am,
+	tests/sparql/ValueTesting/Makefile.am,
+	tests/sparql/bound/Makefile.am, tests/sparql/examples/Makefile.am,
+	tests/sparql/part1/Makefile.am, tests/sparql/regex/Makefile.am,
+	tests/sparql/simple/Makefile.am, tests/sparql/sort/Makefile.am,
+	tests/sparql/survey/Makefile.am, tests/sparql/syntax/Makefile.am,
+	utils/Makefile.am, win32/Makefile.am: Fix EOL issues when building
+	svn version on cygwin.
+	Partial fix to http://bugs.librdf.org/mantis/view.php?id=236
+
+	* src/Makefile.am, tests/engine/Makefile.am: Added $(EXEEXT)s to
+	Makefiles to fix "make clean" on cygwin. Partial fix to
+	http://bugs.librdf.org/mantis/view.php?id=235
+
+	* autogen.sh: rasqal autogen.sh $dir quoting. Partial fix to
+	http://bugs.librdf.org/mantis/view.php?id=234
+
+2007-09-20  Dave Beckett <dave@dajobe.org>
+
+	* tests/sparql/SyntaxFull/Makefile.am: Expect 2 more failures :(
+
+	* tests/engine/rasqal_order_test.c: Formatting
+
+2007-09-19  Dave Beckett <dave@dajobe.org>
+
+	* tests/sparql/check-sparql: Fix exit
+
+	* src/sparql_parser.y: Protect destructors from calling on NULL
+	object - such as in an error case.
+
+	* src/sparql_lexer.l: Move bare +, - alone to after recognising
+	all other numerics.
+
+	* src/sparql_lexer.l: Allow unary +/- before an integer.
+
+	* src/sparql_parser.y: (OrderCondition): Allow a built-in call at
+	the top level
+
+	* src/sparql_parser.y: (LimitOffsetOpt): Added to allow LIMIT and
+	OFFSET in any order or absent.
+	(LimitClause): Renamed from LimitClauseOpt
+	(OffsetClause): Renamed from OffsetClauseOpt
+
+	* tests/sparql/check-sparql: Output EARL.  Handle syntax only tests
+
+2007-09-18  Dave Beckett <dave@dajobe.org>
+
+	* tests/sparql/check-sparql: help
+
+	* tests/sparql/check-sparql: use perl Getopt::Long and Pod::Usage
+
+2007-08-25  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_limit_test.c: Tidy messages
+
+	* src/Makefile.am, src/rasqal_engine.c, src/rasqal_limit_test.c:
+	Added rasqal_iimit_test.c
+
+2007-08-24  Dave Beckett <dave@dajobe.org>
+
+	* data/Makefile.am, data/letters.nt: Added letters.nt
+
+	* src/rasqal_literal.c: (rasqal_literal_as_integer): Return
+	integer values correctly.  How did this ever work?
+	Fixes Issue#0000221 http://bugs.librdf.org/mantis/view.php?id=221
+
+	* src/sparql_parser.y: Destruct all tokens so memory does not leak
+	on error.
+	Fixes Issue#0000225 http://bugs.librdf.org/mantis/view.php?id=225
+
+	* tests/sparql/check-sparql: guess for xml:lang
+
+	* tests/sparql/check-sparql: tidy
+
+	* tests/sparql/check-sparql: Crude srx reading
+
+	* tests/sparql/Makefile.am: Removed BNodes dir
+
+	* tests/sparql/Makefile.am: Added BNodes
+
+	* tests/sparql/check-sparql: Add error messages when rapper fails
+	- and abort test. Fix more assumptions when no result is expected.
+
+2007-08-23  Dave Beckett <dave@dajobe.org>
+
+	* tests/sparql/check-sparql: (read_rdf_results_file): Renamed from
+	read_turtle_results_file and guesses result rdf format - turtle/n3
+	or rdf seem to be the choiecs.
+
+	* tests/sparql/check-sparql: Refactored to pull out
+	read_turtle_results_file
+
+	* tests/sparql/check-sparql: pull apart results creation from
+	writing result.out
+
+	* src/rasqal_result_formats.c: Delete old SPARQL XML Result
+	formats to leave just the latest draft and JSON.
+
+	* src/Makefile.am, src/rasqal_general.c, src/rasqal_internal.h,
+	src/rasqal_query_results.c, src/rasqal_result_formats.c (from
+	/rasqal/trunk/src/rasqal_query_results.c:12462): Moved query
+	result formatter code into new rasqal_result_formats.c from
+	rasqal_query_results.c
+
+2007-08-22  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_query_results.c: (rasqal_query_results_get_boolean):
+	Do not return error on finished. Finished has no meaning for
+	boolean result.
+
+	* src/rasqal_query_results.c: (rasqal_query_results_get_boolean):
+	Simplify since now rasqal_engine_query_results_update does all the
+	work.  Just count the results returned so far which will be at
+	least 1 if there are any results.
+
+	* src/rasqal_engine.c: (rasqal_engine_query_results_update): Let
+	this be called for a boolean result, to get the first one.
+
+2007-08-19  Dave Beckett <dave@dajobe.org>
+
+	* src/sparql_parser.y: (BasedeclOpt): Use
+	rasqal_query_set_base_uri to ensure the URI fields are updated
+	correctly.
+	Fixes Issue#0000219 http://bugs.librdf.org/mantis/view.php?id=219
+
+	* src/rasqal_internal.h: Added rasqal_query_set_base_uri prototype
+
+	* src/rasqal_query.c: (rasqal_query_prepare): Use
+	rasqal_query_set_base_uri.
+	(rasqal_query_set_base_uri): Added
+
+	* src/rasqal_query_results.c: (rasqal_query_results_get_boolean):
+	Get the first result row from a query in order to answer ASK.
+	Fixes Issue#0000193 http://bugs.librdf.org/mantis/view.php?id=193
+
+	* src/sparql_lexer.l: (rasqal_sparql_name_check): debug cast
+
+	* src/sparql_parser.y: (WhereClauseOpt): Remove warning about
+	optional SPARQL WHERE although it is still a dumb idea to have
+	useless keywords.
+	Fixes Issue#0000204 http://bugs.librdf.org/mantis/view.php?id=204
+
+	* src/rasqal_expr.c: (rasqal_language_matches): * does not match a
+	langString with no language.
+	Fixes Issue#0000201 http://bugs.librdf.org/mantis/view.php?id=201
+
+	* tests/sparql/ExprBuiltins/result-langMatches-3.ttl,
+	tests/sparql/ExprBuiltins/result-langMatches-4.ttl: Fix expected
+	result fixes for langMatches-[34]
+	http://lists.w3.org/Archives/Public/public-rdf-dawg-comments/2006Jun/0050.html
+
+2007-08-17  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal.h: Applied rasqal part of symbian portability fix for
+	Issue#0000203 http://bugs.librdf.org/mantis/view.php?id=203
+
+2007-07-06  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_query_results.c: Add 4th version of SPARQL XML
+	Results format.
+	(rasqal_init_query_results): Use
+	rasqal_query_results_write_xml_result4 for latest version
+	2007-06-14 named "xml" and demote previous one 2006-01-25 to name
+	"xml-v3"
+	(rasqal_query_results_write_xml_result4): Added to implement
+	version 2007-06-14 with removal of attributes 'ordered' and
+	'distinct'.
+
+2007-06-13  Dave Beckett <dave@dajobe.org>
+
+	* tests/sparql/ExprBuiltins/Makefile.am: LangMatches-2
+	LangMatches-3 LangMatches-4 all pass leaving 2 failures
+
+	* src/rasqal_expr.c: (rasqal_language_matches): Added to do proper
+	language tag/range matching.
+	(rasqal_expression_evaluate): RASQAL_EXPR_LANG:  Return an empty
+	string for no language and NULL (error) for not a literal.
+	RASQAL_EXPR_LANGMATCHES: Use rasqal_language_matches() above.
+	Fixes Issue#0000201 http://bugs.librdf.org/mantis/view.php?id=201
+	and makes tests sparql/ExprBuiltins/LangMatches-[234] pass.
+
+2007-06-12  Dave Beckett <dave@dajobe.org>
+
+	* tests/sparql/Expr2/Makefile.am: Fix for issue #0000199 makes
+	query-bev-[1-4].rq pass
+
+	* src/rasqal_literal.c: (rasqal_literal_as_boolean): Implement
+	SPARQL EBV rules here.
+	Fixes Issue#0000199 http://bugs.librdf.org/mantis/view.php?id=199
+	and makes tests sparql/Expr2/query-bev-[1-4].rq pass
+
+	* src/rasqal_redland.c: (redland_node_to_rasqal_literal): Casts
+	for picky compiler.
+	Fixes Issue#0000198 http://bugs.librdf.org/mantis/view.php?id=198
+
+	* src/rasqal_expr.c: (rasqal_expression_evaluate): case
+	RASQAL_EXPR_STR_MATCH, RASQAL_EXPR_STR_NMATCH and  RASQAL_EXPR_REGEX.
+	Use pcre_free(re) to free PCRE object
+	Fixes Issue#0000196 http://bugs.librdf.org/mantis/view.php?id=196
+
+2007-06-02  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_literal.c: (rasqal_literal_as_floating): It is
+	possible to promote a decimal to a float.
+	Fixes Issue#0000197 http://bugs.librdf.org/mantis/view.php?id=197
+
+2007-05-26  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal.h: Use RASQAL_API not RAPTOR_API here
+	Fixes Issue#0000191 http://bugs.librdf.org/mantis/view.php?id=191
+
+	* src/rasqal_literal.c: (rasqal_literal_string_to_native): Free
+	original string for boolean, replacing with static.
+	(rasqal_free_literal): Free boolean literal's datatype URI.  Fixes
+	Issue#0000190 http://bugs.librdf.org/mantis/view.php?id=190
+
+	* src/rasqal.h: Allow _declspec and __declspec
+	Fixes Issue#0000188 http://bugs.librdf.org/mantis/view.php?id=188
+
+2007-05-21  Dave Beckett <dave@dajobe.org>
+
+	* configure.ac: Add -Wformat-security
+
+2007-04-23  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_literal.c: (rasqal_literal_compare): Declare
+	rasqal_literal_type type and add rest of cases to switches.
+
+	* NEWS.html, configure.ac, src/win32_rasqal_config.h: Bump version
+	to 0.9.15
+
 2007-04-22  Dave Beckett  <dave@dajobe.org>
 
 	* Snapshotted rasqal_0_9_14 for 0.9.14 release (SVN 12127)
