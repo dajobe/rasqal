@@ -671,7 +671,7 @@ rasqal_free_gp_data(rasqal_engine_gp_data* gp_data)
 {
   rasqal_graph_pattern* gp=gp_data->gp;
 
-  if(gp_data->triple_meta) {
+  if(gp && gp_data->triple_meta) {
     if(gp->start_column >= 0) {
       while(gp_data->column >= gp->start_column) {
         rasqal_triple_meta *m;
