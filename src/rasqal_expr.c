@@ -68,7 +68,6 @@ static RASQAL_INLINE int rasqal_expression_compare(rasqal_expression* e1, rasqal
  * @flags: %RASQAL_DATA_GRAPH_NAMED or %RASQAL_DATA_GRAPH_BACKGROUND
  * 
  * Constructor - create a new #rasqal_data_graph.
- * Takes ownership of uri and name_uri.
  * 
  * The name_uri is only used when the flags are %RASQAL_DATA_GRAPH_NAMED.
  * 
@@ -84,10 +83,6 @@ rasqal_new_data_graph(raptor_uri* uri, raptor_uri* name_uri, int flags)
     if(name_uri)
       dg->name_uri=raptor_uri_copy(name_uri);
     dg->flags=flags;
-  } else {
-    raptor_free_uri(uri);
-    if(name_uri)
-      raptor_free_uri(name_uri);
   }
 
   return dg;
