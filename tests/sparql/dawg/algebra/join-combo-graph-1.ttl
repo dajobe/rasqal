@@ -1,0 +1,4 @@
+@prefix : <http://example/> .
+
+ :b :p 1 .
+_:a :p 9 .
