@@ -53,6 +53,7 @@ my $solution_predicate="<${rs}solution>";
 
 my(@manifest_files)=qw(manifest.ttl manifest.n3);
 my $mf='http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#';
+my $mfx='http://jena.hpl.hp.com/2005/05/test-manifest-extra#';
 my $qt='http://www.w3.org/2001/sw/DataAccess/tests/test-query#';
 
 my $program=basename $0;
@@ -498,9 +499,13 @@ while($list_node) {
   my $query_node;
   my $expect_fail=0;
   if($query_type && ($query_type eq "<${mf}PositiveSyntaxTest>" ||
-		     $query_type eq "<${mf}NegativeSyntaxTest>")) {
+                    $query_type eq "<${mfx}TestSyntax>" ||
+                    $query_type eq "<${mf}NegativeSyntaxTest>" ||
+                    $query_type eq "<${mfx}TestBadSyntax>")) {
     $query_node=$action_node;
-    $expect_fail=1 if $query_type eq "<${mf}NegativeSyntaxTest>";
+    $expect_fail=1 if
+      $query_type eq "<${mf}NegativeSyntaxTest>" ||
+      $query_type eq "<${mfx}TestBadSyntax>";
   } else {
     $query_node=$triples{$action_node}->{"<${qt}query>"}->[0];
   }
