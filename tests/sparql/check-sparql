@@ -447,7 +447,7 @@ while(<MF>) {
 }
 close(MF);
 
-print "Entries node is '$entries_node'\n"
+warn "Entries node is '$entries_node'\n"
   if $debug;
 my $list_node=$entries_node;
 
@@ -474,17 +474,17 @@ while($list_node) {
     $result_file =~ s,^file:([^/]+),$1,;
   }
 
-  print "Entry result_file=".($result_file || "NONE")."\n"
+  warn "Entry result_file=".($result_file || "NONE")."\n"
     if $debug;
 
   my $action_node=$triples{$entry_node}->{"<${mf}action>"}->[0];
 
-  print "Entry action_node $action_node\n"
+  warn "Entry action_node $action_node\n"
      if $debug;
   
   my(@data_files)=();
   for my $data_node (@{$triples{$action_node}->{"<${qt}data>"}}) { 
-    print "Entry data_node $data_node\n"
+    warn "Entry data_node $data_node\n"
      if $debug;
     my $data_file=($data_node =~ /^<(.+)>$/, $1);
     $data_file =~ s,^file:([^/]+),$1,;
@@ -510,9 +510,9 @@ while($list_node) {
     $query_file=($query_node =~ /^<(.+)>$/, $1);
     $query_file =~ s,^file:/*,/,;
 
-    print "Entry data_files=",join(", ",@data_files),"\n"
+    warn "Entry data_files=",join(", ",@data_files),"\n"
       if $debug;
-    print "Entry query_file=$query_file\n"
+    warn "Entry query_file=$query_file\n"
       if $debug;
   }
   my $test_uri=$entry_node; $test_uri =~ s/^<(.+)>$/$1/;
