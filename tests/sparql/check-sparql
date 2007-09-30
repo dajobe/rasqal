@@ -40,7 +40,6 @@ use Pod::Usage;
 
 my $roqet="roqet";
 my $rasqal_url="http://librdf.org/rasqal/";
-my $rasqal_version="SVN 12547";
 my $rapper="rapper";
 
 
@@ -565,6 +564,16 @@ unlink "roqet.out", "result.out", "diff.out", "roqet.err", "roqet.tmp"
 
 if($earl_report_file) {
   my $is_new=(!-r $earl_report_file);
+  my $rasqal_version=`$roqet --version`;
+  chomp $rasqal_version;
+  if(open(PIPE, "svn info . |")) {
+    while(<PIPE>) {
+      if(/^Revision:\s*(\d+)/) {
+	$rasqal_version .= " SVN r$1";
+      }
+    }
+    close(PIPE);
+  }
   open(OUT, ">>$earl_report_file") 
     or die "Cannot write to $earl_report_file - $!\n";
   print OUT <<"EOT"
