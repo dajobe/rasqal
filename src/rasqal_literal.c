@@ -1186,11 +1186,14 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
 
       if(lits[0]->datatype || lits[1]->datatype) {
         int result;
-        
-        /* if either is NULL, do not compare */
-        if(!lits[0]->datatype || !lits[1]->datatype)
-          return lits[0]->datatype ? 1 : -1;
 
+        /* there is no ordering between typed and plain literals:       
+           if either is NULL, do not compare but return an error
+           (also implies inequality) */
+        if(!lits[0]->datatype || !lits[1]->datatype) {
+          *error = 1;
+          return 0;
+        }
         result=strcmp((const char*)raptor_uri_as_string(lits[0]->datatype),
                       (const char*)raptor_uri_as_string(lits[1]->datatype));
 
