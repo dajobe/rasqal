@@ -44,7 +44,6 @@ ex11.2.3.6_0.rq ex11.2.3.7_0.rq ex11.2.3.8_0.rq ex11_0.rq ex11_1.rq
 #   FILTER bound and dateTime datatype compare
 
 EXPECTED_SPARQL_CORRECT_FAILURES= \
-sparql-query-example-e			\
 sparql-query-example-Testing-Values-0			\
 sparql-query-example-Testing-Values-RDFterm-equal-2	\
 sparql-query-example-Testing-Values-bound

@@ -865,13 +865,13 @@ FilteredBasicGraphPattern: BlockOfTriplesOpt Constraint DotOptional FilteredBasi
 #endif
 
   $$=$4;
-  /* push $1 to start of $4 graph sequence */
+  /* push $1 to end of $4 graph sequence */
   if($1) {
     rasqal_graph_pattern *gp;
     
     gp=rasqal_engine_new_basic_graph_pattern_from_formula((rasqal_query*)rq, $1);
 
-    raptor_sequence_shift($$->graph_patterns, gp);
+    raptor_sequence_push($$->graph_patterns, gp);
   }
   
   if($2)
