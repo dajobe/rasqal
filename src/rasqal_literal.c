@@ -493,7 +493,7 @@ rasqal_free_literal(rasqal_literal* l)
     case RASQAL_LITERAL_FLOAT:
     case RASQAL_LITERAL_DECIMAL:
     case RASQAL_LITERAL_DATETIME:
-     if(l->string)
+      if(l->string)
         RASQAL_FREE(cstring, (void*)l->string);
       if(l->language)
         RASQAL_FREE(cstring, (void*)l->language);
@@ -1192,7 +1192,7 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
            if either is NULL, do not compare but return an error
            (also implies inequality) */
         if(!lits[0]->datatype || !lits[1]->datatype) {
-          *error = 1;
+          *error=1;
           return 0;
         }
         result=strcmp((const char*)raptor_uri_as_string(lits[0]->datatype),
