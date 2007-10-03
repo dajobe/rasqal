@@ -72,6 +72,7 @@ rasqal_new_integer_literal(rasqal_literal_type type, int integer)
 {
   rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(rasqal_literal));
   if(l) {
+    l->usage=1;
     l->type=type;
     l->value.integer=integer;
     l->string=(unsigned char*)RASQAL_MALLOC(cstring, 30); /* FIXME */
@@ -82,7 +83,6 @@ rasqal_new_integer_literal(rasqal_literal_type type, int integer)
     sprintf((char*)l->string, "%d", integer);
     l->string_len=strlen((const char*)l->string);
     l->datatype=raptor_uri_copy(rasqal_xsd_integer_uri);
-    l->usage=1;
   }
   return l;
 }
@@ -101,6 +101,7 @@ rasqal_new_double_literal(double d)
 {
   rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(rasqal_literal));
   if(l) {
+    l->usage=1;
     l->type=RASQAL_LITERAL_DOUBLE;
     l->value.floating=d;
     l->string=(unsigned char*)RASQAL_MALLOC(cstring, 30); /* FIXME */
@@ -111,7 +112,6 @@ rasqal_new_double_literal(double d)
     sprintf((char*)l->string, "%1g", d);
     l->string_len=strlen((const char*)l->string);
     l->datatype=raptor_uri_copy(rasqal_xsd_double_uri);
-    l->usage=1;
   }
   return l;
 }
@@ -207,6 +207,7 @@ rasqal_new_decimal_literal(const unsigned char *decimal)
 {
   rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(rasqal_literal));
   if(l) {
+    l->usage=1;
     l->type=RASQAL_LITERAL_DECIMAL;
     l->string_len=strlen((const char*)decimal);
     l->string=(unsigned char*)RASQAL_MALLOC(cstring, l->string_len+1);
@@ -216,7 +217,6 @@ rasqal_new_decimal_literal(const unsigned char *decimal)
     }
     strcpy((char*)l->string, (const char*)decimal);
     l->datatype=raptor_uri_copy(rasqal_xsd_decimal_uri);
-    l->usage=1;
   }
   return l;
 }
@@ -338,6 +338,8 @@ rasqal_new_string_literal(const unsigned char *string,
 {
   rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(rasqal_literal));
   if(l) {
+    l->usage=1;
+
     if(datatype && language) {
       RASQAL_FREE(cstring, (void*)language);
       language=NULL;
@@ -349,7 +351,6 @@ rasqal_new_string_literal(const unsigned char *string,
     l->language=language;
     l->datatype=datatype;
     l->flags=datatype_qname;
-    l->usage=1;
 
     if(rasqal_literal_string_to_native(l, NULL, NULL)) {
       rasqal_free_literal(l);
