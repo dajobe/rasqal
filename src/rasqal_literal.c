@@ -1596,10 +1596,9 @@ rasqal_formula_join(rasqal_formula* first_formula,
         rasqal_free_formula(first_formula);
         first_formula=NULL;
       }
-    
-    rasqal_free_formula(second_formula);
   }
-  
+  rasqal_free_formula(second_formula);
+
   return first_formula;
 }
 
