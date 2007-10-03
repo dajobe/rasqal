@@ -565,6 +565,8 @@ unlink "roqet.out", "result.out", "diff.out", "roqet.err", "roqet.tmp"
 if($earl_report_file) {
   my $is_new=(!-r $earl_report_file);
   my $rasqal_version=`$roqet --version`;
+  my(@t)=gmtime;
+  my $rasqal_date=sprintf("%04d-%02d-%02d", 1900+$t[5], 1+$t[4], $t[3]);
   chomp $rasqal_version;
   if(open(PIPE, "svn info . |")) {
     while(<PIPE>) {
@@ -590,7 +592,7 @@ if($earl_report_file) {
      doap:name "Rasqal";
      doap:release
        [ a doap:Version;
-         doap:created "2007-09-18"^^xsd:date ;
+         doap:created "$rasqal_date"^^xsd:date ;
          doap:name "rasqal ${rasqal_version}"].
 EOT
     if $is_new;
