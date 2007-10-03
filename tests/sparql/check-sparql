@@ -37,6 +37,7 @@ use File::Basename;
 use XML::Simple;
 use Getopt::Long;
 use Pod::Usage;
+use Data::Dumper;
 
 my $roqet="roqet";
 my $rasqal_url="http://librdf.org/rasqal/";
@@ -173,26 +174,39 @@ sub read_srx_results_file($) {
 
   $result_file =~ s%^file://%%;
 
-  my $ref = XMLin($result_file, ForceArray=> ['results', 'result'], KeyAttr => {binding => 'name'});
-
-  #use Data::Dumper;
+  my $ref = XMLin($result_file,
+		  ForceArray => ['results', 'result'],
+		  KeyAttr    => {binding => 'name'} );
 
   my $results_el=$ref->{results};
   return {expect_empty => 1}
     unless defined $results_el;
+
+  warn "IN>>>\n", Dumper($results_el)
+    if $debug > 1;
   
-  #print "IN>>>\n", Dumper($results_el);
+  my $rr=$results_el->[0];
+  my(@r)=();
+  @r=@{$rr->{'result'}}
+    if $rr->{'result'};
+  warn "IN2>>>\n". Dumper(\@r)
+    if $debug > 1;
 
-  for my $result (@$results_el) {
+  for my $bindings (@r) {
     my($row)={};
-    #print "ROW>>>\n";
-    #print Dumper($result);
-    my $bindings=$result->{result};
 
+    warn "ROW>>>\n". Dumper($bindings)
+      if $debug > 1;
+
+    if(ref($bindings) eq 'HASH' && scalar(keys %{$bindings})==1) {
+      $bindings=[values %{$bindings}];
+    }
     for my $binding (@$bindings) {
 
-      $binding=$binding->{binding};
-      #print "BINDING>>>\n", Dumper($binding);
+      $binding=$binding->{binding}
+        if $binding->{binding};
+      warn "BINDING>>>\n", Dumper($binding)
+	if $debug > 1;
 
       if(ref($binding) eq 'HASH' && $binding->{name}) {
 	$binding={$binding->{name} => $binding};
@@ -226,11 +240,15 @@ sub read_srx_results_file($) {
 	}
         $row->{$variable}=$value;
       }
-    }
-    push(@{$results{rows}}, $row);
-  }
 
-  #print "OUT>>>", Dumper(\%results);
+    } # end for binding
+
+    push(@{$results{rows}}, $row);
+
+  } # end for my result
+
+  warn "OUT>>>", Dumper(\%results)
+    if $debug > 1;
   return \%results;
 }
 
