@@ -1398,7 +1398,6 @@ rasqal_literal_has_qname(rasqal_literal *l) {
 rasqal_literal*
 rasqal_literal_as_node(rasqal_literal* l)
 {
-  raptor_uri *dt_uri=NULL;
   rasqal_literal* new_l=NULL;
   
   switch(l->type) {
@@ -1422,21 +1421,19 @@ rasqal_literal_as_node(rasqal_literal* l)
     case RASQAL_LITERAL_BOOLEAN:
     case RASQAL_LITERAL_DECIMAL:
     case RASQAL_LITERAL_DATETIME:
-      if(l->type == RASQAL_LITERAL_BOOLEAN)
-        dt_uri=raptor_uri_copy(rasqal_xsd_boolean_uri);
-      else
-        dt_uri=raptor_uri_copy(l->datatype);
-
       new_l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(rasqal_literal));
       if(new_l) {
+        new_l->usage=1;
         new_l->type=RASQAL_LITERAL_STRING;
         new_l->string_len=strlen((const char*)l->string);
         new_l->string=(unsigned char*)RASQAL_MALLOC(cstring, new_l->string_len+1);
-        if(new_l->string)
-          strcpy((char*)new_l->string, (const char*)l->string);
-        new_l->datatype=dt_uri;
+        if(!new_l->string) {
+          rasqal_free_literal(new_l);
+          return NULL; 
+        }
+        strcpy((char*)new_l->string, (const char*)l->string);
+        new_l->datatype=raptor_uri_copy(l->datatype);
         new_l->flags=NULL;
-        new_l->usage=1;
       }
       break;
       
