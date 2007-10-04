@@ -233,6 +233,7 @@ rasqal_new_decimal_literal(const unsigned char *decimal)
  * xsd:double to RASQAL_LITERAL_DOUBLE
  * xsd:float to RASQAL_LITERAL_FLOAT
  * xsd:boolean to RASQAL_LITERAL_BOOLEAN
+ * xsd:decimal to RASQAL_LITERAL_DECIMAL
  *
  * Return value: non-0 on failure
  **/
@@ -258,7 +259,8 @@ rasqal_literal_string_to_native(rasqal_literal *l,
   }
   
   if(raptor_uri_equals(l->datatype, rasqal_xsd_double_uri) ||
-     raptor_uri_equals(l->datatype, rasqal_xsd_float_uri)) {
+     raptor_uri_equals(l->datatype, rasqal_xsd_float_uri) ||
+     raptor_uri_equals(l->datatype, rasqal_xsd_decimal_uri)) {
     double d=0.0;
     int n;
 
@@ -276,7 +278,8 @@ rasqal_literal_string_to_native(rasqal_literal *l,
     }
 
     l->type= raptor_uri_equals(l->datatype, rasqal_xsd_float_uri) ?
-      RASQAL_LITERAL_FLOAT : RASQAL_LITERAL_DOUBLE;
+      RASQAL_LITERAL_FLOAT :
+      (raptor_uri_equals(l->datatype, rasqal_xsd_double_uri) ? RASQAL_LITERAL_DOUBLE : RASQAL_LITERAL_DECIMAL);
     l->value.floating=d;
     return 0;
   }
