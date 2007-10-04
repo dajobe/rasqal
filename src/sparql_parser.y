@@ -62,6 +62,13 @@
 /* Make verbose error messages for syntax errors */
 #define YYERROR_VERBOSE 1
 
+/* Fail with an debug error message if RASQAL_DEBUG > 1 */
+#if RASQAL_DEBUG > 1
+#define YYERROR_MSG(msg) do { fputs("** YYERROR ", DEBUG_FH); fputs(msg, DEBUG_FH); fputc('\n', DEBUG_FH); YYERROR; } while(0)
+#else
+#define YYERROR_MSG(ignore) YYERROR
+#endif
+
 /* Slow down the grammar operation and watch it work */
 #if RASQAL_DEBUG > 2
 #define YYDEBUG 1
@@ -359,10 +366,17 @@ PrefixDeclOpt: PrefixDeclOpt PREFIX IDENTIFIER URI_LITERAL
     sparql_syntax_warning(((rasqal_query*)rq), 
                           "PREFIX %s can be defined only once.",
                           prefix_string ? (const char*)prefix_string : ":");
+    RASQAL_FREE(cstring, prefix_string);
+    raptor_free_uri($4);
   } else {
     rasqal_prefix *p=rasqal_new_prefix(prefix_string, $4);
-    raptor_sequence_push(seq, p);
-    rasqal_query_declare_prefix(((rasqal_query*)rq), p);
+    if(!p)
+      YYERROR_MSG("PrefixDeclOpt: failed to create new prefix");
+    if(raptor_sequence_push(seq, p))
+      YYERROR_MSG("PrefixDeclOpt: cannot push prefix to seq");
+    if(rasqal_query_declare_prefix(((rasqal_query*)rq), p)) {
+      YYERROR_MSG("PrefixDeclOpt: cannot declare prefix");
+    }
   }
 }
 | /* empty */
@@ -411,18 +425,32 @@ SelectExpressionList: SelectExpressionListTail
 SelectExpressionListTail: SelectExpressionListTail SelectTerm
 {
   $$=$1;
-  raptor_sequence_push($$, $2);
+  if(raptor_sequence_push($$, $2)) {
+    raptor_free_sequence($$);
+    $$=NULL;
+    YYERROR_MSG("SelectExpressionListTail 1: sequence push failed");
+  }
 }
 | SelectExpressionListTail ',' SelectTerm
 {
   $$=$1;
-  raptor_sequence_push($$, $3);
+  if(raptor_sequence_push($$, $3)) {
+    raptor_free_sequence($$);
+    $$=NULL;
+    YYERROR_MSG("SelectExpressionListTail 2: sequence push failed");
+  }
 }
 | SelectTerm
 {
   /* The variables are freed from the raptor_query field variables */
   $$=raptor_new_sequence(NULL, (raptor_sequence_print_handler*)rasqal_variable_print);
-  raptor_sequence_push($$, $1);
+  if(!$$)
+    YYERROR_MSG("SelectExpressionListTail 3: failed to create sequence");
+  if(raptor_sequence_push($$, $1)) {
+    raptor_free_sequence($$);
+    $$=NULL;
+    YYERROR_MSG("SelectExpressionListTail 3: sequence push failed");
+  }
 }
 ;
 
@@ -484,8 +512,11 @@ CountAggregateExpression: COUNT '(' Expression ')'
   if(!sparql->extended) {
     sparql_syntax_error((rasqal_query*)rq, "COUNT cannot be used with SPARQL");
     $$=NULL;
-  } else
+  } else {
     $$=rasqal_new_1op_expression(RASQAL_EXPR_COUNT, $3);
+    if(!$$)
+      YYERROR_MSG("CountAggregateExpression 1: cannot create expr");
+  }
 }
 | COUNT '(' '*' ')'
 {
@@ -496,7 +527,11 @@ CountAggregateExpression: COUNT '(' Expression ')'
     $$=NULL;
   } else {
     rasqal_expression* vs=rasqal_new_0op_expression(RASQAL_EXPR_VARSTAR);
+    if(!vs)
+      YYERROR_MSG("CountAggregateExpression 2: cannot create varstar expr");
     $$=rasqal_new_1op_expression(RASQAL_EXPR_COUNT, vs);
+    if(!$$)
+      YYERROR_MSG("CountAggregateExpression 2: cannot create expr");
   }
 }
 ;
@@ -518,17 +553,31 @@ DescribeQuery: DESCRIBE VarOrIRIrefList
 VarOrIRIrefList: VarOrIRIrefList VarOrIRIref
 {
   $$=$1;
-  raptor_sequence_push($$, $2);
+  if(raptor_sequence_push($$, $2)) {
+    raptor_free_sequence($$);
+    $$=NULL;
+    YYERROR_MSG("VarOrIRIrefList 1: sequence push failed");
+  }
 }
 | VarOrIRIrefList ',' VarOrIRIref
 {
   $$=$1;
-  raptor_sequence_push($$, $3);
+  if(raptor_sequence_push($$, $3)) {
+    raptor_free_sequence($$);
+    $$=NULL;
+    YYERROR_MSG("VarOrIRIrefList 2: sequence push failed");
+  }
 }
 | VarOrIRIref
 {
-  $$=raptor_new_sequence(NULL, (raptor_sequence_print_handler*)rasqal_literal_print);
-  raptor_sequence_push($$, $1);
+  $$=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_literal, (raptor_sequence_print_handler*)rasqal_literal_print);
+  if(!$$)
+    YYERROR_MSG("VarOrIRIrefList 3: cannot create seq");
+  if(raptor_sequence_push($$, $1)) {
+    raptor_free_sequence($$);
+    $$=NULL;
+    YYERROR_MSG("VarOrIRIrefList 3: sequence push failed");
+  }
 }
 ;
 
@@ -588,7 +637,10 @@ DefaultGraphClause: IRIref
 {
   if($1) {
     raptor_uri* uri=rasqal_literal_as_uri($1);
-    rasqal_query_add_data_graph((rasqal_query*)rq, uri, uri, RASQAL_DATA_GRAPH_BACKGROUND);
+    if(rasqal_query_add_data_graph((rasqal_query*)rq, uri, uri, RASQAL_DATA_GRAPH_BACKGROUND)) {
+      rasqal_free_literal($1);
+      YYERROR_MSG("DefaultGraphClause: rasqal_query_add_data_graph failed");
+    }
     rasqal_free_literal($1);
   }
 }
@@ -600,7 +652,10 @@ NamedGraphClause: NAMED IRIref
 {
   if($2) {
     raptor_uri* uri=rasqal_literal_as_uri($2);
-    rasqal_query_add_data_graph((rasqal_query*)rq, uri, uri, RASQAL_DATA_GRAPH_NAMED);
+    if(rasqal_query_add_data_graph((rasqal_query*)rq, uri, uri, RASQAL_DATA_GRAPH_NAMED)) {
+      rasqal_free_literal($2);
+      YYERROR_MSG("NamedGraphClause: rasqal_query_add_data_graph failed");
+    }
     rasqal_free_literal($2);
   }
 }
@@ -684,13 +739,23 @@ OrderConditionList: OrderConditionList OrderCondition
 {
   $$=$1;
   if($2)
-    raptor_sequence_push($$, $2);
+    if(raptor_sequence_push($$, $2)) {
+      raptor_free_sequence($$);
+      $$=NULL;
+      YYERROR_MSG("OrderConditionList 1: sequence push failed");
+    }
 }
 | OrderCondition
 {
   $$=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_expression, (raptor_sequence_print_handler*)rasqal_expression_print);
+  if(!$$)
+    YYERROR_MSG("OrderConditionList 2: cannot create sequence");
   if($1)
-    raptor_sequence_push($$, $1);
+    if(raptor_sequence_push($$, $1)) {
+      raptor_free_sequence($$);
+      $$=NULL;
+      YYERROR_MSG("OrderConditionList 2: sequence push failed");
+    }
 }
 ;
 
@@ -699,32 +764,51 @@ OrderConditionList: OrderConditionList OrderCondition
 OrderCondition: ASC BrackettedExpression
 {
   $$=rasqal_new_1op_expression(RASQAL_EXPR_ORDER_COND_ASC, $2);
+  if(!$$)
+    YYERROR_MSG("OrderCondition 1: cannot create expr");
 }
 | DESC BrackettedExpression
 {
   $$=rasqal_new_1op_expression(RASQAL_EXPR_ORDER_COND_DESC, $2);
+  if(!$$)
+    YYERROR_MSG("OrderCondition 2: cannot create expr");
 }
 | FunctionCall 
 {
   /* The direction of ordering is ascending by default */
   $$=rasqal_new_1op_expression(RASQAL_EXPR_ORDER_COND_ASC, $1);
+  if(!$$)
+    YYERROR_MSG("OrderCondition 3: cannot create expr");
 }
 | Var
 {
-  rasqal_literal* l=rasqal_new_variable_literal($1);
-  rasqal_expression *e=rasqal_new_literal_expression(l);
+  rasqal_literal* l;
+  rasqal_expression *e;
+  l=rasqal_new_variable_literal($1);
+  if(!l)
+    YYERROR_MSG("OrderCondition 4: cannot create lit");
+  e=rasqal_new_literal_expression(l);
+  if(!e)
+    YYERROR_MSG("OrderCondition 4: cannot create lit expr");
+
   /* The direction of ordering is ascending by default */
   $$=rasqal_new_1op_expression(RASQAL_EXPR_ORDER_COND_ASC, e);
+  if(!$$)
+    YYERROR_MSG("OrderCondition 1: cannot create expr");
 }
 | BrackettedExpression
 {
   /* The direction of ordering is ascending by default */
   $$=rasqal_new_1op_expression(RASQAL_EXPR_ORDER_COND_ASC, $1);
+  if(!$$)
+    YYERROR_MSG("OrderCondition 5: cannot create expr");
 }
 | BuiltInCall
 {
   /* The direction of ordering is ascending by default */
   $$=rasqal_new_1op_expression(RASQAL_EXPR_ORDER_COND_ASC, $1);
+  if(!$$)
+    YYERROR_MSG("OrderCondition 6: cannot create expr");
 }
 ;
 
@@ -798,9 +882,19 @@ GraphPattern: FilteredBasicGraphPattern GraphPatternNotTriples DotOptional Graph
   $$=$4;
   /* push ($1,$2) to start of $4 graph sequence */
   if($2)
-    raptor_sequence_shift($$->graph_patterns, $2);
+    if(raptor_sequence_shift($$->graph_patterns, $2)) {
+      if($1)
+        rasqal_free_graph_pattern($1);
+      rasqal_free_graph_pattern($$);
+      $$=NULL;
+      YYERROR_MSG("GraphPattern 1: sequence shift $2 failed");
+    }
   if($1)
-    raptor_sequence_shift($$->graph_patterns, $1);
+    if(raptor_sequence_shift($$->graph_patterns, $1)) {
+      rasqal_free_graph_pattern($$);
+      $$=NULL;
+      YYERROR_MSG("GraphPattern 1: sequence shift $1 failed");
+    }
 
 #if RASQAL_DEBUG > 1
   fprintf(DEBUG_FH, "  after grouping graph pattern=");
@@ -825,17 +919,26 @@ GraphPattern: FilteredBasicGraphPattern GraphPatternNotTriples DotOptional Graph
 #endif
 
   seq=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_graph_pattern, (raptor_sequence_print_handler*)rasqal_graph_pattern_print);
+  if(!seq) {
+    if($1)
+      rasqal_free_graph_pattern($1);
+    YYERROR_MSG("GraphPattern 2: cannot create sequence");
+  }  
   if($1)
-    raptor_sequence_push(seq, $1);
+    if(raptor_sequence_push(seq, $1)) {
+      raptor_free_sequence(seq);
+      YYERROR_MSG("GraphPattern 2: sequence push failed");
+    }
 
   $$=rasqal_new_graph_pattern_from_sequence((rasqal_query*)rq, seq,
                                             RASQAL_GRAPH_PATTERN_OPERATOR_GROUP);
+
+  if(!$$)
+    YYERROR_MSG("GraphPattern 2: cannot create gp");
+
 #if RASQAL_DEBUG > 1  
   fprintf(DEBUG_FH, "  after grouping graph pattern=");
-  if($$)
-    rasqal_graph_pattern_print($$, DEBUG_FH);
-  else
-    fputs("NULL", DEBUG_FH);
+  rasqal_graph_pattern_print($$, DEBUG_FH);
   fprintf(DEBUG_FH, "\n\n");
 #endif
 }
@@ -865,18 +968,33 @@ FilteredBasicGraphPattern: BlockOfTriplesOpt Constraint DotOptional FilteredBasi
 #endif
 
   $$=$4;
+
+  if($2) {
+    if(rasqal_graph_pattern_add_constraint($$, $2)) {
+      if($1)
+        rasqal_free_formula($1);
+      rasqal_free_graph_pattern($$);
+      $$=NULL;
+      YYERROR_MSG("FilteredBasicGraphPattern 1: cannot add constraint");
+    }
+  }
+
   /* push $1 to end of $4 graph sequence */
   if($1) {
     rasqal_graph_pattern *gp;
-    
     gp=rasqal_engine_new_basic_graph_pattern_from_formula((rasqal_query*)rq, $1);
-
-    raptor_sequence_push($$->graph_patterns, gp);
+    if(!gp) {
+      rasqal_free_graph_pattern($$);
+      $$=NULL;
+      YYERROR_MSG("FilteredBasicGraphPattern 1: cannot create gp");
+    }
+    if(raptor_sequence_push($$->graph_patterns, gp)) {
+      rasqal_free_graph_pattern($$);
+      $$=NULL;
+      YYERROR_MSG("FilteredBasicGraphPattern 1: sequence push failed");
+    }
   }
-  
-  if($2)
-    rasqal_graph_pattern_add_constraint($$, $2);
-  
+ 
 #if RASQAL_DEBUG > 1  
   fprintf(DEBUG_FH, "  after grouping graph pattern=");
   if($$)
@@ -900,23 +1018,34 @@ FilteredBasicGraphPattern: BlockOfTriplesOpt Constraint DotOptional FilteredBasi
   fputs("\n", DEBUG_FH);
 #endif
 
-  if($1)
+  if($1) {
     formula_gp=rasqal_engine_new_basic_graph_pattern_from_formula((rasqal_query*)rq, $1);
+    if(!formula_gp)
+      YYERROR_MSG("FilteredBasicGraphPattern 2: cannot create formula_gp");
+  }
   
   seq=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_graph_pattern, (raptor_sequence_print_handler*)rasqal_graph_pattern_print);
+  if(!seq) {
+    if(formula_gp)
+      rasqal_free_graph_pattern(formula_gp);
+    YYERROR_MSG("FilteredBasicGraphPattern 2: cannot create sequence");
+  }
   if(formula_gp)
-    raptor_sequence_push(seq, formula_gp);
+    if(raptor_sequence_push(seq, formula_gp)) {
+      raptor_free_sequence(seq);
+      YYERROR_MSG("FilteredBasicGraphPattern 2: sequence push failed");
+    }
 
   $$=rasqal_new_graph_pattern_from_sequence((rasqal_query*)rq,
                                             seq,
                                             RASQAL_GRAPH_PATTERN_OPERATOR_GROUP);
+  if(!$$)
+    YYERROR_MSG("FilteredBasicGraphPattern 2: cannot create gp");
+
 
 #if RASQAL_DEBUG > 1  
   fprintf(DEBUG_FH, "  after, group graph pattern=");
-  if($$)
-    rasqal_graph_pattern_print($$, DEBUG_FH);
-  else
-    fputs("NULL", DEBUG_FH);
+  rasqal_graph_pattern_print($$, DEBUG_FH);
   fprintf(DEBUG_FH, "\n\n");
 #endif
 }
@@ -943,6 +1072,9 @@ BlockOfTriplesOpt: TriplesSameSubject TriplesSameSubjectDotListOpt
 
   /* $1 and $2 are freed as necessary */
   $$=rasqal_formula_join($1, $2);
+  if(!$$)
+    YYERROR_MSG("BlockOfTriplesOpt: formula join failed");
+
 #if RASQAL_DEBUG > 1  
   fprintf(DEBUG_FH, "  after joining formula=");
   rasqal_formula_print($$, DEBUG_FH);
@@ -978,6 +1110,8 @@ TriplesSameSubjectDotListOpt: TriplesSameSubjectDotListOpt TriplesSameSubject
 
   /* $1 and $2 are freed as necessary */
   $$=rasqal_formula_join($1, $2);
+  if(!$$)
+    YYERROR_MSG("TriplesSameSubjectDotTriplesOpt: formula join failed");
 
 #if RASQAL_DEBUG > 1  
   fprintf(DEBUG_FH, "  after joining formula=");
@@ -1061,7 +1195,11 @@ GraphGraphPattern: GRAPH VarOrBlankNodeOrIRIref GroupGraphPattern
 GroupOrUnionGraphPattern: GroupGraphPattern UNION GroupOrUnionGraphPatternList
 {
   $$=$3;
-  raptor_sequence_push($$->graph_patterns, $1);
+  if(raptor_sequence_push($$->graph_patterns, $1)) {
+    rasqal_free_graph_pattern($$);
+    $$=NULL;
+    YYERROR_MSG("GroupOrUnionGraphPattern: sequence push failed");
+  }
 
 #if RASQAL_DEBUG > 1  
   fprintf(DEBUG_FH, "UnionGraphPattern\n  graphpattern=");
@@ -1080,17 +1218,31 @@ GroupOrUnionGraphPatternList: GroupOrUnionGraphPatternList UNION GroupGraphPatte
 {
   $$=$1;
   if($3)
-    raptor_sequence_push($$->graph_patterns, $3);
+    if(raptor_sequence_push($$->graph_patterns, $3)) {
+      rasqal_free_graph_pattern($$);
+      $$=NULL;
+      YYERROR_MSG("GroupOrUnionGraphPatternList 1: sequence push failed");
+    }
 }
 | GroupGraphPattern
 {
   raptor_sequence *seq;
   seq=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_graph_pattern, (raptor_sequence_print_handler*)rasqal_graph_pattern_print);
+  if(!seq) {
+    if($1)
+      rasqal_free_graph_pattern($1);
+    YYERROR_MSG("GroupOrUnionGraphPatternList 2: cannot create sequence");
+  }
   if($1)
-    raptor_sequence_push(seq, $1);
+    if(raptor_sequence_push(seq, $1)) {
+      raptor_free_sequence(seq);
+      YYERROR_MSG("GroupOrUnionGraphPatternList 2: sequence push failed");
+    }
   $$=rasqal_new_graph_pattern_from_sequence((rasqal_query*)rq,
                                             seq,
                                             RASQAL_GRAPH_PATTERN_OPERATOR_UNION);
+  if(!$$)
+    YYERROR_MSG("GroupOrUnionGraphPatternList 1: cannot create gp");
 }
 ;
 
@@ -1116,19 +1268,28 @@ FunctionCall: IRIrefBrace ArgList ')'
 {
   raptor_uri* uri=rasqal_literal_as_uri($1);
   
-  uri=raptor_uri_copy(uri);
-
-  if(!$2)
+  if(!$2) {
     $2=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_expression, (raptor_sequence_print_handler*)rasqal_expression_print);
+    if(!$2) {
+      rasqal_free_literal($1);
+      YYERROR_MSG("FunctionCall: cannot create sequence");
+    }
+  }
+
+  uri=raptor_uri_copy(uri);
 
   if(raptor_sequence_size($2) == 1 &&
      sparql_is_builtin_xsd_datatype(uri)) {
     rasqal_expression* e=(rasqal_expression*)raptor_sequence_pop($2);
     $$=rasqal_new_cast_expression(uri, e);
     raptor_free_sequence($2);
-  } else
+  } else {
     $$=rasqal_new_function_expression(uri, $2);
+  }
   rasqal_free_literal($1);
+
+  if(!$$)
+    YYERROR_MSG("FunctionCall: cannot create expr");
 }
 ;
 
@@ -1138,13 +1299,26 @@ ArgList: ArgList ',' Expression
 {
   $$=$1;
   if($3)
-    raptor_sequence_push($$, $3);
+    if(raptor_sequence_push($$, $3)) {
+      raptor_free_sequence($$);
+      $$=NULL;
+      YYERROR_MSG("ArgList 1: sequence push failed");
+    }
 }
 | Expression
 {
   $$=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_expression, (raptor_sequence_print_handler*)rasqal_expression_print);
+  if(!$$) {
+    if($1)
+      rasqal_free_expression($1);
+    YYERROR_MSG("ArgList 2: cannot create sequence");
+  }
   if($1)
-    raptor_sequence_push($$, $1);
+    if(raptor_sequence_push($$, $1)) {
+      raptor_free_sequence($$);
+      $$=NULL;
+      YYERROR_MSG("ArgList 2: sequence push failed");
+    }
 }
 | /* empty */
 {
@@ -1173,10 +1347,20 @@ ConstructTriplesOpt: TriplesSameSubject '.' ConstructTriplesOpt
   }
   
   if($3) {
-    if(!$$)
+    if(!$$) {
       $$=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_triple, (raptor_sequence_print_handler*)rasqal_triple_print);
+      if(!$$) {
+        raptor_free_sequence($3);
+        YYERROR_MSG("ConstructTriplesOpt: cannot create sequence");
+      }
+    }
 
-    raptor_sequence_join($$, $3);
+    if(raptor_sequence_join($$, $3)) {
+      raptor_free_sequence($3);
+      raptor_free_sequence($$);
+      $$=NULL;
+      YYERROR_MSG("ConstructTriplesOpt: sequence join failed");
+    }
     raptor_free_sequence($3);
   }
 
@@ -1234,6 +1418,9 @@ TriplesSameSubject: VarOrTerm PropertyListNotEmpty
   }
 
   $$=rasqal_formula_join($1, $2);
+  if(!$$)
+    YYERROR_MSG("TriplesSameSubject 1: formula join failed");
+
 #if RASQAL_DEBUG > 1  
   fprintf(DEBUG_FH, "  after joining formula=");
   rasqal_formula_print($$, DEBUG_FH);
@@ -1274,6 +1461,9 @@ TriplesSameSubject: VarOrTerm PropertyListNotEmpty
   }
 
   $$=rasqal_formula_join($1, $2);
+  if(!$$)
+    YYERROR_MSG("TriplesSameSubject 2: formula join failed");
+
 #if RASQAL_DEBUG > 1  
   fprintf(DEBUG_FH, "  after joining formula=");
   rasqal_formula_print($$, DEBUG_FH);
@@ -1321,10 +1511,29 @@ PropertyListNotEmpty: Verb ObjectList PropertyListTailOpt
     raptor_sequence *seq=$2->triples;
     rasqal_literal *predicate=$1->value;
     rasqal_formula *formula;
+    rasqal_triple *t2;
+
+    formula=rasqal_new_formula();
+    if(!formula) {
+      rasqal_free_formula($1);
+      rasqal_free_formula($2);
+      if($3)
+        rasqal_free_formula($3);
+      YYERROR_MSG("PropertyList 1: cannot create formula");
+    }
+    formula->triples=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_triple, (raptor_sequence_print_handler*)rasqal_triple_print);
+    if(!formula->triples) {
+      rasqal_free_formula(formula);
+      rasqal_free_formula($1);
+      rasqal_free_formula($2);
+      if($3)
+        rasqal_free_formula($3);
+      YYERROR_MSG("PropertyList 1: cannot create sequence");
+    }
 
     /* non-empty property list, handle it  */
     for(i=0; i<raptor_sequence_size(seq); i++) {
-      rasqal_triple* t2=(rasqal_triple*)raptor_sequence_get_at(seq, i);
+      t2=(rasqal_triple*)raptor_sequence_get_at(seq, i);
       if(!t2->predicate)
         t2->predicate=(rasqal_literal*)rasqal_new_literal_from_literal(predicate);
     }
@@ -1335,18 +1544,27 @@ PropertyListNotEmpty: Verb ObjectList PropertyListTailOpt
     fprintf(DEBUG_FH, "\n");
 #endif
 
-    formula=rasqal_new_formula();
-    formula->triples=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_triple, (raptor_sequence_print_handler*)rasqal_triple_print);
-
     for(i=0; i < raptor_sequence_size(seq); i++) {
-      rasqal_triple* t2=(rasqal_triple*)raptor_sequence_get_at(seq, i);
-      raptor_sequence_push(formula->triples, t2);
+      /* disown triple in seq because we're passing ownership to formula->triples
+       * could also unshift in a loop but it's not very efficient */
+      t2=(rasqal_triple*)raptor_sequence_get_at(seq, i);
+      raptor_sequence_disown_at(seq, i);
+      if(raptor_sequence_push(formula->triples, t2)) {
+        rasqal_free_formula(formula);
+        rasqal_free_formula($1);
+        rasqal_free_formula($2);
+        if($3)
+          rasqal_free_formula($3);
+        YYERROR_MSG("PropertyList 1: sequence push failed");
+      }
     }
 
-    while(raptor_sequence_size(seq))
-      raptor_sequence_pop(seq);
-
     $3=rasqal_formula_join(formula, $3);
+    if(!$3) {
+      rasqal_free_formula($1);
+      rasqal_free_formula($2);
+      YYERROR_MSG("PropertyList 1: formula join failed");
+    }
 
 #if RASQAL_DEBUG > 1  
     fprintf(DEBUG_FH, "  after appending ObjectList=");
@@ -1380,7 +1598,7 @@ PropertyListTailOpt: ';' PropertyList
 /* SPARQL Grammar: [35] ObjectList */
 ObjectList: GraphNode ObjectTail
 {
-  rasqal_formula *formula=NULL;
+  rasqal_formula *formula;
   rasqal_triple *triple;
 
 #if RASQAL_DEBUG > 1  
@@ -1397,16 +1615,50 @@ ObjectList: GraphNode ObjectTail
 #endif
 
   formula=rasqal_new_formula();
+  if(!formula) {
+    rasqal_free_formula($1);
+    if($2)
+      rasqal_free_formula($2);
+    YYERROR_MSG("ObjectList: cannot create formula");
+  }
   
-  triple=rasqal_new_triple(NULL, NULL, $1->value);
-  $1->value=NULL;
-
   formula->triples=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_triple, (raptor_sequence_print_handler*)rasqal_triple_print);
+  if(!formula->triples) {
+    rasqal_free_formula(formula);
+    rasqal_free_formula($1);
+    if($2)
+      rasqal_free_formula($2);
+    YYERROR_MSG("ObjectList: cannot create sequence");
+  }
 
-  raptor_sequence_push(formula->triples, triple);
+  triple=rasqal_new_triple(NULL, NULL, $1->value);
+  $1->value=NULL; /* value now owned by triple */
+  if(!triple) {
+    rasqal_free_formula(formula);
+    rasqal_free_formula($1);
+    if($2)
+      rasqal_free_formula($2);
+    YYERROR_MSG("ObjectList: cannot create triple");
+  }
+
+  if(raptor_sequence_push(formula->triples, triple)) {
+    rasqal_free_formula(formula);
+    rasqal_free_formula($1);
+    if($2)
+      rasqal_free_formula($2);
+    YYERROR_MSG("ObjectList: sequence push failed");
+  }
 
   $$=rasqal_formula_join(formula, $1);
-  $$=rasqal_formula_join(formula, $2);
+  if(!$$) {
+    if($2)
+      rasqal_free_formula($2);
+    YYERROR_MSG("ObjectList: formula join $1 failed");
+  }
+
+  $$=rasqal_formula_join($$, $2);
+  if(!$$)
+    YYERROR_MSG("ObjectList: formula join $2 failed");
 
 #if RASQAL_DEBUG > 1  
   fprintf(DEBUG_FH, " objectList is now ");
@@ -1436,6 +1688,11 @@ ObjectTail: ',' ObjectList
 Verb: VarOrBlankNodeOrIRIref
 {
   $$=rasqal_new_formula();
+  if(!$$) {
+    if($1)
+      rasqal_free_literal($1);
+    YYERROR_MSG("Verb 1: cannot create formula");
+  }
   $$->value=$1;
 }
 | A
@@ -1447,8 +1704,19 @@ Verb: VarOrBlankNodeOrIRIref
 #endif
 
   uri=raptor_new_uri_for_rdf_concept("type");
+  if(!uri)
+    YYERROR_MSG("Verb 2: uri for rdf concept type failed");
   $$=rasqal_new_formula();
+  if(!$$) {
+    raptor_free_uri(uri);
+    YYERROR_MSG("Verb 2: cannot create formula");
+  }
   $$->value=rasqal_new_uri_literal(uri);
+  if(!$$->value) {
+    rasqal_free_formula($$);
+    $$=NULL;
+    YYERROR_MSG("Verb 2: cannot create uri literal");
+  }
 }
 ;
 
@@ -1469,17 +1737,33 @@ TriplesNode: Collection
 BlankNodePropertyList: '[' PropertyListNotEmpty ']'
 {
   int i;
-  const unsigned char *id=rasqal_query_generate_bnodeid((rasqal_query*)rq, NULL);
-  
-  if($2 == NULL)
+  const unsigned char *id;
+
+  if($2 == NULL) {
     $$=rasqal_new_formula();
-  else {
+    if(!$$)
+      YYERROR_MSG("BlankNodePropertyList: cannot create formula");
+  } else {
     $$=$2;
-    if($$->value)
+    if($$->value) {
       rasqal_free_literal($$->value);
+      $$->value=NULL;
+    }
   }
   
+  id=rasqal_query_generate_bnodeid((rasqal_query*)rq, NULL);
+  if(!id) {
+    rasqal_free_formula($$);
+    $$=NULL;
+    YYERROR_MSG("BlankNodeProperyList: cannot create bnodeid");
+  }
+
   $$->value=rasqal_new_simple_literal(RASQAL_LITERAL_BLANK, id);
+  if(!$$->value) {
+    rasqal_free_formula($$);
+    $$=NULL;
+    YYERROR_MSG("BlankNodePropertyList: cannot create literal");
+  }
 
   if($2 == NULL) {
 #if RASQAL_DEBUG > 1  
@@ -1511,7 +1795,6 @@ BlankNodePropertyList: '[' PropertyListNotEmpty ']'
     fprintf(DEBUG_FH, "\n\n");
 #endif
   }
-  
 }
 ;
 
@@ -1521,9 +1804,17 @@ Collection: '(' GraphNodeListNotEmpty ')'
 {
   int i;
   rasqal_query* rdf_query=(rasqal_query*)rq;
-  rasqal_literal* first_identifier;
-  rasqal_literal* rest_identifier;
-  rasqal_literal* object;
+  rasqal_literal* first_identifier=NULL;
+  rasqal_literal* rest_identifier=NULL;
+  rasqal_literal* object=NULL;
+  rasqal_literal* blank=NULL;
+
+#if RASQAL_DEBUG > 1
+  char const *errmsg;
+  #define YYERR_MSG_GOTO(label,msg) do { errmsg = msg; goto label; } while(0)
+#else
+  #define YYERR_MSG_GOTO(label,ignore) goto label
+#endif
 
 #if RASQAL_DEBUG > 1  
   fprintf(DEBUG_FH, "Collection\n GraphNodeListNotEmpty=");
@@ -1531,38 +1822,66 @@ Collection: '(' GraphNodeListNotEmpty ')'
   fprintf(DEBUG_FH, "\n");
 #endif
 
+  $$=rasqal_new_formula();
+  if(!$$)
+    YYERR_MSG_GOTO(err_Collection, "Collection: cannot create formula");
+
+  $$->triples=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_triple, (raptor_sequence_print_handler*)rasqal_triple_print);
+  if(!$$->triples)
+    YYERR_MSG_GOTO(err_Collection, "Collection: cannot create sequence");
+
   first_identifier=rasqal_new_uri_literal(raptor_uri_copy(rasqal_rdf_first_uri));
+  if(!first_identifier)
+    YYERR_MSG_GOTO(err_Collection, "Collection: cannot first_identifier");
+  
   rest_identifier=rasqal_new_uri_literal(raptor_uri_copy(rasqal_rdf_rest_uri));
+  if(!rest_identifier)
+    YYERR_MSG_GOTO(err_Collection, "Collection: cannot create rest_identifier");
   
   object=rasqal_new_uri_literal(raptor_uri_copy(rasqal_rdf_nil_uri));
-
-  $$=rasqal_new_formula();
-  $$->triples=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_triple, (raptor_sequence_print_handler*)rasqal_triple_print);
+  if(!object)
+    YYERR_MSG_GOTO(err_Collection, "Collection: cannot create nil object");
 
   for(i=raptor_sequence_size($2)-1; i>=0; i--) {
     rasqal_formula* f=(rasqal_formula*)raptor_sequence_get_at($2, i);
-    const unsigned char *blank_id=rasqal_query_generate_bnodeid(rdf_query, NULL);
-    rasqal_literal* blank=rasqal_new_simple_literal(RASQAL_LITERAL_BLANK, blank_id);
     rasqal_triple *t2;
+    const unsigned char *blank_id=NULL;
+
+    blank_id=rasqal_query_generate_bnodeid(rdf_query, NULL);
+    if(!blank_id)
+      YYERR_MSG_GOTO(err_Collection, "Collection: cannot create bnodeid");
+
+    blank=rasqal_new_simple_literal(RASQAL_LITERAL_BLANK, blank_id);
+    if(!blank)
+      YYERR_MSG_GOTO(err_Collection, "Collection: cannot create bnode");
 
     /* Move existing formula triples */
     if(f->triples)
-      raptor_sequence_join($$->triples, f->triples);
+      if(raptor_sequence_join($$->triples, f->triples))
+        YYERR_MSG_GOTO(err_Collection, "Collection: sequence join failed");
 
     /* add new triples we needed */
     t2=rasqal_new_triple(rasqal_new_literal_from_literal(blank),
                          rasqal_new_literal_from_literal(first_identifier),
                          rasqal_new_literal_from_literal(f->value));
-    raptor_sequence_push($$->triples, t2);
+    if(!t2)
+      YYERR_MSG_GOTO(err_Collection, "Collection: cannot create triple");
+
+    if(raptor_sequence_push($$->triples, t2))
+      YYERR_MSG_GOTO(err_Collection, "Collection: cannot create triple");
 
     t2=rasqal_new_triple(rasqal_new_literal_from_literal(blank),
                          rasqal_new_literal_from_literal(rest_identifier),
                          rasqal_new_literal_from_literal(object));
-    raptor_sequence_push($$->triples, t2);
+    if(!t2)
+      YYERR_MSG_GOTO(err_Collection, "Collection: cannot create triple 2");
+
+    if(raptor_sequence_push($$->triples, t2))
+      YYERR_MSG_GOTO(err_Collection, "Collection: sequence push 2 failed");
 
     rasqal_free_literal(object);
-
     object=blank;
+    blank=NULL;
   }
 
   $$->value=object;
@@ -1575,6 +1894,26 @@ Collection: '(' GraphNodeListNotEmpty ')'
 
   rasqal_free_literal(first_identifier);
   rasqal_free_literal(rest_identifier);
+
+  break; /* success */
+
+  err_Collection:
+  
+  if(blank)
+    rasqal_free_literal(blank);
+  if(object)
+    rasqal_free_literal(object);
+  if(rest_identifier)
+    rasqal_free_literal(rest_identifier);
+  if(first_identifier)
+    rasqal_free_literal(first_identifier);
+  if($2)
+    raptor_free_sequence($2);
+  if($$) {
+    rasqal_free_formula($$);
+    $$=NULL;
+  }
+  YYERROR_MSG(errmsg);
 }
 ;
 
@@ -1602,7 +1941,15 @@ GraphNodeListNotEmpty: GraphNodeListNotEmpty GraphNode
   if(!$2)
     $$=NULL;
   else {
-    raptor_sequence_push($$, $2);
+    /* FIXME: does not work:
+     * $$ not initialized
+     * $1 not freed
+     * also could need a test case */
+    if(raptor_sequence_push($$, $2)) {
+      raptor_free_sequence($$);
+      $$=NULL;
+      YYERROR_MSG("GraphNodeListNotEmpty 1: sequence push failed");
+    }
 #if RASQAL_DEBUG > 1  
     fprintf(DEBUG_FH, " itemList is now ");
     raptor_sequence_print($$, DEBUG_FH);
@@ -1623,11 +1970,20 @@ GraphNodeListNotEmpty: GraphNodeListNotEmpty GraphNode
     fprintf(DEBUG_FH, " and empty GraphNode\n");
 #endif
 
-  $$=NULL;
-  if($1)
+  if(!$1)
+    $$=NULL;
+  else {
     $$=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_formula, (raptor_sequence_print_handler*)rasqal_formula_print);
-
-  raptor_sequence_push($$, $1);
+    if(!$$) {
+      rasqal_free_formula($1);
+      YYERROR_MSG("GraphNodeListNotEmpty 2: cannot create sequence");
+    }
+    if(raptor_sequence_push($$, $1)) {
+      raptor_free_sequence($$);
+      $$=NULL;
+      YYERROR_MSG("GraphNodeListNotEmpty 2: sequence push failed");
+    }
+  }
 #if RASQAL_DEBUG > 1  
   fprintf(DEBUG_FH, " GraphNodeListNotEmpty is now ");
   raptor_sequence_print($$, DEBUG_FH);
@@ -1653,11 +2009,23 @@ GraphNode: VarOrTerm
 VarOrTerm: Var
 {
   $$=rasqal_new_formula();
+  if(!$$)
+    YYERROR_MSG("VarOrTerm 1: cannot create formula");
   $$->value=rasqal_new_variable_literal($1);
+  if(!$$->value) {
+    rasqal_free_formula($$);
+    $$=NULL;
+    YYERROR_MSG("VarOrTerm 1: cannot create literal");
+  }
 }
 | GraphTerm
 {
   $$=rasqal_new_formula();
+  if(!$$) {
+    if($1)
+      rasqal_free_literal($1);
+    YYERROR_MSG("VarOrTerm 2: cannot create formula");
+  }
   $$->value=$1;
 }
 ;
@@ -1666,6 +2034,8 @@ VarOrTerm: Var
 VarOrIRIref: Var
 {
   $$=rasqal_new_variable_literal($1);
+  if(!$$)
+    YYERROR_MSG("VarOrIRIref: cannot create literal");
 }
 | IRIref
 {
@@ -1678,6 +2048,8 @@ VarOrIRIref: Var
 VarOrBlankNodeOrIRIref: Var
 {
   $$=rasqal_new_variable_literal($1);
+  if(!$$)
+    YYERROR_MSG("VarOrBlankNodeOrIRIref: cannot create literal");
 }
 | BlankNode
 {
@@ -1704,6 +2076,8 @@ Var: '?' VarName
 VarName: IDENTIFIER
 {
   $$=rasqal_new_variable((rasqal_query*)rq, $1, NULL);
+  if(!$$)
+    YYERROR_MSG("VarName: cannot create var");
 }
 ;
 
@@ -1742,6 +2116,8 @@ GraphTerm: IRIref
 |  '(' ')'
 {
   $$=rasqal_new_uri_literal(raptor_uri_copy(rasqal_rdf_nil_uri));
+  if(!$$)
+    YYERROR_MSG("GraphTerm: cannot create literal");
 }
 ;
 
@@ -1757,6 +2133,8 @@ Expression: ConditionalOrExpression
 ConditionalOrExpression: ConditionalOrExpression SC_OR ConditionalAndExpression
 {
   $$=rasqal_new_2op_expression(RASQAL_EXPR_OR, $1, $3);
+  if(!$$)
+    YYERROR_MSG("ConditionalOrExpression: cannot create expr");
 }
 | ConditionalAndExpression
 {
@@ -1769,6 +2147,8 @@ ConditionalOrExpression: ConditionalOrExpression SC_OR ConditionalAndExpression
 ConditionalAndExpression: ConditionalAndExpression SC_AND RelationalExpression
 {
   $$=rasqal_new_2op_expression(RASQAL_EXPR_AND, $1, $3);
+  if(!$$)
+    YYERROR_MSG("ConditionalAndExpression: cannot create expr");
 ;
 }
 | RelationalExpression
@@ -1783,26 +2163,38 @@ ConditionalAndExpression: ConditionalAndExpression SC_AND RelationalExpression
 RelationalExpression: AdditiveExpression EQ AdditiveExpression
 {
   $$=rasqal_new_2op_expression(RASQAL_EXPR_EQ, $1, $3);
+  if(!$$)
+    YYERROR_MSG("RelationalExpression 1: cannot create expr");
 }
 | AdditiveExpression NEQ AdditiveExpression
 {
   $$=rasqal_new_2op_expression(RASQAL_EXPR_NEQ, $1, $3);
+  if(!$$)
+    YYERROR_MSG("RelationalExpression 2: cannot create expr");
 }
 | AdditiveExpression LT AdditiveExpression
 {
   $$=rasqal_new_2op_expression(RASQAL_EXPR_LT, $1, $3);
+  if(!$$)
+    YYERROR_MSG("RelationalExpression 3: cannot create expr");
 }
 | AdditiveExpression GT AdditiveExpression
 {
   $$=rasqal_new_2op_expression(RASQAL_EXPR_GT, $1, $3);
+  if(!$$)
+    YYERROR_MSG("RelationalExpression 4: cannot create expr");
 }
 | AdditiveExpression LE AdditiveExpression
 {
   $$=rasqal_new_2op_expression(RASQAL_EXPR_LE, $1, $3);
+  if(!$$)
+    YYERROR_MSG("RelationalExpression 5: cannot create expr");
 }
 | AdditiveExpression GE AdditiveExpression
 {
   $$=rasqal_new_2op_expression(RASQAL_EXPR_GE, $1, $3);
+  if(!$$)
+    YYERROR_MSG("RelationalExpression 6: cannot create expr");
 }
 | AdditiveExpression
 {
@@ -1816,10 +2208,14 @@ RelationalExpression: AdditiveExpression EQ AdditiveExpression
 AdditiveExpression: MultiplicativeExpression '+' AdditiveExpression
 {
   $$=rasqal_new_2op_expression(RASQAL_EXPR_PLUS, $1, $3);
+  if(!$$)
+    YYERROR_MSG("AdditiveExpression 1: cannot create expr");
 }
 | MultiplicativeExpression '-' AdditiveExpression
 {
   $$=rasqal_new_2op_expression(RASQAL_EXPR_MINUS, $1, $3);
+  if(!$$)
+    YYERROR_MSG("AdditiveExpression 2: cannot create expr");
 }
 | MultiplicativeExpression
 {
@@ -1831,10 +2227,14 @@ AdditiveExpression: MultiplicativeExpression '+' AdditiveExpression
 MultiplicativeExpression: UnaryExpression '*' MultiplicativeExpression
 {
   $$=rasqal_new_2op_expression(RASQAL_EXPR_STAR, $1, $3);
+  if(!$$)
+    YYERROR_MSG("MultiplicativeExpression 1: cannot create expr");
 }
 | UnaryExpression '/' MultiplicativeExpression
 {
   $$=rasqal_new_2op_expression(RASQAL_EXPR_SLASH, $1, $3);
+  if(!$$)
+    YYERROR_MSG("MultiplicativeExpression 2: cannot create expr");
 }
 | UnaryExpression
 {
@@ -1847,6 +2247,8 @@ MultiplicativeExpression: UnaryExpression '*' MultiplicativeExpression
 UnaryExpression: '!' PrimaryExpression
 {
   $$=rasqal_new_1op_expression(RASQAL_EXPR_BANG, $2);
+  if(!$$)
+    YYERROR_MSG("UnaryExpression 1: cannot create expr");
 }
 | '+' PrimaryExpression
 {
@@ -1855,6 +2257,8 @@ UnaryExpression: '!' PrimaryExpression
 | '-' PrimaryExpression
 {
   $$=rasqal_new_1op_expression(RASQAL_EXPR_UMINUS, $2);
+  if(!$$)
+    YYERROR_MSG("UnaryExpression 3: cannot create expr");
 }
 | PrimaryExpression
 {
@@ -1890,11 +2294,17 @@ PrimaryExpression: BrackettedExpression
 | GraphTerm
 {
   $$=rasqal_new_literal_expression($1);
+  if(!$$)
+    YYERROR_MSG("PrimaryExpression 4: cannot create expr");
 }
 | Var
 {
   rasqal_literal *l=rasqal_new_variable_literal($1);
+  if(!l)
+    YYERROR_MSG("PrimaryExpression 5: cannot create literal");
   $$=rasqal_new_literal_expression(l);
+  if(!$$)
+    YYERROR_MSG("PrimaryExpression 5: cannot create expr");
 }
 ;
 
@@ -1911,36 +2321,58 @@ BrackettedExpression: '(' Expression ')'
 BuiltInCall: STR '(' Expression ')'
 {
   $$=rasqal_new_1op_expression(RASQAL_EXPR_STR, $3);
+  if(!$$)
+    YYERROR_MSG("BuiltInCall 1: cannot create expr");
 }
 | LANG '(' Expression ')'
 {
   $$=rasqal_new_1op_expression(RASQAL_EXPR_LANG, $3);
+  if(!$$)
+    YYERROR_MSG("BuiltInCall 2: cannot create expr");
 }
 | LANGMATCHES '(' Expression ',' Expression ')'
 {
   $$=rasqal_new_2op_expression(RASQAL_EXPR_LANGMATCHES, $3, $5);
+  if(!$$)
+    YYERROR_MSG("BuiltInCall 3: cannot create expr");
 }
 | DATATYPE '(' Expression ')'
 {
   $$=rasqal_new_1op_expression(RASQAL_EXPR_DATATYPE, $3);
+  if(!$$)
+    YYERROR_MSG("BuiltInCall 4: cannot create expr");
 }
 | BOUND '(' Var ')'
 {
-  rasqal_literal *l=rasqal_new_variable_literal($3);
-  rasqal_expression *e=rasqal_new_literal_expression(l);
+  rasqal_literal *l;
+  rasqal_expression *e;
+  l=rasqal_new_variable_literal($3);
+  if(!l)
+    YYERROR_MSG("BuiltInCall 5: cannot create literal");
+  e=rasqal_new_literal_expression(l);
+  if(!e)
+    YYERROR_MSG("BuiltInCall 5: cannot create literal expr");
   $$=rasqal_new_1op_expression(RASQAL_EXPR_BOUND, e);
+  if(!$$)
+    YYERROR_MSG("BuiltInCall 5: cannot create expr");
 }
 | ISURI '(' Expression ')'
 {
   $$=rasqal_new_1op_expression(RASQAL_EXPR_ISURI, $3);
+  if(!$$)
+    YYERROR_MSG("BuiltInCall 6: cannot create expr");
 }
 | ISBLANK '(' Expression ')'
 {
   $$=rasqal_new_1op_expression(RASQAL_EXPR_ISBLANK, $3);
+  if(!$$)
+    YYERROR_MSG("BuiltInCall 7: cannot create expr");
 }
 | ISLITERAL '(' Expression ')'
 {
   $$=rasqal_new_1op_expression(RASQAL_EXPR_ISLITERAL, $3);
+  if(!$$)
+    YYERROR_MSG("BuiltInCall 8: cannot create expr");
 }
 | RegexExpression
 {
@@ -1953,10 +2385,14 @@ BuiltInCall: STR '(' Expression ')'
 RegexExpression: REGEX '(' Expression ',' Expression ')'
 {
   $$=rasqal_new_3op_expression(RASQAL_EXPR_REGEX, $3, $5, NULL);
+  if(!$$)
+    YYERROR_MSG("RegexExpression 1: cannot create expr");
 }
 | REGEX '(' Expression ',' Expression ',' Expression ')'
 {
   $$=rasqal_new_3op_expression(RASQAL_EXPR_REGEX, $3, $5, $7);
+  if(!$$)
+    YYERROR_MSG("RegexExpression 2: cannot create expr");
 }
 ;
 
@@ -1968,15 +2404,20 @@ RegexExpression: REGEX '(' Expression ',' Expression ')'
 IRIrefBrace: URI_LITERAL_BRACE
 {
   $$=rasqal_new_uri_literal($1);
+  if(!$$)
+    YYERROR_MSG("IRIrefBrace 1: cannot create literal");
 }
 | QNAME_LITERAL_BRACE
 {
   $$=rasqal_new_simple_literal(RASQAL_LITERAL_QNAME, $1);
+  if(!$$)
+    YYERROR_MSG("IRIrefBrace 2: cannot create literal");
   if(rasqal_literal_expand_qname((rasqal_query*)rq, $$)) {
     sparql_query_error_full((rasqal_query*)rq,
                             "QName %s cannot be expanded", $1);
     rasqal_free_literal($$);
     $$=NULL;
+    YYERROR_MSG("IRIrefBrace 2: cannot expand qname");
   }
 }
 ;
@@ -1994,15 +2435,20 @@ IRIrefBrace: URI_LITERAL_BRACE
 IRIref: URI_LITERAL
 {
   $$=rasqal_new_uri_literal($1);
+  if(!$$)
+    YYERROR_MSG("IRIref 1: cannot create literal");
 }
 | QNAME_LITERAL
 {
   $$=rasqal_new_simple_literal(RASQAL_LITERAL_QNAME, $1);
+  if(!$$)
+    YYERROR_MSG("IRIref 2: cannot create literal");
   if(rasqal_literal_expand_qname((rasqal_query*)rq, $$)) {
     sparql_query_error_full((rasqal_query*)rq,
                             "QName %s cannot be expanded", $1);
     rasqal_free_literal($$);
     $$=NULL;
+    YYERROR_MSG("IRIrefBrace 2: cannot expand qname");
   }
 }
 ;
@@ -2014,10 +2460,16 @@ IRIref: URI_LITERAL
 BlankNode: BLANK_LITERAL
 {
   $$=rasqal_new_simple_literal(RASQAL_LITERAL_BLANK, $1);
+  if(!$$)
+    YYERROR_MSG("BlankNode 1: cannot create literal");
 } | '[' ']'
 {
   const unsigned char *id=rasqal_query_generate_bnodeid((rasqal_query*)rq, NULL);
+  if(!id)
+    YYERROR_MSG("BlankNode 2: cannot create bnodeid");
   $$=rasqal_new_simple_literal(RASQAL_LITERAL_BLANK, id);
+  if(!$$)
+    YYERROR_MSG("BlankNode 2: cannot create literal");
 }
 ;
 
