@@ -322,6 +322,15 @@ rasqal_raptor_new_triples_source(rasqal_query* rdf_query,
  **/
 static int
 rasqal_raptor_triple_match(rasqal_triple *triple, rasqal_triple *match) {
+
+#if RASQAL_DEBUG > 1
+  fprintf(stderr, "triple ");
+  rasqal_triple_print(triple, stderr);
+  fputs("\nvs match ", stderr);
+  rasqal_triple_print(match, stderr);
+  fputs("\n", stderr);
+#endif
+
   if(match->subject) {
     if(!rasqal_literal_equals(triple->subject, match->subject))
       return 0;
