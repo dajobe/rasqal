@@ -8,7 +8,7 @@
 <>  rdf:type mf:Manifest ;
     rdfs:comment "OPTIONAL with inner and outer FILTERs" ;
     mf:entries
-    (:dawg-optional-filter-001 :dawg-optional-filter-002 :dawg-optional-filter-003 ).
+    (:dawg-optional-filter-001 :dawg-optional-filter-002 :dawg-optional-filter-003 :dawg-optional-filter-004 :dawg-optional-filter-005-simplified :dawg-optional-filter-005-not-simplified).
 
 :dawg-optional-filter-001 a mf:QueryEvaluationTest ;
       mf:name    "OPTIONAL-FILTER" ;
@@ -41,3 +41,28 @@
        dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2007AprJun/att-0082/2007-06-12-dawg-minutes.html> ;
        dawgt:approval dawgt:Approved .
 
+:dawg-optional-filter-004 a mf:QueryEvaluationTest ;
+      mf:name    "OPTIONAL - Inner FILTER with negative EBV for outer variables" ;
+      rdfs:comment "FILTER inside an OPTIONAL does not corrupt the entire solution" ;
+       mf:action
+          [ qt:query  <expr-4.rq> ;
+            qt:data   <data-1.ttl> ] ;
+       mf:result  <expr-4-result.ttl> ;
+       dawgt:approval dawgt:Approved ;
+       dawgt:approvedBy <http://lists.w3.org/Archives/Public/public-rdf-dawg/2007OctDec/att-0006/02-dawg-minutes.html> .
+
+:dawg-optional-filter-005-simplified a mf:QueryEvaluationTest ;
+      mf:name    "dawg-optional-filter-005-simplified";
+      rdfs:comment "Double curly braces get simplified to single curly braces early on, before filters are scoped";
+       mf:action
+          [ qt:query  <expr-5.rq> ;
+            qt:data   <data-1.ttl> ] ;
+       mf:result  <expr-5-result-simplified.ttl> .
+
+:dawg-optional-filter-005-not-simplified a mf:QueryEvaluationTest ;
+      mf:name    "dawg-optional-filter-005-not-simplified";
+      rdfs:comment "Double curly braces do NOT get simplified to single curly braces early on, before filters are scoped";
+       mf:action
+          [ qt:query  <expr-5.rq> ;
+            qt:data   <data-1.ttl> ] ;
+       mf:result  <expr-5-result-not-simplified.ttl> .
