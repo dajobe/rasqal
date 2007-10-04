@@ -641,7 +641,8 @@ rasqal_new_3op_expression(rasqal_op op,
   } else {
     rasqal_free_expression(arg1);
     rasqal_free_expression(arg2);
-    rasqal_free_expression(arg3);
+    if(arg3)
+      rasqal_free_expression(arg3);
   }
   return e;
 }
