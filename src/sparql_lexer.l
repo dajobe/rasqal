@@ -402,8 +402,8 @@ EXPONENT [eE][+-]?[0-9]+
 
 \"\"\"				{ BEGIN(LITERAL); }
 
-<LITERAL>(.|\n)*\"\"\"	{ sparql_copy_string_token(rq, sparql_parser_lval, 
-                            (unsigned char*)yytext, yyleng-3, '"'); /* ' */
+<LITERAL>(.|\n)*\"\"\"(^^({QUOTEDURI}|{QNAME}))?	{ sparql_copy_string_token(rq, sparql_parser_lval, 
+                            (unsigned char*)yytext, yyleng, '"'); /* ' */
                           BEGIN(INITIAL);
                           return STRING_LITERAL; }
 
@@ -417,8 +417,8 @@ EXPONENT [eE][+-]?[0-9]+
 
 \'\'\'				{ BEGIN(LITERAL2); }
 
-<LITERAL2>(.|\n)*\'\'\'	{ sparql_copy_string_token(rq, sparql_parser_lval, 
-                            (unsigned char*)yytext, yyleng-3, '\'');
+<LITERAL2>(.|\n)*\'\'\'(^^({QUOTEDURI}|{QNAME}))?	{ sparql_copy_string_token(rq, sparql_parser_lval, 
+                            (unsigned char*)yytext, yyleng, '\'');
                           BEGIN(INITIAL);
                           return STRING_LITERAL; }
 
@@ -692,10 +692,11 @@ sparql_copy_string_token(rasqal_query* rq, YYSTYPE* lval,
     } else if(c== delim) {
       *d++='\0';
 
-      /* skip delim */
-      s++; i++;
-
-      c=*s++; i++;
+      /* skip delims (', ", ''' or """) */
+      while(c == delim) {
+        c=*s++; i++;
+      }
+      
       if(c=='@') {
         language=(char*)d;
         while(i<=len) {
