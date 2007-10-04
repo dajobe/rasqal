@@ -651,7 +651,7 @@ warn "$program: $failed_count FAILED tests:\n  " .
      join("\n  ", map { $_->{name}. ($debug ? " (".$_->{test_uri}.")" : "") } @failed) .
      "\n"
   if $failed_count;
-warn "$program: Summary: ".scalar(@failed)." tests failed ".scalar(@passed)." tests passed\n";
+warn "$program: Summary: ".scalar(@passed)." tests passed  ".scalar(@failed)." tests failed\n";
 
 
 exit $failed_count;
