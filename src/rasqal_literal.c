@@ -455,7 +455,7 @@ static struct
   { RASQAL_LITERAL_FLOAT,    "float",  NULL, rasqal_literal_check_float_format },
   { RASQAL_LITERAL_DECIMAL,  "decimal", NULL, rasqal_literal_check_decimal_format },
   { RASQAL_LITERAL_DATETIME, "dateTime", NULL, rasqal_literal_check_dateTime_format },
-  { -1, NULL, NULL }
+  { (rasqal_literal_type)-1, NULL, NULL }
 };
 
 void
@@ -1921,6 +1921,8 @@ rasqal_literal_cast(rasqal_literal* l, raptor_uri* to_datatype, int flags,
 
   if(from_datatype && raptor_uri_equals(from_datatype, to_datatype)) {
     /* cast to same type is always allowed */
+    return rasqal_new_literal_from_literal(l);
+
   } else {
     /* switch on FROM type to check YES/NO conversions and get the string */
     switch(l->type) {
