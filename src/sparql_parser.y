@@ -1544,11 +1544,8 @@ PropertyListNotEmpty: Verb ObjectList PropertyListTailOpt
     fprintf(DEBUG_FH, "\n");
 #endif
 
-    for(i=0; i < raptor_sequence_size(seq); i++) {
-      /* disown triple in seq because we're passing ownership to formula->triples
-       * could also unshift in a loop but it's not very efficient */
-      t2=(rasqal_triple*)raptor_sequence_get_at(seq, i);
-      raptor_sequence_disown_at(seq, i);
+    while(raptor_sequence_size(seq)) {
+      t2=(rasqal_triple*)raptor_sequence_unshift(seq);
       if(raptor_sequence_push(formula->triples, t2)) {
         rasqal_free_formula(formula);
         rasqal_free_formula($1);
