@@ -969,6 +969,8 @@ RASQAL_API
 const unsigned char* rasqal_literal_as_string_flags(rasqal_literal* l, int flags, int *error);
 RASQAL_API
 rasqal_literal* rasqal_literal_as_node(rasqal_literal* l);
+RASQAL_API
+raptor_uri* rasqal_literal_datatype(rasqal_literal* l);
 
 RASQAL_API
 int rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags, int *error);
