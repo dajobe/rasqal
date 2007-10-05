@@ -2005,7 +2005,6 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e,
     case RASQAL_EXPR_CAST:
       {
         rasqal_literal *l1;
-        raptor_uri *uri;
         
         l1=rasqal_expression_evaluate(query, e->arg1, flags);
         if(!l1)
