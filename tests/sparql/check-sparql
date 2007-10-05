@@ -34,10 +34,9 @@
 
 use strict;
 use File::Basename;
-use XML::Simple;
+use XML::DOM;
 use Getopt::Long;
 use Pod::Usage;
-use Data::Dumper;
 
 my $roqet="roqet";
 my $rasqal_url="http://librdf.org/rasqal/";
@@ -174,70 +173,51 @@ sub read_srx_results_file($) {
 
   $result_file =~ s%^file://%%;
 
-  my $ref = XMLin($result_file,
-		  ForceArray => ['results', 'result'],
-		  KeyAttr    => {binding => 'name'} );
+  my $parser = new XML::DOM::Parser;
+  my $doc = $parser->parsefile($result_file);
 
-  my $results_el=$ref->{results};
-  return {expect_empty => 1}
-    unless defined $results_el;
-
-  warn "IN>>>\n", Dumper($results_el)
-    if $debug > 1;
-  
-  my $rr=$results_el->[0];
-  my(@r)=();
-  @r=@{$rr->{'result'}}
-    if $rr->{'result'};
-  warn "IN2>>>\n". Dumper(\@r)
-    if $debug > 1;
-
-  for my $bindings (@r) {
+  for my $result ($doc->getElementsByTagName("result")) {
+    next unless ref($result) eq 'XML::DOM::Element';
     my($row)={};
 
-    warn "ROW>>>\n". Dumper($bindings)
+    warn "Result Element ".$result->getNodeName()."\n"
       if $debug > 1;
 
-    if(ref($bindings) eq 'HASH' && scalar(keys %{$bindings})==1) {
-      $bindings=[values %{$bindings}];
-    }
-    for my $binding (@$bindings) {
+    for my $binding ($result->getChildNodes()) {
+      next unless ref($binding) eq 'XML::DOM::Element';
 
-      $binding=$binding->{binding}
-        if $binding->{binding};
-      warn "BINDING>>>\n", Dumper($binding)
+      my $variable=$binding->getAttribute('name');
+
+      warn "   Binding Element ".$binding->getNodeName()." name=$variable\n"
 	if $debug > 1;
 
-      if(ref($binding) eq 'HASH' && $binding->{name}) {
-	$binding={$binding->{name} => $binding};
-      }
-      while(my($variable,$raw)=each %{$binding}) {
+      for my $el ($binding->getChildNodes()) {
+	next unless ref($el) eq 'XML::DOM::Element';
+	my $el_name=$el->getTagName();
+
+	warn "   Binding sub-element $el_name\n"
+	  if $debug > 1;
+
 	my $value;
-	if($raw->{uri}) {
-	  $value="uri<".$raw->{uri}.">";
-	} elsif($raw->{literal}) {
-	  my $lit=$raw->{literal};
-	  if(ref($lit) eq 'HASH') {
-	    if(!keys %$lit) {
-	      $lit='';
-	    } elsif (!$lit->{content}) {
-	      $lit->{content}='';
-            }
-	  }
-	  $lit={content => $lit}
-	    if !ref($lit);
-	  if($lit->{datatype}) {
-	    $value="string(\"".$lit->{content}."\"^^<".$lit->{datatype}.">)";
-	  } elsif($lit->{'xml:lang'}) {
-	    $value="string(\"".$lit->{content}."\"@".$lit->{'xml:lang'}.")";
+	if($el_name eq 'uri') {
+	  my $contents=$el->getFirstChild()->getNodeValue();
+	  $value="uri<$contents>";
+	} elsif($el_name eq 'literal') {
+	  my $contents=$el->getFirstChild() ? ($el->getFirstChild()->getNodeValue()) : '';
+	  if(my $datatype=$el->getAttribute('datatype')) {
+	    $value="string(\"".$contents."\"^^<$datatype>)";
+	  } elsif(my $language=$el->getAttribute('xml:lang')) {
+	    $value="string(\"$contents\"\@$language)";
 	  } else {
-	    $value="string(\"".$lit->{content}."\")";
+	    $value="string(\"$contents\")";
 	  }
-	} elsif($raw->{blank}) {
-	  $value="blank ";
+	} elsif($el_name eq 'bnode') {
+	  $value="blank _";
 	} else {
-	  $value=$raw;
+	  $value='';
 	}
+	warn "   Encoded value: $value\n"
+	  if $debug > 1;
         $row->{$variable}=$value;
       }
 
@@ -247,8 +227,6 @@ sub read_srx_results_file($) {
 
   } # end for my result
 
-  warn "OUT>>>", Dumper(\%results)
-    if $debug > 1;
   return \%results;
 }
 
