@@ -34,6 +34,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
 #endif
@@ -222,6 +223,211 @@ rasqal_new_decimal_literal(const unsigned char *decimal)
 }
 
 
+static int
+rasqal_literal_check_boolean_format(const unsigned char* string, int flags) 
+{
+  if(!strcmp((const char*)string, "true") || 
+     !strcmp((const char*)string, "TRUE") ||
+     !strcmp((const char*)string, "1") ||
+     !strcmp((const char*)string, "false") || 
+     !strcmp((const char*)string, "FALSE") ||
+     !strcmp((const char*)string, "0"))
+    return 1;
+
+  return 0;
+}
+
+
+static int
+rasqal_literal_check_dateTime_format(const unsigned char* string, int flags) 
+{
+  const char* p;
+  
+#define ADVANCE_OR_DIE(p) if(!*(++p)) return 0;
+
+  /* FIXME validate dateTime format:
+   * '-'? yyyy '-' mm '-' dd 'T' hh ':' mm ':' ss ('.' s+)? (zzzzzz)?
+   *
+   * and does not check the fields are valid ranges.  This lets through
+   * 9999-99-99T99:99:99Z
+   */
+  p=(const char*)string;
+  if(*p == '-') {
+    ADVANCE_OR_DIE(p);
+  }
+  /* YYYY */
+  if(isdigit(*p)) {
+    ADVANCE_OR_DIE(p);
+  }
+  if(isdigit(*p)) {
+    ADVANCE_OR_DIE(p);
+  }
+  if(isdigit(*p)) {
+    ADVANCE_OR_DIE(p);
+  }
+  if(isdigit(*p)) {
+    ADVANCE_OR_DIE(p);
+  }
+  if(*p != '-')
+     return 0;
+  ADVANCE_OR_DIE(p);
+  /* MM */
+  if(isdigit(*p)) {
+    ADVANCE_OR_DIE(p);
+  }
+  if(isdigit(*p)) {
+    ADVANCE_OR_DIE(p);
+  }
+  if(*p != '-')
+    return 0;
+  ADVANCE_OR_DIE(p);
+  /* DD */
+  if(isdigit(*p)) {
+    ADVANCE_OR_DIE(p);
+  }
+  if(isdigit(*p)) {
+    ADVANCE_OR_DIE(p);
+  }
+  if(*p != 'T')
+    return 0;
+  ADVANCE_OR_DIE(p);
+  /* HH */
+  if(isdigit(*p)) {
+    ADVANCE_OR_DIE(p);
+  }
+  if(isdigit(*p)) {
+    ADVANCE_OR_DIE(p);
+  }
+  if(*p != ':')
+    return 0;
+  ADVANCE_OR_DIE(p);
+  /* MM */
+  if(isdigit(*p)) {
+    ADVANCE_OR_DIE(p);
+  }
+  if(isdigit(*p)) {
+    ADVANCE_OR_DIE(p);
+  }
+  if(*p != ':')
+    return 0;
+  ADVANCE_OR_DIE(p);
+  /* SS */
+  if(isdigit(*p)) {
+    ADVANCE_OR_DIE(p);
+  }
+  if(isdigit(*p))
+    p++;
+
+  /* optional end before . */
+  if(!*p)
+    return 1;
+  /* next char may be '.' */
+  if(*p == '.') {
+    p++;
+    while(*p && isdigit(*p))
+      p++;
+    /* optional end after extra .s+ digits */
+    if(!p)
+      return 0;
+  }
+  if(*p == 'Z') {
+    p++;
+    /* must end at this point */
+    if(!*p)
+      return 1;
+    else
+      return 0;
+  }
+  
+  /* FIXME - ignoring  the full syntax of timezone, a string of the form:
+   *   (('+' | '-') hh ':' mm) | 'Z'
+   *
+   */
+  
+  return 1;
+}
+
+
+static int
+rasqal_literal_check_decimal_format(const unsigned char* string, int flags) 
+{
+  double d=0.0;
+  char* eptr=NULL;
+
+  d=strtod((const char*)string, &eptr);
+  if((unsigned char*)eptr != string && *eptr=='\0')
+    return 1;
+
+  return 0;
+}
+
+
+static int
+rasqal_literal_check_double_format(const unsigned char* string, int flags) 
+{
+  /* FIXME */
+  return rasqal_literal_check_decimal_format(string, flags);
+}
+
+
+static int
+rasqal_literal_check_float_format(const unsigned char* string, int flags) 
+{
+  /* FIXME */
+  return rasqal_literal_check_float_format(string, flags);
+}
+
+
+static int
+rasqal_literal_check_integer_format(const unsigned char* string, int flags)
+{
+  long int v;
+  char* eptr=NULL;
+
+  v=(int)strtol((const char*)string, &eptr, 10);
+
+  if((unsigned char*)eptr != string && *eptr=='\0')
+    return 1;
+
+  return 0;
+}
+
+
+
+static struct 
+{
+  rasqal_literal_type type;
+  const char* label;
+  raptor_uri* uri;
+  int (*check)(const unsigned char* string, int flags);
+} sparql_xsd_datatypes_table[RASQAL_LITERAL_LAST_XSD-RASQAL_LITERAL_FIRST_XSD+2]=
+{
+  { RASQAL_LITERAL_BOOLEAN,  "boolean", NULL, rasqal_literal_check_boolean_format },
+  { RASQAL_LITERAL_INTEGER,  "integer", NULL, rasqal_literal_check_integer_format },
+  { RASQAL_LITERAL_DOUBLE,   "double", NULL, rasqal_literal_check_double_format },
+  { RASQAL_LITERAL_FLOAT,    "float",  NULL, rasqal_literal_check_float_format },
+  { RASQAL_LITERAL_DECIMAL,  "decimal", NULL, rasqal_literal_check_decimal_format },
+  { RASQAL_LITERAL_DATETIME, "dateTime", NULL, rasqal_literal_check_dateTime_format },
+  { -1, NULL, NULL }
+};
+
+void
+rasqal_xsd_init(void) 
+{
+  sparql_xsd_datatypes_table[RASQAL_LITERAL_BOOLEAN-RASQAL_LITERAL_FIRST_XSD].uri=rasqal_xsd_boolean_uri;
+  sparql_xsd_datatypes_table[RASQAL_LITERAL_INTEGER-RASQAL_LITERAL_FIRST_XSD].uri=rasqal_xsd_integer_uri;
+  sparql_xsd_datatypes_table[RASQAL_LITERAL_DOUBLE-RASQAL_LITERAL_FIRST_XSD].uri=rasqal_xsd_double_uri;
+  sparql_xsd_datatypes_table[RASQAL_LITERAL_FLOAT-RASQAL_LITERAL_FIRST_XSD].uri=rasqal_xsd_float_uri;
+  sparql_xsd_datatypes_table[RASQAL_LITERAL_DECIMAL-RASQAL_LITERAL_FIRST_XSD].uri=rasqal_xsd_decimal_uri;
+  sparql_xsd_datatypes_table[RASQAL_LITERAL_DATETIME-RASQAL_LITERAL_FIRST_XSD].uri=rasqal_xsd_datetime_uri;
+}
+
+void
+rasqal_xsd_finish(void) 
+{
+}
+ 
+
 /*
  * rasqal_literal_string_to_native - INTERNAL Upgrade a datatyped literal string to an internal typed literal
  * @l: #rasqal_literal to operate on inline
@@ -242,69 +448,90 @@ rasqal_literal_string_to_native(rasqal_literal *l,
                                 raptor_simple_message_handler error_handler,
                                 void *error_data)
 {
+  int flags=0;
+  int i;
+  double d;
+  int offset= -1;
+  rasqal_literal_type native_type=RASQAL_LITERAL_UNKNOWN;
+
   if(!l->datatype)
     return 0;
 
-  if(raptor_uri_equals(l->datatype, rasqal_xsd_integer_uri)) {
-    int i=atoi((const char*)l->string);
-
-    if(l->language) {
-      RASQAL_FREE(cstring, (void*)l->language);
-      l->language=NULL;
+  for(i=0; sparql_xsd_datatypes_table[i].check; i++) {
+    if(raptor_uri_equals(l->datatype, sparql_xsd_datatypes_table[i].uri)) {
+      offset=i;
+      native_type=sparql_xsd_datatypes_table[offset].type;
+      break;
     }
-
-    l->type=RASQAL_LITERAL_INTEGER;
-    l->value.integer=i;
-    return 0;
-  }
-  
-  if(raptor_uri_equals(l->datatype, rasqal_xsd_double_uri) ||
-     raptor_uri_equals(l->datatype, rasqal_xsd_float_uri) ||
-     raptor_uri_equals(l->datatype, rasqal_xsd_decimal_uri)) {
-    double d=0.0;
-    int n;
-
-    n=sscanf((char*)l->string, "%lf", &d);
-    if(n != 1) {
-      if(error_handler)
-        error_handler(error_data, "Illegal floating point string '%s'",
-                      l->string);
-      return 1;
-    }
-
-    if(l->language) {
-      RASQAL_FREE(cstring, (void*)l->language);
-      l->language=NULL;
-    }
-
-    l->type= raptor_uri_equals(l->datatype, rasqal_xsd_float_uri) ?
-      RASQAL_LITERAL_FLOAT :
-      (raptor_uri_equals(l->datatype, rasqal_xsd_double_uri) ? RASQAL_LITERAL_DOUBLE : RASQAL_LITERAL_DECIMAL);
-    l->value.floating=d;
-    return 0;
   }
 
-  if(raptor_uri_equals(l->datatype, rasqal_xsd_boolean_uri)) {
-    int b=0;
-    if(!strcmp((const char*)l->string, "true") || 
-       !strcmp((const char*)l->string, "TRUE") ||
-       !strcmp((const char*)l->string, "1"))
-       b=1;
+  /* If not a known native type return ok but do not change literal */
+  if(native_type == RASQAL_LITERAL_UNKNOWN)
+    return 0;
+
     
-    if(l->language) {
-      RASQAL_FREE(cstring, (void*)l->language);
-      l->language=NULL;
-    }
+  if(!sparql_xsd_datatypes_table[offset].check(l->string, flags)) {
+    if(error_handler)
+      error_handler(error_data, "Illegal type %s string '%s'",
+                    sparql_xsd_datatypes_table[offset].label, l->string);
+    return 1;
+  }
+      
 
-    /* Free passed in string */
-    RASQAL_FREE(cstring, (void*)l->string);
-    /* and replace with a static string */
-    l->string=b ? RASQAL_XSD_BOOLEAN_TRUE : RASQAL_XSD_BOOLEAN_FALSE;
-    l->string_len=(b ? 4 : 5);
+  if(l->language) {
+    RASQAL_FREE(cstring, (void*)l->language);
+    l->language=NULL;
+  }
+  l->type=native_type;
 
-    l->type=RASQAL_LITERAL_BOOLEAN;
-    l->value.integer=b;
-    return 0;
+  switch(native_type) {
+    case RASQAL_LITERAL_INTEGER:
+      i=atoi((const char*)l->string);
+      l->value.integer=i;
+      break;
+
+
+    case RASQAL_LITERAL_DOUBLE:
+    case RASQAL_LITERAL_FLOAT:
+    case RASQAL_LITERAL_DECIMAL:
+      d=0.0;
+      (void)sscanf((char*)l->string, "%lf", &d);
+      
+      l->value.floating=d;
+      break;
+
+    case RASQAL_LITERAL_BOOLEAN:
+      i=0;
+      if(!strcmp((const char*)l->string, "true") || 
+         !strcmp((const char*)l->string, "TRUE") ||
+         !strcmp((const char*)l->string, "1"))
+        i=1;
+      
+      /* Free passed in string */
+      RASQAL_FREE(cstring, (void*)l->string);
+      /* and replace with a static string */
+      l->string=i ? RASQAL_XSD_BOOLEAN_TRUE : RASQAL_XSD_BOOLEAN_FALSE;
+      l->string_len=(i ? 4 : 5);
+      
+      l->value.integer=i;
+      break;
+
+  case RASQAL_LITERAL_DATETIME:
+    /* No change - kept as a string */
+    break;
+    
+  case RASQAL_LITERAL_UNKNOWN:
+  case RASQAL_LITERAL_BLANK:
+  case RASQAL_LITERAL_URI:
+  case RASQAL_LITERAL_STRING:
+  case RASQAL_LITERAL_PATTERN:
+  case RASQAL_LITERAL_QNAME:
+  case RASQAL_LITERAL_VARIABLE:
+    RASQAL_FATAL2("Unexpected native type %d", native_type);
+    break;
+    
+  default:
+    RASQAL_FATAL2("Unknown native type %d", native_type);
   }
 
   return 0;
@@ -1626,13 +1853,14 @@ rasqal_literal_datatype(rasqal_literal* l)
 
 
 rasqal_literal*
-rasqal_literal_cast(rasqal_literal* l, raptor_uri* datatype, int flags, 
+rasqal_literal_cast(rasqal_literal* l, raptor_uri* to_datatype, int flags, 
                     int* error_p)
 {
-  raptor_uri* literal_datatype=NULL;
-  const unsigned char *string;
+  raptor_uri* from_datatype=NULL;
+  const unsigned char *string=NULL;
   unsigned char *new_string;
-
+  rasqal_literal* result=NULL;
+  
   if(!l)
     return NULL;
 
@@ -1642,28 +1870,47 @@ rasqal_literal_cast(rasqal_literal* l, raptor_uri* datatype, int flags,
       return NULL;
   }
 
-  literal_datatype=l->datatype;
+  from_datatype=l->datatype;
 
-  if(literal_datatype && raptor_uri_equals(literal_datatype, datatype)) {
+  if(from_datatype && raptor_uri_equals(from_datatype, to_datatype)) {
     /* cast to same type is always allowed */
   } else {
+    /* switch on FROM type to check YES/NO conversions and get the string */
     switch(l->type) {
       /* string */
       case RASQAL_LITERAL_STRING:
         string=l->string;
         break;
 
-      /* XSD datatypes */
+      /* XSD datatypes: RASQAL_LITERAL_FIRST_XSD to RASQAL_LITERAL_LAST_XSD */
       case RASQAL_LITERAL_BOOLEAN:
       case RASQAL_LITERAL_INTEGER:
       case RASQAL_LITERAL_DOUBLE:
       case RASQAL_LITERAL_FLOAT:
       case RASQAL_LITERAL_DECIMAL:
-      case RASQAL_LITERAL_DATETIME:
+        /* XSD (boolean, integer, decimal, double, float) may NOT be
+         * cast to dateTime */
+        if(raptor_uri_equals(to_datatype, rasqal_xsd_datetime_uri)) {
+          *error_p=1;
+          break;
+        }
         string=l->string;
         break;
 
-      /* SPARQL things */
+      case RASQAL_LITERAL_DATETIME:
+        /* XSD dateTime may ONLY be cast from string (cast from dateTime
+         * is checked above)
+         */
+        if(!from_datatype ||
+           !raptor_uri_equals(from_datatype, rasqal_xsd_string_uri)) {
+          *error_p=1;
+          break;
+        }
+
+        string=l->string;
+        break;
+
+      /* SPARQL casts - FIXME */
       case RASQAL_LITERAL_BLANK:
       case RASQAL_LITERAL_PATTERN:
       case RASQAL_LITERAL_QNAME:
@@ -1671,12 +1918,13 @@ rasqal_literal_cast(rasqal_literal* l, raptor_uri* datatype, int flags,
         break;
 
       case RASQAL_LITERAL_URI:
-        if(flags & RASQAL_COMPARE_XQUERY) {
-          if(error_p)
-            *error_p=1;
-          string=NULL;
-        } else
-          string=raptor_uri_as_string(l->value.uri);
+        /* URI (IRI) May ONLY be cast to a string */
+        if(!raptor_uri_equals(to_datatype, rasqal_xsd_string_uri)) {
+          *error_p=1;
+          break;
+        }
+
+        string=raptor_uri_as_string(l->value.uri);
         break;
 
       case RASQAL_LITERAL_VARIABLE:
@@ -1689,17 +1937,24 @@ rasqal_literal_cast(rasqal_literal* l, raptor_uri* datatype, int flags,
 
     if(*error_p)
       return NULL;
+
   }
   
+
+  /* switch on the TO type to check MAYBE conversions */
+
   RASQAL_DEBUG4("CAST from \"%s\" type %s to type %s\n",
                 string, 
-                literal_datatype ? (const char*)raptor_uri_as_string(literal_datatype) : "(NONE)",
-                raptor_uri_as_string(datatype));
+                from_datatype ? (const char*)raptor_uri_as_string(from_datatype) : "(NONE)",
+                raptor_uri_as_string(to_datatype));
   
   new_string=(unsigned char*)RASQAL_MALLOC(string, 
                                            strlen((const char*)string)+1);
   strcpy((char*)new_string, (const char*)string);
-  datatype=raptor_uri_copy(datatype);
+  to_datatype=raptor_uri_copy(to_datatype);
   
-  return rasqal_new_string_literal(new_string, NULL, datatype, NULL);
+  result=rasqal_new_string_literal(new_string, NULL, to_datatype, NULL);
+  if(!result)
+    *error_p=1;
+  return result;
 }
