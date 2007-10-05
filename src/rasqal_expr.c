@@ -2005,26 +2005,18 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e,
     case RASQAL_EXPR_CAST:
       {
         rasqal_literal *l1;
-        const unsigned char *string;
-        unsigned char *new_string;
         raptor_uri *uri;
         
         l1=rasqal_expression_evaluate(query, e->arg1, flags);
         if(!l1)
           goto failed;
 
-        string=rasqal_literal_as_string_flags(l1, flags, &error);
-        if(error) {
-          rasqal_free_literal(l1);
-          goto failed;
-        }
-        new_string=(unsigned char*)RASQAL_MALLOC(string, strlen((const char*)string)+1);
-        strcpy((char*)new_string, (const char*)string);
-        uri=raptor_uri_copy(e->name);
+        result=rasqal_literal_cast(l1, e->name, flags, &error);
 
         rasqal_free_literal(l1);
+        if(error)
+          goto failed;
 
-        result=rasqal_new_string_literal(new_string, NULL, uri, NULL);
         break;
       }
 
