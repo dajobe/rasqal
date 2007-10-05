@@ -1623,3 +1623,83 @@ rasqal_literal_datatype(rasqal_literal* l)
     return l->datatype;
   return rasqal_literal_datatype(l->value.variable->value);
 }
+
+
+rasqal_literal*
+rasqal_literal_cast(rasqal_literal* l, raptor_uri* datatype, int flags, 
+                    int* error_p)
+{
+  raptor_uri* literal_datatype=NULL;
+  const unsigned char *string;
+  unsigned char *new_string;
+
+  if(!l)
+    return NULL;
+
+  if(l->type==RASQAL_LITERAL_VARIABLE) {
+    l=l->value.variable->value;
+    if(!l)
+      return NULL;
+  }
+
+  literal_datatype=l->datatype;
+
+  if(literal_datatype && raptor_uri_equals(literal_datatype, datatype)) {
+    /* cast to same type is always allowed */
+  } else {
+    switch(l->type) {
+      /* string */
+      case RASQAL_LITERAL_STRING:
+        string=l->string;
+        break;
+
+      /* XSD datatypes */
+      case RASQAL_LITERAL_BOOLEAN:
+      case RASQAL_LITERAL_INTEGER:
+      case RASQAL_LITERAL_DOUBLE:
+      case RASQAL_LITERAL_FLOAT:
+      case RASQAL_LITERAL_DECIMAL:
+      case RASQAL_LITERAL_DATETIME:
+        string=l->string;
+        break;
+
+      /* SPARQL things */
+      case RASQAL_LITERAL_BLANK:
+      case RASQAL_LITERAL_PATTERN:
+      case RASQAL_LITERAL_QNAME:
+        string=l->string;
+        break;
+
+      case RASQAL_LITERAL_URI:
+        if(flags & RASQAL_COMPARE_XQUERY) {
+          if(error_p)
+            *error_p=1;
+          string=NULL;
+        } else
+          string=raptor_uri_as_string(l->value.uri);
+        break;
+
+      case RASQAL_LITERAL_VARIABLE:
+        /* yes fallthrough to abort since we should have handled this above */
+      case RASQAL_LITERAL_UNKNOWN:
+      default:
+        abort();
+        return NULL; /* keep some compilers happy */
+    }
+
+    if(*error_p)
+      return NULL;
+  }
+  
+  RASQAL_DEBUG4("CAST from \"%s\" type %s to type %s\n",
+                string, 
+                literal_datatype ? (const char*)raptor_uri_as_string(literal_datatype) : "(NONE)",
+                raptor_uri_as_string(datatype));
+  
+  new_string=(unsigned char*)RASQAL_MALLOC(string, 
+                                           strlen((const char*)string)+1);
+  strcpy((char*)new_string, (const char*)string);
+  datatype=raptor_uri_copy(datatype);
+  
+  return rasqal_new_string_literal(new_string, NULL, datatype, NULL);
+}
