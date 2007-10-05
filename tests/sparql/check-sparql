@@ -518,7 +518,8 @@ while($list_node) {
   my $test_uri=$entry_node; $test_uri =~ s/^<(.+)>$/$1/;
   my $test_type=$query_type; $test_type =~ s/^<(.+)>$/$1/ if defined $test_type;
 
-  if (!$unique_test || ($unique_test && $name eq $unique_test)) {
+  if (!$unique_test || ($unique_test && (($name eq $unique_test) ||
+					 ($test_uri =~ /$unique_test/)))) {
     push(@tests, {name => $name,
 		  dir => $srcdir,
 		  test_file => $query_file,
