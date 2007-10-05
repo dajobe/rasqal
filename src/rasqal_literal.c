@@ -419,6 +419,7 @@ rasqal_new_boolean_literal(int value)
     l->value.integer=value;
     l->string=value ? RASQAL_XSD_BOOLEAN_TRUE : RASQAL_XSD_BOOLEAN_FALSE;
     l->string_len=(value ? 4 : 5);
+    l->datatype=raptor_uri_copy(rasqal_xsd_boolean_uri);
     l->usage=1;
   }
   return l;
@@ -1508,7 +1509,7 @@ rasqal_literal_ebv(rasqal_literal* l)
 
 
 /*
- * rasqal_literal_Is_constant - INTERNAL Check if a literal is a constant
+ * rasqal_literal_is_constant - INTERNAL Check if a literal is a constant
  * @l: #rasqal_literal literal
  * 
  * Return value: non-0 if literal is a constant
@@ -1603,3 +1604,22 @@ rasqal_formula_join(rasqal_formula* first_formula,
   return first_formula;
 }
 
+
+/**
+ * rasqal_literal_datatype:
+ * @l: #rasqal_literal object
+ *
+ * Get the datatype URI of a literal
+ *
+ * Return value: shared pointer to #raptor_uri of datatype or NULL on failure or no value
+ */
+raptor_uri*
+rasqal_literal_datatype(rasqal_literal* l)
+{
+  if(!l)
+    return NULL;
+  
+  if(l->type != RASQAL_LITERAL_VARIABLE)
+    return l->datatype;
+  return rasqal_literal_datatype(l->value.variable->value);
+}
