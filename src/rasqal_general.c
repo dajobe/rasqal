@@ -123,6 +123,8 @@ rasqal_init(void)
 
   rasqal_uri_init();
 
+  rasqal_xsd_init();
+
   /* last one declared is the default - RDQL */
 
 #ifdef RASQAL_QUERY_RDQL
@@ -175,6 +177,8 @@ rasqal_finish(void)
 #ifdef RAPTOR_TRIPLES_SOURCE_REDLAND
   rasqal_redland_finish();
 #endif
+
+  rasqal_xsd_finish();
 
   rasqal_uri_finish();
 
