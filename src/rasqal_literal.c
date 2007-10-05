@@ -226,6 +226,10 @@ rasqal_new_decimal_literal(const unsigned char *decimal)
 static int
 rasqal_literal_check_boolean_format(const unsigned char* string, int flags) 
 {
+  /* FIXME
+   * Strictly only {true, false, 1, 0} are allowed according to
+   * http://www.w3.org/TR/xmlschema-2/#boolean
+   */
   if(!strcmp((const char*)string, "true") || 
      !strcmp((const char*)string, "TRUE") ||
      !strcmp((const char*)string, "1") ||
@@ -238,18 +242,21 @@ rasqal_literal_check_boolean_format(const unsigned char* string, int flags)
 }
 
 
+#define ADVANCE_OR_DIE(p) if(!*(++p)) return 0;
+
 static int
 rasqal_literal_check_dateTime_format(const unsigned char* string, int flags) 
 {
   const char* p;
   
-#define ADVANCE_OR_DIE(p) if(!*(++p)) return 0;
-
   /* FIXME validate dateTime format:
+   * according to http://www.w3.org/TR/xmlschema-2/#dateTime
+   *
    * '-'? yyyy '-' mm '-' dd 'T' hh ':' mm ':' ss ('.' s+)? (zzzzzz)?
    *
    * and does not check the fields are valid ranges.  This lets through
-   * 9999-99-99T99:99:99Z
+   * 9999-99-99T99:99:99Z and does not check leap years, days in months
+   * etc. etc.
    */
   p=(const char*)string;
   if(*p == '-') {
@@ -351,6 +358,41 @@ rasqal_literal_check_dateTime_format(const unsigned char* string, int flags)
 static int
 rasqal_literal_check_decimal_format(const unsigned char* string, int flags) 
 {
+  const char* p;
+  
+  /* This should be correct according to 
+   * http://www.w3.org/TR/xmlschema-2/#decimal
+   */
+  p=(const char*)string;
+  if(*p == '+' || *p == '-') {
+    ADVANCE_OR_DIE(p);
+  }
+
+  while(*p && isdigit(*p))
+    p++;
+  if(!*p)
+    return 1;
+  /* Fail if first non-digit is not '.' */
+  if(*p != '.')
+    return 0;
+  p++;
+  
+  while(*p && isdigit(*p))
+    p++;
+  /* Fail if anything other than a digit seen before NUL */
+  if(*p)
+    return 0;
+
+  return 1;
+}
+
+
+static int
+rasqal_literal_check_double_format(const unsigned char* string, int flags) 
+{
+  /* FIXME validate using
+   * http://www.w3.org/TR/xmlschema-2/#double
+   */
   double d=0.0;
   char* eptr=NULL;
 
@@ -363,18 +405,19 @@ rasqal_literal_check_decimal_format(const unsigned char* string, int flags)
 
 
 static int
-rasqal_literal_check_double_format(const unsigned char* string, int flags) 
-{
-  /* FIXME */
-  return rasqal_literal_check_decimal_format(string, flags);
-}
-
-
-static int
 rasqal_literal_check_float_format(const unsigned char* string, int flags) 
 {
-  /* FIXME */
-  return rasqal_literal_check_float_format(string, flags);
+  /* FIXME validate using
+   * http://www.w3.org/TR/xmlschema-2/#float
+   */
+  double d=0.0;
+  char* eptr=NULL;
+
+  d=strtod((const char*)string, &eptr);
+  if((unsigned char*)eptr != string && *eptr=='\0')
+    return 1;
+
+  return 0;
 }
 
 
@@ -383,6 +426,10 @@ rasqal_literal_check_integer_format(const unsigned char* string, int flags)
 {
   long int v;
   char* eptr=NULL;
+
+  /* This should be correct according to 
+   * http://www.w3.org/TR/xmlschema-2/#integer
+   */
 
   v=(int)strtol((const char*)string, &eptr, 10);
 
