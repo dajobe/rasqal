@@ -49,6 +49,7 @@ my $variable_predicate="<${rs}variable>";
 my $value_predicate="<${rs}value>";
 my $binding_predicate="<${rs}binding>";
 my $solution_predicate="<${rs}solution>";
+my $index_predicate="<${rs}index>";
 
 my(@manifest_files)=qw(manifest.ttl manifest.n3);
 my $mf='http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#';
@@ -149,7 +150,7 @@ sub read_rdf_results_file($) {
     # No result defined
     return {expect_empty => 1};
   }
-  
+
   for my $node (@{$nodes{$resultset_node}->{$solution_predicate}}) {
     # Get binding nodes
     my $row={};
@@ -159,8 +160,15 @@ sub read_rdf_results_file($) {
       my $value=$nodes{$binding_node}->{$value_predicate}->[0];
       $row->{$variable}=toDebug($value);
     }
-    
-    push(@{$results{rows}}, $row);
+
+    my $row_index=$nodes{$node}->{$index_predicate};
+    if(defined $row_index) {
+      # Some - but not all - result sets use rs:index to order results
+      my $ri=$row_index->[0]; $ri =~ s/^\"(\d+)\".*$/$1/;
+      $results{rows}->[$ri-1]=$row;
+    } else {
+      push(@{$results{rows}}, $row);
+    }
   }
   return \%results;
 }
