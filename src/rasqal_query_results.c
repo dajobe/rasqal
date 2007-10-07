@@ -306,7 +306,7 @@ rasqal_query_results_get_bindings(rasqal_query_results* query_results,
     *names=query->variable_names;
   
   if(values)
-    *values=rasqal_engine_get_results_values(query_results);
+    *values=rasqal_engine_get_result_values(query_results);
     
   return 0;
 }
