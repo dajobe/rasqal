@@ -1805,6 +1805,13 @@ rasqal_engine_get_next_result(rasqal_query_results *query_results)
 }
 
 
+/**
+ * rasqal_engine_move_constraints:
+ * @dest_gp: destination graph pattern
+ * @src_gp: src graph pattern
+ *
+ * INTERNAL - copy all constraints from @src_gp graph pattern to @src_gp graph pattern
+ */
 void
 rasqal_engine_move_constraints(rasqal_graph_pattern* dest_gp, 
                                rasqal_graph_pattern* src_gp)
@@ -1823,6 +1830,13 @@ rasqal_engine_move_constraints(rasqal_graph_pattern* dest_gp,
 }
 
 
+/**
+ * rasqal_engine_join_graph_patterns:
+ * @dest_gp: destination graph pattern
+ * @src_gp: src graph pattern
+ *
+ * INTERNAL - merge @src_gp graph pattern into @dest_gp graph pattern
+ */
 void
 rasqal_engine_join_graph_patterns(rasqal_graph_pattern *dest_gp,
                                   rasqal_graph_pattern *src_gp)
@@ -2087,8 +2101,9 @@ rasqal_engine_merge_graph_patterns(rasqal_query* query,
 
 /**
  * rasqal_engine_check_limit_offset:
+ * @query_results: query results object
  *
- * Check the query result count is in the limit and offset range if any.
+ * INTERNAL - Check the query result count is in the limit and offset range if any.
  *
  * Return value: before range -1, in range 0, after range 1
  */
