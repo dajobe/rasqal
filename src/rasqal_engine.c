@@ -400,9 +400,6 @@ rasqal_engine_assign_variables(rasqal_query* rq)
     rq->variable_names=(const unsigned char**)RASQAL_MALLOC(cstrings,sizeof(const unsigned char*)*(size+1));
     if(!rq->variable_names)
       return 1;
-    rq->binding_values=(rasqal_literal**)RASQAL_MALLOC(rasqal_literals,sizeof(rasqal_literal*)*(size+1));
-    if(!rq->binding_values)
-      return 1;
   }
   
   rq->variables=(rasqal_variable**)RASQAL_MALLOC(varrary, sizeof(rasqal_variable*)*(rq->variables_count + rq->anon_variables_count));
@@ -429,10 +426,9 @@ rasqal_engine_assign_variables(rasqal_query* rq)
     offset++;
   }
 
-  if(rq->variable_names) {
+  if(rq->variable_names)
     rq->variable_names[size]=NULL;
-    rq->binding_values[size]=NULL;
-  }
+
   return 0;
 }
   
@@ -2515,11 +2511,8 @@ rasqal_engine_query_result_row_update(rasqal_query_result_row* row, int offset)
   else
     size=query->select_variables_count;
 
-  for(i=0; i< size; i++)
-    query->binding_values[i]=query->variables[i]->value;
-
   for(i=0; i < row->size; i++) {
-    rasqal_literal *l=query->binding_values[i];
+    rasqal_literal *l=query->variables[i]->value;
     if(row->values[i])
       rasqal_free_literal(row->values[i]);
     row->values[i]=rasqal_new_literal_from_literal(l);

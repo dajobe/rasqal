@@ -243,12 +243,6 @@ struct rasqal_query_s {
    */
   const unsigned char** variable_names;
 
-  /* array of result binding values, per result or NULL if no variables wanted
-   * (size select_variables_count or construct_variables_count) 
-   * indexes into the values in variables_sequence above, per-binding
-   */
-  rasqal_literal** binding_values;
-  
   /* can be filled with error location information */
   raptor_locator locator;
 
