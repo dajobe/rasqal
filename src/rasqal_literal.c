@@ -734,11 +734,14 @@ rasqal_new_variable_literal(rasqal_variable *variable)
  *
  * Copy Constructor - create a new rasqal_literal object from an existing rasqal_literal object.
  * 
- * Return value: a new #rasqal_literal object or NULL on failure
+ * Return value: a new #rasqal_literal object or NULL
  **/
 rasqal_literal*
 rasqal_new_literal_from_literal(rasqal_literal* l)
 {
+  if(!l)
+    return NULL;
+  
   l->usage++;
   return l;
 }
@@ -2007,3 +2010,27 @@ rasqal_literal_cast(rasqal_literal* l, raptor_uri* to_datatype, int flags,
     *error_p=1;
   return result;
 }
+
+
+/**
+ * rasqal_literal_value:
+ * @l: #rasqal_literal object
+ *
+ * Get the literal value looking up any variables needed
+ *
+ * Return value: literal value or NULL if has no value
+ */
+rasqal_literal*
+rasqal_literal_value(rasqal_literal* l)
+{
+  while(l) {
+    if(l->type != RASQAL_LITERAL_VARIABLE)
+      break;
+
+    l=l->value.variable->value;
+  }
+  
+  return l;
+}
+
+
