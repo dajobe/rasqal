@@ -907,7 +907,7 @@ rasqal_literal_print(rasqal_literal* l, FILE* fh)
       fprintf(fh, "(%s)", l->string);
       break;
     case RASQAL_LITERAL_DOUBLE:
-      fprintf(fh, " %g", l->value.floating);
+      fprintf(fh, "(%g)", l->value.floating);
       break;
     case RASQAL_LITERAL_VARIABLE:
       rasqal_variable_print(l->value.variable, fh);
