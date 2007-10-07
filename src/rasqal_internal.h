@@ -638,6 +638,7 @@ typedef void (rasqal_kv_free_fn)(const void *key, const void *value);
 #define RASQAL_XSD_BOOLEAN_FALSE (const unsigned char*)"false"
 
 rasqal_literal* rasqal_literal_cast(rasqal_literal* l, raptor_uri* datatype, int flags,  int* error_p);
+rasqal_literal* rasqal_new_numeric_literal(double d, rasqal_literal_type type);
 void rasqal_xsd_init(void);
 void rasqal_xsd_finish(void);
 
