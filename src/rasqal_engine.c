@@ -717,7 +717,7 @@ rasqal_query_graph_pattern_build_declared_in_variable(rasqal_query* query,
 
 /**
  * rasqal_query_graph_pattern_build_declared_in:
- * @query; the #rasqal_query to find the variables in
+ * @query: the #rasqal_query to find the variables in
  * @gp: graph pattern to use
  *
  * INTERNAL - Mark where variables are first declared in a graph_pattern.
@@ -766,7 +766,7 @@ rasqal_query_graph_pattern_build_declared_in(rasqal_query* query,
 
 /**
  * rasqal_query_build_declared_in:
- * @query; the #rasqal_query to find the variables in
+ * @query: the #rasqal_query to find the variables in
  *
  * INTERNAL - Mark where variables are first declared.
  * 
@@ -2831,7 +2831,7 @@ rasqal_engine_query_result_row_print(rasqal_query_result_row* row, FILE* fh)
 
 /**
  * rasqal_query_result_literal_sequence_compare:
- * @query; the #rasqal_query to use to comparekfind the variables in
+ * @query: the #rasqal_query to use to comparekfind the variables in
  * @values_a: first array of literals
  * @values_b: second array of literals
  * @expr_sequence: array of expressions
