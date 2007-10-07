@@ -577,7 +577,7 @@ rasqal_triples_match_is_end(struct rasqal_triples_match_s* rtm)
 }
 
 
-/*
+/**
  * rasqal_reset_triple_meta:
  * @m: Triple pattern metadata
  * 
@@ -705,11 +705,12 @@ rasqal_query_graph_pattern_build_declared_in_variable(rasqal_query* query,
 }
 
 
-/*
+/**
  * rasqal_query_graph_pattern_build_declared_in:
  * @query; the #rasqal_query to find the variables in
+ * @gp: graph pattern to use
  *
- * Mark where variables are first declared in a graph_pattern.
+ * INTERNAL - Mark where variables are first declared in a graph_pattern.
  * 
  **/
 static void
@@ -751,11 +752,11 @@ rasqal_query_graph_pattern_build_declared_in(rasqal_query* query,
 }
 
 
-/*
+/**
  * rasqal_query_build_declared_in:
  * @query; the #rasqal_query to find the variables in
  *
- * Mark where variables are first declared.
+ * INTERNAL - Mark where variables are first declared.
  * 
  **/
 static void
@@ -791,7 +792,7 @@ rasqal_query_build_declared_in(rasqal_query* query)
 /**
  * rasqal_engine_group_graph_pattern_get_next_match:
  * @query_results: Query results to execute
- * @gp: 
+ * @gp: group graph pattern
  *
  * INTERNAL - Get the next match in a group graph pattern
  *
@@ -824,7 +825,7 @@ rasqal_engine_group_graph_pattern_get_next_match(rasqal_query_results* query_res
 /**
  * rasqal_engine_triple_graph_pattern_get_next_match:
  * @query_results: Query results to execute
- * @gp: 
+ * @gp: graph pattern to use
  *
  * INTERNAL - Get the next match in a triple graph pattern
  *
@@ -963,7 +964,12 @@ rasqal_engine_triple_graph_pattern_get_next_match(rasqal_query_results* query_re
 
 
 
-/*
+/**
+ * rasqal_engine_graph_pattern_get_next_match:
+ * @query_results: Query results to execute
+ * @gp: graph pattern to use
+ *
+ * INTERNAL -Get the next match in a graph pattern
  *
  * return: <0 failure, 0 end of results, >0 match
  */
@@ -979,8 +985,9 @@ rasqal_engine_graph_pattern_get_next_match(rasqal_query_results* query_results,
 
 
 
-/*
+/**
  * rasqal_engine_prepare:
+ * @query: query
  *
  * INTERNAL - initialise the remainder of the query structures
  *
@@ -1625,7 +1632,11 @@ rasqal_engine_do_optional_step(rasqal_query_results* query_results,
 }
 
 
-/*
+/**
+ * rasqal_engine_get_next_result:
+ * @query_results: query results object
+ *
+ * INTERNAL - Get the next result from a query execution
  *
  * return: <0 failure, 0 end of results, >0 match
  */
@@ -1853,13 +1864,13 @@ rasqal_engine_join_graph_patterns(rasqal_graph_pattern *dest_gp,
 }
 
 
-/*
+/**
  * rasqal_engine_merge_graph_patterns:
  * @query: query (not used here)
  * @gp: current graph pattern
  * @data: visit data (not used here)
  *
- * Merge graph patterns where possible
+ * INTERNAL - Merge graph patterns where possible
  *
  * When size = 1 (never for UNION)
  * GROUP { A } -> A
@@ -2085,13 +2096,13 @@ rasqal_engine_check_limit_offset(rasqal_query_results *query_results)
 }
 
 
-/*
+/**
  * rasqal_engine_merge_triples:
  * @query: query (not used here)
  * @gp: current graph pattern
  * @data: visit data (not used here)
  *
- * Join triple patterns in adjacent basic graph patterns into
+ * INTERNAL - Join triple patterns in adjacent basic graph patterns into
  * single basic graph pattern.
  *
  * For group graph pattern move all triples
@@ -2401,14 +2412,15 @@ rasqal_engine_group_2_graph_patterns(rasqal_query* query,
 }
 
 
-/*
+/**
  * rasqal_engine_remove_empty_group_graph_patterns:
  * @query: query (not used here)
  * @gp: current graph pattern
  * @data: visit data (not used here)
  *
- * Remove empty group graph patterns
+ * INTERNAL - Remove empty group graph patterns
  *
+ * Return value: non-0 on failure
  */
 int
 rasqal_engine_remove_empty_group_graph_patterns(rasqal_query* query,
