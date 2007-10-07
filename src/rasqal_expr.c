@@ -2040,6 +2040,8 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e,
 
 #ifdef RASQAL_DEBUG
   RASQAL_DEBUG2("result of %p: ", e);
+  rasqal_expression_print(e, stderr);
+  fputs( ": ", stderr);
   if(result)
     rasqal_literal_print(result, stderr);
   else
