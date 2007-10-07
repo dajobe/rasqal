@@ -560,7 +560,7 @@ void rasqal_engine_assign_binding_values(rasqal_query* query);
 void rasqal_engine_move_constraints(rasqal_graph_pattern* dest_gp, rasqal_graph_pattern* src_gp);
 int rasqal_engine_execute_run(rasqal_query_results* query_results);
 void rasqal_engine_free_query_result_row(rasqal_query_result_row* row);
-rasqal_literal** rasqal_engine_get_results_values(rasqal_query_results* query_results);
+rasqal_literal** rasqal_engine_get_result_values(rasqal_query_results* query_results);
 rasqal_literal* rasqal_engine_get_result_value(rasqal_query_results* query_results, int offset);
 int rasqal_engine_execute_next(rasqal_query_results* query_results);
 
