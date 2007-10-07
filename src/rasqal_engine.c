@@ -2485,6 +2485,17 @@ rasqal_engine_remove_empty_group_graph_patterns(rasqal_query* query,
 }
 
 
+/**
+ * rasqal_engine_query_result_row_update:
+ * @row: query result row
+ * @offset: integer offset into result values array
+ *
+ * INTERNAL - Update row values from query variables
+ *
+ * FIXME: This function should not write to the query structure.
+ *
+ * Return value: non-0 on failure 
+ */
 static int
 rasqal_engine_query_result_row_update(rasqal_query_result_row* row, int offset)
 {
@@ -2531,8 +2542,18 @@ rasqal_engine_query_result_row_update(rasqal_query_result_row* row, int offset)
 }
 
 
+/**
+ * rasqal_engine_new_query_result_row:
+ * @query_results: query results object
+ * @offset: offset into sequence of results
+ *
+ * INTERNAL - Create a new query result row at an offset into the result sequence.
+ *
+ * Return value: a new query result row or NULL on failure
+ */
 static rasqal_query_result_row*
-rasqal_engine_new_query_result_row(rasqal_query_results* query_results, int offset)
+rasqal_engine_new_query_result_row(rasqal_query_results* query_results,
+                                   int offset)
 {
   rasqal_query* query=query_results->query;
   int size;
@@ -2587,6 +2608,14 @@ rasqal_engine_new_query_result_row(rasqal_query_results* query_results, int offs
 }
 
 
+/**
+ * rasqal_engine_new_query_result_row_from_query_result_row:
+ * @row: query result row
+ * 
+ * INTERNAL - Copy a query result row.
+ *
+ * Return value: a copy of the query result row or NULL
+ */
 static rasqal_query_result_row*
 rasqal_engine_new_query_result_row_from_query_result_row(rasqal_query_result_row* row)
 {
@@ -2595,6 +2624,12 @@ rasqal_engine_new_query_result_row_from_query_result_row(rasqal_query_result_row
 }
 
 
+/**
+ * rasqal_engine_free_query_result_row:
+ * @row: query result row
+ * 
+ * INTERNAL - Free a query result row object.
+ */
 void 
 rasqal_engine_free_query_result_row(rasqal_query_result_row* row)
 {
@@ -2622,8 +2657,16 @@ rasqal_engine_free_query_result_row(rasqal_query_result_row* row)
 }
 
 
+/**
+ * rasqal_engine_get_result_values:
+ * @query_results: query results object
+ *
+ * INTERNAL - Get the current query result as a row of values
+ *
+ * Return an array of #rasqal_literal values or NULL on failure.
+ */
 rasqal_literal**
-rasqal_engine_get_results_values(rasqal_query_results* query_results)
+rasqal_engine_get_result_values(rasqal_query_results* query_results)
 {
   rasqal_query_result_row* row;
 
@@ -2643,6 +2686,15 @@ rasqal_engine_get_results_values(rasqal_query_results* query_results)
 }
   
 
+/**
+ * rasqal_engine_get_result_value:
+ * @query_results: query results object
+ * @offset: integer offset into result values array
+ *
+ * INTERNAL - Get one value from the current query result
+ *
+ * Return an #rasqal_literal or NULL on failure.
+ */
 rasqal_literal*
 rasqal_engine_get_result_value(rasqal_query_results* query_results, int offset)
 {
@@ -2663,6 +2715,13 @@ rasqal_engine_get_result_value(rasqal_query_results* query_results, int offset)
 }
 
 
+/**
+ * rasqal_engine_query_result_row_print:
+ * @row: query result row
+ * @fp: FILE* handle
+ *
+ * INTERNAL - Print a query result row.
+ */
 static void 
 rasqal_engine_query_result_row_print(rasqal_query_result_row* row, FILE* fh)
 {
@@ -2708,6 +2767,18 @@ rasqal_engine_query_result_row_print(rasqal_query_result_row* row, FILE* fh)
 }
 
 
+/**
+ * rasqal_query_result_literal_sequence_compare:
+ * @query; the #rasqal_query to use to comparekfind the variables in
+ * @values_a: first array of literals
+ * @values_b: second array of literals
+ * @expr_sequence: array of expressions
+ * @size: size of arrays
+ *
+ * INTERNAL - compare two arrays of literals evaluated in an array of expressions
+ *
+ * Return value: <0, 0 or >1 comparison
+ */
 static int
 rasqal_query_result_literal_sequence_compare(rasqal_query* query,
                                              rasqal_literal** values_a,
@@ -2775,6 +2846,17 @@ rasqal_query_result_literal_sequence_compare(rasqal_query* query,
 }
 
 
+/**
+ * rasqal_engine_query_result_row_compare:
+ * @a: pointer to address of first #query_result_row
+ * @b: pointer to address of second #query_result_row
+ *
+ * INTERNAL - compare two pointers to #query_result_row objects
+ *
+ * Suitable for use as a compare function in qsort() or similar.
+ *
+ * Return value: <0, 0 or >1 comparison
+ */
 static int
 rasqal_engine_query_result_row_compare(const void *a, const void *b)
 {
