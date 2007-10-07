@@ -73,6 +73,7 @@ static void rasqal_free_engine_execution_data(rasqal_query* query, rasqal_query_
 static rasqal_engine_step rasqal_engine_check_constraint(rasqal_query *query, rasqal_graph_pattern *gp);
 static int rasqal_engine_graph_pattern_init(rasqal_query_results* query_results, rasqal_graph_pattern *gp);
 static int rasqal_engine_excute_next_lazy(rasqal_query_results *query_results);
+static int rasqal_engine_query_result_row_to_nodes(rasqal_query_results* query_results);
 
 
 
@@ -3175,7 +3176,36 @@ rasqal_engine_execute_run(rasqal_query_results* query_results)
       rc= -1;
   }
 
+  if(rc >= 0)
+    rasqal_engine_query_result_row_to_nodes(query_results);
+
   return rc;
+}
+
+
+
+static int
+rasqal_engine_query_result_row_to_nodes(rasqal_query_results* query_results)
+{
+  int i;
+  rasqal_query_result_row* row;
+
+  row=rasqal_engine_get_result_row(query_results);
+  if(!row)
+    return 1;
+  
+  for(i=0; i < row->size; i++) {
+    if(row->values[i]) {
+      rasqal_literal* new_l;
+      new_l=rasqal_literal_as_node(row->values[i]);
+      if(new_l) {
+        rasqal_free_literal(row->values[i]);
+        row->values[i]=new_l;
+      }
+    }
+  }
+  
+  return 0;
 }
 
 
@@ -3315,5 +3345,7 @@ rasqal_engine_execute_next(rasqal_query_results* query_results)
   else
     rasqal_engine_excute_next_lazy(query_results);
 
+  rasqal_engine_query_result_row_to_nodes(query_results);
+  
   return query_results->finished;
 }
