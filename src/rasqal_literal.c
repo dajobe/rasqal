@@ -136,6 +136,35 @@ rasqal_new_floating_literal(double f)
 
 
 /**
+ * rasqal_new_float_literal:
+ * @f:  float literal
+ * 
+ * Constructor - Create a new Rasqal float literal.
+ *
+ * Return value: New #rasqal_literal or NULL on failure
+ **/
+rasqal_literal*
+rasqal_new_float_literal(float f)
+{
+  rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(rasqal_literal));
+  if(l) {
+    l->usage=1;
+    l->type=RASQAL_LITERAL_FLOAT;
+    l->value.floating=(double)f;
+    l->string=(unsigned char*)RASQAL_MALLOC(cstring, 30); /* FIXME */
+    if(!l->string) {
+      rasqal_free_literal(l);
+      return NULL;
+    }
+    sprintf((char*)l->string, "%1g", f);
+    l->string_len=strlen((const char*)l->string);
+    l->datatype=raptor_uri_copy(rasqal_xsd_float_uri);
+  }
+  return l;
+}
+
+
+/**
  * rasqal_new_uri_literal:
  * @uri: #raptor_uri uri
  *
@@ -204,22 +233,70 @@ rasqal_new_pattern_literal(const unsigned char *pattern,
  * Return value: New #rasqal_literal or NULL on failure
  **/
 rasqal_literal*
-rasqal_new_decimal_literal(const unsigned char *decimal)
+rasqal_new_decimal_literal(const char *decimal)
 {
   rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(rasqal_literal));
   if(l) {
     l->usage=1;
     l->type=RASQAL_LITERAL_DECIMAL;
-    l->string_len=strlen((const char*)decimal);
+    l->string_len=strlen(decimal);
     l->string=(unsigned char*)RASQAL_MALLOC(cstring, l->string_len+1);
     if(!l->string) {
       rasqal_free_literal(l);
       return NULL;
     }
-    strcpy((char*)l->string, (const char*)decimal);
+    strcpy((char*)l->string, decimal);
     l->datatype=raptor_uri_copy(rasqal_xsd_decimal_uri);
   }
   return l;
+}
+
+
+/**
+ * rasqal_new_numeric_literal:
+ * @double: double
+ * @type: datatype
+ *
+ * INTERNAL - Make a numeric datatype from a double  
+ *
+ * Return value: new literal or NULL on failure
+ **/
+rasqal_literal*
+rasqal_new_numeric_literal(double d, rasqal_literal_type type)
+{
+  char buffer[30];
+  
+  switch(type) {
+    case RASQAL_LITERAL_INTEGER:
+      return rasqal_new_integer_literal(type, (int)d);
+      break;
+
+    case RASQAL_LITERAL_DOUBLE:
+      return rasqal_new_double_literal(d);
+      break;
+
+    case RASQAL_LITERAL_FLOAT:
+      return rasqal_new_float_literal(d);
+      break;
+
+    case RASQAL_LITERAL_DECIMAL:
+      sprintf(buffer, "%g", d);
+      return rasqal_new_decimal_literal(buffer);
+      break;
+
+    case RASQAL_LITERAL_BOOLEAN:
+    case RASQAL_LITERAL_DATETIME:
+    case RASQAL_LITERAL_UNKNOWN:
+    case RASQAL_LITERAL_BLANK:
+    case RASQAL_LITERAL_URI:
+    case RASQAL_LITERAL_STRING:
+    case RASQAL_LITERAL_PATTERN:
+    case RASQAL_LITERAL_QNAME:
+    case RASQAL_LITERAL_VARIABLE:
+      RASQAL_FATAL2("Unexpected numeric type %d\n", type);
+  }
+
+  return NULL;
 }
 
 
@@ -574,11 +651,11 @@ rasqal_literal_string_to_native(rasqal_literal *l,
   case RASQAL_LITERAL_PATTERN:
   case RASQAL_LITERAL_QNAME:
   case RASQAL_LITERAL_VARIABLE:
-    RASQAL_FATAL2("Unexpected native type %d", native_type);
+    RASQAL_FATAL2("Unexpected native type %d\n", native_type);
     break;
     
   default:
-    RASQAL_FATAL2("Unknown native type %d", native_type);
+    RASQAL_FATAL2("Unknown native type %d\n", native_type);
   }
 
   return 0;
