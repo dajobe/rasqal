@@ -788,12 +788,12 @@ rasqal_query_build_declared_in(rasqal_query* query)
 }
 
 
-/*
+/**
  * rasqal_engine_group_graph_pattern_get_next_match:
- * @query_results:
+ * @query_results: Query results to execute
  * @gp: 
  *
- * Get the next match in a group graph pattern
+ * INTERNAL - Get the next match in a group graph pattern
  *
  * return: <0 failure, 0 end of results, >0 match
  */
@@ -821,12 +821,12 @@ rasqal_engine_group_graph_pattern_get_next_match(rasqal_query_results* query_res
 }
 
 
-/*
+/**
  * rasqal_engine_triple_graph_pattern_get_next_match:
- * @query_results:
+ * @query_results: Query results to execute
  * @gp: 
  *
- * Get the next match in a triple graph pattern
+ * INTERNAL - Get the next match in a triple graph pattern
  *
  * return: <0 failure, 0 end of results, >0 match
  */
@@ -1014,9 +1014,9 @@ rasqal_engine_prepare(rasqal_query *query)
 }
 
 
-/*
+/**
  * rasqal_new_engine_execution_data:
- * @query_results: query results object
+ * @query_results: Query results to execute
  * 
  * INTERNAL - Initialize the per-query-results execution data and the
  * per-graph pattern execution data
@@ -1082,12 +1082,12 @@ rasqal_engine_graph_pattern_order(const void *a, const void *b)
 }
 
 
-/*
+/**
  * rasqal_engine_graph_pattern_init:
- * @query_results: query results to work with
+ * @query_results: query results to execute
  * @gp: graph pattern in query results.
  *
- * Internal - once only per execution initialisation of a graph pattern.
+ * INTERNAL - once only per execution initialisation of a graph pattern.
  * 
  **/
 static int
@@ -1199,7 +1199,7 @@ rasqal_engine_graph_pattern_init(rasqal_query_results* query_results,
 }
 
 
-/*
+/**
  * rasqal_engine_execute_init:
  * @query_results: query results object
  * 
@@ -2499,10 +2499,7 @@ rasqal_engine_query_result_row_update(rasqal_query_result_row* row, int offset)
     rasqal_literal *l=query->binding_values[i];
     if(row->values[i])
       rasqal_free_literal(row->values[i]);
-    if(l)
-      row->values[i]=rasqal_literal_as_node(l);
-    else
-      row->values[i]=NULL;
+    row->values[i]=rasqal_new_literal_from_literal(l);
   }
 
   if(row->order_size) {
@@ -2512,11 +2509,7 @@ rasqal_engine_query_result_row_update(rasqal_query_result_row* row, int offset)
                                                    query->compare_flags);
       if(row->order_values[i])
         rasqal_free_literal(row->order_values[i]);
-      if(l) {
-        row->order_values[i]=rasqal_literal_as_node(l);
-        rasqal_free_literal(l);
-      } else
-        row->order_values[i]=NULL;
+      row->order_values[i]=rasqal_new_literal_from_literal(rasqal_literal_value(l));
     }
   }
   
@@ -2815,16 +2808,25 @@ rasqal_engine_query_result_row_compare(const void *a, const void *b)
 }
 
 
+
+/**
+ * rasqal_engine_excute_next_lazy:
+ * @query_results: Query results to execute
+ *
+ * INTERNAL - Execute a query to get one result, finished or failure.
+ * 
+ * Return value: <0 if failed, 0 if result, >0 if finished
+ */
 static int
-rasqal_engine_query_results_update(rasqal_query_results *query_results)
+rasqal_engine_excute_next_lazy(rasqal_query_results *query_results)
 {
   if(!query_results)
-    return 1;
+    return -1;
   
   if(!rasqal_query_results_is_bindings(query_results) &&
      !rasqal_query_results_is_boolean(query_results) &&
      !rasqal_query_results_is_graph(query_results))
-    return 1;
+    return -1;
 
   if(query_results->finished)
     return 1;
@@ -2863,6 +2865,15 @@ rasqal_engine_query_results_update(rasqal_query_results *query_results)
 
   } /* while */
 
+  if(!query_results->finished) {
+    if(!query_results->row)
+      query_results->row=rasqal_engine_new_query_result_row(query_results, 
+                                                            query_results->result_count);
+    else
+      rasqal_engine_query_result_row_update(query_results->row, 
+                                            query_results->result_count);
+  }
+  
   return query_results->finished;
 }
 
@@ -2916,6 +2927,153 @@ rasqal_engine_bind_construct_variables(rasqal_query_results* query_results)
 }
 
 
+/**
+ * rasqal_engine_execute_and_save:
+ * @query_results: Query results to execute
+ *
+ * INTERNAL - execute a query and save all results for later
+ *
+ * Return value: <0 if failed, 0 if result, >0 if finished
+ */
+static int
+rasqal_engine_execute_and_save(rasqal_query_results *query_results)
+{
+  rasqal_query *query=query_results->query;
+  int rc=0;
+  rasqal_map* map=NULL;
+  raptor_sequence* seq;
+  int offset=0;
+  
+  /* make a row:NULL map */
+  map=rasqal_new_map(rasqal_engine_query_result_row_compare,
+                     rasqal_engine_map_free_query_result_row, 
+                     rasqal_engine_map_print_query_result_row,
+                     NULL,
+                     0);
+  if(!map)
+    return -1;
+  
+  /* get all query results and order them */
+  seq=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_engine_free_query_result_row, (raptor_sequence_print_handler*)rasqal_engine_query_result_row_print);
+  if(!seq) {
+    rasqal_free_map(map);
+    return -1;
+  }
+  while(1) {
+    rasqal_query_result_row* row;
+    
+    /* query_results->results_sequence is NOT assigned before here 
+     * so that this function does the regular query results next
+     * operation.
+     */
+    rc=rasqal_engine_get_next_result(query_results);
+    if(rc == 0)
+      /* <0 failure OR =0 end of results */
+      break;
+    
+    if(rc < 0) {
+      /* <0 failure */
+      query_results->finished=1;
+      query_results->failed=1;
+      
+      if(map)
+        rasqal_free_map(map);
+      raptor_free_sequence(seq);
+      seq=NULL;
+      break;
+    }
+    
+    /* otherwise is >0 match */
+    row=rasqal_engine_new_query_result_row(query_results, offset);
+    if(!row) {
+      raptor_free_sequence(seq);
+      rasqal_free_map(map);
+      return -1;
+    }
+    
+    /* after this, row is owned by map */
+    if(!rasqal_map_add_kv(map, row, NULL)) {
+      offset++;
+    } else {
+      /* duplicate, and not added so delete it */
+#ifdef RASQAL_DEBUG
+      RASQAL_DEBUG1("Got duplicate row ");
+      rasqal_engine_query_result_row_print(row, stderr);
+      fputc('\n', stderr);
+#endif
+      rasqal_engine_free_query_result_row(row);
+      row=NULL;
+    }
+  }
+  
+#ifdef RASQAL_DEBUG
+  if(map) {
+    fputs("resulting ", stderr);
+    rasqal_map_print(map, stderr);
+    fputs("\n", stderr);
+  }
+#endif
+  
+  if(map) {
+    rasqal_map_visit(map, rasqal_engine_map_add_to_sequence, (void*)seq);
+    rasqal_free_map(map);
+  }
+  query_results->results_sequence=seq;
+  
+  if(query_results->results_sequence) {
+    query_results->finished= (raptor_sequence_size(query_results->results_sequence) == 0);
+    
+    if(!query->limit)
+      query_results->finished=1;
+    
+    if(!query_results->finished) {
+      int size=raptor_sequence_size(query_results->results_sequence);
+      
+      /* Reset to first result, index-1 into sequence of results */
+      query_results->result_count= 1;
+      
+      /* skip past any OFFSET */
+      if(query->offset > 0) {
+        query_results->result_count += query->offset;
+        if(query_results->result_count >= size)
+          query_results->finished=1;
+      }
+      
+    }
+    
+    if(query_results->finished)
+      query_results->result_count= 0;
+    else
+      rasqal_engine_bind_construct_variables(query_results);
+  }
+
+  return rc;
+}
+
+
+/**
+ * rasqal_engine_execute_run:
+ * @query_results: Query results to execute
+ *
+ * INTERNAL - Start executing a query.
+ *
+ * Initialises all state for a new query execution.  The main choice
+ * is determined by whether sorting or distinct is given in the
+ * query, in which case all results must be stored and sorted.
+ * Otherwise, query results can be lazily generated.
+ *
+ * When results have to be stored, query_results->results_sequence
+ * is initialised here and the entire query execution run here
+ * calling rasqal_engine_get_next_result() multiple times.  A
+ * #rasqal_map is used to order/distinct the results and insert
+ * them in order into the query_results->results_sequence.
+ *
+ * When results are not stored, query->results_sequence is NULL and
+ * only the first result is calculated using
+ * rasqal_engine_excute_next_lazy()
+ *
+ * Return value: <0 if failed, 0 if result, >0 if finished
+ */
 int
 rasqal_engine_execute_run(rasqal_query_results* query_results)
 {
@@ -2923,125 +3081,34 @@ rasqal_engine_execute_run(rasqal_query_results* query_results)
   int rc=0;
   
   if(query->order_conditions_sequence || query->distinct) {
-    rasqal_map* map=NULL;
-    raptor_sequence* seq;
-    int offset=0;
-
-    /* make a row:NULL map */
-    map=rasqal_new_map(rasqal_engine_query_result_row_compare,
-                       rasqal_engine_map_free_query_result_row, 
-                       rasqal_engine_map_print_query_result_row,
-                       NULL,
-                       0);
-    if(!map)
-      return -1;
-
-    /* get all query results and order them */
-    seq=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_engine_free_query_result_row, (raptor_sequence_print_handler*)rasqal_engine_query_result_row_print);
-    if(!seq) {
-      rasqal_free_map(map);
-      return -1;
-    }
-    while(1) {
-      rasqal_query_result_row* row;
-
-      /* query_results->results_sequence is NOT assigned before here 
-       * so that this function does the regular query results next
-       * operation.
-       */
-      rc=rasqal_engine_get_next_result(query_results);
-      if(rc == 0)
-        /* <0 failure OR =0 end of results */
-        break;
-      
-      if(rc < 0) {
-        /* <0 failure */
-        query_results->finished=1;
-        query_results->failed=1;
-
-        if(map)
-          rasqal_free_map(map);
-        raptor_free_sequence(seq);
-        seq=NULL;
-        break;
-      }
-
-      /* otherwise is >0 match */
-      row=rasqal_engine_new_query_result_row(query_results, offset);
-      if(!row) {
-        raptor_free_sequence(seq);
-        rasqal_free_map(map);
-        return -1;
-      }
-
-      /* after this, row is owned by map */
-      if(!rasqal_map_add_kv(map, row, NULL)) {
-        offset++;
-      } else {
-       /* duplicate, and not added so delete it */
-#ifdef RASQAL_DEBUG
-        RASQAL_DEBUG1("Got duplicate row ");
-        rasqal_engine_query_result_row_print(row, stderr);
-        fputc('\n', stderr);
-#endif
-        rasqal_engine_free_query_result_row(row);
-        row=NULL;
-      }
-    }
-
-#ifdef RASQAL_DEBUG
-    if(map) {
-      fputs("resulting ", stderr);
-      rasqal_map_print(map, stderr);
-      fputs("\n", stderr);
-    }
-#endif
-
-    if(map) {
-      rasqal_map_visit(map, rasqal_engine_map_add_to_sequence, (void*)seq);
-      rasqal_free_map(map);
-    }
-    query_results->results_sequence=seq;
-
-    if(query_results->results_sequence) {
-      query_results->finished= (raptor_sequence_size(query_results->results_sequence) == 0);
-
-      if(!query->limit)
-        query_results->finished=1;
-
-      if(!query_results->finished) {
-        int size=raptor_sequence_size(query_results->results_sequence);
-
-        /* Reset to first result, index-1 into sequence of results */
-        query_results->result_count= 1;
-
-        /* skip past any OFFSET */
-        if(query->offset > 0) {
-          query_results->result_count += query->offset;
-          if(query_results->result_count >= size)
-            query_results->finished=1;
-        }
-        
-      }
-
-      if(query_results->finished)
-        query_results->result_count= 0;
-      else
-        rasqal_engine_bind_construct_variables(query_results);
-    }
+    rc=rasqal_engine_execute_and_save(query_results);
   } else {
-    /* No order sequence */
-    rasqal_engine_query_results_update(query_results);
-    query_results->row=rasqal_engine_new_query_result_row(query_results, 
-                                                          query_results->result_count);
-    if(!query_results->row)
-      return -1;
+    rc=rasqal_engine_excute_next_lazy(query_results);
+    /* finished (>0) on first result means failure */
+    if(rc)
+      rc= -1;
   }
 
   return rc;
 }
 
 
+/**
+ * rasqal_engine_execute_next:
+ * @query_results: Query results to execute
+ *
+ * INTERNAL - Get next result in a query
+ *
+ * There are two sources for a query result - either it
+ * was previously stored in a sequence (query_results->sequence)
+ * or it is being evaluated lazily.
+ *
+ * When a results sequence exists, the next result is pulled
+ * from the sequence, checking any limit and offset here.
+ *
+ * When evaluating lazily, rasqal_engine_excute_next_lazy()
+ * Is called to initialise the state for the next result.
+ */
 int
 rasqal_engine_execute_next(rasqal_query_results* query_results)
 {
@@ -3076,10 +3143,7 @@ rasqal_engine_execute_next(rasqal_query_results* query_results)
       break;
     }
   } else {
-    rasqal_engine_query_results_update(query_results);
-    if(!query_results->finished)
-      rasqal_engine_query_result_row_update(query_results->row, 
-                                            query_results->result_count);
+    rasqal_engine_excute_next_lazy(query_results);
   }
 
   return query_results->finished;
