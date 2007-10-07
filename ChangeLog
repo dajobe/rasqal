@@ -1,3 +1,993 @@
+2007-10-06  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_engine.c: Docs
+	(rasqal_engine_get_result_values): Renamed from
+	rasqal_engine_get_results_values
+
+	* src/rasqal_query_results.c: Renamed
+	rasqal_engine_get_results_values to
+	rasqal_engine_get_result_values
+
+	* src/rasqal_internal.h: Renamed rasqal_engine_get_results_values
+	to rasqal_engine_get_result_values
+
+	* src/rasqal_engine.c: docs
+
+	* src/rasqal_engine.c: Add a bunch of internal docs.
+	(rasqal_engine_query_result_row_update): Do not throw away
+	datatype information early.  Do not throw it away for ordering.
+	(rasqal_engine_excute_next_lazy): Renamed from
+	rasqal_engine_query_results_update since it is only used in lazy
+	evaluation.
+	(rasqal_engine_execute_and_save): Added to pull out the code from
+	rasqal_engine_execute_run that is run when results are wanted to
+	be saved.
+	(rasqal_engine_execute_run): Documentation of execution operation
+	and change to use rasqal_engine_execute_and_save
+	(rasqal_engine_execute_next): Docs and change to use
+	rasqal_engine_excute_next_lazy.
+
+	* src/rasqal.h: Added rasqal_literal_value.
+
+	* src/rasqal_literal.c: (rasqal_new_literal_from_literal): Return
+	NULL if NULL was given.
+	(rasqal_literal_value): Added, to return a value and looking up
+	variable literals.
+
+	* tests/sparql/check-sparql: Order expected results using rs:index
+	predicate if it's present.
+
+2007-10-05  Lauri Aalto <laalto@iki.fi>
+
+	* src/sparql_parser.y: (PropertyListNotEmpty) Refactored to not
+	use raptor_sequence_disown_at()
+
+	* src/rasqal_literal.c: (sparql_xsd_datatypes_table) Fix compiler
+	warning: cast int to enum.
+	(rasqal_literal_cast) Return a copy of the literal when casting to
+	same type.
+
+2007-10-05  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_literal.c: (rasqal_literal_check_boolean_format):
+	Note not strictly conforming.
+	(rasqal_literal_check_dateTime_format): Add even more caveats.
+	(rasqal_literal_check_decimal_format): Update to be conformant.
+	(rasqal_literal_check_double_format): Note not strictly
+	confirming.
+	(rasqal_literal_check_float_format): Note not strictly confirming.
+	(rasqal_literal_check_integer_format): Note is conformant.
+
+	* src/rasqal_literal.c: Added start of format checking for XSD
+	literal strings.  This code should probably be moved into a
+	separate module and connected to the other skeletal datatype code.
+	(rasqal_literal_check_boolean_format,
+	rasqal_literal_check_dateTime_format,
+	rasqal_literal_check_decimal_format,
+	rasqal_literal_check_double_format,
+	rasqal_literal_check_float_format,
+	rasqal_literal_check_integer_format): Added of which only boolean
+	and integer are fully correct.
+	(struct sparql_xsd_datatypes_table): Table added.
+	(rasqal_xsd_init, rasqal_xsd_finish): Added to initialise table.
+	(rasqal_literal_string_to_native): Use sparql_xsd_datatypes_table
+	table to drive validation and to avoid URI comparisons.
+	(rasqal_literal_cast): Do allowed type conversion checks and then
+	pass on to rasqal_new_string_literal to test the allowed syntax.
+
+	* src/rasqal_internal.h: Added rasqal_xsd_init and rasqal_xsd_finish.
+
+	* src/rasqal_general.c: (rasqal_init, rasqal_finish): Init/free
+	the XSD code with rasqal_xsd_init() and rasqal_xsd_finish().
+
+2007-10-04  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_expr.c: unused var
+
+	* src/rasqal_expr.c: (rasqal_expression_evaluate): Use
+	rasqal_literal_cast for RASQAL_EXPR_CAST evaluation.
+
+	* src/rasqal_internal.h: Added rasqal_literal_cast
+
+	* src/rasqal_literal.c: (rasqal_literal_cast): Added for casting
+	between literal types
+
+	* src/rasqal.h: Added rasqal_literal_datatype
+
+	* src/rasqal_literal.c: (rasqal_new_boolean_literal): Set boolean
+	datatype.
+	(rasqal_literal_datatype): Added to get a literal datatype URI if
+	it has one.
+
+	* tests/sparql/check-sparql: Allow choosing unique test by regex
+	on the test URI since sometimes the name is not unique.
+
+	* tests/sparql/check-sparql: Replace so-called XML::Simple with
+	XML::DOM which is actually simpler, and even as a bonus, works.
+
+2007-10-04  Lauri Aalto <laalto@iki.fi>
+
+	* src/sparql_parser.y: Check for alloc failures. Free allocated
+	resources and YYERROR on failure. Added YYERROR_MSG macro to help
+	with debugging.
+
+	* src/sparql_lexer.l: lexer: yyterminate() on alloc failures.
+	(sparql_copy_string_token) Check for alloc failures.
+
+	* src/rasqal_expr.c: (rasqal_new_3op_expression) Do not free null
+	arg3 on alloc error.
+
+2007-10-03  Dave Beckett <dave@dajobe.org>
+
+	* tests/sparql/check-sparql: tweak output
+
+	* tests/sparql/dawg/optional-filter/expr-4-result.ttl,
+	tests/sparql/dawg/optional-filter/expr-4.rq,
+	tests/sparql/dawg/optional-filter/expr-5-result-not-simplified.ttl,
+	tests/sparql/dawg/optional-filter/expr-5-result-simplified.ttl,
+	tests/sparql/dawg/optional-filter/expr-5.rq: new DAWG tests
+
+	* tests/sparql/dawg/optional-filter/data-1.ttl,
+	tests/sparql/dawg/optional-filter/expr-1-result.ttl,
+	tests/sparql/dawg/optional-filter/expr-2-result.ttl,
+	tests/sparql/dawg/optional-filter/expr-3-result.ttl,
+	tests/sparql/dawg/optional-filter/manifest.ttl: updated DAWG tests
+
+	* src/rasqal_raptor.c: (rasqal_raptor_triple_match): debug printf
+
+	* src/rasqal_literal.c: (rasqal_literal_string_to_native): Promote
+	xsd:decimal to RASQAL_LITERAL_DECIMAL
+
+	* src/sparql_lexer.l: Add support for @lang and ^^datatype after
+	triple quoted literals.
+	(sparql_copy_string_token): Skip repeated terminating delimiters.
+
+2007-10-03  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_literal.c: (rasqal_literal_as_node) Return NULL if
+	new literal string allocation fails. No need to handle boolean
+	datatypes as a special case.
+
+	* src/rasqal_literal.c: indent, style
+
+	* src/rasqal_literal.c: (rasqal_new_integer_literal,
+	rasqal_new_double_literal, rasqal_new_decimal_literal,
+	rasqal_new_string_literal) Set usage flag early to enable cleanup
+	with rasqal_free_literal().
+
+	* src/rasqal_literal.c: (rasqal_formula_join) Free second formula
+	even if neither formula has triples.
+
+2007-10-02  Dave Beckett <dave@dajobe.org>
+
+	* tests/sparql/check-sparql: try to fix the pain of using XML::Simple
+
+	* tests/sparql/check-sparql: Save rasqal_date in output EARL
+
+2007-10-02  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_literal.c,
+	tests/sparql/examples/Makefile.am: (rasqal_literal_compare) Return
+	type error when comparing plain and typed literals.  Fixes
+	tests/sparql/examples/ex11_0
+	(sparql-query-example-Testing-Values-0).
+
+	* src/sparql_parser.y, tests/sparql/examples/Makefile.am:
+	(FilteredBasicGraphPattern) Push BlockOfTriplesOpt instead of
+	shifting.
+	Fixes Issue#000200 http://bugs.librdf.org/mantis/view.php?id=200
+	Fixes tests/sparql/examples/ex3 (sparql-query-example-e).
+
+2007-10-01  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_engine.c: (rasqal_free_gp_data) Free triple_meta even
+	if gp is NULL.
+	(rasqal_engine_graph_pattern_init(rasqal_query_results) Check for
+	triple_meta alloc failure.
+
+2007-09-30  Dave Beckett <dave@dajobe.org>
+
+	* tests/sparql/check-sparql: Add SVN info to version for EARL output
+
+	* tests/sparql/dawg, tests/sparql/dawg/LICENSE,
+	tests/sparql/dawg/README, tests/sparql/dawg/algebra,
+	tests/sparql/dawg/algebra/data-1.ttl,
+	tests/sparql/dawg/algebra/data-2.ttl,
+	tests/sparql/dawg/algebra/filter-nested-1.rq,
+	tests/sparql/dawg/algebra/filter-nested-1.srx,
+	tests/sparql/dawg/algebra/filter-nested-2.rq,
+	tests/sparql/dawg/algebra/filter-nested-2.srx,
+	tests/sparql/dawg/algebra/filter-placement-1.rq,
+	tests/sparql/dawg/algebra/filter-placement-1.srx,
+	tests/sparql/dawg/algebra/filter-placement-2.rq,
+	tests/sparql/dawg/algebra/filter-placement-2.srx,
+	tests/sparql/dawg/algebra/filter-placement-3.rq,
+	tests/sparql/dawg/algebra/filter-placement-3.srx,
+	tests/sparql/dawg/algebra/filter-scope-1.rq,
+	tests/sparql/dawg/algebra/filter-scope-1.srx,
+	tests/sparql/dawg/algebra/join-combo-1.rq,
+	tests/sparql/dawg/algebra/join-combo-1.srx,
+	tests/sparql/dawg/algebra/join-combo-2.rq,
+	tests/sparql/dawg/algebra/join-combo-2.srx,
+	tests/sparql/dawg/algebra/join-combo-graph-1.ttl,
+	tests/sparql/dawg/algebra/join-combo-graph-2.ttl,
+	tests/sparql/dawg/algebra/manifest.ttl,
+	tests/sparql/dawg/algebra/opt-filter-1.rq,
+	tests/sparql/dawg/algebra/opt-filter-1.srx,
+	tests/sparql/dawg/algebra/opt-filter-1.ttl,
+	tests/sparql/dawg/algebra/opt-filter-2.rq,
+	tests/sparql/dawg/algebra/opt-filter-2.srx,
+	tests/sparql/dawg/algebra/opt-filter-2.ttl,
+	tests/sparql/dawg/algebra/opt-filter-3.rq,
+	tests/sparql/dawg/algebra/opt-filter-3.srx,
+	tests/sparql/dawg/algebra/opt-filter-3.ttl,
+	tests/sparql/dawg/algebra/two-nested-opt-alt.rq,
+	tests/sparql/dawg/algebra/two-nested-opt-alt.srx,
+	tests/sparql/dawg/algebra/two-nested-opt.rq,
+	tests/sparql/dawg/algebra/two-nested-opt.srx,
+	tests/sparql/dawg/algebra/two-nested-opt.ttl,
+	tests/sparql/dawg/algebra/var-scope-join-1.rq,
+	tests/sparql/dawg/algebra/var-scope-join-1.srx,
+	tests/sparql/dawg/algebra/var-scope-join-1.ttl,
+	tests/sparql/dawg/algebra-expressions.txt, tests/sparql/dawg/ask,
+	tests/sparql/dawg/ask/ask-1.rq, tests/sparql/dawg/ask/ask-1.srx,
+	tests/sparql/dawg/ask/ask-4.rq, tests/sparql/dawg/ask/ask-4.srx,
+	tests/sparql/dawg/ask/ask-7.rq, tests/sparql/dawg/ask/ask-7.srx,
+	tests/sparql/dawg/ask/ask-8.rq, tests/sparql/dawg/ask/ask-8.srx,
+	tests/sparql/dawg/ask/data.ttl,
+	tests/sparql/dawg/ask/manifest.ttl, tests/sparql/dawg/basic,
+	tests/sparql/dawg/basic/base-prefix-1.rq,
+	tests/sparql/dawg/basic/base-prefix-1.srx,
+	tests/sparql/dawg/basic/base-prefix-2.rq,
+	tests/sparql/dawg/basic/base-prefix-2.srx,
+	tests/sparql/dawg/basic/base-prefix-3.rq,
+	tests/sparql/dawg/basic/base-prefix-3.srx,
+	tests/sparql/dawg/basic/base-prefix-4.rq,
+	tests/sparql/dawg/basic/base-prefix-4.srx,
+	tests/sparql/dawg/basic/base-prefix-5.rq,
+	tests/sparql/dawg/basic/base-prefix-5.srx,
+	tests/sparql/dawg/basic/bgp-no-match.rq,
+	tests/sparql/dawg/basic/bgp-no-match.srx,
+	tests/sparql/dawg/basic/data-1.ttl,
+	tests/sparql/dawg/basic/data-2.ttl,
+	tests/sparql/dawg/basic/data-3.ttl,
+	tests/sparql/dawg/basic/data-4.ttl,
+	tests/sparql/dawg/basic/data-5.ttl,
+	tests/sparql/dawg/basic/data-6.ttl,
+	tests/sparql/dawg/basic/data-7.ttl,
+	tests/sparql/dawg/basic/list-1.rq,
+	tests/sparql/dawg/basic/list-1.srx,
+	tests/sparql/dawg/basic/list-2.rq,
+	tests/sparql/dawg/basic/list-2.srx,
+	tests/sparql/dawg/basic/list-3.rq,
+	tests/sparql/dawg/basic/list-3.srx,
+	tests/sparql/dawg/basic/list-4.rq,
+	tests/sparql/dawg/basic/list-4.srx,
+	tests/sparql/dawg/basic/manifest.ttl,
+	tests/sparql/dawg/basic/prefix-name-1.rq,
+	tests/sparql/dawg/basic/prefix-name-1.srx,
+	tests/sparql/dawg/basic/quotes-1.rq,
+	tests/sparql/dawg/basic/quotes-1.srx,
+	tests/sparql/dawg/basic/quotes-2.rq,
+	tests/sparql/dawg/basic/quotes-2.srx,
+	tests/sparql/dawg/basic/quotes-3.rq,
+	tests/sparql/dawg/basic/quotes-3.srx,
+	tests/sparql/dawg/basic/quotes-4.rq,
+	tests/sparql/dawg/basic/quotes-4.srx,
+	tests/sparql/dawg/basic/spoo-1.rq,
+	tests/sparql/dawg/basic/spoo-1.srx,
+	tests/sparql/dawg/basic/term-1.rq,
+	tests/sparql/dawg/basic/term-1.srx,
+	tests/sparql/dawg/basic/term-2.rq,
+	tests/sparql/dawg/basic/term-2.srx,
+	tests/sparql/dawg/basic/term-3.rq,
+	tests/sparql/dawg/basic/term-3.srx,
+	tests/sparql/dawg/basic/term-4.rq,
+	tests/sparql/dawg/basic/term-4.srx,
+	tests/sparql/dawg/basic/term-5.rq,
+	tests/sparql/dawg/basic/term-5.srx,
+	tests/sparql/dawg/basic/term-6.rq,
+	tests/sparql/dawg/basic/term-6.srx,
+	tests/sparql/dawg/basic/term-7.rq,
+	tests/sparql/dawg/basic/term-7.srx,
+	tests/sparql/dawg/basic/term-8.rq,
+	tests/sparql/dawg/basic/term-8.srx,
+	tests/sparql/dawg/basic/term-9.rq,
+	tests/sparql/dawg/basic/term-9.srx,
+	tests/sparql/dawg/basic/var-1.rq,
+	tests/sparql/dawg/basic/var-1.srx,
+	tests/sparql/dawg/basic/var-2.rq,
+	tests/sparql/dawg/basic/var-2.srx,
+	tests/sparql/dawg/bnode-coreference,
+	tests/sparql/dawg/bnode-coreference/data.ttl,
+	tests/sparql/dawg/bnode-coreference/manifest.ttl,
+	tests/sparql/dawg/bnode-coreference/query.rq,
+	tests/sparql/dawg/bnode-coreference/result.ttl,
+	tests/sparql/dawg/boolean-effective-value,
+	tests/sparql/dawg/boolean-effective-value/data-1.ttl,
+	tests/sparql/dawg/boolean-effective-value/data-2.ttl,
+	tests/sparql/dawg/boolean-effective-value/manifest.ttl,
+	tests/sparql/dawg/boolean-effective-value/query-bev-1.rq,
+	tests/sparql/dawg/boolean-effective-value/query-bev-2.rq,
+	tests/sparql/dawg/boolean-effective-value/query-bev-3.rq,
+	tests/sparql/dawg/boolean-effective-value/query-bev-4.rq,
+	tests/sparql/dawg/boolean-effective-value/query-bev-5.rq,
+	tests/sparql/dawg/boolean-effective-value/query-bev-6.rq,
+	tests/sparql/dawg/boolean-effective-value/query-boolean-literal.rq,
+	tests/sparql/dawg/boolean-effective-value/result-bev-1.ttl,
+	tests/sparql/dawg/boolean-effective-value/result-bev-2.ttl,
+	tests/sparql/dawg/boolean-effective-value/result-bev-3.ttl,
+	tests/sparql/dawg/boolean-effective-value/result-bev-4.ttl,
+	tests/sparql/dawg/boolean-effective-value/result-bev-5.ttl,
+	tests/sparql/dawg/boolean-effective-value/result-bev-6.ttl,
+	tests/sparql/dawg/boolean-effective-value/result-boolean-literal.ttl,
+	tests/sparql/dawg/bound,
+	tests/sparql/dawg/bound/bound1-result.ttl,
+	tests/sparql/dawg/bound/bound1.rq,
+	tests/sparql/dawg/bound/data.ttl,
+	tests/sparql/dawg/bound/manifest.ttl, tests/sparql/dawg/cast,
+	tests/sparql/dawg/cast/cast-bool.rq,
+	tests/sparql/dawg/cast/cast-bool.srx,
+	tests/sparql/dawg/cast/cast-dT.rq,
+	tests/sparql/dawg/cast/cast-dT.srx,
+	tests/sparql/dawg/cast/cast-dbl.rq,
+	tests/sparql/dawg/cast/cast-dbl.srx,
+	tests/sparql/dawg/cast/cast-dec.rq,
+	tests/sparql/dawg/cast/cast-dec.srx,
+	tests/sparql/dawg/cast/cast-flt.rq,
+	tests/sparql/dawg/cast/cast-flt.srx,
+	tests/sparql/dawg/cast/cast-int.rq,
+	tests/sparql/dawg/cast/cast-int.srx,
+	tests/sparql/dawg/cast/cast-str.rq,
+	tests/sparql/dawg/cast/cast-str.srx,
+	tests/sparql/dawg/cast/data.ttl,
+	tests/sparql/dawg/cast/manifest.ttl, tests/sparql/dawg/construct,
+	tests/sparql/dawg/construct/data-ident.ttl,
+	tests/sparql/dawg/construct/data-opt.ttl,
+	tests/sparql/dawg/construct/data-reif.ttl,
+	tests/sparql/dawg/construct/manifest.ttl,
+	tests/sparql/dawg/construct/query-construct-optional.rq,
+	tests/sparql/dawg/construct/query-ident.rq,
+	tests/sparql/dawg/construct/query-reif-1.rq,
+	tests/sparql/dawg/construct/query-reif-2.rq,
+	tests/sparql/dawg/construct/query-subgraph.rq,
+	tests/sparql/dawg/construct/result-construct-optional.ttl,
+	tests/sparql/dawg/construct/result-ident.ttl,
+	tests/sparql/dawg/construct/result-reif.ttl,
+	tests/sparql/dawg/construct/result-subgraph.ttl,
+	tests/sparql/dawg/dataset, tests/sparql/dawg/dataset/data-g1.ttl,
+	tests/sparql/dawg/dataset/data-g2.ttl,
+	tests/sparql/dawg/dataset/data-g3.ttl,
+	tests/sparql/dawg/dataset/data-g4.ttl,
+	tests/sparql/dawg/dataset/dataset-01.rq,
+	tests/sparql/dawg/dataset/dataset-01.ttl,
+	tests/sparql/dawg/dataset/dataset-02.rq,
+	tests/sparql/dawg/dataset/dataset-02.ttl,
+	tests/sparql/dawg/dataset/dataset-03.rq,
+	tests/sparql/dawg/dataset/dataset-03.ttl,
+	tests/sparql/dawg/dataset/dataset-04.rq,
+	tests/sparql/dawg/dataset/dataset-04.ttl,
+	tests/sparql/dawg/dataset/dataset-05.rq,
+	tests/sparql/dawg/dataset/dataset-05.ttl,
+	tests/sparql/dawg/dataset/dataset-06.rq,
+	tests/sparql/dawg/dataset/dataset-06.ttl,
+	tests/sparql/dawg/dataset/dataset-07.rq,
+	tests/sparql/dawg/dataset/dataset-07.ttl,
+	tests/sparql/dawg/dataset/dataset-08.rq,
+	tests/sparql/dawg/dataset/dataset-08.ttl,
+	tests/sparql/dawg/dataset/dataset-09.rq,
+	tests/sparql/dawg/dataset/dataset-09.ttl,
+	tests/sparql/dawg/dataset/dataset-10.rq,
+	tests/sparql/dawg/dataset/dataset-10.ttl,
+	tests/sparql/dawg/dataset/dataset-11.rq,
+	tests/sparql/dawg/dataset/dataset-11.ttl,
+	tests/sparql/dawg/dataset/dataset-12.rq,
+	tests/sparql/dawg/dataset/dataset-12.ttl,
+	tests/sparql/dawg/dataset/manifest.ttl,
+	tests/sparql/dawg/distinct,
+	tests/sparql/dawg/distinct/data-all.ttl,
+	tests/sparql/dawg/distinct/data-node.ttl,
+	tests/sparql/dawg/distinct/data-num.ttl,
+	tests/sparql/dawg/distinct/data-opt.ttl,
+	tests/sparql/dawg/distinct/data-star.ttl,
+	tests/sparql/dawg/distinct/data-str.ttl,
+	tests/sparql/dawg/distinct/distinct-1-results.srx,
+	tests/sparql/dawg/distinct/distinct-1.rq,
+	tests/sparql/dawg/distinct/distinct-2.rq,
+	tests/sparql/dawg/distinct/distinct-all.srx,
+	tests/sparql/dawg/distinct/distinct-node.srx,
+	tests/sparql/dawg/distinct/distinct-num.srx,
+	tests/sparql/dawg/distinct/distinct-opt.srx,
+	tests/sparql/dawg/distinct/distinct-star-1.rq,
+	tests/sparql/dawg/distinct/distinct-star-1.srx,
+	tests/sparql/dawg/distinct/distinct-str.srx,
+	tests/sparql/dawg/distinct/manifest.ttl,
+	tests/sparql/dawg/distinct/no-distinct-1.rq,
+	tests/sparql/dawg/distinct/no-distinct-2.rq,
+	tests/sparql/dawg/distinct/no-distinct-all.srx,
+	tests/sparql/dawg/distinct/no-distinct-node.srx,
+	tests/sparql/dawg/distinct/no-distinct-num.srx,
+	tests/sparql/dawg/distinct/no-distinct-opt.srx,
+	tests/sparql/dawg/distinct/no-distinct-str.srx,
+	tests/sparql/dawg/expr-builtin,
+	tests/sparql/dawg/expr-builtin/data-builtin-1.ttl,
+	tests/sparql/dawg/expr-builtin/data-builtin-2.ttl,
+	tests/sparql/dawg/expr-builtin/data-langMatches-de.ttl,
+	tests/sparql/dawg/expr-builtin/data-langMatches.ttl,
+	tests/sparql/dawg/expr-builtin/lang-case-insensitive-eq.srx,
+	tests/sparql/dawg/expr-builtin/lang-case-insensitive-ne.srx,
+	tests/sparql/dawg/expr-builtin/lang-case-sensitivity-eq.rq,
+	tests/sparql/dawg/expr-builtin/lang-case-sensitivity-ne.rq,
+	tests/sparql/dawg/expr-builtin/lang-case-sensitivity.ttl,
+	tests/sparql/dawg/expr-builtin/manifest.ttl,
+	tests/sparql/dawg/expr-builtin/q-blank-1.rq,
+	tests/sparql/dawg/expr-builtin/q-datatype-1.rq,
+	tests/sparql/dawg/expr-builtin/q-datatype-2.rq,
+	tests/sparql/dawg/expr-builtin/q-datatype-3.rq,
+	tests/sparql/dawg/expr-builtin/q-iri-1.rq,
+	tests/sparql/dawg/expr-builtin/q-isliteral-1.rq,
+	tests/sparql/dawg/expr-builtin/q-lang-1.rq,
+	tests/sparql/dawg/expr-builtin/q-lang-2.rq,
+	tests/sparql/dawg/expr-builtin/q-lang-3.rq,
+	tests/sparql/dawg/expr-builtin/q-langMatches-1.rq,
+	tests/sparql/dawg/expr-builtin/q-langMatches-2.rq,
+	tests/sparql/dawg/expr-builtin/q-langMatches-3.rq,
+	tests/sparql/dawg/expr-builtin/q-langMatches-4.rq,
+	tests/sparql/dawg/expr-builtin/q-langMatches-de-de.rq,
+	tests/sparql/dawg/expr-builtin/q-str-1.rq,
+	tests/sparql/dawg/expr-builtin/q-str-2.rq,
+	tests/sparql/dawg/expr-builtin/q-str-3.rq,
+	tests/sparql/dawg/expr-builtin/q-str-4.rq,
+	tests/sparql/dawg/expr-builtin/q-uri-1.rq,
+	tests/sparql/dawg/expr-builtin/result-blank-1.ttl,
+	tests/sparql/dawg/expr-builtin/result-datatype-1.ttl,
+	tests/sparql/dawg/expr-builtin/result-datatype-2.srx,
+	tests/sparql/dawg/expr-builtin/result-datatype-3.srx,
+	tests/sparql/dawg/expr-builtin/result-iri-1.ttl,
+	tests/sparql/dawg/expr-builtin/result-isliteral-1.ttl,
+	tests/sparql/dawg/expr-builtin/result-lang-1.srx,
+	tests/sparql/dawg/expr-builtin/result-lang-2.srx,
+	tests/sparql/dawg/expr-builtin/result-lang-3.srx,
+	tests/sparql/dawg/expr-builtin/result-langMatches-1.ttl,
+	tests/sparql/dawg/expr-builtin/result-langMatches-2.ttl,
+	tests/sparql/dawg/expr-builtin/result-langMatches-3.ttl,
+	tests/sparql/dawg/expr-builtin/result-langMatches-4.ttl,
+	tests/sparql/dawg/expr-builtin/result-langMatches-de.ttl,
+	tests/sparql/dawg/expr-builtin/result-str-1.ttl,
+	tests/sparql/dawg/expr-builtin/result-str-2.ttl,
+	tests/sparql/dawg/expr-builtin/result-str-3.ttl,
+	tests/sparql/dawg/expr-builtin/result-str-4.ttl,
+	tests/sparql/dawg/expr-builtin/result-uri-1.ttl,
+	tests/sparql/dawg/expr-equals,
+	tests/sparql/dawg/expr-equals/data-eq.ttl,
+	tests/sparql/dawg/expr-equals/manifest.ttl,
+	tests/sparql/dawg/expr-equals/query-eq-1.rq,
+	tests/sparql/dawg/expr-equals/query-eq-2.rq,
+	tests/sparql/dawg/expr-equals/query-eq-3.rq,
+	tests/sparql/dawg/expr-equals/query-eq-4.rq,
+	tests/sparql/dawg/expr-equals/query-eq-5.rq,
+	tests/sparql/dawg/expr-equals/query-eq-graph-1.rq,
+	tests/sparql/dawg/expr-equals/query-eq-graph-2.rq,
+	tests/sparql/dawg/expr-equals/query-eq-graph-3.rq,
+	tests/sparql/dawg/expr-equals/query-eq-graph-4.rq,
+	tests/sparql/dawg/expr-equals/query-eq-graph-5.rq,
+	tests/sparql/dawg/expr-equals/query-eq2-1.rq,
+	tests/sparql/dawg/expr-equals/query-eq2-2.rq,
+	tests/sparql/dawg/expr-equals/query-eq2-graph-1.rq,
+	tests/sparql/dawg/expr-equals/result-eq-1.ttl,
+	tests/sparql/dawg/expr-equals/result-eq-2.ttl,
+	tests/sparql/dawg/expr-equals/result-eq-3.ttl,
+	tests/sparql/dawg/expr-equals/result-eq-4.ttl,
+	tests/sparql/dawg/expr-equals/result-eq-5.ttl,
+	tests/sparql/dawg/expr-equals/result-eq-graph-1.ttl,
+	tests/sparql/dawg/expr-equals/result-eq-graph-2.ttl,
+	tests/sparql/dawg/expr-equals/result-eq-graph-3.ttl,
+	tests/sparql/dawg/expr-equals/result-eq-graph-4.ttl,
+	tests/sparql/dawg/expr-equals/result-eq-graph-5.ttl,
+	tests/sparql/dawg/expr-equals/result-eq2-1.ttl,
+	tests/sparql/dawg/expr-equals/result-eq2-2.ttl,
+	tests/sparql/dawg/expr-equals/result-eq2-graph-1.ttl,
+	tests/sparql/dawg/expr-ops, tests/sparql/dawg/expr-ops/data.ttl,
+	tests/sparql/dawg/expr-ops/manifest.ttl,
+	tests/sparql/dawg/expr-ops/query-ge-1.rq,
+	tests/sparql/dawg/expr-ops/query-le-1.rq,
+	tests/sparql/dawg/expr-ops/query-minus-1.rq,
+	tests/sparql/dawg/expr-ops/query-mul-1.rq,
+	tests/sparql/dawg/expr-ops/query-plus-1.rq,
+	tests/sparql/dawg/expr-ops/query-unminus-1.rq,
+	tests/sparql/dawg/expr-ops/query-unplus-1.rq,
+	tests/sparql/dawg/expr-ops/result-ge-1.srx,
+	tests/sparql/dawg/expr-ops/result-le-1.srx,
+	tests/sparql/dawg/expr-ops/result-minus-1.srx,
+	tests/sparql/dawg/expr-ops/result-mul-1.srx,
+	tests/sparql/dawg/expr-ops/result-plus-1.srx,
+	tests/sparql/dawg/expr-ops/result-unminus-1.srx,
+	tests/sparql/dawg/expr-ops/result-unplus-1.srx,
+	tests/sparql/dawg/extended-manifest-evaluation.ttl,
+	tests/sparql/dawg/graph, tests/sparql/dawg/graph/data-g1.ttl,
+	tests/sparql/dawg/graph/data-g2.ttl,
+	tests/sparql/dawg/graph/data-g3.ttl,
+	tests/sparql/dawg/graph/data-g4.ttl,
+	tests/sparql/dawg/graph/graph-01.rq,
+	tests/sparql/dawg/graph/graph-01.ttl,
+	tests/sparql/dawg/graph/graph-02.rq,
+	tests/sparql/dawg/graph/graph-02.ttl,
+	tests/sparql/dawg/graph/graph-03.rq,
+	tests/sparql/dawg/graph/graph-03.ttl,
+	tests/sparql/dawg/graph/graph-04.rq,
+	tests/sparql/dawg/graph/graph-04.ttl,
+	tests/sparql/dawg/graph/graph-05.rq,
+	tests/sparql/dawg/graph/graph-05.ttl,
+	tests/sparql/dawg/graph/graph-06.rq,
+	tests/sparql/dawg/graph/graph-06.ttl,
+	tests/sparql/dawg/graph/graph-07.rq,
+	tests/sparql/dawg/graph/graph-07.ttl,
+	tests/sparql/dawg/graph/graph-08.rq,
+	tests/sparql/dawg/graph/graph-08.ttl,
+	tests/sparql/dawg/graph/graph-09.rq,
+	tests/sparql/dawg/graph/graph-09.ttl,
+	tests/sparql/dawg/graph/graph-10.rq,
+	tests/sparql/dawg/graph/graph-10.ttl,
+	tests/sparql/dawg/graph/graph-11.rq,
+	tests/sparql/dawg/graph/graph-11.ttl,
+	tests/sparql/dawg/graph/manifest.ttl, tests/sparql/dawg/i18n,
+	tests/sparql/dawg/i18n/.htaccess,
+	tests/sparql/dawg/i18n/kanji-01-results.ttl,
+	tests/sparql/dawg/i18n/kanji-01.rq,
+	tests/sparql/dawg/i18n/kanji-02-results.ttl,
+	tests/sparql/dawg/i18n/kanji-02.rq,
+	tests/sparql/dawg/i18n/kanji.ttl,
+	tests/sparql/dawg/i18n/manifest.ttl,
+	tests/sparql/dawg/i18n/normalization-01-results.ttl,
+	tests/sparql/dawg/i18n/normalization-01.rq,
+	tests/sparql/dawg/i18n/normalization-01.ttl,
+	tests/sparql/dawg/i18n/normalization-02-results.ttl,
+	tests/sparql/dawg/i18n/normalization-02.rq,
+	tests/sparql/dawg/i18n/normalization-02.ttl,
+	tests/sparql/dawg/i18n/normalization-03-results.ttl,
+	tests/sparql/dawg/i18n/normalization-03.rq,
+	tests/sparql/dawg/i18n/normalization-03.ttl,
+	tests/sparql/dawg/manifest-evaluation.ttl,
+	tests/sparql/dawg/manifest-syntax.ttl,
+	tests/sparql/dawg/open-world,
+	tests/sparql/dawg/open-world/data-1.ttl,
+	tests/sparql/dawg/open-world/data-2.ttl,
+	tests/sparql/dawg/open-world/data-3.ttl,
+	tests/sparql/dawg/open-world/data-4.ttl,
+	tests/sparql/dawg/open-world/date-1-result.srx,
+	tests/sparql/dawg/open-world/date-1.rq,
+	tests/sparql/dawg/open-world/date-2-result.srx,
+	tests/sparql/dawg/open-world/date-2.rq,
+	tests/sparql/dawg/open-world/date-3-result.srx,
+	tests/sparql/dawg/open-world/date-3.rq,
+	tests/sparql/dawg/open-world/date-4-result.srx,
+	tests/sparql/dawg/open-world/date-4.rq,
+	tests/sparql/dawg/open-world/manifest.ttl,
+	tests/sparql/dawg/open-world/open-cmp-01-result.srx,
+	tests/sparql/dawg/open-world/open-cmp-01.rq,
+	tests/sparql/dawg/open-world/open-cmp-02-result.srx,
+	tests/sparql/dawg/open-world/open-cmp-02.rq,
+	tests/sparql/dawg/open-world/open-eq-01-result.srx,
+	tests/sparql/dawg/open-world/open-eq-01.rq,
+	tests/sparql/dawg/open-world/open-eq-02-result.srx,
+	tests/sparql/dawg/open-world/open-eq-02.rq,
+	tests/sparql/dawg/open-world/open-eq-03-result.srx,
+	tests/sparql/dawg/open-world/open-eq-03.rq,
+	tests/sparql/dawg/open-world/open-eq-04-result.srx,
+	tests/sparql/dawg/open-world/open-eq-04.rq,
+	tests/sparql/dawg/open-world/open-eq-05-result.srx,
+	tests/sparql/dawg/open-world/open-eq-05.rq,
+	tests/sparql/dawg/open-world/open-eq-06-result.srx,
+	tests/sparql/dawg/open-world/open-eq-06.rq,
+	tests/sparql/dawg/open-world/open-eq-07-result.srx,
+	tests/sparql/dawg/open-world/open-eq-07.rq,
+	tests/sparql/dawg/open-world/open-eq-08-result.srx,
+	tests/sparql/dawg/open-world/open-eq-08.rq,
+	tests/sparql/dawg/open-world/open-eq-09-result.srx,
+	tests/sparql/dawg/open-world/open-eq-09.rq,
+	tests/sparql/dawg/open-world/open-eq-10-result.srx,
+	tests/sparql/dawg/open-world/open-eq-10.rq,
+	tests/sparql/dawg/open-world/open-eq-11-result.srx,
+	tests/sparql/dawg/open-world/open-eq-11.rq,
+	tests/sparql/dawg/open-world/open-eq-12-result.srx,
+	tests/sparql/dawg/open-world/open-eq-12.rq,
+	tests/sparql/dawg/open-world/sameTerm-StringSimpleLiteralCmp.srx,
+	tests/sparql/dawg/open-world/sameTerm-eq-StringSimpleLiteralCmp.srx,
+	tests/sparql/dawg/open-world/sameTerm-eq.rq,
+	tests/sparql/dawg/open-world/sameTerm-eq.srx,
+	tests/sparql/dawg/open-world/sameTerm-manifest.ttl,
+	tests/sparql/dawg/open-world/sameTerm-not-eq-StringSimpleLiteralCmp.srx,
+	tests/sparql/dawg/open-world/sameTerm-not-eq.rq,
+	tests/sparql/dawg/open-world/sameTerm-not-eq.srx,
+	tests/sparql/dawg/open-world/sameTerm.rq,
+	tests/sparql/dawg/open-world/sameTerm.srx,
+	tests/sparql/dawg/open-world/sameTerm.ttl,
+	tests/sparql/dawg/optional,
+	tests/sparql/dawg/optional/complex-data-1.ttl,
+	tests/sparql/dawg/optional/complex-data-2.ttl,
+	tests/sparql/dawg/optional/data.ttl,
+	tests/sparql/dawg/optional/manifest.ttl,
+	tests/sparql/dawg/optional/q-opt-1.rq,
+	tests/sparql/dawg/optional/q-opt-2.rq,
+	tests/sparql/dawg/optional/q-opt-3.rq,
+	tests/sparql/dawg/optional/q-opt-complex-1.rq,
+	tests/sparql/dawg/optional/q-opt-complex-2.rq,
+	tests/sparql/dawg/optional/q-opt-complex-3.rq,
+	tests/sparql/dawg/optional/q-opt-complex-4.rq,
+	tests/sparql/dawg/optional/result-opt-1.ttl,
+	tests/sparql/dawg/optional/result-opt-2.ttl,
+	tests/sparql/dawg/optional/result-opt-3.ttl,
+	tests/sparql/dawg/optional/result-opt-complex-1.ttl,
+	tests/sparql/dawg/optional/result-opt-complex-2.ttl,
+	tests/sparql/dawg/optional/result-opt-complex-3.ttl,
+	tests/sparql/dawg/optional/result-opt-complex-4.ttl,
+	tests/sparql/dawg/optional-filter,
+	tests/sparql/dawg/optional-filter/data-1.ttl,
+	tests/sparql/dawg/optional-filter/expr-1-result.ttl,
+	tests/sparql/dawg/optional-filter/expr-1.rq,
+	tests/sparql/dawg/optional-filter/expr-2-result.ttl,
+	tests/sparql/dawg/optional-filter/expr-2.rq,
+	tests/sparql/dawg/optional-filter/expr-3-result.ttl,
+	tests/sparql/dawg/optional-filter/expr-3.rq,
+	tests/sparql/dawg/optional-filter/manifest.ttl,
+	tests/sparql/dawg/regex, tests/sparql/dawg/regex/manifest.ttl,
+	tests/sparql/dawg/regex/regex-data-01.ttl,
+	tests/sparql/dawg/regex/regex-query-001.rq,
+	tests/sparql/dawg/regex/regex-query-002.rq,
+	tests/sparql/dawg/regex/regex-query-003.rq,
+	tests/sparql/dawg/regex/regex-query-004.rq,
+	tests/sparql/dawg/regex/regex-result-001.ttl,
+	tests/sparql/dawg/regex/regex-result-002.ttl,
+	tests/sparql/dawg/regex/regex-result-003.ttl,
+	tests/sparql/dawg/regex/regex-result-004.ttl,
+	tests/sparql/dawg/slice, tests/sparql/dawg/solution-seq,
+	tests/sparql/dawg/solution-seq/data.ttl,
+	tests/sparql/dawg/solution-seq/manifest.ttl,
+	tests/sparql/dawg/solution-seq/slice-01.rq,
+	tests/sparql/dawg/solution-seq/slice-02.rq,
+	tests/sparql/dawg/solution-seq/slice-03.rq,
+	tests/sparql/dawg/solution-seq/slice-04.rq,
+	tests/sparql/dawg/solution-seq/slice-10.rq,
+	tests/sparql/dawg/solution-seq/slice-11.rq,
+	tests/sparql/dawg/solution-seq/slice-12.rq,
+	tests/sparql/dawg/solution-seq/slice-13.rq,
+	tests/sparql/dawg/solution-seq/slice-20.rq,
+	tests/sparql/dawg/solution-seq/slice-21.rq,
+	tests/sparql/dawg/solution-seq/slice-22.rq,
+	tests/sparql/dawg/solution-seq/slice-23.rq,
+	tests/sparql/dawg/solution-seq/slice-24.rq,
+	tests/sparql/dawg/solution-seq/slice-results-01.ttl,
+	tests/sparql/dawg/solution-seq/slice-results-02.ttl,
+	tests/sparql/dawg/solution-seq/slice-results-03.ttl,
+	tests/sparql/dawg/solution-seq/slice-results-04.ttl,
+	tests/sparql/dawg/solution-seq/slice-results-10.ttl,
+	tests/sparql/dawg/solution-seq/slice-results-11.ttl,
+	tests/sparql/dawg/solution-seq/slice-results-12.ttl,
+	tests/sparql/dawg/solution-seq/slice-results-13.ttl,
+	tests/sparql/dawg/solution-seq/slice-results-20.ttl,
+	tests/sparql/dawg/solution-seq/slice-results-21.ttl,
+	tests/sparql/dawg/solution-seq/slice-results-22.ttl,
+	tests/sparql/dawg/solution-seq/slice-results-23.ttl,
+	tests/sparql/dawg/solution-seq/slice-results-24.ttl,
+	tests/sparql/dawg/sort, tests/sparql/dawg/sort/.manifest.ttl.swp,
+	tests/sparql/dawg/sort/data-sort-1.ttl,
+	tests/sparql/dawg/sort/data-sort-11.ttl,
+	tests/sparql/dawg/sort/data-sort-3.ttl,
+	tests/sparql/dawg/sort/data-sort-4.ttl,
+	tests/sparql/dawg/sort/data-sort-6.ttl,
+	tests/sparql/dawg/sort/data-sort-7.ttl,
+	tests/sparql/dawg/sort/data-sort-8.ttl,
+	tests/sparql/dawg/sort/data-sort-9.ttl,
+	tests/sparql/dawg/sort/data-sort-builtin.ttl,
+	tests/sparql/dawg/sort/data-sort-function.ttl,
+	tests/sparql/dawg/sort/data-sort-numbers.ttl,
+	tests/sparql/dawg/sort/extended-manifest.ttl,
+	tests/sparql/dawg/sort/manifest.ttl,
+	tests/sparql/dawg/sort/query-sort-1.rq,
+	tests/sparql/dawg/sort/query-sort-10.rq,
+	tests/sparql/dawg/sort/query-sort-2.rq,
+	tests/sparql/dawg/sort/query-sort-3.rq,
+	tests/sparql/dawg/sort/query-sort-4.rq,
+	tests/sparql/dawg/sort/query-sort-5.rq,
+	tests/sparql/dawg/sort/query-sort-6.rq,
+	tests/sparql/dawg/sort/query-sort-9.rq,
+	tests/sparql/dawg/sort/query-sort-builtin.rq,
+	tests/sparql/dawg/sort/query-sort-function.rq,
+	tests/sparql/dawg/sort/query-sort-numbers.rq,
+	tests/sparql/dawg/sort/result-sort-1.rdf,
+	tests/sparql/dawg/sort/result-sort-10.rdf,
+	tests/sparql/dawg/sort/result-sort-11.ttl,
+	tests/sparql/dawg/sort/result-sort-2.rdf,
+	tests/sparql/dawg/sort/result-sort-3.rdf,
+	tests/sparql/dawg/sort/result-sort-4.rdf,
+	tests/sparql/dawg/sort/result-sort-5.rdf,
+	tests/sparql/dawg/sort/result-sort-6.rdf,
+	tests/sparql/dawg/sort/result-sort-7.rdf,
+	tests/sparql/dawg/sort/result-sort-8.rdf,
+	tests/sparql/dawg/sort/result-sort-9.rdf,
+	tests/sparql/dawg/sort/result-sort-builtin.ttl,
+	tests/sparql/dawg/sort/result-sort-function.ttl,
+	tests/sparql/dawg/sort/result-sort-numbers.ttl,
+	tests/sparql/dawg/syntax, tests/sparql/dawg/syntax-sparql1,
+	tests/sparql/dawg/syntax-sparql1/manifest.ttl,
+	tests/sparql/dawg/syntax-sparql1/syntax-basic-01.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-basic-02.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-basic-03.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-basic-04.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-basic-05.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-basic-06.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-bnodes-01.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-bnodes-02.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-bnodes-03.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-bnodes-04.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-bnodes-05.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-expr-01.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-expr-02.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-expr-03.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-expr-04.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-expr-05.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-forms-01.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-forms-02.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-limit-offset-01.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-limit-offset-02.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-limit-offset-03.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-limit-offset-04.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-lists-01.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-lists-02.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-lists-03.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-lists-04.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-lists-05.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-lit-01.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-lit-02.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-lit-03.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-lit-04.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-lit-05.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-lit-06.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-lit-07.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-lit-08.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-lit-09.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-lit-10.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-lit-11.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-lit-12.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-lit-13.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-lit-14.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-lit-15.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-lit-16.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-lit-17.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-lit-18.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-lit-19.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-lit-20.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-order-01.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-order-02.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-order-03.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-order-04.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-order-05.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-order-06.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-order-07.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-pat-01.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-pat-02.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-pat-03.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-pat-04.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-qname-01.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-qname-02.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-qname-03.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-qname-04.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-qname-05.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-qname-06.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-qname-07.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-qname-08.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-struct-01.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-struct-02.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-struct-03.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-struct-05.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-struct-06.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-struct-07.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-struct-08.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-struct-09.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-struct-10.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-struct-11.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-struct-12.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-struct-13.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-struct-14.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-union-01.rq,
+	tests/sparql/dawg/syntax-sparql1/syntax-union-02.rq,
+	tests/sparql/dawg/syntax-sparql2,
+	tests/sparql/dawg/syntax-sparql2/manifest.ttl,
+	tests/sparql/dawg/syntax-sparql2/syntax-bnode-01.rq,
+	tests/sparql/dawg/syntax-sparql2/syntax-bnode-02.rq,
+	tests/sparql/dawg/syntax-sparql2/syntax-bnode-03.rq,
+	tests/sparql/dawg/syntax-sparql2/syntax-dataset-01.rq,
+	tests/sparql/dawg/syntax-sparql2/syntax-dataset-02.rq,
+	tests/sparql/dawg/syntax-sparql2/syntax-dataset-03.rq,
+	tests/sparql/dawg/syntax-sparql2/syntax-dataset-04.rq,
+	tests/sparql/dawg/syntax-sparql2/syntax-esc-01.rq,
+	tests/sparql/dawg/syntax-sparql2/syntax-esc-02.rq,
+	tests/sparql/dawg/syntax-sparql2/syntax-esc-03.rq,
+	tests/sparql/dawg/syntax-sparql2/syntax-esc-04.rq,
+	tests/sparql/dawg/syntax-sparql2/syntax-esc-05.rq,
+	tests/sparql/dawg/syntax-sparql2/syntax-form-ask-02.rq,
+	tests/sparql/dawg/syntax-sparql2/syntax-form-construct01.rq,
+	tests/sparql/dawg/syntax-sparql2/syntax-form-construct02.rq,
+	tests/sparql/dawg/syntax-sparql2/syntax-form-construct03.rq,
+	tests/sparql/dawg/syntax-sparql2/syntax-form-construct04.rq,
+	tests/sparql/dawg/syntax-sparql2/syntax-form-construct06.rq,
+	tests/sparql/dawg/syntax-sparql2/syntax-form-describe01.rq,
+	tests/sparql/dawg/syntax-sparql2/syntax-form-describe02.rq,
+	tests/sparql/dawg/syntax-sparql2/syntax-form-select-01.rq,
+	tests/sparql/dawg/syntax-sparql2/syntax-form-select-02.rq,
+	tests/sparql/dawg/syntax-sparql2/syntax-function-01.rq,
+	tests/sparql/dawg/syntax-sparql2/syntax-function-02.rq,
+	tests/sparql/dawg/syntax-sparql2/syntax-function-03.rq,
+	tests/sparql/dawg/syntax-sparql2/syntax-function-04.rq,
+	tests/sparql/dawg/syntax-sparql2/syntax-general-01.rq,
+	tests/sparql/dawg/syntax-sparql2/syntax-general-02.rq,
+	tests/sparql/dawg/syntax-sparql2/syntax-general-03.rq,
+	tests/sparql/dawg/syntax-sparql2/syntax-general-04.rq,
+	tests/sparql/dawg/syntax-sparql2/syntax-general-05.rq,
+	tests/sparql/dawg/syntax-sparql2/syntax-general-06.rq,
+	tests/sparql/dawg/syntax-sparql2/syntax-general-07.rq,
+	tests/sparql/dawg/syntax-sparql2/syntax-general-08.rq,
+	tests/sparql/dawg/syntax-sparql2/syntax-general-09.rq,
+	tests/sparql/dawg/syntax-sparql2/syntax-general-10.rq,
+	tests/sparql/dawg/syntax-sparql2/syntax-general-11.rq,
+	tests/sparql/dawg/syntax-sparql2/syntax-general-12.rq,
+	tests/sparql/dawg/syntax-sparql2/syntax-general-13.rq,
+	tests/sparql/dawg/syntax-sparql2/syntax-general-14.rq,
+	tests/sparql/dawg/syntax-sparql2/syntax-graph-01.rq,
+	tests/sparql/dawg/syntax-sparql2/syntax-graph-02.rq,
+	tests/sparql/dawg/syntax-sparql2/syntax-graph-03.rq,
+	tests/sparql/dawg/syntax-sparql2/syntax-graph-04.rq,
+	tests/sparql/dawg/syntax-sparql2/syntax-graph-05.rq,
+	tests/sparql/dawg/syntax-sparql2/syntax-keywords-01.rq,
+	tests/sparql/dawg/syntax-sparql2/syntax-keywords-02.rq,
+	tests/sparql/dawg/syntax-sparql2/syntax-keywords-03.rq,
+	tests/sparql/dawg/syntax-sparql2/syntax-lists-01.rq,
+	tests/sparql/dawg/syntax-sparql2/syntax-lists-02.rq,
+	tests/sparql/dawg/syntax-sparql2/syntax-lists-03.rq,
+	tests/sparql/dawg/syntax-sparql2/syntax-lists-04.rq,
+	tests/sparql/dawg/syntax-sparql2/syntax-lists-05.rq,
+	tests/sparql/dawg/syntax-sparql3,
+	tests/sparql/dawg/syntax-sparql3/manifest.ttl,
+	tests/sparql/dawg/syntax-sparql3/syn-01.rq,
+	tests/sparql/dawg/syntax-sparql3/syn-02.rq,
+	tests/sparql/dawg/syntax-sparql3/syn-03.rq,
+	tests/sparql/dawg/syntax-sparql3/syn-04.rq,
+	tests/sparql/dawg/syntax-sparql3/syn-05.rq,
+	tests/sparql/dawg/syntax-sparql3/syn-06.rq,
+	tests/sparql/dawg/syntax-sparql3/syn-07.rq,
+	tests/sparql/dawg/syntax-sparql3/syn-08.rq,
+	tests/sparql/dawg/syntax-sparql3/syn-bad-01.rq,
+	tests/sparql/dawg/syntax-sparql3/syn-bad-02.rq,
+	tests/sparql/dawg/syntax-sparql3/syn-bad-03.rq,
+	tests/sparql/dawg/syntax-sparql3/syn-bad-04.rq,
+	tests/sparql/dawg/syntax-sparql3/syn-bad-05.rq,
+	tests/sparql/dawg/syntax-sparql3/syn-bad-06.rq,
+	tests/sparql/dawg/syntax-sparql3/syn-bad-07.rq,
+	tests/sparql/dawg/syntax-sparql3/syn-bad-08.rq,
+	tests/sparql/dawg/syntax-sparql3/syn-bad-09.rq,
+	tests/sparql/dawg/syntax-sparql3/syn-bad-10.rq,
+	tests/sparql/dawg/syntax-sparql3/syn-bad-11.rq,
+	tests/sparql/dawg/syntax-sparql3/syn-bad-12.rq,
+	tests/sparql/dawg/syntax-sparql3/syn-bad-13.rq,
+	tests/sparql/dawg/syntax-sparql3/syn-bad-14.rq,
+	tests/sparql/dawg/syntax-sparql3/syn-bad-15.rq,
+	tests/sparql/dawg/syntax-sparql3/syn-bad-16.rq,
+	tests/sparql/dawg/syntax-sparql3/syn-bad-17.rq,
+	tests/sparql/dawg/syntax-sparql3/syn-bad-18.rq,
+	tests/sparql/dawg/syntax-sparql3/syn-bad-19.rq,
+	tests/sparql/dawg/syntax-sparql3/syn-bad-20.rq,
+	tests/sparql/dawg/syntax-sparql3/syn-bad-21.rq,
+	tests/sparql/dawg/syntax-sparql3/syn-bad-22.rq,
+	tests/sparql/dawg/syntax-sparql3/syn-bad-23.rq,
+	tests/sparql/dawg/syntax-sparql3/syn-bad-24.rq,
+	tests/sparql/dawg/syntax-sparql3/syn-bad-25.rq,
+	tests/sparql/dawg/syntax-sparql3/syn-bad-26.rq,
+	tests/sparql/dawg/syntax-sparql3/syn-bad-27.rq,
+	tests/sparql/dawg/syntax-sparql3/syn-bad-28.rq,
+	tests/sparql/dawg/syntax-sparql3/syn-bad-29.rq,
+	tests/sparql/dawg/syntax-sparql3/syn-bad-30.rq,
+	tests/sparql/dawg/syntax-sparql3/syn-bad-31.rq,
+	tests/sparql/dawg/syntax-sparql3/syn-bad-bnode-dot.rq,
+	tests/sparql/dawg/syntax-sparql3/syn-bad-bnodes-missing-pvalues-01.rq,
+	tests/sparql/dawg/syntax-sparql3/syn-bad-bnodes-missing-pvalues-02.rq,
+	tests/sparql/dawg/syntax-sparql3/syn-bad-empty-optional-01.rq,
+	tests/sparql/dawg/syntax-sparql3/syn-bad-empty-optional-02.rq,
+	tests/sparql/dawg/syntax-sparql3/syn-bad-filter-missing-parens.rq,
+	tests/sparql/dawg/syntax-sparql3/syn-bad-lone-list.rq,
+	tests/sparql/dawg/syntax-sparql3/syn-bad-lone-node.rq,
+	tests/sparql/dawg/syntax-sparql3/syn-blabel-cross-filter.rq,
+	tests/sparql/dawg/syntax-sparql3/syn-blabel-cross-graph-bad.rq,
+	tests/sparql/dawg/syntax-sparql3/syn-blabel-cross-optional-bad.rq,
+	tests/sparql/dawg/syntax-sparql3/syn-blabel-cross-union-bad.rq,
+	tests/sparql/dawg/syntax-sparql4,
+	tests/sparql/dawg/syntax-sparql4/manifest.ttl,
+	tests/sparql/dawg/syntax-sparql4/syn-09.rq,
+	tests/sparql/dawg/syntax-sparql4/syn-10.rq,
+	tests/sparql/dawg/syntax-sparql4/syn-11.rq,
+	tests/sparql/dawg/syntax-sparql4/syn-bad-34.rq,
+	tests/sparql/dawg/syntax-sparql4/syn-bad-35.rq,
+	tests/sparql/dawg/syntax-sparql4/syn-bad-36.rq,
+	tests/sparql/dawg/syntax-sparql4/syn-bad-37.rq,
+	tests/sparql/dawg/syntax-sparql4/syn-bad-38.rq,
+	tests/sparql/dawg/syntax-sparql4/syn-bad-GRAPH-breaks-BGP.rq,
+	tests/sparql/dawg/syntax-sparql4/syn-bad-OPT-breaks-BGP.rq,
+	tests/sparql/dawg/syntax-sparql4/syn-bad-UNION-breaks-BGP.rq,
+	tests/sparql/dawg/syntax-sparql4/syn-leading-digits-in-prefixed-names.rq,
+	tests/sparql/dawg/triple-match,
+	tests/sparql/dawg/triple-match/data-01.ttl,
+	tests/sparql/dawg/triple-match/data-02.ttl,
+	tests/sparql/dawg/triple-match/data-03.ttl,
+	tests/sparql/dawg/triple-match/dawg-data-01.ttl,
+	tests/sparql/dawg/triple-match/dawg-tp-01.rq,
+	tests/sparql/dawg/triple-match/dawg-tp-02.rq,
+	tests/sparql/dawg/triple-match/dawg-tp-03.rq,
+	tests/sparql/dawg/triple-match/dawg-tp-04.rq,
+	tests/sparql/dawg/triple-match/dawg-tp-05.rq,
+	tests/sparql/dawg/triple-match/manifest.ttl,
+	tests/sparql/dawg/triple-match/result-tp-01.ttl,
+	tests/sparql/dawg/triple-match/result-tp-02.ttl,
+	tests/sparql/dawg/triple-match/result-tp-03.ttl,
+	tests/sparql/dawg/triple-match/result-tp-04.ttl,
+	tests/sparql/dawg/type-promotion,
+	tests/sparql/dawg/type-promotion/false.ttl,
+	tests/sparql/dawg/type-promotion/manifest.ttl,
+	tests/sparql/dawg/type-promotion/tP-byte-short-fail.rq,
+	tests/sparql/dawg/type-promotion/tP-byte-short.rq,
+	tests/sparql/dawg/type-promotion/tP-decimal-decimal.rq,
+	tests/sparql/dawg/type-promotion/tP-double-decimal-fail.rq,
+	tests/sparql/dawg/type-promotion/tP-double-decimal.rq,
+	tests/sparql/dawg/type-promotion/tP-double-double.rq,
+	tests/sparql/dawg/type-promotion/tP-double-float-fail.rq,
+	tests/sparql/dawg/type-promotion/tP-double-float.rq,
+	tests/sparql/dawg/type-promotion/tP-float-decimal-fail.rq,
+	tests/sparql/dawg/type-promotion/tP-float-decimal.rq,
+	tests/sparql/dawg/type-promotion/tP-float-float.rq,
+	tests/sparql/dawg/type-promotion/tP-int-short.rq,
+	tests/sparql/dawg/type-promotion/tP-integer-short.rq,
+	tests/sparql/dawg/type-promotion/tP-long-short.rq,
+	tests/sparql/dawg/type-promotion/tP-negativeInteger-short.rq,
+	tests/sparql/dawg/type-promotion/tP-nonNegativeInteger-short.rq,
+	tests/sparql/dawg/type-promotion/tP-nonPositiveInteger-short.rq,
+	tests/sparql/dawg/type-promotion/tP-positiveInteger-short.rq,
+	tests/sparql/dawg/type-promotion/tP-short-byte-fail.rq,
+	tests/sparql/dawg/type-promotion/tP-short-decimal.rq,
+	tests/sparql/dawg/type-promotion/tP-short-double.rq,
+	tests/sparql/dawg/type-promotion/tP-short-float.rq,
+	tests/sparql/dawg/type-promotion/tP-short-int-fail.rq,
+	tests/sparql/dawg/type-promotion/tP-short-long-fail.rq,
+	tests/sparql/dawg/type-promotion/tP-short-short-fail.rq,
+	tests/sparql/dawg/type-promotion/tP-short-short.rq,
+	tests/sparql/dawg/type-promotion/tP-unsignedByte-short.rq,
+	tests/sparql/dawg/type-promotion/tP-unsignedInt-short.rq,
+	tests/sparql/dawg/type-promotion/tP-unsignedLong-short.rq,
+	tests/sparql/dawg/type-promotion/tP-unsignedShort-short.rq,
+	tests/sparql/dawg/type-promotion/tP.ttl,
+	tests/sparql/dawg/type-promotion/true.ttl: Import DAWG latest
+	SPARQL tests
+
+2007-09-30  Lauri Aalto <laalto@iki.fi>
+
+	* tests/sparql/check-sparql: Recognize
+	http://jena.hpl.hp.com/2005/05/test-manifest-extra#TestSyntax and
+	#TestBadSyntax as syntax tests.
+
+	* tests/sparql/check-sparql: Use stderr consistently for debug messages.
+
+2007-09-29  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_result_formats.c: Adjust for
+	raptor_new_xml_element_from_namespace_local_name signature change
+
+2007-09-28  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_expr.c: (rasqal_new_data_graph) Does not take
+	ownership or uri & name_uri but copies them.
+
+2007-09-27  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_engine.c: (rasqal_free_gp_data) Do not assume graph
+	pattern is non-NULL.
+
 2007-09-26  Dave Beckett <dave@dajobe.org>
 
 	* autogen.sh: autogen.sh with perl version grep script
