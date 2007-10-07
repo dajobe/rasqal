@@ -913,13 +913,13 @@ rasqal_literal_print(rasqal_literal* l, FILE* fh)
       rasqal_variable_print(l->value.variable, fh);
       break;
     case RASQAL_LITERAL_FLOAT:
-      fprintf(fh, " float(%g)", l->value.floating);
+      fprintf(fh, "(%g)", l->value.floating);
       break;
     case RASQAL_LITERAL_DECIMAL:
-      fprintf(fh, " decimal(%s)", l->string);
+      fprintf(fh, "(%s)", l->string);
       break;
     case RASQAL_LITERAL_DATETIME:
-      fprintf(fh, " datetime(%s)", l->string);
+      fprintf(fh, "(%s)", l->string);
       break;
 
     case RASQAL_LITERAL_UNKNOWN:
