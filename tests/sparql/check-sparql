@@ -496,7 +496,7 @@ while($list_node) {
   }
 
   my $query_type=$triples{$entry_node}->{"<${rdf}type>"}->[0];
-  warn "Query type is $query_type\n"
+  warn "Query type is ".($query_type ? $query_type : "NONE")."\n"
     if $debug;
 
   my $query_node;
