@@ -1030,6 +1030,7 @@ rasqal_literal_as_integer(rasqal_literal* l, int *error)
 
     case RASQAL_LITERAL_DOUBLE:
     case RASQAL_LITERAL_FLOAT:
+    case RASQAL_LITERAL_DECIMAL:
       return (int)l->value.floating;
       break;
 
@@ -1061,7 +1062,6 @@ rasqal_literal_as_integer(rasqal_literal* l, int *error)
     case RASQAL_LITERAL_URI:
     case RASQAL_LITERAL_QNAME:
     case RASQAL_LITERAL_PATTERN:
-    case RASQAL_LITERAL_DECIMAL:
     case RASQAL_LITERAL_DATETIME:
       *error=1;
       return 0;
@@ -1099,10 +1099,10 @@ rasqal_literal_as_floating(rasqal_literal* l, int *error)
 
     case RASQAL_LITERAL_DOUBLE:
     case RASQAL_LITERAL_FLOAT:
+    case RASQAL_LITERAL_DECIMAL:
       return l->value.floating;
       break;
 
-    case RASQAL_LITERAL_DECIMAL:
     case RASQAL_LITERAL_STRING:
       {
         char *eptr=NULL;
@@ -1329,8 +1329,10 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
         break;
 
       case RASQAL_LITERAL_DECIMAL:
-        seen_numeric++;
         strings[i]=lits[i]->string;
+        doubles[i]=lits[i]->value.floating;
+        seen_double++;
+        seen_numeric++;
         break;
 
       case RASQAL_LITERAL_STRING:
@@ -1487,7 +1489,6 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
     case RASQAL_LITERAL_BLANK:
     case RASQAL_LITERAL_PATTERN:
     case RASQAL_LITERAL_QNAME:
-    case RASQAL_LITERAL_DECIMAL:
     case RASQAL_LITERAL_DATETIME:
       if(flags & RASQAL_COMPARE_NOCASE)
         return rasqal_strcasecmp((const char*)strings[0], (const char*)strings[1]);
@@ -1501,6 +1502,7 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
 
     case RASQAL_LITERAL_DOUBLE:
     case RASQAL_LITERAL_FLOAT:
+    case RASQAL_LITERAL_DECIMAL:
       return double_to_int(doubles[0] - doubles[1]);
       break;
 
@@ -1566,7 +1568,6 @@ rasqal_literal_equals(rasqal_literal* l1, rasqal_literal* l2)
     case RASQAL_LITERAL_BLANK:
     case RASQAL_LITERAL_PATTERN:
     case RASQAL_LITERAL_QNAME:
-    case RASQAL_LITERAL_DECIMAL:
     case RASQAL_LITERAL_DATETIME:
       return !strcmp((const char*)l1->string, (const char*)l2->string);
       break;
@@ -1578,6 +1579,7 @@ rasqal_literal_equals(rasqal_literal* l1, rasqal_literal* l2)
 
     case RASQAL_LITERAL_DOUBLE:
     case RASQAL_LITERAL_FLOAT:
+    case RASQAL_LITERAL_DECIMAL:
       return l1->value.floating == l2->value.floating;
       break;
 
