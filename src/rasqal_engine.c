@@ -72,6 +72,7 @@ static const char * rasqal_engine_step_names[STEP_LAST+1]={
 static void rasqal_free_engine_execution_data(rasqal_query* query, rasqal_query_results* query_results, void *data);
 static rasqal_engine_step rasqal_engine_check_constraint(rasqal_query *query, rasqal_graph_pattern *gp);
 static int rasqal_engine_graph_pattern_init(rasqal_query_results* query_results, rasqal_graph_pattern *gp);
+static int rasqal_engine_excute_next_lazy(rasqal_query_results *query_results);
 
 
 
