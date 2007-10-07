@@ -1378,7 +1378,7 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e,
         rasqal_free_literal(l);
         if(error)
           goto failed;
-        result=rasqal_new_double_literal(d);
+        result=rasqal_new_numeric_literal(d, l->type);
         break;
       }
 
@@ -1651,7 +1651,7 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e,
         if(error || error1 || error2)
           goto failed;
 
-        result=rasqal_new_double_literal(d);
+        result=rasqal_new_numeric_literal(d, l1->type);
         break;
       }
       
@@ -1679,7 +1679,7 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e,
         if(error || error1 || error2)
           goto failed;
 
-        result=rasqal_new_double_literal(d);
+        result=rasqal_new_numeric_literal(d, l1->type);
         break;
       }
       
@@ -1707,7 +1707,7 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e,
         if(error || error1 || error2)
           goto failed;
 
-        result=rasqal_new_double_literal(d);
+        result=rasqal_new_numeric_literal(d, l1->type);
         break;
       }
       
@@ -1734,7 +1734,7 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e,
         rasqal_free_literal(l2);
         if(error || error1 || error2)
           goto failed;
-        result=rasqal_new_double_literal(d);
+        result=rasqal_new_numeric_literal(d, l1->type);
         break;
       }
       
@@ -1994,7 +1994,7 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e,
       }
 
     case RASQAL_EXPR_LITERAL:
-      result=rasqal_new_literal_from_literal(e->literal);
+      result=rasqal_new_literal_from_literal(rasqal_literal_value(e->literal));
       break;
 
     case RASQAL_EXPR_FUNCTION:
