@@ -340,7 +340,7 @@ struct rasqal_literal_s {
   union {
     /* integer and boolean types */
     int integer;
-    /* double and float */
+    /* double, float and decimal */
     double floating;
     /* uri (can be temporarily NULL if a qname, see flags below) */
     raptor_uri* uri;
