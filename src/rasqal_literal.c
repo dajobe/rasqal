@@ -236,8 +236,11 @@ rasqal_new_decimal_literal(const char *decimal)
 {
   rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(rasqal_literal));
   if(l) {
+    double d=0.0;
     l->usage=1;
     l->type=RASQAL_LITERAL_DECIMAL;
+    (void)sscanf((char*)decimal, "%lf", &d);
+    l->value.floating=d;
     l->string_len=strlen(decimal);
     l->string=(unsigned char*)RASQAL_MALLOC(cstring, l->string_len+1);
     if(!l->string) {
