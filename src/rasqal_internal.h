@@ -639,8 +639,6 @@ typedef void (rasqal_kv_free_fn)(const void *key, const void *value);
 
 rasqal_literal* rasqal_literal_cast(rasqal_literal* l, raptor_uri* datatype, int flags,  int* error_p);
 rasqal_literal* rasqal_new_numeric_literal(double d, rasqal_literal_type type);
-void rasqal_xsd_init(void);
-void rasqal_xsd_finish(void);
 
 
 /* rasqal_map.c */
@@ -670,6 +668,15 @@ void rasqal_finish_result_formats(void);
 
 rasqal_query_results* rasqal_new_query_results(rasqal_query* query);
 void rasqal_query_results_reset(rasqal_query_results* query_results);
+
+/* rasqal_xsd_datatypes.c */
+int rasqal_xsd_init(void);
+void rasqal_xsd_finish(void);
+rasqal_literal_type rasqal_xsd_datatype_uri_to_type(raptor_uri* uri);
+raptor_uri* rasqal_xsd_datatype_type_to_uri(rasqal_literal_type type);
+int rasqal_xsd_datatype_check(rasqal_literal_type native_type, const unsigned char* string, int flags);
+const char* rasqal_xsd_datatype_label(rasqal_literal_type native_type);
+int rasqal_xsd_is_datatype_uri(raptor_uri* uri);
 
 /* end of RASQAL_INTERNAL */
 #endif
