@@ -557,26 +557,6 @@ if test "x$enable_xml2" != "xno" ; then
 
 fi
 
-AC_MSG_CHECKING(enable datatypes support)
-datatypes=no
-AC_ARG_ENABLE(datatypes, [  --enable-datatypes              Turn on datatypes], datatypes="$enableval")
-if test "X$datatypes" = Xno -a "$USE_MAINTAINER_MODE" = yes; then
-  datatypes=yes
-fi
-if test "X$datatypes" = Xyes; then
-  if test $have_libxml = 1; then
-    need_libxml=1;
-    AC_MSG_RESULT(yes)
-   else
-    AC_MSG_RESULT(no - libxml with XML schema datatypes not available)
-    datatypes=no
-  fi
-else
-  AC_MSG_RESULT(yes)
-fi
-AM_CONDITIONAL(RASQAL_DATATYPES, test "X$datatypes" = Xyes)
-
-
 dnl checks for triples source libraries
 need_redland=0
 
