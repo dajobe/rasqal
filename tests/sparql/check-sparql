@@ -452,24 +452,24 @@ while(<MF>) {
 close(MF);
 
 warn "Entries node is '$entries_node'\n"
-  if $debug;
+  if $debug > 1;
 my $list_node=$entries_node;
 
 my(@tests);
 while($list_node) {
   warn "List node is '$list_node'\n"
-    if $debug;
+    if $debug > 1;
 
   my $entry_node=$triples{$list_node}->{"<${rdf}first>"}->[0];
 
   warn "Entry node is '$entry_node'\n"
-    if $debug;
+    if $debug > 1;
 
   my $name=$triples{$entry_node}->{"<${mf}name>"}->[0];
   $name =~ s/^\"(.*)\"$/$1/;
 
   warn "Entry name=$name\n"
-    if $debug;
+    if $debug > 1;
   
   my $result_node=$triples{$entry_node}->{"<${mf}result>"}->[0];
   my $result_file=undef;
@@ -479,17 +479,17 @@ while($list_node) {
   }
 
   warn "Entry result_file=".($result_file || "NONE")."\n"
-    if $debug;
+    if $debug > 1;
 
   my $action_node=$triples{$entry_node}->{"<${mf}action>"}->[0];
 
   warn "Entry action_node $action_node\n"
-     if $debug;
+     if $debug > 1;
   
   my(@data_files)=();
   for my $data_node (@{$triples{$action_node}->{"<${qt}data>"}}) { 
     warn "Entry data_node $data_node\n"
-     if $debug;
+     if $debug > 1;
     my $data_file=($data_node =~ /^<(.+)>$/, $1);
     $data_file =~ s,^file:([^/]+),$1,;
     push(@data_files, $data_file);
@@ -497,7 +497,7 @@ while($list_node) {
 
   my $query_type=$triples{$entry_node}->{"<${rdf}type>"}->[0];
   warn "Query type is ".($query_type ? $query_type : "NONE")."\n"
-    if $debug;
+    if $debug > 1;
 
   my $query_node;
   my $expect_fail=0;
@@ -519,9 +519,9 @@ while($list_node) {
     $query_file =~ s,^file:/*,/,;
 
     warn "Entry data_files=",join(", ",@data_files),"\n"
-      if $debug;
+      if $debug > 1;
     warn "Entry query_file=$query_file\n"
-      if $debug;
+      if $debug > 1;
   }
   my $test_uri=$entry_node; $test_uri =~ s/^<(.+)>$/$1/;
   my $test_type=$query_type; $test_type =~ s/^<(.+)>$/$1/ if defined $test_type;
