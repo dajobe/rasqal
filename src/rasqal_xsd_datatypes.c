@@ -42,12 +42,13 @@
 #include "rasqal.h"
 #include "rasqal_internal.h"
 
-
+#if 0
 /* libxml2 datatypes */
 #ifdef HAVE_LIBXML_XMLSCHEMAS_H
 #include <libxml/xmlschemas.h>
 #include <libxml/xmlschemastypes.h>
 #include <libxml/schemasInternals.h>
+#endif
 #endif
 
 
@@ -355,7 +356,6 @@ rasqal_xsd_check_integer_format(const unsigned char* string, int flags)
 }
 
 
-#if 0
 typedef rasqal_literal* (*rasqal_extension_fn)(raptor_uri* name, raptor_sequence *args, char **error_p);
 
 
@@ -366,7 +366,6 @@ typedef struct {
   rasqal_extension_fn fn;
   raptor_uri* uri;
 } rasqal_xsd_datatype_fn_info;
-#endif
 
 
 static const char* sparql_xsd_names[RASQAL_LITERAL_LAST_XSD+2]=
@@ -861,6 +860,7 @@ int main(int argc, char *argv[]);
 
 int
 main(int argc, char *argv[]) {
+#if 0
   raptor_uri *xsd_uri;
   raptor_uri *dateTime_uri;
   rasqal_literal *l1, *l2;
@@ -916,6 +916,7 @@ main(int argc, char *argv[]) {
   raptor_free_uri(dateTime_uri);
 
   rasqal_finish();
+#endif
 
   return 0;
 }
