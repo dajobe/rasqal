@@ -33,10 +33,8 @@ man_MANS = rasqal-config.1
 
 TESTS=rasqal_expr_test$(EXEEXT) strcasecmp_test$(EXEEXT)
 
-local_tests=rasqal_query_test$(EXEEXT) rasqal_limit_test$(EXEEXT)
-if RASQAL_DATATYPES
-local_tests += rasqal_xsd_datatypes_test$(EXEEXT)
-endif
+local_tests=rasqal_query_test$(EXEEXT) rasqal_limit_test$(EXEEXT) \
+rasqal_xsd_datatypes_test$(EXEEXT)
 if RASQAL_QUERY_RDQL
 local_tests += rdql_lexer_test$(EXEEXT) rdql_parser_test$(EXEEXT)
 endif
@@ -62,7 +60,7 @@ librasqal_la_SOURCES = \
 rasqal_expr.c rasqal_general.c rasqal_query.c rasqal_query_results.c \
 rasqal_engine.c rasqal_raptor.c rasqal_literal.c \
 rasqal_graph_pattern.c rasqal_map.c rasqal_feature.c \
-rasqal_result_formats.c
+rasqal_result_formats.c rasqal_xsd_datatypes.c
 
 if RASQAL_QUERY_RDQL
 librasqal_la_SOURCES += rdql_lexer.c rdql_lexer.h \
