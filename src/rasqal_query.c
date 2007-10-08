@@ -1765,7 +1765,8 @@ rasqal_query_write_sparql_literal(sparql_writer_context *wc,
       raptor_iostream_write_byte(iostr, '"');
       raptor_iostream_write_string_ntriples(iostr, l->string, l->string_len, '"');
       raptor_iostream_write_counted_string(iostr, "\"^^", 3);
-      rasqal_query_write_sparql_uri(wc, iostr, rasqal_xsd_datetime_uri);
+      rasqal_query_write_sparql_uri(wc, iostr,
+                                    rasqal_xsd_datatype_type_to_uri(l->type));
       break;
 
     case RASQAL_LITERAL_UNKNOWN:
