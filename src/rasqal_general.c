@@ -705,16 +705,6 @@ rasqal_escaped_name_to_utf8_string(const unsigned char *src, size_t len,
 }
 
 
-raptor_uri* rasqal_xsd_namespace_uri=NULL;
-
-raptor_uri* rasqal_xsd_integer_uri=NULL;
-raptor_uri* rasqal_xsd_double_uri=NULL;
-raptor_uri* rasqal_xsd_float_uri=NULL;
-raptor_uri* rasqal_xsd_boolean_uri=NULL;
-raptor_uri* rasqal_xsd_decimal_uri=NULL;
-raptor_uri* rasqal_xsd_datetime_uri=NULL;
-raptor_uri* rasqal_xsd_string_uri=NULL;
-
 raptor_uri* rasqal_rdf_namespace_uri=NULL;
 
 raptor_uri* rasqal_rdf_first_uri=NULL;
@@ -725,16 +715,6 @@ raptor_uri* rasqal_rdf_nil_uri=NULL;
 void
 rasqal_uri_init(void) 
 {
-  rasqal_xsd_namespace_uri=raptor_new_uri(raptor_xmlschema_datatypes_namespace_uri);
-  
-  rasqal_xsd_integer_uri=raptor_new_uri_from_uri_local_name(rasqal_xsd_namespace_uri, (const unsigned char*)"integer");
-  rasqal_xsd_double_uri=raptor_new_uri_from_uri_local_name(rasqal_xsd_namespace_uri, (const unsigned char*)"double");
-  rasqal_xsd_float_uri=raptor_new_uri_from_uri_local_name(rasqal_xsd_namespace_uri, (const unsigned char*)"float");
-  rasqal_xsd_boolean_uri=raptor_new_uri_from_uri_local_name(rasqal_xsd_namespace_uri, (const unsigned char*)"boolean");
-  rasqal_xsd_decimal_uri=raptor_new_uri_from_uri_local_name(rasqal_xsd_namespace_uri, (const unsigned char*)"decimal");
-  rasqal_xsd_datetime_uri=raptor_new_uri_from_uri_local_name(rasqal_xsd_namespace_uri, (const unsigned char*)"dateTime");
-  rasqal_xsd_string_uri=raptor_new_uri_from_uri_local_name(rasqal_xsd_namespace_uri, (const unsigned char*)"string");
-
   rasqal_rdf_namespace_uri=raptor_new_uri(raptor_rdf_namespace_uri);
 
   rasqal_rdf_first_uri=raptor_new_uri_from_uri_local_name(rasqal_rdf_namespace_uri, (const unsigned char*)"first");
@@ -747,23 +727,6 @@ rasqal_uri_init(void)
 void
 rasqal_uri_finish(void) 
 {
-  if(rasqal_xsd_integer_uri)
-    raptor_free_uri(rasqal_xsd_integer_uri);
-  if(rasqal_xsd_double_uri)
-    raptor_free_uri(rasqal_xsd_double_uri);
-  if(rasqal_xsd_float_uri)
-    raptor_free_uri(rasqal_xsd_float_uri);
-  if(rasqal_xsd_boolean_uri)
-    raptor_free_uri(rasqal_xsd_boolean_uri);
-  if(rasqal_xsd_decimal_uri)
-    raptor_free_uri(rasqal_xsd_decimal_uri);
-  if(rasqal_xsd_datetime_uri)
-    raptor_free_uri(rasqal_xsd_datetime_uri);
-  if(rasqal_xsd_string_uri)
-    raptor_free_uri(rasqal_xsd_string_uri);
-  if(rasqal_xsd_namespace_uri)
-    raptor_free_uri(rasqal_xsd_namespace_uri);
-
   if(rasqal_rdf_first_uri)
     raptor_free_uri(rasqal_rdf_first_uri);
   if(rasqal_rdf_rest_uri)
@@ -772,7 +735,6 @@ rasqal_uri_finish(void)
     raptor_free_uri(rasqal_rdf_nil_uri);
   if(rasqal_rdf_namespace_uri)
     raptor_free_uri(rasqal_rdf_namespace_uri);
-
 }
 
 
