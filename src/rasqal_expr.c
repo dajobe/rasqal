@@ -1512,6 +1512,7 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e,
         rasqal_literal* l;
         rasqal_variable* v;
         int free_literal=1;
+        raptor_uri* dt_uri=NULL;
         
         l=rasqal_expression_evaluate(query, e->arg1, flags);
         if(!l)
@@ -1526,13 +1527,18 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e,
             goto failed;
         }
 
-        if(!l->datatype) {
+        /* The datatype of a plain literal is xsd:string */
+        dt_uri=l->datatype;
+        if(!dt_uri && l->type == RASQAL_LITERAL_STRING)
+          dt_uri=rasqal_xsd_datatype_type_to_uri(l->type);
+
+        if(!dt_uri) {
           if(free_literal)
             rasqal_free_literal(l);
           goto failed;
         }
         
-        result=rasqal_new_uri_literal(raptor_uri_copy(l->datatype));
+        result=rasqal_new_uri_literal(raptor_uri_copy(dt_uri));
 
         if(free_literal)
           rasqal_free_literal(l);
