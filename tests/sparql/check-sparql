@@ -248,7 +248,7 @@ sub run_test {
   my(@data_files)=@{$config->{data_files}};
 
   warn "run_test(\n  name   : $name\n  dir    : $dir\n  query  : $test_file\n  data   : ",join("; ",@data_files),"\n  result : ",($result_file||"none"),"\n  expect : ",($expect_fail ? "failure":"success"),"\n)\n"
-    if $debug >1;
+    if $debug;
 
   my(@args)=(map "-s $_", @data_files);
   # No execution possible if there is no data
