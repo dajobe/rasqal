@@ -600,14 +600,6 @@ void rasqal_redland_finish(void);
 
 
 /* rasqal_general.c */
-extern raptor_uri* rasqal_xsd_namespace_uri;
-extern raptor_uri* rasqal_xsd_integer_uri;
-extern raptor_uri* rasqal_xsd_double_uri;
-extern raptor_uri* rasqal_xsd_float_uri;
-extern raptor_uri* rasqal_xsd_boolean_uri;
-extern raptor_uri* rasqal_xsd_decimal_uri;
-extern raptor_uri* rasqal_xsd_datetime_uri;
-extern raptor_uri* rasqal_xsd_string_uri;
 extern raptor_uri* rasqal_rdf_namespace_uri;
 extern raptor_uri* rasqal_rdf_first_uri;
 extern raptor_uri* rasqal_rdf_rest_uri;
