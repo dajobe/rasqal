@@ -251,8 +251,9 @@ sub run_test {
     if $debug;
 
   my(@args)=(map "-s $_", @data_files);
-  # No execution possible if there is no data
-  push(@args, "-n") if !@data_files;
+
+  push(@args, "-n")
+    unless $config->{execute};
 
   my $args_s=join(" ",@args);
   my $roqet_tmp='roqet.tmp';
@@ -501,11 +502,14 @@ while($list_node) {
 
   my $query_node;
   my $expect_fail=0;
+  my $execute=1;
+
   if($query_type && ($query_type eq "<${mf}PositiveSyntaxTest>" ||
                     $query_type eq "<${mfx}TestSyntax>" ||
                     $query_type eq "<${mf}NegativeSyntaxTest>" ||
                     $query_type eq "<${mfx}TestBadSyntax>")) {
     $query_node=$action_node;
+    $execute=0; # Syntax checks do not need execution, just parsing
     $expect_fail=1 if
       $query_type eq "<${mf}NegativeSyntaxTest>" ||
       $query_type eq "<${mfx}TestBadSyntax>";
@@ -535,7 +539,8 @@ while($list_node) {
 		  result_file => $result_file,
 		  expect_fail => $expect_fail,
 		  test_type => $test_type,
-		  test_uri => $test_uri
+		  test_uri => $test_uri,
+		  execute => $execute
 	 } );
 
     last if $unique_test;
