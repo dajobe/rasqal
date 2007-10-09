@@ -131,7 +131,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
  * shift/reduce conflicts
  * FIXME: document this
  */
-%expect 12
+%expect 8
 
 /* word symbols */
 %token SELECT FROM WHERE
@@ -145,6 +145,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
 %token ISURI "isUri"
 %token ISBLANK "isBlank"
 %token ISLITERAL "isLiteral"
+%token SAMETERM "sameTerm"
 /* LAQRS */
 %token EXPLAIN GROUP COUNT AS
 %token DELETE INSERT
@@ -174,17 +175,24 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
 /* unary operations */
 
 /* literals */
-%token <literal> FLOATING_POINT_LITERAL "floating point literal"
 %token <literal> STRING_LITERAL "string literal"
+%token <literal> DOUBLE_LITERAL "double literal"
+%token <literal> DOUBLE_POSITIVE_LITERAL "double positive literal"
+%token <literal> DOUBLE_NEGATIVE_LITERAL "double negative literal"
 %token <literal> INTEGER_LITERAL "integer literal"
-%token <literal> BOOLEAN_LITERAL "boolean literal"
+%token <literal> INTEGER_POSITIVE_LITERAL "integer positive literal"
+%token <literal> INTEGER_NEGATIVE_LITERAL "integer negative literal"
 %token <literal> DECIMAL_LITERAL "decimal literal"
+%token <literal> DECIMAL_POSITIVE_LITERAL "decimal positive literal"
+%token <literal> DECIMAL_NEGATIVE_LITERAL "decimal negative literal"
+%token <literal> BOOLEAN_LITERAL "boolean literal"
+
 %token <uri> URI_LITERAL "URI literal"
 %token <uri> URI_LITERAL_BRACE "URI literal ("
+
 %token <name> QNAME_LITERAL "QName literal"
 %token <name> QNAME_LITERAL_BRACE "QName literal ("
 %token <name> BLANK_LITERAL "blank node literal"
-
 %token <name> IDENTIFIER "identifier"
 
 
@@ -196,8 +204,8 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
 %type <formula> TriplesSameSubject TriplesSameSubjectDotListOpt
 %type <formula> PropertyList PropertyListTailOpt PropertyListNotEmpty
 %type <formula> ObjectList ObjectTail Collection
-%type <formula> VarOrTerm Verb GraphNode TriplesNode
-%type <formula> BlockOfTriplesOpt BlankNodePropertyList
+%type <formula> VarOrTerm Verb Object GraphNode TriplesNode
+%type <formula> TriplesBlockOpt BlankNodePropertyList
 
 %type <graph_pattern> GroupGraphPattern GraphPattern
 %type <graph_pattern> GraphGraphPattern OptionalGraphPattern
@@ -210,18 +218,25 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
 %type <expr> MultiplicativeExpression UnaryExpression
 %type <expr> BuiltInCall RegexExpression FunctionCall
 %type <expr> BrackettedExpression PrimaryExpression
-%type <expr> OrderCondition Constraint SelectExpression
+%type <expr> OrderCondition Filter Constraint SelectExpression
 %type <expr> AggregateExpression CountAggregateExpression
 
 %type <literal> GraphTerm IRIref BlankNode
-%type <literal> VarOrIRIref VarOrBlankNodeOrIRIref
-%type <literal> IRIrefBrace
+%type <literal> VarOrIRIref
+%type <literal> IRIrefBrace SourceSelector
+%type <literal> NumericLiteral NumericLiteralUnsigned
+%type <literal> NumericLiteralPositive NumericLiteralNegative
 
 %type <variable> Var VarName SelectTerm
 
 
 %destructor { if($$) rasqal_free_literal($$); }
-FLOATING_POINT_LITERAL STRING_LITERAL INTEGER_LITERAL BOOLEAN_LITERAL DECIMAL_LITERAL
+STRING_LITERAL 
+DOUBLE_LITERAL INTEGER_LITERAL DECIMAL_LITERAL
+DOUBLE_POSITIVE_LITERAL DOUBLE_NEGATIVE_LITERAL
+INTEGER_POSITIVE_LITERAL INTEGER_NEGATIVE_LITERAL
+DECIMAL_POSITIVE_LITERAL DECIMAL_NEGATIVE_LITERAL
+BOOLEAN_LITERAL
 
 %destructor { if($$) raptor_free_uri($$); }
 URI_LITERAL URI_LITERAL_BRACE
@@ -240,7 +255,7 @@ TriplesSameSubject TriplesSameSubjectDotListOpt
 PropertyList PropertyListTailOpt PropertyListNotEmpty
 ObjectList ObjectTail Collection
 VarOrTerm Verb GraphNode TriplesNode
-BlockOfTriplesOpt BlankNodePropertyList
+TriplesBlockOpt BlankNodePropertyList
 
 %destructor { if($$) rasqal_free_graph_pattern($$); }
 GroupGraphPattern GraphPattern
@@ -260,8 +275,10 @@ AggregateExpression CountAggregateExpression
 
 %destructor { if($$) rasqal_free_literal($$); }
 GraphTerm IRIref BlankNode
-VarOrIRIref VarOrBlankNodeOrIRIref
-IRIrefBrace
+VarOrIRIref
+IRIrefBrace SourceSelector
+NumericLiteral NumericLiteralUnsigned
+NumericLiteralPositive NumericLiteralNegative
 
 %destructor { if($$) rasqal_free_variable($$); }
 Var VarName SelectTerm
@@ -275,9 +292,7 @@ Var VarName SelectTerm
  */
 
 /* SPARQL Grammar: [1] Query */
-Query: Prolog ExplainOpt ReportFormat
-        DatasetClauseOpt WhereClauseOpt 
-GroupClauseOpt OrderClauseOpt LimitOffsetOpt
+Query: Prologue ExplainOpt ReportFormat
 {
 }
 ;
@@ -330,8 +345,8 @@ ReportFormat: SelectQuery
 ;
 
 
-/* SPARQL Grammar: [2] Prolog */
-Prolog: BaseDeclOpt PrefixDeclOpt
+/* SPARQL Grammar: [2] Prologue */
+Prologue: BaseDeclOpt PrefixDeclListOpt
 {
   /* nothing to do */
 }
@@ -350,8 +365,8 @@ BaseDeclOpt: BASE URI_LITERAL
 ;
 
 
-/* SPARQL Grammar: [4] PrefixDecl */
-PrefixDeclOpt: PrefixDeclOpt PREFIX IDENTIFIER URI_LITERAL
+/* SPARQL Grammar: [4] PrefixDecl renamed to include optional list */
+PrefixDeclListOpt: PrefixDeclListOpt PREFIX IDENTIFIER URI_LITERAL
 {
   raptor_sequence *seq=((rasqal_query*)rq)->prefixes;
   unsigned const char* prefix_string=$3;
@@ -387,16 +402,19 @@ PrefixDeclOpt: PrefixDeclOpt PREFIX IDENTIFIER URI_LITERAL
 
 /* SPARQL Grammar: [5] SelectQuery */
 SelectQuery: SELECT DISTINCT SelectExpressionList
+        DatasetClauseListOpt WhereClauseOpt SolutionModifier
 {
   $$=$3;
   ((rasqal_query*)rq)->distinct=1;
 }
 | SELECT REDUCED SelectExpressionList
+        DatasetClauseListOpt WhereClauseOpt SolutionModifier
 {
   $$=$3;
   ((rasqal_query*)rq)->distinct=2;
 }
 | SELECT SelectExpressionList
+        DatasetClauseListOpt WhereClauseOpt SolutionModifier
 {
   $$=$2;
 }
@@ -538,10 +556,12 @@ CountAggregateExpression: COUNT '(' Expression ')'
 
 /* SPARQL Grammar: [6] DescribeQuery */
 DescribeQuery: DESCRIBE VarOrIRIrefList
+        DatasetClauseListOpt WhereClauseOpt SolutionModifier
 {
   $$=$2;
 }
 | DESCRIBE '*'
+        DatasetClauseListOpt WhereClauseOpt SolutionModifier
 {
   $$=NULL;
 }
@@ -583,19 +603,16 @@ VarOrIRIrefList: VarOrIRIrefList VarOrIRIref
 
 /* SPARQL Grammar: [7] ConstructQuery */
 ConstructQuery: CONSTRUCT ConstructTemplate
+        DatasetClauseListOpt WhereClauseOpt SolutionModifier
 {
   $$=$2;
-}
-| CONSTRUCT '*'
-{
-  $$=NULL;
-  ((rasqal_query*)rq)->wildcard=1;
 }
 ;
 
 
 /* SPARQL Grammar: [8] AskQuery */
 AskQuery: ASK 
+        DatasetClauseListOpt WhereClauseOpt
 {
   /* nothing to do */
 }
@@ -604,6 +621,7 @@ AskQuery: ASK
 
 /* LAQRS */
 DeleteQuery: DELETE
+        DatasetClauseListOpt WhereClauseOpt
 {
   rasqal_sparql_query_engine* sparql=(rasqal_sparql_query_engine*)(((rasqal_query*)rq)->context);
 
@@ -615,6 +633,7 @@ DeleteQuery: DELETE
 
 /* LAQRS */
 InsertQuery: INSERT
+        DatasetClauseListOpt WhereClauseOpt
 {
   rasqal_sparql_query_engine* sparql=(rasqal_sparql_query_engine*)(((rasqal_query*)rq)->context);
 
@@ -625,14 +644,14 @@ InsertQuery: INSERT
 
 
 /* SPARQL Grammar: [9] DatasetClause */
-DatasetClauseOpt: DatasetClauseOpt FROM DefaultGraphClause
-| DatasetClauseOpt FROM NamedGraphClause
+DatasetClauseListOpt: DatasetClauseListOpt FROM DefaultGraphClause
+| DatasetClauseListOpt FROM NamedGraphClause
 | /* empty */
 ;
 
 
 /* SPARQL Grammar: [10] DefaultGraphClause */
-DefaultGraphClause: IRIref
+DefaultGraphClause: SourceSelector
 {
   if($1) {
     raptor_uri* uri=rasqal_literal_as_uri($1);
@@ -647,7 +666,7 @@ DefaultGraphClause: IRIref
 
 
 /* SPARQL Grammar: [11] NamedGraphClause */
-NamedGraphClause: NAMED IRIref
+NamedGraphClause: NAMED SourceSelector
 {
   if($2) {
     raptor_uri* uri=rasqal_literal_as_uri($2);
@@ -661,7 +680,12 @@ NamedGraphClause: NAMED IRIref
 ;
 
 
-/* SPARQL Grammar: [12] SourceSelector - junk */
+/* SPARQL Grammar: [12] SourceSelector */
+SourceSelector: IRIref
+{
+  $$=$1;
+}
+;
 
 
 /* SPARQL Grammar: [13] WhereClause - remained for clarity */
@@ -677,7 +701,10 @@ WhereClauseOpt:  WHERE GroupGraphPattern
 ;
 
 
-/* SPARQL Grammar: [14] SolutionModifier - merged into SelectQuery etc. */
+/* SPARQL Grammar: [14] SolutionModifier */
+SolutionModifier: GroupClauseOpt OrderClauseOpt LimitOffsetClausesOpt
+;
+
 
 /* LAQRS */
 GroupClauseOpt: GROUP BY OrderConditionList
@@ -708,8 +735,8 @@ GroupClauseOpt: GROUP BY OrderConditionList
 ;
 
 
-/* NEW Grammar Term pulled out of [1] Query */
-LimitOffsetOpt: LimitClause OffsetClause
+/* SPARQL Grammar: [15] LimitOffsetClauses */
+LimitOffsetClausesOpt: LimitClause OffsetClause
 | OffsetClause LimitClause
 | LimitClause
 | OffsetClause
@@ -719,8 +746,7 @@ LimitOffsetOpt: LimitClause OffsetClause
 ;
 
 
-
-/* SPARQL Grammar: [15] OrderClause - remained for clarity */
+/* SPARQL Grammar: [16] OrderClause - remained for clarity */
 OrderClauseOpt: ORDER BY OrderConditionList
 {
   if(((rasqal_query*)rq)->verb == RASQAL_QUERY_VERB_ASK) {
@@ -759,7 +785,7 @@ OrderConditionList: OrderConditionList OrderCondition
 ;
 
 
-/* SPARQL Grammar: [16] OrderCondition */
+/* SPARQL Grammar: [17] OrderCondition */
 OrderCondition: ASC BrackettedExpression
 {
   $$=rasqal_new_1op_expression(RASQAL_EXPR_ORDER_COND_ASC, $2);
@@ -812,7 +838,7 @@ OrderCondition: ASC BrackettedExpression
 ;
 
 
-/* SPARQL Grammar: [17] LimitClause - remained for clarity */
+/* SPARQL Grammar: [18] LimitClause - remained for clarity */
 LimitClause:  LIMIT INTEGER_LITERAL
 {
   if(((rasqal_query*)rq)->verb == RASQAL_QUERY_VERB_ASK) {
@@ -828,7 +854,7 @@ LimitClause:  LIMIT INTEGER_LITERAL
 ;
 
 
-/* SPARQL Grammar: [18] OffsetClause - remained for clarity */
+/* SPARQL Grammar: [19] OffsetClause - remained for clarity */
 OffsetClause:  OFFSET INTEGER_LITERAL
 {
   if(((rasqal_query*)rq)->verb == RASQAL_QUERY_VERB_ASK) {
@@ -843,7 +869,7 @@ OffsetClause:  OFFSET INTEGER_LITERAL
 ;
 
 
-/* SPARQL Grammar: [19] GroupGraphPattern */
+/* SPARQL Grammar: [20] GroupGraphPattern */
 GroupGraphPattern: '{' GraphPattern '}'
 {
   $$=$2;
@@ -856,7 +882,7 @@ DotOptional: '.'
 ;
 
 
-/* SPARQL Grammar: [20] GraphPattern */
+/* SPARQL Grammar: [21] GraphPattern */
 GraphPattern: FilteredBasicGraphPattern GraphPatternNotTriples DotOptional GraphPattern
 {
 #if RASQAL_DEBUG > 1  
@@ -945,10 +971,10 @@ GraphPattern: FilteredBasicGraphPattern GraphPatternNotTriples DotOptional Graph
 
 
 /* SPARQL Grammar Term [21]  FilteredBasicGraphPattern */
-FilteredBasicGraphPattern: BlockOfTriplesOpt Constraint DotOptional FilteredBasicGraphPattern
+FilteredBasicGraphPattern: TriplesBlockOpt Filter DotOptional FilteredBasicGraphPattern
 {
 #if RASQAL_DEBUG > 1  
-  fprintf(DEBUG_FH, "FilteredBasicGraphPattern 1\n  BlockOfTriplesOpt=");
+  fprintf(DEBUG_FH, "FilteredBasicGraphPattern 1\n  TriplesBlockOpt=");
   if($1)
     rasqal_formula_print($1, DEBUG_FH);
   else
@@ -1003,13 +1029,13 @@ FilteredBasicGraphPattern: BlockOfTriplesOpt Constraint DotOptional FilteredBasi
   fprintf(DEBUG_FH, "\n\n");
 #endif
 }
-| BlockOfTriplesOpt
+| TriplesBlockOpt
 {
   rasqal_graph_pattern *formula_gp=NULL;
   raptor_sequence *seq;
 
 #if RASQAL_DEBUG > 1  
-  fprintf(DEBUG_FH, "FilteredBasicGraphPattern 2\n  BlockOfTriplesOpt=");
+  fprintf(DEBUG_FH, "FilteredBasicGraphPattern 2\n  TriplesBlockOpt=");
   if($1)
     rasqal_formula_print($1, DEBUG_FH);
   else
@@ -1051,11 +1077,11 @@ FilteredBasicGraphPattern: BlockOfTriplesOpt Constraint DotOptional FilteredBasi
 ;
 
 
-/* SPARQL Grammar: [22] BlockOfTriples */
-BlockOfTriplesOpt: TriplesSameSubject TriplesSameSubjectDotListOpt
+/* SPARQL Grammar: [21] TriplesBlock */
+TriplesBlockOpt: TriplesSameSubject TriplesSameSubjectDotListOpt
 {
 #if RASQAL_DEBUG > 1  
-  fprintf(DEBUG_FH, "BlockOfTriplesOpt\n  TriplesSameSubject=");
+  fprintf(DEBUG_FH, "TriplesBlockOpt\n  TriplesSameSubject=");
   if($1)
     rasqal_formula_print($1, DEBUG_FH);
   else
@@ -1072,7 +1098,7 @@ BlockOfTriplesOpt: TriplesSameSubject TriplesSameSubjectDotListOpt
   /* $1 and $2 are freed as necessary */
   $$=rasqal_formula_join($1, $2);
   if(!$$)
-    YYERROR_MSG("BlockOfTriplesOpt: formula join failed");
+    YYERROR_MSG("TriplesBlockOpt: formula join failed");
 
 #if RASQAL_DEBUG > 1  
   fprintf(DEBUG_FH, "  after joining formula=");
@@ -1088,8 +1114,8 @@ BlockOfTriplesOpt: TriplesSameSubject TriplesSameSubjectDotListOpt
 
 
 
-/* New Grammar Term pulled out of [22] BlockOfTriples 
- * ( '.'  TriplesSameSubject? )*
+/* New Grammar Term pulled out of [21] TriplesBlock 
+ * ( '.'  TriplesBlock? )*
  */
 TriplesSameSubjectDotListOpt: TriplesSameSubjectDotListOpt TriplesSameSubject
 {
@@ -1129,7 +1155,7 @@ TriplesSameSubjectDotListOpt: TriplesSameSubjectDotListOpt TriplesSameSubject
 ;
 
 
-/* SPARQL Grammar: [23] GraphPatternNotTriples */
+/* SPARQL Grammar: [22] GraphPatternNotTriples */
 GraphPatternNotTriples: OptionalGraphPattern
 {
   $$=$1;
@@ -1145,7 +1171,7 @@ GraphPatternNotTriples: OptionalGraphPattern
 ;
 
 
-/* SPARQL Grammar: [24] OptionalGraphPattern */
+/* SPARQL Grammar: [23] OptionalGraphPattern */
 OptionalGraphPattern: OPTIONAL GroupGraphPattern
 {
 #if RASQAL_DEBUG > 1  
@@ -1165,8 +1191,8 @@ OptionalGraphPattern: OPTIONAL GroupGraphPattern
 ;
 
 
-/* SPARQL Grammar: [25] GraphGraphPattern */
-GraphGraphPattern: GRAPH VarOrBlankNodeOrIRIref GroupGraphPattern
+/* SPARQL Grammar: [24] GraphGraphPattern */
+GraphGraphPattern: GRAPH VarOrIRIref GroupGraphPattern
 {
 #if RASQAL_DEBUG > 1  
   fprintf(DEBUG_FH, "GraphGraphPattern 2\n  varoruri=");
@@ -1246,18 +1272,26 @@ GroupOrUnionGraphPatternList: GroupOrUnionGraphPatternList UNION GroupGraphPatte
 ;
 
 
+/* SPARQL Grammar: [26] Filter */
+Filter: FILTER Constraint
+{
+  $$=$2;
+}
+;
+
+
 /* SPARQL Grammar: [27] Constraint */
-Constraint: FILTER BrackettedExpression
+Constraint: BrackettedExpression
 {
-  $$=$2;
+  $$=$1;
 }
-| FILTER BuiltInCall
+| BuiltInCall
 {
-  $$=$2;
+  $$=$1;
 }
-| FILTER FunctionCall
+| FunctionCall
 {
-  $$=$2;
+  $$=$1;
 }
 ;
 
@@ -1472,19 +1506,7 @@ TriplesSameSubject: VarOrTerm PropertyListNotEmpty
 ;
 
 
-/* SPARQL Grammar: [33] PropertyList */
-PropertyList: PropertyListNotEmpty
-{
-  $$=$1;
-}
-| /* empty */
-{
-  $$=NULL;
-}
-;
-
-
-/* SPARQL Grammar: [34] PropertyListNotEmpty */
+/* SPARQL Grammar: [33] PropertyListNotEmpty */
 PropertyListNotEmpty: Verb ObjectList PropertyListTailOpt
 {
   int i;
@@ -1579,7 +1601,7 @@ PropertyListNotEmpty: Verb ObjectList PropertyListTailOpt
 ;
 
 
-/* NEW Grammar Term pulled out of [34] PropertyListNotEmpty */
+/* NEW Grammar Term pulled out of [33] PropertyListNotEmpty */
 PropertyListTailOpt: ';' PropertyList
 {
   $$=$2;
@@ -1591,15 +1613,27 @@ PropertyListTailOpt: ';' PropertyList
 ;
 
 
+/* SPARQL Grammar: [34] PropertyList */
+PropertyList: PropertyListNotEmpty
+{
+  $$=$1;
+}
+| /* empty */
+{
+  $$=NULL;
+}
+;
+
+
 /* SPARQL Grammar: [35] ObjectList */
-ObjectList: GraphNode ObjectTail
+ObjectList: Object ObjectTail
 {
   rasqal_formula *formula;
   rasqal_triple *triple;
 
 #if RASQAL_DEBUG > 1  
   fprintf(DEBUG_FH, "ObjectList 1\n");
-  fprintf(DEBUG_FH, " GraphNode=\n");
+  fprintf(DEBUG_FH, " Object=\n");
   rasqal_formula_print($1, DEBUG_FH);
   fprintf(DEBUG_FH, "\n");
   if($2) {
@@ -1680,8 +1714,16 @@ ObjectTail: ',' ObjectList
 ;
 
 
-/* SPARQL Grammar: [36] Verb */
-Verb: VarOrBlankNodeOrIRIref
+/* SPARQL Grammar: [36] Object */
+Object: GraphNode
+{
+  $$=$1;
+}
+;
+
+
+/* SPARQL Grammar: [37] Verb */
+Verb: VarOrIRIref
 {
   $$=rasqal_new_formula();
   if(!$$) {
@@ -1717,7 +1759,7 @@ Verb: VarOrBlankNodeOrIRIref
 ;
 
 
-/* SPARQL Grammar: [37] TriplesNode */
+/* SPARQL Grammar: [38] TriplesNode */
 TriplesNode: Collection
 {
   $$=$1;
@@ -1729,7 +1771,7 @@ TriplesNode: Collection
 ;
 
 
-/* SPARQL Grammar: [38] BlankNodePropertyList */
+/* SPARQL Grammar: [39] BlankNodePropertyList */
 BlankNodePropertyList: '[' PropertyListNotEmpty ']'
 {
   int i;
@@ -1795,7 +1837,7 @@ BlankNodePropertyList: '[' PropertyListNotEmpty ']'
 ;
 
 
-/* SPARQL Grammar: [39] Collection (allowing empty case) */
+/* SPARQL Grammar: [40] Collection (allowing empty case) */
 Collection: '(' GraphNodeListNotEmpty ')'
 {
   int i;
@@ -1914,7 +1956,7 @@ Collection: '(' GraphNodeListNotEmpty ')'
 ;
 
 
-/* NEW Grammar Term pulled out of [39] Collection */
+/* NEW Grammar Term pulled out of [40] Collection */
 /* Sequence of formula */
 GraphNodeListNotEmpty: GraphNodeListNotEmpty GraphNode
 {
@@ -1989,7 +2031,7 @@ GraphNodeListNotEmpty: GraphNodeListNotEmpty GraphNode
 ;
 
 
-/* SPARQL Grammar: [40] GraphNode */
+/* SPARQL Grammar: [41] GraphNode */
 GraphNode: VarOrTerm
 {
   $$=$1;
@@ -2001,7 +2043,7 @@ GraphNode: VarOrTerm
 ;
 
 
-/* SPARQL Grammar Term: [41] VarOrTerm */
+/* SPARQL Grammar Term: [42] VarOrTerm */
 VarOrTerm: Var
 {
   $$=rasqal_new_formula();
@@ -2026,7 +2068,7 @@ VarOrTerm: Var
 }
 ;
 
-/* SPARQL Grammar: [42] VarOrIRIref */
+/* SPARQL Grammar: [43] VarOrIRIref */
 VarOrIRIref: Var
 {
   $$=rasqal_new_variable_literal($1);
@@ -2039,23 +2081,6 @@ VarOrIRIref: Var
 }
 ;
 
-
-/* SPARQL Grammar Term: [43] VarOrBlankNodeOrIRIref */
-VarOrBlankNodeOrIRIref: Var
-{
-  $$=rasqal_new_variable_literal($1);
-  if(!$$)
-    YYERROR_MSG("VarOrBlankNodeOrIRIref: cannot create literal");
-}
-| BlankNode
-{
-  $$=$1;
-}
-| IRIref
-{
-  $$=$1;
-}
-;
 
 /* SPARQL Grammar: [44] Var */
 Var: '?' VarName
@@ -2080,24 +2105,15 @@ VarName: IDENTIFIER
 
 
 /* SPARQL Grammar: [45] GraphTerm */
-/* + and - for numerics is in the lexer */
 GraphTerm: IRIref
 {
   $$=$1;
 }
-| INTEGER_LITERAL
-{
-  $$=$1;
-}
-| FLOATING_POINT_LITERAL
-{
-  $$=$1;
-}
-| DECIMAL_LITERAL
-{
-  $$=$1;
-}
 | STRING_LITERAL
+{
+  $$=$1;
+}
+| NumericLiteral
 {
   $$=$1;
 }
@@ -2212,6 +2228,24 @@ AdditiveExpression: MultiplicativeExpression '+' AdditiveExpression
   $$=rasqal_new_2op_expression(RASQAL_EXPR_MINUS, $1, $3);
   if(!$$)
     YYERROR_MSG("AdditiveExpression 2: cannot create expr");
+}
+| MultiplicativeExpression NumericLiteralPositive
+{
+  rasqal_expression *e=rasqal_new_literal_expression($2);
+  if(!e)
+    YYERROR_MSG("AdditiveExpression 3: cannot create expr");
+  $$=rasqal_new_2op_expression(RASQAL_EXPR_PLUS, $1, e);
+  if(!$$)
+    YYERROR_MSG("AdditiveExpression 4: cannot create expr");
+}
+| MultiplicativeExpression NumericLiteralNegative
+{
+  rasqal_expression *e=rasqal_new_literal_expression($2);
+  if(!e)
+    YYERROR_MSG("AdditiveExpression 5: cannot create expr");
+  $$=rasqal_new_2op_expression(RASQAL_EXPR_PLUS, $1, e);
+  if(!$$)
+    YYERROR_MSG("AdditiveExpression 6: cannot create expr");
 }
 | MultiplicativeExpression
 {
@@ -2347,28 +2381,34 @@ BuiltInCall: STR '(' Expression ')'
     YYERROR_MSG("BuiltInCall 5: cannot create literal");
   e=rasqal_new_literal_expression(l);
   if(!e)
-    YYERROR_MSG("BuiltInCall 5: cannot create literal expr");
+    YYERROR_MSG("BuiltInCall 6: cannot create literal expr");
   $$=rasqal_new_1op_expression(RASQAL_EXPR_BOUND, e);
   if(!$$)
-    YYERROR_MSG("BuiltInCall 5: cannot create expr");
+    YYERROR_MSG("BuiltInCall 7: cannot create expr");
+}
+| SAMETERM '(' Expression ',' Expression ')'
+{
+  $$=rasqal_new_2op_expression(RASQAL_EXPR_SAMETERM, $3, $5);
+  if(!$$)
+    YYERROR_MSG("BuiltInCall 8: cannot create expr");
 }
 | ISURI '(' Expression ')'
 {
   $$=rasqal_new_1op_expression(RASQAL_EXPR_ISURI, $3);
   if(!$$)
-    YYERROR_MSG("BuiltInCall 6: cannot create expr");
+    YYERROR_MSG("BuiltInCall 9: cannot create expr");
 }
 | ISBLANK '(' Expression ')'
 {
   $$=rasqal_new_1op_expression(RASQAL_EXPR_ISBLANK, $3);
   if(!$$)
-    YYERROR_MSG("BuiltInCall 7: cannot create expr");
+    YYERROR_MSG("BuiltInCall 10: cannot create expr");
 }
 | ISLITERAL '(' Expression ')'
 {
   $$=rasqal_new_1op_expression(RASQAL_EXPR_ISLITERAL, $3);
   if(!$$)
-    YYERROR_MSG("BuiltInCall 8: cannot create expr");
+    YYERROR_MSG("BuiltInCall 11: cannot create expr");
 }
 | RegexExpression
 {
@@ -2421,7 +2461,68 @@ IRIrefBrace: URI_LITERAL_BRACE
 
 /* SPARQL Grammar: [60] RDFLiteral - merged into GraphTerm */
 
-/* SPARQL Grammar: [61] NumericLiteral - merged into GraphTerm */
+/* SPARQL Grammar: [61] NumericLiteral */
+NumericLiteral: NumericLiteralUnsigned
+{
+  $$=$1;
+}
+| NumericLiteralPositive
+{
+  $$=$1;
+}
+| NumericLiteralNegative
+{
+  $$=$1;
+}
+;
+
+/* SPARQL Grammer: [62] NumericLiteralUnsigned */
+NumericLiteralUnsigned: INTEGER_LITERAL
+{
+  $$=$1;
+}
+| DECIMAL_LITERAL
+{
+  $$=$1;
+}
+| DOUBLE_LITERAL
+{
+  $$=$1;
+}
+;
+
+
+ /* SPARQL Grammer: [63] NumericLiteralPositive */
+NumericLiteralPositive: INTEGER_POSITIVE_LITERAL
+{
+  $$=$1;
+}
+| DECIMAL_POSITIVE_LITERAL
+{
+  $$=$1;
+}
+| DOUBLE_POSITIVE_LITERAL
+{
+  $$=$1;
+}
+;
+
+
+/* SPARQL Grammar: [64] NumericLiteralNegative */
+NumericLiteralNegative: INTEGER_NEGATIVE_LITERAL
+{
+  $$=$1;
+}
+| DECIMAL_NEGATIVE_LITERAL
+{
+  $$=$1;
+}
+| DOUBLE_NEGATIVE_LITERAL
+{
+  $$=$1;
+}
+;
+
 
 /* SPARQL Grammar: [62] BooleanLiteral - merged into GraphTerm */
 
