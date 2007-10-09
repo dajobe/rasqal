@@ -401,6 +401,7 @@ struct rasqal_literal_s {
  * @RASQAL_EXPR_GROUP_COND_DESC: Expression for LAQRS group condition descending.
  * @RASQAL_EXPR_COUNT: Expression for LAQRS select COUNT()
  * @RASQAL_EXPR_VARSTAR: Expression for LAQRS select Variable *
+ * @RASQAL_EXPR_SAMETERM: Expression for SPARQL sameTerm
  * @RASQAL_EXPR_UNKNOWN: Internal
  * @RASQAL_EXPR_LAST: Internal
  *
@@ -449,8 +450,9 @@ typedef enum {
   RASQAL_EXPR_GROUP_COND_DESC,
   RASQAL_EXPR_COUNT,
   RASQAL_EXPR_VARSTAR,
+  RASQAL_EXPR_SAMETERM,
   /* internal */
-  RASQAL_EXPR_LAST= RASQAL_EXPR_VARSTAR
+  RASQAL_EXPR_LAST= RASQAL_EXPR_SAMETERM
 } rasqal_op;
 
 
