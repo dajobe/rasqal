@@ -1386,23 +1386,29 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e,
 
     case RASQAL_EXPR_BOUND:
       {
+        rasqal_expression *arg=e->arg1;
         rasqal_literal *l;
         rasqal_variable* v;
         int b;
 
-        l=rasqal_expression_evaluate(query, e->arg1, flags);
-        if(!l)
+        /* Do not use rasqal_expression_evaluate() here since
+         * we need to check the argument is a variable, and
+         * that function will flatten such thing to literals
+         * as early as possible. See (FLATTEN_LITERAL) below
+         */
+        if(!arg || arg->op != RASQAL_EXPR_LITERAL)
           goto failed;
-        
+
+        l=arg->literal;
+        if(!l || l->type != RASQAL_LITERAL_VARIABLE)
+          goto failed;
+
         v=rasqal_literal_as_variable(l);
-        if(!v) {
-          rasqal_free_literal(l);
+        if(!v)
           goto failed;
-        }
 
         b=(v->value != NULL);
 
-        rasqal_free_literal(l);
         result=rasqal_new_boolean_literal(b);
         break;
       }
@@ -2002,6 +2008,10 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e,
       }
 
     case RASQAL_EXPR_LITERAL:
+      /* flatten any literal to a value as soon as possible - this
+       * removes variables from expressions the first time they are seen.
+       * (FLATTEN_LITERAL)
+       */
       result=rasqal_new_literal_from_literal(rasqal_literal_value(e->literal));
       break;
 
