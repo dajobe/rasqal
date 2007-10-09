@@ -790,6 +790,7 @@ rasqal_expression_clear(rasqal_expression* e)
     case RASQAL_EXPR_STR_EQ:
     case RASQAL_EXPR_STR_NEQ:
     case RASQAL_EXPR_LANGMATCHES:
+    case RASQAL_EXPR_SAMETERM:
       rasqal_free_expression(e->arg1);
       rasqal_free_expression(e->arg2);
       break;
@@ -942,6 +943,7 @@ rasqal_expression_visit(rasqal_expression* e,
     case RASQAL_EXPR_STR_EQ:
     case RASQAL_EXPR_STR_NEQ:
     case RASQAL_EXPR_LANGMATCHES:
+    case RASQAL_EXPR_SAMETERM:
       return rasqal_expression_visit(e->arg1, fn, user_data) ||
              rasqal_expression_visit(e->arg2, fn, user_data);
       break;
@@ -2037,6 +2039,11 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e,
       /* constants */
       break;
       
+    case RASQAL_EXPR_SAMETERM:
+      rasqal_query_warning(query, "sameTerm() not implemented.  Returning false.");
+      result=rasqal_new_boolean_literal(0);
+      break;
+      
     case RASQAL_EXPR_UNKNOWN:
     default:
       RASQAL_FATAL2("Unknown operation %d", e->op);
@@ -2098,7 +2105,8 @@ static const char* rasqal_op_labels[RASQAL_EXPR_LAST+1]={
   "group asc",
   "group desc",
   "count",
-  "varstar"
+  "varstar",
+  "sameTerm"
 };
 
 
@@ -2152,6 +2160,7 @@ rasqal_expression_print(rasqal_expression* e, FILE* fh)
     case RASQAL_EXPR_STR_NEQ:
     case RASQAL_EXPR_LANGMATCHES:
     case RASQAL_EXPR_REGEX:
+    case RASQAL_EXPR_SAMETERM:
       fputs("op ", fh);
       rasqal_expression_print_op(e, fh);
       fputc('(', fh);
@@ -2274,6 +2283,7 @@ rasqal_expression_is_constant(rasqal_expression* e)
     case RASQAL_EXPR_STR_EQ:
     case RASQAL_EXPR_STR_NEQ:
     case RASQAL_EXPR_LANGMATCHES:
+    case RASQAL_EXPR_SAMETERM:
       result=rasqal_expression_is_constant(e->arg1) &&
              rasqal_expression_is_constant(e->arg2);
       break;
