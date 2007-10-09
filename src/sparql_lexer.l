@@ -242,7 +242,7 @@ BNAME2 "<_:"{NCNAME}">"
  **/
 QUOTEDURI \<[^<= ][^>]*\>|\<\>
 
-
+INTEGER [0-9]+
 DECIMAL [0-9]+"."[0-9]*|"."[0-9]+
 DOUBLE [0-9]+"."[0-9]*{EXPONENT}|"."([0-9])+{EXPONENT}|([0-9])+{EXPONENT}
 EXPONENT [eE][+-]?[0-9]+
@@ -290,7 +290,7 @@ EXPONENT [eE][+-]?[0-9]+
 [Ss][Tt][Rr] { return STR; }
 [Ll][Aa][Nn][Gg] { return LANG; }
 [Dd][Aa][Tt][Aa][Tt][Yy][Pp][Ee] { return DATATYPE; }
-[Ii][Ss][UuIi][Rr][Ii] { return ISURI; }
+[Ii][Ss][UuIi][Rr][Ii] { return ISURI; } /* isURI and isIRI */
 [Ii][Ss][Bb][Ll][Aa][Nn][Kk] { return ISBLANK; }
 [Ii][Ss][Ll][Ii][Tt][Ee][Rr][Aa][Ll] { return ISLITERAL; }
 [Gg][Rr][Aa][Pp][Hh] { return GRAPH; }
@@ -309,6 +309,7 @@ EXPONENT [eE][+-]?[0-9]+
 [Aa][Ss] { BEGIN(SPID); return AS; }
 [Dd][Ee][Ll][Ee][Tt][Ee]  { return DELETE; }
 [Ii][Nn][Ss][Ee][Rr][Tt]  { return INSERT; }
+[Ss][Aa][Mm][Ee][Tt][Ee][Rr][Mm] { return SAMETERM; }
 
 "a" { return A; }
 
@@ -338,13 +339,12 @@ EXPONENT [eE][+-]?[0-9]+
 "/"         { return '/'; }
 "!"         { return '!'; }
 
-[-+]?[0-9]+["lL"]?   { c=yytext[yyleng-1];
-                  if (c== 'l' || c == 'L')
-                    yytext[yyleng-1]='\0';
+
+[-+]?{INTEGER}   { c=*yytext;
                   sparql_parser_lval->literal=rasqal_new_integer_literal(RASQAL_LITERAL_INTEGER, atoi(yytext));
                   if(!sparql_parser_lval->literal)
                     yyterminate();
- 		  return INTEGER_LITERAL; 
+ 		  return (c=='+' ? INTEGER_POSITIVE_LITERAL : (c == '-' ? INTEGER_NEGATIVE_LITERAL : INTEGER_LITERAL));
 }
 
 0[xX][0-9a-fA-F]+   { int i;
@@ -367,6 +367,7 @@ EXPONENT [eE][+-]?[0-9]+
 [-+]?{DECIMAL}  { 
                         double d;
                         int n;
+                        c=*yytext;
                         
                         n=sscanf((const char*)yytext, "%lf", &d);
                         if(n != 1) {
@@ -376,12 +377,13 @@ EXPONENT [eE][+-]?[0-9]+
                         sparql_parser_lval->literal=rasqal_new_decimal_literal((const char*)yytext);
                         if(!sparql_parser_lval->literal)
                           yyterminate();
-                        return DECIMAL_LITERAL;
+                        return (c=='+' ? DECIMAL_POSITIVE_LITERAL : (c == '-' ? DECIMAL_NEGATIVE_LITERAL : DECIMAL_LITERAL));
 }
 
 [-+]?{DOUBLE} {
                         double d;
                         int n;
+                        c=*yytext;
                         
                         n=sscanf((const char*)yytext, "%lf", &d);
                         if(n != 1) {
@@ -391,12 +393,11 @@ EXPONENT [eE][+-]?[0-9]+
                         sparql_parser_lval->literal=rasqal_new_double_literal(d);
                         if(!sparql_parser_lval->literal)
                           yyterminate();
-                        return FLOATING_POINT_LITERAL;
+                        return (c=='+' ? DOUBLE_POSITIVE_LITERAL : (c == '-' ? DOUBLE_NEGATIVE_LITERAL : DOUBLE_LITERAL));
 }
 
 "+"         { return '+'; }
 "-"         { return '-'; }
-
 
 '([^'\\\n\r]|\\[^\n\r])*'(@{LANGUAGETOKEN})?(^^({QUOTEDURI}|{QNAME}))?    { /*' */
                         if(sparql_copy_string_token(rq, sparql_parser_lval,
@@ -1055,11 +1056,15 @@ sparql_token_print(int token, YYSTYPE *lval)
       return "AS";
 
     case INTEGER_LITERAL:
+    case INTEGER_POSITIVE_LITERAL:
+    case INTEGER_NEGATIVE_LITERAL:
       sprintf(buffer, "INTEGER_LITERAL(%d)", lval->literal->value.integer);
       return buffer;
 
-    case FLOATING_POINT_LITERAL:
-      sprintf(buffer, "FLOATING_POINT_LITERAL(%g)", lval->floating);
+    case DOUBLE_LITERAL:
+    case DOUBLE_POSITIVE_LITERAL:
+    case DOUBLE_NEGATIVE_LITERAL:
+      sprintf(buffer, "DOUBLE_LITERAL(%g)", lval->floating);
       return buffer;
 
     case STRING_LITERAL:
@@ -1109,6 +1114,8 @@ sparql_token_print(int token, YYSTYPE *lval)
       return buffer;
 
     case DECIMAL_LITERAL:
+    case DECIMAL_POSITIVE_LITERAL:
+    case DECIMAL_NEGATIVE_LITERAL:
       sprintf(buffer, "DECIMAL_LITERAL(%s)", lval->literal->string);
       return buffer;
 
