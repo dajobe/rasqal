@@ -269,10 +269,12 @@ rasqal_raptor_new_triples_source(rasqal_query* rdf_query,
   for(i=0; i< rtsc->sources_count; i++) {
     rasqal_data_graph *dg=(rasqal_data_graph*)raptor_sequence_get_at(rdf_query->data_graphs, i);
     raptor_uri* uri=dg->uri;
+    raptor_uri* name_uri=dg->name_uri;
 
     rtsc->source_index=i;
     rtsc->source_uri=raptor_uri_copy(uri);
-    rtsc->source_literals[i]=rasqal_new_uri_literal(raptor_uri_copy(uri));
+    if(name_uri)
+      rtsc->source_literals[i]=rasqal_new_uri_literal(raptor_uri_copy(name_uri));
     rtsc->mapped_id_base=rasqal_query_get_genid(rdf_query,
                                                 (const unsigned char*)"graphid",
                                                 i);
@@ -312,7 +314,7 @@ rasqal_raptor_new_triples_source(rasqal_query* rdf_query,
  * rasqal_raptor_triple_match:
  * @triple: #rasqal_triple to match against
  * @match: #rasqal_triple with wildcards
- *
+ * @parts; parts of the triple to match
  * .
  * 
  * Match a rasqal_triple against a rasqal_triple with NULL
@@ -321,7 +323,8 @@ rasqal_raptor_new_triples_source(rasqal_query* rdf_query,
  * Return value: non-0 on match
  **/
 static int
-rasqal_raptor_triple_match(rasqal_triple *triple, rasqal_triple *match)
+rasqal_raptor_triple_match(rasqal_triple *triple, rasqal_triple *match,
+                           rasqal_triple_parts parts)
 {
 
 #if RASQAL_DEBUG > 1
@@ -332,31 +335,45 @@ rasqal_raptor_triple_match(rasqal_triple *triple, rasqal_triple *match)
   fputs("\n", stderr);
 #endif
 
-  if(match->subject) {
+  if(match->subject && (parts & RASQAL_TRIPLE_SUBJECT)) {
     if(!rasqal_literal_equals(triple->subject, match->subject))
       return 0;
   }
 
-  if(match->predicate) {
+  if(match->predicate && (parts & RASQAL_TRIPLE_PREDICATE)) {
     if(!rasqal_literal_equals(triple->predicate, match->predicate))
       return 0;
   }
 
-  if(match->object) {
+  if(match->object && (parts & RASQAL_TRIPLE_OBJECT)) {
     if(!rasqal_literal_equals(triple->object, match->object))
       return 0;
   }
 
-  /* If triple has a GRAPH and there is none in the triple pattern, no match */
-  if(triple->origin && !match->origin)
-    return 0;
-  
-  if(match->origin && match->origin->type == RASQAL_LITERAL_URI ) {
-    raptor_uri* triple_uri=triple->origin->value.uri;
-    raptor_uri* match_uri=match->origin->value.uri;
-    if(!raptor_uri_equals(triple_uri, match_uri))
+  if(parts & RASQAL_TRIPLE_ORIGIN) {
+    /* Binding a graph */
+    
+    /* If expecting a graph and triple has none then no match */
+    if(!triple->origin)
+      return 0;
+      
+    if(match->origin) {
+      if(match->origin->type == RASQAL_LITERAL_URI ) {
+        raptor_uri* triple_uri=triple->origin->value.uri;
+        raptor_uri* match_uri=match->origin->value.uri;
+        if(!raptor_uri_equals(triple_uri, match_uri))
+          return 0;
+      }
+    }
+    
+  } else {
+    /* Not binding a graph */
+    
+    /* If triple has a GRAPH and there is none in the triple pattern, no match */
+    if(triple->origin && !match->origin && !(parts & RASQAL_TRIPLE_ORIGIN))
       return 0;
   }
+  
   
   return 1;
 }
@@ -371,7 +388,7 @@ rasqal_raptor_triple_present(rasqal_triples_source *rts, void *user_data,
   rasqal_raptor_triple *triple;
 
   for(triple=rtsc->head; triple; triple=triple->next) {
-    if(rasqal_raptor_triple_match(triple->triple, t))
+    if(rasqal_raptor_triple_match(triple->triple, t, 15))
       return 1;
   }
 
@@ -415,6 +432,9 @@ typedef struct {
   rasqal_raptor_triple *cur;
   rasqal_raptor_triples_source_user_data* source_context;
   rasqal_triple match;
+
+  /* parts of the triple above to match: always (S,P,O) sometimes C */
+  int parts;
 } rasqal_raptor_triples_match_context;
 
 
@@ -516,7 +536,7 @@ rasqal_raptor_next_match(struct rasqal_triples_match_s* rtm, void *user_data)
   while(rtmc->cur) {
     rtmc->cur=rtmc->cur->next;
     if(rtmc->cur &&
-       rasqal_raptor_triple_match(rtmc->cur->triple, &rtmc->match))
+       rasqal_raptor_triple_match(rtmc->cur->triple, &rtmc->match, rtmc->parts))
       break;
   }
 }
@@ -601,6 +621,7 @@ rasqal_raptor_init_triples_match(rasqal_triples_match* rtm,
 
   m->bindings[2]=var;
   
+  rtmc->parts = RASQAL_TRIPLE_SPO;
 
   if(t->origin) {
     if((var=rasqal_literal_as_variable(t->origin))) {
@@ -609,11 +630,12 @@ rasqal_raptor_init_triples_match(rasqal_triples_match* rtm,
     } else
       rtmc->match.origin=rasqal_new_literal_from_literal(t->origin);
     m->bindings[3]=var;
+    rtmc->parts |= RASQAL_TRIPLE_GRAPH;
   }
   
 
   while(rtmc->cur) {
-    if(rasqal_raptor_triple_match(rtmc->cur->triple, &rtmc->match))
+    if(rasqal_raptor_triple_match(rtmc->cur->triple, &rtmc->match, rtmc->parts))
       break;
     rtmc->cur=rtmc->cur->next;
   }
