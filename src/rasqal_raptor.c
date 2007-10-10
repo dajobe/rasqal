@@ -321,7 +321,8 @@ rasqal_raptor_new_triples_source(rasqal_query* rdf_query,
  * Return value: non-0 on match
  **/
 static int
-rasqal_raptor_triple_match(rasqal_triple *triple, rasqal_triple *match) {
+rasqal_raptor_triple_match(rasqal_triple *triple, rasqal_triple *match)
+{
 
 #if RASQAL_DEBUG > 1
   fprintf(stderr, "triple ");
@@ -345,6 +346,10 @@ rasqal_raptor_triple_match(rasqal_triple *triple, rasqal_triple *match) {
     if(!rasqal_literal_equals(triple->object, match->object))
       return 0;
   }
+
+  /* If triple has a GRAPH and there is none in the triple pattern, no match */
+  if(triple->origin && !match->origin)
+    return 0;
   
   if(match->origin && match->origin->type == RASQAL_LITERAL_URI ) {
     raptor_uri* triple_uri=triple->origin->value.uri;
