@@ -251,7 +251,7 @@ sub run_test {
   warn "run_test(\n  name   : $name\n  dir    : $dir\n  query  : $test_file\n  data   : ",join("; ",@data_files),"\n  result : ",($result_file||"none"),"\n  expect : ",($expect_fail ? "failure":"success"),"\n)\n"
     if $debug;
 
-  my(@args)=(map "-s $_", @data_files);
+  my(@args)=(map "-D $_", @data_files);
 
   push(@args, "-n")
     unless $config->{execute};
