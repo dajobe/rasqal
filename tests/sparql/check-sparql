@@ -490,7 +490,14 @@ while($list_node) {
   
   my(@data_files)=();
   for my $data_node (@{$triples{$action_node}->{"<${qt}data>"}}) { 
-    warn "Entry data_node $data_node\n"
+    warn "Entry graph data_node $data_node\n"
+     if $debug > 1;
+    my $data_file=($data_node =~ /^<(.+)>$/, $1);
+    $data_file =~ s,^file:([^/]+),$1,;
+    push(@data_files, $data_file);
+  }
+  for my $data_node (@{$triples{$action_node}->{"<${qt}graphData>"}}) { 
+    warn "Entry named graph data_node $data_node\n"
      if $debug > 1;
     my $data_file=($data_node =~ /^<(.+)>$/, $1);
     $data_file =~ s,^file:([^/]+),$1,;
