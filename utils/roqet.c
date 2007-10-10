@@ -89,7 +89,7 @@ rdql_parser_error(const char *msg)
 #endif
 
 
-#define GETOPT_STRING "cd:e:f:hi:nr:qs:vw"
+#define GETOPT_STRING "cd:D:e:f:G:hi:nr:qs:vw"
 
 #ifdef HAVE_GETOPT_LONG
 static struct option long_options[] =
@@ -105,6 +105,8 @@ static struct option long_options[] =
   {"quiet", 0, 0, 'q'},
   {"results", 1, 0, 'r'},
   {"source", 1, 0, 's'},
+  {"data", 1, 0, 'D'},
+  {"named", 1, 0, 'G'},
   {"version", 0, 0, 'v'},
   {"walk-query", 0, 0, 'w'},
   {NULL, 0, 0, 0}
@@ -382,7 +384,8 @@ main(int argc, char *argv[])
   int quiet=0;
   int count=0;
   int dryrun=0;
-  raptor_sequence* source_uris=NULL;
+  raptor_sequence* data_source_uris=NULL;
+  raptor_sequence* named_source_uris=NULL;
   raptor_serializer* serializer=NULL;
   const char *serializer_syntax_name="ntriples";
   query_output_format output_format= QUERY_OUTPUT_UNKNOWN;
@@ -405,6 +408,7 @@ main(int argc, char *argv[])
   {
     int c;
     raptor_uri *source_uri;
+    raptor_sequence** seq_p=NULL;
     
 #ifdef HAVE_GETOPT_LONG
     int option_index = 0;
@@ -572,15 +576,8 @@ main(int argc, char *argv[])
         break;
 
       case 's':
-        if(!source_uris) {
-          source_uris=raptor_new_sequence((raptor_sequence_free_handler*)raptor_free_uri,
-                                          (raptor_sequence_print_handler*)raptor_sequence_print_uri);
-          if(!source_uris) {
-            fprintf(stderr, "%s: Failed to create source sequence\n", program);
-          return(1);
-          }
-        }
-        
+      case 'D':
+      case 'G':
         if(!access((const char*)optarg, R_OK)) {
           unsigned char* source_uri_string=raptor_uri_filename_to_uri_string((const char*)optarg);
           source_uri=raptor_new_uri(source_uri_string);
@@ -593,7 +590,18 @@ main(int argc, char *argv[])
                   program, optarg);
           return(1);
         }
-        raptor_sequence_push(source_uris, source_uri);
+
+        seq_p= (c=='D') ? &data_source_uris : &named_source_uris;
+        if(!*seq_p) {
+          *seq_p=raptor_new_sequence((raptor_sequence_free_handler*)raptor_free_uri,
+                                     (raptor_sequence_print_handler*)raptor_sequence_print_uri);
+          if(!*seq_p) {
+            fprintf(stderr, "%s: Failed to create source sequence\n", program);
+            return(1);
+          }
+        }
+
+        raptor_sequence_push(*seq_p, source_uri);
         break;
 
       case 'v':
@@ -704,7 +712,9 @@ main(int argc, char *argv[])
     puts(HELP_TEXT("h", "help             ", "Print this help, then exit"));
     puts(HELP_TEXT("n", "dryrun           ", "Prepare but do not run the query"));
     puts(HELP_TEXT("q", "quiet            ", "No extra information messages"));
-    puts(HELP_TEXT("s", "source URI       ", "Query against RDF data at source URI"));
+    puts(HELP_TEXT("D", "data URI         ", "RDF data source URI"));
+    puts(HELP_TEXT("G", "named URI        ", "RDF named graph data source URI"));
+    puts(HELP_TEXT("s", "source URI       ", "Same as `-G URI'"));
     puts(HELP_TEXT("v", "version          ", "Print the Rasqal version"));
     puts(HELP_TEXT("w", "walk-query       ", "Print query.  Same as '-d structure'"));
     puts("\nReport bugs to http://bugs.librdf.org/");
@@ -861,12 +871,23 @@ main(int argc, char *argv[])
     rasqal_query_set_feature_string(rq, query_feature,
                                     query_feature_string_value);
   
-  if(source_uris) {
-    while(raptor_sequence_size(source_uris)) {
-      raptor_uri* source_uri=(raptor_uri*)raptor_sequence_pop(source_uris);
+  if(named_source_uris) {
+    while(raptor_sequence_size(named_source_uris)) {
+      raptor_uri* source_uri=(raptor_uri*)raptor_sequence_pop(named_source_uris);
       if(rasqal_query_add_data_graph(rq, source_uri, source_uri, 
                                      RASQAL_DATA_GRAPH_NAMED)) {
         fprintf(stderr, "%s: Failed to add named graph %s\n", program, 
+                raptor_uri_as_string(source_uri));
+      }
+      raptor_free_uri(source_uri);
+    }
+  }
+  if(data_source_uris) {
+    while(raptor_sequence_size(data_source_uris)) {
+      raptor_uri* source_uri=(raptor_uri*)raptor_sequence_pop(data_source_uris);
+      if(rasqal_query_add_data_graph(rq, source_uri, NULL,
+                                     RASQAL_DATA_GRAPH_BACKGROUND)) {
+        fprintf(stderr, "%s: Failed to add to default graph %s\n", program, 
                 raptor_uri_as_string(source_uri));
       }
       raptor_free_uri(source_uri);
@@ -1030,8 +1051,10 @@ main(int argc, char *argv[])
 
  tidy_setup:
 
-  if(source_uris)
-    raptor_free_sequence(source_uris);
+  if(data_source_uris)
+    raptor_free_sequence(data_source_uris);
+  if(named_source_uris)
+    raptor_free_sequence(named_source_uris);
   if(base_uri)
     raptor_free_uri(base_uri);
   if(uri)
