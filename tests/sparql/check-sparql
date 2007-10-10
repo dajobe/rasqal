@@ -55,6 +55,7 @@ my(@manifest_files)=qw(manifest.ttl manifest.n3);
 my $mf='http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#';
 my $mfx='http://jena.hpl.hp.com/2005/05/test-manifest-extra#';
 my $qt='http://www.w3.org/2001/sw/DataAccess/tests/test-query#';
+my $dawgt='http://www.w3.org/2001/sw/DataAccess/tests/test-dawg#';
 
 my $program=basename $0;
 my $debug=0;
@@ -517,6 +518,20 @@ while($list_node) {
     $query_node=$triples{$action_node}->{"<${qt}query>"}->[0];
   }
 
+  my $test_uri=$entry_node; $test_uri =~ s/^<(.+)>$/$1/;
+  my $test_type=$query_type; $test_type =~ s/^<(.+)>$/$1/ if defined $test_type;
+
+  my $test_approval=$triples{$entry_node}->{"<${dawgt}approval>"}->[0];
+  if($test_approval) {
+    warn "Test $name ($test_uri) state $test_approval\n"
+      if $debug > 1;
+    if($test_approval eq "<${dawgt}Withdrawn>") {
+      warn "Test $name ($test_uri) was withdrawn\n"
+	if $debug;
+      goto next_list_node;
+    }
+  }
+
   my $query_file=undef;
   if($query_node) {
     $query_file=($query_node =~ /^<(.+)>$/, $1);
@@ -527,8 +542,6 @@ while($list_node) {
     warn "Entry query_file=$query_file\n"
       if $debug > 1;
   }
-  my $test_uri=$entry_node; $test_uri =~ s/^<(.+)>$/$1/;
-  my $test_type=$query_type; $test_type =~ s/^<(.+)>$/$1/ if defined $test_type;
 
   if (!$unique_test || ($unique_test && (($name eq $unique_test) ||
 					 ($test_uri =~ /$unique_test/)))) {
@@ -546,6 +559,7 @@ while($list_node) {
     last if $unique_test;
   }
 
+next_list_node:
   $list_node=$triples{$list_node}->{"<${rdf}rest>"}->[0];
   last if $list_node eq "<${rdf}nil>";
 }
