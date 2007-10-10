@@ -3167,14 +3167,10 @@ rasqal_engine_execute_run(rasqal_query_results* query_results)
   rasqal_query *query=query_results->query;
   int rc=0;
   
-  if(query->order_conditions_sequence || query->distinct) {
+  if(query->order_conditions_sequence || query->distinct)
     rc=rasqal_engine_execute_and_save(query_results);
-  } else {
+  else
     rc=rasqal_engine_excute_next_lazy(query_results);
-    /* finished (>0) on first result means failure */
-    if(rc)
-      rc= -1;
-  }
 
   if(rc >= 0)
     rasqal_engine_query_result_row_to_nodes(query_results);
