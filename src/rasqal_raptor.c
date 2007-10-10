@@ -388,7 +388,7 @@ rasqal_raptor_triple_present(rasqal_triples_source *rts, void *user_data,
   rasqal_raptor_triple *triple;
 
   for(triple=rtsc->head; triple; triple=triple->next) {
-    if(rasqal_raptor_triple_match(triple->triple, t, 15))
+    if(rasqal_raptor_triple_match(triple->triple, t, RASQAL_TRIPLE_SPOG))
       return 1;
   }
 
@@ -434,7 +434,7 @@ typedef struct {
   rasqal_triple match;
 
   /* parts of the triple above to match: always (S,P,O) sometimes C */
-  int parts;
+  rasqal_triple_parts parts;
 } rasqal_raptor_triples_match_context;
 
 
