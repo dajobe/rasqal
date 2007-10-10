@@ -1032,7 +1032,10 @@ void* rasqal_calloc_memory(size_t nmemb, size_t size);
  * @RASQAL_TRIPLE_SUBJECT: Subject present in a triple.
  * @RASQAL_TRIPLE_PREDICATE: Predicate present in a triple.
  * @RASQAL_TRIPLE_OBJECT: Object present in a triple.
- * @RASQAL_TRIPLE_ORIGIN: Origin present in a triple.
+ * @RASQAL_TRIPLE_ORIGIN: Origin/graph present in a triple.
+ * @RASQAL_TRIPLE_GRAPH:  Alias for RASQAL_TRIPLE_ORIGIN
+ * @RASQAL_TRIPLE_SPO: Subject, Predicate and Object present in a triple.
+ * @RASQAL_TRIPLE_SPOG: Subject, Predicate, Object, Graph present in a triple.
  *
  * Flags for parts of a triple.
  */
@@ -1040,8 +1043,12 @@ typedef enum {
   RASQAL_TRIPLE_SUBJECT  = 1,
   RASQAL_TRIPLE_PREDICATE= 2,
   RASQAL_TRIPLE_OBJECT   = 4,
-  RASQAL_TRIPLE_ORIGIN   = 8
+  RASQAL_TRIPLE_ORIGIN   = 8,
+  RASQAL_TRIPLE_GRAPH    = RASQAL_TRIPLE_ORIGIN,
+  RASQAL_TRIPLE_SPO      = RASQAL_TRIPLE_SUBJECT | RASQAL_TRIPLE_PREDICATE | RASQAL_TRIPLE_OBJECT,
+  RASQAL_TRIPLE_SPOG     = RASQAL_TRIPLE_SPO | RASQAL_TRIPLE_GRAPH
 } rasqal_triple_parts;
+
 
 
 /**
