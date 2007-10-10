@@ -1333,7 +1333,8 @@ rasqal_query_execute(rasqal_query* query)
     }
   }
 
-  if(rasqal_engine_execute_run(query_results)) {
+  rc=rasqal_engine_execute_run(query_results);
+  if(rc < 0) {
     rasqal_free_query_results(query_results);
     query_results=NULL;
   }
