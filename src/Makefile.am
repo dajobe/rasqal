@@ -31,10 +31,10 @@ noinst_HEADERS = rasqal_internal.h win32_rasqal_config.h
 
 man_MANS = rasqal-config.1
 
-TESTS=rasqal_expr_test$(EXEEXT) strcasecmp_test$(EXEEXT)
-
-local_tests=rasqal_query_test$(EXEEXT) rasqal_limit_test$(EXEEXT) \
+TESTS=rasqal_expr_test$(EXEEXT) strcasecmp_test$(EXEEXT) \
 rasqal_xsd_datatypes_test$(EXEEXT)
+
+local_tests=rasqal_query_test$(EXEEXT) rasqal_limit_test$(EXEEXT)
 if RASQAL_QUERY_RDQL
 local_tests += rdql_lexer_test$(EXEEXT) rdql_parser_test$(EXEEXT)
 endif

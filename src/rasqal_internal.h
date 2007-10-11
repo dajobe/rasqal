@@ -669,6 +669,7 @@ raptor_uri* rasqal_xsd_datatype_type_to_uri(rasqal_literal_type type);
 int rasqal_xsd_datatype_check(rasqal_literal_type native_type, const unsigned char* string, int flags);
 const char* rasqal_xsd_datatype_label(rasqal_literal_type native_type);
 int rasqal_xsd_is_datatype_uri(raptor_uri* uri);
+const unsigned char* rasqal_xsd_datetime_string_to_canonical(const unsigned char* datetime_string);
 
 /* end of RASQAL_INTERNAL */
 #endif
