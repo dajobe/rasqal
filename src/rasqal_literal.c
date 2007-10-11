@@ -314,6 +314,7 @@ rasqal_new_numeric_literal(double d, rasqal_literal_type type)
  * xsd:float to RASQAL_LITERAL_FLOAT
  * xsd:boolean to RASQAL_LITERAL_BOOLEAN
  * xsd:decimal to RASQAL_LITERAL_DECIMAL
+ * xsd:dateTime to RASQAL_LITERAL_DATETIME with string in canonical literal form
  *
  * Return value: non-0 on failure
  **/
@@ -326,6 +327,7 @@ rasqal_literal_string_to_native(rasqal_literal *l,
   int i;
   double d;
   rasqal_literal_type native_type=RASQAL_LITERAL_UNKNOWN;
+  unsigned char const *new_string; 
 
   if(!l->datatype)
     return 0;
@@ -383,11 +385,22 @@ rasqal_literal_string_to_native(rasqal_literal *l,
       l->value.integer=i;
       break;
 
-  case RASQAL_LITERAL_DATETIME:
   case RASQAL_LITERAL_STRING:
     /* No change - kept as a string */
     break;
-    
+
+  case RASQAL_LITERAL_DATETIME:
+    if(l->datatype)
+    new_string=rasqal_xsd_datetime_string_to_canonical(l->string);
+    if(new_string) {
+      RASQAL_DEBUG3("converted xsd:dateTime \"%s\" to canonical form \"%s\"\n", l->string, new_string);
+      RASQAL_FREE(cstring, l->string);
+      l->string=new_string;
+      break; /* success */
+    }
+    RASQAL_DEBUG2("rasqal_xsd_datetime_string_to_canonical(\"%s\") failed\n", l->string);
+    return 1; /* error */
+
   case RASQAL_LITERAL_UNKNOWN:
   case RASQAL_LITERAL_BLANK:
   case RASQAL_LITERAL_URI:
