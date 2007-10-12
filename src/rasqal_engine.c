@@ -1065,11 +1065,10 @@ rasqal_new_engine_execution_data(rasqal_query_results* query_results)
     
       gp=(rasqal_graph_pattern*)raptor_sequence_get_at(query->graph_patterns_sequence, i);
       gp_data=rasqal_new_engine_gp_data(gp);
-      if(!gp_data) {
+      if(!gp_data || raptor_sequence_set_at(execution_data->seq, i, gp_data)) {
         rasqal_free_engine_execution_data(query, query_results, execution_data);
         return NULL;
       }
-      raptor_sequence_set_at(execution_data->seq, i, gp_data);
     }
   }
 
