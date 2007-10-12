@@ -1158,9 +1158,12 @@ rasqal_engine_graph_pattern_init(rasqal_query_results* query_results,
     raptor_sequence_sort(gp->graph_patterns, rasqal_engine_graph_pattern_order);
   
     for(i=0; i < raptor_sequence_size(gp->graph_patterns); i++) {
+      int rc;
       rasqal_graph_pattern *sgp;
       sgp=(rasqal_graph_pattern*)raptor_sequence_get_at(gp->graph_patterns, i);
-      rasqal_engine_graph_pattern_init(query_results, sgp);
+      rc=rasqal_engine_graph_pattern_init(query_results, sgp);
+      if(rc)
+        return rc;
       
       if((sgp->op == RASQAL_GRAPH_PATTERN_OPERATOR_OPTIONAL) &&
          gp_data->optional_graph_pattern < 0)
