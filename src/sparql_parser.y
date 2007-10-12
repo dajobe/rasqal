@@ -775,8 +775,11 @@ OrderConditionList: OrderConditionList OrderCondition
 | OrderCondition
 {
   $$=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_expression, (raptor_sequence_print_handler*)rasqal_expression_print);
-  if(!$$)
+  if(!$$) {
+    if($1)
+      rasqal_free_expression($1);
     YYERROR_MSG("OrderConditionList 2: cannot create sequence");
+  }
   if($1)
     if(raptor_sequence_push($$, $1)) {
       raptor_free_sequence($$);
