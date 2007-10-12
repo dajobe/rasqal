@@ -70,6 +70,7 @@
 rasqal_literal*
 rasqal_new_integer_literal(rasqal_literal_type type, int integer)
 {
+  raptor_uri* dt_uri;
   rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(rasqal_literal));
   if(l) {
     l->usage=1;
@@ -82,7 +83,12 @@ rasqal_new_integer_literal(rasqal_literal_type type, int integer)
     }
     sprintf((char*)l->string, "%d", integer);
     l->string_len=strlen((const char*)l->string);
-    l->datatype=raptor_uri_copy(rasqal_xsd_datatype_type_to_uri(l->type));
+    dt_uri=rasqal_xsd_datatype_type_to_uri(l->type);
+    if(!dt_uri) {
+      rasqal_free_literal(l);
+      return NULL;
+    }
+    l->datatype=raptor_uri_copy(dt_uri);
   }
   return l;
 }
@@ -99,6 +105,7 @@ rasqal_new_integer_literal(rasqal_literal_type type, int integer)
 rasqal_literal*
 rasqal_new_double_literal(double d)
 {
+  raptor_uri* dt_uri;
   rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(rasqal_literal));
   if(l) {
     l->usage=1;
@@ -111,7 +118,12 @@ rasqal_new_double_literal(double d)
     }
     sprintf((char*)l->string, "%1g", d);
     l->string_len=strlen((const char*)l->string);
-    l->datatype=raptor_uri_copy(rasqal_xsd_datatype_type_to_uri(l->type));
+    dt_uri=rasqal_xsd_datatype_type_to_uri(l->type);
+    if(!dt_uri) {
+      rasqal_free_literal(l);
+      return NULL;
+    }
+    l->datatype=raptor_uri_copy(dt_uri);
   }
   return l;
 }
@@ -145,6 +157,7 @@ rasqal_new_floating_literal(double f)
 rasqal_literal*
 rasqal_new_float_literal(float f)
 {
+  raptor_uri* dt_uri;
   rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(rasqal_literal));
   if(l) {
     l->usage=1;
@@ -157,7 +170,12 @@ rasqal_new_float_literal(float f)
     }
     sprintf((char*)l->string, "%1g", f);
     l->string_len=strlen((const char*)l->string);
-    l->datatype=raptor_uri_copy(rasqal_xsd_datatype_type_to_uri(l->type));
+    dt_uri=rasqal_xsd_datatype_type_to_uri(l->type);
+    if(!dt_uri) {
+      rasqal_free_literal(l);
+      return NULL;
+    }
+    l->datatype=raptor_uri_copy(dt_uri);
   }
   return l;
 }
@@ -234,6 +252,7 @@ rasqal_new_pattern_literal(const unsigned char *pattern,
 rasqal_literal*
 rasqal_new_decimal_literal(const char *decimal)
 {
+  raptor_uri* dt_uri;
   rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(rasqal_literal));
   if(l) {
     double d=0.0;
@@ -248,7 +267,12 @@ rasqal_new_decimal_literal(const char *decimal)
       return NULL;
     }
     strcpy((char*)l->string, decimal);
-    l->datatype=raptor_uri_copy(rasqal_xsd_datatype_type_to_uri(l->type));
+    dt_uri=rasqal_xsd_datatype_type_to_uri(l->type);
+    if(!dt_uri) {
+      rasqal_free_literal(l);
+      return NULL;
+    }
+    l->datatype=raptor_uri_copy(dt_uri);
   }
   return l;
 }
@@ -520,14 +544,20 @@ rasqal_new_simple_literal(rasqal_literal_type type,
 rasqal_literal*
 rasqal_new_boolean_literal(int value)
 {
+  raptor_uri* dt_uri;
   rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(rasqal_literal));
   if(l) {
+    l->usage=1;
     l->type=RASQAL_LITERAL_BOOLEAN;
     l->value.integer=value;
     l->string=value ? RASQAL_XSD_BOOLEAN_TRUE : RASQAL_XSD_BOOLEAN_FALSE;
     l->string_len=(value ? 4 : 5);
-    l->datatype=raptor_uri_copy(rasqal_xsd_datatype_type_to_uri(l->type));
-    l->usage=1;
+    dt_uri=rasqal_xsd_datatype_type_to_uri(l->type);
+    if(!dt_uri) {
+      rasqal_free_literal(l);
+      return NULL;
+    }
+    l->datatype=raptor_uri_copy(dt_uri);
   }
   return l;
 }
@@ -1515,6 +1545,7 @@ rasqal_literal_has_qname(rasqal_literal *l) {
 rasqal_literal*
 rasqal_literal_as_node(rasqal_literal* l)
 {
+  raptor_uri* dt_uri;
   rasqal_literal* new_l=NULL;
   
   switch(l->type) {
@@ -1549,7 +1580,12 @@ rasqal_literal_as_node(rasqal_literal* l)
           return NULL; 
         }
         strcpy((char*)new_l->string, (const char*)l->string);
-        new_l->datatype=raptor_uri_copy(rasqal_xsd_datatype_type_to_uri(l->type));
+        dt_uri=rasqal_xsd_datatype_type_to_uri(l->type);
+        if(!dt_uri) {
+          rasqal_free_literal(new_l);
+          return NULL;
+        }
+        new_l->datatype=raptor_uri_copy(dt_uri);
         new_l->flags=NULL;
       }
       break;
