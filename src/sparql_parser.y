@@ -270,7 +270,7 @@ RelationalExpression AdditiveExpression
 MultiplicativeExpression UnaryExpression
 BuiltInCall RegexExpression FunctionCall
 BrackettedExpression PrimaryExpression
-OrderCondition Constraint SelectExpression
+OrderCondition Filter Constraint SelectExpression
 AggregateExpression CountAggregateExpression
 
 %destructor { if($$) rasqal_free_literal($$); }
@@ -2234,8 +2234,10 @@ AdditiveExpression: MultiplicativeExpression '+' AdditiveExpression
 | MultiplicativeExpression NumericLiteralPositive
 {
   rasqal_expression *e=rasqal_new_literal_expression($2);
-  if(!e)
+  if(!e) {
+    rasqal_free_expression($1);
     YYERROR_MSG("AdditiveExpression 3: cannot create expr");
+  }
   $$=rasqal_new_2op_expression(RASQAL_EXPR_PLUS, $1, e);
   if(!$$)
     YYERROR_MSG("AdditiveExpression 4: cannot create expr");
@@ -2243,8 +2245,10 @@ AdditiveExpression: MultiplicativeExpression '+' AdditiveExpression
 | MultiplicativeExpression NumericLiteralNegative
 {
   rasqal_expression *e=rasqal_new_literal_expression($2);
-  if(!e)
+  if(!e) {
+    rasqal_free_expression($1);
     YYERROR_MSG("AdditiveExpression 5: cannot create expr");
+  }
   $$=rasqal_new_2op_expression(RASQAL_EXPR_PLUS, $1, e);
   if(!$$)
     YYERROR_MSG("AdditiveExpression 6: cannot create expr");
