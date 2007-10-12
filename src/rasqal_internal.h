@@ -536,7 +536,7 @@ int rasqal_engine_assign_variables(rasqal_query* rq);
 int rasqal_engine_prepare(rasqal_query* query);
 int rasqal_engine_execute_init(rasqal_query_results* query_results);
 int rasqal_engine_execute_finish(rasqal_query_results* query_results);
-void rasqal_engine_join_graph_patterns(rasqal_graph_pattern *dest_gp, rasqal_graph_pattern *src_gp);
+int rasqal_engine_join_graph_patterns(rasqal_graph_pattern *dest_gp, rasqal_graph_pattern *src_gp);
 int rasqal_engine_check_limit_offset(rasqal_query_results* query_results);
 int rasqal_engine_merge_triples(rasqal_query* query, rasqal_graph_pattern* gp, void* data);
 int rasqal_engine_merge_graph_patterns(rasqal_query* query, rasqal_graph_pattern* gp, void* data);
@@ -551,7 +551,7 @@ int rasqal_triples_source_next_source(rasqal_triples_source* rts);
 
 int rasqal_engine_get_next_result(rasqal_query_results* query_results);
 void rasqal_engine_assign_binding_values(rasqal_query* query);
-void rasqal_engine_move_constraints(rasqal_graph_pattern* dest_gp, rasqal_graph_pattern* src_gp);
+int rasqal_engine_move_constraints(rasqal_graph_pattern* dest_gp, rasqal_graph_pattern* src_gp);
 int rasqal_engine_execute_run(rasqal_query_results* query_results);
 void rasqal_engine_free_query_result_row(rasqal_query_result_row* row);
 rasqal_literal** rasqal_engine_get_result_values(rasqal_query_results* query_results);

@@ -1223,7 +1223,7 @@ rasqal_query_prepare(rasqal_query* query,
   if(rc)
     query->failed=1;
 
-  if(query->query_graph_pattern) {
+  else if(query->query_graph_pattern) {
 #ifndef RASQAL_NO_GP_MERGE
     int modified;
     
@@ -1266,8 +1266,11 @@ rasqal_query_prepare(rasqal_query* query,
       fputs("\n", stdout);
 #endif
 
-    } while(modified);
-#endif
+    } while(modified>0);
+
+    rc=modified; /* error if modified<0, success if modified==0 */
+
+#endif /* !RASQAL_NO_GP_MERGE */
 
     /* Label all graph patterns with an index 0.. for use in discovering
      * the size of the graph pattern execution data array
