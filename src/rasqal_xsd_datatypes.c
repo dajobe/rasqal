@@ -465,7 +465,7 @@ days_per_month(int month, int year) {
 }
 
 
-#ifndef ISNUM(c)
+#ifndef ISNUM
 #define ISNUM(c) ((c)>='0'&&(c)<='9')
 #endif
 
