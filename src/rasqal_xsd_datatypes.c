@@ -302,7 +302,7 @@ static const char* sparql_xsd_names[RASQAL_LITERAL_LAST_XSD+2]=
 };
 
 
-static rasqal_xsd_datatype_info* sparql_xsd_datatypes_table;
+static rasqal_xsd_datatype_info* sparql_xsd_datatypes_table=NULL;
 
 static raptor_uri* rasqal_xsd_namespace_uri=NULL;
 
@@ -312,6 +312,8 @@ rasqal_xsd_init(void)
   int i;
 
   rasqal_xsd_namespace_uri=raptor_new_uri(raptor_xmlschema_datatypes_namespace_uri);
+  if(!rasqal_xsd_namespace_uri)
+    return 1;
   
   sparql_xsd_datatypes_table=
     (rasqal_xsd_datatype_info*)RASQAL_CALLOC(rasqal_xsd_datatype_info,
@@ -350,10 +352,13 @@ rasqal_xsd_finish(void)
     }
     
     RASQAL_FREE(table, sparql_xsd_datatypes_table);
+    sparql_xsd_datatypes_table=NULL;
   }
 
-  if(rasqal_xsd_namespace_uri)
+  if(rasqal_xsd_namespace_uri) {
     raptor_free_uri(rasqal_xsd_namespace_uri);
+    rasqal_xsd_namespace_uri=NULL;
+  }
 }
  
 
@@ -364,7 +369,7 @@ rasqal_xsd_datatype_uri_to_type(raptor_uri* uri)
   int i;
   rasqal_literal_type native_type=RASQAL_LITERAL_UNKNOWN;
   
-  if(!uri)
+  if(!uri || !sparql_xsd_datatypes_table)
     return native_type;
   
   for(i=(int)RASQAL_LITERAL_FIRST_XSD; i <= (int)RASQAL_LITERAL_LAST_XSD; i++) {
@@ -380,10 +385,10 @@ rasqal_xsd_datatype_uri_to_type(raptor_uri* uri)
 raptor_uri*
 rasqal_xsd_datatype_type_to_uri(rasqal_literal_type type)
 {
-  if(type >= RASQAL_LITERAL_FIRST_XSD && type <= (int)RASQAL_LITERAL_LAST_XSD)
+  if(sparql_xsd_datatypes_table &&
+     type >= RASQAL_LITERAL_FIRST_XSD && type <= (int)RASQAL_LITERAL_LAST_XSD)
     return sparql_xsd_datatypes_table[(int)type].uri;
-  else
-    return NULL;
+  return NULL;
 }
 
 
@@ -401,17 +406,19 @@ int
 rasqal_xsd_datatype_check(rasqal_literal_type native_type, 
                           const unsigned char* string, int flags)
 {
-  if(sparql_xsd_datatypes_table[native_type].check)
+  if(sparql_xsd_datatypes_table &&
+     sparql_xsd_datatypes_table[native_type].check)
     return sparql_xsd_datatypes_table[native_type].check(string, flags);
-  else
-    return 1;
+  return 1;
 }
 
 
 const char*
 rasqal_xsd_datatype_label(rasqal_literal_type native_type)
 {
-  return sparql_xsd_datatypes_table[native_type].name;
+  return sparql_xsd_datatypes_table ?
+    sparql_xsd_datatypes_table[native_type].name :
+    NULL;
 }
 
 
