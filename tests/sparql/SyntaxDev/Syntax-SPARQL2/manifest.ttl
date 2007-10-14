@@ -148,10 +148,6 @@
          rdf:type   mfx:TestSyntax ;
          mf:action  <syntax-graph-01.rq> ; 
       ]
-      [  mf:name    "syntax-graph-02.rq" ;
-         rdf:type   mfx:TestSyntax ;
-         mf:action  <syntax-graph-02.rq> ; 
-      ]
       [  mf:name    "syntax-graph-03.rq" ;
          rdf:type   mfx:TestSyntax ;
          mf:action  <syntax-graph-03.rq> ; 
@@ -163,10 +159,6 @@
       [  mf:name    "syntax-graph-05.rq" ;
          rdf:type   mfx:TestSyntax ;
          mf:action  <syntax-graph-05.rq> ; 
-      ]
-      [  mf:name    "syntax-graph-06.rq" ;
-         rdf:type   mfx:TestSyntax ;
-         mf:action  <syntax-graph-06.rq> ; 
       ]
       [  mf:name    "syntax-esc-01.rq" ;
          rdf:type   mfx:TestSyntax ;

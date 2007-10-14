@@ -37,8 +37,8 @@ syntax-form-describe02.rq syntax-form-select-01.rq			\
 syntax-form-select-02.rq syntax-function-01.rq syntax-function-02.rq	\
 syntax-function-03.rq syntax-function-04.rq syntax-general-01.rq	\
 syntax-general-02.rq syntax-general-03.rq syntax-graph-01.rq		\
-syntax-graph-02.rq syntax-graph-03.rq syntax-graph-04.rq		\
-syntax-graph-05.rq syntax-graph-06.rq syntax-keywords-01.rq		\
+syntax-graph-03.rq syntax-graph-04.rq		\
+syntax-graph-05.rq syntax-keywords-01.rq		\
 syntax-keywords-02.rq syntax-keywords-03.rq syntax-lists-01.rq		\
 syntax-lists-02.rq syntax-lists-03.rq syntax-lists-04.rq		\
 syntax-lists-05.rq
