@@ -80,7 +80,7 @@ typedef struct {
 
 
 static int rasqal_xsd_datetime_parse_and_normalize(const unsigned char *datetime_string, rasqal_xsd_datetime *result);
-static unsigned char const *rasqal_xsd_datetime_to_string(const rasqal_xsd_datetime *dt);
+static unsigned char *rasqal_xsd_datetime_to_string(const rasqal_xsd_datetime *dt);
 static unsigned int days_per_month(int month, int year);
 
 /*
@@ -863,7 +863,7 @@ rasqal_xsd_datetime_parse_and_normalize(const unsigned char *datetime_string,
  *
  * Return value: lexical form string or NULL on failure.
  */
-static const unsigned char*
+static unsigned char*
 rasqal_xsd_datetime_to_string(const rasqal_xsd_datetime *dt)
 {
   unsigned char *ret=0;
@@ -936,7 +936,8 @@ rasqal_xsd_datetime_to_string(const rasqal_xsd_datetime *dt)
 const unsigned char*
 rasqal_xsd_datetime_string_to_canonical(const unsigned char* datetime_string)
 {
-  rasqal_xsd_datetime d;
+  rasqal_xsd_datetime d; /* allocated on stack */
+
   /* parse_and_normalize makes the rasqal_xsd_datetime canonical... */
   if(rasqal_xsd_datetime_parse_and_normalize(datetime_string, &d))
     return NULL;
