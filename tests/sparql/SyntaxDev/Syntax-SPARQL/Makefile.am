@@ -27,8 +27,8 @@ SPARQL_MANIFEST_FILES= manifest.ttl
 SPARQL_TEST_FILES= \
 syntax-basic-01.rq syntax-basic-02.rq syntax-basic-03.rq		\
 syntax-basic-04.rq syntax-basic-05.rq syntax-basic-06.rq		\
-syntax-bnodes-01.rq syntax-bnodes-02.rq syntax-bnodes-03.rq		\
-syntax-bnodes-04.rq syntax-bnodes-05.rq syntax-bnodes-06.rq		\
+syntax-bnodes-01.rq syntax-bnodes-02.rq		\
+syntax-bnodes-05.rq syntax-bnodes-06.rq		\
 syntax-bnodes-07.rq syntax-expr-01.rq syntax-expr-02.rq			\
 syntax-expr-03.rq syntax-expr-04.rq syntax-expr-05.rq			\
 syntax-forms-01.rq syntax-forms-02.rq syntax-limit-offset-07.rq		\

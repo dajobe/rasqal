@@ -196,14 +196,6 @@
          rdf:type   mfx:TestSyntax ;
          mf:action  <syntax-bnodes-02.rq> ; 
       ]
-      [  mf:name    "syntax-bnodes-03.rq" ;
-         rdf:type   mfx:TestSyntax ;
-         mf:action  <syntax-bnodes-03.rq> ; 
-      ]
-      [  mf:name    "syntax-bnodes-04.rq" ;
-         rdf:type   mfx:TestSyntax ;
-         mf:action  <syntax-bnodes-04.rq> ; 
-      ]
       [  mf:name    "syntax-bnodes-05.rq" ;
          rdf:type   mfx:TestSyntax ;
          mf:action  <syntax-bnodes-05.rq> ; 
