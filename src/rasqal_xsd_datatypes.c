@@ -54,22 +54,30 @@
 
 /* Local definitions */
 
-/*
+/**
  * rasqal_xsd_datetime:
- * Struct for parsing xsd:dateTimes to.
- * Signed types required for normalization process where a value
+ *
+ * INTERNAL - XML schema dateTime datatype
+ *
+ * Signed types are required for normalization process where a value
  * can be negative temporarily.
  */
 typedef struct {
   signed int year;
+  /* the following fields are integer values not characters */
   unsigned char month;
   unsigned char day;
   signed char hour;
   signed char minute;
   signed char second;
-  char second_frac[3+1]; /* support only up to milliseconds, +1 for nul termination */
+  /* second_frac is a string of 1-3 length (+1 for NUL)
+   * supports only up to milliseconds
+   */
+  char second_frac[3+1];
+  /* have_tz is an integer flag: non-0 if 'Z'ulu timezone is present */
   char have_tz;
 } rasqal_xsd_datetime;
+
 
 static int rasqal_xsd_datetime_parse_and_normalize(const unsigned char *datetime_string, rasqal_xsd_datetime *result);
 static unsigned char const *rasqal_xsd_datetime_to_string(const rasqal_xsd_datetime *dt);
@@ -151,6 +159,10 @@ static int
 rasqal_xsd_check_dateTime_format(const unsigned char* string, int flags) 
 {
   rasqal_xsd_datetime d;
+  
+  /* This should be correct according to 
+   * http://www.w3.org/TR/xmlschema-2/#dateTime
+   */
   return !rasqal_xsd_datetime_parse_and_normalize(string, &d);
 }
 
@@ -340,6 +352,7 @@ rasqal_xsd_init(void)
   return 0;
 }
 
+
 void
 rasqal_xsd_finish(void) 
 {
@@ -431,8 +444,8 @@ rasqal_xsd_is_datatype_uri(raptor_uri* uri)
 
 /**
  * days_per_month:
- * @month month
- * @year year
+ * @month month 1-12
+ * @year gregorian year
  *
  * INTERNAL - returns the number of days in given month and year.
  *
@@ -448,26 +461,33 @@ days_per_month(int month, int year) {
     case 8:
     case 10:
     case 12:
-    return 31;
+      return 31;
   
     case 4:
     case 6:
     case 9:
     case 11:
-    return 30;
+      return 30;
   
     case 2:
-    if(year&3) /* any of bottom 2 bits non-zero -> not 0 mod 4 -> not leap year */
-      return 28;
-    if(!(year%400)) /* 0 mod 400 and 0 mod 4 -> leap year */
+      /* any of bottom 2 bits non-zero -> not 0 mod 4 -> not leap year */
+      if(year & 3)
+        return 28;
+
+      /* 0 mod 400 and 0 mod 4 -> leap year */
+      if(!(year % 400))
+        return 29;
+
+      /* 0 mod 100 and not 0 mod 400 and 0 mod 4 -> not leap year */
+      if(!(year % 100))
+        return 28;
+
+      /* other 0 mod 4 years -> leap year */
       return 29;
-    if(!(year%100)) /* 0 mod 100 and not 0 mod 400 and 0 mod 4 -> not leap year */
-      return 28;
-    /* other 0 mod 4 years -> leap year */
-    return 29;
 
     default:
-    return 0; /* error */
+       /* error */
+      return 0;
   }
 }
 
@@ -478,13 +498,76 @@ days_per_month(int month, int year) {
 
 
 /**
+ * rasqal_xsd_datetime_normalize:
+ * @datetime: date time
+ *
+ * INTERNAl - Normalize a date time into the allowed range
+ *
+ * Return value: zero on success, non zero on failure.
+ */
+static int
+rasqal_xsd_datetime_normalize(rasqal_xsd_datetime *datetime)
+{
+  int t;
+  
+  /* second & second parts: no need to normalize as they are not
+   * touched after range check
+   */
+  
+  /* minute */
+  if(datetime->minute < 0) {
+    datetime->minute += 60;
+    datetime->hour--;
+  } else if(datetime->minute > 59) {
+    datetime->minute -= 60;
+    datetime->hour++;
+  }
+  
+  /* hour */
+  if(datetime->hour < 0) {
+    datetime->hour += 24;
+    datetime->day--;
+  } else if(datetime->hour > 23) {
+    datetime->hour -= 24;
+    datetime->day++;
+  }
+  
+  /* day */
+  if(datetime->day < 1) {
+    int y2= (t == 12) ? datetime->year-1 : datetime->year;
+    t=datetime->month--;
+    datetime->day += days_per_month(t, y2);
+  } else if(datetime->day > (t=days_per_month(datetime->month, datetime->year))) {
+    datetime->day -= t;
+    datetime->month++;
+  }
+  
+  /* month & year */
+  if(datetime->month < 1) {
+    datetime->month += 12;
+    datetime->year--;
+    /* there is no year 0 - go backwards to year -1 */
+    if(!datetime->year)
+      datetime->year--;
+  } else if(datetime->month > 12) {
+    datetime->month -= 12;
+    datetime->year++;
+    /* there is no year 0 - go forwards to year 1 */
+    if(!datetime->year)
+      datetime->year++;
+  }
+
+  /* success */
+  return 0;
+}
+
+
+/**
  * rasqal_xsd_datetime_parse_and_normalize:
  * @datetime_string: xsd:dateTime as lexical form string
  * @result: target struct for holding dateTime components
  *
- * Parse a xsd:dateTime string to a normalized #rasqal_xsd_datetime struct.
- *
- * Return value: zero on success, non zero on failure.
+ * INTERNAL - Parse a xsd:dateTime string to a normalized #rasqal_xsd_datetime struct.
  *
  * http://www.w3.org/TR/xmlschema-2/#dt-dateTime
  *
@@ -511,19 +594,20 @@ days_per_month(int month, int year) {
  * * ss is a two-integer-digit numeral that represents the whole seconds;
  * * '.' s+ (if present) represents the fractional seconds;
  * * zzzzzz (if present) represents the timezone"
+ *
+ * Return value: zero on success, non zero on failure.
  */
 static int
 rasqal_xsd_datetime_parse_and_normalize(const unsigned char *datetime_string,
-                                                 rasqal_xsd_datetime *result)
+                                        rasqal_xsd_datetime *result)
 {
   const char *p, *q; 
   char b[16];
   unsigned int l, t, t2, is_neg;
   unsigned long u;
 
-  if(!datetime_string || !result) {
+  if(!datetime_string || !result)
     return -1;
-  }
   
   p=(const char *)datetime_string;
   is_neg=0;
@@ -533,9 +617,10 @@ rasqal_xsd_datetime_parse_and_normalize(const unsigned char *datetime_string,
   /* negative years permitted */
   if(*p == '-') {
     is_neg=1;
-    ++p;
+    p++;
   }
-  for(q=p; ISNUM(*p); ++p) ;
+  for(q=p; ISNUM(*p); p++)
+    ;
   l=p-q;
   
   /* error if
@@ -543,7 +628,7 @@ rasqal_xsd_datetime_parse_and_normalize(const unsigned char *datetime_string,
      - more than 4 digits && leading zeros
      - '-' does not follow numbers
    */
-  if(l<4 || (l>4 && *q=='0') || *p!='-')
+  if(l < 4 || (l > 4 && *q=='0') || *p!='-')
     return -1;
 
   l=(l < sizeof(b)-1 ? l : sizeof(b)-1);
@@ -551,233 +636,220 @@ rasqal_xsd_datetime_parse_and_normalize(const unsigned char *datetime_string,
   b[l]=0; /* ensure nul termination */
   u=strtoul(b, 0, 10);
   
-  /* year "0000" not permitted */
-  /* restrict to signed int range
-     >= instead of > to allow for +-1 year adjustment in normalization
-     (however, these +-INT_MAX years cannot be parsed back in if converted to string)
+  /* year "0000" not permitted
+   * restrict to signed int range
+   * >= instead of > to allow for +-1 year adjustment in normalization
+   * (however, these +-INT_MAX years cannot be parsed back in if
+   * converted to string)
    */
-  if(!u || u>=INT_MAX)
+  if(!u || u >= INT_MAX)
     return -1;
     
   result->year=is_neg ? -(int)u : (int)u;
 
   /* parse month */
   
-  for(q=++p; ISNUM(*p); ++p) ;
+  for(q=++p; ISNUM(*p); p++)
+    ;
   l=p-q;
   
   /* error if month is not 2 digits or '-' is not the separator */
-  if(l!=2 || *p!='-')
+  if(l != 2 || *p!='-')
     return -2;
   
   t=(*q++-'0')*10;
   t+=*q-'0';
   
   /* month must be 1..12 */
-  if(t<1 || t>12)
+  if(t < 1 || t > 12)
     return -2;
   
   result->month=t;
   
   /* parse day */
   
-  for(q=++p; ISNUM(*p); ++p) ;
+  for(q=++p; ISNUM(*p); p++)
+    ;
   l=p-q;
   
   /* error if day is not 2 digits or 'T' is not the separator */
-  if(l!=2 || *p!='T')
+  if(l != 2 || *p != 'T')
     return -3;
   
   t=(*q++-'0')*10;
   t+=*q-'0';
   
   /* day must be 1..days_per_month */
-  if(t<1 || t>days_per_month(result->month, result->year))
+  if(t < 1 || t > days_per_month(result->month, result->year))
     return -3;
     
   result->day=t;
   
   /* parse hour */
   
-  for(q=++p; ISNUM(*p); ++p) ;
+  for(q=++p; ISNUM(*p); p++)
+    ;
   l=p-q;
   
   /* error if hour is not 2 digits or ':' is not the separator */
-  if(l!=2 || *p!=':')
+  if(l != 2 || *p != ':')
     return -4;
    
   t=(*q++-'0')*10;
   t+=*q-'0';
  
-  /* hour must be 0..24 - will handle special case 24 later */
-  /* (no need to check for < 0) */
-  if(t>24)
+  /* hour must be 0..24 - will handle special case 24 later
+   * (no need to check for < 0)
+   */
+  if(t > 24)
     return -4;
     
   result->hour=t;
  
   /* parse minute */
 
-  for(q=++p; ISNUM(*p); ++p) ;
+  for(q=++p; ISNUM(*p); p++)
+    ;
   l=p-q;
   
   /* error if minute is not 2 digits or ':' is not the separator */
-  if(l!=2 || *p!=':')
+  if(l != 2 || *p != ':')
     return -5;
    
   t=(*q++-'0')*10;
   t+=*q-'0';
  
-  /* minute must be 0..59  */
-  /* (no need to check for < 0) */
-  if(t>59)
+  /* minute must be 0..59
+   * (no need to check for < 0)
+   */
+  if(t > 59)
     return -5;
 
   result->minute=t;
   
   /* parse second whole part */
   
-  for(q=++p; ISNUM(*p); ++p) ;
+  for(q=++p; ISNUM(*p); p++)
+    ;
   l=p-q;
   
   /* error if second is not 2 digits or separator is not 
-     '.' (second fraction)
-     'Z' (utc)
-     '+' or '-' (timezone offset)
-     nul (end of string - second fraction and timezone are optional) */
-  if(l!= 2|| (*p && *p!='.' && *p!='Z' && *p!='+' && *p!='-'))
+   * '.' (second fraction)
+   * 'Z' (utc)
+   * '+' or '-' (timezone offset)
+   * nul (end of string - second fraction and timezone are optional)
+   */
+  if(l != 2 || (*p && *p != '.' && *p != 'Z' && *p != '+' && *p != '-'))
     return -6;
     
   t=(*q++-'0')*10;
   t+=*q-'0';
 
-  /* second must be 0..59  */
-  /* (no need to check for < 0) */
-  if(t>59)
+  /* second must be 0..59
+  * (no need to check for < 0)
+  */
+  if(t > 59)
     return -6;
 
   result->second=t;
 
   /* now that we have hour, minute and second, we can check
-     if hour == 24 -> only 24:00:00 permitted (normalized later) */  
+   * if hour == 24 -> only 24:00:00 permitted (normalized later)
+   */
   if(result->hour==24 && (result->minute || result->second))
     return -7;
   
   /* parse fraction seconds if any */
   result->second_frac[0]=0;
-  if(*p=='.') {
-    for(q=++p; ISNUM(*p); ++p) ;
-    while(*--p=='0') ; /* ignore trailing zeros */
-    ++p;
-    if(!(*q=='0' && q==p)) { /* allow ".0" */
+  if(*p == '.') {
+    for(q=++p; ISNUM(*p); p++)
+      ;
+
+    /* ignore trailing zeros */
+    while(*--p == '0')
+      ;
+    p++;
+
+    if(!(*q=='0' && q==p)) {
+      /* allow ".0" */
       l=p-q;
-      l=l<sizeof(result->second_frac)-1 ? l : sizeof(result->second_frac)-1; /* support only to milliseconds with truncation */
+      /* support only to milliseconds with truncation */
+      if(l > sizeof(result->second_frac)-1)
+        l=sizeof(result->second_frac)-1;
+
       if(l<1) /* need at least 1 num */
         return -8;
-      for(t2=0; t2<l; ++t2) {
+
+      for(t2=0; t2 < l; ++t2)
         result->second_frac[t2]=*q++;
-      }
+
       result->second_frac[l]=0;
     }
-    while(*p=='0') ++p; /* skip ignored trailing zeros */
+
+    /* skip ignored trailing zeros */
+    while(*p == '0')
+      p++;
   }
   
   /* parse & adjust timezone offset */
   /* result is normalized later */
   result->have_tz=0;
   if(*p) {
-    if(*p=='Z') {
+    if(*p == 'Z') {
       /* utc timezone - no need to adjust */
-      ++p;
+      p++;
       result->have_tz=1;
-    }
-    else if(*p=='+' || *p=='-') {
+    } else if(*p=='+' || *p=='-') {
       /* work out timezone offsets */
       is_neg=*p == '-';
      
       /* timezone hours */
-      for(q=++p; ISNUM(*p); ++p) ;
+      for(q=++p; ISNUM(*p); p++)
+        ;
       l=p-q;
-      if(l!=2 || *p!=':')
+      if(l != 2 || *p!=':')
         return -9;
 
-      t2=(*q++-'0')*10;
-      t2+=*q-'0';
-      if(t2>14)
-        /* tz offset hours are restricted to 0..14 */
-        /* (no need to check for < 0) */
+      t2=(*q++ - '0')*10;
+      t2+=*q - '0';
+      if(t2 > 14)
+        /* tz offset hours are restricted to 0..14
+         * (no need to check for < 0)
+         */
         return -9;
     
-      result->hour+=is_neg ? t2 : -t2; /* negative tz offset adds to the result */
+      /* negative tz offset adds to the result */
+      result->hour+=is_neg ? t2 : -t2;
 
       /* timezone minutes */    
-      for(q=++p; ISNUM(*p); ++p) ;
+      for(q=++p; ISNUM(*p); p++)
+        ;
       l=p-q;
       if(l!=2)
         return -10;
-      t=(*q++-'0')*10;
-      t+=*q-'0';
-      if(t>59 || (t2==14 && t!=0))
+
+      t=(*q++ - '0')*10;
+      t+=*q - '0';
+      if(t > 59 || (t2 == 14 && t!=0)) {
         /* tz offset minutes are restricted to 0..59
-           (no need to check for < 0)
-           or 0 if hour offset is exactly +-14 */
+         * (no need to check for < 0)
+         * or 0 if hour offset is exactly +-14 
+         */
         return -10;
+      }
     
-      result->minute+=is_neg ? t : -t; /* negative tz offset adds to the result */
+      /* negative tz offset adds to the result */
+      result->minute += is_neg ? t : -t;
       result->have_tz=1;
     }
     
+    /* failure if extra chars after the timezone part */
     if(*p)
-      /* extra chars after the timezone part */
       return -11;
+
   }
-    
-  /* Normalize */
-  
-  /* second & second parts: no need to normalize as they are not touched after range check */
-  
-  /* minute */
-  if(result->minute<0) {
-    result->minute+=60;
-    result->hour--;
-  } else if(result->minute>59) {
-    result->minute-=60;
-    result->hour++;
-  }
-  
-  /* hour */
-  if(result->hour<0) {
-    result->hour+=24;
-    result->day--;
-  } else if(result->hour>23) {
-    result->hour-=24;
-    result->day++;
-  }
-  
-  /* day */
-  if(result->day<1) {
-    t=result->month--;
-    result->day+=days_per_month(t, t == 12 ? result->year-1 : result->year);
-  }
-  else if(result->day>(t=days_per_month(result->month, result->year))) {
-    result->day-=t;
-    result->month++;
-  }
-  
-  /* month & year */
-  if(result->month<1) {
-    result->month+=12;
-    result->year--;
-    if(!result->year)
-      result->year--; /* there is no year 0 */
-  } else if(result->month>12) {
-    result->month-=12;
-    result->year++;
-    if(!result->year)
-      result->year++; /* there is no year 0 */
-  }
-  
-  return 0; /* success */
+
+  return rasqal_xsd_datetime_normalize(result);
 }
 
 
@@ -785,7 +857,7 @@ rasqal_xsd_datetime_parse_and_normalize(const unsigned char *datetime_string,
  * rasqal_xsd_datetime_to_string:
  * @dt: datetime struct
  *
- * Convert a #rasqal_xsd_datetime struct to a xsd:dateTime lexical form string.
+ * INTERNAL - Convert a #rasqal_xsd_datetime struct to a xsd:dateTime lexical form string.
  *
  * Caller should RASQAL_FREE() the returned string.
  *
@@ -800,14 +872,14 @@ rasqal_xsd_datetime_to_string(const rasqal_xsd_datetime *dt)
   int i;
    
   if(!dt)
-    return 0;
+    return NULL;
     
   is_neg=dt->year<0;
 
-  /* format twice:
-     first with null buffer of zero size to get the required buffer size
-     second time to the allocated buffer */
-  for(i=0; i<2; ++i) {
+  /* format twice: first with null buffer of zero size to get the
+   * required buffer size second time to the allocated buffer
+   */
+  for(i=0; i < 2; i++) {
     r=snprintf((char*)ret, r, "%s%04d-%2.2d-%2.2dT%2.2d:%2.2d:%2.2d%s%s%s",
       is_neg ? "-" : "",
       is_neg ? -dt->year : dt->year,
@@ -824,14 +896,14 @@ rasqal_xsd_datetime_to_string(const rasqal_xsd_datetime *dt)
     if(r<0) {
       if(ret)
         RASQAL_FREE(cstring, ret);
-      return 0;
+      return NULL;
     }
 
     /* alloc return buffer on first pass */
     if(!i) {
       ret=(unsigned char *)RASQAL_MALLOC(cstring, ++r);
       if(!ret)
-        return 0;
+        return NULL;
     }
   }
   return ret;
