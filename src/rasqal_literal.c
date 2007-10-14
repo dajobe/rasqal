@@ -1258,6 +1258,8 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
       if(seen_boolean & seen_string)
         type=RASQAL_LITERAL_STRING;
     }
+    RASQAL_DEBUG2("promoting to type %s\n",
+                  rasqal_literal_type_labels[type]);
   } else
     type=lits[0]->type;
   
@@ -1320,33 +1322,35 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
 
   switch(type) {
     case RASQAL_LITERAL_URI:
-      return strcmp((const char*)raptor_uri_as_string(lits[0]->value.uri),
-                    (const char*)raptor_uri_as_string(lits[1]->value.uri));
+      return raptor_uri_compare(lits[0]->value.uri, lits[1]->value.uri);
 
     case RASQAL_LITERAL_STRING:
-      if(lits[0]->language || lits[1]->language) {
-        /* if either is null, the comparison fails */
-        if(!lits[0]->language || !lits[1]->language)
-          return 1;
-        if(rasqal_strcasecmp(lits[0]->language,lits[1]->language))
-          return 1;
-      }
+      if(lits[0]->type == RASQAL_LITERAL_STRING &&
+         lits[1]->type == RASQAL_LITERAL_STRING) {
 
-      if(lits[0]->datatype || lits[1]->datatype) {
-        int result;
-
-        /* there is no ordering between typed and plain literals:       
-           if either is NULL, do not compare but return an error
-           (also implies inequality) */
-        if(!lits[0]->datatype || !lits[1]->datatype) {
-          *error=1;
-          return 0;
+        if(lits[0]->language || lits[1]->language) {
+          /* if either is null, the comparison fails */
+          if(!lits[0]->language || !lits[1]->language)
+            return 1;
+          if(rasqal_strcasecmp(lits[0]->language,lits[1]->language))
+            return 1;
         }
-        result=strcmp((const char*)raptor_uri_as_string(lits[0]->datatype),
-                      (const char*)raptor_uri_as_string(lits[1]->datatype));
 
-        if(result)
-          return result;
+        if(lits[0]->datatype || lits[1]->datatype) {
+          int result;
+
+          /* there is no ordering between typed and plain literals:       
+             if either is NULL, do not compare but return an error
+             (also implies inequality) */
+          if(!lits[0]->datatype || !lits[1]->datatype) {
+            *error=1;
+            return 0;
+          }
+          result=raptor_uri_compare(lits[0]->datatype, lits[1]->datatype);
+
+          if(result)
+            return result;
+        }
       }
       
       /* FALLTHROUGH */
@@ -1355,7 +1359,8 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
     case RASQAL_LITERAL_QNAME:
     case RASQAL_LITERAL_DATETIME:
       if(flags & RASQAL_COMPARE_NOCASE)
-        return rasqal_strcasecmp((const char*)strings[0], (const char*)strings[1]);
+        return rasqal_strcasecmp((const char*)strings[0],
+                                 (const char*)strings[1]);
       else
         return strcmp((const char*)strings[0], (const char*)strings[1]);
 
