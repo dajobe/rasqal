@@ -1,4 +1,358 @@
+2007-10-14  Dave Beckett <dave@dajobe.org>
+
+	* tests/sparql/SyntaxDev/Syntax-SPARQL2/Makefile.am,
+	tests/sparql/SyntaxDev/Syntax-SPARQL2/manifest.ttl,
+	tests/sparql/SyntaxDev/Syntax-SPARQL2/syntax-graph-02.rq,
+	tests/sparql/SyntaxDev/Syntax-SPARQL2/syntax-graph-06.rq: Removed
+	tests syntax-graph-02.rq syntax-graph-06.rq with GRAPH blank nodes
+	which are no longer legal SPARQL
+
+	* tests/sparql/SyntaxDev/Syntax-SPARQL/Makefile.am,
+	tests/sparql/SyntaxDev/Syntax-SPARQL/manifest.ttl,
+	tests/sparql/SyntaxDev/Syntax-SPARQL/syntax-bnodes-03.rq,
+	tests/sparql/SyntaxDev/Syntax-SPARQL/syntax-bnodes-04.rq: Removed
+	tests syntax-bnodes-03.rq syntax-bnodes-04.rq with blank nodes in
+	predicate which are no longer legal SPARQL
+
+	* tests/sparql/ValueTesting/Makefile.am: Add
+	typePromotion-decimal-decimal-fail to failures until type
+	promotions are fixed.
+
+	* tests/sparql/syntax/Makefile.am,
+	tests/sparql/syntax/construct0.rq: Removed construct0.rq test
+	since CONSTRUCT * is no longer legal sparql
+
+	* src/rasqal_literal.c: (rasqal_literal_compare): Use
+	raptor_uri_compare from raptor 1.4.16 instead of strcmp.  Protect
+	checking rdf literal language and datatypes in a comparison to
+	only happen when both literals were originally strings.
+
+	* src/rasqal_raptor.c: (rasqal_raptor_triple_match): Debug
+	messages
+	(rasqal_raptor_triple_present): Set the match parts dependent of
+	whether the triple has an origin.
+
+	* src/rasqal_xsd_datatypes.c: (rasqal_xsd_datetime_to_string):
+	Does not return a string that is required to be const.
+
+2007-10-13  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_xsd_datatypes.c: Code style - comments, whitespace,
+	indenting.
+	(rasqal_xsd_datetime_normalize): Added, pulled out of
+	rasqal_xsd_datetime_parse_and_normalize
+
+2007-10-12  Lauri Aalto <laalto@iki.fi>
+
+	* src/sparql_parser.y: (OrderConditionList) Fix memory leak when
+	sequence creation fails.
+
+	* src/rasqal_engine.c, src/rasqal_internal.h, src/rasqal_query.c:
+	Fix error where a sequence alloc error in
+	rasqal_engine_join_graph_patterns() leaves gp in stale state.
+	(rasqal_engine_move_constraints,
+	rasqal_engine_join_graph_patterns) Changed to return an int error
+	code.
+	(rasqal_engine_merge_graph_patterns, rasqal_engine_merge_triples,
+	rasqal_engine_remove_empty_group_graph_patterns) Set modified flag
+	to negative to signal error codes.
+	(rasqal_query_prepare) Do gp merge only if factory->prepare()
+	succeeded. Use negative values of the modified flag to signal
+	errors from gp visitors.
+
+	* src/rasqal_engine.c: (rasqal_engine_graph_pattern_init) Bubble
+	up errors from subgp init.
+
+	* src/sparql_parser.y: Memory leak fixes:
+	Add Filter %destructor.
+	(AdditiveExpression) Free MultiplicativeExpression when
+	rasqal_new_literal_expression() for a numeric literal fails.
+
+	* src/rasqal_literal.c: (rasqal_new_integer_literal,
+	rasqal_new_double_literal, rasqal_new_float_literal,
+	rasqal_new_decimal_literal, rasqal_new_boolean_literal,
+	rasqal_literal_as_node) Check rasqal_xsd_datatype_type_to_uri()
+	return value.
+
+	* src/rasqal_xsd_datatypes.c: (sparql_xsd_datatypes_table) Init
+	static variable to NULL.
+	(rasqal_xsd_init) Check for rasqal_xsd_namespace_uri alloc
+	failure.
+	(rasqal_xsd_finish) Set static pointers to NULL to prevent
+	dangling pointers.
+	(rasqal_xsd_datatype_uri_to_type, rasqal_xsd_datatype_type_to_uri,
+	rasqal_xsd_datatype_check, rasqal_xsd_datatype_label) Check that
+	sparql_xsd_datatypes_table is allocated.
+
+	* src/rasqal_engine.c: (rasqal_new_engine_execution_data) Check
+	raptor_sequence_set_at() return value. Fixes memory leak when
+	setting (n+1)th item and setting nth item had failed.
+
+2007-10-11  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_xsd_datatypes.c: Fix compiler warning
+
+	* tests/sparql/examples/Makefile.am:
+	sparql-query-example-Testing-Values-0 (ex11_0) was broken by
+	recent changes in literal handling.
+
+	* tests/sparql/examples/Makefile.am: makefile comments
+
+	* tests/sparql/examples/Makefile.am:
+	sparql-query-example-Testing-Values-RDFterm-equal-2 (ex11.2.3.1_1)
+	now passes
+
+	* src/rasqal_literal.c: (rasqal_literal_string_to_native) Promote
+	xsd:dateTime literals to canonical literal form - strcmp() now
+	works better when comparing datetime literals.
+
+	* src/Makefile.am, src/rasqal_internal.h,
+	src/rasqal_xsd_datatypes.c: (rasqal_xsd_datetime_string_to_canonical)
+	Added library internal function for upgrading xsd:dateTime strings
+	to canonical form.
+	(rasqal_xsd_datetime_parse_and_normalize,
+	rasqal_xsd_datetime_to_string) Added module internal functions for
+	dealing with xsd:dateTime strings.
+	(rasqal_xsd_check_dateTime_format) Use
+	rasqal_xsd_datetime_parse_and_normalize() for format checking.
+	(days_per_month) Added helper function for
+	rasqal_xsd_datetime_parse_and_normalize().
+	(rasqal_xsd_datetime) Replaced struct with a version that can be
+	used for normalization and does not use bitfields. Second
+	fractions stored as string, not as double.
+	(test_datetime_parser_tostring, test_datetimes, main) Added test
+	code for xsd:dateTime handling.
+	(Makefile.am): Moved rasqal_xsd_datatypes_test from local_tests to
+	TESTS.
+
+2007-10-10  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_raptor.c: (rasqal_raptor_triple_present,
+	rasqal_raptor_triples_match_context) Fix compiler warnings about
+	enum-int mismatches.
+
+2007-10-09  Dave Beckett <dave@dajobe.org>
+
+	* tests/sparql/check-sparql: Invoke roqet with -D for data
+	graphs (not named)
+
+	* utils/roqet.c: Added -D/--data for data graphs and -G/--named
+	for named graphs (-s is a synonym for this)
+
+	* src/rasqal_raptor.c: (rasqal_raptor_new_triples_source): Use the
+	named graph URI for the source literal to distinguish default and
+	named graphs.
+	(rasqal_raptor_triple_match): Add a parts field for the fields of
+	the triple to match to distinguish a graph query with no binding
+	from a non-graph query.  Add checks for graph/non-graph query when
+	finding an origin in a triple so that they match.
+	(rasqal_raptor_init_triples_match): Init the parts being looked
+	for depending on whether t->origin is present.
+
+	* src/rasqal_engine.c: (rasqal_engine_execute_run): Allow
+	rasqal_engine_excute_next_lazy to return finished on first
+	execution, for an empty result set.
+
+	* src/rasqal_query.c: (rasqal_query_execute): It is not a failure
+	for rasqal_engine_execute_run to be immediately finished, it is
+	just an empty results set.
+
+	* src/rasqal.h: (enum rasqal_triple_parts): Added
+	RASQAL_TRIPLE_GRAPH as alias for RASQAL_TRIPLE_ORIGIN,
+	RASQAL_TRIPLE_SPO for triple parts and RASQAL_TRIPLE_SPOG for all
+	parts including graph.
+
+	* src/sparql_parser.y: (DefaultGraphClause): Set graph name to
+	NULL for default graph.
+
+	* src/rasqal_raptor.c: (rasqal_raptor_triple_match): If a named
+	graph triple is present, do not match a triple pattern with
+	nothing in the 'origin'.
+
+	* tests/sparql/check-sparql: handle dt:graphData
+
+	* tests/sparql/dawg/graph/data-g3-dup.ttl,
+	tests/sparql/dawg/graph/manifest.ttl: Update to DAWG test suite
+	graph dir 2007-10-09
+
+	* tests/sparql/dawg/dataset/data-g1-dup.ttl,
+	tests/sparql/dawg/dataset/data-g2-dup.ttl,
+	tests/sparql/dawg/dataset/data-g3-dup.ttl,
+	tests/sparql/dawg/dataset/data-g4-dup.ttl,
+	tests/sparql/dawg/dataset/dataset-09b.rq,
+	tests/sparql/dawg/dataset/dataset-10b.rq,
+	tests/sparql/dawg/dataset/dataset-12b.rq,
+	tests/sparql/dawg/dataset/manifest.ttl: Update to DAWG test suite
+	dataset dir 2007-10-09
+
+	* tests/sparql/check-sparql: Handle DAWG dawgt:approval
+	dawgt:Withdrawn tests
+
+	* src/rasqal_expr.c: (rasqal_expression_evaluate): Make
+	RASQAL_EXPR_BOUND work again.
+
+2007-10-08  Dave Beckett <dave@dajobe.org>
+
+	* src/sparql_parser.y: Added SAMETERM token for SPARQL keyword
+	sameTerm() Added lexer tokens DOUBLE_POSITIVE_LITERAL,
+	DOUBLE_NEGATIVE_LITERAL, INTEGER_POSITIVE_LITERAL,
+	INTEGER_NEGATIVE_LITERAL, DECIMAL_POSITIVE_LITERAL,
+	DECIMAL_NEGATIVE_LITERAL.  Some token re-orderings and
+	renumberings.
+	(Query): Move dataset, wher, group, order and limit to elsewhere
+	like sparql grammar.
+	(Prolog, PRefixDeclOpt): Rename to PrefixDeclListOpt
+	(SelectQuery, DescribeQuery, ConstructQuery, AskQuery): Add
+	appropriate datasets, where, and solution modifier if allowed.
+	(ConstructQuery): Remove CONSTRUCT * - no longer in the grammar.
+	(DefaultGraphClause, NamedGraphClause): Use SourceSelector
+	(SourceSelector, SolutionModifier): Added like SPARQL grammar.
+	(LimitOffsetClausesOpt): Renamed from LimitOffsetOpt, like SPARQL
+	grammar.
+	(Filter): Added, like SPARQL grammar.
+	(ObjectList): Uses a list of Object like SPARQL grammar
+	(Object): Added, like SPARQL grammar.
+	(Verb): Changed to be VarOrIRIref not VarOrBlankNodeOrIRIref like
+	SPARQL grammar
+	(VarOrBlankNodeOrIRIref): Removed, no longer used.
+	(GraphTerm): Use NumericLiteral like SPARQL grammar.
+	(AdditiveExpression): Use NumericLiteralPositive and
+	NumericLiteralNegative to allow unary minus/plus to work.  like
+	SPARQL grammar.
+	(BuiltInCall): Add SAMETERM.
+	(NumericLiteral, NumericLiteralUnsigned, NumericLiteralPositive,
+	NumericLiteralNegative): Added like SPARQL grammar
+
+	* src/sparql_lexer.l: Added INTEGER macro
+	Added SAMETERM SPARQL keyword
+	Made INTEGER, DECIMAL and DOUBLE return either UNSIGNED_, POSITIVE_ or
+	NEGATIVE_ tokens to help out the parser.
+
+	* src/rasqal_query.c: (rasqal_query_write_sparql_expression_op):
+	Added new RASQAL_EXPR_SAMETERM for SPARQL keyword sameTerm.
+
+	* src/rasqal_expr.c: (rasqal_expression_clear,
+	rasqal_expression_visit, rasqal_expression_evaluate,
+	rasqal_expression_print, rasqal_expression_is_constant): Added new
+	RASQAL_EXPR_SAMETERM for SPARQL keyword sameTerm().  Evaluation
+	not implemented yet.
+
+	* src/rasqal.h: Added new rasqal_op expression
+	RASQAL_EXPR_SAMETERM for SPARQL keyword sameTerm()
+
+2007-10-07  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_xsd_datatypes.c: (main) Comment out all of old test
+	code that's not used or usable.
+
+	* configure.ac: Remove --enable-datatypes
+
+	* src/rasqal_expr.c: (main): Needs more init for xsd module.
+
+	* src/rasqal_internal.h, src/rasqal_xsd_datatypes.c: Remove last
+	uses of static rasqal_xsd_TYPE_uri uris
+
+	* src/sparql_lexer.l: altered cast for change to
+	rasqal_new_decimal_literal.
+
+	* tests/sparql/check-sparql: Use config->{execute} and set to
+	false for syntax test types
+
+	* tests/sparql/check-sparql: revert: Debugging run_test for $debug>0
+
+	* tests/sparql/check-sparql: Debugging run_test for $debug>1
+
+	* tests/sparql/check-sparql: Debugging manifest for $debug>1
+
+	* src/rasqal.h: typedef rasqal_literal: note decimal inits
+	value.floating
+
+	* src/rasqal_literal.c: (rasqal_new_decimal_literal): Initialise
+	the floating field.
+
+	* src/rasqal.h: Move the FIRST XSD to include
+	RASQAL_LITERAL_STRING aka xsd:string
+
+	* src/rasqal_query.c: (rasqal_query_write_sparql_literal): Use
+	rasqal_xsd_datatype_type_to_uri to get xsd:dateTime URI.
+
+	* src/rasqal_expr.c: (rasqal_expression_evaluate):
+	RASQAL_EXPR_DATATYPE - ensure a plain literal with no datatype
+	returns datatype xsd:string.
+
+	* src/sparql_parser.y: (sparql_is_builtin_xsd_datatype): Removed.
+	Use rasqal_xsd_is_datatype_uri instead
+
+	* src/rasqal_literal.c, src/rasqal_xsd_datatypes.c: Move XSD
+	functions to rasqal_xsd_datatypes.c
+
+	* src/rasqal_internal.h: Added prototypes for
+	rasqal_xsd_datatype_uri_to_type, rasqal_xsd_datatype_type_to_uri,
+	rasqal_xsd_datatype_check, rasqal_xsd_datatype_label and
+	rasqal_xsd_is_datatype_uri
+
+	* src/rasqal_general.c: Move XSD uris init/free to
+	rasqal_xsd_datatypes.c
+
+	* src/Makefile.am: Add rasqal_xsd_datatypes.c to compilation
+
+	* src/rasqal_internal.h: Added rasqal_new_numeric_literal
+
+	* src/rasqal_expr.c: (rasqal_expression_evaluate):
+	RASQAL_EXPR_UMINUS, RASQAL_EXPR_PLUS, RASQAL_EXPR_MINUS,
+	RASQAL_EXPR_STAR and RASQAL_EXPR_SLASH now use
+	rasqal_new_numeric_literal.  RASQAL_EXPR_LITERAL: Turn a literal
+	into a literal value here, removing mention of variables.
+
+	* src/rasqal_literal.c: (rasqal_new_float_literal): Added.
+	(rasqal_new_decimal_literal) Now takes a const char* arg.
+	(rasqal_new_numeric_literal): Added
+
+	* src/rasqal.h: Added rasqal_new_float_literal
+	rasqal_new_decimal_literal now takes a const char*
+
+	* tests/sparql/check-sparql: debug query type
+
+	* src/rasqal_expr.c: (rasqal_expression_evaluate): Print
+	expression again when printing result.
+
+	* src/rasqal_literal.c: (rasqal_literal_as_integer,
+	rasqal_literal_as_floating): Convert decimal to integer, floating
+	too.
+	(rasqal_literal_compare): Decimal can be used as a double.
+	(rasqal_literal_as_integer): Decimal can be turned into an an
+	integer.
+	(rasqal_literal_equals): Compare decimal as doubles.
+
+	* src/rasqal_literal.c: (rasqal_literal_print): Debug message tweak
+
+	* src/rasqal_engine.c: docs
+
+	* src/rasqal_engine.c: (rasqal_engine_query_result_row_to_nodes):
+	Added to turn internal literal types into just URI/blank/string
+	literal RDF nodes.
+	(rasqal_engine_execute_run): Call
+	rasqal_engine_query_result_row_to_nodes for first result row.
+	(rasqal_engine_execute_next): Call
+	rasqal_engine_query_result_row_to_nodes for all new rows.
+
+	* src/rasqal_engine.c: prototype
+
+	* src/rasqal_engine.c: Moved rasqal_engine_excute_next_lazy
+
+	* src/rasqal_engine.c: (rasqal_engine_get_result_row): Added
+	(rasqal_engine_get_result_values): Uses
+	rasqal_engine_get_result_row.
+	(rasqal_engine_execute_next_from_saved): Added
+	(rasqal_engine_execute_next): Use
+	rasqal_engine_execute_next_from_saved.
+
 2007-10-06  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_engine.c: Code style
+
+	* src/rasqal_engine.c, src/rasqal_internal.h, src/rasqal_query.c:
+	Remove rasqal_query field binding_values as it is not needed
 
 	* src/rasqal_engine.c: Docs
 	(rasqal_engine_get_result_values): Renamed from
