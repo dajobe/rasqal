@@ -1,4 +1,6 @@
-2007-10-14  Dave Beckett <dave@dajobe.org>
+2007-10-14  Dave Beckett  <dave@dajobe.org>
+
+	* Last known good revision 12894: 'make check' succeeds.
 
 	* tests/sparql/SyntaxDev/Syntax-SPARQL2/Makefile.am,
 	tests/sparql/SyntaxDev/Syntax-SPARQL2/manifest.ttl,
