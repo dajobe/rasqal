@@ -29,7 +29,7 @@ data.n3 order.ttl
 
 SPARQL_TEST_FILES= \
 describe1.rq groups.rq 0triples.rq \
-construct0.rq construct1.rq construct2.rq \
+construct1.rq construct2.rq \
 ask0.rq distinct0.rq limit0.rq cast0.rq cast1.rq offset0.rq \
 select-dup.rq order-distinct.rq distinct-undef.rq \
 blankuri.rq

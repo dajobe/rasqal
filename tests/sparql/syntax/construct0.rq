@@ -1,3 +1,0 @@
-CONSTRUCT *
-FROM <data.n3>
-WHERE { ?x ?y ?z }
