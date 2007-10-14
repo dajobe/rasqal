@@ -45,14 +45,12 @@ extendedType-ne-fail.rq \
 typePromotion-decimal-decimal-fail.rq \
 typePromotion-decimal-decimal-pass.rq
 
-# This file is not used in the tests and has old syntax:
-# extendedType-ne-pass.rq
-
 # Test failures
 EXPECTED_SPARQL_CORRECT_FAILURES= \
 extendedType-ne-fail \
 extendedType-literal-ne \
 typePromotion-decimal-decimal-pass \
+typePromotion-decimal-decimal-fail \
 boolean-false-canonical \
 boolean-true-canonical \
 boolean-EBV-canonical
