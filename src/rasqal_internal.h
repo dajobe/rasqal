@@ -631,6 +631,12 @@ typedef void (rasqal_kv_free_fn)(const void *key, const void *value);
 
 rasqal_literal* rasqal_literal_cast(rasqal_literal* l, raptor_uri* datatype, int flags,  int* error_p);
 rasqal_literal* rasqal_new_numeric_literal(double d, rasqal_literal_type type);
+int rasqal_literal_is_numeric(rasqal_literal* literal);
+rasqal_literal_type rasqal_literal_promote_calculate(rasqal_literal* l1, rasqal_literal* l2, int flags);
+rasqal_literal* rasqal_literal_add(rasqal_literal* l1, rasqal_literal* l2, int *error);
+rasqal_literal* rasqal_literal_subtract(rasqal_literal* l1, rasqal_literal* l2, int *error);
+rasqal_literal* rasqal_literal_multiply(rasqal_literal* l1, rasqal_literal* l2, int *error);
+rasqal_literal* rasqal_literal_divide(rasqal_literal* l1, rasqal_literal* l2, int *error);
 
 
 /* rasqal_map.c */
@@ -670,6 +676,8 @@ int rasqal_xsd_datatype_check(rasqal_literal_type native_type, const unsigned ch
 const char* rasqal_xsd_datatype_label(rasqal_literal_type native_type);
 int rasqal_xsd_is_datatype_uri(raptor_uri* uri);
 const unsigned char* rasqal_xsd_datetime_string_to_canonical(const unsigned char* datetime_string);
+rasqal_literal_type rasqal_xsd_datatype_uri_parent_type(raptor_uri* uri);
+int rasqal_xsd_datatype_is_numeric(rasqal_literal_type type);
 
 /* end of RASQAL_INTERNAL */
 #endif
