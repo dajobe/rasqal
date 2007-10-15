@@ -242,7 +242,7 @@ rasqal_engine_build_constraints_expression(rasqal_graph_pattern* gp)
 }
 
 
-static void
+static int
 rasqal_engine_convert_blank_node_to_anonymous_variable(rasqal_query *rq,
                                                        rasqal_literal *l)
 {
@@ -251,12 +251,18 @@ rasqal_engine_convert_blank_node_to_anonymous_variable(rasqal_query *rq,
   v=rasqal_new_variable_typed(rq, 
                               RASQAL_VARIABLE_TYPE_ANONYMOUS,
                               (unsigned char*)l->string, NULL);
+  /* rasqal_new_variable_typed took ownership of the l->string name.
+   * Set to NULL to prevent double delete. */
+  l->string=NULL;
+  
+  if(!v)
+    return 1; /* error */
 
   /* Convert the blank node literal into a variable literal */
-  l->string=NULL;
-
   l->type=RASQAL_LITERAL_VARIABLE;
   l->value.variable=v;
+
+  return 0; /* success */
 }
 
 
@@ -264,19 +270,26 @@ static int
 rasqal_engine_build_anonymous_variables(rasqal_query* rq)
 {
   int i;
+  int rc=1;
   raptor_sequence *s=rq->triples;
   
   for(i=0; i < raptor_sequence_size(s); i++) {
     rasqal_triple* t=(rasqal_triple*)raptor_sequence_get_at(s, i);
-    if(t->subject->type == RASQAL_LITERAL_BLANK)
-      rasqal_engine_convert_blank_node_to_anonymous_variable(rq, t->subject);
-    if(t->predicate->type == RASQAL_LITERAL_BLANK)
-      rasqal_engine_convert_blank_node_to_anonymous_variable(rq, t->predicate);
-    if(t->object->type == RASQAL_LITERAL_BLANK)
-      rasqal_engine_convert_blank_node_to_anonymous_variable(rq, t->object);
+    if(t->subject->type == RASQAL_LITERAL_BLANK &&
+       rasqal_engine_convert_blank_node_to_anonymous_variable(rq, t->subject))
+      goto done;
+    if(t->predicate->type == RASQAL_LITERAL_BLANK &&
+       rasqal_engine_convert_blank_node_to_anonymous_variable(rq, t->predicate))
+      goto done;
+    if(t->object->type == RASQAL_LITERAL_BLANK &&
+       rasqal_engine_convert_blank_node_to_anonymous_variable(rq, t->object))
+      goto done;
   }
 
-  return 0;
+  rc=0;
+
+  done:
+  return rc;
 }
 
 
@@ -1010,26 +1023,32 @@ rasqal_engine_graph_pattern_get_next_match(rasqal_query_results* query_results,
 int
 rasqal_engine_prepare(rasqal_query *query)
 {
+  int rc=1;
+
   if(!query->triples)
-    return 1;
+    goto done;
   
   if(!query->variables) {
 
-    rasqal_engine_build_anonymous_variables(query);
+    if(rasqal_engine_build_anonymous_variables(query))
+      goto done;
 
     /* Expand 'SELECT *' and 'CONSTRUCT *' */
     rasqal_engine_expand_wildcards(query);
 
     /* create the query->variables array */
     if(rasqal_engine_assign_variables(query))
-      return 1;
+      goto done;
 
     rasqal_query_build_declared_in(query);
     
     rasqal_engine_query_fold_expressions(query);
   }
 
-  return 0;
+  rc=0;
+
+  done:
+  return rc;
 }
 
 
