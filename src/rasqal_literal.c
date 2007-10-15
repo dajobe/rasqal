@@ -112,13 +112,11 @@ rasqal_new_double_literal(double d)
     l->usage=1;
     l->type=RASQAL_LITERAL_DOUBLE;
     l->value.floating=d;
-    l->string=(unsigned char*)RASQAL_MALLOC(cstring, 30); /* FIXME */
+    l->string=rasqal_xsd_format_double(d, (size_t*)&l->string_len);
     if(!l->string) {
       rasqal_free_literal(l);
       return NULL;
     }
-    sprintf((char*)l->string, "%1g", d);
-    l->string_len=strlen((const char*)l->string);
     dt_uri=rasqal_xsd_datatype_type_to_uri(l->type);
     if(!dt_uri) {
       rasqal_free_literal(l);
@@ -391,6 +389,14 @@ rasqal_literal_string_to_native(rasqal_literal *l,
     case RASQAL_LITERAL_DECIMAL:
       d=0.0;
       (void)sscanf((char*)l->string, "%lf", &d);
+      if(native_type == RASQAL_LITERAL_DOUBLE &&
+         !(strchr((char*)l->string, 'e') || strchr((char*)l->string, 'E'))) {
+        /* Fixup - there is no 'e' or 'E' so make this canonical */
+        RASQAL_FREE(cstring, (void*)l->string);
+        l->string=rasqal_xsd_format_double(d, (size_t*)&l->string_len);
+        if(!l->string)
+          return 1;
+      }
       
       l->value.floating=d;
       break;
