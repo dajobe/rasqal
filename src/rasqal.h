@@ -358,6 +358,9 @@ struct rasqal_literal_s {
    *  uri      qname of URI not yet expanded (temporary)
    */
   const unsigned char *flags;
+
+  /* parent XSD type if any or RASQAL_LITERAL_UNKNOWN */
+  rasqal_literal_type parent_type;
 };
 
 
