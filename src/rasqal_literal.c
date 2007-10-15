@@ -352,7 +352,7 @@ rasqal_literal_string_to_native(rasqal_literal *l,
   int i;
   double d;
   rasqal_literal_type native_type=RASQAL_LITERAL_UNKNOWN;
-  unsigned char const *new_string; 
+  unsigned char const *new_string;
 
   /* RDF literal with no datatype (plain literal) */
   if(!l->datatype)
@@ -426,7 +426,6 @@ rasqal_literal_string_to_native(rasqal_literal *l,
     break;
 
   case RASQAL_LITERAL_DATETIME:
-    if(l->datatype)
     new_string=rasqal_xsd_datetime_string_to_canonical(l->string);
     if(new_string) {
       RASQAL_DEBUG3("converted xsd:dateTime \"%s\" to canonical form \"%s\"\n", l->string, new_string);
