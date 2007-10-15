@@ -510,7 +510,7 @@ rasqal_new_string_literal(const unsigned char *string,
     if(language)
       RASQAL_FREE(cstring, (void*)language);
     if(datatype)
-      RASQAL_FREE(cstring, (void*)datatype);
+      raptor_free_uri(datatype);
     if(datatype_qname)
       RASQAL_FREE(cstring, (void*)datatype_qname);
     RASQAL_FREE(cstring, (void*)string);
