@@ -678,6 +678,7 @@ int rasqal_xsd_is_datatype_uri(raptor_uri* uri);
 const unsigned char* rasqal_xsd_datetime_string_to_canonical(const unsigned char* datetime_string);
 rasqal_literal_type rasqal_xsd_datatype_uri_parent_type(raptor_uri* uri);
 int rasqal_xsd_datatype_is_numeric(rasqal_literal_type type);
+unsigned char* rasqal_xsd_format_double(double d, size_t *len_p);
 
 /* end of RASQAL_INTERNAL */
 #endif
