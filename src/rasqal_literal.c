@@ -1956,6 +1956,13 @@ rasqal_literal_cast(rasqal_literal* l, raptor_uri* to_datatype, int flags,
                 from_datatype ? (const char*)raptor_uri_as_string(from_datatype) : "(NONE)",
                 raptor_uri_as_string(to_datatype));
   
+  if(!rasqal_xsd_datatype_check(to_native_type, string, flags)) {
+    *error_p=1;
+    RASQAL_DEBUG3("Illegal cast to type %s string '%s'",
+                  rasqal_xsd_datatype_label(to_native_type), string);
+    return NULL;
+  }
+
   new_string=(unsigned char*)RASQAL_MALLOC(string, 
                                            strlen((const char*)string)+1);
   strcpy((char*)new_string, (const char*)string);
