@@ -288,6 +288,85 @@ rasqal_xsd_check_integer_format(const unsigned char* string, int flags)
 }
 
 
+
+
+/**
+ * rasqal_xsd_format_double:
+ * @d: double
+ * @len_p: pointer to length of result or NULL
+ *
+ * INTERNAL - Format a new an xsd:double correctly
+ *
+ * Return value: new string or NULL on failure
+ */
+unsigned char*
+rasqal_xsd_format_double(double d, size_t *len_p)
+{
+  size_t e_index = 0;
+  size_t trailing_zero_start = 0;
+  size_t exponent_start;
+  size_t len=0;
+  unsigned char* buf=NULL;
+  
+  if(d == 0.0f) {
+    len=5;
+    buf=(unsigned char*)RASQAL_MALLOC(cstring, len+1);
+    if(!buf)
+      return NULL;
+
+    strncpy((char*)buf, "0.0e0", len+1);
+    if(len_p)
+      *len_p=len;
+    return buf;
+  }
+
+  len=20;
+  buf=(unsigned char*)RASQAL_MALLOC(cstring, len+1);
+  if(!buf)
+    return NULL;
+  
+  snprintf((char*)buf, len, "%1.14e", d);
+
+  /* find the 'e' and start of mantissa trailing zeros */
+
+  for( ; buf[e_index]; ++e_index) {
+    if(e_index > 0 && buf[e_index] == '0' && buf[e_index-1] != '0')
+      trailing_zero_start = e_index;
+    else if(buf[e_index] == 'e')
+      break;
+  }
+
+  if(buf[trailing_zero_start-1] == '.')
+    ++trailing_zero_start;
+
+  /* write an 'e' where the trailing zeros started */
+  buf[trailing_zero_start] = 'e';
+  if(buf[e_index+1] == '-') {
+    buf[trailing_zero_start+1] = '-';
+    ++trailing_zero_start;
+  }
+
+  exponent_start = e_index+2;
+  while(buf[exponent_start] == '0')
+    ++exponent_start;
+
+  len = strlen((const char*)buf);
+  if(exponent_start == len) {
+    buf[trailing_zero_start+1] = '0';
+    buf[trailing_zero_start+2] = '\0';
+  } else {
+    /* copy the exponent (minus leading zeros) after the new E */
+    memmove(buf+trailing_zero_start+1, buf+exponent_start,
+            len-trailing_zero_start);
+  }
+
+  if(len_p)
+    *len_p=len;
+
+  return buf;
+}
+
+
 typedef rasqal_literal* (*rasqal_extension_fn)(raptor_uri* name, raptor_sequence *args, char **error_p);
 
 
