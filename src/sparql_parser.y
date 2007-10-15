@@ -254,7 +254,7 @@ GraphNodeListNotEmpty SelectExpressionListTail
 TriplesSameSubject TriplesSameSubjectDotListOpt
 PropertyList PropertyListTailOpt PropertyListNotEmpty
 ObjectList ObjectTail Collection
-VarOrTerm Verb GraphNode TriplesNode
+VarOrTerm Verb Object GraphNode TriplesNode
 TriplesBlockOpt BlankNodePropertyList
 
 %destructor { if($$) rasqal_free_graph_pattern($$); }
