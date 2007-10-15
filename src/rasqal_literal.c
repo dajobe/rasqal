@@ -54,7 +54,6 @@
 #include "rasqal_internal.h"
 
 
-
 /**
  * rasqal_new_integer_literal:
  * @type: Type of literal such as RASQAL_LITERAL_INTEGER or RASQAL_LITERAL_BOOLEAN
@@ -89,6 +88,8 @@ rasqal_new_integer_literal(rasqal_literal_type type, int integer)
       return NULL;
     }
     l->datatype=raptor_uri_copy(dt_uri);
+    if(type == RASQAL_LITERAL_INTEGER)
+      l->parent_type=RASQAL_LITERAL_DECIMAL;
   }
   return l;
 }
@@ -381,6 +382,7 @@ rasqal_literal_string_to_native(rasqal_literal *l,
     case RASQAL_LITERAL_INTEGER:
       i=atoi((const char*)l->string);
       l->value.integer=i;
+      l->parent_type=RASQAL_LITERAL_DECIMAL;
       break;
 
 
@@ -485,6 +487,10 @@ rasqal_new_string_literal(const unsigned char *string,
     l->language=language;
     l->datatype=datatype;
     l->flags=datatype_qname;
+
+    if(datatype)
+      /* This is either RASQAL_LITERAL_DECIMAL or ...INTEGER or ...UNKNOWN */
+      l->parent_type=rasqal_xsd_datatype_uri_parent_type(datatype);
 
     if(rasqal_literal_string_to_native(l, NULL, NULL)) {
       rasqal_free_literal(l);
@@ -1112,6 +1118,79 @@ double_to_int(double d)
   if(d == 0.0)
     return 0;
   return (d < 0.0) ? -1 : 1;
+}
+
+
+/**
+ * rasqal_literal_promote_calculate:
+ * @l1: first literal
+ * @l2: second literal
+ * @flags: promotion flags
+ *
+ * INTERNAL - Calculate the type to promote a pair of literals to
+ *
+ * Numeric type promotion
+ * http://www.w3.org/TR/xpath20/#dt-type-promotion
+ *
+ * [[xs:decimal (or any type derived by restriction from xs:decimal,
+ * including xs:integer) can be promoted to either of the types
+ * xs:float or xs:double.]]
+ *
+ * For here that means xs:integer to xs:double and xs:decimal to xs:double
+ *
+ * Return value: promote type or RASQAL_LITERAL_UNKNOWN
+ */
+rasqal_literal_type
+rasqal_literal_promote_calculate(rasqal_literal* l1, rasqal_literal* l2,
+                                 int flags)
+{
+  rasqal_literal_type type1=l1->type;
+  rasqal_literal_type type2=l2->type;
+
+  /* No promotion needed */
+  if(type1 == type2)
+    return type1;
+
+  /* No parents - no promotion possible */
+  if(l1->parent_type == RASQAL_LITERAL_UNKNOWN &&
+     l2->parent_type == RASQAL_LITERAL_UNKNOWN)
+    return l1->parent_type;
+  
+  /* First promotion is to xsd:integer */
+  if(l1->parent_type == RASQAL_LITERAL_INTEGER &&
+     type2 == RASQAL_LITERAL_INTEGER)
+    return type2;
+
+  if(l2->parent_type == RASQAL_LITERAL_INTEGER &&
+     type1 == RASQAL_LITERAL_INTEGER)
+    return type1;
+
+  if(l1->parent_type == RASQAL_LITERAL_INTEGER)
+    type1=RASQAL_LITERAL_INTEGER;
+  if(l2->parent_type == RASQAL_LITERAL_INTEGER)
+    type2=RASQAL_LITERAL_INTEGER;
+
+  if(type1 == type2)
+    return type1;
+  
+  /* Second promotion is to xsd:decimal */
+  if(type1 == RASQAL_LITERAL_INTEGER)
+    type1=RASQAL_LITERAL_DECIMAL;
+  if(type2 == RASQAL_LITERAL_INTEGER)
+    type2=RASQAL_LITERAL_DECIMAL;
+
+  if(type1 == type2)
+    return type1;
+
+  /* Third/Fourth promotions are either to xsd:float or xsd:double */
+  if(type1 == RASQAL_LITERAL_FLOAT || type2 == RASQAL_LITERAL_FLOAT)
+    return RASQAL_LITERAL_FLOAT;
+
+  if(type1 == RASQAL_LITERAL_DOUBLE || type2 == RASQAL_LITERAL_DOUBLE)
+    return RASQAL_LITERAL_DOUBLE;
+
+  /* failed! */
+  return RASQAL_LITERAL_UNKNOWN;
 }
 
 
@@ -1911,3 +1990,125 @@ rasqal_literal_value(rasqal_literal* l)
 }
 
 
+int
+rasqal_literal_is_numeric(rasqal_literal* literal)
+{
+  return (rasqal_xsd_datatype_is_numeric(literal->type) ||
+          rasqal_xsd_datatype_is_numeric(literal->parent_type));
+}
+
+
+rasqal_literal*
+rasqal_literal_add(rasqal_literal* l1, rasqal_literal* l2, int *error)
+{
+  double d;
+  int error1=0;
+  int error2=0;
+  rasqal_literal_type type;
+  int flags=0;
+  rasqal_literal* result=NULL;
+  
+  type=rasqal_literal_promote_calculate(l1, l2, flags);
+  if(type == RASQAL_LITERAL_UNKNOWN || !rasqal_xsd_datatype_is_numeric(type)) {
+    *error=1;
+    return NULL;
+  }
+
+  d=rasqal_literal_as_floating(l1, &error1) +
+    rasqal_literal_as_floating(l2, &error2);
+
+  if(error1 || error2) {
+    *error=1;
+    return NULL;
+  }
+  
+  result=rasqal_new_numeric_literal(d, type);
+  return result;
+}
+        
+
+rasqal_literal*
+rasqal_literal_subtract(rasqal_literal* l1, rasqal_literal* l2, int *error)
+{
+  double d;
+  int error1=0;
+  int error2=0;
+  rasqal_literal_type type;
+  int flags=0;
+  rasqal_literal* result=NULL;
+  
+  type=rasqal_literal_promote_calculate(l1, l2, flags);
+  if(type == RASQAL_LITERAL_UNKNOWN || !rasqal_xsd_datatype_is_numeric(type)) {
+    *error=1;
+    return NULL;
+  }
+
+  d=rasqal_literal_as_floating(l1, &error1) -
+    rasqal_literal_as_floating(l2, &error2);
+
+  if(error1 || error2) {
+    *error=1;
+    return NULL;
+  }
+  
+  result=rasqal_new_numeric_literal(d, type);
+  return result;
+}
+        
+
+rasqal_literal*
+rasqal_literal_multiply(rasqal_literal* l1, rasqal_literal* l2, int *error)
+{
+  double d;
+  int error1=0;
+  int error2=0;
+  rasqal_literal_type type;
+  int flags=0;
+  rasqal_literal* result=NULL;
+  
+  type=rasqal_literal_promote_calculate(l1, l2, flags);
+  if(type == RASQAL_LITERAL_UNKNOWN || !rasqal_xsd_datatype_is_numeric(type)) {
+    *error=1;
+    return NULL;
+  }
+
+  d=rasqal_literal_as_floating(l1, &error1) *
+    rasqal_literal_as_floating(l2, &error2);
+
+  if(error1 || error2) {
+    *error=1;
+    return NULL;
+  }
+  
+  result=rasqal_new_numeric_literal(d, type);
+  return result;
+}
+        
+
+rasqal_literal*
+rasqal_literal_divide(rasqal_literal* l1, rasqal_literal* l2, int *error)
+{
+  double d;
+  int error1=0;
+  int error2=0;
+  rasqal_literal_type type;
+  int flags=0;
+  rasqal_literal* result=NULL;
+  
+  type=rasqal_literal_promote_calculate(l1, l2, flags);
+  if(type == RASQAL_LITERAL_UNKNOWN || !rasqal_xsd_datatype_is_numeric(type)) {
+    *error=1;
+    return NULL;
+  }
+
+  d=rasqal_literal_as_floating(l1, &error1) /
+    rasqal_literal_as_floating(l2, &error2);
+
+  if(error1 || error2) {
+    *error=1;
+    return NULL;
+  }
+  
+  result=rasqal_new_numeric_literal(d, type);
+  return result;
+}
