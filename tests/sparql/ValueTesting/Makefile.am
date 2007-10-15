@@ -50,7 +50,6 @@ EXPECTED_SPARQL_CORRECT_FAILURES= \
 extendedType-ne-fail \
 extendedType-literal-ne \
 typePromotion-decimal-decimal-pass \
-typePromotion-decimal-decimal-fail \
 boolean-false-canonical \
 boolean-true-canonical \
 boolean-EBV-canonical
