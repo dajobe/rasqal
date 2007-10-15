@@ -116,6 +116,7 @@ static int sparql_skip_c_comment(rasqal_query *rq);
  *   No '.' allowed as the last character.
  *
  * SPARQL_NAME_CHECK_NCNAME (token NCNAME)
+ *  [0-9] allowed as the first character
  *   No '.' allowed as the first character.
  *   No '.' allowed as the last character.
  *
@@ -124,14 +125,15 @@ typedef enum {
   SPARQL_NAME_CHECK_NO_UL_FIRST  = 1,
   SPARQL_NAME_CHECK_NO_DOT_LAST  = 2,
   SPARQL_NAME_CHECK_NO_DOT_MINUS = 4,
+  SPARQL_NAME_CHECK_ALLOW_09_FIRST = 8,
 
   SPARQL_NAME_CHECK_VARNAME = SPARQL_NAME_CHECK_NO_DOT_MINUS,
   SPARQL_NAME_CHECK_PREFIX  = SPARQL_NAME_CHECK_NO_UL_FIRST | SPARQL_NAME_CHECK_NO_DOT_LAST,
-  SPARQL_NAME_CHECK_NCNAME  = SPARQL_NAME_CHECK_NO_DOT_LAST
+  SPARQL_NAME_CHECK_NCNAME  = SPARQL_NAME_CHECK_NO_DOT_LAST | SPARQL_NAME_CHECK_ALLOW_09_FIRST
 } sparql_name_check_flags;
 
 
-static int rasqal_sparql_name_check(const unsigned char *string, size_t length, sparql_name_check_flags check_flags);
+static int rasqal_sparql_name_check(unsigned char *string, size_t length, sparql_name_check_flags check_flags);
 static unsigned char *sparql_copy_name(rasqal_query *rq, const unsigned char *text, size_t len, sparql_name_check_flags check_flags);
 static raptor_uri* sparql_copy_qname(rasqal_query *rq, const unsigned char *text, size_t len);
 static int sparql_copy_string_token(rasqal_query *rq, YYSTYPE* lval, const unsigned char *text, size_t len, int delim);
@@ -188,6 +190,8 @@ NCCHAR1p [A-Za-z\\\x80-\xff]
  */
 NCCHAR1 [A-Za-z\\\x80-\xff_]
 
+NCCHAR2 [A-Za-z\\\x80-\xff_0-9]
+
 /* [87]  VARNAME ::= ( NCCHAR1 | _ ) 
  *   ( NCCHAR1 | [0-9] | #x00B7 | [#x0300-#x036F] | [#x203F-#x2040] )*
  *
@@ -222,20 +226,26 @@ NCNAME_PREFIX {NCCHAR1p}(({NCCHAR}|".")*{NCCHAR})?
  */
 NCNAME {NCCHAR1}(({NCCHAR}|".")*{NCCHAR})?
 
+/* SPARQL allows [0-9] after a : in the 
+ * W3C Candidate Recommendation 14 June 2007 
+ * as an at risk feature that may be removed.
+ */
+NCNAME2 {NCCHAR2}(({NCCHAR}|".")*{NCCHAR})?
+
 /* rq23 [67] QNAME_NS ::= NCNAME_PREFIX? ':'
  * Inlined into in rule <PREF>{NCNAME_PREFIX}":" below 
  */
 
 /* rq23 [68] QNAME ::= NCNAME_PREFIX? ':' NCNAME? */
-QNAME {NCNAME_PREFIX}?":"{NCNAME}?
+QNAME {NCNAME_PREFIX}?":"{NCNAME2}?
 
 /* rq23 [69] BNODE_LABEL (renamed to BNAME) ::= '_:' NCNAME */
-BNAME "_:"{NCNAME}
+BNAME "_:"{NCNAME2}
 
 /* a blank node name written inside a URI - this is an illegal
  * URI form and for convienence 
  */
-BNAME2 "<_:"{NCNAME}">"
+BNAME2 "<_:"{NCNAME2}">"
 
 /* The initial char conditions are to ensure this doesn't grab < or <= 
  * as operators.  starting with <_: is caught by BNAME2 above.
@@ -558,9 +568,11 @@ yywrap (yyscan_t yyscanner) {
 
 
 static int
-rasqal_sparql_name_check(const unsigned char *string, size_t length,
+rasqal_sparql_name_check(unsigned char *string, size_t length,
                          sparql_name_check_flags check_flags)
 {
+  int rc=0;
+  int c= -1;
 #if RASQAL_DEBUG > 2
   RASQAL_DEBUG1("Checking name '");
   if(length)
@@ -571,23 +583,33 @@ rasqal_sparql_name_check(const unsigned char *string, size_t length,
   if(!length)
     return 1;
 
+  if(check_flags && SPARQL_NAME_CHECK_ALLOW_09_FIRST &&
+     (*string >= '0' && *string <= '9')) {
+    c=*string;
+    *string='X';
+  }
+
   if(!raptor_xml_name_check(string, length, 11)) /* 11 = XML 1.1 */
-    return 0;
+    goto done;
   
   if((check_flags & SPARQL_NAME_CHECK_NO_UL_FIRST) && *string == '_')
-    return 0;
+    goto done;
 
   if((check_flags & SPARQL_NAME_CHECK_NO_DOT_LAST) && string[length-1] == '.')
-    return 0;
+    goto done;
 
   if(check_flags & SPARQL_NAME_CHECK_NO_DOT_MINUS) {
     int i;
     for(i=0; i < (int)length; i++)
       if(string[i] == '.' || string[i] == '-')
-        return 0;
+        goto done;
   }
-  
-  return 1;
+  rc=1;
+
+  done:
+  if(c >=0)
+    *string=c;
+  return rc;
 }
 
 
