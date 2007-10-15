@@ -1644,9 +1644,6 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e,
     case RASQAL_EXPR_PLUS:
       {
         rasqal_literal *l1, *l2;
-        double d;
-        int error1=0;
-        int error2=0;
         
         l1=rasqal_expression_evaluate(query, e->arg1, flags);
         if(!l1)
@@ -1658,23 +1655,18 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e,
           goto failed;
         }
 
-        d=rasqal_literal_as_floating(l1, &error1) + 
-          rasqal_literal_as_floating(l2, &error2);
+        result=rasqal_literal_add(l1, l2, &error);
         rasqal_free_literal(l1);
         rasqal_free_literal(l2);
-        if(error || error1 || error2)
+        if(error)
           goto failed;
-
-        result=rasqal_new_numeric_literal(d, l1->type);
+        
         break;
       }
       
     case RASQAL_EXPR_MINUS:
       {
         rasqal_literal *l1, *l2;
-        double d;
-        int error1=0;
-        int error2=0;
         
         l1=rasqal_expression_evaluate(query, e->arg1, flags);
         if(!l1)
@@ -1686,23 +1678,18 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e,
           goto failed;
         }
 
-        d=rasqal_literal_as_floating(l1, &error1) -
-          rasqal_literal_as_floating(l2, &error2);
+        result=rasqal_literal_subtract(l1, l2, &error);
         rasqal_free_literal(l1);
         rasqal_free_literal(l2);
-        if(error || error1 || error2)
+        if(error)
           goto failed;
-
-        result=rasqal_new_numeric_literal(d, l1->type);
+        
         break;
       }
       
     case RASQAL_EXPR_STAR:
       {
         rasqal_literal *l1, *l2;
-        double d;
-        int error1=0;
-        int error2=0;
         
         l1=rasqal_expression_evaluate(query, e->arg1, flags);
         if(!l1)
@@ -1714,23 +1701,18 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e,
           goto failed;
         }
 
-        d=rasqal_literal_as_floating(l1, &error1) *
-          rasqal_literal_as_floating(l2, &error2);
+        result=rasqal_literal_multiply(l1, l2, &error);
         rasqal_free_literal(l1);
         rasqal_free_literal(l2);
-        if(error || error1 || error2)
+        if(error)
           goto failed;
-
-        result=rasqal_new_numeric_literal(d, l1->type);
+        
         break;
       }
       
     case RASQAL_EXPR_SLASH:
       {
         rasqal_literal *l1, *l2;
-        double d;
-        int error1=0;
-        int error2=0;
         
         l1=rasqal_expression_evaluate(query, e->arg1, flags);
         if(!l1)
@@ -1742,13 +1724,12 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e,
           goto failed;
         }
 
-        d=rasqal_literal_as_floating(l1, &error1) /
-          rasqal_literal_as_floating(l2, &error2);
+        result=rasqal_literal_divide(l1, l2, &error);
         rasqal_free_literal(l1);
         rasqal_free_literal(l2);
-        if(error || error1 || error2)
+        if(error)
           goto failed;
-        result=rasqal_new_numeric_literal(d, l1->type);
+        
         break;
       }
       
