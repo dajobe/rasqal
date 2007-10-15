@@ -326,10 +326,12 @@ rasqal_new_numeric_literal(double d, rasqal_literal_type type)
 
 
 /*
- * rasqal_literal_string_to_native - INTERNAL Upgrade a datatyped literal string to an internal typed literal
+ * rasqal_literal_string_to_native:
  * @l: #rasqal_literal to operate on inline
  * @error_handler: error handling function
  * @error_data: data for error handle
+ *
+ * INTERNAL Upgrade a datatyped literal string to an internal typed literal
  *
  * At present this promotes datatyped literals
  * xsd:integer to RASQAL_LITERAL_INTEGER
@@ -337,7 +339,7 @@ rasqal_new_numeric_literal(double d, rasqal_literal_type type)
  * xsd:float to RASQAL_LITERAL_FLOAT
  * xsd:boolean to RASQAL_LITERAL_BOOLEAN
  * xsd:decimal to RASQAL_LITERAL_DECIMAL
- * xsd:dateTime to RASQAL_LITERAL_DATETIME with string in canonical literal form
+ * xsd:dateTime to RASQAL_LITERAL_DATETIME
  *
  * Return value: non-0 on failure
  **/
@@ -352,13 +354,15 @@ rasqal_literal_string_to_native(rasqal_literal *l,
   rasqal_literal_type native_type=RASQAL_LITERAL_UNKNOWN;
   unsigned char const *new_string; 
 
+  /* RDF literal with no datatype (plain literal) */
   if(!l->datatype)
     return 0;
 
   native_type=rasqal_xsd_datatype_uri_to_type(l->datatype);
-  /* If not a known native type return ok but do not change literal */
+  /* If not a native type return ok but do not change literal */
   if(native_type == RASQAL_LITERAL_UNKNOWN)
     return 0;
+  /* xsd:string but nothing need be done */
   if(native_type == RASQAL_LITERAL_STRING)
     return 0;
     
@@ -454,8 +458,8 @@ rasqal_literal_string_to_native(rasqal_literal *l,
  * rasqal_new_string_literal:
  * @string: UTF-8 string lexical form
  * @language: RDF language (xml:lang) (or NULL)
- * @datatype: datatype URI (or NULL)
- * @datatype_qname: datatype qname string (or NULL)
+ * @datatype: datatype URI (or NULL for plain literal)
+ * @datatype_qname: datatype qname string (or NULL for plain literal)
  *
  * Constructor - Create a new Rasqal string literal.
  * 
@@ -468,7 +472,7 @@ rasqal_literal_string_to_native(rasqal_literal *l,
  * 
  * If the string literal is datatyped and of certain types recognised
  * it may be converted to a different literal type by
- * rasqal_literal_string_to_native.
+ * rasqal_literal_string_to_native()
  *
  * Return value: New #rasqal_literal or NULL on failure
  **/
@@ -483,6 +487,7 @@ rasqal_new_string_literal(const unsigned char *string,
     l->usage=1;
 
     if(datatype && language) {
+      /* RDF typed literal but this is not allowed so delete language */
       RASQAL_FREE(cstring, (void*)language);
       language=NULL;
     }
