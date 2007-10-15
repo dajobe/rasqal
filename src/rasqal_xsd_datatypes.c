@@ -660,8 +660,14 @@ rasqal_xsd_datetime_normalize(rasqal_xsd_datetime *datetime)
   
   /* day */
   if(datetime->day < 1) {
-    int y2= (t == 12) ? datetime->year-1 : datetime->year;
-    t=datetime->month--;
+    int y2;
+    t = --datetime->month;
+    /* going back beyond year boundary? */
+    if(!t) {
+      t = 12;
+      y2 = datetime->year-1;
+    } else
+      y2 = datetime->year;
     datetime->day += days_per_month(t, y2);
   } else if(datetime->day > (t=days_per_month(datetime->month, datetime->year))) {
     datetime->day -= t;
@@ -1424,8 +1430,11 @@ static int test_datetime_parser_tostring(const char *in_str, const char *out_exp
   s=rasqal_xsd_datetime_string_to_canonical((const unsigned char *)in_str);
   if(s) {
     r=strcmp((char*)s, out_expected);
+    if(r)
+      fprintf(stderr, "input \"%s\" converted to canonical \"%s\", expected \"%s\"\n", in_str, s, out_expected);
     RASQAL_FREE(cstring, (void*)s);
-  }
+  } else
+    fprintf(stderr, "input \"%s\" converted to canonical (null), expected \"%s\"\n", in_str, out_expected);
   return r;
 }
 
@@ -1593,6 +1602,10 @@ static void test_datetimes(const char *program)
   MYASSERT(test_datetime_parser_tostring("2005-01-01T01:00:05+02:12", "2004-12-31T22:48:05Z")==0);
   MYASSERT(test_datetime_parser_tostring("0001-01-01T00:00:00+00:01", "-0001-12-31T23:59:00Z")==0);
   MYASSERT(test_datetime_parser_tostring("-0001-12-31T23:59:00-00:01", "0001-01-01T00:00:00Z")==0);
+  MYASSERT(test_datetime_parser_tostring("2005-03-01T00:00:00+01:00", "2005-02-28T23:00:00Z")==0);
+  MYASSERT(test_datetime_parser_tostring("2004-03-01T00:00:00+01:00", "2004-02-29T23:00:00Z")==0);
+  MYASSERT(test_datetime_parser_tostring("2005-02-28T23:00:00-01:00", "2005-03-01T00:00:00Z")==0);
+  MYASSERT(test_datetime_parser_tostring("2004-02-29T23:00:00-01:00", "2004-03-01T00:00:00Z")==0);
 }
 
 
