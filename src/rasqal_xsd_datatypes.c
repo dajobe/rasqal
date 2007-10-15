@@ -347,7 +347,7 @@ rasqal_xsd_init(void)
   if(!sparql_xsd_datatypes_table)
     return 1;
   
-  for(i=RASQAL_LITERAL_FIRST_XSD; i <= SPARQL_XSD_NAMES_COUNT; i++) {
+  for(i=RASQAL_LITERAL_FIRST_XSD; i < SPARQL_XSD_NAMES_COUNT; i++) {
     sparql_xsd_datatypes_table[i].name=sparql_xsd_names[i];
     sparql_xsd_datatypes_table[i].uri= raptor_new_uri_from_uri_local_name(rasqal_xsd_namespace_uri, (const unsigned char*)sparql_xsd_datatypes_table[i].name);
     if(!sparql_xsd_datatypes_table[i].uri)
@@ -372,7 +372,7 @@ rasqal_xsd_finish(void)
   if(sparql_xsd_datatypes_table) {
     int i;
     
-    for(i=RASQAL_LITERAL_FIRST_XSD; i <= SPARQL_XSD_NAMES_COUNT; i++) {
+    for(i=RASQAL_LITERAL_FIRST_XSD; i < SPARQL_XSD_NAMES_COUNT; i++) {
       if(sparql_xsd_datatypes_table[i].uri)
         raptor_free_uri(sparql_xsd_datatypes_table[i].uri);
     }
