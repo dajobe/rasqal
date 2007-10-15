@@ -496,7 +496,7 @@ rasqal_xsd_datatype_uri_parent_type(raptor_uri* uri)
   if(!uri || !sparql_xsd_datatypes_table)
     return parent_type;
 
-  /* xsd:literal parent is xsd:decimal */
+  /* xsd:integer parent is xsd:decimal */
   if(raptor_uri_equals(uri,
                        sparql_xsd_datatypes_table[RASQAL_LITERAL_INTEGER].uri))
     return RASQAL_LITERAL_DECIMAL;
