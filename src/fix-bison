@@ -14,7 +14,7 @@
 #
 
 my $seen_yyerrlab1=0;
-my $line_offset=0;
+my $line_offset=1; # #line directives always refer to the NEXT line
 while(<>) {
   # Remove code that causes a warning
   if(/Suppress GCC warning that yyerrlab1/) {
