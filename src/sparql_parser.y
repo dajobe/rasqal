@@ -2685,7 +2685,8 @@ sparql_parse(rasqal_query* rq) {
 
   rqe->lineno=1;
 
-  sparql_lexer_lex_init(&rqe->scanner);
+  if(sparql_lexer_lex_init(&rqe->scanner))
+    return 1;
   rqe->scanner_set=1;
 
   sparql_lexer_set_extra(((rasqal_query*)rq), rqe->scanner);
