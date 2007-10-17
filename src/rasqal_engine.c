@@ -695,16 +695,13 @@ rasqal_free_gp_data(rasqal_engine_gp_data* gp_data)
   rasqal_graph_pattern* gp=gp_data->gp;
 
   if(gp_data->triple_meta) {
-    if(gp && gp->start_column >= 0) {
+    if(gp) {
       while(gp_data->column >= gp->start_column) {
         rasqal_triple_meta *m;
         m=&gp_data->triple_meta[gp_data->column - gp->start_column];
         rasqal_reset_triple_meta(m);
         gp_data->column--;
       }
-    } else {
-      /* if start_column was <0, just reset the first triple_meta */
-      rasqal_reset_triple_meta(gp_data->triple_meta);
     }
     RASQAL_FREE(rasqal_triple_meta, gp_data->triple_meta);
     gp_data->triple_meta=NULL;
