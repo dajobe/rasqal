@@ -130,7 +130,7 @@ int rdql_lexer_lex (YYSTYPE *rdql_parser_lval, yyscan_t yyscanner);
 int rdql_lexer_get_column(yyscan_t yyscanner);
 void rdql_lexer_set_column(int  column_no , yyscan_t yyscanner);
 
-void rdql_lexer_cleanup(yyscan_t yyscanner);
+static void rdql_lexer_cleanup(yyscan_t yyscanner);
 
 /* fatal error handler declaration */
 #define YY_FATAL_ERROR(msg) rdql_lexer_fatal_error(msg, yyscanner)
@@ -644,7 +644,7 @@ static void rdql_lexer_fatal_error(yyconst char *msg, yyscan_t yyscanner)
  *
  * INTERNAL - Clean up.
  */
-void rdql_lexer_cleanup(yyscan_t yyscanner)
+static void rdql_lexer_cleanup(yyscan_t yyscanner)
 {
 }
 

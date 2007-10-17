@@ -163,7 +163,7 @@ int sparql_lexer_lex (YYSTYPE *sparql_parser_lval, yyscan_t yyscanner);
 int sparql_lexer_get_column(yyscan_t yyscanner);
 void sparql_lexer_set_column(int  column_no , yyscan_t yyscanner);
 
-void sparql_lexer_cleanup(yyscan_t yyscanner);
+static void sparql_lexer_cleanup(yyscan_t yyscanner);
 
 /* fatal error handler declaration */
 #define YY_FATAL_ERROR(msg) sparql_lexer_fatal_error(msg, yyscanner)
@@ -948,7 +948,7 @@ static const int initial_lexer_allocs_size=2;
  *
  * INTERNAL - Clean up unfreed lexer allocs if LEXER_ALLOC_TRACKING is enabled.
  */
-void sparql_lexer_cleanup(yyscan_t yyscanner)
+static void sparql_lexer_cleanup(yyscan_t yyscanner)
 {
 #ifdef LEXER_ALLOC_TRACKING
   rasqal_query *rq;
