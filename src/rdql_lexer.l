@@ -631,7 +631,9 @@ static void rdql_lexer_fatal_error(yyconst char *msg, yyscan_t yyscanner)
     rq=(rasqal_query *)rdql_lexer_get_extra(yyscanner);
 
   if(rq)
-    rasqal_query_fatal_error_varargs(rq, msg, (va_list)0);
+    /* avoid "format not a string literal and no format arguments" warning with %s */
+    rasqal_query_fatal_error(rq, "%s", msg); 
+
   else
     (void)fprintf(stderr, "%s\n", msg);
 
