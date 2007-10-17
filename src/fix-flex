@@ -30,7 +30,13 @@ $line_offset+=8; # added 8 lines to output
 my $prefix=undef;
 
 while(<>) {
-  # Remove generated yy_fatal_error definition to avoid warnings about unused function
+  # Remove generated yy_fatal_error declaration and definition to avoid warnings about unused/non-defined static function
+  # declaration
+  if(/^static void yy_fatal_error\s*\(.*\)\s*\;\s*$/) {
+    $line_offset--; # skipped 1 line
+    next;
+  }
+  # definition
   if(/^static void yy_fatal_error\s*\(.*\)\s*[^\;]\s*$/) {
     do {
       $_=<>;
@@ -68,10 +74,10 @@ EOT
 
   # Add $prefix_cleanup() call at the end of $prefix_lex_destroy()
   # find the start of lex_destroy function definition and capture prefix
-  if(/^int\s+(\S+)_lex_destroy\s*\(.*\)\s*[^;]\s*$/) { $prefix=$1; }
+  if(/^int\s+(\S+)_lex_destroy\s*\(.*\)\s*[^\;]\s*$/) { $prefix=$1; }
   # look for lexer_free(yyscanner, yyscanner) statement within the function and place the cleanup call before it
   if($prefix) {
-    if(/(^\s*)(${prefix}_free\s*\(\s*yyscanner\s*,\s*yyscanner\s*\)\s*;\s*$)/) {
+    if(/(^\s*)(${prefix}_free\s*\(\s*yyscanner\s*,\s*yyscanner\s*\)\s*\;)\s*$/) {
       $_=<<"EOT";
 $1/* clean up leaks if any before freeing yyscanner */
 $1${prefix}_cleanup(yyscanner);
@@ -82,9 +88,9 @@ EOT
     }
   }
 
-  # Fix .c line references because we have added lines to it
+  # Fix .[ch] line references because we have added lines to it
   my $line = $. +$line_offset;
-  s/^#line \d+ (\".*\.c\")/#line $line $1/;
+  s/^#line \d+ (\".*\.[ch]\")/#line $line $1/;
 
   print;
 }
