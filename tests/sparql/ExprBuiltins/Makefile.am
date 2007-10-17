@@ -34,9 +34,11 @@ q-str-4.rq q-uri-1.rq \
 q-langMatches-1.rq q-langMatches-2.rq q-langMatches-3.rq q-langMatches-4.rq \
 q-iri-1.rq q-uri-1.rq
 
+# str-1: relies on lexical form of double being same as in .ttl
 # str-2: result-str-2.ttl relies on [[rs:value 01]] provding a lex form "01"
 # datatype-1 - relies on lexical form of double being same as in .ttl
 EXPECTED_SPARQL_CORRECT_FAILURES= \
+str-1 \
 str-2 \
 datatype-1
 
