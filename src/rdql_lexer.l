@@ -61,6 +61,10 @@
 /* Never use yyunput */
 %option nounput
 
+/* Supply our own alloc/realloc/free functions */
+%option noyyalloc noyyrealloc noyyfree
+
+/* Re-entrant scanner */
 %option reentrant
 
 
@@ -125,6 +129,12 @@ int rdql_lexer_lex (YYSTYPE *rdql_parser_lval, yyscan_t yyscanner);
 /* Missing rdql_lexer.c/h prototypes */
 int rdql_lexer_get_column(yyscan_t yyscanner);
 void rdql_lexer_set_column(int  column_no , yyscan_t yyscanner);
+
+void rdql_lexer_cleanup(yyscan_t yyscanner);
+
+/* fatal error handler declaration */
+#define YY_FATAL_ERROR(msg) rdql_lexer_fatal_error(msg, yyscanner)
+static void rdql_lexer_fatal_error(yyconst char *msg, yyscan_t yyscanner);
 
 %}
 
@@ -604,6 +614,75 @@ rdql_skip_c_comment(rasqal_query *rq) {
     }
   }
   return lines;
+}
+
+
+/*
+ * rdql_lexer_fatal_error:
+ *
+ * INTERNAL - replacement for the generated error handler.
+ * Uses rasqal_query_fatal_error() when possible.
+ */
+static void rdql_lexer_fatal_error(yyconst char *msg, yyscan_t yyscanner)
+{
+  rasqal_query *rq=NULL;
+
+  if(yyscanner)
+    rq=(rasqal_query *)rdql_lexer_get_extra(yyscanner);
+
+  if(rq)
+    rasqal_query_fatal_error_varargs(rq, msg, (va_list)0);
+  else
+    (void)fprintf(stderr, "%s\n", msg);
+
+  abort();
+}
+
+
+/*
+ * rdql_lexer_cleanup:
+ *
+ * INTERNAL - Clean up.
+ */
+void rdql_lexer_cleanup(yyscan_t yyscanner)
+{
+}
+
+
+/*
+ * rdql_lexer_alloc:
+ * @size
+ * @yyscanner
+ *
+ * INTERNAL - alloc replacement.
+ */
+void *rdql_lexer_alloc(yy_size_t size, yyscan_t yyscanner)
+{
+  return malloc(size);
+}
+
+
+/*
+ * rdql_lexer_realloc:
+ *
+ * INTERNAL - realloc replacement
+ */
+void *rdql_lexer_realloc(void *ptr, yy_size_t size, yyscan_t yyscanner)
+{
+  return realloc((char*)ptr, size);
+}
+
+
+/*
+ * rdql_lexer_free:
+ *
+ * INTERNAL - free replacement.
+ * Checks for NULL pointer to be freed unlike the default lexer free function.
+ */
+void rdql_lexer_free(void *ptr, yyscan_t yyscanner)
+{
+  if(ptr)
+    free(ptr);
 }
 
 

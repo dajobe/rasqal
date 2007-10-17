@@ -316,6 +316,9 @@ struct rasqal_query_s {
 
   /* generated counter - increments at every generation */
   int genid_counter;
+
+  /* INTERNAL lexer internal data */
+  void* lexer_user_data;
 };
 
 
