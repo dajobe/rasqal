@@ -1975,6 +1975,10 @@ rasqal_literal_cast(rasqal_literal* l, raptor_uri* to_datatype, int flags,
 
   new_string=(unsigned char*)RASQAL_MALLOC(string, 
                                            strlen((const char*)string)+1);
+  if(!new_string) {
+    *error_p=1;
+    return NULL;
+  }
   strcpy((char*)new_string, (const char*)string);
   to_datatype=raptor_uri_copy(to_datatype);
   
