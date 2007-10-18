@@ -686,8 +686,10 @@ rasqal_query_results_write_xml_result4(raptor_iostream *iostr,
                              l->type);
       }
 
-      raptor_free_xml_element(element1);
-      element1=NULL;
+      if(element1) {
+        raptor_free_xml_element(element1);
+        element1=NULL;
+      }
 
       /*       </binding> */
       raptor_xml_writer_end_element(xml_writer, binding_element);
