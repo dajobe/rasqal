@@ -3215,14 +3215,20 @@ rasqal_engine_execute_run(rasqal_query_results* query_results)
     rc=rasqal_engine_excute_next_lazy(query_results);
 
   if(rc >= 0)
-    if(rasqal_engine_query_result_row_to_nodes(query_results))
-      rc=-1;
+    rc=rasqal_engine_query_result_row_to_nodes(query_results);
 
   return rc;
 }
 
 
-
+/**
+ * rasqal_engine_query_result_row_to_nodes
+ * @query_results: Query results
+ *
+ * INTERNAL - Turn result row literals into RDF strings, URIs or blank literals.
+ * 
+ * Return value: <0 if failed, 0 if result, >0 if finished
+ */
 static int
 rasqal_engine_query_result_row_to_nodes(rasqal_query_results* query_results)
 {
@@ -3231,14 +3237,14 @@ rasqal_engine_query_result_row_to_nodes(rasqal_query_results* query_results)
 
   row=rasqal_engine_get_result_row(query_results);
   if(!row)
-    return 1;
+    return 1; /* no results */
   
   for(i=0; i < row->size; i++) {
     if(row->values[i]) {
       rasqal_literal* new_l;
       new_l=rasqal_literal_as_node(row->values[i]);
       if(!new_l)
-        return 1;
+        return -1;
       rasqal_free_literal(row->values[i]);
       row->values[i]=new_l;
     }
