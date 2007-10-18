@@ -3215,7 +3215,8 @@ rasqal_engine_execute_run(rasqal_query_results* query_results)
     rc=rasqal_engine_excute_next_lazy(query_results);
 
   if(rc >= 0)
-    rasqal_engine_query_result_row_to_nodes(query_results);
+    if(rasqal_engine_query_result_row_to_nodes(query_results))
+      rc=-1;
 
   return rc;
 }
@@ -3236,10 +3237,10 @@ rasqal_engine_query_result_row_to_nodes(rasqal_query_results* query_results)
     if(row->values[i]) {
       rasqal_literal* new_l;
       new_l=rasqal_literal_as_node(row->values[i]);
-      if(new_l) {
-        rasqal_free_literal(row->values[i]);
-        row->values[i]=new_l;
-      }
+      if(!new_l)
+        return 1;
+      rasqal_free_literal(row->values[i]);
+      row->values[i]=new_l;
     }
   }
   
