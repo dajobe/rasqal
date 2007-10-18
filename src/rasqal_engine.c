@@ -2620,8 +2620,11 @@ rasqal_engine_query_result_row_update(rasqal_query_result_row* row, int offset)
       l=rasqal_expression_evaluate(query, e, query->compare_flags);
       if(row->order_values[i])
         rasqal_free_literal(row->order_values[i]);
-      row->order_values[i]=rasqal_new_literal_from_literal(rasqal_literal_value(l));
-      rasqal_free_literal(l);
+      if(l) {
+        row->order_values[i]=rasqal_new_literal_from_literal(rasqal_literal_value(l));
+        rasqal_free_literal(l);
+      } else
+        row->order_values[i]=NULL;
     }
   }
   
