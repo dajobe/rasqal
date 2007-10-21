@@ -40,18 +40,6 @@
 #include "rasqal_internal.h"
 
 
-/* FOR configure.ac */
-#if 1
-/* MPFR library */
-#define HAVE_MPFR_H 1
-#define RASQAL_DECIMAL_MPFR 1
-/* Link with -lpmfr */
-#else
-/* C99 - not widespread */
-#define RASQAL_DECIMAL_C99 1
-#endif
-
-
 /* FOR rasqal_internal.h */
 typedef struct rasqal_xsd_decimal_s rasqal_xsd_decimal;
 
