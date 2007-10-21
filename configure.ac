@@ -192,7 +192,7 @@ PKGCONFIG_CFLAGS=
 
 dnl Checks for header files.
 AC_HEADER_STDC
-AC_CHECK_HEADERS(errno.h stdlib.h unistd.h string.h dmalloc.h getopt.h regex.h sys/time.h mpfr.h)
+AC_CHECK_HEADERS(errno.h stdlib.h unistd.h string.h dmalloc.h getopt.h regex.h sys/time.h)
 AC_HEADER_TIME
 
 
@@ -668,26 +668,126 @@ if test $need_regex_pcre = 1; then
   unset L
 fi
 
-DECIMAL_INCLUDES=
-DECIMAL_LIBS=
-AC_MSG_CHECKING(for decimal/mp library)
-if test $ac_cv_header_mpfr_h = yes; then
-  AC_MSG_RESULT(yes - MPFR)
-  AC_DEFINE(RASQAL_DECIMAL_MPFR, 1, [Decimal from MPFR library])
-  DECIMAL_LIBS= -lmpfr
-else
-  # FIXME: Not tested properly.
-  # C99 _Decimal does not have widespread and complete support
-  # such as conversion to/from strings.
-  if test "x" = "y"; then
-    AC_MSG_RESULT(yes - C99 _Decimal)
-    AC_DEFINE(RASQAL_DECIMAL_C99, 1, [Decimal from C99])
+
+mpfr_lib_dir=
+mpfr_include_dir=
+AC_ARG_WITH(mpfr, [  --with-mpfr=DIR          MPFR install area], mpfr_prefix="$withval", mpfr_prefix="none") 
+if test "X$mpfr_prefix" != "Xnone" ; then
+  mpfr_libs="-L$mpfr_prefix/lib"
+  mpfr_includes="-I$mpfr_prefix/include"
+fi
+
+oCPPFLAGS="$CPPFLAGS"
+CPPFLAGS="$CPPFLAGS $mpfr_includes"
+AC_CHECK_HEADERS(mpfr.h)
+CPPFLAGS="$oCPPFLAGS"
+
+AC_CHECK_HEADERS(gmp.h)
+CPPFLAGS="$oCPPFLAGS"
+
+
+have_mpfr=0
+have_gmp=0
+
+oCPPFLAGS="$CPPFLAGS"
+oLIBS="$LIBS"
+if test "$ac_cv_header_mpfr_h" = yes; then
+  CPPFLAGS="$CPPFLAGS $mpfr_includes"
+  LIBS="$LIBS $mpfr_libs -lmpfr"
+  AC_CHECK_FUNC(mpfr_init, have_mpfr_init=yes, have_mpfr_init=no)
+  LIBS="$oLIBS"
+  CPPFLAGS="$oCPPFLAGS"
+  AC_MSG_CHECKING(for mpfr library)
+  if test $have_mpfr_init = yes; then
+    have_mpfr=1
+    AC_MSG_RESULT(yes)
   else
     AC_MSG_RESULT(no)
   fi
 fi
-RASQAL_INTERNAL_CPPFLAGS="$RASQAL_INTERNAL_CPPFLAGS $DECIMAL_INCLUDES"
-RASQAL_INTERNAL_LIBS="$RASQAL_INTERNAL_LIBS $DECIMAL_LIBS"
+
+if test "$ac_cv_header_gmp_h" = yes; then
+  CPPFLAGS="$CPPFLAGS "
+  LIBS="$LIBS -lgmp"
+  AC_MSG_CHECKING(for working GNU MP library)
+  AC_TRY_LINK([#include <gmp.h>], [mpz_t n; mpz_init(n);],
+              have_gmp=1
+	      AC_MSG_RESULT(yes),
+	      AC_MSG_RESULT(no))
+  LIBS="$oLIBS"
+  CPPFLAGS="$oCPPFLAGS"
+fi
+
+
+need_mpfr=0
+need_gmp=0
+
+AC_ARG_WITH(decimal, [  --with-decimal=NAME           Use decimal library - mpfr (default), gmp, none], decimal="$withval", decimal="mpfr") 
+for decimal_name in $decimal mpfr gmp none; do
+  case $decimal_name in
+    mpfr)
+      if test $have_mpfr = 1; then
+        need_mpfr=1
+        AC_DEFINE([RASQAL_DECIMAL_MPFR], 1, [Decimal from MPFR library])
+        break
+      fi
+      ;;
+
+    gmp)
+      if test $have_gmp = 1; then
+        need_gmp=1
+	AC_DEFINE([RASQAL_DECIMAL_GMP], 1, [Decimal from GNU MP library])
+        break
+      fi
+      ;;
+
+    none)
+      need_mpfr=0
+      need_gmp=0
+      AC_DEFINE([RASQAL_DECIMAL_NONE], 1, [Decimal without a library])
+      break
+      ;;
+
+    *)
+      AC_MSG_ERROR(No such decimal library $decimal_name)
+      ;;
+esac
+done
+
+
+AC_MSG_CHECKING(decimal libraries available)
+decimal_libraries_available=
+if test $have_mpfr = 1; then
+  decimal_libraries_available="$decimal_libraries_available mpfr"
+fi
+if test $have_gmp = 1; then
+  decimal_libraries_available="$decimal_libraries_available gmp"
+fi
+AC_MSG_RESULT($decimal_libraries_available)
+
+
+AC_MSG_CHECKING(decimal library to use)
+decimal_library=
+if test $need_mpfr = 1; then
+  decimal_library="mpfr $MPFR_VERSION"
+elif test $need_gmp = 1; then
+  decimal_library="gmp $GMP_VERSION"
+else
+  decimal_library=none
+fi
+AC_MSG_RESULT($decimal_library)
+
+DECIMAL_INCLUDES=
+DECIMAL_LIBS=
+if test $need_mpfr = 1; then
+  DECIMAL_INCLUDES="$mpfr_includes"
+  DECIMAL_LIBS="$mpfr_libs -lmpfr"
+fi
+if test $need_gmp = 1; then
+  DECIMAL_LIBS="-lgmp"
+fi
+RASQAL_EXTERNAL_CPPFLAGS="$RASQAL_EXTERNAL_CPPFLAGS $DECIMAL_INCLUDES"
+RASQAL_EXTERNAL_LIBS="$RASQAL_EXTERNAL_LIBS $DECIMAL_LIBS"
 
 
 if test $need_redland = 1; then
@@ -827,4 +927,5 @@ Rasqal build summary:
   RDF query languages available : $rdf_query_languages_available
   RDF query languages enabled   :$rdf_query_languages_enabled
   Triples source                : $triples_source_library
+  Decimal library               : $decimal_library
 ])
