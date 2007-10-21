@@ -192,7 +192,7 @@ PKGCONFIG_CFLAGS=
 
 dnl Checks for header files.
 AC_HEADER_STDC
-AC_CHECK_HEADERS(errno.h stdlib.h unistd.h string.h dmalloc.h getopt.h regex.h sys/time.h)
+AC_CHECK_HEADERS(errno.h stdlib.h unistd.h string.h dmalloc.h getopt.h regex.h sys/time.h mpfr.h)
 AC_HEADER_TIME
 
 
@@ -667,6 +667,28 @@ if test $need_regex_pcre = 1; then
   unset C
   unset L
 fi
+
+DECIMAL_INCLUDES=
+DECIMAL_LIBS=
+AC_MSG_CHECKING(for decimal/mp library)
+if test $ac_cv_header_mpfr_h = yes; then
+  AC_RESULT(yes - MPFR)
+  AC_DEFINE(RASQAL_DECIMAL_MPFR, 1, [Decimal from MPFR library])
+  DECIMAL_LIBS= -lmpfr
+else
+  # FIXME: Not tested properly.
+  # C99 _Decimal does not have widespread and complete support
+  # such as conversion to/from strings.
+  if test "x" = "y"; then
+    AC_RESULT(yes - C99 _Decimal)
+    AC_DEFINE(RASQAL_DECIMAL_C99, 1, [Decimal from C99])
+  else
+    AC_RESULT(no)
+  fi
+fi
+RASQAL_INTERNAL_CPPFLAGS="$RASQAL_INTERNAL_CPPFLAGS $DECIMAL_INCLUDES"
+RASQAL_INTERNAL_LIBS="$RASQAL_INTERNAL_LIBS $DECIMAL_LIBS"
+
 
 if test $need_redland = 1; then
   AC_LIBOBJ([rasqal_redland])
