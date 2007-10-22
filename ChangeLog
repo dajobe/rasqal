@@ -1,5 +1,7 @@
 2007-10-21  Dave Beckett <dave@dajobe.org>
 
+	* Last known good revision 12976: 'make check' succeeds.
+
 	* src/rasqal.h, src/rasqal_decimal.c, src/rasqal_internal.h: Move
 	rasqal_xsd_decimal prototypes to rasqal.h and rename
 	constructor/destructor to match convention
