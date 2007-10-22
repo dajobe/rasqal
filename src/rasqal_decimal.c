@@ -40,28 +40,8 @@
 #include "rasqal_internal.h"
 
 
-/* FOR rasqal_internal.h */
-typedef struct rasqal_xsd_decimal_s rasqal_xsd_decimal;
-
-rasqal_xsd_decimal* rasqal_xsd_decimal_new(void);
-void rasqal_xsd_decimal_free(rasqal_xsd_decimal* dec);
-void rasqal_xsd_decimal_init(rasqal_xsd_decimal* dec);
-void rasqal_xsd_decimal_clear(rasqal_xsd_decimal* dec);
-int rasqal_xsd_decimal_set_string(rasqal_xsd_decimal* dec, const char* string);
-double rasqal_xsd_decimal_get_double(rasqal_xsd_decimal* dec);
-char* rasqal_xsd_decimal_as_string(rasqal_xsd_decimal* dec);
-char* rasqal_xsd_decimal_as_counted_string(rasqal_xsd_decimal* dec, size_t* len_p);
-int rasqal_xsd_decimal_set_long(rasqal_xsd_decimal* dec, long l);
-int rasqal_xsd_decimal_set_double(rasqal_xsd_decimal* dec, double d);
-int rasqal_xsd_decimal_print(rasqal_xsd_decimal* dec, FILE* stream);
-int rasqal_xsd_decimal_add(rasqal_xsd_decimal* result, rasqal_xsd_decimal* a, rasqal_xsd_decimal* b);
-int rasqal_xsd_decimal_subtract(rasqal_xsd_decimal* result, rasqal_xsd_decimal* a, rasqal_xsd_decimal* b);
-int rasqal_xsd_decimal_multiply(rasqal_xsd_decimal* result, rasqal_xsd_decimal* a, rasqal_xsd_decimal* b);
-int rasqal_xsd_decimal_divide(rasqal_xsd_decimal* result, rasqal_xsd_decimal* a, rasqal_xsd_decimal* b);
-int rasqal_xsd_decimal_compare(rasqal_xsd_decimal* a, rasqal_xsd_decimal* b);
-int rasqal_xsd_decimal_equal(rasqal_xsd_decimal* a, rasqal_xsd_decimal* b);
-
 /* prototypes */
+static void rasqal_xsd_decimal_init(rasqal_xsd_decimal* dec);
 
 
 #ifdef RASQAL_DECIMAL_C99
@@ -137,7 +117,7 @@ rasqal_xsd_decimal_free(rasqal_xsd_decimal* dec)
 }
 
 
-void
+static void
 rasqal_xsd_decimal_init(rasqal_xsd_decimal* dec)
 {
   /* XSD wants min of 18 decimal (base 10) digits 

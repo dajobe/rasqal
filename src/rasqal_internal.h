@@ -670,6 +670,27 @@ void rasqal_finish_result_formats(void);
 rasqal_query_results* rasqal_new_query_results(rasqal_query* query);
 void rasqal_query_results_reset(rasqal_query_results* query_results);
 
+/* rasqal_decimal.c */
+typedef struct rasqal_xsd_decimal_s rasqal_xsd_decimal;
+
+rasqal_xsd_decimal* rasqal_xsd_decimal_new(void);
+void rasqal_xsd_decimal_free(rasqal_xsd_decimal* dec);
+void rasqal_xsd_decimal_clear(rasqal_xsd_decimal* dec);
+int rasqal_xsd_decimal_set_string(rasqal_xsd_decimal* dec, const char* string);
+double rasqal_xsd_decimal_get_double(rasqal_xsd_decimal* dec);
+char* rasqal_xsd_decimal_as_string(rasqal_xsd_decimal* dec);
+char* rasqal_xsd_decimal_as_counted_string(rasqal_xsd_decimal* dec, size_t* len_p);
+int rasqal_xsd_decimal_set_long(rasqal_xsd_decimal* dec, long l);
+int rasqal_xsd_decimal_set_double(rasqal_xsd_decimal* dec, double d);
+int rasqal_xsd_decimal_print(rasqal_xsd_decimal* dec, FILE* stream);
+int rasqal_xsd_decimal_add(rasqal_xsd_decimal* result, rasqal_xsd_decimal* a, rasqal_xsd_decimal* b);
+int rasqal_xsd_decimal_subtract(rasqal_xsd_decimal* result, rasqal_xsd_decimal* a, rasqal_xsd_decimal* b);
+int rasqal_xsd_decimal_multiply(rasqal_xsd_decimal* result, rasqal_xsd_decimal* a, rasqal_xsd_decimal* b);
+int rasqal_xsd_decimal_divide(rasqal_xsd_decimal* result, rasqal_xsd_decimal* a, rasqal_xsd_decimal* b);
+int rasqal_xsd_decimal_compare(rasqal_xsd_decimal* a, rasqal_xsd_decimal* b);
+int rasqal_xsd_decimal_equal(rasqal_xsd_decimal* a, rasqal_xsd_decimal* b);
+
+
 /* rasqal_xsd_datatypes.c */
 int rasqal_xsd_init(void);
 void rasqal_xsd_finish(void);
