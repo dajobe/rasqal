@@ -112,6 +112,8 @@ struct rasqal_xsd_decimal_s {
   RASQAL_DECIMAL_RAW raw;
   RASQAL_DECIMAL_ROUNDING rounding;
   char* string;
+  int string_is_rasqal;
+  size_t string_len;
 };
 
 
@@ -169,11 +171,13 @@ rasqal_xsd_decimal_init(rasqal_xsd_decimal* dec)
 #endif
 
   dec->string=NULL;
+  dec->string_len=0;
+  dec->string_is_rasqal=0;
 }
 
 
-void
-rasqal_xsd_decimal_clear(rasqal_xsd_decimal* dec)
+static void
+rasqal_xsd_decimal_clear_string(rasqal_xsd_decimal* dec)
 {
 #ifdef RASQAL_DECIMAL_C99
   if(dec->string) {
@@ -182,18 +186,36 @@ rasqal_xsd_decimal_clear(rasqal_xsd_decimal* dec)
   }
 #endif
 #ifdef RASQAL_DECIMAL_MPFR
-  mpfr_clear(dec->raw);
   if(dec->string) {
-    mpfr_free_str((char*)dec->string);
+    if(dec->string_is_rasqal)
+      RASQAL_FREE(dec->string);
+    else
+      mpfr_free_str((char*)dec->string);
     dec->string=NULL;
   }
 #endif
 #ifdef RASQAL_DECIMAL_GMP
-  mpf_clear(dec->raw);
   if(dec->string) {
-    mpf_free_str((char*)dec->string);
+    free((char*)dec->string);
     dec->string=NULL;
   }
+#endif
+  dec->string_len=0;
+  dec->string_is_rasqal=0;
+}  
+
+
+void
+rasqal_xsd_decimal_clear(rasqal_xsd_decimal* dec)
+{
+  rasqal_xsd_decimal_clear_string(dec);
+#ifdef RASQAL_DECIMAL_C99
+#endif
+#ifdef RASQAL_DECIMAL_MPFR
+  mpfr_clear(dec->raw);
+#endif
+#ifdef RASQAL_DECIMAL_GMP
+  mpf_clear(dec->raw);
 #endif
 #ifdef RASQAL_DECIMAL_NONE
   dec->raw= 0e0;
@@ -205,6 +227,20 @@ int
 rasqal_xsd_decimal_set_string(rasqal_xsd_decimal* dec, const char* string)
 {
   int rc=0;
+  size_t len;
+  
+  if(!string)
+    return 1;
+
+  rasqal_xsd_decimal_clear_string(dec);
+
+  len=strlen(string);
+  dec->string=RASQAL_MALLOC(cstring, len+1);
+  if(!dec->string)
+    return 1;
+  strncpy(dec->string, string, len+1);
+  dec->string_len=len;
+  dec->string_is_rasqal=1;
   
 #if defined(RASQAL_DECIMAL_C99) || defined(RASQAL_DECIMAL_NONE)
   dec->raw=strtod(string);
@@ -225,6 +261,8 @@ rasqal_xsd_decimal_set_long(rasqal_xsd_decimal* dec, long l)
 {
   int rc=0;
   
+  rasqal_xsd_decimal_clear_string(dec);
+
 #if defined(RASQAL_DECIMAL_C99) || defined(RASQAL_DECIMAL_NONE)
   dec->raw=l;
 #endif
@@ -232,7 +270,7 @@ rasqal_xsd_decimal_set_long(rasqal_xsd_decimal* dec, long l)
   rc=mpfr_set_si(dec->raw, l, dec->rounding);
 #endif
 #ifdef RASQAL_DECIMAL_GMP
-  rc=mpf_set_si(dec->raw, l);
+  mpf_set_si(dec->raw, l);
 #endif
   return rc;
 }
@@ -261,6 +299,8 @@ rasqal_xsd_decimal_get_double(rasqal_xsd_decimal* dec)
 {
   double result=0e0;
 
+  rasqal_xsd_decimal_clear_string(dec);
+
 #if defined(RASQAL_DECIMAL_C99) || defined(RASQAL_DECIMAL_NONE)
   result=(double)dec->raw;
 #endif
@@ -279,9 +319,6 @@ char*
 rasqal_xsd_decimal_as_string(rasqal_xsd_decimal* dec)
 {
   char *s=NULL;
-#if defined(RASQAL_DECIMAL_MPFR) || defined(RASQAL_DECIMAL_GMP)
-  mp_exp_t expo;
-#endif
 
   if(dec->string)
     return dec->string;
@@ -289,23 +326,29 @@ rasqal_xsd_decimal_as_string(rasqal_xsd_decimal* dec)
 #ifdef RASQAL_DECIMAL_C99
   s=RASQAL_MALLOC(cstring, dec->precision_digits);
   /* NOTE: Never seen a sprintf that supports _Decimal yet */
-  sprintf(s, "%DDf", dec->raw);
+  snprintf(s, dec->precision_digits, "%DDf", dec->raw);
 #endif
 #ifdef RASQAL_DECIMAL_MPFR
   if(mpfr_fits_slong_p(dec->raw, dec->rounding)) {
     /* FIXME - buffer size big enough for max LONG */
-    s=RASQAL_MALLOC(cstring, 15);
-    sprintf(s, "%ld", mpfr_get_si(dec->raw, dec->rounding));
-  } else
+    size_t n=15;
+    s=RASQAL_MALLOC(cstring, n+1);
+    snprintf(s, n, "%ld", mpfr_get_si(dec->raw, dec->rounding));
+  } else {
+    mp_exp_t expo;
     s=mpfr_get_str(NULL, &expo, 10, 0, dec->raw, dec->rounding);
+  }
 #endif
 #ifdef RASQAL_DECIMAL_GMP
   if(mpf_fits_slong_p(dec->raw)) {
     /* FIXME - buffer size big enough for max LONG */
-    s=RASQAL_MALLOC(cstring, 15);
-    sprintf(s, "%ld", mpf_get_si(dec->raw));
-  } else
+    size_t n=15;
+    s=RASQAL_MALLOC(cstring, n+1);
+    snprintf(s, n, "%ld", mpf_get_si(dec->raw));
+  } else {
+    mp_exp_t expo;
     s=mpf_get_str(NULL, &expo, 10, 0, dec->raw);
+  }
 #endif
 #ifdef RASQAL_DECIMAL_NONE
   s=RASQAL_MALLOC(cstring, dec->precision_digits);
@@ -333,8 +376,29 @@ rasqal_xsd_decimal_print(rasqal_xsd_decimal* dec, FILE* stream)
 #ifdef RASQAL_DECIMAL_GMP
   if(mpf_fits_slong_p(dec->raw)) {
     fprintf(stream, "%ld", mpf_get_si(dec->raw));
-  } else
-    mpf_out_str(stream, 10, 0, dec->raw);
+  } else {
+    mp_exp_t expo;
+    char *s;
+    s=mpf_get_str(NULL, &expo, 10, 0, dec->raw);
+    if(s) {
+      char *p=s;
+      size_t len=strlen(p);
+      if(*p == '-') {
+        p++;
+        fputc('-', stream);
+        len--;
+      }
+      /* first digit of mantissa */
+      putc(p[0], stream);
+      p++; len--;
+      putc('.', stream);
+      /* rest of mantissa */
+      fwrite(p, 1, len, stream);
+      /* exp */
+      fprintf(stream, "e%ld", expo-1);
+      free(s);
+    }
+  }
 #endif
 #ifdef RASQAL_DECIMAL_NONE
   printf(stream, "%f", dec->raw);
@@ -356,7 +420,7 @@ rasqal_xsd_decimal_add(rasqal_xsd_decimal* result,
   rc=mpfr_add(result->raw, a->raw, b->raw, result->rounding);
 #endif
 #ifdef RASQAL_DECIMAL_GMP
-  rc=mpf_add(result->raw, a->raw, b->raw);
+  mpf_add(result->raw, a->raw, b->raw);
 #endif
 
   return rc;
@@ -376,7 +440,7 @@ rasqal_xsd_decimal_subtract(rasqal_xsd_decimal* result,
   rc=mpfr_sub(result->raw, a->raw, b->raw, result->rounding);
 #endif
 #ifdef RASQAL_DECIMAL_GMP
-  rc=mpf_sub(result->raw, a->raw, b->raw);
+  mpf_sub(result->raw, a->raw, b->raw);
 #endif
 
   return rc;
@@ -396,7 +460,7 @@ rasqal_xsd_decimal_multiply(rasqal_xsd_decimal* result,
   rc=mpfr_mul(result->raw, a->raw, b->raw, result->rounding);
 #endif
 #ifdef RASQAL_DECIMAL_GMP
-  rc=mpf_mul(result->raw, a->raw, b->raw);
+  mpf_mul(result->raw, a->raw, b->raw);
 #endif
 
   return rc;
@@ -422,10 +486,10 @@ rasqal_xsd_decimal_divide(rasqal_xsd_decimal* result,
   rc=mpfr_div(result->raw, a->raw, b->raw, result->rounding);
 #endif
 #ifdef RASQAL_DECIMAL_GMP
-  if(mpf_zero_p(b->raw))
+  if(!mpf_sgn(b->raw))
     return 1;
   
-  rc=mpf_div(result->raw, a->raw, b->raw);
+  mpf_div(result->raw, a->raw, b->raw);
 #endif
 
   return rc;
@@ -518,13 +582,13 @@ main(int argc, char *argv[]) {
 
   rasqal_xsd_decimal_add(result, &a, &b);
 
-  fprintf(stderr, "Result a+b is: ");
+  fprintf(stderr, "a+b=");
   rasqal_xsd_decimal_print(result, stderr);
   fprintf(stderr, "\n");
 
   rasqal_xsd_decimal_subtract(result2, result, &b);
 
-  fprintf(stderr, "Result (a+b)-b is: ");
+  fprintf(stderr, "(a+b)-b=");
   rasqal_xsd_decimal_print(result2, stderr);
   fprintf(stderr, "\n");
 
