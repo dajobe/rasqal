@@ -539,13 +539,13 @@ rasqal_xsd_decimal_equals(rasqal_xsd_decimal* a, rasqal_xsd_decimal* b)
   
 #if defined(RASQAL_DECIMAL_C99) || defined(RASQAL_DECIMAL_NONE)
   rc= (result->b == result->a);
-#endif
-#ifdef RASQAL_DECIMAL_MPFR
+#elif defined(RASQAL_DECIMAL_MPFR)
   rc=mpfr_equal_p(a->raw, b->raw);
-#endif
-#ifdef RASQAL_DECIMAL_GMP
+#elif defined(RASQAL_DECIMAL_GMP)
   /* NOTE: Not using mpf_eq() but could do, with sufficient bits */
   rc=!mpf_cmp(a->raw, b->raw);
+#else
+#error RASQAL_DECIMAL flagging error
 #endif
 
   return rc;
