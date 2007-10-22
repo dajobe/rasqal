@@ -317,6 +317,13 @@ typedef enum {
 
 
 /**
+ * rasqal_xsd_decimal:
+ *
+ * Rasqal XSD Decimal class.
+ */
+typedef struct rasqal_xsd_decimal_s rasqal_xsd_decimal;
+
+/**
  * rasqal_literal:
  * @usage: Usage count.
  * @type: Type of literal.
@@ -340,12 +347,14 @@ struct rasqal_literal_s {
   union {
     /* integer and boolean types */
     int integer;
-    /* double, float and decimal */
+    /* double and float */
     double floating;
     /* uri (can be temporarily NULL if a qname, see flags below) */
     raptor_uri* uri;
     /* variable */
     rasqal_variable* variable;
+    /* decimal */
+    rasqal_xsd_decimal* decimal;
   } value;
 
   /* for string */
@@ -1028,13 +1037,6 @@ RASQAL_API
 void* rasqal_calloc_memory(size_t nmemb, size_t size);
 
 
-/**
- * rasqal_xsd_decimal:
- *
- * Rasqal XSD Decimal class.
- */
-typedef struct rasqal_xsd_decimal_s rasqal_xsd_decimal;
-
 /* decimal functions */
 RASQAL_API
 rasqal_xsd_decimal* rasqal_new_xsd_decimal(void);
@@ -1065,7 +1067,7 @@ int rasqal_xsd_decimal_divide(rasqal_xsd_decimal* result, rasqal_xsd_decimal* a,
 RASQAL_API
 int rasqal_xsd_decimal_compare(rasqal_xsd_decimal* a, rasqal_xsd_decimal* b);
 RASQAL_API
-int rasqal_xsd_decimal_equal(rasqal_xsd_decimal* a, rasqal_xsd_decimal* b);
+int rasqal_xsd_decimal_equals(rasqal_xsd_decimal* a, rasqal_xsd_decimal* b);
 
 
 /* rasqal_engine.c */
