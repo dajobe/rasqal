@@ -50,6 +50,7 @@ void rasqal_xsd_decimal_clear(rasqal_xsd_decimal* dec);
 int rasqal_xsd_decimal_set_string(rasqal_xsd_decimal* dec, const char* string);
 double rasqal_xsd_decimal_get_double(rasqal_xsd_decimal* dec);
 char* rasqal_xsd_decimal_as_string(rasqal_xsd_decimal* dec);
+char* rasqal_xsd_decimal_as_counted_string(rasqal_xsd_decimal* dec, size_t* len_p);
 int rasqal_xsd_decimal_set_long(rasqal_xsd_decimal* dec, long l);
 int rasqal_xsd_decimal_set_double(rasqal_xsd_decimal* dec, double d);
 int rasqal_xsd_decimal_print(rasqal_xsd_decimal* dec, FILE* stream);
@@ -188,7 +189,7 @@ rasqal_xsd_decimal_clear_string(rasqal_xsd_decimal* dec)
 #ifdef RASQAL_DECIMAL_MPFR
   if(dec->string) {
     if(dec->string_is_rasqal)
-      RASQAL_FREE(dec->string);
+      RASQAL_FREE(cstring, dec->string);
     else
       mpfr_free_str((char*)dec->string);
     dec->string=NULL;
@@ -319,43 +320,59 @@ char*
 rasqal_xsd_decimal_as_string(rasqal_xsd_decimal* dec)
 {
   char *s=NULL;
-
+  size_t len=0;
+  
   if(dec->string)
     return dec->string;
   
 #ifdef RASQAL_DECIMAL_C99
-  s=RASQAL_MALLOC(cstring, dec->precision_digits);
+  len=dec->precision_digits;
+  s=RASQAL_MALLOC(cstring, len+1);
   /* NOTE: Never seen a sprintf that supports _Decimal yet */
-  snprintf(s, dec->precision_digits, "%DDf", dec->raw);
+  snprintf(s, len, "%DDf", dec->raw);
 #endif
 #ifdef RASQAL_DECIMAL_MPFR
   if(mpfr_fits_slong_p(dec->raw, dec->rounding)) {
     /* FIXME - buffer size big enough for max LONG */
-    size_t n=15;
-    s=RASQAL_MALLOC(cstring, n+1);
-    snprintf(s, n, "%ld", mpfr_get_si(dec->raw, dec->rounding));
+    len=15;
+    s=RASQAL_MALLOC(cstring, len+1);
+    snprintf(s, len, "%ld", mpfr_get_si(dec->raw, dec->rounding));
   } else {
     mp_exp_t expo;
     s=mpfr_get_str(NULL, &expo, 10, 0, dec->raw, dec->rounding);
+    len=strlen(s);
   }
 #endif
 #ifdef RASQAL_DECIMAL_GMP
   if(mpf_fits_slong_p(dec->raw)) {
     /* FIXME - buffer size big enough for max LONG */
-    size_t n=15;
-    s=RASQAL_MALLOC(cstring, n+1);
-    snprintf(s, n, "%ld", mpf_get_si(dec->raw));
+    len=15;
+    s=RASQAL_MALLOC(cstring, len+1);
+    snprintf(s, len, "%ld", mpf_get_si(dec->raw));
   } else {
     mp_exp_t expo;
     s=mpf_get_str(NULL, &expo, 10, 0, dec->raw);
+    len=strlen(s);
   }
 #endif
 #ifdef RASQAL_DECIMAL_NONE
-  s=RASQAL_MALLOC(cstring, dec->precision_digits);
-  sprintf(s, "%f", dec->raw);
+  len=dec->precision_digits;
+  s=RASQAL_MALLOC(cstring, len+1);
+  snprintf(s, len, "%f", dec->raw);
 #endif
 
   dec->string=s;
+  dec->string_len=len;
+  return s;
+}
+
+
+char*
+rasqal_xsd_decimal_as_counted_string(rasqal_xsd_decimal* dec, size_t* len_p)
+{
+  char* s=rasqal_xsd_decimal_as_string(dec);
+  if(s && len_p)
+    *len_p=dec->string_len;
   return s;
 }
 
