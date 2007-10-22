@@ -584,6 +584,17 @@ main(int argc, char *argv[]) {
   rasqal_xsd_decimal b;
   rasqal_xsd_decimal *result;
   rasqal_xsd_decimal *result2;
+  double result_d;
+  char *result_s;
+  int result_i;
+  const long a_long=1234567890L;
+  const double a_double=1234567890e0;
+  const char* b_string="123456789012345678e0";
+  const char* expected_a_plus_b="1.23456790246913568e17";
+  const char* expected_a_plus_b_minus_b="1.23456789e9";
+  const char* expected_a_plus_b_minus_b_minus_a="0.0e0";
+  int expected_a_compare_b= -1;
+  int expected_a_equal_b= 0;
 
 #ifdef RASQAL_DECIMAL_MPFR
   fprintf(stderr, "%s: Using MPFR %s\n", program, mpfr_get_version());
@@ -605,42 +616,71 @@ main(int argc, char *argv[]) {
     goto tidy;
   }
 
-  rasqal_xsd_decimal_set_long(&a, 1234567890L);
-  rasqal_xsd_decimal_set_string(&b, "123456789012345678e0");
+  rasqal_xsd_decimal_set_long(&a, a_long);
+  rasqal_xsd_decimal_set_string(&b, b_string);
 
-  fprintf(stderr, "a=");
-  rasqal_xsd_decimal_print(&a, stderr);
-  fprintf(stderr, "\n");
+  result_d=rasqal_xsd_decimal_get_double(&a);
+  if(result_d != a_double) {
+    fprintf(stderr, "FAILED: a=%lf expected %lf\n", result_d, a_double);
+    rc=1;
+    goto tidy;
+  }
 
-  fprintf(stderr, "b=");
-  rasqal_xsd_decimal_print(&b, stderr);
-  fprintf(stderr, "\n");
+  result_s=rasqal_xsd_decimal_as_string(&b);
+  if(strcmp(result_s, b_string)) {
+    fprintf(stderr, "FAILED: b=%s expected %s\n", result_s, b_string);
+    rc=1;
+    goto tidy;
+  }
 
-  /* result = a-b */
+  /* result = a+b */
   rasqal_xsd_decimal_add(result, &a, &b);
 
-  fprintf(stderr, "a+b=");
-  rasqal_xsd_decimal_print(result, stderr);
-  fprintf(stderr, "\n");
-
+  result_s=rasqal_xsd_decimal_as_string(result);
+  if(strcmp(result_s, expected_a_plus_b)) {
+    fprintf(stderr, "FAILED: a+b=%s expected %s\n", result_s, 
+            expected_a_plus_b);
+    rc=1;
+    goto tidy;
+  }
+  
   /* result2 = result-b */
   rasqal_xsd_decimal_subtract(result2, result, &b);
 
-  fprintf(stderr, "(a+b)-b=");
-  rasqal_xsd_decimal_print(result2, stderr);
-  fprintf(stderr, "\n");
+  result_s=rasqal_xsd_decimal_as_string(result2);
+  if(strcmp(result_s, expected_a_plus_b_minus_b)) {
+    fprintf(stderr, "FAILED: (a+b)-b=%s expected %s\n", result_s, 
+            expected_a_plus_b_minus_b);
+    rc=1;
+    goto tidy;
+  }
 
   /* result = result2-a */
   rasqal_xsd_decimal_subtract(result, result2, &a);
 
-  fprintf(stderr, "(a+b)-b-a=");
-  rasqal_xsd_decimal_print(result, stderr);
-  fprintf(stderr, "\n");
+  result_s=rasqal_xsd_decimal_as_string(result);
+  if(strcmp(result_s, expected_a_plus_b_minus_b_minus_a)) {
+    fprintf(stderr, "FAILED: (a+b)-b-a=%s expected %s\n", result_s, 
+            expected_a_plus_b_minus_b_minus_a);
+    rc=1;
+    goto tidy;
+  }
 
-  fprintf(stderr, "a compare b = %d\n", rasqal_xsd_decimal_compare(&a, &b));
+  result_i=rasqal_xsd_decimal_compare(&a, &b);
+  if(result_i != expected_a_compare_b) {
+    fprintf(stderr, "FAILED: a compare b = %d expected %d\n",
+            result_i, expected_a_compare_b);
+    rc=1;
+    goto tidy;
+  }
 
-  fprintf(stderr, "a equal b = %d\n", rasqal_xsd_decimal_equal(&a, &b));
-
+  result_i=rasqal_xsd_decimal_equal(&a, &b);
+  if(result_i != expected_a_equal_b) {
+    fprintf(stderr, "FAILED: a equal b = %d expected %d\n",
+            result_i, expected_a_equal_b);
+    rc=1;
+    goto tidy;
+  }
 
   rc=0;
   
