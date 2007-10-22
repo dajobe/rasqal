@@ -1520,6 +1520,27 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
 int
 rasqal_literal_equals(rasqal_literal* l1, rasqal_literal* l2)
 {
+  return rasqal_literal_equals_flags(l1, l2, 0);
+}
+
+
+/**
+ * rasqal_literal_equals_flags:
+ * @l1: #rasqal_literal literal
+ * @l2: #rasqal_literal data literal
+ * @flags: comparison flags
+ *
+ * Compare two literals with optional type promotion.
+ * 
+ * flag bits affects equality:
+ *   RASQAL_COMPARE_XQUERY: use XQuery comparison and type promotion rules
+ *
+ * Return value: non-0 if equal
+ **/
+int
+rasqal_literal_equals_flags(rasqal_literal* l1, rasqal_literal* l2,
+                            int flags)
+{
   /* null literals */
   if(!l1 || !l2) {
     /* if either is not null, the comparison fails */
