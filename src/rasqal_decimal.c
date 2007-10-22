@@ -533,7 +533,7 @@ rasqal_xsd_decimal_compare(rasqal_xsd_decimal* a, rasqal_xsd_decimal* b)
 
 
 int
-rasqal_xsd_decimal_equal(rasqal_xsd_decimal* a, rasqal_xsd_decimal* b)
+rasqal_xsd_decimal_equals(rasqal_xsd_decimal* a, rasqal_xsd_decimal* b)
 {
   int rc;
   
@@ -575,7 +575,7 @@ main(int argc, char *argv[]) {
   const char* expected_a_plus_b_minus_b="1.23456789e9";
   const char* expected_a_plus_b_minus_b_minus_a="0.0e0";
   int expected_a_compare_b= -1;
-  int expected_a_equal_b= 0;
+  int expected_a_equals_b= 0;
 
 #ifdef RASQAL_DECIMAL_MPFR
   fprintf(stderr, "%s: Using MPFR %s\n", program, mpfr_get_version());
@@ -655,10 +655,10 @@ main(int argc, char *argv[]) {
     goto tidy;
   }
 
-  result_i=rasqal_xsd_decimal_equal(&a, &b);
-  if(result_i != expected_a_equal_b) {
-    fprintf(stderr, "FAILED: a equal b = %d expected %d\n",
-            result_i, expected_a_equal_b);
+  result_i=rasqal_xsd_decimal_equals(&a, &b);
+  if(result_i != expected_a_equals_b) {
+    fprintf(stderr, "FAILED: a equals b = %d expected %d\n",
+            result_i, expected_a_equals_b);
     rc=1;
     goto tidy;
   }
