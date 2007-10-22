@@ -106,6 +106,8 @@ int rasqal_xsd_decimal_equal(rasqal_xsd_decimal* a, rasqal_xsd_decimal* b);
 #endif
 #endif
 
+/* for MPFR the string can be from library or MPFR allocator */
+#define FLAGS_STRING_ALLOCED_HERE 1
 
 struct rasqal_xsd_decimal_s {
   unsigned int precision_digits;
@@ -113,7 +115,7 @@ struct rasqal_xsd_decimal_s {
   RASQAL_DECIMAL_RAW raw;
   RASQAL_DECIMAL_ROUNDING rounding;
   char* string;
-  int string_is_rasqal;
+  int flags;
   size_t string_len;
 };
 
@@ -173,7 +175,7 @@ rasqal_xsd_decimal_init(rasqal_xsd_decimal* dec)
 
   dec->string=NULL;
   dec->string_len=0;
-  dec->string_is_rasqal=0;
+  dec->flags=0;
 }
 
 
@@ -182,13 +184,13 @@ rasqal_xsd_decimal_clear_string(rasqal_xsd_decimal* dec)
 {
 #ifdef RASQAL_DECIMAL_C99
   if(dec->string) {
-    free(dec->string);
+    RASQAL_FREE(cstring, dec->string);
     dec->string=NULL;
   }
 #endif
 #ifdef RASQAL_DECIMAL_MPFR
   if(dec->string) {
-    if(dec->string_is_rasqal)
+    if(dec->flags & FLAGS_STRING_ALLOCED_HERE)
       RASQAL_FREE(cstring, dec->string);
     else
       mpfr_free_str((char*)dec->string);
@@ -197,12 +199,12 @@ rasqal_xsd_decimal_clear_string(rasqal_xsd_decimal* dec)
 #endif
 #ifdef RASQAL_DECIMAL_GMP
   if(dec->string) {
-    free((char*)dec->string);
+    free((char*)dec->string); /* GMP uses free */
     dec->string=NULL;
   }
 #endif
   dec->string_len=0;
-  dec->string_is_rasqal=0;
+  dec->flags=0;
 }  
 
 
@@ -241,7 +243,7 @@ rasqal_xsd_decimal_set_string(rasqal_xsd_decimal* dec, const char* string)
     return 1;
   strncpy(dec->string, string, len+1);
   dec->string_len=len;
-  dec->string_is_rasqal=1;
+  dec->flags |= FLAGS_STRING_ALLOCED_HERE;
   
 #if defined(RASQAL_DECIMAL_C99) || defined(RASQAL_DECIMAL_NONE)
   dec->raw=strtod(string);
@@ -282,6 +284,8 @@ rasqal_xsd_decimal_set_double(rasqal_xsd_decimal* dec, double d)
 {
   int rc=0;
   
+  rasqal_xsd_decimal_clear_string(dec);
+
 #if defined(RASQAL_DECIMAL_C99) || defined(RASQAL_DECIMAL_NONE)
   dec->raw=d;
 #endif
@@ -299,8 +303,6 @@ double
 rasqal_xsd_decimal_get_double(rasqal_xsd_decimal* dec)
 {
   double result=0e0;
-
-  rasqal_xsd_decimal_clear_string(dec);
 
 #if defined(RASQAL_DECIMAL_C99) || defined(RASQAL_DECIMAL_NONE)
   result=(double)dec->raw;
@@ -413,7 +415,7 @@ rasqal_xsd_decimal_print(rasqal_xsd_decimal* dec, FILE* stream)
       fwrite(p, 1, len, stream);
       /* exp */
       fprintf(stream, "e%ld", expo-1);
-      free(s);
+      free(s); /* GMP uses free */
     }
   }
 #endif
