@@ -254,18 +254,24 @@ rasqal_new_decimal_literal(const char *decimal)
   raptor_uri* dt_uri;
   rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(rasqal_literal));
   if(l) {
-    double d=0.0;
     l->usage=1;
     l->type=RASQAL_LITERAL_DECIMAL;
-    (void)sscanf((char*)decimal, "%lf", &d);
-    l->value.floating=d;
-    l->string_len=strlen(decimal);
-    l->string=(unsigned char*)RASQAL_MALLOC(cstring, l->string_len+1);
+    l->value.decimal=rasqal_new_xsd_decimal();
+    if(!l->value.decimal) {
+      rasqal_free_literal(l);
+      return NULL;
+    }
+    if(rasqal_xsd_decimal_set_string(l->value.decimal, decimal)) {
+      rasqal_free_literal(l);
+      return NULL;
+    }
+    /* string is owned by l->value.decimal */
+    l->string=(unsigned char*)rasqal_xsd_decimal_as_counted_string(l->value.decimal,
+                                                                   (size_t*)&l->string_len);
     if(!l->string) {
       rasqal_free_literal(l);
       return NULL;
     }
-    strcpy((char*)l->string, decimal);
     dt_uri=rasqal_xsd_datatype_type_to_uri(l->type);
     if(!dt_uri) {
       rasqal_free_literal(l);
@@ -390,7 +396,6 @@ rasqal_literal_string_to_native(rasqal_literal *l,
 
     case RASQAL_LITERAL_DOUBLE:
     case RASQAL_LITERAL_FLOAT:
-    case RASQAL_LITERAL_DECIMAL:
       d=0.0;
       (void)sscanf((char*)l->string, "%lf", &d);
       if(native_type == RASQAL_LITERAL_DOUBLE &&
@@ -403,6 +408,21 @@ rasqal_literal_string_to_native(rasqal_literal *l,
       }
       
       l->value.floating=d;
+      break;
+
+    case RASQAL_LITERAL_DECIMAL:
+      l->value.decimal=rasqal_new_xsd_decimal();
+      if(!l->value.decimal)
+        return 1;
+      if(rasqal_xsd_decimal_set_string(l->value.decimal,
+                                       (const char*)l->string))
+        return 1;
+      RASQAL_FREE(cstring, (void*)l->string);
+      /* string is owned by l->value.decimal */
+      l->string=(unsigned char*)rasqal_xsd_decimal_as_counted_string(l->value.decimal,
+                                                                     (size_t*)&l->string_len);
+      if(!l->string)
+        return 1;
       break;
 
     case RASQAL_LITERAL_BOOLEAN:
@@ -651,7 +671,6 @@ rasqal_free_literal(rasqal_literal* l)
     case RASQAL_LITERAL_DOUBLE:
     case RASQAL_LITERAL_INTEGER: 
     case RASQAL_LITERAL_FLOAT:
-    case RASQAL_LITERAL_DECIMAL:
     case RASQAL_LITERAL_DATETIME:
       if(l->string)
         RASQAL_FREE(cstring, (void*)l->string);
@@ -664,6 +683,11 @@ rasqal_free_literal(rasqal_literal* l)
         if(l->flags)
           RASQAL_FREE(cstring, (void*)l->flags);
       }
+      break;
+    case RASQAL_LITERAL_DECIMAL:
+      /* l->string is owned by l->value.decimal - do not free it */
+      if(l->value.decimal)
+        rasqal_free_xsd_decimal(l->value.decimal);
       break;
 
     case RASQAL_LITERAL_BOOLEAN:
@@ -910,8 +934,11 @@ rasqal_literal_as_integer(rasqal_literal* l, int *error)
 
     case RASQAL_LITERAL_DOUBLE:
     case RASQAL_LITERAL_FLOAT:
-    case RASQAL_LITERAL_DECIMAL:
       return (int)l->value.floating;
+      break;
+
+    case RASQAL_LITERAL_DECIMAL:
+      return (int)rasqal_xsd_decimal_get_double(l->value.decimal);
       break;
 
     case RASQAL_LITERAL_STRING:
@@ -979,8 +1006,11 @@ rasqal_literal_as_floating(rasqal_literal* l, int *error)
 
     case RASQAL_LITERAL_DOUBLE:
     case RASQAL_LITERAL_FLOAT:
-    case RASQAL_LITERAL_DECIMAL:
       return l->value.floating;
+      break;
+
+    case RASQAL_LITERAL_DECIMAL:
+      return rasqal_xsd_decimal_get_double(l->value.decimal);
       break;
 
     case RASQAL_LITERAL_STRING:
@@ -1240,12 +1270,14 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
   int ints[2];
   double doubles[2];
   const unsigned char* strings[2];
+  rasqal_xsd_decimal* decimals[2];
   int errori=0;
   int seen_string=0;
   int seen_int=0;
   int seen_double=0;
   int seen_boolean=0;
   int seen_numeric=0;
+  int seen_decimal=0;
   
   *error=0;
 
@@ -1283,8 +1315,8 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
 
       case RASQAL_LITERAL_DECIMAL:
         strings[i]=lits[i]->string;
-        doubles[i]=lits[i]->value.floating;
-        seen_double++;
+        decimals[i]=lits[i]->value.decimal;
+        seen_decimal++;
         seen_numeric++;
         break;
 
@@ -1537,8 +1569,12 @@ rasqal_literal_equals(rasqal_literal* l1, rasqal_literal* l2)
 
     case RASQAL_LITERAL_DOUBLE:
     case RASQAL_LITERAL_FLOAT:
-    case RASQAL_LITERAL_DECIMAL:
       return l1->value.floating == l2->value.floating;
+      break;
+
+    case RASQAL_LITERAL_DECIMAL:
+      return rasqal_xsd_decimal_equals(l1->value.decimal,
+                                       l2->value.decimal);
       break;
 
     case RASQAL_LITERAL_VARIABLE:
