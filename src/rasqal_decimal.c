@@ -338,7 +338,7 @@ rasqal_xsd_decimal_as_string(rasqal_xsd_decimal* dec)
       from_len--;
     }
     /* first digit of mantissa */
-    if(!*from_p || *from_p == '0');
+    if(!*from_p || *from_p == '0')
       strncpy(to_p, "0.0e0", 6);
     else {
       *to_p++ = *from_p++;
