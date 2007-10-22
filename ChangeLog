@@ -1,4 +1,293 @@
-2007-10-14  Dave Beckett  <dave@dajobe.org>
+2007-10-21  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal.h, src/rasqal_decimal.c, src/rasqal_internal.h: Move
+	rasqal_xsd_decimal prototypes to rasqal.h and rename
+	constructor/destructor to match convention
+
+	* src/rasqal_decimal.c, src/rasqal_internal.h: Move
+	rasqal_xsd_decimal prototypes to rasqal_internal.h
+
+	* src/rasqal_decimal.c: (main): Tests are silent on success
+
+	* src/rasqal_decimal.c: (rasqal_xsd_decimal_init): Set to 32
+	digits precision
+
+	* src/rasqal_decimal.c: (rasqal_xsd_decimal_as_string): less strlen
+
+	* src/rasqal_decimal.c: ;
+
+	* src/rasqal_decimal.c: (rasqal_xsd_decimal_clear_string): All
+	strings are rasqal alloced.
+	(rasqal_xsd_decimal_as_string): Handle zero better.
+
+	* src/rasqal_decimal.c: (rasqal_xsd_decimal_as_string): No longer
+	format as ints, always generate -?X.YeZ
+
+	* src/rasqal_decimal.c: Prevent 0.0e-1, make it 0.0e0
+
+	* src/rasqal_decimal.c: Ensure trailing zeroes are not all removed
+	in MPFR cleanup. Clear result strings when computing.
+
+	* src/rasqal_decimal.c: Catch malloc failures
+
+	* src/rasqal_decimal.c: (rasqal_xsd_decimal_as_string): Adjust
+	MPFR output to remove leading 0s and have 1 leading digit.  Adjust
+	GMP output to have 1 leading digit.
+	(rasqal_xsd_decimal_print): Use string from
+	rasqal_xsd_decimal_as_string.
+
+	* src/rasqal_decimal.c: Flags made explicit.
+	Annotate free()
+
+	* src/rasqal_decimal.c: (rasqal_xsd_decimal_as_counted_string): Added.
+
+	* src/rasqal_decimal.c: Preserve original string as str. Fix
+	output formatting better for GMP
+
+	* src/rasqal_decimal.c: Added GMP
+
+	* configure.ac: Added --with-decimal to choose mpfr, gmp, none
+	Added --with-mpfr=DIR to set prefix for mpfr install.
+	Added MPFR and GMP presence tests.
+	Added decimal choice to summary
+
+	* src/Makefile.am: Added rasqal_decimal.c to library
+
+	* configure.ac: AC_MSG_RESULT
+
+	* src/Makefile.am: Added rasqal_decimal_test
+
+	* src/rasqal_decimal.c: Moved macros to ../configure.ac
+
+	* configure.ac: Add checks and defines for MPFR and decimal
+
+	* src/rasqal_decimal.c: XSD decimal via some external library
+
+2007-10-18  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_engine.c: (rasqal_engine_query_result_row_update) Fix
+	SPARQL sort-3 segfault: Evaluating order condition expression may
+	return NULL.
+
+	* src/rasqal_engine.c: (rasqal_engine_query_result_row_to_nodes,
+	rasqal_engine_execute_run) Allow empty result sets - not an error.
+
+	* src/rasqal_literal.c: (rasqal_literal_cast) Check for new_string
+	alloc failure
+
+	* src/rasqal_result_formats.c: (rasqal_query_results_write_xml_result4)
+	Fix segfault when binding value literal is not a node type.
+
+	* src/rasqal_engine.c: (rasqal_engine_query_result_row_to_nodes)
+	Return an error if cannot convert a literal to node. Do not just
+	leave a non-node literal row values.
+
+	(rasqal_engine_execute_run) Check
+	rasqal_engine_query_result_row_to_nodes() return value.
+
+	* src/rasqal_engine.c: (rasqal_engine_query_result_row_update)
+	Free literal returned by evaluation of order condition
+	expressions.
+
+2007-10-17  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_engine.c: (rasqal_free_gp_data) Remove unnecessary
+	start_column check - the root cause for start_column<0 was fixed
+	in r12884.
+
+	* tests/sparql/ExprBuiltins/Makefile.am: Expect SPARQL
+	ExprBuiltins str-1 to fail.
+
+	* src/fix-flex: (fix-flex) Also remove generated yy_fatal_error()
+	declaration to avoid warning about declared but non-defined static
+	function. Fix line offset off-by-one by not including $ in printed
+	match when patching lex_destroy(). Fix .h #line directives as
+	well.
+
+	* src/fix-flex: (fix-flex) Remove generated yy_fatal_error()
+	definition to avoid warnings about unused function.
+
+	* src/rdql_lexer.l, src/sparql_lexer.l: (sparql_lexer_fatal_error,
+	rdql_lexer_fatal_error) Portability: avoid depending on varargs
+	implementation internals.
+
+	* src/sparql_lexer.l: (sparql_lexer) Replace out-of-memory
+	yyterminate() calls with more informative SPARQL_LEXER_OOM macros.
+
+	* src/rdql_lexer.l,
+	src/sparql_lexer.l: (sparql_lexer_cleanup,rdql_lexer_cleanup) Does
+	not have to be non-static.
+
+	* src/fix-flex, src/rasqal_internal.h, src/rdql_lexer.l,
+	src/sparql_lexer.l: (rasqal_query_s) Added lexer_user_data for
+	storing re-entrant lexer internal data.
+
+	(fix-flex) Replace calls to yy_fatal_error() with YY_FATAL_ERROR
+	macro.  Add alloc failure checks to generated ensure_stack().
+	Call custom cleanup() function in lex_destroy().  Removed
+	prefixing free(ptr) with NULL guard - rasqal lexers now have
+	yyfree replacements that check for NULL.  Fix .c #line numbers.
+
+	(sparql_lexer) Specify noyyalloc, noyyrealloc, noyyfree options to
+	prevent flex from generating alloc/realloc/free functions.  Define
+	YY_FATAL_ERROR macro to sparql_lexer_fatal_error().
+
+	Added experimental low-memory memory leak prevention code under
+	LEXER_ALLOC_TRACKING flag (disabled by default) - easier and
+	probably more failsafe than patching large amounts of generated C
+	in fix-flex. The leak itself is YY_BUFFER_STATE struct that is not
+	freed when ensure_stack() encounters an OOM fatal error -
+	previously ensure_stack() segfaulted but now fix-flex patches it
+	to just leak memory.
+
+	(sparql_lexer_fatal_error) Added replacement for default error
+	handler. Uses rasqal query fatal error reporting mechanisms if
+	possible. abort()s and does not exit() like the generated error
+	handler would do.
+	(sparql_lexer_cleanup) Added function that gets called by
+	sparql_lexer_lexer_destroy() patched by fix-flex. Cleans up memory
+	leaks (if any) when LEXER_ALLOC_TRACKING flag is enabled,
+	otherwise a no-op.
+	(sparql_lexer_alloc) Added allocator function as needed after the
+	noyyalloc option. If LEXER_ALLOC_TRACKING flag is disabled, it's
+	just the plain malloc(). Otherwise stores allocated pointer to an
+	alloc tracker stored in lexer_user_data in rasqal_query_s to allow
+	cleanup by sparql_lexer_cleanup().
+	(sparql_lexer_realloc) Added realloc function as needed after the
+	noyyrealloc option. If LEXER_ALLOC_TRACKING flag is disabled, it's
+	just the plain realloc(). Otherwise it uses the alloc tracker in
+	lexer_user_data.
+	(sparql_lexer_free) Added free function as needed after the
+	noyyfree option. If LEXER_ALLOC_TRACKING flag is disabled, it's
+	just the plain free() with NULL check. Otherwise it uses the alloc
+	tracker in lexer_user_data.
+
+	(rdql_lexer) Specify noyyalloc, noyyrealloc, noyyfree options to
+	prevent flex from generating alloc/realloc/free functions.  Define
+	YY_FATAL_ERROR macro to rdql_lexer_fatal_error().
+	(rdql_lexer_fatal_error) Added replacement for default error
+	handler. Uses rasqal query fatal error reporting mechanisms if
+	possible. abort()s and does not exit() like the generated error
+	handler would do.
+	(rdql_lexer_cleanup) Added empty function that gets called by
+	rdql_lexer_lex_destroy() patched by fix-flex.
+	(rdql_lexer_alloc,rdql_lexer_realloc) Added functions as needed
+	after noyyalloc and noyyrealloc options.
+	(rdql_lexer_free) Added function as needed after noyyfree
+	option. Checks for NULL ptr unlike the generated yyfree().
+
+2007-10-16  Lauri Aalto <laalto@iki.fi>
+
+	* src/fix-bison: (fix-bison) Fix .c #line references - was still
+	off by one.
+
+	* src/fix-bison: (fix-bison) Fix .c #line references. Fix script indent.
+
+	* src/sparql_parser.y: (sparql_parse) Check lexer init return code.
+
+2007-10-15  Dave Beckett <dave@dajobe.org>
+
+	* tests/rdql/testsuite/Makefile.am: Document B-07 B-20 as failing
+	since core changes to normalize xsd:double format for SPARQL cause
+	these to fail now
+
+2007-10-15  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_literal.c: (rasqal_new_string_literal) Free datatype
+	as uri and not as cstring on error.
+
+	* src/rasqal_xsd_datatypes.c: (rasqal_xsd_datatype_uri_parent_type)
+	fix comments
+
+	* src/sparql_parser.y: Memory leak fix: add %destructor for Object
+
+	* src/rasqal_engine.c: (rasqal_engine_convert_blank_node_to_anonymous_variable)
+	Fix low memory crashes due to variable literals with NULL
+	value. Changed function to return an int error code.
+	(rasqal_engine_build_anonymous_variables) Bubble up errors from
+	rasqal_engine_convert_blank_node_to_anonymous_variable().
+	(rasqal_engine_prepare) Bubble up errors from
+	rasqal_engine_build_anonymous_variables().
+
+	* src/rasqal_xsd_datatypes.c: (rasqal_xsd_datetime_normalize) Fix
+	bugs in day normalization: uninitialized var t in y2 expression;
+	add the correct number of days when going down a month
+	boundary (and not the number of days next month).
+	(test_datetimes) Add tests to catch the bug. Was not caught before
+	because January and December both have 31 days.
+	(test_datetime_parser_tostring) Print relevant information to
+	stderr on test failure.
+
+	* src/rasqal_literal.c: (rasqal_literal_string_to_native) Remove
+	unnecessary if
+
+2007-10-15  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_literal.c: docs
+
+2007-10-14  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_literal.c: (rasqal_new_double_literal): Use
+	rasqal_xsd_format_double to format a double.
+	(rasqal_literal_string_to_native): Use rasqal_xsd_format_double to
+	format a new double.
+
+	* src/rasqal_internal.h: Added rasqal_xsd_format_double prototype
+
+	* src/rasqal_xsd_datatypes.c: (rasqal_xsd_format_double): Added to
+	properly format an xsd:double
+
+	* src/sparql_lexer.l: Added SPARQL_NAME_CHECK_ALLOW_09_FIRST
+	NCNAME2: Added allowing 0-9
+	(QNAME,BNAME,BNAME2): Use NCNAME2 instead of NCNAME to allow 0-9
+	first.
+	(rasqal_sparql_name_check): Use SPARQL_NAME_CHECK_ALLOW_09_FIRST
+	to allow 0-9 as the first character.
+
+	* tests/sparql/ValueTesting/Makefile.am:
+	typePromotion-decimal-decimal-fail passes again
+
+	* src/rasqal_literal.c: (rasqal_literal_cast): Use
+	rasqal_xsd_datatype_check() to check if a cast from string is
+	allowed.
+
+	* src/rasqal_xsd_datatypes.c: (rasqal_xsd_init,
+	rasqal_xsd_finish): Do not try to init, free NULL names.
+
+	* src/rasqal_expr.c: (rasqal_expression_evaluate): Moved
+	RASQAL_EXPR_PLUS, RASQAL_EXPR_MINUS, RASQAL_EXPR_STAR and
+	RASQAL_EXPR_SLASH evaluation to rasqal_literal_add,
+	rasqal_literal_subtract, rasqal_literal_multiply,
+	rasqal_literal_divide respectively.
+
+	* src/rasqal_xsd_datatypes.c: table sparql_xsd_names now includes
+	the types that promote to xsd:integer
+	(rasqal_xsd_init): Init the URIs of the types above.
+	(rasqal_xsd_datatype_uri_parent_type): Added to get the parent
+	type of a datatype URI.
+	(rasqal_xsd_datatype_is_numeric): Added to check if an XSD type is
+	numeric.
+
+	* src/rasqal_literal.c: (rasqal_new_integer_literal): Initialise
+	parent_type to decimal.
+	(rasqal_literal_string_to_native): Native integers have a decimal
+	parent.
+	(rasqal_new_string_literal): Initialise parent type.
+	(rasqal_literal_promote_calculate): Added to calculate XSD type
+	promotions.
+	(rasqal_literal_is_numeric): Added to determine a numeric literal.
+	(rasqal_literal_add, rasqal_literal_subtract,
+	rasqal_literal_multiply, rasqal_literal_divide): Added based on
+	the expression code for literals.
+
+	* src/rasqal_internal.h: Added prototypes for rasqal_literal_is_numeric,
+	rasqal_literal_promote_calculate, rasqal_literal_add,
+	rasqal_literal_subtract, rasqal_literal_multiply,
+	rasqal_literal_divide, rasqal_xsd_datatype_uri_parent_type and
+	rasqal_xsd_datatype_is_numeric
+
+	* src/rasqal.h: rasqal_literal_s gains field parent_type for XSD
+	type hierarchy.
 
 	* Last known good revision 12894: 'make check' succeeds.
 
