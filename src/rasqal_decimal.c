@@ -370,7 +370,7 @@ rasqal_xsd_decimal_as_string(rasqal_xsd_decimal* dec)
       *to_p++ = '.';
       /* rest of mantissa */
       /* remove trailing 0s */
-      while(from_p[from_len-1]=='0')
+      while(from_len > 1 && from_p[from_len-1]=='0')
         from_len--;
       strncpy(to_p, from_p, from_len);
       to_p+= from_len;
@@ -468,6 +468,8 @@ rasqal_xsd_decimal_add(rasqal_xsd_decimal* result,
                        rasqal_xsd_decimal* a, rasqal_xsd_decimal* b)
 {
   int rc=0;
+
+  rasqal_xsd_decimal_clear_string(result);
   
 #if defined(RASQAL_DECIMAL_C99) || defined(RASQAL_DECIMAL_NONE)
   result->raw = result->a + result->b;
@@ -489,6 +491,8 @@ rasqal_xsd_decimal_subtract(rasqal_xsd_decimal* result,
 {
   int rc=0;
   
+  rasqal_xsd_decimal_clear_string(result);
+  
 #if defined(RASQAL_DECIMAL_C99) || defined(RASQAL_DECIMAL_NONE)
   result->raw = result->a - result->b;
 #endif
@@ -509,6 +513,8 @@ rasqal_xsd_decimal_multiply(rasqal_xsd_decimal* result,
 {
   int rc=0;
   
+  rasqal_xsd_decimal_clear_string(result);
+  
 #if defined(RASQAL_DECIMAL_C99) || defined(RASQAL_DECIMAL_NONE)
   result->raw = result->a * result->b;
 #endif
@@ -528,6 +534,8 @@ rasqal_xsd_decimal_divide(rasqal_xsd_decimal* result,
                           rasqal_xsd_decimal* a, rasqal_xsd_decimal* b)
 {
   int rc=0;
+  
+  rasqal_xsd_decimal_clear_string(result);
   
 #if defined(RASQAL_DECIMAL_C99) || defined(RASQAL_DECIMAL_NONE)
   if(!result->b)
@@ -636,16 +644,25 @@ main(int argc, char *argv[]) {
   rasqal_xsd_decimal_print(&b, stderr);
   fprintf(stderr, "\n");
 
+  /* result = a-b */
   rasqal_xsd_decimal_add(result, &a, &b);
 
   fprintf(stderr, "a+b=");
   rasqal_xsd_decimal_print(result, stderr);
   fprintf(stderr, "\n");
 
+  /* result2 = result-b */
   rasqal_xsd_decimal_subtract(result2, result, &b);
 
   fprintf(stderr, "(a+b)-b=");
   rasqal_xsd_decimal_print(result2, stderr);
+  fprintf(stderr, "\n");
+
+  /* result = result2-a */
+  rasqal_xsd_decimal_subtract(result, result2, &a);
+
+  fprintf(stderr, "(a+b)-b-a=");
+  rasqal_xsd_decimal_print(result, stderr);
   fprintf(stderr, "\n");
 
   fprintf(stderr, "a compare b = %d\n", rasqal_xsd_decimal_compare(&a, &b));
