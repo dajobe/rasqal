@@ -42,6 +42,7 @@
 
 /* prototypes */
 static void rasqal_xsd_decimal_init(rasqal_xsd_decimal* dec);
+static void rasqal_xsd_decimal_clear(rasqal_xsd_decimal* dec);
 
 
 #ifdef RASQAL_DECIMAL_C99
@@ -97,7 +98,7 @@ struct rasqal_xsd_decimal_s {
 
 
 rasqal_xsd_decimal*
-rasqal_xsd_decimal_new(void)
+rasqal_new_xsd_decimal(void)
 {
   rasqal_xsd_decimal* dec;
   dec=(rasqal_xsd_decimal*)RASQAL_MALLOC(decimal, sizeof(rasqal_xsd_decimal));
@@ -108,7 +109,7 @@ rasqal_xsd_decimal_new(void)
 
 
 void
-rasqal_xsd_decimal_free(rasqal_xsd_decimal* dec)
+rasqal_free_xsd_decimal(rasqal_xsd_decimal* dec)
 {
   if(dec) {
     rasqal_xsd_decimal_clear(dec);
@@ -159,7 +160,7 @@ rasqal_xsd_decimal_clear_string(rasqal_xsd_decimal* dec)
 }  
 
 
-void
+static void
 rasqal_xsd_decimal_clear(rasqal_xsd_decimal* dec)
 {
   rasqal_xsd_decimal_clear_string(dec);
@@ -589,10 +590,10 @@ main(int argc, char *argv[]) {
   rasqal_xsd_decimal_init(&a);
   rasqal_xsd_decimal_init(&b);
 
-  result=rasqal_xsd_decimal_new();
-  result2=rasqal_xsd_decimal_new();
+  result=rasqal_new_xsd_decimal();
+  result2=rasqal_new_xsd_decimal();
   if(!result || !result2) {
-    fprintf(stderr, "%s: rasqal_xsd_decimal_new() failed\n", program);
+    fprintf(stderr, "%s: rasqal_new_xsd_decimal() failed\n", program);
     goto tidy;
   }
 
@@ -668,9 +669,9 @@ main(int argc, char *argv[]) {
   rasqal_xsd_decimal_clear(&a);
   rasqal_xsd_decimal_clear(&b);
   if(result)
-     rasqal_xsd_decimal_free(result);
+     rasqal_free_xsd_decimal(result);
   if(result2)
-     rasqal_xsd_decimal_free(result2);
+     rasqal_free_xsd_decimal(result2);
 
   return rc;
 }

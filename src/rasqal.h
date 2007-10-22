@@ -1028,6 +1028,46 @@ RASQAL_API
 void* rasqal_calloc_memory(size_t nmemb, size_t size);
 
 
+/**
+ * rasqal_xsd_decimal:
+ *
+ * Rasqal XSD Decimal class.
+ */
+typedef struct rasqal_xsd_decimal_s rasqal_xsd_decimal;
+
+/* decimal functions */
+RASQAL_API
+rasqal_xsd_decimal* rasqal_new_xsd_decimal(void);
+RASQAL_API
+void rasqal_free_xsd_decimal(rasqal_xsd_decimal* dec);
+RASQAL_API
+int rasqal_xsd_decimal_set_string(rasqal_xsd_decimal* dec, const char* string);
+RASQAL_API
+double rasqal_xsd_decimal_get_double(rasqal_xsd_decimal* dec);
+RASQAL_API
+char* rasqal_xsd_decimal_as_string(rasqal_xsd_decimal* dec);
+RASQAL_API
+char* rasqal_xsd_decimal_as_counted_string(rasqal_xsd_decimal* dec, size_t* len_p);
+RASQAL_API
+int rasqal_xsd_decimal_set_long(rasqal_xsd_decimal* dec, long l);
+RASQAL_API
+int rasqal_xsd_decimal_set_double(rasqal_xsd_decimal* dec, double d);
+RASQAL_API
+int rasqal_xsd_decimal_print(rasqal_xsd_decimal* dec, FILE* stream);
+RASQAL_API
+int rasqal_xsd_decimal_add(rasqal_xsd_decimal* result, rasqal_xsd_decimal* a, rasqal_xsd_decimal* b);
+RASQAL_API
+int rasqal_xsd_decimal_subtract(rasqal_xsd_decimal* result, rasqal_xsd_decimal* a, rasqal_xsd_decimal* b);
+RASQAL_API
+int rasqal_xsd_decimal_multiply(rasqal_xsd_decimal* result, rasqal_xsd_decimal* a, rasqal_xsd_decimal* b);
+RASQAL_API
+int rasqal_xsd_decimal_divide(rasqal_xsd_decimal* result, rasqal_xsd_decimal* a, rasqal_xsd_decimal* b);
+RASQAL_API
+int rasqal_xsd_decimal_compare(rasqal_xsd_decimal* a, rasqal_xsd_decimal* b);
+RASQAL_API
+int rasqal_xsd_decimal_equal(rasqal_xsd_decimal* a, rasqal_xsd_decimal* b);
+
+
 /* rasqal_engine.c */
 
 /**
