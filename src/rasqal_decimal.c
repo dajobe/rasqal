@@ -197,7 +197,7 @@ rasqal_xsd_decimal_set_string(rasqal_xsd_decimal* dec, const char* string)
   dec->string_len=len;
   
 #if defined(RASQAL_DECIMAL_C99) || defined(RASQAL_DECIMAL_NONE)
-  dec->raw=strtod(string);
+  dec->raw=strtod(string, NULL);
 #endif
 #ifdef RASQAL_DECIMAL_MPFR
   rc=mpfr_set_str(dec->raw, string, 10, dec->rounding);
@@ -425,7 +425,7 @@ rasqal_xsd_decimal_add(rasqal_xsd_decimal* result,
   rasqal_xsd_decimal_clear_string(result);
   
 #if defined(RASQAL_DECIMAL_C99) || defined(RASQAL_DECIMAL_NONE)
-  result->raw = result->a + result->b;
+  result->raw = a->raw + b->raw;
 #endif
 #ifdef RASQAL_DECIMAL_MPFR
   rc=mpfr_add(result->raw, a->raw, b->raw, result->rounding);
@@ -447,7 +447,7 @@ rasqal_xsd_decimal_subtract(rasqal_xsd_decimal* result,
   rasqal_xsd_decimal_clear_string(result);
   
 #if defined(RASQAL_DECIMAL_C99) || defined(RASQAL_DECIMAL_NONE)
-  result->raw = result->a - result->b;
+  result->raw = a->raw - b->raw;
 #endif
 #ifdef RASQAL_DECIMAL_MPFR
   rc=mpfr_sub(result->raw, a->raw, b->raw, result->rounding);
@@ -469,7 +469,7 @@ rasqal_xsd_decimal_multiply(rasqal_xsd_decimal* result,
   rasqal_xsd_decimal_clear_string(result);
   
 #if defined(RASQAL_DECIMAL_C99) || defined(RASQAL_DECIMAL_NONE)
-  result->raw = result->a * result->b;
+  result->raw = a->raw * b->raw;
 #endif
 #ifdef RASQAL_DECIMAL_MPFR
   rc=mpfr_mul(result->raw, a->raw, b->raw, result->rounding);
@@ -491,10 +491,10 @@ rasqal_xsd_decimal_divide(rasqal_xsd_decimal* result,
   rasqal_xsd_decimal_clear_string(result);
   
 #if defined(RASQAL_DECIMAL_C99) || defined(RASQAL_DECIMAL_NONE)
-  if(!result->b)
+  if(!b->raw)
     return 1;
   
-  result->raw = result->a / result->b;
+  result->raw = a->raw / b->raw;
 #endif
 #ifdef RASQAL_DECIMAL_MPFR
   if(mpfr_zero_p(b->raw))
@@ -519,7 +519,7 @@ rasqal_xsd_decimal_compare(rasqal_xsd_decimal* a, rasqal_xsd_decimal* b)
   int rc=0;
   
 #if defined(RASQAL_DECIMAL_C99) || defined(RASQAL_DECIMAL_NONE)
-  rc= (int)(result->b - result->a);
+  rc= (int)(b->raw - a->raw);
 #endif
 #ifdef RASQAL_DECIMAL_MPFR
   rc=mpfr_cmp(a->raw, b->raw);
@@ -538,7 +538,7 @@ rasqal_xsd_decimal_equals(rasqal_xsd_decimal* a, rasqal_xsd_decimal* b)
   int rc;
   
 #if defined(RASQAL_DECIMAL_C99) || defined(RASQAL_DECIMAL_NONE)
-  rc= (result->b == result->a);
+  rc= (b->raw == a->raw);
 #elif defined(RASQAL_DECIMAL_MPFR)
   rc=mpfr_equal_p(a->raw, b->raw);
 #elif defined(RASQAL_DECIMAL_GMP)
