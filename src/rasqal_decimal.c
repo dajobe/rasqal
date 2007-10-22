@@ -353,7 +353,8 @@ rasqal_xsd_decimal_as_string(rasqal_xsd_decimal* dec)
       size_t from_len=strlen(mpf_s);
       char *from_p=mpf_s;
       char *to_p;
-
+      int is_zero=0;
+      
       s=RASQAL_MALLOC(cstring, from_len*2);
       if(!s) {
         free(mpf_s);
@@ -365,6 +366,7 @@ rasqal_xsd_decimal_as_string(rasqal_xsd_decimal* dec)
         from_len--;
       }
       /* first digit of mantissa */
+      is_zero=(*from_p == '0');
       *to_p++ = *from_p++;
       from_len--;
       *to_p++ = '.';
@@ -375,7 +377,7 @@ rasqal_xsd_decimal_as_string(rasqal_xsd_decimal* dec)
       strncpy(to_p, from_p, from_len);
       to_p+= from_len;
       /* exp */
-      sprintf(to_p, "e%ld", expo-1);
+      sprintf(to_p, "e%ld", is_zero ? expo: expo-1);
       len=strlen(s);
       free(mpf_s);
     }
@@ -399,6 +401,7 @@ rasqal_xsd_decimal_as_string(rasqal_xsd_decimal* dec)
       size_t from_len=strlen(mpf_s);
       char *from_p=mpf_s;
       char *to_p;
+      int is_zero=0;
 
       s=RASQAL_MALLOC(cstring, from_len*2);
       if(!s) {
@@ -411,6 +414,7 @@ rasqal_xsd_decimal_as_string(rasqal_xsd_decimal* dec)
         from_len--;
       }
       /* first digit of mantissa */
+      is_zero=(*from_p == '0');
       *to_p++ = *from_p++;
       from_len--;
       *to_p++ = '.';
@@ -418,7 +422,7 @@ rasqal_xsd_decimal_as_string(rasqal_xsd_decimal* dec)
       strncpy(to_p, from_p, from_len);
       to_p+= from_len;
       /* exp */
-      sprintf(to_p, "e%ld", expo-1);
+      sprintf(to_p, "e%ld", is_zero ? expo: expo-1);
       len=strlen(s);
       free(mpf_s);
     }
