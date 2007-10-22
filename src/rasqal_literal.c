@@ -1234,6 +1234,95 @@ rasqal_literal_promote_calculate(rasqal_literal* l1, rasqal_literal* l2,
 }
 
 
+static rasqal_literal*
+rasqal_new_literal_from_promotion(rasqal_literal* lit,
+                                  rasqal_literal_type type)
+{
+  rasqal_literal* new_lit=NULL;
+  int errori=0;
+  double d;
+  int i;
+  
+  RASQAL_DEBUG3("promoting literal type %s to type %s\n", 
+                rasqal_literal_type_labels[lit->type],
+                rasqal_literal_type_labels[type]);
+
+  /* May not promote non-numerics */
+  if(!rasqal_xsd_datatype_is_numeric(type)) {
+    if(type == RASQAL_LITERAL_STRING)
+      return rasqal_new_string_literal(lit->string, NULL, NULL, NULL);
+    return NULL;
+  }
+    
+  if(lit->type == type)
+    return rasqal_new_literal_from_literal(lit);
+
+  switch(type) {
+    case RASQAL_LITERAL_DECIMAL:
+      new_lit=rasqal_new_decimal_literal((const char*)lit->string);
+      break;
+      
+    case RASQAL_LITERAL_DOUBLE:
+      d=rasqal_literal_as_floating(lit, &errori);
+      /* failure always means no match */
+      if(errori)
+        new_lit=NULL;
+      else
+        new_lit=rasqal_new_double_literal(d);
+      break;
+      
+    case RASQAL_LITERAL_FLOAT:
+      d=rasqal_literal_as_floating(lit, &errori);
+      /* failure always means no match */
+      if(errori)
+        new_lit=NULL;
+      else
+        new_lit=rasqal_new_float_literal(d);
+      break;
+      
+
+    case RASQAL_LITERAL_INTEGER:
+    case RASQAL_LITERAL_BOOLEAN:
+      i=rasqal_literal_as_integer(lit, &errori);
+      /* failure always means no match */
+      if(errori)
+        new_lit=NULL;
+      else
+        new_lit=rasqal_new_integer_literal(i, type);
+      break;
+    
+    case RASQAL_LITERAL_STRING:
+      new_lit=rasqal_new_string_literal(lit->string, NULL, NULL, NULL);
+      break;
+
+    case RASQAL_LITERAL_UNKNOWN:
+    case RASQAL_LITERAL_BLANK:
+    case RASQAL_LITERAL_URI:
+    case RASQAL_LITERAL_DATETIME:
+    case RASQAL_LITERAL_PATTERN:
+    case RASQAL_LITERAL_QNAME:
+    case RASQAL_LITERAL_VARIABLE:
+    default:
+      errori=1;
+      new_lit=NULL;
+  }
+
+#ifdef RASQAL_DEBUG
+  if(new_lit)
+    RASQAL_DEBUG4("promoted literal (type %s) to type %s, with value '%s'\n", 
+                  rasqal_literal_type_labels[new_lit->type],
+                  rasqal_literal_type_labels[type],
+                  rasqal_literal_as_string(new_lit));
+  else
+    RASQAL_DEBUG3("failed to promote literal (type %s) to type %s\n", 
+                  rasqal_literal_type_labels[new_lit->type],
+                  rasqal_literal_type_labels[type]);
+#endif
+
+  return new_lit;
+}  
+
+
 /**
  * rasqal_literal_compare:
  * @l1: #rasqal_literal first literal
@@ -1265,19 +1354,20 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
                        int *error)
 {
   rasqal_literal *lits[2];
+  rasqal_literal* new_lits[2]; /* after promotions */
   rasqal_literal_type type;
   int i;
   int ints[2];
   double doubles[2];
   const unsigned char* strings[2];
   rasqal_xsd_decimal* decimals[2];
-  int errori=0;
   int seen_string=0;
   int seen_int=0;
   int seen_double=0;
   int seen_boolean=0;
   int seen_numeric=0;
   int seen_decimal=0;
+  int result=0;
   
   *error=0;
 
@@ -1290,6 +1380,8 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
   }
 
   lits[0]=l1;  lits[1]=l2;
+  new_lits[0]=NULL;;  new_lits[1]=NULL;
+
   for(i=0; i<2; i++) {
     if(lits[i]->type == RASQAL_LITERAL_VARIABLE) {
       lits[i]=lits[i]->value.variable->value;
@@ -1305,7 +1397,6 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
 
       RASQAL_DEBUG3("literal %d is a variable, value is a %s\n", i,
                     rasqal_literal_type_labels[lits[i]->type]);
-
     }
     
 
@@ -1386,64 +1477,14 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
   
 
   /* do promotions */
-  for(i=0; i<2; i++ ) {
-    if(lits[i]->type == type)
-      continue;
-    
-    switch(type) {
-      case RASQAL_LITERAL_DOUBLE:
-        doubles[i]=rasqal_literal_as_floating(lits[i], &errori);
-        /* failure always means no match */
-        if(errori)
-          return 1;
-        RASQAL_DEBUG4("promoted literal %d (type %s) to a double, with value %g\n", 
-                      i, rasqal_literal_type_labels[lits[i]->type], doubles[i]);
-        break;
-
-      case RASQAL_LITERAL_INTEGER:
-        ints[i]=rasqal_literal_as_integer(lits[i], &errori);
-        /* failure always means no match */
-        if(errori)
-          return 1;
-        RASQAL_DEBUG4("promoted literal %d (type %s) to an integer, with value %d\n", 
-                      i, rasqal_literal_type_labels[lits[i]->type], ints[i]);
-        break;
-    
-      case RASQAL_LITERAL_STRING:
-       strings[i]=rasqal_literal_as_string(lits[i]);
-       RASQAL_DEBUG4("promoted literal %d (type %s) to a string, with value '%s'\n", 
-                     i, rasqal_literal_type_labels[lits[i]->type], strings[i]);
-       break;
-
-      case RASQAL_LITERAL_BOOLEAN:
-        ints[i]=rasqal_literal_as_boolean(lits[i], &errori);
-        /* failure always means no match */
-        if(errori)
-          return 1;
-        RASQAL_DEBUG4("promoted literal %d (type %s) to a boolean, with value %d\n", 
-                      i, rasqal_literal_type_labels[lits[i]->type], ints[i]);
-        break;
-    
-      case RASQAL_LITERAL_UNKNOWN:
-      case RASQAL_LITERAL_BLANK:
-      case RASQAL_LITERAL_URI:
-      case RASQAL_LITERAL_FLOAT:
-      case RASQAL_LITERAL_DECIMAL:
-      case RASQAL_LITERAL_DATETIME:
-      case RASQAL_LITERAL_PATTERN:
-      case RASQAL_LITERAL_QNAME:
-      case RASQAL_LITERAL_VARIABLE:
-      default:
-        *error=1;
-        return 0;
-    }
-
-  } /* check types are promoted */
+  for(i=0; i<2; i++)
+    new_lits[i]=rasqal_new_literal_from_promotion(lits[i], type);
   
 
   switch(type) {
     case RASQAL_LITERAL_URI:
-      return raptor_uri_compare(lits[0]->value.uri, lits[1]->value.uri);
+      result=raptor_uri_compare(lits[0]->value.uri, lits[1]->value.uri);
+      break;
 
     case RASQAL_LITERAL_STRING:
       if(lits[0]->type == RASQAL_LITERAL_STRING &&
@@ -1458,8 +1499,6 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
         }
 
         if(lits[0]->datatype || lits[1]->datatype) {
-          int result;
-
           /* there is no ordering between typed and plain literals:       
              if either is NULL, do not compare but return an error
              (also implies inequality) */
@@ -1470,7 +1509,7 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
           result=raptor_uri_compare(lits[0]->datatype, lits[1]->datatype);
 
           if(result)
-            return result;
+            goto done;
         }
       }
       
@@ -1480,28 +1519,37 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
     case RASQAL_LITERAL_QNAME:
     case RASQAL_LITERAL_DATETIME:
       if(flags & RASQAL_COMPARE_NOCASE)
-        return rasqal_strcasecmp((const char*)strings[0],
-                                 (const char*)strings[1]);
+        result= rasqal_strcasecmp((const char*)strings[0],
+                                  (const char*)strings[1]);
       else
-        return strcmp((const char*)strings[0], (const char*)strings[1]);
+        result= strcmp((const char*)strings[0], (const char*)strings[1]);
+      break;
 
     case RASQAL_LITERAL_INTEGER:
     case RASQAL_LITERAL_BOOLEAN:
-      return ints[0] - ints[1];
+      result= ints[0] - ints[1];
       break;
 
     case RASQAL_LITERAL_DOUBLE:
     case RASQAL_LITERAL_FLOAT:
     case RASQAL_LITERAL_DECIMAL:
-      return double_to_int(doubles[0] - doubles[1]);
+      result= double_to_int(doubles[0] - doubles[1]);
       break;
 
     case RASQAL_LITERAL_UNKNOWN:
     case RASQAL_LITERAL_VARIABLE:
     default:
       abort();
-      return 0; /* keep some compilers happy */
+      result=0; /* keep some compilers happy */
   }
+
+  done:
+  for(i=0; i<2; i++) {
+    if(new_lits[i])
+      rasqal_free_literal(new_lits[i]);
+  }
+  
+  return result;
 }
 
 
