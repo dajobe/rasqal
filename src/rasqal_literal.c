@@ -1242,6 +1242,7 @@ rasqal_new_literal_from_promotion(rasqal_literal* lit,
   int errori=0;
   double d;
   int i;
+  unsigned char *new_s=NULL;
   
   RASQAL_DEBUG3("promoting literal type %s to type %s\n", 
                 rasqal_literal_type_labels[lit->type],
@@ -1249,8 +1250,14 @@ rasqal_new_literal_from_promotion(rasqal_literal* lit,
 
   /* May not promote non-numerics */
   if(!rasqal_xsd_datatype_is_numeric(type)) {
-    if(type == RASQAL_LITERAL_STRING)
-      return rasqal_new_string_literal(lit->string, NULL, NULL, NULL);
+    if(type == RASQAL_LITERAL_STRING) {
+      new_s=(unsigned char*)RASQAL_MALLOC(sstring, lit->string_len+1);
+      if(new_s) {
+        strncpy((char*)new_s, (const char*)lit->string, lit->string_len+1);
+        return rasqal_new_string_literal(new_s, NULL, NULL, NULL);
+      } else
+        return NULL;
+    }
     return NULL;
   }
     
@@ -1292,7 +1299,11 @@ rasqal_new_literal_from_promotion(rasqal_literal* lit,
       break;
     
     case RASQAL_LITERAL_STRING:
-      new_lit=rasqal_new_string_literal(lit->string, NULL, NULL, NULL);
+      new_s=(unsigned char*)RASQAL_MALLOC(sstring, lit->string_len+1);
+      if(new_s) {
+        strncpy((char*)new_s, (const char*)lit->string, lit->string_len+1);
+        new_lit=rasqal_new_string_literal(new_s, NULL, NULL, NULL);
+      }
       break;
 
     case RASQAL_LITERAL_UNKNOWN:
