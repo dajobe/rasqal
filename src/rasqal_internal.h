@@ -640,6 +640,8 @@ rasqal_literal* rasqal_literal_add(rasqal_literal* l1, rasqal_literal* l2, int *
 rasqal_literal* rasqal_literal_subtract(rasqal_literal* l1, rasqal_literal* l2, int *error);
 rasqal_literal* rasqal_literal_multiply(rasqal_literal* l1, rasqal_literal* l2, int *error);
 rasqal_literal* rasqal_literal_divide(rasqal_literal* l1, rasqal_literal* l2, int *error);
+int rasqal_literal_equals_flags(rasqal_literal* l1, rasqal_literal* l2, int flags);
+
 
 
 /* rasqal_map.c */
