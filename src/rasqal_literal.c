@@ -1541,38 +1541,78 @@ int
 rasqal_literal_equals_flags(rasqal_literal* l1, rasqal_literal* l2,
                             int flags)
 {
+  rasqal_literal_type type;
+  rasqal_literal* l1_p=NULL;
+  rasqal_literal* l2_p=NULL;
+  int result=0;
+
   /* null literals */
   if(!l1 || !l2) {
     /* if either is not null, the comparison fails */
     return (l1 || l2);
   }
 
-  if(l1->type != l2->type) {
-    if(l2->type == RASQAL_LITERAL_BOOLEAN &&
-       l1->type == RASQAL_LITERAL_STRING)
-      return !strcmp((const char*)l1->string, (const char*)l2->string);
-    return 0;
+  if(flags & RASQAL_COMPARE_XQUERY) { 
+    /* SPARQL / XSD promotion rules */
+    type=rasqal_literal_promote_calculate(l1, l2, flags);
+    RASQAL_DEBUG2("xquery promoted to type %s\n", 
+                  rasqal_literal_type_labels[type]);
+    if(type == RASQAL_LITERAL_UNKNOWN ||
+       !rasqal_xsd_datatype_is_numeric(type)) {
+      /* FIXME - do other XSD type promotions */
+      type=RASQAL_LITERAL_STRING;
+    }
+    l1_p=rasqal_new_literal_from_promotion(l1, type);
+    if(l1_p)
+      l2_p=rasqal_new_literal_from_promotion(l2, type);
+  } else {
+    /* RDQL promotion rules */
+    if(l1->type != l2->type) {
+      /* booleans can be compared to strings */
+      if(l2->type == RASQAL_LITERAL_BOOLEAN &&
+         l1->type == RASQAL_LITERAL_STRING)
+        return !strcmp((const char*)l1->string, (const char*)l2->string);
+      return 0;
+    }
+    type=l1->type;
+    l1_p=rasqal_new_literal_from_literal(l1);
+    if(l1_p)
+      l2_p=rasqal_new_literal_from_literal(l2);
+  }
+
+  if(!l1_p || !l2_p) {
+    result=1;
+    goto tidy;
   }
   
-  switch(l1->type) {
+  switch(type) {
     case RASQAL_LITERAL_URI:
-      return raptor_uri_equals(l1->value.uri, l2->value.uri);
+      result=raptor_uri_equals(l1_p->value.uri, l2_p->value.uri);
+      break;
 
     case RASQAL_LITERAL_STRING:
-      if(l1->language || l2->language) {
+      if(l1_p->language || l2_p->language) {
         /* if either is null, the comparison fails */
-        if(!l1->language || !l2->language)
-          return 0;
-        if(rasqal_strcasecmp(l1->language,l2->language))
-          return 0;
+        if(!l1_p->language || !l2_p->language) {
+          result=0;
+          break;
+        }
+        if(rasqal_strcasecmp(l1_p->language,l2_p->language)) {
+          result=0;
+          break;
+        }
       }
 
-      if(l1->datatype || l2->datatype) {
+      if(l1_p->datatype || l2_p->datatype) {
         /* if either is null, the comparison fails */
-        if(!l1->datatype || !l2->datatype)
-          return 0;
-        if(!raptor_uri_equals(l1->datatype,l2->datatype))
-          return 0;
+        if(!l1_p->datatype || !l2_p->datatype) {
+          result=0;
+          break;
+        }
+        if(!raptor_uri_equals(l1_p->datatype, l2_p->datatype)) {
+          result=0;
+          break;
+        }
       }
       
       /* FALLTHROUGH */
@@ -1580,34 +1620,42 @@ rasqal_literal_equals_flags(rasqal_literal* l1, rasqal_literal* l2,
     case RASQAL_LITERAL_PATTERN:
     case RASQAL_LITERAL_QNAME:
     case RASQAL_LITERAL_DATETIME:
-      return !strcmp((const char*)l1->string, (const char*)l2->string);
+      result=!strcmp((const char*)l1_p->string, (const char*)l2_p->string);
       break;
       
     case RASQAL_LITERAL_INTEGER:
     case RASQAL_LITERAL_BOOLEAN:
-      return l1->value.integer == l2->value.integer;
+      result=l1_p->value.integer == l2_p->value.integer;
       break;
 
     case RASQAL_LITERAL_DOUBLE:
     case RASQAL_LITERAL_FLOAT:
-      return l1->value.floating == l2->value.floating;
+      result=l1_p->value.floating == l2_p->value.floating;
       break;
 
     case RASQAL_LITERAL_DECIMAL:
-      return rasqal_xsd_decimal_equals(l1->value.decimal,
-                                       l2->value.decimal);
+      result=rasqal_xsd_decimal_equals(l1_p->value.decimal,
+                                       l2_p->value.decimal);
       break;
 
     case RASQAL_LITERAL_VARIABLE:
       /* both are variables */
-      return rasqal_literal_equals(l1->value.variable->value,
-                                   l2->value.variable->value);
+      result=rasqal_literal_equals(l1_p->value.variable->value,
+                                   l2_p->value.variable->value);
       
     case RASQAL_LITERAL_UNKNOWN:
     default:
       abort();
-      return 0; /* keep some compilers happy */
+      result=0; /* keep some compilers happy */
   }
+
+  tidy:
+  if(l1_p)
+    rasqal_free_literal(l1_p);
+  if(l2_p)
+    rasqal_free_literal(l2_p);
+
+  return result;
 }
 
 
