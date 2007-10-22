@@ -2954,6 +2954,50 @@ rasqal_query_result_literal_sequence_compare(rasqal_query* query,
 
 
 /**
+ * rasqal_query_result_literal_sequence_equals:
+ * @query: the #rasqal_query to use to compare
+ * @values_a: first array of literals
+ * @values_b: second array of literals
+ * @size: size of arrays
+ *
+ * INTERNAL - compare two arrays of literals for equality
+ *
+ * Return value: non-0 if equal
+ */
+static int
+rasqal_query_result_literal_sequence_equals(rasqal_query* query,
+                                            rasqal_literal** values_a,
+                                            rasqal_literal** values_b,
+                                            int size)
+{
+  int result=1; /* equal */
+  int i;
+
+  for(i=0; i < size; i++) {
+    rasqal_literal* literal_a=values_a[i];
+    rasqal_literal* literal_b=values_b[i];
+    
+    result=rasqal_literal_equals_flags(literal_a, literal_b,
+                                       query->compare_flags);
+#ifdef RASQAL_DEBUG
+    RASQAL_DEBUG1("Comparing ");
+    rasqal_literal_print(literal_a, stderr);
+    fputs(" to ", stderr);
+    rasqal_literal_print(literal_b, stderr);
+    fprintf(stderr, " gave %s\n", (result ? "equality" : "not equal"));
+#endif
+
+    /* if different, end */
+    if(!result)
+      break;
+  }
+
+  return result;
+}
+
+
+
+/**
  * rasqal_engine_query_result_row_compare:
  * @a: pointer to address of first #query_result_row
  * @b: pointer to address of second #query_result_row
@@ -2980,10 +3024,9 @@ rasqal_engine_query_result_row_compare(const void *a, const void *b)
   
   if(query->distinct) {
     if(query->distinct == 1)
-      result=rasqal_query_result_literal_sequence_compare(query,
+      result=!rasqal_query_result_literal_sequence_equals(query,
                                                           row_a->values,
                                                           row_b->values,
-                                                          NULL,
                                                           row_a->size);
     
     if(!result)
