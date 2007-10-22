@@ -332,6 +332,7 @@ rasqal_xsd_decimal_as_string(rasqal_xsd_decimal* dec)
   s=RASQAL_MALLOC(cstring, len+1);
   /* NOTE: Never seen a sprintf that supports _Decimal yet */
   snprintf(s, len, "%DDf", dec->raw);
+  len=strlen(s);
 #endif
 #ifdef RASQAL_DECIMAL_MPFR
   if(mpfr_fits_slong_p(dec->raw, dec->rounding)) {
@@ -339,10 +340,37 @@ rasqal_xsd_decimal_as_string(rasqal_xsd_decimal* dec)
     len=15;
     s=RASQAL_MALLOC(cstring, len+1);
     snprintf(s, len, "%ld", mpfr_get_si(dec->raw, dec->rounding));
+    len=strlen(s);
   } else {
     mp_exp_t expo;
-    s=mpfr_get_str(NULL, &expo, 10, 0, dec->raw, dec->rounding);
-    len=strlen(s);
+    char *mpf_s;
+    mpf_s=mpfr_get_str(NULL, &expo, 10, 0, dec->raw, dec->rounding);
+    if(mpf_s) {
+      size_t from_len=strlen(mpf_s);
+      s=RASQAL_MALLOC(cstring, from_len*2);
+      if(s) {
+        char *from_p=mpf_s;
+        char *to_p=s;
+        if(*from_p == '-') {
+          *to_p++ = *from_p++;
+          from_len--;
+        }
+        /* first digit of mantissa */
+        *to_p++ = *from_p++;
+        from_len--;
+        *to_p++ = '.';
+        /* rest of mantissa */
+        /* remove trailing 0s */
+        while(from_p[from_len-1]=='0')
+          from_len--;
+        strncpy(to_p, from_p, from_len);
+        to_p+= from_len;
+        /* exp */
+        sprintf(to_p, "e%ld", expo-1);
+        len=strlen(s);
+      }
+      free(mpf_s);
+    }
   }
 #endif
 #ifdef RASQAL_DECIMAL_GMP
@@ -351,16 +379,40 @@ rasqal_xsd_decimal_as_string(rasqal_xsd_decimal* dec)
     len=15;
     s=RASQAL_MALLOC(cstring, len+1);
     snprintf(s, len, "%ld", mpf_get_si(dec->raw));
+    len=strlen(s);
   } else {
     mp_exp_t expo;
-    s=mpf_get_str(NULL, &expo, 10, 0, dec->raw);
-    len=strlen(s);
-  }
+    char *mpf_s;
+    mpf_s=mpf_get_str(NULL, &expo, 10, 0, dec->raw);
+    if(mpf_s) {
+      size_t from_len=strlen(mpf_s);
+      s=RASQAL_MALLOC(cstring, from_len*2);
+      if(s) {
+        char *from_p=mpf_s;
+        char *to_p=s;
+        if(*from_p == '-') {
+          *to_p++ = *from_p++;
+          from_len--;
+        }
+        /* first digit of mantissa */
+        *to_p++ = *from_p++;
+        from_len--;
+        *to_p++ = '.';
+        /* rest of mantissa */
+        strncpy(to_p, from_p, from_len);
+        to_p+= from_len;
+        /* exp */
+        sprintf(to_p, "e%ld", expo-1);
+        len=strlen(s);
+      }
+      free(mpf_s);
+    }
 #endif
 #ifdef RASQAL_DECIMAL_NONE
   len=dec->precision_digits;
   s=RASQAL_MALLOC(cstring, len+1);
   snprintf(s, len, "%f", dec->raw);
+  len=strlen(s);
 #endif
 
   dec->string=s;
@@ -382,47 +434,14 @@ rasqal_xsd_decimal_as_counted_string(rasqal_xsd_decimal* dec, size_t* len_p)
 int
 rasqal_xsd_decimal_print(rasqal_xsd_decimal* dec, FILE* stream)
 {
-#ifdef RASQAL_DECIMAL_C99
-  /* NOTE: Never seen a sprintf that supports _Decimal yet */
-  printf(stream, "%DDf", dec->raw);
-#endif
-#ifdef RASQAL_DECIMAL_MPFR
-  if(mpfr_fits_slong_p(dec->raw, dec->rounding)) {
-    fprintf(stream, "%ld", mpfr_get_si(dec->raw, dec->rounding));
-  } else
-    mpfr_out_str(stream, 10, 0, dec->raw, dec->rounding);
-#endif
-#ifdef RASQAL_DECIMAL_GMP
-  if(mpf_fits_slong_p(dec->raw)) {
-    fprintf(stream, "%ld", mpf_get_si(dec->raw));
-  } else {
-    mp_exp_t expo;
-    char *s;
-    s=mpf_get_str(NULL, &expo, 10, 0, dec->raw);
-    if(s) {
-      char *p=s;
-      size_t len=strlen(p);
-      if(*p == '-') {
-        p++;
-        fputc('-', stream);
-        len--;
-      }
-      /* first digit of mantissa */
-      putc(p[0], stream);
-      p++; len--;
-      putc('.', stream);
-      /* rest of mantissa */
-      fwrite(p, 1, len, stream);
-      /* exp */
-      fprintf(stream, "e%ld", expo-1);
-      free(s); /* GMP uses free */
-    }
-  }
-#endif
-#ifdef RASQAL_DECIMAL_NONE
-  printf(stream, "%f", dec->raw);
-#endif
+  char* s=NULL;
+  size_t len=0;
   
+  s=rasqal_xsd_decimal_as_counted_string(dec, &len);
+  if(!s)
+    return 1;
+  
+  fwrite(s, 1, len, stream);
   return 0;
 }
 
