@@ -106,16 +106,12 @@ int rasqal_xsd_decimal_equal(rasqal_xsd_decimal* a, rasqal_xsd_decimal* b);
 #endif
 #endif
 
-/* for MPFR the string can be from library or MPFR allocator */
-#define FLAGS_STRING_ALLOCED_HERE 1
-
 struct rasqal_xsd_decimal_s {
   unsigned int precision_digits;
   unsigned int precision_bits;
   RASQAL_DECIMAL_RAW raw;
   RASQAL_DECIMAL_ROUNDING rounding;
   char* string;
-  int flags;
   size_t string_len;
 };
 
@@ -175,36 +171,17 @@ rasqal_xsd_decimal_init(rasqal_xsd_decimal* dec)
 
   dec->string=NULL;
   dec->string_len=0;
-  dec->flags=0;
 }
 
 
 static void
 rasqal_xsd_decimal_clear_string(rasqal_xsd_decimal* dec)
 {
-#ifdef RASQAL_DECIMAL_C99
   if(dec->string) {
     RASQAL_FREE(cstring, dec->string);
     dec->string=NULL;
   }
-#endif
-#ifdef RASQAL_DECIMAL_MPFR
-  if(dec->string) {
-    if(dec->flags & FLAGS_STRING_ALLOCED_HERE)
-      RASQAL_FREE(cstring, dec->string);
-    else
-      mpfr_free_str((char*)dec->string);
-    dec->string=NULL;
-  }
-#endif
-#ifdef RASQAL_DECIMAL_GMP
-  if(dec->string) {
-    free((char*)dec->string); /* GMP uses free */
-    dec->string=NULL;
-  }
-#endif
   dec->string_len=0;
-  dec->flags=0;
 }  
 
 
@@ -243,7 +220,6 @@ rasqal_xsd_decimal_set_string(rasqal_xsd_decimal* dec, const char* string)
     return 1;
   strncpy(dec->string, string, len+1);
   dec->string_len=len;
-  dec->flags |= FLAGS_STRING_ALLOCED_HERE;
   
 #if defined(RASQAL_DECIMAL_C99) || defined(RASQAL_DECIMAL_NONE)
   dec->raw=strtod(string);
@@ -346,11 +322,14 @@ rasqal_xsd_decimal_as_string(rasqal_xsd_decimal* dec)
     size_t from_len=strlen(mpf_s);
     char *from_p=mpf_s;
     char *to_p;
-    int is_zero=0;
-    
-    s=RASQAL_MALLOC(cstring, from_len*2);
+    size_t to_len;
+
+    /* 7=strlen("0.0e0")+1 for sign */
+    to_len=!from_len ? 6 : (from_len*2);
+
+    s=RASQAL_MALLOC(cstring, to_len);
     if(!s) {
-      free(mpf_s);
+      mpfr_free_str((char*)mpf_s);
       return NULL;
     }
     to_p=s;
@@ -359,20 +338,23 @@ rasqal_xsd_decimal_as_string(rasqal_xsd_decimal* dec)
       from_len--;
     }
     /* first digit of mantissa */
-    is_zero=(*from_p == '0');
-    *to_p++ = *from_p++;
-    from_len--;
-    *to_p++ = '.';
-    /* rest of mantissa */
-    /* remove trailing 0s */
-    while(from_len > 1 && from_p[from_len-1]=='0')
+    if(!*from_p || *from_p == '0');
+      strncpy(to_p, "0.0e0", 6);
+    else {
+      *to_p++ = *from_p++;
       from_len--;
-    strncpy(to_p, from_p, from_len);
-    to_p+= from_len;
-    /* exp */
-    sprintf(to_p, "e%ld", is_zero ? expo: expo-1);
+      *to_p++ = '.';
+      /* rest of mantissa */
+      /* remove trailing 0s */
+      while(from_len > 1 && from_p[from_len-1]=='0')
+        from_len--;
+      strncpy(to_p, from_p, from_len);
+      to_p+= from_len;
+      /* exp */
+      sprintf(to_p, "e%ld", expo-1);
+    }
     len=strlen(s);
-    free(mpf_s);
+    mpfr_free_str((char*)mpf_s);
   }
 #endif
 #ifdef RASQAL_DECIMAL_GMP
@@ -381,9 +363,12 @@ rasqal_xsd_decimal_as_string(rasqal_xsd_decimal* dec)
     size_t from_len=strlen(mpf_s);
     char *from_p=mpf_s;
     char *to_p;
-    int is_zero=0;
+    size_t to_len;
 
-    s=RASQAL_MALLOC(cstring, from_len*2);
+    /* 7=strlen("0.0e0")+1 for sign */
+    to_len=!from_len ? 6 : (from_len*2);
+
+    s=RASQAL_MALLOC(cstring, to_len+1);
     if(!s) {
       free(mpf_s);
       return NULL;
@@ -394,17 +379,21 @@ rasqal_xsd_decimal_as_string(rasqal_xsd_decimal* dec)
       from_len--;
     }
     /* first digit of mantissa */
-    is_zero=(*from_p == '0');
-    *to_p++ = *from_p++;
-    from_len--;
-    *to_p++ = '.';
-    /* rest of mantissa */
-    strncpy(to_p, from_p, from_len);
-    to_p+= from_len;
-    /* exp */
-    sprintf(to_p, "e%ld", is_zero ? expo: expo-1);
+    if(!*from_p || *from_p == '0')
+      strncpy(to_p, "0.0e0", 6);
+    else {
+      *to_p++ = *from_p++;
+      from_len--;
+      *to_p++ = '.';
+      /* rest of mantissa */
+      strncpy(to_p, from_p, from_len);
+      to_p+= from_len;
+      /* exp */
+      sprintf(to_p, "e%ld", expo-1);
+    }
     len=strlen(s);
     free(mpf_s);
+  }
 #endif
 #ifdef RASQAL_DECIMAL_NONE
   len=dec->precision_digits;
