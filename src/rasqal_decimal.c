@@ -321,7 +321,6 @@ rasqal_xsd_decimal_as_string(rasqal_xsd_decimal* dec)
   if(mpf_s) {
     size_t from_len=strlen(mpf_s);
     char *from_p=mpf_s;
-    char *to_p;
     size_t to_len;
 
     /* 7=strlen("0.0e0")+1 for sign */
@@ -332,15 +331,19 @@ rasqal_xsd_decimal_as_string(rasqal_xsd_decimal* dec)
       mpfr_free_str((char*)mpf_s);
       return NULL;
     }
-    to_p=s;
-    if(*from_p == '-') {
-      *to_p++ = *from_p++;
-      from_len--;
-    }
     /* first digit of mantissa */
-    if(!*from_p || *from_p == '0')
-      strncpy(to_p, "0.0e0", 6);
-    else {
+    if(!*from_p || *from_p == '0') {
+      len=5;
+      strncpy(s, "0.0e0", len+1);
+    } else {
+      char* to_p=s;
+      int n;
+      
+      if(*from_p == '-') {
+        *to_p++ = *from_p++;
+        from_len--;
+      }
+
       *to_p++ = *from_p++;
       from_len--;
       *to_p++ = '.';
@@ -349,11 +352,11 @@ rasqal_xsd_decimal_as_string(rasqal_xsd_decimal* dec)
       while(from_len > 1 && from_p[from_len-1]=='0')
         from_len--;
       strncpy(to_p, from_p, from_len);
-      to_p+= from_len;
+      to_p += from_len;
       /* exp */
-      sprintf(to_p, "e%ld", expo-1);
+      n=sprintf(to_p, "e%ld", expo-1);
+      len=to_p+n-s;
     }
-    len=strlen(s);
     mpfr_free_str((char*)mpf_s);
   }
 #endif
@@ -362,7 +365,6 @@ rasqal_xsd_decimal_as_string(rasqal_xsd_decimal* dec)
   if(mpf_s) {
     size_t from_len=strlen(mpf_s);
     char *from_p=mpf_s;
-    char *to_p;
     size_t to_len;
 
     /* 7=strlen("0.0e0")+1 for sign */
@@ -373,15 +375,19 @@ rasqal_xsd_decimal_as_string(rasqal_xsd_decimal* dec)
       free(mpf_s);
       return NULL;
     }
-    to_p=s;
-    if(*from_p == '-') {
-      *to_p++ = *from_p++;
-      from_len--;
-    }
     /* first digit of mantissa */
-    if(!*from_p || *from_p == '0')
-      strncpy(to_p, "0.0e0", 6);
-    else {
+    if(!*from_p || *from_p == '0') {
+      len=5;
+      strncpy(to_p, "0.0e0", len+1);
+    } else {
+      char *to_p=s;
+      int n;
+      
+      if(*from_p == '-') {
+        *to_p++ = *from_p++;
+        from_len--;
+      }
+
       *to_p++ = *from_p++;
       from_len--;
       *to_p++ = '.';
@@ -389,9 +395,9 @@ rasqal_xsd_decimal_as_string(rasqal_xsd_decimal* dec)
       strncpy(to_p, from_p, from_len);
       to_p+= from_len;
       /* exp */
-      sprintf(to_p, "e%ld", expo-1);
+      n=sprintf(to_p, "e%ld", expo-1);
+      len=to_p+n-s;
     }
-    len=strlen(s);
     free(mpf_s);
   }
 #endif
