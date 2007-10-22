@@ -140,18 +140,12 @@ rasqal_xsd_decimal_free(rasqal_xsd_decimal* dec)
 void
 rasqal_xsd_decimal_init(rasqal_xsd_decimal* dec)
 {
-  /* XSD says:
-   [[ Note: All ·minimally conforming· processors ·must· support
-   decimal numbers with a minimum of 18 decimal digits (i.e., with a
-   ·totalDigits· of 18). However, ·minimally conforming· processors
-   ·may· set an application-defined limit on the maximum number of
-   decimal digits they are prepared to support, in which case that
-   application-defined maximum number ·must· be clearly documented.
-   ]] -- http://www.w3.org/TR/2004/REC-xmlschema-2-20041028/#decimal
-*/
-
-  dec->precision_bits=256;   /* max bits */
-  dec->precision_digits=(dec->precision_bits/4); /* "max" base 10 digits */
+  /* XSD wants min of 18 decimal (base 10) digits 
+   * http://www.w3.org/TR/2004/REC-xmlschema-2-20041028/#decimal
+   */
+  dec->precision_digits= 32;
+  /* over-estimate bits since log(10)/log(2) = 3.32192809488736234789 < 4 */
+  dec->precision_bits= dec->precision_digits*4;
   
 #ifdef RASQAL_DECIMAL_C99
   dec->raw= 0DD;
@@ -612,7 +606,7 @@ main(int argc, char *argv[]) {
   }
 
   rasqal_xsd_decimal_set_long(&a, 1234567890L);
-  rasqal_xsd_decimal_set_string(&b, "1234567890123456789012345678901234567890e0");
+  rasqal_xsd_decimal_set_string(&b, "123456789012345678e0");
 
   fprintf(stderr, "a=");
   rasqal_xsd_decimal_print(&a, stderr);
