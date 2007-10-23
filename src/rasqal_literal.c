@@ -1334,6 +1334,47 @@ rasqal_new_literal_from_promotion(rasqal_literal* lit,
 }  
 
 
+static int
+rasqal_literal_string_compare(rasqal_literal* l1, rasqal_literal* l2,
+                              int flags, int* error)
+{
+  if(l1->type != RASQAL_LITERAL_STRING ||
+     l2->type != RASQAL_LITERAL_STRING) {
+    *error=0;
+    return 0;
+  }
+    
+  if(l1->language || l2->language) {
+    /* if either is null, the comparison fails */
+    if(!l1->language || !l2->language)
+      return 1;
+    if(rasqal_strcasecmp(l1->language, l2->language))
+      return 1;
+  }
+  
+  if(l1->datatype || l2->datatype) {
+    int result;
+    
+    /* there is no ordering between typed and plain literals:       
+       if either is NULL, do not compare but return an error
+       (also implies inequality) */
+    if(!l1->datatype || !l2->datatype) {
+      *error=1;
+      return 0;
+    }
+    result=raptor_uri_compare(l1->datatype, l2->datatype);
+    
+    if(result)
+      return result;
+  }
+  
+  if(flags & RASQAL_COMPARE_NOCASE)
+    return rasqal_strcasecmp((const char*)l1->string, (const char*)l2->string);
+  else
+    return strcmp((const char*)l1->string, (const char*)l2->string);
+}
+
+
 /**
  * rasqal_literal_compare:
  * @l1: #rasqal_literal first literal
@@ -1368,16 +1409,11 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
   rasqal_literal* new_lits[2]; /* after promotions */
   rasqal_literal_type type;
   int i;
-  int ints[2];
-  double doubles[2];
-  const unsigned char* strings[2];
-  rasqal_xsd_decimal* decimals[2];
   int seen_string=0;
   int seen_int=0;
   int seen_double=0;
   int seen_boolean=0;
   int seen_numeric=0;
-  int seen_decimal=0;
   int result=0;
   
   *error=0;
@@ -1394,7 +1430,9 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
   new_lits[0]=NULL;;  new_lits[1]=NULL;
 
   for(i=0; i<2; i++) {
-    if(lits[i]->type == RASQAL_LITERAL_VARIABLE) {
+    rasqal_literal_type lit_type=lits[i]->type;
+
+    if(lit_type == RASQAL_LITERAL_VARIABLE) {
       lits[i]=lits[i]->value.variable->value;
 
       /* Need to re-check for NULL values */
@@ -1407,19 +1445,16 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
       }
 
       RASQAL_DEBUG3("literal %d is a variable, value is a %s\n", i,
-                    rasqal_literal_type_labels[lits[i]->type]);
+                    rasqal_literal_type_labels[lit_type]);
     }
     
 
-    switch(lits[i]->type) {
+    if(rasqal_xsd_datatype_is_numeric(lit_type))
+      seen_numeric++;
+    
+    switch(lit_type) {
       case RASQAL_LITERAL_URI:
-        break;
-
       case RASQAL_LITERAL_DECIMAL:
-        strings[i]=lits[i]->string;
-        decimals[i]=lits[i]->value.decimal;
-        seen_decimal++;
-        seen_numeric++;
         break;
 
       case RASQAL_LITERAL_STRING:
@@ -1427,26 +1462,20 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
       case RASQAL_LITERAL_PATTERN:
       case RASQAL_LITERAL_QNAME:
       case RASQAL_LITERAL_DATETIME:
-        strings[i]=lits[i]->string;
         seen_string++;
         break;
 
       case RASQAL_LITERAL_BOOLEAN:
         seen_boolean=1;
-        ints[i]=lits[i]->value.integer;
         break;
         
       case RASQAL_LITERAL_INTEGER:
-        ints[i]=lits[i]->value.integer;
         seen_int++;
-        seen_numeric++;
         break;
     
       case RASQAL_LITERAL_DOUBLE:
       case RASQAL_LITERAL_FLOAT:
-        doubles[i]=lits[i]->value.floating;
         seen_double++;
-        seen_numeric++;
         break;
 
       case RASQAL_LITERAL_VARIABLE:
@@ -1459,33 +1488,43 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
   } /* end for i=0,1 */
 
 
-  /* work out type to aim for */
-  if(lits[0]->type != lits[1]->type) {
-    RASQAL_DEBUG3("literal 0 type %s.  literal 1 type %s\n", 
-                  rasqal_literal_type_labels[lits[0]->type],
-                  rasqal_literal_type_labels[lits[1]->type]);
+  RASQAL_DEBUG2("saw %d numeric literals\n", seen_numeric);
 
-    if(flags & RASQAL_COMPARE_XQUERY) { 
-      int type0=(int)lits[0]->type;
-      int type1=(int)lits[1]->type;
-      RASQAL_DEBUG3("xquery literal compare types %d vs %d\n", type0, type1);
-      if(seen_numeric != 2) {
-        return type0 - type1;
-      }
-      /* FIXME - promote all numeric to double or int for now */
-      type=seen_double ? RASQAL_LITERAL_DOUBLE : RASQAL_LITERAL_INTEGER;
-    } else {
+  /* work out type to aim for */
+  RASQAL_DEBUG3("literal 0 type %s.  literal 1 type %s\n", 
+                rasqal_literal_type_labels[lits[0]->type],
+                rasqal_literal_type_labels[lits[1]->type]);
+  
+  if(flags & RASQAL_COMPARE_XQUERY) { 
+    /* SPARQL / XQuery promotion rules */
+    int type0=(int)lits[0]->type;
+    int type1=(int)lits[1]->type;
+    RASQAL_DEBUG3("xquery literal compare types %d vs %d\n", type0, type1);
+    if(seen_numeric != 2) {
+      return type0 - type1;
+    }
+
+    type=rasqal_literal_promote_calculate(l1, l2, flags);
+    RASQAL_DEBUG2("xquery promoted to type %s\n", 
+                  rasqal_literal_type_labels[type]);
+    if(type == RASQAL_LITERAL_UNKNOWN ||
+       !rasqal_xsd_datatype_is_numeric(type)) {
+      *error=1;
+      return 0;
+    }
+  } else {
+    /* RDQL promotion rules */
+    if(lits[0]->type != lits[1]->type) {
       type=seen_string ? RASQAL_LITERAL_STRING : RASQAL_LITERAL_INTEGER;
       if((seen_int & seen_double) || (seen_int & seen_string))
         type=RASQAL_LITERAL_DOUBLE;
       if(seen_boolean & seen_string)
         type=RASQAL_LITERAL_STRING;
-    }
-    RASQAL_DEBUG2("promoting to type %s\n",
-                  rasqal_literal_type_labels[type]);
-  } else
-    type=lits[0]->type;
-  
+    } else
+      type=lits[0]->type;
+  }
+  RASQAL_DEBUG2("promoting to type %s\n",
+                rasqal_literal_type_labels[type]);
 
   /* do promotions */
   for(i=0; i<2; i++)
@@ -1498,53 +1537,37 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
       break;
 
     case RASQAL_LITERAL_STRING:
-      if(lits[0]->type == RASQAL_LITERAL_STRING &&
-         lits[1]->type == RASQAL_LITERAL_STRING) {
-
-        if(lits[0]->language || lits[1]->language) {
-          /* if either is null, the comparison fails */
-          if(!lits[0]->language || !lits[1]->language)
-            return 1;
-          if(rasqal_strcasecmp(lits[0]->language,lits[1]->language))
-            return 1;
-        }
-
-        if(lits[0]->datatype || lits[1]->datatype) {
-          /* there is no ordering between typed and plain literals:       
-             if either is NULL, do not compare but return an error
-             (also implies inequality) */
-          if(!lits[0]->datatype || !lits[1]->datatype) {
-            *error=1;
-            return 0;
-          }
-          result=raptor_uri_compare(lits[0]->datatype, lits[1]->datatype);
-
-          if(result)
-            goto done;
-        }
-      }
+      result=rasqal_literal_string_compare(new_lits[0], new_lits[1],
+                                           flags, error);
+      if(error)
+        result=1;
+      break;
       
-      /* FALLTHROUGH */
     case RASQAL_LITERAL_BLANK:
     case RASQAL_LITERAL_PATTERN:
     case RASQAL_LITERAL_QNAME:
     case RASQAL_LITERAL_DATETIME:
       if(flags & RASQAL_COMPARE_NOCASE)
-        result= rasqal_strcasecmp((const char*)strings[0],
-                                  (const char*)strings[1]);
+        result=rasqal_strcasecmp((const char*)new_lits[0]->string,
+                                 (const char*)new_lits[1]->string);
       else
-        result= strcmp((const char*)strings[0], (const char*)strings[1]);
+        result=strcmp((const char*)new_lits[0]->string,
+                      (const char*)new_lits[1]->string);
       break;
 
     case RASQAL_LITERAL_INTEGER:
     case RASQAL_LITERAL_BOOLEAN:
-      result= ints[0] - ints[1];
+      result=new_lits[0]->value.integer - new_lits[1]->value.integer;
       break;
 
     case RASQAL_LITERAL_DOUBLE:
     case RASQAL_LITERAL_FLOAT:
+      result=new_lits[0]->value.floating - new_lits[1]->value.floating;
+      break;
+      
     case RASQAL_LITERAL_DECIMAL:
-      result= double_to_int(doubles[0] - doubles[1]);
+      result=rasqal_xsd_decimal_compare(new_lits[0]->value.decimal,
+                                        new_lits[1]->value.decimal);
       break;
 
     case RASQAL_LITERAL_UNKNOWN:
@@ -1554,7 +1577,6 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
       result=0; /* keep some compilers happy */
   }
 
-  done:
   for(i=0; i<2; i++) {
     if(new_lits[i])
       rasqal_free_literal(new_lits[i]);
