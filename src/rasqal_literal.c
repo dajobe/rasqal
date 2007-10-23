@@ -1472,7 +1472,7 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
   rasqal_literal_type type; /* target promotion type */
   int i;
   int result=0;
-  double d;
+  double d=0;
   
   *error=0;
 
@@ -1564,6 +1564,7 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
 
     case RASQAL_LITERAL_DOUBLE:
     case RASQAL_LITERAL_FLOAT:
+      d=new_lits[0]->value.floating - new_lits[1]->value.floating;
       result=(d > 0.0) ? 1: (d < 0.0) ? -1 : 0;
       break;
       
