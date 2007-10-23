@@ -1538,9 +1538,12 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
                 rasqal_literal_type_labels[type]);
 
   /* do promotions */
-  for(i=0; i<2; i++)
+  for(i=0; i<2; i++) {
     new_lits[i]=rasqal_new_literal_from_promotion(lits[i], type);
-  
+    if(!new_lits[i])
+      goto done;
+  }
+
 
   switch(type) {
     case RASQAL_LITERAL_URI:
@@ -1589,6 +1592,7 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
       result=0; /* keep some compilers happy */
   }
 
+  done:
   for(i=0; i<2; i++) {
     if(new_lits[i])
       rasqal_free_literal(new_lits[i]);
