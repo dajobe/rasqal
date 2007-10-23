@@ -1243,7 +1243,7 @@ rasqal_new_literal_from_promotion(rasqal_literal* lit,
   double d;
   int i;
   unsigned char *new_s=NULL;
-  unsigned char* s;
+  const unsigned char* s;
   size_t len;
   
   RASQAL_DEBUG3("promoting literal type %s to type %s\n", 
@@ -1255,13 +1255,12 @@ rasqal_new_literal_from_promotion(rasqal_literal* lit,
 
   /* May not promote to non-numerics */
   if(!rasqal_xsd_datatype_is_numeric(type)) {
-    RASQAL_DEBUG3("NOT promoting to non-numeric type %s\n", 
-                  rasqal_literal_type_labels[lit->type],
-                  rasqal_literal_type_labels[type]);
+    RASQAL_DEBUG2("NOT promoting to non-numeric type %s\n", 
+                  rasqal_literal_type_labels[lit->type]);
 
     if(type == RASQAL_LITERAL_STRING) {
       s=rasqal_literal_as_string(lit);
-      len=strlen(s);
+      len=strlen((const char*)s);
       new_s=(unsigned char*)RASQAL_MALLOC(sstring, len+1);
       if(new_s) {
         strncpy((char*)new_s, (const char*)s, len+1);
@@ -1308,7 +1307,7 @@ rasqal_new_literal_from_promotion(rasqal_literal* lit,
     
     case RASQAL_LITERAL_STRING:
       s=rasqal_literal_as_string(lit);
-      len=strlen(s);
+      len=strlen((const char*)s);
       new_s=(unsigned char*)RASQAL_MALLOC(sstring, len+1);
       if(new_s) {
         strncpy((char*)new_s, (const char*)s, len+1);
