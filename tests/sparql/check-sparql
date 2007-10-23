@@ -37,6 +37,7 @@ use File::Basename;
 use XML::DOM;
 use Getopt::Long;
 use Pod::Usage;
+use Cwd;
 
 my $roqet="roqet";
 my $rasqal_url="http://librdf.org/rasqal/";
@@ -129,7 +130,8 @@ sub read_rdf_results_file($) {
     warn "$program: parsing '$result_file' FAILED - rapper returned errors:\n  ".join("\n  ",@errs)."\n";
     warn "Failing program was:\n";
     warn "  $cmd\n";
-    my $r=$cmd; $r =~ s,file:[^ ]+/,,g;
+    my $curdir=getcwd;
+    my $r=$cmd; $r =~ s,file:[^ ]+/,,g; $r =~ s,$curdir,,g;
     warn "  OR $r\n";
     return undef;
   }
@@ -276,7 +278,8 @@ sub run_test {
     warn "$program: test '$test_file' ($test_uri) FAILED - query command failed (result $rc):\n";
     warn "Failing program was:\n";
     warn "  $roqet_cmd\n";
-    my $r=$roqet_cmd; $r =~ s,file:[^ ]+/,,g;
+    my $curdir=getcwd;
+    my $r=$roqet_cmd; $r =~ s,file:[^ ]+/,,g; $r =~ s,$curdir,,g;
     warn "  OR $r\n";
     system("cat roqet.err");
     unlink $roqet_tmp;
@@ -348,7 +351,8 @@ sub run_test {
     warn "$program: test '$test_file' ($test_uri) FAILED - query returned errors:\n  ".join("\n  ",@errs)."\n";
     warn "Failing program was:\n";
     warn "  $roqet_cmd\n";
-    my $r=$roqet_cmd; $r =~ s,file:[^ ]+/,,g;
+    my $curdir=getcwd;
+    my $r=$roqet_cmd; $r =~ s,file:[^ ]+/,,g; $r =~ s,$curdir,,g;
     warn "  OR $r\n";
     return 1;
   }
@@ -391,7 +395,8 @@ sub run_test {
     warn "$program: '$name' FAILED ($test_uri) \n";
     warn "Failing program was:\n";
     warn "  $roqet_cmd\n";
-    my $r=$roqet_cmd; $r =~ s,file:[^ ]+/,,g;
+    my $curdir=getcwd;
+    my $r=$roqet_cmd; $r =~ s,file:[^ ]+/,,g; $r =~ s,$curdir,,g;
     warn "  OR $r\n";
     warn "Difference is:\n";
     system("cat diff.out");
