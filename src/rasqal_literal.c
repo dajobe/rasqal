@@ -1248,8 +1248,15 @@ rasqal_new_literal_from_promotion(rasqal_literal* lit,
                 rasqal_literal_type_labels[lit->type],
                 rasqal_literal_type_labels[type]);
 
-  /* May not promote non-numerics */
+  if(lit->type == type)
+    return rasqal_new_literal_from_literal(lit);
+
+  /* May not promote to non-numerics */
   if(!rasqal_xsd_datatype_is_numeric(type)) {
+    RASQAL_DEBUG3("NOT promoting to non-numeric type %s\n", 
+                  rasqal_literal_type_labels[lit->type],
+                  rasqal_literal_type_labels[type]);
+
     if(type == RASQAL_LITERAL_STRING) {
       new_s=(unsigned char*)RASQAL_MALLOC(sstring, lit->string_len+1);
       if(new_s) {
@@ -1261,9 +1268,6 @@ rasqal_new_literal_from_promotion(rasqal_literal* lit,
     return NULL;
   }
     
-  if(lit->type == type)
-    return rasqal_new_literal_from_literal(lit);
-
   switch(type) {
     case RASQAL_LITERAL_DECIMAL:
       new_lit=rasqal_new_decimal_literal((const char*)lit->string);
