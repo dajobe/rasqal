@@ -1407,7 +1407,7 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
 {
   rasqal_literal *lits[2];
   rasqal_literal* new_lits[2]; /* after promotions */
-  rasqal_literal_type type;
+  rasqal_literal_type type; /* target promotion type */
   int i;
   int seen_string=0;
   int seen_int=0;
@@ -1501,7 +1501,9 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
     int type1=(int)lits[1]->type;
     RASQAL_DEBUG3("xquery literal compare types %d vs %d\n", type0, type1);
     if(seen_numeric != 2) {
-      return type0 - type1;
+      int type_diff=type0 - type1;
+      RASQAL_DEBUG2("xquery return type ordering %d\n", type_diff);
+      return type_diff;
     }
 
     type=rasqal_literal_promote_calculate(l1, l2, flags);
@@ -1533,7 +1535,8 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
 
   switch(type) {
     case RASQAL_LITERAL_URI:
-      result=raptor_uri_compare(lits[0]->value.uri, lits[1]->value.uri);
+      result=raptor_uri_compare(new_lits[0]->value.uri,
+                                new_lits[1]->value.uri);
       break;
 
     case RASQAL_LITERAL_STRING:
