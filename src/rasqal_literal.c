@@ -1151,16 +1151,6 @@ rasqal_literal_as_variable(rasqal_literal* l)
 }
 
 
-/* turn the sign of the double into an int, for comparison purposes */
-static RASQAL_INLINE int
-double_to_int(double d) 
-{
-  if(d == 0.0)
-    return 0;
-  return (d < 0.0) ? -1 : 1;
-}
-
-
 /**
  * rasqal_literal_promote_calculate:
  * @l1: first literal
@@ -1574,7 +1564,6 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
 
     case RASQAL_LITERAL_DOUBLE:
     case RASQAL_LITERAL_FLOAT:
-      d=new_lits[0]->value.floating - new_lits[1]->value.floating;
       result=(d > 0.0) ? 1: (d < 0.0) ? -1 : 0;
       break;
       
