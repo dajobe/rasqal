@@ -1437,6 +1437,10 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e,
         len=strlen((const char*)s);
 
         new_s=(unsigned char *)RASQAL_MALLOC(cstring, len+1);
+        if(!new_s) {
+          rasqal_free_literal(l);
+          goto failed;
+        }
         strncpy((char*)new_s, (const char*)s, len+1);
 
         result=rasqal_new_string_literal(new_s, NULL, NULL, NULL);
@@ -1469,9 +1473,19 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e,
           if(l->language) {
             new_language=(unsigned char*)RASQAL_MALLOC(cstring,
                                                        strlen(l->language)+1);
+            if(!new_language) {
+              if(free_literal)
+                rasqal_free_literal(l);
+              goto failed;
+            }
             strcpy((char*)new_language, l->language);
           } else  {
             new_language=(unsigned char*)RASQAL_MALLOC(cstring, 1);
+            if(!new_language) {
+              if(free_literal)
+                rasqal_free_literal(l);
+              goto failed;
+            }
             *new_language='\0';
           }
           result=rasqal_new_string_literal(new_language, NULL, NULL, NULL);
