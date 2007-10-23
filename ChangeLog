@@ -1,4 +1,88 @@
+2007-10-22  Dave Beckett <dave@dajobe.org>
+
+	* Last known good revision 13011: 'make check' succeeds.
+
+	* src/rasqal_literal.c: (rasqal_literal_compare): Fix xquery
+	compare ordering when types are different and cannot promote.
+
+	* src/rasqal_literal.c: (rasqal_literal_compare): Fix float/double
+	compare.
+
+	* src/rasqal_literal.c: (rasqal_literal_compare): Fix float/double
+	compare with fabs
+
+	* src/rasqal_literal.c: (rasqal_literal_compare): Return type
+	error if rasqal_new_literal_from_promotion fails
+
+	* src/rasqal_literal.c: (rasqal_new_literal_from_promotion):
+	Handle rasqal_new_literal_from_promotion failing.
+
+	* src/rasqal_literal.c: death in debug message
+
+	* src/rasqal_literal.c: casts for warnings
+
+	* src/rasqal_literal.c: (rasqal_new_literal_from_promotion): Do
+	not assume l->string is set.
+
+	* src/rasqal_literal.c: (rasqal_new_literal_from_promotion): Allow
+	nop promotion
+
+	* src/rasqal_literal.c: (rasqal_literal_compare): Fix error from
+	string compare.
+
+	* src/rasqal_literal.c: docs
+	(rasqal_literal_compare): Fix uri compare.
+
+	* src/rasqal_literal.c: (rasqal_literal_string_compare): Added,
+	pulled out of rasqal_literal_compare.
+	(rasqal_literal_compare): Call above.
+
+	* src/rasqal_literal.c: (rasqal_new_literal_from_promotion): Call
+	rasqal_new_string_literal with copy of string which is an input
+	parameter.
+
+	* src/rasqal_literal.c: (rasqal_new_literal_from_promotion):
+	Added, pulled out of rasqal_literal_compare.
+	(rasqal_literal_compare): Use above.
+
+	* src/rasqal_literal.c: (rasqal_literal_equals_flags): Start to
+	add XQuery/SPARQL promotions.
+
+	* src/rasqal_literal.c: (rasqal_literal_equals_flags): Added
+
+	* src/rasqal_engine.c:
+	(rasqal_query_result_literal_sequence_equals): Added to compare
+	two arrays of literal for equality
+	(rasqal_engine_query_result_row_compare): Use
+	rasqal_query_result_literal_sequence_equals when just doing
+	distinct, no sorting.
+
+	* src/rasqal_internal.h: Added rasqal_literal_equals_flags prototype
+
+2007-10-21  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_decimal.c: Make rasqal_decimal.c compile with
+	RASQAL_DECIMAL_NONE
+
+	* src/rasqal_decimal.c: (rasqal_xsd_decimal_equals) Catch flagging
+	error and prevent warning about uninitialized rc variable.
+
 2007-10-21  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_literal.c: Switch rasqal_literal with type
+	RASQAL_LITERAL_DECIMAL from stored as a double stored as an
+	rasqal_xsd_decimal.
+	(rasqal_new_decimal_literal, rasqal_literal_string_to_native,
+	rasqal_free_literal, rasqal_literal_as_integer,
+	rasqal_literal_as_floating, rasqal_literal_equals): Use new fields
+	for decimal.
+
+	* src/rasqal_decimal.c: (rasqal_xsd_decimal_equals): Renamed from
+	rasqal_xsd_decimal_equal
+
+	* src/rasqal.h: rasqal_literal now stores decimals as
+	rasqal_xsd_decimal. rasqal_xsd_decimal_equals renamed from
+	rasqal_xsd_decimal_equal
 
 	* Last known good revision 12976: 'make check' succeeds.
 
