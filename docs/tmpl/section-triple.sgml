@@ -86,6 +86,9 @@ with the SPARQL <literal>GRAPH</literal>).
 @RASQAL_TRIPLE_PREDICATE: 
 @RASQAL_TRIPLE_OBJECT: 
 @RASQAL_TRIPLE_ORIGIN: 
+@RASQAL_TRIPLE_GRAPH: 
+@RASQAL_TRIPLE_SPO: 
+@RASQAL_TRIPLE_SPOG: 
 
 <!-- ##### FUNCTION rasqal_triple_print ##### -->
 <para>
