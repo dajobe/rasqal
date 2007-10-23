@@ -1579,7 +1579,7 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
 
     case RASQAL_LITERAL_DOUBLE:
     case RASQAL_LITERAL_FLOAT:
-      result=new_lits[0]->value.floating - new_lits[1]->value.floating;
+      result=fabs(new_lits[0]->value.floating - new_lits[1]->value.floating);
       break;
       
     case RASQAL_LITERAL_DECIMAL:
