@@ -1384,6 +1384,69 @@ rasqal_literal_string_compare(rasqal_literal* l1, rasqal_literal* l2,
 }
 
 
+static rasqal_literal_type
+rasqal_literal_rdql_promote_calculate(rasqal_literal* l1, rasqal_literal* l2)
+{    
+  int seen_string=0;
+  int seen_int=0;
+  int seen_double=0;
+  int seen_boolean=0;
+  int i;
+  rasqal_literal *lits[2]={l1, l2};
+  rasqal_literal_type type=RASQAL_LITERAL_UNKNOWN;
+
+
+  for(i=0; i<2; i++) {
+    switch(lits[i]->type) {
+    case RASQAL_LITERAL_URI:
+    case RASQAL_LITERAL_DECIMAL:
+      break;
+      
+    case RASQAL_LITERAL_STRING:
+    case RASQAL_LITERAL_BLANK:
+    case RASQAL_LITERAL_PATTERN:
+    case RASQAL_LITERAL_QNAME:
+    case RASQAL_LITERAL_DATETIME:
+      seen_string++;
+      break;
+      
+    case RASQAL_LITERAL_BOOLEAN:
+      seen_boolean=1;
+      break;
+      
+    case RASQAL_LITERAL_INTEGER:
+      seen_int++;
+      break;
+      
+    case RASQAL_LITERAL_DOUBLE:
+    case RASQAL_LITERAL_FLOAT:
+      seen_double++;
+      break;
+      
+    case RASQAL_LITERAL_VARIABLE:
+      /* this case was dealt with elsewhere */
+      
+    case RASQAL_LITERAL_UNKNOWN:
+    default:
+      abort();
+    }
+  }
+
+  
+  if(lits[0]->type != lits[1]->type) {
+    type=seen_string ? RASQAL_LITERAL_STRING : RASQAL_LITERAL_INTEGER;
+    if((seen_int & seen_double) || (seen_int & seen_string))
+      type=RASQAL_LITERAL_DOUBLE;
+    if(seen_boolean & seen_string)
+      type=RASQAL_LITERAL_STRING;
+  } else
+    type=lits[0]->type;
+  
+  return type;
+}
+
+
+
 /**
  * rasqal_literal_compare:
  * @l1: #rasqal_literal first literal
@@ -1418,93 +1481,30 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
   rasqal_literal* new_lits[2]; /* after promotions */
   rasqal_literal_type type; /* target promotion type */
   int i;
-  int seen_string=0;
-  int seen_int=0;
-  int seen_double=0;
-  int seen_boolean=0;
-  int seen_numeric=0;
   int result=0;
   double d;
   
   *error=0;
 
+  lits[0]=rasqal_literal_value(l1);
+  lits[1]=rasqal_literal_value(l2);
+
   /* null literals */
-  if(!l1 || !l2) {
-    /* if either is not null, the comparison fails */
-    if(l1 || l2)
+  if(!lits[0] || !lits[1]) {
+    /* if either is not NULL, the comparison fails */
+    if(lits[0] || lits[1])
       *error=1;
     return 0;
   }
 
-  lits[0]=l1;  lits[1]=l2;
-  new_lits[0]=NULL;;  new_lits[1]=NULL;
+  new_lits[0]=NULL;
+  new_lits[1]=NULL;
 
-  for(i=0; i<2; i++) {
-    rasqal_literal_type lit_type=lits[i]->type;
-
-    if(lit_type == RASQAL_LITERAL_VARIABLE) {
-      lits[i]=lits[i]->value.variable->value;
-
-      /* Need to re-check for NULL values */
-      if(!lits[i]) {
-        /* A null value, so the comparison fails */
-        RASQAL_DEBUG2("literal %d is a variable with no value\n", i);
-        if(lits[1-i])
-          *error=1;
-        return 0;
-      }
-
-      RASQAL_DEBUG3("literal %d is a variable, value is a %s\n", i,
-                    rasqal_literal_type_labels[lit_type]);
-    }
-    
-
-    if(rasqal_xsd_datatype_is_numeric(lit_type))
-      seen_numeric++;
-    
-    switch(lit_type) {
-      case RASQAL_LITERAL_URI:
-      case RASQAL_LITERAL_DECIMAL:
-        break;
-
-      case RASQAL_LITERAL_STRING:
-      case RASQAL_LITERAL_BLANK:
-      case RASQAL_LITERAL_PATTERN:
-      case RASQAL_LITERAL_QNAME:
-      case RASQAL_LITERAL_DATETIME:
-        seen_string++;
-        break;
-
-      case RASQAL_LITERAL_BOOLEAN:
-        seen_boolean=1;
-        break;
-        
-      case RASQAL_LITERAL_INTEGER:
-        seen_int++;
-        break;
-    
-      case RASQAL_LITERAL_DOUBLE:
-      case RASQAL_LITERAL_FLOAT:
-        seen_double++;
-        break;
-
-      case RASQAL_LITERAL_VARIABLE:
-        /* this case was dealt with above, retrieving the value */
-        
-      case RASQAL_LITERAL_UNKNOWN:
-      default:
-        abort();
-    }
-  } /* end for i=0,1 */
-
-
-  RASQAL_DEBUG2("saw %d numeric literals\n", seen_numeric);
-
-  /* work out type to aim for */
   RASQAL_DEBUG3("literal 0 type %s.  literal 1 type %s\n", 
                 rasqal_literal_type_labels[lits[0]->type],
                 rasqal_literal_type_labels[lits[1]->type]);
   
+  /* work out type to aim for */
   if(flags & RASQAL_COMPARE_XQUERY) { 
     /* SPARQL / XQuery promotion rules */
     int type0=(int)lits[0]->type;
@@ -1514,7 +1514,7 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
                 rasqal_literal_type_labels[type0],
                 rasqal_literal_type_labels[type1]);
 
-    type=rasqal_literal_promote_calculate(l1, l2, flags);
+    type=rasqal_literal_promote_calculate(lits[0], lits[1], flags);
     if(type == RASQAL_LITERAL_UNKNOWN) {
       int type_diff=type0 - type1;
       if(type_diff != 0) {
@@ -1527,17 +1527,10 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
     }
   } else {
     /* RDQL promotion rules */
-    if(lits[0]->type != lits[1]->type) {
-      type=seen_string ? RASQAL_LITERAL_STRING : RASQAL_LITERAL_INTEGER;
-      if((seen_int & seen_double) || (seen_int & seen_string))
-        type=RASQAL_LITERAL_DOUBLE;
-      if(seen_boolean & seen_string)
-        type=RASQAL_LITERAL_STRING;
-    } else
-      type=lits[0]->type;
+    type=rasqal_literal_rdql_promote_calculate(lits[0], lits[1]);
   }
-  RASQAL_DEBUG2("promoting to type %s\n",
-                rasqal_literal_type_labels[type]);
+  RASQAL_DEBUG2("promoting to type %s\n", rasqal_literal_type_labels[type]);
+
 
   /* do promotions */
   for(i=0; i<2; i++) {
