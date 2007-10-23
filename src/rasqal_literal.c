@@ -1329,12 +1329,12 @@ rasqal_new_literal_from_promotion(rasqal_literal* lit,
 
 #ifdef RASQAL_DEBUG
   if(new_lit)
-    RASQAL_DEBUG4("promoted literal (type %s) to type %s, with value '%s'\n", 
+    RASQAL_DEBUG4("promoted literal type %s to type %s, with value '%s'\n", 
                   rasqal_literal_type_labels[new_lit->type],
                   rasqal_literal_type_labels[type],
                   rasqal_literal_as_string(new_lit));
   else
-    RASQAL_DEBUG3("failed to promote literal (type %s) to type %s\n", 
+    RASQAL_DEBUG3("failed to promote literal type %s to type %s\n", 
                   rasqal_literal_type_labels[lit->type],
                   rasqal_literal_type_labels[type]);
 #endif
@@ -1540,8 +1540,10 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
   /* do promotions */
   for(i=0; i<2; i++) {
     new_lits[i]=rasqal_new_literal_from_promotion(lits[i], type);
-    if(!new_lits[i])
+    if(!new_lits[i]) {
+      *error=1;
       goto done;
+    }
   }
 
 
