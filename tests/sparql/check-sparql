@@ -131,7 +131,7 @@ sub read_rdf_results_file($) {
     warn "Failing program was:\n";
     warn "  $cmd\n";
     my $curdir=getcwd;
-    my $r=$cmd; $r =~ s,file:[^ ]+/,,g; $r =~ s,$curdir,,g;
+    my $r=$cmd; $r =~ s,file:[^ ]+/,,g; $r =~ s,$curdir/,,g;
     warn "  OR $r\n";
     return undef;
   }
@@ -279,7 +279,7 @@ sub run_test {
     warn "Failing program was:\n";
     warn "  $roqet_cmd\n";
     my $curdir=getcwd;
-    my $r=$roqet_cmd; $r =~ s,file:[^ ]+/,,g; $r =~ s,$curdir,,g;
+    my $r=$roqet_cmd; $r =~ s,file:[^ ]+/,,g; $r =~ s,$curdir/,,g;
     warn "  OR $r\n";
     system("cat roqet.err");
     unlink $roqet_tmp;
@@ -352,7 +352,7 @@ sub run_test {
     warn "Failing program was:\n";
     warn "  $roqet_cmd\n";
     my $curdir=getcwd;
-    my $r=$roqet_cmd; $r =~ s,file:[^ ]+/,,g; $r =~ s,$curdir,,g;
+    my $r=$roqet_cmd; $r =~ s,file:[^ ]+/,,g; $r =~ s,$curdir/,,g;
     warn "  OR $r\n";
     return 1;
   }
@@ -396,7 +396,7 @@ sub run_test {
     warn "Failing program was:\n";
     warn "  $roqet_cmd\n";
     my $curdir=getcwd;
-    my $r=$roqet_cmd; $r =~ s,file:[^ ]+/,,g; $r =~ s,$curdir,,g;
+    my $r=$roqet_cmd; $r =~ s,file:[^ ]+/,,g; $r =~ s,$curdir/,,g;
     warn "  OR $r\n";
     warn "Difference is:\n";
     system("cat diff.out");
