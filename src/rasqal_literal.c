@@ -782,7 +782,9 @@ rasqal_literal_print(rasqal_literal* l, FILE* fh)
 
   switch(l->type) {
     case RASQAL_LITERAL_URI:
-      fprintf(fh, "<%s>", raptor_uri_as_string(l->value.uri));
+      fputc('<', fh);
+      raptor_print_ntriples_string(fh, raptor_uri_as_string(l->value.uri), '>');
+      fputc('>', fh);
       break;
     case RASQAL_LITERAL_BLANK:
       fprintf(fh, " %s", l->string);
@@ -796,33 +798,27 @@ rasqal_literal_print(rasqal_literal* l, FILE* fh)
       fputc('"', fh);
       if(l->language)
         fprintf(fh, "@%s", l->language);
-      if(l->datatype)
-        fprintf(fh, "^^<%s>", raptor_uri_as_string(l->datatype));
+      if(l->datatype) {
+        fputs("^^<", fh);
+        raptor_print_ntriples_string(fh, raptor_uri_as_string(l->datatype), '>');
+        fputc('>', fh);
+      }
       fputc(')', fh);
-      break;
-    case RASQAL_LITERAL_QNAME:
-      fprintf(fh, "(%s)", l->string);
-      break;
-    case RASQAL_LITERAL_INTEGER:
-      fprintf(fh, " %d", l->value.integer);
-      break;
-    case RASQAL_LITERAL_BOOLEAN:
-      fprintf(fh, "(%s)", l->string);
-      break;
-    case RASQAL_LITERAL_DOUBLE:
-      fprintf(fh, "(%g)", l->value.floating);
       break;
     case RASQAL_LITERAL_VARIABLE:
       rasqal_variable_print(l->value.variable, fh);
       break;
+
+    case RASQAL_LITERAL_QNAME:
+    case RASQAL_LITERAL_INTEGER:
+    case RASQAL_LITERAL_BOOLEAN:
+    case RASQAL_LITERAL_DOUBLE:
     case RASQAL_LITERAL_FLOAT:
-      fprintf(fh, "(%g)", l->value.floating);
-      break;
     case RASQAL_LITERAL_DECIMAL:
-      fprintf(fh, "(%s)", l->string);
-      break;
     case RASQAL_LITERAL_DATETIME:
-      fprintf(fh, "(%s)", l->string);
+      fputc('(', fh);
+      fwrite(l->string, 1, l->string_len, fh);
+      fputc(')', fh);
       break;
 
     case RASQAL_LITERAL_UNKNOWN:
