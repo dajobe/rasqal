@@ -1292,7 +1292,7 @@ rasqal_new_literal_from_promotion(rasqal_literal* lit,
       if(errori)
         new_lit=NULL;
       else
-        new_lit=rasqal_new_integer_literal(i, type);
+        new_lit=rasqal_new_integer_literal(type, i);
       break;
     
     case RASQAL_LITERAL_STRING:
@@ -1382,9 +1382,11 @@ rasqal_literal_rdql_promote_calculate(rasqal_literal* l1, rasqal_literal* l2)
   int seen_double=0;
   int seen_boolean=0;
   int i;
-  rasqal_literal *lits[2]={l1, l2};
+  rasqal_literal *lits[2];
   rasqal_literal_type type=RASQAL_LITERAL_UNKNOWN;
 
+  lits[0]=l1;
+  lits[1]=l2;
 
   for(i=0; i<2; i++) {
     switch(lits[i]->type) {
