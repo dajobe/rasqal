@@ -1509,18 +1509,19 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
     /* SPARQL / XQuery promotion rules */
     int type0=(int)lits[0]->type;
     int type1=(int)lits[1]->type;
-    RASQAL_DEBUG3("xquery literal compare types %d vs %d\n", type0, type1);
-    if(seen_numeric != 2) {
-      int type_diff=type0 - type1;
-      RASQAL_DEBUG2("xquery return type ordering %d\n", type_diff);
-      return type_diff;
-    }
+
+    RASQAL_DEBUG3("xquery literal compare types %s vs %s\n",
+                rasqal_literal_type_labels[type0],
+                rasqal_literal_type_labels[type1]);
 
     type=rasqal_literal_promote_calculate(l1, l2, flags);
-    RASQAL_DEBUG2("xquery promoted to type %s\n", 
-                  rasqal_literal_type_labels[type]);
-    if(type == RASQAL_LITERAL_UNKNOWN ||
-       !rasqal_xsd_datatype_is_numeric(type)) {
+    if(type == RASQAL_LITERAL_UNKNOWN) {
+      int type_diff=type0 - type1;
+      if(type_diff != 0) {
+        RASQAL_DEBUG2("xquery literal returning type difference %d\n",
+                      type_diff);
+        return type_diff;
+      }
       *error=1;
       return 0;
     }
