@@ -1243,6 +1243,8 @@ rasqal_new_literal_from_promotion(rasqal_literal* lit,
   double d;
   int i;
   unsigned char *new_s=NULL;
+  unsigned char* s;
+  size_t len;
   
   RASQAL_DEBUG3("promoting literal type %s to type %s\n", 
                 rasqal_literal_type_labels[lit->type],
@@ -1258,9 +1260,11 @@ rasqal_new_literal_from_promotion(rasqal_literal* lit,
                   rasqal_literal_type_labels[type]);
 
     if(type == RASQAL_LITERAL_STRING) {
-      new_s=(unsigned char*)RASQAL_MALLOC(sstring, lit->string_len+1);
+      s=rasqal_literal_as_string(lit);
+      len=strlen(s);
+      new_s=(unsigned char*)RASQAL_MALLOC(sstring, len+1);
       if(new_s) {
-        strncpy((char*)new_s, (const char*)lit->string, lit->string_len+1);
+        strncpy((char*)new_s, (const char*)s, len+1);
         return rasqal_new_string_literal(new_s, NULL, NULL, NULL);
       } else
         return NULL;
@@ -1270,7 +1274,7 @@ rasqal_new_literal_from_promotion(rasqal_literal* lit,
     
   switch(type) {
     case RASQAL_LITERAL_DECIMAL:
-      new_lit=rasqal_new_decimal_literal((const char*)lit->string);
+      new_lit=rasqal_new_decimal_literal((const char*)rasqal_literal_as_string(lit));
       break;
       
     case RASQAL_LITERAL_DOUBLE:
@@ -1303,9 +1307,11 @@ rasqal_new_literal_from_promotion(rasqal_literal* lit,
       break;
     
     case RASQAL_LITERAL_STRING:
-      new_s=(unsigned char*)RASQAL_MALLOC(sstring, lit->string_len+1);
+      s=rasqal_literal_as_string(lit);
+      len=strlen(s);
+      new_s=(unsigned char*)RASQAL_MALLOC(sstring, len+1);
       if(new_s) {
-        strncpy((char*)new_s, (const char*)lit->string, lit->string_len+1);
+        strncpy((char*)new_s, (const char*)s, len+1);
         new_lit=rasqal_new_string_literal(new_s, NULL, NULL, NULL);
       }
       break;
