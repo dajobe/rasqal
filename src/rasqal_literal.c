@@ -1424,6 +1424,7 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
   int seen_boolean=0;
   int seen_numeric=0;
   int result=0;
+  double d;
   
   *error=0;
 
@@ -1579,7 +1580,8 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
 
     case RASQAL_LITERAL_DOUBLE:
     case RASQAL_LITERAL_FLOAT:
-      result=fabs(new_lits[0]->value.floating - new_lits[1]->value.floating);
+      d=new_lits[0]->value.floating - new_lits[1]->value.floating;
+      result=(d > 0.0) ? 1: (d < 0.0) ? -1 : 0;
       break;
       
     case RASQAL_LITERAL_DECIMAL:
