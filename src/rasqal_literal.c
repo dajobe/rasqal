@@ -1542,7 +1542,7 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
     case RASQAL_LITERAL_STRING:
       result=rasqal_literal_string_compare(new_lits[0], new_lits[1],
                                            flags, error);
-      if(error)
+      if(*error)
         result=1;
       break;
       
