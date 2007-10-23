@@ -1335,7 +1335,7 @@ rasqal_new_literal_from_promotion(rasqal_literal* lit,
                   rasqal_literal_as_string(new_lit));
   else
     RASQAL_DEBUG3("failed to promote literal (type %s) to type %s\n", 
-                  rasqal_literal_type_labels[new_lit->type],
+                  rasqal_literal_type_labels[lit->type],
                   rasqal_literal_type_labels[type]);
 #endif
 
