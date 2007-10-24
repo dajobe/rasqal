@@ -686,6 +686,8 @@ rasqal_free_literal(rasqal_literal* l)
       break;
     case RASQAL_LITERAL_DECIMAL:
       /* l->string is owned by l->value.decimal - do not free it */
+      if(l->datatype)
+        raptor_free_uri(l->datatype);
       if(l->value.decimal)
         rasqal_free_xsd_decimal(l->value.decimal);
       break;
