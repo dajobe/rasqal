@@ -412,11 +412,15 @@ rasqal_literal_string_to_native(rasqal_literal *l,
 
     case RASQAL_LITERAL_DECIMAL:
       l->value.decimal=rasqal_new_xsd_decimal();
-      if(!l->value.decimal)
+      if(!l->value.decimal) {
+        RASQAL_FREE(cstring, (void*)l->string);
         return 1;
+      }
       if(rasqal_xsd_decimal_set_string(l->value.decimal,
-                                       (const char*)l->string))
+                                       (const char*)l->string)) {
+        RASQAL_FREE(cstring, (void*)l->string);
         return 1;
+      }
       RASQAL_FREE(cstring, (void*)l->string);
       /* string is owned by l->value.decimal */
       l->string=(unsigned char*)rasqal_xsd_decimal_as_counted_string(l->value.decimal,
