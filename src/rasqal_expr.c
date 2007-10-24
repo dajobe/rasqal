@@ -1132,7 +1132,7 @@ rasqal_expression_evaluate_strmatch(rasqal_query *query, rasqal_expression* e,
   const unsigned char *pattern;
   const unsigned char *regex_flags;
   rasqal_literal *l1, *l2, *l3;
-  int error;
+  int error=0;
   int rc=0;
 #ifdef RASQAL_REGEX_PCRE
   pcre* re;
@@ -1302,8 +1302,8 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e,
     rasqal_variable *v;
   } vars;
 
-  errs.e=0;
-  
+  memset(&errs, 0, sizeof(errs));
+
 #ifdef RASQAL_DEBUG
   RASQAL_DEBUG2("evaluating expression %p: ", e);
   rasqal_expression_print(e, stderr);
