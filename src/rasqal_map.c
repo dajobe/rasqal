@@ -186,7 +186,7 @@ rasqal_map_add_kv(rasqal_map* map, void* key, void *value)
 {
   if(!map->root) {
     map->root=rasqal_new_map_node(map, key, value);
-    return 0;
+    return map->root ? 0 : -1;
   }
   
   return rasqal_map_node_add_kv(map->root, key, value);
