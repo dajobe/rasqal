@@ -153,7 +153,7 @@ rasqal_map_node_add_kv(rasqal_map_node* node, void *key, void *value)
     if(node->prev)
       return rasqal_map_node_add_kv(node->prev, key, value);
     node->prev=rasqal_new_map_node(node->map, key, value);
-    return 0;
+    return node->prev ? 0 : -1;
   } else if(!result) {
     if(!node->map->allow_duplicates) {
       /* duplicate and not allowed */
@@ -167,7 +167,7 @@ rasqal_map_node_add_kv(rasqal_map_node* node, void *key, void *value)
     return rasqal_map_node_add_kv(node->next, key, value);
 
   node->next=rasqal_new_map_node(node->map, key, value);
-  return 0;
+  return node->next ? 0 : -1;
 }
 
 
