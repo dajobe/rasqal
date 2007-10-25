@@ -1143,9 +1143,11 @@ rasqal_query_prepare_count_graph_patterns(rasqal_query* query,
 {
   raptor_sequence* seq=(raptor_sequence*)data;
 
+  if(raptor_sequence_push(seq, gp)) {
+    rasqal_query_fatal_error(query, "Out of memory in rasqal_query_prepare_count_graph_patterns()");
+    return 1;
+  }
   gp->gp_index=(query->graph_pattern_count++);
-  raptor_sequence_push(seq, gp);
-  
   return 0;
 }
 
