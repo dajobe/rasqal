@@ -1302,7 +1302,7 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e,
     rasqal_variable *v;
   } vars;
 
-  memset(&errs, 0, sizeof(errs));
+  errs.e=0;
 
 #ifdef RASQAL_DEBUG
   RASQAL_DEBUG2("evaluating expression %p: ", e);
@@ -1314,18 +1314,20 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e,
     case RASQAL_EXPR_AND:
       l1=rasqal_expression_evaluate(query, e->arg1, flags);
       if(!l1) {
-        vars.bools.b1=0;
         errs.errs.e1=1;
+        vars.bools.b1=0;
       } else {
+        errs.errs.e1=0;
         vars.bools.b1=rasqal_literal_as_boolean(l1, &errs.errs.e1);
         rasqal_free_literal(l1);
       }
 
       l1=rasqal_expression_evaluate(query, e->arg2, flags);
       if(!l1) {
-        vars.bools.b2=0;
         errs.errs.e2=1;
+        vars.bools.b2=0;
       } else {
+        errs.errs.e2=0;
         vars.bools.b2=rasqal_literal_as_boolean(l1, &errs.errs.e2);
         rasqal_free_literal(l1);
       }
@@ -1348,18 +1350,20 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e,
     case RASQAL_EXPR_OR:
       l1=rasqal_expression_evaluate(query, e->arg1, flags);
       if(!l1) {
-        vars.bools.b1=0;
         errs.errs.e1=1;
+        vars.bools.b1=0;
       } else {
+        errs.errs.e1=0;
         vars.bools.b1=rasqal_literal_as_boolean(l1, &errs.errs.e1);
         rasqal_free_literal(l1);
       }
 
       l1=rasqal_expression_evaluate(query, e->arg2, flags);
       if(!l1) {
-        vars.bools.b2=0;
         errs.errs.e2=1;
+        vars.bools.b2=0;
       } else {
+        errs.errs.e2=0;
         vars.bools.b2=rasqal_literal_as_boolean(l1, &errs.errs.e2);
         rasqal_free_literal(l1);
       }
