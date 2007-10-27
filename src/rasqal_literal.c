@@ -120,6 +120,9 @@ rasqal_new_integer_literal_from_string(rasqal_literal_type type,
     char *eptr;
     int v;
     raptor_uri* dt_uri;
+
+    l->usage=1;
+    l->type=type;
     
     eptr=NULL;
     v=(int)strtol((const char*)string, &eptr, 10);
@@ -128,8 +131,6 @@ rasqal_new_integer_literal_from_string(rasqal_literal_type type,
       return NULL;
     }
 
-    l->usage=1;
-    l->type=type;
     l->value.integer=v;
     l->string_len=strlen(string);
     l->string=(unsigned char*)RASQAL_MALLOC(cstring, l->string_len+1);
