@@ -97,6 +97,13 @@ struct rasqal_xsd_decimal_s {
 };
 
 
+/**
+ * rasqal_new_xsd_decimal:
+ * 
+ * Create a new XSD Decimal object.
+ * 
+ * Return value: new xsd:decimal object or NULL on failure.
+ **/
 rasqal_xsd_decimal*
 rasqal_new_xsd_decimal(void)
 {
@@ -108,6 +115,12 @@ rasqal_new_xsd_decimal(void)
 }
 
 
+/**
+ * rasqal_free_xsd_decimal:
+ * @dec: Decimal object
+ * 
+ * Destroy XSD Decimal object.
+ **/
 void
 rasqal_free_xsd_decimal(rasqal_xsd_decimal* dec)
 {
@@ -178,6 +191,15 @@ rasqal_xsd_decimal_clear(rasqal_xsd_decimal* dec)
 }  
 
 
+/**
+ * rasqal_xsd_decimal_set_string:
+ * @dec: XSD Decimal
+ * @string: lexical form
+ * 
+ * Set an XSD Decimal value from a string lexical form
+ * 
+ * Return value: non-0 on failure
+ **/
 int
 rasqal_xsd_decimal_set_string(rasqal_xsd_decimal* dec, const char* string)
 {
@@ -210,6 +232,15 @@ rasqal_xsd_decimal_set_string(rasqal_xsd_decimal* dec, const char* string)
 }
 
 
+/**
+ * rasqal_xsd_decimal_set_long:
+ * @dec: XSD Decimal
+ * @l: long
+ * 
+ * Set an XSD Decimal value from a long.
+ * 
+ * Return value: non-0 on failure
+ **/
 int
 rasqal_xsd_decimal_set_long(rasqal_xsd_decimal* dec, long l)
 {
@@ -230,6 +261,15 @@ rasqal_xsd_decimal_set_long(rasqal_xsd_decimal* dec, long l)
 }
 
 
+/**
+ * rasqal_xsd_decimal_set_double:
+ * @dec: XSD Decimal
+ * @d: double
+ * 
+ * Set an XSD Decimal value from a double.
+ * 
+ * Return value: non-0 on failure
+ **/
 int
 rasqal_xsd_decimal_set_double(rasqal_xsd_decimal* dec, double d)
 {
@@ -250,6 +290,14 @@ rasqal_xsd_decimal_set_double(rasqal_xsd_decimal* dec, double d)
 }
 
 
+/**
+ * rasqal_xsd_decimal_get_double:
+ * @dec: XSD Decimal
+ * 
+ * Get an XSD Decimal as a double (may lose precision)
+ * 
+ * Return value: double value.
+ **/
 double
 rasqal_xsd_decimal_get_double(rasqal_xsd_decimal* dec)
 {
@@ -269,6 +317,17 @@ rasqal_xsd_decimal_get_double(rasqal_xsd_decimal* dec)
 }
 
 
+/**
+ * rasqal_xsd_decimal_as_string:
+ * @dec: XSD Decimal
+ * 
+ * Get an XSD Decimal as a string lexical form.
+ *
+ * The returned string is shared and owned by the @dec object and
+ * must be copied.
+ * 
+ * Return value: lexical form string or NULL on failure.
+ **/
 char*
 rasqal_xsd_decimal_as_string(rasqal_xsd_decimal* dec)
 {
@@ -437,6 +496,19 @@ rasqal_xsd_decimal_as_string(rasqal_xsd_decimal* dec)
 }
 
 
+/**
+ * rasqal_xsd_decimal_as_counted_string:
+ * @dec: XSD Decimal
+ * @len_p: pointer to length variable (or NULL)
+ * 
+ * Get an XSD Decimal as a string lexical form with optional length.
+ *
+ * The returned string is shared and owned by the @dec object and
+ * must be copied.  If @len_p is not NULL, the length of the returned
+ * string is stored.
+ * 
+ * Return value: lexical form string or NULL on failure.
+ **/
 char*
 rasqal_xsd_decimal_as_counted_string(rasqal_xsd_decimal* dec, size_t* len_p)
 {
@@ -447,6 +519,15 @@ rasqal_xsd_decimal_as_counted_string(rasqal_xsd_decimal* dec, size_t* len_p)
 }
 
 
+/**
+ * rasqal_xsd_decimal_print:
+ * @dec: XSD Decimal
+ * @stream: FILE* stream
+ * 
+ * Write an XSD Decimal to a FILE* stream
+ * 
+ * Return value: non-0 on failure
+ **/
 int
 rasqal_xsd_decimal_print(rasqal_xsd_decimal* dec, FILE* stream)
 {
@@ -461,6 +542,17 @@ rasqal_xsd_decimal_print(rasqal_xsd_decimal* dec, FILE* stream)
   return 0;
 }
 
+
+/**
+ * rasqal_xsd_decimal_add:
+ * @result: result variable
+ * @a: argment decimal 1
+ * @b: argument decimal 2
+ * 
+ * Add two XSD Decimals and store in result XSD Decimal
+ * 
+ * Return value: non-0 on failure
+ **/
 int
 rasqal_xsd_decimal_add(rasqal_xsd_decimal* result, 
                        rasqal_xsd_decimal* a, rasqal_xsd_decimal* b)
@@ -483,6 +575,16 @@ rasqal_xsd_decimal_add(rasqal_xsd_decimal* result,
 }
 
 
+/**
+ * rasqal_xsd_decimal_subtract:
+ * @result: result variable
+ * @a: argment decimal 1
+ * @b: argument decimal 2
+ * 
+ * Subtract two XSD Decimals and store in result XSD Decimal
+ * 
+ * Return value: non-0 on failure
+ **/
 int
 rasqal_xsd_decimal_subtract(rasqal_xsd_decimal* result, 
                             rasqal_xsd_decimal* a, rasqal_xsd_decimal* b)
@@ -505,6 +607,16 @@ rasqal_xsd_decimal_subtract(rasqal_xsd_decimal* result,
 }
 
 
+/**
+ * rasqal_xsd_decimal_multiply:
+ * @result: result variable
+ * @a: argment decimal 1
+ * @b: argument decimal 2
+ * 
+ * Multiply two XSD Decimals and store in result XSD Decimal
+ * 
+ * Return value: non-0 on failure
+ **/
 int
 rasqal_xsd_decimal_multiply(rasqal_xsd_decimal* result, 
                             rasqal_xsd_decimal* a, rasqal_xsd_decimal* b)
@@ -527,6 +639,18 @@ rasqal_xsd_decimal_multiply(rasqal_xsd_decimal* result,
 }
 
 
+/**
+ * rasqal_xsd_decimal_divide:
+ * @result: result variable
+ * @a: argment decimal 1
+ * @b: argument decimal 2
+ * 
+ * Divide two XSD Decimals and store in result XSD Decimal
+ *
+ * If the divisor @b is 0, failure is returned
+ * 
+ * Return value: non-0 on failure
+ **/
 int
 rasqal_xsd_decimal_divide(rasqal_xsd_decimal* result, 
                           rasqal_xsd_decimal* a, rasqal_xsd_decimal* b)
@@ -558,6 +682,15 @@ rasqal_xsd_decimal_divide(rasqal_xsd_decimal* result,
 }
 
 
+/**
+ * rasqal_xsd_decimal_compare:
+ * @a: first XSD decimal
+ * @b: second XSD decimal
+ * 
+ * Compare two XSD Decimals
+ * 
+ * Return value: <0 if @a is less than @b, 0 if equal, >1 otherwise
+ **/
 int
 rasqal_xsd_decimal_compare(rasqal_xsd_decimal* a, rasqal_xsd_decimal* b)
 {
@@ -577,6 +710,15 @@ rasqal_xsd_decimal_compare(rasqal_xsd_decimal* a, rasqal_xsd_decimal* b)
 }
 
 
+/**
+ * rasqal_xsd_decimal_equals:
+ * @a: first XSD Decimal
+ * @b: second XSD Decimal
+ * 
+ * Compare two XSD Decimals for equality.
+ * 
+ * Return value: non-0 if equal.
+ **/
 int
 rasqal_xsd_decimal_equals(rasqal_xsd_decimal* a, rasqal_xsd_decimal* b)
 {
