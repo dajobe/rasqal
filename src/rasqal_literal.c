@@ -4,7 +4,7 @@
  *
  * $Id$
  *
- * Copyright (C) 2003-2006, David Beckett http://purl.org/net/dajobe/
+ * Copyright (C) 2003-2007, David Beckett http://purl.org/net/dajobe/
  * Copyright (C) 2003-2005, University of Bristol, UK http://www.bristol.ac.uk/
  * 
  * This package is Free Software and part of Redland http://librdf.org/
@@ -55,6 +55,7 @@
 
 /* prototypes */
 static rasqal_literal_type rasqal_literal_promote_numerics(rasqal_literal* l1, rasqal_literal* l2, int flags);
+static int rasqal_literal_set_typed_value(rasqal_literal* l, rasqal_literal_type type, const unsigned char* string, raptor_simple_message_handler error_handler, void *error_data);
 
 
 /**
@@ -99,7 +100,7 @@ rasqal_new_integer_literal(rasqal_literal_type type, int integer)
 
 
 /**
- * rasqal_new_integer_literal_from_string:
+ * rasqal_new_typed_literal:
  * @type: Type of literal such as RASQAL_LITERAL_INTEGER or RASQAL_LITERAL_BOOLEAN
  * @string: lexical form
  *
@@ -111,43 +112,17 @@ rasqal_new_integer_literal(rasqal_literal_type type, int integer)
  * Return value: New #rasqal_literal or NULL on failure
  **/
 rasqal_literal*
-rasqal_new_integer_literal_from_string(rasqal_literal_type type,
-                                       const char* string)
+rasqal_new_typed_literal(rasqal_literal_type type, const unsigned char* string)
 {
-  rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 
-                                                   1, sizeof(rasqal_literal));
-  if(l) {
-    char *eptr;
-    int v;
-    raptor_uri* dt_uri;
+  rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1,
+                                                   sizeof(rasqal_literal));
+  if(!l)
+    return NULL;
 
-    l->usage=1;
-    l->type=type;
-    
-    eptr=NULL;
-    v=(int)strtol((const char*)string, &eptr, 10);
-    if(*eptr) {
-      rasqal_free_literal(l);
-      return NULL;
-    }
-
-    l->value.integer=v;
-    l->string_len=strlen(string);
-    l->string=(unsigned char*)RASQAL_MALLOC(cstring, l->string_len+1);
-    if(!l->string) {
-      rasqal_free_literal(l);
-      return NULL;
-    }
-    strncpy((char*)l->string, string, l->string_len);
-    dt_uri=rasqal_xsd_datatype_type_to_uri(l->type);
-    if(!dt_uri) {
-      rasqal_free_literal(l);
-      return NULL;
-    }
-    l->datatype=raptor_uri_copy(dt_uri);
-    if(type == RASQAL_LITERAL_INTEGER)
-      l->parent_type=RASQAL_LITERAL_DECIMAL;
-  }
+  l->usage=1;
+  if(rasqal_literal_set_typed_value(l, type, string, NULL, NULL))
+    rasqal_free_literal(l);
+  
   return l;
 }
 
@@ -306,35 +281,17 @@ rasqal_new_pattern_literal(const unsigned char *pattern,
  * Return value: New #rasqal_literal or NULL on failure
  **/
 rasqal_literal*
-rasqal_new_decimal_literal(const char *decimal)
+rasqal_new_decimal_literal(const unsigned char *decimal)
 {
   raptor_uri* dt_uri;
   rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(rasqal_literal));
-  if(l) {
-    l->usage=1;
-    l->type=RASQAL_LITERAL_DECIMAL;
-    l->value.decimal=rasqal_new_xsd_decimal();
-    if(!l->value.decimal) {
-      rasqal_free_literal(l);
-      return NULL;
-    }
-    if(rasqal_xsd_decimal_set_string(l->value.decimal, decimal)) {
-      rasqal_free_literal(l);
-      return NULL;
-    }
-    /* string is owned by l->value.decimal */
-    l->string=(unsigned char*)rasqal_xsd_decimal_as_counted_string(l->value.decimal,
-                                                                   (size_t*)&l->string_len);
-    if(!l->string) {
-      rasqal_free_literal(l);
-      return NULL;
-    }
-    dt_uri=rasqal_xsd_datatype_type_to_uri(l->type);
-    if(!dt_uri) {
-      rasqal_free_literal(l);
-      return NULL;
-    }
-    l->datatype=raptor_uri_copy(dt_uri);
+  if(!l)
+    return NULL;
+  
+  if(rasqal_literal_set_typed_value(l, RASQAL_LITERAL_DECIMAL, decimal,
+                                    NULL, NULL)) {
+    rasqal_free_literal(l);
+    l=NULL;
   }
   return l;
 }
@@ -389,63 +346,64 @@ rasqal_new_numeric_literal(double d, rasqal_literal_type type)
 
 
 /*
- * rasqal_literal_string_to_native:
- * @l: #rasqal_literal to operate on inline
+ * rasqal_literal_set_typed_value:
+ * @l: literal
+ * @type: type
+ * @string: string
  * @error_handler: error handling function
  * @error_data: data for error handle
  *
- * INTERNAL Upgrade a datatyped literal string to an internal typed literal
- *
- * At present this promotes datatyped literals
- * xsd:integer to RASQAL_LITERAL_INTEGER
- * xsd:double to RASQAL_LITERAL_DOUBLE
- * xsd:float to RASQAL_LITERAL_FLOAT
- * xsd:boolean to RASQAL_LITERAL_BOOLEAN
- * xsd:decimal to RASQAL_LITERAL_DECIMAL
- * xsd:dateTime to RASQAL_LITERAL_DATETIME
+ * INTERNAL - Set a literal typed value
  *
  * Return value: non-0 on failure
  **/
-int
-rasqal_literal_string_to_native(rasqal_literal *l,
-                                raptor_simple_message_handler error_handler,
-                                void *error_data)
-{
+static int
+rasqal_literal_set_typed_value(rasqal_literal* l, rasqal_literal_type type,
+                               const unsigned char* string,
+                               raptor_simple_message_handler error_handler,
+                               void *error_data)
+{  
+  char *eptr;
+  raptor_uri* dt_uri;
   int flags=0;
   int i;
   double d;
-  rasqal_literal_type native_type=RASQAL_LITERAL_UNKNOWN;
   unsigned char const *new_string;
 
-  /* RDF literal with no datatype (plain literal) */
-  if(!l->datatype)
-    return 0;
-
-  native_type=rasqal_xsd_datatype_uri_to_type(l->datatype);
-  /* If not a native type return ok but do not change literal */
-  if(native_type == RASQAL_LITERAL_UNKNOWN)
-    return 0;
-  /* xsd:string but nothing need be done */
-  if(native_type == RASQAL_LITERAL_STRING)
-    return 0;
-    
-  if(!rasqal_xsd_datatype_check(native_type, l->string, flags)) {
+  if(!rasqal_xsd_datatype_check(type, string, flags)) {
     if(error_handler)
       error_handler(error_data, "Illegal type %s string '%s'",
-                    rasqal_xsd_datatype_label(native_type), l->string);
+                    rasqal_xsd_datatype_label(type), l->string);
     return 1;
   }
       
-
   if(l->language) {
     RASQAL_FREE(cstring, (void*)l->language);
     l->language=NULL;
   }
-  l->type=native_type;
+  l->type=type;
 
-  switch(native_type) {
+  l->string_len=strlen((const char*)string);
+  l->string=(unsigned char*)RASQAL_MALLOC(cstring, l->string_len+1);
+  if(!l->string)
+    return 1;
+
+  strncpy((char*)l->string, (const char*)string, l->string_len);
+
+  dt_uri=rasqal_xsd_datatype_type_to_uri(l->type);
+  if(!dt_uri)
+    return 1;
+  l->datatype=raptor_uri_copy(dt_uri);
+  if(type == RASQAL_LITERAL_INTEGER)
+    l->parent_type=RASQAL_LITERAL_DECIMAL;
+
+  switch(type) {
     case RASQAL_LITERAL_INTEGER:
-      i=atoi((const char*)l->string);
+      eptr=NULL;
+      i=(int)strtol((const char*)l->string, &eptr, 10);
+      if(*eptr)
+        return 1;
+
       l->value.integer=i;
       l->parent_type=RASQAL_LITERAL_DECIMAL;
       break;
@@ -455,7 +413,7 @@ rasqal_literal_string_to_native(rasqal_literal *l,
     case RASQAL_LITERAL_FLOAT:
       d=0.0;
       (void)sscanf((char*)l->string, "%lf", &d);
-      if(native_type == RASQAL_LITERAL_DOUBLE &&
+      if(type == RASQAL_LITERAL_DOUBLE &&
          !(strchr((char*)l->string, 'e') || strchr((char*)l->string, 'E'))) {
         /* Fixup - there is no 'e' or 'E' so make this canonical */
         RASQAL_FREE(cstring, (void*)l->string);
@@ -523,14 +481,62 @@ rasqal_literal_string_to_native(rasqal_literal *l,
   case RASQAL_LITERAL_PATTERN:
   case RASQAL_LITERAL_QNAME:
   case RASQAL_LITERAL_VARIABLE:
-    RASQAL_FATAL2("Unexpected native type %d\n", native_type);
+    RASQAL_FATAL2("Unexpected native type %d\n", type);
     break;
     
   default:
-    RASQAL_FATAL2("Unknown native type %d\n", native_type);
+    RASQAL_FATAL2("Unknown native type %d\n", type);
   }
 
   return 0;
+}
+
+
+
+/*
+ * rasqal_literal_string_to_native:
+ * @l: #rasqal_literal to operate on inline
+ * @error_handler: error handling function
+ * @error_data: data for error handle
+ *
+ * INTERNAL Upgrade a datatyped literal string to an internal typed literal
+ *
+ * At present this promotes datatyped literals
+ * xsd:integer to RASQAL_LITERAL_INTEGER
+ * xsd:double to RASQAL_LITERAL_DOUBLE
+ * xsd:float to RASQAL_LITERAL_FLOAT
+ * xsd:boolean to RASQAL_LITERAL_BOOLEAN
+ * xsd:decimal to RASQAL_LITERAL_DECIMAL
+ * xsd:dateTime to RASQAL_LITERAL_DATETIME
+ *
+ * Return value: non-0 on failure
+ **/
+int
+rasqal_literal_string_to_native(rasqal_literal *l,
+                                raptor_simple_message_handler error_handler,
+                                void *error_data)
+{
+  rasqal_literal_type native_type=RASQAL_LITERAL_UNKNOWN;
+  int rc=0;
+  
+  /* RDF literal with no datatype (plain literal) */
+  if(!l->datatype)
+    return 0;
+
+  native_type=rasqal_xsd_datatype_uri_to_type(l->datatype);
+  /* If not a native type return ok but do not change literal */
+  if(native_type == RASQAL_LITERAL_UNKNOWN)
+    return 0;
+  /* xsd:string but nothing need be done */
+  if(native_type == RASQAL_LITERAL_STRING)
+    return 0;
+
+  rc=rasqal_literal_set_typed_value(l, native_type, l->string,
+                                    error_handler, error_data);
+  if(rc)
+    rasqal_free_literal(l);
+  
+  return rc;
 }
 
 
