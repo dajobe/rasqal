@@ -34,6 +34,7 @@ to run the queries.
     <xi:include href="xml/section-triple.xml"/>
     <xi:include href="xml/section-triples_source.xml"/>
     <xi:include href="xml/section-variable.xml"/>
+    <xi:include href="xml/section-xsd.xml"/>
 
     <!-- <xi:include href="xml/section-unused.xml"/> -->
   </part>
