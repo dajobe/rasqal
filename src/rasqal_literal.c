@@ -348,7 +348,7 @@ rasqal_new_numeric_literal(double d, rasqal_literal_type type)
  * rasqal_literal_set_typed_value:
  * @l: literal
  * @type: type
- * @string: string
+ * @string: string or NULL to use existing literal string
  * @error_handler: error handling function
  * @error_data: data for error handle
  *
@@ -369,6 +369,9 @@ rasqal_literal_set_typed_value(rasqal_literal* l, rasqal_literal_type type,
   double d;
   unsigned char const *new_string;
 
+  if(!string)
+    string=l->string;
+  
   if(!rasqal_xsd_datatype_check(type, string, flags)) {
     if(error_handler)
       error_handler(error_data, "Illegal type %s string '%s'",
@@ -382,7 +385,7 @@ rasqal_literal_set_typed_value(rasqal_literal* l, rasqal_literal_type type,
   }
   l->type=type;
 
-  if(l->string)
+  if(l->string && string != l->string)
     RASQAL_FREE(cstring, (void*)l->string);
   l->string_len=strlen((const char*)string);
   l->string=(unsigned char*)RASQAL_MALLOC(cstring, l->string_len+1);
@@ -532,7 +535,7 @@ rasqal_literal_string_to_native(rasqal_literal *l,
   if(native_type == RASQAL_LITERAL_STRING)
     return 0;
 
-  rc=rasqal_literal_set_typed_value(l, native_type, l->string,
+  rc=rasqal_literal_set_typed_value(l, native_type, NULL /* existing string */,
                                     error_handler, error_data);
   if(rc)
     rasqal_free_literal(l);
