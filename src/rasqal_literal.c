@@ -53,6 +53,9 @@
 #include "rasqal.h"
 #include "rasqal_internal.h"
 
+/* prototypes */
+static rasqal_literal_type rasqal_literal_promote_numerics(rasqal_literal* l1, rasqal_literal* l2, int flags);
+
 
 /**
  * rasqal_new_integer_literal:
@@ -1154,7 +1157,7 @@ rasqal_literal_as_variable(rasqal_literal* l)
 
 
 /**
- * rasqal_literal_promote_calculate:
+ * rasqal_literal_promote_numerics:
  * @l1: first literal
  * @l2: second literal
  * @flags: promotion flags
@@ -1172,8 +1175,8 @@ rasqal_literal_as_variable(rasqal_literal* l)
  *
  * Return value: promote type or RASQAL_LITERAL_UNKNOWN
  */
-rasqal_literal_type
-rasqal_literal_promote_calculate(rasqal_literal* l1, rasqal_literal* l2,
+static rasqal_literal_type
+rasqal_literal_promote_numerics(rasqal_literal* l1, rasqal_literal* l2,
                                  int flags)
 {
   rasqal_literal_type type1=l1->type;
@@ -1508,7 +1511,7 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
                 rasqal_literal_type_labels[type0],
                 rasqal_literal_type_labels[type1]);
 
-    type=rasqal_literal_promote_calculate(lits[0], lits[1], flags);
+    type=rasqal_literal_promote_numerics(lits[0], lits[1], flags);
     if(type == RASQAL_LITERAL_UNKNOWN) {
       int type_diff=type0 - type1;
       if(type_diff != 0) {
@@ -1643,7 +1646,7 @@ rasqal_literal_equals_flags(rasqal_literal* l1, rasqal_literal* l2,
 
   if(flags & RASQAL_COMPARE_XQUERY) { 
     /* SPARQL / XSD promotion rules */
-    type=rasqal_literal_promote_calculate(l1, l2, flags);
+    type=rasqal_literal_promote_numerics(l1, l2, flags);
     RASQAL_DEBUG2("xquery promoted to type %s\n", 
                   rasqal_literal_type_labels[type]);
     if(type == RASQAL_LITERAL_UNKNOWN ||
@@ -2223,7 +2226,7 @@ rasqal_literal_add(rasqal_literal* l1, rasqal_literal* l2, int *error)
   int flags=0;
   rasqal_literal* result=NULL;
   
-  type=rasqal_literal_promote_calculate(l1, l2, flags);
+  type=rasqal_literal_promote_numerics(l1, l2, flags);
   if(type == RASQAL_LITERAL_UNKNOWN || !rasqal_xsd_datatype_is_numeric(type)) {
     *error=1;
     return NULL;
@@ -2252,7 +2255,7 @@ rasqal_literal_subtract(rasqal_literal* l1, rasqal_literal* l2, int *error)
   int flags=0;
   rasqal_literal* result=NULL;
   
-  type=rasqal_literal_promote_calculate(l1, l2, flags);
+  type=rasqal_literal_promote_numerics(l1, l2, flags);
   if(type == RASQAL_LITERAL_UNKNOWN || !rasqal_xsd_datatype_is_numeric(type)) {
     *error=1;
     return NULL;
@@ -2281,7 +2284,7 @@ rasqal_literal_multiply(rasqal_literal* l1, rasqal_literal* l2, int *error)
   int flags=0;
   rasqal_literal* result=NULL;
   
-  type=rasqal_literal_promote_calculate(l1, l2, flags);
+  type=rasqal_literal_promote_numerics(l1, l2, flags);
   if(type == RASQAL_LITERAL_UNKNOWN || !rasqal_xsd_datatype_is_numeric(type)) {
     *error=1;
     return NULL;
@@ -2310,7 +2313,7 @@ rasqal_literal_divide(rasqal_literal* l1, rasqal_literal* l2, int *error)
   int flags=0;
   rasqal_literal* result=NULL;
   
-  type=rasqal_literal_promote_calculate(l1, l2, flags);
+  type=rasqal_literal_promote_numerics(l1, l2, flags);
   if(type == RASQAL_LITERAL_UNKNOWN || !rasqal_xsd_datatype_is_numeric(type)) {
     *error=1;
     return NULL;

@@ -635,7 +635,6 @@ typedef void (rasqal_kv_free_fn)(const void *key, const void *value);
 rasqal_literal* rasqal_literal_cast(rasqal_literal* l, raptor_uri* datatype, int flags,  int* error_p);
 rasqal_literal* rasqal_new_numeric_literal(double d, rasqal_literal_type type);
 int rasqal_literal_is_numeric(rasqal_literal* literal);
-rasqal_literal_type rasqal_literal_promote_calculate(rasqal_literal* l1, rasqal_literal* l2, int flags);
 rasqal_literal* rasqal_literal_add(rasqal_literal* l1, rasqal_literal* l2, int *error);
 rasqal_literal* rasqal_literal_subtract(rasqal_literal* l1, rasqal_literal* l2, int *error);
 rasqal_literal* rasqal_literal_multiply(rasqal_literal* l1, rasqal_literal* l2, int *error);
