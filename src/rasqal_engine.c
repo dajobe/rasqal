@@ -2972,13 +2972,14 @@ rasqal_query_result_literal_sequence_equals(rasqal_query* query,
 {
   int result=1; /* equal */
   int i;
+  int error=0;
 
   for(i=0; i < size; i++) {
     rasqal_literal* literal_a=values_a[i];
     rasqal_literal* literal_b=values_b[i];
     
     result=rasqal_literal_equals_flags(literal_a, literal_b,
-                                       query->compare_flags);
+                                       query->compare_flags, &error);
 #ifdef RASQAL_DEBUG
     RASQAL_DEBUG1("Comparing ");
     rasqal_literal_print(literal_a, stderr);
@@ -2987,6 +2988,9 @@ rasqal_query_result_literal_sequence_equals(rasqal_query* query,
     fprintf(stderr, " gave %s\n", (result ? "equality" : "not equal"));
 #endif
 
+    if(error)
+      result=0;
+    
     /* if different, end */
     if(!result)
       break;
