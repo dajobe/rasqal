@@ -948,6 +948,8 @@ int rasqal_expression_visit(rasqal_expression* e, rasqal_expression_visit_fn fn,
 /* Literal class */
 RASQAL_API
 rasqal_literal* rasqal_new_integer_literal(rasqal_literal_type type, int integer);
+RASQAL_API
+rasqal_literal* rasqal_new_integer_literal_from_string(rasqal_literal_type type, const char* string);
 RASQAL_API RASQAL_DEPRECATED
 rasqal_literal* rasqal_new_floating_literal(double f);
 RASQAL_API

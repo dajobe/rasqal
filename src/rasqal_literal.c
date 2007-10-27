@@ -99,6 +99,59 @@ rasqal_new_integer_literal(rasqal_literal_type type, int integer)
 
 
 /**
+ * rasqal_new_integer_literal_from_string:
+ * @type: Type of literal such as RASQAL_LITERAL_INTEGER or RASQAL_LITERAL_BOOLEAN
+ * @string: lexical form
+ *
+ * Constructor - Create a new Rasqal integer literal from a string
+ * 
+ * The integer decimal number is turned into a rasqal integer literal
+ * and given a datatype of xsd:integer
+ * 
+ * Return value: New #rasqal_literal or NULL on failure
+ **/
+rasqal_literal*
+rasqal_new_integer_literal_from_string(rasqal_literal_type type,
+                                       const char* string)
+{
+  rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 
+                                                   1, sizeof(rasqal_literal));
+  if(l) {
+    char *eptr;
+    int v;
+    raptor_uri* dt_uri;
+    
+    eptr=NULL;
+    v=(int)strtol((const char*)string, &eptr, 10);
+    if(*eptr) {
+      rasqal_free_literal(l);
+      return NULL;
+    }
+
+    l->usage=1;
+    l->type=type;
+    l->value.integer=v;
+    l->string_len=strlen(string);
+    l->string=(unsigned char*)RASQAL_MALLOC(cstring, l->string_len+1);
+    if(!l->string) {
+      rasqal_free_literal(l);
+      return NULL;
+    }
+    strncpy((char*)l->string, string, l->string_len);
+    dt_uri=rasqal_xsd_datatype_type_to_uri(l->type);
+    if(!dt_uri) {
+      rasqal_free_literal(l);
+      return NULL;
+    }
+    l->datatype=raptor_uri_copy(dt_uri);
+    if(type == RASQAL_LITERAL_INTEGER)
+      l->parent_type=RASQAL_LITERAL_DECIMAL;
+  }
+  return l;
+}
+
+
+/**
  * rasqal_new_double_literal:
  * @d: double literal
  *
