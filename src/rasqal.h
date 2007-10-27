@@ -949,7 +949,7 @@ int rasqal_expression_visit(rasqal_expression* e, rasqal_expression_visit_fn fn,
 RASQAL_API
 rasqal_literal* rasqal_new_integer_literal(rasqal_literal_type type, int integer);
 RASQAL_API
-rasqal_literal* rasqal_new_integer_literal_from_string(rasqal_literal_type type, const char* string);
+rasqal_literal* rasqal_new_typed_literal(rasqal_literal_type type, const unsigned char* string);
 RASQAL_API RASQAL_DEPRECATED
 rasqal_literal* rasqal_new_floating_literal(double f);
 RASQAL_API
@@ -969,7 +969,7 @@ rasqal_literal* rasqal_new_boolean_literal(int value);
 RASQAL_API
 rasqal_literal* rasqal_new_variable_literal(rasqal_variable *variable);
 RASQAL_API
-rasqal_literal* rasqal_new_decimal_literal(const char *decimal);
+rasqal_literal* rasqal_new_decimal_literal(const unsigned char *decimal);
 
 RASQAL_API
 rasqal_literal* rasqal_new_literal_from_literal(rasqal_literal* l);
