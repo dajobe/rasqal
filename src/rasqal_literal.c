@@ -1666,7 +1666,7 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
 int
 rasqal_literal_equals(rasqal_literal* l1, rasqal_literal* l2)
 {
-  return rasqal_literal_equals_flags(l1, l2, 0);
+  return rasqal_literal_equals_flags(l1, l2, 0, NULL);
 }
 
 
@@ -1675,6 +1675,7 @@ rasqal_literal_equals(rasqal_literal* l1, rasqal_literal* l2)
  * @l1: #rasqal_literal literal
  * @l2: #rasqal_literal data literal
  * @flags: comparison flags
+ * @error: type error
  *
  * Compare two literals with optional type promotion.
  * 
@@ -1685,7 +1686,7 @@ rasqal_literal_equals(rasqal_literal* l1, rasqal_literal* l2)
  **/
 int
 rasqal_literal_equals_flags(rasqal_literal* l1, rasqal_literal* l2,
-                            int flags)
+                            int flags, int* error)
 {
   rasqal_literal_type type;
   rasqal_literal* l1_p=NULL;
