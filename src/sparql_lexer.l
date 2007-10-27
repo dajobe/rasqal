@@ -371,27 +371,10 @@ EXPONENT [eE][+-]?[0-9]+
 
 
 [-+]?{INTEGER}   { c=*yytext;
-                  sparql_parser_lval->literal=rasqal_new_integer_literal(RASQAL_LITERAL_INTEGER, atoi(yytext));
+                  sparql_parser_lval->literal=rasqal_new_integer_literal_from_string(RASQAL_LITERAL_INTEGER, yytext);
                   if(!sparql_parser_lval->literal)
                     SPARQL_LEXER_OOM();
  		  return (c=='+' ? INTEGER_POSITIVE_LITERAL : (c == '-' ? INTEGER_NEGATIVE_LITERAL : INTEGER_LITERAL));
-}
-
-0[xX][0-9a-fA-F]+   { int i;
-                      int n;
-                      if(yytext[yyleng+1] == 'x') 
-                        n=sscanf(yytext+2, "%x", &i);
-                      else
-                        n=sscanf(yytext+2, "%X", &i);
-                      if(n != 1) {
-                        sparql_syntax_error(rq, "SPARQL syntax error - Illegal hex constant %c%c%c",
-                                          yytext[0], yytext[1], yytext[2]);
-                        yyterminate();
-                      }
-                      sparql_parser_lval->literal=rasqal_new_integer_literal(RASQAL_LITERAL_INTEGER, i);
-                      if(!sparql_parser_lval->literal)
-                        SPARQL_LEXER_OOM();
-                      return INTEGER_LITERAL; 
 }
 
 [-+]?{DECIMAL}  { 
