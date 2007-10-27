@@ -371,7 +371,7 @@ EXPONENT [eE][+-]?[0-9]+
 
 
 [-+]?{INTEGER}   { c=*yytext;
-                  sparql_parser_lval->literal=rasqal_new_integer_literal_from_string(RASQAL_LITERAL_INTEGER, yytext);
+                  sparql_parser_lval->literal=rasqal_new_typed_literal(RASQAL_LITERAL_INTEGER, (const unsigned char*)yytext);
                   if(!sparql_parser_lval->literal)
                     SPARQL_LEXER_OOM();
  		  return (c=='+' ? INTEGER_POSITIVE_LITERAL : (c == '-' ? INTEGER_NEGATIVE_LITERAL : INTEGER_LITERAL));
@@ -387,7 +387,7 @@ EXPONENT [eE][+-]?[0-9]+
                           sparql_syntax_error(rq, "SPARQL syntax error - Illegal decimal constant %s", yytext);
                           yyterminate();
                         }
-                        sparql_parser_lval->literal=rasqal_new_decimal_literal((const char*)yytext);
+                        sparql_parser_lval->literal=rasqal_new_decimal_literal((const unsigned char*)yytext);
                         if(!sparql_parser_lval->literal)
                           SPARQL_LEXER_OOM();
                         return (c=='+' ? DECIMAL_POSITIVE_LITERAL : (c == '-' ? DECIMAL_NEGATIVE_LITERAL : DECIMAL_LITERAL));
