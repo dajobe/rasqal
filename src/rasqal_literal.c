@@ -283,7 +283,6 @@ rasqal_new_pattern_literal(const unsigned char *pattern,
 rasqal_literal*
 rasqal_new_decimal_literal(const unsigned char *decimal)
 {
-  raptor_uri* dt_uri;
   rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(rasqal_literal));
   if(!l)
     return NULL;
@@ -326,7 +325,7 @@ rasqal_new_numeric_literal(double d, rasqal_literal_type type)
 
     case RASQAL_LITERAL_DECIMAL:
       sprintf(buffer, "%g", d);
-      return rasqal_new_decimal_literal(buffer);
+      return rasqal_new_decimal_literal((unsigned char*)buffer);
       break;
 
     case RASQAL_LITERAL_BOOLEAN:
@@ -1328,7 +1327,7 @@ rasqal_new_literal_from_promotion(rasqal_literal* lit,
     
   switch(type) {
     case RASQAL_LITERAL_DECIMAL:
-      new_lit=rasqal_new_decimal_literal((const char*)rasqal_literal_as_string(lit));
+      new_lit=rasqal_new_decimal_literal(rasqal_literal_as_string(lit));
       break;
       
     case RASQAL_LITERAL_DOUBLE:
