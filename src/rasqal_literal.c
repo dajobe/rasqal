@@ -292,14 +292,14 @@ rasqal_new_decimal_literal(const unsigned char *string,
     return NULL;
   
   l->usage=1;
+  l->type=RASQAL_LITERAL_DECIMAL;
   if(string) {
-    if(rasqal_literal_set_typed_value(l, RASQAL_LITERAL_DECIMAL, string,
-                                      NULL, NULL)) {
+    if(rasqal_literal_set_typed_value(l, type, string, NULL, NULL)) {
       rasqal_free_literal(l);
       l=NULL;
     }
   } else if(decimal) {
-    l->datatype=rasqal_xsd_datatype_type_to_uri(RASQAL_LITERAL_DECIMAL);
+    l->datatype=rasqal_xsd_datatype_type_to_uri(l->type);
     l->value.decimal=decimal;
     /* string is owned by l->value.decimal */
     l->string=(unsigned char*)rasqal_xsd_decimal_as_counted_string(l->value.decimal,
