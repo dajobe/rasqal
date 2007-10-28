@@ -2652,10 +2652,9 @@ rasqal_literal_negate(rasqal_literal* l, int *error_p)
   double d;
   rasqal_xsd_decimal* dec;
   int error=0;
-  rasqal_literal_type type;
   rasqal_literal* result=NULL;
   
-  switch(type) {
+  switch(l->type) {
     case RASQAL_LITERAL_INTEGER:
       i=rasqal_literal_as_integer(l, &error);
       if(error)
@@ -2670,7 +2669,7 @@ rasqal_literal_negate(rasqal_literal* l, int *error_p)
       if(!d)
         error=1;
       d= -d;
-      result=rasqal_new_numeric_literal(d, type);
+      result=rasqal_new_numeric_literal(d, l->type);
       break;
       
     case RASQAL_LITERAL_DECIMAL:
