@@ -274,24 +274,46 @@ rasqal_new_pattern_literal(const unsigned char *pattern,
 
 /**
  * rasqal_new_decimal_literal:
- * @decimal: decimal literal
+ * @string: decimal literal string
+ * @decimal: rasqal XSD Decimal
  *
  * Constructor - Create a new Rasqal decimal literal.
  * 
  * Return value: New #rasqal_literal or NULL on failure
  **/
 rasqal_literal*
-rasqal_new_decimal_literal(const unsigned char *decimal)
+rasqal_new_decimal_literal(const unsigned char *string,
+                           rasqal_xsd_decimal* decimal)
 {
-  rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(rasqal_literal));
+  rasqal_literal* l;
+
+  l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(rasqal_literal));
   if(!l)
     return NULL;
   
-  if(rasqal_literal_set_typed_value(l, RASQAL_LITERAL_DECIMAL, decimal,
-                                    NULL, NULL)) {
+  l->usage=1;
+  if(string) {
+    if(rasqal_literal_set_typed_value(l, RASQAL_LITERAL_DECIMAL, string,
+                                      NULL, NULL)) {
+      rasqal_free_literal(l);
+      l=NULL;
+    }
+  } else if(decimal) {
+    l->datatype=rasqal_xsd_datatype_type_to_uri(RASQAL_LITERAL_DECIMAL);
+    l->value.decimal=decimal;
+    /* string is owned by l->value.decimal */
+    l->string=(unsigned char*)rasqal_xsd_decimal_as_counted_string(l->value.decimal,
+                                                                   (size_t*)&l->string_len);
+    if(!l->string) {
+      rasqal_free_literal(l);
+      l=NULL;
+    }
+  } else {
+    /* no string or decimal was given */
     rasqal_free_literal(l);
     l=NULL;
   }
+  
   return l;
 }
 
@@ -325,7 +347,7 @@ rasqal_new_numeric_literal(double d, rasqal_literal_type type)
 
     case RASQAL_LITERAL_DECIMAL:
       sprintf(buffer, "%g", d);
-      return rasqal_new_decimal_literal((unsigned char*)buffer);
+      return rasqal_new_decimal_literal((unsigned char*)buffer, NULL);
       break;
 
     case RASQAL_LITERAL_BOOLEAN:
@@ -1336,7 +1358,7 @@ rasqal_new_literal_from_promotion(rasqal_literal* lit,
     
   switch(type) {
     case RASQAL_LITERAL_DECIMAL:
-      new_lit=rasqal_new_decimal_literal(rasqal_literal_as_string(lit));
+      new_lit=rasqal_new_decimal_literal(rasqal_literal_as_string(lit), NULL);
       break;
       
     case RASQAL_LITERAL_DOUBLE:
