@@ -876,12 +876,14 @@ void rasqal_data_graph_print(rasqal_data_graph* dg, FILE* fh);
  * rasqal_compare_flags:
  * @RASQAL_COMPARE_NOCASE: String comparisons are case independent.
  * @RASQAL_COMPARE_XQUERY: XQuery comparsion rules apply.
+ * @RASQAL_COMPARE_RDF:    RDF Term comparsion rules apply.
  *
  * Flags for rasqal_expression_evaluate() or rasqal_literal_compare().
  */
 typedef enum {
   RASQAL_COMPARE_NOCASE = 1,
-  RASQAL_COMPARE_XQUERY = 2
+  RASQAL_COMPARE_XQUERY = 2,
+  RASQAL_COMPARE_RDF    = 4
 } rasqal_compare_flags;
 
 
