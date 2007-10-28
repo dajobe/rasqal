@@ -705,7 +705,7 @@ rasqal_xsd_decimal_negate(rasqal_xsd_decimal* result, rasqal_xsd_decimal* a)
   rc=mpfr_neg(result->raw, a->raw, result->rounding);
 #endif
 #ifdef RASQAL_DECIMAL_GMP
-  mpf_neg(result->raw, a->raw, b->raw);
+  mpf_neg(result->raw, a->raw);
 #endif
 
   return rc;
