@@ -1298,7 +1298,6 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e,
     raptor_uri *dt_uri;
     const unsigned char *s;
     unsigned char *new_s;
-    double d;
     rasqal_variable *v;
   } vars;
 
