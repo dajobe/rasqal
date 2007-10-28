@@ -387,7 +387,7 @@ EXPONENT [eE][+-]?[0-9]+
                           sparql_syntax_error(rq, "SPARQL syntax error - Illegal decimal constant %s", yytext);
                           yyterminate();
                         }
-                        sparql_parser_lval->literal=rasqal_new_decimal_literal((const unsigned char*)yytext);
+                        sparql_parser_lval->literal=rasqal_new_decimal_literal((const unsigned char*)yytext, NULL);
                         if(!sparql_parser_lval->literal)
                           SPARQL_LEXER_OOM();
                         return (c=='+' ? DECIMAL_POSITIVE_LITERAL : (c == '-' ? DECIMAL_NEGATIVE_LITERAL : DECIMAL_LITERAL));
