@@ -496,6 +496,7 @@ rasqal_literal_set_typed_value(rasqal_literal* l, rasqal_literal_type type,
       RASQAL_DEBUG3("converted xsd:dateTime \"%s\" to canonical form \"%s\"\n", l->string, new_string);
       RASQAL_FREE(cstring, l->string);
       l->string=new_string;
+      l->string_len=strlen((const char*)l->string);
       break; /* success */
     }
     RASQAL_DEBUG2("rasqal_xsd_datetime_string_to_canonical(\"%s\") failed\n", l->string);
@@ -1965,7 +1966,7 @@ rasqal_literal_as_node(rasqal_literal* l)
           rasqal_free_literal(new_l);
           return NULL; 
         }
-        strcpy((char*)new_l->string, (const char*)l->string);
+        strncpy((char*)new_l->string, (const char*)l->string, new_l->string_len);
         dt_uri=rasqal_xsd_datatype_type_to_uri(l->type);
         if(!dt_uri) {
           rasqal_free_literal(new_l);
