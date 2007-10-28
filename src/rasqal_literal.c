@@ -1328,12 +1328,12 @@ rasqal_new_literal_from_promotion(rasqal_literal* lit,
   const unsigned char* s;
   size_t len;
   
+  if(lit->type == type)
+    return rasqal_new_literal_from_literal(lit);
+
   RASQAL_DEBUG3("promoting literal type %s to type %s\n", 
                 rasqal_literal_type_labels[lit->type],
                 rasqal_literal_type_labels[type]);
-
-  if(lit->type == type)
-    return rasqal_new_literal_from_literal(lit);
 
   /* May not promote to non-numerics */
   if(!rasqal_xsd_datatype_is_numeric(type)) {
