@@ -683,6 +683,36 @@ rasqal_xsd_decimal_divide(rasqal_xsd_decimal* result,
 
 
 /**
+ * rasqal_xsd_decimal_negate:
+ * @result: result variable
+ * @a: argment decimal
+ * 
+ * Negate an XSD Decimal
+ *
+ * Return value: non-0 on failure
+ **/
+int
+rasqal_xsd_decimal_negate(rasqal_xsd_decimal* result, rasqal_xsd_decimal* a)
+{
+  int rc=0;
+  
+  rasqal_xsd_decimal_clear_string(result);
+  
+#if defined(RASQAL_DECIMAL_C99) || defined(RASQAL_DECIMAL_NONE)
+  result->raw = -a->raw;
+#endif
+#ifdef RASQAL_DECIMAL_MPFR
+  rc=mpfr_neg(result->raw, a->raw, result->rounding);
+#endif
+#ifdef RASQAL_DECIMAL_GMP
+  mpf_neg(result->raw, a->raw, b->raw);
+#endif
+
+  return rc;
+}
+
+
+/**
  * rasqal_xsd_decimal_compare:
  * @a: first XSD decimal
  * @b: second XSD decimal
@@ -761,6 +791,7 @@ main(int argc, char *argv[]) {
   const char* expected_a_plus_b="1.23456790246913568e17";
   const char* expected_a_plus_b_minus_b="1.23456789e9";
   const char* expected_a_plus_b_minus_b_minus_a="0.0e0";
+  const char* expected_negative_b="-1.23456789012345678e17";
   int expected_a_compare_b= -1;
   int expected_a_equals_b= 0;
 
@@ -851,6 +882,17 @@ main(int argc, char *argv[]) {
             result_i, expected_a_equals_b);
     FAIL;
   }
+
+  /* result2 = -b */
+  rasqal_xsd_decimal_negate(result, &b);
+
+  result_s=rasqal_xsd_decimal_as_string(result);
+  if(strcmp(result_s, expected_negative_b)) {
+    fprintf(stderr, "FAILED: -b=%s expected %s\n", result_s, 
+            expected_negative_b);
+    FAIL;
+  }
+
 
   tidy:
   rasqal_xsd_decimal_clear(&a);
