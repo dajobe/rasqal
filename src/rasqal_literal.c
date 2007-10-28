@@ -55,6 +55,7 @@
 
 /* prototypes */
 static rasqal_literal_type rasqal_literal_promote_numerics(rasqal_literal* l1, rasqal_literal* l2, int flags);
+static rasqal_literal_type rasqal_literal_get_rdf_term_type(rasqal_literal* l);
 static int rasqal_literal_set_typed_value(rasqal_literal* l, rasqal_literal_type type, const unsigned char* string, raptor_simple_message_handler error_handler, void *error_data);
 
 
@@ -1307,6 +1308,33 @@ rasqal_literal_promote_numerics(rasqal_literal* l1, rasqal_literal* l2,
 }
 
 
+/**
+ * rasqal_literal_get_rdf_term_type:
+ * @l: literal
+ *
+ * INTERNAL - Get the RDF term type of a literal
+ *
+ * Return value: type or RASQAL_LITERAL_UNKNOWN if cannot be an RDF term
+ */
+static rasqal_literal_type
+rasqal_literal_get_rdf_term_type(rasqal_literal* l)
+{
+  rasqal_literal_type type=l->type;
+
+  /* squash literal datatypes into one type: RDF Literal */
+  if(type >= RASQAL_LITERAL_FIRST_XSD &&
+     type <= RASQAL_LITERAL_LAST_XSD)
+    type = RASQAL_LITERAL_STRING;
+  
+  if(type != RASQAL_LITERAL_URI &&
+     type != RASQAL_LITERAL_STRING &&
+     type != RASQAL_LITERAL_BLANK)
+    type=RASQAL_LITERAL_UNKNOWN;
+
+  return type;
+}
+
+
 static rasqal_literal*
 rasqal_new_literal_from_promotion(rasqal_literal* lit,
                                   rasqal_literal_type type)
@@ -1560,7 +1588,8 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
   int i;
   int result=0;
   double d=0;
-
+  int promotion=0;
+  
   if(error)
     *error=0;
 
@@ -1584,8 +1613,22 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
                 rasqal_literal_type_labels[lits[0]->type],
                 rasqal_literal_type_labels[lits[1]->type]);
   
-  /* work out type to aim for */
-  if(flags & RASQAL_COMPARE_XQUERY) { 
+  if(flags & RASQAL_COMPARE_RDF) {
+    /* no promotion but compare as RDF terms; like rasqal_literal_as_node() */
+    rasqal_literal_type type0=rasqal_literal_get_rdf_term_type(lits[0]);
+    rasqal_literal_type type1=rasqal_literal_get_rdf_term_type(lits[1]);
+    int type_diff;
+    
+    if(type0 == RASQAL_LITERAL_UNKNOWN || type1 == RASQAL_LITERAL_UNKNOWN)
+      return 1;
+    type_diff=type0 - type1;
+    if(type_diff != 0) {
+      RASQAL_DEBUG2("RDF term literal returning type difference %d\n",
+                    type_diff);
+      return type_diff;
+    }
+    type=type1;
+  } else if(flags & RASQAL_COMPARE_XQUERY) { 
     /* SPARQL / XQuery promotion rules */
     int type0=(int)lits[0]->type;
     int type1=(int)lits[1]->type;
@@ -1606,20 +1649,29 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
         *error=1;
       return 0;
     }
+    promotion=1;
   } else {
     /* RDQL promotion rules */
     type=rasqal_literal_rdql_promote_calculate(lits[0], lits[1]);
+    promotion=1;
   }
-  RASQAL_DEBUG2("promoting to type %s\n", rasqal_literal_type_labels[type]);
 
+#ifdef RASQAL_DEBUG
+  if(promotion)
+    RASQAL_DEBUG2("promoting to type %s\n", rasqal_literal_type_labels[type]);
+#endif
 
   /* do promotions */
   for(i=0; i<2; i++) {
-    new_lits[i]=rasqal_new_literal_from_promotion(lits[i], type);
-    if(!new_lits[i]) {
-      if(error)
-        *error=1;
-      goto done;
+    if(promotion) {
+      new_lits[i]=rasqal_new_literal_from_promotion(lits[i], type);
+      if(!new_lits[i]) {
+        if(error)
+          *error=1;
+        goto done;
+      }
+    } else {
+      new_lits[i]=lits[i];
     }
   }
 
@@ -1673,9 +1725,11 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
   }
 
   done:
-  for(i=0; i<2; i++) {
-    if(new_lits[i])
-      rasqal_free_literal(new_lits[i]);
+  if(promotion) {
+    for(i=0; i<2; i++) {
+      if(new_lits[i])
+        rasqal_free_literal(new_lits[i]);
+    }
   }
   
   return result;
@@ -1712,6 +1766,7 @@ rasqal_literal_equals(rasqal_literal* l1, rasqal_literal* l2)
  * 
  * flag bits affects equality:
  *   RASQAL_COMPARE_XQUERY: use XQuery comparison and type promotion rules
+ *   RASQAL_COMPARE_RDF: use RDF term equality
  *
  * Return value: non-0 if equal
  **/
@@ -1723,28 +1778,38 @@ rasqal_literal_equals_flags(rasqal_literal* l1, rasqal_literal* l2,
   rasqal_literal* l1_p=NULL;
   rasqal_literal* l2_p=NULL;
   int result=0;
-
+  int promotion=0;
+  
   /* null literals */
   if(!l1 || !l2) {
     /* if either is not null, the comparison fails */
     return (l1 || l2);
   }
 
-  if(flags & RASQAL_COMPARE_XQUERY) { 
+  if(flags & RASQAL_COMPARE_RDF) {
+    /* no promotion but compare as RDF terms; like rasqal_literal_as_node() */
+    rasqal_literal_type type1=rasqal_literal_get_rdf_term_type(l1);
+    rasqal_literal_type type2=rasqal_literal_get_rdf_term_type(l2);
+
+    if(type1 == RASQAL_LITERAL_UNKNOWN || type2 == RASQAL_LITERAL_UNKNOWN ||
+       type1 != type2)
+      return 0;
+    type=type1;
+  } else if(flags & RASQAL_COMPARE_XQUERY) { 
     /* SPARQL / XSD promotion rules */
+    promotion=1;
     type=rasqal_literal_promote_numerics(l1, l2, flags);
-    RASQAL_DEBUG2("xquery promoted to type %s\n", 
+    RASQAL_DEBUG4("xquery promoted literals types (%s, %s) to type %s\n", 
+                  rasqal_literal_type_labels[l1->type],
+                  rasqal_literal_type_labels[l2->type],
                   rasqal_literal_type_labels[type]);
     if(type == RASQAL_LITERAL_UNKNOWN ||
        !rasqal_xsd_datatype_is_numeric(type)) {
       /* FIXME - do other XSD type promotions */
       type=RASQAL_LITERAL_STRING;
     }
-    l1_p=rasqal_new_literal_from_promotion(l1, type);
-    if(l1_p)
-      l2_p=rasqal_new_literal_from_promotion(l2, type);
   } else {
-    /* RDQL promotion rules */
+    /* RDQL rules: compare as values with no promotion */
     if(l1->type != l2->type) {
       /* booleans can be compared to strings */
       if(l2->type == RASQAL_LITERAL_BOOLEAN &&
@@ -1753,14 +1818,19 @@ rasqal_literal_equals_flags(rasqal_literal* l1, rasqal_literal* l2,
       return 0;
     }
     type=l1->type;
-    l1_p=rasqal_new_literal_from_literal(l1);
-    if(l1_p)
-      l2_p=rasqal_new_literal_from_literal(l2);
   }
 
-  if(!l1_p || !l2_p) {
-    result=1;
-    goto tidy;
+  if(promotion) {
+    l1_p=rasqal_new_literal_from_promotion(l1, type);
+    if(l1_p)
+      l2_p=rasqal_new_literal_from_promotion(l2, type);
+    if(!l1_p || !l2_p) {
+      result=1;
+      goto tidy;
+    }
+  } else {
+    l1_p=l1;
+    l2_p=l2;
   }
   
   switch(type) {
@@ -1798,7 +1868,11 @@ rasqal_literal_equals_flags(rasqal_literal* l1, rasqal_literal* l2,
     case RASQAL_LITERAL_PATTERN:
     case RASQAL_LITERAL_QNAME:
     case RASQAL_LITERAL_DATETIME:
-      result=!strcmp((const char*)l1_p->string, (const char*)l2_p->string);
+      if(l1_p->string_len != l2_p->string_len)
+        /* not-equal if lengths are different - cheap to compare this first */
+        result=0;
+      else
+        result=!strcmp((const char*)l1_p->string, (const char*)l2_p->string);
       break;
       
     case RASQAL_LITERAL_INTEGER:
@@ -1828,10 +1902,12 @@ rasqal_literal_equals_flags(rasqal_literal* l1, rasqal_literal* l2,
   }
 
   tidy:
-  if(l1_p)
-    rasqal_free_literal(l1_p);
-  if(l2_p)
-    rasqal_free_literal(l2_p);
+  if(promotion) {
+    if(l1_p)
+      rasqal_free_literal(l1_p);
+    if(l2_p)
+      rasqal_free_literal(l2_p);
+  }
 
   return result;
 }
