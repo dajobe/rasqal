@@ -378,12 +378,9 @@ EXPONENT [eE][+-]?[0-9]+
 }
 
 [-+]?{DECIMAL}  { 
-                        double d;
-                        int n;
                         c=*yytext;
                         
-                        n=sscanf((const char*)yytext, "%lf", &d);
-                        if(n != 1) {
+                        if(!rasqal_xsd_datatype_check(RASQAL_LITERAL_DECIMAL, (const unsigned char*)yytext, 0)) {
                           sparql_syntax_error(rq, "SPARQL syntax error - Illegal decimal constant %s", yytext);
                           yyterminate();
                         }
@@ -394,16 +391,12 @@ EXPONENT [eE][+-]?[0-9]+
 }
 
 [-+]?{DOUBLE} {
-                        double d;
-                        int n;
                         c=*yytext;
-                        
-                        n=sscanf((const char*)yytext, "%lf", &d);
-                        if(n != 1) {
-                          sparql_syntax_error(rq, "SPARQL syntax error - Illegal floating point constant %s", yytext);
+                        if(!rasqal_xsd_datatype_check(RASQAL_LITERAL_DOUBLE, (const unsigned char*)yytext, 0)) {
+                          sparql_syntax_error(rq, "SPARQL syntax error - Illegal double constant %s", yytext);
                           yyterminate();
                         }
-                        sparql_parser_lval->literal=rasqal_new_double_literal(d);
+                        sparql_parser_lval->literal=rasqal_new_typed_literal(RASQAL_LITERAL_DOUBLE, (const unsigned char*)yytext);
                         if(!sparql_parser_lval->literal)
                           SPARQL_LEXER_OOM();
                         return (c=='+' ? DOUBLE_POSITIVE_LITERAL : (c == '-' ? DOUBLE_NEGATIVE_LITERAL : DOUBLE_LITERAL));
