@@ -1950,13 +1950,13 @@ rasqal_literal_as_node(rasqal_literal* l)
       if(new_l) {
         new_l->usage=1;
         new_l->type=RASQAL_LITERAL_STRING;
-        new_l->string_len=strlen((const char*)l->string);
-        new_l->string=(unsigned char*)RASQAL_MALLOC(cstring, new_l->string_len+1);
+        new_l->string_len=l->string_len;
+        new_l->string=(unsigned char*)RASQAL_MALLOC(cstring, l->string_len+1);
         if(!new_l->string) {
           rasqal_free_literal(new_l);
           return NULL; 
         }
-        strncpy((char*)new_l->string, (const char*)l->string, new_l->string_len);
+        strncpy((char*)new_l->string, (const char*)l->string, l->string_len+1);
         dt_uri=rasqal_xsd_datatype_type_to_uri(l->type);
         if(!dt_uri) {
           rasqal_free_literal(new_l);
