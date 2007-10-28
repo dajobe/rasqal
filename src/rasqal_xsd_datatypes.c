@@ -352,12 +352,14 @@ rasqal_xsd_format_double(double d, size_t *len_p)
 
   len = strlen((const char*)buf);
   if(exponent_start == len) {
-    buf[trailing_zero_start+1] = '0';
-    buf[trailing_zero_start+2] = '\0';
+    len=trailing_zero_start+2;
+    buf[len-1] = '0';
+    buf[len] = '\0';
   } else {
     /* copy the exponent (minus leading zeros) after the new E */
     memmove(buf+trailing_zero_start+1, buf+exponent_start,
             len-trailing_zero_start);
+    len = strlen((const char*)buf);
   }
 
   if(len_p)
