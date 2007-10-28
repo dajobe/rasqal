@@ -559,9 +559,6 @@ rasqal_literal_string_to_native(rasqal_literal *l,
 
   rc=rasqal_literal_set_typed_value(l, native_type, NULL /* existing string */,
                                     error_handler, error_data);
-  if(rc)
-    rasqal_free_literal(l);
-  
   return rc;
 }
 
