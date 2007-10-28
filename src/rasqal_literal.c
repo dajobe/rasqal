@@ -413,7 +413,6 @@ rasqal_literal_set_typed_value(rasqal_literal* l, rasqal_literal_type type,
   l->string=(unsigned char*)RASQAL_MALLOC(cstring, l->string_len+1);
   if(!l->string)
     return 1;
-
   strncpy((char*)l->string, (const char*)string, l->string_len+1);
 
   dt_uri=rasqal_xsd_datatype_type_to_uri(l->type);
@@ -439,15 +438,6 @@ rasqal_literal_set_typed_value(rasqal_literal* l, rasqal_literal_type type,
     case RASQAL_LITERAL_FLOAT:
       d=0.0;
       (void)sscanf((char*)l->string, "%lf", &d);
-      if(type == RASQAL_LITERAL_DOUBLE &&
-         !(strchr((char*)l->string, 'e') || strchr((char*)l->string, 'E'))) {
-        /* Fixup - there is no 'e' or 'E' so make this canonical */
-        RASQAL_FREE(cstring, (void*)l->string);
-        l->string=rasqal_xsd_format_double(d, (size_t*)&l->string_len);
-        if(!l->string)
-          return 1;
-      }
-      
       l->value.floating=d;
       break;
 
