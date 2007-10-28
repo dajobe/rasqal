@@ -1502,11 +1502,10 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e,
       if(!l1)
         goto failed;
 
-      vars.d= -rasqal_literal_as_floating(l1, &errs.e);
+      result=rasqal_literal_negate(l1, &errs.e);
       rasqal_free_literal(l1);
       if(errs.e)
         goto failed;
-      result=rasqal_new_numeric_literal(vars.d, l1->type);
       break;
 
     case RASQAL_EXPR_BOUND:
