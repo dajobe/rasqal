@@ -2319,6 +2319,8 @@ rasqal_literal_add(rasqal_literal* l1, rasqal_literal* l2, int *error_p)
   rasqal_xsd_decimal* dec;
   int error=0;
   rasqal_literal_type type;
+  rasqal_literal* l1_p=NULL;
+  rasqal_literal* l2_p=NULL;
   int flags=0;
   rasqal_literal* result=NULL;
   
@@ -2348,12 +2350,18 @@ rasqal_literal_add(rasqal_literal* l1, rasqal_literal* l2, int *error_p)
       break;
       
     case RASQAL_LITERAL_DECIMAL:
-      dec=rasqal_new_xsd_decimal();
-      if(rasqal_xsd_decimal_add(dec, l1->value.decimal, l2->value.decimal)) {
-        error=1;
-        rasqal_free_xsd_decimal(dec);
-      } else
-        result=rasqal_new_decimal_literal(NULL, dec);
+      l1_p=rasqal_new_literal_from_promotion(l1, type);
+      if(l1_p)
+        l2_p=rasqal_new_literal_from_promotion(l2, type);
+      if(l1_p && l2_p) {
+        dec=rasqal_new_xsd_decimal();
+        if(rasqal_xsd_decimal_add(dec, l1_p->value.decimal,
+                                  l2_p->value.decimal)) {
+          error=1;
+          rasqal_free_xsd_decimal(dec);
+        } else
+          result=rasqal_new_decimal_literal(NULL, dec);
+      }
       break;
       
     case RASQAL_LITERAL_UNKNOWN:
@@ -2375,6 +2383,11 @@ rasqal_literal_add(rasqal_literal* l1, rasqal_literal* l2, int *error_p)
       *error_p=1;
   }
   
+  if(l1_p)
+    rasqal_free_literal(l1_p);
+  if(l2_p)
+    rasqal_free_literal(l2_p);
+
   return result;
 }
 
@@ -2387,6 +2400,8 @@ rasqal_literal_subtract(rasqal_literal* l1, rasqal_literal* l2, int *error_p)
   rasqal_xsd_decimal* dec;
   int error=0;
   rasqal_literal_type type;
+  rasqal_literal* l1_p=NULL;
+  rasqal_literal* l2_p=NULL;
   int flags=0;
   rasqal_literal* result=NULL;
   
@@ -2416,12 +2431,18 @@ rasqal_literal_subtract(rasqal_literal* l1, rasqal_literal* l2, int *error_p)
       break;
       
     case RASQAL_LITERAL_DECIMAL:
-      dec=rasqal_new_xsd_decimal();
-      if(rasqal_xsd_decimal_subtract(dec, l1->value.decimal, l2->value.decimal)) {
-        error=1;
-        rasqal_free_xsd_decimal(dec);
-      } else
-        result=rasqal_new_decimal_literal(NULL, dec);
+      l1_p=rasqal_new_literal_from_promotion(l1, type);
+      if(l1_p)
+        l2_p=rasqal_new_literal_from_promotion(l2, type);
+      if(l1_p && l2_p) {
+        dec=rasqal_new_xsd_decimal();
+        if(rasqal_xsd_decimal_subtract(dec, l1_p->value.decimal,
+                                  l2_p->value.decimal)) {
+          error=1;
+          rasqal_free_xsd_decimal(dec);
+        } else
+          result=rasqal_new_decimal_literal(NULL, dec);
+      }
       break;
       
     case RASQAL_LITERAL_UNKNOWN:
@@ -2443,6 +2464,11 @@ rasqal_literal_subtract(rasqal_literal* l1, rasqal_literal* l2, int *error_p)
       *error_p=1;
   }
   
+  if(l1_p)
+    rasqal_free_literal(l1_p);
+  if(l2_p)
+    rasqal_free_literal(l2_p);
+
   return result;
 }
 
@@ -2455,6 +2481,8 @@ rasqal_literal_multiply(rasqal_literal* l1, rasqal_literal* l2, int *error_p)
   rasqal_xsd_decimal* dec;
   int error=0;
   rasqal_literal_type type;
+  rasqal_literal* l1_p=NULL;
+  rasqal_literal* l2_p=NULL;
   int flags=0;
   rasqal_literal* result=NULL;
   
@@ -2484,12 +2512,18 @@ rasqal_literal_multiply(rasqal_literal* l1, rasqal_literal* l2, int *error_p)
       break;
       
     case RASQAL_LITERAL_DECIMAL:
-      dec=rasqal_new_xsd_decimal();
-      if(rasqal_xsd_decimal_multiply(dec, l1->value.decimal, l2->value.decimal)) {
-        error=1;
-        rasqal_free_xsd_decimal(dec);
-      } else
-        result=rasqal_new_decimal_literal(NULL, dec);
+      l1_p=rasqal_new_literal_from_promotion(l1, type);
+      if(l1_p)
+        l2_p=rasqal_new_literal_from_promotion(l2, type);
+      if(l1_p && l2_p) {
+        dec=rasqal_new_xsd_decimal();
+        if(rasqal_xsd_decimal_multiply(dec, l1_p->value.decimal,
+                                       l2_p->value.decimal)) {
+          error=1;
+          rasqal_free_xsd_decimal(dec);
+        } else
+          result=rasqal_new_decimal_literal(NULL, dec);
+      }
       break;
       
     case RASQAL_LITERAL_UNKNOWN:
@@ -2511,6 +2545,11 @@ rasqal_literal_multiply(rasqal_literal* l1, rasqal_literal* l2, int *error_p)
       *error_p=1;
   }
   
+  if(l1_p)
+    rasqal_free_literal(l1_p);
+  if(l2_p)
+    rasqal_free_literal(l2_p);
+
   return result;
 }
 
@@ -2523,6 +2562,8 @@ rasqal_literal_divide(rasqal_literal* l1, rasqal_literal* l2, int *error_p)
   rasqal_xsd_decimal* dec;
   int error=0;
   rasqal_literal_type type;
+  rasqal_literal* l1_p=NULL;
+  rasqal_literal* l2_p=NULL;
   int flags=0;
   rasqal_literal* result=NULL;
   
@@ -2562,8 +2603,79 @@ rasqal_literal_divide(rasqal_literal* l1, rasqal_literal* l2, int *error_p)
       break;
       
     case RASQAL_LITERAL_DECIMAL:
+      l1_p=rasqal_new_literal_from_promotion(l1, type);
+      if(l1_p)
+        l2_p=rasqal_new_literal_from_promotion(l2, type);
+      if(l1_p && l2_p) {
+        dec=rasqal_new_xsd_decimal();
+        if(rasqal_xsd_decimal_add(dec, l1_p->value.decimal,
+                                  l2_p->value.decimal)) {
+          error=1;
+          rasqal_free_xsd_decimal(dec);
+        } else
+          result=rasqal_new_decimal_literal(NULL, dec);
+      }
+      break;
+      
+    case RASQAL_LITERAL_UNKNOWN:
+    case RASQAL_LITERAL_BLANK:
+    case RASQAL_LITERAL_URI:
+    case RASQAL_LITERAL_STRING:
+    case RASQAL_LITERAL_BOOLEAN:
+    case RASQAL_LITERAL_DATETIME:
+    case RASQAL_LITERAL_PATTERN:
+    case RASQAL_LITERAL_QNAME:
+    case RASQAL_LITERAL_VARIABLE:
+    default:
+      error=1;
+      break;
+  }
+
+  if(error) {
+    if(error_p)
+      *error_p=1;
+  }
+  
+  if(l1_p)
+    rasqal_free_literal(l1_p);
+  if(l2_p)
+    rasqal_free_literal(l2_p);
+
+  return result;
+}
+
+
+rasqal_literal*
+rasqal_literal_negate(rasqal_literal* l, int *error_p)
+{
+  int i;
+  double d;
+  rasqal_xsd_decimal* dec;
+  int error=0;
+  rasqal_literal_type type;
+  rasqal_literal* result=NULL;
+  
+  switch(type) {
+    case RASQAL_LITERAL_INTEGER:
+      i=rasqal_literal_as_integer(l, &error);
+      if(error)
+        break;
+      i= -i;
+      result=rasqal_new_integer_literal(RASQAL_LITERAL_INTEGER, i);
+      break;
+      
+    case RASQAL_LITERAL_FLOAT:
+    case RASQAL_LITERAL_DOUBLE:
+      d=rasqal_literal_as_floating(l, &error);
+      if(!d)
+        error=1;
+      d= -d;
+      result=rasqal_new_numeric_literal(d, type);
+      break;
+      
+    case RASQAL_LITERAL_DECIMAL:
       dec=rasqal_new_xsd_decimal();
-      if(rasqal_xsd_decimal_divide(dec, l1->value.decimal, l2->value.decimal)) {
+      if(rasqal_xsd_decimal_negate(dec, l->value.decimal)) {
         error=1;
         rasqal_free_xsd_decimal(dec);
       } else
