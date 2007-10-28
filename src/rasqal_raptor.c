@@ -337,17 +337,20 @@ rasqal_raptor_triple_match(rasqal_triple *triple, rasqal_triple *match,
 #endif
 
   if(match->subject && (parts & RASQAL_TRIPLE_SUBJECT)) {
-    if(!rasqal_literal_equals(triple->subject, match->subject))
+    if(!rasqal_literal_equals_flags(triple->subject, match->subject,
+                                    RASQAL_COMPARE_RDF, NULL))
       goto done;
   }
 
   if(match->predicate && (parts & RASQAL_TRIPLE_PREDICATE)) {
-    if(!rasqal_literal_equals(triple->predicate, match->predicate))
+    if(!rasqal_literal_equals_flags(triple->predicate, match->predicate,
+                                    RASQAL_COMPARE_RDF, NULL))
       goto done;
   }
 
   if(match->object && (parts & RASQAL_TRIPLE_OBJECT)) {
-    if(!rasqal_literal_equals(triple->object, match->object))
+    if(!rasqal_literal_equals_flags(triple->object, match->object,
+                                    RASQAL_COMPARE_RDF, NULL))
       goto done;
   }
 
