@@ -2925,7 +2925,7 @@ rasqal_query_result_literal_sequence_compare(rasqal_query* query,
       }
     }
     
-    result=rasqal_literal_compare(literal_a, literal_b, query->compare_flags,
+    result=rasqal_literal_compare(literal_a, literal_b, RASQAL_COMPARE_RDF,
                                   &error);
 
     if(error) {
@@ -2979,7 +2979,7 @@ rasqal_query_result_literal_sequence_equals(rasqal_query* query,
     rasqal_literal* literal_b=values_b[i];
     
     result=rasqal_literal_equals_flags(literal_a, literal_b,
-                                       query->compare_flags, &error);
+                                       RASQAL_COMPARE_RDF, &error);
 #ifdef RASQAL_DEBUG
     RASQAL_DEBUG1("Comparing ");
     rasqal_literal_print(literal_a, stderr);
