@@ -294,7 +294,7 @@ rasqal_new_decimal_literal(const unsigned char *string,
   l->usage=1;
   l->type=RASQAL_LITERAL_DECIMAL;
   if(string) {
-    if(rasqal_literal_set_typed_value(l, type, string, NULL, NULL)) {
+    if(rasqal_literal_set_typed_value(l, l->type, string, NULL, NULL)) {
       rasqal_free_literal(l);
       l=NULL;
     }
