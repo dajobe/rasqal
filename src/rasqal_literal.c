@@ -2315,124 +2315,282 @@ rasqal_literal_is_numeric(rasqal_literal* literal)
 
 
 rasqal_literal*
-rasqal_literal_add(rasqal_literal* l1, rasqal_literal* l2, int *error)
+rasqal_literal_add(rasqal_literal* l1, rasqal_literal* l2, int *error_p)
 {
+  int i;
   double d;
-  int error1=0;
-  int error2=0;
+  rasqal_xsd_decimal* dec;
+  int error=0;
   rasqal_literal_type type;
   int flags=0;
   rasqal_literal* result=NULL;
   
   type=rasqal_literal_promote_numerics(l1, l2, flags);
-  if(type == RASQAL_LITERAL_UNKNOWN || !rasqal_xsd_datatype_is_numeric(type)) {
-    if(error)
-      *error=1;
-    return NULL;
+  switch(type) {
+    case RASQAL_LITERAL_INTEGER:
+      i=rasqal_literal_as_integer(l1, &error);
+      if(error)
+        break;
+      i=i + rasqal_literal_as_integer(l2, &error);
+      if(error)
+        break;
+
+      result=rasqal_new_integer_literal(RASQAL_LITERAL_INTEGER, i);
+      break;
+      
+    case RASQAL_LITERAL_FLOAT:
+    case RASQAL_LITERAL_DOUBLE:
+      d=rasqal_literal_as_floating(l1, &error);
+      if(error)
+        break;
+      d=d + rasqal_literal_as_floating(l2, &error);
+      if(error)
+        break;
+
+      result=rasqal_new_numeric_literal(d, type);
+      break;
+      
+    case RASQAL_LITERAL_DECIMAL:
+      dec=rasqal_new_xsd_decimal();
+      if(rasqal_xsd_decimal_add(dec, l1->value.decimal, l2->value.decimal)) {
+        error=1;
+        rasqal_free_xsd_decimal(dec);
+      } else
+        result=rasqal_new_decimal_literal(NULL, dec);
+      break;
+      
+    case RASQAL_LITERAL_UNKNOWN:
+    case RASQAL_LITERAL_BLANK:
+    case RASQAL_LITERAL_URI:
+    case RASQAL_LITERAL_STRING:
+    case RASQAL_LITERAL_BOOLEAN:
+    case RASQAL_LITERAL_DATETIME:
+    case RASQAL_LITERAL_PATTERN:
+    case RASQAL_LITERAL_QNAME:
+    case RASQAL_LITERAL_VARIABLE:
+    default:
+      error=1;
+      break;
   }
 
-  d=rasqal_literal_as_floating(l1, &error1) +
-    rasqal_literal_as_floating(l2, &error2);
-
-  if(error1 || error2) {
-    if(error)
-      *error=1;
-    return NULL;
+  if(error) {
+    if(error_p)
+      *error_p=1;
   }
   
-  result=rasqal_new_numeric_literal(d, type);
   return result;
 }
-        
+
 
 rasqal_literal*
-rasqal_literal_subtract(rasqal_literal* l1, rasqal_literal* l2, int *error)
+rasqal_literal_subtract(rasqal_literal* l1, rasqal_literal* l2, int *error_p)
 {
+  int i;
   double d;
-  int error1=0;
-  int error2=0;
+  rasqal_xsd_decimal* dec;
+  int error=0;
   rasqal_literal_type type;
   int flags=0;
   rasqal_literal* result=NULL;
   
   type=rasqal_literal_promote_numerics(l1, l2, flags);
-  if(type == RASQAL_LITERAL_UNKNOWN || !rasqal_xsd_datatype_is_numeric(type)) {
-    if(error)
-      *error=1;
-    return NULL;
+  switch(type) {
+    case RASQAL_LITERAL_INTEGER:
+      i=rasqal_literal_as_integer(l1, &error);
+      if(error)
+        break;
+      i=i - rasqal_literal_as_integer(l2, &error);
+      if(error)
+        break;
+
+      result=rasqal_new_integer_literal(RASQAL_LITERAL_INTEGER, i);
+      break;
+      
+    case RASQAL_LITERAL_FLOAT:
+    case RASQAL_LITERAL_DOUBLE:
+      d=rasqal_literal_as_floating(l1, &error);
+      if(error)
+        break;
+      d=d - rasqal_literal_as_floating(l2, &error);
+      if(error)
+        break;
+
+      result=rasqal_new_numeric_literal(d, type);
+      break;
+      
+    case RASQAL_LITERAL_DECIMAL:
+      dec=rasqal_new_xsd_decimal();
+      if(rasqal_xsd_decimal_subtract(dec, l1->value.decimal, l2->value.decimal)) {
+        error=1;
+        rasqal_free_xsd_decimal(dec);
+      } else
+        result=rasqal_new_decimal_literal(NULL, dec);
+      break;
+      
+    case RASQAL_LITERAL_UNKNOWN:
+    case RASQAL_LITERAL_BLANK:
+    case RASQAL_LITERAL_URI:
+    case RASQAL_LITERAL_STRING:
+    case RASQAL_LITERAL_BOOLEAN:
+    case RASQAL_LITERAL_DATETIME:
+    case RASQAL_LITERAL_PATTERN:
+    case RASQAL_LITERAL_QNAME:
+    case RASQAL_LITERAL_VARIABLE:
+    default:
+      error=1;
+      break;
   }
 
-  d=rasqal_literal_as_floating(l1, &error1) -
-    rasqal_literal_as_floating(l2, &error2);
-
-  if(error1 || error2) {
-    if(error)
-      *error=1;
-    return NULL;
+  if(error) {
+    if(error_p)
+      *error_p=1;
   }
   
-  result=rasqal_new_numeric_literal(d, type);
   return result;
 }
-        
+
 
 rasqal_literal*
-rasqal_literal_multiply(rasqal_literal* l1, rasqal_literal* l2, int *error)
+rasqal_literal_multiply(rasqal_literal* l1, rasqal_literal* l2, int *error_p)
 {
+  int i;
   double d;
-  int error1=0;
-  int error2=0;
+  rasqal_xsd_decimal* dec;
+  int error=0;
   rasqal_literal_type type;
   int flags=0;
   rasqal_literal* result=NULL;
   
   type=rasqal_literal_promote_numerics(l1, l2, flags);
-  if(type == RASQAL_LITERAL_UNKNOWN || !rasqal_xsd_datatype_is_numeric(type)) {
-    if(error)
-      *error=1;
-    return NULL;
+  switch(type) {
+    case RASQAL_LITERAL_INTEGER:
+      i=rasqal_literal_as_integer(l1, &error);
+      if(error)
+        break;
+      i=i * rasqal_literal_as_integer(l2, &error);
+      if(error)
+        break;
+
+      result=rasqal_new_integer_literal(RASQAL_LITERAL_INTEGER, i);
+      break;
+      
+    case RASQAL_LITERAL_FLOAT:
+    case RASQAL_LITERAL_DOUBLE:
+      d=rasqal_literal_as_floating(l1, &error);
+      if(error)
+        break;
+      d=d * rasqal_literal_as_floating(l2, &error);
+      if(error)
+        break;
+
+      result=rasqal_new_numeric_literal(d, type);
+      break;
+      
+    case RASQAL_LITERAL_DECIMAL:
+      dec=rasqal_new_xsd_decimal();
+      if(rasqal_xsd_decimal_multiply(dec, l1->value.decimal, l2->value.decimal)) {
+        error=1;
+        rasqal_free_xsd_decimal(dec);
+      } else
+        result=rasqal_new_decimal_literal(NULL, dec);
+      break;
+      
+    case RASQAL_LITERAL_UNKNOWN:
+    case RASQAL_LITERAL_BLANK:
+    case RASQAL_LITERAL_URI:
+    case RASQAL_LITERAL_STRING:
+    case RASQAL_LITERAL_BOOLEAN:
+    case RASQAL_LITERAL_DATETIME:
+    case RASQAL_LITERAL_PATTERN:
+    case RASQAL_LITERAL_QNAME:
+    case RASQAL_LITERAL_VARIABLE:
+    default:
+      error=1;
+      break;
   }
 
-  d=rasqal_literal_as_floating(l1, &error1) *
-    rasqal_literal_as_floating(l2, &error2);
-
-  if(error1 || error2) {
-    if(error)
-      *error=1;
-    return NULL;
+  if(error) {
+    if(error_p)
+      *error_p=1;
   }
   
-  result=rasqal_new_numeric_literal(d, type);
   return result;
 }
-        
+
 
 rasqal_literal*
-rasqal_literal_divide(rasqal_literal* l1, rasqal_literal* l2, int *error)
+rasqal_literal_divide(rasqal_literal* l1, rasqal_literal* l2, int *error_p)
 {
-  double d;
-  int error1=0;
-  int error2=0;
+  int i1, i2;
+  double d1, d2;
+  rasqal_xsd_decimal* dec;
+  int error=0;
   rasqal_literal_type type;
   int flags=0;
   rasqal_literal* result=NULL;
   
   type=rasqal_literal_promote_numerics(l1, l2, flags);
-  if(type == RASQAL_LITERAL_UNKNOWN || !rasqal_xsd_datatype_is_numeric(type)) {
-    if(error)
-      *error=1;
-    return NULL;
+  switch(type) {
+    case RASQAL_LITERAL_INTEGER:
+      i2=rasqal_literal_as_integer(l2, &error);
+      if(!i2)
+        error=1;
+      if(error)
+        break;
+      i1=rasqal_literal_as_integer(l1, &error);
+      if(error)
+        break;
+      i1=i1 / i2;
+      if(error)
+        break;
+
+      result=rasqal_new_integer_literal(RASQAL_LITERAL_INTEGER, i1);
+      break;
+      
+    case RASQAL_LITERAL_FLOAT:
+    case RASQAL_LITERAL_DOUBLE:
+      d2=rasqal_literal_as_floating(l2, &error);
+      if(!d2)
+        error=1;
+      if(error)
+        break;
+      d1=rasqal_literal_as_floating(l1, &error);
+      if(error)
+        break;
+      d1=d1 / d2;
+      if(error)
+        break;
+
+      result=rasqal_new_numeric_literal(d1, type);
+      break;
+      
+    case RASQAL_LITERAL_DECIMAL:
+      dec=rasqal_new_xsd_decimal();
+      if(rasqal_xsd_decimal_divide(dec, l1->value.decimal, l2->value.decimal)) {
+        error=1;
+        rasqal_free_xsd_decimal(dec);
+      } else
+        result=rasqal_new_decimal_literal(NULL, dec);
+      break;
+      
+    case RASQAL_LITERAL_UNKNOWN:
+    case RASQAL_LITERAL_BLANK:
+    case RASQAL_LITERAL_URI:
+    case RASQAL_LITERAL_STRING:
+    case RASQAL_LITERAL_BOOLEAN:
+    case RASQAL_LITERAL_DATETIME:
+    case RASQAL_LITERAL_PATTERN:
+    case RASQAL_LITERAL_QNAME:
+    case RASQAL_LITERAL_VARIABLE:
+    default:
+      error=1;
+      break;
   }
 
-  d=rasqal_literal_as_floating(l1, &error1) /
-    rasqal_literal_as_floating(l2, &error2);
-
-  if(error1 || error2) {
-    if(error)
-      *error=1;
-    return NULL;
+  if(error) {
+    if(error_p)
+      *error_p=1;
   }
   
-  result=rasqal_new_numeric_literal(d, type);
   return result;
 }
