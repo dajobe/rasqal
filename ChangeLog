@@ -1,4 +1,183 @@
+2007-10-27  Dave Beckett  <dave@dajobe.org>
+
+	* Last known good revision 13092: 'make check' succeeds.
+
+2007-10-27  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_literal.c: (rasqal_literal_negate): Init type
+
+	* src/rasqal_expr.c: (rasqal_expression_evaluate): For
+	RASQAL_EXPR_UMINUS use rasqal_literal_negate
+
+	* src/rasqal_internal.h: Added rasqal_literal_negate prototype
+
+	* src/rasqal_literal.c: (rasqal_literal_add,
+	rasqal_literal_subtract, rasqal_literal_multiply,
+	rasqal_literal_divide): Promote to get to decimals for evaluation.
+	(rasqal_literal_negate): Added.
+
+	* src/rasqal.h: Added rasqal_xsd_decimal_negate
+
+	* src/rasqal_decimal.c: (rasqal_xsd_decimal_negate): Added
+
+	* src/rasqal_literal.c: (rasqal_new_decimal_literal): Set literal type
+
+	* src/rasqal_literal.c: (rasqal_literal_string_to_native): Do not
+	call rasqal_free_literal here.
+
+	* src/rasqal_literal.c: (rasqal_literal_add,
+	rasqal_literal_subtract, rasqal_literal_multiply,
+	rasqal_literal_divide): Do calculations as integer, double or
+	decimal.
+
+	* src/rasqal_literal.c: (rasqal_new_decimal_literal): Add decimal
+	arg to construct a new decimal literal based on a string or XSD
+	Decimal.
+
+	* src/sparql_lexer.l: Update rasqal_new_decimal_literal call
+
+	* src/rasqal.h: rasqal_new_decimal_literal takes string / decimal.
+
+	* src/rasqal_literal.c: (rasqal_literal_set_typed_value): Allow
+	string to be NULL to use existing literal string.
+	(rasqal_literal_string_to_native): Use NULL above
+
+	* src/rasqal_literal.c: Everwhere: only write to *error if error
+	is not NULL.
+	(rasqal_literal_set_typed_value): Free any existing string before
+	overwriting.
+
+	* src/rasqal_literal.c: (rasqal_literal_set_typed_value): Copy NULL
+
+	* src/rasqal_literal.c: Fix casts
+
+	* src/sparql_lexer.l: Use rasqal_new_typed_literal for integer.
+
+	* src/rasqal_literal.c: (rasqal_literal_set_typed_value): Added,
+	pulled out of rasqal_literal_string_to_native.
+	(rasqal_new_typed_literal, rasqal_new_decimal_literal,
+	rasqal_literal_string_to_native): Altered to use
+	rasqal_literal_set_typed_value removing duplicate code for setting
+	decimals.
+
+	* src/rasqal.h: rasqal_new_typed_literal renamed from
+	rasqal_new_integer_literal_from_string
+
+	* src/rasqal_engine.c: (rasqal_query_result_literal_sequence_equals):
+	Pass on any type errors as not equal.
+
+	* src/rasqal_internal.h: rasqal_literal_equals_flags add error
+	pointer arg.
+
+	* src/rasqal_literal.c: (rasqal_literal_equals_flags): Add an
+	error pointer arg.
+
+	* docs/tmpl/section-xsd.sgml: XSD Decimals templaet
+
+	* src/rasqal_decimal.c: Autodocs
+
+	* docs/rasqal-sections.txt: Add new functions
+
+	* docs/rasqal-docs.xml: Added section-xsd
+
+2007-10-27  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_literal.c: (rasqal_new_integer_literal_from_string)
+	Need to have literal usage and type set before calling
+	rasqal_free_literal() on failure.
+
+2007-10-27  Dave Beckett <dave@dajobe.org>
+
+	* src/sparql_lexer.l: Use rasqal_new_integer_literal_from_string
+	for integer literal. Remove hex literals - they are not allowed in
+	SPARQL.
+
+	* src/rasqal.h,
+	src/rasqal_literal.c: (rasqal_new_integer_literal_from_string):
+	Added to preserve integer literal original lexical form.
+
+	* src/rasqal_internal.h,
+	src/rasqal_literal.c: (rasqal_literal_promote_numerics): Renamed
+	from rasqal_literal_promote_calculate
+
+2007-10-25  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_query.c: (rasqal_query_prepare_count_graph_patterns)
+	Prevent a later lowmem crash caused by graph pattern count and
+	graph pattern sequence getting out of sync.
+
+	* src/rasqal_decimal.c: (rasqal_xsd_decimal_as_string) Better
+	formatting with RASQAL_DECIMAL_NONE
+	(main) Ignore rasqal_decimal_test failures with
+	RASQAL_DECIMAL_NONE - insufficient precision with doubles. Test
+	for <0, ==0 or >0 when testing rasqal_xsd_decimal_compare(), not
+	exact value like -1.
+
+	* src/rasqal_map.c: (rasqal_map_node_add_kv) Return error if
+	rasqal_new_map_node() failed
+
+	* src/rasqal_map.c: (rasqal_map_add_kv) Return error if
+	rasqal_new_map_node() failed
+
+	* src/rasqal_expr.c: (rasqal_expression_evaluate) Remove memset()
+	overhead - init vars when actually needed.
+
+2007-10-24  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_expr.c: (rasqal_expression_evalate) Fix bug in
+	RASQAL_EXPR_OR and refactor RASQAL_EXPR_{AND,OR}.
+
+	* src/rasqal_expr.c: (rasqal_expression_evaluate_strmatch,
+	rasqal_expression_evaluate) Init error vars to zero
+
+	* src/rasqal_expr.c: (rasqal_expression_evaluate_strmatch) Pulled
+	function from rasqal_expression_evaluate().
+	(rasqal_expression_evaluate) Reduce stack consumption of a
+	recursive function by about 90% (depending on compiler and
+	architecture) - do not allocate separate variables for each switch
+	case and pack in unions variables that are not needed
+	simultaneously.
+
+	* src/rasqal_literal.c: (rasqal_literal_string_to_native) Lowmem
+	leak fix: make sure decimal literal string is not leaked.
+
+	* src/rasqal_literal.c: (rasqal_free_literal) Do not leak decimal
+	literal datatype uris.
+
+2007-10-23  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_literal.c: (rasqal_literal_print): Write URIs out
+	properly escaped Unicode.
+
+2007-10-23  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_expr.c: (rasqal_expression_evaluate) Check for alloc
+	failures
+
+2007-10-22  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_literal.c: (rasqal_new_literal_from_promotion) Fix
+	rasqal_new_integer_literal() params.
+	(rasqal_literal_rdql_promote_calculate) Fix lits array init.
+
 2007-10-22  Dave Beckett <dave@dajobe.org>
+
+	* tests/sparql/check-sparql: fix curdir
+
+	* tests/sparql/check-sparql: Remove curdir from debug outputs
+
+	* docs/tmpl/section-triple.sgml: Added RASQAL_TRIPLE_GRAPH,
+	RASQAL_TRIPLE_SPO and RASQAL_TRIPLE_SPOG
+
+	* docs/tmpl/section-expression.sgml: Added RASQAL_EXPR_SAMETERM
+
+	* src/rasqal_literal.c: (rasqal_literal_compare): Restore d assignment
+
+	* src/rasqal_literal.c: Remove unused double_to_int
+
+	* src/rasqal_literal.c: (rasqal_literal_rdql_promote_calculate):
+	Pull out of rasqal_literal_compare
+	(rasqal_literal_compare): Use above.
 
 	* Last known good revision 13011: 'make check' succeeds.
 
