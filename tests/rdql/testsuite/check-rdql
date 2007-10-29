@@ -35,6 +35,7 @@
 
 use strict;
 use File::Basename;
+use Cwd;
 
 
 my $roqet="roqet";
@@ -151,6 +152,8 @@ sub run_test($$$$$) {
 
     return "NULL" if $str eq "<${rs}undefined>";
 
+    $str =~ s{\"\^\^<http://www.w3.org/2001/XMLSchema#string>}{"};
+
     return $str if $str =~ s/^(".*")(@.*)(\^\^<.*>)$/string($1$2$3)/;
 
     return $str if $str =~ s/^(".*"\^\^<.*>)$/string($1)/;
@@ -194,7 +197,7 @@ sub run_test($$$$$) {
   }
   close(OUT);
 
-  $cmd="diff -c result.out roqet.out > diff.out";
+  $cmd="diff -u result.out roqet.out > diff.out";
   my $rc=system($cmd);
   if($rc) {
     warn "$program: $name FAILED\n";
