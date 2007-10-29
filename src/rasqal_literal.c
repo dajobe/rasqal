@@ -103,7 +103,7 @@ rasqal_new_integer_literal(rasqal_literal_type type, int integer)
 /**
  * rasqal_new_typed_literal:
  * @type: Type of literal such as RASQAL_LITERAL_INTEGER or RASQAL_LITERAL_BOOLEAN
- * @string: lexical form
+ * @string: lexical form - ownership not taken
  *
  * Constructor - Create a new Rasqal integer literal from a string
  * 
@@ -121,6 +121,7 @@ rasqal_new_typed_literal(rasqal_literal_type type, const unsigned char* string)
     return NULL;
 
   l->usage=1;
+  l->type=type;
   if(rasqal_literal_set_typed_value(l, type, string, NULL, NULL)) {
     rasqal_free_literal(l);
     l=NULL;
@@ -400,9 +401,13 @@ rasqal_literal_set_typed_value(rasqal_literal* l, rasqal_literal_type type,
   int i;
   double d;
   unsigned char const *new_string;
+  int free_string;
 
-  if(!string)
+  if(!string) {
     string=l->string;
+    free_string=1;
+  } else
+    free_string=0;
   
   if(!rasqal_xsd_datatype_check(type, string, flags)) {
     if(error_handler)
@@ -424,7 +429,8 @@ rasqal_literal_set_typed_value(rasqal_literal* l, rasqal_literal_type type,
   if(!l->string)
     return 1;
   strncpy((char*)l->string, (const char*)string, l->string_len+1);
-  RASQAL_FREE(cstring, string);
+  if(free_string)
+    RASQAL_FREE(cstring, string);
 
   dt_uri=rasqal_xsd_datatype_type_to_uri(l->type);
   if(!dt_uri)
