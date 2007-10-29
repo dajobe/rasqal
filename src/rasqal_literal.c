@@ -289,6 +289,7 @@ rasqal_new_decimal_literal(const unsigned char *string,
                            rasqal_xsd_decimal* decimal)
 {
   rasqal_literal* l;
+  raptor_uri *dt_uri;
 
   l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(rasqal_literal));
   if(!l)
@@ -302,7 +303,8 @@ rasqal_new_decimal_literal(const unsigned char *string,
       l=NULL;
     }
   } else if(decimal) {
-    l->datatype=rasqal_xsd_datatype_type_to_uri(l->type);
+    dt_uri=rasqal_xsd_datatype_type_to_uri(l->type);
+    l->datatype=raptor_uri_copy(dt_uri);
     l->value.decimal=decimal;
     /* string is owned by l->value.decimal */
     l->string=(unsigned char*)rasqal_xsd_decimal_as_counted_string(l->value.decimal,
