@@ -423,6 +423,8 @@ rasqal_literal_set_typed_value(rasqal_literal* l, rasqal_literal_type type,
   dt_uri=rasqal_xsd_datatype_type_to_uri(l->type);
   if(!dt_uri)
     return 1;
+  if(l->datatype)
+    raptor_free_uri(l->datatype);
   l->datatype=raptor_uri_copy(dt_uri);
   if(type == RASQAL_LITERAL_INTEGER)
     l->parent_type=RASQAL_LITERAL_DECIMAL;
