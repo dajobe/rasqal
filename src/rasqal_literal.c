@@ -121,9 +121,11 @@ rasqal_new_typed_literal(rasqal_literal_type type, const unsigned char* string)
     return NULL;
 
   l->usage=1;
-  if(rasqal_literal_set_typed_value(l, type, string, NULL, NULL))
+  if(rasqal_literal_set_typed_value(l, type, string, NULL, NULL)) {
     rasqal_free_literal(l);
-  
+    l=NULL;
+  }
+
   return l;
 }
 
