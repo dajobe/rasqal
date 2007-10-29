@@ -251,15 +251,9 @@ QUOTEDURI \<[A-Za-z][^>]+\>
 }
 
 [0-9]+"."[0-9]*[eE][+-]?[0-9]+[fFdD]?|"."[0-9]+[eE][+-]?[0-9]+[fFdD]?|[0-9]+[eE][+-]?[0-9]+[fFdD]?|[0-9]+[eE][+-]?[0-9]+[fFdD]?|[0-9]+"."[0-9]*  { 
-                        double d;
-                        int n;
-                        
-                        n=sscanf((const char*)yytext, "%lf", &d);
-                        if(n != 1) {
-                          rdql_syntax_error(rq, "RDQL syntax error - Illegal floating point constant %s", yytext);
+                        rdql_parser_lval->literal=rasqal_new_typed_literal(RASQAL_LITERAL_DOUBLE, (const unsigned char*)yytext);
+                        if(!rdql_parser_lval->literal)
                           yyterminate();
-                        }
-                        rdql_parser_lval->literal=rasqal_new_double_literal(d);
                         return FLOATING_POINT_LITERAL;
 }
 
