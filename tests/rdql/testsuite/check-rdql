@@ -152,8 +152,6 @@ sub run_test($$$$$) {
 
     return "NULL" if $str eq "<${rs}undefined>";
 
-    $str =~ s{\"\^\^<http://www.w3.org/2001/XMLSchema#string>}{"};
-
     return $str if $str =~ s/^(".*")(@.*)(\^\^<.*>)$/string($1$2$3)/;
 
     return $str if $str =~ s/^(".*"\^\^<.*>)$/string($1)/;
