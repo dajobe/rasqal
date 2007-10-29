@@ -540,8 +540,16 @@ rasqal_literal_string_to_native(rasqal_literal *l,
   /* RDF literal with no datatype (plain literal) */
   if(!l->datatype)
     return 0;
-
+  
   native_type=rasqal_xsd_datatype_uri_to_type(l->datatype);
+
+  /* Turn typed literal "xx"^^xsd:string into a plain literal "xx" */
+  if(native_type == RASQAL_LITERAL_STRING) {
+    raptor_free_uri(l->datatype);
+    l->datatype=NULL;
+    return 0;
+  }
+
   /* If not a native type return ok but do not change literal */
   if(native_type == RASQAL_LITERAL_UNKNOWN)
     return 0;
@@ -1737,6 +1745,74 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
 
 
 /**
+ * rasqal_literal_string_equals:
+ * @l1: #rasqal_literal first literal
+ * @l2: #rasqal_literal second literal
+ * @error: pointer to error
+ *
+ * INTERNAL - Compare two typed literals
+ *
+ * Return value: non-0 if equal
+ */
+static int
+rasqal_literal_string_equals(rasqal_literal* l1, rasqal_literal* l2,
+                             int* error)
+{
+  int result=1;
+  if(l1->language || l2->language) {
+    /* if either is NULL, the comparison fails */
+    if(!l1->language || !l2->language)
+      return 0;
+    if(rasqal_strcasecmp(l1->language,l2->language))
+      return 0;
+  }
+
+  if(l1->datatype || l2->datatype) {
+    /* if either is NULL - type error */
+    if(!l1->datatype || !l2->datatype) {
+      if(error)
+        *error=1;
+      return 0;
+    }
+    /* if different - type error */
+    if(!raptor_uri_equals(l1->datatype, l2->datatype)) {
+      if(error)
+        *error=1;
+      return 0;
+    }
+    /* at this point the datatypes (URIs) are the same */
+    
+    /* If literals were both typed literals */
+    if(l1->type == RASQAL_LITERAL_STRING && l2->type == RASQAL_LITERAL_STRING) {
+      if(l1->string_len != l2->string_len) {
+        /* not-equal if lengths are different - cheap to compare this first */
+        return 0;
+      } else {
+        /* user-defined datatype - can only check for lexical identity */
+        result=!strcmp((const char*)l1->string, (const char*)l2->string);
+        if(!result) {
+          /* different strings but cannot tell if they are equal */
+          if(error)
+            *error=1;
+          return 0;
+        }
+      }
+    }
+  }
+
+  /* Finally check the lexical forms */
+
+  /* not-equal if lengths are different - cheaper to try this first */
+  if(l1->string_len != l2->string_len)
+    return 0;
+
+  result=!strcmp((const char*)l1->string, (const char*)l2->string);
+
+  return result;
+}
+
+
+/**
  * rasqal_literal_equals:
  * @l1: #rasqal_literal literal
  * @l2: #rasqal_literal data literal
@@ -1797,17 +1873,21 @@ rasqal_literal_equals_flags(rasqal_literal* l1, rasqal_literal* l2,
     type=type1;
   } else if(flags & RASQAL_COMPARE_XQUERY) { 
     /* SPARQL / XSD promotion rules */
-    promotion=1;
-    type=rasqal_literal_promote_numerics(l1, l2, flags);
-    RASQAL_DEBUG4("xquery promoted literals types (%s, %s) to type %s\n", 
-                  rasqal_literal_type_labels[l1->type],
-                  rasqal_literal_type_labels[l2->type],
-                  rasqal_literal_type_labels[type]);
-    if(type == RASQAL_LITERAL_UNKNOWN ||
-       !rasqal_xsd_datatype_is_numeric(type)) {
-      /* FIXME - do other XSD type promotions */
-      type=RASQAL_LITERAL_STRING;
-    }
+    if(l1->type != l2->type) {
+      type=rasqal_literal_promote_numerics(l1, l2, flags);
+      if(type == RASQAL_LITERAL_UNKNOWN) {
+        /* Cannot promote to compatible types */
+        if(error)
+          *error=1;
+        return 0;
+      }
+      RASQAL_DEBUG4("xquery promoted literals types (%s, %s) to type %s\n", 
+                    rasqal_literal_type_labels[l1->type],
+                    rasqal_literal_type_labels[l2->type],
+                    rasqal_literal_type_labels[type]);
+      promotion=1;
+    } else
+      type=l1->type;
   } else {
     /* RDQL rules: compare as values with no promotion */
     if(l1->type != l2->type) {
@@ -1839,35 +1919,12 @@ rasqal_literal_equals_flags(rasqal_literal* l1, rasqal_literal* l2,
       break;
 
     case RASQAL_LITERAL_STRING:
-      if(l1_p->language || l2_p->language) {
-        /* if either is null, the comparison fails */
-        if(!l1_p->language || !l2_p->language) {
-          result=0;
-          break;
-        }
-        if(rasqal_strcasecmp(l1_p->language,l2_p->language)) {
-          result=0;
-          break;
-        }
-      }
+      result=rasqal_literal_string_equals(l1, l2, error);
+      break;
 
-      if(l1_p->datatype || l2_p->datatype) {
-        /* if either is null, the comparison fails */
-        if(!l1_p->datatype || !l2_p->datatype) {
-          result=0;
-          break;
-        }
-        if(!raptor_uri_equals(l1_p->datatype, l2_p->datatype)) {
-          result=0;
-          break;
-        }
-      }
-      
-      /* FALLTHROUGH */
     case RASQAL_LITERAL_BLANK:
-    case RASQAL_LITERAL_PATTERN:
-    case RASQAL_LITERAL_QNAME:
     case RASQAL_LITERAL_DATETIME:
+      /* FIXME this should not be xsd:dateTime equality */
       if(l1_p->string_len != l2_p->string_len)
         /* not-equal if lengths are different - cheap to compare this first */
         result=0;
@@ -1896,6 +1953,8 @@ rasqal_literal_equals_flags(rasqal_literal* l1, rasqal_literal* l2,
                                    l2_p->value.variable->value);
       
     case RASQAL_LITERAL_UNKNOWN:
+    case RASQAL_LITERAL_PATTERN:
+    case RASQAL_LITERAL_QNAME:
     default:
       abort();
       result=0; /* keep some compilers happy */
