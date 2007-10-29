@@ -74,7 +74,9 @@ result-T-07.n3 result-T-08.n3 result-T-09.n3 result-T-10.n3
 rdql_testsuite_extra_files=query-dump rdql-tests.n3	\
 README-RDQL-tests.txt copyright.txt
 
-EXPECTED_RDQL_CORRECT_FAILURES=1-09 B-01
+# 1-09: No support for expanding 'prefix' in '<prefix:/r-1>'
+# B-17: No support for "true" matching "true"^^xsd:boolean
+EXPECTED_RDQL_CORRECT_FAILURES=1-09 B-17
 EXPECTED_RDQL_CORRECT_FAILURES_COUNT=2
 
 EXTRA_DIST = README \
