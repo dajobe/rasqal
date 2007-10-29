@@ -400,37 +400,30 @@ rasqal_literal_set_typed_value(rasqal_literal* l, rasqal_literal_type type,
   int flags=0;
   int i;
   double d;
-  unsigned char const *new_string;
-  int free_string;
+  const unsigned char *new_string;
 
-  if(!string) {
-    string=l->string;
-    free_string=1;
-  } else
-    free_string=0;
-  
-  if(!rasqal_xsd_datatype_check(type, string, flags)) {
+  if(!rasqal_xsd_datatype_check(type, string ? string : l->string, flags)) {
     if(error_handler)
       error_handler(error_data, "Illegal type %s string '%s'",
-                    rasqal_xsd_datatype_label(type), l->string);
+                    rasqal_xsd_datatype_label(type), string ? string : l->string);
     return 1;
   }
-      
+
   if(l->language) {
     RASQAL_FREE(cstring, (void*)l->language);
     l->language=NULL;
   }
   l->type=type;
 
-  if(l->string && string != l->string)
-    RASQAL_FREE(cstring, (void*)l->string);
-  l->string_len=strlen((const char*)string);
-  l->string=(unsigned char*)RASQAL_MALLOC(cstring, l->string_len+1);
-  if(!l->string)
-    return 1;
-  strncpy((char*)l->string, (const char*)string, l->string_len+1);
-  if(free_string)
-    RASQAL_FREE(cstring, string);
+  if(string) {
+    if(l->string)
+      RASQAL_FREE(cstring, (void*)l->string);
+    l->string_len=strlen((const char*)string);
+    l->string=(unsigned char*)RASQAL_MALLOC(cstring, l->string_len+1);
+    if(!l->string)
+      return 1;
+    strncpy((char*)l->string, (const char*)string, l->string_len+1);
+  }
 
   dt_uri=rasqal_xsd_datatype_type_to_uri(l->type);
   if(!dt_uri)
@@ -451,7 +444,6 @@ rasqal_literal_set_typed_value(rasqal_literal* l, rasqal_literal_type type,
       l->value.integer=i;
       l->parent_type=RASQAL_LITERAL_DECIMAL;
       break;
-
 
     case RASQAL_LITERAL_DOUBLE:
     case RASQAL_LITERAL_FLOAT:
