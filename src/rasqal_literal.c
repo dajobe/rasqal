@@ -543,13 +543,6 @@ rasqal_literal_string_to_native(rasqal_literal *l,
   
   native_type=rasqal_xsd_datatype_uri_to_type(l->datatype);
 
-  /* Turn typed literal "xx"^^xsd:string into a plain literal "xx" */
-  if(native_type == RASQAL_LITERAL_STRING) {
-    raptor_free_uri(l->datatype);
-    l->datatype=NULL;
-    return 0;
-  }
-
   /* If not a native type return ok but do not change literal */
   if(native_type == RASQAL_LITERAL_UNKNOWN)
     return 0;
@@ -1759,6 +1752,10 @@ rasqal_literal_string_equals(rasqal_literal* l1, rasqal_literal* l2,
                              int* error)
 {
   int result=1;
+  raptor_uri* dt1=l1->datatype;
+  raptor_uri* dt2=l2->datatype;
+  raptor_uri* xsd_string_uri=rasqal_xsd_datatype_type_to_uri(RASQAL_LITERAL_STRING);
+
   if(l1->language || l2->language) {
     /* if either is NULL, the comparison fails */
     if(!l1->language || !l2->language)
@@ -1767,15 +1764,23 @@ rasqal_literal_string_equals(rasqal_literal* l1, rasqal_literal* l2,
       return 0;
   }
 
-  if(l1->datatype || l2->datatype) {
+  /* Treat typed literal "xx"^^xsd:string as plain literal "xx" 
+   * for purposes of equality.
+   */
+  if(dt1 && raptor_uri_equals(dt1, xsd_string_uri))
+    dt1=NULL;
+  if(dt2 && raptor_uri_equals(dt2, xsd_string_uri))
+    dt2=NULL;
+
+  if(dt1 || dt2) {
     /* if either is NULL - type error */
-    if(!l1->datatype || !l2->datatype) {
+    if(!dt1 || !dt2) {
       if(error)
         *error=1;
       return 0;
     }
     /* if different - type error */
-    if(!raptor_uri_equals(l1->datatype, l2->datatype)) {
+    if(!raptor_uri_equals(dt1, dt2)) {
       if(error)
         *error=1;
       return 0;
