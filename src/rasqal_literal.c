@@ -424,6 +424,7 @@ rasqal_literal_set_typed_value(rasqal_literal* l, rasqal_literal_type type,
   if(!l->string)
     return 1;
   strncpy((char*)l->string, (const char*)string, l->string_len+1);
+  RASQAL_FREE(cstring, string);
 
   dt_uri=rasqal_xsd_datatype_type_to_uri(l->type);
   if(!dt_uri)
