@@ -1393,7 +1393,7 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e,
         goto failed;
       }
 
-      vars.b=(rasqal_literal_compare(l1, l2, flags, &errs.e) == 0);
+      vars.b=(rasqal_literal_equals_flags(l1, l2, flags, &errs.e) != 0);
       rasqal_free_literal(l1);
       rasqal_free_literal(l2);
       if(errs.e)
@@ -1412,7 +1412,7 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e,
         goto failed;
       }
 
-      vars.b=(rasqal_literal_compare(l1, l2, flags, &errs.e) != 0);
+      vars.b=(rasqal_literal_equals_flags(l1, l2, flags, &errs.e) == 0);
       rasqal_free_literal(l1);
       rasqal_free_literal(l2);
       if(errs.e)
@@ -1939,8 +1939,23 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e,
       break;
       
     case RASQAL_EXPR_SAMETERM:
-      rasqal_query_warning(query, "sameTerm() not implemented.  Returning false.");
-      result=rasqal_new_boolean_literal(0);
+      l1=rasqal_expression_evaluate(query, e->arg1, flags);
+      if(!l1)
+        goto failed;
+      
+      l2=rasqal_expression_evaluate(query, e->arg2, flags);
+      if(!l2) {
+        rasqal_free_literal(l1);
+        goto failed;
+      }
+
+      vars.b=rasqal_literal_equals_flags(l1, l2, RASQAL_COMPARE_RDF, &errs.e);
+      rasqal_free_literal(l1);
+      rasqal_free_literal(l2);
+      if(errs.e)
+        goto failed;
+
+      result=rasqal_new_boolean_literal(vars.b);
       break;
       
     case RASQAL_EXPR_UNKNOWN:
