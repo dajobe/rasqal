@@ -47,8 +47,6 @@ typePromotion-decimal-decimal-pass.rq
 
 # Test failures
 EXPECTED_SPARQL_CORRECT_FAILURES= \
-extendedType-ne-fail \
-extendedType-literal-ne \
 typePromotion-decimal-decimal-pass \
 boolean-false-canonical \
 boolean-true-canonical \
