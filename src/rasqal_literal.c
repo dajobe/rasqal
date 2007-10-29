@@ -304,14 +304,19 @@ rasqal_new_decimal_literal(const unsigned char *string,
     }
   } else if(decimal) {
     dt_uri=rasqal_xsd_datatype_type_to_uri(l->type);
-    l->datatype=raptor_uri_copy(dt_uri);
-    l->value.decimal=decimal;
-    /* string is owned by l->value.decimal */
-    l->string=(unsigned char*)rasqal_xsd_decimal_as_counted_string(l->value.decimal,
-                                                                   (size_t*)&l->string_len);
-    if(!l->string) {
+    if(!dt_uri) {
       rasqal_free_literal(l);
       l=NULL;
+    } else {
+      l->datatype=raptor_uri_copy(dt_uri);
+      l->value.decimal=decimal;
+      /* string is owned by l->value.decimal */
+      l->string=(unsigned char*)rasqal_xsd_decimal_as_counted_string(l->value.decimal,
+                                                                     (size_t*)&l->string_len);
+      if(!l->string) {
+        rasqal_free_literal(l);
+        l=NULL;
+      }
     }
   } else {
     /* no string or decimal was given */
