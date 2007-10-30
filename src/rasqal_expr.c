@@ -1570,27 +1570,28 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e,
           goto failed;
       }
 
-      if(l1->type == RASQAL_LITERAL_STRING) {
-        if(l1->language) {
-          vars.new_s=(unsigned char*)RASQAL_MALLOC(cstring,
-                                                   strlen(l1->language)+1);
-          if(!vars.new_s) {
-            if(errs.flags.free_literal)
-              rasqal_free_literal(l1);
-            goto failed;
-          }
-          strcpy((char*)vars.new_s, l1->language);
-        } else  {
-          vars.new_s=(unsigned char*)RASQAL_MALLOC(cstring, 1);
-          if(!vars.new_s) {
-            if(errs.flags.free_literal)
-              rasqal_free_literal(l1);
-            goto failed;
-          }
-          *vars.new_s='\0';
+      if(rasqal_literal_get_rdf_term_type(l1) != RASQAL_LITERAL_STRING)
+        goto failed;
+
+      if(l1->language) {
+        vars.new_s=(unsigned char*)RASQAL_MALLOC(cstring,
+                                                 strlen(l1->language)+1);
+        if(!vars.new_s) {
+          if(errs.flags.free_literal)
+            rasqal_free_literal(l1);
+          goto failed;
         }
-        result=rasqal_new_string_literal(vars.new_s, NULL, NULL, NULL);
+        strcpy((char*)vars.new_s, l1->language);
+      } else  {
+        vars.new_s=(unsigned char*)RASQAL_MALLOC(cstring, 1);
+        if(!vars.new_s) {
+          if(errs.flags.free_literal)
+            rasqal_free_literal(l1);
+          goto failed;
+        }
+        *vars.new_s='\0';
       }
+      result=rasqal_new_string_literal(vars.new_s, NULL, NULL, NULL);
       
       if(errs.flags.free_literal)
         rasqal_free_literal(l1);
@@ -1638,6 +1639,12 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e,
         if(!l1)
           goto failed;
       }
+
+      if(rasqal_literal_get_rdf_term_type(l1) != RASQAL_LITERAL_STRING)
+        goto failed;
+
+      if(l1->language)
+        goto failed;
 
       /* The datatype of a plain literal is xsd:string */
       vars.dt_uri=l1->datatype;
@@ -1721,7 +1728,7 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e,
           goto failed;
       }
 
-      vars.b=(l1->type == RASQAL_LITERAL_STRING);
+      vars.b=(rasqal_literal_get_rdf_term_type(l1) == RASQAL_LITERAL_STRING);
 
       if(errs.flags.free_literal)
         rasqal_free_literal(l1);
