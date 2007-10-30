@@ -641,6 +641,7 @@ rasqal_literal* rasqal_literal_multiply(rasqal_literal* l1, rasqal_literal* l2, 
 rasqal_literal* rasqal_literal_divide(rasqal_literal* l1, rasqal_literal* l2, int *error);
 rasqal_literal* rasqal_literal_negate(rasqal_literal* l, int *error_p);
 int rasqal_literal_equals_flags(rasqal_literal* l1, rasqal_literal* l2, int flags, int* error);
+rasqal_literal_type rasqal_literal_get_rdf_term_type(rasqal_literal* l);
 
 
 
