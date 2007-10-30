@@ -635,13 +635,56 @@ static void rdql_lexer_fatal_error(yyconst char *msg, yyscan_t yyscanner)
 }
 
 
+/* Define LEXER_ALLOC_TRACKING to enable allocated memory tracking
+ * - fixes lexer memory leak when ensure_buffer_stack fails
+ */
+
+#ifdef LEXER_ALLOC_TRACKING
+typedef struct {
+  /* Number of void* slots allocated */
+  int lexer_allocs_size;
+  /* Allocted void* slots follow in memory after this header */
+} lexer_alloc_tracker_header;
+
+/* Initial alloc tracker slot array size - 2 seems to be enough for almost all cases */
+static const int initial_lexer_allocs_size=2;
+#endif
+
+
 /*
  * rdql_lexer_cleanup:
+ * @yyscanner:
  *
- * INTERNAL - Clean up.
+ * INTERNAL - Clean up unfreed lexer allocs if LEXER_ALLOC_TRACKING is enabled.
  */
 static void rdql_lexer_cleanup(yyscan_t yyscanner)
 {
+#ifdef LEXER_ALLOC_TRACKING
+  rasqal_query *rq;
+  lexer_alloc_tracker_header *tracker;
+  void **lexer_allocs;
+  int i;
+
+  if(!yyscanner)
+    return;
+
+  rq=(rasqal_query *)rdql_lexer_get_extra(yyscanner);
+  if(!rq)
+    return;
+
+  tracker=(lexer_alloc_tracker_header *)rq->lexer_user_data;
+  if(!tracker)
+    return;
+  lexer_allocs=(void**)&tracker[1];
+
+  for(i=0; i<tracker->lexer_allocs_size; ++i) {
+    if(lexer_allocs[i])
+      free(lexer_allocs[i]);
+    lexer_allocs[i]=NULL;
+  }
+  free(rq->lexer_user_data);
+  rq->lexer_user_data=NULL;
+#endif
 }
 
 
@@ -651,10 +694,80 @@ static void rdql_lexer_cleanup(yyscan_t yyscanner)
  * @yyscanner
  *
  * INTERNAL - alloc replacement.
+ * Tracks allocated cells if LEXER_ALLOC_TRACKING is enabled.
  */
 void *rdql_lexer_alloc(yy_size_t size, yyscan_t yyscanner)
 {
+#ifdef LEXER_ALLOC_TRACKING
+  rasqal_query *rq;
+  lexer_alloc_tracker_header *tracker;
+  void **lexer_allocs;
+  int i;
+  void *ptr;
+
+  /* yyscanner not initialized -> probably initializing yyscanner itself
+   * -> just malloc without tracking
+   */
+  if(!yyscanner)
+    return malloc(size);
+
+  rq=(rasqal_query *)rdql_lexer_get_extra(yyscanner);
+  if(!rq)
+    YY_FATAL_ERROR("lexer_alloc: yyscanner extra not initialized");
+
+  /* try to allocate tracker if it does not exist */
+  tracker=(lexer_alloc_tracker_header *)rq->lexer_user_data;
+  if(!tracker) {
+    /* allocate tracker header + array of void* slots */
+    tracker=calloc(1, sizeof(lexer_alloc_tracker_header)+initial_lexer_allocs_size*sizeof(void*));
+    if(!tracker)
+      YY_FATAL_ERROR("lexer_alloc: cannot allocate tracker");
+    tracker->lexer_allocs_size=initial_lexer_allocs_size;
+    rq->lexer_user_data=(void *)tracker;
+  }
+  lexer_allocs=(void**)&tracker[1];
+
+  /* allocate memory */
+  ptr=malloc(size);
+  
+  /* find a free slot for ptr */
+  for(i=0; i<tracker->lexer_allocs_size; ++i) {
+    if(!lexer_allocs[i]) {
+      lexer_allocs[i]=ptr;
+      break;
+    }
+  }
+
+  /* no free slots -> grow tracker slot array */
+  if(i>=tracker->lexer_allocs_size) {
+    int j;
+    void **dest;
+    tracker=calloc(1, sizeof(lexer_alloc_tracker_header)+i*2*sizeof(void*));
+    if(!tracker) {
+      if(ptr)
+        free(ptr);
+      YY_FATAL_ERROR("lexer_alloc: cannot grow tracker");
+    }
+    tracker->lexer_allocs_size=i*2;
+    
+    /* copy data from old tracker */
+    dest=(void**)&tracker[1];
+    for(j=0; j<i; ++j) {
+      dest[j]=lexer_allocs[j];
+    }
+    
+    /* set new item to first free slot */
+    dest[j]=ptr;
+
+    /* free old tracker and replace with new one */
+    free(rq->lexer_user_data);
+    rq->lexer_user_data=tracker;
+  }
+
+  return ptr;
+#else
   return malloc(size);
+#endif
 }
 
 
@@ -662,10 +775,49 @@ void *rdql_lexer_alloc(yy_size_t size, yyscan_t yyscanner)
  * rdql_lexer_realloc:
  *
  * INTERNAL - realloc replacement
+ * Tracks allocated cells if LEXER_ALLOC_TRACKING is enabled.
  */
 void *rdql_lexer_realloc(void *ptr, yy_size_t size, yyscan_t yyscanner)
 {
+#ifdef LEXER_ALLOC_TRACKING
+  rasqal_query *rq;
+  lexer_alloc_tracker_header *tracker;
+  void **lexer_allocs;
+  int i;
+  void *newptr;
+
+  if(!yyscanner)
+    YY_FATAL_ERROR("lexer_realloc: yyscanner not initialized");
+
+  rq=(rasqal_query *)rdql_lexer_get_extra(yyscanner);
+  if(!rq)
+    YY_FATAL_ERROR("lexer_realloc: yyscanner extra not initialized");
+
+  tracker=(lexer_alloc_tracker_header *)rq->lexer_user_data;
+  if(!tracker)
+    YY_FATAL_ERROR("lexer_realloc: no alloc tracker");
+  lexer_allocs=(void**)&tracker[1];
+
+  /* find the old slot for ptr */
+  for(i=0; i<tracker->lexer_allocs_size; ++i) {
+    if(lexer_allocs[i]==ptr)
+      break;
+  }
+
+  /* no old slot -> error */  
+  if(i>=tracker->lexer_allocs_size)
+    YY_FATAL_ERROR("lexer_realloc: cell not in tracker");
+
+  /* realloc */
+  newptr=realloc((char*)ptr, size);
+
+  /* replace entry in tracker */
+  lexer_allocs[i]=newptr;
+
+  return newptr;
+#else
   return realloc((char*)ptr, size);
+#endif
 }
 
 
@@ -674,11 +826,53 @@ void *rdql_lexer_realloc(void *ptr, yy_size_t size, yyscan_t yyscanner)
  *
  * INTERNAL - free replacement.
  * Checks for NULL pointer to be freed unlike the default lexer free function.
+ * Tracks allocated cells if LEXER_ALLOC_TRACKING is enabled.
  */
 void rdql_lexer_free(void *ptr, yyscan_t yyscanner)
 {
+#ifdef LEXER_ALLOC_TRACKING
+  rasqal_query *rq;
+  lexer_alloc_tracker_header *tracker;
+  void **lexer_allocs;
+  int i;
+
+  /* do not free NULL */
+  if(!ptr)
+    return;
+
+  /* free ptr even if we would encounter an error */
+  free(ptr);
+
+  /* yyscanner is allocated with rdql_lexer_alloc() but it's never stored in the tracker
+   * - we need yyscanner to access the tracker */
+  if(!yyscanner || ptr==yyscanner)
+    return;
+
+  rq=(rasqal_query *)rdql_lexer_get_extra(yyscanner);
+  if(!rq)
+    return;
+
+  tracker=(lexer_alloc_tracker_header *)rq->lexer_user_data;
+  if(!tracker)
+    return;
+  lexer_allocs=(void**)&tracker[1];
+
+  /* find the slot for ptr */
+  for(i=0; i<tracker->lexer_allocs_size; ++i) {
+    if(lexer_allocs[i]==ptr)
+      break;
+  }
+
+  /* no slot -> error */  
+  if(i>=tracker->lexer_allocs_size)
+    YY_FATAL_ERROR("lexer_free: cell not in tracker");
+
+  /* remove entry from tracker */
+  lexer_allocs[i]=NULL;
+#else
   if(ptr)
     free(ptr);
+#endif
 }
 
 
