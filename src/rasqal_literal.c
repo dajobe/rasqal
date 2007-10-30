@@ -55,7 +55,6 @@
 
 /* prototypes */
 static rasqal_literal_type rasqal_literal_promote_numerics(rasqal_literal* l1, rasqal_literal* l2, int flags);
-static rasqal_literal_type rasqal_literal_get_rdf_term_type(rasqal_literal* l);
 static int rasqal_literal_set_typed_value(rasqal_literal* l, rasqal_literal_type type, const unsigned char* string, raptor_simple_message_handler error_handler, void *error_data);
 
 
@@ -1327,11 +1326,12 @@ rasqal_literal_promote_numerics(rasqal_literal* l1, rasqal_literal* l2,
  *
  * Return value: type or RASQAL_LITERAL_UNKNOWN if cannot be an RDF term
  */
-static rasqal_literal_type
+rasqal_literal_type
 rasqal_literal_get_rdf_term_type(rasqal_literal* l)
 {
-  rasqal_literal_type type=l->type;
-
+  rasqal_literal_type type;
+  type=(l->parent_type != RASQAL_LITERAL_UNKNOWN) ? l->parent_type : l->type;
+ 
   /* squash literal datatypes into one type: RDF Literal */
   if(type >= RASQAL_LITERAL_FIRST_XSD &&
      type <= RASQAL_LITERAL_LAST_XSD)
