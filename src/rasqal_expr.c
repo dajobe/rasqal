@@ -1640,11 +1640,17 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e,
           goto failed;
       }
 
-      if(rasqal_literal_get_rdf_term_type(l1) != RASQAL_LITERAL_STRING)
+      if(rasqal_literal_get_rdf_term_type(l1) != RASQAL_LITERAL_STRING) {
+        if(errs.flags.free_literal)
+          rasqal_free_literal(l1);
         goto failed;
+      }
 
-      if(l1->language)
+      if(l1->language) {
+        if(errs.flags.free_literal)
+          rasqal_free_literal(l1);
         goto failed;
+      }
 
       /* The datatype of a plain literal is xsd:string */
       vars.dt_uri=l1->datatype;
