@@ -1976,7 +1976,7 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e,
       RASQAL_FATAL2("Unknown operation %d", e->op);
   }
 
-  failed:
+  got_result:
 
 #ifdef RASQAL_DEBUG
   RASQAL_DEBUG2("result of %p: ", e);
@@ -1990,6 +1990,14 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e,
 #endif
   
   return result;
+
+  failed:
+
+  if(result) {
+    rasqal_free_literal(result);
+    result=NULL;
+  }
+  goto got_result;
 }
 
 
