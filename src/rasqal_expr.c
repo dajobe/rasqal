@@ -1829,8 +1829,13 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e,
         goto failed;
       }
 
-      vars.i=rasqal_literal_as_integer(l1, &errs.errs.e1) %
-             rasqal_literal_as_integer(l2, &errs.errs.e2);
+      vars.i=rasqal_literal_as_integer(l2, &errs.errs.e2);
+      /* error if divisor is zero */
+      if(!vars.i)
+        errs.errs.e2=1;
+      else
+        vars.i=rasqal_literal_as_integer(l1, &errs.errs.e1) % vars.i;
+
       rasqal_free_literal(l1);
       rasqal_free_literal(l2);
       if(errs.errs.e1 || errs.errs.e2)
