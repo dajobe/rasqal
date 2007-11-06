@@ -40,28 +40,24 @@ extern "C" {
  * Macro for wrapping API function call declarations.
  *
  */
-#ifdef WIN32
-#  ifdef __GNUC__
-#    undef _declspec
-#    define _declspec(x) __declspec(x)
-#  endif
-#  ifdef RASQAL_STATIC
-#    define RASQAL_API
-#  else
-#    ifdef RASQAL_INTERNAL
-#      define RASQAL_API _declspec(dllexport)
-#    else
-#      define RASQAL_API _declspec(dllimport)
+#ifndef RASQAL_API
+#  ifdef WIN32
+#    ifdef __GNUC__
+#      undef _declspec
+#      define _declspec(x) __declspec(x)
 #    endif
-#  endif
-#elif defined(__SYMBIAN32__)
-#  ifdef RASQAL_INTERNAL
-#    define RASQAL_API __declspec(dllexport)
+#    ifdef RASQAL_STATIC
+#      define RASQAL_API
+#    else
+#      ifdef RASQAL_INTERNAL
+#        define RASQAL_API _declspec(dllexport)
+#      else
+#        define RASQAL_API _declspec(dllimport)
+#      endif
+#    endif
 #  else
-#    define RASQAL_API __declspec(dllimport)
+#    define RASQAL_API
 #  endif
-#else
-#  define RASQAL_API
 #endif
 
 /* Use gcc 3.1+ feature to allow marking of deprecated API calls.
