@@ -389,7 +389,7 @@ typedef struct {
 #define SPARQL_XSD_NAMES_COUNT (RASQAL_LITERAL_LAST_XSD+1 + XSD_INTEGER_DERIVED_COUNT)
 
 
-static const char* sparql_xsd_names[SPARQL_XSD_NAMES_COUNT+1]=
+static const char* const sparql_xsd_names[SPARQL_XSD_NAMES_COUNT+1]=
 {
   NULL, NULL, NULL, 
   "string",

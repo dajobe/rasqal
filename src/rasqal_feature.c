@@ -41,7 +41,7 @@
 #include "rasqal_internal.h"
 
 
-static struct
+static const struct
 {
   rasqal_feature feature;
   /* flag bits
@@ -57,7 +57,7 @@ static struct
 };
 
 
-static const char *rasqal_feature_uri_prefix="http://feature.librdf.org/rasqal-";
+static const char * const rasqal_feature_uri_prefix="http://feature.librdf.org/rasqal-";
 /* NOTE: this is strlen(rasqal_feature_uri_prefix) */
 #define RASQAL_FEATURE_URI_PREFIX_LEN 33
 

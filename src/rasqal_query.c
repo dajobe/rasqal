@@ -1211,7 +1211,7 @@ rasqal_query_execute(rasqal_query* query)
 }
 
 
-static const char* rasqal_query_verb_labels[RASQAL_QUERY_VERB_LAST+1]={
+static const char* const rasqal_query_verb_labels[RASQAL_QUERY_VERB_LAST+1]={
   "Unknown",
   "SELECT",
   "CONSTRUCT",
@@ -1677,7 +1677,7 @@ rasqal_query_write_indent(raptor_iostream* iostr, int indent)
 
   
 
-static const char* rasqal_sparql_op_labels[RASQAL_EXPR_LAST+1]={
+static const char* const rasqal_sparql_op_labels[RASQAL_EXPR_LAST+1]={
   NULL, /* UNKNOWN */
   "&&",
   "||",

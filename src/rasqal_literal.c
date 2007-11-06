@@ -812,7 +812,7 @@ rasqal_free_literal(rasqal_literal* l)
  * uses it for type comparisons with the RASQAL_COMPARE_XQUERY
  * flag.
  */
-static const char* rasqal_literal_type_labels[RASQAL_LITERAL_LAST+1]={
+static const char* const rasqal_literal_type_labels[RASQAL_LITERAL_LAST+1]={
   "UNKNOWN",
   "blank",
   "uri",

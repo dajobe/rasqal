@@ -263,7 +263,7 @@ rasqal_graph_pattern_get_operator(rasqal_graph_pattern* graph_pattern)
 }
 
 
-static const char* rasqal_graph_pattern_operator_labels[RASQAL_GRAPH_PATTERN_OPERATOR_LAST+1]={
+static const char* const rasqal_graph_pattern_operator_labels[RASQAL_GRAPH_PATTERN_OPERATOR_LAST+1]={
   "UNKNOWN",
   "basic",
   "optional",

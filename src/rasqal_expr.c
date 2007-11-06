@@ -2006,7 +2006,7 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e,
 }
 
 
-static const char* rasqal_op_labels[RASQAL_EXPR_LAST+1]={
+static const char* const rasqal_op_labels[RASQAL_EXPR_LAST+1]={
   "UNKNOWN",
   "and",
   "or",
