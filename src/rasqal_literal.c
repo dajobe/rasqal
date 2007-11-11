@@ -55,7 +55,7 @@
 
 /* prototypes */
 static rasqal_literal_type rasqal_literal_promote_numerics(rasqal_literal* l1, rasqal_literal* l2, int flags);
-static int rasqal_literal_set_typed_value(rasqal_literal* l, rasqal_literal_type type, const unsigned char* string, raptor_simple_message_handler error_handler, void *error_data);
+static int rasqal_literal_set_typed_value(rasqal_literal* l, rasqal_literal_type type, const unsigned char* string, raptor_simple_message_handler error_handler, void *error_data, int flags);
 
 
 /**
@@ -121,7 +121,7 @@ rasqal_new_typed_literal(rasqal_literal_type type, const unsigned char* string)
 
   l->usage=1;
   l->type=type;
-  if(rasqal_literal_set_typed_value(l, type, string, NULL, NULL)) {
+  if(rasqal_literal_set_typed_value(l, type, string, NULL, NULL, 0)) {
     rasqal_free_literal(l);
     l=NULL;
   }
@@ -298,7 +298,7 @@ rasqal_new_decimal_literal(const unsigned char *string,
   l->usage=1;
   l->type=RASQAL_LITERAL_DECIMAL;
   if(string) {
-    if(rasqal_literal_set_typed_value(l, l->type, string, NULL, NULL)) {
+    if(rasqal_literal_set_typed_value(l, l->type, string, NULL, NULL, 0)) {
       rasqal_free_literal(l);
       l=NULL;
     }
@@ -383,6 +383,7 @@ rasqal_new_numeric_literal(double d, rasqal_literal_type type)
  * @string: string or NULL to use existing literal string
  * @error_handler: error handling function
  * @error_data: data for error handle
+ * @flags: non-0 to ignore type errors
  *
  * INTERNAL - Set a literal typed value
  *
@@ -392,20 +393,24 @@ static int
 rasqal_literal_set_typed_value(rasqal_literal* l, rasqal_literal_type type,
                                const unsigned char* string,
                                raptor_simple_message_handler error_handler,
-                               void *error_data)
+                               void *error_data, int flags)
 {  
   char *eptr;
   raptor_uri* dt_uri;
-  int flags=0;
   int i;
   double d;
   const unsigned char *new_string;
+  int valid;
 
-  if(!rasqal_xsd_datatype_check(type, string ? string : l->string, flags)) {
-    if(error_handler)
-      error_handler(error_data, "Illegal type %s string '%s'",
-                    rasqal_xsd_datatype_label(type), string ? string : l->string);
-    return 1;
+  valid=rasqal_xsd_datatype_check(type, string ? string : l->string, flags);
+  if(!valid) {
+    if(!flags) {
+      if(error_handler)
+        error_handler(error_data, "Illegal type %s string '%s'",
+                      rasqal_xsd_datatype_label(type), string ? string : l->string);
+      return 1;
+    }
+    return 0;
   }
 
   if(l->language) {
@@ -525,6 +530,7 @@ rasqal_literal_set_typed_value(rasqal_literal* l, rasqal_literal_type type,
  * @l: #rasqal_literal to operate on inline
  * @error_handler: error handling function
  * @error_data: data for error handle
+ * @flags: flags for literal checking.  non-0 to ignore type errors
  *
  * INTERNAL Upgrade a datatyped literal string to an internal typed literal
  *
@@ -541,7 +547,7 @@ rasqal_literal_set_typed_value(rasqal_literal* l, rasqal_literal_type type,
 int
 rasqal_literal_string_to_native(rasqal_literal *l,
                                 raptor_simple_message_handler error_handler,
-                                void *error_data)
+                                void *error_data, int flags)
 {
   rasqal_literal_type native_type=RASQAL_LITERAL_UNKNOWN;
   int rc=0;
@@ -560,7 +566,7 @@ rasqal_literal_string_to_native(rasqal_literal *l,
     return 0;
 
   rc=rasqal_literal_set_typed_value(l, native_type, NULL /* existing string */,
-                                    error_handler, error_data);
+                                    error_handler, error_data, flags);
   return rc;
 }
 
@@ -614,7 +620,7 @@ rasqal_new_string_literal(const unsigned char *string,
       /* This is either RASQAL_LITERAL_DECIMAL or ...INTEGER or ...UNKNOWN */
       l->parent_type=rasqal_xsd_datatype_uri_parent_type(datatype);
 
-    if(rasqal_literal_string_to_native(l, NULL, NULL)) {
+    if(rasqal_literal_string_to_native(l, NULL, NULL, 1)) {
       rasqal_free_literal(l);
       l=NULL;
     }
@@ -2036,7 +2042,7 @@ rasqal_literal_expand_qname(void *user_data, rasqal_literal *l)
         l->language=NULL;
       }
 
-      if(rasqal_literal_string_to_native(l, (raptor_simple_message_handler)rasqal_query_simple_error, rq)) {
+      if(rasqal_literal_string_to_native(l, (raptor_simple_message_handler)rasqal_query_simple_error, rq, 0)) {
         rasqal_free_literal(l);
         return 1;
       }
