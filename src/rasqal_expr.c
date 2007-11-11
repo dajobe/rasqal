@@ -1416,7 +1416,7 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e,
       rasqal_free_literal(l1);
       rasqal_free_literal(l2);
       if(errs.e)
-        goto failed;
+        vars.b=1;
       result=rasqal_new_boolean_literal(vars.b);
       break;
 
