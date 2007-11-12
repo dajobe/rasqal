@@ -501,6 +501,14 @@ struct rasqal_query_results_formatter_s {
   const char *mime_type;
 };
 
+/* rasqal_xsd_datatypes.c */
+
+typedef struct {
+  const char *name;
+  raptor_uri* uri;
+  int (*check)(const unsigned char* string, int flags);
+} rasqal_xsd_datatype_info;
+
 
 /* rasqal_general.c */
 char* rasqal_vsnprintf(const char* message, va_list arguments);

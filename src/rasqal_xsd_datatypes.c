@@ -99,12 +99,6 @@ static unsigned int days_per_month(int month, int year);
  */
 
 
-typedef struct {
-  const char *name;
-  raptor_uri* uri;
-  int (*check)(const unsigned char* string, int flags);
-} rasqal_xsd_datatype_info;
-
 #if 0
 #define RASQAL_XPFO_BASE_URI "http://www.w3.org/2004/07/xpath-functions"
 
