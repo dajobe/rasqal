@@ -71,7 +71,7 @@ rasqal_new_query(const char *name, const unsigned char *uri)
 {
   rasqal_query_engine_factory* factory;
   rasqal_query* query;
-  raptor_uri_handler *uri_handler;
+  const raptor_uri_handler *uri_handler;
   void *uri_context;
 
   factory=rasqal_get_query_engine_factory(name, uri);
@@ -1965,7 +1965,7 @@ rasqal_query_write_sparql_20060406(raptor_iostream *iostr,
   int i;
   raptor_sequence *var_seq=NULL;
   sparql_writer_context wc;
-  raptor_uri_handler *uri_handler;
+  const raptor_uri_handler *uri_handler;
   void *uri_context;
   
   wc.type_uri=raptor_new_uri_for_rdf_concept("type");

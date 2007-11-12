@@ -390,7 +390,7 @@ rasqal_query_results_write_xml_result4(raptor_iostream *iostr,
 {
   int rc=1;
   rasqal_query* query=results->query;
-  raptor_uri_handler *uri_handler;
+  const raptor_uri_handler *uri_handler;
   void *uri_context;
   raptor_xml_writer* xml_writer=NULL;
   raptor_namespace *res_ns=NULL;
