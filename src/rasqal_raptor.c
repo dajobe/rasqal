@@ -481,8 +481,9 @@ rasqal_raptor_bind_match(struct rasqal_triples_match_s* rtm,
 
   if(bindings[1] && (parts & RASQAL_TRIPLE_PREDICATE)) {
     if(bindings[0] == bindings[1]) {
-      if(rasqal_literal_compare(rtmc->cur->triple->subject,
-                                rtmc->cur->triple->predicate, 0, &error))
+      if(!rasqal_literal_equals_flags(rtmc->cur->triple->subject,
+                                      rtmc->cur->triple->predicate,
+                                      RASQAL_COMPARE_RDF, &error))
         return (rasqal_triple_parts)0;
       if(error)
         return (rasqal_triple_parts)0;
@@ -500,8 +501,9 @@ rasqal_raptor_bind_match(struct rasqal_triples_match_s* rtm,
     int bind=1;
     
     if(bindings[0] == bindings[2]) {
-      if(rasqal_literal_compare(rtmc->cur->triple->subject,
-                                rtmc->cur->triple->object, 0, &error))
+      if(!rasqal_literal_equals_flags(rtmc->cur->triple->subject,
+                                      rtmc->cur->triple->object,
+				      RASQAL_COMPARE_RDF, &error))
         return (rasqal_triple_parts)0;
       if(error)
         return (rasqal_triple_parts)0;
@@ -512,8 +514,9 @@ rasqal_raptor_bind_match(struct rasqal_triples_match_s* rtm,
     if(bindings[1] == bindings[2] &&
        !(bindings[0] == bindings[1]) /* don't do this check if ?x ?x ?x */
        ) {
-      if(rasqal_literal_compare(rtmc->cur->triple->predicate,
-                                rtmc->cur->triple->object, 0, &error))
+      if(!rasqal_literal_equals_flags(rtmc->cur->triple->predicate,
+                                      rtmc->cur->triple->object,
+				      RASQAL_COMPARE_RDF, &error))
         return (rasqal_triple_parts)0;
       if(error)
         return (rasqal_triple_parts)0;
