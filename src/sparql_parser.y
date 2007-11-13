@@ -879,6 +879,7 @@ GroupGraphPattern: '{' GraphPattern '}'
 {
   $$=$2;
 }
+;
 
 
 /* NEW Grammar Term */
