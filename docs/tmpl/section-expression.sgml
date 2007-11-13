@@ -80,6 +80,8 @@ constants and #rasqal_variable values bound in some
 
 @RASQAL_COMPARE_NOCASE: 
 @RASQAL_COMPARE_XQUERY: 
+@RASQAL_COMPARE_RDF: 
+@RASQAL_COMPARE_URI: 
 
 <!-- ##### ENUM rasqal_pattern_flags ##### -->
 <para>

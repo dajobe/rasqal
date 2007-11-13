@@ -62,6 +62,7 @@ boolean, double, floating, integer, regex pattern and variables.
 
 </para>
 
+@string: 
 @decimal: 
 @Returns: 
 
@@ -72,6 +73,15 @@ boolean, double, floating, integer, regex pattern and variables.
 </para>
 
 @d: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_new_float_literal ##### -->
+<para>
+
+</para>
+
+@f: 
 @Returns: 
 
 
@@ -211,6 +221,15 @@ boolean, double, floating, integer, regex pattern and variables.
 @Returns: 
 
 
+<!-- ##### FUNCTION rasqal_literal_datatype ##### -->
+<para>
+
+</para>
+
+@l: 
+@Returns: 
+
+
 <!-- ##### FUNCTION rasqal_literal_equals ##### -->
 <para>
 
@@ -237,5 +256,14 @@ boolean, double, floating, integer, regex pattern and variables.
 
 @l: 
 @fh: 
+
+
+<!-- ##### FUNCTION rasqal_literal_value ##### -->
+<para>
+
+</para>
+
+@l: 
+@Returns: 
 
 

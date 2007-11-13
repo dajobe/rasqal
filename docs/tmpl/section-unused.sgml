@@ -29,45 +29,4 @@ Not used
 
 </para>
 
-@usage: 
-@op: 
-@arg1: 
-@arg2: 
-@arg3: 
-@literal: 
-@value: 
-@name: 
-@args: 
-
-<!-- ##### STRUCT rasqal_literal_s ##### -->
-<para>
-
-</para>
-
-@usage: 
-@type: 
-@string: 
-@string_len: 
-
-<!-- ##### STRUCT rasqal_triples_match_s ##### -->
-<para>
-
-</para>
-
-@user_data: 
-@bind_match: 
-@next_match: 
-@is_end: 
-@finish: 
-
-<!-- ##### STRUCT rasqal_triples_source_s ##### -->
-<para>
-
-</para>
-
-@query: 
-@user_data: 
-@init_triples_match: 
-@triple_present: 
-@free_triples_source: 
 
