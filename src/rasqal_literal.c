@@ -1590,6 +1590,8 @@ rasqal_literal_rdql_promote_calculate(rasqal_literal* l1, rasqal_literal* l2)
  * flag bits affects comparisons:
  *   RASQAL_COMPARE_NOCASE: use case independent string comparisons
  *   RASQAL_COMPARE_XQUERY: use XQuery comparison and type promotion rules
+ *   RASQAL_COMPARE_RDF: use RDF term comparison
+ *   RASQAL_COMPARE_URI: allow comparison of URIs (typically for SPARQL ORDER)
  * 
  * If @error is not NULL, *error is set to non-0 on error
  *
@@ -1647,8 +1649,8 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
     type=type1;
   } else if(flags & RASQAL_COMPARE_XQUERY) { 
     /* SPARQL / XQuery promotion rules */
-    int type0=(int)lits[0]->type;
-    int type1=(int)lits[1]->type;
+    rasqal_literal_type type0=lits[0]->type;
+    rasqal_literal_type type1=lits[1]->type;
 
     RASQAL_DEBUG3("xquery literal compare types %s vs %s\n",
                 rasqal_literal_type_labels[type0],
@@ -1656,9 +1658,17 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
 
     type=rasqal_literal_promote_numerics(lits[0], lits[1], flags);
     if(type == RASQAL_LITERAL_UNKNOWN) {
-      int type_diff=type0 - type1;
+      int type_diff;
+
+      /* no promotion but compare as RDF terms; like rasqal_literal_as_node() */
+      type0=rasqal_literal_get_rdf_term_type(lits[0]);
+      type1=rasqal_literal_get_rdf_term_type(lits[1]);
+      
+      if(type0 == RASQAL_LITERAL_UNKNOWN || type1 == RASQAL_LITERAL_UNKNOWN)
+        return 1;
+      type_diff=type0 - type1;
       if(type_diff != 0) {
-        RASQAL_DEBUG2("xquery literal returning type difference %d\n",
+        RASQAL_DEBUG2("RDF term literal returning type difference %d\n",
                       type_diff);
         return type_diff;
       }
@@ -1695,8 +1705,14 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
 
   switch(type) {
     case RASQAL_LITERAL_URI:
-      result=raptor_uri_compare(new_lits[0]->value.uri,
-                                new_lits[1]->value.uri);
+      if(flags & RASQAL_COMPARE_URI)
+        result=raptor_uri_compare(new_lits[0]->value.uri,
+                                  new_lits[1]->value.uri);
+      else {
+        if(error)
+          *error=1;
+        return 0;
+      }
       break;
 
     case RASQAL_LITERAL_STRING:
