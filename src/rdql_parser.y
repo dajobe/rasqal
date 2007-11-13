@@ -632,6 +632,8 @@ rasqal_rdql_query_engine_init(rasqal_query* rdf_query, const char *name) {
                                          (const unsigned char*)"owl",
                                          (const unsigned char*)RAPTOR_OWL_URI, 0);
 
+  rdf_query->compare_flags = RASQAL_COMPARE_URI;
+
   return 0;
 }
 
