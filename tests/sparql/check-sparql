@@ -249,11 +249,14 @@ sub run_test {
      $config->{result_file}, $config->{expect_fail});
   my($test_uri)=$config->{test_uri};
   my(@data_files)=@{$config->{data_files}};
+  my(@named_data_files)=@{$config->{named_data_files}};
 
-  warn "run_test(\n  name   : $name\n  dir    : $dir\n  query  : $test_file\n  data   : ",join("; ",@data_files),"\n  result : ",($result_file||"none"),"\n  expect : ",($expect_fail ? "failure":"success"),"\n)\n"
+  warn "run_test(\n  name       : $name\n  dir        : $dir\n  query      : $test_file\n  data       : ",join("; ",@data_files),"\n  named data : ",join("; ",@named_data_files),"\n  result     : ",($result_file||"none"),"\n  expect     : ",($expect_fail ? "failure":"success"),"\n)\n"
     if $debug;
 
-  my(@args)=(map "-D $_", @data_files);
+  my(@args)=();
+  push(@args, (map "-D $_", @data_files)) if @data_files;
+  push(@args, (map "-G $_", @named_data_files)) if @named_data_files;
 
   push(@args, "-n")
     unless $config->{execute};
@@ -494,6 +497,7 @@ while($list_node) {
      if $debug > 1;
   
   my(@data_files)=();
+  my(@named_data_files)=();
   for my $data_node (@{$triples{$action_node}->{"<${qt}data>"}}) { 
     warn "Entry graph data_node $data_node\n"
      if $debug > 1;
@@ -506,7 +510,7 @@ while($list_node) {
      if $debug > 1;
     my $data_file=($data_node =~ /^<(.+)>$/, $1);
     $data_file =~ s,^file:([^/]+),$1,;
-    push(@data_files, $data_file);
+    push(@named_data_files, $data_file);
   }
 
   my $query_type=$triples{$entry_node}->{"<${rdf}type>"}->[0];
@@ -551,6 +555,8 @@ while($list_node) {
 
     warn "Entry data_files=",join(", ",@data_files),"\n"
       if $debug > 1;
+    warn "Entry named data_files=",join(", ",@named_data_files),"\n"
+      if $debug > 1;
     warn "Entry query_file=$query_file\n"
       if $debug > 1;
   }
@@ -561,6 +567,7 @@ while($list_node) {
 		  dir => $srcdir,
 		  test_file => $query_file,
 		  data_files => \@data_files,
+		  named_data_files => \@named_data_files,
 		  result_file => $result_file,
 		  expect_fail => $expect_fail,
 		  test_type => $test_type,
