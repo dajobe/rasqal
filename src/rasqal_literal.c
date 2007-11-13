@@ -1883,6 +1883,14 @@ rasqal_literal_equals_flags(rasqal_literal* l1, rasqal_literal* l2,
     return (l1 || l2);
   }
 
+#ifdef RASQAL_DEBUG
+  RASQAL_DEBUG1(" ");
+  rasqal_literal_print(l1, stderr);
+  fputs( " to ", stderr);
+  rasqal_literal_print(l2, stderr);
+  fprintf(stderr, " with flags %d\n", flags);
+#endif
+
   if(flags & RASQAL_COMPARE_RDF) {
     /* no promotion but compare as RDF terms; like rasqal_literal_as_node() */
     rasqal_literal_type type1=rasqal_literal_get_rdf_term_type(l1);
@@ -1890,23 +1898,29 @@ rasqal_literal_equals_flags(rasqal_literal* l1, rasqal_literal* l2,
 
     if(type1 == RASQAL_LITERAL_UNKNOWN || type2 == RASQAL_LITERAL_UNKNOWN ||
        type1 != type2)
-      return 0;
+      goto tidy;
+
     type=type1;
   } else if(flags & RASQAL_COMPARE_XQUERY) { 
     /* SPARQL / XSD promotion rules */
     if(l1->type != l2->type) {
       type=rasqal_literal_promote_numerics(l1, l2, flags);
       if(type == RASQAL_LITERAL_UNKNOWN) {
-        /* Cannot promote to compatible types */
-        if(error)
-          *error=1;
-        return 0;
-      }
+        /* Cannot numeric promote - try RDF equality */
+        rasqal_literal_type type1=rasqal_literal_get_rdf_term_type(l1);
+        rasqal_literal_type type2=rasqal_literal_get_rdf_term_type(l2);
+        
+        if(type1 == RASQAL_LITERAL_UNKNOWN || type2 == RASQAL_LITERAL_UNKNOWN ||
+           type1 != type2)
+          goto tidy;
+
+        type=type1;
+      } else
+        promotion=1;
       RASQAL_DEBUG4("xquery promoted literals types (%s, %s) to type %s\n", 
                     rasqal_literal_type_labels[l1->type],
                     rasqal_literal_type_labels[l2->type],
                     rasqal_literal_type_labels[type]);
-      promotion=1;
     } else
       type=l1->type;
   } else {
@@ -1915,8 +1929,8 @@ rasqal_literal_equals_flags(rasqal_literal* l1, rasqal_literal* l2,
       /* booleans can be compared to strings */
       if(l2->type == RASQAL_LITERAL_BOOLEAN &&
          l1->type == RASQAL_LITERAL_STRING)
-        return !strcmp((const char*)l1->string, (const char*)l2->string);
-      return 0;
+        result=!strcmp((const char*)l1->string, (const char*)l2->string);
+      goto tidy;
     }
     type=l1->type;
   }
@@ -1988,6 +2002,10 @@ rasqal_literal_equals_flags(rasqal_literal* l1, rasqal_literal* l2,
     if(l2_p)
       rasqal_free_literal(l2_p);
   }
+
+#ifdef RASQAL_DEBUG
+  RASQAL_DEBUG2("equals result %d\n", result);
+#endif
 
   return result;
 }
