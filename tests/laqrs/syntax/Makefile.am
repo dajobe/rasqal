@@ -31,7 +31,8 @@ count3.rq \
 count4.rq \
 coverage.rq \
 explain.rq \
-delete.rq
+delete.rq \
+insert.rq
 
 LAQRS_BAD_TEST_FILES= \
 bad-select-expr.rq
