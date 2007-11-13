@@ -2925,7 +2925,8 @@ rasqal_query_result_literal_sequence_compare(rasqal_query* query,
       }
     }
     
-    result=rasqal_literal_compare(literal_a, literal_b, query->compare_flags,
+    result=rasqal_literal_compare(literal_a, literal_b,
+                                  query->compare_flags | RASQAL_COMPARE_URI,
                                   &error);
 
     if(error) {
