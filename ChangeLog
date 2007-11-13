@@ -1,8 +1,220 @@
-2007-10-27  Dave Beckett  <dave@dajobe.org>
+2007-11-12  Dave Beckett <dave@dajobe.org>
 
-	* Last known good revision 13092: 'make check' succeeds.
+	* Last known good revision 13179: 'make check' succeeds.
+
+	* src/rasqal_literal.c: (rasqal_literal_equals_flags): For XQUERY
+	style, try RDF term equality if numeric promotion fails.
+	Add debug messages
+
+2007-11-12  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_internal.h, src/rasqal_xsd_datatypes.c: Pulled
+	rasqal_xsd_datatype_info from rasqal_xsd_datatypes.c to
+	rasqal_internal.h
+
+	* src/rasqal_query.c, src/rasqal_result_formats.c: Make
+	raptor_uri_handlers const.
+
+2007-11-11  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_expr.c: (rasqal_expression_evaluate): Revert:
+	RASQAL_EXPR_NEQ return type errors again.
+
+	* src/rasqal_internal.h: Update rasqal_literal_string_to_native
+	prototype
+
+	* src/rasqal_literal.c: (rasqal_literal_string_to_native): Add
+	flags arg to use to pass on to rasqal_xsd_datatype_check.
+	(rasqal_new_string_literal): Call rasqal_literal_string_to_native
+	with flags=1 so that a literal with a bad lexical form is kept but
+	never converted to native type.
+	(rasqal_literal_expand_qname): Call
+	rasqal_literal_string_to_native with flags=0 for original check.
+
+	* src/rasqal_expr.c: (rasqal_expression_evaluate): RASQAL_EXPR_NEQ
+	type errors are not equal.
+
+2007-11-07  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_general.c: (rasqal_uri_init) Check for oom.
+	(rasqal_uri_finish) Do not leave dangling pointers.
+
+2007-11-06  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_feature.c: fix eol style
+
+	* src/rasqal.h: Allow RASQAL_API to be externally defined e.g. in
+	a static config.h. Remove __SYMBIAN32__ case.
+
+	* src/rasqal_internal.h: Allow flagging out writable static data
+	in RASQAL_DEPRECATED macros with NO_STATIC_DATA.
+
+	* src/rasqal_expr.c, src/rasqal_feature.c,
+	src/rasqal_graph_pattern.c, src/rasqal_literal.c,
+	src/rasqal_query.c, src/rasqal_xsd_datatypes.c: Remove writable
+	static data. Make const arrays const.
+
+2007-10-31  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_expr.c: (rasqal_expression_evaluate) Avoid
+	division-by-zero exceptions in RASQAL_EXPR_REM.
+
+	* src/rasqal_expr.c: (rasqal_expression_evaluate) Ensure NULL
+	result and no leaks on error.
+
+	* src/rasqal_expr.c: (rasqal_expression_evaluate) Do not leak
+	literal args in DATATYPE expressions.
+
+2007-10-30  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_graph_pattern.c, src/rasqal_query.c: Move
+	rasqal_graph_pattern_* functions from rasqal_query.c to
+	rasqal_graph_pattern.c
+
+	* src/rdql_lexer.l: Lowmem leak fixes. Merged experimental lexer
+	leak prevention code from sparql_lexer r12922.
+	Flagged with LEXER_ALLOC_TRACKING, disabled by default.
+
+2007-10-29  Dave Beckett <dave@dajobe.org>
+
+	* tests/sparql/ExprEquals/Makefile.am: "Equality - 2 var - test
+	equals" now passes
+
+	* tests/sparql/ExprBuiltins/Makefile.am: str-2 now passes
+
+	* src/rasqal_literal.c: (rasqal_literal_get_rdf_term_type): Not
+	static and use parent type to handle XSD numeric sub-types.
+
+	* src/rasqal_internal.h: Add rasqal_literal_get_rdf_term_type
+
+	* src/rasqal_expr.c: (rasqal_expression_evaluate):
+	RASQAL_EXPR_LANG and RASQAL_EXPR_DATATYPE: Handle only for RDF
+	Term literals including INTEGER etc using
+	rasqal_literal_get_rdf_term_type() RASQAL_EXPR_ISLITERAL: Use
+	rasqal_literal_get_rdf_term_type() to check for
+	literal type.
+
+2007-10-29  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_literal.c: (rasqal_literal_set_typed_value) Don't
+	need to copy literal string if no new string passed in.
+
+ 	* src/rasqal_literal.c: (rasqal_new_typed_literal) Ensure type is
+	set before calling rasqal_free_literal().
+	(rasqal_literal_set_typed_value) Do not free strings that are not
+	owned.
+
+	* src/rasqal_literal.c: (rasqal_literal_set_typed_value) Do not
+	leak string
+
+	* src/rasqal_literal.c: (rasqal_new_decimal_literal) Return NULL
+	if rasqal_xsd_datatype_type_to_uri() fails.
+
+	* src/rasqal_literal.c: (rasqal_literal_set_typed_value) Fix
+	leaking datatype uris
+
+	* src/rasqal_literal.c: (rasqal_new_decimal_literal) Make a copy
+	of datatype uri.
+
+	* src/rasqal_literal.c: (rasqal_new_typed_literal) Do not return
+	stale pointers.
+
+2007-10-28  Dave Beckett <dave@dajobe.org>
+
+	* tests/rdql/testsuite/check-rdql: Remove xsd:string mutation
+
+	* src/rasqal_literal.c: (rasqal_literal_string_to_native): Remove
+	removal of xsd:string datatype.
+	(rasqal_literal_string_equals): Make "xx" and "xx"^^xsd:string
+	compare equal here.
+
+	* tests/sparql/ExprEquals/Makefile.am: "Equality 1-1 -- graph" and
+	"Equality 1-2 -- graph" now fail
+
+	* tests/sparql/ValueTesting/Makefile.am: extendedType-ne-fail
+	extendedType-literal-ne now pass
+
+	* src/rasqal_literal.c: (rasqal_literal_string_to_native): Turn
+	"xx"^^xsd:string into "xx"
+	(rasqal_literal_string_equals): Added, pulled out of
+	rasqal_literal_equals_flags.
+	(rasqal_literal_equals_flags): Update SPARQL checks - do
+	promotions only for sparql.  Give type error if have incompatible
+	types. Mov RASQAL_LITERAL_PATTERN and RASQAL_LITERAL_QNAME into
+	error case; these should never be compared.
+
+	* src/rasqal_expr.c: (rasqal_expression_evaluate): Use
+	rasqal_literal_equals_flags for RASQAL_EXPR_EQ and
+	RASQAL_EXPR_NEQ. Implement RASQAL_EXPR_SAMETERM with
+	rasqal_literal_equals_flags too.
+
+	* src/rdql_lexer.l: Double constant preserves the string using
+	rasqal_new_typed_literal
+
+	* tests/rdql/testsuite/check-rdql: (toDebug): Turn
+	"xx"^^xsd:string into "xx" Unidiffs
+
+	* tests/rdql/testsuite/Makefile.am: Failing tests now 1-09 B-17
+
+	* src/rasqal_raptor.c: (rasqal_raptor_triple_match): Match RDF
+	terms with rasqal_literal_equals_flags and RASQAL_COMPARE_RDF.
+
+2007-10-28  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_expr.c: (rasqal_expression_evaluate) double var no longer needed after unary minus changes in r13091
+
+2007-10-28  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_engine.c: (rasqal_query_result_literal_sequence_compare):
+	Revert: use query compare flags since that is based on the 'A < B'
+	operator which is value comparison.
+
+	* src/rasqal_engine.c: (rasqal_query_result_literal_sequence_compare):
+	Compare as RDF Terms always.
+	(rasqal_query_result_literal_sequence_equals): Equality as RDF
+	Terms always.
+
+	* src/rasqal_literal.c: (rasqal_literal_get_rdf_term_type): Added.
+	(rasqal_literal_compare): Do not always promote - saves copying
+	objects. Add RASQAL_COMPARE_RDF to compare as RDF terms.
+	(rasqal_literal_equals_flags): Add RASQAL_COMPARE_RDF to check for
+	equality as RDF terms.  Uses rasqal_literal_get_rdf_term_type()
+	Add a quick check for string compares - not equal if lengths are
+	different.
+
+	* src/rasqal.h: Added rasqal_compare_flags enum RASQAL_COMPARE_RDF
+	for comparing as RDF terms.
+
+2007-10-28  Lauri Aalto <laalto@iki.fi>
+
+	* tests/rdql/testsuite/Makefile.am,
+	tests/sparql/ExprBuiltins/Makefile.am: RDQL B-07 B-20 tests now
+	pass. SPARQL str-1 test now passes.
+
+	* src/rasqal_decimal.c: (rasqal_xsd_decimal_negate) Fix
+	RASQAL_DECIMAL_GMP negation.
 
 2007-10-27  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_literal.c: (rasqal_literal_as_node): Copy NUL when
+	stringifying.
+
+	* src/rasqal_xsd_datatypes.c: (rasqal_xsd_format_double): Correct len
+
+	* src/rasqal_literal.c: (rasqal_literal_set_typed_value): Do not
+	try to canonicalize DOUBLE values.
+
+	* src/rasqal_literal.c: (rasqal_literal_set_typed_value): Set
+	string len for dateTime
+	(rasqal_literal_as_node): strncpy
+
+	* src/sparql_lexer.l: Use rasqal_xsd_datatype_check to check for
+	decimal and double syntax rather than scanf.
+
+	* src/rasqal_literal.c: (rasqal_new_literal_from_promotion): less
+	debug output
+
+	* Last known good revision 13092: 'make check' succeeds.
 
 	* src/rasqal_literal.c: (rasqal_literal_negate): Init type
 
