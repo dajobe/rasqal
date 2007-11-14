@@ -503,7 +503,7 @@ rasqal_raptor_bind_match(struct rasqal_triples_match_s* rtm,
     if(bindings[0] == bindings[2]) {
       if(!rasqal_literal_equals_flags(rtmc->cur->triple->subject,
                                       rtmc->cur->triple->object,
-				      RASQAL_COMPARE_RDF, &error))
+                                      RASQAL_COMPARE_RDF, &error))
         return (rasqal_triple_parts)0;
       if(error)
         return (rasqal_triple_parts)0;
@@ -516,7 +516,7 @@ rasqal_raptor_bind_match(struct rasqal_triples_match_s* rtm,
        ) {
       if(!rasqal_literal_equals_flags(rtmc->cur->triple->predicate,
                                       rtmc->cur->triple->object,
-				      RASQAL_COMPARE_RDF, &error))
+                                      RASQAL_COMPARE_RDF, &error))
         return (rasqal_triple_parts)0;
       if(error)
         return (rasqal_triple_parts)0;
