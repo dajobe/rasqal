@@ -640,6 +640,34 @@ rasqal_xsd_decimal_multiply(rasqal_xsd_decimal* result,
 
 
 /**
+ * rasqal_xsd_decimal_is_zero:
+ * @d: decimal
+ * 
+ * Test if an XSD decimal is zero.
+ *
+ * Return value: non-0 if decimal is zero
+ **/
+int
+rasqal_xsd_decimal_is_zero(rasqal_xsd_decimal* d)
+{
+#if defined(RASQAL_DECIMAL_C99) || defined(RASQAL_DECIMAL_NONE)
+  if(!d->raw)
+    return 1;
+#endif
+#ifdef RASQAL_DECIMAL_MPFR
+  if(mpfr_zero_p(d->raw))
+    return 1;
+#endif
+#ifdef RASQAL_DECIMAL_GMP
+  if(!mpf_sgn(d->raw))
+    return 1;
+#endif
+
+  return 0;
+}
+
+
+/**
  * rasqal_xsd_decimal_divide:
  * @result: result variable
  * @a: argment decimal 1
@@ -658,23 +686,17 @@ rasqal_xsd_decimal_divide(rasqal_xsd_decimal* result,
   int rc=0;
   
   rasqal_xsd_decimal_clear_string(result);
-  
-#if defined(RASQAL_DECIMAL_C99) || defined(RASQAL_DECIMAL_NONE)
-  if(!b->raw)
+
+  if(rasqal_xsd_decimal_is_zero(b))
     return 1;
   
+#if defined(RASQAL_DECIMAL_C99) || defined(RASQAL_DECIMAL_NONE)
   result->raw = a->raw / b->raw;
 #endif
 #ifdef RASQAL_DECIMAL_MPFR
-  if(mpfr_zero_p(b->raw))
-    return 1;
-  
   rc=mpfr_div(result->raw, a->raw, b->raw, result->rounding);
 #endif
 #ifdef RASQAL_DECIMAL_GMP
-  if(!mpf_sgn(b->raw))
-    return 1;
-  
   mpf_div(result->raw, a->raw, b->raw);
 #endif
 
