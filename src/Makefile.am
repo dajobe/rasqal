@@ -32,7 +32,8 @@ noinst_HEADERS = rasqal_internal.h win32_rasqal_config.h
 man_MANS = rasqal-config.1
 
 TESTS=rasqal_expr_test$(EXEEXT) strcasecmp_test$(EXEEXT) \
-rasqal_xsd_datatypes_test$(EXEEXT) rasqal_decimal_test$(EXEEXT)
+rasqal_xsd_datatypes_test$(EXEEXT) rasqal_decimal_test$(EXEEXT) \
+rasqal_datetime_test$(EXEEXT)
 
 local_tests=rasqal_query_test$(EXEEXT) rasqal_limit_test$(EXEEXT)
 if RASQAL_QUERY_RDQL
@@ -60,7 +61,8 @@ librasqal_la_SOURCES = \
 rasqal_expr.c rasqal_general.c rasqal_query.c rasqal_query_results.c \
 rasqal_engine.c rasqal_raptor.c rasqal_literal.c \
 rasqal_graph_pattern.c rasqal_map.c rasqal_feature.c \
-rasqal_result_formats.c rasqal_xsd_datatypes.c rasqal_decimal.c
+rasqal_result_formats.c rasqal_xsd_datatypes.c rasqal_decimal.c \
+rasqal_datetime.c
 
 if RASQAL_QUERY_RDQL
 librasqal_la_SOURCES += rdql_lexer.c rdql_lexer.h \
@@ -199,6 +201,10 @@ rasqal_xsd_datatypes_test_LDADD = librasqal.la
 rasqal_decimal_test_SOURCES = rasqal_decimal.c
 rasqal_decimal_test_CPPFLAGS = -DSTANDALONE @RASQAL_EXTERNAL_CPPFLAGS@
 rasqal_decimal_test_LDADD = librasqal.la
+
+rasqal_datetime_test_SOURCES = rasqal_datetime.c
+rasqal_datetime_test_CPPFLAGS = -DSTANDALONE @RASQAL_EXTERNAL_CPPFLAGS@
+rasqal_datetime_test_LDADD = librasqal.la
 
 $(top_builddir)/../raptor/src/libraptor.la:
 	cd $(top_builddir)/../raptor/src && $(MAKE) $(AM_MAKEFLAGS) libraptor.la

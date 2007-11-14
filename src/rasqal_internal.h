@@ -510,6 +510,10 @@ typedef struct {
 } rasqal_xsd_datatype_info;
 
 
+/* rasqal_datetime.c */
+int rasqal_xsd_datetime_check(const unsigned char* string);
+
+
 /* rasqal_general.c */
 char* rasqal_vsnprintf(const char* message, va_list arguments);
 
