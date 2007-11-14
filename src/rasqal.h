@@ -1072,7 +1072,8 @@ RASQAL_API
 int rasqal_xsd_decimal_compare(rasqal_xsd_decimal* a, rasqal_xsd_decimal* b);
 RASQAL_API
 int rasqal_xsd_decimal_equals(rasqal_xsd_decimal* a, rasqal_xsd_decimal* b);
-
+RASQAL_API
+int rasqal_xsd_decimal_is_zero(rasqal_xsd_decimal* d);
 
 /* rasqal_engine.c */
 
