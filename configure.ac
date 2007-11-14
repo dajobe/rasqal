@@ -278,7 +278,7 @@ AC_TRY_LINK([#ifdef HAVE_GETOPT_H
 AC_CHECK_PROG(RAPTOR_CONFIG, raptor-config, raptor-config)
 AC_ARG_WITH(raptor, [  --with-raptor=SOURCE        Pick raptor source - system/internal (default auto)], with_raptor="$withval", with_raptor="auto")
 
-RAPTOR_MIN_VERSION=1.4.11
+RAPTOR_MIN_VERSION=1.4.16
 AC_SUBST(RAPTOR_MIN_VERSION)
 if test "X$RAPTOR_CONFIG" = X; then
   with_raptor=internal
