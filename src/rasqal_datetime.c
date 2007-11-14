@@ -1,8 +1,10 @@
 /*
  * rasqal_datatime.c - Rasqal XSD dateTime
  *
- * Copyright (C) 2005-2007, David Beckett http://purl.org/net/dajobe/
- * Copyright (C) 2005-2005, University of Bristol, UK http://www.bristol.ac.uk/
+ * Copyright (C) 2007, David Beckett http://purl.org/net/dajobe/
+ *
+ * Contributions:
+ *   Copyright (C) 2007, Lauri Aalto <laalto@iki.fi>
  * 
  * This package is Free Software and part of Redland http://librdf.org/
  * 
@@ -625,8 +627,9 @@ static int test_datetime_parser_tostring(const char *in_str, const char *out_exp
 }
 
 
-static void test_datetimes(const char *program)
-{
+int
+main(int argc, char *argv[]) {
+  char const *program=rasqal_basename(*argv);
   rasqal_xsd_datetime d;
 
   /* days_per_month */
@@ -792,14 +795,8 @@ static void test_datetimes(const char *program)
   MYASSERT(test_datetime_parser_tostring("2004-03-01T00:00:00+01:00", "2004-02-29T23:00:00Z")==0);
   MYASSERT(test_datetime_parser_tostring("2005-02-28T23:00:00-01:00", "2005-03-01T00:00:00Z")==0);
   MYASSERT(test_datetime_parser_tostring("2004-02-29T23:00:00-01:00", "2004-03-01T00:00:00Z")==0);
-}
-
-
-int
-main(int argc, char *argv[]) {
-  char const *program=rasqal_basename(*argv);
-  test_datetimes(program);
 
   return 0;
 }
+
 #endif
