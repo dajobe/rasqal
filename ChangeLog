@@ -1,4 +1,58 @@
+2007-11-13  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_raptor.c: indent tabs -> spaces
+
+2007-11-13  Dave Beckett <dave@dajobe.org>
+
+	* configure.ac: Require raptor 1.4.16 for uri compare factory method
+
+	* src/rasqal_literal.c: (rasqal_literal_ebv): Handle decimal zero
+
+	* src/rasqal.h: Added rasqal_xsd_decimal_is_zero prototype
+
+	* src/rasqal_decimal.c: (rasqal_xsd_decimal_is_zero): Added.
+	(rasqal_xsd_decimal_divide): Use rasqal_xsd_decimal_is_zero.
+
+	* src/Makefile.am, src/rasqal_datetime.c (from
+	/rasqal/trunk/src/rasqal_xsd_datatypes.c:13190),
+	src/rasqal_internal.h, src/rasqal_xsd_datatypes.c: Added
+	rasqal_datetime.c for XSD dateTime code.  Added
+	rasqal_xsd_datetime_check() internal function for checking
+
+	* tests/laqrs/syntax/Makefile.am, tests/laqrs/syntax/insert.rq:
+	Added insert.rq
+
+	* docs/tmpl/section-expression.sgml,
+	docs/tmpl/section-literal.sgml, docs/tmpl/section-unused.sgml:
+	docs updates
+
+	* tests/sparql/examples/Makefile.am:
+	sparql-query-example-Testing-Values-0 now passes
+
+	* src/rasqal_raptor.c: (rasqal_raptor_bind_match): Use
+	rasqal_literal_equals_flags with RASQAL_COMPARE_RDF to compare for
+	equality.  Also, this may be cheaper than using
+	rsaqal_literal_compare.
+
+	* src/rdql_parser.y: Set RDQL default compare_flags to
+	RASQAL_COMPARE_URI
+
+	* src/sparql_parser.y: add missing ;
+
 2007-11-12  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_engine.c:
+	(rasqal_query_result_literal_sequence_compare): Call
+	rasqal_literal_compare with RASQAL_COMPARE_URI
+
+	* src/rasqal_literal.c: (rasqal_literal_compare): Use
+	RASQAL_COMPARE_URI to allow comparison of URIs.  It's not allowed
+	via the < operator but is ok when using literal with SPARQL ORDER
+	BY
+
+	* src/rasqal.h: rasqal_compare_flags add RASQAL_COMPARE_URI
+
+	* tests/sparql/check-sparql: Invoke roqet correctly with named graphs
 
 	* Last known good revision 13179: 'make check' succeeds.
 
