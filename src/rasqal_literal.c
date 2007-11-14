@@ -1975,7 +1975,7 @@ rasqal_literal_equals_flags(rasqal_literal* l1, rasqal_literal* l2,
 
     case RASQAL_LITERAL_BLANK:
     case RASQAL_LITERAL_DATETIME:
-      /* FIXME this should not be xsd:dateTime equality */
+      /* FIXME this should be xsd:dateTime equality */
       if(l1_p->string_len != l2_p->string_len)
         /* not-equal if lengths are different - cheap to compare this first */
         result=0;
@@ -2209,7 +2209,10 @@ rasqal_literal_ebv(rasqal_literal* l)
              !l->value.floating)
             ) {
     /* ... The operand is any numeric type with a value of 0. */
-    /* FIXME - deal with decimal */
+    b=0;
+  } else if(l->type == RASQAL_LITERAL_DECIMAL &&
+            rasqal_xsd_decimal_is_zero(l->value.decimal)) {
+    /* ... The operand is any numeric type with a value of 0 (decimal) */
     b=0;
   } else if((l->type == RASQAL_LITERAL_DOUBLE || 
              l->type == RASQAL_LITERAL_FLOAT) &&
