@@ -55,11 +55,6 @@
 
 #ifndef STANDALONE
 
-static RASQAL_INLINE int rasqal_expression_as_boolean(rasqal_expression* e, int *error);
-static RASQAL_INLINE int rasqal_expression_as_integer(rasqal_expression* e, int *error);
-static RASQAL_INLINE int rasqal_expression_compare(rasqal_expression* e1, rasqal_expression* e2, int flags, int *error);
-
-
 
 /**
  * rasqal_new_data_graph:
@@ -997,45 +992,6 @@ rasqal_expression_visit(rasqal_expression* e,
       RASQAL_FATAL2("Unknown operation %d", e->op);
       return -1; /* keep some compilers happy */
   }
-}
-
-
-static RASQAL_INLINE int
-rasqal_expression_as_boolean(rasqal_expression* e, int *error)
-{
-  if(e->op == RASQAL_EXPR_LITERAL)
-    return rasqal_literal_as_boolean(e->literal, error);
-
-  abort();
-  return 0; /* keep some compilers happy */
-}
-
-
-static RASQAL_INLINE int
-rasqal_expression_as_integer(rasqal_expression* e, int *error)
-{
-  if(e->op == RASQAL_EXPR_LITERAL)
-    return rasqal_literal_as_integer(e->literal, error);
-
-  abort();
-  return 0; /* keep some compilers happy */
-}
-
-
-static RASQAL_INLINE int
-rasqal_expression_compare(rasqal_expression* e1, rasqal_expression* e2,
-                          int flags, int *error)
-{
-  *error=0;
-  
-  if(e1->op == RASQAL_EXPR_LITERAL && e1->op == e2->op)
-    return rasqal_literal_compare(e1->literal, e2->literal, flags, error);
-
-  if(e1->op !=RASQAL_EXPR_LITERAL)
-    RASQAL_FATAL2("Unexpected e1 op %d\n", e1->op);
-  else
-    RASQAL_FATAL2("Unexpected e2 op %d\n", e2->op);
-  return 0; /* keep some compilers happy */
 }
 
 
