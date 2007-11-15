@@ -20,7 +20,8 @@
 <p>Rasqal still does not support either <code>UNION</code> or
 <code>GROUP</code> and <code>OPTIONAL</code> remains buggy.  There
 remain a few other minor areas not yet completely supported such as
-XSD date and XSD dateTime equality and comparisons.
+XSD <code>date</code> and XSD <code>dateTime</code> equality and
+comparisons.
 </p>
 
 <blockquote>
@@ -32,58 +33,65 @@ updates.</p>
 
 <p>The shared library major soname will change from 0 to 1.</p> 
 
-<p>The includes will move to PREFIX/rasqal (such as /usr/include/rasqal).</p>
+<p>The header files will move to be installed in
+<em>PREFIX</em>/include/rasqal such as
+<code>/usr/include/rasqal</code> for usual installs.</p>
 
-<p>The full details have not been determined yet but the general
-change is that a Rasqal 'world' or 'environment' variable will be
-used (working like a Redland librdf_world) and all constructors will
-take it as an argument.  All static data will be attached to the
-world.  Handlers such as the uri_handler/data and error handlers will
-move to the world object.
+<p>The full details of the API change have not been decided but the
+driving change is that using the library will be done via a new
+Rasqal world object,k will now be used to working like a Redland
+<code>librdf_world</code>.  All constructors will take this world
+object as an argument and all static data will be indirected from the
+object.  Handlers such as the uri_handler/data and error handlers
+will also move to be set/get via the world object.
 </p>
 
-<p>There are almost certainly other API cleanups that will happen as
-well, and some datastructures may be made internal.</p>
+<p>There are almost certainly other API changes and cleanups that
+will be done, and some possibly some of the data structures may be
+made internal.</p>
 
 </blockquote>
 
 <p>Fixed issues:</p>
 <ul>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=188">Issue#0000188</a>: DESC</li>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=190">Issue#0000190</a>: DESC</li>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=191">Issue#0000191</a>: DESC</li>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=193">Issue#0000193</a>: DESC</li>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=196">Issue#0000196</a>: DESC</li>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=197">Issue#0000197</a>: DESC</li>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=198">Issue#0000198</a>: DESC</li>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=199">Issue#0000199</a>: DESC</li>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=200">Issue#0000200</a>: DESC</li>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=201">Issue#0000201</a>: DESC</li>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=201">Issue#0000201</a>: DESC</li>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=203">Issue#0000203</a>: DESC</li>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=219">Issue#0000219</a>: DESC</li>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=221">Issue#0000221</a>: DESC</li>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=225">Issue#0000225</a>: DESC</li>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=234">(partial TBC)Issue#0000234</a>: DESC</li>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=235">(partial TBC)Issue#0000235</a>: DESC</li>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=236">(partial TBC)Issue#0000236</a>: DESC</li>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=190">Issue#0000190</a>: Memory leaks in rasqal_literal.c</li>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=191">Issue#0000191</a>: RAPTOR_API in rasqal.h</li>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=193">Issue#0000193</a>: SPARQL "ASK" always returns true</li>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=196">Issue#0000196</a>: Memory leak with RASQAL_REGEX_PCRE</li>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=197">Issue#0000197</a>: Problem with float comparison in rasqal (Dave Beckett)</li>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=198">Issue#0000198</a>: rasqal_redland.c compilation errors</li>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=199">Issue#0000199</a>: SPARQL effective boolean value: empty string literal not false</li>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=200">Issue#0000200</a>: SPARQL filter scope</li>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=201">Issue#0000201</a>: SPARQL langMatches patch</li>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=203">Issue#0000203</a>: API declarations for Symbian portability</li>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=204">Issue#0000204</a>: SPARQL WHERE is optional</li>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=219">Issue#0000219</a>: SPARQL BASE makes rasqal query->locator.uri a dangling pointer</li>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=220">Issue#0000220</a>: Query offset off by one</li>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=221">Issue#0000221</a>: rasqal_literal_as_integer() with RASQAL_LITERAL_INTEGER literals</li>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=225">Issue#0000225</a>: SPARQL parser leaks memory on syntax error</li>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=234">Issue#0000234</a>: autogen.sh $dir quoting</li>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=235">Issue#0000235</a>: $(EXEEXT) in tests</li>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=236">Issue#0000236</a>: EOL issues when building svn version on cygwin</li>
 </ul>
+
 
 <h3>Query Results Formatter Changes</h3>
 
-<p>Updated to 4th version of SPARQL XML Results format - removed
-<code>ordered</code> and <code>distict</code> attributes.  Removed
-support for versions 1 to 3.</p>
+<p>Updated to the 4th version of the SPARQL XML Results format by
+removing the <code>ordered</code> and <code>distict</code>
+attributes.  Removed support for all the earlier versions 1 to 3.</p>
 
 <h3>SPARQL Query Language Changes</h3>
 
-<p>Updated syntax to support the SPARQL Candidate Recommendation and
-Proposed Recommendation syntax including:</p>
+<p>Manny updates to support the SPARQL Candidate Recommendation and
+Proposed Recommendation versions of the language including:</p>
 <ul>
-   <li>Added <code>REDUCE</code> (parsed but not handled in engine)</li>
-   <li>Added <code>SAMETERM()</code>.</li>
+   <li>Added <code>REDUCED</code>syntax support but it is not handled
+       in the query engine</li>
+   <li>Added <code>SAMETERM()</code> support.</li>
    <li>Allowing numbers at the start of local names.</li>
-   <li>Allowing @lang and ^^datatype after triple-quoted literals.</li>
+   <li>Allowing <code>@</code><em>lang</em> and
+       <code>^^</code><em>datatype</em> after triple-quoted literals.</li>
    <li>Make unary + and - work</li>
    <li>Remove <code>CONSTRUCT *</code> that is no longer in the spec</li>
    <li>Removed hexadecimal literals which were never in the spec</li>
@@ -99,50 +107,122 @@ Proposed Recommendation syntax including:</p>
 is still a dumb idea to have useless keywords.</p>
 
 <p>The test runner <code>check-sparql</code> was improved to read the
-SPARQL XML Results format (but not via XML::Simple because it is
-insanely complex and counterintuitive), handle DAWG test manifests
-and generate EARL reports.  It also has new help and usage messages.
+SPARQL XML Results format (but not via <code>XML::Simple</code>
+because it is insanely complex and counterintuitive), handle DAWG
+test manifests and generate EARL reports.  It also has new help and
+usage messages.
 </p>
 
 <h3>Query Engine Changes</h3>
 
-<p>Many many internal changes including refactoring the engine core
-and adding of internal documentation for the engine functions.</p>
+<p>Many internal changes were made including refactoring the engine
+core and adding of additional internal documentation for the engine
+functions.</p>
 
-<p>Substantial improvements to datatype support:</p>
+<p>Substantial improvements were made to datatype support:</p>
 <ul>
   <li>SPARQL / XQuery / XPath numeric type promotion is now supported,
-  including derived types of <code>xsd:integer</code> etc.</li>
+      including derived types of <code>xsd:integer</code> etc.</li>
   <li>Added XSD decimal implementation either using GNU MP, MPFR, C99
-  _Decimal (but I have yet to find a working implementation) or by
-  default and inaccurately, C doubles.</li>
-  <li>Added XSD dateTime initial support for validation.</li>
+      <code>_Decimal</code> (but I have yet to find a working
+      implementation) or by default and inaccurately, C doubles.</li>
+  <li>Added XSD <code>dateTime</code> initial support for validation.</li>
   <li>Numeric operations such as +, -, *, / and ! as well as comparisons
       are now done in the appropriate datatype (which may be a promotion).</li>
 </ul>
 
-<p>Add new literal constructor rasqal_new_decimal_literal for XSD
-decimal datatype.  TBC.</p>
+<p>Set the query base URI.</p>
 
-<p>Added rasqal_literal_datatype(). TBC public?</p>
-
-<p>Set query base URI.</p>
-
-<p>Altered the way that literal equality and comparison work
+<p>Improved the way that literal equality and comparisons work
 especially with respect to datatypes.  Triple pattern matching
 (equality) works with RDF terms.  SPARQL <code>FILTER</code> literal
 equality and comparisons follow SPARQL rules with possible numeric
 type promotion, then using RDF Term if the types are different.
-ORDER comparison or DISTINCT equality checks use RDF Term.  RDQL
-execution uses it's own existing "stringy" rules.
+<code>ORDER</code> comparison or <code>DISTINCT</code> equality
+checks use RDF Term.  RDQL execution uses it's own existing "stringy"
+rules.
 </p>
 
-<p>Make queries that bind the origin (SPARQL GRAPH) match correctly
-against the default graph.
+<p>Make queries that bind the origin (SPARQL <code>GRAPH</code>)
+match correctly against the default graph.
 </p>
 
 <p>Memory reduction in stack usage when evaluation expressions
 (such as SPARQL <code>FILTER</code>s).</p>
+
+
+<h3>Public API changes</h3>
+
+<p>Added <code>rasqal_home_url_string</code> static constant.</p>
+
+<p>Added <code>rasqal_xsd_decimal</code> type type.</p>
+
+<p>Added a <code>decimal</code> part to the rasqal_literal union
+value for <code>RASQAL_LITERAL_DECIMAL</code> types.</p>
+
+<p>Added a <code>parent_type</code> part to the rasqal_literal when
+the type can be promoted.</p>
+
+<p>Added <code>RASQAL_EXPR_SAMETERM<c/ode> expression</p>
+
+<p>Added <code>RASQAL_COMPARE_RDF</code> and
+<code>RASQAL_COMPARE_URI</code> comparison types for RDF Term
+comparsion rules and allowing URI comparison (without
+<code>STR()</code>) respectively.</p>
+
+<p>Added <code>rasqal_new_typed_literal()</code> to make an RDF typed
+literal from a type and string (no language).</p>
+
+<p>Added <code>rasqal_new_float_literal()</code> for wrapping a C
+<code>float</code> as XSD float.</p>
+
+<p>Changed signature of <code>rasqal_new_decimal_literal()</code> to
+rasqal_literal* rasqal_new_decimal_literal(const unsigned char *string, rasqal_ xsd_decimal* decimal)
+FIXME - API CHANGE
+</p>
+
+<p>Added <code>rasqal_literal_datatype</code> method to get the datatype
+URI of a literal.</p>
+
+<p>Added <code>rasqal_literal_value</code> method to get the literal
+value of a literal, looking up any variables to their value.
+FIXME should this not involve query results?
+</p>
+
+
+
+
+<p>Added XSD decimal class functions:</p>
+<pre>
+// constructor
+rasqal_xsd_decimal* rasqal_new_xsd_decimal(void);
+// destructor
+void rasqal_free_xsd_decimal(rasqal_xsd_decimal* dec);
+// methods
+int rasqal_xsd_decimal_set_string(rasqal_xsd_decimal* dec, const char* string);
+double rasqal_xsd_decimal_get_double(rasqal_xsd_decimal* dec);
+char* rasqal_xsd_decimal_as_string(rasqal_xsd_decimal* dec);
+char* rasqal_xsd_decimal_as_counted_string(rasqal_xsd_decimal* dec, size_t* len_p);
+int rasqal_xsd_decimal_set_long(rasqal_xsd_decimal* dec, long l);
+int rasqal_xsd_decimal_set_double(rasqal_xsd_decimal* dec, double d);
+int rasqal_xsd_decimal_print(rasqal_xsd_decimal* dec, FILE* stream);
+// numeric methods
+int rasqal_xsd_decimal_add(rasqal_xsd_decimal* result, rasqal_xsd_decimal* a, rasqal_xsd_decimal* b);
+int rasqal_xsd_decimal_subtract(rasqal_xsd_decimal* result, rasqal_xsd_decimal* a, rasqal_xsd_decimal* b);
+int rasqal_xsd_decimal_multiply(rasqal_xsd_decimal* result, rasqal_xsd_decimal* a, rasqal_xsd_decimal* b);
+int rasqal_xsd_decimal_divide(rasqal_xsd_decimal* result, rasqal_xsd_decimal* a , rasqal_xsd_decimal* b);
+int rasqal_xsd_decimal_negate(rasqal_xsd_decimal* result, rasqal_xsd_decimal* a);
+// comparisons
+int rasqal_xsd_decimal_compare(rasqal_xsd_decimal* a, rasqal_xsd_decimal* b);
+int rasqal_xsd_decimal_equals(rasqal_xsd_decimal* a, rasqal_xsd_decimal* b);
+int rasqal_xsd_decimal_is_zero(rasqal_xsd_decimal* d);
+</pre>
+
+<p>Added addition <code>rasqal_triple_parts</code> enums:
+<code>RASQAL_TRIPLE_GRAPH</code> for just the named graph part
+<code>RASQAL_TRIPLE_SPO</code> for subject, predicate and objects and
+<code>RASQAL_TRIPLE_SPOG</code> for all parts including named grpah.
+</p>
 
 
 <h3><code>roqet</code> Utility Changes</h3>
