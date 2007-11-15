@@ -8,6 +8,163 @@
 
   <h1>Rasqal RDF Query Library - Release Notes</h1>
 
+<h2 id="rel0_9_15"><a name="rel0_9_15">Rasqal 0.9.15 Changes</a></h2>
+
+<p>Not yet released.</p>
+
+<h3>General Changes</h3>
+
+<p>Many updates for better SPARQL support.  Rasqal 0.9.15 passes over
+92% of the DAWG SPARQL Test Suite as of 2007-11-13.</p>
+
+<p>Rasqal still does not support either <code>UNION</code> or
+<code>GROUP</code> and <code>OPTIONAL</code> remains buggy.  There
+remain a few other minor areas not yet completely supported such as
+XSD date and XSD dateTime equality and comparisons.
+</p>
+
+<blockquote>
+<p><b>WARNING: ABI AND API CHANGE in Rasqal 0.9.16. The next
+release of Rasqal will be incompatible with this one.</b></p>
+
+<p>It will have both ABI and API changes that will require source
+updates.</p>
+
+<p>The shared library major soname will change from 0 to 1.</p> 
+
+<p>The includes will move to PREFIX/rasqal (such as /usr/include/rasqal).</p>
+
+<p>The full details have not been determined yet but the general
+change is that a Rasqal 'world' or 'environment' variable will be
+used (working like a Redland librdf_world) and all constructors will
+take it as an argument.  All static data will be attached to the
+world.  Handlers such as the uri_handler/data and error handlers will
+move to the world object.
+</p>
+
+<p>There are almost certainly other API cleanups that will happen as
+well, and some datastructures may be made internal.</p>
+
+</blockquote>
+
+<p>Fixed issues:</p>
+<ul>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=188">Issue#0000188</a>: DESC</li>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=190">Issue#0000190</a>: DESC</li>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=191">Issue#0000191</a>: DESC</li>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=193">Issue#0000193</a>: DESC</li>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=196">Issue#0000196</a>: DESC</li>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=197">Issue#0000197</a>: DESC</li>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=198">Issue#0000198</a>: DESC</li>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=199">Issue#0000199</a>: DESC</li>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=200">Issue#0000200</a>: DESC</li>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=201">Issue#0000201</a>: DESC</li>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=201">Issue#0000201</a>: DESC</li>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=203">Issue#0000203</a>: DESC</li>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=219">Issue#0000219</a>: DESC</li>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=221">Issue#0000221</a>: DESC</li>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=225">Issue#0000225</a>: DESC</li>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=234">(partial TBC)Issue#0000234</a>: DESC</li>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=235">(partial TBC)Issue#0000235</a>: DESC</li>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=236">(partial TBC)Issue#0000236</a>: DESC</li>
+</ul>
+
+<h3>Query Results Formatter Changes</h3>
+
+<p>Updated to 4th version of SPARQL XML Results format - removed
+<code>ordered</code> and <code>distict</code> attributes.  Removed
+support for versions 1 to 3.</p>
+
+<h3>SPARQL Query Language Changes</h3>
+
+<p>Updated syntax to support the SPARQL Candidate Recommendation and
+Proposed Recommendation syntax including:</p>
+<ul>
+   <li>Added <code>REDUCE</code> (parsed but not handled in engine)</li>
+   <li>Added <code>SAMETERM()</code>.</li>
+   <li>Allowing numbers at the start of local names.</li>
+   <li>Allowing @lang and ^^datatype after triple-quoted literals.</li>
+   <li>Make unary + and - work</li>
+   <li>Remove <code>CONSTRUCT *</code> that is no longer in the spec</li>
+   <li>Removed hexadecimal literals which were never in the spec</li>
+</ul>
+
+<p>Made <code>ASK</code> work again.</p>
+
+<p>Made <code>LANG()</code> work to spec on typed literals TBC.</p>
+
+<p>Made <code>DATATYPE()</code> work to spec on typed literals TBC.</p>
+
+<p>Remove warning about optional SPARQL <code>WHERE</code> although it
+is still a dumb idea to have useless keywords.</p>
+
+<p>The test runner <code>check-sparql</code> was improved to read the
+SPARQL XML Results format (but not via XML::Simple because it is
+insanely complex and counterintuitive), handle DAWG test manifests
+and generate EARL reports.  It also has new help and usage messages.
+</p>
+
+<h3>Query Engine Changes</h3>
+
+<p>Many many internal changes including refactoring the engine core
+and adding of internal documentation for the engine functions.</p>
+
+<p>Substantial improvements to datatype support:</p>
+<ul>
+  <li>SPARQL / XQuery / XPath numeric type promotion is now supported,
+  including derived types of <code>xsd:integer</code> etc.</li>
+  <li>Added XSD decimal implementation either using GNU MP, MPFR, C99
+  _Decimal (but I have yet to find a working implementation) or by
+  default and inaccurately, C doubles.</li>
+  <li>Added XSD dateTime initial support for validation.</li>
+  <li>Numeric operations such as +, -, *, / and ! as well as comparisons
+      are now done in the appropriate datatype (which may be a promotion).</li>
+</ul>
+
+<p>Add new literal constructor rasqal_new_decimal_literal for XSD
+decimal datatype.  TBC.</p>
+
+<p>Added rasqal_literal_datatype(). TBC public?</p>
+
+<p>Set query base URI.</p>
+
+<p>Altered the way that literal equality and comparison work
+especially with respect to datatypes.  Triple pattern matching
+(equality) works with RDF terms.  SPARQL <code>FILTER</code> literal
+equality and comparisons follow SPARQL rules with possible numeric
+type promotion, then using RDF Term if the types are different.
+ORDER comparison or DISTINCT equality checks use RDF Term.  RDQL
+execution uses it's own existing "stringy" rules.
+</p>
+
+<p>Make queries that bind the origin (SPARQL GRAPH) match correctly
+against the default graph.
+</p>
+
+<p>Memory reduction in stack usage when evaluation expressions
+(such as SPARQL <code>FILTER</code>s).</p>
+
+
+<h3><code>roqet</code> Utility Changes</h3>
+
+<p>Added <code>-D</code> / <code>--data</code> options for specifying
+data URis for the default graph and <code>-G</code> /
+<code>--named</code> for URIs of named graphs (the existing
+<code>-s</code> is a also a synonym for the latter).
+</p>
+
+
+<h3>Other Changes</h3>
+
+<p>Many internal fixes and cleanups after failures so that memory is
+not lost and/or rasqal does not crash.  These many changes were
+primarily made by Lauri Aalto.</p>
+
+<p>Several portability fixes for helping with low-memory, embedded
+systems and using a compiler that is not gcc.
+</p>
+
+
 <h2 id="rel0_9_14"><a name="rel0_9_14">Rasqal 0.9.14 Changes</a></h2>
 
 <h3>General Changes</h3>
