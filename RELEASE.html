@@ -58,7 +58,7 @@ made internal.</p>
 <li><a href="http://bugs.librdf.org/mantis/view.php?id=191">Issue#0000191</a>: RAPTOR_API in rasqal.h</li>
 <li><a href="http://bugs.librdf.org/mantis/view.php?id=193">Issue#0000193</a>: SPARQL "ASK" always returns true</li>
 <li><a href="http://bugs.librdf.org/mantis/view.php?id=196">Issue#0000196</a>: Memory leak with RASQAL_REGEX_PCRE</li>
-<li><a href="http://bugs.librdf.org/mantis/view.php?id=197">Issue#0000197</a>: Problem with float comparison in rasqal (Dave Beckett)</li>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=197">Issue#0000197</a>: Problem with float comparison in rasqal</li>
 <li><a href="http://bugs.librdf.org/mantis/view.php?id=198">Issue#0000198</a>: rasqal_redland.c compilation errors</li>
 <li><a href="http://bugs.librdf.org/mantis/view.php?id=199">Issue#0000199</a>: SPARQL effective boolean value: empty string literal not false</li>
 <li><a href="http://bugs.librdf.org/mantis/view.php?id=200">Issue#0000200</a>: SPARQL filter scope</li>
@@ -75,19 +75,12 @@ made internal.</p>
 </ul>
 
 
-<h3>Query Results Formatter Changes</h3>
-
-<p>Updated to the 4th version of the SPARQL XML Results format by
-removing the <code>ordered</code> and <code>distict</code>
-attributes.  Removed support for all the earlier versions 1 to 3.</p>
-
 <h3>SPARQL Query Language Changes</h3>
 
 <p>Manny updates to support the SPARQL Candidate Recommendation and
 Proposed Recommendation versions of the language including:</p>
 <ul>
-   <li>Added <code>REDUCED</code>syntax support but it is not handled
-       in the query engine</li>
+   <li>Added <code>REDUCED</code> syntax support (no query engine support)</li>
    <li>Added <code>SAMETERM()</code> support.</li>
    <li>Allowing numbers at the start of local names.</li>
    <li>Allowing <code>@</code><em>lang</em> and
@@ -95,23 +88,13 @@ Proposed Recommendation versions of the language including:</p>
    <li>Make unary + and - work</li>
    <li>Remove <code>CONSTRUCT *</code> that is no longer in the spec</li>
    <li>Removed hexadecimal literals which were never in the spec</li>
+   <li>Made queries with the <code>ASK</code> verb work again.</li>
+   <li>Made <code>LANG()</code> and <code>DATATYPE()</code> work to
+       spec on typed literals.</li>
+   <li>Remove warning about optional SPARQL <code>WHERE</code>
+       although it is still a dumb idea to have useless keywords.</li>
 </ul>
 
-<p>Made <code>ASK</code> work again.</p>
-
-<p>Made <code>LANG()</code> work to spec on typed literals TBC.</p>
-
-<p>Made <code>DATATYPE()</code> work to spec on typed literals TBC.</p>
-
-<p>Remove warning about optional SPARQL <code>WHERE</code> although it
-is still a dumb idea to have useless keywords.</p>
-
-<p>The test runner <code>check-sparql</code> was improved to read the
-SPARQL XML Results format (but not via <code>XML::Simple</code>
-because it is insanely complex and counterintuitive), handle DAWG
-test manifests and generate EARL reports.  It also has new help and
-usage messages.
-</p>
 
 <h3>Query Engine Changes</h3>
 
@@ -119,19 +102,18 @@ usage messages.
 core and adding of additional internal documentation for the engine
 functions.</p>
 
-<p>Substantial improvements were made to datatype support:</p>
+<p>Substantial improvements were made to datatypes support:</p>
 <ul>
   <li>SPARQL / XQuery / XPath numeric type promotion is now supported,
       including derived types of <code>xsd:integer</code> etc.</li>
-  <li>Added XSD decimal implementation either using GNU MP, MPFR, C99
-      <code>_Decimal</code> (but I have yet to find a working
-      implementation) or by default and inaccurately, C doubles.</li>
-  <li>Added XSD <code>dateTime</code> initial support for validation.</li>
+  <li>Added XSD <code>xsd:decimal</code> implementation either using
+      GNU MP, MPFR, C99 <code>_Decimal</code> (but I have yet to find a
+      working implementation) or by default and inaccurately, C
+      doubles.</li>
+  <li>Added XSD <code>xsd:dateTime</code> initial support for validation.</li>
   <li>Numeric operations such as +, -, *, / and ! as well as comparisons
       are now done in the appropriate datatype (which may be a promotion).</li>
 </ul>
-
-<p>Set the query base URI.</p>
 
 <p>Improved the way that literal equality and comparisons work
 especially with respect to datatypes.  Triple pattern matching
@@ -142,6 +124,8 @@ type promotion, then using RDF Term if the types are different.
 checks use RDF Term.  RDQL execution uses it's own existing "stringy"
 rules.
 </p>
+
+<p>Set the query base URI.</p>
 
 <p>Make queries that bind the origin (SPARQL <code>GRAPH</code>)
 match correctly against the default graph.
@@ -155,7 +139,8 @@ match correctly against the default graph.
 
 <p>Added <code>rasqal_home_url_string</code> static constant.</p>
 
-<p>Added <code>rasqal_xsd_decimal</code> type type.</p>
+<p>Added <code>rasqal_xsd_decimal</code> class and API calls
+described below.</p>
 
 <p>Added a <code>decimal</code> part to the rasqal_literal union
 value for <code>RASQAL_LITERAL_DECIMAL</code> types.</p>
@@ -176,9 +161,8 @@ literal from a type and string (no language).</p>
 <p>Added <code>rasqal_new_float_literal()</code> for wrapping a C
 <code>float</code> as XSD float.</p>
 
-<p>Changed signature of <code>rasqal_new_decimal_literal()</code> to
-rasqal_literal* rasqal_new_decimal_literal(const unsigned char *string, rasqal_ xsd_decimal* decimal)
-FIXME - API CHANGE
+<p>Added new decimal literal constructor
+rasqal_literal* rasqal_new_decimal_literal_from_decimal(const unsigned char *string, rasqal_ xsd_decimal* decimal)
 </p>
 
 <p>Added <code>rasqal_literal_datatype</code> method to get the datatype
@@ -189,40 +173,66 @@ value of a literal, looking up any variables to their value.
 FIXME should this not involve query results?
 </p>
 
-
-
-
-<p>Added XSD decimal class functions:</p>
-<pre>
-// constructor
-rasqal_xsd_decimal* rasqal_new_xsd_decimal(void);
-// destructor
-void rasqal_free_xsd_decimal(rasqal_xsd_decimal* dec);
-// methods
-int rasqal_xsd_decimal_set_string(rasqal_xsd_decimal* dec, const char* string);
-double rasqal_xsd_decimal_get_double(rasqal_xsd_decimal* dec);
-char* rasqal_xsd_decimal_as_string(rasqal_xsd_decimal* dec);
-char* rasqal_xsd_decimal_as_counted_string(rasqal_xsd_decimal* dec, size_t* len_p);
-int rasqal_xsd_decimal_set_long(rasqal_xsd_decimal* dec, long l);
-int rasqal_xsd_decimal_set_double(rasqal_xsd_decimal* dec, double d);
-int rasqal_xsd_decimal_print(rasqal_xsd_decimal* dec, FILE* stream);
-// numeric methods
-int rasqal_xsd_decimal_add(rasqal_xsd_decimal* result, rasqal_xsd_decimal* a, rasqal_xsd_decimal* b);
-int rasqal_xsd_decimal_subtract(rasqal_xsd_decimal* result, rasqal_xsd_decimal* a, rasqal_xsd_decimal* b);
-int rasqal_xsd_decimal_multiply(rasqal_xsd_decimal* result, rasqal_xsd_decimal* a, rasqal_xsd_decimal* b);
-int rasqal_xsd_decimal_divide(rasqal_xsd_decimal* result, rasqal_xsd_decimal* a , rasqal_xsd_decimal* b);
-int rasqal_xsd_decimal_negate(rasqal_xsd_decimal* result, rasqal_xsd_decimal* a);
-// comparisons
-int rasqal_xsd_decimal_compare(rasqal_xsd_decimal* a, rasqal_xsd_decimal* b);
-int rasqal_xsd_decimal_equals(rasqal_xsd_decimal* a, rasqal_xsd_decimal* b);
-int rasqal_xsd_decimal_is_zero(rasqal_xsd_decimal* d);
-</pre>
-
 <p>Added addition <code>rasqal_triple_parts</code> enums:
 <code>RASQAL_TRIPLE_GRAPH</code> for just the named graph part
 <code>RASQAL_TRIPLE_SPO</code> for subject, predicate and objects and
 <code>RASQAL_TRIPLE_SPOG</code> for all parts including named grpah.
 </p>
+
+
+<h3>Decimal Class</h3>
+
+<p>A new <code>rasqal_xsd_decimal</code> class was added to handle
+XSD decimals with accurate decimal arithmetic.</p>
+
+<p>Constructor:</p>
+<pre>
+rasqal_xsd_decimal* rasqal_new_xsd_decimal(void);
+</pre>
+
+<p>Destructor:</p>
+<pre>
+void rasqal_free_xsd_decimal(rasqal_xsd_decimal* dec);
+</pre>
+
+<p>Methods:</p>
+<pre>
+double rasqal_xsd_decimal_get_double(rasqal_xsd_decimal* dec);
+int rasqal_xsd_decimal_set_double(rasqal_xsd_decimal* dec, double d);
+iint rasqal_xsd_decimal_set_string(rasqal_xsd_decimal* dec, const char* string);
+int rasqal_xsd_decimal_set_long(rasqal_xsd_decimal* dec, long l);
+int rasqal_xsd_decimal_print(rasqal_xsd_decimal* dec, FILE* stream);
+char* rasqal_xsd_decimal_as_string(rasqal_xsd_decimal* dec);
+char* rasqal_xsd_decimal_as_counted_string(rasqal_xsd_decimal* dec, size_t* len_p);
+</pre>
+
+<p>Numeric methods (writing to the <code>result</code> argument):</p>
+<pre>
+int rasqal_xsd_decimal_add(rasqal_xsd_decimal* result,
+                           rasqal_xsd_decimal* a, rasqal_xsd_decimal* b);
+int rasqal_xsd_decimal_subtract(rasqal_xsd_decimal* result,
+                                rasqal_xsd_decimal* a, rasqal_xsd_decimal* b);
+int rasqal_xsd_decimal_multiply(rasqal_xsd_decimal* result,
+                                rasqal_xsd_decimal* a, rasqal_xsd_decimal* b);
+int rasqal_xsd_decimal_divide(rasqal_xsd_decimal* result,
+                              rasqal_xsd_decimal* a, rasqal_xsd_decimal* b);
+int rasqal_xsd_decimal_negate(rasqal_xsd_decimal* result,
+                              rasqal_xsd_decimal* a);
+</pre>
+
+<p>Comparison methods:</p>
+<pre>
+int rasqal_xsd_decimal_compare(rasqal_xsd_decimal* a, rasqal_xsd_decimal* b);
+int rasqal_xsd_decimal_equals(rasqal_xsd_decimal* a, rasqal_xsd_decimal* b);
+int rasqal_xsd_decimal_is_zero(rasqal_xsd_decimal* d);
+</pre>
+
+
+<h3>Query Results Formatter Class Changes</h3>
+
+<p>Updated to the 4th version of the SPARQL XML Results format by
+removing the <code>ordered</code> and <code>distict</code>
+attributes.  Removed support for all the earlier versions 1 to 3.</p>
 
 
 <h3><code>roqet</code> Utility Changes</h3>
@@ -242,6 +252,13 @@ primarily made by Lauri Aalto.</p>
 
 <p>Several portability fixes for helping with low-memory, embedded
 systems and using a compiler that is not gcc.
+</p>
+
+<p>The SPARQL test runner <code>check-sparql</code> was improved to
+read the SPARQL XML Results format (but not via
+<code>XML::Simple</code> because it is insanely complex and
+counterintuitive), handle DAWG test manifests and generate EARL
+reports.  It also has new help and usage messages.
 </p>
 
 
