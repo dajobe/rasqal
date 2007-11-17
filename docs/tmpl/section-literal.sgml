@@ -48,6 +48,16 @@ boolean, double, floating, integer, regex pattern and variables.
 @RASQAL_LITERAL_VARIABLE: 
 @RASQAL_LITERAL_LAST: 
 
+<!-- ##### FUNCTION rasqal_new_typed_literal ##### -->
+<para>
+
+</para>
+
+@type: 
+@string: 
+@Returns: 
+
+
 <!-- ##### FUNCTION rasqal_new_boolean_literal ##### -->
 <para>
 
@@ -58,6 +68,15 @@ boolean, double, floating, integer, regex pattern and variables.
 
 
 <!-- ##### FUNCTION rasqal_new_decimal_literal ##### -->
+<para>
+
+</para>
+
+@string: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_new_decimal_literal_from_decimal ##### -->
 <para>
 
 </para>

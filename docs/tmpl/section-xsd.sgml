@@ -110,6 +110,15 @@ floating point decimals.
 @Returns: 
 
 
+<!-- ##### FUNCTION rasqal_xsd_decimal_is_zero ##### -->
+<para>
+
+</para>
+
+@d: 
+@Returns: 
+
+
 <!-- ##### FUNCTION rasqal_xsd_decimal_multiply ##### -->
 <para>
 
@@ -169,6 +178,16 @@ floating point decimals.
 @result: 
 @a: 
 @b: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_xsd_decimal_negate ##### -->
+<para>
+
+</para>
+
+@result: 
+@a: 
 @Returns: 
 
 
