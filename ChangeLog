@@ -1,3 +1,25 @@
+2007-11-17  Dave Beckett <dave@dajobe.org>
+
+	* Snapshotted rasqal_0_9_15 for 0.9.15 release (SVN 13232)
+
+	* tests/sparql/ExprBuiltins/Makefile.am,
+	tests/sparql/ExprEquals/Makefile.am: Revert test results to match
+	builing with raptor 1.4.16
+
+	* src/rasqal_literal.c: (rasqal_new_decimal_literal): Fix after
+	doc change
+
+	* docs/rasqal-sections.txt, docs/tmpl/section-unused.sgml: docs
+
+	* docs/tmpl/section-literal.sgml, docs/tmpl/section-unused.sgml,
+	docs/tmpl/section-xsd.sgml: docs
+
+	* src/rasqal_datetime.c: docs
+
+	* src/rasqal_literal.c: docs
+
+	* docs/rasqal-sections.txt: update new functions
+
 2007-11-15  Dave Beckett <dave@dajobe.org>
 
 	* src/rasqal.h, src/rasqal_literal.c, src/sparql_lexer.l: Restore
