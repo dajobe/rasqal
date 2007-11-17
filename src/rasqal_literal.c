@@ -277,14 +277,14 @@ rasqal_new_pattern_literal(const unsigned char *pattern,
 
 /**
  * rasqal_new_decimal_literal:
- * @decimal: decimal literal
+ * @string: decimal literal
  *
  * Constructor - Create a new Rasqal decimal literal.
  * 
  * Return value: New #rasqal_literal or NULL on failure
  **/
 rasqal_literal*
-rasqal_new_decimal_literal(const unsigned char *decimal)
+rasqal_new_decimal_literal(const unsigned char *string)
 {
   return rasqal_new_decimal_literal_from_decimal(decimal, NULL);
 }
