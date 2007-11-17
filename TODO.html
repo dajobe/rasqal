@@ -28,30 +28,14 @@
 <h3><a name="sparql">SPARQL</a></h3>
 
 <p>Rasqal provides support for the SPARQL language as defined in
-<a href="http://www.w3.org/TR/2006/CR-rdf-sparql-query-20060406/">SPARQL Query Language for RDF</a> W3C Candidate Rec, 6 April 2006.</p>
+<a href="http://www.w3.org/TR/2007/PR-rdf-sparql-query-20071112/">SPARQL Query Language for RDF</a> W3C Proposed Recommendation, 12 November 2007.</p>
 
-<p>Rasqal currently can read all the syntax and implements the
-functionality in common with RDQL plus graph patterns; partial
-optionals; constructed triples; boolean results; distincting,
-ordering and limiting query results and some built-in functions.  The
-unimplemented parts from the above SPARQL document are
-approximately as follows:</p>
+<p>Rasqal fails to implement the following parts of SPARQL:</p>
 <ul>
-<li><a href="http://www.w3.org/TR/2006/CR-rdf-sparql-query-20060406/#GroupPatterns" class="tocxref">4.1 Group Graph Patterns</a></li>
-<li><a href="http://www.w3.org/TR/2006/CR-rdf-sparql-query-20060406/#MultipleOptionals">5.3 Multiple Optional Graph Patterns</a></li>
-<li><a href="http://www.w3.org/TR/2006/CR-rdf-sparql-query-20060406/#OptionalMatchingNested">5.5 Nested Optional Graph Patterns</a></li>
-<li><a href="http://www.w3.org/TR/2006/CR-rdf-sparql-query-20060406/#unionOp">6.1 Joining Patterns with UNION</a></li>
-<li><a href="http://www.w3.org/TR/2006/CR-rdf-sparql-query-20060406/#rdfDataset">7 RDF Dataset</a></li>
-<li><a href="http://www.w3.org/TR/2006/CR-rdf-sparql-query-20060406/#queryDataset">8 Querying the Dataset</a></li>
-<li><a href="http://www.w3.org/TR/2006/CR-rdf-sparql-query-20060406/#accessByLabel">8.1 Accessing Graph Names</a></li>
-<li><a href="http://www.w3.org/TR/2006/CR-rdf-sparql-query-20060406/#restrictByLabel">8.2 Restricting by Graph IRI</a></li>
-<li><a href="http://www.w3.org/TR/2006/CR-rdf-sparql-query-20060406/#restrictInQuery">8.3 Restricting by Bound Variables</a></li>
-<li><a href="http://www.w3.org/TR/2006/CR-rdf-sparql-query-20060406/#namedAndDefaultGraph">8.4 Named and Default Graphs</a></li>
-<li><a href="http://www.w3.org/TR/2006/CR-rdf-sparql-query-20060406/#unnamedGraph">9.1 Specifying the default Graph</a></li>
-<li><a href="http://www.w3.org/TR/2006/CR-rdf-sparql-query-20060406/#namedGraphs">9.2 Specifying Named Graphs</a></li>
-<li><a href="http://www.w3.org/TR/2006/CR-rdf-sparql-query-20060406/#specDataset">9.3 Combining FROM and FROM NAMED</a></li>
-<li><a href="http://www.w3.org/TR/2006/CR-rdf-sparql-query-20060406/#operandDataTypes" class="tocxref">11.1 Operand Data Types</a> </li>
-<li><a href="http://www.w3.org/TR/2006/CR-rdf-sparql-query-20060406/#FuncAndOp">11.2 SPARQL Functions and Operators</a></li>
+<li><a href="http://www.w3.org/TR/2007/PR-rdf-sparql-query-20071112/#GroupPatterns" class="tocxref">4.1 Group Graph Patterns</a></li>
+<li><a href="http://www.w3.org/TR/2007/PR-rdf-sparql-query-20071112/#MultipleOptionals">5.3 Multiple Optional Graph Patterns</a></li>
+<li><a href="http://www.w3.org/TR/2007/PR-rdf-sparql-query-20071112/#OptionalMatchingNested">5.5 Nested Optional Graph Patterns</a></li>
+<li><a href="http://www.w3.org/TR/2007/PR-rdf-sparql-query-20071112/#unionOp">6.1 Joining Patterns with UNION</a></li>
 </ul>
 
 
@@ -67,10 +51,7 @@ However this syntax is not in the
 <a href="http://www.w3.org/Submission/2004/SUBM-RDQL-20040109/">RDQL - A Query Language for RDF, W3C Member Submission 9 January 2004</a>.
 Legacy syntax.</li>
 
-<li>B-01: string literal fails to match xsd:string datatyped string literal.
-The test case and result seem to be inconsistent.  The test says "No match:
-the value in the model is datatyped." however result-B-01.n3 has 1
-result solution.</li>
+<li>B-17: No current support for "true" matching "true"^^xsd:boolean.</li>
 
 </ul>
 </li>
@@ -85,6 +66,9 @@ result solution.</li>
 release version where appropriate.</p>
 
 <ul>
+<li>SPARQL: Syntax details (0.9.15)</li>
+<li>Engine: datatypes (0.9.15)</li>
+<li>Engine: graph names (0.9.15)</li>
 <li>Engine: result distinct, limit and ordering (0.9.11)</li>
 <li>Engine: result ordering (0.9.10)</li>
 <li>Engine: result constraints - like <code>LIMIT</code> and <code>OFFSET</code> in SQL (0.9.9)</li>
