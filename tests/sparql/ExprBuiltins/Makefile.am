@@ -36,7 +36,8 @@ q-iri-1.rq q-uri-1.rq
 
 # datatype-1 - relies on lexical form of double being same as in .ttl
 EXPECTED_SPARQL_CORRECT_FAILURES= \
-datatype-1
+datatype-1 \
+str-2
 
 SPARQL_RESULT_FILES= \
 result-blank-1.ttl result-datatype-1.ttl result-str-1.ttl \
