@@ -41,7 +41,7 @@ and file-by-file changes in the CVS <a href="ChangeLog">ChangeLog</a>.</p>
 <li>An RDF <a href="docs/api/query.html">query</a> construction and access API.</li>
 <li>A query execution engine including constraint expression evaluation.</li>
 <li>A query result binding API.</li>
-<li>Query language support for <a href="http://www.w3.org/TR/2005/WD-rdf-sparql-query-20051123/">SPARQL</a>.</li>
+<li>Query language support for <a href="http://www.w3.org/TR/2007/PR-rdf-sparql-query-20071112/">SPARQL</a>.</li>
 <li>Query language support for <a href="http://www.w3.org/Submission/2004/SUBM-RDQL-20040109/">RDQL</a>.</li>
 <li>Triple store querying APIs to support running over external RDF graphs.</li>
 <li>No memory leaks.</li>
@@ -78,10 +78,10 @@ over graphs stored in Redland.
 being developed by the W3C
 <a href="http://www.w3.org/2001/sw/DataAccess/">RDF Data Access Working Group</a>,
 as defined in
-<a href="http://www.w3.org/TR/2005/WD-rdf-sparql-query-20051123/">SPARQL Query Language for RDF</a>, W3C Working Draft 23 November 2005.
-It currently implements the core functionality but is not a
-complete implementation.
-For further information on the state, see the Rasqal
+<a href="http://www.w3.org/TR/2007/PR-rdf-sparql-query-20071112/">SPARQL Query Language for RDF</a>, W3C Proposed Recommendation 12 November 2007.
+It currently implements most of the functionality except for
+<code>GRAPH</code>, <code>UNION</code> and part of <code>OPTIONAL</code>.
+For detailed information on the implementation state, see the Rasqal
 <a href="TODO.html#sparql">todo / bugs list</a>
 and the <a href="http://bugs.librdf.org/">Redland issue tracker</a>.</p>
 
