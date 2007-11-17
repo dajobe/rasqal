@@ -24,3 +24,81 @@ Not used
 
 
 
+<!-- ##### FUNCTION bind_match ##### -->
+<para>
+
+</para>
+
+@Param1: 
+@user_data: 
+@bindings: 
+@parts: 
+@Returns: 
+
+
+<!-- ##### FUNCTION finish ##### -->
+<para>
+
+</para>
+
+@Param1: 
+@user_data: 
+
+
+<!-- ##### FUNCTION free_triples_source ##### -->
+<para>
+
+</para>
+
+@user_data: 
+
+
+<!-- ##### FUNCTION init_triples_match ##### -->
+<para>
+
+</para>
+
+@rtm: 
+@rts: 
+@user_data: 
+@m: 
+@t: 
+@Returns: 
+
+
+<!-- ##### FUNCTION is_end ##### -->
+<para>
+
+</para>
+
+@Param1: 
+@user_data: 
+@Returns: 
+
+
+<!-- ##### FUNCTION next_match ##### -->
+<para>
+
+</para>
+
+@Param1: 
+@user_data: 
+
+
+<!-- ##### STRUCT rasqal_expression_s ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### FUNCTION triple_present ##### -->
+<para>
+
+</para>
+
+@rts: 
+@user_data: 
+@t: 
+@Returns: 
+
+
