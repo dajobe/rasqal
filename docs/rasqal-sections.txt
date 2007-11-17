@@ -77,8 +77,10 @@ rasqal_graph_pattern_visit
 <FILE>section-literal</FILE>
 rasqal_literal
 rasqal_literal_type
+rasqal_new_typed_literal
 rasqal_new_boolean_literal
 rasqal_new_decimal_literal
+rasqal_new_decimal_literal_from_decimal
 rasqal_new_double_literal
 rasqal_new_float_literal
 rasqal_new_floating_literal
@@ -254,12 +256,14 @@ rasqal_xsd_decimal_compare
 rasqal_xsd_decimal_divide
 rasqal_xsd_decimal_equals
 rasqal_xsd_decimal_get_double
+rasqal_xsd_decimal_is_zero
 rasqal_xsd_decimal_multiply
 rasqal_xsd_decimal_print
 rasqal_xsd_decimal_set_double
 rasqal_xsd_decimal_set_long
 rasqal_xsd_decimal_set_string
 rasqal_xsd_decimal_subtract
+rasqal_xsd_decimal_negate
 </SECTION>
 
 
@@ -270,5 +274,12 @@ rasqal_expression_s
 rasqal_literal_s
 rasqal_triples_match_s
 rasqal_triples_source_s
+bind_match
+finish
+free_triples_source
+init_triples_match
+is_end
+next_match
+triple_present
 </SECTION>
 
