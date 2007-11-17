@@ -269,16 +269,5 @@ rasqal_xsd_decimal_negate
 <SECTION>
 <FILE>section-unused</FILE>
 RASQAL_API
-rasqal_expression_s
-rasqal_literal_s
-rasqal_triples_match_s
-rasqal_triples_source_s
-bind_match
-finish
-free_triples_source
-init_triples_match
-is_end
-next_match
-triple_present
 </SECTION>
 
