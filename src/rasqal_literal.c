@@ -286,7 +286,7 @@ rasqal_new_pattern_literal(const unsigned char *pattern,
 rasqal_literal*
 rasqal_new_decimal_literal(const unsigned char *string)
 {
-  return rasqal_new_decimal_literal_from_decimal(decimal, NULL);
+  return rasqal_new_decimal_literal_from_decimal(string, NULL);
 }
 
 
