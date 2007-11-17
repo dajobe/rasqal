@@ -539,8 +539,8 @@ rasqal_xsd_datetime_string_to_canonical(const unsigned char* datetime_string)
 
 /**
  * days_per_month:
- * @month month 1-12
- * @year gregorian year
+ * @month: month 1-12
+ * @year: gregorian year
  *
  * INTERNAL - returns the number of days in given month and year.
  *
