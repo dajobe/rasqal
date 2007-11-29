@@ -118,12 +118,17 @@ typedef struct rasqal_query_s rasqal_query;
  */
 typedef struct rasqal_query_results_s rasqal_query_results;
 
+
+#ifndef RASQAL_QUERY_RESULTS_FORMATTER_DECLARED
+#define RASQAL_QUERY_RESULTS_FORMATTER_DECLARED 1
 /**
  * rasqal_query_results_formatter:
  *
  * Rasqal query results formatter class.
  */
 typedef struct rasqal_query_results_formatter_s rasqal_query_results_formatter;
+#endif
+
 
 typedef struct rasqal_literal_s rasqal_literal;
 
