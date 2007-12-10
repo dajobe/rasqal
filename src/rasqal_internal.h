@@ -468,6 +468,12 @@ struct rasqal_query_results_s {
   
   /* INTERNAL sequence of results for ordering */
   raptor_sequence* results_sequence;
+
+  /* size of result row fields row->results and row->values */
+  int size;
+
+  /* size of result row ordering fields row->order_values */
+  int order_size;
 };
     
 
@@ -683,12 +689,17 @@ void rasqal_query_set_base_uri(rasqal_query* rq, raptor_uri* base_uri);
 void rasqal_init_query_results(void);
 void rasqal_finish_query_results(void);
 
-/* rasqal_result_foramts.c */
+/* rasqal_result_formats.c */
 void rasqal_init_result_formats(void);
 void rasqal_finish_result_formats(void);
 
 rasqal_query_results* rasqal_new_query_results(rasqal_query* query);
 void rasqal_query_results_reset(rasqal_query_results* query_results);
+rasqal_query_result_row* rasqal_new_query_result_row(rasqal_query_results* query_results);
+rasqal_query_result_row* rasqal_new_query_result_row_from_query_result_row(rasqal_query_result_row* row);
+void rasqal_free_query_result_row(rasqal_query_result_row* row);
+void rasqal_query_results_set_variables(rasqal_query_results* query_results, raptor_sequence* variables, int size);
+void rasqal_query_results_set_order_conditions(rasqal_query_results* query_results, int order_size);
 
 /* rasqal_xsd_datatypes.c */
 int rasqal_xsd_init(void);

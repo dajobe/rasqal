@@ -22,7 +22,7 @@
 # the licenses in COPYING.LIB, COPYING and LICENSE-2.0.txt respectively.
 # 
 
-bin_PROGRAMS = roqet
+bin_PROGRAMS = roqet srxread
 
 man_MANS = roqet.1
 
@@ -34,6 +34,10 @@ if GETOPT
 roqet_SOURCES += getopt.c rasqal_getopt.h
 endif
 roqet_LDADD = $(top_builddir)/src/librasqal.la
+
+srxread_SOURCES = srxread.c
+srxread_CPPFLAGS = -I/Users/dajobe/dev/redland/raptor/src
+srxread_LDADD = $(top_builddir)/src/librasqal.la
 
 EXTRA_DIST= \
 $(man_MANS) \

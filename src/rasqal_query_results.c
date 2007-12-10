@@ -92,7 +92,6 @@ rasqal_query_results_reset(rasqal_query_results* query_results)
 }
 
 
-
 /**
  * rasqal_free_query_results:
  * @query_results: #rasqal_query_results object
@@ -114,9 +113,10 @@ rasqal_free_query_results(rasqal_query_results* query_results)
     rasqal_engine_execute_finish(query_results);
 
   if(query_results->row)
-    rasqal_engine_free_query_result_row(query_results->row);
+    rasqal_free_query_result_row(query_results->row);
 
-  if(query_results->execution_data && query_results->free_execution_data)
+  if(query && query_results->execution_data && 
+     query_results->free_execution_data)
     query_results->free_execution_data(query, query_results, query_results->execution_data);
   
   if(query_results->results_sequence)
@@ -124,8 +124,9 @@ rasqal_free_query_results(rasqal_query_results* query_results)
 
   if(query_results->triple)
     rasqal_free_triple(query_results->triple);
-  
-  rasqal_query_remove_query_result(query, query_results);
+
+  if(query)
+    rasqal_query_remove_query_result(query, query_results);
   RASQAL_FREE(rasqal_query_results, query_results);
 }
 
@@ -428,7 +429,7 @@ rasqal_query_results_get_bindings_count(rasqal_query_results* query_results)
   if(!rasqal_query_results_is_bindings(query_results))
     return -1;
   
-  return query_results->query->select_variables_count;
+  return query_results->size;
 }
 
 
@@ -780,4 +781,117 @@ rasqal_query_results_write(raptor_iostream *iostr,
 
   rasqal_free_query_results_formatter(formatter);
   return status;
+}
+
+
+/**
+ * rasqal_new_query_result_row:
+ * @query_results: query results object
+ * @offset: offset into sequence of results
+ *
+ * INTERNAL - Create a new query result row at an offset into the result sequence.
+ *
+ * Return value: a new query result row or NULL on failure
+ */
+rasqal_query_result_row*
+rasqal_new_query_result_row(rasqal_query_results* query_results)
+{
+  int size;
+  int order_size;
+  rasqal_query_result_row* row;
+  
+  size=query_results->size;
+  row=(rasqal_query_result_row*)RASQAL_CALLOC(rasqal_query_result_row, 1,
+                                              sizeof(rasqal_query_result_row));
+  if(!row)
+    return NULL;
+
+  row->usage=1;
+  row->results=query_results;
+
+  row->size=size;
+  row->values=(rasqal_literal**)RASQAL_CALLOC(array, size,
+					      sizeof(rasqal_literal*));
+  if(!row->values) {
+    rasqal_free_query_result_row(row);
+    return NULL;
+  }
+
+  order_size=query_results->order_size;
+  if(order_size) {
+    row->order_size=order_size;
+    row->order_values=(rasqal_literal**)RASQAL_CALLOC(array,  order_size,
+                                                      sizeof(rasqal_literal*));
+    if(!row->order_values) {
+      rasqal_free_query_result_row(row);
+      return NULL;
+    }
+  }
+  
+  return row;
+}
+
+
+/**
+ * rasqal_new_query_result_row_from_query_result_row:
+ * @row: query result row
+ * 
+ * INTERNAL - Copy a query result row.
+ *
+ * Return value: a copy of the query result row or NULL
+ */
+rasqal_query_result_row*
+rasqal_new_query_result_row_from_query_result_row(rasqal_query_result_row* row)
+{
+  row->usage++;
+  return row;
+}
+
+
+/**
+ * rasqal_free_query_result_row:
+ * @row: query result row
+ * 
+ * INTERNAL - Free a query result row object.
+ */
+void 
+rasqal_free_query_result_row(rasqal_query_result_row* row)
+{
+  if(--row->usage)
+    return;
+  
+  if(row->values) {
+    int i; 
+    for(i=0; i < row->size; i++) {
+      if(row->values[i])
+        rasqal_free_literal(row->values[i]);
+    }
+    RASQAL_FREE(array, row->values);
+  }
+  if(row->order_values) {
+    int i; 
+    for(i=0; i < row->order_size; i++) {
+      if(row->order_values[i])
+        rasqal_free_literal(row->order_values[i]);
+    }
+    RASQAL_FREE(array, row->order_values);
+  }
+
+  RASQAL_FREE(rasqal_query_result_row, row);
+}
+
+
+void
+rasqal_query_results_set_variables(rasqal_query_results* query_results,
+                                   raptor_sequence* variables, int size)
+{
+  query_results->size=size;
+}
+
+
+void
+rasqal_query_results_set_order_conditions(rasqal_query_results* query_results,
+                                          int size)
+{
+  query_results->order_size=size;
 }

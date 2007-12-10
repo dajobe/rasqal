@@ -2645,117 +2645,6 @@ rasqal_engine_query_result_row_update(rasqal_query_result_row* row, int offset)
 
 
 /**
- * rasqal_engine_new_query_result_row:
- * @query_results: query results object
- * @offset: offset into sequence of results
- *
- * INTERNAL - Create a new query result row at an offset into the result sequence.
- *
- * Return value: a new query result row or NULL on failure
- */
-static rasqal_query_result_row*
-rasqal_engine_new_query_result_row(rasqal_query_results* query_results,
-                                   int offset)
-{
-  rasqal_query* query=query_results->query;
-  int size;
-  int order_size;
-  rasqal_query_result_row* row;
-  
-  /* do not use rasqal_query_results_get_bindings_count() as it is 0
-   * for a graph result which is also executed handled here
-   */
-  if(query->constructs)
-    size=raptor_sequence_size(query->variables_sequence);
-  else
-    size=query->select_variables_count;
-
-  row=(rasqal_query_result_row*)RASQAL_CALLOC(rasqal_query_result_row, 1,
-                                              sizeof(rasqal_query_result_row));
-  if(!row)
-    return NULL;
-  row->usage=1;
-  row->results=query_results;
-
-  row->size=size;
-  row->values=(rasqal_literal**)RASQAL_CALLOC(array, size,
-					      sizeof(rasqal_literal*));
-  if(!row->values) {
-    rasqal_engine_free_query_result_row(row);
-    return NULL;
-  }
-
-  if(query->order_conditions_sequence)
-    order_size=raptor_sequence_size(query->order_conditions_sequence);
-  else
-    order_size=0;
-  
-  if(order_size) {
-    row->order_size=order_size;
-    row->order_values=(rasqal_literal**)RASQAL_CALLOC(array,  order_size,
-                                                      sizeof(rasqal_literal*));
-    if(!row->order_values) {
-      rasqal_engine_free_query_result_row(row);
-      return NULL;
-    }
-  }
-  
-  rasqal_engine_query_result_row_update(row, offset);
-  
-  return row;
-}
-
-
-/**
- * rasqal_engine_new_query_result_row_from_query_result_row:
- * @row: query result row
- * 
- * INTERNAL - Copy a query result row.
- *
- * Return value: a copy of the query result row or NULL
- */
-static rasqal_query_result_row*
-rasqal_engine_new_query_result_row_from_query_result_row(rasqal_query_result_row* row)
-{
-  row->usage++;
-  return row;
-}
-
-
-/**
- * rasqal_engine_free_query_result_row:
- * @row: query result row
- * 
- * INTERNAL - Free a query result row object.
- */
-void 
-rasqal_engine_free_query_result_row(rasqal_query_result_row* row)
-{
-  if(--row->usage)
-    return;
-  
-  if(row->values) {
-    int i; 
-    for(i=0; i < row->size; i++) {
-      if(row->values[i])
-        rasqal_free_literal(row->values[i]);
-    }
-    RASQAL_FREE(array, row->values);
-  }
-  if(row->order_values) {
-    int i; 
-    for(i=0; i < row->order_size; i++) {
-      if(row->order_values[i])
-        rasqal_free_literal(row->order_values[i]);
-    }
-    RASQAL_FREE(array, row->order_values);
-  }
-
-  RASQAL_FREE(rasqal_query_result_row, row);
-}
-
-
-/**
  * rasqal_engine_get_result_row:
  * @query_results: query results object
  *
@@ -3068,9 +2957,9 @@ static void
 rasqal_engine_map_free_query_result_row(const void *key, const void *value)
 {
   if(key)
-    rasqal_engine_free_query_result_row((rasqal_query_result_row*)key);
+    rasqal_free_query_result_row((rasqal_query_result_row*)key);
   if(value)
-    rasqal_engine_free_query_result_row((rasqal_query_result_row*)value);
+    rasqal_free_query_result_row((rasqal_query_result_row*)value);
 }
 
 
@@ -3088,7 +2977,7 @@ static void
 rasqal_engine_map_add_to_sequence(void *key, void *value, void *user_data)
 {
   rasqal_query_result_row* row;
-  row=rasqal_engine_new_query_result_row_from_query_result_row((rasqal_query_result_row*)key);
+  row=rasqal_new_query_result_row_from_query_result_row((rasqal_query_result_row*)key);
   raptor_sequence_push((raptor_sequence*)user_data, row);
 }
 
@@ -3145,7 +3034,7 @@ rasqal_engine_execute_and_save(rasqal_query_results *query_results)
   }
   
   /* get all query results and order them */
-  seq=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_engine_free_query_result_row, (raptor_sequence_print_handler*)rasqal_engine_query_result_row_print);
+  seq=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_query_result_row, (raptor_sequence_print_handler*)rasqal_engine_query_result_row_print);
   if(!seq) {
     if(map)
       rasqal_free_map(map);
@@ -3176,7 +3065,7 @@ rasqal_engine_execute_and_save(rasqal_query_results *query_results)
     }
     
     /* otherwise is >0 match */
-    row=rasqal_engine_new_query_result_row(query_results, offset);
+    row=rasqal_new_query_result_row(query_results);
     if(!row) {
       raptor_free_sequence(seq);
       if(map)
@@ -3184,6 +3073,8 @@ rasqal_engine_execute_and_save(rasqal_query_results *query_results)
       return -1;
     }
     
+    rasqal_engine_query_result_row_update(row, offset);
+
     /* after this, row is owned by sequence */
     if(!map) {
       raptor_sequence_push(seq, row);
@@ -3198,7 +3089,7 @@ rasqal_engine_execute_and_save(rasqal_query_results *query_results)
       rasqal_engine_query_result_row_print(row, stderr);
       fputc('\n', stderr);
 #endif
-      rasqal_engine_free_query_result_row(row);
+      rasqal_free_query_result_row(row);
       row=NULL;
     }
   }
@@ -3429,9 +3320,9 @@ rasqal_engine_excute_next_lazy(rasqal_query_results *query_results)
 
   if(!query_results->finished) {
     if(!query_results->row)
-      query_results->row=rasqal_engine_new_query_result_row(query_results, 
-                                                            query_results->result_count);
-    else
+      query_results->row=rasqal_new_query_result_row(query_results);
+
+    if(query_results->row)
       rasqal_engine_query_result_row_update(query_results->row, 
                                             query_results->result_count);
   }

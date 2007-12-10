@@ -1174,6 +1174,8 @@ rasqal_query_execute(rasqal_query* query)
 {
   rasqal_query_results *query_results=NULL;
   int rc=0;
+  int size=0;
+  int order_size=0;
   
   if(query->failed)
     return NULL;
@@ -1182,6 +1184,19 @@ rasqal_query_execute(rasqal_query* query)
   if(!query_results)
     return NULL;
   
+  /* do not use rasqal_query_results_get_bindings_count() as it is 0
+   * for a graph result which is also executed by finding regular bindings
+   */
+  if(query->constructs)
+    size=raptor_sequence_size(query->variables_sequence);
+  else
+    size=query->select_variables_count;
+  rasqal_query_results_set_variables(query_results, NULL, size);
+
+  if(query->order_conditions_sequence)
+    order_size=raptor_sequence_size(query->order_conditions_sequence);
+  rasqal_query_results_set_order_conditions(query_results, order_size);
+
   /* set executed flag early to enable cleanup on error */
   query_results->executed=1;
 
