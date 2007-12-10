@@ -44,7 +44,7 @@
 
 
 #ifndef RASQAL_ENGINE_EVAL_LAZY
-#define RASQAL_ENGINE_EVAL_LAZY 1
+#define RASQAL_ENGINE_EVAL_LAZY 0
 #endif
 
 
