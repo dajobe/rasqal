@@ -43,6 +43,11 @@
 #include "rasqal_internal.h"
 
 
+#ifndef RASQAL_ENGINE_EVAL_LAZY
+#define RASQAL_ENGINE_EVAL_LAZY 1
+#endif
+
+
 /* local types */
 
 typedef enum {
@@ -2146,22 +2151,27 @@ int
 rasqal_engine_check_limit_offset(rasqal_query_results *query_results)
 {
   rasqal_query* query=query_results->query;
+  int limit=query->limit;
+
+  /* Ensure ASK queries never do more than one result */
+  if(query->verb == RASQAL_QUERY_VERB_ASK)
+    limit=1;
 
   if(query->offset > 0) {
     /* offset */
     if(query_results->result_count <= query->offset)
       return -1;
     
-    if(query->limit >= 0) {
+    if(limit >= 0) {
       /* offset and limit */
-      if(query_results->result_count > (query->offset + query->limit)) {
+      if(query_results->result_count > (query->offset + limit)) {
         query_results->finished=1;
       }
     }
     
-  } else if(query->limit >= 0) {
+  } else if(limit >= 0) {
     /* limit */
-    if(query_results->result_count > query->limit) {
+    if(query_results->result_count > limit) {
       query_results->finished=1;
     }
   }
@@ -2652,10 +2662,6 @@ rasqal_engine_new_query_result_row(rasqal_query_results* query_results,
   int order_size;
   rasqal_query_result_row* row;
   
-  if(!rasqal_query_results_is_bindings(query_results) &&
-     !rasqal_query_results_is_graph(query_results))
-    return NULL;
-
   /* do not use rasqal_query_results_get_bindings_count() as it is 0
    * for a graph result which is also executed handled here
    */
@@ -3123,20 +3129,26 @@ rasqal_engine_execute_and_save(rasqal_query_results *query_results)
   rasqal_map* map=NULL;
   raptor_sequence* seq;
   int offset=0;
+  int need_map=0;
   
-  /* make a row:NULL map */
-  map=rasqal_new_map(rasqal_engine_query_result_row_compare,
-                     rasqal_engine_map_free_query_result_row, 
-                     rasqal_engine_map_print_query_result_row,
-                     NULL,
-                     0);
-  if(!map)
-    return -1;
+  need_map=(query->order_conditions_sequence || query->distinct);
+
+  if(need_map) {
+    /* make a row:NULL map in order to sort or do distinct */
+    map=rasqal_new_map(rasqal_engine_query_result_row_compare,
+                       rasqal_engine_map_free_query_result_row, 
+                       rasqal_engine_map_print_query_result_row,
+                       NULL,
+                       0);
+    if(!map)
+      return -1;
+  }
   
   /* get all query results and order them */
   seq=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_engine_free_query_result_row, (raptor_sequence_print_handler*)rasqal_engine_query_result_row_print);
   if(!seq) {
-    rasqal_free_map(map);
+    if(map)
+      rasqal_free_map(map);
     return -1;
   }
   while(1) {
@@ -3167,12 +3179,17 @@ rasqal_engine_execute_and_save(rasqal_query_results *query_results)
     row=rasqal_engine_new_query_result_row(query_results, offset);
     if(!row) {
       raptor_free_sequence(seq);
-      rasqal_free_map(map);
+      if(map)
+        rasqal_free_map(map);
       return -1;
     }
     
+    /* after this, row is owned by sequence */
+    if(!map) {
+      raptor_sequence_push(seq, row);
+      offset++;
     /* after this, row is owned by map */
-    if(!rasqal_map_add_kv(map, row, NULL)) {
+    } else if(!rasqal_map_add_kv(map, row, NULL)) {
       offset++;
     } else {
       /* duplicate, and not added so delete it */
@@ -3257,13 +3274,19 @@ rasqal_engine_execute_and_save(rasqal_query_results *query_results)
 int
 rasqal_engine_execute_run(rasqal_query_results* query_results)
 {
+#if RASQAL_ENGINE_EVAL_LAZY == 1
   rasqal_query *query=query_results->query;
+#endif
   int rc=0;
-  
+
+#if RASQAL_ENGINE_EVAL_LAZY == 1
   if(query->order_conditions_sequence || query->distinct)
     rc=rasqal_engine_execute_and_save(query_results);
   else
     rc=rasqal_engine_excute_next_lazy(query_results);
+#else
+  rc=rasqal_engine_execute_and_save(query_results);
+#endif
 
   if(rc >= 0)
     rc=rasqal_engine_query_result_row_to_nodes(query_results);
