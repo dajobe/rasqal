@@ -22,7 +22,10 @@
 # the licenses in COPYING.LIB, COPYING and LICENSE-2.0.txt respectively.
 # 
 
-bin_PROGRAMS = roqet srxread
+bin_PROGRAMS = roqet
+EXTRA_PROGRAMS = srxread
+
+CLEANFILES = $(EXTRA_PROGRAMS)
 
 man_MANS = roqet.1
 
