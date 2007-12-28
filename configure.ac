@@ -24,7 +24,7 @@ dnl the licenses in COPYING.LIB, COPYING and LICENSE-2.0.txt respectively.
 dnl 
 
 
-AC_INIT(Rasqal RDF Query Library, 0.9.15, http://bugs.librdf.org/, rasqal)
+AC_INIT(Rasqal RDF Query Library, 0.9.16, http://bugs.librdf.org/, rasqal)
 AC_PREREQ(2.50)
 AC_CONFIG_SRCDIR(src/rasqal_general.c)
 AC_REVISION($Revision$)
@@ -253,7 +253,7 @@ AC_SUBST(RASQAL_VERSION_DECIMAL)
 #     then set AGE to 0.
 #
 # syntax: CURRENT[:REVISION[:AGE]]
-RASQAL_LIBTOOL_VERSION=0:0:0
+RASQAL_LIBTOOL_VERSION=1:0:0
 AC_SUBST(RASQAL_LIBTOOL_VERSION)
 
 
