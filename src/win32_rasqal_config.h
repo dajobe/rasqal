@@ -2,9 +2,7 @@
  *
  * win32_config.h - Rasqal WIN32 hard-coded config
  *
- * $Id$
- *
- * Copyright (C) 2004-2006, David Beckett http://purl.org/net/dajobe/
+ * Copyright (C) 2004-2007, David Beckett http://purl.org/net/dajobe/
  * Copyright (C) 2004-2005, University of Bristol, UK http://www.bristol.ac.uk/
  * 
  * This package is Free Software and part of Redland http://librdf.org/
@@ -69,7 +67,7 @@ extern "C" {
  */
 
 /* Release version as a decimal */
-#define RASQAL_VERSION_DECIMAL 915
+#define RASQAL_VERSION_DECIMAL 916
 
 /* Major version number */
 #define RASQAL_VERSION_MAJOR 0
@@ -78,10 +76,10 @@ extern "C" {
 #define RASQAL_VERSION_MINOR 9
 
 /* Release version number */
-#define RASQAL_VERSION_RELEASE 15
+#define RASQAL_VERSION_RELEASE 16
 
 /* Version number of package */
-#define VERSION "0.9.15"
+#define VERSION "0.9.16"
 
 #include <windows.h>
 #include <io.h>
