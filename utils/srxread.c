@@ -390,7 +390,7 @@ main(int argc, char *argv[])
     goto tidy;
   }
 
-  memset(&ud, sizeof(srxread_userdata), '\0');
+  memset(&ud, '\0', sizeof(srxread_userdata));
   ud.state=STATE_unknown;
   ud.results=rasqal_new_query_results(NULL);
   
