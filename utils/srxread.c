@@ -113,6 +113,7 @@ typedef struct
   int variables_count;
   int result_offset;
   raptor_sequence* variable_names;
+  int free_variable_names;
 } srxread_userdata;
   
 
@@ -209,6 +210,9 @@ srxread_raptor_sax2_start_element_handler(void *user_data,
       ud->results=rasqal_new_query_results(NULL);
       rasqal_query_results_set_variables(ud->results, ud->variable_names,
                                          ud->variables_count);
+      /* variable_names is now owned by ud->results */
+      ud->free_variable_names=0;
+
       ud->results->results_sequence=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_query_result_row, (raptor_sequence_print_handler*)rasqal_query_result_row_print);
 
       break;
@@ -393,6 +397,7 @@ main(int argc, char *argv[])
   memset(&ud, '\0', sizeof(srxread_userdata));
   ud.state=STATE_unknown;
   ud.results=rasqal_new_query_results(NULL);
+  ud.free_variable_names=1;
   
   srx_filename=argv[1];
 
@@ -470,7 +475,7 @@ main(int argc, char *argv[])
   tidy:
   if(ud.results)
     rasqal_free_query_results(ud.results);
-  if(ud.variable_names)
+  if(ud.variable_names && ud.free_variable_names)
     raptor_free_sequence(ud.variable_names);
   
   if(base_uri)
