@@ -127,6 +127,10 @@ rasqal_free_query_results(rasqal_query_results* query_results)
 
   if(query)
     rasqal_query_remove_query_result(query, query_results);
+
+  if(query_results->variable_names)
+    raptor_free_sequence(query_results->variable_names);
+
   RASQAL_FREE(rasqal_query_results, query_results);
 }
 
@@ -883,8 +887,9 @@ rasqal_free_query_result_row(rasqal_query_result_row* row)
 
 void
 rasqal_query_results_set_variables(rasqal_query_results* query_results,
-                                   raptor_sequence* variables, int size)
+                                   raptor_sequence* variable_names, int size)
 {
+  query_results->variable_names=variable_names;
   query_results->size=size;
 }
 
@@ -894,4 +899,58 @@ rasqal_query_results_set_order_conditions(rasqal_query_results* query_results,
                                           int size)
 {
   query_results->order_size=size;
+}
+
+
+/**
+ * rasqal_query_result_row_print:
+ * @row: query result row
+ * @fp: FILE* handle
+ *
+ * INTERNAL - Print a query result row.
+ */
+void 
+rasqal_query_result_row_print(rasqal_query_result_row* row, FILE* fh)
+{
+  rasqal_query_results* results=row->results;
+  int i;
+  
+  fputs("result[", fh);
+  for(i=0; i < row->size; i++) {
+    /* Do not use rasqal_query_results_get_binding_name(row->results, i); 
+     * as it does not work for a construct result
+     */
+    const unsigned char *name=NULL;
+    rasqal_literal *value;
+    
+    name=raptor_sequence_get_at(results->variable_names, i);
+    value=row->values[i];
+    if(i > 0)
+      fputs(", ", fh);
+    fprintf(fh, "%s=", name);
+
+    if(value)
+      rasqal_literal_print(value, fh);
+    else
+      fputs("NULL", fh);
+  }
+
+  if(row->order_size) {
+    fputs(" with ordering values [", fh);
+
+    for(i=0; i < row->order_size; i++) {
+      rasqal_literal *value=row->order_values[i];
+      
+      if(i > 0)
+        fputs(", ", fh);
+      if(value)
+        rasqal_literal_print(value, fh);
+      else
+        fputs("NULL", fh);
+    }
+    fputs("]", fh);
+
+  }
+
+  fprintf(fh, " offset %d]", row->offset);
 }
