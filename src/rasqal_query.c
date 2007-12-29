@@ -1176,6 +1176,8 @@ rasqal_query_execute(rasqal_query* query)
   int rc=0;
   int size=0;
   int order_size=0;
+  raptor_sequence* variable_names=NULL;
+  int i;
   
   if(query->failed)
     return NULL;
@@ -1191,7 +1193,16 @@ rasqal_query_execute(rasqal_query* query)
     size=raptor_sequence_size(query->variables_sequence);
   else
     size=query->select_variables_count;
-  rasqal_query_results_set_variables(query_results, NULL, size);
+  variable_names=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_memory, NULL);
+  for(i=0; i < size; i++) {
+    rasqal_variable* v=(rasqal_variable*)raptor_sequence_get_at(query->variables_sequence, i);
+    size_t var_name_len=strlen((const char*)v->name);
+    char* var_name=(char*)RASQAL_MALLOC(cstring, var_name_len+1);
+    strncpy(var_name, (const char*)v->name, var_name_len+1);
+    raptor_sequence_set_at(variable_names, i, var_name);
+  }
+
+  rasqal_query_results_set_variables(query_results, variable_names, size);
 
   if(query->order_conditions_sequence)
     order_size=raptor_sequence_size(query->order_conditions_sequence);
