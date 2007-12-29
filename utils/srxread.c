@@ -369,7 +369,7 @@ main(int argc, char *argv[])
 { 
   int rc=0;
   const char* srx_filename=NULL;
-  FILE *fh;
+  FILE *fh=NULL;
   char* p;
   raptor_sax2* sax2=NULL;
   srxread_userdata ud; /* static */
