@@ -387,6 +387,11 @@ main(int argc, char *argv[])
 
   rasqal_init();
 
+  memset(&ud, '\0', sizeof(srxread_userdata));
+  ud.state=STATE_unknown;
+  ud.results=rasqal_new_query_results(NULL);
+  ud.free_variable_names=1;
+  
   if(argc != 2) {
     fprintf(stderr, "USAGE: %s SRX file\n", program);
 
@@ -394,11 +399,6 @@ main(int argc, char *argv[])
     goto tidy;
   }
 
-  memset(&ud, '\0', sizeof(srxread_userdata));
-  ud.state=STATE_unknown;
-  ud.results=rasqal_new_query_results(NULL);
-  ud.free_variable_names=1;
-  
   srx_filename=argv[1];
 
   uri_string=raptor_uri_filename_to_uri_string((const char*)srx_filename);
@@ -475,6 +475,7 @@ main(int argc, char *argv[])
   tidy:
   if(ud.results)
     rasqal_free_query_results(ud.results);
+
   if(ud.variable_names && ud.free_variable_names)
     raptor_free_sequence(ud.variable_names);
   
