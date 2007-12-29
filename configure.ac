@@ -3,8 +3,6 @@ dnl
 dnl configure.ac - autoconf file for rasqal
 dnl (Process this file with autoconf to produce a configure script.)
 dnl
-dnl $Id$
-dnl
 dnl Copyright (C) 2003-2007, David Beckett http://purl.org/net/dajobe/
 dnl Copyright (C) 2003-2005, University of Bristol, UK http://www.bristol.ac.uk/
 dnl 
@@ -278,7 +276,7 @@ AC_TRY_LINK([#ifdef HAVE_GETOPT_H
 AC_CHECK_PROG(RAPTOR_CONFIG, raptor-config, raptor-config)
 AC_ARG_WITH(raptor, [  --with-raptor=SOURCE        Pick raptor source - system/internal (default auto)], with_raptor="$withval", with_raptor="auto")
 
-RAPTOR_MIN_VERSION=1.4.16
+RAPTOR_MIN_VERSION=1.4.17
 AC_SUBST(RAPTOR_MIN_VERSION)
 if test "X$RAPTOR_CONFIG" = X; then
   with_raptor=internal
