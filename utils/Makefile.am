@@ -39,7 +39,6 @@ endif
 roqet_LDADD = $(top_builddir)/src/librasqal.la
 
 srxread_SOURCES = srxread.c
-srxread_CPPFLAGS = -I/Users/dajobe/dev/redland/raptor/src
 srxread_LDADD = $(top_builddir)/src/librasqal.la
 
 EXTRA_DIST= \
