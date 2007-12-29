@@ -1,7 +1,29 @@
 2007-12-28  Dave Beckett <dave@dajobe.org>
 
+	* src/rasqal_query.c: (rasqal_query_execute): Initialise
+	variable_names using rasqal_query_results_set_variables.
+
+	* src/rasqal_engine.c: (rasqal_engine_query_result_row_print):
+	Renamed to public rasqal_query_result_row_print.
+
+	* src/rasqal_query_results.c: (rasqal_free_query_results): Free
+	variable_names
+	(rasqal_query_results_set_variables): set variable_names.
+	(rasqal_query_result_row_print): Added - renamed from
+	rasqal_engine_query_result_row_print.
+
+	* src/rasqal_internal.h: struct rasqal_query_results_s gains field
+	variable_names.
+	Added rasqal_query_result_row_print prototype
+
+	* utils/Makefile.am: Remove srxread_CPPFLAGS
+
+	* utils/srxread.c: Use 1.4.17 raptor API
+
+	* configure.ac: Require raptor 1.4.17 for SAX2 API
+
 	* configure.ac, RELEASE.html, NEWS.html, src/win32_rasqal_config.h:
-	Bump version to 0.9.15
+	Bump version to 0.9.16
 	Update libtool version to 1:0:0
 
 2007-12-09  Dave Beckett <dave@dajobe.org>
