@@ -2716,60 +2716,6 @@ rasqal_engine_get_result_value(rasqal_query_results* query_results, int offset)
 
 
 /**
- * rasqal_engine_query_result_row_print:
- * @row: query result row
- * @fp: FILE* handle
- *
- * INTERNAL - Print a query result row.
- */
-static void 
-rasqal_engine_query_result_row_print(rasqal_query_result_row* row, FILE* fh)
-{
-  rasqal_query* query=row->results->query;
-  int i;
-  
-  fputs("result[", fh);
-  for(i=0; i < row->size; i++) {
-    /* Do not use rasqal_query_results_get_binding_name(row->results, i); 
-     * as it does not work for a construct result
-     */
-    const unsigned char *name;
-    rasqal_literal *value;
-    
-    name=(query->variables[i] ? query->variables[i]->name : NULL);
-    value=row->values[i];
-    if(i > 0)
-      fputs(", ", fh);
-    fprintf(fh, "%s=", name);
-
-    if(value)
-      rasqal_literal_print(value, fh);
-    else
-      fputs("NULL", fh);
-  }
-
-  fputs(" with ordering values [", fh);
-
-  if(row->order_size) {
-
-    for(i=0; i < row->order_size; i++) {
-      rasqal_literal *value=row->order_values[i];
-      
-      if(i > 0)
-        fputs(", ", fh);
-      if(value)
-        rasqal_literal_print(value, fh);
-      else
-        fputs("NULL", fh);
-    }
-    fputs("]", fh);
-  }
-
-  fprintf(fh, " offset %d]", row->offset);
-}
-
-
-/**
  * rasqal_query_result_literal_sequence_compare:
  * @query: the #rasqal_query to use to comparekfind the variables in
  * @values_a: first array of literals
@@ -2967,7 +2913,7 @@ static void
 rasqal_engine_map_print_query_result_row(void *object, FILE *fh)
 {
   if(object)
-    rasqal_engine_query_result_row_print((rasqal_query_result_row*)object, fh);
+    rasqal_query_result_row_print((rasqal_query_result_row*)object, fh);
   else
     fputs("NULL", fh);
 }
@@ -3034,7 +2980,7 @@ rasqal_engine_execute_and_save(rasqal_query_results *query_results)
   }
   
   /* get all query results and order them */
-  seq=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_query_result_row, (raptor_sequence_print_handler*)rasqal_engine_query_result_row_print);
+  seq=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_query_result_row, (raptor_sequence_print_handler*)rasqal_query_result_row_print);
   if(!seq) {
     if(map)
       rasqal_free_map(map);
@@ -3086,7 +3032,7 @@ rasqal_engine_execute_and_save(rasqal_query_results *query_results)
       /* duplicate, and not added so delete it */
 #ifdef RASQAL_DEBUG
       RASQAL_DEBUG1("Got duplicate row ");
-      rasqal_engine_query_result_row_print(row, stderr);
+      rasqal_query_result_row_print(row, stderr);
       fputc('\n', stderr);
 #endif
       rasqal_free_query_result_row(row);
