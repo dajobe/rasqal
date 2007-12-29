@@ -2,8 +2,6 @@
  *
  * rasqal_internal.h - Rasqal RDF Query library internals
  *
- * $Id$
- *
  * Copyright (C) 2003-2007, David Beckett http://purl.org/net/dajobe/
  * Copyright (C) 2003-2005, University of Bristol, UK http://www.bristol.ac.uk/
  * 
@@ -474,6 +472,9 @@ struct rasqal_query_results_s {
 
   /* size of result row ordering fields row->order_values */
   int order_size;
+
+  /* sequence of variable names */
+  raptor_sequence* variable_names;
 };
     
 
@@ -698,7 +699,8 @@ void rasqal_query_results_reset(rasqal_query_results* query_results);
 rasqal_query_result_row* rasqal_new_query_result_row(rasqal_query_results* query_results);
 rasqal_query_result_row* rasqal_new_query_result_row_from_query_result_row(rasqal_query_result_row* row);
 void rasqal_free_query_result_row(rasqal_query_result_row* row);
-void rasqal_query_results_set_variables(rasqal_query_results* query_results, raptor_sequence* variables, int size);
+void rasqal_query_results_set_variables(rasqal_query_results* query_results, raptor_sequence* variable_names, int size);
+void rasqal_query_result_row_print(rasqal_query_result_row* row, FILE* fh);
 void rasqal_query_results_set_order_conditions(rasqal_query_results* query_results, int order_size);
 
 /* rasqal_xsd_datatypes.c */
