@@ -1185,6 +1185,9 @@ rasqal_query_execute(rasqal_query* query)
   query_results=rasqal_new_query_results(query);
   if(!query_results)
     return NULL;
+
+  /* set executed flag early to enable cleanup on error */
+  query_results->executed=1;
   
   /* do not use rasqal_query_results_get_bindings_count() as it is 0
    * for a graph result which is also executed by finding regular bindings
@@ -1194,6 +1197,12 @@ rasqal_query_execute(rasqal_query* query)
   else
     size=query->select_variables_count;
   variable_names=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_memory, NULL);
+  if(!variable_names) {
+    rasqal_free_query_results(query_results);
+    return NULL;
+  }
+  rasqal_query_results_set_variables(query_results, variable_names, size);
+
   for(i=0; i < size; i++) {
     rasqal_variable* v=(rasqal_variable*)raptor_sequence_get_at(query->variables_sequence, i);
     size_t var_name_len=strlen((const char*)v->name);
@@ -1206,14 +1215,9 @@ rasqal_query_execute(rasqal_query* query)
     raptor_sequence_set_at(variable_names, i, var_name);
   }
 
-  rasqal_query_results_set_variables(query_results, variable_names, size);
-
   if(query->order_conditions_sequence)
     order_size=raptor_sequence_size(query->order_conditions_sequence);
   rasqal_query_results_set_order_conditions(query_results, order_size);
-
-  /* set executed flag early to enable cleanup on error */
-  query_results->executed=1;
 
   rasqal_query_add_query_result(query, query_results);
 
