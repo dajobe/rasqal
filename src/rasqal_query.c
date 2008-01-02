@@ -1198,6 +1198,10 @@ rasqal_query_execute(rasqal_query* query)
     rasqal_variable* v=(rasqal_variable*)raptor_sequence_get_at(query->variables_sequence, i);
     size_t var_name_len=strlen((const char*)v->name);
     char* var_name=(char*)RASQAL_MALLOC(cstring, var_name_len+1);
+    if(!var_name) {
+      rasqal_free_query_results(query_results);
+      return NULL;
+    }
     strncpy(var_name, (const char*)v->name, var_name_len+1);
     raptor_sequence_set_at(variable_names, i, var_name);
   }
