@@ -70,6 +70,29 @@ rasqal_new_query_results(rasqal_query* query)
   if(query_results) {
     query_results->query=query;
 
+    if(query) {
+      if(query->query_results_formatter_name)
+        query_results->type=RASQAL_QUERY_RESULTS_SYNTAX;
+      else
+        switch(query->verb) {
+          case RASQAL_QUERY_VERB_SELECT:
+            query_results->type=RASQAL_QUERY_RESULTS_BINDINGS;
+            break;
+          case RASQAL_QUERY_VERB_ASK:
+            query_results->type=RASQAL_QUERY_RESULTS_BOOLEAN;
+            break;
+          case RASQAL_QUERY_VERB_CONSTRUCT:
+          case RASQAL_QUERY_VERB_DESCRIBE:
+            query_results->type=RASQAL_QUERY_RESULTS_GRAPH;
+            break;
+            
+          case RASQAL_QUERY_VERB_UNKNOWN:
+          case RASQAL_QUERY_VERB_DELETE:
+          case RASQAL_QUERY_VERB_INSERT:
+          default:
+            break;
+        }
+    }
     rasqal_query_results_reset(query_results);
   }
   
@@ -144,9 +167,7 @@ rasqal_free_query_results(rasqal_query_results* query_results)
 int
 rasqal_query_results_is_bindings(rasqal_query_results* query_results)
 {
-  rasqal_query* query=query_results->query;
-  return (query->query_results_formatter_name == NULL &&
-          query->verb == RASQAL_QUERY_VERB_SELECT);
+  return (query_results->type == RASQAL_QUERY_RESULTS_BINDINGS);
 }
 
 
@@ -161,9 +182,7 @@ rasqal_query_results_is_bindings(rasqal_query_results* query_results)
 int
 rasqal_query_results_is_boolean(rasqal_query_results* query_results)
 {
-  rasqal_query* query=query_results->query;
-  return (query->query_results_formatter_name == NULL &&
-          query->verb == RASQAL_QUERY_VERB_ASK);
+  return (query_results->type == RASQAL_QUERY_RESULTS_BOOLEAN);
 }
  
 
@@ -178,10 +197,7 @@ rasqal_query_results_is_boolean(rasqal_query_results* query_results)
 int
 rasqal_query_results_is_graph(rasqal_query_results* query_results)
 {
-  rasqal_query* query=query_results->query;
-  return (query->query_results_formatter_name == NULL &&
-          (query->verb == RASQAL_QUERY_VERB_CONSTRUCT ||
-           query->verb == RASQAL_QUERY_VERB_DESCRIBE));
+  return (query_results->type == RASQAL_QUERY_RESULTS_GRAPH);
 }
 
 
@@ -200,8 +216,7 @@ rasqal_query_results_is_graph(rasqal_query_results* query_results)
 int
 rasqal_query_results_is_syntax(rasqal_query_results* query_results)
 {
-  rasqal_query* query=query_results->query;
-  return (query->query_results_formatter_name != NULL);
+  return (query_results->type == RASQAL_QUERY_RESULTS_SYNTAX);
 }
 
 
