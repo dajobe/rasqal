@@ -478,9 +478,9 @@ struct rasqal_query_results_s {
 };
     
 
-typedef int (*rasqal_query_results_writer)(raptor_iostream *iostr,
-                                           rasqal_query_results* results,
-                                           raptor_uri *base_uri);
+typedef int (*rasqal_query_results_formatter_func)(raptor_iostream *iostr,
+                                                   rasqal_query_results* results,
+                                                   raptor_uri *base_uri);
 
 typedef struct {
   /* query results format name */
@@ -491,10 +491,14 @@ typedef struct {
 
   /* query results format URI (or NULL) */
   const unsigned char* uri_string;
-  
-  rasqal_query_results_writer writer;
 
-  /* MIME Type of the constructed syntax */
+  /* format writer: READ from results, WRITE syntax (using base URI) to iostr */
+  rasqal_query_results_formatter_func writer;
+
+  /* format reader: READ syntax from iostr using base URI, WRITE to results */
+  rasqal_query_results_formatter_func reader;
+
+  /* MIME Type of the format */
   const char* mime_type;
 } rasqal_query_results_format_factory;
 
