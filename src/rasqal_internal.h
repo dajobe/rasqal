@@ -245,7 +245,6 @@ struct rasqal_query_s {
    * indexes into the names in variables_sequence above.
    */
   const unsigned char** variable_names;
-
   /* can be filled with error location information */
   raptor_locator locator;
 
@@ -488,14 +487,20 @@ struct rasqal_query_results_s {
   /* INTERNAL sequence of results for ordering */
   raptor_sequence* results_sequence;
 
-  /* size of result row fields row->results and row->values */
+  /* size of result row fields row->results, row->values, variables, variable_names, variables_sequence */
   int size;
 
   /* size of result row ordering fields row->order_values */
   int order_size;
 
-  /* sequence of variable names */
-  raptor_sequence* variable_names;
+  /* array of variable names */
+  const unsigned char** variable_names;
+
+  /* sequence of variables */
+  raptor_sequence* variables_sequence;
+
+  /* variable name/value table of length 'size' */
+  rasqal_variable** variables;
 };
     
 
@@ -724,7 +729,7 @@ void rasqal_query_results_reset(rasqal_query_results* query_results);
 rasqal_query_result_row* rasqal_new_query_result_row(rasqal_query_results* query_results);
 rasqal_query_result_row* rasqal_new_query_result_row_from_query_result_row(rasqal_query_result_row* row);
 void rasqal_free_query_result_row(rasqal_query_result_row* row);
-void rasqal_query_results_set_variables(rasqal_query_results* query_results, raptor_sequence* variable_names, int size);
+int rasqal_query_results_set_variables(rasqal_query_results* query_results, raptor_sequence* variables_sequence, int size);
 void rasqal_query_result_row_print(rasqal_query_result_row* row, FILE* fh);
 void rasqal_query_results_set_order_conditions(rasqal_query_results* query_results, int order_size);
 
