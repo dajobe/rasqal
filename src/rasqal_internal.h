@@ -411,10 +411,31 @@ typedef struct {
 } rasqal_engine_execution_data;
 
 
+/**
+ * rasqal_query_results_type:
+ * @RASQAL_QUERY_RESULTS_BINDINGS: variable binding
+ * @RASQAL_QUERY_RESULTS_BOOLEAN: a single boolean
+ * @RASQAL_QUERY_RESULTS_GRAPH: an RDF graph
+ * @RASQAL_QUERY_RESULTS_SYNTAX: a syntax
+ *
+ * Query result type.
+ */
+
+typedef enum {
+  RASQAL_QUERY_RESULTS_BINDINGS,
+  RASQAL_QUERY_RESULTS_BOOLEAN,
+  RASQAL_QUERY_RESULTS_GRAPH,
+  RASQAL_QUERY_RESULTS_SYNTAX
+} rasqal_query_results_type;
+
+
 /*
  * A query result for some query
  */
 struct rasqal_query_results_s {
+  /* Type of query result */
+  rasqal_query_results_type type;
+  
   /* stopping? */
   int abort;
 
