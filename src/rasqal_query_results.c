@@ -882,7 +882,7 @@ rasqal_query_results_set_variables(rasqal_query_results* query_results,
 {
   int i;
 
-  query_results->type=RASQAL_QUERY_RESULTS_BINDINGS;
+  /*query_results->type=RASQAL_QUERY_RESULTS_BINDINGS;*/
   query_results->variables_sequence=variables_sequence;
   query_results->size=size;
 
