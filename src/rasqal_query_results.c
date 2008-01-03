@@ -151,9 +151,6 @@ rasqal_free_query_results(rasqal_query_results* query_results)
   if(query)
     rasqal_query_remove_query_result(query, query_results);
 
-  if(query_results->variables_sequence)
-    raptor_free_sequence(query_results->variables_sequence);
-
   RASQAL_FREE(rasqal_query_results, query_results);
 }
 
