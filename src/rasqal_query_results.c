@@ -374,15 +374,12 @@ const unsigned char*
 rasqal_query_results_get_binding_name(rasqal_query_results* query_results, 
                                       int offset)
 {
-  rasqal_query* query;
-
-  if(!query_results)
+  if(!query_results || !query_results->variables)
     return NULL;
   
-  if(!rasqal_query_results_is_bindings(query_results))
+  if(!rasqal_query_results_is_bindings(query_results)) 
     return NULL;
   
-  query=query_results->query;
   if(offset < 0 || offset > query_results->size-1)
     return NULL;
   
