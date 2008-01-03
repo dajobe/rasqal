@@ -2,9 +2,7 @@
  *
  * rasqal_query_results.c - Rasqal RDF Query Results
  *
- * $Id$
- *
- * Copyright (C) 2003-2007, David Beckett http://purl.org/net/dajobe/
+ * Copyright (C) 2003-2008, David Beckett http://purl.org/net/dajobe/
  * Copyright (C) 2003-2005, University of Bristol, UK http://www.bristol.ac.uk/
  * 
  * This package is Free Software and part of Redland http://librdf.org/
@@ -722,31 +720,6 @@ rasqal_query_results_get_boolean(rasqal_query_results* query_results)
   return query_results->ask_result;
 }
 
-
-/**
- * rasqal_query_results_formatter_write:
- * @iostr: #raptor_iostream to write the query to
- * @formatter: #rasqal_query_results_formatter object
- * @results: #rasqal_query_results query results format
- * @base_uri: #raptor_uri base URI of the output format
- *
- * Write the query results using the given formatter to an iostream
- * 
- * See rasqal_query_results_formats_enumerate() to get the
- * list of syntax URIs and their description. 
- *
- * Return value: non-0 on failure
- **/
-int
-rasqal_query_results_formatter_write(raptor_iostream *iostr,
-                                     rasqal_query_results_formatter* formatter,
-                                     rasqal_query_results* results,
-                                     raptor_uri *base_uri)
-{
-  return formatter->factory->writer(iostr, results, base_uri);
-}
-
-
 /**
  * rasqal_query_results_write:
  * @iostr: #raptor_iostream to write the query to
@@ -953,4 +926,45 @@ rasqal_query_result_row_print(rasqal_query_result_row* row, FILE* fh)
   }
 
   fprintf(fh, " offset %d]", row->offset);
+}
+
+
+/**
+ * rasqal_query_results_read:
+ * @iostr: #raptor_iostream to read the query from
+ * @results: #rasqal_query_results query results format
+ * @format_uri: #raptor_uri describing the format to read (or NULL for default)
+ * @base_uri: #raptor_uri base URI of the input format
+ *
+ * Read the query results from an iostream in a format.
+ * 
+ * This uses the #rasqal_query_results_formatter class
+ * and the rasqal_query_results_formatter_read() method
+ * to perform the formatting. See
+ * rasqal_query_results_formats_enumerate() 
+ * for obtaining the supported format URIs at run time.
+ *
+ * Return value: non-0 on failure
+ **/
+int
+rasqal_query_results_read(raptor_iostream *iostr,
+                          rasqal_query_results* results,
+                          raptor_uri *format_uri,
+                          raptor_uri *base_uri)
+{
+  rasqal_query_results_formatter *formatter;
+  int status;
+  
+  if(!results || results->failed)
+    return 1;
+
+  formatter=rasqal_new_query_results_formatter(NULL, format_uri);
+  if(!formatter)
+    return 1;
+
+  status=rasqal_query_results_formatter_read(iostr, formatter,
+                                             results, base_uri);
+
+  rasqal_free_query_results_formatter(formatter);
+  return status;
 }
