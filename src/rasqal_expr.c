@@ -149,46 +149,50 @@ rasqal_new_variable_typed(rasqal_query* rq,
 {
   int i;
   rasqal_variable* v;
-  raptor_sequence* seq;
-  int* count_p;
+  raptor_sequence* seq=NULL;
+  int* count_p=NULL;
 
-  switch(type) {
-    case RASQAL_VARIABLE_TYPE_ANONYMOUS:
-      seq=rq->anon_variables_sequence;
-      count_p=&rq->anon_variables_count;
-      break;
-    case RASQAL_VARIABLE_TYPE_NORMAL:
-      seq=rq->variables_sequence;
-      count_p=&rq->variables_count;
-      break;
+  if(rq) {
+    switch(type) {
+      case RASQAL_VARIABLE_TYPE_ANONYMOUS:
+        seq=rq->anon_variables_sequence;
+        count_p=&rq->anon_variables_count;
+        break;
+      case RASQAL_VARIABLE_TYPE_NORMAL:
+        seq=rq->variables_sequence;
+        count_p=&rq->variables_count;
+        break;
 
-    case RASQAL_VARIABLE_TYPE_UNKNOWN:
-    default:
-      RASQAL_DEBUG2("Unknown variable type %d", type);
-      return NULL;
-  }
+      case RASQAL_VARIABLE_TYPE_UNKNOWN:
+      default:
+        RASQAL_DEBUG2("Unknown variable type %d", type);
+        return NULL;
+    }
   
-  for(i=0; i< raptor_sequence_size(seq); i++) {
-    v=(rasqal_variable*)raptor_sequence_get_at(seq, i);
-    if(!strcmp((const char*)v->name, (const char*)name)) {
-      /* name already present, do not need a copy */
-      RASQAL_FREE(cstring, name);
-      return v;
+    for(i=0; i< raptor_sequence_size(seq); i++) {
+      v=(rasqal_variable*)raptor_sequence_get_at(seq, i);
+      if(!strcmp((const char*)v->name, (const char*)name)) {
+        /* name already present, do not need a copy */
+        RASQAL_FREE(cstring, name);
+        return v;
+      }
     }
   }
-    
+  
   v=(rasqal_variable*)RASQAL_CALLOC(rasqal_variable, 1, sizeof(rasqal_variable));
   if(v) {
     v->type= type;
     v->name= name;
     v->value= value;
-    v->offset= (*count_p);
+    if(count_p)
+      v->offset= (*count_p);
 
-    if(raptor_sequence_push(seq, v))
+    if(seq && raptor_sequence_push(seq, v))
       return NULL;
 
     /* Increment count only after sequence push succeeded */
-    (*count_p)++;
+    if(count_p)
+      (*count_p)++;
   } else {
     RASQAL_FREE(cstring, name);
     if(value)
