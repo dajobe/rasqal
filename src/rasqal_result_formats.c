@@ -2,9 +2,7 @@
  *
  * rasqal_result_formats.c - Rasqal RDF Query Result Formats
  *
- * $Id$
- *
- * Copyright (C) 2003-2007, David Beckett http://purl.org/net/dajobe/
+ * Copyright (C) 2003-2008, David Beckett http://purl.org/net/dajobe/
  * Copyright (C) 2003-2005, University of Bristol, UK http://www.bristol.ac.uk/
  * 
  * This package is Free Software and part of Redland http://librdf.org/
@@ -44,6 +42,7 @@
 
 
 static int rasqal_query_results_write_xml_result4(raptor_iostream *iostr, rasqal_query_results* results, raptor_uri *base_uri);
+static int rasqal_query_results_read_xml_result4(raptor_iostream *iostr, rasqal_query_results* results, raptor_uri *base_uri);
 static int rasqal_query_results_write_json1(raptor_iostream *iostr, rasqal_query_results* results, raptor_uri *base_uri);
 
 
@@ -54,7 +53,8 @@ static
 void rasqal_query_results_format_register_factory(const char *name,
                                                   const char *label,
                                                   const unsigned char* uri_string,
-                                                  rasqal_query_results_writer writer,
+                                                  rasqal_query_results_formatter_func writer,
+                                                  rasqal_query_results_formatter_func reader,
                                                   const char *mime_type)
 {
   rasqal_query_results_format_factory* factory;
@@ -68,6 +68,7 @@ void rasqal_query_results_format_register_factory(const char *name,
   factory->label=label;
   factory->uri_string=uri_string;
   factory->writer=writer;
+  factory->reader=reader;
   factory->mime_type=mime_type;
 
   raptor_sequence_push(query_results_formats, factory);
@@ -85,7 +86,8 @@ void rasqal_free_query_results_format_factory(rasqal_query_results_format_factor
 void
 rasqal_init_result_formats(void)
 {
-  rasqal_query_results_writer fn;
+  rasqal_query_results_formatter_func writer_fn=NULL;
+  rasqal_query_results_formatter_func reader_fn=NULL;
 
   query_results_formats=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_query_results_format_factory, NULL);
   if(!query_results_formats)
@@ -95,16 +97,17 @@ rasqal_init_result_formats(void)
    * SPARQL XML Results 2007-06-14
    * http://www.w3.org/TR/2006/WD-rdf-sparql-XMLres-20070614/
    */
-  fn=&rasqal_query_results_write_xml_result4;
+  writer_fn=&rasqal_query_results_write_xml_result4;
+  reader_fn=&rasqal_query_results_read_xml_result4;
   rasqal_query_results_format_register_factory("xml",
                                                "SPARQL Query Results Format 2007-06-14",
                                                (unsigned char*)"http://www.w3.org/2005/sparql-results#",
-                                               fn,
+                                               writer_fn, reader_fn,
                                                "application/sparql-results+xml");
   rasqal_query_results_format_register_factory(NULL,
                                                NULL,
                                                (unsigned char*)"http://www.w3.org/TR/2006/WD-rdf-sparql-XMLres-20070614/",
-                                               fn,
+                                               writer_fn, reader_fn,
                                                "application/sparql-results+xml");
 
   /*
@@ -112,16 +115,17 @@ rasqal_init_result_formats(void)
    * Defined in http://www.w3.org/2001/sw/DataAccess/json-sparql/
    * Version: 1.6 $ of $Date: 2006/04/05 15:55:17
    */
-  fn=&rasqal_query_results_write_json1;
+  writer_fn=&rasqal_query_results_write_json1;
+  reader_fn=NULL;
   rasqal_query_results_format_register_factory("json",
                                                "JSON",
                                                (unsigned char*)"http://www.w3.org/2001/sw/DataAccess/json-sparql/",
-                                               fn,
+                                               writer_fn, reader_fn,
                                                "text/json");
   rasqal_query_results_format_register_factory(NULL,
                                                NULL,
                                                (unsigned char*)"http://www.mindswap.org/%7Ekendall/sparql-results-json/",
-                                               fn,
+                                               writer_fn, reader_fn,
                                                "text/json");
 }
 
@@ -137,12 +141,13 @@ rasqal_finish_result_formats(void)
 
 
 /**
- * rasqal_query_results_formats_enumerate_full:
+ * rasqal_query_results_formats_enumerate:
  * @counter: index into the list of query result syntaxes
  * @name: pointer to store the name of the query result syntax (or NULL)
  * @label: pointer to store query result syntax readable label (or NULL)
  * @uri_string: pointer to store query result syntax URI string (or NULL)
  * @mime_type: pointer to store query result syntax mime type string (or NULL)
+ * @flags: pointer to store query result syntax flags (or NULL)
  *
  * Get information on query result syntaxes.
  * 
@@ -163,11 +168,12 @@ rasqal_finish_result_formats(void)
  * Return value: non 0 on failure of if counter is out of range
  **/
 int
-rasqal_query_results_formats_enumerate_full(const unsigned int counter,
-                                            const char **name,
-                                            const char **label,
-                                            const unsigned char **uri_string,
-                                            const char **mime_type)
+rasqal_query_results_formats_enumerate(const unsigned int counter,
+                                       const char **name,
+                                       const char **label,
+                                       const unsigned char **uri_string,
+                                       const char **mime_type,
+                                       int *flags)
 {
   rasqal_query_results_format_factory *factory;
   int i;
@@ -197,30 +203,15 @@ rasqal_query_results_formats_enumerate_full(const unsigned int counter,
     *uri_string=factory->uri_string;
   if(mime_type)
     *mime_type=factory->mime_type;
+  if(flags) {
+    *flags=0;
+    if(factory->reader)
+      *flags |= RASQAL_QUERY_RESULTS_FORMAT_FLAG_READER;
+    if(factory->writer)
+      *flags |= RASQAL_QUERY_RESULTS_FORMAT_FLAG_WRITER;
+  }
+  
   return 0;
-}
-
-
-/**
- * rasqal_query_results_formats_enumerate:
- * @counter: index into the list of query result syntaxes
- * @name: pointer to store the name of the query result syntax (or NULL)
- * @label: pointer to store query result syntax readable label (or NULL)
- * @uri_string: pointer to store query result syntax URI string (or NULL)
- *
- * Get information on query result syntaxes.
- * 
- * See rasqal_query_results_formats_enumerate_full()
- * 
- * Return value: non 0 on failure of if counter is out of range
- **/
-int
-rasqal_query_results_formats_enumerate(const unsigned int counter,
-                                        const char **name, const char **label,
-                                        const unsigned char **uri_string)
-{
-  return rasqal_query_results_formats_enumerate_full(counter, name, label,
-                                                     uri_string, NULL);
 }
 
 
@@ -283,7 +274,7 @@ rasqal_query_results_formats_check(const char *name, raptor_uri* uri,
 /**
  * rasqal_new_query_results_formatter:
  * @name: the query results format name (or NULL)
- * @uri: #raptor_uri query results format uri (or NULL)
+ * @format_uri: #raptor_uri query results format uri (or NULL)
  *
  * Constructor - create a new rasqal_query_results_formatter object by identified format.
  *
@@ -295,12 +286,12 @@ rasqal_query_results_formats_check(const char *name, raptor_uri* uri,
  * Return value: a new #rasqal_query_results_formatter object or NULL on failure
  */
 rasqal_query_results_formatter*
-rasqal_new_query_results_formatter(const char *name, raptor_uri* uri)
+rasqal_new_query_results_formatter(const char *name, raptor_uri* format_uri)
 {
   rasqal_query_results_format_factory* factory;
   rasqal_query_results_formatter* formatter;
 
-  factory=rasqal_get_query_results_formatter_factory(name, uri, NULL);
+  factory=rasqal_get_query_results_formatter_factory(name, format_uri, NULL);
   if(!factory)
     return NULL;
 
@@ -372,11 +363,11 @@ rasqal_free_query_results_formatter(rasqal_query_results_formatter* formatter)
 
 /*
  * rasqal_query_results_write_xml_result4:
- * @iostr: #raptor_iostream to write the query to
- * @results: #rasqal_query_results query results format
+ * @iostr: #raptor_iostream to write the query results to
+ * @results: #rasqal_query_results query results input
  * @base_uri: #raptor_uri base URI of the output format
  *
- * Write the fourth version of the XML query results format to an
+ * Write the fourth version of the SPARQL XML query results format to an
  * iostream in a format - INTERNAL.
  * 
  * If the writing succeeds, the query results will be exhausted.
@@ -741,6 +732,48 @@ rasqal_query_results_write_xml_result4(raptor_iostream *iostr,
 }
 
 
+/*
+ * rasqal_query_results_read_xml_result4:
+ * @iostr: #raptor_iostream to read the query results from
+ * @results: #rasqal_query_results query results output
+ * @base_uri: #raptor_uri base URI of the input format
+ *
+ * Read the fourth version of the SPARQL XML query results format from an
+ * iostream in a format - INTERNAL.
+ * 
+ * If the reading succeeds, the query results will contain the results.
+ * 
+ * Return value: non-0 on failure
+ **/
+static int
+rasqal_query_results_read_xml_result4(raptor_iostream *iostr,
+                                      rasqal_query_results* results,
+                                      raptor_uri *base_uri)
+{
+  int rc=1;
+  rasqal_query* query=results->query;
+  const raptor_uri_handler *uri_handler;
+  void *uri_context;
+
+  if(!rasqal_query_results_is_bindings(results) &&
+     !rasqal_query_results_is_boolean(results)) {
+    rasqal_query_error(query, "Can only write XML format v3 for variable binding and boolean results");
+    return 1;
+  }
+  
+  
+  raptor_uri_get_handler(&uri_handler, &uri_context);
+
+  /* FIXME - read the format here */
+
+  rc=0;
+
+  tidy;
+  return rc;
+}
+
+
+
 static
 void raptor_iostream_write_json_boolean(raptor_iostream* iostr, 
                                         const char* name, int json_bool)
@@ -952,4 +985,56 @@ const char*
 rasqal_query_results_formatter_get_mime_type(rasqal_query_results_formatter *formatter)
 {
   return formatter->mime_type;
+}
+
+
+/**
+ * rasqal_query_results_formatter_write:
+ * @iostr: #raptor_iostream to write the query to
+ * @formatter: #rasqal_query_results_formatter object
+ * @results: #rasqal_query_results query results format
+ * @base_uri: #raptor_uri base URI of the output format
+ *
+ * Write the query results using the given formatter to an iostream
+ * 
+ * See rasqal_query_results_formats_enumerate() to get the
+ * list of syntax URIs and their description. 
+ *
+ * Return value: non-0 on failure
+ **/
+int
+rasqal_query_results_formatter_write(raptor_iostream *iostr,
+                                     rasqal_query_results_formatter* formatter,
+                                     rasqal_query_results* results,
+                                     raptor_uri *base_uri)
+{
+  if(!formatter->factory->writer)
+     return 1;
+  return formatter->factory->writer(iostr, results, base_uri);
+}
+
+
+/**
+ * rasqal_query_results_formatter_read:
+ * @iostr: #raptor_iostream to read the query from
+ * @formatter: #rasqal_query_results_formatter object
+ * @results: #rasqal_query_results query results format
+ * @base_uri: #raptor_uri base URI of the input format
+ *
+ * Read the query results using the given formatter tfrom an iostream
+ * 
+ * See rasqal_query_results_formats_enumerate() to get the
+ * list of syntax URIs and their description. 
+ *
+ * Return value: non-0 on failure
+ **/
+int
+rasqal_query_results_formatter_read(raptor_iostream *iostr,
+                                    rasqal_query_results_formatter* formatter,
+                                    rasqal_query_results* results,
+                                    raptor_uri *base_uri)
+{
+  if(!formatter->factory->reader)
+     return 1;
+  return formatter->factory->reader(iostr, results, base_uri);
 }
