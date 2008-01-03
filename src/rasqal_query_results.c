@@ -76,7 +76,9 @@ rasqal_new_query_results(rasqal_query* query)
       else
         switch(query->verb) {
           case RASQAL_QUERY_VERB_SELECT:
-            query_results->type=RASQAL_QUERY_RESULTS_BINDINGS;
+            rasqal_query_results_set_variables(query_results,
+                                               query->variables_sequence,
+                                               query->select_variables_count);
             break;
           case RASQAL_QUERY_VERB_ASK:
             query_results->type=RASQAL_QUERY_RESULTS_BOOLEAN;
@@ -149,8 +151,8 @@ rasqal_free_query_results(rasqal_query_results* query_results)
   if(query)
     rasqal_query_remove_query_result(query, query_results);
 
-  if(query_results->variable_names)
-    raptor_free_sequence(query_results->variable_names);
+  if(query_results->variables_sequence)
+    raptor_free_sequence(query_results->variables_sequence);
 
   RASQAL_FREE(rasqal_query_results, query_results);
 }
@@ -240,7 +242,7 @@ rasqal_query_results_get_count(rasqal_query_results* query_results)
     return -1;
   
   query=query_results->query;
-  if(query->offset > 0)
+  if(query && query->offset > 0)
     return query_results->result_count - query->offset;
   return query_results->result_count;
 }
@@ -311,17 +313,14 @@ rasqal_query_results_get_bindings(rasqal_query_results* query_results,
                                   const unsigned char ***names, 
                                   rasqal_literal ***values)
 {
-  rasqal_query* query;
-  
   if(!query_results)
     return 1;
   
   if(!rasqal_query_results_is_bindings(query_results))
     return 1;
   
-  query=query_results->query;
   if(names)
-    *names=query->variable_names;
+    *names=query_results->variable_names;
   
   if(values)
     *values=rasqal_engine_get_result_values(query_results);
@@ -352,7 +351,7 @@ rasqal_query_results_get_binding_value(rasqal_query_results* query_results,
     return NULL;
   
   query=query_results->query;
-  if(offset < 0 || offset > query->select_variables_count-1)
+  if(offset < 0 || offset > query_results->size-1)
     return NULL;
 
   return rasqal_engine_get_result_value(query_results, offset);
@@ -381,10 +380,10 @@ rasqal_query_results_get_binding_name(rasqal_query_results* query_results,
     return NULL;
   
   query=query_results->query;
-  if(offset < 0 || offset > query->select_variables_count-1)
+  if(offset < 0 || offset > query_results->size-1)
     return NULL;
   
-  return query->variables[offset]->name;
+  return query_results->variables[offset]->name;
 }
 
 
@@ -413,8 +412,8 @@ rasqal_query_results_get_binding_value_by_name(rasqal_query_results* query_resul
     return NULL;
   
   query=query_results->query;
-  for(i=0; i< query->select_variables_count; i++) {
-    if(!strcmp((const char*)name, (const char*)query->variables[i]->name)) {
+  for(i=0; i< query_results->size; i++) {
+    if(!strcmp((const char*)name, (const char*)query_results->variables[i]->name)) {
       offset=i;
       break;
     }
@@ -873,12 +872,33 @@ rasqal_free_query_result_row(rasqal_query_result_row* row)
 }
 
 
-void
+int
 rasqal_query_results_set_variables(rasqal_query_results* query_results,
-                                   raptor_sequence* variable_names, int size)
+                                   raptor_sequence* variables_sequence,
+                                   int size)
 {
-  query_results->variable_names=variable_names;
+  int i;
+
+  query_results->type=RASQAL_QUERY_RESULTS_BINDINGS;
+  query_results->variables_sequence=variables_sequence;
   query_results->size=size;
+
+  query_results->variable_names=(const unsigned char**)RASQAL_MALLOC(cstrings, sizeof(unsigned char*) * (size+1));
+  if(!query_results->variable_names)
+    return 1;
+  
+  query_results->variables=(rasqal_variable**)RASQAL_MALLOC(varray, sizeof(rasqal_variable*) * size);
+  if(!query_results->variables)
+    return 1;
+
+  for(i=0; i < size; i++) {
+    rasqal_variable* v=(rasqal_variable*)raptor_sequence_get_at(variables_sequence, i);
+    query_results->variables[i]=v;
+    query_results->variable_names[i]=v->name;
+  }
+  query_results->variable_names[i]=NULL;
+
+  return 0;
 }
 
 
@@ -911,7 +931,7 @@ rasqal_query_result_row_print(rasqal_query_result_row* row, FILE* fh)
     const unsigned char *name=NULL;
     rasqal_literal *value;
     
-    name=raptor_sequence_get_at(results->variable_names, i);
+    name=results->variable_names[i];
     value=row->values[i];
     if(i > 0)
       fputs(", ", fh);
