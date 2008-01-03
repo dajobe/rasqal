@@ -388,7 +388,7 @@ main(int argc, char *argv[])
 { 
   int rc=0;
   const char* srx_filename=NULL;
-  FILE *fh=NULL;
+  raptor_iostream* iostr=NULL;
   char* p;
   raptor_sax2* sax2=NULL;
   srxread_userdata ud; /* static */
@@ -449,10 +449,10 @@ main(int argc, char *argv[])
                                       srxread_raptor_sax2_end_element_handler);
 
 
-  fh=fopen(srx_filename, "r");
-  if(!fh) {
-    fprintf(stderr, "%s: file '%s' open failed - %s", 
-            program, srx_filename, strerror(errno));
+  iostr=raptor_new_iostream_from_filename(srx_filename);
+  if(!iostr) {
+    fprintf(stderr, "%s: Failed to open iostream to file %s", program,
+            srx_filename);
     rc=1;
     goto tidy;
   }
@@ -463,10 +463,10 @@ main(int argc, char *argv[])
   ud.depth=0;
   raptor_sax2_parse_start(sax2, base_uri);
 
-  while(!feof(fh)) {
+  while(!raptor_iostream_read_eof(iostr)) {
     unsigned char buffer[FILE_READ_BUF_SIZE];
     size_t read_len;
-    read_len=fread((char*)buffer, 1, FILE_READ_BUF_SIZE, fh);
+    read_len=raptor_iostream_read_bytes(iostr, (char*)buffer, 1, FILE_READ_BUF_SIZE);
     if(read_len > 0) {
       fprintf(stderr, "%s: processing %d bytes\n", program, (int)read_len);
       raptor_sax2_parse_chunk(sax2, buffer, read_len, 0);
@@ -474,16 +474,10 @@ main(int argc, char *argv[])
     }
     
     if(read_len < FILE_READ_BUF_SIZE) {
-      if(ferror(fh)) {
-        fprintf(stderr, "%s: file '%s' read failed - %s\n",
-                program, srx_filename, strerror(errno));
-        fclose(fh);
-        return(1);
-      }
       break;
     }
   }
-  fclose(fh); fh=NULL;
+  raptor_free_iostream(iostr); iostr=NULL;
 
   raptor_sax2_parse_chunk(sax2, NULL, 0, 1);
   
@@ -506,8 +500,8 @@ main(int argc, char *argv[])
   if(sax2)
     raptor_free_sax2(sax2);
 
-  if(fh)
-    fclose(fh);
+  if(iostr)
+    raptor_free_iostream(iostr);
   
   rasqal_finish();
 
