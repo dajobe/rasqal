@@ -768,7 +768,6 @@ rasqal_query_results_read_xml_result4(raptor_iostream *iostr,
 
   rc=0;
 
-  tidy;
   return rc;
 }
 
