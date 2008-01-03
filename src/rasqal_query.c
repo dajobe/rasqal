@@ -1200,6 +1200,7 @@ rasqal_query_execute(rasqal_query* query)
   /* free function is NULL here so that when the query results is
    * freed, the variable is not freed twice.  This is a HACK.  FIXME.
    */
+  /* FIXME2: variables_sequence is leaked, rasqal_query_results_set_variables does not take ownership anymore */
   variables_sequence=raptor_new_sequence(NULL, NULL);
   if(!variables_sequence) {
     rasqal_free_query_results(query_results);
