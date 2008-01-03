@@ -120,8 +120,8 @@ typedef struct
   rasqal_query_result_row* row;
   int variables_count;
   int result_offset;
-  raptor_sequence* variable_names;
-  int free_variable_names;
+  raptor_sequence* variables_sequence;
+  int free_variables_sequence;
 } srxread_userdata;
   
 
@@ -206,27 +206,31 @@ srxread_raptor_sax2_start_element_handler(void *user_data,
       
     case STATE_head:
       ud->variables_count=0;
-      ud->variable_names=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_memory, NULL);
+      ud->variables_sequence=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_variable, (raptor_sequence_print_handler*)rasqal_variable_print);
       break;
       
     case STATE_variable:
       if(1) {
+        rasqal_variable* v;
         size_t var_name_len=strlen(ud->name);
         unsigned char* var_name=(unsigned char*)RASQAL_MALLOC(cstring, var_name_len+1);
 
         strncpy((char*)var_name, ud->name, var_name_len+1);
-        raptor_sequence_set_at(ud->variable_names, ud->variables_count, var_name);
 
+        v=rasqal_new_variable_typed(NULL, RASQAL_VARIABLE_TYPE_NORMAL,
+                                    var_name, NULL);
+
+        raptor_sequence_set_at(ud->variables_sequence, ud->variables_count, v);
         ud->variables_count++;
       }
       break;
       
     case STATE_results:
       ud->results=rasqal_new_query_results(NULL);
-      rasqal_query_results_set_variables(ud->results, ud->variable_names,
+      rasqal_query_results_set_variables(ud->results, ud->variables_sequence,
                                          ud->variables_count);
-      /* variable_names is now owned by ud->results */
-      ud->free_variable_names=0;
+      /* variable_sequence is now owned by ud->results */
+      ud->free_variables_sequence=0;
 
       ud->results->results_sequence=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_query_result_row, (raptor_sequence_print_handler*)rasqal_query_result_row_print);
 
@@ -241,8 +245,8 @@ srxread_raptor_sax2_start_element_handler(void *user_data,
     case STATE_binding:
       ud->result_offset= -1;
       for(i=0; i < ud->variables_count; i++) {
-        const char* var_name=(const char*)raptor_sequence_get_at(ud->variable_names, i);
-        if(!strcmp(var_name, ud->name)) {
+        rasqal_variable* v=(rasqal_variable*)raptor_sequence_get_at(ud->variables_sequence, i);
+        if(!strcmp((const char*)v->name, ud->name)) {
           ud->result_offset=i;
           break;
         }
@@ -360,9 +364,6 @@ srxread_raptor_sax2_end_element_handler(void *user_data,
       break;
       
     case STATE_result:
-      rasqal_query_result_row_print(ud->row, stdout);
-      fputc('\n', stdout);
-      raptor_sequence_push(ud->results->results_sequence, ud->row);
       ud->row=NULL;
       break;
 
@@ -409,7 +410,7 @@ main(int argc, char *argv[])
   memset(&ud, '\0', sizeof(srxread_userdata));
   ud.state=STATE_unknown;
   ud.results=rasqal_new_query_results(NULL);
-  ud.free_variable_names=1;
+  ud.free_variables_sequence=1;
   
   if(argc != 2) {
     fprintf(stderr, "USAGE: %s SRX file\n", program);
@@ -485,14 +486,32 @@ main(int argc, char *argv[])
 
   if(ud.failed)
     rc=1;
+  else {
+    const char* results_formatter_name=NULL;
+    rasqal_query_results_formatter* write_formatter=NULL;
+    raptor_iostream *write_iostr=NULL;
 
+    write_formatter=rasqal_new_query_results_formatter(results_formatter_name,
+                                                         NULL);
+    if(write_formatter)
+      write_iostr=raptor_new_iostream_to_file_handle(stdout);
+
+    if(!write_formatter || !write_iostr) {
+      fprintf(stderr, "%s: Creating output iostream failed\n", program);
+    } else {
+      rasqal_query_results_formatter_write(write_iostr, write_formatter,
+                                           ud.results, base_uri);
+      raptor_free_iostream(write_iostr);
+      rasqal_free_query_results_formatter(write_formatter);
+    }
+  }
   
   tidy:
   if(ud.results)
     rasqal_free_query_results(ud.results);
 
-  if(ud.variable_names && ud.free_variable_names)
-    raptor_free_sequence(ud.variable_names);
+  if(ud.variables_sequence && ud.free_variables_sequence)
+    raptor_free_sequence(ud.variables_sequence);
   
   if(base_uri)
     raptor_free_uri(base_uri);
