@@ -148,6 +148,12 @@ rasqal_free_query_results(rasqal_query_results* query_results)
   if(query_results->triple)
     rasqal_free_triple(query_results->triple);
 
+  if(query_results->variables)
+    RASQAL_FREE(varray, query_results->variables);
+
+  if(query_results->variable_names)
+    RASQAL_FREE(cstrings, query_results->variable_names);
+
   if(query)
     rasqal_query_remove_query_result(query, query_results);
 
@@ -880,10 +886,18 @@ rasqal_query_results_set_variables(rasqal_query_results* query_results,
   query_results->variables_sequence=variables_sequence;
   query_results->size=size;
 
+  if(query_results->variable_names) {
+    RASQAL_FREE(cstrings, query_results->variable_names);
+    query_results->variable_names=NULL;
+  }
   query_results->variable_names=(const unsigned char**)RASQAL_MALLOC(cstrings, sizeof(unsigned char*) * (size+1));
   if(!query_results->variable_names)
     return 1;
-  
+
+  if(query_results->variables) {
+    RASQAL_FREE(varray, query_results->variables);
+    query_results->variables=NULL;
+  }  
   query_results->variables=(rasqal_variable**)RASQAL_MALLOC(varray, sizeof(rasqal_variable*) * size);
   if(!query_results->variables)
     return 1;
