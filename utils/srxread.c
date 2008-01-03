@@ -1,8 +1,8 @@
 /* -*- Mode: c; c-basic-offset: 2 -*-
  *
- * srxread.c - SRX Read test program
+ * srxread.c - SPARQL Resulx XML reading test program
  *
- * Copyright (C) 2007, David Beckett http://purl.org/net/dajobe/
+ * Copyright (C) 2007-2008, David Beckett http://purl.org/net/dajobe/
  * 
  * This package is Free Software and part of Redland http://librdf.org/
  * 
@@ -46,6 +46,12 @@
 #include <rasqal.h>
 #include <rasqal_internal.h>
 
+
+#if RASQAL_DEBUG > 2
+#define TRACE_XML 1
+#else
+#undef TRACE_XML
+#endif
 
 int main(int argc, char *argv[]);
 
@@ -106,7 +112,9 @@ typedef struct
   const char* language; /* literal language from literal/@xml:lang */
   int failed;
   int depth;
+#ifdef TRACE_XML
   int trace;
+#endif
   rasqal_query_results* results;
   int offset; /* current index into results */
   rasqal_query_result_row* row;
@@ -117,6 +125,7 @@ typedef struct
 } srxread_userdata;
   
 
+#ifdef TRACE_XML
 static void
 pad(FILE* fh, int depth)
 {
@@ -124,7 +133,7 @@ pad(FILE* fh, int depth)
   for(i=0; i< depth; i++)
     fputs("  ", fh);
 }
-
+#endif
 
 static void
 srxread_raptor_sax2_start_element_handler(void *user_data,
@@ -150,10 +159,12 @@ srxread_raptor_sax2_start_element_handler(void *user_data,
     ud->failed++;
   }
 
+#ifdef TRACE_XML
   if(ud->trace) {
     pad(stderr, ud->depth);
     fprintf(stderr, "Element %s (%d)\n", raptor_qname_get_local_name(name), state);
   }
+#endif
   
   attr_count=raptor_xml_element_get_attributes_count(xml_element);
   ud->name=NULL;
@@ -163,12 +174,14 @@ srxread_raptor_sax2_start_element_handler(void *user_data,
   if(attr_count > 0) {
     raptor_qname** attrs=raptor_xml_element_get_attributes(xml_element);
     for(i=0; i < attr_count; i++) {
+#ifdef TRACE_XML
       if(ud->trace) {
         pad(stderr, ud->depth+1);
         fprintf(stderr, "Attribute %s='%s'\n",
                 raptor_qname_get_local_name(attrs[i]),
                 raptor_qname_get_value(attrs[i]));
       }
+#endif
       if(!strcmp((const char*)raptor_qname_get_local_name(attrs[i]),
                  "name"))
         ud->name=(const char*)raptor_qname_get_value(attrs[i]);
@@ -179,10 +192,12 @@ srxread_raptor_sax2_start_element_handler(void *user_data,
   }
   if(raptor_xml_element_get_language(xml_element)) {
     ud->language=(const char*)raptor_xml_element_get_language(xml_element);
+#ifdef TRACE_XML
     if(ud->trace) {
       pad(stderr, ud->depth+1);
       fprintf(stderr, "xml:lang '%s'\n", ud->language);
     }
+#endif
   }
 
   switch(state) {
@@ -254,12 +269,14 @@ srxread_raptor_sax2_characters_handler(void *user_data,
 {
   srxread_userdata* ud=(srxread_userdata*)user_data;
 
+#ifdef TRACE_XML
   if(ud->trace) {
     pad(stderr, ud->depth);
     fputs("Text '", stderr);
     fwrite(s, sizeof(char), len, stderr);
     fprintf(stderr, "' (%d bytes)\n", len);
   }
+#endif
 
   if(ud->state == STATE_literal ||
      ud->state == STATE_uri ||
@@ -296,10 +313,12 @@ srxread_raptor_sax2_end_element_handler(void *user_data,
   }
 
   ud->depth--;
+#ifdef TRACE_XML
   if(ud->trace) {
     pad(stderr, ud->depth);
     fprintf(stderr, "End Element %s (%d)\n", raptor_qname_get_local_name(name), ud->state);
   }
+#endif
 
   switch(ud->state) {
     case STATE_literal:
@@ -438,7 +457,9 @@ main(int argc, char *argv[])
     goto tidy;
   }
   
+#ifdef TRACE_XML
   ud.trace=1;
+#endif
   ud.depth=0;
   raptor_sax2_parse_start(sax2, base_uri);
 
