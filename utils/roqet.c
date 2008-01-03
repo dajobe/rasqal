@@ -680,14 +680,16 @@ main(int argc, char *argv[])
       else
         putchar('\n');
     }
-    puts(HELP_TEXT("r", "results FORMAT  ", "Set query results format to one of:"));
+    puts(HELP_TEXT("r", "results FORMAT  ", "Set query results output format to one of:"));
     puts("    For variable bindings and boolean results:");
     puts("      simple                A simple text format (default)");
     for(i=0; i < (int)raptor_get_feature_count(); i++) {
       const char *name;
       const char *label;
+      int qr_flags=0;
       if(!rasqal_query_results_formats_enumerate(i, &name, &label, 
-                                                 NULL))
+                                                 NULL, NULL, &qr_flags) &&
+         (qr_flags & RASQAL_QUERY_RESULTS_FORMAT_FLAG_WRITER))
         printf("      %-10s            %s\n", name, label);
     }
     puts("    For RDF graph results:");
