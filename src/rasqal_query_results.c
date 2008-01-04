@@ -1011,3 +1011,23 @@ rasqal_query_results_read(raptor_iostream *iostr,
   rasqal_free_query_results_formatter(formatter);
   return status;
 }
+
+
+/**
+ * rasqal_query_results_add_row:
+ * @query_results: query results object
+ * @row: query result row
+ *
+ * INTERNAL - Add a query result row to a sequence
+ */
+void
+rasqal_query_results_add_row(rasqal_query_results* query_results,
+                             rasqal_query_result_row* row)
+{
+  if(!query_results->results_sequence) {
+    query_results->results_sequence=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_query_result_row, (raptor_sequence_print_handler*)rasqal_query_result_row_print);
+    query_results->result_count= 1;
+  }
+  raptor_sequence_push(query_results->results_sequence, row);
+}
+
