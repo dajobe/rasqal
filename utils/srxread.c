@@ -119,6 +119,7 @@ typedef struct
   srxread_state state; /* state */
   /* state-based fields for turning XML into rasqal literals, rows */
   const char* name;  /* variable name (from binding/@name) */
+  size_t name_length;
   char* value; /* URI string, literal string or blank node ID */
   size_t value_len;
   const char* datatype; /* literal datatype URI string from literal/@datatype */
@@ -193,7 +194,8 @@ srxread_raptor_sax2_start_element_handler(void *user_data,
 #endif
       if(!strcmp((const char*)raptor_qname_get_local_name(attrs[i]),
                  "name"))
-        ud->name=(const char*)raptor_qname_get_value(attrs[i]);
+        ud->name=(const char*)raptor_qname_get_counted_value(attrs[i],
+                                                             &ud->name_length);
       else if(!strcmp((const char*)raptor_qname_get_local_name(attrs[i]),
                       "datatype"))
         ud->datatype=(const char*)raptor_qname_get_value(attrs[i]);
@@ -220,10 +222,10 @@ srxread_raptor_sax2_start_element_handler(void *user_data,
     case STATE_variable:
       if(1) {
         rasqal_variable* v;
-        size_t var_name_len=strlen(ud->name);
-        unsigned char* var_name=(unsigned char*)RASQAL_MALLOC(cstring, var_name_len+1);
+        unsigned char* var_name;
 
-        strncpy((char*)var_name, ud->name, var_name_len+1);
+        var_name=(unsigned char*)RASQAL_MALLOC(cstring, ud->name_length+1);
+        strncpy((char*)var_name, ud->name, ud->name_length+1);
 
         v=rasqal_new_variable_typed(NULL, RASQAL_VARIABLE_TYPE_NORMAL,
                                     var_name, NULL);
