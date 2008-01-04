@@ -56,9 +56,6 @@
 int main(int argc, char *argv[]);
 
 
-static char *program=NULL;
-
-
 #ifdef BUFSIZ
 #define FILE_READ_BUF_SIZE BUFSIZ
 #else
@@ -125,6 +122,7 @@ typedef struct
   int result_offset;
   raptor_sequence* variables_sequence;
   raptor_error_handlers error_handlers; /* static */
+  unsigned char buffer[FILE_READ_BUF_SIZE];
 } srxread_userdata;
   
 
@@ -397,12 +395,10 @@ srxread_raptor_sax2_end_element_handler(void *user_data,
 }
 
 
-static void
+static int
 init_ud(srxread_userdata* ud, raptor_uri* base_uri, raptor_iostream* iostr,
         rasqal_query_results* results)
 {
-  raptor_sax2* sax2=NULL;
-
   memset(ud, '\0', sizeof(srxread_userdata));
 
   ud->base_uri=base_uri;
@@ -420,19 +416,21 @@ init_ud(srxread_userdata* ud, raptor_uri* base_uri, raptor_iostream* iostr,
                              NULL, NULL, /* warning data/handler */
                              &ud->locator);
   
-  sax2=raptor_new_sax2(ud, &ud->error_handlers);
-  ud->sax2=sax2;
+  ud->sax2=raptor_new_sax2(ud, &ud->error_handlers);
+  if(!ud->sax2)
+    return 1;
   
-  raptor_sax2_set_start_element_handler(sax2,
+  raptor_sax2_set_start_element_handler(ud->sax2,
                                         srxread_raptor_sax2_start_element_handler);
-  raptor_sax2_set_characters_handler(sax2,
+  raptor_sax2_set_characters_handler(ud->sax2,
                                      srxread_raptor_sax2_characters_handler);
-  raptor_sax2_set_characters_handler(sax2,
+  raptor_sax2_set_characters_handler(ud->sax2,
                                      (raptor_sax2_characters_handler)srxread_raptor_sax2_characters_handler);
 
-  raptor_sax2_set_end_element_handler(sax2,
+  raptor_sax2_set_end_element_handler(ud->sax2,
                                       srxread_raptor_sax2_end_element_handler);
 
+  return 0;
 }
 
 
@@ -450,13 +448,13 @@ parse_ud(srxread_userdata* ud)
   raptor_sax2_parse_start(ud->sax2, ud->base_uri);
 
   while(!raptor_iostream_read_eof(ud->iostr)) {
-    unsigned char buffer[FILE_READ_BUF_SIZE];
     size_t read_len;
-    read_len=raptor_iostream_read_bytes(ud->iostr, (char*)buffer,
+
+    read_len=raptor_iostream_read_bytes(ud->iostr, (char*)ud->buffer,
                                         1, FILE_READ_BUF_SIZE);
     if(read_len > 0) {
-      fprintf(stderr, "%s: processing %d bytes\n", program, (int)read_len);
-      raptor_sax2_parse_chunk(ud->sax2, buffer, read_len, 0);
+      RASQAL_DEBUG2("processing %d bytes\n", (int)read_len);
+      raptor_sax2_parse_chunk(ud->sax2, ud->buffer, read_len, 0);
       ud->locator.byte += read_len;
     }
     
@@ -483,6 +481,9 @@ free_ud(srxread_userdata* ud)
   if(ud->variables_sequence)
     raptor_free_sequence(ud->variables_sequence);
 }
+
+
+static char *program=NULL;
 
 
 int
@@ -538,7 +539,9 @@ main(int argc, char *argv[])
     goto tidy;
   }
   
-  init_ud(&ud, base_uri, iostr, results);
+  rc=init_ud(&ud, base_uri, iostr, results);
+  if(rc)
+    goto tidy;
 
   rc=parse_ud(&ud);
 
