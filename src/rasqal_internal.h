@@ -2,7 +2,7 @@
  *
  * rasqal_internal.h - Rasqal RDF Query library internals
  *
- * Copyright (C) 2003-2007, David Beckett http://purl.org/net/dajobe/
+ * Copyright (C) 2003-2008, David Beckett http://purl.org/net/dajobe/
  * Copyright (C) 2003-2005, University of Bristol, UK http://www.bristol.ac.uk/
  * 
  * This package is Free Software and part of Redland http://librdf.org/
@@ -616,6 +616,7 @@ rasqal_literal* rasqal_engine_get_result_value(rasqal_query_results* query_resul
 int rasqal_engine_execute_next(rasqal_query_results* query_results);
 
 /* rasqal_expr.c */
+rasqal_literal* rasqal_new_string_literal_node(const unsigned char *string, const char *language, raptor_uri *datatype);
 int rasqal_literal_as_boolean(rasqal_literal* literal, int* error);
 int rasqal_literal_as_integer(rasqal_literal* l, int* error);
 double rasqal_literal_as_floating(rasqal_literal* l, int* error);
