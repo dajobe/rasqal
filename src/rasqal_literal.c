@@ -607,7 +607,7 @@ rasqal_literal_string_to_native(rasqal_literal *l,
  *
  * Return value: New #rasqal_literal or NULL on failure
  **/
-rasqal_literal*
+static rasqal_literal*
 rasqal_new_string_literal_common(const unsigned char *string,
                                  const char *language,
                                  raptor_uri *datatype, 
