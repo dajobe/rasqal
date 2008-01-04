@@ -236,7 +236,6 @@ srxread_raptor_sax2_start_element_handler(void *user_data,
       
     case STATE_result:
       ud->row=rasqal_new_query_result_row(ud->results);
-      ud->row->offset=ud->offset;
       RASQAL_DEBUG2("Made new row %d\n", ud->offset);
       ud->offset++;
       break;
@@ -349,7 +348,7 @@ srxread_raptor_sax2_end_element_handler(void *user_data,
           strcpy(language_str, ud->language);
         }
         l=rasqal_new_string_literal_node(lvalue, language_str, datatype_uri);
-        ud->row->values[ud->result_offset]=l;
+        rasqal_query_result_row_set_value_at(ud->row, ud->result_offset, l);
         RASQAL_DEBUG3("Saving row result %d string value at offset %d\n",
                       ud->offset, ud->result_offset);
       }
@@ -362,7 +361,7 @@ srxread_raptor_sax2_end_element_handler(void *user_data,
         lvalue=(unsigned char*)RASQAL_MALLOC(cstring, ud->value_len+1);
         strncpy((char*)lvalue, ud->value, ud->value_len+1);
         l=rasqal_new_simple_literal(RASQAL_LITERAL_BLANK, lvalue);
-        ud->row->values[ud->result_offset]=l;
+        rasqal_query_result_row_set_value_at(ud->row, ud->result_offset, l);
         RASQAL_DEBUG3("Saving row result %d bnode value at offset %d\n",
                       ud->offset, ud->result_offset);
       }
@@ -371,7 +370,8 @@ srxread_raptor_sax2_end_element_handler(void *user_data,
     case STATE_uri:
       if(1) {
         raptor_uri* uri=raptor_new_uri((const unsigned char*)ud->value);
-        ud->row->values[ud->result_offset]=rasqal_new_uri_literal(uri);
+        rasqal_literal* l=rasqal_new_uri_literal(uri);
+        rasqal_query_result_row_set_value_at(ud->row, ud->result_offset, l);
         RASQAL_DEBUG3("Saving row result %d uri value at offset %d\n",
                       ud->offset, ud->result_offset);
       }
