@@ -1,6 +1,6 @@
 /* -*- Mode: c; c-basic-offset: 2 -*-
  *
- * srxread.c - SPARQL Resulx XML reading test program
+ * srxread.c - SPARQL Results XML Format reading test program
  *
  * Copyright (C) 2007-2008, David Beckett http://purl.org/net/dajobe/
  * 
@@ -47,7 +47,7 @@
 #include <rasqal_internal.h>
 
 
-#if RASQAL_DEBUG > 2
+#if RASQAL_DEBUG > 1
 #define TRACE_XML 1
 #else
 #undef TRACE_XML
@@ -121,7 +121,6 @@ typedef struct
   int variables_count;
   int result_offset;
   raptor_sequence* variables_sequence;
-  int free_variables_sequence;
 } srxread_userdata;
   
 
@@ -227,18 +226,19 @@ srxread_raptor_sax2_start_element_handler(void *user_data,
       
     case STATE_results:
       ud->results=rasqal_new_query_results(NULL);
+      RASQAL_DEBUG2("Making new results with %d variables\n", ud->variables_count);
       rasqal_query_results_set_variables(ud->results, ud->variables_sequence,
                                          ud->variables_count);
-      /* variable_sequence is now owned by ud->results */
-      ud->free_variables_sequence=0;
 
       ud->results->results_sequence=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_query_result_row, (raptor_sequence_print_handler*)rasqal_query_result_row_print);
+      ud->results->result_count= 1;
 
       break;
       
     case STATE_result:
       ud->row=rasqal_new_query_result_row(ud->results);
       ud->row->offset=ud->offset;
+      RASQAL_DEBUG2("Made new row %d\n", ud->offset);
       ud->offset++;
       break;
       
@@ -340,8 +340,10 @@ srxread_raptor_sax2_end_element_handler(void *user_data,
           language_str=(char*)RASQAL_MALLOC(cstring, strlen(ud->language)+1);
           strcpy(language_str, ud->language);
         }
-        l=rasqal_new_string_literal(lvalue, language_str, datatype_uri, NULL);
+        l=rasqal_new_string_literal_node(lvalue, language_str, datatype_uri);
         ud->row->values[ud->result_offset]=l;
+        RASQAL_DEBUG2("Saving row result string value at offset %d\n",
+                      ud->result_offset);
       }
       break;
       
@@ -353,6 +355,8 @@ srxread_raptor_sax2_end_element_handler(void *user_data,
         strncpy((char*)lvalue, ud->value, ud->value_len+1);
         l=rasqal_new_simple_literal(RASQAL_LITERAL_BLANK, lvalue);
         ud->row->values[ud->result_offset]=l;
+        RASQAL_DEBUG2("Saving row result bnode value at offset %d\n",
+                      ud->result_offset);
       }
       break;
       
@@ -360,10 +364,16 @@ srxread_raptor_sax2_end_element_handler(void *user_data,
       if(1) {
         raptor_uri* uri=raptor_new_uri((const unsigned char*)ud->value);
         ud->row->values[ud->result_offset]=rasqal_new_uri_literal(uri);
+        RASQAL_DEBUG2("Saving row result uri value at offset %d\n",
+                      ud->result_offset);
       }
       break;
       
     case STATE_result:
+      if(ud->row) {
+        raptor_sequence_push(ud->results->results_sequence, ud->row);
+        RASQAL_DEBUG2("Saving row result %d\n", ud->results->result_count);
+      }
       ud->row=NULL;
       break;
 
@@ -410,7 +420,6 @@ main(int argc, char *argv[])
   memset(&ud, '\0', sizeof(srxread_userdata));
   ud.state=STATE_unknown;
   ud.results=rasqal_new_query_results(NULL);
-  ud.free_variables_sequence=1;
   
   if(argc != 2) {
     fprintf(stderr, "USAGE: %s SRX file\n", program);
@@ -484,6 +493,9 @@ main(int argc, char *argv[])
   
   raptor_free_sax2(sax2); sax2=NULL;
 
+  RASQAL_DEBUG2("Made query results with %d results\n",
+                raptor_sequence_size(ud.results->results_sequence));
+
   if(ud.failed)
     rc=1;
   else {
@@ -492,7 +504,7 @@ main(int argc, char *argv[])
     raptor_iostream *write_iostr=NULL;
 
     write_formatter=rasqal_new_query_results_formatter(results_formatter_name,
-                                                         NULL);
+                                                       NULL);
     if(write_formatter)
       write_iostr=raptor_new_iostream_to_file_handle(stdout);
 
@@ -510,7 +522,7 @@ main(int argc, char *argv[])
   if(ud.results)
     rasqal_free_query_results(ud.results);
 
-  if(ud.variables_sequence && ud.free_variables_sequence)
+  if(ud.variables_sequence)
     raptor_free_sequence(ud.variables_sequence);
   
   if(base_uri)
