@@ -99,30 +99,38 @@ typedef enum
 
 typedef struct 
 {
+  int failed;
+#ifdef TRACE_XML
+  int trace;
+#endif
+
+  /* Input fields */
+  raptor_uri* base_uri;
+  raptor_iostream* iostr;
+  rasqal_query_results* results;
+
+  /* SAX2 fields */
   raptor_sax2* sax2;
   raptor_locator locator;
-  srxread_state state;
+  int depth; /* element depth */
+  raptor_error_handlers error_handlers; /* SAX2 error handler */
+
+  /* SPARQL XML Results parsing */
+  srxread_state state; /* state */
+  /* state-based fields for turning XML into rasqal literals, rows */
   const char* name;  /* variable name (from binding/@name) */
   char* value; /* URI string, literal string or blank node ID */
   size_t value_len;
   const char* datatype; /* literal datatype URI string from literal/@datatype */
   const char* language; /* literal language from literal/@xml:lang */
-  int failed;
-  int depth;
-#ifdef TRACE_XML
-  int trace;
-#endif
-  raptor_uri* base_uri;
-  raptor_iostream* iostr;
-  rasqal_query_results* results;
-  int offset; /* current index into results */
-  rasqal_query_result_row* row;
-  int variables_count;
-  int result_offset;
-  raptor_sequence* variables_sequence;
-  raptor_error_handlers error_handlers; /* static */
-  unsigned char buffer[FILE_READ_BUF_SIZE];
-  raptor_sequence* results_sequence;
+  rasqal_query_result_row* row; /* current result row */
+  int offset; /* current result row number */
+  int result_offset; /* current <result> column number */
+  unsigned char buffer[FILE_READ_BUF_SIZE]; /* iostream read buffer */
+
+  /* Output fields */
+  raptor_sequence* variables_sequence; /* sequence of variables */
+  raptor_sequence* results_sequence; /* saved result rows */
 } srxread_userdata;
   
 
@@ -206,7 +214,6 @@ srxread_raptor_sax2_start_element_handler(void *user_data,
       break;
       
     case STATE_head:
-      ud->variables_count=0;
       ud->variables_sequence=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_variable, (raptor_sequence_print_handler*)rasqal_variable_print);
       break;
       
@@ -221,8 +228,7 @@ srxread_raptor_sax2_start_element_handler(void *user_data,
         v=rasqal_new_variable_typed(NULL, RASQAL_VARIABLE_TYPE_NORMAL,
                                     var_name, NULL);
 
-        raptor_sequence_set_at(ud->variables_sequence, ud->variables_count, v);
-        ud->variables_count++;
+        raptor_sequence_push(ud->variables_sequence, v);
       }
       break;
       
@@ -235,7 +241,7 @@ srxread_raptor_sax2_start_element_handler(void *user_data,
       
     case STATE_binding:
       ud->result_offset= -1;
-      for(i=0; i < ud->variables_count; i++) {
+      for(i=0; i < raptor_sequence_size(ud->variables_sequence); i++) {
         rasqal_variable* v=(rasqal_variable*)raptor_sequence_get_at(ud->variables_sequence, i);
         if(!strcmp((const char*)v->name, ud->name)) {
           ud->result_offset=i;
@@ -317,9 +323,12 @@ srxread_raptor_sax2_end_element_handler(void *user_data,
 
   switch(ud->state) {
     case STATE_head:
-      RASQAL_DEBUG2("Setting results to hold %d variables\n",ud->variables_count);
-      rasqal_query_results_set_variables(ud->results, ud->variables_sequence,
-                                         ud->variables_count);
+      if(1) {
+        int size=raptor_sequence_size(ud->variables_sequence);
+        RASQAL_DEBUG2("Setting results to hold %d variables\n", size);
+        rasqal_query_results_set_variables(ud->results, ud->variables_sequence,
+                                           size);
+      }
       break;
       
     case STATE_literal:
