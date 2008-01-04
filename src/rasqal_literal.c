@@ -2,9 +2,7 @@
  *
  * rasqal_literal.c - Rasqal literals
  *
- * $Id$
- *
- * Copyright (C) 2003-2007, David Beckett http://purl.org/net/dajobe/
+ * Copyright (C) 2003-2008, David Beckett http://purl.org/net/dajobe/
  * Copyright (C) 2003-2005, University of Bristol, UK http://www.bristol.ac.uk/
  * 
  * This package is Free Software and part of Redland http://librdf.org/
@@ -586,6 +584,75 @@ rasqal_literal_string_to_native(rasqal_literal *l,
 }
 
 
+/*
+ * rasqal_new_string_literal_common:
+ * @string: UTF-8 string lexical form
+ * @language: RDF language (xml:lang) (or NULL)
+ * @datatype: datatype URI (or NULL for plain literal)
+ * @datatype_qname: datatype qname string (or NULL for plain literal)
+ * @flags: flags - 1 to do native type promotion
+ *
+ * INTERNAL Constructor - Create a new Rasqal string literal.
+ * 
+ * All parameters are input parameters and if present are stored in
+ * the literal, not copied. They are freed also on failure.
+ * 
+ * The datatype and datatype_qname parameters are alternatives; the
+ * qname is a datatype that cannot be resolved till later since the
+ * prefixes have not yet been declared or checked.
+ * 
+ * If the string literal is datatyped and of certain types recognised
+ * it may be converted to a different literal type by 
+ * rasqal_literal_string_to_native() only if @flags is 1.
+ *
+ * Return value: New #rasqal_literal or NULL on failure
+ **/
+rasqal_literal*
+rasqal_new_string_literal_common(const unsigned char *string,
+                                 const char *language,
+                                 raptor_uri *datatype, 
+                                 const unsigned char *datatype_qname,
+                                 int flags)
+{
+  rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(rasqal_literal));
+  if(l) {
+    l->usage=1;
+
+    if(datatype && language) {
+      /* RDF typed literal but this is not allowed so delete language */
+      RASQAL_FREE(cstring, (void*)language);
+      language=NULL;
+    }
+
+    l->type=RASQAL_LITERAL_STRING;
+    l->string=string;
+    l->string_len=strlen((const char*)string);
+    l->language=language;
+    l->datatype=datatype;
+    l->flags=datatype_qname;
+
+    if(datatype)
+      /* This is either RASQAL_LITERAL_DECIMAL or ...INTEGER or ...UNKNOWN */
+      l->parent_type=rasqal_xsd_datatype_uri_parent_type(datatype);
+
+    if((flags == 1) && rasqal_literal_string_to_native(l, NULL, NULL, 1)) {
+      rasqal_free_literal(l);
+      l=NULL;
+    }
+  } else {
+    if(language)
+      RASQAL_FREE(cstring, (void*)language);
+    if(datatype)
+      raptor_free_uri(datatype);
+    if(datatype_qname)
+      RASQAL_FREE(cstring, (void*)datatype_qname);
+    RASQAL_FREE(cstring, (void*)string);
+  }
+    
+  return l;
+}
+
+
 /**
  * rasqal_new_string_literal:
  * @string: UTF-8 string lexical form
@@ -614,42 +681,15 @@ rasqal_new_string_literal(const unsigned char *string,
                           raptor_uri *datatype, 
                           const unsigned char *datatype_qname)
 {
-  rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(rasqal_literal));
-  if(l) {
-    l->usage=1;
+  return rasqal_new_string_literal_common(string, language, datatype, 
+                                          datatype_qname, 1);
+}
 
-    if(datatype && language) {
-      /* RDF typed literal but this is not allowed so delete language */
-      RASQAL_FREE(cstring, (void*)language);
-      language=NULL;
-    }
-
-    l->type=RASQAL_LITERAL_STRING;
-    l->string=string;
-    l->string_len=strlen((const char*)string);
-    l->language=language;
-    l->datatype=datatype;
-    l->flags=datatype_qname;
-
-    if(datatype)
-      /* This is either RASQAL_LITERAL_DECIMAL or ...INTEGER or ...UNKNOWN */
-      l->parent_type=rasqal_xsd_datatype_uri_parent_type(datatype);
-
-    if(rasqal_literal_string_to_native(l, NULL, NULL, 1)) {
-      rasqal_free_literal(l);
-      l=NULL;
-    }
-  } else {
-    if(language)
-      RASQAL_FREE(cstring, (void*)language);
-    if(datatype)
-      raptor_free_uri(datatype);
-    if(datatype_qname)
-      RASQAL_FREE(cstring, (void*)datatype_qname);
-    RASQAL_FREE(cstring, (void*)string);
-  }
-    
-  return l;
+rasqal_literal*
+rasqal_new_string_literal_node(const unsigned char *string,
+                               const char *language, raptor_uri *datatype)
+{
+  return rasqal_new_string_literal_common(string, language, datatype, NULL, 0);
 }
 
 
