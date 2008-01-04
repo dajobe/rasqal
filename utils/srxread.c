@@ -467,9 +467,6 @@ parse_ud(srxread_userdata* ud)
 
   raptor_sax2_parse_chunk(ud->sax2, NULL, 0, 1);
   
-  RASQAL_DEBUG2("Made query results with %d results\n",
-                raptor_sequence_size(ud->results->results_sequence));
-
   if(ud->failed)
     rc=1;
 
@@ -549,6 +546,9 @@ main(int argc, char *argv[])
     const char* results_formatter_name=NULL;
     rasqal_query_results_formatter* write_formatter=NULL;
     raptor_iostream *write_iostr=NULL;
+
+    RASQAL_DEBUG2("Made query results with %d results\n",
+                  rasqal_query_results_get_bindings_count(results));
 
     write_formatter=rasqal_new_query_results_formatter(results_formatter_name,
                                                        NULL);
