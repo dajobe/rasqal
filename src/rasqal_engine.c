@@ -2,9 +2,7 @@
  *
  * rasqal_engine.c - Rasqal query engine
  *
- * $Id$
- *
- * Copyright (C) 2004-2007, David Beckett http://purl.org/net/dajobe/
+ * Copyright (C) 2004-2008, David Beckett http://purl.org/net/dajobe/
  * Copyright (C) 2004-2005, University of Bristol, UK http://www.bristol.ac.uk/
  * 
  * This package is Free Software and part of Redland http://librdf.org/
@@ -2151,7 +2149,12 @@ int
 rasqal_engine_check_limit_offset(rasqal_query_results *query_results)
 {
   rasqal_query* query=query_results->query;
-  int limit=query->limit;
+  int limit;
+
+  if(!query)
+    return 0;
+
+  limit=query->limit;
 
   /* Ensure ASK queries never do more than one result */
   if(query->verb == RASQAL_QUERY_VERB_ASK)
@@ -2934,6 +2937,9 @@ rasqal_engine_bind_construct_variables(rasqal_query_results* query_results)
   rasqal_query *query=query_results->query;
   int i;
 
+  if(!query)
+    return;
+  
   if(!query->constructs)
     return;
   
