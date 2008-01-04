@@ -1028,6 +1028,22 @@ rasqal_query_results_add_row(rasqal_query_results* query_results,
     query_results->results_sequence=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_query_result_row, (raptor_sequence_print_handler*)rasqal_query_result_row_print);
     query_results->result_count= 1;
   }
+  row->offset=query_results->result_count-1;
   raptor_sequence_push(query_results->results_sequence, row);
 }
 
+
+/**
+ * rasqal_query_result_row_set_value_at:
+ * @row: query result row
+ * @offset: offset into row (column number)
+ * @value: literal value to set
+ *
+ * INTERNAL - Set the value of a variable in a query result row
+ */
+void
+rasqal_query_result_row_set_value_at(rasqal_query_result_row* row, int offset,
+                                     rasqal_literal* value)
+{
+  row->values[offset]=value;
+}

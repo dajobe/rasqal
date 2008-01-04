@@ -734,6 +734,7 @@ int rasqal_query_results_set_variables(rasqal_query_results* query_results, rapt
 void rasqal_query_result_row_print(rasqal_query_result_row* row, FILE* fh);
 void rasqal_query_results_set_order_conditions(rasqal_query_results* query_results, int order_size);
 void rasqal_query_results_add_row(rasqal_query_results* query_results, rasqal_query_result_row* row);
+void rasqal_query_result_row_set_value_at(rasqal_query_result_row* row, int offset, rasqal_literal* value);
 
 /* rasqal_xsd_datatypes.c */
 int rasqal_xsd_init(void);
