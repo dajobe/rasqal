@@ -53,6 +53,7 @@
 #undef TRACE_XML
 #endif
 
+
 #ifndef FILE_READ_BUF_SIZE
 #ifdef BUFSIZ
 #define FILE_READ_BUF_SIZE BUFSIZ
@@ -389,11 +390,16 @@ srxread_raptor_sax2_end_element_handler(void *user_data,
 }
 
 
-static int
-init_ud(srxread_userdata* ud, raptor_uri* base_uri, raptor_iostream* iostr,
-        rasqal_query_results* results)
+static srxread_userdata*
+create_ud(raptor_uri* base_uri, raptor_iostream* iostr,
+          rasqal_query_results* results)
 {
-  memset(ud, '\0', sizeof(srxread_userdata));
+  srxread_userdata* ud;
+
+  ud=(srxread_userdata*)RASQAL_CALLOC(srxread_userdata, 1, sizeof(srxread_userdata));
+  if(!ud)
+    return NULL;
+  
 
   ud->base_uri=base_uri;
   ud->iostr=iostr;
@@ -412,7 +418,7 @@ init_ud(srxread_userdata* ud, raptor_uri* base_uri, raptor_iostream* iostr,
   
   ud->sax2=raptor_new_sax2(ud, &ud->error_handlers);
   if(!ud->sax2)
-    return 1;
+    return NULL;
   
   raptor_sax2_set_start_element_handler(ud->sax2,
                                         srxread_raptor_sax2_start_element_handler);
@@ -424,15 +430,6 @@ init_ud(srxread_userdata* ud, raptor_uri* base_uri, raptor_iostream* iostr,
   raptor_sax2_set_end_element_handler(ud->sax2,
                                       srxread_raptor_sax2_end_element_handler);
 
-  return 0;
-}
-
-
-static int
-parse_ud(srxread_userdata* ud) 
-{
-  int rc=0;
-  
   ud->state=STATE_unknown;
 
 #ifdef TRACE_XML
@@ -444,42 +441,49 @@ parse_ud(srxread_userdata* ud)
 
   raptor_sax2_parse_start(ud->sax2, ud->base_uri);
 
-  while(!raptor_iostream_read_eof(ud->iostr)) {
-    size_t read_len;
+  return ud;
+}
 
-    read_len=raptor_iostream_read_bytes(ud->iostr, (char*)ud->buffer,
-                                        1, FILE_READ_BUF_SIZE);
-    if(read_len > 0) {
-      RASQAL_DEBUG2("processing %d bytes\n", (int)read_len);
-      raptor_sax2_parse_chunk(ud->sax2, ud->buffer, read_len, 0);
-      ud->locator.byte += read_len;
 
-      while(raptor_sequence_size(ud->results_sequence) > 0) {
-        rasqal_query_result_row* row;
-        RASQAL_DEBUG1("1) moving row from ud to results\n");
-        row=(rasqal_query_result_row*)raptor_sequence_unshift(ud->results_sequence);
-        rasqal_query_results_add_row(ud->results, row);
-      }
-    }
-    
-    if(read_len < FILE_READ_BUF_SIZE) {
-      break;
-    }
-  }
-
-  raptor_sax2_parse_chunk(ud->sax2, NULL, 0, 1);
+static rasqal_query_result_row*
+get_row_ud(srxread_userdata* ud) 
+{
+  rasqal_query_result_row* row=NULL;
   
-  while(raptor_sequence_size(ud->results_sequence) > 0) {
-    rasqal_query_result_row* row;
-    RASQAL_DEBUG1("2) moving row from ud to results\n");
+  if(!raptor_sequence_size(ud->results_sequence)) {
+
+    /* do some parsing - need some results */
+    while(!raptor_iostream_read_eof(ud->iostr)) {
+      size_t read_len;
+
+      read_len=raptor_iostream_read_bytes(ud->iostr, (char*)ud->buffer,
+                                          1, FILE_READ_BUF_SIZE);
+      if(read_len > 0) {
+        RASQAL_DEBUG2("processing %d bytes\n", (int)read_len);
+        raptor_sax2_parse_chunk(ud->sax2, ud->buffer, read_len, 0);
+        ud->locator.byte += read_len;
+      }
+
+      if(read_len < FILE_READ_BUF_SIZE) {
+        /* finished */
+        raptor_sax2_parse_chunk(ud->sax2, NULL, 0, 1);
+        break;
+      }
+
+      /* got at least one row */
+      if(raptor_sequence_size(ud->results_sequence) > 0)
+        break;
+    }
+  }
+  
+  if(ud->failed)
+    row=NULL;
+  else if(raptor_sequence_size(ud->results_sequence) > 0) {
+    RASQAL_DEBUG1("getting row from stored sequence\n");
     row=(rasqal_query_result_row*)raptor_sequence_unshift(ud->results_sequence);
-    rasqal_query_results_add_row(ud->results, row);
   }
 
-  if(ud->failed)
-    rc=1;
-
-  return rc;
+  return row;
 }
 
   
@@ -494,6 +498,8 @@ free_ud(srxread_userdata* ud)
 
   if(ud->variables_sequence)
     raptor_free_sequence(ud->variables_sequence);
+
+  RASQAL_FREE(srxread_userdata, ud);
 }
 
 
@@ -509,7 +515,7 @@ main(int argc, char *argv[])
   const char* srx_filename=NULL;
   raptor_iostream* iostr=NULL;
   char* p;
-  srxread_userdata ud; /* static */
+  srxread_userdata* ud=NULL;
   unsigned char* uri_string=NULL;
   raptor_uri* base_uri=NULL;
   rasqal_query_results* results=NULL;
@@ -555,11 +561,20 @@ main(int argc, char *argv[])
     goto tidy;
   }
   
-  rc=init_ud(&ud, base_uri, iostr, results);
-  if(rc)
+  ud=create_ud(base_uri, iostr, results);
+  if(!ud) {
+    rc=1;
     goto tidy;
+  }
 
-  rc=parse_ud(&ud);
+  while(1) {
+    rasqal_query_result_row* row=NULL;
+    row=get_row_ud(ud);
+    if(!row)
+      break;
+    rasqal_query_results_add_row(results, row);
+  }
+
 
   if(!rc) {
     const char* results_formatter_name=NULL;
@@ -586,7 +601,8 @@ main(int argc, char *argv[])
 
 
   tidy:
-  free_ud(&ud);
+  if(ud)
+    free_ud(ud);
   
   if(iostr)
     raptor_free_iostream(iostr);
