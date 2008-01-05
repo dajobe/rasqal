@@ -84,7 +84,7 @@ rasqal_new_rowsource_from_handler(void *user_data,
   if(!handler)
     return NULL;
 
-  if(rowsource->handler->version < 1 || rowsource->handler->version >1)
+  if(handler->version < 1 || handler->version > 1)
     return NULL;
 
   rowsource=(rasqal_rowsource*)RASQAL_CALLOC(rasqal_rowsource, 1, sizeof(rasqal_rowsource));
@@ -132,13 +132,15 @@ rasqal_free_rowsource(rasqal_rowsource *rowsource)
  * Return value: non-0 on failure
  **/
 int
-rasqal_rowsource_update_variables(rasqal_rowsource *rowsource)
+rasqal_rowsource_update_variables(rasqal_rowsource *rowsource,
+                                  rasqal_query_results* results)
 {
   if(rowsource->ended)
     return 1;
 
   if(rowsource->handler->update_variables)
-    return rowsource->handler->update_variables(rowsource->user_data, rowsource);
+    return rowsource->handler->update_variables(rowsource, rowsource->user_data,
+                                                results);
 
   return 0;
 }
