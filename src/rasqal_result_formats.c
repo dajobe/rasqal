@@ -621,7 +621,7 @@ rasqal_query_results_formatter_read(raptor_iostream *iostr,
   rowsource=formatter->factory->get_rowsource(iostr, base_uri);
   if(!rowsource)
     return 1;
-  rasqal_rowsource_update_variables(rowsource);
+  rasqal_rowsource_update_variables(rowsource, results);
   while(1) {
     rasqal_query_result_row* row=rasqal_rowsource_read_row(rowsource);
     if(!row)
