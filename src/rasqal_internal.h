@@ -542,7 +542,7 @@ typedef int (*rasqal_rowsource_finish_func) (rasqal_rowsource* rowsource, void *
  *
  * Return value: non-0 on failure
  */
-typedef int (*rasqal_rowsource_update_variables_func) (rasqal_rowsource* rowsource, void *user_data);
+typedef int (*rasqal_rowsource_update_variables_func) (rasqal_rowsource* rowsource, void *user_data, rasqal_query_results* results);
 
 /**
  * rasqal_rowsource_read_row_func
@@ -579,7 +579,7 @@ typedef struct {
 rasqal_rowsource* rasqal_new_rowsource_from_handler(void* user_data, const rasqal_rowsource_handler *handler);
 void rasqal_free_rowsource(rasqal_rowsource *rowsource);
 
-int rasqal_rowsource_update_variables(rasqal_rowsource *rowsource);
+int rasqal_rowsource_update_variables(rasqal_rowsource *rowsource, rasqal_query_results* results);
 rasqal_query_result_row* rasqal_rowsource_read_row(rasqal_rowsource *rowsource);
 
 int rasqal_rowsource_get_rows_count(rasqal_rowsource *rowsource);
