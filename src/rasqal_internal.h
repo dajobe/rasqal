@@ -808,8 +808,13 @@ void rasqal_init_query_results(void);
 void rasqal_finish_query_results(void);
 
 /* rasqal_result_formats.c */
+void rasqal_query_results_format_register_factory(const char *name, const char *label, const unsigned char* uri_string, rasqal_query_results_formatter_func writer, rasqal_query_results_formatter_func reader, rasqal_query_results_get_rowsource_func get_rowsource, const char *mime_type);
 void rasqal_init_result_formats(void);
 void rasqal_finish_result_formats(void);
+
+/* rasqal_result_format_sparql_xml.c */
+void rasqal_init_result_format_sparql_xml(void);
+
 
 rasqal_query_results* rasqal_new_query_results(rasqal_query* query);
 void rasqal_query_results_reset(rasqal_query_results* query_results);
@@ -821,6 +826,7 @@ void rasqal_query_result_row_print(rasqal_query_result_row* row, FILE* fh);
 void rasqal_query_results_set_order_conditions(rasqal_query_results* query_results, int order_size);
 void rasqal_query_results_add_row(rasqal_query_results* query_results, rasqal_query_result_row* row);
 void rasqal_query_result_row_set_value_at(rasqal_query_result_row* row, int offset, rasqal_literal* value);
+
 
 /* rasqal_xsd_datatypes.c */
 int rasqal_xsd_init(void);
