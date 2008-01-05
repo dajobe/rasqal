@@ -345,15 +345,12 @@ rasqal_literal*
 rasqal_query_results_get_binding_value(rasqal_query_results* query_results, 
                                        int offset)
 {
-  rasqal_query* query;
-
   if(!query_results)
     return NULL;
   
   if(!rasqal_query_results_is_bindings(query_results))
     return NULL;
   
-  query=query_results->query;
   if(offset < 0 || offset > query_results->size-1)
     return NULL;
 
@@ -402,7 +399,6 @@ rasqal_query_results_get_binding_value_by_name(rasqal_query_results* query_resul
 {
   int offset= -1;
   int i;
-  rasqal_query* query;
   rasqal_literal* value=NULL;
 
   if(!query_results)
@@ -411,7 +407,6 @@ rasqal_query_results_get_binding_value_by_name(rasqal_query_results* query_resul
   if(!rasqal_query_results_is_bindings(query_results))
     return NULL;
   
-  query=query_results->query;
   for(i=0; i< query_results->size; i++) {
     if(!strcmp((const char*)name, (const char*)query_results->variables[i]->name)) {
       offset=i;
@@ -715,10 +710,6 @@ rasqal_query_results_next_triple(rasqal_query_results* query_results)
 int
 rasqal_query_results_get_boolean(rasqal_query_results* query_results)
 {
-  rasqal_query* query;
-  
-  query=query_results->query;
-
   if(!query_results || query_results->failed)
     return -1;
   
