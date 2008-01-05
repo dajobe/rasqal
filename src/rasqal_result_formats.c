@@ -42,7 +42,8 @@
 
 
 static int rasqal_query_results_write_xml_result4(raptor_iostream *iostr, rasqal_query_results* results, raptor_uri *base_uri);
-static int rasqal_query_results_read_xml_result4(raptor_iostream *iostr, rasqal_query_results* results, raptor_uri *base_uri);
+static rasqal_rowsource* rasqal_query_results_get_rowsource_xml_result4(raptor_iostream *iostr, raptor_uri *base_uri);
+
 static int rasqal_query_results_write_json1(raptor_iostream *iostr, rasqal_query_results* results, raptor_uri *base_uri);
 
 
@@ -55,6 +56,7 @@ void rasqal_query_results_format_register_factory(const char *name,
                                                   const unsigned char* uri_string,
                                                   rasqal_query_results_formatter_func writer,
                                                   rasqal_query_results_formatter_func reader,
+                                                  rasqal_query_results_get_rowsource_func get_rowsource,
                                                   const char *mime_type)
 {
   rasqal_query_results_format_factory* factory;
@@ -69,6 +71,7 @@ void rasqal_query_results_format_register_factory(const char *name,
   factory->uri_string=uri_string;
   factory->writer=writer;
   factory->reader=reader;
+  factory->get_rowsource=get_rowsource;
   factory->mime_type=mime_type;
 
   raptor_sequence_push(query_results_formats, factory);
@@ -88,7 +91,8 @@ rasqal_init_result_formats(void)
 {
   rasqal_query_results_formatter_func writer_fn=NULL;
   rasqal_query_results_formatter_func reader_fn=NULL;
-
+  rasqal_query_results_get_rowsource_func get_rowsource_fn=NULL;
+  
   query_results_formats=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_query_results_format_factory, NULL);
   if(!query_results_formats)
     RASQAL_FATAL1("Out of memory\n");
@@ -98,16 +102,17 @@ rasqal_init_result_formats(void)
    * http://www.w3.org/TR/2006/WD-rdf-sparql-XMLres-20070614/
    */
   writer_fn=&rasqal_query_results_write_xml_result4;
-  reader_fn=&rasqal_query_results_read_xml_result4;
+  reader_fn=NULL,
+  get_rowsource_fn=&rasqal_query_results_get_rowsource_xml_result4;
   rasqal_query_results_format_register_factory("xml",
                                                "SPARQL Query Results Format 2007-06-14",
                                                (unsigned char*)"http://www.w3.org/2005/sparql-results#",
-                                               writer_fn, reader_fn,
+                                               writer_fn, reader_fn, get_rowsource_fn,
                                                "application/sparql-results+xml");
   rasqal_query_results_format_register_factory(NULL,
                                                NULL,
                                                (unsigned char*)"http://www.w3.org/TR/2006/WD-rdf-sparql-XMLres-20070614/",
-                                               writer_fn, reader_fn,
+                                               writer_fn, reader_fn, get_rowsource_fn,
                                                "application/sparql-results+xml");
 
   /*
@@ -117,15 +122,16 @@ rasqal_init_result_formats(void)
    */
   writer_fn=&rasqal_query_results_write_json1;
   reader_fn=NULL;
+  get_rowsource_fn=NULL;
   rasqal_query_results_format_register_factory("json",
                                                "JSON",
                                                (unsigned char*)"http://www.w3.org/2001/sw/DataAccess/json-sparql/",
-                                               writer_fn, reader_fn,
+                                               writer_fn, reader_fn, get_rowsource_fn,
                                                "text/json");
   rasqal_query_results_format_register_factory(NULL,
                                                NULL,
                                                (unsigned char*)"http://www.mindswap.org/%7Ekendall/sparql-results-json/",
-                                               writer_fn, reader_fn,
+                                               writer_fn, reader_fn, get_rowsource_fn,
                                                "text/json");
 }
 
@@ -732,43 +738,81 @@ rasqal_query_results_write_xml_result4(raptor_iostream *iostr,
 }
 
 
+struct rasqal_rowsource_xml_result4_context {
+  raptor_iostream *iostr;
+  raptor_uri* base_uri;
+};
+
+
+/* Local handlers for reading from an iostream */
+
+static int
+rasqal_rowsource_xml_result4_init(rasqal_rowsource* rowsource, void *user_data) 
+{
+  /* struct rasqal_rowsource_xml_result4_context* con=(struct rasqal_rowsource_xml_result4_context*)user_data; */
+  return 0;
+}
+
+static int
+rasqal_rowsource_xml_result4_finish(rasqal_rowsource* rowsource, void *user_data)
+{
+  struct rasqal_rowsource_xml_result4_context* con=(struct rasqal_rowsource_xml_result4_context*)user_data;
+  if(con->base_uri)
+    raptor_free_uri(con->base_uri);
+  RASQAL_FREE(rasqal_rowsource_xml_result4_context, con);
+  return 0;
+}
+
+static int
+rasqal_rowsource_xml_result4_update_variables(rasqal_rowsource* rowsource, void *user_data)
+{
+  /* struct rasqal_rowsource_xml_result4_context* con=(struct rasqal_rowsource_xml_result4_context*)user_data; */
+  return 0;
+}
+
+static rasqal_query_result_row*
+rasqal_rowsource_xml_result4_read_row(rasqal_rowsource* rowsource, void *user_data)
+{
+  /* struct rasqal_rowsource_xml_result4_context* con=(struct rasqal_rowsource_xml_result4_context*)user_data; */
+  return NULL;
+}
+
+
+static const rasqal_rowsource_handler rasqal_rowsource_xml_result4_handler={
+  /* .version = */ 1,
+  /* .init = */ rasqal_rowsource_xml_result4_init,
+  /* .finish = */ rasqal_rowsource_xml_result4_finish,
+  /* .update_variables = */ rasqal_rowsource_xml_result4_update_variables,
+  /* .read_row = */ rasqal_rowsource_xml_result4_read_row
+};
+
+
+
 /*
- * rasqal_query_results_read_xml_result4:
+ * rasqal_query_results_getrowsource_xml_result4:
  * @iostr: #raptor_iostream to read the query results from
- * @results: #rasqal_query_results query results output
  * @base_uri: #raptor_uri base URI of the input format
  *
  * Read the fourth version of the SPARQL XML query results format from an
- * iostream in a format - INTERNAL.
+ * iostream in a format returning a rwosurce - INTERNAL.
  * 
- * If the reading succeeds, the query results will contain the results.
- * 
- * Return value: non-0 on failure
+ * Return value: a new rasqal_rowsource or NULL on failure
  **/
-static int
-rasqal_query_results_read_xml_result4(raptor_iostream *iostr,
-                                      rasqal_query_results* results,
-                                      raptor_uri *base_uri)
+static rasqal_rowsource*
+rasqal_query_results_get_rowsource_xml_result4(raptor_iostream *iostr,
+                                               raptor_uri *base_uri)
 {
-  int rc=1;
-  rasqal_query* query=results->query;
-  const raptor_uri_handler *uri_handler;
-  void *uri_context;
-
-  if(!rasqal_query_results_is_bindings(results) &&
-     !rasqal_query_results_is_boolean(results)) {
-    rasqal_query_error(query, "Can only write XML format v3 for variable binding and boolean results");
-    return 1;
-  }
+  struct rasqal_rowsource_xml_result4_context* con;
   
+  con=(struct rasqal_rowsource_xml_result4_context*)RASQAL_CALLOC(rasqal_rowsource_xml_result4_context, 1, sizeof(struct rasqal_rowsource_xml_result4_context));
+  if(!con)
+    return NULL;
+
+  con->iostr=iostr;
+  con->base_uri=base_uri ? raptor_uri_copy(base_uri) : NULL;
   
-  raptor_uri_get_handler(&uri_handler, &uri_context);
-
-  /* FIXME - read the format here */
-
-  rc=0;
-
-  return rc;
+  return rasqal_new_rowsource_from_handler(con,
+                                        &rasqal_rowsource_xml_result4_handler);
 }
 
 
@@ -1033,7 +1077,26 @@ rasqal_query_results_formatter_read(raptor_iostream *iostr,
                                     rasqal_query_results* results,
                                     raptor_uri *base_uri)
 {
-  if(!formatter->factory->reader)
-     return 1;
-  return formatter->factory->reader(iostr, results, base_uri);
+  rasqal_rowsource* rowsource=NULL;
+  
+  if(formatter->factory->reader)
+    return formatter->factory->reader(iostr, results, base_uri);
+
+  if(!formatter->factory->get_rowsource)
+    return 1;
+  
+  rowsource=formatter->factory->get_rowsource(iostr, base_uri);
+  if(!rowsource)
+    return 1;
+  rasqal_rowsource_update_variables(rowsource);
+  while(1) {
+    rasqal_query_result_row* row=rasqal_rowsource_read_row(rowsource);
+    if(!row)
+      break;
+    rasqal_query_results_add_row(results, row);
+  }
+  if(rowsource)
+    rasqal_free_rowsource(rowsource);
+  
+  return 0;
 }
