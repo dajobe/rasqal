@@ -369,6 +369,13 @@ struct rasqal_query_engine_factory_s {
 };
 
 
+/**
+ * rasqal_rowsource:
+ *
+ * Rasqal Row Source class
+ */
+typedef struct rasqal_rowsource_s rasqal_rowsource;
+
 /*
  * A row of query results 
  */
@@ -504,9 +511,85 @@ struct rasqal_query_results_s {
 };
     
 
-typedef int (*rasqal_query_results_formatter_func)(raptor_iostream *iostr,
-                                                   rasqal_query_results* results,
-                                                   raptor_uri *base_uri);
+/* rasqal_rowsource.c */
+
+/**
+ * rasqal_rowsource_init_func:
+ * @context: stream context data
+ *
+ * Handler function for #rasqal_rowsource initialising.
+ *
+ * Return value: non-0 on failure.
+ */
+typedef int (*rasqal_rowsource_init_func) (rasqal_rowsource* rowsource, void *user_data);
+
+/**
+ * rasqal_rowsource_finish_func:
+ * @user_data: user data
+ *
+ * Handler function for #rasqal_rowsource terminating.
+ *
+ * Return value: non-0 on failure
+ */
+typedef int (*rasqal_rowsource_finish_func) (rasqal_rowsource* rowsource, void *user_data);
+
+/**
+ * rasqal_rowsource_update_variables_func
+ * @user_data: user data
+ * @rowsource: #rasqal_rowsource
+ *
+ * Handler function for updating the rowsource variables
+ *
+ * Return value: non-0 on failure
+ */
+typedef int (*rasqal_rowsource_update_variables_func) (rasqal_rowsource* rowsource, void *user_data);
+
+/**
+ * rasqal_rowsource_read_row_func
+ * @user_data: user data
+ *
+ * Handler function for returning the next result row
+ *
+ * Return value: a query result row or NULL if exhausted
+ */
+typedef rasqal_query_result_row* (*rasqal_rowsource_read_row_func) (rasqal_rowsource* rowsource, void *user_data);
+
+
+/**
+ * rasqal_rowsource_handler:
+ * @version: API version - 1
+ * @init:  initialisation handler - optional, called at most once (V1)
+ * @finish: finishing handler - optional, called at most once (V1)
+ * @update_variables: update variables handler- optional, called at most once (V1)
+ * @read_row: read row handler - required (V1)
+ *
+ * ROW implementation handler structure.
+ * 
+ */
+typedef struct {
+  int version;
+  /* API V1 methods */
+  rasqal_rowsource_init_func        init;
+  rasqal_rowsource_finish_func      finish;
+  rasqal_rowsource_update_variables_func update_variables;
+  rasqal_rowsource_read_row_func    read_row;
+} rasqal_rowsource_handler;
+
+
+rasqal_rowsource* rasqal_new_rowsource_from_handler(void* user_data, const rasqal_rowsource_handler *handler);
+void rasqal_free_rowsource(rasqal_rowsource *rowsource);
+
+int rasqal_rowsource_update_variables(rasqal_rowsource *rowsource);
+rasqal_query_result_row* rasqal_rowsource_read_row(rasqal_rowsource *rowsource);
+
+int rasqal_rowsource_get_rows_count(rasqal_rowsource *rowsource);
+
+
+
+typedef int (*rasqal_query_results_formatter_func)(raptor_iostream *iostr, rasqal_query_results* results, raptor_uri *base_uri);
+
+typedef rasqal_rowsource* (*rasqal_query_results_get_rowsource_func)(raptor_iostream *iostr, raptor_uri *base_uri);
+
 
 typedef struct {
   /* query results format name */
@@ -523,6 +606,9 @@ typedef struct {
 
   /* format reader: READ syntax from iostr using base URI, WRITE to results */
   rasqal_query_results_formatter_func reader;
+
+  /* format get rowsource: get a rowsource that will return a sequence of rows from an iostram */
+  rasqal_query_results_get_rowsource_func get_rowsource;
 
   /* MIME Type of the format */
   const char* mime_type;
