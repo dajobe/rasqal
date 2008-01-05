@@ -62,7 +62,7 @@ rasqal_expr.c rasqal_general.c rasqal_query.c rasqal_query_results.c \
 rasqal_engine.c rasqal_raptor.c rasqal_literal.c \
 rasqal_graph_pattern.c rasqal_map.c rasqal_feature.c \
 rasqal_result_formats.c rasqal_xsd_datatypes.c rasqal_decimal.c \
-rasqal_datetime.c
+rasqal_datetime.c rasqal_rowsource.c
 
 if RASQAL_QUERY_RDQL
 librasqal_la_SOURCES += rdql_lexer.c rdql_lexer.h \
