@@ -2599,9 +2599,9 @@ rasqal_engine_remove_empty_group_graph_patterns(rasqal_query* query,
  * Return value: non-0 on failure 
  */
 static int
-rasqal_engine_query_result_row_update(rasqal_query_result_row* row, int offset)
+rasqal_engine_query_result_row_update(rasqal_query_results *query_results,
+                                      rasqal_query_result_row* row, int offset)
 {
-  rasqal_query_results *query_results=row->results;
   rasqal_query* query;
   int i;
   int size;
@@ -2862,14 +2862,13 @@ rasqal_engine_query_result_row_compare(const void *a, const void *b)
 {
   rasqal_query_result_row* row_a;
   rasqal_query_result_row* row_b;
-  rasqal_query_results* results;
   rasqal_query* query;
   int result=0;
 
   row_a=*(rasqal_query_result_row**)a;
   row_b=*(rasqal_query_result_row**)b;
-  results=row_a->results;
-  query=results->query;
+
+  query=rasqal_rowsource_get_query(row_a->rowsource);
   
   if(query->distinct) {
     if(query->distinct == 1)
@@ -2954,85 +2953,99 @@ rasqal_engine_bind_construct_variables(rasqal_query_results* query_results)
 }
 
 
-/**
- * rasqal_engine_execute_and_save:
- * @query_results: Query results to execute
- *
- * INTERNAL - execute a query and save all results for later
- *
- * Return value: <0 if failed, 0 if result, >0 if finished
- */
-static int
-rasqal_engine_execute_and_save(rasqal_query_results *query_results)
+typedef struct 
 {
-  rasqal_query *query=query_results->query;
-  int rc=0;
-  rasqal_map* map=NULL;
+  rasqal_query_results* results;
+  rasqal_map* map;
   raptor_sequence* seq;
-  int offset=0;
-  int need_map=0;
-  
-  need_map=(query->order_conditions_sequence || query->distinct);
+  int need_map;
+  int finished;
+  int failed;
+} rasqal_rowsource_engine_context;
 
-  if(need_map) {
-    /* make a row:NULL map in order to sort or do distinct */
-    map=rasqal_new_map(rasqal_engine_query_result_row_compare,
-                       rasqal_engine_map_free_query_result_row, 
-                       rasqal_engine_map_print_query_result_row,
-                       NULL,
-                       0);
-    if(!map)
-      return -1;
-  }
+/* Local handlers for getting rows from a query execution */
+
+static int
+rasqal_rowsource_engine_init(rasqal_rowsource* rowsource, void *user_data) 
+{
+  /* rasqal_rowsource_engine_context* con=(rasqal_rowsource_engine_context*)user_data; */
+
+  return 0;
+}
+
+
+static int
+rasqal_rowsource_engine_finish(rasqal_rowsource* rowsource, void *user_data)
+{
+  rasqal_rowsource_engine_context* con=(rasqal_rowsource_engine_context*)user_data;
+  if(con->seq)
+    raptor_free_sequence(con->seq);
+  RASQAL_FREE(rasqal_rowsource_engine_context, con);
+
+  return 0;
+}
+
+
+static void
+rasqal_rowsource_engine_process(rasqal_rowsource* rowsource,
+                                rasqal_rowsource_engine_context* con)
+{
+  int offset=0;
+
+  if(con->finished || con->failed)
+    return;
   
-  /* get all query results and order them */
-  seq=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_query_result_row, (raptor_sequence_print_handler*)rasqal_query_result_row_print);
-  if(!seq) {
-    if(map)
-      rasqal_free_map(map);
-    return -1;
-  }
   while(1) {
     rasqal_query_result_row* row;
+    int rc;
     
     /* query_results->results_sequence is NOT assigned before here 
      * so that this function does the regular query results next
      * operation.
      */
-    rc=rasqal_engine_get_next_result(query_results);
-    if(rc == 0)
+    rc=rasqal_engine_get_next_result(con->results);
+    if(rc == 0) {
       /* <0 failure OR =0 end of results */
+      if(rc<0)
+        con->failed=1;
+      else
+        con->finished=1;
       break;
+    }
     
     if(rc < 0) {
       /* <0 failure */
-      query_results->finished=1;
-      query_results->failed=1;
+      con->results->finished=1;
+      con->results->failed=1;
       
-      if(map)
-        rasqal_free_map(map);
-      raptor_free_sequence(seq);
-      seq=NULL;
+      if(con->map) {
+        rasqal_free_map(con->map);
+        con->map=NULL;
+      }
+      raptor_free_sequence(con->seq);
+      con->seq=NULL;
       break;
     }
     
     /* otherwise is >0 match */
-    row=rasqal_new_query_result_row(query_results);
+    row=rasqal_new_query_result_row(rowsource);
     if(!row) {
-      raptor_free_sequence(seq);
-      if(map)
-        rasqal_free_map(map);
-      return -1;
+      raptor_free_sequence(con->seq); con->seq=NULL;
+      if(con->map) {
+        rasqal_free_map(con->map); con->map=NULL;
+      }
+      con->failed=1;
+      return;
     }
     
-    rasqal_engine_query_result_row_update(row, offset);
+    rasqal_engine_query_result_row_update(con->results, row, offset);
 
     /* after this, row is owned by sequence */
-    if(!map) {
-      raptor_sequence_push(seq, row);
+    if(!con->map) {
+      raptor_sequence_push(con->seq, row);
       offset++;
     /* after this, row is owned by map */
-    } else if(!rasqal_map_add_kv(map, row, NULL)) {
+    } else if(!rasqal_map_add_kv(con->map, row, NULL)) {
       offset++;
     } else {
       /* duplicate, and not added so delete it */
@@ -3047,18 +3060,145 @@ rasqal_engine_execute_and_save(rasqal_query_results *query_results)
   }
   
 #ifdef RASQAL_DEBUG
-  if(map) {
+  if(con->map) {
     fputs("resulting ", stderr);
-    rasqal_map_print(map, stderr);
+    rasqal_map_print(con->map, stderr);
     fputs("\n", stderr);
   }
 #endif
   
-  if(map) {
-    rasqal_map_visit(map, rasqal_engine_map_add_to_sequence, (void*)seq);
-    rasqal_free_map(map);
+  if(con->map) {
+    /* do sort/distinct: walk map in order, adding rows to sequence */
+    rasqal_map_visit(con->map, rasqal_engine_map_add_to_sequence,
+                     (void*)con->seq);
+    rasqal_free_map(con->map); con->map=NULL;
   }
-  query_results->results_sequence=seq;
+}
+
+
+static int
+rasqal_rowsource_engine_ensure_variables(rasqal_rowsource* rowsource,
+                                         void *user_data)
+{
+  rasqal_rowsource_engine_context* con=(rasqal_rowsource_engine_context*)user_data;
+  rasqal_query* query=con->results->query;
+  
+  rowsource->size= query->select_variables_count;
+  if(query->order_conditions_sequence)
+    rowsource->order_size= raptor_sequence_size(query->order_conditions_sequence);
+
+  return 0;
+}
+
+static rasqal_query_result_row*
+rasqal_rowsource_engine_read_row(rasqal_rowsource* rowsource, void *user_data)
+{
+  rasqal_rowsource_engine_context* con=(rasqal_rowsource_engine_context*)user_data;
+  if(!con->finished)
+    rasqal_rowsource_engine_process(rowsource, con);
+
+  return (rasqal_query_result_row*)raptor_sequence_unshift(con->seq);
+}
+
+
+static raptor_sequence*
+rasqal_rowsource_engine_read_all_rows(rasqal_rowsource* rowsource,
+                                      void *user_data)
+{
+  rasqal_rowsource_engine_context* con=(rasqal_rowsource_engine_context*)user_data;
+  raptor_sequence* seq;
+  
+  if(!con->finished)
+    rasqal_rowsource_engine_process(rowsource, con);
+  
+  seq=con->seq;
+  con->seq=NULL;
+  
+  return seq;
+}
+
+
+static rasqal_query*
+rasqal_rowsource_engine_get_query(rasqal_rowsource* rowsource, void *user_data)
+{
+  rasqal_rowsource_engine_context* con=(rasqal_rowsource_engine_context*)user_data;
+  return con->results->query;
+}
+
+
+static const rasqal_rowsource_handler rasqal_rowsource_engine_handler={
+  /* .version = */ 1,
+  /* .init = */ rasqal_rowsource_engine_init,
+  /* .finish = */ rasqal_rowsource_engine_finish,
+  /* .ensure_variables = */ rasqal_rowsource_engine_ensure_variables,
+  /* .read_row = */ rasqal_rowsource_engine_read_row,
+  /* .read_all_rows = */ rasqal_rowsource_engine_read_all_rows,
+  /* .get_query = */ rasqal_rowsource_engine_get_query
+};
+
+static rasqal_rowsource*
+rasqal_engine_make_rowsource(rasqal_query* query, rasqal_query_results* results) 
+{
+  rasqal_rowsource_engine_context* con;
+  int flags=0;
+  
+  con=(rasqal_rowsource_engine_context*)RASQAL_CALLOC(rasqal_rowsource_engine_context, 1, sizeof(rasqal_rowsource_engine_context));
+  if(!con)
+    return NULL;
+
+  con->results=results;
+
+  con->need_map=(query->order_conditions_sequence || query->distinct);
+  if(con->need_map) {
+    /* make a row:NULL map in order to sort or do distinct */
+    con->map=rasqal_new_map(rasqal_engine_query_result_row_compare,
+                            rasqal_engine_map_free_query_result_row, 
+                            rasqal_engine_map_print_query_result_row,
+                            NULL,
+                            0);
+    if(!con->map) {
+      rasqal_rowsource_engine_finish(NULL, con);
+      return NULL;
+    }
+  }
+  
+  con->seq=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_query_result_row, (raptor_sequence_print_handler*)rasqal_query_result_row_print);
+  if(!con->seq) {
+    rasqal_rowsource_engine_finish(NULL, con);
+    return NULL;
+  }
+  
+  flags=con->need_map ? RASQAL_ROWSOURCE_FLAGS_ORDERING : 0;
+
+  return rasqal_new_rowsource_from_handler(con,
+                                           &rasqal_rowsource_engine_handler,
+                                           flags);
+}
+
+/**
+ * rasqal_engine_execute_and_save:
+ * @query_results: Query results to execute
+ *
+ * INTERNAL - execute a query and save all results for later
+ *
+ * Return value: <0 if failed, 0 if result, >0 if finished
+ */
+static int
+rasqal_engine_execute_and_save(rasqal_query_results *query_results)
+{
+  rasqal_query *query=query_results->query;
+  int rc=0;
+  rasqal_rowsource* rowsource;
+  
+  rowsource=rasqal_engine_make_rowsource(query, query_results);
+  if(!rowsource)
+    return 1;
+  
+  if(query_results->results_sequence)
+     raptor_free_sequence(query_results->results_sequence);
+  query_results->results_sequence=rasqal_rowsource_read_all_rows(rowsource);
+
+  rasqal_free_rowsource(rowsource);
   
   if(query_results->results_sequence) {
     query_results->finished= (raptor_sequence_size(query_results->results_sequence) == 0);
@@ -3271,11 +3411,13 @@ rasqal_engine_excute_next_lazy(rasqal_query_results *query_results)
   } /* while */
 
   if(!query_results->finished) {
+    /* FIXME - NULL BELOW IS WRONG AND A HACK TO GET THIS TO COMPILE */
+    abort();
     if(!query_results->row)
-      query_results->row=rasqal_new_query_result_row(query_results);
+      query_results->row=rasqal_new_query_result_row(NULL);
 
     if(query_results->row)
-      rasqal_engine_query_result_row_update(query_results->row, 
+      rasqal_engine_query_result_row_update(query_results, query_results->row, 
                                             query_results->result_count);
   }
   
