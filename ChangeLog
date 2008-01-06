@@ -1,4 +1,379 @@
+2008-01-05  Dave Beckett  <dave@dajobe.org>
+
+	* Last known good revision 13398: 'make check' succeeds.
+
+2008-01-05  Dave Beckett <dave@dajobe.org>
+
+	* src/Makefile.am, src/rasqal_result_format_sparql_xml.c,
+	src/rasqal_sparql_xml.c: Filename too long. mv
+	rasqal_result_format_sparql_xml.c rasqal_sparql_xml.c
+
+	* src/rasqal_engine.c: (rasqal_engine_query_result_row_update):
+	Pass in results, it's not a field of row anymore.
+	(rasqal_engine_query_result_row_compare): Use
+	rasqal_rowsource_get_query to get query from a row's rowsource.
+	Added rowsource for execute and save method with context
+	rasqal_rowsource_engine_context
+	(rasqal_rowsource_engine_init, rasqal_rowsource_engine_finish,
+	rasqal_rowsource_engine_ensure_variables,
+	rasqal_rowsource_engine_read_row,
+	rasqal_rowsource_engine_read_all_rows,
+	rasqal_rowsource_engine_get_query): Added as rowsource handlers
+	for execute and save method.
+	(rasqal_rowsource_engine_process): Added as helper for above.
+	(rasqal_engine_make_rowsource): Added to construct the rowsource
+	for the execute and save method
+	(rasqal_engine_execute_and_save): Cut down into all the rowsource
+	functions above.  The rowsource is made here and destroyed here.
+	(rasqal_engine_excute_next_lazy): Call
+	rasqal_new_query_result_row() wrongly with NULL in order to just
+	get it compiling.  Added an abort() to ensure nobody ever calls
+	this.  Since lazy execution is disabled for now, this should not
+	happen.  Added FIXME note.
+
+	* src/rasqal_result_format_sparql_xml.c: Rename internal
+	functions/structs from *xml_result4* to *sparql_xml*
+	rasqal_rowsource_sparql_xml_context gains rowsource and
+	variables_count fields, loses results and variables_sequence.
+	(rasqal_sparql_xml_sax2_start_element_handler): Remove
+	variables_sequence code.  Use rasqal_rowsource_add_variable to add
+	a variable.  Use rasqal_rowsource_get_variable_offset_by_name to
+	lookup variable names.
+	(rasqal_sparql_xml_sax2_end_element_handler): Initialise
+	variables_count and indicate header is done at end of 'head'
+	element.
+	(rasqal_rowsource_sparql_xml_init): Init rowsource.
+	(rasqal_rowsource_sparql_xml_finish): Delete variables_sequence
+	free.
+	(rasqal_rowsource_sparql_xml_process): Added, pulled from old
+	rasqal_rowsource_xml_result4_read_row to update needed data.
+	(rasqal_rowsource_sparql_xml_ensure_variables): Added to ensure
+	variables are found via rasqal_rowsource_sparql_xml_process.
+	(rasqal_rowsource_sparql_xml_read_row): Use
+	rasqal_rowsource_sparql_xml_process to get rows.
+
+	* src/rasqal_query_results.c: (rasqal_new_query_results): Update
+	rasqal_query_results_set_variables call with 0 order_size.
+	(rasqal_free_query_results): Free rowsource with
+	rasqal_free_rowsource.
+	(rasqal_new_query_result_row): Take rowsource arg and delegate all
+	size stuff to rowsource.  Use rasqal_rowsource_get_sizes to get
+	the sizes.
+	(rasqal_query_results_set_variables): Add order_size arg.  Do a
+	true copy of the incoming variables.
+	(rasqal_query_result_row_print): Use rowsource to get row info.
+
+	* src/rasqal_query.c: (rasqal_query_execute): Remove old commented
+	out hack and use rasqal_query_results_set_variables with
+	order_size.
+
+	* src/rasqal_internal.h: rasqal_query_row gains rowsource field
+	replacing results.
+	rasqal_query_results gains rowsource field.
+	rasqal_rowsource_ensure_variables_func renamed from
+	rasqal_rowsource_update_variables_func and no longer takes results
+	arg.
+	Added handlers rasqal_rowsource_read_all_rows_func and
+	rasqal_rowsource_get_query_func
+	rasqal_rowsource_handler gains handlers for read_all_rows and
+	get_query. update_variables handler is renamed ensure_variables.
+	Moved struct rasqal_rowsource_s from rasqal_rowsource.c to here.
+	Updated rasqal_new_rowsource_from_handler to take flag arg and
+	defined one flag RASQAL_ROWSOURCE_FLAGS_ORDERING.
+	Added prototypes for rasqal_rowsource_read_all_rows,
+	rasqal_rowsource_get_query, rasqal_rowsource_add_variable,
+	rasqal_rowsource_get_sizes, rasqal_rowsource_get_variable_by_offset and
+	rasqal_rowsource_get_variable_offset_by_name
+	Adjust rasqal_new_query_result_row prototype to now take a rowsource arg
+	Adjust rasqal_query_results_set_variables to now take an order_size
+	arg too.
+
+	* src/rasqal_rowsource.c: Moved struct rasqal_rowsource_s back
+	into rasqal_internal.h
+	(rasqal_new_rowsource_from_handler): Added flags arg to allow
+	maintaining an extra of row of values in a
+	rasqal_query_results_row, of size order_size.
+	(rasqal_rowsource_add_variable): Added for adding a variable to
+	the sequence and maintaining the counts for row width and order
+	values row width.
+	(rasqal_rowsource_update_variables): Rename to use
+	ensure_variables factory name.  Call
+	rasqal_query_results_set_variables here.
+	(rasqal_rowsource_read_row): field ended is now called finished.
+	(rasqal_rowsource_read_all_rows): Added to get a sequence from the
+	results either via a factory method, or building it here.
+	(rasqal_rowsource_get_query): Added, to return the query
+	associated if any.
+	(rasqal_rowsource_get_sizes): Added, to return the row width and
+	order values row width.
+	(rasqal_rowsource_get_variable_by_offset): Added, to return a
+	variable in the sequence.
+	(rasqal_rowsource_get_variable_offset_by_name): Added to lookup a
+	variable by name.
+
+	* src/rasqal_expr.c: (rasqal_new_variable_from_variable): Added.
+	(rasqal_new_expression_from_expression): Return NULL if asked to
+	copy NULL.
+
+	* src/rasqal.h: Added rasqal_new_variable_from_variable
+
+2008-01-04  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_result_formats.c: (rasqal_query_results_formatter_read):
+	Call rasqal_rowsource_update_variables with results arg.
+
+	* src/rasqal_internal.h: rasqal_rowsource_update_variables_func
+	gains results arg rasqal_rowsource_update_variables gains results
+	arg.
+
+	* utils/srxread.c: Removed everything except main code.
+	(main): Rewrite in terms of formatter and use
+	rasqal_query_results_formatter_read to fill in results.
+
+	* src/rasqal_rowsource.c: (rasqal_new_rowsource_from_handler):
+	Check handler not rowsource->handler
+
+	* src/Makefile.am, src/rasqal_internal.h,
+	src/rasqal_result_format_sparql_xml.c,
+	src/rasqal_result_formats.c: Move SPARQL XML functions from
+	rasqal_result_formats.c to rasqal_result_format_sparql_xml.c.  Add
+	rasqal_result_format_sparql_xml.c to library
+
+	* utils/srxread.c:: copy src/rasqal_result_format_sparql_xml.c to
+	utils/srxread.c
+
+	* src/rasqal_result_format_sparql_xml.c: Move utils/srxread.c to
+	src/rasqal_result_format_sparql_xml.c
+
+	* src/rasqal_result_formats.c:
+	(rasqal_query_results_format_register_factory): Add get_rowsource
+	arg.
+	(rasqal_init_result_formats): Init rowsource for sparql xml
+	reader, remove reader for same.
+	(rasqal_rowsource_xml_result4_init,
+	rasqal_rowsource_xml_result4_finish,
+	rasqal_rowsource_xml_result4_update_variables,
+	rasqal_rowsource_xml_result4_read_row): Skeleton functions added.
+	struct rasqal_rowsource_xml_result4_handler added.
+	(rasqal_query_results_getrowsource_xml_result4): Added.
+	(rasqal_query_results_read_xml_result4): Removed.
+	(rasqal_query_results_formatter_read): Use get_rowsource factory
+	method if the reader method is missing.
+
+	* src/Makefile.am: Add rasqal_rowsource.c
+
+	* src/rasqal_rowsource.c: Add rasqal_rowsource.c
+
+	* utils/srxread.c: rewrite in style of rowsource handler
+	functions.  srxread_userdata becomes
+	rasqal_rowsource_xml_result4_context ud becomes con
+	(init_ud): Added
+	(rasqal_rowsource_xml_result4_read_row): Renamed from get_row_ud
+	(rasqal_rowsource_xml_result4_finish): Renamed from free_ud
+
+	* src/rasqal_internal.h: Added rasqal_rowsource typedef and
+	handler typedefs: rasqal_rowsource_init_func,
+	rasqal_rowsource_finish_func,
+	rasqal_rowsource_update_variables_func,
+	rasqal_rowsource_read_row_func,.  Added rasqal_rowsource_handler
+	typedef.  Added rasqal_new_rowsource_from_handler,
+	rasqal_free_rowsource, rasqal_rowsource_update_variables,
+	rasqal_rowsource_read_row, rasqal_rowsource_get_rows_count Added
+	rasqal_query_results_get_rowsource_func handler for results
+	formatter.  rasqal_query_results_format_factory gains
+	get_rowsource field.
+
+	* src/rasqal_query_results.c:
+	(rasqal_query_results_get_binding_value,
+	rasqal_query_results_get_binding_value_by_name,
+	rasqal_query_results_get_boolean): Remove unused var query
+
+	* utils/srxread.c: Use rasqal_query_result_row_set_value_at
+
+	* src/rasqal_internal.h,
+	src/rasqal_query_results.c: (rasqal_query_result_row_set_value_at):
+	Added
+
+2008-01-03  Dave Beckett <dave@dajobe.org>
+
+	* utils/srxread.c: Use raptor_qname_get_counted_value
+
+	* utils/srxread.c: Document and re-order ud fields.
+	Removed variables_count - can be done by counting sequence.
+
+	* utils/srxread.c: Switch from init/parse/free ud to create/get
+	row/free ud
+	(create_ud): Renamed from init_ud.  Allocate ud
+	(get_row_ud): Renamed from parse_ud: Store rows in temporary array
+	during one SAX2 parse / callback sequence and return first one to
+	caller.
+	(free_ud): Free ud
+	(main): Use get_row_ud to get rows and store in results.
+
+	* utils/srxread.c: Set variables as soon as possible - at end of
+	head element.  Save rows to internal sequence then move after
+	returning from sax2 parse.
+
+	* src/rasqal_internal.h,
+	src/rasqal_query_results.c: (rasqal_query_results_add_row): Added
+
+	* utils/srxread.c: (init_ud): returns status, remove sax2 local var
+	(parse_ud): remove printf.
+	(main): Handle init_ud failure
+
+	* utils/srxread.c: (main): use rasqal_query_results_get_bindings_count
+
+	* utils/srxread.c: pull userdata code from main() into init_ud(),
+	parse_ud() and free_ud()
+
+	* utils/srxread.c: Use rasqal_new_string_literal_node to prevent
+	formation of native types. Push rows correctly
+
+	* src/rasqal_literal.c: (rasqal_new_string_literal_common): static
+
+	* src/rasqal_engine.c: (rasqal_engine_check_limit_offset,
+	rasqal_engine_bind_construct_variables): Handle NULL query
+
+	* src/rasqal_literal.c: (rasqal_new_string_literal_common): Added,
+	pulled out of rasqal_new_string_literal with extra flags arg to
+	avoid native type promotion.
+	(rasqal_new_string_literal): Use rasqal_new_string_literal_common
+	with native type promotion
+	(rasqal_new_string_literal_node): Added, using
+	rasqal_new_string_literal_common without native type promotion.
+
+	* src/rasqal_internal.h: Added rasqal_new_string_literal_node prototype
+
+2008-01-03  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_query.c: (rasqal_query_execute): Commented out unused
+	variable.
+
+	* src/rasqal_query_results.c: (rasqal_query_results_get_binding_name):
+	Fix low-memory crash: check for NULL variables array. Removed
+	unnecessary local variable.
+
+	* src/rasqal_query.c: (rasqal_query_execute): Commented out unused
+	& leaked variables_sequence copy.
+
+	* src/rasqal_query_results.c: (rasqal_query_results_set_variables):
+	Do not change query_results type -
+	rasqal_query_results_set_variables() is called from
+	rasqal_query_execute() for all types of queries.
+
+	* src/rasqal_query.c: (rasqal_query_execute): Added FIXME note for
+	a memory leak.
+
+	* src/rasqal_query_results.c: (rasqal_free_query_results,
+	rasqal_query_results_set_variables): Do not leak
+	query_results->variables, query_results->variable_names
+
+	* src/rasqal_query_results.c: (rasqal_free_query_results): Fix
+	double deletion - variables_sequence is owned by query not
+	query_results.
+
+2008-01-03  Dave Beckett <dave@dajobe.org>
+
+	* utils/srxread.c: Update to set variables with no values and use
+	query results formatter to emit results.
+
+	* src/rasqal_query.c: (rasqal_query_execute): Update call to
+	rasqal_query_results_set_variables with a new sequence of
+	variables, not names.  It shares variables with rasqal_query for
+	now - this is a HACK and needs fixing.
+
+	* src/rasqal_query_results.c: (rasqal_new_query_results): Use
+	rasqal_query_results_set_variables when setting bindings.
+	(rasqal_free_query_results): Free variables_sequence
+	(rasqal_query_results_get_count): Handle NULL query
+	(rasqal_query_results_get_bindings): No need for query here, get
+	variable_names from results.
+	(rasqal_query_results_get_binding_value,
+	rasqal_query_results_get_binding_name): Get variables size from
+	query_results size.
+	(rasqal_query_results_get_binding_value_by_name): Get variables from
+	query_results variables[]
+	(rasqal_query_results_set_variables): Just get a variables_sequence,
+	everything else can be computed from it.
+	(rasqal_query_result_row_print): Get variable_names from query_results.
+
+	* src/rasqal_internal.h: struct rasqal_query_results_s  gains
+	fields: variables_sequence, variables just like rasqal_query_s
+
+	* src/rasqal_expr.c: (rasqal_new_variable_typed): Work when query
+	is NULL.
+
+2008-01-02  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_query_results.c: (rasqal_new_query_results): Init
+	query results type
+	(rasqal_query_results_is_bindings,
+	rasqal_query_results_is_boolean, rasqal_query_results_is_graph,
+	rasqal_query_results_is_syntax): Use query results type.
+
+	* src/rasqal_internal.h: Added rasqal_query_results_type enum
+	rasqal_query_results_s gains type field
+
+	* utils/srxread.c: Replace FILE* to with read raptor_iostream
+
+	* utils/srxread.c: Conditional-compile tracing with RASQAL_DEBUG > 2
+
+	* docs/rasqal-sections.txt: remove
+	rasqal_query_results_formats_enumerate_full
+
+	* src/rasqal_result_formats.c: compile
+
+	* utils/roqet.c: Update for rasqal_query_results_formats_enumerate
+	taking mime_type and flags pointer args.
+
+	* src/rasqal_result_formats.c:
+	(rasqal_query_results_format_register_factory): Add reader arg.
+	(rasqal_init_result_formats): Register readers, only
+	rasqal_query_results_read_xml_result4 for "xml" name.
+	(rasqal_query_results_read_xml_result4): Added.
+	(rasqal_query_results_formats_enumerate_full): Removed
+	(rasqal_query_results_formats_enumerate): Added two args - mime_type
+	and flags.  Was rasqal_query_results_formats_enumerate_full with just
+	mime_type.  Set flags if pointer is not null.
+	(rasqal_query_results_read_xml_result4): Added, doing no work.
+	(rasqal_query_results_formatter_write): Added, moved from
+	rasqal_query_results.c
+	(rasqal_query_results_formatter_read): Added.
+
+	* src/rasqal_query_results.c: (rasqal_query_results_formatter_write):
+	Moved to rasqal_result_formats.c
+	(rasqal_query_results_read): Added
+
+	* src/rasqal_internal.h: Renamed rasqal_query_results_writer
+	typedef to rasqal_query_results_formatter_func
+	rasqal_query_results_format_factory gains reader field.
+
+	* src/rasqal.h: Added rasqal_query_results_read.  Removed
+	rasqal_query_results_formats_enumerate_full and added two args to
+	rasqal_query_results_formats_enumerate: mime_type and flags.
+	Added rasqal_query_results_formatter_read
+
+2008-01-02  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_query.c: (rasqal_query_execute) Low-memory fixes. Set
+	query_results->executed flag earlier to enable cleanup with
+	rasqal_free_query_results(). Check for variable_names sequence
+	alloc failure. Pass ownership of variable_names sequence to
+	query_results earlier to clean it up with
+	rasqal_free_query_results() on error.
+
+	* src/rasqal_query.c: (rasqal_query_execute) Check for var_name
+	alloc failures.
+
 2007-12-28  Dave Beckett <dave@dajobe.org>
+
+	* utils/srxread.c: init fh
+
+	* utils/srxread.c: init before arg check
+
+	* utils/srxread.c: Pass variable_names ownership
+
+	* utils/srxread.c: use memset properly
 
 	* src/rasqal_query.c: (rasqal_query_execute): Initialise
 	variable_names using rasqal_query_results_set_variables.
