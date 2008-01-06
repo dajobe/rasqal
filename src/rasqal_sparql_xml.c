@@ -792,6 +792,9 @@ rasqal_rowsource_sparql_xml_finish(rasqal_rowsource* rowsource, void *user_data)
 {
   rasqal_rowsource_sparql_xml_context* con=(rasqal_rowsource_sparql_xml_context*)user_data;
 
+  if(con->base_uri)
+    raptor_free_uri(con->base_uri);
+
   if(con->sax2)
     raptor_free_sax2(con->sax2);
 
