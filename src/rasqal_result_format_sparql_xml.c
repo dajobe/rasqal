@@ -44,8 +44,8 @@
 #include <rasqal_internal.h>
 
 
-static int rasqal_query_results_write_xml_result4(raptor_iostream *iostr, rasqal_query_results* results, raptor_uri *base_uri);
-static rasqal_rowsource* rasqal_query_results_get_rowsource_xml_result4(raptor_iostream *iostr, raptor_uri *base_uri);
+static int rasqal_query_results_write_sparql_xml(raptor_iostream *iostr, rasqal_query_results* results, raptor_uri *base_uri);
+static rasqal_rowsource* rasqal_query_results_get_rowsource_sparql_xml(raptor_iostream *iostr, raptor_uri *base_uri);
 
 
 #if RASQAL_DEBUG > 1
@@ -66,7 +66,7 @@ static rasqal_rowsource* rasqal_query_results_get_rowsource_xml_result4(raptor_i
 
 
 /*
- * rasqal_query_results_write_xml_result4:
+ * rasqal_query_results_write_sparql_xml:
  * @iostr: #raptor_iostream to write the query results to
  * @results: #rasqal_query_results query results input
  * @base_uri: #raptor_uri base URI of the output format
@@ -79,7 +79,7 @@ static rasqal_rowsource* rasqal_query_results_get_rowsource_xml_result4(raptor_i
  * Return value: non-0 on failure
  **/
 static int
-rasqal_query_results_write_xml_result4(raptor_iostream *iostr,
+rasqal_query_results_write_sparql_xml(raptor_iostream *iostr,
                                        rasqal_query_results* results,
                                        raptor_uri *base_uri)
 {
@@ -473,6 +473,8 @@ typedef enum
 
 typedef struct 
 {
+  rasqal_rowsource* rowsource;
+  
   int failed;
 #ifdef TRACE_XML
   int trace;
@@ -481,7 +483,6 @@ typedef struct
   /* Input fields */
   raptor_uri* base_uri;
   raptor_iostream* iostr;
-  rasqal_query_results* results;
 
   /* SAX2 fields */
   raptor_sax2* sax2;
@@ -504,9 +505,9 @@ typedef struct
   unsigned char buffer[FILE_READ_BUF_SIZE]; /* iostream read buffer */
 
   /* Output fields */
-  raptor_sequence* variables_sequence; /* sequence of variables */
   raptor_sequence* results_sequence; /* saved result rows */
-} rasqal_rowsource_xml_result4_context;
+  int variables_count;
+} rasqal_rowsource_sparql_xml_context;
   
 
 #ifdef TRACE_XML
@@ -521,9 +522,9 @@ pad(FILE* fh, int depth)
 
 static void
 rasqal_sparql_xml_sax2_start_element_handler(void *user_data,
-                                          raptor_xml_element *xml_element)
+                                             raptor_xml_element *xml_element)
 {
-  rasqal_rowsource_xml_result4_context* con=(rasqal_rowsource_xml_result4_context*)user_data;
+  rasqal_rowsource_sparql_xml_context* con=(rasqal_rowsource_sparql_xml_context*)user_data;
   int i;
   raptor_qname* name;
   rasqal_sparql_xml_read_state state=STATE_unknown;
@@ -590,7 +591,6 @@ rasqal_sparql_xml_sax2_start_element_handler(void *user_data,
       break;
       
     case STATE_head:
-      con->variables_sequence=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_variable, (raptor_sequence_print_handler*)rasqal_variable_print);
       break;
       
     case STATE_variable:
@@ -604,25 +604,20 @@ rasqal_sparql_xml_sax2_start_element_handler(void *user_data,
         v=rasqal_new_variable_typed(NULL, RASQAL_VARIABLE_TYPE_NORMAL,
                                     var_name, NULL);
 
-        raptor_sequence_push(con->variables_sequence, v);
+        rasqal_rowsource_add_variable(con->rowsource, v);
       }
       break;
       
     case STATE_result:
-      con->row=rasqal_new_query_result_row(con->results);
-      RASQAL_DEBUG2("Made new row %d\n", con->offset);
-      con->offset++;
+      if(1) {
+        con->row=rasqal_new_query_result_row(con->rowsource);
+        RASQAL_DEBUG2("Made new row %d\n", con->offset);
+        con->offset++;
+      }
       break;
       
     case STATE_binding:
-      con->result_offset= -1;
-      for(i=0; i < raptor_sequence_size(con->variables_sequence); i++) {
-        rasqal_variable* v=(rasqal_variable*)raptor_sequence_get_at(con->variables_sequence, i);
-        if(!strcmp((const char*)v->name, con->name)) {
-          con->result_offset=i;
-          break;
-        }
-      }
+      con->result_offset= rasqal_rowsource_get_variable_offset_by_name(con->rowsource, con->name);
       break;
       
     case STATE_results:
@@ -640,10 +635,10 @@ rasqal_sparql_xml_sax2_start_element_handler(void *user_data,
 
 static void
 rasqal_sparql_xml_sax2_characters_handler(void *user_data,
-                                       raptor_xml_element* xml_element,
-                                       const unsigned char *s, int len)
+                                          raptor_xml_element* xml_element,
+                                          const unsigned char *s, int len)
 {
-  rasqal_rowsource_xml_result4_context* con=(rasqal_rowsource_xml_result4_context*)user_data;
+  rasqal_rowsource_sparql_xml_context* con=(rasqal_rowsource_sparql_xml_context*)user_data;
 
 #ifdef TRACE_XML
   if(con->trace) {
@@ -667,9 +662,9 @@ rasqal_sparql_xml_sax2_characters_handler(void *user_data,
 
 static void
 rasqal_sparql_xml_sax2_end_element_handler(void *user_data,
-                                        raptor_xml_element* xml_element)
+                                           raptor_xml_element* xml_element)
 {
-  rasqal_rowsource_xml_result4_context* con=(rasqal_rowsource_xml_result4_context*)user_data;
+  rasqal_rowsource_sparql_xml_context* con=(rasqal_rowsource_sparql_xml_context*)user_data;
   raptor_qname* name;
   int i;
   rasqal_sparql_xml_read_state state=STATE_unknown;
@@ -698,12 +693,8 @@ rasqal_sparql_xml_sax2_end_element_handler(void *user_data,
 
   switch(con->state) {
     case STATE_head:
-      if(1) {
-        int size=raptor_sequence_size(con->variables_sequence);
-        RASQAL_DEBUG2("Setting results to hold %d variables\n", size);
-        rasqal_query_results_set_variables(con->results, con->variables_sequence,
-                                           size);
-      }
+      /* Only now is the full number of variables known */
+      con->variables_count=raptor_sequence_size(con->rowsource->variables_sequence);
       break;
       
     case STATE_literal:
@@ -778,10 +769,12 @@ rasqal_sparql_xml_sax2_end_element_handler(void *user_data,
 /* Local handlers for turning sparql XML read from an iostream into rows */
 
 static int
-rasqal_rowsource_xml_result4_init(rasqal_rowsource* rowsource, void *user_data) 
+rasqal_rowsource_sparql_xml_init(rasqal_rowsource* rowsource, void *user_data) 
 {
-  rasqal_rowsource_xml_result4_context* con=(rasqal_rowsource_xml_result4_context*)user_data;
+  rasqal_rowsource_sparql_xml_context* con=(rasqal_rowsource_sparql_xml_context*)user_data;
 
+  con->rowsource=rowsource;
+  
   con->state=STATE_unknown;
 
 #ifdef TRACE_XML
@@ -795,9 +788,9 @@ rasqal_rowsource_xml_result4_init(rasqal_rowsource* rowsource, void *user_data)
 }
 
 static int
-rasqal_rowsource_xml_result4_finish(rasqal_rowsource* rowsource, void *user_data)
+rasqal_rowsource_sparql_xml_finish(rasqal_rowsource* rowsource, void *user_data)
 {
-  rasqal_rowsource_xml_result4_context* con=(rasqal_rowsource_xml_result4_context*)user_data;
+  rasqal_rowsource_sparql_xml_context* con=(rasqal_rowsource_sparql_xml_context*)user_data;
 
   if(con->sax2)
     raptor_free_sax2(con->sax2);
@@ -805,29 +798,17 @@ rasqal_rowsource_xml_result4_finish(rasqal_rowsource* rowsource, void *user_data
   if(con->results_sequence)
     raptor_free_sequence(con->results_sequence);
 
-  if(con->variables_sequence)
-    raptor_free_sequence(con->variables_sequence);
-
-  RASQAL_FREE(rasqal_rowsource_xml_result4_context, con);
+  RASQAL_FREE(rasqal_rowsource_sparql_xml_context, con);
 
   return 0;
 }
 
-static int
-rasqal_rowsource_xml_result4_update_variables(rasqal_rowsource* rowsource, void *user_data)
-{
-  /* struct rasqal_rowsource_xml_result4_context* con=(struct rasqal_rowsource_xml_result4_context*)user_data; */
-  return 0;
-}
 
-static rasqal_query_result_row*
-rasqal_rowsource_xml_result4_read_row(rasqal_rowsource* rowsource, void *user_data)
+static void
+rasqal_rowsource_sparql_xml_process(rasqal_rowsource_sparql_xml_context* con)
 {
-  rasqal_rowsource_xml_result4_context* con=(rasqal_rowsource_xml_result4_context*)user_data;
-
-  rasqal_query_result_row* row=NULL;
-  
-  if(!raptor_sequence_size(con->results_sequence)) {
+  if(!raptor_sequence_size(con->results_sequence) ||
+     con->variables_count > 0) {
 
     /* do some parsing - need some results */
     while(!raptor_iostream_read_eof(con->iostr)) {
@@ -847,15 +828,38 @@ rasqal_rowsource_xml_result4_read_row(rasqal_rowsource* rowsource, void *user_da
         break;
       }
 
-      /* got at least one row */
-      if(raptor_sequence_size(con->results_sequence) > 0)
+      /* end with variables sequence done AND at least one row */
+      if(con->variables_count > 0 &&
+         raptor_sequence_size(con->results_sequence) > 0)
         break;
     }
   }
   
+}
+
+
+static int
+rasqal_rowsource_sparql_xml_ensure_variables(rasqal_rowsource* rowsource,
+                                             void *user_data)
+{
+  rasqal_rowsource_sparql_xml_context* con=(rasqal_rowsource_sparql_xml_context*)user_data;
+
+  rasqal_rowsource_sparql_xml_process(con);
   if(con->failed)
-    row=NULL;
-  else if(raptor_sequence_size(con->results_sequence) > 0) {
+    return 1;
+  
+  return 0;
+}
+
+static rasqal_query_result_row*
+rasqal_rowsource_sparql_xml_read_row(rasqal_rowsource* rowsource, void *user_data)
+{
+  rasqal_rowsource_sparql_xml_context* con=(rasqal_rowsource_sparql_xml_context*)user_data;
+  rasqal_query_result_row* row=NULL;
+
+  rasqal_rowsource_sparql_xml_process(con);
+  
+  if(!con->failed && raptor_sequence_size(con->results_sequence) > 0) {
     RASQAL_DEBUG1("getting row from stored sequence\n");
     row=(rasqal_query_result_row*)raptor_sequence_unshift(con->results_sequence);
   }
@@ -864,18 +868,20 @@ rasqal_rowsource_xml_result4_read_row(rasqal_rowsource* rowsource, void *user_da
 }
 
 
-static const rasqal_rowsource_handler rasqal_rowsource_xml_result4_handler={
+static const rasqal_rowsource_handler rasqal_rowsource_sparql_xml_handler={
   /* .version = */ 1,
-  /* .init = */ rasqal_rowsource_xml_result4_init,
-  /* .finish = */ rasqal_rowsource_xml_result4_finish,
-  /* .update_variables = */ rasqal_rowsource_xml_result4_update_variables,
-  /* .read_row = */ rasqal_rowsource_xml_result4_read_row
+  /* .init = */ rasqal_rowsource_sparql_xml_init,
+  /* .finish = */ rasqal_rowsource_sparql_xml_finish,
+  /* .ensure_variables = */ rasqal_rowsource_sparql_xml_ensure_variables,
+  /* .read_row = */ rasqal_rowsource_sparql_xml_read_row,
+  /* .read_all_rows = */ NULL,
+  /* .get_query = */ NULL
 };
 
 
 
 /*
- * rasqal_query_results_getrowsource_xml_result4:
+ * rasqal_query_results_getrowsource_sparql_xml:
  * @iostr: #raptor_iostream to read the query results from
  * @base_uri: #raptor_uri base URI of the input format
  *
@@ -885,12 +891,12 @@ static const rasqal_rowsource_handler rasqal_rowsource_xml_result4_handler={
  * Return value: a new rasqal_rowsource or NULL on failure
  **/
 static rasqal_rowsource*
-rasqal_query_results_get_rowsource_xml_result4(raptor_iostream *iostr,
+rasqal_query_results_get_rowsource_sparql_xml(raptor_iostream *iostr,
                                                raptor_uri *base_uri)
 {
-  rasqal_rowsource_xml_result4_context* con;
+  rasqal_rowsource_sparql_xml_context* con;
   
-  con=(rasqal_rowsource_xml_result4_context*)RASQAL_CALLOC(rasqal_rowsource_xml_result4_context, 1, sizeof(rasqal_rowsource_xml_result4_context));
+  con=(rasqal_rowsource_sparql_xml_context*)RASQAL_CALLOC(rasqal_rowsource_sparql_xml_context, 1, sizeof(rasqal_rowsource_sparql_xml_context));
   if(!con)
     return NULL;
 
@@ -923,7 +929,8 @@ rasqal_query_results_get_rowsource_xml_result4(raptor_iostream *iostr,
   con->results_sequence=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_query_result_row, (raptor_sequence_print_handler*)rasqal_query_result_row_print);
 
   return rasqal_new_rowsource_from_handler(con,
-                                        &rasqal_rowsource_xml_result4_handler);
+                                           &rasqal_rowsource_sparql_xml_handler,
+                                           0);
 }
 
 
@@ -939,9 +946,9 @@ rasqal_init_result_format_sparql_xml(void)
    * SPARQL XML Results 2007-06-14
    * http://www.w3.org/TR/2006/WD-rdf-sparql-XMLres-20070614/
    */
-  writer_fn=&rasqal_query_results_write_xml_result4;
+  writer_fn=&rasqal_query_results_write_sparql_xml;
   reader_fn=NULL,
-  get_rowsource_fn=&rasqal_query_results_get_rowsource_xml_result4;
+  get_rowsource_fn=&rasqal_query_results_get_rowsource_sparql_xml;
   rasqal_query_results_format_register_factory("xml",
                                                "SPARQL Query Results Format 2007-06-14",
                                                (unsigned char*)"http://www.w3.org/2005/sparql-results#",
