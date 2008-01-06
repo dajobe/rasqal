@@ -1,6 +1,6 @@
 /* -*- Mode: c; c-basic-offset: 2 -*-
  *
- * rasqal_result_format_sparql_xml.c - SPARQL Results XML Format
+ * rasqal_sparql_xml.c - SPARQL Results XML Format
  *
  * Copyright (C) 2007-2008, David Beckett http://purl.org/net/dajobe/
  * 
