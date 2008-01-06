@@ -1033,6 +1033,8 @@ rasqal_variable* rasqal_new_variable_typed(rasqal_query* rq, rasqal_variable_typ
 RASQAL_API
 rasqal_variable* rasqal_new_variable(rasqal_query* rq, unsigned char *name, rasqal_literal *value);
 RASQAL_API
+rasqal_variable* rasqal_new_variable_from_variable(rasqal_variable* v);
+RASQAL_API
 void rasqal_free_variable(rasqal_variable* v);
 RASQAL_API
 void rasqal_variable_print(rasqal_variable* v, FILE* fh);
