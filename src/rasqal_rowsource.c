@@ -45,27 +45,6 @@
 #ifndef STANDALONE
 
 
-struct rasqal_rowsource_s
-{
-  void *user_data;
-  const rasqal_rowsource_handler* handler;
-
-  /* non-0 if rowsource has ended */
-  int ended;
-
-  /* count of number of rows returned */
-  int count;
-
-  /* count of variables_sequence array */
-  int variables_count;
-
-  /* array of rasqal_variable* */
-  raptor_sequence* variables_sequence;
-};
-
-
-
-
 /**
  * rasqal_new_rowsource_from_handler:
  * @user_data: pointer to context information to pass in to calls
@@ -77,7 +56,8 @@ struct rasqal_rowsource_s
  **/
 rasqal_rowsource*
 rasqal_new_rowsource_from_handler(void *user_data,
-                                  const rasqal_rowsource_handler *handler)
+                                  const rasqal_rowsource_handler *handler,
+                                  int flags)
 {
   rasqal_rowsource* rowsource;
 
@@ -91,12 +71,22 @@ rasqal_new_rowsource_from_handler(void *user_data,
   if(!rowsource)
     return NULL;
 
-  rowsource->handler=handler;
+  rowsource->variables_sequence=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_variable, (raptor_sequence_print_handler*)rasqal_variable_print);
+  if(!rowsource->variables_sequence) {
+    RASQAL_FREE(rasqal_rowsource, rowsource);
+    return NULL;
+  }
+  
   rowsource->user_data=(void*)user_data;
+  rowsource->handler=handler;
+  rowsource->flags=flags;
 
+  rowsource->size= -1;
+  rowsource->order_size= -1;
+  
   if(rowsource->handler->init && 
      rowsource->handler->init(rowsource, rowsource->user_data)) {
-    RASQAL_FREE(rasqal_rowsource, rowsource);
+    rasqal_free_rowsource(rowsource);
     return NULL;
   }
   return rowsource;
@@ -124,6 +114,31 @@ rasqal_free_rowsource(rasqal_rowsource *rowsource)
 
 
 /**
+ * rasqal_rowsource_add_variable:
+ * @rowsource: rasqal rowsource
+ * @v: variable
+ *
+ * Add a variable column to the rowsource
+ **/
+void
+rasqal_rowsource_add_variable(rasqal_rowsource *rowsource, rasqal_variable* v)
+{
+  raptor_sequence_push(rowsource->variables_sequence, v);
+
+  if(rowsource->size < 0)
+    rowsource->size=0;
+  
+  rowsource->size++;
+  if(rowsource->flags & RASQAL_ROWSOURCE_FLAGS_ORDERING) {
+    if(rowsource->order_size < 0)
+      rowsource->order_size=0;
+    rowsource->order_size++;
+  }
+}
+
+
+
+/**
  * rasqal_rowsource_update_variables:
  * @rowsource: rasqal rowsource
  *
@@ -135,12 +150,15 @@ int
 rasqal_rowsource_update_variables(rasqal_rowsource *rowsource,
                                   rasqal_query_results* results)
 {
-  if(rowsource->ended)
+  if(rowsource->finished)
     return 1;
 
-  if(rowsource->handler->update_variables)
-    return rowsource->handler->update_variables(rowsource, rowsource->user_data,
-                                                results);
+  if(rowsource->handler->ensure_variables)
+     rowsource->handler->ensure_variables(rowsource, rowsource->user_data);
+
+  RASQAL_DEBUG2("Setting results to hold %d variables\n", rowsource->size);
+  rasqal_query_results_set_variables(results, rowsource->variables_sequence,
+                                     rowsource->size, 0);
 
   return 0;
 }
@@ -152,6 +170,8 @@ rasqal_rowsource_update_variables(rasqal_rowsource *rowsource,
  *
  * Read a query result row from the rowsource.
  *
+ * If a row is returned, it is owned by the caller.
+ *
  * Return value: row or NULL when no more rows are available
  **/
 rasqal_query_result_row*
@@ -159,14 +179,14 @@ rasqal_rowsource_read_row(rasqal_rowsource *rowsource)
 {
   rasqal_query_result_row* row=NULL;
   
-  if(rowsource->ended)
+  if(rowsource->finished)
     return NULL;
 
   if(rowsource->handler->read_row)
     row=rowsource->handler->read_row(rowsource, rowsource->user_data);
 
   if(!row)
-    rowsource->ended=1;
+    rowsource->finished=1;
   else
     rowsource->count++;
 
@@ -188,6 +208,128 @@ rasqal_rowsource_get_rows_count(rasqal_rowsource *rowsource)
   return rowsource->count;
 }
 
+
+/**
+ * rasqal_rowsource_read_all_rows:
+ * @rowsource: rasqal rowsource
+ *
+ * Read all rows from a rowsource
+ *
+ * After calling this, the rowsource will be empty of rows and finished
+ * and if a sequence is returned, it is owned by the caller.
+ *
+ * Return value: new sequence of all rows
+ **/
+raptor_sequence*
+rasqal_rowsource_read_all_rows(rasqal_rowsource *rowsource)
+{
+  raptor_sequence* seq;
+
+  if(rowsource->handler->read_all_rows)
+    return rowsource->handler->read_all_rows(rowsource, rowsource->user_data);
+  
+  seq=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_query_result_row, (raptor_sequence_print_handler*)rasqal_query_result_row_print);
+  if(!seq)
+    return NULL;
+  
+  while(1) {
+    rasqal_query_result_row* row=rasqal_rowsource_read_row(rowsource);
+    if(!row)
+      break;
+    raptor_sequence_push(seq, row);
+  }
+  
+  return seq;
+}
+
+
+/**
+ * rasqal_rowsource_get_query:
+ * @rowsource: rasqal rowsource
+ *
+ * Get a query associated with a rowsource
+ *
+ * Return value: query or NULL
+ **/
+rasqal_query*
+rasqal_rowsource_get_query(rasqal_rowsource *rowsource)
+{
+  if(rowsource->handler->get_query)
+    return rowsource->handler->get_query(rowsource, rowsource->user_data);
+  return NULL;
+}
+
+
+/**
+ * rasqal_rowsource_get_sizes:
+ * @rowsource: rasqal rowsource
+ * @size_p: pointer to size (or NULL)
+ * @order_size_p: pointer to order size (or NULL)
+ *
+ * Get rowsource row width and row ordering width sizes
+ **/
+void
+rasqal_rowsource_get_sizes(rasqal_rowsource *rowsource, int* size_p, int* order_size_p)
+{
+  if(rowsource->handler->ensure_variables)
+     rowsource->handler->ensure_variables(rowsource, rowsource->user_data);
+
+  if(size_p)
+    *size_p=rowsource->size;
+  if(order_size_p)
+    *order_size_p=rowsource->order_size;
+}
+
+
+/**
+ * rasqal_rowsource_get_variable_by_offset:
+ * @rowsource: rasqal rowsource
+ * @offset: integer offset into array of variables
+ *
+ * Get the variable associated with the given offset
+ *
+ * Return value: pointer to shared #rasqal_variable or NULL if out of range
+ **/
+rasqal_variable*
+rasqal_rowsource_get_variable_by_offset(rasqal_rowsource *rowsource, int offset)
+{
+  if(!rowsource->variables_sequence)
+    return NULL;
+  
+  return (rasqal_variable*)raptor_sequence_get_at(rowsource->variables_sequence,
+                                                  offset);
+}
+
+
+/**
+ * rasqal_rowsource_get_variable_offset_by_name:
+ * @rowsource: rasqal rowsource
+ * @name: variable name
+ *
+ * Get the offset of a variable into the list of variables
+ *
+ * Return value: offset or <0 if not present
+ **/
+int
+rasqal_rowsource_get_variable_offset_by_name(rasqal_rowsource *rowsource,
+                                             const char* name)
+{
+  int offset= -1;
+  int i;
+  
+  if(!rowsource->variables_sequence)
+    return -1;
+  
+  for(i=0; i < raptor_sequence_size(rowsource->variables_sequence); i++) {
+    rasqal_variable* v=(rasqal_variable*)raptor_sequence_get_at(rowsource->variables_sequence, i);
+    if(!strcmp((const char*)v->name, name)) {
+      offset=i;
+      break;
+    }
+  }
+
+  return offset;
+}
 
 
 #endif
