@@ -1,6 +1,6 @@
 /* -*- Mode: c; c-basic-offset: 2 -*-
  *
- * rasqal_rowsource.c - Rasqal class for abstracting generating query rows
+ * rasqal_rowsource.c - Rasqal query row generator class
  *
  * Copyright (C) 2008, David Beckett http://purl.org/net/dajobe/
  * 
@@ -67,7 +67,8 @@ rasqal_new_rowsource_from_handler(void *user_data,
   if(handler->version < 1 || handler->version > 1)
     return NULL;
 
-  rowsource=(rasqal_rowsource*)RASQAL_CALLOC(rasqal_rowsource, 1, sizeof(rasqal_rowsource));
+  rowsource=(rasqal_rowsource*)RASQAL_CALLOC(rasqal_rowsource, 1,
+                                             sizeof(rasqal_rowsource));
   if(!rowsource)
     return NULL;
 
@@ -269,7 +270,8 @@ rasqal_rowsource_get_query(rasqal_rowsource *rowsource)
  * Get rowsource row width and row ordering width sizes
  **/
 void
-rasqal_rowsource_get_sizes(rasqal_rowsource *rowsource, int* size_p, int* order_size_p)
+rasqal_rowsource_get_sizes(rasqal_rowsource *rowsource,
+                           int* size_p, int* order_size_p)
 {
   if(rowsource->handler->ensure_variables)
      rowsource->handler->ensure_variables(rowsource, rowsource->user_data);
@@ -321,7 +323,8 @@ rasqal_rowsource_get_variable_offset_by_name(rasqal_rowsource *rowsource,
     return -1;
   
   for(i=0; i < raptor_sequence_size(rowsource->variables_sequence); i++) {
-    rasqal_variable* v=(rasqal_variable*)raptor_sequence_get_at(rowsource->variables_sequence, i);
+    rasqal_variable* v;
+    v=(rasqal_variable*)raptor_sequence_get_at(rowsource->variables_sequence, i);
     if(!strcmp((const char*)v->name, name)) {
       offset=i;
       break;
