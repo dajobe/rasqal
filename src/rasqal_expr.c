@@ -2,9 +2,7 @@
  *
  * rasqal_expr.c - Rasqal general expression support
  *
- * $Id$
- *
- * Copyright (C) 2003-2007, David Beckett http://purl.org/net/dajobe/
+ * Copyright (C) 2003-2008, David Beckett http://purl.org/net/dajobe/
  * Copyright (C) 2003-2005, University of Bristol, UK http://www.bristol.ac.uk/
  * 
  * This package is Free Software and part of Redland http://librdf.org/
@@ -229,6 +227,44 @@ rasqal_new_variable(rasqal_query* rq,
   return rasqal_new_variable_typed(rq, RASQAL_VARIABLE_TYPE_NORMAL, name, value);
 }
 
+
+/**
+ * rasqal_new_variable_from_variable:
+ * @v: #rasqal_variable to copy
+ *
+ * Copy Constructor - Create a new Rasqal variable from an existing one
+ *
+ * This does a deep copy of all variable fields
+ *
+ * Return value: a new #rasqal_variable or NULL on failure.
+ **/
+rasqal_variable*
+rasqal_new_variable_from_variable(rasqal_variable* v)
+{
+  rasqal_variable* new_v;
+  size_t name_len;
+  unsigned char *new_name;
+
+  new_v=(rasqal_variable*)RASQAL_CALLOC(rasqal_variable, 1, sizeof(rasqal_variable));
+  if(!new_v)
+    return NULL;
+  
+  name_len=strlen((const char*)v->name);
+  new_name=RASQAL_MALLOC(cstring, name_len+1);
+  if(!new_name) {
+    RASQAL_FREE(rasqal_variable, new_v);
+    return NULL;
+  }
+  memcpy(new_name, v->name, name_len+1);
+  
+  new_v->name= new_name;
+  new_v->value= rasqal_new_literal_from_literal(v->value);
+  new_v->offset= v->offset;
+  new_v->type= v->type;
+  new_v->expression= rasqal_new_expression_from_expression(v->expression);
+
+  return new_v;
+}
 
 /**
  * rasqal_free_variable:
@@ -854,6 +890,9 @@ rasqal_expression_clear(rasqal_expression* e)
 rasqal_expression*
 rasqal_new_expression_from_expression(rasqal_expression* e)
 {
+  if(!e)
+    return NULL;
+  
   e->usage++;
   return e;
 }
