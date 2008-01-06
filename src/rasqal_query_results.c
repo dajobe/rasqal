@@ -155,6 +155,9 @@ rasqal_free_query_results(rasqal_query_results* query_results)
   if(query_results->variable_names)
     RASQAL_FREE(cstrings, query_results->variable_names);
 
+  if(query_results->variables_sequence)
+    raptor_free_sequence(query_results->variables_sequence);
+  
   if(query_results->rowsource)
     rasqal_free_rowsource(query_results->rowsource);
   
