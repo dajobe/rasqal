@@ -1197,22 +1197,8 @@ rasqal_query_execute(rasqal_query* query)
   else
     size=query->select_variables_count;
 
-  /* free function is NULL here so that when the query results is
-   * freed, the variable is not freed twice.  This is a HACK.  FIXME.
-   */
-  /*variables_sequence=raptor_new_sequence(NULL, NULL);
-  if(!variables_sequence) {
-    rasqal_free_query_results(query_results);
-    return NULL;
-  }
-
-  for(i=0; i < size; i++) {
-    rasqal_variable* v=(rasqal_variable*)raptor_sequence_get_at(query->variables_sequence, i);
-    raptor_sequence_set_at(variables_sequence, i, v);
-  }*/
-
   rasqal_query_results_set_variables(query_results, query->variables_sequence,
-                                     size);
+                                     size, order_size);
 
   if(query->order_conditions_sequence)
     order_size=raptor_sequence_size(query->order_conditions_sequence);
