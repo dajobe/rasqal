@@ -597,7 +597,7 @@ rasqal_query_results_formatter_write(raptor_iostream *iostr,
  * @results: #rasqal_query_results query results format
  * @base_uri: #raptor_uri base URI of the input format
  *
- * Read the query results using the given formatter tfrom an iostream
+ * Read the query results using the given formatter from an iostream
  * 
  * See rasqal_query_results_formats_enumerate() to get the
  * list of syntax URIs and their description. 
@@ -621,13 +621,19 @@ rasqal_query_results_formatter_read(raptor_iostream *iostr,
   rowsource=formatter->factory->get_rowsource(iostr, base_uri);
   if(!rowsource)
     return 1;
-  rasqal_rowsource_update_variables(rowsource, results);
+
+  if(rasqal_rowsource_update_variables(rowsource, results)) {
+    rasqal_free_rowsource(rowsource);
+    return 1;
+  }
+
   while(1) {
     rasqal_query_result_row* row=rasqal_rowsource_read_row(rowsource);
     if(!row)
       break;
     rasqal_query_results_add_row(results, row);
   }
+
   if(rowsource)
     rasqal_free_rowsource(rowsource);
   
