@@ -88,8 +88,13 @@ main(int argc, char **argv) {
   const char *query_format=QUERY_FORMAT;
   unsigned char *query_string;
   int count;
-
-  rasqal_init();
+  rasqal_world *world;
+  
+  world=rasqal_new_world();
+  if(!world) {
+    fprintf(stderr, "%s: rasqal_new_world() failed\n", program);
+    return(1);
+  }
   
   if(argc != 2) {
     fprintf(stderr, "USAGE: %s data-filename\n", program);
@@ -105,7 +110,7 @@ main(int argc, char **argv) {
   base_uri=raptor_new_uri(uri_string);  
   raptor_free_memory(uri_string);
 
-  query=rasqal_new_query(query_language_name, NULL);
+  query=rasqal_new_query2(world, query_language_name, NULL);
   if(!query) {
     fprintf(stderr, "%s: creating query in language %s FAILED\n", program,
             query_language_name);
@@ -201,7 +206,7 @@ main(int argc, char **argv) {
 
   raptor_free_uri(base_uri);
 
-  rasqal_finish();
+  rasqal_free_world(world);
 
   return 0;
 }

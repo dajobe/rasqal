@@ -2862,6 +2862,7 @@ main(int argc, char *argv[])
   const char* query_language;
   int usage=0;
   int fh_opened_here=0;
+  rasqal_world *world;
   
   query_language=query_languages[0];
   
@@ -2912,7 +2913,7 @@ main(int argc, char *argv[])
     fprintf(stderr, " -d           Bison parser debugging\n");
 #endif
     fprintf(stderr, " -i LANGUAGE  Set query language\n");
-    rasqal_finish();
+    rasqal_free_world(world);
     exit(1);
   }
 
@@ -2944,9 +2945,9 @@ main(int argc, char *argv[])
   if(fh_opened_here)
     fclose(fh);
 
-  rasqal_init();
+  world=rasqal_new_world();
 
-  query=rasqal_new_query(query_language, NULL);
+  query=rasqal_new_query2(world, query_language, NULL);
 
   uri_string=raptor_uri_filename_to_uri_string(filename);
   base_uri=raptor_new_uri(uri_string);
@@ -2961,7 +2962,7 @@ main(int argc, char *argv[])
 
   raptor_free_memory(uri_string);
 
-  rasqal_finish();
+  rasqal_free_world(world);
 
   return rc;
 }

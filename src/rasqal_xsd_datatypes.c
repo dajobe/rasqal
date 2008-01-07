@@ -884,9 +884,13 @@ main(int argc, char *argv[])
   raptor_sequence *fn_args;
   char *error;
   rasqal_literal *fn_result;
-
-
-  rasqal_init();
+  rasqal_world *world;
+  
+  world=rasqal_new_world();
+  if(!world) {
+    fprintf(stderr, "%s: rasqal_new_world() failed\n", program);
+    return(1);
+  }
 
   xsd_uri=raptor_new_uri(raptor_xmlschema_datatypes_namespace_uri);
   dateTime_uri=raptor_new_uri_from_uri_local_name(xsd_uri, (const unsigned char*)"dateTime");
@@ -928,7 +932,7 @@ main(int argc, char *argv[])
   raptor_free_uri(xsd_uri);
   raptor_free_uri(dateTime_uri);
 
-  rasqal_finish();
+  rasqal_free_world(world);
 #endif
 
   return 0;

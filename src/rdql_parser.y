@@ -840,6 +840,7 @@ main(int argc, char *argv[])
   const char *filename=NULL;
   raptor_uri* base_uri=NULL;
   unsigned char *uri_string;
+  rasqal_world *world;
 
 #if RASQAL_DEBUG > 2
   rdql_parser_debug=1;
@@ -872,9 +873,9 @@ main(int argc, char *argv[])
   if(argc>1)
     fclose(fh);
 
-  rasqal_init();
+  world=rasqal_new_world();
 
-  query=rasqal_new_query("rdql", NULL);
+  query=rasqal_new_query2(world, "rdql", NULL);
 
   uri_string=raptor_uri_filename_to_uri_string(filename);
   base_uri=raptor_new_uri(uri_string);
@@ -889,7 +890,7 @@ main(int argc, char *argv[])
 
   raptor_free_memory(uri_string);
 
-  rasqal_finish();
+  rasqal_free_world(world);
 
   return rc;
 }

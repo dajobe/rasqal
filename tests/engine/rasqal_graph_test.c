@@ -133,8 +133,13 @@ main(int argc, char **argv) {
   unsigned char *uri_string;
   int i;
   raptor_uri* graph_uris[DATA_GRAPH_COUNT];
+  rasqal_world *world;
   
-  rasqal_init();
+  world=rasqal_new_world();
+  if(!world) {
+    fprintf(stderr, "%s: rasqal_new_world() failed\n", program);
+    return(1);
+  }
   
   if(argc != 2) {
     fprintf(stderr, "USAGE: %s <path to data directory>\n", program);
@@ -163,7 +168,7 @@ main(int argc, char **argv) {
     int query_failed=0;
     int j;
 
-    query=rasqal_new_query(query_language_name, NULL);
+    query=rasqal_new_query2(world, query_language_name, NULL);
     if(!query) {
       fprintf(stderr, "%s: creating query %d in language %s FAILED\n", 
               program, i, query_language_name);
@@ -278,7 +283,7 @@ main(int argc, char **argv) {
   
   raptor_free_uri(base_uri);
 
-  rasqal_finish();
+  rasqal_free_world(world);
 
   return failures;
 }

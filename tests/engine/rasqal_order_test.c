@@ -80,8 +80,13 @@ main(int argc, char **argv) {
   static const char* animals="animals.nt";
   int failures=0;
   int i;
+  rasqal_world *world;
   
-  rasqal_init();
+  world=rasqal_new_world();
+  if(!world) {
+    fprintf(stderr, "%s: rasqal_new_world() failed\n", program);
+    return(1);
+  }
   
   if(argc != 2) {
     fprintf(stderr, "USAGE: %s <path to data directory>\n", program);
@@ -117,7 +122,7 @@ main(int argc, char **argv) {
             limit, offset);
     raptor_free_memory(data_dir_string);
 
-    query=rasqal_new_query(query_language_name, NULL);
+    query=rasqal_new_query2(world, query_language_name, NULL);
     if(!query) {
       fprintf(stderr, "%s: creating query %d in language %s FAILED\n", 
               program, i, query_language_name);
@@ -174,7 +179,7 @@ main(int argc, char **argv) {
   
   raptor_free_uri(base_uri);
 
-  rasqal_finish();
+  rasqal_free_world(world);
 
   return failures;
 }

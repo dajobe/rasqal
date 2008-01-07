@@ -1081,8 +1081,9 @@ main(int argc, char *argv[])
   char *buf=NULL;
   size_t len;
   void *buffer;
+  rasqal_world *world;
 
-  rasqal_init();
+  world=rasqal_new_world();
 
   if(argc > 1) {
     FILE *fh;
@@ -1160,7 +1161,7 @@ main(int argc, char *argv[])
 
   RASQAL_FREE(cstring, query_string);
 
-  rasqal_finish();
+  rasqal_free_world(world);
 
   if(rq.failed)
     return 1;
