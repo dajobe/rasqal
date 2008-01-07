@@ -876,6 +876,10 @@ rasqal_query_results_set_variables(rasqal_query_results* query_results,
   query_results->size=size;
   query_results->order_size=order_size;
   
+  if(query_results->variables_sequence) {
+    raptor_free_sequence(query_results->variables_sequence);
+    query_results->variables_sequence=NULL;
+  }
   query_results->variables_sequence=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_variable, (raptor_sequence_print_handler*)rasqal_variable_print);
   if(!query_results->variables_sequence)
     return 1;
