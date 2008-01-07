@@ -1176,8 +1176,6 @@ rasqal_query_execute(rasqal_query* query)
   int rc=0;
   int size=0;
   int order_size=0;
-  /*raptor_sequence* variables_sequence=NULL;
-  int i;*/
   
   if(query->failed)
     return NULL;
