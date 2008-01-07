@@ -907,6 +907,15 @@ rasqal_query_results_set_variables(rasqal_query_results* query_results,
       raptor_sequence_push(query_results->variables_sequence, new_v);
       query_results->variables[i]=new_v;
       query_results->variable_names[i]=new_v->name;
+    } else {
+      /* rasqal_new_variable_from_variable() returned NULL -
+       * set query_results->size to the number of variables actually in the arrays
+       * and return an error
+       */
+      query_results->variables[i]=NULL;
+      query_results->variable_names[i]=NULL;
+      query_results->size=i;
+      return 1;
     }
   }
   query_results->variable_names[i]=NULL;
