@@ -102,6 +102,16 @@ extern const char * const rasqal_home_url_string;
 
 /* Public structures */
 
+#ifndef RASQAL_WORLD_DECLARED
+#define RASQAL_WORLD_DECLARED 1
+/**
+ * rasqal_world:
+ *
+ * Rasqal world class.
+ */
+typedef struct rasqal_world_s rasqal_world;
+#endif
+
 /**
  * rasqal_query:
  *
@@ -620,10 +630,15 @@ typedef int (*rasqal_graph_pattern_visit_fn)(rasqal_query* query, rasqal_graph_p
 
 /* Public functions */
 
-RASQAL_API
+RASQAL_API RASQAL_DEPRECATED
 void rasqal_init(void);
 RASQAL_API
+rasqal_world *rasqal_new_world(void);
+
+RASQAL_API RASQAL_DEPRECATED
 void rasqal_finish(void);
+RASQAL_API
+void rasqal_free_world(rasqal_world*);
 
 /* Features */
 RASQAL_API
@@ -635,17 +650,25 @@ rasqal_feature rasqal_feature_from_uri(raptor_uri *uri);
 RASQAL_API
 int rasqal_feature_value_type(const rasqal_feature feature);
 
-RASQAL_API
+RASQAL_API RASQAL_DEPRECATED
 int rasqal_languages_enumerate(const unsigned int counter, const char **name, const char **label, const unsigned char **uri_string);
 RASQAL_API
+int rasqal_languages_enumerate2(rasqal_world*, const unsigned int counter, const char **name, const char **label, const unsigned char **uri_string);
+
+RASQAL_API RASQAL_DEPRECATED
 int rasqal_language_name_check(const char *name);
+RASQAL_API
+int rasqal_language_name_check2(rasqal_world*, const char *name);
 
 
 /* Query class */
 
 /* Create */
-RASQAL_API
+RASQAL_API RASQAL_DEPRECATED
 rasqal_query* rasqal_new_query(const char *name, const unsigned char *uri);
+RASQAL_API
+rasqal_query* rasqal_new_query2(rasqal_world *, const char *name, const unsigned char *uri);
+
 /* Destroy */
 RASQAL_API
 void rasqal_free_query(rasqal_query* query);

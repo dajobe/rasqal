@@ -696,8 +696,8 @@ int rasqal_xsd_datetime_check(const unsigned char* string);
 /* rasqal_general.c */
 char* rasqal_vsnprintf(const char* message, va_list arguments);
 
-void rasqal_query_engine_register_factory(const char* name, const char* label, const char* alias, const unsigned char* uri_string, void (*factory) (rasqal_query_engine_factory*));
-rasqal_query_engine_factory* rasqal_get_query_engine_factory (const char* name, const unsigned char* uri);
+void rasqal_query_engine_register_factory(rasqal_world*, const char* name, const char* label, const char* alias, const unsigned char* uri_string, void (*factory) (rasqal_query_engine_factory*));
+rasqal_query_engine_factory* rasqal_get_query_engine_factory (rasqal_world*, const char* name, const unsigned char* uri);
 
 void rasqal_query_fatal_error(rasqal_query* query, const char* message, ...) RASQAL_PRINTF_FORMAT(2, 3);
 void rasqal_query_fatal_error_varargs(rasqal_query* query, const char* message, va_list arguments) RASQAL_PRINTF_FORMAT(2, 0);
@@ -716,11 +716,11 @@ unsigned char* rasqal_escaped_name_to_utf8_string(const unsigned char* src, size
 unsigned char* rasqal_query_generate_bnodeid(rasqal_query* rdf_query, unsigned char *user_bnodeid);
 
 /* rdql_parser.y */
-void rasqal_init_query_engine_rdql (void);
+void rasqal_init_query_engine_rdql (rasqal_world*);
 
 /* sparql_parser.y */
-void rasqal_init_query_engine_sparql (void);
-void rasqal_init_query_engine_laqrs (void);
+void rasqal_init_query_engine_sparql (rasqal_world*);
+void rasqal_init_query_engine_laqrs (rasqal_world*);
 
 /* rasqal_engine.c */
 int rasqal_engine_sequence_has_qname(raptor_sequence* seq);
@@ -896,6 +896,30 @@ const unsigned char* rasqal_xsd_datetime_string_to_canonical(const unsigned char
 rasqal_literal_type rasqal_xsd_datatype_uri_parent_type(raptor_uri* uri);
 int rasqal_xsd_datatype_is_numeric(rasqal_literal_type type);
 unsigned char* rasqal_xsd_format_double(double d, size_t *len_p);
+
+
+/* rasqal_world structure */
+struct rasqal_world_s {
+  rasqal_query_engine_factory *query_engines;
+
+  /*
+  raptor_sequence *query_results_formats;
+
+  rasqal_xsd_datatype_info *xsd_datatypes_table;
+  raptor_uri *xsd_namespace_uri;
+  raptor_uri *rdf_namespace_uri;
+  raptor_uri *rdf_first_uri;
+  raptor_uri *rdf_rest_uri;
+  raptor_uri *rdf_nil_uri;
+
+  rasqal_triples_source_factory triples_source_factory;
+  */
+
+};
+
+#ifndef NO_STATIC_DATA
+extern rasqal_world *rasqal_world_static;
+#endif
 
 /* end of RASQAL_INTERNAL */
 #endif

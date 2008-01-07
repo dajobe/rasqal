@@ -42,7 +42,7 @@
 
 
 /* prototypes for helper functions */
-static void rasqal_delete_query_engine_factories(void);
+static void rasqal_delete_query_engine_factories(rasqal_world*);
 
 
 /* statics */
@@ -51,8 +51,6 @@ static int rasqal_initialised=0;
 static int rasqal_initialising=0;
 static int rasqal_finishing=0;
 
-/* list of query factories */
-static rasqal_query_engine_factory* query_engines=NULL;
 
 const char * const rasqal_short_copyright_string = "Copyright 2003-2008 David Beckett.  Copyright 2003-2005 University of Bristol";
 
@@ -102,6 +100,9 @@ const unsigned int rasqal_version_release = RASQAL_VERSION_RELEASE;
 const unsigned int rasqal_version_decimal = RASQAL_VERSION_DECIMAL;
 
 
+#ifndef NO_STATIC_DATA
+rasqal_world *rasqal_world_static=NULL;
+#endif
 
 /**
  * rasqal_init:
@@ -109,12 +110,40 @@ const unsigned int rasqal_version_decimal = RASQAL_VERSION_DECIMAL;
  * Initialise the rasqal library.
  *
  * MUST be called before using any of the rasqal APIs.
+ *
+ * @deprecated Use rasqal_new_world() to initialize the library.
  **/
 void
-rasqal_init(void) 
+rasqal_init(void)
 {
-  if(rasqal_initialised || rasqal_initialising)
-    return;
+#ifndef NO_STATIC_DATA
+  rasqal_world_static=rasqal_new_world();
+#else
+  abort();
+#endif
+}
+
+
+/**
+ * rasqal_new_world:
+ * 
+ * Initialise the rasqal library.
+ *
+ * Creates a rasqal_world object and initializes it.
+ *
+ * The returned world object is used with subsequent rasqal API calls.
+ *
+ * Return value: rasqal_world object or NULL on failure
+ **/
+rasqal_world*
+rasqal_new_world(void)
+{
+  rasqal_world *world;
+
+  world=RASQAL_CALLOC(rasqal_world, sizeof(rasqal_world), 1);
+  if(!world)
+    return NULL;
+
   rasqal_initialising=1;
 
   raptor_init();
@@ -126,15 +155,15 @@ rasqal_init(void)
   /* last one declared is the default - RDQL */
 
 #ifdef RASQAL_QUERY_RDQL
-  rasqal_init_query_engine_rdql();
+  rasqal_init_query_engine_rdql(world);
 #endif
 
 #ifdef RASQAL_QUERY_LAQRS
-  rasqal_init_query_engine_laqrs();
+  rasqal_init_query_engine_laqrs(world);
 #endif
 
 #ifdef RASQAL_QUERY_SPARQL  
-  rasqal_init_query_engine_sparql();
+  rasqal_init_query_engine_sparql(world);
 #endif
 
 #ifdef RAPTOR_TRIPLES_SOURCE_RAPTOR
@@ -150,6 +179,8 @@ rasqal_init(void)
   rasqal_initialising=0;
   rasqal_initialised=1;
   rasqal_finishing=0;
+
+  return world;
 }
 
 
@@ -159,9 +190,22 @@ rasqal_init(void)
  * Terminate the rasqal library.
  *
  * Must be called to clean up any resources used by the library.
+ *
+ * @deprecated Use rasqal_free_world() to clean up.
  **/
 void
-rasqal_finish(void) 
+rasqal_finish(void)
+{
+#ifndef NO_STATIC_DATA
+  rasqal_free_world(rasqal_world_static);
+  rasqal_world_static=NULL;
+#else
+  abort();
+#endif
+}
+
+void
+rasqal_free_world(rasqal_world* world) 
 {
   if((!rasqal_initialised && !rasqal_initialising) || rasqal_finishing)
     return;
@@ -170,7 +214,7 @@ rasqal_finish(void)
   rasqal_finish_result_formats();
   rasqal_finish_query_results();
 
-  rasqal_delete_query_engine_factories();
+  rasqal_delete_query_engine_factories(world);
 
 #ifdef RAPTOR_TRIPLES_SOURCE_REDLAND
   rasqal_redland_finish();
@@ -185,6 +229,8 @@ rasqal_finish(void)
   rasqal_initialising=0;
   rasqal_initialised=0;
   rasqal_finishing=0;
+
+  RASQAL_FREE(rasqal_world, world);
 }
 
 
@@ -218,15 +264,15 @@ rasqal_free_query_engine_factory(rasqal_query_engine_factory *factory)
  * rasqal_delete_query_engine_factories - helper function to delete all the registered query engine factories
  */
 static void
-rasqal_delete_query_engine_factories(void)
+rasqal_delete_query_engine_factories(rasqal_world *world)
 {
   rasqal_query_engine_factory *factory, *next;
   
-  for(factory=query_engines; factory; factory=next) {
+  for(factory=world->query_engines; factory; factory=next) {
     next=factory->next;
     rasqal_free_query_engine_factory(factory);
   }
-  query_engines=NULL;
+  world->query_engines=NULL;
 }
 
 
@@ -243,7 +289,8 @@ rasqal_delete_query_engine_factories(void)
  *
  **/
 void
-rasqal_query_engine_register_factory(const char *name, const char *label,
+rasqal_query_engine_register_factory(rasqal_world *world,
+                                     const char *name, const char *label,
                                      const char *alias,
                                      const unsigned char *uri_string,
                                      void (*factory) (rasqal_query_engine_factory*)) 
@@ -263,7 +310,7 @@ rasqal_query_engine_register_factory(const char *name, const char *label,
   if(!query)
     goto tidy_noquery;
 
-  for(h = query_engines; h; h = h->next ) {
+  for(h = world->query_engines; h; h = h->next ) {
     if(!strcmp(h->name, name) ||
        (alias && !strcmp(h->name, alias))) {
       RASQAL_FATAL2("query %s already registered\n", h->name);
@@ -305,15 +352,15 @@ rasqal_query_engine_register_factory(const char *name, const char *label,
   RASQAL_DEBUG3("%s has context size %d\n", name, (int)query->context_length);
 #endif
   
-  query->next = query_engines;
-  query_engines = query;
+  query->next = world->query_engines;
+  world->query_engines = query;
 
   return;
 
   tidy:
   rasqal_free_query_engine_factory(query);
   tidy_noquery:
-  rasqal_finish();
+  rasqal_free_world(world);
   RASQAL_FATAL1("Out of memory\n");
 }
 
@@ -328,19 +375,19 @@ rasqal_query_engine_register_factory(const char *name, const char *label,
  * Return value: the factory object or NULL if there is no such factory
  **/
 rasqal_query_engine_factory*
-rasqal_get_query_engine_factory (const char *name, const unsigned char *uri)
+rasqal_get_query_engine_factory (rasqal_world *world, const char *name, const unsigned char *uri)
 {
   rasqal_query_engine_factory *factory;
 
   /* return 1st query if no particular one wanted - why? */
   if(!name && !uri) {
-    factory=query_engines;
+    factory=world->query_engines;
     if(!factory) {
       RASQAL_DEBUG1("No (default) query_engines registered\n");
       return NULL;
     }
   } else {
-    for(factory=query_engines; factory; factory=factory->next) {
+    for(factory=world->query_engines; factory; factory=factory->next) {
       if((name && !strcmp(factory->name, name)) ||
          (factory->alias && !strcmp(factory->alias, name)))
         break;
@@ -366,6 +413,8 @@ rasqal_get_query_engine_factory (const char *name, const unsigned char *uri)
  * @uri_string: pointer to store syntax URI string (or NULL)
  *
  * Get information on query languages.
+ *
+ * @deprecated Use rasqal_languages_enumerate2()
  * 
  * Return value: non 0 on failure of if counter is out of range
  **/
@@ -374,8 +423,34 @@ rasqal_languages_enumerate(const unsigned int counter,
                            const char **name, const char **label,
                            const unsigned char **uri_string)
 {
+#ifndef NO_STATIC_DATA
+  return rasqal_languages_enumerate2(rasqal_world_static, counter, name, label, uri_string);
+#else
+  abort();
+  return -1;
+#endif
+}
+
+/**
+ * rasqal_languages_enumerate2:
+ * @world: rasqal_world object
+ * @counter: index into the list of syntaxes
+ * @name: pointer to store the name of the syntax (or NULL)
+ * @label: pointer to store syntax readable label (or NULL)
+ * @uri_string: pointer to store syntax URI string (or NULL)
+ *
+ * Get information on query languages.
+ * 
+ * Return value: non 0 on failure of if counter is out of range
+ **/
+int
+rasqal_languages_enumerate2(rasqal_world *world,
+                            const unsigned int counter,
+                            const char **name, const char **label,
+                            const unsigned char **uri_string)
+{
   unsigned int i;
-  rasqal_query_engine_factory *factory=query_engines;
+  rasqal_query_engine_factory *factory=world->query_engines;
 
   if(!factory)
     return 1;
@@ -402,11 +477,32 @@ rasqal_languages_enumerate(const unsigned int counter,
  *
  * Check name of a query language.
  *
+ * @deprecated Use rasqal_language_name_check2() instead.
+ *
  * Return value: non 0 if name is a known query language
  */
 int
 rasqal_language_name_check(const char *name) {
-  return (rasqal_get_query_engine_factory(name, NULL) != NULL);
+#ifndef NO_STATIC_DATA
+  return rasqal_language_name_check2(rasqal_world_static, name);
+#else
+  abort();
+  return -1;
+#endif
+}
+
+/**
+ * rasqal_language_name_check2:
+ * @world: rasqal_world object
+ * @name: the query language name
+ *
+ * Check name of a query language.
+ *
+ * Return value: non 0 if name is a known query language
+ */
+int
+rasqal_language_name_check2(rasqal_world* world, const char *name) {
+  return (rasqal_get_query_engine_factory(world, name, NULL) != NULL);
 }
 
 

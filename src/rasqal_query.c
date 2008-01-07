@@ -64,17 +64,45 @@ static int rasqal_query_write_sparql_20060406(raptor_iostream *iostr, rasqal_que
  * if both are NULL.  rasqal_languages_enumerate returns
  * information on the known names, labels and URIs.
  *
+ * @deprecated Use rasqal_new_query2() instead.
+ *
  * Return value: a new #rasqal_query object or NULL on failure
  */
 rasqal_query*
 rasqal_new_query(const char *name, const unsigned char *uri)
+{
+#ifndef NO_STATIC_DATA
+  return rasqal_new_query2(rasqal_world_static, name, uri);
+#else
+  abort();
+  return NULL;
+#endif
+}
+
+/**
+ * rasqal_new_query2:
+ * @world: rasqal_world object
+ * @name: the query language name (or NULL)
+ * @uri: #raptor_uri language uri (or NULL)
+ *
+ * Constructor - create a new rasqal_query object.
+ *
+ * A query language can be named or identified by a URI, either
+ * of which is optional.  The default query language will be used
+ * if both are NULL.  rasqal_languages_enumerate returns
+ * information on the known names, labels and URIs.
+ *
+ * Return value: a new #rasqal_query object or NULL on failure
+ */
+rasqal_query*
+rasqal_new_query2(rasqal_world *world, const char *name, const unsigned char *uri)
 {
   rasqal_query_engine_factory* factory;
   rasqal_query* query;
   const raptor_uri_handler *uri_handler;
   void *uri_context;
 
-  factory=rasqal_get_query_engine_factory(name, uri);
+  factory=rasqal_get_query_engine_factory(world, name, uri);
   if(!factory)
     return NULL;
 
