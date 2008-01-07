@@ -63,7 +63,7 @@ main(int argc, char *argv[])
   const char* results_formatter_name=NULL;
   rasqal_query_results_formatter* formatter=NULL;
   raptor_iostream *write_iostr=NULL;
-
+  rasqal_world *world;
   
   program=argv[0];
   if((p=strrchr(program, '/')))
@@ -72,8 +72,11 @@ main(int argc, char *argv[])
     program=p+1;
   argv[0]=program;
   
-
-  rasqal_init();
+  world=rasqal_new_world();
+  if(!world) {
+    fprintf(stderr, "%s: rasqal_new_world() failed\n", program);
+    return(1);
+  }
 
   if(argc != 2) {
     fprintf(stderr, "USAGE: %s SRX file\n", program);
@@ -145,7 +148,7 @@ main(int argc, char *argv[])
   if(base_uri)
     raptor_free_uri(base_uri);
 
-  rasqal_finish();
+  rasqal_free_world(world);
 
   return (rc);
 }

@@ -393,6 +393,7 @@ main(int argc, char *argv[])
   rasqal_feature query_feature=(rasqal_feature)-1;
   int query_feature_value= -1;
   unsigned char* query_feature_string_value=NULL;
+  rasqal_world *world;
   
   program=argv[0];
   if((p=strrchr(program, '/')))
@@ -400,10 +401,13 @@ main(int argc, char *argv[])
   else if((p=strrchr(program, '\\')))
     program=p+1;
   argv[0]=program;
+
+  world=rasqal_new_world();
+  if(!world) {
+    fprintf(stderr, "%s: rasqal_new_world() failed\n", program);
+    return(1);
+  }
   
-
-  rasqal_init();
-
   while (!usage && !help)
   {
     int c;
@@ -480,7 +484,7 @@ main(int argc, char *argv[])
             }
             fputs("Features are set with `" HELP_ARG(f, feature) " FEATURE=VALUE or `-f FEATURE'\nand take a decimal integer VALUE except where noted, defaulting to 1 if omitted.\n", stderr);
 
-            rasqal_finish();
+            rasqal_free_world(world);
             exit(0);
           } else {
             int i;
@@ -552,7 +556,7 @@ main(int argc, char *argv[])
         break;
 
       case 'i':
-	if(rasqal_language_name_check(optarg))
+	if(rasqal_language_name_check2(world, optarg))
           ql_name=optarg;
 	else {
           int i;
@@ -563,7 +567,7 @@ main(int argc, char *argv[])
           for(i=0; 1; i++) {
             const char *help_name;
             const char *help_label;
-            if(rasqal_languages_enumerate(i, &help_name, &help_label, NULL))
+            if(rasqal_languages_enumerate2(world, i, &help_name, &help_label, NULL))
               break;
             fprintf(stderr, "  %-12s for %s\n", help_name, help_label);
           }
@@ -607,7 +611,7 @@ main(int argc, char *argv[])
       case 'v':
         fputs(rasqal_version_string, stdout);
         fputc('\n', stdout);
-        rasqal_finish();
+        rasqal_free_world(world);
         exit(0);
 
       case 'w':
@@ -645,7 +649,7 @@ main(int argc, char *argv[])
     }
     fprintf(stderr, "Try `%s " HELP_ARG(h, help) "' for more information.\n",
                     program);
-    rasqal_finish();
+    rasqal_free_world(world);
 
     exit(1);
   }
@@ -672,7 +676,7 @@ main(int argc, char *argv[])
     for(i=0; 1; i++) {
       const char *help_name;
       const char *help_label;
-      if(rasqal_languages_enumerate(i, &help_name, &help_label, NULL))
+      if(rasqal_languages_enumerate2(world, i, &help_name, &help_label, NULL))
         break;
       printf("    %-15s         %s", help_name, help_label);
       if(!i)
@@ -721,7 +725,7 @@ main(int argc, char *argv[])
     puts(HELP_TEXT("w", "walk-query       ", "Print query.  Same as '-d structure'"));
     puts("\nReport bugs to http://bugs.librdf.org/");
 
-    rasqal_finish();
+    rasqal_free_world(world);
     
     exit(0);
   }
@@ -863,7 +867,7 @@ main(int argc, char *argv[])
     }
   }
   
-  rq=rasqal_new_query((const char*)ql_name, (const unsigned char*)ql_uri);
+  rq=rasqal_new_query2(world, (const char*)ql_name, (const unsigned char*)ql_uri);
   rasqal_query_set_error_handler(rq, NULL, roqet_error_handler);
   rasqal_query_set_fatal_error_handler(rq, NULL, roqet_error_handler);
 
@@ -1064,7 +1068,7 @@ main(int argc, char *argv[])
   if(free_uri_string)
     raptor_free_memory(uri_string);
 
-  rasqal_finish();
+  rasqal_free_world(world);
   
   return (rc);
 }
