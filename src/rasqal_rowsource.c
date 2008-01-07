@@ -69,21 +69,24 @@ rasqal_new_rowsource_from_handler(void *user_data,
 
   rowsource=(rasqal_rowsource*)RASQAL_CALLOC(rasqal_rowsource, 1,
                                              sizeof(rasqal_rowsource));
-  if(!rowsource)
-    return NULL;
-
-  rowsource->variables_sequence=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_variable, (raptor_sequence_print_handler*)rasqal_variable_print);
-  if(!rowsource->variables_sequence) {
-    RASQAL_FREE(rasqal_rowsource, rowsource);
+  if(!rowsource) {
+    if(handler->finish)
+      handler->finish(NULL, user_data);
     return NULL;
   }
-  
+
   rowsource->user_data=(void*)user_data;
   rowsource->handler=handler;
   rowsource->flags=flags;
 
   rowsource->size= -1;
   rowsource->order_size= -1;
+
+  rowsource->variables_sequence=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_variable, (raptor_sequence_print_handler*)rasqal_variable_print);
+  if(!rowsource->variables_sequence) {
+    rasqal_free_rowsource(rowsource);
+    return NULL;
+  }
   
   if(rowsource->handler->init && 
      rowsource->handler->init(rowsource, rowsource->user_data)) {
