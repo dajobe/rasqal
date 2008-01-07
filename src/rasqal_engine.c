@@ -3140,6 +3140,7 @@ static rasqal_rowsource*
 rasqal_engine_make_rowsource(rasqal_query* query, rasqal_query_results* results) 
 {
   rasqal_rowsource_engine_context* con;
+  rasqal_rowsource *rs;
   int flags=0;
   
   con=(rasqal_rowsource_engine_context*)RASQAL_CALLOC(rasqal_rowsource_engine_context, 1, sizeof(rasqal_rowsource_engine_context));
@@ -3170,9 +3171,12 @@ rasqal_engine_make_rowsource(rasqal_query* query, rasqal_query_results* results)
   
   flags=con->need_map ? RASQAL_ROWSOURCE_FLAGS_ORDERING : 0;
 
-  return rasqal_new_rowsource_from_handler(con,
-                                           &rasqal_rowsource_engine_handler,
-                                           flags);
+  rs=rasqal_new_rowsource_from_handler(con,
+                                       &rasqal_rowsource_engine_handler,
+                                       flags);
+  if(!rs)
+    rasqal_rowsource_engine_finish(NULL, con);
+  return rs;
 }
 
 /**
