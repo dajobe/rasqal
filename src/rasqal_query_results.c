@@ -873,8 +873,14 @@ rasqal_query_results_set_variables(rasqal_query_results* query_results,
   int i;
 
   /*query_results->type=RASQAL_QUERY_RESULTS_BINDINGS;*/
-  query_results->size=size;
-  query_results->order_size=order_size;
+
+  /* Set query_results size and order size initially to zero
+   * until all initialization that can fail has been done.
+   * Ensure size is never larger than the number of valid pointers in
+   * variables or variable_names arrays.
+   */
+  query_results->size=0;
+  query_results->order_size=0;
   
   if(query_results->variables_sequence) {
     raptor_free_sequence(query_results->variables_sequence);
@@ -888,7 +894,7 @@ rasqal_query_results_set_variables(rasqal_query_results* query_results,
     RASQAL_FREE(cstrings, query_results->variable_names);
     query_results->variable_names=NULL;
   }
-  query_results->variable_names=(const unsigned char**)RASQAL_MALLOC(cstrings, sizeof(unsigned char*) * (size+1));
+  query_results->variable_names=(const unsigned char**)RASQAL_CALLOC(cstrings, sizeof(unsigned char*), (size+1));
   if(!query_results->variable_names)
     return 1;
 
@@ -896,7 +902,7 @@ rasqal_query_results_set_variables(rasqal_query_results* query_results,
     RASQAL_FREE(varray, query_results->variables);
     query_results->variables=NULL;
   }  
-  query_results->variables=(rasqal_variable**)RASQAL_MALLOC(varray, sizeof(rasqal_variable*) * size);
+  query_results->variables=(rasqal_variable**)RASQAL_CALLOC(varray, sizeof(rasqal_variable*), size);
   if(!query_results->variables)
     return 1;
 
@@ -907,18 +913,13 @@ rasqal_query_results_set_variables(rasqal_query_results* query_results,
       raptor_sequence_push(query_results->variables_sequence, new_v);
       query_results->variables[i]=new_v;
       query_results->variable_names[i]=new_v->name;
-    } else {
-      /* rasqal_new_variable_from_variable() returned NULL -
-       * set query_results->size to the number of variables actually in the arrays
-       * and return an error
-       */
-      query_results->variables[i]=NULL;
-      query_results->variable_names[i]=NULL;
-      query_results->size=i;
+    } else
       return 1;
-    }
   }
-  query_results->variable_names[i]=NULL;
+
+  /* Initialization ok - now set size and order_size for real */
+  query_results->size=size;
+  query_results->order_size=order_size;
 
   return 0;
 }
