@@ -597,13 +597,16 @@ rasqal_log_error_varargs(rasqal_world* world, raptor_log_level level,
  * rasqal_query_error 
  */
 void
-rasqal_query_simple_error(void* query, const char *message, ...)
+rasqal_query_simple_error(void* user_data, const char *message, ...)
 {
+  rasqal_query* query=(rasqal_query*)user_data;
+
   va_list arguments;
 
   va_start(arguments, message);
 
-  rasqal_log_error_varargs(((rasqal_query*)query)->world,
+  query->failed=1;
+  rasqal_log_error_varargs(query->world,
                            RAPTOR_LOG_LEVEL_ERROR, NULL,
                            message, arguments);
   

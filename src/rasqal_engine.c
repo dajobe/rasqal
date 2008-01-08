@@ -337,6 +337,7 @@ rasqal_engine_expand_wildcards(rasqal_query* rq)
     case RASQAL_QUERY_VERB_DELETE:
     case RASQAL_QUERY_VERB_INSERT:
     default:
+      rq->failed=1;
       rasqal_log_error_simple(rq->world, RAPTOR_LOG_LEVEL_ERROR,
                               &rq->locator,
                               "Cannot use wildcard * with query verb %s",
@@ -515,6 +516,7 @@ rasqal_new_triples_source(rasqal_query_results* query_results)
                                                rts->user_data, rts);
   if(rc) {
     query_results->failed=1;
+    query->failed=1;
     if(rc > 0) {
       rasqal_log_error_simple(query->world, RAPTOR_LOG_LEVEL_ERROR,
                               &query->locator,
@@ -847,6 +849,7 @@ rasqal_engine_group_graph_pattern_get_next_match(rasqal_query_results* query_res
 #endif
 
   /* FIXME - sequence of graph_patterns not implemented, finish */
+  query->failed=1;
   rasqal_log_error_simple(query->world, RAPTOR_LOG_LEVEL_ERROR,
                           &query->locator,
                           "Graph pattern %s operation is not implemented yet. Ending query execution.", 
@@ -924,6 +927,7 @@ rasqal_engine_triple_graph_pattern_get_next_match(rasqal_query_results* query_re
         /* Column has no triplesMatch so create a new query */
         m->triples_match=rasqal_new_triples_match(query_results, m, m, t);
         if(!m->triples_match) {
+          query->failed=1;
           rasqal_log_error_simple(query->world, RAPTOR_LOG_LEVEL_ERROR,
                                   &query->locator,
                                   "Failed to make a triple match for column%d",
@@ -1717,6 +1721,7 @@ rasqal_engine_get_next_result(rasqal_query_results *query_results)
   outergp=query->query_graph_pattern;
   if(!outergp || !outergp->graph_patterns) {
     /* FIXME - no graph patterns in query - end results */
+    query->failed=1;
     rasqal_log_error_simple(query->world, RAPTOR_LOG_LEVEL_ERROR,
                             &query->locator,
                             "No graph patterns in query. Ending query execution.");
@@ -1727,6 +1732,7 @@ rasqal_engine_get_next_result(rasqal_query_results *query_results)
   graph_patterns_size=raptor_sequence_size(outergp->graph_patterns);
   if(!graph_patterns_size) {
     /* FIXME - no graph patterns in query - end results */
+    query->failed=1;
     rasqal_log_error_simple(query->world, RAPTOR_LOG_LEVEL_ERROR,
                             &query->locator,
                             "No graph patterns in query. Ending query execution.");
@@ -1764,6 +1770,7 @@ rasqal_engine_get_next_result(rasqal_query_results *query_results)
 
     if(gp->graph_patterns) {
       /* FIXME - sequence of graph_patterns not implemented, finish */
+      query->failed=1;
       rasqal_log_error_simple(query->world, RAPTOR_LOG_LEVEL_ERROR,
                               &query->locator,
                               "Graph pattern %s operation is not implemented yet. Ending query execution.", 

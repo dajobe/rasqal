@@ -1218,6 +1218,7 @@ rasqal_expression_evaluate_strmatch(rasqal_query *query, rasqal_expression* e,
     
   rc=regcomp(&reg, (const char*)pattern, options);
   if(rc) {
+    query->failed=1;
     rasqal_log_error_simple(query->world, RAPTOR_LOG_LEVEL_ERROR,
                             &query->locator,
                             "Regex compile of '%s' failed", pattern);
@@ -1230,6 +1231,7 @@ rasqal_expression_evaluate_strmatch(rasqal_query *query, rasqal_expression* e,
     if(!rc)
       b=1;
     else if (rc != REG_NOMATCH) {
+      query->failed=1;
       rasqal_log_error_simple(query->world, RAPTOR_LOG_LEVEL_ERROR,
                               &query->locator,
                               "Regex match failed - returned code %d", rc);
