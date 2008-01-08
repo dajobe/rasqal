@@ -119,6 +119,12 @@ rasqal_new_query2(rasqal_world *world, const char *name,
 
   query->genid_counter=1;
 
+/* FIXME */
+#ifndef RAPTOR_ERROR_HANDLER_MAGIC
+#define RAPTOR_ERROR_HANDLER_MAGIC 0xD00DB1FF
+#endif
+  query->world->error_handlers.magic=RAPTOR_ERROR_HANDLER_MAGIC;
+
   query->context=(char*)RASQAL_CALLOC(rasqal_query_context, 1,
                                       factory->context_length);
   if(!query->context)
@@ -289,8 +295,14 @@ void
 rasqal_query_set_fatal_error_handler(rasqal_query* query, void *user_data,
                                      raptor_message_handler handler)
 {
-  query->fatal_error_user_data=user_data;
-  query->fatal_error_handler=handler;
+  raptor_error_handlers* error_handlers;
+  if(!query || !query->world)
+    return;
+
+  error_handlers=&query->world->error_handlers;
+  
+  error_handlers->user_data[RAPTOR_LOG_LEVEL_FATAL]=user_data;
+  error_handlers->handlers[RAPTOR_LOG_LEVEL_FATAL]=handler;
 }
 
 
@@ -309,8 +321,14 @@ void
 rasqal_query_set_error_handler(rasqal_query* query, void *user_data,
                                raptor_message_handler handler)
 {
-  query->error_user_data=user_data;
-  query->error_handler=handler;
+  raptor_error_handlers* error_handlers;
+  if(!query || !query->world)
+    return;
+
+  error_handlers=&query->world->error_handlers;
+  
+  error_handlers->user_data[RAPTOR_LOG_LEVEL_ERROR]=user_data;
+  error_handlers->handlers[RAPTOR_LOG_LEVEL_ERROR]=handler;
 }
 
 
@@ -329,8 +347,14 @@ void
 rasqal_query_set_warning_handler(rasqal_query* query, void *user_data,
                                  raptor_message_handler handler)
 {
-  query->warning_user_data=user_data;
-  query->warning_handler=handler;
+  raptor_error_handlers* error_handlers;
+  if(!query || !query->world)
+    return;
+
+  error_handlers=&query->world->error_handlers;
+  
+  error_handlers->user_data[RAPTOR_LOG_LEVEL_WARNING]=user_data;
+  error_handlers->handlers[RAPTOR_LOG_LEVEL_WARNING]=handler;
 }
 
 
@@ -1034,7 +1058,10 @@ rasqal_query_prepare_count_graph_patterns(rasqal_query* query,
   raptor_sequence* seq=(raptor_sequence*)data;
 
   if(raptor_sequence_push(seq, gp)) {
-    rasqal_query_fatal_error(query, "Out of memory in rasqal_query_prepare_count_graph_patterns()");
+    query->failed=1;
+    rasqal_log_error_simple(query->world, RAPTOR_LOG_LEVEL_FATAL,
+                            NULL,
+                            "Out of memory in rasqal_query_prepare_count_graph_patterns()");
     return 1;
   }
   gp->gp_index=(query->graph_pattern_count++);

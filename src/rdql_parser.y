@@ -740,7 +740,8 @@ rdql_query_error(rasqal_query *rq, const char *msg) {
   /*  rq->locator.column=rdql_lexer_get_column(yyscanner);*/
 #endif
 
-  rasqal_query_error(rq, "%s", msg);
+  rasqal_log_error_simple(rq->world, RAPTOR_LOG_LEVEL_FATAL,
+                          &rq->locator, "%s", msg);
 
   return 0;
 }
@@ -758,7 +759,8 @@ rdql_syntax_error(rasqal_query *rq, const char *message, ...)
 #endif
 
   va_start(arguments, message);
-  rasqal_query_error_varargs(rq, message, arguments);
+  rasqal_log_error_varargs(rq->world, RAPTOR_LOG_LEVEL_FATAL, &rq->locator,
+                           message, arguments);
   va_end(arguments);
 
   return (0);
@@ -777,7 +779,8 @@ rdql_syntax_warning(rasqal_query *rq, const char *message, ...)
 #endif
 
   va_start(arguments, message);
-  rasqal_query_warning_varargs(rq, message, arguments);
+  rasqal_log_error_varargs(rq->world, RAPTOR_LOG_LEVEL_WARNING, &rq->locator,
+                           message, arguments);
   va_end(arguments);
 
    return (0);

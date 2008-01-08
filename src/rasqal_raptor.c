@@ -209,10 +209,14 @@ rasqal_raptor_error_handler(void *user_data,
     char *buffer=(char*)RASQAL_MALLOC(cstring, locator_len+1);
     raptor_format_locator(buffer, locator_len, locator);
 
-    rasqal_query_error(query, "Failed to parse %s - %s", buffer, message);
+    rasqal_log_error_simple(query->world, RAPTOR_LOG_LEVEL_ERROR,
+                            &query->locator,
+                            "Failed to parse %s - %s", buffer, message);
     RASQAL_FREE(cstring, buffer);
   } else
-    rasqal_query_error(query, "Failed to parse - %s", message);
+    rasqal_log_error_simple(query->world, RAPTOR_LOG_LEVEL_ERROR,
+                            &query->locator,
+                            "Failed to parse - %s", message);
 }
 
 

@@ -2,9 +2,7 @@
  *
  * rdql_lexer.l - Rasqal RDQL lexer - making tokens for rdql grammar generator
  *
- * $Id$
- *
- * Copyright (C) 2003-2006, David Beckett http://purl.org/net/dajobe/
+ * Copyright (C) 2003-2008, David Beckett http://purl.org/net/dajobe/
  * Copyright (C) 2003-2005, University of Bristol, UK http://www.bristol.ac.uk/
  * 
  * This package is Free Software and part of Redland http://librdf.org/
@@ -624,11 +622,12 @@ static void rdql_lexer_fatal_error(yyconst char *msg, yyscan_t yyscanner)
   if(yyscanner)
     rq=(rasqal_query *)rdql_lexer_get_extra(yyscanner);
 
-  if(rq)
+  if(rq) {
     /* avoid "format not a string literal and no format arguments" warning with %s */
-    rasqal_query_fatal_error(rq, "%s", msg); 
-
-  else
+    rq->failed=1;
+    rasqal_log_error_simple(rq->world, RAPTOR_LOG_LEVEL_FATAL,
+                            &rq->locator, "%s", msg); 
+  } else
     (void)fprintf(stderr, "%s\n", msg);
 
   abort();

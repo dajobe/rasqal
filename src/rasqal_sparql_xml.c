@@ -101,7 +101,9 @@ rasqal_query_results_write_sparql_xml(raptor_iostream *iostr,
 
   if(!rasqal_query_results_is_bindings(results) &&
      !rasqal_query_results_is_boolean(results)) {
-    rasqal_query_error(query, "Can only write XML format v3 for variable binding and boolean results");
+    rasqal_log_error_simple(query->world, RAPTOR_LOG_LEVEL_ERROR,
+                            &query->locator,
+                            "Can only write XML format v3 for variable binding and boolean results");
     return 1;
   }
   
@@ -377,8 +379,10 @@ rasqal_query_results_write_sparql_xml(raptor_iostream *iostr,
 
         case RASQAL_LITERAL_UNKNOWN:
         default:
-          rasqal_query_error(query, "Cannot turn literal type %d into XML", 
-                             l->type);
+          rasqal_log_error_simple(query->world, RAPTOR_LOG_LEVEL_ERROR,
+                                  &query->locator,
+                                  "Cannot turn literal type %d into XML", 
+                                  l->type);
       }
 
       if(element1) {
