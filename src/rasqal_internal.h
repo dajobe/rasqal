@@ -358,9 +358,6 @@ struct rasqal_query_engine_factory_s {
   /* prepare a query */
   int (*prepare)(rasqal_query* rq);
   
-  /* execute a query */
-  int (*execute)(rasqal_query* rq, rasqal_query_results* results);
-
   /* finish the query engine factory */
   void (*finish_factory)(rasqal_query_engine_factory* factory);
 
