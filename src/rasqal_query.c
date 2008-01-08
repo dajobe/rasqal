@@ -2,9 +2,7 @@
  *
  * rasqal_query.c - Rasqal RDF Query
  *
- * $Id$
- *
- * Copyright (C) 2003-2007, David Beckett http://purl.org/net/dajobe/
+ * Copyright (C) 2003-2008, David Beckett http://purl.org/net/dajobe/
  * Copyright (C) 2003-2005, University of Bristol, UK http://www.bristol.ac.uk/
  * 
  * This package is Free Software and part of Redland http://librdf.org/
@@ -95,7 +93,8 @@ rasqal_new_query(const char *name, const unsigned char *uri)
  * Return value: a new #rasqal_query object or NULL on failure
  */
 rasqal_query*
-rasqal_new_query2(rasqal_world *world, const char *name, const unsigned char *uri)
+rasqal_new_query2(rasqal_world *world, const char *name,
+                  const unsigned char *uri)
 {
   rasqal_query_engine_factory* factory;
   rasqal_query* query;
@@ -1236,14 +1235,6 @@ rasqal_query_execute(rasqal_query* query)
   if(rc) {
     rasqal_free_query_results(query_results);
     return NULL;
-  }
-
-  if(query->factory->execute) {
-    rc=query->factory->execute(query, query_results);
-    if(rc) {
-      rasqal_free_query_results(query_results);
-      return NULL;
-    }
   }
 
   rc=rasqal_engine_execute_run(query_results);

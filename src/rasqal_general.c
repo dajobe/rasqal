@@ -375,7 +375,8 @@ rasqal_query_engine_register_factory(rasqal_world *world,
  * Return value: the factory object or NULL if there is no such factory
  **/
 rasqal_query_engine_factory*
-rasqal_get_query_engine_factory (rasqal_world *world, const char *name, const unsigned char *uri)
+rasqal_get_query_engine_factory(rasqal_world *world, const char *name,
+                                const unsigned char *uri)
 {
   rasqal_query_engine_factory *factory;
 

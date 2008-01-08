@@ -2,9 +2,7 @@
  *
  * rdql_parser.y - Rasqal RDQL parser - over tokens from rdql grammar lexer
  *
- * $Id$
- *
- * Copyright (C) 2003-2006, David Beckett http://purl.org/net/dajobe/
+ * Copyright (C) 2003-2008, David Beckett http://purl.org/net/dajobe/
  * Copyright (C) 2003-2005, University of Bristol, UK http://www.bristol.ac.uk/
  * 
  * This package is Free Software and part of Redland http://librdf.org/
@@ -695,17 +693,6 @@ rasqal_rdql_query_engine_prepare(rasqal_query* rdf_query) {
 
 
 static int
-rasqal_rdql_query_engine_execute(rasqal_query* rdf_query, 
-                                 rasqal_query_results* results) 
-{
-  /* rasqal_rdql_query_engine* rdql=(rasqal_rdql_query_engine*)rdf_query->context; */
-  
-  /* FIXME: not implemented */
-  return 0;
-}
-
-
-static int
 rdql_parse(rasqal_query* rq) {
   rasqal_rdql_query_engine* rqe=(rasqal_rdql_query_engine*)rq->context;
   raptor_locator *locator=&rq->locator;
@@ -805,7 +792,6 @@ rasqal_rdql_query_engine_register_factory(rasqal_query_engine_factory *factory)
   factory->init      = rasqal_rdql_query_engine_init;
   factory->terminate = rasqal_rdql_query_engine_terminate;
   factory->prepare   = rasqal_rdql_query_engine_prepare;
-  factory->execute   = rasqal_rdql_query_engine_execute;
 }
 
 

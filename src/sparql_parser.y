@@ -2657,17 +2657,6 @@ rasqal_sparql_query_engine_prepare(rasqal_query* rdf_query) {
 
 
 static int
-rasqal_sparql_query_engine_execute(rasqal_query* rdf_query,
-                                   rasqal_query_results *results) 
-{
-  /* rasqal_sparql_query_engine* sparql=(rasqal_sparql_query_engine*)rdf_query->context; */
-  
-  /* nothing needed here */
-  return 0;
-}
-
-
-static int
 sparql_parse(rasqal_query* rq) {
   rasqal_sparql_query_engine* rqe=(rasqal_sparql_query_engine*)rq->context;
   raptor_locator *locator=&rq->locator;
@@ -2802,7 +2791,6 @@ rasqal_sparql_query_engine_register_factory(rasqal_query_engine_factory *factory
   factory->init      = rasqal_sparql_query_engine_init;
   factory->terminate = rasqal_sparql_query_engine_terminate;
   factory->prepare   = rasqal_sparql_query_engine_prepare;
-  factory->execute   = rasqal_sparql_query_engine_execute;
   factory->iostream_write_escaped_counted_string = rasqal_sparql_query_engine_iostream_write_escaped_counted_string;
 }
 
