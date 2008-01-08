@@ -152,6 +152,13 @@ rasqal_new_world(void)
 
   rasqal_xsd_init();
 
+/* FIXME */
+#ifndef RAPTOR_ERROR_HANDLER_MAGIC
+#define RAPTOR_ERROR_HANDLER_MAGIC 0xD00DB1FF
+#endif
+  world->error_handlers.magic=RAPTOR_ERROR_HANDLER_MAGIC;
+
+
   /* last one declared is the default - RDQL */
 
 #ifdef RASQAL_QUERY_RDQL
