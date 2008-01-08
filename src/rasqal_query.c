@@ -112,18 +112,14 @@ rasqal_new_query2(rasqal_world *world, const char *name,
   /* set usage first to 1 so we can clean up with rasqal_free_query() on error */
   query->usage=1;
 
+  query->world=world;
+  
   query->factory=factory;
 
   query->limit= -1;
   query->offset= -1;
 
   query->genid_counter=1;
-
-/* FIXME */
-#ifndef RAPTOR_ERROR_HANDLER_MAGIC
-#define RAPTOR_ERROR_HANDLER_MAGIC 0xD00DB1FF
-#endif
-  query->world->error_handlers.magic=RAPTOR_ERROR_HANDLER_MAGIC;
 
   query->context=(char*)RASQAL_CALLOC(rasqal_query_context, 1,
                                       factory->context_length);
