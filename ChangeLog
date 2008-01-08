@@ -1,4 +1,141 @@
-2008-01-05  Dave Beckett  <dave@dajobe.org>
+2008-01-07  Dave Beckett <dave@dajobe.org>
+
+	* src/rdql_parser.y, src/sparql_parser.y: rdql and sparql warnings
+	do not fail the query
+
+	* src/rasqal_engine.c, src/rasqal_expr.c, src/rasqal_general.c,
+	src/rasqal_result_formats.c, src/rasqal_sparql_xml.c,
+	src/rdql_parser.y, src/sparql_parser.y: Set query failed flag when
+	calling new log error functions
+
+	* src/rdql_parser.y, src/sparql_parser.y: (rdql_query_error,
+	sparql_query_error): Set failed flag on query
+
+	* src/rasqal_general.c: (rasqal_new_world): Init error handlers
+	magic here
+
+	* src/rasqal_query.c: (rasqal_new_query2): Set query->world
+
+	* src/rasqal_engine.c, src/rasqal_expr.c, src/rasqal_query.c,
+	src/rasqal_query_results.c, src/rasqal_raptor.c,
+	src/rasqal_result_formats.c, src/rasqal_sparql_xml.c,
+	src/rdql_lexer.l, src/rdql_parser.y, src/sparql_lexer.l,
+	src/sparql_parser.y: Replace calls to
+	rasqal_query_warning/error/fatal using rasqal_query with
+	rasqal_log_error_simple or rasqal_log_error_varargs and
+	rasqal_world
+
+	* src/rasqal_internal.h: Fix RASQAL_PRINTF_FORMAT use for
+	rasqal_log_error_simple
+
+	* src/rasqal_general.c: (rasqal_log_error_simple,
+	rasqal_log_error_varargs, rasqal_log_error): Added, using error
+	handlers inside rasqal_world*
+	(rasqal_query_simple_error): Added for query errors from
+	namespaces API.
+	(rasqal_query_fatal_error, rasqal_query_fatal_error_varargs,
+	rasqal_query_error, rasqal_query_simple_error,
+	rasqal_query_error_varargs, rasqal_query_warning,
+	rasqal_query_warning_varargs): Removed.
+
+	* src/rasqal_internal.h: rasqal_query gains a rasqal_world field
+	and loses fatal/error/warning user data and handlers.  Added
+	methods of rasqal_world: rasqal_log_error_simple,
+	rasqal_log_error_varargs, rasqal_log_error,
+	rasqal_query_simple_error Removed rasqal_query_fatal_error,
+	rasqal_query_fatal_error_varargs, rasqal_query_error,
+	rasqal_query_simple_error, rasqal_query_error_varargs,
+	rasqal_query_warning, rasqal_query_warning_varargs rasqal_world
+	gains error_handlers field.
+
+	* src/rasqal_general.c, src/rasqal_query.c, src/rdql_parser.y,
+	src/sparql_parser.y: (sparql_parse, rdql_parse,
+	rasqal_query_execute): Remove calls to unused query factory method
+	execute.  (rasqal_sparql_query_engine_execute,
+	rasqal_rdql_query_engine_execute): Removed
+
+2008-01-07  Lauri Aalto <laalto@iki.fi>
+
+	* tests/engine/rasqal_graph_test.c: Fixed eol style in
+	rasqal_graph_test.c
+	
+2008-01-07  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_internal.h: struct rasqal_query_engine_factory_s
+	remove execute() factory method
+
+2008-01-07  Lauri Aalto <laalto@iki.fi>
+
+	* utils/roqet.c, utils/srxread.c: Update utils to non-deprecated APIs.
+
+	* src/rasqal_limit_test.c, src/rasqal_query_test.c,
+	src/rasqal_xsd_datatypes.c, src/rdql_lexer.l, src/rdql_parser.y,
+	src/sparql_lexer.l, src/sparql_parser.y,
+	tests/engine/rasqal_graph_test.c,
+	tests/engine/rasqal_order_test.c: Update tests to non-deprecated
+	APIs.
+
+	* src/rasqal.h, src/rasqal_general.c, src/rasqal_internal.h,
+	src/rasqal_query.c, src/rdql_parser.y, src/sparql_parser.y: First
+	increment on moving rasqal static data to behind a world object
+	like librdf: move query_engines to rasqal_world.  Preserve old
+	library API but deprecate functions where a world object would be
+	needed and provide a new function. Deprecated functions provide
+	backwards compatibility with a static rasqal_world variable that
+	can be flagged out at compile time with NO_STATIC_DATA.
+	(rasqal_init, rasqal_finish): Deprecated, use rasqal_new_world()
+	and rasqal_free_world().
+	(rasqal_languages_enumerate, rasqal_language_name_check,
+	rasqal_new_query): Deprecated, use the the *2 versions with a
+	world object instead.
+	(rasqal_init_query_engine_*, rasqal_query_engine_register_factory,
+	rasqal_get_query_engine_factory): Internal functions to take in
+	rasqal_world parameter.
+
+	* src/rasqal_engine.c,
+	src/rasqal_rowsource.c: (rasqal_engine_make_rowsource,
+	rasqal_new_rowsource_from_handler): Re-engineer fix from
+	r13534. Make rasqal_new_rowsource_from_handler() to take ownership
+	of the passed in context in all cases. Set rowsource->user_data
+	and rowsource->handler earlier as they are needed by
+	rasqal_free_rowsource().
+
+	* src/rasqal_engine.c: (rasqal_engine_make_rowsource): Lowmem leak
+	fix. Free rasqal_rowsource_engine_context if
+	rasqal_new_rowsource_from_handler() fails.
+
+	* src/rasqal_query_results.c:
+	(rasqal_query_results_set_variables(rasqal_query_results): Set
+	query_results->size late to ensure it is not larger than the
+	number of valid pointers in the arrays. Use calloc and not malloc
+	for pointer arrays.
+
+	* src/rasqal_query_results.c: (rasqal_query_results_set_variables):
+	Fix low-memory crashes by keeping query_results variables and
+	variable_names in sync with results size.
+
+	* src/rasqal_query_results.c: (rasqal_query_results_set_variables):
+	Do not leak old variables_sequence.
+
+	* src/rasqal_query.c: (rasqal_query_execute): Cleaned up commented
+	out code.
+
+2008-01-05  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_result_formats.c:
+	(rasqal_query_results_formatter_read): error path
+
+	* src/rasqal_rowsource.c: code style
+
+	* src/rasqal_sparql_xml.c: Code style
+
+	* src/rasqal_general.c: 2008
+
+	* src/rasqal_query_results.c: (rasqal_free_query_results): Free
+	variables_sequence 
+
+	* src/rasqal_sparql_xml.c: (rasqal_rowsource_sparql_xml_finish):
+	Free any base_uri given.
 
 	* Last known good revision 13398: 'make check' succeeds.
 
