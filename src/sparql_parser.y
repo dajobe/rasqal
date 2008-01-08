@@ -2764,7 +2764,6 @@ sparql_syntax_warning(rasqal_query *rq, const char *message, ...)
 #endif
 
   va_start(arguments, message);
-  rq->failed=1;
   rasqal_log_error_varargs(rq->world, RAPTOR_LOG_LEVEL_WARNING, &rq->locator,
                            message, arguments);
   va_end(arguments);
