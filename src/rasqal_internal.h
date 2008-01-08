@@ -171,6 +171,8 @@ int rasqal_reset_triple_meta(rasqal_triple_meta* m);
  * A query in some query language
  */
 struct rasqal_query_s {
+  rasqal_world* world; /* world object */
+
   int usage; /* reference count - 1 for itself, plus for query_results */
   
   unsigned char* query_string;
@@ -256,14 +258,6 @@ struct rasqal_query_s {
 
   /* stuff for our user */
   void* user_data;
-
-  void* fatal_error_user_data;
-  void* error_user_data;
-  void* warning_user_data;
-
-  raptor_message_handler fatal_error_handler;
-  raptor_message_handler error_handler;
-  raptor_message_handler warning_handler;
 
   int default_generate_bnodeid_handler_base;
   char *default_generate_bnodeid_handler_prefix;
@@ -695,14 +689,10 @@ char* rasqal_vsnprintf(const char* message, va_list arguments);
 
 void rasqal_query_engine_register_factory(rasqal_world*, const char* name, const char* label, const char* alias, const unsigned char* uri_string, void (*factory) (rasqal_query_engine_factory*));
 rasqal_query_engine_factory* rasqal_get_query_engine_factory (rasqal_world*, const char* name, const unsigned char* uri);
-
-void rasqal_query_fatal_error(rasqal_query* query, const char* message, ...) RASQAL_PRINTF_FORMAT(2, 3);
-void rasqal_query_fatal_error_varargs(rasqal_query* query, const char* message, va_list arguments) RASQAL_PRINTF_FORMAT(2, 0);
-void rasqal_query_error(rasqal_query* query, const char* message, ...) RASQAL_PRINTF_FORMAT(2, 3);
-void rasqal_query_simple_error(void* query, const char* message, ...) RASQAL_PRINTF_FORMAT(2, 3);
-void rasqal_query_error_varargs(rasqal_query* query, const char* message, va_list arguments) RASQAL_PRINTF_FORMAT(2, 0);
-void rasqal_query_warning(rasqal_query* query, const char* message, ...) RASQAL_PRINTF_FORMAT(2, 3);
-void rasqal_query_warning_varargs(rasqal_query* query, const char* message, va_list arguments) RASQAL_PRINTF_FORMAT(2, 0);
+void rasqal_log_error_simple(rasqal_world* world, raptor_log_level level, raptor_locator* locator, const char* message, ...) RASQAL_PRINTF_FORMAT(3, 4);
+void rasqal_log_error_varargs(rasqal_world* world, raptor_log_level level, raptor_locator* locator, const char* message, va_list arguments);
+void rasqal_log_error(raptor_log_level level, raptor_message_handler handler, void* handler_data, raptor_locator* locator, const char* message);
+void rasqal_query_simple_error(void* query, const char *message, ...) RASQAL_PRINTF_FORMAT(2, 3);
 
 const char* rasqal_basename(const char* name);
 
@@ -713,11 +703,11 @@ unsigned char* rasqal_escaped_name_to_utf8_string(const unsigned char* src, size
 unsigned char* rasqal_query_generate_bnodeid(rasqal_query* rdf_query, unsigned char *user_bnodeid);
 
 /* rdql_parser.y */
-void rasqal_init_query_engine_rdql (rasqal_world*);
+void rasqal_init_query_engine_rdql(rasqal_world*);
 
 /* sparql_parser.y */
-void rasqal_init_query_engine_sparql (rasqal_world*);
-void rasqal_init_query_engine_laqrs (rasqal_world*);
+void rasqal_init_query_engine_sparql(rasqal_world*);
+void rasqal_init_query_engine_laqrs(rasqal_world*);
 
 /* rasqal_engine.c */
 int rasqal_engine_sequence_has_qname(raptor_sequence* seq);
@@ -898,6 +888,8 @@ unsigned char* rasqal_xsd_format_double(double d, size_t *len_p);
 /* rasqal_world structure */
 struct rasqal_world_s {
   rasqal_query_engine_factory *query_engines;
+
+  raptor_error_handlers error_handlers;
 
   /*
   raptor_sequence *query_results_formats;
