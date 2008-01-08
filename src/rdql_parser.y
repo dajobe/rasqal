@@ -740,6 +740,7 @@ rdql_query_error(rasqal_query *rq, const char *msg) {
   /*  rq->locator.column=rdql_lexer_get_column(yyscanner);*/
 #endif
 
+  rq->failed=1;
   rasqal_log_error_simple(rq->world, RAPTOR_LOG_LEVEL_FATAL,
                           &rq->locator, "%s", msg);
 
