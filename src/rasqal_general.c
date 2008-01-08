@@ -507,75 +507,88 @@ rasqal_language_name_check2(rasqal_world* world, const char *name) {
 }
 
 
-/*
- * rasqal_query_fatal_error - Fatal Error from a query - Internal
- **/
+static const char* const rasqal_log_level_labels[RAPTOR_LOG_LEVEL_LAST+1]={
+  "none",
+  "fatal error",
+  "error",
+  "warning"
+};
+
+
+/* internal */
 void
-rasqal_query_fatal_error(rasqal_query* query, const char *message, ...)
+rasqal_log_error_simple(rasqal_world* world, raptor_log_level level,
+                        raptor_locator* locator, const char* message, ...)
 {
   va_list arguments;
 
-  va_start(arguments, message);
+  if(level == RAPTOR_LOG_LEVEL_NONE)
+    return;
 
-  rasqal_query_fatal_error_varargs(query, message, arguments);
-  
+  va_start(arguments, message);
+  rasqal_log_error_varargs(world, level, locator, message, arguments);
   va_end(arguments);
 }
 
 
-/*
- * rasqal_query_fatal_error_varargs - Fatal Error from a query - Internal
- **/
 void
-rasqal_query_fatal_error_varargs(rasqal_query* query, const char *message,
-                                 va_list arguments)
+rasqal_log_error_varargs(rasqal_world* world, raptor_log_level level,
+                         raptor_locator* locator,
+                         const char* message, va_list arguments)
 {
-  query->failed=1;
+  char *buffer;
+  size_t length;
+  raptor_message_handler handler=world->error_handlers.handlers[level];
+  void* handler_data=world->error_handlers.user_data[level];
+  
+  if(level == RAPTOR_LOG_LEVEL_NONE)
+    return;
 
-  if(query->fatal_error_handler) {
-    char *buffer=raptor_vsnprintf(message, arguments);
-    if(!buffer) {
-      fprintf(stderr, "rasqal_query_fatal_error_varargs: Out of memory\n");
-      return;
+  buffer=raptor_vsnprintf(message, arguments);
+  if(!buffer) {
+    if(locator) {
+      raptor_print_locator(stderr, locator);
+      fputc(' ', stderr);
     }
-
-    query->fatal_error_handler(query->fatal_error_user_data, 
-                               &query->locator, buffer); 
-    RASQAL_FREE(cstring, buffer);
-    abort();
+    fputs("rasqal ", stderr);
+    fputs(rasqal_log_level_labels[level], stderr);
+    fputs(" - ", stderr);
+    vfprintf(stderr, message, arguments);
+    fputc('\n', stderr);
+    return;
   }
 
-  raptor_print_locator(stderr, &query->locator);
-  fprintf(stderr, " rasqal fatal error - ");
-  vfprintf(stderr, message, arguments);
-  fputc('\n', stderr);
-
-  abort();
-}
-
-
-/*
- * rasqal_query_error - Error from a query - Internal
- **/
-void
-rasqal_query_error(rasqal_query* query, const char *message, ...)
-{
-  va_list arguments;
-
-  va_start(arguments, message);
-
-  rasqal_query_error_varargs(query, message, arguments);
+  length=strlen(buffer);
+  if(buffer[length-1]=='\n')
+    buffer[length-1]='\0';
   
-  va_end(arguments);
+  if(handler)
+    /* This is the single place in rasqal that the user error handler
+     * functions are called.
+     */
+    handler(handler_data, locator, buffer);
+  else {
+    if(locator) {
+      raptor_print_locator(stderr, locator);
+      fputc(' ', stderr);
+    }
+    fputs("rasqal ", stderr);
+    fputs(rasqal_log_level_labels[level], stderr);
+    fputs(" - ", stderr);
+    fputs(buffer, stderr);
+    fputc('\n', stderr);
+  }
+
+  RASQAL_FREE(cstring, buffer);
 }
 
 
 /*
  * rasqal_query_simple_error - Error from a query - Internal
  *
- * Matches the rasqal_simple_message_handler API but same as
+ * Matches the raptor_simple_message_handler API but same as
  * rasqal_query_error 
- **/
+ */
 void
 rasqal_query_simple_error(void* query, const char *message, ...)
 {
@@ -583,82 +596,12 @@ rasqal_query_simple_error(void* query, const char *message, ...)
 
   va_start(arguments, message);
 
-  rasqal_query_error_varargs((rasqal_query*)query, message, arguments);
+  rasqal_log_error_varargs(((rasqal_query*)query)->world,
+                           RAPTOR_LOG_LEVEL_ERROR, NULL,
+                           message, arguments);
   
   va_end(arguments);
 }
-
-
-/*
- * rasqal_query_error_varargs - Error from a query - Internal
- **/
-void
-rasqal_query_error_varargs(rasqal_query* query, const char *message, 
-                           va_list arguments)
-{
-  query->failed=1;
-
-  if(query->error_handler) {
-    char *buffer=raptor_vsnprintf(message, arguments);
-    if(!buffer) {
-      fprintf(stderr, "rasqal_query_error_varargs: Out of memory\n");
-      return;
-    }
-    query->error_handler(query->error_user_data, 
-                         &query->locator, buffer);
-    RASQAL_FREE(cstring, buffer);
-    return;
-  }
-
-  raptor_print_locator(stderr, &query->locator);
-  fprintf(stderr, " rasqal error - ");
-  vfprintf(stderr, message, arguments);
-  fputc('\n', stderr);
-}
-
-
-/*
- * rasqal_query_warning - Warning from a query - Internal
- **/
-void
-rasqal_query_warning(rasqal_query* query, const char *message, ...)
-{
-  va_list arguments;
-
-  va_start(arguments, message);
-
-  rasqal_query_warning_varargs(query, message, arguments);
-
-  va_end(arguments);
-}
-
-
-/*
- * rasqal_query_warning - Warning from a query - Internal
- **/
-void
-rasqal_query_warning_varargs(rasqal_query* query, const char *message, 
-                             va_list arguments)
-{
-
-  if(query->warning_handler) {
-    char *buffer=raptor_vsnprintf(message, arguments);
-    if(!buffer) {
-      fprintf(stderr, "rasqal_query_warning_varargs: Out of memory\n");
-      return;
-    }
-    query->warning_handler(query->warning_user_data,
-                           &query->locator, buffer);
-    RASQAL_FREE(cstring, buffer);
-    return;
-  }
-
-  raptor_print_locator(stderr, &query->locator);
-  fprintf(stderr, " rasqal warning - ");
-  vfprintf(stderr, message, arguments);
-  fputc('\n', stderr);
-}
-
 
 
 /* wrapper */
