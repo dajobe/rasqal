@@ -62,7 +62,7 @@ rasqal_query_results_format_register_factory(const char *name,
                                                               sizeof(rasqal_query_results_format_factory));
 
   if(!factory)
-    RASQAL_FATAL1("Out of memory\n");
+    RASQAL_FATAL1("Out of memory\n"); /* FIXME: RASQAL_FATAL is really for catching programmer errors. OOM is not a programmer error. */
   factory->name=name;
   factory->label=label;
   factory->uri_string=uri_string;
