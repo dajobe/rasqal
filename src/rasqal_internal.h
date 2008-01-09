@@ -851,12 +851,12 @@ int rasqal_init_query_results(void);
 void rasqal_finish_query_results(void);
 
 /* rasqal_result_formats.c */
-void rasqal_query_results_format_register_factory(const char *name, const char *label, const unsigned char* uri_string, rasqal_query_results_formatter_func writer, rasqal_query_results_formatter_func reader, rasqal_query_results_get_rowsource_func get_rowsource, const char *mime_type);
-int rasqal_init_result_formats(void);
-void rasqal_finish_result_formats(void);
+int rasqal_query_results_format_register_factory(rasqal_world*, const char *name, const char *label, const unsigned char* uri_string, rasqal_query_results_formatter_func writer, rasqal_query_results_formatter_func reader, rasqal_query_results_get_rowsource_func get_rowsource, const char *mime_type);
+int rasqal_init_result_formats(rasqal_world*);
+void rasqal_finish_result_formats(rasqal_world*);
 
 /* rasqal_result_format_sparql_xml.c */
-void rasqal_init_result_format_sparql_xml(void);
+int rasqal_init_result_format_sparql_xml(rasqal_world*);
 
 
 rasqal_query_results* rasqal_new_query_results(rasqal_query* query);
@@ -890,11 +890,14 @@ struct rasqal_world_s {
   /* usage counter, mainly for handling multiple calls to rasqal_init() */
   int usage; 
 
+  /* error handlers structure */
+  raptor_error_handlers error_handlers;
+
   /* linked list of query engines */
   rasqal_query_engine_factory *query_engines;
 
-  /* error handlers structure */
-  raptor_error_handlers error_handlers;
+  /* registered query results formats */
+  raptor_sequence *query_results_formats;
 
   /* rasqal_uri rdf uris */
   raptor_uri *rdf_namespace_uri;
@@ -903,8 +906,6 @@ struct rasqal_world_s {
   raptor_uri *rdf_nil_uri;
 
   /*
-  raptor_sequence *query_results_formats;
-
   rasqal_xsd_datatype_info *xsd_datatypes_table;
   raptor_uri *xsd_namespace_uri;
 

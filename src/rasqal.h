@@ -866,14 +866,22 @@ int rasqal_query_results_read(raptor_iostream *iostr, rasqal_query_results *resu
 
 #define RASQAL_QUERY_RESULTS_FORMAT_FLAG_READER 1
 #define RASQAL_QUERY_RESULTS_FORMAT_FLAG_WRITER 2
-RASQAL_API
+RASQAL_API RASQAL_DEPRECATED
 int rasqal_query_results_formats_enumerate(const unsigned int counter, const char **name, const char **label, const unsigned char **uri_string, const char **mime_type, int* flags);
 RASQAL_API
+int rasqal_query_results_formats_enumerate2(rasqal_world*, const unsigned int counter, const char **name, const char **label, const unsigned char **uri_string, const char **mime_type, int* flags);
+RASQAL_API RASQAL_DEPRECATED
 int rasqal_query_results_formats_check(const char *name, raptor_uri* uri, const char *mime_type);
 RASQAL_API
+int rasqal_query_results_formats_check2(rasqal_world*, const char *name, raptor_uri* uri, const char *mime_type);
+RASQAL_API RASQAL_DEPRECATED
 rasqal_query_results_formatter* rasqal_new_query_results_formatter(const char *name, raptor_uri* format_uri);
 RASQAL_API
+rasqal_query_results_formatter* rasqal_new_query_results_formatter2(rasqal_world*, const char *name, raptor_uri* format_uri);
+RASQAL_API RASQAL_DEPRECATED
 rasqal_query_results_formatter* rasqal_new_query_results_formatter_by_mime_type(const char *mime_type);
+RASQAL_API
+rasqal_query_results_formatter* rasqal_new_query_results_formatter_by_mime_type2(rasqal_world*, const char *mime_type);
 RASQAL_API
 void rasqal_free_query_results_formatter(rasqal_query_results_formatter* formatter);
 RASQAL_API

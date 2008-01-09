@@ -44,11 +44,9 @@
 static int rasqal_query_results_write_json1(raptor_iostream *iostr, rasqal_query_results* results, raptor_uri *base_uri);
 
 
-static raptor_sequence* query_results_formats;
-
-
-void
-rasqal_query_results_format_register_factory(const char *name,
+int
+rasqal_query_results_format_register_factory(rasqal_world* world,
+                                             const char *name,
                                              const char *label,
                                              const unsigned char* uri_string,
                                              rasqal_query_results_formatter_func writer,
@@ -58,11 +56,14 @@ rasqal_query_results_format_register_factory(const char *name,
 {
   rasqal_query_results_format_factory* factory;
 
-  factory=(rasqal_query_results_format_factory*)RASQAL_MALLOC(query_results_format_factory, 
-                                                              sizeof(rasqal_query_results_format_factory));
+  factory=(rasqal_query_results_format_factory*)RASQAL_CALLOC(query_results_format_factory, 
+                                                              1, sizeof(rasqal_query_results_format_factory));
 
-  if(!factory)
-    RASQAL_FATAL1("Out of memory\n"); /* FIXME: RASQAL_FATAL is really for catching programmer errors. OOM is not a programmer error. */
+  if(!factory) {
+    rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_FATAL, NULL,
+                            "Out of memory in rasqal_query_results_format_register_factory()");
+    return 1;
+  }
   factory->name=name;
   factory->label=label;
   factory->uri_string=uri_string;
@@ -71,7 +72,7 @@ rasqal_query_results_format_register_factory(const char *name,
   factory->get_rowsource=get_rowsource;
   factory->mime_type=mime_type;
 
-  raptor_sequence_push(query_results_formats, factory);
+  return raptor_sequence_push(world->query_results_formats, factory);
 }
 
 
@@ -84,19 +85,18 @@ void rasqal_free_query_results_format_factory(rasqal_query_results_format_factor
 
 
 int
-rasqal_init_result_formats(void)
+rasqal_init_result_formats(rasqal_world* world)
 {
   rasqal_query_results_formatter_func writer_fn=NULL;
   rasqal_query_results_formatter_func reader_fn=NULL;
   rasqal_query_results_get_rowsource_func get_rowsource_fn=NULL;
+  int rc=0;
   
-  query_results_formats=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_query_results_format_factory, NULL);
-  if(!query_results_formats)
+  world->query_results_formats=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_query_results_format_factory, NULL);
+  if(!world->query_results_formats)
     return 1;
 
-
-  rasqal_init_result_format_sparql_xml();
-
+  rc+= rasqal_init_result_format_sparql_xml(world) != 0;
 
   /*
    * SPARQL Query Results in JSON (http://json.org/) draft
@@ -106,27 +106,31 @@ rasqal_init_result_formats(void)
   writer_fn=&rasqal_query_results_write_json1;
   reader_fn=NULL;
   get_rowsource_fn=NULL;
-  rasqal_query_results_format_register_factory("json",
-                                               "JSON",
-                                               (unsigned char*)"http://www.w3.org/2001/sw/DataAccess/json-sparql/",
-                                               writer_fn, reader_fn, get_rowsource_fn,
-                                               "text/json");
-  rasqal_query_results_format_register_factory(NULL,
-                                               NULL,
-                                               (unsigned char*)"http://www.mindswap.org/%7Ekendall/sparql-results-json/",
-                                               writer_fn, reader_fn, get_rowsource_fn,
-                                               "text/json");
+  rc+= rasqal_query_results_format_register_factory(world,
+                                                    "json",
+                                                    "JSON",
+                                                    (unsigned char*)"http://www.w3.org/2001/sw/DataAccess/json-sparql/",
+                                                    writer_fn, reader_fn, get_rowsource_fn,
+                                                    "text/json")
+                                                    != 0;
+  rc+= rasqal_query_results_format_register_factory(world,
+                                                    NULL,
+                                                    NULL,
+                                                    (unsigned char*)"http://www.mindswap.org/%7Ekendall/sparql-results-json/",
+                                                    writer_fn, reader_fn, get_rowsource_fn,
+                                                    "text/json")
+                                                    != 0;
 
-  return 0;
+  return rc;
 }
 
 
 void
-rasqal_finish_result_formats(void)
+rasqal_finish_result_formats(rasqal_world* world)
 {
-  if(query_results_formats) {
-    raptor_free_sequence(query_results_formats);
-    query_results_formats = NULL;
+  if(world->query_results_formats) {
+    raptor_free_sequence(world->query_results_formats);
+    world->query_results_formats = NULL;
   }
 }
 
@@ -155,6 +159,8 @@ rasqal_finish_result_formats(void)
  *
  * All returned strings are shared and must be copied if needed to be
  * used dynamically.
+ *
+ * @deprecated Use rasqal_query_results_formats_enumerate2().
  * 
  * Return value: non 0 on failure of if counter is out of range
  **/
@@ -166,13 +172,67 @@ rasqal_query_results_formats_enumerate(const unsigned int counter,
                                        const char **mime_type,
                                        int *flags)
 {
+#ifndef NO_STATIC_DATA
+  return rasqal_query_results_formats_enumerate2(rasqal_world_static,
+                                                 counter,
+                                                 name,
+                                                 label,
+                                                 uri_string,
+                                                 mime_type,
+                                                 flags);
+#else
+  abort();
+  return -1;
+#endif
+}
+
+/**
+ * rasqal_query_results_formats_enumerate2:
+ * @world: rasqal_world object
+ * @counter: index into the list of query result syntaxes
+ * @name: pointer to store the name of the query result syntax (or NULL)
+ * @label: pointer to store query result syntax readable label (or NULL)
+ * @uri_string: pointer to store query result syntax URI string (or NULL)
+ * @mime_type: pointer to store query result syntax mime type string (or NULL)
+ * @flags: pointer to store query result syntax flags (or NULL)
+ *
+ * Get information on query result syntaxes.
+ * 
+ * The current list of format names/URI is given below however
+ * the results of this function will always return the latest.
+ *
+ * SPARQL XML Results 2007-06-14 (default format when @counter is 0)
+ * name '<literal>xml</literal>' with
+ * URIs http://www.w3.org/TR/2006/WD-rdf-sparql-XMLres-20070614/ or
+ * http://www.w3.org/2005/sparql-results#
+ *
+ * JSON name '<literal>json</literal>' and
+ * URI http://www.w3.org/2001/sw/DataAccess/json-sparql/
+ *
+ * All returned strings are shared and must be copied if needed to be
+ * used dynamically.
+ * 
+ * Return value: non 0 on failure of if counter is out of range
+ **/
+int
+rasqal_query_results_formats_enumerate2(rasqal_world* world,
+                                        const unsigned int counter,
+                                        const char **name,
+                                        const char **label,
+                                        const unsigned char **uri_string,
+                                        const char **mime_type,
+                                        int *flags)
+
+
+
+{
   rasqal_query_results_format_factory *factory;
   int i;
   unsigned int real_counter;
   
   real_counter=0;
   for(i=0; 1; i++) {
-    factory=(rasqal_query_results_format_factory*)raptor_sequence_get_at(query_results_formats, i);
+    factory=(rasqal_query_results_format_factory*)raptor_sequence_get_at(world->query_results_formats, i);
     if(!factory)
       break;
 
@@ -207,14 +267,15 @@ rasqal_query_results_formats_enumerate(const unsigned int counter,
 
 
 static rasqal_query_results_format_factory*
-rasqal_get_query_results_formatter_factory(const char *name, raptor_uri* uri,
+rasqal_get_query_results_formatter_factory(rasqal_world* world,
+                                           const char *name, raptor_uri* uri,
                                            const char *mime_type)
 {
   int i;
   rasqal_query_results_format_factory* factory=NULL;
   
   for(i=0; 1; i++) {
-    factory=(rasqal_query_results_format_factory*)raptor_sequence_get_at(query_results_formats,
+    factory=(rasqal_query_results_format_factory*)raptor_sequence_get_at(world->query_results_formats,
                                                                          i);
     if(!factory)
       break;
@@ -250,6 +311,8 @@ rasqal_get_query_results_formatter_factory(const char *name, raptor_uri* uri,
  * @mime_type: mime type name
  * 
  * Check if a query results formatter exists for the requested format.
+ *
+ * @deprecated Use rasqal_query_results_formats_check2().
  * 
  * Return value: non-0 if a formatter exists.
  **/
@@ -257,7 +320,32 @@ int
 rasqal_query_results_formats_check(const char *name, raptor_uri* uri,
                                    const char *mime_type)
 {
-  return (rasqal_get_query_results_formatter_factory(name, uri, mime_type) 
+#ifndef NO_STATIC_DATA
+  return rasqal_query_results_formats_check2(rasqal_world_static, name, uri, mime_type);
+#else
+  abort();
+  return -1;
+#endif
+}
+
+
+/**
+ * rasqal_query_results_formats_check2:
+ * @world: rasqal_world object
+ * @name: the query results format name (or NULL)
+ * @uri: #raptor_uri query results format uri (or NULL)
+ * @mime_type: mime type name
+ * 
+ * Check if a query results formatter exists for the requested format.
+ * 
+ * Return value: non-0 if a formatter exists.
+ **/
+int
+rasqal_query_results_formats_check2(rasqal_world* world,
+                                    const char *name, raptor_uri* uri,
+                                    const char *mime_type)
+{
+  return (rasqal_get_query_results_formatter_factory(world, name, uri, mime_type) 
           != NULL);
 }
 
@@ -274,15 +362,43 @@ rasqal_query_results_formats_check(const char *name, raptor_uri* uri,
  * if both are NULL.  rasqal_query_results_formats_enumerate() returns
  * information on the known query results names, labels and URIs.
  *
+ * @deprecated Use rasqal_new_query_results_formatter2().
+ *
  * Return value: a new #rasqal_query_results_formatter object or NULL on failure
  */
 rasqal_query_results_formatter*
 rasqal_new_query_results_formatter(const char *name, raptor_uri* format_uri)
 {
+#ifndef NO_STATIC_DATA
+  return rasqal_new_query_results_formatter2(rasqal_world_static, name, format_uri);
+#else
+  abort();
+  return NULL;
+#endif
+}
+
+/**
+ * rasqal_new_query_results_formatter2:
+ * @world: rasqal_world object
+ * @name: the query results format name (or NULL)
+ * @format_uri: #raptor_uri query results format uri (or NULL)
+ *
+ * Constructor - create a new rasqal_query_results_formatter object by identified format.
+ *
+ * A query results format can be named or identified by a URI, both
+ * of which are optional.  The default query results format will be used
+ * if both are NULL.  rasqal_query_results_formats_enumerate() returns
+ * information on the known query results names, labels and URIs.
+ *
+ * Return value: a new #rasqal_query_results_formatter object or NULL on failure
+ */
+rasqal_query_results_formatter*
+rasqal_new_query_results_formatter2(rasqal_world* world, const char *name, raptor_uri* format_uri)
+{
   rasqal_query_results_format_factory* factory;
   rasqal_query_results_formatter* formatter;
 
-  factory=rasqal_get_query_results_formatter_factory(name, format_uri, NULL);
+  factory=rasqal_get_query_results_formatter_factory(world, name, format_uri, NULL);
   if(!factory)
     return NULL;
 
@@ -306,7 +422,38 @@ rasqal_new_query_results_formatter(const char *name, raptor_uri* format_uri)
  *
  * A query results format generates a syntax with a mime type which
  * may be requested with this constructor.
+ *
+ * Note that there may be several formatters that generate the same
+ * MIME Type (such as SPARQL XML results format drafts) and in thot
+ * case the rasqal_new_query_results_formatter() constructor allows
+ * selecting of a specific one by name or URI.
+ *
+ * @deprecated Use rasqal_new_query_results_formatter_by_mime_type2().
+ *
+ * Return value: a new #rasqal_query_results_formatter object or NULL on failure
+ */
+rasqal_query_results_formatter*
+rasqal_new_query_results_formatter_by_mime_type(const char *mime_type)
+{
+#ifndef NO_STATIC_DATA
+  return rasqal_new_query_results_formatter_by_mime_type2(rasqal_world_static, mime_type);
+#else
+  abort();
+  return NULL;
+#endif
+}
 
+
+/**
+ * rasqal_new_query_results_formatter_by_mime_type2:
+ * @world: rasqal_world object
+ * @mime_type: mime type name
+ *
+ * Constructor - create a new rasqal_query_results_formatter object by mime type.
+ *
+ * A query results format generates a syntax with a mime type which
+ * may be requested with this constructor.
+ *
  * Note that there may be several formatters that generate the same
  * MIME Type (such as SPARQL XML results format drafts) and in thot
  * case the rasqal_new_query_results_formatter() constructor allows
@@ -315,7 +462,7 @@ rasqal_new_query_results_formatter(const char *name, raptor_uri* format_uri)
  * Return value: a new #rasqal_query_results_formatter object or NULL on failure
  */
 rasqal_query_results_formatter*
-rasqal_new_query_results_formatter_by_mime_type(const char *mime_type)
+rasqal_new_query_results_formatter_by_mime_type2(rasqal_world* world, const char *mime_type)
 {
   rasqal_query_results_format_factory* factory;
   rasqal_query_results_formatter* formatter;
@@ -323,7 +470,7 @@ rasqal_new_query_results_formatter_by_mime_type(const char *mime_type)
   if(!mime_type)
     return NULL;
 
-  factory=rasqal_get_query_results_formatter_factory(NULL, NULL, mime_type);
+  factory=rasqal_get_query_results_formatter_factory(world, NULL, NULL, mime_type);
   if(!factory)
     return NULL;
 

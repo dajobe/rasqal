@@ -955,12 +955,13 @@ rasqal_query_results_get_rowsource_sparql_xml(raptor_iostream *iostr,
 
 
 
-void
-rasqal_init_result_format_sparql_xml(void)
+int
+rasqal_init_result_format_sparql_xml(rasqal_world* world)
 {
   rasqal_query_results_formatter_func writer_fn=NULL;
   rasqal_query_results_formatter_func reader_fn=NULL;
   rasqal_query_results_get_rowsource_func get_rowsource_fn=NULL;
+  int rc=0;
 
   /*
    * SPARQL XML Results 2007-06-14
@@ -969,16 +970,20 @@ rasqal_init_result_format_sparql_xml(void)
   writer_fn=&rasqal_query_results_write_sparql_xml;
   reader_fn=NULL,
   get_rowsource_fn=&rasqal_query_results_get_rowsource_sparql_xml;
-  rasqal_query_results_format_register_factory("xml",
-                                               "SPARQL Query Results Format 2007-06-14",
-                                               (unsigned char*)"http://www.w3.org/2005/sparql-results#",
-                                               writer_fn, reader_fn, get_rowsource_fn,
-                                               "application/sparql-results+xml");
-  rasqal_query_results_format_register_factory(NULL,
-                                               NULL,
-                                               (unsigned char*)"http://www.w3.org/TR/2006/WD-rdf-sparql-XMLres-20070614/",
-                                               writer_fn, reader_fn, get_rowsource_fn,
-                                               "application/sparql-results+xml");
-
+  rc+= rasqal_query_results_format_register_factory(world,
+                                                    "xml",
+                                                    "SPARQL Query Results Format 2007-06-14",
+                                                    (unsigned char*)"http://www.w3.org/2005/sparql-results#",
+                                                    writer_fn, reader_fn, get_rowsource_fn,
+                                                    "application/sparql-results+xml")
+                                                    != 0;
+  rc+= rasqal_query_results_format_register_factory(world,
+                                                    NULL,
+                                                    NULL,
+                                                    (unsigned char*)"http://www.w3.org/TR/2006/WD-rdf-sparql-XMLres-20070614/",
+                                                    writer_fn, reader_fn, get_rowsource_fn,
+                                                    "application/sparql-results+xml")
+                                                    != 0;
+  return rc;
 }
 

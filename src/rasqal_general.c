@@ -190,7 +190,7 @@ rasqal_new_world(void)
   if(rasqal_init_query_results())
     goto failure;
   
-  if(rasqal_init_result_formats())
+  if(rasqal_init_result_formats(world))
     goto failure;
 
   return world;
@@ -228,7 +228,7 @@ rasqal_free_world(rasqal_world* world)
 {
   /* no need to check for usage counter here */
 
-  rasqal_finish_result_formats();
+  rasqal_finish_result_formats(world);
   rasqal_finish_query_results();
 
   rasqal_delete_query_engine_factories(world);
