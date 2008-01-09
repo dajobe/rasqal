@@ -539,7 +539,7 @@ main(int argc, char *argv[])
           if(!strcmp(optarg, "simple"))
             results_formatter=NULL;
           else {
-            results_formatter=rasqal_new_query_results_formatter(optarg, NULL);
+            results_formatter=rasqal_new_query_results_formatter2(world, optarg, NULL);
             if(!results_formatter) {
               if(raptor_serializer_syntax_name_check(optarg))
                 serializer_syntax_name=optarg;
@@ -691,8 +691,8 @@ main(int argc, char *argv[])
       const char *name;
       const char *label;
       int qr_flags=0;
-      if(!rasqal_query_results_formats_enumerate(i, &name, &label, 
-                                                 NULL, NULL, &qr_flags) &&
+      if(!rasqal_query_results_formats_enumerate2(world, i, &name, &label, 
+                                                  NULL, NULL, &qr_flags) &&
          (qr_flags & RASQAL_QUERY_RESULTS_FORMAT_FLAG_WRITER))
         printf("      %-10s            %s\n", name, label);
     }
