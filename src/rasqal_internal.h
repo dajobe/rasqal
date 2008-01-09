@@ -687,7 +687,7 @@ int rasqal_xsd_datetime_check(const unsigned char* string);
 /* rasqal_general.c */
 char* rasqal_vsnprintf(const char* message, va_list arguments);
 
-void rasqal_query_engine_register_factory(rasqal_world*, const char* name, const char* label, const char* alias, const unsigned char* uri_string, void (*factory) (rasqal_query_engine_factory*));
+int rasqal_query_engine_register_factory(rasqal_world*, const char* name, const char* label, const char* alias, const unsigned char* uri_string, void (*factory) (rasqal_query_engine_factory*));
 rasqal_query_engine_factory* rasqal_get_query_engine_factory (rasqal_world*, const char* name, const unsigned char* uri);
 void rasqal_log_error_simple(rasqal_world* world, raptor_log_level level, raptor_locator* locator, const char* message, ...) RASQAL_PRINTF_FORMAT(4, 5);
 void rasqal_log_error_varargs(rasqal_world* world, raptor_log_level level, raptor_locator* locator, const char* message, va_list arguments);

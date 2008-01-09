@@ -804,13 +804,12 @@ int
 rasqal_init_query_engine_rdql (rasqal_world* world) {
   /* http://www.w3.org/Submission/2004/SUBM-RDQL-20040109/ */
 
-  rasqal_query_engine_register_factory(world,
-                                       "rdql", 
-                                       "RDF Data Query Language (RDQL)",
-                                       NULL,
-                                       (const unsigned char*)"http://jena.hpl.hp.com/2003/07/query/RDQL",
-                                       &rasqal_rdql_query_engine_register_factory);
-  return 0;
+  return rasqal_query_engine_register_factory(world,
+                                              "rdql", 
+                                              "RDF Data Query Language (RDQL)",
+                                              NULL,
+                                              (const unsigned char*)"http://jena.hpl.hp.com/2003/07/query/RDQL",
+                                              &rasqal_rdql_query_engine_register_factory);
 }
 
 

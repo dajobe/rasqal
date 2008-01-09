@@ -301,8 +301,9 @@ rasqal_delete_query_engine_factories(rasqal_world *world)
  * 
  * INTERNAL
  *
+ * Return value: non-0 on failure
  **/
-void
+int
 rasqal_query_engine_register_factory(rasqal_world *world,
                                      const char *name, const char *label,
                                      const char *alias,
@@ -369,13 +370,14 @@ rasqal_query_engine_register_factory(rasqal_world *world,
   query->next = world->query_engines;
   world->query_engines = query;
 
-  return;
+  return 0;
 
   tidy:
   rasqal_free_query_engine_factory(query);
   tidy_noquery:
-  rasqal_free_world(world);
-  RASQAL_FATAL1("Out of memory\n");
+  rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_FATAL, NULL,
+                          "Out of memory in rasqal_query_engine_register_factory()");
+  return 1;
 }
 
 
