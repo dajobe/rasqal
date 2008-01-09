@@ -828,8 +828,10 @@ main(int argc, char *argv[]) {
 #endif
 
 #ifdef RASQAL_DECIMAL_NONE
+#define FAIL_LABEL
 #define FAIL failures++
 #else
+#define FAIL_LABEL tidy:
 #define FAIL failures++; goto tidy
 #endif
 
@@ -916,7 +918,7 @@ main(int argc, char *argv[]) {
   }
 
 
-  tidy:
+  FAIL_LABEL
   rasqal_xsd_decimal_clear(&a);
   rasqal_xsd_decimal_clear(&b);
   if(result)
