@@ -375,7 +375,7 @@ static rasqal_xsd_datatype_info* sparql_xsd_datatypes_table=NULL;
 static raptor_uri* rasqal_xsd_namespace_uri=NULL;
 
 int
-rasqal_xsd_init(void) 
+rasqal_xsd_init(rasqal_world* world) 
 {
   int i;
 
@@ -410,7 +410,7 @@ rasqal_xsd_init(void)
 
 
 void
-rasqal_xsd_finish(void) 
+rasqal_xsd_finish(rasqal_world* world) 
 {
   if(sparql_xsd_datatypes_table) {
     int i;

@@ -872,8 +872,8 @@ void rasqal_query_result_row_set_value_at(rasqal_query_result_row* row, int offs
 
 
 /* rasqal_xsd_datatypes.c */
-int rasqal_xsd_init(void);
-void rasqal_xsd_finish(void);
+int rasqal_xsd_init(rasqal_world*);
+void rasqal_xsd_finish(rasqal_world*);
 rasqal_literal_type rasqal_xsd_datatype_uri_to_type(raptor_uri* uri);
 raptor_uri* rasqal_xsd_datatype_type_to_uri(rasqal_literal_type type);
 int rasqal_xsd_datatype_check(rasqal_literal_type native_type, const unsigned char* string, int flags);

@@ -151,7 +151,7 @@ rasqal_new_world(void)
   if(rasqal_uri_init(world))
     goto failure;
 
-  if(rasqal_xsd_init())
+  if(rasqal_xsd_init(world))
     goto failure;
 
 /* FIXME */
@@ -237,12 +237,11 @@ rasqal_free_world(rasqal_world* world)
   rasqal_redland_finish();
 #endif
 
-  rasqal_xsd_finish();
+  rasqal_xsd_finish(world);
 
   rasqal_uri_finish(world);
 
   raptor_finish();
-
 
   RASQAL_FREE(rasqal_world, world);
 }
