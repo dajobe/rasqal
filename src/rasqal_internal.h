@@ -890,10 +890,13 @@ struct rasqal_world_s {
   /* usage counter, mainly for handling multiple calls to rasqal_init() */
   int usage; 
 
+  /* linked list of query engines */
   rasqal_query_engine_factory *query_engines;
 
+  /* error handlers structure */
   raptor_error_handlers error_handlers;
 
+  /* rasqal_uri rdf uris */
   raptor_uri *rdf_namespace_uri;
   raptor_uri *rdf_first_uri;
   raptor_uri *rdf_rest_uri;
