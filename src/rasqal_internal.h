@@ -887,6 +887,9 @@ unsigned char* rasqal_xsd_format_double(double d, size_t *len_p);
 
 /* rasqal_world structure */
 struct rasqal_world_s {
+  /* usage counter, mainly for handling multiple calls to rasqal_init() */
+  int usage; 
+
   rasqal_query_engine_factory *query_engines;
 
   raptor_error_handlers error_handlers;

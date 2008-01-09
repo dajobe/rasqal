@@ -46,11 +46,6 @@ static void rasqal_delete_query_engine_factories(rasqal_world*);
 
 
 /* statics */
-static int rasqal_initialised=0;
-
-static int rasqal_initialising=0;
-static int rasqal_finishing=0;
-
 
 const char * const rasqal_short_copyright_string = "Copyright 2003-2008 David Beckett.  Copyright 2003-2005 University of Bristol";
 
@@ -117,7 +112,10 @@ void
 rasqal_init(void)
 {
 #ifndef NO_STATIC_DATA
-  rasqal_world_static=rasqal_new_world();
+  if(!rasqal_world_static)
+    rasqal_world_static=rasqal_new_world();
+  else
+    rasqal_world_static->usage++;
 #else
   abort();
 #endif
@@ -144,7 +142,7 @@ rasqal_new_world(void)
   if(!world)
     return NULL;
 
-  rasqal_initialising=1;
+  world->usage=1;
 
   raptor_init();
 
@@ -184,10 +182,6 @@ rasqal_new_world(void)
   rasqal_init_query_results();
   rasqal_init_result_formats();
 
-  rasqal_initialising=0;
-  rasqal_initialised=1;
-  rasqal_finishing=0;
-
   return world;
 
   failure:
@@ -209,8 +203,10 @@ void
 rasqal_finish(void)
 {
 #ifndef NO_STATIC_DATA
-  rasqal_free_world(rasqal_world_static);
-  rasqal_world_static=NULL;
+  if(rasqal_world_static && --rasqal_world_static->usage <= 0) {
+    rasqal_free_world(rasqal_world_static);
+    rasqal_world_static=NULL;
+  }
 #else
   abort();
 #endif
@@ -219,9 +215,7 @@ rasqal_finish(void)
 void
 rasqal_free_world(rasqal_world* world) 
 {
-  if((!rasqal_initialised && !rasqal_initialising) || rasqal_finishing)
-    return;
-  rasqal_finishing=1;
+  /* no need to check for usage counter here */
 
   rasqal_finish_result_formats();
   rasqal_finish_query_results();
@@ -238,9 +232,6 @@ rasqal_free_world(rasqal_world* world)
 
   raptor_finish();
 
-  rasqal_initialising=0;
-  rasqal_initialised=0;
-  rasqal_finishing=0;
 
   RASQAL_FREE(rasqal_world, world);
 }
