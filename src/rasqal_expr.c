@@ -1189,10 +1189,13 @@ rasqal_expression_evaluate_strmatch(rasqal_query *query, rasqal_expression* e,
     
   re=pcre_compile((const char*)pattern, options, 
                   &re_error, &erroffset, NULL);
-  if(!re)
-    rasqal_query_error(query, "Regex compile of '%s' failed - %s",
-                       pattern, re_error);
-  else {
+  if(!re) {
+    query->failed=1;
+    rasqal_log_error_simple(query->world, RAPTOR_LOG_LEVEL_ERROR,
+                            &query->locator,
+                            "Regex compile of '%s' failed - %s", pattern, re_error);
+    rc= -1;
+  } else {
     rc=pcre_exec(re, 
                  NULL, /* no study */
                  (const char*)match_string, strlen((const char*)match_string),
@@ -1203,7 +1206,10 @@ rasqal_expression_evaluate_strmatch(rasqal_query *query, rasqal_expression* e,
     if(rc >= 0)
       b=1;
     else if(rc != PCRE_ERROR_NOMATCH) {
-      rasqal_query_error(query, "Regex match failed - returned code %d", rc);
+      query->failed=1;
+      rasqal_log_error_simple(query->world, RAPTOR_LOG_LEVEL_ERROR,
+                              &query->locator,
+                              "Regex match failed - returned code %d", rc);
       rc= -1;
     } else
       rc=0;
@@ -1243,7 +1249,9 @@ rasqal_expression_evaluate_strmatch(rasqal_query *query, rasqal_expression* e,
 #endif
 
 #ifdef RASQAL_REGEX_NONE
-  rasqal_query_warning(query, "Regex support missing, cannot compare '%s' to '%s'", match_string, pattern);
+  rasqal_log_error_simple(query->world, RAPTOR_LOG_LEVEL_WARNING,
+                          &query->locator,
+                          "Regex support missing, cannot compare '%s' to '%s'", match_string, pattern);
   b=1;
   rc= -1;
 #endif
