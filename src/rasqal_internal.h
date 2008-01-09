@@ -703,11 +703,11 @@ unsigned char* rasqal_escaped_name_to_utf8_string(const unsigned char* src, size
 unsigned char* rasqal_query_generate_bnodeid(rasqal_query* rdf_query, unsigned char *user_bnodeid);
 
 /* rdql_parser.y */
-void rasqal_init_query_engine_rdql(rasqal_world*);
+int rasqal_init_query_engine_rdql(rasqal_world*);
 
 /* sparql_parser.y */
-void rasqal_init_query_engine_sparql(rasqal_world*);
-void rasqal_init_query_engine_laqrs(rasqal_world*);
+int rasqal_init_query_engine_sparql(rasqal_world*);
+int rasqal_init_query_engine_laqrs(rasqal_world*);
 
 /* rasqal_engine.c */
 int rasqal_engine_sequence_has_qname(raptor_sequence* seq);
@@ -777,11 +777,11 @@ int rasqal_strncasecmp(const char* s1, const char* s2, size_t n);
 #endif
 
 /* rasqal_raptor.c */
-void rasqal_raptor_init(void);
+int rasqal_raptor_init(void);
 
 #ifdef RAPTOR_TRIPLES_SOURCE_REDLAND
 /* rasqal_redland.c */
-void rasqal_redland_init(void);
+int rasqal_redland_init(void);
 void rasqal_redland_finish(void);
 #endif  
 
@@ -847,12 +847,12 @@ unsigned char* rasqal_query_get_genid(rasqal_query* query, const unsigned char* 
 void rasqal_query_set_base_uri(rasqal_query* rq, raptor_uri* base_uri);
 
 /* rasqal_query_results.c */
-void rasqal_init_query_results(void);
+int rasqal_init_query_results(void);
 void rasqal_finish_query_results(void);
 
 /* rasqal_result_formats.c */
 void rasqal_query_results_format_register_factory(const char *name, const char *label, const unsigned char* uri_string, rasqal_query_results_formatter_func writer, rasqal_query_results_formatter_func reader, rasqal_query_results_get_rowsource_func get_rowsource, const char *mime_type);
-void rasqal_init_result_formats(void);
+int rasqal_init_result_formats(void);
 void rasqal_finish_result_formats(void);
 
 /* rasqal_result_format_sparql_xml.c */

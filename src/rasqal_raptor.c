@@ -668,7 +668,8 @@ rasqal_raptor_init_triples_match(rasqal_triples_match* rtm,
 }
 
 
-void
+int
 rasqal_raptor_init(void) {
   rasqal_set_triples_source_factory(rasqal_raptor_register_triples_source_factory, (void*)NULL);
+  return 0;
 }

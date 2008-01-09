@@ -83,7 +83,7 @@ void rasqal_free_query_results_format_factory(rasqal_query_results_format_factor
 }
 
 
-void
+int
 rasqal_init_result_formats(void)
 {
   rasqal_query_results_formatter_func writer_fn=NULL;
@@ -92,7 +92,7 @@ rasqal_init_result_formats(void)
   
   query_results_formats=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_query_results_format_factory, NULL);
   if(!query_results_formats)
-    RASQAL_FATAL1("Out of memory\n");
+    return 1;
 
 
   rasqal_init_result_format_sparql_xml();
@@ -116,6 +116,8 @@ rasqal_init_result_formats(void)
                                                (unsigned char*)"http://www.mindswap.org/%7Ekendall/sparql-results-json/",
                                                writer_fn, reader_fn, get_rowsource_fn,
                                                "text/json");
+
+  return 0;
 }
 
 

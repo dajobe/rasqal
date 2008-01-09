@@ -41,9 +41,10 @@
 #include "rasqal_internal.h"
 
 
-void
+int
 rasqal_init_query_results(void)
 {
+  return 0;
 }
 
 

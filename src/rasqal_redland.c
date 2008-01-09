@@ -460,11 +460,14 @@ rasqal_redland_init_triples_match(rasqal_triples_match* rtm,
 
 static librdf_world* Rasqal_Redland_World=NULL;
 
-void
+int
 rasqal_redland_init(void) {
   Rasqal_Redland_World=librdf_new_world();
+  if(!Rasqal_Redland_World)
+    return 1;
   librdf_world_open(Rasqal_Redland_World);
   rasqal_set_triples_source_factory(rasqal_redland_register_triples_source_factory, Rasqal_Redland_World);
+  return 0;
 }
 
 void

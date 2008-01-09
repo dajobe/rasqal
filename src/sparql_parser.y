@@ -2802,7 +2802,7 @@ rasqal_sparql_query_engine_register_factory(rasqal_query_engine_factory *factory
 }
 
 
-void
+int
 rasqal_init_query_engine_sparql(rasqal_world* world) {
   rasqal_query_engine_register_factory(world,
                                        "sparql", 
@@ -2810,9 +2810,10 @@ rasqal_init_query_engine_sparql(rasqal_world* world) {
                                        NULL,
                                        (const unsigned char*)"http://www.w3.org/TR/rdf-sparql-query/",
                                        &rasqal_sparql_query_engine_register_factory);
+  return 0;
 }
 
-void
+int
 rasqal_init_query_engine_laqrs(rasqal_world* world) {
   rasqal_query_engine_register_factory(world,
                                        "laqrs", 
@@ -2820,6 +2821,7 @@ rasqal_init_query_engine_laqrs(rasqal_world* world) {
                                        NULL,
                                        NULL,
                                        &rasqal_sparql_query_engine_register_factory);
+  return 0;
 }
 
 

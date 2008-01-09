@@ -112,9 +112,11 @@ void
 rasqal_init(void)
 {
 #ifndef NO_STATIC_DATA
-  if(!rasqal_world_static)
+  if(!rasqal_world_static) {
     rasqal_world_static=rasqal_new_world();
-  else
+    if(!rasqal_world_static)
+      RASQAL_FATAL1("Could not create static rasqal_world");
+  } else
     rasqal_world_static->usage++;
 #else
   abort();
@@ -149,7 +151,8 @@ rasqal_new_world(void)
   if(rasqal_uri_init(world))
     goto failure;
 
-  rasqal_xsd_init();
+  if(rasqal_xsd_init())
+    goto failure;
 
 /* FIXME */
 #ifndef RAPTOR_ERROR_HANDLER_MAGIC
@@ -161,26 +164,34 @@ rasqal_new_world(void)
   /* last one declared is the default - RDQL */
 
 #ifdef RASQAL_QUERY_RDQL
-  rasqal_init_query_engine_rdql(world);
+  if(rasqal_init_query_engine_rdql(world))
+    goto failure;
 #endif
 
 #ifdef RASQAL_QUERY_LAQRS
-  rasqal_init_query_engine_laqrs(world);
+  if(rasqal_init_query_engine_laqrs(world))
+    goto failure;
 #endif
 
 #ifdef RASQAL_QUERY_SPARQL  
-  rasqal_init_query_engine_sparql(world);
+  if(rasqal_init_query_engine_sparql(world))
+    goto failure;
 #endif
 
 #ifdef RAPTOR_TRIPLES_SOURCE_RAPTOR
-  rasqal_raptor_init();
+  if(rasqal_raptor_init())
+    goto failure;
 #endif
 #ifdef RAPTOR_TRIPLES_SOURCE_REDLAND
-  rasqal_redland_init();
+  if(rasqal_redland_init())
+    goto failure;
 #endif
 
-  rasqal_init_query_results();
-  rasqal_init_result_formats();
+  if(rasqal_init_query_results())
+    goto failure;
+  
+  if(rasqal_init_result_formats())
+    goto failure;
 
   return world;
 

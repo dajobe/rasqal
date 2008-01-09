@@ -800,7 +800,7 @@ rasqal_rdql_query_engine_register_factory(rasqal_query_engine_factory *factory)
 }
 
 
-void
+int
 rasqal_init_query_engine_rdql (rasqal_world* world) {
   /* http://www.w3.org/Submission/2004/SUBM-RDQL-20040109/ */
 
@@ -810,6 +810,7 @@ rasqal_init_query_engine_rdql (rasqal_world* world) {
                                        NULL,
                                        (const unsigned char*)"http://jena.hpl.hp.com/2003/07/query/RDQL",
                                        &rasqal_rdql_query_engine_register_factory);
+  return 0;
 }
 
 
