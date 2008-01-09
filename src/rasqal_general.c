@@ -148,7 +148,8 @@ rasqal_new_world(void)
 
   raptor_init();
 
-  rasqal_uri_init();
+  if(rasqal_uri_init(world))
+    goto failure;
 
   rasqal_xsd_init();
 
@@ -188,6 +189,10 @@ rasqal_new_world(void)
   rasqal_finishing=0;
 
   return world;
+
+  failure:
+  rasqal_free_world(world);
+  return NULL;
 }
 
 
@@ -229,7 +234,7 @@ rasqal_free_world(rasqal_world* world)
 
   rasqal_xsd_finish();
 
-  rasqal_uri_finish();
+  rasqal_uri_finish(world);
 
   raptor_finish();
 
@@ -753,47 +758,48 @@ rasqal_escaped_name_to_utf8_string(const unsigned char *src, size_t len,
 }
 
 
-raptor_uri* rasqal_rdf_namespace_uri=NULL;
-
-raptor_uri* rasqal_rdf_first_uri=NULL;
-raptor_uri* rasqal_rdf_rest_uri=NULL;
-raptor_uri* rasqal_rdf_nil_uri=NULL;
-
-
-void
-rasqal_uri_init(void) 
+int
+rasqal_uri_init(rasqal_world* world) 
 {
-  rasqal_rdf_namespace_uri=raptor_new_uri(raptor_rdf_namespace_uri);
-  if(!rasqal_rdf_namespace_uri)
-    RASQAL_FATAL1("Out of memory");
+  world->rdf_namespace_uri=raptor_new_uri(raptor_rdf_namespace_uri);
+  if(!world->rdf_namespace_uri)
+    goto oom;
 
-  rasqal_rdf_first_uri=raptor_new_uri_from_uri_local_name(rasqal_rdf_namespace_uri, (const unsigned char*)"first");
-  rasqal_rdf_rest_uri=raptor_new_uri_from_uri_local_name(rasqal_rdf_namespace_uri, (const unsigned char*)"rest");
-  rasqal_rdf_nil_uri=raptor_new_uri_from_uri_local_name(rasqal_rdf_namespace_uri, (const unsigned char*)"nil");
+  world->rdf_first_uri=raptor_new_uri_from_uri_local_name(world->rdf_namespace_uri, (const unsigned char*)"first");
+  world->rdf_rest_uri=raptor_new_uri_from_uri_local_name(world->rdf_namespace_uri, (const unsigned char*)"rest");
+  world->rdf_nil_uri=raptor_new_uri_from_uri_local_name(world->rdf_namespace_uri, (const unsigned char*)"nil");
 
-  if(!rasqal_rdf_first_uri || !rasqal_rdf_rest_uri || !rasqal_rdf_nil_uri)
-    RASQAL_FATAL1("Out of memory");
+  if(!world->rdf_first_uri || !world->rdf_rest_uri || !world->rdf_nil_uri)
+    goto oom;
+
+  return 0;
+
+  oom:
+  rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_FATAL,
+                          NULL,
+                          "Out of memory");
+  return 1;
 }
 
 
 void
-rasqal_uri_finish(void) 
+rasqal_uri_finish(rasqal_world* world) 
 {
-  if(rasqal_rdf_first_uri) {
-    raptor_free_uri(rasqal_rdf_first_uri);
-    rasqal_rdf_first_uri=NULL;
+  if(world->rdf_first_uri) {
+    raptor_free_uri(world->rdf_first_uri);
+    world->rdf_first_uri=NULL;
   }
-  if(rasqal_rdf_rest_uri) {
-    raptor_free_uri(rasqal_rdf_rest_uri);
-    rasqal_rdf_rest_uri=NULL;
+  if(world->rdf_rest_uri) {
+    raptor_free_uri(world->rdf_rest_uri);
+    world->rdf_rest_uri=NULL;
   }
-  if(rasqal_rdf_nil_uri) {
-    raptor_free_uri(rasqal_rdf_nil_uri);
-    rasqal_rdf_nil_uri=NULL;
+  if(world->rdf_nil_uri) {
+    raptor_free_uri(world->rdf_nil_uri);
+    world->rdf_nil_uri=NULL;
   }
-  if(rasqal_rdf_namespace_uri) {
-    raptor_free_uri(rasqal_rdf_namespace_uri);
-    rasqal_rdf_namespace_uri=NULL;
+  if(world->rdf_namespace_uri) {
+    raptor_free_uri(world->rdf_namespace_uri);
+    world->rdf_namespace_uri=NULL;
   }
 }
 

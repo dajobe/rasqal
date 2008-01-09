@@ -1874,15 +1874,15 @@ Collection: '(' GraphNodeListNotEmpty ')'
   if(!$$->triples)
     YYERR_MSG_GOTO(err_Collection, "Collection: cannot create sequence");
 
-  first_identifier=rasqal_new_uri_literal(raptor_uri_copy(rasqal_rdf_first_uri));
+  first_identifier=rasqal_new_uri_literal(raptor_uri_copy(rdf_query->world->rdf_first_uri));
   if(!first_identifier)
     YYERR_MSG_GOTO(err_Collection, "Collection: cannot first_identifier");
   
-  rest_identifier=rasqal_new_uri_literal(raptor_uri_copy(rasqal_rdf_rest_uri));
+  rest_identifier=rasqal_new_uri_literal(raptor_uri_copy(rdf_query->world->rdf_rest_uri));
   if(!rest_identifier)
     YYERR_MSG_GOTO(err_Collection, "Collection: cannot create rest_identifier");
   
-  object=rasqal_new_uri_literal(raptor_uri_copy(rasqal_rdf_nil_uri));
+  object=rasqal_new_uri_literal(raptor_uri_copy(rdf_query->world->rdf_nil_uri));
   if(!object)
     YYERR_MSG_GOTO(err_Collection, "Collection: cannot create nil object");
 
@@ -2133,7 +2133,7 @@ GraphTerm: IRIref
 }
 |  '(' ')'
 {
-  $$=rasqal_new_uri_literal(raptor_uri_copy(rasqal_rdf_nil_uri));
+  $$=rasqal_new_uri_literal(raptor_uri_copy(((rasqal_query*)rq)->world->rdf_nil_uri));
   if(!$$)
     YYERROR_MSG("GraphTerm: cannot create literal");
 }

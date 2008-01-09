@@ -791,8 +791,8 @@ extern raptor_uri* rasqal_rdf_namespace_uri;
 extern raptor_uri* rasqal_rdf_first_uri;
 extern raptor_uri* rasqal_rdf_rest_uri;
 extern raptor_uri* rasqal_rdf_nil_uri;
-void rasqal_uri_init(void);
-void rasqal_uri_finish(void);
+int rasqal_uri_init(rasqal_world*);
+void rasqal_uri_finish(rasqal_world*);
 
 /* rasqal_literal.c */
 typedef struct {
@@ -891,15 +891,16 @@ struct rasqal_world_s {
 
   raptor_error_handlers error_handlers;
 
+  raptor_uri *rdf_namespace_uri;
+  raptor_uri *rdf_first_uri;
+  raptor_uri *rdf_rest_uri;
+  raptor_uri *rdf_nil_uri;
+
   /*
   raptor_sequence *query_results_formats;
 
   rasqal_xsd_datatype_info *xsd_datatypes_table;
   raptor_uri *xsd_namespace_uri;
-  raptor_uri *rdf_namespace_uri;
-  raptor_uri *rdf_first_uri;
-  raptor_uri *rdf_rest_uri;
-  raptor_uri *rdf_nil_uri;
 
   rasqal_triples_source_factory triples_source_factory;
   */

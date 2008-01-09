@@ -2373,10 +2373,12 @@ main(int argc, char *argv[])
   rasqal_expression* expr;
   rasqal_literal* result;
   int error=0;
+  rasqal_world *world;
 
   raptor_init();
 
-  rasqal_uri_init();
+  world=RASQAL_CALLOC(rasqal_world, sizeof(rasqal_world), 1); /* FIXME: hack */
+  rasqal_uri_init(world);
 
   rasqal_xsd_init();
   
@@ -2415,8 +2417,10 @@ main(int argc, char *argv[])
 
   rasqal_xsd_finish();
 
-  rasqal_uri_finish();
+  rasqal_uri_finish(world);
   
+  RASQAL_FREE(rasqal_world, world);
+
   raptor_finish();
 
   return error;
