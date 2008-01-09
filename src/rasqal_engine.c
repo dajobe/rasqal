@@ -466,10 +466,6 @@ rasqal_engine_assign_variables(rasqal_query* rq)
 }
   
 
-/* static */
-static rasqal_triples_source_factory Triples_Source_Factory;
-
-
 /**
  * rasqal_set_triples_source_factory:
  * @register_fn: registration function
@@ -482,13 +478,43 @@ static rasqal_triples_source_factory Triples_Source_Factory;
  *
  * The rasqal_triples_source_factory factory method new_triples_source is
  * called with the user data for some query and rasqal_triples_source.
+ *
+ * @deprecated Use rasqal_set_triples_source_factory2().
  * 
  **/
 void
 rasqal_set_triples_source_factory(void (*register_fn)(rasqal_triples_source_factory *factory), void* user_data)
 {
-  Triples_Source_Factory.user_data=user_data;
-  register_fn(&Triples_Source_Factory);
+#ifndef NO_STATIC_DATA
+  rasqal_set_triples_source_factory2(rasqal_world_static, register_fn, user_data);
+#else
+  abort();
+#endif
+}
+
+
+/**
+ * rasqal_set_triples_source_factory2:
+ * @world: rasqal_world object
+ * @register_fn: registration function
+ * @user_data: user data for registration
+ *
+ * Register the factory to return triple sources.
+ * 
+ * Registers the factory that returns triples sources.  Note that
+ * there is only one of these per runtime. 
+ *
+ * The rasqal_triples_source_factory factory method new_triples_source is
+ * called with the user data for some query and rasqal_triples_source.
+ *
+ * @deprecated Use rasqal_set_triples_source_factory2().
+ * 
+ **/
+void
+rasqal_set_triples_source_factory2(rasqal_world* world, void (*register_fn)(rasqal_triples_source_factory *factory), void* user_data)
+{
+  world->triples_source_factory.user_data=user_data;
+  register_fn(&world->triples_source_factory);
 }
 
 
@@ -496,6 +522,7 @@ rasqal_triples_source*
 rasqal_new_triples_source(rasqal_query_results* query_results)
 {
   rasqal_query* query=query_results->query;
+  rasqal_triples_source_factory* rtsf=&query->world->triples_source_factory;
   rasqal_triples_source* rts;
   int rc=0;
   
@@ -504,16 +531,16 @@ rasqal_new_triples_source(rasqal_query_results* query_results)
     return NULL;
 
   rts->user_data=RASQAL_CALLOC(user_data, 1,
-                               Triples_Source_Factory.user_data_size);
+                               rtsf->user_data_size);
   if(!rts->user_data) {
     RASQAL_FREE(rasqal_triples_source, rts);
     return NULL;
   }
   rts->query=query;
 
-  rc=Triples_Source_Factory.new_triples_source(query, 
-                                               Triples_Source_Factory.user_data,
-                                               rts->user_data, rts);
+  rc=rtsf->new_triples_source(query, 
+                              rtsf->user_data,
+                              rts->user_data, rts);
   if(rc) {
     query_results->failed=1;
     query->failed=1;

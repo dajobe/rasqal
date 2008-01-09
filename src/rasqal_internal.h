@@ -777,11 +777,11 @@ int rasqal_strncasecmp(const char* s1, const char* s2, size_t n);
 #endif
 
 /* rasqal_raptor.c */
-int rasqal_raptor_init(void);
+int rasqal_raptor_init(rasqal_world*);
 
 #ifdef RAPTOR_TRIPLES_SOURCE_REDLAND
 /* rasqal_redland.c */
-int rasqal_redland_init(void);
+int rasqal_redland_init(rasqal_world*);
 void rasqal_redland_finish(void);
 #endif  
 
@@ -905,11 +905,12 @@ struct rasqal_world_s {
   raptor_uri *rdf_rest_uri;
   raptor_uri *rdf_nil_uri;
 
+  /* triples source factory */
+  rasqal_triples_source_factory triples_source_factory;
+
   /*
   rasqal_xsd_datatype_info *xsd_datatypes_table;
   raptor_uri *xsd_namespace_uri;
-
-  rasqal_triples_source_factory triples_source_factory;
   */
 
 };

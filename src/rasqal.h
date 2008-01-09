@@ -1239,8 +1239,11 @@ typedef struct {
   
 
 /* set the triples_source_factory */
-RASQAL_API
+RASQAL_API RASQAL_DEPRECATED
 void rasqal_set_triples_source_factory(void (*register_fn)(rasqal_triples_source_factory *factory), void* user_data);
+RASQAL_API
+void rasqal_set_triples_source_factory2(rasqal_world*, void (*register_fn)(rasqal_triples_source_factory *factory), void* user_data);
+
 
 
 /* The info below is solely for gtk-doc - ignore it */

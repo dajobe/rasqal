@@ -179,11 +179,11 @@ rasqal_new_world(void)
 #endif
 
 #ifdef RAPTOR_TRIPLES_SOURCE_RAPTOR
-  if(rasqal_raptor_init())
+  if(rasqal_raptor_init(world))
     goto failure;
 #endif
 #ifdef RAPTOR_TRIPLES_SOURCE_REDLAND
-  if(rasqal_redland_init())
+  if(rasqal_redland_init(world))
     goto failure;
 #endif
 
