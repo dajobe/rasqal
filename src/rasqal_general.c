@@ -461,7 +461,7 @@ rasqal_languages_enumerate(const unsigned int counter,
  **/
 int
 rasqal_languages_enumerate2(rasqal_world *world,
-                            const unsigned int counter,
+                            unsigned int counter,
                             const char **name, const char **label,
                             const unsigned char **uri_string)
 {

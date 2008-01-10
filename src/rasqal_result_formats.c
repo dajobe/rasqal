@@ -216,7 +216,7 @@ rasqal_query_results_formats_enumerate(const unsigned int counter,
  **/
 int
 rasqal_query_results_formats_enumerate2(rasqal_world* world,
-                                        const unsigned int counter,
+                                        unsigned int counter,
                                         const char **name,
                                         const char **label,
                                         const unsigned char **uri_string,

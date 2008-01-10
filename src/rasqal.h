@@ -653,7 +653,7 @@ int rasqal_feature_value_type(const rasqal_feature feature);
 RASQAL_API RASQAL_DEPRECATED
 int rasqal_languages_enumerate(const unsigned int counter, const char **name, const char **label, const unsigned char **uri_string);
 RASQAL_API
-int rasqal_languages_enumerate2(rasqal_world*, const unsigned int counter, const char **name, const char **label, const unsigned char **uri_string);
+int rasqal_languages_enumerate2(rasqal_world*, unsigned int counter, const char **name, const char **label, const unsigned char **uri_string);
 
 RASQAL_API RASQAL_DEPRECATED
 int rasqal_language_name_check(const char *name);
@@ -869,7 +869,7 @@ int rasqal_query_results_read(raptor_iostream *iostr, rasqal_query_results *resu
 RASQAL_API RASQAL_DEPRECATED
 int rasqal_query_results_formats_enumerate(const unsigned int counter, const char **name, const char **label, const unsigned char **uri_string, const char **mime_type, int* flags);
 RASQAL_API
-int rasqal_query_results_formats_enumerate2(rasqal_world*, const unsigned int counter, const char **name, const char **label, const unsigned char **uri_string, const char **mime_type, int* flags);
+int rasqal_query_results_formats_enumerate2(rasqal_world*, unsigned int counter, const char **name, const char **label, const unsigned char **uri_string, const char **mime_type, int* flags);
 RASQAL_API RASQAL_DEPRECATED
 int rasqal_query_results_formats_check(const char *name, raptor_uri* uri, const char *mime_type);
 RASQAL_API
