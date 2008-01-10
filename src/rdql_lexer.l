@@ -1104,6 +1104,7 @@ main(int argc, char *argv[])
   }
 
   memset(&rq, 0, sizeof(rasqal_query));
+  rq.world=world;
   memset(&rdql, 0, sizeof(rasqal_rdql_query_engine));
 
   yylex_init(&rdql.scanner);

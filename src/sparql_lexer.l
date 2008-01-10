@@ -1482,6 +1482,7 @@ main(int argc, char *argv[])
   }
 
   memset(&rq, 0, sizeof(rasqal_query));
+  rq.world=world;
   memset(&sparql, 0, sizeof(rasqal_sparql_query_engine));
 
   yylex_init(&sparql.scanner);
