@@ -362,15 +362,15 @@ rasqal_new_decimal_literal_from_decimal(rasqal_world* world,
 /**
  * rasqal_new_numeric_literal:
  * @world: rasqal world object
- * @double: double
  * @type: datatype
+ * @double: double
  *
  * INTERNAL - Make a numeric datatype from a double  
  *
  * Return value: new literal or NULL on failure
  **/
 rasqal_literal*
-rasqal_new_numeric_literal(rasqal_world* world, double d, rasqal_literal_type type)
+rasqal_new_numeric_literal(rasqal_world* world, rasqal_literal_type type, double d)
 {
   char buffer[30];
   
@@ -2617,7 +2617,7 @@ rasqal_literal_add(rasqal_literal* l1, rasqal_literal* l2, int *error_p)
       if(error)
         break;
 
-      result=rasqal_new_numeric_literal(l1->world, d, type);
+      result=rasqal_new_numeric_literal(l1->world, type, d);
       break;
       
     case RASQAL_LITERAL_DECIMAL:
@@ -2698,7 +2698,7 @@ rasqal_literal_subtract(rasqal_literal* l1, rasqal_literal* l2, int *error_p)
       if(error)
         break;
 
-      result=rasqal_new_numeric_literal(l1->world, d, type);
+      result=rasqal_new_numeric_literal(l1->world, type, d);
       break;
       
     case RASQAL_LITERAL_DECIMAL:
@@ -2779,7 +2779,7 @@ rasqal_literal_multiply(rasqal_literal* l1, rasqal_literal* l2, int *error_p)
       if(error)
         break;
 
-      result=rasqal_new_numeric_literal(l1->world, d, type);
+      result=rasqal_new_numeric_literal(l1->world, type, d);
       break;
       
     case RASQAL_LITERAL_DECIMAL:
@@ -2870,7 +2870,7 @@ rasqal_literal_divide(rasqal_literal* l1, rasqal_literal* l2, int *error_p)
       if(error)
         break;
 
-      result=rasqal_new_numeric_literal(l1->world, d1, type);
+      result=rasqal_new_numeric_literal(l1->world, type, d1);
       break;
       
     case RASQAL_LITERAL_DECIMAL:
@@ -2940,7 +2940,7 @@ rasqal_literal_negate(rasqal_literal* l, int *error_p)
       if(!d)
         error=1;
       d= -d;
-      result=rasqal_new_numeric_literal(l->world, d, l->type);
+      result=rasqal_new_numeric_literal(l->world, l->type, d);
       break;
       
     case RASQAL_LITERAL_DECIMAL:
