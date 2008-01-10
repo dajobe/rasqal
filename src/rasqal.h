@@ -1153,6 +1153,7 @@ typedef enum {
  * @next_match: Move to next match.
  * @is_end: Check for end of triple match - return non-0 if is end.
  * @finish: Finish triples match and destroy any allocated memory.
+ * @world: rasqal_world object
  * 
  * Triples match structure as initialised by #rasqal_triples_source
  * method init_triples_match.
@@ -1167,6 +1168,8 @@ struct rasqal_triples_match_s {
   int (*is_end)(struct rasqal_triples_match_s*, void *user_data);
 
   void (*finish)(struct rasqal_triples_match_s*, void *user_data);
+
+  rasqal_world *world;
 };
 typedef struct rasqal_triples_match_s rasqal_triples_match;
 

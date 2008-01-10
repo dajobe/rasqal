@@ -602,7 +602,8 @@ rasqal_new_triples_match(rasqal_query_results* query_results, void *user_data,
 
   rtm=(rasqal_triples_match *)RASQAL_CALLOC(rasqal_triples_match, 1,
                                             sizeof(rasqal_triples_match));
-  if(rtm)
+  if(rtm) {
+    rtm->world=query_results->query->world;
     if(query_results->triples_source->init_triples_match(rtm,
                                                  query_results->triples_source,
                                                  query_results->triples_source->user_data,
@@ -610,6 +611,7 @@ rasqal_new_triples_match(rasqal_query_results* query_results, void *user_data,
       rasqal_free_triples_match(rtm);
       rtm=NULL;
     }
+  }
 
   return rtm;
 }
