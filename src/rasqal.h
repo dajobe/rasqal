@@ -972,8 +972,6 @@ RASQAL_API
 rasqal_literal* rasqal_new_integer_literal(rasqal_world*, rasqal_literal_type type, int integer);
 RASQAL_API
 rasqal_literal* rasqal_new_typed_literal(rasqal_world*, rasqal_literal_type type, const unsigned char* string);
-RASQAL_API RASQAL_DEPRECATED
-rasqal_literal* rasqal_new_floating_literal(double f);
 RASQAL_API
 rasqal_literal* rasqal_new_double_literal(rasqal_world*, double d);
 RASQAL_API

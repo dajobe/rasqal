@@ -168,24 +168,6 @@ rasqal_new_double_literal(rasqal_world*world, double d)
 
 
 /**
- * rasqal_new_floating_literal:
- * @f:  floating literal
- * 
- * @Deprecated: Use rasqal_new_double_literal().
- *
- * Constructor - Create a new Rasqal double literal.
- *
- * Return value: New #rasqal_literal or NULL on failure
- **/
-rasqal_literal*
-rasqal_new_floating_literal(double f)
-{
-  /*return rasqal_new_double_literal(f);*/
-  return NULL;
-}
-
-
-/**
  * rasqal_new_float_literal:
  * @world: rasqal world object
  * @f:  float literal
