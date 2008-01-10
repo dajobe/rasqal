@@ -95,35 +95,6 @@ const unsigned int rasqal_version_release = RASQAL_VERSION_RELEASE;
 const unsigned int rasqal_version_decimal = RASQAL_VERSION_DECIMAL;
 
 
-#ifndef NO_STATIC_DATA
-rasqal_world *rasqal_world_static=NULL;
-#endif
-
-/**
- * rasqal_init:
- * 
- * Initialise the rasqal library.
- *
- * MUST be called before using any of the rasqal APIs.
- *
- * @deprecated Use rasqal_new_world() to initialize the library.
- **/
-void
-rasqal_init(void)
-{
-#ifndef NO_STATIC_DATA
-  if(!rasqal_world_static) {
-    rasqal_world_static=rasqal_new_world();
-    if(!rasqal_world_static)
-      RASQAL_FATAL1("Could not create static rasqal_world");
-  } else
-    rasqal_world_static->usage++;
-#else
-  abort();
-#endif
-}
-
-
 /**
  * rasqal_new_world:
  * 
@@ -200,28 +171,6 @@ rasqal_new_world(void)
   return NULL;
 }
 
-
-/**
- * rasqal_finish:
- *
- * Terminate the rasqal library.
- *
- * Must be called to clean up any resources used by the library.
- *
- * @deprecated Use rasqal_free_world() to clean up.
- **/
-void
-rasqal_finish(void)
-{
-#ifndef NO_STATIC_DATA
-  if(rasqal_world_static && --rasqal_world_static->usage <= 0) {
-    rasqal_free_world(rasqal_world_static);
-    rasqal_world_static=NULL;
-  }
-#else
-  abort();
-#endif
-}
 
 void
 rasqal_free_world(rasqal_world* world) 
@@ -423,32 +372,6 @@ rasqal_get_query_engine_factory(rasqal_world *world, const char *name,
 
 /**
  * rasqal_languages_enumerate:
- * @counter: index into the list of syntaxes
- * @name: pointer to store the name of the syntax (or NULL)
- * @label: pointer to store syntax readable label (or NULL)
- * @uri_string: pointer to store syntax URI string (or NULL)
- *
- * Get information on query languages.
- *
- * @deprecated Use rasqal_languages_enumerate2()
- * 
- * Return value: non 0 on failure of if counter is out of range
- **/
-int
-rasqal_languages_enumerate(const unsigned int counter,
-                           const char **name, const char **label,
-                           const unsigned char **uri_string)
-{
-#ifndef NO_STATIC_DATA
-  return rasqal_languages_enumerate2(rasqal_world_static, counter, name, label, uri_string);
-#else
-  abort();
-  return -1;
-#endif
-}
-
-/**
- * rasqal_languages_enumerate2:
  * @world: rasqal_world object
  * @counter: index into the list of syntaxes
  * @name: pointer to store the name of the syntax (or NULL)
@@ -460,10 +383,10 @@ rasqal_languages_enumerate(const unsigned int counter,
  * Return value: non 0 on failure of if counter is out of range
  **/
 int
-rasqal_languages_enumerate2(rasqal_world *world,
-                            unsigned int counter,
-                            const char **name, const char **label,
-                            const unsigned char **uri_string)
+rasqal_languages_enumerate(rasqal_world *world,
+                           unsigned int counter,
+                           const char **name, const char **label,
+                           const unsigned char **uri_string)
 {
   unsigned int i;
   rasqal_query_engine_factory *factory=world->query_engines;
@@ -489,26 +412,6 @@ rasqal_languages_enumerate2(rasqal_world *world,
 
 /**
  * rasqal_language_name_check:
- * @name: the query language name
- *
- * Check name of a query language.
- *
- * @deprecated Use rasqal_language_name_check2() instead.
- *
- * Return value: non 0 if name is a known query language
- */
-int
-rasqal_language_name_check(const char *name) {
-#ifndef NO_STATIC_DATA
-  return rasqal_language_name_check2(rasqal_world_static, name);
-#else
-  abort();
-  return -1;
-#endif
-}
-
-/**
- * rasqal_language_name_check2:
  * @world: rasqal_world object
  * @name: the query language name
  *
@@ -517,7 +420,7 @@ rasqal_language_name_check(const char *name) {
  * Return value: non 0 if name is a known query language
  */
 int
-rasqal_language_name_check2(rasqal_world* world, const char *name) {
+rasqal_language_name_check(rasqal_world* world, const char *name) {
   return (rasqal_get_query_engine_factory(world, name, NULL) != NULL);
 }
 

@@ -539,7 +539,7 @@ main(int argc, char *argv[])
           if(!strcmp(optarg, "simple"))
             results_formatter=NULL;
           else {
-            results_formatter=rasqal_new_query_results_formatter2(world, optarg, NULL);
+            results_formatter=rasqal_new_query_results_formatter(world, optarg, NULL);
             if(!results_formatter) {
               if(raptor_serializer_syntax_name_check(optarg))
                 serializer_syntax_name=optarg;
@@ -556,7 +556,7 @@ main(int argc, char *argv[])
         break;
 
       case 'i':
-	if(rasqal_language_name_check2(world, optarg))
+	if(rasqal_language_name_check(world, optarg))
           ql_name=optarg;
 	else {
           int i;
@@ -567,7 +567,7 @@ main(int argc, char *argv[])
           for(i=0; 1; i++) {
             const char *help_name;
             const char *help_label;
-            if(rasqal_languages_enumerate2(world, i, &help_name, &help_label, NULL))
+            if(rasqal_languages_enumerate(world, i, &help_name, &help_label, NULL))
               break;
             fprintf(stderr, "  %-12s for %s\n", help_name, help_label);
           }
@@ -676,7 +676,7 @@ main(int argc, char *argv[])
     for(i=0; 1; i++) {
       const char *help_name;
       const char *help_label;
-      if(rasqal_languages_enumerate2(world, i, &help_name, &help_label, NULL))
+      if(rasqal_languages_enumerate(world, i, &help_name, &help_label, NULL))
         break;
       printf("    %-15s         %s", help_name, help_label);
       if(!i)
@@ -691,8 +691,8 @@ main(int argc, char *argv[])
       const char *name;
       const char *label;
       int qr_flags=0;
-      if(!rasqal_query_results_formats_enumerate2(world, i, &name, &label, 
-                                                  NULL, NULL, &qr_flags) &&
+      if(!rasqal_query_results_formats_enumerate(world, i, &name, &label, 
+                                                 NULL, NULL, &qr_flags) &&
          (qr_flags & RASQAL_QUERY_RESULTS_FORMAT_FLAG_WRITER))
         printf("      %-10s            %s\n", name, label);
     }
@@ -867,7 +867,7 @@ main(int argc, char *argv[])
     }
   }
   
-  rq=rasqal_new_query2(world, (const char*)ql_name, (const unsigned char*)ql_uri);
+  rq=rasqal_new_query(world, (const char*)ql_name, (const unsigned char*)ql_uri);
   rasqal_query_set_error_handler(rq, NULL, roqet_error_handler);
   rasqal_query_set_fatal_error_handler(rq, NULL, roqet_error_handler);
 

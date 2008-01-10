@@ -866,7 +866,7 @@ main(int argc, char *argv[])
 
   world=rasqal_new_world();
 
-  query=rasqal_new_query2(world, "rdql", NULL);
+  query=rasqal_new_query(world, "rdql", NULL);
 
   uri_string=raptor_uri_filename_to_uri_string(filename);
   base_uri=raptor_new_uri(uri_string);

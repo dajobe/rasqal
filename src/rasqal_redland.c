@@ -466,7 +466,7 @@ rasqal_redland_init(rasqal_world* world) {
   if(!Rasqal_Redland_World)
     return 1;
   librdf_world_open(Rasqal_Redland_World);
-  rasqal_set_triples_source_factory2(world, rasqal_redland_register_triples_source_factory, Rasqal_Redland_World);
+  rasqal_set_triples_source_factory(world, rasqal_redland_register_triples_source_factory, Rasqal_Redland_World);
   return 0;
 }
 

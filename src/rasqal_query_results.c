@@ -774,7 +774,7 @@ rasqal_query_results_write(raptor_iostream *iostr,
   if(!results || results->failed)
     return 1;
 
-  formatter=rasqal_new_query_results_formatter2(results->query->world, NULL, format_uri);
+  formatter=rasqal_new_query_results_formatter(results->query->world, NULL, format_uri);
   if(!formatter)
     return 1;
 
@@ -1035,7 +1035,7 @@ rasqal_query_results_read(raptor_iostream *iostr,
   if(!results || results->failed)
     return 1;
 
-  formatter=rasqal_new_query_results_formatter2(results->query->world, NULL, format_uri);
+  formatter=rasqal_new_query_results_formatter(results->query->world, NULL, format_uri);
   if(!formatter)
     return 1;
 

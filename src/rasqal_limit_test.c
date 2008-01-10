@@ -142,7 +142,7 @@ main(int argc, char **argv) {
       const char* expected_results;
       int test_ok=1;
 
-      query=rasqal_new_query2(world, query_language_name, NULL);
+      query=rasqal_new_query(world, query_language_name, NULL);
       if(!query) {
         fprintf(stderr, "%s: creating query in language %s FAILED\n", program,
                 query_language_name);

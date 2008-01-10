@@ -168,7 +168,7 @@ main(int argc, char **argv) {
     int query_failed=0;
     int j;
 
-    query=rasqal_new_query2(world, query_language_name, NULL);
+    query=rasqal_new_query(world, query_language_name, NULL);
     if(!query) {
       fprintf(stderr, "%s: creating query %d in language %s FAILED\n", 
               program, i, query_language_name);

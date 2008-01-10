@@ -904,9 +904,6 @@ struct rasqal_world_s {
   raptor_uri **xsd_datatype_uris;
 };
 
-#ifndef NO_STATIC_DATA
-extern rasqal_world *rasqal_world_static;
-#endif
 
 /* end of RASQAL_INTERNAL */
 #endif

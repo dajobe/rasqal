@@ -633,13 +633,8 @@ typedef int (*rasqal_graph_pattern_visit_fn)(rasqal_query* query, rasqal_graph_p
 
 /* Public functions */
 
-RASQAL_API RASQAL_DEPRECATED
-void rasqal_init(void);
 RASQAL_API
 rasqal_world *rasqal_new_world(void);
-
-RASQAL_API RASQAL_DEPRECATED
-void rasqal_finish(void);
 RASQAL_API
 void rasqal_free_world(rasqal_world*);
 
@@ -653,24 +648,18 @@ rasqal_feature rasqal_feature_from_uri(raptor_uri *uri);
 RASQAL_API
 int rasqal_feature_value_type(const rasqal_feature feature);
 
-RASQAL_API RASQAL_DEPRECATED
-int rasqal_languages_enumerate(const unsigned int counter, const char **name, const char **label, const unsigned char **uri_string);
 RASQAL_API
-int rasqal_languages_enumerate2(rasqal_world*, unsigned int counter, const char **name, const char **label, const unsigned char **uri_string);
+int rasqal_languages_enumerate(rasqal_world*, unsigned int counter, const char **name, const char **label, const unsigned char **uri_string);
 
-RASQAL_API RASQAL_DEPRECATED
-int rasqal_language_name_check(const char *name);
 RASQAL_API
-int rasqal_language_name_check2(rasqal_world*, const char *name);
+int rasqal_language_name_check(rasqal_world*, const char *name);
 
 
 /* Query class */
 
 /* Create */
-RASQAL_API RASQAL_DEPRECATED
-rasqal_query* rasqal_new_query(const char *name, const unsigned char *uri);
 RASQAL_API
-rasqal_query* rasqal_new_query2(rasqal_world *, const char *name, const unsigned char *uri);
+rasqal_query* rasqal_new_query(rasqal_world *, const char *name, const unsigned char *uri);
 
 /* Destroy */
 RASQAL_API
@@ -869,22 +858,14 @@ int rasqal_query_results_read(raptor_iostream *iostr, rasqal_query_results *resu
 
 #define RASQAL_QUERY_RESULTS_FORMAT_FLAG_READER 1
 #define RASQAL_QUERY_RESULTS_FORMAT_FLAG_WRITER 2
-RASQAL_API RASQAL_DEPRECATED
-int rasqal_query_results_formats_enumerate(const unsigned int counter, const char **name, const char **label, const unsigned char **uri_string, const char **mime_type, int* flags);
 RASQAL_API
-int rasqal_query_results_formats_enumerate2(rasqal_world*, unsigned int counter, const char **name, const char **label, const unsigned char **uri_string, const char **mime_type, int* flags);
-RASQAL_API RASQAL_DEPRECATED
-int rasqal_query_results_formats_check(const char *name, raptor_uri* uri, const char *mime_type);
+int rasqal_query_results_formats_enumerate(rasqal_world*, unsigned int counter, const char **name, const char **label, const unsigned char **uri_string, const char **mime_type, int* flags);
 RASQAL_API
-int rasqal_query_results_formats_check2(rasqal_world*, const char *name, raptor_uri* uri, const char *mime_type);
-RASQAL_API RASQAL_DEPRECATED
-rasqal_query_results_formatter* rasqal_new_query_results_formatter(const char *name, raptor_uri* format_uri);
+int rasqal_query_results_formats_check(rasqal_world*, const char *name, raptor_uri* uri, const char *mime_type);
 RASQAL_API
-rasqal_query_results_formatter* rasqal_new_query_results_formatter2(rasqal_world*, const char *name, raptor_uri* format_uri);
-RASQAL_API RASQAL_DEPRECATED
-rasqal_query_results_formatter* rasqal_new_query_results_formatter_by_mime_type(const char *mime_type);
+rasqal_query_results_formatter* rasqal_new_query_results_formatter(rasqal_world*, const char *name, raptor_uri* format_uri);
 RASQAL_API
-rasqal_query_results_formatter* rasqal_new_query_results_formatter_by_mime_type2(rasqal_world*, const char *mime_type);
+rasqal_query_results_formatter* rasqal_new_query_results_formatter_by_mime_type(rasqal_world*, const char *mime_type);
 RASQAL_API
 void rasqal_free_query_results_formatter(rasqal_query_results_formatter* formatter);
 RASQAL_API
@@ -1245,10 +1226,8 @@ typedef struct {
   
 
 /* set the triples_source_factory */
-RASQAL_API RASQAL_DEPRECATED
-void rasqal_set_triples_source_factory(void (*register_fn)(rasqal_triples_source_factory *factory), void* user_data);
 RASQAL_API
-void rasqal_set_triples_source_factory2(rasqal_world*, void (*register_fn)(rasqal_triples_source_factory *factory), void* user_data);
+void rasqal_set_triples_source_factory(rasqal_world*, void (*register_fn)(rasqal_triples_source_factory *factory), void* user_data);
 
 
 

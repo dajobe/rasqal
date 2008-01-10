@@ -468,33 +468,6 @@ rasqal_engine_assign_variables(rasqal_query* rq)
 
 /**
  * rasqal_set_triples_source_factory:
- * @register_fn: registration function
- * @user_data: user data for registration
- *
- * Register the factory to return triple sources.
- * 
- * Registers the factory that returns triples sources.  Note that
- * there is only one of these per runtime. 
- *
- * The rasqal_triples_source_factory factory method new_triples_source is
- * called with the user data for some query and rasqal_triples_source.
- *
- * @deprecated Use rasqal_set_triples_source_factory2().
- * 
- **/
-void
-rasqal_set_triples_source_factory(void (*register_fn)(rasqal_triples_source_factory *factory), void* user_data)
-{
-#ifndef NO_STATIC_DATA
-  rasqal_set_triples_source_factory2(rasqal_world_static, register_fn, user_data);
-#else
-  abort();
-#endif
-}
-
-
-/**
- * rasqal_set_triples_source_factory2:
  * @world: rasqal_world object
  * @register_fn: registration function
  * @user_data: user data for registration
@@ -507,11 +480,9 @@ rasqal_set_triples_source_factory(void (*register_fn)(rasqal_triples_source_fact
  * The rasqal_triples_source_factory factory method new_triples_source is
  * called with the user data for some query and rasqal_triples_source.
  *
- * @deprecated Use rasqal_set_triples_source_factory2().
- * 
  **/
 void
-rasqal_set_triples_source_factory2(rasqal_world* world, void (*register_fn)(rasqal_triples_source_factory *factory), void* user_data)
+rasqal_set_triples_source_factory(rasqal_world* world, void (*register_fn)(rasqal_triples_source_factory *factory), void* user_data)
 {
   world->triples_source_factory.user_data=user_data;
   register_fn(&world->triples_source_factory);

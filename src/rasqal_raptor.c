@@ -670,6 +670,6 @@ rasqal_raptor_init_triples_match(rasqal_triples_match* rtm,
 
 int
 rasqal_raptor_init(rasqal_world* world) {
-  rasqal_set_triples_source_factory2(world, rasqal_raptor_register_triples_source_factory, (void*)NULL);
+  rasqal_set_triples_source_factory(world, rasqal_raptor_register_triples_source_factory, (void*)NULL);
   return 0;
 }
