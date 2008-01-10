@@ -510,7 +510,7 @@ rasqal_xsd_datatype_check(rasqal_literal_type native_type,
   int checkidx=native_type-RASQAL_LITERAL_FIRST_XSD;
 
   /* test for index out of bounds and check function not defined */
-  if(checkidx < 0 || checkidx >= (int)sizeof(sparql_xsd_checkfns)/sizeof(*sparql_xsd_checkfns) ||
+  if(checkidx < 0 || checkidx >= (int)(sizeof(sparql_xsd_checkfns)/sizeof(*sparql_xsd_checkfns)) ||
      !sparql_xsd_checkfns[checkidx])
     return 1;
 
