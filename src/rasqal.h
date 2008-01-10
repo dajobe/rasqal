@@ -379,6 +379,9 @@ struct rasqal_literal_s {
 
   /* parent XSD type if any or RASQAL_LITERAL_UNKNOWN */
   rasqal_literal_type parent_type;
+
+  /* world object */
+  rasqal_world *world;
 };
 
 
@@ -887,7 +890,7 @@ void rasqal_free_query_results_formatter(rasqal_query_results_formatter* formatt
 RASQAL_API
 int rasqal_query_results_formatter_write(raptor_iostream *iostr, rasqal_query_results_formatter* formatter, rasqal_query_results* results, raptor_uri *base_uri);
 RASQAL_API
-int rasqal_query_results_formatter_read(raptor_iostream *iostr, rasqal_query_results_formatter* formatter, rasqal_query_results* results, raptor_uri *base_uri);
+int rasqal_query_results_formatter_read(rasqal_world*, raptor_iostream *iostr, rasqal_query_results_formatter* formatter, rasqal_query_results* results, raptor_uri *base_uri);
 RASQAL_API
 const char* rasqal_query_results_formatter_get_mime_type(rasqal_query_results_formatter *formatter);
 
@@ -985,31 +988,31 @@ int rasqal_expression_visit(rasqal_expression* e, rasqal_expression_visit_fn fn,
 
 /* Literal class */
 RASQAL_API
-rasqal_literal* rasqal_new_integer_literal(rasqal_literal_type type, int integer);
+rasqal_literal* rasqal_new_integer_literal(rasqal_world*, rasqal_literal_type type, int integer);
 RASQAL_API
-rasqal_literal* rasqal_new_typed_literal(rasqal_literal_type type, const unsigned char* string);
+rasqal_literal* rasqal_new_typed_literal(rasqal_world*, rasqal_literal_type type, const unsigned char* string);
 RASQAL_API RASQAL_DEPRECATED
 rasqal_literal* rasqal_new_floating_literal(double f);
 RASQAL_API
-rasqal_literal* rasqal_new_double_literal(double d);
+rasqal_literal* rasqal_new_double_literal(rasqal_world*, double d);
 RASQAL_API
-rasqal_literal* rasqal_new_float_literal(float f);
+rasqal_literal* rasqal_new_float_literal(rasqal_world*, float f);
 RASQAL_API
-rasqal_literal* rasqal_new_uri_literal(raptor_uri* uri);
+rasqal_literal* rasqal_new_uri_literal(rasqal_world*, raptor_uri* uri);
 RASQAL_API
-rasqal_literal* rasqal_new_pattern_literal(const unsigned char *pattern, const char *flags);
+rasqal_literal* rasqal_new_pattern_literal(rasqal_world*, const unsigned char *pattern, const char *flags);
 RASQAL_API
-rasqal_literal* rasqal_new_string_literal(const unsigned char *string, const char *language, raptor_uri *datatype, const unsigned char *datatype_qname);
+rasqal_literal* rasqal_new_string_literal(rasqal_world*, const unsigned char *string, const char *language, raptor_uri *datatype, const unsigned char *datatype_qname);
 RASQAL_API
-rasqal_literal* rasqal_new_simple_literal(rasqal_literal_type type, const unsigned char *string);
+rasqal_literal* rasqal_new_simple_literal(rasqal_world*, rasqal_literal_type type, const unsigned char *string);
 RASQAL_API
-rasqal_literal* rasqal_new_boolean_literal(int value);
+rasqal_literal* rasqal_new_boolean_literal(rasqal_world*, int value);
 RASQAL_API
-rasqal_literal* rasqal_new_variable_literal(rasqal_variable *variable);
+rasqal_literal* rasqal_new_variable_literal(rasqal_world*, rasqal_variable *variable);
 RASQAL_API
-rasqal_literal* rasqal_new_decimal_literal(const unsigned char *string);
+rasqal_literal* rasqal_new_decimal_literal(rasqal_world*, const unsigned char *string);
 RASQAL_API
-rasqal_literal* rasqal_new_decimal_literal_from_decimal(const unsigned char *string, rasqal_xsd_decimal* decimal);
+rasqal_literal* rasqal_new_decimal_literal_from_decimal(rasqal_world*, const unsigned char *string, rasqal_xsd_decimal* decimal);
 
 RASQAL_API
 rasqal_literal* rasqal_new_literal_from_literal(rasqal_literal* l);

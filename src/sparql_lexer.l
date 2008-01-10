@@ -369,7 +369,7 @@ EXPONENT [eE][+-]?[0-9]+
 
 
 [-+]?{INTEGER}   { c=*yytext;
-                  sparql_parser_lval->literal=rasqal_new_typed_literal(RASQAL_LITERAL_INTEGER, (const unsigned char*)yytext);
+                  sparql_parser_lval->literal=rasqal_new_typed_literal(rq->world, RASQAL_LITERAL_INTEGER, (const unsigned char*)yytext);
                   if(!sparql_parser_lval->literal)
                     SPARQL_LEXER_OOM();
  		  return (c=='+' ? INTEGER_POSITIVE_LITERAL : (c == '-' ? INTEGER_NEGATIVE_LITERAL : INTEGER_LITERAL));
@@ -382,7 +382,7 @@ EXPONENT [eE][+-]?[0-9]+
                           sparql_syntax_error(rq, "SPARQL syntax error - Illegal decimal constant %s", yytext);
                           yyterminate();
                         }
-                        sparql_parser_lval->literal=rasqal_new_decimal_literal((const unsigned char*)yytext);
+                        sparql_parser_lval->literal=rasqal_new_decimal_literal(rq->world, (const unsigned char*)yytext);
                         if(!sparql_parser_lval->literal)
                           SPARQL_LEXER_OOM();
                         return (c=='+' ? DECIMAL_POSITIVE_LITERAL : (c == '-' ? DECIMAL_NEGATIVE_LITERAL : DECIMAL_LITERAL));
@@ -394,7 +394,7 @@ EXPONENT [eE][+-]?[0-9]+
                           sparql_syntax_error(rq, "SPARQL syntax error - Illegal double constant %s", yytext);
                           yyterminate();
                         }
-                        sparql_parser_lval->literal=rasqal_new_typed_literal(RASQAL_LITERAL_DOUBLE, (const unsigned char*)yytext);
+                        sparql_parser_lval->literal=rasqal_new_typed_literal(rq->world, RASQAL_LITERAL_DOUBLE, (const unsigned char*)yytext);
                         if(!sparql_parser_lval->literal)
                           SPARQL_LEXER_OOM();
                         return (c=='+' ? DOUBLE_POSITIVE_LITERAL : (c == '-' ? DOUBLE_NEGATIVE_LITERAL : DOUBLE_LITERAL));
@@ -447,12 +447,12 @@ EXPONENT [eE][+-]?[0-9]+
                   yyterminate();  }
 
 
-[Tt][Rr][Uu][Ee]	{ sparql_parser_lval->literal=rasqal_new_boolean_literal(1);
+[Tt][Rr][Uu][Ee]	{ sparql_parser_lval->literal=rasqal_new_boolean_literal(rq->world, 1);
                     if(!sparql_parser_lval->literal)
                       SPARQL_LEXER_OOM();
                   return BOOLEAN_LITERAL; }
 
-[Ff][Aa][Ll][Ss][Ee]	{ sparql_parser_lval->literal=rasqal_new_boolean_literal(0);
+[Ff][Aa][Ll][Ss][Ee]	{ sparql_parser_lval->literal=rasqal_new_boolean_literal(rq->world, 0);
                         if(!sparql_parser_lval->literal)
                           SPARQL_LEXER_OOM();
                   return BOOLEAN_LITERAL; }
@@ -843,7 +843,7 @@ sparql_copy_string_token(rasqal_query* rq, YYSTYPE* lval,
           (dt_uri ? (const char*)raptor_uri_as_string(dt_uri) : ""));
 #endif
 
-  lval->literal=rasqal_new_string_literal(string, language, dt_uri, dt_qname);
+  lval->literal=rasqal_new_string_literal(rq->world, string, language, dt_uri, dt_qname);
   if(!lval->literal)
     return 1;
 

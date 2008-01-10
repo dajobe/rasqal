@@ -814,7 +814,7 @@ OrderCondition: ASC BrackettedExpression
 {
   rasqal_literal* l;
   rasqal_expression *e;
-  l=rasqal_new_variable_literal($1);
+  l=rasqal_new_variable_literal(((rasqal_query*)rq)->world, $1);
   if(!l)
     YYERROR_MSG("OrderCondition 4: cannot create lit");
   e=rasqal_new_literal_expression(l);
@@ -1755,7 +1755,7 @@ Verb: VarOrIRIref
     raptor_free_uri(uri);
     YYERROR_MSG("Verb 2: cannot create formula");
   }
-  $$->value=rasqal_new_uri_literal(uri);
+  $$->value=rasqal_new_uri_literal(((rasqal_query*)rq)->world, uri);
   if(!$$->value) {
     rasqal_free_formula($$);
     $$=NULL;
@@ -1802,7 +1802,7 @@ BlankNodePropertyList: '[' PropertyListNotEmpty ']'
     YYERROR_MSG("BlankNodeProperyList: cannot create bnodeid");
   }
 
-  $$->value=rasqal_new_simple_literal(RASQAL_LITERAL_BLANK, id);
+  $$->value=rasqal_new_simple_literal(((rasqal_query*)rq)->world, RASQAL_LITERAL_BLANK, id);
   if(!$$->value) {
     rasqal_free_formula($$);
     $$=NULL;
@@ -1874,15 +1874,15 @@ Collection: '(' GraphNodeListNotEmpty ')'
   if(!$$->triples)
     YYERR_MSG_GOTO(err_Collection, "Collection: cannot create sequence");
 
-  first_identifier=rasqal_new_uri_literal(raptor_uri_copy(rdf_query->world->rdf_first_uri));
+  first_identifier=rasqal_new_uri_literal(((rasqal_query*)rq)->world, raptor_uri_copy(rdf_query->world->rdf_first_uri));
   if(!first_identifier)
     YYERR_MSG_GOTO(err_Collection, "Collection: cannot first_identifier");
   
-  rest_identifier=rasqal_new_uri_literal(raptor_uri_copy(rdf_query->world->rdf_rest_uri));
+  rest_identifier=rasqal_new_uri_literal(((rasqal_query*)rq)->world, raptor_uri_copy(rdf_query->world->rdf_rest_uri));
   if(!rest_identifier)
     YYERR_MSG_GOTO(err_Collection, "Collection: cannot create rest_identifier");
   
-  object=rasqal_new_uri_literal(raptor_uri_copy(rdf_query->world->rdf_nil_uri));
+  object=rasqal_new_uri_literal(((rasqal_query*)rq)->world, raptor_uri_copy(rdf_query->world->rdf_nil_uri));
   if(!object)
     YYERR_MSG_GOTO(err_Collection, "Collection: cannot create nil object");
 
@@ -1895,7 +1895,7 @@ Collection: '(' GraphNodeListNotEmpty ')'
     if(!blank_id)
       YYERR_MSG_GOTO(err_Collection, "Collection: cannot create bnodeid");
 
-    blank=rasqal_new_simple_literal(RASQAL_LITERAL_BLANK, blank_id);
+    blank=rasqal_new_simple_literal(((rasqal_query*)rq)->world, RASQAL_LITERAL_BLANK, blank_id);
     if(!blank)
       YYERR_MSG_GOTO(err_Collection, "Collection: cannot create bnode");
 
@@ -2055,7 +2055,7 @@ VarOrTerm: Var
   $$=rasqal_new_formula();
   if(!$$)
     YYERROR_MSG("VarOrTerm 1: cannot create formula");
-  $$->value=rasqal_new_variable_literal($1);
+  $$->value=rasqal_new_variable_literal(((rasqal_query*)rq)->world, $1);
   if(!$$->value) {
     rasqal_free_formula($$);
     $$=NULL;
@@ -2077,7 +2077,7 @@ VarOrTerm: Var
 /* SPARQL Grammar: [43] VarOrIRIref */
 VarOrIRIref: Var
 {
-  $$=rasqal_new_variable_literal($1);
+  $$=rasqal_new_variable_literal(((rasqal_query*)rq)->world, $1);
   if(!$$)
     YYERROR_MSG("VarOrIRIref: cannot create literal");
 }
@@ -2133,7 +2133,7 @@ GraphTerm: IRIref
 }
 |  '(' ')'
 {
-  $$=rasqal_new_uri_literal(raptor_uri_copy(((rasqal_query*)rq)->world->rdf_nil_uri));
+  $$=rasqal_new_uri_literal(((rasqal_query*)rq)->world, raptor_uri_copy(((rasqal_query*)rq)->world->rdf_nil_uri));
   if(!$$)
     YYERROR_MSG("GraphTerm: cannot create literal");
 }
@@ -2339,7 +2339,7 @@ PrimaryExpression: BrackettedExpression
 }
 | Var
 {
-  rasqal_literal *l=rasqal_new_variable_literal($1);
+  rasqal_literal *l=rasqal_new_variable_literal(((rasqal_query*)rq)->world, $1);
   if(!l)
     YYERROR_MSG("PrimaryExpression 5: cannot create literal");
   $$=rasqal_new_literal_expression(l);
@@ -2386,7 +2386,7 @@ BuiltInCall: STR '(' Expression ')'
 {
   rasqal_literal *l;
   rasqal_expression *e;
-  l=rasqal_new_variable_literal($3);
+  l=rasqal_new_variable_literal(((rasqal_query*)rq)->world, $3);
   if(!l)
     YYERROR_MSG("BuiltInCall 5: cannot create literal");
   e=rasqal_new_literal_expression(l);
@@ -2449,13 +2449,13 @@ RegexExpression: REGEX '(' Expression ',' Expression ')'
 /* NEW Grammar Term made from SPARQL Grammar: [64] IRIref + '(' expanded */
 IRIrefBrace: URI_LITERAL_BRACE
 {
-  $$=rasqal_new_uri_literal($1);
+  $$=rasqal_new_uri_literal(((rasqal_query*)rq)->world, $1);
   if(!$$)
     YYERROR_MSG("IRIrefBrace 1: cannot create literal");
 }
 | QNAME_LITERAL_BRACE
 {
-  $$=rasqal_new_simple_literal(RASQAL_LITERAL_QNAME, $1);
+  $$=rasqal_new_simple_literal(((rasqal_query*)rq)->world, RASQAL_LITERAL_QNAME, $1);
   if(!$$)
     YYERROR_MSG("IRIrefBrace 2: cannot create literal");
   if(rasqal_literal_expand_qname((rasqal_query*)rq, $$)) {
@@ -2541,13 +2541,13 @@ NumericLiteralNegative: INTEGER_NEGATIVE_LITERAL
 /* SPARQL Grammar: [64] IRIref */
 IRIref: URI_LITERAL
 {
-  $$=rasqal_new_uri_literal($1);
+  $$=rasqal_new_uri_literal(((rasqal_query*)rq)->world, $1);
   if(!$$)
     YYERROR_MSG("IRIref 1: cannot create literal");
 }
 | QNAME_LITERAL
 {
-  $$=rasqal_new_simple_literal(RASQAL_LITERAL_QNAME, $1);
+  $$=rasqal_new_simple_literal(((rasqal_query*)rq)->world, RASQAL_LITERAL_QNAME, $1);
   if(!$$)
     YYERROR_MSG("IRIref 2: cannot create literal");
   if(rasqal_literal_expand_qname((rasqal_query*)rq, $$)) {
@@ -2566,7 +2566,7 @@ IRIref: URI_LITERAL
 /* SPARQL Grammar: [66] BlankNode */
 BlankNode: BLANK_LITERAL
 {
-  $$=rasqal_new_simple_literal(RASQAL_LITERAL_BLANK, $1);
+  $$=rasqal_new_simple_literal(((rasqal_query*)rq)->world, RASQAL_LITERAL_BLANK, $1);
   if(!$$)
     YYERROR_MSG("BlankNode 1: cannot create literal");
 } | '[' ']'
@@ -2574,7 +2574,7 @@ BlankNode: BLANK_LITERAL
   const unsigned char *id=rasqal_query_generate_bnodeid((rasqal_query*)rq, NULL);
   if(!id)
     YYERROR_MSG("BlankNode 2: cannot create bnodeid");
-  $$=rasqal_new_simple_literal(RASQAL_LITERAL_BLANK, id);
+  $$=rasqal_new_simple_literal(((rasqal_query*)rq)->world, RASQAL_LITERAL_BLANK, id);
   if(!$$)
     YYERROR_MSG("BlankNode 2: cannot create literal");
 }
@@ -2706,7 +2706,7 @@ sparql_query_error(rasqal_query *rq, const char *msg) {
 #endif
 
   rq->failed=1;
-  rasqal_log_error_simple(rq->world, RAPTOR_LOG_LEVEL_ERROR, &rq->locator,
+  rasqal_log_error_simple(((rasqal_query*)rq)->world, RAPTOR_LOG_LEVEL_ERROR, &rq->locator,
                           "%s", msg);
 }
 
@@ -2724,7 +2724,7 @@ sparql_query_error_full(rasqal_query *rq, const char *message, ...) {
   va_start(arguments, message);
 
   rq->failed=1;
-  rasqal_log_error_varargs(rq->world, RAPTOR_LOG_LEVEL_ERROR, &rq->locator,
+  rasqal_log_error_varargs(((rasqal_query*)rq)->world, RAPTOR_LOG_LEVEL_ERROR, &rq->locator,
                            message, arguments);
 
   va_end(arguments);
@@ -2744,7 +2744,7 @@ sparql_syntax_error(rasqal_query *rq, const char *message, ...)
 
   va_start(arguments, message);
   rq->failed=1;
-  rasqal_log_error_varargs(rq->world, RAPTOR_LOG_LEVEL_ERROR, &rq->locator,
+  rasqal_log_error_varargs(((rasqal_query*)rq)->world, RAPTOR_LOG_LEVEL_ERROR, &rq->locator,
                            message, arguments);
   va_end(arguments);
 
@@ -2764,7 +2764,7 @@ sparql_syntax_warning(rasqal_query *rq, const char *message, ...)
 #endif
 
   va_start(arguments, message);
-  rasqal_log_error_varargs(rq->world, RAPTOR_LOG_LEVEL_WARNING, &rq->locator,
+  rasqal_log_error_varargs(((rasqal_query*)rq)->world, RAPTOR_LOG_LEVEL_WARNING, &rq->locator,
                            message, arguments);
   va_end(arguments);
 

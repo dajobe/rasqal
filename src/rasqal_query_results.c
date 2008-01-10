@@ -1039,7 +1039,7 @@ rasqal_query_results_read(raptor_iostream *iostr,
   if(!formatter)
     return 1;
 
-  status=rasqal_query_results_formatter_read(iostr, formatter,
+  status=rasqal_query_results_formatter_read(results->query->world, iostr, formatter,
                                              results, base_uri);
 
   rasqal_free_query_results_formatter(formatter);

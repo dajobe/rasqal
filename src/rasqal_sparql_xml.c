@@ -45,7 +45,7 @@
 
 
 static int rasqal_query_results_write_sparql_xml(raptor_iostream *iostr, rasqal_query_results* results, raptor_uri *base_uri);
-static rasqal_rowsource* rasqal_query_results_get_rowsource_sparql_xml(raptor_iostream *iostr, raptor_uri *base_uri);
+static rasqal_rowsource* rasqal_query_results_get_rowsource_sparql_xml(rasqal_world *world, raptor_iostream *iostr, raptor_uri *base_uri);
 
 
 #if RASQAL_DEBUG > 1
@@ -479,6 +479,7 @@ typedef enum
 
 typedef struct 
 {
+  rasqal_world* world;
   rasqal_rowsource* rowsource;
   
   int failed;
@@ -723,7 +724,7 @@ rasqal_sparql_xml_sax2_end_element_handler(void *user_data,
           language_str=(char*)RASQAL_MALLOC(cstring, strlen(con->language)+1);
           strcpy(language_str, con->language);
         }
-        l=rasqal_new_string_literal_node(lvalue, language_str, datatype_uri);
+        l=rasqal_new_string_literal_node(con->world, lvalue, language_str, datatype_uri);
         rasqal_query_result_row_set_value_at(con->row, con->result_offset, l);
         RASQAL_DEBUG3("Saving row result %d string value at offset %d\n",
                       con->offset, con->result_offset);
@@ -736,7 +737,7 @@ rasqal_sparql_xml_sax2_end_element_handler(void *user_data,
         unsigned char* lvalue;
         lvalue=(unsigned char*)RASQAL_MALLOC(cstring, con->value_len+1);
         strncpy((char*)lvalue, con->value, con->value_len+1);
-        l=rasqal_new_simple_literal(RASQAL_LITERAL_BLANK, lvalue);
+        l=rasqal_new_simple_literal(con->world, RASQAL_LITERAL_BLANK, lvalue);
         rasqal_query_result_row_set_value_at(con->row, con->result_offset, l);
         RASQAL_DEBUG3("Saving row result %d bnode value at offset %d\n",
                       con->offset, con->result_offset);
@@ -746,7 +747,7 @@ rasqal_sparql_xml_sax2_end_element_handler(void *user_data,
     case STATE_uri:
       if(1) {
         raptor_uri* uri=raptor_new_uri((const unsigned char*)con->value);
-        rasqal_literal* l=rasqal_new_uri_literal(uri);
+        rasqal_literal* l=rasqal_new_uri_literal(con->world, uri);
         rasqal_query_result_row_set_value_at(con->row, con->result_offset, l);
         RASQAL_DEBUG3("Saving row result %d uri value at offset %d\n",
                       con->offset, con->result_offset);
@@ -902,6 +903,7 @@ static const rasqal_rowsource_handler rasqal_rowsource_sparql_xml_handler={
 
 /*
  * rasqal_query_results_getrowsource_sparql_xml:
+ * @world: rasqal world object
  * @iostr: #raptor_iostream to read the query results from
  * @base_uri: #raptor_uri base URI of the input format
  *
@@ -911,8 +913,9 @@ static const rasqal_rowsource_handler rasqal_rowsource_sparql_xml_handler={
  * Return value: a new rasqal_rowsource or NULL on failure
  **/
 static rasqal_rowsource*
-rasqal_query_results_get_rowsource_sparql_xml(raptor_iostream *iostr,
-                                               raptor_uri *base_uri)
+rasqal_query_results_get_rowsource_sparql_xml(rasqal_world *world,
+                                              raptor_iostream *iostr,
+                                              raptor_uri *base_uri)
 {
   rasqal_rowsource_sparql_xml_context* con;
   
@@ -920,6 +923,7 @@ rasqal_query_results_get_rowsource_sparql_xml(raptor_iostream *iostr,
   if(!con)
     return NULL;
 
+  con->world=world;
   con->base_uri=base_uri ? raptor_uri_copy(base_uri) : NULL;
   con->iostr=iostr;
 

@@ -635,7 +635,7 @@ int rasqal_rowsource_get_variable_offset_by_name(rasqal_rowsource *rowsource, co
 
 typedef int (*rasqal_query_results_formatter_func)(raptor_iostream *iostr, rasqal_query_results* results, raptor_uri *base_uri);
 
-typedef rasqal_rowsource* (*rasqal_query_results_get_rowsource_func)(raptor_iostream *iostr, raptor_uri *base_uri);
+typedef rasqal_rowsource* (*rasqal_query_results_get_rowsource_func)(rasqal_world*, raptor_iostream *iostr, raptor_uri *base_uri);
 
 
 typedef struct {
@@ -745,7 +745,7 @@ rasqal_literal* rasqal_engine_get_result_value(rasqal_query_results* query_resul
 int rasqal_engine_execute_next(rasqal_query_results* query_results);
 
 /* rasqal_expr.c */
-rasqal_literal* rasqal_new_string_literal_node(const unsigned char *string, const char *language, raptor_uri *datatype);
+rasqal_literal* rasqal_new_string_literal_node(rasqal_world*, const unsigned char *string, const char *language, raptor_uri *datatype);
 int rasqal_literal_as_boolean(rasqal_literal* literal, int* error);
 int rasqal_literal_as_integer(rasqal_literal* l, int* error);
 double rasqal_literal_as_floating(rasqal_literal* l, int* error);
@@ -817,7 +817,7 @@ typedef void (rasqal_kv_free_fn)(const void *key, const void *value);
 #define RASQAL_XSD_BOOLEAN_FALSE (const unsigned char*)"false"
 
 rasqal_literal* rasqal_literal_cast(rasqal_literal* l, raptor_uri* datatype, int flags,  int* error_p);
-rasqal_literal* rasqal_new_numeric_literal(double d, rasqal_literal_type type);
+rasqal_literal* rasqal_new_numeric_literal(rasqal_world*, double d, rasqal_literal_type type);
 int rasqal_literal_is_numeric(rasqal_literal* literal);
 rasqal_literal* rasqal_literal_add(rasqal_literal* l1, rasqal_literal* l2, int *error);
 rasqal_literal* rasqal_literal_subtract(rasqal_literal* l1, rasqal_literal* l2, int *error);

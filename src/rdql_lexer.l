@@ -228,7 +228,7 @@ QUOTEDURI \<[A-Za-z][^>]+\>
 [0-9]+["lL"]?   { c=yytext[yyleng-1];
                   if (c== 'l' || c == 'L')
                     yytext[yyleng-1]='\0';
-                  rdql_parser_lval->literal=rasqal_new_integer_literal(RASQAL_LITERAL_INTEGER, atoi(yytext));
+                  rdql_parser_lval->literal=rasqal_new_integer_literal(rq->world, RASQAL_LITERAL_INTEGER, atoi(yytext));
  		  return INTEGER_LITERAL; 
 }
 
@@ -244,12 +244,12 @@ QUOTEDURI \<[A-Za-z][^>]+\>
                                           yytext[0], yytext[1], yytext[2]);
                         yyterminate();
                       }
-                      rdql_parser_lval->literal=rasqal_new_integer_literal(RASQAL_LITERAL_INTEGER, i);
+                      rdql_parser_lval->literal=rasqal_new_integer_literal(rq->world, RASQAL_LITERAL_INTEGER, i);
                       return INTEGER_LITERAL; 
 }
 
 [0-9]+"."[0-9]*[eE][+-]?[0-9]+[fFdD]?|"."[0-9]+[eE][+-]?[0-9]+[fFdD]?|[0-9]+[eE][+-]?[0-9]+[fFdD]?|[0-9]+[eE][+-]?[0-9]+[fFdD]?|[0-9]+"."[0-9]*  { 
-                        rdql_parser_lval->literal=rasqal_new_typed_literal(RASQAL_LITERAL_DOUBLE, (const unsigned char*)yytext);
+                        rdql_parser_lval->literal=rasqal_new_typed_literal(rq->world, RASQAL_LITERAL_DOUBLE, (const unsigned char*)yytext);
                         if(!rdql_parser_lval->literal)
                           yyterminate();
                         return FLOATING_POINT_LITERAL;
@@ -269,7 +269,7 @@ QUOTEDURI \<[A-Za-z][^>]+\>
 		        yyterminate();
 }
 
-"true"|"false"	{ rdql_parser_lval->literal=rasqal_new_boolean_literal(*yytext== 't');
+"true"|"false"	{ rdql_parser_lval->literal=rasqal_new_boolean_literal(rq->world, *yytext== 't');
                   return BOOLEAN_LITERAL; }
 
 "null"	{ rdql_parser_lval->literal=NULL;
@@ -441,7 +441,7 @@ rdql_copy_regex_token(rasqal_query* rq, YYSTYPE* lval, unsigned char delim) {
   if(flags)
     flags[ind]='\0';
 
-  lval->literal=rasqal_new_pattern_literal(buffer, (const char*)flags);
+  lval->literal=rasqal_new_pattern_literal(rq->world, buffer, (const char*)flags);
   return 0;
 }
 
@@ -572,7 +572,7 @@ rdql_copy_string_token(rasqal_query* rq, YYSTYPE* lval,
           (dt_qname ? (const char*)dt_qname : ""));
 #endif
 
-  lval->literal=rasqal_new_string_literal(string, language, dt_uri, dt_qname);
+  lval->literal=rasqal_new_string_literal(rq->world, string, language, dt_uri, dt_qname);
 
   return 0;
 }

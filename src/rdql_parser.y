@@ -503,7 +503,7 @@ UnaryExpressionNotPlusMinus : '~' UnaryExpression
 }
 | Var
 {
-  rasqal_literal *l=rasqal_new_variable_literal($1);
+  rasqal_literal *l=rasqal_new_variable_literal(((rasqal_query*)rq)->world, $1);
   $$=rasqal_new_literal_expression(l);
 }
 | Literal
@@ -518,21 +518,21 @@ UnaryExpressionNotPlusMinus : '~' UnaryExpression
 
 VarOrURI : Var
 {
-  $$=rasqal_new_variable_literal($1);
+  $$=rasqal_new_variable_literal(((rasqal_query*)rq)->world, $1);
 }
 | URI_LITERAL
 {
-  $$=rasqal_new_uri_literal($1);
+  $$=rasqal_new_uri_literal(((rasqal_query*)rq)->world, $1);
 }
 | QNAME_LITERAL
 {
-  $$=rasqal_new_simple_literal(RASQAL_LITERAL_QNAME, $1);
+  $$=rasqal_new_simple_literal(((rasqal_query*)rq)->world, RASQAL_LITERAL_QNAME, $1);
 }
 ;
 
 VarOrLiteral : Var
 {
-  $$=rasqal_new_variable_literal($1);
+  $$=rasqal_new_variable_literal(((rasqal_query*)rq)->world, $1);
 }
 | Literal
 {
@@ -554,7 +554,7 @@ PatternLiteral: PATTERN_LITERAL
 
 Literal : URI_LITERAL
 {
-  $$=rasqal_new_uri_literal($1);
+  $$=rasqal_new_uri_literal(((rasqal_query*)rq)->world, $1);
 }
 | INTEGER_LITERAL
 {
@@ -577,7 +577,7 @@ Literal : URI_LITERAL
   $$=$1;
 } | QNAME_LITERAL
 {
-  $$=rasqal_new_simple_literal(RASQAL_LITERAL_QNAME, $1);
+  $$=rasqal_new_simple_literal(((rasqal_query*)rq)->world, RASQAL_LITERAL_QNAME, $1);
 }
 
 ;

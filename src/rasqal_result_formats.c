@@ -747,6 +747,7 @@ rasqal_query_results_formatter_write(raptor_iostream *iostr,
 
 /**
  * rasqal_query_results_formatter_read:
+ * @world: rasqal world object
  * @iostr: #raptor_iostream to read the query from
  * @formatter: #rasqal_query_results_formatter object
  * @results: #rasqal_query_results query results format
@@ -760,7 +761,8 @@ rasqal_query_results_formatter_write(raptor_iostream *iostr,
  * Return value: non-0 on failure
  **/
 int
-rasqal_query_results_formatter_read(raptor_iostream *iostr,
+rasqal_query_results_formatter_read(rasqal_world *world,
+                                    raptor_iostream *iostr,
                                     rasqal_query_results_formatter* formatter,
                                     rasqal_query_results* results,
                                     raptor_uri *base_uri)
@@ -773,7 +775,7 @@ rasqal_query_results_formatter_read(raptor_iostream *iostr,
   if(!formatter->factory->get_rowsource)
     return 1;
   
-  rowsource=formatter->factory->get_rowsource(iostr, base_uri);
+  rowsource=formatter->factory->get_rowsource(world, iostr, base_uri);
   if(!rowsource)
     return 1;
 

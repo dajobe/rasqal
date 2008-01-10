@@ -58,6 +58,7 @@ static int rasqal_literal_set_typed_value(rasqal_literal* l, rasqal_literal_type
 
 /**
  * rasqal_new_integer_literal:
+ * @world: rasqal world object
  * @type: Type of literal such as RASQAL_LITERAL_INTEGER or RASQAL_LITERAL_BOOLEAN
  * @integer: int value
  *
@@ -69,12 +70,13 @@ static int rasqal_literal_set_typed_value(rasqal_literal* l, rasqal_literal_type
  * Return value: New #rasqal_literal or NULL on failure
  **/
 rasqal_literal*
-rasqal_new_integer_literal(rasqal_literal_type type, int integer)
+rasqal_new_integer_literal(rasqal_world* world, rasqal_literal_type type, int integer)
 {
   raptor_uri* dt_uri;
   rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(rasqal_literal));
   if(l) {
     l->usage=1;
+    l->world=world;
     l->type=type;
     l->value.integer=integer;
     l->string=(unsigned char*)RASQAL_MALLOC(cstring, 30); /* FIXME */
@@ -99,6 +101,7 @@ rasqal_new_integer_literal(rasqal_literal_type type, int integer)
 
 /**
  * rasqal_new_typed_literal:
+ * @world: rasqal world object
  * @type: Type of literal such as RASQAL_LITERAL_INTEGER or RASQAL_LITERAL_BOOLEAN
  * @string: lexical form - ownership not taken
  *
@@ -110,7 +113,7 @@ rasqal_new_integer_literal(rasqal_literal_type type, int integer)
  * Return value: New #rasqal_literal or NULL on failure
  **/
 rasqal_literal*
-rasqal_new_typed_literal(rasqal_literal_type type, const unsigned char* string)
+rasqal_new_typed_literal(rasqal_world* world, rasqal_literal_type type, const unsigned char* string)
 {
   rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1,
                                                    sizeof(rasqal_literal));
@@ -118,6 +121,7 @@ rasqal_new_typed_literal(rasqal_literal_type type, const unsigned char* string)
     return NULL;
 
   l->usage=1;
+  l->world=world;
   l->type=type;
   if(rasqal_literal_set_typed_value(l, type, string, NULL, NULL, 0)) {
     rasqal_free_literal(l);
@@ -130,6 +134,7 @@ rasqal_new_typed_literal(rasqal_literal_type type, const unsigned char* string)
 
 /**
  * rasqal_new_double_literal:
+ * @world: rasqal world object
  * @d: double literal
  *
  * Constructor - Create a new Rasqal double literal.
@@ -137,12 +142,13 @@ rasqal_new_typed_literal(rasqal_literal_type type, const unsigned char* string)
  * Return value: New #rasqal_literal or NULL on failure
  **/
 rasqal_literal*
-rasqal_new_double_literal(double d)
+rasqal_new_double_literal(rasqal_world*world, double d)
 {
   raptor_uri* dt_uri;
   rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(rasqal_literal));
   if(l) {
     l->usage=1;
+    l->world=world;
     l->type=RASQAL_LITERAL_DOUBLE;
     l->value.floating=d;
     l->string=rasqal_xsd_format_double(d, (size_t*)&l->string_len);
@@ -174,12 +180,14 @@ rasqal_new_double_literal(double d)
 rasqal_literal*
 rasqal_new_floating_literal(double f)
 {
-  return rasqal_new_double_literal(f);
+  /*return rasqal_new_double_literal(f);*/
+  return NULL;
 }
 
 
 /**
  * rasqal_new_float_literal:
+ * @world: rasqal world object
  * @f:  float literal
  * 
  * Constructor - Create a new Rasqal float literal.
@@ -187,12 +195,13 @@ rasqal_new_floating_literal(double f)
  * Return value: New #rasqal_literal or NULL on failure
  **/
 rasqal_literal*
-rasqal_new_float_literal(float f)
+rasqal_new_float_literal(rasqal_world *world, float f)
 {
   raptor_uri* dt_uri;
   rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(rasqal_literal));
   if(l) {
     l->usage=1;
+    l->world=world;
     l->type=RASQAL_LITERAL_FLOAT;
     l->value.floating=(double)f;
     l->string=(unsigned char*)RASQAL_MALLOC(cstring, 30); /* FIXME */
@@ -215,6 +224,7 @@ rasqal_new_float_literal(float f)
 
 /**
  * rasqal_new_uri_literal:
+ * @world: rasqal world object
  * @uri: #raptor_uri uri
  *
  * Constructor - Create a new Rasqal URI literal from a raptor URI.
@@ -225,13 +235,14 @@ rasqal_new_float_literal(float f)
  * Return value: New #rasqal_literal or NULL on failure
  **/
 rasqal_literal*
-rasqal_new_uri_literal(raptor_uri *uri)
+rasqal_new_uri_literal(rasqal_world* world, raptor_uri *uri)
 {
   rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(rasqal_literal));
   if(l) {
+    l->usage=1;
+    l->world=world;
     l->type=RASQAL_LITERAL_URI;
     l->value.uri=uri;
-    l->usage=1;
   } else {
     raptor_free_uri(uri);
   }
@@ -241,6 +252,7 @@ rasqal_new_uri_literal(raptor_uri *uri)
 
 /**
  * rasqal_new_pattern_literal:
+ * @world: rasqal world object
  * @pattern: regex pattern
  * @flags: regex flags
  *
@@ -254,16 +266,18 @@ rasqal_new_uri_literal(raptor_uri *uri)
  * Return value: New #rasqal_literal or NULL on failure
  **/
 rasqal_literal*
-rasqal_new_pattern_literal(const unsigned char *pattern, 
+rasqal_new_pattern_literal(rasqal_world* world,
+                           const unsigned char *pattern, 
                            const char *flags)
 {
   rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(rasqal_literal));
   if(l) {
+    l->usage=1;
+    l->world=world;
     l->type=RASQAL_LITERAL_PATTERN;
     l->string=pattern;
     l->string_len=strlen((const char*)pattern);
     l->flags=(const unsigned char*)flags;
-    l->usage=1;
   } else {
     if(flags)
       RASQAL_FREE(cstring, (void*)flags);
@@ -275,6 +289,7 @@ rasqal_new_pattern_literal(const unsigned char *pattern,
 
 /**
  * rasqal_new_decimal_literal:
+ * @world: rasqal world object
  * @string: decimal literal
  *
  * Constructor - Create a new Rasqal decimal literal.
@@ -282,14 +297,15 @@ rasqal_new_pattern_literal(const unsigned char *pattern,
  * Return value: New #rasqal_literal or NULL on failure
  **/
 rasqal_literal*
-rasqal_new_decimal_literal(const unsigned char *string)
+rasqal_new_decimal_literal(rasqal_world* world, const unsigned char *string)
 {
-  return rasqal_new_decimal_literal_from_decimal(string, NULL);
+  return rasqal_new_decimal_literal_from_decimal(world, string, NULL);
 }
 
 
 /**
  * rasqal_new_decimal_literal_from_decimal:
+ * @world: rasqal world object
  * @string: decimal literal string
  * @decimal: rasqal XSD Decimal
  *
@@ -298,7 +314,8 @@ rasqal_new_decimal_literal(const unsigned char *string)
  * Return value: New #rasqal_literal or NULL on failure
  **/
 rasqal_literal*
-rasqal_new_decimal_literal_from_decimal(const unsigned char *string,
+rasqal_new_decimal_literal_from_decimal(rasqal_world* world,
+                                        const unsigned char *string,
                                         rasqal_xsd_decimal* decimal)
 {
   rasqal_literal* l;
@@ -309,6 +326,7 @@ rasqal_new_decimal_literal_from_decimal(const unsigned char *string,
     return NULL;
   
   l->usage=1;
+  l->world=world;
   l->type=RASQAL_LITERAL_DECIMAL;
   if(string) {
     if(rasqal_literal_set_typed_value(l, l->type, string, NULL, NULL, 0)) {
@@ -343,6 +361,7 @@ rasqal_new_decimal_literal_from_decimal(const unsigned char *string,
 
 /**
  * rasqal_new_numeric_literal:
+ * @world: rasqal world object
  * @double: double
  * @type: datatype
  *
@@ -351,26 +370,26 @@ rasqal_new_decimal_literal_from_decimal(const unsigned char *string,
  * Return value: new literal or NULL on failure
  **/
 rasqal_literal*
-rasqal_new_numeric_literal(double d, rasqal_literal_type type)
+rasqal_new_numeric_literal(rasqal_world* world, double d, rasqal_literal_type type)
 {
   char buffer[30];
   
   switch(type) {
     case RASQAL_LITERAL_INTEGER:
-      return rasqal_new_integer_literal(type, (int)d);
+      return rasqal_new_integer_literal(world, type, (int)d);
       break;
 
     case RASQAL_LITERAL_DOUBLE:
-      return rasqal_new_double_literal(d);
+      return rasqal_new_double_literal(world, d);
       break;
 
     case RASQAL_LITERAL_FLOAT:
-      return rasqal_new_float_literal(d);
+      return rasqal_new_float_literal(world, d);
       break;
 
     case RASQAL_LITERAL_DECIMAL:
       sprintf(buffer, "%g", d);
-      return rasqal_new_decimal_literal((unsigned char*)buffer);
+      return rasqal_new_decimal_literal(world, (unsigned char*)buffer);
       break;
 
     case RASQAL_LITERAL_BOOLEAN:
@@ -586,6 +605,7 @@ rasqal_literal_string_to_native(rasqal_literal *l,
 
 /*
  * rasqal_new_string_literal_common:
+ * @world: rasqal world object
  * @string: UTF-8 string lexical form
  * @language: RDF language (xml:lang) (or NULL)
  * @datatype: datatype URI (or NULL for plain literal)
@@ -608,7 +628,8 @@ rasqal_literal_string_to_native(rasqal_literal *l,
  * Return value: New #rasqal_literal or NULL on failure
  **/
 static rasqal_literal*
-rasqal_new_string_literal_common(const unsigned char *string,
+rasqal_new_string_literal_common(rasqal_world* world,
+                                 const unsigned char *string,
                                  const char *language,
                                  raptor_uri *datatype, 
                                  const unsigned char *datatype_qname,
@@ -617,6 +638,7 @@ rasqal_new_string_literal_common(const unsigned char *string,
   rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(rasqal_literal));
   if(l) {
     l->usage=1;
+    l->world=world;
 
     if(datatype && language) {
       /* RDF typed literal but this is not allowed so delete language */
@@ -655,6 +677,7 @@ rasqal_new_string_literal_common(const unsigned char *string,
 
 /**
  * rasqal_new_string_literal:
+ * @world: rasqal world object
  * @string: UTF-8 string lexical form
  * @language: RDF language (xml:lang) (or NULL)
  * @datatype: datatype URI (or NULL for plain literal)
@@ -676,25 +699,27 @@ rasqal_new_string_literal_common(const unsigned char *string,
  * Return value: New #rasqal_literal or NULL on failure
  **/
 rasqal_literal*
-rasqal_new_string_literal(const unsigned char *string,
+rasqal_new_string_literal(rasqal_world* world,
+                          const unsigned char *string,
                           const char *language,
                           raptor_uri *datatype, 
                           const unsigned char *datatype_qname)
 {
-  return rasqal_new_string_literal_common(string, language, datatype, 
+  return rasqal_new_string_literal_common(world, string, language, datatype, 
                                           datatype_qname, 1);
 }
 
 rasqal_literal*
-rasqal_new_string_literal_node(const unsigned char *string,
+rasqal_new_string_literal_node(rasqal_world* world, const unsigned char *string,
                                const char *language, raptor_uri *datatype)
 {
-  return rasqal_new_string_literal_common(string, language, datatype, NULL, 0);
+  return rasqal_new_string_literal_common(world, string, language, datatype, NULL, 0);
 }
 
 
 /**
  * rasqal_new_simple_literal:
+ * @world: rasqal world object
  * @type: RASQAL_LITERAL_BLANK or RASQAL_LITERAL_BLANK_QNAME
  * @string: the UTF-8 string value to store
  *
@@ -706,15 +731,17 @@ rasqal_new_string_literal_node(const unsigned char *string,
  * Return value: New #rasqal_literal or NULL on failure
  **/
 rasqal_literal*
-rasqal_new_simple_literal(rasqal_literal_type type, 
+rasqal_new_simple_literal(rasqal_world* world,
+                          rasqal_literal_type type, 
                           const unsigned char *string)
 {
   rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(rasqal_literal));
   if(l) {
+    l->usage=1;
+    l->world=world;
     l->type=type;
     l->string=string;
     l->string_len=strlen((const char*)string);
-    l->usage=1;
   } else {
     RASQAL_FREE(cstring, (void*)string);
   }
@@ -724,6 +751,7 @@ rasqal_new_simple_literal(rasqal_literal_type type,
 
 /**
  * rasqal_new_boolean_literal:
+ * @world: rasqal world object
  * @value: non-0 for true, 0 for false
  *
  * Constructor - Create a new Rasqal boolean literal.
@@ -731,12 +759,13 @@ rasqal_new_simple_literal(rasqal_literal_type type,
  * Return value: New #rasqal_literal or NULL on failure
  **/
 rasqal_literal*
-rasqal_new_boolean_literal(int value)
+rasqal_new_boolean_literal(rasqal_world* world, int value)
 {
   raptor_uri* dt_uri;
   rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(rasqal_literal));
   if(l) {
     l->usage=1;
+    l->world=world;
     l->type=RASQAL_LITERAL_BOOLEAN;
     l->value.integer=value;
     l->string=value ? RASQAL_XSD_BOOLEAN_TRUE : RASQAL_XSD_BOOLEAN_FALSE;
@@ -754,6 +783,7 @@ rasqal_new_boolean_literal(int value)
 
 /**
  * rasqal_new_variable_literal:
+ * @world: rasqal_world object
  * @variable: #rasqal_variable to use
  *
  * Constructor - Create a new Rasqal variable literal.
@@ -763,13 +793,14 @@ rasqal_new_boolean_literal(int value)
  * Return value: New #rasqal_literal or NULL on failure
  **/
 rasqal_literal*
-rasqal_new_variable_literal(rasqal_variable *variable)
+rasqal_new_variable_literal(rasqal_world* world, rasqal_variable *variable)
 {
   rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(rasqal_literal));
   if(l) {
+    l->usage=1;
+    l->world=world;
     l->type=RASQAL_LITERAL_VARIABLE;
     l->value.variable=variable;
-    l->usage=1;
   }
 
   /* Do not rasqal_free_variable(variable) on error since
@@ -1437,7 +1468,7 @@ rasqal_new_literal_from_promotion(rasqal_literal* lit,
       new_s=(unsigned char*)RASQAL_MALLOC(sstring, len+1);
       if(new_s) {
         strncpy((char*)new_s, (const char*)s, len+1);
-        return rasqal_new_string_literal(new_s, NULL, NULL, NULL);
+        return rasqal_new_string_literal(lit->world, new_s, NULL, NULL, NULL);
       } else
         return NULL;
     }
@@ -1446,7 +1477,7 @@ rasqal_new_literal_from_promotion(rasqal_literal* lit,
     
   switch(type) {
     case RASQAL_LITERAL_DECIMAL:
-      new_lit=rasqal_new_decimal_literal(rasqal_literal_as_string(lit));
+      new_lit=rasqal_new_decimal_literal(lit->world, rasqal_literal_as_string(lit));
       break;
       
     case RASQAL_LITERAL_DOUBLE:
@@ -1455,7 +1486,7 @@ rasqal_new_literal_from_promotion(rasqal_literal* lit,
       if(errori)
         new_lit=NULL;
       else
-        new_lit=rasqal_new_double_literal(d);
+        new_lit=rasqal_new_double_literal(lit->world, d);
       break;
       
     case RASQAL_LITERAL_FLOAT:
@@ -1464,7 +1495,7 @@ rasqal_new_literal_from_promotion(rasqal_literal* lit,
       if(errori)
         new_lit=NULL;
       else
-        new_lit=rasqal_new_float_literal(d);
+        new_lit=rasqal_new_float_literal(lit->world, d);
       break;
       
 
@@ -1475,7 +1506,7 @@ rasqal_new_literal_from_promotion(rasqal_literal* lit,
       if(errori)
         new_lit=NULL;
       else
-        new_lit=rasqal_new_integer_literal(type, i);
+        new_lit=rasqal_new_integer_literal(lit->world, type, i);
       break;
     
     case RASQAL_LITERAL_STRING:
@@ -1484,7 +1515,7 @@ rasqal_new_literal_from_promotion(rasqal_literal* lit,
       new_s=(unsigned char*)RASQAL_MALLOC(sstring, len+1);
       if(new_s) {
         strncpy((char*)new_s, (const char*)s, len+1);
-        new_lit=rasqal_new_string_literal(new_s, NULL, NULL, NULL);
+        new_lit=rasqal_new_string_literal(lit->world, new_s, NULL, NULL, NULL);
       }
       break;
 
@@ -2194,6 +2225,7 @@ rasqal_literal_as_node(rasqal_literal* l)
       new_l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(rasqal_literal));
       if(new_l) {
         new_l->usage=1;
+        new_l->world=l->world;
         new_l->type=RASQAL_LITERAL_STRING;
         new_l->string_len=l->string_len;
         new_l->string=(unsigned char*)RASQAL_MALLOC(cstring, l->string_len+1);
@@ -2513,7 +2545,7 @@ rasqal_literal_cast(rasqal_literal* l, raptor_uri* to_datatype, int flags,
   strcpy((char*)new_string, (const char*)string);
   to_datatype=raptor_uri_copy(to_datatype);
   
-  result=rasqal_new_string_literal(new_string, NULL, to_datatype, NULL);
+  result=rasqal_new_string_literal(l->world, new_string, NULL, to_datatype, NULL);
   if(!result)
     *error_p=1;
   return result;
@@ -2573,7 +2605,7 @@ rasqal_literal_add(rasqal_literal* l1, rasqal_literal* l2, int *error_p)
       if(error)
         break;
 
-      result=rasqal_new_integer_literal(RASQAL_LITERAL_INTEGER, i);
+      result=rasqal_new_integer_literal(l1->world, RASQAL_LITERAL_INTEGER, i);
       break;
       
     case RASQAL_LITERAL_FLOAT:
@@ -2585,7 +2617,7 @@ rasqal_literal_add(rasqal_literal* l1, rasqal_literal* l2, int *error_p)
       if(error)
         break;
 
-      result=rasqal_new_numeric_literal(d, type);
+      result=rasqal_new_numeric_literal(l1->world, d, type);
       break;
       
     case RASQAL_LITERAL_DECIMAL:
@@ -2599,7 +2631,7 @@ rasqal_literal_add(rasqal_literal* l1, rasqal_literal* l2, int *error_p)
           error=1;
           rasqal_free_xsd_decimal(dec);
         } else
-          result=rasqal_new_decimal_literal_from_decimal(NULL, dec);
+          result=rasqal_new_decimal_literal_from_decimal(l1->world, NULL, dec);
       }
       break;
       
@@ -2654,7 +2686,7 @@ rasqal_literal_subtract(rasqal_literal* l1, rasqal_literal* l2, int *error_p)
       if(error)
         break;
 
-      result=rasqal_new_integer_literal(RASQAL_LITERAL_INTEGER, i);
+      result=rasqal_new_integer_literal(l1->world, RASQAL_LITERAL_INTEGER, i);
       break;
       
     case RASQAL_LITERAL_FLOAT:
@@ -2666,7 +2698,7 @@ rasqal_literal_subtract(rasqal_literal* l1, rasqal_literal* l2, int *error_p)
       if(error)
         break;
 
-      result=rasqal_new_numeric_literal(d, type);
+      result=rasqal_new_numeric_literal(l1->world, d, type);
       break;
       
     case RASQAL_LITERAL_DECIMAL:
@@ -2676,11 +2708,11 @@ rasqal_literal_subtract(rasqal_literal* l1, rasqal_literal* l2, int *error_p)
       if(l1_p && l2_p) {
         dec=rasqal_new_xsd_decimal();
         if(rasqal_xsd_decimal_subtract(dec, l1_p->value.decimal,
-                                  l2_p->value.decimal)) {
+                                       l2_p->value.decimal)) {
           error=1;
           rasqal_free_xsd_decimal(dec);
         } else
-          result=rasqal_new_decimal_literal_from_decimal(NULL, dec);
+          result=rasqal_new_decimal_literal_from_decimal(l1->world, NULL, dec);
       }
       break;
       
@@ -2735,7 +2767,7 @@ rasqal_literal_multiply(rasqal_literal* l1, rasqal_literal* l2, int *error_p)
       if(error)
         break;
 
-      result=rasqal_new_integer_literal(RASQAL_LITERAL_INTEGER, i);
+      result=rasqal_new_integer_literal(l1->world, RASQAL_LITERAL_INTEGER, i);
       break;
       
     case RASQAL_LITERAL_FLOAT:
@@ -2747,7 +2779,7 @@ rasqal_literal_multiply(rasqal_literal* l1, rasqal_literal* l2, int *error_p)
       if(error)
         break;
 
-      result=rasqal_new_numeric_literal(d, type);
+      result=rasqal_new_numeric_literal(l1->world, d, type);
       break;
       
     case RASQAL_LITERAL_DECIMAL:
@@ -2761,7 +2793,7 @@ rasqal_literal_multiply(rasqal_literal* l1, rasqal_literal* l2, int *error_p)
           error=1;
           rasqal_free_xsd_decimal(dec);
         } else
-          result=rasqal_new_decimal_literal_from_decimal(NULL, dec);
+          result=rasqal_new_decimal_literal_from_decimal(l1->world, NULL, dec);
       }
       break;
       
@@ -2821,7 +2853,7 @@ rasqal_literal_divide(rasqal_literal* l1, rasqal_literal* l2, int *error_p)
       if(error)
         break;
 
-      result=rasqal_new_integer_literal(RASQAL_LITERAL_INTEGER, i1);
+      result=rasqal_new_integer_literal(l1->world, RASQAL_LITERAL_INTEGER, i1);
       break;
       
     case RASQAL_LITERAL_FLOAT:
@@ -2838,7 +2870,7 @@ rasqal_literal_divide(rasqal_literal* l1, rasqal_literal* l2, int *error_p)
       if(error)
         break;
 
-      result=rasqal_new_numeric_literal(d1, type);
+      result=rasqal_new_numeric_literal(l1->world, d1, type);
       break;
       
     case RASQAL_LITERAL_DECIMAL:
@@ -2852,7 +2884,7 @@ rasqal_literal_divide(rasqal_literal* l1, rasqal_literal* l2, int *error_p)
           error=1;
           rasqal_free_xsd_decimal(dec);
         } else
-          result=rasqal_new_decimal_literal_from_decimal(NULL, dec);
+          result=rasqal_new_decimal_literal_from_decimal(l1->world, NULL, dec);
       }
       break;
       
@@ -2899,7 +2931,7 @@ rasqal_literal_negate(rasqal_literal* l, int *error_p)
       if(error)
         break;
       i= -i;
-      result=rasqal_new_integer_literal(RASQAL_LITERAL_INTEGER, i);
+      result=rasqal_new_integer_literal(l->world, RASQAL_LITERAL_INTEGER, i);
       break;
       
     case RASQAL_LITERAL_FLOAT:
@@ -2908,7 +2940,7 @@ rasqal_literal_negate(rasqal_literal* l, int *error_p)
       if(!d)
         error=1;
       d= -d;
-      result=rasqal_new_numeric_literal(d, l->type);
+      result=rasqal_new_numeric_literal(l->world, d, l->type);
       break;
       
     case RASQAL_LITERAL_DECIMAL:
@@ -2917,7 +2949,7 @@ rasqal_literal_negate(rasqal_literal* l, int *error_p)
         error=1;
         rasqal_free_xsd_decimal(dec);
       } else
-        result=rasqal_new_decimal_literal_from_decimal(NULL, dec);
+        result=rasqal_new_decimal_literal_from_decimal(l->world, NULL, dec);
       break;
       
     case RASQAL_LITERAL_UNKNOWN:
