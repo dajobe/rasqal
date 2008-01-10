@@ -383,30 +383,27 @@ static int (*const sparql_xsd_checkfns[RASQAL_LITERAL_LAST_XSD-RASQAL_LITERAL_FI
   rasqal_xsd_check_dateTime_format /* RASQAL_LITERAL_DATETIME */
 };
 
-
-static rasqal_xsd_datatype_info* sparql_xsd_datatypes_table=NULL;
-
-static raptor_uri* rasqal_xsd_namespace_uri=NULL;
-
 int
 rasqal_xsd_init(rasqal_world* world) 
 {
   int i;
 
-  rasqal_xsd_namespace_uri=raptor_new_uri(raptor_xmlschema_datatypes_namespace_uri);
-  if(!rasqal_xsd_namespace_uri)
+  world->xsd_namespace_uri=raptor_new_uri(raptor_xmlschema_datatypes_namespace_uri);
+  if(!world->xsd_namespace_uri)
     return 1;
 
-  sparql_xsd_datatypes_table=
-    (rasqal_xsd_datatype_info*)RASQAL_CALLOC(rasqal_xsd_datatype_info,
-                                             SPARQL_XSD_NAMES_COUNT+1,
-                                             sizeof(rasqal_xsd_datatype_info));
-  if(!sparql_xsd_datatypes_table)
+  world->xsd_datatype_uris=
+    (raptor_uri**)RASQAL_CALLOC(ptrarray,
+                                SPARQL_XSD_NAMES_COUNT+1,
+                                sizeof(raptor_uri*));
+  if(!world->xsd_datatype_uris)
     return 1;
 
   for(i=RASQAL_LITERAL_FIRST_XSD; i < SPARQL_XSD_NAMES_COUNT; i++) {
-    sparql_xsd_datatypes_table[i].uri= raptor_new_uri_from_uri_local_name(rasqal_xsd_namespace_uri, (const unsigned char*)sparql_xsd_names[i]);
-    if(!sparql_xsd_datatypes_table[i].uri)
+    world->xsd_datatype_uris[i]=
+      raptor_new_uri_from_uri_local_name(world->xsd_namespace_uri,
+                                         (const unsigned char *)sparql_xsd_names[i]);
+    if(!world->xsd_datatype_uris[i])
       return 1;
   }
 
@@ -417,37 +414,37 @@ rasqal_xsd_init(rasqal_world* world)
 void
 rasqal_xsd_finish(rasqal_world* world) 
 {
-  if(sparql_xsd_datatypes_table) {
+  if(world->xsd_datatype_uris) {
     int i;
     
     for(i=RASQAL_LITERAL_FIRST_XSD; i < SPARQL_XSD_NAMES_COUNT; i++) {
-      if(sparql_xsd_datatypes_table[i].uri)
-        raptor_free_uri(sparql_xsd_datatypes_table[i].uri);
+      if(world->xsd_datatype_uris[i])
+        raptor_free_uri(world->xsd_datatype_uris[i]);
     }
-    
-    RASQAL_FREE(table, sparql_xsd_datatypes_table);
-    sparql_xsd_datatypes_table=NULL;
+
+    RASQAL_FREE(table, world->xsd_datatype_uris);
+    world->xsd_datatype_uris=NULL;
   }
 
-  if(rasqal_xsd_namespace_uri) {
-    raptor_free_uri(rasqal_xsd_namespace_uri);
-    rasqal_xsd_namespace_uri=NULL;
+  if(world->xsd_namespace_uri) {
+    raptor_free_uri(world->xsd_namespace_uri);
+    world->xsd_namespace_uri=NULL;
   }
 }
  
 
   
 rasqal_literal_type
-rasqal_xsd_datatype_uri_to_type(raptor_uri* uri)
+rasqal_xsd_datatype_uri_to_type(rasqal_world* world, raptor_uri* uri)
 {
   int i;
   rasqal_literal_type native_type=RASQAL_LITERAL_UNKNOWN;
   
-  if(!uri || !sparql_xsd_datatypes_table)
+  if(!uri || !world->xsd_datatype_uris)
     return native_type;
   
   for(i=(int)RASQAL_LITERAL_FIRST_XSD; i <= (int)RASQAL_LITERAL_LAST_XSD; i++) {
-    if(raptor_uri_equals(uri, sparql_xsd_datatypes_table[i].uri)) {
+    if(raptor_uri_equals(uri, world->xsd_datatype_uris[i])) {
       native_type=(rasqal_literal_type)i;
       break;
     }
@@ -457,22 +454,22 @@ rasqal_xsd_datatype_uri_to_type(raptor_uri* uri)
 
 
 rasqal_literal_type
-rasqal_xsd_datatype_uri_parent_type(raptor_uri* uri)
+rasqal_xsd_datatype_uri_parent_type(rasqal_world* world, raptor_uri* uri)
 {
   int i;
   rasqal_literal_type parent_type=RASQAL_LITERAL_UNKNOWN;
   
-  if(!uri || !sparql_xsd_datatypes_table)
+  if(!uri || !world->xsd_datatype_uris)
     return parent_type;
 
   /* xsd:integer parent is xsd:decimal */
   if(raptor_uri_equals(uri,
-                       sparql_xsd_datatypes_table[RASQAL_LITERAL_INTEGER].uri))
+                       world->xsd_datatype_uris[RASQAL_LITERAL_INTEGER]))
     return RASQAL_LITERAL_DECIMAL;
   
   /* a pile of things have parent of xsd:integer */
   for(i=(int)XSD_INTEGER_DERIVED_FIRST; i <= (int)XSD_INTEGER_DERIVED_LAST; i++) {
-    if(raptor_uri_equals(uri, sparql_xsd_datatypes_table[i].uri)) {
+    if(raptor_uri_equals(uri, world->xsd_datatype_uris[i])) {
       parent_type=RASQAL_LITERAL_INTEGER;
       break;
     }
@@ -483,11 +480,11 @@ rasqal_xsd_datatype_uri_parent_type(raptor_uri* uri)
 
 
 raptor_uri*
-rasqal_xsd_datatype_type_to_uri(rasqal_literal_type type)
+rasqal_xsd_datatype_type_to_uri(rasqal_world* world, rasqal_literal_type type)
 {
-  if(sparql_xsd_datatypes_table &&
+  if(world->xsd_datatype_uris &&
      type >= RASQAL_LITERAL_FIRST_XSD && type <= (int)RASQAL_LITERAL_LAST_XSD)
-    return sparql_xsd_datatypes_table[(int)type].uri;
+    return world->xsd_datatype_uris[(int)type];
   return NULL;
 }
 
@@ -526,9 +523,9 @@ rasqal_xsd_datatype_label(rasqal_literal_type native_type)
 
 
 int
-rasqal_xsd_is_datatype_uri(raptor_uri* uri)
+rasqal_xsd_is_datatype_uri(rasqal_world* world, raptor_uri* uri)
 {
-  return (rasqal_xsd_datatype_uri_to_type(uri) != RASQAL_LITERAL_UNKNOWN);
+  return (rasqal_xsd_datatype_uri_to_type(world, uri) != RASQAL_LITERAL_UNKNOWN);
 }
 
 

@@ -86,7 +86,7 @@ rasqal_new_integer_literal(rasqal_world* world, rasqal_literal_type type, int in
     }
     sprintf((char*)l->string, "%d", integer);
     l->string_len=strlen((const char*)l->string);
-    dt_uri=rasqal_xsd_datatype_type_to_uri(l->type);
+    dt_uri=rasqal_xsd_datatype_type_to_uri(world, l->type);
     if(!dt_uri) {
       rasqal_free_literal(l);
       return NULL;
@@ -156,7 +156,7 @@ rasqal_new_double_literal(rasqal_world*world, double d)
       rasqal_free_literal(l);
       return NULL;
     }
-    dt_uri=rasqal_xsd_datatype_type_to_uri(l->type);
+    dt_uri=rasqal_xsd_datatype_type_to_uri(world, l->type);
     if(!dt_uri) {
       rasqal_free_literal(l);
       return NULL;
@@ -211,7 +211,7 @@ rasqal_new_float_literal(rasqal_world *world, float f)
     }
     sprintf((char*)l->string, "%1g", f);
     l->string_len=strlen((const char*)l->string);
-    dt_uri=rasqal_xsd_datatype_type_to_uri(l->type);
+    dt_uri=rasqal_xsd_datatype_type_to_uri(world, l->type);
     if(!dt_uri) {
       rasqal_free_literal(l);
       return NULL;
@@ -334,7 +334,7 @@ rasqal_new_decimal_literal_from_decimal(rasqal_world* world,
       l=NULL;
     }
   } else if(decimal) {
-    dt_uri=rasqal_xsd_datatype_type_to_uri(l->type);
+    dt_uri=rasqal_xsd_datatype_type_to_uri(world, l->type);
     if(!dt_uri) {
       rasqal_free_literal(l);
       l=NULL;
@@ -461,7 +461,7 @@ rasqal_literal_set_typed_value(rasqal_literal* l, rasqal_literal_type type,
     strncpy((char*)l->string, (const char*)string, l->string_len+1);
   }
 
-  dt_uri=rasqal_xsd_datatype_type_to_uri(l->type);
+  dt_uri=rasqal_xsd_datatype_type_to_uri(l->world, l->type);
   if(!dt_uri)
     return 1;
   if(l->datatype)
@@ -588,7 +588,7 @@ rasqal_literal_string_to_native(rasqal_literal *l,
   if(!l->datatype)
     return 0;
   
-  native_type=rasqal_xsd_datatype_uri_to_type(l->datatype);
+  native_type=rasqal_xsd_datatype_uri_to_type(l->world, l->datatype);
 
   /* If not a native type return ok but do not change literal */
   if(native_type == RASQAL_LITERAL_UNKNOWN)
@@ -655,7 +655,7 @@ rasqal_new_string_literal_common(rasqal_world* world,
 
     if(datatype)
       /* This is either RASQAL_LITERAL_DECIMAL or ...INTEGER or ...UNKNOWN */
-      l->parent_type=rasqal_xsd_datatype_uri_parent_type(datatype);
+      l->parent_type=rasqal_xsd_datatype_uri_parent_type(world, datatype);
 
     if((flags == 1) && rasqal_literal_string_to_native(l, NULL, NULL, 1)) {
       rasqal_free_literal(l);
@@ -770,7 +770,7 @@ rasqal_new_boolean_literal(rasqal_world* world, int value)
     l->value.integer=value;
     l->string=value ? RASQAL_XSD_BOOLEAN_TRUE : RASQAL_XSD_BOOLEAN_FALSE;
     l->string_len=(value ? 4 : 5);
-    dt_uri=rasqal_xsd_datatype_type_to_uri(l->type);
+    dt_uri=rasqal_xsd_datatype_type_to_uri(world, l->type);
     if(!dt_uri) {
       rasqal_free_literal(l);
       return NULL;
@@ -1045,7 +1045,7 @@ rasqal_literal_as_boolean(rasqal_literal* l, int *error)
     case RASQAL_LITERAL_STRING:
       if(l->datatype) {
         if(raptor_uri_equals(l->datatype, 
-                             rasqal_xsd_datatype_type_to_uri(RASQAL_LITERAL_STRING))) {
+                             rasqal_xsd_datatype_type_to_uri(l->world, RASQAL_LITERAL_STRING))) {
           /* typed literal with xsd:string datatype -> true if non-empty */
           return l->string && *l->string;
         }
@@ -1872,7 +1872,7 @@ rasqal_literal_string_equals(rasqal_literal* l1, rasqal_literal* l2,
   int result=1;
   raptor_uri* dt1=l1->datatype;
   raptor_uri* dt2=l2->datatype;
-  raptor_uri* xsd_string_uri=rasqal_xsd_datatype_type_to_uri(RASQAL_LITERAL_STRING);
+  raptor_uri* xsd_string_uri=rasqal_xsd_datatype_type_to_uri(l1->world, RASQAL_LITERAL_STRING);
 
   if(l1->language || l2->language) {
     /* if either is NULL, the comparison fails */
@@ -2234,7 +2234,7 @@ rasqal_literal_as_node(rasqal_literal* l)
           return NULL; 
         }
         strncpy((char*)new_l->string, (const char*)l->string, l->string_len+1);
-        dt_uri=rasqal_xsd_datatype_type_to_uri(l->type);
+        dt_uri=rasqal_xsd_datatype_type_to_uri(l->world, l->type);
         if(!dt_uri) {
           rasqal_free_literal(new_l);
           return NULL;
@@ -2449,7 +2449,7 @@ rasqal_literal_cast(rasqal_literal* l, raptor_uri* to_datatype, int flags,
   from_datatype=l->datatype;
   from_native_type=l->type;
 
-  to_native_type=rasqal_xsd_datatype_uri_to_type(to_datatype);
+  to_native_type=rasqal_xsd_datatype_uri_to_type(l->world, to_datatype);
 
   if(from_native_type == to_native_type) {
     /* cast to same type is always allowed */

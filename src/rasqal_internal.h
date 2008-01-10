@@ -671,15 +671,6 @@ struct rasqal_query_results_formatter_s {
   const char *mime_type;
 };
 
-/* rasqal_xsd_datatypes.c */
-
-typedef struct {
-  const char *name;
-  raptor_uri* uri;
-  int (*check)(const unsigned char* string, int flags);
-} rasqal_xsd_datatype_info;
-
-
 /* rasqal_datetime.c */
 int rasqal_xsd_datetime_check(const unsigned char* string);
 
@@ -874,13 +865,13 @@ void rasqal_query_result_row_set_value_at(rasqal_query_result_row* row, int offs
 /* rasqal_xsd_datatypes.c */
 int rasqal_xsd_init(rasqal_world*);
 void rasqal_xsd_finish(rasqal_world*);
-rasqal_literal_type rasqal_xsd_datatype_uri_to_type(raptor_uri* uri);
-raptor_uri* rasqal_xsd_datatype_type_to_uri(rasqal_literal_type type);
+rasqal_literal_type rasqal_xsd_datatype_uri_to_type(rasqal_world*, raptor_uri* uri);
+raptor_uri* rasqal_xsd_datatype_type_to_uri(rasqal_world*, rasqal_literal_type type);
 int rasqal_xsd_datatype_check(rasqal_literal_type native_type, const unsigned char* string, int flags);
 const char* rasqal_xsd_datatype_label(rasqal_literal_type native_type);
-int rasqal_xsd_is_datatype_uri(raptor_uri* uri);
+int rasqal_xsd_is_datatype_uri(rasqal_world*, raptor_uri* uri);
 const unsigned char* rasqal_xsd_datetime_string_to_canonical(const unsigned char* datetime_string);
-rasqal_literal_type rasqal_xsd_datatype_uri_parent_type(raptor_uri* uri);
+rasqal_literal_type rasqal_xsd_datatype_uri_parent_type(rasqal_world* world, raptor_uri* uri);
 int rasqal_xsd_datatype_is_numeric(rasqal_literal_type type);
 unsigned char* rasqal_xsd_format_double(double d, size_t *len_p);
 
@@ -908,11 +899,9 @@ struct rasqal_world_s {
   /* triples source factory */
   rasqal_triples_source_factory triples_source_factory;
 
-  /*
-  rasqal_xsd_datatype_info *xsd_datatypes_table;
+  /* rasqal_xsd_datatypes */
   raptor_uri *xsd_namespace_uri;
-  */
-
+  raptor_uri **xsd_datatype_uris;
 };
 
 #ifndef NO_STATIC_DATA

@@ -1671,7 +1671,7 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e,
       /* The datatype of a plain literal is xsd:string */
       vars.dt_uri=l1->datatype;
       if(!vars.dt_uri && l1->type == RASQAL_LITERAL_STRING)
-        vars.dt_uri=rasqal_xsd_datatype_type_to_uri(l1->type);
+        vars.dt_uri=rasqal_xsd_datatype_type_to_uri(l1->world, l1->type);
 
       if(!vars.dt_uri) {
         if(errs.flags.free_literal)

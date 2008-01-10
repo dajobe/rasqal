@@ -1318,7 +1318,7 @@ FunctionCall: IRIrefBrace ArgList ')'
   uri=raptor_uri_copy(uri);
 
   if(raptor_sequence_size($2) == 1 &&
-     rasqal_xsd_is_datatype_uri(uri)) {
+     rasqal_xsd_is_datatype_uri(((rasqal_query*)rq)->world, uri)) {
     rasqal_expression* e=(rasqal_expression*)raptor_sequence_pop($2);
     $$=rasqal_new_cast_expression(uri, e);
     raptor_free_sequence($2);
