@@ -2380,7 +2380,7 @@ main(int argc, char *argv[])
   world=RASQAL_CALLOC(rasqal_world, sizeof(rasqal_world), 1); /* FIXME: hack */
   rasqal_uri_init(world);
 
-  rasqal_xsd_init();
+  rasqal_xsd_init(world);
   
   lit1=rasqal_new_integer_literal(RASQAL_LITERAL_INTEGER, 1);
   expr1=rasqal_new_literal_expression(lit1);
@@ -2415,7 +2415,7 @@ main(int argc, char *argv[])
   if(result)
     rasqal_free_literal(result);
 
-  rasqal_xsd_finish();
+  rasqal_xsd_finish(world);
 
   rasqal_uri_finish(world);
   
