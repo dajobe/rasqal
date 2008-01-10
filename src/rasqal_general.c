@@ -115,8 +115,6 @@ rasqal_new_world(void)
   if(!world)
     return NULL;
 
-  world->usage=1;
-
   raptor_init();
 
   if(rasqal_uri_init(world))
@@ -175,8 +173,6 @@ rasqal_new_world(void)
 void
 rasqal_free_world(rasqal_world* world) 
 {
-  /* no need to check for usage counter here */
-
   rasqal_finish_result_formats(world);
   rasqal_finish_query_results();
 
