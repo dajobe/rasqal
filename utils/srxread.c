@@ -118,7 +118,7 @@ main(int argc, char *argv[])
     goto tidy;
   }
   
-  rc=rasqal_query_results_formatter_read(iostr, formatter, results, base_uri);
+  rc=rasqal_query_results_formatter_read(world, iostr, formatter, results, base_uri);
   if(rc)
     goto tidy;
 
