@@ -410,19 +410,20 @@ rasqal_graph_pattern_get_index(rasqal_graph_pattern* gp)
  * @graph_pattern: graph pattern to add to
  * @sub_graph_pattern: graph pattern to add inside
  *
- * Add a sub graph pattern to a graph pattern .
+ * Add a sub graph pattern to a graph pattern.
  *
+ * Return value: non-0 on failure
  **/
-void
+int
 rasqal_graph_pattern_add_sub_graph_pattern(rasqal_graph_pattern* graph_pattern,
                                            rasqal_graph_pattern* sub_graph_pattern)
 {
   if(!graph_pattern->graph_patterns) {
     graph_pattern->graph_patterns=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_graph_pattern, (raptor_sequence_print_handler*)rasqal_graph_pattern_print);
     if(!graph_pattern->graph_patterns)
-      RASQAL_FATAL1("Out of memory\n"); /* FIXME: RASQAL_FATAL is really for catching programmer errors. OOM is not a programmer error. */
+      return 1;
   }
-  raptor_sequence_push(graph_pattern->graph_patterns, sub_graph_pattern);
+  return raptor_sequence_push(graph_pattern->graph_patterns, sub_graph_pattern);
 }
 
 

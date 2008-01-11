@@ -766,7 +766,7 @@ raptor_sequence* rasqal_query_get_graph_pattern_sequence(rasqal_query* query);
 RASQAL_API
 rasqal_graph_pattern* rasqal_query_get_graph_pattern(rasqal_query* query, int idx);
 RASQAL_API
-void rasqal_graph_pattern_add_sub_graph_pattern(rasqal_graph_pattern* graph_pattern, rasqal_graph_pattern* sub_graph_pattern);
+int rasqal_graph_pattern_add_sub_graph_pattern(rasqal_graph_pattern* graph_pattern, rasqal_graph_pattern* sub_graph_pattern);
 RASQAL_API
 rasqal_triple* rasqal_graph_pattern_get_triple(rasqal_graph_pattern* graph_pattern, int idx);
 RASQAL_API
