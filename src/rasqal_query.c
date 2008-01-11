@@ -649,17 +649,19 @@ rasqal_query_get_data_graph(rasqal_query* query, int idx)
  *
  * See also rasqal_query_set_variable which assigns or removes a value to
  * a previously added variable in the query.
+ *
+ * Return value: non-0 on failure
  **/
-void
+int
 rasqal_query_add_variable(rasqal_query* query, rasqal_variable* var)
 {
   if(!query->selects) {
     query->selects=raptor_new_sequence(NULL, (raptor_sequence_print_handler*)rasqal_variable_print);
     if(!query->selects)
-      RASQAL_FATAL1("Out of memory\n"); /* FIXME: RASQAL_FATAL is really for catching programmer errors. OOM is not a programmer error. */
+      return 1;
   }
 
-  raptor_sequence_push(query->selects, (void*)var);
+  return raptor_sequence_push(query->selects, (void*)var);
 }
 
 

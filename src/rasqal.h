@@ -718,7 +718,7 @@ RASQAL_API
 rasqal_data_graph* rasqal_query_get_data_graph(rasqal_query* query, int idx);
 
 RASQAL_API
-void rasqal_query_add_variable(rasqal_query* query, rasqal_variable* var);
+int rasqal_query_add_variable(rasqal_query* query, rasqal_variable* var);
 RASQAL_API
 raptor_sequence* rasqal_query_get_bound_variable_sequence(rasqal_query* query);
 RASQAL_API
