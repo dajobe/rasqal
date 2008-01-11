@@ -883,14 +883,16 @@ rasqal_query_declare_prefixes(rasqal_query *rq)
  * Add a namespace prefix to the query.
  *
  * If the prefix has already been used, the old URI will be overridden.
+ *
+ * Return value: non-0 on failure
  **/
-void
+int
 rasqal_query_add_prefix(rasqal_query* query, rasqal_prefix* prefix)
 {
   if(!query->prefixes) {
     query->prefixes=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_prefix, (raptor_sequence_print_handler*)rasqal_prefix_print);
     if(!query->prefixes)
-      RASQAL_FATAL1("Out of memory\n"); /* FIXME: RASQAL_FATAL is really for catching programmer errors. OOM is not a programmer error. */
+      return 1;
   } else {
     int i;
     for(i=0; i< raptor_sequence_size(query->prefixes); i++) {
@@ -902,7 +904,7 @@ rasqal_query_add_prefix(rasqal_query* query, rasqal_prefix* prefix)
     }
   }
 
-  raptor_sequence_push(query->prefixes, (void*)prefix);
+  return raptor_sequence_push(query->prefixes, (void*)prefix);
 }
 
 

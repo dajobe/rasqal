@@ -736,7 +736,7 @@ raptor_sequence* rasqal_query_get_triple_sequence(rasqal_query* query);
 RASQAL_API
 rasqal_triple* rasqal_query_get_triple(rasqal_query* query, int idx);
 RASQAL_API
-void rasqal_query_add_prefix(rasqal_query* query, rasqal_prefix* prefix);
+int rasqal_query_add_prefix(rasqal_query* query, rasqal_prefix* prefix);
 RASQAL_API
 raptor_sequence* rasqal_query_get_prefix_sequence(rasqal_query* query);
 RASQAL_API
