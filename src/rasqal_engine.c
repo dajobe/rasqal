@@ -3105,10 +3105,13 @@ rasqal_rowsource_engine_ensure_variables(rasqal_rowsource* rowsource,
 {
   rasqal_rowsource_engine_context* con=(rasqal_rowsource_engine_context*)user_data;
   rasqal_query* query=con->results->query;
-  
-  rowsource->size= query->select_variables_count;
+
+  if(query->constructs)
+    rowsource->size=raptor_sequence_size(query->variables_sequence);
+  else
+    rowsource->size=query->select_variables_count;  
   if(query->order_conditions_sequence)
-    rowsource->order_size= raptor_sequence_size(query->order_conditions_sequence);
+    rowsource->order_size=raptor_sequence_size(query->order_conditions_sequence);
 
   return 0;
 }
