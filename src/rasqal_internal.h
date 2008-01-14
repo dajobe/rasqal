@@ -831,7 +831,6 @@ void rasqal_map_print(rasqal_map* map, FILE* fh);
 
 /* rasqal_query.c */
 void rasqal_query_remove_query_result(rasqal_query* query, rasqal_query_results* query_results);
-unsigned char* rasqal_prefix_id(int prefix_id, unsigned char *string);
 int rasqal_query_declare_prefix(rasqal_query* rq, rasqal_prefix* prefix);
 int rasqal_query_declare_prefixes(rasqal_query* rq);
 unsigned char* rasqal_query_get_genid(rasqal_query* query, const unsigned char* base, int counter);

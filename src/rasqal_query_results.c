@@ -452,6 +452,24 @@ rasqal_query_results_get_bindings_count(rasqal_query_results* query_results)
 }
 
 
+static unsigned char*
+rasqal_prefix_id(int prefix_id, unsigned char *string)
+{
+  int tmpid=prefix_id;
+  unsigned char* buffer;
+  size_t length=strlen((const char*)string)+4;  /* "r" +... + "_" +... \0 */
+
+  while(tmpid/=10)
+    length++;
+  
+  buffer=(unsigned char*)RASQAL_MALLOC(cstring, length);
+  if(!buffer)
+    return NULL;
+  
+  sprintf((char*)buffer, "r%d_%s", prefix_id, string);
+  
+  return buffer;
+}
 
 
 /**
@@ -472,6 +490,7 @@ rasqal_query_results_get_triple(rasqal_query_results* query_results)
   rasqal_triple *t;
   rasqal_literal *s, *p, *o;
   raptor_statement *rs;
+  unsigned char *nodeid;
   int skipped;
   
   if(!query_results || query_results->failed || query_results->finished)
@@ -518,10 +537,22 @@ rasqal_query_results_get_triple(rasqal_query_results* query_results)
         break;
 
       case RASQAL_LITERAL_BLANK:
-        s->string=rasqal_prefix_id(query_results->result_count, 
-                                   (unsigned char*)s->string);
-
-        rs->subject=s->string;
+        nodeid=rasqal_prefix_id(query_results->result_count, (unsigned char*)s->string);
+        rasqal_free_literal(s);
+        if(!nodeid) {
+          rasqal_log_error_simple(query->world, RAPTOR_LOG_LEVEL_FATAL,
+                                  &query->locator,
+                                  "Could not prefix subject blank identifier");
+          return NULL;
+        }
+        s=rasqal_new_simple_literal(query->world, RASQAL_LITERAL_BLANK, nodeid);
+        if(!s) {
+          rasqal_log_error_simple(query->world, RAPTOR_LOG_LEVEL_FATAL,
+                                  &query->locator,
+                                  "Could not create a new subject blank literal");
+          return NULL;
+        }
+        rs->subject=nodeid;
         rs->subject_type=RAPTOR_IDENTIFIER_TYPE_ANONYMOUS;
         break;
 
@@ -621,10 +652,26 @@ rasqal_query_results_get_triple(rasqal_query_results* query_results)
         break;
 
       case RASQAL_LITERAL_BLANK:
-        o->string=rasqal_prefix_id(query_results->result_count, 
-                                   (unsigned char*)o->string);
-
-        rs->object=o->string;
+        nodeid=rasqal_prefix_id(query_results->result_count, (unsigned char*)o->string);
+        rasqal_free_literal(o);
+        if(!nodeid) {
+          rasqal_log_error_simple(query->world, RAPTOR_LOG_LEVEL_FATAL,
+                                  &query->locator,
+                                  "Could not prefix blank identifier");
+          rasqal_free_literal(s);
+          rasqal_free_literal(p);
+          return NULL;
+        }
+        o=rasqal_new_simple_literal(query->world, RASQAL_LITERAL_BLANK, nodeid);
+        if(!o) {
+          rasqal_log_error_simple(query->world, RAPTOR_LOG_LEVEL_FATAL,
+                                  &query->locator,
+                                  "Could not create a new subject blank literal");
+          rasqal_free_literal(s);
+          rasqal_free_literal(p);
+          return NULL;
+        }
+        rs->object=nodeid;
         rs->object_type=RAPTOR_IDENTIFIER_TYPE_ANONYMOUS;
         break;
 
@@ -662,6 +709,12 @@ rasqal_query_results_get_triple(rasqal_query_results* query_results)
       if(o)
         rasqal_free_literal(o);
       continue;
+    }
+    
+    /* dispose previous triple if any */
+    if(query_results->triple) {
+      rasqal_free_triple(query_results->triple);
+      query_results->triple=NULL;
     }
 
     /* for saving s, p, o for later disposal */

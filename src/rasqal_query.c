@@ -1513,27 +1513,6 @@ rasqal_query_get_group_condition(rasqal_query* query, int idx)
 }
 
 
-unsigned char*
-rasqal_prefix_id(int prefix_id, unsigned char *string)
-{
-  int tmpid=prefix_id;
-  unsigned char* buffer;
-  size_t length=strlen((const char*)string)+4;  /* "r" +... + "_" +... \0 */
-
-  while(tmpid/=10)
-    length++;
-  
-  buffer=(unsigned char*)RASQAL_MALLOC(cstring, length);
-  if(!buffer)
-    return NULL;
-  
-  sprintf((char*)buffer, "r%d_%s", prefix_id, string);
-  
-  RASQAL_FREE(cstring, string);
-  return buffer;
-}
-
-
 /**
  * rasqal_query_graph_pattern_visit:
  * @query: query
