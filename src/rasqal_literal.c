@@ -2191,11 +2191,7 @@ rasqal_literal_as_node(rasqal_literal* l)
       break;
       
     case RASQAL_LITERAL_VARIABLE:
-      new_l=l->value.variable->value;
-      if(new_l)
-        return rasqal_new_literal_from_literal(new_l);
-      else
-        return NULL;
+      new_l=rasqal_new_literal_from_literal(l->value.variable->value);
       break;
 
     case RASQAL_LITERAL_DOUBLE:
