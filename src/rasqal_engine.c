@@ -2971,7 +2971,7 @@ rasqal_engine_bind_construct_variables(rasqal_query_results* query_results)
   /* bind the construct variables again if running through a sequence */
   for(i=0; i< query->variables_count; i++) {
     rasqal_literal* value=rasqal_engine_get_result_value(query_results, i);
-    rasqal_variable_set_value(query->variables[i],  value);
+    rasqal_variable_set_value(query->variables[i],  rasqal_new_literal_from_literal(value));
   }
 }
 
