@@ -77,6 +77,7 @@ rasqal_new_query_results(rasqal_query* query)
       else
         switch(query->verb) {
           case RASQAL_QUERY_VERB_SELECT:
+            query_results->type=RASQAL_QUERY_RESULTS_BINDINGS;
             rasqal_query_results_set_variables(query_results,
                                                query->variables_sequence,
                                                query->select_variables_count,
@@ -937,8 +938,6 @@ rasqal_query_results_set_variables(rasqal_query_results* query_results,
                                    int size, int order_size)
 {
   int i;
-
-  /*query_results->type=RASQAL_QUERY_RESULTS_BINDINGS;*/
 
   /* Set query_results size and order size initially to zero
    * until all initialization that can fail has been done.
