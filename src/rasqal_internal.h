@@ -778,10 +778,6 @@ void rasqal_redland_finish(void);
 
 
 /* rasqal_general.c */
-extern raptor_uri* rasqal_rdf_namespace_uri;
-extern raptor_uri* rasqal_rdf_first_uri;
-extern raptor_uri* rasqal_rdf_rest_uri;
-extern raptor_uri* rasqal_rdf_nil_uri;
 int rasqal_uri_init(rasqal_world*);
 void rasqal_uri_finish(rasqal_world*);
 
