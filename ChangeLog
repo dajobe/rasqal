@@ -1,3 +1,228 @@
+2008-01-15  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_engine.c: (rasqal_engine_bind_construct_variables):
+	Create copies of variable values to prevent literal double
+	deletion.
+
+	* src/rasqal_query_results.c: (rasqal_new_query_results):
+	Explicitly set bindings results type for select queries. Worked
+	previously because RASQAL_QUERY_RESULTS_BINDINGS == 0.
+	(rasqal_query_results_set_variables): Removed commented out code.
+
+	* src/rasqal_internal.h: Removed rdf uri extern references - uris
+	moved to rasqal_world.
+
+2008-01-14  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_internal.h, src/rasqal_query.c,
+	src/rasqal_query_results.c: (rasqal_prefix_id) Moved from
+	rasqal_query.c to rasqal_query_results.c static function. Do not
+	free passed in string.
+	(rasqal_query_results_get_triple) Do not change nodeids of
+	existing blanks but create new blanks for new prefixed
+	nodeids.
+	Fixes Issue http://bugs.librdf.org/mantis/view.php?id=242
+	Do not leak stored query_result->triples.
+
+	* configure.ac: Applied rasqal_strcasecmp configuration patch from
+	http://bugs.librdf.org/mantis/view.php?id=249
+
+	* src/rasqal_literal.c: (rasqal_literal_as_node): Refactored to
+	simpler form. rasqal_new_literal_from_literal(NULL) returns NULL
+	since r12808.
+
+	* autogen.sh: Do not branch autogen.sh scripts but keep them
+	identical
+
+2008-01-13  Dave Beckett <dave@dajobe.org>
+
+	* autogen.sh: automake 1.0 docs
+
+2008-01-13  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_engine.c: (rasqal_rowsource_engine_ensure_variables):
+	Update rowsource size properly for construct queries.
+
+2008-01-11  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal.h, src/rasqal_query.c: (rasqal_query_add_prefix):
+	Changed to return an error code. API function signature touched
+	but source compatibility not broken.
+
+	* src/rasqal.h, src/rasqal_query.c: (rasqal_query_add_variable):
+	Changed to return an error code. API function signature touched
+	but source compatibility not broken.
+
+	* src/rasqal.h,
+	(rasqal_graph_pattern_add_sub_graph_pattern): Changed to return an
+	error code. API function signature touched but source
+	compatibility not broken.
+
+2008-01-10  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_general.c, src/rasqal_internal.h: (rasqal_world_s)
+	Removed usage field. No longer needed.
+
+	* src/rasqal.h, src/rasqal_literal.c: API break: Removed
+	rasqal_new_floating_literal()
+
+	* src/rasqal_internal.h,
+	src/rasqal_literal.c (rasqal_new_numeric_literal): Changed
+	function param ordering to be consistent with
+	e.g. rasqal_new_integer_literal().
+
+	* src/rasqal.h, src/rasqal_engine.c, src/rasqal_general.c,
+	src/rasqal_internal.h, src/rasqal_limit_test.c,
+	src/rasqal_query.c, src/rasqal_query_results.c,
+	src/rasqal_query_test.c, src/rasqal_raptor.c,
+	src/rasqal_redland.c, src/rasqal_result_formats.c,
+	src/rdql_parser.y, src/sparql_parser.y,
+	tests/engine/rasqal_graph_test.c,
+	tests/engine/rasqal_order_test.c, utils/roqet.c: API break:
+	Removed rasqal api functions deprecated in the recent
+	re-engineering efforts. Renamed new *2 functions to original names
+	that now take in a rasqal_world pointer.
+
+	* src/rdql_lexer.l, src/sparql_lexer.l: Fixed lexer tests -
+	initialize query->world needed by rasqal_literal constructors
+
+	* src/rasqal_expr.c, src/rasqal_internal.h, src/rasqal_literal.c,
+	src/rasqal_query.c, src/rasqal_xsd_datatypes.c,
+	src/sparql_parser.y: Moved xsd namespace uri and datatype uris to
+	rasqal_world.
+	(rasqal_xsd_datatype_uri_to_type, rasqal_xsd_datatype_type_to_uri,
+	rasqal_xsd_is_datatype_uri, rasqal_xsd_datatype_uri_parent_type):
+	Functions now take in a rasqal_world pointer.
+
+	* utils/srxread.c: Updated srxread to new
+	rasqal_query_results_formatter_read() API
+
+	* src/rasqal.h, src/rasqal_engine.c, src/rasqal_redland.c: Updated
+	rasqal_redland to new rasqal_literal API. Store rasqal_world
+	pointer to rasqal_triples_match structure.  Compiles but not
+	tested.
+
+	* src/rasqal.h, src/rasqal_expr.c, src/rasqal_internal.h,
+	src/rasqal_literal.c, src/rasqal_query_results.c,
+	src/rasqal_raptor.c, src/rasqal_result_formats.c,
+	src/rasqal_sparql_xml.c, src/rdql_lexer.l, src/rdql_parser.y,
+	src/sparql_lexer.l, src/sparql_parser.y: Added rasqal_world
+	pointer to rasqal_literal.
+	(rasqal_new_*_literal, rasqal_new_decimal_literal_from_decimal):
+	API break. rasqal_literal constructors take in rasqal_world
+	pointer.
+	(rasqal_new_floating_literal): Old deprecated function changed to
+	return NULL.
+	(rasqal_new_string_literal_node): Now takes in a rasqal_world*
+	param.
+	(rasqal_query_results_get_rowsource_func): Now takes in a
+	rasqal_world* param.
+	(rasqal_query_results_formatter_read): API break. Takes in
+	rasqal_world pointer. Passed to get_rowsource function.
+	(rasqal_query_results_get_rowsource_sparql_xml): Store
+	rasqal_world* in rowsource context for creating new literals.
+
+	* src/rasqal_xsd_datatypes.c: (rasqal_xsd_datatype_check): Fixed
+	compiler warning about signed-unsigned comparison
+
+	* src/rasqal_xsd_datatypes.c: (rasqal_xsd_init,
+	rasqal_xsd_datatype_check, rasqal_xsd_datatype_label): Use
+	compile-time initialization for xsd datatype names and check
+	functions. Prepare for moving xsd uris to rasqal_world.
+
+	* src/rasqal_expr.c: Fixed xsd init/finish in rasqal_expr tests.
+
+2008-01-09  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal.h, src/rasqal_general.c, src/rasqal_result_formats.c:
+	const function params make no sense - they will be copies
+	anyway (pointer-to-const params would make sense)
+
+	* src/rasqal_general.c, src/rasqal_internal.h,
+	src/rasqal_xsd_datatypes.c: (rasqal_xsd_init, rasqal_xsd_finish):
+	Add world param. Not used yet.
+
+	* src/rasqal.h, src/rasqal_engine.c, src/rasqal_general.c,
+	src/rasqal_internal.h, src/rasqal_raptor.c, src/rasqal_redland.c:
+	Moved triples_source_factory to rasqal_world.
+	(rasqal_set_triples_source_factory): Deprecated API
+	function. Replaced with rasqal_set_triples_source_factory2() that
+	takes in a world parameter.
+	(rasqal_raptor_init, rasqal_redland_init): Now take a world param
+	and use rasqal_set_triples_source_factory2().
+
+	* src/rasqal_internal.h: (rasqal_log_error_varargs): Declare with
+	printf format attribute. Fixes gcc warnings.
+
+	* src/rasqal_decimal.c: Fixed compiler warning in rasqal_decimal
+	test code with RASQAL_DECIMAL_NONE configuration.
+
+	* utils/roqet.c: Update roqet to non-deprecated API.
+
+	* src/rasqal.h, src/rasqal_general.c, src/rasqal_internal.h,
+	src/rasqal_query_results.c, src/rasqal_result_formats.c,
+	src/rasqal_sparql_xml.c: Moved static query_results_formats
+	sequence to rasqal_world.
+	(rasqal_query_results_formats_enumerate,
+	rasqal_query_results_formats_check,
+	rasqal_new_query_results_formatter,
+	rasqal_new_query_results_formatter_by_mime_type): Deprecated API
+	functions. Replaced with corresponding *2 versions that take in a
+	rasqal_world pointer.
+	(rasqal_query_results_format_register_factory): Take in
+	rasqal_world param. Return an error code. Use calloc not malloc
+	for structs. Replace RASQAL_FATAL with fatal log message + return
+	error code.
+	(rasqal_init_result_formats): Take in a rasqal_world param. Check
+	and return error codes from
+	rasqal_query_results_format_register_factory() calls.
+	(rasqal_init_result_format_sparql_xml): Take in a rasqal_world
+	param, return an error code. Check and return error codes from
+	rasqal_query_results_format_register_factory() calls.
+	(rasqal_finish_result_formats): Take in a rasqal_world param.
+	(rasqal_query_results_read, rasqal_query_results_write): Use
+	non-deprecated API.
+
+	* src/rasqal_graph_pattern.c, src/rasqal_query.c,
+	src/rasqal_result_formats.c: Added FIXME notes to places where
+	RASQAL_FATAL macros are used for handling runtime failures and not
+	programming errors. Should change the code to handle runtime
+	failures more gracefully.
+
+	* src/rasqal_general.c, src/rasqal_internal.h, src/rdql_parser.y,
+	src/sparql_parser.y: (rasqal_query_engine_register_factory):
+	Changed function to return an int error code. On OOM, log an error
+	and return an error code, do not die with a fatal error.
+	(rasqal_init_query_engine_*): Return error code from
+	rasqal_query_engine_register_factory().
+
+	* src/rasqal_general.c, src/rasqal_internal.h,
+	src/rasqal_query_results.c, src/rasqal_raptor.c,
+	src/rasqal_redland.c, src/rasqal_result_formats.c,
+	src/rdql_parser.y, src/sparql_parser.y: Changed rasqal internal
+	init functions to return an int error code.
+	(rasqal_new_world): Check for init function failures and return
+	NULL on failure.
+	(rasqal_init): Check for NULL world.
+
+	* src/rasqal_internal.h: (rasqal_world_s) comments
+
+	* src/rasqal_general.c, src/rasqal_internal.h: Eliminated
+	rasqal_initialised, rasqal_initialising, rasqal_finishing
+	statics. Provide protection against recursive rasqal_init() calls
+	by making the static world object a reference-counted singleton.
+
+	* src/rasqal_expr.c, src/rasqal_general.c, src/rasqal_internal.h,
+	src/sparql_parser.y: Moved rdf uris to rasqal_world.
+	(rasqal_uri_init): Take in world parameter, return an error code.
+	(rasqal_uri_finish): Take in world parameter.
+	(rasqal_new_world): Check rasqal_uri_init() return value.
+
+2008-01-08  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_expr.c: (rasqal_expression_evaluate_strmatch): Fix
+	error/warning messages in RASQAL_REGEX_{PCRE,NONE} configurations.
+
 2008-01-07  Dave Beckett <dave@dajobe.org>
 
 	* src/rdql_parser.y, src/sparql_parser.y: rdql and sparql warnings
