@@ -99,7 +99,7 @@ check-sparql-correct: build-roqet $(srcdir)/../check-sparql
 	@set +e; \
 	$(ECHO) "Testing SPARQL correct"; \
 	PATH=$(top_builddir)/utils:$(top_builddir)@RAPPER_PATH@:$$PATH \
-	  perl $(srcdir)/../check-sparql -s $(srcdir); \
+	  $(PERL) $(srcdir)/../check-sparql -s $(srcdir); \
 	result=$$?; \
 	if test $$result != 0 ; then \
 	  echo "Expecting test failures: $(EXPECTED_SPARQL_CORRECT_FAILURES)"; \
