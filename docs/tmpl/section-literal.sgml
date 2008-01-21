@@ -53,6 +53,7 @@ boolean, double, floating, integer, regex pattern and variables.
 
 </para>
 
+@Param1: 
 @type: 
 @string: 
 @Returns: 
@@ -63,6 +64,7 @@ boolean, double, floating, integer, regex pattern and variables.
 
 </para>
 
+@Param1: 
 @value: 
 @Returns: 
 
@@ -72,6 +74,7 @@ boolean, double, floating, integer, regex pattern and variables.
 
 </para>
 
+@Param1: 
 @string: 
 @Returns: 
 
@@ -81,6 +84,7 @@ boolean, double, floating, integer, regex pattern and variables.
 
 </para>
 
+@Param1: 
 @string: 
 @decimal: 
 @Returns: 
@@ -91,6 +95,7 @@ boolean, double, floating, integer, regex pattern and variables.
 
 </para>
 
+@Param1: 
 @d: 
 @Returns: 
 
@@ -100,15 +105,7 @@ boolean, double, floating, integer, regex pattern and variables.
 
 </para>
 
-@f: 
-@Returns: 
-
-
-<!-- ##### FUNCTION rasqal_new_floating_literal ##### -->
-<para>
-
-</para>
-
+@Param1: 
 @f: 
 @Returns: 
 
@@ -118,6 +115,7 @@ boolean, double, floating, integer, regex pattern and variables.
 
 </para>
 
+@Param1: 
 @type: 
 @integer: 
 @Returns: 
@@ -128,6 +126,7 @@ boolean, double, floating, integer, regex pattern and variables.
 
 </para>
 
+@Param1: 
 @pattern: 
 @flags: 
 @Returns: 
@@ -138,6 +137,7 @@ boolean, double, floating, integer, regex pattern and variables.
 
 </para>
 
+@Param1: 
 @type: 
 @string: 
 @Returns: 
@@ -148,6 +148,7 @@ boolean, double, floating, integer, regex pattern and variables.
 
 </para>
 
+@Param1: 
 @string: 
 @language: 
 @datatype: 
@@ -160,6 +161,7 @@ boolean, double, floating, integer, regex pattern and variables.
 
 </para>
 
+@Param1: 
 @uri: 
 @Returns: 
 
@@ -169,6 +171,7 @@ boolean, double, floating, integer, regex pattern and variables.
 
 </para>
 
+@Param1: 
 @variable: 
 @Returns: 
 

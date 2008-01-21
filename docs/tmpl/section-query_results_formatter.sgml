@@ -27,6 +27,7 @@ handle or other custom destination.
 
 </para>
 
+@Param1: 
 @name: 
 @uri: 
 @mime_type: 
@@ -38,23 +39,13 @@ handle or other custom destination.
 
 </para>
 
-@counter: 
-@name: 
-@label: 
-@uri_string: 
-@Returns: 
-
-
-<!-- ##### FUNCTION rasqal_query_results_formats_enumerate_full ##### -->
-<para>
-
-</para>
-
+@Param1: 
 @counter: 
 @name: 
 @label: 
 @uri_string: 
 @mime_type: 
+@flags: 
 @Returns: 
 
 
@@ -69,8 +60,9 @@ handle or other custom destination.
 
 </para>
 
+@Param1: 
 @name: 
-@uri: 
+@format_uri: 
 @Returns: 
 
 
@@ -79,6 +71,7 @@ handle or other custom destination.
 
 </para>
 
+@Param1: 
 @mime_type: 
 @Returns: 
 

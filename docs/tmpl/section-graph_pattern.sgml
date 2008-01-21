@@ -47,6 +47,7 @@ or apply a GRAPH matching keyword (%RASQAL_GRAPH_PATTERN_OPERATOR_GRAPH).
 
 @graph_pattern: 
 @sub_graph_pattern: 
+@Returns: 
 
 
 <!-- ##### FUNCTION rasqal_graph_pattern_get_constraint ##### -->

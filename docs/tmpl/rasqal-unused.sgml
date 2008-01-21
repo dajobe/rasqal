@@ -1,0 +1,32 @@
+<!-- ##### FUNCTION rasqal_finish ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### FUNCTION rasqal_init ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### FUNCTION rasqal_new_floating_literal ##### -->
+<para>
+
+</para>
+
+@f: 
+@Returns: 
+
+<!-- ##### FUNCTION rasqal_query_results_formats_enumerate_full ##### -->
+<para>
+
+</para>
+
+@counter: 
+@name: 
+@label: 
+@uri_string: 
+@mime_type: 
+@Returns: 
+

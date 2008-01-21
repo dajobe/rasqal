@@ -45,20 +45,6 @@ their names, labels and URI.
 </para>
 
 
-<!-- ##### FUNCTION rasqal_init ##### -->
-<para>
-
-</para>
-
-
-
-<!-- ##### FUNCTION rasqal_finish ##### -->
-<para>
-
-</para>
-
-
-
 <!-- ##### ENUM rasqal_feature ##### -->
 <para>
 
@@ -72,6 +58,7 @@ their names, labels and URI.
 
 </para>
 
+@Param1: 
 @name: 
 @Returns: 
 
@@ -81,6 +68,7 @@ their names, labels and URI.
 
 </para>
 
+@Param1: 
 @counter: 
 @name: 
 @label: 
