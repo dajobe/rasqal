@@ -676,11 +676,15 @@ if test "X$mpfr_prefix" != "Xnone" ; then
 fi
 
 oCPPFLAGS="$CPPFLAGS"
-CPPFLAGS="$CPPFLAGS $mpfr_includes"
-AC_CHECK_HEADERS(mpfr.h)
+AC_CHECK_HEADERS(gmp.h)
 CPPFLAGS="$oCPPFLAGS"
 
-AC_CHECK_HEADERS(gmp.h)
+CPPFLAGS="$CPPFLAGS $mpfr_includes"
+AC_CHECK_HEADERS([mpfr.h], [], [], [
+#ifdef HAVE_GMP_H
+#include <gmp.h>
+#endif
+])
 CPPFLAGS="$oCPPFLAGS"
 
 
