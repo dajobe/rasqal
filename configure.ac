@@ -705,7 +705,7 @@ if test "$ac_cv_header_mpfr_h" = yes; then
   AC_CHECK_FUNC(mpfr_zero_p, have_mpfr_zero_p=yes, have_mpfr_zero_p=no)
   LIBS="$oLIBS"
   CPPFLAGS="$oCPPFLAGS"
-  AC_MSG_CHECKING(for mpfr library)
+  AC_MSG_CHECKING(for working MPFR library)
   if test $have_mpfr_init = yes -a $have_mpfr_zero_p = yes; then
     have_mpfr=1
     AC_MSG_RESULT(yes)
