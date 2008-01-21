@@ -714,6 +714,7 @@ if test "$ac_cv_header_mpfr_h" = yes; then
   fi
 fi
 
+have_gmp_version=0
 if test "$ac_cv_header_gmp_h" = yes; then
   CPPFLAGS="$CPPFLAGS "
   LIBS="$LIBS -lgmp"
@@ -722,10 +723,18 @@ if test "$ac_cv_header_gmp_h" = yes; then
               have_gmp=1
 	      AC_MSG_RESULT(yes),
 	      AC_MSG_RESULT(no))
+  AC_MSG_CHECKING(for gmp_version)
+  AC_TRY_LINK([#include <gmp.h>], [const char* v=gmp_version; ],
+              have_gmp_version=1
+	      AC_MSG_RESULT(yes),
+	      AC_MSG_RESULT(no))
   LIBS="$oLIBS"
   CPPFLAGS="$oCPPFLAGS"
 fi
 
+if test $have_gmp_version = 1; then
+  AC_DEFINE(HAVE_GMP_VERSION, 1, [Have gmp_version constant])
+fi
 
 need_mpfr=0
 need_gmp=0

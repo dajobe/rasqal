@@ -821,7 +821,11 @@ main(int argc, char *argv[]) {
   fprintf(stderr, "%s: Using MPFR %s\n", program, mpfr_get_version());
 #endif
 #ifdef RASQAL_DECIMAL_GMP
+#ifdef HAVE_GMP_VERSION
   fprintf(stderr, "%s: Using GMP %s\n", program, gmp_version);
+#else
+  fprintf(stderr, "%s: Using GMP version unknown\n", program);
+#endif
 #endif
 #ifdef RASQAL_DECIMAL_NONE
   fprintf(stderr, "%s: Using double\n", program);
