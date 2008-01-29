@@ -176,7 +176,6 @@ sparql_parser_test_SOURCES = sparql_parser.c
 sparql_parser_test_CPPFLAGS = -DSTANDALONE
 sparql_parser_test_LDADD = librasqal.la
 if GETOPT
-else
 sparql_parser_test_SOURCES += $(top_srcdir)/utils/getopt.c
 sparql_parser_test_CPPFLAGS += -I$(top_srcdir)/utils
 endif
