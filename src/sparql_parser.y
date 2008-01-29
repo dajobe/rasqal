@@ -2908,7 +2908,6 @@ main(int argc, char *argv[])
     fprintf(stderr, " -d           Bison parser debugging\n");
 #endif
     fprintf(stderr, " -i LANGUAGE  Set query language\n");
-    rasqal_free_world(world);
     exit(1);
   }
 
