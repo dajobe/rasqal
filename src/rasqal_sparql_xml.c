@@ -929,12 +929,8 @@ rasqal_query_results_get_rowsource_sparql_xml(rasqal_world *world,
 
   con->locator.uri=base_uri;
 
-  memset(&con->error_handlers, sizeof(raptor_error_handlers), '\0');
-  raptor_error_handlers_init(&con->error_handlers, 
-                             NULL, NULL, /* fatal error data/handler */
-                             NULL, NULL, /* error data/handler */
-                             NULL, NULL, /* warning data/handler */
-                             &con->locator);
+  con->error_handlers.locator=&con->locator;
+  raptor_error_handlers_init(&con->error_handlers);
   
   con->sax2=raptor_new_sax2(con, &con->error_handlers);
   if(!con->sax2)
