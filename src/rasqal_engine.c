@@ -3226,7 +3226,9 @@ rasqal_engine_execute_and_save(rasqal_query_results *query_results)
 
   rasqal_free_rowsource(rowsource);
   
-  if(query_results->results_sequence) {
+  if(!query_results->results_sequence) {
+    query_results->finished=1;
+  } else {
     query_results->finished= (raptor_sequence_size(query_results->results_sequence) == 0);
     
     if(!query->limit)
