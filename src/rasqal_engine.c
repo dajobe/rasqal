@@ -3028,11 +3028,8 @@ rasqal_rowsource_engine_process(rasqal_rowsource* rowsource,
      */
     rc=rasqal_engine_get_next_result(con->results);
     if(rc == 0) {
-      /* <0 failure OR =0 end of results */
-      if(rc<0)
-        con->failed=1;
-      else
-        con->finished=1;
+      /* =0 end of results */
+      con->finished=1;
       break;
     }
     
