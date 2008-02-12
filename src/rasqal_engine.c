@@ -3001,6 +3001,8 @@ static int
 rasqal_rowsource_engine_finish(rasqal_rowsource* rowsource, void *user_data)
 {
   rasqal_rowsource_engine_context* con=(rasqal_rowsource_engine_context*)user_data;
+  if(con->map)
+    rasqal_free_map(con->map);
   if(con->seq)
     raptor_free_sequence(con->seq);
   RASQAL_FREE(rasqal_rowsource_engine_context, con);
