@@ -104,8 +104,6 @@ rdql_lexer.c: $(srcdir)/rdql_lexer.l rdql_parser.c $(srcdir)/fix-flex
 	$(LEX) -o$@ $(srcdir)/rdql_lexer.l
 	$(PERL) $(srcdir)/fix-flex $@ > rdql_lexer.t
 	mv rdql_lexer.t $@
-	$(PERL) $(srcdir)/fix-flex rdql_lexer.h > rdql_lexer.t
-	mv rdql_lexer.t rdql_lexer.h
 
 rdql_parser.c: $(srcdir)/rdql_parser.y $(srcdir)/fix-bison
 	$(YACC) -b rdql_parser -p rdql_parser_ -d -v $(srcdir)/rdql_parser.y
@@ -118,8 +116,6 @@ sparql_lexer.c: $(srcdir)/sparql_lexer.l sparql_parser.c $(srcdir)/fix-flex
 	$(LEX) -o$@ $(srcdir)/sparql_lexer.l
 	$(PERL) $(srcdir)/fix-flex $@ > sparql_lexer.t
 	mv sparql_lexer.t $@
-	$(PERL) $(srcdir)/fix-flex sparql_lexer.h > sparql_lexer.t
-	mv sparql_lexer.t sparql_lexer.h
 
 sparql_parser.c: $(srcdir)/sparql_parser.y $(srcdir)/fix-bison
 	$(YACC) -b sparql_parser -p sparql_parser_ -d -v $(srcdir)/sparql_parser.y
