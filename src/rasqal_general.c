@@ -452,8 +452,8 @@ rasqal_log_error_varargs(rasqal_world* world, raptor_log_level level,
 {
   char *buffer;
   size_t length;
-  raptor_message_handler handler=world->error_handlers.handlers[level];
-  void* handler_data=world->error_handlers.user_data[level];
+  raptor_message_handler handler=world->error_handlers.handlers[level].handler;
+  void* handler_data=world->error_handlers.handlers[level].user_data;
   
   if(level == RAPTOR_LOG_LEVEL_NONE)
     return;

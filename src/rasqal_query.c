@@ -270,8 +270,8 @@ rasqal_query_set_fatal_error_handler(rasqal_query* query, void *user_data,
 
   error_handlers=&query->world->error_handlers;
   
-  error_handlers->user_data[RAPTOR_LOG_LEVEL_FATAL]=user_data;
-  error_handlers->handlers[RAPTOR_LOG_LEVEL_FATAL]=handler;
+  error_handlers->handlers[RAPTOR_LOG_LEVEL_FATAL].user_data=user_data;
+  error_handlers->handlers[RAPTOR_LOG_LEVEL_FATAL].handler=handler;
 }
 
 
@@ -296,8 +296,8 @@ rasqal_query_set_error_handler(rasqal_query* query, void *user_data,
 
   error_handlers=&query->world->error_handlers;
   
-  error_handlers->user_data[RAPTOR_LOG_LEVEL_ERROR]=user_data;
-  error_handlers->handlers[RAPTOR_LOG_LEVEL_ERROR]=handler;
+  error_handlers->handlers[RAPTOR_LOG_LEVEL_ERROR].user_data=user_data;
+  error_handlers->handlers[RAPTOR_LOG_LEVEL_ERROR].handler=handler;
 }
 
 
@@ -322,8 +322,8 @@ rasqal_query_set_warning_handler(rasqal_query* query, void *user_data,
 
   error_handlers=&query->world->error_handlers;
   
-  error_handlers->user_data[RAPTOR_LOG_LEVEL_WARNING]=user_data;
-  error_handlers->handlers[RAPTOR_LOG_LEVEL_WARNING]=handler;
+  error_handlers->handlers[RAPTOR_LOG_LEVEL_WARNING].user_data=user_data;
+  error_handlers->handlers[RAPTOR_LOG_LEVEL_WARNING].handler=handler;
 }
 
 
