@@ -2,7 +2,7 @@
  *
  * srxread.c - SPARQL Results XML Format reading test program
  *
- * Copyright (C) 2007-2008, David Beckett http://purl.org/net/dajobe/
+ * Copyright (C) 2007-2008, David Beckett http://www.dajobe.org/
  * 
  * This package is Free Software and part of Redland http://librdf.org/
  * 
@@ -109,7 +109,7 @@ main(int argc, char *argv[])
     goto tidy;
   }
 
-  formatter=rasqal_new_query_results_formatter(results_formatter_name,
+  formatter=rasqal_new_query_results_formatter(world, results_formatter_name,
                                                NULL);
   if(!formatter) {
     fprintf(stderr, "%s: Failed to create query results formatter '%s'",
@@ -118,7 +118,8 @@ main(int argc, char *argv[])
     goto tidy;
   }
   
-  rc=rasqal_query_results_formatter_read(world, iostr, formatter, results, base_uri);
+  rc=rasqal_query_results_formatter_read(world, iostr, formatter, results,
+                                         base_uri);
   if(rc)
     goto tidy;
 
