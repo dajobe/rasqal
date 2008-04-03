@@ -1,3 +1,99 @@
+2008-03-29  Dave Beckett <dave@dajobe.org>
+
+	* utils/srxread.c: Update for rasqal_new_query_results_formatter
+	world param.
+
+2008-02-25  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_general.c, src/rasqal_query.c: Ported rasqal to
+	r13695 raptor error handler changes.
+
+2008-02-24  Lauri Aalto <laalto@iki.fi>
+
+	* src/Makefile.am: flex-generated header file does not need fixing
+	with fix-flex. It already has YY_NO_UNISTD_H guard and all other
+	fix-flex issues are for .c files only.
+	Fixes warnings due to multiple inclusion of rasqal_config.h.
+
+2008-02-16  Dave Beckett <dave@dajobe.org>
+
+	* autogen.sh, autogen.sh, autogen.sh, autogen.sh, autogen.sh:
+	autogen checks when env prog version is empty. Update all packages
+	to latest autogen.sh
+
+2008-02-12  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_engine.c: (rasqal_rowsource_engine_finish):
+	Low-memory leak fix. Ensure map is always freed.
+
+2008-02-07  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_engine.c: (rasqal_engine_execute_and_save): Set
+	finished flag if returning finished status. Another fix to prevent
+	reaching the r13516 FIXME HACK abort() branch in
+	rasqal_engine_excute_next_lazy() in low-memory situations.
+
+	* src/rasqal_engine.c: (rasqal_rowsource_engine_process): Removed
+	unreachable conditional code.
+
+	* src/rasqal_engine.c: (rasqal_engine_execute_and_save): Set query
+	results to finished state if results_sequence is NULL. Prevents
+	reaching the r13516 FIXME HACK abort() branch in
+	rasqal_engine_excute_next_lazy() on low-memory situations.
+
+2008-02-02  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_sparql_xml.c:
+	(rasqal_query_results_get_rowsource_sparql_xml):
+	Use updated SVN raptor_error_handlers_init call.
+
+2008-01-29  Lauri Aalto <laalto@iki.fi>
+
+	* src/Makefile.am: Fixed configuration error: build rasqal getopt
+	if GETOPT is true, not vice versa. Fixes sparql_parser_test in
+	some environments where getopt.h declares optind/optarg
+	differently from rasqal_getopt. E.g. on cygwin getopt.h has
+	__declspec(dllimport) declarations.
+
+2008-01-28  Lauri Aalto <laalto@iki.fi>
+
+	* src/sparql_parser.y: sparql_parser_test: Fixed crash from
+	calling rasqal_free_world() with an uninitialized world.
+
+2008-01-20  Dave Beckett <dave@dajobe.org>
+
+	* docs/Makefile.am, tests/rdql/testsuite/Makefile.am,
+	tests/sparql/Expr1/Makefile.am, tests/sparql/Expr2/Makefile.am,
+	tests/sparql/ExprBuiltins/Makefile.am,
+	tests/sparql/ExprEquals/Makefile.am,
+	tests/sparql/SyntaxDev/Syntax-SPARQL/Makefile.am,
+	tests/sparql/SyntaxDev/Syntax-SPARQL2/Makefile.am,
+	tests/sparql/SyntaxDev/Syntax-SPARQL3/Makefile.am,
+	tests/sparql/SyntaxFull/Makefile.am,
+	tests/sparql/ValueTesting/Makefile.am,
+	tests/sparql/bound/Makefile.am, tests/sparql/examples/Makefile.am,
+	tests/sparql/part1/Makefile.am, tests/sparql/regex/Makefile.am,
+	tests/sparql/simple/Makefile.am, tests/sparql/sort/Makefile.am,
+	tests/sparql/survey/Makefile.am, tests/sparql/syntax/Makefile.am,
+	utils/Makefile.am: Replace bare perl with
+
+	* src/Makefile.am: Make sparql_parser_test work when getopt isn't around
+
+	* tests/engine/rasqal_order_test.c: Back to Unix line endings
+
+	* configure.ac, src/rasqal_decimal.c: Added test for gmp_version
+
+	* configure.ac: Use gmp.h in mpfr.h check just to prevent
+	configure warning, not to ever use it
+
+	* configure.ac, docs/tmpl/rasqal-unused.sgml,
+	docs/tmpl/section-general.sgml,
+	docs/tmpl/section-graph_pattern.sgml,
+	docs/tmpl/section-literal.sgml, docs/tmpl/section-query.sgml,
+	docs/tmpl/section-query_results_formatter.sgml,
+	docs/tmpl/section-triples_source.sgml: Make MPFR test check for
+	functions in mpfr that are not in ancient gmp version of mpfr
+
 2008-01-15  Lauri Aalto <laalto@iki.fi>
 
 	* src/rasqal_engine.c: (rasqal_engine_bind_construct_variables):
