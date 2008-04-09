@@ -2183,6 +2183,7 @@ rasqal_literal_as_node(rasqal_literal* l)
   raptor_uri* dt_uri;
   rasqal_literal* new_l=NULL;
   
+  reswitch:
   switch(l->type) {
     case RASQAL_LITERAL_URI:
     case RASQAL_LITERAL_STRING:
@@ -2191,8 +2192,8 @@ rasqal_literal_as_node(rasqal_literal* l)
       break;
       
     case RASQAL_LITERAL_VARIABLE:
-      new_l=rasqal_new_literal_from_literal(l->value.variable->value);
-      break;
+      l=l->value.variable->value;
+      goto reswitch;
 
     case RASQAL_LITERAL_DOUBLE:
     case RASQAL_LITERAL_FLOAT:
