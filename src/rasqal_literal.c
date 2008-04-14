@@ -2184,6 +2184,8 @@ rasqal_literal_as_node(rasqal_literal* l)
   rasqal_literal* new_l=NULL;
   
   reswitch:
+  if(!l)
+    return NULL;
   switch(l->type) {
     case RASQAL_LITERAL_URI:
     case RASQAL_LITERAL_STRING:
