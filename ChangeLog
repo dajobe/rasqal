@@ -1,3 +1,22 @@
+2008-04-14  Dave Beckett <dave@dajobe.org>
+
+	* src/rdql_common.h, src/rdql_parser.y, src/sparql_common.h,
+	src/sparql_parser.y: Count errors in SPARQL and RDQL syntax
+	parsing and do not report errors after the first one.  A
+	workaround instead of adding full bison error parser recovery.
+
+2008-04-14  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_literal.c: (rasqal_literal_as_node): Resiliency fix:
+	Check for NULL literal.
+
+2008-04-09  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_literal.c: (rasqal_literal_as_node): Turn variables
+	pointing to non-string literals into string literals. Fixes
+	"Triple with unknown object skipped" errors in graph queries like
+	SPARQL CONSTRUCT.
+
 2008-03-29  Dave Beckett <dave@dajobe.org>
 
 	* utils/srxread.c: Update for rasqal_new_query_results_formatter
