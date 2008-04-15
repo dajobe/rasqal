@@ -49,6 +49,9 @@ struct rasqal_sparql_query_engine_s {
 
   /* SPARQL extended */
   int extended;
+
+  /* count of errors in current query parse */
+  int error_count;
 };
 
 

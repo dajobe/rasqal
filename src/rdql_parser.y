@@ -718,6 +718,8 @@ rdql_parse(rasqal_query* rq) {
 
   buffer= rdql_lexer__scan_buffer((char*)rq->query_string, rq->query_string_length, rqe->scanner);
 
+  rqe->error_count=0;
+
   rdql_parser_parse(rq);
 
   rdql_lexer_lex_destroy(rqe->scanner);
@@ -734,6 +736,9 @@ rdql_parse(rasqal_query* rq) {
 int
 rdql_query_error(rasqal_query *rq, const char *msg) {
   rasqal_rdql_query_engine* rqe=(rasqal_rdql_query_engine*)rq->context;
+
+  if(rqe->error_count++)
+    return;
 
   rq->locator.line=rqe->lineno;
 #ifdef RASQAL_RDQL_USE_ERROR_COLUMNS
@@ -754,6 +759,9 @@ rdql_syntax_error(rasqal_query *rq, const char *message, ...)
   rasqal_rdql_query_engine *rqe=(rasqal_rdql_query_engine*)rq->context;
   va_list arguments;
 
+  if(rqe->error_count++)
+    return 0;
+
   rq->locator.line=rqe->lineno;
 #ifdef RASQAL_RDQL_USE_ERROR_COLUMNS
   /*  rp->locator.column=rdql_lexer_get_column(yyscanner);*/
@@ -765,7 +773,7 @@ rdql_syntax_error(rasqal_query *rq, const char *message, ...)
                            message, arguments);
   va_end(arguments);
 
-  return (0);
+  return 0;
 }
 
 

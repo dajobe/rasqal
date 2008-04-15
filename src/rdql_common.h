@@ -46,6 +46,9 @@ struct rasqal_rdql_query_engine_s {
 
   /* for error reporting */
   unsigned int lineno;
+
+  /* count of errors in current query parse */
+  int error_count;
 };
 
 

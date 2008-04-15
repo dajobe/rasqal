@@ -2683,6 +2683,8 @@ sparql_parse(rasqal_query* rq) {
 
   buffer= sparql_lexer__scan_buffer((char*)rq->query_string, rq->query_string_length, rqe->scanner);
 
+  rqe->error_count=0;
+
   sparql_parser_parse(rq);
 
   sparql_lexer_lex_destroy(rqe->scanner);
@@ -2700,6 +2702,9 @@ static void
 sparql_query_error(rasqal_query *rq, const char *msg) {
   rasqal_sparql_query_engine* rqe=(rasqal_sparql_query_engine*)rq->context;
 
+  if(rqe->error_count++)
+    return;
+
   rq->locator.line=rqe->lineno;
 #ifdef RASQAL_SPARQL_USE_ERROR_COLUMNS
   /*  rq->locator.column=sparql_lexer_get_column(yyscanner);*/
@@ -2715,6 +2720,9 @@ static void
 sparql_query_error_full(rasqal_query *rq, const char *message, ...) {
   va_list arguments;
   rasqal_sparql_query_engine* rqe=(rasqal_sparql_query_engine*)rq->context;
+
+  if(rqe->error_count++)
+    return;
 
   rq->locator.line=rqe->lineno;
 #ifdef RASQAL_SPARQL_USE_ERROR_COLUMNS
@@ -2737,6 +2745,9 @@ sparql_syntax_error(rasqal_query *rq, const char *message, ...)
   rasqal_sparql_query_engine *rqe=(rasqal_sparql_query_engine*)rq->context;
   va_list arguments;
 
+  if(rqe->error_count++)
+    return 0;
+
   rq->locator.line=rqe->lineno;
 #ifdef RASQAL_SPARQL_USE_ERROR_COLUMNS
   /*  rp->locator.column=sparql_lexer_get_column(yyscanner);*/
@@ -2748,7 +2759,7 @@ sparql_syntax_error(rasqal_query *rq, const char *message, ...)
                            message, arguments);
   va_end(arguments);
 
-  return (0);
+  return 0;
 }
 
 
