@@ -130,8 +130,7 @@ rasqal_free_query_results(rasqal_query_results* query_results)
 {
   rasqal_query* query;
 
-  if(!query_results)
-    return;
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN(query_results, rasqal_query_result);
 
   query=query_results->query;
   
@@ -908,6 +907,8 @@ rasqal_new_query_result_row_from_query_result_row(rasqal_query_result_row* row)
 void 
 rasqal_free_query_result_row(rasqal_query_result_row* row)
 {
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN(row, rasqal_query_result_row);
+
   if(--row->usage)
     return;
   

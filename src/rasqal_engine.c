@@ -536,6 +536,8 @@ rasqal_new_triples_source(rasqal_query_results* query_results)
 void
 rasqal_free_triples_source(rasqal_triples_source *rts)
 {
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN(rts, rasqal_triples_source);
+  
   if(rts->user_data) {
     rts->free_triples_source(rts->user_data);
     RASQAL_FREE(user_data, rts->user_data);
@@ -557,6 +559,8 @@ rasqal_triples_source_triple_present(rasqal_triples_source *rts,
 static void
 rasqal_free_triples_match(rasqal_triples_match* rtm)
 {
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN(rtm, rasqal_triples_match);
+  
   rtm->finish(rtm, rtm->user_data);
   RASQAL_FREE(rasqal_triples_match, rtm);
 }
@@ -705,8 +709,11 @@ rasqal_new_engine_gp_data(rasqal_graph_pattern* gp)
 static void
 rasqal_free_gp_data(rasqal_engine_gp_data* gp_data)
 {
-  rasqal_graph_pattern* gp=gp_data->gp;
+  rasqal_graph_pattern* gp;
 
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN(gp, rasqal_engine_gp_data);
+  
+  gp=gp_data->gp;
   if(gp_data->triple_meta) {
     if(gp) {
       while(gp_data->column >= gp->start_column) {
@@ -1115,8 +1122,11 @@ rasqal_free_engine_execution_data(rasqal_query* query,
                                   rasqal_query_results* query_results,
                                   void *data)
 {
-  rasqal_engine_execution_data* execution_data=(rasqal_engine_execution_data*)data;
+  rasqal_engine_execution_data* execution_data;
 
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN(execution_data, rasqal_engine_execution_data);
+  
+  execution_data=(rasqal_engine_execution_data*)data;
   if(execution_data->seq)
     raptor_free_sequence(execution_data->seq);
   RASQAL_FREE(rasqal_engine_execution_data, execution_data);

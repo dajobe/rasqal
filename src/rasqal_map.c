@@ -81,6 +81,8 @@ rasqal_new_map_node(rasqal_map* map, void *key, void *value)
 static void
 rasqal_free_map_node(rasqal_map_node *node, rasqal_kv_free_fn* free_fn) 
 {
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN(node, rasqal_map_node);
+  
   if(node->prev)
     rasqal_free_map_node(node->prev, free_fn);
   if(node->next)
@@ -136,6 +138,8 @@ rasqal_new_map(rasqal_compare_fn* compare_fn,
 void
 rasqal_free_map(rasqal_map *map)
 {
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN(map, rasqal_map);
+  
   if(map->root)
     rasqal_free_map_node(map->root, map->free);
 

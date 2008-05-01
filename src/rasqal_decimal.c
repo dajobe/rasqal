@@ -124,10 +124,10 @@ rasqal_new_xsd_decimal(void)
 void
 rasqal_free_xsd_decimal(rasqal_xsd_decimal* dec)
 {
-  if(dec) {
-    rasqal_xsd_decimal_clear(dec);
-    RASQAL_FREE(decimal, dec);
-  }
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN(dec, rasqal_xsd_decimal);
+  
+  rasqal_xsd_decimal_clear(dec);
+  RASQAL_FREE(decimal, dec);
 }
 
 

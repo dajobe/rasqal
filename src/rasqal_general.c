@@ -173,6 +173,8 @@ rasqal_new_world(void)
 void
 rasqal_free_world(rasqal_world* world) 
 {
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN(world, rasqal_world);
+  
   rasqal_finish_result_formats(world);
   rasqal_finish_query_results();
 
@@ -200,6 +202,8 @@ rasqal_free_world(rasqal_world* world)
 static void
 rasqal_free_query_engine_factory(rasqal_query_engine_factory *factory)
 {
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN(factory, rasqal_query_engine_factory);
+  
   if(factory) {
     if(factory->finish_factory)
       factory->finish_factory(factory);
@@ -853,6 +857,8 @@ rasqal_query_generate_bnodeid(rasqal_query* rdf_query,
 void
 rasqal_free_memory(void *ptr)
 {
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN(ptr, memory);
+  
   RASQAL_FREE(void, ptr);
 }
 

@@ -148,6 +148,8 @@ rasqal_new_query(rasqal_world *world, const char *name,
 void
 rasqal_free_query(rasqal_query* query) 
 {
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN(query, rasqal_query);
+  
   if(--query->usage)
     return;
   

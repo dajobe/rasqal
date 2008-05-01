@@ -195,6 +195,9 @@ rasqal_new_skiplist(rasqal_compare_fn* compare_fn,
 static void
 rasqal_free_skiplist_node(rasqal_skiplist* list, rasqal_skiplist_node* node)
 {
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN(list, rasqal_skiplist);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN(node, rasqal_skiplist_node);
+
   if(list->free_fn)
     list->free_fn(node->key, node->value);
   RASQAL_FREE(rasqal_skiplist_node, node);
@@ -209,8 +212,11 @@ rasqal_free_skiplist_node(rasqal_skiplist* list, rasqal_skiplist_node* node)
 void
 rasqal_free_skiplist(rasqal_skiplist* list)
 {
-  rasqal_skiplist_node* node=list->head;
+  rasqal_skiplist_node* node;
 
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN(list, rasqal_skiplist);
+
+  node=list->head;
   for(node = node->forward[0]; node != RASQAL_SKIPLIST_NIL; ) {
     rasqal_skiplist_node* next = node->forward[0];
     rasqal_free_skiplist_node(list, node);

@@ -92,6 +92,8 @@ rasqal_new_data_graph(raptor_uri* uri, raptor_uri* name_uri, int flags)
 void
 rasqal_free_data_graph(rasqal_data_graph* dg)
 {
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN(dg, rasqal_data_graph);
+  
   if(dg->uri)
     raptor_free_uri(dg->uri);
   if(dg->name_uri)
@@ -276,6 +278,8 @@ rasqal_new_variable_from_variable(rasqal_variable* v)
 void
 rasqal_free_variable(rasqal_variable* v)
 {
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN(v, rasqal_variable);
+  
   if(v->name)
     RASQAL_FREE(cstring, (void*)v->name);
   if(v->value)
@@ -382,6 +386,8 @@ rasqal_new_prefix(const unsigned char *prefix, raptor_uri* uri)
 void
 rasqal_free_prefix(rasqal_prefix* p)
 {
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN(p, rasqal_prefix);
+  
   if(p->prefix)
     RASQAL_FREE(cstring, (void*)p->prefix);
   if(p->uri)
@@ -474,6 +480,8 @@ rasqal_new_triple_from_triple(rasqal_triple* t)
 void
 rasqal_free_triple(rasqal_triple* t)
 {
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN(t, rasqal_triple);
+  
   if(t->subject)
     rasqal_free_literal(t->subject);
   if(t->predicate)
@@ -908,6 +916,8 @@ rasqal_new_expression_from_expression(rasqal_expression* e)
 void
 rasqal_free_expression(rasqal_expression* e)
 {
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN(e, rasqal_expression);
+  
   if(--e->usage)
     return;
 

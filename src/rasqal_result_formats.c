@@ -362,6 +362,8 @@ rasqal_new_query_results_formatter_by_mime_type(rasqal_world* world, const char 
 void
 rasqal_free_query_results_formatter(rasqal_query_results_formatter* formatter) 
 {
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN(formatter, rasqal_query_results_formatter);
+
   RASQAL_FREE(rasqal_query_results_formatter, formatter);
 }
 
