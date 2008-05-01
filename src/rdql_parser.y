@@ -85,7 +85,7 @@ extern int rdql_lexer_lex (YYSTYPE *rdql_parser_lval, yyscan_t scanner);
 
 
 static int rdql_parse(rasqal_query* rq);
-static int rdql_query_error(rasqal_query* rq, const char *message);
+static void rdql_query_error(rasqal_query* rq, const char *message);
 
 %}
 
@@ -733,7 +733,7 @@ rdql_parse(rasqal_query* rq) {
 }
 
 
-int
+void
 rdql_query_error(rasqal_query *rq, const char *msg) {
   rasqal_rdql_query_engine* rqe=(rasqal_rdql_query_engine*)rq->context;
 
@@ -749,7 +749,7 @@ rdql_query_error(rasqal_query *rq, const char *msg) {
   rasqal_log_error_simple(rq->world, RAPTOR_LOG_LEVEL_FATAL,
                           &rq->locator, "%s", msg);
 
-  return 0;
+  return;
 }
 
 
