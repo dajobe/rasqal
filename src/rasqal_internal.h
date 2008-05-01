@@ -95,6 +95,10 @@ void rasqal_system_free(void *ptr);
 #define SYSTEM_FREE(ptr)   free(ptr)
 #endif
 
+#ifndef RASQAL_ASSERT_DIE
+#define RASQAL_ASSERT_DIE abort();
+#endif
+
 #else
 /* DEBUGGING TURNED OFF */
 
@@ -108,6 +112,63 @@ void rasqal_system_free(void *ptr);
 
 #define SYSTEM_MALLOC(size)   malloc(size)
 #define SYSTEM_FREE(ptr)   free(ptr)
+
+#ifndef RASQAL_ASSERT_DIE
+#define RASQAL_ASSERT_DIE
+#endif
+
+#endif
+
+
+#ifdef RASQAL_DISABLE_ASSERT_MESSAGES
+#define RASQAL_ASSERT_REPORT(line)
+#else
+#define RASQAL_ASSERT_REPORT(msg) fprintf(stderr, "%s:%d: (%s) assertion failed: " msg "\n", __FILE__, __LINE__, __func__);
+#endif
+
+
+#ifdef RASQAL_DISABLE_ASSERT
+
+#define RASQAL_ASSERT(condition, msg) 
+#define RASQAL_ASSERT_RETURN(condition, msg, ret) 
+#define RASQAL_ASSERT_OBJECT_POINTER_RETURN(pointer, type) do { \
+  if(!pointer) \
+    return; \
+} while(0)
+#define RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(pointer, type, ret)
+
+#else
+
+#define RASQAL_ASSERT(condition, msg) do { \
+  if(condition) { \
+    RASQAL_ASSERT_REPORT(msg) \
+    RASQAL_ASSERT_DIE \
+  } \
+} while(0)
+
+#define RASQAL_ASSERT_RETURN(condition, msg, ret) do { \
+  if(condition) { \
+    RASQAL_ASSERT_REPORT(msg) \
+    RASQAL_ASSERT_DIE \
+    return ret; \
+  } \
+} while(0)
+
+#define RASQAL_ASSERT_OBJECT_POINTER_RETURN(pointer, type) do { \
+  if(!pointer) { \
+    RASQAL_ASSERT_REPORT("object pointer of type " #type " is NULL.") \
+    RASQAL_ASSERT_DIE \
+    return; \
+  } \
+} while(0)
+
+#define RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(pointer, type, ret) do { \
+  if(!pointer) { \
+    RASQAL_ASSERT_REPORT("object pointer of type " #type " is NULL.") \
+    RASQAL_ASSERT_DIE \
+    return ret; \
+  } \
+} while(0)
 
 #endif
 
