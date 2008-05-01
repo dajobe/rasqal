@@ -2,7 +2,7 @@
  *
  * rdql_lexer.l - Rasqal RDQL lexer - making tokens for rdql grammar generator
  *
- * Copyright (C) 2003-2008, David Beckett http://purl.org/net/dajobe/
+ * Copyright (C) 2003-2008, David Beckett http://www.dajobe.org/
  * Copyright (C) 2003-2005, University of Bristol, UK http://www.bristol.ac.uk/
  * 
  * This package is Free Software and part of Redland http://librdf.org/
@@ -90,6 +90,9 @@
 #include <string.h>
 #include <stdarg.h>
 #include <ctype.h>
+#ifdef HAVE_SETJMP_H
+#include <setjmp.h>
+#endif
 
 #include <rasqal.h>
 #include <rasqal_internal.h>
@@ -130,8 +133,21 @@ void rdql_lexer_set_column(int  column_no , yyscan_t yyscanner);
 
 static void rdql_lexer_cleanup(yyscan_t yyscanner);
 
+#ifdef HAVE_SETJMP
+static jmp_buf rdql_lexer_fatal_error_longjmp_env;
+
 /* fatal error handler declaration */
-#define YY_FATAL_ERROR(msg) rdql_lexer_fatal_error(msg, yyscanner)
+#define YY_FATAL_ERROR(msg) do {		\
+    rdql_lexer_fatal_error(msg, yyscanner);   \
+    longjmp(rdql_lexer_fatal_error_longjmp_env, 1);        \
+} while(0)
+#else
+#define YY_FATAL_ERROR(msg) do {		\
+    rdql_lexer_fatal_error(msg, yyscanner);   \
+    abort();                                    \
+} while(0)
+#endif
+ 
 static void rdql_lexer_fatal_error(yyconst char *msg, yyscan_t yyscanner);
 
 %}
@@ -150,10 +166,18 @@ QUOTEDURI \<[A-Za-z][^>]+\>
 %%
   /* rules */
 
+%{
+
   int c;
   rasqal_query *rq=(rasqal_query*)yyextra;
   rasqal_rdql_query_engine *rqe=(rasqal_rdql_query_engine*)rq->context;
 
+#ifdef HAVE_SETJMP
+  if(setjmp(rdql_lexer_fatal_error_longjmp_env))
+    return 1;
+#endif
+  
+%}
 
 "//"[^\r\n]*(\r\n|\r|\n)	{ /* C++ comment */
         rqe->lineno++;
