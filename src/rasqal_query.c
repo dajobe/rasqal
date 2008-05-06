@@ -1107,7 +1107,8 @@ rasqal_query_prepare(rasqal_query* query,
   else {
     unsigned char *uri_string=raptor_uri_filename_to_uri_string("");
     base_uri=raptor_new_uri(uri_string);
-    raptor_free_memory(uri_string);
+    if(uri_string)
+      raptor_free_memory(uri_string);
   }
 
   rasqal_query_set_base_uri(query, base_uri);
