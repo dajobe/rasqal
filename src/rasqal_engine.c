@@ -711,7 +711,7 @@ rasqal_free_gp_data(rasqal_engine_gp_data* gp_data)
 {
   rasqal_graph_pattern* gp;
 
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN(gp, rasqal_engine_gp_data);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN(gp_data, rasqal_engine_gp_data);
   
   gp=gp_data->gp;
   if(gp_data->triple_meta) {
@@ -1124,7 +1124,7 @@ rasqal_free_engine_execution_data(rasqal_query* query,
 {
   rasqal_engine_execution_data* execution_data;
 
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN(execution_data, rasqal_engine_execution_data);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN(data, rasqal_engine_execution_data);
   
   execution_data=(rasqal_engine_execution_data*)data;
   if(execution_data->seq)
