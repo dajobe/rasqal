@@ -368,10 +368,11 @@ rasqal_free_query_results_formatter(rasqal_query_results_formatter* formatter)
 }
 
 
-static
-void raptor_iostream_write_json_boolean(raptor_iostream* iostr, 
-                                        const char* name, int json_bool)
+static void
+rasqal_iostream_write_json_boolean(raptor_iostream* iostr, 
+                                   const char* name, int json_bool)
 {
+  raptor_iostream_write_byte(iostr, '\"');
   raptor_iostream_write_string(iostr, name);
   raptor_iostream_write_counted_string(iostr, "\" : ",4);
 
@@ -449,7 +450,7 @@ rasqal_query_results_write_json1(raptor_iostream *iostr,
   /* Boolean Results */
   if(rasqal_query_results_is_boolean(results)) {
     raptor_iostream_write_counted_string(iostr, "  ", 2);
-    raptor_iostream_write_json_boolean(iostr, "boolean", 
+    rasqal_iostream_write_json_boolean(iostr, "boolean", 
                                        rasqal_query_results_get_boolean(results));
     goto results3done;
   }
@@ -458,12 +459,12 @@ rasqal_query_results_write_json1(raptor_iostream *iostr,
   raptor_iostream_write_counted_string(iostr, "  \"results\": {\n", 15);
 
   raptor_iostream_write_counted_string(iostr, "    \"", 5);
-  raptor_iostream_write_json_boolean(iostr, "ordered", 
+  rasqal_iostream_write_json_boolean(iostr, "ordered", 
                                      (rasqal_query_get_order_condition(query, 0) != NULL));
   raptor_iostream_write_counted_string(iostr, ",\n", 2);
 
   raptor_iostream_write_counted_string(iostr, "    \"", 5);
-  raptor_iostream_write_json_boolean(iostr, "distinct", 
+  rasqal_iostream_write_json_boolean(iostr, "distinct", 
                                      rasqal_query_get_distinct(query));
   raptor_iostream_write_counted_string(iostr, ",\n", 2);
 
