@@ -183,17 +183,12 @@ static jmp_buf sparql_lexer_fatal_error_longjmp_env;
  
 static void sparql_lexer_fatal_error(yyconst char *msg, yyscan_t yyscanner);
 
-/* Out-of-memory reporting macro.
- * Do not report as fatal error - we don't want an abort(),
- * instead return EOF with yyterminate() and let the parser clean up.
- */
-#define SPARQL_LEXER_OOM() do { \
-  sparql_syntax_error(rq, sparql_lexer_oom_text); \
-  yyterminate(); \
+/* Fatal error handler that returns EOF instead of abort()/longjmp()
+ * so that parser can clean up properly */
+#define YY_FATAL_ERROR_EOF(msg) do { \
+    sparql_lexer_fatal_error(msg, yyscanner); \
+    yyterminate(); \
 } while(0)
-
-static const char sparql_lexer_oom_text[]="sparql_lexer: Out of memory";
-
 %}
 
 LANGUAGETOKEN [A-Za-z][-A-Z_a-z0-9]*
@@ -395,7 +390,7 @@ EXPONENT [eE][+-]?[0-9]+
 [-+]?{INTEGER}   { c=*yytext;
                   sparql_parser_lval->literal=rasqal_new_typed_literal(rq->world, RASQAL_LITERAL_INTEGER, (const unsigned char*)yytext);
                   if(!sparql_parser_lval->literal)
-                    SPARQL_LEXER_OOM();
+                    YY_FATAL_ERROR_EOF("rasqal_new_typed_literal failed");
  		  return (c=='+' ? INTEGER_POSITIVE_LITERAL : (c == '-' ? INTEGER_NEGATIVE_LITERAL : INTEGER_LITERAL));
 }
 
@@ -408,7 +403,7 @@ EXPONENT [eE][+-]?[0-9]+
                         }
                         sparql_parser_lval->literal=rasqal_new_decimal_literal(rq->world, (const unsigned char*)yytext);
                         if(!sparql_parser_lval->literal)
-                          SPARQL_LEXER_OOM();
+                          YY_FATAL_ERROR_EOF("rasqal_new_decimal_literal failed");
                         return (c=='+' ? DECIMAL_POSITIVE_LITERAL : (c == '-' ? DECIMAL_NEGATIVE_LITERAL : DECIMAL_LITERAL));
 }
 
@@ -420,7 +415,7 @@ EXPONENT [eE][+-]?[0-9]+
                         }
                         sparql_parser_lval->literal=rasqal_new_typed_literal(rq->world, RASQAL_LITERAL_DOUBLE, (const unsigned char*)yytext);
                         if(!sparql_parser_lval->literal)
-                          SPARQL_LEXER_OOM();
+                          YY_FATAL_ERROR_EOF("rasqal_new_typed_literal failed");
                         return (c=='+' ? DOUBLE_POSITIVE_LITERAL : (c == '-' ? DOUBLE_NEGATIVE_LITERAL : DOUBLE_LITERAL));
 }
 
@@ -430,20 +425,20 @@ EXPONENT [eE][+-]?[0-9]+
 '([^'\\\n\r]|\\[^\n\r])*'(@{LANGUAGETOKEN})?(^^({QUOTEDURI}|{QNAME}))?    { /*' */
                         if(sparql_copy_string_token(rq, sparql_parser_lval,
                            (const unsigned char*)yytext+1, yyleng-1, '\''))
-                          SPARQL_LEXER_OOM();
+                          YY_FATAL_ERROR_EOF("sparql_copy_string_token failed");
                         return STRING_LITERAL; }
 
 \"([^"\\\n\r]|\\[^\n\r])*\"(@{LANGUAGETOKEN})?(^^({QUOTEDURI}|{QNAME}))?   { /* " */
                         if(sparql_copy_string_token(rq, sparql_parser_lval,
                            (const unsigned char*)yytext+1, yyleng-1, '"'))
-                          SPARQL_LEXER_OOM();
+                          YY_FATAL_ERROR_EOF("sparql_copy_string_token failed");
                         return STRING_LITERAL; }
 
 \"\"\"				{ BEGIN(LITERAL); }
 
 <LITERAL>(.|\n)*\"\"\"(^^({QUOTEDURI}|{QNAME}))?	{ if(sparql_copy_string_token(rq, sparql_parser_lval, 
                             (unsigned char*)yytext, yyleng, '"')) /* ' */
-                            SPARQL_LEXER_OOM();
+                            YY_FATAL_ERROR_EOF("sparql_copy_string_token failed");
                           BEGIN(INITIAL);
                           return STRING_LITERAL; }
 
@@ -459,7 +454,7 @@ EXPONENT [eE][+-]?[0-9]+
 
 <LITERAL2>(.|\n)*\'\'\'(^^({QUOTEDURI}|{QNAME}))?	{ if(sparql_copy_string_token(rq, sparql_parser_lval, 
                             (unsigned char*)yytext, yyleng, '\''))
-                            SPARQL_LEXER_OOM();
+                            YY_FATAL_ERROR_EOF("sparql_copy_string_token failed");
                           BEGIN(INITIAL);
                           return STRING_LITERAL; }
 
@@ -473,17 +468,17 @@ EXPONENT [eE][+-]?[0-9]+
 
 [Tt][Rr][Uu][Ee]	{ sparql_parser_lval->literal=rasqal_new_boolean_literal(rq->world, 1);
                     if(!sparql_parser_lval->literal)
-                      SPARQL_LEXER_OOM();
+                      YY_FATAL_ERROR_EOF("rasqal_new_boolean_literal failed");
                   return BOOLEAN_LITERAL; }
 
 [Ff][Aa][Ll][Ss][Ee]	{ sparql_parser_lval->literal=rasqal_new_boolean_literal(rq->world, 0);
                         if(!sparql_parser_lval->literal)
-                          SPARQL_LEXER_OOM();
+                          YY_FATAL_ERROR_EOF("rasqal_new_boolean_literal failed");
                   return BOOLEAN_LITERAL; }
 
 <ID>{VARNAME}	{ sparql_parser_lval->name=sparql_copy_name(rq, (const unsigned char*)yytext, yyleng, SPARQL_NAME_CHECK_VARNAME);
 		  if(!sparql_parser_lval->name)
-                    SPARQL_LEXER_OOM();
+                    YY_FATAL_ERROR_EOF("sparql_copy_name failed");
                           BEGIN(INITIAL);
                           return IDENTIFIER; }
 <ID>(.|\n)	{	BEGIN(INITIAL);
@@ -496,7 +491,7 @@ EXPONENT [eE][+-]?[0-9]+
 }
 <SPID>{VARNAME}	{ sparql_parser_lval->name=sparql_copy_name(rq, (const unsigned char*)yytext, yyleng, SPARQL_NAME_CHECK_VARNAME);
 		  if(!sparql_parser_lval->name)
-                    SPARQL_LEXER_OOM();
+                    YY_FATAL_ERROR_EOF("sparql_copy_name failed");
                           BEGIN(INITIAL);
                           return IDENTIFIER; }
 
@@ -509,7 +504,7 @@ EXPONENT [eE][+-]?[0-9]+
 <PREF>{NCNAME_PREFIX}":"	{ BEGIN(INITIAL);
 		  	  sparql_parser_lval->name=sparql_copy_name(rq, (const unsigned char*)yytext, yyleng-1, SPARQL_NAME_CHECK_PREFIX);
 			  if(!sparql_parser_lval->name)
-			    SPARQL_LEXER_OOM();
+			    YY_FATAL_ERROR_EOF("sparql_copy_name failed");
                           return IDENTIFIER; }
 <PREF>":"	{ BEGIN(INITIAL);
 		  sparql_parser_lval->name=NULL;
@@ -529,7 +524,7 @@ EXPONENT [eE][+-]?[0-9]+
 			yyleng--;
 		sparql_parser_lval->uri=sparql_copy_qname(rq, (const unsigned char*)yytext, yyleng);
 		if(!sparql_parser_lval->uri)
-		  SPARQL_LEXER_OOM();
+		  YY_FATAL_ERROR_EOF("sparql_copy_qname failed");
  		return have_brace ? URI_LITERAL_BRACE : URI_LITERAL;
 }
 
@@ -556,12 +551,12 @@ EXPONENT [eE][+-]?[0-9]+
                                                                 NULL,
                                                                 (raptor_simple_message_handler)sparql_syntax_error, rq);
                   if(!uri_string)
-                    SPARQL_LEXER_OOM();
+                    YY_FATAL_ERROR_EOF("rasqal_escaped_name_to_utf8_string failed");
 
                   sparql_parser_lval->uri=raptor_new_uri_relative_to_base(rq->base_uri, uri_string);
                   RASQAL_FREE(cstring, uri_string);
                   if(!sparql_parser_lval->uri)
-                    SPARQL_LEXER_OOM();
+                    YY_FATAL_ERROR_EOF("raptor_new_uri_relative_to_base failed");
                  }
                  return have_brace ? URI_LITERAL_BRACE : URI_LITERAL; }
 
@@ -934,8 +929,6 @@ static void sparql_lexer_fatal_error(yyconst char *msg, yyscan_t yyscanner)
     fputs(msg, stderr);
     fputc('\n', stderr);
   }
-
-  abort();
 }
 
 
