@@ -23,12 +23,7 @@
 #
 
 prefix=@prefix@
-
-if test "@includedir@" != /usr/include ; then
-  includes="-I@includedir@"
-else
-  includes=
-fi
+includes="-I@includedir@/@PACKAGE@"
 
 
 usage()
