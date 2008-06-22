@@ -23,7 +23,7 @@
 bin_SCRIPTS = rasqal-config
 lib_LTLIBRARIES = librasqal.la
 
-include_HEADERS = rasqal.h
+pkginclude_HEADERS = rasqal.h
 
 noinst_HEADERS = rasqal_internal.h win32_rasqal_config.h
 
