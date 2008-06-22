@@ -15,12 +15,82 @@
 <blockquote>
 <p><b>WARNING: ABI AND API CHANGED IN THIS RELEASE.</b></p>
 
+<p>This means: deprecated functions were removed, some existing
+functions changed their signature and sme new functions were added.
+</p>
+
 <p>The shared library major soname changed from 0 to 1.</p> 
 
 <p>The header files moved to be installed in
 <em>PREFIX</em>/include/rasqal such as
 <code>/usr/include/rasqal</code> for usual installs.</p>
 </blockquote>
+
+<p>Added a new <code>rasqal_world</code> object to manage
+library allocations and classes with new library
+constructor/initializing function
+<code>rasqal_world *rasqal_new_world(void)</code>
+and destructor/cleanup function:
+<code>void rasqal_free_world(rasqal_world*)</code>
+</p>
+
+<p>The following functions now take a <code>librdf_world*
+world</code> argument as the first argument:
+<code>rasqal_language_name_check()</code>,
+<code>rasqal_languages_enumerate()</code>,
+<code>rasqal_new_query()</code>,
+<code>rasqal_query_results_formats_check ()</code>,
+<code>rasqal_new_query_results_formatter()</code>,
+<code>rasqal_new_query_results_formatter_by_mime_type()</code>,
+<code>rasqal_new_integer_literal()</code>,
+<code>rasqal_new_typed_literal()</code>,
+<code>rasqal_new_double_literal()</code>,
+<code>rasqal_new_float_literal()</code>,
+<code>rasqal_new_uri_literal()</code>,
+<code>rasqal_new_pattern_literal()</code>,
+<code>rasqal_new_string_literal()</code>,
+<code>rasqal_new_simple_literal()</code>,
+<code>rasqal_new_boolean_literal()</code>,
+<code>rasqal_new_variable_literal()</code>,
+<code>rasqal_new_decimal_literal()</code>,
+<code>rasqal_new_decimal_literal_from_decimal()</code>
+</p>
+
+<p><code>rasqal_query_add_variable()</code>,
+<code>rasqal_query_add_prefix()</code> and
+<code>rasqal_graph_pattern_add_sub_graph_pattern()</code> now have
+int return values for catchng allocation failure.
+</p>
+
+<p>Added <code>rasqal_query_results_read()</code> to read a query
+results from an iostream in some format.
+</p>
+
+<p><code>rasqal_query_results_formats_enumerate()</code> gains a
+flags argument with
+<code>RASQAL_QUERY_RESULTS_FORMAT_FLAG_READER</code> and
+<code>RASQAL_QUERY_RESULTS_FORMAT_FLAG_WRITER</code> choices to
+choose formats for read or write enumeration.</p>
+
+<p>Removed function <code>rasqal_query_results_formats_enumerate_full</code> now
+handled by <code>rasqal_query_results_formats_enumerate()</code>.</p>
+
+<p>Added <code>rasqal_query_results_formatter_read()</code> to read query results
+from a syntax via an iostream.</p>
+
+<p>Added <code>rasqal_new_variable_from_variable()</code> copy constructor.</p>
+
+<p>
+<code>rasqal_triples_match</code> struct now has a rasqal_world* world field.
+</p>
+
+<p>Removed deprecated
+<code>rasqal_new_floating_literal()</code>,
+<code>rasqal_graph_pattern_get_flags()</code>,
+<code>rasqal_expression_foreach()</code> functions,
+<code>RASQAL_LITERAL_FLOATING</code> macro and
+<code>rasqal_expression_foreach_fn</code> typedef.
+</p>
 
 
 <h2 id="rel0_9_15"><a name="rel0_9_15">Rasqal 0.9.15 Changes</a></h2>
