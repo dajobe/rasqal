@@ -927,29 +927,6 @@ rasqal_free_expression(rasqal_expression* e)
 
 
 /**
- * rasqal_expression_foreach:
- * @e: #rasqal_expression to visit
- * @fn: visit function
- * @user_data: user data to pass to visit function
- * 
- * Visit a user function over a #rasqal_expression
- * 
- * @deprecated: Use rasqal_expression_visit() instead.
- *
- * Return value: 0 if the visit was truncated.
- **/
-int
-rasqal_expression_foreach(rasqal_expression* e, 
-                          rasqal_expression_foreach_fn fn,
-                          void *user_data)
-{
-  RASQAL_DEPRECATED_MESSAGE("use rasqal_expression_visit");
-
-  return rasqal_expression_visit(e, (rasqal_expression_visit_fn)fn, user_data);
-}
-
-
-/**
  * rasqal_expression_visit:
  * @e:  #rasqal_expression to visit
  * @fn: visit function

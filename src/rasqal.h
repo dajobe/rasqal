@@ -269,7 +269,6 @@ typedef struct {
  * @RASQAL_LITERAL_BOOLEAN: Boolean literal xsd:boolean.
  * @RASQAL_LITERAL_INTEGER: Integer literal xsd:integer.
  * @RASQAL_LITERAL_DOUBLE: Double floating point literal xsd:double.
- * @RASQAL_LITERAL_FLOATING: Deprecated %RASQAL_LITERAL_DOUBLE.
  * @RASQAL_LITERAL_FLOAT: Floating point literal xsd:float.
  * @RASQAL_LITERAL_DECIMAL: Decimal integer xsd:decimal.
  * @RASQAL_LITERAL_DATETIME: Date/Time literal xsd:dateTime.
@@ -308,8 +307,6 @@ typedef enum {
   RASQAL_LITERAL_BOOLEAN,
   RASQAL_LITERAL_INTEGER,
   RASQAL_LITERAL_DOUBLE,
-  /* deprecated */
-  RASQAL_LITERAL_FLOATING = RASQAL_LITERAL_DOUBLE,
   RASQAL_LITERAL_FLOAT,
   RASQAL_LITERAL_DECIMAL,
   RASQAL_LITERAL_DATETIME,
@@ -773,8 +770,6 @@ RASQAL_API
 raptor_sequence* rasqal_graph_pattern_get_sub_graph_pattern_sequence(rasqal_graph_pattern* graph_pattern);
 RASQAL_API
 rasqal_graph_pattern* rasqal_graph_pattern_get_sub_graph_pattern(rasqal_graph_pattern* graph_pattern, int idx);
-RASQAL_API RASQAL_DEPRECATED
-int rasqal_graph_pattern_get_flags(rasqal_graph_pattern* graph_pattern);
 RASQAL_API
 rasqal_graph_pattern_operator rasqal_graph_pattern_get_operator(rasqal_graph_pattern* graph_pattern);
 RASQAL_API
@@ -935,22 +930,6 @@ RASQAL_API
 void rasqal_expression_print(rasqal_expression* e, FILE* fh);
 RASQAL_API
 rasqal_literal* rasqal_expression_evaluate(rasqal_query* query, rasqal_expression* e, int flags);
-
-/**
- * rasqal_expression_foreach_fn:
- * @user_data: user data passed in with rasqal_expression_foreach()
- * @e: current expression
- *
- * User function to visit an expression and operate on it.  
- *
- * @deprecated: Use #rasqal_expression_visit_fn and rasqal_expression_visit()
- *
- * Return value: 0 to truncate the visit
- */
-typedef int (*rasqal_expression_foreach_fn)(void *user_data, rasqal_expression *e);
-
-RASQAL_API RASQAL_DEPRECATED
-int rasqal_expression_foreach(rasqal_expression* e, rasqal_expression_foreach_fn fn, void *user_data);
 
 /**
  * rasqal_expression_visit_fn:

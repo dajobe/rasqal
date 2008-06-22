@@ -487,24 +487,6 @@ rasqal_graph_pattern_get_sub_graph_pattern(rasqal_graph_pattern* graph_pattern, 
 }
 
 
-/**
- * rasqal_graph_pattern_get_flags:
- * @graph_pattern: #rasqal_graph_pattern graph pattern object
- *
- * Get the graph pattern flags .
- * 
- * @deprecated: Always returns 0
- *
- * Return value: 0
- **/
-int
-rasqal_graph_pattern_get_flags(rasqal_graph_pattern* graph_pattern)
-{
-  RASQAL_DEPRECATED_MESSAGE("use rasqal_graph_pattern_get_operator");
-  return 0;
-}
-
-
 /*
  * rasqal_graph_pattern_set_origin:
  * @graph_pattern: #rasqal_graph_pattern graph pattern object
