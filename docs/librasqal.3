@@ -6,7 +6,7 @@
 .\" Copyright (C) 2004-2007 David Beckett - http://purl.org/net/dajobe/
 .\" Copyright (C) 2004-2005 University of Bristol - http://www.bristol.ac.uk/
 .\"
-.TH librasqal 3 "2007-04-22"
+.TH librasqal 3 "2007-11-17"
 .\" Please adjust this date whenever revising the manpage.
 .SH NAME
 librasqal \- Rasqal RDF query library
@@ -469,6 +469,14 @@ true, 0 for false.
 .IP "\fBrasqal_literal* rasqal_new_variable_literal(rasqal_variable* \fIvariable\fP)\fR"
 Create a new Rasqal variable literal using an existing
 \fIvariable\fP object.
+.IP "\fBrasqal_literal* rasqal_new_decimal_literal_from_decimal(const unsigned char *\fIstring\fP, rasqal_xsd_decimal* \fIdecimal\fP)\fR"
+Create a new Rasqal decimal literal using an existing
+\fIstring\fP or \fIdecimal\fP object.
+.IP "\fBrasqal_literal* rasqal_new_float_literal(float \fIf\fP)\fR"
+Create a new Rasqal float literal using an existing foat \fIf\fP
+.IP "\fBrasqal_literal* rasqal_new_typed_literal(rasqal_literal_type type, const unsigned char* string)\fR"
+Create a new Rasqal RDF typed literal of the given \fItype\fP and
+\fIstring\fP form.
 .SH "LITERAL COPY CONSTRUCTOR"
 .IP "\fBrasqal_literal* rasqal_new_literal_from_literal(rasqal_literal* \fIliteral\fP)\fR"
 Copy an existing literal object.
@@ -510,6 +518,10 @@ is 0 for equal, non-0 for different (using raptor_uri_equals).
 Compare two literals with no type promotion
 If \fIliteral2\fP's value is a boolean, it will match
  the string "true" or "false" in \fIliteral1\fP.
+.IP "\fBrasqal_literal* rasqal_literal_value(rasqal_literal* \fIliteral\fP)\fR"
+Get the value of a \fIliteral\fP, looking up any variables.
+.IP "\fBraptor_uri* rasqal_literal_datatype(rasqal_literal* \fIliteral\fP)\fR"
+Get the datatype URI of a \fIliteral\fP
 .SH "TRIPLE CLASS"
 A class for triples of three literals, used for matching triples in a
 query where the literals may be variables as well as in then
@@ -641,7 +653,85 @@ name URI \fIname_uri\fP.  Flags can be
 Destroy a rasqal data_graph object.
 .IP "\fBvoid rasqal_data_graph_print(rasqal_data_graph* \fIdg\fP, FILE* \fIfh\fP)\fR"
 Print a data graph in a debug format.  This format may change in any release.
+.SH "DECIMAL CLASS"
+A class for accurate decimal arithmetic to handle XSD decimals.
+.SH DECIMAL CONSTRUCTOR
+.IP "\fBrasqal_xsd_decimal* rasqal_new_xsd_decimal(void)\fR"
+Create a new decimal object.
+.SH DECIMAL DESTRUCTOR
+.IP "\fBvoid rasqal_free_xsd_decimal(rasqal_xsd_decimal* dec)\fR"
+Destroy a rasqal decimal object.
+.SH "DECIMAL METHODS"
+.IP "\fBint rasqal_xsd_decimal_set_string(rasqal_xsd_decimal* \fIdec\fP, const char* \fIstring\fP)\fR"
+Set the decimal value from a string.
+.IP "\fBdouble rasqal_xsd_decimal_get_double(rasqal_xsd_decimal* \fIdec\fP)\fR"
+Get the decimal value as a double - this may lose precision.
+.IP "\fBchar* rasqal_xsd_decimal_as_string(rasqal_xsd_decimal* \fIdec\fP)\fR"
+Get the decimal as a string.  The returned string is shared and must
+be copied by the caller.
+.IP "\fBchar* rasqal_xsd_decimal_as_counted_string(rasqal_xsd_decimal* \fIdec\fP, size_t* \fIlen_p\fP)\fR"
+Get the decimal as a string plus optional length stored in
+\fIlen_p\fP if it is not NULL .  The returned string is shared and must
+be copied by the caller.
+.IP "\fBint rasqal_xsd_decimal_set_long(rasqal_xsd_decimal* \fIdec\fP, long l)\fR"
+Set the decimal value from a long.
+.IP "\fBint rasqal_xsd_decimal_set_double(rasqal_xsd_decimal* \fIdec\fP, double d)\fR"
+Set the decimal value from a double.
+.IP "\fBint rasqal_xsd_decimal_print(rasqal_xsd_decimal* \fIdec\fP, FILE* \fIstream\fP)\fR"
+Print the decimal to a FILE* \fIstream\fP.
+.IP "\fBint rasqal_xsd_decimal_add(rasqal_xsd_decimal* \fIresult\fP, rasqal_xsd_decimal* \fIa\fP, rasqal_xsd_decimal* \fIb\fP)\fR"
+Perform decimal \fIa\fP + \fBb\fP and store the result in \fIresult\fP.
+.IP "\fBint rasqal_xsd_decimal_subtract(rasqal_xsd_decimal* \fIresult\fP, rasqal_xsd_decimal* \fIa\fP, rasqal_xsd_decimal* \fIb\fP)\fR"
+Perform decimal \fIa\fP - \fBb\fP and store the result in \fIresult\fP.
+.IP "\fBint rasqal_xsd_decimal_multiply(rasqal_xsd_decimal* \fIresult\fP, rasqal_xsd_decimal* \fIa\fP, rasqal_xsd_decimal* \fIb\fP)\fR"
+Perform decimal \fIa\fP * \fBb\fP and store the result in \fIresult\fP.
+.IP "\fBint rasqal_xsd_decimal_divide(rasqal_xsd_decimal* \fIresult\fP, rasqal_xsd_decimal* \fIa\fP, rasqal_xsd_decimal* \fIb\fP)\fR"
+Perform decimal \fIa\fP / \fBb\fP and store the result in \fIresult\fP.
+.IP "\fBint rasqal_xsd_decimal_negate(rasqal_xsd_decimal* \fIresult\fP, rasqal_xsd_decimal* \fIa\fP)\fR"
+Perform decimal - \fIa\fP and store the result in \fIresult\fP.
+.IP "\fBint rasqal_xsd_decimal_compare(rasqal_xsd_decimal* \fIa\fP, rasqal_xsd_decimal* \fIb\fP)\fR"
+Compare decimal \fIa\fP to \fBb\fP and return <0, 0 or >0 if a is < b
+a = b or a > b in the same fashion as strcmp() does for strings.
+.IP "\fBint rasqal_xsd_decimal_equals(rasqal_xsd_decimal* \fIa\fP, rasqal_xsd_decimal* \fIb\fP)\fR"
+Return non-0 if decimal \fIa\fP equals \fBb\fP.
+.IP "\fBint rasqal_xsd_decimal_is_zero(rasqal_xsd_decimal* d)\fR"
+Return non-0 if decimal \fIa\fP is zero.
 .SH API CHANGES
+.SS 0.9.15
+Added rasqal_xsd_decimal type and support functions
+\fBrasqal_new_decimal_literal_from_decimal\fP,
+\fBrasqal_new_xsd_decimal\fP,
+\fBrasqal_free_xsd_decimal\fP,
+\fBrasqal_xsd_decimal_set_string\fP,
+\fBrasqal_xsd_decimal_get_double\fP,
+\fBrasqal_xsd_decimal_as_string\fP,
+\fBrasqal_xsd_decimal_as_counted_string\fP,
+\fBrasqal_xsd_decimal_set_long\fP,
+\fBrasqal_xsd_decimal_set_double\fP,
+\fBrasqal_xsd_decimal_print\fP,
+\fBrasqal_xsd_decimal_add\fP,
+\fBrasqal_xsd_decimal_subtract\fP,
+\fBrasqal_xsd_decimal_multiply\fP,
+\fBrasqal_xsd_decimal_divide\fP,
+\fBrasqal_xsd_decimal_negate\fP,
+\fBrasqal_xsd_decimal_compare\fP,
+\fBrasqal_xsd_decimal_equals\fP and
+\fBrasqal_xsd_decimal_is_zero\fP
+.LP
+Added RASQAL_EXPR_SAMETERM for SPARQL sameTerm
+.LP
+Added rasqal_compare_flags RASQAL_COMPARE_RDF and RASQAL_COMPARE_URI.
+.LP
+Added \fBrasqal_new_typed_literal\fP
+.LP
+Added \fBrasqal_new_float_literal\fP
+.LP
+Added \fBrasqal_literal_datatype\fP
+.LP
+Added \fBrasqal_literal_value\fP
+.LP
+Added rasqal_tripleparts RASQAL_TRIPLE_GRAPH, RASQAL_TRIPLE_SPO and
+RASQAL_TRIPLE_SPOG
 .SS 0.9.14
 Added \fBrasqal_new_0op_expression\fP.
 .LP
@@ -982,15 +1072,15 @@ All new.
 .br
 .SH "CONFORMING TO"
 \fISPARQL Query Language for RDF\fR, 
-Eric Prud'hommeaux and Andy Seaborne (eds), W3C Candidate Recommendation, 6 April 2006.
-.UR http://www.w3.org/TR/2006/CR-rdf-sparql-query-20060406/
-http://www.w3.org/TR/2006/CR-rdf-sparql-query-20060406/
+Eric Prud'hommeaux and Andy Seaborne (eds), W3C Proposed Recommendation, 12 November 2007
+.UR http://www.w3.org/TR/2007/PR-rdf-sparql-query-20071112/
+http://www.w3.org/TR/2007/PR-rdf-sparql-query-20071112/
 .UE
 .LP
 \fISPARQL Query Results XML Format\fR, 
-Jeen Broekstra and Dave Beckett (eds), W3C Candidate Recommendation, 6 April 2006.
-.UR http://www.w3.org/TR/2006/CR-rdf-sparql-XMLres-20060406/
-http://www.w3.org/TR/2006/CR-rdf-sparql-XMLres-20060406/
+Jeen Broekstra and Dave Beckett (eds), W3C Proposed Recommendation, 12 November 2007.
+.UR http://www.w3.org/TR/2007/PR-rdf-sparql-XMLres-20071112/
+http://www.w3.org/TR/2007/PR-rdf-sparql-XMLres-20071112/
 .UE
 .LP
 \fIRDQL - A Query Language for RDF\fR, Andy Seaborne,
