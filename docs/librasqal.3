@@ -6,7 +6,7 @@
 .\" Copyright (C) 2004-2008 David Beckett - http://purl.org/net/dajobe/
 .\" Copyright (C) 2004-2005 University of Bristol - http://www.bristol.ac.uk/
 .\"
-.TH librasqal 3 "2008-06-21"
+.TH librasqal 3 "2008-06-22"
 .\" Please adjust this date whenever revising the manpage.
 .SH NAME
 librasqal \- Rasqal RDF query library
@@ -695,6 +695,8 @@ Return non-0 if decimal \fIa\fP equals \fBb\fP.
 Return non-0 if decimal \fIa\fP is zero.
 .SH API CHANGES
 .SS 0.9.16
+Removed \fBrasqal_init\fP and \fBrasqal_finish\fP.
+.LP
 Added a new rasqal_world object to manage library allocations and
 classes with constructor \fBrasqal_new_world\fP and destructor
 \fBrasqal_free_world\fP.
