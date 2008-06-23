@@ -143,7 +143,7 @@
 	tests/sparql/part1/Makefile.am, tests/sparql/regex/Makefile.am,
 	tests/sparql/simple/Makefile.am, tests/sparql/sort/Makefile.am,
 	tests/sparql/survey/Makefile.am, tests/sparql/syntax/Makefile.am,
-	utils/Makefile.am: Replace bare perl with
+	utils/Makefile.am: Replace bare perl with $(PERL)
 
 	* src/Makefile.am: Make sparql_parser_test work when getopt isn't around
 
@@ -428,14 +428,15 @@
 	rasqal_query_warning_varargs): Removed.
 
 	* src/rasqal_internal.h: rasqal_query gains a rasqal_world field
-	and loses fatal/error/warning user data and handlers.  Added
-	methods of rasqal_world: rasqal_log_error_simple,
+	and loses fatal/error/warning user data and handlers.
+	Added methods of rasqal_world: rasqal_log_error_simple,
 	rasqal_log_error_varargs, rasqal_log_error,
-	rasqal_query_simple_error Removed rasqal_query_fatal_error,
+	rasqal_query_simple_error.
+	Removed rasqal_query_fatal_error,
 	rasqal_query_fatal_error_varargs, rasqal_query_error,
 	rasqal_query_simple_error, rasqal_query_error_varargs,
-	rasqal_query_warning, rasqal_query_warning_varargs rasqal_world
-	gains error_handlers field.
+	rasqal_query_warning, rasqal_query_warning_varargs.
+	rasqal_world gains error_handlers field.
 
 	* src/rasqal_general.c, src/rasqal_query.c, src/rdql_parser.y,
 	src/sparql_parser.y: (sparql_parse, rdql_parse,
