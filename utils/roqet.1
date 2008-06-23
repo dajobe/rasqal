@@ -18,7 +18,7 @@ roqet \- Rasqal RDF query utility
 .IR "[base-URI]"
 .br
 .B roqet
-.RB [ OPTIONS ] --exec
+.RB [ OPTIONS ] -e
 .IR "query-string"
 .IR "[base-URI]"
 .SH EXAMPLE
@@ -37,13 +37,15 @@ utility allows querying of RDF content using the
 RDF query library, printing the results in variable bindings,
 RDF graph or boolean format.  The query is read from \fIquery-URI\fR and
 the optional \fIbase-URI\fR is used as the base URI of the query if present.
-.SH OPTIONS
+.SH MAIN OPTIONS
 roqet uses the usual GNU command line syntax, with long
 options starting with two dashes (`-') if supported by the
 getopt_long function.  Otherwise only the short options are available.
 .TP
-.B \-h, \-\-help
-Show a summary of the options.
+.B \-e, \-\-exec QUERY
+Execute the query in the argument
+.I QUERY
+instead of reading the query from a URI (when -e is not given).
 .TP
 .B \-i, \-\-input LANGUAGE
 Set the input query
@@ -71,6 +73,7 @@ or 'rss-1.0' (RSS 1.0, also an RDF/XML syntax).
 .IP
 The exact list of formats depends on what libraptor(3) was built with
 but is given correct in the usage message with \-h.
+.SH OTHER OPTIONS
 .TP
 .B \-c, \-\-count
 Only count the triples and produce no other output.
@@ -83,11 +86,6 @@ Print the parsed query out in a given
 .I FORMAT
 one of 'debug', 'structure' or 'sparql'
 .TP
-.B \-e, \-\-exec QUERY
-Execute the query in the argument
-.I QUERY
-instead of reading the query from a URI.
-.TP
 .B \-f, \-\-feature NAME(=VALUE)
 Set query feature
 .I NAME
@@ -98,6 +96,9 @@ The known features can be shown with \fB-f help\fP or \fB--feature help\fP.
 .TP
 .B \-G, \-\-named URI
 Add RDF data source URI (named graph)
+.TP
+.B \-h, \-\-help
+Show a summary of the options.
 .TP
 .B \-n, \-\-dryrun
 Prepare the query but do not execute it.
