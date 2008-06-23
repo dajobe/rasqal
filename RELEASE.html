@@ -26,7 +26,8 @@
 
 <h3>Major Changes (break ABI and API)</h3>
 
-<p>Removed <code>rasqal_init()</code> and <code>rasqal_finish()</code></p>
+<p>Removed <code>rasqal_init()</code> and <code>rasqal_finish()</code>
+functions.</p>
 
 <p>Added a new <code>rasqal_world</code> object to manage
 library allocations and classes with new library
@@ -67,18 +68,19 @@ world</code> argument as the first argument:
 </p>
 
 <p>
-<code>rasqal_triples_match</code> struct now has a rasqal_world* world field.
+Modified <code>rasqal_triples_match</code> struct to add a
+rasqal_world* world field.
 </p>
 
 <h3>Graph Pattern Class Changes</h3>
-<p><code>rasqal_graph_pattern_add_sub_graph_pattern()</code> now has
-an int return value for catching allocation failure.
+<p>Modified <code>rasqal_graph_pattern_add_sub_graph_pattern()</code> to
+have an int return value for catching allocation failures.
 </p>
 
 <h3>Query Class Changes</h3>
-<p><code>rasqal_query_add_variable()</code> and
-<code>rasqal_query_add_prefix()</code> now have int return values for
-catching allocation failure.
+<p>Modified <code>rasqal_query_add_variable()</code> and
+<code>rasqal_query_add_prefix()</code> to have int return values for
+catching allocation failures.
 </p>
 
 <h3>Query Results Class Changes</h3>
@@ -87,8 +89,8 @@ catching allocation failure.
 results from an iostream in some format.
 </p>
 
-<p><code>rasqal_query_results_formats_enumerate()</code> gains a
-flags argument with
+<p>Modified <code>rasqal_query_results_formats_enumerate()</code> to add
+a flags argument with
 <code>RASQAL_QUERY_RESULTS_FORMAT_FLAG_READER</code> and
 <code>RASQAL_QUERY_RESULTS_FORMAT_FLAG_WRITER</code> choices to
 choose formats for read or write enumeration.</p>
