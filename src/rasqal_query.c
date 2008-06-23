@@ -1615,9 +1615,6 @@ rasqal_query_write_sparql_literal(sparql_writer_context *wc,
       raptor_iostream_write_counted_string(iostr, "_:", 2);
       raptor_iostream_write_string(iostr, l->string);
       break;
-    case RASQAL_LITERAL_PATTERN:
-      abort();
-      break;
     case RASQAL_LITERAL_STRING:
       raptor_iostream_write_byte(iostr, '"');
       raptor_iostream_write_string_ntriples(iostr, l->string, l->string_len, '"');
@@ -1657,8 +1654,9 @@ rasqal_query_write_sparql_literal(sparql_writer_context *wc,
       break;
 
     case RASQAL_LITERAL_UNKNOWN:
+    case RASQAL_LITERAL_PATTERN:
     default:
-      abort();
+      RASQAL_FATAL2("Literal type %d cannot be written as a SPARQL literal", l->type);
   }
 }
 
@@ -1857,18 +1855,15 @@ rasqal_query_write_sparql_expression(sparql_writer_context *wc,
       raptor_iostream_write_counted_string(iostr, " )", 2);
       break;
 
-    case RASQAL_EXPR_STR_MATCH:
-    case RASQAL_EXPR_STR_NMATCH:
-      abort();
-      break;
-
     case RASQAL_EXPR_VARSTAR:
       raptor_iostream_write_byte(iostr, '*');
       break;
       
     case RASQAL_EXPR_UNKNOWN:
+    case RASQAL_EXPR_STR_MATCH:
+    case RASQAL_EXPR_STR_NMATCH:
     default:
-      RASQAL_FATAL2("Unknown operation %d", e->op);
+      RASQAL_FATAL2("Expression op %d cannot be written as a SPARQL expresson", e->op);
   }
 }
 

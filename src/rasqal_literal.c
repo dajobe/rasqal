@@ -876,7 +876,7 @@ rasqal_free_literal(rasqal_literal* l)
 
     case RASQAL_LITERAL_UNKNOWN:
     default:
-      abort();
+      RASQAL_FATAL2("Unknown literal type %d", l->type);
   }
   RASQAL_FREE(rasqal_literal, l);
 }
@@ -993,7 +993,7 @@ rasqal_literal_print(rasqal_literal* l, FILE* fh)
 
     case RASQAL_LITERAL_UNKNOWN:
     default:
-      abort();
+      RASQAL_FATAL2("Unknown literal type %d", l->type);
   }
 }
 
@@ -1066,7 +1066,7 @@ rasqal_literal_as_boolean(rasqal_literal* l, int *error)
 
     case RASQAL_LITERAL_UNKNOWN:
     default:
-      abort();
+      RASQAL_FATAL2("Unknown literal type %d", l->type);
       return 0; /* keep some compilers happy */
   }
 }
@@ -1143,7 +1143,7 @@ rasqal_literal_as_integer(rasqal_literal* l, int *error)
       
     case RASQAL_LITERAL_UNKNOWN:
     default:
-      abort();
+      RASQAL_FATAL2("Unknown literal type %d", l->type);
       return 0; /* keep some compilers happy */
   }
 }
@@ -1208,7 +1208,7 @@ rasqal_literal_as_floating(rasqal_literal* l, int *error)
       
     case RASQAL_LITERAL_UNKNOWN:
     default:
-      abort();
+      RASQAL_FATAL2("Unknown literal type %d", l->type);
       return 0.0; /* keep some compilers happy */
   }
 }
@@ -1232,7 +1232,7 @@ rasqal_literal_as_uri(rasqal_literal* l)
   if(l->type==RASQAL_LITERAL_VARIABLE)
     return rasqal_literal_as_uri(l->value.variable->value);
 
-  abort();
+  RASQAL_FATAL2("Literal type %d has no URI value", l->type);
 
   return NULL;
 }
@@ -1286,7 +1286,7 @@ rasqal_literal_as_string_flags(rasqal_literal* l, int flags, int *error)
 
     case RASQAL_LITERAL_UNKNOWN:
     default:
-      abort();
+      RASQAL_FATAL2("Unknown literal type %d", l->type);
       return NULL; /* keep some compilers happy */
   }
 }
@@ -1620,7 +1620,7 @@ rasqal_literal_rdql_promote_calculate(rasqal_literal* l1, rasqal_literal* l2)
       
     case RASQAL_LITERAL_UNKNOWN:
     default:
-      abort();
+      RASQAL_FATAL2("Unknown literal type %d", lits[i]->type);
     }
   }
 
@@ -1823,7 +1823,7 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
     case RASQAL_LITERAL_UNKNOWN:
     case RASQAL_LITERAL_VARIABLE:
     default:
-      abort();
+      RASQAL_FATAL2("Literal type %d cannot be compared", type);
       result=0; /* keep some compilers happy */
   }
 
@@ -2077,7 +2077,7 @@ rasqal_literal_equals_flags(rasqal_literal* l1, rasqal_literal* l2,
     case RASQAL_LITERAL_PATTERN:
     case RASQAL_LITERAL_QNAME:
     default:
-      abort();
+      RASQAL_FATAL2("Literal type %d cannot be equaled", type);
       result=0; /* keep some compilers happy */
   }
 
@@ -2235,8 +2235,7 @@ rasqal_literal_as_node(rasqal_literal* l)
 
     case RASQAL_LITERAL_UNKNOWN:
     default:
-      RASQAL_FATAL2("Cannot turn literal type %d into a node", l->type);
-      abort();
+      RASQAL_FATAL2("Literal type %d has no node value", l->type);
   }
   
   return new_l;
@@ -2325,7 +2324,7 @@ rasqal_literal_is_constant(rasqal_literal* l)
 
     case RASQAL_LITERAL_UNKNOWN:
     default:
-      abort();
+      RASQAL_FATAL2("Literal type %d cannot be checked for constant", l->type);
       return 0; /* keep some compilers happy */
   }
 }
@@ -2485,10 +2484,10 @@ rasqal_literal_cast(rasqal_literal* l, raptor_uri* to_datatype, int flags,
         break;
 
       case RASQAL_LITERAL_VARIABLE:
-        /* yes fallthrough to abort since we should have handled this above */
+        /* fallthrough since rasqal_literal_value() handled this above */
       case RASQAL_LITERAL_UNKNOWN:
       default:
-        abort();
+        RASQAL_FATAL2("Literal type %d cannot be cast", l->type);
         return NULL; /* keep some compilers happy */
     }
 
