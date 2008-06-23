@@ -26,6 +26,10 @@ functions changed their signature and sme new functions were added.
 <code>/usr/include/rasqal</code> for usual installs.</p>
 </blockquote>
 
+<h3>Major Changes (break ABI and API)</h3>
+
+<p>Removed <code>rasqal_init()</code> and <code>rasqal_finish()</code></p>
+
 <p>Added a new <code>rasqal_world</code> object to manage
 library allocations and classes with new library
 constructor/initializing function
@@ -56,11 +60,30 @@ world</code> argument as the first argument:
 <code>rasqal_new_decimal_literal_from_decimal()</code>
 </p>
 
-<p><code>rasqal_query_add_variable()</code>,
-<code>rasqal_query_add_prefix()</code> and
-<code>rasqal_graph_pattern_add_sub_graph_pattern()</code> now have
-int return values for catchng allocation failure.
+<p>Removed deprecated
+<code>rasqal_new_floating_literal()</code>,
+<code>rasqal_graph_pattern_get_flags()</code>,
+<code>rasqal_expression_foreach()</code> functions,
+<code>RASQAL_LITERAL_FLOATING</code> macro and
+<code>rasqal_expression_foreach_fn</code> typedef.
 </p>
+
+<p>
+<code>rasqal_triples_match</code> struct now has a rasqal_world* world field.
+</p>
+
+<h3>Graph Pattern Class Changes</h3>
+<p><code>rasqal_graph_pattern_add_sub_graph_pattern()</code> now has
+an int return value for catching allocation failure.
+</p>
+
+<h3>Query Class Changes</h3>
+<p><code>rasqal_query_add_variable()</code> and
+<code>rasqal_query_add_prefix()</code> now have int return values for
+catching allocation failure.
+</p>
+
+<h3>Query Results Class Changes</h3>
 
 <p>Added <code>rasqal_query_results_read()</code> to read a query
 results from an iostream in some format.
@@ -78,19 +101,8 @@ handled by <code>rasqal_query_results_formats_enumerate()</code>.</p>
 <p>Added <code>rasqal_query_results_formatter_read()</code> to read query results
 from a syntax via an iostream.</p>
 
+<h3>Variable Class Changes</h3>
 <p>Added <code>rasqal_new_variable_from_variable()</code> copy constructor.</p>
-
-<p>
-<code>rasqal_triples_match</code> struct now has a rasqal_world* world field.
-</p>
-
-<p>Removed deprecated
-<code>rasqal_new_floating_literal()</code>,
-<code>rasqal_graph_pattern_get_flags()</code>,
-<code>rasqal_expression_foreach()</code> functions,
-<code>RASQAL_LITERAL_FLOATING</code> macro and
-<code>rasqal_expression_foreach_fn</code> typedef.
-</p>
 
 
 <h2 id="rel0_9_15"><a name="rel0_9_15">Rasqal 0.9.15 Changes</a></h2>
