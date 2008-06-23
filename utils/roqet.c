@@ -4,7 +4,7 @@
  *
  * $Id$
  *
- * Copyright (C) 2004-2007, David Beckett http://purl.org/net/dajobe/
+ * Copyright (C) 2004-2008, David Beckett http://www.dajobe.org/
  * Copyright (C) 2004-2005, University of Bristol, UK http://www.bristol.ac.uk/
  * 
  * This package is Free Software and part of Redland http://librdf.org/
@@ -63,19 +63,10 @@ extern int optind;
 extern char *optarg;
 #endif
 
-int rdql_parser_error(const char *msg);
 int main(int argc, char *argv[]);
 
 
 static char *program=NULL;
-
-
-int
-rdql_parser_error(const char *msg) 
-{
-  fprintf(stderr, "%s: Query parsing error: %s\n", program, msg);
-  return (0);
-}
 
 
 #ifdef HAVE_GETOPT_LONG
@@ -209,7 +200,8 @@ roqet_graph_pattern_walk(rasqal_graph_pattern *gp, int gp_index,
 
     gp_index=0;
     while(1) {
-      rasqal_graph_pattern* sgp=rasqal_graph_pattern_get_sub_graph_pattern(gp, gp_index);
+      rasqal_graph_pattern* sgp;
+      sgp=rasqal_graph_pattern_get_sub_graph_pattern(gp, gp_index);
       if(!sgp)
         break;
       
