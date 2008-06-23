@@ -72,6 +72,45 @@ Modified <code>rasqal_triples_match</code> struct to add a
 rasqal_world* world field.
 </p>
 
+<p>There is no more static data such as error pointers, arrays of
+query languages, URI objects; it is all attached to the rasqal_world
+object.</p>
+
+
+<h3>Misc changes</h3>
+
+<p>Fixed memory leaks in lang() expression evaluation. (Lauri Aalto)</p>
+
+<p>Made several low-memory resiliance fixes in query construction and
+execution. (Lauri Aalto)</p>
+
+<p>Library requires raptor 1.4.17 or newer to get the newly public
+raptor SAX2 API for reading SPARQL XML Results format.</p>
+
+<p>Updated mpfr configure check to look for modern functions rather
+than functions that are also in the older gmp-mpfr library too.
+</p>
+
+<p>Only the first error is reported for syntax errors in lex/parse
+of SPARQL and RDQL since the lack of error recovery means that the
+consequent messages are of little use.</p>
+
+<p>Fatal errors in SPARQL and RDQL lexer/parser no longer does an
+abort, but exits via setjmp/longjmp.</p>
+
+
+<h3>Query Engine Changes</h3>
+
+<p>Switched from lazy evaluation of query to non-lazy evaluation.
+That means that every query is fully evaluated before the first result
+is retured.  Previously it only did this when necessary, such as when
+ordering or distincting results.
+</p>
+
+<p>Added internal rowsource class to get rows from an execution
+engine or a syntax (query result formatter).</p>
+
+
 <h3>Graph Pattern Class Changes</h3>
 <p>Modified <code>rasqal_graph_pattern_add_sub_graph_pattern()</code> to
 have an int return value for catching allocation failures.
@@ -84,6 +123,10 @@ catching allocation failures.
 </p>
 
 <h3>Query Results Class Changes</h3>
+
+<p>Updated the internals to allow construction of a query result
+outside the query engine, such as from a syntax.
+</p>
 
 <p>Added <code>rasqal_query_results_read()</code> to read a query
 results from an iostream in some format.
