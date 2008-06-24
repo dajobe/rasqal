@@ -1,3 +1,45 @@
+2008-06-23  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_literal.c, src/rasqal_query.c, src/rasqal_redland.c:
+	(rasqal_literal_to_redland_node, rasqal_free_literal,
+	rasqal_literal_print, rasqal_literal_as_boolean,
+	rasqal_literal_as_integer, rasqal_literal_as_floating,
+	rasqal_literal_as_uri, rasqal_literal_as_string_flags,
+	rasqal_literal_rdql_promote_calculate, rasqal_literal_compare,
+	rasqal_literal_equals_flags, rasqal_query_write_sparql_literal,
+	rasqal_query_write_sparql_expression): Replaced abort() with
+	RASQAL_FATAL[12]() mostly as the default: action of switch()
+	statements.  This calls abort() only for developer use, just a
+	warning for end users.
+
+2008-06-22  Dave Beckett <dave@dajobe.org>
+
+	* utils/roqet.1: split main & other options
+
+	* utils/roqet.1: formatting
+
+	* utils/roqet.1: update for 0.9.15 & 0.9.16
+
+	* utils/roqet.c: 2008
+	(rdql_parser_error): Removed, unused code.
+
+	* docs/librasqal.3: Noted removal of rasqal_init and rasqal_finish
+
+2008-06-21  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal.h, src/rasqal_expr.c, src/rasqal_graph_pattern.c:
+	Removed deprecated functions and macros.
+	(rasqal_graph_pattern_get_flags): Deleted.
+	(rasqal_expression_foreach): Deleted.  RASQAL_LITERAL_FLOATING
+	macro deleted.  rasqal_expression_foreach_fn typedef deleted.
+
+	* docs/librasqal.3: Updated for old release 0.9.15 of 2007-11-17
+
+	* src/rasqal-config.in: Add /usr/include/rasqal to cflags
+
+	* src/Makefile.am: Install rasqal headers in /usr/include/rasqal
+	as promised
+
 2008-05-22  Lauri Aalto <laalto@iki.fi>
 
 	* src/sparql_lexer.l: Fixed sparql lexer error handling. Do not
