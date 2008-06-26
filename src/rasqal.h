@@ -633,7 +633,7 @@ typedef int (*rasqal_graph_pattern_visit_fn)(rasqal_query* query, rasqal_graph_p
 RASQAL_API
 rasqal_world *rasqal_new_world(void);
 RASQAL_API
-void rasqal_free_world(rasqal_world*);
+void rasqal_free_world(rasqal_world* world);
 
 /* Features */
 RASQAL_API
@@ -1152,6 +1152,7 @@ typedef struct rasqal_triples_match_s rasqal_triples_match;
  * @context: Context data used by the matcher.
  * @parts: Parts of the triple to match/bindings to set.
  * @is_exact: non-0 if all parts of the triple are given
+ * @executed: non-0 if the triple pattern has been fully executed
  *
  * Triple matching metadata for one triple pattern.
  */
@@ -1280,6 +1281,54 @@ void rasqal_set_triples_source_factory(rasqal_world* world, void (*register_fn)(
  *
  */
 
+/**
+ * bind_match:
+ *
+ * Internal.
+ *
+ */
+
+/**
+ * next_match:
+ *
+ * Internal.
+ *
+ */
+
+/**
+ * is_end:
+ *
+ * Internal.
+ *
+ */
+
+/**
+ * finish:
+ *
+ * Internal.
+ *
+ */
+
+/**
+ * init_triples_match:
+ *
+ * Internal.
+ *
+ */
+
+/**
+ * triple_present:
+ *
+ * Internal.
+ *
+ */
+
+/**
+ * free_triples_source:
+ *
+ * Internal.
+ *
+ */
 
 #ifdef __cplusplus
 }
