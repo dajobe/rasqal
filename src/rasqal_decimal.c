@@ -854,7 +854,7 @@ main(int argc, char *argv[]) {
 
   result_d=rasqal_xsd_decimal_get_double(&a);
   if(result_d != a_double) {
-    fprintf(stderr, "FAILED: a=%lf expected %lf\n", result_d, a_double);
+    fprintf(stderr, "FAILED: a=%f expected %f\n", result_d, a_double);
     FAIL;
   }
 
