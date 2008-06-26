@@ -1,8 +1,8 @@
 <!-- ##### SECTION Title ##### -->
-section-xsd
+XML Schema Decimals
 
 <!-- ##### SECTION Short_Description ##### -->
-XML Schema Decimals
+XML Schema decimal number arithmetic.
 
 <!-- ##### SECTION Long_Description ##### -->
 <para>
