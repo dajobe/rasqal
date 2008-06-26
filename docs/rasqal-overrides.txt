@@ -1,4 +1,9 @@
 <TYPEDEF>
+<NAME>rasqal_world</NAME>
+rasqal_world* world;
+</TYPEDEF>
+
+<TYPEDEF>
 <NAME>rasqal_graph_pattern</NAME>
 rasqal_graph_pattern* graph_pattern;
 </TYPEDEF>
@@ -17,4 +22,3 @@ rasqal_graph_query_results* query_results;
 <NAME>rasqal_query_results_formatter</NAME>
 rasqal_graph_query_results_formatter* query_results_formatter;
 </TYPEDEF>
-
