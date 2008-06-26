@@ -2837,10 +2837,10 @@ rasqal_init_query_engine_laqrs(rasqal_world* world) {
 #ifdef STANDALONE
 #include <stdio.h>
 #include <locale.h>
-
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
-#else
+#endif
+#ifndef HAVE_GETOPT
 #include <rasqal_getopt.h>
 #endif
 
