@@ -851,8 +851,21 @@ int rasqal_query_results_write(raptor_iostream *iostr, rasqal_query_results *res
 RASQAL_API
 int rasqal_query_results_read(raptor_iostream *iostr, rasqal_query_results *results, raptor_uri *format_uri, raptor_uri *base_uri);
 
+
+/**
+ * RASQAL_QUERY_RESULTS_FORMAT_FLAG_READER:
+ *
+ * Flag for rasqal_query_results_formats_enumerate() to get query results formats that can be read.
+ */
 #define RASQAL_QUERY_RESULTS_FORMAT_FLAG_READER 1
+
+/**
+ * RASQAL_QUERY_RESULTS_FORMAT_FLAG_WRITER:
+ *
+ * Flag for rasqal_query_results_formats_enumerate() to get query results formats that can be written.
+ */
 #define RASQAL_QUERY_RESULTS_FORMAT_FLAG_WRITER 2
+
 RASQAL_API
 int rasqal_query_results_formats_enumerate(rasqal_world*, unsigned int counter, const char **name, const char **label, const unsigned char **uri_string, const char **mime_type, int* flags);
 RASQAL_API
