@@ -4,8 +4,6 @@ rasqal_version_decimal
 rasqal_version_major
 rasqal_version_minor
 rasqal_version_release
-rasqal_init
-rasqal_finish
 rasqal_feature
 rasqal_language_name_check
 rasqal_languages_enumerate
@@ -83,7 +81,6 @@ rasqal_new_decimal_literal
 rasqal_new_decimal_literal_from_decimal
 rasqal_new_double_literal
 rasqal_new_float_literal
-rasqal_new_floating_literal
 rasqal_new_integer_literal
 rasqal_new_pattern_literal
 rasqal_new_simple_literal
