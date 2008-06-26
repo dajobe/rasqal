@@ -239,6 +239,7 @@ rasqal_variable_type
 <FILE>section-triples_source</FILE>
 rasqal_triple_meta
 rasqal_triples_match
+rasqal_triples_match_s
 rasqal_triples_source
 rasqal_triples_source_factory
 rasqal_set_triples_source_factory
@@ -282,4 +283,3 @@ next_match
 rasqal_expression_s
 triple_present
 </SECTION>
-
