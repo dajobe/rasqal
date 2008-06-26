@@ -46,7 +46,7 @@
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
 #endif
-#ifndev HAVE_GETOPT
+#ifndef HAVE_GETOPT
 #include <rasqal_getopt.h>
 #endif
 #ifdef HAVE_STDLIB_H
