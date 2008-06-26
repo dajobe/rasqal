@@ -198,6 +198,8 @@ rasqal_query_results_write
 <SECTION>
 <FILE>section-query_results_formatter</FILE>
 rasqal_query_results_formats_check
+RASQAL_QUERY_RESULTS_FORMAT_FLAG_READER
+RASQAL_QUERY_RESULTS_FORMAT_FLAG_WRITER
 rasqal_query_results_formats_enumerate
 rasqal_query_results_formatter
 rasqal_new_query_results_formatter
@@ -235,6 +237,7 @@ rasqal_variable_type
 
 <SECTION>
 <FILE>section-triples_source</FILE>
+rasqal_triple_meta
 rasqal_triples_match
 rasqal_triples_source
 rasqal_triples_source_factory
