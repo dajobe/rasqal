@@ -1155,8 +1155,7 @@ typedef struct rasqal_triples_match_s rasqal_triples_match;
  *
  * Triple matching metadata for one triple pattern.
  */
-typedef struct 
-{
+typedef struct {
   /* triple (subject, predicate, object) and origin */
   rasqal_variable* bindings[4];
 
