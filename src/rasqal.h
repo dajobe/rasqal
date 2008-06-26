@@ -1132,17 +1132,55 @@ typedef enum {
 struct rasqal_triples_match_s {
   void *user_data;
 
-  rasqal_triple_parts (*bind_match)(struct rasqal_triples_match_s*, void *user_data, rasqal_variable *bindings[4], rasqal_triple_parts parts);
+  rasqal_triple_parts (*bind_match)(struct rasqal_triples_match_s* rtm, void *user_data, rasqal_variable *bindings[4], rasqal_triple_parts parts);
 
-  void (*next_match)(struct rasqal_triples_match_s*, void *user_data);
+  void (*next_match)(struct rasqal_triples_match_s* rtm, void *user_data);
 
-  int (*is_end)(struct rasqal_triples_match_s*, void *user_data);
+  int (*is_end)(struct rasqal_triples_match_s* rtm, void *user_data);
 
-  void (*finish)(struct rasqal_triples_match_s*, void *user_data);
+  void (*finish)(struct rasqal_triples_match_s* rtm, void *user_data);
 
   rasqal_world *world;
 };
 typedef struct rasqal_triples_match_s rasqal_triples_match;
+
+/**
+ * bind_match:
+ * @rtm: triples match context
+ * @user_data: user data
+ * @bindings: variable binding for parts of triple (s, p, o, g)
+ * @parts: parts of triple to match
+ *
+ * Bind variables to parts of a matched triple.
+ *
+ * Return value: match parts
+*/
+
+/**
+ * next_match:
+ * @rtm: triples match context
+ * @user_data: user data
+ * 
+ * Move to next triple match
+ */
+
+/**
+ * is_end:
+ * @rtm: triples match context
+ * @user_data: user data
+ *
+ * Test if end of triple match
+ *
+ * Return value: non-0 if end of match
+ */
+
+/**
+ * finish:
+ * @rtm: triples match context
+ * @user_data: user data
+ *
+ * Finish triple match.
+ */
 
 
 /**
@@ -1276,55 +1314,6 @@ void rasqal_set_triples_source_factory(rasqal_world* world, void (*register_fn)(
   
 /**
  * rasqal_variable_s:
- *
- * Internal.
- *
- */
-
-/**
- * bind_match:
- *
- * Internal.
- *
- */
-
-/**
- * next_match:
- *
- * Internal.
- *
- */
-
-/**
- * is_end:
- *
- * Internal.
- *
- */
-
-/**
- * finish:
- *
- * Internal.
- *
- */
-
-/**
- * init_triples_match:
- *
- * Internal.
- *
- */
-
-/**
- * triple_present:
- *
- * Internal.
- *
- */
-
-/**
- * free_triples_source:
  *
  * Internal.
  *
