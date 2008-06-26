@@ -25,7 +25,6 @@ rasqal_new_variable_typed() and type #RASQAL_VARIABLE_TYPE_ANONYMOUS.
 
 </para>
 
-@name: 
 @value: 
 @offset: 
 @type: 
