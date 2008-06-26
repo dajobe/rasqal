@@ -2840,6 +2840,9 @@ rasqal_init_query_engine_laqrs(rasqal_world* world) {
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
 #endif
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
 #ifndef HAVE_GETOPT
 #include <rasqal_getopt.h>
 #endif
