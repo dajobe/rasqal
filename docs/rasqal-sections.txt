@@ -1,5 +1,8 @@
 <SECTION>
 <FILE>section-general</FILE>
+rasqal_world
+rasqal_free_world
+rasqal_new_world
 rasqal_version_decimal
 rasqal_version_major
 rasqal_version_minor
@@ -188,6 +191,7 @@ rasqal_query_results_is_graph
 rasqal_query_results_is_syntax
 rasqal_query_results_next
 rasqal_query_results_next_triple
+rasqal_query_results_read
 rasqal_query_results_write
 </SECTION>
 
@@ -200,6 +204,7 @@ rasqal_new_query_results_formatter
 rasqal_new_query_results_formatter_by_mime_type
 rasqal_free_query_results_formatter
 rasqal_query_results_formatter_get_mime_type
+rasqal_query_results_formatter_read
 rasqal_query_results_formatter_write
 </SECTION>
 
@@ -221,6 +226,7 @@ rasqal_triple_set_origin
 rasqal_variable
 rasqal_new_variable
 rasqal_new_variable_typed
+rasqal_new_variable_from_variable
 rasqal_free_variable
 rasqal_variable_print
 rasqal_variable_set_value
