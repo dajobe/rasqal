@@ -656,7 +656,7 @@ int rasqal_language_name_check(rasqal_world* world, const char *name);
 
 /* Create */
 RASQAL_API
-rasqal_query* rasqal_new_query(rasqal_world *, const char *name, const unsigned char *uri);
+rasqal_query* rasqal_new_query(rasqal_world* world, const char *name, const unsigned char *uri);
 
 /* Destroy */
 RASQAL_API
