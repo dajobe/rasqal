@@ -266,7 +266,11 @@ AM_CONDITIONAL(GETOPT, test $ac_cv_func_getopt = no -a $ac_cv_func_getopt_long =
 AC_MSG_CHECKING(whether need to declare optind)
 AC_TRY_LINK([#ifdef HAVE_GETOPT_H
 #include <getopt.h>
-#endif], [int x=optind;],
+#endif
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+], [int x=optind;],
             AC_MSG_RESULT(no),
             AC_DEFINE(NEED_OPTIND_DECLARATION, 1, [need 'extern int optind' declaration?])
             AC_MSG_RESULT(yes))
