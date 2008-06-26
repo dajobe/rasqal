@@ -170,6 +170,15 @@ rasqal_new_world(void)
 }
 
 
+/**
+ * rasqal_free_world:
+ * @world: rasqal_world object
+ * 
+ * Terminate the rasqal library.
+ *
+ * Destroys a rasqal_world object and all static information.
+ *
+ **/
 void
 rasqal_free_world(rasqal_world* world) 
 {
