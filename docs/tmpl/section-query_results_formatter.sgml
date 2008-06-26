@@ -27,11 +27,25 @@ handle or other custom destination.
 
 </para>
 
-@Param1: 
+@world: 
 @name: 
 @uri: 
 @mime_type: 
 @Returns: 
+
+
+<!-- ##### MACRO RASQAL_QUERY_RESULTS_FORMAT_FLAG_READER ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO RASQAL_QUERY_RESULTS_FORMAT_FLAG_WRITER ##### -->
+<para>
+
+</para>
+
 
 
 <!-- ##### FUNCTION rasqal_query_results_formats_enumerate ##### -->
@@ -39,7 +53,7 @@ handle or other custom destination.
 
 </para>
 
-@Param1: 
+@world: 
 @counter: 
 @name: 
 @label: 
@@ -60,7 +74,7 @@ handle or other custom destination.
 
 </para>
 
-@Param1: 
+@world: 
 @name: 
 @format_uri: 
 @Returns: 
@@ -71,7 +85,7 @@ handle or other custom destination.
 
 </para>
 
-@Param1: 
+@world: 
 @mime_type: 
 @Returns: 
 
@@ -90,6 +104,19 @@ handle or other custom destination.
 </para>
 
 @formatter: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_query_results_formatter_read ##### -->
+<para>
+
+</para>
+
+@world: 
+@iostr: 
+@formatter: 
+@results: 
+@base_uri: 
 @Returns: 
 
 

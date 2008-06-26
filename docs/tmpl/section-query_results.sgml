@@ -182,6 +182,18 @@ library for serializing to a syntax.
 @Returns: 
 
 
+<!-- ##### FUNCTION rasqal_query_results_read ##### -->
+<para>
+
+</para>
+
+@iostr: 
+@results: 
+@format_uri: 
+@base_uri: 
+@Returns: 
+
+
 <!-- ##### FUNCTION rasqal_query_results_write ##### -->
 <para>
 

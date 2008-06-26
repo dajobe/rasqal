@@ -21,6 +21,28 @@ their names, labels and URI.
 <!-- ##### SECTION Stability_Level ##### -->
 
 
+<!-- ##### TYPEDEF rasqal_world ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### FUNCTION rasqal_free_world ##### -->
+<para>
+
+</para>
+
+@world: 
+
+
+<!-- ##### FUNCTION rasqal_new_world ##### -->
+<para>
+
+</para>
+
+@Returns: 
+
+
 <!-- ##### VARIABLE rasqal_version_decimal ##### -->
 <para>
 
@@ -58,7 +80,7 @@ their names, labels and URI.
 
 </para>
 
-@Param1: 
+@world: 
 @name: 
 @Returns: 
 
@@ -68,7 +90,7 @@ their names, labels and URI.
 
 </para>
 
-@Param1: 
+@world: 
 @counter: 
 @name: 
 @label: 

@@ -24,12 +24,26 @@ Not used
 
 
 
+<!-- ##### MACRO RASQAL_QUERY_RESULTS_FORMATTER_DECLARED ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO RASQAL_WORLD_DECLARED ##### -->
+<para>
+
+</para>
+
+
+
 <!-- ##### FUNCTION bind_match ##### -->
 <para>
 
 </para>
 
-@Param1: 
+@rtm: 
 @user_data: 
 @bindings: 
 @parts: 
@@ -41,7 +55,7 @@ Not used
 
 </para>
 
-@Param1: 
+@rtm: 
 @user_data: 
 
 
@@ -71,7 +85,7 @@ Not used
 
 </para>
 
-@Param1: 
+@rtm: 
 @user_data: 
 @Returns: 
 
@@ -81,7 +95,7 @@ Not used
 
 </para>
 
-@Param1: 
+@rtm: 
 @user_data: 
 
 

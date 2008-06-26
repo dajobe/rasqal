@@ -21,6 +21,18 @@ to initialise and build a #rasqal_triples_match for some
 <!-- ##### SECTION Stability_Level ##### -->
 
 
+<!-- ##### STRUCT rasqal_triple_meta ##### -->
+<para>
+
+</para>
+
+@bindings: 
+@triples_match: 
+@context: 
+@parts: 
+@is_exact: 
+@executed: 
+
 <!-- ##### TYPEDEF rasqal_triples_match ##### -->
 <para>
 
@@ -47,7 +59,7 @@ to initialise and build a #rasqal_triples_match for some
 
 </para>
 
-@Param1: 
+@world: 
 @register_fn: 
 @user_data: 
 

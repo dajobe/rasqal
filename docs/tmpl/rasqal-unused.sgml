@@ -1,32 +1,24 @@
-<!-- ##### FUNCTION rasqal_finish ##### -->
+<!-- ##### SECTION ./tmpl/rasqal.sgml:Long_Description ##### -->
 <para>
 
 </para>
 
 
-<!-- ##### FUNCTION rasqal_init ##### -->
+<!-- ##### SECTION ./tmpl/rasqal.sgml:See_Also ##### -->
 <para>
 
 </para>
 
 
-<!-- ##### FUNCTION rasqal_new_floating_literal ##### -->
-<para>
+<!-- ##### SECTION ./tmpl/rasqal.sgml:Short_Description ##### -->
 
-</para>
 
-@f: 
-@Returns: 
 
-<!-- ##### FUNCTION rasqal_query_results_formats_enumerate_full ##### -->
-<para>
+<!-- ##### SECTION ./tmpl/rasqal.sgml:Stability_Level ##### -->
 
-</para>
 
-@counter: 
-@name: 
-@label: 
-@uri_string: 
-@mime_type: 
-@Returns: 
+
+<!-- ##### SECTION ./tmpl/rasqal.sgml:Title ##### -->
+rasqal
+
 

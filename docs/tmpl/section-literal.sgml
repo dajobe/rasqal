@@ -37,7 +37,6 @@ boolean, double, floating, integer, regex pattern and variables.
 @RASQAL_LITERAL_BOOLEAN: 
 @RASQAL_LITERAL_INTEGER: 
 @RASQAL_LITERAL_DOUBLE: 
-@RASQAL_LITERAL_FLOATING: 
 @RASQAL_LITERAL_FLOAT: 
 @RASQAL_LITERAL_DECIMAL: 
 @RASQAL_LITERAL_DATETIME: 
@@ -53,7 +52,7 @@ boolean, double, floating, integer, regex pattern and variables.
 
 </para>
 
-@Param1: 
+@world: 
 @type: 
 @string: 
 @Returns: 
@@ -64,7 +63,7 @@ boolean, double, floating, integer, regex pattern and variables.
 
 </para>
 
-@Param1: 
+@world: 
 @value: 
 @Returns: 
 
@@ -74,7 +73,7 @@ boolean, double, floating, integer, regex pattern and variables.
 
 </para>
 
-@Param1: 
+@world: 
 @string: 
 @Returns: 
 
@@ -84,7 +83,7 @@ boolean, double, floating, integer, regex pattern and variables.
 
 </para>
 
-@Param1: 
+@world: 
 @string: 
 @decimal: 
 @Returns: 
@@ -95,7 +94,7 @@ boolean, double, floating, integer, regex pattern and variables.
 
 </para>
 
-@Param1: 
+@world: 
 @d: 
 @Returns: 
 
@@ -105,7 +104,7 @@ boolean, double, floating, integer, regex pattern and variables.
 
 </para>
 
-@Param1: 
+@world: 
 @f: 
 @Returns: 
 
@@ -115,7 +114,7 @@ boolean, double, floating, integer, regex pattern and variables.
 
 </para>
 
-@Param1: 
+@world: 
 @type: 
 @integer: 
 @Returns: 
@@ -126,7 +125,7 @@ boolean, double, floating, integer, regex pattern and variables.
 
 </para>
 
-@Param1: 
+@world: 
 @pattern: 
 @flags: 
 @Returns: 
@@ -137,7 +136,7 @@ boolean, double, floating, integer, regex pattern and variables.
 
 </para>
 
-@Param1: 
+@world: 
 @type: 
 @string: 
 @Returns: 
@@ -148,7 +147,7 @@ boolean, double, floating, integer, regex pattern and variables.
 
 </para>
 
-@Param1: 
+@world: 
 @string: 
 @language: 
 @datatype: 
@@ -161,7 +160,7 @@ boolean, double, floating, integer, regex pattern and variables.
 
 </para>
 
-@Param1: 
+@world: 
 @uri: 
 @Returns: 
 
@@ -171,7 +170,7 @@ boolean, double, floating, integer, regex pattern and variables.
 
 </para>
 
-@Param1: 
+@world: 
 @variable: 
 @Returns: 
 

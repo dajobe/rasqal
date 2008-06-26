@@ -201,27 +201,6 @@ constants and #rasqal_variable values bound in some
 @Returns: 
 
 
-<!-- ##### USER_FUNCTION rasqal_expression_foreach_fn ##### -->
-<para>
-
-</para>
-
-@user_data: 
-@e: 
-@Returns: 
-
-
-<!-- ##### FUNCTION rasqal_expression_foreach ##### -->
-<para>
-
-</para>
-
-@e: 
-@fn: 
-@user_data: 
-@Returns: 
-
-
 <!-- ##### FUNCTION rasqal_expression_print ##### -->
 <para>
 
