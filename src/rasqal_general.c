@@ -2,7 +2,7 @@
  *
  * rasqal_general.c - Rasqal library startup, shutdown and factories
  *
- * Copyright (C) 2004-2008, David Beckett http://purl.org/net/dajobe/
+ * Copyright (C) 2004-2008, David Beckett http://www.dajobe.org/
  * Copyright (C) 2004-2005, University of Bristol, UK http://www.bristol.ac.uk/
  * 
  * This package is Free Software and part of Redland http://librdf.org/
@@ -49,7 +49,7 @@ static void rasqal_delete_query_engine_factories(rasqal_world*);
 
 const char * const rasqal_short_copyright_string = "Copyright 2003-2008 David Beckett.  Copyright 2003-2005 University of Bristol";
 
-const char * const rasqal_copyright_string = "Copyright (C) 2003-2008 David Beckett - http://purl.org/net/dajobe/\nCopyright (C) 2003-2005 University of Bristol - http://www.bristol.ac.uk/";
+const char * const rasqal_copyright_string = "Copyright (C) 2003-2008 David Beckett - http://www.dajobe.org/\nCopyright (C) 2003-2005 University of Bristol - http://www.bristol.ac.uk/";
 
 const char * const rasqal_license_string = "LGPL 2.1 or newer, GPL 2 or newer, Apache 2.0 or newer.\nSee http://librdf.org/rasqal/LICENSE.html for full terms.";
 

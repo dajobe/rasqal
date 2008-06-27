@@ -1,7 +1,7 @@
 /*
- * rasqal_datatime.c - Rasqal XSD dateTime
+ * rasqal_datetime.c - Rasqal XSD dateTime
  *
- * Copyright (C) 2007, David Beckett http://purl.org/net/dajobe/
+ * Copyright (C) 2007-2008, David Beckett http://www.dajobe.org/
  *
  * Contributions:
  *   Copyright (C) 2007, Lauri Aalto <laalto@iki.fi>
