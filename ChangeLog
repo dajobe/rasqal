@@ -1,3 +1,114 @@
+2008-06-26  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal.h, src/rasqal_datetime.c, src/rasqal_decimal.c,
+	src/rasqal_engine.c, src/rasqal_expr.c, src/rasqal_feature.c,
+	src/rasqal_general.c, src/rasqal_graph_pattern.c,
+	src/rasqal_internal.h, src/rasqal_limit_test.c,
+	src/rasqal_literal.c, src/rasqal_map.c, src/rasqal_query.c,
+	src/rasqal_query_results.c, src/rasqal_query_test.c,
+	src/rasqal_raptor.c, src/rasqal_redland.c,
+	src/rasqal_result_formats.c, src/rasqal_rowsource.c,
+	src/rasqal_skiplist.c, src/rasqal_sparql_xml.c,
+	src/rasqal_xsd_datatypes.c, src/rdql_common.h,
+	src/sparql_common.h, src/strcasecmp.c, src/win32_rasqal_config.h:
+	2008
+
+	* utils/roqet.c: Add --store-results BOOL when debugging, calling
+	(currently) internal rasqal_query_set_store_results
+
+	* docs/Makefile.am: note FIXME for updating
+
+	* src/rasqal.h: autodocs
+
+	* docs/tmpl/section-triples_source.sgml: templates
+
+	* docs/rasqal-overrides.txt: override rasqal_triples_source
+	FIXME automate keeping this up-to-date
+
+	* src/rasqal_general.c: (rasqal_free_world): autodocs
+
+	* docs/rasqal-sections.txt: Removed rasqal_triples_match_s
+
+	* docs/tmpl/rasqal-unused.sgml, docs/tmpl/section-expression.sgml,
+	docs/tmpl/section-general.sgml,
+	docs/tmpl/section-graph_pattern.sgml,
+	docs/tmpl/section-literal.sgml, docs/tmpl/section-prefix.sgml,
+	docs/tmpl/section-query.sgml,
+	docs/tmpl/section-query_results.sgml,
+	docs/tmpl/section-query_results_formatter.sgml,
+	docs/tmpl/section-triples_source.sgml,
+	docs/tmpl/section-unused.sgml, docs/tmpl/section-variable.sgml:
+	Update tmpls
+
+	* docs/rasqal-overrides.txt: override rasqal_triples_match
+	FIXME automate keeping this up-to-date
+
+	* docs/rasqal-sections.txt: Added rasqal_triples_match_s
+
+	* docs/tmpl/section-xsd.sgml: title
+
+	* src/rasqal_engine.c: Remove RASQAL_ENGINE_EVAL_LAZY macro and
+	trigger off query->store_results flag.  struct
+	rasqal_rowsource_engine_context gains offset field and renamed
+	need_map to need_store_results
+	(rasqal_rowsource_engine_init): Init row offset
+	(rasqal_rowsource_engine_process): Add read all flag, use context
+	offset and if not reading all, end after one result when not
+	storing.
+	(rasqal_rowsource_engine_read_row,
+	rasqal_rowsource_engine_read_all_rows): Add read all flag.
+	(rasqal_engine_execute_and_save): Remove local rowsource here and
+	use one in query_results so that stored and lazy queries can use
+	it.
+	(rasqal_engine_execute_run): Stored and lazy both use this code an
+	init a rowsource, use rasqal_engine_execute_and_save if necessary.
+	(rasqal_engine_execute_next_lazy): Renamed from
+	rasqal_engine_excute_next_lazy. Removed FIXME to execute with
+	rowsource.
+
+	* src/rasqal.h: describe rasqal_triples_match function prototypes.
+	another prototype fix.  update prototypes to make gtkdoc-scan
+	happier: use param names.
+
+	* docs/rasqal-overrides.txt: override world
+
+	* docs/rasqal-sections.txt: more new functions/macros
+
+	* src/rasqal.h: remove ws for gtkdoc-scan
+
+	* src/rasqal.h: autodocs
+
+	* docs/rasqal-sections.txt: Added rasqal_free_world
+	rasqal_new_variable_from_variable rasqal_new_world
+	rasqal_query_results_formatter_read rasqal_query_results_read
+	rasqal_world
+
+	* docs/rasqal-sections.txt: Removed rasqal_expression_foreach_fn
+	rasqal_expression_foreach rasqal_graph_pattern_get_flags
+
+	* docs/rasqal-sections.txt: Remove rasqal_finish rasqal_init
+	rasqal_new_floating_literal
+
+	* src/rasqal_query.c: (rasqal_query_set_store_results): Added.
+
+	* src/rasqal_internal.h: Added rasqal_query_set_store_results
+	struct rasqal_query_s gains a store_result field.
+
+	* utils/roqet.c: Separate use of HAVE_GETOPT_H (external header)
+	from HAVE_GETOPT (internal)
+
+	* src/sparql_parser.y: Include unistd.h if present.
+
+	* configure.ac: Try unistd.h when searching for optind
+
+	* src/rasqal_decimal.c: (main): Use %f for double, not %lf
+
+	* configure.ac: Use AC_PROG_CC and AM_PROG_CC_C_O to replace
+	AM_PROG_CC_STDC (obsolete) to stop configure warnings
+
+	* src/sparql_parser.y: Separate use of HAVE_GETOPT_H (external
+	header) from HAVE_GETOPT (internal)
+
 2008-06-23  Dave Beckett <dave@dajobe.org>
 
 	* src/rasqal_literal.c, src/rasqal_query.c, src/rasqal_redland.c:
