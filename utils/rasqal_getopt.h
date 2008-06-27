@@ -1,8 +1,6 @@
 /* 
  * Public Domain getopt header
  *
- * $Id$
- *
  */
 
 #ifndef RASQAL_GETOPT_H

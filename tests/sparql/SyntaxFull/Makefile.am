@@ -2,9 +2,7 @@
 #
 # Makefile.am - automake file for Rasqal SyntaxFull SPARQL tests
 #
-# $Id$
-#
-# Copyright (C) 2005-2006, David Beckett http://www.dajobe.org/
+# Copyright (C) 2005-2008, David Beckett http://www.dajobe.org/
 # Copyright (C) 2005-2005, University of Bristol, UK http://www.bristol.ac.uk/
 # 
 # This package is Free Software and part of Redland http://librdf.org/
