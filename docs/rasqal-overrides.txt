@@ -39,3 +39,19 @@ typedef struct {
   rasqal_world *world;
 } rasqal_triples_match;
 </STRUCT>
+
+
+<STRUCT>
+<NAME>rasqal_triples_source</NAME>
+typedef struct {
+  rasqal_query* query;
+
+  void *user_data;
+
+  int (*init_triples_match)(rasqal_triples_match* rtm, struct rasqal_triples_source_s* rts, void *user_data, rasqal_triple_meta *m, rasqal_triple *t);
+
+  int (*triple_present)(struct rasqal_triples_source_s* rts, void *user_data, rasqal_triple *t);
+
+  void (*free_triples_source)(void *user_data);
+} rasqal_triples_source;
+</STRUCT>
