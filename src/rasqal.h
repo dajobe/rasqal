@@ -1145,45 +1145,6 @@ struct rasqal_triples_match_s {
 typedef struct rasqal_triples_match_s rasqal_triples_match;
 
 /**
- * bind_match:
- * @rtm: triples match context
- * @user_data: user data
- * @bindings: variable binding for parts of triple (s, p, o, g)
- * @parts: parts of triple to match
- *
- * Bind variables to parts of a matched triple.
- *
- * Return value: match parts
-*/
-
-/**
- * next_match:
- * @rtm: triples match context
- * @user_data: user data
- * 
- * Move to next triple match
- */
-
-/**
- * is_end:
- * @rtm: triples match context
- * @user_data: user data
- *
- * Test if end of triple match
- *
- * Return value: non-0 if end of match
- */
-
-/**
- * finish:
- * @rtm: triples match context
- * @user_data: user data
- *
- * Finish triple match.
- */
-
-
-/**
  * rasqal_triple_meta:
  * @bindings: Variable bindings for this triple+origin to set.
  * @triples_match: The matcher that is setting these bindings.
@@ -1262,6 +1223,18 @@ void rasqal_set_triples_source_factory(rasqal_world* world, void (*register_fn)(
 /* The info below is solely for gtk-doc - ignore it */
 
 /**
+ * RASQAL_QUERY_RESULTS_FORMATTER_DECLARED:
+ *
+ * Internal
+ */
+
+/**
+ * RASQAL_WORLD_DECLARED:
+ *
+ * Internal
+ */
+
+/**
  * rasqal_expression_s:
  * @usage: Internal
  * @op: Internal
@@ -1278,46 +1251,74 @@ void rasqal_set_triples_source_factory(rasqal_world* world, void (*register_fn)(
  */
 
 /**
- * rasqal_literal_s:
- * @usage: Internal
- * @type: Internal
- * @string: Internal
- * @string_len: Internal
+ * bind_match:
+ * @rtm: triples match context
+ * @user_data: user data
+ * @bindings: variable binding for parts of triple (s, p, o, g)
+ * @parts: parts of triple to match
  *
- * Internal - see #rasqal_literal.
+ * Internal - see #rasqal_triples_match
  *
+ * Return value: match parts
+*/
+
+/**
+ * next_match:
+ * @rtm: triples match context
+ * @user_data: user data
+ * 
+ * Internal - see #rasqal_triples_match
  */
 
 /**
- * rasqal_triples_match_s:
- * @user_data: Internal
- * @bind_match: Internal
- * @next_match: Internal
- * @is_end: Internal
- * @finish: Internal
+ * is_end:
+ * @rtm: triples match context
+ * @user_data: user data
  *
- * Internal - see #rasqal_triples_match.
+ * Internal - see #rasqal_triples_match
  *
+ * Return value: non-0 if end of match
  */
 
 /**
- * rasqal_triples_source_s:
- * @query: Internal
- * @user_data: Internal
- * @init_triples_match: Internal
- * @triple_present: Internal
- * @free_triples_source: Internal
+ * finish:
+ * @rtm: triples match context
+ * @user_data: user data
  *
- * Internal - see #rasqal_triples_source.
- *
+ * Internal - see #rasqal_triples_match
  */
-  
+
 /**
- * rasqal_variable_s:
+ * init_triples_match:
+ * @rtm: triples match context
+ * @rts: triples match source
+ * @user_data: user data
+ * @m: triple meta
+ * @t: triple
  *
- * Internal.
+ * Internal - see #rasqal_triples_source
  *
+ * Return value: non-0 on failure
  */
+
+/**
+ * triple_present:
+ * @rts: triples match source
+ * @user_data: user data
+ * @t: triple to test for presence
+ *
+ * Internal - see #rasqal_triples_source
+ *
+ * Return value: non-0 on failure
+ */
+
+/**
+ * free_triples_source:
+ * @user_data: user data
+ *
+ * Internal - see #rasqal_triples_source
+ */
+
 
 #ifdef __cplusplus
 }
