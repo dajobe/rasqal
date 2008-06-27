@@ -58,6 +58,11 @@
 
 /* Rasqal includes */
 #include <rasqal.h>
+#ifdef RASQAL_DEBUG
+/* for internal rasqal_query_set_store_results() */
+#include <rasqal_internal.h>
+#endif
+
 
 #ifdef NEED_OPTIND_DECLARATION
 extern int optind;
@@ -72,18 +77,24 @@ static char *program=NULL;
 
 #ifdef HAVE_GETOPT_LONG
 #define HELP_TEXT(short, long, description) "  -" short ", --" long "  " description
+#define HELP_TEXT_LONG(long, description) "      --" long "  " description
 #define HELP_ARG(short, long) "--" #long
-#define HELP_PAD "\n                           "
+#define HELP_PAD "\n                            "
 #else
 #define HELP_TEXT(short, long, description) "  -" short "  " description
+#define HELP_TEXT_LONG(long, description)
 #define HELP_ARG(short, long) "-" #short
 #define HELP_PAD "\n      "
 #endif
 
-
 #define GETOPT_STRING "cd:D:e:f:G:hi:nr:qs:vw"
 
 #ifdef HAVE_GETOPT_LONG
+
+#ifdef RASQAL_DEBUG
+#define STORE_RESULTS_FLAG 0x100
+#endif
+
 static struct option long_options[] =
 {
   /* name, has_arg, flag, val */
@@ -101,6 +112,9 @@ static struct option long_options[] =
   {"named", 1, 0, 'G'},
   {"version", 0, 0, 'v'},
   {"walk-query", 0, 0, 'w'},
+#ifdef STORE_RESULTS_FLAG
+  {"store-results", 1, 0, STORE_RESULTS_FLAG},
+#endif
   {NULL, 0, 0, 0}
 };
 #endif
@@ -387,6 +401,9 @@ main(int argc, char *argv[])
   int query_feature_value= -1;
   unsigned char* query_feature_string_value=NULL;
   rasqal_world *world;
+#ifdef STORE_RESULTS_FLAG
+  int store_results= -1;
+#endif
   
   program=argv[0];
   if((p=strrchr(program, '/')))
@@ -614,6 +631,12 @@ main(int argc, char *argv[])
         output_format=QUERY_OUTPUT_STRUCTURE;
         break;
 
+#ifdef STORE_RESULTS_FLAG
+      case STORE_RESULTS_FLAG:
+        store_results=(!strcmp(optarg, "yes") || !strcmp(optarg, "YES"));
+        break;
+#endif
+
     }
     
   }
@@ -702,20 +725,23 @@ main(int argc, char *argv[])
         putchar('\n');
     }
     puts("\nAdditional options:");
-    puts(HELP_TEXT("c", "count            ", "Count triples - no output"));
-    puts(HELP_TEXT("d", "dump-query FORMAT", "Print the parsed query out in FORMAT:"));
+    puts(HELP_TEXT("c", "count             ", "Count triples - no output"));
+    puts(HELP_TEXT("d", "dump-query FORMAT ", "Print the parsed query out in FORMAT:"));
     for(i=1; i <= QUERY_OUTPUT_LAST; i++)
-      printf("      %-15s        %s\n", query_output_format_labels[i][0],
+      printf("      %-15s         %s\n", query_output_format_labels[i][0],
              query_output_format_labels[i][1]);
     puts(HELP_TEXT("f FEATURE(=VALUE)", "feature FEATURE(=VALUE)", HELP_PAD "Set query features" HELP_PAD "Use `-f help' for a list of valid features"));
-    puts(HELP_TEXT("h", "help             ", "Print this help, then exit"));
-    puts(HELP_TEXT("n", "dryrun           ", "Prepare but do not run the query"));
-    puts(HELP_TEXT("q", "quiet            ", "No extra information messages"));
-    puts(HELP_TEXT("D", "data URI         ", "RDF data source URI"));
-    puts(HELP_TEXT("G", "named URI        ", "RDF named graph data source URI"));
-    puts(HELP_TEXT("s", "source URI       ", "Same as `-G URI'"));
-    puts(HELP_TEXT("v", "version          ", "Print the Rasqal version"));
-    puts(HELP_TEXT("w", "walk-query       ", "Print query.  Same as '-d structure'"));
+    puts(HELP_TEXT("h", "help              ", "Print this help, then exit"));
+    puts(HELP_TEXT("n", "dryrun            ", "Prepare but do not run the query"));
+    puts(HELP_TEXT("q", "quiet             ", "No extra information messages"));
+    puts(HELP_TEXT("D", "data URI          ", "RDF data source URI"));
+    puts(HELP_TEXT("G", "named URI         ", "RDF named graph data source URI"));
+    puts(HELP_TEXT("s", "source URI        ", "Same as `-G URI'"));
+    puts(HELP_TEXT("v", "version           ", "Print the Rasqal version"));
+    puts(HELP_TEXT("w", "walk-query        ", "Print query.  Same as '-d structure'"));
+#ifdef STORE_RESULTS_FLAG
+    puts(HELP_TEXT_LONG("store-results BOOL", "DEBUG: Set store results yes/no BOOL"));
+#endif
     puts("\nReport bugs to http://bugs.librdf.org/");
 
     rasqal_free_world(world);
@@ -869,6 +895,11 @@ main(int argc, char *argv[])
   if(query_feature_string_value)
     rasqal_query_set_feature_string(rq, query_feature,
                                     query_feature_string_value);
+
+#ifdef STORE_RESULTS_FLAG
+  if(store_results >= 0)
+    rasqal_query_set_store_results(rq, store_results);
+#endif
   
   if(named_source_uris) {
     while(raptor_sequence_size(named_source_uris)) {
