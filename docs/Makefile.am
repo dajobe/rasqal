@@ -97,6 +97,13 @@ LYNXARGS=-dump -nolist
 if MAINTAINER_MODE
 librasqal.html: $(srcdir)/librasqal.3 $(srcdir)/../fix-groff-xhtml
 	-groff -man -Thtml -P-l $< | tidy -asxml -wrap 1000 2>/dev/null | $(PERL) $(srcdir)/../fix-groff-xhtml $@
+
+# FIXME: automate updating the rasqal-overrides.txt definition of
+#   rasqal_triples_match  rasqal_triples_source
+# based on the definitions of the struct NAME_s in ../src/rasqal.h
+#
+# rasqal-overrides.txt: rasqal-overrides.txt.in $(srcdir)/src/rasqal.h
+#	$(PERL) $(srcdir)/update-overrides $< $(srcdir)/src/rasqal.h $@
 endif
 
 
