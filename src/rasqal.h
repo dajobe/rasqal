@@ -285,12 +285,13 @@ typedef struct {
  * The order in the enumeration is significant as it encodes
  * the SPARQL term ordering conditions:
  *
- *   Blank Nodes << IRIS << RDF literals << typed literals
+ *   Blank Nodes << IRIs << RDF literals << typed literals
  *
  * which coresponds to in enum values
  *
  *   BLANK << URI << STRING << 
  *     (BOOLEAN | INTEGER | DOUBLE | FLOAT | DECIMAL | DATETIME)
+ *
  *     (RASQAL_LITERAL_FIRST_XSD ... RASQAL_LITERAL_LAST_XSD)
  *
  * Not used (internal): PATTERN, QNAME, VARIABLE
