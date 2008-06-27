@@ -33,17 +33,28 @@ to initialise and build a #rasqal_triples_match for some
 @is_exact: 
 @executed: 
 
-<!-- ##### TYPEDEF rasqal_triples_match ##### -->
+<!-- ##### STRUCT rasqal_triples_match ##### -->
 <para>
 
 </para>
 
+@user_data: 
+@bind_match: 
+@next_match: 
+@is_end: 
+@finish: 
+@world: 
 
-<!-- ##### TYPEDEF rasqal_triples_source ##### -->
+<!-- ##### STRUCT rasqal_triples_source ##### -->
 <para>
 
 </para>
 
+@query: 
+@user_data: 
+@init_triples_match: 
+@triple_present: 
+@free_triples_source: 
 
 <!-- ##### STRUCT rasqal_triples_source_factory ##### -->
 <para>
