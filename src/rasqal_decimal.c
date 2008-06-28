@@ -212,7 +212,7 @@ rasqal_xsd_decimal_set_string(rasqal_xsd_decimal* dec, const char* string)
   rasqal_xsd_decimal_clear_string(dec);
 
   len=strlen(string);
-  dec->string=RASQAL_MALLOC(cstring, len+1);
+  dec->string=(char*)RASQAL_MALLOC(cstring, len+1);
   if(!dec->string)
     return 1;
   strncpy(dec->string, string, len+1);
@@ -444,7 +444,7 @@ rasqal_xsd_decimal_as_string(rasqal_xsd_decimal* dec)
     
     /* snprintf with no buffer to get buffer length */
     len=snprintf(NULL, 0, fmt, dec->raw)+1;
-    s=RASQAL_MALLOC(cstring, len);
+    s=(char*)RASQAL_MALLOC(cstring, len);
     if(!s)
       return NULL;
 

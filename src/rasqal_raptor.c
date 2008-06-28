@@ -401,7 +401,7 @@ rasqal_raptor_triple_present(rasqal_triples_source *rts, void *user_data,
   rasqal_triple_parts parts=RASQAL_TRIPLE_SPO;
   
   if(t->origin)
-    parts |= RASQAL_TRIPLE_GRAPH;
+    parts = (rasqal_triple_parts)(parts | RASQAL_TRIPLE_GRAPH);
 
   for(triple=rtsc->head; triple; triple=triple->next) {
     if(rasqal_raptor_triple_match(triple->triple, t, parts))
@@ -649,7 +649,7 @@ rasqal_raptor_init_triples_match(rasqal_triples_match* rtm,
     } else
       rtmc->match.origin=rasqal_new_literal_from_literal(t->origin);
     m->bindings[3]=var;
-    rtmc->parts |= RASQAL_TRIPLE_GRAPH;
+    rtmc->parts = (rasqal_triple_parts)(rtmc->parts | RASQAL_TRIPLE_GRAPH);
   }
   
 

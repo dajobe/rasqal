@@ -252,7 +252,7 @@ rasqal_new_variable_from_variable(rasqal_variable* v)
     return NULL;
   
   name_len=strlen((const char*)v->name);
-  new_name=RASQAL_MALLOC(cstring, name_len+1);
+  new_name=(unsigned char*)RASQAL_MALLOC(cstring, name_len+1);
   if(!new_name) {
     RASQAL_FREE(rasqal_variable, new_v);
     return NULL;
