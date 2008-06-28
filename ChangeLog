@@ -1,4 +1,56 @@
+2008-06-28  Dave Beckett <dave@dajobe.org>
+
+	* tests/engine/rasqal_graph_test.c: Remove C99 .field = value
+	since C++ (or at least G++ 4.0.0) does not support it.
+
+	* src/rasqal_decimal.c, src/rasqal_expr.c, src/rasqal_general.c,
+	src/rasqal_raptor.c: Casts for C++
+
 2008-06-26  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal.h: words
+
+	* Makefile.am, docs/Makefile.am, tests/Makefile.am,
+	tests/engine/Makefile.am, tests/laqrs/Makefile.am,
+	tests/laqrs/syntax/Makefile.am, tests/rdql/Makefile.am,
+	tests/rdql/testsuite/Makefile.am, tests/sparql/Expr1/Makefile.am,
+	tests/sparql/Expr2/Makefile.am,
+	tests/sparql/ExprBuiltins/Makefile.am,
+	tests/sparql/ExprEquals/Makefile.am, tests/sparql/Makefile.am,
+	tests/sparql/SyntaxDev/Makefile.am,
+	tests/sparql/SyntaxDev/Syntax-SPARQL/Makefile.am,
+	tests/sparql/SyntaxDev/Syntax-SPARQL2/Makefile.am,
+	tests/sparql/SyntaxDev/Syntax-SPARQL3/Makefile.am,
+	tests/sparql/SyntaxFull/Makefile.am,
+	tests/sparql/ValueTesting/Makefile.am,
+	tests/sparql/bound/Makefile.am, tests/sparql/examples/Makefile.am,
+	tests/sparql/part1/Makefile.am, tests/sparql/regex/Makefile.am,
+	tests/sparql/simple/Makefile.am, tests/sparql/sort/Makefile.am,
+	tests/sparql/survey/Makefile.am, tests/sparql/syntax/Makefile.am,
+	utils/Makefile.am, utils/getopt.c, utils/rasqal_getopt.h,
+	utils/roqet.c: 2008
+
+	* INSTALL.html, LICENSE.html, NEWS.html, README.html,
+	RELEASE.html, TODO.html, docs/README.html: 2008
+
+	* Makefile.am, docs/Makefile.am, src/Makefile.am,
+	tests/Makefile.am, tests/engine/Makefile.am,
+	tests/laqrs/Makefile.am, tests/laqrs/syntax/Makefile.am,
+	tests/rdql/Makefile.am, tests/rdql/testsuite/Makefile.am,
+	tests/sparql/Expr1/Makefile.am, tests/sparql/Expr2/Makefile.am,
+	tests/sparql/ExprBuiltins/Makefile.am,
+	tests/sparql/ExprEquals/Makefile.am, tests/sparql/Makefile.am,
+	tests/sparql/SyntaxDev/Makefile.am,
+	tests/sparql/SyntaxDev/Syntax-SPARQL/Makefile.am,
+	tests/sparql/SyntaxDev/Syntax-SPARQL2/Makefile.am,
+	tests/sparql/SyntaxDev/Syntax-SPARQL3/Makefile.am,
+	tests/sparql/SyntaxFull/Makefile.am,
+	tests/sparql/ValueTesting/Makefile.am,
+	tests/sparql/bound/Makefile.am, tests/sparql/examples/Makefile.am,
+	tests/sparql/part1/Makefile.am, tests/sparql/regex/Makefile.am,
+	tests/sparql/simple/Makefile.am, tests/sparql/sort/Makefile.am,
+	tests/sparql/survey/Makefile.am, tests/sparql/syntax/Makefile.am,
+	utils/Makefile.am: 2008
 
 	* src/rasqal.h, src/rasqal_datetime.c, src/rasqal_decimal.c,
 	src/rasqal_engine.c, src/rasqal_expr.c, src/rasqal_feature.c,
