@@ -74,8 +74,8 @@ struct test
 
 
 static const struct test tests[QUERY_COUNT] = {
-  { .query_language = "sparql",
-    .query_string = "\
+  { /* query_language */ "sparql",
+    /* query_string */ "\
 PREFIX : <http://example.org/>\
 SELECT ?graph ?value \
 WHERE\
@@ -83,15 +83,15 @@ WHERE\
   GRAPH ?graph { :x :b ?value } \
 }\
 ",  
-    .expected_count =  2,
-    .data_graphs = { 0, 1, -1 },
-    .value_answers = { "mercury", "orange" },
-    .graph_answers = { 0, 1 },
-    .value_var = "value",
-    .graph_var = "graph",
+    /* expected_count */  2,
+    /* data_graphs */ { 0, 1, -1 },
+    /* value_answers */ { "mercury", "orange" },
+    /* graph_answers */ { 0, 1 },
+    /* value_var */ "value",
+    /* graph_var */ "graph",
   },
-  { .query_language = "sparql",
-    .query_string = "\
+  { /* query_language */ "sparql",
+    /* query_string */ "\
 PREFIX : <http://example.org/>\
 SELECT ?graph ?value \
 WHERE\
@@ -99,12 +99,12 @@ WHERE\
   GRAPH ?graph { ?var :a ?value } \
 }\
 ",  
-    .expected_count =  3,
-    .data_graphs = { 0, 1, 2 },
-    .value_answers = { "venus", "apple", "red" },
-    .graph_answers = { 0, 1, 2 },
-    .value_var = "value",
-    .graph_var = "graph",
+    /* expected_count */  3,
+    /* data_graphs */ { 0, 1, 2 },
+    /* value_answers */ { "venus", "apple", "red" },
+    /* graph_answers */ { 0, 1, 2 },
+    /* value_var */ "value",
+    /* graph_var */ "graph",
   }
 };
 
