@@ -52,7 +52,7 @@ sparql_parser.c sparql_parser.h sparql_parser.output
 MEM=@MEM@
 MEM_LIBS=@MEM_LIBS@
 
-AM_CFLAGS= @RASQAL_INTERNAL_CPPFLAGS@ @RASQAL_EXTERNAL_CPPFLAGS@ @STANDARD_CFLAGS@ $(MEM)
+AM_CFLAGS= @RASQAL_INTERNAL_CPPFLAGS@ @STANDARD_CFLAGS@ $(MEM)
 LIBS= @RASQAL_INTERNAL_LIBS@ @RASQAL_EXTERNAL_LIBS@ $(MEM_LIBS)
 
 librasqal_la_SOURCES = \
@@ -193,15 +193,15 @@ rasqal_limit_test_CPPFLAGS = -DSTANDALONE
 rasqal_limit_test_LDADD = librasqal.la
 
 rasqal_xsd_datatypes_test_SOURCES = rasqal_xsd_datatypes.c
-rasqal_xsd_datatypes_test_CPPFLAGS = -DSTANDALONE @RASQAL_EXTERNAL_CPPFLAGS@
+rasqal_xsd_datatypes_test_CPPFLAGS = -DSTANDALONE
 rasqal_xsd_datatypes_test_LDADD = librasqal.la
 
 rasqal_decimal_test_SOURCES = rasqal_decimal.c
-rasqal_decimal_test_CPPFLAGS = -DSTANDALONE @RASQAL_EXTERNAL_CPPFLAGS@
+rasqal_decimal_test_CPPFLAGS = -DSTANDALONE
 rasqal_decimal_test_LDADD = librasqal.la
 
 rasqal_datetime_test_SOURCES = rasqal_datetime.c
-rasqal_datetime_test_CPPFLAGS = -DSTANDALONE @RASQAL_EXTERNAL_CPPFLAGS@
+rasqal_datetime_test_CPPFLAGS = -DSTANDALONE
 rasqal_datetime_test_LDADD = librasqal.la
 
 $(top_builddir)/../raptor/src/libraptor.la:
