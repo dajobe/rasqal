@@ -1969,7 +1969,7 @@ rasqal_literal_equals_flags(rasqal_literal* l1, rasqal_literal* l2,
     return (l1 || l2);
   }
 
-#ifdef RASQAL_DEBUG
+#if RASQAL_DEBUG > 1
   RASQAL_DEBUG1(" ");
   rasqal_literal_print(l1, stderr);
   fputs( " to ", stderr);
@@ -2003,10 +2003,12 @@ rasqal_literal_equals_flags(rasqal_literal* l1, rasqal_literal* l2,
         type=type1;
       } else
         promotion=1;
+#if RASQAL_DEBUG > 1
       RASQAL_DEBUG4("xquery promoted literals types (%s, %s) to type %s\n", 
                     rasqal_literal_type_labels[l1->type],
                     rasqal_literal_type_labels[l2->type],
                     rasqal_literal_type_labels[type]);
+#endif
     } else
       type=l1->type;
   } else {
@@ -2089,7 +2091,7 @@ rasqal_literal_equals_flags(rasqal_literal* l1, rasqal_literal* l2,
       rasqal_free_literal(l2_p);
   }
 
-#ifdef RASQAL_DEBUG
+#if RASQAL_DEBUG > 1
   RASQAL_DEBUG2("equals result %d\n", result);
 #endif
 
