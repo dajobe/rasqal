@@ -10,8 +10,6 @@
 
 <h2 id="rel0_9_16"><a name="rel0_9_16">Rasqal 0.9.16 Changes</a></h2>
 
-<p>NOT YET RELEASED.</p>
-
 <blockquote>
 <p><b>WARNING: ABI AND API CHANGED IN THIS RELEASE.</b></p>
 
@@ -101,12 +99,6 @@ abort, but exits via setjmp/longjmp.</p>
 
 <h3>Query Engine Changes</h3>
 
-<p>Switched from lazy evaluation of query to non-lazy evaluation.
-That means that every query is fully evaluated before the first result
-is retured.  Previously it only did this when necessary, such as when
-ordering or distincting results.
-</p>
-
 <p>Added internal rowsource class to get rows from an execution
 engine or a syntax (query result formatter).</p>
 
@@ -138,14 +130,17 @@ a flags argument with
 <code>RASQAL_QUERY_RESULTS_FORMAT_FLAG_WRITER</code> choices to
 choose formats for read or write enumeration.</p>
 
-<p>Removed function <code>rasqal_query_results_formats_enumerate_full</code> now
-handled by <code>rasqal_query_results_formats_enumerate()</code>.</p>
+<p>Removed function
+<code>rasqal_query_results_formats_enumerate_full</code> now handled
+by <code>rasqal_query_results_formats_enumerate()</code>.</p>
 
-<p>Added <code>rasqal_query_results_formatter_read()</code> to read query results
-from a syntax via an iostream.</p>
+<p>Added <code>rasqal_query_results_formatter_read()</code> to read
+query results from a syntax via an iostream.</p>
 
 <h3>Variable Class Changes</h3>
-<p>Added <code>rasqal_new_variable_from_variable()</code> copy constructor.</p>
+
+<p>Added <code>rasqal_new_variable_from_variable()</code> copy
+constructor.</p>
 
 
 <h2 id="rel0_9_15"><a name="rel0_9_15">Rasqal 0.9.15 Changes</a></h2>
