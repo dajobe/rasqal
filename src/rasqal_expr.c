@@ -2364,7 +2364,8 @@ main(int argc, char *argv[])
 
   raptor_init();
 
-  world=RASQAL_CALLOC(rasqal_world, sizeof(rasqal_world), 1); /* FIXME: hack */
+  /* FIXME: hack to make a world object to initialise */
+  world=(rasqal_world*)RASQAL_CALLOC(rasqal_world, sizeof(rasqal_world), 1);
   rasqal_uri_init(world);
 
   rasqal_xsd_init(world);
