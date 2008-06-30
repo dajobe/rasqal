@@ -416,6 +416,15 @@ main(int argc, char *argv[])
     return(1);
   }
   
+#ifdef STORE_RESULTS_FLAG
+  /* This is for debugging only */
+  if(1) {
+    char* sr=getenv("RASQAL_DEBUG_STORE_RESULTS");
+    if(sr)
+      store_results=atoi(sr);
+  }
+#endif
+
   while (!usage && !help)
   {
     int c;
