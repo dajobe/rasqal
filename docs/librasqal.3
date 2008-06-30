@@ -495,7 +495,7 @@ Print a literal in a debug format.  This format may change in any release.
 Return a rasqal literal as a variable, if it is one, otherwise return NULL.
 .IP "\fBconst unsigned char* rasqal_literal_as_string(rasqal_literal* \fIliteral\fP)\fR"
 Return a rasqal literal as a string value.  This always succeeds.
-.UP "\fBconst unsigned char* rasqal_literal_as_string_flags(rasqal_literal* \fIliteral\fP, int \fIflags\fP, int* \fIerror\fP)\fR"
+.IP "\fBconst unsigned char* rasqal_literal_as_string_flags(rasqal_literal* \fIliteral\fP, int \fIflags\fP, int* \fIerror\fP)\fR"
 Return a rasqal literal as a string value according to \fIflags\fP.  The
 only defined string value at present is \fBRASQAL_COMPARE_XQUERY\fP to
 use XQuery conversion rules.  If \fIerror\fP is not NULL, it will be
