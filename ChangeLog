@@ -1,3 +1,33 @@
+2008-07-03  Dave Beckett <dave@dajobe.org>
+
+	* RELEASE.html: deprecate rasqal-config
+
+2008-06-29  Dave Beckett <dave@dajobe.org>
+
+	* tests/engine/Makefile.am: Remove RASQAL_EXTERNAL_CPPFLAGS
+
+	* configure.ac, src/Makefile.am: Remove RASQAL_EXTERNAL_CPPFLAGS
+	since all CFLAGS are internal
+
+	* rasqal.pc.in: Fix includes and cflags
+
+	* utils/Makefile.am: Link against only internal libs; librasqal
+	will do other linking.
+
+	* utils/roqet.c: Pick up store results default from envariable
+	RASQAL_DEBUG_STORE_RESULTS to enable batch testing.
+
+	* src/rasqal_internal.h: rasqal_query_set_store_results is only
+	available if RASQAL_DEBUG
+
+	* src/rasqal_query.c: (rasqal_query_set_store_results): Only
+	available if RASQAL_DEBUG
+
+	* src/rasqal_expr.c: (main): Cast for C++
+
+	* src/rasqal_literal.c: (rasqal_literal_equals_flags): Less debug
+	noise
+
 2008-06-28  Dave Beckett <dave@dajobe.org>
 
 	* tests/engine/rasqal_graph_test.c: Remove C99 .field = value
