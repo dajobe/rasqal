@@ -1,3 +1,7 @@
+2008-07-05  Dave Beckett  <dajobe@yahoo-inc.com>
+
+	* Snapshotted rasqal_0_9_16 for 0.9.16 release (SVN 14220)
+
 2008-07-03  Dave Beckett <dave@dajobe.org>
 
 	* RELEASE.html: deprecate rasqal-config
