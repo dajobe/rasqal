@@ -906,6 +906,31 @@ static const char* const rasqal_literal_type_labels[RASQAL_LITERAL_LAST+1]={
 
 
 /**
+ * rasqal_literal_write_type:
+ * @l: the #rasqal_literal object
+ * @iostr: the #raptor_iostream handle to print to
+ * 
+ * Write a string form for a rasqal literal type to an iostream
+ *
+ **/
+void
+rasqal_literal_write_type(rasqal_literal* l, raptor_iostream* iostr)
+{
+  rasqal_literal_type type;
+
+  if(!l) {
+    raptor_iostream_write_counted_string(iostr, "null", 4);
+    return;
+  }
+  
+  type=l->type;
+  if(type > RASQAL_LITERAL_LAST)
+    type=RASQAL_LITERAL_UNKNOWN;
+  raptor_iostream_write_string(iostr, rasqal_literal_type_labels[(int)type]);
+}
+
+
+/**
  * rasqal_literal_print_type:
  * @l: the #rasqal_literal object
  * @fh: the #FILE* handle to print to
@@ -928,6 +953,87 @@ rasqal_literal_print_type(rasqal_literal* l, FILE* fh)
     type=RASQAL_LITERAL_UNKNOWN;
   fputs(rasqal_literal_type_labels[(int)type], fh);
 }
+
+
+/**
+ * rasqal_literal_write:
+ * @l: the #rasqal_literal object
+ * @iostr: the #raptor_iostream handle to write to
+ *
+ * Write a Rasqal literal to an iostream in a debug format.
+ * 
+ * The print debug format may change in any release.
+ **/
+void
+rasqal_literal_write(rasqal_literal* l, raptor_iostream* iostr)
+{
+  const unsigned char*str;
+  size_t len;
+  
+  if(!l) {
+    raptor_iostream_write_counted_string(iostr, "null", 4);
+    return;
+  }
+
+  if(l->type != RASQAL_LITERAL_VARIABLE)
+    rasqal_literal_write_type(l, iostr);
+
+  switch(l->type) {
+    case RASQAL_LITERAL_URI:
+      raptor_iostream_write_byte(iostr, '<');
+      str=raptor_uri_as_counted_string(l->value.uri, &len);
+      raptor_iostream_write_string_ntriples(iostr, str, len, '>');
+      raptor_iostream_write_byte(iostr, '>');
+      break;
+    case RASQAL_LITERAL_BLANK:
+      raptor_iostream_write_byte(iostr, ' ');
+      raptor_iostream_write_counted_string(iostr, l->string, l->string_len);
+      break;
+    case RASQAL_LITERAL_PATTERN:
+      raptor_iostream_write_byte(iostr, '/');
+      raptor_iostream_write_counted_string(iostr, l->string, l->string_len);
+      raptor_iostream_write_byte(iostr, '/');
+      if(l->flags)
+        raptor_iostream_write_string(iostr, l->flags);
+      break;
+    case RASQAL_LITERAL_STRING:
+      raptor_iostream_write_counted_string(iostr, "(\"", 2);
+      raptor_iostream_write_string_ntriples(iostr, l->string, l->string_len, '"');
+      raptor_iostream_write_byte(iostr, '"');
+      if(l->language) {
+        raptor_iostream_write_byte(iostr, '@');
+        raptor_iostream_write_string(iostr, l->language);
+      }
+      if(l->datatype) {
+        raptor_iostream_write_counted_string(iostr, "^^<", 3);
+        str=raptor_uri_as_counted_string(l->datatype, &len);
+        raptor_iostream_write_string_ntriples(iostr, str, len, '>');
+        raptor_iostream_write_byte(iostr, '>');
+      }
+      raptor_iostream_write_byte(iostr, ')');
+      break;
+    case RASQAL_LITERAL_VARIABLE:
+      rasqal_variable_write(l->value.variable, iostr);
+      break;
+
+    case RASQAL_LITERAL_QNAME:
+    case RASQAL_LITERAL_INTEGER:
+    case RASQAL_LITERAL_BOOLEAN:
+    case RASQAL_LITERAL_DOUBLE:
+    case RASQAL_LITERAL_FLOAT:
+    case RASQAL_LITERAL_DECIMAL:
+    case RASQAL_LITERAL_DATETIME:
+      raptor_iostream_write_byte(iostr, '(');
+      raptor_iostream_write_counted_string(iostr, l->string, l->string_len);
+      raptor_iostream_write_byte(iostr, ')');
+      break;
+
+    case RASQAL_LITERAL_UNKNOWN:
+    default:
+      RASQAL_FATAL2("Unknown literal type %d", l->type);
+  }
+}
+
 
 
 /**
