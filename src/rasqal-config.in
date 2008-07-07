@@ -60,6 +60,10 @@ args=""
 while test $# -gt 0; do
   arg=$1
   case $arg in
+# GNU standards require this
+    --help)
+      usage 1 1>&2
+      ;;
 # Ignored options
     --libtool-libs)
       echo "$0: --libtool-libs option ignored" 1>&2
