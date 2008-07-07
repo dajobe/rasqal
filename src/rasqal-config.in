@@ -62,7 +62,7 @@ while test $# -gt 0; do
   case $arg in
 # GNU standards require this
     --help)
-      usage 1 1>&2
+      usage 0
       ;;
 # Ignored options
     --libtool-libs)
