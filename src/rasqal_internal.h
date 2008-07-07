@@ -205,11 +205,6 @@ struct rasqal_graph_pattern_s {
   int start_column;
   int end_column;
 
-  /* Max optional graph pattern allowed so far to stop backtracking
-   * going over old graph patterns
-   */
-  int max_optional_graph_pattern;
-
   raptor_sequence *constraints; /* ... rasqal_expression*          */
   /* the expression version of the sequence of constraints above - this is
    * where the constraints are freed

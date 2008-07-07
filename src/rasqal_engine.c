@@ -679,6 +679,12 @@ typedef struct {
 
   /* true when an optional graph pattern finished last time round */
   int finished;
+
+  /* Max optional graph pattern allowed so far to stop backtracking
+   * going over old graph patterns
+   */
+  int max_optional_graph_pattern;
+
 } rasqal_engine_gp_data;
 
 
@@ -1387,7 +1393,7 @@ rasqal_engine_move_to_graph_pattern(rasqal_query_results* query_results,
         gp2=(rasqal_graph_pattern*)raptor_sequence_get_at(gp->graph_patterns, i);
         rasqal_engine_graph_pattern_init(query_results, gp2);
       }
-      gp->max_optional_graph_pattern=graph_patterns_size-1;
+      gp_data->max_optional_graph_pattern=graph_patterns_size-1;
     }
     gp_data->optional_graph_pattern_matches_count=0;
   } else {
@@ -1586,15 +1592,15 @@ rasqal_engine_do_optional_step(rasqal_query_results* query_results,
     /* Next time we get here, backtrack */
     gp_data->finished=1;
     
-    if(outergp_data->current_graph_pattern < outergp->max_optional_graph_pattern) {
+    if(outergp_data->current_graph_pattern < outergp_data->max_optional_graph_pattern) {
       RASQAL_DEBUG1("More optionals graph patterns to search\n");
       rasqal_engine_move_to_graph_pattern(query_results, outergp, +1);
       return STEP_SEARCHING;
     }
 
-    outergp->max_optional_graph_pattern--;
+    outergp_data->max_optional_graph_pattern--;
     RASQAL_DEBUG2("Max optional graph patterns lowered to %d\n",
-                  outergp->max_optional_graph_pattern);
+                  outergp_data->max_optional_graph_pattern);
     
     /* Last optional match ended.
      * If we got any non optional matches, then we have a result.
