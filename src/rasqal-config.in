@@ -1,8 +1,8 @@
 #!/bin/sh
 #
-# $Id$
+# Rasqal configuration program - wrapper around 'pkg-config rasqal'
 #
-# Copyright (C) 2003-2007, David Beckett http://purl.org/net/dajobe/
+# Copyright (C) 2003-2008, David Beckett http://purl.org/net/dajobe/
 # Copyright (C) 2003-2004, University of Bristol, UK http://www.bristol.ac.uk/
 # 
 # This package is Free Software and part of Redland http://librdf.org/
@@ -22,9 +22,8 @@
 # 
 #
 
-prefix=@prefix@
-includes="-I@includedir@/@PACKAGE@"
-
+PACKAGE=@PACKAGE@
+PKGCONFIG=pkg-config
 
 usage()
 {
@@ -50,65 +49,45 @@ if test $# -eq 0; then
   usage 1 1>&2
 fi
 
+if $PKGCONFIG $PACKAGE --exists; then
+  : # exists
+else
+  echo "$0: $PKGCONFIG does not know about package $PACKAGE"
+  exit 1
+fi
 
+args=""
 while test $# -gt 0; do
-  case "$1" in
-    -*=*) optarg=`echo "$1" | sed 's/[-_a-zA-Z0-9]*=//'` ;;
-    *) optarg= ;;
-  esac
-
-  case $1 in
-    --prefix=*)
-        prefix=$optarg
-        ;;
-    --prefix)
-      echo_prefix=yes
+  arg=$1
+  case $arg in
+# Ignored options
+    --libtool-libs)
+      echo "$0: --libtool-libs option ignored" 1>&2
+      ;;
+# Altered options
+    --prefix*)
+      args="$args --variable=prefix"
       ;;
     --version)
-      echo @VERSION@
-      exit 0
-      ;;
-    --version-decimal)
-      echo @RASQAL_VERSION_DECIMAL@
-      exit 0
-      ;;
-    --cflags)
-      echo_cflags=yes
-      ;;
-    --libs)
-      echo_libs=yes
-      ;;
-    --libtool-libs)
-      echo_libtool_libs=yes
+      args="$args --modversion";
       ;;
     --private-libs)
-      echo_private_libs=yes
+      args="$args --static --libs"
       ;;
-    --help|--usage)
-      usage 0
+# Computed here
+    --version-decimal)
+      version_expr=`$PKGCONFIG $PACKAGE --modversion | sed -e 's/\./ \\\\* 10000 + /' -e 's/\./ \\\\* 100 + /'`
+      eval expr $version_expr
+      exit 0
       ;;
+# Other options are passed through
     *)
-      usage 1 1>&2
+      args="$args $arg"
       ;;
   esac
 
   shift
 done
   
-exec_prefix=@exec_prefix@
+$PKGCONFIG $PACKAGE $args
 
-if test "$echo_prefix" = "yes"; then
-  echo $prefix
-fi
-if test "$echo_cflags" = "yes"; then
-  echo $includes
-fi
-if test "$echo_libs" = "yes"; then
-  echo -L@libdir@ -lrasqal
-fi
-if test "$echo_libtool_libs" = "yes"; then
-  echo @libdir@/@RASQAL_LIBTOOLLIBS@
-fi
-if test "$echo_private_libs" = "yes"; then
-  echo @LIBS@ @RASQAL_EXTERNAL_LIBS@
-fi
