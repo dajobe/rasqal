@@ -40,6 +40,15 @@
 #include "rasqal.h"
 #include "rasqal_internal.h"
 
+#ifdef RASQAL_QUERY_SPARQL
+#define QUERY_LANGUAGE "sparql"
+#define QUERY_FORMAT "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> \
+         PREFIX foaf: <http://xmlns.com/foaf/0.1/> \
+         SELECT $person \
+         FROM <%s> \
+         WHERE \
+         { $person $x foaf:Person }"
+#else
 #ifdef RASQAL_QUERY_RDQL
 #define QUERY_LANGUAGE "rdql"
 #define QUERY_FORMAT "SELECT ?person \
@@ -48,15 +57,6 @@
          (?person, ?x, foaf:Person) USING \
          rdf FOR <http://www.w3.org/1999/02/22-rdf-syntax-ns#>, \
          foaf FOR <http://xmlns.com/foaf/0.1/>"
-#else
-#ifdef RASQAL_QUERY_SPARQL
-#define QUERY_LANGUAGE "sparql"
-#define QUERY_FORMAT "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> \
-         PREFIX foaf: <http://xmlns.com/foaf/0.1/> \
-         SELECT $person \
-         FROM <%s> \
-         WHERE \
-         ($person $x foaf:Person)"
 #else
 #define NO_QUERY_LANGUAGE
 #endif
