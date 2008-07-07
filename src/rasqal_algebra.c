@@ -643,9 +643,8 @@ main(int argc, char *argv[]) {
   if(!node6)
     FAIL;
 
-  node7=rasqal_new_leftjoin_algebra_node(query,
-                                         node5, node6,
-                                         expr1);
+  expr1=rasqal_new_expression_from_expression(expr1);
+  node7=rasqal_new_leftjoin_algebra_node(query, node5, node6, expr1);
   if(!node6)
     FAIL;
   /* these become owned by node6 */
