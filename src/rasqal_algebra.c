@@ -569,6 +569,7 @@ main(int argc, char *argv[]) {
 
   /* make a filter node around first (and only) expresion */
   expr=rasqal_graph_pattern_get_constraint(query_gp, 0);
+  expr=rasqal_new_expression_from_expression(expr);
   node1=rasqal_new_expr_algebra_node(query, RASQAL_ALGEBRA_OPERATOR_FILTER,
                                      expr);
 
