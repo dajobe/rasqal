@@ -1,0 +1,3 @@
+BGP(
+    triple(variable(s), variable(p), variable(o))
+)

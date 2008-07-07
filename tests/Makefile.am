@@ -20,7 +20,7 @@
 # the licenses in COPYING.LIB, COPYING and LICENSE-2.0.txt respectively.
 # 
 
-SUBDIRS= engine
+SUBDIRS= algebra engine
 if RASQAL_QUERY_RDQL
 SUBDIRS += rdql
 endif
