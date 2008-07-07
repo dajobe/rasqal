@@ -1039,6 +1039,7 @@ struct rasqal_algebra_node_s {
  */
 typedef int (*rasqal_algebra_node_visit_fn)(rasqal_query* query, rasqal_algebra_node* node, void *user_data);
 
+/* rasqal_algebra.c */
 rasqal_algebra_node* rasqal_new_expr_algebra_node(rasqal_query* query, rasqal_algebra_node_operator op, rasqal_expression* expr);
 rasqal_algebra_node* rasqal_new_empty_algebra_node(rasqal_query* query);
 rasqal_algebra_node* rasqal_new_triples_algebra_node(rasqal_query* query, raptor_sequence* triples, int start_column, int end_column);
@@ -1047,8 +1048,10 @@ rasqal_algebra_node* rasqal_new_leftjoin_algebra_node(rasqal_query* query, rasqa
 void rasqal_free_algebra_node(rasqal_algebra_node* node);
 rasqal_algebra_node_operator rasqal_algebra_node_get_operator(rasqal_algebra_node* node);
 const char* rasqal_algebra_node_operator_as_string(rasqal_algebra_node_operator op);
+int rasqal_algebra_algebra_node_write(rasqal_algebra_node *node, raptor_iostream* iostr);
 void rasqal_algebra_node_print(rasqal_algebra_node* node, FILE* fh);
 int rasqal_algebra_node_visit(rasqal_query *query, rasqal_algebra_node* node, rasqal_algebra_node_visit_fn fn, void *user_data);
+rasqal_algebra_node* rasqal_algebra_query_to_algebra(rasqal_query* query);
 
 /* end of RASQAL_INTERNAL */
 #endif
