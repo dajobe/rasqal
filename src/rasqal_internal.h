@@ -191,7 +191,7 @@ typedef struct rasqal_query_engine_factory_s rasqal_query_engine_factory;
 
 
 /*
- * Pattern graph for executing
+ * Graph Pattern
  */
 struct rasqal_graph_pattern_s {
   rasqal_query* query;
@@ -958,6 +958,92 @@ struct rasqal_world_s {
   raptor_uri **xsd_datatype_uris;
 };
 
+
+/*
+ * Rasqal Algebra
+ *
+ * Based on http://www.w3.org/TR/rdf-sparql-query/#sparqlAlgebra
+ */
+
+typedef enum {
+  RASQAL_ALGEBRA_OPERATOR_UNKNOWN  = 0,
+  RASQAL_ALGEBRA_OPERATOR_BGP      = 1,
+  RASQAL_ALGEBRA_OPERATOR_FILTER   = 2,
+  RASQAL_ALGEBRA_OPERATOR_JOIN     = 3,
+  RASQAL_ALGEBRA_OPERATOR_DIFF     = 4,
+  RASQAL_ALGEBRA_OPERATOR_LEFTJOIN = 5,
+  RASQAL_ALGEBRA_OPERATOR_UNION    = 6,
+  RASQAL_ALGEBRA_OPERATOR_TOLIST   = 7,
+  RASQAL_ALGEBRA_OPERATOR_ORDERBY  = 8,
+  RASQAL_ALGEBRA_OPERATOR_PROJECT  = 9,
+  RASQAL_ALGEBRA_OPERATOR_DISTINCT = 10,
+  RASQAL_ALGEBRA_OPERATOR_REDUCED  = 11,
+  RASQAL_ALGEBRA_OPERATOR_SLICE    = 12,
+
+  RASQAL_ALGEBRA_OPERATOR_LAST=RASQAL_ALGEBRA_OPERATOR_SLICE
+} rasqal_algebra_node_operator;
+
+
+/*
+ * Algebra Node
+ */
+struct rasqal_algebra_node_s {
+  rasqal_query* query;
+
+  /* operator for this algebra_node's contents */
+  rasqal_algebra_node_operator op;
+
+  /* type BGP (otherwise NULL and start_column and end_column are -1) */
+  raptor_sequence* triples;
+  int start_column;
+  int end_column;
+  
+  /* types JOIN, DIFF, LEFTJOIN, UNION: gp1 and gp2 ALWAYS present
+   * types TOLIST: gp1 ALWAYS present, gp2 ALWAYS NULL
+   * (otherwise NULL) 
+   */
+  rasqal_algebra_node *node1;
+  rasqal_algebra_node *node2;
+
+  /* types FILTER, LEFTJOIN
+   * (otherwise NULL) 
+   */
+  rasqal_expression* expr;
+
+  /* types ORDERBY, PROJECT, DISTINCT, REDUCED
+   * FIXME: sequence of solution mappings */
+
+  /* types PROJECT, SLICE
+   * FIXME: set of variables */
+
+  /* type SLICE: start and length */
+  unsigned int start;
+  unsigned int length;
+};
+
+/**
+ * rasqal_algebra_node_visit_fn:
+ * @query: #rasqal_query containing the graph pattern
+ * @gp: current algebra_node
+ * @user_data: user data passed in
+ *
+ * User function to visit an algebra_node and operate on it with
+ * rasqal_algebra_node_visit() or rasqal_query_algebra_node_visit()
+ *
+ * Return value: 0 to truncate the visit
+ */
+typedef int (*rasqal_algebra_node_visit_fn)(rasqal_query* query, rasqal_algebra_node* node, void *user_data);
+
+rasqal_algebra_node* rasqal_new_expr_algebra_node(rasqal_query* query, rasqal_algebra_node_operator op, rasqal_expression* expr);
+rasqal_algebra_node* rasqal_new_empty_algebra_node(rasqal_query* query);
+rasqal_algebra_node* rasqal_new_triples_algebra_node(rasqal_query* query, raptor_sequence* triples, int start_column, int end_column);
+rasqal_algebra_node* rasqal_new_2op_algebra_node(rasqal_query* query, rasqal_algebra_node_operator op, rasqal_algebra_node* node1, rasqal_algebra_node* node2);
+rasqal_algebra_node* rasqal_new_leftjoin_algebra_node(rasqal_query* query, rasqal_algebra_node* node1, rasqal_algebra_node* node2, rasqal_expression* expr);
+void rasqal_free_algebra_node(rasqal_algebra_node* node);
+rasqal_algebra_node_operator rasqal_algebra_node_get_operator(rasqal_algebra_node* node);
+const char* rasqal_algebra_node_operator_as_string(rasqal_algebra_node_operator op);
+void rasqal_algebra_node_print(rasqal_algebra_node* node, FILE* fh);
+int rasqal_algebra_node_visit(rasqal_query *query, rasqal_algebra_node* node, rasqal_algebra_node_visit_fn fn, void *user_data);
 
 /* end of RASQAL_INTERNAL */
 #endif
