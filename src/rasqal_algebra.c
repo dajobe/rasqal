@@ -556,7 +556,8 @@ main(int argc, char *argv[]) {
     fprintf(stderr, "%s: rasqal_new_expr_algebra_node() failed\n", program);
     FAIL;
   }
-
+  expr=NULL; /* now owned by node1 */
+  
   fprintf(stderr, "%s: node result: \n", program);
   rasqal_algebra_node_print(node1, stderr);
   fputc('\n', stderr);
@@ -577,6 +578,7 @@ main(int argc, char *argv[]) {
     fprintf(stderr, "%s: rasqal_new_expr_algebra_node() failed\n", program);
     FAIL;
   }
+  expr=NULL; /* now owned by node1 */
 
   fprintf(stderr, "%s: node1 result: \n", program);
   rasqal_algebra_node_print(node1, stderr);
@@ -644,11 +646,10 @@ main(int argc, char *argv[]) {
   if(!node6)
     FAIL;
 
-  expr1=rasqal_new_expression_from_expression(expr1);
   node7=rasqal_new_leftjoin_algebra_node(query, node5, node6, expr1);
-  if(!node6)
+  if(!node7)
     FAIL;
-  /* these become owned by node6 */
+  /* these become owned by node7 */
   node5=node6=NULL;
   expr1=NULL;
   
