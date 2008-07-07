@@ -329,11 +329,9 @@ rasqal_algebra_write_indent(raptor_iostream *iostr, int indent)
   }
 }
 
-  
-
-static void
-rasqal_algebra_algebra_node_write(rasqal_algebra_node *node, 
-                                  raptor_iostream* iostr, int indent)
+static int
+rasqal_algebra_algebra_node_write_internal(rasqal_algebra_node *node, 
+                                           raptor_iostream* iostr, int indent)
 {
   const char* op_string=rasqal_algebra_node_operator_as_string(node->op);
   int arg_count=0;
@@ -341,7 +339,7 @@ rasqal_algebra_algebra_node_write(rasqal_algebra_node *node,
   
   if(node->op == RASQAL_ALGEBRA_OPERATOR_BGP && !node->triples) {
     raptor_iostream_write_byte(iostr, 'Z');
-    return;
+    return 0;
   }
   
   indent_delta=strlen(op_string);
@@ -371,14 +369,14 @@ rasqal_algebra_algebra_node_write(rasqal_algebra_node *node,
       raptor_iostream_write_counted_string(iostr, " ,\n", 3);
       rasqal_algebra_write_indent(iostr, indent);
     }
-    rasqal_algebra_algebra_node_write(node->node1, iostr, indent);
+    rasqal_algebra_algebra_node_write_internal(node->node1, iostr, indent);
     arg_count++;
     if(node->node2) {
       if(arg_count) {
         raptor_iostream_write_counted_string(iostr, " ,\n", 3);
         rasqal_algebra_write_indent(iostr, indent);
       }
-      rasqal_algebra_algebra_node_write(node->node2, iostr, indent);
+      rasqal_algebra_algebra_node_write_internal(node->node2, iostr, indent);
       arg_count++;
     }
   }
@@ -411,8 +409,18 @@ rasqal_algebra_algebra_node_write(rasqal_algebra_node *node,
 
   rasqal_algebra_write_indent(iostr, indent);
   raptor_iostream_write_byte(iostr, ')');
+
+  return 0;
 }
 
+
+int
+rasqal_algebra_algebra_node_write(rasqal_algebra_node *node, 
+                                  raptor_iostream* iostr)
+{
+  return rasqal_algebra_algebra_node_write_internal(node, iostr, 0);
+}
+  
 
 /**
  * rasqal_algebra_node_print:
@@ -430,7 +438,7 @@ rasqal_algebra_node_print(rasqal_algebra_node* node, FILE* fh)
   raptor_iostream* iostr;
 
   iostr=raptor_new_iostream_to_file_handle(fh);
-  rasqal_algebra_algebra_node_write(node, iostr, 0);
+  rasqal_algebra_algebra_node_write(node, iostr);
   raptor_free_iostream(iostr);
 }
 
@@ -472,6 +480,94 @@ rasqal_algebra_node_visit(rasqal_query *query,
 
   return 0;
 }
+
+
+static rasqal_algebra_node*
+rasqal_algebra_graph_pattern_to_algebra(rasqal_query* query,
+                                        rasqal_graph_pattern* gp)
+{
+  rasqal_algebra_node* node=NULL;
+  
+  switch(gp->op) {
+    case RASQAL_GRAPH_PATTERN_OPERATOR_BASIC:
+      if(1) {
+        raptor_sequence* triples;
+        triples=rasqal_query_get_triple_sequence(query);
+        node=rasqal_new_triples_algebra_node(query, triples, 
+                                             gp->start_column, gp->end_column);
+      }
+      break;
+
+    case RASQAL_GRAPH_PATTERN_OPERATOR_UNION:
+      if(1) {
+        int idx=0;
+
+        node=NULL;
+        while(1) {
+          rasqal_graph_pattern* sgp;
+          sgp=rasqal_graph_pattern_get_sub_graph_pattern(gp, idx);
+          if(!sgp)
+            break;
+          
+          if(!node)
+            node=rasqal_algebra_graph_pattern_to_algebra(query, sgp);
+          else {
+            rasqal_algebra_node* gnode;
+            gnode=rasqal_algebra_graph_pattern_to_algebra(query, sgp);
+            if(!gnode)
+              break;
+
+/*
+ * http://www.w3.org/TR/2008/REC-rdf-sparql-query-20080115/#convertGraphPattern
+ * actually inverts the order when building this list.  Assume it is a mistake.
+ */
+            node=rasqal_new_2op_algebra_node(query,
+                                             RASQAL_ALGEBRA_OPERATOR_UNION,
+                                             gnode, node);
+          }
+
+          idx++;
+        }
+      }
+      break;
+    case RASQAL_GRAPH_PATTERN_OPERATOR_GROUP:
+    case RASQAL_GRAPH_PATTERN_OPERATOR_OPTIONAL:
+    case RASQAL_GRAPH_PATTERN_OPERATOR_GRAPH:
+
+    case RASQAL_GRAPH_PATTERN_OPERATOR_UNKNOWN:
+    default:
+      break;
+  }
+  
+  return node;
+}
+
+/**
+ * rasqal_algebra_query_to_algebra:
+ * @query: #rasqal_query to operate on
+ *
+ * Turn a graph pattern into query algebra structure
+ *
+ * Return value: algebra expression or NULL on failure
+ */
+rasqal_algebra_node*
+rasqal_algebra_query_to_algebra(rasqal_query* query)
+{
+  rasqal_graph_pattern* query_gp;
+  
+  rasqal_algebra_node* node;
+
+  query_gp=rasqal_query_get_query_graph_pattern(query);
+  if(!query_gp)
+    return NULL;
+  
+  node=rasqal_algebra_graph_pattern_to_algebra(query, query_gp);
+
+  return node;
+}
+
+
+
 #endif
 
 #ifdef STANDALONE
