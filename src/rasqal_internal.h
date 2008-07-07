@@ -811,6 +811,9 @@ int rasqal_expression_is_constant(rasqal_expression* e);
 void rasqal_expression_clear(rasqal_expression* e);
 void rasqal_expression_convert_to_literal(rasqal_expression* e, rasqal_literal* l);
 int rasqal_expression_mentions_variable(rasqal_expression* e, rasqal_variable* v);
+void rasqal_triple_write(rasqal_triple* t, raptor_iostream* iostr);
+void rasqal_variable_write(rasqal_variable* v, raptor_iostream* iostr);
+
 
 /* strcasecmp.c */
 #ifdef HAVE_STRCASECMP
@@ -872,8 +875,10 @@ rasqal_literal* rasqal_literal_divide(rasqal_literal* l1, rasqal_literal* l2, in
 rasqal_literal* rasqal_literal_negate(rasqal_literal* l, int *error_p);
 int rasqal_literal_equals_flags(rasqal_literal* l1, rasqal_literal* l2, int flags, int* error);
 rasqal_literal_type rasqal_literal_get_rdf_term_type(rasqal_literal* l);
-
-
+void rasqal_literal_write_type(rasqal_literal* l, raptor_iostream* iostr);
+void rasqal_literal_write(rasqal_literal* l, raptor_iostream* iostr);
+void rasqal_expression_write_op(rasqal_expression* e, raptor_iostream* iostr);
+void rasqal_expression_write(rasqal_expression* e, raptor_iostream* iostr);
 
 /* rasqal_map.c */
 typedef void (*rasqal_map_visit_fn)(void *key, void *value, void *user_data);
