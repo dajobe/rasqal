@@ -1226,7 +1226,7 @@ GraphGraphPattern: GRAPH VarOrIRIref GroupGraphPattern
 GroupOrUnionGraphPattern: GroupGraphPattern UNION GroupOrUnionGraphPatternList
 {
   $$=$3;
-  if(raptor_sequence_push($$->graph_patterns, $1)) {
+  if(raptor_sequence_shift($$->graph_patterns, $1)) {
     rasqal_free_graph_pattern($$);
     $$=NULL;
     YYERROR_MSG("GroupOrUnionGraphPattern: sequence push failed");
