@@ -21,7 +21,7 @@
 
 local_tests=convert_graph_pattern$(EXEEXT)
 
-ALGEBRA_TEST_FILES=test-01.rq test-02.rq test-03.rq test-04.rq
+ALGEBRA_TEST_FILES=test-01.rq test-02.rq test-03.rq test-04.rq test-05.rq
 ALGEBRA_RESULT_FILES=$(ALGEBRA_TEST_FILES:.rq=.out)
 
 EXTRA_DIST= $(ALGEBRA_TEST_FILES) $(ALGEBRA_RESULT_FILES)
@@ -45,7 +45,7 @@ check-local: run-rasqal-tests
 run-rasqal-tests: convert_graph_pattern $(ALGEBRA_TEST_FILES)
 	@status=0; \
 	for tst in $(ALGEBRA_TEST_FILES); do \
-	  baseuri=$(BASE_URI)$tst; \
+	  baseuri=$(BASE_URI)$$tst; \
 	  base=`echo $$tst | sed -e 's/\.rq//'`; \
 	  result="$$base.out"; \
 	  out="$$base.tmp"; \

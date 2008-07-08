@@ -1,0 +1,9 @@
+LeftJoin(
+         BGP(
+             triple(variable(s), uri<http://example.org#p1>, variable(v1))
+         ) ,
+         BGP(
+             triple(variable(s), uri<http://example.org#p2>, variable(v2))
+         ) ,
+         true
+)
