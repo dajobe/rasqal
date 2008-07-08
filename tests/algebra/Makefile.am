@@ -44,11 +44,11 @@ check-local: run-rasqal-tests
 
 run-rasqal-tests: convert_graph_pattern $(ALGEBRA_TEST_FILES)
 	@status=0; \
+	out="convert.out"; \
 	for tst in $(ALGEBRA_TEST_FILES); do \
 	  baseuri=$(BASE_URI)$$tst; \
 	  base=`echo $$tst | sed -e 's/\.rq//'`; \
 	  result="$$base.out"; \
-	  out="$$base.tmp"; \
 	  if test -f ./$$tst; then dir=./; \
 	  elif test -f $$tst; then dir=; \
 	  else dir="$(top_srcdir)/"; fi; \
@@ -62,8 +62,8 @@ run-rasqal-tests: convert_graph_pattern $(ALGEBRA_TEST_FILES)
 	    status=1; \
 	    break; \
 	  fi; \
-	  rm -f $$out; \
 	done; \
+	rm -f $$out; \
 	exit $$status
 
 
