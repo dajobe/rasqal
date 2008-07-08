@@ -5,11 +5,3 @@
 PREFIX : <http://example.org#>
 SELECT * WHERE
 { { ?s :p1 ?v1 } UNION {?s :p2 ?v2 } }
-
-# The algorithm to do this mapping actually inverts the order
-# but the expected result is not a changed order:
-#   Union( BGP(?s :p1 ?v1) , BGP(?s :p2 ?v2) )
-# and although that is not of any consequence for
-# a UNION, it is probably not what is expected.
-# So assume the expected result is correct, not the algorithm.
-

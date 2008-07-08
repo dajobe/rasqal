@@ -120,11 +120,7 @@ main(int argc, char *argv[])
   rasqal_query* query=NULL;
   raptor_uri *base_uri=NULL;
   char *query_file;
-  char *algebra_file;
   unsigned char *query_string=NULL;
-  unsigned char *algebra_string=NULL;
-  size_t algebra_string_length;
-  unsigned char *expected_algebra_string=NULL;
   raptor_iostream* iostr=NULL;
   rasqal_algebra_node* node=NULL;
 
@@ -134,15 +130,14 @@ main(int argc, char *argv[])
     return(1);
   }
   
-  if(argc != 4) {
-    fprintf(stderr, "%s: USAGE SPARQL-FILE ALGEBRA-FILE BASE-URI\n", program);
+  if(argc != 3) {
+    fprintf(stderr, "%s: USAGE SPARQL-FILE BASE-URI\n", program);
     return(1);
   }
   
 
   query_file=argv[1];
-  algebra_file=argv[2];
-  base_uri=raptor_new_uri((const unsigned char*)argv[3]);
+  base_uri=raptor_new_uri((const unsigned char*)argv[2]);
                           
   query=rasqal_new_query(world, query_language_name, NULL);
   if(!query) {
@@ -153,11 +148,6 @@ main(int argc, char *argv[])
 
   query_string=file_read_string(program, query_file, "query");
   if(!query_string) {
-    FAIL;
-  }
-
-  expected_algebra_string=file_read_string(program, algebra_file, "algebra");
-  if(!expected_algebra_string) {
     FAIL;
   }
 
@@ -173,9 +163,7 @@ main(int argc, char *argv[])
     FAIL;
   }
   
-  iostr=raptor_new_iostream_to_string((void**)&algebra_string, 
-                                      &algebra_string_length,
-                                      rasqal_alloc_memory);
+  iostr=raptor_new_iostream_to_file_handle(stdout);
   if(!iostr) {
     fprintf(stderr, "%s: Failed to make iostream\n", program);
     FAIL;
@@ -185,28 +173,15 @@ main(int argc, char *argv[])
   raptor_iostream_write_byte(iostr, '\n');
   raptor_free_iostream(iostr); iostr=NULL;
 
-  if(strcmp((const char*)algebra_string, (const char*)expected_algebra_string)) {
-    fprintf(stderr, "%s: algebra result:\n%s\nexpected:\n%s\n",
-            program, algebra_string, expected_algebra_string);
-    FAIL;
-  }
-
   rasqal_free_algebra_node(node); node=NULL;
   
-  rasqal_free_memory(algebra_string); algebra_string=NULL;
-
   rasqal_free_memory(query_string); query_string=NULL;
-
-  rasqal_free_memory(expected_algebra_string); expected_algebra_string=NULL;
-
 
   tidy:
   if(node)
     rasqal_free_algebra_node(node);
   if(iostr)
     raptor_free_iostream(iostr);
-  if(algebra_string)
-    rasqal_free_memory(algebra_string);
   if(query)
     rasqal_free_query(query);
   if(base_uri)
