@@ -517,13 +517,9 @@ rasqal_algebra_graph_pattern_to_algebra(rasqal_query* query,
             if(!gnode)
               break;
 
-/*
- * http://www.w3.org/TR/2008/REC-rdf-sparql-query-20080115/#convertGraphPattern
- * actually inverts the order when building this list.  Assume it is a mistake.
- */
             node=rasqal_new_2op_algebra_node(query,
                                              RASQAL_ALGEBRA_OPERATOR_UNION,
-                                             gnode, node);
+                                             node, gnode);
           }
 
           idx++;
