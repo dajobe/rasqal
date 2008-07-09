@@ -1135,6 +1135,7 @@ rasqal_free_engine_execution_data(rasqal_query* query,
 }
 
 
+#if 0
 static int
 rasqal_engine_graph_pattern_order(const void *a, const void *b)
 {
@@ -1144,7 +1145,7 @@ rasqal_engine_graph_pattern_order(const void *a, const void *b)
   return (gp_a->op == RASQAL_GRAPH_PATTERN_OPERATOR_OPTIONAL) -
          (gp_b->op == RASQAL_GRAPH_PATTERN_OPERATOR_OPTIONAL);
 }
-
+#endif
 
 /**
  * rasqal_engine_graph_pattern_init:
@@ -1200,9 +1201,11 @@ rasqal_engine_graph_pattern_init(rasqal_query_results* query_results,
   if(gp->graph_patterns) {
     int i;
 
+#if 0
     /* sort graph patterns, optional graph triples last */
     raptor_sequence_sort(gp->graph_patterns, rasqal_engine_graph_pattern_order);
-  
+#endif
+
     for(i=0; i < raptor_sequence_size(gp->graph_patterns); i++) {
       int rc;
       rasqal_graph_pattern *sgp;
@@ -2015,10 +2018,9 @@ rasqal_engine_merge_graph_patterns(rasqal_query* query,
     return 0;
   }
 
-  if(gp->op != RASQAL_GRAPH_PATTERN_OPERATOR_GROUP &&
-     gp->op != RASQAL_GRAPH_PATTERN_OPERATOR_OPTIONAL) {
+  if(gp->op != RASQAL_GRAPH_PATTERN_OPERATOR_GROUP) {
 #if RASQAL_DEBUG > 1
-    RASQAL_DEBUG3("Ending graph patterns %d - operator %s: not GROUP or OPTIONAL\n", gp->gp_index,
+    RASQAL_DEBUG3("Ending graph patterns %d - operator %s: not GROUP\n", gp->gp_index,
                   rasqal_graph_pattern_operator_as_string(gp->op));
 #endif
     return 0;
