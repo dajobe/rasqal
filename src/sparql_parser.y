@@ -1189,10 +1189,29 @@ OptionalGraphPattern: OPTIONAL GroupGraphPattern
   fputs("\n\n", DEBUG_FH);
 #endif
 
-  if($2)
-    $2->op = RASQAL_GRAPH_PATTERN_OPERATOR_OPTIONAL;
+  $$=NULL;
 
-  $$=$2;
+  if($2) {
+    raptor_sequence *seq;
+
+    seq=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_graph_pattern, (raptor_sequence_print_handler*)rasqal_graph_pattern_print);
+    if(!seq) {
+      rasqal_free_graph_pattern($2);
+      YYERROR_MSG("OptionalGraphPattern 1: cannot create sequence");
+    } else {
+      if(raptor_sequence_push(seq, $2)) {
+        rasqal_free_graph_pattern($2);
+        raptor_free_sequence(seq);
+        YYERROR_MSG("OptionalGraphPattern 2: sequence push failed");
+      } else {
+        $$=rasqal_new_graph_pattern_from_sequence(rq,
+                                                  seq,
+                                                  RASQAL_GRAPH_PATTERN_OPERATOR_OPTIONAL);
+        if(!$$)
+          YYERROR_MSG("OptionalGraphPattern: cannot create graph pattern");
+      }
+    }
+  }
 }
 ;
 
