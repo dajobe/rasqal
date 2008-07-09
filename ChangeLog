@@ -1,4 +1,64 @@
-2008-07-05  Dave Beckett  <dajobe@yahoo-inc.com>
+2008-07-07  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_internal.h: Altered signature of
+	rasqal_algebra_algebra_node_write to remove indent.
+	Added rasqal_algebra_query_to_algebra
+
+	* src/rasqal_algebra.c: (rasqal_algebra_algebra_node_write_internal):
+	Renamed from rasqal_algebra_algebra_node_write
+	(rasqal_algebra_algebra_node_write): Now takes no indent arg.
+	(rasqal_algebra_graph_pattern_to_algebra): Initial GP to algebra
+	node expression work.
+	(rasqal_algebra_query_to_algebra): Apply
+	rasqal_algebra_graph_pattern_to_algebra to a query graph pattern.
+
+	* src/rasqal-config.in: --help has to exit 0
+
+	* src/rasqal-config.in: restore --help
+
+	* src/rasqal_algebra.c: (rasqal_algebra_write_indent,
+	rasqal_algebra_algebra_node_write): Write to iostream.
+	(rasqal_algebra_node_print): Write using an iostream to FILE*
+
+	* src/rasqal_internal.h: Added prototypes for
+	rasqal_literal_write_type, rasqal_literal_write,
+	rasqal_variable_write, rasqal_triple_write,
+	rasqal_expression_write_op, rasqal_expression_write
+
+	* src/rasqal_expr.c: (rasqal_variable_write, rasqal_triple_write,
+	rasqal_expression_write_op, rasqal_expression_write): Added for
+	writing a variables, triples and expressions to a raptor_iostream
+
+2008-07-06  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_literal.c: (rasqal_literal_write_type,
+	rasqal_literal_write): Added for writing a literal to a
+	raptor_iostream
+
+	* src/rasqal_algebra.c: (main) more expr ownership fixes
+
+	* src/rasqal_algebra.c: (main) copy expr for expr node
+
+	* src/rasqal_algebra.c: (main) copy expr for leftjoin test
+
+	* src/Makefile.am, src/rasqal.h, src/rasqal_algebra.c,
+	src/rasqal_internal.h: Added rasqal_algebra class
+
+	* src/rasqal_query_test.c: (main): Prefer to test with sparql and
+	fix sparql syntax to REC form.
+
+	* src/rasqal_engine.c, src/rasqal_internal.h:
+	rasqal_engine_gp_data gains max_optional_graph_pattern field from
+	rasqal_graph_pattern since it is about execution not a GP
+
+	* src/rasqal-config.in: Convert to a wrapper around pkg-config.
+	--libtool-libs is currently ignored, it should emit the path to
+	the librasqal.la file but generally that is probably discouraged.
+
+	* NEWS.html, RELEASE.html, configure.ac,
+	src/win32_rasqal_config.h: Bump version to 0.9.17
+
+2008-07-05  Dave Beckett <dave@dajobe.org>
 
 	* Snapshotted rasqal_0_9_16 for 0.9.16 release (SVN 14220)
 
