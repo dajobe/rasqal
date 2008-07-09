@@ -1004,7 +1004,7 @@ struct rasqal_algebra_node_s {
   int end_column;
   
   /* types JOIN, DIFF, LEFTJOIN, UNION: gp1 and gp2 ALWAYS present
-   * types TOLIST: gp1 ALWAYS present, gp2 ALWAYS NULL
+   * types FILTER, TOLIST: gp1 ALWAYS present, gp2 ALWAYS NULL
    * (otherwise NULL) 
    */
   rasqal_algebra_node *node1;
@@ -1040,7 +1040,7 @@ struct rasqal_algebra_node_s {
 typedef int (*rasqal_algebra_node_visit_fn)(rasqal_query* query, rasqal_algebra_node* node, void *user_data);
 
 /* rasqal_algebra.c */
-rasqal_algebra_node* rasqal_new_expr_algebra_node(rasqal_query* query, rasqal_algebra_node_operator op, rasqal_expression* expr);
+rasqal_algebra_node* rasqal_new_filter_algebra_node(rasqal_query* query, rasqal_expression* expr, rasqal_algebra_node* node);
 rasqal_algebra_node* rasqal_new_empty_algebra_node(rasqal_query* query);
 rasqal_algebra_node* rasqal_new_triples_algebra_node(rasqal_query* query, raptor_sequence* triples, int start_column, int end_column);
 rasqal_algebra_node* rasqal_new_2op_algebra_node(rasqal_query* query, rasqal_algebra_node_operator op, rasqal_algebra_node* node1, rasqal_algebra_node* node2);
