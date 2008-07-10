@@ -761,6 +761,66 @@ rasqal_algebra_graph_pattern_to_algebra(rasqal_query* query,
   return node;
 }
 
+
+/*
+ * rasqal_algebra_node_is_empty:
+ * @node: #rasqal_algebra_node node
+ *
+ * INTERNAL - Check if a an algebra node is empty
+ * 
+ * Return value: non-0 if empty
+ **/
+int
+rasqal_algebra_node_is_empty(rasqal_algebra_node* node)
+{
+  return (node->op == RASQAL_ALGEBRA_OPERATOR_BGP && !node->triples);
+}
+
+
+static int
+rasqal_algebra_remove_znodes(rasqal_query* query, rasqal_algebra_node* node,
+                             void* data)
+{
+  int* modified=(int*)data;
+  int is_z1;
+  int is_z2;
+  
+  /* Look at 2-node operations and see if they can be merged */
+  if(!node->node1 || !node->node2)
+    return 0;
+
+  is_z1=rasqal_algebra_node_is_empty(node->node1);
+  is_z2=rasqal_algebra_node_is_empty(node->node2);
+  
+#if RASQAL_DEBUG > 1
+  RASQAL_DEBUG1("Checking node\n");
+  rasqal_algebra_node_print(node, stderr);
+  fprintf(stderr, "\nNode 1 (%s): %s\n", 
+          is_z1 ? "empty" : "not empty",
+          rasqal_algebra_node_operator_as_string(node->node1->op));
+  fprintf(stderr, "Node 2 (%s): %s\n", 
+          is_z2 ? "empty" : "not empty",
+          rasqal_algebra_node_operator_as_string(node->node2->op));
+#endif
+
+  if(is_z1 && !is_z2) {
+    /* Replace join(Z, A) by A */
+    memcpy(node, node->node2, sizeof(rasqal_algebra_node));
+    /* an empty node has no extra things to free */
+    RASQAL_FREE(rasqal_algebra_node, node->node1);
+    *modified=1;
+  } else if(!is_z1 && is_z2) {
+    /* Replace join(A, Z) by A */
+    memcpy(node, node->node1, sizeof(rasqal_algebra_node));
+    /* ditto */
+    RASQAL_FREE(rasqal_algebra_node, node->node2);
+    *modified=1;
+  }
+
+  return 0;
+}
+
+
 /**
  * rasqal_algebra_query_to_algebra:
  * @query: #rasqal_query to operate on
@@ -773,8 +833,8 @@ rasqal_algebra_node*
 rasqal_algebra_query_to_algebra(rasqal_query* query)
 {
   rasqal_graph_pattern* query_gp;
-  
   rasqal_algebra_node* node;
+  int modified=0;
 
   query_gp=rasqal_query_get_query_graph_pattern(query);
   if(!query_gp)
@@ -782,9 +842,22 @@ rasqal_algebra_query_to_algebra(rasqal_query* query)
   
   node=rasqal_algebra_graph_pattern_to_algebra(query, query_gp);
 
+  if(!node)
+    return node;
+
+
+  rasqal_algebra_node_visit(query, node, 
+                            rasqal_algebra_remove_znodes,
+                            &modified);
+
+#if RASQAL_DEBUG > 1
+  RASQAL_DEBUG2("modified=%d after remove zones, algebra ndoe now:\n  ", modified);
+  rasqal_algebra_node_print(node, stderr);
+  fputs("\n", stderr);
+#endif
+
   return node;
 }
-
 
 
 #endif
