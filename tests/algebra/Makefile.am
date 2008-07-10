@@ -22,7 +22,7 @@
 local_tests=convert_graph_pattern$(EXEEXT)
 
 ALGEBRA_TEST_FILES=test-01.rq test-02.rq test-03.rq test-04.rq test-05.rq \
-test-06.rq
+test-06.rq test-07.rq
 ALGEBRA_RESULT_FILES=$(ALGEBRA_TEST_FILES:.rq=.out)
 
 EXTRA_DIST= $(ALGEBRA_TEST_FILES) $(ALGEBRA_RESULT_FILES)

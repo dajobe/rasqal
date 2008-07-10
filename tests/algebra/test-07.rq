@@ -1,0 +1,7 @@
+# http://www.w3.org/TR/2008/REC-rdf-sparql-query-20080115/#convertGraphPattern
+#
+# Example: group consisting of a basic graph pattern and an optional graph pattern with a filter:
+#
+PREFIX : <http://example.org#>
+SELECT * WHERE
+{ ?s :p1 ?v1 OPTIONAL {?s :p2 ?v2 FILTER(?v1<3) } }
