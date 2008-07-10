@@ -507,11 +507,52 @@ static rasqal_algebra_node*
 rasqal_algebra_basic_graph_pattern_to_algebra(rasqal_query* query,
                                               rasqal_graph_pattern* gp)
 {
-  raptor_sequence* triples;
-  triples=rasqal_query_get_triple_sequence(query);
-  return rasqal_new_triples_algebra_node(query, triples, 
-                                         gp->start_column, gp->end_column);
+  rasqal_algebra_node* node=NULL;
+  rasqal_expression* fs=NULL;
+  
+  node=rasqal_new_triples_algebra_node(query, 
+                                       rasqal_query_get_triple_sequence(query),
+                                       gp->start_column, gp->end_column);
+  if(!node)
+    goto fail;
 
+  if(gp->constraints) {
+    int i;
+    
+    /* add all gp->conditions_sequence to FS */
+    for(i=0; i< raptor_sequence_size(gp->constraints); i++) {
+      rasqal_expression* e;
+      e=(rasqal_expression*)raptor_sequence_get_at(gp->constraints, i);
+      if(e) {
+        e=rasqal_new_expression_from_expression(e);
+        if(!e) {
+          RASQAL_DEBUG1("rasqal_new_expression_from_expression() failed");
+          goto fail;
+        }
+        fs=fs ? rasqal_new_2op_expression(RASQAL_EXPR_AND, fs, e) : e;
+      }
+    }
+  }
+
+  if(fs) {
+    node=rasqal_new_filter_algebra_node(query, fs, node);
+    if(!node) {
+      RASQAL_DEBUG1("rasqal_new_filter_algebra_node() failed");
+      goto fail;
+    }
+    fs=NULL; /* now owned by node */
+  }
+
+
+  return node;
+  
+  fail:
+  if(node)
+    rasqal_free_algebra_node(node);
+  if(fs)
+    rasqal_free_expression(fs);
+  
+  return node;
 }
 
 static rasqal_algebra_node*
@@ -557,6 +598,7 @@ rasqal_algebra_union_graph_pattern_to_algebra(rasqal_query* query,
 
   return NULL;
 }
+
 
 static rasqal_algebra_node*
 rasqal_algebra_group_graph_pattern_to_algebra(rasqal_query* query,
