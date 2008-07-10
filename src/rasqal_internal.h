@@ -1052,6 +1052,7 @@ int rasqal_algebra_algebra_node_write(rasqal_algebra_node *node, raptor_iostream
 void rasqal_algebra_node_print(rasqal_algebra_node* node, FILE* fh);
 int rasqal_algebra_node_visit(rasqal_query *query, rasqal_algebra_node* node, rasqal_algebra_node_visit_fn fn, void *user_data);
 rasqal_algebra_node* rasqal_algebra_query_to_algebra(rasqal_query* query);
+int rasqal_algebra_node_is_empty(rasqal_algebra_node* node);
 
 /* end of RASQAL_INTERNAL */
 #endif
