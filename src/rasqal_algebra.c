@@ -306,7 +306,7 @@ static const char* const rasqal_algebra_node_operator_labels[RASQAL_ALGEBRA_OPER
   "Filter",
   "Join",
   "Diff",
-  "Leftjoin",
+  "LeftJoin",
   "Union",
   "ToList",
   "OrderBy",
