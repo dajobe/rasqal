@@ -2,9 +2,7 @@
  *
  * sparql_parser.y - Rasqal SPARQL parser over tokens from sparql_lexer.l
  *
- * $Id$
- *
- * Copyright (C) 2004-2007, David Beckett http://purl.org/net/dajobe/
+ * Copyright (C) 2004-2008, David Beckett http://www.dajobe.org/
  * Copyright (C) 2004-2005, University of Bristol, UK http://www.bristol.ac.uk/
  * 
  * This package is Free Software and part of Redland http://librdf.org/
@@ -22,10 +20,8 @@
  * the licenses in COPYING.LIB, COPYING and LICENSE-2.0.txt respectively.
  *
  * References:
- *   SPARQL Query Language for RDF, W3C Candidate Recommendation 6 April 2006
- *   http://www.w3.org/TR/2006/CR-rdf-sparql-query-20060406/
- *
- * Editor's draft of above http://www.w3.org/2001/sw/DataAccess/rq23/
+ *   SPARQL Query Language for RDF, W3C Recommendation 15 January 2008
+ *   http://www.w3.org/TR/2008/REC-rdf-sparql-query-20080115/
  *
  */
 
