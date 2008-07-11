@@ -554,7 +554,16 @@ CountAggregateExpression: COUNT '(' Expression ')'
 ;
 
 
-/* SPARQL Grammar: [6] DescribeQuery */
+/* SPARQL Grammar: [6] ConstructQuery */
+ConstructQuery: CONSTRUCT ConstructTemplate
+        DatasetClauseListOpt WhereClauseOpt SolutionModifier
+{
+  $$=$2;
+}
+;
+
+
+/* SPARQL Grammar: [7] DescribeQuery */
 DescribeQuery: DESCRIBE VarOrIRIrefList
         DatasetClauseListOpt WhereClauseOpt SolutionModifier
 {
@@ -568,7 +577,7 @@ DescribeQuery: DESCRIBE VarOrIRIrefList
 ;
 
 
-/* NEW Grammar Term pulled out of [6] DescribeQuery */
+/* NEW Grammar Term pulled out of [7] DescribeQuery */
 VarOrIRIrefList: VarOrIRIrefList VarOrIRIref
 {
   $$=$1;
@@ -597,15 +606,6 @@ VarOrIRIrefList: VarOrIRIrefList VarOrIRIref
     $$=NULL;
     YYERROR_MSG("VarOrIRIrefList 3: sequence push failed");
   }
-}
-;
-
-
-/* SPARQL Grammar: [7] ConstructQuery */
-ConstructQuery: CONSTRUCT ConstructTemplate
-        DatasetClauseListOpt WhereClauseOpt SolutionModifier
-{
-  $$=$2;
 }
 ;
 
