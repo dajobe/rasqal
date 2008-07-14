@@ -2519,29 +2519,49 @@ rasqal_engine_new_basic_graph_pattern_from_formula(rasqal_query* query,
 }
 
 
+/**
+ * rasqal_engine_group_2_graph_patterns:
+ * @query: query object
+ * @first_gp: first graph pattern
+ * @second_gp: second graph pattern
+ *
+ * INTERNAL - Make a new group graph pattern from two graph patterns
+ * of which either or both may be NULL
+ *
+ * @first_gp and @second_gp become owned by the new graph pattern.
+ *
+ * Return value: new group graph pattern or NULL on failure
+ */
 rasqal_graph_pattern*
 rasqal_engine_group_2_graph_patterns(rasqal_query* query,
                                      rasqal_graph_pattern* first_gp,
                                      rasqal_graph_pattern* second_gp)
 {
+  raptor_sequence *seq;
+
   if(!first_gp && !second_gp)
     return NULL;
+
+  /* both present so make a new group graph pattern */
   
-  if(first_gp && second_gp) {
-    raptor_sequence *seq;
+  seq=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_graph_pattern, (raptor_sequence_print_handler*)rasqal_graph_pattern_print);
+  if(!seq)
+    return NULL;
 
-    seq=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_graph_pattern, (raptor_sequence_print_handler*)rasqal_graph_pattern_print);
-    if(!seq)
-      return NULL;
-    raptor_sequence_push(seq, first_gp);
-    raptor_sequence_push(seq, second_gp);
+  if(first_gp && raptor_sequence_push(seq, first_gp)) {
+    raptor_free_sequence(seq);
+    if(second_gp)
+      rasqal_free_graph_pattern(second_gp);
+    return NULL;
+  }
+  if(second_gp && raptor_sequence_push(seq, second_gp)) {
+    raptor_free_sequence(seq);
+    rasqal_free_graph_pattern(second_gp);
+    return NULL;
+  }
 
-    first_gp=rasqal_new_graph_pattern_from_sequence(query, seq,
-                                                    RASQAL_GRAPH_PATTERN_OPERATOR_GROUP);
-  } else if(!first_gp)
-    first_gp=second_gp;
-
-  return first_gp;
+  return rasqal_new_graph_pattern_from_sequence(query, seq,
+                                                RASQAL_GRAPH_PATTERN_OPERATOR_GROUP);
 }
 
 
