@@ -145,6 +145,36 @@ rasqal_new_graph_pattern_from_sequence(rasqal_query* query,
 
 
 /*
+ * rasqal_new_filter_graph_pattern:
+ * @query: #rasqal_graph_pattern query object
+ * @expr: expression
+ *
+ * INTERNAL - Create a new graph pattern from a sequence of graph_patterns.
+ * 
+ * Return value: a new #rasqal_graph_pattern object or NULL on failure
+ **/
+rasqal_graph_pattern*
+rasqal_new_filter_graph_pattern(rasqal_query* query,
+                                rasqal_expression* expr)
+{
+  rasqal_graph_pattern* gp;
+
+  gp=rasqal_new_graph_pattern(query, RASQAL_GRAPH_PATTERN_OPERATOR_FILTER);
+  if(!gp) {
+    rasqal_free_expression(expr);
+    return NULL;
+  }
+  
+  if(rasqal_graph_pattern_add_constraint(gp, expr)) {
+    rasqal_free_graph_pattern(gp);
+    gp=NULL;
+  }
+
+  return gp;
+}
+
+
+/*
  * rasqal_free_graph_pattern:
  * @gp: #rasqal_graph_pattern object
  *
