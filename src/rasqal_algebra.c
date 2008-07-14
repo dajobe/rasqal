@@ -779,6 +779,7 @@ rasqal_algebra_graph_pattern_to_algebra(rasqal_query* query,
       node=rasqal_algebra_group_graph_pattern_to_algebra(query, gp);
       break;
       
+    case RASQAL_GRAPH_PATTERN_OPERATOR_FILTER:
     case RASQAL_GRAPH_PATTERN_OPERATOR_GRAPH:
 
     case RASQAL_GRAPH_PATTERN_OPERATOR_UNKNOWN:
