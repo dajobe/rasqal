@@ -390,10 +390,9 @@ rasqal_graph_pattern_write_internal(rasqal_graph_pattern* gp,
     raptor_iostream_write_counted_string(iostr, "over ", 5);
     rasqal_graph_pattern_write_plurals(iostr, "triple", size);
     raptor_iostream_write_byte(iostr, '[');
-    if(indent >= 0)
-      raptor_iostream_write_byte(iostr, '\n');
 
     if(indent >= 0) {
+      raptor_iostream_write_byte(iostr, '\n');
       indent+= 2;
       rasqal_graph_pattern_write_indent(iostr, indent);
     }
@@ -402,6 +401,7 @@ rasqal_graph_pattern_write_internal(rasqal_graph_pattern* gp,
       rasqal_triple *t=(rasqal_triple*)raptor_sequence_get_at(gp->triples, i);
       if(i > gp->start_column) {
         raptor_iostream_write_counted_string(iostr, " ,", 2);
+
         if(indent >= 0) {
           raptor_iostream_write_byte(iostr, '\n');
           rasqal_graph_pattern_write_indent(iostr, indent);
@@ -434,10 +434,9 @@ rasqal_graph_pattern_write_internal(rasqal_graph_pattern* gp,
     raptor_iostream_write_counted_string(iostr, "over ", 5);
     rasqal_graph_pattern_write_plurals(iostr, "graph pattern", size);
     raptor_iostream_write_byte(iostr, '[');
-    if(indent >= 0)
-      raptor_iostream_write_byte(iostr, '\n');
 
     if(indent >= 0) {
+      raptor_iostream_write_byte(iostr, '\n');
       indent+= 2;
       rasqal_graph_pattern_write_indent(iostr, indent);
     }
@@ -473,6 +472,7 @@ rasqal_graph_pattern_write_internal(rasqal_graph_pattern* gp,
 
     if(pending_nl) {
       raptor_iostream_write_counted_string(iostr, " ,", 2);
+
       if(indent >= 0) {
         raptor_iostream_write_byte(iostr, '\n');
         rasqal_graph_pattern_write_indent(iostr, indent);
@@ -496,6 +496,7 @@ rasqal_graph_pattern_write_internal(rasqal_graph_pattern* gp,
       expr=(rasqal_expression*)raptor_sequence_get_at(gp->constraints, i);
       if(i) {
         raptor_iostream_write_counted_string(iostr, " ,", 2);
+
         if(indent >= 0) {
           raptor_iostream_write_byte(iostr, '\n');
           rasqal_graph_pattern_write_indent(iostr, indent);
