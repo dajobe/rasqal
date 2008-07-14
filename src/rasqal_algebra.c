@@ -623,7 +623,7 @@ rasqal_algebra_group_graph_pattern_to_algebra(rasqal_query* query,
     if(!egp)
       break;
 
-    if(egp->constraints) {
+    if(egp->op != RASQAL_GRAPH_PATTERN_OPERATOR_BASIC && egp->constraints) {
       /* If E is of the form FILTER(expr)
          FS := FS set-union {expr} 
       */
