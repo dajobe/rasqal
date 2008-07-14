@@ -299,7 +299,8 @@ static const char* const rasqal_graph_pattern_operator_labels[RASQAL_GRAPH_PATTE
   "optional",
   "union",
   "group",
-  "graph"
+  "graph",
+  "filter"
 };
 
 
