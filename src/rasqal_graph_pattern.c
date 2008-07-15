@@ -323,7 +323,7 @@ rasqal_graph_pattern_operator_as_string(rasqal_graph_pattern_operator op)
 }
   
 
-#if RASQAL_DEBUG > 1
+#ifdef RASQAL_DEBUG
 #define DO_INDENTING 0
 #else
 #define DO_INDENTING -1
