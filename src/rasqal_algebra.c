@@ -617,13 +617,13 @@ rasqal_algebra_group_graph_pattern_to_algebra(rasqal_query* query,
     goto fail;
   }
 
-  while(1) {
+  for(idx=0; 1; idx++) {
     rasqal_graph_pattern* egp;
     egp=rasqal_graph_pattern_get_sub_graph_pattern(gp, idx);
     if(!egp)
       break;
 
-    if(egp->op != RASQAL_GRAPH_PATTERN_OPERATOR_BASIC && egp->constraints) {
+    if(egp->constraints) {
       /* If E is of the form FILTER(expr)
          FS := FS set-union {expr} 
       */
@@ -642,6 +642,9 @@ rasqal_algebra_group_graph_pattern_to_algebra(rasqal_query* query,
           fs=fs ? rasqal_new_2op_expression(RASQAL_EXPR_AND, fs, e) : e;
         }
       }
+
+      if(egp->op == RASQAL_GRAPH_PATTERN_OPERATOR_FILTER)
+        continue;
     }
 
     if(egp->op == RASQAL_GRAPH_PATTERN_OPERATOR_OPTIONAL) {
@@ -727,7 +730,7 @@ rasqal_algebra_group_graph_pattern_to_algebra(rasqal_query* query,
         goto fail;
       }
     }
-    idx++;
+
   }
 
   /*
