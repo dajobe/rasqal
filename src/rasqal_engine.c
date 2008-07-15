@@ -1976,7 +1976,7 @@ rasqal_engine_join_graph_patterns(rasqal_graph_pattern *dest_gp,
  * rasqal_engine_merge_graph_patterns:
  * @query: query (not used here)
  * @gp: current graph pattern
- * @data: visit data (not used here)
+ * @data: pointer to int modified flag
  *
  * INTERNAL - Merge graph patterns where possible
  *
