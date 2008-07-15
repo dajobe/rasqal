@@ -5,5 +5,5 @@ LeftJoin(
          BGP(
              triple(variable(s), uri<http://example.org#p2>, variable(v2))
          ) ,
-         expr(lt(variable(?v1), literal(integer(3))))
+         expr(op lt(expr(variable(v1)), expr(integer(3))))
 )
