@@ -874,7 +874,10 @@ OffsetClause:  OFFSET INTEGER_LITERAL
 ;
 
 
-/* SPARQL Grammar: [20] GroupGraphPattern */
+/* SPARQL Grammar: [20] GroupGraphPattern 
+ * TriplesBlockOpt: formula or NULL (on success or error)
+ * GraphPatternListOpt: always 1 Group GP or NULL (on error)
+ */
 GroupGraphPattern: '{' TriplesBlockOpt GraphPatternListOpt '}'
 {
   rasqal_graph_pattern *formula_gp=NULL;
@@ -904,14 +907,18 @@ GroupGraphPattern: '{' TriplesBlockOpt GraphPatternListOpt '}'
   }
 
   if($3) {
-    $$=rasqal_engine_group_2_graph_patterns((rasqal_query*)rq, formula_gp, $3);
-    if(!$$)
-      YYERROR_MSG("GroupGraphPattern: cannot create group gp");
+    $$=$3;
+    if(formula_gp && raptor_sequence_shift($$->graph_patterns, formula_gp)) {
+      rasqal_free_graph_pattern(formula_gp);
+      rasqal_free_graph_pattern($$);
+      $$=NULL;
+      YYERROR_MSG("GroupGraphPattern: sequence push failed");
+    }
   } else
     $$=formula_gp;
 
 #if RASQAL_DEBUG > 1  
-  fprintf(DEBUG_FH, "  after grouping graph pattern=");
+  fprintf(DEBUG_FH, "  after graph pattern=");
   if($$)
     rasqal_graph_pattern_print($$, DEBUG_FH);
   else
@@ -943,7 +950,12 @@ TriplesBlockOpt: TriplesBlock
 ;
 
 
-/* Pulled out of SPARQL Grammar: [20] GroupGraphPattern */
+/* Pulled out of SPARQL Grammar: [20] GroupGraphPattern 
+ * GraphPatternListOpt: always 1 Group GP or NULL
+ * GraphPatternList: always 1 Group GP or NULL (on error)
+ *
+ * Result: always 1 Group GP or NULL (on error)
+ */
 GraphPatternListOpt: GraphPatternListOpt GraphPatternList
 {
 #if RASQAL_DEBUG > 1  
@@ -960,10 +972,18 @@ GraphPatternListOpt: GraphPatternListOpt GraphPatternList
   fputs("\n", DEBUG_FH);
 #endif
 
-  $$=rasqal_engine_group_2_graph_patterns((rasqal_query*)rq, $1, $2);
-  if(!$$)
-    YYERROR_MSG("GraphPatternListOpt 1: cannot create sequence");
-
+  $$= ($1 ? $1 : $2);
+  if($1 && $2) {
+    $$=$1;
+    if(rasqal_engine_join_graph_patterns($$, $2)) {
+      rasqal_free_graph_pattern($$);
+      rasqal_free_graph_pattern($2);
+      $$=NULL;
+      YYERROR_MSG("ConstructTriplesOpt: sequence join failed");
+    }
+    rasqal_free_graph_pattern($2);
+  }
+  
 #if RASQAL_DEBUG > 1  
   fprintf(DEBUG_FH, "  after grouping graph pattern=");
   if($$)
@@ -985,8 +1005,10 @@ GraphPatternListOpt: GraphPatternListOpt GraphPatternList
 
 
 /* Pulled out of SPARQL Grammar: [20] GroupGraphPattern 
- * GraphPatternListFilter: always 1 Graph Pattern or NULL (on error)
- * TriplesBlockOpt: formula or NULL
+ * GraphPatternListFilter: always 1 GP or NULL (on error)
+ * TriplesBlockOpt: formula or NULL (on success or error)
+ *
+ * Result: always 1 Group GP or NULL (on success or error)
  */
 GraphPatternList: GraphPatternListFilter DotOptional TriplesBlockOpt
 {
@@ -1030,6 +1052,11 @@ GraphPatternList: GraphPatternListFilter DotOptional TriplesBlockOpt
 ;
 
 
+/* Pulled out of SPARQL Grammar: [20] GroupGraphPattern 
+ * GraphPatternNotTriples: always 1 GP or NULL (on error)
+ *
+ * Result: always 1 GP or NULL (on error)
+ */
 GraphPatternListFilter: GraphPatternNotTriples
 {
 #if RASQAL_DEBUG > 1  
