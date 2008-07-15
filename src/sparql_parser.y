@@ -48,12 +48,14 @@
 
 #include <sparql_common.h>
 
-/*
+
+#if 0
 #undef RASQAL_DEBUG
 #define RASQAL_DEBUG 2
-*/
+#endif
 
-#define DEBUG_FH stdout
+
+#define DEBUG_FH stderr
 
 /* Make verbose error messages for syntax errors */
 #define YYERROR_VERBOSE 1
@@ -127,7 +129,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
  * shift/reduce conflicts
  * FIXME: document this
  */
-%expect 8
+%expect 4
 
 /* word symbols */
 %token SELECT FROM WHERE
@@ -197,17 +199,18 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
 %type <seq> ConstructTemplate OrderConditionList
 %type <seq> GraphNodeListNotEmpty SelectExpressionListTail
 
-%type <formula> TriplesSameSubject TriplesSameSubjectDotListOpt
+%type <formula> TriplesSameSubject
 %type <formula> PropertyList PropertyListTailOpt PropertyListNotEmpty
 %type <formula> ObjectList ObjectTail Collection
 %type <formula> VarOrTerm Verb Object GraphNode TriplesNode
-%type <formula> TriplesBlockOpt BlankNodePropertyList
+%type <formula> BlankNodePropertyList
+%type <formula> TriplesBlock TriplesBlockOpt 
 
-%type <graph_pattern> GroupGraphPattern GraphPattern
+%type <graph_pattern> GroupGraphPattern
 %type <graph_pattern> GraphGraphPattern OptionalGraphPattern
 %type <graph_pattern> GroupOrUnionGraphPattern GroupOrUnionGraphPatternList
 %type <graph_pattern> GraphPatternNotTriples
-%type <graph_pattern> FilteredBasicGraphPattern
+%type <graph_pattern> GraphPatternListOpt GraphPatternList GraphPatternListFilter
 
 %type <expr> Expression ConditionalOrExpression ConditionalAndExpression
 %type <expr> RelationalExpression AdditiveExpression
@@ -247,18 +250,19 @@ ConstructTemplate OrderConditionList
 GraphNodeListNotEmpty SelectExpressionListTail
 
 %destructor { if($$) rasqal_free_formula($$); }
-TriplesSameSubject TriplesSameSubjectDotListOpt
+TriplesSameSubject
 PropertyList PropertyListTailOpt PropertyListNotEmpty
 ObjectList ObjectTail Collection
 VarOrTerm Verb Object GraphNode TriplesNode
-TriplesBlockOpt BlankNodePropertyList
+BlankNodePropertyList
+TriplesBlock TriplesBlockOpt
 
 %destructor { if($$) rasqal_free_graph_pattern($$); }
-GroupGraphPattern GraphPattern
+GroupGraphPattern
 GraphGraphPattern OptionalGraphPattern
 GroupOrUnionGraphPattern GroupOrUnionGraphPatternList
 GraphPatternNotTriples
-FilteredBasicGraphPattern
+GraphPatternListOpt GraphPatternList GraphPatternListFilter
 
 %destructor { if($$) rasqal_free_expression($$); }
 Expression ConditionalOrExpression ConditionalAndExpression
@@ -871,9 +875,197 @@ OffsetClause:  OFFSET INTEGER_LITERAL
 
 
 /* SPARQL Grammar: [20] GroupGraphPattern */
-GroupGraphPattern: '{' GraphPattern '}'
+GroupGraphPattern: '{' TriplesBlockOpt GraphPatternListOpt '}'
 {
-  $$=$2;
+  rasqal_graph_pattern *formula_gp=NULL;
+
+#if RASQAL_DEBUG > 1  
+  fprintf(DEBUG_FH, "GroupGraphPattern\n  TriplesBlockOpt=");
+  if($2)
+    rasqal_formula_print($2, DEBUG_FH);
+  else
+    fputs("NULL", DEBUG_FH);
+  fprintf(DEBUG_FH, ", GraphpatternListOpt=");
+  if($3)
+    rasqal_graph_pattern_print($3, DEBUG_FH);
+  else
+    fputs("NULL", DEBUG_FH);
+  fputs("\n", DEBUG_FH);
+#endif
+
+
+  if($2) {
+    formula_gp=rasqal_engine_new_basic_graph_pattern_from_formula((rasqal_query*)rq, $2);
+    if(!formula_gp) {
+      if($3)
+        rasqal_free_graph_pattern($3);
+      YYERROR_MSG("GroupGraphPattern: cannot create formula_gp");
+    }
+  }
+
+  if($3) {
+    $$=rasqal_engine_group_2_graph_patterns((rasqal_query*)rq, formula_gp, $3);
+    if(!$$)
+      YYERROR_MSG("GroupGraphPattern: cannot create group gp");
+  } else
+    $$=formula_gp;
+
+#if RASQAL_DEBUG > 1  
+  fprintf(DEBUG_FH, "  after grouping graph pattern=");
+  if($$)
+    rasqal_graph_pattern_print($$, DEBUG_FH);
+  else
+    fputs("NULL", DEBUG_FH);
+  fprintf(DEBUG_FH, "\n\n");
+#endif
+}
+;
+
+
+/* Pulled out of SPARQL Grammar: [20] GroupGraphPattern */
+TriplesBlockOpt: TriplesBlock
+{
+#if RASQAL_DEBUG > 1  
+  fprintf(DEBUG_FH, "TriplesBlockOpt 1\n  TriplesBlock=");
+  if($1)
+    rasqal_formula_print($1, DEBUG_FH);
+  else
+    fputs("NULL", DEBUG_FH);
+  fputs("\n\n", DEBUG_FH);
+#endif
+
+  $$=$1;
+}
+| /* empty */
+{
+  $$=NULL;
+}
+;
+
+
+/* Pulled out of SPARQL Grammar: [20] GroupGraphPattern */
+GraphPatternListOpt: GraphPatternListOpt GraphPatternList
+{
+#if RASQAL_DEBUG > 1  
+  fprintf(DEBUG_FH, "GraphPatternListOpt\n  GraphPatternListOpt=");
+  if($1)
+    rasqal_graph_pattern_print($1, DEBUG_FH);
+  else
+    fputs("NULL", DEBUG_FH);
+  fprintf(DEBUG_FH, ", GraphPatternList=");
+  if($2)
+    rasqal_graph_pattern_print($2, DEBUG_FH);
+  else
+    fputs("NULL", DEBUG_FH);
+  fputs("\n", DEBUG_FH);
+#endif
+
+  $$=rasqal_engine_group_2_graph_patterns((rasqal_query*)rq, $1, $2);
+  if(!$$)
+    YYERROR_MSG("GraphPatternListOpt 1: cannot create sequence");
+
+#if RASQAL_DEBUG > 1  
+  fprintf(DEBUG_FH, "  after grouping graph pattern=");
+  if($$)
+    rasqal_graph_pattern_print($$, DEBUG_FH);
+  else
+    fputs("NULL", DEBUG_FH);
+  fprintf(DEBUG_FH, "\n\n");
+#endif
+}
+| GraphPatternList
+{
+  $$=$1;
+}
+| /* empty */
+{
+  $$=NULL;
+}
+;
+
+
+/* Pulled out of SPARQL Grammar: [20] GroupGraphPattern 
+ * GraphPatternListFilter: always 1 Graph Pattern or NULL (on error)
+ * TriplesBlockOpt: formula or NULL
+ */
+GraphPatternList: GraphPatternListFilter DotOptional TriplesBlockOpt
+{
+  rasqal_graph_pattern *formula_gp=NULL;
+
+#if RASQAL_DEBUG > 1  
+  fprintf(DEBUG_FH, "GraphPatternList\n  GraphPatternListFilter=");
+  if($1)
+    rasqal_graph_pattern_print($1, DEBUG_FH);
+  else
+    fputs("NULL", DEBUG_FH);
+  fprintf(DEBUG_FH, ", TriplesBlockOpt=");
+  if($3)
+    rasqal_formula_print($3, DEBUG_FH);
+  else
+    fputs("NULL", DEBUG_FH);
+  fputs("\n", DEBUG_FH);
+#endif
+
+  if($3) {
+    formula_gp=rasqal_engine_new_basic_graph_pattern_from_formula((rasqal_query*)rq, $3);
+    if(!formula_gp) {
+      if($1)
+        rasqal_free_graph_pattern($1);
+      YYERROR_MSG("GraphPatternList: cannot create formula_gp");
+    }
+  }
+  $$=rasqal_engine_group_2_graph_patterns((rasqal_query*)rq, $1, formula_gp);
+  if(!$$)
+    YYERROR_MSG("GraphPatternList: cannot create sequence");
+
+#if RASQAL_DEBUG > 1  
+  fprintf(DEBUG_FH, "  after graph pattern=");
+  if($$)
+    rasqal_graph_pattern_print($$, DEBUG_FH);
+  else
+    fputs("NULL", DEBUG_FH);
+  fprintf(DEBUG_FH, "\n\n");
+#endif
+}
+;
+
+
+GraphPatternListFilter: GraphPatternNotTriples
+{
+#if RASQAL_DEBUG > 1  
+  fprintf(DEBUG_FH, "GraphPatternListFilter 1\n  GraphPatternNotTriples=");
+  if($1)
+    rasqal_graph_pattern_print($1, DEBUG_FH);
+  else
+    fputs("NULL", DEBUG_FH);
+  fputs("\n\n", DEBUG_FH);
+#endif
+
+  $$=$1;
+}
+| Filter
+{
+#if RASQAL_DEBUG > 1  
+  fprintf(DEBUG_FH, "GraphPatternListFilter 2\n  Filter=");
+  if($1)
+    rasqal_expression_print($1, DEBUG_FH);
+  else
+    fputs("NULL", DEBUG_FH);
+  fputs("\n", DEBUG_FH);
+#endif
+
+  $$=rasqal_new_filter_graph_pattern((rasqal_query*)rq, $1);
+  if(!$$)
+    YYERROR_MSG("GraphPatternListFilter 2: cannot create graph pattern");
+
+#if RASQAL_DEBUG > 1  
+  fprintf(DEBUG_FH, "  after graph pattern=");
+  if($$)
+    rasqal_graph_pattern_print($$, DEBUG_FH);
+  else
+    fputs("NULL", DEBUG_FH);
+  fprintf(DEBUG_FH, "\n\n");
+#endif
 }
 ;
 
@@ -884,223 +1076,31 @@ DotOptional: '.'
 ;
 
 
-/* SPARQL Grammar: [21] GraphPattern */
-GraphPattern: FilteredBasicGraphPattern GraphPatternNotTriples DotOptional GraphPattern
-{
-#if RASQAL_DEBUG > 1  
-  fprintf(DEBUG_FH, "GraphPattern 1\n  FilteredBasicGraphPattern=");
-  if($1)
-    rasqal_graph_pattern_print($1, DEBUG_FH);
-  else
-    fputs("NULL", DEBUG_FH);
-  fprintf(DEBUG_FH, ", GraphPatternNotTriples=");
-  if($2)
-    rasqal_graph_pattern_print($2, DEBUG_FH);
-  else
-    fputs("NULL", DEBUG_FH);
-  fprintf(DEBUG_FH, ", GraphPattern=");
-  if($4)
-    rasqal_graph_pattern_print($4, DEBUG_FH);
-  else
-    fputs("NULL", DEBUG_FH);
-  fputs("\n", DEBUG_FH);
-#endif
-
-  $$=$4;
-  /* push ($1,$2) to start of $4 graph sequence */
-  if($2)
-    if(raptor_sequence_shift($$->graph_patterns, $2)) {
-      if($1)
-        rasqal_free_graph_pattern($1);
-      rasqal_free_graph_pattern($$);
-      $$=NULL;
-      YYERROR_MSG("GraphPattern 1: sequence shift $2 failed");
-    }
-  if($1)
-    if(raptor_sequence_shift($$->graph_patterns, $1)) {
-      rasqal_free_graph_pattern($$);
-      $$=NULL;
-      YYERROR_MSG("GraphPattern 1: sequence shift $1 failed");
-    }
-
-#if RASQAL_DEBUG > 1
-  fprintf(DEBUG_FH, "  after grouping graph pattern=");
-  if($$)
-    rasqal_graph_pattern_print($$, DEBUG_FH);
-  else
-    fputs("NULL", DEBUG_FH);
-  fprintf(DEBUG_FH, "\n\n");
-#endif
-}
-| FilteredBasicGraphPattern 
-{
-  raptor_sequence *seq;
-
-#if RASQAL_DEBUG > 1  
-  fprintf(DEBUG_FH, "GraphPattern 2\n  FilteredBasicGraphPattern=");
-  if($1)
-    rasqal_graph_pattern_print($1, DEBUG_FH);
-  else
-    fputs("NULL", DEBUG_FH);
-  fputs("\n", DEBUG_FH);
-#endif
-
-  seq=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_graph_pattern, (raptor_sequence_print_handler*)rasqal_graph_pattern_print);
-  if(!seq) {
-    if($1)
-      rasqal_free_graph_pattern($1);
-    YYERROR_MSG("GraphPattern 2: cannot create sequence");
-  }  
-  if($1)
-    if(raptor_sequence_push(seq, $1)) {
-      raptor_free_sequence(seq);
-      YYERROR_MSG("GraphPattern 2: sequence push failed");
-    }
-
-  $$=rasqal_new_graph_pattern_from_sequence((rasqal_query*)rq, seq,
-                                            RASQAL_GRAPH_PATTERN_OPERATOR_GROUP);
-
-  if(!$$)
-    YYERROR_MSG("GraphPattern 2: cannot create gp");
-
-#if RASQAL_DEBUG > 1  
-  fprintf(DEBUG_FH, "  after grouping graph pattern=");
-  rasqal_graph_pattern_print($$, DEBUG_FH);
-  fprintf(DEBUG_FH, "\n\n");
-#endif
-}
-;
-
-
-/* SPARQL Grammar Term [21]  FilteredBasicGraphPattern */
-FilteredBasicGraphPattern: TriplesBlockOpt Filter DotOptional FilteredBasicGraphPattern
-{
-#if RASQAL_DEBUG > 1  
-  fprintf(DEBUG_FH, "FilteredBasicGraphPattern 1\n  TriplesBlockOpt=");
-  if($1)
-    rasqal_formula_print($1, DEBUG_FH);
-  else
-    fputs("NULL", DEBUG_FH);
-  fprintf(DEBUG_FH, ", Constraint=");
-  if($2)
-    rasqal_expression_print($2, DEBUG_FH);
-  else
-    fputs("NULL", DEBUG_FH);
-  fprintf(DEBUG_FH, ", FilteredBasicGraphPattern=");
-  if($4)
-    rasqal_graph_pattern_print($4, DEBUG_FH);
-  else
-    fputs("NULL", DEBUG_FH);
-  fputs("\n", DEBUG_FH);
-#endif
-
-  $$=$4;
-
-  if($2) {
-    if(rasqal_graph_pattern_add_constraint($$, $2)) {
-      if($1)
-        rasqal_free_formula($1);
-      rasqal_free_graph_pattern($$);
-      $$=NULL;
-      YYERROR_MSG("FilteredBasicGraphPattern 1: cannot add constraint");
-    }
-  }
-
-  /* push $1 to end of $4 graph sequence */
-  if($1) {
-    rasqal_graph_pattern *gp;
-    gp=rasqal_engine_new_basic_graph_pattern_from_formula((rasqal_query*)rq, $1);
-    if(!gp) {
-      rasqal_free_graph_pattern($$);
-      $$=NULL;
-      YYERROR_MSG("FilteredBasicGraphPattern 1: cannot create gp");
-    }
-    if(raptor_sequence_push($$->graph_patterns, gp)) {
-      rasqal_free_graph_pattern($$);
-      $$=NULL;
-      YYERROR_MSG("FilteredBasicGraphPattern 1: sequence push failed");
-    }
-  }
- 
-#if RASQAL_DEBUG > 1  
-  fprintf(DEBUG_FH, "  after grouping graph pattern=");
-  if($$)
-    rasqal_graph_pattern_print($$, DEBUG_FH);
-  else
-    fputs("NULL", DEBUG_FH);
-  fprintf(DEBUG_FH, "\n\n");
-#endif
-}
-| TriplesBlockOpt
-{
-  rasqal_graph_pattern *formula_gp=NULL;
-  raptor_sequence *seq;
-
-#if RASQAL_DEBUG > 1  
-  fprintf(DEBUG_FH, "FilteredBasicGraphPattern 2\n  TriplesBlockOpt=");
-  if($1)
-    rasqal_formula_print($1, DEBUG_FH);
-  else
-    fputs("NULL", DEBUG_FH);
-  fputs("\n", DEBUG_FH);
-#endif
-
-  if($1) {
-    formula_gp=rasqal_engine_new_basic_graph_pattern_from_formula((rasqal_query*)rq, $1);
-    if(!formula_gp)
-      YYERROR_MSG("FilteredBasicGraphPattern 2: cannot create formula_gp");
-  }
-  
-  seq=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_graph_pattern, (raptor_sequence_print_handler*)rasqal_graph_pattern_print);
-  if(!seq) {
-    if(formula_gp)
-      rasqal_free_graph_pattern(formula_gp);
-    YYERROR_MSG("FilteredBasicGraphPattern 2: cannot create sequence");
-  }
-  if(formula_gp)
-    if(raptor_sequence_push(seq, formula_gp)) {
-      raptor_free_sequence(seq);
-      YYERROR_MSG("FilteredBasicGraphPattern 2: sequence push failed");
-    }
-
-  $$=rasqal_new_graph_pattern_from_sequence((rasqal_query*)rq,
-                                            seq,
-                                            RASQAL_GRAPH_PATTERN_OPERATOR_GROUP);
-  if(!$$)
-    YYERROR_MSG("FilteredBasicGraphPattern 2: cannot create gp");
-
-
-#if RASQAL_DEBUG > 1  
-  fprintf(DEBUG_FH, "  after, group graph pattern=");
-  rasqal_graph_pattern_print($$, DEBUG_FH);
-  fprintf(DEBUG_FH, "\n\n");
-#endif
-}
-;
-
-
 /* SPARQL Grammar: [21] TriplesBlock */
-TriplesBlockOpt: TriplesSameSubject TriplesSameSubjectDotListOpt
+TriplesBlock: TriplesSameSubject '.' TriplesBlockOpt
 {
 #if RASQAL_DEBUG > 1  
-  fprintf(DEBUG_FH, "TriplesBlockOpt\n  TriplesSameSubject=");
+  fprintf(DEBUG_FH, "TriplesBlock\n  TriplesSameSubject=");
   if($1)
     rasqal_formula_print($1, DEBUG_FH);
   else
     fputs("NULL", DEBUG_FH);
-  fputs("  TriplesSameSubjectDotListOpt=", DEBUG_FH);
-  if($2)
-    rasqal_formula_print($2, DEBUG_FH);
+  fprintf(DEBUG_FH, ", TriplesBlockOpt=");
+  if($3)
+    rasqal_formula_print($3, DEBUG_FH);
   else
     fputs("NULL", DEBUG_FH);
   fputs("\n", DEBUG_FH);
 #endif
 
 
-  /* $1 and $2 are freed as necessary */
-  $$=rasqal_formula_join($1, $2);
-  if(!$$)
-    YYERROR_MSG("TriplesBlockOpt: formula join failed");
+  $$= ($1 ? $1 : $3);
+  if($1 && $3) {
+    /* $1 and $3 are freed as necessary */
+    $$=rasqal_formula_join($1, $3);
+    if(!$1)
+      YYERROR_MSG("TriplesBlock: formula join failed");
+  }
 
 #if RASQAL_DEBUG > 1  
   fprintf(DEBUG_FH, "  after joining formula=");
@@ -1108,51 +1108,9 @@ TriplesBlockOpt: TriplesSameSubject TriplesSameSubjectDotListOpt
   fprintf(DEBUG_FH, "\n\n");
 #endif
 }
-| /* empty */
-{
-  $$=NULL;
-}
-;
-
-
-
-/* New Grammar Term pulled out of [21] TriplesBlock 
- * ( '.'  TriplesBlock? )*
- */
-TriplesSameSubjectDotListOpt: TriplesSameSubjectDotListOpt TriplesSameSubject
-{
-#if RASQAL_DEBUG > 1  
-  fprintf(DEBUG_FH, "TriplesSameSubjectDotTriplesOpt\n  TriplesSameSubjectDotListOpt=");
-  if($1)
-    rasqal_formula_print($1, DEBUG_FH);
-  else
-    fputs("NULL", DEBUG_FH);
-  fputs("  TriplesSameSubject=", DEBUG_FH);
-  if($2)
-    rasqal_formula_print($2, DEBUG_FH);
-  else
-    fputs("NULL", DEBUG_FH);
-  fputs("\n", DEBUG_FH);
-#endif
-
-  /* $1 and $2 are freed as necessary */
-  $$=rasqal_formula_join($1, $2);
-  if(!$$)
-    YYERROR_MSG("TriplesSameSubjectDotTriplesOpt: formula join failed");
-
-#if RASQAL_DEBUG > 1  
-  fprintf(DEBUG_FH, "  after joining formula=");
-  rasqal_formula_print($$, DEBUG_FH);
-  fprintf(DEBUG_FH, "\n\n");
-#endif
-}
-| TriplesSameSubjectDotListOpt '.'
+| TriplesSameSubject
 {
   $$=$1;
-}
-| /* empty */
-{
-  $$=NULL;
 }
 ;
 
@@ -1443,14 +1401,14 @@ TriplesSameSubject: VarOrTerm PropertyListNotEmpty
   int i;
 
 #if RASQAL_DEBUG > 1  
-  fprintf(DEBUG_FH, "TriplesSameSubject 1\n subject=");
+  fprintf(DEBUG_FH, "TriplesSameSubject 1\n  subject=");
   rasqal_formula_print($1, DEBUG_FH);
   if($2) {
-    fprintf(DEBUG_FH, "\n propertyList=");
+    fprintf(DEBUG_FH, "\n  propertyList=");
     rasqal_formula_print($2, DEBUG_FH);
     fprintf(DEBUG_FH, "\n");
   } else     
-    fprintf(DEBUG_FH, "\n and empty propertyList\n");
+    fprintf(DEBUG_FH, "\n  and empty propertyList\n");
 #endif
 
   if($2) {
@@ -1486,14 +1444,14 @@ TriplesSameSubject: VarOrTerm PropertyListNotEmpty
   int i;
 
 #if RASQAL_DEBUG > 1  
-  fprintf(DEBUG_FH, "TriplesSameSubject 2\n subject=");
+  fprintf(DEBUG_FH, "TriplesSameSubject 2\n  subject=");
   rasqal_formula_print($1, DEBUG_FH);
   if($2) {
-    fprintf(DEBUG_FH, "\n propertyList=");
+    fprintf(DEBUG_FH, "\n  propertyList=");
     rasqal_formula_print($2, DEBUG_FH);
     fprintf(DEBUG_FH, "\n");
   } else     
-    fprintf(DEBUG_FH, "\n and empty propertyList\n");
+    fprintf(DEBUG_FH, "\n  and empty propertyList\n");
 #endif
 
   if($2) {
@@ -1533,11 +1491,11 @@ PropertyListNotEmpty: Verb ObjectList PropertyListTailOpt
   int i;
   
 #if RASQAL_DEBUG > 1  
-  fprintf(DEBUG_FH, "PropertyList 1\n Verb=");
+  fprintf(DEBUG_FH, "PropertyList 1\n  Verb=");
   rasqal_formula_print($1, DEBUG_FH);
-  fprintf(DEBUG_FH, "\n ObjectList=");
+  fprintf(DEBUG_FH, "\n  ObjectList=");
   rasqal_formula_print($2, DEBUG_FH);
-  fprintf(DEBUG_FH, "\n PropertyListTail=");
+  fprintf(DEBUG_FH, "\n  PropertyListTail=");
   if($3 != NULL)
     rasqal_formula_print($3, DEBUG_FH);
   else
@@ -1654,15 +1612,15 @@ ObjectList: Object ObjectTail
 
 #if RASQAL_DEBUG > 1  
   fprintf(DEBUG_FH, "ObjectList 1\n");
-  fprintf(DEBUG_FH, " Object=\n");
+  fprintf(DEBUG_FH, "  Object=\n");
   rasqal_formula_print($1, DEBUG_FH);
   fprintf(DEBUG_FH, "\n");
   if($2) {
-    fprintf(DEBUG_FH, " ObjectTail=");
+    fprintf(DEBUG_FH, "  ObjectTail=");
     rasqal_formula_print($2, DEBUG_FH);
     fprintf(DEBUG_FH, "\n");
   } else
-    fprintf(DEBUG_FH, " and empty ObjectTail\n");
+    fprintf(DEBUG_FH, "  and empty ObjectTail\n");
 #endif
 
   formula=rasqal_new_formula();
@@ -1712,7 +1670,7 @@ ObjectList: Object ObjectTail
     YYERROR_MSG("ObjectList: formula join $2 failed");
 
 #if RASQAL_DEBUG > 1  
-  fprintf(DEBUG_FH, " objectList is now ");
+  fprintf(DEBUG_FH, "  objectList is now ");
   if($$)
     raptor_sequence_print($$->triples, DEBUG_FH);
   else
@@ -1826,7 +1784,7 @@ BlankNodePropertyList: '[' PropertyListNotEmpty ']'
 
   if($2 == NULL) {
 #if RASQAL_DEBUG > 1  
-    fprintf(DEBUG_FH, "TriplesNode\n PropertyList=");
+    fprintf(DEBUG_FH, "TriplesNode\n  PropertyList=");
     rasqal_formula_print($$, DEBUG_FH);
     fprintf(DEBUG_FH, "\n");
 #endif
@@ -1835,7 +1793,7 @@ BlankNodePropertyList: '[' PropertyListNotEmpty ']'
 
     /* non-empty property list, handle it  */
 #if RASQAL_DEBUG > 1  
-    fprintf(DEBUG_FH, "TriplesNode\n PropertyList=");
+    fprintf(DEBUG_FH, "TriplesNode\n  PropertyList=");
     raptor_sequence_print(seq, DEBUG_FH);
     fprintf(DEBUG_FH, "\n");
 #endif
@@ -1876,7 +1834,7 @@ Collection: '(' GraphNodeListNotEmpty ')'
 #endif
 
 #if RASQAL_DEBUG > 1  
-  fprintf(DEBUG_FH, "Collection\n GraphNodeListNotEmpty=");
+  fprintf(DEBUG_FH, "Collection\n  GraphNodeListNotEmpty=");
   raptor_sequence_print($2, DEBUG_FH);
   fprintf(DEBUG_FH, "\n");
 #endif
@@ -1984,17 +1942,17 @@ GraphNodeListNotEmpty: GraphNodeListNotEmpty GraphNode
 #if RASQAL_DEBUG > 1  
   fprintf(DEBUG_FH, "GraphNodeListNotEmpty 1\n");
   if($2) {
-    fprintf(DEBUG_FH, " GraphNode=");
+    fprintf(DEBUG_FH, "  GraphNode=");
     rasqal_formula_print($2, DEBUG_FH);
     fprintf(DEBUG_FH, "\n");
   } else  
-    fprintf(DEBUG_FH, " and empty GraphNode\n");
+    fprintf(DEBUG_FH, "  and empty GraphNode\n");
   if($1) {
-    fprintf(DEBUG_FH, " GraphNodeListNotEmpty=");
+    fprintf(DEBUG_FH, "  GraphNodeListNotEmpty=");
     raptor_sequence_print($1, DEBUG_FH);
     fprintf(DEBUG_FH, "\n");
   } else
-    fprintf(DEBUG_FH, " and empty GraphNodeListNotEmpty\n");
+    fprintf(DEBUG_FH, "  and empty GraphNodeListNotEmpty\n");
 #endif
 
   if(!$2)
@@ -2010,7 +1968,7 @@ GraphNodeListNotEmpty: GraphNodeListNotEmpty GraphNode
       YYERROR_MSG("GraphNodeListNotEmpty 1: sequence push failed");
     }
 #if RASQAL_DEBUG > 1  
-    fprintf(DEBUG_FH, " itemList is now ");
+    fprintf(DEBUG_FH, "  itemList is now ");
     raptor_sequence_print($$, DEBUG_FH);
     fprintf(DEBUG_FH, "\n\n");
 #endif
@@ -2022,11 +1980,11 @@ GraphNodeListNotEmpty: GraphNodeListNotEmpty GraphNode
 #if RASQAL_DEBUG > 1  
   fprintf(DEBUG_FH, "GraphNodeListNotEmpty 2\n");
   if($1) {
-    fprintf(DEBUG_FH, " GraphNode=");
+    fprintf(DEBUG_FH, "  GraphNode=");
     rasqal_formula_print($1, DEBUG_FH);
     fprintf(DEBUG_FH, "\n");
   } else  
-    fprintf(DEBUG_FH, " and empty GraphNode\n");
+    fprintf(DEBUG_FH, "  and empty GraphNode\n");
 #endif
 
   if(!$1)
@@ -2044,7 +2002,7 @@ GraphNodeListNotEmpty: GraphNodeListNotEmpty GraphNode
     }
   }
 #if RASQAL_DEBUG > 1  
-  fprintf(DEBUG_FH, " GraphNodeListNotEmpty is now ");
+  fprintf(DEBUG_FH, "  GraphNodeListNotEmpty is now ");
   raptor_sequence_print($$, DEBUG_FH);
   fprintf(DEBUG_FH, "\n\n");
 #endif
