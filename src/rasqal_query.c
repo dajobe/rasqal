@@ -40,11 +40,15 @@
 #include "rasqal.h"
 #include "rasqal_internal.h"
 
-#if 1
+
+#define DEBUG_FH stderr
+
+#if 0
 #undef RASQAL_NO_GP_MERGE
 #else
 #define RASQAL_NO_GP_MERGE 1
 #endif
+
 
 static void rasqal_query_add_query_result(rasqal_query* query, rasqal_query_results* query_results);
 static int rasqal_query_write_sparql_20060406(raptor_iostream *iostr, rasqal_query* query, raptor_uri *base_uri);
@@ -1044,6 +1048,11 @@ rasqal_query_prepare_count_graph_patterns(rasqal_query* query,
 }
 
 
+#if 0
+#undef RASQAL_DEBUG
+#define RASQAL_DEBUG 2
+#endif
+
 /**
  * rasqal_query_prepare:
  * @query: the #rasqal_query object
@@ -1123,9 +1132,9 @@ rasqal_query_prepare(rasqal_query* query,
     int modified;
     
 #if RASQAL_DEBUG > 1
-    fputs("Initial query graph pattern:\n  ", stdout);
-    rasqal_graph_pattern_print(query->query_graph_pattern, stdout);
-    fputs("\n", stdout);
+    fputs("Initial query graph pattern:\n  ", DEBUG_FH);
+    rasqal_graph_pattern_print(query->query_graph_pattern, DEBUG_FH);
+    fputs("\n", DEBUG_FH);
 #endif
 
     do {
@@ -1136,9 +1145,9 @@ rasqal_query_prepare(rasqal_query* query,
                                        &modified);
       
 #if RASQAL_DEBUG > 1
-      fprintf(stdout, "modified=%d after merge triples, query graph pattern now:\n  ", modified);
-      rasqal_graph_pattern_print(query->query_graph_pattern, stdout);
-      fputs("\n", stdout);
+      fprintf(DEBUG_FH, "modified=%d after merge triples, query graph pattern now:\n  ", modified);
+      rasqal_graph_pattern_print(query->query_graph_pattern, DEBUG_FH);
+      fputs("\n", DEBUG_FH);
 #endif
 
       rasqal_query_graph_pattern_visit(query,
@@ -1146,9 +1155,9 @@ rasqal_query_prepare(rasqal_query* query,
                                        &modified);
       
 #if RASQAL_DEBUG > 1
-      fprintf(stdout, "modified=%d after remove empty groups, query graph pattern now:\n  ", modified);
-      rasqal_graph_pattern_print(query->query_graph_pattern, stdout);
-      fputs("\n", stdout);
+      fprintf(DEBUG_FH, "modified=%d after remove empty groups, query graph pattern now:\n  ", modified);
+      rasqal_graph_pattern_print(query->query_graph_pattern, DEBUG_FH);
+      fputs("\n", DEBUG_FH);
 #endif
 
       rasqal_query_graph_pattern_visit(query, 
@@ -1156,9 +1165,9 @@ rasqal_query_prepare(rasqal_query* query,
                                        &modified);
 
 #if RASQAL_DEBUG > 1
-      fprintf(stdout, "modified=%d  after merge graph patterns, query graph pattern now:\n  ", modified);
-      rasqal_graph_pattern_print(query->query_graph_pattern, stdout);
-      fputs("\n", stdout);
+      fprintf(DEBUG_FH, "modified=%d  after merge graph patterns, query graph pattern now:\n  ", modified);
+      rasqal_graph_pattern_print(query->query_graph_pattern, DEBUG_FH);
+      fputs("\n", DEBUG_FH);
 #endif
 
     } while(modified>0);
@@ -1189,6 +1198,11 @@ rasqal_query_prepare(rasqal_query* query,
   return rc;
 }
 
+
+#if 0
+#undef RASQAL_DEBUG
+#define RASQAL_DEBUG 2
+#endif
 
 
 /**
