@@ -2063,12 +2063,12 @@ rasqal_engine_merge_graph_patterns(rasqal_query* query,
   }
 
 
-  /* check if ALL sub-graph patterns are basic graph patterns
-   * and either:
-   * 1) a single triple
-   * 2) a single constraint
+  /* if size > 1 check if ALL sub-graph patterns are basic graph
+   * patterns and either:
+   *   1) a single triple
+   *   2) a single constraint
    */
-  for(i=0; i < raptor_sequence_size(gp->graph_patterns); i++) {
+  for(i=0; i < size; i++) {
     rasqal_graph_pattern *sgp;
     sgp=(rasqal_graph_pattern*)raptor_sequence_get_at(gp->graph_patterns, i);
     
@@ -2127,15 +2127,11 @@ rasqal_engine_merge_graph_patterns(rasqal_query* query,
     /* Pretend dest is an empty basic graph pattern */
     seq=gp->graph_patterns;
     gp->graph_patterns=NULL;
-    /* Update operator GROUP => BASIC, but do not change OPTIONAL */
-    if(gp->op == RASQAL_GRAPH_PATTERN_OPERATOR_GROUP)
-      gp->op=RASQAL_GRAPH_PATTERN_OPERATOR_BASIC;
+    gp->op=op;
     
     while(raptor_sequence_size(seq) > 0) {
-      rasqal_graph_pattern *sgp=(rasqal_graph_pattern*)raptor_sequence_unshift(seq);
-      if(sgp->op == RASQAL_GRAPH_PATTERN_OPERATOR_UNION)
-        /* this happens with GROUP { UNION } */
-        gp->op=RASQAL_GRAPH_PATTERN_OPERATOR_UNION;
+      rasqal_graph_pattern *sgp;
+      sgp=(rasqal_graph_pattern*)raptor_sequence_unshift(seq);
 
       /* fake this so that the join happens */
       sgp->op=gp->op;
