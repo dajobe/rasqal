@@ -1222,7 +1222,7 @@ GraphGraphPattern: GRAPH VarOrIRIref GroupGraphPattern
 ;
 
 
-/* SPARQL Grammar: [26] GroupOrUnionGraphPattern */
+/* SPARQL Grammar: [25] GroupOrUnionGraphPattern */
 GroupOrUnionGraphPattern: GroupGraphPattern UNION GroupOrUnionGraphPatternList
 {
   $$=$3;
@@ -1244,7 +1244,7 @@ GroupOrUnionGraphPattern: GroupGraphPattern UNION GroupOrUnionGraphPatternList
 }
 ;
 
-/* NEW Grammar Term pulled out of [26] GroupOrUnionGraphPattern */
+/* NEW Grammar Term pulled out of [25] GroupOrUnionGraphPattern */
 GroupOrUnionGraphPatternList: GroupOrUnionGraphPatternList UNION GroupGraphPattern
 {
   $$=$1;
