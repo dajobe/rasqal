@@ -658,14 +658,23 @@ rasqal_new_0op_expression(rasqal_op op)
 rasqal_expression*
 rasqal_new_1op_expression(rasqal_op op, rasqal_expression* arg)
 {
-  rasqal_expression* e=(rasqal_expression*)RASQAL_CALLOC(rasqal_expression, 1, sizeof(rasqal_expression));
+  rasqal_expression* e=NULL;
+
+  if(!arg)
+    goto tidy;
+  
+  e=(rasqal_expression*)RASQAL_CALLOC(rasqal_expression, 1,
+                                      sizeof(rasqal_expression));
   if(e) {
     e->usage=1;
     e->op=op;
-    e->arg1=arg;
-  } else {
-    rasqal_free_expression(arg);
+    e->arg1=arg; arg=NULL;
   }
+  
+  tidy:
+  if(arg)
+    rasqal_free_expression(arg);
+
   return e;
 }
 
@@ -696,16 +705,26 @@ rasqal_new_2op_expression(rasqal_op op,
                           rasqal_expression* arg1, 
                           rasqal_expression* arg2)
 {
-  rasqal_expression* e=(rasqal_expression*)RASQAL_CALLOC(rasqal_expression, 1, sizeof(rasqal_expression));
+  rasqal_expression* e=NULL;
+
+  if(!arg1 || !arg2)
+    goto tidy;
+  
+  e=(rasqal_expression*)RASQAL_CALLOC(rasqal_expression, 1, 
+                                      sizeof(rasqal_expression));
   if(e) {
     e->usage=1;
     e->op=op;
-    e->arg1=arg1;
-    e->arg2=arg2;
-  } else {
-    rasqal_free_expression(arg1);
-    rasqal_free_expression(arg2);
+    e->arg1=arg1; arg1=NULL;
+    e->arg2=arg2; arg2=NULL;
   }
+  
+tidy:
+  if(arg1)
+    rasqal_free_expression(arg1);
+  if(arg2)
+    rasqal_free_expression(arg2);
+
   return e;
 }
 
@@ -731,19 +750,29 @@ rasqal_new_3op_expression(rasqal_op op,
                           rasqal_expression* arg2,
                           rasqal_expression* arg3)
 {
-  rasqal_expression* e=(rasqal_expression*)RASQAL_CALLOC(rasqal_expression, 1, sizeof(rasqal_expression));
+  rasqal_expression* e=NULL;
+
+  if(!arg1 || !arg2) /* arg3 may be NULL */
+    goto tidy;
+
+  e=(rasqal_expression*)RASQAL_CALLOC(rasqal_expression, 1,
+                                      sizeof(rasqal_expression));
   if(e) {
     e->usage=1;
     e->op=op;
-    e->arg1=arg1;
-    e->arg2=arg2;
-    e->arg3=arg3;
-  } else {
-    rasqal_free_expression(arg1);
-    rasqal_free_expression(arg2);
-    if(arg3)
-      rasqal_free_expression(arg3);
+    e->arg1=arg1; arg1=NULL;
+    e->arg2=arg2; arg2=NULL;
+    e->arg3=arg3; arg3=NULL;
   }
+
+  tidy:
+  if(arg1)
+    rasqal_free_expression(arg1);
+  if(arg2)
+    rasqal_free_expression(arg2);
+  if(arg3)
+    rasqal_free_expression(arg3);
+
   return e;
 }
 
@@ -768,16 +797,26 @@ rasqal_new_string_op_expression(rasqal_op op,
                                 rasqal_expression* arg1,
                                 rasqal_literal* literal)
 {
-  rasqal_expression* e=(rasqal_expression*)RASQAL_CALLOC(rasqal_expression, 1, sizeof(rasqal_expression));
+  rasqal_expression* e=NULL;
+
+  if(!arg1 || !literal)
+    goto tidy;
+  
+  e=(rasqal_expression*)RASQAL_CALLOC(rasqal_expression, 1,
+                                      sizeof(rasqal_expression));
   if(e) {
     e->usage=1;
     e->op=op;
-    e->arg1=arg1;
-    e->literal=literal;
-  } else {
-    rasqal_free_expression(arg1);
-    rasqal_free_literal(literal);
+    e->arg1=arg1; arg1=NULL;
+    e->literal=literal; literal=NULL;
   }
+
+  tidy:
+  if(arg1)
+    rasqal_free_expression(arg1);
+  if(literal)
+    rasqal_free_literal(literal);
+
   return e;
 }
 
@@ -794,7 +833,13 @@ rasqal_new_string_op_expression(rasqal_op op,
 rasqal_expression*
 rasqal_new_literal_expression(rasqal_literal *literal)
 {
-  rasqal_expression* e=(rasqal_expression*)RASQAL_CALLOC(rasqal_expression, 1, sizeof(rasqal_expression));
+  rasqal_expression* e;
+
+  if(!literal)
+    return NULL;
+  
+  e==(rasqal_expression*)RASQAL_CALLOC(rasqal_expression, 1,
+                                       sizeof(rasqal_expression));
   if(e) {  
     e->usage=1;
     e->op=RASQAL_EXPR_LITERAL;
@@ -820,16 +865,26 @@ rasqal_expression*
 rasqal_new_function_expression(raptor_uri* name,
                                raptor_sequence* args)
 {
-  rasqal_expression* e=(rasqal_expression*)RASQAL_CALLOC(rasqal_expression, 1, sizeof(rasqal_expression));
+  rasqal_expression* e=NULL;
+
+  if(!name || !args)
+    goto tidy;
+  
+  e=(rasqal_expression*)RASQAL_CALLOC(rasqal_expression, 1,
+                                      sizeof(rasqal_expression));
   if(e) {
     e->usage=1;
     e->op=RASQAL_EXPR_FUNCTION;
-    e->name=name;
-    e->args=args;
-  } else {
-    raptor_free_uri(name);
-    raptor_free_sequence(args);
+    e->name=name; name=NULL;
+    e->args=args; args=NULL;
   }
+  
+  tidy:
+  if(name)
+    raptor_free_uri(name);
+  if(args)
+    raptor_free_sequence(args);
+
   return e;
 }
 
@@ -847,16 +902,26 @@ rasqal_new_function_expression(raptor_uri* name,
 rasqal_expression*
 rasqal_new_cast_expression(raptor_uri* name, rasqal_expression *value) 
 {
-  rasqal_expression* e=(rasqal_expression*)RASQAL_CALLOC(rasqal_expression, 1, sizeof(rasqal_expression));
+  rasqal_expression* e=NULL;
+
+  if(!name || !value)
+    goto tidy;
+  
+  e=(rasqal_expression*)RASQAL_CALLOC(rasqal_expression, 1,
+                                      sizeof(rasqal_expression));
   if(e) {
     e->usage=1;
     e->op=RASQAL_EXPR_CAST;
-    e->name=name;
-    e->arg1=value;
-  } else {
-    raptor_free_uri(name);
-    rasqal_free_expression(value);
+    e->name=name; name=NULL;
+    e->arg1=value; value=NULL;
   }
+
+  tidy:
+  if(name)
+    raptor_free_uri(name);
+  if(value)
+    rasqal_free_expression(value);
+
   return e;
 }
 
