@@ -1027,12 +1027,13 @@ main(int argc, char *argv[]) {
   if(!node8)
     FAIL;
   node1=rasqal_new_filter_algebra_node(query, expr, node8);
-
   if(!node1) {
     fprintf(stderr, "%s: rasqal_new_filter_algebra_node() failed\n", program);
     FAIL;
   }
-  expr=NULL; /* now owned by node1 */
+  /* these are now owned by node1 */
+  node8=NULL;
+  expr=NULL;
 
   fprintf(stderr, "%s: node1 result: \n", program);
   rasqal_algebra_node_print(node1, stderr);
