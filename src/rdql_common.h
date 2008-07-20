@@ -47,6 +47,9 @@ struct rasqal_rdql_query_engine_s {
 
   /* count of errors in current query parse */
   int error_count;
+
+  /* expression tree for AND ... */
+  rasqal_expression* constraint_expression;
 };
 
 
