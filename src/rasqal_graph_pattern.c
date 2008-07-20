@@ -189,8 +189,8 @@ rasqal_free_graph_pattern(rasqal_graph_pattern* gp)
   if(gp->graph_patterns)
     raptor_free_sequence(gp->graph_patterns);
   
-  if(gp->constraints_expression)
-    rasqal_free_expression(gp->constraints_expression);
+  if(gp->filter_expression)
+    rasqal_free_expression(gp->filter_expression);
 
   if(gp->constraints)
     raptor_free_sequence(gp->constraints);
@@ -216,11 +216,47 @@ rasqal_graph_pattern_adjust(rasqal_graph_pattern* gp, int offset)
 
 
 /**
+ * rasqal_graph_pattern_set_filter_expression:
+ * @gp: #rasqal_graph_pattern query object
+ * @expr: #rasqal_expression expr - ownership taken
+ *
+ * Set a filter graph pattern constraint expression
+ *
+ * Return value: non-0 on failure
+ **/
+int
+rasqal_graph_pattern_set_filter_expression(rasqal_graph_pattern* gp,
+                                           rasqal_expression* expr)
+{
+  if(gp->filter_expression)
+    rasqal_free_expression(gp->filter_expression);
+  gp->filter_expression=expr;
+  return 0;
+}
+
+/**
+ * rasqal_graph_pattern_get_filter_expression:
+ * @gp: #rasqal_graph_pattern query object
+ *
+ * Get a filter graph pattern's constraint expression
+ *
+ * Return value: expression or NULL on failure
+ **/
+rasqal_expression*
+rasqal_graph_pattern_get_filter_expression(rasqal_graph_pattern* gp)
+{
+  return gp->filter_expression;
+}
+
+
+/**
  * rasqal_graph_pattern_add_constraint:
  * @gp: #rasqal_graph_pattern query object
  * @expr: #rasqal_expression expr - ownership taken
  *
  * Add a constraint expression to the graph_pattern.
+ *
+ * @deprecated: Use rasqal_graph_pattern_get_filter_expression()
  *
  * Return value: non-0 on failure
  **/
@@ -229,15 +265,16 @@ rasqal_graph_pattern_add_constraint(rasqal_graph_pattern* gp,
                                     rasqal_expression* expr)
 {
   if(!gp->constraints) {
-    gp->constraints=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_expression, (raptor_sequence_print_handler*)rasqal_expression_print);
+    gp->constraints=raptor_new_sequence(NULL, 
+                                        (raptor_sequence_print_handler*)rasqal_expression_print);
     if(!gp->constraints) {
       rasqal_free_expression(expr);
       return 1;
     }
   }
-  if(raptor_sequence_push(gp->constraints, (void*)expr))
-    return 1;
-  return 0;
+  raptor_sequence_set_at(gp->constraints, 0, expr);
+
+  return rasqal_graph_pattern_set_filter_expression(gp, expr);
 }
 
 
@@ -247,7 +284,10 @@ rasqal_graph_pattern_add_constraint(rasqal_graph_pattern* gp,
  *
  * Get the sequence of constraints expressions in the query.
  *
- * Return value: a #raptor_sequence of #rasqal_expression pointers.
+ * @deprecated: always returns a sequence with one expression.
+ * Use rasqal_graph_pattern_get_filter_expression() to return it.
+ *
+ * Return value: NULL
  **/
 raptor_sequence*
 rasqal_graph_pattern_get_constraint_sequence(rasqal_graph_pattern* gp)
@@ -263,15 +303,15 @@ rasqal_graph_pattern_get_constraint_sequence(rasqal_graph_pattern* gp)
  *
  * Get a constraint in the sequence of constraint expressions in the query.
  *
+ * @deprecated: A FILTER graph pattern always has one expression
+ * that can be returned with rasqal_graph_pattern_get_filter_expression()
+ *
  * Return value: a #rasqal_expression pointer or NULL if out of the sequence range
  **/
 rasqal_expression*
 rasqal_graph_pattern_get_constraint(rasqal_graph_pattern* gp, int idx)
 {
-  if(!gp->constraints)
-    return NULL;
-
-  return (rasqal_expression*)raptor_sequence_get_at(gp->constraints, idx);
+  return rasqal_graph_pattern_get_filter_expression(gp);
 }
 
 
@@ -466,10 +506,7 @@ rasqal_graph_pattern_write_internal(rasqal_graph_pattern* gp,
     pending_nl=1;
   }
 
-  if(gp->constraints) {
-    int size=raptor_sequence_size(gp->constraints);
-    int i;
-
+  if(gp->filter_expression) {
     if(pending_nl) {
       raptor_iostream_write_counted_string(iostr, " ,", 2);
 
@@ -482,8 +519,7 @@ rasqal_graph_pattern_write_internal(rasqal_graph_pattern* gp,
     if(gp->triples || gp->graph_patterns)
       raptor_iostream_write_counted_string(iostr, "with ", 5);
   
-    rasqal_graph_pattern_write_plurals(iostr, "constraint", size);
-    raptor_iostream_write_byte(iostr, '[');
+    raptor_iostream_write_counted_string(iostr, "filter ", 7);
 
     if(indent >= 0) {
       raptor_iostream_write_byte(iostr, '\n');
@@ -491,22 +527,7 @@ rasqal_graph_pattern_write_internal(rasqal_graph_pattern* gp,
       rasqal_graph_pattern_write_indent(iostr, indent);
     }
 
-    for(i=0; i< size; i++) {
-      rasqal_expression* expr;
-      expr=(rasqal_expression*)raptor_sequence_get_at(gp->constraints, i);
-      if(i) {
-        raptor_iostream_write_counted_string(iostr, " ,", 2);
-
-        if(indent >= 0) {
-          raptor_iostream_write_byte(iostr, '\n');
-          rasqal_graph_pattern_write_indent(iostr, indent);
-        }
-      }
-      if(expr)
-        rasqal_expression_write(expr, iostr);
-      else
-        raptor_iostream_write_counted_string(iostr, "(empty)", 7);
-    }
+    rasqal_expression_write(gp->filter_expression, iostr);
 
     if(indent >= 0) {
       raptor_iostream_write_byte(iostr, '\n');
