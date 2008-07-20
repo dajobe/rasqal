@@ -162,14 +162,15 @@ static void rdql_query_error(rasqal_query* rq, const char *message);
 %token <name> IDENTIFIER "identifier"
 
 
-%type <seq> SelectClause SourceClause ConstraintClause UsingClause
-%type <seq> CommaAndConstraintClause
+%type <seq> SelectClause SourceClause UsingClause
 %type <seq> VarList TriplePatternList PrefixDeclList URIList
 
 %type <expr> Expression ConditionalAndExpression ValueLogical
 %type <expr> EqualityExpression RelationalExpression NumericExpression
 %type <expr> AdditiveExpression MultiplicativeExpression UnaryExpression
 %type <expr> UnaryExpressionNotPlusMinus
+%type <expr> ConstraintClause CommaAndConstraintClause
+
 %type <literal> VarOrLiteral VarOrURI
 
 %type <variable> Var
@@ -202,11 +203,17 @@ Query : SELECT SelectClause SourceClause WHERE TriplePatternList ConstraintClaus
     raptor_free_sequence($3);
   }
 
-  /* ignoring $5 sequence, set in TriplePatternList to
+  /* ignoring $5 (sequence of triples): set in TriplePatternList to
    * ((rasqal_query*)rq)->triples=$5; 
    */
 
-  /* ignoring $6 sequence, set in ConstraintClause */
+  /* $6 (expression): ConstraintClause */
+  if($6) {
+    rasqal_rdql_query_engine* rdql=(rasqal_rdql_query_engine*)((rasqal_query*)rq)->context;
+    rdql->constraint_expression=$6;
+  }
+
+  /* ignoring $7 set in UsingClause ? */
 }
 ;
 
@@ -306,7 +313,7 @@ ConstraintClause : AND Expression ( ( ',' | AND ) Expression )*
 
 ConstraintClause : AND CommaAndConstraintClause
 {
-  $$=NULL;
+  $$=$2;
 }
 | /* empty */
 {
@@ -316,18 +323,15 @@ ConstraintClause : AND CommaAndConstraintClause
 
 CommaAndConstraintClause : CommaAndConstraintClause ',' Expression
 {
-  raptor_sequence_push(((rasqal_query*)rq)->constraints_sequence, $3);
-  $$=NULL;
+  $$=rasqal_new_2op_expression(RASQAL_EXPR_AND, $1, $3);
 }
 | CommaAndConstraintClause AND Expression
 {
-  raptor_sequence_push(((rasqal_query*)rq)->constraints_sequence, $3);
-  $$=NULL;
+  $$=rasqal_new_2op_expression(RASQAL_EXPR_AND, $1, $3);
 }
 | Expression
 {
-  raptor_sequence_push(((rasqal_query*)rq)->constraints_sequence, $1);
-  $$=NULL;
+  $$=$1;
 }
 ;
 
@@ -655,33 +659,37 @@ rasqal_rdql_query_engine_terminate(rasqal_query* rdf_query) {
 
 static int
 rasqal_rdql_query_engine_prepare(rasqal_query* rdf_query) {
-  /* rasqal_rdql_query_engine* rdql=(rasqal_rdql_query_engine*)rdf_query->context; */
+  rasqal_rdql_query_engine* rdql=(rasqal_rdql_query_engine*)rdf_query->context;
   int rc;
   rasqal_graph_pattern *gp;
   
   if(!rdf_query->query_string)
     return 1;
 
-  /* for RDQL only, before the graph pattern is made */
-  rdf_query->constraints_sequence=raptor_new_sequence(NULL, (raptor_sequence_print_handler*)rasqal_expression_print);
+  rdql->constraint_expression=NULL;
   
   rc=rdql_parse(rdf_query);
   if(rc)
     return rc;
 
-  gp=rasqal_new_basic_graph_pattern(rdf_query,
-                                    rdf_query->triples,
+  rdf_query->query_graph_pattern=rasqal_new_graph_pattern_from_sequence(rdf_query, NULL, RASQAL_GRAPH_PATTERN_OPERATOR_GROUP);
+
+  gp=rasqal_new_basic_graph_pattern(rdf_query, rdf_query->triples,
                                     0, raptor_sequence_size(rdf_query->triples)-1);
 
-  rdf_query->query_graph_pattern=gp;
+  rasqal_graph_pattern_add_sub_graph_pattern(rdf_query->query_graph_pattern,
+                                             gp);
 
-  /* Now assign the constraints to the graph pattern */
-  while(raptor_sequence_size(rdf_query->constraints_sequence)) {
-    rasqal_expression* e=(rasqal_expression*)raptor_sequence_pop(rdf_query->constraints_sequence);
-    rasqal_graph_pattern_add_constraint(gp, e);
+  /* Add a FILTER graph pattern if there is a constraint expression */
+  if(rdql->constraint_expression) {
+    rasqal_graph_pattern* cgp;
+    cgp=rasqal_new_filter_graph_pattern(rdf_query, rdql->constraint_expression);
+    if(cgp)
+      rasqal_graph_pattern_add_sub_graph_pattern(rdf_query->query_graph_pattern,
+                                                 cgp);
+    rdql->constraint_expression=NULL;
   }
-  raptor_free_sequence(rdf_query->constraints_sequence);
-
+  
   /* Only now can we handle the prefixes and qnames */
   if(rasqal_query_declare_prefixes(rdf_query) ||
      rasqal_engine_expand_triple_qnames(rdf_query) ||
