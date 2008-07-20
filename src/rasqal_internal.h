@@ -205,11 +205,13 @@ struct rasqal_graph_pattern_s {
   int start_column;
   int end_column;
 
+  /* used to support DEPRECATED functions
+   * rasqal_graph_pattern_get_constraint_sequence() and
+   * rasqal_graph_pattern_get_constraint()  */
   raptor_sequence *constraints; /* ... rasqal_expression*          */
-  /* the expression version of the sequence of constraints above - this is
-   * where the constraints are freed
-   */
-  rasqal_expression* constraints_expression;
+
+  /* the FILTER graph pattern expression */
+  rasqal_expression* filter_expression;
 
   /* index of the graph pattern in the query (0.. query->graph_pattern_count-1) */
   int gp_index;
