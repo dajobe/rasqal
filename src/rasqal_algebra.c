@@ -930,9 +930,11 @@ main(int argc, char *argv[]) {
   rasqal_algebra_node* node5=NULL;
   rasqal_algebra_node* node6=NULL;
   rasqal_algebra_node* node7=NULL;
+  rasqal_algebra_node* node8=NULL;
   raptor_uri *base_uri=NULL;
   unsigned char *uri_string;
   rasqal_graph_pattern* query_gp;
+  rasqal_graph_pattern* sgp;
   raptor_sequence* triples;
 
   world=rasqal_new_world();
@@ -1002,10 +1004,29 @@ main(int argc, char *argv[]) {
   /* construct abstract nodes from query structures */
   query_gp=rasqal_query_get_query_graph_pattern(query);
 
-  /* make a filter node around first (and only) expresion */
-  expr=rasqal_graph_pattern_get_constraint(query_gp, 0);
+#ifdef RASQAL_DEBUG
+  fprintf(stderr, "%s: query graph pattern: \n", program);
+  rasqal_graph_pattern_print(query_gp, stderr);
+  fputc('\n', stderr);
+#endif
+
+  /* make a filter node around 2nd GP - a FILTER gp */
+  sgp=rasqal_graph_pattern_get_sub_graph_pattern(query_gp, 1);
+  expr=rasqal_graph_pattern_get_filter_expression(sgp);
+  if(!expr) {
+    fprintf(stderr, "%s: rasqal_graph_pattern_get_constraint() failed\n", program);
+    FAIL;
+  }
   expr=rasqal_new_expression_from_expression(expr);
-  node1=rasqal_new_filter_algebra_node(query, expr, NULL);
+  if(!expr) {
+    fprintf(stderr, "%s: rasqal_new_expression_from_expression() failed\n", program);
+    FAIL;
+  }
+
+  node8=rasqal_new_empty_algebra_node(query);
+  if(!node8)
+    FAIL;
+  node1=rasqal_new_filter_algebra_node(query, expr, node8);
 
   if(!node1) {
     fprintf(stderr, "%s: rasqal_new_filter_algebra_node() failed\n", program);
@@ -1101,6 +1122,8 @@ main(int argc, char *argv[]) {
   if(expr2)
     rasqal_free_expression(expr2);
 
+  if(node8)
+    rasqal_free_algebra_node(node8);
   if(node7)
     rasqal_free_algebra_node(node7);
   if(node6)
