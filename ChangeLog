@@ -1,4 +1,245 @@
+2008-07-19  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_query.c: (rasqal_query_prepare): Remove call to
+	deleted rasqal_engine_build_constraints_expression
+	(rasqal_query_write_sparql_graph_pattern): See if a FILTER was
+	seen in initial GP sequence scan, and handle at end.
+
+	* src/rasqal_engine.c:
+	(rasqal_engine_build_constraints_expression(query->query_graph_pattern):
+	Deleted
+
+	* src/rasqal_algebra.c: (main): MAke sure node1 owns node8
+
+	* src/rasqal_algebra.c: (main): Adjust use of constraint from
+	parser query. Add node8 empty algebra node test for use with
+	FILTER in node1.
+
+	* src/rasqal_graph_pattern.c: (rasqal_graph_pattern_write_internal):
+	Tidy filter GP output
+
+	* src/rasqal_expr.c: (rasqal_new_literal_expression): e= not e==
+
+	* src/rasqal_algebra.c: (rasqal_algebra_basic_graph_pattern_to_algebra):
+	Use single filter_expression instead of list of GP constraints
+	(rasqal_algebra_group_graph_pattern_to_algebra): use
+	filter_expression to recognise a single filter expression, remove
+	list of GP constraints
+
+	* src/rasqal_graph_pattern.c: (rasqal_free_graph_pattern): Use
+	filter_expression to replace constraints_expression
+	(rasqal_graph_pattern_add_constraint,
+	rasqal_graph_pattern_get_constraint_sequence and
+	rasqal_graph_pattern_get_constraint): Deprecated
+	(replacement rasqal_graph_pattern_set_filter_expression,
+	rasqal_graph_pattern_get_filter_expression): Added to replace
+	above.
+	(rasqal_graph_pattern_write_internal): Use single
+	filter_expression to replace walking a list of constraints.
+
+	* src/rasqal.h: deprecated rasqal_graph_pattern_add_constraint,
+	rasqal_graph_pattern_get_constraint_sequence and
+	rasqal_graph_pattern_get_constraint Added replacement
+	rasqal_graph_pattern_set_filter_expression and
+	rasqal_graph_pattern_get_filter_expression
+
+	* src/rasqal_engine.c:
+	(rasqal_engine_graph_pattern_constraints_has_qname,
+	rasqal_engine_expand_graph_pattern_constraints_qnames): Check only
+	filter_expression.
+	(rasqal_engine_build_constraints_expression): NOP that may be
+	removed.
+	(rasqal_engine_check_constraint, rasqal_engine_do_step,
+	rasqal_engine_do_optional_step, rasqal_engine_move_constraints,
+	rasqal_engine_graph_pattern_fold_expressions): Use
+	filter_expression to replace constraints_expression
+	(rasqal_engine_merge_graph_patterns): Use filter_expression to
+	replace constraints_expression and no need to check for >1
+	constraint per GP.
+
+	* src/rasqal_internal.h: struct rasqal_graph_pattern_s: note
+	constraints field is for support deprecated functions
+	filter_expression field renamed from constraints_expression to
+	follow new GP name.
+
+	* src/rasqal_internal.h: struct rasqal_query_s loses
+	constraints_sequence; now void* unused1.
+
+	* src/rasqal_expr.c: (rasqal_new_1op_expression,
+	rasqal_new_2op_expression, rasqal_new_3op_expression,
+	rasqal_new_string_op_expression, rasqal_new_literal_expression,
+	rasqal_new_function_expression, rasqal_new_cast_expression): Free
+	passed in objects on allocation failure or NULL args.
+
+	* src/rdql_parser.y: (Query): Set query constraint_expression from
+	ConstraintClause
+	(ConstraintClause, CommaAndConstraintClause): Now return
+	expressions and AND a list of Expressions in order
+	(rasqal_rdql_query_engine_prepare): Build a GROUP graph pattern
+	containing a BASIC graph pattern and optionally, a FILTER.
+
+	* src/rdql_common.h: Add constraint_expression to struct
+	rasqal_rdql_query_engine_s
+
+2008-07-15  Dave Beckett <dave@dajobe.org>
+
+	* src/sparql_parser.y: GroupOrUnionGraphPattern is [25]
+
+2008-07-14  Dave Beckett <dave@dajobe.org>
+
+	* tests/algebra/test-07.out: fix result
+
+	* src/sparql_parser.y: (GroupGraphPattern, GraphPatternListOpt):
+	Merge GPs given as args
+
+	* src/rasqal_query.c: More debug messages tweaking to DEBUG_FH
+
+	* src/rasqal_engine.c: (rasqal_engine_merge_graph_patterns): Use
+	outer GP op for resulting merged GP.
+
+	* src/rasqal_algebra.c:
+	(rasqal_algebra_group_graph_pattern_to_algebra): Handle FILTER GP
+	type: add constraints to expression and make filter algebra
+	object.
+
+	* src/sparql_parser.y: emit huge amounts of debugging to stderr
+	(GroupGraphPattern): partial updates for SPARQL REC grammar It
+	should return a single list of it's internal GPs, not a recursive
+	group GP of group GPs
+
+	* tests/algebra/Makefile.am: capture stderr for case of errors
+
+	* src/rasqal_engine.c: docs
+
+	* src/rasqal_graph_pattern.c: set DO_INDENTING on if RASQAL_DEBUG
+
+2008-07-13  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_algebra.c:
+	(rasqal_algebra_group_graph_pattern_to_algebra): Do not deal with
+	BGP with constraints for now
+
+	* src/rasqal_graph_pattern.c: (rasqal_graph_pattern_write_internal):
+	Code tidy.
+
+	* src/rasqal_algebra.c: (rasqal_algebra_graph_pattern_to_algebra):
+	Add FILTER type
+
+	* src/rasqal_graph_pattern.c: (rasqal_graph_pattern_write_indent,
+	rasqal_graph_pattern_write_plurals): Added.
+	(rasqal_graph_pattern_write_internal): Added to write to iostream
+	with optional indenting
+	(rasqal_graph_pattern_print): Use
+	rasqal_graph_pattern_write_internal to write to FILE*
+
+	* src/rasqal_graph_pattern.c: Added
+	RASQAL_GRAPH_PATTERN_OPERATOR_FILTER
+
+	* src/rasqal.h: Added RASQAL_GRAPH_PATTERN_OPERATOR_FILTER
+
+	* src/rasqal_internal.h: Added prototype for
+	rasqal_new_filter_graph_pattern
+
+	* src/rasqal_graph_pattern.c: (rasqal_new_filter_graph_pattern):
+	Added.
+
+	* src/rasqal_engine.c: (rasqal_engine_group_2_graph_patterns):
+	Take 1 or 2 GPs to make a new group GP from them.
+
+2008-07-10  Dave Beckett <dave@dajobe.org>
+
+	* src/sparql_parser.y: 2008
+
+	* src/sparql_parser.y: reorder ConstructQuery [6], DescribeQuery
+	[7] to match sparql REC grammar
+
+2008-07-09  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_algebra.c:
+	(rasqal_algebra_basic_graph_pattern_to_algebra): Make a FILTER()
+	algebra node around any constraints in a BGP.
+
+	* tests/algebra/Makefile.am, tests/algebra/test-07.out,
+	tests/algebra/test-07.rq: Added test-07 (fails)
+
+	* tests/algebra/Makefile.am, tests/algebra/test-05.out,
+	tests/algebra/test-06.out, tests/algebra/test-06.rq: Added
+	test-06.  Expect LeftJoin in test-05
+
+	* src/rasqal_algebra.c: "LeftJoin" not "Leftjoin" to be more like
+	sparql algebra form
+
+	* tests/algebra/test-05.out: test-05 passes
+
+	* src/rasqal_internal.h: Added rasqal_algebra_node_is_empty
+	prototype
+
+	* src/rasqal_algebra.c: (rasqal_algebra_node_is_empty): Added to
+	check if algebra node is an empty BGP aka "Z"
+	(rasqal_algebra_remove_znodes): Added to replace join(Z, A) with A
+	and replace join(A, Z) with A
+	(rasqal_algebra_query_to_algebra): Apply
+	rasqal_algebra_remove_znodes over the resulting node.
+
+2008-07-08  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_engine.c: (rasqal_engine_graph_pattern_order):
+	Commented out.
+	(rasqal_engine_graph_pattern_init): Do not sort GPs
+	(rasqal_engine_merge_graph_patterns): Only merge for GROUP gp
+
+	* src/rasqal_internal.h: rasqal_new_filter_algebra_node: Renamed
+	from rasqal_new_expr_algebra_node
+
+	* src/rasqal_algebra.c: (rasqal_new_filter_algebra_node): Renamed
+	from rasqal_new_expr_algebra_node
+	(rasqal_new_2op_algebra_node, rasqal_new_leftjoin_algebra_node):
+	Handle failure and tidy up ownership of parameters.
+	(rasqal_algebra_basic_graph_pattern_to_algebra): Added with just
+	handling BGP graph pattern operation.
+	(rasqal_algebra_union_graph_pattern_to_algebra): Added with just
+	handling UNION graph pattern operation
+	(rasqal_algebra_group_graph_pattern_to_algebra): Added handling
+	GROUP and OPTIONAL graph pattern operations.
+	(rasqal_algebra_graph_pattern_to_algebra): switch now calls above.
+	(main): Create an empty node for rasqal_new_filter_algebra_node
+	test
+
+	* src/sparql_parser.y: (OptionalGraphPattern): Optional graph
+	pattern is now a list of 1 group graph patterns.  This makes it
+	easier for the algebra and any extra GPs will be removed later.
+
 2008-07-07  Dave Beckett <dave@dajobe.org>
+
+	* tests/algebra/Makefile.in: Removed Makefile.in
+
+	* tests/algebra/Makefile.am: write to out output file and always
+	rm it
+
+	* tests/algebra/Makefile.am, tests/algebra/Makefile.in,
+	tests/algebra/test-05.out, tests/algebra/test-05.rq: Added test-05
+	(which fails)
+
+	* tests/algebra/Makefile.am, tests/algebra/Makefile.in,
+	tests/algebra/convert_graph_pattern.c, tests/algebra/test-03.rq,
+	tests/algebra/test-04.out, tests/algebra/test-04.rq: Make
+	convert_graph_pattern just write algebra to stdout for easier
+	command line debugging and checking.  Added test-04
+
+	* src/rasqal_algebra.c: (rasqal_algebra_graph_pattern_to_algebra):
+	fix UNION order, sparql rec was correct.
+
+	* src/sparql_parser.y: (GroupOrUnionGraphPattern): Make the
+	sequence of graph patterns in the document order.
+
+	* configure.ac, tests/Makefile.am, tests/algebra,
+	tests/algebra/Makefile.am, tests/algebra/Makefile.in,
+	tests/algebra/convert_graph_pattern.c, tests/algebra/test-01.out,
+	tests/algebra/test-01.rq, tests/algebra/test-02.out,
+	tests/algebra/test-02.rq, tests/algebra/test-03.out,
+	tests/algebra/test-03.rq: Adde tests/algebra for testing
+	conversion of graph patterns to algebra tree, based on
+	http://www.w3.org/TR/2008/REC-rdf-sparql-query-20080115/#convertGraphPattern
 
 	* src/rasqal_internal.h: Altered signature of
 	rasqal_algebra_algebra_node_write to remove indent.
