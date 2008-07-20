@@ -838,7 +838,7 @@ rasqal_new_literal_expression(rasqal_literal *literal)
   if(!literal)
     return NULL;
   
-  e==(rasqal_expression*)RASQAL_CALLOC(rasqal_expression, 1,
+  e=(rasqal_expression*)RASQAL_CALLOC(rasqal_expression, 1,
                                        sizeof(rasqal_expression));
   if(e) {  
     e->usage=1;
