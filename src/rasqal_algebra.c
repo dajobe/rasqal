@@ -516,22 +516,14 @@ rasqal_algebra_basic_graph_pattern_to_algebra(rasqal_query* query,
   if(!node)
     goto fail;
 
-  if(gp->constraints) {
-    int i;
-    
-    /* add all gp->conditions_sequence to FS */
-    for(i=0; i< raptor_sequence_size(gp->constraints); i++) {
-      rasqal_expression* e;
-      e=(rasqal_expression*)raptor_sequence_get_at(gp->constraints, i);
-      if(e) {
-        e=rasqal_new_expression_from_expression(e);
-        if(!e) {
-          RASQAL_DEBUG1("rasqal_new_expression_from_expression() failed");
-          goto fail;
-        }
-        fs=fs ? rasqal_new_2op_expression(RASQAL_EXPR_AND, fs, e) : e;
-      }
+  if(gp->filter_expression) {
+    rasqal_expression* e;
+    e=rasqal_new_expression_from_expression(gp->filter_expression);
+    if(!e) {
+      RASQAL_DEBUG1("rasqal_new_expression_from_expression() failed");
+      goto fail;
     }
+    fs=fs ? rasqal_new_2op_expression(RASQAL_EXPR_AND, fs, e) : e;
   }
 
   if(fs) {
@@ -623,25 +615,19 @@ rasqal_algebra_group_graph_pattern_to_algebra(rasqal_query* query,
     if(!egp)
       break;
 
-    if(egp->constraints) {
+    if(egp->filter_expression) {
       /* If E is of the form FILTER(expr)
          FS := FS set-union {expr} 
       */
-      int i;
-      
+      rasqal_expression* e;
+
       /* add all gp->conditions_sequence to FS */
-      for(i=0; i< raptor_sequence_size(egp->constraints); i++) {
-        rasqal_expression* e;
-        e=(rasqal_expression*)raptor_sequence_get_at(egp->constraints, i);
-        if(e) {
-          e=rasqal_new_expression_from_expression(e);
-          if(!e) {
-            RASQAL_DEBUG1("rasqal_new_expression_from_expression() failed");
-            goto fail;
-          }
-          fs=fs ? rasqal_new_2op_expression(RASQAL_EXPR_AND, fs, e) : e;
-        }
+      e=rasqal_new_expression_from_expression(egp->filter_expression);
+      if(!e) {
+        RASQAL_DEBUG1("rasqal_new_expression_from_expression() failed");
+        goto fail;
       }
+      fs=fs ? rasqal_new_2op_expression(RASQAL_EXPR_AND, fs, e) : e;
 
       if(egp->op == RASQAL_GRAPH_PATTERN_OPERATOR_FILTER)
         continue;
