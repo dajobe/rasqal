@@ -519,8 +519,6 @@ rasqal_graph_pattern_write_internal(rasqal_graph_pattern* gp,
     if(gp->triples || gp->graph_patterns)
       raptor_iostream_write_counted_string(iostr, "with ", 5);
   
-    raptor_iostream_write_counted_string(iostr, "filter ", 7);
-
     if(indent >= 0) {
       raptor_iostream_write_byte(iostr, '\n');
       indent+= 2;
@@ -528,14 +526,9 @@ rasqal_graph_pattern_write_internal(rasqal_graph_pattern* gp,
     }
 
     rasqal_expression_write(gp->filter_expression, iostr);
-
-    if(indent >= 0) {
-      raptor_iostream_write_byte(iostr, '\n');
+    if(indent >= 0)
       indent-= 2;
-      rasqal_graph_pattern_write_indent(iostr, indent);
-    }
-    raptor_iostream_write_byte(iostr, ']');
-
+    
     pending_nl=1;
   }
 
