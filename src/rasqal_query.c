@@ -1191,8 +1191,6 @@ rasqal_query_prepare(rasqal_query* query,
     rasqal_query_graph_pattern_visit(query, 
                                      rasqal_query_prepare_count_graph_patterns,
                                      query->graph_patterns_sequence);
-    
-    rasqal_engine_build_constraints_expression(query->query_graph_pattern);
   }
 
   return rc;
@@ -1891,6 +1889,7 @@ rasqal_query_write_sparql_graph_pattern(sparql_writer_context *wc,
   int triple_index=0;
   rasqal_graph_pattern_operator op;
   raptor_sequence *seq;
+  int filters_count=0;
   
   op=rasqal_graph_pattern_get_operator(gp);
   
@@ -1931,11 +1930,15 @@ rasqal_query_write_sparql_graph_pattern(sparql_writer_context *wc,
   /* look for sub-graph patterns */
   seq=rasqal_graph_pattern_get_sub_graph_pattern_sequence(gp);
   if(seq && raptor_sequence_size(seq) > 0) {
-    gp_index=0;
-    while(1) {
+    for(gp_index=0; 1; gp_index++) {
       rasqal_graph_pattern* sgp=rasqal_graph_pattern_get_sub_graph_pattern(gp, gp_index);
       if(!sgp)
         break;
+
+      if(sgp->op == RASQAL_GRAPH_PATTERN_OPERATOR_FILTER) {
+        filters_count++;
+        continue;
+      }
       
       if(!gp_index)
         rasqal_query_write_indent(iostr, indent);
@@ -1951,28 +1954,30 @@ rasqal_query_write_sparql_graph_pattern(sparql_writer_context *wc,
       }
       
       rasqal_query_write_sparql_graph_pattern(wc, iostr, sgp, gp_index, indent);
-      
-      gp_index++;
     }
     raptor_iostream_write_byte(iostr, '\n');
   }
   
 
   /* look for constraints */
-  seq=rasqal_graph_pattern_get_constraint_sequence(gp);
-  if(seq && raptor_sequence_size(seq) > 0) {
-    gp_index=0;
-    while(1) {
-      rasqal_expression* expr=rasqal_graph_pattern_get_constraint(gp, gp_index);
-      if(!expr)
+  if(filters_count > 0) {
+    for(gp_index=0; 1; gp_index++) {
+      rasqal_graph_pattern* sgp;
+      rasqal_expression* expr;
+
+      sgp=rasqal_graph_pattern_get_sub_graph_pattern(gp, gp_index);
+      if(!sgp)
         break;
       
+      if(sgp->op != RASQAL_GRAPH_PATTERN_OPERATOR_FILTER)
+        continue;
+
+      expr=rasqal_graph_pattern_get_constraint(sgp, 0);
+
       rasqal_query_write_indent(iostr, indent);
       raptor_iostream_write_counted_string(iostr, "FILTER( ", 8);
       rasqal_query_write_sparql_expression(wc, iostr, expr);
       raptor_iostream_write_counted_string(iostr, " )\n", 3);
-      
-      gp_index++;
     }
   }
   
