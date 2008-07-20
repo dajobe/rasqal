@@ -144,16 +144,13 @@ rasqal_engine_graph_pattern_constraints_has_qname(rasqal_graph_pattern* gp)
     }
   }
 
-  if(!gp->constraints)
+  if(!gp->filter_expression)
     return 0;
   
   /* check for qnames in constraint expressions */
-  for(i=0; i<raptor_sequence_size(gp->constraints); i++) {
-    rasqal_expression* e;
-    e=(rasqal_expression*)raptor_sequence_get_at(gp->constraints, i);
-    if(rasqal_expression_visit(e, rasqal_expression_has_qname, gp))
-      return 1;
-  }
+  if(rasqal_expression_visit(gp->filter_expression,
+                             rasqal_expression_has_qname, gp))
+    return 1;
 
   return 0;
 }
@@ -176,16 +173,13 @@ rasqal_engine_expand_graph_pattern_constraints_qnames(rasqal_query *rq,
     }
   }
 
-  if(!gp->constraints)
+  if(!gp->filter_expression)
     return 0;
   
   /* expand qnames in constraint expressions */
-  for(i=0; i<raptor_sequence_size(gp->constraints); i++) {
-    rasqal_expression* e;
-    e=(rasqal_expression*)raptor_sequence_get_at(gp->constraints, i);
-    if(rasqal_expression_visit(e, rasqal_expression_expand_qname, rq))
-      return 1;
-  }
+  if(rasqal_expression_visit(gp->filter_expression,
+                             rasqal_expression_expand_qname, rq))
+    return 1;
 
   return 0;
 }
@@ -202,41 +196,7 @@ rasqal_engine_expand_query_constraints_qnames(rasqal_query *rq)
 int
 rasqal_engine_build_constraints_expression(rasqal_graph_pattern* gp)
 {
-  rasqal_expression* newe=NULL;
-  int i;
-
-  if(!gp)
-    return 1;
-  
-  /* build constraints in sub graph patterns */
-  if(gp->graph_patterns) {
-
-    for(i=0; i < raptor_sequence_size(gp->graph_patterns); i++) {
-      rasqal_graph_pattern *sgp;
-      sgp=(rasqal_graph_pattern*)raptor_sequence_get_at(gp->graph_patterns, i);
-      if(rasqal_engine_build_constraints_expression(sgp))
-        return 1;
-    }
-  }
-
-  if(!gp->constraints)
-    return 0;
-  
-  for(i=raptor_sequence_size(gp->constraints)-1; i>=0 ; i--) {
-    rasqal_expression* e;
-    e=(rasqal_expression*)raptor_sequence_get_at(gp->constraints, i);
-    e=rasqal_new_expression_from_expression(e);
-    if(!newe)
-      newe=e;
-    else {
-      /* must make a conjunction */
-      newe=rasqal_new_2op_expression(RASQAL_EXPR_AND, e, newe);
-      if(!newe)
-        return 1;
-    }
-  }
-  gp->constraints_expression=newe;
-
+  /* FIXME */
   return 0;
 }
 
@@ -1422,15 +1382,15 @@ rasqal_engine_check_constraint(rasqal_query *query, rasqal_graph_pattern *gp)
   int error=0;
     
 #ifdef RASQAL_DEBUG
-  RASQAL_DEBUG1("constraint expression:\n");
-  rasqal_expression_print(gp->constraints_expression, stderr);
+  RASQAL_DEBUG1("filter expression:\n");
+  rasqal_expression_print(gp->filter_expression, stderr);
   fputc('\n', stderr);
 #endif
     
-  result=rasqal_expression_evaluate(query, gp->constraints_expression, 
+  result=rasqal_expression_evaluate(query, gp->filter_expression, 
                                     query->compare_flags);
 #ifdef RASQAL_DEBUG
-  RASQAL_DEBUG1("constraint expression result:\n");
+  RASQAL_DEBUG1("filter expression result:\n");
   if(!result)
     fputs("type error", stderr);
   else
@@ -1442,10 +1402,10 @@ rasqal_engine_check_constraint(rasqal_query *query, rasqal_graph_pattern *gp)
   else {
     bresult=rasqal_literal_as_boolean(result, &error);
     if(error) {
-      RASQAL_DEBUG1("constraint boolean expression returned error\n");
+      RASQAL_DEBUG1("filter boolean expression returned error\n");
       step= STEP_ERROR;
     } else
-      RASQAL_DEBUG2("constraint boolean expression result: %d\n", bresult);
+      RASQAL_DEBUG2("filter boolean expression result: %d\n", bresult);
     rasqal_free_literal(result);
   }
 
@@ -1494,13 +1454,13 @@ rasqal_engine_do_step(rasqal_query_results* query_results,
   }
 
 
-  if(gp->constraints_expression) {
+  if(gp->filter_expression) {
     step=rasqal_engine_check_constraint(query, gp);
     if(step != STEP_GOT_MATCH)
       return step;
   }
 
-  if(outergp->constraints_expression) {
+  if(outergp->filter_expression) {
     step=rasqal_engine_check_constraint(query, outergp);
     if(step != STEP_GOT_MATCH)
       return step;
@@ -1661,7 +1621,7 @@ rasqal_engine_do_optional_step(rasqal_query_results* query_results,
   }
 
   
-  if(gp->constraints_expression) {
+  if(gp->filter_expression) {
     step=rasqal_engine_check_constraint(query, gp);
     if(step != STEP_GOT_MATCH) {
       /* The constraint failed or we have an error - no bindings count */
@@ -1683,7 +1643,7 @@ rasqal_engine_do_optional_step(rasqal_query_results* query_results,
  }
  
 
-  if(outergp->constraints_expression) {
+  if(outergp->filter_expression) {
     step=rasqal_engine_check_constraint(query, outergp);
     if(step != STEP_GOT_MATCH) {
       /* The constraint failed or we have an error - no bindings count */
@@ -1879,18 +1839,15 @@ int
 rasqal_engine_move_constraints(rasqal_graph_pattern* dest_gp, 
                                rasqal_graph_pattern* src_gp)
 {
-  int i;
   int rc=0;
+  rasqal_expression* e;
   
-  if(!src_gp->constraints)
+  if(!src_gp->filter_expression)
     return 0; /* no constraints is not an error */
   
-  for(i=0; i< raptor_sequence_size(src_gp->constraints); i++) {
-    rasqal_expression* e;
-    e=(rasqal_expression*)raptor_sequence_get_at(src_gp->constraints, i);
-    e=rasqal_new_expression_from_expression(e);
-    rc+=rasqal_graph_pattern_add_constraint(dest_gp, e);
-  }
+  e=rasqal_new_expression_from_expression(src_gp->filter_expression);
+  rc=rasqal_graph_pattern_set_filter_expression(dest_gp, e);
+
   return rc;
 }
 
@@ -2091,17 +2048,8 @@ rasqal_engine_merge_graph_patterns(rasqal_query* query,
       break;
     }
     
-    /* not ok if there >1 constraints */
-    if(sgp->constraints && raptor_sequence_size(sgp->constraints) != 1) {
-#if RASQAL_DEBUG > 1
-      RASQAL_DEBUG2("Found >1 constraints in sub-graph pattern #%d\n", sgp->gp_index);
-#endif
-      merge_gp_ok=0;
-      break;
-    }
-    
     /* not ok if there are triples and constraints */
-    if(sgp->triples && sgp->constraints) {
+    if(sgp->triples && sgp->filter_expression) {
 #if RASQAL_DEBUG > 1
       RASQAL_DEBUG2("Found triples and constraints in sub-graph pattern #%d\n", sgp->gp_index);
 #endif
@@ -2442,8 +2390,8 @@ rasqal_engine_graph_pattern_fold_expressions(rasqal_query* rq,
     }
   }
 
-  if(gp->constraints_expression)
-    return rasqal_engine_expression_fold(rq, gp->constraints_expression);
+  if(gp->filter_expression)
+    return rasqal_engine_expression_fold(rq, gp->filter_expression);
 
   return 0;
 }
