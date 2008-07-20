@@ -786,12 +786,16 @@ RASQAL_API
 const char* rasqal_graph_pattern_operator_as_string(rasqal_graph_pattern_operator op);
 RASQAL_API
 void rasqal_graph_pattern_print(rasqal_graph_pattern* gp, FILE* fh);
-RASQAL_API
+RASQAL_API RASQAL_DEPRECATED
 int rasqal_graph_pattern_add_constraint(rasqal_graph_pattern* gp, rasqal_expression* expr);
-RASQAL_API
+RASQAL_API RASQAL_DEPRECATED
 raptor_sequence* rasqal_graph_pattern_get_constraint_sequence(rasqal_graph_pattern* gp);
-RASQAL_API
+RASQAL_API RASQAL_DEPRECATED
 rasqal_expression* rasqal_graph_pattern_get_constraint(rasqal_graph_pattern* gp, int idx);
+RASQAL_API
+int rasqal_graph_pattern_set_filter_expression(rasqal_graph_pattern* gp, rasqal_expression* expr);
+RASQAL_API
+rasqal_expression* rasqal_graph_pattern_get_filter_expression(rasqal_graph_pattern* gp);
 RASQAL_API
 int rasqal_graph_pattern_visit(rasqal_query* query, rasqal_graph_pattern *gp, rasqal_graph_pattern_visit_fn fn, void* user_data);
 RASQAL_API
