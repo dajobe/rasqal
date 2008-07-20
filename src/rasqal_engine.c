@@ -193,14 +193,6 @@ rasqal_engine_expand_query_constraints_qnames(rasqal_query *rq)
 }
 
 
-int
-rasqal_engine_build_constraints_expression(rasqal_graph_pattern* gp)
-{
-  /* FIXME */
-  return 0;
-}
-
-
 static int
 rasqal_engine_convert_blank_node_to_anonymous_variable(rasqal_query *rq,
                                                        rasqal_literal *l)
