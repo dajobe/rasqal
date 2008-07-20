@@ -337,8 +337,8 @@ struct rasqal_query_s {
   /* incrementing counter for declaring prefixes in order of appearance */
   int prefix_depth;
 
-  /* sequence of constraints - internal for RDQL parsing, not returned */
-  raptor_sequence* constraints_sequence;
+  /* UNUSED */
+  void* unused1;
   
   /* sequence of order condition expressions */
   raptor_sequence* order_conditions_sequence;
