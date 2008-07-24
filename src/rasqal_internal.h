@@ -655,6 +655,19 @@ typedef struct {
  * rasqal_rowsource:
  *
  * Rasqal Row Source class
+ *
+ * Abstracts a sequence of rows of values similar to a SQL table.
+ *
+ * The table has columns which are #rasqal_variable names.  Each row
+ * is a set of bound #rasqal_literal values for the variables (or
+ * NULL if unset).  The main functions used are
+ * rasqal_rowsource_read_row() to read one row and
+ * rasqal_rowsource_read_all_rows() to get all rows as a sequence,
+ * draining the source.  rasqal_rowsource_get_rows_count() returns
+ * the current number of rows that have been read.  The
+ * columns/variables can be read by
+ * rasqal_rowsource_get_variable_by_offset() and
+ * rasqal_rowsource_get_variable_offset_by_name().
  */
 struct rasqal_rowsource_s
 {
