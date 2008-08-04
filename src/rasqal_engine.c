@@ -2492,7 +2492,6 @@ rasqal_engine_group_2_graph_patterns(rasqal_query* query,
   }
   if(second_gp && raptor_sequence_push(seq, second_gp)) {
     raptor_free_sequence(seq);
-    rasqal_free_graph_pattern(second_gp);
     return NULL;
   }
 
