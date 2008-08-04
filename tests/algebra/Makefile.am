@@ -43,7 +43,7 @@ BASE_URI=http://www.w3.org/TR/2008/REC-rdf-sparql-query-20080115/#
 # These are compiled here and used elsewhere for running tests
 check-local: run-rasqal-tests
 
-run-rasqal-tests: convert_graph_pattern $(ALGEBRA_TEST_FILES)
+run-rasqal-tests: convert_graph_pattern$(EXEEXT) $(ALGEBRA_TEST_FILES)
 	@status=0; \
 	out="convert.out"; \
 	err="convert.err"; \
