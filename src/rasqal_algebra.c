@@ -837,15 +837,15 @@ rasqal_algebra_remove_znodes(rasqal_query* query, rasqal_algebra_node* node,
 
   if(is_z1 && !is_z2) {
     /* Replace join(Z, A) by A */
-    memcpy(node, node->node2, sizeof(rasqal_algebra_node));
     /* an empty node has no extra things to free */
     RASQAL_FREE(rasqal_algebra_node, node->node1);
+    memcpy(node, node->node2, sizeof(rasqal_algebra_node));
     *modified=1;
   } else if(!is_z1 && is_z2) {
     /* Replace join(A, Z) by A */
-    memcpy(node, node->node1, sizeof(rasqal_algebra_node));
     /* ditto */
     RASQAL_FREE(rasqal_algebra_node, node->node2);
+    memcpy(node, node->node1, sizeof(rasqal_algebra_node));
     *modified=1;
   }
 
