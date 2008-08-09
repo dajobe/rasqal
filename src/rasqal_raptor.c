@@ -199,11 +199,11 @@ static void
 rasqal_raptor_error_handler(void *user_data, 
                             raptor_locator* locator, const char *message) {
   rasqal_query* query=(rasqal_query*)user_data;
+  int locator_len;
 
   query->failed=1;
 
-  if(locator) {
-    int locator_len=raptor_format_locator(NULL, 0, locator);
+  if(locator && (locator_len=raptor_format_locator(NULL, 0, locator)) > 0) {
     char *buffer=(char*)RASQAL_MALLOC(cstring, locator_len+1);
     raptor_format_locator(buffer, locator_len, locator);
 
