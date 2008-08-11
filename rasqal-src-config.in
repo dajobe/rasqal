@@ -79,7 +79,7 @@ if test @with_raptor@ = internal; then
     exit 0
   fi
 else
-  config=raptor-config
+  config="pkg-config raptor"
 fi
 
 if test "$echo_cflags" = "yes"; then
