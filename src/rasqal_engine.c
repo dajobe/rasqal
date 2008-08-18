@@ -248,51 +248,19 @@ static int
 rasqal_engine_expand_wildcards(rasqal_query* rq)
 {
   int i;
-  raptor_sequence *s;
   int rc=0;
 
-  if(!rq->wildcard)
+  if(rq->verb != RASQAL_QUERY_VERB_SELECT || !rq->wildcard)
     return rc;
   
-  switch(rq->verb) {
-    case  RASQAL_QUERY_VERB_SELECT:
-    /* If 'SELECT *' was given, make the selects be a list of all variables */
-      rq->selects=raptor_new_sequence(NULL, (raptor_sequence_print_handler*)rasqal_variable_print);
-      if(!rq->selects)
-        return 1;
+  /* If 'SELECT *' was given, make the selects be a list of all variables */
+  rq->selects=raptor_new_sequence(NULL, (raptor_sequence_print_handler*)rasqal_variable_print);
+  if(!rq->selects)
+    return 1;
       
-      for(i=0; i< rq->variables_count; i++)
-        if(raptor_sequence_push(rq->selects, raptor_sequence_get_at(rq->variables_sequence, i)))
-          return 1;
-      break;
-      
-    case RASQAL_QUERY_VERB_CONSTRUCT:
-      /* If 'CONSTRUCT *' was given, make the constructs be all triples */
-      rq->constructs=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_triple, (raptor_sequence_print_handler*)rasqal_triple_print);
-      if(!rq->constructs)
-        return 1;
-      s=((rasqal_query*)rq)->triples;
-      
-      for(i=0; i < raptor_sequence_size(s); i++) {
-        rasqal_triple *t=(rasqal_triple*)raptor_sequence_get_at(s, i);
-        raptor_sequence_push(rq->constructs, rasqal_new_triple_from_triple(t));
-      }
-      break;
-
-    case RASQAL_QUERY_VERB_UNKNOWN:
-    case RASQAL_QUERY_VERB_DESCRIBE:
-    case RASQAL_QUERY_VERB_ASK:
-    case RASQAL_QUERY_VERB_DELETE:
-    case RASQAL_QUERY_VERB_INSERT:
-    default:
-      rq->failed=1;
-      rasqal_log_error_simple(rq->world, RAPTOR_LOG_LEVEL_ERROR,
-                              &rq->locator,
-                              "Cannot use wildcard * with query verb %s",
-                              rasqal_query_verb_as_string(rq->verb));
-      rc=1;
-      break;
-  }
+  for(i=0; i< rq->variables_count; i++)
+    if(raptor_sequence_push(rq->selects, raptor_sequence_get_at(rq->variables_sequence, i)))
+      return 1;
 
   return rc;
 }
@@ -1006,10 +974,11 @@ rasqal_engine_prepare(rasqal_query *query)
   
   if(!query->variables) {
 
+    /* SPARQL: Turn [] into anonymous variables */
     if(rasqal_engine_build_anonymous_variables(query))
       goto done;
 
-    /* Expand 'SELECT *' and 'CONSTRUCT *' */
+    /* SPARQL: Expand 'SELECT *' */
     rasqal_engine_expand_wildcards(query);
 
     /* create the query->variables array */
