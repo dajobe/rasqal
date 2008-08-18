@@ -279,7 +279,7 @@ BNAME2 "<_:"{NCNAME2}">"
 /* The initial char conditions are to ensure this doesn't grab < or <= 
  * as operators.  starting with <_: is caught by BNAME2 above.
  **/
-QUOTEDURI \<[^<= ][^>]*\>|\<\>
+QUOTEDURI \<[^><= ][^>]*\>|"<>"
 
 INTEGER [0-9]+
 DECIMAL [0-9]+"."[0-9]*|"."[0-9]+
