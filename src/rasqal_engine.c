@@ -248,21 +248,23 @@ static int
 rasqal_engine_expand_wildcards(rasqal_query* rq)
 {
   int i;
-  int rc=0;
 
   if(rq->verb != RASQAL_QUERY_VERB_SELECT || !rq->wildcard)
-    return rc;
+    return 0;
   
   /* If 'SELECT *' was given, make the selects be a list of all variables */
   rq->selects=raptor_new_sequence(NULL, (raptor_sequence_print_handler*)rasqal_variable_print);
   if(!rq->selects)
     return 1;
       
-  for(i=0; i< rq->variables_count; i++)
-    if(raptor_sequence_push(rq->selects, raptor_sequence_get_at(rq->variables_sequence, i)))
+  for(i=0; i< rq->variables_count; i++) {
+    rasqal_variable* v;
+    v=(rasqal_variable*)raptor_sequence_get_at(rq->variables_sequence, i);
+    if(raptor_sequence_push(rq->selects, v))
       return 1;
+  }
 
-  return rc;
+  return 0;
 }
 
 
@@ -979,7 +981,8 @@ rasqal_engine_prepare(rasqal_query *query)
       goto done;
 
     /* SPARQL: Expand 'SELECT *' */
-    rasqal_engine_expand_wildcards(query);
+    if(rasqal_engine_expand_wildcards(query))
+      goto done;
 
     /* create the query->variables array */
     if(rasqal_engine_assign_variables(query))
