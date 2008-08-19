@@ -1,0 +1,327 @@
+/* -*- Mode: c; c-basic-offset: 2 -*-
+ *
+ * rasqal_variable.c - Rasqal variable support
+ *
+ * Copyright (C) 2003-2008, David Beckett http://www.dajobe.org/
+ * Copyright (C) 2003-2005, University of Bristol, UK http://www.bristol.ac.uk/
+ * 
+ * This package is Free Software and part of Redland http://librdf.org/
+ * 
+ * It is licensed under the following three licenses as alternatives:
+ *   1. GNU Lesser General Public License (LGPL) V2.1 or any newer version
+ *   2. GNU General Public License (GPL) V2 or any newer version
+ *   3. Apache License, V2.0 or any newer version
+ * 
+ * You may not use this file except in compliance with at least one of
+ * the above three licenses.
+ * 
+ * See LICENSE.html or LICENSE.txt at the top of this package for the
+ * complete terms and further detail along with the license texts for
+ * the licenses in COPYING.LIB, COPYING and LICENSE-2.0.txt respectively.
+ * 
+ * 
+ */
+
+#ifdef HAVE_CONFIG_H
+#include <rasqal_config.h>
+#endif
+
+#ifdef WIN32
+#include <win32_rasqal_config.h>
+#endif
+
+#include <stdio.h>
+#include <string.h>
+#include <ctype.h>
+#ifdef HAVE_STDLIB_H
+#include <stdlib.h>
+#endif
+#include <stdarg.h>
+
+#ifdef RASQAL_REGEX_PCRE
+#include <pcre.h>
+#endif
+
+#ifdef RASQAL_REGEX_POSIX
+#include <sys/types.h>
+#include <regex.h>
+#endif
+
+#include "rasqal.h"
+#include "rasqal_internal.h"
+
+
+#ifndef STANDALONE
+
+
+/**
+ * rasqal_new_variable_typed:
+ * @rq: #rasqal_query to associate the variable with
+ * @type: variable type defined by enumeration rasqal_variable_type
+ * @name: variable name
+ * @value: variable #rasqal_literal value (or NULL)
+ *
+ * Constructor - Create a new typed Rasqal variable.
+ * 
+ * The variable must be associated with a query, since variable
+ * names are only significant with a single query.
+ * 
+ * The @name and @value become owned by the rasqal_variable structure
+ *
+ * Return value: a new #rasqal_variable or NULL on failure.
+ **/
+rasqal_variable*
+rasqal_new_variable_typed(rasqal_query* rq,
+                          rasqal_variable_type type, 
+                          unsigned char *name, rasqal_literal *value)
+{
+  int i;
+  rasqal_variable* v;
+  raptor_sequence* seq=NULL;
+  int* count_p=NULL;
+
+  if(rq) {
+    switch(type) {
+      case RASQAL_VARIABLE_TYPE_ANONYMOUS:
+        seq=rq->anon_variables_sequence;
+        count_p=&rq->anon_variables_count;
+        break;
+      case RASQAL_VARIABLE_TYPE_NORMAL:
+        seq=rq->variables_sequence;
+        count_p=&rq->variables_count;
+        break;
+
+      case RASQAL_VARIABLE_TYPE_UNKNOWN:
+      default:
+        RASQAL_DEBUG2("Unknown variable type %d", type);
+        return NULL;
+    }
+  
+    for(i=0; i< raptor_sequence_size(seq); i++) {
+      v=(rasqal_variable*)raptor_sequence_get_at(seq, i);
+      if(!strcmp((const char*)v->name, (const char*)name)) {
+        /* name already present, do not need a copy */
+        RASQAL_FREE(cstring, name);
+        return v;
+      }
+    }
+  }
+  
+  v=(rasqal_variable*)RASQAL_CALLOC(rasqal_variable, 1, sizeof(rasqal_variable));
+  if(v) {
+    v->type= type;
+    v->name= name;
+    v->value= value;
+    if(count_p)
+      v->offset= (*count_p);
+
+    if(seq && raptor_sequence_push(seq, v))
+      return NULL;
+
+    /* Increment count only after sequence push succeeded */
+    if(count_p)
+      (*count_p)++;
+  } else {
+    RASQAL_FREE(cstring, name);
+    if(value)
+      rasqal_free_literal(value);
+  }
+  
+  return v;
+}
+
+
+/**
+ * rasqal_new_variable:
+ * @rq: #rasqal_query to associate the variable with
+ * @name: variable name
+ * @value: variable #rasqal_literal value (or NULL)
+ *
+ * Constructor - Create a new Rasqal normal variable.
+ * 
+ * The variable must be associated with a query, since variable
+ * names are only significant with a single query.
+ *
+ * This creates a regular variable that can be returned of type
+ * RASQAL_VARIABLE_TYPE_NORMAL.  Use rasqal_new_variable_typed
+ * to create other variables.
+ * 
+ * The @name and @value become owned by the rasqal_variable structure
+ *
+ * Return value: a new #rasqal_variable or NULL on failure.
+ **/
+rasqal_variable*
+rasqal_new_variable(rasqal_query* rq,
+                    unsigned char *name, rasqal_literal *value) 
+{
+  return rasqal_new_variable_typed(rq, RASQAL_VARIABLE_TYPE_NORMAL, name, value);
+}
+
+
+/**
+ * rasqal_new_variable_from_variable:
+ * @v: #rasqal_variable to copy
+ *
+ * Copy Constructor - Create a new Rasqal variable from an existing one
+ *
+ * This does a deep copy of all variable fields
+ *
+ * Return value: a new #rasqal_variable or NULL on failure.
+ **/
+rasqal_variable*
+rasqal_new_variable_from_variable(rasqal_variable* v)
+{
+  rasqal_variable* new_v;
+  size_t name_len;
+  unsigned char *new_name;
+
+  new_v=(rasqal_variable*)RASQAL_CALLOC(rasqal_variable, 1, sizeof(rasqal_variable));
+  if(!new_v)
+    return NULL;
+  
+  name_len=strlen((const char*)v->name);
+  new_name=(unsigned char*)RASQAL_MALLOC(cstring, name_len+1);
+  if(!new_name) {
+    RASQAL_FREE(rasqal_variable, new_v);
+    return NULL;
+  }
+  memcpy(new_name, v->name, name_len+1);
+  
+  new_v->name= new_name;
+  new_v->value= rasqal_new_literal_from_literal(v->value);
+  new_v->offset= v->offset;
+  new_v->type= v->type;
+  new_v->expression= rasqal_new_expression_from_expression(v->expression);
+
+  return new_v;
+}
+
+/**
+ * rasqal_free_variable:
+ * @v: #rasqal_variable object
+ *
+ * Destructor - Destroy a Rasqal variable object.
+ *
+ **/
+void
+rasqal_free_variable(rasqal_variable* v)
+{
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN(v, rasqal_variable);
+  
+  if(v->name)
+    RASQAL_FREE(cstring, (void*)v->name);
+  if(v->value)
+    rasqal_free_literal(v->value);
+  if(v->expression)
+    rasqal_free_expression(v->expression);
+  RASQAL_FREE(rasqal_variable, v);
+}
+
+
+/**
+ * rasqal_variable_write:
+ * @v: the #rasqal_variable object
+ * @iostr: the #raptor_iostream handle to write to
+ *
+ * Write a Rasqal variable to an iostream in a debug format.
+ * 
+ * The write debug format may change in any release.
+ * 
+ **/
+void
+rasqal_variable_write(rasqal_variable* v, raptor_iostream* iostr)
+{
+  if(v->type == RASQAL_VARIABLE_TYPE_ANONYMOUS)
+    raptor_iostream_write_counted_string(iostr, "anon-variable(", 14);
+  else
+    raptor_iostream_write_counted_string(iostr, "variable(", 9);
+  raptor_iostream_write_string(iostr, v->name);
+  if(v->expression) {
+    raptor_iostream_write_byte(iostr, '=');
+    rasqal_expression_write(v->expression, iostr);
+  }
+  if(v->value) {
+    raptor_iostream_write_byte(iostr, '=');
+    rasqal_literal_write(v->value, iostr);
+  }
+  raptor_iostream_write_byte(iostr, ')');
+}
+
+
+/**
+ * rasqal_variable_print:
+ * @v: the #rasqal_variable object
+ * @fh: the #FILE* handle to print to
+ *
+ * Print a Rasqal variable in a debug format.
+ * 
+ * The print debug format may change in any release.
+ * 
+ **/
+void
+rasqal_variable_print(rasqal_variable* v, FILE* fh)
+{
+  if(v->type == RASQAL_VARIABLE_TYPE_ANONYMOUS)
+    fprintf(fh, "anon-variable(%s", v->name);
+  else
+    fprintf(fh, "variable(%s", v->name);
+  if(v->expression) {
+    fputc('=', fh);
+    rasqal_expression_print(v->expression, fh);
+  }
+  if(v->value) {
+    fputc('=', fh);
+    rasqal_literal_print(v->value, fh);
+  }
+  fputc(')', fh);
+}
+
+
+/**
+ * rasqal_variable_set_value:
+ * @v: the #rasqal_variable object
+ * @l: the #rasqal_literal value to set (or NULL)
+ *
+ * Set the value of a Rasqal variable.
+ * 
+ * The variable value is an input parameter and is copied in, not shared.
+ * If the variable value is NULL, any existing value is deleted.
+ * 
+ **/
+void
+rasqal_variable_set_value(rasqal_variable* v, rasqal_literal* l)
+{
+  if(v->value)
+    rasqal_free_literal(v->value);
+  v->value=l;
+#ifdef RASQAL_DEBUG
+  if(!v->name)
+    RASQAL_FATAL1("variable has no name");
+  RASQAL_DEBUG2("setting variable %s to value ", v->name);
+  if(v->value)
+    rasqal_literal_print(v->value, stderr);
+  else
+    fputs("(NULL)", stderr);
+  fputc('\n', stderr);
+#endif
+}
+
+
+#endif /* not STANDALONE */
+
+
+
+
+#ifdef STANDALONE
+#include <stdio.h>
+
+int main(int argc, char *argv[]);
+
+
+int
+main(int argc, char *argv[]) 
+{
+
+  return 0;
+}
+#endif

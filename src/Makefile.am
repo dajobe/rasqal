@@ -31,7 +31,8 @@ man_MANS = rasqal-config.1
 
 TESTS=rasqal_algebra_test$(EXEEXT) rasqal_expr_test$(EXEEXT)	\
 strcasecmp_test$(EXEEXT) rasqal_xsd_datatypes_test$(EXEEXT)	\
-rasqal_decimal_test$(EXEEXT) rasqal_datetime_test$(EXEEXT)
+rasqal_decimal_test$(EXEEXT) rasqal_datetime_test$(EXEEXT)	\
+rasqal_variable_test$(EXEEXT)
 
 local_tests=rasqal_query_test$(EXEEXT) rasqal_limit_test$(EXEEXT)
 if RASQAL_QUERY_RDQL
@@ -61,7 +62,8 @@ rasqal_expr.c rasqal_general.c rasqal_query.c rasqal_query_results.c \
 rasqal_engine.c rasqal_raptor.c rasqal_literal.c \
 rasqal_graph_pattern.c rasqal_map.c rasqal_feature.c \
 rasqal_result_formats.c rasqal_xsd_datatypes.c rasqal_decimal.c \
-rasqal_datetime.c rasqal_rowsource.c rasqal_sparql_xml.c
+rasqal_datetime.c rasqal_rowsource.c rasqal_sparql_xml.c \
+rasqal_variable.c
 
 if RASQAL_QUERY_RDQL
 librasqal_la_SOURCES += rdql_lexer.c rdql_lexer.h \
@@ -208,6 +210,10 @@ rasqal_datetime_test_LDADD = librasqal.la
 rasqal_algebra_test_SOURCES = rasqal_algebra.c
 rasqal_algebra_test_CPPFLAGS = -DSTANDALONE
 rasqal_algebra_test_LDADD = librasqal.la
+
+rasqal_variable_test_SOURCES = rasqal_variable.c
+rasqal_variable_test_CPPFLAGS = -DSTANDALONE
+rasqal_variable_test_LDADD = librasqal.la
 
 $(top_builddir)/../raptor/src/libraptor.la:
 	cd $(top_builddir)/../raptor/src && $(MAKE) $(AM_MAKEFLAGS) libraptor.la
