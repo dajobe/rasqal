@@ -188,6 +188,7 @@ void rasqal_system_free(void *ptr);
 
 
 typedef struct rasqal_query_engine_factory_s rasqal_query_engine_factory;
+typedef struct rasqal_variables_table_s rasqal_variables_table;
 
 
 /*
@@ -1069,6 +1070,15 @@ void rasqal_algebra_node_print(rasqal_algebra_node* node, FILE* fh);
 int rasqal_algebra_node_visit(rasqal_query *query, rasqal_algebra_node* node, rasqal_algebra_node_visit_fn fn, void *user_data);
 rasqal_algebra_node* rasqal_algebra_query_to_algebra(rasqal_query* query);
 int rasqal_algebra_node_is_empty(rasqal_algebra_node* node);
+
+/* rasqal_variable.c */
+rasqal_variables_table* rasqal_new_variables_table(rasqal_world* world);
+void rasqal_free_variables_table(rasqal_variables_table* vt);
+rasqal_variable* rasqal_variables_table_add(rasqal_variables_table* vt, rasqal_variable_type type, const unsigned char *name, rasqal_literal *value);
+rasqal_variable* rasqal_variables_table_get(rasqal_variables_table* vt, int idx);
+int rasqal_variables_table_has(rasqal_variables_table* vt, const unsigned char *name);
+int rasqal_variables_table_set(rasqal_variables_table* vt, const unsigned char *name, rasqal_literal* value);
+
 
 /* end of RASQAL_INTERNAL */
 #endif
