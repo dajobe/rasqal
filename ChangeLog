@@ -1,4 +1,106 @@
+2008-08-19  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_query.c: (rasqal_free_query): Remove use of deleted
+	field variables[].
+
+	* src/rasqal_engine.c: Removed query->variables[] array.
+	(rasqal_engine_expand_wildcards): Use
+	rasqal_query_get_variable_by_offset to lookup variables.  Set
+	select_variables_count here.
+	(rasqal_engine_remove_duplicate_select_vars): Update Update
+	select_variables_count if modified.
+	(rasqal_engine_assign_variables, rasqal_query_build_declared_in,
+	rasqal_engine_get_next_result,
+	rasqal_engine_query_result_row_update,
+	rasqal_engine_bind_construct_variables): Use
+	rasqal_query_get_variable_by_offset instead of query->variables[]
+	(rasqal_engine_prepare): Remove use of
+	query->variables[]. autodocs.
+
+	* src/rasqal_internal.h,
+	src/rasqal_query.c: (rasqal_query_get_variable_by_offset): Added
+
+	* src/rasqal_engine.c: (rasqal_engine_build_anonymous_variables,
+	rasqal_engine_expand_wildcards): autodocs
+	(rasqal_select_NULL_last_compare): Removed
+	(rasqal_engine_remove_duplicate_select_vars): Added, pulled out of
+	rasqal_engine_assign_variables.  Remove sort, simplify.
+	(rasqal_engine_assign_variables): Just touches variables, not
+	declared in or selects.
+	(rasqal_query_build_declared_in): Just touch declared
+	in. autodocs.
+	(rasqal_engine_prepare): Call
+	rasqal_engine_remove_duplicate_select_vars, init select variables
+	count.  After assign variables, build the declared in array.
+
+	* src/rasqal_internal.h: rasqal_engine_assign_variables is
+	module-internal
+
+	* src/rasqal_internal.h: Added typedef rasqal_variables_table
+	Added prototypes for rasqal_new_variables_table,
+	rasqal_free_variables_table, rasqal_variables_table_add,
+	rasqal_variables_table_get, rasqal_variables_table_has and
+	rasqal_variables_table_set
+
+	* src/rasqal_variable.c: Add variables table
+
+2008-08-18  Dave Beckett <dave@dajobe.org>
+
+	* src/Makefile.am, src/rasqal_expr.c, src/rasqal_variable.c (from
+	/rasqal/trunk/src/rasqal_expr.c:14345): Move rasqal_variable code
+	to new rasqal_variable.c
+
+2008-08-17  Dave Beckett <dave@dajobe.org>
+
+	* src/sparql_lexer.l: (QUOTEDURI): Make sure first part of or does
+	not grab <>
+
+	* src/rasqal_engine.c: (rasqal_engine_expand_wildcards): Tidy
+	code.  (rasqal_engine_prepare): Hamdle
+	rasqal_engine_expand_wildcards failure
+
+	* src/rasqal_engine.c: (rasqal_engine_expand_wildcards): Handle
+	SELECT * only since CONSTRUCT * was removed from SPARQL long
+	ago.  (rasqal_engine_prepare): Docs
+
+2008-08-13  Lauri Aalto <laalto@iki.fi>
+
+	* tests/algebra: props: ignore convert_graph_pattern.exe, .libs
+
+2008-08-11  Dave Beckett <dave@dajobe.org>
+
+	* rasqal-src-config.in: prefer pkg-config raptor
+
+2008-08-09  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_raptor.c: (rasqal_raptor_error_handler): Handle
+	negative locator lengths from raptor_format_locator().
+
+2008-08-05  Dave Beckett <dave@dajobe.org>
+
+	* docs/tmpl/section-graph_pattern.sgml: add
+	RASQAL_GRAPH_PATTERN_OPERATOR_FILTER to docs
+
+2008-08-04  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_engine.c: (rasqal_engine_group_2_graph_patterns): Do
+	not double delete second_gp - already owned by sequence.
+
+	* src/rasqal_algebra.c: (rasqal_algebra_remove_znodes): Fixed
+	memory-related crashes.
+
+	* tests/algebra/Makefile.am: Added $(EXEEXT) for
+	convert_graph_pattern to make it build on e.g. cygwin.
+
+2008-07-23  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_internal.h: autodocs
+
 2008-07-19  Dave Beckett <dave@dajobe.org>
+
+	* tests/algebra/test-08.out, tests/algebra/test-08.rq,
+	tests/algebra/test-09.out, tests/algebra/test-09.rq: Add test-08
+	test-09
 
 	* src/rasqal_query.c: (rasqal_query_prepare): Remove call to
 	deleted rasqal_engine_build_constraints_expression
