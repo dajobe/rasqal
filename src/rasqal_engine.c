@@ -217,6 +217,17 @@ rasqal_engine_convert_blank_node_to_anonymous_variable(rasqal_query *rq,
 }
 
 
+/**
+ * rasqal_engine_build_anonymous_variables:
+ * @rq: query
+ *
+ * INTERNAL - Turn triple blank node parts into anonymous variables
+ *
+ * These are the blank nodes such as (Turtle/SPARQL):
+ *   _:name or [] or [ prop value ] or ( collection of things )
+ *
+ * Return value: non-0 on failure
+ */
 static int
 rasqal_engine_build_anonymous_variables(rasqal_query* rq)
 {
@@ -244,6 +255,14 @@ rasqal_engine_build_anonymous_variables(rasqal_query* rq)
 }
 
 
+/**
+ * rasqal_engine_expand_wildcards:
+ * @rq: query
+ *
+ * INTERNAL - expand SPARQL SELECT * to a full list of select variables
+ *
+ * Return value: non-0 on failure
+ */
 static int
 rasqal_engine_expand_wildcards(rasqal_query* rq)
 {
@@ -268,84 +287,94 @@ rasqal_engine_expand_wildcards(rasqal_query* rq)
 }
 
 
+/**
+ * rasqal_engine_remove_duplicate_select_vars:
+ * @rq: query
+ *
+ * INTERNAL - remove duplicate variables in SELECT sequence and warn
+ *
+ * The order of the select variables is preserved.
+ *
+ * Return value: non-0 on failure
+ */
 static int
-rasqal_select_NULL_last_compare(const void *a, const void *b)
+rasqal_engine_remove_duplicate_select_vars(rasqal_query* rq)
 {
-  rasqal_variable *var_a=*(rasqal_variable**)a;
-  rasqal_variable *var_b=*(rasqal_variable**)b;
+  int i;
+  int modified=0;
+  int size;
+  raptor_sequence* seq=rq->selects;
+  raptor_sequence* new_seq;
+  
+  if(!seq)
+    return 1;
 
-  /* Put NULLs last */
-  if(!var_a || !var_b) {
-    if(!var_a && !var_b)
-      return (unsigned long)b - (unsigned long)a;
-    else
-      return var_a ? -1 : 1;
+  size=raptor_sequence_size(seq);
+  if(!size)
+    return 0;
+  
+  new_seq=raptor_new_sequence(NULL, (raptor_sequence_print_handler*)rasqal_variable_print);
+  
+#if RASQAL_DEBUG > 1
+  RASQAL_DEBUG1("bound variables before deduping: "); 
+  raptor_sequence_print(rq->selects, stderr);
+  fputs("\n", stderr); 
+#endif
+
+  for(i=0; i < size; i++) {
+    int j;
+    rasqal_variable *v;
+    int warned=0;
+    
+    v=(rasqal_variable*)raptor_sequence_get_at(seq, i);
+    if(!v)
+      continue;
+
+    for(j=0; j < i; j++) {
+      rasqal_variable *v2;
+      v2=(rasqal_variable*)raptor_sequence_get_at(seq, j);
+      
+      if(v == v2) {
+        if(!warned) {
+          rasqal_log_error_simple(rq->world, RAPTOR_LOG_LEVEL_WARNING,
+                                  &rq->locator,
+                                  "Variable %s duplicated in SELECT.", 
+                                  v->name);
+          warned=1;
+        }
+      }
+    }
+    if(!warned) {
+      raptor_sequence_push(new_seq, v);
+      modified=1;
+    }
   }
-  return var_b - var_a;
+  
+  if(modified) {
+#if RASQAL_DEBUG > 1
+    RASQAL_DEBUG1("bound variables after deduping: "); 
+    raptor_sequence_print(new_seq, stderr);
+    fputs("\n", stderr); 
+#endif
+    raptor_free_sequence(rq->selects);
+    rq->selects = new_seq;
+  } else
+    raptor_free_sequence(new_seq);
+
+  return 0;
 }
 
 
-int
+static int
 rasqal_engine_assign_variables(rasqal_query* rq)
 {
   int i;
   int offset;
   int size=0;
-  raptor_sequence* var_sequence=NULL;
+  raptor_sequence* seq=rq->variables_sequence;
   
-  if(rq->constructs)
-    var_sequence=rq->variables_sequence;
-  else if(rq->selects)
-    var_sequence=rq->selects;
-  
-  if(var_sequence)
-    size=raptor_sequence_size(var_sequence);
-
-  if(var_sequence) {
-    int modified=0;
-
-    for(i=0; i < size; i++) {
-      int j;
-      rasqal_variable *v;
-      int warned=0;
-
-      v=(rasqal_variable*)raptor_sequence_get_at(var_sequence, i);
-      if(!v)
-        continue;
-      
-      for(j=0; j < size; j++) {
-        rasqal_variable *v2;
-        v2=(rasqal_variable*)raptor_sequence_get_at(var_sequence, j);
-        if(j == i)
-          continue;
-        
-        if(v == v2) {
-          if(!warned) {
-            rasqal_log_error_simple(rq->world, RAPTOR_LOG_LEVEL_WARNING,
-                                    &rq->locator,
-                                    "Variable %s duplicated in SELECT.", 
-                                    v->name);
-            warned=1;
-          }
-          raptor_sequence_set_at(var_sequence, j, NULL);
-          modified=1;
-        }
-      }
-    }
-
-    if(modified) {
-      /* Delete NULLs - sort to put NULLs last */
-      raptor_sequence_sort(var_sequence, rasqal_select_NULL_last_compare);
-      do {
-      /* and pop them from the end until they are gone */
-        raptor_sequence_pop(var_sequence);
-        size=raptor_sequence_size(var_sequence);
-      } while(!raptor_sequence_get_at(var_sequence, size-1));
-    }
-  }
-
-  if(rq->selects)
-    rq->select_variables_count=size;
+  if(seq)
+    size=raptor_sequence_size(seq);
 
   if(size) {
     rq->variable_names=(const unsigned char**)RASQAL_MALLOC(cstrings,sizeof(const unsigned char*)*(size+1));
@@ -356,13 +385,9 @@ rasqal_engine_assign_variables(rasqal_query* rq)
   rq->variables=(rasqal_variable**)RASQAL_MALLOC(varrary, sizeof(rasqal_variable*)*(rq->variables_count + rq->anon_variables_count));
   if(!rq->variables)
     return 1;
-  rq->variables_declared_in=(int*)RASQAL_CALLOC(intarray, rq->variables_count + rq->anon_variables_count + 1, sizeof(int));
-  if(!rq->variables_declared_in)
-    return 1;
 
   offset=0;
   for(i=0; i< rq->variables_count; i++) {
-    rq->variables_declared_in[offset]= -1;
     rq->variables[offset]=(rasqal_variable*)raptor_sequence_get_at(rq->variables_sequence, i);
     if(i < size)
       rq->variable_names[offset]=rq->variables[offset]->name;
@@ -370,7 +395,6 @@ rasqal_engine_assign_variables(rasqal_query* rq)
   }
 
   for(i=0; i< rq->anon_variables_count; i++) {
-    rq->variables_declared_in[offset]= -1;
     rq->variables[offset]=(rasqal_variable*)raptor_sequence_get_at(rq->anon_variables_sequence, i);
     /* only now can we make this offset absolute into the full list of vars */
     rq->variables[offset]->offset += rq->variables_count;
@@ -722,17 +746,31 @@ rasqal_query_graph_pattern_build_declared_in(rasqal_query* query,
  * rasqal_query_build_declared_in:
  * @query: the #rasqal_query to find the variables in
  *
- * INTERNAL - Mark where variables are first declared.
+ * INTERNAL - Record the triple columns where variables are first declared.
+ * and warn variables that are selected but not defined.
+ *
+ * The query->variables_declared_in array is used in
+ * rasqal_engine_graph_pattern_init() when trying to figure out which
+ * parts of a triple pattern need to bind to a variable: only the first
+ * reference to it.
  * 
  **/
-static void
+static int
 rasqal_query_build_declared_in(rasqal_query* query) 
 {
   int i;
   rasqal_graph_pattern *gp=query->query_graph_pattern;
+  int size=query->variables_count + query->anon_variables_count;
 
   if(!gp)
-    return;
+    return 1;
+
+  query->variables_declared_in=(int*)RASQAL_CALLOC(intarray, size+1, sizeof(int));
+  if(!query->variables_declared_in)
+    return 1;
+
+  for(i=0; i < size; i++)
+    query->variables_declared_in[i]= -1;
   
   rasqal_query_graph_pattern_build_declared_in(query, gp);
 
@@ -752,7 +790,7 @@ rasqal_query_build_declared_in(rasqal_query* query)
                               v->name);
   }
 
-
+  return 0;
 }
 
 
@@ -984,11 +1022,22 @@ rasqal_engine_prepare(rasqal_query *query)
     if(rasqal_engine_expand_wildcards(query))
       goto done;
 
-    /* create the query->variables array */
+    /* turn SELECT $a, $a into SELECT $a - editing query->selects */
+    if(query->selects) {
+      if(rasqal_engine_remove_duplicate_select_vars(query))
+        goto done;
+      query->select_variables_count=raptor_sequence_size(query->selects);
+    }
+
+    /* create and init the query->variable_names, query->variables arrays */
     if(rasqal_engine_assign_variables(query))
       goto done;
 
-    rasqal_query_build_declared_in(query);
+    /* create query->variables_declared_in to find triples where a variable
+     * is first used and look for variables selected that are not used
+     */
+    if(rasqal_query_build_declared_in(query))
+      goto done;
     
     rasqal_engine_query_fold_expressions(query);
   }
