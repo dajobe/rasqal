@@ -784,7 +784,6 @@ int rasqal_engine_graph_pattern_constraints_has_qname(rasqal_graph_pattern* gp);
 int rasqal_engine_expand_query_constraints_qnames(rasqal_query* rq);
 int rasqal_engine_expand_graph_pattern_constraints_qnames(rasqal_query* rq, rasqal_graph_pattern* gp);
 int rasqal_engine_build_constraints_expression(rasqal_graph_pattern* gp);
-int rasqal_engine_assign_variables(rasqal_query* rq);
 
 int rasqal_engine_prepare(rasqal_query* query);
 int rasqal_engine_execute_init(rasqal_query_results* query_results);
