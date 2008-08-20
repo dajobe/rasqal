@@ -273,7 +273,10 @@ struct rasqal_query_s {
   int wildcard;
 
   int prepared;
-  
+
+  /* UNUSED */
+  void* unused2;
+
   /* variable name/value table built from all distinct variables seen
    * in selects, triples, constraints and anonymous (no name, cannot
    * be selected or refered to).  An array of size variables_count
@@ -285,7 +288,6 @@ struct rasqal_query_s {
    * Anonymous variables appear at the end of the 'variables' array but
    * are taken from the anon_variables_sequence.
    */
-  rasqal_variable** variables;
   int variables_count;
   int select_variables_count;
 
@@ -914,6 +916,7 @@ void rasqal_query_set_base_uri(rasqal_query* rq, raptor_uri* base_uri);
 #ifdef RASQAL_DEBUG
 void rasqal_query_set_store_results(rasqal_query* query, int store_results);
 #endif
+rasqal_variable* rasqal_query_get_variable_by_offset(rasqal_query* query, int idx);
 
 /* rasqal_query_results.c */
 int rasqal_init_query_results(void);

@@ -2309,3 +2309,22 @@ rasqal_query_set_store_results(rasqal_query* query, int store_results)
   query->store_results=store_results;
 }
 #endif
+
+
+rasqal_variable* 
+rasqal_query_get_variable_by_offset(rasqal_query* query, int idx)
+{
+  raptor_sequence* seq=NULL;
+
+  if(idx < 0)
+    return NULL;
+  
+  if(idx < query->variables_count)
+    seq=query->variables_sequence;
+  else {
+    idx -= query->variables_count;
+    seq=query->anon_variables_sequence;
+  }
+  
+  return (rasqal_variable*)raptor_sequence_get_at(seq, idx);
+}
