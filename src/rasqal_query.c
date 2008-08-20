@@ -191,9 +191,6 @@ rasqal_free_query(rasqal_query* query)
   if(query->variable_names)
     RASQAL_FREE(cstrings, query->variable_names);
   
-  if(query->variables)
-    RASQAL_FREE(vararray, query->variables);
-
   if(query->variables_declared_in)
     RASQAL_FREE(intarray, query->variables_declared_in);
 
