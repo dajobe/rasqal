@@ -368,29 +368,15 @@ rasqal_engine_remove_duplicate_select_vars(rasqal_query* rq)
 
 
 static int
-rasqal_engine_assign_variables(rasqal_query* rq)
+rasqal_engine_adjust_anon_variables_offset(rasqal_query* rq)
 {
   int i;
-  int offset;
-  int size=0;
-  raptor_sequence* seq=rq->variables_sequence;
   
-  if(seq)
-    size=raptor_sequence_size(seq);
-
-  offset=0;
-  for(i=0; i< rq->variables_count; i++) {
-    rasqal_variable* v;
-    v=(rasqal_variable*)raptor_sequence_get_at(rq->variables_sequence, i);
-    offset++;
-  }
-
   for(i=0; i< rq->anon_variables_count; i++) {
     rasqal_variable* v;
     v=(rasqal_variable*)raptor_sequence_get_at(rq->anon_variables_sequence, i);
     /* only now can we make this offset absolute into the full list of vars */
     v->offset += rq->variables_count;
-    offset++;
   }
 
   return 0;
@@ -1023,8 +1009,8 @@ rasqal_engine_prepare(rasqal_query *query)
       goto done;
   }
   
-  /* init the query variable offsets */
-  if(rasqal_engine_assign_variables(query))
+  /* adjust the query variable offsets to make them all sequential */
+  if(rasqal_engine_adjust_anon_variables_offset(query))
     goto done;
   
   /* create query->variables_declared_in to find triples where a variable
