@@ -188,9 +188,6 @@ rasqal_free_query(rasqal_query* query)
   if(query->prefixes)
     raptor_free_sequence(query->prefixes);
 
-  if(query->variable_names)
-    RASQAL_FREE(cstrings, query->variable_names);
-  
   if(query->variables_declared_in)
     RASQAL_FREE(intarray, query->variables_declared_in);
 

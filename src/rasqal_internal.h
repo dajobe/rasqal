@@ -274,7 +274,7 @@ struct rasqal_query_s {
 
   int prepared;
 
-  /* UNUSED */
+  /* DEPRECATED */
   void* unused2;
 
   /* variable name/value table built from all distinct variables seen
@@ -304,11 +304,9 @@ struct rasqal_query_s {
 
   int anon_variables_count;
 
-  /* array of variable names to bind or NULL if no variables wanted
-   * (size (select_variables_count OR construct_variables_count)+1, last NULL)
-   * indexes into the names in variables_sequence above.
-   */
-  const unsigned char** variable_names;
+  /* DEPRECATED */
+  void* unused3;
+
   /* can be filled with error location information */
   raptor_locator locator;
 
@@ -342,7 +340,7 @@ struct rasqal_query_s {
   /* incrementing counter for declaring prefixes in order of appearance */
   int prefix_depth;
 
-  /* UNUSED */
+  /* DEPRECATED */
   void* unused1;
   
   /* sequence of order condition expressions */
