@@ -1023,7 +1023,7 @@ rasqal_engine_prepare(rasqal_query *query)
       goto done;
   }
   
-  /* create and init the query->variable_names, query->variables arrays */
+  /* init the query variable offsets */
   if(rasqal_engine_assign_variables(query))
     goto done;
   
