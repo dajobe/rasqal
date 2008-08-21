@@ -328,11 +328,6 @@ struct rasqal_variables_table_s {
   /* Anonymous variables (owner) */
   raptor_sequence* anon_variables_sequence;
   int anon_variables_count;
-
-  /* array of variable names to bind or NULL if no variables present
-   * shared pointers into each var->name held in @variables_sequence
-   */
-  const unsigned char** variable_names;
 };
 
 
@@ -371,9 +366,6 @@ rasqal_free_variables_table(rasqal_variables_table* vt)
 {
   RASQAL_ASSERT_OBJECT_POINTER_RETURN(vt, rasqal_variables_table);
 
-  if(vt->variable_names)
-    RASQAL_FREE(cstrings, vt->variable_names);
-  
   if(vt->variables)
     RASQAL_FREE(vararray, vt->variables);
 
