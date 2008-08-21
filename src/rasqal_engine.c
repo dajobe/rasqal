@@ -367,22 +367,6 @@ rasqal_engine_remove_duplicate_select_vars(rasqal_query* rq)
 }
 
 
-static int
-rasqal_engine_adjust_anon_variables_offset(rasqal_query* rq)
-{
-  int i;
-  
-  for(i=0; i< rq->anon_variables_count; i++) {
-    rasqal_variable* v;
-    v=(rasqal_variable*)raptor_sequence_get_at(rq->anon_variables_sequence, i);
-    /* only now can we make this offset absolute into the full list of vars */
-    v->offset += rq->variables_count;
-  }
-
-  return 0;
-}
-  
-
 /**
  * rasqal_set_triples_source_factory:
  * @world: rasqal_world object
@@ -1008,10 +992,6 @@ rasqal_engine_prepare(rasqal_query *query)
     if(rasqal_engine_remove_duplicate_select_vars(query))
       goto done;
   }
-  
-  /* adjust the query variable offsets to make them all sequential */
-  if(rasqal_engine_adjust_anon_variables_offset(query))
-    goto done;
   
   /* create query->variables_declared_in to find triples where a variable
    * is first used and look for variables selected that are not used
