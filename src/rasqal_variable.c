@@ -118,6 +118,19 @@ rasqal_new_variable_typed(rasqal_query* rq,
     if(seq && raptor_sequence_push(seq, v))
       return NULL;
 
+    if(type == RASQAL_VARIABLE_TYPE_ANONYMOUS) {
+      /* new anon variable: add base offset */
+      v->offset += rq->variables_count;
+    } else {
+      /* new normal variable: move all anon variable offsets up 1 */
+      for(i=0; i < rq->anon_variables_count; i++) {
+        rasqal_variable* anon_v;
+        anon_v=(rasqal_variable*)raptor_sequence_get_at(rq->anon_variables_sequence, i);
+        anon_v->offset++;
+      }
+    }
+    
+
     /* Increment count only after sequence push succeeded */
     if(count_p)
       (*count_p)++;
@@ -442,6 +455,19 @@ rasqal_variables_table_add(rasqal_variables_table* vt,
 
     if(seq && raptor_sequence_push(seq, v))
       return NULL;
+
+    if(type == RASQAL_VARIABLE_TYPE_ANONYMOUS) {
+      /* new anon variable: add base offset */
+      v->offset += vt->variables_count;
+    } else {
+      /* new normal variable: move all anon variable offsets up 1 */
+      for(i=0; i < vt->anon_variables_count; i++) {
+        rasqal_variable* anon_v;
+        anon_v=(rasqal_variable*)raptor_sequence_get_at(vt->anon_variables_sequence, i);
+        anon_v->offset++;
+      }
+    }
+    
 
     /* Increment count only after sequence push succeeded */
     if(count_p)
