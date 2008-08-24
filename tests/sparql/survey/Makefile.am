@@ -36,12 +36,13 @@ result-survey-8.ttl result-survey-9.ttl result-survey-10.ttl	\
 result-survey-11.ttl result-survey-12.ttl result-survey-13.ttl
 
 # Test failures
+# survey-2
+#   OPTIONAL
 # survey-3
 #   UNION
 EXPECTED_SPARQL_CORRECT_FAILURES= \
+survey-2 \
 survey-3
-
-EXPECTED_SPARQL_CORRECT_FAILURES_COUNT=1
 
 EXTRA_DIST= \
 $(SPARQL_MANIFEST_FILES) \
@@ -95,16 +96,17 @@ check-sparql-parser: build-sparql-parser-test
 
 check-sparql-correct: build-roqet $(srcdir)/../check-sparql
 	@set +e; \
+	expect=`echo $(EXPECTED_SPARQL_CORRECT_FAILURES) | wc -w`; \
 	$(ECHO) "Testing SPARQL correct"; \
 	PATH=$(top_builddir)/utils:$(top_builddir)@RAPPER_PATH@:$$PATH \
 	  $(PERL) $(srcdir)/../check-sparql -s $(srcdir); \
 	result=$$?; \
 	if test $$result != 0 ; then \
 	  echo "Expecting test failures: $(EXPECTED_SPARQL_CORRECT_FAILURES)"; \
-	  if test $$result = $(EXPECTED_SPARQL_CORRECT_FAILURES_COUNT) ; then \
+	  if test $$result = $$expect ; then \
 	    echo "OK: Ignoring $$result expected test failures"; result=0; \
           else \
-	    echo "FAILED: $$result failures does not match expected $(EXPECTED_SPARQL_CORRECT_FAILURES_COUNT)"; result=1; \
+	    echo "FAILED: $$result failures does not match expected $$expect"; result=1; \
           fi; \
 	fi; \
 	set -e; exit $$result
