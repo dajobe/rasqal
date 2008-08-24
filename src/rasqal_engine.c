@@ -1314,10 +1314,14 @@ rasqal_engine_execute_init(rasqal_query_results* query_results)
    * This is a temporary hack to turn queries in the new query algebra
    * into an executable form understood by the old query engine.
    *
-   * That means in particular: removing
-   * RASQAL_GRAPH_PATTERN_OPERATOR_FILTER graph patterns and moving
-   * the constraints to the previous GP in the sequence.  Filter GPs
-   * always appear after another GP.
+   * That means in particular:
+   *
+   * 1) removing RASQAL_GRAPH_PATTERN_OPERATOR_FILTER graph patterns
+   * and moving the constraints to the previous GP in the sequence.
+   * Filter GPs always appear after another GP.
+   *
+   * 2) Ensuring that the root graph pattern is a GROUP even if
+   * there is only 1 GP inside it.
    */
   if(query->query_graph_pattern) {
     int modified=0;
@@ -1330,6 +1334,22 @@ rasqal_engine_execute_init(rasqal_query_results* query_results)
     rasqal_graph_pattern_print(query->query_graph_pattern, DEBUG_FH);
     fputs("\n", DEBUG_FH);
 #endif
+
+    if(query->query_graph_pattern->op != RASQAL_GRAPH_PATTERN_OPERATOR_GROUP) {
+      rasqal_graph_pattern* new_qgp;
+
+      new_qgp=rasqal_new_graph_pattern_from_sequence(query, NULL,
+                                                     RASQAL_GRAPH_PATTERN_OPERATOR_GROUP);
+      if(!new_qgp)
+        return 1;
+
+      new_qgp->gp_index=(query->graph_pattern_count++);
+      if(rasqal_graph_pattern_add_sub_graph_pattern(new_qgp,
+                                                    query->query_graph_pattern))
+        return 1;
+      
+      query->query_graph_pattern=new_qgp;
+    }
 
   }
   
