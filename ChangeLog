@@ -1,3 +1,84 @@
+2008-08-24  Dave Beckett <dave@dajobe.org>
+
+	* Checkpoint in query engine refactoring.
+	SVN 14382 at 2008-08-24 16:18:32 -0700 (Sun, 24 Aug 2008)
+
+	At this point after adding hacks to turn the new query algebra
+	into the old form. the query engine can still execute queries with
+	triple patterns and no OPTIONAL, UNION or GROUP.
+	All the RDQL testsuite pass without any change from the last
+	release.
+	The sparql tests have been updated to expect failure for OPTIONALs
+	that used to work in the last release.
+	A top level 'make check' passes at this SVN commit.
+
+	* tests/sparql/survey/Makefile.am, tests/sparql/sort/Makefile.am,
+	tests/sparql/part1/Makefile.am, tests/sparql/examples/Makefile.am,
+	tests/sparql/bound/Makefile.am, tests/sparql/Expr1/Makefile.am:
+	Add failures due to OPTIONAL not implemented in new QE.  Add test
+	failure reports.
+
+	* tests/sparql/SyntaxFull/Makefile.am: Test failures are due to
+	old SPARQL syntax changes - these tests probably need removing:
+	syntax-bnodes-03.rq syntax-bnodes-04.rq
+
+	* src/rasqal_engine.c: more debug output for query hack code changes
+
+	* src/sparql_parser.y: (main): output to stdout again
+
+	* src/rasqal_engine.c: (rasqal_query_build_declared_in): Do not
+	fail when there is no query graph pattern - allowed with a query
+	like 'DESCRIBE <uri>'
+	(rasqal_engine_prepare): Wrap calling
+	rasqal_query_build_declared_in with a check for a query GP.
+
+	* src/sparql_parser.y: (GroupGraphPattern): Make an empty group GP
+	if both optional args are missing to allow {} to work
+
+	* src/rasqal_engine.c: (rasqal_engine_group_2_graph_patterns):
+	Allow two NULL params to make an empty group GP
+
+	* tests/sparql/SyntaxDev/Syntax-SPARQL/Makefile.am: Count and
+	report failures
+
+	* RELEASE.html: note hack to be removed
+
+	* src/rasqal_engine.c: (rasqal_engine_execute_init): Hack: Add a
+	wrapper GROUP GP at the outer level to make the old execution
+	engine work when there is just 1 GP.
+
+	* src/rasqal_engine.c: Add DEBUG_FH macro
+
+	* src/rasqal_engine.c:
+	(rasqal_engine_remove_filter_graph_patterns): Added to turn
+	new (GP, FILTER GP) query algebra form pair into what the old
+	execution engine understands: GP+constraints
+	(rasqal_engine_execute_init): Call
+	rasqal_engine_remove_filter_graph_patterns on query GP to allow
+	execution engine to work and be testable.
+
+2008-08-20  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_engine.c: Remove
+	rasqal_engine_adjust_anon_variables_offset since rasqal_variable
+	constructors now deal with this.
+
+	* src/rasqal_variable.c: (rasqal_new_variable_typed,
+	rasqal_variables_table_add): Calculate and adjust variable offsets
+	on creation.
+
+	* src/rasqal_engine.c:
+	(rasqal_engine_adjust_anon_variables_offset): Renamed from
+	rasqal_engine_assign_variables since it just does one thing now
+
+	* src/rasqal_engine.c: comment
+
+	* src/rasqal_variable.c: Remove variable_names from table
+	structure - not used
+
+	* src/rasqal_engine.c, src/rasqal_internal.h, src/rasqal_query.c:
+	Removed query->variable_names - no longer needed
+
 2008-08-19  Dave Beckett <dave@dajobe.org>
 
 	* src/rasqal_query.c: (rasqal_free_query): Remove use of deleted
