@@ -1357,6 +1357,12 @@ rasqal_engine_execute_init(rasqal_query_results* query_results)
         return 1;
       
       query->query_graph_pattern=new_qgp;
+
+#if RASQAL_DEBUG > 1
+    fprintf(DEBUG_FH, "after insert top level group GPs, query graph pattern now:\n");
+    rasqal_graph_pattern_print(query->query_graph_pattern, DEBUG_FH);
+    fputs("\n", DEBUG_FH);
+#endif
     }
 
   }
