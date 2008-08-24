@@ -230,7 +230,7 @@ rasqal_engine_convert_blank_node_to_anonymous_variable(rasqal_query *rq,
  *
  * Return value: non-0 on failure
  */
-static int
+int
 rasqal_engine_build_anonymous_variables(rasqal_query* rq)
 {
   int i;
@@ -265,7 +265,7 @@ rasqal_engine_build_anonymous_variables(rasqal_query* rq)
  *
  * Return value: non-0 on failure
  */
-static int
+int
 rasqal_engine_expand_wildcards(rasqal_query* rq)
 {
   int i;
@@ -981,14 +981,6 @@ rasqal_engine_prepare(rasqal_query *query)
   int rc=1;
 
   if(!query->triples)
-    goto done;
-  
-  /* SPARQL: Turn [] into anonymous variables */
-  if(rasqal_engine_build_anonymous_variables(query))
-    goto done;
-  
-  /* SPARQL: Expand 'SELECT *' */
-  if(rasqal_engine_expand_wildcards(query))
     goto done;
   
   /* turn SELECT $a, $a into SELECT $a - editing query->selects */

@@ -2658,6 +2658,14 @@ rasqal_sparql_query_engine_prepare(rasqal_query* rdf_query) {
     return 1;
   }
 
+  /* SPARQL: Turn [] into anonymous variables */
+  if(rasqal_engine_build_anonymous_variables(rdf_query))
+    return 1;
+  
+  /* SPARQL: Expand 'SELECT *' */
+  if(rasqal_engine_expand_wildcards(rdf_query))
+    return 1;
+  
   return rasqal_engine_prepare(rdf_query);
 }
 

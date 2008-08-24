@@ -809,6 +809,8 @@ void rasqal_engine_free_query_result_row(rasqal_query_result_row* row);
 rasqal_literal** rasqal_engine_get_result_values(rasqal_query_results* query_results);
 rasqal_literal* rasqal_engine_get_result_value(rasqal_query_results* query_results, int offset);
 int rasqal_engine_execute_next(rasqal_query_results* query_results);
+int rasqal_engine_expand_wildcards(rasqal_query* rq);
+int rasqal_engine_build_anonymous_variables(rasqal_query* rq);
 
 /* rasqal_expr.c */
 rasqal_literal* rasqal_new_string_literal_node(rasqal_world*, const unsigned char *string, const char *language, raptor_uri *datatype);
