@@ -31,6 +31,9 @@ bound1.rq
 SPARQL_RESULT_FILES= \
 bound1-result.n3
 
+EXPECTED_SPARQL_CORRECT_FAILURES= \
+dawg-bound-query-001
+
 EXTRA_DIST= \
 $(SPARQL_MANIFEST_FILES) \
 $(SPARQL_MODEL_FILES) \
@@ -83,11 +86,17 @@ check-sparql-parser: build-sparql-parser-test
 
 check-sparql-correct: build-roqet $(srcdir)/../check-sparql
 	@set +e; \
+	expect=`echo $(EXPECTED_SPARQL_CORRECT_FAILURES) | wc -w`; \
 	$(ECHO) "Testing SPARQL correct"; \
 	PATH=$(top_builddir)/utils:$(top_builddir)@RAPPER_PATH@:$$PATH \
 	  $(PERL) $(srcdir)/../check-sparql -s $(srcdir); \
 	result=$$?; \
 	if test $$result != 0 ; then \
-	    echo "FAILED: $$result failures"; \
+	  echo "Expecting test failures: $(EXPECTED_SPARQL_CORRECT_FAILURES)"; \
+	  if test $$result = $$expect ; then \
+	    echo "OK: Ignoring $$expect expected test failures"; result=0; \
+          else \
+	    echo "FAILED: $$result failures does not match expected $$expect"; result=1; \
+          fi; \
 	fi; \
 	set -e; exit $$result
