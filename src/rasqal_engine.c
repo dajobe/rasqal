@@ -40,6 +40,8 @@
 #include "rasqal.h"
 #include "rasqal_internal.h"
 
+#define DEBUG_FH stderr
+
 
 
 /* local types */
@@ -318,8 +320,8 @@ rasqal_engine_remove_duplicate_select_vars(rasqal_query* rq)
   
 #if RASQAL_DEBUG > 1
   RASQAL_DEBUG1("bound variables before deduping: "); 
-  raptor_sequence_print(rq->selects, stderr);
-  fputs("\n", stderr); 
+  raptor_sequence_print(rq->selects, DEBUG_FH);
+  fputs("\n", DEBUG_FH); 
 #endif
 
   for(i=0; i < size; i++) {
@@ -354,8 +356,8 @@ rasqal_engine_remove_duplicate_select_vars(rasqal_query* rq)
   if(modified) {
 #if RASQAL_DEBUG > 1
     RASQAL_DEBUG1("bound variables after deduping: "); 
-    raptor_sequence_print(new_seq, stderr);
-    fputs("\n", stderr); 
+    raptor_sequence_print(new_seq, DEBUG_FH);
+    fputs("\n", DEBUG_FH); 
 #endif
     raptor_free_sequence(rq->selects);
     rq->selects = new_seq;
@@ -1420,8 +1422,8 @@ rasqal_engine_check_constraint(rasqal_query *query, rasqal_graph_pattern *gp)
     
 #ifdef RASQAL_DEBUG
   RASQAL_DEBUG1("filter expression:\n");
-  rasqal_expression_print(gp->filter_expression, stderr);
-  fputc('\n', stderr);
+  rasqal_expression_print(gp->filter_expression, DEBUG_FH);
+  fputc('\n', DEBUG_FH);
 #endif
     
   result=rasqal_expression_evaluate(query, gp->filter_expression, 
@@ -1429,10 +1431,10 @@ rasqal_engine_check_constraint(rasqal_query *query, rasqal_graph_pattern *gp)
 #ifdef RASQAL_DEBUG
   RASQAL_DEBUG1("filter expression result:\n");
   if(!result)
-    fputs("type error", stderr);
+    fputs("type error", DEBUG_FH);
   else
-    rasqal_literal_print(result, stderr);
-  fputc('\n', stderr);
+    rasqal_literal_print(result, DEBUG_FH);
+  fputc('\n', DEBUG_FH);
 #endif
   if(!result)
     bresult=0;
@@ -1848,14 +1850,14 @@ rasqal_engine_get_next_result(rasqal_query_results *query_results)
     for(i=0; i< size; i++) {
       rasqal_variable* v=rasqal_query_get_variable_by_offset(query, i);
       if(i>0)
-        fputs(", ", stderr);
-      fprintf(stderr, "%s=", v->name);
+        fputs(", ", DEBUG_FH);
+      fprintf(DEBUG_FH, "%s=", v->name);
       if(v->value)
-        rasqal_literal_print(v->value, stderr);
+        rasqal_literal_print(v->value, DEBUG_FH);
       else
-        fputs("NULL", stderr);
+        fputs("NULL", DEBUG_FH);
     }
-    fputs("]\n", stderr);
+    fputs("]\n", DEBUG_FH);
 #endif
   }
 
@@ -1916,10 +1918,10 @@ rasqal_engine_join_graph_patterns(rasqal_graph_pattern *dest_gp,
 
 #if RASQAL_DEBUG > 1
   RASQAL_DEBUG2("Joining graph pattern #%d\n  ", src_gp->gp_index);
-  rasqal_graph_pattern_print(src_gp, stderr);
-  fprintf(stderr, "\nto graph pattern #%d\n  ", dest_gp->gp_index);
-  rasqal_graph_pattern_print(dest_gp, stderr);
-  fprintf(stderr, "\nboth of operator %s\n",
+  rasqal_graph_pattern_print(src_gp, DEBUG_FH);
+  fprintf(DEBUG_FH, "\nto graph pattern #%d\n  ", dest_gp->gp_index);
+  rasqal_graph_pattern_print(dest_gp, DEBUG_FH);
+  fprintf(DEBUG_FH, "\nboth of operator %s\n",
           rasqal_graph_pattern_operator_as_string(src_gp->op));
 #endif
     
@@ -2363,8 +2365,8 @@ rasqal_engine_expression_foreach_fold(void *user_data, rasqal_expression *e)
   
 #ifdef RASQAL_DEBUG
   RASQAL_DEBUG2("folding expression %p: ", e);
-  rasqal_expression_print(e, stderr);
-  fprintf(stderr, "\n");
+  rasqal_expression_print(e, DEBUG_FH);
+  fprintf(DEBUG_FH, "\n");
 #endif
   
   l=rasqal_expression_evaluate(st->query, e, st->query->compare_flags);
@@ -2378,8 +2380,8 @@ rasqal_engine_expression_foreach_fold(void *user_data, rasqal_expression *e)
   
 #ifdef RASQAL_DEBUG
   RASQAL_DEBUG1("folded expression now: ");
-  rasqal_expression_print(e, stderr);
-  fputc('\n', stderr);
+  rasqal_expression_print(e, DEBUG_FH);
+  fputc('\n', DEBUG_FH);
 #endif
 
   /* change made */
@@ -2788,10 +2790,10 @@ rasqal_query_result_literal_sequence_compare(rasqal_query* query,
 
 #ifdef RASQAL_DEBUG
     RASQAL_DEBUG1("Comparing ");
-    rasqal_literal_print(literal_a, stderr);
-    fputs(" to ", stderr);
-    rasqal_literal_print(literal_b, stderr);
-    fputs("\n", stderr);
+    rasqal_literal_print(literal_a, DEBUG_FH);
+    fputs(" to ", DEBUG_FH);
+    rasqal_literal_print(literal_b, DEBUG_FH);
+    fputs("\n", DEBUG_FH);
 #endif
 
     if(!literal_a || !literal_b) {
@@ -2864,10 +2866,10 @@ rasqal_query_result_literal_sequence_equals(rasqal_query* query,
                                        RASQAL_COMPARE_RDF, &error);
 #ifdef RASQAL_DEBUG
     RASQAL_DEBUG1("Comparing ");
-    rasqal_literal_print(literal_a, stderr);
-    fputs(" to ", stderr);
-    rasqal_literal_print(literal_b, stderr);
-    fprintf(stderr, " gave %s\n", (result ? "equality" : "not equal"));
+    rasqal_literal_print(literal_a, DEBUG_FH);
+    fputs(" to ", DEBUG_FH);
+    rasqal_literal_print(literal_b, DEBUG_FH);
+    fprintf(DEBUG_FH, " gave %s\n", (result ? "equality" : "not equal"));
 #endif
 
     if(error)
@@ -3089,8 +3091,8 @@ rasqal_rowsource_engine_process(rasqal_rowsource* rowsource,
         /* duplicate, and not added so delete it */
 #ifdef RASQAL_DEBUG
         RASQAL_DEBUG1("Got duplicate row ");
-        rasqal_query_result_row_print(row, stderr);
-        fputc('\n', stderr);
+        rasqal_query_result_row_print(row, DEBUG_FH);
+        fputc('\n', DEBUG_FH);
 #endif
         rasqal_free_query_result_row(row);
         row=NULL;
@@ -3104,9 +3106,9 @@ rasqal_rowsource_engine_process(rasqal_rowsource* rowsource,
   
 #ifdef RASQAL_DEBUG
   if(con->map) {
-    fputs("resulting ", stderr);
-    rasqal_map_print(con->map, stderr);
-    fputs("\n", stderr);
+    fputs("resulting ", DEBUG_FH);
+    rasqal_map_print(con->map, DEBUG_FH);
+    fputs("\n", DEBUG_FH);
   }
 #endif
   
