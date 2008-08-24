@@ -74,11 +74,14 @@ check-sparql-lexer: build-sparql-lexer-test
 	  $(top_builddir)/src/sparql_lexer_test $(srcdir)/$$test >/dev/null; \
 	  status=$$?; \
 	  if test $$status != 0 -a $$status != 2 ; then \
-	    $(ECHO) FAILED returned status $$status; result=1; \
+	    $(ECHO) FAILED returned status $$status; result=`expr $$result + 1`; \
 	  else \
 	    $(ECHO) ok; \
 	  fi; \
 	done; \
+	if test $$result != 0 ; then \
+	    echo "FAILED: $$result failures:$$fails"; \
+	fi; \
 	set -e; exit $$result
 
 check-sparql-parser: build-sparql-parser-test
@@ -89,12 +92,15 @@ check-sparql-parser: build-sparql-parser-test
 	  $(top_builddir)/src/sparql_parser_test $(srcdir)/$$test >/dev/null; \
 	  status=$$?; \
 	  if test $$status != 0 -a $$status != 2 ; then \
-	    $(ECHO) FAILED returned status $$status; result=1; \
+	    $(ECHO) FAILED returned status $$status; result=`expr $$result + 1`; \
 	    fails="$$fails $$test"; \
 	  else \
 	    $(ECHO) ok; \
 	  fi; \
 	done; \
+	if test $$result != 0 ; then \
+	    echo "FAILED: $$result failures:$$fails"; \
+	fi; \
 	set -e; exit $$result
 
 check-sparql-correct: build-roqet $(srcdir)/../../check-sparql
