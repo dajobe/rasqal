@@ -58,9 +58,10 @@ syntax-qname-04.rq syntax-qname-05.rq syntax-qname-06.rq \
 syntax-struct-11.rq syntax-struct-12.rq
 
 # 2 test failures
-# Unary +/- confused with operators (2007-09-20)
+# syntax-bnodes-03.rq syntax-bnodes-04.rq
+#   bnodes as predicates are no longer (was never?) allowed
 EXPECTED_SPARQL_PARSER_FAILURES= \
-syntax-order-02.rq syntax-order-06.rq
+syntax-bnodes-03.rq syntax-bnodes-04.rq
 
 EXPECTED_SPARQL_PARSER_FAILURES_COUNT= 2
 
