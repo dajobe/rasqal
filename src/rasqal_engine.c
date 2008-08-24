@@ -714,7 +714,8 @@ rasqal_query_graph_pattern_build_declared_in(rasqal_query* query,
  * rasqal_engine_graph_pattern_init() when trying to figure out which
  * parts of a triple pattern need to bind to a variable: only the first
  * reference to it.
- * 
+ *
+ * Return value: non-0 on failure
  **/
 static int
 rasqal_query_build_declared_in(rasqal_query* query) 
@@ -724,7 +725,8 @@ rasqal_query_build_declared_in(rasqal_query* query)
   int size=query->variables_count + query->anon_variables_count;
 
   if(!gp)
-    return 1;
+    /* It is not an error for a query to have no graph patterns */
+    return 0;
 
   query->variables_declared_in=(int*)RASQAL_CALLOC(intarray, size+1, sizeof(int));
   if(!query->variables_declared_in)
@@ -994,13 +996,19 @@ rasqal_engine_prepare(rasqal_query *query)
     if(rasqal_engine_remove_duplicate_select_vars(query))
       goto done;
   }
-  
-  /* create query->variables_declared_in to find triples where a variable
-   * is first used and look for variables selected that are not used
-   */
-  if(rasqal_query_build_declared_in(query))
-    goto done;
-  
+
+  if(query->query_graph_pattern) {
+    /* This query prepare processing requires a query graph pattern.
+     * Not the case for a legal query like 'DESCRIBE <uri>'
+     */
+
+    /* create query->variables_declared_in to find triples where a variable
+     * is first used and look for variables selected that are not used
+     */
+    if(rasqal_query_build_declared_in(query))
+      goto done;
+  }
+
   rasqal_engine_query_fold_expressions(query);
 
   rc=0;
