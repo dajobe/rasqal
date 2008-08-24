@@ -1203,6 +1203,81 @@ rasqal_engine_graph_pattern_init(rasqal_query_results* query_results,
 }
 
 
+static int
+rasqal_engine_remove_filter_graph_patterns(rasqal_query* query,
+                                           rasqal_graph_pattern* gp,
+                                           void *data)
+{
+  int i;
+  int saw_filter_gp=0;
+  raptor_sequence *seq;
+  int* modified_p=(int*)data;
+  rasqal_graph_pattern* prev_gp=NULL;
+  
+  if(!gp->graph_patterns)
+    return 0;
+
+#if RASQAL_DEBUG > 1
+  RASQAL_DEBUG2("Checking graph pattern #%d:\n  ", gp->gp_index);
+  rasqal_graph_pattern_print(gp, stdout);
+  fputs("\n", stdout);
+#endif
+
+  for(i=0; i < raptor_sequence_size(gp->graph_patterns); i++) {
+    rasqal_graph_pattern *sgp;
+    sgp=(rasqal_graph_pattern*)raptor_sequence_get_at(gp->graph_patterns, i);
+    if(sgp->op == RASQAL_GRAPH_PATTERN_OPERATOR_FILTER) {
+      /* One is enough to know we need to rewrite */
+      saw_filter_gp=1;
+      break;
+    }
+  }
+
+  if(!saw_filter_gp) {
+#if RASQAL_DEBUG > 1
+    RASQAL_DEBUG2("Ending graph pattern #%d - saw no filter GPs\n",
+                  gp->gp_index);
+#endif
+    return 0;
+  }
+  
+  
+  seq=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_graph_pattern, (raptor_sequence_print_handler*)rasqal_graph_pattern_print);
+  if(!seq) {
+    RASQAL_DEBUG1("Cannot create new gp sequence\n");
+    *modified_p=-1;
+    return 1;
+  }
+
+
+  while(raptor_sequence_size(gp->graph_patterns) > 0) {
+    rasqal_graph_pattern *sgp;
+    sgp=(rasqal_graph_pattern*)raptor_sequence_unshift(gp->graph_patterns);
+    if(sgp->op == RASQAL_GRAPH_PATTERN_OPERATOR_FILTER) {
+      if(prev_gp)
+        rasqal_engine_move_constraints(prev_gp, sgp);
+      rasqal_free_graph_pattern(sgp);
+      continue;
+    }
+    raptor_sequence_push(seq, sgp);
+    prev_gp=sgp;
+  }
+  raptor_free_sequence(gp->graph_patterns);
+  gp->graph_patterns=seq;
+
+  if(!*modified_p)
+    *modified_p=1;
+  
+#if RASQAL_DEBUG > 1
+  RASQAL_DEBUG2("Ending graph pattern #%d\n  ", gp->gp_index);
+  rasqal_graph_pattern_print(gp, stdout);
+  fputs("\n\n", stdout);
+#endif
+
+  return 0;
+}
+
+
 /**
  * rasqal_engine_execute_init:
  * @query_results: query results object
@@ -1233,37 +1308,27 @@ rasqal_engine_execute_init(rasqal_query_results* query_results)
   }
 
 
-  /* FIXME.  This is a hack.  If the structure is a single GP with no sub-GPs
-   * then make a new top graph pattern so the query engine always
-   * sees a sequence of graph patterns at the top.  It should
-   * operate fine on a graph pattern with just triples but the 
-   * engine doesn't do this yet.
+  /* FIXME
+   * This is a temporary hack to turn queries in the new query algebra
+   * into an executable form understood by the old query engine.
+   *
+   * That means in particular: removing
+   * RASQAL_GRAPH_PATTERN_OPERATOR_FILTER graph patterns and moving
+   * the constraints to the previous GP in the sequence.  Filter GPs
+   * always appear after another GP.
    */
   if(query->query_graph_pattern) {
-    if(query->query_graph_pattern->triples) {
-      raptor_sequence *seq;
-
-      seq=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_graph_pattern, (raptor_sequence_print_handler*)rasqal_graph_pattern_print);
-      if(!seq)
-        return 1;
-      raptor_sequence_push(seq, query->query_graph_pattern);
+    int modified=0;
+    rasqal_query_graph_pattern_visit(query,
+                                     rasqal_engine_remove_filter_graph_patterns,
+                                     &modified);
       
-      query->query_graph_pattern=rasqal_new_graph_pattern_from_sequence(query, seq, RASQAL_GRAPH_PATTERN_OPERATOR_GROUP);
-      if(!query->query_graph_pattern)
-        return 1;
-      /* Add new graph pattern to the sequence of known graph patterns
-       * See rasqal_query_prepare_count_graph_patterns() 
-       */
-      query->query_graph_pattern->gp_index=(query->graph_pattern_count++);
-      raptor_sequence_push(query->graph_patterns_sequence, 
-                           query->query_graph_pattern);
-
-#ifdef RASQAL_DEBUG
-      RASQAL_DEBUG1("Restructured top level single graph pattern to be a sequence of GPs, now:\n");
-      rasqal_query_print(query, stderr);
+#if RASQAL_DEBUG > 1
+    fprintf(DEBUG_FH, "modified=%d after remove filter GPs, query graph pattern now:\n  ", modified);
+    rasqal_graph_pattern_print(query->query_graph_pattern, DEBUG_FH);
+    fputs("\n", DEBUG_FH);
 #endif
-    }
-    
+
   }
   
 
