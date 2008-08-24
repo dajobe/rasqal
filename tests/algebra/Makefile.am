@@ -53,7 +53,7 @@ run-rasqal-tests: convert_graph_pattern$(EXEEXT) $(ALGEBRA_TEST_FILES)
 	  result="$$base.out"; \
 	  if test -f ./$$tst; then dir=./; \
 	  elif test -f $$tst; then dir=; \
-	  else dir="$(top_srcdir)/"; fi; \
+	  else dir="$(srcdir)/"; fi; \
 	  ./convert_graph_pattern $${dir}$$tst $$baseuri > $$out 2> $$err; \
 	  if cmp $${dir}$$result $$out >/dev/null 2>&1; then \
 	    echo "PASS: $$tst"; \
