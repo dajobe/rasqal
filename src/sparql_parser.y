@@ -2968,7 +2968,7 @@ main(int argc, char *argv[])
 
   rc=rasqal_query_prepare(query, (const unsigned char*)query_string, base_uri);
 
-  rasqal_query_print(query, DEBUG_FH);
+  rasqal_query_print(query, stdout);
 
   rasqal_free_query(query);
 
