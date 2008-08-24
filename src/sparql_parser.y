@@ -897,26 +897,32 @@ GroupGraphPattern: '{' TriplesBlockOpt GraphPatternListOpt '}'
 #endif
 
 
-  if($2) {
-    formula_gp=rasqal_engine_new_basic_graph_pattern_from_formula((rasqal_query*)rq, $2);
-    if(!formula_gp) {
-      if($3)
-        rasqal_free_graph_pattern($3);
-      YYERROR_MSG("GroupGraphPattern: cannot create formula_gp");
+  if(!$2 && !$3) {
+    $$=rasqal_engine_group_2_graph_patterns((rasqal_query*)rq, NULL, NULL);
+    if(!$$)
+      YYERROR_MSG("GroupGraphPattern: cannot create group gp");
+  } else {
+    if($2) {
+      formula_gp=rasqal_engine_new_basic_graph_pattern_from_formula((rasqal_query*)rq, $2);
+      if(!formula_gp) {
+        if($3)
+          rasqal_free_graph_pattern($3);
+        YYERROR_MSG("GroupGraphPattern: cannot create formula_gp");
+      }
     }
+
+    if($3) {
+      $$=$3;
+      if(formula_gp && raptor_sequence_shift($$->graph_patterns, formula_gp)) {
+        rasqal_free_graph_pattern(formula_gp);
+        rasqal_free_graph_pattern($$);
+        $$=NULL;
+        YYERROR_MSG("GroupGraphPattern: sequence push failed");
+      }
+    } else
+      $$=formula_gp;
   }
-
-  if($3) {
-    $$=$3;
-    if(formula_gp && raptor_sequence_shift($$->graph_patterns, formula_gp)) {
-      rasqal_free_graph_pattern(formula_gp);
-      rasqal_free_graph_pattern($$);
-      $$=NULL;
-      YYERROR_MSG("GroupGraphPattern: sequence push failed");
-    }
-  } else
-    $$=formula_gp;
-
+  
 #if RASQAL_DEBUG > 1  
   fprintf(DEBUG_FH, "  after graph pattern=");
   if($$)
