@@ -2529,9 +2529,11 @@ rasqal_engine_new_basic_graph_pattern_from_formula(rasqal_query* query,
  * @second_gp: second graph pattern
  *
  * INTERNAL - Make a new group graph pattern from two graph patterns
- * of which either or both may be NULL
+ * of which either or both may be NULL, in which case a group
+ * of 0 graph patterns is created.
  *
- * @first_gp and @second_gp become owned by the new graph pattern.
+ * @first_gp and @second_gp if given, become owned by the new graph
+ * pattern.
  *
  * Return value: new group graph pattern or NULL on failure
  */
@@ -2542,11 +2544,6 @@ rasqal_engine_group_2_graph_patterns(rasqal_query* query,
 {
   raptor_sequence *seq;
 
-  if(!first_gp && !second_gp)
-    return NULL;
-
-  /* both present so make a new group graph pattern */
-  
   seq=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_graph_pattern, (raptor_sequence_print_handler*)rasqal_graph_pattern_print);
   if(!seq)
     return NULL;
