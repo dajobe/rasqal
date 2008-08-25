@@ -319,6 +319,8 @@ rasqal_engine_remove_duplicate_select_vars(rasqal_query* rq)
     return 0;
   
   new_seq=raptor_new_sequence(NULL, (raptor_sequence_print_handler*)rasqal_variable_print);
+  if(!new_seq)
+    return 1;
   
 #if RASQAL_DEBUG > 1
   RASQAL_DEBUG1("bound variables before deduping: "); 
