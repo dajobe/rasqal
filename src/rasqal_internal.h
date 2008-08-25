@@ -274,37 +274,31 @@ struct rasqal_query_s {
 
   int prepared;
 
-  /* DEPRECATED */
-  void* unused2;
+  rasqal_variables_table* vars_table;
 
-  /* variable name/value table built from all distinct variables seen
-   * in selects, triples, constraints and anonymous (no name, cannot
-   * be selected or refered to).  An array of size variables_count
-   *
-   * The first select_variables_count of this array are from the
-   * selects.  The selected variables only are typically returned to
-   * the user.
-   *
-   * Anonymous variables appear at the end of the 'variables' array but
-   * are taken from the anon_variables_sequence.
+  /* DEPRECATED - was variables_count */
+  int unused4;
+  
+  /* The number of selected variables: these are always the first
+   * in the variables table and are the ones returend to the user.
    */
-  int variables_count;
   int select_variables_count;
 
-  /* array of size variables_count
-   * pointing to triple column where variable[i] is declared
+  /* array of size (number of total variables)
+   * pointing to triple column where a variable[offset] is declared
    */
   int* variables_declared_in;
 
-  /* holds one copy of all the variables - this is where they are freed */
-  raptor_sequence* variables_sequence;
+  /* DEPRECATED - was variables_sequence */
+  void* unused5;
 
-  /* holds one copy of all anonymous variables - this is where they are freed */
-  raptor_sequence* anon_variables_sequence;
+  /* DEPRECATED - was anon_variables_sequence */
+  void* unused6;
 
-  int anon_variables_count;
+  /* DEPRECATED - was anon_variables_count */
+  int unused7;
 
-  /* DEPRECATED */
+  /* DEPRECATED - was variable_names */
   void* unused3;
 
   /* can be filled with error location information */
@@ -340,7 +334,7 @@ struct rasqal_query_s {
   /* incrementing counter for declaring prefixes in order of appearance */
   int prefix_depth;
 
-  /* DEPRECATED */
+  /* DEPRECATED - was constraints_sequence */
   void* unused1;
   
   /* sequence of order condition expressions */
@@ -1078,8 +1072,14 @@ rasqal_variables_table* rasqal_new_variables_table(rasqal_world* world);
 void rasqal_free_variables_table(rasqal_variables_table* vt);
 rasqal_variable* rasqal_variables_table_add(rasqal_variables_table* vt, rasqal_variable_type type, const unsigned char *name, rasqal_literal *value);
 rasqal_variable* rasqal_variables_table_get(rasqal_variables_table* vt, int idx);
+rasqal_literal* rasqal_variables_table_get_value(rasqal_variables_table* vt, int idx);
 int rasqal_variables_table_has(rasqal_variables_table* vt, const unsigned char *name);
 int rasqal_variables_table_set(rasqal_variables_table* vt, const unsigned char *name, rasqal_literal* value);
+int rasqal_variables_table_get_named_variables_count(rasqal_variables_table* vt);
+int rasqal_variables_table_get_anonymous_variables_count(rasqal_variables_table* vt);
+int rasqal_variables_table_get_total_variables_count(rasqal_variables_table* vt);
+raptor_sequence* rasqal_variables_table_get_named_variables_sequence(rasqal_variables_table* vt);
+raptor_sequence* rasqal_variables_table_get_anonymous_variables_sequence(rasqal_variables_table* vt);
 
 
 /* end of RASQAL_INTERNAL */

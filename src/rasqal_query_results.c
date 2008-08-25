@@ -79,7 +79,7 @@ rasqal_new_query_results(rasqal_query* query)
           case RASQAL_QUERY_VERB_SELECT:
             query_results->type=RASQAL_QUERY_RESULTS_BINDINGS;
             rasqal_query_results_set_variables(query_results,
-                                               query->variables_sequence,
+                                               query->selects,
                                                query->select_variables_count,
                                                0);
             break;

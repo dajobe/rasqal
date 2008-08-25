@@ -269,7 +269,8 @@ int
 rasqal_engine_expand_wildcards(rasqal_query* rq)
 {
   int i;
-
+  int size;
+  
   if(rq->verb != RASQAL_QUERY_VERB_SELECT || !rq->wildcard)
     return 0;
   
@@ -277,14 +278,15 @@ rasqal_engine_expand_wildcards(rasqal_query* rq)
   rq->selects=raptor_new_sequence(NULL, (raptor_sequence_print_handler*)rasqal_variable_print);
   if(!rq->selects)
     return 1;
-      
-  for(i=0; i< rq->variables_count; i++) {
-    rasqal_variable* v=rasqal_query_get_variable_by_offset(rq, i);
+  
+  size=rasqal_variables_table_get_named_variables_count(rq->vars_table);
+  for(i=0; i < size; i++) {
+    rasqal_variable* v=rasqal_variables_table_get(rq->vars_table, i);
     if(raptor_sequence_push(rq->selects, v))
       return 1;
   }
 
-  rq->select_variables_count=rq->variables_count;
+  rq->select_variables_count=size;
 
   return 0;
 }
@@ -722,7 +724,7 @@ rasqal_query_build_declared_in(rasqal_query* query)
 {
   int i;
   rasqal_graph_pattern *gp=query->query_graph_pattern;
-  int size=query->variables_count + query->anon_variables_count;
+  int size=rasqal_variables_table_get_total_variables_count(query->vars_table) ;
 
   if(!gp)
     /* It is not an error for a query to have no graph patterns */
@@ -737,11 +739,15 @@ rasqal_query_build_declared_in(rasqal_query* query)
   
   rasqal_query_graph_pattern_build_declared_in(query, gp);
 
-  for(i=0; i< query->variables_count; i++) {
+  /* check declared in only for named variables since only they can
+   * appear in SELECT $vars 
+   */
+  size=rasqal_variables_table_get_named_variables_count(query->vars_table) ;
+  for(i=0; i< size; i++) {
     int column=query->variables_declared_in[i];
     rasqal_variable *v;
 
-    v=rasqal_query_get_variable_by_offset(query, i);
+    v=rasqal_variables_table_get(query->vars_table, i);
 
     if(column >= 0) {
 #if RASQAL_DEBUG > 1
@@ -1786,7 +1792,7 @@ rasqal_engine_get_next_result(rasqal_query_results *query_results)
   query_results->new_bindings_count=0;
 
   if(query->constructs)
-    size=raptor_sequence_size(query->variables_sequence);
+    size=rasqal_variables_table_get_named_variables_count(query->vars_table);
   else
     size=query->select_variables_count;
 
@@ -1834,7 +1840,7 @@ rasqal_engine_get_next_result(rasqal_query_results *query_results)
 
     /* Count actual bound values */
     for(i=0; i< size; i++) {
-      rasqal_variable* v=rasqal_query_get_variable_by_offset(query, i);
+      rasqal_variable* v=rasqal_variables_table_get(query->vars_table, i);
       if(v->value)
         values_returned++;
     }
@@ -1874,7 +1880,7 @@ rasqal_engine_get_next_result(rasqal_query_results *query_results)
 #ifdef RASQAL_DEBUG
     RASQAL_DEBUG1("Returning solution[");
     for(i=0; i< size; i++) {
-      rasqal_variable* v=rasqal_query_get_variable_by_offset(query, i);
+      rasqal_variable* v=rasqal_variables_table_get(query->vars_table, i);
       if(i>0)
         fputs(", ", DEBUG_FH);
       fprintf(DEBUG_FH, "%s=", v->name);
@@ -2675,12 +2681,12 @@ rasqal_engine_query_result_row_update(rasqal_query_results *query_results,
   query=query_results->query;
 
   if(query->constructs)
-    size=raptor_sequence_size(query->variables_sequence);
+    size=rasqal_variables_table_get_named_variables_count(query->vars_table);
   else
     size=query->select_variables_count;
 
   for(i=0; i < row->size; i++) {
-    rasqal_literal *l=rasqal_query_get_variable_by_offset(query, i)->value;
+    rasqal_literal *l=rasqal_variables_table_get_value(query->vars_table, i);
     if(row->values[i])
       rasqal_free_literal(row->values[i]);
     row->values[i]=rasqal_new_literal_from_literal(l);
@@ -2997,6 +3003,7 @@ rasqal_engine_bind_construct_variables(rasqal_query_results* query_results)
 {
   rasqal_query *query=query_results->query;
   int i;
+  int size=rasqal_variables_table_get_named_variables_count(query->vars_table);
 
   if(!query)
     return;
@@ -3008,8 +3015,8 @@ rasqal_engine_bind_construct_variables(rasqal_query_results* query_results)
     return;
 
   /* bind the construct variables again if running through a sequence */
-  for(i=0; i< query->variables_count; i++) {
-    rasqal_variable* v=rasqal_query_get_variable_by_offset(query, i);
+  for(i=0; i< size; i++) {
+    rasqal_variable* v=rasqal_variables_table_get(query->vars_table, i);
     rasqal_literal* value=rasqal_engine_get_result_value(query_results, i);
     rasqal_variable_set_value(v,  rasqal_new_literal_from_literal(value));
   }
@@ -3152,7 +3159,7 @@ rasqal_rowsource_engine_ensure_variables(rasqal_rowsource* rowsource,
   rasqal_query* query=con->results->query;
 
   if(query->constructs)
-    rowsource->size=raptor_sequence_size(query->variables_sequence);
+    rowsource->size=rasqal_variables_table_get_named_variables_count(query->vars_table);
   else
     rowsource->size=query->select_variables_count;  
   if(query->order_conditions_sequence)
