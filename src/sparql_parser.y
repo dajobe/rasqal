@@ -1187,7 +1187,6 @@ OptionalGraphPattern: OPTIONAL GroupGraphPattern
       YYERROR_MSG("OptionalGraphPattern 1: cannot create sequence");
     } else {
       if(raptor_sequence_push(seq, $2)) {
-        rasqal_free_graph_pattern($2);
         raptor_free_sequence(seq);
         YYERROR_MSG("OptionalGraphPattern 2: sequence push failed");
       } else {
