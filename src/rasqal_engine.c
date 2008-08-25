@@ -854,8 +854,11 @@ rasqal_engine_triple_graph_pattern_get_next_match(rasqal_query_results* query_re
         /* failed */
         RASQAL_DEBUG2("exact match failed for column %d\n", gp_data->column);
         gp_data->column--;
-      } else
+      }
+#ifdef RASQAL_DEBUG
+      else
         RASQAL_DEBUG2("exact match OK for column %d\n", gp_data->column);
+#endif
 
       RASQAL_DEBUG2("end of exact triplesMatch for column %d\n", 
                     gp_data->column);
@@ -1480,8 +1483,11 @@ rasqal_engine_check_constraint(rasqal_query *query, rasqal_graph_pattern *gp)
     if(error) {
       RASQAL_DEBUG1("filter boolean expression returned error\n");
       step= STEP_ERROR;
-    } else
+    }
+#ifdef RASQAL_DEBUG
+    else
       RASQAL_DEBUG2("filter boolean expression result: %d\n", bresult);
+#endif
     rasqal_free_literal(result);
   }
 
