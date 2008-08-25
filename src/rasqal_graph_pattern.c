@@ -135,7 +135,8 @@ rasqal_new_graph_pattern_from_sequence(rasqal_query* query,
 
   gp=rasqal_new_graph_pattern(query, op);
   if(!gp) {
-    raptor_free_sequence(graph_patterns);
+  	if(graph_patterns)
+      raptor_free_sequence(graph_patterns);
     return NULL;
   }
   
