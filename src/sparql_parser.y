@@ -914,7 +914,6 @@ GroupGraphPattern: '{' TriplesBlockOpt GraphPatternListOpt '}'
     if($3) {
       $$=$3;
       if(formula_gp && raptor_sequence_shift($$->graph_patterns, formula_gp)) {
-        rasqal_free_graph_pattern(formula_gp);
         rasqal_free_graph_pattern($$);
         $$=NULL;
         YYERROR_MSG("GroupGraphPattern: sequence push failed");
