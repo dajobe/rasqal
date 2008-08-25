@@ -75,72 +75,7 @@ rasqal_new_variable_typed(rasqal_query* rq,
                           rasqal_variable_type type, 
                           unsigned char *name, rasqal_literal *value)
 {
-  int i;
-  rasqal_variable* v;
-  raptor_sequence* seq=NULL;
-  int* count_p=NULL;
-
-  if(rq) {
-    switch(type) {
-      case RASQAL_VARIABLE_TYPE_ANONYMOUS:
-        seq=rq->anon_variables_sequence;
-        count_p=&rq->anon_variables_count;
-        break;
-      case RASQAL_VARIABLE_TYPE_NORMAL:
-        seq=rq->variables_sequence;
-        count_p=&rq->variables_count;
-        break;
-
-      case RASQAL_VARIABLE_TYPE_UNKNOWN:
-      default:
-        RASQAL_DEBUG2("Unknown variable type %d", type);
-        return NULL;
-    }
-  
-    for(i=0; i< raptor_sequence_size(seq); i++) {
-      v=(rasqal_variable*)raptor_sequence_get_at(seq, i);
-      if(!strcmp((const char*)v->name, (const char*)name)) {
-        /* name already present, do not need a copy */
-        RASQAL_FREE(cstring, name);
-        return v;
-      }
-    }
-  }
-  
-  v=(rasqal_variable*)RASQAL_CALLOC(rasqal_variable, 1, sizeof(rasqal_variable));
-  if(v) {
-    v->type= type;
-    v->name= name;
-    v->value= value;
-    if(count_p)
-      v->offset= (*count_p);
-
-    if(seq && raptor_sequence_push(seq, v))
-      return NULL;
-
-    if(type == RASQAL_VARIABLE_TYPE_ANONYMOUS) {
-      /* new anon variable: add base offset */
-      v->offset += rq->variables_count;
-    } else {
-      /* new normal variable: move all anon variable offsets up 1 */
-      for(i=0; i < rq->anon_variables_count; i++) {
-        rasqal_variable* anon_v;
-        anon_v=(rasqal_variable*)raptor_sequence_get_at(rq->anon_variables_sequence, i);
-        anon_v->offset++;
-      }
-    }
-    
-
-    /* Increment count only after sequence push succeeded */
-    if(count_p)
-      (*count_p)++;
-  } else {
-    RASQAL_FREE(cstring, name);
-    if(value)
-      rasqal_free_literal(value);
-  }
-  
-  return v;
+  return rasqal_variables_table_add(rq->vars_table, type, name, value);
 }
 
 
@@ -167,7 +102,8 @@ rasqal_variable*
 rasqal_new_variable(rasqal_query* rq,
                     unsigned char *name, rasqal_literal *value) 
 {
-  return rasqal_new_variable_typed(rq, RASQAL_VARIABLE_TYPE_NORMAL, name, value);
+  return rasqal_variables_table_add(rq->vars_table, RASQAL_VARIABLE_TYPE_NORMAL,
+                                    name, value);
 }
 
 
@@ -324,7 +260,7 @@ rasqal_variable_set_value(rasqal_variable* v, rasqal_literal* l)
 /*
  * A table of variables with optional binding values
  *
- * variables are named or anonymous (cannot be selected or refered to).
+ * variables are named or anonymous (cannot be selected).
  */
 struct rasqal_variables_table_s {
   rasqal_world* world;
@@ -502,6 +438,17 @@ rasqal_variables_table_get(rasqal_variables_table* vt, int idx)
 }
 
 
+rasqal_literal*
+rasqal_variables_table_get_value(rasqal_variables_table* vt, int idx)
+{
+  rasqal_variable* v;
+  v=rasqal_variables_table_get(vt, idx);
+  if(!v)
+    return NULL;
+  return v->value;
+}
+
+
 static rasqal_variable*
 rasqal_variables_table_find_by_name(rasqal_variables_table* vt,
                                     const unsigned char *name)
@@ -539,6 +486,40 @@ rasqal_variables_table_set(rasqal_variables_table* vt,
   return 0;
 }
 
+
+int
+rasqal_variables_table_get_named_variables_count(rasqal_variables_table* vt)
+{
+  return vt->variables_count;
+}
+
+
+int
+rasqal_variables_table_get_anonymous_variables_count(rasqal_variables_table* vt)
+{
+  return vt->anon_variables_count;
+}
+
+
+int
+rasqal_variables_table_get_total_variables_count(rasqal_variables_table* vt)
+{
+  return vt->variables_count + vt->anon_variables_count;
+}
+
+
+raptor_sequence*
+rasqal_variables_table_get_named_variables_sequence(rasqal_variables_table* vt)
+{
+  return vt->variables_sequence;
+}
+
+
+raptor_sequence*
+rasqal_variables_table_get_anonymous_variables_sequence(rasqal_variables_table* vt)
+{
+  return vt->anon_variables_sequence;
+}
 
 #endif /* not STANDALONE */
 
