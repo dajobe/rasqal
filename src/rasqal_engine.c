@@ -1353,9 +1353,12 @@ rasqal_engine_execute_init(rasqal_query_results* query_results)
 
       new_qgp->gp_index=(query->graph_pattern_count++);
       if(rasqal_graph_pattern_add_sub_graph_pattern(new_qgp,
-                                                    query->query_graph_pattern))
+                                                    query->query_graph_pattern)) {
+        rasqal_free_graph_pattern(new_qgp);
+        query->query_graph_pattern=NULL;
         return 1;
-      
+      }
+
       query->query_graph_pattern=new_qgp;
 
 #if RASQAL_DEBUG > 1

@@ -648,8 +648,11 @@ rasqal_graph_pattern_add_sub_graph_pattern(rasqal_graph_pattern* graph_pattern,
 {
   if(!graph_pattern->graph_patterns) {
     graph_pattern->graph_patterns=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_graph_pattern, (raptor_sequence_print_handler*)rasqal_graph_pattern_print);
-    if(!graph_pattern->graph_patterns)
+    if(!graph_pattern->graph_patterns) {
+      if(sub_graph_pattern)
+        rasqal_free_graph_pattern(sub_graph_pattern);
       return 1;
+    }
   }
   return raptor_sequence_push(graph_pattern->graph_patterns, sub_graph_pattern);
 }
