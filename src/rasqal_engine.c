@@ -1274,6 +1274,7 @@ rasqal_engine_remove_filter_graph_patterns(rasqal_query* query,
     }
     if(raptor_sequence_push(seq, sgp)) {
       RASQAL_DEBUG1("Cannot push to gp sequence\n");
+      raptor_free_sequence(seq);
       *modified_p=-1;
       return 1;
     }
