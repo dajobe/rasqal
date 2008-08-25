@@ -1350,6 +1350,9 @@ rasqal_engine_execute_init(rasqal_query_results* query_results)
     fputs("\n", DEBUG_FH);
 #endif
 
+    if(modified<0)
+      return 1;
+
     if(query->query_graph_pattern->op != RASQAL_GRAPH_PATTERN_OPERATOR_GROUP) {
       rasqal_graph_pattern* new_qgp;
 
