@@ -2568,8 +2568,13 @@ rasqal_engine_group_2_graph_patterns(rasqal_query* query,
   raptor_sequence *seq;
 
   seq=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_graph_pattern, (raptor_sequence_print_handler*)rasqal_graph_pattern_print);
-  if(!seq)
+  if(!seq) {
+    if(first_gp)
+      rasqal_free_graph_pattern(first_gp);
+    if(second_gp)
+      rasqal_free_graph_pattern(second_gp);
     return NULL;
+  }
 
   if(first_gp && raptor_sequence_push(seq, first_gp)) {
     raptor_free_sequence(seq);
