@@ -95,7 +95,7 @@ file_read_string(const char* program, const char* filename, const char* label)
   fclose(fh); fh=NULL;
   
   len=raptor_stringbuffer_length(sb);
-  string=malloc(len+1);
+  string=(unsigned char*)malloc(len+1);
   raptor_stringbuffer_copy_to_string(sb, (unsigned char*)string, len);
 
   tidy:
