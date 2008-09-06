@@ -1189,7 +1189,7 @@ OptionalGraphPattern: OPTIONAL GroupGraphPattern
         raptor_free_sequence(seq);
         YYERROR_MSG("OptionalGraphPattern 2: sequence push failed");
       } else {
-        $$=rasqal_new_graph_pattern_from_sequence(rq,
+        $$=rasqal_new_graph_pattern_from_sequence((rasqal_query*)rq,
                                                   seq,
                                                   RASQAL_GRAPH_PATTERN_OPERATOR_OPTIONAL);
         if(!$$)
