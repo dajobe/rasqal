@@ -360,7 +360,7 @@ rasqal_xsd_decimal_as_string(rasqal_xsd_decimal* dec)
     /* 7=strlen("0.0e0")+1 for sign */
     to_len=!from_len ? 6 : (from_len*2);
 
-    s=RASQAL_MALLOC(cstring, to_len);
+    s=(char*)RASQAL_MALLOC(cstring, to_len);
     if(!s) {
       mpfr_free_str((char*)mpf_s);
       return NULL;
