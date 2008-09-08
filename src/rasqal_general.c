@@ -260,6 +260,7 @@ rasqal_delete_query_engine_factories(rasqal_world *world)
  *
  * Return value: non-0 on failure
  **/
+RASQAL_EXTERN_C
 int
 rasqal_query_engine_register_factory(rasqal_world *world,
                                      const char *name, const char *label,

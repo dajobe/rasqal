@@ -388,6 +388,7 @@ rasqal_engine_remove_duplicate_select_vars(rasqal_query* rq)
  * called with the user data for some query and rasqal_triples_source.
  *
  **/
+RASQAL_EXTERN_C
 void
 rasqal_set_triples_source_factory(rasqal_world* world, void (*register_fn)(rasqal_triples_source_factory *factory), void* user_data)
 {
