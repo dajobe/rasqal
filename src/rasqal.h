@@ -29,9 +29,6 @@
 
 #ifdef __cplusplus
 extern "C" {
-#define RASQAL_EXTERN_C extern "C"
-#else
-#define RASQAL_EXTERN_C
 #endif
 
 
