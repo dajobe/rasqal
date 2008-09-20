@@ -1,4 +1,110 @@
+2008-09-08  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal.h, src/rasqal_internal.h: Moved EXTERN_C definitions
+	to internal header - no need to expose in API.
+
+	* src/rasqal.h, src/rasqal_engine.c, src/rasqal_general.c:
+	Workaround for an armcc c++ mode issue regarding function pointers
+	as arguments: Need explicit extern "C" to get C linkage for C
+	function pointers.
+
+	* src/rdql_lexer.l, src/sparql_lexer.l: casts for c++
+
+2008-09-06  Dave Beckett <dave@dajobe.org>
+
+	* tests/algebra/convert_graph_pattern.c: Casts for c++
+
+	* docs/rasqal-docs.xml, docs/rasqal-sections.txt: Update sections
+
+	* src/rasqal_decimal.c: (rasqal_xsd_decimal_as_string): Cast for C++
+
+2008-09-05  Dave Beckett <dave@dajobe.org>
+
+	* src/sparql_parser.y: Fixes for g++ from
+	Issue#0000271 http://bugs.librdf.org/mantis/view.php?id=271
+
+2008-08-25  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_engine.c: (rasqal_engine_remove_filter_graph_patterns):
+	Do not leak sequence on error.
+
+	* src/rasqal_engine.c: (rasqal_engine_execute_init): Check for
+	errors in rasqal_engine_remove_filter_graph_patterns() visitor.
+
+	* src/rasqal_engine.c: (rasqal_engine_remove_filter_graph_patterns):
+	Resiliency fix: check raptor_sequence_push() return value to avoid
+	dangling pointers
+
+	* src/sparql_parser.y: (GroupGraphPattern): Fixed double deletion:
+	raptor_sequence_shift() takes ownership
+
+	* src/rasqal_engine.c: (rasqal_engine_group_2_graph_patterns):
+	Always take ownership of graph patterns passed in.
+
+	* src/sparql_parser.y: (OptionalGraphPattern): Fixed double
+	deletion: raptor_sequence_push() takes ownership
+
+	* src/rasqal_engine.c: Fixed gcc warnings about empty else blocks
+	when RASQAL_DEBUG is not defined.
+
+	* src/rasqal_engine.c, src/rasqal_graph_pattern.c:
+	(rasqal_graph_pattern_add_sub_graph_pattern): Always take
+	ownership of sub gp.
+	(rasqal_engine_execute_init): Free new_qgp on error and ensure
+	query->query_graph_pattern does not become a dangling pointer.
+
+	* src/fix-flex: Removed additional OOM checks added to
+	flex-generated ensure_buffer_stack(). flex versions 2.5.34 and
+	later generate the OOM checking code themselves.
+
+	* src/rasqal_engine.c:
+	(rasqal_engine_remove_duplicate_select_vars): Resiliency
+	fix. Check for raptor_new_sequence() failure.
+
+	* src/rasqal_graph_pattern.c:
+	(rasqal_new_graph_pattern_from_sequence): Resiliency
+	fix. graph_patterns may be NULL.
+
 2008-08-24  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_engine.c, src/rasqal_internal.h, src/rasqal_query.c,
+	src/rasqal_query_results.c: rasqal_query: Switched to use a
+	rasqal_variables_table object.  Make all old fields unused.  Added
+	prototypes for rasqal_variables_table_get_value,
+	rasqal_variables_table_get_named_variables_count,
+	rasqal_variables_table_get_anonymous_variables_count,
+	rasqal_variables_table_get_total_variables_count,
+	rasqal_variables_table_get_named_variables_sequence and
+	rasqal_variables_table_get_anonymous_variables_sequence.
+	(rasqal_new_query, rasqal_free_query): Create and destroy
+	variables table instead of individual fields.
+	(rasqal_query_get_all_variable_sequence,
+	rasqal_query_get_variable, rasqal_query_has_variable,
+	rasqal_query_execute, rasqal_query_print,
+	rasqal_query_get_variable_by_offset,
+	rasqal_engine_expand_wildcards, rasqal_query_build_declared_in,
+	rasqal_engine_get_next_result,
+	rasqal_engine_query_result_row_update,
+	rasqal_engine_bind_construct_variables,
+	rasqal_rowsource_engine_ensure_variables): Switch to use
+	rasqal_variables_table methods.
+
+	* src/rasqal_variable.c: (rasqal_new_variable_typed,
+	rasqal_new_variable): Now implemented with
+	rasqal_variables_table_add
+	(rasqal_variables_table_get_value): Added.
+	(rasqal_variables_table_get_named_variables_count,
+	rasqal_variables_table_get_anonymous_variables_count,
+	rasqal_variables_table_get_total_variables_count): Added.
+	(rasqal_variables_table_get_named_variables_sequence,
+	rasqal_variables_table_get_anonymous_variables_sequence): Added.
+
+	* tests/algebra/Makefile.am: Fix for make distcheck
+
+	* src/rasqal_engine.c, src/rasqal_internal.h,
+	src/sparql_parser.y: (rasqal_sparql_query_engine_prepare): Move
+	SPARQL-only rasqal_engine_build_anonymous_variables and
+	rasqal_engine_expand_wildcards to SPARQL query prepare code
 
 	* Checkpoint in query engine refactoring.
 	SVN 14382 at 2008-08-24 16:18:32 -0700 (Sun, 24 Aug 2008)
