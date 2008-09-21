@@ -563,6 +563,17 @@ struct rasqal_query_results_s {
 /* rasqal_empty_rowsource.c */
 rasqal_rowsource* rasqal_new_empty_rowsource(rasqal_query* query);
 
+/* rasqal_leftjoin_rowsource.c */
+rasqal_rowsource* rasqal_new_leftjoin_rowsource(rasqal_query* query, rasqal_query_results* results, rasqal_rowsource* left, rasqal_rowsource* right);
+
+/* rasqal_rowsequence_rowsource.c */
+rasqal_rowsource* rasqal_new_rowsequence_rowsource(rasqal_query* query, rasqal_variables_table* vt, raptor_sequence* row);
+
+/* rasqal_union_rowsource.c */
+rasqal_rowsource* rasqal_new_union_rowsource(rasqal_query* query, rasqal_rowsource* left, rasqal_rowsource* right);
+
+
+
 /* rasqal_rowsource.c */
 
 /**
@@ -934,6 +945,7 @@ int rasqal_init_result_format_sparql_xml(rasqal_world*);
 rasqal_query_results* rasqal_new_query_results(rasqal_query* query);
 void rasqal_query_results_reset(rasqal_query_results* query_results);
 rasqal_query_result_row* rasqal_new_query_result_row(rasqal_rowsource* rowsource);
+rasqal_query_result_row* rasqal_new_query_result_row_for_variables(rasqal_variables_table* vt);
 rasqal_query_result_row* rasqal_new_query_result_row_from_query_result_row(rasqal_query_result_row* row);
 void rasqal_free_query_result_row(rasqal_query_result_row* row);
 int rasqal_query_results_set_variables(rasqal_query_results* query_results, raptor_sequence* variables_sequence, int size, int order_size);
