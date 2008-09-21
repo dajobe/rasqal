@@ -121,6 +121,11 @@ main(int argc, char *argv[])
   int failures=0;
   
   rowsource=rasqal_new_empty_rowsource(fake_query);
+  if(!rowsource) {
+    fprintf(stderr, "%s: failed to create emtpy rowsource\n", program);
+    failures++;
+    goto tidy;
+  }
 
   row=rasqal_rowsource_read_row(rowsource);
   if(row) {
