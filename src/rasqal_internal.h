@@ -560,6 +560,9 @@ struct rasqal_query_results_s {
 };
     
 
+/* rasqal_empty_rowsource.c */
+rasqal_rowsource* rasqal_new_empty_rowsource(rasqal_query* query);
+
 /* rasqal_rowsource.c */
 
 /**
@@ -610,7 +613,7 @@ typedef rasqal_query_result_row* (*rasqal_rowsource_read_row_func) (rasqal_rowso
  *
  * Handler function for returning all rows as a sequence
  *
- * Return value: a query result row or NULL if exhausted
+ * Return value: a sequence of result rows (which may be size 0) or NULL if exhausted
  */
 typedef raptor_sequence* (*rasqal_rowsource_read_all_rows_func) (rasqal_rowsource* rowsource, void *user_data);
 
