@@ -348,8 +348,11 @@ make_row_sequence(rasqal_world* world, rasqal_variables_table* vt,
 
 const char* const test_rows[]=
 {
+  /* 2 variable names */
   "a",   NULL, "b",   NULL,
+  /* row 1 data */
   "foo", NULL, "bar", NULL,
+  /* end of data */
   NULL,  NULL, NULL,  NULL
 };
   
