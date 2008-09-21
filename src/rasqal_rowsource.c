@@ -224,15 +224,19 @@ rasqal_rowsource_get_rows_count(rasqal_rowsource *rowsource)
  * After calling this, the rowsource will be empty of rows and finished
  * and if a sequence is returned, it is owned by the caller.
  *
- * Return value: new sequence of all rows
+ * Return value: new sequence of all rows (may be size 0) or NULL on failure
  **/
 raptor_sequence*
 rasqal_rowsource_read_all_rows(rasqal_rowsource *rowsource)
 {
   raptor_sequence* seq;
 
-  if(rowsource->handler->read_all_rows)
-    return rowsource->handler->read_all_rows(rowsource, rowsource->user_data);
+  if(rowsource->handler->read_all_rows) {
+    seq = rowsource->handler->read_all_rows(rowsource, rowsource->user_data);
+    if(!seq)
+      seq=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_query_result_row, (raptor_sequence_print_handler*)rasqal_query_result_row_print);
+    return seq;
+  }
   
   seq=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_query_result_row, (raptor_sequence_print_handler*)rasqal_query_result_row_print);
   if(!seq)
