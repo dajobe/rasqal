@@ -68,13 +68,16 @@ rasqal_rowsequence_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
 }
 
 static int
-rasqal_rowsequence_rowsource_finish(rasqal_rowsource* rowsource, void *user_data)
+rasqal_rowsequence_rowsource_finish(rasqal_rowsource* rowsource,
+                                    void *user_data)
 {
   rasqal_rowsequence_rowsource_context* con=(rasqal_rowsequence_rowsource_context*)user_data;
 
   if(con->seq)
     raptor_free_sequence(con->seq);
   
+  RASQAL_FREE(rasqal_rowsequence_rowsource_context, con);
+
   return 0;
 }
 
