@@ -78,6 +78,8 @@ rasqal_union_rowsource_finish(rasqal_rowsource* rowsource, void *user_data)
   if(con->right)
     rasqal_free_rowsource(con->right);
   
+  RASQAL_FREE(rasqal_union_rowsource_context, con);
+
   return 0;
 }
 
