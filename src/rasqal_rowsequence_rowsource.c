@@ -233,6 +233,127 @@ rasqal_new_rowsequence_rowsource(rasqal_query* query,
 
 #ifdef STANDALONE
 
+
+/**
+ * make_row_sequence:
+ * @world: world object ot use
+ * @vt: variables table to use to declare variables
+ * @row_data: row data
+ * @vars_count: number of variables in row
+ *
+ * INTERNAL: Make a sequence of rasqal_query_result_row* objects with
+ * data and define variables in the @vt table.
+ *
+ * row_data is an array of strings forming a table of width
+ * (vars_count * 2) The first row is a list of variable names at
+ * offset 0 The remaining rows are values where offset 0 is a
+ * literal and offset 1 is a URI string.
+ *
+ * Return value: sequence of rows or NULL on failure
+ */
+static raptor_sequence*
+make_row_sequence(rasqal_world* world, rasqal_variables_table* vt,
+                  const char* const row_data[], int vars_count) 
+{
+  raptor_sequence *seq = NULL;
+  int row_i;
+  int column_i;
+  int failed=0;
+  
+#define GET_CELL(row, column, offset) \
+  row_data[((((row)*vars_count)+(column))<<1)+(offset)]
+
+  seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_query_result_row, (raptor_sequence_print_handler*)rasqal_query_result_row_print);
+  if(!seq)
+    return NULL;
+
+  /* row 0 is variables */
+  row_i = 0;
+
+  for(column_i = 0; column_i < vars_count; column_i++) {
+    const char * var_name=GET_CELL(row_i, column_i, 0);
+    size_t var_name_len=strlen(var_name);
+    const unsigned char* name;
+    
+    name = (unsigned char*)RASQAL_MALLOC(cstring, var_name_len+1);
+    if(name) {
+      strncpy((char*)name, var_name, var_name_len);
+      rasqal_variables_table_add(vt, RASQAL_VARIABLE_TYPE_NORMAL, name, NULL);
+    } else {
+      failed = 1;
+      goto tidy;
+    }
+  }
+
+  for(row_i = 1;
+      GET_CELL(row_i, 0, 0) || GET_CELL(row_i, 0, 1);
+      row_i++) {
+    rasqal_query_result_row* row;
+    
+    row = rasqal_new_query_result_row_for_variables(vt);
+    if(!row) {
+      raptor_free_sequence(seq); seq = NULL;
+      goto tidy;
+    }
+
+    for(column_i = 0;
+        GET_CELL(row_i, column_i, 0) || GET_CELL(row_i, column_i, 1);
+        column_i++) {
+      rasqal_literal* l;
+
+      if(GET_CELL(row_i, column_i, 0)) {
+        /* string literal */
+        const char* str = GET_CELL(row_i, column_i, 0);
+        size_t str_len = strlen(str);
+        unsigned char *val;
+        val = (unsigned char*)RASQAL_MALLOC(cstring, str_len+1);
+        if(val) {
+          strncpy((char*)val, str, str_len+1);
+          l = rasqal_new_string_literal_node(world, val, NULL, NULL);
+        } else
+          failed = 1;
+      } else {
+        /* URI */
+        const unsigned char* str;
+        raptor_uri* u;
+        str = (const unsigned char*)GET_CELL(row_i, column_i, 1);
+        u = raptor_new_uri(str);
+        if(u)
+          l = rasqal_new_uri_literal(world, u);
+        else
+          failed = 1;
+      }
+      if(!l) {
+        rasqal_free_query_result_row(row);
+        failed = 1;
+        goto tidy;
+      }
+      rasqal_query_result_row_set_value_at(row, column_i, l);
+    }
+
+    raptor_sequence_push(seq, row);
+  }
+
+  tidy:
+  if(failed) {
+    if(seq) {
+      raptor_free_sequence(seq);
+      seq=NULL;
+    }
+  }
+  
+  return seq;
+}
+
+
+const char* const test_rows[]=
+{
+  "a",   NULL, "b",   NULL,
+  "foo", NULL, "bar", NULL,
+  NULL,  NULL, NULL,  NULL
+};
+  
+
 /* one more prototype */
 int main(int argc, char *argv[]);
 
@@ -248,72 +369,17 @@ main(int argc, char *argv[])
   int count;
   int failures = 0;
   rasqal_variables_table* vt;
-  rasqal_variable* a_var = NULL;
-  rasqal_variable* b_var = NULL;
-  rasqal_literal* l = NULL;
-  unsigned char* val = NULL;
   
-  seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_query_result_row, (raptor_sequence_print_handler*)rasqal_query_result_row_print);
-  if(!seq) {
-    fprintf(stderr, "%s: failed to create empty seq\n", program);
-    failures++;
-    goto tidy;
-  }
-
   /* create 2 variables and a table */
   vt = rasqal_new_variables_table(fake_world);
 
-  val = (unsigned char*)RASQAL_MALLOC(cstring, 2);
-  strncpy((char*)val, "a", 2);
-  a_var=rasqal_variables_table_add(vt, RASQAL_VARIABLE_TYPE_NORMAL, val, NULL);
-  /* val is now owned by a_var */
-  val = NULL;
-  
-  val = (unsigned char*)RASQAL_MALLOC(cstring, 2);
-  strncpy((char*)val, "b", 2);
-  b_var=rasqal_variables_table_add(vt, RASQAL_VARIABLE_TYPE_NORMAL, val, NULL);
-  /* val is now owned by b_var */
-  val = NULL;
-
-  row = rasqal_new_query_result_row_for_variables(vt);
-  if(!row) {
-    fprintf(stderr, "%s: failed to create query result row\n", program);
+  seq = make_row_sequence(fake_world, vt, test_rows, 2);
+  if(!seq) {
+    fprintf(stderr, "%s: failed to create sequence of rows\n", program);
     failures++;
     goto tidy;
   }
 
-  val = (unsigned char*)RASQAL_MALLOC(cstring, 4);
-  strncpy((char*)val, "foo", 4);
-  l = rasqal_new_string_literal_node(fake_world, val, NULL, NULL);
-  if(!l) {
-    fprintf(stderr, "%s: failed to create literal A\n", program);
-    failures++;
-    goto tidy;
-  }
-  /* val is now owned by l */
-  val = NULL;
-  rasqal_query_result_row_set_value_at(row, a_var->offset, l);
-  /* l is now owned by row */
-  l = NULL;
-  
-  val = (unsigned char*)RASQAL_MALLOC(cstring, 4);
-  strncpy((char*)val, "bar", 4);
-  l = rasqal_new_string_literal_node(fake_world, val, NULL, NULL);
-  if(!l) {
-    fprintf(stderr, "%s: failed to create literal B\n", program);
-    failures++;
-    goto tidy;
-  }
-  /* val is now owned by l */
-  val = NULL;
-  rasqal_query_result_row_set_value_at(row, b_var->offset, l);
-  /* l is now owned by row */
-  l = NULL;
-
-  raptor_sequence_push(seq, row);
-  /* row is now owned by seq */
-  row = NULL;
-  
   rowsource=rasqal_new_rowsequence_rowsource(fake_query, vt, seq);
   if(!rowsource) {
     fprintf(stderr, "%s: failed to create rowsequence rowsource\n", program);
