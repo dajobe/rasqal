@@ -839,16 +839,8 @@ rasqal_query_results_write(raptor_iostream *iostr,
 }
 
 
-/**
- * rasqal_new_query_result_row:
- * @rowsource: rowsource
- *
- * INTERNAL - Create a new query result row at an offset into the result sequence.
- *
- * Return value: a new query result row or NULL on failure
- */
-rasqal_query_result_row*
-rasqal_new_query_result_row(rasqal_rowsource* rowsource)
+static rasqal_query_result_row*
+rasqal_new_query_result_row_common(int size, int order_size)
 {
   rasqal_query_result_row* row;
   
@@ -858,9 +850,8 @@ rasqal_new_query_result_row(rasqal_rowsource* rowsource)
     return NULL;
 
   row->usage=1;
-  row->rowsource=rowsource;
-
-  rasqal_rowsource_get_sizes(rowsource, &row->size, &row->order_size);
+  row->size=size;
+  row->order_size=order_size;
   
   row->values=(rasqal_literal**)RASQAL_CALLOC(array, row->size,
 					      sizeof(rasqal_literal*));
@@ -879,6 +870,51 @@ rasqal_new_query_result_row(rasqal_rowsource* rowsource)
   }
   
   return row;
+}
+
+
+/**
+ * rasqal_new_query_result_row:
+ * @rowsource: rowsource
+ *
+ * INTERNAL - Create a new query result row at an offset into the result sequence.
+ *
+ * Return value: a new query result row or NULL on failure
+ */
+rasqal_query_result_row*
+rasqal_new_query_result_row(rasqal_rowsource* rowsource)
+{
+  int size;
+  int order_size;
+  rasqal_query_result_row* row;
+  
+  rasqal_rowsource_get_sizes(rowsource, &size, &order_size);
+
+  row=rasqal_new_query_result_row_common(size, order_size);
+  if(row)
+    row->rowsource=rowsource;
+
+  return row;
+}
+
+
+/**
+ * rasqal_new_query_result_row_for_variables:
+ * @vt: variables table
+ *
+ * INTERNAL - Create a new query result row suitable for a variables table
+ *
+ * Return value: a new query result row or NULL on failure
+ */
+rasqal_query_result_row*
+rasqal_new_query_result_row_for_variables(rasqal_variables_table* vt)
+{
+  int size;
+  int order_size=0;
+  
+  size=rasqal_variables_table_get_named_variables_count(vt);
+
+  return rasqal_new_query_result_row_common(size, order_size);
 }
 
 
