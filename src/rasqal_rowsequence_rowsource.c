@@ -244,10 +244,11 @@ rasqal_new_rowsequence_rowsource(rasqal_query* query,
  * INTERNAL: Make a sequence of rasqal_query_result_row* objects with
  * data and define variables in the @vt table.
  *
- * row_data is an array of strings forming a table of width
- * (vars_count * 2) The first row is a list of variable names at
- * offset 0 The remaining rows are values where offset 0 is a
- * literal and offset 1 is a URI string.
+ * The @row_data parameter is an array of strings forming a table of
+ * width (vars_count * 2).
+ * The first row is a list of variable names at offset 0.
+ * The remaining rows are values where offset 0 is a literal and
+ * offset 1 is a URI string.
  *
  * Return value: sequence of rows or NULL on failure
  */
