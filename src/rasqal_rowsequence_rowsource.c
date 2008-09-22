@@ -113,7 +113,8 @@ rasqal_rowsequence_rowsource_read_row(rasqal_rowsource* rowsource,
   if(!row) {
     /* finished */
     con->offset = -1;
-  }
+  } else
+    con->offset++;
 
   return row;
 }
@@ -395,14 +396,14 @@ main(int argc, char *argv[])
 
   seq = make_row_sequence(fake_world, vt, test_rows, 2);
   if(!seq) {
-    fprintf(stderr, "%s: failed to create sequence of rows\n", program);
+    fprintf(stderr, "%s: failed to create sequence of 1 rows\n", program);
     failures++;
     goto tidy;
   }
 
   rowsource = rasqal_new_rowsequence_rowsource(fake_query, vt, seq);
   if(!rowsource) {
-    fprintf(stderr, "%s: failed to create rowsequence rowsource\n", program);
+    fprintf(stderr, "%s: failed to create 1-row sequence rowsource\n", program);
     failures++;
     goto tidy;
   }
@@ -412,7 +413,7 @@ main(int argc, char *argv[])
   row = rasqal_rowsource_read_row(rowsource);
   if(!row) {
     fprintf(stderr,
-            "%s: read_row returned no row for a rowsequence rowsource\n",
+            "%s: read_row returned no row for a 1-row sequence rowsource\n",
             program);
     failures++;
     goto tidy;
@@ -425,15 +426,24 @@ main(int argc, char *argv[])
   count = rasqal_rowsource_get_rows_count(rowsource);
   if(count != 1) {
     fprintf(stderr,
-            "%s: read_rows returned count %d instead of 1 for a rowsequence rowsource\n",
+            "%s: read_rows returned count %d instead of 1 for a 1-row sequence rowsource\n",
             program, count);
+    failures++;
+    goto tidy;
+  }
+
+  row = rasqal_rowsource_read_row(rowsource);
+  if(row) {
+    fprintf(stderr,
+            "%s: read_row returned >1 row for a 1-row sequence rowsource\n",
+            program);
     failures++;
     goto tidy;
   }
   
   if(rasqal_rowsource_get_query(rowsource) != fake_query) {
     fprintf(stderr,
-            "%s: get_query returned a different query for a rowsequence rowsurce\n",
+            "%s: get_query returned a different query for a 1-row sequence rowsurce\n",
             program);
     failures++;
     goto tidy;
