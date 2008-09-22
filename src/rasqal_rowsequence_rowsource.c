@@ -109,7 +109,7 @@ rasqal_rowsequence_rowsource_read_row(rasqal_rowsource* rowsource,
   if(con->failed || con->offset < 0)
     return NULL;
 
-  row = (rasqal_query_result_row*)raptor_sequence_get_at(con->seq, con->offset);
+  row = (rasqal_query_result_row*)raptor_sequence_delete_at(con->seq, con->offset);
   if(!row) {
     /* finished */
     con->offset = -1;
