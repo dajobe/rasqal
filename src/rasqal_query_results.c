@@ -1170,3 +1170,120 @@ rasqal_query_result_row_set_value_at(rasqal_query_result_row* row, int offset,
 {
   row->values[offset]=value;
 }
+
+
+/**
+ * rasqal_new_query_result_row_sequence:
+ * @world: world object ot use
+ * @vt: variables table to use to declare variables
+ * @row_data: row data
+ * @vars_count: number of variables in row
+ *
+ * INTERNAL - Make a sequence of #rasqal_query_result_row* objects
+ * with ariables defined into the @vt table and values in the sequence
+ *
+ * The @row_data parameter is an array of strings forming a table of
+ * width (vars_count * 2).
+ * The first row is a list of variable names at offset 0.
+ * The remaining rows are values where offset 0 is a literal and
+ * offset 1 is a URI string.
+ * The last row is indicated by offset 0 = NULL and offset 1 = NULL
+ *
+ * Return value: sequence of rows or NULL on failure
+ */
+raptor_sequence*
+rasqal_new_query_result_row_sequence(rasqal_world* world,
+                                     rasqal_variables_table* vt,
+                                     const char* const row_data[],
+                                     int vars_count) 
+{
+  raptor_sequence *seq = NULL;
+  int row_i;
+  int column_i;
+  int failed = 0;
+  
+#define GET_CELL(row, column, offset) \
+  row_data[((((row)*vars_count)+(column))<<1)+(offset)]
+
+  seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_query_result_row, (raptor_sequence_print_handler*)rasqal_query_result_row_print);
+  if(!seq)
+    return NULL;
+
+  /* row 0 is variables */
+  row_i = 0;
+
+  for(column_i = 0; column_i < vars_count; column_i++) {
+    const char * var_name = GET_CELL(row_i, column_i, 0);
+    size_t var_name_len = strlen(var_name);
+    const unsigned char* name;
+    
+    name = (unsigned char*)RASQAL_MALLOC(cstring, var_name_len+1);
+    if(name) {
+      strncpy((char*)name, var_name, var_name_len+1);
+      rasqal_variables_table_add(vt, RASQAL_VARIABLE_TYPE_NORMAL, name, NULL);
+    } else {
+      failed = 1;
+      goto tidy;
+    }
+  }
+
+  for(row_i = 1;
+      GET_CELL(row_i, 0, 0) || GET_CELL(row_i, 0, 1);
+      row_i++) {
+    rasqal_query_result_row* row;
+    
+    row = rasqal_new_query_result_row_for_variables(vt);
+    if(!row) {
+      raptor_free_sequence(seq); seq = NULL;
+      goto tidy;
+    }
+
+    for(column_i = 0; column_i < vars_count; column_i++) {
+      rasqal_literal* l = NULL;
+
+      if(GET_CELL(row_i, column_i, 0)) {
+        /* string literal */
+        const char* str = GET_CELL(row_i, column_i, 0);
+        size_t str_len = strlen(str);
+        unsigned char *val;
+        val = (unsigned char*)RASQAL_MALLOC(cstring, str_len+1);
+        if(val) {
+          strncpy((char*)val, str, str_len+1);
+          l = rasqal_new_string_literal_node(world, val, NULL, NULL);
+        } else 
+          failed = 1;
+      } else if(GET_CELL(row_i, column_i, 1)) {
+        /* URI */
+        const unsigned char* str;
+        raptor_uri* u;
+        str = (const unsigned char*)GET_CELL(row_i, column_i, 1);
+        u = raptor_new_uri(str);
+        if(u)
+          l = rasqal_new_uri_literal(world, u);
+        else
+          failed = 1;
+      } /* else invalid and l=NULL so fails */
+
+      if(!l) {
+        rasqal_free_query_result_row(row);
+        failed = 1;
+        goto tidy;
+      }
+      rasqal_query_result_row_set_value_at(row, column_i, l);
+    }
+
+    raptor_sequence_push(seq, row);
+  }
+
+  tidy:
+  if(failed) {
+    if(seq) {
+      raptor_free_sequence(seq);
+      seq = NULL;
+    }
+  }
+  
+  return seq;
+}
+
+

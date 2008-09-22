@@ -933,6 +933,8 @@ rasqal_variable* rasqal_query_get_variable_by_offset(rasqal_query* query, int id
 int rasqal_init_query_results(void);
 void rasqal_finish_query_results(void);
 
+raptor_sequence* rasqal_new_query_result_row_sequence(rasqal_world* world, rasqal_variables_table* vt, const char* const row_data[], int vars_count);
+
 /* rasqal_result_formats.c */
 int rasqal_query_results_format_register_factory(rasqal_world*, const char *name, const char *label, const unsigned char* uri_string, rasqal_query_results_formatter_func writer, rasqal_query_results_formatter_func reader, rasqal_query_results_get_rowsource_func get_rowsource, const char *mime_type);
 int rasqal_init_result_formats(rasqal_world*);
