@@ -1,3 +1,43 @@
+2008-09-21  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_rowsequence_rowsource.c: docs
+
+	* src/rasqal_rowsequence_rowsource.c: comments
+
+	* src/rasqal_rowsequence_rowsource.c: (make_row_sequence): Added
+	to build row test data
+	(main): Use it
+
+2008-09-20  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_union_rowsource.c: (rasqal_union_rowsource_finish):
+	Free context
+
+	* src/rasqal_rowsequence_rowsource.c:
+	(rasqal_rowsequence_rowsource_finish): Free context
+
+	* src/rasqal_empty_rowsource.c: (rasqal_empty_rowsource_finish):
+	Added and used to free context
+
+	* src/Makefile.am, src/rasqal_internal.h,
+	src/rasqal_rowsequence_rowsource.c, src/rasqal_union_rowsource.c:
+	Added union and rowsequence rowsources
+
+	* src/rasqal_query_results.c:
+	(rasqal_new_query_result_row_common): Added, pulled out of
+	rasqal_new_query_result_row
+	(rasqal_new_query_result_row): Refactored to use above.
+	(rasqal_new_query_result_row_for_variables): Added, creating a row
+	big enough for all the named variables in a variables table.
+
+	* src/rasqal_empty_rowsource.c: (main) fail test
+
+	* src/Makefile.am, src/rasqal_empty_rowsource.c,
+	src/rasqal_internal.h: Added empty rowsource class
+
+	* src/rasqal_rowsource.c: (rasqal_rowsource_read_all_rows): Return
+	an empty sequence rather than NULL when 0 rows are returned
+
 2008-09-08  Lauri Aalto <laalto@iki.fi>
 
 	* src/rasqal.h, src/rasqal_internal.h: Moved EXTERN_C definitions
