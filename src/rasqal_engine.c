@@ -2748,7 +2748,7 @@ rasqal_engine_query_result_row_update(rasqal_query_results *query_results,
  *
  * Return a rasqal_query_result_row
  */
-static rasqal_query_result_row*
+rasqal_query_result_row*
 rasqal_engine_get_result_row(rasqal_query_results* query_results)
 {
   rasqal_query_result_row* row;
