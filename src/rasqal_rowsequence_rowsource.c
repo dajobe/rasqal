@@ -59,7 +59,9 @@ typedef struct
 static int
 rasqal_rowsequence_rowsource_init(rasqal_rowsource* rowsource, void *user_data) 
 {
-  rasqal_rowsequence_rowsource_context* con=(rasqal_rowsequence_rowsource_context*)user_data;
+  rasqal_rowsequence_rowsource_context* con;
+
+  con=(rasqal_rowsequence_rowsource_context*)user_data;
   con->offset=0;
 
   con->failed=0;
@@ -67,12 +69,14 @@ rasqal_rowsequence_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
   return 0;
 }
 
+
 static int
 rasqal_rowsequence_rowsource_finish(rasqal_rowsource* rowsource,
                                     void *user_data)
 {
-  rasqal_rowsequence_rowsource_context* con=(rasqal_rowsequence_rowsource_context*)user_data;
+  rasqal_rowsequence_rowsource_context* con;
 
+  con=(rasqal_rowsequence_rowsource_context*)user_data;
   if(con->seq)
     raptor_free_sequence(con->seq);
   
@@ -81,21 +85,25 @@ rasqal_rowsequence_rowsource_finish(rasqal_rowsource* rowsource,
   return 0;
 }
 
+
 static int
 rasqal_rowsequence_rowsource_ensure_variables(rasqal_rowsource* rowsource,
                                               void *user_data)
 {
-  /* rasqal_rowsequence_rowsource_context* con=(rasqal_rowsequence_rowsource_context*)user_data; */
+  /* rasqal_rowsequence_rowsource_context* con;
+  con=(rasqal_rowsequence_rowsource_context*)user_data; */
   return 0;
 }
+
 
 static rasqal_query_result_row*
 rasqal_rowsequence_rowsource_read_row(rasqal_rowsource* rowsource,
                                       void *user_data)
 {
-  rasqal_rowsequence_rowsource_context* con=(rasqal_rowsequence_rowsource_context*)user_data;
+  rasqal_rowsequence_rowsource_context* con;
   rasqal_query_result_row* row = NULL;
   
+  con=(rasqal_rowsequence_rowsource_context*)user_data;
   if(con->failed || con->offset <0)
     return NULL;
 
@@ -108,13 +116,15 @@ rasqal_rowsequence_rowsource_read_row(rasqal_rowsource* rowsource,
   return row;
 }
 
+
 static raptor_sequence*
 rasqal_rowsequence_rowsource_read_all_rows(rasqal_rowsource* rowsource,
-                                     void *user_data)
+                                           void *user_data)
 {
-  rasqal_rowsequence_rowsource_context* con=(rasqal_rowsequence_rowsource_context*)user_data;
+  rasqal_rowsequence_rowsource_context* con;
   raptor_sequence* seq;
   
+  con=(rasqal_rowsequence_rowsource_context*)user_data;
   if(con->offset < 0)
     return NULL;
 
@@ -124,10 +134,14 @@ rasqal_rowsequence_rowsource_read_all_rows(rasqal_rowsource* rowsource,
   return seq;
 }
 
+
 static rasqal_query*
-rasqal_rowsequence_rowsource_get_query(rasqal_rowsource* rowsource, void *user_data)
+rasqal_rowsequence_rowsource_get_query(rasqal_rowsource* rowsource,
+                                       void *user_data)
 {
-  rasqal_rowsequence_rowsource_context* con=(rasqal_rowsequence_rowsource_context*)user_data;
+  rasqal_rowsequence_rowsource_context* con;
+
+  con=(rasqal_rowsequence_rowsource_context*)user_data;
   return con->query;
 }
 
