@@ -1,6 +1,6 @@
 /* -*- Mode: c; c-basic-offset: 2 -*-
  *
- * rasqal_engine_rowsequence.c - Rasqal query engine rowsource class
+ * rasqal_engine_rowsource.c - Rasqal query engine rowsource class
  *
  * Copyright (C) 2008, David Beckett http://www.dajobe.org/
  * 
