@@ -145,10 +145,36 @@ rasqal_rowsource_add_variable(rasqal_rowsource *rowsource, rasqal_variable* v)
 
 
 /**
- * rasqal_rowsource_update_variables:
+ * rasqal_rowsource_ensure_variables:
  * @rowsource: rasqal rowsource
  *
- * Set the rowsource metadata
+ * INTERNAL - Ensure that the variables in the rowsource are defined
+ *
+ * Return value: non-0 on failure
+ */
+static int
+rasqal_rowsource_ensure_variables(rasqal_rowsource *rowsource)
+{
+  int rc=0;
+  
+  if(rowsource->updated_variables)
+    return 0;
+
+  rowsource->updated_variables++;
+  
+  if(rowsource->handler->ensure_variables)
+    rc=rowsource->handler->ensure_variables(rowsource, rowsource->user_data);
+
+  return rc;
+}
+
+
+/**
+ * rasqal_rowsource_update_variables:
+ * @rowsource: rasqal rowsource
+ * @results: query results
+ *
+ * Use the rowsource metadata to set the query result sizes
  *
  * Return value: non-0 on failure
  **/
@@ -159,8 +185,7 @@ rasqal_rowsource_update_variables(rasqal_rowsource *rowsource,
   if(rowsource->finished)
     return 1;
 
-  if(rowsource->handler->ensure_variables)
-     rowsource->handler->ensure_variables(rowsource, rowsource->user_data);
+  rasqal_rowsource_ensure_variables(rowsource);
 
   RASQAL_DEBUG2("Setting results to hold %d variables\n", rowsource->size);
   rasqal_query_results_set_variables(results, rowsource->variables_sequence,
@@ -187,6 +212,8 @@ rasqal_rowsource_read_row(rasqal_rowsource *rowsource)
   
   if(rowsource->finished)
     return NULL;
+
+  rasqal_rowsource_ensure_variables(rowsource);
 
   if(rowsource->handler->read_row)
     row=rowsource->handler->read_row(rowsource, rowsource->user_data);
@@ -230,6 +257,8 @@ raptor_sequence*
 rasqal_rowsource_read_all_rows(rasqal_rowsource *rowsource)
 {
   raptor_sequence* seq;
+
+  rasqal_rowsource_ensure_variables(rowsource);
 
   if(rowsource->handler->read_all_rows) {
     seq = rowsource->handler->read_all_rows(rowsource, rowsource->user_data);
@@ -282,8 +311,7 @@ void
 rasqal_rowsource_get_sizes(rasqal_rowsource *rowsource,
                            int* size_p, int* order_size_p)
 {
-  if(rowsource->handler->ensure_variables)
-     rowsource->handler->ensure_variables(rowsource, rowsource->user_data);
+  rasqal_rowsource_ensure_variables(rowsource);
 
   if(size_p)
     *size_p=rowsource->size;
@@ -304,6 +332,8 @@ rasqal_rowsource_get_sizes(rasqal_rowsource *rowsource,
 rasqal_variable*
 rasqal_rowsource_get_variable_by_offset(rasqal_rowsource *rowsource, int offset)
 {
+  rasqal_rowsource_ensure_variables(rowsource);
+
   if(!rowsource->variables_sequence)
     return NULL;
   
@@ -328,6 +358,8 @@ rasqal_rowsource_get_variable_offset_by_name(rasqal_rowsource *rowsource,
   int offset= -1;
   int i;
   
+  rasqal_rowsource_ensure_variables(rowsource);
+
   if(!rowsource->variables_sequence)
     return -1;
   

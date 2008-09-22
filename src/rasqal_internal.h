@@ -694,6 +694,11 @@ struct rasqal_rowsource_s
   /* count of number of rows returned */
   int count;
 
+  /* non-0 if ensure_variables factory method has been called to get
+   * the variables_sequence updated
+   */
+  int updated_variables;
+  
   /* array of rasqal_variable* */
   raptor_sequence* variables_sequence;
 
