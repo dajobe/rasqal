@@ -266,6 +266,7 @@ rasqal_new_rowsequence_rowsource(rasqal_query* query,
  * The first row is a list of variable names at offset 0.
  * The remaining rows are values where offset 0 is a literal and
  * offset 1 is a URI string.
+ * The last row is indicated by offset 0 = NULL and offset 1 = NULL
  *
  * Return value: sequence of rows or NULL on failure
  */
@@ -295,7 +296,7 @@ make_row_sequence(rasqal_world* world, rasqal_variables_table* vt,
     
     name = (unsigned char*)RASQAL_MALLOC(cstring, var_name_len+1);
     if(name) {
-      strncpy((char*)name, var_name, var_name_len);
+      strncpy((char*)name, var_name, var_name_len+1);
       rasqal_variables_table_add(vt, RASQAL_VARIABLE_TYPE_NORMAL, name, NULL);
     } else {
       failed = 1;
@@ -314,10 +315,8 @@ make_row_sequence(rasqal_world* world, rasqal_variables_table* vt,
       goto tidy;
     }
 
-    for(column_i = 0;
-        GET_CELL(row_i, column_i, 0) || GET_CELL(row_i, column_i, 1);
-        column_i++) {
-      rasqal_literal* l;
+    for(column_i = 0; column_i < vars_count; column_i++) {
+      rasqal_literal* l = NULL;
 
       if(GET_CELL(row_i, column_i, 0)) {
         /* string literal */
@@ -328,9 +327,9 @@ make_row_sequence(rasqal_world* world, rasqal_variables_table* vt,
         if(val) {
           strncpy((char*)val, str, str_len+1);
           l = rasqal_new_string_literal_node(world, val, NULL, NULL);
-        } else
+        } else 
           failed = 1;
-      } else {
+      } else if(GET_CELL(row_i, column_i, 1)) {
         /* URI */
         const unsigned char* str;
         raptor_uri* u;
@@ -340,7 +339,8 @@ make_row_sequence(rasqal_world* world, rasqal_variables_table* vt,
           l = rasqal_new_uri_literal(world, u);
         else
           failed = 1;
-      }
+      } /* else invalid and l=NULL so fails */
+
       if(!l) {
         rasqal_free_query_result_row(row);
         failed = 1;
@@ -364,14 +364,29 @@ make_row_sequence(rasqal_world* world, rasqal_variables_table* vt,
 }
 
 
-const char* const test_rows[] =
+const char* const test_1_rows[] =
 {
   /* 2 variable names */
   "a",   NULL, "b",   NULL,
   /* row 1 data */
   "foo", NULL, "bar", NULL,
   /* end of data */
-  NULL,  NULL, NULL,  NULL
+  NULL, NULL
+};
+  
+
+const char* const test_3_rows[] =
+{
+  /* 4 variable names */
+  "c1",    NULL, "c2",     NULL, "c3",     NULL, "c4",       NULL,
+  /* row 1 data */
+  "red",   NULL, "orange", NULL, "yellow", NULL, "green",    NULL,
+  /* row 2 data */
+  "blue",  NULL, "indigo", NULL, "violet", NULL, "white",    NULL,
+  /* row 3 data */
+  "black", NULL, "silver", NULL, "gold",   NULL, "platinum", NULL,
+  /* end of data */
+  NULL, NULL
 };
   
 
@@ -390,20 +405,31 @@ main(int argc, char *argv[])
   int count;
   int failures = 0;
   rasqal_variables_table* vt;
+  int rows_count;
+  int i;
   
-  /* create 2 variables and a table */
+  /* test 1-row rowsource (2 variables) */
+  rows_count = 1;
+  
+#ifdef RASQAL_DEBUG  
+  RASQAL_DEBUG2("Testing %d-row rowsource\n", rows_count);
+#endif
+
   vt = rasqal_new_variables_table(fake_world);
 
-  seq = make_row_sequence(fake_world, vt, test_rows, 2);
+  /* add 2 variables to table and 1 row sequence */
+  seq = make_row_sequence(fake_world, vt, test_1_rows, 2);
   if(!seq) {
-    fprintf(stderr, "%s: failed to create sequence of 1 rows\n", program);
+    fprintf(stderr, "%s: failed to create sequence of %d rows\n", program,
+            rows_count);
     failures++;
     goto tidy;
   }
 
   rowsource = rasqal_new_rowsequence_rowsource(fake_query, vt, seq);
   if(!rowsource) {
-    fprintf(stderr, "%s: failed to create 1-row sequence rowsource\n", program);
+    fprintf(stderr, "%s: failed to create %d-row sequence rowsource\n",
+            program, rows_count);
     failures++;
     goto tidy;
   }
@@ -413,21 +439,25 @@ main(int argc, char *argv[])
   row = rasqal_rowsource_read_row(rowsource);
   if(!row) {
     fprintf(stderr,
-            "%s: read_row returned no row for a 1-row sequence rowsource\n",
-            program);
+            "%s: read_row returned no row for a %d-row sequence rowsource\n",
+            program, rows_count);
     failures++;
     goto tidy;
   }
-  
-  fprintf(stderr, "%s: Result Row: ", program);
+
+#ifdef RASQAL_DEBUG  
+  RASQAL_DEBUG1("Result Row:\n  ");
   rasqal_query_result_row_print(row, stderr);
   fputc('\n', stderr);
+#endif
+
+  rasqal_free_query_result_row(row); row = NULL;
 
   count = rasqal_rowsource_get_rows_count(rowsource);
-  if(count != 1) {
+  if(count != rows_count) {
     fprintf(stderr,
-            "%s: read_rows returned count %d instead of 1 for a 1-row sequence rowsource\n",
-            program, count);
+            "%s: read_rows returned count %d instead of %d for a %d-row sequence rowsource\n",
+            program, count, rows_count, rows_count);
     failures++;
     goto tidy;
   }
@@ -435,28 +465,109 @@ main(int argc, char *argv[])
   row = rasqal_rowsource_read_row(rowsource);
   if(row) {
     fprintf(stderr,
-            "%s: read_row returned >1 row for a 1-row sequence rowsource\n",
-            program);
+            "%s: read_row returned > %d rows for a %d-row sequence rowsource\n",
+            program, rows_count, rows_count);
     failures++;
     goto tidy;
   }
   
   if(rasqal_rowsource_get_query(rowsource) != fake_query) {
     fprintf(stderr,
-            "%s: get_query returned a different query for a 1-row sequence rowsurce\n",
-            program);
+            "%s: get_query returned a different query for a %d-row sequence rowsurce\n",
+            program, rows_count);
     failures++;
     goto tidy;
   }
 
+  rasqal_free_rowsource(rowsource); rowsource = NULL;
+  rasqal_free_variables_table(vt); vt = NULL;
+
+  /* test 3-row rowsource */
+  rows_count = 3;
+
+#ifdef RASQAL_DEBUG  
+  RASQAL_DEBUG2("Testing %d-row rowsource\n", rows_count);
+#endif
+
+  vt = rasqal_new_variables_table(fake_world);
+
+  /* add 4 variables to table and 3 row sequence */
+  seq = make_row_sequence(fake_world, vt, test_3_rows, 4);
+  if(!seq) {
+    fprintf(stderr, "%s: failed to create sequence of %d rows\n",
+            program, rows_count);
+    failures++;
+    goto tidy;
+  }
+
+  rowsource = rasqal_new_rowsequence_rowsource(fake_query, vt, seq);
+  if(!rowsource) {
+    fprintf(stderr, "%s: failed to create %d-row sequence rowsource\n",
+            program, rows_count);
+    failures++;
+    goto tidy;
+  }
+  /* seq is now owned by rowsource */
+  seq = NULL;
+
+  for(i = 0; i < rows_count; i++) {
+    row = rasqal_rowsource_read_row(rowsource);
+    if(!row) {
+      fprintf(stderr,
+              "%s: read_row returned no row for row %d in a %d-row sequence rowsource\n",
+              program, i, rows_count);
+      failures++;
+      goto tidy;
+    }
+
+  #ifdef RASQAL_DEBUG  
+    RASQAL_DEBUG1("Result Row:\n  ");
+    rasqal_query_result_row_print(row, stderr);
+    fputc('\n', stderr);
+  #endif
+
+    rasqal_free_query_result_row(row); row = NULL;
+  }
+  
+  count = rasqal_rowsource_get_rows_count(rowsource);
+  if(count != rows_count) {
+    fprintf(stderr,
+            "%s: read_rows returned count %d instead of %d for a %d-row sequence rowsource\n",
+            program, count, rows_count, rows_count);
+    failures++;
+    goto tidy;
+  }
+
+  row = rasqal_rowsource_read_row(rowsource);
+  if(row) {
+    fprintf(stderr,
+            "%s: read_row returned >%d rows for a %d-row sequence rowsource\n",
+            program, rows_count, rows_count);
+    failures++;
+    goto tidy;
+  }
+  
+  if(rasqal_rowsource_get_query(rowsource) != fake_query) {
+    fprintf(stderr,
+            "%s: get_query returned a different query for a %d-row sequence rowsurce\n",
+            program, rows_count);
+    failures++;
+    goto tidy;
+  }
+
+  rasqal_free_rowsource(rowsource); rowsource = NULL;
+  rasqal_free_variables_table(vt); vt = NULL;
+
 
   tidy:
-  if(vt)
-    rasqal_free_variables_table(vt);
+  if(row)
+    rasqal_free_query_result_row(row);
   if(seq)
     raptor_free_sequence(seq);
   if(rowsource)
     rasqal_free_rowsource(rowsource);
+  if(vt)
+    rasqal_free_variables_table(vt);
 
   return failures;
 }
