@@ -379,7 +379,11 @@ struct rasqal_query_s {
 
 
 /*
- * A query engine factory for a query language
+ * A query engine factory for a query language.
+ *
+ * This structure is about turning a query syntax string into a
+ * #rasqal_query structure.  It does not deal with execution of the
+ * query in any manner.
  */
 struct rasqal_query_engine_factory_s {
   struct rasqal_query_engine_factory_s* next;
