@@ -811,17 +811,10 @@ rasqal_triples_source* rasqal_new_triples_source(rasqal_query_results* query_res
 void rasqal_free_triples_source(rasqal_triples_source* rts);
 int rasqal_triples_source_next_source(rasqal_triples_source* rts);
 
-int rasqal_engine_get_next_result(rasqal_query_results* query_results);
-void rasqal_engine_assign_binding_values(rasqal_query* query);
 int rasqal_engine_move_constraints(rasqal_graph_pattern* dest_gp, rasqal_graph_pattern* src_gp);
-int rasqal_engine_execute_run(rasqal_query_results* query_results);
 void rasqal_engine_free_query_result_row(rasqal_query_result_row* row);
-rasqal_literal** rasqal_engine_get_result_values(rasqal_query_results* query_results);
-rasqal_literal* rasqal_engine_get_result_value(rasqal_query_results* query_results, int offset);
-int rasqal_engine_execute_next(rasqal_query_results* query_results);
 int rasqal_engine_expand_wildcards(rasqal_query* rq);
 int rasqal_engine_build_anonymous_variables(rasqal_query* rq);
-rasqal_query_result_row* rasqal_engine_get_result_row(rasqal_query_results* query_results);
 
 /* rasqal_expr.c */
 rasqal_literal* rasqal_new_string_literal_node(rasqal_world*, const unsigned char *string, const char *language, raptor_uri *datatype);
@@ -1123,18 +1116,36 @@ struct rasqal_query_execution_factory_s {
    *
    * Return value: <0 if failed, 0 if result, >0 if finished
    */
-  int (*execute_init)(rasqal_query_results* results, void* ex_data);
+  int (*execute_init)(rasqal_query_results* query_results, void* ex_data);
+
+  /* get current bindings result row (returning a new object) */
+  rasqal_query_result_row* (*execute_get)(rasqal_query_results* query_results, void* ex_data);
+
+  /* get one binding value (returning a shared object) */
+  rasqal_literal* (*execute_get_value)(rasqal_query_results* query_results, void* ex_data, int offset);
+
+  /* get all binding values for a row (returning a shared object) */
+  rasqal_literal** (*execute_get_values)(rasqal_query_results* query_results, void* ex_data);
+
+  /* move to next bindings result */
+  int (*execute_next)(rasqal_query_results* query_results, void *ex_data);
   
   /* finish (free) execution */
-  int (*execute_finish)(rasqal_query_results* results, void* ex_data);
+  int (*execute_finish)(rasqal_query_results* query_results, void* ex_data);
   
+  /* get current triple result */
+  raptor_statement* (*get_triple)(rasqal_query_results* query_results, void* ex_data);
+
+  /* move to next triple result */
+  int (*next_triple)(rasqal_query_results* query_results, void* ex_data);
+
   /* finish the query execution factory */
   void (*finish_factory)(rasqal_query_execution_factory* factory);
 
 };
 
 
-/* Original Rasqal 0.9.15 query engine */
+/* Original Rasqal 0.9.16 query engine */
 extern const rasqal_query_execution_factory rasqal_query_engine_1;
   
 
