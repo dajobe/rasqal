@@ -496,11 +496,11 @@ struct rasqal_query_results_s {
   /* how many results already found */
   int result_count;
 
-  /* execution data - depends on execution engine */
+  /* execution data - depends on execution engine and owned by this */
   void* execution_data;
 
-  /* pointer to function that tidies the query_results execution data above */
-  void (*free_execution_data)(rasqal_query* query, struct rasqal_query_results_s* query_results, void *execution_data);
+  /* unused 1 (was free_execution_data) */
+  void *unused1;
   
   /* next query result */
   rasqal_query_results *next;
