@@ -458,12 +458,12 @@ rasqal_query_results_write_json1(raptor_iostream *iostr,
   /* Variable Binding Results */
   raptor_iostream_write_counted_string(iostr, "  \"results\": {\n", 15);
 
-  raptor_iostream_write_counted_string(iostr, "    \"", 5);
+  raptor_iostream_write_counted_string(iostr, "    ", 4);
   rasqal_iostream_write_json_boolean(iostr, "ordered", 
                                      (rasqal_query_get_order_condition(query, 0) != NULL));
   raptor_iostream_write_counted_string(iostr, ",\n", 2);
 
-  raptor_iostream_write_counted_string(iostr, "    \"", 5);
+  raptor_iostream_write_counted_string(iostr, "    ", 4);
   rasqal_iostream_write_json_boolean(iostr, "distinct", 
                                      rasqal_query_get_distinct(query));
   raptor_iostream_write_counted_string(iostr, ",\n", 2);
