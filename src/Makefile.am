@@ -34,8 +34,7 @@ strcasecmp_test$(EXEEXT) rasqal_xsd_datatypes_test$(EXEEXT)	\
 rasqal_decimal_test$(EXEEXT) rasqal_datetime_test$(EXEEXT)	\
 rasqal_variable_test$(EXEEXT) rasqal_empty_rowsource_test$(EXEEXT) \
 rasqal_union_rowsource_test$(EXEEXT) \
-rasqal_rowsequence_rowsource_test$(EXEEXT) \
-rasqal_engine_rowsource_test$(EXEEXT)
+rasqal_rowsequence_rowsource_test$(EXEEXT)
 
 local_tests=rasqal_query_test$(EXEEXT) rasqal_limit_test$(EXEEXT)
 if RASQAL_QUERY_RDQL
