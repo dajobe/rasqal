@@ -142,17 +142,12 @@ rasqal_free_query_results(rasqal_query_results* query_results)
                                                        query_results->execution_data);
   }
 
-  if(query_results->execution_data) {
+  if(query_results->execution_data)
     RASQAL_FREE(rasqal_engine_execution_data, query_results->execution_data);
-  }
 
   if(query_results->row)
     rasqal_free_query_result_row(query_results->row);
 
-  if(query && query_results->execution_data && 
-     query_results->free_execution_data)
-    query_results->free_execution_data(query, query_results, query_results->execution_data);
-  
   if(query_results->results_sequence)
     raptor_free_sequence(query_results->results_sequence);
 
