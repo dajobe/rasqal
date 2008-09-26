@@ -3608,7 +3608,7 @@ rasqal_query_engine_1_finish_factory(rasqal_query_execution_factory* factory)
 }
 
 
-rasqal_query_execution_factory rasqal_query_engine_1 =
+const rasqal_query_execution_factory rasqal_query_engine_1 =
 {
   /* .name=           */ "rasqal 0.9.16 engine",
   /* .execution_data_size= */ sizeof(rasqal_engine_execution_data),

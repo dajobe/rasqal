@@ -549,7 +549,7 @@ struct rasqal_query_results_s {
   rasqal_rowsource* rowsource;
 
   /* Execution engine used here */
-  rasqal_query_execution_factory* execution_factory;
+  const rasqal_query_execution_factory* execution_factory;
 };
     
 
@@ -1135,7 +1135,7 @@ struct rasqal_query_execution_factory_s {
 
 
 /* Original Rasqal 0.9.15 query engine */
-extern rasqal_query_execution_factory rasqal_query_engine_1;
+extern const rasqal_query_execution_factory rasqal_query_engine_1;
   
 
 /* end of RASQAL_INTERNAL */
