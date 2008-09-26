@@ -1073,11 +1073,8 @@ rasqal_engine_init_execution_data(rasqal_query_results* query_results,
 
 
 static void
-rasqal_free_engine_execution_data(rasqal_query* query, 
-                                  rasqal_query_results* query_results,
-                                  rasqal_engine_execution_data* execution_data)
+rasqal_free_engine_execution_data(rasqal_engine_execution_data* execution_data)
 {
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN(execution_data, rasqal_engine_execution_data);
   
 }
 
@@ -1402,8 +1399,8 @@ static int
 rasqal_engine_execute_finish(rasqal_query_results* query_results,
                              rasqal_engine_execution_data* execution_data)
 {
-  rasqal_free_engine_execution_data(query_results->query, 
-                                    query_results, execution_data);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN(execution_data, 
+                                      rasqal_engine_execution_data);
 
   if(query_results->triples_source) {
     rasqal_free_triples_source(query_results->triples_source);
@@ -3597,8 +3594,6 @@ rasqal_query_engine_1_execute_finish(rasqal_query_results* query_results,
   rasqal_engine_execution_data* execution_data;
   execution_data=(rasqal_engine_execution_data*)ex_data;
 
-  rasqal_free_engine_execution_data(query_results->query,
-                                    query_results, execution_data);
   rasqal_engine_execute_finish(query_results, execution_data);
 
   return 0;
