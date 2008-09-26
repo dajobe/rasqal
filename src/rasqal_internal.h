@@ -190,6 +190,7 @@ void rasqal_system_free(void *ptr);
 #endif
 
 
+typedef struct rasqal_query_execution_factory_s rasqal_query_execution_factory;
 typedef struct rasqal_query_engine_factory_s rasqal_query_engine_factory;
 typedef struct rasqal_variables_table_s rasqal_variables_table;
 
@@ -452,21 +453,6 @@ typedef struct {
 
 typedef struct rasqal_map_s rasqal_map;
 
-/* The execution data here is a sequence of
- * rasqal_graph_pattern_data execution data of size
- * query->graph_pattern_count with each rasqal_graph_pattern_data
- */
-typedef struct {
-  raptor_sequence* seq;
-
-  /* offset into stored results sequence */
-  int offset;
-
-  /* for ordering results during execution */
-  rasqal_map* map;
-} rasqal_engine_execution_data;
-
-
 /**
  * rasqal_query_results_type:
  * @RASQAL_QUERY_RESULTS_BINDINGS: variable binding
@@ -561,6 +547,9 @@ struct rasqal_query_results_s {
 
   /* Source of rows that are filling this query result*/
   rasqal_rowsource* rowsource;
+
+  /* Execution engine used here */
+  rasqal_query_execution_factory* execution_factory;
 };
     
 
@@ -809,8 +798,6 @@ int rasqal_engine_expand_graph_pattern_constraints_qnames(rasqal_query* rq, rasq
 int rasqal_engine_build_constraints_expression(rasqal_graph_pattern* gp);
 
 int rasqal_engine_prepare(rasqal_query* query);
-int rasqal_engine_execute_init(rasqal_query_results* query_results);
-int rasqal_engine_execute_finish(rasqal_query_results* query_results);
 int rasqal_engine_join_graph_patterns(rasqal_graph_pattern *dest_gp, rasqal_graph_pattern *src_gp);
 int rasqal_engine_check_limit_offset(rasqal_query_results* query_results);
 int rasqal_engine_merge_triples(rasqal_query* query, rasqal_graph_pattern* gp, void* data);
@@ -1115,6 +1102,41 @@ int rasqal_variables_table_get_total_variables_count(rasqal_variables_table* vt)
 raptor_sequence* rasqal_variables_table_get_named_variables_sequence(rasqal_variables_table* vt);
 raptor_sequence* rasqal_variables_table_get_anonymous_variables_sequence(rasqal_variables_table* vt);
 
+
+/*
+ * A query execution engine factory
+ *
+ * This structure is about executing the query recorded in
+ * #rasqal_query structure into results accessed via #rasqal_query_results
+ */
+struct rasqal_query_execution_factory_s {
+  /* execution engine name */
+  const char* const name;
+
+  /* size of execution engine private data */
+  size_t execution_data_size;
+  
+  /* prepare query (pre-execution) */
+  int (*prepare)(rasqal_query* query);
+  
+  /* initialise a new execution
+   *
+   * Return value: <0 if failed, 0 if result, >0 if finished
+   */
+  int (*execute_init)(rasqal_query_results* results, void* ex_data);
+  
+  /* finish (free) execution */
+  int (*execute_finish)(rasqal_query_results* results, void* ex_data);
+  
+  /* finish the query execution factory */
+  void (*finish_factory)(rasqal_query_execution_factory* factory);
+
+};
+
+
+/* Original Rasqal 0.9.15 query engine */
+extern rasqal_query_execution_factory rasqal_query_engine_1;
+  
 
 /* end of RASQAL_INTERNAL */
 #endif

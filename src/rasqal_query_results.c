@@ -100,6 +100,8 @@ rasqal_new_query_results(rasqal_query* query)
     }
     rasqal_query_results_reset(query_results);
   }
+
+  query_results->execution_factory = &rasqal_query_engine_1;
   
   return query_results;
 }
@@ -133,9 +135,16 @@ rasqal_free_query_results(rasqal_query_results* query_results)
   RASQAL_ASSERT_OBJECT_POINTER_RETURN(query_results, rasqal_query_result);
 
   query=query_results->query;
-  
-  if(query_results->executed)
-    rasqal_engine_execute_finish(query_results);
+
+  if(query_results->executed) {
+    if(query_results->execution_factory->execute_finish)
+      query_results->execution_factory->execute_finish(query_results,
+                                                       query_results->execution_data);
+  }
+
+  if(query_results->execution_data) {
+    RASQAL_FREE(rasqal_engine_execution_data, query_results->execution_data);
+  }
 
   if(query_results->row)
     rasqal_free_query_result_row(query_results->row);
