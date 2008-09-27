@@ -1,14 +1,33 @@
 2008-09-26  Dave Beckett <dave@dajobe.org>
 
+	* src/rasqal_internal.h, src/rasqal_query_transform.c:
+	rasqal_graph_pattern_constraints_has_qname is static
+
+	* src/Makefile.am, src/rasqal_empty_rowsource.c,
+	src/rasqal_rowsequence_rowsource.c, src/rasqal_rowsource_empty.c,
+	src/rasqal_rowsource_rowsequence.c, src/rasqal_rowsource_union.c,
+	src/rasqal_union_rowsource.c:
+	Renamed rowsource implementation files to be
+	rasqal_rowsource_TYPE.c rather than rasqal_TYPE_rowsource.c for
+	TYPE empty, rowsequence and union
+
+	* src/rasqal_empty_rowsource.c, src/rasqal_engine.c,
+	src/rasqal_internal.h, src/rasqal_query_results.c,
+	src/rasqal_result_formats.c, src/rasqal_rowsequence_rowsource.c,
+	src/rasqal_rowsource.c, src/rasqal_sparql_xml.c,
+	src/rasqal_union_rowsource.c:
+	Rename class rasqal_query_result_row to rasqal_row
+
 	* src/rasqal_engine.c, src/rasqal_internal.h, src/rasqal_query.c,
 	src/rasqal_query_transform.c, src/rdql_parser.y,
-	src/sparql_parser.y: Moved more query transformation functions
-	from rasqal_engine.c to rasqal_query_transform.c.  That leaves
-	rasqal_query.c and rasqal_query_results.c largely free of query
-	execution detail, rasqal_query_transform.c only about altering a
-	rasqal_query, graph pattern or expression - typically behind
-	rasqal_query_prepare() and rasqal_engine.c all about execution -
-	behind rasqal_query_execute().
+	src/sparql_parser.y:
+	Moved more query transformation functions from rasqal_engine.c to
+	rasqal_query_transform.c.  That leaves rasqal_query.c and
+	rasqal_query_results.c largely free of query execution detail,
+	rasqal_query_transform.c only about altering a rasqal_query, graph
+	pattern or expression - typically behind rasqal_query_prepare()
+	and rasqal_engine.c all about execution - behind
+	rasqal_query_execute().
 	(rasqal_query_merge_triple_patterns): Renamed from
 	rasqal_engine_merge_triples
 	(rasqal_graph_pattern_move_constraints): Renamed from
