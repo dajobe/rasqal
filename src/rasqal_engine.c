@@ -616,6 +616,7 @@ rasqal_engine_graph_pattern_order(const void *a, const void *b)
 }
 #endif
 
+
 /**
  * rasqal_engine_graph_pattern_init:
  * @query_results: query results to execute
@@ -1656,7 +1657,6 @@ rasqal_engine_get_result_row(rasqal_query_results* query_results)
 
   return row;
 }
-  
 
 
 /**
@@ -1831,7 +1831,6 @@ rasqal_query_result_literal_sequence_equals(rasqal_query* query,
 }
 
 
-
 /**
  * rasqal_engine_row_compare:
  * @a: pointer to address of first #row
@@ -1884,7 +1883,6 @@ rasqal_engine_row_compare(const void *a, const void *b)
   
   return result;
 }
-
 
 
 static void
@@ -1951,6 +1949,7 @@ typedef struct
   int failed;
   int offset;
 } rasqal_rowsource_engine_context;
+
 
 /* Local handlers for getting rows from a query execution */
 
@@ -2087,6 +2086,7 @@ rasqal_rowsource_engine_ensure_variables(rasqal_rowsource* rowsource,
   return 0;
 }
 
+
 static rasqal_row*
 rasqal_rowsource_engine_read_row(rasqal_rowsource* rowsource, void *user_data)
 {
@@ -2133,8 +2133,10 @@ static const rasqal_rowsource_handler rasqal_rowsource_engine_handler={
   /* .get_query = */ rasqal_rowsource_engine_get_query
 };
 
+
 static rasqal_rowsource*
-rasqal_engine_make_rowsource(rasqal_query* query, rasqal_query_results* results) 
+rasqal_engine_make_rowsource(rasqal_query* query,
+                             rasqal_query_results* results) 
 {
   rasqal_rowsource_engine_context* con;
   int flags=0;
@@ -2172,6 +2174,7 @@ rasqal_engine_make_rowsource(rasqal_query* query, rasqal_query_results* results)
                                            &rasqal_rowsource_engine_handler,
                                            flags);
 }
+
 
 /**
  * rasqal_engine_execute_and_save:
@@ -2502,8 +2505,6 @@ rasqal_query_engine_1_execute_get(rasqal_query_results* query_results,
 }
 
 
-
-
 static rasqal_literal*
 rasqal_query_engine_1_execute_get_value(rasqal_query_results* query_results,
                                         void* ex_data, int offset)
@@ -2549,8 +2550,6 @@ rasqal_query_engine_1_finish_factory(rasqal_query_execution_factory* factory)
 {
   return;
 }
-
-
 
 
 static unsigned char*
