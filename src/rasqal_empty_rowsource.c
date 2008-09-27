@@ -1,6 +1,6 @@
 /* -*- Mode: c; c-basic-offset: 2 -*-
  *
- * rasqal_rowsource_empty.c - Rasqal empty rowsource class
+ * rasqal_empty_rowsource.c - Rasqal empty rowsource class
  *
  * Copyright (C) 2008, David Beckett http://www.dajobe.org/
  * 
@@ -58,7 +58,7 @@ rasqal_empty_rowsource_finish(rasqal_rowsource* rowsource, void *user_data)
   return 0;
 }
 
-static rasqal_query_result_row*
+static rasqal_row*
 rasqal_empty_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
 {
   /* rasqal_empty_rowsource_context* con=(rasqal_empty_rowsource_context*)user_data; */
@@ -124,7 +124,7 @@ main(int argc, char *argv[])
   const char *program=rasqal_basename(argv[0]);
   rasqal_rowsource *rowsource=NULL;
   rasqal_query* fake_query=(rasqal_query*)-1;
-  rasqal_query_result_row* row=NULL;
+  rasqal_row* row=NULL;
   int count;
   raptor_sequence* seq=NULL;
   int failures=0;

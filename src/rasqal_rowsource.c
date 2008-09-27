@@ -1,6 +1,6 @@
 /* -*- Mode: c; c-basic-offset: 2 -*-
  *
- * rasqal_rowsource.c - Rasqal query row generator class
+ * rasqal_rowsource.c - Rasqal query rowsource (row generator) class
  *
  * Copyright (C) 2008, David Beckett http://www.dajobe.org/
  * 
@@ -205,10 +205,10 @@ rasqal_rowsource_update_variables(rasqal_rowsource *rowsource,
  *
  * Return value: row or NULL when no more rows are available
  **/
-rasqal_query_result_row*
+rasqal_row*
 rasqal_rowsource_read_row(rasqal_rowsource *rowsource)
 {
-  rasqal_query_result_row* row=NULL;
+  rasqal_row* row=NULL;
   
   if(rowsource->finished)
     return NULL;
@@ -263,16 +263,16 @@ rasqal_rowsource_read_all_rows(rasqal_rowsource *rowsource)
   if(rowsource->handler->read_all_rows) {
     seq = rowsource->handler->read_all_rows(rowsource, rowsource->user_data);
     if(!seq)
-      seq=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_query_result_row, (raptor_sequence_print_handler*)rasqal_query_result_row_print);
+      seq=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_row, (raptor_sequence_print_handler*)rasqal_row_print);
     return seq;
   }
   
-  seq=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_query_result_row, (raptor_sequence_print_handler*)rasqal_query_result_row_print);
+  seq=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_row, (raptor_sequence_print_handler*)rasqal_row_print);
   if(!seq)
     return NULL;
   
   while(1) {
-    rasqal_query_result_row* row=rasqal_rowsource_read_row(rowsource);
+    rasqal_row* row=rasqal_rowsource_read_row(rowsource);
     if(!row)
       break;
     raptor_sequence_push(seq, row);

@@ -1,6 +1,6 @@
 /* -*- Mode: c; c-basic-offset: 2 -*-
  *
- * rasqal_rowsource_union.c - Rasqal union rowsource class
+ * rasqal_union_rowsource.c - Rasqal union rowsource class
  *
  * Copyright (C) 2008, David Beckett http://www.dajobe.org/
  * 
@@ -91,11 +91,11 @@ rasqal_union_rowsource_ensure_variables(rasqal_rowsource* rowsource,
   return 0;
 }
 
-static rasqal_query_result_row*
+static rasqal_row*
 rasqal_union_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
 {
   rasqal_union_rowsource_context* con=(rasqal_union_rowsource_context*)user_data;
-  rasqal_query_result_row* row=NULL;
+  rasqal_row* row=NULL;
   
   if(con->failed || con->state > 1)
     return NULL;
@@ -224,7 +224,7 @@ main(int argc, char *argv[])
   rasqal_rowsource *left_rs=NULL;
   rasqal_rowsource *right_rs=NULL;
   rasqal_query* fake_query=(rasqal_query*)-1;
-  rasqal_query_result_row* row=NULL;
+  rasqal_row* row=NULL;
   int count;
   raptor_sequence* seq=NULL;
   int failures=0;

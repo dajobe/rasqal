@@ -1,6 +1,6 @@
 /* -*- Mode: c; c-basic-offset: 2 -*-
  *
- * rasqal_rowsource_rowsequence.c - Rasqal row sequence rowsource class
+ * rasqal_rowsequence_rowsource.c - Rasqal rowsequence rowsource class
  *
  * Copyright (C) 2008, David Beckett http://www.dajobe.org/
  * 
@@ -98,18 +98,18 @@ rasqal_rowsequence_rowsource_ensure_variables(rasqal_rowsource* rowsource,
 }
 
 
-static rasqal_query_result_row*
+static rasqal_row*
 rasqal_rowsequence_rowsource_read_row(rasqal_rowsource* rowsource,
                                       void *user_data)
 {
   rasqal_rowsequence_rowsource_context* con;
-  rasqal_query_result_row* row = NULL;
+  rasqal_row* row = NULL;
   
   con = (rasqal_rowsequence_rowsource_context*)user_data;
   if(con->failed || con->offset < 0)
     return NULL;
 
-  row = (rasqal_query_result_row*)raptor_sequence_delete_at(con->seq, con->offset);
+  row = (rasqal_row*)raptor_sequence_delete_at(con->seq, con->offset);
   if(!row) {
     /* finished */
     con->offset = -1;
@@ -164,7 +164,7 @@ static const rasqal_rowsource_handler rasqal_rowsequence_rowsource_handler = {
  * rasqal_new_rowsequence_rowsource:
  * @query: query object
  * @vt: variables table
- * @seq: sequence of rasqal_query_result_row*
+ * @seq: sequence of rasqal_row*
  *
  * INTERNAL - create a new rowsource over a sequence of rows
  *
@@ -215,8 +215,8 @@ rasqal_new_rowsequence_rowsource(rasqal_query* query,
 
     rows_count = raptor_sequence_size(seq);
     for(i = 0; i < rows_count; i++) {
-      rasqal_query_result_row* row;
-      row = (rasqal_query_result_row*)raptor_sequence_get_at(seq, i);
+      rasqal_row* row;
+      row = (rasqal_row*)raptor_sequence_get_at(seq, i);
 
       row->rowsource = rs;
       row->offset = i;
@@ -288,7 +288,7 @@ main(int argc, char *argv[])
   raptor_sequence *seq = NULL;
   rasqal_world* fake_world = (rasqal_world*)-1;
   rasqal_query* fake_query = (rasqal_query*)-1;
-  rasqal_query_result_row* row = NULL;
+  rasqal_row* row = NULL;
   int count;
   int failures = 0;
   rasqal_variables_table* vt;
@@ -305,7 +305,7 @@ main(int argc, char *argv[])
   vt = rasqal_new_variables_table(fake_world);
 
   /* add 2 variables to table and 1 row sequence */
-  seq = rasqal_new_query_result_row_sequence(fake_world, vt, test_1_rows, 2);
+  seq = rasqal_new_row_sequence(fake_world, vt, test_1_rows, 2);
   if(!seq) {
     fprintf(stderr, "%s: failed to create sequence of %d rows\n", program,
             rows_count);
@@ -334,11 +334,11 @@ main(int argc, char *argv[])
 
 #ifdef RASQAL_DEBUG  
   RASQAL_DEBUG1("Result Row:\n  ");
-  rasqal_query_result_row_print(row, stderr);
+  rasqal_row_print(row, stderr);
   fputc('\n', stderr);
 #endif
 
-  rasqal_free_query_result_row(row); row = NULL;
+  rasqal_free_row(row); row = NULL;
 
   count = rasqal_rowsource_get_rows_count(rowsource);
   if(count != rows_count) {
@@ -379,7 +379,7 @@ main(int argc, char *argv[])
   vt = rasqal_new_variables_table(fake_world);
 
   /* add 4 variables to table and 3 row sequence */
-  seq = rasqal_new_query_result_row_sequence(fake_world, vt, test_3_rows, 4);
+  seq = rasqal_new_row_sequence(fake_world, vt, test_3_rows, 4);
   if(!seq) {
     fprintf(stderr, "%s: failed to create sequence of %d rows\n",
             program, rows_count);
@@ -409,11 +409,11 @@ main(int argc, char *argv[])
 
   #ifdef RASQAL_DEBUG  
     RASQAL_DEBUG1("Result Row:\n  ");
-    rasqal_query_result_row_print(row, stderr);
+    rasqal_row_print(row, stderr);
     fputc('\n', stderr);
   #endif
 
-    rasqal_free_query_result_row(row); row = NULL;
+    rasqal_free_row(row); row = NULL;
   }
   
   count = rasqal_rowsource_get_rows_count(rowsource);
@@ -448,7 +448,7 @@ main(int argc, char *argv[])
 
   tidy:
   if(row)
-    rasqal_free_query_result_row(row);
+    rasqal_free_row(row);
   if(seq)
     raptor_free_sequence(seq);
   if(rowsource)

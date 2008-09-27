@@ -447,7 +447,7 @@ typedef struct {
   /* number of expressions (can be 0) */
   int order_size;
   rasqal_literal** order_values;
-} rasqal_query_result_row;
+} rasqal_row;
 
 
 typedef struct rasqal_map_s rasqal_map;
@@ -505,7 +505,7 @@ struct rasqal_query_results_s {
   rasqal_query_results *next;
 
   /* current row of results */
-  rasqal_query_result_row* row;
+  rasqal_row* row;
 
   /* boolean ASK result >0 true, 0 false or -1 uninitialised */
   int ask_result;
@@ -610,7 +610,7 @@ typedef int (*rasqal_rowsource_ensure_variables_func) (rasqal_rowsource* rowsour
  *
  * Return value: a query result row or NULL if exhausted
  */
-typedef rasqal_query_result_row* (*rasqal_rowsource_read_row_func) (rasqal_rowsource* rowsource, void *user_data);
+typedef rasqal_row* (*rasqal_rowsource_read_row_func) (rasqal_rowsource* rowsource, void *user_data);
 
 
 /**
@@ -711,7 +711,7 @@ rasqal_rowsource* rasqal_new_rowsource_from_handler(void* user_data, const rasqa
 void rasqal_free_rowsource(rasqal_rowsource *rowsource);
 
 int rasqal_rowsource_update_variables(rasqal_rowsource *rowsource, rasqal_query_results* results);
-rasqal_query_result_row* rasqal_rowsource_read_row(rasqal_rowsource *rowsource);
+rasqal_row* rasqal_rowsource_read_row(rasqal_rowsource *rowsource);
 int rasqal_rowsource_get_rows_count(rasqal_rowsource *rowsource);
 raptor_sequence* rasqal_rowsource_read_all_rows(rasqal_rowsource *rowsource);
 rasqal_query* rasqal_rowsource_get_query(rasqal_rowsource *rowsource);
@@ -921,7 +921,7 @@ rasqal_variable* rasqal_query_get_variable_by_offset(rasqal_query* query, int id
 int rasqal_init_query_results(void);
 void rasqal_finish_query_results(void);
 
-raptor_sequence* rasqal_new_query_result_row_sequence(rasqal_world* world, rasqal_variables_table* vt, const char* const row_data[], int vars_count);
+raptor_sequence* rasqal_new_row_sequence(rasqal_world* world, rasqal_variables_table* vt, const char* const row_data[], int vars_count);
 
 /* rasqal_result_formats.c */
 int rasqal_query_results_format_register_factory(rasqal_world*, const char *name, const char *label, const unsigned char* uri_string, rasqal_query_results_formatter_func writer, rasqal_query_results_formatter_func reader, rasqal_query_results_get_rowsource_func get_rowsource, const char *mime_type);
@@ -934,16 +934,16 @@ int rasqal_init_result_format_sparql_xml(rasqal_world*);
 
 rasqal_query_results* rasqal_new_query_results(rasqal_query* query);
 void rasqal_query_results_reset(rasqal_query_results* query_results);
-rasqal_query_result_row* rasqal_new_query_result_row(rasqal_rowsource* rowsource);
-rasqal_query_result_row* rasqal_new_query_result_row_for_variables(rasqal_variables_table* vt);
-rasqal_query_result_row* rasqal_new_query_result_row_from_query_result_row(rasqal_query_result_row* row);
-rasqal_query_result_row* rasqal_new_query_result_row_from_query_result_row_deep(rasqal_query_result_row* row);
-void rasqal_free_query_result_row(rasqal_query_result_row* row);
+rasqal_row* rasqal_new_row(rasqal_rowsource* rowsource);
+rasqal_row* rasqal_new_row_for_variables(rasqal_variables_table* vt);
+rasqal_row* rasqal_new_row_from_row(rasqal_row* row);
+rasqal_row* rasqal_new_row_from_row_deep(rasqal_row* row);
+void rasqal_free_row(rasqal_row* row);
 int rasqal_query_results_set_variables(rasqal_query_results* query_results, raptor_sequence* variables_sequence, int size, int order_size);
-void rasqal_query_result_row_print(rasqal_query_result_row* row, FILE* fh);
+void rasqal_row_print(rasqal_row* row, FILE* fh);
 void rasqal_query_results_set_order_conditions(rasqal_query_results* query_results, int order_size);
-void rasqal_query_results_add_row(rasqal_query_results* query_results, rasqal_query_result_row* row);
-void rasqal_query_result_row_set_value_at(rasqal_query_result_row* row, int offset, rasqal_literal* value);
+void rasqal_query_results_add_row(rasqal_query_results* query_results, rasqal_row* row);
+void rasqal_row_set_value_at(rasqal_row* row, int offset, rasqal_literal* value);
 
 
 /* rasqal_xsd_datatypes.c */
@@ -1114,7 +1114,7 @@ struct rasqal_query_execution_factory_s {
   int (*execute_init)(rasqal_query_results* query_results, void* ex_data);
 
   /* get current bindings result row (returning a new object) */
-  rasqal_query_result_row* (*execute_get)(rasqal_query_results* query_results, void* ex_data);
+  rasqal_row* (*execute_get)(rasqal_query_results* query_results, void* ex_data);
 
   /* get one binding value (returning a shared object) */
   rasqal_literal* (*execute_get_value)(rasqal_query_results* query_results, void* ex_data, int offset);

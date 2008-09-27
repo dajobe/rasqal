@@ -655,7 +655,7 @@ rasqal_query_results_formatter_read(rasqal_world *world,
   }
 
   while(1) {
-    rasqal_query_result_row* row=rasqal_rowsource_read_row(rowsource);
+    rasqal_row* row=rasqal_rowsource_read_row(rowsource);
     if(!row)
       break;
     rasqal_query_results_add_row(results, row);
