@@ -99,9 +99,10 @@ rasqal_new_query_results(rasqal_query* query)
         }
     }
     rasqal_query_results_reset(query_results);
+
+    query_results->execution_factory = &rasqal_query_engine_1;
   }
 
-  query_results->execution_factory = &rasqal_query_engine_1;
   
   return query_results;
 }
