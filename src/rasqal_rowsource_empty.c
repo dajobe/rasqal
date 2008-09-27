@@ -1,6 +1,6 @@
 /* -*- Mode: c; c-basic-offset: 2 -*-
  *
- * rasqal_empty_rowsource.c - Rasqal empty rowsource class
+ * rasqal_rowsource_empty.c - Rasqal empty rowsource class
  *
  * Copyright (C) 2008, David Beckett http://www.dajobe.org/
  * 

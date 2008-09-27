@@ -32,9 +32,9 @@ man_MANS = rasqal-config.1
 TESTS=rasqal_algebra_test$(EXEEXT) rasqal_expr_test$(EXEEXT)	\
 strcasecmp_test$(EXEEXT) rasqal_xsd_datatypes_test$(EXEEXT)	\
 rasqal_decimal_test$(EXEEXT) rasqal_datetime_test$(EXEEXT)	\
-rasqal_variable_test$(EXEEXT) rasqal_empty_rowsource_test$(EXEEXT) \
-rasqal_union_rowsource_test$(EXEEXT) \
-rasqal_rowsequence_rowsource_test$(EXEEXT)
+rasqal_variable_test$(EXEEXT) rasqal_rowsource_empty_test$(EXEEXT) \
+rasqal_rowsource_union_test$(EXEEXT) \
+rasqal_rowsource_rowsequence_test$(EXEEXT)
 
 local_tests=rasqal_query_test$(EXEEXT) rasqal_limit_test$(EXEEXT)
 if RASQAL_QUERY_RDQL
@@ -65,8 +65,8 @@ rasqal_engine.c rasqal_raptor.c rasqal_literal.c \
 rasqal_graph_pattern.c rasqal_map.c rasqal_feature.c \
 rasqal_result_formats.c rasqal_xsd_datatypes.c rasqal_decimal.c \
 rasqal_datetime.c rasqal_rowsource.c rasqal_sparql_xml.c \
-rasqal_variable.c rasqal_empty_rowsource.c rasqal_union_rowsource.c \
-rasqal_rowsequence_rowsource.c rasqal_query_transform.c
+rasqal_variable.c rasqal_rowsource_empty.c rasqal_rowsource_union.c \
+rasqal_rowsource_rowsequence.c rasqal_query_transform.c
 
 if RASQAL_QUERY_RDQL
 librasqal_la_SOURCES += rdql_lexer.c rdql_lexer.h \
@@ -218,17 +218,17 @@ rasqal_variable_test_SOURCES = rasqal_variable.c
 rasqal_variable_test_CPPFLAGS = -DSTANDALONE
 rasqal_variable_test_LDADD = librasqal.la
 
-rasqal_empty_rowsource_test_SOURCES = rasqal_empty_rowsource.c
-rasqal_empty_rowsource_test_CPPFLAGS = -DSTANDALONE
-rasqal_empty_rowsource_test_LDADD = librasqal.la
+rasqal_rowsource_empty_test_SOURCES = rasqal_rowsource_empty.c
+rasqal_rowsource_empty_test_CPPFLAGS = -DSTANDALONE
+rasqal_rowsource_empty_test_LDADD = librasqal.la
 
-rasqal_union_rowsource_test_SOURCES = rasqal_union_rowsource.c
-rasqal_union_rowsource_test_CPPFLAGS = -DSTANDALONE
-rasqal_union_rowsource_test_LDADD = librasqal.la
+rasqal_rowsource_union_test_SOURCES = rasqal_rowsource_union.c
+rasqal_rowsource_union_test_CPPFLAGS = -DSTANDALONE
+rasqal_rowsource_union_test_LDADD = librasqal.la
 
-rasqal_rowsequence_rowsource_test_SOURCES = rasqal_rowsequence_rowsource.c
-rasqal_rowsequence_rowsource_test_CPPFLAGS = -DSTANDALONE
-rasqal_rowsequence_rowsource_test_LDADD = librasqal.la
+rasqal_rowsource_rowsequence_test_SOURCES = rasqal_rowsource_rowsequence.c
+rasqal_rowsource_rowsequence_test_CPPFLAGS = -DSTANDALONE
+rasqal_rowsource_rowsequence_test_LDADD = librasqal.la
 
 $(top_builddir)/../raptor/src/libraptor.la:
 	cd $(top_builddir)/../raptor/src && $(MAKE) $(AM_MAKEFLAGS) libraptor.la

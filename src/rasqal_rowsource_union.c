@@ -1,6 +1,6 @@
 /* -*- Mode: c; c-basic-offset: 2 -*-
  *
- * rasqal_union_rowsource.c - Rasqal union rowsource class
+ * rasqal_rowsource_union.c - Rasqal union rowsource class
  *
  * Copyright (C) 2008, David Beckett http://www.dajobe.org/
  * 

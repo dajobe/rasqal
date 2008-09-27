@@ -1,6 +1,6 @@
 /* -*- Mode: c; c-basic-offset: 2 -*-
  *
- * rasqal_rowsequence_rowsource.c - Rasqal rowsequence rowsource class
+ * rasqal_rowsource_rowsequence.c - Rasqal rowsequence rowsource class
  *
  * Copyright (C) 2008, David Beckett http://www.dajobe.org/
  * 
