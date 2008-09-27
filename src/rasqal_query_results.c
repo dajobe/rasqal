@@ -600,6 +600,8 @@ rasqal_query_results_write(raptor_iostream *iostr,
   rasqal_free_query_results_formatter(formatter);
   return status;
 }
+
+
 int
 rasqal_query_results_set_variables(rasqal_query_results* query_results,
                                    raptor_sequence* variables_sequence,
