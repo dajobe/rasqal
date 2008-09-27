@@ -2649,22 +2649,22 @@ rasqal_sparql_query_engine_prepare(rasqal_query* rdf_query) {
     return rc;
 
   /* FIXME - should check remaining query parts  */
-  if(rasqal_engine_sequence_has_qname(rdf_query->triples) ||
-     rasqal_engine_sequence_has_qname(rdf_query->constructs) ||
-     rasqal_engine_query_constraints_has_qname(rdf_query)) {
+  if(rasqal_sequence_has_qname(rdf_query->triples) ||
+     rasqal_sequence_has_qname(rdf_query->constructs) ||
+     rasqal_query_constraints_has_qname(rdf_query)) {
     sparql_query_error(rdf_query, "SPARQL query has unexpanded QNames");
     return 1;
   }
 
   /* SPARQL: Turn [] into anonymous variables */
-  if(rasqal_engine_build_anonymous_variables(rdf_query))
+  if(rasqal_query_build_anonymous_variables(rdf_query))
     return 1;
   
   /* SPARQL: Expand 'SELECT *' */
-  if(rasqal_engine_expand_wildcards(rdf_query))
+  if(rasqal_query_expand_wildcards(rdf_query))
     return 1;
   
-  return rasqal_engine_prepare(rdf_query);
+  return rasqal_query_prepare_common(rdf_query);
 }
 
 

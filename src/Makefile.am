@@ -66,7 +66,7 @@ rasqal_graph_pattern.c rasqal_map.c rasqal_feature.c \
 rasqal_result_formats.c rasqal_xsd_datatypes.c rasqal_decimal.c \
 rasqal_datetime.c rasqal_rowsource.c rasqal_sparql_xml.c \
 rasqal_variable.c rasqal_empty_rowsource.c rasqal_union_rowsource.c \
-rasqal_rowsequence_rowsource.c
+rasqal_rowsequence_rowsource.c rasqal_query_transform.c
 
 if RASQAL_QUERY_RDQL
 librasqal_la_SOURCES += rdql_lexer.c rdql_lexer.h \

@@ -788,16 +788,19 @@ int rasqal_init_query_engine_rdql(rasqal_world*);
 int rasqal_init_query_engine_sparql(rasqal_world*);
 int rasqal_init_query_engine_laqrs(rasqal_world*);
 
-/* rasqal_engine.c */
-int rasqal_engine_sequence_has_qname(raptor_sequence* seq);
-int rasqal_engine_expand_triple_qnames(rasqal_query* rq);
-int rasqal_engine_query_constraints_has_qname(rasqal_query* gp);
-int rasqal_engine_graph_pattern_constraints_has_qname(rasqal_graph_pattern* gp);
-int rasqal_engine_expand_query_constraints_qnames(rasqal_query* rq);
-int rasqal_engine_expand_graph_pattern_constraints_qnames(rasqal_query* rq, rasqal_graph_pattern* gp);
-int rasqal_engine_build_constraints_expression(rasqal_graph_pattern* gp);
+/* rasqal_query_transform.c */
+int rasqal_query_expand_triple_qnames(rasqal_query* rq);
+int rasqal_sequence_has_qname(raptor_sequence* seq);
+int rasqal_query_constraints_has_qname(rasqal_query* gp);
+int rasqal_graph_pattern_constraints_has_qname(rasqal_graph_pattern* gp);
+int rasqal_query_expand_graph_pattern_constraints_qnames(rasqal_query* rq, rasqal_graph_pattern* gp);
+int rasqal_query_expand_query_constraints_qnames(rasqal_query* rq);
+int rasqal_query_build_anonymous_variables(rasqal_query* rq);
+int rasqal_query_expand_wildcards(rasqal_query* rq);
+int rasqal_query_remove_duplicate_select_vars(rasqal_query* rq);
+int rasqal_query_prepare_common(rasqal_query *query);
 
-int rasqal_engine_prepare(rasqal_query* query);
+/* rasqal_engine.c */
 int rasqal_engine_join_graph_patterns(rasqal_graph_pattern *dest_gp, rasqal_graph_pattern *src_gp);
 int rasqal_engine_check_limit_offset(rasqal_query_results* query_results);
 int rasqal_engine_merge_triples(rasqal_query* query, rasqal_graph_pattern* gp, void* data);
@@ -813,8 +816,6 @@ int rasqal_triples_source_next_source(rasqal_triples_source* rts);
 
 int rasqal_engine_move_constraints(rasqal_graph_pattern* dest_gp, rasqal_graph_pattern* src_gp);
 void rasqal_engine_free_query_result_row(rasqal_query_result_row* row);
-int rasqal_engine_expand_wildcards(rasqal_query* rq);
-int rasqal_engine_build_anonymous_variables(rasqal_query* rq);
 
 /* rasqal_expr.c */
 rasqal_literal* rasqal_new_string_literal_node(rasqal_world*, const unsigned char *string, const char *language, raptor_uri *datatype);

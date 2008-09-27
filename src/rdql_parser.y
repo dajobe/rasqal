@@ -692,11 +692,11 @@ rasqal_rdql_query_engine_prepare(rasqal_query* rdf_query) {
   
   /* Only now can we handle the prefixes and qnames */
   if(rasqal_query_declare_prefixes(rdf_query) ||
-     rasqal_engine_expand_triple_qnames(rdf_query) ||
-     rasqal_engine_expand_query_constraints_qnames(rdf_query))
+     rasqal_query_expand_triple_qnames(rdf_query) ||
+     rasqal_query_expand_query_constraints_qnames(rdf_query))
     return 1;
 
-  return rasqal_engine_prepare(rdf_query);
+  return rasqal_query_prepare_common(rdf_query);
 }
 
 
