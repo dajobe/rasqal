@@ -980,7 +980,7 @@ GraphPatternListOpt: GraphPatternListOpt GraphPatternList
   $$= ($1 ? $1 : $2);
   if($1 && $2) {
     $$=$1;
-    if(rasqal_engine_join_graph_patterns($$, $2)) {
+    if(rasqal_graph_patterns_join($$, $2)) {
       rasqal_free_graph_pattern($$);
       rasqal_free_graph_pattern($2);
       $$=NULL;
@@ -2664,7 +2664,7 @@ rasqal_sparql_query_engine_prepare(rasqal_query* rdf_query) {
   if(rasqal_query_expand_wildcards(rdf_query))
     return 1;
   
-  return rasqal_query_prepare_common(rdf_query);
+  return 0;
 }
 
 

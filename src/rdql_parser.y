@@ -696,7 +696,7 @@ rasqal_rdql_query_engine_prepare(rasqal_query* rdf_query) {
      rasqal_query_expand_query_constraints_qnames(rdf_query))
     return 1;
 
-  return rasqal_query_prepare_common(rdf_query);
+  return 0;
 }
 
 

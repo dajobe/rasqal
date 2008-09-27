@@ -228,7 +228,6 @@ rasqal_graph_pattern* rasqal_new_filter_graph_pattern(rasqal_query* query, rasqa
 void rasqal_free_graph_pattern(rasqal_graph_pattern* gp);
 void rasqal_graph_pattern_adjust(rasqal_graph_pattern* gp, int offset);
 void rasqal_graph_pattern_set_origin(rasqal_graph_pattern* graph_pattern, rasqal_literal* origin);
-int rasqal_reset_triple_meta(rasqal_triple_meta* m);
 
 
 /*
@@ -759,6 +758,12 @@ struct rasqal_query_results_formatter_s {
   const char *mime_type;
 };
 
+typedef struct {
+  raptor_sequence *triples;
+  rasqal_literal *value;
+} rasqal_formula;
+
+
 /* rasqal_datetime.c */
 int rasqal_xsd_datetime_check(const unsigned char* string);
 
@@ -799,23 +804,19 @@ int rasqal_query_build_anonymous_variables(rasqal_query* rq);
 int rasqal_query_expand_wildcards(rasqal_query* rq);
 int rasqal_query_remove_duplicate_select_vars(rasqal_query* rq);
 int rasqal_query_prepare_common(rasqal_query *query);
+int rasqal_query_merge_graph_patterns(rasqal_query* query, rasqal_graph_pattern* gp, void* data);
+int rasqal_graph_patterns_join(rasqal_graph_pattern *dest_gp, rasqal_graph_pattern *src_gp);
+int rasqal_graph_pattern_move_constraints(rasqal_graph_pattern* dest_gp, rasqal_graph_pattern* src_gp);
 
 /* rasqal_engine.c */
-int rasqal_engine_join_graph_patterns(rasqal_graph_pattern *dest_gp, rasqal_graph_pattern *src_gp);
-int rasqal_engine_check_limit_offset(rasqal_query_results* query_results);
-int rasqal_engine_merge_triples(rasqal_query* query, rasqal_graph_pattern* gp, void* data);
-int rasqal_engine_merge_graph_patterns(rasqal_query* query, rasqal_graph_pattern* gp, void* data);
-int rasqal_engine_expression_fold(rasqal_query* rq, rasqal_expression* e);
-int rasqal_engine_graph_pattern_fold_expressions(rasqal_query* rq, rasqal_graph_pattern* gp);
-int rasqal_engine_query_fold_expressions(rasqal_query* rq);
 int rasqal_engine_remove_empty_group_graph_patterns(rasqal_query* query, rasqal_graph_pattern* gp, void* data);
   
 rasqal_triples_source* rasqal_new_triples_source(rasqal_query_results* query_results);
 void rasqal_free_triples_source(rasqal_triples_source* rts);
-int rasqal_triples_source_next_source(rasqal_triples_source* rts);
-
-int rasqal_engine_move_constraints(rasqal_graph_pattern* dest_gp, rasqal_graph_pattern* src_gp);
-void rasqal_engine_free_query_result_row(rasqal_query_result_row* row);
+int rasqal_reset_triple_meta(rasqal_triple_meta* m);
+int rasqal_engine_check_limit_offset(rasqal_query_results* query_results);
+rasqal_graph_pattern* rasqal_engine_new_basic_graph_pattern_from_formula(rasqal_query* query, rasqal_formula* formula);
+rasqal_graph_pattern* rasqal_engine_group_2_graph_patterns(rasqal_query* query, rasqal_graph_pattern* first_gp, rasqal_graph_pattern* second_gp);
 
 /* rasqal_expr.c */
 rasqal_literal* rasqal_new_string_literal_node(rasqal_world*, const unsigned char *string, const char *language, raptor_uri *datatype);
@@ -867,17 +868,10 @@ int rasqal_uri_init(rasqal_world*);
 void rasqal_uri_finish(rasqal_world*);
 
 /* rasqal_literal.c */
-typedef struct {
-  raptor_sequence *triples;
-  rasqal_literal *value;
-} rasqal_formula;
-
 rasqal_formula* rasqal_new_formula(void);
 void rasqal_free_formula(rasqal_formula* formula);
 void rasqal_formula_print(rasqal_formula* formula, FILE *stream);
 rasqal_formula* rasqal_formula_join(rasqal_formula* first_formula, rasqal_formula* second_formula);
-rasqal_graph_pattern* rasqal_engine_new_basic_graph_pattern_from_formula(rasqal_query* query, rasqal_formula* formula);
-rasqal_graph_pattern* rasqal_engine_group_2_graph_patterns(rasqal_query* query, rasqal_graph_pattern* first_gp, rasqal_graph_pattern* second_gp);
 
 /* The following should be public eventually in rasqal.h or raptor.h or ...? */
 
