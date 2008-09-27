@@ -919,8 +919,11 @@ rasqal_variable* rasqal_query_get_variable_by_offset(rasqal_query* query, int id
 /* rasqal_query_results.c */
 int rasqal_init_query_results(void);
 void rasqal_finish_query_results(void);
-
-raptor_sequence* rasqal_new_row_sequence(rasqal_world* world, rasqal_variables_table* vt, const char* const row_data[], int vars_count);
+rasqal_query_results* rasqal_new_query_results(rasqal_query* query);
+void rasqal_query_results_reset(rasqal_query_results* query_results);
+int rasqal_query_results_set_variables(rasqal_query_results* query_results, raptor_sequence* variables_sequence, int size, int order_size);
+void rasqal_query_results_set_order_conditions(rasqal_query_results* query_results, int order_size);
+void rasqal_query_results_add_row(rasqal_query_results* query_results, rasqal_row* row);
 
 /* rasqal_result_formats.c */
 int rasqal_query_results_format_register_factory(rasqal_world*, const char *name, const char *label, const unsigned char* uri_string, rasqal_query_results_formatter_func writer, rasqal_query_results_formatter_func reader, rasqal_query_results_get_rowsource_func get_rowsource, const char *mime_type);
@@ -930,19 +933,15 @@ void rasqal_finish_result_formats(rasqal_world*);
 /* rasqal_result_format_sparql_xml.c */
 int rasqal_init_result_format_sparql_xml(rasqal_world*);
 
-
-rasqal_query_results* rasqal_new_query_results(rasqal_query* query);
-void rasqal_query_results_reset(rasqal_query_results* query_results);
+/* rasqal_row.c */
 rasqal_row* rasqal_new_row(rasqal_rowsource* rowsource);
 rasqal_row* rasqal_new_row_for_variables(rasqal_variables_table* vt);
 rasqal_row* rasqal_new_row_from_row(rasqal_row* row);
 rasqal_row* rasqal_new_row_from_row_deep(rasqal_row* row);
 void rasqal_free_row(rasqal_row* row);
-int rasqal_query_results_set_variables(rasqal_query_results* query_results, raptor_sequence* variables_sequence, int size, int order_size);
 void rasqal_row_print(rasqal_row* row, FILE* fh);
-void rasqal_query_results_set_order_conditions(rasqal_query_results* query_results, int order_size);
-void rasqal_query_results_add_row(rasqal_query_results* query_results, rasqal_row* row);
 void rasqal_row_set_value_at(rasqal_row* row, int offset, rasqal_literal* value);
+raptor_sequence* rasqal_new_row_sequence(rasqal_world* world, rasqal_variables_table* vt, const char* const row_data[], int vars_count);
 
 
 /* rasqal_xsd_datatypes.c */
