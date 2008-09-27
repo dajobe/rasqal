@@ -1148,8 +1148,7 @@ rasqal_query_execute(rasqal_query* query)
     query_results->execution_data=NULL;
 
   if(query_results->execution_factory->execute_init) {
-    rc=query_results->execution_factory->execute_init(query_results,
-                                                      query_results->execution_data);
+    rc=query_results->execution_factory->execute_init(query_results->execution_data, query, query_results);
     if(rc) {
       rasqal_free_query_results(query_results);
       return NULL;

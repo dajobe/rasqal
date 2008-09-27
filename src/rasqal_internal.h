@@ -813,7 +813,6 @@ int rasqal_engine_remove_empty_group_graph_patterns(rasqal_query* query, rasqal_
 rasqal_triples_source* rasqal_new_triples_source(rasqal_query_results* query_results);
 void rasqal_free_triples_source(rasqal_triples_source* rts);
 int rasqal_reset_triple_meta(rasqal_triple_meta* m);
-int rasqal_engine_check_limit_offset(rasqal_query_results* query_results);
 rasqal_graph_pattern* rasqal_engine_new_basic_graph_pattern_from_formula(rasqal_query* query, rasqal_formula* formula);
 rasqal_graph_pattern* rasqal_engine_group_2_graph_patterns(rasqal_query* query, rasqal_graph_pattern* first_gp, rasqal_graph_pattern* second_gp);
 
@@ -1109,28 +1108,28 @@ struct rasqal_query_execution_factory_s {
    *
    * Return value: <0 if failed, 0 if result, >0 if finished
    */
-  int (*execute_init)(rasqal_query_results* query_results, void* ex_data);
+  int (*execute_init)(void* ex_data, rasqal_query* query, rasqal_query_results* query_results);
 
   /* get current bindings result row (returning a new object) */
-  rasqal_row* (*execute_get)(rasqal_query_results* query_results, void* ex_data);
+  rasqal_row* (*execute_get)(void* ex_data);
 
   /* get one binding value (returning a shared object) */
-  rasqal_literal* (*execute_get_value)(rasqal_query_results* query_results, void* ex_data, int offset);
+  rasqal_literal* (*execute_get_value)(void* ex_data, int offset);
 
   /* get all binding values for a row (returning a shared object) */
-  rasqal_literal** (*execute_get_values)(rasqal_query_results* query_results, void* ex_data);
+  rasqal_literal** (*execute_get_values)(void* ex_data);
 
   /* move to next bindings result */
-  int (*execute_next)(rasqal_query_results* query_results, void *ex_data);
+  int (*execute_next)(void *ex_data);
   
   /* finish (free) execution */
-  int (*execute_finish)(rasqal_query_results* query_results, void* ex_data);
+  int (*execute_finish)(void* ex_data);
   
   /* get current triple result */
-  raptor_statement* (*get_triple)(rasqal_query_results* query_results, void* ex_data);
+  raptor_statement* (*get_triple)(void* ex_data);
 
   /* move to next triple result */
-  int (*next_triple)(rasqal_query_results* query_results, void* ex_data);
+  int (*next_triple)(void* ex_data);
 
   /* finish the query execution factory */
   void (*finish_factory)(rasqal_query_execution_factory* factory);
