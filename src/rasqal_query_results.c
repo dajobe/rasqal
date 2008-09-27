@@ -561,6 +561,7 @@ rasqal_query_results_get_boolean(rasqal_query_results* query_results)
   return query_results->ask_result;
 }
 
+
 /**
  * rasqal_query_results_write:
  * @iostr: #raptor_iostream to write the query to
