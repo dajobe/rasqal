@@ -797,7 +797,6 @@ int rasqal_init_query_engine_laqrs(rasqal_world*);
 int rasqal_query_expand_triple_qnames(rasqal_query* rq);
 int rasqal_sequence_has_qname(raptor_sequence* seq);
 int rasqal_query_constraints_has_qname(rasqal_query* gp);
-int rasqal_graph_pattern_constraints_has_qname(rasqal_graph_pattern* gp);
 int rasqal_query_expand_graph_pattern_constraints_qnames(rasqal_query* rq, rasqal_graph_pattern* gp);
 int rasqal_query_expand_query_constraints_qnames(rasqal_query* rq);
 int rasqal_query_build_anonymous_variables(rasqal_query* rq);

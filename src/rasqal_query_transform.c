@@ -85,17 +85,7 @@ rasqal_sequence_has_qname(raptor_sequence *seq)
 }
 
 
-int
-rasqal_query_constraints_has_qname(rasqal_query* rq) 
-{
-  if(!rq->query_graph_pattern)
-    return 0;
-  
-  return rasqal_graph_pattern_constraints_has_qname(rq->query_graph_pattern);
-}
-
-
-int
+static int
 rasqal_graph_pattern_constraints_has_qname(rasqal_graph_pattern* gp) 
 {
   int i;
@@ -120,6 +110,16 @@ rasqal_graph_pattern_constraints_has_qname(rasqal_graph_pattern* gp)
     return 1;
 
   return 0;
+}
+
+
+int
+rasqal_query_constraints_has_qname(rasqal_query* rq) 
+{
+  if(!rq->query_graph_pattern)
+    return 0;
+  
+  return rasqal_graph_pattern_constraints_has_qname(rq->query_graph_pattern);
 }
 
 
@@ -478,8 +478,8 @@ rasqal_query_build_declared_in(rasqal_query* query)
  */
 static int
 rasqal_query_merge_triple_patterns(rasqal_query* query,
-                            rasqal_graph_pattern* gp,
-                            void* data)
+                                   rasqal_graph_pattern* gp,
+                                   void* data)
 {
   int* modified=(int*)data;
   int checking;
