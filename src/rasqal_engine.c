@@ -1596,31 +1596,6 @@ rasqal_engine_get_result_row(rasqal_engine_execution_data* execution_data)
 
 
 /**
- * rasqal_engine_get_result_values:
- * @query_results: query results object
- *
- * INTERNAL - Get the current query result as a row of values
- *
- * Return an array of #rasqal_literal values or NULL on failure.
- */
-static rasqal_literal**
-rasqal_engine_get_result_values(rasqal_engine_execution_data* execution_data)
-{
-  rasqal_query_results* query_results;
-  rasqal_row* row;
-
-  query_results = execution_data->query_results;
-
-  row=rasqal_engine_get_result_row(execution_data);
-  if(row)
-    return row->values;
-  
-  query_results->finished=1;
-  return NULL;
-}
-  
-
-/**
  * rasqal_engine_get_result_value:
  * @query_results: query results object
  * @offset: integer offset into result values array
@@ -2495,13 +2470,30 @@ rasqal_query_engine_1_execute_get_value(void* ex_data, int offset)
 }
 
 
+/**
+ * rasqal_query_engine_1_execute_get_values:
+ * @ex_data: execution data object
+ *
+ * INTERNAL - Get the current query result as a row of values
+ *
+ * Return an array of #rasqal_literal values or NULL on failure.
+ */
 static rasqal_literal**
 rasqal_query_engine_1_execute_get_values(void* ex_data)
 {
   rasqal_engine_execution_data* execution_data;
-  execution_data=(rasqal_engine_execution_data*)ex_data;
+  rasqal_query_results* query_results;
+  rasqal_row* row;
 
-  return rasqal_engine_get_result_values(execution_data);
+  execution_data=(rasqal_engine_execution_data*)ex_data;
+  query_results = execution_data->query_results;
+
+  row=rasqal_engine_get_result_row(execution_data);
+  if(row)
+    return row->values;
+  
+  query_results->finished=1;
+  return NULL;
 }
 
 
