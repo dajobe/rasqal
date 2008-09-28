@@ -281,8 +281,8 @@ rasqal_query_results_next(rasqal_query_results* query_results)
   if(!rasqal_query_results_is_bindings(query_results))
     return 1;
 
-  if(query_results->execution_factory->execute_next)
-    rc=query_results->execution_factory->execute_next(query_results->execution_data);
+  if(query_results->execution_factory->next_row)
+    rc=query_results->execution_factory->next_row(query_results->execution_data);
 
   return rc;
 }
@@ -342,8 +342,13 @@ rasqal_query_results_get_bindings(rasqal_query_results* query_results,
     *names=query_results->variable_names;
   
   if(values) {
-    if(query_results->execution_factory->execute_get_values)
-      *values=query_results->execution_factory->execute_get_values(query_results->execution_data);
+    rasqal_row* row;
+
+    row = rasqal_query_results_get_current_row(query_results);
+    if(row)
+      *values = row->values;
+    else
+      query_results->finished = 1;
   }
     
   return 0;
@@ -363,6 +368,8 @@ rasqal_literal*
 rasqal_query_results_get_binding_value(rasqal_query_results* query_results, 
                                        int offset)
 {
+  rasqal_row* row;
+  
   if(!query_results)
     return NULL;
   
@@ -372,10 +379,12 @@ rasqal_query_results_get_binding_value(rasqal_query_results* query_results,
   if(offset < 0 || offset > query_results->size-1)
     return NULL;
 
-  if(!query_results->execution_factory->execute_get_value)
-    return NULL;
-  
-  return query_results->execution_factory->execute_get_value(query_results->execution_data, offset);
+  row = rasqal_query_results_get_current_row(query_results);
+  if(row)
+    return row->values[offset];
+
+  query_results->finished=1;
+  return NULL;
 }
 
 
@@ -418,9 +427,9 @@ rasqal_literal*
 rasqal_query_results_get_binding_value_by_name(rasqal_query_results* query_results,
                                                const unsigned char *name)
 {
+  rasqal_row* row;
   int offset= -1;
   int i;
-  rasqal_literal* value=NULL;
 
   if(!query_results)
     return NULL;
@@ -428,9 +437,15 @@ rasqal_query_results_get_binding_value_by_name(rasqal_query_results* query_resul
   if(!rasqal_query_results_is_bindings(query_results))
     return NULL;
   
-  for(i=0; i< query_results->size; i++) {
+  row = rasqal_query_results_get_current_row(query_results);
+  if(!row) {
+    query_results->finished=1;
+    return NULL;
+  }
+  
+  for(i=0; i < query_results->size; i++) {
     if(!strcmp((const char*)name, (const char*)query_results->variables[i]->name)) {
-      offset=i;
+      offset = i;
       break;
     }
   }
@@ -438,10 +453,7 @@ rasqal_query_results_get_binding_value_by_name(rasqal_query_results* query_resul
   if(offset < 0)
     return NULL;
 
-  if(query_results->execution_factory->execute_get_value)
-    value=query_results->execution_factory->execute_get_value(query_results->execution_data, offset);
-
-  return value;
+  return row->values[offset];
 }
 
 
@@ -713,7 +725,7 @@ rasqal_query_results_read(raptor_iostream *iostr,
  * @query_results: query results object
  * @row: query result row
  *
- * INTERNAL - Add a query result row to a sequence
+ * INTERNAL - Add a query result row to the sequence of result rows
  */
 void
 rasqal_query_results_add_row(rasqal_query_results* query_results,
@@ -726,3 +738,103 @@ rasqal_query_results_add_row(rasqal_query_results* query_results,
   row->offset=query_results->result_count-1;
   raptor_sequence_push(query_results->results_sequence, row);
 }
+
+
+/**
+ * rasqal_query_results_set_all_rows:
+ * @query_results: query results object
+ * @seq: sequence of query result rows
+ *
+ * INTERNAL - Set all query result rows to the sequence
+ *
+ * The seq becomes owned by the query results.
+ */
+void
+rasqal_query_results_set_all_rows(rasqal_query_results* query_results,
+                                  raptor_sequence* seq)
+{
+  rasqal_query* query;
+
+  query = query_results->query;
+
+  if(query_results->results_sequence)
+     raptor_free_sequence(query_results->results_sequence);
+
+  query_results->results_sequence = seq;
+
+  if(!query_results->results_sequence) {
+    query_results->finished=1;
+  } else {
+    query_results->finished= (raptor_sequence_size(query_results->results_sequence) == 0);
+    
+    if(!query->limit)
+      query_results->finished=1;
+    
+    if(!query_results->finished) {
+      int size=raptor_sequence_size(query_results->results_sequence);
+      
+      /* Reset to first result, index-1 into sequence of results */
+      query_results->result_count= 1;
+      
+      /* skip past any OFFSET */
+      if(query->offset > 0) {
+        query_results->result_count += query->offset;
+        if(query_results->result_count >= size)
+          query_results->finished=1;
+      }
+      
+    }
+    
+    if(query_results->finished)
+      query_results->result_count= 0;
+  }
+
+}
+
+
+/**
+ * rasqal_query_results_get_row:
+ * @query_results: query results object
+ *
+ * INTERNAL - Get the current query result as a row of values
+ *
+ * Return a rasqal_row
+ */
+rasqal_row*
+rasqal_query_results_get_current_row(rasqal_query_results* query_results)
+{
+  rasqal_row* row;
+
+  if(query_results->results_sequence)
+    /* Stored Results */
+    row = (rasqal_row*)raptor_sequence_get_at(query_results->results_sequence,
+                                              query_results->result_count-1);
+  else
+    /* Streamed Results */
+    row = query_results->row;
+
+  return row;
+}
+
+
+void
+rasqal_query_results_update_bindings(rasqal_query_results* query_results)
+{
+  rasqal_query* query;
+  int i;
+  int size;
+
+  query = query_results->query;
+  if(!query)
+    return;
+  
+  /* bind the construct variables again if running through a sequence */
+  size = rasqal_variables_table_get_named_variables_count(query->vars_table);
+  for(i=0; i< size; i++) {
+    rasqal_variable* v = rasqal_variables_table_get(query->vars_table, i);
+    rasqal_literal* value = rasqal_query_results_get_binding_value(query_results, i);
+    rasqal_variable_set_value(v, rasqal_new_literal_from_literal(value));
+  }
+}
+
+

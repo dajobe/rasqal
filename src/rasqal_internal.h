@@ -920,6 +920,9 @@ void rasqal_query_results_reset(rasqal_query_results* query_results);
 int rasqal_query_results_set_variables(rasqal_query_results* query_results, raptor_sequence* variables_sequence, int size, int order_size);
 void rasqal_query_results_set_order_conditions(rasqal_query_results* query_results, int order_size);
 void rasqal_query_results_add_row(rasqal_query_results* query_results, rasqal_row* row);
+void rasqal_query_results_set_all_rows(rasqal_query_results* query_results, raptor_sequence* seq);
+rasqal_row* rasqal_query_results_get_current_row(rasqal_query_results* query_results);
+void rasqal_query_results_update_bindings(rasqal_query_results* query_results);
 
 /* rasqal_result_formats.c */
 int rasqal_query_results_format_register_factory(rasqal_world*, const char *name, const char *label, const unsigned char* uri_string, rasqal_query_results_formatter_func writer, rasqal_query_results_formatter_func reader, rasqal_query_results_get_rowsource_func get_rowsource, const char *mime_type);
@@ -1108,16 +1111,10 @@ struct rasqal_query_execution_factory_s {
   int (*execute_init)(void* ex_data, rasqal_query* query, rasqal_query_results* query_results);
 
   /* get current bindings result row (returning a new object) */
-  rasqal_row* (*execute_get)(void* ex_data);
-
-  /* get one binding value (returning a shared object) */
-  rasqal_literal* (*execute_get_value)(void* ex_data, int offset);
-
-  /* get all binding values for a row (returning a shared object) */
-  rasqal_literal** (*execute_get_values)(void* ex_data);
+  rasqal_row* (*get_row)(void* ex_data);
 
   /* move to next bindings result */
-  int (*execute_next)(void *ex_data);
+  int (*next_row)(void *ex_data);
   
   /* finish (free) execution */
   int (*execute_finish)(void* ex_data);
