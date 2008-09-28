@@ -1,4 +1,142 @@
+2008-09-27  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_engine.c:
+	(rasqal_engine_execute_finish): Deleted
+	(rasqal_engine_execute_next): Deleted
+	(rasqal_query_engine_1_next_row): Merge in
+	rasqal_engine_execute_next
+	(rasqal_query_engine_1_execute_finish): Merge in
+	rasqal_engine_execute_finish
+	(rasqal_query_engine_1_next_triple): Use
+	rasqal_query_engine_1_next_row.
+
+	* src/rasqal_engine.c, src/rasqal_internal.h,
+	src/rasqal_query_results.c: Removed execute_get_value and
+	execute_get_values factory methods of
+	rasqal_query_execution_factory_s.  Renamed execute_get method to
+	get_row Renamed execute_next method to next_row
+	(rasqal_engine_get_result_row): Deleted
+	(rasqal_query_results_get_row): Replace
+	rasqal_engine_get_result_row
+	(rasqal_engine_get_result_value): Deleted and inlined.
+	(rasqal_engine_bind_construct_variables): Deleted and inlined
+	using new rasqal_query_results_update_bindings
+	(rasqal_engine_execute_and_save): Removed core of limit and
+	indexing checking to new rasqal_query_results_set_all_rows.
+	(rasqal_engine_row_to_nodes): Use
+	rasqal_query_results_get_current_row.
+	(rasqal_engine_execute_next_from_saved): Use
+	rasqal_query_results_update_bindings.
+	(rasqal_query_engine_1_get_row): Renamed from
+	rasqal_query_engine_1_execute_get.
+	(rasqal_query_engine_1_execute_get_value): Deleted.
+	(rasqal_query_engine_1_execute_get_values): Deleted.
+	(rasqal_query_engine_1_next_row): Renamed from
+	rasqal_query_engine_1_execute_next
+	(rasqal_query_results_next): Use next_row method.
+	(rasqal_query_results_get_bindings,
+	rasqal_query_results_get_binding_value,
+	rasqal_query_results_get_binding_value_by_name): Inline get values
+	work using rasqal_query_results_get_current_row.
+	(rasqal_query_results_set_all_rows): Added
+	(rasqal_query_results_get_current_row): Added
+	(rasqal_query_results_update_bindings): Added
+
+	* src/rasqal_engine.c:
+	(rasqal_engine_get_result_values): Deleted
+	(rasqal_query_engine_1_execute_get_values): Merged in
+	rasqal_engine_get_result_values here.
+
+	* src/rasqal_engine.c, src/rasqal_internal.h,
+	src/rasqal_query_results.c: rasqal_query_results loses
+	current_triple_result field.  rasqal_engine_execution_data gains
+	current_triple_result field.
+	(rasqal_engine_execute_init): Init current_triple_result.
+	(rasqal_query_engine_1_get_triple,
+	rasqal_query_engine_1_next_triple): use
+	execution_data->current_triple_result
+	(rasqal_query_results_reset): Remove init of
+	current_triple_result.
+
+	* src/rasqal_engine.c, src/rasqal_internal.h: Moved
+	new_bindings_count from rasqal_query_results to
+	rasqal_engine_execution_data.
+
+	* src/rasqal_engine.c, src/rasqal_graph_pattern.c,
+	src/rasqal_internal.h, src/sparql_parser.y:
+	(rasqal_new_basic_graph_pattern_from_formula): Renamed from
+	rasqal_engine_new_basic_graph_pattern_from_formula
+	(rasqal_new_2_group_graph_pattern): Renamed from
+	rasqal_engine_group_2_graph_patterns.  query_results loses
+	triples_source field, now unused2 rasqal_engine_execution_data
+	gains triples_source field.  Altered query engine 1 to uses
+	execution_data->triples_source
+	(rasqal_new_triples_match): Use execution_data parameter.
+	(rasqal_reset_triple_meta): Now static and use execution_data.
+	(rasqal_engine_execute_finish): use execution data.
+
+	* src/rasqal_engine.c, src/rasqal_internal.h, src/rasqal_query.c,
+	src/rasqal_query_results.c: Make execution factory methods all
+	take execution data pointers which in the current query engine V1,
+	are pointers to rasqal_engine_execution_data
+	(rasqal_engine_group_graph_pattern_get_next_match,
+	rasqal_engine_triple_graph_pattern_get_next_match,
+	rasqal_engine_graph_pattern_get_next_match,
+	rasqal_engine_graph_pattern_init, rasqal_engine_execute_init,
+	rasqal_engine_execute_finish, rasqal_engine_move_to_graph_pattern,
+	rasqal_engine_do_step, rasqal_engine_do_optional_step,
+	rasqal_engine_get_next_result, rasqal_engine_check_limit_offset,
+	rasqal_engine_row_update, rasqal_engine_get_result_row,
+	rasqal_engine_get_result_values, rasqal_engine_get_result_value,
+	rasqal_engine_bind_construct_variables,
+	rasqal_engine_execute_and_save, rasqal_engine_execute_run,
+	rasqal_engine_row_to_nodes, rasqal_engine_execute_next_from_saved,
+	rasqal_engine_execute_next, rasqal_query_engine_1_execute_init,
+	rasqal_query_engine_1_execute_get,
+	rasqal_query_engine_1_execute_get_value,
+	rasqal_query_engine_1_execute_get_values,
+	rasqal_query_engine_1_execute_next,
+	rasqal_query_engine_1_execute_finish,
+	rasqal_query_engine_1_get_triple,
+	rasqal_query_engine_1_next_triple): Remove query_results
+	parameter.
+	(rasqal_engine_init_execution_data): Add query param.
+	(rasqal_query_execute): Invoke init method with query parameter.
+	(rasqal_free_query_results, rasqal_query_results_next,
+	rasqal_query_results_get_bindings,
+	rasqal_query_results_get_binding_value,
+	rasqal_query_results_get_binding_value_by_name,
+	rasqal_query_results_get_triple,
+	rasqal_query_results_next_triple): Invoke finish method with
+	execution data.
+
+	* src/rasqal_engine.c: Pass execution_data to a lot of functions.
+	query_results->execution_data is no longer used by this code.
+	Code tidying for long lines.
+	(rasqal_engine_triple_graph_pattern_get_next_match,
+	rasqal_engine_graph_pattern_get_next_match,
+	rasqal_engine_graph_pattern_init,
+	rasqal_engine_move_to_graph_pattern, rasqal_engine_do_step,
+	rasqal_engine_do_optional_step, rasqal_engine_make_rowsource): Add
+	execution_data arg.  rasqal_rowsource_engine_context gains
+	execution_data field.
+	(rasqal_rowsource_engine_init): Initialise execution_data in
+	rasqal_rowsource_engine_context
+	(rasqal_rowsource_engine_finish): Pass on execution_data
+
 2008-09-26  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_engine.c: ws
+
+	* src/rasqal_query_results.c:
+	(rasqal_new_query_results): Set execution_factory if query_results
+	is set.
+
+	* src/rasqal_query_results.c: ws
+
+	* src/Makefile.am, src/rasqal_internal.h,
+	src/rasqal_query_results.c, src/rasqal_row.c: Moved rasqal_row
+	class rom rasqal_query_results.c to rasqal_row.c
 
 	* src/rasqal_internal.h, src/rasqal_query_transform.c:
 	rasqal_graph_pattern_constraints_has_qname is static
@@ -77,8 +215,9 @@
 
 2008-09-26  Lauri Aalto <laalto@iki.fi>
 
-	* src/rasqal_result_formats.c: (rasqal_query_results_write_json1):
-	Do not emit double " for distinct/ordered flags.
+	* src/rasqal_result_formats.c:
+	(rasqal_query_results_write_json1): Do not emit double " for
+	distinct/ordered flags.
 	Fixes Issue#0000279 http://bugs.librdf.org/mantis/view.php?id=279
 
 2008-09-26  Dave Beckett <dave@dajobe.org>
@@ -139,19 +278,21 @@
 	factory const, no need to modify its members after
 	initialization.
 	
-	* src/rasqal_engine.c: (rasqal_engine_execute_finish): Fixed
-	missing return value in assertion.
+	* src/rasqal_engine.c: 
+	(rasqal_engine_execute_finish): Fixed missing return value in
+	assertion.
 
 2008-09-25  Dave Beckett <dave@dajobe.org>
 
 	* src/rasqal_internal.h: struct rasqal_query_results_s: lose
 	free_execution_data callback
 
-	* src/rasqal_query_results.c: (rasqal_free_query_results): Do not
-	free execution data with factory method.
+	* src/rasqal_query_results.c:
+	(rasqal_free_query_results): Do not free execution data with
+	factory method.
 
-	* src/rasqal_engine.c: (rasqal_free_engine_execution_data):
-	Removed, only 1 use.
+	* src/rasqal_engine.c:
+	(rasqal_free_engine_execution_data): Removed, only 1 use.
 
 	* src/rasqal_engine.c, src/rasqal_internal.h, src/rasqal_query.c,
 	src/rasqal_query_results.c: Introduce a
@@ -190,10 +331,9 @@
 
 	* src/rasqal_engine_rowsource.c: Rasqal query engine rowsource class
 
-	* src/rasqal_internal.h,
-	src/rasqal_rowsource.c: (rasqal_rowsource_ensure_variables): Added
-	and called before any rowsource function that tries to refer to
-	the variables sequence.
+	* src/rasqal_internal.h, src/rasqal_rowsource.c:
+	(rasqal_rowsource_ensure_variables): Added and called before any
+	rowsource function that tries to refer to the variables sequence.
 
 	* src/rasqal_internal.h, src/rasqal_query_results.c,
 	src/rasqal_rowsequence_rowsource.c:
@@ -216,20 +356,20 @@
 
 	* src/rasqal_rowsequence_rowsource.c: comments
 
-	* src/rasqal_rowsequence_rowsource.c: (make_row_sequence): Added
-	to build row test data
+	* src/rasqal_rowsequence_rowsource.c:
+	(make_row_sequence): Added to build row test data
 	(main): Use it
 
 2008-09-20  Dave Beckett <dave@dajobe.org>
 
-	* src/rasqal_union_rowsource.c: (rasqal_union_rowsource_finish):
-	Free context
+	* src/rasqal_union_rowsource.c:
+	(rasqal_union_rowsource_finish): Free context
 
 	* src/rasqal_rowsequence_rowsource.c:
 	(rasqal_rowsequence_rowsource_finish): Free context
 
-	* src/rasqal_empty_rowsource.c: (rasqal_empty_rowsource_finish):
-	Added and used to free context
+	* src/rasqal_empty_rowsource.c:
+	(rasqal_empty_rowsource_finish): Added and used to free context
 
 	* src/Makefile.am, src/rasqal_internal.h,
 	src/rasqal_rowsequence_rowsource.c, src/rasqal_union_rowsource.c:
@@ -242,13 +382,15 @@
 	(rasqal_new_query_result_row_for_variables): Added, creating a row
 	big enough for all the named variables in a variables table.
 
-	* src/rasqal_empty_rowsource.c: (main) fail test
+	* src/rasqal_empty_rowsource.c:
+	(main) fail test
 
 	* src/Makefile.am, src/rasqal_empty_rowsource.c,
 	src/rasqal_internal.h: Added empty rowsource class
 
-	* src/rasqal_rowsource.c: (rasqal_rowsource_read_all_rows): Return
-	an empty sequence rather than NULL when 0 rows are returned
+	* src/rasqal_rowsource.c:
+	(rasqal_rowsource_read_all_rows): Return an empty sequence rather
+	than NULL when 0 rows are returned
 
 2008-09-08  Lauri Aalto <laalto@iki.fi>
 
@@ -268,7 +410,8 @@
 
 	* docs/rasqal-docs.xml, docs/rasqal-sections.txt: Update sections
 
-	* src/rasqal_decimal.c: (rasqal_xsd_decimal_as_string): Cast for C++
+	* src/rasqal_decimal.c:
+	(rasqal_xsd_decimal_as_string): Cast for C++
 
 2008-09-05  Dave Beckett <dave@dajobe.org>
 
@@ -277,15 +420,18 @@
 
 2008-08-25  Lauri Aalto <laalto@iki.fi>
 
-	* src/rasqal_engine.c: (rasqal_engine_remove_filter_graph_patterns):
-	Do not leak sequence on error.
+	* src/rasqal_engine.c:
+	(rasqal_engine_remove_filter_graph_patterns): Do not leak sequence
+	on error.
 
-	* src/rasqal_engine.c: (rasqal_engine_execute_init): Check for
-	errors in rasqal_engine_remove_filter_graph_patterns() visitor.
+	* src/rasqal_engine.c:
+	(rasqal_engine_execute_init): Check for errors in
+	rasqal_engine_remove_filter_graph_patterns() visitor.
 
-	* src/rasqal_engine.c: (rasqal_engine_remove_filter_graph_patterns):
-	Resiliency fix: check raptor_sequence_push() return value to avoid
-	dangling pointers
+	* src/rasqal_engine.c:
+	(rasqal_engine_remove_filter_graph_patterns): Resiliency fix:
+	check raptor_sequence_push() return value to avoid dangling
+	pointers
 
 	* src/sparql_parser.y: (GroupGraphPattern): Fixed double deletion:
 	raptor_sequence_shift() takes ownership
