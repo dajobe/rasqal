@@ -66,6 +66,9 @@ typedef struct {
 
   /* New variables bound from during the current 'next result' run */
   int new_bindings_count;
+
+  /* current triple in the sequence of triples 'constructs' or -1 */
+  int current_triple_result;
 } rasqal_engine_execution_data;
 
 
@@ -923,6 +926,8 @@ rasqal_engine_execute_init(rasqal_engine_execution_data* execution_data)
     return 1;
   
   rasqal_query_results_reset(query_results);
+
+  execution_data->current_triple_result = -1;
 
   gp=query->query_graph_pattern;
 
@@ -2575,14 +2580,14 @@ rasqal_query_engine_1_get_triple(void* ex_data)
         rs=NULL;
         break;
       }
-      query_results->current_triple_result= -1;
+      execution_data->current_triple_result = -1;
     }
     
-    if(query_results->current_triple_result < 0)
-      query_results->current_triple_result=0;
+    if(execution_data->current_triple_result < 0)
+      execution_data->current_triple_result = 0;
 
     t=(rasqal_triple*)raptor_sequence_get_at(query->constructs,
-                                             query_results->current_triple_result);
+                                             execution_data->current_triple_result);
 
     rs=&query_results->result_triple;
 
@@ -2809,12 +2814,12 @@ rasqal_query_engine_1_next_triple(void* ex_data)
     query_results->triple=NULL;
   }
 
-  if(++query_results->current_triple_result >= raptor_sequence_size(query->constructs)) {
+  if(++execution_data->current_triple_result >= raptor_sequence_size(query->constructs)) {
     rc=rasqal_engine_execute_next(execution_data);
     if(rc)
       return 1;
     
-    query_results->current_triple_result= -1;
+    execution_data->current_triple_result = -1;
   }
   
   return rc;

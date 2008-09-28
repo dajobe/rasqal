@@ -516,8 +516,8 @@ struct rasqal_query_results_s {
   /* unused 2 (was triples_source) */
   void* unused2;
 
-  /* current triple in the sequence of triples 'constructs' or -1 */
-  int current_triple_result;
+  /* unused 4 (was current_triple_result) */
+  int unused4;
 
   /* constructed triple result (SHARED) */
   raptor_statement result_triple;
