@@ -61,6 +61,8 @@ typedef struct {
 
   /* for ordering results during execution */
   rasqal_map* map;
+
+  rasqal_triples_source* triples_source;
 } rasqal_engine_execution_data;
 
 
@@ -118,7 +120,7 @@ rasqal_set_triples_source_factory(rasqal_world* world, void (*register_fn)(rasqa
 }
 
 
-rasqal_triples_source*
+static rasqal_triples_source*
 rasqal_new_triples_source(rasqal_query_results* query_results)
 {
   rasqal_query* query=query_results->query;
@@ -162,7 +164,7 @@ rasqal_new_triples_source(rasqal_query_results* query_results)
 }
 
 
-void
+static void
 rasqal_free_triples_source(rasqal_triples_source *rts)
 {
   RASQAL_ASSERT_OBJECT_POINTER_RETURN(rts, rasqal_triples_source);
@@ -196,22 +198,23 @@ rasqal_free_triples_match(rasqal_triples_match* rtm)
 
 
 static rasqal_triples_match*
-rasqal_new_triples_match(rasqal_query_results* query_results, void *user_data,
+rasqal_new_triples_match(rasqal_engine_execution_data* execution_data,
+                         void *user_data,
                          rasqal_triple_meta *m, rasqal_triple *t)
 {
   rasqal_triples_match* rtm;
 
-  if(!query_results->triples_source)
+  if(!execution_data->triples_source)
     return NULL;
 
   rtm=(rasqal_triples_match *)RASQAL_CALLOC(rasqal_triples_match, 1,
                                             sizeof(rasqal_triples_match));
   if(rtm) {
-    rtm->world=query_results->query->world;
-    if(query_results->triples_source->init_triples_match(rtm,
-                                                 query_results->triples_source,
-                                                 query_results->triples_source->user_data,
-                                                 m, t)) {
+    rtm->world = execution_data->query->world;
+    if(execution_data->triples_source->init_triples_match(rtm,
+                                                          execution_data->triples_source,
+                                                          execution_data->triples_source->user_data,
+                                                          m, t)) {
       rasqal_free_triples_match(rtm);
       rtm=NULL;
     }
@@ -253,7 +256,7 @@ rasqal_triples_match_is_end(struct rasqal_triples_match_s* rtm)
  * 
  * Return value: number of parts of the triple that were reset (0..4)
  **/
-int
+static int
 rasqal_reset_triple_meta(rasqal_triple_meta* m)
 {
   int resets=0;
@@ -449,7 +452,7 @@ rasqal_engine_triple_graph_pattern_get_next_match(rasqal_engine_execution_data* 
     if (m->is_exact) {
       /* exact triple match wanted */
 
-      if(!rasqal_triples_source_triple_present(query_results->triples_source, t)) {
+      if(!rasqal_triples_source_triple_present(execution_data->triples_source, t)) {
         /* failed */
         RASQAL_DEBUG2("exact match failed for column %d\n", gp_data->column);
         gp_data->column--;
@@ -469,7 +472,7 @@ rasqal_engine_triple_graph_pattern_get_next_match(rasqal_engine_execution_data* 
 
       if(!m->triples_match) {
         /* Column has no triplesMatch so create a new query */
-        m->triples_match=rasqal_new_triples_match(query_results, m, m, t);
+        m->triples_match=rasqal_new_triples_match(execution_data, m, m, t);
         if(!m->triples_match) {
           query->failed=1;
           rasqal_log_error_simple(query->world, RAPTOR_LOG_LEVEL_ERROR,
@@ -848,9 +851,9 @@ rasqal_engine_execute_init(rasqal_engine_execution_data* execution_data)
   if(!query->triples)
     return 1;
   
-  if(!query_results->triples_source) {
-    query_results->triples_source=rasqal_new_triples_source(query_results);
-    if(!query_results->triples_source) {
+  if(!execution_data->triples_source) {
+    execution_data->triples_source=rasqal_new_triples_source(query_results);
+    if(!execution_data->triples_source) {
       query_results->failed=1;
       return 1;
     }
@@ -930,15 +933,12 @@ rasqal_engine_execute_init(rasqal_engine_execution_data* execution_data)
 static int
 rasqal_engine_execute_finish(rasqal_engine_execution_data* execution_data)
 {
-  rasqal_query_results* query_results;
-  
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(execution_data, 
                                             rasqal_engine_execution_data, 1);
 
-  query_results = execution_data->query_results;
-  if(query_results->triples_source) {
-    rasqal_free_triples_source(query_results->triples_source);
-    query_results->triples_source=NULL;
+  if(execution_data->triples_source) {
+    rasqal_free_triples_source(execution_data->triples_source);
+    execution_data->triples_source=NULL;
   }
 
   return 0;
@@ -1494,92 +1494,6 @@ rasqal_engine_check_limit_offset(rasqal_engine_execution_data* execution_data)
   }
 
   return query_results->finished;
-}
-
-
-/**
- * rasqal_engine_new_basic_graph_pattern_from_formula:
- * @query: #rasqal_graph_pattern query object
- * @formula: triples sequence containing the graph pattern
- * @op: enum #rasqal_graph_pattern_operator operator
- *
- * Create a new graph pattern object over a formula. This function
- * frees the formula passed in.
- * 
- * Return value: a new #rasqal_graph_pattern object or NULL on failure
- **/
-rasqal_graph_pattern*
-rasqal_engine_new_basic_graph_pattern_from_formula(rasqal_query* query,
-                                                   rasqal_formula* formula)
-{
-  rasqal_graph_pattern* gp;
-  raptor_sequence *triples=query->triples;
-  raptor_sequence *formula_triples=formula->triples;
-  int offset=raptor_sequence_size(triples);
-  int triple_pattern_size=0;
-
-  if(formula_triples) {
-    /* Move formula triples to end of main triples sequence */
-    triple_pattern_size=raptor_sequence_size(formula_triples);
-    if(raptor_sequence_join(triples, formula_triples)) {
-      rasqal_free_formula(formula);
-      return NULL;
-    }
-  }
-
-  rasqal_free_formula(formula);
-
-  gp=rasqal_new_basic_graph_pattern(query, triples, 
-                                    offset, 
-                                    offset+triple_pattern_size-1);
-  return gp;
-}
-
-
-/**
- * rasqal_engine_group_2_graph_patterns:
- * @query: query object
- * @first_gp: first graph pattern
- * @second_gp: second graph pattern
- *
- * INTERNAL - Make a new group graph pattern from two graph patterns
- * of which either or both may be NULL, in which case a group
- * of 0 graph patterns is created.
- *
- * @first_gp and @second_gp if given, become owned by the new graph
- * pattern.
- *
- * Return value: new group graph pattern or NULL on failure
- */
-rasqal_graph_pattern*
-rasqal_engine_group_2_graph_patterns(rasqal_query* query,
-                                     rasqal_graph_pattern* first_gp,
-                                     rasqal_graph_pattern* second_gp)
-{
-  raptor_sequence *seq;
-
-  seq=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_graph_pattern, (raptor_sequence_print_handler*)rasqal_graph_pattern_print);
-  if(!seq) {
-    if(first_gp)
-      rasqal_free_graph_pattern(first_gp);
-    if(second_gp)
-      rasqal_free_graph_pattern(second_gp);
-    return NULL;
-  }
-
-  if(first_gp && raptor_sequence_push(seq, first_gp)) {
-    raptor_free_sequence(seq);
-    if(second_gp)
-      rasqal_free_graph_pattern(second_gp);
-    return NULL;
-  }
-  if(second_gp && raptor_sequence_push(seq, second_gp)) {
-    raptor_free_sequence(seq);
-    return NULL;
-  }
-
-  return rasqal_new_graph_pattern_from_sequence(query, seq,
-                                                RASQAL_GRAPH_PATTERN_OPERATOR_GROUP);
 }
 
 

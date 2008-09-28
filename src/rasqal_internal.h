@@ -513,7 +513,8 @@ struct rasqal_query_results_s {
   /* New variables bound from during the current 'next result' run */
   int new_bindings_count;
 
-  rasqal_triples_source* triples_source;
+  /* unused 2 (was triples_source) */
+  void* unused2;
 
   /* current triple in the sequence of triples 'constructs' or -1 */
   int current_triple_result;
@@ -783,8 +784,10 @@ const char* rasqal_basename(const char* name);
 
 /* rasqal_graph_pattern.c */
 unsigned char* rasqal_escaped_name_to_utf8_string(const unsigned char* src, size_t len, size_t* dest_lenp, raptor_simple_message_handler error_handler, void* error_data);
-
 unsigned char* rasqal_query_generate_bnodeid(rasqal_query* rdf_query, unsigned char *user_bnodeid);
+
+rasqal_graph_pattern* rasqal_new_basic_graph_pattern_from_formula(rasqal_query* query, rasqal_formula* formula);
+rasqal_graph_pattern* rasqal_new_2_group_graph_pattern(rasqal_query* query, rasqal_graph_pattern* first_gp, rasqal_graph_pattern* second_gp);
 
 /* rdql_parser.y */
 int rasqal_init_query_engine_rdql(rasqal_world*);
@@ -808,12 +811,6 @@ int rasqal_graph_patterns_join(rasqal_graph_pattern *dest_gp, rasqal_graph_patte
 int rasqal_graph_pattern_move_constraints(rasqal_graph_pattern* dest_gp, rasqal_graph_pattern* src_gp);
 
 /* rasqal_engine.c */
-int rasqal_engine_remove_empty_group_graph_patterns(rasqal_query* query, rasqal_graph_pattern* gp, void* data);
-  
-rasqal_triples_source* rasqal_new_triples_source(rasqal_query_results* query_results);
-void rasqal_free_triples_source(rasqal_triples_source* rts);
-int rasqal_reset_triple_meta(rasqal_triple_meta* m);
-rasqal_graph_pattern* rasqal_engine_new_basic_graph_pattern_from_formula(rasqal_query* query, rasqal_formula* formula);
 rasqal_graph_pattern* rasqal_engine_group_2_graph_patterns(rasqal_query* query, rasqal_graph_pattern* first_gp, rasqal_graph_pattern* second_gp);
 
 /* rasqal_expr.c */

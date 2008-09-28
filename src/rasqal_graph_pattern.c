@@ -755,3 +755,89 @@ rasqal_graph_pattern_set_origin(rasqal_graph_pattern* graph_pattern,
   }
 
 }
+
+
+/**
+ * rasqal_new_basic_graph_pattern_from_formula:
+ * @query: #rasqal_graph_pattern query object
+ * @formula: triples sequence containing the graph pattern
+ * @op: enum #rasqal_graph_pattern_operator operator
+ *
+ * INTERNAL - Create a new graph pattern object over a formula. This function
+ * frees the formula passed in.
+ * 
+ * Return value: a new #rasqal_graph_pattern object or NULL on failure
+ **/
+rasqal_graph_pattern*
+rasqal_new_basic_graph_pattern_from_formula(rasqal_query* query,
+                                            rasqal_formula* formula)
+{
+  rasqal_graph_pattern* gp;
+  raptor_sequence *triples=query->triples;
+  raptor_sequence *formula_triples=formula->triples;
+  int offset=raptor_sequence_size(triples);
+  int triple_pattern_size=0;
+
+  if(formula_triples) {
+    /* Move formula triples to end of main triples sequence */
+    triple_pattern_size=raptor_sequence_size(formula_triples);
+    if(raptor_sequence_join(triples, formula_triples)) {
+      rasqal_free_formula(formula);
+      return NULL;
+    }
+  }
+
+  rasqal_free_formula(formula);
+
+  gp=rasqal_new_basic_graph_pattern(query, triples, 
+                                    offset, 
+                                    offset+triple_pattern_size-1);
+  return gp;
+}
+
+
+/**
+ * rasqal_new_2_group_graph_pattern:
+ * @query: query object
+ * @first_gp: first graph pattern
+ * @second_gp: second graph pattern
+ *
+ * INTERNAL - Make a new group graph pattern from two graph patterns
+ * of which either or both may be NULL, in which case a group
+ * of 0 graph patterns is created.
+ *
+ * @first_gp and @second_gp if given, become owned by the new graph
+ * pattern.
+ *
+ * Return value: new group graph pattern or NULL on failure
+ */
+rasqal_graph_pattern*
+rasqal_new_2_group_graph_pattern(rasqal_query* query,
+                                 rasqal_graph_pattern* first_gp,
+                                 rasqal_graph_pattern* second_gp)
+{
+  raptor_sequence *seq;
+
+  seq=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_graph_pattern, (raptor_sequence_print_handler*)rasqal_graph_pattern_print);
+  if(!seq) {
+    if(first_gp)
+      rasqal_free_graph_pattern(first_gp);
+    if(second_gp)
+      rasqal_free_graph_pattern(second_gp);
+    return NULL;
+  }
+
+  if(first_gp && raptor_sequence_push(seq, first_gp)) {
+    raptor_free_sequence(seq);
+    if(second_gp)
+      rasqal_free_graph_pattern(second_gp);
+    return NULL;
+  }
+  if(second_gp && raptor_sequence_push(seq, second_gp)) {
+    raptor_free_sequence(seq);
+    return NULL;
+  }
+
+  return rasqal_new_graph_pattern_from_sequence(query, seq,
+                                                RASQAL_GRAPH_PATTERN_OPERATOR_GROUP);
+}

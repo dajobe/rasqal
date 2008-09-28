@@ -898,12 +898,12 @@ GroupGraphPattern: '{' TriplesBlockOpt GraphPatternListOpt '}'
 
 
   if(!$2 && !$3) {
-    $$=rasqal_engine_group_2_graph_patterns((rasqal_query*)rq, NULL, NULL);
+    $$=rasqal_new_2_group_graph_pattern((rasqal_query*)rq, NULL, NULL);
     if(!$$)
       YYERROR_MSG("GroupGraphPattern: cannot create group gp");
   } else {
     if($2) {
-      formula_gp=rasqal_engine_new_basic_graph_pattern_from_formula((rasqal_query*)rq, $2);
+      formula_gp=rasqal_new_basic_graph_pattern_from_formula((rasqal_query*)rq, $2);
       if(!formula_gp) {
         if($3)
           rasqal_free_graph_pattern($3);
@@ -1034,14 +1034,14 @@ GraphPatternList: GraphPatternListFilter DotOptional TriplesBlockOpt
 #endif
 
   if($3) {
-    formula_gp=rasqal_engine_new_basic_graph_pattern_from_formula((rasqal_query*)rq, $3);
+    formula_gp=rasqal_new_basic_graph_pattern_from_formula((rasqal_query*)rq, $3);
     if(!formula_gp) {
       if($1)
         rasqal_free_graph_pattern($1);
       YYERROR_MSG("GraphPatternList: cannot create formula_gp");
     }
   }
-  $$=rasqal_engine_group_2_graph_patterns((rasqal_query*)rq, $1, formula_gp);
+  $$=rasqal_new_2_group_graph_pattern((rasqal_query*)rq, $1, formula_gp);
   if(!$$)
     YYERROR_MSG("GraphPatternList: cannot create sequence");
 
