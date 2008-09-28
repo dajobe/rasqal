@@ -63,6 +63,9 @@ typedef struct {
   rasqal_map* map;
 
   rasqal_triples_source* triples_source;
+
+  /* New variables bound from during the current 'next result' run */
+  int new_bindings_count;
 } rasqal_engine_execution_data;
 
 
@@ -496,9 +499,9 @@ rasqal_engine_triple_graph_pattern_get_next_match(rasqal_engine_execution_data* 
         m->executed=1;
 
         resets=rasqal_reset_triple_meta(m);
-        query_results->new_bindings_count-= resets;
-        if(query_results->new_bindings_count < 0)
-          query_results->new_bindings_count=0;
+        execution_data->new_bindings_count-= resets;
+        if(execution_data->new_bindings_count < 0)
+          execution_data->new_bindings_count=0;
 
         gp_data->column--;
         continue;
@@ -512,13 +515,13 @@ rasqal_engine_triple_graph_pattern_get_next_match(rasqal_engine_execution_data* 
         if(!parts)
           rc=0;
         if(parts & RASQAL_TRIPLE_SUBJECT)
-          query_results->new_bindings_count++;
+          execution_data->new_bindings_count++;
         if(parts & RASQAL_TRIPLE_PREDICATE)
-          query_results->new_bindings_count++;
+          execution_data->new_bindings_count++;
         if(parts & RASQAL_TRIPLE_OBJECT)
-          query_results->new_bindings_count++;
+          execution_data->new_bindings_count++;
         if(parts & RASQAL_TRIPLE_ORIGIN)
-          query_results->new_bindings_count++;
+          execution_data->new_bindings_count++;
       } else {
         RASQAL_DEBUG2("Nothing to bind_match for column %d\n", gp_data->column);
       }
@@ -1213,7 +1216,7 @@ rasqal_engine_do_optional_step(rasqal_engine_execution_data* execution_data,
     
     RASQAL_DEBUG3("Found %d mandatory matches, %d optional matches\n", 
                   mandatory_matches, optional_matches);
-    RASQAL_DEBUG2("Found %d new binds\n", query_results->new_bindings_count);
+    RASQAL_DEBUG2("Found %d new binds\n", execution_data->new_bindings_count);
     
     if(optional_matches) {
       RASQAL_DEBUG1("Found some matches, returning a result\n");
@@ -1232,9 +1235,9 @@ rasqal_engine_do_optional_step(rasqal_engine_execution_data* execution_data,
     }
 
 
-    if(query_results->new_bindings_count > 0) {
+    if(execution_data->new_bindings_count > 0) {
       RASQAL_DEBUG2("%d new bindings, returning a result\n",
-                    query_results->new_bindings_count);
+                    execution_data->new_bindings_count);
       return STEP_GOT_MATCH;
     }
     RASQAL_DEBUG1("no new bindings, continuing searching\n");
@@ -1246,7 +1249,7 @@ rasqal_engine_do_optional_step(rasqal_engine_execution_data* execution_data,
     step=rasqal_engine_check_constraint(query, gp);
     if(step != STEP_GOT_MATCH) {
       /* The constraint failed or we have an error - no bindings count */
-      query_results->new_bindings_count=0;
+      execution_data->new_bindings_count=0;
       return step;
     }
   }
@@ -1268,7 +1271,7 @@ rasqal_engine_do_optional_step(rasqal_engine_execution_data* execution_data,
     step=rasqal_engine_check_constraint(query, outergp);
     if(step != STEP_GOT_MATCH) {
       /* The constraint failed or we have an error - no bindings count */
-      query_results->new_bindings_count=0;
+      execution_data->new_bindings_count=0;
       return STEP_SEARCHING;
     }
   }
@@ -1340,7 +1343,7 @@ rasqal_engine_get_next_result(rasqal_engine_execution_data* execution_data)
   outergp_data=(rasqal_engine_gp_data*)raptor_sequence_get_at(execution_data->seq, 
                                                               outergp->gp_index);
 
-  query_results->new_bindings_count=0;
+  execution_data->new_bindings_count=0;
 
   if(query->constructs)
     size=rasqal_variables_table_get_named_variables_count(query->vars_table);
@@ -1396,7 +1399,7 @@ rasqal_engine_get_next_result(rasqal_engine_execution_data* execution_data)
         values_returned++;
     }
     RASQAL_DEBUG2("Solution binds %d values\n", values_returned);
-    RASQAL_DEBUG2("New bindings %d\n", query_results->new_bindings_count);
+    RASQAL_DEBUG2("New bindings %d\n", execution_data->new_bindings_count);
 
     if(!values_returned && optional_step &&
        step != STEP_FINISHED && step != STEP_SEARCHING) {

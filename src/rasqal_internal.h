@@ -510,8 +510,8 @@ struct rasqal_query_results_s {
   /* boolean ASK result >0 true, 0 false or -1 uninitialised */
   int ask_result;
 
-  /* New variables bound from during the current 'next result' run */
-  int new_bindings_count;
+  /* unused 3 (was new_bindings_count) */
+  int unused3;
 
   /* unused 2 (was triples_source) */
   void* unused2;
