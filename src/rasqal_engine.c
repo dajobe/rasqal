@@ -938,21 +938,6 @@ rasqal_engine_execute_init(rasqal_engine_execution_data* execution_data)
 }
 
 
-static int
-rasqal_engine_execute_finish(rasqal_engine_execution_data* execution_data)
-{
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(execution_data, 
-                                            rasqal_engine_execution_data, 1);
-
-  if(execution_data->triples_source) {
-    rasqal_free_triples_source(execution_data->triples_source);
-    execution_data->triples_source=NULL;
-  }
-
-  return 0;
-}
-
-
 static void
 rasqal_engine_move_to_graph_pattern(rasqal_engine_execution_data* execution_data,
                                     rasqal_graph_pattern *gp,
@@ -2168,7 +2153,7 @@ rasqal_engine_execute_next_from_saved(rasqal_engine_execution_data* execution_da
   query = execution_data->query;
   query_results = execution_data->query_results;
 
-  /* Ordered Results */
+  /* Saved Results */
   size=raptor_sequence_size(query_results->results_sequence);
   
   while(1) {
@@ -2272,40 +2257,6 @@ rasqal_engine_execute_next_lazy(rasqal_engine_execution_data* execution_data)
 }
 
 
-/**
- * rasqal_engine_execute_next:
- * @query_results: Query results to execute
- *
- * INTERNAL - Get next result in a query
- *
- * There are two sources for a query result - either it
- * was previously stored in a sequence (query_results->sequence)
- * or it is being evaluated lazily.
- *
- * When a results sequence exists, the next result is pulled
- * from the sequence, checking any limit and offset here.
- *
- * When evaluating lazily, rasqal_engine_execute_next_lazy()
- * Is called to initialise the state for the next result.
- */
-static int
-rasqal_engine_execute_next(rasqal_engine_execution_data* execution_data)
-{
-  rasqal_query_results* query_results;
-
-  query_results = execution_data->query_results;
-
-  if(query_results->results_sequence)
-    rasqal_engine_execute_next_from_saved(execution_data);
-  else
-    rasqal_engine_execute_next_lazy(execution_data);
-
-  rasqal_engine_row_to_nodes(execution_data);
-  
-  return query_results->finished;
-}
-
-
 static int
 rasqal_query_engine_1_prepare(rasqal_query* results)
 {
@@ -2353,13 +2304,39 @@ rasqal_query_engine_1_get_row(void* ex_data)
 }
 
 
+/**
+ * rasqal_query_engine_1_next_row:
+ * @query_results: Query results to execute
+ *
+ * INTERNAL - Get next result in a query
+ *
+ * There are two sources for a query result - either it
+ * was previously stored in a sequence (query_results->sequence)
+ * or it is being evaluated lazily.
+ *
+ * When a results sequence exists, the next result is pulled
+ * from the sequence, checking any limit and offset here.
+ *
+ * When evaluating lazily, rasqal_engine_execute_next_lazy()
+ * Is called to initialise the state for the next result.
+ */
 static int
 rasqal_query_engine_1_next_row(void* ex_data)
 {
   rasqal_engine_execution_data* execution_data;
-  execution_data=(rasqal_engine_execution_data*)ex_data;
+  rasqal_query_results* query_results;
 
-  return rasqal_engine_execute_next(execution_data);
+  execution_data=(rasqal_engine_execution_data*)ex_data;
+  query_results = execution_data->query_results;
+
+  if(query_results->results_sequence)
+    rasqal_engine_execute_next_from_saved(execution_data);
+  else
+    rasqal_engine_execute_next_lazy(execution_data);
+
+  rasqal_engine_row_to_nodes(execution_data);
+  
+  return query_results->finished;
 }
   
 
@@ -2369,7 +2346,10 @@ rasqal_query_engine_1_execute_finish(void* ex_data)
   rasqal_engine_execution_data* execution_data;
   execution_data=(rasqal_engine_execution_data*)ex_data;
 
-  rasqal_engine_execute_finish(execution_data);
+  if(execution_data->triples_source) {
+    rasqal_free_triples_source(execution_data->triples_source);
+    execution_data->triples_source=NULL;
+  }
 
   return 0;
 }
@@ -2664,7 +2644,7 @@ rasqal_query_engine_1_next_triple(void* ex_data)
 
 
   if(++execution_data->current_triple_result >= raptor_sequence_size(query->constructs)) {
-    rc=rasqal_engine_execute_next(execution_data);
+    rc = rasqal_query_engine_1_next_row(ex_data);
     if(rc)
       return 1;
     
