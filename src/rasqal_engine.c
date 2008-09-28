@@ -56,12 +56,6 @@ typedef struct {
                           
   raptor_sequence* seq;
 
-  /* offset into stored results sequence */
-  int offset;
-
-  /* for ordering results during execution */
-  rasqal_map* map;
-
   rasqal_triples_source* triples_source;
 
   /* New variables bound from during the current 'next result' run */
@@ -69,6 +63,9 @@ typedef struct {
 
   /* current triple in the sequence of triples 'constructs' or -1 */
   int current_triple_result;
+
+  /* Source of rows that are filling the query result */
+  rasqal_rowsource* rowsource;
 } rasqal_engine_execution_data;
 
 
@@ -1889,11 +1886,11 @@ rasqal_engine_execute_and_save(rasqal_engine_execution_data* execution_data)
   query = execution_data->query;
   query_results = execution_data->query_results;
 
-  seq = rasqal_rowsource_read_all_rows(query_results->rowsource);
+  seq = rasqal_rowsource_read_all_rows(execution_data->rowsource);
   rasqal_query_results_set_all_rows(query_results, seq);
 
-  rasqal_free_rowsource(query_results->rowsource);
-  query_results->rowsource=NULL;
+  rasqal_free_rowsource(execution_data->rowsource);
+  execution_data->rowsource=NULL;
   
   if(!query_results->finished) {
     if(query->constructs)
@@ -2048,7 +2045,7 @@ rasqal_engine_execute_next_lazy(rasqal_engine_execution_data* execution_data)
 
   if(!query_results->finished) {
     if(!query_results->row)
-      query_results->row=rasqal_new_row(query_results->rowsource);
+      query_results->row=rasqal_new_row(execution_data->rowsource);
 
     if(query_results->row)
       rasqal_engine_row_update(execution_data, query_results->row, 
@@ -2222,11 +2219,11 @@ rasqal_query_engine_1_execute_init(void* ex_data,
 
 
   /* Initialise the rowsource */
-  if(query_results->rowsource)
-    rasqal_free_rowsource(query_results->rowsource);
-  query_results->rowsource = rasqal_engine_make_rowsource(query, query_results,
-                                                          execution_data);
-  if(!query_results->rowsource)
+  if(execution_data->rowsource)
+    rasqal_free_rowsource(execution_data->rowsource);
+  execution_data->rowsource = rasqal_engine_make_rowsource(query, query_results,
+                                                           execution_data);
+  if(!execution_data->rowsource)
     return -1;
   
 
@@ -2307,6 +2304,9 @@ rasqal_query_engine_1_execute_finish(void* ex_data)
     rasqal_free_triples_source(execution_data->triples_source);
     execution_data->triples_source=NULL;
   }
+
+  if(execution_data->rowsource)
+    rasqal_free_rowsource(execution_data->rowsource);
 
   return 0;
 }

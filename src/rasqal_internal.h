@@ -545,8 +545,8 @@ struct rasqal_query_results_s {
   /* variable name/value table of length 'size' */
   rasqal_variable** variables;
 
-  /* Source of rows that are filling this query result*/
-  rasqal_rowsource* rowsource;
+  /* unused 5 (was rowsource) */
+  void* unused5;
 
   /* Execution engine used here */
   const rasqal_query_execution_factory* execution_factory;
