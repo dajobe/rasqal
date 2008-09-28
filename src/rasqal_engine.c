@@ -580,45 +580,6 @@ rasqal_engine_graph_pattern_get_next_match(rasqal_engine_execution_data* executi
 
 
 
-/**
- * rasqal_new_engine_execution_data:
- * @query_results: Query results to execute
- * 
- * INTERNAL - Initialize the per-query-results execution data and the
- * per-graph pattern execution data
- * 
- * Return value: pointer to the execution data array or NULL on failure.
- **/
-static int
-rasqal_engine_init_execution_data(rasqal_query* query,
-                                  rasqal_query_results* query_results,
-                                  rasqal_engine_execution_data* execution_data) 
-{
-  int i;
-
-  execution_data->query = query;
-  execution_data->query_results = query_results;
-
-  execution_data->seq=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_gp_data, NULL);
-  if(!execution_data->seq)
-    return 1;
-
-  if(query->graph_patterns_sequence) {
-    for(i=0; i < query->graph_pattern_count; i++) {
-      rasqal_graph_pattern* gp;
-      rasqal_engine_gp_data* gp_data;
-    
-      gp=(rasqal_graph_pattern*)raptor_sequence_get_at(query->graph_patterns_sequence, i);
-      gp_data=rasqal_new_engine_gp_data(gp);
-      if(!gp_data || raptor_sequence_set_at(execution_data->seq, i, gp_data))
-        return 1;
-    }
-  }
-
-  return 0;
-}
-
-
 #if 0
 static int
 rasqal_engine_graph_pattern_order(const void *a, const void *b)
@@ -638,7 +599,8 @@ rasqal_engine_graph_pattern_order(const void *a, const void *b)
  * @gp: graph pattern in query results.
  *
  * INTERNAL - once only per execution initialisation of a graph pattern.
- * 
+ *
+ * Return value: non-0 on failure
  **/
 static int
 rasqal_engine_graph_pattern_init(rasqal_engine_execution_data* execution_data,
@@ -830,110 +792,6 @@ rasqal_engine_remove_filter_graph_patterns(rasqal_query* query,
   fputs("\n\n", stdout);
 #endif
 
-  return 0;
-}
-
-
-/**
- * rasqal_engine_execute_init:
- * @query_results: query results object
- * 
- * INTERNAL - Prepare a query results for execution
- *
- * Initialises all the per-query results and all per-graph pattern
- * state for all grpah patterns in the query
- * 
- * Return value: non-0 on failure
- **/
-static int
-rasqal_engine_execute_init(rasqal_engine_execution_data* execution_data)
-{
-  rasqal_query* query;
-  rasqal_query_results* query_results;
-  rasqal_graph_pattern *gp;
-  
-  query = execution_data->query;
-  query_results = execution_data->query_results;
-  if(!query->triples)
-    return 1;
-  
-  if(!execution_data->triples_source) {
-    execution_data->triples_source=rasqal_new_triples_source(query_results);
-    if(!execution_data->triples_source) {
-      query_results->failed=1;
-      return 1;
-    }
-  }
-
-
-  /* FIXME
-   * This is a temporary hack to turn queries in the new query algebra
-   * into an executable form understood by the old query engine.
-   *
-   * That means in particular:
-   *
-   * 1) removing RASQAL_GRAPH_PATTERN_OPERATOR_FILTER graph patterns
-   * and moving the constraints to the previous GP in the sequence.
-   * Filter GPs always appear after another GP.
-   *
-   * 2) Ensuring that the root graph pattern is a GROUP even if
-   * there is only 1 GP inside it.
-   */
-  if(query->query_graph_pattern) {
-    int modified=0;
-    rasqal_query_graph_pattern_visit(query,
-                                     rasqal_engine_remove_filter_graph_patterns,
-                                     &modified);
-      
-#if RASQAL_DEBUG > 1
-    fprintf(DEBUG_FH, "modified=%d after remove filter GPs, query graph pattern now:\n  ", modified);
-    rasqal_graph_pattern_print(query->query_graph_pattern, DEBUG_FH);
-    fputs("\n", DEBUG_FH);
-#endif
-
-    if(modified<0)
-      return 1;
-
-    if(query->query_graph_pattern->op != RASQAL_GRAPH_PATTERN_OPERATOR_GROUP) {
-      rasqal_graph_pattern* new_qgp;
-
-      new_qgp=rasqal_new_graph_pattern_from_sequence(query, NULL,
-                                                     RASQAL_GRAPH_PATTERN_OPERATOR_GROUP);
-      if(!new_qgp)
-        return 1;
-
-      new_qgp->gp_index=(query->graph_pattern_count++);
-      if(rasqal_graph_pattern_add_sub_graph_pattern(new_qgp,
-                                                    query->query_graph_pattern)) {
-        rasqal_free_graph_pattern(new_qgp);
-        query->query_graph_pattern=NULL;
-        return 1;
-      }
-
-      query->query_graph_pattern=new_qgp;
-
-#if RASQAL_DEBUG > 1
-    fprintf(DEBUG_FH, "after insert top level group GPs, query graph pattern now:\n");
-    rasqal_graph_pattern_print(query->query_graph_pattern, DEBUG_FH);
-    fputs("\n", DEBUG_FH);
-#endif
-    }
-
-  }
-  
-
-  if(rasqal_engine_init_execution_data(query, query_results, execution_data))
-    return 1;
-  
-  rasqal_query_results_reset(query_results);
-
-  execution_data->current_triple_result = -1;
-
-  gp=query->query_graph_pattern;
-
-  if(gp)
-    return rasqal_engine_graph_pattern_init(execution_data, gp);
-    
   return 0;
 }
 
@@ -2047,62 +1905,6 @@ rasqal_engine_execute_and_save(rasqal_engine_execution_data* execution_data)
 
 
 /**
- * rasqal_engine_execute_run:
- * @query_results: Query results to execute
- *
- * INTERNAL - Start executing a query.
- *
- * Initialises all state for a new query execution.  The main choice
- * is determined by whether sorting or distinct is given in the
- * query, in which case all results must be stored and sorted.
- * Otherwise, query results can be lazily generated.
- *
- * When results have to be stored, query_results->results_sequence
- * is initialised here and the entire query execution run here
- * calling rasqal_engine_get_next_result() multiple times.  A
- * #rasqal_map is used to order/distinct the results and insert
- * them in order into the query_results->results_sequence.
- *
- * When results are not stored, query->results_sequence is NULL and
- * only the first result is calculated using
- * rasqal_engine_execute_next_lazy()
- *
- * Return value: <0 if failed, 0 if result, >0 if finished
- */
-static int
-rasqal_engine_execute_run(rasqal_engine_execution_data* execution_data)
-{
-  rasqal_query *query;
-  rasqal_query_results *query_results;
-  int rc=0;
-
-  query = execution_data->query;
-  query_results = execution_data->query_results;
-
-  if(query_results->rowsource)
-    rasqal_free_rowsource(query_results->rowsource);
-  
-  query_results->rowsource=rasqal_engine_make_rowsource(query, query_results,
-                                                        execution_data);
-  if(!query_results->rowsource) {
-    query_results->finished=1;
-    return 1;
-  }
-  
-  if(query->store_results || 
-     query->order_conditions_sequence || query->distinct)
-    rc=rasqal_engine_execute_and_save(execution_data);
-  else
-    rc=rasqal_engine_execute_next_lazy(execution_data);
-
-  if(rc >= 0)
-    rc=rasqal_engine_row_to_nodes(execution_data);
-
-  return rc;
-}
-
-
-/**
  * rasqal_engine_row_to_nodes
  * @query_results: Query results
  *
@@ -2264,6 +2066,99 @@ rasqal_query_engine_1_prepare(rasqal_query* results)
 }
 
 
+/**
+ * rasqal_query_engine_1_execute_transform_hack:
+ * @query: query object
+ *
+ * INTERNAL - Transform queries in the new query algebra into an executable form understood by the old query engine.
+ *
+ * That means in particular:
+ *
+ * 1) removing RASQAL_GRAPH_PATTERN_OPERATOR_FILTER graph patterns
+ * and moving the constraints to the previous GP in the sequence.
+ * Filter GPs always appear after another GP.
+ *
+ * 2) Ensuring that the root graph pattern is a GROUP even if
+ * there is only 1 GP inside it.
+ *
+ * Return value: non-0 on failure
+ */
+static int
+rasqal_query_engine_1_execute_transform_hack(rasqal_query* query) 
+{
+  if(query->query_graph_pattern) {
+    int modified = 0;
+
+    /* modified is set to 1 if a change was made and -1 on failure */
+    rasqal_query_graph_pattern_visit(query,
+                                     rasqal_engine_remove_filter_graph_patterns,
+                                     &modified);
+      
+#if RASQAL_DEBUG > 1
+    fprintf(DEBUG_FH, "modified=%d after remove filter GPs, query graph pattern now:\n  ", modified);
+    rasqal_graph_pattern_print(query->query_graph_pattern, DEBUG_FH);
+    fputs("\n", DEBUG_FH);
+#endif
+
+    if(modified < 0)
+      return 1;
+
+    if(query->query_graph_pattern->op != RASQAL_GRAPH_PATTERN_OPERATOR_GROUP) {
+      rasqal_graph_pattern* new_qgp;
+
+      new_qgp = rasqal_new_graph_pattern_from_sequence(query, NULL,
+                                                       RASQAL_GRAPH_PATTERN_OPERATOR_GROUP);
+      if(!new_qgp)
+        return 1;
+
+      new_qgp->gp_index = (query->graph_pattern_count++);
+      if(rasqal_graph_pattern_add_sub_graph_pattern(new_qgp,
+                                                    query->query_graph_pattern)) {
+        rasqal_free_graph_pattern(new_qgp);
+        query->query_graph_pattern = NULL;
+        return 1;
+      }
+
+      query->query_graph_pattern = new_qgp;
+
+#if RASQAL_DEBUG > 1
+    fprintf(DEBUG_FH, "after insert top level group GPs, query graph pattern now:\n");
+    rasqal_graph_pattern_print(query->query_graph_pattern, DEBUG_FH);
+    fputs("\n", DEBUG_FH);
+#endif
+    }
+
+  }
+
+  return 0;
+}  
+
+
+/**
+ * rasqal_query_engine_1_execute_init:
+ * @ex_data: execution data
+ * @query: query to execute
+ * @query_results: query results to put results in
+ *
+ * INTERNAL - Start executing a query.
+ *
+ * Initialises all state for a new query execution.  The main choice
+ * is determined by whether sorting or distinct is given in the
+ * query, in which case all results must be stored and sorted.
+ * Otherwise, query results can be lazily generated.
+ *
+ * When results have to be stored, query_results->results_sequence
+ * is initialised here and the entire query execution run here
+ * calling rasqal_engine_get_next_result() multiple times.  A
+ * #rasqal_map is used to order/distinct the results and insert
+ * them in order into the query_results->results_sequence.
+ *
+ * When results are not stored, query->results_sequence is NULL and
+ * only the first result is calculated using
+ * rasqal_engine_execute_next_lazy()
+ *
+ * Return value: <0 if failed, 0 if result, >0 if finished
+ */
 static int
 rasqal_query_engine_1_execute_init(void* ex_data,
                                    rasqal_query* query,
@@ -2274,16 +2169,78 @@ rasqal_query_engine_1_execute_init(void* ex_data,
 
   execution_data=(rasqal_engine_execution_data*)ex_data;
 
+  if(!query->triples)
+    return -1;
+  
+  /* FIXME - invoke a temporary transformation to turn queries in the
+   * new query algebra into an executable form understood by this
+   * query engine.
+   */
+  if(rasqal_query_engine_1_execute_transform_hack(query))
+    return -1;
+  
+
+  /* initialise the execution_data filelds */
   execution_data->query = query;
   execution_data->query_results = query_results;
 
-  rc = rasqal_engine_execute_init(execution_data);
-  if(rc)
-    return rc;
+  if(!execution_data->triples_source) {
+    execution_data->triples_source = rasqal_new_triples_source(query_results);
+    if(!execution_data->triples_source)
+      return -1;
+  }
+
+  execution_data->current_triple_result = -1;
+
+  execution_data->seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_gp_data, NULL);
+  if(!execution_data->seq)
+    return 1;
+
+
+  /* create all graph pattern-specific execution data */
+  if(query->graph_patterns_sequence) {
+    int i;
+    
+    for(i = 0; i < query->graph_pattern_count; i++) {
+      rasqal_graph_pattern* gp;
+      rasqal_engine_gp_data* gp_data;
+    
+      gp = (rasqal_graph_pattern*)raptor_sequence_get_at(query->graph_patterns_sequence, i);
+      gp_data = rasqal_new_engine_gp_data(gp);
+      if(!gp_data || raptor_sequence_set_at(execution_data->seq, i, gp_data))
+        return -1;
+    }
+  }
+
+  /* initialise all the graph pattern-specific data */
+  if(query->query_graph_pattern) {
+    rc = rasqal_engine_graph_pattern_init(execution_data, 
+                                          query->query_graph_pattern);
+    if(rc)
+      return rc;
+  }
+
+
+  /* Initialise the rowsource */
+  if(query_results->rowsource)
+    rasqal_free_rowsource(query_results->rowsource);
+  query_results->rowsource = rasqal_engine_make_rowsource(query, query_results,
+                                                          execution_data);
+  if(!query_results->rowsource)
+    return -1;
   
-  rc = rasqal_engine_execute_run(execution_data);
-  if(rc > 0) /* finished is not failed */
-    rc = 0;
+
+  /* Choose either to execute all now and store OR do it on demand (lazy) */
+  if(query->store_results || 
+     query->order_conditions_sequence || query->distinct)
+    rc = rasqal_engine_execute_and_save(execution_data);
+  else
+    rc = rasqal_engine_execute_next_lazy(execution_data);
+
+
+  /* If a result was returned, turn bound values into RDF nodes */
+  if(rc >= 0)
+    rc = rasqal_engine_row_to_nodes(execution_data);
 
   return rc;
 }
