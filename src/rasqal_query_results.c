@@ -653,7 +653,8 @@ rasqal_query_results_set_variables(rasqal_query_results* query_results,
     rasqal_variable* v=(rasqal_variable*)raptor_sequence_get_at(variables_sequence, i);
     rasqal_variable* new_v=rasqal_new_variable_from_variable(v);
     if(new_v) {
-      raptor_sequence_push(query_results->variables_sequence, new_v);
+      if(raptor_sequence_push(query_results->variables_sequence, new_v))
+        return 1;
       query_results->variables[i]=new_v;
       query_results->variable_names[i]=new_v->name;
     } else
