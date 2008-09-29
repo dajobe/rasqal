@@ -2305,8 +2305,15 @@ rasqal_query_engine_1_execute_finish(void* ex_data)
     execution_data->triples_source=NULL;
   }
 
-  if(execution_data->rowsource)
+  if(execution_data->rowsource) {
     rasqal_free_rowsource(execution_data->rowsource);
+    execution_data->rowsource=NULL;
+  }
+
+  if(execution_data->seq) {
+    raptor_free_sequence(execution_data->seq);
+    execution_data->seq=NULL;
+  }
 
   return 0;
 }
