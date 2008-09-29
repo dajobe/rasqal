@@ -2300,6 +2300,9 @@ rasqal_query_engine_1_execute_finish(void* ex_data)
   rasqal_engine_execution_data* execution_data;
   execution_data=(rasqal_engine_execution_data*)ex_data;
 
+  if(!execution_data)
+    return -1;
+
   if(execution_data->triples_source) {
     rasqal_free_triples_source(execution_data->triples_source);
     execution_data->triples_source=NULL;
