@@ -1142,9 +1142,13 @@ rasqal_query_execute(rasqal_query* query)
   rasqal_query_add_query_result(query, query_results);
 
   ex_data_size=query_results->execution_factory->execution_data_size;
-  if(ex_data_size > 0)
+  if(ex_data_size > 0) {
     query_results->execution_data=RASQAL_CALLOC(data, 1, ex_data_size);
-  else
+    if(!query_results->execution_data) {
+      rasqal_free_query_results(query_results);
+      return NULL;
+    }
+  } else
     query_results->execution_data=NULL;
 
   if(query_results->execution_factory->execute_init) {
