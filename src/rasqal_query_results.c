@@ -489,7 +489,7 @@ raptor_statement*
 rasqal_query_results_get_triple(rasqal_query_results* query_results)
 {
   rasqal_query* query;
-  raptor_statement *rs;
+  raptor_statement *rs=NULL;
   
   if(!query_results || query_results->failed || query_results->finished)
     return NULL;
