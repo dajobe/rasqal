@@ -5,7 +5,6 @@
 	raptor_sequence_push() failure. Prevents populating
 	variables/variable_names arrays with stale pointers.
 
-
 	* src/rasqal_engine.c:
 	(rasqal_query_engine_1_execute_finish): Check for NULL
 	execution_data.
