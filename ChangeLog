@@ -1,4 +1,56 @@
+2008-09-29  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_query_results.c:
+	(rasqal_query_results_set_variables): Check for
+	raptor_sequence_push() failure. Prevents populating
+	variables/variable_names arrays with stale pointers.
+
+
+	* src/rasqal_engine.c:
+	(rasqal_query_engine_1_execute_finish): Check for NULL
+	execution_data.
+
+2008-09-28  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_query.c: (rasqal_query_execute): Check for
+	execution_data alloc failure.
+
+	* src/rasqal_engine.c:
+	(rasqal_query_engine_1_execute_finish): Memory leak fix: free
+	execution_data->seq. Also zero freed pointers to prevent dangling
+	pointer problems.
+
+	* src/rasqal_query_results.c:
+	(rasqal_query_results_get_triple): Do not return uninitialized
+	pointers.
+
 2008-09-27  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_engine.c, src/rasqal_internal.h,
+	src/rasqal_query_results.c: rasqal_engine_execution_data loses
+	fields never used: offset, map ad gains rowsource taken from
+	rasqal_query_results rasqal_query_results has unused5 replacing
+	rowsource field.
+	(rasqal_engine_execute_and_save, rasqal_engine_execute_next_lazy,
+	rasqal_query_engine_1_execute_init,
+	rasqal_query_engine_1_execute_finish): use execution_data to store
+	and own rowsource.
+	(rasqal_free_query_results): No longer free rowsource.
+
+	* src/rasqal_engine.c:
+	(rasqal_engine_init_execution_data, rasqal_engine_execute_init,
+	rasqal_engine_execute_run): Deleted into
+	rasqal_query_engine_1_execute_init.
+	(rasqal_query_engine_1_execute_transform_hack): Added with
+	transformation of query hack needed from new algebra to what this
+	engine understands.
+	(rasqal_query_engine_1_execute_init): Merge
+	rasqal_engine_init_execution_data, rasqal_engine_execute_init and
+	rasqal_engine_execute_run into here - they are all called only
+	once by this code.  Add more comments on what is happening
+
+	* src/rasqal_query.c:
+	(rasqal_query_execute): execute_init return is a query failure if < 0
 
 	* src/rasqal_engine.c:
 	(rasqal_engine_execute_finish): Deleted
