@@ -1123,6 +1123,8 @@ rasqal_query_prepare_common(rasqal_query *query)
     } while(modified>0);
 
     rc=modified; /* error if modified<0, success if modified==0 */
+    if(rc)
+      goto done;
 
 #endif /* !RASQAL_NO_GP_MERGE */
 
