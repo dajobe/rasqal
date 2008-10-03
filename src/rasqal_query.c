@@ -1160,6 +1160,12 @@ rasqal_query_execute(rasqal_query* query)
     }
   }
 
+  /* Choose either to execute all now and store OR do it on demand (lazy) */
+  if(query->store_results || 
+     query->order_conditions_sequence || query->distinct) {
+    rc = rasqal_query_results_store_results(query_results);
+  }
+
   return query_results;
 }
 
