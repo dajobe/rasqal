@@ -1,4 +1,9 @@
-2008-09-29  Lauri Aalto <laalto@iki.fi>
+2008-09-30  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_query_transform.c: (rasqal_query_prepare_common):
+	Pass up error codes from gp merge visitors.
+
+2008-09-29  Dave Beckett <dave@dajobe.org>
 
 	* src/rasqal_query_results.c:
 	(rasqal_query_results_set_variables): Check for
