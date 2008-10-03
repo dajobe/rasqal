@@ -516,8 +516,8 @@ struct rasqal_query_results_s {
   /* unused 2 (was triples_source) */
   void* unused2;
 
-  /* unused 4 (was current_triple_result) */
-  int unused4;
+  /* current triple in the sequence of triples 'constructs' or -1 */
+  int current_triple_result;
 
   /* constructed triple result (SHARED) */
   raptor_statement result_triple;
@@ -1121,12 +1121,6 @@ struct rasqal_query_execution_factory_s {
   /* finish (free) execution */
   int (*execute_finish)(void* ex_data);
   
-  /* get current triple result */
-  raptor_statement* (*get_triple)(void* ex_data);
-
-  /* move to next triple result */
-  int (*next_triple)(void* ex_data);
-
   /* finish the query execution factory */
   void (*finish_factory)(rasqal_query_execution_factory* factory);
 
