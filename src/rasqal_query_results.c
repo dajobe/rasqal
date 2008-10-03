@@ -234,6 +234,52 @@ rasqal_query_results_is_syntax(rasqal_query_results* query_results)
 
 
 /**
+ * rasqal_query_results_check_limit_offset:
+ * @query_results: query results object
+ *
+ * INTERNAL - Check the query result count is in the limit and offset range if any.
+ *
+ * Return value: before range -1, in range 0, after range 1
+ */
+int
+rasqal_query_results_check_limit_offset(rasqal_query_results* query_results)
+{
+  rasqal_query* query = query_results->query;
+  int limit;
+
+  if(!query)
+    return 0;
+
+  limit = query->limit;
+
+  /* Ensure ASK queries never do more than one result */
+  if(query->verb == RASQAL_QUERY_VERB_ASK)
+    limit = 1;
+
+  if(query->offset > 0) {
+    /* offset */
+    if(query_results->result_count <= query->offset)
+      return -1;
+    
+    if(limit >= 0) {
+      /* offset and limit */
+      if(query_results->result_count > (query->offset + limit)) {
+        query_results->finished = 1;
+      }
+    }
+    
+  } else if(limit >= 0) {
+    /* limit */
+    if(query_results->result_count > limit) {
+      query_results->finished = 1;
+    }
+  }
+
+  return query_results->finished;
+}
+
+
+/**
  * rasqal_query_results_get_count:
  * @query_results: #rasqal_query_results query_results
  *

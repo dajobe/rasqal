@@ -923,6 +923,7 @@ void rasqal_query_results_add_row(rasqal_query_results* query_results, rasqal_ro
 void rasqal_query_results_set_all_rows(rasqal_query_results* query_results, raptor_sequence* seq);
 rasqal_row* rasqal_query_results_get_current_row(rasqal_query_results* query_results);
 void rasqal_query_results_update_bindings(rasqal_query_results* query_results);
+int rasqal_query_results_check_limit_offset(rasqal_query_results* query_results);
 
 /* rasqal_result_formats.c */
 int rasqal_query_results_format_register_factory(rasqal_world*, const char *name, const char *label, const unsigned char* uri_string, rasqal_query_results_formatter_func writer, rasqal_query_results_formatter_func reader, rasqal_query_results_get_rowsource_func get_rowsource, const char *mime_type);

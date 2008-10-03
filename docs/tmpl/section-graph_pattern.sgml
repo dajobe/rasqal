@@ -116,6 +116,25 @@ or apply a GRAPH matching keyword (%RASQAL_GRAPH_PATTERN_OPERATOR_GRAPH).
 @Returns: 
 
 
+<!-- ##### FUNCTION rasqal_graph_pattern_get_filter_expression ##### -->
+<para>
+
+</para>
+
+@gp: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_graph_pattern_set_filter_expression ##### -->
+<para>
+
+</para>
+
+@gp: 
+@expr: 
+@Returns: 
+
+
 <!-- ##### ENUM rasqal_graph_pattern_operator ##### -->
 <para>
 
