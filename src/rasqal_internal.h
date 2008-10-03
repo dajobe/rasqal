@@ -920,8 +920,7 @@ void rasqal_query_results_reset(rasqal_query_results* query_results);
 int rasqal_query_results_set_variables(rasqal_query_results* query_results, raptor_sequence* variables_sequence, int size, int order_size);
 void rasqal_query_results_set_order_conditions(rasqal_query_results* query_results, int order_size);
 void rasqal_query_results_add_row(rasqal_query_results* query_results, rasqal_row* row);
-void rasqal_query_results_set_all_rows(rasqal_query_results* query_results, raptor_sequence* seq);
-rasqal_row* rasqal_query_results_get_current_row(rasqal_query_results* query_results);
+int rasqal_query_results_store_results(rasqal_query_results* query_results);
 void rasqal_query_results_update_bindings(rasqal_query_results* query_results);
 int rasqal_query_results_check_limit_offset(rasqal_query_results* query_results);
 
@@ -1108,7 +1107,7 @@ struct rasqal_query_execution_factory_s {
   
   /* initialise a new execution
    *
-   * Return value: <0 if failed, 0 if result, >0 if finished
+   * Return value: non-0 on failure
    */
   int (*execute_init)(void* ex_data, rasqal_query* query, rasqal_query_results* query_results);
 
@@ -1118,9 +1117,6 @@ struct rasqal_query_execution_factory_s {
   /* get current bindings result row (returning a new object) */
   rasqal_row* (*get_row)(void* ex_data);
 
-  /* move to next bindings result */
-  int (*next_row)(void *ex_data);
-  
   /* finish (free) execution */
   int (*execute_finish)(void* ex_data);
   
