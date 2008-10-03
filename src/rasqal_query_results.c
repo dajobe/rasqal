@@ -337,8 +337,6 @@ rasqal_query_results_next_internal(rasqal_query_results* query_results)
 int
 rasqal_query_results_next(rasqal_query_results* query_results)
 {
-  int rc=1;
-  
   if(!query_results || query_results->failed || query_results->finished)
     return 1;
   
