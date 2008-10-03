@@ -831,7 +831,9 @@ rasqal_query_results_next_triple(rasqal_query_results* query_results)
   }
 
   if(++query_results->current_triple_result >= raptor_sequence_size(query->constructs)) {
-    rc = rasqal_query_results_next(query_results);
+    if(query_results->execution_factory->next_row)
+      rc = query_results->execution_factory->next_row(query_results->execution_data);
+
     if(rc)
       return 1;
     
