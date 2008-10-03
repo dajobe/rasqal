@@ -19,7 +19,8 @@
 # the licenses in COPYING.LIB, COPYING and LICENSE-2.0.txt respectively.
 # 
 
-local_tests=rasqal_order_test$(EXEEXT) rasqal_graph_test$(EXEEXT)
+local_tests=rasqal_order_test$(EXEEXT) rasqal_graph_test$(EXEEXT) \
+rasqal_construct_test$(EXEEXT)
 
 EXTRA_PROGRAMS=$(local_tests)
 
@@ -35,12 +36,15 @@ rasqal_order_test_LDADD = $(top_builddir)/src/librasqal.la
 rasqal_graph_test_SOURCES = rasqal_graph_test.c
 rasqal_graph_test_LDADD = $(top_builddir)/src/librasqal.la
 
+rasqal_construct_test_SOURCES = rasqal_construct_test.c
+rasqal_construct_test_LDADD = $(top_builddir)/src/librasqal.la
+
 
 # These are compiled here and used elsewhere for running tests
 check-local: $(local_tests) run-rasqal-tests
 
-run-rasqal-tests: rasqal_order_test rasqal_graph_test
-	@tests="rasqal_order_test rasqal_graph_test"; \
+run-rasqal-tests: $(local_tests)
+	@tests="$(local_tests)"; \
 	status=0; \
 	for tst in $$tests; do \
 	  if test -f ./$$tst; then dir=./; \
