@@ -116,7 +116,7 @@ rasqal_query_results_reset(rasqal_query_results* query_results)
   query_results->finished = 0;
   query_results->failed = 0;
   query_results->ask_result = -1; 
-  query_results->results_sequence =NULL;
+  query_results->results_sequence = NULL;
   query_results->current_triple_result = -1;
 }
 
