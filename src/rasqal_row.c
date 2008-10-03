@@ -398,3 +398,36 @@ rasqal_new_row_sequence(rasqal_world* world,
   
   return seq;
 }
+
+
+/**
+ * rasqal_row_to_nodes
+ * @row: Result row
+ *
+ * INTERNAL - Turn the given result row literals into RDF strings, URIs or blank literals.
+ * 
+ * Return value: non-0 on failure
+ */
+int
+rasqal_row_to_nodes(rasqal_row* row)
+{
+  int i;
+
+  if(!row)
+    return 1;
+  
+  for(i=0; i < row->size; i++) {
+    if(row->values[i]) {
+      rasqal_literal* new_l;
+      new_l=rasqal_literal_as_node(row->values[i]);
+      if(!new_l)
+        return -1;
+      rasqal_free_literal(row->values[i]);
+      row->values[i]=new_l;
+    }
+  }
+  
+  return 0;
+}
+
+

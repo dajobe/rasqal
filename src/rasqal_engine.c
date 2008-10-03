@@ -96,7 +96,6 @@ static const char * rasqal_engine_step_names[STEP_LAST+1]={
 static rasqal_engine_step rasqal_engine_check_constraint(rasqal_query *query, rasqal_graph_pattern *gp);
 static int rasqal_engine_graph_pattern_init(rasqal_engine_execution_data* execution_data, rasqal_graph_pattern *gp);
 static int rasqal_engine_execute_next_lazy(rasqal_engine_execution_data* execution_data);
-static int rasqal_engine_row_to_nodes(rasqal_engine_execution_data* execution_data);
 
 
 /**
@@ -1853,39 +1852,6 @@ rasqal_engine_execute_and_save(rasqal_engine_execution_data* execution_data)
 
 
 /**
- * rasqal_engine_row_to_nodes
- * @query_results: Query results
- *
- * INTERNAL - Turn result row literals into RDF strings, URIs or blank literals.
- * 
- * Return value: <0 if failed, 0 if result, >0 if finished
- */
-static int
-rasqal_engine_row_to_nodes(rasqal_engine_execution_data* execution_data)
-{
-  int i;
-  rasqal_row* row;
-
-  row = rasqal_query_results_get_current_row(execution_data->query_results);
-  if(!row)
-    return 1; /* no results */
-  
-  for(i=0; i < row->size; i++) {
-    if(row->values[i]) {
-      rasqal_literal* new_l;
-      new_l=rasqal_literal_as_node(row->values[i]);
-      if(!new_l)
-        return -1;
-      rasqal_free_literal(row->values[i]);
-      row->values[i]=new_l;
-    }
-  }
-  
-  return 0;
-}
-
-
-/**
  * rasqal_engine_execute_next_from_saved:
  * @query_results: Query results to execute
  *
@@ -2187,8 +2153,12 @@ rasqal_query_engine_1_execute_init(void* ex_data,
 
 
   /* If a result was returned, turn bound values into RDF nodes */
-  if(rc >= 0)
-    rc = rasqal_engine_row_to_nodes(execution_data);
+  if(rc >= 0) {
+    rasqal_row* row;
+    row = rasqal_query_results_get_current_row(execution_data->query_results);
+    if(row)
+      rc = rasqal_row_to_nodes(row);
+  }
 
   return rc;
 }
@@ -2230,6 +2200,7 @@ rasqal_query_engine_1_next_row(void* ex_data)
 {
   rasqal_engine_execution_data* execution_data;
   rasqal_query_results* query_results;
+  rasqal_row* row = NULL;
 
   execution_data=(rasqal_engine_execution_data*)ex_data;
   query_results = execution_data->query_results;
@@ -2239,7 +2210,9 @@ rasqal_query_engine_1_next_row(void* ex_data)
   else
     rasqal_engine_execute_next_lazy(execution_data);
 
-  rasqal_engine_row_to_nodes(execution_data);
+  row = rasqal_query_results_get_current_row(execution_data->query_results);
+  if(row)
+    rasqal_row_to_nodes(row);
   
   return query_results->finished;
 }

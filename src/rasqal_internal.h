@@ -942,6 +942,7 @@ void rasqal_free_row(rasqal_row* row);
 void rasqal_row_print(rasqal_row* row, FILE* fh);
 void rasqal_row_set_value_at(rasqal_row* row, int offset, rasqal_literal* value);
 raptor_sequence* rasqal_new_row_sequence(rasqal_world* world, rasqal_variables_table* vt, const char* const row_data[], int vars_count);
+int rasqal_row_to_nodes(rasqal_row* row);
 
 
 /* rasqal_xsd_datatypes.c */
