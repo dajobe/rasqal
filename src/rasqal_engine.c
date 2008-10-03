@@ -2159,6 +2159,22 @@ rasqal_query_engine_1_execute_init(void* ex_data,
 }
 
 
+static raptor_sequence*
+rasqal_query_engine_1_get_all_rows(void* ex_data)
+{
+  rasqal_engine_execution_data* execution_data;
+  raptor_sequence* seq;
+
+  execution_data=(rasqal_engine_execution_data*)ex_data;
+
+  seq = rasqal_rowsource_read_all_rows(execution_data->rowsource);
+  rasqal_free_rowsource(execution_data->rowsource);
+  execution_data->rowsource=NULL;
+
+  return seq;
+}
+
+
 static rasqal_row*
 rasqal_query_engine_1_get_row(void* ex_data)
 {
@@ -2254,6 +2270,7 @@ const rasqal_query_execution_factory rasqal_query_engine_1 =
   /* .execution_data_size= */ sizeof(rasqal_engine_execution_data),
   /* .prepare=             */ rasqal_query_engine_1_prepare,
   /* .execute_init=        */ rasqal_query_engine_1_execute_init,
+  /* .get_all_rows=        */ rasqal_query_engine_1_get_all_rows,
   /* .get_row=             */ rasqal_query_engine_1_get_row,
   /* .next_row=            */ rasqal_query_engine_1_next_row,
   /* .execute_finish=      */ rasqal_query_engine_1_execute_finish,

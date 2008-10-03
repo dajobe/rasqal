@@ -1112,6 +1112,9 @@ struct rasqal_query_execution_factory_s {
    */
   int (*execute_init)(void* ex_data, rasqal_query* query, rasqal_query_results* query_results);
 
+  /* get all bindings result rows (returning a new raptor_sequence object holding new objects) */
+  raptor_sequence* (*get_all_rows)(void* ex_data);
+
   /* get current bindings result row (returning a new object) */
   rasqal_row* (*get_row)(void* ex_data);
 
