@@ -63,6 +63,9 @@ typedef struct {
 
   /* Source of rows that are filling the query result */
   rasqal_rowsource* rowsource;
+
+  /* how many results already found (for get_row to check limit/offset) */
+  int result_count;
 } rasqal_engine_execution_data;
 
 
@@ -1784,28 +1787,28 @@ rasqal_engine_make_rowsource(rasqal_query* query,
 
   con->results = results;
   con->execution_data = execution_data;
-  con->need_store_results=(query->order_conditions_sequence || query->distinct);
+  con->need_store_results = results->store_results;
 
   if(con->need_store_results) {
     /* make a row:NULL map in order to sort or do distinct */
-    con->map=rasqal_new_map(rasqal_engine_row_compare,
-                            rasqal_engine_map_free_row, 
-                            rasqal_engine_map_print_row,
-                            NULL,
-                            0);
+    con->map = rasqal_new_map(rasqal_engine_row_compare,
+                              rasqal_engine_map_free_row, 
+                              rasqal_engine_map_print_row,
+                              NULL,
+                              0);
     if(!con->map) {
       rasqal_rowsource_engine_finish(NULL, con);
       return NULL;
     }
   }
   
-  con->seq=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_row, (raptor_sequence_print_handler*)rasqal_row_print);
+  con->seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_row, (raptor_sequence_print_handler*)rasqal_row_print);
   if(!con->seq) {
     rasqal_rowsource_engine_finish(NULL, con);
     return NULL;
   }
   
-  flags=con->need_store_results ? RASQAL_ROWSOURCE_FLAGS_ORDERING : 0;
+  flags = con->need_store_results ? RASQAL_ROWSOURCE_FLAGS_ORDERING : 0;
 
   return rasqal_new_rowsource_from_handler(con,
                                            &rasqal_rowsource_engine_handler,
@@ -1860,11 +1863,11 @@ rasqal_query_engine_1_get_row(void* ex_data)
     }
     
     /* otherwise is >0 match */
-    query_results->result_count++;
+    execution_data->result_count++;
 
     /* finished if beyond result range */
     if(rasqal_query_results_check_limit_offset(query_results) > 0) {
-      query_results->result_count--;
+      execution_data->result_count--;
       break;
     }
 
@@ -1882,7 +1885,7 @@ rasqal_query_engine_1_get_row(void* ex_data)
 
     if(row) {
       rasqal_engine_row_update(execution_data, row,
-                               query_results->result_count);
+                               execution_data->result_count);
       rasqal_row_to_nodes(row);
     }
   }
@@ -2003,6 +2006,7 @@ rasqal_query_engine_1_execute_init(void* ex_data,
   /* initialise the execution_data filelds */
   execution_data->query = query;
   execution_data->query_results = query_results;
+  execution_data->result_count = 0;
 
   if(!execution_data->triples_source) {
     execution_data->triples_source = rasqal_new_triples_source(query_results);
