@@ -510,8 +510,8 @@ struct rasqal_query_results_s {
   /* boolean ASK result >0 true, 0 false or -1 uninitialised */
   int ask_result;
 
-  /* unused 3 (was new_bindings_count) */
-  int unused3;
+  /* boolean: non-0 to store query results rather than lazy eval */
+  int store_results;
 
   /* unused 2 (was triples_source) */
   void* unused2;
