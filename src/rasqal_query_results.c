@@ -456,6 +456,10 @@ rasqal_query_results_finished(rasqal_query_results* query_results)
   
   if(!rasqal_query_results_is_bindings(query_results))
     return 1;
+
+  /* need to have at least tried to get a row once */
+  if(!query_results->failed && !query_results->finished)
+    rasqal_query_results_ensure_have_row_internal(query_results);
   
   return (query_results->failed || query_results->finished);
 }
