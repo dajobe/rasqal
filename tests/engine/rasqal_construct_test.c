@@ -44,9 +44,15 @@
 #define QUERY_LANGUAGE "sparql"
 
 #define QUERY_FORMAT "\
-CONSTRUCT { ?s ?p ?o }\n\
-FROM <%s/%s>\n\
-WHERE { ?s ?p ?o }\n\
+CONSTRUCT {\
+  ?s ?p ?o . \
+  ?o ?p ?s \
+}\n\
+FROM <%s/%s>\n \
+WHERE { \
+   ?s ?p ?o \
+  FILTER(!isLiteral(?o)) \
+} \n\
 "
 
 #else
@@ -54,7 +60,7 @@ WHERE { ?s ?p ?o }\n\
 #endif
 
 #define QUERY_DATA "dc.rdf"
-#define QUERY_EXPECTED_COUNT 3
+#define QUERY_EXPECTED_COUNT 4
 
 #ifdef NO_QUERY_LANGUAGE
 int
@@ -82,7 +88,10 @@ main(int argc, char **argv) {
   unsigned char *data_dir_string;
   unsigned char *query_string;
   int count = 0;
-  
+#ifdef RASQAL_DEBUG > 1
+  raptor_serializer* serializer=NULL;
+#endif
+
   world = rasqal_new_world();
   if(!world) {
     fprintf(stderr, "%s: rasqal_new_world() failed\n", program);
@@ -139,6 +148,11 @@ main(int argc, char **argv) {
     goto done;
   }
 
+#ifdef RASQAL_DEBUG > 1
+  serializer = raptor_new_serializer("ntriples");
+  raptor_serialize_start_to_file_handle(serializer, base_uri, stdout);
+#endif
+
   count = 0;
   while(results) {
     raptor_statement* triple = rasqal_query_results_get_triple(results);
@@ -146,10 +160,18 @@ main(int argc, char **argv) {
       break;
     count++;
     
+#ifdef RASQAL_DEBUG > 1
+    raptor_serialize_statement(serializer, triple);
+#endif
     if(rasqal_query_results_next_triple(results))
       break;
   }
   
+#ifdef RASQAL_DEBUG > 1
+  raptor_serialize_end(serializer);
+  raptor_free_serializer(serializer);
+#endif
+
   if(count != expected_count) {
     printf("%s: query execution FAILED returning %d triples, expected %d\n", 
            program, count, expected_count);
