@@ -696,6 +696,10 @@ rasqal_rdql_query_engine_prepare(rasqal_query* rdf_query) {
      rasqal_query_expand_query_constraints_qnames(rdf_query))
     return 1;
 
+  /* RDQL: Expand 'SELECT *' */
+  if(rasqal_query_expand_wildcards(rdf_query))
+    return 1;
+  
   return 0;
 }
 
