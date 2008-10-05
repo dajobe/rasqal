@@ -319,9 +319,13 @@ rasqal_query_results_get_row_from_saved(rasqal_query_results* query_results)
     row = (rasqal_row*)raptor_sequence_delete_at(query_results->results_sequence,
                                                  query_results->result_count-1);
     
+    if(row) {
+      /* stored results may not be canonicalized yet - do it lazily */
+      rasqal_row_to_nodes(row);
 
-    if(query->constructs)
-      rasqal_query_results_update_bindings(query_results);
+      if(query->constructs)
+        rasqal_query_results_update_bindings(query_results);
+    }
     break;
   }
   
