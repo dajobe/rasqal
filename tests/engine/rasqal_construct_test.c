@@ -68,7 +68,7 @@ main(int argc, char **argv) {
 int
 main(int argc, char **argv) {
   const char *program = rasqal_basename(argv[0]);
-  raptor_uri *base_uri;
+  raptor_uri *base_uri = NULL;
   unsigned char *uri_string;
   const char *query_language_name = QUERY_LANGUAGE;
   const char *query_format = QUERY_FORMAT;
@@ -76,7 +76,7 @@ main(int argc, char **argv) {
   const int expected_count = QUERY_EXPECTED_COUNT;
   int failures = 0;
   int i;
-  rasqal_world *world;
+  rasqal_world *world = NULL;
   rasqal_query *query = NULL;
   rasqal_query_results *results = NULL;
   unsigned char *data_dir_string;
