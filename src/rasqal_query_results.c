@@ -673,6 +673,13 @@ rasqal_query_results_get_triple(rasqal_query_results* query_results)
     return NULL;
 
  
+  /* no row - get a new one for first row (triple) only */
+  if(!query_results->row) {
+    rasqal_query_results_next_internal(query_results);
+    if(query_results->failed || query_results->finished)
+      return NULL;
+  }
+
   skipped = 0;
   while(1) {
     if(skipped) {
