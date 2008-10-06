@@ -1,5 +1,18 @@
 2008-10-05  Dave Beckett <dave@dajobe.org>
 
+	* Checkpoint in query engine refactoring.
+	SVN 14627 at 2008-10-05 20:22:21 -0700 (Sun, 05 Oct 2008)
+
+	At this point the interface between the query results API and
+	existing query engine has been separated such that the query
+	engine solely generates rows on request (pull, lazy evaluation)
+	or generates all rows as a sequence.  The query results API
+	performs all the other operations such as turning rows into
+	triples, returning a boolean result and accessing variables and
+	values in the current row of results.
+	
+	A top level 'make check' passes at this SVN commit.
+
 	* src/rasqal_query_results.c:
 	(rasqal_query_results_get_row_from_saved): Run rasqal_row_to_nodes
 	on rows from saved, they may not be canonicalized yet.
