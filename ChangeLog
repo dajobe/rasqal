@@ -1,3 +1,145 @@
+2008-10-05  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_query_results.c:
+	(rasqal_query_results_get_row_from_saved): Run rasqal_row_to_nodes
+	on rows from saved, they may not be canonicalized yet.
+
+	* src/rasqal_query_results.c:
+	(rasqal_query_results_finished): Call
+	rasqal_query_results_ensure_have_row_internal if not finished or
+	failed to ensure attempt to execute, to see if finished
+
+	* src/rasqal_query_results.c:
+	(rasqal_query_results_ensure_have_row_internal): Does nothing if
+	an existing row is present.
+	(rasqal_query_results_get_current_row): Just call
+	rasqal_query_results_ensure_have_row_internal.
+	(rasqal_query_results_next, rasqal_query_results_next_triple):
+	Free any existing row before moving to next result.
+	(rasqal_query_results_get_triple): Just call
+	rasqal_query_results_ensure_have_row_internal.
+
+	* src/rdql_parser.y:
+	(rasqal_rdql_query_engine_prepare): Call
+	rasqal_query_expand_wildcards to expand RDQL SELECT * and SPARQL
+
+	* src/rasqal_query_transform.c:
+	(rasqal_query_expand_wildcards): RDQL and SPARQL
+
+	* src/rasqal_query_results.c:
+	(rasqal_query_results_ensure_have_row_internal): Renamed from
+	rasqal_query_results_next_internal
+
+	* src/rasqal_query_results.c:
+	(rasqal_query_results_get_triple): Use
+	rasqal_query_results_next_internal to ensure first triple has a
+	row to read from.
+
+	* tests/engine/rasqal_construct_test.c: Make construct test
+	multiple triples/row
+	Add serializing of results when debugging
+
+2008-10-04  Dave Beckett <dave@dajobe.org>
+
+	* tests/engine/rasqal_construct_test.c: init some vars
+
+2008-10-03  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_query_results.c:
+	(rasqal_query_results_next_internal): Moved earlier.
+	(rasqal_query_results_get_current_row): Use
+	rasqal_query_results_next_internal
+	(rasqal_query_results_get_binding_value_by_name): No need to set
+	finished since rasqal_query_results_get_current_row will do it.
+	(rasqal_query_results_store_results): tidy init result_count to 0
+
+	* src/rasqal_query.c: (rasqal_query_execute): style. Init
+	store_results flag based on query features.
+
+	* src/rasqal_engine.c: rasqal_engine_execution_data gains
+	result_count field for checking limit and offset for get_row
+	(rasqal_engine_make_rowsource): Use query results store_results flag
+	to figure out when to store results. style.
+	(rasqal_query_engine_1_execute_init): Init result_count to 0 since
+	new execution model does not get 1 result always.
+
+	* src/rasqal_internal.h: struct rasqal_query_results_s gains
+	store_results flag field
+
+	* src/rasqal_query_results.c, src/rasqal_query.c,
+	src/rasqal_internal.h, src/rasqal_engine.c: Moved stored results
+	execution into query results class and made the execution engine
+	only do the 'lazy' work.  Execution engine looses next_row method.
+	(rasqal_engine_execute_and_save,
+	rasqal_engine_execute_next_from_saved): Deleted and moved to query
+	results
+	(rasqal_engine_execute_next_lazy): Deleted
+	(rasqal_query_engine_1_get_row): Replaced with
+	rasqal_engine_execute_next_lazy code
+	(rasqal_query_engine_1_execute_init): Tidy and do not start
+	execution of first result (laz) /all results (stored) here.
+	(rasqal_query_engine_1_next_row): Deleted
+	(rasqal_query_results_get_row_from_saved): Added based on
+	rasqal_engine_execute_next_from_saved
+	(rasqal_query_results_get_current_row): Updated to get pointer to
+	current result row as a shared object.
+	(rasqal_query_results_next_internal): Switch to updating current
+	row.
+	(rasqal_query_results_get_triple): Tidy
+	(rasqal_query_results_store_results): Added based on
+	rasqal_query_results_set_all_rows, to do the actual storing of
+	results, calling execution engine and handling construct.
+
+	* src/rasqal_query_results.c:
+	(rasqal_query_results_next): Removed unused rc
+
+	* src/rasqal_query_results.c:
+	(rasqal_query_results_next_internal): Added to pull out moving to
+	next item without result type check.
+	(rasqal_query_results_next, rasqal_query_results_next_triple): Use
+	rasqal_query_results_next_internal.
+
+	* src/rasqal_query_results.c:
+	(rasqal_query_results_next_triple): Move to next row via engine,
+	calling rasqal_query_results_next causes failure since it expects
+	bindings.
+
+	* tests/engine/rasqal_construct_test.c, tests/engine/Makefile.am:
+	Added rasqal_construct_test (which fails)
+
+	* src/rasqal_query_results.c: Revert r14601
+
+	* src/rasqal_query_results.c: (rasqal_prefix_id): style
+
+	* src/rasqal_engine.c, src/rasqal_internal.h: Added get_all_rows
+	factory method to execution factory.
+	(rasqal_query_engine_1_get_all_rows): Added to implement it.
+
+	* src/rasqal_engine.c, src/rasqal_internal.h,
+	src/rasqal_query_results.c: Return triple generating to query
+	results class.
+	(rasqal_query_results_get_triple,
+	rasqal_query_results_next_triple): Move code from
+	rasqal_query_engine_1_get_triple and
+	rasqal_query_engine_1_next_triple.
+	(rasqal_query_engine_1_get_triple,
+	rasqal_query_engine_1_next_triple): Deleted.  Deleted get_triple
+	and next_triple from execution factory methods.  Move
+	current_triple_result field back into rasqal_query_results.
+	(rasqal_prefix_id): Moved back to rasqal_query_results.c.
+	(rasqal_query_results_reset): Reset current_triple_result here.
+
+2008-10-02  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_engine.c, src/rasqal_internal.h, src/rasqal_row.c:
+	(rasqal_row_to_nodes): Added renamed from
+	rasqal_engine_row_to_nodes
+
+	* docs/tmpl/section-graph_pattern.sgml, src/rasqal_engine.c,
+	src/rasqal_internal.h, src/rasqal_query_results.c:
+	(rasqal_query_results_check_limit_offset): Renamed from
+	rasqal_engine_check_limit_offset
+
 2008-09-30  Lauri Aalto <laalto@iki.fi>
 
 	* src/rasqal_query_transform.c: (rasqal_query_prepare_common):
