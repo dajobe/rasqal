@@ -1825,7 +1825,7 @@ rasqal_engine_make_rowsource(rasqal_query* query,
  * Return value: new row or NULL on finished or failure
  */
 static rasqal_row*
-rasqal_query_engine_1_get_row(void* ex_data)
+rasqal_query_engine_1_get_row(void* ex_data, rasqal_engine_error *error_p)
 {
   rasqal_engine_execution_data* execution_data;
   rasqal_query_results* query_results;
@@ -1974,6 +1974,7 @@ rasqal_query_engine_1_execute_transform_hack(rasqal_query* query)
  * @ex_data: execution data
  * @query: query to execute
  * @query_results: query results to put results in
+ * @error_p: execution error (OUT variable)
  *
  * INTERNAL - Prepare to execute a query.
  *
@@ -1985,7 +1986,8 @@ rasqal_query_engine_1_execute_transform_hack(rasqal_query* query)
 static int
 rasqal_query_engine_1_execute_init(void* ex_data,
                                    rasqal_query* query,
-                                   rasqal_query_results* query_results)
+                                   rasqal_query_results* query_results,
+                                   rasqal_engine_error *error_p)
 {
   rasqal_engine_execution_data* execution_data;
   int rc=0;
@@ -2056,7 +2058,7 @@ rasqal_query_engine_1_execute_init(void* ex_data,
 
 
 static raptor_sequence*
-rasqal_query_engine_1_get_all_rows(void* ex_data)
+rasqal_query_engine_1_get_all_rows(void* ex_data, rasqal_engine_error *error_p)
 {
   rasqal_engine_execution_data* execution_data;
   raptor_sequence* seq;
@@ -2072,7 +2074,8 @@ rasqal_query_engine_1_get_all_rows(void* ex_data)
 
 
 static int
-rasqal_query_engine_1_execute_finish(void* ex_data)
+rasqal_query_engine_1_execute_finish(void* ex_data,
+                                     rasqal_engine_error *error_p)
 {
   rasqal_engine_execution_data* execution_data;
   execution_data=(rasqal_engine_execution_data*)ex_data;
@@ -2100,7 +2103,8 @@ rasqal_query_engine_1_execute_finish(void* ex_data)
 
 
 static void
-rasqal_query_engine_1_finish_factory(rasqal_query_execution_factory* factory)
+rasqal_query_engine_1_finish_factory(rasqal_query_execution_factory* factory,
+                                     rasqal_engine_error *error_p)
 {
   return;
 }

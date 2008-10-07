@@ -1089,6 +1089,21 @@ raptor_sequence* rasqal_variables_table_get_named_variables_sequence(rasqal_vari
 raptor_sequence* rasqal_variables_table_get_anonymous_variables_sequence(rasqal_variables_table* vt);
 
 
+/**
+ * @RASQAL_ENGINE_OK:
+ * @RASQAL_ENGINE_FAILED:
+ * @RASQAL_ENGINE_FINISHED:
+ *
+ * Execution engine errors.
+ *
+ */
+typedef enum {
+  RASQAL_ENGINE_OK,
+  RASQAL_ENGINE_FAILED,
+  RASQAL_ENGINE_FINISHED
+} rasqal_engine_error;
+
+
 /*
  * A query execution engine factory
  *
@@ -1105,20 +1120,33 @@ struct rasqal_query_execution_factory_s {
   /* prepare query (pre-execution) */
   int (*prepare)(rasqal_query* query);
   
-  /* initialise a new execution
+  /*
+   * @ex_data: execution data
+   * @query: query to execute
+   * @query_results: query results
+   * @error_p: execution error (OUT variable)
+   *
+   * Initialise a new execution
    *
    * Return value: non-0 on failure
    */
-  int (*execute_init)(void* ex_data, rasqal_query* query, rasqal_query_results* query_results);
+  int (*execute_init)(void* ex_data, rasqal_query* query, rasqal_query_results* query_results, rasqal_engine_error *error_p);
 
   /* get all bindings result rows (returning a new raptor_sequence object holding new objects) */
-  raptor_sequence* (*get_all_rows)(void* ex_data);
+  raptor_sequence* (*get_all_rows)(void* ex_data, rasqal_engine_error *error_p);
 
-  /* get current bindings result row (returning a new object) */
-  rasqal_row* (*get_row)(void* ex_data);
+  /*
+   * @ex_data: execution object
+   * @error_p: execution error (OUT variable)
+   *
+   * Get current bindings result row (returning a new object) 
+   *
+   * Will not be called if query results is finished or failed.
+   */
+  rasqal_row* (*get_row)(void* ex_data, rasqal_engine_error *error_p);
 
   /* finish (free) execution */
-  int (*execute_finish)(void* ex_data);
+  int (*execute_finish)(void* ex_data, rasqal_engine_error *error_p);
   
   /* finish the query execution factory */
   void (*finish_factory)(rasqal_query_execution_factory* factory);
