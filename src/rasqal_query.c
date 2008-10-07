@@ -127,6 +127,10 @@ rasqal_new_query(rasqal_world *world, const char *name,
   if(!query->data_graphs)
     goto tidy;
 
+  query->results = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_query_results_remove_query_reference, NULL);
+  if(!query->results)
+    goto tidy;
+
   if(factory->init(query, name))
     goto tidy;
   
@@ -183,6 +187,8 @@ rasqal_free_query(rasqal_query* query)
     raptor_free_sequence(query->constructs);
   if(query->prefixes)
     raptor_free_sequence(query->prefixes);
+  if(query->results)
+    raptor_free_sequence(query->results);
 
   if(query->variables_declared_in)
     RASQAL_FREE(intarray, query->variables_declared_in);
@@ -1288,8 +1294,8 @@ static void
 rasqal_query_add_query_result(rasqal_query* query,
                               rasqal_query_results* query_results) 
 {
-  query_results->next=query->results;
-  query->results=query_results;
+  raptor_sequence_push(query->results, query_results);
+
   /* add reference to ensure query lives as long as this runs */
   query->usage++;
 }
@@ -1300,19 +1306,19 @@ void
 rasqal_query_remove_query_result(rasqal_query* query,
                                  rasqal_query_results* query_results) 
 {
-  rasqal_query_results *cur, *prev=NULL;
-  for(cur=query->results; cur && cur != query_results; cur=cur->next)
-    prev=cur;
+  int i;
+  int size;
   
-  if(cur == query_results) {
-    if(prev)
-      prev->next=cur->next;
-  }
-  if(cur == query->results && cur != NULL)
-    query->results=cur->next;
+  size = raptor_sequence_size(query->results);
+  for(i = 0 ; i < size; i++) {
+    rasqal_query_results *result;
+    result = (rasqal_query_results*)raptor_sequence_get_at(query->results, i);
 
-  /* remove reference and free if we are the last */
-  rasqal_free_query(query);
+    if(result == query_results) {
+      raptor_sequence_set_at(query->results, i, NULL);
+      break;
+    }
+  }
 }
 
 

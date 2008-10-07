@@ -1270,3 +1270,13 @@ rasqal_query_results_update_bindings(rasqal_query_results* query_results)
     rasqal_variable_set_value(v, rasqal_new_literal_from_literal(value));
   }
 }
+
+
+void
+rasqal_query_results_remove_query_reference(rasqal_query_results* query_results)
+{
+  rasqal_query* query = query_results->query;
+  query_results->query = NULL;
+
+  rasqal_free_query(query);
+}

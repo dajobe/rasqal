@@ -331,8 +331,8 @@ struct rasqal_query_s {
 
   rasqal_triples_source_factory* triples_source_factory;
 
-  /* (linked list of) query results made from this query */
-  rasqal_query_results* results;
+  /* sequence of query results made from this query */
+  raptor_sequence* results;
 
   /* incrementing counter for declaring prefixes in order of appearance */
   int prefix_depth;
@@ -923,6 +923,7 @@ void rasqal_query_results_add_row(rasqal_query_results* query_results, rasqal_ro
 int rasqal_query_results_store_results(rasqal_query_results* query_results);
 void rasqal_query_results_update_bindings(rasqal_query_results* query_results);
 int rasqal_query_results_check_limit_offset(rasqal_query_results* query_results);
+void rasqal_query_results_remove_query_reference(rasqal_query_results* query_results);
 
 /* rasqal_result_formats.c */
 int rasqal_query_results_format_register_factory(rasqal_world*, const char *name, const char *label, const unsigned char* uri_string, rasqal_query_results_formatter_func writer, rasqal_query_results_formatter_func reader, rasqal_query_results_get_rowsource_func get_rowsource, const char *mime_type);
