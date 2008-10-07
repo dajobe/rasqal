@@ -174,6 +174,21 @@ rasqal_free_query_results(rasqal_query_results* query_results)
 
 
 /**
+ * rasqal_query_results_get_query:
+ * @query_results: #rasqal_query_results object
+ *
+ * Get thq query associated with this query result
+ * 
+ * Return value: shared pointer to query object
+ **/
+rasqal_query*
+rasqal_query_results_get_query(rasqal_query_results* query_results)
+{
+  return query_results->query;
+}
+
+
+/**
  * rasqal_query_results_is_bindings:
  * @query_results: #rasqal_query_results object
  *
