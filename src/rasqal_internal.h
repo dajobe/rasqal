@@ -1117,9 +1117,6 @@ struct rasqal_query_execution_factory_s {
   /* size of execution engine private data */
   size_t execution_data_size;
   
-  /* prepare query (pre-execution) */
-  int (*prepare)(rasqal_query* query);
-  
   /*
    * @ex_data: execution data
    * @query: query to execute

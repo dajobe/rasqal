@@ -1894,13 +1894,6 @@ rasqal_query_engine_1_get_row(void* ex_data, rasqal_engine_error *error_p)
 }
 
 
-static int
-rasqal_query_engine_1_prepare(rasqal_query* results)
-{
-  return 0;
-}
-
-
 /**
  * rasqal_query_engine_1_execute_transform_hack:
  * @query: query object
@@ -2114,7 +2107,6 @@ const rasqal_query_execution_factory rasqal_query_engine_1 =
 {
   /* .name=                */ "rasqal 0.9.16 engine",
   /* .execution_data_size= */ sizeof(rasqal_engine_execution_data),
-  /* .prepare=             */ rasqal_query_engine_1_prepare,
   /* .execute_init=        */ rasqal_query_engine_1_execute_init,
   /* .get_all_rows=        */ rasqal_query_engine_1_get_all_rows,
   /* .get_row=             */ rasqal_query_engine_1_get_row,
