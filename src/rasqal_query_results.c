@@ -108,6 +108,82 @@ rasqal_new_query_results(rasqal_query* query)
 }
 
 
+/**
+ * rasqal_new_query_results_from_query_execution:
+ * @query: the #rasqal_query object
+ *
+ * INTERNAL - Create a new query results from excuting a query
+ *
+ * return value: a #rasqal_query_results structure or NULL on failure.
+ **/
+rasqal_query_results*
+rasqal_new_query_results_from_query_execution(rasqal_query* query)
+{
+  rasqal_query_results *query_results = NULL;
+  int rc = 0;
+  int size = 0;
+  int order_size = 0;
+  raptor_sequence* seq;
+  size_t ex_data_size;
+  
+  if(query->failed)
+    return NULL;
+
+  query_results = rasqal_new_query_results(query);
+  if(!query_results)
+    return NULL;
+
+  /* set executed flag early to enable cleanup on error */
+  query_results->executed = 1;
+
+  query_results->store_results = (query->store_results || 
+                                  query->order_conditions_sequence ||
+                                  query->distinct);
+  
+  seq=rasqal_variables_table_get_named_variables_sequence(query->vars_table);
+
+  /* do not use rasqal_query_results_get_bindings_count() as it is 0
+   * for a graph result which is also executed by finding regular bindings
+   */
+  if(query->constructs)
+    size = raptor_sequence_size(seq);
+  else
+    size = query->select_variables_count;
+
+  rasqal_query_results_set_variables(query_results, seq, size, order_size);
+
+  if(query->order_conditions_sequence)
+    order_size = raptor_sequence_size(query->order_conditions_sequence);
+  rasqal_query_results_set_order_conditions(query_results, order_size);
+
+  ex_data_size = query_results->execution_factory->execution_data_size;
+  if(ex_data_size > 0) {
+    query_results->execution_data = RASQAL_CALLOC(data, 1, ex_data_size);
+    if(!query_results->execution_data) {
+      rasqal_free_query_results(query_results);
+      return NULL;
+    }
+  } else
+    query_results->execution_data = NULL;
+
+  if(query_results->execution_factory->execute_init) {
+    rasqal_engine_error execution_error = RASQAL_ENGINE_OK;
+    rc = query_results->execution_factory->execute_init(query_results->execution_data, query, query_results, &execution_error);
+    if(execution_error != RASQAL_ENGINE_OK) {
+      query_results->failed = 1;
+      rasqal_free_query_results(query_results);
+      return NULL;
+    }
+  }
+
+  /* Choose either to execute all now and store OR do it on demand (lazy) */
+  if(query_results->store_results)
+    rc = rasqal_query_results_store_results(query_results);
+
+  return query_results;
+}
+
+
 void
 rasqal_query_results_reset(rasqal_query_results* query_results)
 {
