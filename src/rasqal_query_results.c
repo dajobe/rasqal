@@ -57,11 +57,11 @@ rasqal_finish_query_results(void)
 }
 
 
-/*
+/**
  * rasqal_new_query_results:
  * @query: query object
  * 
- * Internal -  create a query result for a query
+ * INTERNAL -  create a query result for a query
  * 
  * Return value: a new query result object or NULL on failure
  **/
