@@ -178,7 +178,7 @@ rasqal_new_query_results_from_query_execution(rasqal_query* query)
 
   /* Choose either to execute all now and store OR do it on demand (lazy) */
   if(query_results->store_results)
-    rc = rasqal_query_results_store_results(query_results);
+    rc = rasqal_query_results_execute_and_store_results(query_results);
 
   return query_results;
 }
@@ -1265,7 +1265,7 @@ rasqal_query_results_add_row(rasqal_query_results* query_results,
 
 
 /**
- * rasqal_query_results_store_results:
+ * rasqal_query_results_execute_and_store_results:
  * @query_results: query results object
  *
  * INTERNAL - Store all query result (rows) immediately
@@ -1273,7 +1273,7 @@ rasqal_query_results_add_row(rasqal_query_results* query_results,
  * Return value: non-0 on finished or failure
  */
 int
-rasqal_query_results_store_results(rasqal_query_results* query_results)
+rasqal_query_results_execute_and_store_results(rasqal_query_results* query_results)
 {
   rasqal_query* query;
   raptor_sequence* seq = NULL;
