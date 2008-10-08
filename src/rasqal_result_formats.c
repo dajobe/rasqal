@@ -402,7 +402,7 @@ rasqal_query_results_write_json1(raptor_iostream *iostr,
                                  rasqal_query_results* results,
                                  raptor_uri *base_uri)
 {
-  rasqal_query* query=results->query;
+  rasqal_query* query = rasqal_query_results_get_query(results);
   int i;
   int row_comma;
   int column_comma=0;

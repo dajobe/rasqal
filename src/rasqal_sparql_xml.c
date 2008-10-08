@@ -84,7 +84,7 @@ rasqal_query_results_write_sparql_xml(raptor_iostream *iostr,
                                       raptor_uri *base_uri)
 {
   int rc=1;
-  rasqal_query* query=results->query;
+  rasqal_query* query = rasqal_query_results_get_query(results);
   const raptor_uri_handler *uri_handler;
   void *uri_context;
   raptor_xml_writer* xml_writer=NULL;
