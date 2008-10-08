@@ -2103,6 +2103,15 @@ rasqal_query_engine_1_get_all_rows(void* ex_data, rasqal_engine_error *error_p)
 }
 
 
+/**
+ * rasqal_query_engine_1_execute_finish:
+ * @ex_data: execution data
+ * @error_p: execution error (OUT variable)
+ *
+ * INTERNAL - Finish execution of a query
+ * 
+ * Return value: non-0 on failure
+ */
 static int
 rasqal_query_engine_1_execute_finish(void* ex_data,
                                      rasqal_engine_error *error_p)
