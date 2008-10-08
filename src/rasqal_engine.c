@@ -1846,7 +1846,8 @@ rasqal_engine_make_rowsource(rasqal_query* query,
 
 /**
  * rasqal_query_engine_1_get_row:
- * @query_results: Query results to execute
+ * @ex_data: Query results to execute
+ * @error_p: execution error (OUT variable)
  *
  * INTERNAL - Execute a query to get one result, finished or failure.
  * 
