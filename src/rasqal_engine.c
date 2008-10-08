@@ -967,6 +967,16 @@ rasqal_engine_do_step(rasqal_engine_execution_data* execution_data,
 }
 
 
+/**
+ * rasqal_engine_do_optional_step:
+ * @execution_data: execution data
+ * @outergp: outer graph pattern
+ * @gp: inner graph pattern
+ *
+ * INTERNAL - Execute an OPTIONAL graph pattern inside an outer graph pattern
+ *
+ * return: <0 failure, 0 end of results, >0 match
+ */
 static rasqal_engine_step
 rasqal_engine_do_optional_step(rasqal_engine_execution_data* execution_data,
                                rasqal_graph_pattern *outergp,
