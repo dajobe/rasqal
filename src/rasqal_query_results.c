@@ -41,6 +41,9 @@
 #include "rasqal_internal.h"
 
 
+static int rasqal_query_results_execute_and_store_results(rasqal_query_results* query_results);
+
+
 int
 rasqal_init_query_results(void)
 {
@@ -1272,7 +1275,7 @@ rasqal_query_results_add_row(rasqal_query_results* query_results,
  *
  * Return value: non-0 on finished or failure
  */
-int
+static int
 rasqal_query_results_execute_and_store_results(rasqal_query_results* query_results)
 {
   rasqal_query* query;
