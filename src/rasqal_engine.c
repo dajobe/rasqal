@@ -893,6 +893,16 @@ rasqal_engine_check_constraint(rasqal_query *query, rasqal_graph_pattern *gp)
 }
 
 
+/**
+ * rasqal_engine_do_step:
+ * @execution_data: execution data
+ * @outergp: outer graph pattern
+ * @gp: inner graph pattern
+ *
+ * INTERNAL - Execute a graph pattern inside an outer graph pattern
+ *
+ * return: <0 failure, 0 end of results, >0 match
+ */
 static rasqal_engine_step
 rasqal_engine_do_step(rasqal_engine_execution_data* execution_data,
                       rasqal_graph_pattern* outergp, rasqal_graph_pattern* gp)
