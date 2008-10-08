@@ -121,10 +121,18 @@ rasqal_set_triples_source_factory(rasqal_world* world, void (*register_fn)(rasqa
 }
 
 
+/**
+ * rasqal_new_triples_source:
+ * @query_results: query results to initialize for
+ *
+ * Createa a new triples source
+ *
+ * Return value: a new triples source or NULL on failure
+ */
 static rasqal_triples_source*
 rasqal_new_triples_source(rasqal_query_results* query_results)
 {
-  rasqal_query* query=query_results->query;
+  rasqal_query* query = rasqal_query_results_get_query(query_results);
   rasqal_triples_source_factory* rtsf=&query->world->triples_source_factory;
   rasqal_triples_source* rts;
   int rc=0;
