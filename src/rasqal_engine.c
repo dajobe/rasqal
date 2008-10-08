@@ -1864,17 +1864,6 @@ rasqal_query_engine_1_get_row(void* ex_data, rasqal_engine_error *error_p)
 
   query_results = execution_data->query_results;
 
-  if(!query_results)
-    return NULL; /* failed */
-  
-  if(!rasqal_query_results_is_bindings(query_results) &&
-     !rasqal_query_results_is_boolean(query_results) &&
-     !rasqal_query_results_is_graph(query_results))
-    return NULL; /* failed */
-
-  if(query_results->finished)
-    return NULL; /* finished */
-
   while(1) {
     int rc;
     
