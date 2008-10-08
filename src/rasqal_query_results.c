@@ -436,7 +436,9 @@ rasqal_query_results_get_row_from_saved(rasqal_query_results* query_results)
  *
  * INTERNAL - Ensure there is a row in the query results by getting it from the generator/stored list
  *
- * If one already is held, nothing is done.
+ * If one already is held, nothing is done.  It is assumed
+ * that @query_results is not NULL and the query is neither finished
+ * nor failed.
  *
  * Return value: non-0 if failed or results exhausted
  **/
@@ -555,7 +557,7 @@ rasqal_query_results_next(rasqal_query_results* query_results)
 int
 rasqal_query_results_finished(rasqal_query_results* query_results)
 {
-  if(!query_results)
+  if(!query_results || query_results->failed || query_results->finished)
     return 1;
   
   if(!rasqal_query_results_is_bindings(query_results))
