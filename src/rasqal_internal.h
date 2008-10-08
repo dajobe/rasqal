@@ -1130,7 +1130,14 @@ struct rasqal_query_execution_factory_s {
    */
   int (*execute_init)(void* ex_data, rasqal_query* query, rasqal_query_results* query_results, rasqal_engine_error *error_p);
 
-  /* get all bindings result rows (returning a new raptor_sequence object holding new objects) */
+  /**
+   * @ex_data: execution data
+   * @error_p: execution error (OUT variable)
+   *
+   * Get all bindings result rows (returning a new raptor_sequence object holding new objects.
+   *
+   * Will not be called if query results is NULL, finished or failed.
+   */
   raptor_sequence* (*get_all_rows)(void* ex_data, rasqal_engine_error *error_p);
 
   /*
@@ -1139,7 +1146,7 @@ struct rasqal_query_execution_factory_s {
    *
    * Get current bindings result row (returning a new object) 
    *
-   * Will not be called if query results is finished or failed.
+   * Will not be called if query results is NULL, finished or failed.
    */
   rasqal_row* (*get_row)(void* ex_data, rasqal_engine_error *error_p);
 
