@@ -2078,6 +2078,15 @@ rasqal_query_engine_1_execute_init(void* ex_data,
 }
 
 
+/**
+ * rasqal_query_engine_1_get_all_rows:
+ * @ex_data: execution data
+ * @error_p: execution error (OUT variable)
+ *
+ * INTERNAL - Execute a query to get all results
+ * 
+ * Return value: all rows or NULL on failure
+ */
 static raptor_sequence*
 rasqal_query_engine_1_get_all_rows(void* ex_data, rasqal_engine_error *error_p)
 {
