@@ -993,9 +993,12 @@ main(int argc, char *argv[])
       goto tidy_query;
     }
 
-    rasqal_query_results_formatter_write(iostr, results_formatter,
-                                         results, base_uri);
+    rc = rasqal_query_results_formatter_write(iostr, results_formatter,
+                                              results, base_uri);
     raptor_free_iostream(iostr);
+    if(rc)
+      fprintf(stderr, "%s: Formatting results failed\n", program);
+    
   } else {
     if(rasqal_query_results_is_bindings(results)) {
       if(!quiet)
