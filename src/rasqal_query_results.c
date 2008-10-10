@@ -171,7 +171,11 @@ rasqal_new_query_results_from_query_execution(rasqal_query* query)
 
   if(query_results->execution_factory->execute_init) {
     rasqal_engine_error execution_error = RASQAL_ENGINE_OK;
-    rc = query_results->execution_factory->execute_init(query_results->execution_data, query, query_results, &execution_error);
+    int execution_flags = 0;
+    if(query_results->store_results)
+      execution_flags |= 1;
+
+    rc = query_results->execution_factory->execute_init(query_results->execution_data, query, query_results, execution_flags, &execution_error);
     if(execution_error != RASQAL_ENGINE_OK) {
       query_results->failed = 1;
       rasqal_free_query_results(query_results);

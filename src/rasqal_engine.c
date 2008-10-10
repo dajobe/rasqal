@@ -1804,7 +1804,8 @@ static const rasqal_rowsource_handler rasqal_rowsource_engine_handler={
 static rasqal_rowsource*
 rasqal_engine_make_rowsource(rasqal_query* query,
                              rasqal_query_results* results,
-                             rasqal_engine_execution_data* execution_data) 
+                             rasqal_engine_execution_data* execution_data,
+                             int need_store_results)
 {
   rasqal_rowsource_engine_context* con;
   int flags = 0;
@@ -1815,7 +1816,7 @@ rasqal_engine_make_rowsource(rasqal_query* query,
 
   con->results = results;
   con->execution_data = execution_data;
-  con->need_store_results = results->store_results;
+  con->need_store_results = need_store_results;
 
   if(con->need_store_results) {
     /* make a row:NULL map in order to sort or do distinct */
@@ -1998,10 +1999,12 @@ static int
 rasqal_query_engine_1_execute_init(void* ex_data,
                                    rasqal_query* query,
                                    rasqal_query_results* query_results,
+                                   int flags,
                                    rasqal_engine_error *error_p)
 {
   rasqal_engine_execution_data* execution_data;
   int rc=0;
+  int need_store_results= (flags & 1);
 
   execution_data=(rasqal_engine_execution_data*)ex_data;
 
@@ -2060,7 +2063,8 @@ rasqal_query_engine_1_execute_init(void* ex_data,
   if(execution_data->rowsource)
     rasqal_free_rowsource(execution_data->rowsource);
   execution_data->rowsource = rasqal_engine_make_rowsource(query, query_results,
-                                                           execution_data);
+                                                           execution_data,
+                                                           need_store_results);
   if(!execution_data->rowsource)
     return 1;
 

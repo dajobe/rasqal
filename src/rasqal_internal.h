@@ -1122,13 +1122,14 @@ struct rasqal_query_execution_factory_s {
    * @ex_data: execution data
    * @query: query to execute
    * @query_results: query results
+   * @flags: execution flags.  1: execute and store results
    * @error_p: execution error (OUT variable)
    *
    * Initialise a new execution
    *
    * Return value: non-0 on failure
    */
-  int (*execute_init)(void* ex_data, rasqal_query* query, rasqal_query_results* query_results, rasqal_engine_error *error_p);
+  int (*execute_init)(void* ex_data, rasqal_query* query, rasqal_query_results* query_results, int flags, rasqal_engine_error *error_p);
 
   /**
    * @ex_data: execution data
