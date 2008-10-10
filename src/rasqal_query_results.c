@@ -42,6 +42,7 @@
 
 
 static int rasqal_query_results_execute_and_store_results(rasqal_query_results* query_results);
+static void rasqal_query_results_update_bindings(rasqal_query_results* query_results);
 
 
 /*
@@ -154,41 +155,48 @@ rasqal_new_query_results(rasqal_query* query)
   rasqal_query_results* query_results;
     
   query_results=(rasqal_query_results*)RASQAL_CALLOC(rasqal_query_results, 1, sizeof(rasqal_query_results));
-  if(query_results) {
-    query_results->query=query;
-
-    if(query) {
-      if(query->query_results_formatter_name)
-        query_results->type=RASQAL_QUERY_RESULTS_SYNTAX;
-      else
-        switch(query->verb) {
-          case RASQAL_QUERY_VERB_SELECT:
-            query_results->type=RASQAL_QUERY_RESULTS_BINDINGS;
-            rasqal_query_results_set_variables(query_results,
-                                               query->selects,
-                                               query->select_variables_count,
-                                               0);
-            break;
-          case RASQAL_QUERY_VERB_ASK:
-            query_results->type=RASQAL_QUERY_RESULTS_BOOLEAN;
-            break;
-          case RASQAL_QUERY_VERB_CONSTRUCT:
-          case RASQAL_QUERY_VERB_DESCRIBE:
-            query_results->type=RASQAL_QUERY_RESULTS_GRAPH;
-            break;
-            
-          case RASQAL_QUERY_VERB_UNKNOWN:
-          case RASQAL_QUERY_VERB_DELETE:
-          case RASQAL_QUERY_VERB_INSERT:
-          default:
-            break;
-        }
-    }
-    rasqal_query_results_reset(query_results);
-
-    query_results->execution_factory = &rasqal_query_engine_1;
+  if(!query_results)
+    return NULL;
+  
+  query_results->query = query;
+  
+  if(query) {
+    if(query->query_results_formatter_name)
+      query_results->type = RASQAL_QUERY_RESULTS_SYNTAX;
+    else
+      switch(query->verb) {
+        case RASQAL_QUERY_VERB_SELECT:
+          query_results->type = RASQAL_QUERY_RESULTS_BINDINGS;
+          rasqal_query_results_set_variables(query_results,
+                                             query->selects,
+                                             query->select_variables_count,
+                                             0);
+          break;
+        case RASQAL_QUERY_VERB_ASK:
+          query_results->type = RASQAL_QUERY_RESULTS_BOOLEAN;
+          break;
+        case RASQAL_QUERY_VERB_CONSTRUCT:
+        case RASQAL_QUERY_VERB_DESCRIBE:
+          query_results->type = RASQAL_QUERY_RESULTS_GRAPH;
+          break;
+          
+        case RASQAL_QUERY_VERB_UNKNOWN:
+        case RASQAL_QUERY_VERB_DELETE:
+        case RASQAL_QUERY_VERB_INSERT:
+        default:
+          break;
+      }
   }
+  
+  query_results->result_count = 0;
+  query_results->abort = 0;
+  query_results->finished = 0;
+  query_results->failed = 0;
+  query_results->ask_result = -1; 
+  query_results->results_sequence = NULL;
+  query_results->current_triple_result = -1;
 
+  query_results->execution_factory = &rasqal_query_engine_1;
   
   return query_results;
 }
@@ -198,7 +206,7 @@ rasqal_new_query_results(rasqal_query* query)
  * rasqal_new_query_results_from_query_execution:
  * @query: the #rasqal_query object
  *
- * INTERNAL - Create a new query results from excuting a query
+ * INTERNAL - Create a new query results from executing a prepared query
  *
  * return value: a #rasqal_query_results structure or NULL on failure.
  **/
@@ -240,7 +248,7 @@ rasqal_new_query_results_from_query_execution(rasqal_query* query)
 
   if(query->order_conditions_sequence)
     order_size = raptor_sequence_size(query->order_conditions_sequence);
-  rasqal_query_results_set_order_conditions(query_results, order_size);
+  query_results->order_size=size;
 
   ex_data_size = query_results->execution_factory->execution_data_size;
   if(ex_data_size > 0) {
@@ -271,19 +279,6 @@ rasqal_new_query_results_from_query_execution(rasqal_query* query)
     rc = rasqal_query_results_execute_and_store_results(query_results);
 
   return query_results;
-}
-
-
-void
-rasqal_query_results_reset(rasqal_query_results* query_results)
-{
-  query_results->result_count = 0;
-  query_results->abort = 0;
-  query_results->finished = 0;
-  query_results->failed = 0;
-  query_results->ask_result = -1; 
-  query_results->results_sequence = NULL;
-  query_results->current_triple_result = -1;
 }
 
 
@@ -1291,14 +1286,6 @@ rasqal_query_results_set_variables(rasqal_query_results* query_results,
 }
 
 
-void
-rasqal_query_results_set_order_conditions(rasqal_query_results* query_results,
-                                          int size)
-{
-  query_results->order_size=size;
-}
-
-
 /**
  * rasqal_query_results_read:
  * @iostr: #raptor_iostream to read the query from
@@ -1425,7 +1412,7 @@ rasqal_query_results_execute_and_store_results(rasqal_query_results* query_resul
 }
 
 
-void
+static void
 rasqal_query_results_update_bindings(rasqal_query_results* query_results)
 {
   rasqal_query* query;
