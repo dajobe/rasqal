@@ -88,13 +88,13 @@ main(int argc, char **argv) {
   unsigned char *data_dir_string;
   unsigned char *query_string;
   int count = 0;
-#ifdef RASQAL_DEBUG > 1
+#if RASQAL_DEBUG > 1
   raptor_serializer* serializer=NULL;
 #endif
 
   world = rasqal_new_world();
-  if(!world) {
-    fprintf(stderr, "%s: rasqal_new_world() failed\n", program);
+  if(!world || rasqal_world_open(world)) {
+    fprintf(stderr, "%s: rasqal_world init failed\n", program);
     failures++;
     goto done;
   }
@@ -106,7 +106,11 @@ main(int argc, char **argv) {
   }
 
   uri_string = raptor_uri_filename_to_uri_string("");
-  base_uri = raptor_new_uri(uri_string);  
+#ifdef RAPTOR_V2_AVAILABLE
+  base_uri = raptor_new_uri_v2(world->raptor_world_ptr, uri_string);
+#else
+  base_uri = raptor_new_uri(uri_string);
+#endif
   raptor_free_memory(uri_string);
 
   data_dir_string = raptor_uri_filename_to_uri_string(argv[1]);
@@ -148,7 +152,7 @@ main(int argc, char **argv) {
     goto done;
   }
 
-#ifdef RASQAL_DEBUG > 1
+#if RASQAL_DEBUG > 1
   serializer = raptor_new_serializer("ntriples");
   raptor_serialize_start_to_file_handle(serializer, base_uri, stdout);
 #endif
@@ -160,14 +164,14 @@ main(int argc, char **argv) {
       break;
     count++;
     
-#ifdef RASQAL_DEBUG > 1
+#if RASQAL_DEBUG > 1
     raptor_serialize_statement(serializer, triple);
 #endif
     if(rasqal_query_results_next_triple(results))
       break;
   }
   
-#ifdef RASQAL_DEBUG > 1
+#if RASQAL_DEBUG > 1
   raptor_serialize_end(serializer);
   raptor_free_serializer(serializer);
 #endif
@@ -188,7 +192,11 @@ main(int argc, char **argv) {
     rasqal_free_query(query);
   
   if(base_uri)
+#ifdef RAPTOR_V2_AVAILABLE
+    raptor_free_uri_v2(world->raptor_world_ptr, base_uri);
+#else
     raptor_free_uri(base_uri);
+#endif
 
   rasqal_free_world(world);
 

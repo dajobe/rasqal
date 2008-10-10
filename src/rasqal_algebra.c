@@ -523,7 +523,7 @@ rasqal_algebra_basic_graph_pattern_to_algebra(rasqal_query* query,
       RASQAL_DEBUG1("rasqal_new_expression_from_expression() failed");
       goto fail;
     }
-    fs=fs ? rasqal_new_2op_expression(RASQAL_EXPR_AND, fs, e) : e;
+    fs = fs ? rasqal_new_2op_expression(query->world, RASQAL_EXPR_AND, fs, e) : e;
   }
 
   if(fs) {
@@ -627,7 +627,7 @@ rasqal_algebra_group_graph_pattern_to_algebra(rasqal_query* query,
         RASQAL_DEBUG1("rasqal_new_expression_from_expression() failed");
         goto fail;
       }
-      fs=fs ? rasqal_new_2op_expression(RASQAL_EXPR_AND, fs, e) : e;
+      fs = fs ? rasqal_new_2op_expression(query->world, RASQAL_EXPR_AND, fs, e) : e;
 
       if(egp->op == RASQAL_GRAPH_PATTERN_OPERATOR_FILTER)
         continue;
@@ -678,7 +678,7 @@ rasqal_algebra_group_graph_pattern_to_algebra(rasqal_query* query,
             goto fail;
           }
           
-          true_expr=rasqal_new_literal_expression(true_lit);
+          true_expr = rasqal_new_literal_expression(query->world, true_lit);
           if(!true_expr) {
             RASQAL_DEBUG1("rasqal_new_literal_expression() failed");
             goto fail;
@@ -938,13 +938,17 @@ main(int argc, char *argv[]) {
   raptor_sequence* triples;
 
   world=rasqal_new_world();
-  if(!world)
+  if(!world || rasqal_world_open(world))
     FAIL;
   
   uri_string=raptor_uri_filename_to_uri_string("");
   if(!uri_string)
     FAIL;
-  base_uri=raptor_new_uri(uri_string);  
+#ifdef RAPTOR_V2_AVAILABLE
+  base_uri = raptor_new_uri_v2(world->raptor_world_ptr, uri_string);
+#else
+  base_uri = raptor_new_uri(uri_string);
+#endif
   if(!base_uri)
     FAIL;
   raptor_free_memory(uri_string);
@@ -965,7 +969,7 @@ main(int argc, char *argv[]) {
   lit1=rasqal_new_integer_literal(world, RASQAL_LITERAL_INTEGER, 1);
   if(!lit1)
     FAIL;
-  expr1=rasqal_new_literal_expression(lit1);
+  expr1 = rasqal_new_literal_expression(world, lit1);
   if(!expr1)
     FAIL;
   lit1=NULL; /* now owned by expr1 */
@@ -973,12 +977,12 @@ main(int argc, char *argv[]) {
   lit2=rasqal_new_integer_literal(world, RASQAL_LITERAL_INTEGER, 1);
   if(!lit2)
     FAIL;
-  expr2=rasqal_new_literal_expression(lit2);
+  expr2 = rasqal_new_literal_expression(world, lit2);
   if(!expr2)
     FAIL;
   lit2=NULL; /* now owned by expr2 */
 
-  expr=rasqal_new_2op_expression(RASQAL_EXPR_PLUS, expr1, expr2);
+  expr = rasqal_new_2op_expression(world, RASQAL_EXPR_PLUS, expr1, expr2);
   if(!expr)
     FAIL;
   expr1=NULL; expr2=NULL; /* now owned by expr */
@@ -1092,7 +1096,7 @@ main(int argc, char *argv[]) {
   lit1=rasqal_new_boolean_literal(world, 1);
   if(!lit1)
     FAIL;
-  expr1=rasqal_new_literal_expression(lit1);
+  expr1 = rasqal_new_literal_expression(world, lit1);
   if(!expr1)
     FAIL;
   lit1=NULL; /* now owned by expr1 */
@@ -1145,7 +1149,11 @@ main(int argc, char *argv[]) {
   if(query)
     rasqal_free_query(query);
   if(base_uri)
+#ifdef RAPTOR_V2_AVAILABLE
+    raptor_free_uri_v2(world->raptor_world_ptr, base_uri);
+#else
     raptor_free_uri(base_uri);
+#endif
   if(world)
     rasqal_free_world(world);
   

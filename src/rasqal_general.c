@@ -98,30 +98,69 @@ const unsigned int rasqal_version_decimal = RASQAL_VERSION_DECIMAL;
 /**
  * rasqal_new_world:
  * 
- * Initialise the rasqal library.
+ * Allocate a new rasqal_world object.
  *
- * Creates a rasqal_world object and initializes it.
- *
- * The returned world object is used with subsequent rasqal API calls.
+ * The rasqal_world is initialized with rasqal_world_open().
+ * Allocation and initialization are decoupled to allow
+ * changing settings on the world object before init.
  *
  * Return value: rasqal_world object or NULL on failure
  **/
 rasqal_world*
 rasqal_new_world(void)
 {
-  rasqal_world *world;
+  return (rasqal_world*)RASQAL_CALLOC(rasqal_world, sizeof(rasqal_world), 1);
+}
 
-  world=(rasqal_world*)RASQAL_CALLOC(rasqal_world, sizeof(rasqal_world), 1);
+
+/**
+ * rasqal_world_open:
+ * 
+ * Initialise the rasqal library.
+ *
+ * Initializes a #rasqal_world object created by rasqal_new_world().
+ * Allocation and initialization are decoupled to allow
+ * changing settings on the world object before init.
+ * These settings include e.g. the raptor library instance set with
+ * rasqal_world_set_raptor().
+ *
+ * The initialized world object is used with subsequent rasqal API calls.
+ *
+ * Return value: non-0 on failure
+ **/
+int
+rasqal_world_open(rasqal_world *world)
+{
+  int rc;
+
   if(!world)
-    return NULL;
+    return -1;
+    
+  if(world->opened)
+    return 0; /* not an error */
 
+#ifdef RAPTOR_V2_AVAILABLE
+  /* Create and init a raptor_world unless one is provided externally with rasqal_world_set_raptor() */
+  if(!world->raptor_world_ptr) {
+    world->raptor_world_ptr = raptor_new_world();
+    if(!world->raptor_world_ptr)
+      return -1;
+    world->raptor_world_allocated_here = 1;
+    rc = raptor_world_open(world->raptor_world_ptr);
+    if(rc)
+      return rc;
+  }
+#else  
   raptor_init();
+#endif
 
-  if(rasqal_uri_init(world))
-    goto failure;
+  rc = rasqal_uri_init(world);
+  if(rc)
+    return rc;
 
-  if(rasqal_xsd_init(world))
-    goto failure;
+  rc = rasqal_xsd_init(world);
+  if(rc)
+    return rc;
 
 /* FIXME */
 #ifndef RAPTOR_ERROR_HANDLER_MAGIC
@@ -129,44 +168,48 @@ rasqal_new_world(void)
 #endif
   world->error_handlers.magic=RAPTOR_ERROR_HANDLER_MAGIC;
 
-
   /* last one declared is the default - RDQL */
 
 #ifdef RASQAL_QUERY_RDQL
-  if(rasqal_init_query_engine_rdql(world))
-    goto failure;
+  rc = rasqal_init_query_engine_rdql(world);
+  if(rc)
+    return rc;
 #endif
 
 #ifdef RASQAL_QUERY_LAQRS
-  if(rasqal_init_query_engine_laqrs(world))
-    goto failure;
+  rc = rasqal_init_query_engine_laqrs(world);
+  if(rc)
+    return rc;
 #endif
 
 #ifdef RASQAL_QUERY_SPARQL  
-  if(rasqal_init_query_engine_sparql(world))
-    goto failure;
+  rc = rasqal_init_query_engine_sparql(world);
+  if(rc)
+    return rc;
 #endif
 
 #ifdef RAPTOR_TRIPLES_SOURCE_RAPTOR
-  if(rasqal_raptor_init(world))
-    goto failure;
+  rc = rasqal_raptor_init(world);
+  if(rc)
+    return rc;
 #endif
 #ifdef RAPTOR_TRIPLES_SOURCE_REDLAND
-  if(rasqal_redland_init(world))
-    goto failure;
+  rc = rasqal_redland_init(world);
+  if(rc)
+    return rc;
 #endif
 
-  if(rasqal_init_query_results())
-    goto failure;
+  rc = rasqal_init_query_results();
+  if(rc)
+    return rc;
   
-  if(rasqal_init_result_formats(world))
-    goto failure;
+  rc = rasqal_init_result_formats(world);
+  if(rc)
+    return rc;
 
-  return world;
+  world->opened = 1;
 
-  failure:
-  rasqal_free_world(world);
-  return NULL;
+  return 0;
 }
 
 
@@ -197,9 +240,53 @@ rasqal_free_world(rasqal_world* world)
 
   rasqal_uri_finish(world);
 
+#ifdef RAPTOR_V2_AVAILABLE
+  if(world->raptor_world_ptr && world->raptor_world_allocated_here)
+    raptor_free_world(world->raptor_world_ptr);
+#else
   raptor_finish();
+#endif
 
   RASQAL_FREE(rasqal_world, world);
+}
+
+
+/**
+ * rasqal_world_set_raptor:
+ * @world: rasqal_world object
+ * @raptor_world_ptr: raptor_world object
+ * 
+ * Set the #raptor_world instance to be used with this #rasqal_world.
+ *
+ * If no raptor_world instance is set with this function,
+ * rasqal_world_open() creates a new instance.
+ *
+ * Ownership of the raptor_world is not taken. If the raptor library
+ * instance is set with this function, rasqal_free_world() will not
+ * free it.
+ *
+ **/
+void
+rasqal_world_set_raptor(rasqal_world* world, raptor_world* raptor_world_ptr)
+{
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN(world, rasqal_world);
+  world->raptor_world_ptr = raptor_world_ptr;
+}
+
+
+/**
+ * rasqal_world_get_raptor:
+ * @world: rasqal_world object
+ * 
+ * Get the #raptor_world instance used by this #rasqal_world.
+ *
+ * Return value: raptor_world object or NULL on failure (e.g. not initialized)
+ **/
+raptor_world*
+rasqal_world_get_raptor(rasqal_world* world)
+{
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
+  return world->raptor_world_ptr;
 }
 
 
@@ -475,7 +562,11 @@ rasqal_log_error_varargs(rasqal_world* world, raptor_log_level level,
   buffer=raptor_vsnprintf(message, arguments);
   if(!buffer) {
     if(locator) {
+#ifdef RAPTOR_V2_AVAILABLE
+      raptor_print_locator_v2(world->raptor_world_ptr, stderr, locator);
+#else
       raptor_print_locator(stderr, locator);
+#endif
       fputc(' ', stderr);
     }
     fputs("rasqal ", stderr);
@@ -497,7 +588,11 @@ rasqal_log_error_varargs(rasqal_world* world, raptor_log_level level,
     handler(handler_data, locator, buffer);
   else {
     if(locator) {
+#ifdef RAPTOR_V2_AVAILABLE
+      raptor_print_locator_v2(world->raptor_world_ptr, stderr, locator);
+#else
       raptor_print_locator(stderr, locator);
+#endif
       fputc(' ', stderr);
     }
     fputs("rasqal ", stderr);
@@ -677,13 +772,23 @@ rasqal_escaped_name_to_utf8_string(const unsigned char *src, size_t len,
 int
 rasqal_uri_init(rasqal_world* world) 
 {
-  world->rdf_namespace_uri=raptor_new_uri(raptor_rdf_namespace_uri);
+#ifdef RAPTOR_V2_AVAILABLE
+  world->rdf_namespace_uri = raptor_new_uri_v2(world->raptor_world_ptr, raptor_rdf_namespace_uri);
+#else
+  world->rdf_namespace_uri = raptor_new_uri(raptor_rdf_namespace_uri);
+#endif
   if(!world->rdf_namespace_uri)
     goto oom;
 
-  world->rdf_first_uri=raptor_new_uri_from_uri_local_name(world->rdf_namespace_uri, (const unsigned char*)"first");
-  world->rdf_rest_uri=raptor_new_uri_from_uri_local_name(world->rdf_namespace_uri, (const unsigned char*)"rest");
-  world->rdf_nil_uri=raptor_new_uri_from_uri_local_name(world->rdf_namespace_uri, (const unsigned char*)"nil");
+#ifdef RAPTOR_V2_AVAILABLE
+  world->rdf_first_uri = raptor_new_uri_from_uri_local_name_v2(world->raptor_world_ptr, world->rdf_namespace_uri, (const unsigned char*)"first");
+  world->rdf_rest_uri = raptor_new_uri_from_uri_local_name_v2(world->raptor_world_ptr, world->rdf_namespace_uri, (const unsigned char*)"rest");
+  world->rdf_nil_uri = raptor_new_uri_from_uri_local_name_v2(world->raptor_world_ptr, world->rdf_namespace_uri, (const unsigned char*)"nil");
+#else
+  world->rdf_first_uri = raptor_new_uri_from_uri_local_name(world->rdf_namespace_uri, (const unsigned char*)"first");
+  world->rdf_rest_uri = raptor_new_uri_from_uri_local_name(world->rdf_namespace_uri, (const unsigned char*)"rest");
+  world->rdf_nil_uri = raptor_new_uri_from_uri_local_name(world->rdf_namespace_uri, (const unsigned char*)"nil");
+#endif
 
   if(!world->rdf_first_uri || !world->rdf_rest_uri || !world->rdf_nil_uri)
     goto oom;
@@ -701,6 +806,24 @@ rasqal_uri_init(rasqal_world* world)
 void
 rasqal_uri_finish(rasqal_world* world) 
 {
+#ifdef RAPTOR_V2_AVAILABLE
+  if(world->rdf_first_uri) {
+    raptor_free_uri_v2(world->raptor_world_ptr, world->rdf_first_uri);
+    world->rdf_first_uri = NULL;
+  }
+  if(world->rdf_rest_uri) {
+    raptor_free_uri_v2(world->raptor_world_ptr, world->rdf_rest_uri);
+    world->rdf_rest_uri = NULL;
+  }
+  if(world->rdf_nil_uri) {
+    raptor_free_uri_v2(world->raptor_world_ptr, world->rdf_nil_uri);
+    world->rdf_nil_uri = NULL;
+  }
+  if(world->rdf_namespace_uri) {
+    raptor_free_uri_v2(world->raptor_world_ptr, world->rdf_namespace_uri);
+    world->rdf_namespace_uri = NULL;
+  }
+#else
   if(world->rdf_first_uri) {
     raptor_free_uri(world->rdf_first_uri);
     world->rdf_first_uri=NULL;
@@ -717,8 +840,8 @@ rasqal_uri_finish(rasqal_world* world)
     raptor_free_uri(world->rdf_namespace_uri);
     world->rdf_namespace_uri=NULL;
   }
+#endif
 }
-
 
 
 /**

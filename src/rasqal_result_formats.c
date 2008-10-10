@@ -239,7 +239,12 @@ rasqal_get_query_results_formatter_factory(rasqal_world* world,
 
 
     if(uri && factory->uri_string &&
-       !strcmp((const char*)raptor_uri_as_string(uri),
+       !strcmp(
+#ifdef RAPTOR_V2_AVAILABLE
+               (const char*)raptor_uri_as_string_v2(world->raptor_world_ptr, uri),
+#else
+               (const char*)raptor_uri_as_string(uri),
+#endif
                (const char*)factory->uri_string))
       break;
 
@@ -498,7 +503,11 @@ rasqal_query_results_write_json1(raptor_iostream *iostr,
         
         case RASQAL_LITERAL_URI:
           raptor_iostream_write_string(iostr, "\"type\": \"uri\", \"value\": \"");
-          str=(const unsigned char*)raptor_uri_as_counted_string(l->value.uri, &len);
+#ifdef RAPTOR_V2_AVAILABLE
+          str = (const unsigned char*)raptor_uri_as_counted_string_v2(l->world->raptor_world_ptr, l->value.uri, &len);
+#else
+          str = (const unsigned char*)raptor_uri_as_counted_string(l->value.uri, &len);
+#endif
           raptor_iostream_write_string_ntriples(iostr, str, len, '"');
           raptor_iostream_write_byte(iostr, '"');
           break;
@@ -524,7 +533,11 @@ rasqal_query_results_write_json1(raptor_iostream *iostr,
           
           if(l->datatype) {
             raptor_iostream_write_string(iostr, ",\n      \"datatype\" : \"");
-            str=(const unsigned char*)raptor_uri_as_counted_string(l->datatype, &len);
+#ifdef RAPTOR_V2_AVAILABLE
+            str = (const unsigned char*)raptor_uri_as_counted_string_v2(l->world->raptor_world_ptr, l->datatype, &len);
+#else
+            str = (const unsigned char*)raptor_uri_as_counted_string(l->datatype, &len);
+#endif
             raptor_iostream_write_string_ntriples(iostr, str, len, '"');
             raptor_iostream_write_byte(iostr, '"');
           }

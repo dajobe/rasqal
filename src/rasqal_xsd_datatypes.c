@@ -386,7 +386,11 @@ rasqal_xsd_init(rasqal_world* world)
 {
   int i;
 
-  world->xsd_namespace_uri=raptor_new_uri(raptor_xmlschema_datatypes_namespace_uri);
+#ifdef RAPTOR_V2_AVAILABLE
+  world->xsd_namespace_uri = raptor_new_uri_v2(world->raptor_world_ptr, raptor_xmlschema_datatypes_namespace_uri);
+#else
+  world->xsd_namespace_uri = raptor_new_uri(raptor_xmlschema_datatypes_namespace_uri);
+#endif
   if(!world->xsd_namespace_uri)
     return 1;
 
@@ -398,9 +402,14 @@ rasqal_xsd_init(rasqal_world* world)
     return 1;
 
   for(i=RASQAL_LITERAL_FIRST_XSD; i < SPARQL_XSD_NAMES_COUNT; i++) {
-    world->xsd_datatype_uris[i]=
+    world->xsd_datatype_uris[i] =
+#ifdef RAPTOR_V2_AVAILABLE
+      raptor_new_uri_from_uri_local_name_v2(world->raptor_world_ptr, world->xsd_namespace_uri,
+                                            (const unsigned char *)sparql_xsd_names[i]);
+#else
       raptor_new_uri_from_uri_local_name(world->xsd_namespace_uri,
                                          (const unsigned char *)sparql_xsd_names[i]);
+#endif
     if(!world->xsd_datatype_uris[i])
       return 1;
   }
@@ -417,16 +426,24 @@ rasqal_xsd_finish(rasqal_world* world)
     
     for(i=RASQAL_LITERAL_FIRST_XSD; i < SPARQL_XSD_NAMES_COUNT; i++) {
       if(world->xsd_datatype_uris[i])
+#ifdef RAPTOR_V2_AVAILABLE
+        raptor_free_uri_v2(world->raptor_world_ptr, world->xsd_datatype_uris[i]);
+#else
         raptor_free_uri(world->xsd_datatype_uris[i]);
+#endif
     }
 
     RASQAL_FREE(table, world->xsd_datatype_uris);
-    world->xsd_datatype_uris=NULL;
+    world->xsd_datatype_uris = NULL;
   }
 
   if(world->xsd_namespace_uri) {
+#ifdef RAPTOR_V2_AVAILABLE
+    raptor_free_uri_v2(world->raptor_world_ptr, world->xsd_namespace_uri);
+#else
     raptor_free_uri(world->xsd_namespace_uri);
-    world->xsd_namespace_uri=NULL;
+#endif
+    world->xsd_namespace_uri = NULL;
   }
 }
  
@@ -442,7 +459,14 @@ rasqal_xsd_datatype_uri_to_type(rasqal_world* world, raptor_uri* uri)
     return native_type;
   
   for(i=(int)RASQAL_LITERAL_FIRST_XSD; i <= (int)RASQAL_LITERAL_LAST_XSD; i++) {
-    if(raptor_uri_equals(uri, world->xsd_datatype_uris[i])) {
+    if(
+#ifdef RAPTOR_V2_AVAILABLE    
+       raptor_uri_equals_v2(world->raptor_world_ptr, uri, world->xsd_datatype_uris[i])
+#else
+       raptor_uri_equals(uri, world->xsd_datatype_uris[i])
+#endif
+      )
+    {
       native_type=(rasqal_literal_type)i;
       break;
     }
@@ -461,13 +485,27 @@ rasqal_xsd_datatype_uri_parent_type(rasqal_world* world, raptor_uri* uri)
     return parent_type;
 
   /* xsd:integer parent is xsd:decimal */
-  if(raptor_uri_equals(uri,
-                       world->xsd_datatype_uris[RASQAL_LITERAL_INTEGER]))
+  if(
+#ifdef RAPTOR_V2_AVAILABLE
+     raptor_uri_equals_v2(world->raptor_world_ptr, uri,
+                          world->xsd_datatype_uris[RASQAL_LITERAL_INTEGER])
+#else
+     raptor_uri_equals(uri,
+                       world->xsd_datatype_uris[RASQAL_LITERAL_INTEGER])
+#endif
+    )
     return RASQAL_LITERAL_DECIMAL;
   
   /* a pile of things have parent of xsd:integer */
   for(i=(int)XSD_INTEGER_DERIVED_FIRST; i <= (int)XSD_INTEGER_DERIVED_LAST; i++) {
-    if(raptor_uri_equals(uri, world->xsd_datatype_uris[i])) {
+    if(
+#ifdef RAPTOR_V2_AVAILABLE
+       raptor_uri_equals_v2(world->raptor_world_ptr, uri, world->xsd_datatype_uris[i])
+#else
+       raptor_uri_equals(uri, world->xsd_datatype_uris[i])
+#endif
+      )
+    {
       parent_type=RASQAL_LITERAL_INTEGER;
       break;
     }
@@ -890,8 +928,8 @@ main(int argc, char *argv[])
   rasqal_world *world;
   
   world=rasqal_new_world();
-  if(!world) {
-    fprintf(stderr, "%s: rasqal_new_world() failed\n", program);
+  if(!world || rasqal_world_open(world)) {
+    fprintf(stderr, "%s: rasqal_world init failed\n", program);
     return(1);
   }
 

@@ -79,6 +79,12 @@ extern "C" {
 #include <Redland/raptor.h>
 #endif
 
+#ifndef RAPTOR_WORLD_DECLARED
+#define RAPTOR_WORLD_DECLARED 1
+/* Declare raptor_world type unless it is declared in raptor.h */
+typedef struct raptor_world_s raptor_world;
+#endif
+
 /* Public statics */
 RASQAL_API
 extern const char * const rasqal_short_copyright_string;
@@ -175,6 +181,7 @@ typedef enum {
  * @uri: URI associated with the prefix.
  * @declared: Internal flag.
  * @depth: Internal flag.
+ * @world: rasqal_world object
  *
  * Namespace (prefix, uri) pair.
  *
@@ -186,6 +193,7 @@ typedef struct {
   raptor_uri* uri;
   int declared;
   int depth;
+  rasqal_world* world;
 } rasqal_prefix;
 
 
@@ -254,6 +262,7 @@ typedef enum {
  * @uri: source URI
  * @name_uri: name of graph for %RASQAL_DATA_NAMED
  * @flags: %RASQAL_DATA_GRAPH_NAMED or %RASQAL_DATA_GRAPH_BACKGROUND
+ * @world: rasqal_world object
  *
  * A source of RDF data for querying. 
  *
@@ -265,6 +274,7 @@ typedef struct {
   raptor_uri* uri;
   raptor_uri* name_uri;
   int flags;
+  rasqal_world* world;
 } rasqal_data_graph;
 
 
@@ -504,6 +514,9 @@ struct rasqal_expression_s {
   /* for extension function qname(args...) and cast-to-uri */
   raptor_uri* name;
   raptor_sequence* args;
+  
+  /* rasqal_world object */
+  rasqal_world* world;
 };
 typedef struct rasqal_expression_s rasqal_expression;
 
@@ -643,15 +656,22 @@ typedef int (*rasqal_graph_pattern_visit_fn)(rasqal_query* query, rasqal_graph_p
 RASQAL_API
 rasqal_world *rasqal_new_world(void);
 RASQAL_API
+int rasqal_world_open(rasqal_world* world);
+RASQAL_API
 void rasqal_free_world(rasqal_world* world);
+
+RASQAL_API
+void rasqal_world_set_raptor(rasqal_world* world, raptor_world* raptor_world_ptr);
+RASQAL_API
+raptor_world *rasqal_world_get_raptor(rasqal_world* world);
 
 /* Features */
 RASQAL_API
-int rasqal_features_enumerate(const rasqal_feature feature, const char **name, raptor_uri **uri, const char **label);
+int rasqal_features_enumerate(rasqal_world* world, const rasqal_feature feature, const char **name, raptor_uri **uri, const char **label);
 RASQAL_API
 unsigned int rasqal_get_feature_count(void);
 RASQAL_API
-rasqal_feature rasqal_feature_from_uri(raptor_uri *uri);
+rasqal_feature rasqal_feature_from_uri(rasqal_world* world, raptor_uri *uri);
 RASQAL_API
 int rasqal_feature_value_type(const rasqal_feature feature);
 
@@ -908,7 +928,7 @@ unsigned char* rasqal_query_escape_counted_string(rasqal_query* query, const uns
 
 /* Data graph class */
 RASQAL_API
-rasqal_data_graph* rasqal_new_data_graph(raptor_uri* uri, raptor_uri* name_uri, int flags);
+rasqal_data_graph* rasqal_new_data_graph(rasqal_world* world, raptor_uri* uri, raptor_uri* name_uri, int flags);
 RASQAL_API
 void rasqal_free_data_graph(rasqal_data_graph* dg);
 RASQAL_API
@@ -934,21 +954,21 @@ typedef enum {
 
 /* Expression class */
 RASQAL_API
-rasqal_expression* rasqal_new_0op_expression(rasqal_op op);
+rasqal_expression* rasqal_new_0op_expression(rasqal_world* world, rasqal_op op);
 RASQAL_API
-rasqal_expression* rasqal_new_1op_expression(rasqal_op op, rasqal_expression* arg);
+rasqal_expression* rasqal_new_1op_expression(rasqal_world* world, rasqal_op op, rasqal_expression* arg);
 RASQAL_API
-rasqal_expression* rasqal_new_2op_expression(rasqal_op op, rasqal_expression* arg1, rasqal_expression* arg2);
+rasqal_expression* rasqal_new_2op_expression(rasqal_world* world, rasqal_op op, rasqal_expression* arg1, rasqal_expression* arg2);
 RASQAL_API
-rasqal_expression* rasqal_new_3op_expression(rasqal_op op, rasqal_expression* arg1,  rasqal_expression* arg2, rasqal_expression* arg3);
+rasqal_expression* rasqal_new_3op_expression(rasqal_world* world, rasqal_op op, rasqal_expression* arg1,  rasqal_expression* arg2, rasqal_expression* arg3);
 RASQAL_API
-rasqal_expression* rasqal_new_string_op_expression(rasqal_op op, rasqal_expression* arg1, rasqal_literal* literal);
+rasqal_expression* rasqal_new_string_op_expression(rasqal_world* world, rasqal_op op, rasqal_expression* arg1, rasqal_literal* literal);
 RASQAL_API
-rasqal_expression* rasqal_new_literal_expression(rasqal_literal* literal);
+rasqal_expression* rasqal_new_literal_expression(rasqal_world* world, rasqal_literal* literal);
 RASQAL_API
-rasqal_expression* rasqal_new_function_expression(raptor_uri* name, raptor_sequence* args);
+rasqal_expression* rasqal_new_function_expression(rasqal_world* world, raptor_uri* name, raptor_sequence* args);
 RASQAL_API
-rasqal_expression* rasqal_new_cast_expression(raptor_uri* name, rasqal_expression *value);
+rasqal_expression* rasqal_new_cast_expression(rasqal_world* world, raptor_uri* name, rasqal_expression *value);
 RASQAL_API
 rasqal_expression* rasqal_new_expression_from_expression(rasqal_expression* e);
 
@@ -1029,7 +1049,7 @@ RASQAL_API
 int rasqal_literal_equals(rasqal_literal* l1, rasqal_literal* l2);
 
 RASQAL_API
-rasqal_prefix* rasqal_new_prefix(const unsigned char* prefix, raptor_uri* uri);
+rasqal_prefix* rasqal_new_prefix(rasqal_world* world, const unsigned char* prefix, raptor_uri* uri);
 RASQAL_API
 void rasqal_free_prefix(rasqal_prefix* p);
 RASQAL_API

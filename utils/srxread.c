@@ -73,8 +73,8 @@ main(int argc, char *argv[])
   argv[0]=program;
   
   world=rasqal_new_world();
-  if(!world) {
-    fprintf(stderr, "%s: rasqal_new_world() failed\n", program);
+  if(!world || rasqal_world_open(world)) {
+    fprintf(stderr, "%s: rasqal_world init failed\n", program);
     return(1);
   }
 

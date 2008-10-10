@@ -104,8 +104,8 @@ main(int argc, char **argv) {
   rasqal_world *world;
   
   world=rasqal_new_world();
-  if(!world) {
-    fprintf(stderr, "%s: rasqal_new_world() failed\n", program);
+  if(!world || rasqal_world_open(world)) {
+    fprintf(stderr, "%s: rasqal_world init failed\n", program);
     return(1);
   }
   
@@ -118,7 +118,11 @@ main(int argc, char **argv) {
     single_shot=atoi(argv[2]);
   
   uri_string=raptor_uri_filename_to_uri_string("");
-  base_uri=raptor_new_uri(uri_string);  
+#ifdef RAPTOR_V2_AVAILABLE
+  base_uri = raptor_new_uri_v2(world->raptor_world_ptr, uri_string);  
+#else
+  base_uri = raptor_new_uri(uri_string);  
+#endif
   raptor_free_memory(uri_string);
 
   for(query_i=0; query_i < NQUERIES; query_i++) {
@@ -244,7 +248,11 @@ main(int argc, char **argv) {
 
   } /* end query loop */
   
+#ifdef RAPTOR_V2_AVAILABLE
+  raptor_free_uri_v2(world->raptor_world_ptr, base_uri);
+#else
   raptor_free_uri(base_uri);
+#endif
 
   rasqal_free_world(world);
 

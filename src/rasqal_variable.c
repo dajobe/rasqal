@@ -546,6 +546,11 @@ main(int argc, char *argv[])
   int rc=0;
   
   world=rasqal_new_world();
+  if(!world || rasqal_world_open(world)) {
+    fprintf(stderr, "%s: rasqal_world init failed\n", program);
+    rc=1;
+    goto tidy;
+  }
   
   vt=rasqal_new_variables_table(world);
   if(!vt) {

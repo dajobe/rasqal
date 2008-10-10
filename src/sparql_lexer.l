@@ -144,7 +144,7 @@ static raptor_uri* sparql_copy_qname(rasqal_query *rq, const unsigned char *text
 static int sparql_copy_string_token(rasqal_query *rq, YYSTYPE* lval, const unsigned char *text, size_t len, int delim);
 
 #ifdef RASQAL_DEBUG
-const char * sparql_token_print(int token, YYSTYPE *lval);
+const char * sparql_token_print(rasqal_world* world, int token, YYSTYPE *lval);
 #endif
 
 int sparql_lexer_lex (YYSTYPE *sparql_parser_lval, yyscan_t yyscanner);
@@ -541,7 +541,11 @@ EXPONENT [eE][+-]?[0-9]+
 		if(have_brace)
 			yyleng--;
 		if(yyleng == 2) 
-                  sparql_parser_lval->uri=raptor_uri_copy(rq->base_uri);
+#ifdef RAPTOR_V2_AVAILABLE
+                  sparql_parser_lval->uri = raptor_uri_copy_v2(rq->world->raptor_world_ptr, rq->base_uri);
+#else
+                  sparql_parser_lval->uri = raptor_uri_copy(rq->base_uri);
+#endif
                 else {
                   unsigned char* uri_string;
 
@@ -553,7 +557,11 @@ EXPONENT [eE][+-]?[0-9]+
                   if(!uri_string)
                     YY_FATAL_ERROR_EOF("rasqal_escaped_name_to_utf8_string failed");
 
-                  sparql_parser_lval->uri=raptor_new_uri_relative_to_base(rq->base_uri, uri_string);
+#ifdef RAPTOR_V2_AVAILABLE
+                  sparql_parser_lval->uri = raptor_new_uri_relative_to_base_v2(rq->world->raptor_world_ptr, rq->base_uri, uri_string);
+#else
+                  sparql_parser_lval->uri = raptor_new_uri_relative_to_base(rq->base_uri, uri_string);
+#endif
                   RASQAL_FREE(cstring, uri_string);
                   if(!sparql_parser_lval->uri)
                     YY_FATAL_ERROR_EOF("raptor_new_uri_relative_to_base failed");
@@ -666,7 +674,11 @@ sparql_copy_qname(rasqal_query *rq, const unsigned char *text, size_t len) {
 
 #ifdef STANDALONE
   /* lexer test cannot declare namespaces - so just ignore expansion */
-  uri=raptor_new_uri_relative_to_base(rq->base_uri, s);
+# ifdef RAPTOR_V2_AVAILABLE
+  uri = raptor_new_uri_relative_to_base_v2(rq->world->raptor_world_ptr, rq->base_uri, s);
+# else
+  uri = raptor_new_uri_relative_to_base(rq->base_uri, s);
+# endif
 #else
   if(!rq->namespaces) {
     sparql_syntax_error(rq, "SPARQL syntax error - no namespaces declared");
@@ -797,7 +809,11 @@ sparql_copy_string_token(rasqal_query* rq, YYSTYPE* lval,
     /* dt can be a URI or qname */
     if(*dt == '<') {
       dt[strlen((const char*)dt)-1]='\0';
-      dt_uri=raptor_new_uri(dt+1);
+#ifdef RAPTOR_V2_AVAILABLE
+      dt_uri = raptor_new_uri_v2(rq->world->raptor_world_ptr, dt+1);
+#else
+      dt_uri = raptor_new_uri(dt+1);
+#endif
       if(!dt_uri) {
         if(language)
           RASQAL_FREE(cstring, language);
@@ -1175,7 +1191,7 @@ void sparql_lexer_free(void *ptr, yyscan_t yyscanner)
 #ifdef RASQAL_DEBUG
 
 const char *
-sparql_token_print(int token, YYSTYPE *lval)
+sparql_token_print(rasqal_world* world, int token, YYSTYPE *lval)
 {
   static char buffer[2048];
 
@@ -1374,7 +1390,12 @@ sparql_token_print(int token, YYSTYPE *lval)
         if(lval->literal->datatype)
           sprintf(buffer, "STRING_LITERAL(\"%s\"@%s^^%s)",
                   lval->literal->string, lval->literal->language,
-                  raptor_uri_as_string(lval->literal->datatype));
+#ifdef RAPTOR_V2_AVAILABLE
+                  raptor_uri_as_string_v2(world->raptor_world_ptr, lval->literal->datatype)
+#else
+                  raptor_uri_as_string(lval->literal->datatype)
+#endif
+                  );
         else
           sprintf(buffer, "STRING_LITERAL(\"%s\"@%s)",
                   lval->literal->string, lval->literal->language);
@@ -1382,7 +1403,12 @@ sparql_token_print(int token, YYSTYPE *lval)
         if(lval->literal->datatype)
           sprintf(buffer, "STRING_LITERAL(\"%s\"^^%s)", 
                   lval->literal->string,
-                  raptor_uri_as_string(lval->literal->datatype));
+#ifdef RAPTOR_V2_AVAILABLE
+                  raptor_uri_as_string_v2(world->raptor_world_ptr, lval->literal->datatype)
+#else                  
+                  raptor_uri_as_string(lval->literal->datatype)
+#endif
+                  );
         else
           sprintf(buffer, "STRING_LITERAL(\"%s\")", lval->literal->string);
       }
@@ -1392,7 +1418,13 @@ sparql_token_print(int token, YYSTYPE *lval)
       return (lval->literal->value.integer ? "BOOLEAN_LITERAL(true)" : "BOOLEAN_LITERAL(false)");
 
     case URI_LITERAL:
-      sprintf(buffer, "URI_LITERAL(%s)", raptor_uri_as_string(lval->uri));
+      sprintf(buffer, "URI_LITERAL(%s)",
+#ifdef RAPTOR_V2_AVAILABLE
+              raptor_uri_as_string_v2(world->raptor_world_ptr, lval->uri)
+#else
+              raptor_uri_as_string(lval->uri)
+#endif
+              );
       return buffer;
 
     case QNAME_LITERAL:
@@ -1400,7 +1432,13 @@ sparql_token_print(int token, YYSTYPE *lval)
       return buffer;
 
     case URI_LITERAL_BRACE:
-      sprintf(buffer, "URI_LITERAL_BRACE(%s)", raptor_uri_as_string(lval->uri));
+      sprintf(buffer, "URI_LITERAL_BRACE(%s)",
+#ifdef RAPTOR_V2_AVAILABLE
+              raptor_uri_as_string_v2(world->raptor_world_ptr, lval->uri)
+#else
+              raptor_uri_as_string(lval->uri)
+#endif
+              );
       return buffer;
 
     case QNAME_LITERAL_BRACE:
@@ -1432,7 +1470,7 @@ sparql_token_print(int token, YYSTYPE *lval)
 
 #ifdef STANDALONE
 static void
-sparql_token_free(int token, YYSTYPE *lval)
+sparql_token_free(rasqal_world* world, int token, YYSTYPE *lval)
 {
   if(!token)
     return;
@@ -1442,7 +1480,11 @@ sparql_token_free(int token, YYSTYPE *lval)
       rasqal_free_literal(lval->literal);
       break;
     case URI_LITERAL:
+#ifdef RAPTOR_V2_AVAILABLE
+      raptor_free_uri_v2(world->raptor_world_ptr, lval->uri);
+#else
       raptor_free_uri(lval->uri);
+#endif
       break;
     case IDENTIFIER:
     case BLANK_LITERAL:
@@ -1478,6 +1520,8 @@ main(int argc, char *argv[])
   rasqal_world *world;
 
   world=rasqal_new_world();
+  if(!world || rasqal_world_open(world))
+    exit(1);
   
   if(argc > 1) {
     FILE *fh;
@@ -1521,7 +1565,11 @@ main(int argc, char *argv[])
   rq.locator.column= -1;
 
   uri_string=raptor_uri_filename_to_uri_string(filename);
-  rq.base_uri=raptor_new_uri(uri_string);
+#ifdef RAPTOR_V2_AVAILABLE
+  rq.base_uri = raptor_new_uri_v2(world->raptor_world_ptr, uri_string);
+#else
+  rq.base_uri = raptor_new_uri(uri_string);
+#endif
   raptor_free_memory((void*)uri_string);
 
   while(1) {
@@ -1530,11 +1578,11 @@ main(int argc, char *argv[])
       printf("yyinput '%s'\n", sparql_lexer_get_text(scanner));
     token=yylex(&lval, scanner);
 #ifdef RASQAL_DEBUG
-    printf("token %s\n", sparql_token_print(token, &lval));
+    printf("token %s\n", sparql_token_print(world, token, &lval));
 #else
     printf("token %d\n", token);
 #endif
-    sparql_token_free(token, &lval);
+    sparql_token_free(world, token, &lval);
     if(!token || token == EOF)
       break;
   }
@@ -1544,7 +1592,11 @@ main(int argc, char *argv[])
   
   yylex_destroy(scanner);
 
+#ifdef RAPTOR_V2_AVAILABLE
+  raptor_free_uri_v2(world->raptor_world_ptr, rq.base_uri);
+#else
   raptor_free_uri(rq.base_uri);
+#endif
 
   RASQAL_FREE(cstring, query_string);
 

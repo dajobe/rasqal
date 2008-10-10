@@ -75,8 +75,10 @@ rasqal_new_query(rasqal_world *world, const char *name,
 {
   rasqal_query_engine_factory* factory;
   rasqal_query* query;
+#ifndef RAPTOR_V2_AVAILABLE
   const raptor_uri_handler *uri_handler;
   void *uri_context;
+#endif
 
   factory=rasqal_get_query_engine_factory(world, name, uri);
   if(!factory)
@@ -103,11 +105,18 @@ rasqal_new_query(rasqal_world *world, const char *name,
   if(!query->context)
     goto tidy;
   
+#ifdef RAPTOR_V2_AVAILABLE
+  query->namespaces = raptor_new_namespaces_v2(world->raptor_world_ptr,
+                                               (raptor_simple_message_handler)rasqal_query_simple_error,
+                                               query,
+                                               0);
+#else
   raptor_uri_get_handler(&uri_handler, &uri_context);
-  query->namespaces=raptor_new_namespaces(uri_handler, uri_context,
-                                          (raptor_simple_message_handler)rasqal_query_simple_error,
-                                          query,
-                                          0);
+  query->namespaces = raptor_new_namespaces(uri_handler, uri_context,
+                                            (raptor_simple_message_handler)rasqal_query_simple_error,
+                                            query,
+                                            0);
+#endif
   if(!query->namespaces)
     goto tidy;
 
@@ -167,7 +176,11 @@ rasqal_free_query(rasqal_query* query)
     raptor_free_namespaces(query->namespaces);
 
   if(query->base_uri)
+#ifdef RAPTOR_V2_AVAILABLE
+    raptor_free_uri_v2(query->world->raptor_world_ptr, query->base_uri);
+#else
     raptor_free_uri(query->base_uri);
+#endif
 
   if(query->query_string)
     RASQAL_FREE(cstring, query->query_string);
@@ -596,7 +609,7 @@ rasqal_query_add_data_graph(rasqal_query* query,
   if((flags & RASQAL_DATA_GRAPH_NAMED) && !name_uri)
     return 1;
   
-  dg=rasqal_new_data_graph(uri, name_uri, flags);
+  dg = rasqal_new_data_graph(query->world, uri, name_uri, flags);
   if(!dg)
     return 1;
   if(raptor_sequence_push(query->data_graphs, (void*)dg))
@@ -821,10 +834,14 @@ rasqal_query_declare_prefix(rasqal_query *rq, rasqal_prefix *p)
 {
   if(p->declared)
     return 0;
-  
+
   if(raptor_namespaces_start_namespace_full(rq->namespaces, 
                                             p->prefix, 
+#ifdef RAPTOR_V2_AVAILABLE
+                                            raptor_uri_as_string_v2(rq->world->raptor_world_ptr, p->uri),
+#else
                                             raptor_uri_as_string(p->uri),
+#endif
                                             rq->prefix_depth))
     return 1;
   p->declared=1;
@@ -1071,10 +1088,18 @@ rasqal_query_prepare(rasqal_query* query,
   }
 
   if(base_uri)
-    base_uri=raptor_uri_copy(base_uri);
+#ifdef RAPTOR_V2_AVAILABLE
+    base_uri = raptor_uri_copy_v2(query->world->raptor_world_ptr, base_uri);
+#else
+    base_uri = raptor_uri_copy(base_uri);
+#endif
   else {
     unsigned char *uri_string=raptor_uri_filename_to_uri_string("");
-    base_uri=raptor_new_uri(uri_string);
+#ifdef RAPTOR_V2_AVAILABLE
+    base_uri = raptor_new_uri_v2(query->world->raptor_world_ptr, uri_string);
+#else
+    base_uri = raptor_new_uri(uri_string);
+#endif
     if(uri_string)
       raptor_free_memory(uri_string);
   }
@@ -1422,6 +1447,7 @@ rasqal_query_graph_pattern_visit(rasqal_query* query,
 
 typedef struct 
 {
+  rasqal_world* world;
   raptor_uri* type_uri;
   raptor_uri* base_uri;
   raptor_namespace_stack *nstack;
@@ -1464,10 +1490,17 @@ rasqal_query_write_sparql_uri(sparql_writer_context *wc,
     return;
   }
   
+#ifdef RAPTOR_V2_AVAILABLE
   if(wc->base_uri)
-    string=raptor_uri_to_relative_counted_uri_string(wc->base_uri, uri, &len);
+    string = raptor_uri_to_relative_counted_uri_string_v2(wc->world->raptor_world_ptr, wc->base_uri, uri, &len);
   else
-    string=raptor_uri_as_counted_string(uri, &len);
+    string = raptor_uri_as_counted_string_v2(wc->world->raptor_world_ptr, uri, &len);
+#else
+  if(wc->base_uri)
+    string = raptor_uri_to_relative_counted_uri_string(wc->base_uri, uri, &len);
+  else
+    string = raptor_uri_as_counted_string(uri, &len);
+#endif
 
   raptor_iostream_write_byte(iostr, '<');
   raptor_iostream_write_string_ntriples(iostr, string, len, '>');
@@ -1548,7 +1581,12 @@ rasqal_query_write_sparql_triple(sparql_writer_context *wc,
   rasqal_query_write_sparql_literal(wc, iostr, triple->subject);
   raptor_iostream_write_byte(iostr, ' ');
   if(triple->predicate->type == RASQAL_LITERAL_URI &&
-     raptor_uri_equals(triple->predicate->value.uri, wc->type_uri))
+#ifdef RAPTOR_V2_AVAILABLE
+     raptor_uri_equals_v2(wc->world->raptor_world_ptr, triple->predicate->value.uri, wc->type_uri)
+#else
+     raptor_uri_equals(triple->predicate->value.uri, wc->type_uri)
+#endif
+     )
     raptor_iostream_write_byte(iostr, 'a');
   else
     rasqal_query_write_sparql_literal(wc, iostr, triple->predicate);
@@ -1716,7 +1754,11 @@ rasqal_query_write_sparql_expression(sparql_writer_context *wc,
       break;
 
     case RASQAL_EXPR_FUNCTION:
+#ifdef RAPTOR_V2_AVAILABLE
+      raptor_iostream_write_uri_v2(e->world->raptor_world_ptr, iostr, e->name);
+#else
       raptor_iostream_write_uri(iostr, e->name);
+#endif
       raptor_iostream_write_counted_string(iostr, "( ", 2);
       count=raptor_sequence_size(e->args);
       for(i=0; i < count ; i++) {
@@ -1729,7 +1771,11 @@ rasqal_query_write_sparql_expression(sparql_writer_context *wc,
       break;
 
     case RASQAL_EXPR_CAST:
+#ifdef RAPTOR_V2_AVAILABLE
+      raptor_iostream_write_uri_v2(e->world->raptor_world_ptr, iostr, e->name);
+#else
       raptor_iostream_write_uri(iostr, e->name);
+#endif
       raptor_iostream_write_counted_string(iostr, "( ", 2);
       rasqal_query_write_sparql_expression(wc, iostr, e->arg1);
       raptor_iostream_write_counted_string(iostr, " )", 2);
@@ -1865,17 +1911,28 @@ rasqal_query_write_sparql_20060406(raptor_iostream *iostr,
   int i;
   raptor_sequence *var_seq=NULL;
   sparql_writer_context wc;
+#ifndef RAPTOR_V2_AVAILABLE
   const raptor_uri_handler *uri_handler;
   void *uri_context;
-  
-  wc.type_uri=raptor_new_uri_for_rdf_concept("type");
-  wc.base_uri=NULL;
+#endif
 
+  wc.world = query->world;
+  wc.base_uri = NULL;
+
+#ifdef RAPTOR_V2_AVAILABLE
+  wc.type_uri = raptor_new_uri_for_rdf_concept_v2(query->world->raptor_world_ptr, "type");
+  wc.nstack = raptor_new_namespaces_v2(query->world->raptor_world_ptr,
+                                       (raptor_simple_message_handler)rasqal_query_simple_error,
+                                       query,
+                                       1);
+#else
+  wc.type_uri = raptor_new_uri_for_rdf_concept("type");
   raptor_uri_get_handler(&uri_handler, &uri_context);
-  wc.nstack=raptor_new_namespaces(uri_handler, uri_context,
-                                  (raptor_simple_message_handler)rasqal_query_simple_error,
-                                  query,
-                                  1);
+  wc.nstack = raptor_new_namespaces(uri_handler, uri_context,
+                                    (raptor_simple_message_handler)rasqal_query_simple_error,
+                                    query,
+                                    1);
+#endif
 
   if(base_uri) {
     raptor_iostream_write_counted_string(iostr, "BASE ", 5);
@@ -1883,7 +1940,11 @@ rasqal_query_write_sparql_20060406(raptor_iostream *iostr,
     raptor_iostream_write_byte(iostr, '\n');
 
     /* from now on all URIs are relative to this */
+#ifdef RAPTOR_V2_AVAILABLE
+    wc.base_uri=raptor_uri_copy_v2(query->world->raptor_world_ptr, base_uri);
+#else
     wc.base_uri=raptor_uri_copy(base_uri);
+#endif
   }
   
   
@@ -2028,9 +2089,15 @@ rasqal_query_write_sparql_20060406(raptor_iostream *iostr,
     raptor_iostream_write_byte(iostr, '\n');
   }
 
+#ifdef RAPTOR_V2_AVAILABLE
+  raptor_free_uri_v2(query->world->raptor_world_ptr, wc.type_uri);
+  if(wc.base_uri)
+    raptor_free_uri_v2(query->world->raptor_world_ptr, wc.base_uri);
+#else
   raptor_free_uri(wc.type_uri);
   if(wc.base_uri)
     raptor_free_uri(wc.base_uri);
+#endif
   raptor_free_namespaces(wc.nstack);
 
   return 0;
@@ -2057,12 +2124,22 @@ int
 rasqal_query_write(raptor_iostream* iostr, rasqal_query* query,
                    raptor_uri* format_uri, raptor_uri* base_uri)
 {
+  const char *format_uri_str = NULL;
+
+  if(format_uri)
+#ifdef RAPTOR_V2_AVAILABLE
+    format_uri_str = (const char*)raptor_uri_as_string_v2(query->world->raptor_world_ptr,
+                                                          format_uri);
+#else
+    format_uri_str = (const char*)raptor_uri_as_string(format_uri);
+#endif
+
   if(!format_uri ||
-     !strcmp((const char*)raptor_uri_as_string(format_uri),
+     !strcmp(format_uri_str,
              "http://www.w3.org/TR/rdf-sparql-query/") ||
-     !strcmp((const char*)raptor_uri_as_string(format_uri),
+     !strcmp(format_uri_str,
              "http://www.w3.org/TR/2006/WD-rdf-sparql-query-20060220/") ||
-     !strcmp((const char*)raptor_uri_as_string(format_uri),
+     !strcmp(format_uri_str,
              "http://www.w3.org/TR/2006/CR-rdf-sparql-query-20060406/"))
     return rasqal_query_write_sparql_20060406(iostr, query, base_uri);
 
@@ -2165,9 +2242,13 @@ void
 rasqal_query_set_base_uri(rasqal_query* query, raptor_uri* base_uri)
 {
   if(query->base_uri)
+#ifdef RAPTOR_V2_AVAILABLE
+    raptor_free_uri_v2(query->world->raptor_world_ptr, query->base_uri);
+#else
     raptor_free_uri(query->base_uri);
-  query->base_uri=base_uri;
-  query->locator.uri=base_uri;
+#endif
+  query->base_uri = base_uri;
+  query->locator.uri = base_uri;
 }
 
 #ifdef RASQAL_DEBUG

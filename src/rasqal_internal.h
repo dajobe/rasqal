@@ -875,6 +875,15 @@ unsigned char* rasqal_xsd_format_double(double d, size_t *len_p);
 
 /* rasqal_world structure */
 struct rasqal_world_s {
+  /* opened flag */
+  int opened;
+  
+  /* raptor_world object */
+  raptor_world *raptor_world_ptr;
+
+  /* should rasqal free the raptor_world */
+  int raptor_world_allocated_here;
+
   /* error handlers structure */
   raptor_error_handlers error_handlers;
 

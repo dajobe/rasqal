@@ -64,6 +64,7 @@ static const char * const rasqal_feature_uri_prefix="http://feature.librdf.org/r
 
 /*
  * rasqal_features_enumerate_common:
+ * @world: rasqal_world object
  * @feature: feature enumeration (0+)
  * @name: pointer to store feature short name (or NULL)
  * @uri: pointer to store feature URI (or NULL)
@@ -78,7 +79,8 @@ static const char * const rasqal_feature_uri_prefix="http://feature.librdf.org/r
  * Return value: 0 on success, <0 on failure, >0 if feature is unknown
  **/
 static int
-rasqal_features_enumerate_common(const rasqal_feature feature,
+rasqal_features_enumerate_common(rasqal_world* world,
+                                 const rasqal_feature feature,
                                  const char **name, 
                                  raptor_uri **uri, const char **label,
                                  int flags)
@@ -92,13 +94,22 @@ rasqal_features_enumerate_common(const rasqal_feature feature,
         *name=rasqal_features_list[i].name;
       
       if(uri) {
-        raptor_uri *base_uri=raptor_new_uri((const unsigned char*)rasqal_feature_uri_prefix);
+        raptor_uri *base_uri;
+#ifdef RAPTOR_V2_AVAILABLE
+        base_uri = raptor_new_uri_v2(world->raptor_world_ptr, (const unsigned char*)rasqal_feature_uri_prefix);
         if(!base_uri)
           return -1;
-        
-        *uri=raptor_new_uri_from_uri_local_name(base_uri,
-                                                (const unsigned char*)rasqal_features_list[i].name);
+        *uri = raptor_new_uri_from_uri_local_name_v2(world->raptor_world_ptr, base_uri,
+                                                     (const unsigned char*)rasqal_features_list[i].name);
+        raptor_free_uri_v2(world->raptor_world_ptr, base_uri);
+#else
+        base_uri = raptor_new_uri((const unsigned char*)rasqal_feature_uri_prefix);
+        if(!base_uri)
+          return -1;
+        *uri = raptor_new_uri_from_uri_local_name(base_uri,
+                                                  (const unsigned char*)rasqal_features_list[i].name);
         raptor_free_uri(base_uri);
+#endif
       }
       if(label)
         *label=rasqal_features_list[i].label;
@@ -111,6 +122,7 @@ rasqal_features_enumerate_common(const rasqal_feature feature,
 
 /**
  * rasqal_features_enumerate:
+ * @world: rasqal_world object
  * @feature: feature enumeration (0+)
  * @name: pointer to store feature short name (or NULL)
  * @uri: pointer to store feature URI (or NULL)
@@ -124,11 +136,12 @@ rasqal_features_enumerate_common(const rasqal_feature feature,
  * Return value: 0 on success, <0 on failure, >0 if feature is unknown
  **/
 int
-rasqal_features_enumerate(const rasqal_feature feature,
+rasqal_features_enumerate(rasqal_world* world,
+                          const rasqal_feature feature,
                           const char **name, 
                           raptor_uri **uri, const char **label)
 {
-  return rasqal_features_enumerate_common(feature, name, uri, label, 1);
+  return rasqal_features_enumerate_common(world, feature, name, uri, label, 1);
 }
 
 
@@ -154,6 +167,7 @@ rasqal_feature_value_type(const rasqal_feature feature) {
 
 /**
  * rasqal_feature_from_uri:
+ * @world: rasqal_world object
  * @uri: feature URI
  *
  * Turn a feature URI into an feature enum.
@@ -163,7 +177,7 @@ rasqal_feature_value_type(const rasqal_feature feature) {
  * Return value: < 0 if the feature is unknown
  **/
 rasqal_feature
-rasqal_feature_from_uri(raptor_uri *uri)
+rasqal_feature_from_uri(rasqal_world* world, raptor_uri *uri)
 {
   unsigned char *uri_string;
   int i;
@@ -172,7 +186,11 @@ rasqal_feature_from_uri(raptor_uri *uri)
   if(!uri)
     return feature;
   
-  uri_string=raptor_uri_as_string(uri);
+#ifdef RAPTOR_V2_AVAILABLE
+  uri_string = raptor_uri_as_string_v2(world->raptor_world_ptr, uri);
+#else
+  uri_string = raptor_uri_as_string(uri);
+#endif
   if(strncmp((const char*)uri_string, rasqal_feature_uri_prefix,
              RASQAL_FEATURE_URI_PREFIX_LEN))
     return feature;

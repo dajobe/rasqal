@@ -111,7 +111,7 @@ static int rdql_copy_regex_token(rasqal_query *rq, YYSTYPE* lval, unsigned char 
 static int rdql_copy_string_token(rasqal_query *rq, YYSTYPE* lval, const unsigned char *text, size_t len, int delim);
 
 #ifdef RASQAL_DEBUG
-const char * rdql_token_print(int token, YYSTYPE *lval);
+const char * rdql_token_print(rasqal_world* world, int token, YYSTYPE *lval);
 #endif
 
 int rdql_lexer_lex (YYSTYPE *rdql_parser_lval, yyscan_t yyscanner);
@@ -321,10 +321,18 @@ QUOTEDURI \<[A-Za-z][^>]+\>
                   return QNAME_LITERAL; }
 
 {QUOTEDURI}   { if(yyleng == 2) 
-                  rdql_parser_lval->uri=raptor_uri_copy(rq->base_uri);
+#ifdef RAPTOR_V2_AVAILABLE
+                  rdql_parser_lval->uri = raptor_uri_copy_v2(rq->world->raptor_world_ptr, rq->base_uri);
+#else
+                  rdql_parser_lval->uri = raptor_uri_copy(rq->base_uri);
+#endif
                 else {
                   yytext[yyleng-1]='\0';
-                  rdql_parser_lval->uri=raptor_new_uri_relative_to_base(rq->base_uri, (const unsigned char*)yytext+1);
+#ifdef RAPTOR_V2_AVAILABLE
+                  rdql_parser_lval->uri = raptor_new_uri_relative_to_base_v2(rq->world->raptor_world_ptr, rq->base_uri, (const unsigned char*)yytext+1);
+#else                  
+                  rdql_parser_lval->uri = raptor_new_uri_relative_to_base(rq->base_uri, (const unsigned char*)yytext+1);
+#endif
                  }
                  return URI_LITERAL; }
 
@@ -575,7 +583,11 @@ rdql_copy_string_token(rasqal_query* rq, YYSTYPE* lval,
     /* dt can be a URI or qname */
     if(*dt == '<') {
       dt[strlen((const char*)dt)-1]='\0';
-      dt_uri=raptor_new_uri(dt+1);
+#ifdef RAPTOR_V2_AVAILABLE
+      dt_uri = raptor_new_uri_v2(rq->world->raptor_world_ptr, dt+1);
+#else
+      dt_uri = raptor_new_uri(dt+1);
+#endif
     } else {
       size_t dt_qname_len=strlen((const char*)dt);
       
@@ -902,7 +914,7 @@ void rdql_lexer_free(void *ptr, yyscan_t yyscanner)
 #ifdef RASQAL_DEBUG
 
 const char *
-rdql_token_print(int token, YYSTYPE *lval)
+rdql_token_print(rasqal_world* world, int token, YYSTYPE *lval)
 {
   static char buffer[2048];
 
@@ -1013,7 +1025,12 @@ rdql_token_print(int token, YYSTYPE *lval)
         if(lval->literal->datatype)
           sprintf(buffer, "STRING_LITERAL(\"%s\"@%s^^%s)",
                   lval->literal->string, lval->literal->language,
-                  raptor_uri_as_string(lval->literal->datatype));
+#ifdef RAPTOR_V2_AVAILABLE
+                  raptor_uri_as_string_v2(world->raptor_world_ptr, lval->literal->datatype)
+#else                  
+                  raptor_uri_as_string(lval->literal->datatype)
+#endif
+                  );
         else
           sprintf(buffer, "STRING_LITERAL(\"%s\"@%s)",
                   lval->literal->string, lval->literal->language);
@@ -1021,7 +1038,12 @@ rdql_token_print(int token, YYSTYPE *lval)
         if(lval->literal->datatype)
           sprintf(buffer, "STRING_LITERAL(\"%s\"^^%s)", 
                   lval->literal->string,
-                  raptor_uri_as_string(lval->literal->datatype));
+#ifdef RAPTOR_V2_AVAILABLE
+                  raptor_uri_as_string_v2(world->raptor_world_ptr, lval->literal->datatype)
+#else                  
+                  raptor_uri_as_string(lval->literal->datatype)
+#endif
+                  );
         else
           sprintf(buffer, "STRING_LITERAL(\"%s\")", lval->literal->string);
       }
@@ -1039,7 +1061,14 @@ rdql_token_print(int token, YYSTYPE *lval)
       return "NULL_LITERAL";
 
     case URI_LITERAL:
-      sprintf(buffer, "URI_LITERAL(%s)", raptor_uri_as_string(lval->uri));
+      sprintf(buffer, "URI_LITERAL(%s)",
+#ifdef RAPTOR_V2_AVAILABLE
+                  raptor_uri_as_string_v2(world->raptor_world_ptr, lval->uri)
+#else                  
+                  raptor_uri_as_string(lval->uri)
+#endif
+
+              );
       return buffer;
 
     case QNAME_LITERAL:
@@ -1061,7 +1090,7 @@ rdql_token_print(int token, YYSTYPE *lval)
 
 #ifdef STANDALONE
 static void
-rdql_token_free(int token, YYSTYPE *lval)
+rdql_token_free(rasqal_world* world, int token, YYSTYPE *lval)
 {
   if(!token)
     return;
@@ -1072,7 +1101,11 @@ rdql_token_free(int token, YYSTYPE *lval)
       rasqal_free_literal(lval->literal);
       break;
     case URI_LITERAL:
+#ifdef RAPTOR_V2_AVAILABLE
+      raptor_free_uri_v2(world->raptor_world_ptr, lval->uri);
+#else    
       raptor_free_uri(lval->uri);
+#endif
       break;
     case IDENTIFIER:
       RASQAL_FREE(cstring, lval->name);
@@ -1107,6 +1140,8 @@ main(int argc, char *argv[])
   rasqal_world *world;
 
   world=rasqal_new_world();
+  if(!world || rasqal_world_open(world))
+    exit(1);
 
   if(argc > 1) {
     FILE *fh;
@@ -1158,7 +1193,11 @@ main(int argc, char *argv[])
   rq.locator.column= -1;
 
   uri_string=raptor_uri_filename_to_uri_string(filename);
-  rq.base_uri=raptor_new_uri(uri_string);
+#ifdef RAPTOR_V2_AVAILABLE
+  rq.base_uri = raptor_new_uri_v2(world->raptor_world_ptr, uri_string);
+#else
+  rq.base_uri = raptor_new_uri(uri_string);
+#endif
   raptor_free_memory((void*)uri_string);
 
   while(1) {
@@ -1167,11 +1206,11 @@ main(int argc, char *argv[])
       printf("yyinput '%s'\n", rdql_lexer_get_text(scanner));
     token=yylex(&lval, scanner);
 #ifdef RASQAL_DEBUG
-    printf("token %s\n", rdql_token_print(token, &lval));
+    printf("token %s\n", rdql_token_print(world, token, &lval));
 #else
     printf("token %d\n", token);
 #endif
-    rdql_token_free(token, &lval);
+    rdql_token_free(world, token, &lval);
     if(!token || token == EOF)
       break;
   }
@@ -1181,7 +1220,11 @@ main(int argc, char *argv[])
   
   yylex_destroy(scanner);
 
+#ifdef RAPTOR_V2_AVAILABLE
+  raptor_free_uri_v2(world->raptor_world_ptr, rq.base_uri);
+#else
   raptor_free_uri(rq.base_uri);
+#endif
 
   RASQAL_FREE(cstring, query_string);
 

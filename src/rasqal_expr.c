@@ -56,6 +56,7 @@
 
 /**
  * rasqal_new_data_graph:
+ * @world: rasqal_world object
  * @uri: source URI
  * @name_uri: name of graph (or NULL)
  * @flags: %RASQAL_DATA_GRAPH_NAMED or %RASQAL_DATA_GRAPH_BACKGROUND
@@ -67,15 +68,22 @@
  * Return value: a new #rasqal_data_graph or NULL on failure.
  **/
 rasqal_data_graph*
-rasqal_new_data_graph(raptor_uri* uri, raptor_uri* name_uri, int flags)
+rasqal_new_data_graph(rasqal_world* world, raptor_uri* uri, raptor_uri* name_uri, int flags)
 {
-  rasqal_data_graph* dg=(rasqal_data_graph*)RASQAL_CALLOC(rasqal_data_graph, 1,
-                                                      sizeof(rasqal_data_graph));
-  if(dg) {  
-    dg->uri=raptor_uri_copy(uri);
+  rasqal_data_graph* dg = (rasqal_data_graph*)RASQAL_CALLOC(rasqal_data_graph, 1,
+                                                            sizeof(rasqal_data_graph));
+  if(dg) {
+    dg->world = world;
+#ifdef RAPTOR_V2_AVAILABLE
+    dg->uri = raptor_uri_copy_v2(world->raptor_world_ptr, uri);
     if(name_uri)
-      dg->name_uri=raptor_uri_copy(name_uri);
-    dg->flags=flags;
+      dg->name_uri = raptor_uri_copy_v2(world->raptor_world_ptr, name_uri);
+#else
+    dg->uri = raptor_uri_copy(uri);
+    if(name_uri)
+      dg->name_uri = raptor_uri_copy(name_uri);
+#endif
+    dg->flags = flags;
   }
 
   return dg;
@@ -93,11 +101,18 @@ void
 rasqal_free_data_graph(rasqal_data_graph* dg)
 {
   RASQAL_ASSERT_OBJECT_POINTER_RETURN(dg, rasqal_data_graph);
-  
+
+#ifdef RAPTOR_V2_AVAILABLE  
+  if(dg->uri)
+    raptor_free_uri_v2(dg->world->raptor_world_ptr, dg->uri);
+  if(dg->name_uri)
+    raptor_free_uri_v2(dg->world->raptor_world_ptr, dg->name_uri);
+#else
   if(dg->uri)
     raptor_free_uri(dg->uri);
   if(dg->name_uri)
     raptor_free_uri(dg->name_uri);
+#endif
   RASQAL_FREE(rasqal_data_graph, dg);
 }
 
@@ -114,6 +129,16 @@ rasqal_free_data_graph(rasqal_data_graph* dg)
 void
 rasqal_data_graph_print(rasqal_data_graph* dg, FILE* fh)
 {
+#ifdef RAPTOR_V2_AVAILABLE
+  if(dg->name_uri)
+    fprintf(fh, "data graph(%s named as %s flags %d)", 
+            raptor_uri_as_string_v2(dg->world->raptor_world_ptr, dg->uri),
+            raptor_uri_as_string_v2(dg->world->raptor_world_ptr, dg->name_uri),
+            dg->flags);
+  else
+    fprintf(fh, "data graph(%s, flags %d)", 
+            raptor_uri_as_string_v2(dg->world->raptor_world_ptr, dg->uri), dg->flags);
+#else
   if(dg->name_uri)
     fprintf(fh, "data graph(%s named as %s flags %d)", 
             raptor_uri_as_string(dg->uri),
@@ -122,11 +147,13 @@ rasqal_data_graph_print(rasqal_data_graph* dg, FILE* fh)
   else
     fprintf(fh, "data graph(%s, flags %d)", 
             raptor_uri_as_string(dg->uri), dg->flags);
+#endif
 }
 
 
 /**
  * rasqal_new_prefix:
+ * @world: rasqal_world object
  * @prefix: Short prefix string to stand for URI or NULL.
  * @uri: Name #raptor_uri.
  * 
@@ -136,17 +163,22 @@ rasqal_data_graph_print(rasqal_data_graph* dg, FILE* fh)
  * Return value: a new #rasqal_prefix or NULL on failure.
  **/
 rasqal_prefix*
-rasqal_new_prefix(const unsigned char *prefix, raptor_uri* uri) 
+rasqal_new_prefix(rasqal_world* world, const unsigned char *prefix, raptor_uri* uri) 
 {
-  rasqal_prefix* p=(rasqal_prefix*)RASQAL_CALLOC(rasqal_prefix, 1,
-                                                 sizeof(rasqal_prefix));
+  rasqal_prefix* p = (rasqal_prefix*)RASQAL_CALLOC(rasqal_prefix, 1,
+                                                   sizeof(rasqal_prefix));
 
   if(p) {  
-    p->prefix=prefix;
-    p->uri=uri;
+    p->world = world;
+    p->prefix = prefix;
+    p->uri = uri;
   } else {
     RASQAL_FREE(cstring, prefix);
+#ifdef RAPTOR_V2_AVAILABLE
+    raptor_free_uri_v2(world->raptor_world_ptr, uri);
+#else
     raptor_free_uri(uri);
+#endif
   }
 
   return p;
@@ -167,7 +199,11 @@ rasqal_free_prefix(rasqal_prefix* p)
   if(p->prefix)
     RASQAL_FREE(cstring, (void*)p->prefix);
   if(p->uri)
+#ifdef RAPTOR_V2_AVAILABLE
+    raptor_free_uri_v2(p->world->raptor_world_ptr, p->uri);
+#else
     raptor_free_uri(p->uri);
+#endif
   RASQAL_FREE(rasqal_prefix, p);
 }
 
@@ -184,7 +220,13 @@ rasqal_free_prefix(rasqal_prefix* p)
 void
 rasqal_prefix_print(rasqal_prefix* p, FILE* fh)
 {
-  fprintf(fh, "prefix(%s as %s)", (p->prefix ? (const char*)p->prefix : "(default)"), raptor_uri_as_string(p->uri));
+  fprintf(fh, "prefix(%s as %s)", (p->prefix ? (const char*)p->prefix : "(default)"),
+#ifdef RAPTOR_V2_AVAILABLE
+          raptor_uri_as_string_v2(p->world->raptor_world_ptr, p->uri)
+#else
+          raptor_uri_as_string(p->uri)
+#endif
+          );
 }
 
 
@@ -355,6 +397,7 @@ rasqal_triple_get_origin(rasqal_triple* t)
 
 /**
  * rasqal_new_0op_expression:
+ * @world: rasqal_world object
  * @op: Expression operator
  * 
  * Constructor - create a new 0-operand (constant) expression.
@@ -367,12 +410,13 @@ rasqal_triple_get_origin(rasqal_triple* t)
  * Return value: a new #rasqal_expression object or NULL on failure
  **/
 rasqal_expression*
-rasqal_new_0op_expression(rasqal_op op)
+rasqal_new_0op_expression(rasqal_world* world, rasqal_op op)
 {
-  rasqal_expression* e=(rasqal_expression*)RASQAL_CALLOC(rasqal_expression, 1, sizeof(rasqal_expression));
+  rasqal_expression* e = (rasqal_expression*)RASQAL_CALLOC(rasqal_expression, 1, sizeof(rasqal_expression));
   if(e) {
-    e->usage=1;
-    e->op=op;
+    e->usage = 1;
+    e->world = world;
+    e->op = op;
   }
   return e;
 }
@@ -380,6 +424,7 @@ rasqal_new_0op_expression(rasqal_op op)
 
 /**
  * rasqal_new_1op_expression:
+ * @world: rasqal_world object
  * @op: Expression operator
  * @arg: Operand 1 
  * 
@@ -402,19 +447,20 @@ rasqal_new_0op_expression(rasqal_op op)
  * Return value: a new #rasqal_expression object or NULL on failure
  **/
 rasqal_expression*
-rasqal_new_1op_expression(rasqal_op op, rasqal_expression* arg)
+rasqal_new_1op_expression(rasqal_world* world, rasqal_op op, rasqal_expression* arg)
 {
-  rasqal_expression* e=NULL;
+  rasqal_expression* e = NULL;
 
   if(!arg)
     goto tidy;
   
-  e=(rasqal_expression*)RASQAL_CALLOC(rasqal_expression, 1,
-                                      sizeof(rasqal_expression));
+  e = (rasqal_expression*)RASQAL_CALLOC(rasqal_expression, 1,
+                                        sizeof(rasqal_expression));
   if(e) {
-    e->usage=1;
-    e->op=op;
-    e->arg1=arg; arg=NULL;
+    e->usage = 1;
+    e->world = world;
+    e->op = op;
+    e->arg1 = arg; arg = NULL;
   }
   
   tidy:
@@ -427,6 +473,7 @@ rasqal_new_1op_expression(rasqal_op op, rasqal_expression* arg)
 
 /**
  * rasqal_new_2op_expression:
+ * @world: rasqal_world object
  * @op: Expression operator
  * @arg1: Operand 1 
  * @arg2: Operand 2
@@ -447,22 +494,24 @@ rasqal_new_1op_expression(rasqal_op op, rasqal_expression* arg)
  * Return value: a new #rasqal_expression object or NULL on failure
  **/
 rasqal_expression*
-rasqal_new_2op_expression(rasqal_op op,
+rasqal_new_2op_expression(rasqal_world* world,
+                          rasqal_op op,
                           rasqal_expression* arg1, 
                           rasqal_expression* arg2)
 {
-  rasqal_expression* e=NULL;
+  rasqal_expression* e = NULL;
 
   if(!arg1 || !arg2)
     goto tidy;
   
-  e=(rasqal_expression*)RASQAL_CALLOC(rasqal_expression, 1, 
-                                      sizeof(rasqal_expression));
+  e = (rasqal_expression*)RASQAL_CALLOC(rasqal_expression, 1, 
+                                        sizeof(rasqal_expression));
   if(e) {
-    e->usage=1;
-    e->op=op;
-    e->arg1=arg1; arg1=NULL;
-    e->arg2=arg2; arg2=NULL;
+    e->usage = 1;
+    e->world = world;
+    e->op = op;
+    e->arg1 = arg1; arg1 = NULL;
+    e->arg2 = arg2; arg2 = NULL;
   }
   
 tidy:
@@ -477,6 +526,7 @@ tidy:
 
 /**
  * rasqal_new_3op_expression:
+ * @world: rasqal_world object
  * @op: Expression operator
  * @arg1: Operand 1 
  * @arg2: Operand 2
@@ -491,24 +541,26 @@ tidy:
  * Return value: a new #rasqal_expression object or NULL on failure
  **/
 rasqal_expression*
-rasqal_new_3op_expression(rasqal_op op,
+rasqal_new_3op_expression(rasqal_world* world,
+                          rasqal_op op,
                           rasqal_expression* arg1, 
                           rasqal_expression* arg2,
                           rasqal_expression* arg3)
 {
-  rasqal_expression* e=NULL;
+  rasqal_expression* e = NULL;
 
   if(!arg1 || !arg2) /* arg3 may be NULL */
     goto tidy;
 
-  e=(rasqal_expression*)RASQAL_CALLOC(rasqal_expression, 1,
-                                      sizeof(rasqal_expression));
+  e = (rasqal_expression*)RASQAL_CALLOC(rasqal_expression, 1,
+                                        sizeof(rasqal_expression));
   if(e) {
-    e->usage=1;
-    e->op=op;
-    e->arg1=arg1; arg1=NULL;
-    e->arg2=arg2; arg2=NULL;
-    e->arg3=arg3; arg3=NULL;
+    e->usage = 1;
+    e->world = world;
+    e->op = op;
+    e->arg1 = arg1; arg1 = NULL;
+    e->arg2 = arg2; arg2 = NULL;
+    e->arg3 = arg3; arg3 = NULL;
   }
 
   tidy:
@@ -525,6 +577,7 @@ rasqal_new_3op_expression(rasqal_op op,
 
 /**
  * rasqal_new_string_op_expression:
+ * @world: rasqal_world object
  * @op: Expression operator
  * @arg1: Operand 1 
  * @literal: Literal operand 2
@@ -539,22 +592,24 @@ rasqal_new_3op_expression(rasqal_op op,
  * Return value: a new #rasqal_expression object or NULL on failure
  **/
 rasqal_expression*
-rasqal_new_string_op_expression(rasqal_op op,
+rasqal_new_string_op_expression(rasqal_world* world,
+                                rasqal_op op,
                                 rasqal_expression* arg1,
                                 rasqal_literal* literal)
 {
-  rasqal_expression* e=NULL;
+  rasqal_expression* e = NULL;
 
   if(!arg1 || !literal)
     goto tidy;
   
-  e=(rasqal_expression*)RASQAL_CALLOC(rasqal_expression, 1,
-                                      sizeof(rasqal_expression));
+  e = (rasqal_expression*)RASQAL_CALLOC(rasqal_expression, 1,
+                                        sizeof(rasqal_expression));
   if(e) {
-    e->usage=1;
-    e->op=op;
-    e->arg1=arg1; arg1=NULL;
-    e->literal=literal; literal=NULL;
+    e->usage = 1;
+    e->world = world;
+    e->op = op;
+    e->arg1 = arg1; arg1 = NULL;
+    e->literal = literal; literal = NULL;
   }
 
   tidy:
@@ -569,6 +624,7 @@ rasqal_new_string_op_expression(rasqal_op op,
 
 /**
  * rasqal_new_literal_expression:
+ * @world: rasqal_world object
  * @literal: Literal operand 1
  * 
  * Constructor - create a new expression for a #rasqal_literal
@@ -577,19 +633,20 @@ rasqal_new_string_op_expression(rasqal_op op,
  * Return value: a new #rasqal_expression object or NULL on failure
  **/
 rasqal_expression*
-rasqal_new_literal_expression(rasqal_literal *literal)
+rasqal_new_literal_expression(rasqal_world* world, rasqal_literal *literal)
 {
   rasqal_expression* e;
 
   if(!literal)
     return NULL;
   
-  e=(rasqal_expression*)RASQAL_CALLOC(rasqal_expression, 1,
-                                       sizeof(rasqal_expression));
+  e = (rasqal_expression*)RASQAL_CALLOC(rasqal_expression, 1,
+                                         sizeof(rasqal_expression));
   if(e) {  
-    e->usage=1;
-    e->op=RASQAL_EXPR_LITERAL;
-    e->literal=literal;
+    e->usage = 1;
+    e->world = world;
+    e->op = RASQAL_EXPR_LITERAL;
+    e->literal = literal;
   } else {
     rasqal_free_literal(literal);
   }
@@ -599,6 +656,7 @@ rasqal_new_literal_expression(rasqal_literal *literal)
 
 /**
  * rasqal_new_function_expression:
+ * @world: rasqal_world object
  * @name: function name
  * @args: sequence of #rasqal_expression function arguments
  * 
@@ -608,26 +666,32 @@ rasqal_new_literal_expression(rasqal_literal *literal)
  * Return value: a new #rasqal_expression object or NULL on failure
  **/
 rasqal_expression*
-rasqal_new_function_expression(raptor_uri* name,
+rasqal_new_function_expression(rasqal_world* world,
+                               raptor_uri* name,
                                raptor_sequence* args)
 {
-  rasqal_expression* e=NULL;
+  rasqal_expression* e = NULL;
 
   if(!name || !args)
     goto tidy;
   
-  e=(rasqal_expression*)RASQAL_CALLOC(rasqal_expression, 1,
-                                      sizeof(rasqal_expression));
+  e = (rasqal_expression*)RASQAL_CALLOC(rasqal_expression, 1,
+                                        sizeof(rasqal_expression));
   if(e) {
-    e->usage=1;
-    e->op=RASQAL_EXPR_FUNCTION;
-    e->name=name; name=NULL;
-    e->args=args; args=NULL;
+    e->usage = 1;
+    e->world = world;
+    e->op = RASQAL_EXPR_FUNCTION;
+    e->name = name; name = NULL;
+    e->args = args; args = NULL;
   }
   
   tidy:
   if(name)
+#ifdef RAPTOR_V2_AVAILABLE
+    raptor_free_uri_v2(world->raptor_world_ptr, name);
+#else
     raptor_free_uri(name);
+#endif
   if(args)
     raptor_free_sequence(args);
 
@@ -637,6 +701,7 @@ rasqal_new_function_expression(raptor_uri* name,
 
 /**
  * rasqal_new_cast_expression:
+ * @world: rasqal_world object
  * @name: cast datatype URI
  * @value: expression value to cast to @datatype type
  * 
@@ -646,25 +711,30 @@ rasqal_new_function_expression(raptor_uri* name,
  * Return value: a new #rasqal_expression object or NULL on failure
  **/
 rasqal_expression*
-rasqal_new_cast_expression(raptor_uri* name, rasqal_expression *value) 
+rasqal_new_cast_expression(rasqal_world* world, raptor_uri* name, rasqal_expression *value) 
 {
-  rasqal_expression* e=NULL;
+  rasqal_expression* e = NULL;
 
   if(!name || !value)
     goto tidy;
   
-  e=(rasqal_expression*)RASQAL_CALLOC(rasqal_expression, 1,
-                                      sizeof(rasqal_expression));
+  e = (rasqal_expression*)RASQAL_CALLOC(rasqal_expression, 1,
+                                        sizeof(rasqal_expression));
   if(e) {
-    e->usage=1;
-    e->op=RASQAL_EXPR_CAST;
-    e->name=name; name=NULL;
-    e->arg1=value; value=NULL;
+    e->usage = 1;
+    e->world = world;
+    e->op = RASQAL_EXPR_CAST;
+    e->name = name; name = NULL;
+    e->arg1 = value; value = NULL;
   }
 
   tidy:
   if(name)
+#ifdef RAPTOR_V2_AVAILABLE
+    raptor_free_uri_v2(world->raptor_world_ptr, name);
+#else
     raptor_free_uri(name);
+#endif
   if(value)
     rasqal_free_expression(value);
 
@@ -736,11 +806,19 @@ rasqal_expression_clear(rasqal_expression* e)
       rasqal_free_literal(e->literal);
       break;
     case RASQAL_EXPR_FUNCTION:
+#ifdef RAPTOR_V2_AVAILABLE
+      raptor_free_uri_v2(e->world->raptor_world_ptr, e->name);
+#else
       raptor_free_uri(e->name);
+#endif
       raptor_free_sequence(e->args);
       break;
     case RASQAL_EXPR_CAST:
+#ifdef RAPTOR_V2_AVAILABLE
+      raptor_free_uri_v2(e->world->raptor_world_ptr, e->name);
+#else
       raptor_free_uri(e->name);
+#endif
       rasqal_free_expression(e->arg1);
       break;
 
@@ -1530,7 +1608,11 @@ rasqal_expression_evaluate(rasqal_query *query, rasqal_expression* e,
         goto failed;
       }
       
-      result=rasqal_new_uri_literal(query->world, raptor_uri_copy(vars.dt_uri));
+#ifdef RAPTOR_V2_AVAILABLE
+      result = rasqal_new_uri_literal(query->world, raptor_uri_copy_v2(query->world->raptor_world_ptr, vars.dt_uri));
+#else
+      result = rasqal_new_uri_literal(query->world, raptor_uri_copy(vars.dt_uri));
+#endif
 
       if(errs.flags.free_literal)
         rasqal_free_literal(l1);
@@ -2042,7 +2124,11 @@ rasqal_expression_write(rasqal_expression* e, raptor_iostream* iostr)
 
     case RASQAL_EXPR_FUNCTION:
       raptor_iostream_write_counted_string(iostr, "function(uri=", 13);
+#ifdef RAPTOR_V2_AVAILABLE
+      raptor_iostream_write_uri_v2(e->world->raptor_world_ptr, iostr, e->name);
+#else
       raptor_iostream_write_uri(iostr, e->name);
+#endif
       raptor_iostream_write_counted_string(iostr, ", args=", 7);
       for(i=0; i<raptor_sequence_size(e->args); i++) {
         rasqal_expression* e2;
@@ -2056,7 +2142,11 @@ rasqal_expression_write(rasqal_expression* e, raptor_iostream* iostr)
 
     case RASQAL_EXPR_CAST:
       raptor_iostream_write_counted_string(iostr, "cast(type=", 10);
+#ifdef RAPTOR_V2_AVAILABLE
+      raptor_iostream_write_uri_v2(e->world->raptor_world_ptr, iostr, e->name);
+#else
       raptor_iostream_write_uri(iostr, e->name);
+#endif
       raptor_iostream_write_counted_string(iostr, ", value=", 8);
       rasqal_expression_write(e->arg1, iostr);
       raptor_iostream_write_byte(iostr, ')');
@@ -2157,7 +2247,11 @@ rasqal_expression_print(rasqal_expression* e, FILE* fh)
 
     case RASQAL_EXPR_FUNCTION:
       fputs("function(uri=", fh);
+#ifdef RAPTOR_V2_AVAILABLE
+      raptor_uri_print_v2(e->world->raptor_world_ptr, e->name, fh);
+#else
       raptor_uri_print(e->name, fh);
+#endif
       fputs(", args=", fh);
       raptor_sequence_print(e->args, fh);
       fputc(')', fh);
@@ -2165,7 +2259,11 @@ rasqal_expression_print(rasqal_expression* e, FILE* fh)
 
     case RASQAL_EXPR_CAST:
       fputs("cast(type=", fh);
+#ifdef RAPTOR_V2_AVAILABLE
+      raptor_uri_print_v2(e->world->raptor_world_ptr, e->name, fh);
+#else
       raptor_uri_print(e->name, fh);
+#endif
       fputs(", value=", fh);
       rasqal_expression_print(e->arg1, fh);
       fputc(')', fh);
@@ -2362,19 +2460,30 @@ main(int argc, char *argv[])
   int error=0;
   rasqal_world *world;
 
+#ifdef RAPTOR_V2_AVAILABLE
+  raptor_world* raptor_world_ptr;
+  raptor_world_ptr = raptor_new_world();
+  if(!raptor_world_ptr || raptor_world_open(raptor_world_ptr))
+    exit(1);
+#else
   raptor_init();
+#endif
 
-  /* FIXME: hack to make a world object to initialise */
-  world=(rasqal_world*)RASQAL_CALLOC(rasqal_world, sizeof(rasqal_world), 1);
+  world = rasqal_new_world();
+#ifdef RAPTOR_V2_AVAILABLE
+  rasqal_world_set_raptor(world, raptor_world_ptr);
+#endif
+  /* no rasqal_world_open() */
+  
   rasqal_uri_init(world);
 
   rasqal_xsd_init(world);
   
   lit1=rasqal_new_integer_literal(world, RASQAL_LITERAL_INTEGER, 1);
-  expr1=rasqal_new_literal_expression(lit1);
+  expr1=rasqal_new_literal_expression(world, lit1);
   lit2=rasqal_new_integer_literal(world, RASQAL_LITERAL_INTEGER, 1);
-  expr2=rasqal_new_literal_expression(lit2);
-  expr=rasqal_new_2op_expression(RASQAL_EXPR_PLUS, expr1, expr2);
+  expr2=rasqal_new_literal_expression(world, lit2);
+  expr=rasqal_new_2op_expression(world, RASQAL_EXPR_PLUS, expr1, expr2);
 
   fprintf(stderr, "%s: expression: ", program);
   rasqal_expression_print(expr, stderr);
@@ -2409,7 +2518,11 @@ main(int argc, char *argv[])
   
   RASQAL_FREE(rasqal_world, world);
 
+#ifdef RAPTOR_V2_AVAILABLE
+  raptor_free_world(raptor_world_ptr);
+#else
   raptor_finish();
+#endif
 
   return error;
 }

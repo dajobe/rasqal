@@ -177,9 +177,24 @@ static void rdql_query_error(rasqal_query* rq, const char *message);
 %type <triple> TriplePattern
 %type <literal> PatternLiteral Literal
 
-%destructor { rasqal_free_literal($$); } FLOATING_POINT_LITERAL STRING_LITERAL INTEGER_LITERAL PATTERN_LITERAL BOOLEAN_LITERAL NULL_LITERAL
-%destructor { raptor_free_uri($$); } URI_LITERAL
-%destructor { RASQAL_FREE(cstring, $$); } QNAME_LITERAL IDENTIFIER
+%destructor {
+  if($$)
+    rasqal_free_literal($$);
+} FLOATING_POINT_LITERAL STRING_LITERAL INTEGER_LITERAL PATTERN_LITERAL BOOLEAN_LITERAL NULL_LITERAL
+
+%destructor {
+  if($$)
+#ifdef RAPTOR_V2_AVAILABLE
+    raptor_free_uri_v2(((rasqal_query*)rq)->world->raptor_world_ptr, $$);
+#else    
+    raptor_free_uri($$);
+#endif
+} URI_LITERAL
+
+%destructor {
+  if($$)
+    RASQAL_FREE(cstring, $$);
+} QNAME_LITERAL IDENTIFIER
 
 %%
 
@@ -323,11 +338,11 @@ ConstraintClause : AND CommaAndConstraintClause
 
 CommaAndConstraintClause : CommaAndConstraintClause ',' Expression
 {
-  $$=rasqal_new_2op_expression(RASQAL_EXPR_AND, $1, $3);
+  $$=rasqal_new_2op_expression(((rasqal_query*)rq)->world, RASQAL_EXPR_AND, $1, $3);
 }
 | CommaAndConstraintClause AND Expression
 {
-  $$=rasqal_new_2op_expression(RASQAL_EXPR_AND, $1, $3);
+  $$=rasqal_new_2op_expression(((rasqal_query*)rq)->world, RASQAL_EXPR_AND, $1, $3);
 }
 | Expression
 {
@@ -350,24 +365,24 @@ UsingClause : USING PrefixDeclList
 PrefixDeclList : IDENTIFIER FOR URI_LITERAL ',' PrefixDeclList 
 {
   $$=((rasqal_query*)rq)->prefixes;
-  raptor_sequence_shift($$, rasqal_new_prefix($1, $3));
+  raptor_sequence_shift($$, rasqal_new_prefix(((rasqal_query*)rq)->world, $1, $3));
 }
 | IDENTIFIER FOR URI_LITERAL PrefixDeclList 
 {
   $$=((rasqal_query*)rq)->prefixes;
-  raptor_sequence_shift($$, rasqal_new_prefix($1, $3));
+  raptor_sequence_shift($$, rasqal_new_prefix(((rasqal_query*)rq)->world, $1, $3));
 }
 | IDENTIFIER FOR URI_LITERAL
 {
   $$=((rasqal_query*)rq)->prefixes;
-  raptor_sequence_push($$, rasqal_new_prefix($1, $3));
+  raptor_sequence_push($$, rasqal_new_prefix(((rasqal_query*)rq)->world, $1, $3));
 }
 ;
 
 
 Expression : ConditionalAndExpression SC_OR Expression
 {
-  $$=rasqal_new_2op_expression(RASQAL_EXPR_OR, $1, $3);
+  $$=rasqal_new_2op_expression(((rasqal_query*)rq)->world, RASQAL_EXPR_OR, $1, $3);
 }
 | ConditionalAndExpression
 {
@@ -377,7 +392,7 @@ Expression : ConditionalAndExpression SC_OR Expression
 
 ConditionalAndExpression: ValueLogical SC_AND ConditionalAndExpression
 {
-  $$=rasqal_new_2op_expression(RASQAL_EXPR_AND, $1, $3);
+  $$=rasqal_new_2op_expression(((rasqal_query*)rq)->world, RASQAL_EXPR_AND, $1, $3);
 ;
 }
 | ValueLogical
@@ -388,19 +403,19 @@ ConditionalAndExpression: ValueLogical SC_AND ConditionalAndExpression
 
 ValueLogical : EqualityExpression STR_EQ EqualityExpression
 {
-  $$=rasqal_new_2op_expression(RASQAL_EXPR_STR_EQ, $1, $3);
+  $$=rasqal_new_2op_expression(((rasqal_query*)rq)->world, RASQAL_EXPR_STR_EQ, $1, $3);
 }
 | EqualityExpression STR_NE EqualityExpression
 {
-  $$=rasqal_new_2op_expression(RASQAL_EXPR_STR_NEQ, $1, $3);
+  $$=rasqal_new_2op_expression(((rasqal_query*)rq)->world, RASQAL_EXPR_STR_NEQ, $1, $3);
 }
 | EqualityExpression STR_MATCH PatternLiteral
 {
-  $$=rasqal_new_string_op_expression(RASQAL_EXPR_STR_MATCH, $1, $3);
+  $$=rasqal_new_string_op_expression(((rasqal_query*)rq)->world, RASQAL_EXPR_STR_MATCH, $1, $3);
 }
 | EqualityExpression STR_NMATCH PatternLiteral
 {
-  $$=rasqal_new_string_op_expression(RASQAL_EXPR_STR_NMATCH, $1, $3);
+  $$=rasqal_new_string_op_expression(((rasqal_query*)rq)->world, RASQAL_EXPR_STR_NMATCH, $1, $3);
 }
 | EqualityExpression
 {
@@ -410,11 +425,11 @@ ValueLogical : EqualityExpression STR_EQ EqualityExpression
 
 EqualityExpression : RelationalExpression EQ RelationalExpression
 {
-  $$=rasqal_new_2op_expression(RASQAL_EXPR_EQ, $1, $3);
+  $$=rasqal_new_2op_expression(((rasqal_query*)rq)->world, RASQAL_EXPR_EQ, $1, $3);
 }
 | RelationalExpression NEQ RelationalExpression
 {
-  $$=rasqal_new_2op_expression(RASQAL_EXPR_NEQ, $1, $3);
+  $$=rasqal_new_2op_expression(((rasqal_query*)rq)->world, RASQAL_EXPR_NEQ, $1, $3);
 }
 | RelationalExpression
 {
@@ -424,19 +439,19 @@ EqualityExpression : RelationalExpression EQ RelationalExpression
 
 RelationalExpression : NumericExpression LT NumericExpression
 {
-  $$=rasqal_new_2op_expression(RASQAL_EXPR_LT, $1, $3);
+  $$=rasqal_new_2op_expression(((rasqal_query*)rq)->world, RASQAL_EXPR_LT, $1, $3);
 }
 | NumericExpression GT NumericExpression
 {
-  $$=rasqal_new_2op_expression(RASQAL_EXPR_GT, $1, $3);
+  $$=rasqal_new_2op_expression(((rasqal_query*)rq)->world, RASQAL_EXPR_GT, $1, $3);
 }
 | NumericExpression LE NumericExpression
 {
-  $$=rasqal_new_2op_expression(RASQAL_EXPR_LE, $1, $3);
+  $$=rasqal_new_2op_expression(((rasqal_query*)rq)->world, RASQAL_EXPR_LE, $1, $3);
 }
 | NumericExpression GE NumericExpression
 {
-  $$=rasqal_new_2op_expression(RASQAL_EXPR_GE, $1, $3);
+  $$=rasqal_new_2op_expression(((rasqal_query*)rq)->world, RASQAL_EXPR_GE, $1, $3);
 }
 | NumericExpression
 {
@@ -453,11 +468,11 @@ NumericExpression : AdditiveExpression
 
 AdditiveExpression : MultiplicativeExpression '+' AdditiveExpression
 {
-  $$=rasqal_new_2op_expression(RASQAL_EXPR_PLUS, $1, $3);
+  $$=rasqal_new_2op_expression(((rasqal_query*)rq)->world, RASQAL_EXPR_PLUS, $1, $3);
 }
 | MultiplicativeExpression '-' AdditiveExpression
 {
-  $$=rasqal_new_2op_expression(RASQAL_EXPR_MINUS, $1, $3);
+  $$=rasqal_new_2op_expression(((rasqal_query*)rq)->world, RASQAL_EXPR_MINUS, $1, $3);
 }
 | MultiplicativeExpression
 {
@@ -467,15 +482,15 @@ AdditiveExpression : MultiplicativeExpression '+' AdditiveExpression
 
 MultiplicativeExpression : UnaryExpression '*' MultiplicativeExpression
 {
-  $$=rasqal_new_2op_expression(RASQAL_EXPR_STAR, $1, $3);
+  $$=rasqal_new_2op_expression(((rasqal_query*)rq)->world, RASQAL_EXPR_STAR, $1, $3);
 }
 | UnaryExpression '/' MultiplicativeExpression
 {
-  $$=rasqal_new_2op_expression(RASQAL_EXPR_SLASH, $1, $3);
+  $$=rasqal_new_2op_expression(((rasqal_query*)rq)->world, RASQAL_EXPR_SLASH, $1, $3);
 }
 | UnaryExpression '%' MultiplicativeExpression
 {
-  $$=rasqal_new_2op_expression(RASQAL_EXPR_REM, $1, $3);
+  $$=rasqal_new_2op_expression(((rasqal_query*)rq)->world, RASQAL_EXPR_REM, $1, $3);
 }
 | UnaryExpression
 {
@@ -489,7 +504,7 @@ UnaryExpression : '+' UnaryExpression
 }
 | '-' UnaryExpression
 {
-  $$=rasqal_new_1op_expression(RASQAL_EXPR_UMINUS, $2);
+  $$=rasqal_new_1op_expression(((rasqal_query*)rq)->world, RASQAL_EXPR_UMINUS, $2);
 }
 | UnaryExpressionNotPlusMinus
 {
@@ -499,20 +514,20 @@ UnaryExpression : '+' UnaryExpression
 
 UnaryExpressionNotPlusMinus : '~' UnaryExpression
 {
-  $$=rasqal_new_1op_expression(RASQAL_EXPR_TILDE, $2);
+  $$=rasqal_new_1op_expression(((rasqal_query*)rq)->world, RASQAL_EXPR_TILDE, $2);
 }
 | '!' UnaryExpression
 {
-  $$=rasqal_new_1op_expression(RASQAL_EXPR_BANG, $2);
+  $$=rasqal_new_1op_expression(((rasqal_query*)rq)->world, RASQAL_EXPR_BANG, $2);
 }
 | Var
 {
   rasqal_literal *l=rasqal_new_variable_literal(((rasqal_query*)rq)->world, $1);
-  $$=rasqal_new_literal_expression(l);
+  $$=rasqal_new_literal_expression(((rasqal_query*)rq)->world, l);
 }
 | Literal
 {
-  $$=rasqal_new_literal_expression($1);
+  $$=rasqal_new_literal_expression(((rasqal_query*)rq)->world, $1);
 }
 | '(' Expression ')'
 {
@@ -593,7 +608,11 @@ URIList : URI_LITERAL ',' URIList
 }
 | URI_LITERAL
 {
+#ifdef RAPTOR_V2_AVAILABLE
+  $$=raptor_new_sequence_with_handler_context((raptor_sequence_free_handler_v2*)raptor_free_uri_v2, (raptor_sequence_print_handler_v2*)raptor_uri_print_v2, (void*)((rasqal_query*)rq)->world->raptor_world_ptr);
+#else
   $$=raptor_new_sequence((raptor_sequence_free_handler*)raptor_free_uri, (raptor_sequence_print_handler*)raptor_sequence_print_uri);
+#endif
   raptor_sequence_push($$, $1);
 }
 ;
@@ -885,11 +904,17 @@ main(int argc, char *argv[])
     fclose(fh);
 
   world=rasqal_new_world();
+  if(!world || rasqal_world_open(world))
+    exit(1);
 
   query=rasqal_new_query(world, "rdql", NULL);
 
   uri_string=raptor_uri_filename_to_uri_string(filename);
-  base_uri=raptor_new_uri(uri_string);
+#ifdef RAPTOR_V2_AVAILABLE
+  base_uri = raptor_new_uri_v2(world->raptor_world_ptr, uri_string);
+#else
+  base_uri = raptor_new_uri(uri_string);
+#endif
   
   rc=rasqal_query_prepare(query, (const unsigned char*)query_string, base_uri);
 
@@ -897,7 +922,11 @@ main(int argc, char *argv[])
 
   rasqal_free_query(query);
 
+#ifdef RAPTOR_V2_AVAILABLE
+  raptor_free_uri_v2(world->raptor_world_ptr, base_uri);
+#else
   raptor_free_uri(base_uri);
+#endif
 
   raptor_free_memory(uri_string);
 

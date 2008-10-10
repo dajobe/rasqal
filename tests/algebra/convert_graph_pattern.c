@@ -125,8 +125,8 @@ main(int argc, char *argv[])
   rasqal_algebra_node* node=NULL;
 
   world=rasqal_new_world();
-  if(!world) {
-    fprintf(stderr, "%s: rasqal_new_world() failed\n", program);
+  if(!world || rasqal_world_open(world)) {
+    fprintf(stderr, "%s: rasqal_world init failed\n", program);
     return(1);
   }
   
@@ -137,8 +137,12 @@ main(int argc, char *argv[])
   
 
   query_file=argv[1];
-  base_uri=raptor_new_uri((const unsigned char*)argv[2]);
-                          
+#ifdef RAPTOR_V2_AVAILABLE
+  base_uri = raptor_new_uri_v2(world->raptor_world_ptr, (const unsigned char*)argv[2]);
+#else
+  base_uri = raptor_new_uri((const unsigned char*)argv[2]);
+#endif
+
   query=rasqal_new_query(world, query_language_name, NULL);
   if(!query) {
     fprintf(stderr, "%s: creating query in language %s FAILED\n", program,
@@ -185,7 +189,11 @@ main(int argc, char *argv[])
   if(query)
     rasqal_free_query(query);
   if(base_uri)
+#ifdef RAPTOR_V2_AVAILABLE
+    raptor_free_uri_v2(world->raptor_world_ptr, base_uri);
+#else
     raptor_free_uri(base_uri);
+#endif
   if(world)
     rasqal_free_world(world);
   

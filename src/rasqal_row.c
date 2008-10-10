@@ -370,7 +370,11 @@ rasqal_new_row_sequence(rasqal_world* world,
         const unsigned char* str;
         raptor_uri* u;
         str = (const unsigned char*)GET_CELL(row_i, column_i, 1);
+#ifdef RAPTOR_V2_AVAILABLE
+        u = raptor_new_uri_v2(world->raptor_world_ptr, str);
+#else
         u = raptor_new_uri(str);
+#endif
         if(u)
           l = rasqal_new_uri_literal(world, u);
         else
