@@ -123,35 +123,33 @@ rasqal_set_triples_source_factory(rasqal_world* world, void (*register_fn)(rasqa
 
 /**
  * rasqal_new_triples_source:
- * @query_results: query results to initialize for
+ * @execution_data: execution data
  *
  * Createa a new triples source
  *
  * Return value: a new triples source or NULL on failure
  */
 static rasqal_triples_source*
-rasqal_new_triples_source(rasqal_query_results* query_results)
+rasqal_new_triples_source(rasqal_engine_execution_data* execution_data)
 {
-  rasqal_query* query = rasqal_query_results_get_query(query_results);
-  rasqal_triples_source_factory* rtsf=&query->world->triples_source_factory;
+  rasqal_query* query = execution_data->query;
+  rasqal_triples_source_factory* rtsf = &query->world->triples_source_factory;
   rasqal_triples_source* rts;
   int rc=0;
   
-  rts=(rasqal_triples_source*)RASQAL_CALLOC(rasqal_triples_source, 1, sizeof(rasqal_triples_source));
+  rts = (rasqal_triples_source*)RASQAL_CALLOC(rasqal_triples_source, 1,
+                                              sizeof(rasqal_triples_source));
   if(!rts)
     return NULL;
 
-  rts->user_data=RASQAL_CALLOC(user_data, 1,
-                               rtsf->user_data_size);
+  rts->user_data = RASQAL_CALLOC(user_data, 1, rtsf->user_data_size);
   if(!rts->user_data) {
     RASQAL_FREE(rasqal_triples_source, rts);
     return NULL;
   }
-  rts->query=query;
+  rts->query = query;
 
-  rc=rtsf->new_triples_source(query, 
-                              rtsf->user_data,
-                              rts->user_data, rts);
+  rc = rtsf->new_triples_source(query, rtsf->user_data, rts->user_data, rts);
   if(rc) {
     if(rc > 0) {
       rasqal_log_error_simple(query->world, RAPTOR_LOG_LEVEL_ERROR,
@@ -2039,7 +2037,7 @@ rasqal_query_engine_1_execute_init(void* ex_data,
   execution_data->result_count = 0;
 
   if(!execution_data->triples_source) {
-    execution_data->triples_source = rasqal_new_triples_source(query_results);
+    execution_data->triples_source = rasqal_new_triples_source(execution_data);
     if(!execution_data->triples_source) {
       *error_p = RASQAL_ENGINE_FAILED;
       return 1;
