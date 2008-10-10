@@ -225,6 +225,7 @@ rasqal_free_query_results(rasqal_query_results* query_results)
       rasqal_engine_error execution_error = RASQAL_ENGINE_OK;
 
       query_results->execution_factory->execute_finish(query_results->execution_data, &execution_error);
+      /* ignoring failure of execute_finish */
     }
   }
 
