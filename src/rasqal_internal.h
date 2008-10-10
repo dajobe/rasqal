@@ -834,11 +834,8 @@ int rasqal_init_query_results(void);
 void rasqal_finish_query_results(void);
 rasqal_query_results* rasqal_new_query_results(rasqal_query* query);
 rasqal_query_results* rasqal_new_query_results_from_query_execution(rasqal_query* query);
-void rasqal_query_results_reset(rasqal_query_results* query_results);
 int rasqal_query_results_set_variables(rasqal_query_results* query_results, raptor_sequence* variables_sequence, int size, int order_size);
-void rasqal_query_results_set_order_conditions(rasqal_query_results* query_results, int order_size);
 void rasqal_query_results_add_row(rasqal_query_results* query_results, rasqal_row* row);
-void rasqal_query_results_update_bindings(rasqal_query_results* query_results);
 int rasqal_query_results_check_limit_offset(rasqal_query_results* query_results);
 void rasqal_query_results_remove_query_reference(rasqal_query_results* query_results);
 
