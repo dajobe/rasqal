@@ -1036,7 +1036,7 @@ typedef enum {
  */
 struct rasqal_query_execution_factory_s {
   /* execution engine name */
-  const char* const name;
+  const char* name;
 
   /* size of execution engine private data */
   size_t execution_data_size;
