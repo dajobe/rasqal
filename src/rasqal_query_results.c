@@ -44,6 +44,89 @@
 static int rasqal_query_results_execute_and_store_results(rasqal_query_results* query_results);
 
 
+/*
+ * A query result for some query
+ */
+struct rasqal_query_results_s {
+  /* Type of query result */
+  rasqal_query_results_type type;
+  
+  /* stopping? */
+  int abort;
+
+  /* non-0 if got all results */
+  int finished;
+
+  /* non-0 if query has been executed */
+  int executed;
+
+  /* non 0 if query had fatal error and cannot be executed */
+  int failed;
+
+  /* query that this was executed over */
+  rasqal_query* query;
+
+  /* how many results already found */
+  int result_count;
+
+  /* execution data - depends on execution engine and owned by this */
+  void* execution_data;
+
+  /* unused 1 (was free_execution_data) */
+  void *unused1;
+  
+  /* unused 3 (was next) */
+  void* unused3;
+
+  /* current row of results */
+  rasqal_row* row;
+
+  /* boolean ASK result >0 true, 0 false or -1 uninitialised */
+  int ask_result;
+
+  /* boolean: non-0 to store query results rather than lazy eval */
+  int store_results;
+
+  /* unused 2 (was triples_source) */
+  void* unused2;
+
+  /* current triple in the sequence of triples 'constructs' or -1 */
+  int current_triple_result;
+
+  /* constructed triple result (SHARED) */
+  raptor_statement result_triple;
+
+  /* INTERNAL triple used to store literals for subject, predicate, object
+   * never returned
+   */
+  rasqal_triple* triple;
+  
+  /* INTERNAL sequence of results for ordering */
+  raptor_sequence* results_sequence;
+
+  /* size of result row fields row->results, row->values, variables, variable_names, variables_sequence */
+  int size;
+
+  /* size of result row ordering fields row->order_values */
+  int order_size;
+
+  /* array of variable names */
+  const unsigned char** variable_names;
+
+  /* sequence of variables */
+  raptor_sequence* variables_sequence;
+
+  /* variable name/value table of length 'size' */
+  rasqal_variable** variables;
+
+  /* unused 5 (was rowsource) */
+  void* unused5;
+
+  /* Execution engine used here */
+  const rasqal_query_execution_factory* execution_factory;
+};
+    
+
 int
 rasqal_init_query_results(void)
 {
@@ -461,6 +544,9 @@ rasqal_query_results_ensure_have_row_internal(rasqal_query_results* query_result
       rasqal_engine_error execution_error = RASQAL_ENGINE_OK;
 
       query_results->row = query_results->execution_factory->get_row(query_results->execution_data, &execution_error);
+      if(execution_error == RASQAL_ENGINE_FAILED)
+        query_results->failed = 1;
+
     }
   }
   
@@ -1297,6 +1383,8 @@ rasqal_query_results_execute_and_store_results(rasqal_query_results* query_resul
     rasqal_engine_error execution_error = RASQAL_ENGINE_OK;
 
     seq = query_results->execution_factory->get_all_rows(query_results->execution_data, &execution_error);
+    if(execution_error == RASQAL_ENGINE_FAILED)
+      query_results->failed = 1;
   }
 
   query_results->results_sequence = seq;
