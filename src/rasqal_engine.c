@@ -93,7 +93,7 @@ static const char * rasqal_engine_step_names[STEP_LAST+1]={
 
 
 /* local prototypes */
-static rasqal_engine_step rasqal_engine_check_constraint(rasqal_query *query, rasqal_graph_pattern *gp);
+static rasqal_engine_step rasqal_engine_check_constraint(rasqal_engine_execution_data* execution_data, rasqal_graph_pattern *gp);
 static int rasqal_engine_graph_pattern_init(rasqal_engine_execution_data* execution_data, rasqal_graph_pattern *gp);
 
 
@@ -847,13 +847,19 @@ rasqal_engine_move_to_graph_pattern(rasqal_engine_execution_data* execution_data
 
 
 static rasqal_engine_step
-rasqal_engine_check_constraint(rasqal_query *query, rasqal_graph_pattern *gp)
+rasqal_engine_check_constraint(rasqal_engine_execution_data* execution_data,
+                               rasqal_graph_pattern *gp)
 {
+  rasqal_query* query;
+  rasqal_query_results* query_results;
   rasqal_engine_step step=STEP_SEARCHING;
   rasqal_literal* result;
   int bresult=1; /* constraint succeeds */
   int error=0;
     
+  query = execution_data->query;
+  query_results = execution_data->query_results;
+
 #ifdef RASQAL_DEBUG
   RASQAL_DEBUG1("filter expression:\n");
   rasqal_expression_print(gp->filter_expression, DEBUG_FH);
@@ -907,7 +913,6 @@ static rasqal_engine_step
 rasqal_engine_do_step(rasqal_engine_execution_data* execution_data,
                       rasqal_graph_pattern* outergp, rasqal_graph_pattern* gp)
 {
-  rasqal_query* query=execution_data->query;
   int graph_patterns_size=raptor_sequence_size(outergp->graph_patterns);
   rasqal_engine_step step=STEP_SEARCHING;
   int rc;
@@ -939,13 +944,13 @@ rasqal_engine_do_step(rasqal_engine_execution_data* execution_data,
 
 
   if(gp->filter_expression) {
-    step=rasqal_engine_check_constraint(query, gp);
+    step=rasqal_engine_check_constraint(execution_data, gp);
     if(step != STEP_GOT_MATCH)
       return step;
   }
 
   if(outergp->filter_expression) {
-    step=rasqal_engine_check_constraint(query, outergp);
+    step=rasqal_engine_check_constraint(execution_data, outergp);
     if(step != STEP_GOT_MATCH)
       return step;
   }
@@ -1117,7 +1122,7 @@ rasqal_engine_do_optional_step(rasqal_engine_execution_data* execution_data,
 
   
   if(gp->filter_expression) {
-    step=rasqal_engine_check_constraint(query, gp);
+    step=rasqal_engine_check_constraint(execution_data, gp);
     if(step != STEP_GOT_MATCH) {
       /* The constraint failed or we have an error - no bindings count */
       execution_data->new_bindings_count=0;
@@ -1139,7 +1144,7 @@ rasqal_engine_do_optional_step(rasqal_engine_execution_data* execution_data,
  
 
   if(outergp->filter_expression) {
-    step=rasqal_engine_check_constraint(query, outergp);
+    step=rasqal_engine_check_constraint(execution_data, outergp);
     if(step != STEP_GOT_MATCH) {
       /* The constraint failed or we have an error - no bindings count */
       execution_data->new_bindings_count=0;
@@ -2136,8 +2141,7 @@ rasqal_query_engine_1_execute_finish(void* ex_data,
 
 
 static void
-rasqal_query_engine_1_finish_factory(rasqal_query_execution_factory* factory,
-                                     rasqal_engine_error *error_p)
+rasqal_query_engine_1_finish_factory(rasqal_query_execution_factory* factory)
 {
   return;
 }
