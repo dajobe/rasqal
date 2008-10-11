@@ -41,6 +41,49 @@
 #include "rasqal_internal.h"
 
 
+/**
+ *
+ * Query Results Class Internals
+ *
+ * This class provides the abstraction for query results in different
+ * forms.  The forms can be either a sequence of variable bindings,
+ * set of RDF triples, boolean value or a syntax.
+ *
+ * Query results can be created as a result of a #rasqal_query
+ * execution using rasqal_query_execute() or as an independent result
+ * set constructed from a query results syntax such as the SPARQL XML
+ * results format via the #rasqal_query_results_formatter class.
+ *
+ * The query results constructor rasqal_new_query_results() chooses
+ * the execution engine to use and when called via
+ * rasqal_new_query_results_from_query_execution(), initialises the
+ * execution engine via the #rasqal_query_execution_factory
+ * 'execute_init' factory method.  This method also determines
+ * whether the entire results need to be (or a requested to be)
+ * obtained in one go, and if so, they are done during construction.
+ *
+ * The user API to getting query results is primarily to get variable
+ * bindings - a sequence of variable:value (also called #rasqal_row
+ * internally), RDF triples, a boolean value or a syntax.  
+ *
+ * The variable bindings are generated from the execution engine by
+ * retrieving #rasqal_row either one-by-one using the get_row method
+ * or getting the entire result at once with the get_all_rows method.
+ *
+ * In the case of getting the entire result the rows are stored as a
+ * sqeuence inside the #rasqal_query_results and returned one-by-one
+ * from there, respecting any limit and offset.
+ *
+ * The RDF triples and boolean value results are generated from the
+ * variable bindings (#rasqal_row) inside this class.  The underlying
+ * execution engine only knows about rows.
+ *
+ * The class also handles several other results-specific methods such
+ * as getting variable binding names, values by name, counts of
+ * number of results, writing a query results as a syntax (in a
+ * simple fashion), read a query results froma syntax.
+ */
+
 static int rasqal_query_results_execute_and_store_results(rasqal_query_results* query_results);
 static void rasqal_query_results_update_bindings(rasqal_query_results* query_results);
 
