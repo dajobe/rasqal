@@ -92,35 +92,26 @@ static void rasqal_query_results_update_bindings(rasqal_query_results* query_res
  * A query result for some query
  */
 struct rasqal_query_results_s {
-  /* Type of query result */
+  /* type of query result (bindings, boolean, graph or syntax) */
   rasqal_query_results_type type;
   
-  /* stopping? */
-  int abort;
-
-  /* non-0 if got all results */
+  /* non-0 if have read all (variable binding) results */
   int finished;
 
   /* non-0 if query has been executed */
   int executed;
 
-  /* non 0 if query had fatal error and cannot be executed */
+  /* non 0 if query had fatal error and cannot return results */
   int failed;
 
   /* query that this was executed over */
   rasqal_query* query;
 
-  /* how many results already found */
+  /* how many (variable bindings) results found so far */
   int result_count;
 
-  /* execution data - depends on execution engine and owned by this */
+  /* execution data for execution engine. owned by this object */
   void* execution_data;
-
-  /* unused 1 (was free_execution_data) */
-  void *unused1;
-  
-  /* unused 3 (was next) */
-  void* unused3;
 
   /* current row of results */
   rasqal_row* row;
@@ -131,40 +122,40 @@ struct rasqal_query_results_s {
   /* boolean: non-0 to store query results rather than lazy eval */
   int store_results;
 
-  /* unused 2 (was triples_source) */
-  void* unused2;
-
   /* current triple in the sequence of triples 'constructs' or -1 */
   int current_triple_result;
 
-  /* constructed triple result (SHARED) */
+  /* constructed triple result - shared and updated for each triple */
   raptor_statement result_triple;
 
-  /* INTERNAL triple used to store literals for subject, predicate, object
-   * never returned
+  /* triple used to store references to literals for triple subject,
+   * predicate, object.  never returned or used otherwise.
    */
   rasqal_triple* triple;
   
-  /* INTERNAL sequence of results for ordering */
+  /* sequence of stored results */
   raptor_sequence* results_sequence;
 
-  /* size of result row fields row->results, row->values, variables, variable_names, variables_sequence */
+  /* size of result row fields:
+   * row->results, row->values, variables, variable_names, variables_sequence
+   */
   int size;
 
-  /* size of result row ordering fields row->order_values */
+  /* size of result row ordering field:
+   * row->order_values
+   */
   int order_size;
 
-  /* array of variable names */
+  /* array of variable names.  The array is allocated here but the
+   * pointers are into the #variables_sequence below.
+   */
   const unsigned char** variable_names;
 
-  /* sequence of variables */
+  /* sequence of variables deep-copied from the #variables table */
   raptor_sequence* variables_sequence;
 
-  /* variable name/value table of length 'size' */
+  /* variables table for bindings results */
   rasqal_variable** variables;
-
-  /* unused 5 (was rowsource) */
-  void* unused5;
 
   /* Execution engine used here */
   const rasqal_query_execution_factory* execution_factory;
@@ -201,8 +192,27 @@ rasqal_new_query_results(rasqal_query* query)
   if(!query_results)
     return NULL;
   
+  query_results->finished = 0;
+  query_results->executed = 0;
+  query_results->failed = 0;
   query_results->query = query;
-  
+  query_results->result_count = 0;
+  query_results->execution_data = NULL;
+  query_results->row = NULL;
+  query_results->ask_result = -1; 
+  query_results->store_results = 0; 
+  query_results->current_triple_result = -1;
+  /* query_results->result_triple is static */
+  query_results->triple = NULL;
+  query_results->results_sequence = NULL;
+
+  /* rasqal_query_results_set_variables() below will init these */
+  query_results->size = 0;
+  query_results->order_size = 0;
+  query_results->variable_names = NULL;
+  query_results->variables_sequence = NULL;
+  query_results->variables = NULL;
+
   if(query) {
     if(query->query_results_formatter_name)
       query_results->type = RASQAL_QUERY_RESULTS_SYNTAX;
@@ -231,14 +241,6 @@ rasqal_new_query_results(rasqal_query* query)
       }
   }
   
-  query_results->result_count = 0;
-  query_results->abort = 0;
-  query_results->finished = 0;
-  query_results->failed = 0;
-  query_results->ask_result = -1; 
-  query_results->results_sequence = NULL;
-  query_results->current_triple_result = -1;
-
   query_results->execution_factory = &rasqal_query_engine_1;
   
   return query_results;
