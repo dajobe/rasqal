@@ -41,6 +41,30 @@
 #include "rasqal_internal.h"
 
 
+/**
+ *
+ * Query Class Internals
+ *
+ * This is the main Rasqal class for constructing RDF graph queries
+ * from a syntax or by API, preparing them for execution with a query
+ * execution and executing them to return a result set.
+ *
+ * Queries are constructed from a syntax in some query language
+ * syntax and build an RDF query API structure based on triple
+ * patterns, filter expressions, graph patterns above them operating
+ * over a set of graphs.
+ *
+ * This class does not deal with manipulating result sets which are
+ * handled by the #rasqal_query_results and methods on it although
+ * rasqal_query_execute() does return a newly constructed result
+ * object.
+ *
+ * It also does not deal with executing a query which is handled by
+ * #rasqal_query_execution_factory instances that have their own
+ * simpler API.
+ *
+ */
+
 #define DEBUG_FH stderr
 
 #if 0
