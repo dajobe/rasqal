@@ -1,3 +1,232 @@
+2008-10-09  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_internal.h: (rasqal_query_execution_factory_s): c++
+	mode fix
+
+	* src/fix-bison, src/rasqal.h, src/rasqal_algebra.c,
+	src/rasqal_expr.c, src/rasqal_feature.c, src/rasqal_general.c,
+	src/rasqal_internal.h, src/rasqal_limit_test.c,
+	src/rasqal_literal.c, src/rasqal_query.c, src/rasqal_query_test.c,
+	src/rasqal_raptor.c, src/rasqal_result_formats.c,
+	src/rasqal_row.c, src/rasqal_sparql_xml.c, src/rasqal_variable.c,
+	src/rasqal_xsd_datatypes.c, src/rdql_lexer.l, src/rdql_parser.y,
+	src/sparql_lexer.l, src/sparql_parser.y,
+	tests/algebra/convert_graph_pattern.c,
+	tests/engine/rasqal_construct_test.c,
+	tests/engine/rasqal_graph_test.c,
+	tests/engine/rasqal_order_test.c, utils/roqet.c, utils/srxread.c:
+	Refactored Rasqal to use Raptor v2 APIs if available.
+	Flagged with RAPTOR_V2_AVAILABLE.
+
+	API/ABI breaks:
+	(rasqal_new_world): API function changed to allocate rasqal_world
+	only. Initialization decoupled to rasqal_world_open().
+	(rasqal_features_enumerate, rasqal_feature_from_uri): API
+	functions now require a rasqal_world param.
+	(rasqal_prefix, rasqal_data_graph, rasqal_expression_s): API
+	structs gain rasqal_world *world field.
+	(rasqal_new_data_graph, rasqal_new_function_expression,
+	rasqal_new_cast_expression, rasqal_new_prefix): API constructor
+	functions now require a rasqal_world param.
+	(rasqal_new_0op_expression, rasqal_new_1op_expression,
+	rasqal_new_2op_expression, rasqal_new_3op_expression,
+	rasqal_new_string_op_expression, rasqal_new_literal_expression):
+	API constructor functions changed to require a rasqal_world param
+	for consistency reasons, though not really used for anything.
+
+	Other API changes:
+	(rasqal_world_open): New API function to initialize a
+	rasqal_world. Pulled from rasqal_new_world().
+	(rasqal_world_set_raptor): New API function to set raptor instance
+	externally before rasqal_world_open().
+	(rasqal_world_get_raptor): New API function to access raptor_world
+	associated with the rasqal_world.
+
+	Other changes:
+	(fix-bison): Hack in YYPARSE_PARAM to %destructors. Required for
+	raptor_free_uri_v2().
+	(rasqal_raptor_init_triples_match): Check for triples match
+	context alloc failure.
+	(rasqal_raptor_triple_match,ordinal_as_uri): Internal functions
+	now require rasqal_world param.
+	(rdql_token_print,
+	rdql_token_free,sparql_token_print,sparql_token_free): Internal
+	functions now require rasqal_world param.
+	(main): Fixed "#ifdef RASQAL_DEBUG > 1" preprocessor conditionals
+	in rasqal_construct_test.
+
+	(roqet_error_handler): Pass in rasqal_world* in user_data.
+
+2008-10-09  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_engine.c: (rasqal_new_triples_source): take an
+	execution_data arg.
+	(rasqal_query_engine_1_execute_init): Call above with new arg.
+
+	* src/rasqal_internal.h: rasqal_query_results_reset and
+	rasqal_query_results_set_order_conditions prototypes deleted -
+	only used in query_results.c rasqal_query_results_update_bindings
+	deleted - now static and only used inside query_results.c
+
+	* src/rasqal_query_results.c:
+	(rasqal_new_query_results): Merge in rasqal_query_results_reset
+	code only ever used here and tidy to exit early on allocation
+	failure.
+	(rasqal_new_query_results_from_query_execution): Inline 1-line
+	function rasqal_query_results_set_order_conditions only ever used
+	here.
+	(rasqal_query_results_reset,
+	rasqal_query_results_set_order_conditions): Deleted and merged
+	inline above.
+	(rasqal_query_results_update_bindings): now static
+
+	* src/rasqal_engine.c, src/rasqal_internal.h,
+	src/rasqal_query_results.c: Move struct rasqal_query_results_s to
+	rasqal_query_results.c to make it internal.  Switch query engine
+	from using query_results->{failed,finished} directly (now no
+	longer possible) to returning execution errors.
+	(rasqal_engine_group_graph_pattern_get_next_match): Return -1 on
+	failure.
+	(rasqal_engine_triple_graph_pattern_get_next_match): Use
+	STEP_ERROR to return failure.
+	(rasqal_engine_do_optional_step): Do not set finished flag.
+	(rasqal_engine_get_next_result): No need to check query_results
+	failed, finished or query triples; caller will do that.  Do not
+	set query->failed, return -1 on failure.  Handle STEP_ERROR and
+	return failure if seen.
+
+	rasqal_rowsource_engine_context gains query field.
+	(rasqal_rowsource_engine_init): Init con finished and failed.
+	(rasqal_rowsource_engine_process): Set con finished and failed, not
+	query_results equivalents.
+	(rasqal_rowsource_engine_read_row): Use con finished and failed
+	flags for checks.
+	(rasqal_rowsource_engine_read_all_rows): Use con finished and
+	failed.
+	(rasqal_rowsource_engine_get_query): Get query from con field.
+	(rasqal_engine_make_rowsource): Set query field in con.
+	(rasqal_query_engine_1_get_row): Return NULL if already failed.
+	Switch from using query_results->finished/failed to setting error_p.
+	(rasqal_query_engine_1_execute_init, rasqal_query_engine_1_get_all_rows,
+	(rasqal_query_engine_1_execute_finish): Set error_p on failures.
+	(rasqal_query_results_ensure_have_row_internal,
+	rasqal_query_results_execute_and_store_results): Look for execution
+	engine failures and set query_results failed flag.
+
+	* src/rasqal_engine.c:
+	(rasqal_engine_check_constraint): Take a
+	rasqal_engine_execution_data arg not query.
+	(rasqal_engine_do_step): Replace rasqal_engine_check_constraint
+	calls with execution_data. No need for unused query variable now.
+	(rasqal_query_engine_1_finish_factory): Fix method - it does not
+	take an error_p
+
+	* src/rasqal_query_results.c:
+	(rasqal_free_query_results): Note ignore of return
+
+	* src/rasqal_engine.c, src/rasqal_internal.h,
+	src/rasqal_query_results.c: execution factory method execute_init
+	now takes a flag arg.
+	(rasqal_engine_make_rowsource): Add need_store_results args.
+	(rasqal_new_query_results_from_query_execution): Init
+	execution_flags.
+	(rasqal_query_engine_1_execute_init): Add flags arg and use it to
+	set need_store_results
+
+2008-10-07  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_result_formats.c: (rasqal_query_results_write_json1):
+	Returning 1 on failure is sufficient - do not alter query->failed
+	here.
+
+	* utils/roqet.c: Check to see if
+	rasqal_query_results_formatter_write failed
+
+	* src/rasqal_sparql_xml.c:
+	(rasqal_query_results_write_sparql_xml): Returning 1 on failure is
+	sufficient - do not alter query->failed here.
+
+	* src/rasqal_expr.c: (rasqal_expression_evaluate_strmatch):
+	Returning NULL on failure is sufficient - do not alter
+	query->failed here.
+
+	* src/rasqal_engine.c: autodocs
+
+	* src/rasqal_engine.c: (rasqal_query_engine_1_get_row): No need to
+	check query_results - interface will ensure it is OK.
+
+	* src/rasqal_internal.h: execution data autodocs
+
+	* src/rasqal_query_results.c:
+	(rasqal_query_results_ensure_have_row_internal): Note that
+	parameter validation has already been done.
+	(rasqal_query_results_finished): Return finished if already
+	finished or failed.
+
+	* src/rasqal_engine.c: (rasqal_query_engine_1_get_row): autodocs
+
+	* src/rasqal_result_formats.c, src/rasqal_sparql_xml.c:
+	(rasqal_query_results_write_sparql_xml,
+	rasqal_query_results_write_json1): Use
+	rasqal_query_results_get_query.
+
+	* src/rasqal_query_results.c: (rasqal_new_query_results): autodocs
+
+	* src/rasqal_engine.c: (rasqal_query_engine_1_execute_finish):
+	autodocs
+
+	* src/rasqal_engine.c: (rasqal_query_engine_1_get_all_rows):
+	autodocs
+
+	* src/rasqal_engine.c: (rasqal_engine_do_optional_step): autodocs
+
+	* src/rasqal_engine.c: (rasqal_engine_do_step): autodocs
+
+	* src/rasqal_engine.c: (rasqal_new_triples_source): autodocs
+
+	* src/rasqal_internal.h, src/rasqal_query_results.c:
+	(rasqal_query_results_execute_and_store_results): make static
+
+	* src/rasqal_query_results.c:
+	(rasqal_query_results_execute_and_store_results): Renamed from
+	rasqal_query_results_store_results
+
+	* src/rasqal_internal.h, src/rasqal_query.c,
+	src/rasqal_query_results.c:
+	(rasqal_new_query_results_from_query_execution): Addedbased on
+	rasqal_query_execute contents.
+	(rasqal_query_execute): Use
+	rasqal_new_query_results_from_query_execution
+
+	* src/rasqal_internal.h, src/rasqal_query.c,
+	src/rasqal_query_results.c: Keep pointers to query results inside
+	query as a sequence in query rather than a linked list touch
+	results->next internals.
+	(rasqal_new_query, rasqal_free_query): Init/free query->results
+	sequence.
+	(rasqal_query_add_query_result, rasqal_query_remove_query_result):
+	Switch to use a sequence.
+	(rasqal_query_results_remove_query_reference): Added to just
+	remove the query reference added to when a query results was
+	built.
+
+	* src/rasqal.h, src/rasqal_query_results.c:
+	(rasqal_query_results_get_query): Added
+
+	* src/rasqal_engine.c, src/rasqal_internal.h: remove execution
+	engine prepare method - unused
+
+	* src/rasqal_engine.c, src/rasqal_internal.h, src/rasqal_query.c,
+	src/rasqal_query_results.c: Added rasqal_engine_error Make
+	execution engine calls have an error pointer output parameter.
+	Not currently used but passed around.
+
+2008-10-06  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_query.c:
+	(rasqal_query_execute): All non-0 return codes from execute_init()
+	are failures.
+
 2008-10-05  Dave Beckett <dave@dajobe.org>
 
 	* Checkpoint in query engine refactoring.
