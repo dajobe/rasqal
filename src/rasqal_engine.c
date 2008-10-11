@@ -40,6 +40,57 @@
 #include "rasqal.h"
 #include "rasqal_internal.h"
 
+
+/**
+ *
+ * Query Engine 1 Internals
+ *
+ * This is the rasqal 0.9.16 and earlier query engine.
+ *
+ * This query engine is based on executing directly the query graph
+ * pattern structure by using graph-pattern specific data objects
+ * to preserve execution state.
+ *
+ * This version was refactored from earlier version code to return
+ * #rasqal_row on demand or all rows in one go if required.
+ *
+ * The lower-level query engine operates over a triples source
+ * factory that returns triples that match a triple pattern for a
+ * graph and bindings variables or determines if a triple is present
+ * in a graph.
+ *
+ * Each graph pattern data records information per-triple pattern
+ * (#rasqal_triple_meta), the current 'column' aka absolute triple#
+ * being executed and various flags and counts.  It iterates over the
+ * triple patterns until they are all exhausted.
+ *
+ * For a basic graph pattern (#RASQAL_GRAPH_PATTERN_OPERATOR_BASIC),
+ * every triple_meta in every column must match for a result to be
+ * returned.  A match may bind 0 or more variables per triple.
+ *
+ * For an optional graph pattern
+ * (#RASQAL_GRAPH_PATTERN_OPERATOR_OPTIONAL), a result may be
+ * returned even if there are no matches; i.e. an optional graph
+ * pattern always succeeds.  This is the flaw in this execution
+ * engine since in the case where there are multiple optionals it
+ * cannot properly iterate across them when some match and some do
+ * not.
+ *
+ * The execution engine also does not understand group graph patterns
+ * and expects a single top-level sequence of graph patterns (group)
+ * that are basic graph patterns or optional.  Filters are expected
+ * to be contained in the basic or optional graph patterns and
+ * rasqal_query_engine_1_execute_transform_hack() is used to
+ * transform via a hack to turn the query structure into one that can
+ * be executed.
+ *
+ * An internal rowsource is constructed by
+ * rasqal_engine_make_rowsource() in order to get all result rows
+ * in rasqal_query_engine_1_get_all_rows() but is otherwise only
+ * referenced.
+ */
+
+
 #define DEBUG_FH stderr
 
 
