@@ -125,7 +125,7 @@ rasqal_set_triples_source_factory(rasqal_world* world, void (*register_fn)(rasqa
  * rasqal_new_triples_source:
  * @execution_data: execution data
  *
- * Createa a new triples source
+ * INTERNAL - Create a new triples source
  *
  * Return value: a new triples source or NULL on failure
  */
