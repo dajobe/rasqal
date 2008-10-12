@@ -782,7 +782,9 @@ main(int argc, char *argv[])
       printf("      %-15s         %s\n", query_output_format_labels[i][0],
              query_output_format_labels[i][1]);
     puts(HELP_TEXT("f FEATURE(=VALUE)", "feature FEATURE(=VALUE)", HELP_PAD "Set query features" HELP_PAD "Use `-f help' for a list of valid features"));
-    puts(HELP_TEXT("g", "engine NAME       ", "Pick execution engine NAME"));
+#ifdef RASQAL_INTERNAL
+    puts(HELP_TEXT("g", "engine NAME       ", "INTERNAL: Pick execution engine NAME"));
+#endif
     puts(HELP_TEXT("h", "help              ", "Print this help, then exit"));
     puts(HELP_TEXT("n", "dryrun            ", "Prepare but do not run the query"));
     puts(HELP_TEXT("q", "quiet             ", "No extra information messages"));
