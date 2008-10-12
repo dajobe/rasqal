@@ -855,6 +855,15 @@ void rasqal_row_set_value_at(rasqal_row* row, int offset, rasqal_literal* value)
 raptor_sequence* rasqal_new_row_sequence(rasqal_world* world, rasqal_variables_table* vt, const char* const row_data[], int vars_count);
 int rasqal_row_to_nodes(rasqal_row* row);
 
+/* rasqal_triples_source.c */
+rasqal_triples_source* rasqal_new_triples_source(rasqal_query* query);
+int rasqal_reset_triple_meta(rasqal_triple_meta* m);
+void rasqal_free_triples_source(rasqal_triples_source *rts);
+int rasqal_triples_source_triple_present(rasqal_triples_source *rts, rasqal_triple *t);
+rasqal_triples_match* rasqal_new_triples_match(rasqal_query* query, rasqal_triples_source* triples_source, rasqal_triple_meta *m, rasqal_triple *t);
+int rasqal_triples_match_bind_match(struct rasqal_triples_match_s* rtm, rasqal_variable *bindings[4],rasqal_triple_parts parts);
+void rasqal_triples_match_next_match(struct rasqal_triples_match_s* rtm);
+int rasqal_triples_match_is_end(struct rasqal_triples_match_s* rtm);
 
 /* rasqal_xsd_datatypes.c */
 int rasqal_xsd_init(rasqal_world*);
