@@ -180,16 +180,15 @@ rasqal_set_triples_source_factory(rasqal_world* world, void (*register_fn)(rasqa
 
 /**
  * rasqal_new_triples_source:
- * @execution_data: execution data
+ * @query: query
  *
  * INTERNAL - Create a new triples source
  *
  * Return value: a new triples source or NULL on failure
  */
 static rasqal_triples_source*
-rasqal_new_triples_source(rasqal_engine_execution_data* execution_data)
+rasqal_new_triples_source(rasqal_query* query)
 {
-  rasqal_query* query = execution_data->query;
   rasqal_triples_source_factory* rtsf = &query->world->triples_source_factory;
   rasqal_triples_source* rts;
   int rc=0;
@@ -2094,7 +2093,7 @@ rasqal_query_engine_1_execute_init(void* ex_data,
   execution_data->result_count = 0;
 
   if(!execution_data->triples_source) {
-    execution_data->triples_source = rasqal_new_triples_source(execution_data);
+    execution_data->triples_source = rasqal_new_triples_source(execution_data->query);
     if(!execution_data->triples_source) {
       *error_p = RASQAL_ENGINE_FAILED;
       return 1;
