@@ -2315,13 +2315,12 @@ rasqal_query_set_base_uri(rasqal_query* query, raptor_uri* base_uri)
   query->locator.uri = base_uri;
 }
 
-#ifdef RASQAL_DEBUG
+
 void
 rasqal_query_set_store_results(rasqal_query* query, int store_results)
 {
-  query->store_results=store_results;
+  query->store_results = store_results;
 }
-#endif
 
 
 rasqal_variable* 
