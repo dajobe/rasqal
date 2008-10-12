@@ -173,6 +173,7 @@ roqet_graph_pattern_walk(rasqal_graph_pattern *gp, int gp_index,
   int seen;
   raptor_sequence *seq;
   int idx;
+  rasqal_expression* expr;
   
   op=rasqal_graph_pattern_get_operator(gp);
   
@@ -191,7 +192,9 @@ roqet_graph_pattern_walk(rasqal_graph_pattern *gp, int gp_index,
   /* look for triples */
   seen=0;
   while(1) {
-    rasqal_triple* t=rasqal_graph_pattern_get_triple(gp, triple_index);
+    rasqal_triple* t;
+
+    t = rasqal_graph_pattern_get_triple(gp, triple_index);
     if(!t)
       break;
     
@@ -235,27 +238,12 @@ roqet_graph_pattern_walk(rasqal_graph_pattern *gp, int gp_index,
   }
   
 
-  /* look for constraints */
-  seq=rasqal_graph_pattern_get_constraint_sequence(gp);
-  if(seq && raptor_sequence_size(seq) > 0) {
+  /* look for filter */
+  expr = rasqal_graph_pattern_get_filter_expression(gp);
+  if(expr) {
     roqet_write_indent(fh, indent);
-    fprintf(fh, "constraints (%d) {\n", raptor_sequence_size(seq));
-
-    gp_index=0;
-    while(1) {
-      rasqal_expression* expr=rasqal_graph_pattern_get_constraint(gp, gp_index);
-      if(!expr)
-        break;
-      
-      roqet_write_indent(fh, indent+2);
-      fprintf(fh, "constraint #%d { ", gp_index);
-      rasqal_expression_print(expr, fh);
-      fputs("}\n", fh);
-      
-      gp_index++;
-    }
-
-    roqet_write_indent(fh, indent);
+    fputs("filter { ", fh);
+    rasqal_expression_print(expr, fh);
     fputs("}\n", fh);
   }
   
