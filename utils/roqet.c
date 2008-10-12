@@ -56,8 +56,7 @@
 
 /* Rasqal includes */
 #include <rasqal.h>
-#ifdef RASQAL_DEBUG
-/* for internal rasqal_query_set_store_results() */
+#ifdef RASQAL_INTERNAL
 #include <rasqal_internal.h>
 #endif
 
@@ -85,11 +84,16 @@ static char *program=NULL;
 #define HELP_PAD "\n      "
 #endif
 
+#ifdef RASQAL_INTERNAL
+/* add 'g:' */
+#define GETOPT_STRING "cd:D:e:f:g:G:hi:nr:qs:vw"
+#else
 #define GETOPT_STRING "cd:D:e:f:G:hi:nr:qs:vw"
+#endif
 
 #ifdef HAVE_GETOPT_LONG
 
-#ifdef RASQAL_DEBUG
+#ifdef RASQAL_INTERNAL
 #define STORE_RESULTS_FLAG 0x100
 #endif
 
@@ -101,6 +105,9 @@ static struct option long_options[] =
   {"dryrun", 0, 0, 'n'},
   {"exec", 1, 0, 'e'},
   {"feature", 1, 0, 'f'},
+#ifdef RASQAL_INTERNAL
+  {"engine", 1, 0, 'g'},
+#endif
   {"help", 0, 0, 'h'},
   {"input", 1, 0, 'i'},
   {"quiet", 0, 0, 'q'},
@@ -398,8 +405,9 @@ main(int argc, char *argv[])
 #ifdef RAPTOR_V2_AVAILABLE
   raptor_world* raptor_world_ptr;
 #endif
-#ifdef STORE_RESULTS_FLAG
+#ifdef RASQAL_INTERNAL
   int store_results= -1;
+  const rasqal_query_execution_factory* engine = NULL;
 #endif
   
   program=argv[0];
@@ -668,6 +676,12 @@ main(int argc, char *argv[])
         break;
 #endif
 
+#ifdef RASQAL_INTERNAL
+      case 'g':
+        engine = rasqal_query_get_engine_by_name(optarg);
+        break;
+#endif
+
     }
     
   }
@@ -768,6 +782,7 @@ main(int argc, char *argv[])
       printf("      %-15s         %s\n", query_output_format_labels[i][0],
              query_output_format_labels[i][1]);
     puts(HELP_TEXT("f FEATURE(=VALUE)", "feature FEATURE(=VALUE)", HELP_PAD "Set query features" HELP_PAD "Use `-f help' for a list of valid features"));
+    puts(HELP_TEXT("g", "engine NAME       ", "Pick execution engine NAME"));
     puts(HELP_TEXT("h", "help              ", "Print this help, then exit"));
     puts(HELP_TEXT("n", "dryrun            ", "Prepare but do not run the query"));
     puts(HELP_TEXT("q", "quiet             ", "No extra information messages"));
@@ -1042,7 +1057,13 @@ main(int argc, char *argv[])
   if(dryrun)
     goto tidy_query;
 
-  if(!(results=rasqal_query_execute(rq))) {
+#ifdef RASQAL_INTERNAL
+  results = rasqal_query_execute_with_engine(rq, engine);
+#else
+  results = rasqal_query_execute(rq);
+#endif
+
+  if(!results) {
     fprintf(stderr, "%s: Query execution failed\n", program);
     rc=1;
     goto tidy_query;
