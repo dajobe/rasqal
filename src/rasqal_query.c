@@ -97,14 +97,14 @@ rasqal_query*
 rasqal_new_query(rasqal_world *world, const char *name,
                  const unsigned char *uri)
 {
-  rasqal_query_engine_factory* factory;
+  rasqal_query_language_factory* factory;
   rasqal_query* query;
 #ifndef RAPTOR_V2_AVAILABLE
   const raptor_uri_handler *uri_handler;
   void *uri_context;
 #endif
 
-  factory=rasqal_get_query_engine_factory(world, name, uri);
+  factory=rasqal_get_query_language_factory(world, name, uri);
   if(!factory)
     return NULL;
 

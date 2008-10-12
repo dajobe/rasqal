@@ -83,7 +83,7 @@ int sparql_lexer_get_column(yyscan_t yyscanner);
 
 /* What the lexer wants */
 extern int sparql_lexer_lex (YYSTYPE *sparql_parser_lval, yyscan_t scanner);
-#define YYLEX_PARAM ((rasqal_sparql_query_engine*)(((rasqal_query*)rq)->context))->scanner
+#define YYLEX_PARAM ((rasqal_sparql_query_language*)(((rasqal_query*)rq)->context))->scanner
 
 /* Pure parser argument (a void*) */
 #define YYPARSE_PARAM rq
@@ -331,7 +331,7 @@ Query: Prologue ExplainOpt ReportFormat
 /* LAQRS */
 ExplainOpt: EXPLAIN
 {
-  rasqal_sparql_query_engine* sparql=(rasqal_sparql_query_engine*)(((rasqal_query*)rq)->context);
+  rasqal_sparql_query_language* sparql=(rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
 
   if(sparql->extended)
     ((rasqal_query*)rq)->explain=1;
@@ -516,7 +516,7 @@ SelectTerm: Var
 }
 | SelectExpression AS VarName
 {
-  rasqal_sparql_query_engine* sparql=(rasqal_sparql_query_engine*)(((rasqal_query*)rq)->context);
+  rasqal_sparql_query_language* sparql=(rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
 
   $$=NULL;
   if(!sparql->extended)
@@ -559,7 +559,7 @@ AggregateExpression: CountAggregateExpression
 
 CountAggregateExpression: COUNT '(' Expression ')'
 {
-  rasqal_sparql_query_engine* sparql=(rasqal_sparql_query_engine*)(((rasqal_query*)rq)->context);
+  rasqal_sparql_query_language* sparql=(rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
 
   if(!sparql->extended) {
     sparql_syntax_error((rasqal_query*)rq, "COUNT cannot be used with SPARQL");
@@ -572,7 +572,7 @@ CountAggregateExpression: COUNT '(' Expression ')'
 }
 | COUNT '(' '*' ')'
 {
-  rasqal_sparql_query_engine* sparql=(rasqal_sparql_query_engine*)(((rasqal_query*)rq)->context);
+  rasqal_sparql_query_language* sparql=(rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
 
   if(!sparql->extended) {
     sparql_syntax_error((rasqal_query*)rq, "COUNT cannot be used with SPARQL");
@@ -658,7 +658,7 @@ AskQuery: ASK
 DeleteQuery: DELETE
         DatasetClauseListOpt WhereClauseOpt
 {
-  rasqal_sparql_query_engine* sparql=(rasqal_sparql_query_engine*)(((rasqal_query*)rq)->context);
+  rasqal_sparql_query_language* sparql=(rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
 
   if(!sparql->extended)
     sparql_syntax_error((rasqal_query*)rq, "DELETE cannot be used with SPARQL");
@@ -670,7 +670,7 @@ DeleteQuery: DELETE
 InsertQuery: INSERT
         DatasetClauseListOpt WhereClauseOpt
 {
-  rasqal_sparql_query_engine* sparql=(rasqal_sparql_query_engine*)(((rasqal_query*)rq)->context);
+  rasqal_sparql_query_language* sparql=(rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
 
   if(!sparql->extended)
     sparql_syntax_error((rasqal_query*)rq, "INSERT cannot be used with SPARQL");
@@ -746,7 +746,7 @@ SolutionModifier: GroupClauseOpt OrderClauseOpt LimitOffsetClausesOpt
 /* LAQRS */
 GroupClauseOpt: GROUP BY OrderConditionList
 {
-  rasqal_sparql_query_engine* sparql=(rasqal_sparql_query_engine*)(((rasqal_query*)rq)->context);
+  rasqal_sparql_query_language* sparql=(rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
 
   if(!sparql->extended)
     sparql_syntax_error((rasqal_query*)rq, "GROUP BY cannot be used with SPARQL");
@@ -2673,13 +2673,13 @@ static int yy_init_globals (yyscan_t yyscanner ) { return 0; };
 
 
 /**
- * rasqal_sparql_query_engine_init - Initialise the SPARQL query engine
+ * rasqal_sparql_query_language_init - Initialise the SPARQL query engine
  *
  * Return value: non 0 on failure
  **/
 static int
-rasqal_sparql_query_engine_init(rasqal_query* rdf_query, const char *name) {
-  rasqal_sparql_query_engine* rqe=(rasqal_sparql_query_engine*)rdf_query->context;
+rasqal_sparql_query_language_init(rasqal_query* rdf_query, const char *name) {
+  rasqal_sparql_query_language* rqe=(rasqal_sparql_query_language*)rdf_query->context;
 
   rdf_query->compare_flags = RASQAL_COMPARE_XQUERY;
 
@@ -2689,13 +2689,13 @@ rasqal_sparql_query_engine_init(rasqal_query* rdf_query, const char *name) {
 
 
 /**
- * rasqal_sparql_query_engine_terminate - Free the SPARQL query engine
+ * rasqal_sparql_query_language_terminate - Free the SPARQL query engine
  *
  * Return value: non 0 on failure
  **/
 static void
-rasqal_sparql_query_engine_terminate(rasqal_query* rdf_query) {
-  rasqal_sparql_query_engine* sparql=(rasqal_sparql_query_engine*)rdf_query->context;
+rasqal_sparql_query_language_terminate(rasqal_query* rdf_query) {
+  rasqal_sparql_query_language* sparql=(rasqal_sparql_query_language*)rdf_query->context;
 
   if(sparql && sparql->scanner_set) {
     sparql_lexer_lex_destroy(sparql->scanner);
@@ -2706,8 +2706,8 @@ rasqal_sparql_query_engine_terminate(rasqal_query* rdf_query) {
 
 
 static int
-rasqal_sparql_query_engine_prepare(rasqal_query* rdf_query) {
-  /* rasqal_sparql_query_engine* sparql=(rasqal_sparql_query_engine*)rdf_query->context; */
+rasqal_sparql_query_language_prepare(rasqal_query* rdf_query) {
+  /* rasqal_sparql_query_language* sparql=(rasqal_sparql_query_language*)rdf_query->context; */
   int rc;
   
   if(!rdf_query->query_string)
@@ -2739,7 +2739,7 @@ rasqal_sparql_query_engine_prepare(rasqal_query* rdf_query) {
 
 static int
 sparql_parse(rasqal_query* rq) {
-  rasqal_sparql_query_engine* rqe=(rasqal_sparql_query_engine*)rq->context;
+  rasqal_sparql_query_language* rqe=(rasqal_sparql_query_language*)rq->context;
   raptor_locator *locator=&rq->locator;
   void *buffer;
 
@@ -2781,7 +2781,7 @@ sparql_parse(rasqal_query* rq) {
 
 static void
 sparql_query_error(rasqal_query *rq, const char *msg) {
-  rasqal_sparql_query_engine* rqe=(rasqal_sparql_query_engine*)rq->context;
+  rasqal_sparql_query_language* rqe=(rasqal_sparql_query_language*)rq->context;
 
   if(rqe->error_count++)
     return;
@@ -2800,7 +2800,7 @@ sparql_query_error(rasqal_query *rq, const char *msg) {
 static void
 sparql_query_error_full(rasqal_query *rq, const char *message, ...) {
   va_list arguments;
-  rasqal_sparql_query_engine* rqe=(rasqal_sparql_query_engine*)rq->context;
+  rasqal_sparql_query_language* rqe=(rasqal_sparql_query_language*)rq->context;
 
   if(rqe->error_count++)
     return;
@@ -2823,7 +2823,7 @@ sparql_query_error_full(rasqal_query *rq, const char *message, ...) {
 int
 sparql_syntax_error(rasqal_query *rq, const char *message, ...)
 {
-  rasqal_sparql_query_engine *rqe=(rasqal_sparql_query_engine*)rq->context;
+  rasqal_sparql_query_language *rqe=(rasqal_sparql_query_language*)rq->context;
   va_list arguments;
 
   if(rqe->error_count++)
@@ -2847,7 +2847,7 @@ sparql_syntax_error(rasqal_query *rq, const char *message, ...)
 int
 sparql_syntax_warning(rasqal_query *rq, const char *message, ...)
 {
-  rasqal_sparql_query_engine *rqe=(rasqal_sparql_query_engine*)rq->context;
+  rasqal_sparql_query_language *rqe=(rasqal_sparql_query_language*)rq->context;
   va_list arguments;
 
   rq->locator.line=rqe->lineno;
@@ -2865,7 +2865,7 @@ sparql_syntax_warning(rasqal_query *rq, const char *message, ...)
 
 
 static int
-rasqal_sparql_query_engine_iostream_write_escaped_counted_string(rasqal_query* query,
+rasqal_sparql_query_language_iostream_write_escaped_counted_string(rasqal_query* query,
                                                                  raptor_iostream* iostr,
                                                                  const unsigned char* string,
                                                                  size_t len)
@@ -2883,35 +2883,35 @@ rasqal_sparql_query_engine_iostream_write_escaped_counted_string(rasqal_query* q
 
 
 static void
-rasqal_sparql_query_engine_register_factory(rasqal_query_engine_factory *factory)
+rasqal_sparql_query_language_register_factory(rasqal_query_language_factory *factory)
 {
-  factory->context_length = sizeof(rasqal_sparql_query_engine);
+  factory->context_length = sizeof(rasqal_sparql_query_language);
 
-  factory->init      = rasqal_sparql_query_engine_init;
-  factory->terminate = rasqal_sparql_query_engine_terminate;
-  factory->prepare   = rasqal_sparql_query_engine_prepare;
-  factory->iostream_write_escaped_counted_string = rasqal_sparql_query_engine_iostream_write_escaped_counted_string;
+  factory->init      = rasqal_sparql_query_language_init;
+  factory->terminate = rasqal_sparql_query_language_terminate;
+  factory->prepare   = rasqal_sparql_query_language_prepare;
+  factory->iostream_write_escaped_counted_string = rasqal_sparql_query_language_iostream_write_escaped_counted_string;
 }
 
 
 int
-rasqal_init_query_engine_sparql(rasqal_world* world) {
-  return rasqal_query_engine_register_factory(world,
-                                              "sparql", 
-                                              "SPARQL W3C DAWG RDF Query Language",
-                                              NULL,
-                                              (const unsigned char*)"http://www.w3.org/TR/rdf-sparql-query/",
-                                              &rasqal_sparql_query_engine_register_factory);
+rasqal_init_query_language_sparql(rasqal_world* world) {
+  return rasqal_query_language_register_factory(world,
+                                                "sparql", 
+                                                "SPARQL W3C DAWG RDF Query Language",
+                                                NULL,
+                                                (const unsigned char*)"http://www.w3.org/TR/rdf-sparql-query/",
+                                                &rasqal_sparql_query_language_register_factory);
 }
 
 int
-rasqal_init_query_engine_laqrs(rasqal_world* world) {
-  return rasqal_query_engine_register_factory(world,
-                                             "laqrs", 
-                                             "LAQRS adds to Querying RDF in SPARQL",
-                                             NULL,
-                                             NULL,
-                                             &rasqal_sparql_query_engine_register_factory);
+rasqal_init_query_language_laqrs(rasqal_world* world) {
+  return rasqal_query_language_register_factory(world,
+                                                "laqrs", 
+                                                "LAQRS adds to Querying RDF in SPARQL",
+                                                NULL,
+                                                NULL,
+                                                &rasqal_sparql_query_language_register_factory);
 }
 
 

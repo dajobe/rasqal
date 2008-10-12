@@ -36,7 +36,7 @@ int rdql_syntax_warning(rasqal_query *rq, const char *message, ...) RASQAL_PRINT
 int rdql_query_lex(void);
 
 
-struct rasqal_rdql_query_engine_s {
+struct rasqal_rdql_query_language_s {
   /* STATIC lexer */
   yyscan_t scanner;
 
@@ -53,7 +53,7 @@ struct rasqal_rdql_query_engine_s {
 };
 
 
-typedef struct rasqal_rdql_query_engine_s rasqal_rdql_query_engine;
+typedef struct rasqal_rdql_query_language_s rasqal_rdql_query_language;
 
 
 #ifdef __cplusplus

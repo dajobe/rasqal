@@ -294,7 +294,7 @@ EXPONENT [eE][+-]?[0-9]+
 
   int c;
   rasqal_query *rq=(rasqal_query*)yyextra;
-  rasqal_sparql_query_engine *rqe=(rasqal_sparql_query_engine*)rq->context;
+  rasqal_sparql_query_language *rqe=(rasqal_sparql_query_language*)rq->context;
 
 #ifdef HAVE_SETJMP
   if(setjmp(sparql_lexer_fatal_error_longjmp_env))
@@ -888,7 +888,7 @@ sparql_copy_string_token(rasqal_query* rq, YYSTYPE* lval,
 
 static int
 sparql_skip_c_comment(rasqal_query *rq) {
-  rasqal_sparql_query_engine *rqe=(rasqal_sparql_query_engine*)rq->context;
+  rasqal_sparql_query_language *rqe=(rasqal_sparql_query_language*)rq->context;
   yyscan_t yyscanner=rqe->scanner;
   int lines=0;
   int c;
@@ -1508,7 +1508,7 @@ main(int argc, char *argv[])
   const char *program=rasqal_basename(argv[0]);
   char *query_string=NULL;
   rasqal_query rq;
-  rasqal_sparql_query_engine sparql;
+  rasqal_sparql_query_language sparql;
   yyscan_t scanner;
   int token=EOF;
   YYSTYPE lval;
@@ -1544,7 +1544,7 @@ main(int argc, char *argv[])
 
   memset(&rq, 0, sizeof(rasqal_query));
   rq.world=world;
-  memset(&sparql, 0, sizeof(rasqal_sparql_query_engine));
+  memset(&sparql, 0, sizeof(rasqal_sparql_query_language));
 
   yylex_init(&sparql.scanner);
   scanner=sparql.scanner;

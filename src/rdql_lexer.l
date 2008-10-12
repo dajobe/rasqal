@@ -170,7 +170,7 @@ QUOTEDURI \<[A-Za-z][^>]+\>
 
   int c;
   rasqal_query *rq=(rasqal_query*)yyextra;
-  rasqal_rdql_query_engine *rqe=(rasqal_rdql_query_engine*)rq->context;
+  rasqal_rdql_query_language *rqe=(rasqal_rdql_query_language*)rq->context;
 
 #ifdef HAVE_SETJMP
   if(setjmp(rdql_lexer_fatal_error_longjmp_env))
@@ -398,7 +398,7 @@ rdql_copy_qname(rasqal_query *rq, const unsigned char *text, size_t len) {
 
 static int
 rdql_copy_regex_token(rasqal_query* rq, YYSTYPE* lval, unsigned char delim) {
-  rasqal_rdql_query_engine *rqe=(rasqal_rdql_query_engine*)rq->context;
+  rasqal_rdql_query_language *rqe=(rasqal_rdql_query_language*)rq->context;
   yyscan_t yyscanner=rqe->scanner;
   unsigned int ind=0;
   size_t buffer_len=0;
@@ -616,7 +616,7 @@ rdql_copy_string_token(rasqal_query* rq, YYSTYPE* lval,
 
 static int
 rdql_skip_c_comment(rasqal_query *rq) {
-  rasqal_rdql_query_engine *rqe=(rasqal_rdql_query_engine*)rq->context;
+  rasqal_rdql_query_language *rqe=(rasqal_rdql_query_language*)rq->context;
   yyscan_t yyscanner=rqe->scanner;
   int lines=0;
   int c;
@@ -1128,7 +1128,7 @@ main(int argc, char *argv[])
   const char *program=rasqal_basename(argv[0]);
   char *query_string=NULL;
   rasqal_query rq;
-  rasqal_rdql_query_engine rdql;
+  rasqal_rdql_query_language rdql;
   yyscan_t scanner;
   int token=EOF;
   YYSTYPE lval;
@@ -1164,7 +1164,7 @@ main(int argc, char *argv[])
 
   memset(&rq, 0, sizeof(rasqal_query));
   rq.world=world;
-  memset(&rdql, 0, sizeof(rasqal_rdql_query_engine));
+  memset(&rdql, 0, sizeof(rasqal_rdql_query_language));
 
   yylex_init(&rdql.scanner);
   scanner=rdql.scanner;

@@ -191,7 +191,7 @@ void rasqal_system_free(void *ptr);
 
 
 typedef struct rasqal_query_execution_factory_s rasqal_query_execution_factory;
-typedef struct rasqal_query_engine_factory_s rasqal_query_engine_factory;
+typedef struct rasqal_query_language_factory_s rasqal_query_language_factory;
 typedef struct rasqal_variables_table_s rasqal_variables_table;
 
 
@@ -327,7 +327,7 @@ struct rasqal_query_s {
   /* query engine specific stuff */
   void* context;
 
-  struct rasqal_query_engine_factory_s* factory;
+  struct rasqal_query_language_factory_s* factory;
 
   rasqal_triples_source_factory* triples_source_factory;
 
@@ -379,14 +379,14 @@ struct rasqal_query_s {
 
 
 /*
- * A query engine factory for a query language.
+ * A query language factory for a query language.
  *
  * This structure is about turning a query syntax string into a
  * #rasqal_query structure.  It does not deal with execution of the
  * query in any manner.
  */
-struct rasqal_query_engine_factory_s {
-  struct rasqal_query_engine_factory_s* next;
+struct rasqal_query_language_factory_s {
+  struct rasqal_query_language_factory_s* next;
 
   /* query language name */
   const char* name;
@@ -404,7 +404,7 @@ struct rasqal_query_engine_factory_s {
   const unsigned char* uri_string;
   
   /* the rest of this structure is populated by the
-     query-engine-specific register function */
+     query-language-specific register function */
   size_t context_length;
   
   /* create a new query */
@@ -416,8 +416,8 @@ struct rasqal_query_engine_factory_s {
   /* prepare a query */
   int (*prepare)(rasqal_query* rq);
   
-  /* finish the query engine factory */
-  void (*finish_factory)(rasqal_query_engine_factory* factory);
+  /* finish the query language factory */
+  void (*finish_factory)(rasqal_query_language_factory* factory);
 
   /* Write a string to an iostream in escaped form suitable for the query */
   int (*iostream_write_escaped_counted_string)(rasqal_query* rq, raptor_iostream* iostr, const unsigned char* string, size_t len);
@@ -689,8 +689,8 @@ int rasqal_xsd_datetime_check(const unsigned char* string);
 /* rasqal_general.c */
 char* rasqal_vsnprintf(const char* message, va_list arguments);
 
-int rasqal_query_engine_register_factory(rasqal_world*, const char* name, const char* label, const char* alias, const unsigned char* uri_string, void (*factory) (rasqal_query_engine_factory*));
-rasqal_query_engine_factory* rasqal_get_query_engine_factory (rasqal_world*, const char* name, const unsigned char* uri);
+int rasqal_query_language_register_factory(rasqal_world*, const char* name, const char* label, const char* alias, const unsigned char* uri_string, void (*factory) (rasqal_query_language_factory*));
+rasqal_query_language_factory* rasqal_get_query_language_factory (rasqal_world*, const char* name, const unsigned char* uri);
 void rasqal_log_error_simple(rasqal_world* world, raptor_log_level level, raptor_locator* locator, const char* message, ...) RASQAL_PRINTF_FORMAT(4, 5);
 void rasqal_log_error_varargs(rasqal_world* world, raptor_log_level level, raptor_locator* locator, const char* message, va_list arguments) RASQAL_PRINTF_FORMAT(4, 0);
 void rasqal_log_error(raptor_log_level level, raptor_message_handler handler, void* handler_data, raptor_locator* locator, const char* message);
@@ -707,11 +707,11 @@ rasqal_graph_pattern* rasqal_new_basic_graph_pattern_from_formula(rasqal_query* 
 rasqal_graph_pattern* rasqal_new_2_group_graph_pattern(rasqal_query* query, rasqal_graph_pattern* first_gp, rasqal_graph_pattern* second_gp);
 
 /* rdql_parser.y */
-int rasqal_init_query_engine_rdql(rasqal_world*);
+int rasqal_init_query_language_rdql(rasqal_world*);
 
 /* sparql_parser.y */
-int rasqal_init_query_engine_sparql(rasqal_world*);
-int rasqal_init_query_engine_laqrs(rasqal_world*);
+int rasqal_init_query_language_sparql(rasqal_world*);
+int rasqal_init_query_language_laqrs(rasqal_world*);
 
 /* rasqal_query_transform.c */
 int rasqal_query_expand_triple_qnames(rasqal_query* rq);
@@ -887,8 +887,8 @@ struct rasqal_world_s {
   /* error handlers structure */
   raptor_error_handlers error_handlers;
 
-  /* linked list of query engines */
-  rasqal_query_engine_factory *query_engines;
+  /* linked list of query languages */
+  rasqal_query_language_factory *query_languages;
 
   /* registered query results formats */
   raptor_sequence *query_results_formats;

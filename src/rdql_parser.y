@@ -70,7 +70,7 @@ int rdql_lexer_get_column(yyscan_t yyscanner);
 
 /* What the lexer wants */
 extern int rdql_lexer_lex (YYSTYPE *rdql_parser_lval, yyscan_t scanner);
-#define YYLEX_PARAM ((rasqal_rdql_query_engine*)(((rasqal_query*)rq)->context))->scanner
+#define YYLEX_PARAM ((rasqal_rdql_query_language*)(((rasqal_query*)rq)->context))->scanner
 
 /* Pure parser argument (a void*) */
 #define YYPARSE_PARAM rq
@@ -224,7 +224,7 @@ Query : SELECT SelectClause SourceClause WHERE TriplePatternList ConstraintClaus
 
   /* $6 (expression): ConstraintClause */
   if($6) {
-    rasqal_rdql_query_engine* rdql=(rasqal_rdql_query_engine*)((rasqal_query*)rq)->context;
+    rasqal_rdql_query_language* rdql=(rasqal_rdql_query_language*)((rasqal_query*)rq)->context;
     rdql->constraint_expression=$6;
   }
 
@@ -631,13 +631,13 @@ static int yy_init_globals (yyscan_t yyscanner ) { return 0; };
 
 
 /**
- * rasqal_rdql_query_engine_init - Initialise the RDQL query engine
+ * rasqal_rdql_query_language_init - Initialise the RDQL query language
  *
  * Return value: non 0 on failure
  **/
 static int
-rasqal_rdql_query_engine_init(rasqal_query* rdf_query, const char *name) {
-  /* rasqal_rdql_query_engine* rdql=(rasqal_rdql_query_engine*)rdf_query->context; */
+rasqal_rdql_query_language_init(rasqal_query* rdf_query, const char *name) {
+  /* rasqal_rdql_query_language* rdql=(rasqal_rdql_query_language*)rdf_query->context; */
 
   /* Initialise rdf, rdfs, owl and xsd prefixes and namespaces */
   raptor_namespaces_start_namespace_full(rdf_query->namespaces, 
@@ -660,13 +660,13 @@ rasqal_rdql_query_engine_init(rasqal_query* rdf_query, const char *name) {
 
 
 /**
- * rasqal_rdql_query_engine_terminate - Free the RDQL query engine
+ * rasqal_rdql_query_language_terminate - Free the RDQL query language
  *
  * Return value: non 0 on failure
  **/
 static void
-rasqal_rdql_query_engine_terminate(rasqal_query* rdf_query) {
-  rasqal_rdql_query_engine* rdql=(rasqal_rdql_query_engine*)rdf_query->context;
+rasqal_rdql_query_language_terminate(rasqal_query* rdf_query) {
+  rasqal_rdql_query_language* rdql=(rasqal_rdql_query_language*)rdf_query->context;
 
   if(rdql->scanner_set) {
     rdql_lexer_lex_destroy(rdql->scanner);
@@ -677,8 +677,8 @@ rasqal_rdql_query_engine_terminate(rasqal_query* rdf_query) {
 
 
 static int
-rasqal_rdql_query_engine_prepare(rasqal_query* rdf_query) {
-  rasqal_rdql_query_engine* rdql=(rasqal_rdql_query_engine*)rdf_query->context;
+rasqal_rdql_query_language_prepare(rasqal_query* rdf_query) {
+  rasqal_rdql_query_language* rdql=(rasqal_rdql_query_language*)rdf_query->context;
   int rc;
   rasqal_graph_pattern *gp;
   
@@ -725,7 +725,7 @@ rasqal_rdql_query_engine_prepare(rasqal_query* rdf_query) {
 
 static int
 rdql_parse(rasqal_query* rq) {
-  rasqal_rdql_query_engine* rqe=(rasqal_rdql_query_engine*)rq->context;
+  rasqal_rdql_query_language* rqe=(rasqal_rdql_query_language*)rq->context;
   raptor_locator *locator=&rq->locator;
   void *buffer;
   
@@ -766,7 +766,7 @@ rdql_parse(rasqal_query* rq) {
 
 void
 rdql_query_error(rasqal_query *rq, const char *msg) {
-  rasqal_rdql_query_engine* rqe=(rasqal_rdql_query_engine*)rq->context;
+  rasqal_rdql_query_language* rqe=(rasqal_rdql_query_language*)rq->context;
 
   if(rqe->error_count++)
     return;
@@ -787,7 +787,7 @@ rdql_query_error(rasqal_query *rq, const char *msg) {
 int
 rdql_syntax_error(rasqal_query *rq, const char *message, ...)
 {
-  rasqal_rdql_query_engine *rqe=(rasqal_rdql_query_engine*)rq->context;
+  rasqal_rdql_query_language *rqe=(rasqal_rdql_query_language*)rq->context;
   va_list arguments;
 
   if(rqe->error_count++)
@@ -811,7 +811,7 @@ rdql_syntax_error(rasqal_query *rq, const char *message, ...)
 int
 rdql_syntax_warning(rasqal_query *rq, const char *message, ...)
 {
-  rasqal_rdql_query_engine *rqe=(rasqal_rdql_query_engine*)rq->context;
+  rasqal_rdql_query_language *rqe=(rasqal_rdql_query_language*)rq->context;
   va_list arguments;
 
   rq->locator.line=rqe->lineno;
@@ -829,26 +829,26 @@ rdql_syntax_warning(rasqal_query *rq, const char *message, ...)
 
 
 static void
-rasqal_rdql_query_engine_register_factory(rasqal_query_engine_factory *factory)
+rasqal_rdql_query_language_register_factory(rasqal_query_language_factory *factory)
 {
-  factory->context_length = sizeof(rasqal_rdql_query_engine);
+  factory->context_length = sizeof(rasqal_rdql_query_language);
 
-  factory->init      = rasqal_rdql_query_engine_init;
-  factory->terminate = rasqal_rdql_query_engine_terminate;
-  factory->prepare   = rasqal_rdql_query_engine_prepare;
+  factory->init      = rasqal_rdql_query_language_init;
+  factory->terminate = rasqal_rdql_query_language_terminate;
+  factory->prepare   = rasqal_rdql_query_language_prepare;
 }
 
 
 int
-rasqal_init_query_engine_rdql (rasqal_world* world) {
+rasqal_init_query_language_rdql(rasqal_world* world) {
   /* http://www.w3.org/Submission/2004/SUBM-RDQL-20040109/ */
 
-  return rasqal_query_engine_register_factory(world,
-                                              "rdql", 
-                                              "RDF Data Query Language (RDQL)",
-                                              NULL,
-                                              (const unsigned char*)"http://jena.hpl.hp.com/2003/07/query/RDQL",
-                                              &rasqal_rdql_query_engine_register_factory);
+  return rasqal_query_language_register_factory(world,
+                                                "rdql", 
+                                                "RDF Data Query Language (RDQL)",
+                                                NULL,
+                                                (const unsigned char*)"http://jena.hpl.hp.com/2003/07/query/RDQL",
+                                                &rasqal_rdql_query_language_register_factory);
 }
 
 
