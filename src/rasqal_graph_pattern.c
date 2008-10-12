@@ -231,9 +231,10 @@ rasqal_graph_pattern_set_filter_expression(rasqal_graph_pattern* gp,
 {
   if(gp->filter_expression)
     rasqal_free_expression(gp->filter_expression);
-  gp->filter_expression=expr;
+  gp->filter_expression = expr;
   return 0;
 }
+
 
 /**
  * rasqal_graph_pattern_get_filter_expression:
