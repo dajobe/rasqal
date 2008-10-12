@@ -587,7 +587,8 @@ rasqal_query_results_ensure_have_row_internal(rasqal_query_results* query_result
       query_results->row = query_results->execution_factory->get_row(query_results->execution_data, &execution_error);
       if(execution_error == RASQAL_ENGINE_FAILED)
         query_results->failed = 1;
-
+      else if(execution_error == RASQAL_ENGINE_OK)
+        query_results->result_count++;
     }
   }
   
