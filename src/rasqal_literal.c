@@ -258,7 +258,7 @@ rasqal_new_uri_literal(rasqal_world* world, raptor_uri *uri)
  *
  * The pattern and flags are input parameters and are stored in the
  * literal, not copied. They are freed also on failure.
- * The set of flags recognised depends on the regex engine and the query
+ * The set of flags recognised depends on the regex library and the query
  * language.
  * 
  * Return value: New #rasqal_literal or NULL on failure
