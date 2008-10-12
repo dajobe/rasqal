@@ -401,6 +401,13 @@ rasqal_new_triples_rowsource(rasqal_query *query,
 /* one more prototype */
 int main(int argc, char *argv[]);
 
+#define QUERY_LANGUAGE "sparql"
+#define QUERY_FORMAT "\
+SELECT ?s ?p ?o \
+FROM <%s> \
+WHERE { ?s ?p ?o }\
+"
+
 int
 main(int argc, char *argv[]) 
 {
@@ -408,20 +415,59 @@ main(int argc, char *argv[])
   rasqal_rowsource *rowsource = NULL;
   rasqal_world *world;
   rasqal_query *query;
-  const unsigned char *query_string=(const unsigned char *)"SELECT ?s ?p ?o WHERE { ?s ?p ?o } ";
+  const char *query_language_name = QUERY_LANGUAGE;
+  const char *query_format = QUERY_FORMAT;
+  unsigned char *query_string;
   int failures = 0;
   int start_column;
   int end_column;
-
+  int rc;
+  raptor_sequence* triples;
+  rasqal_triples_source* triples_source;
+  raptor_uri *base_uri = NULL;
+  unsigned char *data_string = NULL;
+  unsigned char *uri_string = NULL;
+  /* <http://example.org#subject> <http://example.org#predicate> "object" . */
+#define SUBJECT_URI_STRING (const unsigned char*)"http://example.org#subject"
+#define PREDICATE_URI_STRING (const unsigned char*)"http://example.org#predicate"
+#define OBJECT_STRING "object"
+  raptor_uri* s_uri = NULL;
+  raptor_uri* p_uri = NULL;
+  
   world = rasqal_new_world();
+  if(!world || rasqal_world_open(world)) {
+    fprintf(stderr, "%s: rasqal_world init failed\n", program);
+    return(1);
+  }
+  
+  if(argc != 2) {
+    fprintf(stderr, "USAGE: %s data-filename\n", program);
+    return(1);
+  }
+    
+  data_string=raptor_uri_filename_to_uri_string(argv[1]);
+  query_string=(unsigned char*)RASQAL_MALLOC(cstring, strlen((const char*)data_string)+strlen(query_format)+1);
+  sprintf((char*)query_string, query_format, data_string);
+  raptor_free_memory(data_string);
+  
+  uri_string=raptor_uri_filename_to_uri_string("");
+#ifdef RAPTOR_V2_AVAILABLE
+  base_uri = raptor_new_uri_v2(world->raptor_world_ptr, uri_string);  
+#else
+  base_uri = raptor_new_uri(uri_string);  
+#endif
+  raptor_free_memory(uri_string);
 
-  query = rasqal_new_query(world, "sparql", NULL);
+  query = rasqal_new_query(world, query_language_name, NULL);
   if(!query) {
+    fprintf(stderr, "%s: creating query in language %s FAILED\n", program,
+            query_language_name);
     failures++;
     goto tidy;
   }
 
-  rc = rasqal_query_prepare(query, query_string, NULL);
+  printf("%s: preparing %s query\n", program, query_language_name);
+  rc = rasqal_query_prepare(query, query_string, base_uri);
   if(rc) {
     fprintf(stderr, "%s: failed to prepare query '%s'\n", program,
             query_string);
@@ -429,20 +475,28 @@ main(int argc, char *argv[])
     goto tidy;
   }
   
+  RASQAL_FREE(cstring, query_string);
+  query_string = NULL;
+
   triples = rasqal_query_get_triple_sequence(query);
   start_column = 0;
   end_column = 0;
+
+  triples_source = rasqal_new_triples_source(query);
   
-  rowsource = rasqal_new_triples_rowsource(query, triples,
-                                           start_column, end_column);
+  rowsource = rasqal_new_triples_rowsource(query, triples_source,
+                                           triples, start_column, end_column);
   if(!rowsource) {
-    fprintf(stderr, "%s: failed to create emtpy rowsource\n", program);
+    fprintf(stderr, "%s: failed to create triples rowsource\n", program);
     failures++;
     goto tidy;
   }
 
   while(1) {
     rasqal_row* row;
+    rasqal_literal *s;
+    rasqal_literal *p;
+    rasqal_literal *o;
 
     row = rasqal_rowsource_read_row(rowsource);
     if(!row)
@@ -454,14 +508,63 @@ main(int argc, char *argv[])
     fputc('\n', stderr);
   #endif
 
+#ifdef RAPTOR_V2_AVAILABLE
+    s_uri = raptor_new_uri_v2(world->raptor_world_ptr, SUBJECT_URI_STRING);
+    p_uri = raptor_new_uri_v2(world->raptor_world_ptr, PREDICATE_URI_STRING);
+#else
+    s_uri = raptor_new_uri(SUBJECT_URI_STRING);
+    p_uri = raptor_new_uri(PREDICATE_URI_STRING);
+#endif
+    
+    s = row->values[0];
+    if(!s ||
+       (s && s->type != RASQAL_LITERAL_URI) ||
+       !raptor_uri_equals(s->value.uri, s_uri)) {
+      fprintf(stderr, "%s: 's' is bound to %s not URI %s\n", program,
+              rasqal_literal_as_string(s), raptor_uri_as_string(s_uri));
+      failures++;
+    }
+    p = row->values[1];
+    if(!p ||
+       (p && p->type != RASQAL_LITERAL_URI) ||
+       !raptor_uri_equals(p->value.uri, p_uri)) {
+      fprintf(stderr, "%s: 'p' is bound to %s not URI %s\n", program,
+              rasqal_literal_as_string(p), raptor_uri_as_string(p_uri));
+      failures++;
+    }
+    o = row->values[2];
+    if(!o ||
+       (o && o->type != RASQAL_LITERAL_STRING) ||
+       strcmp((const char*)o->string, OBJECT_STRING)) {
+      fprintf(stderr, "%s: 'o' is bound to %s not string '%s'\n", program,
+              rasqal_literal_as_string(o), OBJECT_STRING);
+      failures++;
+    }
+
     rasqal_free_row(row);
+    if(failures)
+      break;
   }
 
   tidy:
+#ifdef RAPTOR_V2_AVAILABLE
+  raptor_free_uri_v2(world->raptor_world_ptr, base_uri);
+  if(s_uri)
+    raptor_free_uri_v2(world->raptor_world_ptr, s_uri);
+  if(p_uri)
+    raptor_free_uri_v2(world->raptor_world_ptr, p_uri);
+#else
+  raptor_free_uri(base_uri);
+  if(s_uri)
+    raptor_free_uri(s_uri);
+  if(p_uri)
+    raptor_free_uri(p_uri);
+#endif
+
+  if(triples_source)
+    rasqal_free_triples_source(triples_source);
   if(rowsource)
     rasqal_free_rowsource(rowsource);
-  if(triples)
-    rasqal_free_sequence(triples);
   if(query)
     rasqal_free_query(query);
 
