@@ -27,12 +27,14 @@ only.
 @uri: 
 @declared: 
 @depth: 
+@world: 
 
 <!-- ##### FUNCTION rasqal_new_prefix ##### -->
 <para>
 
 </para>
 
+@world: 
 @prefix: 
 @uri: 
 @Returns: 

@@ -130,6 +130,7 @@ their names, labels and URI.
 
 </para>
 
+@world: 
 @uri: 
 @Returns: 
 
@@ -148,6 +149,7 @@ their names, labels and URI.
 
 </para>
 
+@world: 
 @feature: 
 @name: 
 @uri: 
