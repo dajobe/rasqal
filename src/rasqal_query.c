@@ -1950,7 +1950,7 @@ rasqal_query_write_sparql_graph_pattern(sparql_writer_context *wc,
       if(sgp->op != RASQAL_GRAPH_PATTERN_OPERATOR_FILTER)
         continue;
 
-      expr=rasqal_graph_pattern_get_constraint(sgp, 0);
+      expr = rasqal_graph_pattern_get_filter_expression(sgp);
 
       rasqal_query_write_indent(iostr, indent);
       raptor_iostream_write_counted_string(iostr, "FILTER( ", 8);
