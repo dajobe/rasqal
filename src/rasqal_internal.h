@@ -727,9 +727,6 @@ int rasqal_query_merge_graph_patterns(rasqal_query* query, rasqal_graph_pattern*
 int rasqal_graph_patterns_join(rasqal_graph_pattern *dest_gp, rasqal_graph_pattern *src_gp);
 int rasqal_graph_pattern_move_constraints(rasqal_graph_pattern* dest_gp, rasqal_graph_pattern* src_gp);
 
-/* rasqal_engine.c */
-rasqal_graph_pattern* rasqal_engine_group_2_graph_patterns(rasqal_query* query, rasqal_graph_pattern* first_gp, rasqal_graph_pattern* second_gp);
-
 /* rasqal_expr.c */
 rasqal_literal* rasqal_new_string_literal_node(rasqal_world*, const unsigned char *string, const char *language, raptor_uri *datatype);
 int rasqal_literal_as_boolean(rasqal_literal* literal, int* error);
@@ -829,6 +826,7 @@ void rasqal_query_set_base_uri(rasqal_query* rq, raptor_uri* base_uri);
 void rasqal_query_set_store_results(rasqal_query* query, int store_results);
 #endif
 rasqal_variable* rasqal_query_get_variable_by_offset(rasqal_query* query, int idx);
+const rasqal_query_execution_factory* rasqal_query_get_engine_by_name(const char* name);
 
 /* rasqal_query_results.c */
 int rasqal_init_query_results(void);
@@ -1084,8 +1082,16 @@ struct rasqal_query_execution_factory_s {
 };
 
 
-/* Original Rasqal 0.9.16 query engine */
+/* rasqal_engine.c */
+
+/* Original Rasqal 0.9.16 query engine executing over graph patterns */
 extern const rasqal_query_execution_factory rasqal_query_engine_1;
+
+
+/* rasqal_engine_algebra.c */
+
+/* New query engine based on executing over query algebra */
+extern const rasqal_query_execution_factory rasqal_query_engine_algebra;
   
 
 /* end of RASQAL_INTERNAL */
