@@ -54,7 +54,7 @@ run-rasqal-tests: $(local_tests)
 	  elif test -f $$tst; then dir=; \
 	  else dir="$(top_srcdir)/"; fi; \
 	  arg="$(top_srcdir)/data/"; \
-	  if test $$tst == rasqal_limit_test; then \
+	  if test $$tst == rasqal_limit_test$(EXEEXT); then \
 	    arg="$$arg/letters.nt"; \
 	  fi; \
 	  if $${dir}$$tst $$arg; then \
