@@ -166,7 +166,7 @@ rasqal_new_filter_graph_pattern(rasqal_query* query,
     return NULL;
   }
   
-  if(rasqal_graph_pattern_add_constraint(gp, expr)) {
+  if(rasqal_graph_pattern_set_filter_expression(gp, expr)) {
     rasqal_free_graph_pattern(gp);
     gp=NULL;
   }
