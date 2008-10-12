@@ -91,6 +91,12 @@
  */
 
 
+#if 0
+#undef RASQAL_DEBUG
+#define RASQAL_DEBUG 2
+#endif
+
+
 #define DEBUG_FH stderr
 
 
