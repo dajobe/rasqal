@@ -257,7 +257,7 @@ rasqal_graph_pattern_get_filter_expression(rasqal_graph_pattern* gp)
  *
  * Add a constraint expression to the graph_pattern.
  *
- * @deprecated: Use rasqal_graph_pattern_get_filter_expression()
+ * @deprecated: Use rasqal_graph_pattern_set_filter_expression()
  *
  * Return value: non-0 on failure
  **/
