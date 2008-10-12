@@ -1159,10 +1159,12 @@ rasqal_query_get_engine_by_name(const char* name)
 {
   const rasqal_query_execution_factory* engine = &rasqal_query_engine_1;
 
-  if(!strcmp(name, "1") || !strcmp(name, "original"))
-    engine = &rasqal_query_engine_1;
-  else if(!strcmp(name, "2") || !strcmp(name, "algebra"))
-    engine = &rasqal_query_engine_algebra;
+  if(name) {
+    if(!strcmp(name, "1") || !strcmp(name, "original"))
+      engine = &rasqal_query_engine_1;
+    else if(!strcmp(name, "2") || !strcmp(name, "algebra"))
+      engine = &rasqal_query_engine_algebra;
+  }
 
   return engine;
 }
