@@ -34,10 +34,10 @@ strcasecmp_test$(EXEEXT) rasqal_xsd_datatypes_test$(EXEEXT)	\
 rasqal_decimal_test$(EXEEXT) rasqal_datetime_test$(EXEEXT)	\
 rasqal_variable_test$(EXEEXT) rasqal_rowsource_empty_test$(EXEEXT) \
 rasqal_rowsource_union_test$(EXEEXT) \
-rasqal_rowsource_rowsequence_test$(EXEEXT) \
-rasqal_rowsource_triples_test$(EXEEXT)
+rasqal_rowsource_rowsequence_test$(EXEEXT)
 
-local_tests=rasqal_query_test$(EXEEXT)
+local_tests=rasqal_query_test$(EXEEXT) \
+rasqal_rowsource_triples_test$(EXEEXT)
 if RASQAL_QUERY_RDQL
 local_tests += rdql_lexer_test$(EXEEXT) rdql_parser_test$(EXEEXT)
 endif
@@ -134,7 +134,8 @@ endif
 
 
 # These are compiled here and used elsewhere for running tests
-check-local: $(local_tests) run-rasqal-query-test
+check-local: $(local_tests) run-rasqal-query-test \
+run-rasqal-rowsource_triples-test
 
 run-rasqal-query-test: rasqal_query_test
 	@tst=rasqal_query_test; \
@@ -143,6 +144,20 @@ run-rasqal-query-test: rasqal_query_test
 	elif test -f $$tst; then dir=; \
 	else dir="$(top_srcdir)/"; fi; \
 	if $${dir}$$tst $(top_srcdir)/data/dc.rdf; then \
+	  echo "PASS: $$tst"; \
+	else \
+	  echo "FAIL: $$tst"; \
+	  status=1; \
+	fi; \
+	exit $$status
+
+run-rasqal-rowsource_triples-test: rasqal_rowsource_triples_test
+	@tst=rasqal_rowsource_triples_test; \
+	status=0; \
+	if test -f ./$$tst; then dir=./; \
+	elif test -f $$tst; then dir=; \
+	else dir="$(top_srcdir)/"; fi; \
+	if $${dir}$$tst $(top_srcdir)/data/one.nt; then \
 	  echo "PASS: $$tst"; \
 	else \
 	  echo "FAIL: $$tst"; \
