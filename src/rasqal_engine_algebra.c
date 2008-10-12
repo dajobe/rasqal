@@ -52,6 +52,11 @@ typedef struct {
 
   /* number of nodes in #algebra_node tree */
   int nodes_count;
+
+  /* rowsource that provides the result rows */
+  rasqal_rowsource* rowsource;
+
+  rasqal_triples_source* triples_source;
 } rasqal_engine_algebra_data;
 
 
@@ -62,11 +67,65 @@ rasqal_engine_algebra_count_nodes(rasqal_query* query,
                                   void* data)
 {
   int *count_p=(int*)data;
-  
   (*count_p)++;
   
   return 0;
 }
+
+
+static rasqal_rowsource*
+rasqal_algebra_basic_algebra_node_to_rowsource(rasqal_engine_algebra_data* execution_data,
+                                               rasqal_algebra_node* node,
+                                               rasqal_engine_error *error_p)
+{
+  rasqal_query *query = execution_data->query;
+  
+  return rasqal_new_triples_rowsource(query,
+                                      execution_data->triples_source,
+                                      node->triples,
+                                      node->start_column, node->end_column);
+}
+
+
+static rasqal_rowsource*
+rasqal_algebra_node_to_rowsource(rasqal_engine_algebra_data* execution_data,
+                                 rasqal_algebra_node* node,
+                                 rasqal_engine_error *error_p)
+{
+  rasqal_rowsource* rs = NULL;
+  
+  switch(node->op) {
+    case RASQAL_ALGEBRA_OPERATOR_BGP:
+      rs = rasqal_algebra_basic_algebra_node_to_rowsource(execution_data,
+                                                          node, error_p);
+      break;
+
+    case RASQAL_ALGEBRA_OPERATOR_FILTER:
+    case RASQAL_ALGEBRA_OPERATOR_UNKNOWN:
+    case RASQAL_ALGEBRA_OPERATOR_JOIN:
+    case RASQAL_ALGEBRA_OPERATOR_DIFF:
+    case RASQAL_ALGEBRA_OPERATOR_LEFTJOIN:
+    case RASQAL_ALGEBRA_OPERATOR_UNION:
+    case RASQAL_ALGEBRA_OPERATOR_TOLIST:
+    case RASQAL_ALGEBRA_OPERATOR_ORDERBY:
+    case RASQAL_ALGEBRA_OPERATOR_PROJECT:
+    case RASQAL_ALGEBRA_OPERATOR_DISTINCT:
+    case RASQAL_ALGEBRA_OPERATOR_REDUCED:
+    case RASQAL_ALGEBRA_OPERATOR_SLICE:
+    default:
+      RASQAL_DEBUG2("Unsupported algebra node operator %s\n",
+                    rasqal_algebra_node_operator_as_string(node->op));
+      break;
+  }
+
+#if RASQAL_DEBUG
+  if(!rs)
+    abort();
+#endif
+  
+  return rs;
+}
+
 
 
 static int
@@ -77,12 +136,22 @@ rasqal_query_engine_algebra_execute_init(void* ex_data,
                                          rasqal_engine_error *error_p)
 {
   rasqal_engine_algebra_data* execution_data;
+  rasqal_engine_error error;
+  int rc = 0;
   
-  execution_data=(rasqal_engine_algebra_data*)ex_data;
+  execution_data = (rasqal_engine_algebra_data*)ex_data;
 
   /* initialise the execution_data fields */
   execution_data->query = query;
   execution_data->query_results = query_results;
+
+  if(!execution_data->triples_source) {
+    execution_data->triples_source = rasqal_new_triples_source(execution_data->query);
+    if(!execution_data->triples_source) {
+      *error_p = RASQAL_ENGINE_FAILED;
+      return 1;
+    }
+  }
 
   execution_data->algebra_node = rasqal_algebra_query_to_algebra(query);
   if(!execution_data->algebra_node)
@@ -100,7 +169,14 @@ rasqal_query_engine_algebra_execute_init(void* ex_data,
 #endif
   RASQAL_DEBUG2("algebra nodes: %d\n", execution_data->nodes_count);
 
-  return 0;
+  error = RASQAL_ENGINE_OK;
+  execution_data->rowsource = rasqal_algebra_node_to_rowsource(execution_data,
+                                                               execution_data->algebra_node,
+                                                               &error);
+  if(error != RASQAL_ENGINE_OK)
+    rc = 1;
+  
+  return rc;
 }
 
 
@@ -108,9 +184,19 @@ static raptor_sequence*
 rasqal_query_engine_algebra_get_all_rows(void* ex_data,
                                          rasqal_engine_error *error_p)
 {
-  *error_p = RASQAL_ENGINE_FINISHED;
+  rasqal_engine_algebra_data* execution_data;
+  raptor_sequence *seq = NULL;
   
-  return NULL;
+  execution_data = (rasqal_engine_algebra_data*)ex_data;
+
+  if(execution_data->rowsource) {
+    seq = rasqal_rowsource_read_all_rows(execution_data->rowsource);
+    if(!seq)
+      *error_p = RASQAL_ENGINE_FAILED;
+  } else
+    *error_p = RASQAL_ENGINE_FAILED;
+
+  return seq;
 }
 
 
@@ -118,9 +204,19 @@ static rasqal_row*
 rasqal_query_engine_algebra_get_row(void* ex_data,
                                     rasqal_engine_error *error_p)
 {
-  *error_p = RASQAL_ENGINE_FINISHED;
+  rasqal_engine_algebra_data* execution_data;
+  rasqal_row *row = NULL;
   
-  return NULL;
+  execution_data = (rasqal_engine_algebra_data*)ex_data;
+
+  if(execution_data->rowsource) {
+    row = rasqal_rowsource_read_row(execution_data->rowsource);
+    if(!row)
+      *error_p = RASQAL_ENGINE_FINISHED;
+  } else
+    *error_p = RASQAL_ENGINE_FAILED;
+
+  return row;
 }
 
 
@@ -130,12 +226,18 @@ rasqal_query_engine_algebra_execute_finish(void* ex_data,
 {
   rasqal_engine_algebra_data* execution_data;
 
-  execution_data=(rasqal_engine_algebra_data*)ex_data;
+  execution_data = (rasqal_engine_algebra_data*)ex_data;
 
   if(execution_data->algebra_node)
     rasqal_free_algebra_node(execution_data->algebra_node);
 
-  return 1;
+  if(execution_data->triples_source)
+    rasqal_free_triples_source(execution_data->triples_source);
+
+  if(execution_data->rowsource)
+    rasqal_free_rowsource(execution_data->rowsource);
+
+  return 0;
 }
 
 
