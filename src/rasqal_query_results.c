@@ -205,44 +205,12 @@ rasqal_new_query_results(rasqal_query* query)
   /* query_results->result_triple is static */
   query_results->triple = NULL;
   query_results->results_sequence = NULL;
-
-  /* rasqal_query_results_set_variables() below will init these */
   query_results->size = 0;
   query_results->order_size = 0;
   query_results->variable_names = NULL;
   query_results->variables_sequence = NULL;
   query_results->variables = NULL;
 
-  if(query) {
-    if(query->query_results_formatter_name)
-      query_results->type = RASQAL_QUERY_RESULTS_SYNTAX;
-    else
-      switch(query->verb) {
-        case RASQAL_QUERY_VERB_SELECT:
-          query_results->type = RASQAL_QUERY_RESULTS_BINDINGS;
-          rasqal_query_results_set_variables(query_results,
-                                             query->selects,
-                                             query->select_variables_count,
-                                             0);
-          break;
-        case RASQAL_QUERY_VERB_ASK:
-          query_results->type = RASQAL_QUERY_RESULTS_BOOLEAN;
-          break;
-        case RASQAL_QUERY_VERB_CONSTRUCT:
-        case RASQAL_QUERY_VERB_DESCRIBE:
-          query_results->type = RASQAL_QUERY_RESULTS_GRAPH;
-          break;
-          
-        case RASQAL_QUERY_VERB_UNKNOWN:
-        case RASQAL_QUERY_VERB_DELETE:
-        case RASQAL_QUERY_VERB_INSERT:
-        default:
-          break;
-      }
-  }
-  
-  query_results->execution_factory = &rasqal_query_engine_1;
-  
   return query_results;
 }
 
@@ -264,6 +232,9 @@ rasqal_new_query_results_from_query_execution(rasqal_query* query)
   int order_size = 0;
   raptor_sequence* seq;
   size_t ex_data_size;
+
+  if(!query)
+    return NULL;
   
   if(query->failed)
     return NULL;
@@ -272,6 +243,34 @@ rasqal_new_query_results_from_query_execution(rasqal_query* query)
   if(!query_results)
     return NULL;
 
+  if(query->query_results_formatter_name)
+    query_results->type = RASQAL_QUERY_RESULTS_SYNTAX;
+  else
+    switch(query->verb) {
+      case RASQAL_QUERY_VERB_SELECT:
+        query_results->type = RASQAL_QUERY_RESULTS_BINDINGS;
+        rasqal_query_results_set_variables(query_results,
+                                           query->selects,
+                                           query->select_variables_count,
+                                           0);
+        break;
+      case RASQAL_QUERY_VERB_ASK:
+        query_results->type = RASQAL_QUERY_RESULTS_BOOLEAN;
+        break;
+      case RASQAL_QUERY_VERB_CONSTRUCT:
+      case RASQAL_QUERY_VERB_DESCRIBE:
+        query_results->type = RASQAL_QUERY_RESULTS_GRAPH;
+        break;
+        
+      case RASQAL_QUERY_VERB_UNKNOWN:
+      case RASQAL_QUERY_VERB_DELETE:
+      case RASQAL_QUERY_VERB_INSERT:
+      default:
+        break;
+    }
+  
+  query_results->execution_factory = &rasqal_query_engine_1;
+  
   /* set executed flag early to enable cleanup on error */
   query_results->executed = 1;
 
