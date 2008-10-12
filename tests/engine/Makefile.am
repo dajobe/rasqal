@@ -20,7 +20,7 @@
 # 
 
 local_tests=rasqal_order_test$(EXEEXT) rasqal_graph_test$(EXEEXT) \
-rasqal_construct_test$(EXEEXT)
+rasqal_construct_test$(EXEEXT) rasqal_limit_test$(EXEEXT)
 
 EXTRA_PROGRAMS=$(local_tests)
 
@@ -39,6 +39,9 @@ rasqal_graph_test_LDADD = $(top_builddir)/src/librasqal.la
 rasqal_construct_test_SOURCES = rasqal_construct_test.c
 rasqal_construct_test_LDADD = $(top_builddir)/src/librasqal.la
 
+rasqal_limit_test_SOURCES = rasqal_limit_test.c
+rasqal_limit_test_LDADD = $(top_builddir)/src/librasqal.la
+
 
 # These are compiled here and used elsewhere for running tests
 check-local: $(local_tests) run-rasqal-tests
@@ -50,7 +53,11 @@ run-rasqal-tests: $(local_tests)
 	  if test -f ./$$tst; then dir=./; \
 	  elif test -f $$tst; then dir=; \
 	  else dir="$(top_srcdir)/"; fi; \
-	  if $${dir}$$tst $(top_srcdir)/data/; then \
+	  arg="$(top_srcdir)/data/"; \
+	  if test $$tst == rasqal_limit_test; then \
+	    arg="$$arg/letters.nt"; \
+	  fi; \
+	  if $${dir}$$tst $$arg; then \
 	    echo "PASS: $$tst"; \
 	  else \
 	    echo "FAIL: $$tst"; \
@@ -59,7 +66,6 @@ run-rasqal-tests: $(local_tests)
 	  fi; \
 	done; \
 	exit $$status
-
 
 $(top_builddir)/src/librasqal.la:
 	cd $(top_builddir)/src && $(MAKE) librasqal.la
