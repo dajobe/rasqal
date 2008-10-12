@@ -1145,6 +1145,35 @@ rasqal_query_prepare(rasqal_query* query,
 
 
 /**
+ * rasqal_query_execute_with_engine:
+ * @query: the #rasqal_query object
+ * @engine: execution engine factory
+ *
+ * INTERNAL - Excecute a query with a given factory and return results.
+ *
+ * return value: a #rasqal_query_results structure or NULL on failure.
+ **/
+rasqal_query_results*
+rasqal_query_execute_with_engine(rasqal_query* query,
+                                 const rasqal_query_execution_factory* engine)
+{
+  rasqal_query_results *query_results = NULL;
+  
+  if(query->failed)
+    return NULL;
+
+  if(!engine)
+    engine = &rasqal_query_engine_1;
+
+  query_results = rasqal_query_results_execute_with_engine(query, engine);
+  if(query_results)
+    rasqal_query_add_query_result(query, query_results);
+
+  return query_results;
+}
+
+
+/**
  * rasqal_query_execute:
  * @query: the #rasqal_query object
  *
@@ -1155,16 +1184,7 @@ rasqal_query_prepare(rasqal_query* query,
 rasqal_query_results*
 rasqal_query_execute(rasqal_query* query)
 {
-  rasqal_query_results *query_results = NULL;
-  
-  if(query->failed)
-    return NULL;
-
-  query_results = rasqal_new_query_results_from_query_execution(query);
-  if(query_results)
-    rasqal_query_add_query_result(query, query_results);
-
-  return query_results;
+  return rasqal_query_execute_with_engine(query, NULL);
 }
 
 
