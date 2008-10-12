@@ -2673,7 +2673,7 @@ static int yy_init_globals (yyscan_t yyscanner ) { return 0; };
 
 
 /**
- * rasqal_sparql_query_language_init - Initialise the SPARQL query engine
+ * rasqal_sparql_query_language_init - Initialise the SPARQL query language parser
  *
  * Return value: non 0 on failure
  **/
@@ -2689,7 +2689,7 @@ rasqal_sparql_query_language_init(rasqal_query* rdf_query, const char *name) {
 
 
 /**
- * rasqal_sparql_query_language_terminate - Free the SPARQL query engine
+ * rasqal_sparql_query_language_terminate - Free the SPARQL query language parser
  *
  * Return value: non 0 on failure
  **/
