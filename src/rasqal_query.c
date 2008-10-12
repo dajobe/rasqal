@@ -1145,6 +1145,30 @@ rasqal_query_prepare(rasqal_query* query,
 
 
 /**
+ * rasqal_query_get_engine_by_name:
+ * @name: query engine name
+ *
+ * INTERNAL - Get a query engine by name
+ *
+ * If @name is NULL or the name is unknown, the default factory is returned
+ *
+ * return value: pointer to factory
+ **/
+const rasqal_query_execution_factory* 
+rasqal_query_get_engine_by_name(const char* name)
+{
+  const rasqal_query_execution_factory* engine = &rasqal_query_engine_1;
+
+  if(!strcmp(name, "1") || !strcmp(name, "original"))
+    engine = &rasqal_query_engine_1;
+  else if(!strcmp(name, "2") || !strcmp(name, "algebra"))
+    engine = &rasqal_query_engine_algebra;
+
+  return engine;
+}
+
+
+/**
  * rasqal_query_execute_with_engine:
  * @query: the #rasqal_query object
  * @engine: execution engine factory
@@ -1163,7 +1187,7 @@ rasqal_query_execute_with_engine(rasqal_query* query,
     return NULL;
 
   if(!engine)
-    engine = &rasqal_query_engine_1;
+    engine = rasqal_query_get_engine_by_name(NULL);
 
   query_results = rasqal_query_results_execute_with_engine(query, engine);
   if(query_results)
