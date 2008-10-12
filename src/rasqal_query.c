@@ -1144,12 +1144,6 @@ rasqal_query_prepare(rasqal_query* query,
 }
 
 
-#if 0
-#undef RASQAL_DEBUG
-#define RASQAL_DEBUG 2
-#endif
-
-
 /**
  * rasqal_query_execute:
  * @query: the #rasqal_query object
