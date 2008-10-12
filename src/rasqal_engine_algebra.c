@@ -108,6 +108,8 @@ static raptor_sequence*
 rasqal_query_engine_algebra_get_all_rows(void* ex_data,
                                          rasqal_engine_error *error_p)
 {
+  *error_p = RASQAL_ENGINE_FINISHED;
+  
   return NULL;
 }
 
@@ -116,6 +118,8 @@ static rasqal_row*
 rasqal_query_engine_algebra_get_row(void* ex_data,
                                     rasqal_engine_error *error_p)
 {
+  *error_p = RASQAL_ENGINE_FINISHED;
+  
   return NULL;
 }
 
