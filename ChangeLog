@@ -1,3 +1,41 @@
+2008-10-11  Dave Beckett <dave@dajobe.org>
+
+	* utils/roqet.c:
+	(roqet_graph_pattern_walk): Use
+	rasqal_graph_pattern_get_filter_expression instead of deprecated
+	rasqal_graph_pattern_get_constraint_sequence which only returns 1
+	expression now.
+
+	* tests/engine/Makefile.am: limit test compare
+
+	* src/Makefile.am, src/rasqal_limit_test.c,
+	tests/engine/Makefile.am, tests/engine/rasqal_limit_test.c:
+	Move rasqal_limit_test to tests/engine
+
+	* src/rasqal_literal.c: docs
+
+	* src/sparql_parser.y: docs: language, not engine
+
+	* src/rasqal_general.c, src/rasqal_internal.h, src/rasqal_query.c,
+	src/rdql_common.h, src/rdql_lexer.l, src/rdql_parser.y,
+	src/sparql_common.h, src/sparql_lexer.l, src/sparql_parser.y:
+	Terminology change - rename rdql/sparql functions and structs from
+	*query_engine* to *query_language*
+
+2008-10-10  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_engine.c: internal docs
+
+	* src/rasqal_query_results.c: struct rasqal_query_results_s:
+	document fields. removed unused fields: abort, unused*
+	(rasqal_new_query_results): Init all fields.
+
+	* src/rasqal_query_results.c: internal docs
+
+	* src/rasqal_query.c: internal docs
+
+	* src/rasqal_engine.c: (rasqal_new_triples_source): autodocs
+
 2008-10-09  Lauri Aalto <laalto@iki.fi>
 
 	* src/rasqal_internal.h: (rasqal_query_execution_factory_s): c++
