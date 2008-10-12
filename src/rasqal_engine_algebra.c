@@ -41,11 +41,33 @@
 #include "rasqal_internal.h"
 
 
+#define DEBUG_FH stderr
+
+
 typedef struct {
   rasqal_query* query;
   rasqal_query_results* query_results;
+
+  /* query algebra representation of query */
+  rasqal_algebra_node* algebra_node;
+
+  /* number of nodes in #algebra_node tree */
+  int nodes_count;
 } rasqal_engine_algebra_data;
 
+
+
+static int
+rasqal_engine_algebra_count_nodes(rasqal_query* query,
+                                  rasqal_algebra_node* node,
+                                  void* data)
+{
+  int *count_p=(int*)data;
+  
+  (*count_p)++;
+  
+  return 0;
+}
 
 
 static int
@@ -56,12 +78,28 @@ rasqal_query_engine_algebra_execute_init(void* ex_data,
                                          rasqal_engine_error *error_p)
 {
   rasqal_engine_algebra_data* execution_data;
-
+  
   execution_data=(rasqal_engine_algebra_data*)ex_data;
 
   /* initialise the execution_data fields */
   execution_data->query = query;
   execution_data->query_results = query_results;
+
+  execution_data->algebra_node = rasqal_algebra_query_to_algebra(query);
+  if(!execution_data->algebra_node)
+    return 1;
+
+  execution_data->nodes_count = 0; 
+  rasqal_algebra_node_visit(query, execution_data->algebra_node,
+                            rasqal_engine_algebra_count_nodes,
+                            &execution_data->nodes_count);
+  
+#ifdef RASQAL_DEBUG
+  RASQAL_DEBUG1("algebra result: \n");
+  rasqal_algebra_node_print(execution_data->algebra_node, DEBUG_FH);
+  fputc('\n', DEBUG_FH);
+#endif
+  RASQAL_DEBUG2("algebra nodes: %d\n", execution_data->nodes_count);
 
   return 0;
 }
@@ -87,6 +125,13 @@ static int
 rasqal_query_engine_algebra_execute_finish(void* ex_data,
                                            rasqal_engine_error *error_p)
 {
+  rasqal_engine_algebra_data* execution_data;
+
+  execution_data=(rasqal_engine_algebra_data*)ex_data;
+
+  if(execution_data->algebra_node)
+    rasqal_free_algebra_node(execution_data->algebra_node);
+
   return 1;
 }
 
