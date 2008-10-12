@@ -216,15 +216,17 @@ rasqal_new_query_results(rasqal_query* query)
 
 
 /**
- * rasqal_new_query_results_from_query_execution:
+ * rasqal_query_results_execute_with_engine:
  * @query: the #rasqal_query object
+ * @engine: execution factory
  *
- * INTERNAL - Create a new query results from executing a prepared query
+ * INTERNAL - Create a new query results executing a prepared query with the given execution engine
  *
  * return value: a #rasqal_query_results structure or NULL on failure.
  **/
 rasqal_query_results*
-rasqal_new_query_results_from_query_execution(rasqal_query* query)
+rasqal_query_results_execute_with_engine(rasqal_query* query,
+                                         const rasqal_query_execution_factory* engine)
 {
   rasqal_query_results *query_results = NULL;
   int rc = 0;
@@ -269,7 +271,7 @@ rasqal_new_query_results_from_query_execution(rasqal_query* query)
         break;
     }
   
-  query_results->execution_factory = &rasqal_query_engine_1;
+  query_results->execution_factory = engine;
   
   /* set executed flag early to enable cleanup on error */
   query_results->executed = 1;
