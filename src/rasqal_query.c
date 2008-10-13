@@ -1159,6 +1159,14 @@ rasqal_query_get_engine_by_name(const char* name)
 {
   const rasqal_query_execution_factory* engine = &rasqal_query_engine_1;
 
+#ifdef RASQAL_DEBUG
+  if(1) {
+    char* n = getenv("RASQAL_DEBUG_ENGINE");
+    if(n)
+      name = n;
+  }
+#endif
+
   if(name) {
     if(!strcmp(name, "1") || !strcmp(name, "original"))
       engine = &rasqal_query_engine_1;
