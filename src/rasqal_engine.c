@@ -1923,8 +1923,10 @@ rasqal_query_engine_1_execute_init(void* ex_data,
     
       gp = (rasqal_graph_pattern*)raptor_sequence_get_at(query->graph_patterns_sequence, i);
       gp_data = rasqal_new_engine_gp_data(gp);
-      if(!gp_data || raptor_sequence_set_at(execution_data->seq, i, gp_data))
+      if(!gp_data || raptor_sequence_set_at(execution_data->seq, i, gp_data)) {
+        *error_p = RASQAL_ENGINE_FAILED;
         return 1;
+      }
     }
   }
 
