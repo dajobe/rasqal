@@ -519,17 +519,39 @@ main(int argc, char *argv[])
     s = row->values[0];
     if(!s ||
        (s && s->type != RASQAL_LITERAL_URI) ||
-       !raptor_uri_equals(s->value.uri, s_uri)) {
+#ifdef RAPTOR_V2_AVAILABLE
+       !raptor_uri_equals_v2(world->raptor_world_ptr, s->value.uri, s_uri)
+#else
+       !raptor_uri_equals(s->value.uri, s_uri)
+#endif
+       ) {
       fprintf(stderr, "%s: 's' is bound to %s not URI %s\n", program,
-              rasqal_literal_as_string(s), raptor_uri_as_string(s_uri));
+              rasqal_literal_as_string(s),
+#ifdef RAPTOR_V2_AVAILABLE
+              raptor_uri_as_string_v2(world->raptor_world_ptr, s_uri)
+#else
+              raptor_uri_as_string(s_uri)
+#endif
+              );
       failures++;
     }
     p = row->values[1];
     if(!p ||
        (p && p->type != RASQAL_LITERAL_URI) ||
-       !raptor_uri_equals(p->value.uri, p_uri)) {
+#ifdef RAPTOR_V2_AVAILABLE
+       !raptor_uri_equals_v2(world->raptor_world_ptr, p->value.uri, p_uri)
+#else       
+       !raptor_uri_equals(p->value.uri, p_uri)
+#endif
+       ) {
       fprintf(stderr, "%s: 'p' is bound to %s not URI %s\n", program,
-              rasqal_literal_as_string(p), raptor_uri_as_string(p_uri));
+              rasqal_literal_as_string(p),
+#ifdef RAPTOR_V2_AVAILABLE
+              raptor_uri_as_string_v2(world->raptor_world_ptr, p_uri)
+#else
+              raptor_uri_as_string(p_uri)
+#endif
+              );
       failures++;
     }
     o = row->values[2];
