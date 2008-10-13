@@ -476,6 +476,9 @@ rasqal_rowsource* rasqal_new_empty_rowsource(rasqal_query* query);
 /* rasqal_engine_rowsource.c */
 rasqal_rowsource* rasqal_new_execution_rowsource(rasqal_query_results* query_results);
 
+/* rasqal_filter_rowsource.c */
+rasqal_rowsource* rasqal_new_filter_rowsource(rasqal_query *query, rasqal_rowsource* rs, rasqal_expression* expr);
+
 /* rasqal_leftjoin_rowsource.c */
 rasqal_rowsource* rasqal_new_leftjoin_rowsource(rasqal_query* query, rasqal_query_results* results, rasqal_rowsource* left, rasqal_rowsource* right);
 
@@ -487,7 +490,6 @@ rasqal_rowsource* rasqal_new_union_rowsource(rasqal_query* query, rasqal_rowsour
 
 /* rasqal_triples_rowsource.c */
 rasqal_rowsource* rasqal_new_triples_rowsource(rasqal_query* query, rasqal_triples_source* triples_source, raptor_sequence* triples, int start_column, int end_column);
-
 
 /* rasqal_rowsource.c */
 
