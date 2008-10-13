@@ -74,7 +74,7 @@
 #endif
 
 
-static void rasqal_query_add_query_result(rasqal_query* query, rasqal_query_results* query_results);
+static int rasqal_query_add_query_result(rasqal_query* query, rasqal_query_results* query_results);
 static int rasqal_query_write_sparql_20060406(raptor_iostream *iostr, rasqal_query* query, raptor_uri *base_uri);
 
 
@@ -1200,8 +1200,10 @@ rasqal_query_execute_with_engine(rasqal_query* query,
     engine = rasqal_query_get_engine_by_name(NULL);
 
   query_results = rasqal_query_results_execute_with_engine(query, engine);
-  if(query_results)
-    rasqal_query_add_query_result(query, query_results);
+  if(query_results && rasqal_query_add_query_result(query, query_results)) {
+    rasqal_free_query_results(query_results);
+    query_results = NULL;      
+  }
 
   return query_results;
 }
@@ -1332,14 +1334,19 @@ rasqal_query_print(rasqal_query* query, FILE *fh)
 }
 
 
-static void
+static int
 rasqal_query_add_query_result(rasqal_query* query,
                               rasqal_query_results* query_results) 
 {
-  raptor_sequence_push(query->results, query_results);
-
   /* add reference to ensure query lives as long as this runs */
+
+  /* query->results sequence has rasqal_query_results_remove_query_reference()
+     as the free handler which calls rasqal_free_query() decrementing
+     query->usage */
+  
   query->usage++;
+
+  return raptor_sequence_push(query->results, query_results);
 }
 
 
