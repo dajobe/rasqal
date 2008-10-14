@@ -947,6 +947,7 @@ rasqal_rowsource_sparql_xml_read_row(rasqal_rowsource* rowsource,
 
 static const rasqal_rowsource_handler rasqal_rowsource_sparql_xml_handler={
   /* .version = */ 1,
+  "SPARQL XML",
   /* .init = */ rasqal_rowsource_sparql_xml_init,
   /* .finish = */ rasqal_rowsource_sparql_xml_finish,
   /* .ensure_variables = */ rasqal_rowsource_sparql_xml_ensure_variables,

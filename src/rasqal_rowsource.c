@@ -90,6 +90,7 @@ rasqal_new_rowsource_from_handler(void *user_data,
   
   if(rowsource->handler->init && 
      rowsource->handler->init(rowsource, rowsource->user_data)) {
+    RASQAL_DEBUG2("rowsource %s init failed\n", rowsource->handler->name);
     rasqal_free_rowsource(rowsource);
     return NULL;
   }
@@ -152,7 +153,7 @@ rasqal_rowsource_add_variable(rasqal_rowsource *rowsource, rasqal_variable* v)
  *
  * Return value: non-0 on failure
  */
-static int
+int
 rasqal_rowsource_ensure_variables(rasqal_rowsource *rowsource)
 {
   int rc=0;

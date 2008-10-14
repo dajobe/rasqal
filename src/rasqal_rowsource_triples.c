@@ -53,6 +53,9 @@ typedef struct
   /* sequence of triple SHARED with query */
   raptor_sequence* triples;
 
+  /* current column being iterated */
+  int column;
+
   /* first triple pattern in sequence to use */
   int start_column;
 
@@ -86,6 +89,8 @@ rasqal_triples_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
 
   con = (rasqal_triples_rowsource_context*)user_data;
   query = con->query;
+
+  con->column = con->start_column;
 
   for(column = con->start_column; column <= con->end_column; column++) {
     rasqal_triple_meta *m;
@@ -161,55 +166,51 @@ rasqal_triples_rowsource_finish(rasqal_rowsource* rowsource, void *user_data)
 }
 
 
-static rasqal_row*
-rasqal_triples_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
+static rasqal_engine_error
+rasqal_triples_rowsource_get_next_row(rasqal_rowsource* rowsource, 
+                                      rasqal_triples_rowsource_context *con)
 {
-  rasqal_query *query;
-  rasqal_triples_rowsource_context *con;
-  int column;
-#ifdef RASQAL_DEBUG
-  int values_returned = 0;
-#endif
-  rasqal_row *row = NULL;
-  int i;
-  
-  con = (rasqal_triples_rowsource_context*)user_data;
-  query = con->query;
+  rasqal_query *query = con->query;
+  rasqal_engine_error error = RASQAL_ENGINE_OK;
   
   con->new_bindings_count = 0;
 
-  column = con->start_column;
-
-  while(column >= con->start_column) {
+  while(con->column >= con->start_column) {
     rasqal_triple_meta *m;
     rasqal_triple *t;
 
-    m = &con->triple_meta[column - con->start_column];
-    t = (rasqal_triple*)raptor_sequence_get_at(con->triples, column);
+    m = &con->triple_meta[con->column - con->start_column];
+    t = (rasqal_triple*)raptor_sequence_get_at(con->triples, con->column);
+
+    error = RASQAL_ENGINE_OK;
 
     if(!m) {
       /* error recovery - no match */
-      column--;
-      break;
+      con->column--;
+      error = RASQAL_ENGINE_FAILED;
+      goto done;
     }
     
     if(m->executed) {
-      RASQAL_DEBUG2("triplesAtch already executed in column %d\n", column);
-      column--;
+      RASQAL_DEBUG2("triples match already executed in column %d\n", con->column);
+      con->column--;
       continue;
     }
       
     if(m->is_exact) {
       /* exact triple match wanted */
+
       if(!rasqal_triples_source_triple_present(con->triples_source, t)) {
         /* failed */
-        RASQAL_DEBUG2("exact match failed for column %d\n", column);
-        column--;
-      } else {
-        RASQAL_DEBUG2("exact match OK for column %d\n", column);
+        RASQAL_DEBUG2("exact match failed for column %d\n", con->column);
+        con->column--;
       }
+#ifdef RASQAL_DEBUG
+      else
+        RASQAL_DEBUG2("exact match OK for column %d\n", con->column);
+#endif
 
-      RASQAL_DEBUG2("end of exact triple match for column %d\n", column);
+      RASQAL_DEBUG2("end of exact triples match for column %d\n", con->column);
       m->executed = 1;
       
     } else {
@@ -217,7 +218,7 @@ rasqal_triples_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
       int parts;
 
       if(!m->triples_match) {
-        /* Column has no triple match so create a new query */
+        /* Column has no triples match so create a new query */
         m->triples_match = rasqal_new_triples_match(query,
                                                     con->triples_source,
                                                     m, t);
@@ -225,19 +226,20 @@ rasqal_triples_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
           rasqal_log_error_simple(query->world, RAPTOR_LOG_LEVEL_ERROR,
                                   &query->locator,
                                   "Failed to make a triple match for column%d",
-                                  column);
+                                  con->column);
           /* failed to match */
-          column--;
+          con->column--;
+          error = RASQAL_ENGINE_FAILED;
           goto done;
         }
-        RASQAL_DEBUG2("made new triple match for column %d\n", column);
+        RASQAL_DEBUG2("made new triples match for column %d\n", con->column);
       }
 
 
       if(rasqal_triples_match_is_end(m->triples_match)) {
         int resets = 0;
 
-        RASQAL_DEBUG2("end of pattern triple match for column %d\n", column);
+        RASQAL_DEBUG2("end of pattern triples match for column %d\n", con->column);
         m->executed = 1;
 
         resets = rasqal_reset_triple_meta(m);
@@ -245,7 +247,7 @@ rasqal_triples_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
         if(con->new_bindings_count < 0)
           con->new_bindings_count = 0;
 
-        column--;
+        con->column--;
         continue;
       }
 
@@ -253,7 +255,9 @@ rasqal_triples_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
         parts = rasqal_triples_match_bind_match(m->triples_match, m->bindings,
                                                 m->parts);
         RASQAL_DEBUG3("bind_match for column %d returned parts %d\n",
-                      column, parts);
+                      con->column, parts);
+        if(!parts)
+          error = RASQAL_ENGINE_FINISHED;
         if(parts & RASQAL_TRIPLE_SUBJECT)
           con->new_bindings_count++;
         if(parts & RASQAL_TRIPLE_PREDICATE)
@@ -263,32 +267,58 @@ rasqal_triples_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
         if(parts & RASQAL_TRIPLE_ORIGIN)
           con->new_bindings_count++;
       } else {
-        RASQAL_DEBUG2("Nothing to bind_match for column %d\n", column);
+        RASQAL_DEBUG2("Nothing to bind_match for column %d\n", con->column);
       }
 
       rasqal_triples_match_next_match(m->triples_match);
-      if(!con->new_bindings_count)
+      if(error == RASQAL_ENGINE_FINISHED)
         continue;
 
     }
     
-    if(column == con->end_column) {
+    if(con->column == con->end_column) {
       /* Done all conjunctions */ 
       
       /* exact match, so column must have ended */
       if(m->is_exact)
-        column--;
+        con->column--;
 
       /* return with result */
-      break;
-    } else if(column >= con->start_column)
-      column++;
+      error = RASQAL_ENGINE_OK;
+      goto done;
+    } else if(con->column >= con->start_column)
+      con->column++;
 
   }
 
-  if(column < con->start_column)
-    goto done;
+  if(con->column < con->start_column)
+    error = RASQAL_ENGINE_FINISHED;
   
+  done:
+  return error;
+}
+
+
+static rasqal_row*
+rasqal_triples_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
+{
+  rasqal_query *query;
+  rasqal_triples_rowsource_context *con;
+#ifdef RASQAL_DEBUG
+  int values_returned = 0;
+#endif
+  rasqal_row* row = NULL;
+  rasqal_engine_error error = RASQAL_ENGINE_OK;
+  int i;
+  
+  con = (rasqal_triples_rowsource_context*)user_data;
+  query = con->query;
+
+  error = rasqal_triples_rowsource_get_next_row(rowsource, con);
+  RASQAL_DEBUG2("NEXT_ROW() returned %d\n", error);
+
+  if(error != RASQAL_ENGINE_OK)
+    goto done;
 
 #ifdef RASQAL_DEBUG
   /* Count actual bound values */
@@ -301,8 +331,10 @@ rasqal_triples_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
 #endif
 
   row = rasqal_new_row(rowsource);
-  if(!row)
+  if(!row) {
+    error = RASQAL_ENGINE_FAILED;
     goto done;
+  }
 
   for(i=0; i < row->size; i++) {
     rasqal_literal *l;
@@ -315,6 +347,13 @@ rasqal_triples_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
   row->offset = con->offset++;
 
   done:
+  if(error != RASQAL_ENGINE_OK) {
+    if(row) {
+      rasqal_free_row(row);
+      row = NULL;
+    }
+  }
+
   return row;
 }
 
@@ -343,6 +382,7 @@ rasqal_triples_rowsource_get_query(rasqal_rowsource* rowsource, void *user_data)
 
 static const rasqal_rowsource_handler rasqal_triples_rowsource_handler={
   /* .version = */ 1,
+  "triple pattern",
   /* .init = */ rasqal_triples_rowsource_init,
   /* .finish = */ rasqal_triples_rowsource_finish,
   /* .ensure_variables = */ rasqal_triples_rowsource_ensure_variables,
@@ -370,6 +410,7 @@ rasqal_new_triples_rowsource(rasqal_query *query,
   con->triples = triples;
   con->start_column = start_column;
   con->end_column = end_column;
+  con->column = -1;
 
   if(query->constructs)
     con->size = rasqal_variables_table_get_named_variables_count(query->vars_table);

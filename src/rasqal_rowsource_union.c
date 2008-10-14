@@ -158,6 +158,7 @@ rasqal_union_rowsource_get_query(rasqal_rowsource* rowsource, void *user_data)
 
 static const rasqal_rowsource_handler rasqal_union_rowsource_handler={
   /* .version = */ 1,
+  "union",
   /* .init = */ rasqal_union_rowsource_init,
   /* .finish = */ rasqal_union_rowsource_finish,
   /* .ensure_variables = */ rasqal_union_rowsource_ensure_variables,

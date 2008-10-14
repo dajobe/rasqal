@@ -472,6 +472,7 @@ typedef enum {
 
 /* rasqal_empty_rowsource.c */
 rasqal_rowsource* rasqal_new_empty_rowsource(rasqal_query* query);
+int rasqal_rowsource_ensure_variables(rasqal_rowsource *rowsource);
 
 /* rasqal_engine_rowsource.c */
 rasqal_rowsource* rasqal_new_execution_rowsource(rasqal_query_results* query_results);
@@ -560,6 +561,7 @@ typedef rasqal_query* (*rasqal_rowsource_get_query_func) (rasqal_rowsource* rows
 /**
  * rasqal_rowsource_handler:
  * @version: API version - 1
+ * @name: rowsource name for debugging
  * @init:  initialisation handler - optional, called at most once (V1)
  * @finish: finishing handler - optional, called at most once (V1)
  * @ensure_variables: update variables handler- optional, called at most once (V1)
@@ -570,6 +572,7 @@ typedef rasqal_query* (*rasqal_rowsource_get_query_func) (rasqal_rowsource* rows
  */
 typedef struct {
   int version;
+  const char* name;
   /* API V1 methods */
   rasqal_rowsource_init_func             init;
   rasqal_rowsource_finish_func           finish;

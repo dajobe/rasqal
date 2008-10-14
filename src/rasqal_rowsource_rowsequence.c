@@ -151,6 +151,7 @@ rasqal_rowsequence_rowsource_get_query(rasqal_rowsource* rowsource,
 
 static const rasqal_rowsource_handler rasqal_rowsequence_rowsource_handler = {
   /* .version = */ 1,
+  "rowsequence",
   /* .init = */ rasqal_rowsequence_rowsource_init,
   /* .finish = */ rasqal_rowsequence_rowsource_finish,
   /* .ensure_variables = */ rasqal_rowsequence_rowsource_ensure_variables,

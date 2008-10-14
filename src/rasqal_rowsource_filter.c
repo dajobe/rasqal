@@ -67,7 +67,7 @@ rasqal_filter_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
 
   con = (rasqal_filter_rowsource_context*)user_data;
   
-  return 1;
+  return 0;
 }
 
 
@@ -78,7 +78,7 @@ rasqal_filter_rowsource_ensure_variables(rasqal_rowsource* rowsource,
   rasqal_filter_rowsource_context* con;
   con = (rasqal_filter_rowsource_context*)user_data; 
 
-  rasqal_filter_rowsource_ensure_variables(con->rowsource, con);
+  rasqal_rowsource_ensure_variables(con->rowsource);
 
   rowsource->size = con->rowsource->size;
   rowsource->order_size = con->rowsource->order_size;
@@ -139,9 +139,11 @@ rasqal_filter_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
 #endif
       rasqal_free_literal(result);
     }
-    if(!bresult)
-      /* Constraint failed so move to try next match */
-      continue;
+    if(bresult)
+      /* Constraint succeeded so end */
+      break;
+
+    rasqal_free_row(row); row=NULL;
   }
 
   if(row) {
@@ -173,6 +175,7 @@ rasqal_filter_rowsource_get_query(rasqal_rowsource* rowsource, void *user_data)
 
 static const rasqal_rowsource_handler rasqal_filter_rowsource_handler={
   /* .version =          */ 1,
+  "filter",
   /* .init =             */ rasqal_filter_rowsource_init,
   /* .finish =           */ rasqal_filter_rowsource_finish,
   /* .ensure_variables = */ rasqal_filter_rowsource_ensure_variables,
