@@ -1658,6 +1658,7 @@ rasqal_rowsource_engine_get_query(rasqal_rowsource* rowsource, void *user_data)
 
 static const rasqal_rowsource_handler rasqal_rowsource_engine_handler={
   /* .version = */ 1,
+  "engine V1",
   /* .init = */ rasqal_rowsource_engine_init,
   /* .finish = */ rasqal_rowsource_engine_finish,
   /* .ensure_variables = */ rasqal_rowsource_engine_ensure_variables,
