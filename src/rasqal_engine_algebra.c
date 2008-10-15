@@ -106,6 +106,22 @@ rasqal_algebra_filter_algebra_node_to_rowsource(rasqal_engine_algebra_data* exec
 
 
 static rasqal_rowsource*
+rasqal_algebra_orderby_algebra_node_to_rowsource(rasqal_engine_algebra_data* execution_data,
+                                                rasqal_algebra_node* node,
+                                                rasqal_engine_error *error_p)
+{
+  rasqal_query *query = execution_data->query;
+  rasqal_rowsource *rs;
+
+  rs = rasqal_algebra_node_to_rowsource(execution_data, node->node1, error_p);
+  if(!rs || *error_p)
+    return NULL;
+
+  return rasqal_new_sort_rowsource(query, rs, node->seq);
+}
+
+
+static rasqal_rowsource*
 rasqal_algebra_node_to_rowsource(rasqal_engine_algebra_data* execution_data,
                                  rasqal_algebra_node* node,
                                  rasqal_engine_error *error_p)
@@ -123,13 +139,17 @@ rasqal_algebra_node_to_rowsource(rasqal_engine_algebra_data* execution_data,
                                                            node, error_p);
       break;
 
+    case RASQAL_ALGEBRA_OPERATOR_ORDERBY:
+      rs = rasqal_algebra_orderby_algebra_node_to_rowsource(execution_data,
+                                                            node, error_p);
+      break;
+
     case RASQAL_ALGEBRA_OPERATOR_UNKNOWN:
     case RASQAL_ALGEBRA_OPERATOR_JOIN:
     case RASQAL_ALGEBRA_OPERATOR_DIFF:
     case RASQAL_ALGEBRA_OPERATOR_LEFTJOIN:
     case RASQAL_ALGEBRA_OPERATOR_UNION:
     case RASQAL_ALGEBRA_OPERATOR_TOLIST:
-    case RASQAL_ALGEBRA_OPERATOR_ORDERBY:
     case RASQAL_ALGEBRA_OPERATOR_PROJECT:
     case RASQAL_ALGEBRA_OPERATOR_DISTINCT:
     case RASQAL_ALGEBRA_OPERATOR_REDUCED:

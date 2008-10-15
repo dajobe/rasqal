@@ -69,7 +69,8 @@ rasqal_datetime.c rasqal_rowsource.c rasqal_sparql_xml.c \
 rasqal_variable.c rasqal_rowsource_empty.c rasqal_rowsource_union.c \
 rasqal_rowsource_rowsequence.c rasqal_query_transform.c rasqal_row.c \
 rasqal_engine_algebra.c rasqal_triples_source.c \
-rasqal_rowsource_triples.c rasqal_rowsource_filter.c
+rasqal_rowsource_triples.c rasqal_rowsource_filter.c \
+rasqal_rowsource_sort.c rasqal_engine_sort.c
 
 if RASQAL_QUERY_RDQL
 librasqal_la_SOURCES += rdql_lexer.c rdql_lexer.h \
