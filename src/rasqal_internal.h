@@ -960,7 +960,7 @@ struct rasqal_algebra_node_s {
   int start_column;
   int end_column;
   
-  /* types JOIN, DIFF, LEFTJOIN, UNION: gp1 and gp2 ALWAYS present
+  /* types JOIN, DIFF, LEFTJOIN, UNION, ORDERBY: gp1 and gp2 ALWAYS present
    * types FILTER, TOLIST: gp1 ALWAYS present, gp2 ALWAYS NULL
    * (otherwise NULL) 
    */
@@ -972,7 +972,12 @@ struct rasqal_algebra_node_s {
    */
   rasqal_expression* expr;
 
-  /* types ORDERBY, PROJECT, DISTINCT, REDUCED
+  /* types ORDERBY always present
+   * (otherwise NULL)
+   */
+  raptor_sequence* seq;
+
+  /* types PROJECT, DISTINCT, REDUCED
    * FIXME: sequence of solution mappings */
 
   /* types PROJECT, SLICE
@@ -1002,6 +1007,7 @@ rasqal_algebra_node* rasqal_new_empty_algebra_node(rasqal_query* query);
 rasqal_algebra_node* rasqal_new_triples_algebra_node(rasqal_query* query, raptor_sequence* triples, int start_column, int end_column);
 rasqal_algebra_node* rasqal_new_2op_algebra_node(rasqal_query* query, rasqal_algebra_node_operator op, rasqal_algebra_node* node1, rasqal_algebra_node* node2);
 rasqal_algebra_node* rasqal_new_leftjoin_algebra_node(rasqal_query* query, rasqal_algebra_node* node1, rasqal_algebra_node* node2, rasqal_expression* expr);
+rasqal_algebra_node* rasqal_new_orderby_algebra_node(rasqal_query* query, rasqal_algebra_node* node, raptor_sequence* seq);
 void rasqal_free_algebra_node(rasqal_algebra_node* node);
 rasqal_algebra_node_operator rasqal_algebra_node_get_operator(rasqal_algebra_node* node);
 const char* rasqal_algebra_node_operator_as_string(rasqal_algebra_node_operator op);
