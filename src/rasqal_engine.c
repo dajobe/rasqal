@@ -1237,216 +1237,6 @@ rasqal_engine_row_update(rasqal_engine_execution_data* execution_data,
 }
 
 
-/**
- * rasqal_query_result_literal_sequence_compare:
- * @query: the #rasqal_query to use to comparekfind the variables in
- * @values_a: first array of literals
- * @values_b: second array of literals
- * @expr_sequence: array of expressions
- * @size: size of arrays
- *
- * INTERNAL - compare two arrays of literals evaluated in an array of expressions
- *
- * Return value: <0, 0 or >1 comparison
- */
-static int
-rasqal_query_result_literal_sequence_compare(rasqal_query* query,
-                                             rasqal_literal** values_a,
-                                             rasqal_literal** values_b,
-                                             raptor_sequence* expr_sequence,
-                                             int size)
-{
-  int result=0;
-  int i;
-
-  for(i=0; i < size; i++) {
-    rasqal_expression* e=NULL;
-    int error=0;
-    rasqal_literal* literal_a=values_a[i];
-    rasqal_literal* literal_b=values_b[i];
-    
-    if(expr_sequence)
-      e=(rasqal_expression*)raptor_sequence_get_at(expr_sequence, i);
-
-#ifdef RASQAL_DEBUG
-    RASQAL_DEBUG1("Comparing ");
-    rasqal_literal_print(literal_a, DEBUG_FH);
-    fputs(" to ", DEBUG_FH);
-    rasqal_literal_print(literal_b, DEBUG_FH);
-    fputs("\n", DEBUG_FH);
-#endif
-
-    if(!literal_a || !literal_b) {
-      if(!literal_a && !literal_b)
-        result= 0;
-      else {
-        result= literal_a ? 1 : -1;
-#ifdef RASQAL_DEBUG
-        RASQAL_DEBUG2("Got one NULL literal comparison, returning %d\n", result);
-#endif
-        break;
-      }
-    }
-    
-    result=rasqal_literal_compare(literal_a, literal_b,
-                                  query->compare_flags | RASQAL_COMPARE_URI,
-                                  &error);
-
-    if(error) {
-#ifdef RASQAL_DEBUG
-      RASQAL_DEBUG2("Got literal comparison error at expression %d, returning 0\n", i);
-#endif
-      result=0;
-      break;
-    }
-        
-    if(!result)
-      continue;
-
-    if(e && e->op == RASQAL_EXPR_ORDER_COND_DESC)
-      result= -result;
-    /* else Order condition is RASQAL_EXPR_ORDER_COND_ASC so nothing to do */
-    
-#ifdef RASQAL_DEBUG
-    RASQAL_DEBUG3("Returning comparison result %d at expression %d\n", result, i);
-#endif
-    break;
-  }
-
-  return result;
-}
-
-
-/**
- * rasqal_query_result_literal_sequence_equals:
- * @query: the #rasqal_query to use to compare
- * @values_a: first array of literals
- * @values_b: second array of literals
- * @size: size of arrays
- *
- * INTERNAL - compare two arrays of literals for equality
- *
- * Return value: non-0 if equal
- */
-static int
-rasqal_query_result_literal_sequence_equals(rasqal_query* query,
-                                            rasqal_literal** values_a,
-                                            rasqal_literal** values_b,
-                                            int size)
-{
-  int result=1; /* equal */
-  int i;
-  int error=0;
-
-  for(i=0; i < size; i++) {
-    rasqal_literal* literal_a=values_a[i];
-    rasqal_literal* literal_b=values_b[i];
-    
-    result=rasqal_literal_equals_flags(literal_a, literal_b,
-                                       RASQAL_COMPARE_RDF, &error);
-#ifdef RASQAL_DEBUG
-    RASQAL_DEBUG1("Comparing ");
-    rasqal_literal_print(literal_a, DEBUG_FH);
-    fputs(" to ", DEBUG_FH);
-    rasqal_literal_print(literal_b, DEBUG_FH);
-    fprintf(DEBUG_FH, " gave %s\n", (result ? "equality" : "not equal"));
-#endif
-
-    if(error)
-      result=0;
-    
-    /* if different, end */
-    if(!result)
-      break;
-  }
-
-  return result;
-}
-
-
-/**
- * rasqal_engine_row_compare:
- * @a: pointer to address of first #row
- * @b: pointer to address of second #row
- *
- * INTERNAL - compare two pointers to #row objects
- *
- * Suitable for use as a compare function in qsort() or similar.
- *
- * Return value: <0, 0 or >1 comparison
- */
-static int
-rasqal_engine_row_compare(const void *a, const void *b)
-{
-  rasqal_row* row_a;
-  rasqal_row* row_b;
-  rasqal_query* query;
-  int result=0;
-
-  row_a=*(rasqal_row**)a;
-  row_b=*(rasqal_row**)b;
-
-  query=rasqal_rowsource_get_query(row_a->rowsource);
-  
-  if(query->distinct) {
-    if(query->distinct == 1)
-      result=!rasqal_query_result_literal_sequence_equals(query,
-                                                          row_a->values,
-                                                          row_b->values,
-                                                          row_a->size);
-    
-    if(!result)
-      /* duplicate, so return that */
-      return 0;
-  }
-  
-  /* now order it */
-  result=rasqal_query_result_literal_sequence_compare(query,
-                                                      row_a->order_values,
-                                                      row_b->order_values,
-                                                      query->order_conditions_sequence,
-                                                      row_a->order_size);
-  
-  /* still equal?  make sort stable by using the original order */
-  if(!result) {
-    result= row_a->offset - row_b->offset;
-    RASQAL_DEBUG2("Got equality result so using offsets, returning %d\n",
-                  result);
-  }
-  
-  return result;
-}
-
-
-static void
-rasqal_engine_map_free_row(const void *key, const void *value)
-{
-  if(key)
-    rasqal_free_row((rasqal_row*)key);
-  if(value)
-    rasqal_free_row((rasqal_row*)value);
-}
-
-
-static void
-rasqal_engine_map_print_row(void *object, FILE *fh)
-{
-  if(object)
-    rasqal_row_print((rasqal_row*)object, fh);
-  else
-    fputs("NULL", fh);
-}
-
-
-static void
-rasqal_engine_map_add_to_sequence(void *key, void *value, void *user_data)
-{
-  rasqal_row* row;
-  row=rasqal_new_row_from_row((rasqal_row*)key);
-  raptor_sequence_push((raptor_sequence*)user_data, row);
-}
-
-
 typedef struct 
 {
   rasqal_query* query;
@@ -1548,18 +1338,8 @@ rasqal_rowsource_engine_process(rasqal_rowsource* rowsource,
       con->offset++;
     } else {
       /* map. after this, row is owned by map */
-      if(!rasqal_map_add_kv(con->map, row, NULL)) {
+      if(!rasqal_engine_rowsort_map_add_row(con->map, row))
         con->offset++;
-      } else {
-        /* duplicate, and not added so delete it */
-#ifdef RASQAL_DEBUG
-        RASQAL_DEBUG1("Got duplicate row ");
-        rasqal_row_print(row, DEBUG_FH);
-        fputc('\n', DEBUG_FH);
-#endif
-        rasqal_free_row(row);
-        row=NULL;
-      }
     }
 
     /* if a row was returned and not storing result, end loop */
@@ -1577,8 +1357,7 @@ rasqal_rowsource_engine_process(rasqal_rowsource* rowsource,
   
   if(con->map) {
     /* do sort/distinct: walk map in order, adding rows to sequence */
-    rasqal_map_visit(con->map, rasqal_engine_map_add_to_sequence,
-                     (void*)con->seq);
+    rasqal_engine_rowsort_map_to_sequence(con->map, con->seq);
     rasqal_free_map(con->map); con->map=NULL;
   }
 }
@@ -1687,12 +1466,11 @@ rasqal_engine_make_rowsource(rasqal_query* query,
   con->need_store_results = need_store_results;
 
   if(con->need_store_results) {
+    int map_flags = 0;
+    if(query->distinct == 1)
+      map_flags |= 1;
     /* make a row:NULL map in order to sort or do distinct */
-    con->map = rasqal_new_map(rasqal_engine_row_compare,
-                              rasqal_engine_map_free_row, 
-                              rasqal_engine_map_print_row,
-                              NULL,
-                              0);
+    con->map = rasqal_engine_new_rowsort_map(map_flags);
     if(!con->map) {
       rasqal_rowsource_engine_finish(NULL, con);
       return NULL;

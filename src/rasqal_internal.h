@@ -486,6 +486,9 @@ rasqal_rowsource* rasqal_new_leftjoin_rowsource(rasqal_query* query, rasqal_quer
 /* rasqal_rowsequence_rowsource.c */
 rasqal_rowsource* rasqal_new_rowsequence_rowsource(rasqal_query* query, rasqal_variables_table* vt, raptor_sequence* row);
 
+/* rasqal_sort_rowsource.c */
+rasqal_rowsource* rasqal_new_sort_rowsource(rasqal_query *query, rasqal_rowsource *rowsource, raptor_sequence *seq);
+
 /* rasqal_union_rowsource.c */
 rasqal_rowsource* rasqal_new_union_rowsource(rasqal_query* query, rasqal_rowsource* left, rasqal_rowsource* right);
 
@@ -1106,6 +1109,11 @@ struct rasqal_query_execution_factory_s {
 
 /* Original Rasqal 0.9.16 query engine executing over graph patterns */
 extern const rasqal_query_execution_factory rasqal_query_engine_1;
+
+/* rasqal_engine_sort.c */
+rasqal_map* rasqal_engine_new_rowsort_map(int flags);
+int rasqal_engine_rowsort_map_add_row(rasqal_map* map, rasqal_row* row);
+raptor_sequence* rasqal_engine_rowsort_map_to_sequence(rasqal_map* map, raptor_sequence* seq);
 
 
 /* rasqal_engine_algebra.c */
