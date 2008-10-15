@@ -93,6 +93,9 @@ rasqal_filter_rowsource_finish(rasqal_rowsource* rowsource, void *user_data)
   rasqal_filter_rowsource_context *con;
   con = (rasqal_filter_rowsource_context*)user_data;
 
+  if(con->rowsource)
+    rasqal_free_rowsource(con->rowsource);
+  
   RASQAL_FREE(rasqal_filter_rowsource_context, con);
 
   return 0;
