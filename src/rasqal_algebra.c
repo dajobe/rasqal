@@ -80,7 +80,7 @@ rasqal_new_algebra_node(rasqal_query* query, rasqal_algebra_node_operator op)
  *
  * INTERNAL - Create a new algebra node for an expression over a node
  * 
- * Return value: a new #rasqal_algebra_node_node object or NULL on failure
+ * Return value: a new #rasqal_algebra_node object or NULL on failure
  **/
 rasqal_algebra_node*
 rasqal_new_filter_algebra_node(rasqal_query* query,
@@ -112,7 +112,7 @@ rasqal_new_filter_algebra_node(rasqal_query* query,
  *
  * INTERNAL - Create a new algebra node for Basic Graph Pattern
  * 
- * Return value: a new #rasqal_algebra_node_node object or NULL on failure
+ * Return value: a new #rasqal_algebra_node object or NULL on failure
  **/
 rasqal_algebra_node*
 rasqal_new_triples_algebra_node(rasqal_query* query,
@@ -146,7 +146,7 @@ rasqal_new_triples_algebra_node(rasqal_query* query,
  *
  * INTERNAL - Create a new empty algebra node
  * 
- * Return value: a new #rasqal_algebra_node_node object or NULL on failure
+ * Return value: a new #rasqal_algebra_node object or NULL on failure
  **/
 rasqal_algebra_node*
 rasqal_new_empty_algebra_node(rasqal_query* query)
@@ -179,7 +179,7 @@ rasqal_new_empty_algebra_node(rasqal_query* query)
  *
  * node1 and ndoe2 become owned by the new node
  *
- * Return value: a new #rasqal_algebra_node_node object or NULL on failure
+ * Return value: a new #rasqal_algebra_node object or NULL on failure
  **/
 rasqal_algebra_node*
 rasqal_new_2op_algebra_node(rasqal_query* query,
@@ -222,7 +222,7 @@ rasqal_new_2op_algebra_node(rasqal_query* query,
  * 
  * node1 and ndoe2 become owned by the new node
  *
- * Return value: a new #rasqal_algebra_node_node object or NULL on failure
+ * Return value: a new #rasqal_algebra_node object or NULL on failure
  **/
 rasqal_algebra_node*
 rasqal_new_leftjoin_algebra_node(rasqal_query* query,
@@ -256,6 +256,46 @@ rasqal_new_leftjoin_algebra_node(rasqal_query* query,
 
 
 /*
+ * rasqal_new_orderby_algebra_node:
+ * @query: #rasqal_query query object
+ * @node1: inner algebra node
+ * @seq: sequence of order condition #rasqal_expression
+ *
+ * INTERNAL - Create a new ORDERBY algebra node for a sequence of order conditions
+ * 
+ * #node and #seq become owned by the new node
+ *
+ * Return value: a new #rasqal_algebra_node object or NULL on failure
+ **/
+rasqal_algebra_node*
+rasqal_new_orderby_algebra_node(rasqal_query* query,
+                                rasqal_algebra_node* node1,
+                                raptor_sequence* seq)
+{
+  rasqal_algebra_node* node;
+
+  if(!query || !node1 || !seq || !raptor_sequence_size(seq))
+    goto fail;
+
+  node = rasqal_new_algebra_node(query, RASQAL_ALGEBRA_OPERATOR_ORDERBY);
+  if(node) {
+    node->node1 = node1;
+    node->seq = seq;
+    
+    return node;
+  }
+
+  fail:
+  if(node1)
+    rasqal_free_algebra_node(node1);
+  if(seq)
+    raptor_free_sequence(seq);
+
+  return NULL;
+}
+
+
+/*
  * rasqal_free_algebra_node:
  * @gp: #rasqal_algebra_node object
  *
@@ -277,6 +317,9 @@ rasqal_free_algebra_node(rasqal_algebra_node* node)
 
   if(node->expr)
     rasqal_free_expression(node->expr);
+
+  if(node->seq)
+    raptor_free_sequence(node->seq);
 
   RASQAL_FREE(rasqal_algebra, node);
 }
@@ -410,6 +453,28 @@ rasqal_algebra_algebra_node_write_internal(rasqal_algebra_node *node,
     }
     rasqal_expression_write(node->expr, iostr);
     arg_count++;
+  }
+
+  if(node->seq && node->op == RASQAL_ALGEBRA_OPERATOR_ORDERBY) {
+    int order_size = raptor_sequence_size(node->seq);
+    if(order_size) {
+      int i;
+      
+      if(arg_count) {
+        raptor_iostream_write_counted_string(iostr, " ,\n", 3);
+        rasqal_algebra_write_indent(iostr, indent);
+      }
+      raptor_iostream_write_counted_string(iostr, "Conditions([ ", 13);
+      for(i=0; i < order_size; i++) {
+        rasqal_expression* e;
+        e = (rasqal_expression*)raptor_sequence_get_at(node->seq, i);
+        if(i > 0)
+          raptor_iostream_write_counted_string(iostr, ", ", 2);
+        rasqal_expression_write(e, iostr);
+        arg_count++;
+      }
+      raptor_iostream_write_counted_string(iostr, " ])", 3);
+    }
   }
 
   if(node->op == RASQAL_ALGEBRA_OPERATOR_SLICE) {
@@ -882,6 +947,31 @@ rasqal_algebra_query_to_algebra(rasqal_query* query)
                             rasqal_algebra_remove_znodes,
                             &modified);
 
+  if(query->order_conditions_sequence) {
+    int order_size = raptor_sequence_size(query->order_conditions_sequence);
+    if(order_size) {
+      int i;
+      raptor_sequence* seq;
+
+      /* Make a deep copy of the query order conditions sequence for
+       * the ORDERBY algebra node
+       */
+      seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_expression, (raptor_sequence_print_handler*)rasqal_expression_print);
+      if(!seq) {
+        rasqal_free_algebra_node(node);
+        return NULL;
+      }
+      for(i = 0; i < order_size; i++) {
+        rasqal_expression* e;
+        e = (rasqal_expression*)raptor_sequence_get_at(query->order_conditions_sequence, i);
+        raptor_sequence_push(seq, rasqal_new_expression_from_expression(e));
+      }
+
+      node = rasqal_new_orderby_algebra_node(query, node, seq);
+      modified = 1;
+    }
+  }
+
 #if RASQAL_DEBUG > 1
   RASQAL_DEBUG2("modified=%d after remove zones, algebra ndoe now:\n  ", modified);
   rasqal_algebra_node_print(node, stderr);
@@ -922,6 +1012,8 @@ main(int argc, char *argv[]) {
   rasqal_literal *lit1=NULL, *lit2=NULL;
   rasqal_expression *expr1=NULL, *expr2=NULL;
   rasqal_expression* expr=NULL;
+  rasqal_expression* expr3 = NULL;
+  rasqal_expression* expr4 = NULL;
   rasqal_algebra_node* node0=NULL;
   rasqal_algebra_node* node1=NULL;
   rasqal_algebra_node* node2=NULL;
@@ -931,11 +1023,15 @@ main(int argc, char *argv[]) {
   rasqal_algebra_node* node6=NULL;
   rasqal_algebra_node* node7=NULL;
   rasqal_algebra_node* node8=NULL;
+  rasqal_algebra_node* node9=NULL;
   raptor_uri *base_uri=NULL;
   unsigned char *uri_string;
   rasqal_graph_pattern* query_gp;
   rasqal_graph_pattern* sgp;
   raptor_sequence* triples;
+  raptor_sequence* conditions = NULL;
+  rasqal_literal* lit3 = NULL;
+  rasqal_literal* lit4 = NULL;
 
   world=rasqal_new_world();
   if(!world || rasqal_world_open(world))
@@ -1116,17 +1212,62 @@ main(int argc, char *argv[]) {
   rasqal_algebra_node_print(node7, stderr);
   fputc('\n', stderr);
 
+  /* This is an artificial order conditions sequence equivalent to
+   * ORDER BY 1, 2 which would probably never appear in a query.
+   */
+  conditions = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_expression, (raptor_sequence_print_handler*)rasqal_expression_print);
+  if(!conditions)
+    FAIL;
+  lit3 = rasqal_new_integer_literal(world, RASQAL_LITERAL_INTEGER, 1);
+  if(!lit3)
+    FAIL;
+  expr3 = rasqal_new_literal_expression(world, lit3);
+  if(!expr3)
+    FAIL;
+  lit3 = NULL; /* now owned by expr3 */
+
+  raptor_sequence_push(conditions, expr3);
+  expr3 = NULL; /* now owned by conditions */
+  
+  lit4 = rasqal_new_integer_literal(world, RASQAL_LITERAL_INTEGER, 2);
+  if(!lit4)
+    FAIL;
+  expr4 = rasqal_new_literal_expression(world, lit4);
+  if(!expr4)
+    FAIL;
+  lit4 = NULL; /* now owned by expr4 */
+
+  raptor_sequence_push(conditions, expr4);
+  expr4 = NULL; /* now owned by conditions */
+  
+  node9 = rasqal_new_orderby_algebra_node(query, node7, conditions);
+  if(!node9)
+    FAIL;
+  /* these become owned by node9 */
+  node7 = NULL;
+  conditions = NULL;
+  
+  fprintf(stderr, "%s: node9 result: \n", program);
+  rasqal_algebra_node_print(node9, stderr);
+  fputc('\n', stderr);
+
 
   tidy:
   if(lit1)
     rasqal_free_literal(lit1);
   if(lit2)
     rasqal_free_literal(lit2);
+  if(lit3)
+    rasqal_free_literal(lit3);
   if(expr1)
     rasqal_free_expression(expr1);
   if(expr2)
     rasqal_free_expression(expr2);
+  if(expr3)
+    rasqal_free_expression(expr3);
 
+  if(node9)
+    rasqal_free_algebra_node(node9);
   if(node8)
     rasqal_free_algebra_node(node8);
   if(node7)
