@@ -592,7 +592,9 @@ rasqal_query_results_ensure_have_row_internal(rasqal_query_results* query_result
     }
   }
   
-  if(!query_results->row)
+  if(query_results->row)
+    rasqal_row_to_nodes(query_results->row);
+  else
     query_results->finished = 1;
 
   return (query_results->row == NULL);

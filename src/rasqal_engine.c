@@ -1773,11 +1773,9 @@ rasqal_query_engine_1_get_row(void* ex_data, rasqal_engine_error *error_p)
   if(*error_p == RASQAL_ENGINE_OK) {
     row = rasqal_new_row(execution_data->rowsource);
 
-    if(row) {
+    if(row)
       rasqal_engine_row_update(execution_data, row,
                                execution_data->result_count);
-      rasqal_row_to_nodes(row);
-    }
   }
   
   return row;
