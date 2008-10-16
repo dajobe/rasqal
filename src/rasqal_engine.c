@@ -1187,21 +1187,11 @@ rasqal_engine_get_next_result(rasqal_engine_execution_data* execution_data)
  * Return value: non-0 on failure 
  */
 static int
-rasqal_engine_row_update(rasqal_engine_execution_data* execution_data,
-                         rasqal_row* row, int offset)
+rasqal_engine_row_update(rasqal_query* query, rasqal_row* row, int offset)
 {
-  rasqal_query* query;
-  rasqal_query_results* query_results;
   int i;
   int size;
   
-  query = execution_data->query;
-  query_results = execution_data->query_results;
-
-  if(!rasqal_query_results_is_bindings(query_results) &&
-     !rasqal_query_results_is_graph(query_results))
-    return 1;
-
   if(query->constructs)
     size=rasqal_variables_table_get_named_variables_count(query->vars_table);
   else
@@ -1330,7 +1320,7 @@ rasqal_rowsource_engine_process(rasqal_rowsource* rowsource,
       return;
     }
     
-    rasqal_engine_row_update(con->execution_data, row, con->offset);
+    rasqal_engine_row_update(con->query, row, con->offset);
 
     if(!con->map) {
       /* no map. after this, row is owned by sequence */
@@ -1552,7 +1542,7 @@ rasqal_query_engine_1_get_row(void* ex_data, rasqal_engine_error *error_p)
     row = rasqal_new_row(execution_data->rowsource);
 
     if(row)
-      rasqal_engine_row_update(execution_data, row,
+      rasqal_engine_row_update(execution_data->query, row,
                                execution_data->result_count);
   }
   
