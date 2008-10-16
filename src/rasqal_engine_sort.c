@@ -46,7 +46,7 @@
 
 /**
  * rasqal_engine_rowsort_compare_literals_sequence:
- * @query: the #rasqal_query to use to comparekfind the variables in
+ * @query: the #rasqal_query to use to find the variables in
  * @values_a: first array of literals
  * @values_b: second array of literals
  * @expr_sequence: array of expressions
