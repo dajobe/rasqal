@@ -56,29 +56,43 @@ typedef struct
 
   /* sequence of order conditions #rasqal_expression */
   raptor_sequence* seq;
+
+  /* number of order conditions in query->order_conditions_sequence */
+  int order_size;
 } rasqal_sort_rowsource_context;
 
 
 static int
 rasqal_sort_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
 {
+  rasqal_query *query;
   rasqal_sort_rowsource_context *con;
   int map_flags = 0;
 
   con = (rasqal_sort_rowsource_context*)user_data;
+  query = con->query;
   
-  if(con->query->distinct == 1)
+  if(query->distinct == 1)
     map_flags |= 1;
 
-  /* make a row:NULL map in order to sort or do distinct */
-  con->map = rasqal_engine_new_rowsort_map(map_flags);
-  if(!con->map)
-    return 1;
-
-  con->seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_row, (raptor_sequence_print_handler*)rasqal_row_print);
-  if(!con->seq)
-    return 1;
+  if(query->order_conditions_sequence)
+    con->order_size = raptor_sequence_size(query->order_conditions_sequence);
+  else {
+    RASQAL_DEBUG1("No order conditions for sort rowsource - passing through");
+    con->order_size = -1;
+  }
   
+  con->map = NULL;
+
+  if(con->order_size > 0 ) {
+    /* make a row:NULL map in order to sort or do distinct */
+    con->map = rasqal_engine_new_rowsort_map(map_flags);
+    if(!con->map)
+      return 1;
+  }
+  
+  con->seq = NULL;
+
   return 0;
 }
 
@@ -93,12 +107,21 @@ rasqal_sort_rowsource_process(rasqal_rowsource* rowsource,
   if(con->seq)
     return 0;
   
+  con->seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_row, (raptor_sequence_print_handler*)rasqal_row_print);
+  if(!con->seq)
+    return 1;
+  
   while(1) {
     rasqal_row* row;
 
     row = rasqal_rowsource_read_row(con->rowsource);
     if(!row)
       break;
+
+    /* updates row->order_size and row->order_values too */
+    rasqal_row_move_to_rowsource(row, rowsource);
+
+    rasqal_engine_rowsort_calculate_order_values(con->query, row);
 
     row->offset = offset;
 
@@ -117,7 +140,7 @@ rasqal_sort_rowsource_process(rasqal_rowsource* rowsource,
   
   /* do sort/distinct: walk map in order, adding rows to sequence */
   rasqal_engine_rowsort_map_to_sequence(con->map, con->seq);
-  rasqal_free_map(con->map); con->map=NULL;
+  rasqal_free_map(con->map); con->map = NULL;
 
   return 0;
 }
@@ -133,7 +156,7 @@ rasqal_sort_rowsource_ensure_variables(rasqal_rowsource* rowsource,
   rasqal_rowsource_ensure_variables(con->rowsource);
 
   rowsource->size = con->rowsource->size;
-  rowsource->order_size = con->rowsource->order_size;
+  rowsource->order_size = con->order_size;
   
   return 0;
 }
@@ -171,6 +194,12 @@ rasqal_sort_rowsource_read_all_rows(rasqal_rowsource* rowsource,
   con = (rasqal_sort_rowsource_context*)user_data;
   query = con->query;
 
+  /* if there were no ordering conditions, pass it all on to inner rowsource */
+  if(con->order_size <= 0)
+    return rasqal_rowsource_read_all_rows(con->rowsource);
+
+
+  /* need to sort */
   if(rasqal_sort_rowsource_process(rowsource, con))
     return NULL;
 
