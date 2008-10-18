@@ -1179,40 +1179,17 @@ rasqal_engine_get_next_result(rasqal_engine_execution_data* execution_data)
  *
  * INTERNAL - Update row values from query variables
  *
- * FIXME: This function should not write to the query structure.
- *
  * Return value: non-0 on failure 
  */
 static int
 rasqal_engine_row_update(rasqal_query* query, rasqal_row* row, int offset)
 {
-  int i;
-  
-  for(i=0; i < row->size; i++) {
-    rasqal_literal *l=rasqal_variables_table_get_value(query->vars_table, i);
-    if(row->values[i])
-      rasqal_free_literal(row->values[i]);
-    row->values[i]=rasqal_new_literal_from_literal(l);
-  }
+  rasqal_row_set_values_from_variables_table(row, query->vars_table);
 
-  if(row->order_size) {
-    for(i=0; i < row->order_size; i++) {
-      rasqal_expression* e;
-      rasqal_literal *l;
-
-      e=(rasqal_expression*)raptor_sequence_get_at(query->order_conditions_sequence, i);
-      l=rasqal_expression_evaluate(query, e, query->compare_flags);
-      if(row->order_values[i])
-        rasqal_free_literal(row->order_values[i]);
-      if(l) {
-        row->order_values[i]=rasqal_new_literal_from_literal(rasqal_literal_value(l));
-        rasqal_free_literal(l);
-      } else
-        row->order_values[i]=NULL;
-    }
-  }
+  if(row->order_size)
+    rasqal_engine_rowsort_calculate_order_values(query, row);
   
-  row->offset=offset;
+  row->offset = offset;
   
   return 0;
 }
