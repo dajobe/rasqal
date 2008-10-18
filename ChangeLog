@@ -1,4 +1,293 @@
+2008-10-18  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_internal.h: Added prototypes for
+	rasqal_row_set_values_from_variables_table,
+	rasqal_row_move_to_rowsource and
+	rasqal_engine_rowsort_calculate_order_values
+
+	* src/rasqal_rowsource_triples.c:
+	(rasqal_triples_rowsource_read_row): Use
+	rasqal_row_set_values_from_variables_table to copy/set row values.
+
+	* src/rasqal_rowsource_sort.c: rasqal_sort_rowsource_context gains
+	an order_size field to save re-calculating this many times.
+	(rasqal_sort_rowsource_init): Calculate order_size for above. Do
+	not init con->seq here since it may not be needed.
+	(rasqal_sort_rowsource_process): Init con->seq here.  Use
+	rasqal_row_move_to_rowsource and
+	rasqal_engine_rowsort_calculate_order_values to freshen and
+	calculate any new row fields needed for sorting.
+	(rasqal_sort_rowsource_read_all_rows): If no ordering conditions
+	exist, just call rowsource read_all_rows method.
+
+	* src/rasqal_row.c:
+	(rasqal_row_set_values_from_variables_table): Added based on
+	former rasqal_engine_row_update code.
+	(rasqal_row_move_to_rowsource): Added to reassign/move a row to a
+	new rowsource and if necessary, allocate the order_values of the
+	new rowsource.
+
+	* src/rasqal_engine_sort.c:
+	(rasqal_engine_rowsort_calculate_order_values): Added based on
+	former rasqal_engine_row_update code
+
+	* src/rasqal_engine.c:
+	(rasqal_engine_row_update): Turned into calls to two new
+	functions: rasqal_row_set_values_from_variables_table and
+	rasqal_engine_rowsort_calculate_order_values
+
+2008-10-15  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_engine.c: rasqal_engine_execution_data gains row size
+	field.
+	(rasqal_engine_get_next_result, rasqal_engine_row_update,
+	rasqal_rowsource_engine_ensure_variables): Do not calc size here,
+	use execution_data->size
+	(rasqal_query_engine_1_execute_init): Init size
+
+	* src/rasqal_engine_sort.c: autodocs
+
+	* src/rasqal_engine.c:
+	(rasqal_engine_row_update): Use query direct, do not
+	query_results, can assume that the query results is of right type
+	in this internal function.
+
+	* src/Makefile.am, src/rasqal_engine_algebra.c,
+	src/rasqal_rowsource_sort.c:
+	(rasqal_algebra_orderby_algebra_node_to_rowsource): Added
+	(rasqal_algebra_node_to_rowsource): Use above for ORDERBY algebra
+	node.  
+	Added sort rowsource
+	(rasqal_new_sort_rowsource): Added sort rowsource constructor.
+
+	* src/rasqal_rowsource_filter.c:
+	(rasqal_filter_rowsource_finish): Free inner rowsource when done.
+
+2008-10-14  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_engine.c, src/rasqal_engine_sort.c,
+	src/rasqal_internal.h: Moved all engine sorting routines into new
+	rasqal_engine_sort.c
+	(rasqal_rowsource_engine_process): Call new
+	rasqal_engine_rowsort_map_add_row to build the map and
+	rasqal_engine_rowsort_map_to_sequence to do the sorting.
+	(rasqal_engine_make_rowsource): Use new
+	rasqal_engine_new_rowsort_map to create the rowsource sorting map,
+	with distinct flags.
+	(rasqal_engine_rowsort_compare_literals_sequence): Added based on
+	rasqal_query_result_literal_sequence_compare.
+	(rasqal_engine_rowsort_literal_sequence_equals): Added based on
+	rasqal_query_result_literal_sequence_equals.  Removed query arg.
+	(rasqal_engine_rowsort_row_compare,
+	rasqal_engine_rowsort_row_compare_distinct): Added based on
+	rasqal_engine_row_compare with distinct/not-distinct case pulled out.
+	(rasqal_engine_rowsort_map_free_row): Added based on
+	rasqal_engine_map_free_row.
+	(rasqal_engine_rowsort_map_print_row): Added based on
+	rasqal_engine_map_print_row.
+	(rasqal_engine_new_rowsort_map): Added
+	(rasqal_engine_rowsort_map_add_row): Added
+	(rasqal_engine_rowsort_map_add_to_sequence): Added based on
+	rasqal_engine_map_add_to_sequence.
+	(rasqal_engine_rowsort_map_to_sequence): Added to do the sorting.
+
+	* src/rasqal_internal.h: struct rasqal_algebra_node_s gains seq
+	for ORDERBY.  Added rasqal_new_orderby_algebra_node prototype
+
+	* src/rasqal_algebra.c:
+	(rasqal_new_orderby_algebra_node): Added with a sequence of
+	expressions in ->seq
+	(rasqal_free_algebra_node): Free sequence.
+	(rasqal_algebra_algebra_node_write_internal): Write conditions
+	seq.
+	(rasqal_algebra_query_to_algebra): Add ORDERBY algebra node if an
+	order conditions sequence is present.
+	(main): Add ORDERBY algebra node to test
+
+	* src/rasqal_engine.c, src/rasqal_query_results.c:
+	(rasqal_query_results_ensure_have_row_internal): Invoke
+	rasqal_row_to_nodes here after getting a new row, for all query
+	execution engines.
+	(rasqal_query_engine_1_get_row): Remove call from here.
+
+2008-10-13  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_engine.c: Give rowsources a name
+
+	* src/rasqal_internal.h, src/rasqal_rowsource.c,
+	src/rasqal_rowsource_empty.c, src/rasqal_rowsource_filter.c,
+	src/rasqal_rowsource_rowsequence.c,
+	src/rasqal_rowsource_triples.c, src/rasqal_rowsource_union.c,
+	src/rasqal_sparql_xml.c: Give rowsources a name
+
+2008-10-13  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_query.c:
+	(rasqal_query_add_query_result): Changed static function to return
+	int error code. Switch order of usage counter increment and
+	sequence push to ensure the sequence free handler does not kill
+	the query object if sequence push fails.
+
+	(rasqal_query_execute_with_engine): Check return value from
+	rasqal_query_add_query_result() and return failure accordingly.
+
+	* src/rasqal_engine.c:
+	(rasqal_query_engine_1_execute_init): Set error_p on gp_data
+	alloc/push failure
+
+2008-10-12  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_rowsource_triples.c:
+	(main): Fixed test segfaults in RAPTOR_V2_AVAILABLE mode.
+
+2008-10-12  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_engine_algebra.c:
+	(rasqal_algebra_filter_algebra_node_to_rowsource): Added, calling
+	rasqal_new_filter_rowsource
+	(rasqal_algebra_node_to_rowsource): Handle
+	RASQAL_ALGEBRA_OPERATOR_FILTER
+
+	* src/rasqal_internal.h: Added rasqal_new_filter_rowsource
+
+	* src/Makefile.am, src/rasqal_rowsource_filter.c: Added Rasqal
+	filter rowsource class
+
+	* src/rasqal_query.c:
+	(rasqal_query_get_engine_by_name): Allow overriding query engine
+	with envariable RASQAL_DEBUG_ENGINE
+
+	* src/Makefile.am: Make rasqal_rowsource_triples_test run
+
+	* src/rasqal_rowsource_triples.c:
+	(main): unit test work
+
+	* data/Makefile.am, data/one.nt: Added one.net
+
+	* src/rasqal_engine_algebra.c:
+	(rasqal_algebra_basic_algebra_node_to_rowsource): Added.
+	(rasqal_algebra_node_to_rowsource): Added, calling
+	rasqal_algebra_basic_algebra_node_to_rowsource for BGP nodes.
+	(rasqal_query_engine_algebra_execute_init): Make triples source,
+	turn the graph pattern tree into algebra and make a rowsource to
+	execute it.
+	(rasqal_query_engine_algebra_get_all_rows,
+	rasqal_query_engine_algebra_get_row): Call rowsource to execute
+	query.
+	(rasqal_query_engine_algebra_execute_finish): Free triples source
+	and rowsource.
+
+	* src/rasqal_internal.h: Added rasqal_new_triples_rowsource prototype
+
+	* src/Makefile.am, src/rasqal_rowsource_triples.c: Added
+	rasqal_rowsource_triples.c providing a triple pattern
+	rowsource.  (rasqal_new_triples_rowsource): Added - the
+	constructor for this rowsource.
+
+	* src/rasqal_engine_algebra.c:
+	(rasqal_query_engine_algebra_execute_get_all_rows,
+	rasqal_query_engine_algebra_execute_get_row): Finish immediately
+
 2008-10-11  Dave Beckett <dave@dajobe.org>
+
+	* docs/tmpl/section-data.sgml, docs/tmpl/section-expression.sgml,
+	docs/tmpl/section-general.sgml, docs/tmpl/section-prefix.sgml: api
+	docs tmpls
+
+	* src/Makefile.am, src/rasqal_engine.c, src/rasqal_internal.h,
+	src/rasqal_triples_source.c: Separate triples source from engine V1
+
+	Export rasqal_new_triples_source, rasqal_reset_triple_meta,
+	rasqal_free_triples_source, rasqal_triples_source_triple_present,
+	rasqal_new_triples_match, rasqal_triples_match_bind_match,
+	rasqal_triples_match_next_match and rasqal_triples_match_is_end
+	
+	(rasqal_new_triples_source): Change calling convention to take a
+	query.
+	(rasqal_new_triples_match): Change calling convention to take a query
+	and triples_source as made by rasqal_new_triples_source().
+
+	* src/rasqal_engine.c: rasqal_new_triples_source switch back to
+	use query direct
+
+	* src/rasqal_graph_pattern.c: style
+
+	* src/rasqal_graph_pattern.c:
+	(rasqal_new_filter_graph_pattern): Replace deprecated
+	rasqal_graph_pattern_add_constraint with
+	rasqal_graph_pattern_set_filter_expression
+
+	* src/rasqal_graph_pattern.c:
+	(rasqal_graph_pattern_add_constraint): Fix autodocs
+
+	* src/rasqal_query.c:
+	(rasqal_query_write_sparql_graph_pattern): Replace deprecated
+	rasqal_graph_pattern_get_constraint with
+	rasqal_graph_pattern_get_filter_expression.
+
+	* src/rasqal_engine_algebra.c: copyright
+
+	* src/rasqal_engine_algebra.c: Transform query into algebra nodes
+	and count nodes.
+	(rasqal_engine_algebra_count_nodes): Added.
+	(rasqal_query_engine_algebra_execute_init): Init algebra_node and
+	print debugging.
+	(rasqal_query_engine_algebra_execute_finish): Free algebra_node if
+	set.
+
+	* src/rasqal_query_results.c:
+	(rasqal_query_results_ensure_have_row_internal): Increment results
+	count when executing lazy
+
+	* src/rasqal_query.c:
+	(rasqal_query_set_store_results):  Internal not just when debugging
+
+	* src/rasqal_internal.h: Make rasqal_query_set_store_results
+	prototype just internal
+
+	* src/rasqal_query.c:
+	(rasqal_query_get_engine_by_name): Check name if not NULL
+
+	* utils/roqet.c: fix help message to note internal
+
+	* utils/roqet.c: Add -g/ --engine internal only for now
+
+	* src/Makefile.am: Add rasqal_engine_algebra.c
+
+	* src/rasqal_internal.h: Add rasqal_query_get_engine_by_name
+	prototype.  Add extern for new algebra query engine
+
+	* src/rasqal_engine_algebra.c: Query engine over algebra skeleton
+
+	* src/rasqal_query.c:
+	(rasqal_query_get_engine_by_name): Added to map a name to a query
+	engine.  Choose original or query algebra.
+	(rasqal_query_execute_with_engine): Use above.
+
+	* src/rasqal_internal.h: Added rasqal_query_execute_with_engine
+	Added rasqal_query_results_execute_with_engine replacing
+	rasqal_new_query_results_from_query_execution
+
+	* src/rasqal_query.c:
+	(rasqal_query_execute_with_engine): Added to allow passing in
+	execution engine
+	(rasqal_query_execute): Call above.
+
+	* src/rasqal_query_results.c:
+	(rasqal_query_results_execute_with_engine): Renamed from
+	rasqal_new_query_results_from_query_execution and add engine as a
+	parameter.
+
+	* src/rasqal_query_results.c:
+	(rasqal_new_query_results): Just
+	init fields, do not do any more work; move htat to
+	rasqal_new_query_results_from_query_execution.
+	(rasqal_new_query_results_from_query_execution): Set query results
+	type and variables.
+
+	* src/rasqal_engine.c: add debug ifdef
+
+	* src/rasqal_query.c: remove dead ifdef
 
 	* utils/roqet.c:
 	(roqet_graph_pattern_walk): Use
@@ -34,7 +323,8 @@
 
 	* src/rasqal_query.c: internal docs
 
-	* src/rasqal_engine.c: (rasqal_new_triples_source): autodocs
+	* src/rasqal_engine.c:
+	(rasqal_new_triples_source): autodocs
 
 2008-10-09  Lauri Aalto <laalto@iki.fi>
 
