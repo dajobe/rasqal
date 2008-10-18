@@ -435,3 +435,42 @@ rasqal_row_to_nodes(rasqal_row* row)
 }
 
 
+void
+rasqal_row_set_values_from_variables_table(rasqal_row* row,
+                                           rasqal_variables_table* vars_table)
+{
+  int i;
+  
+  for(i = 0; i < row->size; i++) {
+    rasqal_literal *l;
+    l = rasqal_variables_table_get_value(vars_table, i);
+    if(row->values[i])
+      rasqal_free_literal(row->values[i]);
+    row->values[i] = rasqal_new_literal_from_literal(l);
+  }
+}
+
+
+int
+rasqal_row_move_to_rowsource(rasqal_row *row, rasqal_rowsource* rowsource)
+{
+  int size;
+  int order_size;
+
+  row->rowsource = rowsource;
+
+  rasqal_rowsource_get_sizes(rowsource, &size, &order_size);
+
+  row->order_size = order_size;
+  if(row->order_size > 0) {
+    row->order_values = (rasqal_literal**)RASQAL_CALLOC(array,  row->order_size,
+                                                        sizeof(rasqal_literal*));
+    if(!row->order_values) {
+      row->order_size = -1;
+      return 1;
+    }
+  }
+  
+  return 0;
+}
+
