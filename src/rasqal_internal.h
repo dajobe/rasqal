@@ -864,6 +864,8 @@ void rasqal_row_print(rasqal_row* row, FILE* fh);
 void rasqal_row_set_value_at(rasqal_row* row, int offset, rasqal_literal* value);
 raptor_sequence* rasqal_new_row_sequence(rasqal_world* world, rasqal_variables_table* vt, const char* const row_data[], int vars_count);
 int rasqal_row_to_nodes(rasqal_row* row);
+void rasqal_row_set_values_from_variables_table(rasqal_row* row, rasqal_variables_table* vars_table);
+int rasqal_row_move_to_rowsource(rasqal_row *row, rasqal_rowsource* rowsource);
 
 /* rasqal_triples_source.c */
 rasqal_triples_source* rasqal_new_triples_source(rasqal_query* query);
@@ -1114,7 +1116,7 @@ extern const rasqal_query_execution_factory rasqal_query_engine_1;
 rasqal_map* rasqal_engine_new_rowsort_map(int flags);
 int rasqal_engine_rowsort_map_add_row(rasqal_map* map, rasqal_row* row);
 raptor_sequence* rasqal_engine_rowsort_map_to_sequence(rasqal_map* map, raptor_sequence* seq);
-
+int rasqal_engine_rowsort_calculate_order_values(rasqal_query* query, rasqal_row* row);
 
 /* rasqal_engine_algebra.c */
 
