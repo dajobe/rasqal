@@ -353,3 +353,40 @@ rasqal_engine_rowsort_map_to_sequence(rasqal_map* map, raptor_sequence* seq)
 
   return seq;
 }
+
+
+/**
+ * rasqal_engine_rowsort_calculate_order_values:
+ * @query: query object
+ * @row: row
+ *
+ * INTERNAL - Calculate the order condition values for a row
+ *
+ * Return value: non-0 on failure 
+ */
+int
+rasqal_engine_rowsort_calculate_order_values(rasqal_query* query,
+                                             rasqal_row* row)
+{
+  int i;
+  
+  if(!row->order_size)
+    return 1;
+  
+  for(i=  0; i < row->order_size; i++) {
+    rasqal_expression* e;
+    rasqal_literal *l;
+    
+    e = (rasqal_expression*)raptor_sequence_get_at(query->order_conditions_sequence, i);
+    l = rasqal_expression_evaluate(query, e, query->compare_flags);
+    if(row->order_values[i])
+      rasqal_free_literal(row->order_values[i]);
+    if(l) {
+      row->order_values[i] = rasqal_new_literal_from_literal(rasqal_literal_value(l));
+      rasqal_free_literal(l);
+    } else
+      row->order_values[i] = NULL;
+  }
+  
+  return 0;
+}
