@@ -336,14 +336,8 @@ rasqal_triples_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
     goto done;
   }
 
-  for(i=0; i < row->size; i++) {
-    rasqal_literal *l;
-    l = rasqal_variables_table_get_value(query->vars_table, i);
-    if(row->values[i])
-      rasqal_free_literal(row->values[i]);
-    row->values[i] = rasqal_new_literal_from_literal(l);
-  }
-  
+  rasqal_row_set_values_from_variables_table(row, query->vars_table);
+
   row->offset = con->offset++;
 
   done:
