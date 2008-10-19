@@ -1028,6 +1028,7 @@ rasqal_variables_table* rasqal_new_variables_table(rasqal_world* world);
 void rasqal_free_variables_table(rasqal_variables_table* vt);
 rasqal_variable* rasqal_variables_table_add(rasqal_variables_table* vt, rasqal_variable_type type, const unsigned char *name, rasqal_literal *value);
 rasqal_variable* rasqal_variables_table_get(rasqal_variables_table* vt, int idx);
+rasqal_variable* rasqal_variables_table_get_by_name(rasqal_variables_table* vt, const unsigned char *name);
 rasqal_literal* rasqal_variables_table_get_value(rasqal_variables_table* vt, int idx);
 int rasqal_variables_table_has(rasqal_variables_table* vt, const unsigned char *name);
 int rasqal_variables_table_set(rasqal_variables_table* vt, const unsigned char *name, rasqal_literal* value);

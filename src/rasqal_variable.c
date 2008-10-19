@@ -449,9 +449,9 @@ rasqal_variables_table_get_value(rasqal_variables_table* vt, int idx)
 }
 
 
-static rasqal_variable*
-rasqal_variables_table_find_by_name(rasqal_variables_table* vt,
-                                    const unsigned char *name)
+rasqal_variable*
+rasqal_variables_table_get_by_name(rasqal_variables_table* vt,
+                                   const unsigned char *name)
 {
   int i;
   rasqal_variable* v;
@@ -468,7 +468,7 @@ int
 rasqal_variables_table_has(rasqal_variables_table* vt,
                            const unsigned char *name)
 {
-  return (rasqal_variables_table_find_by_name(vt, name) != NULL);
+  return (rasqal_variables_table_get_by_name(vt, name) != NULL);
 }
 
 
@@ -478,7 +478,7 @@ rasqal_variables_table_set(rasqal_variables_table* vt,
 {
   rasqal_variable* v;
   
-  v=rasqal_variables_table_find_by_name(vt, name);
+  v=rasqal_variables_table_get_by_name(vt, name);
   if(!v)
     return 1;
 
