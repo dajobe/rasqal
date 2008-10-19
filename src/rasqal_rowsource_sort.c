@@ -67,14 +67,10 @@ rasqal_sort_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
 {
   rasqal_query *query;
   rasqal_sort_rowsource_context *con;
-  int map_flags = 0;
 
   con = (rasqal_sort_rowsource_context*)user_data;
   query = con->query;
   
-  if(query->distinct == 1)
-    map_flags |= 1;
-
   if(query->order_conditions_sequence)
     con->order_size = raptor_sequence_size(query->order_conditions_sequence);
   else {
@@ -86,7 +82,9 @@ rasqal_sort_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
 
   if(con->order_size > 0 ) {
     /* make a row:NULL map in order to sort or do distinct */
-    con->map = rasqal_engine_new_rowsort_map(map_flags);
+    con->map = rasqal_engine_new_rowsort_map(query->distinct,
+                                             query->compare_flags,
+                                             query->order_conditions_sequence);
     if(!con->map)
       return 1;
   }

@@ -46,7 +46,7 @@
 
 /**
  * rasqal_engine_rowsort_compare_literals_sequence:
- * @query: the #rasqal_query to use to find the variables in
+ * @compare_flags: comparison flags for rasqal_literal_compare()
  * @values_a: first array of literals
  * @values_b: second array of literals
  * @expr_sequence: array of expressions
@@ -57,7 +57,7 @@
  * Return value: <0, 0 or >1 comparison
  */
 static int
-rasqal_engine_rowsort_compare_literals_sequence(rasqal_query* query,
+rasqal_engine_rowsort_compare_literals_sequence(int compare_flags,
                                                 rasqal_literal** values_a,
                                                 rasqal_literal** values_b,
                                                 raptor_sequence* expr_sequence,
@@ -96,7 +96,7 @@ rasqal_engine_rowsort_compare_literals_sequence(rasqal_query* query,
     }
     
     result = rasqal_literal_compare(literal_a, literal_b,
-                                    query->compare_flags | RASQAL_COMPARE_URI,
+                                    compare_flags | RASQAL_COMPARE_URI,
                                     &error);
 
     if(error) {
@@ -169,85 +169,61 @@ rasqal_engine_rowsort_literal_sequence_equals(rasqal_literal** values_a,
 }
 
 
+typedef struct 
+{ 
+  int is_distinct;
+  int compare_flags;
+  raptor_sequence* order_conditions_sequence;
+} rowsort_compare_data;
+
+
+static void
+rasqal_engine_rowsort_free_compare_data(const void* user_data)
+{
+  rowsort_compare_data* rcd = (rowsort_compare_data*)user_data;
+
+  RASQAL_FREE(rowsort_compare_data,  rcd);
+}
+
+
 /**
  * rasqal_engine_rowsort_row_compare:
+ * @user_data: comparison user data pointer
  * @a: pointer to address of first #row
  * @b: pointer to address of second #row
  *
  * INTERNAL - compare two pointers to #row objects
  *
- * Suitable for use as a compare function in qsort() or similar.
+ * Suitable for use as a compare function in qsort_r() or similar.
  *
  * Return value: <0, 0 or >1 comparison
  */
 static int
-rasqal_engine_rowsort_row_compare(const void *a, const void *b)
+rasqal_engine_rowsort_row_compare(void* user_data, const void *a, const void *b)
 {
   rasqal_row* row_a;
   rasqal_row* row_b;
-  rasqal_query* query;
+  rowsort_compare_data* rcd;
   int result = 0;
-
+  rcd = (rowsort_compare_data*)user_data;
   row_a = *(rasqal_row**)a;
   row_b = *(rasqal_row**)b;
 
-  query = rasqal_rowsource_get_query(row_a->rowsource);
-  
-  /* now order it */
-  result = rasqal_engine_rowsort_compare_literals_sequence(query,
-                                                           row_a->order_values,
-                                                           row_b->order_values,
-                                                           query->order_conditions_sequence,
-                                                           row_a->order_size);
-  
-  /* still equal?  make sort stable by using the original order */
-  if(!result) {
-    result = row_a->offset - row_b->offset;
-    RASQAL_DEBUG2("Got equality result so using offsets, returning %d\n",
-                  result);
+  if(rcd->is_distinct) {
+    result = !rasqal_engine_rowsort_literal_sequence_equals(row_a->values,
+                                                            row_b->values,
+                                                            row_a->size);
+    
+    if(!result)
+      /* duplicate, so return that */
+      return 0;
   }
   
-  return result;
-}
-
-
-/**
- * rasqal_engine_rowsort_row_compare_distinct:
- * @a: pointer to address of first #row
- * @b: pointer to address of second #row
- *
- * INTERNAL - compare two pointers to #row objects with distinct
- *
- * Suitable for use as a compare function in qsort() or similar.
- *
- * Return value: <0, 0 or >1 comparison
- */
-static int
-rasqal_engine_rowsort_row_compare_distinct(const void *a, const void *b)
-{
-  rasqal_row* row_a;
-  rasqal_row* row_b;
-  rasqal_query* query;
-  int result = 0;
-
-  row_a = *(rasqal_row**)a;
-  row_b = *(rasqal_row**)b;
-
-  query = rasqal_rowsource_get_query(row_a->rowsource);
-  
-  result = !rasqal_engine_rowsort_literal_sequence_equals(row_a->values,
-                                                          row_b->values,
-                                                          row_a->size);
-    
-  if(!result)
-    /* duplicate, so return that */
-    return 0;
-  
   /* now order it */
-  result = rasqal_engine_rowsort_compare_literals_sequence(query,
+  result = rasqal_engine_rowsort_compare_literals_sequence(rcd->compare_flags,
                                                            row_a->order_values,
                                                            row_b->order_values,
-                                                           query->order_conditions_sequence,
+                                                           rcd->order_conditions_sequence,
                                                            row_a->order_size);
   
   /* still equal?  make sort stable by using the original order */
@@ -289,16 +265,21 @@ rasqal_engine_rowsort_map_print_row(void *object, FILE *fh)
  *
  */
 rasqal_map*
-rasqal_engine_new_rowsort_map(int flags)
+rasqal_engine_new_rowsort_map(int is_distinct, int compare_flags,
+                              raptor_sequence* order_conditions_sequence)
 {
-  rasqal_compare_fn* compare_fn;
+  rowsort_compare_data* rcd;
+
+  rcd = (rowsort_compare_data*)RASQAL_MALLOC(rowsort_compare_data, sizeof(rowsort_compare_data));
+  if(!rcd)
+    return NULL;
   
-  if(flags & 1)
-    compare_fn = rasqal_engine_rowsort_row_compare_distinct;
-  else
-    compare_fn = rasqal_engine_rowsort_row_compare;
+  rcd->is_distinct = is_distinct;
+  rcd->compare_flags = compare_flags;
+  rcd->order_conditions_sequence = order_conditions_sequence;
   
-  return rasqal_new_map(compare_fn,
+  return rasqal_new_map(rasqal_engine_rowsort_row_compare, rcd,
+                        rasqal_engine_rowsort_free_compare_data,
                         rasqal_engine_rowsort_map_free_row,
                         rasqal_engine_rowsort_map_print_row,
                         NULL,

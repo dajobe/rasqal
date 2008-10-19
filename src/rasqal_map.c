@@ -53,6 +53,8 @@ struct rasqal_map_node_s
 struct rasqal_map_s {
   struct rasqal_map_node_s* root;
   rasqal_compare_fn* compare;
+  void *compare_user_data;
+  rasqal_compare_free_user_data_fn* free_compare_data;
   rasqal_kv_free_fn* free;
   raptor_sequence_print_handler* print_key;
   raptor_sequence_print_handler* print_value;
@@ -95,6 +97,8 @@ rasqal_free_map_node(rasqal_map_node *node, rasqal_kv_free_fn* free_fn)
 /**
  * rasqal_new_map:
  * @compare_fn: comparison function for keys
+ * @compare_user_data: user data pointer for @compare_fn
+ * @free_compare_data_fn: function to free @compare_user_data once done
  * @free_fn: free function for (key, value) pair
  * @print_key_fn: print a key function (or NULL)
  * @print_value_fn: print a value function (or NULL)
@@ -106,21 +110,25 @@ rasqal_free_map_node(rasqal_map_node *node, rasqal_kv_free_fn* free_fn)
  **/
 rasqal_map*
 rasqal_new_map(rasqal_compare_fn* compare_fn,
+               void *compare_user_data,
+               rasqal_compare_free_user_data_fn* free_compare_data_fn,
                rasqal_kv_free_fn* free_fn,
                raptor_sequence_print_handler* print_key_fn,
                raptor_sequence_print_handler* print_value_fn,
                int flags)
 {
   rasqal_map *map;
-  map=(rasqal_map*)RASQAL_CALLOC(rasqal_map, 1, sizeof(rasqal_map));
+  map = (rasqal_map*)RASQAL_CALLOC(rasqal_map, 1, sizeof(rasqal_map));
   if(!map)
     return NULL;
 
-  map->compare=compare_fn;
-  map->free=free_fn;
-  map->print_key=print_key_fn;
-  map->print_value=print_value_fn;
-  map->allow_duplicates=flags;
+  map->compare = compare_fn;
+  map->compare_user_data = compare_user_data;
+  map->free_compare_data = free_compare_data_fn;
+  map->free = free_fn;
+  map->print_key = print_key_fn;
+  map->print_value = print_value_fn;
+  map->allow_duplicates = flags;
   
   return map;
 }
@@ -141,6 +149,9 @@ rasqal_free_map(rasqal_map *map)
   if(map->root)
     rasqal_free_map_node(map->root, map->free);
 
+  if(map->free_compare_data)
+    map->free_compare_data(map->compare_user_data);
+
   RASQAL_FREE(rasqal_map, map);
 }
 
@@ -148,13 +159,14 @@ rasqal_free_map(rasqal_map *map)
 static int
 rasqal_map_node_add_kv(rasqal_map_node* node, void *key, void *value) 
 {
+  rasqal_map *map = node->map;
   int result;
 
-  result=node->map->compare(&key, &node->key);
+  result = map->compare(map->compare_user_data, &key, &node->key);
   if(result < 0) {
     if(node->prev)
       return rasqal_map_node_add_kv(node->prev, key, value);
-    node->prev=rasqal_new_map_node(node->map, key, value);
+    node->prev = rasqal_new_map_node(map, key, value);
     return node->prev ? 0 : -1;
   } else if(!result) {
     if(!node->map->allow_duplicates) {
@@ -168,7 +180,7 @@ rasqal_map_node_add_kv(rasqal_map_node* node, void *key, void *value)
   if(node->next)
     return rasqal_map_node_add_kv(node->next, key, value);
 
-  node->next=rasqal_new_map_node(node->map, key, value);
+  node->next = rasqal_new_map_node(map, key, value);
   return node->next ? 0 : -1;
 }
 

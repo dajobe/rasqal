@@ -1422,11 +1422,10 @@ rasqal_engine_make_rowsource(rasqal_query* query,
   con->need_store_results = need_store_results;
 
   if(con->need_store_results) {
-    int map_flags = 0;
-    if(query->distinct == 1)
-      map_flags |= 1;
     /* make a row:NULL map in order to sort or do distinct */
-    con->map = rasqal_engine_new_rowsort_map(map_flags);
+    con->map = rasqal_engine_new_rowsort_map(query->distinct,
+                                             query->compare_flags,
+                                             query->order_conditions_sequence);
     if(!con->map) {
       rasqal_rowsource_engine_finish(NULL, con);
       return NULL;

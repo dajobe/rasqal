@@ -794,7 +794,8 @@ rasqal_formula* rasqal_formula_join(rasqal_formula* first_formula, rasqal_formul
 
 /* The following should be public eventually in rasqal.h or raptor.h or ...? */
 
-typedef int (rasqal_compare_fn)(const void *a, const void *b);
+typedef int (rasqal_compare_fn)(void* user_data, const void *a, const void *b);
+typedef void (rasqal_compare_free_user_data_fn)(const void *data);
 typedef void (rasqal_kv_free_fn)(const void *key, const void *value);
 
 
@@ -819,7 +820,7 @@ void rasqal_expression_write(rasqal_expression* e, raptor_iostream* iostr);
 /* rasqal_map.c */
 typedef void (*rasqal_map_visit_fn)(void *key, void *value, void *user_data);
 
-rasqal_map* rasqal_new_map(rasqal_compare_fn* compare_fn, rasqal_kv_free_fn* free_fn, raptor_sequence_print_handler* print_key_fn, raptor_sequence_print_handler* print_value_fn, int flags);
+rasqal_map* rasqal_new_map(rasqal_compare_fn* compare_fn, void* compare_user_data, rasqal_compare_free_user_data_fn* free_compare_user_data, rasqal_kv_free_fn* free_fn, raptor_sequence_print_handler* print_key_fn, raptor_sequence_print_handler* print_value_fn, int flags);
 void rasqal_free_map(rasqal_map *map);
 int rasqal_map_add_kv(rasqal_map* map, void* key, void *value);
 void rasqal_map_visit(rasqal_map* map, rasqal_map_visit_fn fn, void *user_data);
@@ -1113,7 +1114,7 @@ struct rasqal_query_execution_factory_s {
 extern const rasqal_query_execution_factory rasqal_query_engine_1;
 
 /* rasqal_engine_sort.c */
-rasqal_map* rasqal_engine_new_rowsort_map(int flags);
+rasqal_map* rasqal_engine_new_rowsort_map(int is_distinct, int compare_flags, raptor_sequence* order_conditions_sequence);
 int rasqal_engine_rowsort_map_add_row(rasqal_map* map, rasqal_row* row);
 raptor_sequence* rasqal_engine_rowsort_map_to_sequence(rasqal_map* map, raptor_sequence* seq);
 int rasqal_engine_rowsort_calculate_order_values(rasqal_query* query, rasqal_row* row);
