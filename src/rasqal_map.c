@@ -119,8 +119,11 @@ rasqal_new_map(rasqal_compare_fn* compare_fn,
 {
   rasqal_map *map;
   map = (rasqal_map*)RASQAL_CALLOC(rasqal_map, 1, sizeof(rasqal_map));
-  if(!map)
+  if(!map) {
+    if(free_compare_data_fn)
+      free_compare_data_fn(compare_user_data);
     return NULL;
+  }
 
   map->compare = compare_fn;
   map->compare_user_data = compare_user_data;
