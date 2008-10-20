@@ -306,10 +306,10 @@ rasqal_triples_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
   rasqal_triples_rowsource_context *con;
 #ifdef RASQAL_DEBUG
   int values_returned = 0;
+  int i;
 #endif
   rasqal_row* row = NULL;
   rasqal_engine_error error = RASQAL_ENGINE_OK;
-  int i;
   
   con = (rasqal_triples_rowsource_context*)user_data;
   query = con->query;
