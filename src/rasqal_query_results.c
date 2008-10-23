@@ -272,7 +272,7 @@ rasqal_query_results_execute_with_engine(rasqal_query* query,
         break;
     }
   
-  query_results = rasqal_new_query_results(query_results->world, query, type);
+  query_results = rasqal_new_query_results(query->world, query, type);
   if(!query_results)
     return NULL;
 
