@@ -139,7 +139,7 @@ struct rasqal_query_results_s {
   raptor_sequence* results_sequence;
 
   /* size of result row fields:
-   * row->results, row->values, variables, variable_names, variables_sequence
+   * row->results, row->values
    */
   int size;
 
@@ -167,7 +167,7 @@ rasqal_finish_query_results(void)
 /**
  * rasqal_new_query_results:
  * @world: rasqal world object
- * @query: query object
+ * @query: query object or NULL
  * @type: query results (expected) type
  * @vars_table: variables table
  * 
