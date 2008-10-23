@@ -239,16 +239,13 @@ rasqal_free_query(rasqal_query* query)
   if(query->group_conditions_sequence)
     raptor_free_sequence(query->group_conditions_sequence);
 
-  /* Do this last since most everything above could refer to a variable */
-  if(query->vars_table)
-    rasqal_free_variables_table(query->vars_table);
-
   if(query->graph_patterns_sequence)
     raptor_free_sequence(query->graph_patterns_sequence);
 
   if(query->query_results_formatter_name)
     RASQAL_FREE(cstring, query->query_results_formatter_name);
 
+  /* Do this last since most everything above could refer to a variable */
   if(query->vars_table)
     rasqal_free_variables_table(query->vars_table);
   RASQAL_FREE(rasqal_query, query);
