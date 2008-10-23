@@ -92,6 +92,8 @@ static void rasqal_query_results_update_bindings(rasqal_query_results* query_res
  * A query result for some query
  */
 struct rasqal_query_results_s {
+  rasqal_world* world;
+
   /* type of query result (bindings, boolean, graph or syntax) */
   rasqal_query_results_type type;
   
@@ -177,14 +179,18 @@ rasqal_finish_query_results(void)
 
 /**
  * rasqal_new_query_results:
+ * @world: rasqal world object
  * @query: query object
+ * @type: query results (expected) type
  * 
  * INTERNAL -  create a query result for a query
  * 
  * Return value: a new query result object or NULL on failure
  **/
 rasqal_query_results*  
-rasqal_new_query_results(rasqal_query* query)
+rasqal_new_query_results(rasqal_world* world,
+                         rasqal_query* query,
+                         rasqal_query_results_type type)
 {
   rasqal_query_results* query_results;
     
@@ -192,6 +198,8 @@ rasqal_new_query_results(rasqal_query* query)
   if(!query_results)
     return NULL;
   
+  query_results->world = world;
+  query_results->type = type;
   query_results->finished = 0;
   query_results->executed = 0;
   query_results->failed = 0;
@@ -234,6 +242,7 @@ rasqal_query_results_execute_with_engine(rasqal_query* query,
   int order_size = 0;
   raptor_sequence* seq;
   size_t ex_data_size;
+  rasqal_query_results_type type = RASQAL_QUERY_RESULTS_BINDINGS;
 
   if(!query)
     return NULL;
@@ -241,27 +250,19 @@ rasqal_query_results_execute_with_engine(rasqal_query* query,
   if(query->failed)
     return NULL;
 
-  query_results = rasqal_new_query_results(query);
-  if(!query_results)
-    return NULL;
-
   if(query->query_results_formatter_name)
-    query_results->type = RASQAL_QUERY_RESULTS_SYNTAX;
+    type = RASQAL_QUERY_RESULTS_SYNTAX;
   else
     switch(query->verb) {
       case RASQAL_QUERY_VERB_SELECT:
-        query_results->type = RASQAL_QUERY_RESULTS_BINDINGS;
-        rasqal_query_results_set_variables(query_results,
-                                           query->selects,
-                                           query->select_variables_count,
-                                           0);
+        type = RASQAL_QUERY_RESULTS_BINDINGS;
         break;
       case RASQAL_QUERY_VERB_ASK:
-        query_results->type = RASQAL_QUERY_RESULTS_BOOLEAN;
+        type = RASQAL_QUERY_RESULTS_BOOLEAN;
         break;
       case RASQAL_QUERY_VERB_CONSTRUCT:
       case RASQAL_QUERY_VERB_DESCRIBE:
-        query_results->type = RASQAL_QUERY_RESULTS_GRAPH;
+        type = RASQAL_QUERY_RESULTS_GRAPH;
         break;
         
       case RASQAL_QUERY_VERB_UNKNOWN:
@@ -271,6 +272,15 @@ rasqal_query_results_execute_with_engine(rasqal_query* query,
         break;
     }
   
+  query_results = rasqal_new_query_results(query->world, query, type);
+  if(!query_results)
+    return NULL;
+
+  if(type == RASQAL_QUERY_RESULTS_BINDINGS)
+    rasqal_query_results_set_variables(query_results,
+                                       query->selects,
+                                       query->select_variables_count,
+                                       0);
   query_results->execution_factory = engine;
   
   /* set executed flag early to enable cleanup on error */
