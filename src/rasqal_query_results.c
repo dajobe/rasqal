@@ -272,7 +272,7 @@ rasqal_query_results_execute_with_engine(rasqal_query* query,
         break;
     }
   
-  query_results = rasqal_new_query_results(query->world, query, type);
+  query_results = rasqal_new_query_results(query_results->world, query, type);
   if(!query_results)
     return NULL;
 
@@ -960,7 +960,7 @@ rasqal_query_results_get_triple(rasqal_query_results* query_results)
 
     s = rasqal_literal_as_node(t->subject);
     if(!s) {
-      rasqal_log_error_simple(query->world, RAPTOR_LOG_LEVEL_WARNING,
+      rasqal_log_error_simple(query_results->world, RAPTOR_LOG_LEVEL_WARNING,
                               &query->locator,
                               "Triple with unbound subject skipped");
       skipped=1;
@@ -977,15 +977,15 @@ rasqal_query_results_get_triple(rasqal_query_results* query_results)
                                   (unsigned char*)s->string);
         rasqal_free_literal(s);
         if(!nodeid) {
-          rasqal_log_error_simple(query->world, RAPTOR_LOG_LEVEL_FATAL,
+          rasqal_log_error_simple(query_results->world, RAPTOR_LOG_LEVEL_FATAL,
                                   &query->locator,
                                   "Could not prefix subject blank identifier");
           return NULL;
         }
-        s = rasqal_new_simple_literal(query->world, RASQAL_LITERAL_BLANK,
+        s = rasqal_new_simple_literal(query_results->world, RASQAL_LITERAL_BLANK,
                                       nodeid);
         if(!s) {
-          rasqal_log_error_simple(query->world, RAPTOR_LOG_LEVEL_FATAL,
+          rasqal_log_error_simple(query_results->world, RAPTOR_LOG_LEVEL_FATAL,
                                   &query->locator,
                                   "Could not create a new subject blank literal");
           return NULL;
@@ -1013,7 +1013,7 @@ rasqal_query_results_get_triple(rasqal_query_results* query_results)
       case RASQAL_LITERAL_UNKNOWN:
       default:
         /* case RASQAL_LITERAL_STRING: */
-        rasqal_log_error_simple(query->world, RAPTOR_LOG_LEVEL_WARNING,
+        rasqal_log_error_simple(query_results->world, RAPTOR_LOG_LEVEL_WARNING,
                                 &query->locator,
                                 "Triple with non-URI/blank node subject skipped");
         skipped = 1;
@@ -1028,7 +1028,7 @@ rasqal_query_results_get_triple(rasqal_query_results* query_results)
 
     p = rasqal_literal_as_node(t->predicate);
     if(!p) {
-      rasqal_log_error_simple(query->world, RAPTOR_LOG_LEVEL_WARNING,
+      rasqal_log_error_simple(query_results->world, RAPTOR_LOG_LEVEL_WARNING,
                               &query->locator,
                               "Triple with unbound predicate skipped");
       rasqal_free_literal(s);
@@ -1060,7 +1060,7 @@ rasqal_query_results_get_triple(rasqal_query_results* query_results)
 
       case RASQAL_LITERAL_UNKNOWN:
       default:
-        rasqal_log_error_simple(query->world, RAPTOR_LOG_LEVEL_WARNING,
+        rasqal_log_error_simple(query_results->world, RAPTOR_LOG_LEVEL_WARNING,
                                 &query->locator,
                                 "Triple with non-URI predicate skipped");
         skipped=1;
@@ -1075,7 +1075,7 @@ rasqal_query_results_get_triple(rasqal_query_results* query_results)
 
     o = rasqal_literal_as_node(t->object);
     if(!o) {
-      rasqal_log_error_simple(query->world, RAPTOR_LOG_LEVEL_WARNING,
+      rasqal_log_error_simple(query_results->world, RAPTOR_LOG_LEVEL_WARNING,
                               &query->locator,
                               "Triple with unbound object skipped");
       rasqal_free_literal(s);
@@ -1094,17 +1094,17 @@ rasqal_query_results_get_triple(rasqal_query_results* query_results)
                                   (unsigned char*)o->string);
         rasqal_free_literal(o);
         if(!nodeid) {
-          rasqal_log_error_simple(query->world, RAPTOR_LOG_LEVEL_FATAL,
+          rasqal_log_error_simple(query_results->world, RAPTOR_LOG_LEVEL_FATAL,
                                   &query->locator,
                                   "Could not prefix blank identifier");
           rasqal_free_literal(s);
           rasqal_free_literal(p);
           return NULL;
         }
-        o = rasqal_new_simple_literal(query->world, RASQAL_LITERAL_BLANK,
+        o = rasqal_new_simple_literal(query_results->world, RASQAL_LITERAL_BLANK,
                                       nodeid);
         if(!o) {
-          rasqal_log_error_simple(query->world, RAPTOR_LOG_LEVEL_FATAL,
+          rasqal_log_error_simple(query_results->world, RAPTOR_LOG_LEVEL_FATAL,
                                   &query->locator,
                                   "Could not create a new subject blank literal");
           rasqal_free_literal(s);
@@ -1137,7 +1137,7 @@ rasqal_query_results_get_triple(rasqal_query_results* query_results)
 
       case RASQAL_LITERAL_UNKNOWN:
       default:
-        rasqal_log_error_simple(query->world, RAPTOR_LOG_LEVEL_WARNING,
+        rasqal_log_error_simple(query_results->world, RAPTOR_LOG_LEVEL_WARNING,
                                 &query->locator,
                                 "Triple with unknown object skipped");
         skipped = 1;
@@ -1274,7 +1274,7 @@ rasqal_query_results_write(raptor_iostream *iostr,
   if(!results || results->failed)
     return 1;
 
-  formatter=rasqal_new_query_results_formatter(results->query->world, NULL, format_uri);
+  formatter=rasqal_new_query_results_formatter(results->world, NULL, format_uri);
   if(!formatter)
     return 1;
 
@@ -1374,11 +1374,11 @@ rasqal_query_results_read(raptor_iostream *iostr,
   if(!results || results->failed)
     return 1;
 
-  formatter=rasqal_new_query_results_formatter(results->query->world, NULL, format_uri);
+  formatter=rasqal_new_query_results_formatter(results->world, NULL, format_uri);
   if(!formatter)
     return 1;
 
-  status=rasqal_query_results_formatter_read(results->query->world, iostr, formatter,
+  status=rasqal_query_results_formatter_read(results->world, iostr, formatter,
                                              results, base_uri);
 
   rasqal_free_query_results_formatter(formatter);
