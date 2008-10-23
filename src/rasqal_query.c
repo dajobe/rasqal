@@ -249,6 +249,8 @@ rasqal_free_query(rasqal_query* query)
   if(query->query_results_formatter_name)
     RASQAL_FREE(cstring, query->query_results_formatter_name);
 
+  if(query->vars_table)
+    rasqal_free_variables_table(query->vars_table);
   RASQAL_FREE(rasqal_query, query);
 }
 
