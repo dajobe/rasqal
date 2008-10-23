@@ -1025,6 +1025,7 @@ int rasqal_algebra_node_is_empty(rasqal_algebra_node* node);
 
 /* rasqal_variable.c */
 rasqal_variables_table* rasqal_new_variables_table(rasqal_world* world);
+rasqal_variables_table* rasqal_new_variables_table_from_variables_table(rasqal_variables_table* vt);
 void rasqal_free_variables_table(rasqal_variables_table* vt);
 rasqal_variable* rasqal_variables_table_add(rasqal_variables_table* vt, rasqal_variable_type type, const unsigned char *name, rasqal_literal *value);
 rasqal_variable* rasqal_variables_table_get(rasqal_variables_table* vt, int idx);
@@ -1037,6 +1038,7 @@ int rasqal_variables_table_get_anonymous_variables_count(rasqal_variables_table*
 int rasqal_variables_table_get_total_variables_count(rasqal_variables_table* vt);
 raptor_sequence* rasqal_variables_table_get_named_variables_sequence(rasqal_variables_table* vt);
 raptor_sequence* rasqal_variables_table_get_anonymous_variables_sequence(rasqal_variables_table* vt);
+const unsigned char** rasqal_variables_table_get_names(rasqal_variables_table* vt);
 
 
 /**
