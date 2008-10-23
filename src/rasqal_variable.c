@@ -294,23 +294,26 @@ struct rasqal_variables_table_s {
 rasqal_variables_table*
 rasqal_new_variables_table(rasqal_world* world)
 {
-  rasqal_variables_table* vt=NULL;
+  rasqal_variables_table* vt;
   
-  vt=(rasqal_variables_table*)RASQAL_CALLOC(rasqal_variables_table, 1, sizeof(rasqal_variables_table));
+  vt = (rasqal_variables_table*)RASQAL_CALLOC(rasqal_variables_table, 1,
+                                              sizeof(rasqal_variables_table));
   if(!vt)
     return NULL;
 
-  vt->world=world;
+  vt->world = world;
   
-  vt->variables_sequence=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_variable, (raptor_sequence_print_handler*)rasqal_variable_print);
+  vt->variables_sequence = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_variable, (raptor_sequence_print_handler*)rasqal_variable_print);
   if(!vt->variables_sequence)
     goto tidy;
 
-  vt->anon_variables_sequence=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_variable, (raptor_sequence_print_handler*)rasqal_variable_print);
+  vt->anon_variables_sequence = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_variable, (raptor_sequence_print_handler*)rasqal_variable_print);
   if(!vt->anon_variables_sequence)
     goto tidy;
 
   vt->variable_names = NULL;
+
+  vt->usage = 1;
   
   return vt;
 
