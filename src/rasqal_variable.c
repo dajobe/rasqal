@@ -264,6 +264,9 @@ rasqal_variable_set_value(rasqal_variable* v, rasqal_literal* l)
  */
 struct rasqal_variables_table_s {
   rasqal_world* world;
+
+  /* usage/reference count */
+  int usage;
   
   /* The variables of size @variables_count + @anon_variables_count
    * shared pointers into @variables_sequence and @anon_variables_sequence
@@ -277,6 +280,13 @@ struct rasqal_variables_table_s {
   /* Anonymous variables (owner) */
   raptor_sequence* anon_variables_sequence;
   int anon_variables_count;
+
+  /* array of variable names.  The array is allocated here but the
+   * pointers are into the #variables_sequence above.  It is only
+   * allocated if rasqal_variables_table_get_names() is called
+   * on demand, otherwise is NULL.
+   */
+  const unsigned char** variable_names;
 };
 
 
@@ -300,6 +310,8 @@ rasqal_new_variables_table(rasqal_world* world)
   if(!vt->anon_variables_sequence)
     goto tidy;
 
+  vt->variable_names = NULL;
+  
   return vt;
 
   tidy:
@@ -310,11 +322,22 @@ rasqal_new_variables_table(rasqal_world* world)
 }
 
 
+rasqal_variables_table*
+rasqal_new_variables_table_from_variables_table(rasqal_variables_table* vt)
+{
+  vt->usage++;
+  return vt;
+}
+
+
 void
 rasqal_free_variables_table(rasqal_variables_table* vt)
 {
   RASQAL_ASSERT_OBJECT_POINTER_RETURN(vt, rasqal_variables_table);
 
+  if(--vt->usage)
+    return;
+  
   if(vt->variables)
     RASQAL_FREE(vararray, vt->variables);
 
@@ -323,6 +346,9 @@ rasqal_free_variables_table(rasqal_variables_table* vt)
 
   if(vt->variables_sequence)
     raptor_free_sequence(vt->variables_sequence);
+
+  if(vt->variable_names)
+    RASQAL_FREE(cstrings, vt->variable_names);
 
   RASQAL_FREE(rasqal_variables_table, vt);
 }
@@ -405,9 +431,14 @@ rasqal_variables_table_add(rasqal_variables_table* vt,
     }
     
 
-    /* Increment count only after sequence push succeeded */
+    /* Increment count and free var names only after sequence push succeeded */
     if(count_p)
       (*count_p)++;
+
+    if(vt->variable_names) {
+      RASQAL_FREE(cstrings, vt->variable_names);
+      vt->variable_names = NULL;
+    }
   } else {
     RASQAL_FREE(cstring, name);
     if(value)
@@ -519,6 +550,29 @@ raptor_sequence*
 rasqal_variables_table_get_anonymous_variables_sequence(rasqal_variables_table* vt)
 {
   return vt->anon_variables_sequence;
+}
+
+
+const unsigned char**
+rasqal_variables_table_get_names(rasqal_variables_table* vt)
+{
+  int size = vt->variables_count;
+  
+  if(!vt->variable_names && size) {
+    int i;
+    
+    vt->variable_names = (const unsigned char**)RASQAL_CALLOC(cstrings, sizeof(unsigned char*), (size+1));
+    if(!vt->variable_names)
+      return NULL;
+
+    for(i = 0; i < size; i++) {
+      rasqal_variable* v;
+      v = (rasqal_variable*)raptor_sequence_get_at(vt->variables_sequence, i);
+      vt->variable_names[i] = v->name;
+    }
+  }
+
+  return vt->variable_names;
 }
 
 #endif /* not STANDALONE */
