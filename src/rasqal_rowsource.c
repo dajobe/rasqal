@@ -49,6 +49,7 @@
  * rasqal_new_rowsource_from_handler:
  * @user_data: pointer to context information to pass in to calls
  * @handler: pointer to handler methods
+ * @flags: 0 (none defined so far)
  *
  * Create a new rowsource over a user-defined handler.
  *
