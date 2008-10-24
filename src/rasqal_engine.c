@@ -1206,6 +1206,7 @@ typedef struct
   int finished;
   int failed;
   int offset;
+  int order_size;
 } rasqal_rowsource_engine_context;
 
 
@@ -1288,6 +1289,8 @@ rasqal_rowsource_engine_process(rasqal_rowsource* rowsource,
       return;
     }
     
+    rasqal_row_set_order_size(row, con->order_size);
+
     rasqal_engine_row_update(con->query, row, con->offset);
 
     if(!con->map) {
@@ -1334,7 +1337,7 @@ rasqal_rowsource_engine_ensure_variables(rasqal_rowsource* rowsource,
   rowsource->size = con->execution_data->size;
 
   if(query->order_conditions_sequence)
-    rowsource->order_size=raptor_sequence_size(query->order_conditions_sequence);
+    rowsource->order_size = con->order_size;
 
   return 0;
 }
@@ -1430,6 +1433,8 @@ rasqal_engine_make_rowsource(rasqal_query* query,
       rasqal_rowsource_engine_finish(NULL, con);
       return NULL;
     }
+
+    con->order_size = raptor_sequence_size(query->order_conditions_sequence);
   }
   
   con->seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_row, (raptor_sequence_print_handler*)rasqal_row_print);
