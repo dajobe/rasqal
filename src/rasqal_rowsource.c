@@ -171,32 +171,6 @@ rasqal_rowsource_ensure_variables(rasqal_rowsource *rowsource)
 
 
 /**
- * rasqal_rowsource_update_variables:
- * @rowsource: rasqal rowsource
- * @results: query results
- *
- * Use the rowsource metadata to set the query result sizes
- *
- * Return value: non-0 on failure
- **/
-int
-rasqal_rowsource_update_variables(rasqal_rowsource *rowsource,
-                                  rasqal_query_results* results)
-{
-  if(rowsource->finished)
-    return 1;
-
-  rasqal_rowsource_ensure_variables(rowsource);
-
-  RASQAL_DEBUG2("Setting results to hold %d variables\n", rowsource->size);
-  rasqal_query_results_set_variables(results, rowsource->variables_sequence,
-                                     rowsource->size, 0);
-
-  return 0;
-}
-
-
-/**
  * rasqal_rowsource_read_row:
  * @rowsource: rasqal rowsource
  *

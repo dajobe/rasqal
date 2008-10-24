@@ -638,7 +638,6 @@ struct rasqal_rowsource_s
 rasqal_rowsource* rasqal_new_rowsource_from_handler(void* user_data, const rasqal_rowsource_handler *handler, int flags);
 void rasqal_free_rowsource(rasqal_rowsource *rowsource);
 
-int rasqal_rowsource_update_variables(rasqal_rowsource *rowsource, rasqal_query_results* results);
 rasqal_row* rasqal_rowsource_read_row(rasqal_rowsource *rowsource);
 int rasqal_rowsource_get_rows_count(rasqal_rowsource *rowsource);
 raptor_sequence* rasqal_rowsource_read_all_rows(rasqal_rowsource *rowsource);
@@ -842,7 +841,6 @@ int rasqal_init_query_results(void);
 void rasqal_finish_query_results(void);
 rasqal_query_results* rasqal_new_query_results(rasqal_world* world, rasqal_query* query, rasqal_query_results_type type, rasqal_variables_table* vars_table);
 rasqal_query_results* rasqal_query_results_execute_with_engine(rasqal_query* query, const rasqal_query_execution_factory* factory);
-int rasqal_query_results_set_variables(rasqal_query_results* query_results, rasqal_variables_table* vars_table, int size, int order_size);
 void rasqal_query_results_add_row(rasqal_query_results* query_results, rasqal_row* row);
 int rasqal_query_results_check_limit_offset(rasqal_query_results* query_results);
 void rasqal_query_results_remove_query_reference(rasqal_query_results* query_results);

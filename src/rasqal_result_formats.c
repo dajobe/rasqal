@@ -660,11 +660,6 @@ rasqal_query_results_formatter_read(rasqal_world *world,
   if(!rowsource)
     return 1;
 
-  if(rasqal_rowsource_update_variables(rowsource, results)) {
-    rasqal_free_rowsource(rowsource);
-    return 1;
-  }
-
   while(1) {
     rasqal_row* row=rasqal_rowsource_read_row(rowsource);
     if(!row)

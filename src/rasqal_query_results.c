@@ -224,9 +224,6 @@ rasqal_query_results_execute_with_engine(rasqal_query* query,
 {
   rasqal_query_results *query_results = NULL;
   int rc = 0;
-  int size = 0;
-  int order_size = 0;
-  raptor_sequence* seq;
   size_t ex_data_size;
   rasqal_query_results_type type = RASQAL_QUERY_RESULTS_BINDINGS;
 
@@ -255,7 +252,7 @@ rasqal_query_results_execute_with_engine(rasqal_query* query,
       case RASQAL_QUERY_VERB_DELETE:
       case RASQAL_QUERY_VERB_INSERT:
       default:
-        break;
+        return NULL;
     }
   
   query_results = rasqal_new_query_results(query->world, query, type,
@@ -263,11 +260,6 @@ rasqal_query_results_execute_with_engine(rasqal_query* query,
   if(!query_results)
     return NULL;
 
-  if(type == RASQAL_QUERY_RESULTS_BINDINGS)
-    rasqal_query_results_set_variables(query_results,
-                                       query->vars_table,
-                                       query->select_variables_count,
-                                       0);
   query_results->execution_factory = engine;
   
   /* set executed flag early to enable cleanup on error */
@@ -277,18 +269,6 @@ rasqal_query_results_execute_with_engine(rasqal_query* query,
                                   query->order_conditions_sequence ||
                                   query->distinct);
   
-  seq=rasqal_variables_table_get_named_variables_sequence(query->vars_table);
-
-  /* do not use rasqal_query_results_get_bindings_count() as it is 0
-   * for a graph result which is also executed by finding regular bindings
-   */
-  if(query->constructs)
-    size = raptor_sequence_size(seq);
-  else
-    size = query->select_variables_count;
-
-  rasqal_query_results_set_variables(query_results, query->vars_table, size, order_size);
-
   ex_data_size = query_results->execution_factory->execution_data_size;
   if(ex_data_size > 0) {
     query_results->execution_data = RASQAL_CALLOC(data, 1, ex_data_size);
@@ -579,9 +559,10 @@ rasqal_query_results_ensure_have_row_internal(rasqal_query_results* query_result
     }
   }
   
-  if(query_results->row)
+  if(query_results->row) {
     rasqal_row_to_nodes(query_results->row);
-  else
+    query_results->size = query_results->row->size;
+  } else
     query_results->finished = 1;
 
   return (query_results->row == NULL);
@@ -1256,26 +1237,6 @@ rasqal_query_results_write(raptor_iostream *iostr,
 
   rasqal_free_query_results_formatter(formatter);
   return status;
-}
-
-
-int
-rasqal_query_results_set_variables(rasqal_query_results* query_results,
-                                   rasqal_variables_table* vars_table,
-                                   int size, int order_size)
-{
-  if(query_results->vars_table)
-    rasqal_free_variables_table(query_results->vars_table);
-  query_results->vars_table = rasqal_new_variables_table_from_variables_table(vars_table);
-
-  /* Set query_results size and order size initially to zero
-   * until all initialization that can fail has been done.
-   * Ensure size is never larger than the number of valid pointers in
-   * variables or variable_names arrays.
-   */
-  query_results->size=size;
-
-  return 0;
 }
 
 
