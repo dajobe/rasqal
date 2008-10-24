@@ -1336,9 +1336,6 @@ rasqal_rowsource_engine_ensure_variables(rasqal_rowsource* rowsource,
 
   rowsource->size = con->execution_data->size;
 
-  if(query->order_conditions_sequence)
-    rowsource->order_size = con->order_size;
-
   return 0;
 }
 
@@ -1413,7 +1410,6 @@ rasqal_engine_make_rowsource(rasqal_query* query,
                              int need_store_results)
 {
   rasqal_rowsource_engine_context* con;
-  int flags = 0;
   
   con = (rasqal_rowsource_engine_context*)RASQAL_CALLOC(rasqal_rowsource_engine_context, 1, sizeof(rasqal_rowsource_engine_context));
   if(!con)
@@ -1443,11 +1439,9 @@ rasqal_engine_make_rowsource(rasqal_query* query,
     return NULL;
   }
   
-  flags = con->need_store_results ? RASQAL_ROWSOURCE_FLAGS_ORDERING : 0;
-
   return rasqal_new_rowsource_from_handler(con,
                                            &rasqal_rowsource_engine_handler,
-                                           flags);
+                                           0);
 }
 
 
