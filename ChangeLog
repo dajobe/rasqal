@@ -1,4 +1,167 @@
+2008-10-23  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_rowsource_triples.c:
+	(rasqal_triples_rowsource_ensure_variables): Do not set order_size
+
+	* src/rasqal_rowsource.c: (rasqal_new_rowsource_from_handler):
+	Note no @flags have been defined.
+
+	* src/rasqal_engine.c: (rasqal_rowsource_engine_ensure_variables):
+	Do not set order_size, gone.
+	(rasqal_engine_make_rowsource): Do not use flags for creating
+	rowsource, not needed and none defined now.
+
+	* src/rasqal_internal.h: Add flags arg back to
+	rasqal_new_rowsource_from_handler but do not use it.
+
+	* src/rasqal_internal.h: Remove flags from rowsource.
+
+	* src/rasqal_internal.h: Remove order_size from rowsource.  No
+	need for RASQAL_ROWSOURCE_FLAGS_ORDERING flags for
+	rasqal_new_rowsource_from_handler
+
+	* src/rasqal_engine.c: Calculate order_size once for inner
+	rowsource.
+	(rasqal_rowsource_engine_process): Update row size if needed.
+	(rasqal_rowsource_engine_ensure_variables): Set rowsource order
+	size from context.
+	(rasqal_engine_make_rowsource): Calculate order_size here.
+
+	* src/rasqal_internal.h, src/rasqal_row.c, src/rasqal_rowsource.c,
+	src/rasqal_rowsource_filter.c, src/rasqal_rowsource_rowsequence.c,
+	src/rasqal_rowsource_sort.c: Remove order_size from rowsource - no
+	longer needed, the sort rowsource or other sorting code stores
+	this in row or context.
+	(rasqal_new_row): Use rasqal_rowsource_get_size
+	(rasqal_rowsource_add_variable): Remove (wrong, bad) reference to
+	order_size here.  It was adding one per variable, which was never
+	going to be always correct.
+	(rasqal_rowsource_get_size): Renamed from
+	rasqal_rowsource_get_sizes
+
+	* src/rasqal_internal.h,
+	src/rasqal_row.c: (rasqal_new_row_from_row_deep): Removed, no
+	longer used
+
+	* src/rasqal_internal.h, src/rasqal_row.c,
+	src/rasqal_rowsource_sort.c: (rasqal_row_set_order_size): renamed
+	from rasqal_row_move_to_rowsource and just sets order_size.
+
+	* src/rasqal_internal.h, src/rasqal_query_results.c,
+	src/rasqal_result_formats.c, src/rasqal_rowsource.c:
+	(rasqal_query_results_set_variables): Deleted, just sets size and
+	this is only needed in 1 place.
+	(rasqal_rowsource_update_variables): Deleted, since vars table is
+	shared between query and query results, there is no need to pass
+	this info along.
+	(rasqal_query_results_formatter_read): Remove call to
+	rasqal_rowsource_update_variables.
+	(rasqal_query_results_execute_with_engine): Remove calls to
+	rasqal_query_results_set_variables and set size of query results
+	based on size of top row returned.
+
+2008-10-22  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_query_results.c: autodocs
+
+	* src/rasqal_internal.h, src/rasqal_query_results.c: Remove
+	variables fields from query results structure and use variables
+	table, shared with query object.  rasqal_query_results loses
+	order_size field - never used and variable_names,
+	varaibles_Sequence, variables.  Gains pointer to vars_table.
+	(rasqal_new_query_results): Add vars_table arg.
+	(rasqal_query_results_execute_with_engine): Use new call for
+	rasqal_new_query_results and rasqal_query_results_set_variables.
+	Do not set useless order_size field.
+	(rasqal_free_query_results): Remove freeing old variables fields,
+	free vars_table.
+	(rasqal_query_results_get_bindings): Switch to use
+	rasqal_variables_table_get_names.
+	(rasqal_query_results_get_binding_name): Switch to use
+	rasqal_variables_table_get.
+	(rasqal_query_results_get_binding_value_by_name): Switch to use
+	rasqal_variables_table_get_by_name.
+	(rasqal_query_results_set_variables): Change from variables seq to
+	variables table.  Remove all variables* fields setting.  Do not
+	set order_size which is never used.
+	(rasqal_query_results_update_bindings): Use query_results
+	variables table and tidy code.
+
+	* src/rasqal_query.c:
+	(rasqal_free_query): Do not free vars table twice.
+
+	* src/rasqal_variable.c:
+	(rasqal_new_variables_table): Set initial usage to 1
+
+	* src/rasqal_query_results.c: revert
+
+	* src/rasqal_query_results.c:
+	(rasqal_free_query_results): Free variables table
+
+	* src/rasqal_query.c:
+	(rasqal_free_query): Free variables table
+
+	* src/rasqal_query_results.c:
+	(rasqal_query_results_execute_with_engine): Call
+	rasqal_new_query_results with world
+
+	* src/rasqal_query_results.c: Use results world field in
+	preference to query world field
+
+	* src/rasqal_internal.h, src/rasqal_query_results.c:
+	(rasqal_new_query_results): Add world and type arg.
+	(rasqal_query_results_execute_with_engine): Update calling
+	convention and compute results type first.
+
+	* src/rasqal_internal.h: Added prototypes for
+	rasqal_new_variables_table_from_variables_table and
+	rasqal_variables_table_get_names
+
+	* src/rasqal_variable.c: Add generating of variable names and
+	reference/usage counting.
+	(rasqal_new_variables_table_from_variables_table): Added copy
+	constructor to increase reference count.
+	(rasqal_free_variables_table): Free only when use count is 0.
+	(rasqal_variables_table_add): Delete any variable names list when
+	a new variable is added.
+	(rasqal_variables_table_get_names): Added
+
+2008-10-20  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_map.c: (rasqal_new_map): Free compare_data on alloc
+	failure.
+
+	* src/rasqal_rowsource_triples.c: (rasqal_triples_rowsource_read_row):
+	Fixed compiler warning about unused variable when not compiling in
+	debug mode
+
 2008-10-18  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_internal.h, src/rasqal_variable.c:
+	(rasqal_variables_table_get_by_name): Renamed from
+	rasqal_variables_table_find_by_name and made public.
+
+	* src/rasqal_engine.c, src/rasqal_engine_sort.c,
+	src/rasqal_internal.h, src/rasqal_map.c,
+	src/rasqal_rowsource_sort.c: Alter rasqal_compare_fn to take a
+	user data pointer in map comparisons.
+	(rasqal_new_map): Take a compare_user_data pointer and free
+	function to pass in state to comparisons.
+	(rasqal_free_map): Free compare data if a free function is passed.
+	(rasqal_map_node_add_kv): Call compare function with user data.
+	(rasqal_engine_rowsort_compare_literals_sequence): Take
+	compare_flags arg not query, and pass on to
+	rasqal_literal_compare.
+	(rasqal_engine_rowsort_free_compare_data): Added.
+	(rasqal_engine_rowsort_row_compare): Use rowsort_compare_data
+	pointer to get distinct, compare_flags and
+	order_conditions_sequence args context as passed in by
+	rasqal_engine_new_rowsort_map.
+	(rasqal_engine_rowsort_row_compare_distinct): Deleted.
+	(rasqal_engine_new_rowsort_map): add distinct, compare_flags and
+	order_conditions_sequence constructor args.
+	(rasqal_engine_make_rowsource,rasqal_sort_rowsource_init):
+	Update calls to rasqal_engine_new_rowsort_map.
 
 	* src/rasqal_internal.h: Added prototypes for
 	rasqal_row_set_values_from_variables_table,
