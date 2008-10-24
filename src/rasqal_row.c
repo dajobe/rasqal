@@ -138,44 +138,6 @@ rasqal_new_row_from_row(rasqal_row* row)
 
 
 /**
- * rasqal_new_row_from_row_deep:
- * @row: query result row
- * 
- * INTERNAL - DEEP Copy a query result row.
- *
- * Return value: a new copy of the query result row or NULL
- */
-rasqal_row*
-rasqal_new_row_from_row_deep(rasqal_row* row)
-{
-  rasqal_row* nrow;
-
-  nrow=rasqal_new_row_common(row->size, row->order_size);
-  if(!nrow)
-    return NULL;
-
-  nrow->offset = row->offset;
-  
-  if(row->values) {
-    int i; 
-    for(i=0; i < row->size; i++) {
-      if(row->values[i])
-        nrow->values[i]=rasqal_new_literal_from_literal(row->values[i]);
-    }
-  }
-  if(row->order_values) {
-    int i; 
-    for(i=0; i < row->order_size; i++) {
-      if(row->order_values[i])
-        nrow->order_values[i]=rasqal_new_literal_from_literal(row->order_values[i]);
-    }
-  }
-
-  return nrow;
-}
-
-
-/**
  * rasqal_free_row:
  * @row: query result row
  * 

@@ -857,7 +857,6 @@ int rasqal_init_result_format_sparql_xml(rasqal_world*);
 rasqal_row* rasqal_new_row(rasqal_rowsource* rowsource);
 rasqal_row* rasqal_new_row_for_variables(rasqal_variables_table* vt);
 rasqal_row* rasqal_new_row_from_row(rasqal_row* row);
-rasqal_row* rasqal_new_row_from_row_deep(rasqal_row* row);
 void rasqal_free_row(rasqal_row* row);
 void rasqal_row_print(rasqal_row* row, FILE* fh);
 void rasqal_row_set_value_at(rasqal_row* row, int offset, rasqal_literal* value);
