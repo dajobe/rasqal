@@ -145,7 +145,6 @@ rasqal_triples_rowsource_ensure_variables(rasqal_rowsource* rowsource,
   con = (rasqal_triples_rowsource_context*)user_data; 
 
   rowsource->size = con->size;
-  rowsource->order_size = -1;
   
   return 0;
 }
