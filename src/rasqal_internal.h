@@ -606,6 +606,8 @@ typedef struct {
  */
 struct rasqal_rowsource_s
 {
+  int flags;
+  
   void *user_data;
   const rasqal_rowsource_handler* handler;
 
@@ -628,7 +630,7 @@ struct rasqal_rowsource_s
 };
 
 
-rasqal_rowsource* rasqal_new_rowsource_from_handler(void* user_data, const rasqal_rowsource_handler *handler);
+rasqal_rowsource* rasqal_new_rowsource_from_handler(void* user_data, const rasqal_rowsource_handler *handler, int flags);
 void rasqal_free_rowsource(rasqal_rowsource *rowsource);
 
 rasqal_row* rasqal_rowsource_read_row(rasqal_rowsource *rowsource);
