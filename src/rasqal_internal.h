@@ -606,8 +606,6 @@ typedef struct {
  */
 struct rasqal_rowsource_s
 {
-  int flags;
-  
   void *user_data;
   const rasqal_rowsource_handler* handler;
 
