@@ -88,14 +88,14 @@ rasqal_row*
 rasqal_new_row(rasqal_rowsource* rowsource)
 {
   int size;
-  int order_size;
+  int order_size = -1;
   rasqal_row* row;
   
-  rasqal_rowsource_get_sizes(rowsource, &size, &order_size);
+  size = rasqal_rowsource_get_size(rowsource);
 
-  row=rasqal_new_row_common(size, order_size);
+  row = rasqal_new_row_common(size, order_size);
   if(row)
-    row->rowsource=rowsource;
+    row->rowsource = rowsource;
 
   return row;
 }

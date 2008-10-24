@@ -212,7 +212,6 @@ rasqal_new_rowsequence_rowsource(rasqal_query* query,
       rasqal_rowsource_add_variable(rs, v);
     }
     rs->size = i;
-    rs->order_size = 0;
 
     rows_count = raptor_sequence_size(seq);
     for(i = 0; i < rows_count; i++) {
@@ -225,12 +224,6 @@ rasqal_new_rowsequence_rowsource(rasqal_query* query,
       if(row->size != rs->size) {
         RASQAL_DEBUG4("Row %d size %d is different from rowsource size %d",
                       i, row->size, rs->size);
-        failed = 1;
-        break;
-      }
-      if(row->order_size != rs->order_size) {
-        RASQAL_DEBUG4("Row %d order size %d is different from rowsource order size %d",
-                      i, row->order_size, rs->order_size);
         failed = 1;
         break;
       }

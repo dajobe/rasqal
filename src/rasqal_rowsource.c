@@ -80,7 +80,6 @@ rasqal_new_rowsource_from_handler(void *user_data,
   rowsource->flags=flags;
 
   rowsource->size= -1;
-  rowsource->order_size= -1;
 
   rowsource->variables_sequence=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_variable, (raptor_sequence_print_handler*)rasqal_variable_print);
   if(!rowsource->variables_sequence) {
@@ -136,11 +135,6 @@ rasqal_rowsource_add_variable(rasqal_rowsource *rowsource, rasqal_variable* v)
     rowsource->size=0;
   
   rowsource->size++;
-  if(rowsource->flags & RASQAL_ROWSOURCE_FLAGS_ORDERING) {
-    if(rowsource->order_size < 0)
-      rowsource->order_size=0;
-    rowsource->order_size++;
-  }
 }
 
 
@@ -275,23 +269,17 @@ rasqal_rowsource_get_query(rasqal_rowsource *rowsource)
 
 
 /**
- * rasqal_rowsource_get_sizes:
+ * rasqal_rowsource_get_size:
  * @rowsource: rasqal rowsource
- * @size_p: pointer to size (or NULL)
- * @order_size_p: pointer to order size (or NULL)
  *
- * Get rowsource row width and row ordering width sizes
+ * Get rowsource row width
  **/
-void
-rasqal_rowsource_get_sizes(rasqal_rowsource *rowsource,
-                           int* size_p, int* order_size_p)
+int
+rasqal_rowsource_get_size(rasqal_rowsource *rowsource)
 {
   rasqal_rowsource_ensure_variables(rowsource);
 
-  if(size_p)
-    *size_p=rowsource->size;
-  if(order_size_p)
-    *order_size_p=rowsource->order_size;
+  return rowsource->size;
 }
 
 

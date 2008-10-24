@@ -153,7 +153,6 @@ rasqal_sort_rowsource_ensure_variables(rasqal_rowsource* rowsource,
   rasqal_rowsource_ensure_variables(con->rowsource);
 
   rowsource->size = con->rowsource->size;
-  rowsource->order_size = con->order_size;
   
   return 0;
 }

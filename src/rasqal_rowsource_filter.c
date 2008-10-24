@@ -81,7 +81,6 @@ rasqal_filter_rowsource_ensure_variables(rasqal_rowsource* rowsource,
   rasqal_rowsource_ensure_variables(con->rowsource);
 
   rowsource->size = con->rowsource->size;
-  rowsource->order_size = con->rowsource->order_size;
   
   return 0;
 }
