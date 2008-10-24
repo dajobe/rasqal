@@ -116,8 +116,7 @@ rasqal_sort_rowsource_process(rasqal_rowsource* rowsource,
     if(!row)
       break;
 
-    /* updates row->order_size and row->order_values too */
-    rasqal_row_move_to_rowsource(row, rowsource);
+    rasqal_row_set_order_size(row, con->order_size);
 
     rasqal_engine_rowsort_calculate_order_values(con->query, row);
 

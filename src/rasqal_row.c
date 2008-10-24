@@ -452,15 +452,8 @@ rasqal_row_set_values_from_variables_table(rasqal_row* row,
 
 
 int
-rasqal_row_move_to_rowsource(rasqal_row *row, rasqal_rowsource* rowsource)
+rasqal_row_set_order_size(rasqal_row *row, int order_size)
 {
-  int size;
-  int order_size;
-
-  row->rowsource = rowsource;
-
-  rasqal_rowsource_get_sizes(rowsource, &size, &order_size);
-
   row->order_size = order_size;
   if(row->order_size > 0) {
     row->order_values = (rasqal_literal**)RASQAL_CALLOC(array,  row->order_size,

@@ -864,7 +864,7 @@ void rasqal_row_set_value_at(rasqal_row* row, int offset, rasqal_literal* value)
 raptor_sequence* rasqal_new_row_sequence(rasqal_world* world, rasqal_variables_table* vt, const char* const row_data[], int vars_count);
 int rasqal_row_to_nodes(rasqal_row* row);
 void rasqal_row_set_values_from_variables_table(rasqal_row* row, rasqal_variables_table* vars_table);
-int rasqal_row_move_to_rowsource(rasqal_row *row, rasqal_rowsource* rowsource);
+int rasqal_row_set_order_size(rasqal_row *row, int order_size);
 
 /* rasqal_triples_source.c */
 rasqal_triples_source* rasqal_new_triples_source(rasqal_query* query);
