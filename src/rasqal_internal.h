@@ -627,15 +627,10 @@ struct rasqal_rowsource_s
 
   /* row width */
   int size;
-
-  /* order row width */
-  int order_size;
 };
 
 
-#define RASQAL_ROWSOURCE_FLAGS_ORDERING 1
-
-rasqal_rowsource* rasqal_new_rowsource_from_handler(void* user_data, const rasqal_rowsource_handler *handler, int flags);
+rasqal_rowsource* rasqal_new_rowsource_from_handler(void* user_data, const rasqal_rowsource_handler *handler);
 void rasqal_free_rowsource(rasqal_rowsource *rowsource);
 
 rasqal_row* rasqal_rowsource_read_row(rasqal_rowsource *rowsource);
