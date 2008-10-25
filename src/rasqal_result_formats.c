@@ -656,7 +656,9 @@ rasqal_query_results_formatter_read(rasqal_world *world,
   if(!formatter->factory->get_rowsource)
     return 1;
   
-  rowsource=formatter->factory->get_rowsource(world, iostr, base_uri);
+  rowsource=formatter->factory->get_rowsource(world, 
+                                              rasqal_query_results_get_variables_table(results),
+                                              iostr, base_uri);
   if(!rowsource)
     return 1;
 
