@@ -45,7 +45,7 @@
 
 
 static int rasqal_query_results_write_sparql_xml(raptor_iostream *iostr, rasqal_query_results* results, raptor_uri *base_uri);
-static rasqal_rowsource* rasqal_query_results_get_rowsource_sparql_xml(rasqal_world *world, raptor_iostream *iostr, raptor_uri *base_uri);
+static rasqal_rowsource* rasqal_query_results_get_rowsource_sparql_xml(rasqal_world *world, rasqal_variables_table* vars_table, raptor_iostream *iostr, raptor_uri *base_uri);
 
 
 #if RASQAL_DEBUG > 1
@@ -748,6 +748,7 @@ rasqal_sparql_xml_sax2_end_element_handler(void *user_data,
     case STATE_head:
       /* Only now is the full number of variables known */
       con->variables_count = rasqal_variables_table_get_named_variables_count(con->vars_table);
+      con->rowsource->size = con->variables_count;
       break;
       
     case STATE_literal:
@@ -919,7 +920,7 @@ rasqal_rowsource_sparql_xml_ensure_variables(rasqal_rowsource* rowsource,
 {
   rasqal_rowsource_sparql_xml_context* con;
 
-  con=(rasqal_rowsource_sparql_xml_context*)user_data;
+  con = (rasqal_rowsource_sparql_xml_context*)user_data;
 
   rasqal_rowsource_sparql_xml_process(con);
 
@@ -973,6 +974,7 @@ static const rasqal_rowsource_handler rasqal_rowsource_sparql_xml_handler={
  **/
 static rasqal_rowsource*
 rasqal_query_results_get_rowsource_sparql_xml(rasqal_world *world,
+                                              rasqal_variables_table* vars_table,
                                               raptor_iostream *iostr,
                                               raptor_uri *base_uri)
 {
@@ -1015,7 +1017,7 @@ rasqal_query_results_get_rowsource_sparql_xml(rasqal_world *world,
 
   con->results_sequence=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_row, (raptor_sequence_print_handler*)rasqal_row_print);
 
-  con->vars_table = rasqal_new_variables_table(world);
+  con->vars_table = rasqal_new_variables_table_from_variables_table(vars_table);
   
   return rasqal_new_rowsource_from_handler(con,
                                            &rasqal_rowsource_sparql_xml_handler,
