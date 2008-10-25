@@ -186,7 +186,7 @@ rasqal_new_query_results(rasqal_world* world,
 {
   rasqal_query_results* query_results;
     
-  query_results=(rasqal_query_results*)RASQAL_CALLOC(rasqal_query_results, 1, sizeof(rasqal_query_results));
+  query_results = (rasqal_query_results*)RASQAL_CALLOC(rasqal_query_results, 1, sizeof(rasqal_query_results));
   if(!query_results)
     return NULL;
   
@@ -318,7 +318,7 @@ rasqal_free_query_results(rasqal_query_results* query_results)
 
   RASQAL_ASSERT_OBJECT_POINTER_RETURN(query_results, rasqal_query_result);
 
-  query=query_results->query;
+  query = query_results->query;
 
   if(query_results->executed) {
     if(query_results->execution_factory->execute_finish) {
@@ -616,7 +616,7 @@ rasqal_query_results_get_count(rasqal_query_results* query_results)
   if(!rasqal_query_results_is_bindings(query_results))
     return -1;
   
-  query=query_results->query;
+  query = query_results->query;
   if(query && query->offset > 0)
     return query_results->result_count - query->offset;
   return query_results->result_count;
@@ -750,7 +750,7 @@ rasqal_query_results_get_binding_value(rasqal_query_results* query_results,
   if(row)
     return row->values[offset];
 
-  query_results->finished=1;
+  query_results->finished = 1;
   return NULL;
 }
 
@@ -846,7 +846,7 @@ rasqal_prefix_id(int prefix_id, unsigned char *string)
   unsigned char* buffer;
   size_t length = strlen((const char*)string)+4;  /* "r" +... + "_" +... \0 */
 
-  while(tmpid/=10)
+  while(tmpid/ = 10)
     length++;
   
   buffer = (unsigned char*)RASQAL_MALLOC(cstring, length);
@@ -922,7 +922,7 @@ rasqal_query_results_get_triple(rasqal_query_results* query_results)
       rasqal_log_error_simple(query_results->world, RAPTOR_LOG_LEVEL_WARNING,
                               &query->locator,
                               "Triple with unbound subject skipped");
-      skipped=1;
+      skipped = 1;
       continue;
     }
     switch(s->type) {
@@ -1022,7 +1022,7 @@ rasqal_query_results_get_triple(rasqal_query_results* query_results)
         rasqal_log_error_simple(query_results->world, RAPTOR_LOG_LEVEL_WARNING,
                                 &query->locator,
                                 "Triple with non-URI predicate skipped");
-        skipped=1;
+        skipped = 1;
         break;
     }
     if(skipped) {
@@ -1044,8 +1044,8 @@ rasqal_query_results_get_triple(rasqal_query_results* query_results)
     }
     switch(o->type) {
       case RASQAL_LITERAL_URI:
-        rs->object=o->value.uri;
-        rs->object_type=RAPTOR_IDENTIFIER_TYPE_RESOURCE;
+        rs->object = o->value.uri;
+        rs->object_type = RAPTOR_IDENTIFIER_TYPE_RESOURCE;
         break;
 
       case RASQAL_LITERAL_BLANK:
@@ -1236,12 +1236,13 @@ rasqal_query_results_write(raptor_iostream *iostr,
   if(!results || results->failed)
     return 1;
 
-  formatter=rasqal_new_query_results_formatter(results->world, NULL, format_uri);
+  formatter = rasqal_new_query_results_formatter(results->world, NULL,
+                                                 format_uri);
   if(!formatter)
     return 1;
 
-  status=rasqal_query_results_formatter_write(iostr, formatter,
-                                              results, base_uri);
+  status = rasqal_query_results_formatter_write(iostr, formatter,
+                                                results, base_uri);
 
   rasqal_free_query_results_formatter(formatter);
   return status;
@@ -1277,12 +1278,13 @@ rasqal_query_results_read(raptor_iostream *iostr,
   if(!results || results->failed)
     return 1;
 
-  formatter=rasqal_new_query_results_formatter(results->world, NULL, format_uri);
+  formatter = rasqal_new_query_results_formatter(results->world, NULL,
+                                                 format_uri);
   if(!formatter)
     return 1;
 
-  status=rasqal_query_results_formatter_read(results->world, iostr, formatter,
-                                             results, base_uri);
+  status = rasqal_query_results_formatter_read(results->world, iostr, formatter,
+                                               results, base_uri);
 
   rasqal_free_query_results_formatter(formatter);
   return status;
@@ -1383,7 +1385,7 @@ rasqal_query_results_update_bindings(rasqal_query_results* query_results)
 
   /* bind the construct variables again if running through a sequence */
   size = rasqal_variables_table_get_named_variables_count(query_results->vars_table);
-  for(i=0; i< size; i++) {
+  for(i = 0; i< size; i++) {
     rasqal_variable* v;
     rasqal_literal* value;
     v = rasqal_variables_table_get(query_results->vars_table, i);
