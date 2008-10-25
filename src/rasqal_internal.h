@@ -588,43 +588,54 @@ typedef struct {
 
 /**
  * rasqal_rowsource:
+ * @flags: flags - none currently defined.
+ * @user_data: rowsource handler data
+ * @handler: rowsource handler pointer
+ * @finished: non-0 if rowsource has been exhausted
+ * @count:  number of rows returned
+ * @updated_variables: non-0 if ensure_variables factory method has been called to get the variables_sequence updated
+ * @vars_table: variables table where variables used in this row are declared/owned
+ * @size: number of columns in the rowsource
  *
- * Rasqal Row Source class
+ * Rasqal Row Source class providing a sequence of rows of values similar to a SQL table.
  *
- * Abstracts a sequence of rows of values similar to a SQL table.
+ * The table has columns which are #rasqal_variable names that
+ * are declared in the associated variables table
+ * 
+ * Each row is a set of #rasqal_literal values for the variables or
+ * NULL if unset.
  *
- * The table has columns which are #rasqal_variable names.  Each row
- * is a set of bound #rasqal_literal values for the variables (or
- * NULL if unset).  The main functions used are
- * rasqal_rowsource_read_row() to read one row and
- * rasqal_rowsource_read_all_rows() to get all rows as a sequence,
- * draining the source.  rasqal_rowsource_get_rows_count() returns
- * the current number of rows that have been read.  The
- * columns/variables can be read by
+ * Row sources are constructed indirectly via an @handler passed
+ * to the rasqal_new_rowsource_from_handler() constructor.
+ *
+ * The main methods are rasqal_rowsource_read_row() to read one row
+ * and rasqal_rowsource_read_all_rows() to get all rows as a
+ * sequence, draining the row source.
+ * rasqal_rowsource_get_rows_count() returns the current number of
+ * rows that have been read which is only useful in the read one row
+ * case.
+ * 
+ * The variables associated with a rowsource can be read by
  * rasqal_rowsource_get_variable_by_offset() and
- * rasqal_rowsource_get_variable_offset_by_name().
+ * rasqal_rowsource_get_variable_offset_by_name() which all are
+ * wrappers to calls to the internal variables table @vars_table
  */
 struct rasqal_rowsource_s
 {
   int flags;
   
   void *user_data;
+
   const rasqal_rowsource_handler* handler;
 
-  /* non-0 if rowsource has been exhausted */
   int finished;
 
-  /* count of number of rows returned */
   int count;
 
-  /* non-0 if ensure_variables factory method has been called to get
-   * the variables_sequence updated
-   */
   int updated_variables;
-  
+
   rasqal_variables_table* vars_table;
 
-  /* row width */
   int size;
 };
 
