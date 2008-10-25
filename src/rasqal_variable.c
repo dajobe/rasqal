@@ -124,12 +124,13 @@ rasqal_new_variable_from_variable(rasqal_variable* v)
   size_t name_len;
   unsigned char *new_name;
 
-  new_v=(rasqal_variable*)RASQAL_CALLOC(rasqal_variable, 1, sizeof(rasqal_variable));
+  new_v = (rasqal_variable*)RASQAL_CALLOC(rasqal_variable, 1,
+                                          sizeof(rasqal_variable));
   if(!new_v)
     return NULL;
   
-  name_len=strlen((const char*)v->name);
-  new_name=(unsigned char*)RASQAL_MALLOC(cstring, name_len+1);
+  name_len = strlen((const char*)v->name);
+  new_name = (unsigned char*)RASQAL_MALLOC(cstring, name_len+1);
   if(!new_name) {
     RASQAL_FREE(rasqal_variable, new_v);
     return NULL;
@@ -242,7 +243,8 @@ rasqal_variable_set_value(rasqal_variable* v, rasqal_literal* l)
 {
   if(v->value)
     rasqal_free_literal(v->value);
-  v->value=l;
+  v->value = l;
+
 #ifdef RASQAL_DEBUG
   if(!v->name)
     RASQAL_FATAL1("variable has no name");
@@ -319,7 +321,7 @@ rasqal_new_variables_table(rasqal_world* world)
 
   tidy:
   rasqal_free_variables_table(vt);
-  vt=NULL;
+  vt = NULL;
   
   return vt;
 }
@@ -377,20 +379,20 @@ rasqal_variables_table_add(rasqal_variables_table* vt,
 {
   int i;
   rasqal_variable* v;
-  raptor_sequence* seq=NULL;
-  int* count_p=NULL;
+  raptor_sequence* seq = NULL;
+  int* count_p = NULL;
 
   if(!vt)
     return NULL;
   
   switch(type) {
     case RASQAL_VARIABLE_TYPE_ANONYMOUS:
-      seq=vt->anon_variables_sequence;
-      count_p=&vt->anon_variables_count;
+      seq = vt->anon_variables_sequence;
+      count_p = &vt->anon_variables_count;
       break;
     case RASQAL_VARIABLE_TYPE_NORMAL:
-      seq=vt->variables_sequence;
-      count_p=&vt->variables_count;
+      seq = vt->variables_sequence;
+      count_p = &vt->variables_count;
       break;
       
     case RASQAL_VARIABLE_TYPE_UNKNOWN:
@@ -399,8 +401,8 @@ rasqal_variables_table_add(rasqal_variables_table* vt,
       return NULL;
   }
   
-  for(i=0; i< raptor_sequence_size(seq); i++) {
-    v=(rasqal_variable*)raptor_sequence_get_at(seq, i);
+  for(i = 0; i < raptor_sequence_size(seq); i++) {
+    v = (rasqal_variable*)raptor_sequence_get_at(seq, i);
     if(!strcmp((const char*)v->name, (const char*)name)) {
       /* name already present, do not need a copy */
       RASQAL_FREE(cstring, name);
@@ -409,8 +411,8 @@ rasqal_variables_table_add(rasqal_variables_table* vt,
   }
 
   
-  v=(rasqal_variable*)RASQAL_CALLOC(rasqal_variable, 1,
-                                    sizeof(rasqal_variable));
+  v = (rasqal_variable*)RASQAL_CALLOC(rasqal_variable, 1,
+                                      sizeof(rasqal_variable));
   if(v) {
     v->type= type;
     v->name= name;
@@ -426,9 +428,9 @@ rasqal_variables_table_add(rasqal_variables_table* vt,
       v->offset += vt->variables_count;
     } else {
       /* new normal variable: move all anon variable offsets up 1 */
-      for(i=0; i < vt->anon_variables_count; i++) {
+      for(i = 0; i < vt->anon_variables_count; i++) {
         rasqal_variable* anon_v;
-        anon_v=(rasqal_variable*)raptor_sequence_get_at(vt->anon_variables_sequence, i);
+        anon_v = (rasqal_variable*)raptor_sequence_get_at(vt->anon_variables_sequence, i);
         anon_v->offset++;
       }
     }
@@ -456,16 +458,16 @@ rasqal_variables_table_add(rasqal_variables_table* vt,
 rasqal_variable*
 rasqal_variables_table_get(rasqal_variables_table* vt, int idx)
 {
-  raptor_sequence* seq=NULL;
+  raptor_sequence* seq = NULL;
 
   if(idx < 0)
     return NULL;
   
   if(idx < vt->variables_count)
-    seq=vt->variables_sequence;
+    seq = vt->variables_sequence;
   else {
     idx -= vt->variables_count;
-    seq=vt->anon_variables_sequence;
+    seq = vt->anon_variables_sequence;
   }
   
   return (rasqal_variable*)raptor_sequence_get_at(seq, idx);
@@ -476,7 +478,7 @@ rasqal_literal*
 rasqal_variables_table_get_value(rasqal_variables_table* vt, int idx)
 {
   rasqal_variable* v;
-  v=rasqal_variables_table_get(vt, idx);
+  v = rasqal_variables_table_get(vt, idx);
   if(!v)
     return NULL;
   return v->value;
@@ -490,7 +492,7 @@ rasqal_variables_table_get_by_name(rasqal_variables_table* vt,
   int i;
   rasqal_variable* v;
 
-  for(i=0; (v=rasqal_variables_table_get(vt, i)); i++) {
+  for(i = 0; (v = rasqal_variables_table_get(vt, i)); i++) {
     if(!strcmp((const char*)v->name, (const char*)name))
       return v;
   }
@@ -512,7 +514,7 @@ rasqal_variables_table_set(rasqal_variables_table* vt,
 {
   rasqal_variable* v;
   
-  v=rasqal_variables_table_get_by_name(vt, name);
+  v = rasqal_variables_table_get_by_name(vt, name);
   if(!v)
     return 1;
 
@@ -591,85 +593,85 @@ int main(int argc, char *argv[]);
 int
 main(int argc, char *argv[]) 
 {
-  const char *program=rasqal_basename(argv[0]);
-  rasqal_world* world=NULL;
-  rasqal_variables_table* vt=NULL;
+  const char *program = rasqal_basename(argv[0]);
+  rasqal_world* world = NULL;
+  rasqal_variables_table* vt = NULL;
 #define NUM_VARS 3
-  const char* var_names[NUM_VARS]={"normal-null", "normal-value", "anon"};
+  const char* var_names[NUM_VARS] = {"normal-null", "normal-value", "anon"};
   unsigned char* names[NUM_VARS];
   rasqal_variable* vars[NUM_VARS];
-  rasqal_literal *value=NULL;
+  rasqal_literal *value = NULL;
   int i;
-  int rc=0;
+  int rc = 0;
   
-  world=rasqal_new_world();
+  world = rasqal_new_world();
   if(!world || rasqal_world_open(world)) {
     fprintf(stderr, "%s: rasqal_world init failed\n", program);
-    rc=1;
+    rc = 1;
     goto tidy;
   }
   
-  vt=rasqal_new_variables_table(world);
+  vt = rasqal_new_variables_table(world);
   if(!vt) {
     fprintf(stderr, "%s: Failed to make variables table\n", program);
-    rc=1;
+    rc = 1;
     goto tidy;
   }
 
-  for(i=0; i < NUM_VARS; i++) {
-    size_t len=strlen(var_names[i]);
-    names[i]=(unsigned char*)malloc(len+1);
+  for(i = 0; i < NUM_VARS; i++) {
+    size_t len = strlen(var_names[i]);
+    names[i] = (unsigned char*)malloc(len+1);
     strncpy((char*)names[i], var_names[i], len+1);
   }
   
-  vars[0]=rasqal_variables_table_add(vt, RASQAL_VARIABLE_TYPE_NORMAL,
+  vars[0] = rasqal_variables_table_add(vt, RASQAL_VARIABLE_TYPE_NORMAL,
                                      names[0], NULL);
   if(!vars[0]) {
     fprintf(stderr, "%s: Failed to make normal variable with NULL value\n",
             program);
-    rc=1;
+    rc = 1;
     goto tidy;
   } else {
     /* now owned by vars[0] owned by vt */
-    names[0]=NULL;
+    names[0] = NULL;
   }
   /* vars[0] now owned by vt */
 
-  value=rasqal_new_double_literal(world, 42.0);
+  value = rasqal_new_double_literal(world, 42.0);
   if(!value) {
     fprintf(stderr, "%s: Failed to make double literal\n", program);
-    rc=1;
+    rc = 1;
     goto tidy;
   }
-  vars[1]=rasqal_variables_table_add(vt, RASQAL_VARIABLE_TYPE_NORMAL,
+  vars[1] = rasqal_variables_table_add(vt, RASQAL_VARIABLE_TYPE_NORMAL,
                                      names[1], value);
   if(!vars[1]) {
     fprintf(stderr, "%s: Failed to make normal variable with literal value\n",
             program);
-    rc=1;
+    rc = 1;
     goto tidy;
   } else {
     /* now owned by vars[1] owned by vt */
-    names[1]=NULL;
-    value=NULL;
+    names[1] = NULL;
+    value = NULL;
   }
   /* vars[1] now owned by vt */
   
-  vars[2]=rasqal_variables_table_add(vt, RASQAL_VARIABLE_TYPE_ANONYMOUS,
+  vars[2] = rasqal_variables_table_add(vt, RASQAL_VARIABLE_TYPE_ANONYMOUS,
                                      names[2], NULL);
   if(!vars[2]) {
     fprintf(stderr, "%s: Failed to make anonymous variable with NULL value\n",
             program);
-    rc=1;
+    rc = 1;
     goto tidy;
   } else {
     /* now owned by vars[2] owned by vt */
-    names[2]=NULL;
+    names[2] = NULL;
   }
   /* vars[2] now owned by vt */
   
   tidy:
-  for(i=0; i < NUM_VARS; i++) {
+  for(i = 0; i < NUM_VARS; i++) {
     if(names[i])
       free(names[i]);
   }
