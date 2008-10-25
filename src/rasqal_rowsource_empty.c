@@ -52,7 +52,8 @@ typedef struct
 static int
 rasqal_empty_rowsource_finish(rasqal_rowsource* rowsource, void *user_data)
 {
-  rasqal_empty_rowsource_context* con=(rasqal_empty_rowsource_context*)user_data;
+  rasqal_empty_rowsource_context* con;
+  con = (rasqal_empty_rowsource_context*)user_data;
   RASQAL_FREE(rasqal_empty_rowsource_context, con);
 
   return 0;
@@ -61,7 +62,8 @@ rasqal_empty_rowsource_finish(rasqal_rowsource* rowsource, void *user_data)
 static rasqal_row*
 rasqal_empty_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
 {
-  /* rasqal_empty_rowsource_context* con=(rasqal_empty_rowsource_context*)user_data; */
+  /* rasqal_empty_rowsource_context* con;
+  con = (rasqal_empty_rowsource_context*)user_data; */
   return NULL;
 }
 
@@ -69,19 +71,21 @@ static raptor_sequence*
 rasqal_empty_rowsource_read_all_rows(rasqal_rowsource* rowsource,
                                      void *user_data)
 {
-  /* rasqal_empty_rowsource_context* con=(rasqal_empty_rowsource_context*)user_data; */
+  /* rasqal_empty_rowsource_context* con;
+  con = (rasqal_empty_rowsource_context*)user_data; */
   return NULL;
 }
 
 static rasqal_query*
 rasqal_empty_rowsource_get_query(rasqal_rowsource* rowsource, void *user_data)
 {
-  rasqal_empty_rowsource_context* con=(rasqal_empty_rowsource_context*)user_data;
+  rasqal_empty_rowsource_context* con;
+  con = (rasqal_empty_rowsource_context*)user_data;
   return con->query;
 }
 
 
-static const rasqal_rowsource_handler rasqal_empty_rowsource_handler={
+static const rasqal_rowsource_handler rasqal_empty_rowsource_handler = {
   /* .version = */ 1,
   "empty",
   /* .init = */ NULL,
@@ -97,7 +101,7 @@ rasqal_rowsource*
 rasqal_new_empty_rowsource(rasqal_query* query)
 {
   rasqal_empty_rowsource_context* con;
-  int flags=0;
+  int flags = 0;
 
   if(!query)
     return NULL;
@@ -126,14 +130,14 @@ int main(int argc, char *argv[]);
 int
 main(int argc, char *argv[]) 
 {
-  const char *program=rasqal_basename(argv[0]);
-  rasqal_rowsource *rowsource=NULL;
+  const char *program = rasqal_basename(argv[0]);
+  rasqal_rowsource *rowsource = NULL;
   rasqal_world* world = NULL;
   rasqal_query* query = NULL;
-  rasqal_row* row=NULL;
+  rasqal_row* row = NULL;
   int count;
-  raptor_sequence* seq=NULL;
-  int failures=0;
+  raptor_sequence* seq = NULL;
+  int failures = 0;
 
   world = rasqal_new_world();
   if(!world || rasqal_world_open(world)) {
