@@ -204,6 +204,7 @@ rasqal_new_union_rowsource(rasqal_query* query,
   
   return rasqal_new_rowsource_from_handler(con,
                                            &rasqal_union_rowsource_handler,
+                                           query->vars_table,
                                            flags);
 }
 
@@ -224,27 +225,32 @@ main(int argc, char *argv[])
   rasqal_rowsource *rowsource=NULL;
   rasqal_rowsource *left_rs=NULL;
   rasqal_rowsource *right_rs=NULL;
-  rasqal_query* fake_query=(rasqal_query*)-1;
+  rasqal_world* world = NULL;
+  rasqal_query* query = NULL;
   rasqal_row* row=NULL;
   int count;
   raptor_sequence* seq=NULL;
   int failures=0;
   
-  left_rs=rasqal_new_empty_rowsource(fake_query);
+  world = rasqal_new_world(); rasqal_world_open(world);
+  
+  query = rasqal_new_query(world, "sparql", NULL);
+  
+  left_rs=rasqal_new_empty_rowsource(query);
   if(!left_rs) {
     fprintf(stderr, "%s: failed to create empty left rowsource\n", program);
     failures++;
     goto tidy;
   }
 
-  right_rs=rasqal_new_empty_rowsource(fake_query);
+  right_rs=rasqal_new_empty_rowsource(query);
   if(!right_rs) {
     fprintf(stderr, "%s: failed to create empty right rowsource\n", program);
     failures++;
     goto tidy;
   }
 
-  rowsource=rasqal_new_union_rowsource(fake_query, left_rs, right_rs);
+  rowsource=rasqal_new_union_rowsource(query, left_rs, right_rs);
   if(!rowsource) {
     fprintf(stderr, "%s: failed to create union rowsource\n", program);
     failures++;
@@ -283,7 +289,7 @@ main(int argc, char *argv[])
     goto tidy;
   }
 
-  if(rasqal_rowsource_get_query(rowsource) != fake_query) {
+  if(rasqal_rowsource_get_query(rowsource) != query) {
     fprintf(stderr,
             "%s: get_query returned a different query for a union rowsurce\n",
             program);
@@ -301,6 +307,10 @@ main(int argc, char *argv[])
     rasqal_free_rowsource(right_rs);
   if(rowsource)
     rasqal_free_rowsource(rowsource);
+  if(query)
+    rasqal_free_query(query);
+  if(world)
+    rasqal_free_world(world);
 
   return failures;
 }
