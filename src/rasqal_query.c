@@ -104,27 +104,27 @@ rasqal_new_query(rasqal_world *world, const char *name,
   void *uri_context;
 #endif
 
-  factory=rasqal_get_query_language_factory(world, name, uri);
+  factory = rasqal_get_query_language_factory(world, name, uri);
   if(!factory)
     return NULL;
 
-  query=(rasqal_query*)RASQAL_CALLOC(rasqal_query, 1, sizeof(rasqal_query));
+  query = (rasqal_query*)RASQAL_CALLOC(rasqal_query, 1, sizeof(rasqal_query));
   if(!query)
     return NULL;
   
   /* set usage first to 1 so we can clean up with rasqal_free_query() on error */
-  query->usage=1;
+  query->usage = 1;
 
-  query->world=world;
+  query->world = world;
   
-  query->factory=factory;
+  query->factory = factory;
 
-  query->limit= -1;
-  query->offset= -1;
+  query->limit = -1;
+  query->offset = -1;
 
-  query->genid_counter=1;
+  query->genid_counter = 1;
 
-  query->context=(char*)RASQAL_CALLOC(rasqal_query_context, 1,
+  query->context = (char*)RASQAL_CALLOC(rasqal_query_context, 1,
                                       factory->context_length);
   if(!query->context)
     goto tidy;
@@ -144,19 +144,19 @@ rasqal_new_query(rasqal_world *world, const char *name,
   if(!query->namespaces)
     goto tidy;
 
-  query->vars_table=rasqal_new_variables_table(query->world);
+  query->vars_table = rasqal_new_variables_table(query->world);
   if(!query->vars_table)
     goto tidy;
 
-  query->triples=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_triple, (raptor_sequence_print_handler*)rasqal_triple_print);
+  query->triples = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_triple, (raptor_sequence_print_handler*)rasqal_triple_print);
   if(!query->triples)
     goto tidy;
   
-  query->prefixes=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_prefix, (raptor_sequence_print_handler*)rasqal_prefix_print);
+  query->prefixes = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_prefix, (raptor_sequence_print_handler*)rasqal_prefix_print);
   if(!query->prefixes)
     goto tidy;
 
-  query->data_graphs=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_data_graph, (raptor_sequence_print_handler*)rasqal_data_graph_print);
+  query->data_graphs = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_data_graph, (raptor_sequence_print_handler*)rasqal_data_graph_print);
   if(!query->data_graphs)
     goto tidy;
 
@@ -303,10 +303,10 @@ rasqal_query_set_fatal_error_handler(rasqal_query* query, void *user_data,
   if(!query || !query->world)
     return;
 
-  error_handlers=&query->world->error_handlers;
+  error_handlers = &query->world->error_handlers;
   
-  error_handlers->handlers[RAPTOR_LOG_LEVEL_FATAL].user_data=user_data;
-  error_handlers->handlers[RAPTOR_LOG_LEVEL_FATAL].handler=handler;
+  error_handlers->handlers[RAPTOR_LOG_LEVEL_FATAL].user_data = user_data;
+  error_handlers->handlers[RAPTOR_LOG_LEVEL_FATAL].handler = handler;
 }
 
 
@@ -329,10 +329,10 @@ rasqal_query_set_error_handler(rasqal_query* query, void *user_data,
   if(!query || !query->world)
     return;
 
-  error_handlers=&query->world->error_handlers;
+  error_handlers = &query->world->error_handlers;
   
-  error_handlers->handlers[RAPTOR_LOG_LEVEL_ERROR].user_data=user_data;
-  error_handlers->handlers[RAPTOR_LOG_LEVEL_ERROR].handler=handler;
+  error_handlers->handlers[RAPTOR_LOG_LEVEL_ERROR].user_data = user_data;
+  error_handlers->handlers[RAPTOR_LOG_LEVEL_ERROR].handler = handler;
 }
 
 
@@ -355,10 +355,10 @@ rasqal_query_set_warning_handler(rasqal_query* query, void *user_data,
   if(!query || !query->world)
     return;
 
-  error_handlers=&query->world->error_handlers;
+  error_handlers = &query->world->error_handlers;
   
-  error_handlers->handlers[RAPTOR_LOG_LEVEL_WARNING].user_data=user_data;
-  error_handlers->handlers[RAPTOR_LOG_LEVEL_WARNING].handler=handler;
+  error_handlers->handlers[RAPTOR_LOG_LEVEL_WARNING].user_data = user_data;
+  error_handlers->handlers[RAPTOR_LOG_LEVEL_WARNING].handler  =handler;
 }
 
 
@@ -379,7 +379,7 @@ rasqal_query_set_feature(rasqal_query* query, rasqal_feature feature, int value)
 {
   switch(feature) {
     case RASQAL_FEATURE_NO_NET:
-      query->features[(int)feature]=value;
+      query->features[(int)feature] = value;
       break;
       
     default:
@@ -408,7 +408,7 @@ rasqal_query_set_feature_string(rasqal_query *query,
                                 rasqal_feature feature, 
                                 const unsigned char *value)
 {
-  int value_is_string=(rasqal_feature_value_type(feature) == 1);
+  int value_is_string = (rasqal_feature_value_type(feature) == 1);
   if(!value_is_string)
     return rasqal_query_set_feature(query, feature, atoi((const char*)value));
 
@@ -436,7 +436,7 @@ rasqal_query_get_feature(rasqal_query *query, rasqal_feature feature)
   
   switch(feature) {
     case RASQAL_FEATURE_NO_NET:
-      result=(query->features[(int)feature] != 0);
+      result = (query->features[(int)feature] != 0);
       break;
 
     default:
@@ -463,7 +463,7 @@ const unsigned char *
 rasqal_query_get_feature_string(rasqal_query *query, 
                                 rasqal_feature feature)
 {
-  int value_is_string=(rasqal_feature_value_type(feature) == 1);
+  int value_is_string = (rasqal_feature_value_type(feature) == 1);
   if(!value_is_string)
     return NULL;
   
@@ -570,7 +570,7 @@ rasqal_query_get_limit(rasqal_query* query)
 void
 rasqal_query_set_limit(rasqal_query* query, int limit)
 {
-  query->limit=limit;
+  query->limit = limit;
 }
 
 
@@ -603,7 +603,7 @@ rasqal_query_get_offset(rasqal_query* query)
 void
 rasqal_query_set_offset(rasqal_query* query, int offset)
 {
-  query->offset=offset;
+  query->offset = offset;
 }
 
 
@@ -691,7 +691,7 @@ int
 rasqal_query_add_variable(rasqal_query* query, rasqal_variable* var)
 {
   if(!query->selects) {
-    query->selects=raptor_new_sequence(NULL, (raptor_sequence_print_handler*)rasqal_variable_print);
+    query->selects = raptor_new_sequence(NULL, (raptor_sequence_print_handler*)rasqal_variable_print);
     if(!query->selects)
       return 1;
   }
@@ -805,12 +805,13 @@ rasqal_query_set_variable(rasqal_query* query, const unsigned char *name,
   if(!query->selects)
     return 1;
   
-  for(i=0; i< raptor_sequence_size(query->selects); i++) {
-    rasqal_variable* v=(rasqal_variable*)raptor_sequence_get_at(query->selects, i);
+  for(i = 0; i< raptor_sequence_size(query->selects); i++) {
+    rasqal_variable* v;
+    v = (rasqal_variable*)raptor_sequence_get_at(query->selects, i);
     if(!strcmp((const char*)v->name, (const char*)name)) {
       if(v->value)
         rasqal_free_literal(v->value);
-      v->value=value;
+      v->value = value;
       return 0;
     }
   }
@@ -867,7 +868,7 @@ rasqal_query_declare_prefix(rasqal_query *rq, rasqal_prefix *p)
 #endif
                                             rq->prefix_depth))
     return 1;
-  p->declared=1;
+  p->declared = 1;
   rq->prefix_depth++;
   return 0;
 }
@@ -877,7 +878,7 @@ static int
 rasqal_query_undeclare_prefix(rasqal_query *rq, rasqal_prefix *prefix)
 {
   if(!prefix->declared) {
-    prefix->declared=1;
+    prefix->declared = 1;
     return 0;
   }
   
@@ -894,8 +895,8 @@ rasqal_query_declare_prefixes(rasqal_query *rq)
   if(!rq->prefixes)
     return 0;
   
-  for(i=0; i< raptor_sequence_size(rq->prefixes); i++) {
-    rasqal_prefix* p=(rasqal_prefix*)raptor_sequence_get_at(rq->prefixes, i);
+  for(i = 0; i< raptor_sequence_size(rq->prefixes); i++) {
+    rasqal_prefix* p = (rasqal_prefix*)raptor_sequence_get_at(rq->prefixes, i);
     if(rasqal_query_declare_prefix(rq, p))
       return 1;
   }
@@ -919,13 +920,14 @@ int
 rasqal_query_add_prefix(rasqal_query* query, rasqal_prefix* prefix)
 {
   if(!query->prefixes) {
-    query->prefixes=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_prefix, (raptor_sequence_print_handler*)rasqal_prefix_print);
+    query->prefixes = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_prefix, (raptor_sequence_print_handler*)rasqal_prefix_print);
     if(!query->prefixes)
       return 1;
   } else {
     int i;
-    for(i=0; i< raptor_sequence_size(query->prefixes); i++) {
-      rasqal_prefix* p=(rasqal_prefix*)raptor_sequence_get_at(query->prefixes, i);
+    for(i = 0; i< raptor_sequence_size(query->prefixes); i++) {
+      rasqal_prefix* p;
+      p = (rasqal_prefix*)raptor_sequence_get_at(query->prefixes, i);
       if(strcmp((const char*)p->prefix, (const char*)prefix->prefix)) {
         rasqal_query_undeclare_prefix(query, p);
         break;
@@ -1075,14 +1077,14 @@ rasqal_query_prepare(rasqal_query* query,
                      const unsigned char *query_string,
                      raptor_uri *base_uri)
 {
-  int rc=0;
+  int rc = 0;
   
   if(query->failed)
     return 1;
 
   if(query->prepared)
     return 0;
-  query->prepared=1;
+  query->prepared = 1;
 
   if(query_string) {
     /* flex lexers require two NULs at the end of the lexed buffer.
@@ -1097,17 +1099,17 @@ rasqal_query_prepare(rasqal_query* query,
      * scanned; thus, scanning consists of `base[0]' through
      * `base[size-2]', inclusive.
      */
-    int len=strlen((const char*)query_string)+3; /* +3 for " \0\0" */
-    unsigned char *query_string_copy=(unsigned char*)RASQAL_MALLOC(cstring, len);
+    int len = strlen((const char*)query_string)+3; /* +3 for " \0\0" */
+    unsigned char *query_string_copy = (unsigned char*)RASQAL_MALLOC(cstring, len);
     if(!query_string_copy) {
-      query->failed=1;
+      query->failed = 1;
       return 1;
     }
     strcpy((char*)query_string_copy, (const char*)query_string);
-    query_string_copy[len-3]=' ';
-    query_string_copy[len-2]=query_string_copy[len-1]='\0';
-    query->query_string=query_string_copy;
-    query->query_string_length=len;
+    query_string_copy[len-3] = ' ';
+    query_string_copy[len-2] = query_string_copy[len-1] = '\0';
+    query->query_string = query_string_copy;
+    query->query_string_length = len;
   }
 
   if(base_uri)
@@ -1117,7 +1119,7 @@ rasqal_query_prepare(rasqal_query* query,
     base_uri = raptor_uri_copy(base_uri);
 #endif
   else {
-    unsigned char *uri_string=raptor_uri_filename_to_uri_string("");
+    unsigned char *uri_string = raptor_uri_filename_to_uri_string("");
 #ifdef RAPTOR_V2_AVAILABLE
     base_uri = raptor_new_uri_v2(query->world->raptor_world_ptr, uri_string);
 #else
@@ -1130,13 +1132,13 @@ rasqal_query_prepare(rasqal_query* query,
   rasqal_query_set_base_uri(query, base_uri);
   query->locator.line = query->locator.column = query->locator.byte = -1;
 
-  rc=query->factory->prepare(query);
+  rc = query->factory->prepare(query);
   if(rc) {
-    query->failed=1;
-    rc=1;
+    query->failed = 1;
+    rc = 1;
   } else if(rasqal_query_prepare_common(query)) {
-    query->failed=1;
-    rc=1;
+    query->failed = 1;
+    rc = 1;
   }
 
   return rc;
@@ -1223,7 +1225,7 @@ rasqal_query_execute(rasqal_query* query)
 }
 
 
-static const char* const rasqal_query_verb_labels[RASQAL_QUERY_VERB_LAST+1]={
+static const char* const rasqal_query_verb_labels[RASQAL_QUERY_VERB_LAST+1] = {
   "Unknown",
   "SELECT",
   "CONSTRUCT",
@@ -1248,7 +1250,7 @@ rasqal_query_verb_as_string(rasqal_query_verb verb)
 {
   if(verb <= RASQAL_QUERY_VERB_UNKNOWN || 
      verb > RASQAL_QUERY_VERB_LAST)
-    verb=RASQAL_QUERY_VERB_UNKNOWN;
+    verb = RASQAL_QUERY_VERB_UNKNOWN;
 
   return rasqal_query_verb_labels[(int)verb];
 }
@@ -1265,7 +1267,7 @@ rasqal_query_verb_as_string(rasqal_query_verb verb)
 void
 rasqal_query_print(rasqal_query* query, FILE *fh)
 {
-  rasqal_variables_table* vars_table=query->vars_table;
+  rasqal_variables_table* vars_table = query->vars_table;
   raptor_sequence* seq;
 
   fprintf(fh, "query verb: %s\n", rasqal_query_verb_as_string(query->verb));
@@ -1283,12 +1285,12 @@ rasqal_query_print(rasqal_query* query, FILE *fh)
   fputs("data graphs: ", fh);
   if(query->data_graphs)
     raptor_sequence_print(query->data_graphs, fh);
-  seq=rasqal_variables_table_get_named_variables_sequence(vars_table);
+  seq = rasqal_variables_table_get_named_variables_sequence(vars_table);
   if(seq) {
     fputs("\nnamed variables: ", fh); 
     raptor_sequence_print(seq, fh);
   }
-  seq=rasqal_variables_table_get_anonymous_variables_sequence(vars_table);
+  seq = rasqal_variables_table_get_anonymous_variables_sequence(vars_table);
   if(seq) {
     fputs("\nanonymous variables: ", fh); 
     raptor_sequence_print(seq, fh);
@@ -1397,7 +1399,7 @@ rasqal_query_get_user_data(rasqal_query* query)
 void
 rasqal_query_set_user_data(rasqal_query* query, void *user_data)
 {
-  query->user_data=user_data;
+  query->user_data = user_data;
 }
 
 
@@ -1514,7 +1516,7 @@ rasqal_query_graph_pattern_visit(rasqal_query* query,
                                  rasqal_graph_pattern_visit_fn visit_fn, 
                                  void* data)
 {
-  rasqal_graph_pattern* gp=rasqal_query_get_query_graph_pattern(query);
+  rasqal_graph_pattern* gp = rasqal_query_get_query_graph_pattern(query);
   if(!gp)
     return;
 
@@ -1558,9 +1560,9 @@ rasqal_query_write_sparql_uri(sparql_writer_context *wc,
   unsigned char* string;
   raptor_qname* qname;
 
-  qname=raptor_namespaces_qname_from_uri(wc->nstack, uri, 10);
+  qname = raptor_namespaces_qname_from_uri(wc->nstack, uri, 10);
   if(qname) {
-    const raptor_namespace* nspace=raptor_qname_get_namespace(qname);
+    const raptor_namespace* nspace = raptor_qname_get_namespace(qname);
     if(!raptor_namespace_get_prefix(nspace))
       raptor_iostream_write_byte(iostr, ':');
     raptor_iostream_write_qname(iostr, qname);
@@ -1675,13 +1677,13 @@ rasqal_query_write_sparql_triple(sparql_writer_context *wc,
 
 
 #define SPACES_LENGTH 80
-static const char spaces[SPACES_LENGTH+1]="                                                                                ";
+static const char spaces[SPACES_LENGTH+1] = "                                                                                ";
 
 static void
 rasqal_query_write_indent(raptor_iostream* iostr, int indent) 
 {
   while(indent > 0) {
-    int sp=(indent > SPACES_LENGTH) ? SPACES_LENGTH : indent;
+    int sp = (indent > SPACES_LENGTH) ? SPACES_LENGTH : indent;
     raptor_iostream_write_bytes(iostr, spaces, sizeof(char), sp);
     indent -= sp;
   }
@@ -1689,7 +1691,7 @@ rasqal_query_write_indent(raptor_iostream* iostr, int indent)
 
   
 
-static const char* const rasqal_sparql_op_labels[RASQAL_EXPR_LAST+1]={
+static const char* const rasqal_sparql_op_labels[RASQAL_EXPR_LAST+1] = {
   NULL, /* UNKNOWN */
   "&&",
   "||",
@@ -1739,11 +1741,11 @@ rasqal_query_write_sparql_expression_op(sparql_writer_context *wc,
                                         raptor_iostream* iostr,
                                         rasqal_expression* e)
 {
-  rasqal_op op=e->op;
+  rasqal_op op = e->op;
   const char* string;
   if(op > RASQAL_EXPR_LAST)
-    op=RASQAL_EXPR_UNKNOWN;
-  string=rasqal_sparql_op_labels[(int)op];
+    op = RASQAL_EXPR_UNKNOWN;
+  string = rasqal_sparql_op_labels[(int)op];
   
   if(string)
     raptor_iostream_write_string(iostr, string);
@@ -1838,9 +1840,10 @@ rasqal_query_write_sparql_expression(sparql_writer_context *wc,
       raptor_iostream_write_uri(iostr, e->name);
 #endif
       raptor_iostream_write_counted_string(iostr, "( ", 2);
-      count=raptor_sequence_size(e->args);
-      for(i=0; i < count ; i++) {
-        rasqal_expression* arg=(rasqal_expression*)raptor_sequence_get_at(e->args, i);
+      count = raptor_sequence_size(e->args);
+      for(i = 0; i < count ; i++) {
+        rasqal_expression* arg;
+        arg = (rasqal_expression*)raptor_sequence_get_at(e->args, i);
         if(i > 0)
           raptor_iostream_write_counted_string(iostr, " ,", 2);
         rasqal_query_write_sparql_expression(wc, iostr, arg);
@@ -1878,12 +1881,12 @@ rasqal_query_write_sparql_graph_pattern(sparql_writer_context *wc,
                                         rasqal_graph_pattern *gp, 
                                         int gp_index, int indent)
 {
-  int triple_index=0;
+  int triple_index = 0;
   rasqal_graph_pattern_operator op;
   raptor_sequence *seq;
-  int filters_count=0;
+  int filters_count = 0;
   
-  op=rasqal_graph_pattern_get_operator(gp);
+  op = rasqal_graph_pattern_get_operator(gp);
   
   if(op == RASQAL_GRAPH_PATTERN_OPERATOR_OPTIONAL ||
      op == RASQAL_GRAPH_PATTERN_OPERATOR_GRAPH) {
@@ -1893,8 +1896,8 @@ rasqal_query_write_sparql_graph_pattern(sparql_writer_context *wc,
     else {
       rasqal_graph_pattern* sgp;
       rasqal_triple* t;
-      sgp=rasqal_graph_pattern_get_sub_graph_pattern(gp, 0);
-      t=rasqal_graph_pattern_get_triple(sgp, 0);
+      sgp = rasqal_graph_pattern_get_sub_graph_pattern(gp, 0);
+      t = rasqal_graph_pattern_get_triple(sgp, 0);
 
       raptor_iostream_write_counted_string(iostr, "GRAPH ", 6);
       rasqal_query_write_sparql_literal(wc, iostr, t->origin);
@@ -1907,7 +1910,7 @@ rasqal_query_write_sparql_graph_pattern(sparql_writer_context *wc,
 
   /* look for triples */
   while(1) {
-    rasqal_triple* t=rasqal_graph_pattern_get_triple(gp, triple_index);
+    rasqal_triple* t = rasqal_graph_pattern_get_triple(gp, triple_index);
     if(!t)
       break;
     
@@ -1920,10 +1923,10 @@ rasqal_query_write_sparql_graph_pattern(sparql_writer_context *wc,
 
 
   /* look for sub-graph patterns */
-  seq=rasqal_graph_pattern_get_sub_graph_pattern_sequence(gp);
+  seq = rasqal_graph_pattern_get_sub_graph_pattern_sequence(gp);
   if(seq && raptor_sequence_size(seq) > 0) {
-    for(gp_index=0; 1; gp_index++) {
-      rasqal_graph_pattern* sgp=rasqal_graph_pattern_get_sub_graph_pattern(gp, gp_index);
+    for(gp_index = 0; 1; gp_index++) {
+      rasqal_graph_pattern* sgp = rasqal_graph_pattern_get_sub_graph_pattern(gp, gp_index);
       if(!sgp)
         break;
 
@@ -1953,11 +1956,11 @@ rasqal_query_write_sparql_graph_pattern(sparql_writer_context *wc,
 
   /* look for constraints */
   if(filters_count > 0) {
-    for(gp_index=0; 1; gp_index++) {
+    for(gp_index = 0; 1; gp_index++) {
       rasqal_graph_pattern* sgp;
       rasqal_expression* expr;
 
-      sgp=rasqal_graph_pattern_get_sub_graph_pattern(gp, gp_index);
+      sgp = rasqal_graph_pattern_get_sub_graph_pattern(gp, gp_index);
       if(!sgp)
         break;
       
@@ -1974,7 +1977,7 @@ rasqal_query_write_sparql_graph_pattern(sparql_writer_context *wc,
   }
   
 
-  indent-=2;
+  indent -= 2;
   
   rasqal_query_write_indent(iostr, indent);
   raptor_iostream_write_byte(iostr, '}');
@@ -1987,7 +1990,7 @@ rasqal_query_write_sparql_20060406(raptor_iostream *iostr,
                                    rasqal_query* query, raptor_uri *base_uri)
 {
   int i;
-  raptor_sequence *var_seq=NULL;
+  raptor_sequence *var_seq = NULL;
   sparql_writer_context wc;
 #ifndef RAPTOR_V2_AVAILABLE
   const raptor_uri_handler *uri_handler;
@@ -2019,16 +2022,16 @@ rasqal_query_write_sparql_20060406(raptor_iostream *iostr,
 
     /* from now on all URIs are relative to this */
 #ifdef RAPTOR_V2_AVAILABLE
-    wc.base_uri=raptor_uri_copy_v2(query->world->raptor_world_ptr, base_uri);
+    wc.base_uri = raptor_uri_copy_v2(query->world->raptor_world_ptr, base_uri);
 #else
-    wc.base_uri=raptor_uri_copy(base_uri);
+    wc.base_uri = raptor_uri_copy(base_uri);
 #endif
   }
   
   
-  for(i=0; 1 ; i++) {
+  for(i = 0; 1 ; i++) {
     raptor_namespace *nspace;
-    rasqal_prefix* p=rasqal_query_get_prefix(query, i);
+    rasqal_prefix* p = rasqal_query_get_prefix(query, i);
     if(!p)
       break;
     
@@ -2040,7 +2043,7 @@ rasqal_query_write_sparql_20060406(raptor_iostream *iostr,
     raptor_iostream_write_byte(iostr, '\n');
 
     /* Use this constructor so we copy a URI directly */
-    nspace=raptor_new_namespace_from_uri(wc.nstack, p->prefix, p->uri, i);
+    nspace = raptor_new_namespace_from_uri(wc.nstack, p->prefix, p->uri, i);
     raptor_namespaces_start_namespace(wc.nstack, nspace);
   }
 
@@ -2059,16 +2062,16 @@ rasqal_query_write_sparql_20060406(raptor_iostream *iostr,
   }
 
   if(query->verb == RASQAL_QUERY_VERB_DESCRIBE)
-    var_seq=query->describes;
+    var_seq = query->describes;
   else if(query->verb == RASQAL_QUERY_VERB_SELECT)
-    var_seq=query->selects;
+    var_seq = query->selects;
   
   if(var_seq && query->wildcard)
     raptor_iostream_write_counted_string(iostr, " *", 2);
   else if(var_seq) {
-    int count=raptor_sequence_size(var_seq);
-    for(i=0; i < count; i++) {
-      rasqal_variable* v=(rasqal_variable*)raptor_sequence_get_at(var_seq, i);
+    int count = raptor_sequence_size(var_seq);
+    for(i = 0; i < count; i++) {
+      rasqal_variable* v = (rasqal_variable*)raptor_sequence_get_at(var_seq, i);
       raptor_iostream_write_byte(iostr, ' ');
       rasqal_query_write_sparql_variable(&wc, iostr, v);
     }
@@ -2076,8 +2079,8 @@ rasqal_query_write_sparql_20060406(raptor_iostream *iostr,
   raptor_iostream_write_byte(iostr, '\n');
 
   if(query->data_graphs) {
-    for(i=0; 1; i++) {
-      rasqal_data_graph* dg=rasqal_query_get_data_graph(query, i);
+    for(i = 0; 1; i++) {
+      rasqal_data_graph* dg = rasqal_query_get_data_graph(query, i);
       if(!dg)
         break;
       
@@ -2089,8 +2092,8 @@ rasqal_query_write_sparql_20060406(raptor_iostream *iostr,
       raptor_iostream_write_counted_string(iostr, "\n", 1);
     }
     
-    for(i=0; 1; i++) {
-      rasqal_data_graph* dg=rasqal_query_get_data_graph(query, i);
+    for(i = 0; 1; i++) {
+      rasqal_data_graph* dg = rasqal_query_get_data_graph(query, i);
       if(!dg)
         break;
 
@@ -2106,8 +2109,8 @@ rasqal_query_write_sparql_20060406(raptor_iostream *iostr,
 
   if(query->constructs) {
     raptor_iostream_write_string(iostr, "CONSTRUCT {\n");
-    for(i=0; 1; i++) {
-      rasqal_triple* t=rasqal_query_get_construct_triple(query, i);
+    for(i = 0; 1; i++) {
+      rasqal_triple* t = rasqal_query_get_construct_triple(query, i);
       if(!t)
         break;
 
@@ -2127,8 +2130,8 @@ rasqal_query_write_sparql_20060406(raptor_iostream *iostr,
 
   if(query->group_conditions_sequence) {
     raptor_iostream_write_counted_string(iostr, "GROUP BY ", 9);
-    for(i=0; 1; i++) {
-      rasqal_expression* expr=rasqal_query_get_group_condition(query, i);
+    for(i = 0; 1; i++) {
+      rasqal_expression* expr = rasqal_query_get_group_condition(query, i);
       if(!expr)
         break;
 
@@ -2141,8 +2144,8 @@ rasqal_query_write_sparql_20060406(raptor_iostream *iostr,
 
   if(query->order_conditions_sequence) {
     raptor_iostream_write_counted_string(iostr, "ORDER BY ", 9);
-    for(i=0; 1; i++) {
-      rasqal_expression* expr=rasqal_query_get_order_condition(query, i);
+    for(i = 0; 1; i++) {
+      rasqal_expression* expr = rasqal_query_get_order_condition(query, i);
       if(!expr)
         break;
 
@@ -2153,7 +2156,7 @@ rasqal_query_write_sparql_20060406(raptor_iostream *iostr,
     raptor_iostream_write_byte(iostr, '\n');
   }
 
-  if(query->limit >=0 || query->offset >= 0) {
+  if(query->limit >= 0 || query->offset >= 0) {
     if(query->limit >= 0) {
       raptor_iostream_write_counted_string(iostr, "LIMIT ", 7);
       raptor_iostream_write_decimal(iostr, query->limit);
@@ -2271,19 +2274,19 @@ rasqal_query_escape_counted_string(rasqal_query* query,
                                    size_t* output_len_p)
 {
   raptor_iostream* iostr;
-  void* output_string=NULL;
+  void* output_string = NULL;
   int rc;
   
-  iostr=raptor_new_iostream_to_string(&output_string, output_len_p,
-                                      rasqal_alloc_memory);
+  iostr = raptor_new_iostream_to_string(&output_string, output_len_p,
+                                        rasqal_alloc_memory);
   if(!iostr)
     return NULL;
-  rc=rasqal_query_iostream_write_escaped_counted_string(query, iostr,
-                                                        string, len);
+  rc = rasqal_query_iostream_write_escaped_counted_string(query, iostr,
+                                                          string, len);
   raptor_free_iostream(iostr);
   if(rc && output_string) {
     rasqal_free_memory(output_string);
-    output_string=NULL;
+    output_string = NULL;
   }
   
   return (unsigned char *)output_string;
@@ -2302,12 +2305,12 @@ rasqal_query_get_genid(rasqal_query* query, const unsigned char* base,
   if(counter < 0)
     counter= query->genid_counter++;
   
-  length=strlen((const char*)base)+2;  /* base + (int) + "\0" */
-  tmpcounter=counter;
-  while(tmpcounter/=10)
+  length = strlen((const char*)base)+2;  /* base + (int) + "\0" */
+  tmpcounter = counter;
+  while(tmpcounter /= 10)
     length++;
   
-  buffer=(unsigned char*)RASQAL_MALLOC(cstring, length);
+  buffer = (unsigned char*)RASQAL_MALLOC(cstring, length);
   if(!buffer)
     return NULL;
 
