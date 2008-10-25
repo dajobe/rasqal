@@ -198,20 +198,14 @@ rasqal_new_rowsequence_rowsource(rasqal_query* query,
 
   rs = rasqal_new_rowsource_from_handler(con,
                                          &rasqal_rowsequence_rowsource_handler,
+                                         vt,
                                          flags);
 
   if(rs) {
     int i;
     int rows_count;
     
-    for(i = 0; 1; i++) {
-      rasqal_variable* v = rasqal_variables_table_get(vt, i);
-      if(!v)
-        break;
-      v = rasqal_new_variable_from_variable(v);
-      rasqal_rowsource_add_variable(rs, v);
-    }
-    rs->size = i;
+    rs->size = rasqal_variables_table_get_named_variables_count(vt);
 
     rows_count = raptor_sequence_size(seq);
     for(i = 0; i < rows_count; i++) {
@@ -280,14 +274,22 @@ main(int argc, char *argv[])
   const char *program = rasqal_basename(argv[0]);
   rasqal_rowsource *rowsource = NULL;
   raptor_sequence *seq = NULL;
-  rasqal_world* fake_world = (rasqal_world*)-1;
-  rasqal_query* fake_query = (rasqal_query*)-1;
+  rasqal_world* world = NULL;
+  rasqal_query* query = NULL;
   rasqal_row* row = NULL;
   int count;
   int failures = 0;
   rasqal_variables_table* vt;
   int rows_count;
   int i;
+  
+  world = rasqal_new_world();
+  if(!world || rasqal_world_open(world)) {
+    fprintf(stderr, "%s: rasqal_world init failed\n", program);
+    return(1);
+  }
+  
+  query = rasqal_new_query(world, "sparql", NULL);
   
   /* test 1-row rowsource (2 variables) */
   rows_count = 1;
@@ -296,10 +298,10 @@ main(int argc, char *argv[])
   RASQAL_DEBUG2("Testing %d-row rowsource\n", rows_count);
 #endif
 
-  vt = rasqal_new_variables_table(fake_world);
+  vt = rasqal_new_variables_table(world);
 
   /* add 2 variables to table and 1 row sequence */
-  seq = rasqal_new_row_sequence(fake_world, vt, test_1_rows, 2);
+  seq = rasqal_new_row_sequence(world, vt, test_1_rows, 2);
   if(!seq) {
     fprintf(stderr, "%s: failed to create sequence of %d rows\n", program,
             rows_count);
@@ -307,7 +309,7 @@ main(int argc, char *argv[])
     goto tidy;
   }
 
-  rowsource = rasqal_new_rowsequence_rowsource(fake_query, vt, seq);
+  rowsource = rasqal_new_rowsequence_rowsource(query, vt, seq);
   if(!rowsource) {
     fprintf(stderr, "%s: failed to create %d-row sequence rowsource\n",
             program, rows_count);
@@ -352,7 +354,7 @@ main(int argc, char *argv[])
     goto tidy;
   }
   
-  if(rasqal_rowsource_get_query(rowsource) != fake_query) {
+  if(rasqal_rowsource_get_query(rowsource) != query) {
     fprintf(stderr,
             "%s: get_query returned a different query for a %d-row sequence rowsurce\n",
             program, rows_count);
@@ -370,10 +372,10 @@ main(int argc, char *argv[])
   RASQAL_DEBUG2("Testing %d-row rowsource\n", rows_count);
 #endif
 
-  vt = rasqal_new_variables_table(fake_world);
+  vt = rasqal_new_variables_table(world);
 
   /* add 4 variables to table and 3 row sequence */
-  seq = rasqal_new_row_sequence(fake_world, vt, test_3_rows, 4);
+  seq = rasqal_new_row_sequence(world, vt, test_3_rows, 4);
   if(!seq) {
     fprintf(stderr, "%s: failed to create sequence of %d rows\n",
             program, rows_count);
@@ -381,7 +383,7 @@ main(int argc, char *argv[])
     goto tidy;
   }
 
-  rowsource = rasqal_new_rowsequence_rowsource(fake_query, vt, seq);
+  rowsource = rasqal_new_rowsequence_rowsource(query, vt, seq);
   if(!rowsource) {
     fprintf(stderr, "%s: failed to create %d-row sequence rowsource\n",
             program, rows_count);
@@ -428,7 +430,7 @@ main(int argc, char *argv[])
     goto tidy;
   }
   
-  if(rasqal_rowsource_get_query(rowsource) != fake_query) {
+  if(rasqal_rowsource_get_query(rowsource) != query) {
     fprintf(stderr,
             "%s: get_query returned a different query for a %d-row sequence rowsurce\n",
             program, rows_count);
@@ -449,6 +451,10 @@ main(int argc, char *argv[])
     rasqal_free_rowsource(rowsource);
   if(vt)
     rasqal_free_variables_table(vt);
+  if(query)
+    rasqal_free_query(query);
+  if(world)
+    rasqal_free_world(world);
 
   return failures;
 }
