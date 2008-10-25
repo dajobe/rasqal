@@ -1442,6 +1442,7 @@ rasqal_engine_make_rowsource(rasqal_query* query,
   
   return rasqal_new_rowsource_from_handler(con,
                                            &rasqal_rowsource_engine_handler,
+                                           query->vars_table,
                                            0);
 }
 
