@@ -98,14 +98,18 @@ rasqal_new_empty_rowsource(rasqal_query* query)
 {
   rasqal_empty_rowsource_context* con;
   int flags=0;
+
+  if(!query)
+    return NULL;
   
-  con=(rasqal_empty_rowsource_context*)RASQAL_CALLOC(rasqal_empty_rowsource_context, 1, sizeof(rasqal_empty_rowsource_context));
+  con = (rasqal_empty_rowsource_context*)RASQAL_CALLOC(rasqal_empty_rowsource_context, 1, sizeof(rasqal_empty_rowsource_context));
   if(!con)
     return NULL;
 
-  con->query=query;
+  con->query = query;
   return rasqal_new_rowsource_from_handler(con,
                                            &rasqal_empty_rowsource_handler,
+                                           query->vars_table,
                                            flags);
 }
 
@@ -124,20 +128,29 @@ main(int argc, char *argv[])
 {
   const char *program=rasqal_basename(argv[0]);
   rasqal_rowsource *rowsource=NULL;
-  rasqal_query* fake_query=(rasqal_query*)-1;
+  rasqal_world* world = NULL;
+  rasqal_query* query = NULL;
   rasqal_row* row=NULL;
   int count;
   raptor_sequence* seq=NULL;
   int failures=0;
+
+  world = rasqal_new_world();
+  if(!world || rasqal_world_open(world)) {
+    fprintf(stderr, "%s: rasqal_world init failed\n", program);
+    return(1);
+  }
   
-  rowsource=rasqal_new_empty_rowsource(fake_query);
+  query = rasqal_new_query(world, "sparql", NULL);
+  
+  rowsource = rasqal_new_empty_rowsource(query);
   if(!rowsource) {
-    fprintf(stderr, "%s: failed to create emtpy rowsource\n", program);
+    fprintf(stderr, "%s: failed to create empty rowsource\n", program);
     failures++;
     goto tidy;
   }
 
-  row=rasqal_rowsource_read_row(rowsource);
+  row = rasqal_rowsource_read_row(rowsource);
   if(row) {
     fprintf(stderr, "%s: read_row returned a row for a empty stream\n",
             program);
@@ -145,7 +158,7 @@ main(int argc, char *argv[])
     goto tidy;
   }
   
-  count=rasqal_rowsource_get_rows_count(rowsource);
+  count = rasqal_rowsource_get_rows_count(rowsource);
   if(count) {
     fprintf(stderr, "%s: read_rows returned a row count for a empty stream\n",
             program);
@@ -153,7 +166,7 @@ main(int argc, char *argv[])
     goto tidy;
   }
   
-  seq=rasqal_rowsource_read_all_rows(rowsource);
+  seq = rasqal_rowsource_read_all_rows(rowsource);
   if(!seq) {
     fprintf(stderr, "%s: read_rows returned a NULL seq for a empty stream\n",
             program);
@@ -167,7 +180,7 @@ main(int argc, char *argv[])
     goto tidy;
   }
 
-  if(rasqal_rowsource_get_query(rowsource) != fake_query) {
+  if(rasqal_rowsource_get_query(rowsource) != query) {
     fprintf(stderr,
             "%s: get_query returned a different query for an empty stream\n",
             program);
@@ -181,6 +194,10 @@ main(int argc, char *argv[])
     raptor_free_sequence(seq);
   if(rowsource)
     rasqal_free_rowsource(rowsource);
+  if(query)
+    rasqal_free_query(query);
+  if(world)
+    rasqal_free_world(world);
 
   return failures;
 }
