@@ -48,24 +48,24 @@ rasqal_new_row_common(int size, int order_size)
 {
   rasqal_row* row;
   
-  row=(rasqal_row*)RASQAL_CALLOC(rasqal_row, 1, sizeof(rasqal_row));
+  row = (rasqal_row*)RASQAL_CALLOC(rasqal_row, 1, sizeof(rasqal_row));
   if(!row)
     return NULL;
 
-  row->usage=1;
-  row->size=size;
-  row->order_size=order_size;
+  row->usage = 1;
+  row->size = size;
+  row->order_size = order_size;
   
-  row->values=(rasqal_literal**)RASQAL_CALLOC(array, row->size,
-					      sizeof(rasqal_literal*));
+  row->values = (rasqal_literal**)RASQAL_CALLOC(array, row->size,
+                                                sizeof(rasqal_literal*));
   if(!row->values) {
     rasqal_free_row(row);
     return NULL;
   }
 
   if(row->order_size > 0) {
-    row->order_values=(rasqal_literal**)RASQAL_CALLOC(array,  row->order_size,
-                                                      sizeof(rasqal_literal*));
+    row->order_values = (rasqal_literal**)RASQAL_CALLOC(array,  row->order_size,
+                                                        sizeof(rasqal_literal*));
     if(!row->order_values) {
       rasqal_free_row(row);
       return NULL;
@@ -113,9 +113,9 @@ rasqal_row*
 rasqal_new_row_for_variables(rasqal_variables_table* vt)
 {
   int size;
-  int order_size=0;
+  int order_size = 0;
   
-  size=rasqal_variables_table_get_named_variables_count(vt);
+  size = rasqal_variables_table_get_named_variables_count(vt);
 
   return rasqal_new_row_common(size, order_size);
 }
@@ -153,7 +153,7 @@ rasqal_free_row(rasqal_row* row)
   
   if(row->values) {
     int i; 
-    for(i=0; i < row->size; i++) {
+    for(i = 0; i < row->size; i++) {
       if(row->values[i])
         rasqal_free_literal(row->values[i]);
     }
@@ -161,7 +161,7 @@ rasqal_free_row(rasqal_row* row)
   }
   if(row->order_values) {
     int i; 
-    for(i=0; i < row->order_size; i++) {
+    for(i = 0; i < row->order_size; i++) {
       if(row->order_values[i])
         rasqal_free_literal(row->order_values[i]);
     }
@@ -182,24 +182,25 @@ rasqal_free_row(rasqal_row* row)
 void 
 rasqal_row_print(rasqal_row* row, FILE* fh)
 {
-  rasqal_rowsource* rowsource=row->rowsource;
+  rasqal_rowsource* rowsource = row->rowsource;
   int i;
   
   fputs("result[", fh);
-  for(i=0; i < row->size; i++) {
+  for(i = 0; i < row->size; i++) {
     /* Do not use rasqal_query_results_get_binding_name(row->results, i); 
      * as it does not work for a construct result
      */
-    const unsigned char *name=NULL;
+    const unsigned char *name = NULL;
     rasqal_literal *value;
 
     if(rowsource) {
-      rasqal_variable* v=rasqal_rowsource_get_variable_by_offset(rowsource, i);
+      rasqal_variable* v;
+      v = rasqal_rowsource_get_variable_by_offset(rowsource, i);
       if(v)
-        name=v->name;
+        name = v->name;
     }
     
-    value=row->values[i];
+    value = row->values[i];
     if(i > 0)
       fputs(", ", fh);
     if(name)
@@ -214,8 +215,8 @@ rasqal_row_print(rasqal_row* row, FILE* fh)
   if(row->order_size > 0) {
     fputs(" with ordering values [", fh);
 
-    for(i=0; i < row->order_size; i++) {
-      rasqal_literal *value=row->order_values[i];
+    for(i = 0; i < row->order_size; i++) {
+      rasqal_literal *value = row->order_values[i];
       
       if(i > 0)
         fputs(", ", fh);
@@ -243,7 +244,7 @@ rasqal_row_print(rasqal_row* row, FILE* fh)
 void
 rasqal_row_set_value_at(rasqal_row* row, int offset, rasqal_literal* value)
 {
-  row->values[offset]=value;
+  row->values[offset] = value;
 }
 
 
@@ -280,7 +281,8 @@ rasqal_new_row_sequence(rasqal_world* world,
 #define GET_CELL(row, column, offset) \
   row_data[((((row)*vars_count)+(column))<<1)+(offset)]
 
-  seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_row, (raptor_sequence_print_handler*)rasqal_row_print);
+  seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_row,
+                            (raptor_sequence_print_handler*)rasqal_row_print);
   if(!seq)
     return NULL;
 
@@ -382,14 +384,14 @@ rasqal_row_to_nodes(rasqal_row* row)
   if(!row)
     return 1;
   
-  for(i=0; i < row->size; i++) {
+  for(i = 0; i < row->size; i++) {
     if(row->values[i]) {
       rasqal_literal* new_l;
-      new_l=rasqal_literal_as_node(row->values[i]);
+      new_l = rasqal_literal_as_node(row->values[i]);
       if(!new_l)
         return -1;
       rasqal_free_literal(row->values[i]);
-      row->values[i]=new_l;
+      row->values[i] = new_l;
     }
   }
   
