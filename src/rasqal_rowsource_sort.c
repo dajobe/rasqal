@@ -237,6 +237,9 @@ rasqal_new_sort_rowsource(rasqal_query *query,
 {
   rasqal_sort_rowsource_context *con;
   int flags = 0;
+
+  if(!query || !rowsource || !seq)
+    return NULL;
   
   con = (rasqal_sort_rowsource_context*)RASQAL_CALLOC(rasqal_sort_rowsource_context, 1, sizeof(rasqal_sort_rowsource_context));
   if(!con)
@@ -248,5 +251,6 @@ rasqal_new_sort_rowsource(rasqal_query *query,
 
   return rasqal_new_rowsource_from_handler(con,
                                            &rasqal_sort_rowsource_handler,
+                                           query->vars_table,
                                            flags);
 }
