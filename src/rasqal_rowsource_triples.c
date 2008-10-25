@@ -191,7 +191,8 @@ rasqal_triples_rowsource_get_next_row(rasqal_rowsource* rowsource,
     }
     
     if(m->executed) {
-      RASQAL_DEBUG2("triples match already executed in column %d\n", con->column);
+      RASQAL_DEBUG2("triples match already executed in column %d\n",
+                    con->column);
       con->column--;
       continue;
     }
@@ -238,7 +239,8 @@ rasqal_triples_rowsource_get_next_row(rasqal_rowsource* rowsource,
       if(rasqal_triples_match_is_end(m->triples_match)) {
         int resets = 0;
 
-        RASQAL_DEBUG2("end of pattern triples match for column %d\n", con->column);
+        RASQAL_DEBUG2("end of pattern triples match for column %d\n",
+                      con->column);
         m->executed = 1;
 
         resets = rasqal_reset_triple_meta(m);
@@ -321,7 +323,7 @@ rasqal_triples_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
 
 #ifdef RASQAL_DEBUG
   /* Count actual bound values */
-  for(i=0; i < con->size; i++) {
+  for(i = 0; i < con->size; i++) {
     rasqal_variable* v = rasqal_variables_table_get(query->vars_table, i);
     if(v->value)
       values_returned++;
@@ -373,7 +375,7 @@ rasqal_triples_rowsource_get_query(rasqal_rowsource* rowsource, void *user_data)
 }
 
 
-static const rasqal_rowsource_handler rasqal_triples_rowsource_handler={
+static const rasqal_rowsource_handler rasqal_triples_rowsource_handler = {
   /* .version = */ 1,
   "triple pattern",
   /* .init = */ rasqal_triples_rowsource_init,
@@ -485,12 +487,12 @@ main(int argc, char *argv[])
   
   query = rasqal_new_query(world, "sparql", NULL);
   
-  data_string=raptor_uri_filename_to_uri_string(argv[1]);
-  query_string=(unsigned char*)RASQAL_MALLOC(cstring, strlen((const char*)data_string)+strlen(query_format)+1);
+  data_string = raptor_uri_filename_to_uri_string(argv[1]);
+  query_string = (unsigned char*)RASQAL_MALLOC(cstring, strlen((const char*)data_string)+strlen(query_format)+1);
   sprintf((char*)query_string, query_format, data_string);
   raptor_free_memory(data_string);
   
-  uri_string=raptor_uri_filename_to_uri_string("");
+  uri_string = raptor_uri_filename_to_uri_string("");
 #ifdef RAPTOR_V2_AVAILABLE
   base_uri = raptor_new_uri_v2(world->raptor_world_ptr, uri_string);  
 #else
