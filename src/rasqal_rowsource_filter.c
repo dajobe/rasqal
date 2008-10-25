@@ -195,6 +195,9 @@ rasqal_new_filter_rowsource(rasqal_query *query,
   rasqal_filter_rowsource_context *con;
   int flags = 0;
   
+  if(!query || !rowsource || !expr)
+    return NULL;
+  
   con = (rasqal_filter_rowsource_context*)RASQAL_CALLOC(rasqal_filter_rowsource_context, 1, sizeof(rasqal_filter_rowsource_context));
   if(!con)
     return NULL;
@@ -205,5 +208,6 @@ rasqal_new_filter_rowsource(rasqal_query *query,
 
   return rasqal_new_rowsource_from_handler(con,
                                            &rasqal_filter_rowsource_handler,
+                                           query->vars_table,
                                            flags);
 }
