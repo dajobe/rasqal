@@ -846,7 +846,7 @@ rasqal_prefix_id(int prefix_id, unsigned char *string)
   unsigned char* buffer;
   size_t length = strlen((const char*)string)+4;  /* "r" +... + "_" +... \0 */
 
-  while(tmpid/ = 10)
+  while(tmpid /= 10)
     length++;
   
   buffer = (unsigned char*)RASQAL_MALLOC(cstring, length);
@@ -1149,7 +1149,7 @@ rasqal_query_results_next_triple(rasqal_query_results* query_results)
   
   query = query_results->query;
   if(!query)
-    return NULL;
+    return 1;
 
   if(query->verb == RASQAL_QUERY_VERB_DESCRIBE)
     return 1;
