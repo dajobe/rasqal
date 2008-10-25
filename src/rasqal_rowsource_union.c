@@ -60,18 +60,21 @@ typedef struct
 static int
 rasqal_union_rowsource_init(rasqal_rowsource* rowsource, void *user_data) 
 {
-  rasqal_union_rowsource_context* con=(rasqal_union_rowsource_context*)user_data;
-  con->state=0;
+  rasqal_union_rowsource_context* con;
+  con = (rasqal_union_rowsource_context*)user_data;
+  con->state = 0;
 
-  con->failed=0;
+  con->failed = 0;
   
   return 0;
 }
 
+
 static int
 rasqal_union_rowsource_finish(rasqal_rowsource* rowsource, void *user_data)
 {
-  rasqal_union_rowsource_context* con=(rasqal_union_rowsource_context*)user_data;
+  rasqal_union_rowsource_context* con;
+  con = (rasqal_union_rowsource_context*)user_data;
   if(con->left)
     rasqal_free_rowsource(con->left);
   
@@ -83,25 +86,29 @@ rasqal_union_rowsource_finish(rasqal_rowsource* rowsource, void *user_data)
   return 0;
 }
 
+
 static int
 rasqal_union_rowsource_ensure_variables(rasqal_rowsource* rowsource,
-                                           void *user_data)
+                                        void *user_data)
 {
-  /* rasqal_union_rowsource_context* con=(rasqal_union_rowsource_context*)user_data; */
+  /* rasqal_union_rowsource_context* con;
+  con = (rasqal_union_rowsource_context*)user_data; */
   return 0;
 }
+
 
 static rasqal_row*
 rasqal_union_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
 {
-  rasqal_union_rowsource_context* con=(rasqal_union_rowsource_context*)user_data;
-  rasqal_row* row=NULL;
+  rasqal_union_rowsource_context* con;
+  con = (rasqal_union_rowsource_context*)user_data;
+  rasqal_row* row = NULL;
   
   if(con->failed || con->state > 1)
     return NULL;
 
   if(con->state == 0) {
-    row=rasqal_rowsource_read_row(con->left);
+    row = rasqal_rowsource_read_row(con->left);
     if(!row)
       con->state = 1;
   }
@@ -115,11 +122,13 @@ rasqal_union_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
   return row;
 }
 
+
 static raptor_sequence*
 rasqal_union_rowsource_read_all_rows(rasqal_rowsource* rowsource,
                                      void *user_data)
 {
-  rasqal_union_rowsource_context* con=(rasqal_union_rowsource_context*)user_data;
+  rasqal_union_rowsource_context* con;
+  con = (rasqal_union_rowsource_context*)user_data;
   raptor_sequence* seq1 = NULL;
   raptor_sequence* seq2 = NULL;
   
@@ -148,15 +157,17 @@ rasqal_union_rowsource_read_all_rows(rasqal_rowsource* rowsource,
   return seq1;
 }
 
+
 static rasqal_query*
 rasqal_union_rowsource_get_query(rasqal_rowsource* rowsource, void *user_data)
 {
-  rasqal_union_rowsource_context* con=(rasqal_union_rowsource_context*)user_data;
+  rasqal_union_rowsource_context* con;
+  con = (rasqal_union_rowsource_context*)user_data;
   return con->query;
 }
 
 
-static const rasqal_rowsource_handler rasqal_union_rowsource_handler={
+static const rasqal_rowsource_handler rasqal_union_rowsource_handler = {
   /* .version = */ 1,
   "union",
   /* .init = */ rasqal_union_rowsource_init,
@@ -189,18 +200,18 @@ rasqal_new_union_rowsource(rasqal_query* query,
                            rasqal_rowsource* right)
 {
   rasqal_union_rowsource_context* con;
-  int flags=0;
+  int flags = 0;
 
   if(!query || !left || !right)
     return NULL;
   
-  con=(rasqal_union_rowsource_context*)RASQAL_CALLOC(rasqal_union_rowsource_context, 1, sizeof(rasqal_union_rowsource_context));
+  con = (rasqal_union_rowsource_context*)RASQAL_CALLOC(rasqal_union_rowsource_context, 1, sizeof(rasqal_union_rowsource_context));
   if(!con)
     return NULL;
 
-  con->query=query;
-  con->left=left;
-  con->right=right;
+  con->query = query;
+  con->left = left;
+  con->right = right;
   
   return rasqal_new_rowsource_from_handler(con,
                                            &rasqal_union_rowsource_handler,
@@ -221,36 +232,36 @@ int main(int argc, char *argv[]);
 int
 main(int argc, char *argv[]) 
 {
-  const char *program=rasqal_basename(argv[0]);
-  rasqal_rowsource *rowsource=NULL;
-  rasqal_rowsource *left_rs=NULL;
-  rasqal_rowsource *right_rs=NULL;
+  const char *program = rasqal_basename(argv[0]);
+  rasqal_rowsource *rowsource = NULL;
+  rasqal_rowsource *left_rs = NULL;
+  rasqal_rowsource *right_rs = NULL;
   rasqal_world* world = NULL;
   rasqal_query* query = NULL;
-  rasqal_row* row=NULL;
+  rasqal_row* row = NULL;
   int count;
-  raptor_sequence* seq=NULL;
-  int failures=0;
+  raptor_sequence* seq = NULL;
+  int failures = 0;
   
   world = rasqal_new_world(); rasqal_world_open(world);
   
   query = rasqal_new_query(world, "sparql", NULL);
   
-  left_rs=rasqal_new_empty_rowsource(query);
+  left_rs = rasqal_new_empty_rowsource(query);
   if(!left_rs) {
     fprintf(stderr, "%s: failed to create empty left rowsource\n", program);
     failures++;
     goto tidy;
   }
 
-  right_rs=rasqal_new_empty_rowsource(query);
+  right_rs = rasqal_new_empty_rowsource(query);
   if(!right_rs) {
     fprintf(stderr, "%s: failed to create empty right rowsource\n", program);
     failures++;
     goto tidy;
   }
 
-  rowsource=rasqal_new_union_rowsource(query, left_rs, right_rs);
+  rowsource = rasqal_new_union_rowsource(query, left_rs, right_rs);
   if(!rowsource) {
     fprintf(stderr, "%s: failed to create union rowsource\n", program);
     failures++;
@@ -259,7 +270,7 @@ main(int argc, char *argv[])
   /* left_rs and right_rs are now owned by rowsource */
   left_rs = right_rs = NULL;
 
-  row=rasqal_rowsource_read_row(rowsource);
+  row = rasqal_rowsource_read_row(rowsource);
   if(row) {
     fprintf(stderr, "%s: read_row returned a row for a union rowsource\n",
             program);
@@ -267,7 +278,7 @@ main(int argc, char *argv[])
     goto tidy;
   }
   
-  count=rasqal_rowsource_get_rows_count(rowsource);
+  count = rasqal_rowsource_get_rows_count(rowsource);
   if(count) {
     fprintf(stderr, "%s: read_rows returned a row count for a union rowsource\n",
             program);
@@ -275,7 +286,7 @@ main(int argc, char *argv[])
     goto tidy;
   }
   
-  seq=rasqal_rowsource_read_all_rows(rowsource);
+  seq = rasqal_rowsource_read_all_rows(rowsource);
   if(!seq) {
     fprintf(stderr, "%s: read_rows returned a NULL seq for a union rowsource\n",
             program);
