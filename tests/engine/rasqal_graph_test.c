@@ -135,17 +135,17 @@ main(int argc, char **argv) {
   raptor_uri* graph_uris[DATA_GRAPH_COUNT];
   rasqal_world *world;
   
+  if(argc != 2) {
+    fprintf(stderr, "USAGE: %s <path to data directory>\n", program);
+    return(1);
+  }
+
   world=rasqal_new_world();
   if(!world || rasqal_world_open(world)) {
     fprintf(stderr, "%s: rasqal_world init failed\n", program);
     return(1);
   }
   
-  if(argc != 2) {
-    fprintf(stderr, "USAGE: %s <path to data directory>\n", program);
-    return(1);
-  }
-
   uri_string=raptor_uri_filename_to_uri_string("");
 #ifdef RAPTOR_V2_AVAILABLE
   base_uri = raptor_new_uri_v2(world->raptor_world_ptr, uri_string);
