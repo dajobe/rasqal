@@ -105,7 +105,8 @@ rasqal_sort_rowsource_process(rasqal_rowsource* rowsource,
   if(con->seq)
     return 0;
   
-  con->seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_row, (raptor_sequence_print_handler*)rasqal_row_print);
+  con->seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_row, 
+                                 (raptor_sequence_print_handler*)rasqal_row_print);
   if(!con->seq)
     return 1;
   
@@ -145,7 +146,7 @@ rasqal_sort_rowsource_process(rasqal_rowsource* rowsource,
 
 static int
 rasqal_sort_rowsource_ensure_variables(rasqal_rowsource* rowsource,
-                                         void *user_data)
+                                       void *user_data)
 {
   rasqal_sort_rowsource_context* con;
   con = (rasqal_sort_rowsource_context*)user_data; 
@@ -218,7 +219,7 @@ rasqal_sort_rowsource_get_query(rasqal_rowsource* rowsource, void *user_data)
 }
 
 
-static const rasqal_rowsource_handler rasqal_sort_rowsource_handler={
+static const rasqal_rowsource_handler rasqal_sort_rowsource_handler = {
   /* .version =          */ 1,
   "sort",
   /* .init =             */ rasqal_sort_rowsource_init,
