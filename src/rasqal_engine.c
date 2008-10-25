@@ -1430,7 +1430,8 @@ rasqal_engine_make_rowsource(rasqal_query* query,
       return NULL;
     }
 
-    con->order_size = raptor_sequence_size(query->order_conditions_sequence);
+    if(query->order_conditions_sequence)
+      con->order_size = raptor_sequence_size(query->order_conditions_sequence);
   }
   
   con->seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_row, (raptor_sequence_print_handler*)rasqal_row_print);
