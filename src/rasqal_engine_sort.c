@@ -270,7 +270,8 @@ rasqal_engine_new_rowsort_map(int is_distinct, int compare_flags,
 {
   rowsort_compare_data* rcd;
 
-  rcd = (rowsort_compare_data*)RASQAL_MALLOC(rowsort_compare_data, sizeof(rowsort_compare_data));
+  rcd = (rowsort_compare_data*)RASQAL_MALLOC(rowsort_compare_data,
+                                             sizeof(rowsort_compare_data));
   if(!rcd)
     return NULL;
   
@@ -354,7 +355,7 @@ rasqal_engine_rowsort_calculate_order_values(rasqal_query* query,
   if(!row->order_size)
     return 1;
   
-  for(i=  0; i < row->order_size; i++) {
+  for(i = 0; i < row->order_size; i++) {
     rasqal_expression* e;
     rasqal_literal *l;
     
