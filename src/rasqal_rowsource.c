@@ -132,7 +132,7 @@ rasqal_free_rowsource(rasqal_rowsource *rowsource)
 int
 rasqal_rowsource_ensure_variables(rasqal_rowsource *rowsource)
 {
-  int rc=0;
+  int rc = 0;
   
   if(rowsource->updated_variables)
     return 0;
@@ -140,7 +140,7 @@ rasqal_rowsource_ensure_variables(rasqal_rowsource *rowsource)
   rowsource->updated_variables++;
   
   if(rowsource->handler->ensure_variables)
-    rc=rowsource->handler->ensure_variables(rowsource, rowsource->user_data);
+    rc = rowsource->handler->ensure_variables(rowsource, rowsource->user_data);
 
   return rc;
 }
@@ -159,7 +159,7 @@ rasqal_rowsource_ensure_variables(rasqal_rowsource *rowsource)
 rasqal_row*
 rasqal_rowsource_read_row(rasqal_rowsource *rowsource)
 {
-  rasqal_row* row=NULL;
+  rasqal_row* row = NULL;
   
   if(rowsource->finished)
     return NULL;
@@ -167,10 +167,10 @@ rasqal_rowsource_read_row(rasqal_rowsource *rowsource)
   rasqal_rowsource_ensure_variables(rowsource);
 
   if(rowsource->handler->read_row)
-    row=rowsource->handler->read_row(rowsource, rowsource->user_data);
+    row = rowsource->handler->read_row(rowsource, rowsource->user_data);
 
   if(!row)
-    rowsource->finished=1;
+    rowsource->finished = 1;
   else
     rowsource->count++;
 
@@ -214,16 +214,18 @@ rasqal_rowsource_read_all_rows(rasqal_rowsource *rowsource)
   if(rowsource->handler->read_all_rows) {
     seq = rowsource->handler->read_all_rows(rowsource, rowsource->user_data);
     if(!seq)
-      seq=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_row, (raptor_sequence_print_handler*)rasqal_row_print);
+      seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_row,
+                                (raptor_sequence_print_handler*)rasqal_row_print);
     return seq;
   }
   
-  seq=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_row, (raptor_sequence_print_handler*)rasqal_row_print);
+  seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_row,
+                            (raptor_sequence_print_handler*)rasqal_row_print);
   if(!seq)
     return NULL;
   
   while(1) {
-    rasqal_row* row=rasqal_rowsource_read_row(rowsource);
+    rasqal_row* row = rasqal_rowsource_read_row(rowsource);
     if(!row)
       break;
     raptor_sequence_push(seq, row);
@@ -329,16 +331,16 @@ int main(int argc, char *argv[]);
 int
 main(int argc, char *argv[]) 
 {
-  const char *program=rasqal_basename(argv[0]);
+  const char *program = rasqal_basename(argv[0]);
 #define TEST_ITEMS_COUNT 9
   int i;
 
-  for(i=0; i<4; i++) {
+  for(i = 0; i < 4; i++) {
     rasqal_rowsource *rowsource;
     size_t count;
 
     /* for _from_file */
-    FILE *handle=NULL;
+    FILE *handle = NULL;
     /* for _from_string */
     void *string;
     size_t string_len;
@@ -346,9 +348,10 @@ main(int argc, char *argv[])
     switch(i) {
       case 0:
 #ifdef RASQAL_DEBUG
-        fprintf(stderr, "%s: Creating rowsource from afilename '%s'\n", program, OUT_FILENAME);
+        fprintf(stderr, "%s: Creating rowsource from afilename '%s'\n",
+                program, OUT_FILENAME);
 #endif
-        rowsource=rasqal_new_rowsource_from_filename((const char*)IN_FILENAME);
+        rowsource = rasqal_new_rowsource_from_filename((const char*)IN_FILENAME);
         if(!rowsource) {
           fprintf(stderr, "%s: Failed to create rowsource to filename '%s'\n",
                   program, OUT_FILENAME);
@@ -360,8 +363,8 @@ main(int argc, char *argv[])
 #ifdef RASQAL_DEBUG
         fprintf(stderr, "%s: Creating rowsource from file handle\n", program);
 #endif
-        handle=fopen((const char*)OUT_FILENAME, "wb");
-        rowsource=rasqal_new_rowsource_from_file_handle(handle);
+        handle = fopen((const char*)OUT_FILENAME, "wb");
+        rowsource = rasqal_new_rowsource_from_file_handle(handle);
         if(!rowsource) {
           fprintf(stderr, "%s: Failed to create rowsource from a file handle\n", program);
           exit(1);
@@ -372,7 +375,7 @@ main(int argc, char *argv[])
 #ifdef RASQAL_DEBUG
         fprintf(stderr, "%s: Creating rowsource from a string\n", program);
 #endif
-        rowsource=rasqal_new_rowsource_from_string(&string, &string_len, NULL);
+        rowsource = rasqal_new_rowsource_from_string(&string, &string_len, NULL);
         if(!rowsource) {
           fprintf(stderr, "%s: Failed to create rowsource from a string\n", program);
           exit(1);
@@ -383,7 +386,7 @@ main(int argc, char *argv[])
 #ifdef RASQAL_DEBUG
         fprintf(stderr, "%s: Creating rowsource from a sink\n", program);
 #endif
-        rowsource=rasqal_new_rowsource_from_sink();
+        rowsource = rasqal_new_rowsource_from_sink();
         if(!rowsource) {
           fprintf(stderr, "%s: Failed to create rowsource from a sink\n", program);
           exit(1);
@@ -396,7 +399,7 @@ main(int argc, char *argv[])
     }
     
 
-    count=rasqal_rowsource_get_rows_count(rowsource);
+    count = rasqal_rowsource_get_rows_count(rowsource);
     if(count != OUT_BYTES_COUNT) {
       fprintf(stderr, "%s: I/O stream wrote %d bytes, expected %d\n", program,
               (int)count, (int)OUT_BYTES_COUNT);
