@@ -113,7 +113,7 @@ rasqal_filter_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
 
   while(1) {
     rasqal_literal* result;
-    int bresult=1;
+    int bresult = 1;
 
     row = rasqal_rowsource_read_row(con->rowsource);
     if(!row)
@@ -145,13 +145,13 @@ rasqal_filter_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
       /* Constraint succeeded so end */
       break;
 
-    rasqal_free_row(row); row=NULL;
+    rasqal_free_row(row); row = NULL;
   }
 
   if(row) {
     int i;
     
-    for(i=0; i < row->size; i++) {
+    for(i = 0; i < row->size; i++) {
       rasqal_literal *l;
       l = rasqal_variables_table_get_value(query->vars_table, i);
       if(row->values[i])
@@ -175,7 +175,7 @@ rasqal_filter_rowsource_get_query(rasqal_rowsource* rowsource, void *user_data)
 }
 
 
-static const rasqal_rowsource_handler rasqal_filter_rowsource_handler={
+static const rasqal_rowsource_handler rasqal_filter_rowsource_handler = {
   /* .version =          */ 1,
   "filter",
   /* .init =             */ rasqal_filter_rowsource_init,
