@@ -61,13 +61,13 @@ rasqal_new_algebra_node(rasqal_query* query, rasqal_algebra_node_operator op)
   if(!query)
     return NULL;
   
-  node=(rasqal_algebra_node*)RASQAL_CALLOC(rasqal_algebra, 1, 
-                                           sizeof(rasqal_algebra_node));
+  node = (rasqal_algebra_node*)RASQAL_CALLOC(rasqal_algebra, 1, 
+                                             sizeof(rasqal_algebra_node));
   if(!node)
     return NULL;
 
   node->op = op;
-  node->query=query;
+  node->query = query;
   return node;
 }
 
@@ -92,12 +92,12 @@ rasqal_new_filter_algebra_node(rasqal_query* query,
   if(!query || !expr)
     return NULL;
   
-  new_node=rasqal_new_algebra_node(query, RASQAL_ALGEBRA_OPERATOR_FILTER);
+  new_node = rasqal_new_algebra_node(query, RASQAL_ALGEBRA_OPERATOR_FILTER);
   if(!new_node)
     return NULL;
 
-  new_node->expr=expr;
-  new_node->node1=node;
+  new_node->expr = expr;
+  new_node->node1 = node;
 
   return new_node;
 }
@@ -124,17 +124,17 @@ rasqal_new_triples_algebra_node(rasqal_query* query,
   if(!query)
     return NULL;
   
-  node=rasqal_new_algebra_node(query, RASQAL_ALGEBRA_OPERATOR_BGP);
+  node = rasqal_new_algebra_node(query, RASQAL_ALGEBRA_OPERATOR_BGP);
   if(!node)
     return NULL;
 
-  node->triples=triples;
+  node->triples = triples;
   if(!triples) {
     start_column= -1;
     end_column= -1;
   }
-  node->start_column=start_column;
-  node->end_column=end_column;
+  node->start_column = start_column;
+  node->end_column = end_column;
 
   return node;
 }
@@ -156,11 +156,11 @@ rasqal_new_empty_algebra_node(rasqal_query* query)
   if(!query)
     return NULL;
   
-  node=rasqal_new_algebra_node(query, RASQAL_ALGEBRA_OPERATOR_BGP);
+  node = rasqal_new_algebra_node(query, RASQAL_ALGEBRA_OPERATOR_BGP);
   if(!node)
     return NULL;
 
-  node->triples=NULL;
+  node->triples = NULL;
   node->start_column= -1;
   node->end_column= -1;
 
@@ -194,10 +194,10 @@ rasqal_new_2op_algebra_node(rasqal_query* query,
   if(op != RASQAL_ALGEBRA_OPERATOR_TOLIST && !node2)
     goto fail;
   
-  node=rasqal_new_algebra_node(query, op);
+  node = rasqal_new_algebra_node(query, op);
   if(node) {
-    node->node1=node1;
-    node->node2=node2;
+    node->node1 = node1;
+    node->node2 = node2;
     
     return node;
   }
@@ -235,11 +235,11 @@ rasqal_new_leftjoin_algebra_node(rasqal_query* query,
   if(!query || !node1 || !node2 || !expr)
     goto fail;
 
-  node=rasqal_new_algebra_node(query, RASQAL_ALGEBRA_OPERATOR_LEFTJOIN);
+  node = rasqal_new_algebra_node(query, RASQAL_ALGEBRA_OPERATOR_LEFTJOIN);
   if(node) {
-    node->node1=node1;
-    node->node2=node2;
-    node->expr=expr;
+    node->node1 = node1;
+    node->node2 = node2;
+    node->expr = expr;
     
     return node;
   }
@@ -343,7 +343,7 @@ rasqal_algebra_node_get_operator(rasqal_algebra_node* node)
 }
 
 
-static const char* const rasqal_algebra_node_operator_labels[RASQAL_ALGEBRA_OPERATOR_LAST+1]={
+static const char* const rasqal_algebra_node_operator_labels[RASQAL_ALGEBRA_OPERATOR_LAST+1] = {
   "UNKNOWN",
   "BGP",
   "Filter",
@@ -373,7 +373,7 @@ rasqal_algebra_node_operator_as_string(rasqal_algebra_node_operator op)
 {
   if(op <= RASQAL_ALGEBRA_OPERATOR_UNKNOWN || 
      op > RASQAL_ALGEBRA_OPERATOR_LAST)
-    op=RASQAL_ALGEBRA_OPERATOR_UNKNOWN;
+    op = RASQAL_ALGEBRA_OPERATOR_UNKNOWN;
 
   return rasqal_algebra_node_operator_labels[(int)op];
 }
@@ -381,13 +381,13 @@ rasqal_algebra_node_operator_as_string(rasqal_algebra_node_operator op)
 
 
 #define SPACES_LENGTH 80
-static const char spaces[SPACES_LENGTH+1]="                                                                                ";
+static const char spaces[SPACES_LENGTH+1] = "                                                                                ";
 
 static void
 rasqal_algebra_write_indent(raptor_iostream *iostr, int indent) 
 {
   while(indent > 0) {
-    int sp=(indent > SPACES_LENGTH) ? SPACES_LENGTH : indent;
+    int sp = (indent > SPACES_LENGTH) ? SPACES_LENGTH : indent;
     raptor_iostream_write_bytes(iostr, spaces, sizeof(char), sp);
     indent -= sp;
   }
@@ -397,8 +397,8 @@ static int
 rasqal_algebra_algebra_node_write_internal(rasqal_algebra_node *node, 
                                            raptor_iostream* iostr, int indent)
 {
-  const char* op_string=rasqal_algebra_node_operator_as_string(node->op);
-  int arg_count=0;
+  const char* op_string = rasqal_algebra_node_operator_as_string(node->op);
+  int arg_count = 0;
   int indent_delta;
   
   if(node->op == RASQAL_ALGEBRA_OPERATOR_BGP && !node->triples) {
@@ -406,20 +406,21 @@ rasqal_algebra_algebra_node_write_internal(rasqal_algebra_node *node,
     return 0;
   }
   
-  indent_delta=strlen(op_string);
+  indent_delta = strlen(op_string);
 
   raptor_iostream_write_counted_string(iostr, op_string, indent_delta);
   raptor_iostream_write_counted_string(iostr, "(\n", 2);
   indent_delta++;
   
-  indent+=indent_delta;
+  indent += indent_delta;
   rasqal_algebra_write_indent(iostr, indent);
 
   if(node->op == RASQAL_ALGEBRA_OPERATOR_BGP) {
     int i;
     
-    for(i=node->start_column; i <= node->end_column; i++) {
-      rasqal_triple *t=(rasqal_triple*)raptor_sequence_get_at(node->triples, i);
+    for(i = node->start_column; i <= node->end_column; i++) {
+      rasqal_triple *t;
+      t = (rasqal_triple*)raptor_sequence_get_at(node->triples, i);
       if(arg_count) {
         raptor_iostream_write_counted_string(iostr, " ,\n", 3);
         rasqal_algebra_write_indent(iostr, indent);
@@ -465,7 +466,7 @@ rasqal_algebra_algebra_node_write_internal(rasqal_algebra_node *node,
         rasqal_algebra_write_indent(iostr, indent);
       }
       raptor_iostream_write_counted_string(iostr, "Conditions([ ", 13);
-      for(i=0; i < order_size; i++) {
+      for(i = 0; i < order_size; i++) {
         rasqal_expression* e;
         e = (rasqal_expression*)raptor_sequence_get_at(node->seq, i);
         if(i > 0)
@@ -523,7 +524,7 @@ rasqal_algebra_node_print(rasqal_algebra_node* node, FILE* fh)
 {
   raptor_iostream* iostr;
 
-  iostr=raptor_new_iostream_to_file_handle(fh);
+  iostr = raptor_new_iostream_to_file_handle(fh);
   rasqal_algebra_algebra_node_write(node, iostr);
   raptor_free_iostream(iostr);
 }
@@ -549,17 +550,17 @@ rasqal_algebra_node_visit(rasqal_query *query,
 {
   int result;
   
-  result=fn(query, node, user_data);
+  result = fn(query, node, user_data);
   if(result)
     return result;
   
   if(node->node1) {
-    result=rasqal_algebra_node_visit(query, node->node1, fn, user_data);
+    result = rasqal_algebra_node_visit(query, node->node1, fn, user_data);
     if(result)
       return result;
   }
   if(node->node2) {
-    result=rasqal_algebra_node_visit(query, node->node2, fn, user_data);
+    result = rasqal_algebra_node_visit(query, node->node2, fn, user_data);
     if(result)
       return result;
   }
@@ -572,18 +573,18 @@ static rasqal_algebra_node*
 rasqal_algebra_basic_graph_pattern_to_algebra(rasqal_query* query,
                                               rasqal_graph_pattern* gp)
 {
-  rasqal_algebra_node* node=NULL;
-  rasqal_expression* fs=NULL;
+  rasqal_algebra_node* node = NULL;
+  rasqal_expression* fs = NULL;
   
-  node=rasqal_new_triples_algebra_node(query, 
-                                       rasqal_query_get_triple_sequence(query),
-                                       gp->start_column, gp->end_column);
+  node = rasqal_new_triples_algebra_node(query, 
+                                         rasqal_query_get_triple_sequence(query),
+                                         gp->start_column, gp->end_column);
   if(!node)
     goto fail;
 
   if(gp->filter_expression) {
     rasqal_expression* e;
-    e=rasqal_new_expression_from_expression(gp->filter_expression);
+    e = rasqal_new_expression_from_expression(gp->filter_expression);
     if(!e) {
       RASQAL_DEBUG1("rasqal_new_expression_from_expression() failed");
       goto fail;
@@ -592,12 +593,12 @@ rasqal_algebra_basic_graph_pattern_to_algebra(rasqal_query* query,
   }
 
   if(fs) {
-    node=rasqal_new_filter_algebra_node(query, fs, node);
+    node = rasqal_new_filter_algebra_node(query, fs, node);
     if(!node) {
       RASQAL_DEBUG1("rasqal_new_filter_algebra_node() failed");
       goto fail;
     }
-    fs=NULL; /* now owned by node */
+    fs = NULL; /* now owned by node */
   }
 
 
@@ -616,27 +617,27 @@ static rasqal_algebra_node*
 rasqal_algebra_union_graph_pattern_to_algebra(rasqal_query* query,
                                               rasqal_graph_pattern* gp)
 {
-  int idx=0;
-  rasqal_algebra_node* node=NULL;
+  int idx = 0;
+  rasqal_algebra_node* node = NULL;
 
   while(1) {
     rasqal_graph_pattern* sgp;
     rasqal_algebra_node* gnode;
     
-    sgp=rasqal_graph_pattern_get_sub_graph_pattern(gp, idx);
+    sgp = rasqal_graph_pattern_get_sub_graph_pattern(gp, idx);
     if(!sgp)
       break;
     
-    gnode=rasqal_algebra_graph_pattern_to_algebra(query, sgp);
+    gnode = rasqal_algebra_graph_pattern_to_algebra(query, sgp);
     if(!gnode) {
       RASQAL_DEBUG1("rasqal_algebra_graph_pattern_to_algebra() failed");
       goto fail;
     }
     
     if(!node)
-      node=gnode;
+      node = gnode;
     else {
-      node=rasqal_new_2op_algebra_node(query, RASQAL_ALGEBRA_OPERATOR_UNION,
+      node = rasqal_new_2op_algebra_node(query, RASQAL_ALGEBRA_OPERATOR_UNION,
                                        node, gnode);
       if(!node) {
         RASQAL_DEBUG1("rasqal_new_2op_algebra_node() failed");
@@ -661,22 +662,22 @@ static rasqal_algebra_node*
 rasqal_algebra_group_graph_pattern_to_algebra(rasqal_query* query,
                                               rasqal_graph_pattern* gp)
 {
-  int idx=0;
+  int idx = 0;
   /* Let FS := the empty set */
-  rasqal_expression* fs=NULL;
+  rasqal_expression* fs = NULL;
   /* Let G := the empty pattern, Z, a basic graph pattern which
    * is the empty set. */
-  rasqal_algebra_node* gnode=NULL;
+  rasqal_algebra_node* gnode = NULL;
 
-  gnode=rasqal_new_empty_algebra_node(query);
+  gnode = rasqal_new_empty_algebra_node(query);
   if(!gnode) {
     RASQAL_DEBUG1("rasqal_new_empty_algebra_node() failed");
     goto fail;
   }
 
-  for(idx=0; 1; idx++) {
+  for(idx = 0; 1; idx++) {
     rasqal_graph_pattern* egp;
-    egp=rasqal_graph_pattern_get_sub_graph_pattern(gp, idx);
+    egp = rasqal_graph_pattern_get_sub_graph_pattern(gp, idx);
     if(!egp)
       break;
 
@@ -687,7 +688,7 @@ rasqal_algebra_group_graph_pattern_to_algebra(rasqal_query* query,
       rasqal_expression* e;
 
       /* add all gp->conditions_sequence to FS */
-      e=rasqal_new_expression_from_expression(egp->filter_expression);
+      e = rasqal_new_expression_from_expression(egp->filter_expression);
       if(!e) {
         RASQAL_DEBUG1("rasqal_new_expression_from_expression() failed");
         goto fail;
@@ -700,44 +701,44 @@ rasqal_algebra_group_graph_pattern_to_algebra(rasqal_query* query,
 
     if(egp->op == RASQAL_GRAPH_PATTERN_OPERATOR_OPTIONAL) {
       /*  If E is of the form OPTIONAL{P} */
-      int sgp_idx=0;
-      int sgp_size=raptor_sequence_size(egp->graph_patterns);
+      int sgp_idx = 0;
+      int sgp_size = raptor_sequence_size(egp->graph_patterns);
 
       /* walk through all optionals */
-      for(sgp_idx=0; sgp_idx < sgp_size; sgp_idx++) {
+      for(sgp_idx = 0; sgp_idx < sgp_size; sgp_idx++) {
         rasqal_graph_pattern* sgp;
         rasqal_algebra_node* anode;
 
-        sgp=rasqal_graph_pattern_get_sub_graph_pattern(egp, sgp_idx);
+        sgp = rasqal_graph_pattern_get_sub_graph_pattern(egp, sgp_idx);
 
         /* Let A := Transform(P) */
-        anode=rasqal_algebra_graph_pattern_to_algebra(query, sgp);
+        anode = rasqal_algebra_graph_pattern_to_algebra(query, sgp);
         if(!anode) {
           RASQAL_DEBUG1("rasqal_algebra_graph_pattern_to_algebra() failed");
           goto fail;
         }
         
         if(anode->op == RASQAL_ALGEBRA_OPERATOR_FILTER) {
-          rasqal_expression* f_expr=anode->expr;
-          rasqal_algebra_node *a2node=anode->node1;
+          rasqal_expression* f_expr = anode->expr;
+          rasqal_algebra_node *a2node = anode->node1;
           /* If A is of the form Filter(F, A2)
              G := LeftJoin(G, A2, F)
           */
-          gnode=rasqal_new_leftjoin_algebra_node(query, gnode, a2node,
-                                                 f_expr);
+          gnode = rasqal_new_leftjoin_algebra_node(query, gnode, a2node,
+                                                   f_expr);
           if(!gnode) {
             RASQAL_DEBUG1("rasqal_new_leftjoin_algebra_node() failed");
             goto fail;
           }
 
-          anode->expr=NULL;
-          anode->node1=NULL;
+          anode->expr = NULL;
+          anode->node1 = NULL;
           rasqal_free_algebra_node(anode);
         } else  {
-          rasqal_literal *true_lit=NULL;
-          rasqal_expression *true_expr=NULL;
+          rasqal_literal *true_lit = NULL;
+          rasqal_expression *true_expr = NULL;
 
-          true_lit=rasqal_new_boolean_literal(query->world, 1);
+          true_lit = rasqal_new_boolean_literal(query->world, 1);
           if(!true_lit) {
             RASQAL_DEBUG1("rasqal_new_boolean_literal() failed");
             goto fail;
@@ -748,18 +749,18 @@ rasqal_algebra_group_graph_pattern_to_algebra(rasqal_query* query,
             RASQAL_DEBUG1("rasqal_new_literal_expression() failed");
             goto fail;
           }
-          true_lit=NULL; /* now owned by true_expr */
+          true_lit = NULL; /* now owned by true_expr */
 
           /* G := LeftJoin(G, A, true) */
-          gnode=rasqal_new_leftjoin_algebra_node(query, gnode, anode,
-                                                 true_expr);
+          gnode = rasqal_new_leftjoin_algebra_node(query, gnode, anode,
+                                                   true_expr);
           if(!gnode) {
             RASQAL_DEBUG1("rasqal_new_leftjoin_algebra_node() failed");
             rasqal_free_expression(true_expr);
             goto fail;
           }
 
-          true_expr=NULL; /* now owned by gnode */
+          true_expr = NULL; /* now owned by gnode */
         }
       } /* end for all optional */
     } else {
@@ -767,15 +768,15 @@ rasqal_algebra_group_graph_pattern_to_algebra(rasqal_query* query,
       rasqal_algebra_node* anode;
 
       /* Let A := Transform(E) */
-      anode=rasqal_algebra_graph_pattern_to_algebra(query, egp);
+      anode = rasqal_algebra_graph_pattern_to_algebra(query, egp);
       if(!anode) {
         RASQAL_DEBUG1("rasqal_algebra_graph_pattern_to_algebra() failed");
         goto fail;
       }
 
       /* G := Join(G, A) */
-      gnode=rasqal_new_2op_algebra_node(query, RASQAL_ALGEBRA_OPERATOR_JOIN,
-                                       gnode, anode);
+      gnode = rasqal_new_2op_algebra_node(query, RASQAL_ALGEBRA_OPERATOR_JOIN,
+                                          gnode, anode);
       if(!gnode) {
         RASQAL_DEBUG1("rasqal_new_2op_algebra_node() failed");
         goto fail;
@@ -792,12 +793,12 @@ rasqal_algebra_group_graph_pattern_to_algebra(rasqal_query* query,
     The result is G.
   */
   if(fs) {
-    gnode=rasqal_new_filter_algebra_node(query, fs, gnode);
+    gnode = rasqal_new_filter_algebra_node(query, fs, gnode);
     if(!gnode) {
       RASQAL_DEBUG1("rasqal_new_filter_algebra_node() failed");
       goto fail;
     }
-    fs=NULL; /* now owned by gnode */
+    fs = NULL; /* now owned by gnode */
   }
 
   if(gnode)
@@ -817,20 +818,20 @@ static rasqal_algebra_node*
 rasqal_algebra_graph_pattern_to_algebra(rasqal_query* query,
                                         rasqal_graph_pattern* gp)
 {
-  rasqal_algebra_node* node=NULL;
+  rasqal_algebra_node* node = NULL;
   
   switch(gp->op) {
     case RASQAL_GRAPH_PATTERN_OPERATOR_BASIC:
-      node=rasqal_algebra_basic_graph_pattern_to_algebra(query, gp);
+      node = rasqal_algebra_basic_graph_pattern_to_algebra(query, gp);
       break;
 
     case RASQAL_GRAPH_PATTERN_OPERATOR_UNION:
-      node=rasqal_algebra_union_graph_pattern_to_algebra(query, gp);
+      node = rasqal_algebra_union_graph_pattern_to_algebra(query, gp);
       break;
       
     case RASQAL_GRAPH_PATTERN_OPERATOR_OPTIONAL:
     case RASQAL_GRAPH_PATTERN_OPERATOR_GROUP:
-      node=rasqal_algebra_group_graph_pattern_to_algebra(query, gp);
+      node = rasqal_algebra_group_graph_pattern_to_algebra(query, gp);
       break;
       
     case RASQAL_GRAPH_PATTERN_OPERATOR_FILTER:
@@ -878,7 +879,7 @@ static int
 rasqal_algebra_remove_znodes(rasqal_query* query, rasqal_algebra_node* node,
                              void* data)
 {
-  int* modified=(int*)data;
+  int* modified = (int*)data;
   int is_z1;
   int is_z2;
   
@@ -886,8 +887,8 @@ rasqal_algebra_remove_znodes(rasqal_query* query, rasqal_algebra_node* node,
   if(!node->node1 || !node->node2)
     return 0;
 
-  is_z1=rasqal_algebra_node_is_empty(node->node1);
-  is_z2=rasqal_algebra_node_is_empty(node->node2);
+  is_z1 = rasqal_algebra_node_is_empty(node->node1);
+  is_z2 = rasqal_algebra_node_is_empty(node->node2);
   
 #if RASQAL_DEBUG > 1
   RASQAL_DEBUG1("Checking node\n");
@@ -905,13 +906,13 @@ rasqal_algebra_remove_znodes(rasqal_query* query, rasqal_algebra_node* node,
     /* an empty node has no extra things to free */
     RASQAL_FREE(rasqal_algebra_node, node->node1);
     memcpy(node, node->node2, sizeof(rasqal_algebra_node));
-    *modified=1;
+    *modified = 1;
   } else if(!is_z1 && is_z2) {
     /* Replace join(A, Z) by A */
     /* ditto */
     RASQAL_FREE(rasqal_algebra_node, node->node2);
     memcpy(node, node->node1, sizeof(rasqal_algebra_node));
-    *modified=1;
+    *modified = 1;
   }
 
   return 0;
@@ -931,13 +932,13 @@ rasqal_algebra_query_to_algebra(rasqal_query* query)
 {
   rasqal_graph_pattern* query_gp;
   rasqal_algebra_node* node;
-  int modified=0;
+  int modified = 0;
 
-  query_gp=rasqal_query_get_query_graph_pattern(query);
+  query_gp = rasqal_query_get_query_graph_pattern(query);
   if(!query_gp)
     return NULL;
   
-  node=rasqal_algebra_graph_pattern_to_algebra(query, query_gp);
+  node = rasqal_algebra_graph_pattern_to_algebra(query, query_gp);
 
   if(!node)
     return node;
@@ -1002,29 +1003,29 @@ int main(int argc, char *argv[]);
 
 int
 main(int argc, char *argv[]) {
-  char const *program=rasqal_basename(*argv);
-  const char *query_language_name=QUERY_LANGUAGE;
-  const unsigned char *query_format=(const unsigned char *)QUERY_FORMAT;
-  int failures=0;
+  char const *program = rasqal_basename(*argv);
+  const char *query_language_name = QUERY_LANGUAGE;
+  const unsigned char *query_format = (const unsigned char *)QUERY_FORMAT;
+  int failures = 0;
 #define FAIL do { failures++; goto tidy; } while(0)
   rasqal_world *world;
-  rasqal_query* query=NULL;
-  rasqal_literal *lit1=NULL, *lit2=NULL;
-  rasqal_expression *expr1=NULL, *expr2=NULL;
-  rasqal_expression* expr=NULL;
+  rasqal_query* query = NULL;
+  rasqal_literal *lit1 = NULL, *lit2 = NULL;
+  rasqal_expression *expr1 = NULL, *expr2 = NULL;
+  rasqal_expression* expr = NULL;
   rasqal_expression* expr3 = NULL;
   rasqal_expression* expr4 = NULL;
-  rasqal_algebra_node* node0=NULL;
-  rasqal_algebra_node* node1=NULL;
-  rasqal_algebra_node* node2=NULL;
-  rasqal_algebra_node* node3=NULL;
-  rasqal_algebra_node* node4=NULL;
-  rasqal_algebra_node* node5=NULL;
-  rasqal_algebra_node* node6=NULL;
-  rasqal_algebra_node* node7=NULL;
-  rasqal_algebra_node* node8=NULL;
-  rasqal_algebra_node* node9=NULL;
-  raptor_uri *base_uri=NULL;
+  rasqal_algebra_node* node0 = NULL;
+  rasqal_algebra_node* node1 = NULL;
+  rasqal_algebra_node* node2 = NULL;
+  rasqal_algebra_node* node3 = NULL;
+  rasqal_algebra_node* node4 = NULL;
+  rasqal_algebra_node* node5 = NULL;
+  rasqal_algebra_node* node6 = NULL;
+  rasqal_algebra_node* node7 = NULL;
+  rasqal_algebra_node* node8 = NULL;
+  rasqal_algebra_node* node9 = NULL;
+  raptor_uri *base_uri = NULL;
   unsigned char *uri_string;
   rasqal_graph_pattern* query_gp;
   rasqal_graph_pattern* sgp;
@@ -1033,11 +1034,11 @@ main(int argc, char *argv[]) {
   rasqal_literal* lit3 = NULL;
   rasqal_literal* lit4 = NULL;
 
-  world=rasqal_new_world();
+  world = rasqal_new_world();
   if(!world || rasqal_world_open(world))
     FAIL;
   
-  uri_string=raptor_uri_filename_to_uri_string("");
+  uri_string = raptor_uri_filename_to_uri_string("");
   if(!uri_string)
     FAIL;
 #ifdef RAPTOR_V2_AVAILABLE
@@ -1049,7 +1050,7 @@ main(int argc, char *argv[]) {
     FAIL;
   raptor_free_memory(uri_string);
   
-  query=rasqal_new_query(world, query_language_name, NULL);
+  query = rasqal_new_query(world, query_language_name, NULL);
   if(!query) {
     fprintf(stderr, "%s: creating query in language %s FAILED\n", program,
             query_language_name);
@@ -1062,37 +1063,37 @@ main(int argc, char *argv[]) {
     FAIL;
   }
 
-  lit1=rasqal_new_integer_literal(world, RASQAL_LITERAL_INTEGER, 1);
+  lit1 = rasqal_new_integer_literal(world, RASQAL_LITERAL_INTEGER, 1);
   if(!lit1)
     FAIL;
   expr1 = rasqal_new_literal_expression(world, lit1);
   if(!expr1)
     FAIL;
-  lit1=NULL; /* now owned by expr1 */
+  lit1 = NULL; /* now owned by expr1 */
 
-  lit2=rasqal_new_integer_literal(world, RASQAL_LITERAL_INTEGER, 1);
+  lit2 = rasqal_new_integer_literal(world, RASQAL_LITERAL_INTEGER, 1);
   if(!lit2)
     FAIL;
   expr2 = rasqal_new_literal_expression(world, lit2);
   if(!expr2)
     FAIL;
-  lit2=NULL; /* now owned by expr2 */
+  lit2 = NULL; /* now owned by expr2 */
 
   expr = rasqal_new_2op_expression(world, RASQAL_EXPR_PLUS, expr1, expr2);
   if(!expr)
     FAIL;
-  expr1=NULL; expr2=NULL; /* now owned by expr */
+  expr1 = NULL; expr2 = NULL; /* now owned by expr */
   
-  node0=rasqal_new_empty_algebra_node(query);
+  node0 = rasqal_new_empty_algebra_node(query);
   if(!node0)
     FAIL;
 
-  node1=rasqal_new_filter_algebra_node(query, expr, node0);
+  node1 = rasqal_new_filter_algebra_node(query, expr, node0);
   if(!node1) {
     fprintf(stderr, "%s: rasqal_new_filter_algebra_node() failed\n", program);
     FAIL;
   }
-  node0=NULL; expr=NULL; /* now owned by node1 */
+  node0 = NULL; expr = NULL; /* now owned by node1 */
   
   fprintf(stderr, "%s: node result: \n", program);
   rasqal_algebra_node_print(node1, stderr);
@@ -1102,7 +1103,7 @@ main(int argc, char *argv[]) {
 
 
   /* construct abstract nodes from query structures */
-  query_gp=rasqal_query_get_query_graph_pattern(query);
+  query_gp = rasqal_query_get_query_graph_pattern(query);
 
 #ifdef RASQAL_DEBUG
   fprintf(stderr, "%s: query graph pattern: \n", program);
@@ -1111,29 +1112,29 @@ main(int argc, char *argv[]) {
 #endif
 
   /* make a filter node around 2nd GP - a FILTER gp */
-  sgp=rasqal_graph_pattern_get_sub_graph_pattern(query_gp, 1);
-  expr=rasqal_graph_pattern_get_filter_expression(sgp);
+  sgp = rasqal_graph_pattern_get_sub_graph_pattern(query_gp, 1);
+  expr = rasqal_graph_pattern_get_filter_expression(sgp);
   if(!expr) {
     fprintf(stderr, "%s: rasqal_graph_pattern_get_constraint() failed\n", program);
     FAIL;
   }
-  expr=rasqal_new_expression_from_expression(expr);
+  expr = rasqal_new_expression_from_expression(expr);
   if(!expr) {
     fprintf(stderr, "%s: rasqal_new_expression_from_expression() failed\n", program);
     FAIL;
   }
 
-  node8=rasqal_new_empty_algebra_node(query);
+  node8 = rasqal_new_empty_algebra_node(query);
   if(!node8)
     FAIL;
-  node1=rasqal_new_filter_algebra_node(query, expr, node8);
+  node1 = rasqal_new_filter_algebra_node(query, expr, node8);
   if(!node1) {
     fprintf(stderr, "%s: rasqal_new_filter_algebra_node() failed\n", program);
     FAIL;
   }
   /* these are now owned by node1 */
-  node8=NULL;
-  expr=NULL;
+  node8 = NULL;
+  expr = NULL;
 
   fprintf(stderr, "%s: node1 result: \n", program);
   rasqal_algebra_node_print(node1, stderr);
@@ -1141,8 +1142,8 @@ main(int argc, char *argv[]) {
 
 
   /* make an triples node around first (and only) triple pattern */
-  triples=rasqal_query_get_triple_sequence(query);
-  node2=rasqal_new_triples_algebra_node(query, triples, 0, 0);
+  triples = rasqal_query_get_triple_sequence(query);
+  node2 = rasqal_new_triples_algebra_node(query, triples, 0, 0);
   if(!node2)
     FAIL;
 
@@ -1151,7 +1152,7 @@ main(int argc, char *argv[]) {
   fputc('\n', stderr);
 
 
-  node3=rasqal_new_2op_algebra_node(query,
+  node3 = rasqal_new_2op_algebra_node(query,
                                     RASQAL_ALGEBRA_OPERATOR_JOIN,
                                     node1, node2);
 
@@ -1159,13 +1160,13 @@ main(int argc, char *argv[]) {
     FAIL;
   
   /* these become owned by node3 */
-  node1=node2=NULL;
+  node1 = node2 = NULL;
   
   fprintf(stderr, "%s: node3 result: \n", program);
   rasqal_algebra_node_print(node3, stderr);
   fputc('\n', stderr);
 
-  node4=rasqal_new_empty_algebra_node(query);
+  node4 = rasqal_new_empty_algebra_node(query);
   if(!node4)
     FAIL;
 
@@ -1173,7 +1174,7 @@ main(int argc, char *argv[]) {
   rasqal_algebra_node_print(node4, stderr);
   fputc('\n', stderr);
 
-  node5=rasqal_new_2op_algebra_node(query,
+  node5 = rasqal_new_2op_algebra_node(query,
                                     RASQAL_ALGEBRA_OPERATOR_UNION,
                                     node3, node4);
 
@@ -1181,7 +1182,7 @@ main(int argc, char *argv[]) {
     FAIL;
   
   /* these become owned by node5 */
-  node3=node4=NULL;
+  node3 = node4 = NULL;
   
   fprintf(stderr, "%s: node5 result: \n", program);
   rasqal_algebra_node_print(node5, stderr);
@@ -1189,24 +1190,24 @@ main(int argc, char *argv[]) {
 
 
 
-  lit1=rasqal_new_boolean_literal(world, 1);
+  lit1 = rasqal_new_boolean_literal(world, 1);
   if(!lit1)
     FAIL;
   expr1 = rasqal_new_literal_expression(world, lit1);
   if(!expr1)
     FAIL;
-  lit1=NULL; /* now owned by expr1 */
+  lit1 = NULL; /* now owned by expr1 */
 
-  node6=rasqal_new_empty_algebra_node(query);
+  node6 = rasqal_new_empty_algebra_node(query);
   if(!node6)
     FAIL;
 
-  node7=rasqal_new_leftjoin_algebra_node(query, node5, node6, expr1);
+  node7 = rasqal_new_leftjoin_algebra_node(query, node5, node6, expr1);
   if(!node7)
     FAIL;
   /* these become owned by node7 */
-  node5=node6=NULL;
-  expr1=NULL;
+  node5 = node6 = NULL;
+  expr1 = NULL;
   
   fprintf(stderr, "%s: node7 result: \n", program);
   rasqal_algebra_node_print(node7, stderr);
