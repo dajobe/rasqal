@@ -68,7 +68,7 @@ rasqal_engine_algebra_count_nodes(rasqal_query* query,
                                   rasqal_algebra_node* node,
                                   void* data)
 {
-  int *count_p=(int*)data;
+  int *count_p = (int*)data;
   (*count_p)++;
   
   return 0;
