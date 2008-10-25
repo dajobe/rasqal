@@ -54,13 +54,25 @@
  * set constructed from a query results syntax such as the SPARQL XML
  * results format via the #rasqal_query_results_formatter class.
  *
- * The query results constructor rasqal_new_query_results() chooses
- * the execution engine to use and when called via
- * rasqal_new_query_results_from_query_execution(), initialises the
- * execution engine via the #rasqal_query_execution_factory
- * 'execute_init' factory method.  This method also determines
- * whether the entire results need to be (or a requested to be)
- * obtained in one go, and if so, they are done during construction.
+ * The query results constructor rasqal_new_query_results() takes
+ * a world to use, an optional query, the type of result as well
+ * as a variable table to operate on.  If the query is given, then
+ * that is used to handle limit, offset and triple construction,
+ * otherwise the result set is standalone and not associated with
+ * a query.
+ *
+ * The variables table is used for the variables that will appear in
+ * the result rows in the result set.  The query results module does
+ * not own any variable information, all API calls are delegated to
+ * the variables table.
+ * 
+ * If the rasqal_new_query_results_from_query_execution() is used to
+ * make a query results from a query structure via executing the
+ * query, it initialises a execution engine via the
+ * #rasqal_query_execution_factory 'execute_init' factory method.
+ * This method also determines whether the entire results need to be
+ * (or a requested to be) obtained in one go, and if so, they are
+ * done during construction.
  *
  * The user API to getting query results is primarily to get variable
  * bindings - a sequence of variable:value (also called #rasqal_row
@@ -81,7 +93,7 @@
  * The class also handles several other results-specific methods such
  * as getting variable binding names, values by name, counts of
  * number of results, writing a query results as a syntax (in a
- * simple fashion), read a query results froma syntax.
+ * simple fashion), read a query results from a syntax.
  */
 
 static int rasqal_query_results_execute_and_store_results(rasqal_query_results* query_results);
