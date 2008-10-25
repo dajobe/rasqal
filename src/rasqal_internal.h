@@ -622,25 +622,23 @@ struct rasqal_rowsource_s
    */
   int updated_variables;
   
-  /* array of rasqal_variable* */
-  raptor_sequence* variables_sequence;
+  rasqal_variables_table* vars_table;
 
   /* row width */
   int size;
 };
 
 
-rasqal_rowsource* rasqal_new_rowsource_from_handler(void* user_data, const rasqal_rowsource_handler *handler, int flags);
+rasqal_rowsource* rasqal_new_rowsource_from_handler(void* user_data, const rasqal_rowsource_handler *handler, rasqal_variables_table* vars_table, int flags);
 void rasqal_free_rowsource(rasqal_rowsource *rowsource);
 
 rasqal_row* rasqal_rowsource_read_row(rasqal_rowsource *rowsource);
 int rasqal_rowsource_get_rows_count(rasqal_rowsource *rowsource);
 raptor_sequence* rasqal_rowsource_read_all_rows(rasqal_rowsource *rowsource);
 rasqal_query* rasqal_rowsource_get_query(rasqal_rowsource *rowsource);
-void rasqal_rowsource_add_variable(rasqal_rowsource *rowsource, rasqal_variable* v);
 int rasqal_rowsource_get_size(rasqal_rowsource *rowsource);
 rasqal_variable* rasqal_rowsource_get_variable_by_offset(rasqal_rowsource *rowsource, int offset);
-int rasqal_rowsource_get_variable_offset_by_name(rasqal_rowsource *rowsource, const char* name);
+int rasqal_rowsource_get_variable_offset_by_name(rasqal_rowsource *rowsource, const unsigned char* name);
 
 typedef int (*rasqal_query_results_formatter_func)(raptor_iostream *iostr, rasqal_query_results* results, raptor_uri *base_uri);
 
