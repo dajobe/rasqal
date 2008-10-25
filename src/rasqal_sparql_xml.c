@@ -555,6 +555,9 @@ typedef struct
 
   /* Output fields */
   raptor_sequence* results_sequence; /* saved result rows */
+
+  /* Variables table allocated for variables in the result set */
+  rasqal_variables_table* vars_table;
   int variables_count;
 } rasqal_rowsource_sparql_xml_context;
   
@@ -642,16 +645,12 @@ rasqal_sparql_xml_sax2_start_element_handler(void *user_data,
   switch(state) {
     case STATE_variable:
       if(1) {
-        rasqal_variable* v;
         unsigned char* var_name;
-
         var_name=(unsigned char*)RASQAL_MALLOC(cstring, con->name_length+1);
         strncpy((char*)var_name, con->name, con->name_length+1);
 
-        v=rasqal_new_variable_typed(NULL, RASQAL_VARIABLE_TYPE_NORMAL,
-                                    var_name, NULL);
-
-        rasqal_rowsource_add_variable(con->rowsource, v);
+        rasqal_variables_table_add(con->vars_table, RASQAL_VARIABLE_TYPE_NORMAL,
+                                   var_name, NULL);
       }
       break;
       
@@ -664,7 +663,7 @@ rasqal_sparql_xml_sax2_start_element_handler(void *user_data,
       break;
       
     case STATE_binding:
-      con->result_offset=rasqal_rowsource_get_variable_offset_by_name(con->rowsource, con->name);
+      con->result_offset = rasqal_rowsource_get_variable_offset_by_name(con->rowsource, (const unsigned char*)con->name);
       break;
       
     case STATE_sparql:
@@ -748,7 +747,7 @@ rasqal_sparql_xml_sax2_end_element_handler(void *user_data,
   switch(con->state) {
     case STATE_head:
       /* Only now is the full number of variables known */
-      con->variables_count=raptor_sequence_size(con->rowsource->variables_sequence);
+      con->variables_count = rasqal_variables_table_get_named_variables_count(con->vars_table);
       break;
       
     case STATE_literal:
@@ -871,6 +870,9 @@ rasqal_rowsource_sparql_xml_finish(rasqal_rowsource* rowsource, void *user_data)
 
   if(con->results_sequence)
     raptor_free_sequence(con->results_sequence);
+
+  if(con->vars_table)
+    rasqal_free_variables_table(con->vars_table);
 
   RASQAL_FREE(rasqal_rowsource_sparql_xml_context, con);
 
@@ -1013,8 +1015,11 @@ rasqal_query_results_get_rowsource_sparql_xml(rasqal_world *world,
 
   con->results_sequence=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_row, (raptor_sequence_print_handler*)rasqal_row_print);
 
+  con->vars_table = rasqal_new_variables_table(world);
+  
   return rasqal_new_rowsource_from_handler(con,
                                            &rasqal_rowsource_sparql_xml_handler,
+                                           con->vars_table,
                                            0);
 }
 
