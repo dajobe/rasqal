@@ -101,8 +101,9 @@ static rasqal_row*
 rasqal_union_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
 {
   rasqal_union_rowsource_context* con;
-  con = (rasqal_union_rowsource_context*)user_data;
   rasqal_row* row = NULL;
+
+  con = (rasqal_union_rowsource_context*)user_data;
   
   if(con->failed || con->state > 1)
     return NULL;
@@ -128,10 +129,11 @@ rasqal_union_rowsource_read_all_rows(rasqal_rowsource* rowsource,
                                      void *user_data)
 {
   rasqal_union_rowsource_context* con;
-  con = (rasqal_union_rowsource_context*)user_data;
   raptor_sequence* seq1 = NULL;
   raptor_sequence* seq2 = NULL;
   
+  con = (rasqal_union_rowsource_context*)user_data;
+
   if(con->failed)
     return NULL;
   
