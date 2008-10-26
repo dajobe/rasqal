@@ -86,10 +86,13 @@ rasqal_triples_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
   rasqal_query *query;
   rasqal_triples_rowsource_context *con;
   int column;
-
+  int *declared_in;
+  
   con = (rasqal_triples_rowsource_context*)user_data;
   query = con->query;
 
+  declared_in = query->variables_declared_in;
+  
   con->column = con->start_column;
 
   for(column = con->start_column; column <= con->end_column; column++) {
@@ -106,20 +109,20 @@ rasqal_triples_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
     t = (rasqal_triple*)raptor_sequence_get_at(con->triples, column);
     
     if((v = rasqal_literal_as_variable(t->subject)) &&
-       query->variables_declared_in[v->offset] == column)
+       declared_in[v->offset] == column)
       m->parts = (rasqal_triple_parts)(m->parts | RASQAL_TRIPLE_SUBJECT);
     
     if((v = rasqal_literal_as_variable(t->predicate)) &&
-       query->variables_declared_in[v->offset] == column)
+       declared_in[v->offset] == column)
       m->parts = (rasqal_triple_parts)(m->parts | RASQAL_TRIPLE_PREDICATE);
     
     if((v = rasqal_literal_as_variable(t->object)) &&
-       query->variables_declared_in[v->offset] == column)
+       declared_in[v->offset] == column)
       m->parts = (rasqal_triple_parts)(m->parts | RASQAL_TRIPLE_OBJECT);
 
     if(t->origin &&
        (v = rasqal_literal_as_variable(t->origin)) &&
-       query->variables_declared_in[v->offset] == column)
+       declared_in[v->offset] == column)
       m->parts = (rasqal_triple_parts)(m->parts | RASQAL_TRIPLE_ORIGIN);
 
     RASQAL_DEBUG3("triple pattern column %d has parts %d\n", column, m->parts);
