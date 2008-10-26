@@ -338,112 +338,92 @@ rasqal_query_remove_duplicate_select_vars(rasqal_query* rq)
 }
 
 
-static RASQAL_INLINE void
-rasqal_query_graph_pattern_build_declared_in_variable(rasqal_query* query,
-                                                      rasqal_variable *v,
-                                                      int col)
-{
-  if(!v)
-    return;
-  
-  if(query->variables_declared_in[v->offset] < 0)
-    query->variables_declared_in[v->offset] = col;
-}
-
-
-/**
- * rasqal_query_graph_pattern_build_declared_in:
- * @query: the #rasqal_query to find the variables in
- * @gp: graph pattern to use
- *
- * INTERNAL - Mark where variables are first declared in a graph_pattern.
- * 
- **/
-static void
-rasqal_query_graph_pattern_build_declared_in(rasqal_query* query,
-                                             rasqal_graph_pattern *gp)
-{
-  int col;
-      
-  if(gp->graph_patterns) {
-    int i;
-
-    for(i = 0; i < raptor_sequence_size(gp->graph_patterns); i++) {
-      rasqal_graph_pattern *sgp;
-      sgp = (rasqal_graph_pattern*)raptor_sequence_get_at(gp->graph_patterns, i);
-      rasqal_query_graph_pattern_build_declared_in(query, sgp);
-    }
-  }
-
-  if(!gp->triples)
-    return;
-    
-  for(col = gp->start_column; col <= gp->end_column; col++) {
-    rasqal_triple *t;
-    t = (rasqal_triple*)raptor_sequence_get_at(gp->triples, col);
-
-    rasqal_query_graph_pattern_build_declared_in_variable(query,
-                                                          rasqal_literal_as_variable(t->subject),
-                                                          col);
-    rasqal_query_graph_pattern_build_declared_in_variable(query,
-                                                          rasqal_literal_as_variable(t->predicate),
-                                                          col);
-    rasqal_query_graph_pattern_build_declared_in_variable(query,
-                                                          rasqal_literal_as_variable(t->object),
-                                                          col);
-    if(t->origin)
-      rasqal_query_graph_pattern_build_declared_in_variable(query,
-                                                            rasqal_literal_as_variable(t->origin),
-                                                            col);
-  }
-  
-}
-
-
 /**
  * rasqal_query_build_declared_in:
  * @query: the #rasqal_query to find the variables in
+ * @start_column: first column in triples array
+ * @end_column: last column in triples array
  *
  * INTERNAL - Record the triple columns where variables are first declared.
- * and warn variables that are selected but not defined.
  *
- * The query->variables_declared_in array is used in
- * rasqal_engine_graph_pattern_init() when trying to figure out which
- * parts of a triple pattern need to bind to a variable: only the first
- * reference to it.
+ * Constructs an array indexed by variable offset of columns where the
+ * variable is first declared.  Later mentions of the variable are not
+ * marked.
  *
- * Return value: non-0 on failure
+ * Return value: array of columns or NULL on failure
  **/
-static int
-rasqal_query_build_declared_in(rasqal_query* query) 
+static int*
+rasqal_query_build_declared_in(rasqal_query* query,
+                               int start_column, int end_column)
 {
   int i;
-  rasqal_graph_pattern *gp = query->query_graph_pattern;
-  int size = rasqal_variables_table_get_total_variables_count(query->vars_table) ;
+  int size;
+  int col;
+  int *declared_in;
+  
+  size = rasqal_variables_table_get_total_variables_count(query->vars_table);
 
-  if(!gp)
-    /* It is not an error for a query to have no graph patterns */
-    return 0;
-
-  query->variables_declared_in = (int*)RASQAL_CALLOC(intarray, size+1, sizeof(int));
-  if(!query->variables_declared_in)
-    return 1;
+  declared_in = (int*)RASQAL_CALLOC(intarray, size+1, sizeof(int));
+  if(!declared_in)
+    return NULL;
 
   for(i = 0; i < size; i++)
-    query->variables_declared_in[i]= -1;
-  
-  rasqal_query_graph_pattern_build_declared_in(query, gp);
+    declared_in[i] = -1;
 
+  for(col = start_column; col <= end_column; col++) {
+    rasqal_triple *t;
+    rasqal_variable *v;
+    
+    t = (rasqal_triple*)raptor_sequence_get_at(query->triples, col);
+
+    if((v = rasqal_literal_as_variable(t->subject))) {
+      if(declared_in[v->offset] < 0)
+        declared_in[v->offset] = col;
+    }
+    if((v = rasqal_literal_as_variable(t->predicate))) {
+      if(declared_in[v->offset] < 0)
+        declared_in[v->offset] = col;
+    }
+    if((v = rasqal_literal_as_variable(t->object))) {
+      if(declared_in[v->offset] < 0)
+        declared_in[v->offset] = col;
+    }
+    if(t->origin) {
+      if((v = rasqal_literal_as_variable(t->origin))) {
+        if(declared_in[v->offset] < 0)
+          declared_in[v->offset] = col;
+      }
+    }
+  }
+  
+  return declared_in;
+}
+
+
+/**
+ * rasqal_query_check_unused_variables:
+ * @query: the #rasqal_query to check
+ * @declared_in: array of columns where variables are declared as created by rasqal_query_build_declared_in()
+ *
+ * INTERNAL - warn for variables that are selected but not mentioned in a triple
+ *
+ * Return value: non-0 on failure
+ */
+static int
+rasqal_query_check_unused_variables(rasqal_query* query, int *declared_in)
+{
+  int i;
+  int size;
+  
   /* check declared in only for named variables since only they can
    * appear in SELECT $vars 
    */
-  size = rasqal_variables_table_get_named_variables_count(query->vars_table) ;
-  for(i = 0; i< size; i++) {
-    int column = query->variables_declared_in[i];
+  size = rasqal_variables_table_get_named_variables_count(query->vars_table);
+  for(i = 0; i < size; i++) {
+    int column = declared_in[i];
     rasqal_variable *v;
 
     v = rasqal_variables_table_get(query->vars_table, i);
-
     if(column >= 0) {
 #if RASQAL_DEBUG > 1
       RASQAL_DEBUG4("Variable %s (%d) was declared in column %d\n",
@@ -1064,14 +1044,28 @@ rasqal_query_prepare_common(rasqal_query *query)
   }
 
   if(query->query_graph_pattern) {
+    int triples_count;
     /* This query prepare processing requires a query graph pattern.
      * Not the case for a legal query like 'DESCRIBE <uri>'
      */
 
     /* create query->variables_declared_in to find triples where a variable
      * is first used and look for variables selected that are not used
+     *
+     * The query->variables_declared_in array is used in
+     * rasqal_engine_graph_pattern_init() when trying to figure out
+     * which parts of a triple pattern need to bind to a variable:
+     * only the first reference to it.
      */
-    if(rasqal_query_build_declared_in(query))
+    triples_count = raptor_sequence_size(query->triples);
+    query->variables_declared_in = rasqal_query_build_declared_in(query,
+                                                                  0,
+                                                                  triples_count-1);
+    if(!query->variables_declared_in)
+      goto done;
+
+    /* warn if any of the selected named variables are not in a triple */
+    if(rasqal_query_check_unused_variables(query, query->variables_declared_in))
       goto done;
   }
 
