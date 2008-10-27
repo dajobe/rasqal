@@ -261,7 +261,7 @@ rasqal_engine_group_graph_pattern_get_next_match(rasqal_engine_execution_data* e
   rasqal_engine_gp_data* gp_data;
 
   gp_data = (rasqal_engine_gp_data*)raptor_sequence_get_at(execution_data->seq, 
-                                                         gp->gp_index);
+                                                           gp->gp_index);
 #endif
 
   /* FIXME - sequence of graph_patterns not implemented, finish */
@@ -296,7 +296,7 @@ rasqal_engine_triple_graph_pattern_get_next_match(rasqal_engine_execution_data* 
   query = execution_data->query;
   query_results = execution_data->query_results;
   gp_data = (rasqal_engine_gp_data*)raptor_sequence_get_at(execution_data->seq, 
-                                                         gp->gp_index);
+                                                           gp->gp_index);
 
   while(gp_data->column >= gp->start_column) {
     rasqal_triple_meta *m;
@@ -345,8 +345,8 @@ rasqal_engine_triple_graph_pattern_get_next_match(rasqal_engine_execution_data* 
       if(!m->triples_match) {
         /* Column has no triplesMatch so create a new query */
         m->triples_match = rasqal_new_triples_match(execution_data->query,
-                                                  execution_data->triples_source,
-                                                  m, t);
+                                                    execution_data->triples_source,
+                                                    m, t);
         if(!m->triples_match) {
           rasqal_log_error_simple(query->world, RAPTOR_LOG_LEVEL_ERROR,
                                   &query->locator,
@@ -379,7 +379,7 @@ rasqal_engine_triple_graph_pattern_get_next_match(rasqal_engine_execution_data* 
 
       if(m->parts) {
         parts = rasqal_triples_match_bind_match(m->triples_match, m->bindings,
-                                              m->parts);
+                                                m->parts);
         RASQAL_DEBUG3("bind_match for column %d returned parts %d\n",
                       gp_data->column, parts);
         if(!parts)
@@ -479,7 +479,7 @@ rasqal_engine_graph_pattern_init(rasqal_engine_execution_data* execution_data,
   RASQAL_DEBUG2("Initing execution graph pattern #%d\n", gp->gp_index);
 
   gp_data = (rasqal_engine_gp_data*)raptor_sequence_get_at(execution_data->seq, 
-                                                         gp->gp_index);
+                                                           gp->gp_index);
   if(!gp_data)
     return -1;
   
@@ -673,7 +673,7 @@ rasqal_engine_move_to_graph_pattern(rasqal_engine_execution_data* execution_data
   int i;
   
   gp_data = (rasqal_engine_gp_data*)raptor_sequence_get_at(execution_data->seq, 
-                                                         gp->gp_index);
+                                                           gp->gp_index);
 
   if(gp_data->optional_graph_pattern  < 0 ) {
     gp_data->current_graph_pattern += delta;
@@ -731,7 +731,7 @@ rasqal_engine_check_constraint(rasqal_engine_execution_data* execution_data,
 #endif
     
   result = rasqal_expression_evaluate(query, gp->filter_expression, 
-                                    query->compare_flags);
+                                      query->compare_flags);
 #ifdef RASQAL_DEBUG
   RASQAL_DEBUG1("filter expression result:\n");
   if(!result)
@@ -785,9 +785,9 @@ rasqal_engine_do_step(rasqal_engine_execution_data* execution_data,
   rasqal_engine_gp_data* gp_data;
 
   outergp_data = (rasqal_engine_gp_data*)raptor_sequence_get_at(execution_data->seq, 
-                                                              outergp->gp_index);
+                                                                outergp->gp_index);
   gp_data = (rasqal_engine_gp_data*)raptor_sequence_get_at(execution_data->seq, 
-                                                         gp->gp_index);
+                                                           gp->gp_index);
   
   /*  return: <0 failure, 0 end of results, >0 match */
   rc = rasqal_engine_graph_pattern_get_next_match(execution_data, gp);
@@ -864,9 +864,9 @@ rasqal_engine_do_optional_step(rasqal_engine_execution_data* execution_data,
   query_results = execution_data->query_results;
 
   gp_data = (rasqal_engine_gp_data*)raptor_sequence_get_at(execution_data->seq, 
-                                                         gp->gp_index);
+                                                           gp->gp_index);
   outergp_data = (rasqal_engine_gp_data*)raptor_sequence_get_at(execution_data->seq, 
-                                                              outergp->gp_index);
+                                                                outergp->gp_index);
   
   if(gp_data->finished) {
     if(!outergp_data->current_graph_pattern) {
@@ -939,7 +939,7 @@ rasqal_engine_do_optional_step(rasqal_engine_execution_data* execution_data,
 
       gp2 = (rasqal_graph_pattern*)raptor_sequence_get_at(outergp->graph_patterns, i);
       gp2_data = (rasqal_engine_gp_data*)raptor_sequence_get_at(execution_data->seq, 
-                                                              gp2->gp_index);
+                                                                gp2->gp_index);
 
       if(outergp_data->optional_graph_pattern >= 0 &&
          i >= outergp_data->optional_graph_pattern)
@@ -1068,7 +1068,7 @@ rasqal_engine_get_next_result(rasqal_engine_execution_data* execution_data)
   }
 
   outergp_data = (rasqal_engine_gp_data*)raptor_sequence_get_at(execution_data->seq, 
-                                                              outergp->gp_index);
+                                                                outergp->gp_index);
 
   execution_data->new_bindings_count = 0;
 
@@ -1080,7 +1080,7 @@ rasqal_engine_get_next_result(rasqal_engine_execution_data* execution_data)
     int optional_step;
     
     gp = (rasqal_graph_pattern*)raptor_sequence_get_at(outergp->graph_patterns,
-                                                     outergp_data->current_graph_pattern);
+                                                       outergp_data->current_graph_pattern);
     gp_data = (rasqal_engine_gp_data*)raptor_sequence_get_at(execution_data->seq, 
                                                              gp->gp_index);
     if(!gp_data)
@@ -1145,7 +1145,7 @@ rasqal_engine_get_next_result(rasqal_engine_execution_data* execution_data)
 
       gp2 = (rasqal_graph_pattern*)raptor_sequence_get_at(outergp->graph_patterns, i);
       gp2_data = (rasqal_engine_gp_data*)raptor_sequence_get_at(execution_data->seq, 
-                                                              gp2->gp_index);
+                                                                gp2->gp_index);
       if(gp2_data->matched)
         gp2_data->matches_returned++;
     }

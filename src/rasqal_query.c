@@ -125,7 +125,7 @@ rasqal_new_query(rasqal_world *world, const char *name,
   query->genid_counter = 1;
 
   query->context = (char*)RASQAL_CALLOC(rasqal_query_context, 1,
-                                      factory->context_length);
+                                        factory->context_length);
   if(!query->context)
     goto tidy;
   

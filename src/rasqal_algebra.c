@@ -638,7 +638,7 @@ rasqal_algebra_union_graph_pattern_to_algebra(rasqal_query* query,
       node = gnode;
     else {
       node = rasqal_new_2op_algebra_node(query, RASQAL_ALGEBRA_OPERATOR_UNION,
-                                       node, gnode);
+                                         node, gnode);
       if(!node) {
         RASQAL_DEBUG1("rasqal_new_2op_algebra_node() failed");
         goto fail;
@@ -1153,8 +1153,8 @@ main(int argc, char *argv[]) {
 
 
   node3 = rasqal_new_2op_algebra_node(query,
-                                    RASQAL_ALGEBRA_OPERATOR_JOIN,
-                                    node1, node2);
+                                      RASQAL_ALGEBRA_OPERATOR_JOIN,
+                                      node1, node2);
 
   if(!node3)
     FAIL;
@@ -1175,8 +1175,8 @@ main(int argc, char *argv[]) {
   fputc('\n', stderr);
 
   node5 = rasqal_new_2op_algebra_node(query,
-                                    RASQAL_ALGEBRA_OPERATOR_UNION,
-                                    node3, node4);
+                                      RASQAL_ALGEBRA_OPERATOR_UNION,
+                                      node3, node4);
 
   if(!node5)
     FAIL;

@@ -167,8 +167,8 @@ rasqal_query_convert_blank_node_to_anonymous_variable(rasqal_query *rq,
   rasqal_variable* v;
   
   v = rasqal_new_variable_typed(rq, 
-                              RASQAL_VARIABLE_TYPE_ANONYMOUS,
-                              (unsigned char*)l->string, NULL);
+                                RASQAL_VARIABLE_TYPE_ANONYMOUS,
+                                (unsigned char*)l->string, NULL);
   /* rasqal_new_variable_typed took ownership of the l->string name.
    * Set to NULL to prevent double delete. */
   l->string = NULL;
@@ -1267,7 +1267,7 @@ rasqal_graph_patterns_join(rasqal_graph_pattern *dest_gp,
   if(src_gp->graph_patterns) {
     if(!dest_gp->graph_patterns) {
       dest_gp->graph_patterns = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_graph_pattern,
-                                                  (raptor_sequence_print_handler*)rasqal_graph_pattern_print);
+                                                    (raptor_sequence_print_handler*)rasqal_graph_pattern_print);
       if(!dest_gp->graph_patterns)
         return -1;
     }
