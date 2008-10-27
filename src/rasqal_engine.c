@@ -1289,7 +1289,16 @@ rasqal_rowsource_engine_process(rasqal_rowsource* rowsource,
       return;
     }
     
-    rasqal_row_set_order_size(row, con->order_size);
+    rc = rasqal_row_set_order_size(row, con->order_size);
+    if(rc) {
+      rasqal_free_row(row);
+      raptor_free_sequence(con->seq); con->seq = NULL;
+      if(con->map) {
+        rasqal_free_map(con->map); con->map = NULL;
+      }
+      con->failed = 1;
+      return;
+    }
 
     rasqal_engine_row_update(con->query, row, con->offset);
 
