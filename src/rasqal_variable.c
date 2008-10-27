@@ -303,6 +303,7 @@ rasqal_new_variables_table(rasqal_world* world)
   if(!vt)
     return NULL;
 
+  vt->usage = 1;
   vt->world = world;
   
   vt->variables_sequence = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_variable, (raptor_sequence_print_handler*)rasqal_variable_print);
@@ -315,8 +316,6 @@ rasqal_new_variables_table(rasqal_world* world)
 
   vt->variable_names = NULL;
 
-  vt->usage = 1;
-  
   return vt;
 
   tidy:
