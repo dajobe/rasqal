@@ -352,15 +352,21 @@ rasqal_rowsource_get_variable_offset_by_name(rasqal_rowsource *rowsource,
 }
 
 
+/**
+ * rasqal_rowsource_copy_variables:
+ * @dest_rowsource: destination rowsource to copy into
+ * @src_rowsource: source rowsource to copy from
+ *
+ * INTERNAL - Copy a variables project from one rowsource to another
+ **/
 void
 rasqal_rowsource_copy_variables(rasqal_rowsource *dest_rowsource,
                                 rasqal_rowsource *src_rowsource)
 {
   int i;
   
-  dest_rowsource->size = src_rowsource->size;
-  
-  for(i = 0; i < dest_rowsource->size; i++) {
+  dest_rowsource->size = 0;
+  for(i = 0; i < src_rowsource->size; i++) {
     rasqal_variable* v;
     v = rasqal_rowsource_get_variable_by_offset(src_rowsource, i);
     rasqal_rowsource_add_variable(dest_rowsource, v);
