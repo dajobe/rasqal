@@ -1,4 +1,197 @@
-2008-10-23  Dave Beckett <dave@dajobe.org>
+2008-10-26  Dave Beckett <dave@dajobe.org>
+
+	* Checkpoint in query engine refactoring.
+	SVN 14834 at 2008-10-26 22:28:24 -0700 (Sun, 26 Oct 2008)
+
+	A top level 'make check' passes at this SVN commit.
+
+	* src/rasqal_internal.h, src/rasqal_rowsource.c,
+	src/rasqal_rowsource_rowsequence.c,
+	src/rasqal_rowsource_triples.c, src/rasqal_sparql_xml.c: Restore
+	variables_sequence to rowsource for use as the projected variables
+	from the variables table.
+	(rasqal_new_rowsequence_rowsource): add all named variables using
+	rasqal_rowsource_add_variable.
+	(rasqal_rowsource_add_variable): Added/reverted.
+	(rasqal_sparql_xml_sax2_start_element_handler): Use
+	rasqal_rowsource_add_variable after rasqal_variables_table_add
+	creates the variable, to add it to the projection.
+	(rasqal_triples_rowsource_init): Use
+	rasqal_query_triples_build_declared_in to initialise projected
+	variables in rowsource->variables_sequence.
+	(rasqal_new_rowsource_from_handler, rasqal_free_rowsource):
+	Restore initialise/free of variables_sequence.
+	(rasqal_rowsource_get_variable_by_offset,
+	rasqal_rowsource_get_variable_offset_by_name): Use
+	variables_sequence to walk the variables associated with the row,
+	not the variables table.
+
+	* src/rasqal_query_transform.c: Document what declared_in
+	functions are for and revert so that they are marked in graph
+	pattern order, for query->variables_declared_in.  use.
+	(rasqal_query_triples_build_declared_in_internal): Added, from
+	part of rasqal_query_build_declared_in.
+	(rasqal_query_triples_build_declared_in): Added as internal
+	function for calculating declared_in for a sequence of triples.
+	(rasqal_query_graph_pattern_build_declared_in): Added/reverted to
+	calculate it recursively in graph pattern order.
+	(rasqal_query_build_declared_in): Reverted to do all the work for
+	a query graph pattern.
+	(rasqal_query_prepare_common): Use new
+	rasqal_query_build_declared_in form.
+
+2008-10-25  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_rowsource_triples.c:
+	(rasqal_triples_rowsource_init): tidy
+
+	* src/rasqal_query_transform.c:
+	(rasqal_query_graph_pattern_build_declared_in_variable): Deleted.
+	(rasqal_query_graph_pattern_build_declared_in): Deleted.
+	(rasqal_query_build_declared_in): Comments and work on all triples
+	in a column range.
+	(rasqal_query_check_unused_variables): Added to just do checking
+	and warning.
+	(rasqal_query_prepare_common): Call rasqal_query_build_declared_in
+	and rasqal_query_check_unused_variables
+
+	* src/rasqal_algebra.c: code style
+
+	* src/rasqal_variable.c: code style
+
+	* src/rasqal_query_transform.c: code style
+
+	* src/rasqal_engine_algebra.c: code style
+
+	* src/rasqal_engine.c: code style
+
+	* src/rasqal_rowsource_union.c: code style
+
+	* src/rasqal_rowsource_union.c: code style
+
+	* src/rasqal_rowsource_triples.c: code style
+
+	* src/rasqal_rowsource_sort.c: code style
+
+	* src/rasqal_rowsource_empty.c: code style
+
+	* src/rasqal_rowsource_filter.c: ws
+
+	* src/rasqal_engine_sort.c: ws
+
+	* src/rasqal_internal.h: rasqal_rowsource docs
+
+	* src/rasqal_rowsource.c: code style
+
+	* src/rasqal_query_results.c: update internal docs
+
+	* src/rasqal_row.c: code style
+
+	* tests/engine/rasqal_order_test.c: check arg failure before run
+
+	* tests/engine/rasqal_graph_test.c: check arg failure before run
+
+	* src/rasqal_query.c: code style
+
+	* src/rasqal_query_results.c: code style
+
+	* utils/srxread.c: Update to new rasqal_new_query_results args
+
+	* src/rasqal_sparql_xml.c:
+	(rasqal_sparql_xml_sax2_end_element_handler): Set variables
+	count/size as soon as possible so that rasqal_new_row() works
+	properly.
+	(rasqal_query_results_get_rowsource_sparql_xml): Now takes
+	variables table arg and sets it internally rather than making a
+	new one.
+
+	* src/rasqal_result_formats.c:
+	(rasqal_query_results_formatter_read): Pass in variables table
+	from result set when reading results from syntax
+
+	* src/rasqal_internal.h: rasqal_query_results_get_rowsource_func
+	now has a vars_table arg to write new variables found (read from
+	syntax) into. Added rasqal_query_results_get_variables_table
+
+	* src/rasqal_query_results.c:
+	(rasqal_new_query_results): autodocs
+	(rasqal_query_results_get_row_from_saved): Handle NULL query
+	(rasqal_query_results_ensure_have_row_internal): Handle NULL
+	execution factory.
+	(rasqal_query_results_get_triple,
+	rasqal_query_results_next_triple): Fail with result set with NULL
+	query.
+	(rasqal_query_results_add_row): Tidy.
+	(rasqal_query_results_execute_and_store_results): Handle being run
+	with NULL query.
+	(rasqal_query_results_get_variables_table): Added.
+
+2008-10-24  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_engine.c:
+	(rasqal_engine_make_rowsource): Update
+	rasqal_new_rowsource_from_handler call
+
+	* src/rasqal_sparql_xml.c: rasqal_rowsource_sparql_xml_context
+	gains a vars_table field
+	(rasqal_sparql_xml_sax2_start_element_handler): Add new variable
+	direct to variables table.  Use
+	rasqal_rowsource_get_variable_offset_by_name to get offset and
+	rasqal_variables_table_get_named_variables_count to get count.
+	(rasqal_rowsource_sparql_xml_finish): Call
+	rasqal_free_variables_table
+	(rasqal_query_results_get_rowsource_sparql_xml): Create new
+	variables table.
+
+	* src/rasqal_rowsource_union.c:
+	(rasqal_new_union_rowsource): fail on NULL query, triples_source
+	or triples. Update rasqal_new_rowsource_from_handler call
+	(main): Update test to allocate real world and query objects
+
+	* src/rasqal_rowsource_triples.c:
+	(rasqal_new_triples_rowsource): fail on NULL query, triples_source
+	or triples. Update rasqal_new_rowsource_from_handler call
+	(main): Update test to allocate real query object
+
+	* src/rasqal_rowsource_sort.c:
+	(rasqal_new_sort_rowsource): Update
+	rasqal_new_rowsource_from_handler call
+
+	* src/rasqal_rowsource_rowsequence.c:
+	(rasqal_new_rowsequence_rowsource): Update
+	rasqal_new_rowsource_from_handler call Do not copy variables but
+	use rasqal_variables_table_get_named_variables_count to get row
+	size.
+	(main): Update test to allocate real world and query objects.
+
+	* src/rasqal_rowsource_filter.c:
+	(rasqal_new_filter_rowsource): fail on NULL query, rowsource or
+	expr. Update rasqal_new_rowsource_from_handler call
+
+	* src/rasqal_rowsource_empty.c:
+	(rasqal_new_empty_rowsource): fail on NULL query Update
+	rasqal_new_rowsource_from_handler call
+	(main): Update test to allocate real world and query objects.
+
+	* src/rasqal_internal.h: rasqal_rowsource has a variables table to
+	replace a variables sequence rasqal_new_rowsource_from_handler
+	prototype gains variables table arg rasqal_rowsource_add_variable
+	prototype deleted. rasqal_rowsource_get_variable_offset_by_name
+	has unsigned name
+
+	* src/rasqal_rowsource.c:
+	(rasqal_new_rowsource_from_handler): Add variables table arg to
+	store variables, shared with other objects such as
+	query/query_results.
+	(rasqal_free_rowsource): Free variables table
+	(rasqal_rowsource_add_variable): Deleted, not needed.
+	(rasqal_rowsource_get_variable_by_offset): Just call
+	rasqal_variables_table_get.
+	(rasqal_rowsource_get_variable_offset_by_name): Just call
+	rasqal_variables_table_get_by_name
+
+	* src/rasqal_engine.c: (rasqal_engine_make_rowsource): Protect
+	NULL order_conditions_sequence
 
 	* src/rasqal_rowsource_triples.c:
 	(rasqal_triples_rowsource_ensure_variables): Do not set order_size
