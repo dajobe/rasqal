@@ -1,3 +1,16 @@
+2008-10-27  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_engine.c:
+	(rasqal_rowsource_engine_process): Check for
+	rasqal_row_set_order_size() failure
+
+	* src/rasqal_variable.c:
+	(rasqal_new_variables_table): Set usage count earlier so that
+	tidying with rasqal_free_variables_table() works.
+
+	* src/rasqal_algebra.c, src/rasqal_engine.c, src/rasqal_query.c,
+	src/rasqal_query_transform.c: whitespace
+
 2008-10-26  Dave Beckett <dave@dajobe.org>
 
 	* Checkpoint in query engine refactoring.
