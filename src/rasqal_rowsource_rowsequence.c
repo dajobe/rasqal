@@ -205,7 +205,13 @@ rasqal_new_rowsequence_rowsource(rasqal_query* query,
     int i;
     int rows_count;
     
-    rs->size = rasqal_variables_table_get_named_variables_count(vt);
+    for(i = 0; 1; i++) {
+      rasqal_variable* v = rasqal_variables_table_get(vt, i);
+      if(!v)
+        break;
+      rasqal_rowsource_add_variable(rs, v);
+    }
+    rs->size = i;
 
     rows_count = raptor_sequence_size(seq);
     for(i = 0; i < rows_count; i++) {

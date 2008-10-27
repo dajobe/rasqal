@@ -646,11 +646,16 @@ rasqal_sparql_xml_sax2_start_element_handler(void *user_data,
     case STATE_variable:
       if(1) {
         unsigned char* var_name;
-        var_name=(unsigned char*)RASQAL_MALLOC(cstring, con->name_length+1);
+        rasqal_variable *v;
+        
+        var_name = (unsigned char*)RASQAL_MALLOC(cstring, con->name_length+1);
         strncpy((char*)var_name, con->name, con->name_length+1);
 
-        rasqal_variables_table_add(con->vars_table, RASQAL_VARIABLE_TYPE_NORMAL,
-                                   var_name, NULL);
+        v = rasqal_variables_table_add(con->vars_table,
+                                       RASQAL_VARIABLE_TYPE_NORMAL,
+                                       var_name, NULL);
+        if(v)
+          rasqal_rowsource_add_variable(con->rowsource, v);
       }
       break;
       

@@ -86,13 +86,34 @@ rasqal_triples_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
   rasqal_query *query;
   rasqal_triples_rowsource_context *con;
   int column;
-  int *declared_in;
+  int *declared_in = NULL;
+  int rc = 0;
+  int size;
+  int i;
   
   con = (rasqal_triples_rowsource_context*)user_data;
   query = con->query;
 
-  declared_in = query->variables_declared_in;
-  
+  size = rasqal_variables_table_get_named_variables_count(rowsource->vars_table);
+  declared_in = rasqal_query_triples_build_declared_in(con->query,
+                                                       size,
+                                                       con->start_column,
+                                                       con->end_column);
+  if(!declared_in) {
+    rc = 1;
+    goto done;
+  }
+
+  /* Construct the ordered projection of the variables set by these triples */
+  for(i = 0; i < size; i++) {
+    column = declared_in[i];
+    if(column >= 0) {
+      rasqal_variable *v;
+      v = rasqal_variables_table_get(rowsource->vars_table, i);
+      raptor_sequence_push(rowsource->variables_sequence, v);
+    }
+  }
+
   con->column = con->start_column;
 
   for(column = con->start_column; column <= con->end_column; column++) {
@@ -101,8 +122,10 @@ rasqal_triples_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
     rasqal_variable* v;
 
     m = &con->triple_meta[column - con->start_column];
-    if(!m)
-      return 1;
+    if(!m) {
+      rc = 1;
+      break;
+    }
 
     m->parts = (rasqal_triple_parts)0;
 
@@ -135,8 +158,12 @@ rasqal_triples_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
       m->is_exact = 0;
 
   }
+
+  done:
+  if(declared_in)
+    RASQAL_FREE(intarray, declared_in);
   
-  return 0;
+  return rc;
 }
 
 

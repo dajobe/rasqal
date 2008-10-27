@@ -252,6 +252,9 @@ struct rasqal_query_s {
   /* sequences of ... */
   raptor_sequence* selects;     /* ... rasqal_variable* names only */
   raptor_sequence* data_graphs; /* ... rasqal_data_graph*          */
+  /* NOTE: Cannot assume that triples are in any of 
+   * graph pattern use / query execution / document order 
+   */
   raptor_sequence* triples;     /* ... rasqal_triple*              */
   raptor_sequence* prefixes;    /* ... rasqal_prefix*              */
   raptor_sequence* constructs;  /* ... rasqal_triple*       SPARQL */
@@ -595,14 +598,18 @@ typedef struct {
  * @count:  number of rows returned
  * @updated_variables: non-0 if ensure_variables factory method has been called to get the variables_sequence updated
  * @vars_table: variables table where variables used in this row are declared/owned
- * @size: number of columns in the rowsource
+ * @variables_sequence: variables declared in this row from @vars_table
+ * @size: number of variables in @variables_sequence
  *
  * Rasqal Row Source class providing a sequence of rows of values similar to a SQL table.
  *
- * The table has columns which are #rasqal_variable names that
- * are declared in the associated variables table
+ * The table has @size columns which are #rasqal_variable names that
+ * are declared in the associated variables table.
+ * @variables_sequence contains the ordered projection of the
+ * variables for the columns for this row sequence, from the full set
+ * of variables in @vars_table.
  * 
- * Each row is a set of #rasqal_literal values for the variables or
+ * Each row has @size #rasqal_literal values for the variables or
  * NULL if unset.
  *
  * Row sources are constructed indirectly via an @handler passed
@@ -618,7 +625,8 @@ typedef struct {
  * The variables associated with a rowsource can be read by
  * rasqal_rowsource_get_variable_by_offset() and
  * rasqal_rowsource_get_variable_offset_by_name() which all are
- * wrappers to calls to the internal variables table @vars_table
+ * offsets into @variables_sequence but refer to variables owned by
+ * the full internal variables table @vars_table
  */
 struct rasqal_rowsource_s
 {
@@ -636,6 +644,8 @@ struct rasqal_rowsource_s
 
   rasqal_variables_table* vars_table;
 
+  raptor_sequence* variables_sequence;
+  
   int size;
 };
 
@@ -648,6 +658,7 @@ int rasqal_rowsource_get_rows_count(rasqal_rowsource *rowsource);
 raptor_sequence* rasqal_rowsource_read_all_rows(rasqal_rowsource *rowsource);
 rasqal_query* rasqal_rowsource_get_query(rasqal_rowsource *rowsource);
 int rasqal_rowsource_get_size(rasqal_rowsource *rowsource);
+void rasqal_rowsource_add_variable(rasqal_rowsource *rowsource, rasqal_variable* v);
 rasqal_variable* rasqal_rowsource_get_variable_by_offset(rasqal_rowsource *rowsource, int offset);
 int rasqal_rowsource_get_variable_offset_by_name(rasqal_rowsource *rowsource, const unsigned char* name);
 
@@ -739,6 +750,7 @@ int rasqal_query_prepare_common(rasqal_query *query);
 int rasqal_query_merge_graph_patterns(rasqal_query* query, rasqal_graph_pattern* gp, void* data);
 int rasqal_graph_patterns_join(rasqal_graph_pattern *dest_gp, rasqal_graph_pattern *src_gp);
 int rasqal_graph_pattern_move_constraints(rasqal_graph_pattern* dest_gp, rasqal_graph_pattern* src_gp);
+int* rasqal_query_triples_build_declared_in(rasqal_query* query, int size, int start_column, int end_column);
 
 /* rasqal_expr.c */
 rasqal_literal* rasqal_new_string_literal_node(rasqal_world*, const unsigned char *string, const char *language, raptor_uri *datatype);

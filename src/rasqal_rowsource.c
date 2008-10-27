@@ -89,6 +89,13 @@ rasqal_new_rowsource_from_handler(void *user_data,
   else
     rowsource->vars_table = NULL;
 
+  /* no free method here - the variables are owned by rowsource->vars_table */
+  rowsource->variables_sequence = raptor_new_sequence(NULL, (raptor_sequence_print_handler*)rasqal_variable_print);
+  if(!rowsource->variables_sequence) {
+    rasqal_free_rowsource(rowsource);
+    return NULL;
+  }
+  
   if(rowsource->handler->init && 
      rowsource->handler->init(rowsource, rowsource->user_data)) {
     RASQAL_DEBUG2("rowsource %s init failed\n", rowsource->handler->name);
@@ -116,9 +123,31 @@ rasqal_free_rowsource(rasqal_rowsource *rowsource)
   if(rowsource->vars_table)
     rasqal_free_variables_table(rowsource->vars_table);
 
+  if(rowsource->variables_sequence)
+    raptor_free_sequence(rowsource->variables_sequence);
+
   RASQAL_FREE(rasqal_rowsource, rowsource);
 }
 
+
+
+/**
+ * rasqal_rowsource_add_variable:
+ * @rowsource: rasqal rowsource
+ * @v: variable
+ *
+ * Add a variable column to the rowsource
+ **/
+void
+rasqal_rowsource_add_variable(rasqal_rowsource *rowsource, rasqal_variable* v)
+{
+  raptor_sequence_push(rowsource->variables_sequence, v);
+
+  if(rowsource->size < 0)
+    rowsource->size = 0;
+  
+  rowsource->size++;
+}
 
 
 /**
@@ -281,9 +310,11 @@ rasqal_rowsource_get_variable_by_offset(rasqal_rowsource *rowsource, int offset)
 {
   rasqal_rowsource_ensure_variables(rowsource);
 
-  if(rowsource->vars_table)
-    return rasqal_variables_table_get(rowsource->vars_table, offset);
-  return NULL;
+  if(!rowsource->variables_sequence)
+    return NULL;
+  
+  return (rasqal_variable*)raptor_sequence_get_at(rowsource->variables_sequence,
+                                                  offset);
 }
 
 
@@ -300,17 +331,24 @@ int
 rasqal_rowsource_get_variable_offset_by_name(rasqal_rowsource *rowsource,
                                              const unsigned char* name)
 {
-  rasqal_variable* v;
+  int offset= -1;
+  int i;
   
   rasqal_rowsource_ensure_variables(rowsource);
 
-  if(!rowsource->vars_table)
+  if(!rowsource->variables_sequence)
     return -1;
   
-  v = rasqal_variables_table_get_by_name(rowsource->vars_table, name);
-  if(v)
-    return v->offset;
-  return -1;
+  for(i=0; i < raptor_sequence_size(rowsource->variables_sequence); i++) {
+    rasqal_variable* v;
+    v = (rasqal_variable*)raptor_sequence_get_at(rowsource->variables_sequence, i);
+    if(!strcmp((const char*)v->name, (const char*)name)) {
+      offset = i;
+      break;
+    }
+  }
+
+  return offset;
 }
 
 
