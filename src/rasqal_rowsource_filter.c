@@ -76,11 +76,12 @@ rasqal_filter_rowsource_ensure_variables(rasqal_rowsource* rowsource,
                                          void *user_data)
 {
   rasqal_filter_rowsource_context* con;
+  
   con = (rasqal_filter_rowsource_context*)user_data; 
 
   rasqal_rowsource_ensure_variables(con->rowsource);
 
-  rowsource->size = con->rowsource->size;
+  rasqal_rowsource_copy_variables(rowsource, con->rowsource);
   
   return 0;
 }

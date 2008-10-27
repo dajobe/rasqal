@@ -498,8 +498,6 @@ rasqal_rowsource* rasqal_new_union_rowsource(rasqal_query* query, rasqal_rowsour
 /* rasqal_triples_rowsource.c */
 rasqal_rowsource* rasqal_new_triples_rowsource(rasqal_query* query, rasqal_triples_source* triples_source, raptor_sequence* triples, int start_column, int end_column);
 
-/* rasqal_rowsource.c */
-
 /**
  * rasqal_rowsource_init_func:
  * @context: stream context data
@@ -649,7 +647,7 @@ struct rasqal_rowsource_s
   int size;
 };
 
-
+/* rasqal_rowsource.c */
 rasqal_rowsource* rasqal_new_rowsource_from_handler(void* user_data, const rasqal_rowsource_handler *handler, rasqal_variables_table* vars_table, int flags);
 void rasqal_free_rowsource(rasqal_rowsource *rowsource);
 
@@ -661,6 +659,7 @@ int rasqal_rowsource_get_size(rasqal_rowsource *rowsource);
 void rasqal_rowsource_add_variable(rasqal_rowsource *rowsource, rasqal_variable* v);
 rasqal_variable* rasqal_rowsource_get_variable_by_offset(rasqal_rowsource *rowsource, int offset);
 int rasqal_rowsource_get_variable_offset_by_name(rasqal_rowsource *rowsource, const unsigned char* name);
+void rasqal_rowsource_copy_variables(rasqal_rowsource *dest_rowsource, rasqal_rowsource *src_rowsource);
 
 typedef int (*rasqal_query_results_formatter_func)(raptor_iostream *iostr, rasqal_query_results* results, raptor_uri *base_uri);
 

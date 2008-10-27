@@ -352,6 +352,22 @@ rasqal_rowsource_get_variable_offset_by_name(rasqal_rowsource *rowsource,
 }
 
 
+void
+rasqal_rowsource_copy_variables(rasqal_rowsource *dest_rowsource,
+                                rasqal_rowsource *src_rowsource)
+{
+  int i;
+  
+  dest_rowsource->size = src_rowsource->size;
+  
+  for(i = 0; i < dest_rowsource->size; i++) {
+    rasqal_variable* v;
+    v = rasqal_rowsource_get_variable_by_offset(src_rowsource, i);
+    rasqal_rowsource_add_variable(dest_rowsource, v);
+  }
+}
+
+
 #endif
 
 
