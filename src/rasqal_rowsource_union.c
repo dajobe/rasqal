@@ -91,8 +91,24 @@ static int
 rasqal_union_rowsource_ensure_variables(rasqal_rowsource* rowsource,
                                         void *user_data)
 {
-  /* rasqal_union_rowsource_context* con;
-  con = (rasqal_union_rowsource_context*)user_data; */
+  rasqal_union_rowsource_context* con;
+  con = (rasqal_union_rowsource_context*)user_data;
+  int i;
+
+  if(rasqal_rowsource_ensure_variables(con->left))
+    return 1;
+
+  if(rasqal_rowsource_ensure_variables(con->right))
+    return 1;
+
+  rowsource->size = 0;
+
+  /* copy in variables from left rowsource */
+  rasqal_rowsource_copy_variables(rowsource, con->left);
+  
+  /* add any new ones not already seen from right rowsource */
+  rasqal_rowsource_copy_variables(rowsource, con->right);
+
   return 0;
 }
 

@@ -656,7 +656,7 @@ int rasqal_rowsource_get_rows_count(rasqal_rowsource *rowsource);
 raptor_sequence* rasqal_rowsource_read_all_rows(rasqal_rowsource *rowsource);
 rasqal_query* rasqal_rowsource_get_query(rasqal_rowsource *rowsource);
 int rasqal_rowsource_get_size(rasqal_rowsource *rowsource);
-void rasqal_rowsource_add_variable(rasqal_rowsource *rowsource, rasqal_variable* v);
+int rasqal_rowsource_add_variable(rasqal_rowsource *rowsource, rasqal_variable* v);
 rasqal_variable* rasqal_rowsource_get_variable_by_offset(rasqal_rowsource *rowsource, int offset);
 int rasqal_rowsource_get_variable_offset_by_name(rasqal_rowsource *rowsource, const unsigned char* name);
 void rasqal_rowsource_copy_variables(rasqal_rowsource *dest_rowsource, rasqal_rowsource *src_rowsource);

@@ -136,17 +136,24 @@ rasqal_free_rowsource(rasqal_rowsource *rowsource)
  * @rowsource: rasqal rowsource
  * @v: variable
  *
- * Add a variable column to the rowsource
+ * Add a variable to the rowsource if the variable is not already present
+ *
+ * Return value: non-0 if variable already present
  **/
-void
+int
 rasqal_rowsource_add_variable(rasqal_rowsource *rowsource, rasqal_variable* v)
 {
+  if(rasqal_rowsource_get_variable_offset_by_name(rowsource, v->name) >= 0)
+    return 1;
+
   raptor_sequence_push(rowsource->variables_sequence, v);
 
   if(rowsource->size < 0)
     rowsource->size = 0;
   
   rowsource->size++;
+
+  return 0;
 }
 
 
@@ -357,7 +364,10 @@ rasqal_rowsource_get_variable_offset_by_name(rasqal_rowsource *rowsource,
  * @dest_rowsource: destination rowsource to copy into
  * @src_rowsource: source rowsource to copy from
  *
- * INTERNAL - Copy a variables project from one rowsource to another
+ * INTERNAL - Copy a variables projection from one rowsource to another
+ *
+ * This adds new variables from @src_rowsource to the
+ * @dest_rowsource, it does not add duplicates.
  **/
 void
 rasqal_rowsource_copy_variables(rasqal_rowsource *dest_rowsource,
@@ -365,7 +375,6 @@ rasqal_rowsource_copy_variables(rasqal_rowsource *dest_rowsource,
 {
   int i;
   
-  dest_rowsource->size = 0;
   for(i = 0; i < src_rowsource->size; i++) {
     rasqal_variable* v;
     v = rasqal_rowsource_get_variable_by_offset(src_rowsource, i);
