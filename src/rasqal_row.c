@@ -256,7 +256,7 @@ rasqal_row_set_value_at(rasqal_row* row, int offset, rasqal_literal* value)
  * @vars_count: number of variables in row
  *
  * INTERNAL - Make a sequence of #rasqal_row* objects
- * with ariables defined into the @vt table and values in the sequence
+ * with variables defined into the @vt table and values in the sequence
  *
  * The @row_data parameter is an array of strings forming a table of
  * width (vars_count * 2).
@@ -369,7 +369,7 @@ rasqal_new_row_sequence(rasqal_world* world,
 
 
 /**
- * rasqal_row_to_nodes
+ * rasqal_row_to_nodes:
  * @row: Result row
  *
  * INTERNAL - Turn the given result row literals into RDF strings, URIs or blank literals.
@@ -399,6 +399,14 @@ rasqal_row_to_nodes(rasqal_row* row)
 }
 
 
+/**
+ * rasqal_row_set_values_from_variables_table:
+ * @row: Result row
+ * @vars_table: Variables table
+ *
+ * INTERNAL - Set the values of all variables in the row from the given variables table
+ * 
+ */
 void
 rasqal_row_set_values_from_variables_table(rasqal_row* row,
                                            rasqal_variables_table* vars_table)
@@ -415,6 +423,15 @@ rasqal_row_set_values_from_variables_table(rasqal_row* row,
 }
 
 
+/**
+ * rasqal_row_set_order_size:
+ * @row: Result row
+ * @order_size: number of order conditions
+ *
+ * INTERNAL - Initialise the row with space to handle @order_size order conditions being evaluated
+ *
+ * Return value: non-0 on failure 
+ */
 int
 rasqal_row_set_order_size(rasqal_row *row, int order_size)
 {
