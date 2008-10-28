@@ -448,3 +448,34 @@ rasqal_row_set_order_size(rasqal_row *row, int order_size)
   return 0;
 }
 
+
+/**
+ * rasqal_row_expand_size:
+ * @row: Result row
+ * @size: number of variables
+ *
+ * INTERNAL - Expand the row to be able to handle @size variables
+ *
+ * Return value: non-0 on failure 
+ */
+int
+rasqal_row_expand_size(rasqal_row *row, int size)
+{
+  rasqal_literal** nvalues;
+
+  /* do not allow row size to contract & lose data */
+  if(row->size > size)
+    return 1;
+  
+  nvalues = (rasqal_literal**)RASQAL_CALLOC(array, size,
+                                            sizeof(rasqal_literal*));
+  if(!nvalues)
+    return 1;
+  memcpy(nvalues, row->values, sizeof(rasqal_literal*) * row->size);
+  RASQAL_FREE(array, row->values);
+  row->values = nvalues;
+  
+  row->size = size;
+  return 0;
+}
+

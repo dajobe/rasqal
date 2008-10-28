@@ -880,6 +880,7 @@ raptor_sequence* rasqal_new_row_sequence(rasqal_world* world, rasqal_variables_t
 int rasqal_row_to_nodes(rasqal_row* row);
 void rasqal_row_set_values_from_variables_table(rasqal_row* row, rasqal_variables_table* vars_table);
 int rasqal_row_set_order_size(rasqal_row *row, int order_size);
+int rasqal_row_expand_size(rasqal_row *row, int size);
 
 /* rasqal_triples_source.c */
 rasqal_triples_source* rasqal_new_triples_source(rasqal_query* query);
