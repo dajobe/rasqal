@@ -92,8 +92,8 @@ rasqal_union_rowsource_ensure_variables(rasqal_rowsource* rowsource,
                                         void *user_data)
 {
   rasqal_union_rowsource_context* con;
+
   con = (rasqal_union_rowsource_context*)user_data;
-  int i;
 
   if(rasqal_rowsource_ensure_variables(con->left))
     return 1;
@@ -247,6 +247,39 @@ rasqal_new_union_rowsource(rasqal_query* query,
 /* one more prototype */
 int main(int argc, char *argv[]);
 
+
+const char* const union_1_data_2x2_rows[] =
+{
+  /* 2 variable names and 2 rows */
+  "a",   NULL, "b",   NULL,
+  /* row 1 data */
+  "foo", NULL, "bar", NULL,
+  /* row 2 data */
+  "baz", NULL, "fez", NULL,
+  /* end of data */
+  NULL, NULL
+};
+  
+
+const char* const union_2_data_3x3_rows[] =
+{
+  /* 3 variable names and 3 rows */
+  "b",     NULL, "c",      NULL, "d",      NULL,
+  /* row 1 data */
+  "red",   NULL, "orange", NULL, "yellow", NULL,
+  /* row 2 data */
+  "blue",  NULL, "indigo", NULL, "violet", NULL,
+  /* row 3 data */
+  "black", NULL, "silver", NULL, "gold",   NULL,
+  /* end of data */
+  NULL, NULL
+};
+
+
+#define EXPECTED_ROWS_COUNT (2+3)  
+/* there is one duplicate variable 'b' */
+#define EXPECTED_COLUMNS_COUNT (2+3-1)
+
 int
 main(int argc, char *argv[]) 
 {
@@ -256,28 +289,60 @@ main(int argc, char *argv[])
   rasqal_rowsource *right_rs = NULL;
   rasqal_world* world = NULL;
   rasqal_query* query = NULL;
-  rasqal_row* row = NULL;
   int count;
   raptor_sequence* seq = NULL;
   int failures = 0;
+  int rows_count;
+  rasqal_variables_table* vt;
+  int size;
+  int expected_count = EXPECTED_ROWS_COUNT;
+  int expected_size = EXPECTED_COLUMNS_COUNT;
   
   world = rasqal_new_world(); rasqal_world_open(world);
   
   query = rasqal_new_query(world, "sparql", NULL);
   
-  left_rs = rasqal_new_empty_rowsource(query);
-  if(!left_rs) {
-    fprintf(stderr, "%s: failed to create empty left rowsource\n", program);
+  vt = query->vars_table;
+
+  /* 2 variables and 2 rows */
+  rows_count = 2;
+  seq = rasqal_new_row_sequence(world, vt, union_1_data_2x2_rows, rows_count);
+  if(!seq) {
+    fprintf(stderr,
+            "%s: failed to create left sequence of %d rows\n", program,
+            rows_count);
     failures++;
     goto tidy;
   }
 
-  right_rs = rasqal_new_empty_rowsource(query);
-  if(!right_rs) {
-    fprintf(stderr, "%s: failed to create empty right rowsource\n", program);
+  left_rs = rasqal_new_rowsequence_rowsource(query, vt, seq);
+  if(!left_rs) {
+    fprintf(stderr, "%s: failed to create left rowsource\n", program);
     failures++;
     goto tidy;
   }
+  /* seq is now owned by left_rs */
+  seq = NULL;
+
+  /* 3 variables and 3 rows */
+  rows_count = 3;
+  seq = rasqal_new_row_sequence(world, vt, union_2_data_3x3_rows, rows_count);
+  if(!seq) {
+    fprintf(stderr,
+            "%s: failed to create right sequence of %d rows\n", program,
+            rows_count);
+    failures++;
+    goto tidy;
+  }
+
+  right_rs = rasqal_new_rowsequence_rowsource(query, vt, seq);
+  if(!right_rs) {
+    fprintf(stderr, "%s: failed to create right rowsource\n", program);
+    failures++;
+    goto tidy;
+  }
+  /* seq is now owned by right_rs */
+  seq = NULL;
 
   rowsource = rasqal_new_union_rowsource(query, left_rs, right_rs);
   if(!rowsource) {
@@ -288,36 +353,32 @@ main(int argc, char *argv[])
   /* left_rs and right_rs are now owned by rowsource */
   left_rs = right_rs = NULL;
 
-  row = rasqal_rowsource_read_row(rowsource);
-  if(row) {
-    fprintf(stderr, "%s: read_row returned a row for a union rowsource\n",
-            program);
-    failures++;
-    goto tidy;
-  }
-  
-  count = rasqal_rowsource_get_rows_count(rowsource);
-  if(count) {
-    fprintf(stderr, "%s: read_rows returned a row count for a union rowsource\n",
-            program);
-    failures++;
-    goto tidy;
-  }
-  
   seq = rasqal_rowsource_read_all_rows(rowsource);
   if(!seq) {
-    fprintf(stderr, "%s: read_rows returned a NULL seq for a union rowsource\n",
+    fprintf(stderr,
+            "%s: read_rows returned a NULL seq for a union rowsource\n",
             program);
     failures++;
     goto tidy;
   }
-  if(raptor_sequence_size(seq) != 0) {
-    fprintf(stderr, "%s: read_rows returned a non-empty seq for a union rowsource\n",
-            program);
+  count = raptor_sequence_size(seq);
+  if(count != expected_count) {
+    fprintf(stderr,
+            "%s: read_rows returned %d rows for a union rowsource, expected %d\n",
+            program, count, expected_count);
     failures++;
     goto tidy;
   }
-
+  
+  size = rasqal_rowsource_get_size(rowsource);
+  if(size != expected_size) {
+    fprintf(stderr,
+            "%s: read_rows returned %d columns (variables) for a union rowsource, expected %d\n",
+            program, size, expected_size);
+    failures++;
+    goto tidy;
+  }
+  
   if(rasqal_rowsource_get_query(rowsource) != query) {
     fprintf(stderr,
             "%s: get_query returned a different query for a union rowsurce\n",
