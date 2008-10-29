@@ -660,6 +660,7 @@ int rasqal_rowsource_add_variable(rasqal_rowsource *rowsource, rasqal_variable* 
 rasqal_variable* rasqal_rowsource_get_variable_by_offset(rasqal_rowsource *rowsource, int offset);
 int rasqal_rowsource_get_variable_offset_by_name(rasqal_rowsource *rowsource, const unsigned char* name);
 void rasqal_rowsource_copy_variables(rasqal_rowsource *dest_rowsource, rasqal_rowsource *src_rowsource);
+void rasqal_rowsource_print_row_sequence(rasqal_rowsource* rowsource,raptor_sequence* seq, FILE* fh);
 
 typedef int (*rasqal_query_results_formatter_func)(raptor_iostream *iostr, rasqal_query_results* results, raptor_uri *base_uri);
 

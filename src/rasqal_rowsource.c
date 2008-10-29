@@ -138,22 +138,28 @@ rasqal_free_rowsource(rasqal_rowsource *rowsource)
  *
  * Add a variable to the rowsource if the variable is not already present
  *
- * Return value: non-0 if variable already present
+ * Return value: variable offset or < 0 on failure
  **/
 int
 rasqal_rowsource_add_variable(rasqal_rowsource *rowsource, rasqal_variable* v)
 {
-  if(rasqal_rowsource_get_variable_offset_by_name(rowsource, v->name) >= 0)
-    return 1;
+  int offset;
+  
+  offset = rasqal_rowsource_get_variable_offset_by_name(rowsource, v->name);
+  if(offset >= 0)
+    return offset;
 
-  raptor_sequence_push(rowsource->variables_sequence, v);
+  if(raptor_sequence_push(rowsource->variables_sequence, v))
+    return -1;
 
   if(rowsource->size < 0)
     rowsource->size = 0;
+
+  offset = rowsource->size;
   
   rowsource->size++;
 
-  return 0;
+  return offset;
 }
 
 
@@ -382,6 +388,55 @@ rasqal_rowsource_copy_variables(rasqal_rowsource *dest_rowsource,
   }
 }
 
+
+static void 
+rasqal_rowsource_print_header(rasqal_rowsource* rowsource, FILE* fh)
+{
+  int i;
+  
+  fputs("variables: ", fh);
+  for(i = 0; i < rowsource->size; i++) {
+    rasqal_variable* v;
+    const unsigned char *name = NULL;
+
+    v = rasqal_rowsource_get_variable_by_offset(rowsource, i);
+    if(v)
+      name = v->name;
+    if(i > 0)
+      fputs(", ", fh);
+    if(name)
+      fputs((const char*)name, fh);
+    else
+      fputs("NULL", fh);
+  }
+  fputs("\n", fh);
+}
+
+
+/**
+ * rasqal_rowsource_print_row_sequence:
+ * @rowsource: rowsource associated with rows
+ * @seq: query result sequence of #rasqal_row
+ * @fp: FILE* handle to print to
+ *
+ * INTERNAL - Print a result set header with row values from a sequence
+ */
+void 
+rasqal_rowsource_print_row_sequence(rasqal_rowsource* rowsource,
+                                    raptor_sequence* seq,
+                                    FILE* fh)
+{
+  int size = raptor_sequence_size(seq);
+  int i;
+
+  rasqal_rowsource_print_header(rowsource, fh);
+  
+  for(i = 0; i < size; i++) {
+    rasqal_row *row = (rasqal_row*)raptor_sequence_get_at(seq, i);
+    rasqal_row_print(row, fh);
+    fputs("\n", fh);
+  }
+}
 
 #endif
 
