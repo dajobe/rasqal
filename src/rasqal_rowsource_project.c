@@ -101,12 +101,14 @@ rasqal_project_rowsource_ensure_variables(rasqal_rowsource* rowsource,
     v = (rasqal_variable*)raptor_sequence_get_at(con->projection_variables, i);
     if(!v)
       break;
-    offset = rasqal_rowsource_add_variable(rowsource, v);
+    offset = rasqal_rowsource_get_variable_offset_by_name(con->rowsource, 
+                                                          v->name);
     if(offset < 0) {
       RASQAL_DEBUG2("Variable %s could not be projected - not in input rowsource", name);
       return 1;
     }
 
+    rasqal_rowsource_add_variable(rowsource, v);
     con->projection[i] = offset;
   }
 
@@ -236,7 +238,7 @@ const char* const project_1_data_4x2_rows[] =
   NULL, NULL
 };
   
-const char* const project_1_var_names[] = { "a", "b" };
+const char* const project_1_var_names[] = { "c", "b" };
 
 #define EXPECTED_ROWS_COUNT 2
 #define EXPECTED_COLUMNS_COUNT 2
