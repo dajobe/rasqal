@@ -41,6 +41,8 @@
 #include "rasqal_internal.h"
 
 
+#define DEBUG_FH stderr
+
 #ifndef STANDALONE
 
 typedef struct 
@@ -50,10 +52,16 @@ typedef struct
   rasqal_rowsource* left;
   rasqal_rowsource* right;
 
+  /* array of size (number of variables in @right) with this row offset value */
+  int* right_map;
+
   /* 0 = reading from left rs, 1 = reading from right rs, 2 = finished */
   int state;
 
   int failed;
+
+  /* row offset for read_row() */
+  int offset;
 } rasqal_union_rowsource_context;
 
 
@@ -81,6 +89,9 @@ rasqal_union_rowsource_finish(rasqal_rowsource* rowsource, void *user_data)
   if(con->right)
     rasqal_free_rowsource(con->right);
   
+  if(con->right_map)
+    RASQAL_FREE(int, con->right_map);
+  
   RASQAL_FREE(rasqal_union_rowsource_context, con);
 
   return 0;
@@ -92,7 +103,8 @@ rasqal_union_rowsource_ensure_variables(rasqal_rowsource* rowsource,
                                         void *user_data)
 {
   rasqal_union_rowsource_context* con;
-
+  int i;
+  
   con = (rasqal_union_rowsource_context*)user_data;
 
   if(rasqal_rowsource_ensure_variables(con->left))
@@ -101,15 +113,47 @@ rasqal_union_rowsource_ensure_variables(rasqal_rowsource* rowsource,
   if(rasqal_rowsource_ensure_variables(con->right))
     return 1;
 
+  con->right_map = (int*)RASQAL_MALLOC(int,
+                                       rasqal_rowsource_get_size(con->right));
+  if(!con->right_map)
+    return 1;
+
   rowsource->size = 0;
 
   /* copy in variables from left rowsource */
   rasqal_rowsource_copy_variables(rowsource, con->left);
   
-  /* add any new ones not already seen from right rowsource */
-  rasqal_rowsource_copy_variables(rowsource, con->right);
+  /* add any new variables not already seen from right rowsource */
+  for(i = 0; 1; i++) {
+    rasqal_variable* v;
+    int offset;
+    
+    v = rasqal_rowsource_get_variable_by_offset(con->right, i);
+    if(!v)
+      break;
+    offset = rasqal_rowsource_add_variable(rowsource, v);
+    if(offset < 0)
+      return 1;
+
+    con->right_map[i] = offset;
+  }
 
   return 0;
+}
+
+
+static void
+rasqal_union_rowsource_adjust_right_row(rasqal_union_rowsource_context* con,
+                                        rasqal_row *row)
+{
+  rasqal_rowsource *rowsource = con->right;
+  int i;
+  
+  for(i = rowsource->size - 1; i >= 0; i--) {
+    int offset = con->right_map[i];
+    row->values[offset] = row->values[i];
+    row->values[i] = NULL;
+  }
 }
 
 
@@ -128,14 +172,30 @@ rasqal_union_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
     row = rasqal_rowsource_read_row(con->left);
     if(!row)
       con->state = 1;
+    else {
+      /* otherwise: rows from left are correct order but wrong size */
+      if(rasqal_row_expand_size(row, rowsource->size))
+        return NULL;
+    }
   }
   if(!row && con->state == 1) {
-    row= rasqal_rowsource_read_row(con->right);
+    row = rasqal_rowsource_read_row(con->right);
     if(!row)
       /* finished */
       con->state = 2;
+    else {
+      if(rasqal_row_expand_size(row, rowsource->size))
+        return NULL;
+      /* transform row from right to match new projection */
+      rasqal_union_rowsource_adjust_right_row(con, row);
+    }
   }
 
+  if(row) {
+    row->rowsource = rowsource;
+    row->offset = con->offset++;
+  }
+  
   return row;
 }
 
@@ -147,6 +207,9 @@ rasqal_union_rowsource_read_all_rows(rasqal_rowsource* rowsource,
   rasqal_union_rowsource_context* con;
   raptor_sequence* seq1 = NULL;
   raptor_sequence* seq2 = NULL;
+  int left_size;
+  int right_size;
+  int i;
   
   con = (rasqal_union_rowsource_context*)user_data;
 
@@ -158,11 +221,41 @@ rasqal_union_rowsource_read_all_rows(rasqal_rowsource* rowsource,
     con->failed = 1;
     return NULL;
   }
+
   seq2 = rasqal_rowsource_read_all_rows(con->right);
   if(!seq2) {
     con->failed = 1;
     raptor_free_sequence(seq1);
     return NULL;
+  }
+
+#ifdef RASQAL_DEBUG
+  fprintf(DEBUG_FH, "left rowsource (%d vars):\n",
+          rasqal_rowsource_get_size(con->left));
+  rasqal_rowsource_print_row_sequence(con->left, seq1, DEBUG_FH);
+
+  fprintf(DEBUG_FH, "right rowsource (%d vars):\n",
+          rasqal_rowsource_get_size(con->right));
+  rasqal_rowsource_print_row_sequence(con->right, seq2, DEBUG_FH);
+#endif
+
+  /* transform rows from left to match new projection */
+  left_size = raptor_sequence_size(seq1);
+  for(i = 0; i < left_size; i++) {
+    rasqal_row *row = (rasqal_row*)raptor_sequence_get_at(seq1, i);
+    /* rows from left are correct order but wrong size */
+    rasqal_row_expand_size(row, rowsource->size);
+    row->rowsource = rowsource;
+  }
+  /* transform rows from right to match new projection */
+  right_size = raptor_sequence_size(seq2);
+  for(i = 0; i < right_size; i++) {
+    rasqal_row *row = (rasqal_row*)raptor_sequence_get_at(seq2, i);
+    /* rows from right need resizing and adjusting by offset */
+    rasqal_row_expand_size(row, rowsource->size);
+    rasqal_union_rowsource_adjust_right_row(con, row);
+    row->offset += left_size;
+    row->rowsource = rowsource;
   }
 
   if(raptor_sequence_join(seq1, seq2)) {
@@ -248,22 +341,24 @@ rasqal_new_union_rowsource(rasqal_query* query,
 int main(int argc, char *argv[]);
 
 
-const char* const union_1_data_2x2_rows[] =
+const char* const union_1_data_2x3_rows[] =
 {
-  /* 2 variable names and 2 rows */
+  /* 2 variable names and 3 rows */
   "a",   NULL, "b",   NULL,
   /* row 1 data */
   "foo", NULL, "bar", NULL,
   /* row 2 data */
   "baz", NULL, "fez", NULL,
+  /* row 3 data */
+  "bob", NULL, "sue", NULL,
   /* end of data */
   NULL, NULL
 };
   
 
-const char* const union_2_data_3x3_rows[] =
+const char* const union_2_data_3x4_rows[] =
 {
-  /* 3 variable names and 3 rows */
+  /* 3 variable names and 4 rows */
   "b",     NULL, "c",      NULL, "d",      NULL,
   /* row 1 data */
   "red",   NULL, "orange", NULL, "yellow", NULL,
@@ -271,14 +366,19 @@ const char* const union_2_data_3x3_rows[] =
   "blue",  NULL, "indigo", NULL, "violet", NULL,
   /* row 3 data */
   "black", NULL, "silver", NULL, "gold",   NULL,
+  /* row 4 data */
+  "green", NULL, "tope",   NULL, "bronze", NULL,
   /* end of data */
   NULL, NULL
 };
 
 
-#define EXPECTED_ROWS_COUNT (2+3)  
+#define EXPECTED_ROWS_COUNT (3 + 4)
+
 /* there is one duplicate variable 'b' */
-#define EXPECTED_COLUMNS_COUNT (2+3-1)
+#define EXPECTED_COLUMNS_COUNT (2 + 3 - 1)
+const char* const union_result_vars[] = { "a" , "b" , "c", "d" };
+
 
 int
 main(int argc, char *argv[]) 
@@ -292,11 +392,13 @@ main(int argc, char *argv[])
   int count;
   raptor_sequence* seq = NULL;
   int failures = 0;
-  int rows_count;
+  int vars_count;
   rasqal_variables_table* vt;
   int size;
   int expected_count = EXPECTED_ROWS_COUNT;
   int expected_size = EXPECTED_COLUMNS_COUNT;
+  int i;
+  raptor_sequence* vars_seq = NULL;
   
   world = rasqal_new_world(); rasqal_world_open(world);
   
@@ -304,45 +406,47 @@ main(int argc, char *argv[])
   
   vt = query->vars_table;
 
-  /* 2 variables and 2 rows */
-  rows_count = 2;
-  seq = rasqal_new_row_sequence(world, vt, union_1_data_2x2_rows, rows_count, NULL);
+  /* 2 variables and 3 rows */
+  vars_count = 2;
+  seq = rasqal_new_row_sequence(world, vt, union_1_data_2x3_rows, vars_count,
+                                &vars_seq);
   if(!seq) {
     fprintf(stderr,
-            "%s: failed to create left sequence of %d rows\n", program,
-            rows_count);
+            "%s: failed to create left sequence of %d vars\n", program,
+            vars_count);
     failures++;
     goto tidy;
   }
 
-  left_rs = rasqal_new_rowsequence_rowsource(query, vt, seq);
+  left_rs = rasqal_new_rowsequence_rowsource(query, vt, seq, vars_seq);
   if(!left_rs) {
     fprintf(stderr, "%s: failed to create left rowsource\n", program);
     failures++;
     goto tidy;
   }
-  /* seq is now owned by left_rs */
-  seq = NULL;
-
-  /* 3 variables and 3 rows */
-  rows_count = 3;
-  seq = rasqal_new_row_sequence(world, vt, union_2_data_3x3_rows, rows_count, NULL);
+  /* vars_seq and seq are now owned by left_rs */
+  vars_seq = seq = NULL;
+  
+  /* 3 variables and 4 rows */
+  vars_count = 3;
+  seq = rasqal_new_row_sequence(world, vt, union_2_data_3x4_rows, vars_count,
+                                &vars_seq);
   if(!seq) {
     fprintf(stderr,
             "%s: failed to create right sequence of %d rows\n", program,
-            rows_count);
+            vars_count);
     failures++;
     goto tidy;
   }
 
-  right_rs = rasqal_new_rowsequence_rowsource(query, vt, seq);
+  right_rs = rasqal_new_rowsequence_rowsource(query, vt, seq, vars_seq);
   if(!right_rs) {
     fprintf(stderr, "%s: failed to create right rowsource\n", program);
     failures++;
     goto tidy;
   }
-  /* seq is now owned by right_rs */
-  seq = NULL;
+  /* vars_seq and seq are now owned by right_rs */
+  vars_seq = seq = NULL;
 
   rowsource = rasqal_new_union_rowsource(query, left_rs, right_rs);
   if(!rowsource) {
@@ -378,6 +482,29 @@ main(int argc, char *argv[])
     failures++;
     goto tidy;
   }
+  for(i = 0; i < expected_size; i++) {
+    rasqal_variable* v;
+    const char* name = NULL;
+    const char *expected_name = union_result_vars[i];
+    
+    v = rasqal_rowsource_get_variable_by_offset(rowsource, i);
+    if(!v) {
+      fprintf(stderr,
+            "%s: read_rows had NULL column (variable) #%d expected %s\n",
+              program, i, expected_name);
+      failures++;
+      goto tidy;
+    }
+    name = (const char*)v->name;
+    if(strcmp(name, expected_name)) {
+      fprintf(stderr,
+            "%s: read_rows returned column (variable) #%d %s but expected %s\n",
+              program, i, name, expected_name);
+      failures++;
+      goto tidy;
+    }
+  }
+  
   
   if(rasqal_rowsource_get_query(rowsource) != query) {
     fprintf(stderr,
@@ -387,6 +514,9 @@ main(int argc, char *argv[])
     goto tidy;
   }
 
+#ifdef RASQAL_DEBUG
+  rasqal_rowsource_print_row_sequence(rowsource, seq, DEBUG_FH);
+#endif
 
   tidy:
   if(seq)
