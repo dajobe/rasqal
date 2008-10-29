@@ -102,20 +102,17 @@ rasqal_new_row(rasqal_rowsource* rowsource)
 
 
 /**
- * rasqal_new_row_for_variables:
- * @vt: variables table
+ * rasqal_new_row_for_size:
+ * @size: width of row
  *
- * INTERNAL - Create a new query result row suitable for a variables table
+ * INTERNAL - Create a new query result row of a given size
  *
  * Return value: a new query result row or NULL on failure
  */
 rasqal_row*
-rasqal_new_row_for_variables(rasqal_variables_table* vt)
+rasqal_new_row_for_size(int size)
 {
-  int size;
   int order_size = 0;
-  
-  size = rasqal_variables_table_get_named_variables_count(vt);
 
   return rasqal_new_row_common(size, order_size);
 }
@@ -254,6 +251,7 @@ rasqal_row_set_value_at(rasqal_row* row, int offset, rasqal_literal* value)
  * @vt: variables table to use to declare variables
  * @row_data: row data
  * @vars_count: number of variables in row
+ * @vars_seq_p: OUT parameter - pointer to place to store sequence of variables (or NULL)
  *
  * INTERNAL - Make a sequence of #rasqal_row* objects
  * with variables defined into the @vt table and values in the sequence
@@ -271,9 +269,11 @@ raptor_sequence*
 rasqal_new_row_sequence(rasqal_world* world,
                         rasqal_variables_table* vt,
                         const char* const row_data[],
-                        int vars_count) 
+                        int vars_count,
+                        raptor_sequence** vars_seq_p)
 {
   raptor_sequence *seq = NULL;
+  raptor_sequence *vars_seq = NULL;
   int row_i;
   int column_i;
   int failed = 0;
@@ -286,6 +286,15 @@ rasqal_new_row_sequence(rasqal_world* world,
   if(!seq)
     return NULL;
 
+  if(vars_seq_p) {
+    vars_seq = raptor_new_sequence(NULL,
+                                   (raptor_sequence_print_handler*)rasqal_variable_print);
+    if(!vars_seq) {
+      raptor_free_sequence(seq);
+      return NULL;
+    }
+  }
+  
   /* row 0 is variables */
   row_i = 0;
 
@@ -293,15 +302,23 @@ rasqal_new_row_sequence(rasqal_world* world,
     const char * var_name = GET_CELL(row_i, column_i, 0);
     size_t var_name_len = strlen(var_name);
     const unsigned char* name;
+    rasqal_variable* v;
     
     name = (unsigned char*)RASQAL_MALLOC(cstring, var_name_len+1);
-    if(name) {
-      strncpy((char*)name, var_name, var_name_len+1);
-      rasqal_variables_table_add(vt, RASQAL_VARIABLE_TYPE_NORMAL, name, NULL);
-    } else {
+    if(!name) {
       failed = 1;
       goto tidy;
     }
+
+    strncpy((char*)name, var_name, var_name_len+1);
+    v = rasqal_variables_table_add(vt, RASQAL_VARIABLE_TYPE_NORMAL, name, NULL);
+    if(!v) {
+      failed = 1;
+      goto tidy;
+    }
+
+    if(vars_seq)
+      raptor_sequence_push(vars_seq, v);
   }
 
   for(row_i = 1;
@@ -309,7 +326,7 @@ rasqal_new_row_sequence(rasqal_world* world,
       row_i++) {
     rasqal_row* row;
     
-    row = rasqal_new_row_for_variables(vt);
+    row = rasqal_new_row_for_size(vars_count);
     if(!row) {
       raptor_free_sequence(seq); seq = NULL;
       goto tidy;
@@ -361,6 +378,17 @@ rasqal_new_row_sequence(rasqal_world* world,
     if(seq) {
       raptor_free_sequence(seq);
       seq = NULL;
+    }
+    if(vars_seq) {
+      raptor_free_sequence(vars_seq);
+      vars_seq = NULL;
+    }
+  } else {
+    if(vars_seq) {
+      if(vars_seq_p)
+        *vars_seq_p = vars_seq;
+      else
+        raptor_free_sequence(vars_seq);
     }
   }
   

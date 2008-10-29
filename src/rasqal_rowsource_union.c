@@ -306,7 +306,7 @@ main(int argc, char *argv[])
 
   /* 2 variables and 2 rows */
   rows_count = 2;
-  seq = rasqal_new_row_sequence(world, vt, union_1_data_2x2_rows, rows_count);
+  seq = rasqal_new_row_sequence(world, vt, union_1_data_2x2_rows, rows_count, NULL);
   if(!seq) {
     fprintf(stderr,
             "%s: failed to create left sequence of %d rows\n", program,
@@ -326,7 +326,7 @@ main(int argc, char *argv[])
 
   /* 3 variables and 3 rows */
   rows_count = 3;
-  seq = rasqal_new_row_sequence(world, vt, union_2_data_3x3_rows, rows_count);
+  seq = rasqal_new_row_sequence(world, vt, union_2_data_3x3_rows, rows_count, NULL);
   if(!seq) {
     fprintf(stderr,
             "%s: failed to create right sequence of %d rows\n", program,

@@ -307,7 +307,7 @@ main(int argc, char *argv[])
   vt = rasqal_new_variables_table(world);
 
   /* add 2 variables to table and 1 row sequence */
-  seq = rasqal_new_row_sequence(world, vt, test_1_rows, 2);
+  seq = rasqal_new_row_sequence(world, vt, test_1_rows, 2, NULL);
   if(!seq) {
     fprintf(stderr, "%s: failed to create sequence of %d rows\n", program,
             rows_count);
@@ -381,7 +381,7 @@ main(int argc, char *argv[])
   vt = rasqal_new_variables_table(world);
 
   /* add 4 variables to table and 3 row sequence */
-  seq = rasqal_new_row_sequence(world, vt, test_3_rows, 4);
+  seq = rasqal_new_row_sequence(world, vt, test_3_rows, 4, NULL);
   if(!seq) {
     fprintf(stderr, "%s: failed to create sequence of %d rows\n",
             program, rows_count);
