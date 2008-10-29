@@ -1,3 +1,95 @@
+2008-10-29  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_rowsource_project.c:
+	(rasqal_project_rowsource_ensure_variables): Fix offset vars
+	(main): Make test use non-trivial projection.
+
+	* src/Makefile.am, src/rasqal_internal.h,
+	src/rasqal_rowsource_project.c: Added project (variables
+	projection) rowsource
+	(rasqal_new_project_rowsource): Added new project rowsource
+	constructor.
+
+2008-10-28  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_engine_algebra.c:
+	(rasqal_algebra_union_algebra_node_to_rowsource): Added to use
+	union rowsource to execute UNION.
+	(rasqal_algebra_node_to_rowsource): Call above for UNION operator.
+
+	* src/rasqal_rowsource_union.c: Union rowsource now works.
+	Constructs a map for moving variable offsets from right rowsource
+	into results via con->right_map.
+	(rasqal_union_rowsource_ensure_variables): Construct map while
+	adding variables from right row to result rowsource.
+	(rasqal_union_rowsource_adjust_right_row): Added to do right row
+	variable offset fixing for a row.
+	(rasqal_union_rowsource_read_row): Expand output row sizes and
+	adjust offsets if needed. Assign output rowsource and correct
+	offset.
+	(rasqal_union_rowsource_read_all_rows): Transform left and right
+	input rowsequences for correct size, offsets, rowsource.  Use
+	rasqal_union_rowsource_adjust_right_row to adjust right row orders
+	(main): Update tests to use non-square tables to ensure no
+	confusion of row/columns
+
+	* src/rasqal_internal.h, src/rasqal_rowsource_rowsequence.c: Add
+	vars_seq to context.
+	(rasqal_rowsequence_rowsource_init): Adjust offset of all rows.
+	(rasqal_rowsequence_rowsource_ensure_variables): Add variables
+	from input variables sequence.
+	(rasqal_new_rowsequence_rowsource) Now takes in variables sequence
+	for handling rowsources that share variables.
+	(main): Update tests to new calling convention and vars_seq.
+
+	* src/rasqal_internal.h, src/rasqal_rowsource.c:
+	(rasqal_rowsource_add_variable): Return offset to var and <0 on
+	failure.
+	(rasqal_rowsource_print_row_sequence): Added for debugging.
+	(rasqal_rowsource_print_header): Added called by above
+
+	* src/rasqal_internal.h, src/rasqal_row.c,
+	src/rasqal_rowsource_rowsequence.c, src/rasqal_rowsource_union.c:
+	(rasqal_new_row_for_size): Renamed from
+	rasqal_new_row_for_variables and now with a size
+	arg.  (rasqal_new_row_sequence): Add out parameter vars_seq_p to
+	return variables sequence in order declared..
+
+2008-10-27  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_internal.h, src/rasqal_row.c:
+	(rasqal_row_expand_size): Added to expand a row when it gets
+	combined with others
+
+	* src/rasqal_rowsource_union.c: Union rowsource proper test case
+	with 2 rowsources that return data. Returns correct counts.
+
+	* src/rasqal_internal.h, src/rasqal_rowsource.c,
+	src/rasqal_rowsource_filter.c, src/rasqal_rowsource_sort.c,
+	src/rasqal_rowsource_union.c:
+	(rasqal_rowsource_add_variable): Get int return value to indicate
+	when a dup variable was not stored.
+	(rasqal_rowsource_copy_variables): Do not reset dest size to 0.
+	(rasqal_filter_rowsource_ensure_variables,
+	rasqal_sort_rowsource_ensure_variables): Set dest rowsource size
+	to 0.
+	(rasqal_union_rowsource_ensure_variables): Copy in variables from
+	both sub-rowsources.
+
+	* src/rasqal_row.c: autodocs
+
+	* src/rasqal_rowsource.c:
+	(rasqal_rowsource_copy_variables): Ensure dest size is
+	correct. autodocs.
+
+	* src/rasqal_internal.h, src/rasqal_rowsource.c,
+	src/rasqal_rowsource_filter.c, src/rasqal_rowsource_sort.c:
+	(rasqal_rowsource_copy_variables): Added to copy variables from
+	one rowsource into another.
+	(rasqal_filter_rowsource_ensure_variables,
+	rasqal_sort_rowsource_ensure_variables): Use to set up variable
+	projection sequence from inner rowsource.
+
 2008-10-27  Lauri Aalto <laalto@iki.fi>
 
 	* src/rasqal_engine.c:
