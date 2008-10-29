@@ -487,7 +487,7 @@ rasqal_rowsource* rasqal_new_filter_rowsource(rasqal_query *query, rasqal_rowsou
 rasqal_rowsource* rasqal_new_leftjoin_rowsource(rasqal_query* query, rasqal_query_results* results, rasqal_rowsource* left, rasqal_rowsource* right);
 
 /* rasqal_rowsequence_rowsource.c */
-rasqal_rowsource* rasqal_new_rowsequence_rowsource(rasqal_query* query, rasqal_variables_table* vt, raptor_sequence* row);
+rasqal_rowsource* rasqal_new_rowsequence_rowsource(rasqal_query* query, rasqal_variables_table* vt, raptor_sequence* row, raptor_sequence* vars_seq);
 
 /* rasqal_sort_rowsource.c */
 rasqal_rowsource* rasqal_new_sort_rowsource(rasqal_query *query, rasqal_rowsource *rowsource, raptor_sequence *seq);
