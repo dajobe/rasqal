@@ -405,6 +405,30 @@ rasqal_triples_rowsource_get_query(rasqal_rowsource* rowsource, void *user_data)
 }
 
 
+static int
+rasqal_triples_rowsource_reset(rasqal_rowsource* rowsource, void *user_data)
+{
+  rasqal_triples_rowsource_context *con;
+  int column;
+  
+  con = (rasqal_triples_rowsource_context*)user_data;
+
+  con->column = con->start_column;
+  for(column = con->start_column; column <= con->end_column; column++) {
+    rasqal_triple_meta *m;
+    int resets;
+    
+    m = &con->triple_meta[column - con->start_column];
+    resets = rasqal_reset_triple_meta(m);
+    con->new_bindings_count -= resets;
+    if(con->new_bindings_count < 0)
+      con->new_bindings_count = 0;
+  }
+
+  return 0;
+}
+
+
 static const rasqal_rowsource_handler rasqal_triples_rowsource_handler = {
   /* .version = */ 1,
   "triple pattern",
@@ -413,7 +437,8 @@ static const rasqal_rowsource_handler rasqal_triples_rowsource_handler = {
   /* .ensure_variables = */ rasqal_triples_rowsource_ensure_variables,
   /* .read_row = */ rasqal_triples_rowsource_read_row,
   /* .read_all_rows = */ rasqal_triples_rowsource_read_all_rows,
-  /* .get_query = */ rasqal_triples_rowsource_get_query
+  /* .get_query = */ rasqal_triples_rowsource_get_query,
+  /* .reset = */ rasqal_triples_rowsource_reset
 };
 
 

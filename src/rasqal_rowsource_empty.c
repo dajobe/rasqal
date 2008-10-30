@@ -93,7 +93,8 @@ static const rasqal_rowsource_handler rasqal_empty_rowsource_handler = {
   /* .ensure_variables = */ NULL,
   /* .read_row = */ rasqal_empty_rowsource_read_row,
   /* .read_all_rows = */ rasqal_empty_rowsource_read_all_rows,
-  /* .get_query = */ rasqal_empty_rowsource_get_query
+  /* .get_query = */ rasqal_empty_rowsource_get_query,
+  /* .reset = */ NULL
 };
 
 

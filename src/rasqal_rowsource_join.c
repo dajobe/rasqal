@@ -260,9 +260,18 @@ static int
 rasqal_join_rowsource_reset(rasqal_rowsource* rowsource, void *user_data)
 {
   rasqal_join_rowsource_context* con;
+  int rc;
+  
   con = (rasqal_join_rowsource_context*)user_data;
 
-  return 0;
+  con->state = INIT_RIGHT;
+  con->failed = 0;
+  
+  rc = rasqal_rowsource_reset(con->left);
+  if(rc)
+    return rc;
+
+  return rasqal_rowsource_reset(con->right);
 }
 
 

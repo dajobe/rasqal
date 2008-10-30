@@ -177,6 +177,16 @@ rasqal_filter_rowsource_get_query(rasqal_rowsource* rowsource, void *user_data)
 }
 
 
+static int
+rasqal_filter_rowsource_reset(rasqal_rowsource* rowsource, void *user_data)
+{
+  rasqal_filter_rowsource_context *con;
+  con = (rasqal_filter_rowsource_context*)user_data;
+
+  return rasqal_rowsource_reset(con->rowsource);
+}
+
+
 static const rasqal_rowsource_handler rasqal_filter_rowsource_handler = {
   /* .version =          */ 1,
   "filter",
@@ -185,7 +195,8 @@ static const rasqal_rowsource_handler rasqal_filter_rowsource_handler = {
   /* .ensure_variables = */ rasqal_filter_rowsource_ensure_variables,
   /* .read_row =         */ rasqal_filter_rowsource_read_row,
   /* .read_all_rows =    */ NULL,
-  /* .get_query =        */ rasqal_filter_rowsource_get_query
+  /* .get_query =        */ rasqal_filter_rowsource_get_query,
+  /* .reset =            */ rasqal_filter_rowsource_reset
 };
 
 
