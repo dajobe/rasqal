@@ -69,6 +69,12 @@ typedef struct
 
   /* row offset for read_row() */
   int offset;
+
+  /* join type: 0 = left outer join */
+  int join_type;
+  
+  /* join expression */
+  rasqal_expression *expr;
 } rasqal_join_rowsource_context;
 
 
@@ -105,6 +111,9 @@ rasqal_join_rowsource_finish(rasqal_rowsource* rowsource, void *user_data)
   
   if(con->right_map)
     RASQAL_FREE(int, con->right_map);
+  
+  if(con->expr)
+    rasqal_free_expression(con->expr);
   
   RASQAL_FREE(rasqal_join_rowsource_context, con);
 
@@ -196,14 +205,18 @@ rasqal_join_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
 {
   rasqal_join_rowsource_context* con;
   rasqal_row* row = NULL;
+  rasqal_query *query;
 
   con = (rasqal_join_rowsource_context*)user_data;
+  query = con->query;
 
   if(con->failed || con->state == FINISHED)
     return NULL;
 
   while(1) {
-    rasqal_row* right_row;
+    rasqal_row *right_row;
+    rasqal_literal *result;
+    int bresult;
     
     if(con->state == INIT_RIGHT) {
       if(!con->left_row) {
@@ -221,21 +234,54 @@ rasqal_join_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
         if(row)
           con->left_row = rasqal_rowsource_read_row(con->left);
       }
-      break;
+      if(row)
+        goto have_row;
     }
 
     /* else state is READ_RIGHT */
 
     right_row = rasqal_rowsource_read_row(con->right);
-    if(right_row) {
-      /* con->state = READ_RIGHT; */
-      row = rasqal_join_rowsource_build_merged_row(rowsource, con, right_row);
-      break;
+    if(!right_row) {
+      /* right table done, restart left, continue looping */
+      con->state = INIT_RIGHT;
+      con->left_row = rasqal_rowsource_read_row(con->left);
+      continue;
     }
 
-    /* right table done, restart left, continue looping */
-    con->state = INIT_RIGHT;
-    con->left_row = rasqal_rowsource_read_row(con->left);
+    /* con->state = READ_RIGHT; */
+    row = rasqal_join_rowsource_build_merged_row(rowsource, con, right_row);
+
+    have_row:
+    if(!con->expr)
+      break;
+
+    result = rasqal_expression_evaluate(query, con->expr, query->compare_flags);
+#ifdef RASQAL_DEBUG
+    RASQAL_DEBUG1("join expression result:\n");
+    if(!result)
+      fputs("type error", DEBUG_FH);
+    else
+      rasqal_literal_print(result, DEBUG_FH);
+    fputc('\n', DEBUG_FH);
+#endif
+    if(!result) {
+      bresult = 0;
+    } else {
+      int error = 0;
+      bresult = rasqal_literal_as_boolean(result, &error);
+      if(error)
+        RASQAL_DEBUG1("filter boolean expression returned error\n");
+#ifdef RASQAL_DEBUG
+      else
+        RASQAL_DEBUG2("filter boolean expression result: %d\n", bresult);
+#endif
+      rasqal_free_literal(result);
+    }
+    if(bresult)
+      /* Constraint succeeded so return row */
+      break;
+
+    rasqal_free_row(row); row = NULL;
   }
 
   if(row) {
@@ -293,6 +339,8 @@ static const rasqal_rowsource_handler rasqal_join_rowsource_handler = {
  * @query: query results object
  * @left: left (first) rowsource
  * @right: right (second) rowsource
+ * @join_type: 0 = left outer join
+ * @expr: join expression to filter result rows
  *
  * INTERNAL - create a new JOIN over two rowsources
  *
@@ -306,12 +354,18 @@ static const rasqal_rowsource_handler rasqal_join_rowsource_handler = {
 rasqal_rowsource*
 rasqal_new_join_rowsource(rasqal_query* query,
                           rasqal_rowsource* left,
-                          rasqal_rowsource* right)
+                          rasqal_rowsource* right,
+                          int join_type,
+                          rasqal_expression *expr)
 {
   rasqal_join_rowsource_context* con;
   int flags = 0;
 
   if(!query || !left || !right)
+    return NULL;
+
+  /* only left outer join now */
+  if(join_type != 0)
     return NULL;
   
   con = (rasqal_join_rowsource_context*)RASQAL_CALLOC(rasqal_join_rowsource_context, 1, sizeof(rasqal_join_rowsource_context));
@@ -321,6 +375,8 @@ rasqal_new_join_rowsource(rasqal_query* query,
   con->query = query;
   con->left = left;
   con->right = right;
+  con->join_type = join_type;
+  con->expr = expr;
   
   return rasqal_new_rowsource_from_handler(con,
                                            &rasqal_join_rowsource_handler,
@@ -446,7 +502,7 @@ main(int argc, char *argv[])
   /* vars_seq and seq are now owned by right_rs */
   vars_seq = seq = NULL;
 
-  rowsource = rasqal_new_join_rowsource(query, left_rs, right_rs);
+  rowsource = rasqal_new_join_rowsource(query, left_rs, right_rs, 0, NULL);
   if(!rowsource) {
     fprintf(stderr, "%s: failed to create join rowsource\n", program);
     failures++;

@@ -484,7 +484,7 @@ rasqal_rowsource* rasqal_new_execution_rowsource(rasqal_query_results* query_res
 rasqal_rowsource* rasqal_new_filter_rowsource(rasqal_query *query, rasqal_rowsource* rs, rasqal_expression* expr);
 
 /* rasqal_join_rowsource.c */
-rasqal_rowsource* rasqal_new_join_rowsource(rasqal_query* query, rasqal_rowsource* left, rasqal_rowsource* right);
+rasqal_rowsource* rasqal_new_join_rowsource(rasqal_query* query, rasqal_rowsource* left, rasqal_rowsource* right, int join_type, rasqal_expression *expr);
 
 /* rasqal_rowsource_project.c */
 rasqal_rowsource* rasqal_new_project_rowsource(rasqal_query *query, rasqal_rowsource* rowsource, raptor_sequence* projection_variables);
