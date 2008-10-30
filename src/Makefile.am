@@ -35,7 +35,8 @@ rasqal_decimal_test$(EXEEXT) rasqal_datetime_test$(EXEEXT)	\
 rasqal_variable_test$(EXEEXT) rasqal_rowsource_empty_test$(EXEEXT) \
 rasqal_rowsource_union_test$(EXEEXT) \
 rasqal_rowsource_rowsequence_test$(EXEEXT) \
-rasqal_rowsource_project_test$(EXEEXT)
+rasqal_rowsource_project_test$(EXEEXT) \
+rasqal_rowsource_join_test$(EXEEXT)
 
 local_tests=rasqal_query_test$(EXEEXT) \
 rasqal_rowsource_triples_test$(EXEEXT)
@@ -72,7 +73,7 @@ rasqal_rowsource_rowsequence.c rasqal_query_transform.c rasqal_row.c \
 rasqal_engine_algebra.c rasqal_triples_source.c \
 rasqal_rowsource_triples.c rasqal_rowsource_filter.c \
 rasqal_rowsource_sort.c rasqal_engine_sort.c \
-rasqal_rowsource_project.c
+rasqal_rowsource_project.c rasqal_rowsource_join.c
 
 if RASQAL_QUERY_RDQL
 librasqal_la_SOURCES += rdql_lexer.c rdql_lexer.h \
@@ -239,6 +240,10 @@ rasqal_rowsource_triples_test_LDADD = librasqal.la
 rasqal_rowsource_project_test_SOURCES = rasqal_rowsource_project.c
 rasqal_rowsource_project_test_CPPFLAGS = -DSTANDALONE
 rasqal_rowsource_project_test_LDADD = librasqal.la
+
+rasqal_rowsource_join_test_SOURCES = rasqal_rowsource_join.c
+rasqal_rowsource_join_test_CPPFLAGS = -DSTANDALONE
+rasqal_rowsource_join_test_LDADD = librasqal.la
 
 $(top_builddir)/../raptor/src/libraptor.la:
 	cd $(top_builddir)/../raptor/src && $(MAKE) $(AM_MAKEFLAGS) libraptor.la
