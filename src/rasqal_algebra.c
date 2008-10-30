@@ -296,6 +296,46 @@ rasqal_new_orderby_algebra_node(rasqal_query* query,
 
 
 /*
+ * rasqal_new_project_algebra_node:
+ * @query: #rasqal_query query object
+ * @node1: inner algebra node
+ * @vars_seq: sequence of variables
+ *
+ * INTERNAL - Create a new PROJECT algebra node for a sequence of variables over an inner node
+ * 
+ * The inputs @node and @seq become owned by the new node
+ *
+ * Return value: a new #rasqal_algebra_node object or NULL on failure
+ **/
+rasqal_algebra_node*
+rasqal_new_project_algebra_node(rasqal_query* query,
+                                rasqal_algebra_node* node1,
+                                raptor_sequence* vars_seq)
+{
+  rasqal_algebra_node* node;
+
+  if(!query || !node1 || !vars_seq)
+    goto fail;
+
+  node = rasqal_new_algebra_node(query, RASQAL_ALGEBRA_OPERATOR_PROJECT);
+  if(node) {
+    node->node1 = node1;
+    node->vars_seq = vars_seq;
+    
+    return node;
+  }
+
+  fail:
+  if(node1)
+    rasqal_free_algebra_node(node1);
+  if(vars_seq)
+    raptor_free_sequence(vars_seq);
+
+  return NULL;
+}
+
+
+/*
  * rasqal_free_algebra_node:
  * @gp: #rasqal_algebra_node object
  *
@@ -320,6 +360,9 @@ rasqal_free_algebra_node(rasqal_algebra_node* node)
 
   if(node->seq)
     raptor_free_sequence(node->seq);
+
+  if(node->vars_seq)
+    raptor_free_sequence(node->vars_seq);
 
   RASQAL_FREE(rasqal_algebra, node);
 }
@@ -476,6 +519,26 @@ rasqal_algebra_algebra_node_write_internal(rasqal_algebra_node *node,
       }
       raptor_iostream_write_counted_string(iostr, " ])", 3);
     }
+  }
+
+  if(node->vars_seq && node->op == RASQAL_ALGEBRA_OPERATOR_PROJECT) {
+    int vars_size = raptor_sequence_size(node->vars_seq);
+    int i;
+      
+    if(arg_count) {
+      raptor_iostream_write_counted_string(iostr, " ,\n", 3);
+      rasqal_algebra_write_indent(iostr, indent);
+    }
+    raptor_iostream_write_counted_string(iostr, "Variables([ ", 12);
+    for(i = 0; i < vars_size; i++) {
+      rasqal_variable* v;
+      v = (rasqal_variable*)raptor_sequence_get_at(node->vars_seq, i);
+      if(i > 0)
+        raptor_iostream_write_counted_string(iostr, ", ", 2);
+      rasqal_variable_write(v, iostr);
+      arg_count++;
+    }
+    raptor_iostream_write_counted_string(iostr, " ])", 3);
   }
 
   if(node->op == RASQAL_ALGEBRA_OPERATOR_SLICE) {
@@ -948,6 +1011,12 @@ rasqal_algebra_query_to_algebra(rasqal_query* query)
                             rasqal_algebra_remove_znodes,
                             &modified);
 
+#if RASQAL_DEBUG > 1
+  RASQAL_DEBUG2("modified=%d after remove zones, algebra node now:\n  ", modified);
+  rasqal_algebra_node_print(node, stderr);
+  fputs("\n", stderr);
+#endif
+
   if(query->order_conditions_sequence) {
     int order_size = raptor_sequence_size(query->order_conditions_sequence);
     if(order_size) {
@@ -971,13 +1040,43 @@ rasqal_algebra_query_to_algebra(rasqal_query* query)
       node = rasqal_new_orderby_algebra_node(query, node, seq);
       modified = 1;
     }
-  }
 
 #if RASQAL_DEBUG > 1
-  RASQAL_DEBUG2("modified=%d after remove zones, algebra ndoe now:\n  ", modified);
+  RASQAL_DEBUG2("modified=%d after adding orderby node, algebra node now:\n  ", modified);
   rasqal_algebra_node_print(node, stderr);
   fputs("\n", stderr);
 #endif
+
+  }
+
+
+  /* FIXME - do not always need a PROJECT node */
+  if(1) {
+    int vars_size = raptor_sequence_size(query->selects);
+    raptor_sequence* vars_seq;
+    int i;
+    
+    vars_seq = raptor_new_sequence(NULL, (raptor_sequence_print_handler*)rasqal_variable_print);
+    if(!vars_seq) {
+      rasqal_free_algebra_node(node);
+      return NULL;
+    }
+    for(i = 0; i < vars_size; i++) {
+      rasqal_variable* v;
+      v = (rasqal_variable*)raptor_sequence_get_at(query->selects, i);
+      raptor_sequence_push(vars_seq, rasqal_new_variable_from_variable(v));
+    }
+
+    node = rasqal_new_project_algebra_node(query, node, vars_seq);
+    modified = 1;
+
+#if RASQAL_DEBUG > 1
+  RASQAL_DEBUG2("modified=%d after adding project node, algebra node now:\n  ", modified);
+  rasqal_algebra_node_print(node, stderr);
+  fputs("\n", stderr);
+#endif
+  }
+
 
   return node;
 }
