@@ -136,12 +136,14 @@ rasqal_rowsequence_rowsource_read_row(rasqal_rowsource* rowsource,
   if(con->failed || con->offset < 0)
     return NULL;
 
-  row = (rasqal_row*)raptor_sequence_delete_at(con->seq, con->offset);
+  row = (rasqal_row*)raptor_sequence_get_at(con->seq, con->offset);
   if(!row) {
     /* finished */
     con->offset = -1;
-  } else
+  } else {
+    row = rasqal_new_row_from_row(row);
     con->offset++;
+  }
 
   return row;
 }
@@ -158,8 +160,16 @@ rasqal_rowsequence_rowsource_read_all_rows(rasqal_rowsource* rowsource,
   if(con->offset < 0)
     return NULL;
 
-  seq = con->seq;
-  con->seq = NULL;
+  seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_row,
+                            (raptor_sequence_print_handler*)rasqal_row_print);
+  if(seq) {
+    int i;
+    int size = raptor_sequence_size(con->seq);
+    for(i = 0; i < size; i++) {
+      rasqal_row *row = (rasqal_row*)raptor_sequence_get_at(con->seq, i);
+      raptor_sequence_push(seq, rasqal_new_row_from_row(row));
+    }
+  }
   
   return seq;
 }
@@ -176,6 +186,19 @@ rasqal_rowsequence_rowsource_get_query(rasqal_rowsource* rowsource,
 }
 
 
+static int
+rasqal_rowsequence_rowsource_reset(rasqal_rowsource* rowsource, void *user_data)
+{
+  rasqal_rowsequence_rowsource_context* con;
+
+  con = (rasqal_rowsequence_rowsource_context*)user_data;
+
+  con->offset = 0;
+
+  return 0;
+}
+
+
 static const rasqal_rowsource_handler rasqal_rowsequence_rowsource_handler = {
   /* .version = */ 1,
   "rowsequence",
@@ -184,7 +207,8 @@ static const rasqal_rowsource_handler rasqal_rowsequence_rowsource_handler = {
   /* .ensure_variables = */ rasqal_rowsequence_rowsource_ensure_variables,
   /* .read_row = */ rasqal_rowsequence_rowsource_read_row,
   /* .read_all_rows = */ rasqal_rowsequence_rowsource_read_all_rows,
-  /* .get_query = */ rasqal_rowsequence_rowsource_get_query
+  /* .get_query = */ rasqal_rowsequence_rowsource_get_query,
+  /* .reset = */ rasqal_rowsequence_rowsource_reset
 };
 
 
