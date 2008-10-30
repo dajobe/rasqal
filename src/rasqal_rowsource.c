@@ -455,7 +455,8 @@ rasqal_rowsource_reset(rasqal_rowsource* rowsource)
 
   if(rowsource->handler->reset)
     return rowsource->handler->reset(rowsource, rowsource->user_data);
-  return 1;
+
+  return 0;
 }
 
 
