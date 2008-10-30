@@ -438,6 +438,27 @@ rasqal_rowsource_print_row_sequence(rasqal_rowsource* rowsource,
   }
 }
 
+
+/**
+ * rasqal_rowsource_reset:
+ * @rowsource: rasqal rowsource
+ *
+ * INTERNAL - Reset a rowsource to regenerate the same set of rows
+ *
+ * Return value: query or NULL
+ **/
+int
+rasqal_rowsource_reset(rasqal_rowsource* rowsource)
+{
+  rowsource->finished = 0;
+  rowsource->count = 0;
+
+  if(rowsource->handler->reset)
+    return rowsource->handler->reset(rowsource, rowsource->user_data);
+  return 1;
+}
+
+
 #endif
 
 

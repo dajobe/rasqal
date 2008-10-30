@@ -483,8 +483,8 @@ rasqal_rowsource* rasqal_new_execution_rowsource(rasqal_query_results* query_res
 /* rasqal_filter_rowsource.c */
 rasqal_rowsource* rasqal_new_filter_rowsource(rasqal_query *query, rasqal_rowsource* rs, rasqal_expression* expr);
 
-/* rasqal_leftjoin_rowsource.c */
-rasqal_rowsource* rasqal_new_leftjoin_rowsource(rasqal_query* query, rasqal_query_results* results, rasqal_rowsource* left, rasqal_rowsource* right);
+/* rasqal_join_rowsource.c */
+rasqal_rowsource* rasqal_new_join_rowsource(rasqal_query* query, rasqal_rowsource* left, rasqal_rowsource* right);
 
 /* rasqal_rowsource_project.c */
 rasqal_rowsource* rasqal_new_project_rowsource(rasqal_query *query, rasqal_rowsource* rowsource, raptor_sequence* projection_variables);
@@ -566,6 +566,17 @@ typedef rasqal_query* (*rasqal_rowsource_get_query_func) (rasqal_rowsource* rows
 
 
 /**
+ * rasqal_rowsource_reset_func
+ * @user_data: user data
+ *
+ * Handler function for resetting a rowsource to generate the same set of rows
+ *
+ * Return value: non-0 on failure
+ */
+typedef int (*rasqal_rowsource_reset_func) (rasqal_rowsource* rowsource, void *user_data);
+
+
+/**
  * rasqal_rowsource_handler:
  * @version: API version - 1
  * @name: rowsource name for debugging
@@ -587,6 +598,7 @@ typedef struct {
   rasqal_rowsource_read_row_func         read_row;
   rasqal_rowsource_read_all_rows_func    read_all_rows;
   rasqal_rowsource_get_query_func        get_query;
+  rasqal_rowsource_reset_func            reset;
 } rasqal_rowsource_handler;
 
 
@@ -664,6 +676,7 @@ rasqal_variable* rasqal_rowsource_get_variable_by_offset(rasqal_rowsource *rowso
 int rasqal_rowsource_get_variable_offset_by_name(rasqal_rowsource *rowsource, const unsigned char* name);
 void rasqal_rowsource_copy_variables(rasqal_rowsource *dest_rowsource, rasqal_rowsource *src_rowsource);
 void rasqal_rowsource_print_row_sequence(rasqal_rowsource* rowsource,raptor_sequence* seq, FILE* fh);
+int rasqal_rowsource_reset(rasqal_rowsource* rowsource);
 
 typedef int (*rasqal_query_results_formatter_func)(raptor_iostream *iostr, rasqal_query_results* results, raptor_uri *base_uri);
 
