@@ -103,6 +103,7 @@ rasqal_union_rowsource_ensure_variables(rasqal_rowsource* rowsource,
                                         void *user_data)
 {
   rasqal_union_rowsource_context* con;
+  int map_size;
   int i;
   
   con = (rasqal_union_rowsource_context*)user_data;
@@ -113,8 +114,8 @@ rasqal_union_rowsource_ensure_variables(rasqal_rowsource* rowsource,
   if(rasqal_rowsource_ensure_variables(con->right))
     return 1;
 
-  con->right_map = (int*)RASQAL_MALLOC(int,
-                                       rasqal_rowsource_get_size(con->right));
+  map_size = rasqal_rowsource_get_size(con->right);
+  con->right_map = (int*)RASQAL_MALLOC(int, sizeof(int) * map_size);
   if(!con->right_map)
     return 1;
 
@@ -124,7 +125,7 @@ rasqal_union_rowsource_ensure_variables(rasqal_rowsource* rowsource,
   rasqal_rowsource_copy_variables(rowsource, con->left);
   
   /* add any new variables not already seen from right rowsource */
-  for(i = 0; 1; i++) {
+  for(i = 0; i < map_size; i++) {
     rasqal_variable* v;
     int offset;
     
