@@ -94,7 +94,6 @@ rasqal_project_rowsource_ensure_variables(rasqal_rowsource* rowsource,
     return 1;
   
   for(i = 0; i <= size; i++) {
-    const unsigned char* name;
     rasqal_variable* v;
     int offset;
     
@@ -103,10 +102,11 @@ rasqal_project_rowsource_ensure_variables(rasqal_rowsource* rowsource,
       break;
     offset = rasqal_rowsource_get_variable_offset_by_name(con->rowsource, 
                                                           v->name);
-    if(offset < 0) {
-      RASQAL_DEBUG2("Variable %s could not be projected - not in input rowsource", name);
-      return 1;
-    }
+#ifdef RASQAL_DEBUG
+    if(offset < 0)
+      RASQAL_DEBUG2("Variable %s is in projection but not in input rowsource\n",
+                    v->name);
+#endif
 
     rasqal_rowsource_add_variable(rowsource, v);
     con->projection[i] = offset;
@@ -156,7 +156,9 @@ rasqal_project_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
       nrow->offset = row->offset;
       
       for(i = 0; i < rowsource->size; i++) {
-        nrow->values[i] = rasqal_new_literal_from_literal(row->values[con->projection[i]]);
+        int offset = con->projection[i];
+        if(offset >= 0)
+          nrow->values[i] = rasqal_new_literal_from_literal(row->values[offset]);
       }
       rasqal_free_row(row);
       row = nrow;
