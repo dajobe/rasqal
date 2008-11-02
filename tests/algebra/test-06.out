@@ -1,15 +1,18 @@
-LeftJoin(
-         LeftJoin(
-                  BGP(
-                      triple(variable(s), uri<http://example.org#p1>, variable(v1))
-                  ) ,
-                  BGP(
-                      triple(variable(s), uri<http://example.org#p2>, variable(v2))
-                  ) ,
-                  expr(boolean(true))
-         ) ,
-         BGP(
-             triple(variable(s), uri<http://example.org#p3>, variable(v3))
-         ) ,
-         expr(boolean(true))
+Project(
+        LeftJoin(
+                 LeftJoin(
+                          BGP(
+                              triple(variable(s), uri<http://example.org#p1>, variable(v1))
+                          ) ,
+                          BGP(
+                              triple(variable(s), uri<http://example.org#p2>, variable(v2))
+                          ) ,
+                          expr(boolean(true))
+                 ) ,
+                 BGP(
+                     triple(variable(s), uri<http://example.org#p3>, variable(v3))
+                 ) ,
+                 expr(boolean(true))
+        ) ,
+        Variables([ variable(s), variable(v1), variable(v2), variable(v3) ])
 )

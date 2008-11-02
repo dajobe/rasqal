@@ -1,3 +1,6 @@
-BGP(
-    triple(variable(s), variable(p), variable(o))
+Project(
+        BGP(
+            triple(variable(s), variable(p), variable(o))
+        ) ,
+        Variables([ variable(s), variable(p), variable(o) ])
 )
