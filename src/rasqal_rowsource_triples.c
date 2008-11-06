@@ -331,7 +331,8 @@ rasqal_triples_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
 #ifdef RASQAL_DEBUG
   /* Count actual bound values */
   for(i = 0; i < con->size; i++) {
-    rasqal_variable* v = rasqal_variables_table_get(query->vars_table, i);
+    rasqal_variable* v;
+    v = rasqal_rowsource_get_variable_by_offset(rowsource, i);
     if(v->value)
       values_returned++;
   }
@@ -344,7 +345,13 @@ rasqal_triples_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
     goto done;
   }
 
-  rasqal_row_set_values_from_variables_table(row, query->vars_table);
+  for(i = 0; i < row->size; i++) {
+    rasqal_variable* v;
+    v = rasqal_rowsource_get_variable_by_offset(rowsource, i);
+    if(row->values[i])
+      rasqal_free_literal(row->values[i]);
+    row->values[i] = rasqal_new_literal_from_literal(v->value);
+  }
 
   row->offset = con->offset++;
 
