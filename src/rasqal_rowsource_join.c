@@ -100,8 +100,7 @@ rasqal_join_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
     int bresult;
     
     query = con->query;
-    result = rasqal_expression_evaluate(query, con->expr,
-uery->compare_flags);
+    result = rasqal_expression_evaluate(query, con->expr, query->compare_flags);
 
 #ifdef RASQAL_DEBUG
     RASQAL_DEBUG1("join expression condition is constant: ");
@@ -120,8 +119,7 @@ uery->compare_flags);
         RASQAL_DEBUG1("join boolean expression returned error\n");
 #ifdef RASQAL_DEBUG
       else
-        RASQAL_DEBUG2("join boolean expression result: %d\n",
-result);
+        RASQAL_DEBUG2("join boolean expression result: %d\n", bresult);
 #endif
       rasqal_free_literal(result);
     }
