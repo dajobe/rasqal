@@ -75,8 +75,6 @@ typedef struct
   /* number of variables used in variables table  */
   int size;
   
-  int new_bindings_count;
-
 } rasqal_triples_rowsource_context;
 
 
@@ -202,8 +200,6 @@ rasqal_triples_rowsource_get_next_row(rasqal_rowsource* rowsource,
   rasqal_query *query = con->query;
   rasqal_engine_error error = RASQAL_ENGINE_OK;
   
-  con->new_bindings_count = 0;
-
   while(con->column >= con->start_column) {
     rasqal_triple_meta *m;
     rasqal_triple *t;
@@ -267,16 +263,11 @@ rasqal_triples_rowsource_get_next_row(rasqal_rowsource* rowsource,
 
 
       if(rasqal_triples_match_is_end(m->triples_match)) {
-        int resets = 0;
-
         RASQAL_DEBUG2("end of pattern triples match for column %d\n",
                       con->column);
         m->executed = 1;
 
-        resets = rasqal_reset_triple_meta(m);
-        con->new_bindings_count -= resets;
-        if(con->new_bindings_count < 0)
-          con->new_bindings_count = 0;
+        rasqal_reset_triple_meta(m);
 
         con->column--;
         continue;
@@ -289,14 +280,6 @@ rasqal_triples_rowsource_get_next_row(rasqal_rowsource* rowsource,
                       con->column, parts);
         if(!parts)
           error = RASQAL_ENGINE_FINISHED;
-        if(parts & RASQAL_TRIPLE_SUBJECT)
-          con->new_bindings_count++;
-        if(parts & RASQAL_TRIPLE_PREDICATE)
-          con->new_bindings_count++;
-        if(parts & RASQAL_TRIPLE_OBJECT)
-          con->new_bindings_count++;
-        if(parts & RASQAL_TRIPLE_ORIGIN)
-          con->new_bindings_count++;
       } else {
         RASQAL_DEBUG2("Nothing to bind_match for column %d\n", con->column);
       }
@@ -416,13 +399,9 @@ rasqal_triples_rowsource_reset(rasqal_rowsource* rowsource, void *user_data)
   con->column = con->start_column;
   for(column = con->start_column; column <= con->end_column; column++) {
     rasqal_triple_meta *m;
-    int resets;
     
     m = &con->triple_meta[column - con->start_column];
-    resets = rasqal_reset_triple_meta(m);
-    con->new_bindings_count -= resets;
-    if(con->new_bindings_count < 0)
-      con->new_bindings_count = 0;
+    rasqal_reset_triple_meta(m);
   }
 
   return 0;
