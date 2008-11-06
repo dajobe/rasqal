@@ -94,6 +94,51 @@ rasqal_join_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
 
   con->state = INIT_RIGHT;
 
+  if(con->expr && rasqal_expression_is_constant(con->expr)) {
+    rasqal_query *query;
+    rasqal_literal* result;
+    int bresult;
+    
+    query = con->query;
+    result = rasqal_expression_evaluate(query, con->expr,
+uery->compare_flags);
+
+#ifdef RASQAL_DEBUG
+    RASQAL_DEBUG1("join expression condition is constant: ");
+    if(!result)
+      fputs("type error", DEBUG_FH);
+    else
+      rasqal_literal_print(result, DEBUG_FH);
+    fputc('\n', DEBUG_FH);
+#endif
+    if(!result) {
+      bresult = 0;
+    } else {
+      int error = 0;
+      bresult = rasqal_literal_as_boolean(result, &error);
+      if(error)
+        RASQAL_DEBUG1("join boolean expression returned error\n");
+#ifdef RASQAL_DEBUG
+      else
+        RASQAL_DEBUG2("join boolean expression result: %d\n",
+result);
+#endif
+      rasqal_free_literal(result);
+    }
+
+    /* free expression always */
+    rasqal_free_expression(con->expr); con->expr = NULL;
+
+    if(!bresult) {
+      /* Constraint is always false so row source is finished */
+      con->state = 2;
+    }
+    /* otherwise always true so no need to evaluate on each row
+     * and deleting con->expr will handle that
+     */
+
+  }
+
   return 0;
 }
 
