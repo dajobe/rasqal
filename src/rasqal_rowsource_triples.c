@@ -345,10 +345,7 @@ rasqal_triples_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
 {
   rasqal_query *query;
   rasqal_triples_rowsource_context *con;
-#ifdef RASQAL_DEBUG
-  int values_returned = 0;
   int i;
-#endif
   rasqal_row* row = NULL;
   rasqal_engine_error error = RASQAL_ENGINE_OK;
   
@@ -362,14 +359,17 @@ rasqal_triples_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
     goto done;
 
 #ifdef RASQAL_DEBUG
-  /* Count actual bound values */
-  for(i = 0; i < con->size; i++) {
-    rasqal_variable* v;
-    v = rasqal_rowsource_get_variable_by_offset(rowsource, i);
-    if(v->value)
-      values_returned++;
+  if(1) {
+    int values_returned = 0;
+    /* Count actual bound values */
+    for(i = 0; i < con->size; i++) {
+      rasqal_variable* v;
+      v = rasqal_rowsource_get_variable_by_offset(rowsource, i);
+      if(v->value)
+        values_returned++;
+    }
+    RASQAL_DEBUG2("Solution binds %d values\n", values_returned);
   }
-  RASQAL_DEBUG2("Solution binds %d values\n", values_returned);
 #endif
 
   row = rasqal_new_row(rowsource);
