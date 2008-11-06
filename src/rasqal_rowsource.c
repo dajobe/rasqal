@@ -216,6 +216,15 @@ rasqal_rowsource_read_row(rasqal_rowsource *rowsource)
   else
     rowsource->count++;
 
+#ifdef RASQAL_DEBUG
+  RASQAL_DEBUG1("read row : ");
+  if(row)
+    rasqal_row_print(row, stderr);
+  else
+    fputs("NONE", stderr);
+  fputs("\n", stderr);
+#endif
+
   return row;
 }
 
