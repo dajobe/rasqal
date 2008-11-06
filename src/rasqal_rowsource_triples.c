@@ -78,6 +78,8 @@ typedef struct
   /* declared in array index[index into vars table] = column */
   int *declared_in;
 
+  /* preserve bindings when all rows are finished - for optional mostly */
+  int preserve_on_all_finished;
 } rasqal_triples_rowsource_context;
 
 
@@ -176,8 +178,16 @@ static int
 rasqal_triples_rowsource_finish(rasqal_rowsource* rowsource, void *user_data)
 {
   rasqal_triples_rowsource_context *con;
+  int i;
+  
   con = (rasqal_triples_rowsource_context*)user_data;
 
+  for(i = con->start_column; i <= con->end_column; i++) {
+    rasqal_triple_meta *m;
+    m = &con->triple_meta[i - con->start_column];
+    rasqal_reset_triple_meta(m);
+  }
+  
   if(con->triple_meta)
     RASQAL_FREE(rasqal_triple_meta, con->triple_meta);
 
@@ -260,6 +270,29 @@ rasqal_triples_rowsource_get_next_row(rasqal_rowsource* rowsource,
         RASQAL_DEBUG2("end of pattern triples match for column %d\n",
                       con->column);
         m->executed = 1;
+
+        if(con->preserve_on_all_finished && 
+           con->column == con->end_column) {
+          int is_finished = 1;
+          int i;
+          
+          RASQAL_DEBUG1("CHECKING ALL TRIPLE PATTERNS FINISHED\n");
+
+          for(i = con->start_column; i < con->end_column; i++) {
+            rasqal_triple_meta *m2;
+            m2 = &con->triple_meta[con->column - con->start_column];
+            if(!rasqal_triples_match_is_end(m2->triples_match)) {
+              is_finished = 0;
+              break;
+            }
+          }
+          if(is_finished) {
+            RASQAL_DEBUG1("end of all pattern triples matches\n");
+            con->column--;
+            error = RASQAL_ENGINE_FINISHED;
+            goto done;
+          }
+        }
 
         rasqal_reset_triple_meta(m);
 
@@ -409,6 +442,19 @@ rasqal_triples_rowsource_reset(rasqal_rowsource* rowsource, void *user_data)
 }
 
 
+static int
+rasqal_triples_rowsource_set_preserve(rasqal_rowsource* rowsource,
+                                      void *user_data, int preserve)
+{
+  rasqal_triples_rowsource_context *con;
+
+  con = (rasqal_triples_rowsource_context*)user_data;
+  con->preserve_on_all_finished = preserve;
+
+  return 0;
+}
+
+
 static const rasqal_rowsource_handler rasqal_triples_rowsource_handler = {
   /* .version = */ 1,
   "triple pattern",
@@ -418,7 +464,8 @@ static const rasqal_rowsource_handler rasqal_triples_rowsource_handler = {
   /* .read_row = */ rasqal_triples_rowsource_read_row,
   /* .read_all_rows = */ rasqal_triples_rowsource_read_all_rows,
   /* .get_query = */ rasqal_triples_rowsource_get_query,
-  /* .reset = */ rasqal_triples_rowsource_reset
+  /* .reset = */ rasqal_triples_rowsource_reset,
+  /* .set_preserve = */ rasqal_triples_rowsource_set_preserve
 };
 
 

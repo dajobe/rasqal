@@ -137,6 +137,9 @@ rasqal_join_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
 
   }
 
+  rasqal_rowsource_set_preserve(con->left, 1);
+  rasqal_rowsource_set_preserve(con->right, 1);
+  
   return 0;
 }
 
@@ -385,6 +388,23 @@ rasqal_join_rowsource_reset(rasqal_rowsource* rowsource, void *user_data)
 }
 
 
+static int
+rasqal_join_rowsource_set_preserve(rasqal_rowsource* rowsource,
+                                   void *user_data, int preserve)
+{
+  rasqal_join_rowsource_context *con;
+  int rc;
+
+  con = (rasqal_join_rowsource_context*)user_data;
+
+  rc = rasqal_rowsource_set_preserve(con->left, preserve);
+  if(rc)
+    return rc;
+
+  return rasqal_rowsource_set_preserve(con->right, preserve);
+}
+
+
 static const rasqal_rowsource_handler rasqal_join_rowsource_handler = {
   /* .version = */ 1,
   "join",
@@ -394,7 +414,8 @@ static const rasqal_rowsource_handler rasqal_join_rowsource_handler = {
   /* .read_row = */ rasqal_join_rowsource_read_row,
   /* .read_all_rows = */ NULL,
   /* .get_query = */ rasqal_join_rowsource_get_query,
-  /* .reset = */ rasqal_join_rowsource_reset
+  /* .reset = */ rasqal_join_rowsource_reset,
+  /* .set_preserve = */ rasqal_join_rowsource_set_preserve
 };
 
 

@@ -188,6 +188,17 @@ rasqal_project_rowsource_reset(rasqal_rowsource* rowsource, void *user_data)
 }
 
 
+static int
+rasqal_project_rowsource_set_preserve(rasqal_rowsource* rowsource,
+                                      void *user_data, int preserve)
+{
+  rasqal_project_rowsource_context *con;
+  con = (rasqal_project_rowsource_context*)user_data;
+
+  return rasqal_rowsource_set_preserve(con->rowsource, preserve);
+}
+
+
 static const rasqal_rowsource_handler rasqal_project_rowsource_handler = {
   /* .version =          */ 1,
   "project",
@@ -197,7 +208,8 @@ static const rasqal_rowsource_handler rasqal_project_rowsource_handler = {
   /* .read_row =         */ rasqal_project_rowsource_read_row,
   /* .read_all_rows =    */ NULL,
   /* .get_query =        */ rasqal_project_rowsource_get_query,
-  /* .reset =           */ rasqal_project_rowsource_reset
+  /* .reset =            */ rasqal_project_rowsource_reset,
+  /* .set_preserve =     */ rasqal_project_rowsource_set_preserve
 };
 
 

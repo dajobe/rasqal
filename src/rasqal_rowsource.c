@@ -469,6 +469,17 @@ rasqal_rowsource_reset(rasqal_rowsource* rowsource)
 }
 
 
+int
+rasqal_rowsource_set_preserve(rasqal_rowsource* rowsource, int preserve)
+{
+  if(rowsource->handler->set_preserve)
+    return rowsource->handler->set_preserve(rowsource,
+                                            rowsource->user_data, preserve);
+
+  return 0;
+}
+
+
 #endif
 
 

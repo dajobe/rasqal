@@ -577,6 +577,17 @@ typedef int (*rasqal_rowsource_reset_func) (rasqal_rowsource* rowsource, void *u
 
 
 /**
+ * rasqal_rowsource_set_preserve_func
+ * @user_data: user data
+ * @preserve: flag
+ *
+ * Handler function for setting preserve binding states on a rowsource
+ *
+ * Return value: non-0 on failure
+ */
+typedef int (*rasqal_rowsource_set_preserve_func) (rasqal_rowsource* rowsource, void *user_data, int preserve);
+
+/**
  * rasqal_rowsource_handler:
  * @version: API version - 1
  * @name: rowsource name for debugging
@@ -599,6 +610,7 @@ typedef struct {
   rasqal_rowsource_read_all_rows_func    read_all_rows;
   rasqal_rowsource_get_query_func        get_query;
   rasqal_rowsource_reset_func            reset;
+  rasqal_rowsource_set_preserve_func     set_preserve;
 } rasqal_rowsource_handler;
 
 
@@ -1160,6 +1172,8 @@ int rasqal_engine_rowsort_calculate_order_values(rasqal_query* query, rasqal_row
 /* New query engine based on executing over query algebra */
 extern const rasqal_query_execution_factory rasqal_query_engine_algebra;
   
+
+int rasqal_rowsource_set_preserve(rasqal_rowsource* rowsource, int preserve);
 
 /* end of RASQAL_INTERNAL */
 #endif
