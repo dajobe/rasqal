@@ -75,6 +75,9 @@ typedef struct
   /* number of variables used in variables table  */
   int size;
   
+  /* declared in array index[index into vars table] = column */
+  int *declared_in;
+
 } rasqal_triples_rowsource_context;
 
 
@@ -93,15 +96,8 @@ rasqal_triples_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
   query = con->query;
 
   size = rasqal_variables_table_get_named_variables_count(rowsource->vars_table);
-  declared_in = rasqal_query_triples_build_declared_in(con->query,
-                                                       size,
-                                                       con->start_column,
-                                                       con->end_column);
-  if(!declared_in) {
-    rc = 1;
-    goto done;
-  }
-
+  declared_in = con->declared_in;
+  
   /* Construct the ordered projection of the variables set by these triples */
   for(i = 0; i < size; i++) {
     column = declared_in[i];
@@ -156,10 +152,6 @@ rasqal_triples_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
       m->is_exact = 0;
 
   }
-
-  done:
-  if(declared_in)
-    RASQAL_FREE(intarray, declared_in);
   
   return rc;
 }
@@ -425,7 +417,8 @@ rasqal_rowsource*
 rasqal_new_triples_rowsource(rasqal_query *query,
                              rasqal_triples_source* triples_source,
                              raptor_sequence* triples,
-                             int start_column, int end_column)
+                             int start_column, int end_column,
+                             int *declared_in)
 {
   rasqal_triples_rowsource_context *con;
   int flags = 0;
@@ -443,6 +436,7 @@ rasqal_new_triples_rowsource(rasqal_query *query,
   con->start_column = start_column;
   con->end_column = end_column;
   con->column = -1;
+  con->declared_in = declared_in;
 
   if(query->constructs)
     con->size = rasqal_variables_table_get_named_variables_count(query->vars_table);
@@ -507,6 +501,8 @@ main(int argc, char *argv[])
 #define OBJECT_STRING "object"
   raptor_uri* s_uri = NULL;
   raptor_uri* p_uri = NULL;
+  int size;
+  int *declared_in;
   
   if(argc != 2) {
     fprintf(stderr, "USAGE: %s data-filename\n", program);
@@ -560,8 +556,19 @@ main(int argc, char *argv[])
 
   triples_source = rasqal_new_triples_source(query);
   
+  size = rasqal_variables_table_get_named_variables_count(query->vars_table);
+  declared_in = rasqal_query_triples_build_declared_in(query, size,
+                                                       start_column,
+                                                       end_column);
+  if(!declared_in) {
+    fprintf(stderr, "%s: failed to create declared_in\n", program);
+    failures++;
+    goto tidy;
+  }
+
   rowsource = rasqal_new_triples_rowsource(query, triples_source,
-                                           triples, start_column, end_column);
+                                           triples, start_column, end_column,
+                                           declared_in);
   if(!rowsource) {
     fprintf(stderr, "%s: failed to create triples rowsource\n", program);
     failures++;
@@ -659,6 +666,8 @@ main(int argc, char *argv[])
     raptor_free_uri(p_uri);
 #endif
 
+  if(declared_in)
+    RASQAL_FREE(intarray, declared_in);
   if(triples_source)
     rasqal_free_triples_source(triples_source);
   if(rowsource)
