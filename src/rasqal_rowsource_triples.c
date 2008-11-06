@@ -99,12 +99,14 @@ rasqal_triples_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
   declared_in = con->declared_in;
   
   /* Construct the ordered projection of the variables set by these triples */
+  con->size = 0;
   for(i = 0; i < size; i++) {
     column = declared_in[i];
-    if(column >= 0) {
+    if(column >= con->start_column && column <= con->end_column) {
       rasqal_variable *v;
       v = rasqal_variables_table_get(rowsource->vars_table, i);
       raptor_sequence_push(rowsource->variables_sequence, v);
+      con->size++;
     }
   }
 
@@ -321,7 +323,7 @@ rasqal_triples_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
   query = con->query;
 
   error = rasqal_triples_rowsource_get_next_row(rowsource, con);
-  RASQAL_DEBUG2("NEXT_ROW() returned %d\n", error);
+  RASQAL_DEBUG2("rasqal_triples_rowsource_get_next_row() returned %d\n", error);
 
   if(error != RASQAL_ENGINE_OK)
     goto done;
@@ -437,11 +439,6 @@ rasqal_new_triples_rowsource(rasqal_query *query,
   con->end_column = end_column;
   con->column = -1;
   con->declared_in = declared_in;
-
-  if(query->constructs)
-    con->size = rasqal_variables_table_get_named_variables_count(query->vars_table);
-  else
-    con->size = query->select_variables_count;
 
   con->triples_count = con->end_column - con->start_column + 1;
 
