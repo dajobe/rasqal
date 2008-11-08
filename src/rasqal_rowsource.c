@@ -220,7 +220,9 @@ rasqal_rowsource_read_row(rasqal_rowsource *rowsource)
     }
 
     if(rowsource->rows_sequence)
-      row = raptor_sequence_get_at(rowsource->rows_sequence, rowsource->offset++);
+      /* remove and return row from sequence at offset */
+      row = raptor_sequence_delete_at(rowsource->rows_sequence,
+                                      rowsource->offset++);
   }
   
   if(!row)
