@@ -126,6 +126,9 @@ rasqal_free_rowsource(rasqal_rowsource *rowsource)
   if(rowsource->variables_sequence)
     raptor_free_sequence(rowsource->variables_sequence);
 
+  if(rowsource->rows_sequence)
+    raptor_free_sequence(rowsource->rows_sequence);
+
   RASQAL_FREE(rasqal_rowsource, rowsource);
 }
 
@@ -210,7 +213,16 @@ rasqal_rowsource_read_row(rasqal_rowsource *rowsource)
 
   if(rowsource->handler->read_row)
     row = rowsource->handler->read_row(rowsource, rowsource->user_data);
+  else {
+    if(!rowsource->rows_sequence) {
+      rowsource->rows_sequence = rasqal_rowsource_read_all_rows(rowsource);
+      rowsource->offset = 0;
+    }
 
+    if(rowsource->rows_sequence)
+      row = raptor_sequence_get_at(rowsource->rows_sequence, rowsource->offset++);
+  }
+  
   if(!row)
     rowsource->finished = 1;
   else

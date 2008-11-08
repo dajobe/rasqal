@@ -672,6 +672,10 @@ struct rasqal_rowsource_s
   raptor_sequence* variables_sequence;
   
   int size;
+
+  /* stored sequence of rows for us by rasqal_rowsource_read_row() */
+  raptor_sequence* rows_sequence;
+  int offset;
 };
 
 /* rasqal_rowsource.c */
