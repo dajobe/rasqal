@@ -249,7 +249,7 @@ rasqal_triples_rowsource_get_next_row(rasqal_rowsource* rowsource,
                                                     con->triples_source,
                                                     m, t);
         if(!m->triples_match) {
-          rasqal_log_error_simple(query->world, RAPTOR_LOG_LEVEL_ERROR,
+          rasqal_log_error_simple(rowsource->world, RAPTOR_LOG_LEVEL_ERROR,
                                   &query->locator,
                                   "Failed to make a triple match for column%d",
                                   con->column);
