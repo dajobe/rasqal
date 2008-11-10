@@ -625,6 +625,8 @@ typedef struct {
  * @vars_table: variables table where variables used in this row are declared/owned
  * @variables_sequence: variables declared in this row from @vars_table
  * @size: number of variables in @variables_sequence
+ * @rows_sequence: stored sequence of rows for use by rasqal_rowsource_read_row() (or NULL)
+ * @offset: size of @rows_sequence
  *
  * Rasqal Row Source class providing a sequence of rows of values similar to a SQL table.
  *
@@ -652,6 +654,10 @@ typedef struct {
  * rasqal_rowsource_get_variable_offset_by_name() which all are
  * offsets into @variables_sequence but refer to variables owned by
  * the full internal variables table @vars_table
+ *
+ * The @rows_sequence and @offset variables are used by the
+ * rasqal_rowsource_read_row() function when operating over a handler
+ * that will only return a full sequence: handler->read_all_rows is NULL.
  */
 struct rasqal_rowsource_s
 {
@@ -673,8 +679,8 @@ struct rasqal_rowsource_s
   
   int size;
 
-  /* stored sequence of rows for us by rasqal_rowsource_read_row() */
   raptor_sequence* rows_sequence;
+
   int offset;
 };
 
