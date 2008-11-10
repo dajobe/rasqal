@@ -45,7 +45,7 @@
 
 typedef struct 
 {
-  rasqal_query* query;
+  void* undefined;
 } rasqal_empty_rowsource_context;
 
 
@@ -76,15 +76,6 @@ rasqal_empty_rowsource_read_all_rows(rasqal_rowsource* rowsource,
   return NULL;
 }
 
-static rasqal_query*
-rasqal_empty_rowsource_get_query(rasqal_rowsource* rowsource, void *user_data)
-{
-  rasqal_empty_rowsource_context* con;
-  con = (rasqal_empty_rowsource_context*)user_data;
-  return con->query;
-}
-
-
 static const rasqal_rowsource_handler rasqal_empty_rowsource_handler = {
   /* .version = */ 1,
   "empty",
@@ -93,7 +84,6 @@ static const rasqal_rowsource_handler rasqal_empty_rowsource_handler = {
   /* .ensure_variables = */ NULL,
   /* .read_row = */ rasqal_empty_rowsource_read_row,
   /* .read_all_rows = */ rasqal_empty_rowsource_read_all_rows,
-  /* .get_query = */ rasqal_empty_rowsource_get_query,
   /* .reset = */ NULL
 };
 
@@ -111,8 +101,8 @@ rasqal_new_empty_rowsource(rasqal_query* query)
   if(!con)
     return NULL;
 
-  con->query = query;
-  return rasqal_new_rowsource_from_handler(con,
+  return rasqal_new_rowsource_from_handler(query,
+                                           con,
                                            &rasqal_empty_rowsource_handler,
                                            query->vars_table,
                                            flags);

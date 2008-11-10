@@ -48,8 +48,6 @@
 
 typedef struct 
 {
-  rasqal_query *query;
-
   /* inner rowsource to project */
   rasqal_rowsource *rowsource;
 
@@ -169,15 +167,6 @@ rasqal_project_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
 }
 
 
-static rasqal_query*
-rasqal_project_rowsource_get_query(rasqal_rowsource* rowsource, void *user_data)
-{
-  rasqal_project_rowsource_context *con;
-  con = (rasqal_project_rowsource_context*)user_data;
-  return con->query;
-}
-
-
 static int
 rasqal_project_rowsource_reset(rasqal_rowsource* rowsource, void *user_data)
 {
@@ -207,7 +196,6 @@ static const rasqal_rowsource_handler rasqal_project_rowsource_handler = {
   /* .ensure_variables = */ rasqal_project_rowsource_ensure_variables,
   /* .read_row =         */ rasqal_project_rowsource_read_row,
   /* .read_all_rows =    */ NULL,
-  /* .get_query =        */ rasqal_project_rowsource_get_query,
   /* .reset =            */ rasqal_project_rowsource_reset,
   /* .set_preserve =     */ rasqal_project_rowsource_set_preserve
 };
@@ -228,11 +216,11 @@ rasqal_new_project_rowsource(rasqal_query *query,
   if(!con)
     return NULL;
 
-  con->query = query;
   con->rowsource = rowsource;
   con->projection_variables = projection_variables;
 
-  return rasqal_new_rowsource_from_handler(con,
+  return rasqal_new_rowsource_from_handler(query,
+                                           con,
                                            &rasqal_project_rowsource_handler,
                                            query->vars_table,
                                            flags);

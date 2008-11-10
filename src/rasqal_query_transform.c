@@ -974,6 +974,7 @@ static int
 rasqal_expression_foreach_fold(void *user_data, rasqal_expression *e)
 {
   struct folding_state *st = (struct folding_state*)user_data;
+  rasqal_query* query;  
   rasqal_literal* l;
 
   /* skip if already a  literal or this expression tree is not constant */
@@ -986,7 +987,9 @@ rasqal_expression_foreach_fold(void *user_data, rasqal_expression *e)
   fprintf(DEBUG_FH, "\n");
 #endif
   
-  l = rasqal_expression_evaluate(st->query, e, st->query->compare_flags);
+  query = st->query;
+  l = rasqal_expression_evaluate_v2(query->world, &query->locator,
+                                    e, query->compare_flags);
   if(!l) {
     st->failed++;
     return 1;

@@ -47,8 +47,6 @@
 
 typedef struct 
 {
-  rasqal_query* query;
-
   rasqal_rowsource* left;
   rasqal_rowsource* right;
 
@@ -270,15 +268,6 @@ rasqal_union_rowsource_read_all_rows(rasqal_rowsource* rowsource,
 }
 
 
-static rasqal_query*
-rasqal_union_rowsource_get_query(rasqal_rowsource* rowsource, void *user_data)
-{
-  rasqal_union_rowsource_context* con;
-  con = (rasqal_union_rowsource_context*)user_data;
-  return con->query;
-}
-
-
 static int
 rasqal_union_rowsource_reset(rasqal_rowsource* rowsource, void *user_data)
 {
@@ -326,7 +315,6 @@ static const rasqal_rowsource_handler rasqal_union_rowsource_handler = {
   /* .ensure_variables = */ rasqal_union_rowsource_ensure_variables,
   /* .read_row = */ rasqal_union_rowsource_read_row,
   /* .read_all_rows = */ rasqal_union_rowsource_read_all_rows,
-  /* .get_query = */ rasqal_union_rowsource_get_query,
   /* .reset = */ rasqal_union_rowsource_reset,
   /* .set_preserve = */ rasqal_union_rowsource_set_preserve
 };
@@ -362,11 +350,11 @@ rasqal_new_union_rowsource(rasqal_query* query,
   if(!con)
     return NULL;
 
-  con->query = query;
   con->left = left;
   con->right = right;
   
-  return rasqal_new_rowsource_from_handler(con,
+  return rasqal_new_rowsource_from_handler(query,
+                                           con,
                                            &rasqal_union_rowsource_handler,
                                            query->vars_table,
                                            flags);

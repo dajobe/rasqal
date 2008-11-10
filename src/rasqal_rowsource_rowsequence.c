@@ -45,8 +45,6 @@
 
 typedef struct 
 {
-  rasqal_query* query;
-
   raptor_sequence* seq;
 
   /* variables for this rowsource */
@@ -175,17 +173,6 @@ rasqal_rowsequence_rowsource_read_all_rows(rasqal_rowsource* rowsource,
 }
 
 
-static rasqal_query*
-rasqal_rowsequence_rowsource_get_query(rasqal_rowsource* rowsource,
-                                       void *user_data)
-{
-  rasqal_rowsequence_rowsource_context* con;
-
-  con = (rasqal_rowsequence_rowsource_context*)user_data;
-  return con->query;
-}
-
-
 static int
 rasqal_rowsequence_rowsource_reset(rasqal_rowsource* rowsource, void *user_data)
 {
@@ -207,7 +194,6 @@ static const rasqal_rowsource_handler rasqal_rowsequence_rowsource_handler = {
   /* .ensure_variables = */ rasqal_rowsequence_rowsource_ensure_variables,
   /* .read_row = */ rasqal_rowsequence_rowsource_read_row,
   /* .read_all_rows = */ rasqal_rowsequence_rowsource_read_all_rows,
-  /* .get_query = */ rasqal_rowsequence_rowsource_get_query,
   /* .reset = */ rasqal_rowsequence_rowsource_reset
 };
 
@@ -247,11 +233,11 @@ rasqal_new_rowsequence_rowsource(rasqal_query* query,
   if(!con)
     return NULL;
 
-  con->query = query;
   con->seq = seq;
   con->vars_seq = vars_seq;
 
-  return rasqal_new_rowsource_from_handler(con,
+  return rasqal_new_rowsource_from_handler(query,
+                                           con,
                                            &rasqal_rowsequence_rowsource_handler,
                                            vt,
                                            flags);

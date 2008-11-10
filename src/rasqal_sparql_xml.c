@@ -1024,7 +1024,8 @@ rasqal_query_results_get_rowsource_sparql_xml(rasqal_world *world,
 
   con->vars_table = rasqal_new_variables_table_from_variables_table(vars_table);
   
-  return rasqal_new_rowsource_from_handler(con,
+  return rasqal_new_rowsource_from_handler(NULL,
+                                           con,
                                            &rasqal_rowsource_sparql_xml_handler,
                                            con->vars_table,
                                            0);

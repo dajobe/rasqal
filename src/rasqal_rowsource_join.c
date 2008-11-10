@@ -100,7 +100,8 @@ rasqal_join_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
     int bresult;
     
     query = con->query;
-    result = rasqal_expression_evaluate(query, con->expr, query->compare_flags);
+    result = rasqal_expression_evaluate_v2(query->world, &query->locator,
+                                           con->expr, query->compare_flags);
 
 #ifdef RASQAL_DEBUG
     RASQAL_DEBUG1("join expression condition is constant: ");
@@ -322,7 +323,8 @@ rasqal_join_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
     if(!con->expr)
       break;
 
-    result = rasqal_expression_evaluate(query, con->expr, query->compare_flags);
+    result = rasqal_expression_evaluate_v2(query->world, &query->locator,
+                                           con->expr, query->compare_flags);
 #ifdef RASQAL_DEBUG
     RASQAL_DEBUG1("join expression result:\n");
     if(!result)
@@ -357,15 +359,6 @@ rasqal_join_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
   }
   
   return row;
-}
-
-
-static rasqal_query*
-rasqal_join_rowsource_get_query(rasqal_rowsource* rowsource, void *user_data)
-{
-  rasqal_join_rowsource_context* con;
-  con = (rasqal_join_rowsource_context*)user_data;
-  return con->query;
 }
 
 
@@ -413,7 +406,6 @@ static const rasqal_rowsource_handler rasqal_join_rowsource_handler = {
   /* .ensure_variables = */ rasqal_join_rowsource_ensure_variables,
   /* .read_row = */ rasqal_join_rowsource_read_row,
   /* .read_all_rows = */ NULL,
-  /* .get_query = */ rasqal_join_rowsource_get_query,
   /* .reset = */ rasqal_join_rowsource_reset,
   /* .set_preserve = */ rasqal_join_rowsource_set_preserve
 };
@@ -463,7 +455,8 @@ rasqal_new_join_rowsource(rasqal_query* query,
   con->join_type = join_type;
   con->expr = expr;
   
-  return rasqal_new_rowsource_from_handler(con,
+  return rasqal_new_rowsource_from_handler(query,
+                                           con,
                                            &rasqal_join_rowsource_handler,
                                            query->vars_table,
                                            flags);

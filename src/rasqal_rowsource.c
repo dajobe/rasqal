@@ -47,6 +47,7 @@
 
 /**
  * rasqal_new_rowsource_from_handler:
+ * @query: query object
  * @user_data: pointer to context information to pass in to calls
  * @handler: pointer to handler methods
  * @vars_table: variables table to use for rows
@@ -57,7 +58,8 @@
  * Return value: new #rasqal_rowsource object or NULL on failure
  **/
 rasqal_rowsource*
-rasqal_new_rowsource_from_handler(void *user_data,
+rasqal_new_rowsource_from_handler(rasqal_query* query,
+                                  void *user_data,
                                   const rasqal_rowsource_handler *handler,
                                   rasqal_variables_table* vars_table,
                                   int flags)
@@ -78,6 +80,7 @@ rasqal_new_rowsource_from_handler(void *user_data,
     return NULL;
   }
 
+  rowsource->query = query;
   rowsource->user_data = (void*)user_data;
   rowsource->handler = handler;
   rowsource->flags = flags;
@@ -311,9 +314,7 @@ rasqal_rowsource_read_all_rows(rasqal_rowsource *rowsource)
 rasqal_query*
 rasqal_rowsource_get_query(rasqal_rowsource *rowsource)
 {
-  if(rowsource->handler->get_query)
-    return rowsource->handler->get_query(rowsource, rowsource->user_data);
-  return NULL;
+  return rowsource->query;
 }
 
 

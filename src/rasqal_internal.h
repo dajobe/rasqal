@@ -555,17 +555,6 @@ typedef raptor_sequence* (*rasqal_rowsource_read_all_rows_func) (rasqal_rowsourc
 
 
 /**
- * rasqal_rowsource_get_query_func
- * @user_data: user data
- *
- * Handler function for returning a query associated with a rowsource
- *
- * Return value: a query or NULL if none is associated with it
- */
-typedef rasqal_query* (*rasqal_rowsource_get_query_func) (rasqal_rowsource* rowsource, void *user_data);
-
-
-/**
  * rasqal_rowsource_reset_func
  * @user_data: user data
  *
@@ -608,7 +597,6 @@ typedef struct {
   rasqal_rowsource_ensure_variables_func ensure_variables;
   rasqal_rowsource_read_row_func         read_row;
   rasqal_rowsource_read_all_rows_func    read_all_rows;
-  rasqal_rowsource_get_query_func        get_query;
   rasqal_rowsource_reset_func            reset;
   rasqal_rowsource_set_preserve_func     set_preserve;
 } rasqal_rowsource_handler;
@@ -616,6 +604,7 @@ typedef struct {
 
 /**
  * rasqal_rowsource:
+ * @query: query that this may be associated with (or NULL)
  * @flags: flags - none currently defined.
  * @user_data: rowsource handler data
  * @handler: rowsource handler pointer
@@ -661,6 +650,8 @@ typedef struct {
  */
 struct rasqal_rowsource_s
 {
+  rasqal_query* query;
+  
   int flags;
   
   void *user_data;
@@ -685,7 +676,7 @@ struct rasqal_rowsource_s
 };
 
 /* rasqal_rowsource.c */
-rasqal_rowsource* rasqal_new_rowsource_from_handler(void* user_data, const rasqal_rowsource_handler *handler, rasqal_variables_table* vars_table, int flags);
+rasqal_rowsource* rasqal_new_rowsource_from_handler(rasqal_query* query, void* user_data, const rasqal_rowsource_handler *handler, rasqal_variables_table* vars_table, int flags);
 void rasqal_free_rowsource(rasqal_rowsource *rowsource);
 
 rasqal_row* rasqal_rowsource_read_row(rasqal_rowsource *rowsource);

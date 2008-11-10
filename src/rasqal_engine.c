@@ -730,8 +730,9 @@ rasqal_engine_check_constraint(rasqal_engine_execution_data* execution_data,
   fputc('\n', DEBUG_FH);
 #endif
     
-  result = rasqal_expression_evaluate(query, gp->filter_expression, 
-                                      query->compare_flags);
+  result = rasqal_expression_evaluate_v2(query->world, &query->locator,
+                                         gp->filter_expression, 
+                                         query->compare_flags);
 #ifdef RASQAL_DEBUG
   RASQAL_DEBUG1("filter expression result:\n");
   if(!result)
@@ -1390,16 +1391,6 @@ rasqal_rowsource_engine_read_all_rows(rasqal_rowsource* rowsource,
 }
 
 
-static rasqal_query*
-rasqal_rowsource_engine_get_query(rasqal_rowsource* rowsource, void *user_data)
-{
-  rasqal_rowsource_engine_context* con;
-
-  con = (rasqal_rowsource_engine_context*)user_data;
-  return con->query;
-}
-
-
 static const rasqal_rowsource_handler rasqal_rowsource_engine_handler = {
   /* .version = */ 1,
   "engine V1",
@@ -1407,8 +1398,7 @@ static const rasqal_rowsource_handler rasqal_rowsource_engine_handler = {
   /* .finish = */ rasqal_rowsource_engine_finish,
   /* .ensure_variables = */ rasqal_rowsource_engine_ensure_variables,
   /* .read_row = */ rasqal_rowsource_engine_read_row,
-  /* .read_all_rows = */ rasqal_rowsource_engine_read_all_rows,
-  /* .get_query = */ rasqal_rowsource_engine_get_query
+  /* .read_all_rows = */ rasqal_rowsource_engine_read_all_rows
 };
 
 
@@ -1449,7 +1439,8 @@ rasqal_engine_make_rowsource(rasqal_query* query,
     return NULL;
   }
   
-  return rasqal_new_rowsource_from_handler(con,
+  return rasqal_new_rowsource_from_handler(query,
+                                           con,
                                            &rasqal_rowsource_engine_handler,
                                            query->vars_table,
                                            0);

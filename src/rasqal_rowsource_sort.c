@@ -211,15 +211,6 @@ rasqal_sort_rowsource_read_all_rows(rasqal_rowsource* rowsource,
 }
 
 
-static rasqal_query*
-rasqal_sort_rowsource_get_query(rasqal_rowsource* rowsource, void *user_data)
-{
-  rasqal_sort_rowsource_context *con;
-  con = (rasqal_sort_rowsource_context*)user_data;
-  return con->query;
-}
-
-
 static const rasqal_rowsource_handler rasqal_sort_rowsource_handler = {
   /* .version =          */ 1,
   "sort",
@@ -228,7 +219,6 @@ static const rasqal_rowsource_handler rasqal_sort_rowsource_handler = {
   /* .ensure_variables = */ rasqal_sort_rowsource_ensure_variables,
   /* .read_row =         */ NULL,
   /* .read_all_rows =    */ rasqal_sort_rowsource_read_all_rows,
-  /* .get_query =        */ rasqal_sort_rowsource_get_query
 };
 
 
@@ -251,7 +241,8 @@ rasqal_new_sort_rowsource(rasqal_query *query,
   con->rowsource = rowsource;
   con->seq = seq;
 
-  return rasqal_new_rowsource_from_handler(con,
+  return rasqal_new_rowsource_from_handler(query,
+                                           con,
                                            &rasqal_sort_rowsource_handler,
                                            query->vars_table,
                                            flags);

@@ -86,7 +86,6 @@ typedef struct
 static int
 rasqal_triples_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
 {
-  rasqal_query *query;
   rasqal_triples_rowsource_context *con;
   int column;
   int *declared_in = NULL;
@@ -95,7 +94,6 @@ rasqal_triples_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
   int i;
   
   con = (rasqal_triples_rowsource_context*)user_data;
-  query = con->query;
 
   size = rasqal_variables_table_get_named_variables_count(rowsource->vars_table);
   declared_in = con->declared_in;
@@ -343,14 +341,12 @@ rasqal_triples_rowsource_get_next_row(rasqal_rowsource* rowsource,
 static rasqal_row*
 rasqal_triples_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
 {
-  rasqal_query *query;
   rasqal_triples_rowsource_context *con;
   int i;
   rasqal_row* row = NULL;
   rasqal_engine_error error = RASQAL_ENGINE_OK;
   
   con = (rasqal_triples_rowsource_context*)user_data;
-  query = con->query;
 
   error = rasqal_triples_rowsource_get_next_row(rowsource, con);
   RASQAL_DEBUG2("rasqal_triples_rowsource_get_next_row() returned %d\n", error);
@@ -413,15 +409,6 @@ rasqal_triples_rowsource_read_all_rows(rasqal_rowsource* rowsource,
 }
 
 
-static rasqal_query*
-rasqal_triples_rowsource_get_query(rasqal_rowsource* rowsource, void *user_data)
-{
-  rasqal_triples_rowsource_context *con;
-  con = (rasqal_triples_rowsource_context*)user_data;
-  return con->query;
-}
-
-
 static int
 rasqal_triples_rowsource_reset(rasqal_rowsource* rowsource, void *user_data)
 {
@@ -463,7 +450,6 @@ static const rasqal_rowsource_handler rasqal_triples_rowsource_handler = {
   /* .ensure_variables = */ rasqal_triples_rowsource_ensure_variables,
   /* .read_row = */ rasqal_triples_rowsource_read_row,
   /* .read_all_rows = */ rasqal_triples_rowsource_read_all_rows,
-  /* .get_query = */ rasqal_triples_rowsource_get_query,
   /* .reset = */ rasqal_triples_rowsource_reset,
   /* .set_preserve = */ rasqal_triples_rowsource_set_preserve
 };
@@ -504,7 +490,8 @@ rasqal_new_triples_rowsource(rasqal_query *query,
     return NULL;
   }
 
-  return rasqal_new_rowsource_from_handler(con,
+  return rasqal_new_rowsource_from_handler(query,
+                                           con,
                                            &rasqal_triples_rowsource_handler,
                                            query->vars_table,
                                            flags);
