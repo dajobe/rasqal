@@ -410,6 +410,7 @@ static const rasqal_rowsource_handler rasqal_join_rowsource_handler = {
 
 /**
  * rasqal_new_join_rowsource:
+ * @world: query world
  * @query: query results object
  * @left: left (first) rowsource
  * @right: right (second) rowsource
@@ -426,7 +427,8 @@ static const rasqal_rowsource_handler rasqal_join_rowsource_handler = {
  * Return value: new rowsource or NULL on failure
  */
 rasqal_rowsource*
-rasqal_new_join_rowsource(rasqal_query* query,
+rasqal_new_join_rowsource(rasqal_world *world,
+                          rasqal_query* query,
                           rasqal_rowsource* left,
                           rasqal_rowsource* right,
                           int join_type,
@@ -435,7 +437,7 @@ rasqal_new_join_rowsource(rasqal_query* query,
   rasqal_join_rowsource_context* con;
   int flags = 0;
 
-  if(!query || !left || !right)
+  if(!world || !query || !left || !right)
     return NULL;
 
   /* only left outer join now */
@@ -451,7 +453,7 @@ rasqal_new_join_rowsource(rasqal_query* query,
   con->join_type = join_type;
   con->expr = expr;
   
-  return rasqal_new_rowsource_from_handler(query,
+  return rasqal_new_rowsource_from_handler(world, query,
                                            con,
                                            &rasqal_join_rowsource_handler,
                                            query->vars_table,
@@ -546,7 +548,7 @@ main(int argc, char *argv[])
     goto tidy;
   }
 
-  left_rs = rasqal_new_rowsequence_rowsource(query, vt, seq, vars_seq);
+  left_rs = rasqal_new_rowsequence_rowsource(world, query, vt, seq, vars_seq);
   if(!left_rs) {
     fprintf(stderr, "%s: failed to create left rowsource\n", program);
     failures++;
@@ -567,7 +569,7 @@ main(int argc, char *argv[])
     goto tidy;
   }
 
-  right_rs = rasqal_new_rowsequence_rowsource(query, vt, seq, vars_seq);
+  right_rs = rasqal_new_rowsequence_rowsource(world, query, vt, seq, vars_seq);
   if(!right_rs) {
     fprintf(stderr, "%s: failed to create right rowsource\n", program);
     failures++;
@@ -576,7 +578,7 @@ main(int argc, char *argv[])
   /* vars_seq and seq are now owned by right_rs */
   vars_seq = seq = NULL;
 
-  rowsource = rasqal_new_join_rowsource(query, left_rs, right_rs, 0, NULL);
+  rowsource = rasqal_new_join_rowsource(world, query, left_rs, right_rs, 0, NULL);
   if(!rowsource) {
     fprintf(stderr, "%s: failed to create join rowsource\n", program);
     failures++;
@@ -634,14 +636,6 @@ main(int argc, char *argv[])
   }
   
   
-  if(rasqal_rowsource_get_query(rowsource) != query) {
-    fprintf(stderr,
-            "%s: get_query returned a different query for a join rowsurce\n",
-            program);
-    failures++;
-    goto tidy;
-  }
-
 #ifdef RASQAL_DEBUG
   rasqal_rowsource_print_row_sequence(rowsource, seq, DEBUG_FH);
 #endif

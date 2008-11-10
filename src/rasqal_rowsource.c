@@ -58,7 +58,8 @@
  * Return value: new #rasqal_rowsource object or NULL on failure
  **/
 rasqal_rowsource*
-rasqal_new_rowsource_from_handler(rasqal_query* query,
+rasqal_new_rowsource_from_handler(rasqal_world* world,
+                                  rasqal_query* query,
                                   void *user_data,
                                   const rasqal_rowsource_handler *handler,
                                   rasqal_variables_table* vars_table,
@@ -80,6 +81,7 @@ rasqal_new_rowsource_from_handler(rasqal_query* query,
     return NULL;
   }
 
+  rowsource->world = world;
   rowsource->query = query;
   rowsource->user_data = (void*)user_data;
   rowsource->handler = handler;
@@ -300,21 +302,6 @@ rasqal_rowsource_read_all_rows(rasqal_rowsource *rowsource)
   }
   
   return seq;
-}
-
-
-/**
- * rasqal_rowsource_get_query:
- * @rowsource: rasqal rowsource
- *
- * Get a query associated with a rowsource
- *
- * Return value: query or NULL
- **/
-rasqal_query*
-rasqal_rowsource_get_query(rasqal_rowsource *rowsource)
-{
-  return rowsource->query;
 }
 
 

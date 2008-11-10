@@ -93,7 +93,7 @@ rasqal_algebra_basic_algebra_node_to_rowsource(rasqal_engine_algebra_data* execu
   for(i = 0; i < size; i++)
     declared_in[i] = query->variables_declared_in[i];
 
-  return rasqal_new_triples_rowsource(query,
+  return rasqal_new_triples_rowsource(query->world, query,
                                       execution_data->triples_source,
                                       node->triples,
                                       node->start_column, node->end_column,
@@ -113,7 +113,7 @@ rasqal_algebra_filter_algebra_node_to_rowsource(rasqal_engine_algebra_data* exec
   if(!rs || *error_p)
     return NULL;
 
-  return rasqal_new_filter_rowsource(query, rs, node->expr);
+  return rasqal_new_filter_rowsource(query->world, query, rs, node->expr);
 }
 
 
@@ -129,7 +129,7 @@ rasqal_algebra_orderby_algebra_node_to_rowsource(rasqal_engine_algebra_data* exe
   if(!rs || *error_p)
     return NULL;
 
-  return rasqal_new_sort_rowsource(query, rs, node->seq);
+  return rasqal_new_sort_rowsource(query->world, query, rs, node->seq);
 }
 
 
@@ -154,7 +154,7 @@ rasqal_algebra_union_algebra_node_to_rowsource(rasqal_engine_algebra_data* execu
     return NULL;
   }
 
-  return rasqal_new_union_rowsource(query, left_rs, right_rs);
+  return rasqal_new_union_rowsource(query->world, query, left_rs, right_rs);
 }
 
 
@@ -171,7 +171,7 @@ rasqal_algebra_project_algebra_node_to_rowsource(rasqal_engine_algebra_data* exe
   if(!rs || *error_p)
     return NULL;
 
-  return rasqal_new_project_rowsource(query, rs, node->vars_seq);
+  return rasqal_new_project_rowsource(query->world, query, rs, node->vars_seq);
 }
 
 
@@ -196,7 +196,7 @@ rasqal_algebra_leftjoin_algebra_node_to_rowsource(rasqal_engine_algebra_data* ex
     return NULL;
   }
 
-  return rasqal_new_join_rowsource(query, left_rs, right_rs, 0, node->expr);
+  return rasqal_new_join_rowsource(query->world, query, left_rs, right_rs, 0, node->expr);
 }
 
 

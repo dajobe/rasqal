@@ -474,32 +474,32 @@ typedef enum {
 
 
 /* rasqal_empty_rowsource.c */
-rasqal_rowsource* rasqal_new_empty_rowsource(rasqal_query* query);
+rasqal_rowsource* rasqal_new_empty_rowsource(rasqal_world *world, rasqal_query* query);
 int rasqal_rowsource_ensure_variables(rasqal_rowsource *rowsource);
 
 /* rasqal_engine_rowsource.c */
 rasqal_rowsource* rasqal_new_execution_rowsource(rasqal_query_results* query_results);
 
 /* rasqal_filter_rowsource.c */
-rasqal_rowsource* rasqal_new_filter_rowsource(rasqal_query *query, rasqal_rowsource* rs, rasqal_expression* expr);
+rasqal_rowsource* rasqal_new_filter_rowsource(rasqal_world *world, rasqal_query *query, rasqal_rowsource* rs, rasqal_expression* expr);
 
 /* rasqal_join_rowsource.c */
-rasqal_rowsource* rasqal_new_join_rowsource(rasqal_query* query, rasqal_rowsource* left, rasqal_rowsource* right, int join_type, rasqal_expression *expr);
+rasqal_rowsource* rasqal_new_join_rowsource(rasqal_world *world, rasqal_query* query, rasqal_rowsource* left, rasqal_rowsource* right, int join_type, rasqal_expression *expr);
 
 /* rasqal_rowsource_project.c */
-rasqal_rowsource* rasqal_new_project_rowsource(rasqal_query *query, rasqal_rowsource* rowsource, raptor_sequence* projection_variables);
+rasqal_rowsource* rasqal_new_project_rowsource(rasqal_world *world, rasqal_query *query, rasqal_rowsource* rowsource, raptor_sequence* projection_variables);
 
 /* rasqal_rowsequence_rowsource.c */
-rasqal_rowsource* rasqal_new_rowsequence_rowsource(rasqal_query* query, rasqal_variables_table* vt, raptor_sequence* row, raptor_sequence* vars_seq);
+rasqal_rowsource* rasqal_new_rowsequence_rowsource(rasqal_world *world, rasqal_query* query, rasqal_variables_table* vt, raptor_sequence* row, raptor_sequence* vars_seq);
 
 /* rasqal_sort_rowsource.c */
-rasqal_rowsource* rasqal_new_sort_rowsource(rasqal_query *query, rasqal_rowsource *rowsource, raptor_sequence *seq);
+rasqal_rowsource* rasqal_new_sort_rowsource(rasqal_world *world, rasqal_query *query, rasqal_rowsource *rowsource, raptor_sequence *seq);
 
 /* rasqal_union_rowsource.c */
-rasqal_rowsource* rasqal_new_union_rowsource(rasqal_query* query, rasqal_rowsource* left, rasqal_rowsource* right);
+rasqal_rowsource* rasqal_new_union_rowsource(rasqal_world *world, rasqal_query* query, rasqal_rowsource* left, rasqal_rowsource* right);
 
 /* rasqal_triples_rowsource.c */
-rasqal_rowsource* rasqal_new_triples_rowsource(rasqal_query* query, rasqal_triples_source* triples_source, raptor_sequence* triples, int start_column, int end_column, int *declared_in);
+rasqal_rowsource* rasqal_new_triples_rowsource(rasqal_world *world, rasqal_query* query, rasqal_triples_source* triples_source, raptor_sequence* triples, int start_column, int end_column, int *declared_in);
 
 /**
  * rasqal_rowsource_init_func:
@@ -604,6 +604,7 @@ typedef struct {
 
 /**
  * rasqal_rowsource:
+ * @world: rasqal world
  * @query: query that this may be associated with (or NULL)
  * @flags: flags - none currently defined.
  * @user_data: rowsource handler data
@@ -650,6 +651,8 @@ typedef struct {
  */
 struct rasqal_rowsource_s
 {
+  rasqal_world* world;
+
   rasqal_query* query;
   
   int flags;
@@ -676,13 +679,12 @@ struct rasqal_rowsource_s
 };
 
 /* rasqal_rowsource.c */
-rasqal_rowsource* rasqal_new_rowsource_from_handler(rasqal_query* query, void* user_data, const rasqal_rowsource_handler *handler, rasqal_variables_table* vars_table, int flags);
+rasqal_rowsource* rasqal_new_rowsource_from_handler(rasqal_world *world, rasqal_query* query, void* user_data, const rasqal_rowsource_handler *handler, rasqal_variables_table* vars_table, int flags);
 void rasqal_free_rowsource(rasqal_rowsource *rowsource);
 
 rasqal_row* rasqal_rowsource_read_row(rasqal_rowsource *rowsource);
 int rasqal_rowsource_get_rows_count(rasqal_rowsource *rowsource);
 raptor_sequence* rasqal_rowsource_read_all_rows(rasqal_rowsource *rowsource);
-rasqal_query* rasqal_rowsource_get_query(rasqal_rowsource *rowsource);
 int rasqal_rowsource_get_size(rasqal_rowsource *rowsource);
 int rasqal_rowsource_add_variable(rasqal_rowsource *rowsource, rasqal_variable* v);
 rasqal_variable* rasqal_rowsource_get_variable_by_offset(rasqal_rowsource *rowsource, int offset);

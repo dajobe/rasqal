@@ -202,14 +202,15 @@ static const rasqal_rowsource_handler rasqal_project_rowsource_handler = {
 
 
 rasqal_rowsource*
-rasqal_new_project_rowsource(rasqal_query *query,
+rasqal_new_project_rowsource(rasqal_world *world,
+                             rasqal_query *query,
                              rasqal_rowsource* rowsource,
                              raptor_sequence* projection_variables)
 {
   rasqal_project_rowsource_context *con;
   int flags = 0;
   
-  if(!query || !rowsource || !projection_variables)
+  if(!world || !query || !rowsource || !projection_variables)
     return NULL;
   
   con = (rasqal_project_rowsource_context*)RASQAL_CALLOC(rasqal_project_rowsource_context, 1, sizeof(rasqal_project_rowsource_context));
@@ -219,7 +220,7 @@ rasqal_new_project_rowsource(rasqal_query *query,
   con->rowsource = rowsource;
   con->projection_variables = projection_variables;
 
-  return rasqal_new_rowsource_from_handler(query,
+  return rasqal_new_rowsource_from_handler(world, query,
                                            con,
                                            &rasqal_project_rowsource_handler,
                                            query->vars_table,
@@ -295,7 +296,7 @@ main(int argc, char *argv[])
     goto tidy;
   }
 
-  input_rs = rasqal_new_rowsequence_rowsource(query, vt, seq, vars_seq);
+  input_rs = rasqal_new_rowsequence_rowsource(world, query, vt, seq, vars_seq);
   if(!input_rs) {
     fprintf(stderr, "%s: failed to create left rowsource\n", program);
     failures++;
@@ -313,7 +314,7 @@ main(int argc, char *argv[])
       raptor_sequence_push(projection_seq, v);
   }
 
-  rowsource = rasqal_new_project_rowsource(query, input_rs, projection_seq);
+  rowsource = rasqal_new_project_rowsource(world, query, input_rs, projection_seq);
   if(!rowsource) {
     fprintf(stderr, "%s: failed to create project rowsource\n", program);
     failures++;
@@ -370,15 +371,6 @@ main(int argc, char *argv[])
     }
   }
   
-  
-  if(rasqal_rowsource_get_query(rowsource) != query) {
-    fprintf(stderr,
-            "%s: get_query returned a different query for a project rowsurce\n",
-            program);
-    failures++;
-    goto tidy;
-  }
-
 #ifdef RASQAL_DEBUG
   fprintf(DEBUG_FH, "result of projection:\n");
   rasqal_rowsource_print_row_sequence(rowsource, seq, DEBUG_FH);

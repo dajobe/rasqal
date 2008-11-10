@@ -89,19 +89,19 @@ static const rasqal_rowsource_handler rasqal_empty_rowsource_handler = {
 
 
 rasqal_rowsource*
-rasqal_new_empty_rowsource(rasqal_query* query)
+rasqal_new_empty_rowsource(rasqal_world *world, rasqal_query* query)
 {
   rasqal_empty_rowsource_context* con;
   int flags = 0;
 
-  if(!query)
+  if(!world || !query)
     return NULL;
   
   con = (rasqal_empty_rowsource_context*)RASQAL_CALLOC(rasqal_empty_rowsource_context, 1, sizeof(rasqal_empty_rowsource_context));
   if(!con)
     return NULL;
 
-  return rasqal_new_rowsource_from_handler(query,
+  return rasqal_new_rowsource_from_handler(world, query,
                                            con,
                                            &rasqal_empty_rowsource_handler,
                                            query->vars_table,
@@ -138,7 +138,7 @@ main(int argc, char *argv[])
   
   query = rasqal_new_query(world, "sparql", NULL);
   
-  rowsource = rasqal_new_empty_rowsource(query);
+  rowsource = rasqal_new_empty_rowsource(world, query);
   if(!rowsource) {
     fprintf(stderr, "%s: failed to create empty rowsource\n", program);
     failures++;
@@ -170,14 +170,6 @@ main(int argc, char *argv[])
   }
   if(raptor_sequence_size(seq) != 0) {
     fprintf(stderr, "%s: read_rows returned a non-empty seq for a empty stream\n",
-            program);
-    failures++;
-    goto tidy;
-  }
-
-  if(rasqal_rowsource_get_query(rowsource) != query) {
-    fprintf(stderr,
-            "%s: get_query returned a different query for an empty stream\n",
             program);
     failures++;
     goto tidy;

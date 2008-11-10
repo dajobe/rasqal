@@ -454,7 +454,8 @@ static const rasqal_rowsource_handler rasqal_triples_rowsource_handler = {
 
 
 rasqal_rowsource*
-rasqal_new_triples_rowsource(rasqal_query *query,
+rasqal_new_triples_rowsource(rasqal_world *world,
+                             rasqal_query *query,
                              rasqal_triples_source* triples_source,
                              raptor_sequence* triples,
                              int start_column, int end_column,
@@ -463,7 +464,7 @@ rasqal_new_triples_rowsource(rasqal_query *query,
   rasqal_triples_rowsource_context *con;
   int flags = 0;
 
-  if(!query || !triples_source || !triples)
+  if(!world || !query || !triples_source || !triples)
     return NULL;
   
   con = (rasqal_triples_rowsource_context*)RASQAL_CALLOC(rasqal_triples_rowsource_context, 1, sizeof(rasqal_triples_rowsource_context));
@@ -487,7 +488,7 @@ rasqal_new_triples_rowsource(rasqal_query *query,
     return NULL;
   }
 
-  return rasqal_new_rowsource_from_handler(query,
+  return rasqal_new_rowsource_from_handler(world, query,
                                            con,
                                            &rasqal_triples_rowsource_handler,
                                            query->vars_table,
@@ -601,7 +602,7 @@ main(int argc, char *argv[])
     goto tidy;
   }
 
-  rowsource = rasqal_new_triples_rowsource(query, triples_source,
+  rowsource = rasqal_new_triples_rowsource(world, query, triples_source,
                                            triples, start_column, end_column,
                                            declared_in);
   if(!rowsource) {

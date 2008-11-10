@@ -200,6 +200,7 @@ static const rasqal_rowsource_handler rasqal_rowsequence_rowsource_handler = {
 
 /**
  * rasqal_new_rowsequence_rowsource:
+ * @world: world object
  * @query: query object
  * @vt: variables table
  * @seq: sequence of rasqal_row*
@@ -215,7 +216,8 @@ static const rasqal_rowsource_handler rasqal_rowsequence_rowsource_handler = {
  * Return value: new rowsource or NULL on failure
  */
 rasqal_rowsource*
-rasqal_new_rowsequence_rowsource(rasqal_query* query, 
+rasqal_new_rowsequence_rowsource(rasqal_world *world,
+                                 rasqal_query* query, 
                                  rasqal_variables_table* vt,
                                  raptor_sequence* seq,
                                  raptor_sequence* vars_seq)
@@ -223,7 +225,7 @@ rasqal_new_rowsequence_rowsource(rasqal_query* query,
   rasqal_rowsequence_rowsource_context* con;
   int flags = 0;
   
-  if(!query || !vt || !seq || !vars_seq)
+  if(!world || !query || !vt || !seq || !vars_seq)
     return NULL;
 
   if(!raptor_sequence_size(seq) || !raptor_sequence_size(vars_seq))
@@ -236,7 +238,7 @@ rasqal_new_rowsequence_rowsource(rasqal_query* query,
   con->seq = seq;
   con->vars_seq = vars_seq;
 
-  return rasqal_new_rowsource_from_handler(query,
+  return rasqal_new_rowsource_from_handler(world, query,
                                            con,
                                            &rasqal_rowsequence_rowsource_handler,
                                            vt,
@@ -322,7 +324,7 @@ main(int argc, char *argv[])
     goto tidy;
   }
 
-  rowsource = rasqal_new_rowsequence_rowsource(query, vt, seq, vars_seq);
+  rowsource = rasqal_new_rowsequence_rowsource(world, query, vt, seq, vars_seq);
   if(!rowsource) {
     fprintf(stderr, "%s: failed to create %d-row sequence rowsource\n",
             program, rows_count);
@@ -367,13 +369,6 @@ main(int argc, char *argv[])
     goto tidy;
   }
   
-  if(rasqal_rowsource_get_query(rowsource) != query) {
-    fprintf(stderr,
-            "%s: get_query returned a different query for a %d-row sequence rowsurce\n",
-            program, rows_count);
-    failures++;
-    goto tidy;
-  }
 
   rasqal_free_rowsource(rowsource); rowsource = NULL;
   rasqal_free_variables_table(vt); vt = NULL;
@@ -396,7 +391,7 @@ main(int argc, char *argv[])
     goto tidy;
   }
 
-  rowsource = rasqal_new_rowsequence_rowsource(query, vt, seq, vars_seq);
+  rowsource = rasqal_new_rowsequence_rowsource(world, query, vt, seq, vars_seq);
   if(!rowsource) {
     fprintf(stderr, "%s: failed to create %d-row sequence rowsource\n",
             program, rows_count);
@@ -443,14 +438,6 @@ main(int argc, char *argv[])
     goto tidy;
   }
   
-  if(rasqal_rowsource_get_query(rowsource) != query) {
-    fprintf(stderr,
-            "%s: get_query returned a different query for a %d-row sequence rowsurce\n",
-            program, rows_count);
-    failures++;
-    goto tidy;
-  }
-
   rasqal_free_rowsource(rowsource); rowsource = NULL;
   rasqal_free_variables_table(vt); vt = NULL;
 
