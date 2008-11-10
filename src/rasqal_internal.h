@@ -282,9 +282,6 @@ struct rasqal_query_s {
 
   rasqal_variables_table* vars_table;
 
-  /* DEPRECATED - was variables_count */
-  int unused4;
-  
   /* The number of selected variables: these are always the first
    * in the variables table and are the ones returend to the user.
    */
@@ -294,18 +291,6 @@ struct rasqal_query_s {
    * pointing to triple column where a variable[offset] is declared
    */
   int* variables_declared_in;
-
-  /* DEPRECATED - was variables_sequence */
-  void* unused5;
-
-  /* DEPRECATED - was anon_variables_sequence */
-  void* unused6;
-
-  /* DEPRECATED - was anon_variables_count */
-  int unused7;
-
-  /* DEPRECATED - was variable_names */
-  void* unused3;
 
   /* can be filled with error location information */
   raptor_locator locator;
@@ -340,9 +325,6 @@ struct rasqal_query_s {
   /* incrementing counter for declaring prefixes in order of appearance */
   int prefix_depth;
 
-  /* DEPRECATED - was constraints_sequence */
-  void* unused1;
-  
   /* sequence of order condition expressions */
   raptor_sequence* order_conditions_sequence;
 
