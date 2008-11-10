@@ -48,6 +48,7 @@
 typedef struct 
 {
   rasqal_rowsource* left;
+
   rasqal_rowsource* right;
 
   /* array of size (number of variables in @right) with this row offset value */

@@ -46,8 +46,6 @@
 
 typedef struct 
 {
-  rasqal_query *query;
-
   /* inner rowsource to filter */
   rasqal_rowsource *rowsource;
 
@@ -106,12 +104,11 @@ rasqal_filter_rowsource_finish(rasqal_rowsource* rowsource, void *user_data)
 static rasqal_row*
 rasqal_filter_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
 {
-  rasqal_query *query;
+  rasqal_query *query = rowsource->query;
   rasqal_filter_rowsource_context *con;
   rasqal_row *row = NULL;
   
   con = (rasqal_filter_rowsource_context*)user_data;
-  query = con->query;
 
   while(1) {
     rasqal_literal* result;
@@ -218,7 +215,6 @@ rasqal_new_filter_rowsource(rasqal_query *query,
   if(!con)
     return NULL;
 
-  con->query = query;
   con->rowsource = rowsource;
   con->expr = expr;
 

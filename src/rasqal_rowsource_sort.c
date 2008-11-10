@@ -46,8 +46,6 @@
 
 typedef struct 
 {
-  rasqal_query *query;
-
   /* inner rowsource to sort */
   rasqal_rowsource *rowsource;
 
@@ -65,11 +63,10 @@ typedef struct
 static int
 rasqal_sort_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
 {
-  rasqal_query *query;
+  rasqal_query *query = rowsource->query;
   rasqal_sort_rowsource_context *con;
 
   con = (rasqal_sort_rowsource_context*)user_data;
-  query = con->query;
   
   if(query->order_conditions_sequence)
     con->order_size = raptor_sequence_size(query->order_conditions_sequence);
@@ -119,7 +116,7 @@ rasqal_sort_rowsource_process(rasqal_rowsource* rowsource,
 
     rasqal_row_set_order_size(row, con->order_size);
 
-    rasqal_engine_rowsort_calculate_order_values(con->query, row);
+    rasqal_engine_rowsort_calculate_order_values(rowsource->query, row);
 
     row->offset = offset;
 
@@ -185,12 +182,10 @@ static raptor_sequence*
 rasqal_sort_rowsource_read_all_rows(rasqal_rowsource* rowsource,
                                     void *user_data)
 {
-  rasqal_query *query;
   rasqal_sort_rowsource_context *con;
   raptor_sequence *seq = NULL;
   
   con = (rasqal_sort_rowsource_context*)user_data;
-  query = con->query;
 
   /* if there were no ordering conditions, pass it all on to inner rowsource */
   if(con->order_size <= 0)
@@ -237,7 +232,6 @@ rasqal_new_sort_rowsource(rasqal_query *query,
   if(!con)
     return NULL;
 
-  con->query = query;
   con->rowsource = rowsource;
   con->seq = seq;
 

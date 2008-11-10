@@ -45,8 +45,6 @@
 
 typedef struct 
 {
-  rasqal_query *query;
-
   /* source of triple pattern matches */
   rasqal_triples_source* triples_source;
 
@@ -199,7 +197,7 @@ static rasqal_engine_error
 rasqal_triples_rowsource_get_next_row(rasqal_rowsource* rowsource, 
                                       rasqal_triples_rowsource_context *con)
 {
-  rasqal_query *query = con->query;
+  rasqal_query *query = rowsource->query;
   rasqal_engine_error error = RASQAL_ENGINE_OK;
   
   while(con->column >= con->start_column) {
@@ -472,7 +470,6 @@ rasqal_new_triples_rowsource(rasqal_query *query,
   if(!con)
     return NULL;
 
-  con->query = query;
   con->triples_source = triples_source;
   con->triples = triples;
   con->start_column = start_column;

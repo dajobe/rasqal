@@ -51,9 +51,8 @@
 
 typedef struct 
 {
-  rasqal_query* query;
-
   rasqal_rowsource* left;
+
   rasqal_rowsource* right;
 
   /* current left row */
@@ -95,11 +94,10 @@ rasqal_join_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
   con->state = INIT_RIGHT;
 
   if(con->expr && rasqal_expression_is_constant(con->expr)) {
-    rasqal_query *query;
+    rasqal_query *query = rowsource->query;
     rasqal_literal* result;
     int bresult;
     
-    query = con->query;
     result = rasqal_expression_evaluate_v2(query->world, &query->locator,
                                            con->expr, query->compare_flags);
 
@@ -273,10 +271,9 @@ rasqal_join_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
 {
   rasqal_join_rowsource_context* con;
   rasqal_row* row = NULL;
-  rasqal_query *query;
+  rasqal_query *query = rowsource->query;
 
   con = (rasqal_join_rowsource_context*)user_data;
-  query = con->query;
 
   if(con->failed || con->state == FINISHED)
     return NULL;
@@ -449,7 +446,6 @@ rasqal_new_join_rowsource(rasqal_query* query,
   if(!con)
     return NULL;
 
-  con->query = query;
   con->left = left;
   con->right = right;
   con->join_type = join_type;
