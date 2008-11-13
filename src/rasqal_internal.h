@@ -560,6 +560,18 @@ typedef int (*rasqal_rowsource_set_preserve_func) (rasqal_rowsource* rowsource, 
 
 
 /**
+ * rasqal_rowsource_get_inner_rowsource_func
+ * @user_data: user data
+ * @offset: offset
+ *
+ * Handler function for getting an inner rowsource at an offset
+ *
+ * Return value: rowsource object or NULL if offset out of range
+ */
+typedef rasqal_rowsource* (*rasqal_rowsource_get_inner_rowsource_func) (rasqal_rowsource* rowsource, void *user_data, int offset);
+
+
+/**
  * rasqal_rowsource_handler:
  * @version: API version - 1
  * @name: rowsource name for debugging
@@ -570,6 +582,7 @@ typedef int (*rasqal_rowsource_set_preserve_func) (rasqal_rowsource* rowsource, 
  * @read_all_rows: read all rows handler - this or @read_row required (V1)
  * @reset: reset rowsource to starting state handler - optional (V1)
  * @set_preserve: set preserve flag handler - optional (V1)
+ * @get_inner_rowsource: get inner rowsource handler - optional if has no inner rowsources (V1)
  *
  * Row Source implementation factory handler structure.
  * 
@@ -578,13 +591,14 @@ typedef struct {
   int version;
   const char* name;
   /* API V1 methods */
-  rasqal_rowsource_init_func             init;
-  rasqal_rowsource_finish_func           finish;
-  rasqal_rowsource_ensure_variables_func ensure_variables;
-  rasqal_rowsource_read_row_func         read_row;
-  rasqal_rowsource_read_all_rows_func    read_all_rows;
-  rasqal_rowsource_reset_func            reset;
-  rasqal_rowsource_set_preserve_func     set_preserve;
+  rasqal_rowsource_init_func                 init;
+  rasqal_rowsource_finish_func               finish;
+  rasqal_rowsource_ensure_variables_func     ensure_variables;
+  rasqal_rowsource_read_row_func             read_row;
+  rasqal_rowsource_read_all_rows_func        read_all_rows;
+  rasqal_rowsource_reset_func                reset;
+  rasqal_rowsource_set_preserve_func         set_preserve;
+  rasqal_rowsource_get_inner_rowsource_func  get_inner_rowsource;
 } rasqal_rowsource_handler;
 
 
@@ -678,6 +692,8 @@ int rasqal_rowsource_get_variable_offset_by_name(rasqal_rowsource *rowsource, co
 void rasqal_rowsource_copy_variables(rasqal_rowsource *dest_rowsource, rasqal_rowsource *src_rowsource);
 void rasqal_rowsource_print_row_sequence(rasqal_rowsource* rowsource,raptor_sequence* seq, FILE* fh);
 int rasqal_rowsource_reset(rasqal_rowsource* rowsource);
+int rasqal_rowsource_set_preserve(rasqal_rowsource* rowsource, int preserve);
+rasqal_rowsource* rasqal_rowsource_get_inner_rowsource(rasqal_rowsource* rowsource, int offset);
 
 typedef int (*rasqal_query_results_formatter_func)(raptor_iostream *iostr, rasqal_query_results* results, raptor_uri *base_uri);
 
@@ -1161,9 +1177,6 @@ int rasqal_engine_rowsort_calculate_order_values(rasqal_query* query, rasqal_row
 /* New query engine based on executing over query algebra */
 extern const rasqal_query_execution_factory rasqal_query_engine_algebra;
   
-
-int rasqal_rowsource_set_preserve(rasqal_rowsource* rowsource, int preserve);
-
 /* end of RASQAL_INTERNAL */
 #endif
 

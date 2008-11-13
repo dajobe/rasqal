@@ -482,6 +482,17 @@ rasqal_rowsource_set_preserve(rasqal_rowsource* rowsource, int preserve)
 }
 
 
+rasqal_rowsource*
+rasqal_rowsource_get_inner_rowsource(rasqal_rowsource* rowsource, int offset)
+{
+  if(rowsource->handler->get_inner_rowsource)
+    return rowsource->handler->get_inner_rowsource(rowsource,
+                                                   rowsource->user_data,
+                                                   offset);
+  return NULL;
+}
+
+
 #endif
 
 

@@ -308,6 +308,22 @@ rasqal_union_rowsource_set_preserve(rasqal_rowsource* rowsource,
 }
 
 
+static rasqal_rowsource*
+rasqal_union_rowsource_get_inner_rowsource(rasqal_rowsource* rowsource,
+                                           void *user_data, int offset)
+{
+  rasqal_union_rowsource_context *con;
+  con = (rasqal_union_rowsource_context*)user_data;
+
+  if(offset == 1)
+    return con->left;
+  else if(offset == 2)
+    return con->right;
+  else
+    return NULL;
+}
+
+
 static const rasqal_rowsource_handler rasqal_union_rowsource_handler = {
   /* .version = */ 1,
   "union",
@@ -317,7 +333,8 @@ static const rasqal_rowsource_handler rasqal_union_rowsource_handler = {
   /* .read_row = */ rasqal_union_rowsource_read_row,
   /* .read_all_rows = */ rasqal_union_rowsource_read_all_rows,
   /* .reset = */ rasqal_union_rowsource_reset,
-  /* .set_preserve = */ rasqal_union_rowsource_set_preserve
+  /* .set_preserve = */ rasqal_union_rowsource_set_preserve,
+  /* .get_inner_rowsource = */ rasqal_union_rowsource_get_inner_rowsource
 };
 
 
