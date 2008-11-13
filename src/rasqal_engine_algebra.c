@@ -306,6 +306,11 @@ rasqal_query_engine_algebra_execute_init(void* ex_data,
   execution_data->rowsource = rasqal_algebra_node_to_rowsource(execution_data,
                                                                execution_data->algebra_node,
                                                                &error);
+#ifdef RASQAL_DEBUG
+  RASQAL_DEBUG1("rowsource (query plan) result: \n");
+  rasqal_rowsource_print(execution_data->rowsource, DEBUG_FH);
+  fputc('\n', DEBUG_FH);
+#endif
   if(error != RASQAL_ENGINE_OK)
     rc = 1;
   

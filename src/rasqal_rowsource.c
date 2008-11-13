@@ -493,6 +493,89 @@ rasqal_rowsource_get_inner_rowsource(rasqal_rowsource* rowsource, int offset)
 }
 
 
+#define SPACES_LENGTH 80
+static const char spaces[SPACES_LENGTH+1] = "                                                                                ";
+
+static void
+rasqal_rowsource_write_indent(raptor_iostream *iostr, int indent) 
+{
+  while(indent > 0) {
+    int sp = (indent > SPACES_LENGTH) ? SPACES_LENGTH : indent;
+    raptor_iostream_write_bytes(iostr, spaces, sizeof(char), sp);
+    indent -= sp;
+  }
+}
+
+
+static int
+rasqal_rowsource_write_internal(rasqal_rowsource *rowsource, 
+                                raptor_iostream* iostr, int indent)
+{
+  const char* rs_name = rowsource->handler->name;
+  int arg_count = 0;
+  int indent_delta;
+  int offset;
+  rasqal_rowsource* inner_rowsource;
+  
+  indent_delta = strlen(rs_name);
+
+  raptor_iostream_write_counted_string(iostr, rs_name, indent_delta);
+  raptor_iostream_write_counted_string(iostr, "(\n", 2);
+  indent_delta++;
+  
+  indent += indent_delta;
+  rasqal_rowsource_write_indent(iostr, indent);
+
+
+  for(offset = 0;
+      (inner_rowsource = rasqal_rowsource_get_inner_rowsource(rowsource, offset));
+      offset++) {
+      if(arg_count) {
+        raptor_iostream_write_counted_string(iostr, " ,\n", 3);
+        rasqal_rowsource_write_indent(iostr, indent);
+      }
+      rasqal_rowsource_write_internal(inner_rowsource, iostr, indent);
+      arg_count++;
+  }
+
+  raptor_iostream_write_byte(iostr, '\n');
+  indent-= indent_delta;
+
+  rasqal_rowsource_write_indent(iostr, indent);
+  raptor_iostream_write_byte(iostr, ')');
+
+  return 0;
+}
+
+
+int
+rasqal_rowsource_write(rasqal_rowsource *rowsource, raptor_iostream *iostr)
+{
+  return rasqal_rowsource_write_internal(rowsource, iostr, 0);
+}
+  
+
+/**
+ * rasqal_rowsource_print:
+ * @rs: the #rasqal_rowsource object
+ * @fh: the #FILE* handle to print to
+ *
+ * Print a #rasqal_rowsource in a debug format.
+ * 
+ * The print debug format may change in any release.
+ * 
+ **/
+void
+rasqal_rowsource_print(rasqal_rowsource *rowsource, FILE* fh)
+{
+  raptor_iostream *iostr;
+
+  iostr = raptor_new_iostream_to_file_handle(fh);
+  rasqal_rowsource_write(rowsource, iostr);
+  raptor_free_iostream(iostr);
+}
+
+
 #endif
 
 

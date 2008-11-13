@@ -694,6 +694,8 @@ void rasqal_rowsource_print_row_sequence(rasqal_rowsource* rowsource,raptor_sequ
 int rasqal_rowsource_reset(rasqal_rowsource* rowsource);
 int rasqal_rowsource_set_preserve(rasqal_rowsource* rowsource, int preserve);
 rasqal_rowsource* rasqal_rowsource_get_inner_rowsource(rasqal_rowsource* rowsource, int offset);
+int rasqal_rowsource_write(rasqal_rowsource *rowsource,  raptor_iostream *iostr);
+void rasqal_rowsource_print(rasqal_rowsource* rs, FILE* fh);
 
 typedef int (*rasqal_query_results_formatter_func)(raptor_iostream *iostr, rasqal_query_results* results, raptor_uri *base_uri);
 
