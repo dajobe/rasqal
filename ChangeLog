@@ -1,4 +1,245 @@
+2008-11-12  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_engine_algebra.c, src/rasqal_internal.h,
+	src/rasqal_rowsource.c: Add simple printing out of rowsource query
+	plan structure.
+	(rasqal_rowsource_write_indent, rasqal_rowsource_write_internal):
+	Added
+	(rasqal_rowsource_write): Added using
+	rasqal_rowsource_write_internal.
+	(rasqal_rowsource_print): Added using rasqal_rowsource_write.
+
+	* src/rasqal_internal.h, src/rasqal_rowsource.c,
+	src/rasqal_rowsource_empty.c, src/rasqal_rowsource_filter.c,
+	src/rasqal_rowsource_join.c, src/rasqal_rowsource_project.c,
+	src/rasqal_rowsource_rowsequence.c, src/rasqal_rowsource_sort.c,
+	src/rasqal_rowsource_triples.c, src/rasqal_rowsource_union.c:
+	Added get_inner_rowsource factory method for
+	rasqal_rowsource_handler.  This allows walking the tree of
+	rowsources aka query execution plan.
+	(rasqal_rowsource_get_inner_rowsource): Added.
+
+	* src/rasqal_internal.h: docs
+
+2008-11-09  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_internal.h: Delete unused fields from struct
+	rasqal_query_s
+
+	* src/rasqal_rowsource_filter.c, src/rasqal_rowsource_join.c,
+	src/rasqal_rowsource_triples.c: Replace query->world with
+	rowsource->world
+
+	* src/rasqal_engine.c, src/rasqal_engine_algebra.c,
+	src/rasqal_internal.h, src/rasqal_rowsource.c,
+	src/rasqal_rowsource_empty.c, src/rasqal_rowsource_filter.c,
+	src/rasqal_rowsource_join.c, src/rasqal_rowsource_project.c,
+	src/rasqal_rowsource_rowsequence.c, src/rasqal_rowsource_sort.c,
+	src/rasqal_rowsource_triples.c, src/rasqal_rowsource_union.c,
+	src/rasqal_sparql_xml.c: Add world from struct rasqal_rowsource_s.
+	Add world arg to all rowsource constructors.
+	(rasqal_new_rowsource_from_handler): Add world arg
+	(rasqal_rowsource_get_query): Deleted, never used.
+
+	* src/rasqal_rowsource_filter.c, src/rasqal_rowsource_join.c,
+	src/rasqal_rowsource_sort.c, src/rasqal_rowsource_triples.c,
+	src/rasqal_rowsource_union.c: Remove query from rowsource context,
+	use rowsource->query
+
+	* src/rasqal_engine.c, src/rasqal_engine_sort.c,
+	src/rasqal_internal.h, src/rasqal_query_transform.c,
+	src/rasqal_rowsource.c, src/rasqal_rowsource_empty.c,
+	src/rasqal_rowsource_filter.c, src/rasqal_rowsource_join.c,
+	src/rasqal_rowsource_project.c,
+	src/rasqal_rowsource_rowsequence.c, src/rasqal_rowsource_sort.c,
+	src/rasqal_rowsource_triples.c, src/rasqal_rowsource_union.c,
+	src/rasqal_sparql_xml.c: Add query to the rasqal_rowsource
+	structure.  Remove the get_query method from the rowsource handler
+	and typedef rasqal_rowsource_get_query_func .
+	(rasqal_sort_rowsource_get_query,
+	rasqal_union_rowsource_get_query,
+	rasqal_empty_rowsource_get_query,
+	rasqal_rowsequence_rowsource_get_query,
+	rasqal_project_rowsource_get_query,
+	rasqal_triples_rowsource_get_query,
+	rasqal_rowsource_engine_get_query): Deleted the method from all
+	rowsources.
+
+	Replace rasqal_expression_evaluate calls with
+	rasqal_expression_evaluate_v2.
+
+	* src/rasqal.h, src/rasqal_expr.c:
+	(rasqal_expression_evaluate_strmatch): Replace query with world
+	and locator args and call rasqal_expression_evaluate_v2.
+	(rasqal_expression_evaluate_v2): Take world and locator args.
+	(rasqal_expression_evaluate): Call rasqal_expression_evaluate_v2.
+
+	Deprecate rasqal_expression_evaluate for rasqal_expression_evaluate_v2.
+
+	* src/rasqal_internal.h: docs
+
+2008-11-07  Dave Beckett <dave@dajobe.org>
+
+	* configure.ac: Require raptor 1.4.18 for
+	raptor_sequence_delete_at (at least)
+
+	* configure.ac: handle empty LEX in test
+
+	* src/rasqal_rowsource.c:
+	(rasqal_rowsource_read_row): Use raptor_sequence_delete_at to
+	delete/return.
+
+	* src/rasqal_internal.h, src/rasqal_rowsource.c: struct
+	rasqal_rowsource_s gains rows_sequence and offset vars for storing
+	a sequence of rows in order to generate them 1-by-1.
+	(rasqal_rowsource_read_row): Use rows_sequence and offset above
+	with method rasqal_rowsource_read_all_rows() to convert a sequence
+	of results into an incremental one.
+
+2008-11-05  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_rowsource_triples.c:
+	(rasqal_triples_rowsource_read_row): declare i outside debug ifdef
+
+	* src/rasqal_internal.h, src/rasqal_rowsource.c,
+	src/rasqal_rowsource_filter.c, src/rasqal_rowsource_join.c,
+	src/rasqal_rowsource_project.c, src/rasqal_rowsource_triples.c,
+	src/rasqal_rowsource_union.c: Add set_preserve method to
+	rasqal_rowsource_handler with typedef
+	rasqal_rowsource_set_preserve_func.
+	(rasqal_rowsource_set_preserve): Added
+	(rasqal_filter_rowsource_set_preserve,
+	rasqal_union_rowsource_set_preserve,
+	rasqal_project_rowsource_set_preserve,
+	rasqal_join_rowsource_set_preserve): Added to pass on the
+	set_preserve call to inner rowsource(s).  Added
+	preserve_on_all_finished to rasqal_triples_rowsource_context.
+	(rasqal_triples_rowsource_finish): Reset column triple meta.
+	(rasqal_triples_rowsource_get_next_row): Do not trigger reset when
+	last match found if con->preserve_on_all_finished set.
+	(rasqal_triples_rowsource_set_preserve): Set preserve flag.
+	(rasqal_join_rowsource_init): Set preserve flag on inner
+	rowsources.
+
+	* src/rasqal_rowsource.c:
+	(rasqal_rowsource_read_row): Add debug print of read row
+
+	* src/rasqal_rowsource_join.c: oops
+
+	* src/rasqal_rowsource_join.c:
+	(rasqal_join_rowsource_init): Check for constant join expressions
+	and optimize them away if constant and true or false.
+
+	* src/rasqal_rowsource_triples.c:
+	(rasqal_triples_rowsource_read_row): get vars from rowsource by
+	offset.  Replace rasqal_row_set_values_from_variables_table with
+	loop to set row values from variables in rowsource by offset , not
+	in variables table by offset.
+
+	* src/rasqal_rowsource_triples.c:
+	(rasqal_triples_rowsource_init): Calculate rowsize con->size from
+	columns
+	(rasqal_new_triples_rowsource): Remove initing rowsize from query
+	fields, let rasqal_triples_rowsource_init do it later.
+
+	* src/rasqal_engine_algebra.c, src/rasqal_internal.h,
+	src/rasqal_rowsource_triples.c: rasqal_triples_rowsource_context
+	gains declared_in array.
+	(rasqal_triples_rowsource_init): Use passed-in declared_in array
+	rather than make one locally.
+	(rasqal_new_triples_rowsource): Add declared_in parameter.
+	(main): Update test to new calling convention.
+	(rasqal_algebra_basic_algebra_node_to_rowsource): Update to create
+	declared_in and pass it in to rasqal_new_triples_rowsource.
+
+	* src/rasqal_rowsource_triples.c: Remove new_bindings_count from
+	rasqal_triples_rowsource_context - not used.  Removed resets
+	return value variable.
+
+2008-11-02  Dave Beckett <dave@dajobe.org>
+
+	* tests/algebra/test-01.out, tests/algebra/test-02.out,
+	tests/algebra/test-03.out, tests/algebra/test-04.out,
+	tests/algebra/test-05.out, tests/algebra/test-06.out,
+	tests/algebra/test-07.out, tests/algebra/test-08.out,
+	tests/algebra/test-09.out: Add Project() to outer scope of all
+	expected results
+
+2008-11-01  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_rowsource_project.c:
+	(rasqal_project_rowsource_ensure_variables): Allow projecting
+	variables not in input - allowable for cases with optionals. Warn
+	about it when debugging for now.
+	(rasqal_project_rowsource_read_row): Handle projecting variables
+	with no value for optionals.
+
+	* src/rasqal_rowsource_union.c:
+	(rasqal_union_rowsource_ensure_variables): Allocate array of ints
+	not bytes for right_map
+
+	* src/rasqal_rowsource_join.c:
+	(rasqal_join_rowsource_ensure_variables): Allocate array of ints
+	not bytes for right_map
+	(rasqal_join_rowsource_build_merged_row): Extra debug info
+
+2008-10-30  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_engine_algebra.c:
+	(rasqal_algebra_leftjoin_algebra_node_to_rowsource): Added.
+	(rasqal_algebra_node_to_rowsource): Use above to handle LEFTJOIN
+
+
+	* src/rasqal_internal.h, src/rasqal_rowsource_join.c:
+	(rasqal_new_join_rowsource): Take join type and join expression.
+	Only support join type 0 - left outer join today
+
 2008-10-29  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_engine_algebra.c:
+	(rasqal_algebra_project_algebra_node_to_rowsource): Added.
+	(rasqal_algebra_node_to_rowsource): Use
+	rasqal_algebra_project_algebra_node_to_rowsource to convert
+	project algebra nodes.
+
+	* src/rasqal_algebra.c:
+	(rasqal_new_project_algebra_node): Added
+	(rasqal_free_algebra_node): Free vars_seq.
+	(rasqal_algebra_algebra_node_write_internal): Print project vars.
+	(rasqal_algebra_query_to_algebra): Use
+	rasqal_new_project_algebra_node to add a PROJECT node at the top
+	of every query to select the right variables.
+
+	* src/rasqal_internal.h: rasqal_algebra_node_s gains vars_seq
+
+	* src/rasqal_rowsource_empty.c, src/rasqal_rowsource_filter.c,
+	src/rasqal_rowsource_join.c, src/rasqal_rowsource_project.c,
+	src/rasqal_rowsource_triples.c, src/rasqal_rowsource_union.c:
+	Implement rowsource reset functions
+	(rasqal_filter_rowsource_reset, rasqal_union_rowsource_reset,
+	rasqal_project_rowsource_reset, rasqal_triples_rowsource_reset):
+	Added.
+	(rasqal_join_rowsource_reset): Updated to reset and reset internal
+	rowsources.
+
+	* src/rasqal_rowsource.c:
+	(rasqal_rowsource_reset): Return 0 if no handler present - it may
+	not be needed.
+
+	* src/Makefile.am, src/rasqal_rowsource_join.c: Added join
+	rowsource.
+	(rasqal_new_join_rowsource): Added join rowsource constructor.
+
+	* src/rasqal_rowsource_rowsequence.c: Implement reset method via
+	rasqal_rowsequence_rowsource_reset
+	(rasqal_rowsequence_rowsource_read_row): Copy rows to return them.
+	(rasqal_rowsequence_rowsource_read_all_rows): Create new sequence
+	to return it.
+	(rasqal_rowsequence_rowsource_reset): Added.
+
+	* src/rasqal_internal.h, src/rasqal_rowsource.c:
+	(rasqal_rowsource_reset): Added.
+	rasqal_rowsource_reset_func added
 
 	* src/rasqal_rowsource_project.c:
 	(rasqal_project_rowsource_ensure_variables): Fix offset vars
