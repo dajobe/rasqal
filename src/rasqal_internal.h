@@ -558,6 +558,7 @@ typedef int (*rasqal_rowsource_reset_func) (rasqal_rowsource* rowsource, void *u
  */
 typedef int (*rasqal_rowsource_set_preserve_func) (rasqal_rowsource* rowsource, void *user_data, int preserve);
 
+
 /**
  * rasqal_rowsource_handler:
  * @version: API version - 1
@@ -565,9 +566,12 @@ typedef int (*rasqal_rowsource_set_preserve_func) (rasqal_rowsource* rowsource, 
  * @init:  initialisation handler - optional, called at most once (V1)
  * @finish: finishing handler - optional, called at most once (V1)
  * @ensure_variables: update variables handler- optional, called at most once (V1)
- * @read_row: read row handler - required (V1)
+ * @read_row: read row handler - this or @read_all_rows required (V1)
+ * @read_all_rows: read all rows handler - this or @read_row required (V1)
+ * @reset: reset rowsource to starting state handler - optional (V1)
+ * @set_preserve: set preserve flag handler - optional (V1)
  *
- * ROW implementation handler structure.
+ * Row Source implementation factory handler structure.
  * 
  */
 typedef struct {
