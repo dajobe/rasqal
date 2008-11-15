@@ -41,6 +41,7 @@
 
 typedef struct 
 {
+  int usage;
   rasqal_world *world;
   raptor_uri *uri;
   void *user_data;
@@ -63,20 +64,38 @@ typedef struct
 
 struct rasqal_graph_factory_s
 {
+  int version; /* API version */
+
+  /* One-time initialisation/termination of graph factory (optional) */
   void* (*init_factory)(rasqal_world* world);
-  void (*free_factory)(void *graph_factory_user_data);
+  void (*terminate_factory)(void *graph_factory_user_data);
   
-  /* Get an RDF graph API (acts like librdf_model) */
+  /* RDF Graph API (required)
+   *
+   * (acts like librdf_model)
+   */
   void *(*new_graph)(rasqal_world* world, raptor_uri* uri);
   void (*free_graph)(void *graph_user_data);
+  /* Check for presence of a triple (NOT triple pattern) in a graph (required)
+   * (acts like librdf_model_contains_statement)
+   */
+  int (*graph_triple_present)(void *graph_user_data, rasqal_triple *triple);
 
-  /* Get triples matching a triple pattern (acts like librdf_stream) */
-  void* (*new_graph_match)(rasqal_graph *graph, rasqal_triple* triple);
+  /* Triple pattern matching API (required)
+   *
+   * Find triples matching a triple pattern
+   * (acts like librdf_model_find_statements returning a librdf_stream of
+   * librdf_statement)
+   */
+  void* (*new_graph_match)(rasqal_graph *graph, rasqal_triple *triple);
   rasqal_triple* (*graph_match_get_triple)(void *match_user_data);
   void (*free_graph_match)(void *match_user_data);
 
-  /* Bind variables matching a set of triple patterns */
-  void* (*new_graph_bindings)(rasqal_graph *graph, rasqal_triple **triples, int triples_count);
+  /* Graph pattern binding API (optional)
+   * 
+   * Bind variables when triples in the graph match a graph pattern
+   */
+  void* (*new_graph_bindings)(rasqal_graph *graph, rasqal_triple **triples, int triples_count, rasqal_expression *filter);
   int (*graph_bindings_bind)(void *graph_bindings_user_data);
   void (*free_graph_bindings)(void *graph_bindings_user_data);
 };
@@ -87,10 +106,11 @@ int rasqal_init_graph_factory(rasqal_world *world, rasqal_graph_factory *factory
 void rasqal_free_graph_factory(rasqal_world *world);
 rasqal_graph* rasqal_new_graph(rasqal_world* world, raptor_uri *uri);
 void rasqal_free_graph(rasqal_graph *graph);
+int rasqal_graph_triple_present(rasqal_graph *graph, rasqal_triple *triple);
 rasqal_graph_match* rasqal_new_graph_match(rasqal_graph *graph, rasqal_triple *triple);
 void rasqal_free_graph_match(rasqal_graph_match *match);
 rasqal_triple* rasqal_graph_match_get_triple(rasqal_graph_match *match);
-rasqal_graph_bindings* rasqal_new_graph_bindings(rasqal_graph *graph, rasqal_triple **triples, int triples_count);
+rasqal_graph_bindings* rasqal_new_graph_bindings(rasqal_graph *graph, rasqal_triple **triples, int triples_count, rasqal_expression *filter);
 void rasqal_free_graph_bindings(rasqal_graph_bindings *graph_bindings);
 int rasqal_graph_bindings_bind(rasqal_graph_bindings *graph_bindings);
 
@@ -133,8 +153,8 @@ rasqal_free_graph_factory(rasqal_world *world)
 {
   rasqal_graph_factory *factory = world->graph_factory;
 
-  if(factory->free_factory)
-    factory->free_factory(world->graph_factory_user_data);
+  if(factory->terminate_factory)
+    factory->terminate_factory(world->graph_factory_user_data);
 }
 
 
@@ -162,7 +182,8 @@ rasqal_new_graph(rasqal_world* world, raptor_uri *uri)
     RASQAL_FREE(rasqal_graph, g);
     return NULL;
   }
-  
+
+  g->usage = 1;
   return g;
 }
 
@@ -178,10 +199,48 @@ void
 rasqal_free_graph(rasqal_graph *graph)
 {
   rasqal_graph_factory *factory = graph->world->graph_factory;
+
+  if(graph->usage--)
+    return;
   
   if(factory->free_graph)
     factory->free_graph(graph->user_data);
   RASQAL_FREE(rasqal_graph, graph);
+}
+
+
+/**
+ * rasqal_new_graph_from_graph:
+ * @graph: graph API object
+ *
+ * Copy constructor
+ *
+ * Return value: new graph object
+ */
+static rasqal_graph*
+rasqal_new_graph_from_graph(rasqal_graph *graph)
+{
+  graph->usage++;
+
+  return graph;
+}
+
+
+/**
+ * rasqal_graph_triple_present:
+ * @graph: graph API object
+ * @triple: triple
+ *
+ * Test if a triple is in a graph
+ *
+ * Return value: non-0 if triple is present
+ */
+int
+rasqal_graph_triple_present(rasqal_graph *graph, rasqal_triple *triple)
+{
+  rasqal_graph_factory *factory = graph->world->graph_factory;
+
+  return factory->graph_triple_present(graph->user_data, triple);
 }
 
 
@@ -205,7 +264,7 @@ rasqal_new_graph_match(rasqal_graph *graph, rasqal_triple *triple)
   if(!gm)
     return NULL;
 
-  gm->graph = graph;
+  gm->graph = rasqal_new_graph_from_graph(graph);
   gm->user_data = factory->new_graph_match(graph, triple);
   if(!gm->user_data) {
     RASQAL_FREE(graph_match, gm);
@@ -227,6 +286,8 @@ rasqal_free_graph_match(rasqal_graph_match *match)
 {
   rasqal_graph_factory *factory = match->world->graph_factory;
 
+  rasqal_free_graph(match->graph);
+
   if(factory->free_graph_match)
     factory->free_graph_match(match->user_data);
   RASQAL_FREE(rasqal_graph_match, match);
@@ -239,7 +300,7 @@ rasqal_free_graph_match(rasqal_graph_match *match)
  * 
  * Get the next triple from a triple pattern matcher
  * 
- * Returns: next triple or NULL when no (more) triples match
+ * Returns: new triple object or NULL when no (more) triples match
  **/
 rasqal_triple*
 rasqal_graph_match_get_triple(rasqal_graph_match *match)
@@ -255,13 +316,15 @@ rasqal_graph_match_get_triple(rasqal_graph_match *match)
  * @graph: graph API object 
  * @triples: graph pattern as an array of triples of size @triples_count
  * @triples_count: number of triples in graph pattern
+ * @filter: expression over the resulting bound variables to filter and constrain matches
  * 
  * Returns: 
  **/
 rasqal_graph_bindings*
 rasqal_new_graph_bindings(rasqal_graph *graph,
                           rasqal_triple **triples,
-                          int triples_count)
+                          int triples_count,
+                          rasqal_expression *filter)
 {
   rasqal_graph_bindings* gb;
   rasqal_graph_factory *factory = graph->world->graph_factory;
@@ -271,8 +334,9 @@ rasqal_new_graph_bindings(rasqal_graph *graph,
   if(!gb)
     return NULL;
   
-  gb->graph = graph;
-  gb->user_data = factory->new_graph_bindings(graph, triples, triples_count);
+  gb->graph = rasqal_new_graph_from_graph(graph);
+  gb->user_data = factory->new_graph_bindings(graph, triples, triples_count,
+                                              filter);
   if(!gb->user_data) {
     RASQAL_FREE(graph_bindings, gb);
     return NULL;
@@ -292,6 +356,8 @@ void
 rasqal_free_graph_bindings(rasqal_graph_bindings *graph_bindings)
 {
   rasqal_graph_factory *factory = graph_bindings->world->graph_factory;
+
+  rasqal_free_graph(graph_bindings->graph);
 
   if(factory->free_graph_bindings)
     factory->free_graph_bindings(graph_bindings->user_data);
