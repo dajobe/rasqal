@@ -942,6 +942,8 @@ int rasqal_xsd_datatype_is_numeric(rasqal_literal_type type);
 unsigned char* rasqal_xsd_format_double(double d, size_t *len_p);
 
 
+typedef struct rasqal_graph_factory_s rasqal_graph_factory;
+
 /* rasqal_world structure */
 struct rasqal_world_s {
   /* opened flag */
@@ -974,6 +976,10 @@ struct rasqal_world_s {
   /* rasqal_xsd_datatypes */
   raptor_uri *xsd_namespace_uri;
   raptor_uri **xsd_datatype_uris;
+
+  /* graph factory */
+  rasqal_graph_factory *graph_factory;
+  void *graph_factory_user_data;
 };
 
 
