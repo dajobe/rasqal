@@ -70,9 +70,12 @@ struct rasqal_graph_factory_s
   void* (*init_factory)(rasqal_world* world);
   void (*terminate_factory)(void *graph_factory_user_data);
 
+  /* Dataset API (required)
+   *
+   * Manage a set of RDF graphs
+   */
   /* list dataset graphs */
   raptor_uri* (*dataset_enumerate)(void *graph_factory_user_data, int offset);
-
   /* load dataset with a graph via URI */
   int (*dataset_load)(void *graph_factory_user_data, raptor_uri* uri);
 
