@@ -70,11 +70,11 @@ struct rasqal_graph_factory_s
   void* (*init_factory)(rasqal_world* world);
   void (*terminate_factory)(void *graph_factory_user_data);
 
-  /* list graphs in dataset */
-  raptor_uri* (*graph_enumerate)(void *graph_factory_user_data, int offset);
+  /* list dataset graphs */
+  raptor_uri* (*dataset_enumerate)(void *graph_factory_user_data, int offset);
 
-  /* load graph with URI */
-  int (*graph_load)(void *graph_factory_user_data, raptor_uri* uri);
+  /* load dataset with a graph via URI */
+  int (*dataset_load)(void *graph_factory_user_data, raptor_uri* uri);
 
   /* RDF Graph API (required)
    *
@@ -110,9 +110,9 @@ struct rasqal_graph_factory_s
 /* prototypes */
 int rasqal_init_graph_factory(rasqal_world *world, rasqal_graph_factory *factory);
 void rasqal_free_graph_factory(rasqal_world *world);
-int rasqal_graph_present(rasqal_world* world, raptor_uri* uri);
-raptor_uri* rasqal_graph_enumerate(rasqal_world* world, int offset);
-int rasqal_graph_load(rasqal_world* world, raptor_uri* uri);
+int rasqal_dataset_graph_present(rasqal_world* world, raptor_uri* uri);
+raptor_uri* rasqal_dataset_enumerate(rasqal_world* world, int offset);
+int rasqal_dataset_graph_load(rasqal_world* world, raptor_uri* uri);
 rasqal_graph* rasqal_new_graph(rasqal_world* world, raptor_uri *uri);
 void rasqal_free_graph(rasqal_graph *graph);
 int rasqal_graph_triple_present(rasqal_graph *graph, rasqal_triple *triple);
@@ -168,7 +168,7 @@ rasqal_free_graph_factory(rasqal_world *world)
 
 
 /**
- * rasqal_graph_enumerate:
+ * rasqal_dataset_enumerate:
  * @world: rasqal world
  * @offset: offset
  * 
@@ -177,16 +177,16 @@ rasqal_free_graph_factory(rasqal_world *world)
  * Return value: URI or NULL if offset is out of rangek
  **/
 raptor_uri*
-rasqal_graph_enumerate(rasqal_world* world, int offset)
+rasqal_dataset_enumerate(rasqal_world* world, int offset)
 {
   rasqal_graph_factory *factory = world->graph_factory;
 
-  return factory->graph_enumerate(world->graph_factory_user_data, offset);
+  return factory->dataset_enumerate(world->graph_factory_user_data, offset);
 }
 
 
 /**
- * rasqal_graph_present:
+ * rasqal_dataset_graph_present:
  * @world: rasqal world
  * @uri: graph URI
  * 
@@ -195,14 +195,14 @@ rasqal_graph_enumerate(rasqal_world* world, int offset)
  * Return value: non-0 if the graph is present
  **/
 int
-rasqal_graph_present(rasqal_world* world, raptor_uri* uri)
+rasqal_dataset_graph_present(rasqal_world* world, raptor_uri* uri)
 {
   int offset = 0;
   
   while(1) {
     raptor_uri *graph_uri;
     
-    graph_uri = rasqal_graph_enumerate(world, offset++);
+    graph_uri = rasqal_dataset_enumerate(world, offset++);
     if(!graph_uri)
       break;
 
@@ -215,7 +215,7 @@ rasqal_graph_present(rasqal_world* world, raptor_uri* uri)
 
 
 /**
- * rasqal_graph_load:
+ * rasqal_dataset_graph_load:
  * @world: rasqal world
  * @uri: graph URI to load
  * 
@@ -224,11 +224,11 @@ rasqal_graph_present(rasqal_world* world, raptor_uri* uri)
  * Return value: graph API object or NULL on failure
  **/
 int
-rasqal_graph_load(rasqal_world* world, raptor_uri* uri)
+rasqal_dataset_graph_load(rasqal_world* world, raptor_uri* uri)
 {
   rasqal_graph_factory *factory = world->graph_factory;
 
-  return factory->graph_load(world->graph_factory_user_data, uri);
+  return factory->dataset_load(world->graph_factory_user_data, uri);
 }
 
 
