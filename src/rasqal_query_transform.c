@@ -40,6 +40,12 @@
 #include "rasqal.h"
 #include "rasqal_internal.h"
 
+
+#if 0
+#undef RASQAL_DEBUG
+#define RASQAL_DEBUG 2
+#endif
+
 #define DEBUG_FH stderr
 
 
@@ -1298,6 +1304,11 @@ rasqal_graph_patterns_join(rasqal_graph_pattern *dest_gp,
   }
 
   rc = rasqal_graph_pattern_move_constraints(dest_gp, src_gp);
+
+  if(src_gp->origin) {
+    dest_gp->origin = src_gp->origin;
+    src_gp->origin = NULL;
+  }
 
 #if RASQAL_DEBUG > 1
   RASQAL_DEBUG2("Result graph pattern #%d\n  ", dest_gp->gp_index);
