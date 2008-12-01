@@ -676,6 +676,34 @@ rasqal_query_get_data_graph(rasqal_query* query, int idx)
 
 
 /**
+ * rasqal_query_dataset_contains_named_graph:
+ * @query: #rasqal_query query object
+ * @graph_uri: query URI
+ *
+ * Test if the query dataset contains a named graph
+ *
+ * Return value: non-0 if the dataset contains a named graph
+ */
+int
+rasqal_query_dataset_contains_named_graph(rasqal_query* query,
+                                          raptor_uri *graph_uri)
+{
+  rasqal_data_graph *dg;
+  int idx;
+  int found = 0;
+  
+  for(idx = 0; (dg = rasqal_query_get_data_graph(query, idx)); idx++) {
+    if(dg->name_uri && raptor_uri_equals(dg->name_uri, graph_uri)) {
+      /* graph_uri is a graph name in the dataset */
+      found = 1;
+      break;
+    }
+  }
+  return found;
+}
+
+
+/**
  * rasqal_query_add_variable:
  * @query: #rasqal_query query object
  * @var: #rasqal_variable variable

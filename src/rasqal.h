@@ -743,6 +743,8 @@ RASQAL_API
 raptor_sequence* rasqal_query_get_data_graph_sequence(rasqal_query* query);
 RASQAL_API
 rasqal_data_graph* rasqal_query_get_data_graph(rasqal_query* query, int idx);
+RASQAL_API
+int rasqal_query_dataset_contains_named_graph(rasqal_query* query, raptor_uri *graph_uri);
 
 RASQAL_API
 int rasqal_query_add_variable(rasqal_query* query, rasqal_variable* var);
