@@ -458,33 +458,33 @@ typedef enum {
 } rasqal_query_results_type;
 
 
-/* rasqal_empty_rowsource.c */
+/* rasqal_rowsource_empty.c */
 rasqal_rowsource* rasqal_new_empty_rowsource(rasqal_world *world, rasqal_query* query);
-int rasqal_rowsource_ensure_variables(rasqal_rowsource *rowsource);
 
-/* rasqal_engine_rowsource.c */
+/* rasqal_rowsource_engine.c */
 rasqal_rowsource* rasqal_new_execution_rowsource(rasqal_query_results* query_results);
 
-/* rasqal_filter_rowsource.c */
+/* rasqal_rowsource_filter.c */
 rasqal_rowsource* rasqal_new_filter_rowsource(rasqal_world *world, rasqal_query *query, rasqal_rowsource* rs, rasqal_expression* expr);
 
-/* rasqal_join_rowsource.c */
+/* rasqal_rowsource_join.c */
 rasqal_rowsource* rasqal_new_join_rowsource(rasqal_world *world, rasqal_query* query, rasqal_rowsource* left, rasqal_rowsource* right, int join_type, rasqal_expression *expr);
 
 /* rasqal_rowsource_project.c */
 rasqal_rowsource* rasqal_new_project_rowsource(rasqal_world *world, rasqal_query *query, rasqal_rowsource* rowsource, raptor_sequence* projection_variables);
 
-/* rasqal_rowsequence_rowsource.c */
+/* rasqal_rowsource_rowsequence.c */
 rasqal_rowsource* rasqal_new_rowsequence_rowsource(rasqal_world *world, rasqal_query* query, rasqal_variables_table* vt, raptor_sequence* row, raptor_sequence* vars_seq);
 
-/* rasqal_sort_rowsource.c */
+/* rasqal_rowsource_sort.c */
 rasqal_rowsource* rasqal_new_sort_rowsource(rasqal_world *world, rasqal_query *query, rasqal_rowsource *rowsource, raptor_sequence *seq);
 
-/* rasqal_union_rowsource.c */
+/* rasqal_rowsource_triples.c */
+rasqal_rowsource* rasqal_new_triples_rowsource(rasqal_world *world, rasqal_query* query, rasqal_triples_source* triples_source, raptor_sequence* triples, int start_column, int end_column, int *declared_in);
+
+/* rasqal_rowsource_union.c */
 rasqal_rowsource* rasqal_new_union_rowsource(rasqal_world *world, rasqal_query* query, rasqal_rowsource* left, rasqal_rowsource* right);
 
-/* rasqal_triples_rowsource.c */
-rasqal_rowsource* rasqal_new_triples_rowsource(rasqal_world *world, rasqal_query* query, rasqal_triples_source* triples_source, raptor_sequence* triples, int start_column, int end_column, int *declared_in);
 
 /**
  * rasqal_rowsource_init_func:
