@@ -693,7 +693,14 @@ rasqal_query_dataset_contains_named_graph(rasqal_query* query,
   int found = 0;
   
   for(idx = 0; (dg = rasqal_query_get_data_graph(query, idx)); idx++) {
-    if(dg->name_uri && raptor_uri_equals(dg->name_uri, graph_uri)) {
+    if(dg->name_uri &&
+#ifdef RAPTOR_V2_AVAILABLE
+       raptor_uri_equals_v2(query->world->raptor_world_ptr, dg->name_uri, graph_uri)
+#else
+       raptor_uri_equals(dg->name_uri, graph_uri)
+#endif
+       )
+    {
       /* graph_uri is a graph name in the dataset */
       found = 1;
       break;
