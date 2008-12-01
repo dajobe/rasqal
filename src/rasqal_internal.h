@@ -220,6 +220,9 @@ struct rasqal_graph_pattern_s {
 
   /* index of the graph pattern in the query (0.. query->graph_pattern_count-1) */
   int gp_index;
+
+  /* Graph literal */
+  rasqal_literal *origin;
 };
 
 rasqal_graph_pattern* rasqal_new_basic_graph_pattern(rasqal_query* query, raptor_sequence* triples, int start_column, int end_column);

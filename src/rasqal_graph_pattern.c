@@ -196,6 +196,9 @@ rasqal_free_graph_pattern(rasqal_graph_pattern* gp)
   if(gp->constraints)
     raptor_free_sequence(gp->constraints);
 
+  if(gp->origin)
+    rasqal_free_literal(gp->origin);
+
   RASQAL_FREE(rasqal_graph_pattern, gp);
 }
 
@@ -337,12 +340,12 @@ rasqal_graph_pattern_get_operator(rasqal_graph_pattern* graph_pattern)
 
 static const char* const rasqal_graph_pattern_operator_labels[RASQAL_GRAPH_PATTERN_OPERATOR_LAST+1]={
   "UNKNOWN",
-  "basic",
-  "optional",
-  "union",
-  "group",
-  "graph",
-  "filter"
+  "Basic",
+  "Optional",
+  "Union",
+  "Group",
+  "Graph",
+  "Filter"
 };
 
 
@@ -457,6 +460,23 @@ rasqal_graph_pattern_write_internal(rasqal_graph_pattern* gp,
       rasqal_graph_pattern_write_indent(iostr, indent);
     }
     raptor_iostream_write_byte(iostr, ']');
+
+    pending_nl=1;
+  }
+
+  if(gp->origin) {
+    if(pending_nl) {
+      raptor_iostream_write_counted_string(iostr, " ,", 2);
+
+      if(indent >= 0) {
+        raptor_iostream_write_byte(iostr, '\n');
+        rasqal_graph_pattern_write_indent(iostr, indent);
+      }
+    }
+
+    raptor_iostream_write_counted_string(iostr, "origin ", 7);
+
+    rasqal_literal_write(gp->origin, iostr);
 
     pending_nl=1;
   }
