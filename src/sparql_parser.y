@@ -1251,12 +1251,36 @@ GraphGraphPattern: GRAPH VarOrIRIref GroupGraphPattern
 #endif
 
   if($3) {
-    rasqal_graph_pattern_set_origin($3, $2);
-    $3->op = RASQAL_GRAPH_PATTERN_OPERATOR_GRAPH;
+    raptor_sequence *seq;
+
+    seq=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_graph_pattern, (raptor_sequence_print_handler*)rasqal_graph_pattern_print);
+    if(!seq) {
+      rasqal_free_graph_pattern($3);
+      YYERROR_MSG("GraphGraphPattern 1: cannot create sequence");
+    } else {
+      if(raptor_sequence_push(seq, $3)) {
+        raptor_free_sequence(seq);
+        YYERROR_MSG("GraphGraphPattern 2: sequence push failed");
+      } else {
+        $$ = rasqal_new_graph_pattern_from_sequence((rasqal_query*)rq,
+                                                    seq,
+                                                    RASQAL_GRAPH_PATTERN_OPERATOR_GRAPH);
+        if(!$$)
+          YYERROR_MSG("GraphGraphPattern: cannot create graph pattern");
+        else
+          rasqal_graph_pattern_set_origin($$, $2);
+      }
+    }
   }
 
+
+#if RASQAL_DEBUG > 1  
+  fprintf(DEBUG_FH, "GraphGraphPattern\n  graphpattern=");
+  rasqal_graph_pattern_print($$, DEBUG_FH);
+  fputs("\n\n", DEBUG_FH);
+#endif
+
   rasqal_free_literal($2);
-  $$=$3;
 }
 ;
 
