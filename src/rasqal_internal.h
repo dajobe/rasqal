@@ -705,6 +705,11 @@ typedef int (*rasqal_query_results_formatter_func)(raptor_iostream *iostr, rasqa
 
 typedef rasqal_rowsource* (*rasqal_query_results_get_rowsource_func)(rasqal_world*, rasqal_variables_table* vars_table, raptor_iostream *iostr, raptor_uri *base_uri);
 
+typedef int (*rasqal_rowsource_visit_fn)(rasqal_rowsource* rowsource, void *user_data);
+
+int rasqal_rowsource_visit(rasqal_rowsource* rowsource, rasqal_rowsource_visit_fn fn, void *user_data);
+
+
 
 typedef struct {
   /* query results format name */

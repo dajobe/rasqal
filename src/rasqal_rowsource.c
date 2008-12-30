@@ -493,6 +493,43 @@ rasqal_rowsource_get_inner_rowsource(rasqal_rowsource* rowsource, int offset)
 }
 
 
+/**
+ * rasqal_rowsource_visit:
+ * @node: #rasqal_rowsource row source
+ * @fn: pointer to function to apply that takes user data and rowsource parameters
+ * @user_data: user data for applied function 
+ * 
+ * Visit a user function over a #rasqal_rowsource
+ *
+ * If the user function @fn returns 0, the visit is truncated.
+ *
+ * Return value: 0 if the visit was truncated.
+ **/
+int
+rasqal_rowsource_visit(rasqal_rowsource* rowsource,
+                       rasqal_rowsource_visit_fn fn,
+                       void *user_data)
+{
+  int result;
+  int offset;
+  rasqal_rowsource* inner_rs;
+  
+  result = fn(rowsource, user_data);
+  if(result)
+    return result;
+
+  for(offset = 0;
+      (inner_rs = rasqal_rowsource_get_inner_rowsource(rowsource, offset));
+      offset++) {
+    result = rasqal_rowsource_visit(inner_rs, fn, user_data);
+    if(result)
+      return result;
+  }
+
+  return 0;
+}
+
+
 #define SPACES_LENGTH 80
 static const char spaces[SPACES_LENGTH+1] = "                                                                                ";
 
