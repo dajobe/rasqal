@@ -744,39 +744,14 @@ rasqal_graph_pattern_get_sub_graph_pattern(rasqal_graph_pattern* graph_pattern, 
  *
  * INTERNAL - Set the graph pattern triple origin.
  * 
- * All triples in this graph pattern or contained graph patterns are set
- * to have the given origin.
  **/
 void
 rasqal_graph_pattern_set_origin(rasqal_graph_pattern* graph_pattern,
                                 rasqal_literal *origin)
 {
-  raptor_sequence* s;
-  
-  s=graph_pattern->triples;
-  if(s) {
-    int i;
-
-    /* Flag all the triples in this graph pattern with origin */
-    for(i= graph_pattern->start_column; i <= graph_pattern->end_column; i++) {
-      rasqal_triple *t=(rasqal_triple*)raptor_sequence_get_at(s, i);
-      rasqal_triple_set_origin(t, rasqal_new_literal_from_literal(origin));
-    }
-  }
-
-  s=graph_pattern->graph_patterns;
-  if(s) {
-    int i;
-
-    /* Flag all the triples in sub-graph patterns with origin */
-    for(i=0; i < raptor_sequence_size(s); i++) {
-      rasqal_graph_pattern *gp=(rasqal_graph_pattern*)raptor_sequence_get_at(s, i);
-      rasqal_graph_pattern_set_origin(gp, origin);
-    }
-  }
-
+  graph_pattern->origin = rasqal_new_literal_from_literal(origin);
 }
-
+  
 
 /**
  * rasqal_new_basic_graph_pattern_from_formula:
