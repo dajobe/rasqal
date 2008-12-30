@@ -1,3 +1,57 @@
+2008-11-30  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_query.c:
+	(rasqal_query_dataset_contains_named_graph): Fixed for raptor v2
+
+2008-11-30  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_internal.h: Added rasqal_rowsource_ensure_variables
+	prototype
+
+	* src/rasqal_internal.h: Fix source file names for rowsources
+
+	* src/rasqal.h, src/rasqal_query.c:
+	(rasqal_query_dataset_contains_named_graph): Added.
+
+	* src/rasqal_graph_pattern.c, src/rasqal_internal.h:
+	rasqal_graph_pattern gains origin field
+	(rasqal_free_graph_pattern): Free it if set.  Uppercase grpah
+	pattern operator labels in rasqal_graph_pattern_operator_labels
+	for easier reading.
+	(rasqal_graph_pattern_write_internal): Print out GP origin if set.
+
+	* src/rasqal_query_transform.c:
+	(rasqal_graph_patterns_join): Handle merging GRAPH patterns with
+	an origin
+
+2008-11-26  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_rowsource.c:
+	(rasqal_rowsource_read_row): casts for c++
+
+2008-11-16  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_raptor.c: code style.  replace all strcpy() with
+	strncpy()
+
+2008-11-15  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_graph.c: docs
+
+	* src/rasqal_graph.c: terminology - use dataset not graph
+
+	* src/rasqal_graph.c: Add functions to enumerate and alter the
+	dataset of graphs
+
+	* src/rasqal_graph.c: more api thoughts in code form
+
+2008-11-14  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_graph.c, src/rasqal_internal.h: Add tentative graph
+	API to replace rasqal_triples_source_factory,
+	rasqal_triples_source, rasqal_triple_meta and rasqal_triples_match
+	maybe.
+
 2008-11-12  Dave Beckett <dave@dajobe.org>
 
 	* src/rasqal_engine_algebra.c, src/rasqal_internal.h,
