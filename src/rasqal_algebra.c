@@ -336,6 +336,46 @@ rasqal_new_project_algebra_node(rasqal_query* query,
 
 
 /*
+ * rasqal_new_graph_algebra_node:
+ * @query: #rasqal_query query object
+ * @node1: inner algebra node
+ * @graph: graph literal
+ *
+ * INTERNAL - Create a new GRAPH algebra node over an inner node
+ * 
+ * The inputs @node1 and @graph become owned by the new node
+ *
+ * Return value: a new #rasqal_algebra_node object or NULL on failure
+ **/
+rasqal_algebra_node*
+rasqal_new_graph_algebra_node(rasqal_query* query,
+                              rasqal_algebra_node* node1,
+                              rasqal_literal *graph)
+{
+  rasqal_algebra_node* node;
+
+  if(!query || !node1 || !graph)
+    goto fail;
+
+  node = rasqal_new_algebra_node(query, RASQAL_ALGEBRA_OPERATOR_GRAPH);
+  if(node) {
+    node->node1 = node1;
+    node->graph = graph;
+    
+    return node;
+  }
+
+  fail:
+  if(node1)
+    rasqal_free_algebra_node(node1);
+  if(graph)
+    rasqal_free_literal(graph);
+
+  return NULL;
+}
+
+
+/*
  * rasqal_free_algebra_node:
  * @gp: #rasqal_algebra_node object
  *
@@ -399,7 +439,8 @@ static const char* const rasqal_algebra_node_operator_labels[RASQAL_ALGEBRA_OPER
   "Project",
   "Distinct",
   "Reduced",
-  "Slice"
+  "Slice",
+  "Graph"
 };
 
 
@@ -554,6 +595,17 @@ rasqal_algebra_algebra_node_write_internal(rasqal_algebra_node *node,
     arg_count++;
   }
 
+  if(node->op == RASQAL_ALGEBRA_OPERATOR_GRAPH) {
+    if(arg_count) {
+      raptor_iostream_write_counted_string(iostr, " ,\n", 3);
+      rasqal_algebra_write_indent(iostr, indent);
+    }
+    raptor_iostream_write_string(iostr, "origin ");
+    rasqal_literal_write(node->graph, iostr);
+    raptor_iostream_write_byte(iostr, '\n');
+    arg_count++;
+  }
+
   raptor_iostream_write_byte(iostr, '\n');
   indent-= indent_delta;
 
@@ -591,6 +643,7 @@ rasqal_algebra_node_print(rasqal_algebra_node* node, FILE* fh)
   rasqal_algebra_algebra_node_write(node, iostr);
   raptor_free_iostream(iostr);
 }
+
 
 /**
  * rasqal_algebra_node_visit:
@@ -878,6 +931,40 @@ rasqal_algebra_group_graph_pattern_to_algebra(rasqal_query* query,
 
 
 static rasqal_algebra_node*
+rasqal_algebra_graph_graph_pattern_to_algebra(rasqal_query* query,
+                                              rasqal_graph_pattern* gp)
+{
+  rasqal_algebra_node* node = NULL;
+  rasqal_literal *graph = NULL;
+  rasqal_graph_pattern* sgp;
+  rasqal_algebra_node* gnode;
+    
+  if(gp->origin)
+    graph = rasqal_new_literal_from_literal(gp->origin);
+
+  sgp = rasqal_graph_pattern_get_sub_graph_pattern(gp, 0);
+  if(!sgp)
+    goto fail;
+  
+  gnode = rasqal_algebra_graph_pattern_to_algebra(query, sgp);
+  if(!gnode) {
+    RASQAL_DEBUG1("rasqal_algebra_graph_pattern_to_algebra() failed");
+    goto fail;
+  }
+    
+  return rasqal_new_graph_algebra_node(query, gnode, graph);
+  
+  fail:
+  if(node)
+    rasqal_free_algebra_node(node);
+  if(graph)
+    rasqal_free_literal(graph);
+
+  return NULL;
+}
+
+
+static rasqal_algebra_node*
 rasqal_algebra_graph_pattern_to_algebra(rasqal_query* query,
                                         rasqal_graph_pattern* gp)
 {
@@ -897,8 +984,11 @@ rasqal_algebra_graph_pattern_to_algebra(rasqal_query* query,
       node = rasqal_algebra_group_graph_pattern_to_algebra(query, gp);
       break;
       
-    case RASQAL_GRAPH_PATTERN_OPERATOR_FILTER:
     case RASQAL_GRAPH_PATTERN_OPERATOR_GRAPH:
+      node = rasqal_algebra_graph_graph_pattern_to_algebra(query, gp);
+      break;
+
+    case RASQAL_GRAPH_PATTERN_OPERATOR_FILTER:
 
     case RASQAL_GRAPH_PATTERN_OPERATOR_UNKNOWN:
     default:

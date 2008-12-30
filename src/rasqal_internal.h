@@ -467,6 +467,9 @@ rasqal_rowsource* rasqal_new_execution_rowsource(rasqal_query_results* query_res
 /* rasqal_rowsource_filter.c */
 rasqal_rowsource* rasqal_new_filter_rowsource(rasqal_world *world, rasqal_query *query, rasqal_rowsource* rs, rasqal_expression* expr);
 
+/* rasqal_rowsource_graph.c */
+rasqal_rowsource* rasqal_new_graph_rowsource(rasqal_world *world, rasqal_query *query, rasqal_rowsource* rowsource, rasqal_variable *var);
+
 /* rasqal_rowsource_join.c */
 rasqal_rowsource* rasqal_new_join_rowsource(rasqal_world *world, rasqal_query* query, rasqal_rowsource* left, rasqal_rowsource* right, int join_type, rasqal_expression *expr);
 
@@ -1012,8 +1015,9 @@ typedef enum {
   RASQAL_ALGEBRA_OPERATOR_DISTINCT = 10,
   RASQAL_ALGEBRA_OPERATOR_REDUCED  = 11,
   RASQAL_ALGEBRA_OPERATOR_SLICE    = 12,
+  RASQAL_ALGEBRA_OPERATOR_GRAPH    = 13,
 
-  RASQAL_ALGEBRA_OPERATOR_LAST=RASQAL_ALGEBRA_OPERATOR_SLICE
+  RASQAL_ALGEBRA_OPERATOR_LAST=RASQAL_ALGEBRA_OPERATOR_GRAPH
 } rasqal_algebra_node_operator;
 
 
@@ -1033,7 +1037,7 @@ struct rasqal_algebra_node_s {
   
   /* types JOIN, DIFF, LEFTJOIN, UNION, ORDERBY: node1 and node2 ALWAYS present
    * types FILTER, TOLIST: node1 ALWAYS present, node2 ALWAYS NULL
-   * type PROJECT: node1 always present
+   * type PROJECT, GRAPH: node1 always present
    * (otherwise NULL)
    */
   rasqal_algebra_node *node1;
@@ -1058,6 +1062,9 @@ struct rasqal_algebra_node_s {
   /* type SLICE: start and length */
   unsigned int start;
   unsigned int length;
+
+  /* type GRAPH */
+  rasqal_literal *graph;
 };
 
 /**
@@ -1081,6 +1088,7 @@ rasqal_algebra_node* rasqal_new_2op_algebra_node(rasqal_query* query, rasqal_alg
 rasqal_algebra_node* rasqal_new_leftjoin_algebra_node(rasqal_query* query, rasqal_algebra_node* node1, rasqal_algebra_node* node2, rasqal_expression* expr);
 rasqal_algebra_node* rasqal_new_orderby_algebra_node(rasqal_query* query, rasqal_algebra_node* node, raptor_sequence* seq);
 rasqal_algebra_node* rasqal_new_project_algebra_node(rasqal_query* query, rasqal_algebra_node* node1, raptor_sequence* vars_seq);
+rasqal_algebra_node* rasqal_new_graph_algebra_node(rasqal_query* query, rasqal_algebra_node* node1, rasqal_literal *graph);
 void rasqal_free_algebra_node(rasqal_algebra_node* node);
 rasqal_algebra_node_operator rasqal_algebra_node_get_operator(rasqal_algebra_node* node);
 const char* rasqal_algebra_node_operator_as_string(rasqal_algebra_node_operator op);
