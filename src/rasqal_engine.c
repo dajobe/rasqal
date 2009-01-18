@@ -1516,6 +1516,106 @@ rasqal_query_engine_1_get_row(void* ex_data, rasqal_engine_error *error_p)
 }
 
 
+/*
+ * rasqal_query_engine_1_set_origin_triples:
+ * @graph_pattern: #rasqal_graph_pattern graph pattern object
+ *
+ * INTERNAL - Set all triples inside the graph pattern to the GP origin.
+ * 
+ * All triples in this graph pattern or contained graph patterns are set
+ * to have the given origin.
+ **/
+static void
+rasqal_query_engine_1_set_origin_triples(rasqal_graph_pattern* graph_pattern)
+{
+  rasqal_literal *origin = graph_pattern->origin;
+  raptor_sequence* s;
+  
+  s = graph_pattern->triples;
+  if(s) {
+    int i;
+
+    /* Flag all the triples in this graph pattern with origin */
+    for(i = graph_pattern->start_column; i <= graph_pattern->end_column; i++) {
+      rasqal_triple *t;
+      t = (rasqal_triple*)raptor_sequence_get_at(s, i);
+      rasqal_triple_set_origin(t, rasqal_new_literal_from_literal(origin));
+    }
+  }
+
+  s = graph_pattern->graph_patterns;
+  if(s) {
+    int i;
+
+    /* Flag all the triples in sub-graph patterns with origin */
+    for(i = 0; i < raptor_sequence_size(s); i++) {
+      rasqal_graph_pattern *gp;
+      gp = (rasqal_graph_pattern*)raptor_sequence_get_at(s, i);
+      rasqal_graph_pattern_set_origin(gp, origin);
+    }
+  }
+
+}
+
+
+/* Turn GRAPH uri/var { subgraphs=BASIC(TP) } into GRAPH uri/var { TP }  */
+static int
+rasqal_engine_remove_graph_bgp_graph_patterns(rasqal_query* query,
+                                              rasqal_graph_pattern* gp,
+                                              void *data)
+{
+  int i;
+  int* modified_p = (int*)data;
+  rasqal_graph_pattern *sgp = NULL;
+  
+  if(!gp->graph_patterns)
+    return 0;
+
+#if RASQAL_DEBUG > 1
+  RASQAL_DEBUG2("Checking graph pattern #%d:\n  ", gp->gp_index);
+  rasqal_graph_pattern_print(gp, stdout);
+  fputs("\n", stdout);
+#endif
+
+  for(i = 0; i < raptor_sequence_size(gp->graph_patterns); i++) {
+    sgp = (rasqal_graph_pattern*)raptor_sequence_get_at(gp->graph_patterns, i);
+    if(sgp->op == RASQAL_GRAPH_PATTERN_OPERATOR_BASIC) {
+      /* Only expect one */
+      break;
+    }
+  }
+
+  if(!sgp) {
+#if RASQAL_DEBUG > 1
+    RASQAL_DEBUG2("Ending graph pattern #%d - saw no filter GPs\n",
+                  gp->gp_index);
+#endif
+    return 0;
+  }
+
+  /* Move triples to this graph pattern */
+  gp->triples = sgp->triples; sgp->triples = NULL;
+  gp->start_column = sgp->start_column; sgp->start_column = -1;
+  gp->end_column = sgp->end_column; sgp->end_column = -1;
+
+  rasqal_query_engine_1_set_origin_triples(gp);
+  
+  raptor_free_sequence(gp->graph_patterns);
+  gp->graph_patterns = NULL;
+
+  if(!*modified_p)
+    *modified_p = 1;
+  
+#if RASQAL_DEBUG > 1
+  RASQAL_DEBUG2("Ending graph pattern #%d\n  ", gp->gp_index);
+  rasqal_graph_pattern_print(gp, stdout);
+  fputs("\n\n", stdout);
+#endif
+
+  return 0;
+}
+
+
 /**
  * rasqal_query_engine_1_execute_transform_hack:
  * @query: query object
@@ -1530,6 +1630,8 @@ rasqal_query_engine_1_get_row(void* ex_data, rasqal_engine_error *error_p)
  *
  * 2) Ensuring that the root graph pattern is a GROUP even if
  * there is only 1 GP inside it.
+ *
+ * 3) Turning GRAPH uri/var { subgraphs=BASIC(TP) } into GRAPH uri/var { TP } 
  *
  * Return value: non-0 on failure
  */
@@ -1546,6 +1648,20 @@ rasqal_query_engine_1_execute_transform_hack(rasqal_query* query)
       
 #if RASQAL_DEBUG > 1
     fprintf(DEBUG_FH, "modified=%d after remove filter GPs, query graph pattern now:\n  ", modified);
+    rasqal_graph_pattern_print(query->query_graph_pattern, DEBUG_FH);
+    fputs("\n", DEBUG_FH);
+#endif
+
+    if(modified < 0)
+      return 1;
+
+    /* modified is set to 1 if a change was made and -1 on failure */
+    rasqal_query_graph_pattern_visit(query,
+                                     rasqal_engine_remove_graph_bgp_graph_patterns,
+                                     &modified);
+      
+#if RASQAL_DEBUG > 1
+    fprintf(DEBUG_FH, "modified=%d after remove GRAPH BGP GPs, query graph pattern now:\n  ", modified);
     rasqal_graph_pattern_print(query->query_graph_pattern, DEBUG_FH);
     fputs("\n", DEBUG_FH);
 #endif

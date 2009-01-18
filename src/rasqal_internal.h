@@ -578,6 +578,18 @@ typedef rasqal_rowsource* (*rasqal_rowsource_get_inner_rowsource_func) (rasqal_r
 
 
 /**
+ * rasqal_rowsource_set_origin_func
+ * @user_data: user data
+ * @origin: Graph URI literal
+ *
+ * Handler function for setting the rowsource origin (GRAPH)
+ *
+ * Return value: non-0 on failure
+ */
+typedef int (*rasqal_rowsource_set_origin_func) (rasqal_rowsource* rowsource, void *user_data, rasqal_literal *origin);
+
+
+/**
  * rasqal_rowsource_handler:
  * @version: API version - 1
  * @name: rowsource name for debugging
@@ -589,6 +601,7 @@ typedef rasqal_rowsource* (*rasqal_rowsource_get_inner_rowsource_func) (rasqal_r
  * @reset: reset rowsource to starting state handler - optional (V1)
  * @set_preserve: set preserve flag handler - optional (V1)
  * @get_inner_rowsource: get inner rowsource handler - optional if has no inner rowsources (V1)
+ * @set_origin: set origin (GRAPH) handler - optional (V1)
  *
  * Row Source implementation factory handler structure.
  * 
@@ -605,6 +618,7 @@ typedef struct {
   rasqal_rowsource_reset_func                reset;
   rasqal_rowsource_set_preserve_func         set_preserve;
   rasqal_rowsource_get_inner_rowsource_func  get_inner_rowsource;
+  rasqal_rowsource_set_origin_func           set_origin;
 } rasqal_rowsource_handler;
 
 
@@ -703,6 +717,7 @@ rasqal_rowsource* rasqal_rowsource_get_inner_rowsource(rasqal_rowsource* rowsour
 int rasqal_rowsource_write(rasqal_rowsource *rowsource,  raptor_iostream *iostr);
 void rasqal_rowsource_print(rasqal_rowsource* rs, FILE* fh);
 int rasqal_rowsource_ensure_variables(rasqal_rowsource *rowsource);
+int rasqal_rowsource_set_origin(rasqal_rowsource* rowsource, rasqal_literal *literal);
 
 typedef int (*rasqal_query_results_formatter_func)(raptor_iostream *iostr, rasqal_query_results* results, raptor_uri *base_uri);
 

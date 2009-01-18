@@ -200,6 +200,124 @@ rasqal_algebra_leftjoin_algebra_node_to_rowsource(rasqal_engine_algebra_data* ex
 }
 
 
+static int
+rasqal_algebra_visitor_set_origin(rasqal_query* query,
+                                  rasqal_algebra_node* node,
+                                  void *user_data)
+{
+  rasqal_literal *origin = (rasqal_literal*)user_data;
+  int i;
+  
+  if(node->op != RASQAL_ALGEBRA_OPERATOR_BGP)
+    return 0;
+
+  for(i = node->start_column; i <= node->end_column; i++) {
+    rasqal_triple *t;
+    rasqal_literal *o = NULL;
+    
+    t = (rasqal_triple*)raptor_sequence_get_at(node->triples, i);
+    if(origin)
+      o = rasqal_new_literal_from_literal(origin);
+    
+    rasqal_triple_set_origin(t, o);
+  }
+  return 0;
+}
+
+
+static void
+rasqal_algebra_node_set_origin(rasqal_query *query,
+                               rasqal_algebra_node* node,
+                               rasqal_literal *origin) 
+{
+  rasqal_algebra_node_visit(query, node, 
+                            rasqal_algebra_visitor_set_origin,
+                            origin);
+}
+
+
+static rasqal_rowsource*
+rasqal_algebra_graph_algebra_node_to_rowsource(rasqal_engine_algebra_data* execution_data,
+                                               rasqal_algebra_node* node,
+                                               rasqal_engine_error *error_p)
+{
+  rasqal_query *query = execution_data->query;
+  rasqal_rowsource *rs;
+  rasqal_literal *graph = node->graph;
+  rasqal_variable* v;
+
+  if(!graph) {
+    RASQAL_DEBUG1("graph algebra node has NULL graph\n");
+    return NULL;
+  }
+
+/* 
+This code checks that #1-#3 below are present and
+then executes parts #1 and #2 here.
+
+The graph rowsource created by rasqal_new_graph_rowsource() executes #3
+
+
+http://www.w3.org/TR/2008/REC-rdf-sparql-query-20080115/#sparqlAlgebraEval
+
+SPARQL Query Language for RDF - Evaluation of a Graph Pattern
+
+#1 if IRI is a graph name in D
+eval(D(G), Graph(IRI,P)) = eval(D(D[IRI]), P)
+
+#2 if IRI is not a graph name in D
+eval(D(G), Graph(IRI,P)) = the empty multiset
+
+#3 eval(D(G), Graph(var,P)) =
+     Let R be the empty multiset
+     foreach IRI i in D
+        R := Union(R, Join( eval(D(D[i]), P) , Ω(?var->i) )
+     the result is R
+
+*/
+  v = rasqal_literal_as_variable(graph);
+  if(!v && graph->type != RASQAL_LITERAL_URI) {
+    /* value is neither a variable or URI literal - error */
+    RASQAL_DEBUG1("graph algebra node is neither variable or URI\n");
+    return NULL;
+  }
+  
+  if(!v && graph->type == RASQAL_LITERAL_URI) {
+    if(rasqal_query_dataset_contains_named_graph(query, graph->value.uri)) {
+      /* case #1 - IRI is a graph name in D */
+
+      /* Set the origin of all triple patterns inside node->node1 to
+       * URI graph->value.uri
+       *
+       * FIXME - this is a hack.  The graph URI should be a parameter
+       * to all rowsource constructors.
+       */
+      rasqal_algebra_node_set_origin(query, node->node1, graph);
+
+      rs = rasqal_algebra_node_to_rowsource(execution_data, node->node1,
+                                            error_p);
+    } else {
+      /* case #2 - IRI is not a graph name in D - return empty rowsource */
+      rasqal_free_algebra_node(node->node1);
+
+      rs = rasqal_new_empty_rowsource(query->world, query);
+    }
+
+    if(!rs || *error_p)
+      rs = NULL;
+    return rs;
+  }
+
+
+  /* case #3 - a variable */
+  rs = rasqal_algebra_node_to_rowsource(execution_data, node->node1, error_p);
+  if(!rs || *error_p)
+    return NULL;
+
+  return rasqal_new_graph_rowsource(query->world, query, rs, v);
+}
+
+
 static rasqal_rowsource*
 rasqal_algebra_node_to_rowsource(rasqal_engine_algebra_data* execution_data,
                                  rasqal_algebra_node* node,
@@ -236,6 +354,11 @@ rasqal_algebra_node_to_rowsource(rasqal_engine_algebra_data* execution_data,
     case RASQAL_ALGEBRA_OPERATOR_LEFTJOIN:
       rs = rasqal_algebra_leftjoin_algebra_node_to_rowsource(execution_data,
                                                              node, error_p);
+      break;
+
+    case RASQAL_ALGEBRA_OPERATOR_GRAPH:
+      rs = rasqal_algebra_graph_algebra_node_to_rowsource(execution_data,
+                                                          node, error_p);
       break;
 
     case RASQAL_ALGEBRA_OPERATOR_UNKNOWN:

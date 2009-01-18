@@ -530,6 +530,32 @@ rasqal_rowsource_visit(rasqal_rowsource* rowsource,
 }
 
 
+static int
+rasqal_rowsource_visitor_set_origin(rasqal_rowsource* rowsource,
+                                    void *user_data)
+{
+  rasqal_literal *literal = (rasqal_literal*)user_data;
+
+  if(rowsource->handler->set_origin)
+    return rowsource->handler->set_origin(rowsource, rowsource->user_data,
+                                          literal);
+  return 0;
+}
+
+
+int
+rasqal_rowsource_set_origin(rasqal_rowsource* rowsource,
+                            rasqal_literal *literal)
+{
+  rasqal_rowsource_visit(rowsource, 
+                         rasqal_rowsource_visitor_set_origin,
+                         literal);
+
+  return 0;
+}
+
+
+
 #define SPACES_LENGTH 80
 static const char spaces[SPACES_LENGTH+1] = "                                                                                ";
 
