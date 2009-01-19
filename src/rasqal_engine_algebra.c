@@ -271,7 +271,7 @@ eval(D(G), Graph(IRI,P)) = the empty multiset
 #3 eval(D(G), Graph(var,P)) =
      Let R be the empty multiset
      foreach IRI i in D
-        R := Union(R, Join( eval(D(D[i]), P) , Ω(?var->i) )
+        R := Union(R, Join( eval(D(D[i]), P) , Omega(?var->i) )
      the result is R
 
 */
