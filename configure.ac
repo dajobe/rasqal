@@ -607,10 +607,7 @@ rdql_query_language=no
 sparql_query_language=no
 laqrs_query_language=no
 
-rdf_query_languages_available="rdql sparql"
-if test "$USE_MAINTAINER_MODE" = yes; then
-  rdf_query_languages_available="$rdf_query_languages_available laqrs"
-fi
+rdf_query_languages_available="rdql sparql laqrs"
 rdf_query_languages_enabled=
 
 
