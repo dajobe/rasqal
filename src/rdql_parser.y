@@ -609,7 +609,7 @@ URIList : URI_LITERAL ',' URIList
 | URI_LITERAL
 {
 #ifdef RAPTOR_V2_AVAILABLE
-  $$=raptor_new_sequence_with_handler_context((raptor_sequence_free_handler_v2*)raptor_free_uri_v2, (raptor_sequence_print_handler_v2*)raptor_uri_print_v2, (void*)((rasqal_query*)rq)->world->raptor_world_ptr);
+  $$=raptor_new_sequence_v2((raptor_sequence_free_handler_v2*)raptor_free_uri_v2, (raptor_sequence_print_handler_v2*)raptor_uri_print_v2, (void*)((rasqal_query*)rq)->world->raptor_world_ptr);
 #else
   $$=raptor_new_sequence((raptor_sequence_free_handler*)raptor_free_uri, (raptor_sequence_print_handler*)raptor_sequence_print_uri);
 #endif
