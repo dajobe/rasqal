@@ -1,3 +1,75 @@
+2009-07-17  Dave Beckett <dave@dajobe.org>
+
+	* src/rdql_parser.y, utils/roqet.c:
+	Updates to use raptor_new_sequence_v2 not
+	raptor_new_sequence_with_handler_context from 1.4.19
+
+	* COPYING, COPYING.LIB: Add specific versions of GPL (2) and
+	LGPL (2.1) to source control
+
+2009-07-15  Dave Beckett <dave@dajobe.org>
+
+	* configure.ac: Enable LAQRS in default build
+
+2009-01-19  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_rowsource_graph.c:
+	(rasqal_graph_next_dg): Fixed for raptor v2
+
+	* src/rasqal_engine_algebra.c: Replaced utf-8 in comment with
+	ascii
+
+2009-01-17  Dave Beckett <dave@dajobe.org>
+
+	* src/Makefile.am, src/rasqal_engine.c,
+	src/rasqal_engine_algebra.c, src/rasqal_internal.h,
+	src/rasqal_rowsource.c, src/rasqal_rowsource_graph.c:
+	Added graph rowsource.
+	(rasqal_new_graph_rowsource): Added.  rasqal_rowsource_handler
+	gains set_origin handler of type rasqal_rowsource_set_origin_func
+	(rasqal_algebra_visitor_set_origin): Added.
+	(rasqal_algebra_graph_algebra_node_to_rowsource): Added using
+	rasqal_new_graph_rowsource.
+	(rasqal_algebra_node_to_rowsource): Call
+	rasqal_algebra_graph_algebra_node_to_rowsource for graph operator.
+	(rasqal_query_engine_1_set_origin_triples): Added.
+	(rasqal_engine_remove_graph_bgp_graph_patterns): Added.
+	(rasqal_query_engine_1_execute_transform_hack): Call
+	rasqal_engine_remove_graph_bgp_graph_patterns to remove graph
+	operators for query engine #1.
+	(rasqal_rowsource_visitor_set_origin): Added.
+	(rasqal_rowsource_set_origin): Added using
+	rasqal_rowsource_visitor_set_origin.
+
+2008-12-30  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_graph_pattern.c:
+	(rasqal_graph_pattern_set_origin): Just set the origin; do not
+	touch all the triples with the origin literal, that's for the
+	query engine to do at some point. See
+	rasqal_query_engine_1_set_origin_triples() for QE#1 where the old
+	triple origin-setting code moved.
+
+	* src/sparql_parser.y:
+	(GraphGraphPattern): Construct a GP for a GRAPH saving the literal
+	as the origin.
+
+	* src/rasqal_algebra.c, src/rasqal_internal.h: Added
+	RASQAL_ALGEBRA_OPERATOR_GRAPH.
+	(rasqal_new_graph_algebra_node): Added to use
+	RASQAL_ALGEBRA_OPERATOR_GRAPH
+	(rasqal_algebra_algebra_node_write_internal): Updated to print
+	graph literal.
+	(rasqal_algebra_graph_graph_pattern_to_algebra): Added to use
+	graph pattern origin to make a new graph algebra node over the
+	inner single graph pattern.
+	(rasqal_algebra_graph_pattern_to_algebra): Call the above.
+
+	* src/rasqal_internal.h, src/rasqal_rowsource.c: Added typedef
+	rasqal_rowsource_visit_fn.
+	(rasqal_rowsource_visit): Added to walk rowsource tree using
+	rasqal_rowsource_get_inner_rowsource.
+
 2008-11-30  Lauri Aalto <laalto@iki.fi>
 
 	* src/rasqal_query.c:
