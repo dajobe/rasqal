@@ -220,12 +220,14 @@ rasqal_engine_rowsort_row_compare(void* user_data, const void *a, const void *b)
   }
   
   /* now order it */
-  result = rasqal_engine_rowsort_compare_literals_sequence(rcd->compare_flags,
-                                                           row_a->order_values,
-                                                           row_b->order_values,
-                                                           rcd->order_conditions_sequence,
-                                                           row_a->order_size);
-  
+  if(rcd->order_conditions_sequence)
+    result = rasqal_engine_rowsort_compare_literals_sequence(rcd->compare_flags,
+                                                             row_a->order_values,
+                                                             row_b->order_values,
+                                                             rcd->order_conditions_sequence,
+                                                             row_a->order_size);
+
+
   /* still equal?  make sort stable by using the original order */
   if(!result) {
     result = row_a->offset - row_b->offset;
