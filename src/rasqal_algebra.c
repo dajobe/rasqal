@@ -336,6 +336,40 @@ rasqal_new_project_algebra_node(rasqal_query* query,
 
 
 /*
+ * rasqal_new_distinct_algebra_node:
+ * @query: #rasqal_query query object
+ * @node1: inner algebra node
+ *
+ * INTERNAL - Create a new DISTINCT algebra node for an inner node
+ * 
+ * The input @node becomes owned by the new node
+ *
+ * Return value: a new #rasqal_algebra_node object or NULL on failure
+ **/
+rasqal_algebra_node*
+rasqal_new_distinct_algebra_node(rasqal_query* query,
+                                 rasqal_algebra_node* node1)
+{
+  rasqal_algebra_node* node;
+
+  if(!query || !node1)
+    goto fail;
+
+  node = rasqal_new_algebra_node(query, RASQAL_ALGEBRA_OPERATOR_DISTINCT);
+  if(node) {
+    node->node1 = node1;
+    return node;
+  }
+
+  fail:
+  if(node1)
+    rasqal_free_algebra_node(node1);
+
+  return NULL;
+}
+
+
+/*
  * rasqal_new_graph_algebra_node:
  * @query: #rasqal_query query object
  * @node1: inner algebra node
@@ -1167,6 +1201,17 @@ rasqal_algebra_query_to_algebra(rasqal_query* query)
 #endif
   }
 
+
+  if(query->distinct) {
+    node = rasqal_new_distinct_algebra_node(query, node);
+    modified = 1;
+
+#if RASQAL_DEBUG > 1
+  RASQAL_DEBUG2("modified=%d after adding distinct node, algebra node now:\n  ", modified);
+  rasqal_algebra_node_print(node, stderr);
+  fputs("\n", stderr);
+#endif
+  }
 
   return node;
 }

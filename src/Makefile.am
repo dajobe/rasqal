@@ -74,7 +74,7 @@ rasqal_engine_algebra.c rasqal_triples_source.c \
 rasqal_rowsource_triples.c rasqal_rowsource_filter.c \
 rasqal_rowsource_sort.c rasqal_engine_sort.c \
 rasqal_rowsource_project.c rasqal_rowsource_join.c \
-rasqal_rowsource_graph.c
+rasqal_rowsource_graph.c rasqal_rowsource_distinct.c
 
 if RASQAL_QUERY_RDQL
 librasqal_la_SOURCES += rdql_lexer.c rdql_lexer.h \

@@ -464,6 +464,9 @@ rasqal_rowsource* rasqal_new_empty_rowsource(rasqal_world *world, rasqal_query* 
 /* rasqal_rowsource_engine.c */
 rasqal_rowsource* rasqal_new_execution_rowsource(rasqal_query_results* query_results);
 
+/* rasqal_rowsource_distinct.c */
+rasqal_rowsource* rasqal_new_distinct_rowsource(rasqal_world *world, rasqal_query *query, rasqal_rowsource* rs);
+
 /* rasqal_rowsource_filter.c */
 rasqal_rowsource* rasqal_new_filter_rowsource(rasqal_world *world, rasqal_query *query, rasqal_rowsource* rs, rasqal_expression* expr);
 
@@ -1096,6 +1099,7 @@ struct rasqal_algebra_node_s {
 typedef int (*rasqal_algebra_node_visit_fn)(rasqal_query* query, rasqal_algebra_node* node, void *user_data);
 
 /* rasqal_algebra.c */
+rasqal_algebra_node* rasqal_new_distinct_algebra_node(rasqal_query* query, rasqal_algebra_node* node1);
 rasqal_algebra_node* rasqal_new_filter_algebra_node(rasqal_query* query, rasqal_expression* expr, rasqal_algebra_node* node);
 rasqal_algebra_node* rasqal_new_empty_algebra_node(rasqal_query* query);
 rasqal_algebra_node* rasqal_new_triples_algebra_node(rasqal_query* query, raptor_sequence* triples, int start_column, int end_column);
