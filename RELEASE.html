@@ -12,12 +12,331 @@
 
 <p>NOT YET RELEASED.</p>
 
-<p>REMOVE BEFORE RELEASE: src/rasqal_engine.c function
+<blockquote>
+<strong>REMOVE BEFORE RELEASE:</strong> src/rasqal_engine.c function
 rasqal_engine_execute_init in area marked HACK as well as dependent
 rasqal_engine_remove_filter_graph_patterns function.
+</blockquote>
+
+<p>Fixed Issues:</p>
+<ul>
+<li>#0000271 http://bugs.librdf.org/mantis/view.php?id=271</li>
+<li>#0000279 http://bugs.librdf.org/mantis/view.php?id=279</li>
+</ul>
+
+
+<h3>Query API Changes</h3>
+
+<p>
+THe rasqal_prefix, rasqal_data_graph and rasqal_expression structures
+gain a world reference pointer field.
 </p>
 
-<blockquote>
+<p>Enum <code>rasqal_graph_pattern_operator</code>
+gains a <code>RASQAL_GRAPH_PATTERN_OPERATOR_FILTER</code>
+for a filter grpah pattern
+</p>
+
+<p>Added rasqal world methods:</p>
+<pre>
+  int rasqal_world_open(rasqal_world* world);
+
+  void rasqal_world_set_raptor(rasqal_world* world,
+                               raptor_world* raptor_world_ptr);
+
+  raptor_world *rasqal_world_get_raptor(rasqal_world* world);
+</pre>
+
+<p>rasqal_features_enumerate gains a rasqal_world argument: FIXME,
+remove this and make a _2 version, deprecating the old one.
+</p>
+<pre>
+  int rasqal_features_enumerate(rasqal_world* world, const rasqal_feature feature, const char **name, raptor_uri **uri, const char **label);
+</pre>
+
+<p>rasqal_feature_from_uri gains a rasqal_world argument: FIXME,
+remove this and make a _2 version, deprecating the old one.
+</p>
+<pre>
+  rasqal_feature rasqal_feature_from_uri(rasqal_world* world, raptor_uri *uri);
+</pre>
+
+<p>Added:</p>
+<pre>
+  int rasqal_query_dataset_contains_named_graph(rasqal_query* query,
+                                                raptor_uri *graph_uri);
+</pre>
+
+<p>Added functions to set an expression for a filter graph pattern:</p>
+<pre>
+  int rasqal_graph_pattern_set_filter_expression(rasqal_graph_pattern* gp,
+    rasqal_expression* expr);
+
+  rasqal_expression*
+    rasqal_graph_pattern_get_filter_expression(rasqal_graph_pattern* gp);
+</pre>
+
+<p>Deprecated functions
+<code>rasqal_graph_pattern_add_constraint()</code>,
+<code>rasqal_graph_pattern_get_constraint_sequence()</code> and
+<code>rasqal_graph_pattern_get_constraint()</code>
+replaced by filter graph pattern with expression - functions
+<code>rasqal_graph_pattern_set_filter_expression</code> and
+<code>rasqal_graph_pattern_get_filter_expression()</code>.
+</p>
+
+<p>Added query results method to get the associated query:</p>
+<pre>
+  rasqal_query*
+    rasqal_query_results_get_query(rasqal_query_results* query_results);
+</pre>
+
+<p>rasqal_new_data_graph gains a rasqal_world argument: FIXME,
+remove this and make a _2 version, deprecating the old one.
+</p>
+<pre>
+  rasqal_data_graph* rasqal_new_data_graph(rasqal_world* world,
+    raptor_uri* uri, raptor_uri* name_uri, int flags);
+</pre>
+
+<p>All rasqal_expression constructors gains a rasqal_world argument: FIXME,
+remove this and make _2 versions, deprecating the old ones:
+</p>
+<pre>
+  rasqal_expression* rasqal_new_0op_expression(rasqal_world* world,
+    rasqal_op op);
+  rasqal_expression* rasqal_new_1op_expression(rasqal_world* world,
+    rasqal_op op, rasqal_expression* arg);
+  rasqal_expression* rasqal_new_2op_expression(rasqal_world* world,
+    rasqal_op op, rasqal_expression* arg1, rasqal_expression* arg2);
+  rasqal_expression* rasqal_new_3op_expression(rasqal_world* world,
+    rasqal_op op, rasqal_expression* arg1,  rasqal_expression* arg2,
+    rasqal_expression* arg3);
+  rasqal_expression* rasqal_new_string_op_expression(rasqal_world* world,
+    rasqal_op op, rasqal_expression* arg1, rasqal_literal* literal);
+  rasqal_expression* rasqal_new_literal_expression(rasqal_world* world,
+    rasqal_literal* literal);
+  rasqal_expression* rasqal_new_function_expression(rasqal_world* world,
+    raptor_uri* name, raptor_sequence* args);
+  rasqal_expression* rasqal_new_cast_expression(rasqal_world* world,
+    raptor_uri* name, rasqal_expression *value);
+</pre>
+
+<p>Added <code>rasqal_expression_evaluate_v2()</code> deprecating
+<code>rasqal_expression_evaluate()</code>. FIXME rename this to _2()
+</p>
+<pre>
+  rasqal_literal* rasqal_expression_evaluate_v2(rasqal_world *world,
+    raptor_locator *locator, rasqal_expression* e, int flags);
+</pre>
+
+<p><code>rasqal_new_prefix()</code> gains a rasqal_world argument: FIXME,
+remove this and make a _2 version, deprecating the old one.
+</p>
+<pre>
+  rasqal_prefix* rasqal_new_prefix(rasqal_world* world, const unsigned char* prefix, raptor_uri* uri);
+</pre>
+
+
+<h3>Query Results Formatter Changes</h3>
+
+<p>SPARQL/JSON: Do not emit double " for distinct/ordered flags.
+Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=279">Issue #0000279</a>
+</p>
+
+
+<h3>SPARQL Changes</h3>
+
+<p>Ensure GroupOrUnionGraphPattern constructs the sequence of graph
+patterns in document order.
+</p>
+
+<p>OptionalGraphPattern is is now a list of 1 group graph patterns
+</p>
+
+<p>Fix support for <code>&lt;&gt;</code>
+</p>
+
+
+<h3>RDQL Changes</h3>
+
+<p>Some updates to handle refactored query list of constraint
+expressions switching to a filter graph pattern. RDQL only
+has 0 or 1 such expressions in a single query.
+</p>
+
+
+<h3>Query Engine Changes</h3>
+
+<p>An entirely new query execution engine was written. The existing
+query execution engine was refactored out of a mess of
+<code>rasqal_query</code> and <code>rasqal_query_results</code> code
+and data.</p>
+
+<p>The interface between the query API and the query engine is now
+via the <code>rasqal_rowsource</code> abstraction - an evaluation of
+a query returns a rowsource that generates the result rows of
+variable bindings.
+</p>
+
+<p>Rewrote <code>query_results</code> class to be a pure wrapper
+around the rowsource and variables table, handling such things like
+generating triples (CONSTRUCT) from rows, creating a boolean result
+(ASK) by counting at least 1 result rows and generating syntax
+results using a query results formatter.</p>
+
+<p>Added a new <code>rasqal_query_execution_factory</code>
+abstraction to provide the interface that the query execution engines
+implement to return a rowsource to get the results.</p>
+
+<p>Both query executions engines can potentially be selected at
+runtime from the query API by configuration or policy when rasqal is
+built for development (<code>configure --enable-maintainer-mode</code>.
+This choice may not be present in the public release - FIXME.</p>
+<ol>
+<li>If the envariable <code>RASQAL_DEBUG_ENGINE</code>
+is set with value 1 or 2, the query execution engine is chosen. FIXME.
+</li>
+<li>The <code>roqet(1)</code> utility gains a <code>-g</code> /
+<code>--engine</code> argument.  Not a public option. FIXME
+</li>
+</ol>
+
+<p><strong>Query engine 1 (existing)</strong>:<br />
+Existing lazy evaluated engine that is hard
+to refactor.  Internally, implemented by functions named
+<code>rasqal_query_engine_1_<em>...</em>()</code>.
+Execution factory instance <code>rasqal_query_engine_1</code>
+</p>
+
+<p><strong>Query engine 2 (new)</strong>:<br />
+Based on transforming a tree of SPARQL algebra nodes constructed from
+the query, into a tree of rowsource-generating expressions that when
+evaluated at the top, returns the result rows.  Each algebra node
+type and each rowsource type has it's own set of module unit tests
+built-in.
+Execution factory instance <code>rasqal_query_engine_algebra</code>
+</p>
+
+<p>Removed query engine core legacy support for <code>CONSTRUCT *</code> -
+never in the SPARQL 1.0 language.
+</p>
+
+<p>Pulled out row sorting code from query engine 1 into a
+rasqal_engine_sort module so it can be used by all query engines.
+</p>
+
+<p>Implemented rowsource abstraction <code>rasqal_rowsource</code> for
+the following types of rowsources:</p>
+<ul>
+<li>empty rowsource: always returns no rows</li>
+<li>filter rowsource: filter an inner rowsource with an expression - used for SPARQL FILTER</li>
+<li>graph rowsource: apply a graph variable to an inner rowsource - used for SPARQL GRAPH matching</li>
+<li>join rowsource: join two inner rowsources on common variables and an expression.  Only left outer join supported now - used for SPARQL OPTIONAL.</li>
+<li>project rowsource: pick [project] certain variables from an inner rowsource</li>
+<li>query engine execution rowsource: rows generated by a query execution engine</li>
+<li>row sequence rowsource: built from a sequence of rows</li>
+<li>sparql xml rowsurce: make rows from SPARQL Results XML syntax</li>
+<li>triples rowsource: create a rowsource by binding variables to an RDF graph sort rowsource: sorts the inner rowsource by an order expression - used for SPARQL ORDERBY</li>
+<li>union rowsource: union/concatenation of two inner rowsources - used for SPARQL UNION</li>
+</ul>
+
+<p>Renamed row abstraction from <code>rasqal_query_result_row</code>
+to <code>rasqal_row</code> since it is independent of query results
+and shorter.
+</p>
+
+<p>Use new <code>rasqal_engine_error</code> enum for query
+engine/internal errors - OK, FAILED or FINISHED rather than altering
+<code>rasqal_query_results</code> object fields directly.
+</p>
+
+<p>Documented query execution engine internals as autodocs.
+</p>
+
+<p>Added a query algebra abstraction <code>rasqal_algebra</code> with
+node type <code>rasqal_algebra_node_operator</code> based on SPARQL
+algebra operators: BGP, FILTER, JOIN, DIFF, LEFTJOIN, UNION, TOLIST,
+ORDERBY, PROJECT, DISTINCT, REDUCED, SLICE and GRAPH.  Some of these
+are not needed by the query execution engines since they are handled
+by the high level query API - such as SLICE (limit and offset) and
+TOLIST (turning results into user data)
+</p>
+
+<p>Added a variables table abstraction <code>rasqal_variables_table</code>
+pulled out of the internal query results and query structures which now
+point to it.  Constructor <code>rasqal_new_variables_table()</code>,
+destructor <code>rasqal_free_variables_table()</code>
+and methods <code>rasqal_variables_table_add()</code>,
+<code>rasqal_variables_table_get()</code>,
+<code>rasqal_variables_table_has()</code>,
+<code>rasqal_variables_table_set()</code>,
+<code>rasqal_variables_table_get_value()</code>,
+<code>rasqal_variables_table_get_named_variables_count()</code>,
+<code>rasqal_variables_table_get_anonymous_variables_count()</code>,
+<code>rasqal_variables_table_get_total_variables_count()</code>,
+<code>rasqal_variables_table_get_named_variables_sequence()</code> and
+<code>rasqal_variables_table_get_anonymous_variables_sequence()</code>.
+</p>
+
+<p>Allow queries with no graph pattern to be accepted such as SPARQL
+<code>DESCRIBE <em>uri</em></code> (which the query engine does not
+execute at present but now is at least parsed).
+</p>
+
+<p>Renamed query language-specific factory class for creating query
+structure from SPARQL and RDQL syntaxes from <code>struct
+rasqal_query_engine_factory</code> to
+<code>rasqal_query_language_factory</code> since it is about the
+language, not the engine.
+</p>
+
+
+<h3>Other Changes</h3>
+
+<p><code>rasqal-config(1)</code> is now a wrapper around
+<code>pkg-config rasqal</code>.  Consequently
+<code>--libtool-libs</code> is currently ignored, it should emit the
+path to the librasqal.la file but generally that is probably
+discouraged.
+</p>
+
+
+<h3>Internal Changes</h3>
+
+<p>Added sparql algebra tests based on
+http://www.w3.org/TR/2008/REC-rdf-sparql-query-20080115/#convertGraphPattern
+</p>
+
+
+<p>
+Optionally support the experimental raptor V2 API.
+</p>
+
+<p>
+Added <code>rasqal_algebra_write_indent()</code> and
+<code>rasqal_algebra_algebra_node_write()</code>
+to write algebra nodes to iostream.
+Altered <code>rasqal_algebra_node_print()</code> to write using an
+iostream to FILE*
+</p>
+
+<p>Added
+<code>rasqal_rowsource_write()</code>,
+<code>rasqal_literal_write_type()</code>,
+<code>rasqal_literal_write()</code>
+<code>rasqal_variable_write()</code>,
+<code>rasqal_triple_write()</code>,
+<code>rasqal_expression_write_op()</code>
+and <code>rasqal_expression_write()</code>
+for writing the respective objects to a raptor_iostream for debugging.
+</p>
+
+<p>Lots of resiliency fixes in the case of out of memory - Lauri Aalto.
+</p>
+
+
+
 <h2 id="rel0_9_16"><a name="rel0_9_16">Rasqal 0.9.16 Changes</a></h2>
 
 <blockquote>
