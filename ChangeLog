@@ -1,3 +1,22 @@
+2009-07-19  Dave Beckett <dave@dajobe.org>
+
+	* src/Makefile.am, src/rasqal_algebra.c,
+	src/rasqal_engine_algebra.c, src/rasqal_internal.h,
+	src/rasqal_rowsource_distinct.c:
+	Implement RASQAL_ALGEBRA_OPERATOR_DISTINCT
+
+	(rasqal_new_distinct_algebra_node): Added to make a distinct
+	algebra node.
+	(rasqal_new_distinct_rowsource): Added to implement distinct
+	rowsource - in new file rasqal_rowsource_distinct.c
+	(rasqal_algebra_node_to_rowsource): Call above function when
+	RASQAL_ALGEBRA_OPERATOR_DISTINCT is given to make a distinct
+	rowsource from the algebra node.
+
+	* src/rasqal_engine_sort.c:
+	(rasqal_engine_rowsort_row_compare): Only do the row-literals
+	compare if there is an order_conditions_sequence.
+
 2009-07-17  Dave Beckett <dave@dajobe.org>
 
 	* src/rdql_parser.y, utils/roqet.c:
