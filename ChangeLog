@@ -207,8 +207,8 @@
 	rasqal_rowsequence_rowsource_get_query,
 	rasqal_project_rowsource_get_query,
 	rasqal_triples_rowsource_get_query,
-	rasqal_rowsource_engine_get_query): Deleted the method from all
-	rowsources.
+	rasqal_rowsource_engine_get_query): Deleted the get_query method
+	from all rowsources.
 
 	Replace rasqal_expression_evaluate calls with
 	rasqal_expression_evaluate_v2.
@@ -1375,8 +1375,8 @@
 
 	* src/rasqal_internal.h, src/rasqal_query.c,
 	src/rasqal_query_results.c:
-	(rasqal_new_query_results_from_query_execution): Addedbased on
-	rasqal_query_execute contents.
+	(rasqal_new_query_results_from_query_execution): Added
+	based on rasqal_query_execute contents.
 	(rasqal_query_execute): Use
 	rasqal_new_query_results_from_query_execution
 
