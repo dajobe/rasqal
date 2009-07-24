@@ -2121,8 +2121,6 @@ rasqal_query_write_sparql_20060406(raptor_iostream *iostr,
 
     for(i = 0; i < count; i++) {
       rasqal_literal* l = (rasqal_literal*)raptor_sequence_get_at(lit_seq, i);
-      if(i > 0)
-        raptor_iostream_write_byte(iostr, ',');
       raptor_iostream_write_byte(iostr, ' ');
       rasqal_query_write_sparql_literal(&wc, iostr, l);
     }
