@@ -2043,7 +2043,6 @@ rasqal_query_write_sparql_20060406(raptor_iostream *iostr,
                                    rasqal_query* query, raptor_uri *base_uri)
 {
   int i;
-  raptor_sequence *var_seq = NULL;
   sparql_writer_context wc;
 #ifndef RAPTOR_V2_AVAILABLE
   const raptor_uri_handler *uri_handler;
@@ -2114,15 +2113,23 @@ rasqal_query_write_sparql_20060406(raptor_iostream *iostr,
       raptor_iostream_write_counted_string(iostr, " REDUCED", 8);
   }
 
-  if(query->verb == RASQAL_QUERY_VERB_DESCRIBE)
-    var_seq = query->describes;
-  else if(query->verb == RASQAL_QUERY_VERB_SELECT)
-    var_seq = query->selects;
-  
-  if(var_seq && query->wildcard)
+  if(query->wildcard)
     raptor_iostream_write_counted_string(iostr, " *", 2);
-  else if(var_seq) {
+  else if(query->verb == RASQAL_QUERY_VERB_DESCRIBE) {
+    raptor_sequence *lit_seq = query->describes;
+    int count = raptor_sequence_size(lit_seq);
+
+    for(i = 0; i < count; i++) {
+      rasqal_literal* l = (rasqal_literal*)raptor_sequence_get_at(lit_seq, i);
+      if(i > 0)
+        raptor_iostream_write_byte(iostr, ',');
+      raptor_iostream_write_byte(iostr, ' ');
+      rasqal_query_write_sparql_literal(&wc, iostr, l);
+    }
+  } else if(query->verb == RASQAL_QUERY_VERB_SELECT) {
+    raptor_sequence *var_seq = query->selects;
     int count = raptor_sequence_size(var_seq);
+
     for(i = 0; i < count; i++) {
       rasqal_variable* v = (rasqal_variable*)raptor_sequence_get_at(var_seq, i);
       raptor_iostream_write_byte(iostr, ' ');
