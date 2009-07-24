@@ -754,6 +754,24 @@ rasqal_query_get_bound_variable_sequence(rasqal_query* query)
 
 
 /**
+ * rasqal_query_get_describe_sequence:
+ * @query: #rasqal_query query object
+ *
+ * Get the sequence of literals described in the query.
+ *
+ * This returns the sequence of literals (constants or variables) that are
+ * explicitly chosen via DESCRIBE in SPARQL.
+ *
+ * Return value: a #raptor_sequence of #rasqal_literal pointers.
+ **/
+raptor_sequence*
+rasqal_query_get_describe_sequence(rasqal_query* query)
+{
+  return query->describes;
+}
+
+
+/**
  * rasqal_query_get_anonymous_variable_sequence:
  * @query: #rasqal_query query object
  *

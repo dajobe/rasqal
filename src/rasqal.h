@@ -751,6 +751,8 @@ int rasqal_query_add_variable(rasqal_query* query, rasqal_variable* var);
 RASQAL_API
 raptor_sequence* rasqal_query_get_bound_variable_sequence(rasqal_query* query);
 RASQAL_API
+raptor_sequence* rasqal_query_get_describe_sequence(rasqal_query* query);
+RASQAL_API
 raptor_sequence* rasqal_query_get_anonymous_variable_sequence(rasqal_query* query);
 RASQAL_API
 raptor_sequence* rasqal_query_get_all_variable_sequence(rasqal_query* query);
