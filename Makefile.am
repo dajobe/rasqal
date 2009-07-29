@@ -22,6 +22,8 @@
 
 noinst_SCRIPTS = rasqal-src-config
 
+ACLOCAL_AMFLAGS = -I build
+
 SUBDIRS=src utils tests docs data win32
 
 pkgconfigdir = $(libdir)/pkgconfig
