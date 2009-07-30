@@ -1138,28 +1138,34 @@ main(int argc, char *argv[])
   size_t len;
   void *buffer;
   rasqal_world *world;
+  FILE *fh;
 
   world=rasqal_new_world();
   if(!world || rasqal_world_open(world))
     exit(1);
 
-  if(argc > 1) {
-    FILE *fh;
-    query_string=(char*)RASQAL_CALLOC(cstring, FILE_READ_BUF_SIZE, 1);
-    filename=argv[1];
-    fh=fopen(filename, "r");
-    if(fh) {
-      fread(query_string, FILE_READ_BUF_SIZE, 1, fh);
-      fclose(fh);
-    } else {
-      fprintf(stderr, "%s: Cannot open file %s - %s\n", program, filename,
-              strerror(errno));
+  filename = getenv("RDQL_QUERY_FILE");
+  if(!filename) {
+    if(argc != 2) {
+      fprintf(stderr, "%s: Too many arguments.\n", program);
+      fprintf(stderr, "RDQL lexer test for Rasqal %s\n", 
+              rasqal_version_string);
+      fprintf(stderr, "USAGE: %s RDQL-QUERY-FILE\n", program);
       exit(1);
     }
+    
+    filename = argv[1];
+  }
+  
+  query_string=(char*)RASQAL_CALLOC(cstring, FILE_READ_BUF_SIZE, 1);
+  fh=fopen(filename, "r");
+  if(fh) {
+    fread(query_string, FILE_READ_BUF_SIZE, 1, fh);
+    fclose(fh);
   } else {
-    filename="<stdin>";
-    query_string=(char*)RASQAL_CALLOC(cstring, FILE_READ_BUF_SIZE, 1);
-    fread(query_string, FILE_READ_BUF_SIZE, 1, stdin);
+    fprintf(stderr, "%s: Cannot open file %s - %s\n", program, filename,
+            strerror(errno));
+    exit(1);
   }
 
   memset(&rq, 0, sizeof(rasqal_query));

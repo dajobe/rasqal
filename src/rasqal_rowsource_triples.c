@@ -540,10 +540,16 @@ main(int argc, char *argv[])
   raptor_uri* p_uri = NULL;
   int size;
   int *declared_in;
+  const char *data_file;
   
-  if(argc != 2) {
-    fprintf(stderr, "USAGE: %s data-filename\n", program);
-    return(1);
+  if((data_file = getenv("NT_DATA_FILE"))) {
+    /* got data from environment */
+  } else {
+    if(argc != 2) {
+      fprintf(stderr, "USAGE: %s data-filename\n", program);
+      return(1);
+    }
+    data_file = argv[1];
   }
     
   world = rasqal_new_world();
@@ -554,7 +560,7 @@ main(int argc, char *argv[])
   
   query = rasqal_new_query(world, "sparql", NULL);
   
-  data_string = raptor_uri_filename_to_uri_string(argv[1]);
+  data_string = raptor_uri_filename_to_uri_string(data_file);
   query_string = (unsigned char*)RASQAL_MALLOC(cstring, strlen((const char*)data_string)+strlen(query_format)+1);
   sprintf((char*)query_string, query_format, data_string);
   raptor_free_memory(data_string);

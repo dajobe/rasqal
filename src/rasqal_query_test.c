@@ -2,7 +2,7 @@
  *
  * rasqal_query_test.c - Rasqal RDF Query Tests
  *
- * Copyright (C) 2004-2008, David Beckett http://www.dajobe.org/
+ * Copyright (C) 2004-2009, David Beckett http://www.dajobe.org/
  * Copyright (C) 2004-2005, University of Bristol, UK http://www.bristol.ac.uk/
  * 
  * This package is Free Software and part of Redland http://librdf.org/
@@ -87,19 +87,25 @@ main(int argc, char **argv) {
   unsigned char *query_string;
   int count;
   rasqal_world *world;
+  const char *data_file;
   
   world=rasqal_new_world();
   if(!world || rasqal_world_open(world)) {
     fprintf(stderr, "%s: rasqal_world init failed\n", program);
     return(1);
   }
-  
-  if(argc != 2) {
-    fprintf(stderr, "USAGE: %s data-filename\n", program);
-    return(1);
+
+  if((data_file = getenv("RDF_DATA_FILE"))) {
+    /* got data from environment */
+  } else {
+    if(argc != 2) {
+      fprintf(stderr, "USAGE: %s data-filename\n", program);
+      return(1);
+    }
+    data_file = argv[1];
   }
     
-  data_string=raptor_uri_filename_to_uri_string(argv[1]);
+  data_string = raptor_uri_filename_to_uri_string(data_file);
   query_string=(unsigned char*)RASQAL_MALLOC(cstring, strlen((const char*)data_string)+strlen(query_format)+1);
   sprintf((char*)query_string, query_format, data_string);
   raptor_free_memory(data_string);

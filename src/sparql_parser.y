@@ -2975,11 +2975,12 @@ main(int argc, char *argv[])
   const char* query_languages[2]={"sparql", "laqrs"};
   const char* query_language;
   int usage=0;
-  int fh_opened_here=0;
   rasqal_world *world;
   
   query_language=query_languages[0];
   
+  filename = getenv("SPARQL_QUERY_FILE");
+    
   while(!usage) {
     int c = getopt (argc, argv, GETOPT_STRING);
 
@@ -3013,15 +3014,18 @@ main(int argc, char *argv[])
     }
   }
 
-  if((argc-optind)>1) {
-    fprintf(stderr, "%s: Too many arguments.\n", program);
-    usage=1;
+  if(!filename) {
+    if((argc-optind) != 1) {
+      fprintf(stderr, "%s: Too many arguments.\n", program);
+      usage=1;
+    } else
+      filename=argv[optind];
   }
   
   if(usage) {
     fprintf(stderr, "SPARQL/LAQRS parser test for Rasqal %s\n", 
             rasqal_version_string);
-    fprintf(stderr, "USAGE: %s [OPTIONS] [QUERY-FILE]\n", program);
+    fprintf(stderr, "USAGE: %s [OPTIONS] SPARQL-QUERY-FILE\n", program);
     fprintf(stderr, "OPTIONS:\n");
 #if RASQAL_DEBUG > 2
     fprintf(stderr, " -d           Bison parser debugging\n");
@@ -3030,20 +3034,14 @@ main(int argc, char *argv[])
     exit(1);
   }
 
- if(optind == argc-1) {
-    filename=argv[optind];
-    fh = fopen(argv[optind], "r");
-    if(!fh) {
-      fprintf(stderr, "%s: Cannot open file %s - %s\n", program, filename,
-              strerror(errno));
-      exit(1);
-    }
-    fh_opened_here=1;
- } else {
-    filename="<stdin>";
-    fh = stdin;
-  }
 
+ fh = fopen(filename, "r");
+ if(!fh) {
+   fprintf(stderr, "%s: Cannot open file %s - %s\n", program, filename,
+           strerror(errno));
+   exit(1);
+ }
+ 
   memset(query_string, 0, SPARQL_FILE_BUF_SIZE);
   rc=fread(query_string, SPARQL_FILE_BUF_SIZE, 1, fh);
   if(rc < SPARQL_FILE_BUF_SIZE) {
@@ -3055,8 +3053,7 @@ main(int argc, char *argv[])
     }
   }
   
-  if(fh_opened_here)
-    fclose(fh);
+  fclose(fh);
 
   world=rasqal_new_world();
   if(!world || rasqal_world_open(world))

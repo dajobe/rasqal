@@ -29,6 +29,12 @@ noinst_HEADERS = rasqal_internal.h win32_rasqal_config.h
 
 man_MANS = rasqal-config.1
 
+TESTS_ENVIRONMENT= \
+  RDF_DATA_FILE=$(top_srcdir)/data/dc.rdf \
+  NT_DATA_FILE=$(top_srcdir)/data/one.nt \
+  RDQL_QUERY_FILE=$(top_srcdir)/tests/rdql/example5.rdql \
+  SPARQL_QUERY_FILE=$(top_srcdir)/tests/sparql/examples/ex11_1.rq
+
 TESTS=rasqal_algebra_test$(EXEEXT) rasqal_expr_test$(EXEEXT)	\
 strcasecmp_test$(EXEEXT) rasqal_xsd_datatypes_test$(EXEEXT)	\
 rasqal_decimal_test$(EXEEXT) rasqal_datetime_test$(EXEEXT)	\
@@ -36,20 +42,20 @@ rasqal_variable_test$(EXEEXT) rasqal_rowsource_empty_test$(EXEEXT) \
 rasqal_rowsource_union_test$(EXEEXT) \
 rasqal_rowsource_rowsequence_test$(EXEEXT) \
 rasqal_rowsource_project_test$(EXEEXT) \
-rasqal_rowsource_join_test$(EXEEXT)
-
-local_tests=rasqal_query_test$(EXEEXT) \
+rasqal_rowsource_join_test$(EXEEXT) \
+rasqal_query_test$(EXEEXT) \
 rasqal_rowsource_triples_test$(EXEEXT)
+
 if RASQAL_QUERY_RDQL
-local_tests += rdql_lexer_test$(EXEEXT) rdql_parser_test$(EXEEXT)
+TESTS += rdql_lexer_test$(EXEEXT) rdql_parser_test$(EXEEXT)
 endif
 if RASQAL_QUERY_SPARQL
-local_tests += sparql_lexer_test$(EXEEXT) sparql_parser_test$(EXEEXT)
+TESTS += sparql_lexer_test$(EXEEXT) sparql_parser_test$(EXEEXT)
 endif
 
-EXTRA_PROGRAMS=$(TESTS) $(local_tests)
+EXTRA_PROGRAMS=$(TESTS)
 
-CLEANFILES=$(TESTS) $(local_tests)
+CLEANFILES=$(TESTS)
 MAINTAINERCLEANFILES=rdql_lexer.c rdql_lexer.h \
 rdql_parser.c rdql_parser.h rdql_parser.output \
 sparql_lexer.c sparql_lexer.h \
@@ -137,38 +143,6 @@ sparql_parser.c: $(srcdir)/sparql_parser.y $(srcdir)/fix-bison
 	rm -f sparql_parser.tab.c
 endif
 
-
-# These are compiled here and used elsewhere for running tests
-check-local: $(local_tests) run-rasqal-query-test \
-run-rasqal-rowsource_triples-test
-
-run-rasqal-query-test: rasqal_query_test
-	@tst=rasqal_query_test; \
-	status=0; \
-	if test -f ./$$tst; then dir=./; \
-	elif test -f $$tst; then dir=; \
-	else dir="$(top_srcdir)/"; fi; \
-	if $${dir}$$tst $(top_srcdir)/data/dc.rdf; then \
-	  echo "PASS: $$tst"; \
-	else \
-	  echo "FAIL: $$tst"; \
-	  status=1; \
-	fi; \
-	exit $$status
-
-run-rasqal-rowsource_triples-test: rasqal_rowsource_triples_test
-	@tst=rasqal_rowsource_triples_test; \
-	status=0; \
-	if test -f ./$$tst; then dir=./; \
-	elif test -f $$tst; then dir=; \
-	else dir="$(top_srcdir)/"; fi; \
-	if $${dir}$$tst $(top_srcdir)/data/one.nt; then \
-	  echo "PASS: $$tst"; \
-	else \
-	  echo "FAIL: $$tst"; \
-	  status=1; \
-	fi; \
-	exit $$status
 
 rdql_lexer_test_SOURCES = rdql_lexer.c
 rdql_lexer_test_CPPFLAGS = -DSTANDALONE

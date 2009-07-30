@@ -871,24 +871,31 @@ main(int argc, char *argv[])
   raptor_uri* base_uri=NULL;
   unsigned char *uri_string;
   rasqal_world *world;
-
+  
 #if RASQAL_DEBUG > 2
   rdql_parser_debug=1;
 #endif
 
-  if(argc > 1) {
-    filename=argv[1];
-    fh = fopen(argv[1], "r");
-    if(!fh) {
-      fprintf(stderr, "%s: Cannot open file %s - %s\n", program, filename,
-              strerror(errno));
+  filename = getenv("RDQL_QUERY_FILE");
+  if(!filename) {
+    if(argc != 2) {
+      fprintf(stderr, "%s: Too many arguments.\n", program);
+      fprintf(stderr, "RDQL parser test for Rasqal %s\n", 
+              rasqal_version_string);
+      fprintf(stderr, "USAGE: %s RDQL-QUERY-FILE\n", program);
       exit(1);
     }
-  } else {
-    filename="<stdin>";
-    fh = stdin;
-  }
 
+   filename=argv[argc-1];
+  }
+  
+  fh = fopen(filename, "r");
+  if(!fh) {
+    fprintf(stderr, "%s: Cannot open file %s - %s\n", program, filename,
+            strerror(errno));
+    exit(1);
+  }
+  
   memset(query_string, 0, RDQL_FILE_BUF_SIZE);
   rc=fread(query_string, RDQL_FILE_BUF_SIZE, 1, fh);
   if(rc < RDQL_FILE_BUF_SIZE) {
@@ -900,8 +907,7 @@ main(int argc, char *argv[])
     }
   }
   
-  if(argc>1)
-    fclose(fh);
+  fclose(fh);
 
   world=rasqal_new_world();
   if(!world || rasqal_world_open(world))
