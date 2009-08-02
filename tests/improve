@@ -1,0 +1,287 @@
+#!/usr/bin/perl -w
+#
+# improve - Run Rasqal test suites
+#
+# USAGE: improve [options] [DIRECTORY [TESTSUITE]]
+# 
+# Copyright (C) 2009, David Beckett http://www.dajobe.org/
+# 
+# This package is Free Software and part of Redland http://librdf.org/
+# 
+# It is licensed under the following three licenses as alternatives:
+#   1. GNU Lesser General Public License (LGPL) V2.1 or any newer version
+#   2. GNU General Public License (GPL) V2 or any newer version
+#   3. Apache License, V2.0 or any newer version
+# 
+# You may not use this file except in compliance with at least one of
+# the above three licenses.
+# 
+# See LICENSE.html or LICENSE.txt at the top of this package for the
+# complete terms and further detail along with the license texts for
+# the licenses in COPYING.LIB, COPYING and LICENSE-2.0.txt respectively.
+# 
+# REQUIRES:
+#   'rapper' from raptor in the PATH (or where envariable RAPPER is)
+#   GNU 'make' in the PATH (or where envariable MAKE is)
+# 
+
+
+use strict;
+use File::Basename;
+use Getopt::Long;
+use Pod::Usage;
+use Cwd;
+
+our $RAPPER=$ENV{RAPPER} || 'rapper';
+our $MAKE=$ENV{MAKE} || 'make';
+
+our $mf='http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#';
+our $rdf='http://www.w3.org/1999/02/22-rdf-syntax-ns#';
+our $rdfs='http://www.w3.org/2000/01/rdf-schema#';
+our $t='http://ns.librdf.org/2009/test-manifest#';
+
+our $program=basename $0;
+our $debug=0;
+
+
+sub get_testsuites($) {
+  my $dir=shift;
+  my $raw=`cd $dir && $MAKE get-testsuites-list 2>/dev/null`;
+  return split(/\s+/,$raw);
+}
+
+
+sub get_tests($$) {
+  my($dir, $plan_file)=@_;
+
+  my(%triples);
+  my $entries_node;
+  my $cmd="$RAPPER -q -i turtle -o ntriples $plan_file";
+  open(MF, "$cmd |") 
+    or die "Cannot open pipe from '$cmd' - $!\n";
+  while(<MF>) {
+    chomp;
+    s/\s+\.$//;
+    my($s,$p,$o)=split(/ /,$_,3);
+    die "no p in '$_'\n" unless defined $p;
+    die "no o in '$_'\n" unless defined $o;
+    push(@{$triples{$s}->{$p}}, $o);
+    $entries_node=$o if $p eq "<${mf}entries>";
+  }
+  close(MF);
+
+  warn "Entries node is '$entries_node'\n"
+    if $debug > 1;
+  my $list_node=$entries_node;
+
+  my(@tests);
+  while($list_node) {
+    warn "List node is '$list_node'\n"
+      if $debug > 2;
+
+    my $entry_node=$triples{$list_node}->{"<${rdf}first>"}->[0];
+    warn "Entry node is '$entry_node'\n"
+      if $debug > 2;
+
+    my $name=$triples{$entry_node}->{"<${mf}name>"}->[0] | '';
+    $name =~ s/^\"(.*)\"$/$1/;
+    warn "Entry name=$name\n"
+      if $debug > 1;
+
+    my $comment=$triples{$entry_node}->{"<${rdfs}comment>"}->[0] || '';
+    $comment =~ s/^\"(.*)\"$/$1/;
+    warn "Entry comment=$comment\n"
+      if $debug > 1;
+
+    my $action=$triples{$entry_node}->{"<${mf}action>"}->[0] || '';
+    $action =~ s/^\"(.*)\"$/$1/;
+    warn "Entry action $action\n"
+       if $debug > 1;
+
+    my $entry_type=$triples{$entry_node}->{"<${rdf}type>"}->[0] || '';
+    warn "Entry type is ".($entry_type ? $entry_type : "NONE")."\n"
+      if $debug > 1;
+
+    my $expect_fail=0;
+    my $execute=1;
+
+    $expect_fail=1 if
+      $entry_type eq "<${t}NegativeTest>" ||
+      $entry_type eq "<${t}XFailTest>";
+
+    my $test_uri=$entry_node; $test_uri =~ s/^<(.+)>$/$1/;
+    warn "Test uri $test_uri\n"
+       if $debug > 1;
+
+    push(@tests, {name => $name,
+		  comment => $comment,
+		  dir => $dir,
+		  expect_fail => $expect_fail,
+		  test_uri => $test_uri,
+		  action => $action
+	   } );
+
+  next_list_node:
+    $list_node=$triples{$list_node}->{"<${rdf}rest>"}->[0];
+    last if $list_node eq "<${rdf}nil>";
+  }
+
+  return @tests;
+}
+
+
+sub run_test(%) {
+  my($config)=@_;
+  my(%result)=();
+  my $name=$config->{name};
+  my $action=$config->{action};
+  print STDERR "$program: Running test $name: $action\n"
+    if $debug > 1;
+
+  my $log="$name.log";
+  system "$action > '$log' 2>&1";
+  my $rc=$?;
+  my $status='fail';
+
+  if($rc == -1) {
+    # exec() failed
+    $result{detail}="failed to execute $action: $!";
+    $status='fail';
+  } elsif($rc & 127) {
+    # exec()ed but died on a signal
+    my($signal,$coredump_p);
+    ($signal,$coredump_p)=(($rc & 127),  ($rc & 128));
+    $result{detail}=sprintf("'$action' died with signal $signal, %s coredump". $coredump_p ? 'with' : 'without');
+    open(LOG, '<', $log);
+    $result{log}=join('', <LOG>);
+    close(LOG);
+    $status='fail';
+  } elsif($rc) {
+    # exec()ed and exited with non-0
+    $rc >>= 8;
+    $result{detail}="'$action' exited with value $rc";
+    open(LOG, '<', $log);
+    $result{log}=join('', <LOG>);
+    close(LOG);
+    $status='fail';
+  } else {
+    # exec()ed and exit 0
+    $status='pass';
+  }
+  unlink $log;
+
+  if($config->{expect_fail}) {
+    $status=($status eq 'pass') ? 'xfail' : 'fail';
+  }
+
+  if($debug > 1) {
+    print STDERR "$name: $status\n";
+    if($status eq 'fail' && $result{log}) {
+      print STDERR "  ".join("\n  ", split(/\n/, $result{log}))."\n";
+    }
+  }
+  $result{status}=$status;
+
+  return \%result;
+}
+
+
+######################################################################
+
+$debug=1 if defined $ENV{'RASQAL_DEBUG'};
+
+my $usage=0;
+
+# Argument handling
+GetOptions(
+  'debug|d+'   => \$debug, # incremental
+  'help|h|?' => \$usage
+) || pod2usage(2);
+
+pod2usage(-verbose => 2) if $usage;
+pod2usage("$0: Too many arguments.\n") if (@ARGV > 2);
+
+my($dir,$testsuite)=@ARGV;
+
+
+chdir($dir) or die "$program: Directory $dir not found";
+
+my(@testsuites)=get_testsuites('.');
+if(!$testsuite || !grep($testsuite eq $_, @testsuites)) {
+  print "$program: The valid testsuites in $dir are: @testsuites\n";
+  exit 0;
+}
+
+my $plan_file="$testsuite-plan.ttl";
+system("$MAKE get-testsuite-$testsuite > $plan_file 2>/dev/null");
+die "$program: No testsuite found in $dir\n"
+  unless -r $plan_file && !-z $plan_file;
+
+my(@tests)=get_tests($dir, $plan_file);
+
+my $ntests=scalar @tests;
+print "$program: Running testsuite '$testsuite' in $dir ($ntests tests)\n";
+
+my(@failed);
+my(@passed);
+my $result=0;
+for my $test (@tests) {
+  my($config)=$test;
+
+  my($result) = run_test($config);
+  my $rc=$result->{status};
+
+  if($rc eq 'fail') {
+    print "X" unless $debug;
+    push(@failed, $config);
+  } else {
+    print "." unless $debug;
+    push(@passed, $config);
+  }
+}
+print "\n" unless $debug;
+
+unlink $plan_file;
+
+my $failed_count=scalar(@failed);
+
+warn "$program: $failed_count FAILED tests:\n  " .
+     join("\n  ", map { $_->{name}. ($debug ? " (".$_->{test_uri}.")" : "") } @failed) .
+     "\n"
+  if $failed_count;
+warn "$program: Summary: ".scalar(@passed)." tests passed  ".scalar(@failed)." tests failed\n";
+
+
+exit $failed_count;
+
+__END__
+
+=head1 NAME
+
+improve - run Rasqal testsuites
+
+=head1 SYNOPSIS
+
+improve [options] [DIR [TESTUITE]]
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<-d>, B<--debug>
+
+Enable extra debugging output.
+
+=item B<-h>, B<--help>
+
+Give help summary.
+
+=back
+
+=head1 DESCRIPTION
+
+Run Rasqal testsuites from a Turtle manifest in the I<DIR>.
+If I<TESTSUITE> is not given, provides a list of known testsuites
+in I<DIR>.
+
+=cut
