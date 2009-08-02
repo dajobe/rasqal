@@ -2,7 +2,7 @@
 #
 # Makefile.am - automake file for Rasqal RDF query language library
 #
-# Copyright (C) 2003-2008, David Beckett http://www.dajobe.org/
+# Copyright (C) 2003-2009, David Beckett http://www.dajobe.org/
 # Copyright (C) 2003-2005, University of Bristol, UK http://www.bristol.ac.uk/
 # 
 # This package is Free Software and part of Redland http://librdf.org/
@@ -46,6 +46,9 @@ rasqal_rowsource_join_test$(EXEEXT) \
 rasqal_query_test$(EXEEXT) \
 rasqal_rowsource_triples_test$(EXEEXT)
 
+# These 4 test programs are compiled here and run here as 'smoke
+# tests' but mostly used in tests in $(srcdir)/../tests/{rdql,sparql}
+# to do detailed tests on the lext/parsers
 if RASQAL_QUERY_RDQL
 TESTS += rdql_lexer_test$(EXEEXT) rdql_parser_test$(EXEEXT)
 endif
