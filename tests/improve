@@ -132,9 +132,10 @@ sub get_tests($$) {
 
 sub run_test(%) {
   my($config)=@_;
-  my(%result)=();
+  my(%result)=(status => 'fail', detail => '', log => '');
   my $name=$config->{name};
   my $action=$config->{action};
+
   print STDERR "$program: Running test $name: $action\n"
     if $debug > 1;
 
@@ -186,8 +187,10 @@ sub run_test(%) {
 }
 
 
-sub run_testsuite($$) {
-  my($dir,$testsuite)=@_;
+sub run_testsuite($) {
+  my($config)=@_;
+
+  my($dir,$testsuite,$verbose,$indent)=($config->{dir}, $config->{testsuite}, $config->{verbose},$config->{indent});
 
   my $plan_file=$testsuite."-plan.ttl";
   if(!-r $plan_file) {
@@ -204,32 +207,41 @@ sub run_testsuite($$) {
   my(@failed);
   my(@xfailed);
 
+  print $indent unless $verbose;
+
   my $result=0;
   for my $test (@tests) {
     my($config)=$test;
-
     my($result) = run_test($config);
     my $rc=$result->{status};
 
     if($rc eq 'fail') {
-      print "X" unless $debug;
+      print "X" unless $verbose;
       push(@failed, $config);
     } elsif($rc eq 'xfail') {
-      print "*" unless $debug;
+      print "*" unless $verbose;
       push(@xfailed, $config);
     } else {
-      print "." unless $debug;
+      print "." unless $verbose;
       push(@passed, $config);
     }
+
+    printf "${indent}$test->{name}: $result->{status}%s\n",
+      (length($result->{detail}) ? " - ".$result->{detail} : '')
+      if $verbose;
+
   }
-  print "\n" unless $debug;
+  print "\n" unless $verbose;
 
   unlink $plan_file;
+
+  my $status=(!@failed) ? 'pass' : 'fail';
 
   return {
     passed => \@passed,
     failed => \@failed,
-    xfailed => \@xfailed
+    xfailed => \@xfailed,
+    status => $status
   };
 }
 
@@ -239,11 +251,13 @@ sub run_testsuite($$) {
 $debug=1 if defined $ENV{'RASQAL_DEBUG'};
 
 my $usage=0;
+my $verbose=0;
 
 # Argument handling
 GetOptions(
   'debug|d+'   => \$debug, # incremental
-  'help|h|?' => \$usage
+  'verbose|v+' => \$verbose, # incremental
+  'help|h|?'   => \$usage
 ) || pod2usage(2);
 
 pod2usage(-verbose => 2) if $usage;
@@ -252,6 +266,7 @@ pod2usage("$program: Too many arguments.\n") if (@ARGV > 2);
 
 my($dir,@testsuites)=@ARGV;
 
+$verbose++ if $debug;
 
 chdir($dir) or die "$program: Directory $dir not found";
 
@@ -270,37 +285,40 @@ if(!@testsuites) {
 
 my $indent='  ';
 
-our $total_passed_count=0;
-our $total_failed_count=0;
-our $total_xfailed_count=0;
+our(%totals);
 for my $testsuite (@testsuites) {
   print "$program: Running testsuite '$testsuite' in $dir\n";
 
-  print $indent unless $debug;
-  my($result)=run_testsuite($dir, $testsuite);
+  my($result)=run_testsuite(
+    {dir => $dir,
+     testsuite => $testsuite,
+     verbose => $verbose,
+     indent => $indent
+    }
+  );
 
-  our $passed_count=0;
-  our $failed_count=0;
-  our $xfailed_count=0;
-  $passed_count = scalar(@{$result->{passed}})
-    if $result->{passed};
-  $failed_count = scalar(@{$result->{failed}})
-    if $result->{failed};
-  $xfailed_count = scalar(@{$result->{xfailed}})
-    if $result->{xfailed};
+  print $indent;
+  for my $counter (qw(passed failed xfailed)) {
+    my $count=0;
+    $totals{$counter}=0 unless exists $totals{$counter};
+    if(exists $result->{$counter}) {
+      $count=scalar(@{$result->{$counter}});
+      $totals{$counter} += $count;
+    }
+    print ucfirst($counter).": ".$count."  ";
+  }
+  print "\n";
 
-  print $indent."Passed: $passed_count  Failed: $failed_count  XFailed: $xfailed_count\n";
-  print $indent."Failed tests:\n  " .
-       join("\n".$indent, map { $_->{name}. ($debug ? " (".$_->{test_uri}.")" : "") } @{$result->{failed}}) .
-       "\n"
-    if $failed_count;
-
-  $total_passed_count += $passed_count;
-  $total_failed_count += $failed_count;
-  $total_xfailed_count += $xfailed_count;
+  if(exists $result->{failed}) {
+    my(@failed)=@{$result->{failed}};
+    print $indent."Failed tests:\n  " .
+      join("\n".$indent, map { $_->{name}. ($debug ? " (".$_->{test_uri}.")" : "") } @failed) .
+      "\n"
+      if @failed;
+  }
 }
 
-exit $total_failed_count;
+exit $totals{failed};
 
 
 __END__
@@ -324,6 +342,10 @@ Enable extra debugging output.
 =item B<-h>, B<--help>
 
 Give help summary.
+
+=item B<-v>, B<--verbose>
+
+Enable extra verbosity when running tests.
 
 =back
 
