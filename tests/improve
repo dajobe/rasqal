@@ -279,6 +279,32 @@ sub run_testsuite($) {
 }
 
 
+sub format_testsuite_result($$) {
+  my($result,$indent)=@_;
+
+  our(%totals);
+  print $indent;
+  for my $counter (qw(passed failed xfailed skipped)) {
+    my $count=0;
+    $totals{$counter}=0 unless exists $totals{$counter};
+    if(exists $result->{$counter}) {
+      $count=scalar(@{$result->{$counter}});
+      $totals{$counter} += $count;
+    }
+    print ucfirst($counter).": ".$count."  ";
+  }
+  print "\n";
+
+  if(exists $result->{failed}) {
+    my(@failed)=@{$result->{failed}};
+    print $indent."Failed tests:\n  " .
+      join("\n".$indent, map { $_->{name}. ($debug ? " (".$_->{test_uri}.")" : "") } @failed) .
+      "\n"
+      if @failed;
+  }
+}
+
+
 ######################################################################
 
 $debug=1 if defined $ENV{'RASQAL_DEBUG'};
@@ -319,40 +345,21 @@ if(!@testsuites) {
 }
 
 my $indent='  ';
+my $result = 0;
 
-our(%totals);
-for my $testsuite (@testsuites) {
-  my($result)=run_testsuite(
-    {dir => $dir,
-     name => $testsuite,
-     verbose => $verbose,
-     indent => $indent,
-     dryrun => $dryrun
-    }
-  );
-
-  print $indent;
-  for my $counter (qw(passed failed xfailed skipped)) {
-    my $count=0;
-    $totals{$counter}=0 unless exists $totals{$counter};
-    if(exists $result->{$counter}) {
-      $count=scalar(@{$result->{$counter}});
-      $totals{$counter} += $count;
-    }
-    print ucfirst($counter).": ".$count."  ";
-  }
-  print "\n";
-
-  if(exists $result->{failed}) {
-    my(@failed)=@{$result->{failed}};
-    print $indent."Failed tests:\n  " .
-      join("\n".$indent, map { $_->{name}. ($debug ? " (".$_->{test_uri}.")" : "") } @failed) .
-      "\n"
-      if @failed;
-  }
+for my $testsuite_name (@testsuites) {
+  my $testsuite = {dir => $dir,
+		   name => $testsuite_name,
+		   verbose => $verbose,
+		   indent => $indent,
+		   dryrun => $dryrun
+  };
+  my $result=run_testsuite($testsuite);
+  print format_testsuite_result($result, $indent);
+  $result=1 if $result->{failed};
 }
 
-exit $totals{failed};
+exit $result;
 
 
 __END__
