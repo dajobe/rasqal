@@ -40,6 +40,8 @@ our $rdf='http://www.w3.org/1999/02/22-rdf-syntax-ns#';
 our $rdfs='http://www.w3.org/2000/01/rdf-schema#';
 our $t='http://ns.librdf.org/2009/test-manifest#';
 
+our $linewrap=78;
+
 our $program=basename $0;
 our $debug=0;
 
@@ -263,6 +265,7 @@ sub run_testsuite($) {
   print $indent unless $verbose;
 
   my $result=0;
+  my $column=length($indent);
   for my $test (@tests) {
     if($testsuite->{dryrun}) {
       $test->{status} = 'skip';
@@ -285,6 +288,11 @@ sub run_testsuite($) {
     } else {
       print "." unless $verbose;
       push(@passed, $test);
+    }
+    $column++;
+    if(!$verbose && $column > $linewrap) {
+      print "\n$indent";
+      $column=$indent;
     }
 
     if($verbose) {
