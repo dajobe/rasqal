@@ -1,8 +1,8 @@
 # -*- Mode: Makefile -*-
 #
-# Makefile.am - automake file for Rasqal tests
+# Makefile.am - automake file for Rasqal RDQL Query Testsuite
 #
-# Copyright (C) 2004-2008, David Beckett http://www.dajobe.org/
+# Copyright (C) 2004-2009, David Beckett http://www.dajobe.org/
 # Copyright (C) 2004-2004, University of Bristol, UK http://www.bristol.ac.uk/
 # 
 # This package is Free Software and part of Redland http://librdf.org/
@@ -19,9 +19,6 @@
 # complete terms and further detail along with the license texts for
 # the licenses in COPYING.LIB, COPYING and LICENSE-2.0.txt respectively.
 # 
-
-TESTSUITE_VERSION=2.1a
-TESTSUITE_ZIP=$(srcdir)/../rdql-tests-jena-$(TESTSUITE_VERSION).zip
 
 rdql_testsuite_model_files=model0.nt model1.nt model2.nt model3.nt	\
 model4.nt model5.nt model6.nt model7.nt model8.n3 model9.n3 modelA.nt	\
@@ -106,20 +103,23 @@ check-rdql-correct: build-roqet $(srcdir)/check-rdql
 	set -e; exit $$result
 
 
-if MAINTAINER_MODE
-clean-tests:
-	rm -f $(rdql_testsuite_model_files) $(rdql_testsuite_test_files) $(rdql_testsuite_result_files) $(rdql_testsuite_extra_files) 
+get-testsuites-list:
+	@echo "rdql-query"
 
-import-tests: clean-tests
-	@if test ! -r $(TESTSUITE_ZIP); then echo "$(TESTSUITE_ZIP) missing - cannot import RDQL testsuite"; exit 1; fi
-	unzip $(TESTSUITE_ZIP)
-	chmod 644 $(rdql_testsuite_model_files) $(rdql_testsuite_test_files) $(rdql_testsuite_result_files) $(rdql_testsuite_extra_files)
-
-commit-tests:
-	cvs commit -m "Updated to RDQL testsuite $(TESTSUITE_VERSION)" $(rdql_testsuite_model_files) $(rdql_testsuite_test_files) $(rdql_testsuite_result_files) $(rdql_testsuite_extra_files)
-
-
-tests-patch:
-	rm -f tests2turtle.patch
-	cd $(srcdir)/..; diff -cr rdql-testsuite.orig rdql-testsuite | grep -v ^Only > rdql-testsuite/tests2turtle.patch
-endif
+get-testsuite-rdql-query:
+	@tests="$(rdql_testsuite_test_files)"; \
+	$(ECHO) '@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .'; \
+	$(ECHO) '@prefix mf:     <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .'; \
+	$(ECHO) '@prefix t:     <http://ns.librdf.org/2009/test-manifest#> .'; \
+	$(ECHO) ' '; \
+	$(ECHO) "<> a mf:Manifest; rdfs:comment \"RDQL Query Testsuite\"; t:path \"$(top_builddir)/utils:$(top_builddir)@RAPPER_PATH@:$$PATH\"; mf:entries ("; \
+	for test in $$tests; do \
+	  comment="rdql query $$test"; \
+	  expect="PositiveTest"; \
+	  if [ $$test = "test-1-09" -o $$test = "test-B-17" ]; then \
+	    expect="NegativeTest"; \
+          fi; \
+	  t=`echo $$test | sed -e 's/^test-//'`; \
+	  $(ECHO) "  [ a t:$$expect; mf:name \"$$test\"; rdfs:comment \"$$comment\"; mf:action  \"$(srcdir)/check-rdql -s $(srcdir) $$t\" ]"; \
+	done; \
+	$(ECHO) ")."
