@@ -1571,6 +1571,10 @@ rasqal_engine_remove_graph_bgp_graph_patterns(rasqal_query* query,
   if(!gp->graph_patterns)
     return 0;
 
+  /* Do not transform this at the root; query engine 1 needs it like this */
+  if(gp == query->query_graph_pattern)
+    return 0;
+
 #if RASQAL_DEBUG > 1
   RASQAL_DEBUG2("Checking graph pattern #%d:\n  ", gp->gp_index);
   rasqal_graph_pattern_print(gp, stdout);
