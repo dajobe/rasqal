@@ -186,6 +186,46 @@ sub run_test(%) {
 }
 
 
+sub run_testsuite($$) {
+  my($dir,$testsuite)=@_;
+
+  my $plan_file="$testsuite-plan.ttl";
+  system("$MAKE get-testsuite-$testsuite > $plan_file 2>/dev/null");
+  die "$program: No testsuite plan could be created in $dir\n"
+    unless -r $plan_file && !-z $plan_file;
+
+  my(@tests)=get_tests($dir, $plan_file);
+
+  my $ntests=scalar @tests;
+
+  my(@failed);
+  my(@passed);
+  my $result=0;
+  for my $test (@tests) {
+    my($config)=$test;
+
+    my($result) = run_test($config);
+    my $rc=$result->{status};
+
+    if($rc eq 'fail') {
+      print "X" unless $debug;
+      push(@failed, $config);
+    } else {
+      print "." unless $debug;
+      push(@passed, $config);
+    }
+  }
+  print "\n" unless $debug;
+
+  unlink $plan_file;
+
+  return {
+    passed => \@passed,
+    failed => \@failed,
+  };
+}
+
+
 ######################################################################
 
 $debug=1 if defined $ENV{'RASQAL_DEBUG'};
@@ -199,60 +239,53 @@ GetOptions(
 ) || pod2usage(2);
 
 pod2usage(-verbose => 2) if $usage;
-pod2usage("$0: Too many arguments.\n") if (@ARGV > 2);
+pod2usage("$program: No arguments given") if !@ARGV;
+pod2usage("$program: Too many arguments.\n") if (@ARGV > 2);
 
-my($dir,$testsuite)=@ARGV;
+my($dir,@testsuites)=@ARGV;
 
 
 chdir($dir) or die "$program: Directory $dir not found";
 
-my(@testsuites)=get_testsuites('.');
-if(!$testsuite || !grep($testsuite eq $_, @testsuites)) {
-  print "$program: The valid testsuites in $dir are: @testsuites\n";
-  exit 0;
-}
+my(@known_testsuites)=get_testsuites('.');
+my(%is_known_testsuite)=map { $_ => 1} @known_testsuites;
 
-my $plan_file="$testsuite-plan.ttl";
-system("$MAKE get-testsuite-$testsuite > $plan_file 2>/dev/null");
-die "$program: No testsuite found in $dir\n"
-  unless -r $plan_file && !-z $plan_file;
-
-my(@tests)=get_tests($dir, $plan_file);
-
-my $ntests=scalar @tests;
-print "$program: Running testsuite '$testsuite' in $dir ($ntests tests)\n";
-
-my(@failed);
-my(@passed);
-my $result=0;
-for my $test (@tests) {
-  my($config)=$test;
-
-  my($result) = run_test($config);
-  my $rc=$result->{status};
-
-  if($rc eq 'fail') {
-    print "X" unless $debug;
-    push(@failed, $config);
-  } else {
-    print "." unless $debug;
-    push(@passed, $config);
+if(!@testsuites) {
+  @testsuites = @known_testsuites;
+} else {
+  my(@t)=grep(!$is_known_testsuite{$_}, @testsuites);
+  if(@t) {
+    print "$program: Invalid testsuites in $dir: @t\n";
+    exit 0;
   }
 }
-print "\n" unless $debug;
 
-unlink $plan_file;
+our $total_passed_count=0;
+our $total_failed_count=0;
+for my $testsuite (@testsuites) {
+  print "$program: Running testsuite '$testsuite' in $dir\n";
 
-my $failed_count=scalar(@failed);
+  my($result)=run_testsuite($dir, $testsuite);
 
-warn "$program: $failed_count FAILED tests:\n  " .
-     join("\n  ", map { $_->{name}. ($debug ? " (".$_->{test_uri}.")" : "") } @failed) .
-     "\n"
-  if $failed_count;
-warn "$program: Summary: ".scalar(@passed)." tests passed  ".scalar(@failed)." tests failed\n";
+  our $passed_count=0;
+  our $failed_count=0;
+  $passed_count = scalar(@{$result->{passed}})
+    if $result->{passed};
+  $failed_count = scalar(@{$result->{failed}})
+    if $result->{failed};
 
+  warn "$program: Suite $testsuite: $passed_count PASSED $failed_count FAILED\n";
+  warn "  failed tests:\n  " .
+       join("\n  ", map { $_->{name}. ($debug ? " (".$_->{test_uri}.")" : "") } @{$result->{failed}}) .
+       "\n"
+    if $failed_count;
 
-exit $failed_count;
+  $total_failed_count += $failed_count;
+  $total_passed_count += $passed_count;
+}
+
+exit $total_failed_count;
+
 
 __END__
 
@@ -262,7 +295,7 @@ improve - run Rasqal testsuites
 
 =head1 SYNOPSIS
 
-improve [options] [DIR [TESTUITE]]
+improve [options] DIR [TESTSUITES]
 
 =head1 OPTIONS
 
@@ -280,8 +313,8 @@ Give help summary.
 
 =head1 DESCRIPTION
 
-Run Rasqal testsuites from a Turtle manifest in the I<DIR>.
-If I<TESTSUITE> is not given, provides a list of known testsuites
-in I<DIR>.
+Run Rasqal testsuites from a Turtle manifest in the I<DIR>.  If
+I<TESTSUITES> are not given, provides a list of known testsuites in
+I<DIR>.
 
 =cut
