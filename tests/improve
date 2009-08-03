@@ -204,7 +204,7 @@ sub run_test($$) {
   unlink $log;
 
   if($test->{expect_fail}) {
-    $status=($status eq 'pass') ? 'xfail' : 'fail';
+    $status='xfail' if $status eq 'fail';
   }
 
   $test->{status}=$status;
