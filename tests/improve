@@ -82,6 +82,11 @@ sub read_plan($$) {
       $desc =~ s/^\"(.*)\"$/$1/;
       $testsuite->{desc}=$desc;
     }
+    my $path=$triples{$manifest_node}->{"<${t}path>"}->[0];
+    if($path) {
+      $path =~ s/^\"(.*)\"$/$1/;
+      $testsuite->{path}=$path;
+    }
   }
 
   warn "Entries node is '$entries_node'\n"
@@ -147,13 +152,18 @@ sub read_plan($$) {
 }
 
 
-sub run_test(%) {
-  my($test)=@_;
-  my(%result)=(status => 'fail', detail => '', log => '');
+sub run_test($$) {
+  my($testsuite,$test)=@_;
   my $name=$test->{name};
   my $action=$test->{action};
 
-  print STDERR "$program: Running test $name: $action\n"
+  $test->{status}= 'fail';
+  $test->{detail}= '';
+  $test->{log}= '';
+
+  my $path=$testsuite->{path} ? "PATH=$testsuite->{path} " : "";
+
+  print STDERR "$program: Running test $name: $path$action\n"
     if $debug > 1;
 
   my $log="$name.log";
@@ -163,23 +173,26 @@ sub run_test(%) {
 
   if($rc == -1) {
     # exec() failed
-    $result{detail}="failed to execute $action: $!";
+    $test->{detail}="failed to execute $action: $!";
     $status='fail';
   } elsif($rc & 127) {
     # exec()ed but died on a signal
     my($signal,$coredump_p);
     ($signal,$coredump_p)=(($rc & 127),  ($rc & 128));
-    $result{detail}=sprintf("'$action' died with signal $signal, %s coredump". $coredump_p ? 'with' : 'without');
+    $test->{detail}=sprintf("$path$action died with signal $signal, %s coredump". $coredump_p ? 'with' : 'without');
     open(LOG, '<', $log);
-    $result{log}=join('', <LOG>);
+    $test->{log}=join('', <LOG>);
     close(LOG);
     $status='fail';
+    if($signal == 2) { # SIGINT
+      $testsuite->{abort}=1;
+    }
   } elsif($rc) {
     # exec()ed and exited with non-0
     $rc >>= 8;
-    $result{detail}="'$action' exited with value $rc";
+    $test->{detail}="$path$action exited with code $rc";
     open(LOG, '<', $log);
-    $result{log}=join('', <LOG>);
+    $test->{log}=join('', <LOG>);
     close(LOG);
     $status='fail';
   } else {
@@ -192,9 +205,9 @@ sub run_test(%) {
     $status=($status eq 'pass') ? 'xfail' : 'fail';
   }
 
-  $result{status}=$status;
+  $test->{status}=$status;
 
-  return \%result;
+  return $status;
 }
 
 
@@ -221,6 +234,9 @@ sub prepare_testsuite($) {
 
   read_plan($testsuite, $plan_file);
 
+  if($testsuite->{path}) {
+    $ENV{PATH}=$testsuite->{path};
+  }
   return { status => 'pass' };
 }
 
@@ -248,15 +264,14 @@ sub run_testsuite($) {
 
   my $result=0;
   for my $test (@tests) {
-    my $result;
-
-    if($test->{dryrun}) {
-      $result = { status =>'skip', detail=>'' };
+    if($testsuite->{dryrun}) {
+      $test->{status} = 'skip';
+      $test->{detail} = '';
     } else {
-      $result = run_test($test);
+      run_test($testsuite,$test);
     }
 
-    my $rc=$result->{status};
+    my $rc=$test->{status};
 
     if($rc eq 'fail') {
       print "X" unless $verbose;
@@ -274,15 +289,19 @@ sub run_testsuite($) {
 
     if($verbose) {
       printf "${indent}$test->{name}: $rc%s\n",
-	     (length($result->{detail}) ? " - ".$result->{detail} : '');
+	     (length($test->{detail}) ? " - ".$test->{detail} : '');
       if($verbose > 1) {
-	if($rc eq 'fail' && $result->{log}) {
-	  my(@lines)=split(/\n/, $result->{log});
+	if($rc eq 'fail' && $test->{log}) {
+	  my(@lines)=split(/\n/, $test->{log});
 	  print $indent."  ".join("\n${indent}  ", @lines)."\n";
 	}
       }
     }
 
+    if($testsuite->{abort}) {
+      print "aborted";
+      last;
+    }
   }
   print "\n" unless $verbose;
 
@@ -350,6 +369,9 @@ $verbose++ if $debug;
 chdir($dir) or die "$program: Directory $dir not found";
 
 my(@known_testsuites)=get_testsuites('.');
+die "$program: Could not find any testsuites in $dir\n"
+  unless @known_testsuites;
+
 my(%is_known_testsuite)=map { $_ => 1} @known_testsuites;
 
 if(!@testsuites) {
