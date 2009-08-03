@@ -51,8 +51,10 @@ sub get_testsuites($) {
 }
 
 
-sub read_plan($$$) {
-  my($testsuite,$dir, $plan_file)=@_;
+sub read_plan($$) {
+  my($testsuite, $plan_file)=@_;
+
+  my $dir = $testsuite->{dir};
 
   my(%triples);
   my $manifest_node;
@@ -217,7 +219,7 @@ sub run_testsuite($) {
   die "$program: No testsuite plan could be created in $dir\n"
     unless -r $plan_file && !-z $plan_file;
 
-  read_plan($testsuite, $dir, $plan_file);
+  read_plan($testsuite, $plan_file);
   my(@tests)=@{$testsuite->{tests}};
 
   my $desc=$testsuite->{desc} || $testsuite->{name};
