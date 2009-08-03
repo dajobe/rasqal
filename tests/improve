@@ -238,19 +238,6 @@ sub run_testsuite($) {
   my $indent = $testsuite->{indent};
   my $verbose = $testsuite->{verbose};
 
-  my $plan_file=$name."-plan.ttl";
-  $testsuite->{plan}=$plan_file;
-  if(!-r $plan_file) {
-    my $cmd="$MAKE get-testsuite-$name 2>/dev/null | sed -n -e '/\@prefix/,\$p' > $plan_file";
-    system $cmd;
-    my $rc=$?;
-    die "$program: Running '$cmd' failed with status $rc\n"
-      if $rc;
-  }
-  die "$program: No testsuite plan could be created in $dir\n"
-    unless -r $plan_file && !-z $plan_file;
-
-  read_plan($testsuite, $plan_file);
   my(@tests)=@{$testsuite->{tests}};
 
   my $desc=$testsuite->{desc} || $testsuite->{name};
@@ -298,6 +285,7 @@ sub run_testsuite($) {
   }
   print "\n" unless $verbose;
 
+  my $plan_file= $testsuite->{plan};
   unlink $plan_file;
 
   my $status=(!@failed) ? 'pass' : 'fail';
