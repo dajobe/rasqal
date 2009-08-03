@@ -148,10 +148,10 @@ sub read_plan($$) {
 
 
 sub run_test(%) {
-  my($config)=@_;
+  my($test)=@_;
   my(%result)=(status => 'fail', detail => '', log => '');
-  my $name=$config->{name};
-  my $action=$config->{action};
+  my $name=$test->{name};
+  my $action=$test->{action};
 
   print STDERR "$program: Running test $name: $action\n"
     if $debug > 1;
@@ -188,7 +188,7 @@ sub run_test(%) {
   }
   unlink $log;
 
-  if($config->{expect_fail}) {
+  if($test->{expect_fail}) {
     $status=($status eq 'pass') ? 'xfail' : 'fail';
   }
 
