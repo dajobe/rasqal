@@ -189,8 +189,10 @@ sub run_test(%) {
 sub run_testsuite($$) {
   my($dir,$testsuite)=@_;
 
-  my $plan_file="$testsuite-plan.ttl";
-  system("$MAKE get-testsuite-$testsuite > $plan_file 2>/dev/null");
+  my $plan_file=$testsuite."-plan.ttl";
+  if(!-r $plan_file) {
+    system("$MAKE get-testsuite-$testsuite 2>/dev/null | sed -n -e '/\@prefix/,\$p' > $plan_file");
+  }
   die "$program: No testsuite plan could be created in $dir\n"
     unless -r $plan_file && !-z $plan_file;
 
