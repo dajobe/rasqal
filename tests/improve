@@ -374,7 +374,7 @@ for my $testsuite_name (@testsuites) {
   };
 
   my $result=prepare_testsuite($testsuite);
-  if($result->{failed}) {
+  if($result->{status} eq 'fail') {
     my $details=$result->{details};
     print "$program: Suite $testsuite->{name} failed preparation - $details\n";
     $rc=1;
@@ -385,7 +385,7 @@ for my $testsuite_name (@testsuites) {
 
   format_testsuite_result(*STDOUT, $result, $indent);
 
-  $rc=1 if $result->{failed};
+  $rc=1 if $result->{status} eq 'fail';
 }
 
 exit $rc;
