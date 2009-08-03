@@ -34,7 +34,7 @@ use Cwd;
 
 our $RAPPER=$ENV{RAPPER} || 'rapper';
 our $MAKE=$ENV{MAKE} || 'make';
-
+our $INDENT='  ';
 our $mf='http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#';
 our $rdf='http://www.w3.org/1999/02/22-rdf-syntax-ns#';
 our $rdfs='http://www.w3.org/2000/01/rdf-schema#';
@@ -296,7 +296,8 @@ sub run_testsuite($) {
     }
 
     if($verbose) {
-      printf "${indent}$test->{name}: $rc%s\n",
+      my $rcv = $rc; $rcv = uc $rc if $rc ne 'pass';
+      printf "${indent}$test->{name}: $rcv%s\n",
 	     (length($test->{detail}) ? " - ".$test->{detail} : '');
       if($verbose > 1) {
 	if($rc eq 'fail' && $test->{log}) {
@@ -340,7 +341,7 @@ sub format_testsuite_result($$$) {
 
   if(exists $result->{failed}) {
     my(@failed)=@{$result->{failed}};
-    print $fh $indent."Failed tests:\n  " .
+    print $fh $indent."Failed tests:\n" . $indent . $INDENT .
       join("\n".$indent,
 	   map { $_->{name}. ($debug ? " (".$_->{test_uri}.")" : "") }
 	         @failed) .
@@ -392,14 +393,14 @@ if(!@testsuites) {
   }
 }
 
-my $indent='  ';
 my $rc = 0;
 
+my $indent=$INDENT;
 for my $testsuite_name (@testsuites) {
   my $testsuite = {dir => $dir,
 		   name => $testsuite_name,
 		   verbose => $verbose,
-		   indent => $indent,
+		   indent => $indent.$INDENT,
 		   dryrun => $dryrun
   };
 
