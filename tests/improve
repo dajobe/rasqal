@@ -51,10 +51,11 @@ sub get_testsuites($) {
 }
 
 
-sub get_tests($$) {
-  my($dir, $plan_file)=@_;
+sub read_plan($$$) {
+  my($testsuite,$dir, $plan_file)=@_;
 
   my(%triples);
+  my $manifest_node;
   my $entries_node;
   my $cmd="$RAPPER -q -i turtle -o ntriples $plan_file";
   open(MF, "$cmd |") 
@@ -66,12 +67,24 @@ sub get_tests($$) {
     die "no p in '$_'\n" unless defined $p;
     die "no o in '$_'\n" unless defined $o;
     push(@{$triples{$s}->{$p}}, $o);
+    $manifest_node=$s if $p eq "<${rdf}type>" && $o eq "<${mf}Manifest>";
     $entries_node=$o if $p eq "<${mf}entries>";
   }
   close(MF);
 
+  warn "Manifest node is '$manifest_node'\n"
+    if $debug > 1;
+  if($manifest_node) {
+    my $desc=$triples{$manifest_node}->{"<${rdfs}comment>"}->[0];
+    if($desc) {
+      $desc =~ s/^\"(.*)\"$/$1/;
+      $testsuite->{desc}=$desc;
+    }
+  }
+
   warn "Entries node is '$entries_node'\n"
     if $debug > 1;
+
   my $list_node=$entries_node;
 
   my(@tests);
@@ -126,7 +139,9 @@ sub get_tests($$) {
     last if $list_node eq "<${rdf}nil>";
   }
 
-  return @tests;
+  $testsuite->{tests}=\@tests;
+
+  return 0;
 }
 
 
@@ -188,42 +203,59 @@ sub run_test(%) {
 
 
 sub run_testsuite($) {
-  my($config)=@_;
+  my($testsuite)=@_;
+  my $dir = $testsuite->{dir};
+  my $name = $testsuite->{name};
+  my $indent = $testsuite->{indent};
+  my $verbose = $testsuite->{verbose};
 
-  my($dir,$testsuite,$verbose,$indent)=($config->{dir}, $config->{testsuite}, $config->{verbose},$config->{indent});
-
-  my $plan_file=$testsuite."-plan.ttl";
+  my $plan_file=$name."-plan.ttl";
+  $testsuite->{plan}=$plan_file;
   if(!-r $plan_file) {
-    system("$MAKE get-testsuite-$testsuite 2>/dev/null | sed -n -e '/\@prefix/,\$p' > $plan_file");
+    system("$MAKE get-testsuite-$name 2>/dev/null | sed -n -e '/\@prefix/,\$p' > $plan_file");
   }
   die "$program: No testsuite plan could be created in $dir\n"
     unless -r $plan_file && !-z $plan_file;
 
-  my(@tests)=get_tests($dir, $plan_file);
+  read_plan($testsuite, $dir, $plan_file);
+  my(@tests)=@{$testsuite->{tests}};
+
+  my $desc=$testsuite->{desc} || $testsuite->{name};
+  print "$program: Running testsuite '$desc'\n";
 
   my $ntests=scalar @tests;
 
   my(@passed);
   my(@failed);
   my(@xfailed);
+  my(@skipped);
 
   print $indent unless $verbose;
 
   my $result=0;
   for my $test (@tests) {
-    my($config)=$test;
-    my($result) = run_test($config);
+    my $result;
+
+    if($test->{dryrun}) {
+      $result = { status =>'skip', detail=>'' };
+    } else {
+      $result = run_test($test);
+    }
+
     my $rc=$result->{status};
 
     if($rc eq 'fail') {
       print "X" unless $verbose;
-      push(@failed, $config);
+      push(@failed, $test);
     } elsif($rc eq 'xfail') {
       print "*" unless $verbose;
-      push(@xfailed, $config);
+      push(@xfailed, $test);
+    } elsif($rc eq 'skip') {
+      print "-" unless $verbose;
+      push(@skipped, $test);
     } else {
       print "." unless $verbose;
-      push(@passed, $config);
+      push(@passed, $test);
     }
 
     printf "${indent}$test->{name}: $result->{status}%s\n",
@@ -241,6 +273,7 @@ sub run_testsuite($) {
     passed => \@passed,
     failed => \@failed,
     xfailed => \@xfailed,
+    skipped => \@skipped,
     status => $status
   };
 }
@@ -250,12 +283,14 @@ sub run_testsuite($) {
 
 $debug=1 if defined $ENV{'RASQAL_DEBUG'};
 
+my $dryrun=0;
 my $usage=0;
 my $verbose=0;
 
 # Argument handling
 GetOptions(
   'debug|d+'   => \$debug, # incremental
+  'dryrun|n'   => \$dryrun,
   'verbose|v+' => \$verbose, # incremental
   'help|h|?'   => \$usage
 ) || pod2usage(2);
@@ -287,18 +322,17 @@ my $indent='  ';
 
 our(%totals);
 for my $testsuite (@testsuites) {
-  print "$program: Running testsuite '$testsuite' in $dir\n";
-
   my($result)=run_testsuite(
     {dir => $dir,
-     testsuite => $testsuite,
+     name => $testsuite,
      verbose => $verbose,
-     indent => $indent
+     indent => $indent,
+     dryrun => $dryrun
     }
   );
 
   print $indent;
-  for my $counter (qw(passed failed xfailed)) {
+  for my $counter (qw(passed failed xfailed skipped)) {
     my $count=0;
     $totals{$counter}=0 unless exists $totals{$counter};
     if(exists $result->{$counter}) {
@@ -338,6 +372,10 @@ improve [options] DIR [TESTSUITES]
 =item B<-d>, B<--debug>
 
 Enable extra debugging output.
+
+=item B<-n>, B<--dryrun>
+
+Do not run tests.
 
 =item B<-h>, B<--help>
 
