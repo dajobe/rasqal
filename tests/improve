@@ -204,6 +204,33 @@ sub run_test(%) {
 }
 
 
+sub prepare_testsuite($) {
+  my($testsuite)=@_;
+  my $dir = $testsuite->{dir};
+  my $name = $testsuite->{name};
+
+  my $plan_file=$name."-plan.ttl";
+  $testsuite->{plan}=$plan_file;
+  if(!-r $plan_file) {
+    my $cmd="$MAKE get-testsuite-$name 2>/dev/null | sed -n -e '/\@prefix/,\$p' > $plan_file";
+    system $cmd;
+    my $rc=$?;
+    return { status => 'fail',
+	     details => "Running '$cmd' failed with status $rc"
+	   }
+      if $rc;
+  }
+  return { status => 'fail',
+	   details => "No testsuite plan could be created in $dir"
+         }
+    unless -r $plan_file && !-z $plan_file;
+
+  read_plan($testsuite, $plan_file);
+
+  return { status => 'pass' };
+}
+
+
 sub run_testsuite($) {
   my($testsuite)=@_;
   my $dir = $testsuite->{dir};
@@ -214,7 +241,11 @@ sub run_testsuite($) {
   my $plan_file=$name."-plan.ttl";
   $testsuite->{plan}=$plan_file;
   if(!-r $plan_file) {
-    system("$MAKE get-testsuite-$name 2>/dev/null | sed -n -e '/\@prefix/,\$p' > $plan_file");
+    my $cmd="$MAKE get-testsuite-$name 2>/dev/null | sed -n -e '/\@prefix/,\$p' > $plan_file";
+    system $cmd;
+    my $rc=$?;
+    die "$program: Running '$cmd' failed with status $rc\n"
+      if $rc;
   }
   die "$program: No testsuite plan could be created in $dir\n"
     unless -r $plan_file && !-z $plan_file;
@@ -281,26 +312,22 @@ sub run_testsuite($) {
 }
 
 
-sub format_testsuite_result($$) {
-  my($result,$indent)=@_;
+sub format_testsuite_result($$$) {
+  my($fh,$result,$indent)=@_;
 
-  our(%totals);
-  print $indent;
+  print $fh $indent;
   for my $counter (qw(passed failed xfailed skipped)) {
-    my $count=0;
-    $totals{$counter}=0 unless exists $totals{$counter};
-    if(exists $result->{$counter}) {
-      $count=scalar(@{$result->{$counter}});
-      $totals{$counter} += $count;
-    }
-    print ucfirst($counter).": ".$count."  ";
+    my $count=scalar(@{$result->{$counter}}) || 0;
+    print $fh ucfirst($counter).": ".$count."  ";
   }
-  print "\n";
+  print $fh "\n";
 
   if(exists $result->{failed}) {
     my(@failed)=@{$result->{failed}};
-    print $indent."Failed tests:\n  " .
-      join("\n".$indent, map { $_->{name}. ($debug ? " (".$_->{test_uri}.")" : "") } @failed) .
+    print $fh $indent."Failed tests:\n  " .
+      join("\n".$indent,
+	   map { $_->{name}. ($debug ? " (".$_->{test_uri}.")" : "") }
+	         @failed) .
       "\n"
       if @failed;
   }
@@ -347,7 +374,7 @@ if(!@testsuites) {
 }
 
 my $indent='  ';
-my $result = 0;
+my $rc = 0;
 
 for my $testsuite_name (@testsuites) {
   my $testsuite = {dir => $dir,
@@ -356,12 +383,23 @@ for my $testsuite_name (@testsuites) {
 		   indent => $indent,
 		   dryrun => $dryrun
   };
-  my $result=run_testsuite($testsuite);
-  print format_testsuite_result($result, $indent);
-  $result=1 if $result->{failed};
+
+  my $result=prepare_testsuite($testsuite);
+  if($result->{failed}) {
+    my $details=$result->{details};
+    print "$program: Suite $testsuite->{name} failed preparation - $details\n";
+    $rc=1;
+    next;
+  }
+
+  $result=run_testsuite($testsuite);
+
+  format_testsuite_result(*STDOUT, $result, $indent);
+
+  $rc=1 if $result->{failed};
 }
 
-exit $result;
+exit $rc;
 
 
 __END__
