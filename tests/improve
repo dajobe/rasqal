@@ -198,8 +198,10 @@ sub run_testsuite($$) {
 
   my $ntests=scalar @tests;
 
-  my(@failed);
   my(@passed);
+  my(@failed);
+  my(@xfailed);
+
   my $result=0;
   for my $test (@tests) {
     my($config)=$test;
@@ -210,6 +212,9 @@ sub run_testsuite($$) {
     if($rc eq 'fail') {
       print "X" unless $debug;
       push(@failed, $config);
+    } elsif($rc eq 'xfail') {
+      print "*" unless $debug;
+      push(@xfailed, $config);
     } else {
       print "." unless $debug;
       push(@passed, $config);
@@ -222,6 +227,7 @@ sub run_testsuite($$) {
   return {
     passed => \@passed,
     failed => \@failed,
+    xfailed => \@xfailed
   };
 }
 
@@ -260,28 +266,36 @@ if(!@testsuites) {
   }
 }
 
+my $indent='  ';
+
 our $total_passed_count=0;
 our $total_failed_count=0;
+our $total_xfailed_count=0;
 for my $testsuite (@testsuites) {
   print "$program: Running testsuite '$testsuite' in $dir\n";
 
+  print $indent unless $debug;
   my($result)=run_testsuite($dir, $testsuite);
 
   our $passed_count=0;
   our $failed_count=0;
+  our $xfailed_count=0;
   $passed_count = scalar(@{$result->{passed}})
     if $result->{passed};
   $failed_count = scalar(@{$result->{failed}})
     if $result->{failed};
+  $xfailed_count = scalar(@{$result->{xfailed}})
+    if $result->{xfailed};
 
-  warn "$program: Suite $testsuite: $passed_count PASSED $failed_count FAILED\n";
-  warn "  failed tests:\n  " .
-       join("\n  ", map { $_->{name}. ($debug ? " (".$_->{test_uri}.")" : "") } @{$result->{failed}}) .
+  print $indent."Passed: $passed_count  Failed: $failed_count  XFailed: $xfailed_count\n";
+  print $indent."Failed tests:\n  " .
+       join("\n".$indent, map { $_->{name}. ($debug ? " (".$_->{test_uri}.")" : "") } @{$result->{failed}}) .
        "\n"
     if $failed_count;
 
-  $total_failed_count += $failed_count;
   $total_passed_count += $passed_count;
+  $total_failed_count += $failed_count;
+  $total_xfailed_count += $xfailed_count;
 }
 
 exit $total_failed_count;
