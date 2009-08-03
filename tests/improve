@@ -192,12 +192,6 @@ sub run_test(%) {
     $status=($status eq 'pass') ? 'xfail' : 'fail';
   }
 
-  if($debug > 1) {
-    print STDERR "$name: $status\n";
-    if($status eq 'fail' && $result{log}) {
-      print STDERR "  ".join("\n  ", split(/\n/, $result{log}))."\n";
-    }
-  }
   $result{status}=$status;
 
   return \%result;
@@ -278,9 +272,16 @@ sub run_testsuite($) {
       push(@passed, $test);
     }
 
-    printf "${indent}$test->{name}: $result->{status}%s\n",
-      (length($result->{detail}) ? " - ".$result->{detail} : '')
-      if $verbose;
+    if($verbose) {
+      printf "${indent}$test->{name}: $rc%s\n",
+	     (length($result->{detail}) ? " - ".$result->{detail} : '');
+      if($verbose > 1) {
+	if($rc eq 'fail' && $result->{log}) {
+	  my(@lines)=split(/\n/, $result->{log});
+	  print $indent."  ".join("\n${indent}  ", @lines)."\n";
+	}
+      }
+    }
 
   }
   print "\n" unless $verbose;
