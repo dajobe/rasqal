@@ -72,3 +72,24 @@ $(top_builddir)/src/librasqal.la:
 
 $(top_builddir)/../raptor/src/libraptor.la:
 	cd $(top_builddir)/../raptor/src && $(MAKE) $(AM_MAKEFLAGS) libraptor.la
+
+get-testsuites-list:
+	@echo "engine"
+
+get-testsuite-engine:
+	@tests="$(local_tests)"; \
+	$(ECHO) '@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .'; \
+	$(ECHO) '@prefix mf:     <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .'; \
+	$(ECHO) '@prefix t:     <http://ns.librdf.org/2009/test-manifest#> .'; \
+	$(ECHO) ' '; \
+	$(ECHO) "<> a mf:Manifest; rdfs:comment \"Query Engine Tests\"; mf:entries ("; \
+	for test in $$tests; do \
+	  comment="rdql query $$test"; \
+	  expect="PositiveTest"; \
+	  arg="$(top_srcdir)/data/"; \
+	  if [ $$test = rasqal_limit_test$(EXEEXT) ]; then \
+	    arg="$$arg/letters.nt"; \
+          fi; \
+	  $(ECHO) "  [ a t:$$expect; mf:name \"$$test\"; rdfs:comment \"$$comment\"; mf:action  \"./$$test $$arg\" ]"; \
+	done; \
+	$(ECHO) ")."
