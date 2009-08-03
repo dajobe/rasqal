@@ -42,34 +42,10 @@ build-rdql-parser-test:
 check-local: check-rdql-lexer check-rdql-parser
 
 check-rdql-lexer: build-rdql-lexer-test
-	@set +e; result=0; \
-	$(ECHO) "Testing legal RDQL lexing"; \
-	for test in $(RDQL_TEST_FILES); do \
-	  $(ECHO) $(ECHO_N) "Checking $$test $(ECHO_C)"; \
-	  $(top_builddir)/src/rdql_lexer_test $(srcdir)/$$test >/dev/null; \
-	  status=$$?; \
-	  if test $$status != 0 -a $$status != 2 ; then \
-	    $(ECHO) FAILED returned status $$status; result=1; \
-	  else \
-	    $(ECHO) ok; \
-	  fi; \
-	done; \
-	set -e; exit $$result
+	@$(PERL) $(srcdir)/../improve $(srcdir) rdql-lexer
 
 check-rdql-parser: build-rdql-parser-test
-	@set +e; result=0; \
-	$(ECHO) "Testing legal RDQL parsing"; \
-	for test in $(RDQL_TEST_FILES); do \
-	  $(ECHO) $(ECHO_N) "Checking $$test $(ECHO_C)"; \
-	  $(top_builddir)/src/rdql_parser_test $(srcdir)/$$test >/dev/null; \
-	  status=$$?; \
-	  if test $$status != 0 -a $$status != 2 ; then \
-	    $(ECHO) FAILED returned status $$status; result=1; \
-	  else \
-	    $(ECHO) ok; \
-	  fi; \
-	done; \
-	set -e; exit $$result
+	@$(PERL) $(srcdir)/../improve $(srcdir) rdql-parser
 
 get-testsuites-list:
 	@echo "rdql-lexer rdql-parser"
