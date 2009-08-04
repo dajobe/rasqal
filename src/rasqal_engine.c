@@ -1095,7 +1095,7 @@ rasqal_engine_get_next_result(rasqal_engine_execution_data* execution_data)
       /* FIXME - sequence of graph_patterns not implemented, finish */
       rasqal_log_error_simple(query->world, RAPTOR_LOG_LEVEL_ERROR,
                               &query->locator,
-                              "Graph pattern %s operation is not implemented yet. Ending query execution.", 
+                              "Graph pattern %s operation with a sequence of graph patterns is not implemented yet. Ending query execution.", 
                               rasqal_graph_pattern_operator_as_string(gp->op));
 
       RASQAL_DEBUG1("Failing query with sequence of graph_patterns\n");
