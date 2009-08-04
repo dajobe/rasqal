@@ -48,8 +48,16 @@ our $debug=0;
 
 sub get_testsuites($) {
   my $dir=shift;
-  system("cd $dir && $MAKE >/dev/null 2>&1");
-  my $raw=`cd $dir && $MAKE get-testsuites-list 2>/dev/null | tail -1`;
+
+  my $cmd="cd $dir && $MAKE >/dev/null 2>&1";
+  print STDERR "$program: Running $cmd\n"
+    if $debug > 1;
+  system $cmd;
+
+  $cmd="cd $dir && $MAKE get-testsuites-list 2>/dev/null | tail -1";
+  print STDERR "$program: Running $cmd\n"
+    if $debug > 1;
+  my $raw=`$cmd`;
   return split(/\s+/,$raw);
 }
 
@@ -62,7 +70,11 @@ sub read_plan($$) {
   my(%triples);
   my $manifest_node;
   my $entries_node;
-  my $cmd="$RAPPER -q -i turtle -o ntriples $plan_file";
+
+  my $rapper_error='rapper.err';
+  my $cmd="$RAPPER -q -i turtle -o ntriples $plan_file 2> $rapper_error";
+  print STDERR "$program: Running pipe from $cmd\n"
+    if $debug > 1;
   open(MF, "$cmd |") 
     or die "Cannot open pipe from '$cmd' - $!\n";
   while(<MF>) {
@@ -76,6 +88,13 @@ sub read_plan($$) {
     $entries_node=$o if $p eq "<${mf}entries>";
   }
   close(MF);
+  if(!-z $rapper_error) {
+    my $status = {status => 'fail', details => `cat $rapper_error` };
+    unlink $rapper_error;
+    return $status;
+  }
+  unlink $rapper_error;
+
 
   warn "Manifest node is '$manifest_node'\n"
     if $debug > 1;
@@ -151,7 +170,7 @@ sub read_plan($$) {
 
   $testsuite->{tests}=\@tests;
 
-  return 0;
+  return {status => 'pass', details => ''};
 }
 
 
@@ -221,9 +240,12 @@ sub prepare_testsuite($) {
 
   my $plan_file=$name."-plan.ttl";
   $testsuite->{plan}=$plan_file;
+  unlink $plan_file;
   if(!-r $plan_file) {
     system("$MAKE >/dev/null 2>&1");
     my $cmd="$MAKE get-testsuite-$name 2>/dev/null | sed -n -e '/\@prefix/,\$p' > $plan_file";
+    print STDERR "$program: Running $cmd\n"
+      if $debug > 1;
     system $cmd;
     my $rc=$?;
     return { status => 'fail',
@@ -232,16 +254,16 @@ sub prepare_testsuite($) {
       if $rc;
   }
   return { status => 'fail',
-	   details => "No testsuite plan could be created in $dir"
+	   details => "No testsuite plan file $plan_file could be created in $dir"
          }
     unless -r $plan_file && !-z $plan_file;
 
-  read_plan($testsuite, $plan_file);
+  my $result=read_plan($testsuite, $plan_file);
 
   if($testsuite->{path}) {
     $ENV{PATH}=$testsuite->{path};
   }
-  return { status => 'pass' };
+  return $result;
 }
 
 
