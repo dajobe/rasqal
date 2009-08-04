@@ -36,12 +36,9 @@ result-survey-8.ttl result-survey-9.ttl result-survey-10.ttl	\
 result-survey-11.ttl result-survey-12.ttl result-survey-13.ttl
 
 # Test failures
-# survey-2
-#   OPTIONAL
 # survey-3
 #   UNION
 EXPECTED_SPARQL_CORRECT_FAILURES= \
-survey-2 \
 survey-3
 
 EXTRA_DIST= \
