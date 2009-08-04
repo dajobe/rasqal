@@ -410,16 +410,18 @@ for my $testsuite_name (@testsuites) {
   my $result=prepare_testsuite($testsuite);
   if($result->{status} eq 'fail') {
     my $details=$result->{details};
-    print "$program: Suite $testsuite->{name} failed preparation - $details\n";
+    print "$indent$program: Suite $testsuite->{name} failed preparation - $details\n";
     $rc=1;
     next;
   }
 
   $result=run_testsuite($testsuite);
 
-  format_testsuite_result(*STDOUT, $result, $indent);
+  format_testsuite_result(*STDOUT, $result, $indent.$INDENT);
 
   $rc=1 if $result->{status} eq 'fail';
+
+  print "\n" if @testsuites > 1;
 }
 
 exit $rc;
