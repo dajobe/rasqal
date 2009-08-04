@@ -1548,7 +1548,7 @@ rasqal_query_engine_1_set_origin_triples(rasqal_query *query,
       /* If the origin is a variable, ensure it is 'declared in' the
        * first triple it is seen in
        */
-      if((v = rasqal_literal_as_variable(t->origin)) &&
+      if(origin && (v = rasqal_literal_as_variable(origin)) &&
          query->variables_declared_in[v->offset] < 0) {
         query->variables_declared_in[v->offset] = i;
       }
