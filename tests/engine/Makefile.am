@@ -47,7 +47,7 @@ rasqal_limit_test_LDADD = $(top_builddir)/src/librasqal.la
 check-local: $(local_tests) run-rasqal-tests
 
 run-rasqal-tests: $(local_tests)
-	@$(PERL) $(srcdir)/../improve . engine
+	@$(PERL) $(srcdir)/../improve .
 
 $(top_builddir)/src/librasqal.la:
 	cd $(top_builddir)/src && $(MAKE) librasqal.la
