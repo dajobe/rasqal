@@ -308,6 +308,11 @@ rasqal_query_results_execute_with_engine(rasqal_query* query,
     }
   }
 
+#ifdef RASQAL_DEBUG
+  RASQAL_DEBUG1("After execute_init, query is now:\n");
+  rasqal_query_print(query, stderr);
+#endif
+
   /* Choose either to execute all now and store OR do it on demand (lazy) */
   if(query_results->store_results)
     rc = rasqal_query_results_execute_and_store_results(query_results);
