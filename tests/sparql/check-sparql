@@ -581,6 +581,7 @@ next_list_node:
   last if $list_node eq "<${rdf}nil>";
 }
 
+die "$program: Test $unique_test not found\n" if $unique_test && !@tests;
 
 my(@failed);
 my(@passed);
