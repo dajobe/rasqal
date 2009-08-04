@@ -86,66 +86,45 @@ build-sparql-lexer-test:
 build-sparql-parser-test:
 	@(cd $(top_builddir)/src ; $(MAKE) sparql_parser_test)
 
+check-local: build-roqet build-sparql-lexer-test build-sparql-parser-test
+	@$(PERL) $(srcdir)/../../improve .
 
-check-local: check-sparql-lexer check-sparql-parser
+get-testsuites-list:
+	@echo "sparql-lexer sparql-parser sparql-query"
 
-check-sparql-lexer: build-sparql-lexer-test
-	@set +e; result=0; \
-	$(ECHO) "Testing legal SPARQL lexing"; \
-	for test in $(SPARQL_TEST_FILES); do \
-	  $(ECHO) $(ECHO_N) "Checking $$test $(ECHO_C)"; \
-	  $(top_builddir)/src/sparql_lexer_test $(srcdir)/$$test >/dev/null; \
-	  status=$$?; \
-	  if test $$status != 0 -a $$status != 2 ; then \
-	    $(ECHO) FAILED returned status $$status; result=1; \
-	  else \
-	    $(ECHO) ok; \
+get-testsuite-sparql-lexer get-testsuite-sparql-parser:
+	tests="$(SPARQL_TEST_FILES)"; \
+	type=`echo $@ | sed -e 's/^.*sparql-//' -e 's/er$$//'`; \
+	verb=`echo $$type`ing; \
+	prog=sparql_`echo $$type`er_test; \
+	$(ECHO) '@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .'; \
+	$(ECHO) '@prefix mf:     <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .'; \
+	$(ECHO) '@prefix t:     <http://ns.librdf.org/2009/test-manifest#> .'; \
+	$(ECHO) ' '; \
+	$(ECHO) "<> a mf:Manifest; rdfs:comment \"SPARQL legal $$verb\"; mf:entries ("; \
+	for test in $$tests; do \
+	  comment="sparql $$type of $$test"; \
+	  expect="PositiveTest"; \
+	  if [ $$test = 'syntax-bnodes-03.rq' -o $$test = 'syntax-bnodes-04.rq' ]; then \
+	    expect="NegativeTest"; \
 	  fi; \
+	  $(ECHO) "  [ a t:$$expect; mf:name \"$$test\"; rdfs:comment \"$$comment\"; mf:action  \"$(top_builddir)/src/$$prog $(srcdir)/$$test\" ]"; \
 	done; \
-	set -e; exit $$result
+	$(ECHO) ")."
 
-check-sparql-parser: build-sparql-parser-test
-	@set +e; result=0; \
-	$(ECHO) "Testing legal SPARQL parsing"; \
-	for test in $(SPARQL_TEST_FILES); do \
-	  $(ECHO) $(ECHO_N) "Checking $$test $(ECHO_C)"; \
-	  $(top_builddir)/src/sparql_parser_test $(srcdir)/$$test >/dev/null; \
-	  status=$$?; \
-	  if test $$status != 0 -a $$status != 2 ; then \
-	    $(ECHO) FAILED returned status $$status; result=1; \
-	    fails="$$fails $$test"; \
-	  else \
-	    $(ECHO) ok; \
+get-testsuite-sparql-query:
+	@tests="$(SPARQL_TEST_FILES)"; \
+	$(ECHO) '@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .'; \
+	$(ECHO) '@prefix mf:     <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .'; \
+	$(ECHO) '@prefix t:     <http://ns.librdf.org/2009/test-manifest#> .'; \
+	$(ECHO) ' '; \
+	$(ECHO) "<> a mf:Manifest; rdfs:comment \"SPARQL Query Execution\"; t:path \"$(top_builddir)/utils:$(top_builddir)@RAPPER_PATH@:$$PATH\"; t:preconditon \"$(PERL) -MXML::DOM -e 'exit 0'\"; mf:entries ("; \
+	for test in $$tests; do \
+	  comment="sparql query $$test"; \
+	  expect="PositiveTest"; \
+	  if [ $$test = 'syntax-bnodes-03.rq' -o $$test = 'syntax-bnodes-04.rq' ]; then \
+	    expect="NegativeTest"; \
 	  fi; \
+	  $(ECHO) "  [ a t:$$expect; mf:name \"$$test\"; rdfs:comment \"$$comment\"; mf:action  \"$(PERL) $(srcdir)/../check-sparql -s $(srcdir) $$test\" ]"; \
 	done; \
-	if test $$result != 0 ; then \
-	  echo "Expecting test failures: $(EXPECTED_SPARQL_PARSER_FAILURES)"; \
-	  result=`echo $$fails | wc -w`; \
-	  if test $$result = $(EXPECTED_SPARQL_PARSER_FAILURES_COUNT) ; then \
-	    echo "OK: Ignoring expected $$result test failures"; result=0; \
-          else \
-	    echo "FAILED: $$result failures $$fails does not match expected $(EXPECTED_SPARQL_PARSER_FAILURES_COUNT)"; result=1; \
-          fi; \
-	fi; \
-	set -e; exit $$result
-
-check-sparql-correct: build-roqet $(srcdir)/../check-sparql
-	@set +e; \
-	expect=$(EXPECTED_SPARQL_CORRECT_FAILURES_COUNT); \
-	$(ECHO) "Testing SPARQL correct"; \
-	PATH=$(top_builddir)/utils:$(top_builddir)@RAPPER_PATH@:$$PATH \
-	  $(PERL) $(srcdir)/../check-sparql -s $(srcdir); \
-	result=$$?; \
-	if test $$result != 0 ; then \
-	  echo "Expecting test failures: $(EXPECTED_SPARQL_CORRECT_FAILURES)"; \
-	  if test $$result = $$expect ; then \
-	    echo "OK: Ignoring $$expect expected test failures"; result=0; \
-          else \
-	    echo "FAILED: $$result failures does not match expected $$expect"; result=1; \
-	    fails="$$fails $$test"; \
-          fi; \
-	fi; \
-	if test $$result != 0 ; then \
-	  echo "FAILED tests:$$fails"; \
-	fi; \
-	set -e; exit $$result
+	$(ECHO) ")."
