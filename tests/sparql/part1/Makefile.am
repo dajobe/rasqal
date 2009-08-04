@@ -58,57 +58,8 @@ build-sparql-lexer-test:
 build-sparql-parser-test:
 	@(cd $(top_builddir)/src ; $(MAKE) sparql_parser_test)
 
-
-check-local: check-sparql-lexer check-sparql-parser \
-check-sparql-correct
-
-check-sparql-lexer: build-sparql-lexer-test
-	@set +e; result=0; \
-	$(ECHO) "Testing legal SPARQL lexing"; \
-	for test in $(SPARQL_TEST_FILES); do \
-	  $(ECHO) $(ECHO_N) "Checking $$test $(ECHO_C)"; \
-	  $(top_builddir)/src/sparql_lexer_test $(srcdir)/$$test >/dev/null; \
-	  status=$$?; \
-	  if test $$status != 0 -a $$status != 2 ; then \
-	    $(ECHO) FAILED returned status $$status; result=1; \
-	  else \
-	    $(ECHO) ok; \
-	  fi; \
-	done; \
-	set -e; exit $$result
-
-check-sparql-parser: build-sparql-parser-test
-	@set +e; result=0; \
-	$(ECHO) "Testing legal SPARQL parsing"; \
-	for test in $(SPARQL_TEST_FILES); do \
-	  $(ECHO) $(ECHO_N) "Checking $$test $(ECHO_C)"; \
-	  $(top_builddir)/src/sparql_parser_test $(srcdir)/$$test >/dev/null; \
-	  status=$$?; \
-	  if test $$status != 0 -a $$status != 2 ; then \
-	    $(ECHO) FAILED returned status $$status; result=1; \
-	    fails="$$fails $$test"; \
-	  else \
-	    $(ECHO) ok; \
-	  fi; \
-	done; \
-	set -e; exit $$result
-
-check-sparql-correct: build-roqet $(srcdir)/../check-sparql
-	@set +e; \
-	expect=`echo $(EXPECTED_SPARQL_CORRECT_FAILURES) | wc -w`; \
-	$(ECHO) "Testing SPARQL correct"; \
-	PATH=$(top_builddir)/utils:$(top_builddir)@RAPPER_PATH@:$$PATH \
-	  $(PERL) $(srcdir)/../check-sparql -s $(srcdir); \
-	result=$$?; \
-	if test $$result != 0 ; then \
-	  echo "Expecting test failures: $(EXPECTED_SPARQL_CORRECT_FAILURES)"; \
-	  if test $$result = $$expect ; then \
-	    echo "OK: Ignoring $$expect expected test failures"; result=0; \
-          else \
-	    echo "FAILED: $$result failures does not match expected $$expect"; result=1; \
-          fi; \
-	fi; \
-	set -e; exit $$result
+check-local: build-roqet build-sparql-lexer-test build-sparql-parser-test
+	@$(PERL) $(srcdir)/../../improve .
 
 get-testsuites-list:
 	@echo "sparql-lexer sparql-parser sparql-query"
