@@ -583,6 +583,70 @@ rasqal_engine_graph_pattern_init(rasqal_engine_execution_data* execution_data,
 }
 
 
+/**
+ * rasqal_engine_remove_optional_bgp_graph_patterns:
+ * @query: query
+ * @gp: graph pattern
+ * @data: pointer to modified int
+ *
+ * Replace OPTIONAL { BGP { triples } }  with OPTIONAL { triples }
+ * to keep QE1 happy.
+ *
+ * Return value: non-0 on failure
+ */
+static int
+rasqal_engine_remove_optional_bgp_graph_patterns(rasqal_query* query,
+                                                 rasqal_graph_pattern* gp,
+                                                 void *data)
+{
+  int i;
+  raptor_sequence *seq;
+  int size;
+  rasqal_graph_pattern *sgp;
+  int* modified_p = (int*)data;
+  
+  if(gp->op != RASQAL_GRAPH_PATTERN_OPERATOR_OPTIONAL)
+    return 0;
+
+  seq = gp->graph_patterns;
+  if(!seq)
+    return 0;
+  size = raptor_sequence_size(seq);
+  if(size != 1)
+    return 0;
+
+#if RASQAL_DEBUG > 1
+  RASQAL_DEBUG2("Checking graph pattern #%d:\n  ", gp->gp_index);
+  rasqal_graph_pattern_print(gp, stdout);
+  fputs("\n", stdout);
+#endif
+
+  for(i = 0; i < size; i++) {
+    sgp = (rasqal_graph_pattern*)raptor_sequence_get_at(seq, 0);
+    if(sgp->op != RASQAL_GRAPH_PATTERN_OPERATOR_BASIC)
+      return 0;
+  }
+
+  /* all sub graph patterns are basic so move all sub graph patterns
+   * to outer OPTIONAL GP
+   */
+  gp->graph_patterns = NULL;
+  for(i = 0; i < size; i++) {
+    sgp = (rasqal_graph_pattern*)raptor_sequence_unshift(seq);
+  
+    /* fake types to allow merging */
+    sgp->op = gp->op;
+    rasqal_graph_patterns_join(gp, sgp);
+    rasqal_free_graph_pattern(sgp);
+  }
+  raptor_free_sequence(seq);
+
+  *modified_p = 1;
+
+  return 0;
+}
+
+
 static int
 rasqal_engine_remove_filter_graph_patterns(rasqal_query* query,
                                            rasqal_graph_pattern* gp,
@@ -1658,14 +1722,33 @@ rasqal_engine_remove_graph_bgp_graph_patterns(rasqal_query* query,
 static int
 rasqal_query_engine_1_execute_transform_hack(rasqal_query* query) 
 {
-  if(query->query_graph_pattern) {
-    int modified = 0;
+  int modified = 0;
 
+  if(!query->query_graph_pattern)
+    return 0;
+  
+  do {
+    modified = 0;
+    
+    /* modified is set to 1 if a change was made and -1 on failure */
+    rasqal_query_graph_pattern_visit(query,
+                                     rasqal_engine_remove_optional_bgp_graph_patterns,
+                                     &modified);
+    
+#if RASQAL_DEBUG > 1
+    fprintf(DEBUG_FH, "modified=%d after removing optional BGP GPs, query graph pattern now:\n  ", modified);
+    rasqal_graph_pattern_print(query->query_graph_pattern, DEBUG_FH);
+    fputs("\n", DEBUG_FH);
+#endif
+    
+    if(modified < 0)
+      return 1;
+    
     /* modified is set to 1 if a change was made and -1 on failure */
     rasqal_query_graph_pattern_visit(query,
                                      rasqal_engine_remove_filter_graph_patterns,
                                      &modified);
-      
+
 #if RASQAL_DEBUG > 1
     fprintf(DEBUG_FH, "modified=%d after remove filter GPs, query graph pattern now:\n  ", modified);
     rasqal_graph_pattern_print(query->query_graph_pattern, DEBUG_FH);
@@ -1679,7 +1762,7 @@ rasqal_query_engine_1_execute_transform_hack(rasqal_query* query)
     rasqal_query_graph_pattern_visit(query,
                                      rasqal_engine_remove_graph_bgp_graph_patterns,
                                      &modified);
-      
+
 #if RASQAL_DEBUG > 1
     fprintf(DEBUG_FH, "modified=%d after remove GRAPH BGP GPs, query graph pattern now:\n  ", modified);
     rasqal_graph_pattern_print(query->query_graph_pattern, DEBUG_FH);
@@ -1708,14 +1791,14 @@ rasqal_query_engine_1_execute_transform_hack(rasqal_query* query)
       query->query_graph_pattern = new_qgp;
 
 #if RASQAL_DEBUG > 1
-    fprintf(DEBUG_FH, "after insert top level group GPs, query graph pattern now:\n");
-    rasqal_graph_pattern_print(query->query_graph_pattern, DEBUG_FH);
-    fputs("\n", DEBUG_FH);
+      fprintf(DEBUG_FH, "after insert top level group GPs, query graph pattern now:\n");
+      rasqal_graph_pattern_print(query->query_graph_pattern, DEBUG_FH);
+      fputs("\n", DEBUG_FH);
 #endif
     }
 
-  }
-
+  } while(modified);
+    
   return 0;
 }  
 
