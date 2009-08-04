@@ -84,24 +84,8 @@ $(rdql_testsuite_extra_files)
 build-roqet:
 	@(cd $(top_builddir)/utils ; $(MAKE) roqet)
 
-
-check-local: check-rdql-correct
-
-check-rdql-correct: build-roqet $(srcdir)/check-rdql
-	@set +e; \
-	PATH=$(top_builddir)/utils:$(top_builddir)@RAPPER_PATH@:$$PATH \
-	  $(PERL) $(srcdir)/check-rdql -s $(srcdir); \
-	result=$$?; \
-	if test $$result != 0 ; then \
-	  echo "Expecting test failures: $(EXPECTED_RDQL_CORRECT_FAILURES)"; \
-	  if test $$result = $(EXPECTED_RDQL_CORRECT_FAILURES_COUNT) ; then \
-	    echo "OK: Ignoring expected test failures"; result=0; \
-          else \
-	    echo "FAILED: $$result failures does not match expected $(EXPECTED_RDQL_CORRECT_FAILURES_COUNT)"; result=1; \
-          fi; \
-	fi; \
-	set -e; exit $$result
-
+check-local: build-roqet $(srcdir)/check-rdql
+	@$(PERL) $(srcdir)/../../improve .
 
 get-testsuites-list:
 	@echo "rdql-query"
