@@ -1518,6 +1518,7 @@ rasqal_query_engine_1_get_row(void* ex_data, rasqal_engine_error *error_p)
 
 /*
  * rasqal_query_engine_1_set_origin_triples:
+ * @query: query
  * @graph_pattern: #rasqal_graph_pattern graph pattern object
  *
  * INTERNAL - Set all triples inside the graph pattern to the GP origin.
@@ -1526,7 +1527,8 @@ rasqal_query_engine_1_get_row(void* ex_data, rasqal_engine_error *error_p)
  * to have the given origin.
  **/
 static void
-rasqal_query_engine_1_set_origin_triples(rasqal_graph_pattern* graph_pattern)
+rasqal_query_engine_1_set_origin_triples(rasqal_query *query,
+                                         rasqal_graph_pattern* graph_pattern)
 {
   rasqal_literal *origin = graph_pattern->origin;
   raptor_sequence* s;
@@ -1538,8 +1540,19 @@ rasqal_query_engine_1_set_origin_triples(rasqal_graph_pattern* graph_pattern)
     /* Flag all the triples in this graph pattern with origin */
     for(i = graph_pattern->start_column; i <= graph_pattern->end_column; i++) {
       rasqal_triple *t;
+      rasqal_variable *v;
+      
       t = (rasqal_triple*)raptor_sequence_get_at(s, i);
       rasqal_triple_set_origin(t, rasqal_new_literal_from_literal(origin));
+
+      /* If the origin is a variable, ensure it is 'declared in' the
+       * first triple it is seen in
+       */
+      if((v = rasqal_literal_as_variable(t->origin)) &&
+         query->variables_declared_in[v->offset] < 0) {
+        query->variables_declared_in[v->offset] = i;
+      }
+      
     }
   }
 
@@ -1571,10 +1584,6 @@ rasqal_engine_remove_graph_bgp_graph_patterns(rasqal_query* query,
   if(!gp->graph_patterns)
     return 0;
 
-  /* Do not transform this at the root; query engine 1 needs it like this */
-  if(gp == query->query_graph_pattern)
-    return 0;
-
 #if RASQAL_DEBUG > 1
   RASQAL_DEBUG2("Checking graph pattern #%d:\n  ", gp->gp_index);
   rasqal_graph_pattern_print(gp, stdout);
@@ -1598,11 +1607,13 @@ rasqal_engine_remove_graph_bgp_graph_patterns(rasqal_query* query,
   }
 
   /* Move triples to this graph pattern */
+  gp->op = RASQAL_GRAPH_PATTERN_OPERATOR_BASIC;
   gp->triples = sgp->triples; sgp->triples = NULL;
   gp->start_column = sgp->start_column; sgp->start_column = -1;
   gp->end_column = sgp->end_column; sgp->end_column = -1;
 
-  rasqal_query_engine_1_set_origin_triples(gp);
+  rasqal_query_engine_1_set_origin_triples(query, gp);
+  rasqal_free_literal(gp->origin); gp->origin=NULL;
   
   raptor_free_sequence(gp->graph_patterns);
   gp->graph_patterns = NULL;
