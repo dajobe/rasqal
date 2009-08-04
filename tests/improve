@@ -254,8 +254,8 @@ sub run_testsuite($) {
 
   my(@tests)=@{$testsuite->{tests}};
 
-  my $desc=$testsuite->{desc} || $testsuite->{name};
-  print "$program: Running testsuite '$desc'\n";
+  my $desc=$testsuite->{desc} || $name;
+  print "$program: Running testsuite $name: $desc\n";
 
   my $ntests=scalar @tests;
 
