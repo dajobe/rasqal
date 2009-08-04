@@ -342,7 +342,7 @@ sub format_testsuite_result($$$) {
   if(exists $result->{failed}) {
     my(@failed)=@{$result->{failed}};
     print $fh $indent."Failed tests:\n" . $indent . $INDENT .
-      join("\n".$indent,
+      join("\n".$indent.$INDENT,
 	   map { $_->{name}. ($debug ? " (".$_->{test_uri}.")" : "") }
 	         @failed) .
       "\n"
