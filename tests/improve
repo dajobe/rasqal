@@ -368,10 +368,11 @@ GetOptions(
 ) || pod2usage(2);
 
 pod2usage(-verbose => 2) if $usage;
-pod2usage("$program: No arguments given") if !@ARGV;
 pod2usage("$program: Too many arguments.\n") if (@ARGV > 2);
 
 my($dir,@testsuites)=@ARGV;
+
+$dir ||= '.';
 
 $verbose++ if $debug;
 
@@ -430,7 +431,7 @@ improve - run Rasqal testsuites
 
 =head1 SYNOPSIS
 
-improve [options] DIR [TESTSUITES]
+improve [options] [DIR [TESTSUITES]]
 
 =head1 OPTIONS
 
@@ -458,6 +459,6 @@ Enable extra verbosity when running tests.
 
 Run Rasqal testsuites from a Turtle manifest in the I<DIR>.  If
 I<TESTSUITES> are not given, provides a list of known testsuites in
-I<DIR>.
+I<DIR>.  I<DIR> defaults to '.' if not given.
 
 =cut
