@@ -47,25 +47,7 @@ rasqal_limit_test_LDADD = $(top_builddir)/src/librasqal.la
 check-local: $(local_tests) run-rasqal-tests
 
 run-rasqal-tests: $(local_tests)
-	@tests="$(local_tests)"; \
-	status=0; \
-	for tst in $$tests; do \
-	  if test -f ./$$tst; then dir=./; \
-	  elif test -f $$tst; then dir=; \
-	  else dir="$(top_srcdir)/"; fi; \
-	  arg="$(top_srcdir)/data/"; \
-	  if test $$tst == rasqal_limit_test$(EXEEXT); then \
-	    arg="$$arg/letters.nt"; \
-	  fi; \
-	  if $${dir}$$tst $$arg; then \
-	    echo "PASS: $$tst"; \
-	  else \
-	    echo "FAIL: $$tst"; \
-	    status=1; \
-	    break; \
-	  fi; \
-	done; \
-	exit $$status
+	@$(PERL) $(srcdir)/../improve $(srcdir) engine
 
 $(top_builddir)/src/librasqal.la:
 	cd $(top_builddir)/src && $(MAKE) librasqal.la
