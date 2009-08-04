@@ -28,6 +28,12 @@ dawg-data-01.n3
 SPARQL_TEST_FILES= \
 dawg-query-001.rq dawg-query-002.rq dawg-query-003.rq dawg-query-004.rq
 
+SPARQL_TEST_NAMES= \
+dawg-opt-query-001 \
+dawg-opt-query-002 \
+dawg-opt-query-003 \
+dawg-opt-query-004
+
 EXPECTED_SPARQL_CORRECT_FAILURES= \
 dawg-opt-query-001 \
 dawg-opt-query-002 \
@@ -124,7 +130,7 @@ get-testsuite-sparql-lexer get-testsuite-sparql-parser:
 	$(ECHO) ")."
 
 get-testsuite-sparql-query:
-	@tests="$(SPARQL_TEST_FILES)"; \
+	@tests="$(SPARQL_TEST_NAMES)"; \
 	$(ECHO) '@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .'; \
 	$(ECHO) '@prefix mf:     <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .'; \
 	$(ECHO) '@prefix t:     <http://ns.librdf.org/2009/test-manifest#> .'; \
