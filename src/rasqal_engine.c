@@ -1521,7 +1521,7 @@ rasqal_query_engine_1_get_row(void* ex_data, rasqal_engine_error *error_p)
  * @query: query
  * @graph_pattern: #rasqal_graph_pattern graph pattern object
  *
- * INTERNAL - Set all triples inside the graph pattern to the GP origin.
+ * INTERNAL - Set all triples inside the graph pattern to the GP origin
  * 
  * All triples in this graph pattern or contained graph patterns are set
  * to have the given origin.
@@ -1548,7 +1548,7 @@ rasqal_query_engine_1_set_origin_triples(rasqal_query *query,
       /* If the origin is a variable, ensure it is 'declared in' the
        * first triple it is seen in
        */
-      if(origin && (v = rasqal_literal_as_variable(origin)) &&
+      if((v = rasqal_literal_as_variable(origin)) &&
          query->variables_declared_in[v->offset] < 0) {
         query->variables_declared_in[v->offset] = i;
       }
@@ -1568,6 +1568,9 @@ rasqal_query_engine_1_set_origin_triples(rasqal_query *query,
     }
   }
 
+  /* Now erase the original origin */
+  rasqal_free_literal(graph_pattern->origin);
+  graph_pattern->origin = NULL;
 }
 
 
@@ -1584,6 +1587,9 @@ rasqal_engine_remove_graph_bgp_graph_patterns(rasqal_query* query,
   if(!gp->graph_patterns)
     return 0;
 
+  if(!gp->origin)
+    return 0;
+  
 #if RASQAL_DEBUG > 1
   RASQAL_DEBUG2("Checking graph pattern #%d:\n  ", gp->gp_index);
   rasqal_graph_pattern_print(gp, stdout);
@@ -1613,7 +1619,6 @@ rasqal_engine_remove_graph_bgp_graph_patterns(rasqal_query* query,
   gp->end_column = sgp->end_column; sgp->end_column = -1;
 
   rasqal_query_engine_1_set_origin_triples(query, gp);
-  rasqal_free_literal(gp->origin); gp->origin=NULL;
   
   raptor_free_sequence(gp->graph_patterns);
   gp->graph_patterns = NULL;
