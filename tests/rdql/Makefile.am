@@ -39,13 +39,8 @@ build-rdql-lexer-test:
 build-rdql-parser-test:
 	@(cd $(top_builddir)/src ; $(MAKE) rdql_parser_test)
 
-check-local: check-rdql-lexer check-rdql-parser
-
-check-rdql-lexer: build-rdql-lexer-test
-	@$(PERL) $(srcdir)/../improve $(srcdir) rdql-lexer
-
-check-rdql-parser: build-rdql-parser-test
-	@$(PERL) $(srcdir)/../improve $(srcdir) rdql-parser
+check-local: build-rdql-lexer-test build-rdql-parser-test
+	@$(PERL) $(srcdir)/../improve .
 
 get-testsuites-list:
 	@echo "rdql-lexer rdql-parser"
