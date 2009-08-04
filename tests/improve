@@ -48,7 +48,8 @@ our $debug=0;
 
 sub get_testsuites($) {
   my $dir=shift;
-  my $raw=`cd $dir && $MAKE get-testsuites-list 2>/dev/null`;
+  system("cd $dir && $MAKE >/dev/null 2>&1");
+  my $raw=`cd $dir && $MAKE get-testsuites-list 2>/dev/null | tail -1`;
   return split(/\s+/,$raw);
 }
 
@@ -221,6 +222,7 @@ sub prepare_testsuite($) {
   my $plan_file=$name."-plan.ttl";
   $testsuite->{plan}=$plan_file;
   if(!-r $plan_file) {
+    system("$MAKE >/dev/null 2>&1");
     my $cmd="$MAKE get-testsuite-$name 2>/dev/null | sed -n -e '/\@prefix/,\$p' > $plan_file";
     system $cmd;
     my $rc=$?;
