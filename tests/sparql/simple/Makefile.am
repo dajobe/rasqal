@@ -25,6 +25,12 @@ SPARQL_MANIFEST_FILES= manifest.n3
 SPARQL_MODEL_FILES= \
 data-01.n3 data-02.n3 dawg-data-01.n3
 
+SPARQL_TEST_NAMES= \
+dawg-triple-pattern-001 \
+dawg-triple-pattern-002 \
+dawg-triple-pattern-003 \
+dawg-triple-pattern-004
+
 SPARQL_TEST_FILES= \
 dawg-tp-01.rq dawg-tp-02.rq dawg-tp-03.rq dawg-tp-04.rq
 
@@ -69,7 +75,7 @@ get-testsuite-sparql-lexer get-testsuite-sparql-parser:
 	$(ECHO) ")."
 
 get-testsuite-sparql-query:
-	@tests="$(SPARQL_TEST_FILES)"; \
+	@tests="$(SPARQL_TEST_NAMES)"; \
 	$(ECHO) '@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .'; \
 	$(ECHO) '@prefix mf:     <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .'; \
 	$(ECHO) '@prefix t:     <http://ns.librdf.org/2009/test-manifest#> .'; \
