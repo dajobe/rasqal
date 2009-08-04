@@ -104,6 +104,6 @@ get-testsuite-rdql-query:
 	    expect="NegativeTest"; \
           fi; \
 	  t=`echo $$test | sed -e 's/^test-//'`; \
-	  $(ECHO) "  [ a t:$$expect; mf:name \"$$test\"; rdfs:comment \"$$comment\"; mf:action  \"$(srcdir)/check-rdql -s $(srcdir) $$t\" ]"; \
+	  $(ECHO) "  [ a t:$$expect; mf:name \"$$test\"; rdfs:comment \"$$comment\"; mf:action  \"$(PERL) $(srcdir)/check-rdql -s $(srcdir) $$t\" ]"; \
 	done; \
 	$(ECHO) ")."
