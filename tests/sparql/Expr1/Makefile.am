@@ -29,10 +29,10 @@ SPARQL_TEST_FILES= \
 expr-1.rq expr-2.rq expr-3.rq
 
 EXPECTED_SPARQL_CORRECT_FAILURES= \
-"OPTIONAL-FILTER" "OPTIONAL - Outer FILTER" "OPTIONAL - Outer FILTER with BOUND"
+"OPTIONAL-FILTER" "OPTIONAL - Outer FILTER"
 
 # Have to count this by hand since the names above include whitespace
-EXPECTED_SPARQL_CORRECT_FAILURES_COUNT = 3
+EXPECTED_SPARQL_CORRECT_FAILURES_COUNT = 2
 
 SPARQL_RESULT_FILES= \
 expr-1-result.ttl expr-2-result.ttl expr-3-result.ttl
