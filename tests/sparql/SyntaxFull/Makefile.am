@@ -114,7 +114,7 @@ get-testsuite-sparql-lexer get-testsuite-sparql-parser:
 	for test in $$tests; do \
 	  comment="sparql $$type of $$test"; \
 	  expect="PositiveTest"; \
-	  if [ $$test = 'syntax-bnodes-03.rq' -o $$test = 'syntax-bnodes-04.rq' ]; then \
+	  if [ $$type = pars -a \( "$$test" = 'syntax-bnodes-03.rq' -o "$$test" = 'syntax-bnodes-04.rq' \) ]; then \
 	    expect="NegativeTest"; \
 	  fi; \
 	  $(ECHO) "  [ a t:$$expect; mf:name \"$$test\"; rdfs:comment \"$$comment\"; mf:action  \"$(top_builddir)/src/$$prog $(srcdir)/$$test\" ]"; \
