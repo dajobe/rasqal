@@ -379,6 +379,9 @@ rasqal_raptor_new_triples_source(rasqal_query* rdf_query,
                                                         raptor_uri_copy(name_uri)
 #endif
                                                         );
+    else
+      name_uri = raptor_uri_copy(uri);
+
     rtsc->mapped_id_base = rasqal_query_get_genid(rdf_query,
                                                   (const unsigned char*)"graphid",
                                                   i);
@@ -400,7 +403,7 @@ rasqal_raptor_new_triples_source(rasqal_query* rdf_query,
                          rdf_query->features[RASQAL_FEATURE_NO_NET]);
 #endif
 
-    raptor_parse_uri(parser, uri, dg->name_uri);
+    raptor_parse_uri(parser, uri, name_uri);
     raptor_free_parser(parser);
 
 #ifdef RAPTOR_V2_AVAILABLE
