@@ -365,22 +365,25 @@ rasqal_raptor_new_triples_source(rasqal_query* rdf_query,
     name_uri = dg->name_uri;
 
     rtsc->source_index = i;
+
 #ifdef RAPTOR_V2_AVAILABLE
     rtsc->source_uri = raptor_uri_copy_v2(rdf_query->world->raptor_world_ptr,
                                           uri);
-#else
-    rtsc->source_uri = raptor_uri_copy(uri);
-#endif
     if(name_uri)
       rtsc->source_literals[i] = rasqal_new_uri_literal(rdf_query->world, 
-#ifdef RAPTOR_V2_AVAILABLE
                                                         raptor_uri_copy_v2(rdf_query->world->raptor_world_ptr, name_uri)
+                                                        );
+    else
+      name_uri = raptor_uri_copy_v2(rdf_query->world->raptor_world_ptr, uri);
 #else
+    rtsc->source_uri = raptor_uri_copy(uri);
+    if(name_uri)
+      rtsc->source_literals[i] = rasqal_new_uri_literal(rdf_query->world, 
                                                         raptor_uri_copy(name_uri)
-#endif
                                                         );
     else
       name_uri = raptor_uri_copy(uri);
+#endif
 
     rtsc->mapped_id_base = rasqal_query_get_genid(rdf_query,
                                                   (const unsigned char*)"graphid",
