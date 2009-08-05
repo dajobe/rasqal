@@ -62,6 +62,14 @@ sub get_testsuites($) {
 }
 
 
+sub decode_literal ($) {
+  my $lit=shift;
+  $lit =~ s/^\"(.*)\"$/$1/;
+  $lit =~ s/\\"/"/g;
+  return $lit;
+}
+
+
 sub read_plan($$) {
   my($testsuite, $plan_file)=@_;
 
@@ -101,13 +109,11 @@ sub read_plan($$) {
   if($manifest_node) {
     my $desc=$triples{$manifest_node}->{"<${rdfs}comment>"}->[0];
     if($desc) {
-      $desc =~ s/^\"(.*)\"$/$1/;
-      $testsuite->{desc}=$desc;
+      $testsuite->{desc}=decode_literal($desc);
     }
     my $path=$triples{$manifest_node}->{"<${t}path>"}->[0];
     if($path) {
-      $path =~ s/^\"(.*)\"$/$1/;
-      $testsuite->{path}=$path;
+      $testsuite->{path}=decode_literal($path);
     }
   }
 
@@ -126,17 +132,17 @@ sub read_plan($$) {
       if $debug > 2;
 
     my $name=$triples{$entry_node}->{"<${mf}name>"}->[0] | '';
-    $name =~ s/^\"(.*)\"$/$1/;
+    $name = decode_literal($name);
     warn "Entry name=$name\n"
       if $debug > 1;
 
     my $comment=$triples{$entry_node}->{"<${rdfs}comment>"}->[0] || '';
-    $comment =~ s/^\"(.*)\"$/$1/;
+    $comment = decode_literal($comment);
     warn "Entry comment=$comment\n"
       if $debug > 1;
 
     my $action=$triples{$entry_node}->{"<${mf}action>"}->[0] || '';
-    $action =~ s/^\"(.*)\"$/$1/;
+    $action = decode_literal($action);
     warn "Entry action $action\n"
        if $debug > 1;
 
@@ -213,9 +219,12 @@ sub run_test($$) {
     # exec()ed and exited with non-0
     $rc >>= 8;
     $test->{detail}="$path$action exited with code $rc";
-    open(LOG, '<', $log);
-    $test->{log}=join('', <LOG>);
-    close(LOG);
+    if(open(LOG, '<', $log)) {
+      $test->{log}=join('', <LOG>);
+      close(LOG);
+    } else {
+      $test->{log}='';
+    }
     $status='fail';
   } else {
     # exec()ed and exit 0
