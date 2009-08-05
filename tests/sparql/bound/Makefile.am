@@ -31,9 +31,7 @@ bound1.rq
 SPARQL_RESULT_FILES= \
 bound1-result.n3
 
-EXPECTED_SPARQL_CORRECT=
-
-EXPECTED_SPARQL_CORRECT_FAILURES= \
+EXPECTED_SPARQL_CORRECT= \
 dawg-bound-query-001
 
 EXTRA_DIST= \
@@ -85,12 +83,6 @@ get-testsuite-sparql-query:
 	for test in $(EXPECTED_SPARQL_CORRECT); do \
 	  comment="sparql query $$test"; \
 	  expect="PositiveTest"; \
-	  t=`echo $$test`; \
-	  $(ECHO) "  [ a t:$$expect; mf:name \"$$test\"; rdfs:comment \"$$comment\"; mf:action  \"$(PERL) $(srcdir)/../check-sparql -s $(srcdir) $$t\" ]"; \
-	done; \
-	for test in $(EXPECTED_SPARQL_CORRECT_FAILURES); do \
-	  comment="sparql query $$test"; \
-	  expect="NegativeTest"; \
 	  t=`echo $$test`; \
 	  $(ECHO) "  [ a t:$$expect; mf:name \"$$test\"; rdfs:comment \"$$comment\"; mf:action  \"$(PERL) $(srcdir)/../check-sparql -s $(srcdir) $$t\" ]"; \
 	done; \
