@@ -84,6 +84,8 @@ $(SPARQL_MODEL_FILES) \
 $(SPARQL_MANIFEST_FILES) \
 $(SPARQL_TEST_FILES)
 
+CLEANFILES=diff.out roqet.err roqet.out result.out
+
 build-roqet:
 	@(cd $(top_builddir)/utils ; $(MAKE) roqet)
 
