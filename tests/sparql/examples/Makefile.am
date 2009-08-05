@@ -34,13 +34,6 @@ ex3.rq ex11.2.3.1_0.rq ex11.2.3.1_1.rq ex11.2.3.2_0.rq			\
 ex11.2.3.2_1.rq ex11.2.3.3_0.rq ex11.2.3.4_0.rq ex11.2.3.5_0.rq		\
 ex11.2.3.6_0.rq ex11.2.3.7_0.rq ex11.2.3.8_0.rq ex11_0.rq ex11_1.rq
 
-# sparql-query-example-Testing-Values-bound (ex11.2.3.2_0.rq)
-#   UNION
-# sparql-query-example-Testing-Values-bound-2 (ex11.2.3.2_1.rq)
-#   OPTIONAL
-# sparql-query-example-Testing-Values-isBlank (ex11.2.3.4_0.rq)
-#   OPTIONAL
-
 EXPECTED_SPARQL_CORRECT= \
   sparql-query-example-a \
   sparql-query-example-b \
@@ -54,12 +47,14 @@ EXPECTED_SPARQL_CORRECT= \
   sparql-query-example-Testing-Values-isURI \
   sparql-query-example-Testing-Values-isLiteral \
   sparql-query-example-Testing-Values-str \
-  sparql-query-example-Testing-Values-lang
+  sparql-query-example-Testing-Values-lang \
+  sparql-query-example-Testing-Values-isBlank \
+  sparql-query-example-Testing-Values-bound-2
 
+# sparql-query-example-Testing-Values-bound (ex11.2.3.2_0.rq)
+#   UNION
 EXPECTED_SPARQL_CORRECT_FAILURES= \
-sparql-query-example-Testing-Values-bound \
-sparql-query-example-Testing-Values-bound-2 \
-sparql-query-example-Testing-Values-isBlank
+  sparql-query-example-Testing-Values-bound
 
 SPARQL_RESULT_FILES= \
 ex2-1a-result.n3 ex2-2a-result.n3 ex2-3a-result.n3 ex2-4a-result.n3	\
