@@ -81,6 +81,8 @@ $(rdql_testsuite_test_files) \
 $(rdql_testsuite_result_files) \
 $(rdql_testsuite_extra_files)
 
+CLEANFILES=diff.out roqet.err roqet.out result.out
+
 build-roqet:
 	@(cd $(top_builddir)/utils ; $(MAKE) roqet)
 
