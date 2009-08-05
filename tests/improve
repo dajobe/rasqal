@@ -194,7 +194,8 @@ sub run_test($$) {
   print STDERR "$program: Running test $name: $path$action\n"
     if $debug > 1;
 
-  my $log="$name.log";
+  my $sname=$name; $sname =~ s/\W/-/g;
+  my $log="$sname.log";
   system "$action > '$log' 2>&1";
   my $rc=$?;
   my $status='fail';
