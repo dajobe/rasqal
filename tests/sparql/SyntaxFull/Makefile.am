@@ -24,7 +24,7 @@ SPARQL_MANIFEST_FILES= manifest.ttl
 
 SPARQL_MODEL_FILES= empty.nt
 
-SPARQL_TEST_FILES= \
+SPARQL_TEST_FILES_CORE= \
 syntax-basic-01.rq syntax-basic-02.rq syntax-basic-03.rq		\
 syntax-basic-04.rq syntax-basic-05.rq syntax-basic-06.rq		\
 syntax-bnodes-01.rq syntax-bnodes-02.rq syntax-bnodes-03.rq             \
@@ -51,11 +51,18 @@ syntax-struct-01.rq syntax-struct-02.rq					\
 syntax-struct-03.rq syntax-struct-04.rq syntax-struct-05.rq		\
 syntax-struct-06.rq syntax-struct-07.rq syntax-struct-08.rq		\
 syntax-struct-09.rq syntax-struct-10.rq					\
-syntax-union-01.rq syntax-union-02.rq \
+syntax-union-01.rq syntax-union-02.rq
+
+SPARQL_TEST_FILES=$(SPARQL_TEST_FILES_CORE) \
 syntax-keywords-01.rq syntax-keywords-02.rq syntax-keywords-03.rq \
 syntax-qname-01.rq syntax-qname-02.rq syntax-qname-03.rq \
 syntax-qname-04.rq syntax-qname-05.rq syntax-qname-06.rq \
 syntax-struct-11.rq syntax-struct-12.rq
+
+SPARQL_TEST_NAMES=$(SPARQL_TEST_FILES_CORE) \
+  "keyword FILTER as a namespace prefix" \
+  "keyword FILTER as a local name" \
+  "keyword UNION as a namespace prefix"
 
 # 2 test failures
 # syntax-bnodes-03.rq syntax-bnodes-04.rq
@@ -113,18 +120,17 @@ get-testsuite-sparql-lexer get-testsuite-sparql-parser:
 	$(ECHO) ")."
 
 get-testsuite-sparql-query:
-	@tests="$(SPARQL_TEST_FILES)"; \
-	$(ECHO) '@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .'; \
+	@$(ECHO) '@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .'; \
 	$(ECHO) '@prefix mf:     <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .'; \
 	$(ECHO) '@prefix t:     <http://ns.librdf.org/2009/test-manifest#> .'; \
 	$(ECHO) ' '; \
 	$(ECHO) "<> a mf:Manifest; rdfs:comment \"SPARQL Query Execution\"; t:path \"$(top_builddir)/utils:$(top_builddir)@RAPPER_PATH@:$$PATH\"; t:preconditon \"$(PERL) -MXML::DOM -e 'exit 0'\"; mf:entries ("; \
-	for test in $$tests; do \
+	for test in $(SPARQL_TEST_NAMES); do \
 	  comment="sparql query $$test"; \
 	  expect="PositiveTest"; \
-	  if [ $$test = 'syntax-bnodes-03.rq' -o $$test = 'syntax-bnodes-04.rq' ]; then \
+	  if [ "$$test" = 'syntax-bnodes-03.rq' -o "$$test" = 'syntax-bnodes-04.rq' ]; then \
 	    expect="NegativeTest"; \
 	  fi; \
-	  $(ECHO) "  [ a t:$$expect; mf:name \"$$test\"; rdfs:comment \"$$comment\"; mf:action  \"$(PERL) $(srcdir)/../check-sparql -s $(srcdir) $$test\" ]"; \
+	  $(ECHO) "  [ a t:$$expect; mf:name \"$$test\"; rdfs:comment \"$$comment\"; mf:action  \"$(PERL) $(srcdir)/../check-sparql -s $(srcdir) '$$test'\" ]"; \
 	done; \
 	$(ECHO) ")."
