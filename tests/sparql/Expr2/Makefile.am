@@ -33,9 +33,7 @@ EXPECTED_SPARQL_CORRECT= \
   "Test 'boolean effective value' - true" \
   "Test 'boolean effective value' - false" \
   "Test 'boolean effective value' - &&" \
-  "Test 'boolean effective value' - ||" \
-  "Test 'boolean effective value' - optional" \
-  "Test 'boolean effective value' - unknown types" 
+  "Test 'boolean effective value' - ||"
 
 EXPECTED_SPARQL_CORRECT_FAILURES= \
 "Test 'boolean effective value' - optional" \
