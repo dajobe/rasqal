@@ -604,7 +604,7 @@ main(int argc, char *argv[])
   vars_seq = seq = NULL;
 
   rowsource = rasqal_new_join_rowsource(world, query, left_rs, right_rs,
-                                        RASQAL_JOIN_TYPE_NATURAL, NULL);
+                                        RASQAL_JOIN_TYPE_LEFT, NULL);
   if(!rowsource) {
     fprintf(stderr, "%s: failed to create join rowsource\n", program);
     failures++;
