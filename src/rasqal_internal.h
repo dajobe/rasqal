@@ -461,14 +461,12 @@ typedef enum {
 /**
  * rasqal_join_type:
  * RASQAL_JOIN_TYPE_UNKNOWN: unknown join type
- * RASQAL_JOIN_TYPE_NATURAL: natural join
  * RASQAL_JOIN_TYPE_LEFT: left join
  *
  * Rowsource join type.
  */
 typedef enum {
   RASQAL_JOIN_TYPE_UNKNOWN,
-  RASQAL_JOIN_TYPE_NATURAL,
   RASQAL_JOIN_TYPE_LEFT
 } rasqal_join_type;
 
