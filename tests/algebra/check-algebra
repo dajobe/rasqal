@@ -1,0 +1,129 @@
+#!/usr/bin/perl -w
+#
+# check-algebra - Run Rasqal against W3C DAWG SPARQL testsuite
+#
+# USAGE: check-algebra [options] [TEST]
+# 
+# Copyright (C) 2009, David Beckett http://www.dajobe.org/
+# 
+# This package is Free Software and part of Redland http://librdf.org/
+# 
+# It is licensed under the following three licenses as alternatives:
+#   1. GNU Lesser General Public License (LGPL) V2.1 or any newer version
+#   2. GNU General Public License (GPL) V2 or any newer version
+#   3. Apache License, V2.0 or any newer version
+# 
+# You may not use this file except in compliance with at least one of
+# the above three licenses.
+# 
+# See LICENSE.html or LICENSE.txt at the top of this package for the
+# complete terms and further detail along with the license texts for
+# the licenses in COPYING.LIB, COPYING and LICENSE-2.0.txt respectively.
+# 
+# Requires:
+#   convert_graph_pattern utility in the PATH
+# 
+
+use strict;
+use File::Basename;
+use Getopt::Long;
+use Pod::Usage;
+
+my $convert_graph_pattern="convert_graph_pattern";
+my $out="convert.out";
+my $err="convert.err";
+my $diff="diff.out";
+
+my $program=basename $0;
+my $debug=0;
+
+$debug=1 if defined $ENV{'RASQAL_DEBUG'};
+
+
+# Argument handling
+my $usage=0;
+
+GetOptions(
+  'debug|d+'   => \$debug, # incremental
+  'help|h|?' => \$usage
+) || pod2usage(2);
+
+pod2usage(-verbose => 2) if $usage;
+pod2usage(2) if @ARGV != 2;
+
+
+my($tst,$baseuri)=@ARGV;
+
+my $base=basename($tst, ".rq");
+my $expected="$base.out";
+
+warn "$program: Running test $tst with base URI $baseuri\n"
+  if $debug;
+
+
+my $cmd="convert_graph_pattern $tst $baseuri > $out 2> $err";
+warn "$program: Running '$cmd'\n"
+  if $debug;
+system $cmd;
+my $rc=$?;
+warn "$program: Result was $rc\n"
+  if $debug;
+if($rc) {
+  warn "$program: Graph pattern conversion '$tst' FAILED to execute\n";
+  warn "Failing program was:\n";
+  warn "  $cmd\n";
+  system("cat $err");
+  exit 1;
+}
+
+
+my $cmp_cmd="diff -u $expected $out > $diff 2>&1";
+warn "$program: Running '$cmp_cmd'\n"
+  if $debug;
+system $cmp_cmd;
+$rc=$?;
+warn "$program: Result was $rc\n"
+  if $debug;
+if($rc) {
+  warn "$program: Graph pattern conversion '$tst' FAILED to give correct answer\n";
+  warn "Failing program was:\n";
+  warn "  $cmd\n";
+  system("cat $err");
+  warn "Difference is:\n";
+  system("cat $diff");
+  exit 1;
+}
+
+unlink $out, $err, $diff;
+
+exit 0;
+
+__END__
+
+=head1 NAME
+
+check-algebra - run SPARQL algebra graph pattern test
+
+=head1 SYNOPSIS
+
+check-algebra [options] TEST BASE-URI
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<--debug>
+
+Enable extra debugging output.
+
+=item B<--help>
+
+Give command help summary.
+
+=back
+
+=head1 DESCRIPTION
+
+Run SPARQL algebra conversion test
+
+=cut
