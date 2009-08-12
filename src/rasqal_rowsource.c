@@ -236,7 +236,7 @@ rasqal_rowsource_read_row(rasqal_rowsource *rowsource)
     rowsource->count++;
 
 #ifdef RASQAL_DEBUG
-  RASQAL_DEBUG1("read row : ");
+  RASQAL_DEBUG2("read %s row : ", rowsource->handler->name);
   if(row)
     rasqal_row_print(row, stderr);
   else
@@ -673,7 +673,7 @@ main(int argc, char *argv[])
     switch(i) {
       case 0:
 #ifdef RASQAL_DEBUG
-        fprintf(stderr, "%s: Creating rowsource from afilename '%s'\n",
+        fprintf(stderr, "%s: Creating rowsource from a filename '%s'\n",
                 program, OUT_FILENAME);
 #endif
         rowsource = rasqal_new_rowsource_from_filename((const char*)IN_FILENAME);
