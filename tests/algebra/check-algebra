@@ -55,7 +55,8 @@ pod2usage(2) if @ARGV != 2;
 my($tst,$baseuri)=@ARGV;
 
 my $base=basename($tst, ".rq");
-my $expected="$base.out";
+my $srcdir=dirname($tst);
+my $expected="$srcdir/$base.out";
 
 warn "$program: Running test $tst with base URI $baseuri\n"
   if $debug;
