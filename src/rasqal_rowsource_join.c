@@ -69,7 +69,7 @@ typedef struct
   /* row offset for read_row() */
   int offset;
 
-  /* join type: 0 = left outer join */
+  /* row join type */
   rasqal_join_type join_type;
   
   /* join expression */
@@ -349,7 +349,7 @@ rasqal_join_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
 
     /* otherwise return LEFT or RIGHT row only */
     rasqal_free_row(row); row = NULL;
-    if(con->join_type == RASQAL_JOIN_TYPE_LEFT_JOIN) {
+    if(con->join_type == RASQAL_JOIN_TYPE_LEFT) {
       /* LEFT JOIN - add left row if expr fails */
       if(con->left_row) {
         row = rasqal_join_rowsource_build_merged_row(rowsource, con, NULL);
@@ -465,8 +465,9 @@ rasqal_new_join_rowsource(rasqal_world *world,
   if(!world || !query || !left || !right)
     return NULL;
 
-  /* only left outer join now */
-  if(join_type != RASQAL_JOIN_TYPE_LEFT_JOIN)
+  /* natural and left outer join supported */
+  if(join_type != RASQAL_JOIN_TYPE_NATURAL &&
+     join_type != RASQAL_JOIN_TYPE_LEFT)
     return NULL;
   
   con = (rasqal_join_rowsource_context*)RASQAL_CALLOC(rasqal_join_rowsource_context, 1, sizeof(rasqal_join_rowsource_context));
@@ -604,7 +605,7 @@ main(int argc, char *argv[])
   vars_seq = seq = NULL;
 
   rowsource = rasqal_new_join_rowsource(world, query, left_rs, right_rs,
-                                        RASQAL_JOIN_TYPE_LEFT_JOIN, NULL);
+                                        RASQAL_JOIN_TYPE_NATURAL, NULL);
   if(!rowsource) {
     fprintf(stderr, "%s: failed to create join rowsource\n", program);
     failures++;
