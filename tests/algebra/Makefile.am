@@ -58,7 +58,7 @@ get-testsuite-sparql-algebra:
 	for test in $(ALGEBRA_TEST_FILES); do \
 	  comment="SPARQL algebra $$test"; \
 	  base=$(BASE_URI)$$test; \
-	  $(ECHO) "  [ a t:PositiveTest; mf:name \"$$test\"; rdfs:comment \"$$comment\"; mf:action  \"\"\"$(PERL) $(srcdir)/check-algebra \"$$test\" \"$$base\" \"\"\" ]"; \
+	  $(ECHO) "  [ a t:PositiveTest; mf:name \"$$test\"; rdfs:comment \"$$comment\"; mf:action  \"\"\"$(PERL) $(srcdir)/check-algebra \"$(srcdir)/$$test\" \"$$base\" \"\"\" ]"; \
 	done; \
 	$(ECHO) ")."
 
