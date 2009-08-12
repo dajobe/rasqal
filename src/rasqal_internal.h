@@ -458,6 +458,21 @@ typedef enum {
 } rasqal_query_results_type;
 
 
+/**
+ * rasqal_join_type:
+ * RASQAL_JOIN_TYPE_UNKNOWN: unknown join type
+ * RASQAL_JOIN_TYPE_LEFT_JOIN: left join
+ *
+ * Rowsource join type.
+ */
+typedef enum {
+  RASQAL_JOIN_TYPE_UNKNOWN = 0,
+  RASQAL_JOIN_TYPE_LEFT_JOIN =  1
+} rasqal_join_type;
+
+
+
+
 /* rasqal_rowsource_empty.c */
 rasqal_rowsource* rasqal_new_empty_rowsource(rasqal_world *world, rasqal_query* query);
 
@@ -474,7 +489,7 @@ rasqal_rowsource* rasqal_new_filter_rowsource(rasqal_world *world, rasqal_query 
 rasqal_rowsource* rasqal_new_graph_rowsource(rasqal_world *world, rasqal_query *query, rasqal_rowsource* rowsource, rasqal_variable *var);
 
 /* rasqal_rowsource_join.c */
-rasqal_rowsource* rasqal_new_join_rowsource(rasqal_world *world, rasqal_query* query, rasqal_rowsource* left, rasqal_rowsource* right, int join_type, rasqal_expression *expr);
+rasqal_rowsource* rasqal_new_join_rowsource(rasqal_world *world, rasqal_query* query, rasqal_rowsource* left, rasqal_rowsource* right, rasqal_join_type join_type, rasqal_expression *expr);
 
 /* rasqal_rowsource_project.c */
 rasqal_rowsource* rasqal_new_project_rowsource(rasqal_world *world, rasqal_query *query, rasqal_rowsource* rowsource, raptor_sequence* projection_variables);

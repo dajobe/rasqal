@@ -70,7 +70,7 @@ typedef struct
   int offset;
 
   /* join type: 0 = left outer join */
-  int join_type;
+  rasqal_join_type join_type;
   
   /* join expression */
   rasqal_expression *expr;
@@ -344,10 +344,18 @@ rasqal_join_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
       rasqal_free_literal(result);
     }
     if(bresult)
-      /* Constraint succeeded so return row */
+      /* Constraint succeeded so return merged row */
       break;
 
+    /* otherwise return LEFT or RIGHT row only */
     rasqal_free_row(row); row = NULL;
+    if(con->join_type == RASQAL_JOIN_TYPE_LEFT_JOIN) {
+      /* LEFT JOIN - add left row if expr fails */
+      if(con->left_row) {
+        row = rasqal_join_rowsource_build_merged_row(rowsource, con, NULL);
+        break;
+      }
+    }
   }
 
   if(row) {
@@ -431,7 +439,7 @@ static const rasqal_rowsource_handler rasqal_join_rowsource_handler = {
  * @query: query results object
  * @left: left (first) rowsource
  * @right: right (second) rowsource
- * @join_type: 0 = left outer join
+ * @join_type: join type
  * @expr: join expression to filter result rows
  *
  * INTERNAL - create a new JOIN over two rowsources
@@ -448,7 +456,7 @@ rasqal_new_join_rowsource(rasqal_world *world,
                           rasqal_query* query,
                           rasqal_rowsource* left,
                           rasqal_rowsource* right,
-                          int join_type,
+                          rasqal_join_type join_type,
                           rasqal_expression *expr)
 {
   rasqal_join_rowsource_context* con;
@@ -458,7 +466,7 @@ rasqal_new_join_rowsource(rasqal_world *world,
     return NULL;
 
   /* only left outer join now */
-  if(join_type != 0)
+  if(join_type != RASQAL_JOIN_TYPE_LEFT_JOIN)
     return NULL;
   
   con = (rasqal_join_rowsource_context*)RASQAL_CALLOC(rasqal_join_rowsource_context, 1, sizeof(rasqal_join_rowsource_context));
@@ -595,7 +603,8 @@ main(int argc, char *argv[])
   /* vars_seq and seq are now owned by right_rs */
   vars_seq = seq = NULL;
 
-  rowsource = rasqal_new_join_rowsource(world, query, left_rs, right_rs, 0, NULL);
+  rowsource = rasqal_new_join_rowsource(world, query, left_rs, right_rs,
+                                        RASQAL_JOIN_TYPE_LEFT_JOIN, NULL);
   if(!rowsource) {
     fprintf(stderr, "%s: failed to create join rowsource\n", program);
     failures++;
