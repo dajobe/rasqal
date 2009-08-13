@@ -1462,7 +1462,11 @@ static const rasqal_rowsource_handler rasqal_rowsource_engine_handler = {
   /* .finish = */ rasqal_rowsource_engine_finish,
   /* .ensure_variables = */ rasqal_rowsource_engine_ensure_variables,
   /* .read_row = */ rasqal_rowsource_engine_read_row,
-  /* .read_all_rows = */ rasqal_rowsource_engine_read_all_rows
+  /* .read_all_rows = */ rasqal_rowsource_engine_read_all_rows,
+  /* .reset = */ NULL,
+  /* .set_preserve = */ NULL,
+  /* .get_inner_rowsource = */ NULL,
+  /* .set_origin = */ NULL,
 };
 
 

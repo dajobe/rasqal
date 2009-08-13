@@ -229,7 +229,8 @@ static const rasqal_rowsource_handler rasqal_sort_rowsource_handler = {
   /* .read_all_rows =    */ rasqal_sort_rowsource_read_all_rows,
   /* .reset =            */ NULL,
   /* .set_preserve =     */ NULL,
-  /* .get_inner_rowsource = */ rasqal_sort_rowsource_get_inner_rowsource
+  /* .get_inner_rowsource = */ rasqal_sort_rowsource_get_inner_rowsource,
+  /* .set_origin =       */ NULL,
 };
 
 

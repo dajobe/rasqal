@@ -246,7 +246,8 @@ static const rasqal_rowsource_handler rasqal_graph_rowsource_handler = {
   /* .read_all_rows =    */ NULL,
   /* .reset =            */ rasqal_graph_rowsource_reset,
   /* .set_preserve =     */ rasqal_graph_rowsource_set_preserve,
-  /* .get_inner_rowsource = */ rasqal_graph_rowsource_get_inner_rowsource
+  /* .get_inner_rowsource = */ rasqal_graph_rowsource_get_inner_rowsource,
+  /* .set_origin =       */ NULL,
 };
 
 

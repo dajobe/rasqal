@@ -334,7 +334,8 @@ static const rasqal_rowsource_handler rasqal_union_rowsource_handler = {
   /* .read_all_rows = */ rasqal_union_rowsource_read_all_rows,
   /* .reset = */ rasqal_union_rowsource_reset,
   /* .set_preserve = */ rasqal_union_rowsource_set_preserve,
-  /* .get_inner_rowsource = */ rasqal_union_rowsource_get_inner_rowsource
+  /* .get_inner_rowsource = */ rasqal_union_rowsource_get_inner_rowsource,
+  /* .set_origin = */ NULL,
 };
 
 

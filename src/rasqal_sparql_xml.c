@@ -961,7 +961,10 @@ static const rasqal_rowsource_handler rasqal_rowsource_sparql_xml_handler={
   /* .ensure_variables = */ rasqal_rowsource_sparql_xml_ensure_variables,
   /* .read_row = */ rasqal_rowsource_sparql_xml_read_row,
   /* .read_all_rows = */ NULL,
-  /* .get_query = */ NULL
+  /* .reset = */ NULL,
+  /* .set_preserve = */ NULL,
+  /* .get_inner_rowsource = */ NULL,
+  /* .set_origin = */ NULL,
 };
 
 

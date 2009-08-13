@@ -133,9 +133,9 @@ rasqal_filter_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
     } else {
       int error = 0;
       bresult = rasqal_literal_as_boolean(result, &error);
+#ifdef RASQAL_DEBUG
       if(error)
         RASQAL_DEBUG1("filter boolean expression returned error\n");
-#ifdef RASQAL_DEBUG
       else
         RASQAL_DEBUG2("filter boolean expression result: %d\n", bresult);
 #endif
@@ -210,7 +210,8 @@ static const rasqal_rowsource_handler rasqal_filter_rowsource_handler = {
   /* .read_all_rows =    */ NULL,
   /* .reset =            */ rasqal_filter_rowsource_reset,
   /* .set_preserve =     */ rasqal_filter_rowsource_set_preserve,
-  /* .get_inner_rowsource = */ rasqal_filter_rowsource_get_inner_rowsource
+  /* .get_inner_rowsource = */ rasqal_filter_rowsource_get_inner_rowsource,
+  /* .set_origin =       */ NULL,
 };
 
 

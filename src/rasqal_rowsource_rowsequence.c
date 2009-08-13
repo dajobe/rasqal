@@ -196,7 +196,8 @@ static const rasqal_rowsource_handler rasqal_rowsequence_rowsource_handler = {
   /* .read_all_rows = */ rasqal_rowsequence_rowsource_read_all_rows,
   /* .reset = */ rasqal_rowsequence_rowsource_reset,
   /* .set_preserve = */ NULL,
-  /* .get_inner_rowsource = */ NULL
+  /* .get_inner_rowsource = */ NULL,
+  /* .set_origin = */ NULL,
 };
 
 

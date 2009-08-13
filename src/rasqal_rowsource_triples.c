@@ -450,7 +450,8 @@ static const rasqal_rowsource_handler rasqal_triples_rowsource_handler = {
   /* .read_all_rows = */ rasqal_triples_rowsource_read_all_rows,
   /* .reset = */ rasqal_triples_rowsource_reset,
   /* .set_preserve = */ rasqal_triples_rowsource_set_preserve,
-  /* .get_inner_rowsource = */ NULL
+  /* .get_inner_rowsource = */ NULL,
+  /* .set_origin = */ NULL,
 };
 
 
