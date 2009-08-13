@@ -196,7 +196,7 @@ rasqal_algebra_leftjoin_algebra_node_to_rowsource(rasqal_engine_algebra_data* ex
     return NULL;
   }
 
-  return rasqal_new_join_rowsource(query->world, query, left_rs, right_rs, 0, node->expr);
+  return rasqal_new_join_rowsource(query->world, query, left_rs, right_rs, RASQAL_JOIN_TYPE_LEFT, node->expr);
 }
 
 
