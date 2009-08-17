@@ -114,6 +114,10 @@ rasqal_row_compatible_check(rasqal_row_compatible* map,
     return 1;
   
   for(i = 0; i < count; i++) {
+#ifdef RASQAL_DEBUG
+    rasqal_variable *v = rasqal_variables_table_get(map->variables_table, i);
+    const unsigned char *name = v->name;
+#endif
     rasqal_literal *first_value = NULL;
     rasqal_literal *second_value = NULL;
 
@@ -126,24 +130,33 @@ rasqal_row_compatible_check(rasqal_row_compatible* map,
     if(offset2 >= 0)
       second_value = second_row->values[offset2];
 
+#if RASQAL_DEBUG > 1
+    RASQAL_DEBUG5("row variable #%d - %s has first row offset #%d  second row offset #%d\n", i, name, offset1, offset2);
+#endif
+
     /* do not test if both are NULL */
     if(!first_value && !second_value)
       continue;
 
     if(!first_value || !second_value) {
-      RASQAL_DEBUG2("row variable %d has (one NULL, one value)\n", i);
-      /* incompatible if one is NULL and the other is not */
-      compatible = 0;
-      break;
+#if RASQAL_DEBUG > 1
+      RASQAL_DEBUG3("row variable #%d - %s has (one NULL, one value)\n", i,
+                    name);
+#endif
+      /* compatible if one is NULL and the other is not */
+      continue;
     }
 
     if(!rasqal_literal_equals(first_value, second_value)) {
-      RASQAL_DEBUG2("row variable %d has different values\n", i);
+      RASQAL_DEBUG3("row variable #%d - %s has different values\n", i, name);
       /* incompatible if not equal values */
       compatible = 0;
       break;
+    } else {
+#if RASQAL_DEBUG > 1
+      RASQAL_DEBUG3("row variable #%d - %s has same values\n", i, name);
+#endif
     }
-
   }
 
   return compatible;
@@ -178,37 +191,47 @@ rasqal_print_row_compatible(FILE *handle,
 /* one more prototype */
 int main(int argc, char *argv[]);
 
-const char* const join_1_data_2x3_rows[] =
+#define EXPECTED_ROWS_COUNT 4
+
+const char* const compatible_data_abc_rows[] =
 {
-  /* 2 variable names and 3 rows */
-  "a",   NULL, "b",   NULL,
-  /* row 1 data */
-  "foo", NULL, "bar", NULL,
-  /* row 2 data */
-  "baz", NULL, "fez", NULL,
-  /* row 3 data (joinable on b) */
-  "bob", NULL, "sue", NULL,
+  /* 3 variable names and 4 rows */
+  "a", NULL,       "b",  NULL,    "c",   NULL,
+  /* row 1 data - match on b, c : COMPATIBLE */
+  "purple", NULL,  "blue", NULL,  "red", NULL,
+  /* row 2 data - match on b, not c: INCOMPATIBLE */
+  "purple", NULL,  "blue", NULL,  "red", NULL,
+  /* row 3 data - match on b, NULL c: COMPATIBLE */
+  "purple", NULL,  "red", NULL,  NULL, NULL,
+  /* row 4 data - NULL b, NULL c: COMPATIBLE */
+  "purple", NULL,  NULL, NULL,    NULL, NULL,
   /* end of data */
-  NULL, NULL
+  NULL, NULL,  NULL, NULL,    NULL, NULL,
 };
   
 
-const char* const join_2_data_3x5_rows[] =
+const char* const compatible_data_abcd_rows[] =
 {
-  /* 3 variable names and 5 rows */
-  "b",     NULL, "c",      NULL, "d",      NULL,
-  /* row 1 data */
-  "red",   NULL, "orange", NULL, "yellow", NULL,
-  /* row 2 data */
-  "blue",  NULL, "indigo", NULL, "violet", NULL,
-  /* row 3 data */
-  "black", NULL, "silver", NULL, "gold",   NULL,
-  /* row 4 data */
-  "green", NULL, "tope",   NULL, "bronze", NULL,
-  /* row 5 data (joinable on b) */
-  "sue",   NULL, "blue",   NULL, "black", NULL,
+  /* 3 variable names and 4 rows */
+   "b", NULL,    "c", NULL,     "d", NULL,
+  /* row 1 data - match on b,c: COMPATIBLE */
+  "blue", NULL, "red", NULL,   "yellow", NULL,
+  /* row 2 data - match on b, not on c: INCOMPATIBLE */
+  "red", NULL,  "green", NULL, "yellow", NULL,
+  /* row 3 data - match on b, NULL c: COMPATIBLE */
+   "red", NULL,  NULL, NULL,    "yellow", NULL,
+  /* row 4 data - NULL b, NULL c: COMPATIBLE */
+  NULL, NULL,   NULL, NULL,    "yellow", NULL,
   /* end of data */
-  NULL, NULL
+  NULL, NULL,   NULL, NULL,    NULL, NULL
+};
+
+const int expected_compatible_results[EXPECTED_ROWS_COUNT]=
+{
+  1,
+  0,
+  1,
+  1
 };
 
 
@@ -227,6 +250,7 @@ main(int argc, char *argv[])
   rasqal_variables_table* vt;
   raptor_sequence* vars_seq = NULL;
   rasqal_row_compatible* rc_map;
+  int i;
   
   world = rasqal_new_world(); rasqal_world_open(world);
   
@@ -234,9 +258,9 @@ main(int argc, char *argv[])
   
   vt = query->vars_table;
 
-  /* 2 variables and 3 rows */
-  vars_count = 2;
-  seq = rasqal_new_row_sequence(world, vt, join_1_data_2x3_rows, vars_count,
+  /* 3 variables and 4 rows */
+  vars_count = 3;
+  seq = rasqal_new_row_sequence(world, vt, compatible_data_abc_rows, vars_count,
                                 &vars_seq);
   if(!seq) {
     fprintf(stderr,
@@ -255,10 +279,10 @@ main(int argc, char *argv[])
   /* vars_seq and seq are now owned by left_rs */
   vars_seq = seq = NULL;
   
-  /* 3 variables and 5 rows */
+  /* 3 variables and 4 rows */
   vars_count = 3;
-  seq = rasqal_new_row_sequence(world, vt, join_2_data_3x5_rows, vars_count,
-                                &vars_seq);
+  seq = rasqal_new_row_sequence(world, vt, compatible_data_abcd_rows,
+                                vars_count, &vars_seq);
   if(!seq) {
     fprintf(stderr,
             "%s: failed to create right sequence of %d rows\n", program,
@@ -284,6 +308,47 @@ main(int argc, char *argv[])
   }
 
   rasqal_print_row_compatible(stderr, rc_map);
+
+#if RASQAL_DEBUG
+  fputs("\n", stderr);
+#endif
+
+  for(i = 0; i < EXPECTED_ROWS_COUNT; i++) {
+    rasqal_row *left_row = rasqal_rowsource_read_row(left_rs);
+    rasqal_row *right_row = rasqal_rowsource_read_row(right_rs);
+    int expected = expected_compatible_results[i];
+    int compatible;
+
+    if(!left_row) {
+      fprintf(stderr, "%s: FAILED left rowsource ended early at row #%d\n", program, i);
+      failures++;
+      goto tidy;
+    }
+    if(!right_row) {
+      fprintf(stderr, "%s: FAILED right rowsource ended early at row #%d\n", program, i);
+      failures++;
+      goto tidy;
+    }
+
+    compatible = rasqal_row_compatible_check(rc_map, left_row, right_row);
+    RASQAL_DEBUG4("%s: compatible check for row #%d returned %d\n",
+                  program, i, compatible);
+    if(compatible != expected) {
+      fprintf(stderr, 
+              "%s: FAILED compatible check for row #%d returned %d  expected %d\n",
+              program, i, compatible, expected);
+      failures++;
+    }
+
+#if RASQAL_DEBUG
+    fputs("\n", stderr);
+#endif
+
+    if(left_row)
+      rasqal_free_row(left_row);
+    if(right_row)
+      rasqal_free_row(right_row);
+  }
   
   tidy:
   if(seq)
