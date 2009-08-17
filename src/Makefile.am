@@ -44,7 +44,8 @@ rasqal_rowsource_rowsequence_test$(EXEEXT) \
 rasqal_rowsource_project_test$(EXEEXT) \
 rasqal_rowsource_join_test$(EXEEXT) \
 rasqal_query_test$(EXEEXT) \
-rasqal_rowsource_triples_test$(EXEEXT)
+rasqal_rowsource_triples_test$(EXEEXT) \
+rasqal_row_compatible_test$(EXEEXT)
 
 # These 4 test programs are compiled here and run here as 'smoke
 # tests' but mostly used in tests in $(srcdir)/../tests/{rdql,sparql}
@@ -83,7 +84,8 @@ rasqal_engine_algebra.c rasqal_triples_source.c \
 rasqal_rowsource_triples.c rasqal_rowsource_filter.c \
 rasqal_rowsource_sort.c rasqal_engine_sort.c \
 rasqal_rowsource_project.c rasqal_rowsource_join.c \
-rasqal_rowsource_graph.c rasqal_rowsource_distinct.c
+rasqal_rowsource_graph.c rasqal_rowsource_distinct.c \
+rasqal_row_compatible.c
 
 if RASQAL_QUERY_RDQL
 librasqal_la_SOURCES += rdql_lexer.c rdql_lexer.h \
@@ -222,6 +224,10 @@ rasqal_rowsource_project_test_LDADD = librasqal.la
 rasqal_rowsource_join_test_SOURCES = rasqal_rowsource_join.c
 rasqal_rowsource_join_test_CPPFLAGS = -DSTANDALONE
 rasqal_rowsource_join_test_LDADD = librasqal.la
+
+rasqal_row_compatible_test_SOURCES = rasqal_row_compatible.c
+rasqal_row_compatible_test_CPPFLAGS = -DSTANDALONE
+rasqal_row_compatible_test_LDADD = librasqal.la
 
 $(top_builddir)/../raptor/src/libraptor.la:
 	cd $(top_builddir)/../raptor/src && $(MAKE) $(AM_MAKEFLAGS) libraptor.la

@@ -641,6 +641,30 @@ typedef struct {
 
 
 /**
+ * rasqal_row_compatible:
+ * @variables_table: variables table
+ * @rowsource1: first rowsource
+ * @rowsource2: second rowsource
+ * @variables_count: number of variables in the map
+ * @variables_in_both_rows_count: number of shared variables
+ * @defined_in_map: of size @variables_count
+ *
+ * Lookup data constructed for two rowsources to enable quick
+ * checking if rows from the two rowsource are compatible with
+ * rasqal_row_compatible_check()
+ *
+ */
+typedef struct {
+  rasqal_variables_table* variables_table;
+  rasqal_rowsource *first_rowsource;
+  rasqal_rowsource *second_rowsource;
+  int variables_count;
+  int variables_in_both_rows_count;
+  int* defined_in_map;
+} rasqal_row_compatible;
+
+
+/**
  * rasqal_rowsource:
  * @world: rasqal world
  * @query: query that this may be associated with (or NULL)
@@ -715,6 +739,7 @@ struct rasqal_rowsource_s
 
   int offset;
 };
+
 
 /* rasqal_rowsource.c */
 rasqal_rowsource* rasqal_new_rowsource_from_handler(rasqal_world *world, rasqal_query* query, void* user_data, const rasqal_rowsource_handler *handler, rasqal_variables_table* vars_table, int flags);
@@ -962,6 +987,12 @@ int rasqal_row_to_nodes(rasqal_row* row);
 void rasqal_row_set_values_from_variables_table(rasqal_row* row, rasqal_variables_table* vars_table);
 int rasqal_row_set_order_size(rasqal_row *row, int order_size);
 int rasqal_row_expand_size(rasqal_row *row, int size);
+
+/* rasqal_row_compatible.c */
+rasqal_row_compatible* rasqal_new_row_compatible(rasqal_variables_table* vt, rasqal_rowsource *first_rowsource, rasqal_rowsource *second_rowsource);
+void rasqal_free_row_compatible(rasqal_row_compatible* map);
+int rasqal_row_compatible_check(rasqal_row_compatible* map, rasqal_row *first_row, rasqal_row *second_row);
+
 
 /* rasqal_triples_source.c */
 rasqal_triples_source* rasqal_new_triples_source(rasqal_query* query);
