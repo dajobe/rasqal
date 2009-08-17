@@ -261,7 +261,10 @@ rasqal_row_set_value_at(rasqal_row* row, int offset, rasqal_literal* value)
  * The first row is a list of variable names at offset 0.
  * The remaining rows are values where offset 0 is a literal and
  * offset 1 is a URI string.
- * The last row is indicated by offset 0 = NULL and offset 1 = NULL
+ * The last row is indicated by offset 0 = NULL and offset 1 = NULL.
+ *
+ * NOTE: Variables with no string/URI value can be given but not as
+ * the first one on the row.
  *
  * Return value: sequence of rows or NULL on failure
  */
@@ -360,7 +363,10 @@ rasqal_new_row_sequence(rasqal_world* world,
           l = rasqal_new_uri_literal(world, u);
         else
           failed = 1;
-      } /* else invalid and l=NULL so fails */
+      } else {
+        /* variable is not defined for this row */
+        continue;
+      }
 
       if(!l) {
         rasqal_free_row(row);
