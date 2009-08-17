@@ -351,6 +351,8 @@ main(int argc, char *argv[])
   }
   
   tidy:
+  if(rc_map)
+    rasqal_free_row_compatible(rc_map);
   if(seq)
     raptor_free_sequence(seq);
   if(left_rs)
