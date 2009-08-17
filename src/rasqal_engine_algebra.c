@@ -221,7 +221,7 @@ rasqal_algebra_join_algebra_node_to_rowsource(rasqal_engine_algebra_data* execut
     return NULL;
   }
 
-  return rasqal_new_join_rowsource(query->world, query, left_rs, right_rs, RASQAL_JOIN_TYPE_CROSS, node->expr);
+  return rasqal_new_join_rowsource(query->world, query, left_rs, right_rs, RASQAL_JOIN_TYPE_NATURAL, node->expr);
 }
 
 

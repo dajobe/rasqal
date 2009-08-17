@@ -461,14 +461,14 @@ typedef enum {
 /**
  * rasqal_join_type:
  * RASQAL_JOIN_TYPE_UNKNOWN: unknown join type
- * RASQAL_JOIN_TYPE_CROSS: cross join
- * RASQAL_JOIN_TYPE_LEFT: left join
+ * RASQAL_JOIN_TYPE_NATURAL: natural join.  returns compatible rows and no NULLs
+ * RASQAL_JOIN_TYPE_LEFT: left join.  returns compatible rows plus rows from left rowsource that are not compatible or fail filter condition
  *
  * Rowsource join type.
  */
 typedef enum {
   RASQAL_JOIN_TYPE_UNKNOWN,
-  RASQAL_JOIN_TYPE_CROSS,
+  RASQAL_JOIN_TYPE_NATURAL,
   RASQAL_JOIN_TYPE_LEFT
 } rasqal_join_type;
 

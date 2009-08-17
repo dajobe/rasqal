@@ -468,7 +468,7 @@ rasqal_new_join_rowsource(rasqal_world *world,
 
   /* only left outer join and cross join supported */
   if(join_type != RASQAL_JOIN_TYPE_LEFT &&
-     join_type != RASQAL_JOIN_TYPE_CROSS)
+     join_type != RASQAL_JOIN_TYPE_NATURAL)
     return NULL;
   
   con = (rasqal_join_rowsource_context*)RASQAL_CALLOC(rasqal_join_rowsource_context, 1, sizeof(rasqal_join_rowsource_context));
