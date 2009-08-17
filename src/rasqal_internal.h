@@ -461,12 +461,14 @@ typedef enum {
 /**
  * rasqal_join_type:
  * RASQAL_JOIN_TYPE_UNKNOWN: unknown join type
+ * RASQAL_JOIN_TYPE_CROSS: cross join
  * RASQAL_JOIN_TYPE_LEFT: left join
  *
  * Rowsource join type.
  */
 typedef enum {
   RASQAL_JOIN_TYPE_UNKNOWN,
+  RASQAL_JOIN_TYPE_CROSS,
   RASQAL_JOIN_TYPE_LEFT
 } rasqal_join_type;
 
@@ -1151,6 +1153,7 @@ rasqal_algebra_node* rasqal_new_empty_algebra_node(rasqal_query* query);
 rasqal_algebra_node* rasqal_new_triples_algebra_node(rasqal_query* query, raptor_sequence* triples, int start_column, int end_column);
 rasqal_algebra_node* rasqal_new_2op_algebra_node(rasqal_query* query, rasqal_algebra_node_operator op, rasqal_algebra_node* node1, rasqal_algebra_node* node2);
 rasqal_algebra_node* rasqal_new_leftjoin_algebra_node(rasqal_query* query, rasqal_algebra_node* node1, rasqal_algebra_node* node2, rasqal_expression* expr);
+rasqal_algebra_node* rasqal_new_join_algebra_node(rasqal_query* query, rasqal_algebra_node* node1, rasqal_algebra_node* node2, rasqal_expression* expr);
 rasqal_algebra_node* rasqal_new_orderby_algebra_node(rasqal_query* query, rasqal_algebra_node* node, raptor_sequence* seq);
 rasqal_algebra_node* rasqal_new_project_algebra_node(rasqal_query* query, rasqal_algebra_node* node1, raptor_sequence* vars_seq);
 rasqal_algebra_node* rasqal_new_graph_algebra_node(rasqal_query* query, rasqal_algebra_node* node1, rasqal_literal *graph);
