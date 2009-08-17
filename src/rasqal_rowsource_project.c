@@ -264,7 +264,7 @@ const char* const project_1_data_4x2_rows[] =
   /* row 2 data */
   "bob", NULL, "sue", NULL, "kit", NULL, "kat", NULL,
   /* end of data */
-  NULL, NULL
+  NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
 };
   
 const char* const project_1_var_names[] = { "c", "b" };

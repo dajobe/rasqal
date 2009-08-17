@@ -508,7 +508,7 @@ const char* const join_1_data_2x3_rows[] =
   /* row 3 data */
   "bob", NULL, "sue", NULL,
   /* end of data */
-  NULL, NULL
+  NULL, NULL, NULL, NULL
 };
   
 
@@ -525,7 +525,7 @@ const char* const join_2_data_3x4_rows[] =
   /* row 4 data */
   "green", NULL, "tope",   NULL, "bronze", NULL,
   /* end of data */
-  NULL, NULL
+  NULL, NULL, NULL, NULL, NULL, NULL
 };
 
 

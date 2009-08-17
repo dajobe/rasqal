@@ -263,7 +263,7 @@ const char* const test_1_rows[] =
   /* row 1 data */
   "foo", NULL, "bar", NULL,
   /* end of data */
-  NULL, NULL
+  NULL, NULL, NULL, NULL
 };
   
 
@@ -278,7 +278,7 @@ const char* const test_3_rows[] =
   /* row 3 data */
   "black", NULL, "silver", NULL, "gold",   NULL, "platinum", NULL,
   /* end of data */
-  NULL, NULL
+  NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
 };
   
 
