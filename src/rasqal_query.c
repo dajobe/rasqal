@@ -104,6 +104,9 @@ rasqal_new_query(rasqal_world *world, const char *name,
   void *uri_context;
 #endif
 
+  /* for compatibility with older binaries that do not call it */
+  rasqal_world_open(world);
+
   factory = rasqal_get_query_language_factory(world, name, uri);
   if(!factory)
     return NULL;

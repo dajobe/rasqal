@@ -437,10 +437,13 @@ rasqal_query_language_register_factory(rasqal_world *world,
  **/
 rasqal_query_language_factory*
 rasqal_get_query_language_factory(rasqal_world *world, const char *name,
-                                const unsigned char *uri)
+                                  const unsigned char *uri)
 {
   rasqal_query_language_factory *factory;
 
+  /* for compatibility with older binaries that do not call it */
+  rasqal_world_open(world);
+  
   /* return 1st query if no particular one wanted - why? */
   if(!name && !uri) {
     factory=world->query_languages;
@@ -486,8 +489,12 @@ rasqal_languages_enumerate(rasqal_world *world,
                            const unsigned char **uri_string)
 {
   unsigned int i;
-  rasqal_query_language_factory *factory=world->query_languages;
+  rasqal_query_language_factory *factory;
 
+  /* for compatibility with older binaries that do not call it */
+  rasqal_world_open(world);
+  
+  factory = world->query_languages;
   if(!factory)
     return 1;
 

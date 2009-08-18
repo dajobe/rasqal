@@ -87,6 +87,9 @@ rasqal_features_enumerate_common(rasqal_world* world,
 {
   int i;
 
+  /* for compatibility with older binaries that do not call it */
+  rasqal_world_open(world);
+  
   for(i=0; i <= RASQAL_FEATURE_LAST; i++)
     if(rasqal_features_list[i].feature == feature &&
        (rasqal_features_list[i].flags & flags)) {
@@ -185,6 +188,9 @@ rasqal_feature_from_uri(rasqal_world* world, raptor_uri *uri)
   
   if(!uri)
     return feature;
+  
+  /* for compatibility with older binaries that do not call it */
+  rasqal_world_open(world);
   
 #ifdef RAPTOR_V2_AVAILABLE
   uri_string = raptor_uri_as_string_v2(world->raptor_world_ptr, uri);
