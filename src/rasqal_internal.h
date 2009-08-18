@@ -994,7 +994,7 @@ int rasqal_row_expand_size(rasqal_row *row, int size);
 rasqal_row_compatible* rasqal_new_row_compatible(rasqal_variables_table* vt, rasqal_rowsource *first_rowsource, rasqal_rowsource *second_rowsource);
 void rasqal_free_row_compatible(rasqal_row_compatible* map);
 int rasqal_row_compatible_check(rasqal_row_compatible* map, rasqal_row *first_row, rasqal_row *second_row);
-
+void rasqal_print_row_compatible(FILE *handle, rasqal_row_compatible* map);
 
 /* rasqal_triples_source.c */
 rasqal_triples_source* rasqal_new_triples_source(rasqal_query* query);

@@ -163,12 +163,8 @@ rasqal_row_compatible_check(rasqal_row_compatible* map,
 }
 
 
-#ifdef STANDALONE
-
-
-static void
-rasqal_print_row_compatible(FILE *handle,
-                            rasqal_row_compatible* map)
+void
+rasqal_print_row_compatible(FILE *handle, rasqal_row_compatible* map)
 {
   int count = map->variables_count;
   rasqal_variables_table* vt = map->variables_table;
@@ -181,12 +177,14 @@ rasqal_print_row_compatible(FILE *handle,
     int offset1 = map->defined_in_map[i<<1];
     int offset2 = map->defined_in_map[1 + (i<<1)];
     
-    fprintf(handle, "  Variable %2s   offsets RS 1: %3d  RS 2: %3d  %s\n",
+    fprintf(handle, "  Variable %10s   offsets RS 1: %3d  RS 2: %3d  %s\n",
             v->name, offset1, offset2,
             ((offset1 >=0 && offset2 >= 0) ? "SHARED" : ""));
   }
 }
 
+
+#ifdef STANDALONE
 
 /* one more prototype */
 int main(int argc, char *argv[]);
