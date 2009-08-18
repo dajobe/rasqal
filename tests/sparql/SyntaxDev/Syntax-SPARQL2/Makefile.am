@@ -89,7 +89,7 @@ EXTRA_DIST= \
 $(SPARQL_MANIFEST_FILES) \
 $(SPARQL_TEST_FILES)
 
-CLEANFILES=diff.out roqet.err roqet.out result.out
+CLEANFILES=diff.out roqet.err roqet.out roqet.tmp result.out
 
 build-roqet:
 	@(cd $(top_builddir)/utils ; $(MAKE) roqet)

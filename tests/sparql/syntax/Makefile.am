@@ -51,7 +51,7 @@ $(SPARQL_TEST_FILES) \
 $(SPARQL_BAD_TEST_FILES) \
 $(SPARQL_RESULT_FILES)
 
-CLEANFILES=diff.out roqet.err roqet.out result.out
+CLEANFILES=diff.out roqet.err roqet.out roqet.tmp result.out
 
 build-roqet:
 	@(cd $(top_builddir)/utils ; $(MAKE) roqet)
