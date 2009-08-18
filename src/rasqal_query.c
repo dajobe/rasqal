@@ -233,6 +233,9 @@ rasqal_free_query(rasqal_query* query)
   if(query->variables_declared_in)
     RASQAL_FREE(intarray, query->variables_declared_in);
 
+  if(query->variables_mentioned_in)
+    RASQAL_FREE(intarray, query->variables_mentioned_in);
+
   if(query->query_graph_pattern)
     rasqal_free_graph_pattern(query->query_graph_pattern);
 

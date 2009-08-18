@@ -48,6 +48,9 @@
 
 #define DEBUG_FH stderr
 
+/* prototype for later */
+static int rasqal_query_build_mentioned_in(rasqal_query* query);
+
 
 int
 rasqal_query_expand_triple_qnames(rasqal_query* rq)
@@ -1228,6 +1231,13 @@ rasqal_query_prepare_common(rasqal_query *query)
     rasqal_query_graph_pattern_visit(query, 
                                      rasqal_query_prepare_count_graph_patterns,
                                      query->graph_patterns_sequence);
+
+    /* create query->variables_mentioned_in that marks where a variable is 
+     * mentioned in a graph pattern.
+     */
+    if(rasqal_query_build_mentioned_in(query))
+      goto done;
+
   }
 
 
@@ -1318,3 +1328,152 @@ rasqal_graph_patterns_join(rasqal_graph_pattern *dest_gp,
 
   return rc;
 }
+
+
+/**
+ * rasqal_query_triples_build_mentioned_in:
+ * @query: the #rasqal_query to find the variables in
+ * @mentioned_in: 1D array of size num. variables to write mentioned_in
+ * @start_column: first column in triples array
+ * @end_column: last column in triples array
+ *
+ * INTERNAL - Mark variables mentioned in a sequence of triples
+ * 
+ **/
+void
+rasqal_query_triples_build_mentioned_in(rasqal_query* query,
+                                        short *mentioned_in,
+                                        int start_column,
+                                        int end_column)
+{
+  int col;
+  
+  for(col = start_column; col <= end_column; col++) {
+    rasqal_triple *t;
+    rasqal_variable *v;
+    
+    t = (rasqal_triple*)raptor_sequence_get_at(query->triples, col);
+
+    if((v = rasqal_literal_as_variable(t->subject)))
+      mentioned_in[v->offset] = 1;
+    if((v = rasqal_literal_as_variable(t->predicate)))
+      mentioned_in[v->offset] = 1;
+    if((v = rasqal_literal_as_variable(t->object)))
+      mentioned_in[v->offset] = 1;
+    if(t->origin) {
+      if((v = rasqal_literal_as_variable(t->origin)))
+        mentioned_in[v->offset] = 1;
+    }
+
+  }
+}
+
+
+/**
+ * rasqal_query_graph_pattern_build_mentioned_in:
+ * @query: the #rasqal_query to find the variables in
+ * @mentioned_in: 2D array of (num. variables x num. GPs) to write mentioned_in
+ * @width: width of array (num. variables)
+ * @gp: graph pattern to use
+ *
+ * INTERNAL - Mark where variables are first mentioned in a graph_pattern tree walk
+ * 
+ **/
+static int
+rasqal_query_graph_pattern_build_mentioned_in(rasqal_query* query,
+                                              short *mentioned_in,
+                                              int width,
+                                              rasqal_graph_pattern *gp)
+{
+  int offset;
+
+  if(gp->graph_patterns) {
+    int i;
+
+    for(i = 0; i < raptor_sequence_size(gp->graph_patterns); i++) {
+      rasqal_graph_pattern *sgp;
+      sgp = (rasqal_graph_pattern*)raptor_sequence_get_at(gp->graph_patterns, i);
+      if(rasqal_query_graph_pattern_build_mentioned_in(query, mentioned_in,
+                                                       width, sgp))
+        return 1;
+    }
+  }
+
+  /* FIXME - need to walk FILTER and GRAPH expressions too */
+  
+  if(!gp->triples)
+    return 0;
+
+  offset = (gp->gp_index) * width;
+  /* write to the 1D array for this GP */
+  rasqal_query_triples_build_mentioned_in(query, 
+                                          &mentioned_in[offset],
+                                          gp->start_column,
+                                          gp->end_column);
+  return 0;
+}
+
+
+/**
+ * rasqal_query_build_mentioned_in:
+ * @query: the #rasqal_query to find the variables in
+ *
+ * INTERNAL - Record where variables are mentioned in query GPs
+ *
+ * Constructs a 2D array of width num. variables x height num. graph patterns
+ * indicating that a variable is mentioned in a GP.  That is, GP index 0
+ * is the first <number of variables> in the result.
+ *
+ * Return value: non-0 on failure
+ **/
+static int
+rasqal_query_build_mentioned_in(rasqal_query* query)
+{
+  int i;
+  int width;
+  int height;
+  int rc = 0;
+  
+  width = rasqal_variables_table_get_total_variables_count(query->vars_table);
+  height = query->graph_pattern_count;
+  
+  /* FIXME - need to walk ORDER and other (SELECT?) expressions too 
+   * But they are not GPs, so where to record it?
+   */
+  
+  query->variables_mentioned_in = (short*)RASQAL_CALLOC(intarray, 
+                                                        width * height,
+                                                        sizeof(short));
+  if(!query->variables_mentioned_in)
+    return 1;
+
+  rc=rasqal_query_graph_pattern_build_mentioned_in(query,
+                                                   query->variables_mentioned_in,
+                                                   width,
+                                                   query->query_graph_pattern);
+
+#ifdef RASQAL_DEBUG
+  if(!rc) {
+    int gp_index;
+
+    RASQAL_DEBUG1("variables mentioned in GP table:\n");
+    fputs("GP  ", stderr);
+    for(i = 0; i < width; i++) {
+      rasqal_variable* v = rasqal_variables_table_get(query->vars_table, i);
+      fprintf(stderr, "%10s ", v->name);
+    }
+    fputs("\n", stderr);
+    for(gp_index = 0; gp_index < height; gp_index++) {
+      short *row= &query->variables_mentioned_in[gp_index * width];
+      fprintf(stderr, "#%-3d", gp_index);
+      for(i = 0; i < width; i++)
+        fprintf(stderr, "%10s ", row[i]? "Y" : " ");
+      fputs("\n", stderr);
+    }
+  }
+#endif
+  
+  return rc;
+}
+
+
