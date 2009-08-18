@@ -147,6 +147,11 @@ rasqal_join_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
   vars_table = con->left->vars_table;
   con->rc_map = rasqal_new_row_compatible(vars_table, con->left, con->right);
 
+#ifdef RASQAL_DEBUG
+  RASQAL_DEBUG1("Row compatible map:\n");
+  rasqal_print_row_compatible(stderr, con->rc_map);
+#endif
+
   return 0;
 }
 
