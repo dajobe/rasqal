@@ -1467,7 +1467,7 @@ rasqal_query_build_mentioned_in(rasqal_query* query)
       short *row= &query->variables_mentioned_in[gp_index * width];
       fprintf(stderr, "#%-3d", gp_index);
       for(i = 0; i < width; i++)
-        fprintf(stderr, "%10s ", row[i]? "Y" : " ");
+        fprintf(stderr, "%10s ", row[i]? "*" : " ");
       fputs("\n", stderr);
     }
   }
