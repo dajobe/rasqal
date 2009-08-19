@@ -1372,6 +1372,7 @@ rasqal_query_triples_build_mentioned_in_internal(rasqal_query* query,
 /**
  * rasqal_query_triples_build_mentioned_in:
  * @query: the #rasqal_query to find the variables in
+ * @width: width of array to create
  * @start_column: first column in triples array
  * @end_column: last column in triples array
  *
@@ -1381,13 +1382,11 @@ rasqal_query_triples_build_mentioned_in_internal(rasqal_query* query,
  **/
 short*
 rasqal_query_triples_build_mentioned_in(rasqal_query* query,
+                                        int width,
                                         int start_column,
                                         int end_column)
 {
-  int width;
   short *mentioned_in;
-  
-  width = rasqal_variables_table_get_total_variables_count(query->vars_table);
   
   mentioned_in = (short*)RASQAL_CALLOC(intarray, width, sizeof(short));
   if(!mentioned_in)
