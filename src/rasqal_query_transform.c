@@ -1331,7 +1331,7 @@ rasqal_graph_patterns_join(rasqal_graph_pattern *dest_gp,
 
 
 /**
- * rasqal_query_triples_build_mentioned_in:
+ * rasqal_query_triples_build_mentioned_in_internal:
  * @query: the #rasqal_query to find the variables in
  * @mentioned_in: 1D array of size num. variables to write mentioned_in
  * @start_column: first column in triples array
@@ -1340,11 +1340,11 @@ rasqal_graph_patterns_join(rasqal_graph_pattern *dest_gp,
  * INTERNAL - Mark variables mentioned in a sequence of triples
  * 
  **/
-void
-rasqal_query_triples_build_mentioned_in(rasqal_query* query,
-                                        short *mentioned_in,
-                                        int start_column,
-                                        int end_column)
+static void
+rasqal_query_triples_build_mentioned_in_internal(rasqal_query* query,
+                                                 short *mentioned_in,
+                                                 int start_column,
+                                                 int end_column)
 {
   int col;
   
@@ -1366,6 +1366,37 @@ rasqal_query_triples_build_mentioned_in(rasqal_query* query,
     }
 
   }
+}
+
+
+/**
+ * rasqal_query_triples_build_mentioned_in:
+ * @query: the #rasqal_query to find the variables in
+ * @start_column: first column in triples array
+ * @end_column: last column in triples array
+ *
+ * INTERNAL - Mark variables mentioned in a sequence of triples
+ * 
+ * Return value: 1D array of size num. variables with mentioned information
+ **/
+short*
+rasqal_query_triples_build_mentioned_in(rasqal_query* query,
+                                        int start_column,
+                                        int end_column)
+{
+  int width;
+  short *mentioned_in;
+  
+  width = rasqal_variables_table_get_total_variables_count(query->vars_table);
+  
+  mentioned_in = (short*)RASQAL_CALLOC(intarray, width, sizeof(short));
+  if(!mentioned_in)
+    return NULL;
+
+  rasqal_query_triples_build_mentioned_in_internal(query, mentioned_in,
+                                                   start_column,
+                                                   end_column);
+  return mentioned_in;
 }
 
 
@@ -1406,10 +1437,10 @@ rasqal_query_graph_pattern_build_mentioned_in(rasqal_query* query,
 
   offset = (gp->gp_index) * width;
   /* write to the 1D array for this GP */
-  rasqal_query_triples_build_mentioned_in(query, 
-                                          &mentioned_in[offset],
-                                          gp->start_column,
-                                          gp->end_column);
+  rasqal_query_triples_build_mentioned_in_internal(query, 
+                                                   &mentioned_in[offset],
+                                                   gp->start_column,
+                                                   gp->end_column);
   return 0;
 }
 
