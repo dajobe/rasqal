@@ -238,7 +238,7 @@ sub run_test($$) {
       $status='xfail' ;
       $test->{detail}="Test failed as expected"
     } else {
-      $status='fail';
+      $status='uxpass';
       $test->{detail}="Test passed but expected to fail"
     }
   }
@@ -299,8 +299,9 @@ sub run_testsuite($) {
 
   my(@passed);
   my(@failed);
-  my(@xfailed);
+  my(@xfailed); # Expected failure
   my(@skipped);
+  my(@uxpassed); # Unexpected pass
 
   print $indent unless $verbose;
 
@@ -317,11 +318,14 @@ sub run_testsuite($) {
     my $rc=$test->{status};
 
     if($rc eq 'fail') {
-      print "X" unless $verbose;
+      print "F" unless $verbose;
       push(@failed, $test);
     } elsif($rc eq 'xfail') {
       print "*" unless $verbose;
       push(@xfailed, $test);
+    } elsif($rc eq 'uxpass') {
+      print "!" unless $verbose;
+      push(@uxpassed, $test);
     } elsif($rc eq 'skip') {
       print "-" unless $verbose;
       push(@skipped, $test);
@@ -364,6 +368,7 @@ sub run_testsuite($) {
     failed => \@failed,
     xfailed => \@xfailed,
     skipped => \@skipped,
+    uxpassed => \@uxpassed,
     status => $status
   };
 }
@@ -373,7 +378,7 @@ sub format_testsuite_result($$$) {
   my($fh,$result,$indent)=@_;
 
   print $fh $indent;
-  for my $counter (qw(passed failed xfailed skipped)) {
+  for my $counter (qw(passed failed skipped xfailed uxpassed)) {
     my $count=scalar(@{$result->{$counter}}) || 0;
     print $fh ucfirst($counter).": ".$count."  ";
   }
@@ -387,6 +392,16 @@ sub format_testsuite_result($$$) {
 	         @failed) .
       "\n"
       if @failed;
+  }
+
+  if(exists $result->{uxpassed}) {
+    my(@uxpassed)=@{$result->{uxpassed}};
+    print $fh $indent."Unexpected passed tests:\n" . $indent . $INDENT .
+      join("\n".$indent.$INDENT,
+	   map { $_->{name}. ($debug ? " (".$_->{test_uri}.")" : "") }
+	         @uxpassed) .
+      "\n"
+      if @uxpassed;
   }
 }
 
