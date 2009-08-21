@@ -1459,7 +1459,9 @@ rasqal_query_graph_pattern_build_mentioned_in(rasqal_query* query,
 static int
 rasqal_query_build_mentioned_in(rasqal_query* query)
 {
+#ifdef RASQAL_DEBUG
   int i;
+#endif
   int width;
   int height;
   int rc = 0;
