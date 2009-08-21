@@ -30,7 +30,7 @@ use strict;
 use File::Basename;
 use Getopt::Long;
 use Pod::Usage;
-use Cwd;
+use Cwd 'abs_path';
 
 our $RAPPER=$ENV{RAPPER} || 'rapper';
 our $MAKE=$ENV{MAKE} || 'make';
@@ -44,6 +44,8 @@ our $linewrap=78;
 
 our $program=basename $0;
 our $debug=0;
+
+our(@counters)=qw( passed failed  skipped  xfailed uxpassed );
 
 
 sub get_testsuites($) {
@@ -293,7 +295,7 @@ sub run_testsuite($) {
   my(@tests)=@{$testsuite->{tests}};
 
   my $desc=$testsuite->{desc} || $name;
-  print "$program: Running testsuite $name: $desc\n";
+  print $indent."Running testsuite $name: $desc\n";
 
   my $ntests=scalar @tests;
 
@@ -378,13 +380,13 @@ sub format_testsuite_result($$$) {
   my($fh,$result,$indent)=@_;
 
   print $fh $indent;
-  for my $counter (qw(passed failed skipped xfailed uxpassed)) {
-    my $count=scalar(@{$result->{$counter}}) || 0;
+  for my $counter (@counters) {
+    my $count=ref($result->{$counter}) ? (scalar(@{$result->{$counter}}) || 0) : $result->{$counter};
     print $fh ucfirst($counter).": ".$count."  ";
   }
   print $fh "\n";
 
-  if(exists $result->{failed}) {
+  if(ref($result->{failed})) {
     my(@failed)=@{$result->{failed}};
     print $fh $indent."Failed tests:\n" . $indent . $INDENT .
       join("\n".$indent.$INDENT,
@@ -394,7 +396,7 @@ sub format_testsuite_result($$$) {
       if @failed;
   }
 
-  if(exists $result->{uxpassed}) {
+  if(ref($result->{uxpassed})) {
     my(@uxpassed)=@{$result->{uxpassed}};
     print $fh $indent."Unexpected passed tests:\n" . $indent . $INDENT .
       join("\n".$indent.$INDENT,
@@ -406,6 +408,79 @@ sub format_testsuite_result($$$) {
 }
 
 
+sub run_testsuites_in_dir($) {
+  my($config)=@_;
+  my $dir=$config->{dir};
+  my(@testsuites)=@{$config->{testsuites}};
+  my $verbose=$config->{verbose};
+  my $dryrun=$config->{dryrun};
+  my $indent=$config->{indent};
+
+  chdir($dir) or die "$program: Directory $dir not found";
+  
+  my(@known_testsuites)=get_testsuites('.');
+  if(!@known_testsuites) {
+    warn "$program: Could not find any testsuites in $dir\n";
+    return { status => 'fail', details => 'No testsuites found'};
+  }
+  
+  my(%is_known_testsuite)=map { $_ => 1} @known_testsuites;
+  
+  if(!@testsuites) {
+    @testsuites = @known_testsuites;
+  } else {
+    my(@t)=grep(!$is_known_testsuite{$_}, @testsuites);
+    if(@t) {
+      print "$program: Invalid testsuites in $dir: @t\n";
+      return { status => 'fail', details => 'Invalid testsuites given: @t'};
+    }
+  }
+
+  print "$indent$program: Running testsuites in $dir\n";
+  $indent.=$INDENT;
+
+  my $total_result = {  };
+  my $total_status='pass';
+
+  for my $testsuite_name (@testsuites) {
+    my $testsuite = {dir => $dir,
+		     name => $testsuite_name,
+		     verbose => $verbose,
+		     indent => $indent.$INDENT,
+		     dryrun => $dryrun
+    };
+
+    my $result=prepare_testsuite($testsuite);
+    if($result->{status} eq 'fail') {
+      my $details=$result->{details};
+      print "$indent$program: Suite $testsuite->{name} failed preparation - $details\n";
+      $total_status='fail';
+      next;
+    }
+
+    $result=run_testsuite($testsuite);
+
+    format_testsuite_result(*STDOUT, $result, $indent.$INDENT);
+
+    for my $counter (@counters) {
+      my $count=scalar(@{$result->{$counter}}) || 0;
+      $total_result->{$counter} += $count;
+    }
+
+    $total_status='fail' if $result->{status} eq 'fail';
+
+    print "\n" if @testsuites > 1;
+  }
+
+  $total_result->{status} = $total_status;
+
+  print $indent."Summary:\n";
+  format_testsuite_result(*STDOUT, $total_result, $indent.$INDENT);
+
+
+  return $total_result;
+}
+
 ######################################################################
 
 $debug=1 if defined $ENV{'RASQAL_DEBUG'};
@@ -413,11 +488,13 @@ $debug=1 if defined $ENV{'RASQAL_DEBUG'};
 my $dryrun=0;
 my $usage=0;
 my $verbose=0;
+my $recursive=0;
 
 # Argument handling
 GetOptions(
   'debug|d+'   => \$debug, # incremental
   'dryrun|n'   => \$dryrun,
+  'recursive|r'   => \$recursive,
   'verbose|v+' => \$verbose, # incremental
   'help|h|?'   => \$usage
 ) || pod2usage(2);
@@ -431,50 +508,46 @@ $dir ||= '.';
 
 $verbose++ if $debug;
 
-chdir($dir) or die "$program: Directory $dir not found";
+$dir = abs_path($dir);
 
-my(@known_testsuites)=get_testsuites('.');
-die "$program: Could not find any testsuites in $dir\n"
-  unless @known_testsuites;
-
-my(%is_known_testsuite)=map { $_ => 1} @known_testsuites;
-
-if(!@testsuites) {
-  @testsuites = @known_testsuites;
-} else {
-  my(@t)=grep(!$is_known_testsuite{$_}, @testsuites);
-  if(@t) {
-    print "$program: Invalid testsuites in $dir: @t\n";
-    exit 0;
+my(@dirs);
+if($recursive) {
+  my $cmd="find . -type d -print | grep -v \.svn";
+  warn "$program: Recursive scan for testsuites\n" 
+     if $verbose;
+  open(PIPE, "$cmd|") or die "$program: Cannot open pipe from '$cmd' - $!\n";
+  while(<PIPE>) {
+    chomp;
+    my $dir=abs_path($_);
+    my(@testsuites)=get_testsuites($dir);
+    if(@testsuites) {
+      warn "  $_: @testsuites\n" 
+        if $verbose;
+      push(@dirs, $dir)
+    }
   }
+  close(PIPE);
+} else {
+  push(@dirs, abs_path($dir));
 }
 
+
+warn "$program: Running testsuites in dirs: @dirs\n"
+  if $debug;
+
 my $rc = 0;
+for my $dir (@dirs) {
+  my(%config)=(
+    dir => $dir,
+    testsuites => \@testsuites,
+    verbose => $verbose,
+    dryrun => $dryrun,
+    indent => '',
+  );
 
-my $indent=$INDENT;
-for my $testsuite_name (@testsuites) {
-  my $testsuite = {dir => $dir,
-		   name => $testsuite_name,
-		   verbose => $verbose,
-		   indent => $indent.$INDENT,
-		   dryrun => $dryrun
-  };
-
-  my $result=prepare_testsuite($testsuite);
-  if($result->{status} eq 'fail') {
-    my $details=$result->{details};
-    print "$indent$program: Suite $testsuite->{name} failed preparation - $details\n";
-    $rc=1;
-    next;
-  }
-
-  $result=run_testsuite($testsuite);
-
-  format_testsuite_result(*STDOUT, $result, $indent.$INDENT);
+  my $result=run_testsuites_in_dir(\%config);
 
   $rc=1 if $result->{status} eq 'fail';
-
-  print "\n" if @testsuites > 1;
 }
 
 exit $rc;
@@ -501,6 +574,10 @@ Enable extra debugging output.
 =item B<-n>, B<--dryrun>
 
 Do not run tests.
+
+=item B<-r>, B<--recursive>
+
+Run all testsuites below the given I<DIR>
 
 =item B<-h>, B<--help>
 
