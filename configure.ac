@@ -163,7 +163,7 @@ if test "$USE_MAINTAINER_MODE" = yes; then
 fi
 
 STANDARD_CFLAGS=
-MAINTAINER_CFLAGS="$warning_cflags"
+MAINTAINER_CPPFLAGS="$warning_cflags"
 
 # Externally linked libraries - appear in rasqal-config
 # -Dfoo -Idir
@@ -865,7 +865,7 @@ fi
 
 STANDARD_CFLAGS="$STANDARD_CFLAGS $CFLAGS"
 if test "$USE_MAINTAINER_MODE" = yes; then
-  CFLAGS="$MAINTAINER_CFLAGS $CFLAGS"
+  CPPFLAGS="$MAINTAINER_CPPFLAGS $CPPFLAGS"
 fi
 
 AC_SUBST(RASQAL_EXTERNAL_LIBS)
