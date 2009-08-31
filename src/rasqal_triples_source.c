@@ -60,6 +60,9 @@ RASQAL_EXTERN_C
 void
 rasqal_set_triples_source_factory(rasqal_world* world, void (*register_fn)(rasqal_triples_source_factory *factory), void* user_data)
 {
+  /* for compatibility with old API that does not call this - FIXME Remove V2 */
+  rasqal_world_open(world);
+  
   world->triples_source_factory.user_data=user_data;
   register_fn(&world->triples_source_factory);
 }
