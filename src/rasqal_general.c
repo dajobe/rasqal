@@ -136,7 +136,7 @@ rasqal_world_open(rasqal_world *world)
   if(!world)
     return -1;
     
-  if(world->opened)
+  if(world->opened++)
     return 0; /* not an error */
 
 #ifdef RAPTOR_V2_AVAILABLE
@@ -206,8 +206,6 @@ rasqal_world_open(rasqal_world *world)
   rc = rasqal_init_result_formats(world);
   if(rc)
     return rc;
-
-  world->opened = 1;
 
   return 0;
 }
@@ -441,7 +439,7 @@ rasqal_get_query_language_factory(rasqal_world *world, const char *name,
 {
   rasqal_query_language_factory *factory;
 
-  /* for compatibility with older binaries that do not call it */
+  /* for compatibility with old API that does not call this - FIXME Remove V2 */
   rasqal_world_open(world);
   
   /* return 1st query if no particular one wanted - why? */
@@ -491,7 +489,7 @@ rasqal_languages_enumerate(rasqal_world *world,
   unsigned int i;
   rasqal_query_language_factory *factory;
 
-  /* for compatibility with older binaries that do not call it */
+  /* for compatibility with old API that does not call this - FIXME Remove V2 */
   rasqal_world_open(world);
   
   factory = world->query_languages;
