@@ -814,12 +814,12 @@ rasqal_query_get_all_variable_sequence(rasqal_query* query)
  *
  * Get a variable in the sequence of variables to bind.
  *
- * Return value: a #rasqal_variable pointer or NULL if out of the sequence range
+ * Return value: a #rasqal_variable pointer or NULL if out of range
  **/
 rasqal_variable*
 rasqal_query_get_variable(rasqal_query* query, int idx)
 {
-  if(!query->selects || idx < 0 || idx > query->select_variables_count)
+  if(!query->selects || idx < 0 || idx >= query->select_variables_count)
     return NULL;
   
   return rasqal_variables_table_get(query->vars_table, idx);
