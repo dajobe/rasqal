@@ -145,7 +145,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
 %token ISLITERAL "isLiteral"
 %token SAMETERM "sameTerm"
 /* LAQRS */
-%token EXPLAIN GROUP COUNT AS
+%token EXPLAIN GROUP COUNT SUM AVG MIN MAX AS
 %token DELETE INSERT
 
 
@@ -218,7 +218,8 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
 %type <expr> BuiltInCall RegexExpression FunctionCall
 %type <expr> BrackettedExpression PrimaryExpression
 %type <expr> OrderCondition Filter Constraint SelectExpression
-%type <expr> AggregateExpression CountAggregateExpression
+%type <expr> AggregateExpression CountAggregateExpression SumAggregateExpression
+%type <expr> AvgAggregateExpression MinAggregateExpression MaxAggregateExpression
 
 %type <literal> GraphTerm IRIref BlankNode
 %type <literal> VarOrIRIref
@@ -296,7 +297,8 @@ MultiplicativeExpression UnaryExpression
 BuiltInCall RegexExpression FunctionCall
 BrackettedExpression PrimaryExpression
 OrderCondition Filter Constraint SelectExpression
-AggregateExpression CountAggregateExpression
+AggregateExpression CountAggregateExpression SumAggregateExpression
+AvgAggregateExpression MinAggregateExpression MaxAggregateExpression
 
 %destructor {
   if($$)
@@ -552,7 +554,23 @@ SelectExpression: AggregateExpression
 
 AggregateExpression: CountAggregateExpression
 {
-  $$=$1;
+  $$ = $1;
+}
+| SumAggregateExpression
+{
+  $$ = $1;
+}
+| AvgAggregateExpression
+{
+  $$ = $1;
+}
+| MinAggregateExpression
+{
+  $$ = $1;
+}
+| MaxAggregateExpression
+{
+  $$ = $1;
 }
 ;
 
@@ -584,6 +602,74 @@ CountAggregateExpression: COUNT '(' Expression ')'
     $$=rasqal_new_1op_expression(((rasqal_query*)rq)->world, RASQAL_EXPR_COUNT, vs);
     if(!$$)
       YYERROR_MSG("CountAggregateExpression 2: cannot create expr");
+  }
+}
+;
+
+
+SumAggregateExpression: SUM '(' Expression ')'
+{
+  rasqal_sparql_query_language* sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
+
+  if(!sparql->extended) {
+    sparql_syntax_error((rasqal_query*)rq, "SUM cannot be used with SPARQL");
+    $$ = NULL;
+  } else {
+    $$ = rasqal_new_1op_expression(((rasqal_query*)rq)->world,
+                                   RASQAL_EXPR_SUM, $3);
+    if(!$$)
+      YYERROR_MSG("SumAggregateExpression 1: cannot create expr");
+  }
+}
+;
+
+
+AvgAggregateExpression: AVG '(' Expression ')'
+{
+  rasqal_sparql_query_language* sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
+
+  if(!sparql->extended) {
+    sparql_syntax_error((rasqal_query*)rq, "AVG cannot be used with SPARQL");
+    $$ = NULL;
+  } else {
+    $$ = rasqal_new_1op_expression(((rasqal_query*)rq)->world,
+                                   RASQAL_EXPR_AVG, $3);
+    if(!$$)
+      YYERROR_MSG("AvgAggregateExpression 1: cannot create expr");
+  }
+}
+;
+
+
+MinAggregateExpression: MIN '(' Expression ')'
+{
+  rasqal_sparql_query_language* sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
+
+  if(!sparql->extended) {
+    sparql_syntax_error((rasqal_query*)rq, "MIN cannot be used with SPARQL");
+    $$ = NULL;
+  } else {
+    $$ = rasqal_new_1op_expression(((rasqal_query*)rq)->world,
+                                   RASQAL_EXPR_MIN, $3);
+    if(!$$)
+      YYERROR_MSG("MinAggregateExpression 1: cannot create expr");
+  }
+}
+;
+
+
+MaxAggregateExpression: MAX '(' Expression ')'
+{
+  rasqal_sparql_query_language* sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
+
+  if(!sparql->extended) {
+    sparql_syntax_error((rasqal_query*)rq, "MAX cannot be used with SPARQL");
+    $$ = NULL;
+  } else {
+    $$ = rasqal_new_1op_expression(((rasqal_query*)rq)->world,
+                                   RASQAL_EXPR_MAX, $3);
+    if(!$$)
+      YYERROR_MSG("MaxAggregateExpression 1: cannot create expr");
   }
 }
 ;

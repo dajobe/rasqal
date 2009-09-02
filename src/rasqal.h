@@ -441,6 +441,10 @@ struct rasqal_literal_s {
  * @RASQAL_EXPR_COUNT: Expression for LAQRS select COUNT()
  * @RASQAL_EXPR_VARSTAR: Expression for LAQRS select Variable *
  * @RASQAL_EXPR_SAMETERM: Expression for SPARQL sameTerm
+ * @RASQAL_EXPR_SUM: Expression for LAQRS select SUM()
+ * @RASQAL_EXPR_AVG: Expression for LAQRS select AVG()
+ * @RASQAL_EXPR_MIN: Expression for LAQRS select MIN()
+ * @RASQAL_EXPR_MAX: Expression for LAQRS select MAX()
  * @RASQAL_EXPR_UNKNOWN: Internal
  * @RASQAL_EXPR_LAST: Internal
  *
@@ -490,8 +494,12 @@ typedef enum {
   RASQAL_EXPR_COUNT,
   RASQAL_EXPR_VARSTAR,
   RASQAL_EXPR_SAMETERM,
+  RASQAL_EXPR_SUM,
+  RASQAL_EXPR_AVG,
+  RASQAL_EXPR_MIN,
+  RASQAL_EXPR_MAX,
   /* internal */
-  RASQAL_EXPR_LAST= RASQAL_EXPR_SAMETERM
+  RASQAL_EXPR_LAST= RASQAL_EXPR_MAX
 } rasqal_op;
 
 

@@ -1794,7 +1794,11 @@ static const char* const rasqal_sparql_op_labels[RASQAL_EXPR_LAST+1] = {
   "DESC",  /* GROUP BY DESC */
   "COUNT",
   NULL, /* VARSTAR */
-  "sameTerm"
+  "sameTerm",
+  "SUM",
+  "AVG",
+  "MIN",
+  "MAX"
 };
 
 
@@ -1863,6 +1867,10 @@ rasqal_query_write_sparql_expression(sparql_writer_context *wc,
     case RASQAL_EXPR_GROUP_COND_DESC:
     case RASQAL_EXPR_COUNT:
     case RASQAL_EXPR_SAMETERM:
+    case RASQAL_EXPR_SUM:
+    case RASQAL_EXPR_AVG:
+    case RASQAL_EXPR_MIN:
+    case RASQAL_EXPR_MAX:
       rasqal_query_write_sparql_expression_op(wc, iostr, e);
       raptor_iostream_write_counted_string(iostr, "( ", 2);
       rasqal_query_write_sparql_expression(wc, iostr, e->arg1);

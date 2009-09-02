@@ -2,7 +2,7 @@
  *
  * sparql_lexer.l - Rasqal SPARQL lexer - making tokens for sparql grammar generator
  *
- * Copyright (C) 2004-2008, David Beckett http://www.dajobe.org/
+ * Copyright (C) 2004-2009, David Beckett http://www.dajobe.org/
  * Copyright (C) 2004-2005, University of Bristol, UK http://www.bristol.ac.uk/
  * 
  * This package is Free Software and part of Redland http://librdf.org/
@@ -353,6 +353,10 @@ EXPONENT [eE][+-]?[0-9]+
 [Ee][Xx][Pp][Ll][Aa][Ii][Nn] { return EXPLAIN; }
 [Gg][Rr][Oo][Uu][Pp] { return GROUP; }
 [Cc][Oo][Uu][Nn][Tt] { return COUNT; }
+[Ss][Uu][Mm] { return SUM; }
+[Aa][Vv][Gg] { return AVG; }
+[Mm][Ii][Nn] { return MIN; }
+[Mm][Aa][Xx] { return MAX; }
 [Aa][Ss] { BEGIN(SPID); return AS; }
 [Dd][Ee][Ll][Ee][Tt][Ee]  { return DELETE; }
 [Ii][Nn][Ss][Ee][Rr][Tt]  { return INSERT; }
