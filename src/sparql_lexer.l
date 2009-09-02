@@ -727,7 +727,7 @@ sparql_copy_string_token(rasqal_query* rq, YYSTYPE* lval,
         *d++= '\b';
       else if(c == 't')
         *d++= '\t';
-      else if(c == '\\' || c == delim)
+      else if(c == '\\' || c == '\'' || c == '"')
         *d++=c;
       else if (c == 'u' || c == 'U') {
         int ulen=(c == 'u') ? 4 : 8;
