@@ -30,7 +30,11 @@ count4.rq \
 coverage.rq \
 explain.rq \
 delete.rq \
-insert.rq
+insert.rq \
+avg1.rq \
+max1.rq \
+min1.rq \
+sum1.rq
 
 LAQRS_BAD_TEST_FILES= \
 bad-select-expr.rq
