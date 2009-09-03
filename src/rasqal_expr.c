@@ -2028,7 +2028,11 @@ static const char* const rasqal_op_labels[RASQAL_EXPR_LAST+1]={
   "group desc",
   "count",
   "varstar",
-  "sameTerm"
+  "sameTerm",
+  "sum",
+  "avg",
+  "min",
+  "max"
 };
 
 
