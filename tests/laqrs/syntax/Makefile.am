@@ -2,7 +2,7 @@
 #
 # Makefile.am - automake file for Rasqal syntax LAQRS tests
 #
-# Copyright (C) 2007-2008, David Beckett http://www.dajobe.org/
+# Copyright (C) 2007-2009, David Beckett http://www.dajobe.org/
 # 
 # This package is Free Software and part of Redland http://librdf.org/
 # 
@@ -49,51 +49,36 @@ $(LAQRS_BAD_TEST_FILES)
 build-sparql-parser-test:
 	@(cd $(top_builddir)/src ; $(MAKE) sparql_parser_test)
 
-check-local: check-laqrs-parser check-bad-laqrs
+check-local: build-sparql-parser-test
+	@$(PERL) $(srcdir)/../../improve .
 
-check-laqrs-parser: build-sparql-parser-test
-	@set +e; result=0; \
-	$(ECHO) "Testing legal LAQRS parsing"; \
+get-testsuites-list:
+	@echo "laqrs-parse-good laqrs-parse-bad"
+
+get-testsuite-laqrs-parse-good:
+	@prog=sparql_parser_test; \
+	$(ECHO) '@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .'; \
+	$(ECHO) '@prefix mf:     <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .'; \
+	$(ECHO) '@prefix t:     <http://ns.librdf.org/2009/test-manifest#> .'; \
+	$(ECHO) ' '; \
+	$(ECHO) "<> a mf:Manifest; rdfs:comment \"LAQRS legal parsing\"; mf:entries ("; \
 	for test in $(LAQRS_TEST_FILES); do \
-	  $(ECHO) $(ECHO_N) "Checking $$test $(ECHO_C)"; \
-	  $(top_builddir)/src/sparql_parser_test -i laqrs $(srcdir)/$$test >/dev/null; \
-	  status=$$?; \
-	  if test $$status != 0 -a $$status != 2 ; then \
-	    $(ECHO) FAILED returned status $$status; result=1; \
-	    fails="$$fails $$test"; \
-	  else \
-	    $(ECHO) ok; \
-	  fi; \
+	  comment="laqrs parsing of $$test"; \
+	  $(ECHO) "  [ a t:PositiveTest; mf:name \"$$test\"; rdfs:comment \"$$comment\"; mf:action  \"$(top_builddir)/src/$$prog -i laqrs $(srcdir)/$$test\" ]"; \
 	done; \
-	if test $$result != 0 ; then \
-	  echo "FAILED tests:$$fails"; \
-	fi; \
-	set -e; exit $$result
+	$(ECHO) ")."
 
-check-bad-laqrs: build-sparql-parser-test
-	@set +e; result=0; \
-	$(ECHO) "Testing bad LAQRS fails"; \
+
+get-testsuite-laqrs-parse-bad:
+	@prog=sparql_parser_test; \
+	$(ECHO) '@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .'; \
+	$(ECHO) '@prefix mf:     <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .'; \
+	$(ECHO) '@prefix t:     <http://ns.librdf.org/2009/test-manifest#> .'; \
+	$(ECHO) ' '; \
+	$(ECHO) "<> a mf:Manifest; rdfs:comment \"LAQRS illegal parsing\"; mf:entries ("; \
 	for test in $(LAQRS_BAD_TEST_FILES); do \
-	  $(ECHO) $(ECHO_N) "Checking $$test $(ECHO_C)"; \
-	  $(top_builddir)/src/sparql_parser_test -i laqrs $(srcdir)/$$test >$$name.res 2> $$name.err; \
-	  status=$$?; \
-	  if test $$status -eq 1 ; then \
-	    $(ECHO) "ok"; \
-	  elif test $$status -eq 2; then \
-	    $(ECHO) "FAILED - parsing succeeded with a warning"; result=1; \
-	    fails="$$fails $$test"; \
-	  elif test $$status -eq 0 ; then \
-	    $(ECHO) "FAILED - parsing succeeded but should have failed"; \
-	    fails="$$fails $$test"; \
-	    cat $$name.res; result=1; \
-	  else \
-	    $(ECHO) "FAILED - parsing failed with unknown status $$status"; \
-	    fails="$$fails $$test"; \
-	    cat $$name.res; result=1; \
-	  fi; \
-	  rm -f $$name.res $$name.err ; \
+	  comment="laqrs failing to parse of $$test"; \
+	  $(ECHO) "  [ a t:NegativeTest; mf:name \"$$test\"; rdfs:comment \"$$comment\"; mf:action  \"$(top_builddir)/src/$$prog -i laqrs $(srcdir)/$$test\" ]"; \
 	done; \
-	if test $$result != 0 ; then \
-	  echo "FAILED tests:$$fails"; \
-	fi; \
-	set -e; exit $$result
+	$(ECHO) ")."
+
