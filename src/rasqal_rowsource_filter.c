@@ -95,6 +95,9 @@ rasqal_filter_rowsource_finish(rasqal_rowsource* rowsource, void *user_data)
   if(con->rowsource)
     rasqal_free_rowsource(con->rowsource);
   
+  if(con->expr)
+    rasqal_free_expression(con->expr);
+
   RASQAL_FREE(rasqal_filter_rowsource_context, con);
 
   return 0;
@@ -232,7 +235,7 @@ rasqal_new_filter_rowsource(rasqal_world *world,
     return NULL;
 
   con->rowsource = rowsource;
-  con->expr = expr;
+  con->expr = rasqal_new_expression_from_expression(expr);
 
   return rasqal_new_rowsource_from_handler(world, query,
                                            con,
