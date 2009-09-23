@@ -187,6 +187,9 @@ rasqal_triples_rowsource_finish(rasqal_rowsource* rowsource, void *user_data)
   if(con->triple_meta)
     RASQAL_FREE(rasqal_triple_meta, con->triple_meta);
 
+  if(con->declared_in)
+    RASQAL_FREE(rasqal_declared_in, con->declared_in);
+
   RASQAL_FREE(rasqal_triples_rowsource_context, con);
 
   return 0;
@@ -455,6 +458,22 @@ static const rasqal_rowsource_handler rasqal_triples_rowsource_handler = {
 };
 
 
+/*
+ * rasqal_new_triples_rowsource:
+ * @world: world object
+ * @query: query object
+ * @triples_source: shared triples source
+ * @triples: shared triples sequence
+ * @start_column: start column in triples sequence
+ * @end_column: end column in triples sequence
+ * @declared_in: array marking the triples that declare variables
+ *
+ * INTERNAL - create a new triples rowsource
+ *
+ * NOTE @declared_in becomes owned by the new rowsource
+ *
+ * Return value: new triples rowsource or NULL on failure
+ */
 rasqal_rowsource*
 rasqal_new_triples_rowsource(rasqal_world *world,
                              rasqal_query *query,
@@ -466,12 +485,16 @@ rasqal_new_triples_rowsource(rasqal_world *world,
   rasqal_triples_rowsource_context *con;
   int flags = 0;
 
-  if(!world || !query || !triples_source || !triples)
+  if(!world || !query || !triples_source || !triples) {
+    RASQAL_FREE(rasqal_declared_in, con->declared_in);
     return NULL;
+  }
   
   con = (rasqal_triples_rowsource_context*)RASQAL_CALLOC(rasqal_triples_rowsource_context, 1, sizeof(rasqal_triples_rowsource_context));
-  if(!con)
+  if(!con) {
+    RASQAL_FREE(rasqal_declared_in, con->declared_in);
     return NULL;
+  }
 
   con->triples_source = triples_source;
   con->triples = triples;
