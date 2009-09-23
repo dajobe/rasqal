@@ -142,7 +142,8 @@ rasqal_triples_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
        declared_in[v->offset] == column)
       m->parts = (rasqal_triple_parts)(m->parts | RASQAL_TRIPLE_ORIGIN);
 
-    RASQAL_DEBUG3("triple pattern column %d has parts %d\n", column, m->parts);
+    RASQAL_DEBUG4("triple pattern column %d has parts %s (%d)\n", column,
+                  rasqal_engine_get_parts_string(m->parts), m->parts);
 
     /* exact if there are no variables in the triple parts */
     m->is_exact = 1;

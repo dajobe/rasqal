@@ -1271,6 +1271,10 @@ int rasqal_engine_rowsort_map_add_row(rasqal_map* map, rasqal_row* row);
 raptor_sequence* rasqal_engine_rowsort_map_to_sequence(rasqal_map* map, raptor_sequence* seq);
 int rasqal_engine_rowsort_calculate_order_values(rasqal_query* query, rasqal_row* row);
 
+#ifdef RASQAL_DEBUG
+const char* rasqal_engine_get_parts_string(rasqal_triple_parts parts);
+#endif
+
 /* rasqal_engine_algebra.c */
 
 /* New query engine based on executing over query algebra */

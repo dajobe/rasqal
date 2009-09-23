@@ -460,6 +460,22 @@ rasqal_engine_graph_pattern_order(const void *a, const void *b)
 #endif
 
 
+#ifdef RASQAL_DEBUG
+static const char rasqal_engine_parts_string[16][5] = {
+  /*  0 -  3 */  "----", "S---", "-P--", "SP--",
+  /*  4 -  7 */  "--O-", "S-O-", "-PO-", "SPO-",
+  /*  8 - 11 */  "---G", "S--G", "-P-G", "SP-G",
+  /* 12 - 15 */  "--OG", "S-OG", "-POG", "SPOG",
+};
+
+
+const char*
+rasqal_engine_get_parts_string(rasqal_triple_parts parts)
+{
+  return rasqal_engine_parts_string[(int)parts & RASQAL_TRIPLE_SPOG];
+}
+#endif
+
 /**
  * rasqal_engine_graph_pattern_init:
  * @query_results: query results to execute
@@ -565,8 +581,9 @@ rasqal_engine_graph_pattern_init(rasqal_engine_execution_data* execution_data,
          query->variables_declared_in[v->offset] == i)
         m->parts= (rasqal_triple_parts)(m->parts | RASQAL_TRIPLE_ORIGIN);
 
-      RASQAL_DEBUG4("graph pattern #%d Triple %d has parts %d\n",
-                    gp->gp_index, i, m->parts);
+      RASQAL_DEBUG5("graph pattern #%d Triple %d has parts %s (%d)\n",
+                    gp->gp_index, i, 
+                    rasqal_engine_get_parts_string(m->parts), m->parts);
 
       /* exact if there are no variables in the triple parts */
       m->is_exact = 1;
