@@ -20,7 +20,8 @@
 # 
 
 local_tests=rasqal_order_test$(EXEEXT) rasqal_graph_test$(EXEEXT) \
-rasqal_construct_test$(EXEEXT) rasqal_limit_test$(EXEEXT)
+rasqal_construct_test$(EXEEXT) rasqal_limit_test$(EXEEXT) \
+rasqal_triples_test$(EXEEXT)
 
 EXTRA_PROGRAMS=$(local_tests)
 
@@ -41,6 +42,9 @@ rasqal_construct_test_LDADD = $(top_builddir)/src/librasqal.la
 
 rasqal_limit_test_SOURCES = rasqal_limit_test.c
 rasqal_limit_test_LDADD = $(top_builddir)/src/librasqal.la
+
+rasqal_triples_test_SOURCES = rasqal_triples_test.c
+rasqal_triples_test_LDADD = $(top_builddir)/src/librasqal.la
 
 
 # These are compiled here and used elsewhere for running tests

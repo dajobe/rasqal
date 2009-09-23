@@ -1,0 +1,29 @@
+# DAWG test data basic/data-2.ttl with collections flattened to
+# triples and more readable named bnodes
+#
+@prefix : <http://example.org/ns#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+# :x :list0 () .
+:x  :list0    rdf:nil .
+
+# :x :list1 (1) .
+:x   :list1    _:a1 .
+_:a1 rdf:first 1 .
+_:a1 rdf:rest  rdf:nil .
+
+# :x :list2 (11 22) .
+:x   :list2    _:b1 .
+_:b1 rdf:first 11 .
+_:b1 rdf:rest  _:b2 .
+_:b2 rdf:first 22 .
+_:b2 rdf:rest  rdf:nil .
+
+# :x :list3 (111 222 333) .
+:x   :list3    _:c1 .
+_:c1 rdf:first 111 .
+_:c1 rdf:rest  _:c2 .
+_:c2 rdf:first 222 .
+_:c2 rdf:rest  _:c3 .
+_:c3 rdf:first 333 .
+_:c3 rdf:rest  rdf:nil .
