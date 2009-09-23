@@ -90,6 +90,7 @@ rasqal_algebra_basic_algebra_node_to_rowsource(rasqal_engine_algebra_data* execu
   if(!declared_in)
     return NULL;
 
+  /* declared_in becomes owned by the new rowsource */
   for(i = 0; i < size; i++)
     declared_in[i] = query->variables_declared_in[i];
 
