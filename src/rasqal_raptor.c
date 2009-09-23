@@ -807,9 +807,6 @@ rasqal_raptor_init_triples_match(rasqal_triples_match* rtm,
     rtmc->cur = rtmc->cur->next;
   }
   
-    
-  RASQAL_DEBUG1("rasqal_init_triples_match done\n");
-
   return 0;
 }
 
