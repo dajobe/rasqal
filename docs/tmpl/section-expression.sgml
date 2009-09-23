@@ -71,6 +71,10 @@ constants and #rasqal_variable values bound in some
 @RASQAL_EXPR_COUNT: 
 @RASQAL_EXPR_VARSTAR: 
 @RASQAL_EXPR_SAMETERM: 
+@RASQAL_EXPR_SUM: 
+@RASQAL_EXPR_AVG: 
+@RASQAL_EXPR_MIN: 
+@RASQAL_EXPR_MAX: 
 @RASQAL_EXPR_LAST: 
 
 <!-- ##### ENUM rasqal_compare_flags ##### -->
