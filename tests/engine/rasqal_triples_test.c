@@ -43,6 +43,22 @@
 #define DATA_FILE_NAME (const unsigned char*)"triples.ttl"
 
 #ifdef RASQAL_QUERY_SPARQL
+/*
+DAWG basic/list-4.rql test flattened to show triple patterns not
+just collections but triples, bnode renamed to be more readable.
+The triple patterns are not reordered so execution should be identical.
+
+Expected answer is 1 row:
+{
+  p = <http://example.org/ns#list2>
+  v = "11"^^<http://www.w3.org/2001/XMLSchema#integer>
+  w = "22"^^<http://www.w3.org/2001/XMLSchema#integer>
+}
+
+Original query:
+ SELECT ?p ?v ?w
+ { :x ?p (?v ?w) . }
+*/
 #define QUERY_LANGUAGE "sparql"
 #define QUERY_FORMAT " \
 PREFIX : <http://example.org/ns#> \
