@@ -397,12 +397,12 @@ rasqal_query_triples_build_declared_in_internal(rasqal_query* query,
 /**
  * rasqal_query_triples_build_declared_in:
  * @query: the #rasqal_query to find the variables in
- * @size:
+ * @size: number of variables / size of return declared_in array
  * @start_column: first column in triples array
  * @end_column: last column in triples array
  *
  * INTERNAL - Mark where variables are first declared in a graph_pattern tree walk
- * 
+ * Return value: array of integers (column numbers) marking in which triple pattern a variable is first bound
  **/
 int*
 rasqal_query_triples_build_declared_in(rasqal_query* query,
