@@ -734,8 +734,6 @@ main(int argc, char *argv[])
     raptor_free_uri(p_uri);
 #endif
 
-  if(declared_in)
-    RASQAL_FREE(intarray, declared_in);
   if(triples_source)
     rasqal_free_triples_source(triples_source);
   if(rowsource)
