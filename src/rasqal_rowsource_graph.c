@@ -144,9 +144,6 @@ rasqal_graph_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
   con->dg_offset = -1;
   con->finished = 0;
 
-  if(con->var)
-    rasqal_rowsource_add_variable(rowsource, con->var);
-
   return rasqal_graph_next_dg(con);
 }
 
@@ -180,8 +177,10 @@ rasqal_graph_rowsource_ensure_variables(rasqal_rowsource* rowsource,
   rasqal_rowsource_ensure_variables(con->rowsource);
 
   rowsource->size = 0;
+  if(con->var)
+    rasqal_rowsource_add_variable(rowsource, con->var);
   rasqal_rowsource_copy_variables(rowsource, con->rowsource);
-  
+
   return 0;
 }
 
