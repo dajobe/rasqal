@@ -140,8 +140,8 @@ rasqal_graph_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
 
   con = (rasqal_graph_rowsource_context*)user_data;
 
-  con->offset = -1;
-  con->dg_offset = 0;
+  con->offset = 0;
+  con->dg_offset = -1;
   con->finished = 0;
 
   if(con->var)
@@ -222,7 +222,7 @@ rasqal_graph_rowsource_reset(rasqal_rowsource* rowsource, void *user_data)
   rasqal_graph_rowsource_context *con;
   con = (rasqal_graph_rowsource_context*)user_data;
 
-  con->dg_offset = 0;
+  con->dg_offset = -1;
   con->offset = 0;
   
   return rasqal_rowsource_reset(con->rowsource);
