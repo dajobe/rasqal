@@ -282,7 +282,7 @@ rasqal_triples_rowsource_get_next_row(rasqal_rowsource* rowsource,
           
           RASQAL_DEBUG1("CHECKING ALL TRIPLE PATTERNS FINISHED\n");
 
-          for(i = con->start_column; i < con->end_column; i++) {
+          for(i = con->start_column; i <= con->end_column; i++) {
             rasqal_triple_meta *m2;
             m2 = &con->triple_meta[con->column - con->start_column];
             if(!rasqal_triples_match_is_end(m2->triples_match)) {
