@@ -81,6 +81,9 @@ typedef struct
   
   /* preserve bindings when all rows are finished - for optional mostly */
   int preserve_on_all_finished;
+
+  /* GRAPH origin to use */
+  rasqal_literal *origin;
 } rasqal_triples_rowsource_context;
 
 
@@ -140,11 +143,6 @@ rasqal_triples_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
        declared_in[v->offset] == column)
       m->parts = (rasqal_triple_parts)(m->parts | RASQAL_TRIPLE_OBJECT);
 
-    if(t->origin &&
-       (v = rasqal_literal_as_variable(t->origin)) &&
-       declared_in[v->offset] == column)
-      m->parts = (rasqal_triple_parts)(m->parts | RASQAL_TRIPLE_ORIGIN);
-
     RASQAL_DEBUG4("triple pattern column %d has parts %s (%d)\n", column,
                   rasqal_engine_get_parts_string(m->parts), m->parts);
 
@@ -193,6 +191,9 @@ rasqal_triples_rowsource_finish(rasqal_rowsource* rowsource, void *user_data)
 
   if(con->declared_in)
     RASQAL_FREE(rasqal_declared_in, con->declared_in);
+
+  if(con->origin)
+    rasqal_free_literal(con->origin);
 
   RASQAL_FREE(rasqal_triples_rowsource_context, con);
 
@@ -447,6 +448,31 @@ rasqal_triples_rowsource_set_preserve(rasqal_rowsource* rowsource,
 }
 
 
+static int
+rasqal_triples_rowsource_set_origin(rasqal_rowsource *rowsource,
+                                    void *user_data,
+                                    rasqal_literal *origin)
+{
+  rasqal_triples_rowsource_context *con;
+  int column;
+
+  con = (rasqal_triples_rowsource_context*)user_data;
+  if(con->origin)
+    rasqal_free_literal(con->origin);
+  con->origin = rasqal_new_literal_from_literal(origin);
+
+  for(column = con->start_column; column <= con->end_column; column++) {
+    rasqal_triple *t;
+    t = (rasqal_triple*)raptor_sequence_get_at(con->triples, column);
+    if(t->origin)
+      rasqal_free_literal(t->origin);
+    t->origin = rasqal_new_literal_from_literal(con->origin);
+  }
+  
+  return 0;
+}
+
+
 static const rasqal_rowsource_handler rasqal_triples_rowsource_handler = {
   /* .version = */ 1,
   "triple pattern",
@@ -458,7 +484,7 @@ static const rasqal_rowsource_handler rasqal_triples_rowsource_handler = {
   /* .reset = */ rasqal_triples_rowsource_reset,
   /* .set_preserve = */ rasqal_triples_rowsource_set_preserve,
   /* .get_inner_rowsource = */ NULL,
-  /* .set_origin = */ NULL,
+  /* .set_origin = */ rasqal_triples_rowsource_set_origin
 };
 
 
