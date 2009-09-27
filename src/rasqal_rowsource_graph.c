@@ -97,11 +97,11 @@ rasqal_graph_next_dg(rasqal_graph_rowsource_context *con)
 
   con->finished = 0;
 
-  for(;
-      (dg = rasqal_query_get_data_graph(query, con->dg_offset));
-      con->dg_offset++) {
+  while(1) {
     rasqal_literal *o;
-    
+
+    con->dg_offset++;
+    dg = rasqal_query_get_data_graph(query, con->dg_offset);
     if(!dg || !dg->name_uri) {
       con->finished = 1;
       break;
@@ -116,6 +116,9 @@ rasqal_graph_next_dg(rasqal_graph_rowsource_context *con)
     o = rasqal_new_uri_literal(query->world, raptor_uri_copy(dg->name_uri));
 #endif
     rasqal_rowsource_set_origin(con->rowsource, o);
+
+    RASQAL_DEBUG2("Using data graph URI literal <%s>\n",
+                  rasqal_literal_as_string(o));
     break;
   }
 
@@ -130,7 +133,7 @@ rasqal_graph_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
 
   con = (rasqal_graph_rowsource_context*)user_data;
 
-  con->offset = 0;
+  con->offset = -1;
   con->dg_offset = 0;
   con->finished = 0;
 
