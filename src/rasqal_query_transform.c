@@ -2,7 +2,7 @@
  *
  * rasqal_query_transform.c - Rasqal query transformations
  *
- * Copyright (C) 2004-2008, David Beckett http://www.dajobe.org/
+ * Copyright (C) 2004-2009, David Beckett http://www.dajobe.org/
  * Copyright (C) 2004-2005, University of Bristol, UK http://www.bristol.ac.uk/
  * 
  * This package is Free Software and part of Redland http://librdf.org/
@@ -50,6 +50,7 @@
 
 /* prototype for later */
 static int rasqal_query_build_mentioned_in(rasqal_query* query);
+static void rasqal_query_graph_build_mentioned_in_internal(rasqal_query* query, short *mentioned_in, rasqal_literal *origin);
 
 
 int
@@ -1429,17 +1430,35 @@ rasqal_query_graph_pattern_build_mentioned_in(rasqal_query* query,
     }
   }
 
-  /* FIXME - need to walk FILTER and GRAPH expressions too */
-  
-  if(!gp->triples)
-    return 0;
 
-  offset = (gp->gp_index) * width;
   /* write to the 1D array for this GP */
-  rasqal_query_triples_build_mentioned_in_internal(query, 
-                                                   &mentioned_in[offset],
-                                                   gp->start_column,
-                                                   gp->end_column);
+  offset = (gp->gp_index) * width;
+  switch(gp->op) {
+    case RASQAL_GRAPH_PATTERN_OPERATOR_BASIC:
+      rasqal_query_triples_build_mentioned_in_internal(query, 
+                                                       &mentioned_in[offset],
+                                                       gp->start_column,
+                                                       gp->end_column);
+      break;
+
+    case RASQAL_GRAPH_PATTERN_OPERATOR_GRAPH:
+      rasqal_query_graph_build_mentioned_in_internal(query, 
+                                                     &mentioned_in[offset],
+                                                     gp->origin);
+      break;
+      
+    case RASQAL_GRAPH_PATTERN_OPERATOR_FILTER:
+      RASQAL_DEBUG2("Cannot build variable mention_in for %s GP\n",
+                    rasqal_graph_pattern_operator_as_string(gp->op));
+      break;
+
+    case RASQAL_GRAPH_PATTERN_OPERATOR_OPTIONAL:
+    case RASQAL_GRAPH_PATTERN_OPERATOR_UNION:
+    case RASQAL_GRAPH_PATTERN_OPERATOR_GROUP:
+    case RASQAL_GRAPH_PATTERN_OPERATOR_UNKNOWN:
+      break;
+  }
+  
   return 0;
 }
 
@@ -1508,4 +1527,23 @@ rasqal_query_build_mentioned_in(rasqal_query* query)
   return rc;
 }
 
+
+/**
+ * rasqal_query_graph_build_mentioned_in_internal:
+ * @query: the #rasqal_query to find the variables in
+ * @mentioned_in: 1D array of size num. variables to write mentioned_in
+ *
+ * INTERNAL - Mark variables mentioned in a GRAPH graph pattern
+ * 
+ **/
+static void
+rasqal_query_graph_build_mentioned_in_internal(rasqal_query* query,
+                                               short *mentioned_in,
+                                               rasqal_literal *origin)
+{
+  rasqal_variable *v;
+  
+  if((v = rasqal_literal_as_variable(origin)))
+    mentioned_in[v->offset] = 1;
+}
 
