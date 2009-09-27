@@ -666,7 +666,7 @@ main(int argc, char *argv[])
 
   rowsource = rasqal_new_triples_rowsource(world, query, triples_source,
                                            triples, start_column, end_column,
-                                           declared_in);
+                                           declared_in, size);
   if(!rowsource) {
     fprintf(stderr, "%s: failed to create triples rowsource\n", program);
     failures++;
