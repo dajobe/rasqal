@@ -306,14 +306,11 @@ rasqal_join_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
       }
 
       rasqal_rowsource_reset(con->right);
-      con->state = READ_RIGHT;
     }
 
 
-    /* state is always READ_RIGHT at this point */
-
     right_row = rasqal_rowsource_read_row(con->right);
-    if(!right_row) {
+    if(!right_row && con->state == READ_RIGHT) {
       /* right table done, restart left, continue looping */
       con->state = INIT_RIGHT;
       con->left_row = rasqal_rowsource_read_row(con->left);
@@ -321,12 +318,17 @@ rasqal_join_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
     }
 
 
-    /* now have both left and right rows so compute compatibility */
-    compatible = rasqal_row_compatible_check(con->rc_map,
-                                             con->left_row, right_row);
+    /* state is always READ_RIGHT at this point */
+    con->state = READ_RIGHT;
+
+    /* now may have both left and right rows so compute compatibility */
+    if(right_row) {
+      compatible = rasqal_row_compatible_check(con->rc_map,
+                                               con->left_row, right_row);
 #ifdef RASQAL_DEBUG
-    fprintf(stderr, "join rows compatible: %s\n", compatible ? "YES" : "NO");
+      fprintf(stderr, "join rows compatible: %s\n", compatible ? "YES" : "NO");
 #endif
+    }
 
 
     /* Check join expression if present */
