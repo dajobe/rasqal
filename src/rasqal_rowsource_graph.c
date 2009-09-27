@@ -199,15 +199,16 @@ rasqal_graph_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
   
   while(1) {
     row = rasqal_rowsource_read_row(con->rowsource);
-    if(!row) {
-      if(rasqal_graph_next_dg(con)) {
-        con->finished = 1;
-        break;
-      }
-      if(rasqal_rowsource_reset(con->rowsource)) {
-        con->finished = 1;
-        break;
-      }
+    if(row)
+      break;
+    
+    if(rasqal_graph_next_dg(con)) {
+      con->finished = 1;
+      break;
+    }
+    if(rasqal_rowsource_reset(con->rowsource)) {
+      con->finished = 1;
+      break;
     }
   }
   
