@@ -85,7 +85,7 @@ rasqal_algebra_basic_algebra_node_to_rowsource(rasqal_engine_algebra_data* execu
   int *declared_in;
   int i;
   
-  size = rasqal_variables_table_get_named_variables_count(query->vars_table);
+  size = rasqal_variables_table_get_total_variables_count(query->vars_table);
   declared_in = (int*)RASQAL_CALLOC(intarray, size+1, sizeof(int));
   if(!declared_in)
     return NULL;
@@ -98,7 +98,7 @@ rasqal_algebra_basic_algebra_node_to_rowsource(rasqal_engine_algebra_data* execu
                                       execution_data->triples_source,
                                       node->triples,
                                       node->start_column, node->end_column,
-                                      declared_in);
+                                      declared_in, size);
 }
 
 

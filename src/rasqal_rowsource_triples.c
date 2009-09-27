@@ -76,6 +76,9 @@ typedef struct
   /* declared in array index[index into vars table] = column */
   int *declared_in;
 
+  /* number of variables in declared_in[] array - may be more than 'size' */
+  int declared_in_size;
+  
   /* preserve bindings when all rows are finished - for optional mostly */
   int preserve_on_all_finished;
 } rasqal_triples_rowsource_context;
@@ -93,8 +96,8 @@ rasqal_triples_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
   
   con = (rasqal_triples_rowsource_context*)user_data;
 
-  size = rasqal_variables_table_get_named_variables_count(rowsource->vars_table);
   declared_in = con->declared_in;
+  size = con->declared_in_size;
   
   /* Construct the ordered projection of the variables set by these triples */
   con->size = 0;
@@ -481,7 +484,7 @@ rasqal_new_triples_rowsource(rasqal_world *world,
                              rasqal_triples_source* triples_source,
                              raptor_sequence* triples,
                              int start_column, int end_column,
-                             int *declared_in)
+                             int *declared_in, int declared_in_size)
 {
   rasqal_triples_rowsource_context *con;
   int flags = 0;
@@ -503,6 +506,7 @@ rasqal_new_triples_rowsource(rasqal_world *world,
   con->end_column = end_column;
   con->column = -1;
   con->declared_in = declared_in;
+  con->declared_in_size = declared_in_size;
 
   con->triples_count = con->end_column - con->start_column + 1;
 

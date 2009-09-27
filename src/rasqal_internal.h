@@ -508,7 +508,7 @@ rasqal_rowsource* rasqal_new_rowsequence_rowsource(rasqal_world *world, rasqal_q
 rasqal_rowsource* rasqal_new_sort_rowsource(rasqal_world *world, rasqal_query *query, rasqal_rowsource *rowsource, raptor_sequence *seq);
 
 /* rasqal_rowsource_triples.c */
-rasqal_rowsource* rasqal_new_triples_rowsource(rasqal_world *world, rasqal_query* query, rasqal_triples_source* triples_source, raptor_sequence* triples, int start_column, int end_column, int *declared_in);
+rasqal_rowsource* rasqal_new_triples_rowsource(rasqal_world *world, rasqal_query* query, rasqal_triples_source* triples_source, raptor_sequence* triples, int start_column, int end_column, int *declared_in, int declared_in_size);
 
 /* rasqal_rowsource_union.c */
 rasqal_rowsource* rasqal_new_union_rowsource(rasqal_world *world, rasqal_query* query, rasqal_rowsource* left, rasqal_rowsource* right);
