@@ -118,10 +118,9 @@ rasqal_graph_next_dg(rasqal_graph_rowsource_context *con)
     if(o) {
       rasqal_rowsource_set_origin(con->rowsource, o);
 
-      if(con->var)
-        rasqal_variable_set_value(con->var,
-                                  rasqal_new_literal_from_literal(o));
-
+      rasqal_variable_set_value(con->var,
+                                rasqal_new_literal_from_literal(o));
+      
       RASQAL_DEBUG2("Using data graph URI literal <%s>\n",
                     rasqal_literal_as_string(o));
     }
@@ -157,8 +156,7 @@ rasqal_graph_rowsource_finish(rasqal_rowsource* rowsource, void *user_data)
   if(con->rowsource)
     rasqal_free_rowsource(con->rowsource);
   
-  if(con->var)
-    rasqal_variable_set_value(con->var, NULL);
+  rasqal_variable_set_value(con->var, NULL);
 
   RASQAL_FREE(rasqal_graph_rowsource_context, con);
 
@@ -178,8 +176,7 @@ rasqal_graph_rowsource_ensure_variables(rasqal_rowsource* rowsource,
 
   rowsource->size = 0;
   /* Put GRAPH variable first in result row */
-  if(con->var)
-    rasqal_rowsource_add_variable(rowsource, con->var);
+  rasqal_rowsource_add_variable(rowsource, con->var);
   rasqal_rowsource_copy_variables(rowsource, con->rowsource);
 
   return 0;
@@ -212,8 +209,8 @@ rasqal_graph_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
     }
   }
 
-  /* If a row is returned and there is a GRAPH variable */
-  if(row && con->var) {
+  /* If a row is returned, put the GRAPH variable value as first literal */
+  if(row) {
     rasqal_row* nrow;
     int i;
     
