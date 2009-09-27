@@ -177,6 +177,7 @@ rasqal_graph_rowsource_ensure_variables(rasqal_rowsource* rowsource,
   rasqal_rowsource_ensure_variables(con->rowsource);
 
   rowsource->size = 0;
+  /* Put GRAPH variable first in result row */
   if(con->var)
     rasqal_rowsource_add_variable(rowsource, con->var);
   rasqal_rowsource_copy_variables(rowsource, con->rowsource);
@@ -208,6 +209,28 @@ rasqal_graph_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
     if(rasqal_rowsource_reset(con->rowsource)) {
       con->finished = 1;
       break;
+    }
+  }
+
+  /* If a row is returned and there is a GRAPH variable */
+  if(row && con->var) {
+    rasqal_row* nrow;
+    int i;
+    
+    nrow = rasqal_new_row_for_size(rowsource->size + 1);
+    if(!nrow) {
+      rasqal_free_row(row);
+      row = NULL;
+    } else {
+      nrow->rowsource = rowsource;
+      nrow->offset = row->offset;
+      
+      /* Put GRAPH variable value (or NULL) first in result row */
+      nrow->values[0] = rasqal_new_literal_from_literal(con->var->value);
+      for(i = 0; i < rowsource->size; i++)
+        nrow->values[i+1] = rasqal_new_literal_from_literal(row->values[i]);
+      rasqal_free_row(row);
+      row = nrow;
     }
   }
   
