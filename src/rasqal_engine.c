@@ -336,16 +336,14 @@ rasqal_engine_triple_graph_pattern_get_next_match(rasqal_engine_execution_data* 
       int parts;
 
       if(!m->triples_match) {
-        /* Column has no triplesMatch so create a new query */
+        /* Column has no triples match so create a new query */
         m->triples_match = rasqal_new_triples_match(execution_data->query,
                                                     execution_data->triples_source,
                                                     m, t);
         if(!m->triples_match) {
-          rasqal_log_error_simple(query->world, RAPTOR_LOG_LEVEL_ERROR,
-                                  &query->locator,
-                                  "Failed to make a triple match for column%d",
-                                  gp_data->column);
-          /* failed to match */
+          /* triples matching setup failed - matching state is unknown */
+          RASQAL_DEBUG2("Failed to make a triple match for column %d\n",
+                        gp_data->column);
           gp_data->column--;
           rc= -1;
           return rc;

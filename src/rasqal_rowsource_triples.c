@@ -244,11 +244,9 @@ rasqal_triples_rowsource_get_next_row(rasqal_rowsource* rowsource,
                                                     con->triples_source,
                                                     m, t);
         if(!m->triples_match) {
-          rasqal_log_error_simple(rowsource->world, RAPTOR_LOG_LEVEL_ERROR,
-                                  &query->locator,
-                                  "Failed to make a triple match for column%d",
-                                  con->column);
-          /* failed to match */
+          /* triples matching setup failed - matching state is unknown */
+          RASQAL_DEBUG2("Failed to make a triple match for column %d\n",
+                        con->column);
           con->column--;
           error = RASQAL_ENGINE_FAILED;
           goto done;
