@@ -308,61 +308,60 @@ rasqal_engine_triple_graph_pattern_get_next_match(rasqal_engine_execution_data* 
 
     rc = 1;
 
+    if(!m->triples_match) {
+      /* Column has no triples match so create a new query */
+      m->triples_match = rasqal_new_triples_match(execution_data->query,
+                                                  execution_data->triples_source,
+                                                  m, t);
       if(!m->triples_match) {
-        /* Column has no triples match so create a new query */
-        m->triples_match = rasqal_new_triples_match(execution_data->query,
-                                                    execution_data->triples_source,
-                                                    m, t);
-        if(!m->triples_match) {
-          /* triples matching setup failed - matching state is unknown */
-          RASQAL_DEBUG2("Failed to make a triple match for column %d\n",
-                        gp_data->column);
-          gp_data->column--;
-          rc= -1;
-          return rc;
-        }
-        RASQAL_DEBUG2("made new triplesMatch for column %d\n", gp_data->column);
-      }
-
-
-      if(rasqal_triples_match_is_end(m->triples_match)) {
-        int resets = 0;
-
-        RASQAL_DEBUG2("end of pattern triplesMatch for column %d\n",
+        /* triples matching setup failed - matching state is unknown */
+        RASQAL_DEBUG2("Failed to make a triple match for column %d\n",
                       gp_data->column);
-        m->executed = 1;
-
-        resets = rasqal_reset_triple_meta(m);
-        execution_data->new_bindings_count-= resets;
-        if(execution_data->new_bindings_count < 0)
-          execution_data->new_bindings_count = 0;
-
         gp_data->column--;
-        continue;
+        rc= -1;
+        return rc;
       }
+      RASQAL_DEBUG2("made new triplesMatch for column %d\n", gp_data->column);
+    }
 
-      if(m->parts) {
-        parts = rasqal_triples_match_bind_match(m->triples_match, m->bindings,
-                                                m->parts);
-        RASQAL_DEBUG3("bind_match for column %d returned parts %d\n",
-                      gp_data->column, parts);
-        if(!parts)
-          rc = 0;
-        if(parts & RASQAL_TRIPLE_SUBJECT)
-          execution_data->new_bindings_count++;
-        if(parts & RASQAL_TRIPLE_PREDICATE)
-          execution_data->new_bindings_count++;
-        if(parts & RASQAL_TRIPLE_OBJECT)
-          execution_data->new_bindings_count++;
-        if(parts & RASQAL_TRIPLE_ORIGIN)
-          execution_data->new_bindings_count++;
-      } else {
-        RASQAL_DEBUG2("Nothing to bind_match for column %d\n", gp_data->column);
-      }
 
-      rasqal_triples_match_next_match(m->triples_match);
-      if(!rc)
-        continue;
+    if(rasqal_triples_match_is_end(m->triples_match)) {
+      int resets = 0;
+      
+      RASQAL_DEBUG2("end of pattern triplesMatch for column %d\n",
+                    gp_data->column);
+
+      resets = rasqal_reset_triple_meta(m);
+      execution_data->new_bindings_count-= resets;
+      if(execution_data->new_bindings_count < 0)
+        execution_data->new_bindings_count = 0;
+      
+      gp_data->column--;
+      continue;
+    }
+
+    if(m->parts) {
+      parts = rasqal_triples_match_bind_match(m->triples_match, m->bindings,
+                                              m->parts);
+      RASQAL_DEBUG3("bind_match for column %d returned parts %d\n",
+                    gp_data->column, parts);
+      if(!parts)
+        rc = 0;
+      if(parts & RASQAL_TRIPLE_SUBJECT)
+        execution_data->new_bindings_count++;
+      if(parts & RASQAL_TRIPLE_PREDICATE)
+        execution_data->new_bindings_count++;
+      if(parts & RASQAL_TRIPLE_OBJECT)
+        execution_data->new_bindings_count++;
+      if(parts & RASQAL_TRIPLE_ORIGIN)
+        execution_data->new_bindings_count++;
+    } else {
+      RASQAL_DEBUG2("Nothing to bind_match for column %d\n", gp_data->column);
+    }
+
+    rasqal_triples_match_next_match(m->triples_match);
+    if(!rc)
+      continue;
 
     
     if(gp_data->column == gp->end_column) {
