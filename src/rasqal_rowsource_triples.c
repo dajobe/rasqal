@@ -142,13 +142,6 @@ rasqal_triples_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
     RASQAL_DEBUG4("triple pattern column %d has parts %s (%d)\n", column,
                   rasqal_engine_get_parts_string(m->parts), m->parts);
 
-    /* exact if there are no variables in the triple parts */
-    m->is_exact = 1;
-    if(rasqal_literal_as_variable(t->predicate) ||
-       rasqal_literal_as_variable(t->subject) ||
-       rasqal_literal_as_variable(t->object))
-      m->is_exact = 0;
-
   }
   
   return rc;
@@ -207,6 +200,7 @@ rasqal_triples_rowsource_get_next_row(rasqal_rowsource* rowsource,
   while(con->column >= con->start_column) {
     rasqal_triple_meta *m;
     rasqal_triple *t;
+    int parts;
 
     m = &con->triple_meta[con->column - con->start_column];
     t = (rasqal_triple*)raptor_sequence_get_at(con->triples, con->column);
@@ -220,23 +214,7 @@ rasqal_triples_rowsource_get_next_row(rasqal_rowsource* rowsource,
       continue;
     }
       
-    if(m->is_exact) {
-      /* exact triple match wanted */
-
-      if(!rasqal_triples_source_triple_present(con->triples_source, t)) {
-        /* failed */
-        RASQAL_DEBUG2("exact match failed for column %d\n", con->column);
-        con->column--;
-      } else {
-        RASQAL_DEBUG2("exact match OK for column %d\n", con->column);
-      }
-
-      RASQAL_DEBUG2("end of exact triples match for column %d\n", con->column);
-      m->executed = 1;
-      
-    } else {
       /* triple pattern match wanted */
-      int parts;
 
       if(!m->triples_match) {
         /* Column has no triples match so create a new query */
@@ -304,16 +282,9 @@ rasqal_triples_rowsource_get_next_row(rasqal_rowsource* rowsource,
       if(error == RASQAL_ENGINE_FINISHED)
         continue;
 
-    }
     
     if(con->column == con->end_column) {
-      /* Done all conjunctions */ 
-      
-      /* exact match, so column must have ended */
-      if(m->is_exact)
-        con->column--;
-
-      /* return with result */
+      /* Done all conjunctions - return with result */
       error = RASQAL_ENGINE_OK;
       goto done;
     } else if(con->column >= con->start_column)

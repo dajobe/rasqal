@@ -366,13 +366,7 @@ rasqal_engine_triple_graph_pattern_get_next_match(rasqal_engine_execution_data* 
 
     
     if(gp_data->column == gp->end_column) {
-      /* Done all conjunctions */ 
-      
-      /* exact match, so column must have ended */
-      if(m->is_exact)
-        gp_data->column--;
-
-      /* return with result (rc is 1) */
+      /* Done all conjunctions - return with result (rc is 1) */
       return rc;
     } else if (gp_data->column >= gp->start_column)
       gp_data->column++;
@@ -546,14 +540,6 @@ rasqal_engine_graph_pattern_init(rasqal_engine_execution_data* execution_data,
       RASQAL_DEBUG5("graph pattern #%d Triple %d has parts %s (%d)\n",
                     gp->gp_index, i, 
                     rasqal_engine_get_parts_string(m->parts), m->parts);
-
-      /* exact if there are no variables in the triple parts */
-      m->is_exact = 1;
-      if(rasqal_literal_as_variable(t->predicate) ||
-         rasqal_literal_as_variable(t->subject) ||
-         rasqal_literal_as_variable(t->object))
-        m->is_exact = 0;
-
     }
 
   }

@@ -1207,8 +1207,8 @@ typedef struct rasqal_triples_match_s rasqal_triples_match;
  * @triples_match: The matcher that is setting these bindings.
  * @context: Context data used by the matcher.
  * @parts: Bitmask of #rasqal_triple_parts flags describing the parts of the triple pattern that will bind to variables.  There may also be variables mentioned that are bound in other triple patterns even if @parts is 0.
- * @is_exact: non-0 if all parts of the triple pattern are constant literals (not variables).
- * @executed: non-0 if this triple pattern has been fully executed
+ * @is_exact: unused
+ * @executed: unused
  *
  * Metadata for triple pattern matching for one triple pattern.
  */
@@ -1222,10 +1222,8 @@ typedef struct {
 
   rasqal_triple_parts parts;
 
-  /* non-0 if the associated triple pattern contains no variables */
   int is_exact;
 
-  /* non-0 if the triple pattern has been fully executed */
   int executed;
 } rasqal_triple_meta;
 
