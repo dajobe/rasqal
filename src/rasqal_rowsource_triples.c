@@ -207,80 +207,70 @@ rasqal_triples_rowsource_get_next_row(rasqal_rowsource* rowsource,
 
     error = RASQAL_ENGINE_OK;
 
-    if(m->executed) {
-      RASQAL_DEBUG2("triples match already executed in column %d\n",
+    if(!m->triples_match) {
+      /* Column has no triples match so create a new query */
+      m->triples_match = rasqal_new_triples_match(query,
+                                                  con->triples_source,
+                                                  m, t);
+      if(!m->triples_match) {
+        /* triples matching setup failed - matching state is unknown */
+        RASQAL_DEBUG2("Failed to make a triple match for column %d\n",
+                      con->column);
+        con->column--;
+        error = RASQAL_ENGINE_FAILED;
+        goto done;
+      }
+      RASQAL_DEBUG2("made new triples match for column %d\n", con->column);
+    }
+
+
+    if(rasqal_triples_match_is_end(m->triples_match)) {
+      RASQAL_DEBUG2("end of pattern triples match for column %d\n",
                     con->column);
+
+      if(con->preserve_on_all_finished && 
+         con->column == con->end_column) {
+        int is_finished = 1;
+        int i;
+          
+        RASQAL_DEBUG1("CHECKING ALL TRIPLE PATTERNS FINISHED\n");
+
+        for(i = con->start_column; i <= con->end_column; i++) {
+          rasqal_triple_meta *m2;
+          m2 = &con->triple_meta[con->column - con->start_column];
+          if(!rasqal_triples_match_is_end(m2->triples_match)) {
+            is_finished = 0;
+            break;
+          }
+        }
+        if(is_finished) {
+          RASQAL_DEBUG1("end of all pattern triples matches\n");
+          con->column--;
+          error = RASQAL_ENGINE_FINISHED;
+          goto done;
+        }
+      }
+
+      rasqal_reset_triple_meta(m);
+
       con->column--;
       continue;
     }
-      
-      /* triple pattern match wanted */
 
-      if(!m->triples_match) {
-        /* Column has no triples match so create a new query */
-        m->triples_match = rasqal_new_triples_match(query,
-                                                    con->triples_source,
-                                                    m, t);
-        if(!m->triples_match) {
-          /* triples matching setup failed - matching state is unknown */
-          RASQAL_DEBUG2("Failed to make a triple match for column %d\n",
-                        con->column);
-          con->column--;
-          error = RASQAL_ENGINE_FAILED;
-          goto done;
-        }
-        RASQAL_DEBUG2("made new triples match for column %d\n", con->column);
-      }
+    if(m->parts) {
+      parts = rasqal_triples_match_bind_match(m->triples_match, m->bindings,
+                                              m->parts);
+      RASQAL_DEBUG3("bind_match for column %d returned parts %d\n",
+                    con->column, parts);
+      if(!parts)
+        error = RASQAL_ENGINE_FINISHED;
+    } else {
+      RASQAL_DEBUG2("Nothing to bind_match for column %d\n", con->column);
+    }
 
-
-      if(rasqal_triples_match_is_end(m->triples_match)) {
-        RASQAL_DEBUG2("end of pattern triples match for column %d\n",
-                      con->column);
-        m->executed = 1;
-
-        if(con->preserve_on_all_finished && 
-           con->column == con->end_column) {
-          int is_finished = 1;
-          int i;
-          
-          RASQAL_DEBUG1("CHECKING ALL TRIPLE PATTERNS FINISHED\n");
-
-          for(i = con->start_column; i <= con->end_column; i++) {
-            rasqal_triple_meta *m2;
-            m2 = &con->triple_meta[con->column - con->start_column];
-            if(!rasqal_triples_match_is_end(m2->triples_match)) {
-              is_finished = 0;
-              break;
-            }
-          }
-          if(is_finished) {
-            RASQAL_DEBUG1("end of all pattern triples matches\n");
-            con->column--;
-            error = RASQAL_ENGINE_FINISHED;
-            goto done;
-          }
-        }
-
-        rasqal_reset_triple_meta(m);
-
-        con->column--;
-        continue;
-      }
-
-      if(m->parts) {
-        parts = rasqal_triples_match_bind_match(m->triples_match, m->bindings,
-                                                m->parts);
-        RASQAL_DEBUG3("bind_match for column %d returned parts %d\n",
-                      con->column, parts);
-        if(!parts)
-          error = RASQAL_ENGINE_FINISHED;
-      } else {
-        RASQAL_DEBUG2("Nothing to bind_match for column %d\n", con->column);
-      }
-
-      rasqal_triples_match_next_match(m->triples_match);
-      if(error == RASQAL_ENGINE_FINISHED)
-        continue;
+    rasqal_triples_match_next_match(m->triples_match);
+    if(error == RASQAL_ENGINE_FINISHED)
+      continue;
 
     
     if(con->column == con->end_column) {
