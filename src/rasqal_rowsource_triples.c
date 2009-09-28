@@ -227,11 +227,9 @@ rasqal_triples_rowsource_get_next_row(rasqal_rowsource* rowsource,
         /* failed */
         RASQAL_DEBUG2("exact match failed for column %d\n", con->column);
         con->column--;
-      }
-#ifdef RASQAL_DEBUG
-      else
+      } else {
         RASQAL_DEBUG2("exact match OK for column %d\n", con->column);
-#endif
+      }
 
       RASQAL_DEBUG2("end of exact triples match for column %d\n", con->column);
       m->executed = 1;
