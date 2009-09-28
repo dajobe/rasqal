@@ -535,6 +535,8 @@ if($recursive) {
 warn "$program: Running testsuites in dirs: @dirs\n"
   if $debug;
 
+my $total_result = {  };
+
 my $rc = 0;
 for my $dir (@dirs) {
   my(%config)=(
@@ -547,7 +549,17 @@ for my $dir (@dirs) {
 
   my $result=run_testsuites_in_dir(\%config);
 
+  for my $counter (@counters) {
+    my $count=$result->{$counter} || 0;
+    $total_result->{$counter} += $count;
+  }
+
   $rc=1 if $result->{status} eq 'fail';
+}
+
+if($recursive) {
+  print "\nTotal:\n";
+  format_testsuite_result(*STDOUT, $total_result, "");
 }
 
 exit $rc;
