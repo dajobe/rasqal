@@ -213,13 +213,6 @@ rasqal_triples_rowsource_get_next_row(rasqal_rowsource* rowsource,
 
     error = RASQAL_ENGINE_OK;
 
-    if(!m) {
-      /* error recovery - no match */
-      con->column--;
-      error = RASQAL_ENGINE_FAILED;
-      goto done;
-    }
-    
     if(m->executed) {
       RASQAL_DEBUG2("triples match already executed in column %d\n",
                     con->column);
