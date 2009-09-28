@@ -307,13 +307,6 @@ rasqal_engine_triple_graph_pattern_get_next_match(rasqal_engine_execution_data* 
 
     rc = 1;
 
-    if(!m) {
-      /* error recovery - no match */
-      gp_data->column--;
-      rc= -1;
-      return rc;
-    }
-    
     if(m->executed) {
       RASQAL_DEBUG2("triplesMatch already executed in column %d\n", 
                     gp_data->column);
@@ -558,8 +551,7 @@ rasqal_engine_graph_pattern_init(rasqal_engine_execution_data* execution_data,
       rasqal_variable* v;
 
       m = &gp_data->triple_meta[i - gp->start_column];
-      if(!m)
-        return -1;
+
       m->parts = (rasqal_triple_parts)0;
 
       t = (rasqal_triple*)raptor_sequence_get_at(gp->triples, i);
