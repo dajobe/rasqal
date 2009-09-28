@@ -355,7 +355,8 @@ rasqal_triples_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
   con = (rasqal_triples_rowsource_context*)user_data;
 
   error = rasqal_triples_rowsource_get_next_row(rowsource, con);
-  RASQAL_DEBUG2("rasqal_triples_rowsource_get_next_row() returned %d\n", error);
+  RASQAL_DEBUG2("rasqal_triples_rowsource_get_next_row() returned error %s\n",
+                rasqal_engine_error_as_string(error));
 
   if(error != RASQAL_ENGINE_OK)
     goto done;

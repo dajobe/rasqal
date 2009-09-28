@@ -1201,9 +1201,14 @@ const unsigned char** rasqal_variables_table_get_names(rasqal_variables_table* v
 typedef enum {
   RASQAL_ENGINE_OK,
   RASQAL_ENGINE_FAILED,
-  RASQAL_ENGINE_FINISHED
+  RASQAL_ENGINE_FINISHED,
+  RASQAL_ENGINE_ERROR_LAST = RASQAL_ENGINE_FINISHED
 } rasqal_engine_error;
 
+
+#ifdef RASQAL_DEBUG
+const char* rasqal_engine_error_as_string(rasqal_engine_error error);
+#endif
 
 /*
  * A query execution engine factory

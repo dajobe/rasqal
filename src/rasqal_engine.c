@@ -2021,3 +2021,22 @@ const rasqal_query_execution_factory rasqal_query_engine_1 =
   /* .execute_finish=      */ rasqal_query_engine_1_execute_finish,
   /* .finish_factory=      */ rasqal_query_engine_1_finish_factory
 };
+
+
+#ifdef RASQAL_DEBUG
+static const char* const rasqal_engine_error_labels[RASQAL_ENGINE_ERROR_LAST+2]={
+  "ok",
+  "FAILED",
+  "finished",
+  "unknown"
+};
+
+const char*
+rasqal_engine_error_as_string(rasqal_engine_error error) 
+{
+  if(error > RASQAL_ENGINE_ERROR_LAST)
+    error = RASQAL_ENGINE_ERROR_LAST+1;
+
+  return rasqal_engine_error_labels[(int)error];
+}
+#endif
