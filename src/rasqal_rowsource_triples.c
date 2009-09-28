@@ -251,6 +251,10 @@ rasqal_triples_rowsource_get_next_row(rasqal_rowsource* rowsource,
       /* reset this column and move to next match in previous column */
       rasqal_reset_triple_meta(m);
       con->column--;
+      if(con->column < con->start_column) {
+        error = RASQAL_ENGINE_FINISHED;
+        break;
+      }
       continue;
     }
 
@@ -275,13 +279,9 @@ rasqal_triples_rowsource_get_next_row(rasqal_rowsource* rowsource,
       break;
 
     /* continue matching in next column */
-    if(con->column >= con->start_column)
-      con->column++;
+    con->column++;
   }
 
-  if(error == RASQAL_ENGINE_OK && con->column < con->start_column)
-    error = RASQAL_ENGINE_FINISHED;
-  
   return error;
 }
 
