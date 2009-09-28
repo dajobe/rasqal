@@ -122,10 +122,6 @@ rasqal_triples_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
     rasqal_variable* v;
 
     m = &con->triple_meta[column - con->start_column];
-    if(!m) {
-      rc = 1;
-      break;
-    }
 
     m->parts = (rasqal_triple_parts)0;
 
