@@ -292,6 +292,7 @@ rasqal_engine_triple_graph_pattern_get_next_match(rasqal_engine_execution_data* 
   rasqal_query_results* query_results;
   int rc = 0;
   rasqal_engine_gp_data* gp_data;
+  int parts;
   
   query = execution_data->query;
   query_results = execution_data->query_results;
@@ -306,34 +307,6 @@ rasqal_engine_triple_graph_pattern_get_next_match(rasqal_engine_execution_data* 
     t = (rasqal_triple*)raptor_sequence_get_at(gp->triples, gp_data->column);
 
     rc = 1;
-
-    if(m->executed) {
-      RASQAL_DEBUG2("triplesMatch already executed in column %d\n", 
-                    gp_data->column);
-      gp_data->column--;
-      continue;
-    }
-      
-    if (m->is_exact) {
-      /* exact triple match wanted */
-
-      if(!rasqal_triples_source_triple_present(execution_data->triples_source, t)) {
-        /* failed */
-        RASQAL_DEBUG2("exact match failed for column %d\n", gp_data->column);
-        gp_data->column--;
-      }
-#ifdef RASQAL_DEBUG
-      else
-        RASQAL_DEBUG2("exact match OK for column %d\n", gp_data->column);
-#endif
-
-      RASQAL_DEBUG2("end of exact triplesMatch for column %d\n", 
-                    gp_data->column);
-      m->executed = 1;
-      
-    } else {
-      /* triple pattern match wanted */
-      int parts;
 
       if(!m->triples_match) {
         /* Column has no triples match so create a new query */
@@ -391,7 +364,6 @@ rasqal_engine_triple_graph_pattern_get_next_match(rasqal_engine_execution_data* 
       if(!rc)
         continue;
 
-    }
     
     if(gp_data->column == gp->end_column) {
       /* Done all conjunctions */ 

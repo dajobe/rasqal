@@ -1,8 +1,8 @@
 /* -*- Mode: c; c-basic-offset: 2 -*-
  *
- * rasqal_triples_source.c - Rasqal triples source matching TP against triples
+ * rasqal_triples_source.c - Rasqal triples source matching triple patterns against triples
  *
- * Copyright (C) 2004-2008, David Beckett http://www.dajobe.org/
+ * Copyright (C) 2004-2009, David Beckett http://www.dajobe.org/
  * Copyright (C) 2004-2005, University of Bristol, UK http://www.bristol.ac.uk/
  * 
  * This package is Free Software and part of Redland http://librdf.org/
@@ -63,7 +63,7 @@ rasqal_set_triples_source_factory(rasqal_world* world, void (*register_fn)(rasqa
   /* for compatibility with old API that does not call this - FIXME Remove V2 */
   rasqal_world_open(world);
   
-  world->triples_source_factory.user_data=user_data;
+  world->triples_source_factory.user_data = user_data;
   register_fn(&world->triples_source_factory);
 }
 
@@ -81,7 +81,7 @@ rasqal_new_triples_source(rasqal_query* query)
 {
   rasqal_triples_source_factory* rtsf = &query->world->triples_source_factory;
   rasqal_triples_source* rts;
-  int rc=0;
+  int rc = 0;
   
   rts = (rasqal_triples_source*)RASQAL_CALLOC(rasqal_triples_source, 1,
                                               sizeof(rasqal_triples_source));
@@ -123,7 +123,7 @@ rasqal_free_triples_source(rasqal_triples_source *rts)
   if(rts->user_data) {
     rts->free_triples_source(rts->user_data);
     RASQAL_FREE(user_data, rts->user_data);
-    rts->user_data=NULL;
+    rts->user_data = NULL;
   }
   
   RASQAL_FREE(rasqal_triples_source, rts);
@@ -142,8 +142,10 @@ static void
 rasqal_free_triples_match(rasqal_triples_match* rtm)
 {
   RASQAL_ASSERT_OBJECT_POINTER_RETURN(rtm, rasqal_triples_match);
-  
-  rtm->finish(rtm, rtm->user_data);
+
+  if(!rtm->is_exact)
+    rtm->finish(rtm, rtm->user_data);
+
   RASQAL_FREE(rasqal_triples_match, rtm);
 }
 
@@ -162,11 +164,27 @@ rasqal_new_triples_match(rasqal_query* query,
                                               sizeof(rasqal_triples_match));
   if(rtm) {
     rtm->world = query->world;
-    if(triples_source->init_triples_match(rtm, triples_source,
-                                          triples_source->user_data,
-                                          m, t)) {
-      rasqal_free_triples_match(rtm);
-      rtm = NULL;
+
+    /* exact if there are no variables in the triple parts */
+    rtm->is_exact = 1;
+    if(rasqal_literal_as_variable(t->predicate) ||
+       rasqal_literal_as_variable(t->subject) ||
+       rasqal_literal_as_variable(t->object))
+      rtm->is_exact = 0;
+
+    if(rtm->is_exact) {
+      if(!triples_source->triple_present(triples_source,
+                                         triples_source->user_data, t)) {
+        rasqal_free_triples_match(rtm);
+        rtm = NULL;
+      }
+    } else {
+      if(triples_source->init_triples_match(rtm, triples_source,
+                                            triples_source->user_data,
+                                            m, t)) {
+        rasqal_free_triples_match(rtm);
+        rtm = NULL;
+      }
     }
   }
 
@@ -180,6 +198,9 @@ rasqal_triples_match_bind_match(struct rasqal_triples_match_s* rtm,
                                 rasqal_variable *bindings[4],
                                 rasqal_triple_parts parts)
 {
+  if(rtm->is_exact)
+    return 0;
+  
   return rtm->bind_match(rtm, rtm->user_data, bindings, parts);
 }
 
@@ -187,6 +208,11 @@ rasqal_triples_match_bind_match(struct rasqal_triples_match_s* rtm,
 void
 rasqal_triples_match_next_match(struct rasqal_triples_match_s* rtm)
 {
+  if(rtm->is_exact) {
+    rtm->finished++;
+    return;
+  }
+  
   rtm->next_match(rtm, rtm->user_data);
 }
 
@@ -194,6 +220,11 @@ rasqal_triples_match_next_match(struct rasqal_triples_match_s* rtm)
 int
 rasqal_triples_match_is_end(struct rasqal_triples_match_s* rtm)
 {
+  if(rtm->finished)
+    return 1;
+  if(rtm->is_exact)
+    return rtm->finished;
+
   return rtm->is_end(rtm, rtm->user_data);
 }
 
@@ -209,11 +240,11 @@ rasqal_triples_match_is_end(struct rasqal_triples_match_s* rtm)
 int
 rasqal_reset_triple_meta(rasqal_triple_meta* m)
 {
-  int resets=0;
+  int resets = 0;
   
   if(m->triples_match) {
     rasqal_free_triples_match(m->triples_match);
-    m->triples_match=NULL;
+    m->triples_match = NULL;
   }
 
   if(m->bindings[0] && (m->parts & RASQAL_TRIPLE_SUBJECT)) {
@@ -233,7 +264,7 @@ rasqal_reset_triple_meta(rasqal_triple_meta* m)
     resets++;
   }
 
-  m->executed=0;
+  m->executed = 0;
   
   return resets;
 }
