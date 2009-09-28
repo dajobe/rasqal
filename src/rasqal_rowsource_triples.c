@@ -73,11 +73,11 @@ typedef struct
   /* number of variables used in variables table  */
   int size;
   
-  /* declared in array index[index into vars table] = column */
-  int *declared_in;
+  /* bound-in array index[index into vars table] = column */
+  int *bound_in;
 
-  /* number of variables in declared_in[] array - may be more than 'size' */
-  int declared_in_size;
+  /* number of variables in bound_in[] array - may be more than 'size' */
+  int bound_in_size;
   
   /* preserve bindings when all rows are finished - for optional mostly */
   int preserve_on_all_finished;
@@ -92,20 +92,20 @@ rasqal_triples_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
 {
   rasqal_triples_rowsource_context *con;
   int column;
-  int *declared_in = NULL;
+  int *bound_in = NULL;
   int rc = 0;
   int size;
   int i;
   
   con = (rasqal_triples_rowsource_context*)user_data;
 
-  declared_in = con->declared_in;
-  size = con->declared_in_size;
+  bound_in = con->bound_in;
+  size = con->bound_in_size;
   
   /* Construct the ordered projection of the variables set by these triples */
   con->size = 0;
   for(i = 0; i < size; i++) {
-    column = declared_in[i];
+    column = bound_in[i];
     if(column >= con->start_column && column <= con->end_column) {
       rasqal_variable *v;
       v = rasqal_variables_table_get(rowsource->vars_table, i);
@@ -128,15 +128,15 @@ rasqal_triples_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
     t = (rasqal_triple*)raptor_sequence_get_at(con->triples, column);
     
     if((v = rasqal_literal_as_variable(t->subject)) &&
-       declared_in[v->offset] == column)
+       bound_in[v->offset] == column)
       m->parts = (rasqal_triple_parts)(m->parts | RASQAL_TRIPLE_SUBJECT);
     
     if((v = rasqal_literal_as_variable(t->predicate)) &&
-       declared_in[v->offset] == column)
+       bound_in[v->offset] == column)
       m->parts = (rasqal_triple_parts)(m->parts | RASQAL_TRIPLE_PREDICATE);
     
     if((v = rasqal_literal_as_variable(t->object)) &&
-       declared_in[v->offset] == column)
+       bound_in[v->offset] == column)
       m->parts = (rasqal_triple_parts)(m->parts | RASQAL_TRIPLE_OBJECT);
 
     RASQAL_DEBUG4("triple pattern column %d has parts %s (%d)\n", column,
@@ -185,8 +185,8 @@ rasqal_triples_rowsource_finish(rasqal_rowsource* rowsource, void *user_data)
   if(con->triple_meta)
     RASQAL_FREE(rasqal_triple_meta, con->triple_meta);
 
-  if(con->declared_in)
-    RASQAL_FREE(rasqal_declared_in, con->declared_in);
+  if(con->bound_in)
+    RASQAL_FREE(rasqal_bound_in, con->bound_in);
 
   if(con->origin)
     rasqal_free_literal(con->origin);
@@ -493,11 +493,11 @@ static const rasqal_rowsource_handler rasqal_triples_rowsource_handler = {
  * @triples: shared triples sequence
  * @start_column: start column in triples sequence
  * @end_column: end column in triples sequence
- * @declared_in: array marking the triples that declare variables
+ * @bound_in: array marking the triples that bind a variable
  *
  * INTERNAL - create a new triples rowsource
  *
- * NOTE @declared_in becomes owned by the new rowsource
+ * NOTE @bound_in becomes owned by the new rowsource
  *
  * Return value: new triples rowsource or NULL on failure
  */
@@ -507,19 +507,19 @@ rasqal_new_triples_rowsource(rasqal_world *world,
                              rasqal_triples_source* triples_source,
                              raptor_sequence* triples,
                              int start_column, int end_column,
-                             int *declared_in, int declared_in_size)
+                             int *bound_in, int bound_in_size)
 {
   rasqal_triples_rowsource_context *con;
   int flags = 0;
 
   if(!world || !query || !triples_source || !triples) {
-    RASQAL_FREE(rasqal_declared_in, declared_in);
+    RASQAL_FREE(rasqal_bound_in, bound_in);
     return NULL;
   }
   
   con = (rasqal_triples_rowsource_context*)RASQAL_CALLOC(rasqal_triples_rowsource_context, 1, sizeof(rasqal_triples_rowsource_context));
   if(!con) {
-    RASQAL_FREE(rasqal_declared_in, declared_in);
+    RASQAL_FREE(rasqal_bound_in, bound_in);
     return NULL;
   }
 
@@ -528,8 +528,8 @@ rasqal_new_triples_rowsource(rasqal_world *world,
   con->start_column = start_column;
   con->end_column = end_column;
   con->column = -1;
-  con->declared_in = declared_in;
-  con->declared_in_size = declared_in_size;
+  con->bound_in = bound_in;
+  con->bound_in_size = bound_in_size;
 
   con->triples_count = con->end_column - con->start_column + 1;
 
@@ -591,7 +591,7 @@ main(int argc, char *argv[])
   raptor_uri* s_uri = NULL;
   raptor_uri* p_uri = NULL;
   int size;
-  int *declared_in;
+  int *bound_in;
   const char *data_file;
   
   if((data_file = getenv("NT_DATA_FILE"))) {
@@ -652,18 +652,18 @@ main(int argc, char *argv[])
   triples_source = rasqal_new_triples_source(query);
   
   size = rasqal_variables_table_get_named_variables_count(query->vars_table);
-  declared_in = rasqal_query_triples_build_declared_in(query, size,
-                                                       start_column,
-                                                       end_column);
-  if(!declared_in) {
-    fprintf(stderr, "%s: failed to create declared_in\n", program);
+  bound_in = rasqal_query_triples_build_bound_in(query, size,
+                                                 start_column,
+                                                 end_column);
+  if(!bound_in) {
+    fprintf(stderr, "%s: failed to create bound_in\n", program);
     failures++;
     goto tidy;
   }
 
   rowsource = rasqal_new_triples_rowsource(world, query, triples_source,
                                            triples, start_column, end_column,
-                                           declared_in, size);
+                                           bound_in, size);
   if(!rowsource) {
     fprintf(stderr, "%s: failed to create triples rowsource\n", program);
     failures++;

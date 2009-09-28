@@ -82,23 +82,23 @@ rasqal_algebra_basic_algebra_node_to_rowsource(rasqal_engine_algebra_data* execu
 {
   rasqal_query *query = execution_data->query;
   int size;
-  int *declared_in;
+  int *bound_in;
   int i;
   
   size = rasqal_variables_table_get_total_variables_count(query->vars_table);
-  declared_in = (int*)RASQAL_CALLOC(intarray, size+1, sizeof(int));
-  if(!declared_in)
+  bound_in = (int*)RASQAL_CALLOC(intarray, size+1, sizeof(int));
+  if(!bound_in)
     return NULL;
 
-  /* declared_in becomes owned by the new rowsource */
+  /* bound_in becomes owned by the new rowsource */
   for(i = 0; i < size; i++)
-    declared_in[i] = query->variables_declared_in[i];
+    bound_in[i] = query->variables_bound_in[i];
 
   return rasqal_new_triples_rowsource(query->world, query,
                                       execution_data->triples_source,
                                       node->triples,
                                       node->start_column, node->end_column,
-                                      declared_in, size);
+                                      bound_in, size);
 }
 
 

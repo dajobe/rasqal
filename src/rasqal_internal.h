@@ -291,9 +291,9 @@ struct rasqal_query_s {
   int select_variables_count;
 
   /* array of size (number of total variables)
-   * pointing to triple column where a variable[offset] is declared
+   * pointing to triple column where a variable[offset] is bound
    */
-  int* variables_declared_in;
+  int* variables_bound_in;
 
   /* can be filled with error location information */
   raptor_locator locator;
@@ -508,7 +508,7 @@ rasqal_rowsource* rasqal_new_rowsequence_rowsource(rasqal_world *world, rasqal_q
 rasqal_rowsource* rasqal_new_sort_rowsource(rasqal_world *world, rasqal_query *query, rasqal_rowsource *rowsource, raptor_sequence *seq);
 
 /* rasqal_rowsource_triples.c */
-rasqal_rowsource* rasqal_new_triples_rowsource(rasqal_world *world, rasqal_query* query, rasqal_triples_source* triples_source, raptor_sequence* triples, int start_column, int end_column, int *declared_in, int declared_in_size);
+rasqal_rowsource* rasqal_new_triples_rowsource(rasqal_world *world, rasqal_query* query, rasqal_triples_source* triples_source, raptor_sequence* triples, int start_column, int end_column, int *bound_in, int bound_in_size);
 
 /* rasqal_rowsource_union.c */
 rasqal_rowsource* rasqal_new_union_rowsource(rasqal_world *world, rasqal_query* query, rasqal_rowsource* left, rasqal_rowsource* right);
@@ -862,7 +862,7 @@ int rasqal_query_prepare_common(rasqal_query *query);
 int rasqal_query_merge_graph_patterns(rasqal_query* query, rasqal_graph_pattern* gp, void* data);
 int rasqal_graph_patterns_join(rasqal_graph_pattern *dest_gp, rasqal_graph_pattern *src_gp);
 int rasqal_graph_pattern_move_constraints(rasqal_graph_pattern* dest_gp, rasqal_graph_pattern* src_gp);
-int* rasqal_query_triples_build_declared_in(rasqal_query* query, int size, int start_column, int end_column);
+int* rasqal_query_triples_build_bound_in(rasqal_query* query, int size, int start_column, int end_column);
 short* rasqal_query_triples_build_mentioned_in(rasqal_query* query, int width, int start_column, int end_column);
 
 /* rasqal_expr.c */

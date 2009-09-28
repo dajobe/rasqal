@@ -230,8 +230,8 @@ rasqal_free_query(rasqal_query* query)
   if(query->results)
     raptor_free_sequence(query->results);
 
-  if(query->variables_declared_in)
-    RASQAL_FREE(intarray, query->variables_declared_in);
+  if(query->variables_bound_in)
+    RASQAL_FREE(intarray, query->variables_bound_in);
 
   if(query->variables_mentioned_in)
     RASQAL_FREE(intarray, query->variables_mentioned_in);
