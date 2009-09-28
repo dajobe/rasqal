@@ -200,7 +200,6 @@ rasqal_triples_rowsource_get_next_row(rasqal_rowsource* rowsource,
   while(con->column >= con->start_column) {
     rasqal_triple_meta *m;
     rasqal_triple *t;
-    int parts;
 
     m = &con->triple_meta[con->column - con->start_column];
     t = (rasqal_triple*)raptor_sequence_get_at(con->triples, con->column);
@@ -216,9 +215,8 @@ rasqal_triples_rowsource_get_next_row(rasqal_rowsource* rowsource,
         /* triples matching setup failed - matching state is unknown */
         RASQAL_DEBUG2("Failed to make a triple match for column %d\n",
                       con->column);
-        con->column--;
         error = RASQAL_ENGINE_FAILED;
-        goto done;
+        break;
       }
       RASQAL_DEBUG2("made new triples match for column %d\n", con->column);
     }
@@ -245,47 +243,45 @@ rasqal_triples_rowsource_get_next_row(rasqal_rowsource* rowsource,
         }
         if(is_finished) {
           RASQAL_DEBUG1("end of all pattern triples matches\n");
-          con->column--;
           error = RASQAL_ENGINE_FINISHED;
-          goto done;
+          break;
         }
       }
 
+      /* reset this column and move to next match in previous column */
       rasqal_reset_triple_meta(m);
-
       con->column--;
       continue;
     }
 
     if(m->parts) {
+      rasqal_triple_parts parts;
       parts = rasqal_triples_match_bind_match(m->triples_match, m->bindings,
                                               m->parts);
-      RASQAL_DEBUG3("bind_match for column %d returned parts %d\n",
-                    con->column, parts);
-      if(!parts)
+      RASQAL_DEBUG4("bind_match for column %d returned parts %s (%d)\n",
+                    con->column, rasqal_engine_get_parts_string(parts), parts);
+      if(!parts) {
         error = RASQAL_ENGINE_FINISHED;
+        break;
+      }
     } else {
       RASQAL_DEBUG2("Nothing to bind_match for column %d\n", con->column);
     }
 
     rasqal_triples_match_next_match(m->triples_match);
-    if(error == RASQAL_ENGINE_FINISHED)
-      continue;
-
     
-    if(con->column == con->end_column) {
-      /* Done all conjunctions - return with result */
-      error = RASQAL_ENGINE_OK;
-      goto done;
-    } else if(con->column >= con->start_column)
-      con->column++;
+    if(con->column == con->end_column)
+      /* finished matching all columns - return result */
+      break;
 
+    /* continue matching in next column */
+    if(con->column >= con->start_column)
+      con->column++;
   }
 
-  if(con->column < con->start_column)
+  if(error == RASQAL_ENGINE_OK && con->column < con->start_column)
     error = RASQAL_ENGINE_FINISHED;
   
-  done:
   return error;
 }
 
