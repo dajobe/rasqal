@@ -390,13 +390,11 @@ sub format_testsuite_result($$$;$) {
       print $fh $indent."Failed tests:\n";
       for my $ftest (@failed) {
 	my $i=$indent.$INDENT;
-	if($verbose) {
-	  print $i . "=" x $banner_width . "\n";
-	  print $i . "$ftest->{name} in suite $ftest->{testsuite} in $ftest->{dir}\n";
-        } else {
-	  print $i . "$ftest->{name}\n";
-	}
+	print $i . "=" x $banner_width . "\n" if $verbose;
+	printf $i . "$ftest->{name}%s\n",
+          ($verbose ? " in suite $ftest->{testsuite} in $ftest->{dir}" : "");
 
+	print $i . $ftest->{detail} . "\n" if $verbose && $ftest->{detail};
 	if($ftest->{log} && $verbose) {
 	  my $i2=$i.$INDENT;
 	  my(@lines)=split(/\n/, $ftest->{log});
@@ -492,11 +490,7 @@ sub run_testsuites_in_dir($) {
 
   $total_result->{status} = $total_status;
 
-  if($verbose) {
-    print $indent."Testsuites summary for dir $dir:\n";
-  } else {
-    print $indent."Testsuites summary:\n";
-  }
+  printf $indent."Testsuites summary%s:\n", ($verbose ? " for dir $dir" : '');
   format_testsuite_result(*STDOUT, $total_result, $indent.$INDENT, $verbose);
 
 
