@@ -435,7 +435,7 @@ sub run_testsuites_in_dir($) {
   my $dryrun=$config->{dryrun};
   my $indent=$config->{indent};
 
-  chdir($dir) or die "$program: Directory $dir not found";
+  chdir($dir) or die "$program: Directory $dir not found\n";
   
   my(@known_testsuites)=get_testsuites('.');
   if(!@known_testsuites) {
