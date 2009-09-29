@@ -6,22 +6,74 @@
 <book id="index" xmlns:xi="http://www.w3.org/2003/XInclude">
   <bookinfo>
     <title>Rasqal RDF Query Library Manual</title>
-    <releaseinfo>for Rasqal &version;</releaseinfo>
+    <releaseinfo>Manual for <ulink url="http://librdf.org/rasqal/">Rasqal</ulink> &version;</releaseinfo>
+
+    <author>
+      <firstname>Dave</firstname>
+      <surname>Beckett</surname>
+      <affiliation>
+	<address>
+	  <otheraddr><ulink url="http://www.dajobe.org/">http://www.dajobe.org/</ulink></otheraddr>
+	</address>
+      </affiliation>
+    </author>
+
+    <legalnotice>
+    <para>
+      This documentation is Free Software / Open Source - you can
+      redistribute it and/or modify it under the same licenses as
+      <ulink url="http://librdf.org/rasqal/">Rasqal</ulink>.
+      It is licensed under the following three licenses as alternatives:
+      <orderedlist>
+	<listitem><para>GNU Lesser General Public License (LGPL) V2.1 or any newer version</para></listitem>
+	<listitem><para>GNU General Public License (GPL) V2 or any newer version</para></listitem>
+	<listitem><para>Apache License, V2.0 or any newer version</para></listitem>
+      </orderedlist>
+      You may not use this documentation except in compliance with at
+      least one of the above three licenses. See the
+      <ulink url="http://librdf.org/rasqal/">Rasqal</ulink>
+      site for the full license terms.
+    </para>
+
+    </legalnotice>
+
+    <copyright>
+      <year>2003</year>
+      <year>2004</year>
+      <year>2005</year>
+      <year>2006</year>
+      <year>2007</year>
+      <year>2008</year>
+      <year>2009</year>
+      <holder>Dave Beckett</holder>
+    </copyright>
+    <copyright>
+      <year>2003</year>
+      <year>2004</year>
+      <year>2005</year>
+      <holder>University of Bristol</holder>
+    </copyright>
   </bookinfo>
 
   <chapter id="rasqal">
     <title>Rasqal Overview</title>
     <para>
-Rasqal is an RDF query language providing APIs to build and
-manipulate queryies and query results along with an execution engine
-to run the queries.
+<ulink url="http://librdf.org/rasqal/">Rasqal</ulink> is an RDF query
+library providing APIs to parse query syntaxes (SPARQL and RDQL),
+build and manipulate the query structures, form query algebras and
+execution plans and execute the queries into query result sets.
     </para>
 
   </chapter>
 
-  <part>
+  <part id="reference-manual">
     <title>Reference Manual</title>
 
+    <partintro id="reference-manual-introduction">
+      <para>This part contains the Rasqal Reference Manual
+      which comprehensively describes every class and function of the API.
+      </para>
+      
     <xi:include href="xml/section-general.xml"/>
     <xi:include href="xml/section-algebra.xml"/>
     <xi:include href="xml/section-data.xml"/>
@@ -39,7 +91,7 @@ to run the queries.
 
     <!-- <xi:include href="xml/section-unused.xml"/> -->
   </part>
-  <index>
+  <index id="indexes">
     <title>Index</title>
   </index>
 </book>
