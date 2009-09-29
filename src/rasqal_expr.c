@@ -1216,6 +1216,7 @@ rasqal_expression_evaluate_strmatch(rasqal_world *world,
 
 /**
  * rasqal_expression_evaluate_v2:
+ * @world: #rasqal_world
  * @query: #rasqal_query this expression belongs to
  * @locator: error locator
  * @e: The expression to evaluate.
@@ -1978,6 +1979,8 @@ rasqal_expression_evaluate_v2(rasqal_world *world, raptor_locator *locator,
  * Evaluate a #rasqal_expression tree to give a #rasqal_literal result
  * or error.
  * 
+ * @deprecated: Use rasqal_expression_evaluate_v2() with a #rasqal_world object.
+ *
  * Return value: a #rasqal_literal value or NULL on failure.
  **/
 rasqal_literal*
