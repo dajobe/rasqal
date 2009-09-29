@@ -1217,7 +1217,6 @@ rasqal_expression_evaluate_strmatch(rasqal_world *world,
 /**
  * rasqal_expression_evaluate_v2:
  * @world: #rasqal_world
- * @query: #rasqal_query this expression belongs to
  * @locator: error locator
  * @e: The expression to evaluate.
  * @flags: Flags for rasqal_literal_compare() and RASQAL_COMPARE_NOCASE for string matches.
