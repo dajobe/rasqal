@@ -115,6 +115,16 @@ then retrieved.
 @Returns: 
 
 
+<!-- ##### FUNCTION rasqal_query_dataset_contains_named_graph ##### -->
+<para>
+
+</para>
+
+@query: 
+@graph_uri: 
+@Returns: 
+
+
 <!-- ##### FUNCTION rasqal_query_execute ##### -->
 <para>
 
@@ -181,6 +191,15 @@ then retrieved.
 
 
 <!-- ##### FUNCTION rasqal_query_get_data_graph_sequence ##### -->
+<para>
+
+</para>
+
+@query: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_query_get_describe_sequence ##### -->
 <para>
 
 </para>

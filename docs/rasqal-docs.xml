@@ -73,6 +73,7 @@ execution plans and execute the queries into query result sets.
       <para>This part contains the Rasqal Reference Manual
       which comprehensively describes every class and function of the API.
       </para>
+    </partintro>
       
     <xi:include href="xml/section-general.xml"/>
     <xi:include href="xml/section-algebra.xml"/>

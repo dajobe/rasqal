@@ -3,6 +3,9 @@
 rasqal_world
 rasqal_free_world
 rasqal_new_world
+rasqal_world_open
+rasqal_world_get_raptor
+rasqal_world_set_raptor
 rasqal_version_decimal
 rasqal_version_major
 rasqal_version_minor
@@ -51,6 +54,7 @@ rasqal_new_string_op_expression
 rasqal_new_expression_from_expression
 rasqal_free_expression
 rasqal_expression_evaluate
+rasqal_expression_evaluate_v2
 rasqal_expression_print
 rasqal_expression_print_op
 rasqal_expression_visit_fn
@@ -125,6 +129,7 @@ rasqal_free_query
 rasqal_query_add_data_graph
 rasqal_query_add_prefix
 rasqal_query_add_variable
+rasqal_query_dataset_contains_named_graph
 rasqal_query_execute
 rasqal_query_get_all_variable_sequence
 rasqal_query_get_anonymous_variable_sequence
@@ -133,6 +138,7 @@ rasqal_query_get_construct_triple
 rasqal_query_get_construct_triples_sequence
 rasqal_query_get_data_graph
 rasqal_query_get_data_graph_sequence
+rasqal_query_get_describe_sequence
 rasqal_query_get_distinct
 rasqal_query_get_explain
 rasqal_query_get_group_condition
@@ -191,6 +197,7 @@ rasqal_query_results_get_bindings
 rasqal_query_results_get_bindings_count
 rasqal_query_results_get_boolean
 rasqal_query_results_get_count
+rasqal_query_results_get_query
 rasqal_query_results_get_triple
 rasqal_query_results_is_bindings
 rasqal_query_results_is_boolean
@@ -277,6 +284,7 @@ rasqal_xsd_decimal_negate
 
 <SECTION>
 <FILE>section-unused</FILE>
+RAPTOR_WORLD_DECLARED
 RASQAL_API
 RASQAL_QUERY_RESULTS_FORMATTER_DECLARED
 RASQAL_WORLD_DECLARED
@@ -288,4 +296,5 @@ is_end
 next_match
 rasqal_expression_s
 triple_present
+raptor_world
 </SECTION>

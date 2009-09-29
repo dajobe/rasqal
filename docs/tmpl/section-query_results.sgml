@@ -119,6 +119,15 @@ library for serializing to a syntax.
 @Returns: 
 
 
+<!-- ##### FUNCTION rasqal_query_results_get_query ##### -->
+<para>
+
+</para>
+
+@query_results: 
+@Returns: 
+
+
 <!-- ##### FUNCTION rasqal_query_results_get_triple ##### -->
 <para>
 

@@ -17,6 +17,13 @@ Not used
 <!-- ##### SECTION Stability_Level ##### -->
 
 
+<!-- ##### MACRO RAPTOR_WORLD_DECLARED ##### -->
+<para>
+
+</para>
+
+
+
 <!-- ##### MACRO RASQAL_API ##### -->
 <para>
 
@@ -114,5 +121,11 @@ Not used
 @user_data: 
 @t: 
 @Returns: 
+
+
+<!-- ##### TYPEDEF raptor_world ##### -->
+<para>
+
+</para>
 
 

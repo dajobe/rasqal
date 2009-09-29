@@ -213,6 +213,18 @@ constants and #rasqal_variable values bound in some
 @Returns: 
 
 
+<!-- ##### FUNCTION rasqal_expression_evaluate_v2 ##### -->
+<para>
+
+</para>
+
+@world: 
+@locator: 
+@e: 
+@flags: 
+@Returns: 
+
+
 <!-- ##### FUNCTION rasqal_expression_print ##### -->
 <para>
 

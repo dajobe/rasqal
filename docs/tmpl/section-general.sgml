@@ -43,6 +43,33 @@ their names, labels and URI.
 @Returns: 
 
 
+<!-- ##### FUNCTION rasqal_world_open ##### -->
+<para>
+
+</para>
+
+@world: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_world_get_raptor ##### -->
+<para>
+
+</para>
+
+@world: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_world_set_raptor ##### -->
+<para>
+
+</para>
+
+@world: 
+@raptor_world_ptr: 
+
+
 <!-- ##### VARIABLE rasqal_version_decimal ##### -->
 <para>
 
