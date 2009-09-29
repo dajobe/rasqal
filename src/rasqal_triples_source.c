@@ -193,13 +193,13 @@ rasqal_new_triples_match(rasqal_query* query,
 
 
 /* methods */
-int
+rasqal_triple_parts
 rasqal_triples_match_bind_match(struct rasqal_triples_match_s* rtm, 
                                 rasqal_variable *bindings[4],
                                 rasqal_triple_parts parts)
 {
   if(rtm->is_exact)
-    return 0;
+    return RASQAL_TRIPLE_NONE;
   
   return rtm->bind_match(rtm, rtm->user_data, bindings, parts);
 }

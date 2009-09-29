@@ -1157,6 +1157,7 @@ int rasqal_xsd_decimal_is_zero(rasqal_xsd_decimal* d);
  * Flags for parts of a triple.
  */
 typedef enum {
+  RASQAL_TRIPLE_NONE     = 0,
   RASQAL_TRIPLE_SUBJECT  = 1,
   RASQAL_TRIPLE_PREDICATE= 2,
   RASQAL_TRIPLE_OBJECT   = 4,
