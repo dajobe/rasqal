@@ -115,6 +115,7 @@ rasqal_new_world(void)
 
 /**
  * rasqal_world_open:
+ * @world: rasqal_world object
  * 
  * Initialise the rasqal library.
  *
