@@ -1191,6 +1191,7 @@ const unsigned char** rasqal_variables_table_get_names(rasqal_variables_table* v
 
 
 /**
+ * rasqal_engine_error:
  * @RASQAL_ENGINE_OK:
  * @RASQAL_ENGINE_FAILED:
  * @RASQAL_ENGINE_FINISHED:
