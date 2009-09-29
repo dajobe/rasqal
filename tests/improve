@@ -42,6 +42,8 @@ our $t='http://ns.librdf.org/2009/test-manifest#';
 
 our $linewrap=78;
 
+our $banner_width=$linewrap-10;
+
 our $program=basename $0;
 our $debug=0;
 
@@ -310,6 +312,7 @@ sub run_testsuite($) {
   my $result=0;
   my $column=length($indent);
   for my $test (@tests) {
+    $test->{testsuite}=$name;
     if($testsuite->{dryrun}) {
       $test->{status} = 'skip';
       $test->{detail} = '';
@@ -343,12 +346,13 @@ sub run_testsuite($) {
 
     if($verbose) {
       my $rcv = $rc; $rcv = uc $rc if $rc ne 'pass';
-      printf "${indent}$test->{name}: $rcv%s\n",
+      my $i = $indent . $INDENT;
+      printf "${i}$test->{name}: $rcv%s\n",
 	     (length($test->{detail}) ? " - ".$test->{detail} : '');
       if($verbose > 1) {
 	if($rc eq 'fail' && $test->{log}) {
 	  my(@lines)=split(/\n/, $test->{log});
-	  print $indent."  ".join("\n${indent}  ", @lines)."\n";
+	  print $i."  ".join("\n${i}  ", @lines)."\n";
 	}
       }
     }
@@ -376,24 +380,31 @@ sub run_testsuite($) {
 }
 
 
-sub format_testsuite_result($$$) {
-  my($fh,$result,$indent)=@_;
-
-  print $fh $indent;
-  for my $counter (@counters) {
-    my $count=ref($result->{$counter}) ? (scalar(@{$result->{$counter}}) || 0) : $result->{$counter};
-    print $fh ucfirst($counter).": ".$count."  ";
-  }
-  print $fh "\n";
+sub format_testsuite_result($$$;$) {
+  my($fh,$result,$indent,$verbose)=@_;
+  $verbose ||= 0;
 
   if(ref($result->{failed})) {
     my(@failed)=@{$result->{failed}};
-    print $fh $indent."Failed tests:\n" . $indent . $INDENT .
-      join("\n".$indent.$INDENT,
-	   map { $_->{name}. ($debug ? " (".$_->{test_uri}.")" : "") }
-	         @failed) .
-      "\n"
-      if @failed;
+    if(@failed) {
+      print $fh $indent."Failed tests:\n";
+      for my $ftest (@failed) {
+	my $i=$indent.$INDENT;
+	if($verbose) {
+	  print $i . "=" x $banner_width . "\n";
+	  print $i . "$ftest->{name} in suite $ftest->{testsuite} in $ftest->{dir}\n";
+        } else {
+	  print $i . "$ftest->{name}\n";
+	}
+
+	if($ftest->{log} && $verbose) {
+	  my $i2=$i.$INDENT;
+	  my(@lines)=split(/\n/, $ftest->{log});
+	  print $i2.join("\n${i2}", "...", splice(@lines, -15))."\n";
+	}
+	print $i . "=" x $banner_width . "\n" if $verbose;
+      }
+    }
   }
 
   if(ref($result->{uxpassed})) {
@@ -405,6 +416,14 @@ sub format_testsuite_result($$$) {
       "\n"
       if @uxpassed;
   }
+
+  print $fh $indent;
+  for my $counter (@counters) {
+    my $count=ref($result->{$counter}) ? (scalar(@{$result->{$counter}}) || 0) : $result->{$counter};
+    print $fh ucfirst($counter).": ".$count."  ";
+  }
+  print $fh "\n";
+
 }
 
 
@@ -460,11 +479,10 @@ sub run_testsuites_in_dir($) {
 
     $result=run_testsuite($testsuite);
 
-    format_testsuite_result(*STDOUT, $result, $indent.$INDENT);
+    format_testsuite_result(*STDOUT, $result, $indent.$INDENT, $verbose);
 
     for my $counter (@counters) {
-      my $count=scalar(@{$result->{$counter}}) || 0;
-      $total_result->{$counter} += $count;
+      push(@{$total_result->{$counter}}, @{$result->{$counter}});
     }
 
     $total_status='fail' if $result->{status} eq 'fail';
@@ -474,8 +492,12 @@ sub run_testsuites_in_dir($) {
 
   $total_result->{status} = $total_status;
 
-  print $indent."Summary:\n";
-  format_testsuite_result(*STDOUT, $total_result, $indent.$INDENT);
+  if($verbose) {
+    print $indent."Testsuites summary for dir $dir:\n";
+  } else {
+    print $indent."Testsuites summary:\n";
+  }
+  format_testsuite_result(*STDOUT, $total_result, $indent.$INDENT, $verbose);
 
 
   return $total_result;
@@ -550,16 +572,15 @@ for my $dir (@dirs) {
   my $result=run_testsuites_in_dir(\%config);
 
   for my $counter (@counters) {
-    my $count=$result->{$counter} || 0;
-    $total_result->{$counter} += $count;
+    push(@{$total_result->{$counter}}, @{$result->{$counter}});
   }
 
   $rc=1 if $result->{status} eq 'fail';
 }
 
 if($recursive) {
-  print "\nTotal:\n";
-  format_testsuite_result(*STDOUT, $total_result, "");
+  print "\nTotal of all Testsuites\n";
+  format_testsuite_result(*STDOUT, $total_result, $INDENT, 1);
 }
 
 exit $rc;
