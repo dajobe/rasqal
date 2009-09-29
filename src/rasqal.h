@@ -1146,6 +1146,7 @@ int rasqal_xsd_decimal_is_zero(rasqal_xsd_decimal* d);
 
 /**
  * rasqal_triple_parts:
+ * @RASQAL_TRIPLE_NONE: no parts
  * @RASQAL_TRIPLE_SUBJECT: Subject present in a triple.
  * @RASQAL_TRIPLE_PREDICATE: Predicate present in a triple.
  * @RASQAL_TRIPLE_OBJECT: Object present in a triple.
