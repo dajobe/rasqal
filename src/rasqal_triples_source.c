@@ -199,7 +199,7 @@ rasqal_triples_match_bind_match(struct rasqal_triples_match_s* rtm,
                                 rasqal_triple_parts parts)
 {
   if(rtm->is_exact)
-    return RASQAL_TRIPLE_NONE;
+    return RASQAL_TRIPLE_SPO;
   
   return rtm->bind_match(rtm, rtm->user_data, bindings, parts);
 }
