@@ -154,13 +154,6 @@ typedef struct rasqal_literal_s rasqal_literal;
 typedef struct rasqal_graph_pattern_s rasqal_graph_pattern;
 
 /**
- * rasqal_algebra_node:
- *
- * Rasqal graph pattern class.
- */
-typedef struct rasqal_algebra_node_s rasqal_algebra_node;
-
-/**
  * rasqal_feature:
  * @RASQAL_FEATURE_NO_NET: Deny network requests.
  * @RASQAL_FEATURE_LAST: Internal.

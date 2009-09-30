@@ -1095,6 +1095,8 @@ typedef enum {
 
 /*
  * Algebra Node
+ *
+ * Rasqal graph pattern class.
  */
 struct rasqal_algebra_node_s {
   rasqal_query* query;
@@ -1112,8 +1114,8 @@ struct rasqal_algebra_node_s {
    * type PROJECT, GRAPH: node1 always present
    * (otherwise NULL)
    */
-  rasqal_algebra_node *node1;
-  rasqal_algebra_node *node2;
+  struct rasqal_algebra_node_s *node1;
+  struct rasqal_algebra_node_s *node2;
 
   /* types FILTER, LEFTJOIN
    * (otherwise NULL) 
@@ -1138,6 +1140,7 @@ struct rasqal_algebra_node_s {
   /* type GRAPH */
   rasqal_literal *graph;
 };
+typedef struct rasqal_algebra_node_s rasqal_algebra_node;
 
 /**
  * rasqal_algebra_node_visit_fn:
