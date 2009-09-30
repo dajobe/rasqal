@@ -128,9 +128,7 @@ rasqal_distinct_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
       break;
 
     result = rasqal_engine_rowsort_map_add_row(con->map, row);
-//#ifdef RASQAL_DEBUG
     RASQAL_DEBUG2("row is %s\n", result ? "not distinct" : "distinct");
-//#endif
     if(!result)
       /* row was distinct (not a duplicate) so return it */
       break;
@@ -139,16 +137,7 @@ rasqal_distinct_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
   }
 
   if(row) {
-    int i;
-    
-    for(i = 0; i < row->size; i++) {
-      rasqal_literal *l;
-      l = rasqal_variables_table_get_value(query->vars_table, i);
-      if(row->values[i])
-        rasqal_free_literal(row->values[i]);
-      row->values[i] = rasqal_new_literal_from_literal(l);
-    }
-
+    row->rowsource = rowsource;
     row->offset = con->offset++;
   }
   
