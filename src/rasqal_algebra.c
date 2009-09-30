@@ -1180,7 +1180,8 @@ rasqal_algebra_query_to_algebra(rasqal_query* query)
     raptor_sequence* vars_seq;
     int i;
     
-    vars_seq = raptor_new_sequence(NULL, (raptor_sequence_print_handler*)rasqal_variable_print);
+    vars_seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_variable,
+                                   (raptor_sequence_print_handler*)rasqal_variable_print);
     if(!vars_seq) {
       rasqal_free_algebra_node(node);
       return NULL;
