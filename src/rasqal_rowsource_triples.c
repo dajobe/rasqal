@@ -226,6 +226,7 @@ rasqal_triples_rowsource_get_next_row(rasqal_rowsource* rowsource,
       RASQAL_DEBUG2("end of pattern triples match for column %d\n",
                     con->column);
 
+#if 0
       if(con->preserve_on_all_finished && 
          con->column == con->end_column) {
         int is_finished = 1;
@@ -247,6 +248,7 @@ rasqal_triples_rowsource_get_next_row(rasqal_rowsource* rowsource,
           break;
         }
       }
+#endif
 
       /* reset this column and move to next match in previous column */
       rasqal_reset_triple_meta(m);
