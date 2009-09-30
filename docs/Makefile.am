@@ -43,7 +43,8 @@ rdql_lexer.c \
 rdql_parser.c \
 sparql_lexer.c \
 sparql_parser.c \
-strcasecmp.c
+strcasecmp.c \
+rasqal_internal.h
 
 # Headers to ignore
 IGNORE_HFILES= \
