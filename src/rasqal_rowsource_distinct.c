@@ -128,11 +128,10 @@ rasqal_distinct_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
 
     result = rasqal_engine_rowsort_map_add_row(con->map, row);
     RASQAL_DEBUG2("row is %s\n", result ? "not distinct" : "distinct");
+
     if(!result)
       /* row was distinct (not a duplicate) so return it */
       break;
-
-    rasqal_free_row(row); row = NULL;
   }
 
   if(row) {
