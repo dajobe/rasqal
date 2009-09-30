@@ -114,7 +114,6 @@ rasqal_distinct_rowsource_finish(rasqal_rowsource* rowsource, void *user_data)
 static rasqal_row*
 rasqal_distinct_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
 {
-  rasqal_query *query = rowsource->query;
   rasqal_distinct_rowsource_context *con;
   rasqal_row *row = NULL;
   
