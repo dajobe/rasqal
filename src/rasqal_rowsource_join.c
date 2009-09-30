@@ -93,7 +93,7 @@ rasqal_join_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
   con->left_row  = rasqal_rowsource_read_row(con->left);
   if(!con->left_row) {
     con->state = FINISHED;
-    return 1;
+    return 0;
   }
 
   con->state = INIT_RIGHT;
