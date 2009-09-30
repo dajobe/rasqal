@@ -24,11 +24,6 @@ RASQAL_DEPRECATED
 </SECTION>
 
 <SECTION>
-<FILE>section-algebra</FILE>
-rasqal_algebra_node
-</SECTION>
-
-<SECTION>
 <FILE>section-data</FILE>
 rasqal_data_graph
 rasqal_new_data_graph

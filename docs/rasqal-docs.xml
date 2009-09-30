@@ -76,7 +76,6 @@ execution plans and execute the queries into query result sets.
     </partintro>
       
     <xi:include href="xml/section-general.xml"/>
-    <xi:include href="xml/section-algebra.xml"/>
     <xi:include href="xml/section-data.xml"/>
     <xi:include href="xml/section-expression.xml"/>
     <xi:include href="xml/section-graph_pattern.xml"/>
