@@ -267,8 +267,8 @@ rasqal_triples_rowsource_get_next_row(rasqal_rowsource* rowsource,
       RASQAL_DEBUG4("bind_match for column %d returned parts %s (%d)\n",
                     con->column, rasqal_engine_get_parts_string(parts), parts);
       if(!parts) {
-        error = RASQAL_ENGINE_FINISHED;
-        break;
+        rasqal_triples_match_next_match(m->triples_match);
+        continue;
       }
     } else {
       RASQAL_DEBUG2("Nothing to bind_match for column %d\n", con->column);
