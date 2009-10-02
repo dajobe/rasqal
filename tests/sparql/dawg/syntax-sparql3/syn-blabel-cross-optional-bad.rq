@@ -1,7 +1,0 @@
-# $Id: syn-blabel-cross-optional-bad.rq,v 1.2 2007/04/09 21:40:22 eric Exp $
-# BNode label used across an OPTIONAL.
-PREFIX : <http://xmlns.com/foaf/0.1/>
-
-ASK { _:who :homepage ?homepage 
-      OPTIONAL { ?someone foaf:made ?homepage } 
-      _:who :schoolHomepage ?schoolPage }

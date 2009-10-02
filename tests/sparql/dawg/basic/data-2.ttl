@@ -1,7 +1,0 @@
-@prefix : <http://example.org/ns#> .
-
-
-:x :list0 () .
-:x :list1 (1) .
-:x :list2 (11 22) .
-:x :list3 (111 222 333) .
