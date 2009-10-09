@@ -46,53 +46,64 @@
 #include <rasqal.h>
 #include <rasqal_internal.h>
 
-static char *program=NULL;
+static char *program = NULL;
 
 int main(int argc, char *argv[]);
 
 int
 main(int argc, char *argv[]) 
 { 
-  int rc=0;
-  const char* srx_filename=NULL;
-  raptor_iostream* iostr=NULL;
+  int rc = 0;
+  const char* srx_filename = NULL;
+  raptor_iostream* iostr = NULL;
   char* p;
-  unsigned char* uri_string=NULL;
-  raptor_uri* base_uri=NULL;
-  rasqal_query_results* results=NULL;
-  const char* results_formatter_name=NULL;
-  rasqal_query_results_formatter* formatter=NULL;
-  raptor_iostream *write_iostr=NULL;
+  unsigned char* uri_string = NULL;
+  raptor_uri* base_uri = NULL;
+  rasqal_query_results* results = NULL;
+  const char* read_formatter_name = NULL;
+  const char* write_formatter_name = NULL;
+  rasqal_query_results_formatter* read_formatter = NULL;
+  rasqal_query_results_formatter* write_formatter = NULL;
+  raptor_iostream *write_iostr = NULL;
   rasqal_world *world;
   rasqal_variables_table* vars_table;
   
-  program=argv[0];
+  program = argv[0];
   if((p=strrchr(program, '/')))
-    program=p+1;
+    program = p+1;
   else if((p=strrchr(program, '\\')))
-    program=p+1;
-  argv[0]=program;
+    program = p+1;
+  argv[0] = program;
   
-  world=rasqal_new_world();
+  world = rasqal_new_world();
   if(!world || rasqal_world_open(world)) {
     fprintf(stderr, "%s: rasqal_world init failed\n", program);
     return(1);
   }
 
-  if(argc != 2) {
-    fprintf(stderr, "USAGE: %s SRX file\n", program);
+  if(argc < 2 || argc > 4) {
+    fprintf(stderr, "USAGE: %s SRX file [read formatter] [write formatter]\n",
+            program);
 
-    rc=1;
+    rc = 1;
     goto tidy;
   }
 
-  srx_filename=argv[1];
+  srx_filename = argv[1];
+  if(argc > 2) {
+    if(strcmp(argv[2], "-"))
+      read_formatter_name = argv[2];
+    if(argc > 3) {
+      if(strcmp(argv[3], "-"))
+        write_formatter_name = argv[3];
+    }
+  }
 
-  uri_string=raptor_uri_filename_to_uri_string((const char*)srx_filename);
+  uri_string = raptor_uri_filename_to_uri_string((const char*)srx_filename);
   if(!uri_string)
     goto tidy;
   
-  base_uri=raptor_new_uri(uri_string);
+  base_uri = raptor_new_uri(uri_string);
   raptor_free_memory(uri_string);
 
   vars_table = rasqal_new_variables_table(world);
@@ -101,7 +112,7 @@ main(int argc, char *argv[])
   rasqal_free_variables_table(vars_table);
   if(!results) {
     fprintf(stderr, "%s: Failed to create query results", program);
-    rc=1;
+    rc = 1;
     goto tidy;
   }
   
@@ -109,40 +120,54 @@ main(int argc, char *argv[])
   if(!iostr) {
     fprintf(stderr, "%s: Failed to open iostream to file %s", program,
             srx_filename);
-    rc=1;
+    rc = 1;
     goto tidy;
   }
 
-  formatter=rasqal_new_query_results_formatter(world, results_formatter_name,
-                                               NULL);
-  if(!formatter) {
-    fprintf(stderr, "%s: Failed to create query results formatter '%s'",
-            program, results_formatter_name);
-    rc=1;
+  read_formatter = rasqal_new_query_results_formatter(world,
+                                                      read_formatter_name,
+                                                      NULL);
+  if(!read_formatter) {
+    fprintf(stderr, "%s: Failed to create query results read formatter '%s'",
+            program, read_formatter_name);
+    rc = 1;
     goto tidy;
   }
   
-  rc=rasqal_query_results_formatter_read(world, iostr, formatter, results,
-                                         base_uri);
+  rc = rasqal_query_results_formatter_read(world, iostr, read_formatter,
+                                           results, base_uri);
   if(rc)
     goto tidy;
 
   RASQAL_DEBUG2("Made query results with %d results\n",
                 rasqal_query_results_get_count(results));
 
-  write_iostr=raptor_new_iostream_to_file_handle(stdout);
+  write_formatter = rasqal_new_query_results_formatter(world, 
+                                                       write_formatter_name,
+                                                       NULL);
+  if(!write_formatter) {
+    fprintf(stderr, "%s: Failed to create query results write formatter '%s'",
+            program, write_formatter_name);
+    rc = 1;
+    goto tidy;
+  }
+  
+  write_iostr = raptor_new_iostream_to_file_handle(stdout);
   if(!write_iostr) {
     fprintf(stderr, "%s: Creating output iostream failed\n", program);
   } else {
-    rasqal_query_results_formatter_write(write_iostr, formatter,
+    rasqal_query_results_formatter_write(write_iostr, write_formatter,
                                          results, base_uri);
     raptor_free_iostream(write_iostr);
   }
 
 
   tidy:
-  if(formatter)
-    rasqal_free_query_results_formatter(formatter);
+  if(write_formatter)
+    rasqal_free_query_results_formatter(write_formatter);
+
+  if(read_formatter)
+    rasqal_free_query_results_formatter(read_formatter);
 
   if(iostr)
     raptor_free_iostream(iostr);
