@@ -390,7 +390,7 @@ sub run_test {
   }
   close(OUT);
 
-  $cmd="diff -c result.out roqet.out > diff.out";
+  $cmd="diff -u result.out roqet.out > diff.out";
   $rc=system($cmd);
   if($rc) {
     warn "$program: '$name' FAILED ($test_uri) \n";
