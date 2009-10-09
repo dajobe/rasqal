@@ -121,6 +121,8 @@ rasqal_init_result_formats(rasqal_world* world)
                                                     "text/json")
                                                     != 0;
 
+  rc += rasqal_init_result_format_table(world);
+
   return rc;
 }
 
