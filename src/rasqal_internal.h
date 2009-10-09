@@ -976,6 +976,9 @@ void rasqal_query_results_remove_query_reference(rasqal_query_results* query_res
 rasqal_variables_table* rasqal_query_results_get_variables_table(rasqal_query_results* query_results);
 rasqal_row* rasqal_query_results_get_current_row(rasqal_query_results* query_results);
 
+/* rasqal_query_write.c */
+int rasqal_query_write_sparql_20060406(raptor_iostream *iostr, rasqal_query* query, raptor_uri *base_uri);
+
 /* rasqal_result_formats.c */
 int rasqal_query_results_format_register_factory(rasqal_world*, const char *name, const char *label, const unsigned char* uri_string, rasqal_query_results_formatter_func writer, rasqal_query_results_formatter_func reader, rasqal_query_results_get_rowsource_func get_rowsource, const char *mime_type);
 int rasqal_init_result_formats(rasqal_world*);
