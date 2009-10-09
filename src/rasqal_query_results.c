@@ -598,7 +598,7 @@ rasqal_query_results_ensure_have_row_internal(rasqal_query_results* query_result
  *
  * Return value: result row or NULL on failure
  */
-static rasqal_row*
+rasqal_row*
 rasqal_query_results_get_current_row(rasqal_query_results* query_results)
 {
   if(!query_results || query_results->failed || query_results->finished)
@@ -632,7 +632,7 @@ rasqal_query_results_get_count(rasqal_query_results* query_results)
 
   if(!rasqal_query_results_is_bindings(query_results))
     return -1;
-  
+
   query = query_results->query;
   if(query && query->offset > 0)
     return query_results->result_count - query->offset;
@@ -851,6 +851,9 @@ rasqal_query_results_get_bindings_count(rasqal_query_results* query_results)
   
   if(!rasqal_query_results_is_bindings(query_results))
     return -1;
+
+  /* ensures an attempt is made to get at least 1 row */
+  rasqal_query_results_ensure_have_row_internal(query_results);
   
   return query_results->size;
 }
