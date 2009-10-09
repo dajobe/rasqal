@@ -150,26 +150,23 @@ rasqal_query_results_write_table(raptor_iostream *iostr,
 
     for(i = 0; i < bindings_count; i++) {
       rasqal_literal *l = rasqal_query_results_get_binding_value(results, i);
-      const char* v;
-      int w;
+      raptor_iostream* str_iostr;
+      size_t v_len;
       
       if(!l)
         continue;
-      
-      v = (const char*)rasqal_literal_as_string(l);
-      if(!v)
-        continue;
-      
-      w = strlen(v);
-      values[i] = (char*)RASQAL_MALLOC(cstring, w + 1);
-      if(!values[i]) {
+
+      str_iostr = raptor_new_iostream_to_string((void**)&values[i], &v_len,
+                                                rasqal_alloc_memory);
+      if(!str_iostr) {
         rc = 1;
         goto tidy;
       }
-      strncpy(values[i], v, w+1);
-        
-      if(w > widths[i])
-        widths[i] = w;
+      rasqal_literal_write(l, str_iostr);
+      raptor_free_iostream(str_iostr);
+      
+      if((int)v_len > widths[i])
+        widths[i] = v_len;
     }
     values[i] = (char*)-1;
 
