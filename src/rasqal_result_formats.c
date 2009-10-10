@@ -134,7 +134,7 @@ rasqal_finish_result_formats(rasqal_world* world)
  * JSON name '<literal>json</literal>' and
  * URI http://www.w3.org/2001/sw/DataAccess/json-sparql/
  *
- * Table name '<literal>table</table>' with no URI.
+ * Table name '<literal>table</literal>' with no URI.
  *
  * All returned strings are shared and must be copied if needed to be
  * used dynamically.
