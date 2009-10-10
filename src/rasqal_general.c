@@ -804,7 +804,7 @@ rasqal_uri_init(rasqal_world* world)
   oom:
   rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_FATAL,
                           NULL,
-                          "Out of memory");
+                          "Out of memory in rasqal_uri_init()");
   return 1;
 }
 
