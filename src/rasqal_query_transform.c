@@ -1105,9 +1105,6 @@ rasqal_query_prepare_count_graph_patterns(rasqal_query* query,
 
   if(raptor_sequence_push(seq, gp)) {
     query->failed = 1;
-    rasqal_log_error_simple(query->world, RAPTOR_LOG_LEVEL_FATAL,
-                            NULL,
-                            "Out of memory in rasqal_query_prepare_count_graph_patterns()");
     return 1;
   }
   gp->gp_index = (query->graph_pattern_count++);
