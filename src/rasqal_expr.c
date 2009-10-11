@@ -1930,7 +1930,7 @@ rasqal_expression_evaluate_v2(rasqal_world *world, raptor_locator *locator,
         goto failed;
       }
 
-      vars.b=rasqal_literal_equals_flags(l1, l2, RASQAL_COMPARE_RDF, &errs.e);
+      vars.b = rasqal_literal_same_term(l1, l2, &errs.e);
       rasqal_free_literal(l1);
       rasqal_free_literal(l2);
       if(errs.e)
@@ -1953,7 +1953,7 @@ rasqal_expression_evaluate_v2(rasqal_world *world, raptor_locator *locator,
   if(result)
     rasqal_literal_print(result, stderr);
   else
-    fputs("(NULL)",stderr);
+    fputs("FAILURE",stderr);
   fputc('\n', stderr);
 #endif
   
