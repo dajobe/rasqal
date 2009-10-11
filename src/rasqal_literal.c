@@ -96,8 +96,7 @@ rasqal_new_integer_literal(rasqal_world* world, rasqal_literal_type type, int in
 #else
     l->datatype = raptor_uri_copy(dt_uri);
 #endif
-    if(type == RASQAL_LITERAL_INTEGER)
-      l->parent_type=RASQAL_LITERAL_DECIMAL;
+    l->parent_type = rasqal_xsd_datatype_parent_type(type);
   }
   return l;
 }
@@ -477,8 +476,7 @@ rasqal_literal_set_typed_value(rasqal_literal* l, rasqal_literal_type type,
   l->datatype = raptor_uri_copy(dt_uri);
 #endif
 
-  if(type == RASQAL_LITERAL_INTEGER)
-    l->parent_type=RASQAL_LITERAL_DECIMAL;
+  l->parent_type = rasqal_xsd_datatype_parent_type(type);
 
   switch(type) {
     case RASQAL_LITERAL_INTEGER:
@@ -488,7 +486,6 @@ rasqal_literal_set_typed_value(rasqal_literal* l, rasqal_literal_type type,
         return 1;
 
       l->value.integer=i;
-      l->parent_type=RASQAL_LITERAL_DECIMAL;
       break;
 
     case RASQAL_LITERAL_DOUBLE:
@@ -1536,48 +1533,36 @@ rasqal_literal_promote_numerics(rasqal_literal* l1, rasqal_literal* l2,
 {
   rasqal_literal_type type1=l1->type;
   rasqal_literal_type type2=l2->type;
+  rasqal_literal_type promotion_type;
 
-  /* No promotion needed */
-  if(type1 == type2)
-    return type1;
-
-  /* No parents - no promotion possible */
-  if(l1->parent_type == RASQAL_LITERAL_UNKNOWN &&
-     l2->parent_type == RASQAL_LITERAL_UNKNOWN)
-    return l1->parent_type;
+  for(promotion_type = RASQAL_LITERAL_FIRST_XSD;
+      promotion_type <= RASQAL_LITERAL_LAST_XSD;
+      promotion_type++) {
+    rasqal_literal_type parent_type1 = rasqal_xsd_datatype_parent_type(type1);
+    rasqal_literal_type parent_type2 = rasqal_xsd_datatype_parent_type(type2);
+    
+    RASQAL_DEBUG3("literal 1: type %s   parent type %s\n",
+                  rasqal_literal_type_labels[type1],
+                  rasqal_literal_type_labels[parent_type1]);
+    RASQAL_DEBUG3("literal 2: type %s   parent type %s\n",
+                  rasqal_literal_type_labels[type2],
+                  rasqal_literal_type_labels[parent_type2]);
   
-  /* First promotion is to xsd:integer */
-  if(l1->parent_type == RASQAL_LITERAL_INTEGER &&
-     type2 == RASQAL_LITERAL_INTEGER)
-    return type2;
+    /* Finished */
+    if(type1 == type2)
+      return type1;
 
-  if(l2->parent_type == RASQAL_LITERAL_INTEGER &&
-     type1 == RASQAL_LITERAL_INTEGER)
-    return type1;
+    if(parent_type1 == type2)
+      return type2;
 
-  if(l1->parent_type == RASQAL_LITERAL_INTEGER)
-    type1=RASQAL_LITERAL_INTEGER;
-  if(l2->parent_type == RASQAL_LITERAL_INTEGER)
-    type2=RASQAL_LITERAL_INTEGER;
+    if(parent_type2 == type1)
+      return type1;
 
-  if(type1 == type2)
-    return type1;
-  
-  /* Second promotion is to xsd:decimal */
-  if(type1 == RASQAL_LITERAL_INTEGER)
-    type1=RASQAL_LITERAL_DECIMAL;
-  if(type2 == RASQAL_LITERAL_INTEGER)
-    type2=RASQAL_LITERAL_DECIMAL;
-
-  if(type1 == type2)
-    return type1;
-
-  /* Third/Fourth promotions are either to xsd:float or xsd:double */
-  if(type1 == RASQAL_LITERAL_FLOAT || type2 == RASQAL_LITERAL_FLOAT)
-    return RASQAL_LITERAL_FLOAT;
-
-  if(type1 == RASQAL_LITERAL_DOUBLE || type2 == RASQAL_LITERAL_DOUBLE)
-    return RASQAL_LITERAL_DOUBLE;
+    if(parent_type1 == promotion_type)
+      type1 = promotion_type;
+    if(parent_type2 == promotion_type)
+      type2 = promotion_type;
+  }
 
   /* failed! */
   return RASQAL_LITERAL_UNKNOWN;
@@ -1595,8 +1580,7 @@ rasqal_literal_promote_numerics(rasqal_literal* l1, rasqal_literal* l2,
 rasqal_literal_type
 rasqal_literal_get_rdf_term_type(rasqal_literal* l)
 {
-  rasqal_literal_type type;
-  type=(l->parent_type != RASQAL_LITERAL_UNKNOWN) ? l->parent_type : l->type;
+  rasqal_literal_type type = l->type;
  
   /* squash literal datatypes into one type: RDF Literal */
   if(type >= RASQAL_LITERAL_FIRST_XSD &&
@@ -1606,7 +1590,7 @@ rasqal_literal_get_rdf_term_type(rasqal_literal* l)
   if(type != RASQAL_LITERAL_URI &&
      type != RASQAL_LITERAL_STRING &&
      type != RASQAL_LITERAL_BLANK)
-    type=RASQAL_LITERAL_UNKNOWN;
+    type = RASQAL_LITERAL_UNKNOWN;
 
   return type;
 }
@@ -2133,6 +2117,28 @@ rasqal_literal_string_equals(rasqal_literal* l1, rasqal_literal* l2,
 }
 
 
+static int
+rasqal_literal_uri_equals(rasqal_literal* l1, rasqal_literal* l2, int* error)
+{
+#ifdef RAPTOR_V2_AVAILABLE
+  return raptor_uri_equals_v2(l1->world->raptor_world_ptr, l1->value.uri, l2->value.uri);
+#else
+  return raptor_uri_equals(l1->value.uri, l2->value.uri);
+#endif
+}
+
+
+static int
+rasqal_literal_blank_equals(rasqal_literal* l1, rasqal_literal* l2, int* error)
+{
+  /* not-equal if lengths are different - cheap to compare this first */
+  if(l1->string_len != l2->string_len)
+    return 0;
+      
+  return !strcmp((const char*)l1->string, (const char*)l2->string);
+}
+
+
 /**
  * rasqal_literal_equals:
  * @l1: #rasqal_literal literal
@@ -2252,18 +2258,17 @@ rasqal_literal_equals_flags(rasqal_literal* l1, rasqal_literal* l2,
   
   switch(type) {
     case RASQAL_LITERAL_URI:
-#ifdef RAPTOR_V2_AVAILABLE
-      result = raptor_uri_equals_v2(l1->world->raptor_world_ptr, l1_p->value.uri, l2_p->value.uri);
-#else
-      result = raptor_uri_equals(l1_p->value.uri, l2_p->value.uri);
-#endif
+      result = rasqal_literal_uri_equals(l1_p, l2_p, error);
       break;
 
     case RASQAL_LITERAL_STRING:
-      result=rasqal_literal_string_equals(l1, l2, error);
+      result = rasqal_literal_string_equals(l1_p, l2_p, error);
       break;
 
     case RASQAL_LITERAL_BLANK:
+      result = rasqal_literal_blank_equals(l1_p, l2_p, error);
+      break;
+
     case RASQAL_LITERAL_DATETIME:
       /* FIXME this should be xsd:dateTime equality */
       if(l1_p->string_len != l2_p->string_len)
@@ -2800,8 +2805,11 @@ rasqal_literal_value(rasqal_literal* l)
 int
 rasqal_literal_is_numeric(rasqal_literal* literal)
 {
+  rasqal_literal_type parent_type;
+  parent_type = rasqal_xsd_datatype_parent_type(literal->type);
+
   return (rasqal_xsd_datatype_is_numeric(literal->type) ||
-          rasqal_xsd_datatype_is_numeric(literal->parent_type));
+          rasqal_xsd_datatype_is_numeric(parent_type));
 }
 
 
@@ -3211,14 +3219,23 @@ rasqal_literal_negate(rasqal_literal* l, int *error_p)
 int
 rasqal_literal_same_term(rasqal_literal* l1, rasqal_literal* l2, int *error)
 {
-  rasqal_literal_type type1;
-  rasqal_literal_type type2;
+  rasqal_literal_type type1 = rasqal_literal_get_rdf_term_type(l1);
+  rasqal_literal_type type2 = rasqal_literal_get_rdf_term_type(l2);
 
-  if(rasqal_literal_equals_flags(l1, l2, RASQAL_COMPARE_RDF, error) || *error)
-    return 1;
+  if(type1 != type2)
+    return 0;
+  
+  if(type1 == RASQAL_LITERAL_UNKNOWN)
+    return 0;
+  
+  if(type1 == RASQAL_LITERAL_URI)
+    return rasqal_literal_uri_equals(l1, l2, error);
 
-  type1 = rasqal_literal_get_rdf_term_type(l1);
-  type2 = rasqal_literal_get_rdf_term_type(l2);
+  if(type1 == RASQAL_LITERAL_STRING)
+    return rasqal_literal_string_equals(l1, l2, error);
 
-  return (type1 == type2);
+  if(type1 == RASQAL_LITERAL_BLANK)
+    return rasqal_literal_blank_equals(l1, l2, error);
+
+  return 0;
 }
