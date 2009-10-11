@@ -746,10 +746,19 @@ rasqal_xsd_decimal_negate(rasqal_xsd_decimal* result, rasqal_xsd_decimal* a)
 int
 rasqal_xsd_decimal_compare(rasqal_xsd_decimal* a, rasqal_xsd_decimal* b)
 {
+#if defined(RASQAL_DECIMAL_C99) || defined(RASQAL_DECIMAL_NONE)
+  double d;
+#endif
   int rc=0;
   
 #if defined(RASQAL_DECIMAL_C99) || defined(RASQAL_DECIMAL_NONE)
-  rc= (int)(b->raw - a->raw);
+  d = (a->raw - b->raw);
+  /* do this carefully to avoid rounding e.g. (int)0.5 = 0 but is >0 */
+  if(d < 0.0)
+    rc = -1;
+  else if (d > 0.0)
+    rc = 1;
+  /* else rc is 0 set above */
 #endif
 #ifdef RASQAL_DECIMAL_MPFR
   rc=mpfr_cmp(a->raw, b->raw);
