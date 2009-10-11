@@ -1034,7 +1034,7 @@ const unsigned char* rasqal_xsd_datetime_string_to_canonical(const unsigned char
 rasqal_literal_type rasqal_xsd_datatype_uri_parent_type(rasqal_world* world, raptor_uri* uri);
 int rasqal_xsd_datatype_is_numeric(rasqal_literal_type type);
 unsigned char* rasqal_xsd_format_double(double d, size_t *len_p);
-
+rasqal_literal_type rasqal_xsd_datatype_parent_type(rasqal_literal_type type);
 
 typedef struct rasqal_graph_factory_s rasqal_graph_factory;
 

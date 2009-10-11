@@ -573,6 +573,34 @@ rasqal_xsd_datatype_is_numeric(rasqal_literal_type type)
 }
 
 
+static const rasqal_literal_type parent_xsd_type[RASQAL_LITERAL_LAST+1] =
+{
+  /*   RASQAL_LITERAL_UNKNOWN  */  RASQAL_LITERAL_UNKNOWN,
+  /*   RASQAL_LITERAL_BLANK    */  RASQAL_LITERAL_UNKNOWN,
+  /*   RASQAL_LITERAL_URI      */  RASQAL_LITERAL_UNKNOWN,
+  /* XSD types: */
+  /*   RASQAL_LITERAL_STRING   */  RASQAL_LITERAL_UNKNOWN,
+  /*   RASQAL_LITERAL_BOOLEAN  */  RASQAL_LITERAL_INTEGER,
+  /*   RASQAL_LITERAL_INTEGER  */  RASQAL_LITERAL_DOUBLE,
+  /*   RASQAL_LITERAL_DOUBLE   */  RASQAL_LITERAL_DECIMAL,
+  /*   RASQAL_LITERAL_FLOAT    */  RASQAL_LITERAL_DECIMAL,
+  /*   RASQAL_LITERAL_DECIMAL  */  RASQAL_LITERAL_UNKNOWN,
+  /*   RASQAL_LITERAL_DATETIME */  RASQAL_LITERAL_UNKNOWN,
+  /* not datatypes */
+  /*   RASQAL_LITERAL_PATTERN  */  RASQAL_LITERAL_PATTERN,
+  /*   RASQAL_LITERAL_QNAME    */  RASQAL_LITERAL_QNAME,
+  /*   RASQAL_LITERAL_VARIABLE */  RASQAL_LITERAL_VARIABLE
+};
+
+rasqal_literal_type
+rasqal_xsd_datatype_parent_type(rasqal_literal_type type)
+{
+  if(type >= RASQAL_LITERAL_FIRST_XSD && type <= RASQAL_LITERAL_LAST_XSD)
+    return parent_xsd_type[type];
+  return RASQAL_LITERAL_UNKNOWN;
+}
+
+
 
 #if 0
 static rasqal_literal*
