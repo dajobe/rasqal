@@ -338,7 +338,7 @@ rasqal_join_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
       result = rasqal_expression_evaluate_v2(rowsource->world, &query->locator,
                                              con->expr, query->compare_flags);
 #ifdef RASQAL_DEBUG
-      RASQAL_DEBUG1("join expression result:\n");
+      RASQAL_DEBUG1("join expression result: ");
       if(!result)
         fputs("type error", DEBUG_FH);
       else
@@ -360,20 +360,33 @@ rasqal_join_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
       }
     }
     
-    if(bresult && compatible) {
+    /*
+     * { merge(μ1, μ2) | μ1 in Ω1 and μ2 in Ω2, and μ1 and μ2 are
+     *   compatible and expr(merge(μ1, μ2)) is true }
+     */
+    if(compatible && bresult) {
       /* No constraint OR constraint & compatible so return merged row */
 
       /* Compute row only now it is known to be needed */
       row = rasqal_join_rowsource_build_merged_row(rowsource, con, right_row);
       break;
     }
-    
-    /* otherwise return LEFT or RIGHT row only */
-    if(con->join_type == RASQAL_JOIN_TYPE_LEFT) {
-      /* LEFT JOIN - add left row if expr fails or not compatible */
-      if(con->left_row) {
-        row = rasqal_join_rowsource_build_merged_row(rowsource, con, NULL);
-        break;
+
+    /*
+     * { μ1 | μ1 in Ω1 and μ2 in Ω2, and μ1 and μ2 are not compatible } 
+     *
+     * { μ1 | μ1 in Ω1 and μ2 in Ω2, and μ1 and μ2 are compatible and
+     *   expr(merge(μ1, μ2)) is false }
+     */
+
+    if(!compatible || (compatible && !bresult)) {
+      /* otherwise return LEFT or RIGHT row only */
+      if(con->join_type == RASQAL_JOIN_TYPE_LEFT) {
+        /* LEFT JOIN - add left row if expr fails or not compatible */
+        if(con->left_row) {
+          row = rasqal_join_rowsource_build_merged_row(rowsource, con, NULL);
+          break;
+        }
       }
     }
   }
