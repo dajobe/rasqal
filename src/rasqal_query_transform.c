@@ -696,13 +696,17 @@ rasqal_graph_pattern_move_constraints(rasqal_graph_pattern* dest_gp,
                                       rasqal_graph_pattern* src_gp)
 {
   int rc = 0;
+  rasqal_expression* fs = NULL;
   rasqal_expression* e;
   
   if(!src_gp->filter_expression)
     return 0; /* no constraints is not an error */
   
   e = rasqal_new_expression_from_expression(src_gp->filter_expression);
-  rc = rasqal_graph_pattern_set_filter_expression(dest_gp, e);
+  fs = dest_gp->filter_expression;
+  if(fs)
+    e = rasqal_new_2op_expression(e->world, RASQAL_EXPR_AND, fs, e);
+  dest_gp->filter_expression = e;
 
   return rc;
 }
