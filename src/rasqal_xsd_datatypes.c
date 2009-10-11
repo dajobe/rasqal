@@ -285,7 +285,8 @@ rasqal_xsd_format_double(double d, size_t *len_p)
   if(!buf)
     return NULL;
   
-  snprintf((char*)buf, len, "%1.14e", d);
+  /* snprintf needs the length+1 because it writes a \0 too */
+  snprintf((char*)buf, len+1, "%1.14e", d);
 
   /* find the 'e' and start of mantissa trailing zeros */
 
