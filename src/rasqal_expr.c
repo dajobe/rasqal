@@ -1345,6 +1345,12 @@ rasqal_expression_evaluate_v2(rasqal_world *world, raptor_locator *locator,
       }
 
       vars.b=(rasqal_literal_equals_flags(l1, l2, flags, &errs.e) != 0);
+#ifdef RASQAL_DEBUG > 1
+      if(errs.e)
+        RASQAL_DEBUG1("rasqal_literal_equals_flags returned: FAILURE\n");
+      else
+        RASQAL_DEBUG2("rasqal_literal_equals_flags returned: %d\n", vars.b);
+#endif
       rasqal_free_literal(l1);
       rasqal_free_literal(l2);
       if(errs.e)
@@ -1364,6 +1370,12 @@ rasqal_expression_evaluate_v2(rasqal_world *world, raptor_locator *locator,
       }
 
       vars.b=(rasqal_literal_equals_flags(l1, l2, flags, &errs.e) == 0);
+#ifdef RASQAL_DEBUG > 1
+      if(errs.e)
+        RASQAL_DEBUG1("rasqal_literal_equals_flags returned: FAILURE\n");
+      else
+        RASQAL_DEBUG2("rasqal_literal_equals_flags returned: %d\n", vars.b);
+#endif
       rasqal_free_literal(l1);
       rasqal_free_literal(l2);
       if(errs.e)
@@ -1931,6 +1943,12 @@ rasqal_expression_evaluate_v2(rasqal_world *world, raptor_locator *locator,
       }
 
       vars.b = rasqal_literal_same_term(l1, l2, &errs.e);
+#ifdef RASQAL_DEBUG > 1
+      if(errs.e)
+        RASQAL_DEBUG1("rasqal_literal_same_term returned: FAILURE\n");
+      else
+        RASQAL_DEBUG2("rasqal_literal_same_term returned: %d\n", vars.b);
+#endif
       rasqal_free_literal(l1);
       rasqal_free_literal(l2);
       if(errs.e)
