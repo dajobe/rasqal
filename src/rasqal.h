@@ -1057,7 +1057,7 @@ int rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags, in
 RASQAL_API
 int rasqal_literal_equals(rasqal_literal* l1, rasqal_literal* l2);
 RASQAL_API
-int rasqal_literal_same_term(rasqal_literal* l1, rasqal_literal* l2, int *error);
+int rasqal_literal_same_term(rasqal_literal* l1, rasqal_literal* l2);
 
 
 RASQAL_API

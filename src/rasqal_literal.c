@@ -2035,7 +2035,7 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
  */
 static int
 rasqal_literal_string_equals(rasqal_literal* l1, rasqal_literal* l2,
-                             int* error)
+                             int* error_p)
 {
   int result=1;
   raptor_uri* dt1=l1->datatype;
@@ -2068,8 +2068,8 @@ rasqal_literal_string_equals(rasqal_literal* l1, rasqal_literal* l2,
   if(dt1 || dt2) {
     /* if either is NULL - type error */
     if(!dt1 || !dt2) {
-      if(error)
-        *error=1;
+      if(error_p)
+        *error_p = 1;
       return 0;
     }
     /* if different - type error */
@@ -2081,8 +2081,8 @@ rasqal_literal_string_equals(rasqal_literal* l1, rasqal_literal* l2,
 #endif
        )
     {
-      if(error)
-        *error=1;
+      if(error_p)
+        *error_p = 1;
       return 0;
     }
     /* at this point the datatypes (URIs) are the same */
@@ -2097,8 +2097,8 @@ rasqal_literal_string_equals(rasqal_literal* l1, rasqal_literal* l2,
         result=!strcmp((const char*)l1->string, (const char*)l2->string);
         if(!result) {
           /* different strings but cannot tell if they are equal */
-          if(error)
-            *error=1;
+          if(error_p)
+            *error_p = 1;
           return 0;
         }
       }
@@ -2118,7 +2118,7 @@ rasqal_literal_string_equals(rasqal_literal* l1, rasqal_literal* l2,
 
 
 static int
-rasqal_literal_uri_equals(rasqal_literal* l1, rasqal_literal* l2, int* error)
+rasqal_literal_uri_equals(rasqal_literal* l1, rasqal_literal* l2)
 {
 #ifdef RAPTOR_V2_AVAILABLE
   return raptor_uri_equals_v2(l1->world->raptor_world_ptr, l1->value.uri, l2->value.uri);
@@ -2129,7 +2129,7 @@ rasqal_literal_uri_equals(rasqal_literal* l1, rasqal_literal* l2, int* error)
 
 
 static int
-rasqal_literal_blank_equals(rasqal_literal* l1, rasqal_literal* l2, int* error)
+rasqal_literal_blank_equals(rasqal_literal* l1, rasqal_literal* l2)
 {
   /* not-equal if lengths are different - cheap to compare this first */
   if(l1->string_len != l2->string_len)
@@ -2163,7 +2163,7 @@ rasqal_literal_equals(rasqal_literal* l1, rasqal_literal* l2)
  * @l1: #rasqal_literal literal
  * @l2: #rasqal_literal data literal
  * @flags: comparison flags
- * @error: type error
+ * @error_p: type error
  *
  * Compare two literals with optional type promotion.
  * 
@@ -2175,7 +2175,7 @@ rasqal_literal_equals(rasqal_literal* l1, rasqal_literal* l2)
  **/
 int
 rasqal_literal_equals_flags(rasqal_literal* l1, rasqal_literal* l2,
-                            int flags, int* error)
+                            int flags, int* error_p)
 {
   rasqal_literal_type type;
   rasqal_literal* l1_p=NULL;
@@ -2258,15 +2258,15 @@ rasqal_literal_equals_flags(rasqal_literal* l1, rasqal_literal* l2,
   
   switch(type) {
     case RASQAL_LITERAL_URI:
-      result = rasqal_literal_uri_equals(l1_p, l2_p, error);
+      result = rasqal_literal_uri_equals(l1_p, l2_p);
       break;
 
     case RASQAL_LITERAL_STRING:
-      result = rasqal_literal_string_equals(l1_p, l2_p, error);
+      result = rasqal_literal_string_equals(l1_p, l2_p, error_p);
       break;
 
     case RASQAL_LITERAL_BLANK:
-      result = rasqal_literal_blank_equals(l1_p, l2_p, error);
+      result = rasqal_literal_blank_equals(l1_p, l2_p);
       break;
 
     case RASQAL_LITERAL_DATETIME:
@@ -3210,14 +3210,13 @@ rasqal_literal_negate(rasqal_literal* l, int *error_p)
  * rasqal_literal_same_term:
  * @l1: #rasqal_literal literal
  * @l2: #rasqal_literal data literal
- * @error: type error flag
  *
  * Check if literals are same term (URI, literal, blank)
  * 
  * Return value: non-0 if same
  **/
 int
-rasqal_literal_same_term(rasqal_literal* l1, rasqal_literal* l2, int *error)
+rasqal_literal_same_term(rasqal_literal* l1, rasqal_literal* l2)
 {
   rasqal_literal_type type1 = rasqal_literal_get_rdf_term_type(l1);
   rasqal_literal_type type2 = rasqal_literal_get_rdf_term_type(l2);
@@ -3229,13 +3228,13 @@ rasqal_literal_same_term(rasqal_literal* l1, rasqal_literal* l2, int *error)
     return 0;
   
   if(type1 == RASQAL_LITERAL_URI)
-    return rasqal_literal_uri_equals(l1, l2, error);
+    return rasqal_literal_uri_equals(l1, l2);
 
   if(type1 == RASQAL_LITERAL_STRING)
-    return rasqal_literal_string_equals(l1, l2, error);
+    return rasqal_literal_string_equals(l1, l2, NULL);
 
   if(type1 == RASQAL_LITERAL_BLANK)
-    return rasqal_literal_blank_equals(l1, l2, error);
+    return rasqal_literal_blank_equals(l1, l2);
 
   return 0;
 }
