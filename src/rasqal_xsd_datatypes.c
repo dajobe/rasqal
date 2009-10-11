@@ -576,9 +576,11 @@ rasqal_xsd_datatype_is_numeric(rasqal_literal_type type)
 static const rasqal_literal_type parent_xsd_type[RASQAL_LITERAL_LAST+1] =
 {
   /*   RASQAL_LITERAL_UNKNOWN  */  RASQAL_LITERAL_UNKNOWN,
+  /* RDF Term: Blank */
   /*   RASQAL_LITERAL_BLANK    */  RASQAL_LITERAL_UNKNOWN,
+  /* XSD String / RDF Term: URI */
   /*   RASQAL_LITERAL_URI      */  RASQAL_LITERAL_UNKNOWN,
-  /* XSD types: */
+  /* XSD types / RDF Term: Literal */
   /*   RASQAL_LITERAL_STRING   */  RASQAL_LITERAL_UNKNOWN,
   /*   RASQAL_LITERAL_BOOLEAN  */  RASQAL_LITERAL_INTEGER,
   /*   RASQAL_LITERAL_INTEGER  */  RASQAL_LITERAL_DOUBLE,
