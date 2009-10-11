@@ -3196,3 +3196,29 @@ rasqal_literal_negate(rasqal_literal* l, int *error_p)
   
   return result;
 }
+
+
+/**
+ * rasqal_literal_same_term:
+ * @l1: #rasqal_literal literal
+ * @l2: #rasqal_literal data literal
+ * @error: type error flag
+ *
+ * Check if literals are same term (URI, literal, blank)
+ * 
+ * Return value: non-0 if same
+ **/
+int
+rasqal_literal_same_term(rasqal_literal* l1, rasqal_literal* l2, int *error)
+{
+  rasqal_literal_type type1;
+  rasqal_literal_type type2;
+
+  if(rasqal_literal_equals_flags(l1, l2, RASQAL_COMPARE_RDF, error) || *error)
+    return 1;
+
+  type1 = rasqal_literal_get_rdf_term_type(l1);
+  type2 = rasqal_literal_get_rdf_term_type(l2);
+
+  return (type1 == type2);
+}

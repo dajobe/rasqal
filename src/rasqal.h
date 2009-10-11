@@ -946,6 +946,7 @@ void rasqal_data_graph_print(rasqal_data_graph* dg, FILE* fh);
  * @RASQAL_COMPARE_XQUERY: XQuery comparsion rules apply.
  * @RASQAL_COMPARE_RDF:    RDF Term comparsion rules apply.
  * @RASQAL_COMPARE_URI:    Allow comparison of URIs
+ * @RASQAL_COMPARE_SAMETERM: SPARQL sameTerm() builtin rules apply.
  *
  * Flags for rasqal_expression_evaluate() or rasqal_literal_compare().
  */
@@ -953,7 +954,8 @@ typedef enum {
   RASQAL_COMPARE_NOCASE = 1,
   RASQAL_COMPARE_XQUERY = 2,
   RASQAL_COMPARE_RDF    = 4,
-  RASQAL_COMPARE_URI    = 8
+  RASQAL_COMPARE_URI    = 8,
+  RASQAL_COMPARE_SAMETERM = 16
 } rasqal_compare_flags;
 
 
@@ -1054,6 +1056,9 @@ RASQAL_API
 int rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags, int *error);
 RASQAL_API
 int rasqal_literal_equals(rasqal_literal* l1, rasqal_literal* l2);
+RASQAL_API
+int rasqal_literal_same_term(rasqal_literal* l1, rasqal_literal* l2, int *error);
+
 
 RASQAL_API
 rasqal_prefix* rasqal_new_prefix(rasqal_world* world, const unsigned char* prefix, raptor_uri* uri);
