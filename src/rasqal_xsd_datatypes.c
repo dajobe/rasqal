@@ -357,9 +357,9 @@ static const char* const sparql_xsd_names[SPARQL_XSD_NAMES_COUNT+1]=
   NULL, /* ...URI */ 
   "string",
   "boolean",
-  "integer", /* may type-promote to xsd:decimal */
-  "double",
+  "integer", /* may type-promote all the way to xsd:decimal */
   "float",
+  "double",
   "decimal",
   "dateTime",
   /* all of the following always type-promote to xsd:integer */
@@ -584,8 +584,8 @@ static const rasqal_literal_type parent_xsd_type[RASQAL_LITERAL_LAST+1] =
   /*   RASQAL_LITERAL_STRING   */  RASQAL_LITERAL_UNKNOWN,
   /*   RASQAL_LITERAL_BOOLEAN  */  RASQAL_LITERAL_INTEGER,
   /*   RASQAL_LITERAL_INTEGER  */  RASQAL_LITERAL_FLOAT,
-  /*   RASQAL_LITERAL_DOUBLE   */  RASQAL_LITERAL_DECIMAL,
   /*   RASQAL_LITERAL_FLOAT    */  RASQAL_LITERAL_DOUBLE,
+  /*   RASQAL_LITERAL_DOUBLE   */  RASQAL_LITERAL_DECIMAL,
   /*   RASQAL_LITERAL_DECIMAL  */  RASQAL_LITERAL_UNKNOWN,
   /*   RASQAL_LITERAL_DATETIME */  RASQAL_LITERAL_UNKNOWN,
   /* not datatypes */
