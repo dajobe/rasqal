@@ -131,7 +131,7 @@ rasqal_query_results_write_table(raptor_iostream *iostr,
   }
 
 #ifdef RAPTOR_V2_AVAILABLE
-  seq = raptor_new_sequence_v2((raptor_sequence_free_handler_v2*)rasqal_free_chararray_v2, NULL);
+  seq = raptor_new_sequence_v2((raptor_sequence_free_handler_v2*)rasqal_free_chararray_v2, NULL, NULL);
 #else
   seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_chararray, NULL);
 #endif
