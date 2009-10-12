@@ -361,8 +361,8 @@ rasqal_join_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
     }
     
     /*
-     * { merge(μ1, μ2) | μ1 in Ω1 and μ2 in Ω2, and μ1 and μ2 are
-     *   compatible and expr(merge(μ1, μ2)) is true }
+     * { merge(mu1, mu2) | mu1 in Omega1 and mu2 in Omega2, and mu1 and mu2 are
+     *   compatible and expr(merge(mu1, mu2)) is true }
      */
     if(compatible && bresult) {
       /* No constraint OR constraint & compatible so return merged row */
@@ -373,10 +373,10 @@ rasqal_join_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
     }
 
     /*
-     * { μ1 | μ1 in Ω1 and μ2 in Ω2, and μ1 and μ2 are not compatible } 
+     * { mu1 | mu1 in Omega1 and mu2 in Omega2, and mu1 and mu2 are not compatible } 
      *
-     * { μ1 | μ1 in Ω1 and μ2 in Ω2, and μ1 and μ2 are compatible and
-     *   expr(merge(μ1, μ2)) is false }
+     * { mu1 | mu1 in Omega1 and mu2 in Omega2, and mu1 and mu2 are compatible and
+     *   expr(merge(mu1, mu2)) is false }
      */
 
     if(!compatible || (compatible && !bresult)) {
