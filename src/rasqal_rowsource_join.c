@@ -455,9 +455,9 @@ rasqal_join_rowsource_get_inner_rowsource(rasqal_rowsource* rowsource,
   rasqal_join_rowsource_context *con;
   con = (rasqal_join_rowsource_context*)user_data;
 
-  if(offset == 1)
+  if(offset == 0)
     return con->left;
-  else if(offset == 2)
+  else if(offset == 1)
     return con->right;
   else
     return NULL;
