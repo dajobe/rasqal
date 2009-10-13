@@ -424,10 +424,8 @@ rasqal_algebra_node_to_rowsource(rasqal_engine_algebra_data* execution_data,
       break;
   }
 
-#if RASQAL_DEBUG
   if(!rs)
-    abort();
-#endif
+    *error_p = RASQAL_ENGINE_FAILED;
   
   return rs;
 }
@@ -481,7 +479,10 @@ rasqal_query_engine_algebra_execute_init(void* ex_data,
                                                                &error);
 #ifdef RASQAL_DEBUG
   RASQAL_DEBUG1("rowsource (query plan) result: \n");
-  rasqal_rowsource_print(execution_data->rowsource, DEBUG_FH);
+  if(execution_data->rowsource)
+    rasqal_rowsource_print(execution_data->rowsource, DEBUG_FH);
+  else
+    fputs("NULL", DEBUG_FH);
   fputc('\n', DEBUG_FH);
 #endif
   if(error != RASQAL_ENGINE_OK)
