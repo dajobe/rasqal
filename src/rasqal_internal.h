@@ -1031,7 +1031,6 @@ int rasqal_xsd_datatype_check(rasqal_literal_type native_type, const unsigned ch
 const char* rasqal_xsd_datatype_label(rasqal_literal_type native_type);
 int rasqal_xsd_is_datatype_uri(rasqal_world*, raptor_uri* uri);
 const unsigned char* rasqal_xsd_datetime_string_to_canonical(const unsigned char* datetime_string);
-rasqal_literal_type rasqal_xsd_datatype_uri_parent_type(rasqal_world* world, raptor_uri* uri);
 int rasqal_xsd_datatype_is_numeric(rasqal_literal_type type);
 unsigned char* rasqal_xsd_format_integer(int i, size_t *len_p);
 unsigned char* rasqal_xsd_format_float(float f, size_t *len_p);

@@ -640,6 +640,8 @@ rasqal_new_string_literal_common(rasqal_world* world,
 {
   rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(rasqal_literal));
   if(l) {
+    rasqal_literal_type datatype_type = RASQAL_LITERAL_STRING;
+
     l->usage=1;
     l->world=world;
 
@@ -657,9 +659,9 @@ rasqal_new_string_literal_common(rasqal_world* world,
     l->flags=datatype_qname;
 
     if(datatype)
-      /* This is either RASQAL_LITERAL_DECIMAL or ...INTEGER or ...UNKNOWN */
-      l->parent_type=rasqal_xsd_datatype_uri_parent_type(world, datatype);
-
+      datatype_type = rasqal_xsd_datatype_uri_to_type(world, datatype);
+    l->parent_type = rasqal_xsd_datatype_parent_type(datatype_type);
+    
     if((flags == 1) && rasqal_literal_string_to_native(l, NULL, NULL, 1)) {
       rasqal_free_literal(l);
       l=NULL;

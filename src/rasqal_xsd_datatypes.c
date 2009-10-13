@@ -544,46 +544,6 @@ rasqal_xsd_datatype_uri_to_type(rasqal_world* world, raptor_uri* uri)
 }
 
 
-rasqal_literal_type
-rasqal_xsd_datatype_uri_parent_type(rasqal_world* world, raptor_uri* uri)
-{
-  int i;
-  rasqal_literal_type parent_type=RASQAL_LITERAL_UNKNOWN;
-  
-  if(!uri || !world->xsd_datatype_uris)
-    return parent_type;
-
-  /* xsd:integer parent is xsd:decimal */
-  if(
-#ifdef RAPTOR_V2_AVAILABLE
-     raptor_uri_equals_v2(world->raptor_world_ptr, uri,
-                          world->xsd_datatype_uris[RASQAL_LITERAL_INTEGER])
-#else
-     raptor_uri_equals(uri,
-                       world->xsd_datatype_uris[RASQAL_LITERAL_INTEGER])
-#endif
-    )
-    return RASQAL_LITERAL_DECIMAL;
-  
-  /* a pile of things have parent of xsd:integer */
-  for(i=(int)XSD_INTEGER_DERIVED_FIRST; i <= (int)XSD_INTEGER_DERIVED_LAST; i++) {
-    if(
-#ifdef RAPTOR_V2_AVAILABLE
-       raptor_uri_equals_v2(world->raptor_world_ptr, uri, world->xsd_datatype_uris[i])
-#else
-       raptor_uri_equals(uri, world->xsd_datatype_uris[i])
-#endif
-      )
-    {
-      parent_type=RASQAL_LITERAL_INTEGER;
-      break;
-    }
-  }
-
-  return parent_type;
-}
-
-
 raptor_uri*
 rasqal_xsd_datatype_type_to_uri(rasqal_world* world, rasqal_literal_type type)
 {
