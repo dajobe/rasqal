@@ -2,7 +2,7 @@
  *
  * rasqal_literal.c - Rasqal literals
  *
- * Copyright (C) 2003-2008, David Beckett http://www.dajobe.org/
+ * Copyright (C) 2003-2009, David Beckett http://www.dajobe.org/
  * Copyright (C) 2003-2005, University of Bristol, UK http://www.bristol.ac.uk/
  * 
  * This package is Free Software and part of Redland http://librdf.org/
@@ -53,7 +53,7 @@
 
 /* prototypes */
 static rasqal_literal_type rasqal_literal_promote_numerics(rasqal_literal* l1, rasqal_literal* l2, int flags);
-static int rasqal_literal_set_typed_value(rasqal_literal* l, rasqal_literal_type type, const unsigned char* string, raptor_simple_message_handler error_handler, void *error_data, int flags);
+static int rasqal_literal_set_typed_value(rasqal_literal* l, rasqal_literal_type type, const unsigned char* string);
 
 
 /**
@@ -124,7 +124,13 @@ rasqal_new_typed_literal(rasqal_world* world, rasqal_literal_type type, const un
   l->usage=1;
   l->world=world;
   l->type=type;
-  if(rasqal_literal_set_typed_value(l, type, string, NULL, NULL, 0)) {
+
+  if(!rasqal_xsd_datatype_check(type, string, 0)) {
+    rasqal_free_literal(l);
+    return NULL;
+  }
+
+  if(rasqal_literal_set_typed_value(l, type, string)) {
     rasqal_free_literal(l);
     l=NULL;
   }
@@ -322,7 +328,12 @@ rasqal_new_decimal_literal_from_decimal(rasqal_world* world,
   l->world=world;
   l->type=RASQAL_LITERAL_DECIMAL;
   if(string) {
-    if(rasqal_literal_set_typed_value(l, l->type, string, NULL, NULL, 0)) {
+    if(!rasqal_xsd_datatype_check(l->type, string, 0)) {
+      rasqal_free_literal(l);
+      return NULL;
+    }
+
+    if(rasqal_literal_set_typed_value(l, l->type, string)) {
       rasqal_free_literal(l);
       l=NULL;
     }
@@ -410,9 +421,6 @@ rasqal_new_numeric_literal(rasqal_world* world, rasqal_literal_type type, double
  * @l: literal
  * @type: type
  * @string: string or NULL to use existing literal string
- * @error_handler: error handling function
- * @error_data: data for error handle
- * @flags: non-0 to ignore type errors
  *
  * INTERNAL - Set a literal typed value
  *
@@ -420,27 +428,13 @@ rasqal_new_numeric_literal(rasqal_world* world, rasqal_literal_type type, double
  **/
 static int
 rasqal_literal_set_typed_value(rasqal_literal* l, rasqal_literal_type type,
-                               const unsigned char* string,
-                               raptor_simple_message_handler error_handler,
-                               void *error_data, int flags)
+                               const unsigned char* string)
 {  
   char *eptr;
   raptor_uri* dt_uri;
   int i;
   double d;
   const unsigned char *new_string;
-  int valid;
-
-  valid=rasqal_xsd_datatype_check(type, string ? string : l->string, flags);
-  if(!valid) {
-    if(!flags) {
-      if(error_handler)
-        error_handler(error_data, "Illegal type %s string '%s'",
-                      rasqal_xsd_datatype_label(type), string ? string : l->string);
-      return 1;
-    }
-    return 0;
-  }
 
   if(l->language) {
     RASQAL_FREE(cstring, (void*)l->language);
@@ -600,8 +594,13 @@ rasqal_literal_string_to_native(rasqal_literal *l,
   if(native_type == RASQAL_LITERAL_STRING)
     return 0;
 
-  rc=rasqal_literal_set_typed_value(l, native_type, NULL /* existing string */,
-                                    error_handler, error_data, flags);
+  if(flags) {
+    int valid = rasqal_xsd_datatype_check(native_type, l->string, flags);
+    if(!valid)
+      return 0;
+  }
+  
+  rc=rasqal_literal_set_typed_value(l, native_type, NULL /* existing string */);
   return rc;
 }
 
