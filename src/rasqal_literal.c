@@ -79,13 +79,11 @@ rasqal_new_integer_literal(rasqal_world* world, rasqal_literal_type type, int in
     l->world=world;
     l->type=type;
     l->value.integer=integer;
-    l->string=(unsigned char*)RASQAL_MALLOC(cstring, 30); /* FIXME */
+    l->string = rasqal_xsd_format_integer(integer, (size_t*)&l->string_len);
     if(!l->string) {
       rasqal_free_literal(l);
       return NULL;
     }
-    sprintf((char*)l->string, "%d", integer);
-    l->string_len=strlen((const char*)l->string);
     dt_uri=rasqal_xsd_datatype_type_to_uri(world, l->type);
     if(!dt_uri) {
       rasqal_free_literal(l);
@@ -193,13 +191,11 @@ rasqal_new_float_literal(rasqal_world *world, float f)
     l->world=world;
     l->type=RASQAL_LITERAL_FLOAT;
     l->value.floating=(double)f;
-    l->string=(unsigned char*)RASQAL_MALLOC(cstring, 30); /* FIXME */
+    l->string = rasqal_xsd_format_double(f, (size_t*)&l->string_len);
     if(!l->string) {
       rasqal_free_literal(l);
       return NULL;
     }
-    sprintf((char*)l->string, "%1g", f);
-    l->string_len=strlen((const char*)l->string);
     dt_uri=rasqal_xsd_datatype_type_to_uri(world, l->type);
     if(!dt_uri) {
       rasqal_free_literal(l);
