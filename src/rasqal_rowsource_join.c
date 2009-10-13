@@ -360,36 +360,48 @@ rasqal_join_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
       }
     }
     
-    /*
-     * { merge(mu1, mu2) | mu1 in Omega1 and mu2 in Omega2, and mu1 and mu2 are
-     *   compatible and expr(merge(mu1, mu2)) is true }
-     */
-    if(compatible && bresult) {
-      /* No constraint OR constraint & compatible so return merged row */
+    if(con->join_type == RASQAL_JOIN_TYPE_NATURAL) {
+      /* found a row if compatible and constraint matches */
+      if(compatible && bresult && right_row) {
+        row = rasqal_join_rowsource_build_merged_row(rowsource, con, right_row);
+        break;
+      }
+      
+    } else if(con->join_type == RASQAL_JOIN_TYPE_LEFT) {
+      /*
+       * { merge(mu1, mu2) | mu1 in Omega1 and mu2 in Omega2, and mu1
+       *   and mu2 are compatible and expr(merge(mu1, mu2)) is true }
+       */
+      if(compatible && bresult) {
+        /* No constraint OR constraint & compatible so return merged row */
 
-      /* Compute row only now it is known to be needed */
-      row = rasqal_join_rowsource_build_merged_row(rowsource, con, right_row);
-      break;
-    }
-
-    /*
-     * { mu1 | mu1 in Omega1 and mu2 in Omega2, and mu1 and mu2 are not compatible } 
-     *
-     * { mu1 | mu1 in Omega1 and mu2 in Omega2, and mu1 and mu2 are compatible and
-     *   expr(merge(mu1, mu2)) is false }
-     */
-
-    if(!compatible || (compatible && !bresult)) {
-      /* otherwise return LEFT or RIGHT row only */
-      if(con->join_type == RASQAL_JOIN_TYPE_LEFT) {
-        /* LEFT JOIN - add left row if expr fails or not compatible */
-        if(con->left_row) {
-          row = rasqal_join_rowsource_build_merged_row(rowsource, con, NULL);
-          break;
+        /* Compute row only now it is known to be needed */
+        row = rasqal_join_rowsource_build_merged_row(rowsource, con, right_row);
+        break;
+      }
+    
+      /*
+       * { mu1 | mu1 in Omega1 and mu2 in Omega2, and mu1 and mu2 are
+       * not compatible }
+       *
+       * { mu1 | mu1 in Omega1 and mu2 in Omega2, and mu1 and mu2 are
+       *   compatible and expr(merge(mu1, mu2)) is false }
+       */
+      
+      if(!compatible || (compatible && !bresult)) {
+        /* otherwise return LEFT or RIGHT row only */
+        if(con->join_type == RASQAL_JOIN_TYPE_LEFT) {
+          /* LEFT JOIN - add left row if expr fails or not compatible */
+          if(con->left_row) {
+            row = rasqal_join_rowsource_build_merged_row(rowsource, con, NULL);
+            break;
+          }
         }
       }
-    }
-  }
+
+    } /* end if LEFT JOIN */
+
+  } /* end while */
 
   if(row) {
     row->rowsource = rowsource;
