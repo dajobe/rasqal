@@ -251,6 +251,74 @@ rasqal_xsd_check_integer_format(const unsigned char* string, int flags)
 
 
 /**
+ * rasqal_xsd_format_integer:
+ * @i: integer
+ * @len_p: pointer to length of result or NULL
+ *
+ * INTERNAL - Format a C integer as a string in XSD decimal integer format.
+ *
+ * This is suitable for multiple XSD decimal integer types that are
+ * xsd:integer or sub-types such as xsd:short, xsd:int, xsd:long,
+ *
+ * See http://www.w3.org/TR/xmlschema-2/#built-in-datatypes for the full list.
+ *
+ * Return value: new string or NULL on failure
+ */
+unsigned char*
+rasqal_xsd_format_integer(int i, size_t *len_p)
+{
+  unsigned char* string;
+  
+  /* Buffer sizes need to format:
+   *   4:  8 bit decimal integers (xsd:byte)  "-128" to "127"
+   *   6: 16 bit decimal integers (xsd:short) "-32768" to "32767" 
+   *  11: 32 bit decimal integers (xsd:int)   "-2147483648" to "2147483647"
+   *  20: 64 bit decimal integers (xsd:long)  "-9223372036854775808" to "9223372036854775807"
+   * (the lexical form may have leading 0s in non-canonical representations)
+   */
+#define INTEGER_BUFFER_SIZE 20
+  string = (unsigned char*)RASQAL_MALLOC(cstring, INTEGER_BUFFER_SIZE + 1);
+  if(!string)
+    return NULL;
+  /* snprintf() takes as length the buffer size including NUL */
+  snprintf((char*)string, INTEGER_BUFFER_SIZE + 1, "%d", i);
+  if(len_p)
+    *len_p = strlen((const char*)string);
+
+  return string;
+}
+
+
+/**
+ * rasqal_xsd_format_float:
+ * @i: float
+ * @len_p: pointer to length of result or NULL
+ *
+ * INTERNAL - Format a new an xsd:float correctly
+ *
+ * Return value: new string or NULL on failure
+ */
+unsigned char*
+rasqal_xsd_format_float(float f, size_t *len_p)
+{
+  unsigned char* string;
+  
+  /* FIXME: This is big enough for C float formatted in decimal as %1g */
+#define FLOAT_BUFFER_SIZE 30
+  string = (unsigned char*)RASQAL_MALLOC(cstring, FLOAT_BUFFER_SIZE + 1);
+  if(!string)
+    return NULL;
+  /* snprintf() takes as length the buffer size including NUL */
+  /* FIXME: %1g may not be the nearest to XSD xsd:float canonical format */
+  snprintf((char*)string, FLOAT_BUFFER_SIZE + 1, "%1g", (double)f);
+  if(len_p)
+    *len_p = strlen((const char*)string);
+
+  return string;
+}
+
+
+/**
  * rasqal_xsd_format_double:
  * @d: double
  * @len_p: pointer to length of result or NULL
