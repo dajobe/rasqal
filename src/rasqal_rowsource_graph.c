@@ -105,7 +105,7 @@ rasqal_graph_next_dg(rasqal_graph_rowsource_context *con)
 
     con->dg_offset++;
     dg = rasqal_query_get_data_graph(query, con->dg_offset);
-    if(!dg || !dg->name_uri) {
+    if(!dg) {
       con->finished = 1;
       break;
     }
@@ -118,15 +118,18 @@ rasqal_graph_next_dg(rasqal_graph_rowsource_context *con)
 #else
     o = rasqal_new_uri_literal(query->world, raptor_uri_copy(dg->name_uri));
 #endif
-    if(o) {
-      rasqal_rowsource_set_origin(con->rowsource, o);
-
-      rasqal_variable_set_value(con->var,
-                                rasqal_new_literal_from_literal(o));
-      
-      RASQAL_DEBUG2("Using data graph URI literal <%s>\n",
-                    rasqal_literal_as_string(o));
+    if(!o) {
+      RASQAL_DEBUG1("Failed to create new URI literal\n");
+      con->finished = 1;
+      break;
     }
+
+    rasqal_rowsource_set_origin(con->rowsource, o);
+
+    rasqal_variable_set_value(con->var, rasqal_new_literal_from_literal(o));
+      
+    RASQAL_DEBUG2("Using data graph URI literal <%s>\n",
+                    rasqal_literal_as_string(o));
     
     break;
   }
