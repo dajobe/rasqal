@@ -148,7 +148,7 @@ rasqal_join_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
   con->rc_map = rasqal_new_row_compatible(vars_table, con->left, con->right);
 
 #ifdef RASQAL_DEBUG
-  RASQAL_DEBUG1("Row compatible map:\n");
+  RASQAL_DEBUG2("rowsource %p ", rowsource);
   rasqal_print_row_compatible(stderr, con->rc_map);
 #endif
 
@@ -325,9 +325,7 @@ rasqal_join_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
     if(right_row) {
       compatible = rasqal_row_compatible_check(con->rc_map,
                                                con->left_row, right_row);
-#ifdef RASQAL_DEBUG
-      fprintf(stderr, "join rows compatible: %s\n", compatible ? "YES" : "NO");
-#endif
+      RASQAL_DEBUG2("join rows compatible: %s\n", compatible ? "YES" : "NO");
     }
 
 
