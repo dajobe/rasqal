@@ -44,6 +44,7 @@
 
 #ifndef STANDALONE
 
+static void rasqal_rowsource_print_header(rasqal_rowsource* rowsource, FILE* fh);
 
 /**
  * rasqal_new_rowsource_from_handler:
@@ -192,6 +193,13 @@ rasqal_rowsource_ensure_variables(rasqal_rowsource *rowsource)
   if(rowsource->handler->ensure_variables)
     rc = rowsource->handler->ensure_variables(rowsource, rowsource->user_data);
 
+#ifdef RASQAL_DEBUG
+  if(!rc) {
+    RASQAL_DEBUG2("rowsource %p ", rowsource);
+    rasqal_rowsource_print_header(rowsource, stderr);
+  }
+#endif
+
   return rc;
 }
 
@@ -236,7 +244,8 @@ rasqal_rowsource_read_row(rasqal_rowsource *rowsource)
     rowsource->count++;
 
 #ifdef RASQAL_DEBUG
-  RASQAL_DEBUG2("read %s row : ", rowsource->handler->name);
+  RASQAL_DEBUG3("rowsource %p read %s row : ", rowsource, 
+                rowsource->handler->name);
   if(row)
     rasqal_row_print(row, stderr);
   else
