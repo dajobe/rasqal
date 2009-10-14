@@ -169,16 +169,30 @@ rasqal_print_row_compatible(FILE *handle, rasqal_row_compatible* map)
   int count = map->variables_count;
   rasqal_variables_table* vt = map->variables_table;
   int i;
+  char left_rs[4];
+  char right_rs[4];
 
-  fprintf(handle, "Row compatible map: total variables: %d  shared variables: %d\n",
+  fprintf(handle,
+          "Row compatible map: total variables: %d  shared variables: %d\n",
           count, map->variables_in_both_rows_count);
   for(i = 0; i < count; i++) {
     rasqal_variable *v = rasqal_variables_table_get(vt, i);
     int offset1 = map->defined_in_map[i<<1];
     int offset2 = map->defined_in_map[1 + (i<<1)];
     
-    fprintf(handle, "  Variable %10s   offsets RS 1: %3d  RS 2: %3d  %s\n",
-            v->name, offset1, offset2,
+    if(offset1 < 0)
+      *left_rs='\0';
+    else
+      sprintf(left_rs, "%2d", offset1);
+    
+    if(offset2 < 0)
+      *right_rs='\0';
+    else
+      sprintf(right_rs, "%2d", offset2);
+    
+    fprintf(handle, 
+            "  Variable %10s   offsets left RS: %-3s  right RS: %-3s  %s\n",
+            v->name, left_rs, right_rs,
             ((offset1 >=0 && offset2 >= 0) ? "SHARED" : ""));
   }
 }
