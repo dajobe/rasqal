@@ -1344,6 +1344,15 @@ rasqal_expression_evaluate_v2(rasqal_world *world, raptor_locator *locator,
         goto failed;
       }
 
+      /* FIXME - this should probably be checked at literal creation
+       * time
+       */
+      if(!rasqal_xsd_datatype_check(l1->type, l1->string, flags) ||
+         !rasqal_xsd_datatype_check(l2->type, l2->string, flags)) {
+        RASQAL_DEBUG1("One of the literals was invalid\n");
+        goto failed;
+      }
+
       vars.b=(rasqal_literal_equals_flags(l1, l2, flags, &errs.e) != 0);
 #if RASQAL_DEBUG > 1
       if(errs.e)
@@ -1621,7 +1630,8 @@ rasqal_expression_evaluate_v2(rasqal_world *world, raptor_locator *locator,
       /* The datatype of a plain literal is xsd:string */
       vars.dt_uri=l1->datatype;
       if(!vars.dt_uri && l1->type == RASQAL_LITERAL_STRING)
-        vars.dt_uri=rasqal_xsd_datatype_type_to_uri(l1->world, l1->type);
+        vars.dt_uri=rasqal_xsd_datatype_type_to_uri(l1->world,
+                                                    RASQAL_LITERAL_XSD_STRING);
 
       if(!vars.dt_uri) {
         if(errs.flags.free_literal)
