@@ -400,6 +400,7 @@ rasqal_new_numeric_literal(rasqal_world* world, rasqal_literal_type type, double
       return rasqal_new_decimal_literal(world, (unsigned char*)buffer);
       break;
 
+    case RASQAL_LITERAL_XSD_STRING:
     case RASQAL_LITERAL_BOOLEAN:
     case RASQAL_LITERAL_DATETIME:
     case RASQAL_LITERAL_UNKNOWN:
@@ -409,10 +410,24 @@ rasqal_new_numeric_literal(rasqal_world* world, rasqal_literal_type type, double
     case RASQAL_LITERAL_PATTERN:
     case RASQAL_LITERAL_QNAME:
     case RASQAL_LITERAL_VARIABLE:
+    case RASQAL_LITERAL_UDT:
       RASQAL_FATAL2("Unexpected numeric type %d\n", type);
   }
 
   return NULL;
+}
+
+
+static int
+rasqal_literal_string_interpreted_as_boolean(const unsigned char* string) 
+{
+  int integer = 0;
+  if(!strcmp((const char*)string, "true") || 
+     !strcmp((const char*)string, "TRUE") ||
+     !strcmp((const char*)string, "1"))
+    integer = 1;
+
+  return integer;
 }
 
 
@@ -504,13 +519,13 @@ rasqal_literal_set_typed_value(rasqal_literal* l, rasqal_literal_type type,
         return 1;
       break;
 
+    case RASQAL_LITERAL_XSD_STRING:
+    case RASQAL_LITERAL_UDT:
+      /* No change - kept as same type - xsd:string or user defined */
+      break;
+
     case RASQAL_LITERAL_BOOLEAN:
-      i=0;
-      if(!strcmp((const char*)l->string, "true") || 
-         !strcmp((const char*)l->string, "TRUE") ||
-         !strcmp((const char*)l->string, "1"))
-        i=1;
-      
+      i = rasqal_literal_string_interpreted_as_boolean(l->string);
       /* Free passed in string */
       RASQAL_FREE(cstring, (void*)l->string);
       /* and replace with a static string */
@@ -585,14 +600,24 @@ rasqal_literal_string_to_native(rasqal_literal *l,
   if(!l->datatype)
     return 0;
   
-  native_type=rasqal_xsd_datatype_uri_to_type(l->world, l->datatype);
-
-  /* If not a native type return ok but do not change literal */
-  if(native_type == RASQAL_LITERAL_UNKNOWN)
-    return 0;
-  /* xsd:string but nothing need be done */
+  native_type = rasqal_xsd_datatype_uri_to_type(l->world, l->datatype);
+  /* plain literal - nothing to do */
   if(native_type == RASQAL_LITERAL_STRING)
     return 0;
+
+  /* xsd:string - mark and return */
+  if(native_type == RASQAL_LITERAL_XSD_STRING) {
+    l->type = native_type;
+    return 0;
+  }
+
+  /* If a user defined type - update the literal */
+  if(native_type == RASQAL_LITERAL_UNKNOWN) {
+    l->type = RASQAL_LITERAL_UDT;
+    return 0;
+  }
+
+  rc=rasqal_literal_set_typed_value(l, native_type, NULL /* existing string */);
 
   if(flags) {
     int valid = rasqal_xsd_datatype_check(native_type, l->string, flags);
@@ -600,7 +625,6 @@ rasqal_literal_string_to_native(rasqal_literal *l,
       return 0;
   }
   
-  rc=rasqal_literal_set_typed_value(l, native_type, NULL /* existing string */);
   return rc;
 }
 
@@ -870,10 +894,12 @@ rasqal_free_literal(rasqal_literal* l)
     case RASQAL_LITERAL_BLANK:
     case RASQAL_LITERAL_PATTERN:
     case RASQAL_LITERAL_QNAME:
+    case RASQAL_LITERAL_XSD_STRING:
     case RASQAL_LITERAL_DOUBLE:
     case RASQAL_LITERAL_INTEGER: 
     case RASQAL_LITERAL_FLOAT:
     case RASQAL_LITERAL_DATETIME:
+    case RASQAL_LITERAL_UDT:
       if(l->string)
         RASQAL_FREE(cstring, (void*)l->string);
       if(l->language)
@@ -939,12 +965,14 @@ static const char* const rasqal_literal_type_labels[RASQAL_LITERAL_LAST+1]={
   "blank",
   "uri",
   "string",
+  "xsdstring",
   "boolean",
   "integer",
   "float",
   "double",
   "decimal",
   "datetime",
+  "udt",
   "pattern",
   "qname",
   "variable"
@@ -1047,6 +1075,7 @@ rasqal_literal_write(rasqal_literal* l, raptor_iostream* iostr)
         raptor_iostream_write_string(iostr, l->flags);
       break;
     case RASQAL_LITERAL_STRING:
+    case RASQAL_LITERAL_UDT:
       raptor_iostream_write_counted_string(iostr, "(\"", 2);
       raptor_iostream_write_string_ntriples(iostr, l->string, l->string_len, '"');
       raptor_iostream_write_byte(iostr, '"');
@@ -1072,6 +1101,7 @@ rasqal_literal_write(rasqal_literal* l, raptor_iostream* iostr)
 
     case RASQAL_LITERAL_QNAME:
     case RASQAL_LITERAL_INTEGER:
+    case RASQAL_LITERAL_XSD_STRING:
     case RASQAL_LITERAL_BOOLEAN:
     case RASQAL_LITERAL_DOUBLE:
     case RASQAL_LITERAL_FLOAT:
@@ -1129,6 +1159,7 @@ rasqal_literal_print(rasqal_literal* l, FILE* fh)
       fprintf(fh, "/%s/%s", l->string, l->flags ? (const char*)l->flags : "");
       break;
     case RASQAL_LITERAL_STRING:
+    case RASQAL_LITERAL_UDT:
       fputs("(\"", fh);
       raptor_print_ntriples_string(fh, l->string, '"');
       fputc('"', fh);
@@ -1153,6 +1184,7 @@ rasqal_literal_print(rasqal_literal* l, FILE* fh)
 
     case RASQAL_LITERAL_QNAME:
     case RASQAL_LITERAL_INTEGER:
+    case RASQAL_LITERAL_XSD_STRING:
     case RASQAL_LITERAL_BOOLEAN:
     case RASQAL_LITERAL_DOUBLE:
     case RASQAL_LITERAL_FLOAT:
@@ -1220,12 +1252,17 @@ rasqal_literal_as_boolean(rasqal_literal* l, int *error)
       /* plain literal -> true if non-empty */
       return l->string && *l->string;
 
+    case RASQAL_LITERAL_XSD_STRING:
+      /* xsd:string -> true if non-empty */
+      return l->string && *l->string;
+
     case RASQAL_LITERAL_URI:
     case RASQAL_LITERAL_BLANK:
     case RASQAL_LITERAL_PATTERN:
     case RASQAL_LITERAL_QNAME:
     case RASQAL_LITERAL_DECIMAL:
     case RASQAL_LITERAL_DATETIME:
+    case RASQAL_LITERAL_UDT:
       *error = 1;
       return 0;
       break;
@@ -1288,6 +1325,7 @@ rasqal_literal_as_integer(rasqal_literal* l, int *error)
       break;
 
     case RASQAL_LITERAL_STRING:
+    case RASQAL_LITERAL_XSD_STRING:
       {
         char *eptr;
         double  d;
@@ -1317,6 +1355,7 @@ rasqal_literal_as_integer(rasqal_literal* l, int *error)
     case RASQAL_LITERAL_QNAME:
     case RASQAL_LITERAL_PATTERN:
     case RASQAL_LITERAL_DATETIME:
+    case RASQAL_LITERAL_UDT:
       if(error)
         *error=1;
       return 0;
@@ -1362,6 +1401,7 @@ rasqal_literal_as_floating(rasqal_literal* l, int *error)
       break;
 
     case RASQAL_LITERAL_STRING:
+    case RASQAL_LITERAL_XSD_STRING:
       {
         char *eptr=NULL;
         double  d=strtod((const char*)l->string, &eptr);
@@ -1382,6 +1422,7 @@ rasqal_literal_as_floating(rasqal_literal* l, int *error)
     case RASQAL_LITERAL_QNAME:
     case RASQAL_LITERAL_PATTERN:
     case RASQAL_LITERAL_DATETIME:
+    case RASQAL_LITERAL_UDT:
       if(error)
         *error=1;
       return 0.0;
@@ -1440,6 +1481,7 @@ rasqal_literal_as_string_flags(rasqal_literal* l, int flags, int *error)
     return NULL;
   
   switch(l->type) {
+    case RASQAL_LITERAL_XSD_STRING:
     case RASQAL_LITERAL_BOOLEAN:
     case RASQAL_LITERAL_INTEGER:
     case RASQAL_LITERAL_DOUBLE:
@@ -1450,6 +1492,7 @@ rasqal_literal_as_string_flags(rasqal_literal* l, int flags, int *error)
     case RASQAL_LITERAL_FLOAT:
     case RASQAL_LITERAL_DECIMAL:
     case RASQAL_LITERAL_DATETIME:
+    case RASQAL_LITERAL_UDT:
       return l->string;
 
     case RASQAL_LITERAL_URI:
@@ -1583,6 +1626,9 @@ rasqal_literal_get_rdf_term_type(rasqal_literal* l)
   if(type >= RASQAL_LITERAL_FIRST_XSD &&
      type <= RASQAL_LITERAL_LAST_XSD)
     type = RASQAL_LITERAL_STRING;
+
+  if(type == RASQAL_LITERAL_UDT)
+    type = RASQAL_LITERAL_STRING;
   
   if(type != RASQAL_LITERAL_URI &&
      type != RASQAL_LITERAL_STRING &&
@@ -1593,9 +1639,22 @@ rasqal_literal_get_rdf_term_type(rasqal_literal* l)
 }
 
 
+
+
+/*
+ * rasqal_new_literal_from_promotion:
+ * @lit: existing literal
+ * @type: type to promote to
+ * @flags; if RASQAL_COMPARE_URI is set, do sloppy promotion from string to bool (RDQL)
+ *
+ * Make a new literal from a type promotion
+ *
+ * New literal or NULL on failure
+*/
 static rasqal_literal*
 rasqal_new_literal_from_promotion(rasqal_literal* lit,
-                                  rasqal_literal_type type)
+                                  rasqal_literal_type type,
+                                  int flags)
 {
   rasqal_literal* new_lit=NULL;
   int errori=0;
@@ -1617,13 +1676,21 @@ rasqal_new_literal_from_promotion(rasqal_literal* lit,
     RASQAL_DEBUG2("NOT promoting to non-numeric type %s\n", 
                   rasqal_literal_type_labels[lit->type]);
 
-    if(type == RASQAL_LITERAL_STRING) {
-      s=rasqal_literal_as_string(lit);
-      len=strlen((const char*)s);
-      new_s=(unsigned char*)RASQAL_MALLOC(sstring, len+1);
+    if(type == RASQAL_LITERAL_STRING || type ==  RASQAL_LITERAL_UDT) {
+      s = rasqal_literal_as_string(lit);
+      len = strlen((const char*)s);
+      new_s = (unsigned char*)RASQAL_MALLOC(sstring, len+1);
       if(new_s) {
+        raptor_uri* dt_uri = NULL;
         strncpy((char*)new_s, (const char*)s, len+1);
-        return rasqal_new_string_literal(lit->world, new_s, NULL, NULL, NULL);
+        if(lit->datatype) {
+#ifdef RAPTOR_V2_AVAILABLE
+          dt_uri = raptor_uri_copy_v2(lit->world->raptor_world_ptr, lit->datatype);
+#else
+          dt_uri = raptor_uri_copy(lit->datatype);
+#endif
+        }
+        return rasqal_new_string_literal_node(lit->world, new_s, NULL, dt_uri);
       } else
         return NULL;
     }
@@ -1655,8 +1722,19 @@ rasqal_new_literal_from_promotion(rasqal_literal* lit,
       
 
     case RASQAL_LITERAL_INTEGER:
-    case RASQAL_LITERAL_BOOLEAN:
       i=rasqal_literal_as_integer(lit, &errori);
+      /* failure always means no match */
+      if(errori)
+        new_lit=NULL;
+      else
+        new_lit=rasqal_new_integer_literal(lit->world, type, i);
+      break;
+    
+    case RASQAL_LITERAL_BOOLEAN:
+      if(flags & RASQAL_COMPARE_URI)
+        i = rasqal_literal_string_interpreted_as_boolean(lit->string);
+      else
+        i = rasqal_literal_as_boolean(lit, &errori);
       /* failure always means no match */
       if(errori)
         new_lit=NULL;
@@ -1674,6 +1752,24 @@ rasqal_new_literal_from_promotion(rasqal_literal* lit,
       }
       break;
 
+    case RASQAL_LITERAL_XSD_STRING:
+      s = rasqal_literal_as_string(lit);
+      len = strlen((const char*)s);
+      new_s = (unsigned char*)RASQAL_MALLOC(sstring, len+1);
+      if(new_s) {
+        raptor_uri* dt_uri;
+        strncpy((char*)new_s, (const char*)s, len+1);
+        dt_uri = rasqal_xsd_datatype_type_to_uri(lit->world, lit->type);
+#ifdef RAPTOR_V2_AVAILABLE
+        dt_uri = raptor_uri_copy_v2(lit->world->raptor_world_ptr, dt_uri);
+#else
+        dt_uri = raptor_uri_copy(dt_uri);
+#endif
+        new_lit = rasqal_new_string_literal(lit->world, new_s, NULL, dt_uri,
+                                            NULL);
+      }
+      break;
+
     case RASQAL_LITERAL_UNKNOWN:
     case RASQAL_LITERAL_BLANK:
     case RASQAL_LITERAL_URI:
@@ -1681,6 +1777,7 @@ rasqal_new_literal_from_promotion(rasqal_literal* lit,
     case RASQAL_LITERAL_PATTERN:
     case RASQAL_LITERAL_QNAME:
     case RASQAL_LITERAL_VARIABLE:
+    case RASQAL_LITERAL_UDT:
     default:
       errori=1;
       new_lit=NULL;
@@ -1706,8 +1803,8 @@ static int
 rasqal_literal_string_compare(rasqal_literal* l1, rasqal_literal* l2,
                               int flags, int* error)
 {
-  if(l1->type != RASQAL_LITERAL_STRING ||
-     l2->type != RASQAL_LITERAL_STRING) {
+  if((l1->type != RASQAL_LITERAL_STRING && l1->type != RASQAL_LITERAL_UDT) ||
+      (l2->type != RASQAL_LITERAL_STRING && l2->type != RASQAL_LITERAL_UDT)) {
     if(error)
       *error=0;
     return 0;
@@ -1770,10 +1867,12 @@ rasqal_literal_rdql_promote_calculate(rasqal_literal* l1, rasqal_literal* l2)
       break;
       
     case RASQAL_LITERAL_STRING:
+    case RASQAL_LITERAL_XSD_STRING:
     case RASQAL_LITERAL_BLANK:
     case RASQAL_LITERAL_PATTERN:
     case RASQAL_LITERAL_QNAME:
     case RASQAL_LITERAL_DATETIME:
+    case RASQAL_LITERAL_UDT:
       seen_string++;
       break;
       
@@ -1805,7 +1904,7 @@ rasqal_literal_rdql_promote_calculate(rasqal_literal* l1, rasqal_literal* l2)
     if((seen_int & seen_double) || (seen_int & seen_string))
       type=RASQAL_LITERAL_DOUBLE;
     if(seen_boolean & seen_string)
-      type=RASQAL_LITERAL_STRING;
+      type=RASQAL_LITERAL_BOOLEAN;
   } else
     type=lits[0]->type;
   
@@ -1901,6 +2000,13 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
                 rasqal_literal_type_labels[type0],
                 rasqal_literal_type_labels[type1]);
 
+    /* cannot compare UDTs */
+    if(type0 == RASQAL_LITERAL_UDT || type1 == RASQAL_LITERAL_UDT) {
+      if(error)
+        *error = 1;
+      return 0;
+    }
+
     type=rasqal_literal_promote_numerics(lits[0], lits[1], flags);
     if(type == RASQAL_LITERAL_UNKNOWN) {
       int type_diff;
@@ -1936,7 +2042,7 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
   /* do promotions */
   for(i=0; i<2; i++) {
     if(promotion) {
-      new_lits[i]=rasqal_new_literal_from_promotion(lits[i], type);
+      new_lits[i] = rasqal_new_literal_from_promotion(lits[i], type, flags);
       if(!new_lits[i]) {
         if(error)
           *error=1;
@@ -1967,6 +2073,7 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
       break;
 
     case RASQAL_LITERAL_STRING:
+    case RASQAL_LITERAL_UDT:
       result=rasqal_literal_string_compare(new_lits[0], new_lits[1],
                                            flags, error);
       if(*error)
@@ -1976,6 +2083,7 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
     case RASQAL_LITERAL_BLANK:
     case RASQAL_LITERAL_PATTERN:
     case RASQAL_LITERAL_QNAME:
+    case RASQAL_LITERAL_XSD_STRING:
     case RASQAL_LITERAL_DATETIME:
       if(flags & RASQAL_COMPARE_NOCASE)
         result=rasqal_strcasecmp((const char*)new_lits[0]->string,
@@ -2037,7 +2145,10 @@ rasqal_literal_string_equals(rasqal_literal* l1, rasqal_literal* l2,
   int result=1;
   raptor_uri* dt1=l1->datatype;
   raptor_uri* dt2=l2->datatype;
-  raptor_uri* xsd_string_uri=rasqal_xsd_datatype_type_to_uri(l1->world, RASQAL_LITERAL_STRING);
+  raptor_uri* xsd_string_uri;
+
+  xsd_string_uri = rasqal_xsd_datatype_type_to_uri(l1->world,
+                                                   RASQAL_LITERAL_XSD_STRING);
 
   if(l1->language || l2->language) {
     /* if either is NULL, the comparison fails */
@@ -2047,20 +2158,24 @@ rasqal_literal_string_equals(rasqal_literal* l1, rasqal_literal* l2,
       return 0;
   }
 
-  /* Treat typed literal "xx"^^xsd:string as plain literal "xx" 
-   * for purposes of equality.
+  /* Promote plain literal to typed literal "xx"^^xsd:string 
+   * if the other literal is typed
    */
+  if(l1->type == RASQAL_LITERAL_STRING && 
+     l2->type == RASQAL_LITERAL_XSD_STRING) {
 #ifdef RAPTOR_V2_AVAILABLE
-  if(dt1 && raptor_uri_equals_v2(l1->world->raptor_world_ptr, dt1, xsd_string_uri))
-    dt1 = NULL;
-  if(dt2 && raptor_uri_equals_v2(l1->world->raptor_world_ptr, dt2, xsd_string_uri))
-    dt2 = NULL;
+    dt1 = raptor_uri_copy_v2(l->world->raptor_world_ptr, xsd_string_uri);
 #else
-  if(dt1 && raptor_uri_equals(dt1, xsd_string_uri))
-    dt1 = NULL;
-  if(dt2 && raptor_uri_equals(dt2, xsd_string_uri))
-    dt2 = NULL;
+    dt1 = raptor_uri_copy(xsd_string_uri);
 #endif
+  } else if(l1->type == RASQAL_LITERAL_XSD_STRING && 
+            l2->type == RASQAL_LITERAL_STRING) {
+#ifdef RAPTOR_V2_AVAILABLE
+    dt2 = raptor_uri_copy_v2(l->world->raptor_world_ptr, xsd_string_uri);
+#else
+    dt2 = raptor_uri_copy(xsd_string_uri);
+#endif
+  }
 
   if(dt1 || dt2) {
     /* if either is NULL - type error */
@@ -2083,23 +2198,6 @@ rasqal_literal_string_equals(rasqal_literal* l1, rasqal_literal* l2,
       return 0;
     }
     /* at this point the datatypes (URIs) are the same */
-    
-    /* If literals were both typed literals */
-    if(l1->type == RASQAL_LITERAL_STRING && l2->type == RASQAL_LITERAL_STRING) {
-      if(l1->string_len != l2->string_len) {
-        /* not-equal if lengths are different - cheap to compare this first */
-        return 0;
-      } else {
-        /* user-defined datatype - can only check for lexical identity */
-        result=!strcmp((const char*)l1->string, (const char*)l2->string);
-        if(!result) {
-          /* different strings but cannot tell if they are equal */
-          if(error_p)
-            *error_p = 1;
-          return 0;
-        }
-      }
-    }
   }
 
   /* Finally check the lexical forms */
@@ -2108,8 +2206,17 @@ rasqal_literal_string_equals(rasqal_literal* l1, rasqal_literal* l2,
   if(l1->string_len != l2->string_len)
     return 0;
 
-  result=!strcmp((const char*)l1->string, (const char*)l2->string);
+  result = !strcmp((const char*)l1->string, (const char*)l2->string);
 
+  /* If result is equality but literals were both typed literals with
+   * user-defined types then cause a type error; equality is unknown.
+   */
+  if(!result &&
+     (l1->type == RASQAL_LITERAL_UDT && l2->type == RASQAL_LITERAL_UDT)) {
+    if(error_p)
+      *error_p = 1;
+  }
+  
   return result;
 }
 
@@ -2241,9 +2348,9 @@ rasqal_literal_equals_flags(rasqal_literal* l1, rasqal_literal* l2,
   }
 
   if(promotion) {
-    l1_p=rasqal_new_literal_from_promotion(l1, type);
+    l1_p = rasqal_new_literal_from_promotion(l1, type, flags);
     if(l1_p)
-      l2_p=rasqal_new_literal_from_promotion(l2, type);
+      l2_p = rasqal_new_literal_from_promotion(l2, type, flags);
     if(!l1_p || !l2_p) {
       result=1;
       goto tidy;
@@ -2259,6 +2366,8 @@ rasqal_literal_equals_flags(rasqal_literal* l1, rasqal_literal* l2,
       break;
 
     case RASQAL_LITERAL_STRING:
+    case RASQAL_LITERAL_XSD_STRING:
+    case RASQAL_LITERAL_UDT:
       result = rasqal_literal_string_equals(l1_p, l2_p, error_p);
       break;
 
@@ -2424,9 +2533,11 @@ rasqal_literal_as_node(rasqal_literal* l)
     case RASQAL_LITERAL_DOUBLE:
     case RASQAL_LITERAL_FLOAT:
     case RASQAL_LITERAL_INTEGER:
+    case RASQAL_LITERAL_XSD_STRING:
     case RASQAL_LITERAL_BOOLEAN:
     case RASQAL_LITERAL_DECIMAL:
     case RASQAL_LITERAL_DATETIME:
+    case RASQAL_LITERAL_UDT:
       new_l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(rasqal_literal));
       if(new_l) {
         new_l->usage=1;
@@ -2538,11 +2649,13 @@ rasqal_literal_is_constant(rasqal_literal* l)
     case RASQAL_LITERAL_PATTERN:
     case RASQAL_LITERAL_QNAME:
     case RASQAL_LITERAL_INTEGER:
+    case RASQAL_LITERAL_XSD_STRING:
     case RASQAL_LITERAL_BOOLEAN:
     case RASQAL_LITERAL_DOUBLE:
     case RASQAL_LITERAL_FLOAT:
     case RASQAL_LITERAL_DECIMAL:
     case RASQAL_LITERAL_DATETIME:
+    case RASQAL_LITERAL_UDT:
       return 1;
 
     case RASQAL_LITERAL_VARIABLE:
@@ -2670,6 +2783,8 @@ rasqal_literal_cast(rasqal_literal* l, raptor_uri* to_datatype, int flags,
     switch(from_native_type) {
       /* string */
       case RASQAL_LITERAL_STRING:
+      case RASQAL_LITERAL_XSD_STRING:
+      case RASQAL_LITERAL_UDT:
         string=l->string;
         break;
 
@@ -2700,8 +2815,8 @@ rasqal_literal_cast(rasqal_literal* l, raptor_uri* to_datatype, int flags,
         break;
 
       case RASQAL_LITERAL_URI:
-        /* URI (IRI) May ONLY be cast to a string */
-        if(to_native_type != RASQAL_LITERAL_STRING) {
+        /* URI (IRI) May ONLY be cast to an xsd:string */
+        if(to_native_type != RASQAL_LITERAL_XSD_STRING) {
           *error_p=1;
           break;
         }
@@ -2849,9 +2964,9 @@ rasqal_literal_add(rasqal_literal* l1, rasqal_literal* l2, int *error_p)
       break;
       
     case RASQAL_LITERAL_DECIMAL:
-      l1_p=rasqal_new_literal_from_promotion(l1, type);
+      l1_p = rasqal_new_literal_from_promotion(l1, type, flags);
       if(l1_p)
-        l2_p=rasqal_new_literal_from_promotion(l2, type);
+        l2_p = rasqal_new_literal_from_promotion(l2, type, flags);
       if(l1_p && l2_p) {
         dec=rasqal_new_xsd_decimal();
         if(rasqal_xsd_decimal_add(dec, l1_p->value.decimal,
@@ -2867,11 +2982,13 @@ rasqal_literal_add(rasqal_literal* l1, rasqal_literal* l2, int *error_p)
     case RASQAL_LITERAL_BLANK:
     case RASQAL_LITERAL_URI:
     case RASQAL_LITERAL_STRING:
+    case RASQAL_LITERAL_XSD_STRING:
     case RASQAL_LITERAL_BOOLEAN:
     case RASQAL_LITERAL_DATETIME:
     case RASQAL_LITERAL_PATTERN:
     case RASQAL_LITERAL_QNAME:
     case RASQAL_LITERAL_VARIABLE:
+    case RASQAL_LITERAL_UDT:
     default:
       error=1;
       break;
@@ -2930,9 +3047,9 @@ rasqal_literal_subtract(rasqal_literal* l1, rasqal_literal* l2, int *error_p)
       break;
       
     case RASQAL_LITERAL_DECIMAL:
-      l1_p=rasqal_new_literal_from_promotion(l1, type);
+      l1_p = rasqal_new_literal_from_promotion(l1, type, flags);
       if(l1_p)
-        l2_p=rasqal_new_literal_from_promotion(l2, type);
+        l2_p = rasqal_new_literal_from_promotion(l2, type, flags);
       if(l1_p && l2_p) {
         dec=rasqal_new_xsd_decimal();
         if(rasqal_xsd_decimal_subtract(dec, l1_p->value.decimal,
@@ -2948,11 +3065,13 @@ rasqal_literal_subtract(rasqal_literal* l1, rasqal_literal* l2, int *error_p)
     case RASQAL_LITERAL_BLANK:
     case RASQAL_LITERAL_URI:
     case RASQAL_LITERAL_STRING:
+    case RASQAL_LITERAL_XSD_STRING:
     case RASQAL_LITERAL_BOOLEAN:
     case RASQAL_LITERAL_DATETIME:
     case RASQAL_LITERAL_PATTERN:
     case RASQAL_LITERAL_QNAME:
     case RASQAL_LITERAL_VARIABLE:
+    case RASQAL_LITERAL_UDT:
     default:
       error=1;
       break;
@@ -3011,9 +3130,9 @@ rasqal_literal_multiply(rasqal_literal* l1, rasqal_literal* l2, int *error_p)
       break;
       
     case RASQAL_LITERAL_DECIMAL:
-      l1_p=rasqal_new_literal_from_promotion(l1, type);
+      l1_p = rasqal_new_literal_from_promotion(l1, type, flags);
       if(l1_p)
-        l2_p=rasqal_new_literal_from_promotion(l2, type);
+        l2_p = rasqal_new_literal_from_promotion(l2, type, flags);
       if(l1_p && l2_p) {
         dec=rasqal_new_xsd_decimal();
         if(rasqal_xsd_decimal_multiply(dec, l1_p->value.decimal,
@@ -3029,11 +3148,13 @@ rasqal_literal_multiply(rasqal_literal* l1, rasqal_literal* l2, int *error_p)
     case RASQAL_LITERAL_BLANK:
     case RASQAL_LITERAL_URI:
     case RASQAL_LITERAL_STRING:
+    case RASQAL_LITERAL_XSD_STRING:
     case RASQAL_LITERAL_BOOLEAN:
     case RASQAL_LITERAL_DATETIME:
     case RASQAL_LITERAL_PATTERN:
     case RASQAL_LITERAL_QNAME:
     case RASQAL_LITERAL_VARIABLE:
+    case RASQAL_LITERAL_UDT:
     default:
       error=1;
       break;
@@ -3102,9 +3223,9 @@ rasqal_literal_divide(rasqal_literal* l1, rasqal_literal* l2, int *error_p)
       break;
       
     case RASQAL_LITERAL_DECIMAL:
-      l1_p=rasqal_new_literal_from_promotion(l1, type);
+      l1_p = rasqal_new_literal_from_promotion(l1, type, flags);
       if(l1_p)
-        l2_p=rasqal_new_literal_from_promotion(l2, type);
+        l2_p = rasqal_new_literal_from_promotion(l2, type, flags);
       if(l1_p && l2_p) {
         dec=rasqal_new_xsd_decimal();
         if(rasqal_xsd_decimal_add(dec, l1_p->value.decimal,
@@ -3120,11 +3241,13 @@ rasqal_literal_divide(rasqal_literal* l1, rasqal_literal* l2, int *error_p)
     case RASQAL_LITERAL_BLANK:
     case RASQAL_LITERAL_URI:
     case RASQAL_LITERAL_STRING:
+    case RASQAL_LITERAL_XSD_STRING:
     case RASQAL_LITERAL_BOOLEAN:
     case RASQAL_LITERAL_DATETIME:
     case RASQAL_LITERAL_PATTERN:
     case RASQAL_LITERAL_QNAME:
     case RASQAL_LITERAL_VARIABLE:
+    case RASQAL_LITERAL_UDT:
     default:
       error=1;
       break;
@@ -3184,11 +3307,13 @@ rasqal_literal_negate(rasqal_literal* l, int *error_p)
     case RASQAL_LITERAL_BLANK:
     case RASQAL_LITERAL_URI:
     case RASQAL_LITERAL_STRING:
+    case RASQAL_LITERAL_XSD_STRING:
     case RASQAL_LITERAL_BOOLEAN:
     case RASQAL_LITERAL_DATETIME:
     case RASQAL_LITERAL_PATTERN:
     case RASQAL_LITERAL_QNAME:
     case RASQAL_LITERAL_VARIABLE:
+    case RASQAL_LITERAL_UDT:
     default:
       error=1;
       break;
