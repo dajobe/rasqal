@@ -275,13 +275,15 @@ typedef struct {
  * rasqal_literal_type:
  * @RASQAL_LITERAL_BLANK: RDF blank node literal (SPARQL r:bNode)
  * @RASQAL_LITERAL_URI: RDF URI Literal (SPARQL r:URI)
- * @RASQAL_LITERAL_STRING: RDF Literal / xsd:string (SPARQL r:Literal)
+ * @RASQAL_LITERAL_STRING: RDF Plain Literal - no datatype (SPARQL r:Literal)
+ * @RASQAL_LITERAL_XSD_STRING: String xsd:string
  * @RASQAL_LITERAL_BOOLEAN: Boolean literal xsd:boolean.
  * @RASQAL_LITERAL_INTEGER: Integer literal xsd:integer.
  * @RASQAL_LITERAL_DOUBLE: Double floating point literal xsd:double.
  * @RASQAL_LITERAL_FLOAT: Floating point literal xsd:float.
  * @RASQAL_LITERAL_DECIMAL: Decimal integer xsd:decimal.
  * @RASQAL_LITERAL_DATETIME: Date/Time literal xsd:dateTime.
+ * @RASQAL_LITERAL_UDT: User defined typed literal with unknown datatype URI
  * @RASQAL_LITERAL_PATTERN: Pattern literal for a regex.
  * @RASQAL_LITERAL_QNAME: XML Qname literal.
  * @RASQAL_LITERAL_VARIABLE: Variable literal.
@@ -300,7 +302,7 @@ typedef struct {
  * which coresponds to in enum values
  *
  *   BLANK << URI << STRING << 
- *     (BOOLEAN | INTEGER | DOUBLE | FLOAT | DECIMAL | DATETIME)
+ *     (BOOLEAN | INTEGER | DOUBLE | FLOAT | DECIMAL | DATETIME | XSD_STRING)
  *
  *     (RASQAL_LITERAL_FIRST_XSD ... RASQAL_LITERAL_LAST_XSD)
  *
@@ -315,6 +317,7 @@ typedef enum {
   RASQAL_LITERAL_BLANK,
   RASQAL_LITERAL_URI,
   RASQAL_LITERAL_STRING,
+  RASQAL_LITERAL_XSD_STRING,
   RASQAL_LITERAL_BOOLEAN,
   RASQAL_LITERAL_INTEGER,
   RASQAL_LITERAL_FLOAT,
@@ -322,9 +325,10 @@ typedef enum {
   RASQAL_LITERAL_DECIMAL,
   RASQAL_LITERAL_DATETIME,
   /* internal */
-  RASQAL_LITERAL_FIRST_XSD = RASQAL_LITERAL_STRING,
+  RASQAL_LITERAL_FIRST_XSD = RASQAL_LITERAL_XSD_STRING,
   /* internal */
   RASQAL_LITERAL_LAST_XSD = RASQAL_LITERAL_DATETIME,
+  RASQAL_LITERAL_UDT,
   RASQAL_LITERAL_PATTERN,
   RASQAL_LITERAL_QNAME,
   RASQAL_LITERAL_VARIABLE,
@@ -945,7 +949,7 @@ void rasqal_data_graph_print(rasqal_data_graph* dg, FILE* fh);
  * @RASQAL_COMPARE_NOCASE: String comparisons are case independent.
  * @RASQAL_COMPARE_XQUERY: XQuery comparsion rules apply.
  * @RASQAL_COMPARE_RDF:    RDF Term comparsion rules apply.
- * @RASQAL_COMPARE_URI:    Allow comparison of URIs
+ * @RASQAL_COMPARE_URI:    Allow comparison of URIs and allow strings to have a boolean value (for RDQL)
  * @RASQAL_COMPARE_SAMETERM: SPARQL sameTerm() builtin rules apply.
  *
  * Flags for rasqal_expression_evaluate() or rasqal_literal_compare().
