@@ -423,6 +423,7 @@ static const char* const sparql_xsd_names[SPARQL_XSD_NAMES_COUNT+1]=
   NULL, /* RASQAL_LITERAL_UNKNOWN */
   NULL, /* ...BLANK */
   NULL, /* ...URI */ 
+  NULL, /* ...LITERAL */
   "string",
   "boolean",
   "integer", /* may type-promote all the way to xsd:decimal */
@@ -604,12 +605,14 @@ rasqal_xsd_datatype_is_numeric(rasqal_literal_type type)
 static const rasqal_literal_type parent_xsd_type[RASQAL_LITERAL_LAST+1] =
 {
   /*   RASQAL_LITERAL_UNKNOWN  */  RASQAL_LITERAL_UNKNOWN,
-  /* RDF Term: Blank */
+  /* RDF Blank / RDF Term: Blank */
   /*   RASQAL_LITERAL_BLANK    */  RASQAL_LITERAL_UNKNOWN,
-  /* XSD String / RDF Term: URI */
+  /* RDF URI / RDF Term: URI */
   /*   RASQAL_LITERAL_URI      */  RASQAL_LITERAL_UNKNOWN,
-  /* XSD types / RDF Term: Literal */
+  /* RDF Plain Literal / RDF Term: Literal */
   /*   RASQAL_LITERAL_STRING   */  RASQAL_LITERAL_UNKNOWN,
+  /* XSD types / RDF Term Literal */
+  /*   RASQAL_LITERAL_XSD_STRING */  RASQAL_LITERAL_UNKNOWN,
   /*   RASQAL_LITERAL_BOOLEAN  */  RASQAL_LITERAL_INTEGER,
   /*   RASQAL_LITERAL_INTEGER  */  RASQAL_LITERAL_FLOAT,
   /*   RASQAL_LITERAL_FLOAT    */  RASQAL_LITERAL_DOUBLE,
@@ -617,6 +620,7 @@ static const rasqal_literal_type parent_xsd_type[RASQAL_LITERAL_LAST+1] =
   /*   RASQAL_LITERAL_DECIMAL  */  RASQAL_LITERAL_UNKNOWN,
   /*   RASQAL_LITERAL_DATETIME */  RASQAL_LITERAL_UNKNOWN,
   /* not datatypes */
+  /*   RASQAL_LITERAL_UDT      */  RASQAL_LITERAL_UNKNOWN,
   /*   RASQAL_LITERAL_PATTERN  */  RASQAL_LITERAL_UNKNOWN,
   /*   RASQAL_LITERAL_QNAME    */  RASQAL_LITERAL_UNKNOWN,
   /*   RASQAL_LITERAL_VARIABLE */  RASQAL_LITERAL_UNKNOWN
