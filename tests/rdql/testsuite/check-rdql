@@ -91,6 +91,7 @@ sub run_test($$$$$) {
     s/blank \w+/blank _/g;
 
     if (m/^result: \[(.*)\]$/) {
+      s/=udt/=string/g;
       print OUT "$_\n";
       if(!@vars_order) {
 	my $vars=$1;
