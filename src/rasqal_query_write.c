@@ -155,6 +155,8 @@ rasqal_query_write_sparql_literal(sparql_writer_context *wc,
       rasqal_query_write_sparql_variable(wc, iostr, l->value.variable);
       break;
     case RASQAL_LITERAL_DATETIME:
+    case RASQAL_LITERAL_XSD_STRING:
+    case RASQAL_LITERAL_UDT:
       raptor_iostream_write_byte(iostr, '"');
       raptor_iostream_write_string_ntriples(iostr, l->string, l->string_len, '"');
       raptor_iostream_write_counted_string(iostr, "\"^^", 3);
