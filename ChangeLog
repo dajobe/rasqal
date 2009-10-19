@@ -1,3 +1,108 @@
+2009-10-18  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_expr.c:
+	(rasqal_expression_evaluate_v2): Disallow comparing invalid
+	literals Adjust datatype of plain literal to new xsd:string form.
+
+	* src/rasqal_literal.c:
+	(rasqal_new_numeric_literal, rasqal_literal_set_typed_value,
+	rasqal_free_literal, rasqal_literal_cast): Handle
+	RASQAL_LITERAL_XSD_STRING and RASQAL_LITERAL_XSD_UDT.
+
+	(rasqal_literal_string_interpreted_as_boolean): Added, pulled out
+	of rasqal_literal_set_typed_value.
+
+	(rasqal_literal_set_typed_value): Use
+	rasqal_literal_string_interpreted_as_boolean for decoding
+	RASQAL_LITERAL_BOOLEAN string.
+
+	(rasqal_literal_string_to_native): do nothing for
+	RASQAL_LITERAL_STRING; set RASQAL_LITERAL_XSD_STRING and otherwise
+	set unknown types to RASQAL_LITERAL_UDT Ensure the l->type is set
+	via rasqal_literal_set_typed_value even if the function will fail
+	due to a type error when rasqal_xsd_datatype_check is called.
+
+	Update rasqal_literal_type_labels to add xsdstring and udt.
+
+	(rasqal_literal_write, rasqal_literal_print): write/print xsd
+	strings and UDT
+
+	(rasqal_literal_as_boolean): Interpret RASQAL_LITERAL_XSD_STRING
+	as booleans.  RASQAL_LITERAL_UDT as error.
+
+	(rasqal_literal_as_integer, rasqal_literal_as_floating,
+	rasqal_literal_as_string_flags): Interpret
+	RASQAL_LITERAL_XSD_STRING same as RASQAL_LITERAL_STRING.
+	RASQAL_LITERAL_UDT as error.
+
+	(rasqal_literal_get_rdf_term_type): Turn UDT into a
+	RASQAL_LITERAL_STRING when flattening to an RDF term.
+
+	(rasqal_new_literal_from_promotion): autodocs and add flags
+	argument to allow promotion of strings to boolean (for RDQL) when
+	RASQAL_COMPARE_URI is given.
+	Interpret RASQAL_LITERAL_UDT as plain literal
+	RASQAL_LITERAL_STRING but ensure the datatype is coopied.
+	case RASQAL_LITERAL_BOOLEAN: Separated from RASQAL_LITERAL_INTEGER
+	and use rasqal_literal_string_interpreted_as_boolean to handle
+	promotion of strings to boolean.
+	case RASQAL_LITERAL_XSD_STRING: Added, copying the string and
+	type.
+	case RASQAL_LITERAL_UDT: Added, causing error.
+
+	(rasqal_literal_string_compare): Return an error if types are
+	neigther plain literal or user defined datatyped literals
+
+	(rasqal_literal_rdql_promote_calculate): Handle and ignore
+	XSD_STRING and UDT for rdql promotions.  If seen boolean and
+	string, aim for destination type boolean.
+
+	(rasqal_literal_compare): Return failure with UDT - cannot compare
+	them.  Handle UDT<>UDT compare same as STRING and
+	XSD_STRING<>XSD_STRING as simple literal compare.
+
+	(rasqal_literal_string_equals): Use XSD_STRING to get
+	xsd_string_uri.  Promote plain literals to xsd:string-typed for
+	purpose of equality checking.
+	Equality checking on user defined types fails with a type error.
+
+	(rasqal_literal_equals_flags): Handle RASQAL_LITERAL_XSD_STRING
+	and RASQAL_LITERAL_UDT as plain literal string.
+
+	(rasqal_literal_as_node): Handle RASQAL_LITERAL_XSD_STRING and
+	RASQAL_LITERAL_UDT as other XSD types.
+
+	(rasqal_literal_add, rasqal_literal_subtract,
+	rasqal_literal_multiply, rasqal_literal_divide,
+	rasqal_literal_negate): Handle RASQAL_LITERAL_XSD_STRING and
+	RASQAL_LITERAL_UDT as other XSD types.  Update check so URI can be
+	cast to xsd:string and no other type.  RASQAL_LITERAL_XSD_STRING
+	and RASQAL_LITERAL_XSD_UDT are errors.
+
+	* tests/rdql/testsuite/check-rdql, tests/sparql/check-sparql:
+	Adjust roqet output to hide udt(); replace with string() for
+	comparison purposes.
+
+	* src/rasqal_format_json.c, src/rasqal_query_results.c,
+	src/rasqal_query_write.c, src/rasqal_sparql_xml.c: Add cases
+	RASQAL_LITERAL_XSD_STRING and RASQAL_LITERAL_UDT to various
+	switches usually near RASQAL_LITERAL_STRING.
+
+	* src/rasqal_xsd_datatypes.c: sparql_xsd_names: insert entry for
+	RASQAL_LITERAL_STRING parent_xsd_type: adjust parents for
+	separation of plain literal (RASQAL_LITERAL_STRING),
+	xsd:string (RASQAL_LITERAL_XSD) and user/unknown
+	datatype (RASQAL_LITERAL_UDT)
+
+	* src/rasqal.h: rasqal_literal_type gains
+	1) RASQAL_LITERAL_XSD_STRING - for xsd:string typed literals
+	2) RASQAL_LITERAL_UDT - for unknown data typed literals separated
+	out of RASQAL_LITERAL_STRING which is for RDF plain literals and
+	plain/typed turned into RDF terms only
+
+	rasqal_compare_flags gains RASQAL_COMPARE_URI - now also provides
+	RDQL string to bool comparison
+
 2009-10-13  Dave Beckett <dave@dajobe.org>
 
 	* src/rasqal_rowsource_graph.c:
