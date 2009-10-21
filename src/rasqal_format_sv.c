@@ -1,6 +1,6 @@
 /* -*- Mode: c; c-basic-offset: 2 -*-
  *
- * rasqal_format_csv.c - Format results in CSV
+ * rasqal_format_sv.c - Format results in CSV/TSV
  *
  * Copyright (C) 2009, David Beckett http://www.dajobe.org/
  * 
