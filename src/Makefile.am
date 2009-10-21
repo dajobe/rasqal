@@ -77,7 +77,7 @@ rasqal_expr.c rasqal_general.c rasqal_query.c rasqal_query_results.c \
 rasqal_engine.c rasqal_raptor.c rasqal_literal.c \
 rasqal_graph_pattern.c rasqal_map.c rasqal_feature.c \
 rasqal_result_formats.c rasqal_xsd_datatypes.c rasqal_decimal.c \
-rasqal_datetime.c rasqal_rowsource.c rasqal_sparql_xml.c \
+rasqal_datetime.c rasqal_rowsource.c rasqal_format_sparql_xml.c \
 rasqal_variable.c rasqal_rowsource_empty.c rasqal_rowsource_union.c \
 rasqal_rowsource_rowsequence.c rasqal_query_transform.c rasqal_row.c \
 rasqal_engine_algebra.c rasqal_triples_source.c \
