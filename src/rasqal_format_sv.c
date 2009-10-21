@@ -45,10 +45,11 @@
  * @iostr: #raptor_iostream to write the query to
  * @results: #rasqal_query_results query results format
  * @base_uri: #raptor_uri base URI of the output format
+ * @label: name of this format for errors
  * @column_sep: column sep string
  * @column_sep_length: length of @column_sep
  *
- * INTERNAL - Write a CSVTSV version of the query results format to an iostream.
+ * INTERNAL - Write a @sep-separated values version of the query results format to an iostream.
  * 
  * If the writing succeeds, the query results will be exhausted.
  * 
@@ -58,6 +59,7 @@ static int
 rasqal_query_results_write_sv(raptor_iostream *iostr,
                               rasqal_query_results* results,
                               raptor_uri *base_uri,
+                              const char* label,
                               const char* sep, size_t sep_len)
 {
   rasqal_query* query = rasqal_query_results_get_query(results);
@@ -70,7 +72,8 @@ rasqal_query_results_write_sv(raptor_iostream *iostr,
   if(!rasqal_query_results_is_bindings(results)) {
     rasqal_log_error_simple(query->world, RAPTOR_LOG_LEVEL_ERROR,
                             &query->locator,
-                            "Can only write CSV format for variable binding results");
+                            "Can only write %s format for variable binding results",
+                            label);
     return 1;
   }
   
@@ -169,8 +172,8 @@ rasqal_query_results_write_sv(raptor_iostream *iostr,
         default:
           rasqal_log_error_simple(query->world, RAPTOR_LOG_LEVEL_ERROR,
                                   &query->locator,
-                                  "Cannot turn literal type %d into CSV", 
-                                  l->type);
+                                  "Cannot turn literal type %d into %s", 
+                                  l->type, label);
       }
 
       /* End Binding */
@@ -193,7 +196,7 @@ rasqal_query_results_write_csv(raptor_iostream *iostr,
                               raptor_uri *base_uri)
 {
   return rasqal_query_results_write_sv(iostr, results, base_uri,
-                                       ",", 1);
+                                       "CSV", ",", 1);
 }
 
 
@@ -203,7 +206,7 @@ rasqal_query_results_write_tsv(raptor_iostream *iostr,
                                raptor_uri *base_uri)
 {
   return rasqal_query_results_write_sv(iostr, results, base_uri,
-                                       "\t", 1);
+                                       "TSV", "\t", 1);
 }
 
 
