@@ -1,8 +1,8 @@
 /* -*- Mode: c; c-basic-offset: 2 -*-
  *
- * rasqal_sparql_xml.c - SPARQL Results XML Format
+ * rasqal_sparql_xml.c - Format results in SPARQL XML
  *
- * Copyright (C) 2007-2008, David Beckett http://www.dajobe.org/
+ * Copyright (C) 2007-2009, David Beckett http://www.dajobe.org/
  * 
  * This package is Free Software and part of Redland http://librdf.org/
  * 
@@ -1047,15 +1047,15 @@ rasqal_init_result_format_sparql_xml(rasqal_world* world)
   int rc=0;
 
   /*
-   * SPARQL XML Results 2007-06-14
-   * http://www.w3.org/TR/2006/WD-rdf-sparql-XMLres-20070614/
+   * SPARQL XML Results 2008-01-15
+   * http://www.w3.org/TR/2008/REC-rdf-sparql-XMLres-20080115/
    */
   writer_fn=&rasqal_query_results_write_sparql_xml;
   reader_fn=NULL,
   get_rowsource_fn=&rasqal_query_results_get_rowsource_sparql_xml;
   rc+= rasqal_query_results_format_register_factory(world,
                                                     "xml",
-                                                    "SPARQL Query Results Format 2007-06-14",
+                                                    "SPARQL XML Query Results",
                                                     (unsigned char*)"http://www.w3.org/2005/sparql-results#",
                                                     writer_fn, reader_fn, get_rowsource_fn,
                                                     "application/sparql-results+xml")
@@ -1063,7 +1063,7 @@ rasqal_init_result_format_sparql_xml(rasqal_world* world)
   rc+= rasqal_query_results_format_register_factory(world,
                                                     NULL,
                                                     NULL,
-                                                    (unsigned char*)"http://www.w3.org/TR/2006/WD-rdf-sparql-XMLres-20070614/",
+                                                    (unsigned char*)"http://www.w3.org/TR/2008/REC-rdf-sparql-XMLres-20080115/",
                                                     writer_fn, reader_fn, get_rowsource_fn,
                                                     "application/sparql-results+xml")
                                                     != 0;
