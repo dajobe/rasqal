@@ -2189,14 +2189,14 @@ rasqal_literal_string_equals(rasqal_literal* l1, rasqal_literal* l2,
   if(l1->type == RASQAL_LITERAL_STRING && 
      l2->type == RASQAL_LITERAL_XSD_STRING) {
 #ifdef RAPTOR_V2_AVAILABLE
-    dt1 = raptor_uri_copy_v2(l->world->raptor_world_ptr, xsd_string_uri);
+    dt1 = raptor_uri_copy_v2(l1->world->raptor_world_ptr, xsd_string_uri);
 #else
     dt1 = raptor_uri_copy(xsd_string_uri);
 #endif
   } else if(l1->type == RASQAL_LITERAL_XSD_STRING && 
             l2->type == RASQAL_LITERAL_STRING) {
 #ifdef RAPTOR_V2_AVAILABLE
-    dt2 = raptor_uri_copy_v2(l->world->raptor_world_ptr, xsd_string_uri);
+    dt2 = raptor_uri_copy_v2(l1->world->raptor_world_ptr, xsd_string_uri);
 #else
     dt2 = raptor_uri_copy(xsd_string_uri);
 #endif
