@@ -986,7 +986,7 @@ int rasqal_init_result_formats(rasqal_world*);
 void rasqal_finish_result_formats(rasqal_world*);
 
 /* rasqal_format_csv.c */
-int rasqal_init_result_format_csv(rasqal_world* world);
+int rasqal_init_result_format_sv(rasqal_world* world);
 
 /* rasqal_format_json.c */
 int rasqal_init_result_format_json(rasqal_world*);

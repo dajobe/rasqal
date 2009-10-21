@@ -41,27 +41,28 @@
 
 
 /*
- * rasqal_query_results_write_csv:
+ * rasqal_query_results_write_sv:
  * @iostr: #raptor_iostream to write the query to
  * @results: #rasqal_query_results query results format
  * @base_uri: #raptor_uri base URI of the output format
+ * @column_sep: column sep string
+ * @column_sep_length: length of @column_sep
  *
- * INTERNAL - Write a CSV version of the query results format to an iostream.
+ * INTERNAL - Write a CSVTSV version of the query results format to an iostream.
  * 
  * If the writing succeeds, the query results will be exhausted.
  * 
  * Return value: non-0 on failure
  **/
 static int
-rasqal_query_results_write_csv(raptor_iostream *iostr,
-                               rasqal_query_results* results,
-                               raptor_uri *base_uri)
+rasqal_query_results_write_sv(raptor_iostream *iostr,
+                              rasqal_query_results* results,
+                              raptor_uri *base_uri,
+                              const char* sep, size_t sep_len)
 {
   rasqal_query* query = rasqal_query_results_get_query(results);
   int i;
   int count = 1;
-#define comma_str_len 1
-  static const char comma_str[comma_str_len+1]=",";
 #define nl_str_len 1
   static const char nl_str[nl_str_len+1]="\n";
   int vars_count;
@@ -84,7 +85,7 @@ rasqal_query_results_write_csv(raptor_iostream *iostr,
     if(!name)
       break;
     
-    raptor_iostream_write_counted_string(iostr, comma_str, comma_str_len);
+    raptor_iostream_write_counted_string(iostr, sep, sep_len);
     raptor_iostream_write_string(iostr, name);
   }
   raptor_iostream_write_counted_string(iostr, nl_str, nl_str_len);
@@ -99,7 +100,7 @@ rasqal_query_results_write_csv(raptor_iostream *iostr,
     for(i = 0; i < vars_count; i++) {
       rasqal_literal *l = rasqal_query_results_get_binding_value(results, i);
 
-      raptor_iostream_write_counted_string(iostr, comma_str, comma_str_len);
+      raptor_iostream_write_counted_string(iostr, sep, sep_len);
 
       if(!l) {
         raptor_iostream_write_string(iostr, "\"null\"");
@@ -186,17 +187,48 @@ rasqal_query_results_write_csv(raptor_iostream *iostr,
 }
 
 
-int
-rasqal_init_result_format_csv(rasqal_world* world)
+static int
+rasqal_query_results_write_csv(raptor_iostream *iostr,
+                              rasqal_query_results* results,
+                              raptor_uri *base_uri)
 {
-  rasqal_query_results_formatter_func writer_fn=NULL;
-  writer_fn = &rasqal_query_results_write_csv;
+  return rasqal_query_results_write_sv(iostr, results, base_uri,
+                                       ",", 1);
+}
 
-  return rasqal_query_results_format_register_factory(world,
+
+static int
+rasqal_query_results_write_tsv(raptor_iostream *iostr,
+                               rasqal_query_results* results,
+                               raptor_uri *base_uri)
+{
+  return rasqal_query_results_write_sv(iostr, results, base_uri,
+                                       "\t", 1);
+}
+
+
+int
+rasqal_init_result_format_sv(rasqal_world* world)
+{
+  int rc = 0;
+  rasqal_query_results_formatter_func writer_fn=NULL;
+
+  writer_fn = &rasqal_query_results_write_csv;
+  rc += rasqal_query_results_format_register_factory(world,
                                                       "csv",
                                                       "Comma Separated Values (CSV)",
                                                       NULL,
                                                       writer_fn,
                                                       NULL, NULL,
-                                                      "text/csv");
+                                                      "text/csv") != 0;
+  writer_fn = &rasqal_query_results_write_tsv;
+  rc += rasqal_query_results_format_register_factory(world,
+                                                      "tsv",
+                                                      "Tab Separated Values (CSV)",
+                                                      NULL,
+                                                      writer_fn,
+                                                      NULL, NULL,
+                                                      NULL) != 0;
+
+  return rc;
 }

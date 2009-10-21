@@ -97,7 +97,7 @@ rasqal_init_result_formats(rasqal_world* world)
 
   rc += rasqal_init_result_format_table(world) != 0;
 
-  rc += rasqal_init_result_format_csv(world) != 0;
+  rc += rasqal_init_result_format_sv(world) != 0;
 
   return rc;
 }
