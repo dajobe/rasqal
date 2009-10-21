@@ -354,6 +354,9 @@ typedef struct rasqal_xsd_decimal_s rasqal_xsd_decimal;
  * @language: Language for string literal type.
  * @datatype: Datatype for string literal type.
  * @flags: Flags for literal types
+ * @parent_type: parent XSD type if any or RASQAL_LITERAL_UNKNOWN
+ * @world: world object pointer
+ * @valid: >0 if literal format is a valid lexical form for this datatype. 0 if not valid. <0 if this has not been checked yet
  *
  * Rasqal literal class.
  *
@@ -389,11 +392,11 @@ struct rasqal_literal_s {
    */
   const unsigned char *flags;
 
-  /* parent XSD type if any or RASQAL_LITERAL_UNKNOWN */
   rasqal_literal_type parent_type;
 
-  /* world object */
   rasqal_world *world;
+
+  int valid;
 };
 
 

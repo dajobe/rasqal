@@ -1378,12 +1378,12 @@ rasqal_expression_evaluate_v2(rasqal_world *world, raptor_locator *locator,
         goto failed;
       }
 
-      vars.b=(rasqal_literal_equals_flags(l1, l2, flags, &errs.e) == 0);
+      vars.b=(rasqal_literal_not_equals_flags(l1, l2, flags, &errs.e) != 0);
 #if RASQAL_DEBUG > 1
       if(errs.e)
-        RASQAL_DEBUG1("rasqal_literal_equals_flags returned: FAILURE\n");
+        RASQAL_DEBUG1("rasqal_literal_not_equals_flags returned: FAILURE\n");
       else
-        RASQAL_DEBUG2("rasqal_literal_equals_flags returned: %d\n", vars.b);
+        RASQAL_DEBUG2("rasqal_literal_not_equals_flags returned: %d\n", vars.b);
 #endif
       rasqal_free_literal(l1);
       rasqal_free_literal(l2);

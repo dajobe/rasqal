@@ -75,6 +75,7 @@ rasqal_new_integer_literal(rasqal_world* world, rasqal_literal_type type, int in
   raptor_uri* dt_uri;
   rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(rasqal_literal));
   if(l) {
+    l->valid=1;
     l->usage=1;
     l->world=world;
     l->type=type;
@@ -121,6 +122,7 @@ rasqal_new_typed_literal(rasqal_world* world, rasqal_literal_type type, const un
   if(!l)
     return NULL;
 
+  l->valid=1;
   l->usage=1;
   l->world=world;
   l->type=type;
@@ -154,6 +156,7 @@ rasqal_new_double_literal(rasqal_world*world, double d)
   raptor_uri* dt_uri;
   rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(rasqal_literal));
   if(l) {
+    l->valid=1;
     l->usage=1;
     l->world=world;
     l->type=RASQAL_LITERAL_DOUBLE;
@@ -193,6 +196,7 @@ rasqal_new_float_literal(rasqal_world *world, float f)
   raptor_uri* dt_uri;
   rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(rasqal_literal));
   if(l) {
+    l->valid=1;
     l->usage=1;
     l->world=world;
     l->type=RASQAL_LITERAL_FLOAT;
@@ -234,6 +238,7 @@ rasqal_new_uri_literal(rasqal_world* world, raptor_uri *uri)
 {
   rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(rasqal_literal));
   if(l) {
+    l->valid=1;
     l->usage=1;
     l->world=world;
     l->type=RASQAL_LITERAL_URI;
@@ -271,6 +276,7 @@ rasqal_new_pattern_literal(rasqal_world* world,
 {
   rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(rasqal_literal));
   if(l) {
+    l->valid=1;
     l->usage=1;
     l->world=world;
     l->type=RASQAL_LITERAL_PATTERN;
@@ -324,6 +330,7 @@ rasqal_new_decimal_literal_from_decimal(rasqal_world* world,
   if(!l)
     return NULL;
   
+  l->valid=1;
   l->usage=1;
   l->world=world;
   l->type=RASQAL_LITERAL_DECIMAL;
@@ -451,6 +458,14 @@ rasqal_literal_set_typed_value(rasqal_literal* l, rasqal_literal_type type,
   double d;
   const unsigned char *new_string;
 
+  l->valid = rasqal_xsd_datatype_check(type, string ? string : l->string,
+                                       0 /* no flags set */);
+  if(!l->valid) {
+    RASQAL_DEBUG3("Invalid type %s string '%s' - setting to type UDT\n",
+                  rasqal_xsd_datatype_label(type), string ? string : l->string);
+    type = RASQAL_LITERAL_UDT;
+  }
+            
   if(l->language) {
     RASQAL_FREE(cstring, (void*)l->language);
     l->language=NULL;
@@ -665,6 +680,7 @@ rasqal_new_string_literal_common(rasqal_world* world,
   if(l) {
     rasqal_literal_type datatype_type = RASQAL_LITERAL_STRING;
 
+    l->valid=1;
     l->usage=1;
     l->world=world;
 
@@ -769,6 +785,7 @@ rasqal_new_simple_literal(rasqal_world* world,
 {
   rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(rasqal_literal));
   if(l) {
+    l->valid=1;
     l->usage=1;
     l->world=world;
     l->type=type;
@@ -796,6 +813,7 @@ rasqal_new_boolean_literal(rasqal_world* world, int value)
   raptor_uri* dt_uri;
   rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(rasqal_literal));
   if(l) {
+    l->valid=1;
     l->usage=1;
     l->world=world;
     l->type=RASQAL_LITERAL_BOOLEAN;
@@ -833,6 +851,7 @@ rasqal_new_variable_literal(rasqal_world* world, rasqal_variable *variable)
 {
   rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(rasqal_literal));
   if(l) {
+    l->valid=1;
     l->usage=1;
     l->world=world;
     l->type=RASQAL_LITERAL_VARIABLE;
@@ -1049,6 +1068,9 @@ rasqal_literal_write(rasqal_literal* l, raptor_iostream* iostr)
     return;
   }
 
+  if(!l->valid)
+    raptor_iostream_write_counted_string(iostr, "INV:", 4);
+
   if(l->type != RASQAL_LITERAL_VARIABLE)
     rasqal_literal_write_type(l, iostr);
 
@@ -1136,6 +1158,9 @@ rasqal_literal_print(rasqal_literal* l, FILE* fh)
     fputs("null", fh);
     return;
   }
+
+  if(!l->valid)
+    fputs("INV:", fh);
 
   if(l->type != RASQAL_LITERAL_VARIABLE)
     rasqal_literal_print_type(l, fh);
@@ -2244,6 +2269,23 @@ rasqal_literal_blank_equals(rasqal_literal* l1, rasqal_literal* l2)
 
 
 /**
+ * rasqal_literal_not_equals_flags:
+ * @l1: #rasqal_literal literal
+ * @l2: #rasqal_literal data literal
+ *
+ * Check if two literals are not equal with optional type promotion.
+ * 
+ * Return value: non-0 if not-equal
+ **/
+int
+rasqal_literal_not_equals_flags(rasqal_literal* l1, rasqal_literal* l2,
+                                int flags, int* error_p)
+{
+  return !rasqal_literal_equals_flags(l1, l2, flags, error_p);
+}
+
+
+/**
  * rasqal_literal_equals:
  * @l1: #rasqal_literal literal
  * @l2: #rasqal_literal data literal
@@ -2359,7 +2401,7 @@ rasqal_literal_equals_flags(rasqal_literal* l1, rasqal_literal* l2,
     l1_p=l1;
     l2_p=l2;
   }
-  
+
   switch(type) {
     case RASQAL_LITERAL_URI:
       result = rasqal_literal_uri_equals(l1_p, l2_p);
@@ -2540,6 +2582,7 @@ rasqal_literal_as_node(rasqal_literal* l)
     case RASQAL_LITERAL_UDT:
       new_l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(rasqal_literal));
       if(new_l) {
+        new_l->valid=1;
         new_l->usage=1;
         new_l->world=l->world;
         new_l->type=RASQAL_LITERAL_STRING;

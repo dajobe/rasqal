@@ -311,6 +311,7 @@ sub run_test {
     }
 
     if (m/^result: \[(.*)\]$/) {
+      s/=INV:/=/g;
       s/=udt/=string/g;
       my $line=$_;
       if(!@vars_order) {

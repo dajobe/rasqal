@@ -939,6 +939,7 @@ rasqal_literal* rasqal_literal_multiply(rasqal_literal* l1, rasqal_literal* l2, 
 rasqal_literal* rasqal_literal_divide(rasqal_literal* l1, rasqal_literal* l2, int *error);
 rasqal_literal* rasqal_literal_negate(rasqal_literal* l, int *error_p);
 int rasqal_literal_equals_flags(rasqal_literal* l1, rasqal_literal* l2, int flags, int* error);
+int rasqal_literal_not_equals_flags(rasqal_literal* l1, rasqal_literal* l2, int flags, int* error);
 rasqal_literal_type rasqal_literal_get_rdf_term_type(rasqal_literal* l);
 void rasqal_literal_write_type(rasqal_literal* l, raptor_iostream* iostr);
 void rasqal_literal_write(rasqal_literal* l, raptor_iostream* iostr);
