@@ -1,8 +1,8 @@
 /* -*- Mode: c; c-basic-offset: 2 -*-
  *
- * rasqal_format_json.c - Format results in RDF/JSON
+ * rasqal_format_json.c - Format results in SPARQL JSON
  *
- * Copyright (C) 2003-2008, David Beckett http://www.dajobe.org/
+ * Copyright (C) 2003-2009, David Beckett http://www.dajobe.org/
  * Copyright (C) 2003-2005, University of Bristol, UK http://www.bristol.ac.uk/
  * 
  * This package is Free Software and part of Redland http://librdf.org/
@@ -263,28 +263,15 @@ rasqal_init_result_format_json(rasqal_world* world)
   rasqal_query_results_get_rowsource_func get_rowsource_fn = NULL;
   int rc = 0;
 
-  /*
-   * SPARQL Query Results in JSON (http://json.org/) draft
-   * Defined in http://www.w3.org/2001/sw/DataAccess/json-sparql/
-   * CVS Version: $Id 1.6 of $Date: 2006/04/05 15:55:17
-   */
   writer_fn = &rasqal_query_results_write_json1;
   reader_fn = NULL;
   get_rowsource_fn = NULL;
   rc += rasqal_query_results_format_register_factory(world,
                                                      "json",
-                                                     "JSON",
-                                                     (unsigned char*)"http://www.w3.org/2001/sw/DataAccess/json-sparql/",
+                                                     "SPARQL JSON Query Results",
+                                                     (unsigned char*)"http://www.w3.org/TR/2007/NOTE-rdf-sparql-json-res-20070618/",
                                                      writer_fn, reader_fn, get_rowsource_fn,
                                                      "text/json")
                                                      != 0;
-  rc += rasqal_query_results_format_register_factory(world,
-                                                     NULL,
-                                                     NULL,
-                                                     (unsigned char*)"http://www.mindswap.org/%7Ekendall/sparql-results-json/",
-                                                     writer_fn, reader_fn, get_rowsource_fn,
-                                                     "text/json")
-                                                     != 0;
-
   return rc;
 }
