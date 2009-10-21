@@ -985,17 +985,17 @@ int rasqal_query_results_format_register_factory(rasqal_world*, const char *name
 int rasqal_init_result_formats(rasqal_world*);
 void rasqal_finish_result_formats(rasqal_world*);
 
-/* rasqal_format_csv.c */
+/* rasqal_format_sv.c */
 int rasqal_init_result_format_sv(rasqal_world* world);
 
 /* rasqal_format_json.c */
 int rasqal_init_result_format_json(rasqal_world*);
 
+/* rasqal_format_sparql_xml.c */
+int rasqal_init_result_format_sparql_xml(rasqal_world*);
+
 /* rasqal_format_table.c */
 int rasqal_init_result_format_table(rasqal_world*);
-
-/* rasqal_result_format_sparql_xml.c */
-int rasqal_init_result_format_sparql_xml(rasqal_world*);
 
 /* rasqal_row.c */
 rasqal_row* rasqal_new_row(rasqal_rowsource* rowsource);
