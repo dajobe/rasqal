@@ -233,6 +233,19 @@ void rasqal_graph_pattern_adjust(rasqal_graph_pattern* gp, int offset);
 void rasqal_graph_pattern_set_origin(rasqal_graph_pattern* graph_pattern, rasqal_literal* origin);
 
 
+/**
+ * rasqal_var_use_map_flags:
+ * @RASQAL_VAR_USE_IN_SCOPE: variable is in-scope in this GP
+ * @RASQAL_VAR_USE_MENTIONED_HERE: variable is mentioned/used in this GP
+ * @RASQAL_VAR_USE_BOUND_HERE: variable is bound in this GP
+ */
+typedef enum {
+  RASQAL_VAR_USE_IN_SCOPE       = 1 << 0,
+  RASQAL_VAR_USE_MENTIONED_HERE = 1 << 1,
+  RASQAL_VAR_USE_BOUND_HERE     = 1 << 2
+} rasqal_var_use_map_flags;
+
+
 /*
  * A query in some query language
  */
@@ -364,10 +377,17 @@ struct rasqal_query_s {
   /* INTERNAL for now: non-0 to store results otherwise lazy eval results */
   int store_results;
 
-  /* INTERNAL 2D array of width (number of total variables) height (number of graph patterns)
-   * marking where a variable is mentioned in a GP
+  /* INTERNAL 2D array of:
+   *   width (number of total variables)
+   *   height (number of graph patterns)
+   * marking how a variable is mentioned/used in a GP
+   * Each graph pattern has a row and the short values are per-variable
+   * with flags:
+   *   1  RASQAL_USE_IN_SCOPE
+   *   2  RASQAL_USE_MENTIONED_HERE
+   *   4  RASQAL_USE_BOUND_HERE
    */
-  short* variables_mentioned_in;
+  short* variables_use_map;
 };
 
 
@@ -863,7 +883,7 @@ int rasqal_query_merge_graph_patterns(rasqal_query* query, rasqal_graph_pattern*
 int rasqal_graph_patterns_join(rasqal_graph_pattern *dest_gp, rasqal_graph_pattern *src_gp);
 int rasqal_graph_pattern_move_constraints(rasqal_graph_pattern* dest_gp, rasqal_graph_pattern* src_gp);
 int* rasqal_query_triples_build_bound_in(rasqal_query* query, int size, int start_column, int end_column);
-short* rasqal_query_triples_build_mentioned_in(rasqal_query* query, int width, int start_column, int end_column);
+short* rasqal_query_triples_build_variables_use_map(rasqal_query* query, int width, int start_column, int end_column);
 
 /* rasqal_expr.c */
 rasqal_literal* rasqal_new_string_literal_node(rasqal_world*, const unsigned char *string, const char *language, raptor_uri *datatype);

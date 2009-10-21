@@ -837,3 +837,15 @@ rasqal_new_2_group_graph_pattern(rasqal_query* query,
   return rasqal_new_graph_pattern_from_sequence(query, seq,
                                                 RASQAL_GRAPH_PATTERN_OPERATOR_GROUP);
 }
+
+
+int
+rasqal_graph_pattern_variable_bound_in(rasqal_graph_pattern *gp,
+                                       rasqal_variable *v) 
+{
+  rasqal_query* query = gp->query;
+
+  int column = query->variables_bound_in[v->offset];
+  return (column >= gp->start_column && column <= gp->end_column);
+}
+

@@ -49,8 +49,9 @@
 #define DEBUG_FH stderr
 
 /* prototype for later */
-static int rasqal_query_build_mentioned_in(rasqal_query* query);
-static void rasqal_query_graph_build_mentioned_in_internal(rasqal_query* query, short *mentioned_in, rasqal_literal *origin);
+static int rasqal_query_build_variables_use_map(rasqal_query* query);
+static void rasqal_query_graph_build_variables_use_map_in_internal(rasqal_query* query, short *use_map, rasqal_literal *origin);
+static void rasqal_query_filter_build_variables_use_map_in_internal(rasqal_query* query, short *use_map, rasqal_expression* e);
 
 
 int
@@ -403,6 +404,7 @@ rasqal_query_triples_build_bound_in_internal(rasqal_query* query,
  * @end_column: last column in triples array
  *
  * INTERNAL - Mark where variables are bound in a graph_pattern tree walk
+ *
  * Return value: array of integers (column numbers) marking in which triple pattern a variable is bound
  **/
 int*
@@ -1237,10 +1239,10 @@ rasqal_query_prepare_common(rasqal_query *query)
                                      rasqal_query_prepare_count_graph_patterns,
                                      query->graph_patterns_sequence);
 
-    /* create query->variables_mentioned_in that marks where a variable is 
-     * mentioned in a graph pattern.
+    /* create query->variables_use_map that marks where a variable is 
+     * mentioned, bound or used in a graph pattern.
      */
-    if(rasqal_query_build_mentioned_in(query))
+    if(rasqal_query_build_variables_use_map(query))
       goto done;
 
   }
@@ -1336,9 +1338,9 @@ rasqal_graph_patterns_join(rasqal_graph_pattern *dest_gp,
 
 
 /**
- * rasqal_query_triples_build_mentioned_in_internal:
+ * rasqal_query_triples_build_variables_use_map_internal:
  * @query: the #rasqal_query to find the variables in
- * @mentioned_in: 1D array of size num. variables to write mentioned_in
+ * @use_map: 1D array of size num. variables to write use_map
  * @start_column: first column in triples array
  * @end_column: last column in triples array
  *
@@ -1346,10 +1348,10 @@ rasqal_graph_patterns_join(rasqal_graph_pattern *dest_gp,
  * 
  **/
 static void
-rasqal_query_triples_build_mentioned_in_internal(rasqal_query* query,
-                                                 short *mentioned_in,
-                                                 int start_column,
-                                                 int end_column)
+rasqal_query_triples_build_variables_use_map_internal(rasqal_query* query,
+                                                      short *use_map,
+                                                      int start_column,
+                                                      int end_column)
 {
   int col;
   
@@ -1360,14 +1362,14 @@ rasqal_query_triples_build_mentioned_in_internal(rasqal_query* query,
     t = (rasqal_triple*)raptor_sequence_get_at(query->triples, col);
 
     if((v = rasqal_literal_as_variable(t->subject)))
-      mentioned_in[v->offset] = 1;
+      use_map[v->offset] |= RASQAL_VAR_USE_MENTIONED_HERE;
     if((v = rasqal_literal_as_variable(t->predicate)))
-      mentioned_in[v->offset] = 1;
+      use_map[v->offset] |= RASQAL_VAR_USE_MENTIONED_HERE;
     if((v = rasqal_literal_as_variable(t->object)))
-      mentioned_in[v->offset] = 1;
+      use_map[v->offset] |= RASQAL_VAR_USE_MENTIONED_HERE;
     if(t->origin) {
       if((v = rasqal_literal_as_variable(t->origin)))
-        mentioned_in[v->offset] = 1;
+        use_map[v->offset] |= RASQAL_VAR_USE_MENTIONED_HERE;
     }
 
   }
@@ -1375,7 +1377,7 @@ rasqal_query_triples_build_mentioned_in_internal(rasqal_query* query,
 
 
 /**
- * rasqal_query_triples_build_mentioned_in:
+ * rasqal_query_triples_build_variables_use_map:
  * @query: the #rasqal_query to find the variables in
  * @width: width of array to create
  * @start_column: first column in triples array
@@ -1386,28 +1388,28 @@ rasqal_query_triples_build_mentioned_in_internal(rasqal_query* query,
  * Return value: 1D array of size num. variables with mentioned information
  **/
 short*
-rasqal_query_triples_build_mentioned_in(rasqal_query* query,
-                                        int width,
-                                        int start_column,
-                                        int end_column)
+rasqal_query_triples_build_variables_use_map(rasqal_query* query,
+                                             int width,
+                                             int start_column,
+                                             int end_column)
 {
-  short *mentioned_in;
+  short *use_map;
   
-  mentioned_in = (short*)RASQAL_CALLOC(intarray, width, sizeof(short));
-  if(!mentioned_in)
+  use_map = (short*)RASQAL_CALLOC(intarray, width, sizeof(short));
+  if(!use_map)
     return NULL;
 
-  rasqal_query_triples_build_mentioned_in_internal(query, mentioned_in,
-                                                   start_column,
-                                                   end_column);
-  return mentioned_in;
+  rasqal_query_triples_build_variables_use_map_internal(query, use_map,
+                                                        start_column,
+                                                        end_column);
+  return use_map;
 }
 
 
 /**
- * rasqal_query_graph_pattern_build_mentioned_in:
+ * rasqal_query_graph_pattern_build_variables_use_map:
  * @query: the #rasqal_query to find the variables in
- * @mentioned_in: 2D array of (num. variables x num. GPs) to write mentioned_in
+ * @use_map: 2D array of (num. variables x num. GPs) to write use_map
  * @width: width of array (num. variables)
  * @gp: graph pattern to use
  *
@@ -1415,10 +1417,10 @@ rasqal_query_triples_build_mentioned_in(rasqal_query* query,
  * 
  **/
 static int
-rasqal_query_graph_pattern_build_mentioned_in(rasqal_query* query,
-                                              short *mentioned_in,
-                                              int width,
-                                              rasqal_graph_pattern *gp)
+rasqal_query_graph_pattern_build_variables_use_map(rasqal_query* query,
+                                                   short *use_map,
+                                                   int width,
+                                                   rasqal_graph_pattern *gp)
 {
   int offset;
 
@@ -1428,8 +1430,8 @@ rasqal_query_graph_pattern_build_mentioned_in(rasqal_query* query,
     for(i = 0; i < raptor_sequence_size(gp->graph_patterns); i++) {
       rasqal_graph_pattern *sgp;
       sgp = (rasqal_graph_pattern*)raptor_sequence_get_at(gp->graph_patterns, i);
-      if(rasqal_query_graph_pattern_build_mentioned_in(query, mentioned_in,
-                                                       width, sgp))
+      if(rasqal_query_graph_pattern_build_variables_use_map(query, use_map,
+                                                            width, sgp))
         return 1;
     }
   }
@@ -1439,21 +1441,22 @@ rasqal_query_graph_pattern_build_mentioned_in(rasqal_query* query,
   offset = (gp->gp_index) * width;
   switch(gp->op) {
     case RASQAL_GRAPH_PATTERN_OPERATOR_BASIC:
-      rasqal_query_triples_build_mentioned_in_internal(query, 
-                                                       &mentioned_in[offset],
-                                                       gp->start_column,
-                                                       gp->end_column);
+      rasqal_query_triples_build_variables_use_map_internal(query, 
+                                                            &use_map[offset],
+                                                            gp->start_column,
+                                                            gp->end_column);
       break;
 
     case RASQAL_GRAPH_PATTERN_OPERATOR_GRAPH:
-      rasqal_query_graph_build_mentioned_in_internal(query, 
-                                                     &mentioned_in[offset],
-                                                     gp->origin);
+      rasqal_query_graph_build_variables_use_map_in_internal(query, 
+                                                             &use_map[offset],
+                                                             gp->origin);
       break;
       
     case RASQAL_GRAPH_PATTERN_OPERATOR_FILTER:
-      RASQAL_DEBUG2("Cannot build variable mention_in for %s GP\n",
-                    rasqal_graph_pattern_operator_as_string(gp->op));
+      rasqal_query_filter_build_variables_use_map_in_internal(query, 
+                                                              &use_map[offset],
+                                                              gp->filter_expression);
       break;
 
     case RASQAL_GRAPH_PATTERN_OPERATOR_OPTIONAL:
@@ -1467,8 +1470,53 @@ rasqal_query_graph_pattern_build_mentioned_in(rasqal_query* query,
 }
 
 
+#ifdef RASQAL_DEBUG
+static void
+rasqal_query_print_variables_use_map(FILE* fh, rasqal_query* query)
+{
+  const char* use_map_str[8] = {
+    "   ",
+    "  I",
+    " M ",
+    "  I",
+    "B  ",
+    "  I",
+    " M ",
+    "B I",
+  };
+  int width;
+  int height;
+  int i;
+  int gp_index;
+  
+  width = rasqal_variables_table_get_total_variables_count(query->vars_table);
+  height = query->graph_pattern_count;
+  
+  fprintf(fh, "Query variables-use map (B=bound, M=mentioned, U=used):\n");
+  fputs("GP#  Type      ", fh);
+  for(i = 0; i < width; i++) {
+    rasqal_variable* v = rasqal_variables_table_get(query->vars_table, i);
+    fprintf(fh, "%-10s ", v->name);
+  }
+  fputc('\n', fh);
+
+  for(gp_index = 0; gp_index < height; gp_index++) {
+    rasqal_graph_pattern* gp;
+    short *row = &query->variables_use_map[gp_index * width];
+
+    gp = (rasqal_graph_pattern*)raptor_sequence_get_at(query->graph_patterns_sequence, gp_index);
+    fprintf(fh, "%-2d   %-8s ", gp_index, 
+            rasqal_graph_pattern_operator_as_string(gp->op));
+    for(i = 0; i < width; i++)
+      fprintf(fh, "%-10s ", use_map_str[row[i]]);
+    fputc('\n', fh);
+  }
+}
+#endif
+
+
 /**
- * rasqal_query_build_mentioned_in:
+ * rasqal_query_build_variables_use_map:
  * @query: the #rasqal_query to find the variables in
  *
  * INTERNAL - Record where variables are mentioned in query GPs
@@ -1480,11 +1528,8 @@ rasqal_query_graph_pattern_build_mentioned_in(rasqal_query* query,
  * Return value: non-0 on failure
  **/
 static int
-rasqal_query_build_mentioned_in(rasqal_query* query)
+rasqal_query_build_variables_use_map(rasqal_query* query)
 {
-#ifdef RASQAL_DEBUG
-  int i;
-#endif
   int width;
   int height;
   int rc = 0;
@@ -1496,58 +1541,81 @@ rasqal_query_build_mentioned_in(rasqal_query* query)
    * But they are not GPs, so where to record it?
    */
   
-  query->variables_mentioned_in = (short*)RASQAL_CALLOC(intarray, 
-                                                        width * height,
-                                                        sizeof(short));
-  if(!query->variables_mentioned_in)
+  query->variables_use_map = (short*)RASQAL_CALLOC(intarray, 
+                                                   width * height,
+                                                   sizeof(short));
+  if(!query->variables_use_map)
     return 1;
 
-  rc=rasqal_query_graph_pattern_build_mentioned_in(query,
-                                                   query->variables_mentioned_in,
-                                                   width,
-                                                   query->query_graph_pattern);
+  rc = rasqal_query_graph_pattern_build_variables_use_map(query,
+                                                          query->variables_use_map,
+                                                          width,
+                                                          query->query_graph_pattern);
 
 #ifdef RASQAL_DEBUG
-  if(!rc) {
-    int gp_index;
-
-    RASQAL_DEBUG1("variables mentioned in GP table:\n");
-    fputs("GP  ", stderr);
-    for(i = 0; i < width; i++) {
-      rasqal_variable* v = rasqal_variables_table_get(query->vars_table, i);
-      fprintf(stderr, "%10s ", v->name);
-    }
-    fputs("\n", stderr);
-    for(gp_index = 0; gp_index < height; gp_index++) {
-      short *row= &query->variables_mentioned_in[gp_index * width];
-      fprintf(stderr, "#%-3d", gp_index);
-      for(i = 0; i < width; i++)
-        fprintf(stderr, "%10s ", row[i]? "*" : " ");
-      fputs("\n", stderr);
-    }
-  }
-#endif
+  if(!rc)
+    rasqal_query_print_variables_use_map(stderr, query);
+#endif    
   
   return rc;
 }
 
 
 /**
- * rasqal_query_graph_build_mentioned_in_internal:
+ * rasqal_query_graph_build_variables_use_map_in_internal:
  * @query: the #rasqal_query to find the variables in
- * @mentioned_in: 1D array of size num. variables to write mentioned_in
+ * @use_map: 1D array of size num. variables to write use_map
  *
  * INTERNAL - Mark variables mentioned in a GRAPH graph pattern
  * 
  **/
 static void
-rasqal_query_graph_build_mentioned_in_internal(rasqal_query* query,
-                                               short *mentioned_in,
-                                               rasqal_literal *origin)
+rasqal_query_graph_build_variables_use_map_in_internal(rasqal_query* query,
+                                                       short *use_map,
+                                                       rasqal_literal *origin)
 {
   rasqal_variable *v;
   
   if((v = rasqal_literal_as_variable(origin)))
-    mentioned_in[v->offset] = 1;
+    use_map[v->offset] |= RASQAL_VAR_USE_MENTIONED_HERE;
+}
+
+
+
+/* for use with rasqal_expression_visit and user_data=rasqal_query */
+static int
+rasqal_expression_expr_build_variables_use_map(void *user_data,
+                                               rasqal_expression *e)
+{
+  short *use_map = (short*)user_data;
+
+  if(e->literal) {
+    rasqal_variable* v;
+    v = rasqal_literal_as_variable(e->literal);
+    if(v) 
+      use_map[v->offset] |= RASQAL_VAR_USE_MENTIONED_HERE;
+  }
+
+  return 0;
+}
+
+
+/**
+ * rasqal_query_filter_build_variables_use_map_in_internal:
+ * @query: the #rasqal_query to find the variables in
+ * @use_map: 1D array of size num. variables to write use_map
+ * @e: filter expression to use
+ *
+ * INTERNAL - Mark variables mentioned in a GRAPH graph pattern
+ * 
+ **/
+static void
+rasqal_query_filter_build_variables_use_map_in_internal(rasqal_query* query,
+                                                        short *use_map,
+                                                        rasqal_expression* e)
+{
+  rasqal_expression_visit(e, 
+                          rasqal_expression_expr_build_variables_use_map,
+                          use_map);
 }
 

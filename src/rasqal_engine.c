@@ -445,7 +445,6 @@ static int
 rasqal_engine_graph_pattern_init(rasqal_engine_execution_data* execution_data,
                                  rasqal_graph_pattern *gp)
 {
-  rasqal_query *query = execution_data->query;
   rasqal_engine_gp_data* gp_data;
 
   RASQAL_DEBUG2("Initing execution graph pattern #%d\n", gp->gp_index);
@@ -520,20 +519,20 @@ rasqal_engine_graph_pattern_init(rasqal_engine_execution_data* execution_data,
       t = (rasqal_triple*)raptor_sequence_get_at(gp->triples, i);
       
       if((v = rasqal_literal_as_variable(t->subject)) &&
-         query->variables_bound_in[v->offset] == i)
+         rasqal_graph_pattern_variable_bound_in(gp, v))
         m->parts= (rasqal_triple_parts)(m->parts | RASQAL_TRIPLE_SUBJECT);
       
       if((v = rasqal_literal_as_variable(t->predicate)) &&
-         query->variables_bound_in[v->offset] == i)
+         rasqal_graph_pattern_variable_bound_in(gp, v))
         m->parts= (rasqal_triple_parts)(m->parts | RASQAL_TRIPLE_PREDICATE);
       
       if((v = rasqal_literal_as_variable(t->object)) &&
-         query->variables_bound_in[v->offset] == i)
+         rasqal_graph_pattern_variable_bound_in(gp, v))
         m->parts= (rasqal_triple_parts)(m->parts | RASQAL_TRIPLE_OBJECT);
 
       if(t->origin &&
          (v = rasqal_literal_as_variable(t->origin)) &&
-         query->variables_bound_in[v->offset] == i)
+         rasqal_graph_pattern_variable_bound_in(gp, v))
         m->parts= (rasqal_triple_parts)(m->parts | RASQAL_TRIPLE_ORIGIN);
 
       RASQAL_DEBUG5("graph pattern #%d Triple %d has parts %s (%d)\n",
