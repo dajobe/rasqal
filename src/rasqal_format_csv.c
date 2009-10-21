@@ -59,7 +59,6 @@ rasqal_query_results_write_csv(raptor_iostream *iostr,
 {
   rasqal_query* query = rasqal_query_results_get_query(results);
   int i;
-  int column_comma = 0;
   int count = 1;
 #define comma_str_len 1
   static const char comma_str[comma_str_len+1]=",";
@@ -76,8 +75,7 @@ rasqal_query_results_write_csv(raptor_iostream *iostr,
   
   
   /* Header */
-  raptor_iostream_write_counted_string(iostr, "Variables", 9);
-  raptor_iostream_write_counted_string(iostr, comma_str, comma_str_len);
+  raptor_iostream_write_counted_string(iostr, "Result", 6);
  
   for(i = 0; 1; i++) {
     const unsigned char *name;
@@ -86,11 +84,8 @@ rasqal_query_results_write_csv(raptor_iostream *iostr,
     if(!name)
       break;
     
-    if(i > 0)
-      raptor_iostream_write_counted_string(iostr, comma_str, comma_str_len);
-    raptor_iostream_write_byte(iostr, '\"');
+    raptor_iostream_write_counted_string(iostr, comma_str, comma_str_len);
     raptor_iostream_write_string(iostr, name);
-    raptor_iostream_write_byte(iostr, '\"');
   }
   raptor_iostream_write_counted_string(iostr, nl_str, nl_str_len);
 
@@ -100,14 +95,11 @@ rasqal_query_results_write_csv(raptor_iostream *iostr,
   while(!rasqal_query_results_finished(results)) {
     /* Result row */
     raptor_iostream_write_decimal(iostr, count++);
-    raptor_iostream_write_counted_string(iostr, comma_str, comma_str_len);
 
-    column_comma = 0;
     for(i = 0; i < vars_count; i++) {
       rasqal_literal *l = rasqal_query_results_get_binding_value(results, i);
 
-      if(column_comma)
-        raptor_iostream_write_counted_string(iostr, comma_str, comma_str_len);
+      raptor_iostream_write_counted_string(iostr, comma_str, comma_str_len);
 
       if(!l) {
         raptor_iostream_write_string(iostr, "\"null\"");
@@ -181,8 +173,6 @@ rasqal_query_results_write_csv(raptor_iostream *iostr,
       }
 
       /* End Binding */
-
-      column_comma = 1;
     }
 
     /* End Result Row */
