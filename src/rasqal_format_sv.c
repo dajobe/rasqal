@@ -46,8 +46,7 @@
  * @results: #rasqal_query_results query results format
  * @base_uri: #raptor_uri base URI of the output format
  * @label: name of this format for errors
- * @column_sep: column sep string
- * @column_sep_length: length of @column_sep
+ * @sep: column sep character
  *
  * INTERNAL - Write a @sep-separated values version of the query results format to an iostream.
  * 
@@ -60,13 +59,15 @@ rasqal_query_results_write_sv(raptor_iostream *iostr,
                               rasqal_query_results* results,
                               raptor_uri *base_uri,
                               const char* label,
-                              const char* sep, size_t sep_len)
+                              char sep)
 {
   rasqal_query* query = rasqal_query_results_get_query(results);
   int i;
   int count = 1;
+#define empty_value_str_len 0
+  static const char empty_value_str[empty_value_str_len+1] = "";
 #define nl_str_len 1
-  static const char nl_str[nl_str_len+1]="\n";
+  static const char nl_str[nl_str_len+1] = "\n";
   int vars_count;
   
   if(!rasqal_query_results_is_bindings(results)) {
@@ -76,7 +77,6 @@ rasqal_query_results_write_sv(raptor_iostream *iostr,
                             label);
     return 1;
   }
-  
   
   /* Header */
   raptor_iostream_write_counted_string(iostr, "Result", 6);
@@ -88,7 +88,7 @@ rasqal_query_results_write_sv(raptor_iostream *iostr,
     if(!name)
       break;
     
-    raptor_iostream_write_counted_string(iostr, sep, sep_len);
+    raptor_iostream_write_byte(iostr, sep);
     raptor_iostream_write_string(iostr, name);
   }
   raptor_iostream_write_counted_string(iostr, nl_str, nl_str_len);
@@ -103,10 +103,12 @@ rasqal_query_results_write_sv(raptor_iostream *iostr,
     for(i = 0; i < vars_count; i++) {
       rasqal_literal *l = rasqal_query_results_get_binding_value(results, i);
 
-      raptor_iostream_write_counted_string(iostr, sep, sep_len);
+      raptor_iostream_write_byte(iostr, sep);
 
       if(!l) {
-        raptor_iostream_write_string(iostr, "\"null\"");
+        if(empty_value_str_len)
+          raptor_iostream_write_counted_string(iostr, empty_value_str,
+                                               empty_value_str_len);
       } else switch(l->type) {
         const unsigned char* str;
         size_t len;
@@ -131,6 +133,22 @@ rasqal_query_results_write_sv(raptor_iostream *iostr,
           break;
 
         case RASQAL_LITERAL_STRING:
+          if(l->datatype && l->valid) {
+            rasqal_literal_type ltype;
+            ltype = rasqal_xsd_datatype_uri_to_type(l->world, l->datatype);
+            
+            if(ltype >= RASQAL_LITERAL_INTEGER &&
+               ltype <= RASQAL_LITERAL_DECIMAL) {
+              /* write integer, float, double and decimal XSD typed
+               * data without quotes, datatype or language 
+               */
+              raptor_iostream_write_string_ntriples(iostr,
+                                                    (const unsigned char*)l->string,
+                                                    l->string_len, '\0');
+              break;
+            }
+          }
+          
           raptor_iostream_write_byte(iostr, '"');
           raptor_iostream_write_string_ntriples(iostr,
                                                 (const unsigned char*)l->string,
@@ -195,8 +213,7 @@ rasqal_query_results_write_csv(raptor_iostream *iostr,
                               rasqal_query_results* results,
                               raptor_uri *base_uri)
 {
-  return rasqal_query_results_write_sv(iostr, results, base_uri,
-                                       "CSV", ",", 1);
+  return rasqal_query_results_write_sv(iostr, results, base_uri, "CSV", ',');
 }
 
 
@@ -205,8 +222,7 @@ rasqal_query_results_write_tsv(raptor_iostream *iostr,
                                rasqal_query_results* results,
                                raptor_uri *base_uri)
 {
-  return rasqal_query_results_write_sv(iostr, results, base_uri,
-                                       "TSV", "\t", 1);
+  return rasqal_query_results_write_sv(iostr, results, base_uri, "TSV", '\t');
 }
 
 
