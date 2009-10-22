@@ -266,6 +266,8 @@ rasqal_init_result_format_json(rasqal_world* world)
   writer_fn = &rasqal_query_results_write_json1;
   reader_fn = NULL;
   get_rowsource_fn = NULL;
+
+  /* Released DAWG WG results in JSON */
   rc += rasqal_query_results_format_register_factory(world,
                                                      "json",
                                                      "SPARQL JSON Query Results",
@@ -273,5 +275,20 @@ rasqal_init_result_format_json(rasqal_world* world)
                                                      writer_fn, reader_fn, get_rowsource_fn,
                                                      "text/json")
                                                      != 0;
+  /* URIs from 0.9.16 or earlier */
+  rc+= rasqal_query_results_format_register_factory(world,
+                                                    NULL,
+                                                    NULL,
+                                                    (unsigned char*)"http://www.w3.org/2001/sw/DataAccess/json-sparql/",
+                                                    writer_fn, reader_fn, get_rowsource_fn,
+                                                    "text/json")
+                                                    != 0;
+  rc+= rasqal_query_results_format_register_factory(world,
+                                                    NULL,
+                                                    NULL,
+                                                    (unsigned char*)"http://www.mindswap.org/%7Ekendall/sparql-results-json/",
+                                                    writer_fn, reader_fn, get_rowsource_fn,
+                                                    "text/json")
+                                                    != 0;
   return rc;
 }
