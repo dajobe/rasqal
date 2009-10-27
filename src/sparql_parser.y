@@ -1444,8 +1444,10 @@ LetGraphPattern: LET '(' Var ASSIGN Expression ')'
   if($3 && $5) {
     if(sparql->extended)
       $$ = rasqal_new_let_graph_pattern((rasqal_query*)rq, $3, $5);
-    else
+    else {
       sparql_syntax_error((rasqal_query*)rq, "LET cannot be used with SPARQL");
+      $$ = NULL;
+    }
   } else
     $$ = NULL;
 }
