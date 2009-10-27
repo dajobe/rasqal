@@ -52,6 +52,7 @@
 static int rasqal_query_build_variables_use_map(rasqal_query* query);
 static void rasqal_query_graph_build_variables_use_map_in_internal(rasqal_query* query, short *use_map, rasqal_literal *origin);
 static void rasqal_query_filter_build_variables_use_map_in_internal(rasqal_query* query, short *use_map, rasqal_expression* e);
+static void rasqal_query_let_build_variables_use_map_in_internal(rasqal_query* query, short *use_map, rasqal_variable *var, rasqal_expression* e);
 
 
 int
@@ -1459,6 +1460,13 @@ rasqal_query_graph_pattern_build_variables_use_map(rasqal_query* query,
                                                               gp->filter_expression);
       break;
 
+    case RASQAL_GRAPH_PATTERN_OPERATOR_LET:
+      rasqal_query_let_build_variables_use_map_in_internal(query, 
+                                                           &use_map[offset],
+                                                           gp->var,
+                                                           gp->filter_expression);
+      break;
+      
     case RASQAL_GRAPH_PATTERN_OPERATOR_OPTIONAL:
     case RASQAL_GRAPH_PATTERN_OPERATOR_UNION:
     case RASQAL_GRAPH_PATTERN_OPERATOR_GROUP:
@@ -1474,15 +1482,17 @@ rasqal_query_graph_pattern_build_variables_use_map(rasqal_query* query,
 static void
 rasqal_query_print_variables_use_map(FILE* fh, rasqal_query* query)
 {
-  const char* use_map_str[8] = {
+#define N_MAP_STRINGS 8
+  const char* use_map_str[N_MAP_STRINGS + 1] = {
     "   ",
     "  I",
     " M ",
     "  I",
     "B  ",
-    "  I",
-    " M ",
     "B I",
+    "BM ",
+    "B I",
+    "???"
   };
   int width;
   int height;
@@ -1507,8 +1517,13 @@ rasqal_query_print_variables_use_map(FILE* fh, rasqal_query* query)
     gp = (rasqal_graph_pattern*)raptor_sequence_get_at(query->graph_patterns_sequence, gp_index);
     fprintf(fh, "%-2d   %-8s ", gp_index, 
             rasqal_graph_pattern_operator_as_string(gp->op));
-    for(i = 0; i < width; i++)
-      fprintf(fh, "%-10s ", use_map_str[row[i]]);
+    for(i = 0; i < width; i++) {
+      int flag_index = row[i];
+      /* Turn unknown flags into "???" */
+      if(flag_index > N_MAP_STRINGS)
+        flag_index = N_MAP_STRINGS;
+      fprintf(fh, "%-10s ", use_map_str[flag_index]);
+    }
     fputc('\n', fh);
   }
 }
@@ -1606,7 +1621,7 @@ rasqal_expression_expr_build_variables_use_map(void *user_data,
  * @use_map: 1D array of size num. variables to write use_map
  * @e: filter expression to use
  *
- * INTERNAL - Mark variables mentioned in a GRAPH graph pattern
+ * INTERNAL - Mark variables mentioned in a FILTER graph pattern
  * 
  **/
 static void
@@ -1614,6 +1629,30 @@ rasqal_query_filter_build_variables_use_map_in_internal(rasqal_query* query,
                                                         short *use_map,
                                                         rasqal_expression* e)
 {
+  rasqal_expression_visit(e, 
+                          rasqal_expression_expr_build_variables_use_map,
+                          use_map);
+}
+
+
+/**
+ * rasqal_query_let_build_variables_use_map_in_internal:
+ * @query: the #rasqal_query to find the variables in
+ * @use_map: 1D array of size num. variables to write use_map
+ * @e: let expression to use
+ *
+ * INTERNAL - Mark variables mentioned in a LET graph pattern
+ * 
+ **/
+static void
+rasqal_query_let_build_variables_use_map_in_internal(rasqal_query* query,
+                                                     short *use_map,
+                                                     rasqal_variable *var,
+                                                     rasqal_expression* e)
+{
+  use_map[var->offset] |= RASQAL_VAR_USE_BOUND_HERE | 
+                          RASQAL_VAR_USE_MENTIONED_HERE;
+
   rasqal_expression_visit(e, 
                           rasqal_expression_expr_build_variables_use_map,
                           use_map);

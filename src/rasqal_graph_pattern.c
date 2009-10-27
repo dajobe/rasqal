@@ -176,6 +176,36 @@ rasqal_new_filter_graph_pattern(rasqal_query* query,
 
 
 /*
+ * rasqal_new_let_graph_pattern:
+ * @query: #rasqal_graph_pattern query object
+ * @var: variable to assign
+ * @expr: expression
+ *
+ * INTERNAL - Create a new assignment graph pattern
+ * 
+ * Return value: a new #rasqal_graph_pattern object or NULL on failure
+ **/
+rasqal_graph_pattern*
+rasqal_new_let_graph_pattern(rasqal_query *query,
+                             rasqal_variable *var,
+                             rasqal_expression *expr)
+{
+  rasqal_graph_pattern* gp;
+
+  gp = rasqal_new_graph_pattern(query, RASQAL_GRAPH_PATTERN_OPERATOR_LET);
+  if(!gp) {
+    rasqal_free_expression(expr);
+    return NULL;
+  }
+  
+  gp->var = var;
+  gp->filter_expression = expr;
+  
+  return gp;
+}
+
+
+/*
  * rasqal_free_graph_pattern:
  * @gp: #rasqal_graph_pattern object
  *
@@ -345,7 +375,8 @@ static const char* const rasqal_graph_pattern_operator_labels[RASQAL_GRAPH_PATTE
   "Union",
   "Group",
   "Graph",
-  "Filter"
+  "Filter",
+  "Let"
 };
 
 
@@ -528,6 +559,12 @@ rasqal_graph_pattern_write_internal(rasqal_graph_pattern* gp,
     pending_nl=1;
   }
 
+  if(gp->var) {
+    rasqal_variable_write(gp->var, iostr);
+    raptor_iostream_write_counted_string(iostr, " := ", 4);
+    pending_nl = 0;
+  }
+  
   if(gp->filter_expression) {
     if(pending_nl) {
       raptor_iostream_write_counted_string(iostr, " ,", 2);

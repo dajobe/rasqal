@@ -215,7 +215,7 @@ struct rasqal_graph_pattern_s {
    * rasqal_graph_pattern_get_constraint()  */
   raptor_sequence *constraints; /* ... rasqal_expression*          */
 
-  /* the FILTER graph pattern expression */
+  /* the FILTER / LET expression */
   rasqal_expression* filter_expression;
 
   /* index of the graph pattern in the query (0.. query->graph_pattern_count-1) */
@@ -223,11 +223,15 @@ struct rasqal_graph_pattern_s {
 
   /* Graph literal */
   rasqal_literal *origin;
+
+  /* Variable for LET graph pattern */
+  rasqal_variable *var;
 };
 
 rasqal_graph_pattern* rasqal_new_basic_graph_pattern(rasqal_query* query, raptor_sequence* triples, int start_column, int end_column);
 rasqal_graph_pattern* rasqal_new_graph_pattern_from_sequence(rasqal_query* query, raptor_sequence* graph_patterns, rasqal_graph_pattern_operator op);
 rasqal_graph_pattern* rasqal_new_filter_graph_pattern(rasqal_query* query, rasqal_expression* expr);
+rasqal_graph_pattern* rasqal_new_let_graph_pattern(rasqal_query *query, rasqal_variable *var, rasqal_expression *expr);  
 void rasqal_free_graph_pattern(rasqal_graph_pattern* gp);
 void rasqal_graph_pattern_adjust(rasqal_graph_pattern* gp, int offset);
 void rasqal_graph_pattern_set_origin(rasqal_graph_pattern* graph_pattern, rasqal_literal* origin);
@@ -505,6 +509,9 @@ rasqal_rowsource* rasqal_new_empty_rowsource(rasqal_world *world, rasqal_query* 
 
 /* rasqal_rowsource_engine.c */
 rasqal_rowsource* rasqal_new_execution_rowsource(rasqal_query_results* query_results);
+
+/* rasqal_rowsource_assignment.c */
+rasqal_rowsource* rasqal_new_assignment_rowsource(rasqal_world *world, rasqal_query *query, rasqal_variable* var, rasqal_expression* expr);
 
 /* rasqal_rowsource_distinct.c */
 rasqal_rowsource* rasqal_new_distinct_rowsource(rasqal_world *world, rasqal_query *query, rasqal_rowsource* rs);
@@ -1123,8 +1130,9 @@ typedef enum {
   RASQAL_ALGEBRA_OPERATOR_REDUCED  = 11,
   RASQAL_ALGEBRA_OPERATOR_SLICE    = 12,
   RASQAL_ALGEBRA_OPERATOR_GRAPH    = 13,
+  RASQAL_ALGEBRA_OPERATOR_ASSIGN   = 14,
 
-  RASQAL_ALGEBRA_OPERATOR_LAST=RASQAL_ALGEBRA_OPERATOR_GRAPH
+  RASQAL_ALGEBRA_OPERATOR_LAST = RASQAL_ALGEBRA_OPERATOR_ASSIGN
 } rasqal_algebra_node_operator;
 
 
@@ -1174,6 +1182,9 @@ struct rasqal_algebra_node_s {
 
   /* type GRAPH */
   rasqal_literal *graph;
+
+  /* type LET */
+  rasqal_variable *var;
 };
 typedef struct rasqal_algebra_node_s rasqal_algebra_node;
 
@@ -1191,6 +1202,8 @@ typedef struct rasqal_algebra_node_s rasqal_algebra_node;
 typedef int (*rasqal_algebra_node_visit_fn)(rasqal_query* query, rasqal_algebra_node* node, void *user_data);
 
 /* rasqal_algebra.c */
+
+rasqal_algebra_node* rasqal_new_assignment_algebra_node(rasqal_query* query, rasqal_variable *var, rasqal_expression *expr);
 rasqal_algebra_node* rasqal_new_distinct_algebra_node(rasqal_query* query, rasqal_algebra_node* node1);
 rasqal_algebra_node* rasqal_new_filter_algebra_node(rasqal_query* query, rasqal_expression* expr, rasqal_algebra_node* node);
 rasqal_algebra_node* rasqal_new_empty_algebra_node(rasqal_query* query);
@@ -1201,6 +1214,7 @@ rasqal_algebra_node* rasqal_new_join_algebra_node(rasqal_query* query, rasqal_al
 rasqal_algebra_node* rasqal_new_orderby_algebra_node(rasqal_query* query, rasqal_algebra_node* node, raptor_sequence* seq);
 rasqal_algebra_node* rasqal_new_project_algebra_node(rasqal_query* query, rasqal_algebra_node* node1, raptor_sequence* vars_seq);
 rasqal_algebra_node* rasqal_new_graph_algebra_node(rasqal_query* query, rasqal_algebra_node* node1, rasqal_literal *graph);
+rasqal_algebra_node* rasqal_new_let_algebra_node(rasqal_query* query, rasqal_variable *var, rasqal_expression *expr);
 void rasqal_free_algebra_node(rasqal_algebra_node* node);
 rasqal_algebra_node_operator rasqal_algebra_node_get_operator(rasqal_algebra_node* node);
 const char* rasqal_algebra_node_operator_as_string(rasqal_algebra_node_operator op);

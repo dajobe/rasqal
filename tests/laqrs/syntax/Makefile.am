@@ -34,7 +34,10 @@ insert.rq \
 avg1.rq \
 max1.rq \
 min1.rq \
-sum1.rq
+sum1.rq \
+let1.rq \
+let2.rq \
+let3.rq
 
 LAQRS_BAD_TEST_FILES= \
 bad-select-expr.rq

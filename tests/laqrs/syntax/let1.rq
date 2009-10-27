@@ -1,0 +1,10 @@
+PREFIX : <http://example.org/ns#>
+
+CONSTRUCT {
+     ?this :area ?area .
+}
+WHERE {
+     ?this :width ?width .
+     ?this :height ?height .
+     LET (?area := (?width * ?height)) .
+}

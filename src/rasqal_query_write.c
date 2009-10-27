@@ -414,6 +414,16 @@ rasqal_query_write_sparql_graph_pattern(sparql_writer_context *wc,
   
   op = rasqal_graph_pattern_get_operator(gp);
   
+  if(op == RASQAL_GRAPH_PATTERN_OPERATOR_LET) {
+    /* LAQRS */
+    raptor_iostream_write_counted_string(iostr, "LET (", 5);
+    rasqal_query_write_sparql_variable(wc, iostr, gp->var);
+    raptor_iostream_write_counted_string(iostr, " := ", 4);
+    rasqal_query_write_sparql_expression(wc, iostr, gp->filter_expression);
+    raptor_iostream_write_counted_string(iostr, ") .", 3);
+    return;
+  }
+  
   if(op == RASQAL_GRAPH_PATTERN_OPERATOR_OPTIONAL ||
      op == RASQAL_GRAPH_PATTERN_OPERATOR_GRAPH) {
     /* prefix verbs */

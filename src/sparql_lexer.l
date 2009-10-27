@@ -361,6 +361,7 @@ EXPONENT [eE][+-]?[0-9]+
 [Dd][Ee][Ll][Ee][Tt][Ee]  { return DELETE; }
 [Ii][Nn][Ss][Ee][Rr][Tt]  { return INSERT; }
 [Ss][Aa][Mm][Ee][Tt][Ee][Rr][Mm] { return SAMETERM; }
+[Ll][Ee][Tt] { return LET; }
 
 "a" { return A; }
 
@@ -390,6 +391,7 @@ EXPONENT [eE][+-]?[0-9]+
 "/"         { return '/'; }
 "!"         { return '!'; }
 
+":="         { return ASSIGN; }
 
 [-+]?{INTEGER}   { c=*yytext;
                   sparql_parser_lval->literal=rasqal_new_typed_literal(rq->world, RASQAL_LITERAL_INTEGER, (const unsigned char*)yytext);
@@ -1380,6 +1382,12 @@ sparql_token_print(rasqal_world* world, int token, YYSTYPE *lval)
 
     case AS:
       return "AS";
+
+    case LET:
+      return "LET";
+
+    case ASSIGN:
+      return ":=";
 
     case INTEGER_LITERAL:
     case INTEGER_POSITIVE_LITERAL:

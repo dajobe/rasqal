@@ -226,6 +226,18 @@ rasqal_algebra_join_algebra_node_to_rowsource(rasqal_engine_algebra_data* execut
 }
 
 
+static rasqal_rowsource*
+rasqal_algebra_assignment_algebra_node_to_rowsource(rasqal_engine_algebra_data* execution_data,
+                                                    rasqal_algebra_node* node,
+                                                    rasqal_engine_error *error_p)
+{
+  rasqal_query *query = execution_data->query;
+
+  return rasqal_new_assignment_rowsource(query->world, query, node->var, 
+                                         node->expr);
+}
+
+
 static int
 rasqal_algebra_visitor_set_origin(rasqal_query* query,
                                   rasqal_algebra_node* node,
@@ -411,6 +423,11 @@ rasqal_algebra_node_to_rowsource(rasqal_engine_algebra_data* execution_data,
     case RASQAL_ALGEBRA_OPERATOR_JOIN:
       rs = rasqal_algebra_join_algebra_node_to_rowsource(execution_data,
                                                          node, error_p);
+      break;
+
+    case RASQAL_ALGEBRA_OPERATOR_ASSIGN:
+      rs = rasqal_algebra_assignment_algebra_node_to_rowsource(execution_data,
+                                                               node, error_p);
       break;
 
     case RASQAL_ALGEBRA_OPERATOR_UNKNOWN:

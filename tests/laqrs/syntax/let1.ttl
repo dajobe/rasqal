@@ -1,0 +1,4 @@
+@prefix : <http://example.org/ns#> .
+
+:field :width 200 .
+:field :height 50 .

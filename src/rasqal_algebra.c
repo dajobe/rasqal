@@ -410,6 +410,44 @@ rasqal_new_graph_algebra_node(rasqal_query* query,
 
 
 /*
+ * rasqal_new_assignment_algebra_node:
+ * @query: #rasqal_query query object
+ * @var: variable
+ * @expr: expression
+ *
+ * INTERNAL - Create a new LET algebra node over a variable and expression
+ * 
+ * The input @expr becomes owned by the new node
+ *
+ * Return value: a new #rasqal_algebra_node object or NULL on failure
+ **/
+rasqal_algebra_node*
+rasqal_new_assignment_algebra_node(rasqal_query* query,
+                                   rasqal_variable *var,
+                                   rasqal_expression *expr)
+{
+  rasqal_algebra_node* node;
+
+  if(!query || !var || !expr)
+    goto fail;
+
+  node = rasqal_new_algebra_node(query, RASQAL_ALGEBRA_OPERATOR_ASSIGN);
+  if(node) {
+    node->var = var;
+    node->expr = expr;
+    
+    return node;
+  }
+
+  fail:
+  if(expr)
+    rasqal_free_expression(expr);
+
+  return NULL;
+}
+
+
+/*
  * rasqal_free_algebra_node:
  * @gp: #rasqal_algebra_node object
  *
@@ -474,7 +512,8 @@ static const char* const rasqal_algebra_node_operator_labels[RASQAL_ALGEBRA_OPER
   "Distinct",
   "Reduced",
   "Slice",
-  "Graph"
+  "Graph",
+  "Assignment"
 };
 
 
@@ -562,6 +601,16 @@ rasqal_algebra_algebra_node_write_internal(rasqal_algebra_node *node,
       rasqal_algebra_algebra_node_write_internal(node->node2, iostr, indent);
       arg_count++;
     }
+  }
+
+  /* look for assignment var */
+  if(node->var) {
+    if(arg_count) {
+      raptor_iostream_write_counted_string(iostr, " ,\n", 3);
+      rasqal_algebra_write_indent(iostr, indent);
+    }
+    rasqal_variable_write(node->var, iostr);
+    arg_count++;
   }
 
   /* look for FILTER expression */
@@ -831,7 +880,8 @@ rasqal_algebra_group_graph_pattern_to_algebra(rasqal_query* query,
     if(!egp)
       break;
 
-    if(egp->filter_expression) {
+    if(egp->op == RASQAL_GRAPH_PATTERN_OPERATOR_FILTER &&
+       egp->filter_expression) {
       /* If E is of the form FILTER(expr)
          FS := FS set-union {expr} 
       */
@@ -999,6 +1049,26 @@ rasqal_algebra_graph_graph_pattern_to_algebra(rasqal_query* query,
 
 
 static rasqal_algebra_node*
+rasqal_algebra_let_graph_pattern_to_algebra(rasqal_query* query,
+                                            rasqal_graph_pattern* gp)
+{
+  rasqal_expression *expr = NULL;
+    
+  expr = rasqal_new_expression_from_expression(gp->filter_expression);
+  if(!expr)
+    goto fail;
+  
+  return rasqal_new_assignment_algebra_node(query, gp->var, expr);
+  
+  fail:
+  if(expr)
+    rasqal_free_expression(expr);
+
+  return NULL;
+}
+
+
+static rasqal_algebra_node*
 rasqal_algebra_graph_pattern_to_algebra(rasqal_query* query,
                                         rasqal_graph_pattern* gp)
 {
@@ -1020,6 +1090,10 @@ rasqal_algebra_graph_pattern_to_algebra(rasqal_query* query,
       
     case RASQAL_GRAPH_PATTERN_OPERATOR_GRAPH:
       node = rasqal_algebra_graph_graph_pattern_to_algebra(query, gp);
+      break;
+
+    case RASQAL_GRAPH_PATTERN_OPERATOR_LET:
+      node = rasqal_algebra_let_graph_pattern_to_algebra(query, gp);
       break;
 
     case RASQAL_GRAPH_PATTERN_OPERATOR_FILTER:

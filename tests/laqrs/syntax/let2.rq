@@ -1,0 +1,9 @@
+PREFIX ex: <http://example.org/ns#>
+
+SELECT ?x ?r
+WHERE {
+  ?x ex:property ?y .
+  LET (?helper1 := ex:function1(?y)) .
+  LET (?helper2 := ex:function2(?helper1)) .
+  LET (?r := ex:function3(?helper2)) .
+}

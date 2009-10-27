@@ -129,7 +129,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
  * shift/reduce conflicts
  * FIXME: document this
  */
-%expect 4
+%expect 5
 
 /* word symbols */
 %token SELECT FROM WHERE
@@ -147,7 +147,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
 /* LAQRS */
 %token EXPLAIN GROUP COUNT SUM AVG MIN MAX AS
 %token DELETE INSERT
-
+%token LET
 
 /* expression delimiters */
 
@@ -166,11 +166,13 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
 %left LE
 %left GE
 
-
 /* arithmetic operations */
 %left '+' '-' '*' '/'
 
 /* unary operations */
+
+/* laqrs operations */
+%token ASSIGN ":="
 
 /* literals */
 %token <literal> STRING_LITERAL "string literal"
@@ -211,6 +213,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
 %type <graph_pattern> GroupOrUnionGraphPattern GroupOrUnionGraphPatternList
 %type <graph_pattern> GraphPatternNotTriples
 %type <graph_pattern> GraphPatternListOpt GraphPatternList GraphPatternListFilter
+%type <graph_pattern> LetGraphPattern
 
 %type <expr> Expression ConditionalOrExpression ConditionalAndExpression
 %type <expr> RelationalExpression AdditiveExpression
@@ -286,6 +289,7 @@ GraphGraphPattern OptionalGraphPattern
 GroupOrUnionGraphPattern GroupOrUnionGraphPatternList
 GraphPatternNotTriples
 GraphPatternListOpt GraphPatternList GraphPatternListFilter
+LetGraphPattern
 
 %destructor {
   if($$)
@@ -1281,6 +1285,10 @@ GraphPatternNotTriples: OptionalGraphPattern
 {
   $$=$1;
 }
+| LetGraphPattern
+{
+  $$=$1;
+}
 ;
 
 
@@ -1423,6 +1431,23 @@ GroupOrUnionGraphPatternList: GroupOrUnionGraphPatternList UNION GroupGraphPatte
                                             RASQAL_GRAPH_PATTERN_OPERATOR_UNION);
   if(!$$)
     YYERROR_MSG("GroupOrUnionGraphPatternList 1: cannot create gp");
+}
+;
+
+
+/* LAQRS: LET (?var := expression) . */
+LetGraphPattern: LET '(' Var ASSIGN Expression ')'
+{
+  rasqal_sparql_query_language* sparql;
+  sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
+
+  if($3 && $5) {
+    if(sparql->extended)
+      $$ = rasqal_new_let_graph_pattern((rasqal_query*)rq, $3, $5);
+    else
+      sparql_syntax_error((rasqal_query*)rq, "LET cannot be used with SPARQL");
+  } else
+    $$ = NULL;
 }
 ;
 
