@@ -157,6 +157,18 @@ rasqal_project_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
         int offset = con->projection[i];
         if(offset >= 0)
           nrow->values[i] = rasqal_new_literal_from_literal(row->values[offset]);
+        else {
+          rasqal_variable* v;
+          rasqal_query *query = rowsource->query;
+          
+          v = (rasqal_variable*)raptor_sequence_get_at(con->projection_variables, i);
+          if(v && v->expression) {
+            nrow->values[i] = rasqal_expression_evaluate_v2(rowsource->world,
+                                                            &query->locator,
+                                                            v->expression,
+                                                            query->compare_flags);
+          }
+        }
       }
       rasqal_free_row(row);
       row = nrow;
