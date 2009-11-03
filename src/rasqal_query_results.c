@@ -793,7 +793,11 @@ rasqal_query_results_get_binding_name(rasqal_query_results* query_results,
   if(!rasqal_query_results_is_bindings(query_results)) 
     return NULL;
   
-  v = rasqal_variables_table_get(query_results->vars_table, offset);
+  /* Take variable names from the order in the projection not the
+   * order inserted into the variables table.
+   */
+  v = (rasqal_variable*)raptor_sequence_get_at(query_results->query->selects,
+                                               offset);
   if(!v)
     return NULL;
   
