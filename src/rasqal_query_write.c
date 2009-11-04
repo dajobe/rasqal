@@ -253,7 +253,8 @@ static const char* const rasqal_sparql_op_labels[RASQAL_EXPR_LAST+1] = {
   "SUM",
   "AVG",
   "MIN",
-  "MAX"
+  "MAX",
+  "COALESCE"
 };
 
 
@@ -392,6 +393,19 @@ rasqal_query_write_sparql_expression(sparql_writer_context *wc,
       raptor_iostream_write_byte(iostr, '*');
       break;
       
+    case RASQAL_EXPR_COALESCE:
+      raptor_iostream_write_counted_string(iostr, "COALESCE( ", 10);
+      count = raptor_sequence_size(e->args);
+      for(i = 0; i < count ; i++) {
+        rasqal_expression* e2;
+        e2 = (rasqal_expression*)raptor_sequence_get_at(e->args, i);
+        if(i > 0)
+          raptor_iostream_write_counted_string(iostr, " ,", 2);
+        rasqal_query_write_sparql_expression(wc, iostr, e2);
+      }
+      raptor_iostream_write_counted_string(iostr, " )", 2);
+      break;
+
     case RASQAL_EXPR_UNKNOWN:
     case RASQAL_EXPR_STR_MATCH:
     case RASQAL_EXPR_STR_NMATCH:

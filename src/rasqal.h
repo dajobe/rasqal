@@ -445,6 +445,7 @@ struct rasqal_literal_s {
  * @RASQAL_EXPR_AVG: Expression for LAQRS select AVG()
  * @RASQAL_EXPR_MIN: Expression for LAQRS select MIN()
  * @RASQAL_EXPR_MAX: Expression for LAQRS select MAX()
+ * @RASQAL_EXPR_COALESCE: Expression for LAQRS COALESCE(Expr+)
  * @RASQAL_EXPR_UNKNOWN: Internal
  * @RASQAL_EXPR_LAST: Internal
  *
@@ -498,8 +499,9 @@ typedef enum {
   RASQAL_EXPR_AVG,
   RASQAL_EXPR_MIN,
   RASQAL_EXPR_MAX,
+  RASQAL_EXPR_COALESCE,
   /* internal */
-  RASQAL_EXPR_LAST= RASQAL_EXPR_MAX
+  RASQAL_EXPR_LAST= RASQAL_EXPR_COALESCE
 } rasqal_op;
 
 
@@ -521,6 +523,7 @@ struct rasqal_expression_s {
 
   /* for extension function qname(args...) and cast-to-uri */
   raptor_uri* name;
+  /* for extension function qname(args...) and cast-to-uri and COALESCE() */
   raptor_sequence* args;
   
   /* rasqal_world object */
@@ -987,6 +990,8 @@ RASQAL_API
 rasqal_expression* rasqal_new_function_expression(rasqal_world* world, raptor_uri* name, raptor_sequence* args);
 RASQAL_API
 rasqal_expression* rasqal_new_cast_expression(rasqal_world* world, raptor_uri* name, rasqal_expression *value);
+RASQAL_API
+rasqal_expression* rasqal_new_coalesce_expression(rasqal_world* world, raptor_sequence* args);
 RASQAL_API
 rasqal_expression* rasqal_new_expression_from_expression(rasqal_expression* e);
 

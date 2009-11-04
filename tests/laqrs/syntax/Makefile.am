@@ -23,6 +23,7 @@ LAQRS_MODEL_FILES= \
 data.n3
 
 LAQRS_TEST_FILES= \
+coalesce1.rq \
 count1.rq \
 count2.rq \
 count3.rq \

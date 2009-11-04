@@ -362,6 +362,7 @@ EXPONENT [eE][+-]?[0-9]+
 [Ii][Nn][Ss][Ee][Rr][Tt]  { return INSERT; }
 [Ss][Aa][Mm][Ee][Tt][Ee][Rr][Mm] { return SAMETERM; }
 [Ll][Ee][Tt] { return LET; }
+[Cc][Oo][Aa][Ll][Ee][Ss][Cc][Ee] { return COALESCE; }
 
 "a" { return A; }
 
@@ -1388,6 +1389,9 @@ sparql_token_print(rasqal_world* world, int token, YYSTYPE *lval)
 
     case ASSIGN:
       return ":=";
+
+    case COALESCE:
+      return "COALESCE";
 
     case INTEGER_LITERAL:
     case INTEGER_POSITIVE_LITERAL:

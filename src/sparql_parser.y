@@ -148,6 +148,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
 %token EXPLAIN GROUP COUNT SUM AVG MIN MAX AS
 %token DELETE INSERT
 %token LET
+%token COALESCE
 
 /* expression delimiters */
 
@@ -223,6 +224,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
 %type <expr> OrderCondition Filter Constraint SelectExpression
 %type <expr> AggregateExpression CountAggregateExpression SumAggregateExpression
 %type <expr> AvgAggregateExpression MinAggregateExpression MaxAggregateExpression
+%type <expr> CoalesceExpression
 
 %type <literal> GraphTerm IRIref BlankNode
 %type <literal> VarOrIRIref
@@ -1514,6 +1516,28 @@ FunctionCall: IRIrefBrace ArgList ')'
 ;
 
 
+/* LAQRS */
+CoalesceExpression: COALESCE '(' ArgList ')'
+{
+  rasqal_sparql_query_language* sparql;
+  sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
+
+  if(!sparql->extended)
+    sparql_syntax_error((rasqal_query*)rq, "COALESCE cannot be used with SPARQL");
+
+  if(!$3) {
+    $3 = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_expression, (raptor_sequence_print_handler*)rasqal_expression_print);
+    if(!$3)
+      YYERROR_MSG("FunctionCall: cannot create sequence");
+  }
+
+  $$ = rasqal_new_coalesce_expression(((rasqal_query*)rq)->world, $3);
+  if(!$$)
+    YYERROR_MSG("Coalesce: cannot create expr");
+}
+;
+
+
 /* SPARQL Grammar: [29] ArgList */
 ArgList: ArgList ',' Expression
 {
@@ -2632,6 +2656,10 @@ BuiltInCall: STR '(' Expression ')'
     YYERROR_MSG("BuiltInCall 11: cannot create expr");
 }
 | RegexExpression
+{
+  $$=$1;
+}
+| CoalesceExpression
 {
   $$=$1;
 }
