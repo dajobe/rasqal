@@ -1,3 +1,161 @@
+2009-11-03  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal.h, src/rasqal_expr.c, src/rasqal_query_write.c,
+	src/sparql_lexer.l, src/sparql_parser.y,
+	tests/laqrs/syntax/Makefile.am, tests/laqrs/syntax/coalesce1.rq:
+	Implement LAQRS (possible SPARQL 1.1) COALESCE
+
+	rasqal_op gains RASQAL_EXPR_COALESCE
+	(COALESCE): Keyword added to laqrs lexer
+	(CoalesceExpression): Added to laqrs grammar.
+	(BuiltInCall): Add CoalesceExpression to option.
+	(rasqal_new_coalesce_expression): Added.
+	(rasqal_expression_clear, rasqal_expression_visit,
+	rasqal_expression_evaluate_v2, rasqal_expression_write,
+	rasqal_expression_print, rasqal_expression_is_constant): Implement
+	coalesce
+
+	* src/rasqal_query_results.c:
+	(rasqal_query_results_get_binding_name): Get variables by select
+	order not variable table order so that project expressions work -
+	from SPARQL1.1 / LAQRS.
+
+	* src/rasqal_rowsource_project.c:
+	(rasqal_project_rowsource_read_row): Calculate project expressions.
+
+2009-10-26  Dave Beckett <dave@dajobe.org>
+
+	* src/sparql_parser.y: (LetGraphPattern): Free expression on error path
+
+	* src/sparql_parser.y: (LetGraphPattern): Set $$ on error path
+
+	* src/Makefile.am, src/rasqal.h, src/rasqal_algebra.c,
+	src/rasqal_engine_algebra.c, src/rasqal_graph_pattern.c,
+	src/rasqal_internal.h, src/rasqal_query_transform.c,
+	src/rasqal_query_write.c, src/rasqal_rowsource_assignment.c,
+	src/sparql_lexer.l, src/sparql_parser.y,
+	tests/laqrs/syntax/Makefile.am, tests/laqrs/syntax/let1.rq,
+	tests/laqrs/syntax/let1.ttl, tests/laqrs/syntax/let2.rq,
+	tests/laqrs/syntax/let3.rq, tests/laqrs/syntax/let3.ttl:
+	Added LAQRS sparql extension LET ?var := expression evaluated
+	in-order inside a graph pattern
+	rasqal_graph_pattern_operator gains RASQAL_GRAPH_PATTERN_OPERATOR_LET
+
+	rasqal_algebra_node_operator gains RASQAL_ALGEBRA_OPERATOR_ASSIGN
+
+	struct rasqal_graph_pattern_s shares filter_expression and gains
+	variable field 'var' for GP LET.
+
+	rasqal_algebra_node gains variable field 'var' for GP LET.
+
+	(rasqal_new_assignment_algebra_node): Added.
+	rasqal_algebra_node_operator_labels gains "Assignment"
+	(rasqal_algebra_algebra_node_write_internal): Print variable name for
+	assignment
+	(rasqal_algebra_group_graph_pattern_to_algebra): Only AND filter
+	graph patterns, not everything witha  filter_expression.
+	(rasqal_algebra_let_graph_pattern_to_algebra): Added.
+	(rasqal_algebra_graph_pattern_to_algebra): Handle new
+	RASQAL_GRAPH_PATTERN_OPERATOR_LET
+	(rasqal_new_let_graph_pattern): Added.
+	rasqal_graph_pattern_operator_labels gains "Let"
+	(rasqal_graph_pattern_write_internal): Write Let GP
+	for RASQAL_GRAPH_PATTERN_OPERATOR_LET
+	(rasqal_query_let_build_variables_use_map_in_internal): Added
+	(rasqal_query_graph_pattern_build_variables_use_map): Handle
+	RASQAL_GRAPH_PATTERN_OPERATOR_LET using
+	rasqal_query_let_build_variables_use_map_in_internal.
+	(rasqal_query_print_variables_use_map): Tidy code and ignore unknown
+	flags.
+	SPARQL lexer and parser gain LET (LET) and ':' (ASSIGN) keywords.
+	(GraphPatternNotTriples): Add option for LetGraphPattern
+	(LetGraphPattern): Added to construct a
+	RASQAL_GRAPH_PATTERN_OPERATOR_LET for LAQRS.
+	(rasqal_query_write_sparql_graph_pattern): Print the GP out with LET
+	?var := ?expr.
+	(rasqal_new_assignment_rowsource): Added assignment rowsource with
+	this constructor.
+	(rasqal_algebra_assignment_algebra_node_to_rowsource): Added.
+	(rasqal_algebra_node_to_rowsource): Call above for
+RASQAL_ALGEBRA_OPERATOR_ASSIGN.
+
+2009-10-22  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_format_json.c:
+	(rasqal_init_result_format_json): Restored old URIs
+
+2009-10-21  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_format_sv.c: Sep is a single char
+	Write empty values as empty field ie foo,,bar or foo\t\tbar
+	Write integer, float, double and decimal XSD types without quotes.
+
+2009-10-21  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_literal.c:
+	(rasqal_literal_string_equals): Fixed compilation with
+	RAPTOR_V2_AVAILABLE
+
+2009-10-20  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal.h, src/rasqal_engine.c, src/rasqal_graph_pattern.c,
+	src/rasqal_internal.h, src/rasqal_query.c,
+	src/rasqal_query_transform.c:
+	Replace mentioned_in with a variables use map concept that has
+	several flags per variable/gp combination.  Set the mentioned flag
+	for now - RASQAL_VAR_USE_MENTIONED_HERE
+	Added num rasqal_var_use_map_flags with the flags.
+	Renamed functions/fields with *_mentioned_in to be *_use_map
+
+	(rasqal_query_print_variables_use_map): Added debug function to
+	print use map and flags better.
+	(rasqal_expression_expr_build_variables_use_map,
+	rasqal_query_filter_build_variables_use_map_in_internal): Added to
+	find variables mentioned in a filter expression.
+
+	(rasqal_graph_pattern_variable_bound_in): Added to wrap bound_in
+	that will be moving to query->use_map.
+
+	* src/rasqal_internal.h: update comments for format file renamings
+
+	* src/Makefile.am, src/rasqal_format_sparql_xml.c:
+	Rename rasqal_sparql_xml.c to rasqal_format_sparql_xml.c
+
+	* src/rasqal_sparql_xml.c: update label and url for this format
+
+	* src/rasqal_format_json.c: update label and url for this format
+
+	* src/rasqal_format_sv.c: Add labels for messages
+
+	* src/Makefile.am, src/rasqal_format_csv.c, src/rasqal_format_sv.c
+	Rename rasqal_format_csv.c to rasqal_format_sv.c
+
+	* src/rasqal_format_csv.c, src/rasqal_internal.h,
+	src/rasqal_result_formats.c:
+	Lets go crazy and add TSV too
+
+	* src/rasqal_format_csv.c: tidy code
+
+	* src/Makefile.am, src/rasqal_format_csv.c, src/rasqal_internal.h,
+	src/rasqal_result_formats.c:
+	Added CSV output for query results - why not?
+
+	* src/rasqal.h, src/rasqal_expr.c, src/rasqal_internal.h,
+	src/rasqal_literal.c, tests/sparql/check-sparql:
+	rasqal_literal gains a valid flag to indicate when an XSD type is
+	known and has a valid literal form.  Otherwise on construction, it
+	gets turned into a RASQAL_LITERAL_UDT aka invalid/unknown type.
+	(rasqal_new_*_literal): Set valid flag explicitly when known good.
+	(rasqal_literal_set_typed_value): Turn invalid known types into
+	RASQAL_LITERAL_UDT.
+	(rasqal_literal_not_equals_flags): Added internal function to
+	parallel rasqal_literal_equals_flags.  The logic may be different
+	soon.
+	(rasqal_literal_write, rasqal_literal_print): Emit INV: before
+	invalid literals for debugging.
+	(rasqal_expr_evaluate_v2): Use rasqal_literal_not_equals_flags()
+	for RASQAL_EXPR_NEQ.
+
 2009-10-18  Dave Beckett <dave@dajobe.org>
 
 	* src/rasqal_expr.c:
