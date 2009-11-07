@@ -1071,7 +1071,6 @@ rasqal_engine_get_next_result(rasqal_engine_execution_data* execution_data)
 
   outergp = query->query_graph_pattern;
   if(!outergp || !outergp->graph_patterns) {
-    /* FIXME - no graph patterns in query - end results */
     rasqal_log_error_simple(query->world, RAPTOR_LOG_LEVEL_ERROR,
                             &query->locator,
                             "No graph patterns in query. Ending query execution.");
@@ -1080,7 +1079,6 @@ rasqal_engine_get_next_result(rasqal_engine_execution_data* execution_data)
   
   graph_patterns_size = raptor_sequence_size(outergp->graph_patterns);
   if(!graph_patterns_size) {
-    /* FIXME - no graph patterns in query - end results */
     rasqal_log_error_simple(query->world, RAPTOR_LOG_LEVEL_ERROR,
                             &query->locator,
                             "No graph patterns in query. Ending query execution.");
