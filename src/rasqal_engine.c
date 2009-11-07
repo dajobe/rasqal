@@ -257,14 +257,6 @@ rasqal_engine_group_graph_pattern_get_next_match(rasqal_engine_execution_data* e
   query = execution_data->query;
   query_results = execution_data->query_results;
 
-#if 0
-  rasqal_engine_gp_data* gp_data;
-
-  gp_data = (rasqal_engine_gp_data*)raptor_sequence_get_at(execution_data->seq, 
-                                                           gp->gp_index);
-#endif
-
-  /* FIXME - sequence of graph_patterns not implemented, finish */
   rasqal_log_error_simple(query->world, RAPTOR_LOG_LEVEL_ERROR,
                           &query->locator,
                           "Graph pattern %s operation is not implemented yet. Ending query execution.", 
