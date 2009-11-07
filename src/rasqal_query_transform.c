@@ -1149,31 +1149,13 @@ rasqal_query_prepare_common(rasqal_query *query)
       goto done;
   }
 
+  rasqal_query_fold_expressions(query);
+
   if(query->query_graph_pattern) {
     /* This query prepare processing requires a query graph pattern.
      * Not the case for a legal query like 'DESCRIBE <uri>'
      */
 
-    /* create query->variables_bound_in to find triples where a variable
-     * is bound and look for variables selected that are not used
-     * in the execution order (graph pattern tree walk order).
-     *
-     * The query->variables_bound_in array is used in
-     * rasqal_engine_graph_pattern_init() when trying to figure out
-     * which parts of a triple pattern need to bind to a variable:
-     * only the first reference to it.
-     */
-    if(rasqal_query_build_bound_in(query))
-      goto done;
-
-    /* warn if any of the selected named variables are not in a triple */
-    if(rasqal_query_check_unused_variables(query, query->variables_bound_in))
-      goto done;
-  }
-
-  rasqal_query_fold_expressions(query);
-
-  if(query->query_graph_pattern) {
 #ifndef RASQAL_NO_GP_MERGE
     int modified;
     
@@ -1244,6 +1226,22 @@ rasqal_query_prepare_common(rasqal_query *query)
      * mentioned, bound or used in a graph pattern.
      */
     if(rasqal_query_build_variables_use_map(query))
+      goto done;
+
+    /* create query->variables_bound_in to find triples where a variable
+     * is bound and look for variables selected that are not used
+     * in the execution order (graph pattern tree walk order).
+     *
+     * The query->variables_bound_in array is used in
+     * rasqal_engine_graph_pattern_init() when trying to figure out
+     * which parts of a triple pattern need to bind to a variable:
+     * only the first reference to it.
+     */
+    if(rasqal_query_build_bound_in(query))
+      goto done;
+
+    /* warn if any of the selected named variables are not in a triple */
+    if(rasqal_query_check_unused_variables(query, query->variables_bound_in))
       goto done;
 
   }
