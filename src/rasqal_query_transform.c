@@ -1518,7 +1518,7 @@ rasqal_query_print_variables_use_map(FILE* fh, rasqal_query* query)
     for(i = 0; i < width; i++) {
       int flag_index = row[i];
       /* Turn unknown flags into "???" */
-      if(flag_index > N_MAP_STRINGS)
+      if(flag_index > N_MAP_STRINGS - 1)
         flag_index = N_MAP_STRINGS;
       fprintf(fh, "%-10s ", use_map_str[flag_index]);
     }
