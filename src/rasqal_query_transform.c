@@ -1437,7 +1437,7 @@ rasqal_query_graph_pattern_build_variables_use_map(rasqal_query* query,
 
 
   /* write to the 1D array for this GP */
-  offset = (gp->gp_index) * width;
+  offset = (gp->gp_index + RASQAL_VAR_USE_MAP_OFFSET_LAST + 1) * width;
   switch(gp->op) {
     case RASQAL_GRAPH_PATTERN_OPERATOR_BASIC:
       rasqal_query_triples_build_variables_use_map_internal(query, 
@@ -1477,28 +1477,38 @@ rasqal_query_graph_pattern_build_variables_use_map(rasqal_query* query,
 
 
 #ifdef RASQAL_DEBUG
+static const char* const use_map_offset_labels[RASQAL_VAR_USE_MAP_OFFSET_LAST + 1] = {
+  "Verbs",
+  "GROUP BY",
+  "HAVING",
+  "ORDER BY"
+};
+
+
+#define N_MAP_FLAGS_LABELS 8
+static const char* const use_map_flags_labels[N_MAP_FLAGS_LABELS + 1] = {
+  "   ",
+  "  I",
+  " M ",
+  "  I",
+  "B  ",
+  "B I",
+  "BM ",
+  "B I",
+  "???"
+};
+
+
 static void
 rasqal_query_print_variables_use_map(FILE* fh, rasqal_query* query)
 {
-#define N_MAP_STRINGS 8
-  const char* use_map_str[N_MAP_STRINGS + 1] = {
-    "   ",
-    "  I",
-    " M ",
-    "  I",
-    "B  ",
-    "B I",
-    "BM ",
-    "B I",
-    "???"
-  };
   int width;
   int height;
   int i;
-  int gp_index;
+  int row_index;
   
   width = rasqal_variables_table_get_total_variables_count(query->vars_table);
-  height = query->graph_pattern_count;
+  height = (RASQAL_VAR_USE_MAP_OFFSET_LAST + 1) + query->graph_pattern_count;
   
   fprintf(fh, "Query variables-use map (B=bound, M=mentioned, U=used):\n");
   fputs("GP#  Type      ", fh);
@@ -1508,19 +1518,25 @@ rasqal_query_print_variables_use_map(FILE* fh, rasqal_query* query)
   }
   fputc('\n', fh);
 
-  for(gp_index = 0; gp_index < height; gp_index++) {
-    rasqal_graph_pattern* gp;
-    short *row = &query->variables_use_map[gp_index * width];
+  for(row_index = 0; row_index < height; row_index++) {
+    short *row = &query->variables_use_map[row_index * width];
+    int gp_index = row_index - (RASQAL_VAR_USE_MAP_OFFSET_LAST + 1);
 
-    gp = (rasqal_graph_pattern*)raptor_sequence_get_at(query->graph_patterns_sequence, gp_index);
-    fprintf(fh, "%-2d   %-8s ", gp_index, 
-            rasqal_graph_pattern_operator_as_string(gp->op));
+    if(gp_index < 0)
+      fprintf(fh, "--   %-8s ", use_map_offset_labels[row_index]);
+    else {
+      rasqal_graph_pattern* gp;
+      gp = (rasqal_graph_pattern*)raptor_sequence_get_at(query->graph_patterns_sequence, gp_index);
+      fprintf(fh, "%-2d   %-8s ", gp_index, 
+              rasqal_graph_pattern_operator_as_string(gp->op));
+    }
+    
     for(i = 0; i < width; i++) {
       int flag_index = row[i];
       /* Turn unknown flags into "???" */
-      if(flag_index > N_MAP_STRINGS - 1)
-        flag_index = N_MAP_STRINGS;
-      fprintf(fh, "%-10s ", use_map_str[flag_index]);
+      if(flag_index > N_MAP_FLAGS_LABELS - 1)
+        flag_index = N_MAP_FLAGS_LABELS;
+      fprintf(fh, "%-10s ", use_map_flags_labels[flag_index]);
     }
     fputc('\n', fh);
   }
@@ -1548,7 +1564,7 @@ rasqal_query_build_variables_use_map(rasqal_query* query)
   int rc = 0;
   
   width = rasqal_variables_table_get_total_variables_count(query->vars_table);
-  height = query->graph_pattern_count;
+  height = RASQAL_VAR_USE_MAP_OFFSET_LAST + 1 + query->graph_pattern_count;
   
   /* FIXME - need to walk other query components that may mention or
    * bind variables and their record variable use:
