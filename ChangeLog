@@ -1,3 +1,43 @@
+2009-11-08  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_query_transform.c:
+	(rasqal_query_graph_pattern_build_variables_use_map): adjust
+	output offset to skip the non-GP rows.
+	use_map_offset_labels: added
+	use_map_flags_labels: renamed from use_map_str and made static
+	const.
+	(rasqal_query_print_variables_use_map): Adjust to handle non-GP
+	rows as well as GP rows.
+
+	* src/rasqal_internal.h:
+	rasqal_var_use_map_offset: added to reserve use_map rows for
+	marking variable uses outside of graph patterns.
+
+	* src/rasqal_query_transform.c:
+	(rasqal_query_print_variables_use_map): off by 1 in unknown flag
+	check
+
+	* src/rasqal_query_transform.c:
+	(rasqal_query_build_variables_use_map): Document note of missing
+	query parts that may need variable use map scans.
+
+2009-11-06  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_query_transform.c:
+	(rasqal_query_prepare_common): Move rasqal_query_build_bound_in
+	and rasqal_query_check_unused_variables to later so that
+	rasqal_query_build_variables_use_map happens before
+	rasqal_query_build_bound_in.
+
+	* src/rasqal_engine.c:
+	(rasqal_engine_get_next_result): Remove FIXMEs that are real
+	errors - no graph patterns in query, already reported as such and
+	not fixable.
+
+	* src/rasqal_engine.c:
+	(rasqal_engine_group_graph_pattern_get_next_match): Engine V1 is
+	never going to implement group graph pattern - remove fixme.
+
 2009-11-03  Dave Beckett <dave@dajobe.org>
 
 	* src/rasqal.h, src/rasqal_expr.c, src/rasqal_query_write.c,
