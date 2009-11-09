@@ -1550,8 +1550,16 @@ rasqal_query_build_variables_use_map(rasqal_query* query)
   width = rasqal_variables_table_get_total_variables_count(query->vars_table);
   height = query->graph_pattern_count;
   
-  /* FIXME - need to walk ORDER and other (SELECT?) expressions too 
-   * But they are not GPs, so where to record it?
+  /* FIXME - need to walk other query components that may mention or
+   * bind variables and their record variable use:
+   *
+   * 1) Query verbs: ASK SELECT CONSTRUCT DESCRIBE (SPARQL 1.0)
+   *   1a) SELECT project-expressions (SPARQL 1.1)
+   * 2) GROUP BY expr/var (SPARQL 1.1 TBD)
+   * 3) HAVING expr (SPARQL 1.1 TBD)
+   * 4) ORDER list-of-expr (SPARQL 1.0)
+   *
+   * But they are not GPs, so where to record this information?
    */
   
   query->variables_use_map = (short*)RASQAL_CALLOC(intarray, 
