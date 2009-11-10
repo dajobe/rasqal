@@ -79,6 +79,8 @@ rasqal_new_algebra_node(rasqal_query* query, rasqal_algebra_node_operator op)
  * @node: algebra node being filtered
  *
  * INTERNAL - Create a new algebra node for an expression over a node
+ *
+ * expr and node become owned by the new node
  * 
  * Return value: a new #rasqal_algebra_node object or NULL on failure
  **/
@@ -90,16 +92,21 @@ rasqal_new_filter_algebra_node(rasqal_query* query,
   rasqal_algebra_node* new_node;
 
   if(!query || !expr)
-    return NULL;
+    goto fail;
   
   new_node = rasqal_new_algebra_node(query, RASQAL_ALGEBRA_OPERATOR_FILTER);
-  if(!new_node)
-    return NULL;
-
-  new_node->expr = expr;
-  new_node->node1 = node;
-
-  return new_node;
+  if(new_node) {
+    new_node->expr = expr;
+    new_node->node1 = node;
+    return new_node;
+  }
+  
+  fail:
+  if(expr)
+    rasqal_free_expression(expr);
+  if(node)
+    rasqal_free_algebra_node(node);
+  return NULL;
 }
 
 
@@ -177,7 +184,7 @@ rasqal_new_empty_algebra_node(rasqal_query* query)
  *
  * INTERNAL - Create a new algebra node for 1 or 2 graph patterns
  *
- * node1 and ndoe2 become owned by the new node
+ * node1 and node2 become owned by the new node
  *
  * Return value: a new #rasqal_algebra_node object or NULL on failure
  **/
@@ -220,7 +227,7 @@ rasqal_new_2op_algebra_node(rasqal_query* query,
  *
  * INTERNAL - Create a new LEFTJOIN algebra node for 2 graph patterns
  * 
- * node1 and ndoe2 become owned by the new node
+ * node1, node2 and expr become owned by the new node
  *
  * Return value: a new #rasqal_algebra_node object or NULL on failure
  **/
