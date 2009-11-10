@@ -1250,9 +1250,17 @@ rasqal_algebra_query_to_algebra(rasqal_query* query)
 
   /* FIXME - do not always need a PROJECT node */
   if(1) {
-    int vars_size = raptor_sequence_size(query->selects);
+    int vars_size;
+    raptor_sequence* seq = NULL;
     raptor_sequence* vars_seq;
     int i;
+
+    if (query->verb == RASQAL_QUERY_VERB_SELECT)
+      seq = query->selects;
+    else if (query->verb == RASQAL_QUERY_VERB_CONSTRUCT)
+      seq = query->constructs;
+    
+    vars_size = raptor_sequence_size(seq);
     
     vars_seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_variable,
                                    (raptor_sequence_print_handler*)rasqal_variable_print);
@@ -1262,7 +1270,7 @@ rasqal_algebra_query_to_algebra(rasqal_query* query)
     }
     for(i = 0; i < vars_size; i++) {
       rasqal_variable* v;
-      v = (rasqal_variable*)raptor_sequence_get_at(query->selects, i);
+      v = (rasqal_variable*)raptor_sequence_get_at(seq, i);
       raptor_sequence_push(vars_seq, rasqal_new_variable_from_variable(v));
     }
 
