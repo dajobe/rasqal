@@ -161,6 +161,10 @@ rasqal_join_rowsource_finish(rasqal_rowsource* rowsource, void *user_data)
 {
   rasqal_join_rowsource_context* con;
   con = (rasqal_join_rowsource_context*)user_data;
+
+  if(con->left_row)
+    rasqal_free_row(con->left_row);
+  
   if(con->left)
     rasqal_free_rowsource(con->left);
   
@@ -313,6 +317,8 @@ rasqal_join_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
     if(!right_row && con->state == READ_RIGHT) {
       /* right table done, restart left, continue looping */
       con->state = INIT_RIGHT;
+      if(con->left_row)
+        rasqal_free_row(con->left_row);
       con->left_row = rasqal_rowsource_read_row(con->left);
       continue;
     }
