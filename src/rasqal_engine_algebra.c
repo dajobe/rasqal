@@ -557,14 +557,16 @@ rasqal_query_engine_algebra_execute_finish(void* ex_data,
 
   execution_data = (rasqal_engine_algebra_data*)ex_data;
 
-  if(execution_data->algebra_node)
-    rasqal_free_algebra_node(execution_data->algebra_node);
+  if(execution_data) {
+    if(execution_data->algebra_node)
+      rasqal_free_algebra_node(execution_data->algebra_node);
 
-  if(execution_data->triples_source)
-    rasqal_free_triples_source(execution_data->triples_source);
+    if(execution_data->triples_source)
+      rasqal_free_triples_source(execution_data->triples_source);
 
-  if(execution_data->rowsource)
-    rasqal_free_rowsource(execution_data->rowsource);
+    if(execution_data->rowsource)
+      rasqal_free_rowsource(execution_data->rowsource);
+  }
 
   return 0;
 }
