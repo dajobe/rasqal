@@ -1150,6 +1150,7 @@ rasqal_algebra_remove_znodes(rasqal_query* query, rasqal_algebra_node* node,
   int* modified = (int*)data;
   int is_z1;
   int is_z2;
+  rasqal_algebra_node *anode;
   
   /* Look at 2-node operations and see if they can be merged */
   if(!node->node1 || !node->node2)
@@ -1171,15 +1172,22 @@ rasqal_algebra_remove_znodes(rasqal_query* query, rasqal_algebra_node* node,
 
   if(is_z1 && !is_z2) {
     /* Replace join(Z, A) by A */
+    
+    anode = node->node2;
     /* an empty node has no extra things to free */
     RASQAL_FREE(rasqal_algebra_node, node->node1);
-    memcpy(node, node->node2, sizeof(rasqal_algebra_node));
+    memcpy(node, anode, sizeof(rasqal_algebra_node));
+    /* free the node struct memory - contained pointers now owned by node */
+    RASQAL_FREE(rasqal_algebra_node, anode);
     *modified = 1;
   } else if(!is_z1 && is_z2) {
     /* Replace join(A, Z) by A */
+    
+    anode = node->node1;
     /* ditto */
     RASQAL_FREE(rasqal_algebra_node, node->node2);
-    memcpy(node, node->node1, sizeof(rasqal_algebra_node));
+    memcpy(node, anode, sizeof(rasqal_algebra_node));
+    RASQAL_FREE(rasqal_algebra_node, anode);
     *modified = 1;
   }
 
