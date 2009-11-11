@@ -1217,7 +1217,7 @@ rasqal_algebra_query_to_algebra(rasqal_query* query)
   node = rasqal_algebra_graph_pattern_to_algebra(query, query_gp);
 
   if(!node)
-    return node;
+    return NULL;
 
 
   rasqal_algebra_node_visit(query, node, 
