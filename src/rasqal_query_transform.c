@@ -1215,8 +1215,10 @@ rasqal_query_prepare_common(rasqal_query *query)
      * finds, indexed by the gp_index
      */
     query->graph_patterns_sequence = raptor_new_sequence(NULL, NULL);
-    if(!query->graph_patterns_sequence)
-      return 1;
+    if(!query->graph_patterns_sequence) {
+      rc = 1;
+      goto done;
+    }
 
     rasqal_query_graph_pattern_visit(query, 
                                      rasqal_query_prepare_count_graph_patterns,
@@ -1225,7 +1227,8 @@ rasqal_query_prepare_common(rasqal_query *query)
     /* create query->variables_use_map that marks where a variable is 
      * mentioned, bound or used in a graph pattern.
      */
-    if(rasqal_query_build_variables_use_map(query))
+    rc = rasqal_query_build_variables_use_map(query); 
+    if(rc)
       goto done;
 
     /* create query->variables_bound_in to find triples where a variable
@@ -1237,11 +1240,13 @@ rasqal_query_prepare_common(rasqal_query *query)
      * which parts of a triple pattern need to bind to a variable:
      * only the first reference to it.
      */
-    if(rasqal_query_build_bound_in(query))
+    rc = rasqal_query_build_bound_in(query);
+    if(rc)
       goto done;
 
     /* warn if any of the selected named variables are not in a triple */
-    if(rasqal_query_check_unused_variables(query, query->variables_bound_in))
+    rc = rasqal_query_check_unused_variables(query, query->variables_bound_in);
+    if(rc)
       goto done;
 
   }
