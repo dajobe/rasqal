@@ -169,14 +169,15 @@ rasqal_triples_rowsource_finish(rasqal_rowsource* rowsource, void *user_data)
   
   con = (rasqal_triples_rowsource_context*)user_data;
 
-  for(i = con->start_column; i <= con->end_column; i++) {
-    rasqal_triple_meta *m;
-    m = &con->triple_meta[i - con->start_column];
-    rasqal_reset_triple_meta(m);
-  }
-  
-  if(con->triple_meta)
+  if(con->triple_meta) {
+    for(i = con->start_column; i <= con->end_column; i++) {
+      rasqal_triple_meta *m;
+      m = &con->triple_meta[i - con->start_column];
+      rasqal_reset_triple_meta(m);
+    }
+
     RASQAL_FREE(rasqal_triple_meta, con->triple_meta);
+  }
 
   if(con->bound_in)
     RASQAL_FREE(rasqal_bound_in, con->bound_in);
