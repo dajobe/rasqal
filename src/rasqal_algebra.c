@@ -800,11 +800,11 @@ rasqal_algebra_basic_graph_pattern_to_algebra(rasqal_query* query,
 
   if(fs) {
     node = rasqal_new_filter_algebra_node(query, fs, node);
+    fs = NULL; /* now owned by node */
     if(!node) {
       RASQAL_DEBUG1("rasqal_new_filter_algebra_node() failed");
       goto fail;
     }
-    fs = NULL; /* now owned by node */
   }
 
 
@@ -1002,11 +1002,11 @@ rasqal_algebra_group_graph_pattern_to_algebra(rasqal_query* query,
   */
   if(fs) {
     gnode = rasqal_new_filter_algebra_node(query, fs, gnode);
+    fs = NULL; /* now owned by gnode */
     if(!gnode) {
       RASQAL_DEBUG1("rasqal_new_filter_algebra_node() failed");
       goto fail;
     }
-    fs = NULL; /* now owned by gnode */
   }
 
   if(gnode)
