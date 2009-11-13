@@ -948,12 +948,14 @@ rasqal_algebra_group_graph_pattern_to_algebra(rasqal_query* query,
           true_lit = rasqal_new_boolean_literal(query->world, 1);
           if(!true_lit) {
             RASQAL_DEBUG1("rasqal_new_boolean_literal() failed");
+            rasqal_free_algebra_node(anode);
             goto fail;
           }
           
           true_expr = rasqal_new_literal_expression(query->world, true_lit);
           if(!true_expr) {
             RASQAL_DEBUG1("rasqal_new_literal_expression() failed");
+            rasqal_free_algebra_node(anode);
             goto fail;
           }
           true_lit = NULL; /* now owned by true_expr */
@@ -963,7 +965,6 @@ rasqal_algebra_group_graph_pattern_to_algebra(rasqal_query* query,
                                                    true_expr);
           if(!gnode) {
             RASQAL_DEBUG1("rasqal_new_leftjoin_algebra_node() failed");
-            rasqal_free_expression(true_expr);
             goto fail;
           }
 
