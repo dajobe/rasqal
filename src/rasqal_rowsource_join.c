@@ -243,11 +243,14 @@ rasqal_join_rowsource_build_merged_row(rasqal_rowsource* rowsource,
   int i;
 
   row = rasqal_new_row_for_size(rowsource->size);
-  if(!row)
+  if(!row) {
+    if(right_row)
+      rasqal_free_row(right_row);
     return NULL;
+  }
 
   row->rowsource = rowsource;
-  row->offset = row->offset;
+  row->offset = row->offset; /* FIXME what is this assignment supposed to do? */
 
 #ifdef RASQAL_DEBUG
   RASQAL_DEBUG1("merge\n  left row   : ");
