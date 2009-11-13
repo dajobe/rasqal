@@ -222,7 +222,8 @@ rasqal_rowsource_read_row(rasqal_rowsource *rowsource)
   if(rowsource->finished)
     return NULL;
 
-  rasqal_rowsource_ensure_variables(rowsource);
+  if(rasqal_rowsource_ensure_variables(rowsource))
+    return NULL;
 
   if(rowsource->handler->read_row)
     row = rowsource->handler->read_row(rowsource, rowsource->user_data);

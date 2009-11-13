@@ -81,7 +81,8 @@ rasqal_project_rowsource_ensure_variables(rasqal_rowsource* rowsource,
   
   con = (rasqal_project_rowsource_context*)user_data; 
 
-  rasqal_rowsource_ensure_variables(con->rowsource);
+  if(rasqal_rowsource_ensure_variables(con->rowsource))
+    return 1;
 
   rowsource->size = 0;
 
