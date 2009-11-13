@@ -250,7 +250,7 @@ rasqal_join_rowsource_build_merged_row(rasqal_rowsource* rowsource,
   }
 
   row->rowsource = rowsource;
-  row->offset = row->offset; /* FIXME what is this assignment supposed to do? */
+  row->offset = con->offset;
 
 #ifdef RASQAL_DEBUG
   RASQAL_DEBUG1("merge\n  left row   : ");
