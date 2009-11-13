@@ -212,7 +212,8 @@ rasqal_join_rowsource_ensure_variables(rasqal_rowsource* rowsource,
   rowsource->size = 0;
 
   /* copy in variables from left rowsource */
-  rasqal_rowsource_copy_variables(rowsource, con->left);
+  if(rasqal_rowsource_copy_variables(rowsource, con->left))
+    return 1;
   
   /* add any new variables not already seen from right rowsource */
   for(i = 0; i < map_size; i++) {

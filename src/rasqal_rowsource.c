@@ -395,8 +395,10 @@ rasqal_rowsource_get_variable_offset_by_name(rasqal_rowsource *rowsource,
  *
  * This adds new variables from @src_rowsource to the
  * @dest_rowsource, it does not add duplicates.
+ * 
+ * Return value: 0 on success, non-0 on failure
  **/
-void
+int
 rasqal_rowsource_copy_variables(rasqal_rowsource *dest_rowsource,
                                 rasqal_rowsource *src_rowsource)
 {
@@ -405,8 +407,11 @@ rasqal_rowsource_copy_variables(rasqal_rowsource *dest_rowsource,
   for(i = 0; i < src_rowsource->size; i++) {
     rasqal_variable* v;
     v = rasqal_rowsource_get_variable_by_offset(src_rowsource, i);
-    rasqal_rowsource_add_variable(dest_rowsource, v);
+    if(rasqal_rowsource_add_variable(dest_rowsource, v) < 0)
+      return 1;
   }
+  
+  return 0;
 }
 
 
