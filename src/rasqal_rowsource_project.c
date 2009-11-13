@@ -238,11 +238,11 @@ rasqal_new_project_rowsource(rasqal_world *world,
   int flags = 0;
   
   if(!world || !query || !rowsource || !projection_variables)
-    return NULL;
+    goto fail;
   
   con = (rasqal_project_rowsource_context*)RASQAL_CALLOC(rasqal_project_rowsource_context, 1, sizeof(rasqal_project_rowsource_context));
   if(!con)
-    return NULL;
+    goto fail;
 
   con->rowsource = rowsource;
   con->projection_variables = projection_variables;
@@ -252,6 +252,11 @@ rasqal_new_project_rowsource(rasqal_world *world,
                                            &rasqal_project_rowsource_handler,
                                            query->vars_table,
                                            flags);
+
+  fail:
+  if(rowsource)
+    rasqal_free_rowsource(rowsource);
+  return NULL;
 }
 
 
