@@ -49,11 +49,17 @@ rasqal_new_row_compatible(rasqal_variables_table* vt,
   int i;
   
   map = (rasqal_row_compatible*)RASQAL_CALLOC(rasqal_row_compatible, 1, sizeof(rasqal_row_compatible));
+  if(!map)
+    return NULL;
   map->variables_table = vt;
   map->first_rowsource = first_rowsource;
   map->second_rowsource = second_rowsource;
   map->variables_count = count;
   map->defined_in_map = (int*)RASQAL_CALLOC(intarray, 2*count, sizeof(int));
+  if(!map->defined_in_map) {
+    RASQAL_FREE(rasqal_row_compatible, map);
+    return NULL;
+  }
 
   for(i = 0; i < count; i++) {
     rasqal_variable *v;
