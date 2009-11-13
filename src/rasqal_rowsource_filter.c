@@ -228,11 +228,11 @@ rasqal_new_filter_rowsource(rasqal_world *world,
   int flags = 0;
   
   if(!world || !query || !rowsource || !expr)
-    return NULL;
+    goto fail;
   
   con = (rasqal_filter_rowsource_context*)RASQAL_CALLOC(rasqal_filter_rowsource_context, 1, sizeof(rasqal_filter_rowsource_context));
   if(!con)
-    return NULL;
+    goto fail;
 
   con->rowsource = rowsource;
   con->expr = rasqal_new_expression_from_expression(expr);
@@ -242,4 +242,11 @@ rasqal_new_filter_rowsource(rasqal_world *world,
                                            &rasqal_filter_rowsource_handler,
                                            query->vars_table,
                                            flags);
+
+  fail:
+  if(rowsource)
+    rasqal_free_rowsource(rowsource);
+  if(expr)
+    rasqal_free_expression(expr);
+  return NULL;
 }
