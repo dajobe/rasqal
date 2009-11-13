@@ -365,11 +365,11 @@ rasqal_new_union_rowsource(rasqal_world *world,
   int flags = 0;
 
   if(!world || !query || !left || !right)
-    return NULL;
+    goto fail;
   
   con = (rasqal_union_rowsource_context*)RASQAL_CALLOC(rasqal_union_rowsource_context, 1, sizeof(rasqal_union_rowsource_context));
   if(!con)
-    return NULL;
+    goto fail;
 
   con->left = left;
   con->right = right;
@@ -379,6 +379,13 @@ rasqal_new_union_rowsource(rasqal_world *world,
                                            &rasqal_union_rowsource_handler,
                                            query->vars_table,
                                            flags);
+
+  fail:
+  if(left)
+    rasqal_free_rowsource(left);
+  if(right)
+    rasqal_free_rowsource(right);
+  return NULL;
 }
 
 
