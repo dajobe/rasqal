@@ -175,8 +175,10 @@ rasqal_union_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
       con->state = 1;
     else {
       /* otherwise: rows from left are correct order but wrong size */
-      if(rasqal_row_expand_size(row, rowsource->size))
+      if(rasqal_row_expand_size(row, rowsource->size)) {
+        rasqal_free_row(row);
         return NULL;
+      }
     }
   }
   if(!row && con->state == 1) {
@@ -185,8 +187,10 @@ rasqal_union_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
       /* finished */
       con->state = 2;
     else {
-      if(rasqal_row_expand_size(row, rowsource->size))
+      if(rasqal_row_expand_size(row, rowsource->size)) {
+        rasqal_free_row(row);
         return NULL;
+      }
       /* transform row from right to match new projection */
       rasqal_union_rowsource_adjust_right_row(con, row);
     }
