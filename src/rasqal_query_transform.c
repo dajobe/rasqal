@@ -1549,6 +1549,59 @@ rasqal_query_print_variables_use_map(FILE* fh, rasqal_query* query)
 #endif
 
 
+/* for use with rasqal_expression_visit and user_data=rasqal_query */
+static int
+rasqal_expression_expr_build_variables_use_map(short *use_map,
+                                               rasqal_expression *e)
+{
+  if(e->literal) {
+    rasqal_variable* v;
+    v = rasqal_literal_as_variable(e->literal);
+    if(v) 
+      use_map[v->offset] |= RASQAL_VAR_USE_MENTIONED_HERE;
+  }
+
+  return 0;
+}
+
+
+/*
+ * Mark variables seen in a sequence of variables (with optional expression)
+ */
+static int
+rasqal_query_build_variables_sequence_use_map(rasqal_query *query,
+                                              short* use_map,
+                                              raptor_sequence *vars_seq)
+{
+  int rc = 0;
+  int idx;
+
+  for(idx = 0; 1; idx++) {
+    rasqal_variable* v;
+    rasqal_expression *e;
+    int flags = RASQAL_VAR_USE_MENTIONED_HERE;
+
+    v = (rasqal_variable*)raptor_sequence_get_at(vars_seq, idx);
+    if(!v)
+      break;
+
+    e = v->expression;
+    if(e) {
+      rc = rasqal_expression_expr_build_variables_use_map(use_map,
+                                                          v->expression);
+      if(rc)
+        break;
+
+      flags |= RASQAL_VAR_USE_BOUND_HERE;
+    }
+
+    use_map[v->offset] |= flags;
+  }
+
+  return rc;
+}
+  
+
 /**
  * rasqal_query_build_variables_use_map:
  * @query: the #rasqal_query to find the variables in
@@ -1567,6 +1620,7 @@ rasqal_query_build_variables_use_map(rasqal_query* query)
   int width;
   int height;
   int rc = 0;
+  short *use_map;
   
   width = rasqal_variables_table_get_total_variables_count(query->vars_table);
   height = RASQAL_VAR_USE_MAP_OFFSET_LAST + 1 + query->graph_pattern_count;
@@ -1583,14 +1637,39 @@ rasqal_query_build_variables_use_map(rasqal_query* query)
    * But they are not GPs, so where to record this information?
    */
   
-  query->variables_use_map = (short*)RASQAL_CALLOC(intarray, 
-                                                   width * height,
-                                                   sizeof(short));
-  if(!query->variables_use_map)
+  use_map = (short*)RASQAL_CALLOC(intarray,  width * height, sizeof(short));
+  if(!use_map)
     return 1;
 
+  query->variables_use_map = use_map;
+
+  switch(query->verb) {
+    case RASQAL_QUERY_VERB_SELECT:
+      rasqal_query_build_variables_sequence_use_map(query,
+                                                    &use_map[RASQAL_VAR_USE_MAP_OFFSET_VERBS],
+                                                    query->selects);
+      break;
+  
+    case RASQAL_QUERY_VERB_DESCRIBE:
+      rasqal_query_build_variables_sequence_use_map(query,
+                                                    &use_map[RASQAL_VAR_USE_MAP_OFFSET_VERBS],
+                                                    query->describes);
+      break;
+      
+    case RASQAL_QUERY_VERB_CONSTRUCT:
+    case RASQAL_QUERY_VERB_DELETE:
+    case RASQAL_QUERY_VERB_INSERT:
+      /* FIXME - should mark these triple patterns as using vars */
+      break;
+      
+    case RASQAL_QUERY_VERB_UNKNOWN:
+    case RASQAL_QUERY_VERB_ASK:
+    default:
+      break;
+  }
+  
   rc = rasqal_query_graph_pattern_build_variables_use_map(query,
-                                                          query->variables_use_map,
+                                                          use_map,
                                                           width,
                                                           query->query_graph_pattern);
 
@@ -1624,24 +1703,6 @@ rasqal_query_graph_build_variables_use_map_in_internal(rasqal_query* query,
 
 
 
-/* for use with rasqal_expression_visit and user_data=rasqal_query */
-static int
-rasqal_expression_expr_build_variables_use_map(void *user_data,
-                                               rasqal_expression *e)
-{
-  short *use_map = (short*)user_data;
-
-  if(e->literal) {
-    rasqal_variable* v;
-    v = rasqal_literal_as_variable(e->literal);
-    if(v) 
-      use_map[v->offset] |= RASQAL_VAR_USE_MENTIONED_HERE;
-  }
-
-  return 0;
-}
-
-
 /**
  * rasqal_query_filter_build_variables_use_map_in_internal:
  * @query: the #rasqal_query to find the variables in
@@ -1657,7 +1718,7 @@ rasqal_query_filter_build_variables_use_map_in_internal(rasqal_query* query,
                                                         rasqal_expression* e)
 {
   rasqal_expression_visit(e, 
-                          rasqal_expression_expr_build_variables_use_map,
+                          (rasqal_expression_visit_fn)rasqal_expression_expr_build_variables_use_map,
                           use_map);
 }
 
@@ -1681,7 +1742,7 @@ rasqal_query_let_build_variables_use_map_in_internal(rasqal_query* query,
                           RASQAL_VAR_USE_MENTIONED_HERE;
 
   rasqal_expression_visit(e, 
-                          rasqal_expression_expr_build_variables_use_map,
+                          (rasqal_expression_visit_fn)rasqal_expression_expr_build_variables_use_map,
                           use_map);
 }
 
