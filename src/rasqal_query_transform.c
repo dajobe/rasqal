@@ -1302,7 +1302,9 @@ rasqal_graph_patterns_join(rasqal_graph_pattern *dest_gp,
         return -1;
     }
 
-    raptor_sequence_join(dest_gp->graph_patterns, src_gp->graph_patterns);
+    rc = raptor_sequence_join(dest_gp->graph_patterns, src_gp->graph_patterns);
+    if(rc)
+      return rc;
   }
 
   if(src_gp->triples) {
