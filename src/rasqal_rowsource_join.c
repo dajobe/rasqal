@@ -404,6 +404,8 @@ rasqal_join_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
           /* LEFT JOIN - add left row if expr fails or not compatible */
           if(con->left_row) {
             row = rasqal_join_rowsource_build_merged_row(rowsource, con, NULL);
+            if(right_row)
+              rasqal_free_row(right_row);
             break;
           }
         }
