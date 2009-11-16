@@ -934,6 +934,7 @@ rasqal_algebra_group_graph_pattern_to_algebra(rasqal_query* query,
           gnode = rasqal_new_leftjoin_algebra_node(query, gnode, a2node,
                                                    f_expr);
           if(!gnode) {
+            rasqal_free_algebra_node(anode);
             RASQAL_DEBUG1("rasqal_new_leftjoin_algebra_node() failed");
             goto fail;
           }
