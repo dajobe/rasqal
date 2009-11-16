@@ -1638,15 +1638,29 @@ rasqal_literal_promote_numerics(rasqal_literal* l1, rasqal_literal* l2,
  * rasqal_literal_get_rdf_term_type:
  * @l: literal
  *
- * INTERNAL - Get the RDF term type of a literal
+ * Get the RDF term type of a literal
+ *
+ * An RDF term can be one of three choices:
+ *   1. URI:  RASQAL_LITERAL_URI
+ *   2. literal: RASQAL_LITERAL_STRING
+ *   3. blank node: RASQAL_LITERAL_BLANK
+ *
+ * Other non RDF-term cases iunclude: NULL pointer, invalid literal,
+ * unknown type, a variable or other special cases (such as XML QName
+ * or Regex pattern) which all turn into RASQAL_LITERAL_UNKNOWN
  *
  * Return value: type or RASQAL_LITERAL_UNKNOWN if cannot be an RDF term
  */
 rasqal_literal_type
 rasqal_literal_get_rdf_term_type(rasqal_literal* l)
 {
-  rasqal_literal_type type = l->type;
- 
+  rasqal_literal_type type;
+  
+  if(!l)
+    return 0;
+  
+  type = l->type;
+  
   /* squash literal datatypes into one type: RDF Literal */
   if(type >= RASQAL_LITERAL_FIRST_XSD &&
      type <= RASQAL_LITERAL_LAST_XSD)
@@ -3402,4 +3416,19 @@ rasqal_literal_same_term(rasqal_literal* l1, rasqal_literal* l2)
     return rasqal_literal_blank_equals(l1, l2);
 
   return 0;
+}
+
+
+/**
+ * rasqal_literal_is_rdf_literal:
+ * @l: #rasqal_literal literal
+ *
+ * Check if a literal is any RDF term literal - plain or typed literal
+ *
+ * Return value: non-0 if the value is an RDF term literal
+ **/
+int
+rasqal_literal_is_rdf_literal(rasqal_literal* l)
+{
+  return (rasqal_literal_get_rdf_term_type(l) == RASQAL_LITERAL_STRING);
 }

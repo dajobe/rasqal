@@ -1074,6 +1074,10 @@ RASQAL_API
 int rasqal_literal_equals(rasqal_literal* l1, rasqal_literal* l2);
 RASQAL_API
 int rasqal_literal_same_term(rasqal_literal* l1, rasqal_literal* l2);
+RASQAL_API
+rasqal_literal_type rasqal_literal_get_rdf_term_type(rasqal_literal* l);
+RASQAL_API
+int rasqal_literal_is_rdf_literal(rasqal_literal* l);
 
 
 RASQAL_API
