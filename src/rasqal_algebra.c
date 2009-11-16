@@ -933,15 +933,13 @@ rasqal_algebra_group_graph_pattern_to_algebra(rasqal_query* query,
           */
           gnode = rasqal_new_leftjoin_algebra_node(query, gnode, a2node,
                                                    f_expr);
-          if(!gnode) {
-            rasqal_free_algebra_node(anode);
-            RASQAL_DEBUG1("rasqal_new_leftjoin_algebra_node() failed");
-            goto fail;
-          }
-
           anode->expr = NULL;
           anode->node1 = NULL;
           rasqal_free_algebra_node(anode);
+          if(!gnode) {
+            RASQAL_DEBUG1("rasqal_new_leftjoin_algebra_node() failed");
+            goto fail;
+          }
         } else  {
           rasqal_literal *true_lit = NULL;
           rasqal_expression *true_expr = NULL;
