@@ -114,7 +114,10 @@ rasqal_sort_rowsource_process(rasqal_rowsource* rowsource,
     if(!row)
       break;
 
-    rasqal_row_set_order_size(row, con->order_size);
+    if(rasqal_row_set_order_size(row, con->order_size)) {
+      rasqal_free_row(row);
+      return 1;
+    }
 
     rasqal_engine_rowsort_calculate_order_values(rowsource->query, row);
 
