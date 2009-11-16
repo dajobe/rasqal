@@ -58,20 +58,21 @@
 
 
 static librdf_node*
-rasqal_literal_to_redland_node(librdf_world *world, rasqal_literal* l) {
-  if(l->type == RASQAL_LITERAL_URI)
+rasqal_literal_to_redland_node(librdf_world *world, rasqal_literal* l)
+{
+  rasqal_literal_type type = rasqal_literal_get_rdf_term_type(l);
+  
+  if(type == RASQAL_LITERAL_URI)
     return librdf_new_node_from_uri(world, (librdf_uri*)l->value.uri);
-  else if (l->type == RASQAL_LITERAL_STRING ||
-           l->type == RASQAL_LITERAL_INTEGER ||
-           l->type == RASQAL_LITERAL_DOUBLE ||
-           l->type == RASQAL_LITERAL_BOOLEAN)
+  else if(type == RASQAL_LITERAL_STRING)
     return librdf_new_node_from_typed_literal(world, l->string, 
                                               l->language, 
                                               (librdf_uri*)l->datatype);
-  else if (l->type == RASQAL_LITERAL_BLANK)
+  else if(type == RASQAL_LITERAL_BLANK)
     return librdf_new_node_from_blank_identifier(world, l->string);
   else
-    RASQAL_FATAL1("Literal type %d cannot be converted to a librdf_node", l->type);
+    RASQAL_FATAL1("Literal type %d cannot be converted to a librdf_node",
+                  type);
 
   return NULL;
 }
