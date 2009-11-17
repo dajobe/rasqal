@@ -301,7 +301,7 @@ rasqal_query_results_execute_with_engine(rasqal_query* query,
       execution_flags |= 1;
 
     rc = query_results->execution_factory->execute_init(query_results->execution_data, query, query_results, execution_flags, &execution_error);
-    if(execution_error != RASQAL_ENGINE_OK) {
+    if(rc || execution_error != RASQAL_ENGINE_OK) {
       query_results->failed = 1;
       rasqal_free_query_results(query_results);
       return NULL;
