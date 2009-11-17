@@ -240,25 +240,28 @@ static const rasqal_rowsource_handler rasqal_sort_rowsource_handler = {
 rasqal_rowsource*
 rasqal_new_sort_rowsource(rasqal_world *world,
                           rasqal_query *query,
-                          rasqal_rowsource *rowsource,
-                          raptor_sequence *seq)
+                          rasqal_rowsource *rowsource)
 {
   rasqal_sort_rowsource_context *con;
   int flags = 0;
 
-  if(!world || !query || !rowsource || !seq)
-    return NULL;
+  if(!world || !query || !rowsource)
+    goto fail;
   
   con = (rasqal_sort_rowsource_context*)RASQAL_CALLOC(rasqal_sort_rowsource_context, 1, sizeof(rasqal_sort_rowsource_context));
   if(!con)
-    return NULL;
+    goto fail;
 
   con->rowsource = rowsource;
-  con->seq = seq;
 
   return rasqal_new_rowsource_from_handler(world, query,
                                            con,
                                            &rasqal_sort_rowsource_handler,
                                            query->vars_table,
                                            flags);
+
+  fail:
+  if(rowsource)
+    rasqal_free_rowsource(rowsource);
+  return NULL;
 }
