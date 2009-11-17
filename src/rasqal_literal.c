@@ -1645,7 +1645,7 @@ rasqal_literal_promote_numerics(rasqal_literal* l1, rasqal_literal* l2,
  *   2. literal: RASQAL_LITERAL_STRING
  *   3. blank node: RASQAL_LITERAL_BLANK
  *
- * Other non RDF-term cases iunclude: NULL pointer, invalid literal,
+ * Other non RDF-term cases include: NULL pointer, invalid literal,
  * unknown type, a variable or other special cases (such as XML QName
  * or Regex pattern) which all turn into RASQAL_LITERAL_UNKNOWN
  *
@@ -1657,7 +1657,7 @@ rasqal_literal_get_rdf_term_type(rasqal_literal* l)
   rasqal_literal_type type;
   
   if(!l)
-    return 0;
+    return RASQAL_LITERAL_UNKNOWN;
   
   type = l->type;
   
