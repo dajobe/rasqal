@@ -151,7 +151,8 @@ rasqal_sort_rowsource_ensure_variables(rasqal_rowsource* rowsource,
   rasqal_sort_rowsource_context* con;
   con = (rasqal_sort_rowsource_context*)user_data; 
 
-  rasqal_rowsource_ensure_variables(con->rowsource);
+  if(rasqal_rowsource_ensure_variables(con->rowsource))
+    return 1;
 
   rowsource->size = 0;
   rasqal_rowsource_copy_variables(rowsource, con->rowsource);
