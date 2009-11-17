@@ -336,6 +336,7 @@ typedef enum {
   RASQAL_LITERAL_LAST= RASQAL_LITERAL_VARIABLE
 } rasqal_literal_type;
 
+#define RASQAL_LITERAL_UDT_DEFINED 1
 
 /**
  * rasqal_xsd_decimal:
