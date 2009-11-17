@@ -289,7 +289,8 @@ rasqal_rowsource_read_all_rows(rasqal_rowsource *rowsource)
 {
   raptor_sequence* seq;
 
-  rasqal_rowsource_ensure_variables(rowsource);
+  if(rasqal_rowsource_ensure_variables(rowsource))
+    return NULL;
 
   if(rowsource->handler->read_all_rows) {
     seq = rowsource->handler->read_all_rows(rowsource, rowsource->user_data);
