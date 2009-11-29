@@ -1,3 +1,63 @@
+2009-11-29  Dave Beckett <dave@dajobe.org>
+
+	* configure.ac:
+	Warn if pkg-config is not found - will be a fatal error when
+	raptor2 is required.
+	Prefer pkg-config raptor to raptor-config but accept both for
+	now. pkg-config will not allow compiling against raptor in source
+	tree.
+
+	* ChangeLog, ChangeLog.6, Makefile.am:
+	Add ChangeLog.6 for 2008.
+
+2009-11-29  Lauri Aalto <laalto@iki.fi>
+
+	* autogen.sh: Reduce autogen noise on systems where uname is not
+	in /usr/bin
+
+2009-11-17  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal.h:
+	Define RASQAL_LITERAL_UDT_DEFINED for rdf_query_rasqal.c
+
+	* src/rasqal_rowsource_distinct.c:
+	(rasqal_new_distinct_rowsource): Free passed in rowsource on failure.
+
+	* src/rasqal_rowsource.c:
+	(rasqal_rowsource_read_all_rows): Check for
+	rasqal_rowsource_ensure_variables() failure.
+
+	* src/rasqal_rowsource_sort.c:
+	(rasqal_sort_rowsource_ensure_variables): Check return value from
+	inner rasqal_rowsource_ensure_variables() call.
+
+	* src/rasqal_literal.c:
+	(rasqal_literal_get_rdf_term_type): Always return proper enum
+	value instead of int. Fixed typo in docs.
+
+	* src/rasqal_query_results.c:
+	(rasqal_query_results_execute_with_engine): Also check return
+	value from execute_init() for errors.
+
+	* src/rasqal_engine_algebra.c, src/rasqal_internal.h,
+	src/rasqal_rowsource_sort.c:
+	(rasqal_new_sort_rowsource): Do not take in a triples sequence as
+	one is allocated internally, messing up ownership. Free passed in
+	rowsource on failure.
+
+2009-11-16  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_redland.c:
+	(rasqal_literal_to_redland_node): Use
+	rasqal_literal_get_rdf_term_type to check RDF terminess to get
+	away from ever-expanding if conditions.
+
+	* src/rasqal.h, src/rasqal_internal.h, src/rasqal_literal.c:
+	(rasqal_literal_get_rdf_term_type): Added to public API to return
+	the RDF term type of a literal.
+	(rasqal_literal_is_rdf_literal): Added calling above to return if
+	a term is an RDF literal.
+
 2009-11-16  Lauri Aalto <laalto@iki.fi>
 
 	* src/rasqal_rowsource_sort.c:
@@ -144,7 +204,8 @@
 	(rasqal_new_2op_algebra_node, rasqal_new_leftjoin_algebra_node):
 	Ownership documentation fixes.
 
-	* src/rasqal_algebra.c: (rasqal_algebra_query_to_algebra): Support
+	* src/rasqal_algebra.c:
+	(rasqal_algebra_query_to_algebra): Support
 	CONSTRUCT query form on QE2.
 
 2009-11-08  Dave Beckett <dave@dajobe.org>
@@ -214,9 +275,11 @@
 
 2009-10-26  Dave Beckett <dave@dajobe.org>
 
-	* src/sparql_parser.y: (LetGraphPattern): Free expression on error path
+	* src/sparql_parser.y:
+	(LetGraphPattern): Free expression on error path
 
-	* src/sparql_parser.y: (LetGraphPattern): Set $$ on error path
+	* src/sparql_parser.y:
+	(LetGraphPattern): Set $$ on error path
 
 	* src/Makefile.am, src/rasqal.h, src/rasqal_algebra.c,
 	src/rasqal_engine_algebra.c, src/rasqal_graph_pattern.c,
