@@ -1604,6 +1604,33 @@ rasqal_query_build_variables_sequence_use_map(rasqal_query *query,
 }
   
 
+/*
+ * Mark variables seen in a sequence of literals
+ */
+static int
+rasqal_query_build_literals_sequence_use_map(rasqal_query *query,
+                                             short* use_map,
+                                             raptor_sequence *lits_seq)
+{
+  int idx;
+
+  for(idx = 0; 1; idx++) {
+    rasqal_literal* l;
+    rasqal_variable* v;
+
+    l = (rasqal_literal*)raptor_sequence_get_at(lits_seq, idx);
+    if(!l)
+      break;
+
+    v = rasqal_literal_as_variable(l);
+    if(v) 
+      use_map[v->offset] |= RASQAL_VAR_USE_MENTIONED_HERE;
+  }
+
+  return 0;
+}
+  
+
 /**
  * rasqal_query_build_variables_use_map:
  * @query: the #rasqal_query to find the variables in
@@ -1662,9 +1689,10 @@ rasqal_query_build_variables_use_map(rasqal_query* query)
       break;
   
     case RASQAL_QUERY_VERB_DESCRIBE:
-      rasqal_query_build_variables_sequence_use_map(query,
-                                                    &use_map[RASQAL_VAR_USE_MAP_OFFSET_VERBS],
-                                                    query->describes);
+      /* This is a list of rasqal_literal not rasqal_variable */
+      rasqal_query_build_literals_sequence_use_map(query,
+                                                   &use_map[RASQAL_VAR_USE_MAP_OFFSET_VERBS],
+                                                   query->describes);
       break;
       
     case RASQAL_QUERY_VERB_CONSTRUCT:
