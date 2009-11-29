@@ -1627,8 +1627,8 @@ rasqal_query_build_variables_use_map(rasqal_query* query)
   width = rasqal_variables_table_get_total_variables_count(query->vars_table);
   height = RASQAL_VAR_USE_MAP_OFFSET_LAST + 1 + query->graph_pattern_count;
   
-  /* FIXME - need to walk other query components that may mention or
-   * bind variables and their record variable use:
+  /* Need to walk query components that may mention or bind variables
+   * and record their variable use:
    *
    * 1) Query verbs: ASK SELECT CONSTRUCT DESCRIBE (SPARQL 1.0)
    *   1a) SELECT project-expressions (SPARQL 1.1)
@@ -1636,7 +1636,9 @@ rasqal_query_build_variables_use_map(rasqal_query* query)
    * 3) HAVING expr (SPARQL 1.1 TBD)
    * 4) ORDER list-of-expr (SPARQL 1.0)
    *
-   * But they are not GPs, so where to record this information?
+   * But they are not GPs so they are recorded at offsets into the use_map
+   * defined by the #rasqal_var_use_map_offset enum such as 
+   * #RASQAL_VAR_USE_MAP_OFFSET_VERBS for the query verbs - item 1 above.
    */
   
   use_map = (short*)RASQAL_CALLOC(intarray,  width * height, sizeof(short));
@@ -1645,8 +1647,10 @@ rasqal_query_build_variables_use_map(rasqal_query* query)
 
   query->variables_use_map = use_map;
 
+  /* record variable use for 1) Query verbs */
   switch(query->verb) {
     case RASQAL_QUERY_VERB_SELECT:
+      /* This also handles 1a) select/project expressions */
       rasqal_query_build_variables_sequence_use_map(query,
                                                     &use_map[RASQAL_VAR_USE_MAP_OFFSET_VERBS],
                                                     query->selects);
@@ -1669,7 +1673,15 @@ rasqal_query_build_variables_use_map(rasqal_query* query)
     default:
       break;
   }
-  
+
+  /* FIXME: record variable use for 2) GROUP BY expr/var (SPARQL 1.1 TBD) */
+
+  /* FIXME: record variable use for 3) HAVING expr (SPARQL 1.1 TBD) */
+
+  /* FIXME: record variable use for 4) ORDER list-of-expr (SPARQL 1.0) */
+
+
+  /* record variable use for graph patterns */
   rc = rasqal_query_graph_pattern_build_variables_use_map(query,
                                                           use_map,
                                                           width,
