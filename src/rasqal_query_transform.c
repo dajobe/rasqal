@@ -1608,11 +1608,30 @@ rasqal_query_build_variables_sequence_use_map(rasqal_query *query,
  * rasqal_query_build_variables_use_map:
  * @query: the #rasqal_query to find the variables in
  *
- * INTERNAL - Record where variables are mentioned in query GPs
+ * INTERNAL - Record where variables are mentioned in query structures
  *
- * Constructs a 2D array of width num. variables x height num. graph patterns
- * indicating that a variable is mentioned in a GP.  That is, GP index 0
- * is the first <number of variables> in the result.
+ * Need to walk query components that may mention or bind variables
+ * and record their variable use:
+ * 1) Query verbs: ASK SELECT CONSTRUCT DESCRIBE (SPARQL 1.0)
+ *   1a) SELECT project-expressions (SPARQL 1.1)
+ * 2) GROUP BY expr/var (SPARQL 1.1 TBD)
+ * 3) HAVING expr (SPARQL 1.1 TBD)
+ * 4) ORDER list-of-expr (SPARQL 1.0)
+ *
+ * Constructs a 2D array of 
+ *   width: number of variables
+ *   height: (number of graph patterns + #RASQAL_VAR_USE_MAP_OFFSET_LAST+1)
+ * where each row records how a variable is bound/used in a GP or query
+ * structure.
+ *
+ * The first #RASQAL_VAR_USE_MAP_OFFSET_LAST+1 rows are used for the
+ * query structures above defined by the #rasqal_var_use_map_offset
+ * enum.  Example: row 0 (#RASQAL_VAR_USE_MAP_OFFSET_VERBS) is used
+ * to record variable use for the query verbs - item 1) in the list
+ * above.
+ *
+ * Graph pattern rows are recorded at row
+ * <GP ID> + #RASQAL_VAR_USE_MAP_OFFSET_LAST + 1
  *
  * Return value: non-0 on failure
  **/
@@ -1626,20 +1645,6 @@ rasqal_query_build_variables_use_map(rasqal_query* query)
   
   width = rasqal_variables_table_get_total_variables_count(query->vars_table);
   height = RASQAL_VAR_USE_MAP_OFFSET_LAST + 1 + query->graph_pattern_count;
-  
-  /* Need to walk query components that may mention or bind variables
-   * and record their variable use:
-   *
-   * 1) Query verbs: ASK SELECT CONSTRUCT DESCRIBE (SPARQL 1.0)
-   *   1a) SELECT project-expressions (SPARQL 1.1)
-   * 2) GROUP BY expr/var (SPARQL 1.1 TBD)
-   * 3) HAVING expr (SPARQL 1.1 TBD)
-   * 4) ORDER list-of-expr (SPARQL 1.0)
-   *
-   * But they are not GPs so they are recorded at offsets into the use_map
-   * defined by the #rasqal_var_use_map_offset enum such as 
-   * #RASQAL_VAR_USE_MAP_OFFSET_VERBS for the query verbs - item 1 above.
-   */
   
   use_map = (short*)RASQAL_CALLOC(intarray,  width * height, sizeof(short));
   if(!use_map)
