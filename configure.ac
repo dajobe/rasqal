@@ -276,32 +276,56 @@ AC_TRY_LINK([#ifdef HAVE_GETOPT_H
 
 
 # raptor is REQUIRED despite the checking here
-AC_CHECK_PROG(RAPTOR_CONFIG, raptor-config, raptor-config)
-AC_ARG_WITH(raptor, [  --with-raptor=SOURCE        Pick raptor source - system/internal (default auto)], with_raptor="$withval", with_raptor="auto")
-
 RAPTOR_MIN_VERSION=1.4.18
 AC_SUBST(RAPTOR_MIN_VERSION)
-if test "X$RAPTOR_CONFIG" = X; then
-  with_raptor=internal
-else
-  RAPTOR_VERSION=`$RAPTOR_CONFIG --version 2>/dev/null`
 
-  RAPTOR_VERSION_DEC=`$RAPTOR_CONFIG --version-decimal 2>/dev/null`
-  RAPTOR_MIN_VERSION_DEC=`echo $RAPTOR_MIN_VERSION | $AWK -F. '{printf("%d\n", 10000*$1 + 100*$2 + $3)};'`
+AC_CHECK_PROGS(PKG_CONFIG, pkg-config)
+if test "X$PKG_CONFIG" = X; then
+  AC_MSG_WARN(pkg-config not found. configuring raptor 2.0 will require it.  Get it from http://pkg-config.freedesktop.org/)
+fi
 
-  if test "X$with_raptor" = Xauto; then
-    if test "X$RAPTOR_VERSION" -a $RAPTOR_VERSION_DEC -ge $RAPTOR_MIN_VERSION_DEC; then
-      with_raptor=system
+if test "X$PKG_CONFIG" != X; then
+  # Prefer pkg-config raptor (ignores --with-raptor)
+  RAPTOR_VERSION=`$PKG_CONFIG raptor --modversion 2>/dev/null`
+
+  if $PKG_CONFIG raptor --exists; then
+    with_raptor=system
+    if $PKG_CONFIG raptor --atleast-version=$RAPTOR_MIN_VERSION; then
+      : # ok
     else
-      AC_MSG_WARN(System raptor $RAPTOR_VERSION is too old - need $RAPTOR_MIN_VERSION)
-      with_raptor=internal
+      AC_MSG_WARN(Installed raptor $RAPTOR_VERSION is too old - need $RAPTOR_MIN_VERSION)
     fi
-  elif test $with_raptor = system; then
-    if test $RAPTOR_VERSION_DEC -lt $RAPTOR_MIN_VERSION_DEC; then
-      AC_MSG_WARN(System raptor $RAPTOR_VERSION is too old - need $RAPTOR_MIN_VERSION)
-      AC_MSG_WARN(Proceeding anyway since --with-raptor=system was given)
-      AC_MSG_WARN(To use the internal raptor use --with-raptor=internal)
-      AC_MSG_WARN(or omit any --with-raptor argument.)
+  else
+    AC_MSG_ERROR(Raptor missing - get it from http://librdf.org/raptor/)
+  fi
+  RAPTOR_CONFIG="$PKG_CONFIG raptor"
+else
+  # otherwise use raptor-config
+  AC_CHECK_PROG(RAPTOR_CONFIG, raptor-config, raptor-config)
+  AC_ARG_WITH(raptor, [  --with-raptor=SOURCE        Pick raptor source - system/internal (default auto)], with_raptor="$withval", with_raptor="auto")
+
+  if test "X$RAPTOR_CONFIG" = X; then
+    with_raptor=internal
+  else
+    RAPTOR_VERSION=`$RAPTOR_CONFIG --version 2>/dev/null`
+
+    RAPTOR_VERSION_DEC=`$RAPTOR_CONFIG --version-decimal 2>/dev/null`
+    RAPTOR_MIN_VERSION_DEC=`echo $RAPTOR_MIN_VERSION | $AWK -F. '{printf("%d\n", 10000*$1 + 100*$2 + $3)};'`
+
+    if test "X$with_raptor" = Xauto; then
+      if test "X$RAPTOR_VERSION" -a $RAPTOR_VERSION_DEC -ge $RAPTOR_MIN_VERSION_DEC; then
+	with_raptor=system
+      else
+	AC_MSG_WARN(System raptor $RAPTOR_VERSION is too old - need $RAPTOR_MIN_VERSION)
+	with_raptor=internal
+      fi
+    elif test $with_raptor = system; then
+      if test $RAPTOR_VERSION_DEC -lt $RAPTOR_MIN_VERSION_DEC; then
+	AC_MSG_WARN(System raptor $RAPTOR_VERSION is too old - need $RAPTOR_MIN_VERSION)
+	AC_MSG_WARN(Proceeding anyway since --with-raptor=system was given)
+	AC_MSG_WARN(To use the internal raptor use --with-raptor=internal)
+	AC_MSG_WARN(or omit any --with-raptor argument.)
+      fi
     fi
   fi
 fi
