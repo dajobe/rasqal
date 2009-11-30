@@ -1353,12 +1353,13 @@ rasqal_graph_patterns_join(rasqal_graph_pattern *dest_gp,
  * INTERNAL - Mark variables mentioned in a sequence of triples
  * 
  **/
-static void
+static int
 rasqal_query_triples_build_variables_use_map(raptor_sequence *triples,
                                              short *use_map,
                                              int start_column,
                                              int end_column)
 {
+  int rc = 0;
   int col;
   
   for(col = start_column; col <= end_column; col++) {
@@ -1379,6 +1380,8 @@ rasqal_query_triples_build_variables_use_map(raptor_sequence *triples,
     }
 
   }
+
+  return rc;
 }
 
 
@@ -1681,26 +1684,26 @@ rasqal_query_build_variables_use_map(rasqal_query* query)
   switch(query->verb) {
     case RASQAL_QUERY_VERB_SELECT:
       /* This also handles 1a) select/project expressions */
-      rasqal_query_build_variables_sequence_use_map(query,
-                                                    &use_map[RASQAL_VAR_USE_MAP_OFFSET_VERBS],
-                                                    query->selects);
+      rc = rasqal_query_build_variables_sequence_use_map(query,
+                                                         &use_map[RASQAL_VAR_USE_MAP_OFFSET_VERBS],
+                                                         query->selects);
       break;
   
     case RASQAL_QUERY_VERB_DESCRIBE:
       /* This is a list of rasqal_literal not rasqal_variable */
-      rasqal_query_build_literals_sequence_use_map(query,
-                                                   &use_map[RASQAL_VAR_USE_MAP_OFFSET_VERBS],
-                                                   query->describes);
+      rc = rasqal_query_build_literals_sequence_use_map(query,
+                                                        &use_map[RASQAL_VAR_USE_MAP_OFFSET_VERBS],
+                                                        query->describes);
       break;
       
     case RASQAL_QUERY_VERB_CONSTRUCT:
       if(1) {
         int last_column = raptor_sequence_size(query->constructs)-1;
         
-        rasqal_query_triples_build_variables_use_map(query->constructs, 
-                                                     &use_map[RASQAL_VAR_USE_MAP_OFFSET_VERBS],
-                                                     0,
-                                                     last_column);
+        rc = rasqal_query_triples_build_variables_use_map(query->constructs, 
+                                                          &use_map[RASQAL_VAR_USE_MAP_OFFSET_VERBS],
+                                                          0,
+                                                          last_column);
       }
       break;
 
@@ -1714,6 +1717,10 @@ rasqal_query_build_variables_use_map(rasqal_query* query)
     default:
       break;
   }
+
+  if(rc)
+    goto done;
+  
 
   /* FIXME: record variable use for 2) GROUP BY expr/var (SPARQL 1.1 TBD) */
 
