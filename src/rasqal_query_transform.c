@@ -1673,26 +1673,25 @@ rasqal_query_triples_build_variables_use_map(raptor_sequence *triples,
                                                       &use_map[RASQAL_VAR_USE_MAP_OFFSET_VERBS],
                                                       0,
                                                       last_column);
-      }
+       }
       break;
 
-    case RASQAL_QUERY_VERB_DELETE:
-    case RASQAL_QUERY_VERB_INSERT:
-      /* FIXME - should mark these triple patterns as using vars */
-      break;
-      
-    case RASQAL_QUERY_VERB_UNKNOWN:
-    case RASQAL_QUERY_VERB_ASK:
-    default:
-      break;
-  }
+     case RASQAL_QUERY_VERB_DELETE:
+     case RASQAL_QUERY_VERB_INSERT:
+       /* FIXME - should mark these triple patterns as using vars */
+       break;
+       
+     case RASQAL_QUERY_VERB_UNKNOWN:
+     case RASQAL_QUERY_VERB_ASK:
+     default:
+       break;
+   }
 
-  /* FIXME: record variable use for 2) GROUP BY expr/var (SPARQL 1.1 TBD) */
-
-  /* FIXME: record variable use for 3) HAVING expr (SPARQL 1.1 TBD) */
-
-  /* FIXME: record variable use for 4) ORDER list-of-expr (SPARQL 1.0) */
-
+   /* FIXME: record variable use for 2) GROUP BY expr/var (SPARQL 1.1 TBD) */
+   
+   /* FIXME: record variable use for 3) HAVING expr (SPARQL 1.1 TBD) */
+   
+   /* FIXME: record variable use for 4) ORDER list-of-expr (SPARQL 1.0) */
 
   /* record variable use for graph patterns */
   rc = rasqal_query_graph_pattern_build_variables_use_map(query,
