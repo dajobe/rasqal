@@ -153,24 +153,6 @@ rasqal_query_results_write_sparql_xml(raptor_iostream *iostr,
   if(!sparql_element)
     goto tidy;
 
-  if(rasqal_query_results_is_bindings(results)) {
-    /* FIXME - consider when to write the XSD.  Need the XSD URI too. */
-#if 0
-    raptor_namespace* xsi_ns;
-    xsi_ns=raptor_new_namespace(nstack,
-                                (const unsigned char*)"xsi",
-                                (const unsigned char*)"http://www.w3.org/2001/XMLSchema-instance",
-                                0);
-    raptor_xml_element_declare_namespace(sparql_element, xsi_ns);
-    
-    attrs=(raptor_qname **)raptor_alloc_memory(sizeof(raptor_qname*));
-    attrs[0]=raptor_new_qname_from_namespace_local_name(xsi_ns,
-                                                        (const unsigned char*)"schemaLocation",  
-                                                        (const unsigned char*)"http://www.w3.org/2001/sw/DataAccess/rf1/result2.xsd");
-    raptor_xml_element_set_attributes(sparql_element, attrs, 1);
-#endif
-  }
-  
   raptor_xml_writer_start_element(xml_writer, sparql_element);
   raptor_xml_writer_raw_counted(xml_writer, (const unsigned char*)"\n", 1);
 
