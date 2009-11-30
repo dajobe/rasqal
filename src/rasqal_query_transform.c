@@ -1383,37 +1383,6 @@ rasqal_query_triples_build_variables_use_map_internal(raptor_sequence *triples,
 
 
 /**
- * rasqal_query_triples_build_variables_use_map:
- * @query: the #rasqal_query to find the variables in
- * @width: width of array to create
- * @start_column: first column in triples array
- * @end_column: last column in triples array
- *
- * INTERNAL - Mark variables mentioned in a sequence of triples
- * 
- * Return value: 1D array of size num. variables with mentioned information
- **/
-short*
-rasqal_query_triples_build_variables_use_map(rasqal_query* query,
-                                             int width,
-                                             int start_column,
-                                             int end_column)
-{
-  short *use_map;
-  
-  use_map = (short*)RASQAL_CALLOC(intarray, width, sizeof(short));
-  if(!use_map)
-    return NULL;
-
-  rasqal_query_triples_build_variables_use_map_internal(query->triples,
-                                                        use_map,
-                                                        start_column,
-                                                        end_column);
-  return use_map;
-}
-
-
-/**
  * rasqal_query_graph_pattern_build_variables_use_map:
  * @query: the #rasqal_query to find the variables in
  * @use_map: 2D array of (num. variables x num. GPs) to write use_map
