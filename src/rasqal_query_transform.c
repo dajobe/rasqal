@@ -1544,8 +1544,7 @@ rasqal_expression_expr_build_variables_use_map(short *use_map,
  * Mark variables seen in a sequence of variables (with optional expression)
  */
 static int
-rasqal_query_build_variables_sequence_use_map(rasqal_query *query,
-                                              short* use_map,
+rasqal_query_build_variables_sequence_use_map(short* use_map,
                                               raptor_sequence *vars_seq)
 {
   int rc = 0;
@@ -1581,8 +1580,7 @@ rasqal_query_build_variables_sequence_use_map(rasqal_query *query,
  * Mark variables seen in a sequence of literals
  */
 static int
-rasqal_query_build_literals_sequence_use_map(rasqal_query *query,
-                                             short* use_map,
+rasqal_query_build_literals_sequence_use_map(short* use_map,
                                              raptor_sequence *lits_seq)
 {
   int idx;
@@ -1684,15 +1682,13 @@ rasqal_query_build_variables_use_map(rasqal_query* query)
   switch(query->verb) {
     case RASQAL_QUERY_VERB_SELECT:
       /* This also handles 1a) select/project expressions */
-      rc = rasqal_query_build_variables_sequence_use_map(query,
-                                                         &use_map[RASQAL_VAR_USE_MAP_OFFSET_VERBS],
+      rc = rasqal_query_build_variables_sequence_use_map(&use_map[RASQAL_VAR_USE_MAP_OFFSET_VERBS],
                                                          query->selects);
       break;
   
     case RASQAL_QUERY_VERB_DESCRIBE:
       /* This is a list of rasqal_literal not rasqal_variable */
-      rc = rasqal_query_build_literals_sequence_use_map(query,
-                                                        &use_map[RASQAL_VAR_USE_MAP_OFFSET_VERBS],
+      rc = rasqal_query_build_literals_sequence_use_map(&use_map[RASQAL_VAR_USE_MAP_OFFSET_VERBS],
                                                         query->describes);
       break;
       
