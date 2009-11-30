@@ -395,19 +395,6 @@ rasqal_engine_graph_pattern_get_next_match(rasqal_engine_execution_data* executi
 
 
 
-#if 0
-static int
-rasqal_engine_graph_pattern_order(const void *a, const void *b)
-{
-  rasqal_graph_pattern *gp_a = *(rasqal_graph_pattern**)a;
-  rasqal_graph_pattern *gp_b = *(rasqal_graph_pattern**)b;
-
-  return (gp_a->op == RASQAL_GRAPH_PATTERN_OPERATOR_OPTIONAL) -
-         (gp_b->op == RASQAL_GRAPH_PATTERN_OPERATOR_OPTIONAL);
-}
-#endif
-
-
 #ifdef RASQAL_DEBUG
 static const char rasqal_engine_parts_string[16][5] = {
   /*  0 -  3 */  "----", "S---", "-P--", "SP--",
@@ -475,11 +462,6 @@ rasqal_engine_graph_pattern_init(rasqal_engine_execution_data* execution_data,
 
   if(gp->graph_patterns) {
     int i;
-
-#if 0
-    /* sort graph patterns, optional graph triples last */
-    raptor_sequence_sort(gp->graph_patterns, rasqal_engine_graph_pattern_order);
-#endif
 
     for(i = 0; i < raptor_sequence_size(gp->graph_patterns); i++) {
       int rc;
