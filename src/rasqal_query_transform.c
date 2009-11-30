@@ -1345,7 +1345,7 @@ rasqal_graph_patterns_join(rasqal_graph_pattern *dest_gp,
 
 /**
  * rasqal_query_triples_build_variables_use_map_internal:
- * @query: the #rasqal_query to find the variables in
+ * @triples: triples sequence to use
  * @use_map: 1D array of size num. variables to write use_map
  * @start_column: first column in triples array
  * @end_column: last column in triples array
@@ -1354,7 +1354,7 @@ rasqal_graph_patterns_join(rasqal_graph_pattern *dest_gp,
  * 
  **/
 static void
-rasqal_query_triples_build_variables_use_map_internal(rasqal_query* query,
+rasqal_query_triples_build_variables_use_map_internal(raptor_sequence *triples,
                                                       short *use_map,
                                                       int start_column,
                                                       int end_column)
@@ -1365,7 +1365,7 @@ rasqal_query_triples_build_variables_use_map_internal(rasqal_query* query,
     rasqal_triple *t;
     rasqal_variable *v;
     
-    t = (rasqal_triple*)raptor_sequence_get_at(query->triples, col);
+    t = (rasqal_triple*)raptor_sequence_get_at(triples, col);
 
     if((v = rasqal_literal_as_variable(t->subject)))
       use_map[v->offset] |= RASQAL_VAR_USE_MENTIONED_HERE;
@@ -1405,7 +1405,8 @@ rasqal_query_triples_build_variables_use_map(rasqal_query* query,
   if(!use_map)
     return NULL;
 
-  rasqal_query_triples_build_variables_use_map_internal(query, use_map,
+  rasqal_query_triples_build_variables_use_map_internal(query->triples,
+                                                        use_map,
                                                         start_column,
                                                         end_column);
   return use_map;
@@ -1447,7 +1448,7 @@ rasqal_query_graph_pattern_build_variables_use_map(rasqal_query* query,
   offset = (gp->gp_index + RASQAL_VAR_USE_MAP_OFFSET_LAST + 1) * width;
   switch(gp->op) {
     case RASQAL_GRAPH_PATTERN_OPERATOR_BASIC:
-      rasqal_query_triples_build_variables_use_map_internal(query, 
+      rasqal_query_triples_build_variables_use_map_internal(query->triples, 
                                                             &use_map[offset],
                                                             gp->start_column,
                                                             gp->end_column);
@@ -1696,6 +1697,16 @@ rasqal_query_build_variables_use_map(rasqal_query* query)
       break;
       
     case RASQAL_QUERY_VERB_CONSTRUCT:
+      if(1) {
+        int last_column = raptor_sequence_size(query->constructs)-1;
+        
+        rasqal_query_triples_build_variables_use_map_internal(query->constructs, 
+                                                              &use_map[RASQAL_VAR_USE_MAP_OFFSET_VERBS],
+                                                              0,
+                                                              last_column);
+      }
+      break;
+
     case RASQAL_QUERY_VERB_DELETE:
     case RASQAL_QUERY_VERB_INSERT:
       /* FIXME - should mark these triple patterns as using vars */
