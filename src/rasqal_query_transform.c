@@ -1601,6 +1601,34 @@ rasqal_query_build_literals_sequence_use_map(rasqal_query *query,
 }
   
 
+/*
+ * Mark variables seen in a sequence of expressions
+ */
+static int
+rasqal_query_build_expressions_sequence_use_map(rasqal_query *query,
+                                                short* use_map,
+                                                raptor_sequence *exprs_seq)
+{
+  int rc = 0;
+  int idx;
+
+  for(idx = 0; 1; idx++) {
+    rasqal_expression *e;
+
+    e = (rasqal_expression*)raptor_sequence_get_at(exprs_seq, idx);
+    if(!e)
+      break;
+
+    rc = rasqal_expression_expr_build_variables_use_map(use_map, e);
+    if(rc)
+      break;
+
+  }
+
+  return rc;
+}
+  
+
 /**
  * rasqal_query_build_variables_use_map:
  * @query: the #rasqal_query to find the variables in
@@ -1691,20 +1719,29 @@ rasqal_query_build_variables_use_map(rasqal_query* query)
 
   /* FIXME: record variable use for 3) HAVING expr (SPARQL 1.1 TBD) */
 
-  /* FIXME: record variable use for 4) ORDER list-of-expr (SPARQL 1.0) */
-
+  /* record variable use for 4) ORDER list-of-expr (SPARQL 1.0) */
+  if(query->order_conditions_sequence) {
+    rc = rasqal_query_build_expressions_sequence_use_map(query,
+                                                         &use_map[RASQAL_VAR_USE_MAP_OFFSET_ORDER_BY],
+                                                         query->order_conditions_sequence);
+    if(rc)
+      goto done;
+  }
+  
 
   /* record variable use for graph patterns */
   rc = rasqal_query_graph_pattern_build_variables_use_map(query,
                                                           use_map,
                                                           width,
                                                           query->query_graph_pattern);
-
-#ifdef RASQAL_DEBUG
-  if(!rc)
-    rasqal_query_print_variables_use_map(stderr, query);
-#endif    
+  if(rc)
+    goto done;
   
+#ifdef RASQAL_DEBUG
+  rasqal_query_print_variables_use_map(stderr, query);
+#endif    
+
+  done:
   return rc;
 }
 
