@@ -1,5 +1,70 @@
 2009-11-29  Dave Beckett <dave@dajobe.org>
 
+	* src/rasqal_query_transform.c:
+	Rename functions and args/variables for terminology: use_map for a
+	2D array, use_map row for a 1D row in use-map
+
+	* src/rasqal_query_transform.c:
+	(rasqal_query_build_variables_sequence_use_map,
+	rasqal_query_build_literals_sequence_use_map): Remove unused query
+	arg.
+
+	* src/rasqal_query_transform.c:
+	(rasqal_query_triples_build_variables_use_map,
+	rasqal_query_build_variables_sequence_use_map,
+	rasqal_query_build_literals_sequence_use_map): Return status code
+	(rasqal_query_build_variables_use_map): Check return code of above
+	for failures.
+
+	* src/rasqal_query_transform.c:
+	(rasqal_query_build_expressions_sequence_use_map): Added.
+	(rasqal_query_build_variables_use_map): Use above to mark use of
+	variables in query order_conditions_sequence (ORDER BY) sequence
+	of rasqal_expression
+
+	* src/rasqal_query_transform.c:
+	Restore indenting messed up in SVN r15741
+
+	* src/rasqal_query_transform.c:
+	indenting
+
+	* src/rasqal_query_transform.c:
+	(rasqal_query_triples_build_variables_use_map): Renamed from
+	rasqal_query_triples_build_variables_use_map_internal but now only
+	used in this file.
+
+	* src/rasqal_internal.h:
+	Remove rasqal_query_triples_build_variables_use_map prototype -
+	never called outside module.
+
+	* src/rasqal_query_transform.c:
+	(rasqal_query_triples_build_variables_use_map): Removed, never
+	called.
+
+	* src/rasqal_query_transform.c:
+	(rasqal_query_triples_build_variables_use_map_internal): Take a
+	triples sequence arg so can be used for construct.
+	(rasqal_query_triples_build_variables_use_map): Pass in triples
+	seq.
+	(rasqal_query_graph_pattern_build_variables_use_map): Pass in
+	triples seq.
+	(rasqal_query_build_variables_use_map): Use
+	rasqal_query_triples_build_variables_use_map_internal for
+	construct triples, putting them in the
+	RASQAL_VAR_USE_MAP_OFFSET_VERBS row.
+
+	* src/rasqal_query_transform.c:
+	(rasqal_query_build_literals_sequence_use_map): Added.
+	(rasqal_query_build_variables_use_map): Use above for DESCRIBE
+	args which are a sequence of literals.
+
+	* src/rasqal_query_transform.c:
+	(rasqal_query_build_variables_use_map): Move code comments into
+	internal docucomment.
+
+	* src/rasqal_query_transform.c:
+	(rasqal_query_build_variables_use_map): Expand comments and fixmes
+
 	* configure.ac:
 	Warn if pkg-config is not found - will be a fatal error when
 	raptor2 is required.
