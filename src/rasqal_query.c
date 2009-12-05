@@ -1746,3 +1746,14 @@ rasqal_query_get_variable_by_offset(rasqal_query* query, int idx)
 {
   return rasqal_variables_table_get(query->vars_table, idx);
 }
+
+
+int
+rasqal_query_variable_bound_in_triple(rasqal_query *query,
+                                      rasqal_variable *v,
+                                      int column) 
+{
+  int v_column = query->variables_bound_in[v->offset];
+  return v_column == column;
+}
+
