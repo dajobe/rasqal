@@ -375,21 +375,33 @@ rasqal_query_triples_build_bound_in_internal(rasqal_query* query,
     t = (rasqal_triple*)raptor_sequence_get_at(query->triples, col);
 
     if((v = rasqal_literal_as_variable(t->subject))) {
-      if(bound_in[v->offset] < 0)
+      if(bound_in[v->offset] < 0) {
+        RASQAL_DEBUG4("Triple %d binds subject to variable %s (var #%d)\n",
+                      col, v->name, v->offset);
         bound_in[v->offset] = col;
+      }
     }
     if((v = rasqal_literal_as_variable(t->predicate))) {
-      if(bound_in[v->offset] < 0)
+      if(bound_in[v->offset] < 0) {
+        RASQAL_DEBUG4("Triple %d binds predicate to variable %s (var #%d)\n",
+                      col, v->name, v->offset);
         bound_in[v->offset] = col;
+      }
     }
     if((v = rasqal_literal_as_variable(t->object))) {
-      if(bound_in[v->offset] < 0)
+      if(bound_in[v->offset] < 0) {
+        RASQAL_DEBUG4("Triple %d binds object to variable %s (var #%d)\n",
+                      col, v->name, v->offset);
         bound_in[v->offset] = col;
+      }
     }
     if(t->origin) {
       if((v = rasqal_literal_as_variable(t->origin))) {
-        if(bound_in[v->offset] < 0)
+        if(bound_in[v->offset] < 0) {
+          RASQAL_DEBUG4("Triple %d binds graph to variable %s (var #%d)\n",
+                        col, v->name, v->offset);
           bound_in[v->offset] = col;
+        }
       }
     }
 
