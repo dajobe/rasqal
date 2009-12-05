@@ -826,7 +826,6 @@ WhereClauseOpt:  WHERE GroupGraphPattern
 {
   ((rasqal_query*)rq)->query_graph_pattern=$1;
 }
-| /* empty */
 ;
 
 
