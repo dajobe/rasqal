@@ -445,19 +445,19 @@ PrefixDeclListOpt: PrefixDeclListOpt PREFIX IDENTIFIER URI_LITERAL
 
 /* SPARQL Grammar: [5] SelectQuery */
 SelectQuery: SELECT DISTINCT SelectExpressionList
-        DatasetClauseListOpt WhereClauseOpt SolutionModifier
+        DatasetClauseListOpt WhereClause SolutionModifier
 {
   $$=$3;
   ((rasqal_query*)rq)->distinct=1;
 }
 | SELECT REDUCED SelectExpressionList
-        DatasetClauseListOpt WhereClauseOpt SolutionModifier
+        DatasetClauseListOpt WhereClause SolutionModifier
 {
   $$=$3;
   ((rasqal_query*)rq)->distinct=2;
 }
 | SELECT SelectExpressionList
-        DatasetClauseListOpt WhereClauseOpt SolutionModifier
+        DatasetClauseListOpt WhereClause SolutionModifier
 {
   $$=$2;
 }
@@ -683,7 +683,7 @@ MaxAggregateExpression: MAX '(' Expression ')'
 
 /* SPARQL Grammar: [6] ConstructQuery */
 ConstructQuery: CONSTRUCT ConstructTemplate
-        DatasetClauseListOpt WhereClauseOpt SolutionModifier
+        DatasetClauseListOpt WhereClause SolutionModifier
 {
   $$=$2;
 }
@@ -739,7 +739,7 @@ VarOrIRIrefList: VarOrIRIrefList VarOrIRIref
 
 /* SPARQL Grammar: [8] AskQuery */
 AskQuery: ASK 
-        DatasetClauseListOpt WhereClauseOpt
+        DatasetClauseListOpt WhereClause
 {
   /* nothing to do */
 }
@@ -818,7 +818,7 @@ SourceSelector: IRIref
 
 
 /* SPARQL Grammar: [13] WhereClause - remained for clarity */
-WhereClauseOpt:  WHERE GroupGraphPattern
+WhereClause:  WHERE GroupGraphPattern
 {
   ((rasqal_query*)rq)->query_graph_pattern=$2;
 }
@@ -826,6 +826,12 @@ WhereClauseOpt:  WHERE GroupGraphPattern
 {
   ((rasqal_query*)rq)->query_graph_pattern=$1;
 }
+;
+
+
+/* NEW Grammar Term pulled out of [13] WhereClause */
+WhereClauseOpt:  WhereClause
+| /* empty */
 ;
 
 
