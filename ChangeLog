@@ -1,3 +1,13 @@
+2009-11-30  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_format_sparql_xml.c:
+	(rasqal_query_results_write_sparql_xml): Remove unused code that
+	attempted to write W3C XML Schemas XSD header.  Out of date and
+	not needed.
+
+	* src/rasqal_engine.c:
+	(rasqal_engine_graph_pattern_order): Removed - dead code.
+
 2009-11-29  Dave Beckett <dave@dajobe.org>
 
 	* src/rasqal_query_transform.c:
