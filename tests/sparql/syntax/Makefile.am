@@ -33,7 +33,7 @@ select-dup.rq order-distinct.rq distinct-undef.rq \
 blankuri.rq
 
 SPARQL_BAD_TEST_FILES= \
-nojam.rq namespaces.rq
+nojam.rq namespaces.rq select-no-gp.rq
 
 SPARQL_TEST_NAMES= \
    sparql-0triples \
