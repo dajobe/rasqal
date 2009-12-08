@@ -1,5 +1,13 @@
 2009-12-07  Dave Beckett <dave@dajobe.org>
 
+	* src/rasqal.h, src/rasqal_engine.c, src/rasqal_engine_sort.c,
+	src/rasqal_expr.c, src/rasqal_query_transform.c,
+	src/rasqal_rowsource_assignment.c, src/rasqal_rowsource_filter.c,
+	src/rasqal_rowsource_join.c,
+	src/rasqal_rowsource_project.c:
+	(rasqal_expression_evaluate2): Renamed from
+	rasqal_expression_evaluate_v2
+
 	* src/rasqal_query.c:
 	(rasqal_query_get_engine_by_name): Set default query engine based
 	on RASQAL_QUERY_ENGINE_VERSION define.  This function is currently
