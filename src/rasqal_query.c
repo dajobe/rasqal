@@ -1220,7 +1220,12 @@ rasqal_query_prepare(rasqal_query* query,
 const rasqal_query_execution_factory* 
 rasqal_query_get_engine_by_name(const char* name)
 {
-  const rasqal_query_execution_factory* engine = &rasqal_query_engine_1;
+  const rasqal_query_execution_factory* engine;
+#if RASQAL_QUERY_ENGINE_VERSION == 1
+  engine = &rasqal_query_engine_1;
+#else
+  engine = &rasqal_query_engine_algebra;
+#endif
 
 #ifdef RASQAL_DEBUG
   if(1) {
