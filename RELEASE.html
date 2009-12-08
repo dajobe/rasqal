@@ -12,7 +12,7 @@
 
 <p>NOT YET RELEASED.</p>
 
-<p>Fixed Issues:</p>
+<p>Fixed Issues: (most of them in query engine 2)</p>
 <ul>
 <li><a href="http://bugs.librdf.org/mantis/view.php?id=077">Issue#0000077</a>: OPTIONAL messes up query results </li>
 <li><a href="http://bugs.librdf.org/mantis/view.php?id=128">Issue#0000128</a>: GROUP graph pattern support in the query engine</li>
@@ -38,7 +38,7 @@ and <code>RASQAL_GRAPH_PATTERN_OPERATOR_LET</code> for LAQRS experimental
 assignment 'graph pattern'.
 </p>
 
-<p>Added rasqal world methods:</p>
+<p>Added <code>rasqal_world</code> object methods:</p>
 <pre>
   int rasqal_world_open(rasqal_world* world);
 
@@ -49,12 +49,14 @@ assignment 'graph pattern'.
 </pre>
 
 <p>ABI CHANGE:
-<code>rasqal_features_enumerate</code> srructure gains a
+<code>rasqal_features_enumerate</code> structure gains a
 rasqal_world argument:
 FIXME, remove this and make a _2 version, deprecating the old one.
 </p>
 <pre>
-  int rasqal_features_enumerate(rasqal_world* world, const rasqal_feature feature, const char **name, raptor_uri **uri, const char **label);
+  int rasqal_features_enumerate(rasqal_world* world,
+    const rasqal_feature feature, const char **name,
+    raptor_uri **uri, const char **label);
 </pre>
 
 <p>ABI CHANGE:
@@ -63,7 +65,8 @@ rasqal_world argument:
 FIXME, remove this and make a _2 version, deprecating the old one.
 </p>
 <pre>
-  rasqal_feature rasqal_feature_from_uri(rasqal_world* world, raptor_uri *uri);
+  rasqal_feature rasqal_feature_from_uri(rasqal_world* world,
+    raptor_uri *uri);
 </pre>
 
 <p>Added function to check if a named graph is in a dataset:</p>
@@ -154,10 +157,10 @@ FIXME, remove this and make a _2 version, deprecating the old one.
 </p>
 
 <p><code>rasqal_triple_parts</code> adds value
-RASQAL_TRIPLE_NONE for no parts.
+<code>RASQAL_TRIPLE_NONE</code> for no parts.
 </p>
 
-<p>ABI/API change:
+<p>ABI/API CHANGE:
 Reorder <code>rasqal_literal_type</code> enumeration
 to match numeric type promotion order: float is now between integer
 and double.
@@ -177,7 +180,7 @@ bool comparison.
 
 <p><code>rasqal_op</code> enumeration gains
 <code>RASQAL_EXPR_COALESCE</code> for LAQRS experimental
-coalesce expression <code>COALESCE(expression list)</code>
+coalesce expression <code>COALESCE(<em>expression list</em>)</code>
 </p>
 
 
@@ -208,35 +211,39 @@ text table output formats with names <code>csv</code>,
 
 <h3>SPARQL Changes</h3>
 
-<p>Ensure GroupOrUnionGraphPattern constructs the sequence of graph
+<p>Ensure GroupOrUnionGraphPattern rule constructs the sequence of graph
 patterns in document order.
 </p>
 
-<p>OptionalGraphPattern is is now a list of 1 group graph patterns
+<p>OptionalGraphPattern rule is now a list of 1 group graph patterns.
 </p>
 
 <p>Fix support for <code>&lt;&gt;</code> URI literal.
 </p>
 
-<p>Support \b, \f, \' and \" escapes in all types of quoted literals.
+<p>Support <code>\b</code>, <code>\f</code>, <code>\'</code> and
+<code>\"</code> escapes in all types of quoted literals.
 </p>
 
 <p>Fixed optional <code>WHERE</code> in parser to match SPARQL
-grammar - optional for DESCRIBE, but required for SELECT, CONSTRUCT
-and ASK queries.</p>
+grammar - optional for <code>DESCRIBE</code>, but required for
+<code>SELECT</code>, <code>CONSTRUCT</code> and <code>ASK</code>
+queries.</p>
 
 
 <h3>LAQRS Changes</h3>
 
-<p>Add SUM, AVG, MIN and MAX aggregate expressions to LAQRS.
+<p>Add <code>SUM()</code>, <code>AVG()</code>, <code>MIN()</code> and
+<code>MAX()</code> aggregate expressions to LAQRS.  Supported in
+syntax only, not in any of the query engines.
 </p>
 
-<p>Add <code>LET ?var := expression</code> experimental syntax
-that only the Query Engine 2 can execute.</p>
+<p>Add <code>LET ?var := expression</code> experimental syntax.
+Query engine 2 can execute this.</p>
 
-<p>Add <code>COALESCE(expression list)</code> experimental
+<p>Add <code>COALESCE(<em>expression list</em>)</code> experimental
 expression to return the first defined expression value in the
-list.</p>
+list.  Query engines 1 and 2 can execute this.</p>
 
 
 <h3>RDQL Changes</h3>
@@ -270,10 +277,10 @@ results using a query results formatter.</p>
 abstraction to provide the interface that the query execution engines
 implement to return a rowsource to get the results.</p>
 
-<p>Both query executions engines can potentially be selected at
-runtime from the query API by configuration or policy when rasqal is
+<p>Both query engines can potentially be selected at
+runtime from the query API but <strong>ONLY</strong> when rasqal is
 built for development (<code>configure --enable-maintainer-mode</code>.
-This choice may not be present in the public release - FIXME.</p>
+</p>
 <ol>
 <li>If the envariable <code>RASQAL_DEBUG_ENGINE</code>
 is set with value 1 or 2, the query execution engine is chosen. FIXME.
