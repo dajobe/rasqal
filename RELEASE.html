@@ -12,29 +12,30 @@
 
 <p>NOT YET RELEASED.</p>
 
-<blockquote>
-<strong>REMOVE BEFORE RELEASE:</strong> src/rasqal_engine.c function
-rasqal_engine_execute_init in area marked HACK as well as dependent
-rasqal_engine_remove_filter_graph_patterns function.
-</blockquote>
-
 <p>Fixed Issues:</p>
 <ul>
-<li>#0000271 http://bugs.librdf.org/mantis/view.php?id=271</li>
-<li>#0000279 http://bugs.librdf.org/mantis/view.php?id=279</li>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=077">Issue#0000077</a>: OPTIONAL messes up query results </li>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=128">Issue#0000128</a>: GROUP graph pattern support in the query engine</li>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=168">Issue#0000168</a>: Wrong processing of the function "bound" with "OPTIONAL"</li>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=258">Issue#0000258</a>: Using FILTER with OPTIONAL in SPARQL queries</li>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=271">Issue#0000271</a>: rasqal library does not compile cleanly when using g++ compiler</li>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=279">Issue#0000279</a>: JSON query binding serializer is returning illegal json - extra double quotes before "ordered" and "distinct"</li>
+<li><a href="http://bugs.librdf.org/mantis/view.php?id=305">Issue#0000305</a>: bound gives incoherent results</li>
 </ul>
 
 
 <h3>Query API Changes</h3>
 
 <p>
-THe rasqal_prefix, rasqal_data_graph and rasqal_expression structures
-gain a world reference pointer field.
+The <code>rasqal_prefix</code>, <code>rasqal_data_graph</code> and
+<code>rasqal_expression</code> structures gain a world reference pointer
+field.
 </p>
 
-<p>Enum <code>rasqal_graph_pattern_operator</code>
-gains a <code>RASQAL_GRAPH_PATTERN_OPERATOR_FILTER</code>
-for a filter grpah pattern
+<p>Enumeration <code>rasqal_graph_pattern_operator</code> gains
+<code>RASQAL_GRAPH_PATTERN_OPERATOR_FILTER</code> for a filter graph pattern
+and <code>RASQAL_GRAPH_PATTERN_OPERATOR_LET</code> for LAQRS experimental
+assignment 'graph pattern'.
 </p>
 
 <p>Added rasqal world methods:</p>
@@ -47,21 +48,25 @@ for a filter grpah pattern
   raptor_world *rasqal_world_get_raptor(rasqal_world* world);
 </pre>
 
-<p>rasqal_features_enumerate gains a rasqal_world argument: FIXME,
-remove this and make a _2 version, deprecating the old one.
+<p>ABI CHANGE:
+<code>rasqal_features_enumerate</code> srructure gains a
+rasqal_world argument:
+FIXME, remove this and make a _2 version, deprecating the old one.
 </p>
 <pre>
   int rasqal_features_enumerate(rasqal_world* world, const rasqal_feature feature, const char **name, raptor_uri **uri, const char **label);
 </pre>
 
-<p>rasqal_feature_from_uri gains a rasqal_world argument: FIXME,
-remove this and make a _2 version, deprecating the old one.
+<p>ABI CHANGE:
+<code>rasqal_feature_from_uri</code> structure gains a
+rasqal_world argument:
+FIXME, remove this and make a _2 version, deprecating the old one.
 </p>
 <pre>
   rasqal_feature rasqal_feature_from_uri(rasqal_world* world, raptor_uri *uri);
 </pre>
 
-<p>Added:</p>
+<p>Added function to check if a named graph is in a dataset:</p>
 <pre>
   int rasqal_query_dataset_contains_named_graph(rasqal_query* query,
                                                 raptor_uri *graph_uri);
@@ -91,16 +96,18 @@ replaced by filter graph pattern with expression - functions
     rasqal_query_results_get_query(rasqal_query_results* query_results);
 </pre>
 
-<p>rasqal_new_data_graph gains a rasqal_world argument: FIXME,
-remove this and make a _2 version, deprecating the old one.
+<p>ABI CHANGE:
+<code>rasqal_new_data_graph</code> structure gains a rasqal_world argument:
+FIXME, remove this and make a _2 version, deprecating the old one.
 </p>
 <pre>
   rasqal_data_graph* rasqal_new_data_graph(rasqal_world* world,
     raptor_uri* uri, raptor_uri* name_uri, int flags);
 </pre>
 
-<p>All rasqal_expression constructors gains a rasqal_world argument: FIXME,
-remove this and make _2 versions, deprecating the old ones:
+<p>ABI/API CHANGE:
+All <code>rasqal_expression</code> constructors gains a rasqal_world argument:
+FIXME, remove this and make _2 versions, deprecating the old ones:
 </p>
 <pre>
   rasqal_expression* rasqal_new_0op_expression(rasqal_world* world,
@@ -123,25 +130,81 @@ remove this and make _2 versions, deprecating the old ones:
 </pre>
 
 <p>Added <code>rasqal_expression_evaluate_v2()</code> deprecating
-<code>rasqal_expression_evaluate()</code>. FIXME rename this to _2()
+<code>rasqal_expression_evaluate()</code>.
+FIXME rename this to _2()
 </p>
 <pre>
   rasqal_literal* rasqal_expression_evaluate_v2(rasqal_world *world,
     raptor_locator *locator, rasqal_expression* e, int flags);
 </pre>
 
-<p><code>rasqal_new_prefix()</code> gains a rasqal_world argument: FIXME,
-remove this and make a _2 version, deprecating the old one.
+<p>ABI/API CHANGE:
+<code>rasqal_new_prefix()</code> gains a rasqal_world argument:
+FIXME, remove this and make a _2 version, deprecating the old one.
 </p>
 <pre>
   rasqal_prefix* rasqal_new_prefix(rasqal_world* world, const unsigned char* prefix, raptor_uri* uri);
 </pre>
+
+<p>
+<code>rasqal_op</code> gains values for LAQRS
+(possible SPARQL 1.1) expression operators:
+<code>RASQAL_EXPR_SUM</code>,
+<code>RASQAL_EXPR_AVG</code>,
+<code>RASQAL_EXPR_MIN</code> and
+<code>RASQAL_EXPR_MAX</code>.
+</p>
+
+<p><code>rasqal_triple_parts</code> adds value
+RASQAL_TRIPLE_NONE for no parts.
+</p>
+
+<p>ABI/API change:
+Reorder <code>rasqal_literal_type</code> enumeration
+to match numeric type promotion order: float is now between integer
+and double.
+</p>
+
+<p><code>rasqal_literal_type</code> enumeration gains
+<code>RASQAL_LITERAL_XSD_STRING</code> for xsd:string typed literals and
+<code>RASQAL_LITERAL_UDT</code> for unknown data typed literals.
+Both were separated out of <code>RASQAL_LITERAL_STRING</code> which
+is now for RDF plain literals and plain/typed turned into RDF terms only
+</p>
+
+<p><code>rasqal_compare_flags</code> enumeration gains
+<code>RASQAL_COMPARE_URI</code> - now also provides RDQL string to
+bool comparison.
+</p>
+
+<p><code>rasqal_op</code> enumeration gains
+<code>RASQAL_EXPR_COALESCE</code> for LAQRS experimental
+coalesce expression <code>COALESCE(expression list)</code>
+</p>
+
+
+<p>Added <code>rasqal_literal_get_rdf_term_type()</code> to return
+the RDF term type of a literal as a <code>rasqal_literal_type</code>
+- uri, blank node, literal or cannot be represented (e.g. qname or
+internal literal types).
+</p>
+
+
+<h3>Query Formatter Changes</h3>
+
+<p>SPARQL <code>DESCRIBE</code> does not to write commas.
+</p>
 
 
 <h3>Query Results Formatter Changes</h3>
 
 <p>SPARQL/JSON: Do not emit double " for distinct/ordered flags.
 Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=279">Issue #0000279</a>
+</p>
+
+<p>Added comma-separated values (CSV), tab-separated values (TSV) and
+text table output formats with names <code>csv</code>,
+<code>tsv</code> and <code>table</code>.
 </p>
 
 
@@ -154,8 +217,28 @@ patterns in document order.
 <p>OptionalGraphPattern is is now a list of 1 group graph patterns
 </p>
 
-<p>Fix support for <code>&lt;&gt;</code>
+<p>Fix support for <code>&lt;&gt;</code> URI literal.
 </p>
+
+<p>Support \b, \f, \' and \" escapes in all types of quoted literals.
+</p>
+
+<p>Fixed optional <code>WHERE</code> in parser to match SPARQL
+grammar - optional for DESCRIBE, but required for SELECT, CONSTRUCT
+and ASK queries.</p>
+
+
+<h3>LAQRS Changes</h3>
+
+<p>Add SUM, AVG, MIN and MAX aggregate expressions to LAQRS.
+</p>
+
+<p>Add <code>LET ?var := expression</code> experimental syntax
+that only the Query Engine 2 can execute.</p>
+
+<p>Add <code>COALESCE(expression list)</code> experimental
+expression to return the first defined expression value in the
+list.</p>
 
 
 <h3>RDQL Changes</h3>
@@ -232,7 +315,7 @@ the following types of rowsources:</p>
 <li>empty rowsource: always returns no rows</li>
 <li>filter rowsource: filter an inner rowsource with an expression - used for SPARQL FILTER</li>
 <li>graph rowsource: apply a graph variable to an inner rowsource - used for SPARQL GRAPH matching</li>
-<li>join rowsource: join two inner rowsources on common variables and an expression.  Only left outer join supported now - used for SPARQL OPTIONAL.</li>
+<li>join rowsource: join two inner rowsources on common variables and an expression.  Two types of join supported: left outer join used for SPARQL OPTIONAL and natural join for groups of graph patterns.</li>
 <li>project rowsource: pick [project] certain variables from an inner rowsource</li>
 <li>query engine execution rowsource: rows generated by a query execution engine</li>
 <li>row sequence rowsource: built from a sequence of rows</li>
@@ -335,6 +418,34 @@ for writing the respective objects to a raptor_iostream for debugging.
 <p>Lots of resiliency fixes in the case of out of memory - Lauri Aalto.
 </p>
 
+<p>Add SHAVE support for compiling and enable it for maintainer
+</p>
+
+<p>Adjusted internal test suite to use a perl <code>improve</code>
+script that generates and uses an RDF-based manifest.  The test
+running is now much more consise when successful.
+</p>
+
+<p>Switch to final DAWG approved testuite files from
+http://www.w3.org/2001/sw/DataAccess/tests/r2 at CVS Revision 1.6 1008
+</p>
+
+<p>configure now prefers <code>pkg-config raptor</code> to
+<code>raptor-config</code> but will accept both for now.
+<code>pkg-config</code> will not allow compiling against raptor in
+source tree in future.
+</p>
+
+
+<p>Added <code>--with-query-engine-version</code> to configure
+to allow selecting default query engine version - values 1 or 2.
+This is allowed for people to switch to old engine if necessary
+for some existing query that the new engine cannot handle.  This
+option will be removed at some point.
+</p>
+
+
+<!-- ************************************************************* -->
 
 
 <h2 id="rel0_9_16"><a name="rel0_9_16">Rasqal 0.9.16 Changes</a></h2>
