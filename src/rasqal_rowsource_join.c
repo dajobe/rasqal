@@ -103,8 +103,8 @@ rasqal_join_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
     rasqal_literal* result;
     int bresult;
     
-    result = rasqal_expression_evaluate_2(rowsource->world, &query->locator,
-                                          con->expr, query->compare_flags);
+    result = rasqal_expression_evaluate2(rowsource->world, &query->locator,
+                                         con->expr, query->compare_flags);
 
 #ifdef RASQAL_DEBUG
     RASQAL_DEBUG1("join expression condition is constant: ");
@@ -345,8 +345,8 @@ rasqal_join_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
     if(con->expr) {
       rasqal_literal *result;
 
-      result = rasqal_expression_evaluate_2(rowsource->world, &query->locator,
-                                            con->expr, query->compare_flags);
+      result = rasqal_expression_evaluate2(rowsource->world, &query->locator,
+                                           con->expr, query->compare_flags);
 #ifdef RASQAL_DEBUG
       RASQAL_DEBUG1("join expression result: ");
       if(!result)

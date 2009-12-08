@@ -1003,7 +1003,7 @@ void rasqal_expression_print_op(rasqal_expression* e, FILE* fh);
 RASQAL_API
 void rasqal_expression_print(rasqal_expression* e, FILE* fh);
 RASQAL_API
-rasqal_literal* rasqal_expression_evaluate_2(rasqal_world *world, raptor_locator *locator, rasqal_expression* e, int flags);
+rasqal_literal* rasqal_expression_evaluate2(rasqal_world *world, raptor_locator *locator, rasqal_expression* e, int flags);
 RASQAL_API RASQAL_DEPRECATED
 rasqal_literal* rasqal_expression_evaluate(rasqal_query* query, rasqal_expression* e, int flags);
 
