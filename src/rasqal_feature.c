@@ -2,7 +2,7 @@
  *
  * rasqal_feature.c - Query system features
  *
- * Copyright (C) 2006, David Beckett http://www.dajobe.org/
+ * Copyright (C) 2006-2009, David Beckett http://www.dajobe.org/
  * 
  * This package is Free Software and part of Redland http://librdf.org/
  * 

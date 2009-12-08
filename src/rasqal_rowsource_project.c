@@ -2,7 +2,7 @@
  *
  * rasqal_rowsource_project.c - Rasqal variables projection rowsource class
  *
- * Copyright (C) 2008, David Beckett http://www.dajobe.org/
+ * Copyright (C) 2008-2009, David Beckett http://www.dajobe.org/
  * 
  * This package is Free Software and part of Redland http://librdf.org/
  * 
