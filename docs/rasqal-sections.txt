@@ -43,6 +43,7 @@ rasqal_new_1op_expression
 rasqal_new_2op_expression
 rasqal_new_3op_expression
 rasqal_new_cast_expression
+rasqal_new_coalesce_expression
 rasqal_new_function_expression
 rasqal_new_literal_expression
 rasqal_new_string_op_expression
@@ -73,6 +74,7 @@ rasqal_graph_pattern_set_filter_expression
 rasqal_graph_pattern_operator
 rasqal_graph_pattern_operator_as_string
 rasqal_graph_pattern_print
+rasqal_graph_pattern_variable_bound_in
 rasqal_graph_pattern_visit_fn
 rasqal_graph_pattern_visit
 </SECTION>
@@ -102,8 +104,11 @@ rasqal_literal_as_variable
 rasqal_literal_compare
 rasqal_literal_datatype
 rasqal_literal_equals
+rasqal_literal_get_rdf_term_type
+rasqal_literal_is_rdf_literal
 rasqal_literal_print
 rasqal_literal_print_type
+rasqal_literal_same_term
 rasqal_literal_value
 </SECTION>
 
@@ -292,4 +297,5 @@ next_match
 rasqal_expression_s
 triple_present
 raptor_world
+RASQAL_LITERAL_UDT_DEFINED
 </SECTION>
