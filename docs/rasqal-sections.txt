@@ -49,7 +49,7 @@ rasqal_new_string_op_expression
 rasqal_new_expression_from_expression
 rasqal_free_expression
 rasqal_expression_evaluate
-rasqal_expression_evaluate_v2
+rasqal_expression_evaluate2
 rasqal_expression_print
 rasqal_expression_print_op
 rasqal_expression_visit_fn
