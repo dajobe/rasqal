@@ -208,11 +208,7 @@ rasqal_query_results_write_table(raptor_iostream *iostr,
   
 
   /* Generate separator */
-#if 1
   rasqal_iostream_write_counted_string_padded(iostr, NULL, 0, '-', sep_len);
-#else
-  raptor_iostream_write_counted_string(iostr, sep, sep_len);
-#endif
   raptor_iostream_write_byte(iostr, '\n');
 
   /* Generate variables header */
@@ -234,12 +230,8 @@ rasqal_query_results_write_table(raptor_iostream *iostr,
   raptor_iostream_write_byte(iostr, '\n');
 
   /* Generate separator */
-#if 1
   rasqal_iostream_write_counted_string_padded(iostr, NULL, 0, '=', sep_len);
   raptor_iostream_write_byte(iostr, '\n');
-#else
-  raptor_iostream_write_counted_string(iostr, sep, sep_len);
-#endif
 
   /* Write values */
   if(rows_count) {
@@ -262,11 +254,7 @@ rasqal_query_results_write_table(raptor_iostream *iostr,
     }
 
     /* Generate end separator */
-#if 1
     rasqal_iostream_write_counted_string_padded(iostr, NULL, 0, '-', sep_len);
-#else
-    raptor_iostream_write_counted_string(iostr, sep, sep_len);
-#endif
     raptor_iostream_write_byte(iostr, '\n');
   }
   
