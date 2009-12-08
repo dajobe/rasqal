@@ -1,3 +1,51 @@
+2009-12-07  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_query.c:
+	(rasqal_query_get_engine_by_name): Set default query engine based
+	on RASQAL_QUERY_ENGINE_VERSION define.  This function is currently
+	only ever called in the library with NULL as a value, so users
+	cannot switch query engine after configure.
+
+	* configure.ac:
+	Added --with-query-engine-version arg with values 1 or 2
+	Defines RASQAL_QUERY_ENGINE_VERSION with value.
+	Just adding this to allow people to switch to old engine when
+	building, if necessary.  Default query engine is now V2.
+
+2009-12-04  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_engine.c:
+	(rasqal_engine_graph_pattern_init): use
+	rasqal_query_variable_bound_in_triple not
+	rasqal_graph_pattern_variable_bound_in to check when found the
+	triple to bind in.  Former returns true for every variable in a
+	triple loop so caused mis-binding.
+
+	* src/rasqal_query_transform.c:
+	(rasqal_query_triples_build_bound_in_internal): Add debug messages
+	when a variable binding triple is found.
+
+	* src/rasqal_internal.h, src/rasqal_query.c:
+	(rasqal_query_variable_bound_in_triple): Added to check if a
+	variable is bound in a triple/column.
+
+	* src/sparql_parser.y:
+	(WhereClause): Added
+	(WhereClauseOpt): Use above or empty.
+	(SelectQuery, ConstructQuery, AskQuery): Use required WhereClause for
+	SELECT, CONSTRUCT and ASK queries
+	(DescribeQuery): Use optional WhereClauseOpt for DESCRIBE queries.
+
+	* src/sparql_parser.y: 
+	(WhereClauseOpt): WHERE is optional but the graph pattern is not.
+
+	* tests/sparql/syntax/0triples.rq:
+	Add where {} with empty graph pattern to 0triples.rq
+
+	* tests/sparql/syntax/Makefile.am,
+	tests/sparql/syntax/select-no-gp.rq: Add select * as bad query in
+	new query select-no-gp.rq
+
 2009-11-30  Dave Beckett <dave@dajobe.org>
 
 	* src/rasqal_format_sparql_xml.c:
