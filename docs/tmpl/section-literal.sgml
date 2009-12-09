@@ -34,6 +34,7 @@ boolean, double, floating, integer, regex pattern and variables.
 @RASQAL_LITERAL_BLANK: 
 @RASQAL_LITERAL_URI: 
 @RASQAL_LITERAL_STRING: 
+@RASQAL_LITERAL_XSD_STRING: 
 @RASQAL_LITERAL_BOOLEAN: 
 @RASQAL_LITERAL_INTEGER: 
 @RASQAL_LITERAL_FLOAT: 
@@ -42,6 +43,7 @@ boolean, double, floating, integer, regex pattern and variables.
 @RASQAL_LITERAL_DATETIME: 
 @RASQAL_LITERAL_FIRST_XSD: 
 @RASQAL_LITERAL_LAST_XSD: 
+@RASQAL_LITERAL_UDT: 
 @RASQAL_LITERAL_PATTERN: 
 @RASQAL_LITERAL_QNAME: 
 @RASQAL_LITERAL_VARIABLE: 
@@ -261,6 +263,24 @@ boolean, double, floating, integer, regex pattern and variables.
 @Returns: 
 
 
+<!-- ##### FUNCTION rasqal_literal_get_rdf_term_type ##### -->
+<para>
+
+</para>
+
+@l: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_literal_is_rdf_literal ##### -->
+<para>
+
+</para>
+
+@l: 
+@Returns: 
+
+
 <!-- ##### FUNCTION rasqal_literal_print ##### -->
 <para>
 
@@ -277,6 +297,16 @@ boolean, double, floating, integer, regex pattern and variables.
 
 @l: 
 @fh: 
+
+
+<!-- ##### FUNCTION rasqal_literal_same_term ##### -->
+<para>
+
+</para>
+
+@l1: 
+@l2: 
+@Returns: 
 
 
 <!-- ##### FUNCTION rasqal_literal_value ##### -->

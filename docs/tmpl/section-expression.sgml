@@ -75,6 +75,7 @@ constants and #rasqal_variable values bound in some
 @RASQAL_EXPR_AVG: 
 @RASQAL_EXPR_MIN: 
 @RASQAL_EXPR_MAX: 
+@RASQAL_EXPR_COALESCE: 
 @RASQAL_EXPR_LAST: 
 
 <!-- ##### ENUM rasqal_compare_flags ##### -->
@@ -153,6 +154,16 @@ constants and #rasqal_variable values bound in some
 @Returns: 
 
 
+<!-- ##### FUNCTION rasqal_new_coalesce_expression ##### -->
+<para>
+
+</para>
+
+@world: 
+@args: 
+@Returns: 
+
+
 <!-- ##### FUNCTION rasqal_new_function_expression ##### -->
 <para>
 
@@ -214,7 +225,7 @@ constants and #rasqal_variable values bound in some
 @Returns: 
 
 
-<!-- ##### FUNCTION rasqal_expression_evaluate_v2 ##### -->
+<!-- ##### FUNCTION rasqal_expression_evaluate2 ##### -->
 <para>
 
 </para>
