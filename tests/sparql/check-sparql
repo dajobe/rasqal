@@ -422,13 +422,15 @@ sub run_test {
 my $usage=0;
 my $manifest_file=undef;
 my $earl_report_file=undef;
+my $approved=0;
 
 GetOptions(
   'debug|d+'   => \$debug, # incremental
   'srcdir|s=s' => \$srcdir,
   'manifest|m=s' => \$manifest_file,
   'earl|e=s' => \$earl_report_file,
-  'help|h|?' => \$usage
+  'help|h|?' => \$usage,
+  'approved|a' => \$approved
 ) || pod2usage(2);
 
 pod2usage(-verbose => 2) if $usage;
@@ -549,6 +551,11 @@ while($list_node) {
 	if $debug;
       goto next_list_node;
     }
+  }
+  if($approved &&
+    (!$test_approval || $test_approval ne "<${dawgt}Approved>")) {
+    warn "$program: Test $name ($test_uri) was not approved by DAWG - skipping\n";
+    goto next_list_node;
   }
 
   my $query_file=undef;
