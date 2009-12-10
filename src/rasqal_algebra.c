@@ -1152,10 +1152,49 @@ rasqal_algebra_remove_znodes(rasqal_query* query, rasqal_algebra_node* node,
   int is_z2;
   rasqal_algebra_node *anode;
   
-  /* Look at 2-node operations and see if they can be merged */
+  /* Look for join operations with no variable join conditions and see if they
+   * can be merged, when one of node1 or node2 is an empty graph pattern.
+   */
+  if(node->op != RASQAL_ALGEBRA_OPERATOR_JOIN &&
+     node->op != RASQAL_ALGEBRA_OPERATOR_LEFTJOIN)
+    return 0;
+
+  /* Evaluate if the join condition expression is constant TRUE */
+  if(node->expr) {
+    rasqal_literal* result;
+    int bresult;
+    int error = 0;
+    
+    if(!rasqal_expression_is_constant(node->expr))
+       return 0;
+
+    result = rasqal_expression_evaluate2(query->world, &query->locator,
+                                         node->expr, query->compare_flags);
+    if(!result)
+      return 0;
+    
+    bresult = rasqal_literal_as_boolean(result, &error);
+    rasqal_free_literal(result);
+    if(error)
+      return 0;
+    
+    if(!bresult) {
+      /* join condition is always FALSE - can never merge - this join
+       * is useless and should be replaced with an empty graph
+       * pattern - FIXME  */
+      return 0;
+    }
+    
+    /* conclusion: join condition is always TRUE - so can merge nodes */
+    rasqal_free_expression(node->expr);
+    node->expr = NULL;
+  }
+  
+
   if(!node->node1 || !node->node2)
     return 0;
 
+  /* Look for empty graph patterns */
   is_z1 = rasqal_algebra_node_is_empty(node->node1);
   is_z2 = rasqal_algebra_node_is_empty(node->node2);
   
