@@ -80,10 +80,15 @@ rasqal_new_integer_literal(rasqal_world* world, rasqal_literal_type type, int in
     l->world=world;
     l->type=type;
     l->value.integer=integer;
-    l->string = rasqal_xsd_format_integer(integer, (size_t*)&l->string_len);
-    if(!l->string) {
-      rasqal_free_literal(l);
-      return NULL;
+    if(type == RASQAL_LITERAL_BOOLEAN) {
+       /* static l->string for boolean, does not need freeing */
+       l->string= integer ? RASQAL_XSD_BOOLEAN_TRUE : RASQAL_XSD_BOOLEAN_FALSE;
+    } else  {
+      l->string = rasqal_xsd_format_integer(integer, (size_t*)&l->string_len);
+      if(!l->string) {
+        rasqal_free_literal(l);
+        return NULL;
+      }
     }
     dt_uri=rasqal_xsd_datatype_type_to_uri(world, l->type);
     if(!dt_uri) {
@@ -948,7 +953,7 @@ rasqal_free_literal(rasqal_literal* l)
       break;
 
     case RASQAL_LITERAL_BOOLEAN:
-      /* static l->string for boolean, does not need freeing */
+       /* static l->string for boolean, does not need freeing */
       if(l->datatype)
 #ifdef RAPTOR_V2_AVAILABLE
         raptor_free_uri_v2(l->world->raptor_world_ptr, l->datatype);
