@@ -467,8 +467,10 @@ rasqal_new_triples_rowsource(rasqal_world *world,
     return NULL;
   }
 
-  if(!triples)
+  if(!triples) {
+    RASQAL_FREE(rasqal_bound_in, bound_in);
     return rasqal_new_empty_rowsource(world, query);
+  }
   
   con = (rasqal_triples_rowsource_context*)RASQAL_CALLOC(rasqal_triples_rowsource_context, 1, sizeof(rasqal_triples_rowsource_context));
   if(!con) {
