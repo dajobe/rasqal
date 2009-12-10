@@ -1627,7 +1627,10 @@ ConstructTriplesOpt: TriplesSameSubject '.' ConstructTriplesOpt
 }
 | /* empty */
 {
-  $$=NULL;
+  $$=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_triple, (raptor_sequence_print_handler*)rasqal_triple_print);
+  if(!$$) {
+    YYERROR_MSG("ConstructTriplesOpt: cannot create sequence");
+  }
 }
 ;
 
