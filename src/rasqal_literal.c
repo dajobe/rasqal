@@ -2226,7 +2226,8 @@ rasqal_literal_string_equals(rasqal_literal* l1, rasqal_literal* l2,
     if(!dt1 || !dt2) {
       if(error_p)
         *error_p = 1;
-      return 0;
+      result = 0;
+      goto done;
     }
     /* if different - type error */
     if(
@@ -2239,7 +2240,8 @@ rasqal_literal_string_equals(rasqal_literal* l1, rasqal_literal* l2,
     {
       if(error_p)
         *error_p = 1;
-      return 0;
+      result = 0;
+      goto done;
     }
     /* at this point the datatypes (URIs) are the same */
   }
@@ -2247,8 +2249,10 @@ rasqal_literal_string_equals(rasqal_literal* l1, rasqal_literal* l2,
   /* Finally check the lexical forms */
 
   /* not-equal if lengths are different - cheaper to try this first */
-  if(l1->string_len != l2->string_len)
-    return 0;
+  if(l1->string_len != l2->string_len) {
+    result = 0;
+    goto done;
+  }
 
   result = !strcmp((const char*)l1->string, (const char*)l2->string);
 
@@ -2260,6 +2264,12 @@ rasqal_literal_string_equals(rasqal_literal* l1, rasqal_literal* l2,
     if(error_p)
       *error_p = 1;
   }
+
+  done:
+  if(dt1)
+    raptor_free_uri(dt1);
+  if(dt2)
+    raptor_free_uri(dt2);
   
   return result;
 }
