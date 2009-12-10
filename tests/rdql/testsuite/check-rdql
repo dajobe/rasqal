@@ -38,8 +38,8 @@ use File::Basename;
 use Cwd;
 
 
-my $roqet="roqet";
-my $rapper="rapper";
+my $roqet=$ENV{ROQET} || "roqet";
+my $rapper=$ENV{RAPPER} || "rapper";
 
 
 my $rdf='http://www.w3.org/1999/02/22-rdf-syntax-ns#';

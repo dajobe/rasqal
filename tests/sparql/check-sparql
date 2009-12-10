@@ -37,9 +37,9 @@ use Getopt::Long;
 use Pod::Usage;
 use Cwd;
 
-my $roqet="roqet";
+my $roqet=$ENV{ROQET} || "roqet";
 my $rasqal_url="http://librdf.org/rasqal/";
-my $rapper="rapper";
+my $rapper=$ENV{RAPPER} || "rapper";
 
 
 my $rdf='http://www.w3.org/1999/02/22-rdf-syntax-ns#';
