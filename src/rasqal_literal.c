@@ -2188,7 +2188,9 @@ rasqal_literal_string_equals(rasqal_literal* l1, rasqal_literal* l2,
 {
   int result=1;
   raptor_uri* dt1=l1->datatype;
+  int free_dt1 = 0;
   raptor_uri* dt2=l2->datatype;
+  int free_dt2 = 0;
   raptor_uri* xsd_string_uri;
 
   xsd_string_uri = rasqal_xsd_datatype_type_to_uri(l1->world,
@@ -2212,6 +2214,7 @@ rasqal_literal_string_equals(rasqal_literal* l1, rasqal_literal* l2,
 #else
     dt1 = raptor_uri_copy(xsd_string_uri);
 #endif
+    free_dt1 = 1;
   } else if(l1->type == RASQAL_LITERAL_XSD_STRING && 
             l2->type == RASQAL_LITERAL_STRING) {
 #ifdef RAPTOR_V2_AVAILABLE
@@ -2219,6 +2222,7 @@ rasqal_literal_string_equals(rasqal_literal* l1, rasqal_literal* l2,
 #else
     dt2 = raptor_uri_copy(xsd_string_uri);
 #endif
+    free_dt2 = 1;
   }
 
   if(dt1 || dt2) {
@@ -2266,9 +2270,9 @@ rasqal_literal_string_equals(rasqal_literal* l1, rasqal_literal* l2,
   }
 
   done:
-  if(dt1)
+  if(dt1 && free_dt1)
     raptor_free_uri(dt1);
-  if(dt2)
+  if(dt2 && free_dt2)
     raptor_free_uri(dt2);
   
   return result;
