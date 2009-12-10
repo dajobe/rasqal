@@ -6,8 +6,7 @@ Project(
                         ) ,
                         BGP(
                             triple(variable(s), uri<http://example.org#p2>, variable(v2))
-                        ) ,
-                        expr(boolean(true))
+                        )
                ) ,
                expr(op lt(expr(variable(v1)), expr(integer(3))))
         ) ,
