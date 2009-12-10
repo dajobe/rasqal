@@ -359,6 +359,7 @@ rasqal_raptor_new_triples_source(rasqal_query* rdf_query,
     rasqal_data_graph *dg;
     raptor_uri* uri;
     raptor_uri* name_uri;
+    int free_name_uri = 0;
 
     dg = (rasqal_data_graph*)raptor_sequence_get_at(rdf_query->data_graphs, i);
     uri = dg->uri;
@@ -373,16 +374,20 @@ rasqal_raptor_new_triples_source(rasqal_query* rdf_query,
       rtsc->source_literals[i] = rasqal_new_uri_literal(rdf_query->world, 
                                                         raptor_uri_copy_v2(rdf_query->world->raptor_world_ptr, name_uri)
                                                         );
-    else
+    else {
       name_uri = raptor_uri_copy_v2(rdf_query->world->raptor_world_ptr, uri);
+      free_name_uri = 1;
+    }
 #else
     rtsc->source_uri = raptor_uri_copy(uri);
     if(name_uri)
       rtsc->source_literals[i] = rasqal_new_uri_literal(rdf_query->world, 
                                                         raptor_uri_copy(name_uri)
                                                         );
-    else
+    else {
       name_uri = raptor_uri_copy(uri);
+      free_name_uri = 1;
+    }
 #endif
 
     rtsc->mapped_id_base = rasqal_query_get_genid(rdf_query,
@@ -414,6 +419,14 @@ rasqal_raptor_new_triples_source(rasqal_query* rdf_query,
 #else
     raptor_free_uri(rtsc->source_uri);
 #endif
+
+    if(free_name_uri) {
+#ifdef RAPTOR_V2_AVAILABLE
+      raptor_free_uri_v2(rdf_query->world->raptor_world_ptr, name_uri);
+#else
+      raptor_free_uri(name_uri);
+#endif
+    }
 
     /* This is freed in rasqal_raptor_free_triples_source() */
     /* rasqal_free_literal(rtsc->source_literal); */
