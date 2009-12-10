@@ -2167,6 +2167,9 @@ Collection: '(' GraphNodeListNotEmpty ')'
     blank=NULL;
   }
 
+  /* free sequence of formulas just processed */
+  raptor_free_sequence($2);
+  
   $$->value=object;
   
 #if RASQAL_DEBUG > 1
@@ -2221,18 +2224,18 @@ GraphNodeListNotEmpty: GraphNodeListNotEmpty GraphNode
     fprintf(DEBUG_FH, "  and empty GraphNodeListNotEmpty\n");
 #endif
 
-  if(!$2)
-    $$=NULL;
-  else {
-    /* FIXME: does not work:
-     * $$ not initialized
-     * $1 not freed
-     * also could need a test case */
+  $$=$1;
+  if(!$$) {
+    $$ = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_formula, (raptor_sequence_print_handler*)rasqal_formula_print);
+    if(!$$)
+      YYERR_MSG_GOTO(err_GraphNodeListNotEmpty, "GraphNodeListNotEmpty: cannot create formula");
+  }
+  
+  if($2) {
     if(raptor_sequence_push($$, $2)) {
-      raptor_free_sequence($$);
-      $$=NULL;
-      YYERROR_MSG("GraphNodeListNotEmpty 1: sequence push failed");
+      YYERR_MSG_GOTO(err_GraphNodeListNotEmpty, "GraphNodeListNotEmpty 1: sequence push failed");
     }
+    $2 = NULL;
 #if RASQAL_DEBUG > 1  
     fprintf(DEBUG_FH, "  itemList is now ");
     raptor_sequence_print($$, DEBUG_FH);
@@ -2240,6 +2243,16 @@ GraphNodeListNotEmpty: GraphNodeListNotEmpty GraphNode
 #endif
   }
 
+  break; /* success */
+
+  err_GraphNodeListNotEmpty:
+  if($2)
+    rasqal_free_formula($2);
+  if($$) {
+    raptor_free_sequence($$);
+    $$=NULL;
+  }
+  YYERROR_MSG(errmsg);
 }
 | GraphNode
 {
