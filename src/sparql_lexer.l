@@ -1497,9 +1497,20 @@ sparql_token_free(rasqal_world* world, int token, YYSTYPE *lval)
   
   switch(token) {
     case STRING_LITERAL:
+    case INTEGER_LITERAL:
+    case INTEGER_POSITIVE_LITERAL:
+    case INTEGER_NEGATIVE_LITERAL:
+    case DOUBLE_LITERAL:
+    case DOUBLE_POSITIVE_LITERAL:
+    case DOUBLE_NEGATIVE_LITERAL:
+    case DECIMAL_POSITIVE_LITERAL:
+    case DECIMAL_NEGATIVE_LITERAL:
+    case DECIMAL_LITERAL:
+    case BOOLEAN_LITERAL:
       rasqal_free_literal(lval->literal);
       break;
     case URI_LITERAL:
+    case URI_LITERAL_BRACE:
 #ifdef RAPTOR_V2_AVAILABLE
       raptor_free_uri_v2(world->raptor_world_ptr, lval->uri);
 #else
@@ -1508,6 +1519,7 @@ sparql_token_free(rasqal_world* world, int token, YYSTYPE *lval)
       break;
     case IDENTIFIER:
     case BLANK_LITERAL:
+    case PREFIX:
       RASQAL_FREE(cstring, lval->name);
       break;
     case QNAME_LITERAL:
