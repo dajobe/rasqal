@@ -1,4 +1,72 @@
+2009-12-10  Dave Beckett <dave@dajobe.org>
+
+	* tests/algebra/test-05.out, tests/algebra/test-06.out,
+	tests/algebra/test-08.out, tests/algebra/test-09.out:
+	Update expected results to remove optimized-out expr(boolean(true))
+
+	* src/rasqal_algebra.c:
+	(rasqal_algebra_remove_znodes): Only merge join nodes with two
+	nodes, one of which is an empty graph pattern.  If there is a join
+	condition, it must be constant TRUE.
+
+	This optimization of constant join conditions - TRUE/FALSE should
+	be a separate previous path and replace join with always FALSE
+	conditions with an empty node.
+
+	* src/sparql_parser.y:
+	(Collection): Free sequence of formulas after processing the
+	triples.
+	(GraphNodeListNotEmpty): Join node to sequence and initialise if
+	NULL, handle errors and cleanup.
+
+	* src/sparql_lexer.l:
+	(sparql_token_free): Free more literal types when debugging lexing.
+
+	* src/rasqal_rowsource_triples.c:
+	(rasqal_new_triples_rowsource): If this is an empty triple
+	pattern, free owned bound_in before calling return
+	rasqal_new_empty_rowsource constructor.
+
+	* tests/rdql/testsuite/check-rdql, tests/sparql/check-sparql:
+	Allow check-rdql and check-sparql to override roqet and rapper
+	using envariables ROQET and RAPPER
+
+	* src/rasqal_literal.c:
+	(rasqal_literal_string_equals): Only free dt1 and dt2 if allocated
+	here.
+
+2009-12-10  Lauri Aalto <laalto@iki.fi>
+
+	* src/sparql_parser.y:
+	(ConstructTriplesOpt): Initialize empty query->constructs
+	sequence. Fixes
+	sparql/SyntaxDev/Syntax-SPARQL2/syntax-form-construct05.rq test.
+
+2009-12-10  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_literal.c:
+	(rasqal_literal_string_equals): Free dt1 and dt2 on success and
+	error.
+
+	* src/rasqal_literal.c:
+	(rasqal_new_integer_literal): Assign static string for
+	RASQAL_LITERAL_BOOLEAN to avoid memory leak on string later.
+
+	* src/rasqal_raptor.c:
+	(rasqal_raptor_new_triples_source): Free name_uri when copied
+	here.
+
+2009-12-08  Dave Beckett <dave@dajobe.org>
+
+	* docs/tmpl/rasqal-unused.sgml, docs/tmpl/section-expression.sgml,
+	docs/tmpl/section-graph_pattern.sgml,
+	docs/tmpl/section-literal.sgml, docs/tmpl/section-unused.sgml:
+	update derived docs
+
 2009-12-07  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_format_table.c: Remove several #if 1 blocks for
+	writing padded strings
 
 	* src/rasqal.h, src/rasqal_engine.c, src/rasqal_engine_sort.c,
 	src/rasqal_expr.c, src/rasqal_query_transform.c,
