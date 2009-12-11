@@ -2271,10 +2271,18 @@ rasqal_literal_string_equals(rasqal_literal* l1, rasqal_literal* l2,
 
   done:
   if(dt1 && free_dt1)
+#ifdef RAPTOR_V2_AVAILABLE
+    raptor_free_uri_v2(l1->world->raptor_world_ptr, dt1);
+#else
     raptor_free_uri(dt1);
+#endif
   if(dt2 && free_dt2)
+#ifdef RAPTOR_V2_AVAILABLE
+    raptor_free_uri_v2(l1->world->raptor_world_ptr, dt2);
+#else
     raptor_free_uri(dt2);
-  
+#endif
+
   return result;
 }
 
