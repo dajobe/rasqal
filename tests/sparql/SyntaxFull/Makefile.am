@@ -102,7 +102,7 @@ get-testsuites-list:
 	@echo "sparql-lexer sparql-parser sparql-query"
 
 get-testsuite-sparql-lexer get-testsuite-sparql-parser:
-	tests="$(SPARQL_TEST_FILES)"; \
+	@tests="$(SPARQL_TEST_FILES)"; \
 	type=`echo $@ | sed -e 's/^.*sparql-//' -e 's/er$$//'`; \
 	verb=`echo $$type`ing; \
 	prog=sparql_`echo $$type`er_test; \
