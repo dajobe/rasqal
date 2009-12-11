@@ -1230,8 +1230,10 @@ rasqal_query_results_get_boolean(rasqal_query_results* query_results)
   if(query_results->ask_result >= 0)
     return query_results->ask_result;
 
-  query_results->ask_result= (query_results->result_count > 0) ? 1 : 0;
-  query_results->finished= 1;
+  rasqal_query_results_ensure_have_row_internal(query_results);
+  
+  query_results->ask_result = (query_results->result_count > 0) ? 1 : 0;
+  query_results->finished = 1;
   
   return query_results->ask_result;
 }
