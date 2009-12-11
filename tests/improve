@@ -58,7 +58,7 @@ sub get_testsuites($) {
     if $debug > 1;
   system $cmd;
 
-  $cmd="cd $dir && $MAKE get-testsuites-list 2>/dev/null | tail -1";
+  $cmd="cd $dir && $MAKE get-testsuites-list 2>/dev/null | grep -v 'ing directory' | tail -1";
   print STDERR "$program: Running $cmd\n"
     if $debug > 1;
   my $raw=`$cmd`;
@@ -263,7 +263,7 @@ sub prepare_testsuite($) {
   unlink $plan_file;
   if(!-r $plan_file) {
     system("$MAKE >/dev/null 2>&1");
-    my $cmd="$MAKE get-testsuite-$name 2>/dev/null | sed -n -e '/\@prefix/,\$p' > $plan_file";
+    my $cmd="$MAKE get-testsuite-$name 2>/dev/null | grep -v 'ing directory' | sed -n -e '/\@prefix/,\$p' > $plan_file";
     print STDERR "$program: Running $cmd\n"
       if $debug > 1;
     system $cmd;
