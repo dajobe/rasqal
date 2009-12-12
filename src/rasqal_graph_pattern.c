@@ -285,35 +285,6 @@ rasqal_graph_pattern_get_filter_expression(rasqal_graph_pattern* gp)
 
 
 /**
- * rasqal_graph_pattern_add_constraint:
- * @gp: #rasqal_graph_pattern query object
- * @expr: #rasqal_expression expr - ownership taken
- *
- * Add a constraint expression to the graph_pattern.
- *
- * @deprecated: Use rasqal_graph_pattern_set_filter_expression()
- *
- * Return value: non-0 on failure
- **/
-int
-rasqal_graph_pattern_add_constraint(rasqal_graph_pattern* gp,
-                                    rasqal_expression* expr)
-{
-  if(!gp->constraints) {
-    gp->constraints=raptor_new_sequence(NULL, 
-                                        (raptor_sequence_print_handler*)rasqal_expression_print);
-    if(!gp->constraints) {
-      rasqal_free_expression(expr);
-      return 1;
-    }
-  }
-  raptor_sequence_set_at(gp->constraints, 0, expr);
-
-  return rasqal_graph_pattern_set_filter_expression(gp, expr);
-}
-
-
-/**
  * rasqal_graph_pattern_get_constraint_sequence:
  * @gp: #rasqal_graph_pattern object
  *
