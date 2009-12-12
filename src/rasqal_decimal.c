@@ -99,16 +99,17 @@ struct rasqal_xsd_decimal_s {
 
 /**
  * rasqal_new_xsd_decimal:
+ * @world: rasqal world object
  * 
  * Create a new XSD Decimal object.
  * 
  * Return value: new xsd:decimal object or NULL on failure.
  **/
 rasqal_xsd_decimal*
-rasqal_new_xsd_decimal(void)
+rasqal_new_xsd_decimal(rasqal_world* world)
 {
   rasqal_xsd_decimal* dec;
-  dec=(rasqal_xsd_decimal*)RASQAL_MALLOC(decimal, sizeof(rasqal_xsd_decimal));
+  dec = (rasqal_xsd_decimal*)RASQAL_MALLOC(decimal, sizeof(rasqal_xsd_decimal));
   if(dec)
     rasqal_xsd_decimal_init(dec);
   return dec;
@@ -825,6 +826,9 @@ main(int argc, char *argv[]) {
   const char* expected_negative_b="-1.23456789012345678e17";
   int expected_a_compare_b= -1;
   int expected_a_equals_b= 0;
+  rasqal_world *world;
+
+  world = rasqal_new_world();
 
 #ifdef RASQAL_DECIMAL_MPFR
   fprintf(stderr, "%s: Using MPFR %s\n", program, mpfr_get_version());
@@ -851,8 +855,8 @@ main(int argc, char *argv[]) {
   rasqal_xsd_decimal_init(&a);
   rasqal_xsd_decimal_init(&b);
 
-  result=rasqal_new_xsd_decimal();
-  result2=rasqal_new_xsd_decimal();
+  result = rasqal_new_xsd_decimal(world);
+  result2 = rasqal_new_xsd_decimal(world);
   if(!result || !result2) {
     fprintf(stderr, "%s: rasqal_new_xsd_decimal() failed\n", program);
     FAIL;
@@ -939,6 +943,8 @@ main(int argc, char *argv[]) {
   if(result2)
      rasqal_free_xsd_decimal(result2);
 
+  rasqal_free_world(world);
+  
 #ifdef RASQAL_DECIMAL_NONE
   if(failures)
     fprintf(stderr, "%s: ignoring %d failures as RASQAL_DECIMAL_NONE specified\n", program, failures);

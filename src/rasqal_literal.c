@@ -521,7 +521,7 @@ rasqal_literal_set_typed_value(rasqal_literal* l, rasqal_literal_type type,
       break;
 
     case RASQAL_LITERAL_DECIMAL:
-      l->value.decimal=rasqal_new_xsd_decimal();
+      l->value.decimal = rasqal_new_xsd_decimal(l->world);
       if(!l->value.decimal) {
         RASQAL_FREE(cstring, (void*)l->string);
         return 1;
@@ -3052,7 +3052,7 @@ rasqal_literal_add(rasqal_literal* l1, rasqal_literal* l2, int *error_p)
       if(l1_p)
         l2_p = rasqal_new_literal_from_promotion(l2, type, flags);
       if(l1_p && l2_p) {
-        dec=rasqal_new_xsd_decimal();
+        dec = rasqal_new_xsd_decimal(l1->world);
         if(rasqal_xsd_decimal_add(dec, l1_p->value.decimal,
                                   l2_p->value.decimal)) {
           error=1;
@@ -3135,7 +3135,7 @@ rasqal_literal_subtract(rasqal_literal* l1, rasqal_literal* l2, int *error_p)
       if(l1_p)
         l2_p = rasqal_new_literal_from_promotion(l2, type, flags);
       if(l1_p && l2_p) {
-        dec=rasqal_new_xsd_decimal();
+        dec = rasqal_new_xsd_decimal(l1->world);
         if(rasqal_xsd_decimal_subtract(dec, l1_p->value.decimal,
                                        l2_p->value.decimal)) {
           error=1;
@@ -3218,7 +3218,7 @@ rasqal_literal_multiply(rasqal_literal* l1, rasqal_literal* l2, int *error_p)
       if(l1_p)
         l2_p = rasqal_new_literal_from_promotion(l2, type, flags);
       if(l1_p && l2_p) {
-        dec=rasqal_new_xsd_decimal();
+        dec = rasqal_new_xsd_decimal(l1->world);
         if(rasqal_xsd_decimal_multiply(dec, l1_p->value.decimal,
                                        l2_p->value.decimal)) {
           error=1;
@@ -3311,7 +3311,7 @@ rasqal_literal_divide(rasqal_literal* l1, rasqal_literal* l2, int *error_p)
       if(l1_p)
         l2_p = rasqal_new_literal_from_promotion(l2, type, flags);
       if(l1_p && l2_p) {
-        dec=rasqal_new_xsd_decimal();
+        dec = rasqal_new_xsd_decimal(l1->world);
         if(rasqal_xsd_decimal_add(dec, l1_p->value.decimal,
                                   l2_p->value.decimal)) {
           error=1;
@@ -3379,7 +3379,7 @@ rasqal_literal_negate(rasqal_literal* l, int *error_p)
       break;
       
     case RASQAL_LITERAL_DECIMAL:
-      dec=rasqal_new_xsd_decimal();
+      dec = rasqal_new_xsd_decimal(l->world);
       if(rasqal_xsd_decimal_negate(dec, l->value.decimal)) {
         error=1;
         rasqal_free_xsd_decimal(dec);

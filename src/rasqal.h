@@ -1119,7 +1119,7 @@ void* rasqal_calloc_memory(size_t nmemb, size_t size);
 
 /* decimal functions */
 RASQAL_API
-rasqal_xsd_decimal* rasqal_new_xsd_decimal(void);
+rasqal_xsd_decimal* rasqal_new_xsd_decimal(rasqal_world* world);
 RASQAL_API
 void rasqal_free_xsd_decimal(rasqal_xsd_decimal* dec);
 RASQAL_API
