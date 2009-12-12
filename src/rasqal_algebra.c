@@ -1168,8 +1168,8 @@ rasqal_algebra_remove_znodes(rasqal_query* query, rasqal_algebra_node* node,
     if(!rasqal_expression_is_constant(node->expr))
        return 0;
 
-    result = rasqal_expression_evaluate2(query->world, &query->locator,
-                                         node->expr, query->compare_flags);
+    result = rasqal_expression_evaluate(query->world, &query->locator,
+                                        node->expr, query->compare_flags);
     if(!result)
       return 0;
     

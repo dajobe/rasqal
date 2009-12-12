@@ -362,8 +362,8 @@ rasqal_engine_rowsort_calculate_order_values(rasqal_query* query,
     rasqal_literal *l;
     
     e = (rasqal_expression*)raptor_sequence_get_at(query->order_conditions_sequence, i);
-    l = rasqal_expression_evaluate2(query->world, &query->locator,
-                                    e, query->compare_flags);
+    l = rasqal_expression_evaluate(query->world, &query->locator,
+                                   e, query->compare_flags);
     if(row->order_values[i])
       rasqal_free_literal(row->order_values[i]);
     if(l) {

@@ -123,8 +123,8 @@ rasqal_filter_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
     if(!row)
       break;
 
-    result = rasqal_expression_evaluate2(rowsource->world, &query->locator,
-                                         con->expr, query->compare_flags);
+    result = rasqal_expression_evaluate(rowsource->world, &query->locator,
+                                        con->expr, query->compare_flags);
 #ifdef RASQAL_DEBUG
     RASQAL_DEBUG1("filter expression result: ");
     if(!result)
