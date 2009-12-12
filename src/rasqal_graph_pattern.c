@@ -285,24 +285,6 @@ rasqal_graph_pattern_get_filter_expression(rasqal_graph_pattern* gp)
 
 
 /**
- * rasqal_graph_pattern_get_constraint_sequence:
- * @gp: #rasqal_graph_pattern object
- *
- * Get the sequence of constraints expressions in the query.
- *
- * @deprecated: always returns a sequence with one expression.
- * Use rasqal_graph_pattern_get_filter_expression() to return it.
- *
- * Return value: NULL
- **/
-raptor_sequence*
-rasqal_graph_pattern_get_constraint_sequence(rasqal_graph_pattern* gp)
-{
-  return gp->constraints;
-}
-
-
-/**
  * rasqal_graph_pattern_get_constraint:
  * @gp: #rasqal_graph_pattern query object
  * @idx: index into the sequence (0 or larger)
