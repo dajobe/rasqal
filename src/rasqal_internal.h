@@ -210,11 +210,6 @@ struct rasqal_graph_pattern_s {
   int start_column;
   int end_column;
 
-  /* used to support DEPRECATED functions
-   * rasqal_graph_pattern_get_constraint_sequence() and
-   * rasqal_graph_pattern_get_constraint()  */
-  raptor_sequence *constraints; /* ... rasqal_expression*          */
-
   /* the FILTER / LET expression */
   rasqal_expression* filter_expression;
 

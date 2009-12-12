@@ -223,9 +223,6 @@ rasqal_free_graph_pattern(rasqal_graph_pattern* gp)
   if(gp->filter_expression)
     rasqal_free_expression(gp->filter_expression);
 
-  if(gp->constraints)
-    raptor_free_sequence(gp->constraints);
-
   if(gp->origin)
     rasqal_free_literal(gp->origin);
 
