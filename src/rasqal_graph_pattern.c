@@ -282,25 +282,6 @@ rasqal_graph_pattern_get_filter_expression(rasqal_graph_pattern* gp)
 
 
 /**
- * rasqal_graph_pattern_get_constraint:
- * @gp: #rasqal_graph_pattern query object
- * @idx: index into the sequence (0 or larger)
- *
- * Get a constraint in the sequence of constraint expressions in the query.
- *
- * @deprecated: A FILTER graph pattern always has one expression
- * that can be returned with rasqal_graph_pattern_get_filter_expression()
- *
- * Return value: a #rasqal_expression pointer or NULL if out of the sequence range
- **/
-rasqal_expression*
-rasqal_graph_pattern_get_constraint(rasqal_graph_pattern* gp, int idx)
-{
-  return rasqal_graph_pattern_get_filter_expression(gp);
-}
-
-
-/**
  * rasqal_graph_pattern_get_operator:
  * @graph_pattern: #rasqal_graph_pattern graph pattern object
  *

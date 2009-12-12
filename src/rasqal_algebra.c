@@ -1487,7 +1487,7 @@ main(int argc, char *argv[]) {
   sgp = rasqal_graph_pattern_get_sub_graph_pattern(query_gp, 1);
   expr = rasqal_graph_pattern_get_filter_expression(sgp);
   if(!expr) {
-    fprintf(stderr, "%s: rasqal_graph_pattern_get_constraint() failed\n", program);
+    fprintf(stderr, "%s: rasqal_graph_pattern_get_filter_expression() failed\n", program);
     FAIL;
   }
   expr = rasqal_new_expression_from_expression(expr);
