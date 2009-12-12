@@ -1,4 +1,33 @@
-2009-12-12  Dave Beckett  <dave@dajobe.org>
+2009-12-12  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal.h, src/rasqal_decimal.c, src/rasqal_literal.c:
+	(rasqal_new_xsd_decimal): Add rasqal_world arg to constructor to
+	match all other classes.
+
+	* src/rasqal.h, src/rasqal_algebra.c, src/rasqal_graph_pattern.c:
+	Remove deprecated rasqal_graph_pattern_get_constraint
+
+	* src/rasqal_graph_pattern.c, src/rasqal_internal.h: struct
+	rasqal_graph_pattern_s loses constraints field used to support
+	deprecate functions
+
+	* src/rasqal.h, src/rasqal_graph_pattern.c:
+	Removed deprecated rasqal_graph_pattern_get_constraint_sequence
+
+	* src/rasqal.h, src/rasqal_graph_pattern.c:
+	Removed deprecated rasqal_graph_pattern_add_constraint
+
+	* src/rasqal.h, src/rasqal_algebra.c, src/rasqal_engine.c,
+	src/rasqal_engine_sort.c, src/rasqal_expr.c,
+	src/rasqal_query_transform.c, src/rasqal_rowsource_assignment.c,
+	src/rasqal_rowsource_filter.c, src/rasqal_rowsource_join.c,
+	src/rasqal_rowsource_project.c:
+	Removed deprecated rasqal_expression_evaluate
+
+	Replaced rasqal_expression_evaluate with formerly named
+	rasqal_expression_evaluate2 with an extra rasqal_world arg.
+
+	* configure.ac: RASQAL_LIBTOOL_VERSION 2:0:0
 
 	* Breaking ABI/API and bumping library soname after this commit.
 	Removing deprecated functions, methods.
