@@ -1,3 +1,8 @@
+2009-12-12  Dave Beckett  <dave@dajobe.org>
+
+	* Breaking ABI/API and bumping library soname after this commit.
+	Removing deprecated functions, methods.
+
 2009-12-10  Dave Beckett <dave@dajobe.org>
 
 	* tests/algebra/test-05.out, tests/algebra/test-06.out,
