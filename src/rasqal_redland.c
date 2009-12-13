@@ -71,7 +71,7 @@ rasqal_literal_to_redland_node(librdf_world *world, rasqal_literal* l)
   else if(type == RASQAL_LITERAL_BLANK)
     return librdf_new_node_from_blank_identifier(world, l->string);
   else
-    RASQAL_FATAL1("Literal type %d cannot be converted to a librdf_node",
+    RASQAL_FATAL2("Literal type %d cannot be converted to a librdf_node",
                   type);
 
   return NULL;
@@ -516,8 +516,9 @@ rasqal_redland_init(rasqal_world* world)
 }
 
 void
-rasqal_redland_finish() {
+rasqal_redland_finish(void) {
   librdf_free_world(Rasqal_Redland_World);
+
   Rasqal_Redland_World = NULL;
 }
 
