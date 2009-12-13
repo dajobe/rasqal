@@ -192,7 +192,6 @@ void rasqal_system_free(void *ptr);
 
 typedef struct rasqal_query_execution_factory_s rasqal_query_execution_factory;
 typedef struct rasqal_query_language_factory_s rasqal_query_language_factory;
-typedef struct rasqal_variables_table_s rasqal_variables_table;
 
 
 /*
