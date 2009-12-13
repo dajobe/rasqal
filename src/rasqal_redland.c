@@ -516,9 +516,12 @@ rasqal_redland_init(rasqal_world* world)
 }
 
 void
-rasqal_redland_finish(void) {
-  librdf_free_world(Rasqal_Redland_World);
+rasqal_redland_finish(void)
+{
+  if(Rasqal_Redland_World) {
+    librdf_free_world(Rasqal_Redland_World);
 
-  Rasqal_Redland_World = NULL;
+    Rasqal_Redland_World = NULL;
+  }
 }
 
