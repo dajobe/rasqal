@@ -86,8 +86,18 @@ while test $# -gt 0; do
       ;;
 # Computed here
     --version-decimal)
-      version_expr=`$PKGCONFIG $PACKAGE --modversion | sed -e 's/\./ \\\\* 10000 + /' -e 's/\./ \\\\* 100 + /'`
-      eval expr $version_expr
+      version=`$PKGCONFIG $PACKAGE --modversion`
+      version_dec=0
+      for multiplier in 10000 100 1; do
+        version_part=`echo $version | sed -e 's/\..*$//'`
+        version_dec=`expr $multiplier \* $version_part + $version_dec`
+	if [ $version = $version_part ]; then
+          version=0
+        else
+          version=`echo $version | sed -e 's/^[^.]*\.//'`
+        fi
+      done
+      echo $version_dec
       exit 0
       ;;
 # Other options are passed through
