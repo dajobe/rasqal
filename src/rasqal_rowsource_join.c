@@ -77,6 +77,9 @@ typedef struct
 
   /* map for checking compatibility of rows */
   rasqal_row_compatible* rc_map;
+
+  /* number of right rows joined per-left */
+  int right_rows_joined_count;
 } rasqal_join_rowsource_context;
 
 
@@ -315,13 +318,31 @@ rasqal_join_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
         return NULL;
       }
 
+      con->right_rows_joined_count = 0;
+
       rasqal_rowsource_reset(con->right);
     }
 
 
     right_row = rasqal_rowsource_read_row(con->right);
     if(!right_row && con->state == READ_RIGHT) {
-      /* right table done, restart left, continue looping */
+      /* right table done */
+
+      /* if all right table returned no bindings, return left row */
+      if(!con->right_rows_joined_count) {
+        /* otherwise return LEFT or RIGHT row only */
+        if(con->join_type == RASQAL_JOIN_TYPE_LEFT) {
+          /* LEFT JOIN - add left row if expr fails or not compatible */
+          if(con->left_row) {
+            con->right_rows_joined_count++;
+        
+            row = rasqal_join_rowsource_build_merged_row(rowsource, con, NULL);
+            break;
+          }
+        }
+      }
+
+      /* restart left, continue looping */
       con->state = INIT_RIGHT;
       if(con->left_row)
         rasqal_free_row(con->left_row);
@@ -373,6 +394,8 @@ rasqal_join_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
     if(con->join_type == RASQAL_JOIN_TYPE_NATURAL) {
       /* found a row if compatible and constraint matches */
       if(compatible && bresult && right_row) {
+        con->right_rows_joined_count++;
+
         row = rasqal_join_rowsource_build_merged_row(rowsource, con, right_row);
         break;
       }
@@ -383,6 +406,8 @@ rasqal_join_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
        *   and mu2 are compatible and expr(merge(mu1, mu2)) is true }
        */
       if(compatible && bresult) {
+        con->right_rows_joined_count++;
+
         /* No constraint OR constraint & compatible so return merged row */
 
         /* Compute row only now it is known to be needed */
@@ -393,16 +418,14 @@ rasqal_join_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
       /*
        * { mu1 | mu1 in Omega1 and mu2 in Omega2, and mu1 and mu2 are
        * not compatible }
-       *
-       * { mu1 | mu1 in Omega1 and mu2 in Omega2, and mu1 and mu2 are
-       *   compatible and expr(merge(mu1, mu2)) is false }
        */
-      
-      if(!compatible || (compatible && !bresult)) {
+      if(!compatible) {
         /* otherwise return LEFT or RIGHT row only */
         if(con->join_type == RASQAL_JOIN_TYPE_LEFT) {
           /* LEFT JOIN - add left row if expr fails or not compatible */
           if(con->left_row) {
+            con->right_rows_joined_count++;
+
             row = rasqal_join_rowsource_build_merged_row(rowsource, con, NULL);
             if(right_row)
               rasqal_free_row(right_row);
@@ -411,6 +434,16 @@ rasqal_join_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
         }
       }
 
+      /*
+       * { mu1 | mu1 in Omega1 and mu2 in Omega2, and mu1 and mu2 are
+       *   compatible and for all mu2, expr(merge(mu1, mu2)) is false }
+       */
+      
+      /* The above is handled using check for
+       * !con->right_rows_joined_count earlier, to generate a row
+       * once.
+       */
+      
     } /* end if LEFT JOIN */
 
   } /* end while */
