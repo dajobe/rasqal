@@ -2,7 +2,7 @@
 #
 # Rasqal configuration program - wrapper around 'pkg-config rasqal'
 #
-# Copyright (C) 2003-2008, David Beckett http://purl.org/net/dajobe/
+# Copyright (C) 2003-2009, David Beckett http://www.dajobe.org/
 # Copyright (C) 2003-2004, University of Bristol, UK http://www.bristol.ac.uk/
 # 
 # This package is Free Software and part of Redland http://librdf.org/
@@ -28,15 +28,16 @@ PKGCONFIG=pkg-config
 usage()
 {
 	cat<<EOF
-Usage: rasqal-config [OPTION]
+Usage: $PACKAGE-config [OPTION]
 
-known values for OPTION are:
+Known values for OPTION are:
 
-  --prefix[=DIR]        change rasqal prefix [default $prefix]
+  --prefix              print installation prefix path
+  --prefix=DIR          IGNORED
   --libs                print library linking information
-  --libtool-libs        print linking information for use with libtool
+  --libtool-libs        IGNORED
   --private-libs        print library private/static linking information
-  --cflags              print pre-processor and compiler flags
+  --cflags		print pre-processor and compiler flags
   --help                display this help and exit
   --version             output version information
   --version-decimal     output version as a decimal integer
@@ -49,6 +50,7 @@ if test $# -eq 0; then
   usage 1 1>&2
 fi
 
+
 if $PKGCONFIG $PACKAGE --exists; then
   : # exists
 else
@@ -58,25 +60,29 @@ fi
 
 args=""
 while test $# -gt 0; do
-  arg=$1
-  case $arg in
+  case "$1" in
+    -*=*) optarg=`echo "$1" | sed 's/[-_a-zA-Z0-9]*=//'` ;;
+    *) optarg= ;;
+  esac
+
+  case $1 in
 # GNU standards require this
-    --help)
+    --help|--usage)
       usage 0
       ;;
 # Ignored options
-    --libtool-libs)
-      echo "$0: --libtool-libs option ignored" 1>&2
+    --libtool-libs|--prefix=*)
+      echo "$0: $1 option ignored" 1>&2
       ;;
 # Altered options
-    --prefix*)
-      args="$args --variable=prefix"
+    --prefix)
+      args="$args --variable=prefix";
       ;;
     --version)
       args="$args --modversion";
       ;;
     --private-libs)
-      args="$args --static --libs"
+      args="$args --static --libs";
       ;;
 # Computed here
     --version-decimal)
@@ -85,13 +91,13 @@ while test $# -gt 0; do
       exit 0
       ;;
 # Other options are passed through
-    *)
-      args="$args $arg"
+      *)
+      args="$args $1"
       ;;
   esac
 
   shift
 done
   
-$PKGCONFIG $PACKAGE $args
 
+$PKGCONFIG $PACKAGE $args
