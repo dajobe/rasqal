@@ -1357,6 +1357,12 @@ int rasqal_set_triples_source_factory(rasqal_world* world, rasqal_triples_source
 /* The info below is solely for gtk-doc - ignore it */
 
 /**
+ * raptor_world:
+ *
+ * Internal
+ */
+
+/**
  * RAPTOR_WORLD_DECLARED:
  *
  * Internal
@@ -1464,6 +1470,12 @@ int rasqal_set_triples_source_factory(rasqal_world* world, rasqal_triples_source
  * @user_data: user data
  *
  * Internal - see #rasqal_triples_source
+ */
+
+/**
+ * rasqal_variables_table:
+ *
+ * Internal - for now
  */
 
 
