@@ -170,11 +170,11 @@ typedef enum {
 
 /**
  * rasqal_prefix:
+ * @world: rasqal_world object
  * @prefix: short prefix string
  * @uri: URI associated with the prefix.
  * @declared: Internal flag.
  * @depth: Internal flag.
- * @world: rasqal_world object
  *
  * Namespace (prefix, uri) pair.
  *
@@ -182,11 +182,11 @@ typedef enum {
  * declared and at what XML element depth when used in XML formats.
  */
 typedef struct {
+  rasqal_world* world;
   const unsigned char *prefix;
   raptor_uri* uri;
   int declared;
   int depth;
-  rasqal_world* world;
 } rasqal_prefix;
 
 
@@ -210,9 +210,11 @@ typedef enum {
 
 /* forward reference */
 struct rasqal_expression_s;
+typedef struct rasqal_variables_table_s rasqal_variables_table;
 
 /**
  * rasqal_variable:
+ * @vars_table: variables table that owns this variable
  * @name: Variable name.
  * @value: Variable value or NULL if unbound.
  * @offset: Internal.
@@ -225,6 +227,7 @@ struct rasqal_expression_s;
  * (internal) rasqal_query variables array.
  */
 typedef struct {
+  rasqal_variables_table* vars_table;
   const unsigned char *name;
   rasqal_literal* value;
   int offset;
@@ -252,10 +255,10 @@ typedef enum {
 
 /**
  * rasqal_data_graph:
+ * @world: rasqal_world object
  * @uri: source URI
  * @name_uri: name of graph for %RASQAL_DATA_NAMED
  * @flags: %RASQAL_DATA_GRAPH_NAMED or %RASQAL_DATA_GRAPH_BACKGROUND
- * @world: rasqal_world object
  *
  * A source of RDF data for querying. 
  *
@@ -264,10 +267,10 @@ typedef enum {
  * %RASQAL_DATA_NAMED
  */
 typedef struct {
+  rasqal_world* world;
   raptor_uri* uri;
   raptor_uri* name_uri;
   int flags;
-  rasqal_world* world;
 } rasqal_data_graph;
 
 
@@ -347,6 +350,7 @@ typedef struct rasqal_xsd_decimal_s rasqal_xsd_decimal;
 
 /**
  * rasqal_literal:
+ * @world: world object pointer
  * @usage: Usage count.
  * @type: Type of literal.
  * @string: String form of literal for literal types UTF-8 string, pattern, qname, blank, double, float, decimal, datetime.
@@ -356,15 +360,18 @@ typedef struct rasqal_xsd_decimal_s rasqal_xsd_decimal;
  * @datatype: Datatype for string literal type.
  * @flags: Flags for literal types
  * @parent_type: parent XSD type if any or RASQAL_LITERAL_UNKNOWN
- * @world: world object pointer
  * @valid: >0 if literal format is a valid lexical form for this datatype. 0 if not valid. <0 if this has not been checked yet
  *
  * Rasqal literal class.
  *
  */
 struct rasqal_literal_s {
+  rasqal_world *world;
+
   int usage;
+
   rasqal_literal_type type;
+
   /* UTF-8 string, pattern, qname, blank, double, float, decimal, datetime */
   const unsigned char *string;
   unsigned int string_len;
@@ -394,8 +401,6 @@ struct rasqal_literal_s {
   const unsigned char *flags;
 
   rasqal_literal_type parent_type;
-
-  rasqal_world *world;
 
   int valid;
 };
@@ -508,27 +513,35 @@ typedef enum {
 
 /**
  * rasqal_expression:
+ * @world: rasqal_world object
+ * @usage: reference count - 1 for itself
+ * @op: expression operation
+ * @arg1: first argument
+ * @arg2: second argument
+ * @arg3: third argument (for #EXPR_REGEX )
+ * @literal: literal argument
+ * @value: UTF-8 value
+ * @name: name for extension function qname(args...) and cast-to-uri
+ * @args; args for extension function qname(args...), cast-to-uri and COALESCE
  *
- * expression (arg1), unary op (arg1), binary op (arg1,arg2),
- * literal or variable 
+ * Expression with arguments
+ *
  */
 struct rasqal_expression_s {
-  int usage; /* reference count - 1 for itself */
+  rasqal_world* world;
 
+  int usage;
+  
   rasqal_op op;
+
   struct rasqal_expression_s* arg1;
   struct rasqal_expression_s* arg2;
-  struct rasqal_expression_s* arg3; /* optional 3rd arg for EXPR_REGEX */
+  struct rasqal_expression_s* arg3;
   rasqal_literal* literal;
-  unsigned char *value; /* UTF-8 value */
+  unsigned char *value;
 
-  /* for extension function qname(args...) and cast-to-uri */
   raptor_uri* name;
-  /* for extension function qname(args...) and cast-to-uri and COALESCE() */
   raptor_sequence* args;
-  
-  /* rasqal_world object */
-  rasqal_world* world;
 };
 typedef struct rasqal_expression_s rasqal_expression;
 
@@ -1183,12 +1196,12 @@ typedef enum {
 
 /**
  * rasqal_triples_match:
+ * @world: rasqal_world object
  * @user_data: User data pointer for factory methods.
  * @bind_match: The [4]array (s,p,o,origin) bindings against the current triple match only touching triple parts given. Returns parts that were bound or 0 on failure.
  * @next_match: Move to next match.
  * @is_end: Check for end of triple match - return non-0 if is end.
  * @finish: Finish triples match and destroy any allocated memory.
- * @world: rasqal_world object
  * @is_exact: non-0 if triple to match is all literal constants
  * @finished: >0 if the match has finished
  * 
@@ -1196,6 +1209,8 @@ typedef enum {
  * method init_triples_match.
  */
 struct rasqal_triples_match_s {
+  rasqal_world *world;
+
   void *user_data;
 
   rasqal_triple_parts (*bind_match)(struct rasqal_triples_match_s* rtm, void *user_data, rasqal_variable *bindings[4], rasqal_triple_parts parts);
@@ -1205,8 +1220,6 @@ struct rasqal_triples_match_s {
   int (*is_end)(struct rasqal_triples_match_s* rtm, void *user_data);
 
   void (*finish)(struct rasqal_triples_match_s* rtm, void *user_data);
-
-  rasqal_world *world;
 
   int is_exact;
 
