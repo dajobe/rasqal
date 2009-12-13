@@ -1214,6 +1214,7 @@ struct rasqal_triples_match_s {
 };
 typedef struct rasqal_triples_match_s rasqal_triples_match;
 
+
 /**
  * rasqal_triple_meta:
  * @bindings: Variable bindings for this triple+origin to set.
@@ -1241,8 +1242,12 @@ typedef struct {
 } rasqal_triple_meta;
 
 
+#define RASQAL_TRIPLES_SOURCE_MIN_VERSION 1
+#define RASQAL_TRIPLES_SOURCE_MAX_VERSION 1
+
 /**
  * rasqal_triples_source:
+ * @version: API version - only V1 is defined for now
  * @query: Source for this query.
  * @user_data: Context user data passed into the factory methods.
  * @init_triples_match: Factory method to initalise a new #rasqal_triples_match.
@@ -1252,21 +1257,29 @@ typedef struct {
  * Triples source as initialised by a #rasqal_triples_source_factory.
  */
 struct rasqal_triples_source_s {
+  int version;
+  
   rasqal_query* query;
 
   void *user_data;
 
+  /* API v1 */
   int (*init_triples_match)(rasqal_triples_match* rtm, struct rasqal_triples_source_s* rts, void *user_data, rasqal_triple_meta *m, rasqal_triple *t);
 
   int (*triple_present)(struct rasqal_triples_source_s* rts, void *user_data, rasqal_triple *t);
 
   void (*free_triples_source)(void *user_data);
+  /* API v2 onwards */
 };
 typedef struct rasqal_triples_source_s rasqal_triples_source;
 
 
+#define RASQAL_TRIPLES_SOURCE_FACTORY_MIN_VERSION 1
+#define RASQAL_TRIPLES_SOURCE_FACTORY_MAX_VERSION 1
+
 /**
  * rasqal_triples_source_factory:
+ * @version: API factory version - only V1 is defined for now
  * @user_data: User data for triples_source_factory.
  * @user_data_size: Size Of @user_data for new_triples_source.
  * @new_triples_source: Create a new triples source - returns non-zero on failure &lt; 0 is a 'no rdf data error', &gt; 0 is an unspecified error..
@@ -1275,16 +1288,31 @@ typedef struct rasqal_triples_source_s rasqal_triples_source;
  * to returning matches to a triple pattern.
  */
 typedef struct {
+  int version;
+  
   void *user_data;
   size_t user_data_size;
 
+  /* API v1 */
   int (*new_triples_source)(rasqal_query* query, void *factory_user_data, void *user_data, rasqal_triples_source* rts);
+  /* API v2 onwards */
 } rasqal_triples_source_factory;
   
 
+/**
+ * rasqal_triples_source_factory_register_fn:
+ * @factory: factory to register
+ *
+ * Register a factory for generating triples sources #rasqal_triples_source
+ * 
+ * Return value: non-0 on failure
+ */
+typedef int (*rasqal_triples_source_factory_register_fn)(rasqal_triples_source_factory *factory);
+
+
 /* set the triples_source_factory */
 RASQAL_API
-void rasqal_set_triples_source_factory(rasqal_world* world, void (*register_fn)(rasqal_triples_source_factory *factory), void* user_data);
+int rasqal_set_triples_source_factory(rasqal_world* world, rasqal_triples_source_factory_register_fn register_fn, void* user_data);
 
 
 

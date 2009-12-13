@@ -340,6 +340,9 @@ rasqal_raptor_new_triples_source(rasqal_query* rdf_query,
   if(!rdf_query->data_graphs)
     return -1;  /* no data */
 
+  /* Max API version this triples source generates */
+  rts->version = 1;
+  
   rts->init_triples_match = rasqal_raptor_init_triples_match;
   rts->triple_present = rasqal_raptor_triple_present;
   rts->free_triples_source = rasqal_raptor_free_triples_source;
@@ -579,11 +582,14 @@ rasqal_raptor_free_triples_source(void *user_data)
 
 
 
-static void
+static int
 rasqal_raptor_register_triples_source_factory(rasqal_triples_source_factory *factory) 
 {
+  factory->version = 1;
   factory->user_data_size = sizeof(rasqal_raptor_triples_source_user_data);
   factory->new_triples_source = rasqal_raptor_new_triples_source;
+
+  return 0;
 }
 
 
@@ -827,6 +833,8 @@ rasqal_raptor_init_triples_match(rasqal_triples_match* rtm,
 int
 rasqal_raptor_init(rasqal_world* world)
 {
-  rasqal_set_triples_source_factory(world, rasqal_raptor_register_triples_source_factory, (void*)NULL);
+  rasqal_set_triples_source_factory(world,
+                                    rasqal_raptor_register_triples_source_factory,
+                                    (void*)NULL);
   return 0;
 }

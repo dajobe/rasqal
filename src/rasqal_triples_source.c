@@ -47,24 +47,48 @@
  * @register_fn: registration function
  * @user_data: user data for registration
  *
- * Register the factory to return triple sources.
+ * Register a factory to generate triple sources.
  * 
  * Registers the factory that returns triples sources.  Note that
  * there is only one of these per runtime. 
  *
- * The rasqal_triples_source_factory factory method new_triples_source is
- * called with the user data for some query and rasqal_triples_source.
+ * The #rasqal_triples_source_factory factory method new_triples_source is
+ * called with the user data for some query and #rasqal_triples_source.
  *
+ * Return value: non-zero on failure
  **/
 RASQAL_EXTERN_C
-void
-rasqal_set_triples_source_factory(rasqal_world* world, void (*register_fn)(rasqal_triples_source_factory *factory), void* user_data)
+int
+rasqal_set_triples_source_factory(rasqal_world* world,
+                                  rasqal_triples_source_factory_register_fn register_fn,
+                                  void* user_data)
 {
+  int rc;
+  int version;
+  
+  if(!world || !register_fn)
+    return 1;
+  
   /* for compatibility with old API that does not call this - FIXME Remove V2 */
   rasqal_world_open(world);
   
   world->triples_source_factory.user_data = user_data;
-  register_fn(&world->triples_source_factory);
+  rc = register_fn(&world->triples_source_factory);
+
+  /* Failed if the factory API version is not in the supported range */
+  version = world->triples_source_factory.version;
+  if(!(version >= RASQAL_TRIPLES_SOURCE_FACTORY_MIN_VERSION &&
+       version <= RASQAL_TRIPLES_SOURCE_FACTORY_MAX_VERSION)
+     ) {
+    rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR, NULL,
+                            "Failed to register triples source factory - API %d is not in supported range %d to %d", 
+                            version,
+                            RASQAL_TRIPLES_SOURCE_FACTORY_MIN_VERSION,
+                            RASQAL_TRIPLES_SOURCE_FACTORY_MAX_VERSION);
+    rc = 1;
+  }
+
+  return rc;
 }
 
 
@@ -96,6 +120,21 @@ rasqal_new_triples_source(rasqal_query* query)
   rts->query = query;
 
   rc = rtsf->new_triples_source(query, rtsf->user_data, rts->user_data, rts);
+
+  /* Failed if the returned triples source API version is not in the
+   * supported range 
+   */
+  if(!(rts->version >= RASQAL_TRIPLES_SOURCE_MIN_VERSION && 
+       rts->version <= RASQAL_TRIPLES_SOURCE_MAX_VERSION)
+     ) {
+    rasqal_log_error_simple(query->world, RAPTOR_LOG_LEVEL_ERROR, NULL,
+                            "Failed to create triples source - API %d not in range %d to %d", 
+                            rts->version,
+                            RASQAL_TRIPLES_SOURCE_MIN_VERSION,
+                            RASQAL_TRIPLES_SOURCE_MAX_VERSION);
+    rc = 1;
+  }
+
   if(rc) {
     if(rc > 0) {
       rasqal_log_error_simple(query->world, RAPTOR_LOG_LEVEL_ERROR,
@@ -110,6 +149,7 @@ rasqal_new_triples_source(rasqal_query* query)
     RASQAL_FREE(rasqal_triples_source, rts);
     return NULL;
   }
+  
   
   return rts;
 }
