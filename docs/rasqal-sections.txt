@@ -223,7 +223,6 @@ rasqal_query_results_formatter_write
 <SECTION>
 <FILE>section-triple</FILE>
 rasqal_triple
-rasqal_triple_flags
 rasqal_new_triple
 rasqal_new_triple_from_triple
 rasqal_free_triple

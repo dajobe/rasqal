@@ -70,3 +70,12 @@ rasqal
 @gp: 
 @Returns: 
 
+<!-- ##### ENUM rasqal_triple_flags ##### -->
+<para>
+
+</para>
+
+@RASQAL_TRIPLE_FLAGS_EXACT: 
+@RASQAL_TRIPLE_FLAGS_OPTIONAL: 
+@RASQAL_TRIPLE_FLAGS_LAST: 
+

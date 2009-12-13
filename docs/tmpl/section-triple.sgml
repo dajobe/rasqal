@@ -31,15 +31,6 @@ with the SPARQL <literal>GRAPH</literal>).
 @origin: 
 @flags: 
 
-<!-- ##### ENUM rasqal_triple_flags ##### -->
-<para>
-
-</para>
-
-@RASQAL_TRIPLE_FLAGS_EXACT: 
-@RASQAL_TRIPLE_FLAGS_OPTIONAL: 
-@RASQAL_TRIPLE_FLAGS_LAST: 
-
 <!-- ##### FUNCTION rasqal_new_triple ##### -->
 <para>
 
