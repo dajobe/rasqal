@@ -1,5 +1,65 @@
 2009-12-12  Dave Beckett <dave@dajobe.org>
 
+	* src/rasqal_engine.c: Update comment in rasqal_engine_gp_data
+	referring to old flags.
+
+	* src/rasqal.h: Removed rasqal_triple_flags enum with unused
+	flags: RASQAL_TRIPLE_FLAGS_EXACT, RASQAL_TRIPLE_FLAGS_OPTIONAL and
+	RASQAL_TRIPLE_FLAGS_LAST
+
+	* src/rasqal.h: rasqal_compare_flags autodocs
+
+	* src/rasqal-config.in: Add warning
+
+	* src/rasqal-config.in: Try computing the decimal version another way
+
+	* docs/rasqal-sections.txt, docs/tmpl/rasqal-unused.sgml,
+	docs/tmpl/section-data.sgml, docs/tmpl/section-expression.sgml,
+	docs/tmpl/section-graph_pattern.sgml,
+	docs/tmpl/section-prefix.sgml,
+	docs/tmpl/section-triples_source.sgml,
+	docs/tmpl/section-variable.sgml, docs/tmpl/section-xsd.sgml:
+	Update gtk-doc templates
+
+	* src/rasqal.h: autodocs
+
+	* src/rasqal.h: rasqal_graph_pattern_variable_bound_in is RASQAL_API
+
+	* src/rasqal_graph.c: autodocs
+	however this is unused/uncompiled code at this point
+
+
+	* docs/Makefile.am: Ignore rasqal_graph.c
+
+	* src/rasqal_graph_pattern.c:
+	(rasqal_graph_pattern_variable_bound_in): autodocs
+
+	* src/rasqal_algebra.c:
+	(rasqal_algebra_query_to_algebra): For construct, walk selects to
+	make projection.  The query->constructs is an array of triples,
+	not variables.
+
+	* tests/engine/rasqal_construct_test.c:
+	(main): removed unused var i
+
+	* src/rasqal_variable.c:
+	(rasqal_new_variable_from_variable): Copy vars_table
+
+	* src/rasqal_variable.c:
+	(rasqal_variables_table_add): Assign vars_table to owning object.
+
+	* src/rasqal_internal.h: Move typedef rasqal_variables_table to
+	rasqal.h
+
+	* src/rasqal.h: Give all public structures a pointer to their
+	owner object - usually rasqal_world as the first element in
+	structure; since we're breaking the ABI.
+	rasqal_prefix, rasqal_data_graph, rasqal_literal, rasqal_expression,
+	rasqal_triples_match, rasqal_triples_match_s: moved rasqal_world*
+	to start.
+	rasqal_expression: added autodocs
+	rasqal_variable: add pointer to variables table.
+
 	* tests/engine/rasqal_construct_test.c:
 	(main): Fix error printf using uninitialized var
 
