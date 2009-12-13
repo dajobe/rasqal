@@ -81,7 +81,6 @@ main(int argc, char **argv) {
   const char *data_file = QUERY_DATA;
   const int expected_count = QUERY_EXPECTED_COUNT;
   int failures = 0;
-  int i;
   rasqal_world *world = NULL;
   rasqal_query *query = NULL;
   rasqal_query_results *results = NULL;
