@@ -1,5 +1,42 @@
 2009-12-12  Dave Beckett <dave@dajobe.org>
 
+	* tests/engine/rasqal_construct_test.c:
+	(main): Fix error printf using uninitialized var
+
+	* src/rasqal_redland.c:
+	(rasqal_redland_finish): handle early finish before init is done.
+
+	* src/rasqal_redland.c: fixes
+
+	* src/rasqal-config.in: Update to latest common code.
+
+	* src/rasqal.h, src/rasqal_raptor.c, src/rasqal_redland.c,
+	src/rasqal_triples_source.c: Add versioning to the structures
+	registered by user API.
+
+	rasqal_triples_source gains API version field.  Current API is V1.
+	rasqal_triples_source_factory gains API version field.  Current
+	API is V1.
+	Added typedef rasqal_triples_source_factory_register_fn which
+	registers a triples source factory and returns an error status.
+
+	(rasqal_set_triples_source_factory): Check error return from TSF
+	registration function.  Checks API version of passed in factory is
+	in supported range or log failure.  Returns errors.
+
+	(rasqal_new_triples_source): Check API version of constructed triple
+	source is in supported range or log failure.
+
+	(rasqal_raptor_new_triples_source): Return API V1.
+	(rasqal_raptor_register_triples_source_factory): Return factory
+	API v1 qnd return code.
+
+	(rasqal_redland_new_triples_source): Return API V1
+	(rasqal_redland_register_triples_source_factory): Return factory
+	API v1 qnd return code.
+
+	Code style and tidying in above modules.
+
 	* src/rasqal.h, src/rasqal_decimal.c, src/rasqal_literal.c:
 	(rasqal_new_xsd_decimal): Add rasqal_world arg to constructor to
 	match all other classes.
