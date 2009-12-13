@@ -166,7 +166,7 @@ typedef struct {
   /* Executing column in the current graph pattern */
   int column;
 
-  /* first graph_pattern in sequence with flags RASQAL_TRIPLE_FLAGS_OPTIONAL */
+  /* first graph_pattern in sequence that are optional */
   int optional_graph_pattern;
 
   /* current position in the sequence */
