@@ -413,6 +413,7 @@ rasqal_variables_table_add(rasqal_variables_table* vt,
   v = (rasqal_variable*)RASQAL_CALLOC(rasqal_variable, 1,
                                       sizeof(rasqal_variable));
   if(v) {
+    v->vars_table = vt;
     v->type= type;
     v->name= name;
     v->value= value;
