@@ -807,6 +807,15 @@ rasqal_new_2_group_graph_pattern(rasqal_query* query,
 }
 
 
+/**
+ * rasqal_graph_pattern_variable_bound_in:
+ * @gp: graph pattern
+ * @v: variable
+ *
+ * Is a variable bound in a graph pattern?
+ *
+ * Return value: non-0 if variable is bound in the given graph pattern.
+ */
 int
 rasqal_graph_pattern_variable_bound_in(rasqal_graph_pattern *gp,
                                        rasqal_variable *v) 
