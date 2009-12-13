@@ -2,7 +2,7 @@
  *
  * rasqal_graph.c - Rasqal Graph API
  *
- * Copyright (C) 2008, David Beckett http://www.dajobe.org/
+ * Copyright (C) 2008-2009, David Beckett http://www.dajobe.org/
  * 
  * This package is Free Software and part of Redland http://librdf.org/
  * 
@@ -395,7 +395,9 @@ rasqal_graph_match_get_triple(rasqal_graph_match *match)
  * @triples_count: number of triples in graph pattern
  * @filter: expression over the resulting bound variables to filter and constrain matches
  * 
- * Returns: 
+ * Constructor - Make a new graph bindings  
+ *
+ * Returns: new graph bindings or NULL on failure
  **/
 rasqal_graph_bindings*
 rasqal_new_graph_bindings(rasqal_graph *graph,
