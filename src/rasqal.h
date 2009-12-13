@@ -1257,7 +1257,7 @@ typedef struct {
 
 
 /**
- * RASQAL_TRIPLES_SOURCE_MAX_VERSION:
+ * RASQAL_TRIPLES_SOURCE_MIN_VERSION:
  *
  * Lowest accepted @rasqal_triples_source API version
  */
@@ -1301,7 +1301,7 @@ typedef struct rasqal_triples_source_s rasqal_triples_source;
 
 
 /**
- * RASQAL_TRIPLES_SOURCE_FACTORY_MAX_VERSION:
+ * RASQAL_TRIPLES_SOURCE_FACTORY_MIN_VERSION:
  *
  * Lowest accepted @rasqal_triples_source_factory API version
  */
