@@ -27,11 +27,29 @@
 
 <h3>Query API Changes</h3>
 
-<p>
-The <code>rasqal_prefix</code>, <code>rasqal_data_graph</code> and
-<code>rasqal_expression</code> structures gain a world reference pointer
-field.
+<p>API CHANGE:
+The <code>rasqal_prefix</code>, <code>rasqal_data_graph</code>
+<code>rasqal_expression</code> structures gain a new world reference
+pointer field.  (Several existing structures already had it).
+The <code>rasqal_variable</code> structure gains a variables table
+pointer.
 </p>
+
+<p>API CHANGE:
+The <code>rasqal_triples_source</code> and
+<code>rasqal_triples_source_factory</code> structures
+gain API version fields that must be set to a known API version.
+</p>
+
+<p>API CHANGE:
+The <code>rasqal_set_triples_source_factory()</code> function for
+registring a triples source factory now take a function with an int
+error return code, and it returns an int now:</p>
+<pre>
+  int rasqal_set_triples_source_factory(rasqal_world* world,
+     rasqal_triples_source_factory_register_fn register_fn,
+     void* user_data);
+</pre>
 
 <p>Enumeration <code>rasqal_graph_pattern_operator</code> gains
 <code>RASQAL_GRAPH_PATTERN_OPERATOR_FILTER</code> for a filter graph pattern
@@ -48,11 +66,16 @@ assignment 'graph pattern'.
 
   raptor_world *rasqal_world_get_raptor(rasqal_world* world);
 </pre>
+<p>These allow setting of an already-opened raptor library to pass
+into rasqal, rather than it creating one itself.
+<code>rasqal_world_open()</code> can then be called to do the actual
+initialisation.
+</p>
 
-<p>ABI CHANGE:
-<code>rasqal_features_enumerate</code> structure gains a
-rasqal_world argument:
-FIXME, remove this and make a _2 version, deprecating the old one.
+
+<p>API CHANGE:
+<code>rasqal_features_enumerate</code> structure gains an
+initial rasqal_world argument:
 </p>
 <pre>
   int rasqal_features_enumerate(rasqal_world* world,
@@ -60,10 +83,9 @@ FIXME, remove this and make a _2 version, deprecating the old one.
     raptor_uri **uri, const char **label);
 </pre>
 
-<p>ABI CHANGE:
-<code>rasqal_feature_from_uri</code> structure gains a
+<p>API CHANGE:
+<code>rasqal_feature_from_uri</code> structure gains an initial
 rasqal_world argument:
-FIXME, remove this and make a _2 version, deprecating the old one.
 </p>
 <pre>
   rasqal_feature rasqal_feature_from_uri(rasqal_world* world,
@@ -85,11 +107,12 @@ FIXME, remove this and make a _2 version, deprecating the old one.
     rasqal_graph_pattern_get_filter_expression(rasqal_graph_pattern* gp);
 </pre>
 
-<p>Deprecated functions
+<p>API Change:
+Removed functions
 <code>rasqal_graph_pattern_add_constraint()</code>,
 <code>rasqal_graph_pattern_get_constraint_sequence()</code> and
-<code>rasqal_graph_pattern_get_constraint()</code>
-replaced by filter graph pattern with expression - functions
+<code>rasqal_graph_pattern_get_constraint()</code>.
+These are replaced by filter graph pattern with expression - functions
 <code>rasqal_graph_pattern_set_filter_expression</code> and
 <code>rasqal_graph_pattern_get_filter_expression()</code>.
 </p>
@@ -100,18 +123,23 @@ replaced by filter graph pattern with expression - functions
     rasqal_query_results_get_query(rasqal_query_results* query_results);
 </pre>
 
-<p>ABI CHANGE:
-<code>rasqal_new_data_graph</code> structure gains a rasqal_world argument:
-FIXME, remove this and make a _2 version, deprecating the old one.
+<p>Added function to check if a graph pattern in a query defines a variable</p>
+<pre>
+  int rasqal_graph_pattern_variable_bound_in(rasqal_graph_pattern *gp,
+    rasqal_variable *v);
+</pre>
+
+<p>API CHANGE:
+<code>rasqal_new_data_graph</code> structure gains an initial
+rasqal_world argument:
 </p>
 <pre>
   rasqal_data_graph* rasqal_new_data_graph(rasqal_world* world,
     raptor_uri* uri, raptor_uri* name_uri, int flags);
 </pre>
 
-<p>ABI/API CHANGE:
+<p>API CHANGE:
 All <code>rasqal_expression</code> constructors gains a rasqal_world argument:
-FIXME, remove this and make _2 versions, deprecating the old ones:
 </p>
 <pre>
   rasqal_expression* rasqal_new_0op_expression(rasqal_world* world,
@@ -133,19 +161,28 @@ FIXME, remove this and make _2 versions, deprecating the old ones:
     raptor_uri* name, rasqal_expression *value);
 </pre>
 
-<p>Added <code>rasqal_expression_evaluate2()</code> deprecating
-<code>rasqal_expression_evaluate()</code>.</p>
+<p>API CHANGE:
+<code>rasqal_expression_evaluate()</code> gains an initial
+rasqal_world argument:
+</p>
 <pre>
   rasqal_literal* rasqal_expression_evaluate2(rasqal_world *world,
     raptor_locator *locator, rasqal_expression* e, int flags);
 </pre>
 
-<p>ABI/API CHANGE:
-<code>rasqal_new_prefix()</code> gains a rasqal_world argument:
-FIXME, remove this and make a _2 version, deprecating the old one.
+<p>API CHANGE:
+<code>rasqal_new_prefix()</code> gains an initial rasqal_world argument:
 </p>
 <pre>
-  rasqal_prefix* rasqal_new_prefix(rasqal_world* world, const unsigned char* prefix, raptor_uri* uri);
+  rasqal_prefix* rasqal_new_prefix(rasqal_world* world,
+    const unsigned char* prefix, raptor_uri* uri);
+</pre>
+
+<p>API CHANGE:
+<code>rasqal_new_xsd_decimal()</code> gains an initial rasqal_world argument:
+</p>
+<pre>
+  rasqal_xsd_decimal* rasqal_new_xsd_decimal(rasqal_world* world);
 </pre>
 
 <p>
@@ -161,10 +198,9 @@ FIXME, remove this and make a _2 version, deprecating the old one.
 <code>RASQAL_TRIPLE_NONE</code> for no parts.
 </p>
 
-<p>ABI/API CHANGE:
-Reorder <code>rasqal_literal_type</code> enumeration
-to match numeric type promotion order: float is now between integer
-and double.
+<p>API CHANGE:
+Reordered <code>rasqal_literal_type</code> enumeration
+to match numeric type promotion order: float is now between integer and double.
 </p>
 
 <p><code>rasqal_literal_type</code> enumeration gains
@@ -190,6 +226,21 @@ the RDF term type of a literal as a <code>rasqal_literal_type</code>
 - uri, blank node, literal or cannot be represented (e.g. qname or
 internal literal types).
 </p>
+
+<p>Added <code>rasqal_literal_same_term()</code> to perform
+SPARQL sameTerm() comparison.
+</p>
+<pre>
+  int rasqal_literal_same_term(rasqal_literal* l1, rasqal_literal* l2);
+</pre>
+
+<p>Added <code>rasqal_literal_is_rdf_literl()</code>
+to check if a literal is an RDF literal (not qname or other internal
+types).
+</p>
+<pre>
+  int rasqal_literal_is_rdf_literal(rasqal_literal* l);
+</pre>
 
 
 <h3>Query Formatter Changes</h3>
