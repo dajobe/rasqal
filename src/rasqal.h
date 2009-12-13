@@ -547,26 +547,6 @@ typedef struct rasqal_expression_s rasqal_expression;
 
 
 /**
- * rasqal_triple_flags:
- * @RASQAL_TRIPLE_FLAGS_EXACT: Not used.
- * @RASQAL_TRIPLE_FLAGS_OPTIONAL: Not used.
- * @RASQAL_TRIPLE_FLAGS_LAST: Internal.
- *
- * Flags for triple patterns.
- */
-typedef enum {
-
-  /* Not used - was only used internally in the execution engine */
-  RASQAL_TRIPLE_FLAGS_EXACT=1,
-
-  /* Not used - this is now a property of a graph pattern */
-  RASQAL_TRIPLE_FLAGS_OPTIONAL=2,
-
-  RASQAL_TRIPLE_FLAGS_LAST=RASQAL_TRIPLE_FLAGS_OPTIONAL
-} rasqal_triple_flags;
-
-
-/**
  * rasqal_triple:
  * @subject: Triple subject.
  * @predicate: Triple predicate.
