@@ -1302,17 +1302,19 @@ rasqal_algebra_query_to_algebra(rasqal_query* query)
   }
 
 
-  /* FIXME - do not always need a PROJECT node */
+  /* FIXME - do not always need a PROJECT node when the variables at
+   * the top level node are the same as the projection list.
+   */
   if(1) {
     int vars_size = 0;
     raptor_sequence* seq = NULL;
     raptor_sequence* vars_seq;
     int i;
 
-    if (query->verb == RASQAL_QUERY_VERB_SELECT)
+    if(query->verb == RASQAL_QUERY_VERB_SELECT ||
+       query->verb == RASQAL_QUERY_VERB_CONSTRUCT)
+      /* sequence of rasqal_variable* */
       seq = query->selects;
-    else if (query->verb == RASQAL_QUERY_VERB_CONSTRUCT)
-      seq = query->constructs;
 
     if(seq)
       vars_size = raptor_sequence_size(seq);
