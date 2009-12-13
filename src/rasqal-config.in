@@ -108,6 +108,7 @@ while test $# -gt 0; do
 
   shift
 done
-  
+
+echo "$PACKAGE-config: This is now a wrapper around '$PKGCONFIG $PACKAGE'" 1>&2
 
 $PKGCONFIG $PACKAGE $args
