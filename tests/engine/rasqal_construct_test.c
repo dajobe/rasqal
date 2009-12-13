@@ -140,7 +140,7 @@ main(int argc, char **argv) {
   printf("%s: executing query\n", program);
   results = rasqal_query_execute(query);
   if(!results) {
-    fprintf(stderr, "%s: query execution %d FAILED\n", program, i);
+    fprintf(stderr, "%s: query execution FAILED\n", program);
     failures++;
     goto done;
   }
