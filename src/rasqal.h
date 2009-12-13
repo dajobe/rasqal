@@ -1256,8 +1256,20 @@ typedef struct {
 } rasqal_triple_meta;
 
 
+/**
+ * RASQAL_TRIPLES_SOURCE_MAX_VERSION:
+ *
+ * Lowest accepted @rasqal_triples_source API version
+ */
 #define RASQAL_TRIPLES_SOURCE_MIN_VERSION 1
+
+/**
+ * RASQAL_TRIPLES_SOURCE_MAX_VERSION:
+ *
+ * Highest accepted @rasqal_triples_source API version
+ */
 #define RASQAL_TRIPLES_SOURCE_MAX_VERSION 1
+
 
 /**
  * rasqal_triples_source:
@@ -1288,8 +1300,20 @@ struct rasqal_triples_source_s {
 typedef struct rasqal_triples_source_s rasqal_triples_source;
 
 
+/**
+ * RASQAL_TRIPLES_SOURCE_FACTORY_MAX_VERSION:
+ *
+ * Lowest accepted @rasqal_triples_source_factory API version
+ */
 #define RASQAL_TRIPLES_SOURCE_FACTORY_MIN_VERSION 1
+
+/**
+ * RASQAL_TRIPLES_SOURCE_FACTORY_MAX_VERSION:
+ *
+ * Highest accepted @rasqal_triples_source_factory API version
+ */
 #define RASQAL_TRIPLES_SOURCE_FACTORY_MAX_VERSION 1
+
 
 /**
  * rasqal_triples_source_factory:
@@ -1333,6 +1357,12 @@ int rasqal_set_triples_source_factory(rasqal_world* world, rasqal_triples_source
 /* The info below is solely for gtk-doc - ignore it */
 
 /**
+ * RAPTOR_WORLD_DECLARED:
+ *
+ * Internal
+ */
+
+/**
  * RASQAL_QUERY_RESULTS_FORMATTER_DECLARED:
  *
  * Internal
@@ -1340,6 +1370,13 @@ int rasqal_set_triples_source_factory(rasqal_world* world, rasqal_triples_source
 
 /**
  * RASQAL_WORLD_DECLARED:
+ *
+ * Internal
+ */
+
+
+/**
+ * RASQAL_LITERAL_UDT_DEFINED
  *
  * Internal
  */
