@@ -30,16 +30,6 @@ or apply a GRAPH matching keyword (%RASQAL_GRAPH_PATTERN_OPERATOR_GRAPH).
 </para>
 
 
-<!-- ##### FUNCTION rasqal_graph_pattern_add_constraint ##### -->
-<para>
-
-</para>
-
-@gp: 
-@expr: 
-@Returns: 
-
-
 <!-- ##### FUNCTION rasqal_graph_pattern_add_sub_graph_pattern ##### -->
 <para>
 
@@ -47,25 +37,6 @@ or apply a GRAPH matching keyword (%RASQAL_GRAPH_PATTERN_OPERATOR_GRAPH).
 
 @graph_pattern: 
 @sub_graph_pattern: 
-@Returns: 
-
-
-<!-- ##### FUNCTION rasqal_graph_pattern_get_constraint ##### -->
-<para>
-
-</para>
-
-@gp: 
-@idx: 
-@Returns: 
-
-
-<!-- ##### FUNCTION rasqal_graph_pattern_get_constraint_sequence ##### -->
-<para>
-
-</para>
-
-@gp: 
 @Returns: 
 
 

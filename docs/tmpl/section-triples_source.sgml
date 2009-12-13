@@ -61,9 +61,19 @@ to initialise and build a #rasqal_triples_match for some
 
 </para>
 
+@version: 
 @user_data: 
 @user_data_size: 
 @new_triples_source: 
+
+<!-- ##### USER_FUNCTION rasqal_triples_source_factory_register_fn ##### -->
+<para>
+
+</para>
+
+@factory: 
+@Returns: 
+
 
 <!-- ##### FUNCTION rasqal_set_triples_source_factory ##### -->
 <para>
@@ -73,5 +83,34 @@ to initialise and build a #rasqal_triples_match for some
 @world: 
 @register_fn: 
 @user_data: 
+@Returns: 
+
+
+<!-- ##### MACRO RASQAL_TRIPLES_SOURCE_FACTORY_MIN_VERSION ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO RASQAL_TRIPLES_SOURCE_FACTORY_MAX_VERSION ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO RASQAL_TRIPLES_SOURCE_MIN_VERSION ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO RASQAL_TRIPLES_SOURCE_MAX_VERSION ##### -->
+<para>
+
+</para>
+
 
 

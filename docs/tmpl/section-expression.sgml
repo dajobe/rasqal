@@ -219,17 +219,6 @@ constants and #rasqal_variable values bound in some
 
 </para>
 
-@query: 
-@e: 
-@flags: 
-@Returns: 
-
-
-<!-- ##### FUNCTION rasqal_expression_evaluate2 ##### -->
-<para>
-
-</para>
-
 @world: 
 @locator: 
 @e: 

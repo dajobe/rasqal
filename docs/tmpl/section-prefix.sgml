@@ -24,10 +24,10 @@ only.
 
 </para>
 
+@world: 
 @uri: 
 @declared: 
 @depth: 
-@world: 
 
 <!-- ##### FUNCTION rasqal_new_prefix ##### -->
 <para>

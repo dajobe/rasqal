@@ -22,6 +22,17 @@
 rasqal
 
 
+<!-- ##### FUNCTION rasqal_expression_evaluate2 ##### -->
+<para>
+
+</para>
+
+@world: 
+@locator: 
+@e: 
+@flags: 
+@Returns: 
+
 <!-- ##### FUNCTION rasqal_expression_evaluate_v2 ##### -->
 <para>
 
@@ -31,5 +42,31 @@ rasqal
 @locator: 
 @e: 
 @flags: 
+@Returns: 
+
+<!-- ##### FUNCTION rasqal_graph_pattern_add_constraint ##### -->
+<para>
+
+</para>
+
+@gp: 
+@expr: 
+@Returns: 
+
+<!-- ##### FUNCTION rasqal_graph_pattern_get_constraint ##### -->
+<para>
+
+</para>
+
+@gp: 
+@idx: 
+@Returns: 
+
+<!-- ##### FUNCTION rasqal_graph_pattern_get_constraint_sequence ##### -->
+<para>
+
+</para>
+
+@gp: 
 @Returns: 
 

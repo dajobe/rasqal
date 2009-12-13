@@ -25,10 +25,10 @@ which graphs are used in the query.
 
 </para>
 
+@world: 
 @uri: 
 @name_uri: 
 @flags: 
-@world: 
 
 <!-- ##### FUNCTION rasqal_new_data_graph ##### -->
 <para>

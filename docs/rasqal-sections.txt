@@ -50,7 +50,6 @@ rasqal_new_string_op_expression
 rasqal_new_expression_from_expression
 rasqal_free_expression
 rasqal_expression_evaluate
-rasqal_expression_evaluate2
 rasqal_expression_print
 rasqal_expression_print_op
 rasqal_expression_visit_fn
@@ -60,10 +59,7 @@ rasqal_expression_visit
 <SECTION>
 <FILE>section-graph_pattern</FILE>
 rasqal_graph_pattern
-rasqal_graph_pattern_add_constraint
 rasqal_graph_pattern_add_sub_graph_pattern
-rasqal_graph_pattern_get_constraint
-rasqal_graph_pattern_get_constraint_sequence
 rasqal_graph_pattern_get_index
 rasqal_graph_pattern_get_operator
 rasqal_graph_pattern_get_sub_graph_pattern
@@ -247,6 +243,7 @@ rasqal_free_variable
 rasqal_variable_print
 rasqal_variable_set_value
 rasqal_variable_type
+rasqal_variables_table
 </SECTION>
 
 <SECTION>
@@ -255,7 +252,12 @@ rasqal_triple_meta
 rasqal_triples_match
 rasqal_triples_source
 rasqal_triples_source_factory
+rasqal_triples_source_factory_register_fn
 rasqal_set_triples_source_factory
+RASQAL_TRIPLES_SOURCE_FACTORY_MIN_VERSION
+RASQAL_TRIPLES_SOURCE_FACTORY_MAX_VERSION
+RASQAL_TRIPLES_SOURCE_MIN_VERSION
+RASQAL_TRIPLES_SOURCE_MAX_VERSION
 </SECTION>
 
 
