@@ -1553,7 +1553,7 @@ rasqal_query_engine_1_set_origin_triples(rasqal_query *query,
        * first triple it is seen in
        */
       if((v = rasqal_literal_as_variable(origin)) &&
-         query->variables_bound_in[v->offset] == BOUND_IN_UNBOUND ) {
+         query->variables_bound_in[v->offset] < 0 ) {
         query->variables_bound_in[v->offset] = i;
       }
       
