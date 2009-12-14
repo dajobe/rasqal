@@ -25,9 +25,7 @@
 </ul>
 
 
-<h3>Query API Changes</h3>
-
-<h4>Rasqal world class changes</h4>
+<h3>Rasqal world API changes</h3>
 
 <p>Added methods for setting of an already-opened raptor library to pass
 into rasqal, rather than it creating one itself.
@@ -63,7 +61,7 @@ rasqal_world argument to become a method of the world class:
 </pre>
 
 
-<h4>Data Graph class changes</h4>
+<h3>Data Graph API changes</h3>
 
 <p>API CHANGE: The <code>rasqal_data_graph</code> structure gains a
 new world reference pointer field.
@@ -80,7 +78,7 @@ rasqal_world argument:
 </pre>
 
 
-<h4>Expression class changes</h4>
+<h3>Expression API changes</h3>
 
 <p>
 <code>rasqal_op</code> enumeration gains values for LAQRS
@@ -145,7 +143,7 @@ methods to set/get an expression for a filter graph pattern:</p>
 
 
 
-<h4>Graph Pattern class changes</h4>
+<h3>Graph Pattern API changes</h3>
 
 <p><code>rasqal_graph_pattern_operator</code> enumeration gains
 <code>RASQAL_GRAPH_PATTERN_OPERATOR_FILTER</code> for a filter graph pattern
@@ -164,7 +162,25 @@ These are replaced by filter graph pattern with expression - functions
 </p>
 
 
-<h4>Literal class changes</h4>
+<h3>LAQRS Changes</h3>
+
+<p>LAQRS is now available in the configuration and does not need to
+be explicitly selected with <code>configure</code>.</p>
+
+<p>Add <code>SUM()</code>, <code>AVG()</code>, <code>MIN()</code> and
+<code>MAX()</code> aggregate expressions to LAQRS.  Supported in
+syntax only, not in any of the query engines.
+</p>
+
+<p>Add <code>LET ?var := expression</code> experimental syntax.
+Query engine 2 can execute this.</p>
+
+<p>Add <code>COALESCE(<em>expression list</em>)</code> experimental
+expression to return the first defined expression value in the
+list.  Query engines 1 and 2 can execute this.</p>
+
+
+<h3>Literal API changes</h3>
 
 <p>API CHANGE:
 Reordered <code>rasqal_literal_type</code> enumeration
@@ -201,7 +217,7 @@ types).
 </pre>
 
 
-<h4>Prefix class changes</h4>
+<h3>Prefix API changes</h3>
 
 <p>API CHANGE:
 The <code>rasqal_prefix</code> structure gain a new world reference
@@ -217,7 +233,7 @@ pointer field.
 </pre>
 
 
-<h4>Query class changes</h4>
+<h3>Query API changes</h3>
 
 <p>Added <code>rasqal_query_dataset_contains_named_graph()</code>
 method to check if a named graph is in a dataset:</p>
@@ -227,7 +243,13 @@ method to check if a named graph is in a dataset:</p>
 </pre>
 
 
-<h4>Query Results class changes</h4>
+<h3>Query Formatter Changes</h3>
+
+<p>SPARQL <code>DESCRIBE</code> no longer writes commas between terms.
+</p>
+
+
+<h3>Query Results API changes</h3>
 
 <p>Added <code>rasqal_query_results_get_query()</code> method to get
 the associated query:</p>
@@ -244,64 +266,6 @@ to check if a graph pattern in a query defines a variable</p>
 </pre>
 
 
-<h4>Triples Source class changes</h4>
-
-<p>API CHANGE:
-The <code>rasqal_triples_source</code> and
-<code>rasqal_triples_source_factory</code> structures
-gain API version fields that must be set to a known API version.
-</p>
-
-<p>API CHANGE:
-The <code>rasqal_set_triples_source_factory()</code> function for
-registering a triples source factory now take a function with an int
-error return code, and it returns an int now:</p>
-<pre>
-  int rasqal_set_triples_source_factory(rasqal_world* world,
-     rasqal_triples_source_factory_register_fn register_fn,
-     void* user_data);
-</pre>
-
-
-<h4>Variable class changes</h4>
-
-<p>API CHANGE:
-The <code>rasqal_variable</code> structure gains a variables table
-pointer.
-</p>
-
-
-<h4>Other API changes</h4>
-
-<p><code>rasqal_triple_parts</code> adds value
-<code>RASQAL_TRIPLE_NONE</code> for no parts.
-</p>
-
-<p><code>rasqal_compare_flags</code> enumeration gains
-<code>RASQAL_COMPARE_URI</code> - now also provides RDQL string to
-bool comparison.
-</p>
-
-<p>API CHANGE:
-<code>rasqal_new_xsd_decimal()</code> gains an initial rasqal_world argument:
-</p>
-<pre>
-  rasqal_xsd_decimal* rasqal_new_xsd_decimal(rasqal_world* world);
-</pre>
-
-<p>Removed <code>rasqal_triple_flags</code> enumeration with unused
-values: <code>RASQAL_TRIPLE_FLAGS_EXACT</code>,
-<code>RASQAL_TRIPLE_FLAGS_OPTIONAL</code> and
-<code>RASQAL_TRIPLE_FLAGS_LAST</code>
-</p>
-
-
-<h3>Query Formatter Changes</h3>
-
-<p>SPARQL <code>DESCRIBE</code> no longer writes commas between terms.
-</p>
-
-
 <h3>Query Results Formatter Changes</h3>
 
 <p>SPARQL/JSON: Do not emit double " for distinct/ordered flags.
@@ -311,6 +275,14 @@ Fixes <a href="http://bugs.librdf.org/mantis/view.php?id=279">Issue #0000279</a>
 <p>Added comma-separated values (CSV), tab-separated values (TSV) and
 text table output formats with names <code>csv</code>,
 <code>tsv</code> and <code>table</code>.
+</p>
+
+
+<h3>RDQL Changes</h3>
+
+<p>Some updates to handle refactored query list of constraint
+expressions switching to a filter graph pattern. RDQL only
+has 0 or 1 such expressions in a single query.
 </p>
 
 
@@ -336,26 +308,55 @@ grammar - optional for <code>DESCRIBE</code>, but required for
 queries.</p>
 
 
-<h3>LAQRS Changes</h3>
+<h3>Triples Source API changes</h3>
 
-<p>Add <code>SUM()</code>, <code>AVG()</code>, <code>MIN()</code> and
-<code>MAX()</code> aggregate expressions to LAQRS.  Supported in
-syntax only, not in any of the query engines.
+<p>API CHANGE:
+The <code>rasqal_triples_source</code> and
+<code>rasqal_triples_source_factory</code> structures
+gain API version fields that must be set to a known API version.
 </p>
 
-<p>Add <code>LET ?var := expression</code> experimental syntax.
-Query engine 2 can execute this.</p>
+<p>API CHANGE:
+The <code>rasqal_set_triples_source_factory()</code> function for
+registering a triples source factory now take a function with an int
+error return code, and it returns an int now:</p>
+<pre>
+  int rasqal_set_triples_source_factory(rasqal_world* world,
+     rasqal_triples_source_factory_register_fn register_fn,
+     void* user_data);
+</pre>
 
-<p>Add <code>COALESCE(<em>expression list</em>)</code> experimental
-expression to return the first defined expression value in the
-list.  Query engines 1 and 2 can execute this.</p>
+
+<h3>Variable API changes</h3>
+
+<p>API CHANGE:
+The <code>rasqal_variable</code> structure gains a variables table
+pointer.
+</p>
 
 
-<h3>RDQL Changes</h3>
+<h3>Other API changes</h3>
 
-<p>Some updates to handle refactored query list of constraint
-expressions switching to a filter graph pattern. RDQL only
-has 0 or 1 such expressions in a single query.
+<p><code>rasqal_triple_parts</code> adds value
+<code>RASQAL_TRIPLE_NONE</code> for no parts.
+</p>
+
+<p><code>rasqal_compare_flags</code> enumeration gains
+<code>RASQAL_COMPARE_URI</code> - now also provides RDQL string to
+bool comparison.
+</p>
+
+<p>API CHANGE:
+<code>rasqal_new_xsd_decimal()</code> gains an initial rasqal_world argument:
+</p>
+<pre>
+  rasqal_xsd_decimal* rasqal_new_xsd_decimal(rasqal_world* world);
+</pre>
+
+<p>Removed <code>rasqal_triple_flags</code> enumeration with unused
+values: <code>RASQAL_TRIPLE_FLAGS_EXACT</code>,
+<code>RASQAL_TRIPLE_FLAGS_OPTIONAL</code> and
+<code>RASQAL_TRIPLE_FLAGS_LAST</code>
 </p>
 
 
@@ -364,7 +365,13 @@ has 0 or 1 such expressions in a single query.
 <p>An entirely new query execution engine was written. The existing
 query execution engine was refactored out of a mess of
 <code>rasqal_query</code> and <code>rasqal_query_results</code> code
-and data.</p>
+and data.  It is the default query engine as of Rasqal 0.9.17</p>
+
+<p>The query engine to use can be selected at configure time wiht
+<code>--with-query-engine-version</code> to allow switching to old
+engine if necessary for some existing query that the new engine
+cannot handle.  This option will be removed at some point.
+</p>
 
 <p>The interface between the query API and the query engine is now
 via the <code>rasqal_rowsource</code> abstraction - an evaluation of
@@ -384,11 +391,11 @@ implement to return a rowsource to get the results.</p>
 
 <p>Both query engines can potentially be selected at
 runtime from the query API but <strong>ONLY</strong> when rasqal is
-built for development (<code>configure --enable-maintainer-mode</code>.
+built for development (<code>configure --enable-maintainer-mode</code>).
 </p>
 <ol>
 <li>If the envariable <code>RASQAL_DEBUG_ENGINE</code>
-is set with value 1 or 2, the query execution engine is chosen. FIXME.
+is set with value 1 or 2, the query execution engine is chosen.
 </li>
 <li>The <code>roqet(1)</code> utility gains a <code>-g</code> /
 <code>--engine</code> argument.
@@ -485,7 +492,23 @@ language, not the engine.
 </p>
 
 
-<h3>Other Changes</h3>
+<h3>Configure and Build Changes</h3>
+
+<p>configure now prefers <code>pkg-config raptor</code> to
+<code>raptor-config</code> but will accept both for now.
+<code>pkg-config</code> will not allow compiling against raptor in
+source tree in future.
+</p>
+
+<p>Added <code>--with-query-engine-version</code> to configure
+to allow selecting default query engine version - values 1 or 2.
+This is allowed for people to switch to old engine if necessary
+for some existing query that the new engine cannot handle.  This
+option will be removed at some point.
+</p>
+
+<p>Add SHAVE support for compiling and enable it for maintainer
+</p>
 
 <p><code>rasqal-config(1)</code> is now a wrapper around
 <code>pkg-config rasqal</code>.  Consequently <code>--prefix=DIR</code>
@@ -499,34 +522,11 @@ and <code>--libtool-libs</code> are ignored.
 http://www.w3.org/TR/2008/REC-rdf-sparql-query-20080115/#convertGraphPattern
 </p>
 
-
 <p>
 Optionally support the experimental raptor V2 API.
 </p>
 
-<p>
-Added <code>rasqal_algebra_write_indent()</code> and
-<code>rasqal_algebra_algebra_node_write()</code>
-to write algebra nodes to iostream.
-Altered <code>rasqal_algebra_node_print()</code> to write using an
-iostream to FILE*
-</p>
-
-<p>Added
-<code>rasqal_rowsource_write()</code>,
-<code>rasqal_literal_write_type()</code>,
-<code>rasqal_literal_write()</code>
-<code>rasqal_variable_write()</code>,
-<code>rasqal_triple_write()</code>,
-<code>rasqal_expression_write_op()</code>
-and <code>rasqal_expression_write()</code>
-for writing the respective objects to a raptor_iostream for debugging.
-</p>
-
 <p>Lots of resiliency fixes in the case of out of memory - Lauri Aalto.
-</p>
-
-<p>Add SHAVE support for compiling and enable it for maintainer
 </p>
 
 <p>Adjusted internal test suite to use a perl <code>improve</code>
@@ -538,22 +538,6 @@ running is now much more consise when successful.
 http://www.w3.org/2001/sw/DataAccess/tests/r2 at CVS Revision 1.6 1008
 </p>
 
-<p>configure now prefers <code>pkg-config raptor</code> to
-<code>raptor-config</code> but will accept both for now.
-<code>pkg-config</code> will not allow compiling against raptor in
-source tree in future.
-</p>
-
-
-<p>Added <code>--with-query-engine-version</code> to configure
-to allow selecting default query engine version - values 1 or 2.
-This is allowed for people to switch to old engine if necessary
-for some existing query that the new engine cannot handle.  This
-option will be removed at some point.
-</p>
-
-
-<!-- ************************************************************* -->
 
 
 <h2 id="rel0_9_16"><a name="rel0_9_16">Rasqal 0.9.16 Changes</a></h2>
