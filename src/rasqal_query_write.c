@@ -444,13 +444,8 @@ rasqal_query_write_sparql_graph_pattern(sparql_writer_context *wc,
     if(op == RASQAL_GRAPH_PATTERN_OPERATOR_OPTIONAL) 
       raptor_iostream_write_counted_string(iostr, "OPTIONAL ", 9);
     else {
-      rasqal_graph_pattern* sgp;
-      rasqal_triple* t;
-      sgp = rasqal_graph_pattern_get_sub_graph_pattern(gp, 0);
-      t = rasqal_graph_pattern_get_triple(sgp, 0);
-
       raptor_iostream_write_counted_string(iostr, "GRAPH ", 6);
-      rasqal_query_write_sparql_literal(wc, iostr, t->origin);
+      rasqal_query_write_sparql_literal(wc, iostr, gp->origin);
       raptor_iostream_write_byte(iostr, ' ');
     }
   }
