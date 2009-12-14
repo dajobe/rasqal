@@ -865,7 +865,8 @@ RASQAL_API
 int rasqal_graph_pattern_get_index(rasqal_graph_pattern* gp);
 RASQAL_API
 int rasqal_graph_pattern_variable_bound_in(rasqal_graph_pattern *gp, rasqal_variable *v);
-
+RASQAL_API
+rasqal_literal* rasqal_graph_pattern_get_origin(rasqal_graph_pattern* graph_pattern);
 
 /* Utility methods */
 RASQAL_API
