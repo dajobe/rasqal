@@ -201,3 +201,38 @@ With some versions of gcc this may give a compilation warning.
 
 
 
+<!-- ##### MACRO RASQAL_VERSION ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO RASQAL_VERSION_MAJOR ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO RASQAL_VERSION_MINOR ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO RASQAL_VERSION_RELEASE ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### MACRO RASQAL_VERSION_STRING ##### -->
+<para>
+
+</para>
+
+
+
