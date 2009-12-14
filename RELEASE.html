@@ -360,6 +360,30 @@ values: <code>RASQAL_TRIPLE_FLAGS_EXACT</code>,
 </p>
 
 
+<h3>Configure and Build Changes</h3>
+
+<p>configure now prefers <code>pkg-config raptor</code> to
+<code>raptor-config</code> but will accept both for now.
+<code>pkg-config</code> will not allow compiling against raptor in
+source tree in future.
+</p>
+
+<p>Added <code>--with-query-engine-version</code> to configure
+to allow selecting default query engine version - values 1 or 2.
+This is allowed for people to switch to old engine if necessary
+for some existing query that the new engine cannot handle.  This
+option will be removed at some point.
+</p>
+
+<p>Add SHAVE support for compiling and enable it for maintainer
+</p>
+
+<p><code>rasqal-config(1)</code> is now a wrapper around
+<code>pkg-config rasqal</code>.  Consequently <code>--prefix=DIR</code>
+and <code>--libtool-libs</code> are ignored.
+</p>
+
+
 <h3>Query Engine Changes</h3>
 
 <p>An entirely new query execution engine was written. The existing
@@ -491,28 +515,33 @@ rasqal_query_engine_factory</code> to
 language, not the engine.
 </p>
 
+<p>Query engine known problems:</p>
+<ul>
+<li>Variable binding/use scope is not calculated correctly.</li>
+<li>Consequently no queries with <code>UNION</code> work correctly.</li>
+<li>Also consequently, some <code>OPTIONAL</code> queries execute and return results when they shouldn't due to scoping of variable rules especially in nested optionals.</li>
+<li><code>DISTINCT</code> uses RDF literal equality not RDF sameTerm equality and thus returns results not to spec.</li>
+<li><code>xsd:date</code> comparison is not date-aware, it uses a simple string equality</li>
+<li><code>REDUCED</code> is not implemented.</li>
+</ul>
 
-<h3>Configure and Build Changes</h3>
+<p>Summary of DAWG SPARQL 1.0 tests as of Rasqal SVN r15841</p>
+<pre>
+Fail:       22 (4.99 %)
+    algebra                        4
+    dataset                        3
+    distinct                       4
+    graph                          2
+    open-world                     3
+    optional                       4
+    reduced                        2
+Pass:      419 (95.01 %)
+</pre>
 
-<p>configure now prefers <code>pkg-config raptor</code> to
-<code>raptor-config</code> but will accept both for now.
-<code>pkg-config</code> will not allow compiling against raptor in
-source tree in future.
-</p>
-
-<p>Added <code>--with-query-engine-version</code> to configure
-to allow selecting default query engine version - values 1 or 2.
-This is allowed for people to switch to old engine if necessary
-for some existing query that the new engine cannot handle.  This
-option will be removed at some point.
-</p>
-
-<p>Add SHAVE support for compiling and enable it for maintainer
-</p>
-
-<p><code>rasqal-config(1)</code> is now a wrapper around
-<code>pkg-config rasqal</code>.  Consequently <code>--prefix=DIR</code>
-and <code>--libtool-libs</code> are ignored.
+<p>The above results in EARL:
+<a href="http://librdf.org/2009/12/13-rasqal/rasqal-0917-earl.rdf">RDF/XML</a>
+and
+<a href="http://librdf.org/2009/12/13-rasqal/rasqal-0917-earl.ttl">Turtle</a>
 </p>
 
 
