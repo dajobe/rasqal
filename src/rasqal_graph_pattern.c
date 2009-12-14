@@ -709,8 +709,9 @@ rasqal_graph_pattern_get_sub_graph_pattern(rasqal_graph_pattern* graph_pattern, 
  * rasqal_graph_pattern_get_origin:
  * @graph_pattern: #rasqal_graph_pattern graph pattern object
  *
- * Get the graph pattern origin for GRAPH
+ * Get the graph pattern literal for #RASQAL_GRAPH_PATTERN_OPERATOR_GRAPH graph patterns
  * 
+ * Return value: graph literal parameter
  **/
 rasqal_literal*
 rasqal_graph_pattern_get_origin(rasqal_graph_pattern* graph_pattern)
