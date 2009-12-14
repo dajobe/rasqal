@@ -33,6 +33,44 @@ extern "C" {
 
 
 /**
+ * RASQAL_VERSION:
+ *
+ * Rasqal library version number
+ *
+ * Format: major * 10000 + minor * 100 + release
+ */
+#define RASQAL_VERSION 917
+
+/**
+ * RASQAL_VERSION_STRING:
+ *
+ * Rasqal library version string
+ */
+#define RASQAL_VERSION_STRING "0.9.17"
+
+/**
+ * RASQAL_VERSION_MAJOR:
+ *
+ * Rasqal library major version
+ */
+#define RASQAL_VERSION_MAJOR 0
+
+/**
+ * RASQAL_VERSION_MINOR:
+ *
+ * Rasqal library minor version
+ */
+#define RASQAL_VERSION_MINOR 9
+
+/**
+ * RASQAL_VERSION_RELEASE:
+ *
+ * Rasqal library release
+ */
+#define RASQAL_VERSION_RELEASE 17
+
+
+/**
  * RASQAL_API:
  *
  * Macro for wrapping API function call declarations.

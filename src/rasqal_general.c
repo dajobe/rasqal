@@ -62,7 +62,7 @@ const char * const rasqal_home_url_string = "http://librdf.org/rasqal/";
  *
  * See also #rasqal_version_decimal.
  */
-const char * const rasqal_version_string = VERSION;
+const char * const rasqal_version_string = RASQAL_VERSION_STRING;
 
 /**
  * rasqal_version_major:
@@ -92,7 +92,7 @@ const unsigned int rasqal_version_release = RASQAL_VERSION_RELEASE;
  *
  * See also #rasqal_version_string.
  */
-const unsigned int rasqal_version_decimal = RASQAL_VERSION_DECIMAL;
+const unsigned int rasqal_version_decimal = RASQAL_VERSION;
 
 
 /**
