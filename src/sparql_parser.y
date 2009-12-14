@@ -2209,6 +2209,8 @@ Collection: '(' GraphNodeListNotEmpty ')'
 GraphNodeListNotEmpty: GraphNodeListNotEmpty GraphNode
 {
 #if RASQAL_DEBUG > 1  
+  char const *errmsg;
+
   fprintf(DEBUG_FH, "GraphNodeListNotEmpty 1\n");
   if($2) {
     fprintf(DEBUG_FH, "  GraphNode=");
