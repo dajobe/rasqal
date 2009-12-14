@@ -11,7 +11,29 @@
 
 <h2 id="D2008-XX-XX-V0.9.17">2008-XX-XX Rasqal Version 0.9.17 Released</h2>
 
+<p><b>WARNING: ABI AND API CHANGED in this release.  Rasqal 0.9.17
+is binary incompatible with 0.9.16 or earlier.</b></p>
+
 <p>NOT YET RELEASED.</p>
+
+<p>Added a <a href="RELEASE.html#query-engine-0917">new query engine</a> that implements the SPARQL algebra better<br />
+All constructors now take a rasqal_world argument<br />
+Added LAQRS syntax support for SUM, AVG, MIN, MAX, COALESCE() experimental syntax<br />
+Added query result formatters for CSV, TSV and ASCII tables<br />
+Prefer pkg-config for configuring<br />
+Many resilience and resource failure fixes by Lauri Aalto<br />
+Many other bug fixes and improvements were made <br />
+Fixed Issues:
+<a href="http://bugs.librdf.org/mantis/view.php?id=077">Issue#0000077</a>,
+<a href="http://bugs.librdf.org/mantis/view.php?id=128">Issue#0000128</a>,
+<a href="http://bugs.librdf.org/mantis/view.php?id=168">Issue#0000168</a>,
+<a href="http://bugs.librdf.org/mantis/view.php?id=258">Issue#0000258</a>,
+<a href="http://bugs.librdf.org/mantis/view.php?id=261">Issue#0000261</a>,
+<a href="http://bugs.librdf.org/mantis/view.php?id=271">Issue#0000271</a>,
+<a href="http://bugs.librdf.org/mantis/view.php?id=279">Issue#0000279</a> and
+<a href="http://bugs.librdf.org/mantis/view.php?id=305">Issue#0000305</a>
+</p>
+
 
 <p>See the <a href="RELEASE.html#rel0_9_17">Rasqal 0.9.17 Release Notes</a>
 for the full details of the changes.</p>
@@ -20,7 +42,7 @@ for the full details of the changes.</p>
 <h2 id="D2008-07-05-V0.9.16">2008-07-05 Rasqal Version 0.9.16 Released</h2>
 
 <p><b>WARNING: ABI AND API CHANGED in this release.  Rasqal 0.9.16
-is incompatible with 0.9.15.</b></p>
+is incompatible with 0.9.15 or earlier.</b></p>
 
 <p>Added a rasqal_world object used for all constructor functions<br />
 Removed deprecated functions and macros<br />
