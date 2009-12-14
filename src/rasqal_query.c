@@ -1759,6 +1759,9 @@ rasqal_query_variable_bound_in_triple(rasqal_query *query,
                                       int column) 
 {
   int v_column = query->variables_bound_in[v->offset];
+  if(v_column < 0)
+    return 0;
+
   return v_column == column;
 }
 
