@@ -640,11 +640,11 @@ rasqal_query_simple_error(void* user_data, const char *message, ...)
 const char*
 rasqal_basename(const char *name)
 {
-  char *p;
-  if((p=strrchr(name, '/')))
-    name=p+1;
-  else if((p=strrchr(name, '\\')))
-    name=p+1;
+  const char *p;
+  if((p = strrchr(name, '/')))
+    name = p+1;
+  else if((p = strrchr(name, '\\')))
+    name = p+1;
 
   return name;
 }
