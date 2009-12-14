@@ -1,4 +1,16 @@
+2009-12-13  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_rowsource_join.c:
+	rasqal_join_rowsource_context struct gains right_rows_joined_count
+	field to count number of right rows generated per left row. 
+	(rasqal_join_rowsource_read_row): Use above to generate a new left
+	row - for left join - once only when entire right rowsource
+	generated no results.  This should fix the semantics of left outer
+	join.
+
 2009-12-12  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal-config.in: remove warning
 
 	* src/rasqal_engine.c: Update comment in rasqal_engine_gp_data
 	referring to old flags.
