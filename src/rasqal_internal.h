@@ -263,6 +263,10 @@ typedef enum {
 } rasqal_var_use_map_offset;
 
 
+/* Magic (non-column number) values for query->variables_bound_in */
+#define BOUND_IN_UNBOUND   -1
+#define BOUND_IN_ELSEWHERE -2
+
 /*
  * A query in some query language
  */
@@ -321,7 +325,10 @@ struct rasqal_query_s {
   int select_variables_count;
 
   /* array of size (number of total variables)
-   * pointing to triple column where a variable[offset] is bound
+   * pointing to either:
+   *   a) triple column where a variable[offset] is bound (0 or larger)
+   *   b) -1 if not bound anywhere (BOUND_IN_UNBOUND)
+   *   c) -2 if bound outside a triple (e.g. GRAPH, LET ) (BOUND_IN_ELSEWHERE)
    */
   int* variables_bound_in;
 
