@@ -56,6 +56,13 @@ initialisation:</p>
   raptor_world *rasqal_world_get_raptor(rasqal_world* world);
 </pre>
 
+<p>Exported new C defines for the library versions:
+<code>RASQAL_VERSION</code> in 6-digit integer MMNNRR format (Major, miNor, Release),
+<code>RASQAL_VERSION_STRING</code> in string "MM.NN.RR" format,
+<code>RASQAL_VERSION_MAJOR</code> for integer major version number,
+<code>RASQAL_VERSION_MINOR</code> for integer minor version number and
+<code>RASQAL_VERSION_RELEASE</code> for integer release number.
+</p>
 
 <p>API CHANGE:
 <code>rasqal_features_enumerate()</code> gains an
@@ -144,6 +151,13 @@ rasqal_world argument:
 <pre>
   rasqal_literal* rasqal_expression_evaluate2(rasqal_world *world,
     raptor_locator *locator, rasqal_expression* e, int flags);
+</pre>
+
+<p>Added <code>rasqal_graph_pattern_get_origin()</code>
+to get the graph from a GRAPH graph pattern:
+</p>
+<pre>
+  rasqal_literal* rasqal_graph_pattern_get_origin(rasqal_graph_pattern* gp);
 </pre>
 
 <p>Added <code>rasqal_graph_pattern_set_filter_expression()</code>
@@ -528,6 +542,10 @@ and methods <code>rasqal_variables_table_add()</code>,
 <p>Allow queries with no graph pattern to be accepted such as SPARQL
 <code>DESCRIBE <em>uri</em></code> (which the query engine does not
 execute at present but now is at least parsed).
+</p>
+
+<p>Do not warn about unbound variables for variables bound in GRAPH and
+SELECT expressions.
 </p>
 
 <p>Renamed query language-specific factory class for creating query
