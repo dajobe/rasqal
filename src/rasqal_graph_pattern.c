@@ -838,6 +838,9 @@ rasqal_graph_pattern_variable_bound_in(rasqal_graph_pattern *gp,
   rasqal_query* query = gp->query;
 
   int column = query->variables_bound_in[v->offset];
+  if(column < 0)
+    return 0;
+  
   return (column >= gp->start_column && column <= gp->end_column);
 }
 
