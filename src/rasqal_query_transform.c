@@ -434,7 +434,7 @@ rasqal_query_triples_build_bound_in(rasqal_query* query,
     return NULL;
 
   for(i = 0; i < size; i++)
-    bound_in[i] = -1;
+    bound_in[i] = BOUND_IN_UNBOUND;
 
   rasqal_query_triples_build_bound_in_internal(query, bound_in,
                                                start_column,
@@ -468,6 +468,13 @@ rasqal_query_graph_pattern_build_bound_in(rasqal_query* query,
     }
   }
 
+  if(gp->op == RASQAL_GRAPH_PATTERN_OPERATOR_GRAPH && gp->origin) {
+    rasqal_variable* v;
+    v = rasqal_literal_as_variable(gp->origin);
+    if(v)
+      bound_in[v->offset] = BOUND_IN_ELSEWHERE;
+  }
+  
   if(!gp->triples)
     return 0;
 
@@ -503,7 +510,15 @@ rasqal_query_build_bound_in(rasqal_query* query)
     return 1;
 
   for(i = 0; i < size; i++)
-    query->variables_bound_in[i] = -1;
+    query->variables_bound_in[i] = BOUND_IN_UNBOUND;
+
+  size = rasqal_variables_table_get_named_variables_count(query->vars_table);
+  for(i = 0; i < size; i++) {
+    rasqal_variable *v;
+    v = rasqal_variables_table_get(query->vars_table, i);
+    if(v->expression)
+      query->variables_bound_in[v->offset] = BOUND_IN_ELSEWHERE;
+  }
 
   return rasqal_query_graph_pattern_build_bound_in(query,
                                                    query->variables_bound_in,
@@ -518,8 +533,7 @@ rasqal_query_build_bound_in(rasqal_query* query)
  *
  * INTERNAL - warn variables that are selected but not bound in a triple
  *
- * NOTE: Fails to handle variables bound in GRAPH expression, SELECT
- * expressions (LAQRS, SPARQL 1.1) or in other places (none at present).
+ * FIXME: Fails to handle variables bound in LET
  *
  * Return value: non-0 on failure
  */
@@ -538,16 +552,18 @@ rasqal_query_check_unused_variables(rasqal_query* query, int *bound_in)
     rasqal_variable *v;
 
     v = rasqal_variables_table_get(query->vars_table, i);
-    if(column >= 0) {
-#if RASQAL_DEBUG > 1
-      RASQAL_DEBUG4("Variable %s (%d) was bound in column %d\n",
-                    v->name, i, column);
-#endif
-    } else if(!v->expression)
+    if(column == BOUND_IN_UNBOUND)
       rasqal_log_error_simple(query->world, RAPTOR_LOG_LEVEL_WARNING,
                               &query->locator,
                               "Variable %s was selected but is unused in the query.", 
                               v->name);
+#if RASQAL_DEBUG > 1
+    else if(column >= 0) {
+      RASQAL_DEBUG4("Variable %s (%d) was bound in column %d\n",
+                    v->name, i, column);
+    }
+#endif
+
   }
 
   return 0;
