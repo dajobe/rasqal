@@ -1954,7 +1954,7 @@ const char*
 rasqal_engine_error_as_string(rasqal_engine_error error) 
 {
   if(error > RASQAL_ENGINE_ERROR_LAST)
-    error = RASQAL_ENGINE_ERROR_LAST+1;
+    error = (rasqal_engine_error)(RASQAL_ENGINE_ERROR_LAST+1);
 
   return rasqal_engine_error_labels[(int)error];
 }

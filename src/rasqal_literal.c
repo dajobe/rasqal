@@ -1607,7 +1607,7 @@ rasqal_literal_promote_numerics(rasqal_literal* l1, rasqal_literal* l2,
 
   for(promotion_type = RASQAL_LITERAL_FIRST_XSD;
       promotion_type <= RASQAL_LITERAL_LAST_XSD;
-      promotion_type++) {
+      promotion_type = (rasqal_literal_type)((unsigned int)promotion_type+1)) {
     rasqal_literal_type parent_type1 = rasqal_xsd_datatype_parent_type(type1);
     rasqal_literal_type parent_type2 = rasqal_xsd_datatype_parent_type(type2);
     

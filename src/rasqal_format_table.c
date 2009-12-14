@@ -237,7 +237,7 @@ rasqal_query_results_write_table(raptor_iostream *iostr,
   if(rows_count) {
     int rowi;
     for(rowi = 0; rowi < rows_count; rowi++) {
-      char **values = raptor_sequence_get_at(seq, rowi);
+      char **values = (char**)raptor_sequence_get_at(seq, rowi);
       
       raptor_iostream_write_counted_string(iostr, VSEP, VSEP_LEN);
       for(i = 0; i < bindings_count; i++) {
