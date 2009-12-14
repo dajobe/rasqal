@@ -1,5 +1,30 @@
 2009-12-14  Dave Beckett <dave@dajobe.org>
 
+	* src/rasqal_query_transform.c:
+	(rasqal_query_triples_build_bound_in): Initialise bound_in array
+	to BOUND_IN_UNBOUND.
+	(rasqal_query_graph_pattern_build_bound_in): If a GRAPH is seen,
+	set any variable seen to BOUND_ELSEWHERE.
+	(rasqal_query_build_bound_in): Initialise bound_in array to
+	BOUND_IN_UNBOUND.  Set any select expression variables to
+	BOUND_IN_ELSEWHERE.
+	(rasqal_query_check_unused_variables): Update FIXME comment - does
+	not handle LET. Only warn for variables BOUND_IN_UNBOUND.
+
+	* src/rasqal_query.c: (rasqal_query_variable_bound_in_triple):
+	Return not bound for non-column values.
+
+	* src/rasqal_graph_pattern.c:
+	(rasqal_graph_pattern_variable_bound_in): Return not bound for
+	non-column values.
+
+	* src/rasqal_engine.c: (rasqal_query_engine_1_set_origin_triples):
+	Use column is BOUND_IN_UNBOUND for variable unbound check.
+
+	* src/rasqal_internal.h: Define magic (non-column number ) values
+	for query->variables_bound_in BOUND_IN_UNBOUND and
+	BOUND_IN_ELSEWHERE
+
 	* src/rasqal_graph_pattern.c: autodocs
 
 	* docs/rasqal-sections.txt, src/rasqal.h,
