@@ -4,10 +4,10 @@
 .\"
 .\" $Id$
 .\"
-.\" Copyright (C) 2004-2008 David Beckett - http://www.dajobe.org/
+.\" Copyright (C) 2004-2009 David Beckett - http://www.dajobe.org/
 .\" Copyright (C) 2004-2005 University of Bristol - http://www.bristol.ac.uk/
 .\"
-.TH roqet 1 "2008-06-22"
+.TH roqet 1 "2009-12-15"
 .\" Please adjust this date whenever revising the manpage.
 .SH NAME
 roqet \- Rasqal RDF query utility
@@ -21,14 +21,6 @@ roqet \- Rasqal RDF query utility
 .RB [ OPTIONS ] -e
 .IR "query-string"
 .IR "[base-URI]"
-.SH EXAMPLE
-.nf
-.B roqet example.sparql
-.br
-.B roqet -q -i rdql x.rdql http://example.org/base/
-.br
-.B roqet -i sparql -r xml http://example.org/query.rq
-.br
 .SH DESCRIPTION
 The
 .B roqet
@@ -79,7 +71,9 @@ but is given correct in the usage message with \-h.
 Only count the triples and produce no other output.
 .TP
 .B \-D, \-\-data URI
-Add RDF data source URI (not a named graph)
+Add RDF data source URI (not a named graph).  If no data sources
+are given, the query itself must point to the data such as via
+SPARQL or RDQL FROM \fIuri\fP statements.
 .TP
 .B \-d, \-\-dump\-query FORMAT
 Print the parsed query out in a given
@@ -118,6 +112,35 @@ Print the rasqal library version and exit.
 .TP
 .B \-w, \-\-walk-query
 Walk the query and display it using the API.
+.SH EXAMPLES
+.IP
+.B roqet sparql-query-file.rq
+.LP
+Run a SPARQL query contained in the local file sparql-query-file.rq.
+The data used would be described in FROM statements in the query file.
+.IP
+.B roqet -q -i sparql http://example.org/sparql-query.rq
+.LP
+Run a SPARQL query that is in the web at URI
+http://example.org/sparql-query.rq
+without an extra messages (quiet, -q).
+.IP
+.B roqet -q -i rdql rdql-query-file.rdql http://example.org/base/
+.LP
+Run an RDQL query from a local file rdql-query-file.rdql but using
+base URI http://example.org/base/ to resolve any relative URIs.
+.IP
+.B roqet -q -i sparql -r xml http://example.org/sparql-query.rq
+.LP
+Run a SPARQL query that is in the web at URI http://example.org/sparql-query.rq
+and format the results in the SPARQL Query Results XML format with no extra
+messages.
+.IP
+.B roqet -i sparql -e 'SELECT * WHERE { ?s ?p ?o }' -D stuff.rdf
+.LP
+Run a SPARQL query given on the command line against data in
+the file stuff.rdf.  The type of the file will be guessed and likely
+is of format RDF/XML.
 .SH "CONFORMING TO"
 \fISPARQL Query Language for RDF\fR, 
 Eric Prud'hommeaux and Andy Seaborne (eds), W3C Recommendation, 15 January 2008.
