@@ -342,6 +342,9 @@ rasqal_join_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
         }
       }
 
+      if(right_row)
+        rasqal_free_row(right_row);
+
       /* restart left, continue looping */
       con->state = INIT_RIGHT;
       if(con->left_row)
@@ -396,6 +399,7 @@ rasqal_join_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
       if(compatible && bresult && right_row) {
         con->right_rows_joined_count++;
 
+        /* consumes right_row */
         row = rasqal_join_rowsource_build_merged_row(rowsource, con, right_row);
         break;
       }
@@ -410,7 +414,7 @@ rasqal_join_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
 
         /* No constraint OR constraint & compatible so return merged row */
 
-        /* Compute row only now it is known to be needed */
+        /* Compute row only now it is known to be needed (consumes right_row) */
         row = rasqal_join_rowsource_build_merged_row(rowsource, con, right_row);
         break;
       }
@@ -443,9 +447,12 @@ rasqal_join_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
        * !con->right_rows_joined_count earlier, to generate a row
        * once.
        */
-      
+
     } /* end if LEFT JOIN */
 
+    if(right_row)
+      rasqal_free_row(right_row);
+      
   } /* end while */
 
   if(row) {
