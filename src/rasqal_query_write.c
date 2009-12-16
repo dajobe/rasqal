@@ -425,6 +425,7 @@ rasqal_query_write_sparql_graph_pattern(sparql_writer_context *wc,
   rasqal_graph_pattern_operator op;
   raptor_sequence *seq;
   int filters_count = 0;
+  int want_braces = 1;
   
   op = rasqal_graph_pattern_get_operator(gp);
   
@@ -449,9 +450,15 @@ rasqal_query_write_sparql_graph_pattern(sparql_writer_context *wc,
       raptor_iostream_write_byte(iostr, ' ');
     }
   }
-  raptor_iostream_write_counted_string(iostr, "{\n", 2);
 
-  indent+= 2;
+  if(gp->op == RASQAL_GRAPH_PATTERN_OPERATOR_FILTER)
+    want_braces = 0;
+
+
+  if(want_braces) {
+    raptor_iostream_write_counted_string(iostr, "{\n", 2);
+    indent += 2;
+  }
 
   /* look for triples */
   while(1) {
@@ -522,10 +529,13 @@ rasqal_query_write_sparql_graph_pattern(sparql_writer_context *wc,
   }
   
 
-  indent -= 2;
-  
-  rasqal_query_write_indent(iostr, indent);
-  raptor_iostream_write_byte(iostr, '}');
+  if(want_braces) {
+    indent -= 2;
+
+    rasqal_query_write_indent(iostr, indent);
+    raptor_iostream_write_byte(iostr, '}');
+  }
+
 }
 
 
