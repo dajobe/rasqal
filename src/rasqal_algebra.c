@@ -483,6 +483,12 @@ rasqal_free_algebra_node(rasqal_algebra_node* node)
   if(node->vars_seq)
     raptor_free_sequence(node->vars_seq);
 
+  if(node->graph)
+    rasqal_free_literal(node->graph);
+
+  if(node->var)
+    rasqal_free_variable(node->var);
+
   RASQAL_FREE(rasqal_algebra, node);
 }
 
