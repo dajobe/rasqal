@@ -2112,7 +2112,8 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
       else {
         if(error)
           *error=1;
-        return 0;
+        result=0;
+        goto done;
       }
       break;
 
