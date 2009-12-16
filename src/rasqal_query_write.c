@@ -157,11 +157,18 @@ rasqal_query_write_sparql_literal(sparql_writer_context *wc,
     case RASQAL_LITERAL_DATETIME:
     case RASQAL_LITERAL_XSD_STRING:
     case RASQAL_LITERAL_UDT:
-      raptor_iostream_write_byte(iostr, '"');
-      raptor_iostream_write_string_ntriples(iostr, l->string, l->string_len, '"');
-      raptor_iostream_write_counted_string(iostr, "\"^^", 3);
-      rasqal_query_write_sparql_uri(wc, iostr,
-                                    rasqal_xsd_datatype_type_to_uri(l->world, l->type));
+      if(1) {
+        raptor_uri* dt_uri;
+        
+        raptor_iostream_write_byte(iostr, '"');
+        raptor_iostream_write_string_ntriples(iostr, l->string, l->string_len, '"');
+        raptor_iostream_write_counted_string(iostr, "\"^^", 3);
+        if(l->type == RASQAL_LITERAL_UDT) 
+          dt_uri = l->datatype;
+        else
+          dt_uri = rasqal_xsd_datatype_type_to_uri(l->world, l->type);
+        rasqal_query_write_sparql_uri(wc, iostr, dt_uri);
+      }
       break;
 
     case RASQAL_LITERAL_UNKNOWN:
