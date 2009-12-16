@@ -124,13 +124,14 @@ rasqal_graph_next_dg(rasqal_graph_rowsource_context *con)
       break;
     }
 
+    RASQAL_DEBUG2("Using data graph URI literal <%s>\n",
+                  rasqal_literal_as_string(o));
+    
     rasqal_rowsource_set_origin(con->rowsource, o);
 
-    rasqal_variable_set_value(con->var, rasqal_new_literal_from_literal(o));
+    /* this passes ownership of o to con->var */
+    rasqal_variable_set_value(con->var, o);
       
-    RASQAL_DEBUG2("Using data graph URI literal <%s>\n",
-                    rasqal_literal_as_string(o));
-    
     break;
   }
 
