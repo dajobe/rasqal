@@ -1,4 +1,6 @@
-2009-12-16  Dave Beckett <dave@dajobe.org>
+2009-12-16  Dave Beckett  <dave@dajobe.org>
+
+	* Snapshotted rasqal_0_9_17 for 0.9.17 release (SVN 15914)
 
 	* src/rasqal_literal.c:
 	(rasqal_literal_compare): When comparing URIs and get error, pass
