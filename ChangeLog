@@ -1,3 +1,28 @@
+2009-12-16  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_literal.c:
+	(rasqal_literal_compare): When comparing URIs and get error, pass
+	through cleanup to deallocate promoted literals.
+
+	* src/rasqal_algebra.c:
+	(rasqal_free_algebra_node): Free graph and var fields.
+
+	* src/rasqal_rowsource_join.c:
+	(rasqal_join_rowsource_read_row): During join, do not lose track
+	of right_row rows that are discarded.
+
+	* src/rasqal_rowsource_graph.c:
+	(rasqal_graph_next_dg): Do not keep extra reference to o; pass it
+	to con->var
+
+	* src/rasqal_query_write.c:
+	(rasqal_query_write_sparql_literal): Handle printing out UDT URIs
+	correctly.
+
+	* src/rasqal_query_write.c:
+	(rasqal_query_write_sparql_graph_pattern): Do not add {}s around
+	FILTER; it never appears on it's own.
+
 2009-12-15  Dave Beckett <dave@dajobe.org>
 
 	* utils/roqet.1: spellings
