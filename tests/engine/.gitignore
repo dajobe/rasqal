@@ -1,3 +1,4 @@
+.deps
 *.o
 rasqal_construct_test
 rasqal_graph_test
