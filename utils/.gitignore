@@ -1,0 +1,9 @@
+.deps
+.gdb_history
+.libs
+*.lo
+*.o
+roqet
+roqet.exe
+roqet.html
+TAGS

@@ -1,0 +1,3 @@
+.deps
+*.o
+convert_graph_pattern

@@ -1,0 +1,6 @@
+*.o
+rasqal_construct_test
+rasqal_graph_test
+rasqal_limit_test
+rasqal_order_test
+rasqal_triples_test

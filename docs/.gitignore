@@ -1,0 +1,17 @@
+*.graffle
+*.stamp
+html/
+librasqal.html
+rasqal-decl-list.txt
+rasqal-decl.txt
+rasqal-docs.sgml
+rasqal-undeclared.txt
+rasqal-undocumented.txt
+rasqal-unused.txt
+rasqal.args
+rasqal.hierarchy
+rasqal.interfaces
+rasqal.prerequisites
+rasqal.signals
+version.xml
+xml/
