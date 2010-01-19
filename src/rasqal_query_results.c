@@ -266,6 +266,7 @@ rasqal_query_results_execute_with_engine(rasqal_query* query,
       case RASQAL_QUERY_VERB_UNKNOWN:
       case RASQAL_QUERY_VERB_DELETE:
       case RASQAL_QUERY_VERB_INSERT:
+      case RASQAL_QUERY_VERB_CLEAR:
       default:
         return NULL;
     }
