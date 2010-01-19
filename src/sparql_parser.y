@@ -357,34 +357,42 @@ ExplainOpt: EXPLAIN
 /* NEW Grammar Term pulled out of [1] Query */
 ReportFormat: SelectQuery
 {
-  ((rasqal_query*)rq)->selects=$1;
-  ((rasqal_query*)rq)->verb=RASQAL_QUERY_VERB_SELECT;
+  ((rasqal_query*)rq)->selects = $1;
+  ((rasqal_query*)rq)->verb = RASQAL_QUERY_VERB_SELECT;
 }
 |  ConstructQuery
 {
-  ((rasqal_query*)rq)->constructs=$1;
-  ((rasqal_query*)rq)->verb=RASQAL_QUERY_VERB_CONSTRUCT;
+  ((rasqal_query*)rq)->constructs = $1;
+  ((rasqal_query*)rq)->verb = RASQAL_QUERY_VERB_CONSTRUCT;
 }
 |  DescribeQuery
 {
-  ((rasqal_query*)rq)->describes=$1;
-  ((rasqal_query*)rq)->verb=RASQAL_QUERY_VERB_DESCRIBE;
+  ((rasqal_query*)rq)->describes = $1;
+  ((rasqal_query*)rq)->verb = RASQAL_QUERY_VERB_DESCRIBE;
 }
 | AskQuery
 {
-  ((rasqal_query*)rq)->verb=RASQAL_QUERY_VERB_ASK;
+  ((rasqal_query*)rq)->verb = RASQAL_QUERY_VERB_ASK;
 }
 | DeleteQuery
 {
-  ((rasqal_query*)rq)->verb=RASQAL_QUERY_VERB_DELETE;
+  ((rasqal_query*)rq)->verb = RASQAL_QUERY_VERB_DELETE;
 }
 | InsertQuery
 {
-  ((rasqal_query*)rq)->verb=RASQAL_QUERY_VERB_INSERT;
+  ((rasqal_query*)rq)->verb = RASQAL_QUERY_VERB_INSERT;
 }
 | ClearQuery
 {
   ((rasqal_query*)rq)->verb = RASQAL_QUERY_VERB_CLEAR;
+}
+| CreateQuery
+{
+  ((rasqal_query*)rq)->verb = RASQAL_QUERY_VERB_CREATE;
+}
+| DropQuery
+{
+  ((rasqal_query*)rq)->verb = RASQAL_QUERY_VERB_DROP;
 }
 ;
 
@@ -775,14 +783,15 @@ InsertQuery: INSERT
 ;
 
 
-/* LAQRS */
+/* SPARQL 1.1 Update (draft) / LAQRS */
 ClearQuery: CLEAR
 {
   rasqal_sparql_query_language* sparql;
   sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
 
   if(!sparql->extended)
-    sparql_syntax_error((rasqal_query*)rq, "CLEAR cannot be used with SPARQL");
+    sparql_syntax_error((rasqal_query*)rq,
+                        "CLEAR cannot be used with SPARQL");
 }
 | CLEAR GRAPH URI_LITERAL
 {
@@ -790,9 +799,60 @@ ClearQuery: CLEAR
   sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
 
   if(!sparql->extended)
-    sparql_syntax_error((rasqal_query*)rq, "CLEAR cannot be used with SPARQL");
+    sparql_syntax_error((rasqal_query*)rq,
+                        "CLEAR GRAPH <uri> cannot be used with SPARQL");
 
   ((rasqal_query*)rq)->graph_uri = $3;
+}
+;
+
+
+/* SPARQL 1.1 Update (draft) / LAQRS */
+CreateQuery: CREATE GRAPH URI_LITERAL
+{
+  rasqal_sparql_query_language* sparql;
+  sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
+
+  if(!sparql->extended)
+    sparql_syntax_error((rasqal_query*)rq, 
+                        "CREATE GRAPH <uri> cannot be used with SPARQL");
+  ((rasqal_query*)rq)->graph_uri = $3;
+}
+| CREATE SILENT GRAPH URI_LITERAL
+{
+  rasqal_sparql_query_language* sparql;
+  sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
+
+  if(!sparql->extended)
+    sparql_syntax_error((rasqal_query*)rq, 
+                        "CREATE SILENT GRAPH <uri> cannot be used with SPARQL");
+
+  ((rasqal_query*)rq)->graph_uri = $4;
+}
+;
+
+
+/* SPARQL 1.1 Update (draft) / LAQRS */
+DropQuery: DROP GRAPH URI_LITERAL
+{
+  rasqal_sparql_query_language* sparql;
+  sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
+
+  if(!sparql->extended)
+    sparql_syntax_error((rasqal_query*)rq, 
+                        "DROP GRAPH <uri> cannot be used with SPARQL");
+  ((rasqal_query*)rq)->graph_uri = $3;
+}
+| DROP SILENT GRAPH URI_LITERAL
+{
+  rasqal_sparql_query_language* sparql;
+  sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
+
+  if(!sparql->extended)
+    sparql_syntax_error((rasqal_query*)rq, 
+                        "DROP SILENT GRAPH <uri> cannot be used with SPARQL");
+
+  ((rasqal_query*)rq)->graph_uri = $4;
 }
 ;
 
