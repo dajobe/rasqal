@@ -146,7 +146,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
 %token SAMETERM "sameTerm"
 /* SPARQL 1.1 (draft) / LAQRS */
 %token EXPLAIN GROUP COUNT SUM AVG MIN MAX
-%token DELETE INSERT WITH CLEAR CREATE
+%token DELETE INSERT WITH CLEAR CREATE SILENT
 /* LAQRS */
 %token LET AS
 %token COALESCE
