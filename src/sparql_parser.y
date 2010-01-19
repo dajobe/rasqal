@@ -382,6 +382,10 @@ ReportFormat: SelectQuery
 {
   ((rasqal_query*)rq)->verb=RASQAL_QUERY_VERB_INSERT;
 }
+| ClearQuery
+{
+  ((rasqal_query*)rq)->verb = RASQAL_QUERY_VERB_CLEAR;
+}
 ;
 
 
@@ -767,6 +771,28 @@ InsertQuery: INSERT
 
   if(!sparql->extended)
     sparql_syntax_error((rasqal_query*)rq, "INSERT cannot be used with SPARQL");
+}
+;
+
+
+/* LAQRS */
+ClearQuery: CLEAR
+{
+  rasqal_sparql_query_language* sparql;
+  sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
+
+  if(!sparql->extended)
+    sparql_syntax_error((rasqal_query*)rq, "CLEAR cannot be used with SPARQL");
+}
+| CLEAR GRAPH URI_LITERAL
+{
+  rasqal_sparql_query_language* sparql;
+  sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
+
+  if(!sparql->extended)
+    sparql_syntax_error((rasqal_query*)rq, "CLEAR cannot be used with SPARQL");
+
+  ((rasqal_query*)rq)->graph_uri = $3;
 }
 ;
 
