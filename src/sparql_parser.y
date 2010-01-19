@@ -2,7 +2,7 @@
  *
  * sparql_parser.y - Rasqal SPARQL parser over tokens from sparql_lexer.l
  *
- * Copyright (C) 2004-2009, David Beckett http://www.dajobe.org/
+ * Copyright (C) 2004-2010, David Beckett http://www.dajobe.org/
  * Copyright (C) 2004-2005, University of Bristol, UK http://www.bristol.ac.uk/
  * 
  * This package is Free Software and part of Redland http://librdf.org/
@@ -144,10 +144,11 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
 %token ISBLANK "isBlank"
 %token ISLITERAL "isLiteral"
 %token SAMETERM "sameTerm"
+/* SPARQL 1.1 (draft) / LAQRS */
+%token EXPLAIN GROUP COUNT SUM AVG MIN MAX
+%token DELETE INSERT WITH
 /* LAQRS */
-%token EXPLAIN GROUP COUNT SUM AVG MIN MAX AS
-%token DELETE INSERT
-%token LET
+%token LET AS
 %token COALESCE
 
 /* expression delimiters */

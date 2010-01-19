@@ -2,7 +2,7 @@
  *
  * sparql_lexer.l - Rasqal SPARQL lexer - making tokens for sparql grammar generator
  *
- * Copyright (C) 2004-2009, David Beckett http://www.dajobe.org/
+ * Copyright (C) 2004-2010, David Beckett http://www.dajobe.org/
  * Copyright (C) 2004-2005, University of Bristol, UK http://www.bristol.ac.uk/
  * 
  * This package is Free Software and part of Redland http://librdf.org/
@@ -363,6 +363,7 @@ EXPONENT [eE][+-]?[0-9]+
 [Ss][Aa][Mm][Ee][Tt][Ee][Rr][Mm] { return SAMETERM; }
 [Ll][Ee][Tt] { return LET; }
 [Cc][Oo][Aa][Ll][Ee][Ss][Cc][Ee] { return COALESCE; }
+[Ww][Ii][Tt][Hh] { return WITH; }
 
 "a" { return A; }
 
@@ -1392,6 +1393,9 @@ sparql_token_print(rasqal_world* world, int token, YYSTYPE *lval)
 
     case COALESCE:
       return "COALESCE";
+
+    case WITH:
+      return "WITH";
 
     case INTEGER_LITERAL:
     case INTEGER_POSITIVE_LITERAL:
