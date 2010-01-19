@@ -768,6 +768,18 @@ DeleteQuery: DELETE
 
   if(!sparql->extended)
     sparql_syntax_error((rasqal_query*)rq, "DELETE cannot be used with SPARQL");
+  /* deleting from graph URIs - not deleting inline triples */
+}
+| DELETE DATA '{' GraphTriples '}'
+{
+  rasqal_sparql_query_language* sparql;
+  sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
+
+  if(!sparql->extended)
+    sparql_syntax_error((rasqal_query*)rq,
+                        "DELETE DATA cannot be used with SPARQL");
+  /* deleting inline triples - not inserting from graph URIs */
+  ((rasqal_query*)rq)->constructs = $4;
 }
 ;
 
