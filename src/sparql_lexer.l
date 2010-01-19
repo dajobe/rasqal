@@ -1388,17 +1388,23 @@ sparql_token_print(rasqal_world* world, int token, YYSTYPE *lval)
     case COUNT:
       return "COUNT";
 
-    case AS:
-      return "AS";
+    case SUM:
+      return "SUM";
 
-    case LET:
-      return "LET";
+    case AVG:
+      return "AVG";
 
-    case ASSIGN:
-      return ":=";
+    case MIN:
+      return "MIN";
 
-    case COALESCE:
-      return "COALESCE";
+    case MAX:
+      return "MAX";
+
+    case DELETE:
+      return "DELETE";
+
+    case INSERT:
+      return "INSERT";
 
     case WITH:
       return "WITH";
@@ -1421,6 +1427,18 @@ sparql_token_print(rasqal_world* world, int token, YYSTYPE *lval)
     case LOAD:
       return "LOAD";
       
+    case LET:
+      return "LET";
+
+    case AS:
+      return "AS";
+
+    case ASSIGN:
+      return ":=";
+
+    case COALESCE:
+      return "COALESCE";
+
     case INTEGER_LITERAL:
     case INTEGER_POSITIVE_LITERAL:
     case INTEGER_NEGATIVE_LITERAL:
