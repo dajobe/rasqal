@@ -367,6 +367,7 @@ EXPONENT [eE][+-]?[0-9]+
 [Cc][Ll][Ee][Aa][Rr] { return CLEAR; }
 [Cc][Rr][Ee][Aa][Tt][Ee] { return CREATE; }
 [Ss][Ii][Ll][Ee][Nn][Tt] { return SILENT; }
+[Dd][Aa][Tt][Aa] { return DATA; }
 
 "a" { return A; }
 
@@ -1409,6 +1410,9 @@ sparql_token_print(rasqal_world* world, int token, YYSTYPE *lval)
     case SILENT:
       return "SILENT";
 
+    case DATA:
+      return "DATA";
+      
     case INTEGER_LITERAL:
     case INTEGER_POSITIVE_LITERAL:
     case INTEGER_NEGATIVE_LITERAL:
