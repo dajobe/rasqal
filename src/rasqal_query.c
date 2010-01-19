@@ -253,6 +253,10 @@ rasqal_free_query(rasqal_query* query)
   /* Do this last since most everything above could refer to a variable */
   if(query->vars_table)
     rasqal_free_variables_table(query->vars_table);
+
+  if(query->graph_uri)
+    raptor_free_uri(query->graph_uri);
+  
   RASQAL_FREE(rasqal_query, query);
 }
 
