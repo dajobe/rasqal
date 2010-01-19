@@ -370,6 +370,7 @@ EXPONENT [eE][+-]?[0-9]+
 [Dd][Aa][Tt][Aa] { return DATA; }
 [Dd][Rr][Oo][Pp] { return DROP; }
 [Ll][Oo][Aa][Dd] { return LOAD; }
+[Ii][Nn][Tt][Oo] { return INTO; }
 
 "a" { return A; }
 
@@ -1426,6 +1427,9 @@ sparql_token_print(rasqal_world* world, int token, YYSTYPE *lval)
       
     case LOAD:
       return "LOAD";
+      
+    case INTO:
+      return "INTO";
       
     case LET:
       return "LET";

@@ -146,7 +146,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
 %token SAMETERM "sameTerm"
 /* SPARQL 1.1 (draft) / LAQRS */
 %token EXPLAIN GROUP COUNT SUM AVG MIN MAX
-%token DELETE INSERT WITH CLEAR CREATE SILENT DATA DROP LOAD
+%token DELETE INSERT WITH CLEAR CREATE SILENT DATA DROP LOAD INTO
 /* LAQRS */
 %token LET AS
 %token COALESCE
@@ -396,6 +396,10 @@ ReportFormat: SelectQuery
 | DropQuery
 {
   ((rasqal_query*)rq)->verb = RASQAL_QUERY_VERB_DROP;
+}
+| LoadQuery
+{
+  ((rasqal_query*)rq)->verb = RASQAL_QUERY_VERB_LOAD;
 }
 ;
 
@@ -925,6 +929,32 @@ DropQuery: DROP GRAPH URI_LITERAL
     sparql_syntax_error((rasqal_query*)rq, 
                         "DROP SILENT GRAPH <uri> cannot be used with SPARQL");
 
+  ((rasqal_query*)rq)->graph_uri = $4;
+}
+;
+
+
+/* SPARQL 1.1 Update (draft) / LAQRS */
+LoadQuery: LOAD URI_LITERAL
+{
+  rasqal_sparql_query_language* sparql;
+  sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
+
+  if(!sparql->extended)
+    sparql_syntax_error((rasqal_query*)rq, 
+                        "LOAD <document uri> cannot be used with SPARQL");
+  ((rasqal_query*)rq)->document_uri = $2;
+  ((rasqal_query*)rq)->graph_uri = NULL;
+}
+| LOAD URI_LITERAL INTO URI_LITERAL
+{
+  rasqal_sparql_query_language* sparql;
+  sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
+
+  if(!sparql->extended)
+    sparql_syntax_error((rasqal_query*)rq, 
+                        "LOAD <document uri> INTO <graph URI> cannot be used with SPARQL");
+  ((rasqal_query*)rq)->document_uri = $2;
   ((rasqal_query*)rq)->graph_uri = $4;
 }
 ;
