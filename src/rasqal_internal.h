@@ -413,8 +413,11 @@ struct rasqal_query_s {
    */
   short* variables_use_map;
 
-  /* INTERNAL URI for SPARQL 1.1 Update: CLEAR/DROP with a uri */
+  /* INTERNAL URI for SPARQL 1.1 Update: CLEAR/DROP with a uri; optional graph uri for LOAD */
   raptor_uri* graph_uri;
+
+  /* INTERNAL URI for SPARQL 1.1 Update: LOAD <document uri> */
+  raptor_uri* document_uri;
 };
 
 

@@ -257,6 +257,9 @@ rasqal_free_query(rasqal_query* query)
   if(query->graph_uri)
     raptor_free_uri(query->graph_uri);
   
+  if(query->document_uri)
+    raptor_free_uri(query->document_uri);
+  
   RASQAL_FREE(rasqal_query, query);
 }
 
