@@ -341,12 +341,14 @@ Query: Prologue ExplainOpt ReportFormat
 /* LAQRS */
 ExplainOpt: EXPLAIN
 {
-  rasqal_sparql_query_language* sparql=(rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
+  rasqal_sparql_query_language* sparql;
+  sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
 
   if(sparql->extended)
     ((rasqal_query*)rq)->explain=1;
   else
-    sparql_syntax_error((rasqal_query*)rq, "EXPLAIN cannot be used with SPARQL");
+    sparql_syntax_error((rasqal_query*)rq, 
+                        "EXPLAIN cannot be used with SPARQL");
 }
 |
 {
@@ -538,14 +540,18 @@ SelectTerm: Var
 }
 | SelectExpression AS VarName
 {
-  rasqal_sparql_query_language* sparql=(rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
+  rasqal_sparql_query_language* sparql;
+  sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
 
   $$=NULL;
   if(!sparql->extended)
-    sparql_syntax_error((rasqal_query*)rq, "SELECT expression AS Variable cannot be used with SPARQL");
+    sparql_syntax_error((rasqal_query*)rq,
+                        "SELECT expression AS Variable cannot be used with SPARQL");
   else {
     if(rasqal_expression_mentions_variable($1, $3)) {
-      sparql_query_error_full((rasqal_query*)rq, "SELECT expression contains the AS variable name '%s'", $3->name);
+      sparql_query_error_full((rasqal_query*)rq, 
+                              "SELECT expression contains the AS variable name '%s'",
+                              $3->name);
     } else {
       $$=$3;
       $3->expression=$1;
@@ -597,7 +603,8 @@ AggregateExpression: CountAggregateExpression
 
 CountAggregateExpression: COUNT '(' Expression ')'
 {
-  rasqal_sparql_query_language* sparql=(rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
+  rasqal_sparql_query_language* sparql;
+  sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
 
   if(!sparql->extended) {
     sparql_syntax_error((rasqal_query*)rq, "COUNT cannot be used with SPARQL");
@@ -610,7 +617,8 @@ CountAggregateExpression: COUNT '(' Expression ')'
 }
 | COUNT '(' '*' ')'
 {
-  rasqal_sparql_query_language* sparql=(rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
+  rasqal_sparql_query_language* sparql;
+  sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
 
   if(!sparql->extended) {
     sparql_syntax_error((rasqal_query*)rq, "COUNT cannot be used with SPARQL");
@@ -629,7 +637,8 @@ CountAggregateExpression: COUNT '(' Expression ')'
 
 SumAggregateExpression: SUM '(' Expression ')'
 {
-  rasqal_sparql_query_language* sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
+  rasqal_sparql_query_language* sparql;
+  sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
 
   if(!sparql->extended) {
     sparql_syntax_error((rasqal_query*)rq, "SUM cannot be used with SPARQL");
@@ -646,7 +655,8 @@ SumAggregateExpression: SUM '(' Expression ')'
 
 AvgAggregateExpression: AVG '(' Expression ')'
 {
-  rasqal_sparql_query_language* sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
+  rasqal_sparql_query_language* sparql;
+  sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
 
   if(!sparql->extended) {
     sparql_syntax_error((rasqal_query*)rq, "AVG cannot be used with SPARQL");
@@ -663,7 +673,8 @@ AvgAggregateExpression: AVG '(' Expression ')'
 
 MinAggregateExpression: MIN '(' Expression ')'
 {
-  rasqal_sparql_query_language* sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
+  rasqal_sparql_query_language* sparql;
+  sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
 
   if(!sparql->extended) {
     sparql_syntax_error((rasqal_query*)rq, "MIN cannot be used with SPARQL");
@@ -680,7 +691,8 @@ MinAggregateExpression: MIN '(' Expression ')'
 
 MaxAggregateExpression: MAX '(' Expression ')'
 {
-  rasqal_sparql_query_language* sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
+  rasqal_sparql_query_language* sparql;
+  sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
 
   if(!sparql->extended) {
     sparql_syntax_error((rasqal_query*)rq, "MAX cannot be used with SPARQL");
@@ -764,7 +776,8 @@ AskQuery: ASK
 DeleteQuery: DELETE
         DatasetClauseListOpt WhereClauseOpt
 {
-  rasqal_sparql_query_language* sparql=(rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
+  rasqal_sparql_query_language* sparql;
+  sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
 
   if(!sparql->extended)
     sparql_syntax_error((rasqal_query*)rq, "DELETE cannot be used with SPARQL");
@@ -982,12 +995,15 @@ SolutionModifier: GroupClauseOpt OrderClauseOpt LimitOffsetClausesOpt
 /* LAQRS */
 GroupClauseOpt: GROUP BY OrderConditionList
 {
-  rasqal_sparql_query_language* sparql=(rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
+  rasqal_sparql_query_language* sparql;
+  sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
 
   if(!sparql->extended)
-    sparql_syntax_error((rasqal_query*)rq, "GROUP BY cannot be used with SPARQL");
+    sparql_syntax_error((rasqal_query*)rq,
+                        "GROUP BY cannot be used with SPARQL");
   else if(((rasqal_query*)rq)->verb == RASQAL_QUERY_VERB_ASK) {
-    sparql_query_error((rasqal_query*)rq, "GROUP BY cannot be used with ASK");
+    sparql_query_error((rasqal_query*)rq, 
+                       "GROUP BY cannot be used with ASK");
   } else {
     raptor_sequence *seq=$3;
     ((rasqal_query*)rq)->group_conditions_sequence=seq;
@@ -1667,7 +1683,8 @@ CoalesceExpression: COALESCE '(' ArgList ')'
   sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
 
   if(!sparql->extended)
-    sparql_syntax_error((rasqal_query*)rq, "COALESCE cannot be used with SPARQL");
+    sparql_syntax_error((rasqal_query*)rq,
+                        "COALESCE cannot be used with SPARQL");
 
   if(!$3) {
     $3 = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_expression, (raptor_sequence_print_handler*)rasqal_expression_print);
