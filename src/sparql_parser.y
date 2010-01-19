@@ -202,13 +202,14 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
 %type <seq> SelectExpressionList VarOrIRIrefList ArgList ConstructTriplesOpt
 %type <seq> ConstructTemplate OrderConditionList
 %type <seq> GraphNodeListNotEmpty SelectExpressionListTail
+%type <seq> GraphTriples
 
 %type <formula> TriplesSameSubject
 %type <formula> PropertyList PropertyListTailOpt PropertyListNotEmpty
 %type <formula> ObjectList ObjectTail Collection
 %type <formula> VarOrTerm Verb Object GraphNode TriplesNode
 %type <formula> BlankNodePropertyList
-%type <formula> TriplesBlock TriplesBlockOpt 
+%type <formula> TriplesBlock TriplesBlockOpt
 
 %type <graph_pattern> GroupGraphPattern
 %type <graph_pattern> GraphGraphPattern OptionalGraphPattern
@@ -771,14 +772,53 @@ DeleteQuery: DELETE
 ;
 
 
-/* LAQRS */
-InsertQuery: INSERT
-        DatasetClauseListOpt WhereClauseOpt
+/* SPARQL 1.1 Update (draft) */
+GraphTriples: TriplesBlock
 {
-  rasqal_sparql_query_language* sparql=(rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
+  $$ = NULL;
+ 
+  if($1) {
+    $$ = $1->triples;
+    $1->triples = NULL;
+    rasqal_free_formula($1);
+  }
+}
+| GRAPH URI_LITERAL '{' TriplesBlock '}'
+{
+  $$ = NULL;
+
+  ((rasqal_query*)rq)->graph_uri = $2;
+  
+  if($4) {
+    $$ = $4->triples;
+    $4->triples = NULL;
+    rasqal_free_formula($4);
+  }
+}
+;
+
+
+/* SPARQL 1.1 Update (draft) / LAQRS */
+InsertQuery: INSERT DatasetClauseListOpt WhereClauseOpt
+{
+  rasqal_sparql_query_language* sparql;
+  sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
 
   if(!sparql->extended)
     sparql_syntax_error((rasqal_query*)rq, "INSERT cannot be used with SPARQL");
+
+  /* inserting from graph URIs - not inline triples */
+}
+| INSERT DATA '{' GraphTriples '}'
+{
+  rasqal_sparql_query_language* sparql;
+  sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
+
+  if(!sparql->extended)
+    sparql_syntax_error((rasqal_query*)rq,
+                        "INSERT DATA cannot be used with SPARQL");
+  /* inserting inline triples - not inserting from graph URIs */
+  ((rasqal_query*)rq)->constructs = $4;
 }
 ;
 
@@ -1203,7 +1243,7 @@ GraphPatternListOpt: GraphPatternListOpt GraphPatternList
       rasqal_free_graph_pattern($$);
       rasqal_free_graph_pattern($2);
       $$=NULL;
-      YYERROR_MSG("ConstructTriplesOpt: sequence join failed");
+      YYERROR_MSG("GraphPatternListOpt: sequence join failed");
     }
     rasqal_free_graph_pattern($2);
   }
