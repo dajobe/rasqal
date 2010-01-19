@@ -69,7 +69,7 @@ get-testsuite-sparql-parse-good:
 	$(ECHO) "<> a mf:Manifest; rdfs:comment \"SPARQL 1.1 Update legal parsing\"; mf:entries ("; \
 	for test in $(SPARQL_TEST_FILES); do \
 	  comment="sparql parsing of $$test"; \
-	  $(ECHO) "  [ a t:PositiveTest; mf:name \"$$test\"; rdfs:comment \"$$comment\"; mf:action  \"$(top_builddir)/src/$$prog -i sparql $(srcdir)/$$test\" ]"; \
+	  $(ECHO) "  [ a t:PositiveTest; mf:name \"$$test\"; rdfs:comment \"$$comment\"; mf:action  \"$(top_builddir)/src/$$prog -i laqrs $(srcdir)/$$test\" ]"; \
 	done; \
 	$(ECHO) ")."
 
@@ -83,7 +83,7 @@ get-testsuite-sparql-parse-bad:
 	$(ECHO) "<> a mf:Manifest; rdfs:comment \"SPARQL 1.1 Update illegal parsing\"; mf:entries ("; \
 	for test in $(SPARQL_BAD_TEST_FILES); do \
 	  comment="sparql failing to parse of $$test"; \
-	  $(ECHO) "  [ a t:NegativeTest; mf:name \"$$test\"; rdfs:comment \"$$comment\"; mf:action  \"$(top_builddir)/src/$$prog -i sparql $(srcdir)/$$test\" ]"; \
+	  $(ECHO) "  [ a t:NegativeTest; mf:name \"$$test\"; rdfs:comment \"$$comment\"; mf:action  \"$(top_builddir)/src/$$prog -i laqrs $(srcdir)/$$test\" ]"; \
 	done; \
 	$(ECHO) ")."
 
