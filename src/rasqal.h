@@ -632,6 +632,8 @@ typedef unsigned char* (*rasqal_generate_bnodeid_handler)(rasqal_query* query, v
  * @RASQAL_QUERY_VERB_DELETE: LAQRS query delete verb.
  * @RASQAL_QUERY_VERB_INSERT: LAQRS query insert verb.
  * @RASQAL_QUERY_VERB_CLEAR: SPARQL 1.1 (draft) clear graph verb.
+ * @RASQAL_QUERY_VERB_CREATE: SPARQL 1.1 (draft) create graph verb.
+ * @RASQAL_QUERY_VERB_DROP: SPARQL 1.1 (draft) drop graph verb.
  * @RASQAL_QUERY_VERB_UNKNOWN: Internal
  * @RASQAL_QUERY_VERB_LAST: Internal
  *
@@ -648,9 +650,11 @@ typedef enum {
   RASQAL_QUERY_VERB_DELETE    = 5,
   RASQAL_QUERY_VERB_INSERT    = 6,
   RASQAL_QUERY_VERB_CLEAR     = 7,
+  RASQAL_QUERY_VERB_CREATE    = 8,
+  RASQAL_QUERY_VERB_DROP      = 9,
 
   /* internal */
-  RASQAL_QUERY_VERB_LAST = RASQAL_QUERY_VERB_CLEAR
+  RASQAL_QUERY_VERB_LAST = RASQAL_QUERY_VERB_DROP
 } rasqal_query_verb;
 
 
