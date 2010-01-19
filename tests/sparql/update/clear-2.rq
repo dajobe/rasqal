@@ -1,0 +1,7 @@
+# http://www.w3.org/2009/sparql/docs/update-1.1/Overview.xml#t417
+# Editor's Draft 18 December 2009
+# (no example given in doc)
+
+# CLEAR equivalent
+WITH <http://graph.example.org> DELETE { ?s ?p ?o } WHERE { ?s ?p ?o }
+

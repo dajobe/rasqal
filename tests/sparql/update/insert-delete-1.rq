@@ -1,0 +1,12 @@
+# http://www.w3.org/2009/sparql/docs/update-1.1/Overview.xml#t413
+# Editor's Draft 18 December 2009
+
+PREFIX foaf:  <http://xmlns.com/foaf/0.1/>
+
+WITH <http://example/addresses>
+DELETE { ?person foaf:firstName 'Bill' }
+INSERT { ?person foaf:firstName 'William' }
+WHERE
+  { ?person a foaf:Person .
+    ?person foaf:firstName 'Bill'
+  } 

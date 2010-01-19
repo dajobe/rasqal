@@ -1,0 +1,9 @@
+# http://www.w3.org/2009/sparql/docs/update-1.1/Overview.xml#t412
+# Editor's Draft 18 December 2009
+
+PREFIX dc: <http://purl.org/dc/elements/1.1/>
+
+DELETE DATA
+{ <http://example/bookx> dc:title    "David Copperfield" ;
+                         dc:creator  "Edmund Wells" .
+}

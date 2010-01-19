@@ -1,0 +1,6 @@
+# http://www.w3.org/2009/sparql/docs/update-1.1/Overview.xml#t417
+# Editor's Draft 18 December 2009
+# (no example given in doc)
+
+CLEAR GRAPH <http://graph.example.org>
+

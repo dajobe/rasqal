@@ -1,0 +1,5 @@
+# http://www.w3.org/2009/sparql/docs/update-1.1/Overview.xml#t421
+# Editor's Draft 18 December 2009
+# (no example in doc)
+
+CREATE SILENT GRAPH <http://graph.example.org>
