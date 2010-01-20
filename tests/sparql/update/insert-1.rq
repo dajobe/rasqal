@@ -11,4 +11,5 @@ WHERE
        { ?book dc:date ?date .
          FILTER ( ?date < "2000-01-01T00:00:00-2:00"^^xsd:dateTime )
          ?book ?p ?v
-  } }	
+       }
+  }
