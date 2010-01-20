@@ -794,15 +794,19 @@ AskQuery: ASK
 
 
 /* LAQRS */
-DeleteQuery: DELETE
-        DatasetClauseListOpt WhereClauseOpt
+DeleteQuery: DELETE '{' ModifyTemplateList '}' WhereClauseOpt
 {
   rasqal_sparql_query_language* sparql;
   sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
 
   if(!sparql->extended)
     sparql_syntax_error((rasqal_query*)rq, "DELETE cannot be used with SPARQL");
-  /* deleting from graph URIs - not deleting inline triples */
+  /* deleting using a template + query - not deleting inline atomic triples */
+
+  /* FIXME - what to do with $3 - ModifyTemplateList */
+  if($3)
+    raptor_free_sequence($3);
+  ((rasqal_query*)rq)->constructs = NULL;
 }
 | DELETE DATA '{' GraphTriples '}'
 {
@@ -812,7 +816,7 @@ DeleteQuery: DELETE
   if(!sparql->extended)
     sparql_syntax_error((rasqal_query*)rq,
                         "DELETE DATA cannot be used with SPARQL");
-  /* deleting inline triples - not inserting from graph URIs */
+  /* deleting inline atomic triples - not via template */
   ((rasqal_query*)rq)->constructs = $4;
 }
 ;
@@ -914,6 +918,7 @@ InsertQuery: INSERT '{' ModifyTemplateList '}' WhereClause
   /* FIXME - what to do with $3 - ModifyTemplateList */
   if($3)
     raptor_free_sequence($3);
+  ((rasqal_query*)rq)->constructs = NULL;
 }
 | INSERT DATA '{' GraphTriples '}'
 {
@@ -923,6 +928,7 @@ InsertQuery: INSERT '{' ModifyTemplateList '}' WhereClause
   if(!sparql->extended)
     sparql_syntax_error((rasqal_query*)rq,
                         "INSERT DATA cannot be used with SPARQL");
+
   /* inserting inline atomic triples (no variables) - not via template */
   ((rasqal_query*)rq)->constructs = $4;
 }
