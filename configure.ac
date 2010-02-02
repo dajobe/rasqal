@@ -261,7 +261,9 @@ AC_TRY_LINK([#ifdef HAVE_GETOPT_H
 
 # raptor is REQUIRED despite the checking here
 RAPTOR_MIN_VERSION=1.4.18
+RAPTOR_MAX_VERSION=1.8.99
 AC_SUBST(RAPTOR_MIN_VERSION)
+AC_SUBST(RAPTOR_MAX_VERSION)
 
 AC_CHECK_PROGS(PKG_CONFIG, pkg-config)
 if test "X$PKG_CONFIG" = X; then
@@ -274,10 +276,10 @@ if test "X$PKG_CONFIG" != X; then
 
   if $PKG_CONFIG raptor --exists; then
     with_raptor=system
-    if $PKG_CONFIG raptor --atleast-version=$RAPTOR_MIN_VERSION; then
+    if $PKG_CONFIG raptor --atleast-version=$RAPTOR_MIN_VERSION --max-version=$RAPTOR_MAX_VERSION; then
       : # ok
     else
-      AC_MSG_WARN(Installed raptor $RAPTOR_VERSION is too old - need $RAPTOR_MIN_VERSION)
+      AC_MSG_WARN(Installed raptor $RAPTOR_VERSION is not in supported range - $RAPTOR_MIN_VERSION to $RAPTOR_MAX_VERSION)
     fi
   else
     AC_MSG_ERROR(Raptor missing - get it from http://librdf.org/raptor/)
@@ -295,17 +297,18 @@ else
 
     RAPTOR_VERSION_DEC=`$RAPTOR_CONFIG --version-decimal 2>/dev/null`
     RAPTOR_MIN_VERSION_DEC=`echo $RAPTOR_MIN_VERSION | $AWK -F. '{printf("%d\n", 10000*$1 + 100*$2 + $3)};'`
+    RAPTOR_MAX_VERSION_DEC=`echo $RAPTOR_MAX_VERSION | $AWK -F. '{printf("%d\n", 10000*$1 + 100*$2 + $3)};'`
 
     if test "X$with_raptor" = Xauto; then
-      if test "X$RAPTOR_VERSION" -a $RAPTOR_VERSION_DEC -ge $RAPTOR_MIN_VERSION_DEC; then
+      if test "X$RAPTOR_VERSION" -a $RAPTOR_VERSION_DEC -ge $RAPTOR_MIN_VERSION_DEC -a $RAPTOR_VERSION_DEC -le $RAPTOR_MAX_VERSION; then
 	with_raptor=system
       else
-	AC_MSG_WARN(System raptor $RAPTOR_VERSION is too old - need $RAPTOR_MIN_VERSION)
+        AC_MSG_WARN(System raptor $RAPTOR_VERSION is not in supported range - $RAPTOR_MIN_VERSION to $RAPTOR_MAX_VERSION)
 	with_raptor=internal
       fi
     elif test $with_raptor = system; then
-      if test $RAPTOR_VERSION_DEC -lt $RAPTOR_MIN_VERSION_DEC; then
-	AC_MSG_WARN(System raptor $RAPTOR_VERSION is too old - need $RAPTOR_MIN_VERSION)
+      if test $RAPTOR_VERSION_DEC -lt $RAPTOR_MIN_VERSION_DEC -o $RAPTOR_VERSION_DEC -gt $RAPTOR_MAX_VERSION_DEC; then
+        AC_MSG_WARN(System raptor $RAPTOR_VERSION is not in supported range - $RAPTOR_MIN_VERSION to $RAPTOR_MAX_VERSION)
 	AC_MSG_WARN(Proceeding anyway since --with-raptor=system was given)
 	AC_MSG_WARN(To use the internal raptor use --with-raptor=internal)
 	AC_MSG_WARN(or omit any --with-raptor argument.)
