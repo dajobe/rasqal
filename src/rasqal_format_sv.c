@@ -236,18 +236,18 @@ rasqal_init_result_format_sv(rasqal_world* world)
   rc += rasqal_query_results_format_register_factory(world,
                                                       "csv",
                                                       "Comma Separated Values (CSV)",
-                                                      NULL,
+                                                      (const unsigned char*)"http://www.ietf.org/rfc/rfc4180.txt",
                                                       writer_fn,
                                                       NULL, NULL,
                                                       "text/csv") != 0;
   writer_fn = &rasqal_query_results_write_tsv;
   rc += rasqal_query_results_format_register_factory(world,
-                                                      "tsv",
-                                                      "Tab Separated Values (CSV)",
-                                                      NULL,
-                                                      writer_fn,
-                                                      NULL, NULL,
-                                                      NULL) != 0;
+                                                     "tsv",
+                                                     "Tab Separated Values (CSV)",
+                                                     (const unsigned char*)"http://www.iana.org/assignments/media-types/text/tab-separated-values",
+                                                     writer_fn,
+                                                     NULL, NULL,
+                                                     "text/tab-separated-values") != 0;
 
   return rc;
 }
