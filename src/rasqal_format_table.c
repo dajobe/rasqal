@@ -281,5 +281,5 @@ rasqal_init_result_format_table(rasqal_world* world)
                                                       "table", "Table",
                                                       NULL,
                                                       writer_fn, NULL, NULL,
-                                                      "text/plan");
+                                                      "text/plain");
 }
