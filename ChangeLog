@@ -1,5 +1,42 @@
 2010-02-06  Dave Beckett <dave@dajobe.org>
 
+	* src/rasqal_algebra.c, src/rasqal_expr.c,
+	src/rasqal_graph_pattern.c, src/rasqal_query.c,
+	src/rasqal_rowsource.c, src/rasqal_variable.c: Use FILE* for
+	autodocs not #FILE*
+
+	* src/rasqal.h: rasqal_data_graph autodocs
+
+	* src/rasqal_literal.c: rasqal_literal_print_type autodocs
+
+	* src/rasqal.h: rasqal_data_graph autodocs
+
+	* src/rasqal_literal.c: rasqal_literal_print autodocs
+
+	* src/rasqal_query.c: remove autodocs indicator
+
+	* src/rasqal_query_results.c: remove autodocs indicator
+
+	* src/rasqal_general.c:
+	rasqal_query_set_default_generate_bnodeid_parameters autodocs
+
+	* src/rasqal_engine.c: remove autodocs indicator
+
+	* .gitignore, RELEASE.html, autogen.sh, build/.gitignore,
+	build/shave-libtool.in, build/shave.in, build/shave.m4,
+	configure.ac: Use AM_SILENT_RULES and move autotools helper files
+	to build/ dir
+
+	Update autogen.sh with latest version; dependent on automake 1.11
+	and it's dependencies to get AM_SILENT_RULES.
+
+	Update configure.ac to invoke AM_SILENT_RULES defaulting to 'no'.
+
+	Delete SHAVE.
+
+	* NEWS.html, configure.ac, src/rasqal.h:
+	Bumped version to 0.9.18
+
 	* src/sparql_lexer.l:
 	Make sparql_token_free static
 
