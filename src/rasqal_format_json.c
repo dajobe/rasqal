@@ -273,7 +273,7 @@ rasqal_init_result_format_json(rasqal_world* world)
                                                      "SPARQL JSON Query Results",
                                                      (unsigned char*)"http://www.w3.org/TR/2007/NOTE-rdf-sparql-json-res-20070618/",
                                                      writer_fn, reader_fn, get_rowsource_fn,
-                                                     "text/json")
+                                                     "application/json")
                                                      != 0;
   /* URIs from 0.9.16 or earlier */
   rc+= rasqal_query_results_format_register_factory(world,
@@ -281,14 +281,14 @@ rasqal_init_result_format_json(rasqal_world* world)
                                                     NULL,
                                                     (unsigned char*)"http://www.w3.org/2001/sw/DataAccess/json-sparql/",
                                                     writer_fn, reader_fn, get_rowsource_fn,
-                                                    "text/json")
+                                                    "application/json")
                                                     != 0;
   rc+= rasqal_query_results_format_register_factory(world,
                                                     NULL,
                                                     NULL,
                                                     (unsigned char*)"http://www.mindswap.org/%7Ekendall/sparql-results-json/",
                                                     writer_fn, reader_fn, get_rowsource_fn,
-                                                    "text/json")
+                                                    "application/json")
                                                     != 0;
   return rc;
 }
