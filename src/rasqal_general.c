@@ -851,10 +851,12 @@ rasqal_uri_finish(rasqal_world* world)
 
 
 /**
- * rasqal_query_set_default_generate_bnodeid_parameters - Set default bnodeid generation parameters
+ * rasqal_query_set_default_generate_bnodeid_parameters:
  * @rdf_query: #rasqal_query object
  * @prefix: prefix string
  * @base: integer base identifier
+ *
+ * Set default bnodeid generation parameters
  *
  * Sets the parameters for the default algorithm used to generate
  * blank node IDs.  The default algorithm uses both @prefix and @base
