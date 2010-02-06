@@ -297,7 +297,7 @@ typedef enum {
  * rasqal_data_graph:
  * @world: rasqal_world object
  * @uri: source URI
- * @name_uri: name of graph for %RASQAL_DATA_NAMED
+ * @name_uri: name of graph for %RASQAL_DATA_GRAPH_NAMED
  * @flags: %RASQAL_DATA_GRAPH_NAMED or %RASQAL_DATA_GRAPH_BACKGROUND
  *
  * A source of RDF data for querying. 
