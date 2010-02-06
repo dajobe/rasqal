@@ -302,9 +302,9 @@ typedef enum {
  *
  * A source of RDF data for querying. 
  *
- * The #uri is the original source (base URI) of the content.  It may
+ * The @uri is the original source (base URI) of the content.  It may
  * also have an additional name @name_uri as long as @flags is
- * %RASQAL_DATA_NAMED
+ * %RASQAL_DATA_GRAPH_NAMED
  */
 typedef struct {
   rasqal_world* world;
