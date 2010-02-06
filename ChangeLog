@@ -1,3 +1,213 @@
+2010-02-06  Dave Beckett <dave@dajobe.org>
+
+	* src/sparql_lexer.l:
+	Make sparql_token_free static
+
+	* src/rasqal.h:
+	Add user_data field to rasqal_variable.
+
+	rasqal_variable gains user_data field.
+
+	Fixes Issue#0000320
+	http://bugs.librdf.org/mantis/view.php?id=320
+
+	* src/rasqal_format_json.c: Use application/json for JSON results
+	format mime type
+
+	(rasqal_init_result_format_json): Register mime type
+	application/json instead of text/json for JSON results format.
+	
+	Fixes Issue#0000323 http://bugs.librdf.org/mantis/view.php?id=323
+
+2010-02-05  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_format_sv.c: Give CSV and TSV query result formats
+	mime types and URIs
+
+	(rasqal_init_result_format_sv): Register result format 'csv' with
+	URI http://www.ietf.org/rfc/rfc4180.txt and result format 'tsv'
+	with mime type text/tab-separated-values and URI
+	http://www.iana.org/assignments/media-types/text/tab-separated-valuesValues
+	taken from Issue#0000345.
+
+	Fixes Issue#0000345 http://bugs.librdf.org/mantis/view.php?id=345
+
+2010-02-05  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_format_table.c:
+	(rasqal_init_result_format_table): Fixed typo in result format
+	MIME type.	
+
+	Fixes Issue #0000343
+	http://bugs.librdf.org/mantis/view.php?id=343
+
+2010-02-01  Dave Beckett <dave@dajobe.org>
+
+	* configure.ac: Set and enforce raptor max version of <= 1.8.99
+
+2010-01-31  Dave Beckett <dave@dajobe.org>
+
+	* src/sparql_lexer.l: Make sparql_token_free usable outside this
+	module.
+
+2010-01-24  Dave Beckett <dave@dajobe.org>
+
+	* rasqal.pc.in: Use pkg-config (undocumented) Requires.private for
+	raptor
+
+2010-01-19  Dave Beckett <dave@dajobe.org>
+
+	* src/sparql_parser.y: Alter DELETE to take a list of templates
+	(sub-graphs) to delete.
+
+	* src/sparql_parser.y: make WITH <uri> DELETE ... INSERT ... WHERE
+	.. SPARQL 1.1 update (draft) work
+
+	Because the grammar is ambiguous in several places and unstable,
+	in this grammar WITH <uri> is required, not optional as the
+	grammar makes it.
+
+	Shift/reduce conflicts goes from 5 to 13 probably because of
+	insert/delete ambiguity.
+
+	(ConstructTriples): Added; was part of ConstructTriplesOpt
+
+	(GraphTemplate): Added.
+
+	(ModifyTemplate, ModifyTemplateList): To form list of graphs to
+	update.  This data is thrown away now, not stored.
+
+	(UpdateQuery): Added but pretending to be INSERT verb.  Only
+	supports WITH <uri> DELETE { ... } INSERT { ... } WHERE ...  form
+	with no optional WITH; otherwise this is even more ambiguous.
+
+	* tests/sparql/update/insert-1.rq: ws
+
+	* src/sparql_lexer.l, src/sparql_parser.y: Add SPARQL 1.1 update
+	draft LOAD <documentUri> [ INTO <graph URI>]
+
+	Added INTO keyword to sparql lexer
+
+	(LoadQuery): Added with the two forms, storing the document URI as
+	well as the optional graph URI
+
+	* src/rasqal_internal.h, src/rasqal_query.c: Add document_uri
+	field to rasqal_query for SPARQL 1.1 update LOAD document URI
+
+	* src/rasqal.h, src/rasqal_query_results.c,
+	src/rasqal_query_transform.c: Add RASQAL_QUERY_VERB_LOAD for
+	SPARQL 1.1 update draft LOAD command
+
+	* src/sparql_parser.y: Code style - break lines and whitespace
+
+	* src/sparql_parser.y: Code style - break lines, whitespace, move
+	seq size out of loops.
+
+	* src/sparql_parser.y: Code style - break long lines.
+
+	* src/sparql_parser.y: Add DELETE triples syntax from SPARQL 1.1
+	update draft
+
+	(DeleteQuery): Add DELETE DATA { triples} form, storing the
+	triples to delete in the rasqal_query constructs field, for now.
+
+	* src/sparql_parser.y: Add INSERT triples syntax from SPARQL 1.1
+	update draft
+
+	(GraphTriples): Added to turn a block of triples with optional
+	graph URI into query structure.  The insert triples are stored in
+	the query construct triples field.
+
+	(InsertQuery): Allow SPARQL 1.1 update draft form inserting a set
+	of triples with INSERT DATA { triples }.
+
+	(GraphpatternListOpt): Fix error message label
+
+	* src/sparql_parser.y: Add CREATE and DROP syntax from SPARQL 1.1
+	update draft
+
+	* src/rasqal.h, src/rasqal_query_results.c,
+	src/rasqal_query_transform.c: Add RASQAL_QUERY_VERB_CREATE and
+	RASQAL_QUERY_VERB_DROP for SPARQL 1.1 update draft
+
+	* src/sparql_parser.y:
+	Added SPARQL 1.1 Update CLEAR & CLEAR GRAPH
+
+	<uri> (ClearQuery): Added.  Stores graph URI when given, in
+	rasqal_query field graph_uri.
+
+	* tests/sparql/update/Makefile.am:
+	Use -i laqrs in testing for now
+
+	* src/sparql_lexer.l:
+	(sparql_token_print): Add missing tokens
+
+	* src/rasqal_internal.h, src/rasqal_query.c: rasqal_query gains
+	graph_uri field for storing CLEAR/DROP graph uri
+
+	* src/rasqal.h, src/rasqal_query_results.c,
+	src/rasqal_query_transform.c: Added RASQAL_QUERY_VERB_CLEAR for
+	SPARQL 1.1 update CLEAR verb
+
+	* src/sparql_lexer.l, src/sparql_parser.y: Added SPARQL 1.1 Update
+	LOAD keyword
+
+	* src/sparql_lexer.l, src/sparql_parser.y: Added SPARQL 1.1 Update
+	DROP keyword
+
+	* src/sparql_lexer.l, src/sparql_parser.y: Added SPARQL 1.1 Update
+	DATA keyword
+
+	* src/sparql_lexer.l, src/sparql_parser.y: Added SPARQL 1.1 Update
+	SILENT keyword
+
+	* src/sparql_lexer.l, src/sparql_parser.y: Added SPARQL 1.1 Update
+	CREATE keyword
+
+	* src/sparql_lexer.l, src/sparql_parser.y: Added SPARQL 1.1 Update
+	CLEAR keyword
+
+	* configure.ac, tests/sparql/Makefile.am,
+	tests/sparql/update/Makefile.am, tests/sparql/update/bad-1.rq,
+	tests/sparql/update/clear-1.rq, tests/sparql/update/clear-2.rq,
+	tests/sparql/update/clear-3.rq, tests/sparql/update/create-1.rq,
+	tests/sparql/update/create-2.rq, tests/sparql/update/delete-1.rq,
+	tests/sparql/update/delete-data-1.rq,
+	tests/sparql/update/drop-1.rq, tests/sparql/update/drop-2.rq,
+	tests/sparql/update/insert-1.rq, tests/sparql/update/insert-2.rq,
+	tests/sparql/update/insert-data-1.rq,
+	tests/sparql/update/insert-delete-1.rq,
+	tests/sparql/update/load-1.rq, tests/sparql/update/load-2.rq: Add
+	SPARQL 1.1 Update tests
+
+	* src/sparql_lexer.l, src/sparql_parser.y: Added WITH keyword to
+	SPARQL 1.1 (draft) / LAQRS
+
+2010-01-06  Dave Beckett <dave@dajobe.org>
+
+	* LICENSE.html: 2010
+
+	* TODO.html: 2010
+
+	* INSTALL.html: 2010
+
+	* RELEASE.html: 2010
+
+	* README.html: 2010
+
+	* NEWS.html: 2010
+
+2010-01-02  Dave Beckett <dave@dajobe.org>
+
+	* tests/engine/.gitignore: Ignore deps
+
+	* docs/tmpl/.gitignore: Update another .gitignore
+
+	* .gitignore, build/.gitignore, docs/.gitignore, src/.gitignore,
+	tests/algebra/.gitignore, tests/engine/.gitignore, utils/.gitignore:
+	
+	Add .gitignore to replace SVN properties svn:ignore
+
 2009-12-16  Dave Beckett  <dave@dajobe.org>
 
 	* Snapshotted rasqal_0_9_17 for 0.9.17 release (SVN 15914)
