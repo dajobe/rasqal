@@ -1150,7 +1150,7 @@ rasqal_literal_write(rasqal_literal* l, raptor_iostream* iostr)
 /**
  * rasqal_literal_print:
  * @l: the #rasqal_literal object
- * @fh: the #FILE* handle to print to
+ * @fh: the FILE handle to print to
  *
  * Print a Rasqal literal in a debug format.
  * 
