@@ -41,7 +41,7 @@
 #include "rasqal_internal.h"
 
 
-/**
+/*
  *
  * Query Results Class Internals
  *
