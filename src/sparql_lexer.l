@@ -1539,7 +1539,7 @@ sparql_token_print(rasqal_world* world, int token, YYSTYPE *lval)
 
 
 #ifdef STANDALONE
-void
+static void
 sparql_token_free(rasqal_world* world, int token, YYSTYPE *lval)
 {
   if(!token)
