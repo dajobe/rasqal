@@ -3,7 +3,7 @@ dnl
 dnl configure.ac - autoconf file for rasqal
 dnl (Process this file with autoconf to produce a configure script.)
 dnl
-dnl Copyright (C) 2003-2009, David Beckett http://www.dajobe.org/
+dnl Copyright (C) 2003-2010, David Beckett http://www.dajobe.org/
 dnl Copyright (C) 2003-2005, University of Bristol, UK http://www.bristol.ac.uk/
 dnl 
 dnl This package is Free Software and part of Redland http://librdf.org/
@@ -23,7 +23,7 @@ dnl
 
 
 AC_PREREQ(2.59)
-AC_INIT(Rasqal RDF Query Library, 0.9.17, http://bugs.librdf.org/, rasqal)
+AC_INIT(Rasqal RDF Query Library, 0.9.18, http://bugs.librdf.org/, rasqal)
 AC_CONFIG_SRCDIR(src/rasqal_general.c)
 AC_REVISION($Revision$)
 AM_CONFIG_HEADER(src/rasqal_config.h)
