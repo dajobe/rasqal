@@ -10,12 +10,68 @@
 
 <h2 id="rel0_9_18"><a name="rel0_9_18">Rasqal 0.9.18 Changes</a></h2>
 
-<p>
+<p>Not yet released.
 </p>
 
 <p>Fixed Issues:</p>
 <ul>
+  <li><a href="http://bugs.librdf.org/mantis/view.php?id=320">0000320</a>: Add a void* user_data field to rasqal_variable</li>
+  <li><a href="http://bugs.librdf.org/mantis/view.php?id=323">0000323</a>: Official MIME Type for JSON isn't text/json</li>
+  <li><a href="http://bugs.librdf.org/mantis/view.php?id=343">0000343</a>: Mime type for 'table' results format is text/plan</li>
+  <li><a href="http://bugs.librdf.org/mantis/view.php?id=345">0000345</a>: MIME Type and URI for TSV and CSV</li>
 </ul>
+
+
+<h3>Query API Changes</h3>
+
+<p>Added <code>rasqal_query_verb</code> enum values for new verbs for
+SPARQL 1.1 (draft) Update:
+<code>RASQAL_QUERY_VERB_CLEAR</code>,
+<code>RASQAL_QUERY_VERB_CREATE</code>,
+<code>RASQAL_QUERY_VERB_DROP</code> and
+<code>RASQAL_QUERY_VERB_LOAD</code> .
+</p>
+
+<p><code>rasqal_query</code> structure gains a <code>graph_uri</code>
+field for storing CLEAR or DROP graph URIs.
+</p>
+
+<p>Registered URIs for the CSV and TSV query result formats and fixed
+the mime types for those as well as jSON format:
+<a href="http://bugs.librdf.org/mantis/view.php?id=345">Issue #0000345</a>
+and
+<a href="http://bugs.librdf.org/mantis/view.php?id=323">Issue #0000323</a>.
+</p>
+
+<p>A user data <code>void* user_data</code> field was added to the
+<code>rasqal_variable</code> structure to allow application code to
+store additional information.</p>
+
+
+<h3>SPARQL Changes</h3>
+<p>Added syntax-only support (no execution) for SPARQL 1.1 (draft) Updates
+syntax.  These are only available when using the 'laqrs' query language
+name, until SPARQL 1.1 is completed.</p>
+
+<p>Added new lexer support for keywords: WITH, CLEAR, CREATE, SILENT,
+DATA, DROP, LOAD</p>
+
+<p>Added <code>CLEAR</code> and <code>CLEAR GRAPH uri</code></p>
+
+<p>Added <code>DROP GRAPH uri</code></p>
+
+<p>Added <code>INSERT DATA { triples }</code></p>
+
+<p>Added <code>DELETE templates</code> to delete multiple subgraphs.</p>
+
+<p>Added <code>DELETE DATA { triples }</code></p>
+
+<p>Added <code>LOAD uri</code> and <code>LOAD uri INTO graph-uri</code></p>
+
+<p>Added <code>WITH uri DELETE { ... } INSERT { ... } WHERE ...</code>
+update form since other combinations are ambiguous.
+</p>
+
 
 <h3>Query Engine changes</h3>
 <p>
@@ -32,6 +88,15 @@ rules for the maintainer (by default), or when
 
 <p><code>autogen.sh</code> script was updated to enforce the
 autotools versions above.</p>
+
+<p>The rasqal.pc file now uses the Requires.private field for raptor;
+it should only be in the link line with <code>pkg-config --static ...</code>
+is used.
+</p>
+
+<p>Enforce that only raptor versions &lt;1.9.0 are supported.  No
+Raptor2 or Raptor2 alpha support yet.
+</p>
 
 
 <h2 id="rel0_9_17"><a name="rel0_9_17">Rasqal 0.9.17 Changes</a></h2>
