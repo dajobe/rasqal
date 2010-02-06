@@ -22,14 +22,14 @@ dnl the licenses in COPYING.LIB, COPYING and LICENSE-2.0.txt respectively.
 dnl 
 
 
-AC_PREREQ(2.59)
+AC_PREREQ(2.62)
 AC_INIT(Rasqal RDF Query Library, 0.9.18, http://bugs.librdf.org/, rasqal)
-AC_CONFIG_SRCDIR(src/rasqal_general.c)
-AC_REVISION($Revision$)
-AM_CONFIG_HEADER(src/rasqal_config.h)
+AC_CONFIG_SRCDIR([src/rasqal_general.c])
+AM_CONFIG_HEADER([src/rasqal_config.h])
 AC_CONFIG_AUX_DIR(build)
 AC_CONFIG_MACRO_DIR(build)
-AM_INIT_AUTOMAKE([1.7 check-news std-options -Wall])
+AM_INIT_AUTOMAKE([1.11 check-news std-options -Wall])
+
 AM_MAINTAINER_MODE
 
 release_version=no
@@ -922,16 +922,10 @@ AC_SUBST(abs_top_srcdir)
 abs_top_builddir=`pwd`
 AC_SUBST(abs_top_builddir)
 
-dnl Shave "make autotools output sane" - disabled by default
-dnl http://git.lespiau.name/cgit/shave/  git clone git://git.lespiau.name/shave
-SHAVE_INIT([build], [disable])
-
-dnl when automake 1.11 is more widespread can use this:
-dnl m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])],)
+dnl automake 1.11
+AM_SILENT_RULES([no])
 
 AC_CONFIG_FILES([Makefile
-build/shave
-build/shave-libtool
 data/Makefile
 docs/Makefile
 docs/version.xml
