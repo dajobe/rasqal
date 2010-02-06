@@ -637,7 +637,7 @@ rasqal_rowsource_write(rasqal_rowsource *rowsource, raptor_iostream *iostr)
 /**
  * rasqal_rowsource_print:
  * @rs: the #rasqal_rowsource object
- * @fh: the #FILE* handle to print to
+ * @fh: the FILE* handle to print to
  *
  * Print a #rasqal_rowsource in a debug format.
  * 

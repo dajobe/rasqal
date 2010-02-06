@@ -202,7 +202,7 @@ rasqal_variable_write(rasqal_variable* v, raptor_iostream* iostr)
 /**
  * rasqal_variable_print:
  * @v: the #rasqal_variable object
- * @fh: the #FILE* handle to print to
+ * @fh: the FILE* handle to print to
  *
  * Print a Rasqal variable in a debug format.
  * 

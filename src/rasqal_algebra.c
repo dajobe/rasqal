@@ -723,7 +723,7 @@ rasqal_algebra_algebra_node_write(rasqal_algebra_node *node,
 /**
  * rasqal_algebra_node_print:
  * @gp: the #rasqal_algebra_node object
- * @fh: the #FILE* handle to print to
+ * @fh: the FILE* handle to print to
  *
  * Print a #rasqal_algebra_node in a debug format.
  * 

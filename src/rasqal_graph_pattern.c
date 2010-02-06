@@ -541,7 +541,7 @@ rasqal_graph_pattern_write_internal(rasqal_graph_pattern* gp,
 /**
  * rasqal_graph_pattern_print:
  * @gp: the #rasqal_graph_pattern object
- * @fh: the #FILE* handle to print to
+ * @fh: the FILE* handle to print to
  *
  * Print a #rasqal_graph_pattern in a debug format.
  * 

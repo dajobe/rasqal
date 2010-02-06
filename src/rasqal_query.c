@@ -1333,7 +1333,7 @@ rasqal_query_verb_as_string(rasqal_query_verb verb)
 /**
  * rasqal_query_print:
  * @query: the #rasqal_query object
- * @fh: the #FILE* handle to print to.
+ * @fh: the FILE* handle to print to.
  *
  * Print a query in a debug format.
  * 

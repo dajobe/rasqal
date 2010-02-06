@@ -120,7 +120,7 @@ rasqal_free_data_graph(rasqal_data_graph* dg)
 /**
  * rasqal_data_graph_print:
  * @dg: #rasqal_data_graph object
- * @fh: the #FILE* handle to print to
+ * @fh: the FILE* handle to print to
  *
  * Print a Rasqal data graph in a debug format.
  * 
@@ -211,7 +211,7 @@ rasqal_free_prefix(rasqal_prefix* p)
 /**
  * rasqal_prefix_print:
  * @p: #rasqal_prefix object.
- * @fh: The #FILE* handle to print to.
+ * @fh: The FILE* handle to print to.
  *
  * Print a Rasqal prefix in a debug format.
  * 
@@ -342,7 +342,7 @@ rasqal_triple_write(rasqal_triple* t, raptor_iostream* iostr)
 /**
  * rasqal_triple_print:
  * @t: #rasqal_triple object.
- * @fh: The #FILE* handle to print to.
+ * @fh: The FILE* handle to print to.
  * 
  * Print a Rasqal triple in a debug format.
  * 
@@ -2117,7 +2117,7 @@ rasqal_expression_write_op(rasqal_expression* e, raptor_iostream* iostr)
 /**
  * rasqal_expression_print_op:
  * @e: the #rasqal_expression object
- * @fh: the #FILE* handle to print to
+ * @fh: the FILE* handle to print to
  * 
  * Print a rasqal expression operator in a debug format.
  *
@@ -2277,7 +2277,7 @@ rasqal_expression_write(rasqal_expression* e, raptor_iostream* iostr)
 /**
  * rasqal_expression_print:
  * @e: #rasqal_expression object.
- * @fh: The #FILE* handle to print to.
+ * @fh: The FILE* handle to print to.
  * 
  * Print a Rasqal expression in a debug format.
  * 
