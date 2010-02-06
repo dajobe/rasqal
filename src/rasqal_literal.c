@@ -1031,7 +1031,7 @@ rasqal_literal_write_type(rasqal_literal* l, raptor_iostream* iostr)
 /**
  * rasqal_literal_print_type:
  * @l: the #rasqal_literal object
- * @fh: the #FILE* handle to print to
+ * @fh: the FILE* handle to print to
  * 
  * Print a string form for a rasqal literal type.
  *
