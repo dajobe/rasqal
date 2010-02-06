@@ -258,6 +258,7 @@ typedef struct rasqal_variables_table_s rasqal_variables_table;
  * @offset: Internal.
  * @type: Variable type.
  * @expression: Expression when the variable is a computed SELECT expression 
+ * @user_data: Pointer to user data associated with a variable.  This is not used by rasqal.
  *
  * Binding between a variable name and a value.
  *
@@ -271,6 +272,7 @@ typedef struct {
   int offset;
   rasqal_variable_type type;
   struct rasqal_expression_s* expression;
+  void *user_data;
 } rasqal_variable;
 
 
