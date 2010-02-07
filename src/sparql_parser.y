@@ -145,10 +145,10 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
 %token ISLITERAL "isLiteral"
 %token SAMETERM "sameTerm"
 /* SPARQL 1.1 (draft) / LAQRS */
-%token EXPLAIN GROUP COUNT SUM AVG MIN MAX
+%token GROUP COUNT SUM AVG MIN MAX
 %token DELETE INSERT WITH CLEAR CREATE SILENT DATA DROP LOAD INTO
 /* LAQRS */
-%token LET AS
+%token EXPLAIN LET AS
 %token COALESCE
 
 /* expression delimiters */
