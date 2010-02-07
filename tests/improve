@@ -398,7 +398,8 @@ sub format_testsuite_result($$$;$) {
 	if($ftest->{log} && $verbose) {
 	  my $i2=$i.$INDENT;
 	  my(@lines)=split(/\n/, $ftest->{log});
-	  print $i2.join("\n${i2}", "...", splice(@lines, -15))."\n";
+	  @lines = splice(@lines, -15) if scalar(@lines) > 15;
+	  print $i2.join("\n${i2}", "...", @lines)."\n";
 	}
 	print $i . "=" x $banner_width . "\n" if $verbose;
       }
