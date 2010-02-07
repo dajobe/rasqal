@@ -51,7 +51,7 @@
 
 #if 0
 #undef RASQAL_DEBUG
-#define RASQAL_DEBUG 2
+#define RASQAL_DEBUG 3
 #endif
 
 
@@ -199,7 +199,8 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
 
 
 %type <seq> SelectQuery ConstructQuery DescribeQuery
-%type <seq> SelectExpressionList VarOrIRIrefList ArgList ConstructTriplesOpt
+%type <seq> SelectExpressionList VarOrIRIrefList ArgList
+%type <seq> ConstructTriples ConstructTriplesOpt
 %type <seq> ConstructTemplate OrderConditionList
 %type <seq> GraphNodeListNotEmpty SelectExpressionListTail
 %type <seq> GraphTriples
@@ -269,7 +270,8 @@ QNAME_LITERAL QNAME_LITERAL_BRACE BLANK_LITERAL IDENTIFIER
     raptor_free_sequence($$);
 }
 SelectQuery ConstructQuery DescribeQuery
-SelectExpressionList VarOrIRIrefList ArgList ConstructTriplesOpt
+SelectExpressionList VarOrIRIrefList ArgList
+ConstructTriples ConstructTriplesOpt
 ConstructTemplate OrderConditionList
 GraphNodeListNotEmpty SelectExpressionListTail
 
@@ -1794,8 +1796,24 @@ ConstructTemplate:  '{' ConstructTriplesOpt '}'
 ;
 
 
-/* SPARQL Grammar: [31] ConstructTriples renamed for clarity */
-ConstructTriplesOpt: TriplesSameSubject '.' ConstructTriplesOpt
+/* Pulled out of SPARQL Grammar: [31] ConstructTriples */
+ConstructTriplesOpt: ConstructTriples
+{
+  $$ = $1;
+}
+| /* empty */
+{
+  $$ = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_triple,
+                           (raptor_sequence_print_handler*)rasqal_triple_print);
+  if(!$$) {
+    YYERROR_MSG("ConstructTriplesOpt: cannot create sequence");
+  }
+}
+;
+
+
+/* SPARQL Grammar: [31] ConstructTriples */
+ConstructTriples: TriplesSameSubject '.' ConstructTriplesOpt
 {
   $$ = NULL;
  
@@ -1811,7 +1829,7 @@ ConstructTriplesOpt: TriplesSameSubject '.' ConstructTriplesOpt
                                (raptor_sequence_print_handler*)rasqal_triple_print);
       if(!$$) {
         raptor_free_sequence($3);
-        YYERROR_MSG("ConstructTriplesOpt: cannot create sequence");
+        YYERROR_MSG("ConstructTriples: cannot create sequence");
       }
     }
 
@@ -1819,7 +1837,7 @@ ConstructTriplesOpt: TriplesSameSubject '.' ConstructTriplesOpt
       raptor_free_sequence($3);
       raptor_free_sequence($$);
       $$ = NULL;
-      YYERROR_MSG("ConstructTriplesOpt: sequence join failed");
+      YYERROR_MSG("ConstructTriples: sequence join failed");
     }
     raptor_free_sequence($3);
   }
@@ -1835,14 +1853,6 @@ ConstructTriplesOpt: TriplesSameSubject '.' ConstructTriplesOpt
     rasqal_free_formula($1);
   }
   
-}
-| /* empty */
-{
-  $$ = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_triple,
-                           (raptor_sequence_print_handler*)rasqal_triple_print);
-  if(!$$) {
-    YYERROR_MSG("ConstructTriplesOpt: cannot create sequence");
-  }
 }
 ;
 
