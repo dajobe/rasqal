@@ -2020,7 +2020,7 @@ TriplesSameSubject: VarOrTerm PropertyListNotEmpty
   int i;
 
 #if RASQAL_DEBUG > 1  
-  fprintf(DEBUG_FH, "TriplesSameSubject 2\n  subject=");
+  fprintf(DEBUG_FH, "TriplesSameSubject 2\n  TriplesNode=");
   rasqal_formula_print($1, DEBUG_FH);
   if($2) {
     fprintf(DEBUG_FH, "\n  propertyList=");
