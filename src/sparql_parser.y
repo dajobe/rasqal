@@ -129,7 +129,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
  * shift/reduce conflicts
  * FIXME: document this
  */
-%expect 31
+%expect 13
 
 /* word symbols */
 %token SELECT FROM WHERE
@@ -200,7 +200,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
 
 %type <seq> SelectQuery ConstructQuery DescribeQuery
 %type <seq> SelectExpressionList VarOrIRIrefList ArgList
-%type <seq> ConstructTriples ConstructTriplesOpt GraphTemplate
+%type <seq> ConstructTriples ConstructTriplesRest ConstructTriplesOpt GraphTemplate
 %type <seq> ConstructTemplate OrderConditionList
 %type <seq> GraphNodeListNotEmpty SelectExpressionListTail
 %type <seq> GraphTriples ModifyTemplate ModifyTemplateList
@@ -271,7 +271,7 @@ QNAME_LITERAL QNAME_LITERAL_BRACE BLANK_LITERAL IDENTIFIER
 }
 SelectQuery ConstructQuery DescribeQuery
 SelectExpressionList VarOrIRIrefList ArgList
-ConstructTriples ConstructTriplesOpt
+ConstructTriples ConstructTriplesRest ConstructTriplesOpt
 ConstructTemplate OrderConditionList
 GraphNodeListNotEmpty SelectExpressionListTail
 GraphTriples ModifyTemplate ModifyTemplateList
@@ -1909,7 +1909,7 @@ ConstructTemplate:  '{' ConstructTriplesOpt '}'
 ;
 
 
-/* Pulled out of SPARQL Grammar: [31] ConstructTriples */
+/* Pulled out of SPARQL Grammar: [30] ConstructTemplate */
 ConstructTriplesOpt: ConstructTriples
 {
   $$ = $1;
@@ -1926,7 +1926,7 @@ ConstructTriplesOpt: ConstructTriples
 
 
 /* SPARQL Grammar: [31] ConstructTriples */
-ConstructTriples: TriplesSameSubject '.' ConstructTriplesOpt
+ConstructTriples: TriplesSameSubject ConstructTriplesRest
 {
   $$ = NULL;
  
@@ -1936,36 +1936,36 @@ ConstructTriples: TriplesSameSubject '.' ConstructTriplesOpt
     rasqal_free_formula($1);
   }
   
-  if($3) {
+  if($2) {
     if(!$$) {
       $$ = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_triple,
                                (raptor_sequence_print_handler*)rasqal_triple_print);
       if(!$$) {
-        raptor_free_sequence($3);
+        raptor_free_sequence($2);
         YYERROR_MSG("ConstructTriples: cannot create sequence");
       }
     }
 
-    if(raptor_sequence_join($$, $3)) {
-      raptor_free_sequence($3);
+    if(raptor_sequence_join($$, $2)) {
+      raptor_free_sequence($2);
       raptor_free_sequence($$);
       $$ = NULL;
       YYERROR_MSG("ConstructTriples: sequence join failed");
     }
-    raptor_free_sequence($3);
+    raptor_free_sequence($2);
   }
+}
+;
 
- }
-| TriplesSameSubject
+
+/* Pulled out of SPARQL Grammar: [31] ConstructTriples */
+ConstructTriplesRest: '.' ConstructTriples
+{
+  $$ = $2;
+}
+| /* empty */
 {
   $$ = NULL;
-  
-  if($1) {
-    $$ = $1->triples;
-    $1->triples = NULL;
-    rasqal_free_formula($1);
-  }
-  
 }
 ;
 
