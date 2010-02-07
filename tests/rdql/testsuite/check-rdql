@@ -150,7 +150,8 @@ sub run_test($$$$$) {
 
     return "NULL" if $str eq "<${rs}undefined>";
 
-    return $str if $str =~ s/^(".*")(@.*)(\^\^<.*>)$/string($1$2$3)/;
+    # Discard @lang from "string"@lang^^datatype
+    return $str if $str =~ s/^(".*")(@.*)(\^\^<.*>)$/string($1$3)/;
 
     return $str if $str =~ s/^(".*"\^\^<.*>)$/string($1)/;
 
