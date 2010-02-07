@@ -129,7 +129,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
  * shift/reduce conflicts
  * FIXME: document this
  */
-%expect 5
+%expect 31
 
 /* word symbols */
 %token SELECT FROM WHERE
@@ -200,10 +200,10 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
 
 %type <seq> SelectQuery ConstructQuery DescribeQuery
 %type <seq> SelectExpressionList VarOrIRIrefList ArgList
-%type <seq> ConstructTriples ConstructTriplesOpt
+%type <seq> ConstructTriples ConstructTriplesOpt GraphTemplate
 %type <seq> ConstructTemplate OrderConditionList
 %type <seq> GraphNodeListNotEmpty SelectExpressionListTail
-%type <seq> GraphTriples
+%type <seq> GraphTriples ModifyTemplate ModifyTemplateList
 
 %type <formula> TriplesSameSubject
 %type <formula> PropertyList PropertyListTailOpt PropertyListNotEmpty
@@ -274,6 +274,7 @@ SelectExpressionList VarOrIRIrefList ArgList
 ConstructTriples ConstructTriplesOpt
 ConstructTemplate OrderConditionList
 GraphNodeListNotEmpty SelectExpressionListTail
+GraphTriples ModifyTemplate ModifyTemplateList
 
 %destructor {
   if($$)
@@ -309,6 +310,7 @@ BrackettedExpression PrimaryExpression
 OrderCondition Filter Constraint SelectExpression
 AggregateExpression CountAggregateExpression SumAggregateExpression
 AvgAggregateExpression MinAggregateExpression MaxAggregateExpression
+CoalesceExpression
 
 %destructor {
   if($$)
@@ -385,6 +387,11 @@ ReportFormat: SelectQuery
 }
 | InsertQuery
 {
+  ((rasqal_query*)rq)->verb = RASQAL_QUERY_VERB_INSERT;
+}
+| UpdateQuery
+{
+  /* FIXME - this is a lie */
   ((rasqal_query*)rq)->verb = RASQAL_QUERY_VERB_INSERT;
 }
 | ClearQuery
@@ -787,15 +794,19 @@ AskQuery: ASK
 
 
 /* LAQRS */
-DeleteQuery: DELETE
-        DatasetClauseListOpt WhereClauseOpt
+DeleteQuery: DELETE '{' ModifyTemplateList '}' WhereClause
 {
   rasqal_sparql_query_language* sparql;
   sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
 
   if(!sparql->extended)
     sparql_syntax_error((rasqal_query*)rq, "DELETE cannot be used with SPARQL");
-  /* deleting from graph URIs - not deleting inline triples */
+
+  /* deleting via template + query - not inline atomic triples */
+
+  /* FIXME - what to do with $3 - ModifyTemplateList */
+  if($3)
+    raptor_free_sequence($3);
 }
 | DELETE DATA '{' GraphTriples '}'
 {
@@ -837,8 +848,64 @@ GraphTriples: TriplesBlock
 ;
 
 
+/* SPARQL 1.1 Update (draft) SS 4.1.3 */
+GraphTemplate: GRAPH VarOrIRIref '{' ConstructTriples '}'
+{
+  /* FIXME - what to do with $2 ? */
+  $$ = (void*)$2;
+  
+  $$ = $4;
+}
+;
+
+
+
+/* SPARQL 1.1 Update (draft) SS 4.1.3 */
+ModifyTemplate: ConstructTriples
+{
+  $$ = $1;
+}
+| GraphTemplate
+{
+  $$ = $1;
+}
+;
+
+
+/* SPARQL 1.1 Update (draft) */
+ModifyTemplateList: ModifyTemplateList ModifyTemplate
+{
+  $$ = $1;
+  if($2) {
+    if(!$$) {
+      $$ = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_triple,
+                               (raptor_sequence_print_handler*)rasqal_triple_print);
+      if(!$$) {
+        raptor_free_sequence($2);
+        YYERROR_MSG("ModifyTemplateList: cannot create sequence");
+      }
+    }
+      
+    if(raptor_sequence_join($$, $2)) {
+      raptor_free_sequence($2);
+      raptor_free_sequence($$);
+      $$ = NULL;
+      YYERROR_MSG("ModifyTemplateList: sequence join failed");
+    }
+    raptor_free_sequence($2);
+  }
+
+}
+| ModifyTemplate
+{
+  $$ = $1;
+}
+;
+
+
+
 /* SPARQL 1.1 Update (draft) / LAQRS */
-InsertQuery: INSERT DatasetClauseListOpt WhereClauseOpt
+InsertQuery: INSERT '{' ModifyTemplateList '}' WhereClause
 {
   rasqal_sparql_query_language* sparql;
   sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
@@ -846,7 +913,11 @@ InsertQuery: INSERT DatasetClauseListOpt WhereClauseOpt
   if(!sparql->extended)
     sparql_syntax_error((rasqal_query*)rq, "INSERT cannot be used with SPARQL");
 
-  /* inserting from graph URIs - not inline triples */
+  /* inserting via template + query - not inline atomic triples */
+
+  /* FIXME - what to do with $3 - ModifyTemplateList */
+  if($3)
+    raptor_free_sequence($3);
 }
 | INSERT DATA '{' GraphTriples '}'
 {
@@ -856,8 +927,50 @@ InsertQuery: INSERT DatasetClauseListOpt WhereClauseOpt
   if(!sparql->extended)
     sparql_syntax_error((rasqal_query*)rq,
                         "INSERT DATA cannot be used with SPARQL");
-  /* inserting inline triples - not inserting from graph URIs */
+  /* inserting inline atomic triples (no variables) - not via template */
   ((rasqal_query*)rq)->constructs = $4;
+}
+;
+
+
+UpdateQuery: WITH URI_LITERAL 
+  DELETE '{' ModifyTemplateList '}' 
+  INSERT '{' ModifyTemplateList '}'
+  WHERE GroupGraphPattern
+{
+  /* FIXME - what to do! */
+  if($2)
+    raptor_free_uri($2);
+  if($5)
+    raptor_free_sequence($5);
+  if($9)
+    raptor_free_sequence($9);
+  if($12)
+    rasqal_free_graph_pattern($12);
+}
+| WITH URI_LITERAL 
+  DELETE '{' ModifyTemplateList '}' 
+  WHERE GroupGraphPattern
+{
+  /* FIXME - what to do! */
+  if($2)
+    raptor_free_uri($2);
+  if($5)
+    raptor_free_sequence($5);
+  if($8)
+    rasqal_free_graph_pattern($8);
+}
+| WITH URI_LITERAL 
+  INSERT '{' ModifyTemplateList '}' 
+  WHERE GroupGraphPattern
+{
+  /* FIXME - what to do! */
+  if($2)
+    raptor_free_uri($2);
+  if($5)
+    raptor_free_sequence($5);
+  if($8)
+    rasqal_free_graph_pattern($8);
 }
 ;
 
