@@ -126,7 +126,7 @@ rasqal_free_data_graph(rasqal_data_graph* dg)
  * 
  * The print debug format may change in any release.
  **/
-void
+int
 rasqal_data_graph_print(rasqal_data_graph* dg, FILE* fh)
 {
 #ifdef RAPTOR_V2_AVAILABLE
@@ -148,6 +148,8 @@ rasqal_data_graph_print(rasqal_data_graph* dg, FILE* fh)
     fprintf(fh, "data graph(%s, flags %d)", 
             raptor_uri_as_string(dg->uri), dg->flags);
 #endif
+
+  return 0;
 }
 
 
@@ -217,16 +219,19 @@ rasqal_free_prefix(rasqal_prefix* p)
  * 
  * The print debug format may change in any release.
  **/
-void
+int
 rasqal_prefix_print(rasqal_prefix* p, FILE* fh)
 {
-  fprintf(fh, "prefix(%s as %s)", (p->prefix ? (const char*)p->prefix : "(default)"),
+  fprintf(fh, "prefix(%s as %s)",
+          (p->prefix ? (const char*)p->prefix : "(default)"),
 #ifdef RAPTOR_V2_AVAILABLE
           raptor_uri_as_string_v2(p->world->raptor_world_ptr, p->uri)
 #else
           raptor_uri_as_string(p->uri)
 #endif
           );
+
+  return 0;
 }
 
 
@@ -348,7 +353,7 @@ rasqal_triple_write(rasqal_triple* t, raptor_iostream* iostr)
  * 
  * The print debug format may change in any release.
  **/
-void
+int
 rasqal_triple_print(rasqal_triple* t, FILE* fh)
 {
   fputs("triple(", fh);
@@ -363,6 +368,8 @@ rasqal_triple_print(rasqal_triple* t, FILE* fh)
     rasqal_literal_print(t->origin, fh);
     fputc(')', fh);
   }
+
+  return 0;
 }
 
 
@@ -2283,7 +2290,7 @@ rasqal_expression_write(rasqal_expression* e, raptor_iostream* iostr)
  * 
  * The print debug format may change in any release.
  **/
-void
+int
 rasqal_expression_print(rasqal_expression* e, FILE* fh)
 {
   fputs("expr(", fh);
@@ -2398,6 +2405,8 @@ rasqal_expression_print(rasqal_expression* e, FILE* fh)
       RASQAL_FATAL2("Unknown operation %d", e->op);
   }
   fputc(')', fh);
+
+  return 0;
 }
 
 

@@ -548,13 +548,16 @@ rasqal_graph_pattern_write_internal(rasqal_graph_pattern* gp,
  * The print debug format may change in any release.
  * 
  **/
-void
+int
 rasqal_graph_pattern_print(rasqal_graph_pattern* gp, FILE* fh)
 {
   raptor_iostream* iostr;
-  iostr=raptor_new_iostream_to_file_handle(fh);
+
+  iostr = raptor_new_iostream_to_file_handle(fh);
   rasqal_graph_pattern_write_internal(gp, iostr, DO_INDENTING);
   raptor_free_iostream(iostr);
+
+  return 0;
 }
 
 

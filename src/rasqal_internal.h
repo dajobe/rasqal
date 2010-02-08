@@ -974,7 +974,7 @@ void rasqal_uri_finish(rasqal_world*);
 /* rasqal_literal.c */
 rasqal_formula* rasqal_new_formula(void);
 void rasqal_free_formula(rasqal_formula* formula);
-void rasqal_formula_print(rasqal_formula* formula, FILE *stream);
+int rasqal_formula_print(rasqal_formula* formula, FILE *stream);
 rasqal_formula* rasqal_formula_join(rasqal_formula* first_formula, rasqal_formula* second_formula);
 
 /* The following should be public eventually in rasqal.h or raptor.h or ...? */
@@ -1059,7 +1059,7 @@ rasqal_row* rasqal_new_row(rasqal_rowsource* rowsource);
 rasqal_row* rasqal_new_row_for_size(int size);
 rasqal_row* rasqal_new_row_from_row(rasqal_row* row);
 void rasqal_free_row(rasqal_row* row);
-void rasqal_row_print(rasqal_row* row, FILE* fh);
+int rasqal_row_print(rasqal_row* row, FILE* fh);
 void rasqal_row_set_value_at(rasqal_row* row, int offset, rasqal_literal* value);
 raptor_sequence* rasqal_new_row_sequence(rasqal_world* world, rasqal_variables_table* vt, const char* const row_data[], int vars_count, raptor_sequence** vars_seq_p);
 int rasqal_row_to_nodes(rasqal_row* row);
@@ -1373,7 +1373,7 @@ extern const rasqal_query_execution_factory rasqal_query_engine_algebra;
 const char* rasqal_update_type_label(rasqal_update_type type);
 rasqal_update_operation* rasqal_new_update_operation(rasqal_update_type type, raptor_uri* graph_uri, raptor_uri* document_uri, raptor_sequence* triples, rasqal_graph_pattern* graph_pattern);
 void rasqal_free_update_operation(rasqal_update_operation *update);
-void rasqal_update_operation_print(rasqal_update_operation *update, FILE* stream);
+int rasqal_update_operation_print(rasqal_update_operation *update, FILE* stream);
 int rasqal_query_add_update_operation(rasqal_query* query, rasqal_update_operation *update);
 
   

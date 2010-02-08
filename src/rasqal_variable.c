@@ -209,7 +209,7 @@ rasqal_variable_write(rasqal_variable* v, raptor_iostream* iostr)
  * The print debug format may change in any release.
  * 
  **/
-void
+int
 rasqal_variable_print(rasqal_variable* v, FILE* fh)
 {
   if(v->type == RASQAL_VARIABLE_TYPE_ANONYMOUS)
@@ -225,6 +225,8 @@ rasqal_variable_print(rasqal_variable* v, FILE* fh)
     rasqal_literal_print(v->value, fh);
   }
   fputc(')', fh);
+
+  return 0;
 }
 
 

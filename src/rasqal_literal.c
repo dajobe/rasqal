@@ -2773,7 +2773,7 @@ rasqal_free_formula(rasqal_formula* formula)
 }
   
 
-void
+int
 rasqal_formula_print(rasqal_formula* formula, FILE *stream)
 {
   fputs("formula(triples=", stream);
@@ -2787,6 +2787,8 @@ rasqal_formula_print(rasqal_formula* formula, FILE *stream)
   else
     fputs("NULL", stream);
   fputc(')', stream);
+
+  return 0;
 }
 
 

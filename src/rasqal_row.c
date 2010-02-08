@@ -176,7 +176,7 @@ rasqal_free_row(rasqal_row* row)
  *
  * INTERNAL - Print a query result row.
  */
-void 
+int
 rasqal_row_print(rasqal_row* row, FILE* fh)
 {
   rasqal_rowsource* rowsource = row->rowsource;
@@ -227,6 +227,8 @@ rasqal_row_print(rasqal_row* row, FILE* fh)
   }
 
   fprintf(fh, " offset %d]", row->offset);
+
+  return 0;
 }
 
 

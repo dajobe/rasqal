@@ -1345,8 +1345,9 @@ rasqal_query_verb_as_string(rasqal_query_verb verb)
  *
  * Print a query in a debug format.
  * 
+ * Return value: non-0 on failure
  **/
-void
+int
 rasqal_query_print(rasqal_query* query, FILE *fh)
 {
   rasqal_variables_table* vars_table = query->vars_table;
@@ -1418,6 +1419,8 @@ rasqal_query_print(rasqal_query* query, FILE *fh)
     raptor_sequence_print(query->updates, fh);
   }
   fputc('\n', fh);
+
+  return 0;
 }
 
 

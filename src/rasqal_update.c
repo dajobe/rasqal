@@ -138,7 +138,7 @@ rasqal_free_update_operation(rasqal_update_operation *update)
 }
 
 
-void
+int
 rasqal_update_operation_print(rasqal_update_operation *update, FILE* stream)
 {
   fputs("update-operation(type=", stream);
@@ -153,6 +153,8 @@ rasqal_update_operation_print(rasqal_update_operation *update, FILE* stream)
   if(update->graph_pattern)
     rasqal_graph_pattern_print(update->graph_pattern, stream);
   fputc(')', stream);
+
+  return 0;
 }
 
 

@@ -930,7 +930,7 @@ rasqal_graph_pattern_operator rasqal_graph_pattern_get_operator(rasqal_graph_pat
 RASQAL_API
 const char* rasqal_graph_pattern_operator_as_string(rasqal_graph_pattern_operator op);
 RASQAL_API
-void rasqal_graph_pattern_print(rasqal_graph_pattern* gp, FILE* fh);
+int rasqal_graph_pattern_print(rasqal_graph_pattern* gp, FILE* fh);
 RASQAL_API
 int rasqal_graph_pattern_set_filter_expression(rasqal_graph_pattern* gp, rasqal_expression* expr);
 RASQAL_API
@@ -948,7 +948,7 @@ rasqal_literal* rasqal_graph_pattern_get_origin(rasqal_graph_pattern* graph_patt
 RASQAL_API
 const char* rasqal_query_verb_as_string(rasqal_query_verb verb);
 RASQAL_API
-void rasqal_query_print(rasqal_query* query, FILE* fh);
+int rasqal_query_print(rasqal_query* query, FILE* fh);
 
 /* Query */
 RASQAL_API
@@ -1055,7 +1055,7 @@ rasqal_data_graph* rasqal_new_data_graph(rasqal_world* world, raptor_uri* uri, r
 RASQAL_API
 void rasqal_free_data_graph(rasqal_data_graph* dg);
 RASQAL_API
-void rasqal_data_graph_print(rasqal_data_graph* dg, FILE* fh);
+int rasqal_data_graph_print(rasqal_data_graph* dg, FILE* fh);
 
 
 /**
@@ -1106,7 +1106,7 @@ void rasqal_free_expression(rasqal_expression* e);
 RASQAL_API
 void rasqal_expression_print_op(rasqal_expression* e, FILE* fh);
 RASQAL_API
-void rasqal_expression_print(rasqal_expression* e, FILE* fh);
+int rasqal_expression_print(rasqal_expression* e, FILE* fh);
 RASQAL_API
 rasqal_literal* rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator, rasqal_expression* e, int flags);
 
@@ -1189,7 +1189,7 @@ rasqal_prefix* rasqal_new_prefix(rasqal_world* world, const unsigned char* prefi
 RASQAL_API
 void rasqal_free_prefix(rasqal_prefix* p);
 RASQAL_API
-void rasqal_prefix_print(rasqal_prefix* p, FILE* fh);
+int rasqal_prefix_print(rasqal_prefix* p, FILE* fh);
 
 /* Triple class */
 RASQAL_API
@@ -1199,7 +1199,7 @@ rasqal_triple* rasqal_new_triple_from_triple(rasqal_triple* t);
 RASQAL_API
 void rasqal_free_triple(rasqal_triple* t);
 RASQAL_API
-void rasqal_triple_print(rasqal_triple* t, FILE* fh);
+int rasqal_triple_print(rasqal_triple* t, FILE* fh);
 RASQAL_API
 void rasqal_triple_set_origin(rasqal_triple* t, rasqal_literal *l);
 RASQAL_API
@@ -1215,7 +1215,7 @@ rasqal_variable* rasqal_new_variable_from_variable(rasqal_variable* v);
 RASQAL_API
 void rasqal_free_variable(rasqal_variable* v);
 RASQAL_API
-void rasqal_variable_print(rasqal_variable* v, FILE* fh);
+int rasqal_variable_print(rasqal_variable* v, FILE* fh);
 RASQAL_API
 void rasqal_variable_set_value(rasqal_variable* v, rasqal_literal* l);
 
