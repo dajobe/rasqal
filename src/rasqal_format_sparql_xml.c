@@ -354,8 +354,11 @@ rasqal_query_results_write_sparql_xml(raptor_iostream *iostr,
             if(l->language)
               attrs[0]=raptor_new_qname(nstack,
                                         (const unsigned char*)"xml:lang",
-                                        (const unsigned char*)l->language,
-                                        (raptor_simple_message_handler)rasqal_query_simple_error, query);
+                                        (const unsigned char*)l->language
+#ifndef RAPTOR_V2_AVAILABLE
+                                        , (raptor_simple_message_handler)rasqal_query_simple_error, query
+#endif
+                                        );
             else
 #ifdef RAPTOR_V2_AVAILABLE
               attrs[0] = raptor_new_qname_from_namespace_local_name_v2(query->world->raptor_world_ptr,
