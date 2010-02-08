@@ -592,8 +592,6 @@ rasqal_literal_set_typed_value(rasqal_literal* l, rasqal_literal_type type,
 /*
  * rasqal_literal_string_to_native:
  * @l: #rasqal_literal to operate on inline
- * @error_handler: error handling function
- * @error_data: data for error handle
  * @flags: flags for literal checking.  non-0 to ignore type errors
  *
  * INTERNAL Upgrade a datatyped literal string to an internal typed literal
@@ -609,9 +607,7 @@ rasqal_literal_set_typed_value(rasqal_literal* l, rasqal_literal_type type,
  * Return value: non-0 on failure
  **/
 int
-rasqal_literal_string_to_native(rasqal_literal *l,
-                                raptor_simple_message_handler error_handler,
-                                void *error_data, int flags)
+rasqal_literal_string_to_native(rasqal_literal *l, int flags)
 {
   rasqal_literal_type native_type=RASQAL_LITERAL_UNKNOWN;
   int rc=0;
@@ -706,7 +702,7 @@ rasqal_new_string_literal_common(rasqal_world* world,
       datatype_type = rasqal_xsd_datatype_uri_to_type(world, datatype);
     l->parent_type = rasqal_xsd_datatype_parent_type(datatype_type);
     
-    if((flags == 1) && rasqal_literal_string_to_native(l, NULL, NULL, 1)) {
+    if((flags == 1) && rasqal_literal_string_to_native(l, 1)) {
       rasqal_free_literal(l);
       l=NULL;
     }
@@ -2566,7 +2562,7 @@ rasqal_literal_expand_qname(void *user_data, rasqal_literal *l)
         l->language=NULL;
       }
 
-      if(rasqal_literal_string_to_native(l, (raptor_simple_message_handler)rasqal_query_simple_error, rq, 0)) {
+      if(rasqal_literal_string_to_native(l, 0)) {
         rasqal_free_literal(l);
         return 1;
       }

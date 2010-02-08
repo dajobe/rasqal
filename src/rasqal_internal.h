@@ -906,7 +906,7 @@ int rasqal_literal_as_boolean(rasqal_literal* literal, int* error);
 int rasqal_literal_as_integer(rasqal_literal* l, int* error);
 double rasqal_literal_as_floating(rasqal_literal* l, int* error);
 raptor_uri* rasqal_literal_as_uri(rasqal_literal* l);
-int rasqal_literal_string_to_native(rasqal_literal *l, raptor_simple_message_handler error_handler, void *error_data, int flags);
+int rasqal_literal_string_to_native(rasqal_literal *l, int flags);
 int rasqal_literal_has_qname(rasqal_literal* l);
 int rasqal_literal_expand_qname(void* user_data, rasqal_literal* l);
 int rasqal_literal_is_constant(rasqal_literal* l);
