@@ -607,11 +607,9 @@ rasqal_query_write_sparql_20060406(raptor_iostream *iostr,
   wc.base_uri = NULL;
 
 #ifdef RAPTOR_V2_AVAILABLE
-  wc.type_uri = raptor_new_uri_for_rdf_concept_v2(query->world->raptor_world_ptr, "type");
-  wc.nstack = raptor_new_namespaces_v2(query->world->raptor_world_ptr,
-                                       (raptor_simple_message_handler)rasqal_query_simple_error,
-                                       query,
-                                       1);
+  wc.type_uri = raptor_new_uri_for_rdf_concept(query->world->raptor_world_ptr,
+                                               (const unsigned char*)"type");
+  wc.nstack = raptor_new_namespaces(query->world->raptor_world_ptr, 1);
 #else
   wc.type_uri = raptor_new_uri_for_rdf_concept("type");
   raptor_uri_get_handler(&uri_handler, &uri_context);

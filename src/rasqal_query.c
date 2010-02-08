@@ -134,10 +134,7 @@ rasqal_new_query(rasqal_world *world, const char *name,
     goto tidy;
   
 #ifdef RAPTOR_V2_AVAILABLE
-  query->namespaces = raptor_new_namespaces_v2(world->raptor_world_ptr,
-                                               (raptor_simple_message_handler)rasqal_query_simple_error,
-                                               query,
-                                               0);
+  query->namespaces = raptor_new_namespaces(world->raptor_world_ptr, 0);
 #else
   raptor_uri_get_handler(&uri_handler, &uri_context);
   query->namespaces = raptor_new_namespaces(uri_handler, uri_context,

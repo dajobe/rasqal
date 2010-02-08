@@ -111,10 +111,7 @@ rasqal_query_results_write_sparql_xml(raptor_iostream *iostr,
   
 
 #ifdef RAPTOR_V2_AVAILABLE  
-  nstack = raptor_new_namespaces_v2(query->world->raptor_world_ptr,
-                                    (raptor_simple_message_handler)rasqal_query_simple_error, query,
-                                    1);
-
+  nstack = raptor_new_namespaces(query->world->raptor_world_ptr, 1);
 #else
   raptor_uri_get_handler(&uri_handler, &uri_context);
   nstack = raptor_new_namespaces(uri_handler, uri_context,
