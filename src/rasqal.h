@@ -665,6 +665,61 @@ typedef enum {
 
 
 /**
+ * rasqal_update_type:
+ * @RASQAL_UPDATE_TYPE_DELETE: Delete graph or triples.
+ * @RASQAL_UPDATE_TYPE_INSERT: Insert graph or triples.
+ * @RASQAL_UPDATE_TYPE_CLEAR: Clear graph.
+ * @RASQAL_UPDATE_TYPE_CREATE: Create graph.
+ * @RASQAL_UPDATE_TYPE_DROP: Drop graph.
+ * @RASQAL_UPDATE_TYPE_LOAD: Load graph.
+ * @RASQAL_UPDATE_TYPE_UNKNOWN: Internal
+ * @RASQAL_UPDATE_TYPE_LAST: Internal
+ *
+ * Update type being performed.
+ *
+ */
+typedef enum {
+  /* internal */
+  RASQAL_UPDATE_TYPE_UNKNOWN   = 0,
+  RASQAL_UPDATE_TYPE_SELECT    = 1,
+  RASQAL_UPDATE_TYPE_CONSTRUCT = 2,
+  RASQAL_UPDATE_TYPE_DESCRIBE  = 3,
+  RASQAL_UPDATE_TYPE_ASK       = 4,
+  RASQAL_UPDATE_TYPE_DELETE    = 5,
+  RASQAL_UPDATE_TYPE_INSERT    = 6,
+  RASQAL_UPDATE_TYPE_CLEAR     = 7,
+  RASQAL_UPDATE_TYPE_CREATE    = 8,
+  RASQAL_UPDATE_TYPE_DROP      = 9,
+  RASQAL_UPDATE_TYPE_LOAD      = 10,
+  RASQAL_UPDATE_TYPE_UPDATE    = 11,
+
+  /* internal */
+  RASQAL_UPDATE_TYPE_LAST = RASQAL_UPDATE_TYPE_UPDATE
+} rasqal_update_type;
+
+
+/**
+ * rasqal_update_operation:
+ * @type: type of update
+ * @graph_uri: optional graph URI (clear, load, with ... delete/insert)
+ * @triples: optional set of triples (insert/delete data)
+ * @graph_pattern: optional basic graph pattern (insert/delete)
+ *
+ * Update operation - changing the dataset
+ *
+ */
+typedef struct {
+  rasqal_update_type type;
+
+  raptor_uri* graph_uri;
+
+  raptor_sequence* triples;
+
+  rasqal_graph_pattern* graph_pattern;
+} rasqal_update_operation;
+
+
+/**
  * rasqal_graph_pattern_operator:
  * @RASQAL_GRAPH_PATTERN_OPERATOR_BASIC: Just triple patterns and constraints.
  * @RASQAL_GRAPH_PATTERN_OPERATOR_OPTIONAL: Set of graph patterns (ANDed) and constraints.
