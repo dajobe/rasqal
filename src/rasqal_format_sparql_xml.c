@@ -1005,7 +1005,11 @@ rasqal_query_results_get_rowsource_sparql_xml(rasqal_world *world,
   raptor_sax2_set_end_element_handler(con->sax2,
                                       rasqal_sparql_xml_sax2_end_element_handler);
 
-  con->results_sequence=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_row, (raptor_sequence_print_handler*)rasqal_row_print);
+#ifdef RAPTOR_V2_AVAILABLE
+  con->results_sequence = raptor_new_sequence((raptor_data_free_handler*)rasqal_free_row, (raptor_data_print_handler*)rasqal_row_print);
+#else
+  con->results_sequence = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_row, (raptor_sequence_print_handler*)rasqal_row_print);
+#endif
 
   con->vars_table = rasqal_new_variables_table_from_variables_table(vars_table);
   

@@ -1291,7 +1291,11 @@ rasqal_algebra_query_to_algebra(rasqal_query* query)
       /* Make a deep copy of the query order conditions sequence for
        * the ORDERBY algebra node
        */
+#ifdef RAPTOR_V2_AVAILABLE
+      seq = raptor_new_sequence((raptor_data_free_handler*)rasqal_free_expression, (raptor_data_print_handler*)rasqal_expression_print);
+#else
       seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_expression, (raptor_sequence_print_handler*)rasqal_expression_print);
+#endif
       if(!seq) {
         rasqal_free_algebra_node(node);
         return NULL;
@@ -1332,8 +1336,13 @@ rasqal_algebra_query_to_algebra(rasqal_query* query)
     if(seq)
       vars_size = raptor_sequence_size(seq);
     
+#ifdef RAPTOR_V2_AVAILABLE
+    vars_seq = raptor_new_sequence((raptor_data_free_handler*)rasqal_free_variable,
+                                   (raptor_data_print_handler*)rasqal_variable_print);
+#else
     vars_seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_variable,
                                    (raptor_sequence_print_handler*)rasqal_variable_print);
+#endif
     if(!vars_seq) {
       rasqal_free_algebra_node(node);
       return NULL;

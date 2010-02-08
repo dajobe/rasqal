@@ -252,7 +252,11 @@ rasqal_query_expand_wildcards(rasqal_query* rq)
     return 0;
   
   /* If 'SELECT *' was given, make the selects be a list of all variables */
+#ifdef RAPTOR_V2_AVAILABLE
+  rq->selects = raptor_new_sequence(NULL, (raptor_data_print_handler*)rasqal_variable_print);
+#else
   rq->selects = raptor_new_sequence(NULL, (raptor_sequence_print_handler*)rasqal_variable_print);
+#endif
   if(!rq->selects)
     return 1;
   
@@ -294,8 +298,12 @@ rasqal_query_remove_duplicate_select_vars(rasqal_query* rq)
   size = raptor_sequence_size(seq);
   if(!size)
     return 0;
-  
+
+#ifdef RAPTOR_V2_AVAILABLE
+  new_seq = raptor_new_sequence(NULL, (raptor_data_print_handler*)rasqal_variable_print);
+#else
   new_seq = raptor_new_sequence(NULL, (raptor_sequence_print_handler*)rasqal_variable_print);
+#endif
   if(!new_seq)
     return 1;
   
@@ -684,7 +692,11 @@ rasqal_query_merge_triple_patterns(rasqal_query* query,
 
     RASQAL_DEBUG3("Initial columns %d to %d\n", gp->start_column, gp->end_column);
   #endif
+#ifdef RAPTOR_V2_AVAILABLE
+    seq = raptor_new_sequence((raptor_data_free_handler*)rasqal_free_graph_pattern, (raptor_data_print_handler*)rasqal_graph_pattern_print);
+#else
     seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_graph_pattern, (raptor_sequence_print_handler*)rasqal_graph_pattern_print);
+#endif
     if(!seq)
       return 1;
     for(i = 0; raptor_sequence_size(gp->graph_patterns) > 0; i++) {
@@ -799,8 +811,11 @@ rasqal_query_remove_empty_group_graph_patterns(rasqal_query* query,
     return 0;
   }
   
-  
+#ifdef RAPTOR_V2_AVAILABLE
+  seq = raptor_new_sequence((raptor_data_free_handler*)rasqal_free_graph_pattern, (raptor_data_print_handler*)rasqal_graph_pattern_print);
+#else
   seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_graph_pattern, (raptor_sequence_print_handler*)rasqal_graph_pattern_print);
+#endif
   if(!seq) {
     RASQAL_DEBUG1("Cannot create new gp sequence\n");
     *modified = -1;
@@ -1334,8 +1349,13 @@ rasqal_graph_patterns_join(rasqal_graph_pattern *dest_gp,
 
   if(src_gp->graph_patterns) {
     if(!dest_gp->graph_patterns) {
+#ifdef RAPTOR_V2_AVAILABLE
+      dest_gp->graph_patterns = raptor_new_sequence((raptor_data_free_handler*)rasqal_free_graph_pattern,
+                                                    (raptor_data_print_handler*)rasqal_graph_pattern_print);
+#else
       dest_gp->graph_patterns = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_graph_pattern,
                                                     (raptor_sequence_print_handler*)rasqal_graph_pattern_print);
+#endif
       if(!dest_gp->graph_patterns)
         return -1;
     }

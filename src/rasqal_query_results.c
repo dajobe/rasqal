@@ -1553,7 +1553,11 @@ rasqal_query_results_add_row(rasqal_query_results* query_results,
                              rasqal_row* row)
 {
   if(!query_results->results_sequence) {
+#ifdef RAPTOR_V2_AVAILABLE
+    query_results->results_sequence = raptor_new_sequence((raptor_data_free_handler*)rasqal_free_row, (raptor_data_print_handler*)rasqal_row_print);
+#else
     query_results->results_sequence = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_row, (raptor_sequence_print_handler*)rasqal_row_print);
+#endif
     if(!query_results->results_sequence)
       return 1;
     
