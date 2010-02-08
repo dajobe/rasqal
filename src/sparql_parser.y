@@ -1203,13 +1203,12 @@ CreateQuery: CREATE GRAPH URI_LITERAL
     sparql_syntax_error((rasqal_query*)rq, 
                         "CREATE SILENT GRAPH <uri> cannot be used with SPARQL 1.0");
 
-  /* FIXME - what to do with SILENT flag ? */
   update = rasqal_new_update_operation(RASQAL_UPDATE_TYPE_CREATE,
                                        $4 /* graph uri */, 
                                        NULL /* document uri */,
                                        NULL, NULL,
                                        NULL /*where */,
-                                       0 /* flags */);
+                                       RASQAL_UPDATE_FLAGS_SILENT /* flags */);
   if(!update) {
     YYERROR_MSG("CreateQuery: rasqal_new_update_operation failed");
   } else {
@@ -1257,13 +1256,12 @@ DropQuery: DROP GRAPH URI_LITERAL
                         "DROP SILENT GRAPH <uri> cannot be used with SPARQL 1.0");
 
 
-  /* FIXME - what to do with SILENT flag ? */
   update = rasqal_new_update_operation(RASQAL_UPDATE_TYPE_DROP,
                                        $4 /* graph uri */, 
                                        NULL /* document uri */,
                                        NULL, NULL,
                                        NULL /*where */,
-                                       0 /* flags */);
+                                       RASQAL_UPDATE_FLAGS_SILENT /* flags */);
   if(!update) {
     YYERROR_MSG("DropQuery: rasqal_new_update_operation failed");
   } else {
