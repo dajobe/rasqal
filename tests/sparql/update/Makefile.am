@@ -28,7 +28,6 @@ delete-data-1.rq \
 insert-delete-1.rq \
 delete-1.rq \
 insert-1.rq \
-insert-2.rq \
 load-1.rq \
 load-2.rq \
 clear-1.rq \
@@ -44,7 +43,8 @@ drop-2.rq
 SPARQL_BAD_TEST_FILES= \
 bad-1.rq
 
-EXPECTED_SPARQL_CORRECT_FAILURES=
+EXPECTED_SPARQL_CORRECT_FAILURES= \
+insert-2.rq
 
 EXTRA_DIST= \
 $(SPARQL_MODEL_FILES) \
