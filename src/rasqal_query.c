@@ -254,12 +254,6 @@ rasqal_free_query(rasqal_query* query)
   if(query->vars_table)
     rasqal_free_variables_table(query->vars_table);
 
-  if(query->graph_uri)
-    raptor_free_uri(query->graph_uri);
-  
-  if(query->document_uri)
-    raptor_free_uri(query->document_uri);
-
   if(query->updates)
     raptor_free_sequence(query->updates);
   
