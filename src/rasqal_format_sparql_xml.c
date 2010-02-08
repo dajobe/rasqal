@@ -180,10 +180,10 @@ rasqal_query_results_write_sparql_xml(raptor_iostream *iostr,
       if(!attrs)
         goto tidy;
 #ifdef RAPTOR_V2_AVAILABLE
-      attrs[0] = raptor_new_qname_from_namespace_local_name_v2(query->world->raptor_world_ptr,
-                                                               res_ns, 
-                                                               (const unsigned char*)"name",
-                                                               (const unsigned char*)name); /* attribute value */
+      attrs[0] = raptor_new_qname_from_namespace_local_name(query->world->raptor_world_ptr,
+                                                            res_ns,
+                                                            (const unsigned char*)"name",
+                                                            (const unsigned char*)name); /* attribute value */
 #else
       attrs[0] = raptor_new_qname_from_namespace_local_name(res_ns, 
                                                             (const unsigned char*)"name",
@@ -280,10 +280,10 @@ rasqal_query_results_write_sparql_xml(raptor_iostream *iostr,
       if(!attrs)
         goto tidy;
 #ifdef RAPTOR_V2_AVAILABLE
-      attrs[0] = raptor_new_qname_from_namespace_local_name_v2(query->world->raptor_world_ptr,
-                                                               res_ns, 
-                                                               (const unsigned char*)"name",
-                                                               name);
+      attrs[0] = raptor_new_qname_from_namespace_local_name(query->world->raptor_world_ptr,
+                                                            res_ns,
+                                                            (const unsigned char*)"name",
+                                                            name);
 
 #else
       attrs[0] = raptor_new_qname_from_namespace_local_name(res_ns, 
@@ -361,11 +361,11 @@ rasqal_query_results_write_sparql_xml(raptor_iostream *iostr,
                                         );
             else
 #ifdef RAPTOR_V2_AVAILABLE
-              attrs[0] = raptor_new_qname_from_namespace_local_name_v2(query->world->raptor_world_ptr,
-                                                                       res_ns, 
-                                                                       (const unsigned char*)"datatype",
-                                                                       (const unsigned char*)raptor_uri_as_string_v2(query->world->raptor_world_ptr,
-                                                                                                                     l->datatype));
+              attrs[0] = raptor_new_qname_from_namespace_local_name(query->world->raptor_world_ptr,
+                                                                    res_ns,
+                                                                    (const unsigned char*)"datatype",
+                                                                    (const unsigned char*)raptor_uri_as_string_v2(query->world->raptor_world_ptr,
+                                                                                                                  l->datatype));
 #else
               attrs[0] = raptor_new_qname_from_namespace_local_name(res_ns, 
                                                                     (const unsigned char*)"datatype",
