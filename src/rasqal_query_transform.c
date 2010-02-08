@@ -320,7 +320,12 @@ rasqal_query_remove_duplicate_select_vars(rasqal_query* rq)
       
       if(v == v2) {
         if(!warned) {
-          rasqal_log_error_simple(rq->world, RAPTOR_LOG_LEVEL_WARNING,
+          rasqal_log_error_simple(rq->world,
+#ifdef RAPTOR_V2_AVAILABLE
+                                  RAPTOR_LOG_LEVEL_WARN,
+#else
+                                  RAPTOR_LOG_LEVEL_WARNING,
+#endif
                                   &rq->locator,
                                   "Variable %s duplicated in SELECT.", 
                                   v->name);
@@ -553,7 +558,12 @@ rasqal_query_check_unused_variables(rasqal_query* query, int *bound_in)
 
     v = rasqal_variables_table_get(query->vars_table, i);
     if(column == BOUND_IN_UNBOUND)
-      rasqal_log_error_simple(query->world, RAPTOR_LOG_LEVEL_WARNING,
+      rasqal_log_error_simple(query->world,
+#ifdef RAPTOR_V2_AVAILABLE
+                              RAPTOR_LOG_LEVEL_WARN,
+#else
+                              RAPTOR_LOG_LEVEL_WARNING,
+#endif
                               &query->locator,
                               "Variable %s was selected but is unused in the query.", 
                               v->name);

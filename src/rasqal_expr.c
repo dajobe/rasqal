@@ -1270,7 +1270,13 @@ rasqal_expression_evaluate_strmatch(rasqal_world *world,
 #endif
 
 #ifdef RASQAL_REGEX_NONE
-  rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_WARNING, locator,
+  rasqal_log_error_simple(world,
+#ifdef RAPTOR_V2_AVAILABLE
+                          RAPTOR_LOG_LEVEL_WARN,
+#else
+                          RAPTOR_LOG_LEVEL_WARNING,
+#endif
+                          locator,
                           "Regex support missing, cannot compare '%s' to '%s'", match_string, pattern);
   b=1;
   rc= -1;
@@ -1993,7 +1999,13 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
       break;
 
     case RASQAL_EXPR_FUNCTION:
-      rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_WARNING, locator,
+      rasqal_log_error_simple(world,
+#ifdef RAPTOR_V2_AVAILABLE
+                              RAPTOR_LOG_LEVEL_WARN,
+#else
+                              RAPTOR_LOG_LEVEL_WARNING,
+#endif
+                              locator,
                               "No function expressions support at present.  Returning false.");
       result=rasqal_new_boolean_literal(world, 0);
       break;
