@@ -27,6 +27,7 @@ insert-data-1.rq \
 delete-data-1.rq \
 insert-delete-1.rq \
 delete-1.rq \
+delete-2.rq \
 insert-1.rq \
 load-1.rq \
 load-2.rq \
@@ -45,7 +46,6 @@ bad-1.rq
 
 EXPECTED_SPARQL_CORRECT_FAILURES= \
 insert-2.rq \
-delete-2.rq \
 delete-data-2.rq
 
 EXTRA_DIST= \
