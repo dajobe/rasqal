@@ -883,6 +883,8 @@ DeleteQuery: DELETE DatasetClauseList WhereClauseOpt
    */
   $4->type = RASQAL_UPDATE_TYPE_UPDATE;
   $4->delete_templates = $4->insert_templates; $4->insert_templates = NULL;
+  $4->flags |= RASQAL_UPDATE_FLAGS_DATA;
+  
   rasqal_query_add_update_operation((rasqal_query*)rq, $4);
 }
 ;
@@ -1039,6 +1041,8 @@ InsertQuery: INSERT DatasetClauseList WhereClauseOpt
 
   /* inserting inline atomic triples (no variables) - not via template */
   $4->type = RASQAL_UPDATE_TYPE_UPDATE;
+  $4->flags |= RASQAL_UPDATE_FLAGS_DATA;
+
   rasqal_query_add_update_operation((rasqal_query*)rq, $4);
 }
 ;
