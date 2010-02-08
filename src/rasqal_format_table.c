@@ -156,8 +156,14 @@ rasqal_query_results_write_table(raptor_iostream *iostr,
       if(!l)
         continue;
 
+#ifdef RAPTOR_V2_AVAILABLE
+      str_iostr = raptor_new_iostream_to_string(query->world->raptor_world_ptr,
+                                                (void**)&values[i], &v_len,
+                                                rasqal_alloc_memory);
+#else
       str_iostr = raptor_new_iostream_to_string((void**)&values[i], &v_len,
                                                 rasqal_alloc_memory);
+#endif
       if(!str_iostr) {
         rc = 1;
         goto tidy;
