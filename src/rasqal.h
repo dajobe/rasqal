@@ -904,6 +904,7 @@ void rasqal_query_graph_pattern_visit(rasqal_query* query, rasqal_graph_pattern_
 RASQAL_API
 int rasqal_query_write(raptor_iostream* iostr, rasqal_query* query, raptor_uri* format_uri, raptor_uri* base_uri);
 
+/* update */
 RASQAL_API
 raptor_sequence* rasqal_query_get_update_operations_sequence(rasqal_query* query);
 RASQAL_API

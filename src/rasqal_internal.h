@@ -1374,6 +1374,7 @@ const char* rasqal_update_type_label(rasqal_update_type type);
 rasqal_update_operation* rasqal_new_update_operation(rasqal_update_type type, raptor_uri* graph_uri, raptor_uri* document_uri, raptor_sequence* triples, rasqal_graph_pattern* graph_pattern);
 void rasqal_free_update_operation(rasqal_update_operation *update);
 void rasqal_update_operation_print(rasqal_update_operation *update, FILE* stream);
+int rasqal_query_add_update_operation(rasqal_query* query, rasqal_update_operation *update);
 
   
 /* end of RASQAL_INTERNAL */

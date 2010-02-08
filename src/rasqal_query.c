@@ -1785,6 +1785,38 @@ rasqal_query_variable_bound_in_triple(rasqal_query *query,
 }
 
 
+/*
+ * rasqal_query_add_update_operation:
+ * @query: #rasqal_query query object
+ * @update: #rasqal_update_operation to add
+ *
+ * Add a update operation to the query.
+ *
+ * INTERNAL - The @update object becomes owned by the query.
+ *
+ * Return value: non-0 on failure
+ **/
+int
+rasqal_query_add_update_operation(rasqal_query* query, 
+                                  rasqal_update_operation *update)
+{
+  if(!update)
+    return 1;
+
+  if(!query->updates) {
+    query->updates = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_update_operation, (raptor_sequence_print_handler*)rasqal_update_operation_print);
+    if(!query->updates) {
+      rasqal_free_update_operation(update);
+      return 1;
+    }
+  }
+
+  if(raptor_sequence_push(query->updates, (void*)update))
+    return 1;
+  return 0;
+}
+
+
 /**
  * rasqal_query_get_update_operations_sequence:
  * @query: #rasqal_query query object
