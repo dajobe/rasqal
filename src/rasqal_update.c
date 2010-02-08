@@ -76,24 +76,29 @@ rasqal_update_type_label(rasqal_update_type type)
  * rasqal_new_update_operation:
  * @type: type of update
  * @graph_uri: optional graph URI
+ * @document_uri: optional document URI
  * @triples: optional set of triples
  * @graph_pattern: optional basic graph pattern
  *
  * INTERNAL - Constructor - Create new update operation
  *
- * At least one of @graph_uri, @triples or @graph_pattern must be given.
+ * All parameters become owned by the update operation.
+ *
+ * At least one of @graph_uri, @document_uri, @triples or
+ * @graph_pattern must be given.
  *
  * Return value: new update object or NULL on failure
  */
 rasqal_update_operation*
 rasqal_new_update_operation(rasqal_update_type type,
                             raptor_uri* graph_uri,
+                            raptor_uri* document_uri,
                             raptor_sequence* triples,
                             rasqal_graph_pattern* graph_pattern) 
 {
   rasqal_update_operation* update;
 
-  if(!graph_uri && !triples && !graph_pattern)
+  if(!graph_uri && !document_uri && !triples && !graph_pattern)
     return NULL;
   
   update = RASQAL_MALLOC(update_operation, sizeof(*update));
@@ -102,6 +107,7 @@ rasqal_new_update_operation(rasqal_update_type type,
   
   update->type = type;
   update->graph_uri = graph_uri;
+  update->document_uri = document_uri;
   update->triples = triples;
   update->graph_pattern = graph_pattern;
   
@@ -121,6 +127,8 @@ rasqal_free_update_operation(rasqal_update_operation *update)
 {
   if(update->graph_uri)
     raptor_free_uri(update->graph_uri);
+  if(update->document_uri)
+    raptor_free_uri(update->document_uri);
   if(update->triples)
     raptor_free_sequence(update->triples);
   if(update->graph_pattern)
