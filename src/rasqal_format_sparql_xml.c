@@ -990,7 +990,7 @@ rasqal_query_results_get_rowsource_sparql_xml(rasqal_world *world,
 
   con->error_handlers.locator=&con->locator;
 #ifdef RAPTOR_V2_AVAILABLE
-  raptor_error_handlers_init_v2(world->raptor_world_ptr, &con->error_handlers);
+  raptor_error_handlers_init(world->raptor_world_ptr, &con->error_handlers);
 #else
   raptor_error_handlers_init(&con->error_handlers);
 #endif
