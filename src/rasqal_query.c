@@ -1304,10 +1304,6 @@ static const char* const rasqal_query_verb_labels[RASQAL_QUERY_VERB_LAST+1] = {
   "ASK",
   "DELETE",
   "INSERT",
-  "CLEAR",
-  "CREATE",
-  "DROP",
-  "LOAD",
   "UPDATE"
 };
 

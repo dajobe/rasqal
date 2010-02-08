@@ -1733,10 +1733,6 @@ rasqal_query_build_variables_use_map(rasqal_query* query)
 
     case RASQAL_QUERY_VERB_DELETE:
     case RASQAL_QUERY_VERB_INSERT:
-    case RASQAL_QUERY_VERB_CLEAR:
-    case RASQAL_QUERY_VERB_CREATE:
-    case RASQAL_QUERY_VERB_DROP:
-    case RASQAL_QUERY_VERB_LOAD:
     case RASQAL_QUERY_VERB_UPDATE:
       /* FIXME - should mark the verbs using triple patterns as using vars */
       break;
