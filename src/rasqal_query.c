@@ -259,6 +259,9 @@ rasqal_free_query(rasqal_query* query)
   
   if(query->document_uri)
     raptor_free_uri(query->document_uri);
+
+  if(query->updates)
+    raptor_free_sequence(query->updates);
   
   RASQAL_FREE(rasqal_query, query);
 }
@@ -1410,6 +1413,10 @@ rasqal_query_print(rasqal_query* query, FILE *fh)
     fputs("\nquery group conditions: ", fh);
     raptor_sequence_print(query->group_conditions_sequence, fh);
   }
+  if(query->updates) {
+    fputs("\nupdate operations: ", fh);
+    raptor_sequence_print(query->updates, fh);
+  }
   fputc('\n', fh);
 }
 
@@ -1777,3 +1784,36 @@ rasqal_query_variable_bound_in_triple(rasqal_query *query,
   return v_column == column;
 }
 
+
+/**
+ * rasqal_query_get_update_operations_sequence:
+ * @query: #rasqal_query query object
+ *
+ * Get the sequence of update operations
+ *
+ * Return value: a #raptor_sequence of #rasqal_update_operation pointers.
+ **/
+raptor_sequence*
+rasqal_query_get_update_operations_sequence(rasqal_query* query)
+{
+  return query->updates;
+}
+
+
+/**
+ * rasqal_query_get_update_operation:
+ * @query: #rasqal_query query object
+ * @idx: index into the sequence (0 or larger)
+ *
+ * Get a query update operation in the sequence of update operations
+ *
+ * Return value: a #rasqal_update_operation pointer or NULL if out of the sequence range
+ **/
+rasqal_update_operation*
+rasqal_query_get_update_operation(rasqal_query* query, int idx)
+{
+  if(!query->updates)
+    return NULL;
+  
+  return (rasqal_update_operation*)raptor_sequence_get_at(query->updates, idx);
+}

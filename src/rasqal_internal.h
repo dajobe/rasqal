@@ -418,6 +418,11 @@ struct rasqal_query_s {
 
   /* INTERNAL URI for SPARQL 1.1 Update: LOAD <document uri> */
   raptor_uri* document_uri;
+
+  /* sequence of #rasqal_update_operation when @verb is
+   * INSERT (deprecated), DELETE (deprecated) or UPDATE
+   */
+  raptor_sequence* updates;
 };
 
 
