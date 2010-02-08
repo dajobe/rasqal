@@ -1005,8 +1005,6 @@ rasqal_query_results_get_rowsource_sparql_xml(rasqal_world *world,
                                         rasqal_sparql_xml_sax2_start_element_handler);
   raptor_sax2_set_characters_handler(con->sax2,
                                      rasqal_sparql_xml_sax2_characters_handler);
-  raptor_sax2_set_characters_handler(con->sax2,
-                                     (raptor_sax2_characters_handler)rasqal_sparql_xml_sax2_characters_handler);
 
   raptor_sax2_set_end_element_handler(con->sax2,
                                       rasqal_sparql_xml_sax2_end_element_handler);
