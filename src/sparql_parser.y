@@ -794,7 +794,7 @@ AskQuery: ASK
 
 
 /* LAQRS */
-DeleteQuery: DELETE '{' ModifyTemplateList '}' WhereClause
+DeleteQuery: DELETE DatasetClauseList WhereClauseOpt
 {
   rasqal_sparql_query_language* sparql;
   sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
@@ -802,7 +802,21 @@ DeleteQuery: DELETE '{' ModifyTemplateList '}' WhereClause
   if(!sparql->extended)
     sparql_syntax_error((rasqal_query*)rq, "DELETE cannot be used with SPARQL");
 
-  /* deleting via template + query - not inline atomic triples */
+  /* LAQRS: experimental syntax */
+  sparql_syntax_warning(((rasqal_query*)rq), 
+                        "DELETE FROM <uri> ... WHERE ... is deprecated LAQRS syntax.");
+}
+| DELETE '{' ModifyTemplateList '}' WhereClause
+{
+  rasqal_sparql_query_language* sparql;
+  sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
+
+  if(!sparql->extended)
+    sparql_syntax_error((rasqal_query*)rq, "DELETE cannot be used with SPARQL");
+
+  /* SPARQL 1.1 (Draft) update:
+   * deleting via template + query - not inline atomic triples 
+   */
 
   /* FIXME - what to do with $3 - ModifyTemplateList */
   if($3)
@@ -816,7 +830,10 @@ DeleteQuery: DELETE '{' ModifyTemplateList '}' WhereClause
   if(!sparql->extended)
     sparql_syntax_error((rasqal_query*)rq,
                         "DELETE DATA cannot be used with SPARQL");
-  /* deleting inline triples - not inserting from graph URIs */
+
+  /* SPARQL 1.1 (Draft) update:
+   * deleting inline triples - not inserting from graph URIs 
+   */
   ((rasqal_query*)rq)->constructs = $4;
 }
 ;
@@ -905,7 +922,19 @@ ModifyTemplateList: ModifyTemplateList ModifyTemplate
 
 
 /* SPARQL 1.1 Update (draft) / LAQRS */
-InsertQuery: INSERT '{' ModifyTemplateList '}' WhereClause
+InsertQuery: INSERT DatasetClauseList WhereClauseOpt
+{
+  rasqal_sparql_query_language* sparql;
+  sparql  = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
+
+  if(!sparql->extended)
+    sparql_syntax_error((rasqal_query*)rq, "INSERT cannot be used with SPARQL");
+
+  /* LAQRS: experimental syntax */
+  sparql_syntax_warning(((rasqal_query*)rq), 
+                        "INSERT FROM <uri> ... WHERE ... is deprecated LAQRS syntax.");
+}
+| INSERT '{' ModifyTemplateList '}' WhereClause
 {
   rasqal_sparql_query_language* sparql;
   sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
@@ -1076,10 +1105,12 @@ LoadQuery: LOAD URI_LITERAL
 
 
 /* SPARQL Grammar: [9] DatasetClause */
-DatasetClauseListOpt: DatasetClauseListOpt FROM DefaultGraphClause
+DatasetClauseList: DatasetClauseListOpt FROM DefaultGraphClause
 | DatasetClauseListOpt FROM NamedGraphClause
-| /* empty */
 ;
+
+DatasetClauseListOpt: DatasetClauseList
+| /* empty */
 
 
 /* SPARQL Grammar: [10] DefaultGraphClause */
