@@ -870,7 +870,11 @@ const char* rasqal_basename(const char* name);
 
 
 /* rasqal_graph_pattern.c */
+#ifdef RAPTOR_V2_AVAILABLE
+unsigned char* rasqal_escaped_name_to_utf8_string(const unsigned char* src, size_t len, size_t* dest_lenp, raptor_message_handler error_handler, void* error_data);
+#else
 unsigned char* rasqal_escaped_name_to_utf8_string(const unsigned char* src, size_t len, size_t* dest_lenp, raptor_simple_message_handler error_handler, void* error_data);
+#endif
 unsigned char* rasqal_query_generate_bnodeid(rasqal_query* rdf_query, unsigned char *user_bnodeid);
 
 rasqal_graph_pattern* rasqal_new_basic_graph_pattern_from_formula(rasqal_query* query, rasqal_formula* formula);
@@ -906,7 +910,11 @@ int rasqal_literal_as_boolean(rasqal_literal* literal, int* error);
 int rasqal_literal_as_integer(rasqal_literal* l, int* error);
 double rasqal_literal_as_floating(rasqal_literal* l, int* error);
 raptor_uri* rasqal_literal_as_uri(rasqal_literal* l);
+#ifdef RAPTOR_V2_AVAILABLE
+int rasqal_literal_string_to_native(rasqal_literal *l, raptor_message_handler error_handler, void *error_data, int flags);
+#else
 int rasqal_literal_string_to_native(rasqal_literal *l, raptor_simple_message_handler error_handler, void *error_data, int flags);
+#endif
 int rasqal_literal_has_qname(rasqal_literal* l);
 int rasqal_literal_expand_qname(void* user_data, rasqal_literal* l);
 int rasqal_literal_is_constant(rasqal_literal* l);
