@@ -1038,7 +1038,7 @@ InsertQuery: INSERT DatasetClauseList WhereClauseOpt
 UpdateQuery: WITH URI_LITERAL 
   DELETE '{' ModifyTemplateList '}' 
   INSERT '{' ModifyTemplateList '}'
-  WHERE GroupGraphPattern
+  WhereClauseOpt
 {
   rasqal_update_operation* update;
 
@@ -1048,7 +1048,7 @@ UpdateQuery: WITH URI_LITERAL
                                        NULL /* document uri */,
                                        $9 /* insert templates */,
                                        $5 /* delete templates */,
-                                       $12 /* where */,
+                                       $11 /* where */,
                                        0 /* flags */);
   if(!update) {
     YYERROR_MSG("UpdateQuery 1: rasqal_new_update_operation failed");
@@ -1059,7 +1059,7 @@ UpdateQuery: WITH URI_LITERAL
 }
 | WITH URI_LITERAL 
   DELETE '{' ModifyTemplateList '}' 
-  WHERE GroupGraphPattern
+  WhereClauseOpt
 {
   rasqal_update_operation* update;
 
@@ -1069,7 +1069,7 @@ UpdateQuery: WITH URI_LITERAL
                                        NULL /* document uri */,
                                        NULL /* insert templates */,
                                        $5 /* delete templates */,
-                                       $8 /* where */,
+                                       $7 /* where */,
                                        0 /* flags */);
   if(!update) {
     YYERROR_MSG("UpdateQuery 2: rasqal_new_update_operation failed");
@@ -1080,7 +1080,7 @@ UpdateQuery: WITH URI_LITERAL
 }
 | WITH URI_LITERAL 
   INSERT '{' ModifyTemplateList '}' 
-  WHERE GroupGraphPattern
+  WhereClauseOpt
 {
   rasqal_update_operation* update;
 
@@ -1090,7 +1090,7 @@ UpdateQuery: WITH URI_LITERAL
                                        NULL /* document uri */,
                                        $5 /* insert templates */,
                                        NULL /* delete templates */,
-                                       $8 /* where */,
+                                       $7 /* where */,
                                        0 /* flags */);
   if(!update) {
     YYERROR_MSG("UpdateQuery 3: rasqal_new_update_operation failed");
