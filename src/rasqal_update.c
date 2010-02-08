@@ -85,7 +85,7 @@ rasqal_update_type_label(rasqal_update_type type)
  * All parameters become owned by the update operation.
  *
  * At least one of @graph_uri, @document_uri, @triples or
- * @graph_pattern must be given.
+ * @graph_pattern must be given unless type is #RASQAL_UPDATE_TYPE_CLEAR
  *
  * Return value: new update object or NULL on failure
  */
@@ -98,8 +98,10 @@ rasqal_new_update_operation(rasqal_update_type type,
 {
   rasqal_update_operation* update;
 
-  if(!graph_uri && !document_uri && !triples && !graph_pattern)
-    return NULL;
+  if(type != RASQAL_UPDATE_TYPE_CLEAR) {
+    if(!graph_uri && !document_uri && !triples && !graph_pattern)
+      return NULL;
+  }
   
   update = (rasqal_update_operation*)RASQAL_MALLOC(update_operation, sizeof(*update));
   if(!update)
