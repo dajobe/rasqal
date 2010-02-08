@@ -2418,9 +2418,14 @@ rasqal_literal_expand_qname(void *user_data, rasqal_literal *l)
 
   if(l->type == RASQAL_LITERAL_QNAME) {
     /* expand a literal qname */
-    raptor_uri *uri=raptor_qname_string_to_uri(rq->namespaces,
-                                               l->string, l->string_len,
-                                               (raptor_simple_message_handler)rasqal_query_simple_error, rq);
+#ifdef RAPTOR_V2_AVAILABLE
+    raptor_uri *uri = raptor_qname_string_to_uri(rq->namespaces,
+                                                 l->string, l->string_len);
+#else
+    raptor_uri *uri = raptor_qname_string_to_uri(rq->namespaces,
+                                                 l->string, l->string_len,
+                                                 (raptor_simple_message_handler)rasqal_query_simple_error, rq);
+#endif
     if(!uri)
       return 1;
     RASQAL_FREE(cstring, (void*)l->string);
@@ -2432,10 +2437,16 @@ rasqal_literal_expand_qname(void *user_data, rasqal_literal *l)
     
     if(l->flags) {
       /* expand a literal string datatype qname */
-      uri=raptor_qname_string_to_uri(rq->namespaces,
-                                     l->flags, 
-                                     strlen((const char*)l->flags),
-                                     (raptor_simple_message_handler)rasqal_query_simple_error, rq);
+#ifdef RAPTOR_V2_AVAILABLE
+      uri = raptor_qname_string_to_uri(rq->namespaces,
+                                       l->flags,
+                                       strlen((const char*)l->flags));
+#else
+      uri = raptor_qname_string_to_uri(rq->namespaces,
+                                       l->flags,
+                                       strlen((const char*)l->flags),
+                                       (raptor_simple_message_handler)rasqal_query_simple_error, rq);
+#endif
       if(!uri)
         return 1;
       l->datatype=uri;
