@@ -270,6 +270,7 @@ rasqal_query_results_execute_with_engine(rasqal_query* query,
       case RASQAL_QUERY_VERB_CREATE:
       case RASQAL_QUERY_VERB_DROP:
       case RASQAL_QUERY_VERB_LOAD:
+      case RASQAL_QUERY_VERB_UPDATE:
       default:
         return NULL;
     }
