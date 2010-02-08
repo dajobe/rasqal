@@ -44,7 +44,8 @@ SPARQL_BAD_TEST_FILES= \
 bad-1.rq
 
 EXPECTED_SPARQL_CORRECT_FAILURES= \
-insert-2.rq
+insert-2.rq \
+delete-2.rq
 
 EXTRA_DIST= \
 $(SPARQL_MODEL_FILES) \
