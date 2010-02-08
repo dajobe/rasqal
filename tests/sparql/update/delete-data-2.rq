@@ -1,3 +1,5 @@
+# http://www.w3.org/TR/2010/WD-sparql11-update-20100126/#t412
+
 PREFIX dc: <http://purl.org/dc/elements/1.1/>
 
 DELETE DATA

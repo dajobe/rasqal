@@ -22,7 +22,7 @@
 SPARQL_MODEL_FILES= \
 data.ttl
 
-SPARQL_TEST_FILES= \
+EXPECTED_SPARQL_CORRECT= \
 insert-data-1.rq \
 delete-data-1.rq \
 insert-delete-1.rq \
@@ -45,11 +45,12 @@ bad-1.rq
 
 EXPECTED_SPARQL_CORRECT_FAILURES= \
 insert-2.rq \
-delete-2.rq
+delete-2.rq \
+delete-data-2.rq
 
 EXTRA_DIST= \
 $(SPARQL_MODEL_FILES) \
-$(SPARQL_TEST_FILES) \
+$(EXPECTED_SPARQL_CORRECT) \
 $(SPARQL_BAD_TEST_FILES)
 
 build-sparql-parser-test:
@@ -68,9 +69,13 @@ get-testsuite-sparql-parse-good:
 	$(ECHO) '@prefix t:     <http://ns.librdf.org/2009/test-manifest#> .'; \
 	$(ECHO) ' '; \
 	$(ECHO) "<> a mf:Manifest; rdfs:comment \"SPARQL 1.1 Update legal parsing\"; mf:entries ("; \
-	for test in $(SPARQL_TEST_FILES); do \
+	for test in $(EXPECTED_SPARQL_CORRECT); do \
 	  comment="sparql parsing of $$test"; \
 	  $(ECHO) "  [ a t:PositiveTest; mf:name \"$$test\"; rdfs:comment \"$$comment\"; mf:action  \"$(top_builddir)/src/$$prog -i laqrs $(srcdir)/$$test\" ]"; \
+	done; \
+	for test in $(EXPECTED_SPARQL_CORRECT_FAILURES); do \
+	  comment="sparql parsing of $$test"; \
+	  $(ECHO) "  [ a t:NegativeTest; mf:name \"$$test\"; rdfs:comment \"$$comment\"; mf:action  \"$(top_builddir)/src/$$prog -i laqrs $(srcdir)/$$test\" ]"; \
 	done; \
 	$(ECHO) ")."
 
