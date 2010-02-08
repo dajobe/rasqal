@@ -694,11 +694,13 @@ typedef enum {
 /**
  * rasqal_update_flags:
  * @RASQAL_UPDATE_FLAGS_SILENT: the update operation should be silent
+ * @RASQAL_UPDATE_FLAGS_DATA: the update operation is triple data not templates
  *
  * Flags for graph update operations
  */
 typedef enum {
   RASQAL_UPDATE_FLAGS_SILENT = 1,
+  RASQAL_UPDATE_FLAGS_DATA = 2,
 } rasqal_update_flags;
 
 
