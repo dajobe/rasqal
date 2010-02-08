@@ -86,17 +86,10 @@ rasqal_query_write_sparql_uri(sparql_writer_context *wc,
     return;
   }
   
-#ifdef RAPTOR_V2_AVAILABLE
-  if(wc->base_uri)
-    string = raptor_uri_to_relative_counted_uri_string_v2(wc->world->raptor_world_ptr, wc->base_uri, uri, &len);
-  else
-    string = raptor_uri_as_counted_string_v2(wc->world->raptor_world_ptr, uri, &len);
-#else
   if(wc->base_uri)
     string = raptor_uri_to_relative_counted_uri_string(wc->base_uri, uri, &len);
   else
     string = raptor_uri_as_counted_string(uri, &len);
-#endif
 
   raptor_iostream_write_byte(iostr, '<');
   raptor_iostream_write_string_ntriples(iostr, string, len, '>');
@@ -625,11 +618,7 @@ rasqal_query_write_sparql_20060406(raptor_iostream *iostr,
     raptor_iostream_write_byte(iostr, '\n');
 
     /* from now on all URIs are relative to this */
-#ifdef RAPTOR_V2_AVAILABLE
-    wc.base_uri = raptor_uri_copy_v2(query->world->raptor_world_ptr, base_uri);
-#else
     wc.base_uri = raptor_uri_copy(base_uri);
-#endif
   }
   
   

@@ -1003,11 +1003,7 @@ rasqal_query_declare_prefix(rasqal_query *rq, rasqal_prefix *p)
 
   if(raptor_namespaces_start_namespace_full(rq->namespaces, 
                                             p->prefix, 
-#ifdef RAPTOR_V2_AVAILABLE
-                                            raptor_uri_as_string_v2(rq->world->raptor_world_ptr, p->uri),
-#else
                                             raptor_uri_as_string(p->uri),
-#endif
                                             rq->prefix_depth))
     return 1;
   p->declared = 1;
@@ -1283,15 +1279,11 @@ rasqal_query_prepare(rasqal_query* query,
   }
 
   if(base_uri)
-#ifdef RAPTOR_V2_AVAILABLE
-    base_uri = raptor_uri_copy_v2(query->world->raptor_world_ptr, base_uri);
-#else
     base_uri = raptor_uri_copy(base_uri);
-#endif
   else {
     unsigned char *uri_string = raptor_uri_filename_to_uri_string("");
 #ifdef RAPTOR_V2_AVAILABLE
-    base_uri = raptor_new_uri_v2(query->world->raptor_world_ptr, uri_string);
+    base_uri = raptor_new_uri(query->world->raptor_world_ptr, uri_string);
 #else
     base_uri = raptor_new_uri(uri_string);
 #endif
@@ -1843,8 +1835,14 @@ rasqal_query_escape_counted_string(rasqal_query* query,
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, NULL);
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(string, char*, NULL);
 
+#ifdef RAPTOR_V2_AVAILABLE
+  iostr = raptor_new_iostream_to_string(query->world->raptor_world_ptr,
+                                        &output_string, output_len_p,
+                                        rasqal_alloc_memory);
+#else
   iostr = raptor_new_iostream_to_string(&output_string, output_len_p,
                                         rasqal_alloc_memory);
+#endif
   if(!iostr)
     return NULL;
   rc = rasqal_query_iostream_write_escaped_counted_string(query, iostr,

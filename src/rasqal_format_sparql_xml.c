@@ -749,7 +749,7 @@ rasqal_sparql_xml_sax2_end_element_handler(void *user_data,
         strncpy((char*)lvalue, con->value, con->value_len+1);
         if(con->datatype)
 #ifdef RAPTOR_V2_AVAILABLE
-          datatype_uri = raptor_new_uri_v2(con->world->raptor_world_ptr, (const unsigned char*)con->datatype);
+          datatype_uri = raptor_new_uri(con->world->raptor_world_ptr, (const unsigned char*)con->datatype);
 #else
           datatype_uri = raptor_new_uri((const unsigned char*)con->datatype);
 #endif
@@ -785,7 +785,7 @@ rasqal_sparql_xml_sax2_end_element_handler(void *user_data,
         raptor_uri* uri;
         rasqal_literal* l;
 #ifdef RAPTOR_V2_AVAILABLE
-        uri = raptor_new_uri_v2(con->world->raptor_world_ptr, (const unsigned char*)con->value);
+        uri = raptor_new_uri(con->world->raptor_world_ptr, (const unsigned char*)con->value);
 #else
         uri = raptor_new_uri((const unsigned char*)con->value);
 #endif
@@ -979,11 +979,7 @@ rasqal_query_results_get_rowsource_sparql_xml(rasqal_world *world,
     return NULL;
 
   con->world=world;
-#ifdef RAPTOR_V2_AVAILABLE
-  con->base_uri = base_uri ? raptor_uri_copy_v2(world->raptor_world_ptr, base_uri) : NULL;
-#else
   con->base_uri = base_uri ? raptor_uri_copy(base_uri) : NULL;
-#endif
   con->iostr=iostr;
 
   con->locator.uri=base_uri;
