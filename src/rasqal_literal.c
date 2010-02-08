@@ -1113,9 +1113,11 @@ rasqal_literal_print(rasqal_literal* l, FILE* fh)
   switch(l->type) {
     case RASQAL_LITERAL_URI:
       fputc('<', fh);
-      raptor_print_ntriples_string(fh,
-                                   raptor_uri_as_string(l->value.uri),
-                                   '>');
+#ifdef RAPTOR_V2_AVAILABLE
+      raptor_print_ntriples_string(raptor_uri_as_string(l->value.uri), '>', fh);
+#else
+      raptor_print_ntriples_string(fh, raptor_uri_as_string(l->value.uri), '>');
+#endif
       fputc('>', fh);
       break;
     case RASQAL_LITERAL_BLANK:
@@ -1127,15 +1129,21 @@ rasqal_literal_print(rasqal_literal* l, FILE* fh)
     case RASQAL_LITERAL_STRING:
     case RASQAL_LITERAL_UDT:
       fputs("(\"", fh);
+#ifdef RAPTOR_V2_AVAILABLE
+      raptor_print_ntriples_string(l->string, '"', fh);
+#else
       raptor_print_ntriples_string(fh, l->string, '"');
+#endif
       fputc('"', fh);
       if(l->language)
         fprintf(fh, "@%s", l->language);
       if(l->datatype) {
         fputs("^^<", fh);
-        raptor_print_ntriples_string(fh,
-                                     raptor_uri_as_string(l->datatype),
-                                     '>');
+#ifdef RAPTOR_V2_AVAILABLE
+        raptor_print_ntriples_string(raptor_uri_as_string(l->datatype), '>', fh);
+#else
+        raptor_print_ntriples_string(fh, raptor_uri_as_string(l->datatype), '>');
+#endif
         fputc('>', fh);
       }
       fputc(')', fh);
