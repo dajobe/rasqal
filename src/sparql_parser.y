@@ -1082,24 +1082,42 @@ DropQuery: DROP GRAPH URI_LITERAL
 LoadQuery: LOAD URI_LITERAL
 {
   rasqal_sparql_query_language* sparql;
+  rasqal_update_operation* update;
+  
   sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
 
   if(!sparql->extended)
     sparql_syntax_error((rasqal_query*)rq, 
                         "LOAD <document uri> cannot be used with SPARQL");
-  ((rasqal_query*)rq)->document_uri = $2;
-  ((rasqal_query*)rq)->graph_uri = NULL;
+  
+  update = rasqal_new_update_operation(RASQAL_UPDATE_TYPE_LOAD,
+                                       NULL /* graph uri*/, 
+                                       $2 /* document uri */,
+                                       NULL, NULL);
+  if(update) {
+    if(rasqal_query_add_update_operation(((rasqal_query*)rq), update))
+      YYERROR_MSG("LoadQuery: rasqal_query_add_update_operation failed");
+  }
 }
 | LOAD URI_LITERAL INTO URI_LITERAL
 {
   rasqal_sparql_query_language* sparql;
+  rasqal_update_operation* update;
+
   sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
 
   if(!sparql->extended)
     sparql_syntax_error((rasqal_query*)rq, 
                         "LOAD <document uri> INTO <graph URI> cannot be used with SPARQL");
-  ((rasqal_query*)rq)->document_uri = $2;
-  ((rasqal_query*)rq)->graph_uri = $4;
+
+  update = rasqal_new_update_operation(RASQAL_UPDATE_TYPE_LOAD,
+                                       $4 /* graph uri */,
+                                       $2 /* document uri */,
+                                       NULL, NULL);
+  if(update) {
+    if(rasqal_query_add_update_operation(((rasqal_query*)rq), update))
+      YYERROR_MSG("LoadQuery: rasqal_query_add_update_operation failed");
+  }
 }
 ;
 
