@@ -991,11 +991,13 @@ rasqal_query_results_get_rowsource_sparql_xml(rasqal_world *world,
   con->error_handlers.locator=&con->locator;
 #ifdef RAPTOR_V2_AVAILABLE
   raptor_error_handlers_init(world->raptor_world_ptr, &con->error_handlers);
+
+  con->sax2 = raptor_new_sax2(world->raptor_world_ptr, &con->locator, con);
 #else
   raptor_error_handlers_init(&con->error_handlers);
+
+  con->sax2 = raptor_new_sax2(con, &con->error_handlers);
 #endif
-  
-  con->sax2=raptor_new_sax2(con, &con->error_handlers);
   if(!con->sax2)
     return NULL;
   
