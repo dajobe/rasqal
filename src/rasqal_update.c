@@ -77,8 +77,8 @@ rasqal_update_type_label(rasqal_update_type type)
  * @type: type of update
  * @graph_uri: optional graph URI
  * @document_uri: optional document URI
- * @triples: optional set of triples
- * @graph_pattern: optional basic graph pattern
+ * @triple_templates: optional sequence of triple patterns (BASIC graph pattern)
+ * @where: optional where template (BASIC graph pattern)
  *
  * INTERNAL - Constructor - Create new update operation
  *
@@ -93,13 +93,13 @@ rasqal_update_operation*
 rasqal_new_update_operation(rasqal_update_type type,
                             raptor_uri* graph_uri,
                             raptor_uri* document_uri,
-                            raptor_sequence* triples,
-                            rasqal_graph_pattern* graph_pattern) 
+                            raptor_sequence* triple_templates,
+                            rasqal_graph_pattern* where) 
 {
   rasqal_update_operation* update;
 
   if(type != RASQAL_UPDATE_TYPE_CLEAR) {
-    if(!graph_uri && !document_uri && !triples && !graph_pattern)
+    if(!graph_uri && !document_uri && !triple_templates && !where)
       return NULL;
   }
   
@@ -110,8 +110,8 @@ rasqal_new_update_operation(rasqal_update_type type,
   update->type = type;
   update->graph_uri = graph_uri;
   update->document_uri = document_uri;
-  update->triples = triples;
-  update->graph_pattern = graph_pattern;
+  update->triple_templates = triple_templates;
+  update->where = where;
   
   return update;
 }
@@ -131,10 +131,10 @@ rasqal_free_update_operation(rasqal_update_operation *update)
     raptor_free_uri(update->graph_uri);
   if(update->document_uri)
     raptor_free_uri(update->document_uri);
-  if(update->triples)
-    raptor_free_sequence(update->triples);
-  if(update->graph_pattern)
-    rasqal_free_graph_pattern(update->graph_pattern);
+  if(update->triple_templates)
+    raptor_free_sequence(update->triple_templates);
+  if(update->where)
+    rasqal_free_graph_pattern(update->where);
 
   RASQAL_FREE(update_operation, update);
 }
@@ -148,12 +148,12 @@ rasqal_update_operation_print(rasqal_update_operation *update, FILE* stream)
   fputs(", graph-uri=", stream);
   if(update->graph_uri)
     raptor_uri_print(update->graph_uri, stream);
-  fputs(", triples=", stream);
-  if(update->triples)
-    raptor_sequence_print(update->triples, stream);
-  fputs(", gp=", stream);
-  if(update->graph_pattern)
-    rasqal_graph_pattern_print(update->graph_pattern, stream);
+  fputs(", triple-templates=", stream);
+  if(update->triple_templates)
+    raptor_sequence_print(update->triple_templates, stream);
+  fputs(", where=", stream);
+  if(update->where)
+    rasqal_graph_pattern_print(update->where, stream);
   fputc(')', stream);
 
   return 0;

@@ -892,6 +892,8 @@ unsigned char* rasqal_escaped_name_to_utf8_string(const unsigned char* src, size
 unsigned char* rasqal_query_generate_bnodeid(rasqal_query* rdf_query, unsigned char *user_bnodeid);
 
 rasqal_graph_pattern* rasqal_new_basic_graph_pattern_from_formula(rasqal_query* query, rasqal_formula* formula);
+rasqal_graph_pattern* rasqal_new_basic_graph_pattern_from_triples(rasqal_query* query, raptor_sequence* triples);
+
 rasqal_graph_pattern* rasqal_new_2_group_graph_pattern(rasqal_query* query, rasqal_graph_pattern* first_gp, rasqal_graph_pattern* second_gp);
 
 /* rdql_parser.y */

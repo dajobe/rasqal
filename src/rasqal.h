@@ -699,8 +699,8 @@ typedef enum {
  * @type: type of update
  * @graph_uri: optional graph URI (clear, drop, load, with ... delete/insert)
  * @document_uri: optional document URI (load)
- * @triples: optional set of triples (insert/delete data)
- * @graph_pattern: optional basic graph pattern (insert/delete)
+ * @triple_templates: optional sequence of triple templates (insert/delete data)
+ * @where: optional where template (insert/delete)
  *
  * Update operation - changing the dataset
  *
@@ -712,9 +712,9 @@ typedef struct {
 
   raptor_uri* document_uri;
 
-  raptor_sequence* triples;
+  raptor_sequence* triple_templates;
 
-  rasqal_graph_pattern* graph_pattern;
+  rasqal_graph_pattern* where;
 } rasqal_update_operation;
 
 

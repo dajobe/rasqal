@@ -847,3 +847,43 @@ rasqal_graph_pattern_variable_bound_in(rasqal_graph_pattern *gp,
   return (column >= gp->start_column && column <= gp->end_column);
 }
 
+
+
+/**
+ * rasqal_new_basic_graph_pattern_from_triples:
+ * @query: #rasqal_graph_pattern query object
+ * @triples: triples sequence containing the graph pattern
+ *
+ * INTERNAL - Create a new graph pattern object from a sequence of triples.
+ *
+ * The @triples become owned by the graph pattern
+ * 
+ * Return value: a new #rasqal_graph_pattern object or NULL on failure
+ **/
+rasqal_graph_pattern*
+rasqal_new_basic_graph_pattern_from_triples(rasqal_query* query,
+                                            raptor_sequence* triples)
+{
+  rasqal_graph_pattern* gp;
+  raptor_sequence *graph_triples = query->triples;
+  int offset = raptor_sequence_size(graph_triples);
+  int triple_pattern_size = 0;
+
+  if(triples) {
+    /* Move triples to end of graph triples sequence */
+    triple_pattern_size = raptor_sequence_size(triples);
+    if(raptor_sequence_join(graph_triples, triples)) {
+      raptor_free_sequence(triples);
+      return NULL;
+    }
+  }
+
+  raptor_free_sequence(triples);
+
+  gp = rasqal_new_basic_graph_pattern(query, graph_triples,
+                                      offset, 
+                                      offset + triple_pattern_size - 1);
+  return gp;
+}
+
+
