@@ -447,14 +447,15 @@ sub run_testsuites_in_dir($) {
   if(!@testsuites) {
     @testsuites = @known_testsuites;
   } else {
-    my(@t)=grep(!$is_known_testsuite{$_}, @testsuites);
-    if(@t) {
-      print "$program: Invalid testsuites in $dir: @t\n";
-      return { status => 'fail', details => 'Invalid testsuites given: @t'};
+    my(@t)=grep($is_known_testsuite{$_}, @testsuites);
+    if(!@t) {
+      return { status => 'skip',
+	       details => 'No known testsuites given in: @testsuites'};
     }
+    @testsuites=@t;
   }
 
-  print "$indent$program: Running testsuites in $dir\n";
+  print "$indent$program: Running testsuites @testsuites in $dir\n";
   $indent.=$INDENT;
 
   my $total_result = {  };
@@ -567,7 +568,9 @@ for my $dir (@dirs) {
   my $result=run_testsuites_in_dir(\%config);
 
   for my $counter (@counters) {
-    push(@{$total_result->{$counter}}, @{$result->{$counter}});
+    my $r = $result->{$counter};
+    push(@{$total_result->{$counter}}, @$r)
+      if $r;
   }
 
   $rc=1 if $result->{status} eq 'fail';
