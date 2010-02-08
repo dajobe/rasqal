@@ -122,11 +122,9 @@ rasqal_query_results_write_sparql_xml(raptor_iostream *iostr,
     return 1;
 
 #ifdef RAPTOR_V2_AVAILABLE
-  xml_writer = raptor_new_xml_writer_v2(query->world->raptor_world_ptr,
-                                        nstack,
-                                        iostr,
-                                        (raptor_simple_message_handler)rasqal_query_simple_error, query,
-                                        1);
+  xml_writer = raptor_new_xml_writer(query->world->raptor_world_ptr,
+                                     nstack,
+                                     iostr);
 #else
   xml_writer = raptor_new_xml_writer(nstack,
                                      uri_handler, uri_context,
