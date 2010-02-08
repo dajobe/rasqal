@@ -42,11 +42,11 @@
 
 static const char* const rasqal_update_type_labels[RASQAL_UPDATE_TYPE_LAST + 1] = {
   "Unknown",
-  "DELETE",
-  "INSERT",
   "CLEAR",
   "CREATE",
+  "DELETE",
   "DROP",
+  "INSERT",
   "LOAD",
   "UPDATE"
 };
