@@ -130,7 +130,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
  * shift/reduce conflicts
  * FIXME: document this
  */
-%expect 31
+%expect 32
 
 /* word symbols */
 %token SELECT FROM WHERE
@@ -393,7 +393,16 @@ ReportFormat: SelectQuery
 {
   ((rasqal_query*)rq)->verb = RASQAL_QUERY_VERB_ASK;
 }
-| DeleteQuery
+| UpdateOperationList
+;
+
+
+UpdateOperationList: UpdateOperationList UpdateOperation
+| UpdateOperation
+;
+
+
+UpdateOperation: DeleteQuery
 {
   ((rasqal_query*)rq)->verb = RASQAL_QUERY_VERB_DELETE;
 }
