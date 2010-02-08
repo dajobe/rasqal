@@ -101,7 +101,7 @@ rasqal_new_update_operation(rasqal_update_type type,
   if(!graph_uri && !document_uri && !triples && !graph_pattern)
     return NULL;
   
-  update = RASQAL_MALLOC(update_operation, sizeof(*update));
+  update = (rasqal_update_operation*)RASQAL_MALLOC(update_operation, sizeof(*update));
   if(!update)
     return NULL;
   
