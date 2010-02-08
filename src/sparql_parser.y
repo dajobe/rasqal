@@ -846,11 +846,13 @@ DeleteQuery: DELETE DatasetClauseList WhereClauseOpt
    * deleting via template + query - not inline atomic triples 
    */
 
-  update = rasqal_new_update_operation(RASQAL_UPDATE_TYPE_DELETE,
+  update = rasqal_new_update_operation(RASQAL_UPDATE_TYPE_UPDATE,
                                        NULL /* graph_uri */,
                                        NULL /* document_uri */,
-                                       $3 /* triple templates */,
-                                       $5 /* where */);
+                                       NULL /* insert templates */,
+                                       $3 /* delete templates */,
+                                       $5 /* where */,
+                                       0 /* flags */);
   if(!update) {
     YYERROR_MSG("DeleteQuery: rasqal_new_update_operation failed");
   } else {
@@ -870,7 +872,8 @@ DeleteQuery: DELETE DatasetClauseList WhereClauseOpt
   /* SPARQL 1.1 (Draft) update:
    * deleting inline triples - not inserting from graph URIs 
    */
-  $4->type = RASQAL_UPDATE_TYPE_DELETE;
+  $4->type = RASQAL_UPDATE_TYPE_UPDATE;
+  $4->delete_templates = $4->insert_templates; $4->insert_templates = NULL;
   rasqal_query_add_update_operation((rasqal_query*)rq, $4);
 }
 ;
@@ -885,7 +888,10 @@ GraphTriples: TriplesBlock
     $$ = rasqal_new_update_operation(RASQAL_UPDATE_TYPE_UNKNOWN,
                                      NULL /* graph_uri */,
                                      NULL /* document_uri */,
-                                     $1->triples, NULL /* gp */);
+                                     $1->triples /* insert templates */, 
+                                     NULL /* delete templates */,
+                                     NULL /* where */,
+                                     0 /* flags */);
     $1->triples = NULL;
     rasqal_free_formula($1);
   }
@@ -896,8 +902,12 @@ GraphTriples: TriplesBlock
 
   if($4) {
     $$ = rasqal_new_update_operation(RASQAL_UPDATE_TYPE_UNKNOWN,
-                                     $2, NULL /* document_uri */,
-                                     $4->triples, NULL /* graph_pattern */);
+                                     $2 /* graph uri */,
+                                     NULL /* document uri */,
+                                     $4->triples /* insert templates */,
+                                     NULL /* delete templates */,
+                                     NULL /* where */,
+                                     0 /* flags */);
     $4->triples = NULL;
     rasqal_free_formula($4);
   }
@@ -995,11 +1005,13 @@ InsertQuery: INSERT DatasetClauseList WhereClauseOpt
 
   /* inserting via template + query - not inline atomic triples */
 
-  update = rasqal_new_update_operation(RASQAL_UPDATE_TYPE_INSERT,
+  update = rasqal_new_update_operation(RASQAL_UPDATE_TYPE_UPDATE,
                                        NULL /* graph_uri */,
                                        NULL /* document_uri */,
-                                       $3 /* triple templates */,
-                                       $5 /* where */);
+                                       $3 /* insert templates */,
+                                       NULL /* delete templates */,
+                                       $5 /* where */,
+                                       0 /* flags */);
   if(!update) {
     YYERROR_MSG("InsertQuery: rasqal_new_update_operation failed");
   } else {
@@ -1017,7 +1029,7 @@ InsertQuery: INSERT DatasetClauseList WhereClauseOpt
                         "INSERT DATA cannot be used with SPARQL 1.0");
 
   /* inserting inline atomic triples (no variables) - not via template */
-  $4->type = RASQAL_UPDATE_TYPE_INSERT;
+  $4->type = RASQAL_UPDATE_TYPE_UPDATE;
   rasqal_query_add_update_operation((rasqal_query*)rq, $4);
 }
 ;
@@ -1030,45 +1042,20 @@ UpdateQuery: WITH URI_LITERAL
 {
   rasqal_update_operation* update;
 
-  update = rasqal_new_update_operation(RASQAL_UPDATE_TYPE_DELETE,
-                                       raptor_uri_copy($2) /* graph uri */, 
+  /* after this $2, $5, $9 and $12 are owned by update */
+  update = rasqal_new_update_operation(RASQAL_UPDATE_TYPE_UPDATE,
+                                       $2 /* graph uri */, 
                                        NULL /* document uri */,
-                                       $5 /* triple templates */,
-                                       NULL /* where */);
-  $5 = NULL;
-
+                                       $9 /* insert templates */,
+                                       $5 /* delete templates */,
+                                       $12 /* where */,
+                                       0 /* flags */);
   if(!update) {
     YYERROR_MSG("UpdateQuery 1: rasqal_new_update_operation failed");
-    goto tidy_update_query_1;
   } else {
     if(rasqal_query_add_update_operation(((rasqal_query*)rq), update))
       YYERROR_MSG("UpdateQuery 1: rasqal_query_add_update_operation failed");
   }
-
-  update = rasqal_new_update_operation(RASQAL_UPDATE_TYPE_INSERT,
-                                       raptor_uri_copy($2) /* graph uri */, 
-                                       NULL /* document uri */,
-                                       $9 /* triple templates */,
-                                       $12 /* where */);
-  $9 = NULL; $12 = NULL;
-
-  if(!update) {
-    YYERROR_MSG("UpdateQuery 1: rasqal_new_update_operation failed");
-    goto tidy_update_query_1;
-  } else {
-    if(rasqal_query_add_update_operation(((rasqal_query*)rq), update))
-      YYERROR_MSG("UpdateQuery 1: rasqal_query_add_update_operation failed");
-  }
-
-  tidy_update_query_1:
-  if($2)
-    raptor_free_uri($2);
-  if($5)
-    raptor_free_sequence($5);
-  if($9)
-    raptor_free_sequence($9);
-  if($12)
-    rasqal_free_graph_pattern($12);
 }
 | WITH URI_LITERAL 
   DELETE '{' ModifyTemplateList '}' 
@@ -1077,13 +1064,13 @@ UpdateQuery: WITH URI_LITERAL
   rasqal_update_operation* update;
 
   /* after this $2, $5 and $8 are owned by update */
-  update = rasqal_new_update_operation(RASQAL_UPDATE_TYPE_DELETE,
+  update = rasqal_new_update_operation(RASQAL_UPDATE_TYPE_UPDATE,
                                        $2 /* graph uri */, 
                                        NULL /* document uri */,
-                                       $5 /* triple templates */,
-                                       $8 /* where */);
-  $2 = NULL; $5 = NULL; $8 = NULL;
-
+                                       NULL /* insert templates */,
+                                       $5 /* delete templates */,
+                                       $8 /* where */,
+                                       0 /* flags */);
   if(!update) {
     YYERROR_MSG("UpdateQuery 2: rasqal_new_update_operation failed");
   } else {
@@ -1098,13 +1085,13 @@ UpdateQuery: WITH URI_LITERAL
   rasqal_update_operation* update;
 
   /* after this $2, $5 and $8 are owned by update */
-  update = rasqal_new_update_operation(RASQAL_UPDATE_TYPE_INSERT,
+  update = rasqal_new_update_operation(RASQAL_UPDATE_TYPE_UPDATE,
                                        $2 /* graph uri */, 
                                        NULL /* document uri */,
-                                       $5 /* triple templates */,
-                                       $8 /* where */);
-  $2 = NULL; $5 = NULL; $8 = NULL;
-
+                                       $5 /* insert templates */,
+                                       NULL /* delete templates */,
+                                       $8 /* where */,
+                                       0 /* flags */);
   if(!update) {
     YYERROR_MSG("UpdateQuery 3: rasqal_new_update_operation failed");
   } else {
@@ -1130,7 +1117,9 @@ ClearQuery: CLEAR
   update = rasqal_new_update_operation(RASQAL_UPDATE_TYPE_CLEAR,
                                        NULL /* graph uri */, 
                                        NULL /* document uri */,
-                                       NULL, NULL);
+                                       NULL, NULL,
+                                       NULL /* where */,
+                                       0 /* flags */);
   if(!update) {
     YYERROR_MSG("ClearQuery: rasqal_new_update_operation failed");
   } else {
@@ -1152,7 +1141,9 @@ ClearQuery: CLEAR
   update = rasqal_new_update_operation(RASQAL_UPDATE_TYPE_CLEAR,
                                        $3 /* graph uri */, 
                                        NULL /* document uri */,
-                                       NULL, NULL);
+                                       NULL, NULL,
+                                       NULL /*where */,
+                                       0 /* flags */);
   if(!update) {
     YYERROR_MSG("ClearQuery: rasqal_new_update_operation failed");
   } else {
@@ -1178,7 +1169,9 @@ CreateQuery: CREATE GRAPH URI_LITERAL
   update = rasqal_new_update_operation(RASQAL_UPDATE_TYPE_CREATE,
                                        $3 /* graph uri */, 
                                        NULL /* document uri */,
-                                       NULL, NULL);
+                                       NULL, NULL,
+                                       NULL /*where */,
+                                       0 /* flags */);
   if(!update) {
     YYERROR_MSG("CreateQuery: rasqal_new_update_operation failed");
   } else {
@@ -1201,7 +1194,9 @@ CreateQuery: CREATE GRAPH URI_LITERAL
   update = rasqal_new_update_operation(RASQAL_UPDATE_TYPE_CREATE,
                                        $4 /* graph uri */, 
                                        NULL /* document uri */,
-                                       NULL, NULL);
+                                       NULL, NULL,
+                                       NULL /*where */,
+                                       0 /* flags */);
   if(!update) {
     YYERROR_MSG("CreateQuery: rasqal_new_update_operation failed");
   } else {
@@ -1227,7 +1222,9 @@ DropQuery: DROP GRAPH URI_LITERAL
   update = rasqal_new_update_operation(RASQAL_UPDATE_TYPE_DROP,
                                        $3 /* graph uri */, 
                                        NULL /* document uri */,
-                                       NULL, NULL);
+                                       NULL, NULL,
+                                       NULL /*where */,
+                                       0 /* flags */);
   if(!update) {
     YYERROR_MSG("DropQuery: rasqal_new_update_operation failed");
   } else {
@@ -1251,7 +1248,9 @@ DropQuery: DROP GRAPH URI_LITERAL
   update = rasqal_new_update_operation(RASQAL_UPDATE_TYPE_DROP,
                                        $4 /* graph uri */, 
                                        NULL /* document uri */,
-                                       NULL, NULL);
+                                       NULL, NULL,
+                                       NULL /*where */,
+                                       0 /* flags */);
   if(!update) {
     YYERROR_MSG("DropQuery: rasqal_new_update_operation failed");
   } else {
@@ -1277,7 +1276,9 @@ LoadQuery: LOAD URI_LITERAL
   update = rasqal_new_update_operation(RASQAL_UPDATE_TYPE_LOAD,
                                        NULL /* graph uri */, 
                                        $2 /* document uri */,
-                                       NULL, NULL);
+                                       NULL, NULL,
+                                       NULL /*where */,
+                                       0 /* flags */);
   if(!update) {
     YYERROR_MSG("LoadQuery: rasqal_new_update_operation failed");
   } else {
@@ -1299,7 +1300,9 @@ LoadQuery: LOAD URI_LITERAL
   update = rasqal_new_update_operation(RASQAL_UPDATE_TYPE_LOAD,
                                        $4 /* graph uri */,
                                        $2 /* document uri */,
-                                       NULL, NULL);
+                                       NULL, NULL,
+                                       NULL /*where */,
+                                       0 /* flags */);
   if(!update) {
     YYERROR_MSG("LoadQuery: rasqal_new_update_operation failed");
   } else {

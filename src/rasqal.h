@@ -668,10 +668,9 @@ typedef enum {
  * rasqal_update_type:
  * @RASQAL_UPDATE_TYPE_CLEAR: Clear graph.
  * @RASQAL_UPDATE_TYPE_CREATE: Create graph.
- * @RASQAL_UPDATE_TYPE_DELETE: Delete graph or triples.
  * @RASQAL_UPDATE_TYPE_DROP: Drop graph.
- * @RASQAL_UPDATE_TYPE_INSERT: Insert graph or triples.
  * @RASQAL_UPDATE_TYPE_LOAD: Load graph.
+ * @RASQAL_UPDATE_TYPE_UPDATE: Insert or Delete graph or triples.
  * @RASQAL_UPDATE_TYPE_UNKNOWN: Internal
  * @RASQAL_UPDATE_TYPE_LAST: Internal
  *
@@ -683,11 +682,9 @@ typedef enum {
   RASQAL_UPDATE_TYPE_UNKNOWN   = 0,
   RASQAL_UPDATE_TYPE_CLEAR     = 1,
   RASQAL_UPDATE_TYPE_CREATE    = 2,
-  RASQAL_UPDATE_TYPE_DELETE    = 3,
-  RASQAL_UPDATE_TYPE_DROP      = 4,
-  RASQAL_UPDATE_TYPE_INSERT    = 5,
-  RASQAL_UPDATE_TYPE_LOAD      = 6,
-  RASQAL_UPDATE_TYPE_UPDATE    = 7,
+  RASQAL_UPDATE_TYPE_DROP      = 3,
+  RASQAL_UPDATE_TYPE_LOAD      = 4,
+  RASQAL_UPDATE_TYPE_UPDATE    = 5,
 
   /* internal */
   RASQAL_UPDATE_TYPE_LAST = RASQAL_UPDATE_TYPE_UPDATE
@@ -695,11 +692,23 @@ typedef enum {
 
 
 /**
+ * rasqal_update_flags:
+ * @RASQAL_UPDATE_FLAGS_SILENT: the update operation should be silent
+ *
+ * Flags for graph update operations
+ */
+typedef enum {
+  RASQAL_UPDATE_FLAGS_SILENT = 1,
+} rasqal_update_flags;
+
+
+/**
  * rasqal_update_operation:
  * @type: type of update
  * @graph_uri: optional graph URI (clear, drop, load, with ... delete/insert)
  * @document_uri: optional document URI (load)
- * @triple_templates: optional sequence of triple templates (insert/delete data)
+ * @insert_templates: optional sequence of triple templates to insert
+ * @delete_templates: optional sequence of triple templates to delete
  * @where: optional where template (insert/delete)
  *
  * Update operation - changing the dataset
@@ -712,9 +721,13 @@ typedef struct {
 
   raptor_uri* document_uri;
 
-  raptor_sequence* triple_templates;
+  raptor_sequence* insert_templates;
+
+  raptor_sequence* delete_templates;
 
   rasqal_graph_pattern* where;
+
+  int flags;
 } rasqal_update_operation;
 
 
