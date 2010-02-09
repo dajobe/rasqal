@@ -567,7 +567,10 @@ main(int argc, char *argv[])
           if(!strcmp(optarg, "simple"))
             results_formatter=NULL;
           else {
-            results_formatter=rasqal_new_query_results_formatter(world, optarg, NULL);
+            results_formatter = rasqal_new_query_results_formatter2(world,
+                                                                    optarg,
+                                                                    NULL,
+                                                                    NULL);
             if(!results_formatter) {
               if(
 #ifdef RAPTOR_V2_AVAILABLE

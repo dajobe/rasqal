@@ -124,9 +124,9 @@ main(int argc, char *argv[])
     goto tidy;
   }
 
-  read_formatter = rasqal_new_query_results_formatter(world,
-                                                      read_formatter_name,
-                                                      NULL);
+  read_formatter = rasqal_new_query_results_formatter2(world,
+                                                       read_formatter_name,
+                                                       NULL, NULL);
   if(!read_formatter) {
     fprintf(stderr, "%s: Failed to create query results read formatter '%s'",
             program, read_formatter_name);
