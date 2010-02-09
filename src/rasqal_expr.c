@@ -354,6 +354,8 @@ rasqal_triple_write(rasqal_triple* t, raptor_iostream* iostr)
  * Print a Rasqal triple in a debug format.
  * 
  * The print debug format may change in any release.
+ *
+ * Return value: non-0 on failure
  **/
 int
 rasqal_triple_print(rasqal_triple* t, FILE* fh)
