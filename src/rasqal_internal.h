@@ -868,13 +868,9 @@ void rasqal_query_simple_error(void* query, const char *message, ...) RASQAL_PRI
 
 const char* rasqal_basename(const char* name);
 
+unsigned char* rasqal_escaped_name_to_utf8_string(const unsigned char* src, size_t len, size_t* dest_lenp, int (*error_handler)(rasqal_query *error_data, const char *message, ...), rasqal_query* error_data);
 
 /* rasqal_graph_pattern.c */
-#ifdef RAPTOR_V2_AVAILABLE
-unsigned char* rasqal_escaped_name_to_utf8_string(const unsigned char* src, size_t len, size_t* dest_lenp, raptor_message_handler error_handler, void* error_data);
-#else
-unsigned char* rasqal_escaped_name_to_utf8_string(const unsigned char* src, size_t len, size_t* dest_lenp, raptor_simple_message_handler error_handler, void* error_data);
-#endif
 unsigned char* rasqal_query_generate_bnodeid(rasqal_query* rdf_query, unsigned char *user_bnodeid);
 
 rasqal_graph_pattern* rasqal_new_basic_graph_pattern_from_formula(rasqal_query* query, rasqal_formula* formula);

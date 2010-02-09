@@ -361,9 +361,9 @@ rdql_copy_name(rasqal_query *rq, const unsigned char *text, size_t len) {
   size_t dest_len=0;
   unsigned char *s;
 
-  s=rasqal_escaped_name_to_utf8_string((unsigned char*)text, len,
-                                       &dest_len,
-                                       (raptor_simple_message_handler)rdql_syntax_error, rq);
+  s = rasqal_escaped_name_to_utf8_string((unsigned char*)text, len,
+                                         &dest_len,
+                                         rdql_syntax_error, rq);
   if(!s)
     return s;
 
@@ -380,9 +380,9 @@ rdql_copy_qname(rasqal_query *rq, const unsigned char *text, size_t len) {
   size_t dest_len=0;
   unsigned char *s;
   
-  s=rasqal_escaped_name_to_utf8_string((unsigned char*)text, len,
-                                       &dest_len,
-                                       (raptor_simple_message_handler)rdql_syntax_error, rq);
+  s = rasqal_escaped_name_to_utf8_string((unsigned char*)text, len,
+                                         &dest_len,
+                                         rdql_syntax_error, rq);
   if(!s)
     return s;
 

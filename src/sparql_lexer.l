@@ -565,10 +565,10 @@ EXPONENT [eE][+-]?[0-9]+
                   unsigned char* uri_string;
 
                   yytext[yyleng-1]='\0';
-                  uri_string=rasqal_escaped_name_to_utf8_string((unsigned char*)yytext+1,
-                                                                yyleng-1,
-                                                                NULL,
-                                                                (raptor_simple_message_handler)sparql_syntax_error, rq);
+                  uri_string = rasqal_escaped_name_to_utf8_string((unsigned char*)yytext+1,
+                                                                  yyleng-1,
+                                                                  NULL,
+                                                                  sparql_syntax_error, rq);
                   if(!uri_string)
                     YY_FATAL_ERROR_EOF("rasqal_escaped_name_to_utf8_string failed");
 
@@ -655,9 +655,9 @@ sparql_copy_name(rasqal_query *rq, const unsigned char *text, size_t len,
   size_t dest_len=0;
   unsigned char *s;
 
-  s=rasqal_escaped_name_to_utf8_string((unsigned char*)text, len,
-                                       &dest_len,
-                                       (raptor_simple_message_handler)sparql_syntax_error, rq);
+  s = rasqal_escaped_name_to_utf8_string((unsigned char*)text, len,
+                                         &dest_len,
+                                         sparql_syntax_error, rq);
   if(!s)
     return s;
 
@@ -675,9 +675,9 @@ sparql_copy_qname(rasqal_query *rq, const unsigned char *text, size_t len) {
   unsigned char *s;
   raptor_uri* uri=NULL;
   
-  s=rasqal_escaped_name_to_utf8_string((unsigned char*)text, len,
-                                       &dest_len,
-                                       (raptor_simple_message_handler)sparql_syntax_error, rq);
+  s = rasqal_escaped_name_to_utf8_string((unsigned char*)text, len,
+                                         &dest_len,
+                                         sparql_syntax_error, rq);
   if(!s)
     return NULL;
 
@@ -844,10 +844,10 @@ sparql_copy_string_token(rasqal_query* rq, YYSTYPE* lval,
       size_t dest_len=0;
       unsigned char *dt_s;
       
-      dt_s=rasqal_escaped_name_to_utf8_string(dt,
-                                              strlen((const char*)dt),
-                                              &dest_len,
-                                              (raptor_simple_message_handler)sparql_syntax_error, rq);
+      dt_s = rasqal_escaped_name_to_utf8_string(dt,
+                                                strlen((const char*)dt),
+                                                &dest_len,
+                                                sparql_syntax_error, rq);
       if(!dt_s) {
         if(language)
           RASQAL_FREE(cstring, language);
