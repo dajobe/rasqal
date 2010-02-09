@@ -21,7 +21,7 @@
 # 
 
 bin_PROGRAMS = roqet
-EXTRA_PROGRAMS = srxread
+EXTRA_PROGRAMS = srxread srxwrite
 
 CLEANFILES = $(EXTRA_PROGRAMS)
 
@@ -40,6 +40,9 @@ roqet_LDADD = $(top_builddir)/src/librasqal.la
 
 srxread_SOURCES = srxread.c
 srxread_LDADD = $(top_builddir)/src/librasqal.la
+
+srxwrite_SOURCES = srxwrite.c
+srxwrite_LDADD = $(top_builddir)/src/librasqal.la
 
 EXTRA_DIST= \
 $(man_MANS) \
