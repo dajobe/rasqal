@@ -547,6 +547,7 @@ rasqal_graph_pattern_write_internal(rasqal_graph_pattern* gp,
  * 
  * The print debug format may change in any release.
  * 
+ * Return value: non-0 on failure
  **/
 int
 rasqal_graph_pattern_print(rasqal_graph_pattern* gp, FILE* fh)
