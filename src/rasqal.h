@@ -1034,8 +1034,10 @@ int rasqal_query_results_formats_enumerate(rasqal_world* world, unsigned int cou
 RASQAL_API
 int rasqal_query_results_formats_check(rasqal_world* world, const char *name, raptor_uri* uri, const char *mime_type);
 RASQAL_API
+rasqal_query_results_formatter* rasqal_new_query_results_formatter2(rasqal_world* world, const char *name, const char *mime_type, raptor_uri* format_uri);
+RASQAL_API RASQAL_DEPRECATED
 rasqal_query_results_formatter* rasqal_new_query_results_formatter(rasqal_world* world, const char *name, raptor_uri* format_uri);
-RASQAL_API
+RASQAL_API RASQAL_DEPRECATED
 rasqal_query_results_formatter* rasqal_new_query_results_formatter_by_mime_type(rasqal_world* world, const char *mime_type);
 RASQAL_API
 void rasqal_free_query_results_formatter(rasqal_query_results_formatter* formatter);

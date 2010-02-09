@@ -260,6 +260,52 @@ rasqal_query_results_formats_check(rasqal_world* world,
 
 
 /**
+ * rasqal_new_query_results_formatter2:
+ * @world: rasqal_world object
+ * @name: the query results format name (or NULL)
+ * @mime_type: the query results format mime type (or NULL)
+ * @format_uri: #raptor_uri query results format uri (or NULL)
+ *
+ * Constructor - create a new rasqal_query_results_formatter for an identified format.
+ *
+ * A query results format can be found by name, mime type or URI, all
+ * of which are optional.  If multiple fields are given, the first
+ * match is given that matches the name, URI, mime_type in that
+ * order.  The default query results format will be used if all are
+ * format identifying fields are NULL.
+ *
+ * rasqal_query_results_formats_enumerate() returns information on
+ * the known query results names, labels, mime types and URIs.
+ *
+ * Return value: a new #rasqal_query_results_formatter object or NULL on failure
+ */
+rasqal_query_results_formatter*
+rasqal_new_query_results_formatter2(rasqal_world* world,
+                                    const char *name, 
+                                    const char *mime_type,
+                                    raptor_uri* format_uri)
+{
+  rasqal_query_results_format_factory* factory;
+  rasqal_query_results_formatter* formatter;
+
+  factory = rasqal_get_query_results_formatter_factory(world, name, 
+                                                       format_uri, mime_type);
+  if(!factory)
+    return NULL;
+
+  formatter = (rasqal_query_results_formatter*)RASQAL_CALLOC(rasqal_query_results_formatter, 1, sizeof(*formatter));
+  if(!formatter)
+    return NULL;
+
+  formatter->factory = factory;
+
+  formatter->mime_type = factory->mime_type;
+  
+  return formatter;
+}
+
+
+/**
  * rasqal_new_query_results_formatter:
  * @world: rasqal_world object
  * @name: the query results format name (or NULL)
@@ -272,27 +318,17 @@ rasqal_query_results_formats_check(rasqal_world* world,
  * if both are NULL.  rasqal_query_results_formats_enumerate() returns
  * information on the known query results names, labels and URIs.
  *
+ * @Deprecated: Use rasqal_new_query_results_formatter2() with extra
+ * mime_type arg.
+ *
  * Return value: a new #rasqal_query_results_formatter object or NULL on failure
  */
 rasqal_query_results_formatter*
-rasqal_new_query_results_formatter(rasqal_world* world, const char *name, raptor_uri* format_uri)
+rasqal_new_query_results_formatter(rasqal_world* world,
+                                   const char *name, raptor_uri* format_uri)
 {
-  rasqal_query_results_format_factory* factory;
-  rasqal_query_results_formatter* formatter;
-
-  factory=rasqal_get_query_results_formatter_factory(world, name, format_uri, NULL);
-  if(!factory)
-    return NULL;
-
-  formatter=(rasqal_query_results_formatter*)RASQAL_CALLOC(rasqal_query_results_formatter, 1, sizeof(rasqal_query_results_formatter));
-  if(!formatter)
-    return NULL;
-
-  formatter->factory=factory;
-
-  formatter->mime_type=factory->mime_type;
-  
-  return formatter;
+  return rasqal_new_query_results_formatter2(world, 
+                                             name, NULL, format_uri);
 }
 
 
@@ -311,30 +347,17 @@ rasqal_new_query_results_formatter(rasqal_world* world, const char *name, raptor
  * case the rasqal_new_query_results_formatter() constructor allows
  * selecting of a specific one by name or URI.
  *
+ * @Deprecated: Use rasqal_new_query_results_formatter2() with extra
+ * name and format_uri args.
+ *
  * Return value: a new #rasqal_query_results_formatter object or NULL on failure
  */
 rasqal_query_results_formatter*
-rasqal_new_query_results_formatter_by_mime_type(rasqal_world* world, const char *mime_type)
+rasqal_new_query_results_formatter_by_mime_type(rasqal_world* world,
+                                                const char *mime_type)
 {
-  rasqal_query_results_format_factory* factory;
-  rasqal_query_results_formatter* formatter;
-
-  if(!mime_type)
-    return NULL;
-
-  factory=rasqal_get_query_results_formatter_factory(world, NULL, NULL, mime_type);
-  if(!factory)
-    return NULL;
-
-  formatter=(rasqal_query_results_formatter*)RASQAL_CALLOC(rasqal_query_results_formatter, 1, sizeof(rasqal_query_results_formatter));
-  if(!formatter)
-    return NULL;
-
-  formatter->factory=factory;
-
-  formatter->mime_type=factory->mime_type;
-  
-  return formatter;
+  return rasqal_new_query_results_formatter2(world, 
+                                             NULL, mime_type, NULL);
 }
 
 
