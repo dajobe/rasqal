@@ -220,6 +220,8 @@ rasqal_free_prefix(rasqal_prefix* p)
  * Print a Rasqal prefix in a debug format.
  * 
  * The print debug format may change in any release.
+ *
+ * Return value: non-0 on failure
  **/
 int
 rasqal_prefix_print(rasqal_prefix* p, FILE* fh)
