@@ -1385,7 +1385,7 @@ rasqal_query_results_read2(raptor_iostream *iostr,
  * rasqal_query_results_formats_enumerate() 
  * for obtaining the supported format URIs at run time.
  *
- * #Deprecated: Use rasqal_query_results_read2() with extra format
+ * @Deprecated: Use rasqal_query_results_read2() with extra format
  * name and mime_type arguments.
  *
  * Return value: non-0 on failure
