@@ -1,8 +1,8 @@
 /* -*- Mode: c; c-basic-offset: 2 -*-
  *
- * rasqal_query_write.c - Rasqal write queries to a syntax
+ * rasqal_query_write.c - Write query data structure as a syntax
  *
- * Copyright (C) 2004-2009, David Beckett http://www.dajobe.org/
+ * Copyright (C) 2004-2010, David Beckett http://www.dajobe.org/
  * Copyright (C) 2004-2005, University of Bristol, UK http://www.bristol.ac.uk/
  * 
  * This package is Free Software and part of Redland http://librdf.org/
@@ -656,26 +656,28 @@ rasqal_query_write_sparql_20060406(raptor_iostream *iostr,
   if(query->explain)
     raptor_iostream_write_counted_string(iostr, "EXPLAIN ", 8);
 
+  /* Experimental LAQRS INSERT and DELETE (RASQAL_QUERY_VERB_INSERT
+   * and RASQAL_QUERY_VERB_DELETE) are handled in generic code
+   * below */
   if(query->verb == RASQAL_QUERY_VERB_INSERT ||
      query->verb == RASQAL_QUERY_VERB_DELETE) {
-    /* Write experimental deprecated LAQRS */
-
     raptor_iostream_write_string(iostr,
-                                 rasqal_query_verb_as_string(query->verb));
-    
-    /* FIXME */
-    raptor_iostream_write_string(iostr,
-                                 "\n# Writing LAQRS INSERT/DELETE Not fully implemented\n");
-    goto tidy;
+                                 "\n# Writing deprecated LAQRS INSERT/DELETE\n");
   }
+
   
+  /* Write SPARQL 1.1 (Draft) Update forms */
   if(query->verb == RASQAL_QUERY_VERB_UPDATE) {
     rasqal_update_operation* update;
     /* Write SPARQL Update */
 
     for(i = 0; (update = rasqal_query_get_update_operation(query, i)); i++) {
       if(update->type == RASQAL_UPDATE_TYPE_UPDATE) {
-        /* INSERT, DELETE, WITH ... */
+        /* update operations:
+         * WITH ... INSERT { template } DELETE { template } WHERE { template }
+         * INSERT/DELETE { template } WHERE { template }
+         * INSERT/DELETE DATA { triples } 
+         */
         if(update->graph_uri) {
           raptor_iostream_write_counted_string(iostr, "WITH ", 5);
           rasqal_query_write_sparql_uri(&wc, iostr, update->graph_uri);
@@ -707,7 +709,12 @@ rasqal_query_write_sparql_20060406(raptor_iostream *iostr,
           raptor_iostream_write_byte(iostr, '\n');
         }
       } else {
-        /* admin operations: CLEAR, CREATE, DROP, LOAD */
+        /* admin operations:
+         * CLEAR / CLEAR GRAPH graph-uri
+         * CREATE (SILENT) GRAPH graph-uri
+         * DROP (SILENT) GRAPH graph-uri
+         * LOAD GRAPH graph-uri / LOAD doc-uri INTO graph-uri
+         */
         raptor_iostream_write_string(iostr, 
                                      rasqal_update_type_label(update->type));
         if(update->flags & RASQAL_UPDATE_FLAGS_SILENT)
