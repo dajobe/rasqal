@@ -208,6 +208,7 @@ rasqal_variable_write(rasqal_variable* v, raptor_iostream* iostr)
  * 
  * The print debug format may change in any release.
  * 
+ * Return value: non-0 on failure
  **/
 int
 rasqal_variable_print(rasqal_variable* v, FILE* fh)
