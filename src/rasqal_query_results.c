@@ -794,11 +794,15 @@ rasqal_query_results_get_binding_name(rasqal_query_results* query_results,
   if(!rasqal_query_results_is_bindings(query_results)) 
     return NULL;
   
-  /* Take variable names from the order in the projection not the
-   * order inserted into the variables table.
-   */
-  v = (rasqal_variable*)raptor_sequence_get_at(query_results->query->selects,
-                                               offset);
+  if(query_results->query) {
+    /* If there is a query, take variable names from the order in the
+     * projection not the order inserted into the variables table.
+     */
+    v = (rasqal_variable*)raptor_sequence_get_at(query_results->query->selects,
+                                                 offset);
+  } else 
+    v = rasqal_variables_table_get(query_results->vars_table, offset);
+  
   if(!v)
     return NULL;
   
@@ -1421,10 +1425,10 @@ rasqal_query_results_add_row(rasqal_query_results* query_results,
     if(!query_results->results_sequence)
       return 1;
     
-    query_results->result_count = 1;
+    query_results->result_count = 0;
   }
 
-  row->offset = query_results->result_count-1;
+  row->offset = raptor_sequence_size(query_results->results_sequence);
 
   return raptor_sequence_push(query_results->results_sequence, row);
 }
