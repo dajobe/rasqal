@@ -1533,3 +1533,11 @@ rasqal_query_results_get_variables_table(rasqal_query_results* query_results)
   return query_results->vars_table;
 }
 
+
+
+rasqal_world*
+rasqal_query_results_get_world(rasqal_query_results* query_results)
+{
+  return query_results->world;
+}
+

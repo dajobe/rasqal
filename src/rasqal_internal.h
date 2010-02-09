@@ -1009,6 +1009,8 @@ int rasqal_query_results_check_limit_offset(rasqal_query_results* query_results)
 void rasqal_query_results_remove_query_reference(rasqal_query_results* query_results);
 rasqal_variables_table* rasqal_query_results_get_variables_table(rasqal_query_results* query_results);
 rasqal_row* rasqal_query_results_get_current_row(rasqal_query_results* query_results);
+rasqal_world* rasqal_query_results_get_world(rasqal_query_results* query_results);
+
 
 /* rasqal_query_write.c */
 int rasqal_query_write_sparql_20060406(raptor_iostream *iostr, rasqal_query* query, raptor_uri *base_uri);
