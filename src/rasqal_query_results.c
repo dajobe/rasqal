@@ -183,7 +183,7 @@ rasqal_finish_query_results(void)
  * @type: query results (expected) type
  * @vars_table: variables table
  * 
- * INTERNAL -  create a query result set
+ * Create a new query results set
  *
  * The @query may be NULL for result set objects that are standalone
  * and not attached to any particular query
@@ -1412,17 +1412,21 @@ rasqal_query_results_read(raptor_iostream *iostr,
  *
  * INTERNAL - Add a query result row to the sequence of result rows
  */
-void
+int
 rasqal_query_results_add_row(rasqal_query_results* query_results,
                              rasqal_row* row)
 {
   if(!query_results->results_sequence) {
     query_results->results_sequence = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_row, (raptor_sequence_print_handler*)rasqal_row_print);
+    if(!query_results->results_sequence)
+      return 1;
+    
     query_results->result_count = 1;
   }
 
   row->offset = query_results->result_count-1;
-  raptor_sequence_push(query_results->results_sequence, row);
+
+  return raptor_sequence_push(query_results->results_sequence, row);
 }
 
 

@@ -105,7 +105,7 @@ rasqal_new_row(rasqal_rowsource* rowsource)
  * rasqal_new_row_for_size:
  * @size: width of row
  *
- * INTERNAL - Create a new query result row of a given size
+ * Constructor - Create a new query result row of a given size
  *
  * Return value: a new query result row or NULL on failure
  */
@@ -138,7 +138,7 @@ rasqal_new_row_from_row(rasqal_row* row)
  * rasqal_free_row:
  * @row: query result row
  * 
- * INTERNAL - Free a query result row object.
+ * Destructor - Free a query result row object.
  */
 void 
 rasqal_free_row(rasqal_row* row)
@@ -238,12 +238,21 @@ rasqal_row_print(rasqal_row* row, FILE* fh)
  * @offset: offset into row (column number)
  * @value: literal value to set
  *
- * INTERNAL - Set the value of a variable in a query result row
+ * Set the value of a variable in a query result row
+ *
+ * Return value: non-0 on failure
  */
-void
+int
 rasqal_row_set_value_at(rasqal_row* row, int offset, rasqal_literal* value)
 {
+  if(!row || !value)
+    return 1;
+
+  if(offset < 0 || offset >= row->size)
+    return 1;
+  
   row->values[offset] = value;
+  return 0;
 }
 
 

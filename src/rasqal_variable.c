@@ -297,6 +297,14 @@ struct rasqal_variables_table_s {
 
 
 
+/**
+ * rasqal_new_variables_table:
+ * @world: rasqal world
+ *
+ * Constructor - create a new variables table
+ *
+ * Return value: new variables table or NULL On failure
+ */
 rasqal_variables_table*
 rasqal_new_variables_table(rasqal_world* world)
 {
@@ -338,6 +346,12 @@ rasqal_new_variables_table_from_variables_table(rasqal_variables_table* vt)
 }
 
 
+/**
+ * rasqal_free_variables_table:
+ * @vt: rasqal variables table
+ *
+ * Destructor - destroy a new variables table
+ */
 void
 rasqal_free_variables_table(rasqal_variables_table* vt)
 {

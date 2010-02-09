@@ -191,6 +191,15 @@ typedef struct rasqal_literal_s rasqal_literal;
  */
 typedef struct rasqal_graph_pattern_s rasqal_graph_pattern;
 
+
+/**
+ * rasqal_variables_table:
+ *
+ * Rasqal variables table class.
+ */
+typedef struct rasqal_variables_table_s rasqal_variables_table;
+
+
 /**
  * rasqal_feature:
  * @RASQAL_FEATURE_NO_NET: Deny network requests.
@@ -248,7 +257,6 @@ typedef enum {
 
 /* forward reference */
 struct rasqal_expression_s;
-typedef struct rasqal_variables_table_s rasqal_variables_table;
 
 /**
  * rasqal_variable:
@@ -380,6 +388,15 @@ typedef enum {
 } rasqal_literal_type;
 
 #define RASQAL_LITERAL_UDT_DEFINED 1
+
+
+/**
+ * rasqal_row:
+ *
+ * Rasqal Result Row class.
+ */
+typedef struct rasqal_row_s rasqal_row;
+
 
 /**
  * rasqal_xsd_decimal:
@@ -654,6 +671,24 @@ typedef enum {
   /* internal */
   RASQAL_QUERY_VERB_LAST = RASQAL_QUERY_VERB_UPDATE
 } rasqal_query_verb;
+
+
+/**
+ * rasqal_query_results_type:
+ * @RASQAL_QUERY_RESULTS_BINDINGS: variable binding
+ * @RASQAL_QUERY_RESULTS_BOOLEAN: a single boolean
+ * @RASQAL_QUERY_RESULTS_GRAPH: an RDF graph
+ * @RASQAL_QUERY_RESULTS_SYNTAX: a syntax
+ *
+ * Query result type.
+ */
+
+typedef enum {
+  RASQAL_QUERY_RESULTS_BINDINGS,
+  RASQAL_QUERY_RESULTS_BOOLEAN,
+  RASQAL_QUERY_RESULTS_GRAPH,
+  RASQAL_QUERY_RESULTS_SYNTAX
+} rasqal_query_results_type;
 
 
 /**
@@ -974,6 +1009,8 @@ rasqal_query* rasqal_query_results_get_query(rasqal_query_results* query_results
 
 /* Bindings result format */
 RASQAL_API
+rasqal_query_results* rasqal_new_query_results(rasqal_world* world, rasqal_query* query, rasqal_query_results_type type, rasqal_variables_table* vars_table);
+RASQAL_API
 int rasqal_query_results_is_bindings(rasqal_query_results *query_results);
 RASQAL_API
 int rasqal_query_results_get_count(rasqal_query_results *query_results);
@@ -1018,6 +1055,8 @@ RASQAL_API RASQAL_DEPRECATED
 int rasqal_query_results_read(raptor_iostream *iostr, rasqal_query_results *results, raptor_uri *format_uri, raptor_uri *base_uri);
 RASQAL_API
 int rasqal_query_results_read2(raptor_iostream *iostr, rasqal_query_results *results, const char* name, const char* mime_type, raptor_uri *format_uri, raptor_uri *base_uri);
+RASQAL_API
+int rasqal_query_results_add_row(rasqal_query_results* query_results, rasqal_row* row);
 
 
 /**
@@ -1201,6 +1240,13 @@ void rasqal_free_prefix(rasqal_prefix* p);
 RASQAL_API
 int rasqal_prefix_print(rasqal_prefix* p, FILE* fh);
 
+
+/* Row class */
+rasqal_row* rasqal_new_row_for_size(int size);
+void rasqal_free_row(rasqal_row* row);
+int rasqal_row_set_value_at(rasqal_row* row, int offset, rasqal_literal* value);
+
+
 /* Triple class */
 RASQAL_API
 rasqal_triple* rasqal_new_triple(rasqal_literal* subject, rasqal_literal* predicate, rasqal_literal* object);
@@ -1228,6 +1274,12 @@ RASQAL_API
 int rasqal_variable_print(rasqal_variable* v, FILE* fh);
 RASQAL_API
 void rasqal_variable_set_value(rasqal_variable* v, rasqal_literal* l);
+
+
+/* Variables Table */
+rasqal_variables_table* rasqal_new_variables_table(rasqal_world* world);
+void rasqal_free_variables_table(rasqal_variables_table* vt);
+
 
 /* memory functions */
 RASQAL_API
