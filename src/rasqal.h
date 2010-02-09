@@ -1009,10 +1009,14 @@ int rasqal_query_results_next_triple(rasqal_query_results *query_results);
 RASQAL_API
 int rasqal_query_results_is_syntax(rasqal_query_results* query_results);
 
-RASQAL_API
+RASQAL_API RASQAL_DEPRECATED
 int rasqal_query_results_write(raptor_iostream *iostr, rasqal_query_results *results, raptor_uri *format_uri, raptor_uri *base_uri);
 RASQAL_API
+int rasqal_query_results_write2(raptor_iostream *iostr, rasqal_query_results *results, const char* name, const char* mime_type, raptor_uri *format_uri, raptor_uri *base_uri);
+RASQAL_API RASQAL_DEPRECATED
 int rasqal_query_results_read(raptor_iostream *iostr, rasqal_query_results *results, raptor_uri *format_uri, raptor_uri *base_uri);
+RASQAL_API
+int rasqal_query_results_read2(raptor_iostream *iostr, rasqal_query_results *results, const char* name, const char* mime_type, raptor_uri *format_uri, raptor_uri *base_uri);
 
 
 /**
