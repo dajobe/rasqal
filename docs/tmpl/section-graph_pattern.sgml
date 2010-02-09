@@ -146,6 +146,7 @@ or apply a GRAPH matching keyword (%RASQAL_GRAPH_PATTERN_OPERATOR_GRAPH).
 
 @gp: 
 @fh: 
+@Returns: 
 
 
 <!-- ##### FUNCTION rasqal_graph_pattern_variable_bound_in ##### -->

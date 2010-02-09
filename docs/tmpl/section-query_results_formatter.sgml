@@ -69,6 +69,18 @@ handle or other custom destination.
 </para>
 
 
+<!-- ##### FUNCTION rasqal_new_query_results_formatter2 ##### -->
+<para>
+
+</para>
+
+@world: 
+@name: 
+@mime_type: 
+@format_uri: 
+@Returns: 
+
+
 <!-- ##### FUNCTION rasqal_new_query_results_formatter ##### -->
 <para>
 

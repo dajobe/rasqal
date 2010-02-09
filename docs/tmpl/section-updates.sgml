@@ -1,0 +1,57 @@
+<!-- ##### SECTION Title ##### -->
+Updates
+
+<!-- ##### SECTION Short_Description ##### -->
+Graph update operations
+
+<!-- ##### SECTION Long_Description ##### -->
+<para>
+This class provides a object to record a graph update operation
+with adding and/or removing triples, using a templated insert/delete
+with optional where clause.  It is designed to be able to record
+the SPARQL 1.1 (Draft) update format, and is a work in progress
+as of February 2010.
+</para>
+
+<!-- ##### SECTION See_Also ##### -->
+<para>
+
+</para>
+
+<!-- ##### SECTION Stability_Level ##### -->
+
+
+<!-- ##### STRUCT rasqal_update_operation ##### -->
+<para>
+
+</para>
+
+@type: 
+@graph_uri: 
+@document_uri: 
+@insert_templates: 
+@delete_templates: 
+@where: 
+@flags: 
+
+<!-- ##### ENUM rasqal_update_type ##### -->
+<para>
+
+</para>
+
+@RASQAL_UPDATE_TYPE_UNKNOWN: 
+@RASQAL_UPDATE_TYPE_CLEAR: 
+@RASQAL_UPDATE_TYPE_CREATE: 
+@RASQAL_UPDATE_TYPE_DROP: 
+@RASQAL_UPDATE_TYPE_LOAD: 
+@RASQAL_UPDATE_TYPE_UPDATE: 
+@RASQAL_UPDATE_TYPE_LAST: 
+
+<!-- ##### ENUM rasqal_update_flags ##### -->
+<para>
+
+</para>
+
+@RASQAL_UPDATE_FLAGS_SILENT: 
+@RASQAL_UPDATE_FLAGS_DATA: 
+

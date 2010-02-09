@@ -89,6 +89,7 @@ with the SPARQL <literal>GRAPH</literal>).
 
 @t: 
 @fh: 
+@Returns: 
 
 
 <!-- ##### FUNCTION rasqal_triple_set_origin ##### -->

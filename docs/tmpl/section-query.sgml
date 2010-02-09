@@ -56,10 +56,7 @@ then retrieved.
 @RASQAL_QUERY_VERB_ASK: 
 @RASQAL_QUERY_VERB_DELETE: 
 @RASQAL_QUERY_VERB_INSERT: 
-@RASQAL_QUERY_VERB_CLEAR: 
-@RASQAL_QUERY_VERB_CREATE: 
-@RASQAL_QUERY_VERB_DROP: 
-@RASQAL_QUERY_VERB_LOAD: 
+@RASQAL_QUERY_VERB_UPDATE: 
 @RASQAL_QUERY_VERB_LAST: 
 
 <!-- ##### TYPEDEF rasqal_query ##### -->
@@ -435,6 +432,7 @@ then retrieved.
 
 @query: 
 @fh: 
+@Returns: 
 
 
 <!-- ##### FUNCTION rasqal_query_graph_pattern_visit ##### -->
@@ -637,6 +635,25 @@ then retrieved.
 
 @query: 
 @feature: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_query_get_update_operation ##### -->
+<para>
+
+</para>
+
+@query: 
+@idx: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_query_get_update_operations_sequence ##### -->
+<para>
+
+</para>
+
+@query: 
 @Returns: 
 
 

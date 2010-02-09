@@ -233,6 +233,7 @@ constants and #rasqal_variable values bound in some
 
 @e: 
 @fh: 
+@Returns: 
 
 
 <!-- ##### FUNCTION rasqal_expression_print_op ##### -->

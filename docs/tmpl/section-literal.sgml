@@ -288,6 +288,7 @@ boolean, double, floating, integer, regex pattern and variables.
 
 @l: 
 @fh: 
+@Returns: 
 
 
 <!-- ##### FUNCTION rasqal_literal_print_type ##### -->
