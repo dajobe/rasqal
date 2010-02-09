@@ -185,6 +185,8 @@ rasqal_query_set_feature
 rasqal_query_set_feature_string
 rasqal_query_get_feature
 rasqal_query_get_feature_string
+rasqal_query_get_update_operation
+rasqal_query_get_update_operations_sequence
 </SECTION>
 
 <SECTION>
@@ -207,7 +209,9 @@ rasqal_query_results_is_graph
 rasqal_query_results_is_syntax
 rasqal_query_results_next
 rasqal_query_results_next_triple
+rasqal_query_results_read2
 rasqal_query_results_read
+rasqal_query_results_write2
 rasqal_query_results_write
 </SECTION>
 
@@ -218,6 +222,7 @@ RASQAL_QUERY_RESULTS_FORMAT_FLAG_READER
 RASQAL_QUERY_RESULTS_FORMAT_FLAG_WRITER
 rasqal_query_results_formats_enumerate
 rasqal_query_results_formatter
+rasqal_new_query_results_formatter2
 rasqal_new_query_results_formatter
 rasqal_new_query_results_formatter_by_mime_type
 rasqal_free_query_results_formatter
@@ -236,6 +241,13 @@ rasqal_triple_get_origin
 rasqal_triple_parts
 rasqal_triple_print
 rasqal_triple_set_origin
+</SECTION>
+
+<SECTION>
+<FILE>section-updates</FILE>
+rasqal_update_operation
+rasqal_update_type
+rasqal_update_flags
 </SECTION>
 
 <SECTION>
