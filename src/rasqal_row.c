@@ -241,6 +241,9 @@ rasqal_row_print(rasqal_row* row, FILE* fh)
  *
  * Set the value of a variable in a query result row
  *
+ * Any existing row value is freed and the literal @value passed in
+ * is copied.
+ *
  * Return value: non-0 on failure
  */
 int
@@ -252,7 +255,11 @@ rasqal_row_set_value_at(rasqal_row* row, int offset, rasqal_literal* value)
   if(offset < 0 || offset >= row->size)
     return 1;
   
-  row->values[offset] = value;
+  if(row->values[offset])
+    rasqal_free_literal(row->values[offset]);
+  
+  row->values[offset] = rasqal_new_literal_from_literal(value);
+
   return 0;
 }
 

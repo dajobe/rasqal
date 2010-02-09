@@ -759,8 +759,10 @@ rasqal_sparql_xml_sax2_end_element_handler(void *user_data,
           language_str=(char*)RASQAL_MALLOC(cstring, strlen(con->language)+1);
           strcpy(language_str, con->language);
         }
-        l=rasqal_new_string_literal_node(con->world, lvalue, language_str, datatype_uri);
+        l = rasqal_new_string_literal_node(con->world, lvalue, language_str,
+                                           datatype_uri);
         rasqal_row_set_value_at(con->row, con->result_offset, l);
+        rasqal_free_literal(l);
         RASQAL_DEBUG3("Saving row result %d string value at offset %d\n",
                       con->offset, con->result_offset);
       }
@@ -772,8 +774,9 @@ rasqal_sparql_xml_sax2_end_element_handler(void *user_data,
         unsigned char* lvalue;
         lvalue=(unsigned char*)RASQAL_MALLOC(cstring, con->value_len+1);
         strncpy((char*)lvalue, con->value, con->value_len+1);
-        l=rasqal_new_simple_literal(con->world, RASQAL_LITERAL_BLANK, lvalue);
+        l = rasqal_new_simple_literal(con->world, RASQAL_LITERAL_BLANK, lvalue);
         rasqal_row_set_value_at(con->row, con->result_offset, l);
+        rasqal_free_literal(l);
         RASQAL_DEBUG3("Saving row result %d bnode value at offset %d\n",
                       con->offset, con->result_offset);
       }
@@ -790,6 +793,7 @@ rasqal_sparql_xml_sax2_end_element_handler(void *user_data,
 #endif
         l = rasqal_new_uri_literal(con->world, uri);
         rasqal_row_set_value_at(con->row, con->result_offset, l);
+        rasqal_free_literal(l);
         RASQAL_DEBUG3("Saving row result %d uri value at offset %d\n",
                       con->offset, con->result_offset);
       }
