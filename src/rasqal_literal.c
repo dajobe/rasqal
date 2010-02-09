@@ -95,11 +95,7 @@ rasqal_new_integer_literal(rasqal_world* world, rasqal_literal_type type, int in
       rasqal_free_literal(l);
       return NULL;
     }
-#ifdef RAPTOR_V2_AVAILABLE
-    l->datatype = raptor_uri_copy_v2(world->raptor_world_ptr, dt_uri);
-#else
     l->datatype = raptor_uri_copy(dt_uri);
-#endif
     l->parent_type = rasqal_xsd_datatype_parent_type(type);
   }
   return l;
@@ -176,11 +172,7 @@ rasqal_new_double_literal(rasqal_world*world, double d)
       rasqal_free_literal(l);
       return NULL;
     }
-#ifdef RAPTOR_V2_AVAILABLE
-    l->datatype = raptor_uri_copy_v2(world->raptor_world_ptr, dt_uri);
-#else
     l->datatype = raptor_uri_copy(dt_uri);
-#endif
   }
   return l;
 }
@@ -216,11 +208,7 @@ rasqal_new_float_literal(rasqal_world *world, float f)
       rasqal_free_literal(l);
       return NULL;
     }
-#ifdef RAPTOR_V2_AVAILABLE
-    l->datatype = raptor_uri_copy_v2(world->raptor_world_ptr, dt_uri);
-#else
     l->datatype = raptor_uri_copy(dt_uri);
-#endif
   }
   return l;
 }
@@ -249,11 +237,7 @@ rasqal_new_uri_literal(rasqal_world* world, raptor_uri *uri)
     l->type=RASQAL_LITERAL_URI;
     l->value.uri=uri;
   } else {
-#ifdef RAPTOR_V2_AVAILABLE
-    raptor_free_uri_v2(world->raptor_world_ptr, uri);
-#else
     raptor_free_uri(uri);
-#endif
   }
   return l;
 }
@@ -355,11 +339,7 @@ rasqal_new_decimal_literal_from_decimal(rasqal_world* world,
       rasqal_free_literal(l);
       l=NULL;
     } else {
-#ifdef RAPTOR_V2_AVAILABLE
-      l->datatype = raptor_uri_copy_v2(world->raptor_world_ptr, dt_uri);
-#else
       l->datatype = raptor_uri_copy(dt_uri);
-#endif
       l->value.decimal=decimal;
       /* string is owned by l->value.decimal */
       l->string=(unsigned char*)rasqal_xsd_decimal_as_counted_string(l->value.decimal,
@@ -491,15 +471,9 @@ rasqal_literal_set_typed_value(rasqal_literal* l, rasqal_literal_type type,
   if(!dt_uri)
     return 1;
 
-#ifdef RAPTOR_V2_AVAILABLE
-  if(l->datatype)
-    raptor_free_uri_v2(l->world->raptor_world_ptr, l->datatype);
-  l->datatype = raptor_uri_copy_v2(l->world->raptor_world_ptr, dt_uri);
-#else
   if(l->datatype)
     raptor_free_uri(l->datatype);
   l->datatype = raptor_uri_copy(dt_uri);
-#endif
 
   l->parent_type = rasqal_xsd_datatype_parent_type(type);
 
@@ -710,11 +684,7 @@ rasqal_new_string_literal_common(rasqal_world* world,
     if(language)
       RASQAL_FREE(cstring, (void*)language);
     if(datatype)
-#ifdef RAPTOR_V2_AVAILABLE
-      raptor_free_uri_v2(world->raptor_world_ptr, datatype);
-#else
       raptor_free_uri(datatype);
-#endif
     if(datatype_qname)
       RASQAL_FREE(cstring, (void*)datatype_qname);
     RASQAL_FREE(cstring, (void*)string);
@@ -826,11 +796,7 @@ rasqal_new_boolean_literal(rasqal_world* world, int value)
       rasqal_free_literal(l);
       return NULL;
     }
-#ifdef RAPTOR_V2_AVAILABLE
-    l->datatype = raptor_uri_copy_v2(world->raptor_world_ptr, dt_uri);
-#else
     l->datatype = raptor_uri_copy(dt_uri);
-#endif
   }
   return l;
 }
@@ -904,11 +870,7 @@ rasqal_free_literal(rasqal_literal* l)
   switch(l->type) {
     case RASQAL_LITERAL_URI:
       if(l->value.uri)
-#ifdef RAPTOR_V2_AVAILABLE
-        raptor_free_uri_v2(l->world->raptor_world_ptr, l->value.uri);
-#else
         raptor_free_uri(l->value.uri);
-#endif
       break;
     case RASQAL_LITERAL_STRING:
     case RASQAL_LITERAL_BLANK:
@@ -925,11 +887,7 @@ rasqal_free_literal(rasqal_literal* l)
       if(l->language)
         RASQAL_FREE(cstring, (void*)l->language);
       if(l->datatype)
-#ifdef RAPTOR_V2_AVAILABLE
-        raptor_free_uri_v2(l->world->raptor_world_ptr, l->datatype);
-#else
         raptor_free_uri(l->datatype);
-#endif
       if(l->type == RASQAL_LITERAL_STRING ||
          l->type == RASQAL_LITERAL_PATTERN) {
         if(l->flags)
@@ -939,11 +897,7 @@ rasqal_free_literal(rasqal_literal* l)
     case RASQAL_LITERAL_DECIMAL:
       /* l->string is owned by l->value.decimal - do not free it */
       if(l->datatype)
-#ifdef RAPTOR_V2_AVAILABLE
-        raptor_free_uri_v2(l->world->raptor_world_ptr, l->datatype);
-#else
         raptor_free_uri(l->datatype);
-#endif
       if(l->value.decimal)
         rasqal_free_xsd_decimal(l->value.decimal);
       break;
@@ -951,11 +905,7 @@ rasqal_free_literal(rasqal_literal* l)
     case RASQAL_LITERAL_BOOLEAN:
        /* static l->string for boolean, does not need freeing */
       if(l->datatype)
-#ifdef RAPTOR_V2_AVAILABLE
-        raptor_free_uri_v2(l->world->raptor_world_ptr, l->datatype);
-#else
         raptor_free_uri(l->datatype);
-#endif
       break;
 
     case RASQAL_LITERAL_VARIABLE:
@@ -1078,11 +1028,7 @@ rasqal_literal_write(rasqal_literal* l, raptor_iostream* iostr)
   switch(l->type) {
     case RASQAL_LITERAL_URI:
       raptor_iostream_write_byte(iostr, '<');
-#ifdef RAPTOR_V2_AVAILABLE
-      str = raptor_uri_as_counted_string_v2(l->world->raptor_world_ptr, l->value.uri, &len);
-#else
       str = raptor_uri_as_counted_string(l->value.uri, &len);
-#endif
       raptor_iostream_write_string_ntriples(iostr, str, len, '>');
       raptor_iostream_write_byte(iostr, '>');
       break;
@@ -1108,11 +1054,7 @@ rasqal_literal_write(rasqal_literal* l, raptor_iostream* iostr)
       }
       if(l->datatype) {
         raptor_iostream_write_counted_string(iostr, "^^<", 3);
-#ifdef RAPTOR_V2_AVAILABLE
-        str = raptor_uri_as_counted_string_v2(l->world->raptor_world_ptr, l->datatype, &len);
-#else
         str = raptor_uri_as_counted_string(l->datatype, &len);
-#endif
         raptor_iostream_write_string_ntriples(iostr, str, len, '>');
         raptor_iostream_write_byte(iostr, '>');
       }
@@ -1171,13 +1113,11 @@ rasqal_literal_print(rasqal_literal* l, FILE* fh)
   switch(l->type) {
     case RASQAL_LITERAL_URI:
       fputc('<', fh);
-      raptor_print_ntriples_string(fh,
 #ifdef RAPTOR_V2_AVAILABLE
-                                   raptor_uri_as_string_v2(l->world->raptor_world_ptr, l->value.uri),
+      raptor_print_ntriples_string(raptor_uri_as_string(l->value.uri), '>', fh);
 #else
-                                   raptor_uri_as_string(l->value.uri),
+      raptor_print_ntriples_string(fh, raptor_uri_as_string(l->value.uri), '>');
 #endif
-                                   '>');
       fputc('>', fh);
       break;
     case RASQAL_LITERAL_BLANK:
@@ -1189,19 +1129,21 @@ rasqal_literal_print(rasqal_literal* l, FILE* fh)
     case RASQAL_LITERAL_STRING:
     case RASQAL_LITERAL_UDT:
       fputs("(\"", fh);
+#ifdef RAPTOR_V2_AVAILABLE
+      raptor_print_ntriples_string(l->string, '"', fh);
+#else
       raptor_print_ntriples_string(fh, l->string, '"');
+#endif
       fputc('"', fh);
       if(l->language)
         fprintf(fh, "@%s", l->language);
       if(l->datatype) {
         fputs("^^<", fh);
-        raptor_print_ntriples_string(fh,
 #ifdef RAPTOR_V2_AVAILABLE
-                                     raptor_uri_as_string_v2(l->world->raptor_world_ptr, l->datatype),
+        raptor_print_ntriples_string(raptor_uri_as_string(l->datatype), '>', fh);
 #else
-                                     raptor_uri_as_string(l->datatype),
+        raptor_print_ntriples_string(fh, raptor_uri_as_string(l->datatype), '>');
 #endif
-                                     '>');
         fputc('>', fh);
       }
       fputc(')', fh);
@@ -1263,16 +1205,8 @@ rasqal_literal_as_boolean(rasqal_literal* l, int *error)
   switch(l->type) {
     case RASQAL_LITERAL_STRING:
       if(l->datatype) {
-        if(
-#ifdef RAPTOR_V2_AVAILABLE
-           raptor_uri_equals_v2(l->world->raptor_world_ptr, l->datatype, 
-                             rasqal_xsd_datatype_type_to_uri(l->world, RASQAL_LITERAL_STRING))
-#else
-           raptor_uri_equals(l->datatype, 
-                             rasqal_xsd_datatype_type_to_uri(l->world, RASQAL_LITERAL_STRING))
-#endif
-           )
-        {
+        if(raptor_uri_equals(l->datatype,
+                             rasqal_xsd_datatype_type_to_uri(l->world, RASQAL_LITERAL_STRING))) {
           /* typed literal with xsd:string datatype -> true if non-empty */
           return l->string && *l->string;
         }
@@ -1532,11 +1466,7 @@ rasqal_literal_as_string_flags(rasqal_literal* l, int flags, int *error)
           *error=1;
         return NULL;
       }
-#ifdef RAPTOR_V2_AVAILABLE
-      return raptor_uri_as_string_v2(l->world->raptor_world_ptr, l->value.uri);
-#else
       return raptor_uri_as_string(l->value.uri);
-#endif
 
     case RASQAL_LITERAL_VARIABLE:
       return rasqal_literal_as_string_flags(l->value.variable->value, flags,
@@ -1729,11 +1659,7 @@ rasqal_new_literal_from_promotion(rasqal_literal* lit,
         raptor_uri* dt_uri = NULL;
         strncpy((char*)new_s, (const char*)s, len+1);
         if(lit->datatype) {
-#ifdef RAPTOR_V2_AVAILABLE
-          dt_uri = raptor_uri_copy_v2(lit->world->raptor_world_ptr, lit->datatype);
-#else
           dt_uri = raptor_uri_copy(lit->datatype);
-#endif
         }
         return rasqal_new_string_literal_node(lit->world, new_s, NULL, dt_uri);
       } else
@@ -1805,11 +1731,7 @@ rasqal_new_literal_from_promotion(rasqal_literal* lit,
         raptor_uri* dt_uri;
         strncpy((char*)new_s, (const char*)s, len+1);
         dt_uri = rasqal_xsd_datatype_type_to_uri(lit->world, lit->type);
-#ifdef RAPTOR_V2_AVAILABLE
-        dt_uri = raptor_uri_copy_v2(lit->world->raptor_world_ptr, dt_uri);
-#else
         dt_uri = raptor_uri_copy(dt_uri);
-#endif
         new_lit = rasqal_new_string_literal(lit->world, new_s, NULL, dt_uri,
                                             NULL);
       }
@@ -1874,11 +1796,7 @@ rasqal_literal_string_compare(rasqal_literal* l1, rasqal_literal* l2,
         *error=1;
       return 0;
     }
-#ifdef RAPTOR_V2_AVAILABLE
-    result = raptor_uri_compare_v2(l1->world->raptor_world_ptr, l1->datatype, l2->datatype);
-#else
     result = raptor_uri_compare(l1->datatype, l2->datatype);
-#endif
 
     if(result)
       return result;
@@ -2102,14 +2020,8 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
   switch(type) {
     case RASQAL_LITERAL_URI:
       if(flags & RASQAL_COMPARE_URI)
-#ifdef RAPTOR_V2_AVAILABLE
-        result = raptor_uri_compare_v2(l1->world->raptor_world_ptr,
-                                       new_lits[0]->value.uri,
-                                       new_lits[1]->value.uri);
-#else
         result = raptor_uri_compare(new_lits[0]->value.uri,
                                     new_lits[1]->value.uri);
-#endif
       else {
         if(error)
           *error=1;
@@ -2211,19 +2123,11 @@ rasqal_literal_string_equals(rasqal_literal* l1, rasqal_literal* l2,
    */
   if(l1->type == RASQAL_LITERAL_STRING && 
      l2->type == RASQAL_LITERAL_XSD_STRING) {
-#ifdef RAPTOR_V2_AVAILABLE
-    dt1 = raptor_uri_copy_v2(l1->world->raptor_world_ptr, xsd_string_uri);
-#else
     dt1 = raptor_uri_copy(xsd_string_uri);
-#endif
     free_dt1 = 1;
   } else if(l1->type == RASQAL_LITERAL_XSD_STRING && 
             l2->type == RASQAL_LITERAL_STRING) {
-#ifdef RAPTOR_V2_AVAILABLE
-    dt2 = raptor_uri_copy_v2(l1->world->raptor_world_ptr, xsd_string_uri);
-#else
     dt2 = raptor_uri_copy(xsd_string_uri);
-#endif
     free_dt2 = 1;
   }
 
@@ -2236,14 +2140,7 @@ rasqal_literal_string_equals(rasqal_literal* l1, rasqal_literal* l2,
       goto done;
     }
     /* if different - type error */
-    if(
-#ifdef RAPTOR_V2_AVAILABLE
-       !raptor_uri_equals_v2(l1->world->raptor_world_ptr, dt1, dt2)
-#else
-       !raptor_uri_equals(dt1, dt2)
-#endif
-       )
-    {
+    if(!raptor_uri_equals(dt1, dt2)) {
       if(error_p)
         *error_p = 1;
       result = 0;
@@ -2273,17 +2170,9 @@ rasqal_literal_string_equals(rasqal_literal* l1, rasqal_literal* l2,
 
   done:
   if(dt1 && free_dt1)
-#ifdef RAPTOR_V2_AVAILABLE
-    raptor_free_uri_v2(l1->world->raptor_world_ptr, dt1);
-#else
     raptor_free_uri(dt1);
-#endif
   if(dt2 && free_dt2)
-#ifdef RAPTOR_V2_AVAILABLE
-    raptor_free_uri_v2(l1->world->raptor_world_ptr, dt2);
-#else
     raptor_free_uri(dt2);
-#endif
 
   return result;
 }
@@ -2292,11 +2181,7 @@ rasqal_literal_string_equals(rasqal_literal* l1, rasqal_literal* l2,
 static int
 rasqal_literal_uri_equals(rasqal_literal* l1, rasqal_literal* l2)
 {
-#ifdef RAPTOR_V2_AVAILABLE
-  return raptor_uri_equals_v2(l1->world->raptor_world_ptr, l1->value.uri, l2->value.uri);
-#else
   return raptor_uri_equals(l1->value.uri, l2->value.uri);
-#endif
 }
 
 
@@ -2533,9 +2418,14 @@ rasqal_literal_expand_qname(void *user_data, rasqal_literal *l)
 
   if(l->type == RASQAL_LITERAL_QNAME) {
     /* expand a literal qname */
-    raptor_uri *uri=raptor_qname_string_to_uri(rq->namespaces,
-                                               l->string, l->string_len,
-                                               (raptor_simple_message_handler)rasqal_query_simple_error, rq);
+#ifdef RAPTOR_V2_AVAILABLE
+    raptor_uri *uri = raptor_qname_string_to_uri(rq->namespaces,
+                                                 l->string, l->string_len);
+#else
+    raptor_uri *uri = raptor_qname_string_to_uri(rq->namespaces,
+                                                 l->string, l->string_len,
+                                                 (raptor_simple_message_handler)rasqal_query_simple_error, rq);
+#endif
     if(!uri)
       return 1;
     RASQAL_FREE(cstring, (void*)l->string);
@@ -2547,10 +2437,16 @@ rasqal_literal_expand_qname(void *user_data, rasqal_literal *l)
     
     if(l->flags) {
       /* expand a literal string datatype qname */
-      uri=raptor_qname_string_to_uri(rq->namespaces,
-                                     l->flags, 
-                                     strlen((const char*)l->flags),
-                                     (raptor_simple_message_handler)rasqal_query_simple_error, rq);
+#ifdef RAPTOR_V2_AVAILABLE
+      uri = raptor_qname_string_to_uri(rq->namespaces,
+                                       l->flags,
+                                       strlen((const char*)l->flags));
+#else
+      uri = raptor_qname_string_to_uri(rq->namespaces,
+                                       l->flags,
+                                       strlen((const char*)l->flags),
+                                       (raptor_simple_message_handler)rasqal_query_simple_error, rq);
+#endif
       if(!uri)
         return 1;
       l->datatype=uri;
@@ -2641,11 +2537,7 @@ rasqal_literal_as_node(rasqal_literal* l)
           rasqal_free_literal(new_l);
           return NULL;
         }
-#ifdef RAPTOR_V2_AVAILABLE
-        new_l->datatype = raptor_uri_copy_v2(l->world->raptor_world_ptr, dt_uri);
-#else
         new_l->datatype = raptor_uri_copy(dt_uri);
-#endif
         new_l->flags=NULL;
       }
       break;
@@ -2909,11 +2801,7 @@ rasqal_literal_cast(rasqal_literal* l, raptor_uri* to_datatype, int flags,
           break;
         }
 
-#ifdef RAPTOR_V2_AVAILABLE
-        string = raptor_uri_as_string_v2(l->world->raptor_world_ptr, l->value.uri);
-#else
         string = raptor_uri_as_string(l->value.uri);
-#endif
         break;
 
       case RASQAL_LITERAL_VARIABLE:
@@ -2941,17 +2829,10 @@ rasqal_literal_cast(rasqal_literal* l, raptor_uri* to_datatype, int flags,
 
   /* switch on the TO type to check MAYBE conversions */
 
-#ifdef RAPTOR_V2_AVAILABLE
-  RASQAL_DEBUG4("CAST from \"%s\" type %s to type %s\n",
-                string, 
-                from_datatype ? (const char*)raptor_uri_as_string_v2(l->world->raptor_world_ptr, from_datatype) : "(NONE)",
-                raptor_uri_as_string_v2(l->world->raptor_world_ptr, to_datatype));
-#else
   RASQAL_DEBUG4("CAST from \"%s\" type %s to type %s\n",
                 string, 
                 from_datatype ? (const char*)raptor_uri_as_string(from_datatype) : "(NONE)",
                 raptor_uri_as_string(to_datatype));
-#endif
   
   if(!rasqal_xsd_datatype_check(to_native_type, string, flags)) {
     *error_p=1;
@@ -2967,11 +2848,7 @@ rasqal_literal_cast(rasqal_literal* l, raptor_uri* to_datatype, int flags,
     return NULL;
   }
   strcpy((char*)new_string, (const char*)string);
-#ifdef RAPTOR_V2_AVAILABLE
-  to_datatype = raptor_uri_copy_v2(l->world->raptor_world_ptr, to_datatype);
-#else
   to_datatype = raptor_uri_copy(to_datatype);  
-#endif
   
   result=rasqal_new_string_literal(l->world, new_string, NULL, to_datatype, NULL);
   if(!result)

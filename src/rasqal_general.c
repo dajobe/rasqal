@@ -677,8 +677,8 @@ rasqal_basename(const char *name)
 unsigned char*
 rasqal_escaped_name_to_utf8_string(const unsigned char *src, size_t len,
                                    size_t *dest_lenp,
-                                   raptor_simple_message_handler error_handler,
-                                   void *error_data)
+                                   int (*error_handler)(rasqal_query *error_data, const char *message, ...),
+                                   rasqal_query* error_data)
 {
   const unsigned char *p=src;
   size_t ulen=0;
@@ -788,7 +788,7 @@ int
 rasqal_uri_init(rasqal_world* world) 
 {
 #ifdef RAPTOR_V2_AVAILABLE
-  world->rdf_namespace_uri = raptor_new_uri_v2(world->raptor_world_ptr, raptor_rdf_namespace_uri);
+  world->rdf_namespace_uri = raptor_new_uri(world->raptor_world_ptr, raptor_rdf_namespace_uri);
 #else
   world->rdf_namespace_uri = raptor_new_uri(raptor_rdf_namespace_uri);
 #endif
@@ -796,9 +796,9 @@ rasqal_uri_init(rasqal_world* world)
     goto oom;
 
 #ifdef RAPTOR_V2_AVAILABLE
-  world->rdf_first_uri = raptor_new_uri_from_uri_local_name_v2(world->raptor_world_ptr, world->rdf_namespace_uri, (const unsigned char*)"first");
-  world->rdf_rest_uri = raptor_new_uri_from_uri_local_name_v2(world->raptor_world_ptr, world->rdf_namespace_uri, (const unsigned char*)"rest");
-  world->rdf_nil_uri = raptor_new_uri_from_uri_local_name_v2(world->raptor_world_ptr, world->rdf_namespace_uri, (const unsigned char*)"nil");
+  world->rdf_first_uri = raptor_new_uri_from_uri_local_name(world->raptor_world_ptr, world->rdf_namespace_uri, (const unsigned char*)"first");
+  world->rdf_rest_uri = raptor_new_uri_from_uri_local_name(world->raptor_world_ptr, world->rdf_namespace_uri, (const unsigned char*)"rest");
+  world->rdf_nil_uri = raptor_new_uri_from_uri_local_name(world->raptor_world_ptr, world->rdf_namespace_uri, (const unsigned char*)"nil");
 #else
   world->rdf_first_uri = raptor_new_uri_from_uri_local_name(world->rdf_namespace_uri, (const unsigned char*)"first");
   world->rdf_rest_uri = raptor_new_uri_from_uri_local_name(world->rdf_namespace_uri, (const unsigned char*)"rest");

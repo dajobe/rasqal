@@ -102,20 +102,19 @@ rasqal_features_enumerate_common(rasqal_world* world,
       if(uri) {
         raptor_uri *base_uri;
 #ifdef RAPTOR_V2_AVAILABLE
-        base_uri = raptor_new_uri_v2(world->raptor_world_ptr, (const unsigned char*)rasqal_feature_uri_prefix);
+        base_uri = raptor_new_uri(world->raptor_world_ptr, (const unsigned char*)rasqal_feature_uri_prefix);
         if(!base_uri)
           return -1;
-        *uri = raptor_new_uri_from_uri_local_name_v2(world->raptor_world_ptr, base_uri,
-                                                     (const unsigned char*)rasqal_features_list[i].name);
-        raptor_free_uri_v2(world->raptor_world_ptr, base_uri);
+        *uri = raptor_new_uri_from_uri_local_name(world->raptor_world_ptr, base_uri,
+                                                  (const unsigned char*)rasqal_features_list[i].name);
 #else
         base_uri = raptor_new_uri((const unsigned char*)rasqal_feature_uri_prefix);
         if(!base_uri)
           return -1;
         *uri = raptor_new_uri_from_uri_local_name(base_uri,
                                                   (const unsigned char*)rasqal_features_list[i].name);
-        raptor_free_uri(base_uri);
 #endif
+        raptor_free_uri(base_uri);
       }
       if(label)
         *label=rasqal_features_list[i].label;
@@ -197,11 +196,7 @@ rasqal_feature_from_uri(rasqal_world* world, raptor_uri *uri)
   /* for compatibility with older binaries that do not call it */
   rasqal_world_open(world);
   
-#ifdef RAPTOR_V2_AVAILABLE
-  uri_string = raptor_uri_as_string_v2(world->raptor_world_ptr, uri);
-#else
   uri_string = raptor_uri_as_string(uri);
-#endif
   if(strncmp((const char*)uri_string, rasqal_feature_uri_prefix,
              RASQAL_FEATURE_URI_PREFIX_LEN))
     return feature;

@@ -217,7 +217,12 @@ rasqal_new_query_results(rasqal_world* world,
   query_results->ask_result = -1; 
   query_results->store_results = 0; 
   query_results->current_triple_result = -1;
+#ifdef RAPTOR_V2_AVAILABLE
+  /* initialize static query_results->result_triple */
+  raptor_statement_init(&query_results->result_triple, world->raptor_world_ptr);
+#else
   /* query_results->result_triple is static */
+#endif
   query_results->triple = NULL;
   query_results->results_sequence = NULL;
   query_results->size = 0;
@@ -357,6 +362,11 @@ rasqal_free_query_results(rasqal_query_results* query_results)
 
   if(query_results->results_sequence)
     raptor_free_sequence(query_results->results_sequence);
+
+#ifdef RAPTOR_V2_AVAILABLE
+  /* free terms owned by static query_results->result_triple */
+  raptor_free_statement(&query_results->result_triple);
+#endif
 
   if(query_results->triple)
     rasqal_free_triple(query_results->triple);
@@ -968,16 +978,35 @@ rasqal_query_results_get_triple(rasqal_query_results* query_results)
 
     s = rasqal_literal_as_node(t->subject);
     if(!s) {
-      rasqal_log_error_simple(query_results->world, RAPTOR_LOG_LEVEL_WARNING,
+      rasqal_log_error_simple(query_results->world,
+#ifdef RAPTOR_V2_AVAILABLE
+                              RAPTOR_LOG_LEVEL_WARN,
+#else
+                              RAPTOR_LOG_LEVEL_WARNING,
+#endif
                               &query->locator,
                               "Triple with unbound subject skipped");
       skipped = 1;
       continue;
     }
+
+#ifdef RAPTOR_V2_AVAILABLE
+    /* raptor v2 terms are copied, not shared */
+    if(rs->subject) {
+      raptor_free_term(rs->subject);
+      rs->subject = NULL;
+    }
+#endif
+
     switch(s->type) {
       case RASQAL_LITERAL_URI:
+#ifdef RAPTOR_V2_AVAILABLE
+        rs->subject = raptor_new_term_from_uri(query_results->world->raptor_world_ptr,
+                                               s->value.uri);
+#else
         rs->subject = s->value.uri;
         rs->subject_type = RAPTOR_IDENTIFIER_TYPE_RESOURCE;
+#endif
         break;
 
       case RASQAL_LITERAL_BLANK:
@@ -998,8 +1027,13 @@ rasqal_query_results_get_triple(rasqal_query_results* query_results)
                                   "Could not create a new subject blank literal");
           return NULL;
         }
+#ifdef RAPTOR_V2_AVAILABLE
+        rs->subject = raptor_new_term_from_blank(query_results->world->raptor_world_ptr,
+                                                 nodeid);
+#else
         rs->subject = nodeid;
         rs->subject_type = RAPTOR_IDENTIFIER_TYPE_ANONYMOUS;
+#endif
         break;
 
       case RASQAL_LITERAL_QNAME:
@@ -1023,7 +1057,12 @@ rasqal_query_results_get_triple(rasqal_query_results* query_results)
       case RASQAL_LITERAL_UNKNOWN:
       default:
         /* case RASQAL_LITERAL_STRING: */
-        rasqal_log_error_simple(query_results->world, RAPTOR_LOG_LEVEL_WARNING,
+        rasqal_log_error_simple(query_results->world,
+#ifdef RAPTOR_V2_AVAILABLE
+                                RAPTOR_LOG_LEVEL_WARN,
+#else
+                                RAPTOR_LOG_LEVEL_WARNING,
+#endif
                                 &query->locator,
                                 "Triple with non-URI/blank node subject skipped");
         skipped = 1;
@@ -1038,7 +1077,12 @@ rasqal_query_results_get_triple(rasqal_query_results* query_results)
 
     p = rasqal_literal_as_node(t->predicate);
     if(!p) {
-      rasqal_log_error_simple(query_results->world, RAPTOR_LOG_LEVEL_WARNING,
+      rasqal_log_error_simple(query_results->world,
+#ifdef RAPTOR_V2_AVAILABLE
+                              RAPTOR_LOG_LEVEL_WARN,
+#else
+                              RAPTOR_LOG_LEVEL_WARNING,
+#endif
                               &query->locator,
                               "Triple with unbound predicate skipped");
       rasqal_free_literal(s);
@@ -1047,8 +1091,18 @@ rasqal_query_results_get_triple(rasqal_query_results* query_results)
     }
     switch(p->type) {
       case RASQAL_LITERAL_URI:
+#ifdef RAPTOR_V2_AVAILABLE
+        /* raptor v2 terms are copied, not shared */
+        if(rs->predicate) {
+          raptor_free_term(rs->predicate);
+          rs->predicate = NULL;
+        }
+        rs->predicate = raptor_new_term_from_uri(query_results->world->raptor_world_ptr,
+                                                 p->value.uri);
+#else
         rs->predicate = p->value.uri;
         rs->predicate_type = RAPTOR_IDENTIFIER_TYPE_RESOURCE;
+#endif
         break;
 
       case RASQAL_LITERAL_QNAME:
@@ -1072,7 +1126,12 @@ rasqal_query_results_get_triple(rasqal_query_results* query_results)
 
       case RASQAL_LITERAL_UNKNOWN:
       default:
-        rasqal_log_error_simple(query_results->world, RAPTOR_LOG_LEVEL_WARNING,
+        rasqal_log_error_simple(query_results->world,
+#ifdef RAPTOR_V2_AVAILABLE
+                                RAPTOR_LOG_LEVEL_WARN,
+#else
+                                RAPTOR_LOG_LEVEL_WARNING,
+#endif
                                 &query->locator,
                                 "Triple with non-URI predicate skipped");
         skipped = 1;
@@ -1087,7 +1146,12 @@ rasqal_query_results_get_triple(rasqal_query_results* query_results)
 
     o = rasqal_literal_as_node(t->object);
     if(!o) {
-      rasqal_log_error_simple(query_results->world, RAPTOR_LOG_LEVEL_WARNING,
+      rasqal_log_error_simple(query_results->world,
+#ifdef RAPTOR_V2_AVAILABLE
+                              RAPTOR_LOG_LEVEL_WARN,
+#else
+                              RAPTOR_LOG_LEVEL_WARNING,
+#endif
                               &query->locator,
                               "Triple with unbound object skipped");
       rasqal_free_literal(s);
@@ -1095,11 +1159,25 @@ rasqal_query_results_get_triple(rasqal_query_results* query_results)
       skipped = 1;
       continue;
     }
+
+#ifdef RAPTOR_V2_AVAILABLE
+    /* raptor v2 terms are copied, not shared */
+    if(rs->object) {
+      raptor_free_term(rs->object);
+      rs->object = NULL;
+    }
+#endif
+
     switch(o->type) {
       case RASQAL_LITERAL_URI:
+#ifdef RAPTOR_V2_AVAILABLE
+        rs->object = raptor_new_term_from_uri(query_results->world->raptor_world_ptr,
+                                              o->value.uri);
+#else
         rs->object = o->value.uri;
         rs->object_type = RAPTOR_IDENTIFIER_TYPE_RESOURCE;
         break;
+#endif
 
       case RASQAL_LITERAL_BLANK:
         nodeid = rasqal_prefix_id(query_results->result_count,
@@ -1123,15 +1201,27 @@ rasqal_query_results_get_triple(rasqal_query_results* query_results)
           rasqal_free_literal(p);
           return NULL;
         }
+#ifdef RAPTOR_V2_AVAILABLE
+        rs->object = raptor_new_term_from_blank(query_results->world->raptor_world_ptr,
+                                                nodeid);
+#else
         rs->object = nodeid;
         rs->object_type = RAPTOR_IDENTIFIER_TYPE_ANONYMOUS;
+#endif
         break;
 
       case RASQAL_LITERAL_STRING:
+#ifdef RAPTOR_V2_AVAILABLE
+        rs->object = raptor_new_term_from_literal(query_results->world->raptor_world_ptr,
+                                                  o->string,
+                                                  o->datatype,
+                                                  (const unsigned char*)o->language);
+#else
         rs->object = o->string;
         rs->object_literal_language = (const unsigned char*)o->language;
         rs->object_literal_datatype = o->datatype;
         rs->object_type = RAPTOR_IDENTIFIER_TYPE_LITERAL;
+#endif
         break;
 
       case RASQAL_LITERAL_QNAME:
@@ -1151,7 +1241,13 @@ rasqal_query_results_get_triple(rasqal_query_results* query_results)
 
       case RASQAL_LITERAL_UNKNOWN:
       default:
-        rasqal_log_error_simple(query_results->world, RAPTOR_LOG_LEVEL_WARNING,
+        rasqal_log_error_simple(query_results->world,
+#ifdef RAPTOR_V2_AVAILABLE
+                                RAPTOR_LOG_LEVEL_WARN,
+#else
+                                RAPTOR_LOG_LEVEL_WARNING,
+#endif
+
                                 &query->locator,
                                 "Triple with unknown object skipped");
         skipped = 1;
@@ -1457,7 +1553,11 @@ rasqal_query_results_add_row(rasqal_query_results* query_results,
                              rasqal_row* row)
 {
   if(!query_results->results_sequence) {
+#ifdef RAPTOR_V2_AVAILABLE
+    query_results->results_sequence = raptor_new_sequence((raptor_data_free_handler*)rasqal_free_row, (raptor_data_print_handler*)rasqal_row_print);
+#else
     query_results->results_sequence = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_row, (raptor_sequence_print_handler*)rasqal_row_print);
+#endif
     if(!query_results->results_sequence)
       return 1;
     

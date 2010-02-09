@@ -249,13 +249,20 @@ rasqal_engine_rowsort_map_free_row(const void *key, const void *value)
 }
 
 
+#ifdef RAPTOR_V2_AVAILABLE
+static int
+#else
 static void
+#endif
 rasqal_engine_rowsort_map_print_row(void *object, FILE *fh)
 {
   if(object)
     rasqal_row_print((rasqal_row*)object, fh);
   else
     fputs("NULL", fh);
+#ifdef RAPTOR_V2_AVAILABLE
+  return 0;
+#endif
 }
 
 
