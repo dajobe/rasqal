@@ -1005,7 +1005,7 @@ rasqal_map* rasqal_new_map(rasqal_compare_fn* compare_fn, void* compare_user_dat
 void rasqal_free_map(rasqal_map *map);
 int rasqal_map_add_kv(rasqal_map* map, void* key, void *value);
 void rasqal_map_visit(rasqal_map* map, rasqal_map_visit_fn fn, void *user_data);
-void rasqal_map_print(rasqal_map* map, FILE* fh);
+int rasqal_map_print(rasqal_map* map, FILE* fh);
 
 /* rasqal_query.c */
 rasqal_query_results* rasqal_query_execute_with_engine(rasqal_query* query, const rasqal_query_execution_factory* engine);
@@ -1245,7 +1245,7 @@ void rasqal_free_algebra_node(rasqal_algebra_node* node);
 rasqal_algebra_node_operator rasqal_algebra_node_get_operator(rasqal_algebra_node* node);
 const char* rasqal_algebra_node_operator_as_string(rasqal_algebra_node_operator op);
 int rasqal_algebra_algebra_node_write(rasqal_algebra_node *node, raptor_iostream* iostr);
-void rasqal_algebra_node_print(rasqal_algebra_node* node, FILE* fh);
+int rasqal_algebra_node_print(rasqal_algebra_node* node, FILE* fh);
 int rasqal_algebra_node_visit(rasqal_query *query, rasqal_algebra_node* node, rasqal_algebra_node_visit_fn fn, void *user_data);
 rasqal_algebra_node* rasqal_algebra_query_to_algebra(rasqal_query* query);
 int rasqal_algebra_node_is_empty(rasqal_algebra_node* node);

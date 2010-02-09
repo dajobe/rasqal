@@ -1159,7 +1159,7 @@ rasqal_literal* rasqal_new_literal_from_literal(rasqal_literal* l);
 RASQAL_API
 void rasqal_free_literal(rasqal_literal* l);
 RASQAL_API
-void rasqal_literal_print(rasqal_literal* l, FILE* fh);
+int rasqal_literal_print(rasqal_literal* l, FILE* fh);
 RASQAL_API
 void rasqal_literal_print_type(rasqal_literal* l, FILE* fh);
 RASQAL_API

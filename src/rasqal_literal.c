@@ -1155,13 +1155,15 @@ rasqal_literal_write(rasqal_literal* l, raptor_iostream* iostr)
  * Print a Rasqal literal in a debug format.
  * 
  * The print debug format may change in any release.
+ *
+ * Return value: non-0 on failure
  **/
-void
+int
 rasqal_literal_print(rasqal_literal* l, FILE* fh)
 {
   if(!l) {
     fputs("null", fh);
-    return;
+    return 0;
   }
 
   if(!l->valid)
@@ -1228,7 +1230,10 @@ rasqal_literal_print(rasqal_literal* l, FILE* fh)
     case RASQAL_LITERAL_UNKNOWN:
     default:
       RASQAL_FATAL2("Unknown literal type %d", l->type);
+      return 1;
   }
+
+  return 0;
 }
 
 

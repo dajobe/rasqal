@@ -729,8 +729,9 @@ rasqal_algebra_algebra_node_write(rasqal_algebra_node *node,
  * 
  * The print debug format may change in any release.
  * 
+ * Return value: non-0 on failure
  **/
-void
+int
 rasqal_algebra_node_print(rasqal_algebra_node* node, FILE* fh)
 {
   raptor_iostream* iostr;
@@ -738,6 +739,8 @@ rasqal_algebra_node_print(rasqal_algebra_node* node, FILE* fh)
   iostr = raptor_new_iostream_to_file_handle(fh);
   rasqal_algebra_algebra_node_write(node, iostr);
   raptor_free_iostream(iostr);
+
+  return 0;
 }
 
 

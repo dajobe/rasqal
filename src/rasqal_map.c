@@ -302,8 +302,9 @@ rasqal_map_node_print_visit(void *key, void *value, void *user_data)
  *
  * Print a (key:value) map in a debug format.
  * 
+ * Return value: non-0 on failure
  **/
-void
+int
 rasqal_map_print(rasqal_map* map, FILE* fh)
 {
   fprintf(fh, "map duplicates=%s {\n", map->allow_duplicates ? "yes" : "no");
@@ -316,4 +317,6 @@ rasqal_map_print(rasqal_map* map, FILE* fh)
   }
   
   fputs("}\n", fh);
+
+  return 0;
 }
