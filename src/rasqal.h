@@ -704,6 +704,7 @@ typedef enum {
  * @insert_templates: optional sequence of triple templates to insert
  * @delete_templates: optional sequence of triple templates to delete
  * @where: optional where template (insert/delete)
+ * @flags: update flags - bit-or of flags defined in #rasqal_update_flags
  *
  * Update operation - changing the dataset
  *
