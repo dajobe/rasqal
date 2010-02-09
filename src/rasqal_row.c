@@ -44,7 +44,7 @@
 
 
 static rasqal_row*
-rasqal_new_row_common(int size, int order_size)
+rasqal_new_row_common(rasqal_world* world, int size, int order_size)
 {
   rasqal_row* row;
   
@@ -93,7 +93,7 @@ rasqal_new_row(rasqal_rowsource* rowsource)
   
   size = rasqal_rowsource_get_size(rowsource);
 
-  row = rasqal_new_row_common(size, order_size);
+  row = rasqal_new_row_common(rowsource->world, size, order_size);
   if(row)
     row->rowsource = rowsource;
 
@@ -103,6 +103,7 @@ rasqal_new_row(rasqal_rowsource* rowsource)
 
 /**
  * rasqal_new_row_for_size:
+ * @world: rasqal_world
  * @size: width of row
  *
  * Constructor - Create a new query result row of a given size
@@ -110,11 +111,11 @@ rasqal_new_row(rasqal_rowsource* rowsource)
  * Return value: a new query result row or NULL on failure
  */
 rasqal_row*
-rasqal_new_row_for_size(int size)
+rasqal_new_row_for_size(rasqal_world* world, int size)
 {
   int order_size = 0;
 
-  return rasqal_new_row_common(size, order_size);
+  return rasqal_new_row_common(world, size, order_size);
 }
 
 
@@ -347,7 +348,7 @@ rasqal_new_row_sequence(rasqal_world* world,
     if(!data_values_seen)
       break;
     
-    row = rasqal_new_row_for_size(vars_count);
+    row = rasqal_new_row_for_size(world, vars_count);
     if(!row) {
       raptor_free_sequence(seq); seq = NULL;
       goto tidy;

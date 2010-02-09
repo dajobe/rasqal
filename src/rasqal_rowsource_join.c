@@ -245,7 +245,7 @@ rasqal_join_rowsource_build_merged_row(rasqal_rowsource* rowsource,
   rasqal_row *row;
   int i;
 
-  row = rasqal_new_row_for_size(rowsource->size);
+  row = rasqal_new_row_for_size(rowsource->world, rowsource->size);
   if(!row) {
     if(right_row)
       rasqal_free_row(right_row);

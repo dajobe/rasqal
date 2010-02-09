@@ -1242,7 +1242,7 @@ int rasqal_prefix_print(rasqal_prefix* p, FILE* fh);
 
 
 /* Row class */
-rasqal_row* rasqal_new_row_for_size(int size);
+rasqal_row* rasqal_new_row_for_size(rasqal_world* world, int size);
 void rasqal_free_row(rasqal_row* row);
 int rasqal_row_set_value_at(rasqal_row* row, int offset, rasqal_literal* value);
 

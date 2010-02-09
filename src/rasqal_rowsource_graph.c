@@ -213,7 +213,7 @@ rasqal_graph_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
     rasqal_row* nrow;
     int i;
     
-    nrow = rasqal_new_row_for_size(rowsource->size);
+    nrow = rasqal_new_row_for_size(rowsource->world, rowsource->size);
     if(!nrow) {
       rasqal_free_row(row);
       row = NULL;
