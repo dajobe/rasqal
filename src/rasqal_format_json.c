@@ -75,6 +75,7 @@ rasqal_query_results_write_json1(raptor_iostream *iostr,
                                  rasqal_query_results* results,
                                  raptor_uri *base_uri)
 {
+  rasqal_world* world = rasqal_query_results_get_world(results);
   rasqal_query* query = rasqal_query_results_get_query(results);
   int i;
   int row_comma;
@@ -82,8 +83,7 @@ rasqal_query_results_write_json1(raptor_iostream *iostr,
   
   if(!rasqal_query_results_is_bindings(results) &&
      !rasqal_query_results_is_boolean(results)) {
-    rasqal_log_error_simple(query->world, RAPTOR_LOG_LEVEL_ERROR,
-                            &query->locator,
+    rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR, NULL,
                             "Can only write JSON format for variable binding and boolean results");
     return 1;
   }
@@ -130,16 +130,18 @@ rasqal_query_results_write_json1(raptor_iostream *iostr,
   /* Variable Binding Results */
   raptor_iostream_write_counted_string(iostr, "  \"results\": {\n", 15);
 
-  raptor_iostream_write_counted_string(iostr, "    ", 4);
-  rasqal_iostream_write_json_boolean(iostr, "ordered", 
-                                     (rasqal_query_get_order_condition(query, 0) != NULL));
-  raptor_iostream_write_counted_string(iostr, ",\n", 2);
+  if(query) {
+    raptor_iostream_write_counted_string(iostr, "    ", 4);
+    rasqal_iostream_write_json_boolean(iostr, "ordered", 
+                                       (rasqal_query_get_order_condition(query, 0) != NULL));
+    raptor_iostream_write_counted_string(iostr, ",\n", 2);
 
-  raptor_iostream_write_counted_string(iostr, "    ", 4);
-  rasqal_iostream_write_json_boolean(iostr, "distinct", 
-                                     rasqal_query_get_distinct(query));
-  raptor_iostream_write_counted_string(iostr, ",\n", 2);
-
+    raptor_iostream_write_counted_string(iostr, "    ", 4);
+    rasqal_iostream_write_json_boolean(iostr, "distinct", 
+                                       rasqal_query_get_distinct(query));
+    raptor_iostream_write_counted_string(iostr, ",\n", 2);
+  }
+  
   raptor_iostream_write_counted_string(iostr, "    \"bindings\" : [\n", 19);
 
   row_comma = 0;
@@ -226,8 +228,7 @@ rasqal_query_results_write_json1(raptor_iostream *iostr,
 
         case RASQAL_LITERAL_UNKNOWN:
         default:
-          rasqal_log_error_simple(query->world, RAPTOR_LOG_LEVEL_ERROR,
-                                  &query->locator,
+          rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR, NULL,
                                   "Cannot turn literal type %d into XML", 
                                   l->type);
       }
