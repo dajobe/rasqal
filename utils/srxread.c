@@ -44,7 +44,7 @@
 
 /* Rasqal includes */
 #include <rasqal.h>
-#include <rasqal_internal.h>
+
 
 static char *program = NULL;
 
@@ -138,9 +138,6 @@ main(int argc, char *argv[])
                                            results, base_uri);
   if(rc)
     goto tidy;
-
-  RASQAL_DEBUG2("Made query results with %d results\n",
-                rasqal_query_results_get_count(results));
 
   write_formatter = rasqal_new_query_results_formatter2(world, 
                                                         write_formatter_name,
