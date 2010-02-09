@@ -125,6 +125,8 @@ rasqal_free_data_graph(rasqal_data_graph* dg)
  * Print a Rasqal data graph in a debug format.
  * 
  * The print debug format may change in any release.
+ *
+ * Return value: non-0 on failure
  **/
 int
 rasqal_data_graph_print(rasqal_data_graph* dg, FILE* fh)
@@ -2289,6 +2291,8 @@ rasqal_expression_write(rasqal_expression* e, raptor_iostream* iostr)
  * Print a Rasqal expression in a debug format.
  * 
  * The print debug format may change in any release.
+ *
+ * Return value: non-0 on failure
  **/
 int
 rasqal_expression_print(rasqal_expression* e, FILE* fh)
