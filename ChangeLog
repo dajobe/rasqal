@@ -1,4 +1,379 @@
+2010-02-09  Dave Beckett <dave@dajobe.org>
+
+	* utils/Makefile.am: Added srxwrite example to create a query
+	results via API and write it
+
+2010-02-09  Dave Beckett <dave@dajobe.org>
+
+	* utils/srxwrite.c: Added srxwrite example to create a query results
+	via API and write it
+
+2010-02-09  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_query_results.c: (rasqal_query_results_get_binding_name): Use variables table to get
+	projection order if there is no query
+
+2010-02-09  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_format_sparql_xml.c, src/rasqal_row.c: Change
+	rasqal_row_set_value_at semantics to copy the passed-in literal.  (rasqal_row_set_value_at): Free any existing literal and copy the
+	literal given.  Update all callers to above semantics.
+
+2010-02-09  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal.h, src/rasqal_row.c,
+	src/rasqal_rowsource_assignment.c, src/rasqal_rowsource_graph.c,
+	src/rasqal_rowsource_join.c, src/rasqal_rowsource_project.c: Give
+	row construct a world parameter like other constructors
+
+	(rasqal_new_row_for_size): Gains world param.
+
+	(rasqal_new_row_common): Gains world parameter.  Update all
+	callers.
+
+2010-02-08  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal.h, src/rasqal_internal.h, src/rasqal_variable.c: Export
+	rasqal_variables_table_add to public API.
+
+	* utils/srxread.c: Use only public API.
+
+	* src/rasqal.h, src/rasqal_internal.h, src/rasqal_query_results.c,
+	src/rasqal_row.c, src/rasqal_variable.c: Export to public API
+	functions and structs to allow creating standalone results
+
+	rasqal_variables_table added to public API (opaque struct)
+
+	rasqal_new_variables_table() and rasqal_free_variables_table() added
+	to public API to make a variables table and free it.
+
+	rasqal_query_results_type enum added to public API for use with
+	rasqal_new_query_results().
+
+	rasqal_new_query_results() added to public API to create a static
+	query result set.
+
+	rasqal_query_results_add_row() added to public API to add a row to a
+	static query result set.  Adjust to return a failure status.
+
+	rasqal_new_row_for_size(), rasqal_free_row() and
+	rasqal_row_set_value_at() added to public API to make a row with
+	literal values.  Add docs plus argument and offset checking to
+	rasqal_row_set_value_at().
+
+	* utils/srxread.c: #ws
+
+	* utils/srxread.c: Use rasqal_new_query_results_formatter2
+
+	* docs/rasqal-docs.xml, docs/tmpl/section-data.sgml,
+	docs/tmpl/section-expression.sgml,
+	docs/tmpl/section-graph_pattern.sgml,
+	docs/tmpl/section-literal.sgml, docs/tmpl/section-prefix.sgml,
+	docs/tmpl/section-query.sgml,
+	docs/tmpl/section-query_results.sgml,
+	docs/tmpl/section-query_results_formatter.sgml,
+	docs/tmpl/section-triple.sgml, docs/tmpl/section-updates.sgml,
+	docs/tmpl/section-variable.sgml: Updated doc templates.  Added
+	section updates.
+
+	* src/rasqal.h: rasqal_update_operation - autodocs for flags
+
+	* src/rasqal_expr.c: rasqal_prefix_print - autodocs
+
+	* docs/rasqal-sections.txt: Add section-updates
+
+	* src/rasqal_query_results.c: autodocs
+
+	* src/rasqal.h, src/rasqal_query_results.c: Added query read and
+	write functions with name, mime type and format args.
+
+	(rasqal_query_results_write2, rasqal_query_results_read2): Added
+	with new name and mime_type args deprecating versions without the
+	2 suffix.
+
+	* src/rasqal_query_results.c: Use
+	rasqal_new_query_results_formatter2 in query results read/write
+	methods.
+
+	(rasqal_query_results_write, rasqal_query_results_read): Use
+	rasqal_new_query_results_formatter2 with NULL name and mime type
+	args.
+
+	* utils/roqet.c, utils/srxread.c: Use
+	rasqal_new_query_results_formatter2 in utilities
+
+	* src/rasqal.h, src/rasqal_result_formats.c: Added
+	rasqal_new_query_results_formatter2 with format name, mime type
+	and URI args.
+
+	(rasqal_new_query_results_formatter2): Added
+
+	(rasqal_new_query_results_formatter,
+	rasqal_new_query_results_formatter_by_mime_type): Deprecated for
+	the above.
+
+	* src/rasqal.h, src/rasqal_algebra.c, src/rasqal_internal.h,
+	src/rasqal_literal.c, src/rasqal_map.c: Add status return code for
+	literal, algebra node, map print methods.
+
+	(rasqal_literal_print, rasqal_map_print,
+	rasqal_algebra_node_print): Return int status.
+
+	* src/rasqal_variable.c: autodocs
+
+	* src/rasqal_expr.c: autodocs
+
+	* src/rasqal_graph_pattern.c: autodocs
+
+	* src/rasqal_expr.c: autodocs
+
+	* src/rasqal_query_write.c: Update query writing for older laqrs
+	insert/delete forms.
+
+	(rasqal_query_write_sparql_20060406): Handles LAQRS INSERT/DELETE
+	experimental forms.  Add comments for what SPARQL 1.1 (Draft)
+	Update forms are done.
+
+	* tests/sparql/update/Makefile.am: insert-2.rq and delete-data-2.rq
+	now pass
+
+2010-02-07  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_query_write.c: Format SPARQL Update 1.1 output
+
+	(rasqal_query_write_sparql_triple_data): Added to help write
+	triple data blocks - GP known to contain just triples.
+
+	* src/sparql_parser.y: Set RASQAL_UPDATE_FLAGS_SILENT for CREATE /
+	DROP SILENT
+
+	* src/rasqal.h, src/rasqal_query.c, src/rasqal_query_results.c,
+	src/rasqal_query_transform.c: Delete RASQAL_QUERY_VERB_CLEAR /
+	CREATE / DROP / LOAD
+
+	* src/sparql_parser.y: Use RASQAL_UPDATE_FLAGS_DATA to mark INSERT /
+	DELETE DATA is using triples.
+
+	* src/rasqal.h: Add RASQAL_UPDATE_FLAGS_DATA to rasqal_update_flags
+	for triple data.
+
+	* src/sparql_parser.y: Add UpdateOperationList to allow sequences of
+	update operations
+
+	* tests/sparql/update/Makefile.am: delete-2.rq passes
+
+	* src/sparql_parser.y: (UpdateQuery): Use WhereClauseOpt to allow
+	optional WHERE
+
+	* tests/sparql/update/Makefile.am, tests/sparql/update/clear-1.rq,
+	tests/sparql/update/clear-2.rq, tests/sparql/update/clear-3.rq,
+	tests/sparql/update/create-1.rq, tests/sparql/update/create-2.rq,
+	tests/sparql/update/delete-1.rq, tests/sparql/update/delete-2.rq,
+	tests/sparql/update/delete-data-1.rq,
+	tests/sparql/update/delete-data-2.rq,
+	tests/sparql/update/drop-1.rq, tests/sparql/update/drop-2.rq,
+	tests/sparql/update/insert-1.rq, tests/sparql/update/insert-2.rq,
+	tests/sparql/update/insert-data-1.rq,
+	tests/sparql/update/insert-delete-1.rq,
+	tests/sparql/update/load-1.rq, tests/sparql/update/load-2.rq:
+	Update tests from
+	http://www.w3.org/TR/2010/WD-sparql11-update-20100126/
+
+	* tests/sparql/update/Makefile.am,
+	tests/sparql/update/delete-data-2.rq: Add delete-data-2.rq from
+	http://www.w3.org/TR/2010/WD-sparql11-update-20100126/
+
+	* src/rasqal.h, src/rasqal_internal.h, src/rasqal_update.c,
+	src/sparql_parser.y: Each rasqal_update_operation can now do
+	inserts and deletes in one.
+
+	Remove update types insert, delete and merge into
+	RASQAL_UPDATE_TYPE_UPDATE.
+
+	Added enum RASQAL_UPDATE_FLAGS_SILENT for capturing SILENT from
+	SPARQL update.
+
+	rasqal_update_operation gains both an insert and delete set of
+	templates.
+
+	(rasqal_new_update_operation): Gains two templates args to replace
+	one and a flags arg.  Update callers to create one
+	rasqal_update_operation instead of 1 or 2.
+
+	* src/sparql_parser.y: Moved WITH ... INSERT/DELETE ... WHERE query
+	into rasqal_update_operation form
+
+	* src/rasqal.h, src/rasqal_graph_pattern.c, src/rasqal_internal.h,
+	src/rasqal_update.c, src/sparql_parser.y: Added
+	rasqal_new_basic_graph_pattern_from_triples()
+
+	(rasqal_new_basic_graph_pattern_from_triples): Added to create a
+	basic graph pattern form a sequence of triples.
+
+	* src/sparql_parser.y: improve error message for beyond SPARQL 1.0
+	extensions.
+
+	* src/sparql_parser.y: Write update operations into query updates
+
+	Add update to lexer/parser union of type rasqal_update_operation.
+
+	Add destructor for GraphTriples as type rasqal_update_operation
+
+	Make all update queries return RASQAL_QUERY_VERB_UPDATE except for
+	previously used RASQAL_QUERY_VERB_INSERT and
+	RASQAL_QUERY_VERB_DELETE that are deprecated now.
+
+	(GraphTriples) creates and returns an update operation.
+
+	(InsertQuery, UpdateQuery, DeleteQuery, ClearQuery, DropQuery):
+	Create updates rather than store in query structure directly.
+
+	* src/rasqal_internal.h, src/rasqal_query.c: Remove query
+	graph_uri and document_uri fields in preference to updates field.
+
+	* src/rasqal_update.c: rasqal_new_update_operation args can be
+	NULL for CLEAR.
+
+	* src/rasqal.h, src/rasqal_update.c: Sort rasqal_update_type and
+	fix labels
+
+	* src/rasqal.h, src/rasqal_expr.c, src/rasqal_graph_pattern.c,
+	src/rasqal_internal.h, src/rasqal_literal.c, src/rasqal_query.c,
+	src/rasqal_row.c, src/rasqal_update.c, src/rasqal_variable.c:
+	Debug print methods now return int status to match
+	raptor_sequence_print_handler method.
+
+	* src/sparql_parser.y: (LoadQuery): Store document and graph URIs
+	in update operations.
+
+	* src/rasqal_update.c: cast for malloc
+
+	* src/rasqal.h, src/rasqal_internal.h, src/rasqal_query.c: Added
+	rasqal_query_add_update_operation - internal for now
+
+	* src/rasqal.h, src/rasqal_internal.h, src/rasqal_query.c: Add
+	update reading methods to query class
+
+	(rasqal_query_get_update_operations_sequence): Added to get sequence
+	of updates.
+
+	(rasqal_query_get_update_operation): Added to get an operation from
+	sequence of updates.
+
+	rasqal_query_s gains updates sequence field.
+
+	(rasqal_free_query): Free updates sequence.
+
+	(rasqal_query_print): Print updates
+
+	* src/rasqal.h, src/rasqal_internal.h, src/rasqal_update.c: Add
+	document_uri to rasqal_update_operation
+
+	* src/Makefile.am, src/rasqal.h, src/rasqal_internal.h,
+	src/rasqal_update.c: Add rasqal graph update type, structure and
+	object functions
+
+	Added rasqal_update_type enum for types of graph update
+
+	Added rasqal_update_operation for holding an individual update
+
+	(rasqal_update_type_label): Added to get label for update type.
+
+	(rasqal_new_update_operation, rasqal_free_update_operation): Added
+	constructor and destructor for update operation.
+
+	(rasqal_update_operation_print): Added debug print method
+
+	* src/rasqal_query.c: Add update operations to
+	rasqal_query_verb_labels
+
+	* src/rasqal.h, src/rasqal_query_results.c,
+	src/rasqal_query_transform.c: Added RASQAL_QUERY_VERB_UPDATE for
+	update operations
+
+	rasqal_query_verb gains RASQAL_QUERY_VERB_UPDATE Update switch
+	statements on this type to add new case.
+
+	* src/sparql_parser.y: Restored LAQRS old INSERT and DELETE syntax
+	with deprecated warnings.
+
+	* tests/improve: allow recursive running of a test to skip dirs
+	where it isn't supported
+
+	* tests/sparql/update/Makefile.am: Mark insert-2.rq as expected to
+	fail
+
+	* src/sparql_parser.y: Revert "Improve ConstructTemplate and
+	ConstructTriples rules"
+
+	This reverts commit f3e05dc3d465ce12677fc2daa12c80dc4ffc278e.
+
+	Get older tests to work at the cost of new test insert-2 failing.
+
+	* src/sparql_parser.y: debug message fix
+
+	* src/sparql_parser.y: Improve ConstructTemplate and
+	ConstructTriples rules
+
+	Down from expect 31 shift/reduce conflicts to
+	13 (ConstructTriplesRest): Added for second optional clause in
+	ConstructTriples to reduce conflicts.
+
+	* src/sparql_parser.y: Adjust comment - EXPLAIN is LAQRS, not in
+	SPARQL 1.1 draft
+
 2010-02-06  Dave Beckett <dave@dajobe.org>
+
+	* src/sparql_parser.y: Re-add SPARQL 1.1 WITH .. DELETE/INSERT
+	From 5 shift/reduce conflicts to 31 shift/reduce conflicts - seems
+	to be choices between two optional sequences of triples nearby.
+
+	Add UpdateQuery option that (for now) marks it as an INSERT.
+
+	(DeleteQuery): Switch to list of modify templates - which are
+	discarded.
+
+	(GraphTemplate): Added
+
+	(ModifyTemplate, ModifyTemplateList): Added.
+
+	(InsertQuery): Switch to list of modify templates - which are
+	discarded.
+
+	(UpdateQuery): Added for WITH alternatives.
+
+	* src/sparql_parser.y: Split ConstructTriplesOpt into
+	ConstructTriples and ConstructTriplesOpt
+
+	(ConstructTriplesOpt): Moved empty case here
+
+	(ConstructTriples): Added, calling ConstructTriplesOpt and
+	handling a non-empty list of construct triples.  The above makes
+	ConstructTemplate closer to the SPARQL 1.0 grammar for construct
+	triples.  The difference is probably extra optional '.'s
+
+	* src/sparql_parser.y: Revert to make existing sparql tests work
+
+	Revert commits 83d66dd1c115b9f18b2043f13122630daad594d8
+	18ce2f8f3fc61dd641068f6ff5fddc01df4106bc so that the older SPARQL
+	tests work.  This makes the SPARQL 1.1 draft insert & delete forms
+	tests fail.
+
+	* tests/improve: truncate log to 15 lines only if too long
+
+	* tests/rdql/testsuite/check-rdql: (toDebug): Discard @lang from
+	"string"@lang^^datatype
+
+	* tests/rdql/testsuite/check-rdql: #2010
+
+	* .gitignore: Remove rdf files from top level .gitignore
+
+	* docs/tmpl/section-query.sgml, docs/tmpl/section-variable.sgml:
+	updated generated docs
+
+	* tests/sparql/update/data.ttl: Data for sparql update test
+
+	* RELEASE.html: 0.9.18
 
 	* src/rasqal_algebra.c, src/rasqal_expr.c,
 	src/rasqal_graph_pattern.c, src/rasqal_query.c,
