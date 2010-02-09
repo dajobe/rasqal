@@ -56,3 +56,5 @@ endif
 
 $(top_builddir)/src/librasqal.la:
 	cd $(top_builddir)/src && $(MAKE) librasqal.la
+
+examples: srxread$(EXTEXE) srxwrite$(EXTEXE)
