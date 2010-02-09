@@ -383,7 +383,7 @@ rasqal_free_variables_table(rasqal_variables_table* vt)
  * @name: variable name
  * @value: variable #rasqal_literal value (or NULL)
  *
- * Constructor - Add a variable to the variables table
+ * Constructor - Create a new variable and add it to the variables table
  * 
  * The @name and @value become owned by the rasqal_variable structure
  *

@@ -1229,7 +1229,6 @@ int rasqal_algebra_node_is_empty(rasqal_algebra_node* node);
 
 /* rasqal_variable.c */
 rasqal_variables_table* rasqal_new_variables_table_from_variables_table(rasqal_variables_table* vt);
-rasqal_variable* rasqal_variables_table_add(rasqal_variables_table* vt, rasqal_variable_type type, const unsigned char *name, rasqal_literal *value);
 rasqal_variable* rasqal_variables_table_get(rasqal_variables_table* vt, int idx);
 rasqal_variable* rasqal_variables_table_get_by_name(rasqal_variables_table* vt, const unsigned char *name);
 rasqal_literal* rasqal_variables_table_get_value(rasqal_variables_table* vt, int idx);

@@ -1277,8 +1277,12 @@ void rasqal_variable_set_value(rasqal_variable* v, rasqal_literal* l);
 
 
 /* Variables Table */
+RASQAL_API
 rasqal_variables_table* rasqal_new_variables_table(rasqal_world* world);
+RASQAL_API
 void rasqal_free_variables_table(rasqal_variables_table* vt);
+RASQAL_API
+rasqal_variable* rasqal_variables_table_add(rasqal_variables_table* vt, rasqal_variable_type type, const unsigned char *name, rasqal_literal *value);
 
 
 /* memory functions */
