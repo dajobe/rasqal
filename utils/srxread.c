@@ -116,7 +116,7 @@ main(int argc, char *argv[])
     goto tidy;
   }
   
-  iostr=raptor_new_iostream_from_filename(srx_filename);
+  iostr = raptor_new_iostream_from_filename(srx_filename);
   if(!iostr) {
     fprintf(stderr, "%s: Failed to open iostream to file %s", program,
             srx_filename);
