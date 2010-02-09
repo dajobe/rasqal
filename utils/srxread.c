@@ -142,9 +142,9 @@ main(int argc, char *argv[])
   RASQAL_DEBUG2("Made query results with %d results\n",
                 rasqal_query_results_get_count(results));
 
-  write_formatter = rasqal_new_query_results_formatter(world, 
-                                                       write_formatter_name,
-                                                       NULL);
+  write_formatter = rasqal_new_query_results_formatter2(world, 
+                                                        write_formatter_name,
+                                                        NULL, NULL);
   if(!write_formatter) {
     fprintf(stderr, "%s: Failed to create query results write formatter '%s'",
             program, write_formatter_name);
