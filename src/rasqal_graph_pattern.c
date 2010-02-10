@@ -117,7 +117,7 @@ rasqal_new_basic_graph_pattern(rasqal_query* query,
 /*
  * rasqal_new_graph_pattern_from_sequence:
  * @query: #rasqal_graph_pattern query object
- * @graph_patterns: sequence containing the graph patterns
+ * @graph_patterns: sequence containing the graph patterns (or NULL)
  * @operator: enum #rasqal_graph_pattern_operator such as
  * RASQAL_GRAPH_PATTERN_OPERATOR_OPTIONAL
  *
@@ -133,11 +133,10 @@ rasqal_new_graph_pattern_from_sequence(rasqal_query* query,
   rasqal_graph_pattern* gp;
 
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, NULL);
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(graph_patterns, raptor_sequence, NULL);
   
   gp = rasqal_new_graph_pattern(query, op);
   if(!gp) {
-  	if(graph_patterns)
+    if(graph_patterns)
       raptor_free_sequence(graph_patterns);
     return NULL;
   }
