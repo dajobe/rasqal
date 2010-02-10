@@ -1546,12 +1546,17 @@ rasqal_query_results_read(raptor_iostream *iostr,
  * @query_results: query results object
  * @row: query result row
  *
- * INTERNAL - Add a query result row to the sequence of result rows
+ * Add a query result row to the sequence of result rows
+ *
+ * Return value: non-0 on failure
  */
 int
 rasqal_query_results_add_row(rasqal_query_results* query_results,
                              rasqal_row* row)
 {
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query_results, rasqal_query_results, 1);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(row, rasqal_row, 1);
+
   if(!query_results->results_sequence) {
 #ifdef RAPTOR_V2_AVAILABLE
     query_results->results_sequence = raptor_new_sequence((raptor_data_free_handler*)rasqal_free_row, (raptor_data_print_handler*)rasqal_row_print);
