@@ -36,3 +36,5 @@ rasqal.spec
 releases
 run*
 setup.sh
+.libs
+*.exe
