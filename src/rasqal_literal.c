@@ -70,10 +70,13 @@ static int rasqal_literal_set_typed_value(rasqal_literal* l, rasqal_literal_type
  * Return value: New #rasqal_literal or NULL on failure
  **/
 rasqal_literal*
-rasqal_new_integer_literal(rasqal_world* world, rasqal_literal_type type, int integer)
+rasqal_new_integer_literal(rasqal_world* world, rasqal_literal_type type,
+                           int integer)
 {
   raptor_uri* dt_uri;
   rasqal_literal* l;
+
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
 
   l  = (rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(*l));
   if(l) {
@@ -118,9 +121,12 @@ rasqal_new_integer_literal(rasqal_world* world, rasqal_literal_type type, int in
  * Return value: New #rasqal_literal or NULL on failure
  **/
 rasqal_literal*
-rasqal_new_typed_literal(rasqal_world* world, rasqal_literal_type type, const unsigned char* string)
+rasqal_new_typed_literal(rasqal_world* world, rasqal_literal_type type,
+                         const unsigned char* string)
 {
   rasqal_literal* l;
+
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
 
   l = (rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(*l));
   if(!l)
@@ -155,10 +161,12 @@ rasqal_new_typed_literal(rasqal_world* world, rasqal_literal_type type, const un
  * Return value: New #rasqal_literal or NULL on failure
  **/
 rasqal_literal*
-rasqal_new_double_literal(rasqal_world*world, double d)
+rasqal_new_double_literal(rasqal_world* world, double d)
 {
   raptor_uri* dt_uri;
   rasqal_literal* l;
+
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
 
   l = (rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(*l));
   if(l) {
@@ -197,6 +205,8 @@ rasqal_new_float_literal(rasqal_world *world, float f)
 {
   raptor_uri* dt_uri;
   rasqal_literal* l;
+
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
 
   l = (rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(*l));
   if(l) {
@@ -238,6 +248,8 @@ rasqal_new_uri_literal(rasqal_world* world, raptor_uri *uri)
 {
   rasqal_literal* l;
 
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
+
   l = (rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(*l));
   if(l) {
     l->valid=1;
@@ -274,6 +286,9 @@ rasqal_new_pattern_literal(rasqal_world* world,
 {
   rasqal_literal* l;
 
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(pattern, char*, NULL);
+
   l = (rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(*l));
   if(l) {
     l->valid=1;
@@ -304,6 +319,9 @@ rasqal_new_pattern_literal(rasqal_world* world,
 rasqal_literal*
 rasqal_new_decimal_literal(rasqal_world* world, const unsigned char *string)
 {
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(string, char*, NULL);
+
   return rasqal_new_decimal_literal_from_decimal(world, string, NULL);
 }
 
@@ -325,6 +343,10 @@ rasqal_new_decimal_literal_from_decimal(rasqal_world* world,
 {
   rasqal_literal* l;
   raptor_uri *dt_uri;
+
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(string, char*, NULL);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(decimal, rasqal_xsd_decimal, NULL);
 
   l = (rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(*l));
   if(!l)
@@ -381,10 +403,13 @@ rasqal_new_decimal_literal_from_decimal(rasqal_world* world,
  * Return value: new literal or NULL on failure
  **/
 rasqal_literal*
-rasqal_new_numeric_literal(rasqal_world* world, rasqal_literal_type type, double d)
+rasqal_new_numeric_literal(rasqal_world* world, rasqal_literal_type type,
+                           double d)
 {
   char buffer[30];
   
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
+
   switch(type) {
     case RASQAL_LITERAL_INTEGER:
       return rasqal_new_integer_literal(world, type, (int)d);
@@ -453,6 +478,8 @@ rasqal_literal_set_typed_value(rasqal_literal* l, rasqal_literal_type type,
   int i;
   double d;
   const unsigned char *new_string;
+
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(l, rasqal_literal, 1);
 
   l->valid = rasqal_xsd_datatype_check(type, string ? string : l->string,
                                        0 /* no flags set */);
@@ -597,6 +624,8 @@ rasqal_literal_string_to_native(rasqal_literal *l, int flags)
   rasqal_literal_type native_type=RASQAL_LITERAL_UNKNOWN;
   int rc=0;
   
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(l, rasqal_literal, 1);
+
   /* RDF literal with no datatype (plain literal) */
   if(!l->datatype)
     return 0;
@@ -737,6 +766,9 @@ rasqal_new_string_literal(rasqal_world* world,
                           raptor_uri *datatype, 
                           const unsigned char *datatype_qname)
 {
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(string, char*, NULL);
+
   return rasqal_new_string_literal_common(world, string, language, datatype, 
                                           datatype_qname, 1);
 }
@@ -745,7 +777,11 @@ rasqal_literal*
 rasqal_new_string_literal_node(rasqal_world* world, const unsigned char *string,
                                const char *language, raptor_uri *datatype)
 {
-  return rasqal_new_string_literal_common(world, string, language, datatype, NULL, 0);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(string, char*, NULL);
+
+  return rasqal_new_string_literal_common(world, string, language, datatype, 
+                                          NULL, 0);
 }
 
 
@@ -2671,6 +2707,8 @@ rasqal_new_formula(rasqal_world* world)
 {
   rasqal_formula* f;
   
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
+
   f = (rasqal_formula*)RASQAL_CALLOC(rasqal_formula, 1, sizeof(*f));
   if(!f)
     return NULL;
@@ -2695,6 +2733,9 @@ rasqal_free_formula(rasqal_formula* formula)
 int
 rasqal_formula_print(rasqal_formula* formula, FILE *stream)
 {
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(formula, rasqal_formula, 1);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(stream, FILE*, 1);
+
   fputs("formula(triples=", stream);
   if(formula->triples)
     raptor_sequence_print(formula->triples, stream);
@@ -2751,8 +2792,7 @@ rasqal_formula_join(rasqal_formula* first_formula,
 raptor_uri*
 rasqal_literal_datatype(rasqal_literal* l)
 {
-  if(!l)
-    return NULL;
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(l, rasqal_literal, NULL);
   
   if(l->type != RASQAL_LITERAL_VARIABLE)
     return l->datatype;
@@ -2771,7 +2811,9 @@ rasqal_literal_cast(rasqal_literal* l, raptor_uri* to_datatype, int flags,
   rasqal_literal_type from_native_type;
   rasqal_literal_type to_native_type;
 
-  l=rasqal_literal_value(l);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(l, rasqal_literal, NULL);
+  
+  l = rasqal_literal_value(l);
   if(!l)
     return NULL;
 
@@ -2894,6 +2936,8 @@ rasqal_literal_cast(rasqal_literal* l, raptor_uri* to_datatype, int flags,
 rasqal_literal*
 rasqal_literal_value(rasqal_literal* l)
 {
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(l, rasqal_literal, NULL);
+  
   while(l) {
     if(l->type != RASQAL_LITERAL_VARIABLE)
       break;
@@ -2909,6 +2953,9 @@ int
 rasqal_literal_is_numeric(rasqal_literal* literal)
 {
   rasqal_literal_type parent_type;
+
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(literal, rasqal_literal, 0);
+  
   parent_type = rasqal_xsd_datatype_parent_type(literal->type);
 
   return (rasqal_xsd_datatype_is_numeric(literal->type) ||
@@ -2929,7 +2976,10 @@ rasqal_literal_add(rasqal_literal* l1, rasqal_literal* l2, int *error_p)
   int flags=0;
   rasqal_literal* result=NULL;
   
-  type=rasqal_literal_promote_numerics(l1, l2, flags);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(l1, rasqal_literal, NULL);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(l2, rasqal_literal, NULL);
+
+  type = rasqal_literal_promote_numerics(l1, l2, flags);
   switch(type) {
     case RASQAL_LITERAL_INTEGER:
       i=rasqal_literal_as_integer(l1, &error);
@@ -3012,7 +3062,10 @@ rasqal_literal_subtract(rasqal_literal* l1, rasqal_literal* l2, int *error_p)
   int flags=0;
   rasqal_literal* result=NULL;
   
-  type=rasqal_literal_promote_numerics(l1, l2, flags);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(l1, rasqal_literal, NULL);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(l2, rasqal_literal, NULL);
+
+  type = rasqal_literal_promote_numerics(l1, l2, flags);
   switch(type) {
     case RASQAL_LITERAL_INTEGER:
       i=rasqal_literal_as_integer(l1, &error);
@@ -3095,7 +3148,10 @@ rasqal_literal_multiply(rasqal_literal* l1, rasqal_literal* l2, int *error_p)
   int flags=0;
   rasqal_literal* result=NULL;
   
-  type=rasqal_literal_promote_numerics(l1, l2, flags);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(l1, rasqal_literal, NULL);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(l2, rasqal_literal, NULL);
+
+  type = rasqal_literal_promote_numerics(l1, l2, flags);
   switch(type) {
     case RASQAL_LITERAL_INTEGER:
       i=rasqal_literal_as_integer(l1, &error);
@@ -3178,7 +3234,10 @@ rasqal_literal_divide(rasqal_literal* l1, rasqal_literal* l2, int *error_p)
   int flags=0;
   rasqal_literal* result=NULL;
   
-  type=rasqal_literal_promote_numerics(l1, l2, flags);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(l1, rasqal_literal, NULL);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(l2, rasqal_literal, NULL);
+
+  type = rasqal_literal_promote_numerics(l1, l2, flags);
   switch(type) {
     case RASQAL_LITERAL_INTEGER:
       i2=rasqal_literal_as_integer(l2, &error);
@@ -3267,6 +3326,8 @@ rasqal_literal_negate(rasqal_literal* l, int *error_p)
   int error=0;
   rasqal_literal* result=NULL;
   
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(l, rasqal_literal, NULL);
+
   switch(l->type) {
     case RASQAL_LITERAL_INTEGER:
       i=rasqal_literal_as_integer(l, &error);
@@ -3331,8 +3392,14 @@ rasqal_literal_negate(rasqal_literal* l, int *error_p)
 int
 rasqal_literal_same_term(rasqal_literal* l1, rasqal_literal* l2)
 {
-  rasqal_literal_type type1 = rasqal_literal_get_rdf_term_type(l1);
-  rasqal_literal_type type2 = rasqal_literal_get_rdf_term_type(l2);
+  rasqal_literal_type type1;
+  rasqal_literal_type type2;
+
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(l1, rasqal_literal, 0);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(l2, rasqal_literal, 0);
+
+  type1 = rasqal_literal_get_rdf_term_type(l1);
+  type2 = rasqal_literal_get_rdf_term_type(l2);
 
   if(type1 != type2)
     return 0;
@@ -3364,5 +3431,7 @@ rasqal_literal_same_term(rasqal_literal* l1, rasqal_literal* l2)
 int
 rasqal_literal_is_rdf_literal(rasqal_literal* l)
 {
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(l, rasqal_literal, 0);
+
   return (rasqal_literal_get_rdf_term_type(l) == RASQAL_LITERAL_STRING);
 }
