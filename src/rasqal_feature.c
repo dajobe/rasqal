@@ -33,6 +33,9 @@
 
 #include <stdio.h>
 #include <string.h>
+#ifdef HAVE_STDLIB_H
+#include <stdlib.h>
+#endif
 #include <ctype.h>
 #include <stdarg.h>
 
@@ -144,6 +147,8 @@ rasqal_features_enumerate(rasqal_world* world,
                           const char **name, 
                           raptor_uri **uri, const char **label)
 {
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, -1);
+
   return rasqal_features_enumerate_common(world, feature, name, uri, label, 1);
 }
 
@@ -184,11 +189,11 @@ rasqal_feature_from_uri(rasqal_world* world, raptor_uri *uri)
 {
   unsigned char *uri_string;
   int i;
-  rasqal_feature feature= (rasqal_feature)-1;
+  rasqal_feature feature = (rasqal_feature)-1;
   
-  if(!uri)
-    return feature;
-  
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, feature);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(uri, rasqal_world, feature);
+
   /* for compatibility with older binaries that do not call it */
   rasqal_world_open(world);
   

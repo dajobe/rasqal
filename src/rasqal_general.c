@@ -440,6 +440,8 @@ rasqal_get_query_language_factory(rasqal_world *world, const char *name,
 {
   rasqal_query_language_factory *factory;
 
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
+
   /* for compatibility with old API that does not call this - FIXME Remove V2 */
   rasqal_world_open(world);
   
@@ -490,6 +492,10 @@ rasqal_languages_enumerate(rasqal_world *world,
   unsigned int i;
   rasqal_query_language_factory *factory;
 
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, 1);
+  if(!name && !label && !uri_string)
+    return 1;
+  
   /* for compatibility with old API that does not call this - FIXME Remove V2 */
   rasqal_world_open(world);
   
@@ -523,7 +529,10 @@ rasqal_languages_enumerate(rasqal_world *world,
  * Return value: non 0 if name is a known query language
  */
 int
-rasqal_language_name_check(rasqal_world* world, const char *name) {
+rasqal_language_name_check(rasqal_world* world, const char *name)
+{
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, 0);
+
   return (rasqal_get_query_language_factory(world, name, NULL) != NULL);
 }
 
@@ -878,13 +887,15 @@ rasqal_query_set_default_generate_bnodeid_parameters(rasqal_query* rdf_query,
   char *prefix_copy=NULL;
   size_t length=0;
 
-  if(--base<0)
-    base=0;
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN(rdf_query, rasqal_query);
+
+  if(--base < 0)
+    base = 0;
 
   if(prefix) {
-    length=strlen(prefix);
+    length = strlen(prefix);
     
-    prefix_copy=(char*)RASQAL_MALLOC(cstring, length+1);
+    prefix_copy = (char*)RASQAL_MALLOC(cstring, length+1);
     if(!prefix_copy)
       return;
     strcpy(prefix_copy, prefix);
@@ -893,9 +904,9 @@ rasqal_query_set_default_generate_bnodeid_parameters(rasqal_query* rdf_query,
   if(rdf_query->default_generate_bnodeid_handler_prefix)
     RASQAL_FREE(cstring, rdf_query->default_generate_bnodeid_handler_prefix);
 
-  rdf_query->default_generate_bnodeid_handler_prefix=prefix_copy;
-  rdf_query->default_generate_bnodeid_handler_prefix_length=length;
-  rdf_query->default_generate_bnodeid_handler_base=base;
+  rdf_query->default_generate_bnodeid_handler_prefix = prefix_copy;
+  rdf_query->default_generate_bnodeid_handler_prefix_length = length;
+  rdf_query->default_generate_bnodeid_handler_base = base;
 }
 
 
@@ -922,6 +933,8 @@ rasqal_query_set_generate_bnodeid_handler(rasqal_query* query,
                                           void *user_data,
                                           rasqal_generate_bnodeid_handler handler)
 {
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN(query, rasqal_query);
+
   query->generate_bnodeid_handler_user_data=user_data;
   query->generate_bnodeid_handler=handler;
 }
