@@ -575,7 +575,7 @@ rasqal_new_join_rowsource(rasqal_world *world,
   con->left = left;
   con->right = right;
   con->join_type = join_type;
-  con->expr = rasqal_new_expression_from_expression(expr);
+  con->expr = expr ? rasqal_new_expression_from_expression(expr) : NULL;
   
   return rasqal_new_rowsource_from_handler(world, query,
                                            con,
