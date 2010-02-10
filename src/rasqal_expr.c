@@ -166,7 +166,7 @@ rasqal_data_graph_print(rasqal_data_graph* dg, FILE* fh)
 /**
  * rasqal_new_prefix:
  * @world: rasqal_world object
- * @prefix: Short prefix string to stand for URI or NULL.
+ * @prefix: Short prefix string to stand for URI (or NULL)
  * @uri: Name #raptor_uri.
  * 
  * Constructor - create a new #rasqal_prefix.
@@ -181,7 +181,6 @@ rasqal_new_prefix(rasqal_world* world, const unsigned char *prefix,
   rasqal_prefix* p;
 
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(prefix, char*, NULL);
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(uri, raptor_uri, NULL);
 
   p = (rasqal_prefix*)RASQAL_CALLOC(rasqal_prefix, 1, sizeof(*p));
