@@ -60,10 +60,9 @@ rasqal_new_graph_pattern(rasqal_query* query,
 {
   rasqal_graph_pattern* gp;
 
-  if(!query)
-    return NULL;
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, NULL);
   
-  gp=(rasqal_graph_pattern*)RASQAL_CALLOC(rasqal_graph_pattern, 1, sizeof(rasqal_graph_pattern));
+  gp = (rasqal_graph_pattern*)RASQAL_CALLOC(rasqal_graph_pattern, 1, sizeof(rasqal_graph_pattern));
   if(!gp)
     return NULL;
 
@@ -100,10 +99,10 @@ rasqal_new_basic_graph_pattern(rasqal_query* query,
 {
   rasqal_graph_pattern* gp;
 
-  if(!triples)
-    return NULL;
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, NULL);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(triples, raptor_sequence, NULL);
   
-  gp=rasqal_new_graph_pattern(query, RASQAL_GRAPH_PATTERN_OPERATOR_BASIC);
+  gp = rasqal_new_graph_pattern(query, RASQAL_GRAPH_PATTERN_OPERATOR_BASIC);
   if(!gp)
     return NULL;
 
@@ -133,7 +132,10 @@ rasqal_new_graph_pattern_from_sequence(rasqal_query* query,
 {
   rasqal_graph_pattern* gp;
 
-  gp=rasqal_new_graph_pattern(query, op);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, NULL);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(graph_patterns, raptor_sequence, NULL);
+  
+  gp = rasqal_new_graph_pattern(query, op);
   if(!gp) {
   	if(graph_patterns)
       raptor_free_sequence(graph_patterns);
@@ -160,7 +162,10 @@ rasqal_new_filter_graph_pattern(rasqal_query* query,
 {
   rasqal_graph_pattern* gp;
 
-  gp=rasqal_new_graph_pattern(query, RASQAL_GRAPH_PATTERN_OPERATOR_FILTER);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, NULL);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(expr, rasqal_expression, NULL);
+  
+  gp = rasqal_new_graph_pattern(query, RASQAL_GRAPH_PATTERN_OPERATOR_FILTER);
   if(!gp) {
     rasqal_free_expression(expr);
     return NULL;
@@ -192,6 +197,10 @@ rasqal_new_let_graph_pattern(rasqal_query *query,
 {
   rasqal_graph_pattern* gp;
 
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, NULL);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(var, rasqal_variable, NULL);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(expr, rasqal_expression, NULL);
+  
   gp = rasqal_new_graph_pattern(query, RASQAL_GRAPH_PATTERN_OPERATOR_LET);
   if(!gp) {
     rasqal_free_expression(expr);
@@ -259,6 +268,9 @@ int
 rasqal_graph_pattern_set_filter_expression(rasqal_graph_pattern* gp,
                                            rasqal_expression* expr)
 {
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(gp, rasqal_graph_pattern, 1);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(expr, rasqal_expression, 1);
+  
   if(gp->filter_expression)
     rasqal_free_expression(gp->filter_expression);
   gp->filter_expression = expr;
@@ -277,6 +289,8 @@ rasqal_graph_pattern_set_filter_expression(rasqal_graph_pattern* gp,
 rasqal_expression*
 rasqal_graph_pattern_get_filter_expression(rasqal_graph_pattern* gp)
 {
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(gp, rasqal_graph_pattern, NULL);
+
   return gp->filter_expression;
 }
 
@@ -295,6 +309,8 @@ rasqal_graph_pattern_get_filter_expression(rasqal_graph_pattern* gp)
 rasqal_graph_pattern_operator
 rasqal_graph_pattern_get_operator(rasqal_graph_pattern* graph_pattern)
 {
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(graph_pattern, rasqal_graph_pattern, RASQAL_GRAPH_PATTERN_OPERATOR_UNKNOWN);
+
   return graph_pattern->op;
 }
 
@@ -554,6 +570,9 @@ rasqal_graph_pattern_print(rasqal_graph_pattern* gp, FILE* fh)
 {
   raptor_iostream* iostr;
 
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(gp, rasqal_graph_pattern, 1);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(fh, FILE*, 1);
+
   iostr = raptor_new_iostream_to_file_handle(fh);
   rasqal_graph_pattern_write_internal(gp, iostr, DO_INDENTING);
   raptor_free_iostream(iostr);
@@ -584,7 +603,11 @@ rasqal_graph_pattern_visit(rasqal_query *query,
   raptor_sequence *seq;
   int result;
   
-  result=fn(query, gp, user_data);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, 1);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(gp, rasqal_graph_pattern, 1);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(fn, rasqal_graph_pattern_visit_fn, 1);
+
+  result = fn(query, gp, user_data);
   if(result)
     return result;
   
@@ -622,6 +645,8 @@ rasqal_graph_pattern_visit(rasqal_query *query,
 int
 rasqal_graph_pattern_get_index(rasqal_graph_pattern* gp)
 {
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(gp, rasqal_graph_pattern, -1);
+
   return gp->gp_index;
 }
 
@@ -639,6 +664,9 @@ int
 rasqal_graph_pattern_add_sub_graph_pattern(rasqal_graph_pattern* graph_pattern,
                                            rasqal_graph_pattern* sub_graph_pattern)
 {
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(graph_pattern, rasqal_graph_pattern, 1);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(sub_graph_pattern, rasqal_graph_pattern, 1);
+
   if(!graph_pattern->graph_patterns) {
     graph_pattern->graph_patterns=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_graph_pattern, (raptor_sequence_print_handler*)rasqal_graph_pattern_print);
     if(!graph_pattern->graph_patterns) {
@@ -663,6 +691,8 @@ rasqal_graph_pattern_add_sub_graph_pattern(rasqal_graph_pattern* graph_pattern,
 rasqal_triple*
 rasqal_graph_pattern_get_triple(rasqal_graph_pattern* graph_pattern, int idx)
 {
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(graph_pattern, rasqal_graph_pattern, NULL);
+
   if(!graph_pattern->triples)
     return NULL;
 
@@ -686,6 +716,8 @@ rasqal_graph_pattern_get_triple(rasqal_graph_pattern* graph_pattern, int idx)
 raptor_sequence*
 rasqal_graph_pattern_get_sub_graph_pattern_sequence(rasqal_graph_pattern* graph_pattern)
 {
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(graph_pattern, rasqal_graph_pattern, NULL);
+
   return graph_pattern->graph_patterns;
 }
 
@@ -702,6 +734,8 @@ rasqal_graph_pattern_get_sub_graph_pattern_sequence(rasqal_graph_pattern* graph_
 rasqal_graph_pattern*
 rasqal_graph_pattern_get_sub_graph_pattern(rasqal_graph_pattern* graph_pattern, int idx)
 {
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(graph_pattern, rasqal_graph_pattern, NULL);
+
   if(!graph_pattern->graph_patterns)
     return NULL;
 
@@ -720,6 +754,8 @@ rasqal_graph_pattern_get_sub_graph_pattern(rasqal_graph_pattern* graph_pattern, 
 rasqal_literal*
 rasqal_graph_pattern_get_origin(rasqal_graph_pattern* graph_pattern)
 {
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(graph_pattern, rasqal_graph_pattern, NULL);
+
   return graph_pattern->origin;
 }
   
@@ -839,9 +875,13 @@ int
 rasqal_graph_pattern_variable_bound_in(rasqal_graph_pattern *gp,
                                        rasqal_variable *v) 
 {
-  rasqal_query* query = gp->query;
+  rasqal_query* query;
+  int column;
+  
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(gp, rasqal_graph_pattern, 0);
 
-  int column = query->variables_bound_in[v->offset];
+  query = gp->query;
+  column = query->variables_bound_in[v->offset];
   if(column < 0)
     return 0;
   

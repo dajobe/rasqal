@@ -159,6 +159,8 @@ rasqal_query_results_formats_enumerate(rasqal_world* world,
   int i;
   unsigned int real_counter;
   
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, 1);
+
   real_counter=0;
   for(i=0; 1; i++) {
     factory=(rasqal_query_results_format_factory*)raptor_sequence_get_at(world->query_results_formats, i);
@@ -254,6 +256,8 @@ rasqal_query_results_formats_check(rasqal_world* world,
                                    const char *name, raptor_uri* uri,
                                    const char *mime_type)
 {
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, 1);
+
   return (rasqal_get_query_results_formatter_factory(world, name, uri, mime_type) 
           != NULL);
 }
@@ -287,6 +291,8 @@ rasqal_new_query_results_formatter2(rasqal_world* world,
 {
   rasqal_query_results_format_factory* factory;
   rasqal_query_results_formatter* formatter;
+
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
 
   factory = rasqal_get_query_results_formatter_factory(world, name, 
                                                        format_uri, mime_type);
@@ -327,6 +333,8 @@ rasqal_query_results_formatter*
 rasqal_new_query_results_formatter(rasqal_world* world,
                                    const char *name, raptor_uri* format_uri)
 {
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
+
   return rasqal_new_query_results_formatter2(world, 
                                              name, NULL, format_uri);
 }
@@ -387,6 +395,8 @@ rasqal_free_query_results_formatter(rasqal_query_results_formatter* formatter)
 const char*
 rasqal_query_results_formatter_get_mime_type(rasqal_query_results_formatter *formatter)
 {
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(formatter, rasqal_query_results_formatter, NULL);
+
   return formatter->mime_type;
 }
 
@@ -411,6 +421,11 @@ rasqal_query_results_formatter_write(raptor_iostream *iostr,
                                      rasqal_query_results* results,
                                      raptor_uri *base_uri)
 {
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(iostr, raptor_iostream, 1);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(formatter, rasqal_query_results_formatter, 1);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(results, rasqal_query_results, 1);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(base_uri, raptor_uri, 1);
+
   if(!formatter->factory->writer)
      return 1;
   return formatter->factory->writer(iostr, results, base_uri);
@@ -441,6 +456,12 @@ rasqal_query_results_formatter_read(rasqal_world *world,
 {
   rasqal_rowsource* rowsource=NULL;
   
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, 1);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(iostr, raptor_iostream, 1);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(formatter, rasqal_query_results_formatter, 1);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(results, rasqal_query_results, 1);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(base_uri, raptor_uri, 1);
+
   if(formatter->factory->reader)
     return formatter->factory->reader(iostr, results, base_uri);
 
