@@ -345,8 +345,7 @@ rasqal_new_decimal_literal_from_decimal(rasqal_world* world,
   raptor_uri *dt_uri;
 
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(string, char*, NULL);
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(decimal, rasqal_xsd_decimal, NULL);
+  /* string and decimal NULLness are checked below */
 
   l = (rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(*l));
   if(!l)
