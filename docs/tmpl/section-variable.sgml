@@ -100,9 +100,3 @@ rasqal_new_variable_typed() and type #RASQAL_VARIABLE_TYPE_ANONYMOUS.
 @RASQAL_VARIABLE_TYPE_NORMAL: 
 @RASQAL_VARIABLE_TYPE_ANONYMOUS: 
 
-<!-- ##### TYPEDEF rasqal_variables_table ##### -->
-<para>
-
-</para>
-
-

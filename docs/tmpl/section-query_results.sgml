@@ -42,6 +42,16 @@ library for serializing to a syntax.
 @query_results: 
 
 
+<!-- ##### FUNCTION rasqal_query_results_add_row ##### -->
+<para>
+
+</para>
+
+@query_results: 
+@row: 
+@Returns: 
+
+
 <!-- ##### FUNCTION rasqal_query_results_finished ##### -->
 <para>
 
@@ -242,4 +252,14 @@ library for serializing to a syntax.
 @base_uri: 
 @Returns: 
 
+
+<!-- ##### ENUM rasqal_query_results_type ##### -->
+<para>
+
+</para>
+
+@RASQAL_QUERY_RESULTS_BINDINGS: 
+@RASQAL_QUERY_RESULTS_BOOLEAN: 
+@RASQAL_QUERY_RESULTS_GRAPH: 
+@RASQAL_QUERY_RESULTS_SYNTAX: 
 

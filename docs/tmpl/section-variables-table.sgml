@@ -1,0 +1,54 @@
+<!-- ##### SECTION Title ##### -->
+Table of variables.
+
+<!-- ##### SECTION Short_Description ##### -->
+Table of variables.
+
+<!-- ##### SECTION Long_Description ##### -->
+<para>
+A table of variables usually associated with a query or query result set.
+</para>
+
+<!-- ##### SECTION See_Also ##### -->
+<para>
+
+</para>
+
+<!-- ##### SECTION Stability_Level ##### -->
+
+
+<!-- ##### TYPEDEF rasqal_variables_table ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### FUNCTION rasqal_new_variables_table ##### -->
+<para>
+
+</para>
+
+@world: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_free_variables_table ##### -->
+<para>
+
+</para>
+
+@vt: 
+
+
+<!-- ##### FUNCTION rasqal_variables_table_add ##### -->
+<para>
+
+</para>
+
+@vt: 
+@type: 
+@name: 
+@value: 
+@Returns: 
+
+
