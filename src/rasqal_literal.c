@@ -73,7 +73,9 @@ rasqal_literal*
 rasqal_new_integer_literal(rasqal_world* world, rasqal_literal_type type, int integer)
 {
   raptor_uri* dt_uri;
-  rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(rasqal_literal));
+  rasqal_literal* l;
+
+  l  = (rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(*l));
   if(l) {
     l->valid=1;
     l->usage=1;
@@ -118,8 +120,9 @@ rasqal_new_integer_literal(rasqal_world* world, rasqal_literal_type type, int in
 rasqal_literal*
 rasqal_new_typed_literal(rasqal_world* world, rasqal_literal_type type, const unsigned char* string)
 {
-  rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1,
-                                                   sizeof(rasqal_literal));
+  rasqal_literal* l;
+
+  l = (rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(*l));
   if(!l)
     return NULL;
 
@@ -155,7 +158,9 @@ rasqal_literal*
 rasqal_new_double_literal(rasqal_world*world, double d)
 {
   raptor_uri* dt_uri;
-  rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(rasqal_literal));
+  rasqal_literal* l;
+
+  l = (rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(*l));
   if(l) {
     l->valid=1;
     l->usage=1;
@@ -191,7 +196,9 @@ rasqal_literal*
 rasqal_new_float_literal(rasqal_world *world, float f)
 {
   raptor_uri* dt_uri;
-  rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(rasqal_literal));
+  rasqal_literal* l;
+
+  l = (rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(*l));
   if(l) {
     l->valid=1;
     l->usage=1;
@@ -229,7 +236,9 @@ rasqal_new_float_literal(rasqal_world *world, float f)
 rasqal_literal*
 rasqal_new_uri_literal(rasqal_world* world, raptor_uri *uri)
 {
-  rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(rasqal_literal));
+  rasqal_literal* l;
+
+  l = (rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(*l));
   if(l) {
     l->valid=1;
     l->usage=1;
@@ -263,7 +272,9 @@ rasqal_new_pattern_literal(rasqal_world* world,
                            const unsigned char *pattern, 
                            const char *flags)
 {
-  rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(rasqal_literal));
+  rasqal_literal* l;
+
+  l = (rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(*l));
   if(l) {
     l->valid=1;
     l->usage=1;
@@ -315,7 +326,7 @@ rasqal_new_decimal_literal_from_decimal(rasqal_world* world,
   rasqal_literal* l;
   raptor_uri *dt_uri;
 
-  l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(rasqal_literal));
+  l = (rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(*l));
   if(!l)
     return NULL;
   
@@ -651,7 +662,9 @@ rasqal_new_string_literal_common(rasqal_world* world,
                                  const unsigned char *datatype_qname,
                                  int flags)
 {
-  rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(rasqal_literal));
+  rasqal_literal* l;
+
+  l = (rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(*l));
   if(l) {
     rasqal_literal_type datatype_type = RASQAL_LITERAL_STRING;
 
@@ -754,7 +767,9 @@ rasqal_new_simple_literal(rasqal_world* world,
                           rasqal_literal_type type, 
                           const unsigned char *string)
 {
-  rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(rasqal_literal));
+  rasqal_literal* l;
+
+  l = (rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(*l));
   if(l) {
     l->valid=1;
     l->usage=1;
@@ -782,7 +797,9 @@ rasqal_literal*
 rasqal_new_boolean_literal(rasqal_world* world, int value)
 {
   raptor_uri* dt_uri;
-  rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(rasqal_literal));
+  rasqal_literal* l;
+
+  l = (rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(*l));
   if(l) {
     l->valid=1;
     l->usage=1;
@@ -816,7 +833,9 @@ rasqal_new_boolean_literal(rasqal_world* world, int value)
 rasqal_literal*
 rasqal_new_variable_literal(rasqal_world* world, rasqal_variable *variable)
 {
-  rasqal_literal* l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(rasqal_literal));
+  rasqal_literal* l;
+  
+  l = (rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(*l));
   if(l) {
     l->valid=1;
     l->usage=1;
@@ -2519,7 +2538,7 @@ rasqal_literal_as_node(rasqal_literal* l)
     case RASQAL_LITERAL_DECIMAL:
     case RASQAL_LITERAL_DATETIME:
     case RASQAL_LITERAL_UDT:
-      new_l=(rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(rasqal_literal));
+      new_l = (rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(*new_l));
       if(new_l) {
         new_l->valid=1;
         new_l->usage=1;
@@ -2650,7 +2669,10 @@ rasqal_literal_is_constant(rasqal_literal* l)
 rasqal_formula*
 rasqal_new_formula(void) 
 {
-  return (rasqal_formula*)RASQAL_CALLOC(rasqal_formula, 1, sizeof(rasqal_formula));
+  rasqal_formula* f;
+  
+  f = (rasqal_formula*)RASQAL_CALLOC(rasqal_formula, 1, sizeof(*f));
+  return f;
 }
 
 void
