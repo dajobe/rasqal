@@ -2667,11 +2667,15 @@ rasqal_literal_is_constant(rasqal_literal* l)
 
 
 rasqal_formula*
-rasqal_new_formula(void) 
+rasqal_new_formula(rasqal_world* world) 
 {
   rasqal_formula* f;
   
   f = (rasqal_formula*)RASQAL_CALLOC(rasqal_formula, 1, sizeof(*f));
+  if(!f)
+    return NULL;
+  
+  f->world = world;
   return f;
 }
 

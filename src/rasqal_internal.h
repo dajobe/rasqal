@@ -847,6 +847,7 @@ struct rasqal_query_results_formatter_s {
 };
 
 typedef struct {
+  rasqal_world *world;
   raptor_sequence *triples;
   rasqal_literal *value;
 } rasqal_formula;
@@ -950,7 +951,7 @@ int rasqal_uri_init(rasqal_world*);
 void rasqal_uri_finish(rasqal_world*);
 
 /* rasqal_literal.c */
-rasqal_formula* rasqal_new_formula(void);
+rasqal_formula* rasqal_new_formula(rasqal_world* world);
 void rasqal_free_formula(rasqal_formula* formula);
 int rasqal_formula_print(rasqal_formula* formula, FILE *stream);
 rasqal_formula* rasqal_formula_join(rasqal_formula* first_formula, rasqal_formula* second_formula);

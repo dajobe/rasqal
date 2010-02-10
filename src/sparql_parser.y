@@ -2349,7 +2349,7 @@ PropertyListNotEmpty: Verb ObjectList PropertyListTailOpt
     rasqal_triple *t2;
     int size;
     
-    formula = rasqal_new_formula();
+    formula = rasqal_new_formula(((rasqal_query*)rq)->world);
     if(!formula) {
       rasqal_free_formula($1);
       rasqal_free_formula($2);
@@ -2461,7 +2461,7 @@ ObjectList: Object ObjectTail
     fprintf(DEBUG_FH, "  and empty ObjectTail\n");
 #endif
 
-  formula = rasqal_new_formula();
+  formula = rasqal_new_formula(((rasqal_query*)rq)->world);
   if(!formula) {
     rasqal_free_formula($1);
     if($2)
@@ -2543,7 +2543,7 @@ Object: GraphNode
 /* SPARQL Grammar: [37] Verb */
 Verb: VarOrIRIref
 {
-  $$ = rasqal_new_formula();
+  $$ = rasqal_new_formula(((rasqal_query*)rq)->world);
   if(!$$) {
     if($1)
       rasqal_free_literal($1);
@@ -2566,7 +2566,7 @@ Verb: VarOrIRIref
 #endif
   if(!uri)
     YYERROR_MSG("Verb 2: uri for rdf concept type failed");
-  $$ = rasqal_new_formula();
+  $$ = rasqal_new_formula(((rasqal_query*)rq)->world);
   if(!$$) {
 #ifdef RAPTOR_V2_AVAILABLE
     raptor_free_uri_v2(((rasqal_query*)rq)->world->raptor_world_ptr, uri);
@@ -2604,7 +2604,7 @@ BlankNodePropertyList: '[' PropertyListNotEmpty ']'
   const unsigned char *id;
 
   if($2 == NULL) {
-    $$ = rasqal_new_formula();
+    $$ = rasqal_new_formula(((rasqal_query*)rq)->world);
     if(!$$)
       YYERROR_MSG("BlankNodePropertyList: cannot create formula");
   } else {
@@ -2687,7 +2687,7 @@ Collection: '(' GraphNodeListNotEmpty ')'
   fprintf(DEBUG_FH, "\n");
 #endif
 
-  $$ = rasqal_new_formula();
+  $$ = rasqal_new_formula(((rasqal_query*)rq)->world);
   if(!$$)
     YYERR_MSG_GOTO(err_Collection, "Collection: cannot create formula");
 
@@ -2910,7 +2910,7 @@ GraphNode: VarOrTerm
 /* SPARQL Grammar Term: [42] VarOrTerm */
 VarOrTerm: Var
 {
-  $$ = rasqal_new_formula();
+  $$ = rasqal_new_formula(((rasqal_query*)rq)->world);
   if(!$$)
     YYERROR_MSG("VarOrTerm 1: cannot create formula");
   $$->value = rasqal_new_variable_literal(((rasqal_query*)rq)->world, $1);
@@ -2922,7 +2922,7 @@ VarOrTerm: Var
 }
 | GraphTerm
 {
-  $$ = rasqal_new_formula();
+  $$ = rasqal_new_formula(((rasqal_query*)rq)->world);
   if(!$$) {
     if($1)
       rasqal_free_literal($1);
