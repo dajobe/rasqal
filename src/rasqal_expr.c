@@ -1302,7 +1302,7 @@ rasqal_expression_evaluate_strmatch(rasqal_world *world,
 /**
  * rasqal_expression_evaluate:
  * @world: #rasqal_world
- * @locator: error locator
+ * @locator: error locator (or NULL)
  * @e: The expression to evaluate.
  * @flags: Flags for rasqal_literal_compare() and RASQAL_COMPARE_NOCASE for string matches.
  * 
@@ -1337,7 +1337,6 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
   } vars;
 
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(locator, raptor_locator, NULL);
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(e, rasqal_expression, NULL);
 
   errs.e = 0;
