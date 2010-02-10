@@ -1,13 +1,14 @@
 <!-- ##### SECTION Title ##### -->
-Query result row.
+Query Result Row.
 
 <!-- ##### SECTION Short_Description ##### -->
-Query result row.
+Result row in a query result set containing a set of literals that are bound to variables.
 
 <!-- ##### SECTION Long_Description ##### -->
 <para>
-A row of literal values bound to variables defined in a variables table,
-inside a query result set,
+An ordered row of #rasqal_literal values that are each bound to
+#rasqal_variable defined in an associated #rasqal_variables table inside
+a #rasqal_query_results query result set.
 </para>
 
 <!-- ##### SECTION See_Also ##### -->

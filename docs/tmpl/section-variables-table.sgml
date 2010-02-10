@@ -1,12 +1,15 @@
 <!-- ##### SECTION Title ##### -->
-Table of variables.
+Variables Table.
 
 <!-- ##### SECTION Short_Description ##### -->
-Table of variables.
+A table of variables with optional bound literal values.
 
 <!-- ##### SECTION Long_Description ##### -->
 <para>
-A table of variables usually associated with a query or query result set.
+A table of #rasqal_variable usually associated with a #rasqal_query query
+or #rasqal_query_results query result set.  The order of the variables in
+the table may be significant, such as for a standalone query result set
+in which case it might define the order of variables in resulting rows.
 </para>
 
 <!-- ##### SECTION See_Also ##### -->
