@@ -914,16 +914,17 @@ rasqal_expression_clear(rasqal_expression* e)
 
 /**
  * rasqal_new_expression_from_expression:
- * @e: #rasqal_expression object to copy
+ * @e: #rasqal_expression object to copy or NULL
  *
  * Copy Constructor - create a new #rasqal_expression object from an existing rasqal_expression object.
  * 
- * Return value: a new #rasqal_expression object or NULL on failure
+ * Return value: a new #rasqal_expression object or NULL if @e is NULL
  **/
 rasqal_expression*
 rasqal_new_expression_from_expression(rasqal_expression* e)
 {
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(e, rasqal_expression, NULL);
+  if(!e)
+    return NULL;
 
   e->usage++;
   return e;
