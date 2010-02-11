@@ -3255,8 +3255,8 @@ rasqal_literal_divide(rasqal_literal* l1, rasqal_literal* l2, int *error_p)
         l2_p = rasqal_new_literal_from_promotion(l2, type, flags);
       if(l1_p && l2_p) {
         dec = rasqal_new_xsd_decimal(l1->world);
-        if(rasqal_xsd_decimal_add(dec, l1_p->value.decimal,
-                                  l2_p->value.decimal)) {
+        if(rasqal_xsd_decimal_divide(dec, l1_p->value.decimal,
+                                     l2_p->value.decimal)) {
           error=1;
           rasqal_free_xsd_decimal(dec);
         } else
