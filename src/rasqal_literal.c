@@ -897,17 +897,15 @@ rasqal_new_variable_literal(rasqal_world* world, rasqal_variable *variable)
 
 /**
  * rasqal_new_literal_from_literal:
- * @l: #rasqal_literal object to copy
+ * @l: #rasqal_literal object to copy or NULL
  *
  * Copy Constructor - create a new rasqal_literal object from an existing rasqal_literal object.
- * 
- * Return value: a new #rasqal_literal object or NULL
+ *
+ * Return value: a new #rasqal_literal object or NULL if @l was NULL.
  **/
 rasqal_literal*
 rasqal_new_literal_from_literal(rasqal_literal* l)
 {
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(l, rasqal_literal, NULL);
-
   if(!l)
     return NULL;
   
