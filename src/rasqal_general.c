@@ -578,7 +578,7 @@ rasqal_log_error_varargs(rasqal_world* world, raptor_log_level level,
   if(!buffer) {
     if(locator) {
 #ifdef RAPTOR_V2_AVAILABLE
-      raptor_print_locator_v2(world->raptor_world_ptr, stderr, locator);
+      raptor_locator_print(locator, stderr);
 #else
       raptor_print_locator(stderr, locator);
 #endif
@@ -604,7 +604,7 @@ rasqal_log_error_varargs(rasqal_world* world, raptor_log_level level,
   else {
     if(locator) {
 #ifdef RAPTOR_V2_AVAILABLE
-      raptor_print_locator_v2(world->raptor_world_ptr, stderr, locator);
+      raptor_locator_print(locator, stderr);
 #else
       raptor_print_locator(stderr, locator);
 #endif
@@ -821,24 +821,6 @@ rasqal_uri_init(rasqal_world* world)
 void
 rasqal_uri_finish(rasqal_world* world) 
 {
-#ifdef RAPTOR_V2_AVAILABLE
-  if(world->rdf_first_uri) {
-    raptor_free_uri_v2(world->raptor_world_ptr, world->rdf_first_uri);
-    world->rdf_first_uri = NULL;
-  }
-  if(world->rdf_rest_uri) {
-    raptor_free_uri_v2(world->raptor_world_ptr, world->rdf_rest_uri);
-    world->rdf_rest_uri = NULL;
-  }
-  if(world->rdf_nil_uri) {
-    raptor_free_uri_v2(world->raptor_world_ptr, world->rdf_nil_uri);
-    world->rdf_nil_uri = NULL;
-  }
-  if(world->rdf_namespace_uri) {
-    raptor_free_uri_v2(world->raptor_world_ptr, world->rdf_namespace_uri);
-    world->rdf_namespace_uri = NULL;
-  }
-#else
   if(world->rdf_first_uri) {
     raptor_free_uri(world->rdf_first_uri);
     world->rdf_first_uri=NULL;
@@ -855,7 +837,6 @@ rasqal_uri_finish(rasqal_world* world)
     raptor_free_uri(world->rdf_namespace_uri);
     world->rdf_namespace_uri=NULL;
   }
-#endif
 }
 
 

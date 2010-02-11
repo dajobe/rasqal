@@ -245,7 +245,11 @@ VarList : VarList ',' Var
 | Var
 {
   /* The variables are freed from the rasqal_query field variables */
-  $$=raptor_new_sequence(NULL, (raptor_sequence_print_handler*)rasqal_variable_print);
+#ifdef RAPTOR_V2_AVAILABLE
+  $$ = raptor_new_sequence(NULL, (raptor_data_print_handler*)rasqal_variable_print);
+#else
+  $$ = raptor_new_sequence(NULL, (raptor_sequence_print_handler*)rasqal_variable_print);
+#endif
   raptor_sequence_push($$, $1);
 }
 ;
@@ -609,9 +613,11 @@ URIList : URI_LITERAL ',' URIList
 | URI_LITERAL
 {
 #ifdef RAPTOR_V2_AVAILABLE
-  $$=raptor_new_sequence_v2((raptor_sequence_free_handler_v2*)raptor_free_uri_v2, (raptor_sequence_print_handler_v2*)raptor_uri_print_v2, (void*)((rasqal_query*)rq)->world->raptor_world_ptr);
+  $$ = raptor_new_sequence((raptor_data_free_handler*)raptor_free_uri,
+                           (raptor_data_print_handler*)raptor_uri_print);
 #else
-  $$=raptor_new_sequence((raptor_sequence_free_handler*)raptor_free_uri, (raptor_sequence_print_handler*)raptor_uri_print);
+  $$ = raptor_new_sequence((raptor_sequence_free_handler*)raptor_free_uri,
+                           (raptor_sequence_print_handler*)raptor_uri_print);
 #endif
   raptor_sequence_push($$, $1);
 }
@@ -820,7 +826,13 @@ rdql_syntax_warning(rasqal_query *rq, const char *message, ...)
 #endif
 
   va_start(arguments, message);
-  rasqal_log_error_varargs(rq->world, RAPTOR_LOG_LEVEL_WARNING, &rq->locator,
+  rasqal_log_error_varargs(rq->world,
+#ifdef RAPTOR_V2_AVAILABLE
+                           RAPTOR_LOG_LEVEL_WARN,
+#else
+                           RAPTOR_LOG_LEVEL_WARNING,
+#endif
+                           &rq->locator,
                            message, arguments);
   va_end(arguments);
 

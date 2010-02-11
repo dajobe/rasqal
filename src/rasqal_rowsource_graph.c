@@ -113,11 +113,7 @@ rasqal_graph_next_dg(rasqal_graph_rowsource_context *con)
     if(!dg->name_uri)
       continue;
     
-#ifdef RAPTOR_V2_AVAILABLE
-    o = rasqal_new_uri_literal(query->world, raptor_uri_copy_v2(query->world->raptor_world_ptr, dg->name_uri));
-#else
     o = rasqal_new_uri_literal(query->world, raptor_uri_copy(dg->name_uri));
-#endif
     if(!o) {
       RASQAL_DEBUG1("Failed to create new URI literal\n");
       con->finished = 1;

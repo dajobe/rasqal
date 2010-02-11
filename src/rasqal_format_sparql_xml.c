@@ -318,11 +318,7 @@ rasqal_query_results_write_sparql_xml(raptor_iostream *iostr,
             goto tidy;
           
           raptor_xml_writer_start_element(xml_writer, element1);
-#ifdef RAPTOR_V2_AVAILABLE
-          raptor_xml_writer_cdata(xml_writer, (const unsigned char*)raptor_uri_as_string_v2(query->world->raptor_world_ptr, l->value.uri));
-#else
           raptor_xml_writer_cdata(xml_writer, (const unsigned char*)raptor_uri_as_string(l->value.uri));
-#endif
           raptor_xml_writer_end_element(xml_writer, element1);
 
           break;
@@ -364,8 +360,7 @@ rasqal_query_results_write_sparql_xml(raptor_iostream *iostr,
               attrs[0] = raptor_new_qname_from_namespace_local_name(query->world->raptor_world_ptr,
                                                                     res_ns,
                                                                     (const unsigned char*)"datatype",
-                                                                    (const unsigned char*)raptor_uri_as_string_v2(query->world->raptor_world_ptr,
-                                                                                                                  l->datatype));
+                                                                    (const unsigned char*)raptor_uri_as_string(l->datatype));
 #else
               attrs[0] = raptor_new_qname_from_namespace_local_name(res_ns, 
                                                                     (const unsigned char*)"datatype",
@@ -851,11 +846,7 @@ rasqal_rowsource_sparql_xml_finish(rasqal_rowsource* rowsource, void *user_data)
   con=(rasqal_rowsource_sparql_xml_context*)user_data;
 
   if(con->base_uri)
-#ifdef RAPTOR_V2_AVAILABLE
-    raptor_free_uri_v2(con->world->raptor_world_ptr, con->base_uri);
-#else
     raptor_free_uri(con->base_uri);
-#endif
 
   if(con->sax2)
     raptor_free_sax2(con->sax2);

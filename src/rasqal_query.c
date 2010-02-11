@@ -217,11 +217,7 @@ rasqal_free_query(rasqal_query* query)
     raptor_free_namespaces(query->namespaces);
 
   if(query->base_uri)
-#ifdef RAPTOR_V2_AVAILABLE
-    raptor_free_uri_v2(query->world->raptor_world_ptr, query->base_uri);
-#else
     raptor_free_uri(query->base_uri);
-#endif
 
   if(query->query_string)
     RASQAL_FREE(cstring, query->query_string);
@@ -771,14 +767,7 @@ rasqal_query_dataset_contains_named_graph(rasqal_query* query,
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(graph_uri, raptor_uri, 1);
 
   for(idx = 0; (dg = rasqal_query_get_data_graph(query, idx)); idx++) {
-    if(dg->name_uri &&
-#ifdef RAPTOR_V2_AVAILABLE
-       raptor_uri_equals_v2(query->world->raptor_world_ptr, dg->name_uri, graph_uri)
-#else
-       raptor_uri_equals(dg->name_uri, graph_uri)
-#endif
-       )
-    {
+    if(dg->name_uri && raptor_uri_equals(dg->name_uri, graph_uri)) {
       /* graph_uri is a graph name in the dataset */
       found = 1;
       break;
@@ -1783,12 +1772,7 @@ rasqal_query_write(raptor_iostream* iostr, rasqal_query* query,
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, 1);
 
   if(format_uri)
-#ifdef RAPTOR_V2_AVAILABLE
-    format_uri_str = (const char*)raptor_uri_as_string_v2(query->world->raptor_world_ptr,
-                                                          format_uri);
-#else
     format_uri_str = (const char*)raptor_uri_as_string(format_uri);
-#endif
 
   if(!format_uri ||
      !strcmp(format_uri_str,
@@ -1916,11 +1900,7 @@ rasqal_query_set_base_uri(rasqal_query* query, raptor_uri* base_uri)
   RASQAL_ASSERT_OBJECT_POINTER_RETURN(base_uri, raptor_uri);
 
   if(query->base_uri)
-#ifdef RAPTOR_V2_AVAILABLE
-    raptor_free_uri_v2(query->world->raptor_world_ptr, query->base_uri);
-#else
     raptor_free_uri(query->base_uri);
-#endif
   query->base_uri = base_uri;
   query->locator.uri = base_uri;
 }

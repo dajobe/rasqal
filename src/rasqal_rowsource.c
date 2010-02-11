@@ -96,7 +96,11 @@ rasqal_new_rowsource_from_handler(rasqal_world* world,
     rowsource->vars_table = NULL;
 
   /* no free method here - the variables are owned by rowsource->vars_table */
+#ifdef RAPTOR_V2_AVAILABLE
+  rowsource->variables_sequence = raptor_new_sequence(NULL, (raptor_data_print_handler*)rasqal_variable_print);
+#else
   rowsource->variables_sequence = raptor_new_sequence(NULL, (raptor_sequence_print_handler*)rasqal_variable_print);
+#endif
   if(!rowsource->variables_sequence) {
     rasqal_free_rowsource(rowsource);
     return NULL;
@@ -295,13 +299,23 @@ rasqal_rowsource_read_all_rows(rasqal_rowsource *rowsource)
   if(rowsource->handler->read_all_rows) {
     seq = rowsource->handler->read_all_rows(rowsource, rowsource->user_data);
     if(!seq)
+#ifdef RAPTOR_V2_AVAILABLE
+      seq = raptor_new_sequence((raptor_data_free_handler*)rasqal_free_row,
+                                (raptor_data_print_handler*)rasqal_row_print);
+#else
       seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_row,
                                 (raptor_sequence_print_handler*)rasqal_row_print);
+#endif
     return seq;
   }
-  
+
+#ifdef RAPTOR_V2_AVAILABLE
+  seq = raptor_new_sequence((raptor_data_free_handler*)rasqal_free_row,
+                            (raptor_data_print_handler*)rasqal_row_print);
+#else
   seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_row,
                             (raptor_sequence_print_handler*)rasqal_row_print);
+#endif
   if(!seq)
     return NULL;
   
@@ -649,7 +663,11 @@ rasqal_rowsource_print(rasqal_rowsource *rowsource, FILE* fh)
 {
   raptor_iostream *iostr;
 
+#ifdef RAPTOR_V2_AVAILABLE
+  iostr = raptor_new_iostream_to_file_handle(rowsource->world->raptor_world_ptr, fh);
+#else
   iostr = raptor_new_iostream_to_file_handle(fh);
+#endif
   rasqal_rowsource_write(rowsource, iostr);
   raptor_free_iostream(iostr);
 }

@@ -317,12 +317,24 @@ rasqal_new_variables_table(rasqal_world* world)
 
   vt->usage = 1;
   vt->world = world;
-  
-  vt->variables_sequence = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_variable, (raptor_sequence_print_handler*)rasqal_variable_print);
+
+#ifdef RAPTOR_V2_AVAILABLE
+  vt->variables_sequence = raptor_new_sequence((raptor_data_free_handler*)rasqal_free_variable,
+                                               (raptor_data_print_handler*)rasqal_variable_print);
+#else
+  vt->variables_sequence = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_variable,
+                                               (raptor_sequence_print_handler*)rasqal_variable_print);
+#endif
   if(!vt->variables_sequence)
     goto tidy;
 
-  vt->anon_variables_sequence = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_variable, (raptor_sequence_print_handler*)rasqal_variable_print);
+#ifdef RAPTOR_V2_AVAILABLE
+  vt->anon_variables_sequence = raptor_new_sequence((raptor_data_free_handler*)rasqal_free_variable,
+                                                    (raptor_data_print_handler*)rasqal_variable_print);
+#else
+  vt->anon_variables_sequence = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_variable,
+                                                    (raptor_sequence_print_handler*)rasqal_variable_print);
+#endif
   if(!vt->anon_variables_sequence)
     goto tidy;
 

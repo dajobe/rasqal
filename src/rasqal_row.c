@@ -301,14 +301,24 @@ rasqal_new_row_sequence(rasqal_world* world,
 #define GET_CELL(row, column, offset) \
   row_data[((((row)*vars_count)+(column))<<1)+(offset)]
 
+#ifdef RAPTOR_V2_AVAILABLE
+  seq = raptor_new_sequence((raptor_data_free_handler*)rasqal_free_row,
+                            (raptor_data_print_handler*)rasqal_row_print);
+#else
   seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_row,
                             (raptor_sequence_print_handler*)rasqal_row_print);
+#endif
   if(!seq)
     return NULL;
 
   if(vars_seq_p) {
+#ifdef RAPTOR_V2_AVAILABLE
+    vars_seq = raptor_new_sequence(NULL,
+                                   (raptor_data_print_handler*)rasqal_variable_print);
+#else
     vars_seq = raptor_new_sequence(NULL,
                                    (raptor_sequence_print_handler*)rasqal_variable_print);
+#endif
     if(!vars_seq) {
       raptor_free_sequence(seq);
       return NULL;
@@ -381,7 +391,7 @@ rasqal_new_row_sequence(rasqal_world* world,
         raptor_uri* u;
         str = (const unsigned char*)GET_CELL(row_i, column_i, 1);
 #ifdef RAPTOR_V2_AVAILABLE
-        u = raptor_new_uri_v2(world->raptor_world_ptr, str);
+        u = raptor_new_uri(world->raptor_world_ptr, str);
 #else
         u = raptor_new_uri(str);
 #endif

@@ -321,15 +321,11 @@ QUOTEDURI \<[A-Za-z][^>]+\>
                   return QNAME_LITERAL; }
 
 {QUOTEDURI}   { if(yyleng == 2) 
-#ifdef RAPTOR_V2_AVAILABLE
-                  rdql_parser_lval->uri = raptor_uri_copy_v2(rq->world->raptor_world_ptr, rq->base_uri);
-#else
                   rdql_parser_lval->uri = raptor_uri_copy(rq->base_uri);
-#endif
                 else {
                   yytext[yyleng-1]='\0';
 #ifdef RAPTOR_V2_AVAILABLE
-                  rdql_parser_lval->uri = raptor_new_uri_relative_to_base_v2(rq->world->raptor_world_ptr, rq->base_uri, (const unsigned char*)yytext+1);
+                  rdql_parser_lval->uri = raptor_new_uri_relative_to_base(rq->world->raptor_world_ptr, rq->base_uri, (const unsigned char*)yytext+1);
 #else                  
                   rdql_parser_lval->uri = raptor_new_uri_relative_to_base(rq->base_uri, (const unsigned char*)yytext+1);
 #endif
@@ -584,7 +580,7 @@ rdql_copy_string_token(rasqal_query* rq, YYSTYPE* lval,
     if(*dt == '<') {
       dt[strlen((const char*)dt)-1]='\0';
 #ifdef RAPTOR_V2_AVAILABLE
-      dt_uri = raptor_new_uri_v2(rq->world->raptor_world_ptr, dt+1);
+      dt_uri = raptor_new_uri(rq->world->raptor_world_ptr, dt+1);
 #else
       dt_uri = raptor_new_uri(dt+1);
 #endif

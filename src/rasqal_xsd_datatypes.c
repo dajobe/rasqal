@@ -457,7 +457,7 @@ rasqal_xsd_init(rasqal_world* world)
   int i;
 
 #ifdef RAPTOR_V2_AVAILABLE
-  world->xsd_namespace_uri = raptor_new_uri_v2(world->raptor_world_ptr, raptor_xmlschema_datatypes_namespace_uri);
+  world->xsd_namespace_uri = raptor_new_uri(world->raptor_world_ptr, raptor_xmlschema_datatypes_namespace_uri);
 #else
   world->xsd_namespace_uri = raptor_new_uri(raptor_xmlschema_datatypes_namespace_uri);
 #endif
@@ -474,8 +474,8 @@ rasqal_xsd_init(rasqal_world* world)
   for(i=RASQAL_LITERAL_FIRST_XSD; i < SPARQL_XSD_NAMES_COUNT; i++) {
     world->xsd_datatype_uris[i] =
 #ifdef RAPTOR_V2_AVAILABLE
-      raptor_new_uri_from_uri_local_name_v2(world->raptor_world_ptr, world->xsd_namespace_uri,
-                                            (const unsigned char *)sparql_xsd_names[i]);
+      raptor_new_uri_from_uri_local_name(world->raptor_world_ptr, world->xsd_namespace_uri,
+                                         (const unsigned char *)sparql_xsd_names[i]);
 #else
       raptor_new_uri_from_uri_local_name(world->xsd_namespace_uri,
                                          (const unsigned char *)sparql_xsd_names[i]);
@@ -496,11 +496,7 @@ rasqal_xsd_finish(rasqal_world* world)
     
     for(i=RASQAL_LITERAL_FIRST_XSD; i < SPARQL_XSD_NAMES_COUNT; i++) {
       if(world->xsd_datatype_uris[i])
-#ifdef RAPTOR_V2_AVAILABLE
-        raptor_free_uri_v2(world->raptor_world_ptr, world->xsd_datatype_uris[i]);
-#else
         raptor_free_uri(world->xsd_datatype_uris[i]);
-#endif
     }
 
     RASQAL_FREE(table, world->xsd_datatype_uris);
@@ -508,11 +504,7 @@ rasqal_xsd_finish(rasqal_world* world)
   }
 
   if(world->xsd_namespace_uri) {
-#ifdef RAPTOR_V2_AVAILABLE
-    raptor_free_uri_v2(world->raptor_world_ptr, world->xsd_namespace_uri);
-#else
     raptor_free_uri(world->xsd_namespace_uri);
-#endif
     world->xsd_namespace_uri = NULL;
   }
 }
@@ -529,14 +521,7 @@ rasqal_xsd_datatype_uri_to_type(rasqal_world* world, raptor_uri* uri)
     return native_type;
   
   for(i=(int)RASQAL_LITERAL_FIRST_XSD; i <= (int)RASQAL_LITERAL_LAST_XSD; i++) {
-    if(
-#ifdef RAPTOR_V2_AVAILABLE    
-       raptor_uri_equals_v2(world->raptor_world_ptr, uri, world->xsd_datatype_uris[i])
-#else
-       raptor_uri_equals(uri, world->xsd_datatype_uris[i])
-#endif
-      )
-    {
+    if(raptor_uri_equals(uri, world->xsd_datatype_uris[i])) {
       native_type=(rasqal_literal_type)i;
       break;
     }

@@ -179,12 +179,7 @@ rasqal_query_write_sparql_triple(sparql_writer_context *wc,
   rasqal_query_write_sparql_literal(wc, iostr, triple->subject);
   raptor_iostream_write_byte(iostr, ' ');
   if(triple->predicate->type == RASQAL_LITERAL_URI &&
-#ifdef RAPTOR_V2_AVAILABLE
-     raptor_uri_equals_v2(wc->world->raptor_world_ptr, triple->predicate->value.uri, wc->type_uri)
-#else
-     raptor_uri_equals(triple->predicate->value.uri, wc->type_uri)
-#endif
-     )
+     raptor_uri_equals(triple->predicate->value.uri, wc->type_uri))
     raptor_iostream_write_byte(iostr, 'a');
   else
     rasqal_query_write_sparql_literal(wc, iostr, triple->predicate);
@@ -361,11 +356,7 @@ rasqal_query_write_sparql_expression(sparql_writer_context *wc,
       break;
 
     case RASQAL_EXPR_FUNCTION:
-#ifdef RAPTOR_V2_AVAILABLE
-      raptor_iostream_write_uri_v2(e->world->raptor_world_ptr, iostr, e->name);
-#else
       raptor_iostream_write_uri(iostr, e->name);
-#endif
       raptor_iostream_write_counted_string(iostr, "( ", 2);
       count = raptor_sequence_size(e->args);
       for(i = 0; i < count ; i++) {
@@ -379,11 +370,7 @@ rasqal_query_write_sparql_expression(sparql_writer_context *wc,
       break;
 
     case RASQAL_EXPR_CAST:
-#ifdef RAPTOR_V2_AVAILABLE
-      raptor_iostream_write_uri_v2(e->world->raptor_world_ptr, iostr, e->name);
-#else
       raptor_iostream_write_uri(iostr, e->name);
-#endif
       raptor_iostream_write_counted_string(iostr, "( ", 2);
       rasqal_query_write_sparql_expression(wc, iostr, e->arg1);
       raptor_iostream_write_counted_string(iostr, " )", 2);
@@ -854,15 +841,9 @@ rasqal_query_write_sparql_20060406(raptor_iostream *iostr,
 
 
   tidy:
-#ifdef RAPTOR_V2_AVAILABLE
-  raptor_free_uri_v2(query->world->raptor_world_ptr, wc.type_uri);
-  if(wc.base_uri)
-    raptor_free_uri_v2(query->world->raptor_world_ptr, wc.base_uri);
-#else
   raptor_free_uri(wc.type_uri);
   if(wc.base_uri)
     raptor_free_uri(wc.base_uri);
-#endif
   raptor_free_namespaces(wc.nstack);
 
   return 0;

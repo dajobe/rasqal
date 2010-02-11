@@ -101,17 +101,10 @@ rasqal_free_data_graph(rasqal_data_graph* dg)
 {
   RASQAL_ASSERT_OBJECT_POINTER_RETURN(dg, rasqal_data_graph);
 
-#ifdef RAPTOR_V2_AVAILABLE  
-  if(dg->uri)
-    raptor_free_uri_v2(dg->world->raptor_world_ptr, dg->uri);
-  if(dg->name_uri)
-    raptor_free_uri_v2(dg->world->raptor_world_ptr, dg->name_uri);
-#else
   if(dg->uri)
     raptor_free_uri(dg->uri);
   if(dg->name_uri)
     raptor_free_uri(dg->name_uri);
-#endif
   RASQAL_FREE(rasqal_data_graph, dg);
 }
 
@@ -133,16 +126,6 @@ rasqal_data_graph_print(rasqal_data_graph* dg, FILE* fh)
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(dg, rasqal_data_graph, 1);
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(fh, FILE*, 1);
 
-#ifdef RAPTOR_V2_AVAILABLE
-  if(dg->name_uri)
-    fprintf(fh, "data graph(%s named as %s flags %d)", 
-            raptor_uri_as_string_v2(dg->world->raptor_world_ptr, dg->uri),
-            raptor_uri_as_string_v2(dg->world->raptor_world_ptr, dg->name_uri),
-            dg->flags);
-  else
-    fprintf(fh, "data graph(%s, flags %d)", 
-            raptor_uri_as_string_v2(dg->world->raptor_world_ptr, dg->uri), dg->flags);
-#else
   if(dg->name_uri)
     fprintf(fh, "data graph(%s named as %s flags %d)", 
             raptor_uri_as_string(dg->uri),
@@ -151,7 +134,6 @@ rasqal_data_graph_print(rasqal_data_graph* dg, FILE* fh)
   else
     fprintf(fh, "data graph(%s, flags %d)", 
             raptor_uri_as_string(dg->uri), dg->flags);
-#endif
 
   return 0;
 }
@@ -184,11 +166,7 @@ rasqal_new_prefix(rasqal_world* world, const unsigned char *prefix,
     p->uri = uri;
   } else {
     RASQAL_FREE(cstring, prefix);
-#ifdef RAPTOR_V2_AVAILABLE
-    raptor_free_uri_v2(world->raptor_world_ptr, uri);
-#else
     raptor_free_uri(uri);
-#endif
   }
 
   return p;
@@ -209,11 +187,7 @@ rasqal_free_prefix(rasqal_prefix* p)
   if(p->prefix)
     RASQAL_FREE(cstring, (void*)p->prefix);
   if(p->uri)
-#ifdef RAPTOR_V2_AVAILABLE
-    raptor_free_uri_v2(p->world->raptor_world_ptr, p->uri);
-#else
     raptor_free_uri(p->uri);
-#endif
   RASQAL_FREE(rasqal_prefix, p);
 }
 
@@ -237,12 +211,7 @@ rasqal_prefix_print(rasqal_prefix* p, FILE* fh)
 
   fprintf(fh, "prefix(%s as %s)",
           (p->prefix ? (const char*)p->prefix : "(default)"),
-#ifdef RAPTOR_V2_AVAILABLE
-          raptor_uri_as_string_v2(p->world->raptor_world_ptr, p->uri)
-#else
-          raptor_uri_as_string(p->uri)
-#endif
-          );
+          raptor_uri_as_string(p->uri));
 
   return 0;
 }
@@ -721,11 +690,7 @@ rasqal_new_function_expression(rasqal_world* world,
   
   tidy:
   if(name)
-#ifdef RAPTOR_V2_AVAILABLE
-    raptor_free_uri_v2(world->raptor_world_ptr, name);
-#else
     raptor_free_uri(name);
-#endif
   if(args)
     raptor_free_sequence(args);
 
@@ -764,11 +729,7 @@ rasqal_new_cast_expression(rasqal_world* world, raptor_uri* name,
 
   tidy:
   if(name)
-#ifdef RAPTOR_V2_AVAILABLE
-    raptor_free_uri_v2(world->raptor_world_ptr, name);
-#else
     raptor_free_uri(name);
-#endif
   if(value)
     rasqal_free_expression(value);
 
@@ -881,19 +842,11 @@ rasqal_expression_clear(rasqal_expression* e)
       rasqal_free_literal(e->literal);
       break;
     case RASQAL_EXPR_FUNCTION:
-#ifdef RAPTOR_V2_AVAILABLE
-      raptor_free_uri_v2(e->world->raptor_world_ptr, e->name);
-#else
       raptor_free_uri(e->name);
-#endif
       raptor_free_sequence(e->args);
       break;
     case RASQAL_EXPR_CAST:
-#ifdef RAPTOR_V2_AVAILABLE
-      raptor_free_uri_v2(e->world->raptor_world_ptr, e->name);
-#else
       raptor_free_uri(e->name);
-#endif
       rasqal_free_expression(e->arg1);
       break;
 
@@ -2281,11 +2234,7 @@ rasqal_expression_write(rasqal_expression* e, raptor_iostream* iostr)
 
     case RASQAL_EXPR_FUNCTION:
       raptor_iostream_write_counted_string(iostr, "function(uri=", 13);
-#ifdef RAPTOR_V2_AVAILABLE
-      raptor_iostream_write_uri_v2(e->world->raptor_world_ptr, iostr, e->name);
-#else
       raptor_iostream_write_uri(iostr, e->name);
-#endif
       raptor_iostream_write_counted_string(iostr, ", args=", 7);
       for(i=0; i<raptor_sequence_size(e->args); i++) {
         rasqal_expression* e2;
@@ -2299,11 +2248,7 @@ rasqal_expression_write(rasqal_expression* e, raptor_iostream* iostr)
 
     case RASQAL_EXPR_CAST:
       raptor_iostream_write_counted_string(iostr, "cast(type=", 10);
-#ifdef RAPTOR_V2_AVAILABLE
-      raptor_iostream_write_uri_v2(e->world->raptor_world_ptr, iostr, e->name);
-#else
       raptor_iostream_write_uri(iostr, e->name);
-#endif
       raptor_iostream_write_counted_string(iostr, ", value=", 8);
       rasqal_expression_write(e->arg1, iostr);
       raptor_iostream_write_byte(iostr, ')');
@@ -2425,11 +2370,7 @@ rasqal_expression_print(rasqal_expression* e, FILE* fh)
 
     case RASQAL_EXPR_FUNCTION:
       fputs("function(uri=", fh);
-#ifdef RAPTOR_V2_AVAILABLE
-      raptor_uri_print_v2(e->world->raptor_world_ptr, e->name, fh);
-#else
       raptor_uri_print(e->name, fh);
-#endif
       fputs(", args=", fh);
       raptor_sequence_print(e->args, fh);
       fputc(')', fh);
@@ -2437,11 +2378,7 @@ rasqal_expression_print(rasqal_expression* e, FILE* fh)
 
     case RASQAL_EXPR_CAST:
       fputs("cast(type=", fh);
-#ifdef RAPTOR_V2_AVAILABLE
-      raptor_uri_print_v2(e->world->raptor_world_ptr, e->name, fh);
-#else
       raptor_uri_print(e->name, fh);
-#endif
       fputs(", value=", fh);
       rasqal_expression_print(e->arg1, fh);
       fputc(')', fh);

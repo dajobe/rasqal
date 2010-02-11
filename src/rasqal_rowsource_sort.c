@@ -101,9 +101,14 @@ rasqal_sort_rowsource_process(rasqal_rowsource* rowsource,
   /* already processed */
   if(con->seq)
     return 0;
-  
-  con->seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_row, 
+
+#ifdef RAPTOR_V2_AVAILABLE
+  con->seq = raptor_new_sequence((raptor_data_free_handler*)rasqal_free_row,
+                                 (raptor_data_print_handler*)rasqal_row_print);
+#else
+  con->seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_row,
                                  (raptor_sequence_print_handler*)rasqal_row_print);
+#endif
   if(!con->seq)
     return 1;
   

@@ -87,7 +87,11 @@ rasqal_init_result_formats(rasqal_world* world)
 {
   int rc=0;
   
+#ifdef RAPTOR_V2_AVAILABLE
+  world->query_results_formats = raptor_new_sequence((raptor_data_free_handler*)rasqal_free_query_results_format_factory, NULL);
+#else
   world->query_results_formats = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_query_results_format_factory, NULL);
+#endif
   if(!world->query_results_formats)
     return 1;
 
@@ -221,12 +225,7 @@ rasqal_get_query_results_formatter_factory(rasqal_world* world,
 
 
     if(uri && factory->uri_string &&
-       !strcmp(
-#ifdef RAPTOR_V2_AVAILABLE
-               (const char*)raptor_uri_as_string_v2(world->raptor_world_ptr, uri),
-#else
-               (const char*)raptor_uri_as_string(uri),
-#endif
+       !strcmp((const char*)raptor_uri_as_string(uri),
                (const char*)factory->uri_string))
       break;
 
