@@ -138,7 +138,7 @@ rasqal_new_variable_from_variable(rasqal_variable* v)
 
   new_v->vars_table = v->vars_table;
   new_v->name = new_name;
-  new_v->value = rasqal_new_literal_from_literal(v->value);
+  new_v->value = v->value ? rasqal_new_literal_from_literal(v->value) : NULL;
   new_v->offset = v->offset;
   new_v->type = v->type;
   new_v->expression = v->expression ? rasqal_new_expression_from_expression(v->expression) : NULL;
