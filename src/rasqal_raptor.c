@@ -366,7 +366,7 @@ rasqal_raptor_new_triples_source(rasqal_query* rdf_query,
     rtsc->mapped_id_base_len = strlen((const char*)rtsc->mapped_id_base);
 
 #ifdef RAPTOR_V2_AVAILABLE
-    parser = raptor_new_parser_v2(rdf_query->world->raptor_world_ptr, "guess");
+    parser = raptor_new_parser(rdf_query->world->raptor_world_ptr, "guess");
 #else
     parser = raptor_new_parser("guess");
 #endif
