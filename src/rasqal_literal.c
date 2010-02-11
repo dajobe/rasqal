@@ -391,7 +391,7 @@ rasqal_new_decimal_literal_from_decimal(rasqal_world* world,
 }
 
 
-/**
+/*
  * rasqal_new_numeric_literal:
  * @world: rasqal world object
  * @type: datatype
@@ -605,7 +605,7 @@ rasqal_literal_set_typed_value(rasqal_literal* l, rasqal_literal_type type,
  * @l: #rasqal_literal to operate on inline
  * @flags: flags for literal checking.  non-0 to ignore type errors
  *
- * INTERNAL Upgrade a datatyped literal string to an internal typed literal
+ * INTERNAL - Upgrade a datatyped literal string to an internal typed literal
  *
  * At present this promotes datatyped literals
  * xsd:integer to RASQAL_LITERAL_INTEGER
@@ -804,6 +804,9 @@ rasqal_new_simple_literal(rasqal_world* world,
 {
   rasqal_literal* l;
 
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(string, char*, NULL);
+
   l = (rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(*l));
   if(l) {
     l->valid=1;
@@ -833,6 +836,8 @@ rasqal_new_boolean_literal(rasqal_world* world, int value)
 {
   raptor_uri* dt_uri;
   rasqal_literal* l;
+
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
 
   l = (rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(*l));
   if(l) {
@@ -870,6 +875,9 @@ rasqal_new_variable_literal(rasqal_world* world, rasqal_variable *variable)
 {
   rasqal_literal* l;
   
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(variable, rasqal_variable, NULL);
+
   l = (rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(*l));
   if(l) {
     l->valid=1;
@@ -898,6 +906,8 @@ rasqal_new_variable_literal(rasqal_world* world, rasqal_variable *variable)
 rasqal_literal*
 rasqal_new_literal_from_literal(rasqal_literal* l)
 {
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(l, rasqal_literal, NULL);
+
   if(!l)
     return NULL;
   
@@ -1235,7 +1245,7 @@ rasqal_literal_print(rasqal_literal* l, FILE* fh)
  * @l: #rasqal_literal object
  * @error: pointer to error flag
  * 
- * INTERNAL: Return a literal as a boolean value
+ * INTERNAL - Return a literal as a boolean value
  *
  * SPARQL Effective Boolean Value (EBV) rules:
  *  - If the argument is a typed literal with a datatype of xsd:boolean, the
@@ -1253,8 +1263,7 @@ rasqal_literal_print(rasqal_literal* l, FILE* fh)
 int
 rasqal_literal_as_boolean(rasqal_literal* l, int *error)
 {
-  if(!l)
-    return 0;
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(l, rasqal_literal, 0);
   
   switch(l->type) {
     case RASQAL_LITERAL_STRING:
@@ -1309,10 +1318,12 @@ rasqal_literal_as_boolean(rasqal_literal* l, int *error)
 
 
 /*
- * rasqal_literal_as_integer - INTERNAL Return a literal as an integer value
+ * rasqal_literal_as_integer
  * @l: #rasqal_literal object
  * @error: pointer to error flag
  * 
+ * INTERNAL - Return a literal as an integer value
+ *
  * Integers, booleans, double and float literals natural are turned into
  * integers. If string values are the lexical form of an integer, that is
  * returned.  Otherwise the error flag is set.
@@ -1322,8 +1333,7 @@ rasqal_literal_as_boolean(rasqal_literal* l, int *error)
 int
 rasqal_literal_as_integer(rasqal_literal* l, int *error)
 {
-  if(!l)
-    return 0;
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(l, rasqal_literal, 0);
   
   switch(l->type) {
     case RASQAL_LITERAL_INTEGER:
@@ -1388,10 +1398,12 @@ rasqal_literal_as_integer(rasqal_literal* l, int *error)
 
 
 /*
- * rasqal_literal_as_floating - INTERNAL Return a literal as a floating value
+ * rasqal_literal_as_floating:
  * @l: #rasqal_literal object
  * @error: pointer to error flag
  * 
+ * INTERNAL - Return a literal as a floating value
+ *
  * Integers, booleans, double and float literals natural are turned into
  * integers. If string values are the lexical form of an floating, that is
  * returned.  Otherwise the error flag is set.
@@ -1401,8 +1413,7 @@ rasqal_literal_as_integer(rasqal_literal* l, int *error)
 double
 rasqal_literal_as_floating(rasqal_literal* l, int *error)
 {
-  if(!l)
-    return 0;
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(l, rasqal_literal, 0.0);
   
   switch(l->type) {
     case RASQAL_LITERAL_INTEGER:
@@ -1455,16 +1466,17 @@ rasqal_literal_as_floating(rasqal_literal* l, int *error)
 
 
 /*
- * rasqal_literal_as_uri - INTERNAL Return a literal as a raptor_uri*
+ * rasqal_literal_as_uri:
  * @l: #rasqal_literal object
+ *
+ * INTERNAL - Return a literal as a raptor_uri*
  * 
  * Return value: raptor_uri* value or NULL on failure
  **/
 raptor_uri*
 rasqal_literal_as_uri(rasqal_literal* l)
 {
-  if(!l)
-    return NULL;
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(l, rasqal_literal, NULL);
   
   if(l->type==RASQAL_LITERAL_URI)
     return l->value.uri;
@@ -1496,8 +1508,7 @@ rasqal_literal_as_uri(rasqal_literal* l)
 const unsigned char*
 rasqal_literal_as_string_flags(rasqal_literal* l, int flags, int *error)
 {
-  if(!l)
-    return NULL;
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(l, rasqal_literal, NULL);
   
   switch(l->type) {
     case RASQAL_LITERAL_XSD_STRING:
@@ -1545,6 +1556,8 @@ rasqal_literal_as_string_flags(rasqal_literal* l, int flags, int *error)
 const unsigned char*
 rasqal_literal_as_string(rasqal_literal* l)
 {
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(l, rasqal_literal, NULL);
+
   return rasqal_literal_as_string_flags(l, 0, NULL);
 }
 
@@ -1559,11 +1572,13 @@ rasqal_literal_as_string(rasqal_literal* l)
 rasqal_variable*
 rasqal_literal_as_variable(rasqal_literal* l)
 {
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(l, rasqal_literal, NULL);
+
   return (l->type == RASQAL_LITERAL_VARIABLE) ? l->value.variable : NULL;
 }
 
 
-/**
+/*
  * rasqal_literal_promote_numerics:
  * @l1: first literal
  * @l2: second literal
@@ -1676,7 +1691,7 @@ rasqal_literal_get_rdf_term_type(rasqal_literal* l)
  * @type: type to promote to
  * @flags; if RASQAL_COMPARE_URI is set, do sloppy promotion from string to bool (RDQL)
  *
- * Make a new literal from a type promotion
+ * INTERNAL - Make a new literal from a type promotion
  *
  * New literal or NULL on failure
 */
@@ -1693,6 +1708,8 @@ rasqal_new_literal_from_promotion(rasqal_literal* lit,
   const unsigned char* s;
   size_t len;
   
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(lit, rasqal_literal, NULL);
+
   if(lit->type == type)
     return rasqal_new_literal_from_literal(lit);
 
@@ -1863,6 +1880,15 @@ rasqal_literal_string_compare(rasqal_literal* l1, rasqal_literal* l2,
 }
 
 
+/*
+ * rasqal_literal_rdql_promote_calculate:
+ * @l1: first literal
+ * @l2: second literal
+ *
+ * INTERNAL - Handle RDQL type promotion rules
+ *
+ * Return value: type to promote to or RASQAL_LITERAL_UNKNOWN if not possible.
+ */
 static rasqal_literal_type
 rasqal_literal_rdql_promote_calculate(rasqal_literal* l1, rasqal_literal* l2)
 {    
@@ -1971,7 +1997,10 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
   int promotion=0;
   
   if(error)
-    *error=0;
+    *error = 0;
+
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(l1, rasqal_literal, 0);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(l2, rasqal_literal, 0);
 
   lits[0]=rasqal_literal_value(l1);
   lits[1]=rasqal_literal_value(l2);
@@ -2140,7 +2169,7 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
 }
 
 
-/**
+/*
  * rasqal_literal_string_equals:
  * @l1: #rasqal_literal first literal
  * @l2: #rasqal_literal second literal
@@ -2155,11 +2184,20 @@ rasqal_literal_string_equals(rasqal_literal* l1, rasqal_literal* l2,
                              int* error_p)
 {
   int result=1;
-  raptor_uri* dt1=l1->datatype;
+  raptor_uri* dt1;
   int free_dt1 = 0;
-  raptor_uri* dt2=l2->datatype;
+  raptor_uri* dt2;
   int free_dt2 = 0;
   raptor_uri* xsd_string_uri;
+
+  if(error_p)
+    *error_p = 0;
+  
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(l1, rasqal_literal, 0);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(l2, rasqal_literal, 0);
+
+  dt1 = l1->datatype;
+  dt2 = l2->datatype;
 
   xsd_string_uri = rasqal_xsd_datatype_type_to_uri(l1->world,
                                                    RASQAL_LITERAL_XSD_STRING);
@@ -2263,6 +2301,8 @@ int
 rasqal_literal_not_equals_flags(rasqal_literal* l1, rasqal_literal* l2,
                                 int flags, int* error_p)
 {
+  /* rasqal_literal_equals_flags() checks for NULLs */
+
   return !rasqal_literal_equals_flags(l1, l2, flags, error_p);
 }
 
@@ -2282,6 +2322,8 @@ rasqal_literal_not_equals_flags(rasqal_literal* l1, rasqal_literal* l2,
 int
 rasqal_literal_equals(rasqal_literal* l1, rasqal_literal* l2)
 {
+  /* rasqal_literal_equals_flags() checks for NULLs */
+
   return rasqal_literal_equals_flags(l1, l2, 0, NULL);
 }
 
@@ -2311,7 +2353,7 @@ rasqal_literal_equals_flags(rasqal_literal* l1, rasqal_literal* l2,
   int result=0;
   int promotion=0;
   
-  /* null literals */
+  /* NULL literals */
   if(!l1 || !l2) {
     /* if either is not null, the comparison fails */
     return (l1 || l2);
@@ -2453,10 +2495,12 @@ rasqal_literal_equals_flags(rasqal_literal* l1, rasqal_literal* l2,
 
 
 /*
- * rasqal_literal_expand_qname - INTERNAL Expand any qname in a literal into a URI
+ * rasqal_literal_expand_qname:
  * @user_data: #rasqal_query cast as void for use with raptor_sequence_foreach
  * @l: #rasqal_literal literal
- * 
+ *
+ * INTERNAL - Expand any qname in a literal into a URI
+ *
  * Expands any QName inside the literal using prefixes that are
  * declared in the query that may not have been present when the
  * literal was first declared.  Intended to be used standalone
@@ -2469,6 +2513,8 @@ int
 rasqal_literal_expand_qname(void *user_data, rasqal_literal *l)
 {
   rasqal_query *rq=(rasqal_query *)user_data;
+
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(l, rasqal_literal, 1);
 
   if(l->type == RASQAL_LITERAL_QNAME) {
     /* expand a literal qname */
@@ -2523,15 +2569,20 @@ rasqal_literal_expand_qname(void *user_data, rasqal_literal *l)
 
 
 /*
- * rasqal_literal_has_qname - INTERNAL Check if literal has a qname part
+ * rasqal_literal_has_qname
  * @l: #rasqal_literal literal
- * 
+ *
+ * INTERNAL - Check if literal has a qname part
+ *
  * Checks if any part ofthe literal has an unexpanded QName.
  * 
  * Return value: non-0 if a QName is present
  **/
 int
-rasqal_literal_has_qname(rasqal_literal *l) {
+rasqal_literal_has_qname(rasqal_literal *l)
+{
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(l, rasqal_literal, 0);
+
   return (l->type == RASQAL_LITERAL_QNAME) ||
          (l->type == RASQAL_LITERAL_STRING && (l->flags));
 }
@@ -2552,8 +2603,8 @@ rasqal_literal_as_node(rasqal_literal* l)
   rasqal_literal* new_l=NULL;
   
   reswitch:
-  if(!l)
-    return NULL;
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(l, rasqal_literal, NULL);
+
   switch(l->type) {
     case RASQAL_LITERAL_URI:
     case RASQAL_LITERAL_STRING:
@@ -2612,9 +2663,11 @@ rasqal_literal_as_node(rasqal_literal* l)
 
 
 /*
- * rasqal_literal_ebv - INTERNAL Get the rasqal_literal effective boolean value
+ * rasqal_literal_ebv:
  * @l: #rasqal_literal literal
  * 
+ * INTERNAL -  Get the rasqal_literal effective boolean value
+ *
  * Return value: non-0 if EBV is true, else false
  **/
 int
@@ -2622,9 +2675,11 @@ rasqal_literal_ebv(rasqal_literal* l)
 {
   rasqal_variable* v;
   /* Result is true unless... */
-  int b=1;
+  int b = 1;
   
-  v=rasqal_literal_as_variable(l);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(l, rasqal_literal, 0);
+
+  v = rasqal_literal_as_variable(l);
   if(v) {
     if(v->value == NULL) {
       /* ... The operand is unbound */
@@ -2666,14 +2721,18 @@ rasqal_literal_ebv(rasqal_literal* l)
 
 
 /*
- * rasqal_literal_is_constant - INTERNAL Check if a literal is a constant
+ * rasqal_literal_is_constant:
  * @l: #rasqal_literal literal
  * 
+ * INTERNAL - Check if a literal is a constant
+ *
  * Return value: non-0 if literal is a constant
  **/
 int
 rasqal_literal_is_constant(rasqal_literal* l)
 {
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(l, rasqal_literal, 0);
+
   switch(l->type) {
     case RASQAL_LITERAL_URI:
     case RASQAL_LITERAL_BLANK:
