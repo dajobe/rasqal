@@ -124,7 +124,8 @@ rasqal_new_variable_from_variable(rasqal_variable* v)
   size_t name_len;
   unsigned char *new_name;
 
-  new_v = (rasqal_variable*)RASQAL_CALLOC(rasqal_variable, 1, sizeof(*new_v));
+  new_v = (rasqal_variable*)RASQAL_CALLOC(rasqal_variable, 1,
+                                          sizeof(rasqal_variable));
   if(!new_v)
     return NULL;
   
@@ -137,11 +138,11 @@ rasqal_new_variable_from_variable(rasqal_variable* v)
   memcpy(new_name, v->name, name_len+1);
 
   new_v->vars_table = v->vars_table;
-  new_v->name = new_name;
-  new_v->value = rasqal_new_literal_from_literal(v->value);
-  new_v->offset = v->offset;
-  new_v->type = v->type;
-  new_v->expression = v->expression ? rasqal_new_expression_from_expression(v->expression) : NULL;
+  new_v->name= new_name;
+  new_v->value= rasqal_new_literal_from_literal(v->value);
+  new_v->offset= v->offset;
+  new_v->type= v->type;
+  new_v->expression= rasqal_new_expression_from_expression(v->expression);
 
   return new_v;
 }
