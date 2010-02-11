@@ -74,7 +74,7 @@ LIBS= @RASQAL_INTERNAL_LIBS@ @RASQAL_EXTERNAL_LIBS@ $(MEM_LIBS)
 librasqal_la_SOURCES = \
 rasqal_algebra.c \
 rasqal_expr.c rasqal_general.c rasqal_query.c rasqal_query_results.c \
-rasqal_engine.c rasqal_raptor.c rasqal_literal.c \
+rasqal_engine.c rasqal_raptor.c rasqal_literal.c rasqal_formula.c \
 rasqal_graph_pattern.c rasqal_map.c rasqal_feature.c \
 rasqal_result_formats.c rasqal_xsd_datatypes.c rasqal_decimal.c \
 rasqal_datetime.c rasqal_rowsource.c rasqal_format_sparql_xml.c \

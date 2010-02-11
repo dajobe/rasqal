@@ -193,6 +193,7 @@ rasqal_query_get_update_operations_sequence
 <FILE>section-query_results</FILE>
 rasqal_query_results
 rasqal_free_query_results
+rasqal_query_results_add_row
 rasqal_query_results_finished
 rasqal_query_results_get_binding_name
 rasqal_query_results_get_binding_value
@@ -213,6 +214,7 @@ rasqal_query_results_read2
 rasqal_query_results_read
 rasqal_query_results_write2
 rasqal_query_results_write
+rasqal_query_results_type
 </SECTION>
 
 <SECTION>
@@ -229,6 +231,15 @@ rasqal_free_query_results_formatter
 rasqal_query_results_formatter_get_mime_type
 rasqal_query_results_formatter_read
 rasqal_query_results_formatter_write
+</SECTION>
+
+<SECTION>
+<FILE>section-row</FILE>
+rasqal_row
+rasqal_new_row_for_size
+rasqal_free_row
+rasqal_row_set_value_at
+rasqal_new_query_results
 </SECTION>
 
 <SECTION>
@@ -260,7 +271,14 @@ rasqal_free_variable
 rasqal_variable_print
 rasqal_variable_set_value
 rasqal_variable_type
+</SECTION>
+
+<SECTION>
+<FILE>section-variables-table</FILE>
 rasqal_variables_table
+rasqal_new_variables_table
+rasqal_free_variables_table
+rasqal_variables_table_add
 </SECTION>
 
 <SECTION>

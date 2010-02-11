@@ -1,0 +1,68 @@
+<!-- ##### SECTION Title ##### -->
+Query Result Row.
+
+<!-- ##### SECTION Short_Description ##### -->
+Result row in a query result set containing a set of literals that are bound to variables.
+
+<!-- ##### SECTION Long_Description ##### -->
+<para>
+An ordered row of #rasqal_literal values that are each bound to
+#rasqal_variable defined in an associated #rasqal_variables table inside
+a #rasqal_query_results query result set.
+</para>
+
+<!-- ##### SECTION See_Also ##### -->
+<para>
+
+</para>
+
+<!-- ##### SECTION Stability_Level ##### -->
+
+
+<!-- ##### TYPEDEF rasqal_row ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### FUNCTION rasqal_new_row_for_size ##### -->
+<para>
+
+</para>
+
+@world: 
+@size: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_free_row ##### -->
+<para>
+
+</para>
+
+@row: 
+
+
+<!-- ##### FUNCTION rasqal_row_set_value_at ##### -->
+<para>
+
+</para>
+
+@row: 
+@offset: 
+@value: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_new_query_results ##### -->
+<para>
+
+</para>
+
+@world: 
+@query: 
+@type: 
+@vars_table: 
+@Returns: 
+
+

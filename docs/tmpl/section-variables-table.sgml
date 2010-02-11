@@ -1,0 +1,57 @@
+<!-- ##### SECTION Title ##### -->
+Variables Table.
+
+<!-- ##### SECTION Short_Description ##### -->
+A table of variables with optional bound literal values.
+
+<!-- ##### SECTION Long_Description ##### -->
+<para>
+A table of #rasqal_variable usually associated with a #rasqal_query query
+or #rasqal_query_results query result set.  The order of the variables in
+the table may be significant, such as for a standalone query result set
+in which case it might define the order of variables in resulting rows.
+</para>
+
+<!-- ##### SECTION See_Also ##### -->
+<para>
+
+</para>
+
+<!-- ##### SECTION Stability_Level ##### -->
+
+
+<!-- ##### TYPEDEF rasqal_variables_table ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### FUNCTION rasqal_new_variables_table ##### -->
+<para>
+
+</para>
+
+@world: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_free_variables_table ##### -->
+<para>
+
+</para>
+
+@vt: 
+
+
+<!-- ##### FUNCTION rasqal_variables_table_add ##### -->
+<para>
+
+</para>
+
+@vt: 
+@type: 
+@name: 
+@value: 
+@Returns: 
+
+
