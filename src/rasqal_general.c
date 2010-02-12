@@ -538,11 +538,24 @@ rasqal_language_name_check(rasqal_world* world, const char *name)
 
 
 static const char* const rasqal_log_level_labels[RAPTOR_LOG_LEVEL_LAST+1]={
+#ifdef RAPTOR_V2_AVAILABLE
+  /* raptor2 levels */
+ "none",
+ "trace",
+ "debug",
+ "info",
+ "warn",
+ "error",
+ "fatal"
+#else
+  /* raptor1 levels */
   "none",
   "fatal error",
   "error",
   "warning"
+#endif
 };
+
 
 
 /* internal */
