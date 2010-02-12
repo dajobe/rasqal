@@ -148,7 +148,7 @@ main(int argc, char **argv) {
   
   uri_string=raptor_uri_filename_to_uri_string("");
 #ifdef RAPTOR_V2_AVAILABLE
-  base_uri = raptor_new_uri_v2(world->raptor_world_ptr, uri_string);
+  base_uri = raptor_new_uri(world->raptor_world_ptr, uri_string);
 #else
   base_uri = raptor_new_uri(uri_string);
 #endif
@@ -157,16 +157,16 @@ main(int argc, char **argv) {
 
   data_dir_string=raptor_uri_filename_to_uri_string(argv[1]);
 #ifdef RAPTOR_V2_AVAILABLE
-  data_dir_uri = raptor_new_uri_v2(world->raptor_world_ptr, data_dir_string);
+  data_dir_uri = raptor_new_uri(world->raptor_world_ptr, data_dir_string);
 #else
   data_dir_uri = raptor_new_uri(data_dir_string);
 #endif
 
   for(i=0; i < DATA_GRAPH_COUNT; i++)
 #ifdef RAPTOR_V2_AVAILABLE
-    graph_uris[i] = raptor_new_uri_relative_to_base_v2(world->raptor_world_ptr,
-                                                       data_dir_uri,
-                                                       (const unsigned char*)graph_files[i]);
+    graph_uris[i] = raptor_new_uri_relative_to_base(world->raptor_world_ptr,
+                                                    data_dir_uri,
+                                                    (const unsigned char*)graph_files[i]);
 #else
     graph_uris[i] = raptor_new_uri_relative_to_base(data_dir_uri,
                                                     (const unsigned char*)graph_files[i]);
@@ -252,22 +252,11 @@ main(int argc, char **argv) {
       }
       
       graph_uri=graph_value->value.uri;
-      if(
-#ifdef RAPTOR_V2_AVAILABLE
-         !raptor_uri_equals_v2(world->raptor_world_ptr, graph_uri, graph_answer)
-#else
-         !raptor_uri_equals(graph_uri, graph_answer)
-#endif
-         ) {
+      if(!raptor_uri_equals(graph_uri, graph_answer)) {
         printf("result %d FAILED: %s=", count, (char*)graph_var);
         rasqal_literal_print(graph_value, stdout);
         printf(" expected URI value <%s>\n",
-#ifdef RAPTOR_V2_AVAILABLE
-               raptor_uri_as_string_v2(world->raptor_world_ptr, graph_answer)
-#else
-               raptor_uri_as_string(graph_answer)
-#endif
-               );
+               raptor_uri_as_string(graph_answer));
         query_failed=1;
         break;
       }
@@ -300,24 +289,12 @@ main(int argc, char **argv) {
 
   for(i=0; i < DATA_GRAPH_COUNT; i++) {
     if(graph_uris[i])
-#ifdef RAPTOR_V2_AVAILABLE
-      raptor_free_uri_v2(world->raptor_world_ptr, graph_uris[i]);
-#else
       raptor_free_uri(graph_uris[i]);
-#endif
   }
-#ifdef RAPTOR_V2_AVAILABLE
-  raptor_free_uri_v2(world->raptor_world_ptr, data_dir_uri);
-#else
   raptor_free_uri(data_dir_uri);
-#endif
   raptor_free_memory(data_dir_string);
 
-#ifdef RAPTOR_V2_AVAILABLE
-  raptor_free_uri_v2(world->raptor_world_ptr, base_uri);
-#else
   raptor_free_uri(base_uri);
-#endif
 
   rasqal_free_world(world);
 
