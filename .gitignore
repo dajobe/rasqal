@@ -4,7 +4,6 @@
 *.log
 .gdb_history
 .gdbinit
-ChangeLog*
 INSTALL
 LICENSE.txt
 Makefile
