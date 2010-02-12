@@ -2,7 +2,7 @@
 #
 # Makefile.am - automake file for Rasqal RDF query language library
 #
-# Copyright (C) 2003-2009, David Beckett http://www.dajobe.org/
+# Copyright (C) 2003-2010, David Beckett http://www.dajobe.org/
 # Copyright (C) 2003-2005, University of Bristol, UK http://www.bristol.ac.uk/
 # 
 # This package is Free Software and part of Redland http://librdf.org/
@@ -31,7 +31,7 @@ pkgconfig_DATA = rasqal.pc
 
 
 EXTRA_DIST=ChangeLog ChangeLog.1 ChangeLog.2 ChangeLog.3 ChangeLog.4 \
-ChangeLog.5 ChangeLog.6 \
+ChangeLog.5 ChangeLog.6 ChangeLog.7 \
 README      NEWS      LICENSE.txt \
 README.html NEWS.html LICENSE.html INSTALL.html \
 RELEASE.html \

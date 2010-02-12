@@ -1,0 +1,2946 @@
+2009-12-16  Dave Beckett  <dave@dajobe.org>
+
+	* Snapshotted rasqal_0_9_17 for 0.9.17 release (SVN 15914)
+
+	* src/rasqal_literal.c:
+	(rasqal_literal_compare): When comparing URIs and get error, pass
+	through cleanup to deallocate promoted literals.
+
+	* src/rasqal_algebra.c:
+	(rasqal_free_algebra_node): Free graph and var fields.
+
+	* src/rasqal_rowsource_join.c:
+	(rasqal_join_rowsource_read_row): During join, do not lose track
+	of right_row rows that are discarded.
+
+	* src/rasqal_rowsource_graph.c:
+	(rasqal_graph_next_dg): Do not keep extra reference to o; pass it
+	to con->var
+
+	* src/rasqal_query_write.c:
+	(rasqal_query_write_sparql_literal): Handle printing out UDT URIs
+	correctly.
+
+	* src/rasqal_query_write.c:
+	(rasqal_query_write_sparql_graph_pattern): Do not add {}s around
+	FILTER; it never appears on it's own.
+
+2009-12-15  Dave Beckett <dave@dajobe.org>
+
+	* utils/roqet.1: spellings
+
+	* utils/roqet.1: Add longer examples section
+
+2009-12-14  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_engine.c: (rasqal_query_engine_1_set_origin_triples):
+	Re-initialise column for origin to first triple seen - for QE1.
+	
+	* docs/tmpl/section-graph_pattern.sgml: Update tmpl for
+	rasqal_graph_pattern_get_origin
+
+	* src/rasqal_query_transform.c:
+	(rasqal_query_triples_build_bound_in): Initialise bound_in array
+	to BOUND_IN_UNBOUND.
+	(rasqal_query_graph_pattern_build_bound_in): If a GRAPH is seen,
+	set any variable seen to BOUND_ELSEWHERE.
+	(rasqal_query_build_bound_in): Initialise bound_in array to
+	BOUND_IN_UNBOUND.  Set any select expression variables to
+	BOUND_IN_ELSEWHERE.
+	(rasqal_query_check_unused_variables): Update FIXME comment - does
+	not handle LET. Only warn for variables BOUND_IN_UNBOUND.
+
+	* src/rasqal_query.c: (rasqal_query_variable_bound_in_triple):
+	Return not bound for non-column values.
+
+	* src/rasqal_graph_pattern.c:
+	(rasqal_graph_pattern_variable_bound_in): Return not bound for
+	non-column values.
+
+	* src/rasqal_engine.c: (rasqal_query_engine_1_set_origin_triples):
+	Use column is BOUND_IN_UNBOUND for variable unbound check.
+
+	* src/rasqal_internal.h: Define magic (non-column number ) values
+	for query->variables_bound_in BOUND_IN_UNBOUND and
+	BOUND_IN_ELSEWHERE
+
+	* src/rasqal_graph_pattern.c: autodocs
+
+	* docs/rasqal-sections.txt, src/rasqal.h,
+	src/rasqal_graph_pattern.c: (rasqal_graph_pattern_get_origin):
+	Added to public api for GRAPH graph pattern
+
+	* src/rasqal_query_write.c:
+	(rasqal_query_write_sparql_graph_pattern): Write GRAPH pattern
+	literal from gp->origin field.
+
+	* src/sparql_parser.y: err typo
+
+	* docs/tmpl/section-general.sgml: Update generated tmpls for new
+	version macros
+
+	* configure.ac, docs/rasqal-sections.txt, src/rasqal.h,
+	src/rasqal_general.c, src/win32_rasqal_config.h: Add version
+	defines to rasqal.h
+
+	Hard-code RASQAL_VERSION, RASQAL_VERSION_STRING,
+	RASQAL_VERSION_MAJOR, RASQAL_VERSION_MINOR and
+	RASQAL_VERSION_RELEASE into rasqal.h to make it easier for
+	clients.
+
+	Remove version_decimal computation and substution fron
+	configure.in
+
+	Remove version defines from win32_rasqal_config.h.
+
+	Add defines to docs.
+
+	rasqal_version_decimal now uses RASQAL_VERSION.
+	rasqal_version_string now uses the RASQAL_VERSION_STRING (not
+	VERSION)
+
+2009-12-13  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_general.c, src/rasqal_engine.c,
+	src/rasqal_format_table.c, src/rasqal_literal.c: Casts for C++
+
+	* src/rasqal_rowsource_join.c:
+	rasqal_join_rowsource_context struct gains right_rows_joined_count
+	field to count number of right rows generated per left row. 
+	(rasqal_join_rowsource_read_row): Use above to generate a new left
+	row - for left join - once only when entire right rowsource
+	generated no results.  This should fix the semantics of left outer
+	join.
+
+2009-12-12  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal-config.in: remove warning
+
+	* src/rasqal_engine.c: Update comment in rasqal_engine_gp_data
+	referring to old flags.
+
+	* src/rasqal.h: Removed rasqal_triple_flags enum with unused
+	flags: RASQAL_TRIPLE_FLAGS_EXACT, RASQAL_TRIPLE_FLAGS_OPTIONAL and
+	RASQAL_TRIPLE_FLAGS_LAST
+
+	* src/rasqal.h: rasqal_compare_flags autodocs
+
+	* src/rasqal-config.in: Add warning
+
+	* src/rasqal-config.in: Try computing the decimal version another way
+
+	* docs/rasqal-sections.txt, docs/tmpl/rasqal-unused.sgml,
+	docs/tmpl/section-data.sgml, docs/tmpl/section-expression.sgml,
+	docs/tmpl/section-graph_pattern.sgml,
+	docs/tmpl/section-prefix.sgml,
+	docs/tmpl/section-triples_source.sgml,
+	docs/tmpl/section-variable.sgml, docs/tmpl/section-xsd.sgml:
+	Update gtk-doc templates
+
+	* src/rasqal.h: autodocs
+
+	* src/rasqal.h: rasqal_graph_pattern_variable_bound_in is RASQAL_API
+
+	* src/rasqal_graph.c: autodocs
+	however this is unused/uncompiled code at this point
+
+
+	* docs/Makefile.am: Ignore rasqal_graph.c
+
+	* src/rasqal_graph_pattern.c:
+	(rasqal_graph_pattern_variable_bound_in): autodocs
+
+	* src/rasqal_algebra.c:
+	(rasqal_algebra_query_to_algebra): For construct, walk selects to
+	make projection.  The query->constructs is an array of triples,
+	not variables.
+
+	* tests/engine/rasqal_construct_test.c:
+	(main): removed unused var i
+
+	* src/rasqal_variable.c:
+	(rasqal_new_variable_from_variable): Copy vars_table
+
+	* src/rasqal_variable.c:
+	(rasqal_variables_table_add): Assign vars_table to owning object.
+
+	* src/rasqal_internal.h: Move typedef rasqal_variables_table to
+	rasqal.h
+
+	* src/rasqal.h: Give all public structures a pointer to their
+	owner object - usually rasqal_world as the first element in
+	structure; since we're breaking the ABI.
+	rasqal_prefix, rasqal_data_graph, rasqal_literal, rasqal_expression,
+	rasqal_triples_match, rasqal_triples_match_s: moved rasqal_world*
+	to start.
+	rasqal_expression: added autodocs
+	rasqal_variable: add pointer to variables table.
+
+	* tests/engine/rasqal_construct_test.c:
+	(main): Fix error printf using uninitialized var
+
+	* src/rasqal_redland.c:
+	(rasqal_redland_finish): handle early finish before init is done.
+
+	* src/rasqal_redland.c: fixes
+
+	* src/rasqal-config.in: Update to latest common code.
+
+	* src/rasqal.h, src/rasqal_raptor.c, src/rasqal_redland.c,
+	src/rasqal_triples_source.c: Add versioning to the structures
+	registered by user API.
+
+	rasqal_triples_source gains API version field.  Current API is V1.
+	rasqal_triples_source_factory gains API version field.  Current
+	API is V1.
+	Added typedef rasqal_triples_source_factory_register_fn which
+	registers a triples source factory and returns an error status.
+
+	(rasqal_set_triples_source_factory): Check error return from TSF
+	registration function.  Checks API version of passed in factory is
+	in supported range or log failure.  Returns errors.
+
+	(rasqal_new_triples_source): Check API version of constructed triple
+	source is in supported range or log failure.
+
+	(rasqal_raptor_new_triples_source): Return API V1.
+	(rasqal_raptor_register_triples_source_factory): Return factory
+	API v1 qnd return code.
+
+	(rasqal_redland_new_triples_source): Return API V1
+	(rasqal_redland_register_triples_source_factory): Return factory
+	API v1 qnd return code.
+
+	Code style and tidying in above modules.
+
+	* src/rasqal.h, src/rasqal_decimal.c, src/rasqal_literal.c:
+	(rasqal_new_xsd_decimal): Add rasqal_world arg to constructor to
+	match all other classes.
+
+	* src/rasqal.h, src/rasqal_algebra.c, src/rasqal_graph_pattern.c:
+	Remove deprecated rasqal_graph_pattern_get_constraint
+
+	* src/rasqal_graph_pattern.c, src/rasqal_internal.h: struct
+	rasqal_graph_pattern_s loses constraints field used to support
+	deprecate functions
+
+	* src/rasqal.h, src/rasqal_graph_pattern.c:
+	Removed deprecated rasqal_graph_pattern_get_constraint_sequence
+
+	* src/rasqal.h, src/rasqal_graph_pattern.c:
+	Removed deprecated rasqal_graph_pattern_add_constraint
+
+	* src/rasqal.h, src/rasqal_algebra.c, src/rasqal_engine.c,
+	src/rasqal_engine_sort.c, src/rasqal_expr.c,
+	src/rasqal_query_transform.c, src/rasqal_rowsource_assignment.c,
+	src/rasqal_rowsource_filter.c, src/rasqal_rowsource_join.c,
+	src/rasqal_rowsource_project.c:
+	Removed deprecated rasqal_expression_evaluate
+
+	Replaced rasqal_expression_evaluate with formerly named
+	rasqal_expression_evaluate2 with an extra rasqal_world arg.
+
+	* configure.ac: RASQAL_LIBTOOL_VERSION 2:0:0
+
+	* Breaking ABI/API and bumping library soname after this commit.
+	Removing deprecated functions, methods.
+
+2009-12-10  Dave Beckett <dave@dajobe.org>
+
+	* tests/algebra/test-05.out, tests/algebra/test-06.out,
+	tests/algebra/test-08.out, tests/algebra/test-09.out:
+	Update expected results to remove optimized-out expr(boolean(true))
+
+	* src/rasqal_algebra.c:
+	(rasqal_algebra_remove_znodes): Only merge join nodes with two
+	nodes, one of which is an empty graph pattern.  If there is a join
+	condition, it must be constant TRUE.
+
+	This optimization of constant join conditions - TRUE/FALSE should
+	be a separate previous path and replace join with always FALSE
+	conditions with an empty node.
+
+	* src/sparql_parser.y:
+	(Collection): Free sequence of formulas after processing the
+	triples.
+	(GraphNodeListNotEmpty): Join node to sequence and initialise if
+	NULL, handle errors and cleanup.
+
+	* src/sparql_lexer.l:
+	(sparql_token_free): Free more literal types when debugging lexing.
+
+	* src/rasqal_rowsource_triples.c:
+	(rasqal_new_triples_rowsource): If this is an empty triple
+	pattern, free owned bound_in before calling return
+	rasqal_new_empty_rowsource constructor.
+
+	* tests/rdql/testsuite/check-rdql, tests/sparql/check-sparql:
+	Allow check-rdql and check-sparql to override roqet and rapper
+	using envariables ROQET and RAPPER
+
+	* src/rasqal_literal.c:
+	(rasqal_literal_string_equals): Only free dt1 and dt2 if allocated
+	here.
+
+2009-12-10  Lauri Aalto <laalto@iki.fi>
+
+	* src/sparql_parser.y:
+	(ConstructTriplesOpt): Initialize empty query->constructs
+	sequence. Fixes
+	sparql/SyntaxDev/Syntax-SPARQL2/syntax-form-construct05.rq test.
+
+2009-12-10  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_literal.c:
+	(rasqal_literal_string_equals): Free dt1 and dt2 on success and
+	error.
+
+	* src/rasqal_literal.c:
+	(rasqal_new_integer_literal): Assign static string for
+	RASQAL_LITERAL_BOOLEAN to avoid memory leak on string later.
+
+	* src/rasqal_raptor.c:
+	(rasqal_raptor_new_triples_source): Free name_uri when copied
+	here.
+
+2009-12-08  Dave Beckett <dave@dajobe.org>
+
+	* docs/tmpl/rasqal-unused.sgml, docs/tmpl/section-expression.sgml,
+	docs/tmpl/section-graph_pattern.sgml,
+	docs/tmpl/section-literal.sgml, docs/tmpl/section-unused.sgml:
+	update derived docs
+
+2009-12-07  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_format_table.c: Remove several #if 1 blocks for
+	writing padded strings
+
+	* src/rasqal.h, src/rasqal_engine.c, src/rasqal_engine_sort.c,
+	src/rasqal_expr.c, src/rasqal_query_transform.c,
+	src/rasqal_rowsource_assignment.c, src/rasqal_rowsource_filter.c,
+	src/rasqal_rowsource_join.c,
+	src/rasqal_rowsource_project.c:
+	(rasqal_expression_evaluate2): Renamed from
+	rasqal_expression_evaluate_v2
+
+	* src/rasqal_query.c:
+	(rasqal_query_get_engine_by_name): Set default query engine based
+	on RASQAL_QUERY_ENGINE_VERSION define.  This function is currently
+	only ever called in the library with NULL as a value, so users
+	cannot switch query engine after configure.
+
+	* configure.ac:
+	Added --with-query-engine-version arg with values 1 or 2
+	Defines RASQAL_QUERY_ENGINE_VERSION with value.
+	Just adding this to allow people to switch to old engine when
+	building, if necessary.  Default query engine is now V2.
+
+2009-12-04  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_engine.c:
+	(rasqal_engine_graph_pattern_init): use
+	rasqal_query_variable_bound_in_triple not
+	rasqal_graph_pattern_variable_bound_in to check when found the
+	triple to bind in.  Former returns true for every variable in a
+	triple loop so caused mis-binding.
+
+	* src/rasqal_query_transform.c:
+	(rasqal_query_triples_build_bound_in_internal): Add debug messages
+	when a variable binding triple is found.
+
+	* src/rasqal_internal.h, src/rasqal_query.c:
+	(rasqal_query_variable_bound_in_triple): Added to check if a
+	variable is bound in a triple/column.
+
+	* src/sparql_parser.y:
+	(WhereClause): Added
+	(WhereClauseOpt): Use above or empty.
+	(SelectQuery, ConstructQuery, AskQuery): Use required WhereClause for
+	SELECT, CONSTRUCT and ASK queries
+	(DescribeQuery): Use optional WhereClauseOpt for DESCRIBE queries.
+
+	* src/sparql_parser.y: 
+	(WhereClauseOpt): WHERE is optional but the graph pattern is not.
+
+	* tests/sparql/syntax/0triples.rq:
+	Add where {} with empty graph pattern to 0triples.rq
+
+	* tests/sparql/syntax/Makefile.am,
+	tests/sparql/syntax/select-no-gp.rq: Add select * as bad query in
+	new query select-no-gp.rq
+
+2009-11-30  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_format_sparql_xml.c:
+	(rasqal_query_results_write_sparql_xml): Remove unused code that
+	attempted to write W3C XML Schemas XSD header.  Out of date and
+	not needed.
+
+	* src/rasqal_engine.c:
+	(rasqal_engine_graph_pattern_order): Removed - dead code.
+
+2009-11-29  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_query_transform.c:
+	Rename functions and args/variables for terminology: use_map for a
+	2D array, use_map row for a 1D row in use-map
+
+	* src/rasqal_query_transform.c:
+	(rasqal_query_build_variables_sequence_use_map,
+	rasqal_query_build_literals_sequence_use_map): Remove unused query
+	arg.
+
+	* src/rasqal_query_transform.c:
+	(rasqal_query_triples_build_variables_use_map,
+	rasqal_query_build_variables_sequence_use_map,
+	rasqal_query_build_literals_sequence_use_map): Return status code
+	(rasqal_query_build_variables_use_map): Check return code of above
+	for failures.
+
+	* src/rasqal_query_transform.c:
+	(rasqal_query_build_expressions_sequence_use_map): Added.
+	(rasqal_query_build_variables_use_map): Use above to mark use of
+	variables in query order_conditions_sequence (ORDER BY) sequence
+	of rasqal_expression
+
+	* src/rasqal_query_transform.c:
+	Restore indenting messed up in SVN r15741
+
+	* src/rasqal_query_transform.c:
+	indenting
+
+	* src/rasqal_query_transform.c:
+	(rasqal_query_triples_build_variables_use_map): Renamed from
+	rasqal_query_triples_build_variables_use_map_internal but now only
+	used in this file.
+
+	* src/rasqal_internal.h:
+	Remove rasqal_query_triples_build_variables_use_map prototype -
+	never called outside module.
+
+	* src/rasqal_query_transform.c:
+	(rasqal_query_triples_build_variables_use_map): Removed, never
+	called.
+
+	* src/rasqal_query_transform.c:
+	(rasqal_query_triples_build_variables_use_map_internal): Take a
+	triples sequence arg so can be used for construct.
+	(rasqal_query_triples_build_variables_use_map): Pass in triples
+	seq.
+	(rasqal_query_graph_pattern_build_variables_use_map): Pass in
+	triples seq.
+	(rasqal_query_build_variables_use_map): Use
+	rasqal_query_triples_build_variables_use_map_internal for
+	construct triples, putting them in the
+	RASQAL_VAR_USE_MAP_OFFSET_VERBS row.
+
+	* src/rasqal_query_transform.c:
+	(rasqal_query_build_literals_sequence_use_map): Added.
+	(rasqal_query_build_variables_use_map): Use above for DESCRIBE
+	args which are a sequence of literals.
+
+	* src/rasqal_query_transform.c:
+	(rasqal_query_build_variables_use_map): Move code comments into
+	internal docucomment.
+
+	* src/rasqal_query_transform.c:
+	(rasqal_query_build_variables_use_map): Expand comments and fixmes
+
+	* configure.ac:
+	Warn if pkg-config is not found - will be a fatal error when
+	raptor2 is required.
+	Prefer pkg-config raptor to raptor-config but accept both for
+	now. pkg-config will not allow compiling against raptor in source
+	tree.
+
+	* ChangeLog, ChangeLog.6, Makefile.am:
+	Add ChangeLog.6 for 2008.
+
+2009-11-29  Lauri Aalto <laalto@iki.fi>
+
+	* autogen.sh: Reduce autogen noise on systems where uname is not
+	in /usr/bin
+
+2009-11-17  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal.h:
+	Define RASQAL_LITERAL_UDT_DEFINED for rdf_query_rasqal.c
+
+	* src/rasqal_rowsource_distinct.c:
+	(rasqal_new_distinct_rowsource): Free passed in rowsource on failure.
+
+	* src/rasqal_rowsource.c:
+	(rasqal_rowsource_read_all_rows): Check for
+	rasqal_rowsource_ensure_variables() failure.
+
+	* src/rasqal_rowsource_sort.c:
+	(rasqal_sort_rowsource_ensure_variables): Check return value from
+	inner rasqal_rowsource_ensure_variables() call.
+
+	* src/rasqal_literal.c:
+	(rasqal_literal_get_rdf_term_type): Always return proper enum
+	value instead of int. Fixed typo in docs.
+
+	* src/rasqal_query_results.c:
+	(rasqal_query_results_execute_with_engine): Also check return
+	value from execute_init() for errors.
+
+	* src/rasqal_engine_algebra.c, src/rasqal_internal.h,
+	src/rasqal_rowsource_sort.c:
+	(rasqal_new_sort_rowsource): Do not take in a triples sequence as
+	one is allocated internally, messing up ownership. Free passed in
+	rowsource on failure.
+
+2009-11-16  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_redland.c:
+	(rasqal_literal_to_redland_node): Use
+	rasqal_literal_get_rdf_term_type to check RDF terminess to get
+	away from ever-expanding if conditions.
+
+	* src/rasqal.h, src/rasqal_internal.h, src/rasqal_literal.c:
+	(rasqal_literal_get_rdf_term_type): Added to public API to return
+	the RDF term type of a literal.
+	(rasqal_literal_is_rdf_literal): Added calling above to return if
+	a term is an RDF literal.
+
+2009-11-16  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_rowsource_sort.c:
+	(rasqal_sort_rowsource_process): Check rasqal_row_set_order_size()
+	return value and clean up on failure.
+
+	* src/rasqal_query_transform.c:
+	(rasqal_graph_patterns_join): Check and return errors from
+	raptor_sequence_join()
+
+	* src/rasqal_algebra.c:
+	(rasqal_algebra_group_graph_pattern_to_algebra): Always free
+	anode, prevent double deletes.
+
+	* src/rasqal_algebra.c:
+	(rasqal_algebra_group_graph_pattern_to_algebra): Free anode on
+	failure.
+
+	* src/rasqal_rowsource_join.c:
+	(rasqal_join_rowsource_read_row): Discard unused right_row.
+
+2009-11-13  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_query_transform.c:
+	(rasqal_expression_expr_build_variables_use_map): Move earlier and
+	take a use_map row.
+	(rasqal_query_build_variables_sequence_use_map): Added to mark
+	variables bound and used in a sequence of vars with optional
+	project expressions.
+	(rasqal_query_build_variables_use_map): Use
+	rasqal_query_build_variables_sequence_use_map for SELECT and
+	DESCRIBE to mark variables.
+
+	* src/rasqal_rowsource_join.c:
+	(rasqal_join_rowsource_build_merged_row): Set row offset from
+	current rowsource context offset.
+
+2009-11-13  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_algebra.c:
+	(rasqal_algebra_basic_graph_pattern_to_algebra,
+	rasqal_algebra_group_graph_pattern_to_algebra): Prevent double
+	free of filter set.
+
+	* src/rasqal_rowsource_union.c:
+	(rasqal_union_rowsource_read_row): Don't leak rows on failure.
+
+	* src/rasqal_rowsource_union.c:
+	(rasqal_union_rowsource_ensure_variables): Check error code from
+	rasqal_rowsource_copy_variables().
+
+	* src/rasqal_rowsource_union.c:
+	(rasqal_new_union_rowsource): Free owned rowsources on failure.
+
+	* src/rasqal_rowsource_join.c:
+	(rasqal_join_rowsource_build_merged_row): Free passed in right_row
+	on failure.
+
+	Added FIXME note to a no-op assignment.
+
+	* src/rasqal_internal.h, src/rasqal_rowsource.c,
+	src/rasqal_rowsource_filter.c, src/rasqal_rowsource_join.c:
+	(rasqal_rowsource_copy_variables): Changed internal function
+	prototype to return int error code e.g. in case
+	rasqal_rowsource_add_variable() fails.
+
+	(rasqal_filter_rowsource_ensure_variables,
+	rasqal_join_rowsource_ensure_variables): Check for
+	rasqal_rowsource_copy_variables() failures.
+
+	* src/rasqal_rowsource.c, src/rasqal_rowsource_filter.c,
+	src/rasqal_rowsource_project.c:
+	(rasqal_filter_rowsource_ensure_variables,
+	rasqal_project_rowsource_ensure_variables):
+	rasqal_rowsource_ensure_variables() success and return error on
+	failure.
+
+	(rasqal_rowsource_read_row): Check
+	rasqal_rowsource_ensure_variables() success and return NULL on
+	failure.
+
+	* src/rasqal_rowsource_join.c:
+	(rasqal_new_join_rowsource): Free passed in rowsource params on
+	failure.
+
+	* src/rasqal_rowsource_filter.c:
+	(rasqal_new_filter_rowsource): Free passed in rowsource, expr on
+	failure.
+
+	* src/rasqal_row_compatible.c, src/rasqal_rowsource_join.c:
+	(rasqal_new_row_compatible): Check for alloc failures.
+
+	(rasqal_join_rowsource_init): Check for
+	rasqal_new_row_compatible() failure.
+
+	* src/rasqal_algebra.c:
+	(rasqal_algebra_group_graph_pattern_to_algebra): Free A node on
+	failure. Prevent double delete of true_expr -
+	rasqal_new_leftjoin_algebra_node() takes ownership of passed in
+	expr.
+
+	* src/rasqal_rowsource_project.c:
+	(rasqal_new_project_rowsource): Free rowsource param on error.
+
+	* src/rasqal_rowsource_triples.c:
+	(rasqal_triples_rowsource_init): Return error if vars sequence
+	push fails.
+
+2009-11-11  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_rowsource_triples.c:
+	(rasqal_triples_rowsource_finish): Only free the triple meta if
+	the meta array was allocated.
+
+	* src/rasqal_engine_algebra.c:
+	(rasqal_query_engine_algebra_execute_finish): Do not assume
+	execution_data allocation succeeded. Cannot check this in caller
+	since it is valid for a query engine to have ex_size 0 and thus no
+	execution_data allocated but still require a call to
+	execute_finish.
+
+	* src/rasqal_query_transform.c:
+	(rasqal_query_prepare_common): Return failure if a called function
+	fails.
+	
+	* src/rasqal_algebra.c:
+	(rasqal_algebra_query_to_algebra): Code style: return NULL
+	explicitly.
+
+	* src/rasqal_algebra.c:
+	(rasqal_algebra_remove_znodes): Free the struct memory of nodes
+	merged to other nodes.
+
+2009-11-10  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_rowsource_join.c:
+	(rasqal_join_rowsource_finish, rasqal_join_rowsource_read_row): Do
+	not leak left_rows
+
+	* src/rasqal_algebra.c:
+	(rasqal_new_filter_algebra_node): Made param ownership consistent
+	with other algebra_node types.
+	
+	(rasqal_new_2op_algebra_node, rasqal_new_leftjoin_algebra_node):
+	Ownership documentation fixes.
+
+	* src/rasqal_algebra.c:
+	(rasqal_algebra_query_to_algebra): Support
+	CONSTRUCT query form on QE2.
+
+2009-11-08  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_query_transform.c:
+	(rasqal_query_graph_pattern_build_variables_use_map): adjust
+	output offset to skip the non-GP rows.
+	use_map_offset_labels: added
+	use_map_flags_labels: renamed from use_map_str and made static
+	const.
+	(rasqal_query_print_variables_use_map): Adjust to handle non-GP
+	rows as well as GP rows.
+
+	* src/rasqal_internal.h:
+	rasqal_var_use_map_offset: added to reserve use_map rows for
+	marking variable uses outside of graph patterns.
+
+	* src/rasqal_query_transform.c:
+	(rasqal_query_print_variables_use_map): off by 1 in unknown flag
+	check
+
+	* src/rasqal_query_transform.c:
+	(rasqal_query_build_variables_use_map): Document note of missing
+	query parts that may need variable use map scans.
+
+2009-11-06  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_query_transform.c:
+	(rasqal_query_prepare_common): Move rasqal_query_build_bound_in
+	and rasqal_query_check_unused_variables to later so that
+	rasqal_query_build_variables_use_map happens before
+	rasqal_query_build_bound_in.
+
+	* src/rasqal_engine.c:
+	(rasqal_engine_get_next_result): Remove FIXMEs that are real
+	errors - no graph patterns in query, already reported as such and
+	not fixable.
+
+	* src/rasqal_engine.c:
+	(rasqal_engine_group_graph_pattern_get_next_match): Engine V1 is
+	never going to implement group graph pattern - remove fixme.
+
+2009-11-03  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal.h, src/rasqal_expr.c, src/rasqal_query_write.c,
+	src/sparql_lexer.l, src/sparql_parser.y,
+	tests/laqrs/syntax/Makefile.am, tests/laqrs/syntax/coalesce1.rq:
+	Implement LAQRS (possible SPARQL 1.1) COALESCE
+
+	rasqal_op gains RASQAL_EXPR_COALESCE
+	(COALESCE): Keyword added to laqrs lexer
+	(CoalesceExpression): Added to laqrs grammar.
+	(BuiltInCall): Add CoalesceExpression to option.
+	(rasqal_new_coalesce_expression): Added.
+	(rasqal_expression_clear, rasqal_expression_visit,
+	rasqal_expression_evaluate_v2, rasqal_expression_write,
+	rasqal_expression_print, rasqal_expression_is_constant): Implement
+	coalesce
+
+	* src/rasqal_query_results.c:
+	(rasqal_query_results_get_binding_name): Get variables by select
+	order not variable table order so that project expressions work -
+	from SPARQL1.1 / LAQRS.
+
+	* src/rasqal_rowsource_project.c:
+	(rasqal_project_rowsource_read_row): Calculate project expressions.
+
+2009-10-26  Dave Beckett <dave@dajobe.org>
+
+	* src/sparql_parser.y:
+	(LetGraphPattern): Free expression on error path
+
+	* src/sparql_parser.y:
+	(LetGraphPattern): Set $$ on error path
+
+	* src/Makefile.am, src/rasqal.h, src/rasqal_algebra.c,
+	src/rasqal_engine_algebra.c, src/rasqal_graph_pattern.c,
+	src/rasqal_internal.h, src/rasqal_query_transform.c,
+	src/rasqal_query_write.c, src/rasqal_rowsource_assignment.c,
+	src/sparql_lexer.l, src/sparql_parser.y,
+	tests/laqrs/syntax/Makefile.am, tests/laqrs/syntax/let1.rq,
+	tests/laqrs/syntax/let1.ttl, tests/laqrs/syntax/let2.rq,
+	tests/laqrs/syntax/let3.rq, tests/laqrs/syntax/let3.ttl:
+	Added LAQRS sparql extension LET ?var := expression evaluated
+	in-order inside a graph pattern
+	rasqal_graph_pattern_operator gains RASQAL_GRAPH_PATTERN_OPERATOR_LET
+
+	rasqal_algebra_node_operator gains RASQAL_ALGEBRA_OPERATOR_ASSIGN
+
+	struct rasqal_graph_pattern_s shares filter_expression and gains
+	variable field 'var' for GP LET.
+
+	rasqal_algebra_node gains variable field 'var' for GP LET.
+
+	(rasqal_new_assignment_algebra_node): Added.
+	rasqal_algebra_node_operator_labels gains "Assignment"
+	(rasqal_algebra_algebra_node_write_internal): Print variable name for
+	assignment
+	(rasqal_algebra_group_graph_pattern_to_algebra): Only AND filter
+	graph patterns, not everything witha  filter_expression.
+	(rasqal_algebra_let_graph_pattern_to_algebra): Added.
+	(rasqal_algebra_graph_pattern_to_algebra): Handle new
+	RASQAL_GRAPH_PATTERN_OPERATOR_LET
+	(rasqal_new_let_graph_pattern): Added.
+	rasqal_graph_pattern_operator_labels gains "Let"
+	(rasqal_graph_pattern_write_internal): Write Let GP
+	for RASQAL_GRAPH_PATTERN_OPERATOR_LET
+	(rasqal_query_let_build_variables_use_map_in_internal): Added
+	(rasqal_query_graph_pattern_build_variables_use_map): Handle
+	RASQAL_GRAPH_PATTERN_OPERATOR_LET using
+	rasqal_query_let_build_variables_use_map_in_internal.
+	(rasqal_query_print_variables_use_map): Tidy code and ignore unknown
+	flags.
+	SPARQL lexer and parser gain LET (LET) and ':' (ASSIGN) keywords.
+	(GraphPatternNotTriples): Add option for LetGraphPattern
+	(LetGraphPattern): Added to construct a
+	RASQAL_GRAPH_PATTERN_OPERATOR_LET for LAQRS.
+	(rasqal_query_write_sparql_graph_pattern): Print the GP out with LET
+	?var := ?expr.
+	(rasqal_new_assignment_rowsource): Added assignment rowsource with
+	this constructor.
+	(rasqal_algebra_assignment_algebra_node_to_rowsource): Added.
+	(rasqal_algebra_node_to_rowsource): Call above for
+	RASQAL_ALGEBRA_OPERATOR_ASSIGN.
+
+2009-10-22  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_format_json.c:
+	(rasqal_init_result_format_json): Restored old URIs
+
+2009-10-21  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_format_sv.c: Sep is a single char
+	Write empty values as empty field ie foo,,bar or foo\t\tbar
+	Write integer, float, double and decimal XSD types without quotes.
+
+2009-10-21  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_literal.c:
+	(rasqal_literal_string_equals): Fixed compilation with
+	RAPTOR_V2_AVAILABLE
+
+2009-10-20  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal.h, src/rasqal_engine.c, src/rasqal_graph_pattern.c,
+	src/rasqal_internal.h, src/rasqal_query.c,
+	src/rasqal_query_transform.c:
+	Replace mentioned_in with a variables use map concept that has
+	several flags per variable/gp combination.  Set the mentioned flag
+	for now - RASQAL_VAR_USE_MENTIONED_HERE
+	Added num rasqal_var_use_map_flags with the flags.
+	Renamed functions/fields with *_mentioned_in to be *_use_map
+
+	(rasqal_query_print_variables_use_map): Added debug function to
+	print use map and flags better.
+	(rasqal_expression_expr_build_variables_use_map,
+	rasqal_query_filter_build_variables_use_map_in_internal): Added to
+	find variables mentioned in a filter expression.
+
+	(rasqal_graph_pattern_variable_bound_in): Added to wrap bound_in
+	that will be moving to query->use_map.
+
+	* src/rasqal_internal.h: update comments for format file renamings
+
+	* src/Makefile.am, src/rasqal_format_sparql_xml.c:
+	Rename rasqal_sparql_xml.c to rasqal_format_sparql_xml.c
+
+	* src/rasqal_sparql_xml.c: update label and url for this format
+
+	* src/rasqal_format_json.c: update label and url for this format
+
+	* src/rasqal_format_sv.c: Add labels for messages
+
+	* src/Makefile.am, src/rasqal_format_csv.c, src/rasqal_format_sv.c
+	Rename rasqal_format_csv.c to rasqal_format_sv.c
+
+	* src/rasqal_format_csv.c, src/rasqal_internal.h,
+	src/rasqal_result_formats.c:
+	Lets go crazy and add TSV too
+
+	* src/rasqal_format_csv.c: tidy code
+
+	* src/Makefile.am, src/rasqal_format_csv.c, src/rasqal_internal.h,
+	src/rasqal_result_formats.c:
+	Added CSV output for query results - why not?
+
+	* src/rasqal.h, src/rasqal_expr.c, src/rasqal_internal.h,
+	src/rasqal_literal.c, tests/sparql/check-sparql:
+	rasqal_literal gains a valid flag to indicate when an XSD type is
+	known and has a valid literal form.  Otherwise on construction, it
+	gets turned into a RASQAL_LITERAL_UDT aka invalid/unknown type.
+	(rasqal_new_*_literal): Set valid flag explicitly when known good.
+	(rasqal_literal_set_typed_value): Turn invalid known types into
+	RASQAL_LITERAL_UDT.
+	(rasqal_literal_not_equals_flags): Added internal function to
+	parallel rasqal_literal_equals_flags.  The logic may be different
+	soon.
+	(rasqal_literal_write, rasqal_literal_print): Emit INV: before
+	invalid literals for debugging.
+	(rasqal_expr_evaluate_v2): Use rasqal_literal_not_equals_flags()
+	for RASQAL_EXPR_NEQ.
+
+2009-10-18  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_expr.c:
+	(rasqal_expression_evaluate_v2): Disallow comparing invalid
+	literals Adjust datatype of plain literal to new xsd:string form.
+
+	* src/rasqal_literal.c:
+	(rasqal_new_numeric_literal, rasqal_literal_set_typed_value,
+	rasqal_free_literal, rasqal_literal_cast): Handle
+	RASQAL_LITERAL_XSD_STRING and RASQAL_LITERAL_XSD_UDT.
+
+	(rasqal_literal_string_interpreted_as_boolean): Added, pulled out
+	of rasqal_literal_set_typed_value.
+
+	(rasqal_literal_set_typed_value): Use
+	rasqal_literal_string_interpreted_as_boolean for decoding
+	RASQAL_LITERAL_BOOLEAN string.
+
+	(rasqal_literal_string_to_native): do nothing for
+	RASQAL_LITERAL_STRING; set RASQAL_LITERAL_XSD_STRING and otherwise
+	set unknown types to RASQAL_LITERAL_UDT Ensure the l->type is set
+	via rasqal_literal_set_typed_value even if the function will fail
+	due to a type error when rasqal_xsd_datatype_check is called.
+
+	Update rasqal_literal_type_labels to add xsdstring and udt.
+
+	(rasqal_literal_write, rasqal_literal_print): write/print xsd
+	strings and UDT
+
+	(rasqal_literal_as_boolean): Interpret RASQAL_LITERAL_XSD_STRING
+	as booleans.  RASQAL_LITERAL_UDT as error.
+
+	(rasqal_literal_as_integer, rasqal_literal_as_floating,
+	rasqal_literal_as_string_flags): Interpret
+	RASQAL_LITERAL_XSD_STRING same as RASQAL_LITERAL_STRING.
+	RASQAL_LITERAL_UDT as error.
+
+	(rasqal_literal_get_rdf_term_type): Turn UDT into a
+	RASQAL_LITERAL_STRING when flattening to an RDF term.
+
+	(rasqal_new_literal_from_promotion): autodocs and add flags
+	argument to allow promotion of strings to boolean (for RDQL) when
+	RASQAL_COMPARE_URI is given.
+	Interpret RASQAL_LITERAL_UDT as plain literal
+	RASQAL_LITERAL_STRING but ensure the datatype is coopied.
+	case RASQAL_LITERAL_BOOLEAN: Separated from RASQAL_LITERAL_INTEGER
+	and use rasqal_literal_string_interpreted_as_boolean to handle
+	promotion of strings to boolean.
+	case RASQAL_LITERAL_XSD_STRING: Added, copying the string and
+	type.
+	case RASQAL_LITERAL_UDT: Added, causing error.
+
+	(rasqal_literal_string_compare): Return an error if types are
+	neigther plain literal or user defined datatyped literals
+
+	(rasqal_literal_rdql_promote_calculate): Handle and ignore
+	XSD_STRING and UDT for rdql promotions.  If seen boolean and
+	string, aim for destination type boolean.
+
+	(rasqal_literal_compare): Return failure with UDT - cannot compare
+	them.  Handle UDT<>UDT compare same as STRING and
+	XSD_STRING<>XSD_STRING as simple literal compare.
+
+	(rasqal_literal_string_equals): Use XSD_STRING to get
+	xsd_string_uri.  Promote plain literals to xsd:string-typed for
+	purpose of equality checking.
+	Equality checking on user defined types fails with a type error.
+
+	(rasqal_literal_equals_flags): Handle RASQAL_LITERAL_XSD_STRING
+	and RASQAL_LITERAL_UDT as plain literal string.
+
+	(rasqal_literal_as_node): Handle RASQAL_LITERAL_XSD_STRING and
+	RASQAL_LITERAL_UDT as other XSD types.
+
+	(rasqal_literal_add, rasqal_literal_subtract,
+	rasqal_literal_multiply, rasqal_literal_divide,
+	rasqal_literal_negate): Handle RASQAL_LITERAL_XSD_STRING and
+	RASQAL_LITERAL_UDT as other XSD types.  Update check so URI can be
+	cast to xsd:string and no other type.  RASQAL_LITERAL_XSD_STRING
+	and RASQAL_LITERAL_XSD_UDT are errors.
+
+	* tests/rdql/testsuite/check-rdql, tests/sparql/check-sparql:
+	Adjust roqet output to hide udt(); replace with string() for
+	comparison purposes.
+
+	* src/rasqal_format_json.c, src/rasqal_query_results.c,
+	src/rasqal_query_write.c, src/rasqal_sparql_xml.c: Add cases
+	RASQAL_LITERAL_XSD_STRING and RASQAL_LITERAL_UDT to various
+	switches usually near RASQAL_LITERAL_STRING.
+
+	* src/rasqal_xsd_datatypes.c: sparql_xsd_names: insert entry for
+	RASQAL_LITERAL_STRING parent_xsd_type: adjust parents for
+	separation of plain literal (RASQAL_LITERAL_STRING),
+	xsd:string (RASQAL_LITERAL_XSD) and user/unknown
+	datatype (RASQAL_LITERAL_UDT)
+
+	* src/rasqal.h: rasqal_literal_type gains
+	1) RASQAL_LITERAL_XSD_STRING - for xsd:string typed literals
+	2) RASQAL_LITERAL_UDT - for unknown data typed literals separated
+	out of RASQAL_LITERAL_STRING which is for RDF plain literals and
+	plain/typed turned into RDF terms only
+
+	rasqal_compare_flags gains RASQAL_COMPARE_URI - now also provides
+	RDQL string to bool comparison
+
+2009-10-13  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_rowsource_graph.c:
+	(rasqal_graph_next_dg): Walk through all the named graphs and
+	set the origin; do not end if default graph is seen.
+	Improve error recovery.
+
+	* src/rasqal_rowsource.c:
+	(rasqal_rowsource_ensure_variables): Print rowsource variables
+	after ensure_variables is called when debugging.
+	(rasqal_rowsource_read_row): Print rowsource ptr when debugging.
+
+	* src/rasqal_rowsource_join.c: Add rowsource ptr to debug messages.
+
+	* src/rasqal_row_compatible.c:
+	(rasqal_print_row_compatible): Tidy output ot remove all the "-1"s
+
+	* src/rasqal_rowsource_union.c:
+	(rasqal_union_rowsource_get_inner_rowsource): Return inner
+	rowsources correctly.
+
+	* src/rasqal_rowsource_join.c:
+	(rasqal_join_rowsource_get_inner_rowsource): Return inner
+	rowsources correctly.
+
+	* src/rasqal_rowsource_graph.c:
+	(rasqal_graph_rowsource_init): Use rasqal_graph_rowsource_reset to
+	set up initial graph state.
+	(rasqal_graph_rowsource_reset): Call rasqal_graph_next_dg to set
+	graph variable and start state.
+
+	* src/rasqal_rowsource_graph.c:
+	(rasqal_graph_rowsource_read_row): Set new row to size of new
+	rowsource.
+
+	* src/rasqal_rowsource_join.c:
+	(rasqal_join_rowsource_read_row): For natural join, return only
+	compatible rows - both present - and with filter true.
+
+2009-10-12  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_literal.c:
+	(rasqal_literal_set_typed_value): The combination of
+	error_handler/error_data and flags meant the error was never
+	called so remove those args.
+	(rasqal_new_typed_literal,
+	rasqal_new_decimal_literal_from_decimal,
+	rasqal_literal_string_to_native): Adjust calls to
+	rasqal_literal_set_typed_value.
+
+	* src/rasqal_engine_algebra.c:
+	(rasqal_algebra_node_to_rowsource): Fail with NULL not abort() on
+	getting back now rowsource.
+	(rasqal_query_engine_algebra_execute_init): Handle NULL rowsource
+	in debug printing.
+
+	* src/rasqal_rowsource_graph.c:
+	(rasqal_graph_rowsource_read_row): Copy correct #values from old row.
+
+	* docs/tmpl/section-expression.sgml,
+	docs/tmpl/section-literal.sgml: docs
+
+	* src/rasqal_internal.h, src/rasqal_literal.c,
+	src/rasqal_xsd_datatypes.c:
+	(rasqal_xsd_datatype_uri_parent_type): Deleted - only used once.
+	(rasqal_new_string_literal_common): Remove call to above and
+	replace with simpler inline equivalent.
+
+	* src/rasqal_literal.c:
+	(rasqal_new_integer_literal): Use rasqal_xsd_format_integer
+	(rasqal_new_float_literal): Use rasqal_xsd_format_double
+
+	* src/rasqal_internal.h, src/rasqal_xsd_datatypes.c:
+	(rasqal_xsd_format_integer, rasqal_xsd_format_float): Added to put
+	formatting in one clear place.
+
+2009-10-12  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_expr.c:
+	(rasqal_expression_evaluate_v2): Use #if not #ifdef with
+	preprocessor expressions.
+
+	* src/rasqal_rowsource_join.c:
+	(rasqal_join_rowsource_read_row): Plain ascii comments
+
+	* src/rasqal_format_table.c:
+	(rasqal_query_results_write_table): Compilation fix: Pass NULL
+	context to raptor_new_sequence_v2().
+
+2009-10-11  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_rowsource_join.c:
+	(rasqal_join_rowsource_read_row): Update left join rules with docs
+	from algebra; update condition for left join to match rules.
+
+	* tests/sparql/check-sparql: warn when SPARQL JSON results format
+	is seen
+
+	* src/rasqal_decimal.c:
+	(rasqal_xsd_decimal_compare): Fix decimal comparison case when
+	using doubles to implement it. comparison check was backwards and
+	imprecise.
+
+2009-10-10  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_literal.c:
+	(rasqal_new_literal_from_promotion): Correct misleading debug
+	message.
+
+	* src/rasqal.h, src/rasqal_literal.c, src/rasqal_xsd_datatypes.c:
+	ABI change: Reorder rasqal_literal_type enumeration to match
+	numeric type promotion order: float is now between integer and
+	double.
+
+	* src/rasqal.h, src/rasqal_expr.c, src/rasqal_literal.c:
+	(rasqal_literal_string_equals, rasqal_literal_uri_equals,
+	rasqal_literal_blank_equals): Lose error arg, these never returns
+	a type error.
+	(rasqal_literal_equals_flags): Rename error arg to error_p since
+	it's a pointer/out arg.
+	(rasqal_literal_same_term): Lose error arg and do not pass on any
+	type error from literal comparison; it's a difference not an
+	error.
+	(rasqal_expression_evaluate_v2): same_term returns no error, tidy
+	debug messages.
+
+	* src/rasqal_xsd_datatypes.c: parent_xsd_type - promote integer to
+	float
+
+	* src/rasqal_xsd_datatypes.c: parent_xsd_type - promote float to
+	double
+
+	* src/rasqal_literal.c:
+	(rasqal_new_integer_literal, rasqal_literal_set_typed_value): Set
+	parent_type using rasqal_xsd_datatype_parent_type.
+	(rasqal_literal_promote_numerics): Make numeric type promotion
+	recursive and use rasqal_xsd_datatype_parent_type() for each
+	step.
+
+	* src/rasqal_expr.c: Extra debug messags for equals_flags/sameterm
+	when RASQAL_DEBUG > 1
+
+	* src/rasqal_xsd_datatypes.c: parent_xsd_type - set pattern, qname
+	and variable to no xsd parent type
+
+	* src/rasqal_xsd_datatypes.c: notes near parent_xsd_type
+
+	* src/rasqal_internal.h, src/rasqal_xsd_datatypes.c:
+	(rasqal_xsd_datatype_parent_type): Added
+
+	* src/rasqal_expr.c:
+	(rasqal_expression_evaluate_v2): Use rasqal_literal_same_term for
+	evaluating sameTerm.
+
+	* src/rasqal.h, src/rasqal_literal.c:
+	(rasqal_literal_same_term): Added
+
+	* src/rasqal_xsd_datatypes.c:
+	(rasqal_xsd_format_double): snprintf buffer was too small and lost
+	the last digit of the exponent.
+
+	* src/rasqal_engine.c: remove debug NL
+
+	* src/rasqal_query_transform.c:
+	(rasqal_graph_pattern_move_constraints): When moving constraints,
+	AND them with any existing constraints.
+
+	* src/rasqal_rowsource_filter.c: remove debug NL that annoyed me
+	again
+
+	* src/rasqal_engine.c: remove debug NL that annoyed me
+
+	* src/rasqal_general.c:
+	(rasqal_uri_init): Tidy OOM during static library init
+
+	* src/rasqal_query_transform.c:
+	(rasqal_query_prepare_count_graph_patterns): No need for noisy OOM
+	message.
+
+2009-10-09  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_result_formats.c: autodocs
+
+	* src/Makefile.am, src/rasqal_format_json.c (copied from
+	/rasqal/trunk/src/rasqal_result_formats.c:15558),
+	src/rasqal_internal.h, src/rasqal_result_formats.c: Move query
+	result format JSON to new file rasqal_format_json.c
+
+	* src/Makefile.am, src/rasqal_internal.h, src/rasqal_query.c,
+	src/rasqal_query_write.c: Moved query serialization to SPARQL into
+	new rasqal_query_write.c file.
+
+	* src/rasqal_format_table.c:
+	(rasqal_query_results_write_table): Use rasqal_literal_write and
+	iostream to write formatted literal with type, datatype/lang etc.
+
+	* tests/sparql/check-sparql: diff -u: it's my favourite diff option
+
+2009-10-08  Dave Beckett <dave@dajobe.org>
+
+	* utils/srxread.c: Code style.
+	Add optional read and write result format args.
+
+	* src/Makefile.am, src/rasqal_format_table.c,
+	src/rasqal_internal.h, src/rasqal_result_formats.c: Added query
+	result format 'table'
+
+	* src/rasqal_internal.h: Make rasqal_query_results_get_current_row
+	internal
+
+	* src/rasqal_query_results.c:
+	(rasqal_query_results_get_current_row): Make available to other
+	modules, not public yet.
+	(rasqal_query_results_get_bindings_count): Check for at least one
+	row so that this works at start of results.
+
+2009-10-01  Dave Beckett <dave@dajobe.org>
+
+	* tests/sparql/test-suite-archive/data-r2/slice: Remove empty dir
+	slice
+
+	* tests/sparql/test-suite-archive/data-r2/syntax: Remove empty dir
+
+	* tests/sparql/test-suite-archive/data-r2/*.*.bak:: Remove .bak
+	files
+
+	* tests/sparql/test-suite-archive/data-r2/foo,
+	tests/sparql/test-suite-archive/data-r2/x: Remove junk files
+
+	* tests/sparql/test-suite-archive/*: Remove svn:executable from
+	data files
+
+	* tests/sparql/test-suite-archive,
+	  tests/sparql/test-suite-archive/README.html,
+	  tests/sparql/test-suite-archive/data-r2,
+	  tests/sparql/test-suite-archive/data-r2/LICENSE,
+	  tests/sparql/test-suite-archive/data-r2/README,
+	  tests/sparql/test-suite-archive/data-r2/algebra,
+	  tests/sparql/test-suite-archive/data-r2/algebra/data-1.ttl,
+	  tests/sparql/test-suite-archive/data-r2/algebra/data-2.ttl,
+	  tests/sparql/test-suite-archive/data-r2/algebra/filter-nested-1.rq,
+	  tests/sparql/test-suite-archive/data-r2/algebra/filter-nested-1.srx,
+	  tests/sparql/test-suite-archive/data-r2/algebra/filter-nested-2.rq,
+	  tests/sparql/test-suite-archive/data-r2/algebra/filter-nested-2.srx,
+	  tests/sparql/test-suite-archive/data-r2/algebra/filter-placement-1.rq,
+	  tests/sparql/test-suite-archive/data-r2/algebra/filter-placement-1.srx,
+	  tests/sparql/test-suite-archive/data-r2/algebra/filter-placement-2.rq,
+	  tests/sparql/test-suite-archive/data-r2/algebra/filter-placement-2.srx,
+	  tests/sparql/test-suite-archive/data-r2/algebra/filter-placement-3.rq,
+	  tests/sparql/test-suite-archive/data-r2/algebra/filter-placement-3.srx,
+	  tests/sparql/test-suite-archive/data-r2/algebra/filter-scope-1.rq,
+	  tests/sparql/test-suite-archive/data-r2/algebra/filter-scope-1.srx,
+	  tests/sparql/test-suite-archive/data-r2/algebra/join-combo-1.rq,
+	  tests/sparql/test-suite-archive/data-r2/algebra/join-combo-1.srx,
+	  tests/sparql/test-suite-archive/data-r2/algebra/join-combo-2.rq,
+	  tests/sparql/test-suite-archive/data-r2/algebra/join-combo-2.srx,
+	  tests/sparql/test-suite-archive/data-r2/algebra/join-combo-graph-1.ttl,
+	  tests/sparql/test-suite-archive/data-r2/algebra/join-combo-graph-2.ttl,
+	  tests/sparql/test-suite-archive/data-r2/algebra/manifest.ttl,
+	  tests/sparql/test-suite-archive/data-r2/algebra/manifest.ttl.bak,
+	  tests/sparql/test-suite-archive/data-r2/algebra/opt-filter-1.rq,
+	  tests/sparql/test-suite-archive/data-r2/algebra/opt-filter-1.srx,
+	  tests/sparql/test-suite-archive/data-r2/algebra/opt-filter-1.ttl,
+	  tests/sparql/test-suite-archive/data-r2/algebra/opt-filter-2.rq,
+	  tests/sparql/test-suite-archive/data-r2/algebra/opt-filter-2.srx,
+	  tests/sparql/test-suite-archive/data-r2/algebra/opt-filter-2.ttl,
+	  tests/sparql/test-suite-archive/data-r2/algebra/opt-filter-3.rq,
+	  tests/sparql/test-suite-archive/data-r2/algebra/opt-filter-3.srx,
+	  tests/sparql/test-suite-archive/data-r2/algebra/opt-filter-3.ttl,
+	  tests/sparql/test-suite-archive/data-r2/algebra/two-nested-opt-alt.rq,
+	  tests/sparql/test-suite-archive/data-r2/algebra/two-nested-opt-alt.srx,
+	  tests/sparql/test-suite-archive/data-r2/algebra/two-nested-opt.rq,
+	  tests/sparql/test-suite-archive/data-r2/algebra/two-nested-opt.srx,
+	  tests/sparql/test-suite-archive/data-r2/algebra/two-nested-opt.ttl,
+	  tests/sparql/test-suite-archive/data-r2/algebra/var-scope-join-1.rq,
+	  tests/sparql/test-suite-archive/data-r2/algebra/var-scope-join-1.srx,
+	  tests/sparql/test-suite-archive/data-r2/algebra/var-scope-join-1.ttl,
+	  tests/sparql/test-suite-archive/data-r2/algebra-expressions.txt,
+	  tests/sparql/test-suite-archive/data-r2/ask,
+	  tests/sparql/test-suite-archive/data-r2/ask/ask-1.rq,
+	  tests/sparql/test-suite-archive/data-r2/ask/ask-1.srx,
+	  tests/sparql/test-suite-archive/data-r2/ask/ask-4.rq,
+	  tests/sparql/test-suite-archive/data-r2/ask/ask-4.srx,
+	  tests/sparql/test-suite-archive/data-r2/ask/ask-7.rq,
+	  tests/sparql/test-suite-archive/data-r2/ask/ask-7.srx,
+	  tests/sparql/test-suite-archive/data-r2/ask/ask-8.rq,
+	  tests/sparql/test-suite-archive/data-r2/ask/ask-8.srx,
+	  tests/sparql/test-suite-archive/data-r2/ask/data.ttl,
+	  tests/sparql/test-suite-archive/data-r2/ask/manifest.ttl,
+	  tests/sparql/test-suite-archive/data-r2/ask/manifest.ttl.bak,
+	  tests/sparql/test-suite-archive/data-r2/basic,
+	  tests/sparql/test-suite-archive/data-r2/basic/base-prefix-1.rq,
+	  tests/sparql/test-suite-archive/data-r2/basic/base-prefix-1.srx,
+	  tests/sparql/test-suite-archive/data-r2/basic/base-prefix-2.rq,
+	  tests/sparql/test-suite-archive/data-r2/basic/base-prefix-2.srx,
+	  tests/sparql/test-suite-archive/data-r2/basic/base-prefix-3.rq,
+	  tests/sparql/test-suite-archive/data-r2/basic/base-prefix-3.srx,
+	  tests/sparql/test-suite-archive/data-r2/basic/base-prefix-4.rq,
+	  tests/sparql/test-suite-archive/data-r2/basic/base-prefix-4.srx,
+	  tests/sparql/test-suite-archive/data-r2/basic/base-prefix-5.rq,
+	  tests/sparql/test-suite-archive/data-r2/basic/base-prefix-5.srx,
+	  tests/sparql/test-suite-archive/data-r2/basic/bgp-no-match.rq,
+	  tests/sparql/test-suite-archive/data-r2/basic/bgp-no-match.srx,
+	  tests/sparql/test-suite-archive/data-r2/basic/data-1.ttl,
+	  tests/sparql/test-suite-archive/data-r2/basic/data-2.ttl,
+	  tests/sparql/test-suite-archive/data-r2/basic/data-3.ttl,
+	  tests/sparql/test-suite-archive/data-r2/basic/data-4.ttl,
+	  tests/sparql/test-suite-archive/data-r2/basic/data-5.ttl,
+	  tests/sparql/test-suite-archive/data-r2/basic/data-6.ttl,
+	  tests/sparql/test-suite-archive/data-r2/basic/data-7.ttl,
+	  tests/sparql/test-suite-archive/data-r2/basic/list-1.rq,
+	  tests/sparql/test-suite-archive/data-r2/basic/list-1.srx,
+	  tests/sparql/test-suite-archive/data-r2/basic/list-2.rq,
+	  tests/sparql/test-suite-archive/data-r2/basic/list-2.srx,
+	  tests/sparql/test-suite-archive/data-r2/basic/list-3.rq,
+	  tests/sparql/test-suite-archive/data-r2/basic/list-3.srx,
+	  tests/sparql/test-suite-archive/data-r2/basic/list-4.rq,
+	  tests/sparql/test-suite-archive/data-r2/basic/list-4.srx,
+	  tests/sparql/test-suite-archive/data-r2/basic/manifest.ttl,
+	  tests/sparql/test-suite-archive/data-r2/basic/manifest.ttl.bak,
+	  tests/sparql/test-suite-archive/data-r2/basic/prefix-name-1.rq,
+	  tests/sparql/test-suite-archive/data-r2/basic/prefix-name-1.srx,
+	  tests/sparql/test-suite-archive/data-r2/basic/quotes-1.rq,
+	  tests/sparql/test-suite-archive/data-r2/basic/quotes-1.srx,
+	  tests/sparql/test-suite-archive/data-r2/basic/quotes-2.rq,
+	  tests/sparql/test-suite-archive/data-r2/basic/quotes-2.srx,
+	  tests/sparql/test-suite-archive/data-r2/basic/quotes-3.rq,
+	  tests/sparql/test-suite-archive/data-r2/basic/quotes-3.srx,
+	  tests/sparql/test-suite-archive/data-r2/basic/quotes-4.rq,
+	  tests/sparql/test-suite-archive/data-r2/basic/quotes-4.srx,
+	  tests/sparql/test-suite-archive/data-r2/basic/spoo-1.rq,
+	  tests/sparql/test-suite-archive/data-r2/basic/spoo-1.srx,
+	  tests/sparql/test-suite-archive/data-r2/basic/term-1.rq,
+	  tests/sparql/test-suite-archive/data-r2/basic/term-1.srx,
+	  tests/sparql/test-suite-archive/data-r2/basic/term-2.rq,
+	  tests/sparql/test-suite-archive/data-r2/basic/term-2.srx,
+	  tests/sparql/test-suite-archive/data-r2/basic/term-3.rq,
+	  tests/sparql/test-suite-archive/data-r2/basic/term-3.srx,
+	  tests/sparql/test-suite-archive/data-r2/basic/term-4.rq,
+	  tests/sparql/test-suite-archive/data-r2/basic/term-4.srx,
+	  tests/sparql/test-suite-archive/data-r2/basic/term-5.rq,
+	  tests/sparql/test-suite-archive/data-r2/basic/term-5.srx,
+	  tests/sparql/test-suite-archive/data-r2/basic/term-6.rq,
+	  tests/sparql/test-suite-archive/data-r2/basic/term-6.srx,
+	  tests/sparql/test-suite-archive/data-r2/basic/term-7.rq,
+	  tests/sparql/test-suite-archive/data-r2/basic/term-7.srx,
+	  tests/sparql/test-suite-archive/data-r2/basic/term-8.rq,
+	  tests/sparql/test-suite-archive/data-r2/basic/term-8.srx,
+	  tests/sparql/test-suite-archive/data-r2/basic/term-9.rq,
+	  tests/sparql/test-suite-archive/data-r2/basic/term-9.srx,
+	  tests/sparql/test-suite-archive/data-r2/basic/var-1.rq,
+	  tests/sparql/test-suite-archive/data-r2/basic/var-1.srx,
+	  tests/sparql/test-suite-archive/data-r2/basic/var-2.rq,
+	  tests/sparql/test-suite-archive/data-r2/basic/var-2.srx,
+	  tests/sparql/test-suite-archive/data-r2/bnode-coreference,
+	  tests/sparql/test-suite-archive/data-r2/bnode-coreference/data.ttl,
+	  tests/sparql/test-suite-archive/data-r2/bnode-coreference/manifest.ttl,
+	  tests/sparql/test-suite-archive/data-r2/bnode-coreference/manifest.ttl.bak,
+	  tests/sparql/test-suite-archive/data-r2/bnode-coreference/query.rq,
+	  tests/sparql/test-suite-archive/data-r2/bnode-coreference/result.ttl,
+	  tests/sparql/test-suite-archive/data-r2/boolean-effective-value,
+	  tests/sparql/test-suite-archive/data-r2/boolean-effective-value/data-1.ttl,
+	  tests/sparql/test-suite-archive/data-r2/boolean-effective-value/data-2.ttl,
+	  tests/sparql/test-suite-archive/data-r2/boolean-effective-value/manifest.ttl,
+	  tests/sparql/test-suite-archive/data-r2/boolean-effective-value/manifest.ttl.bak,
+	  tests/sparql/test-suite-archive/data-r2/boolean-effective-value/query-bev-1.rq,
+	  tests/sparql/test-suite-archive/data-r2/boolean-effective-value/query-bev-2.rq,
+	  tests/sparql/test-suite-archive/data-r2/boolean-effective-value/query-bev-3.rq,
+	  tests/sparql/test-suite-archive/data-r2/boolean-effective-value/query-bev-4.rq,
+	  tests/sparql/test-suite-archive/data-r2/boolean-effective-value/query-bev-5.rq,
+	  tests/sparql/test-suite-archive/data-r2/boolean-effective-value/query-bev-6.rq,
+	  tests/sparql/test-suite-archive/data-r2/boolean-effective-value/query-boolean-literal.rq,
+	  tests/sparql/test-suite-archive/data-r2/boolean-effective-value/result-bev-1.ttl,
+	  tests/sparql/test-suite-archive/data-r2/boolean-effective-value/result-bev-2.ttl,
+	  tests/sparql/test-suite-archive/data-r2/boolean-effective-value/result-bev-3.ttl,
+	  tests/sparql/test-suite-archive/data-r2/boolean-effective-value/result-bev-4.ttl,
+	  tests/sparql/test-suite-archive/data-r2/boolean-effective-value/result-bev-5.ttl,
+	  tests/sparql/test-suite-archive/data-r2/boolean-effective-value/result-bev-6.ttl,
+	  tests/sparql/test-suite-archive/data-r2/boolean-effective-value/result-boolean-literal.ttl,
+	  tests/sparql/test-suite-archive/data-r2/bound,
+	  tests/sparql/test-suite-archive/data-r2/bound/bound1-result.ttl,
+	  tests/sparql/test-suite-archive/data-r2/bound/bound1.rq,
+	  tests/sparql/test-suite-archive/data-r2/bound/data.ttl,
+	  tests/sparql/test-suite-archive/data-r2/bound/manifest.ttl,
+	  tests/sparql/test-suite-archive/data-r2/bound/manifest.ttl.bak,
+	  tests/sparql/test-suite-archive/data-r2/cast,
+	  tests/sparql/test-suite-archive/data-r2/cast/cast-bool.rq,
+	  tests/sparql/test-suite-archive/data-r2/cast/cast-bool.srx,
+	  tests/sparql/test-suite-archive/data-r2/cast/cast-dT.rq,
+	  tests/sparql/test-suite-archive/data-r2/cast/cast-dT.srx,
+	  tests/sparql/test-suite-archive/data-r2/cast/cast-dbl.rq,
+	  tests/sparql/test-suite-archive/data-r2/cast/cast-dbl.srx,
+	  tests/sparql/test-suite-archive/data-r2/cast/cast-dec.rq,
+	  tests/sparql/test-suite-archive/data-r2/cast/cast-dec.srx,
+	  tests/sparql/test-suite-archive/data-r2/cast/cast-flt.rq,
+	  tests/sparql/test-suite-archive/data-r2/cast/cast-flt.srx,
+	  tests/sparql/test-suite-archive/data-r2/cast/cast-int.rq,
+	  tests/sparql/test-suite-archive/data-r2/cast/cast-int.srx,
+	  tests/sparql/test-suite-archive/data-r2/cast/cast-str.rq,
+	  tests/sparql/test-suite-archive/data-r2/cast/cast-str.srx,
+	  tests/sparql/test-suite-archive/data-r2/cast/data.ttl,
+	  tests/sparql/test-suite-archive/data-r2/cast/manifest.ttl,
+	  tests/sparql/test-suite-archive/data-r2/construct,
+	  tests/sparql/test-suite-archive/data-r2/construct/data-ident.ttl,
+	  tests/sparql/test-suite-archive/data-r2/construct/data-opt.ttl,
+	  tests/sparql/test-suite-archive/data-r2/construct/data-reif.ttl,
+	  tests/sparql/test-suite-archive/data-r2/construct/manifest.ttl,
+	  tests/sparql/test-suite-archive/data-r2/construct/manifest.ttl.bak,
+	  tests/sparql/test-suite-archive/data-r2/construct/query-construct-optional.rq,
+	  tests/sparql/test-suite-archive/data-r2/construct/query-ident.rq,
+	  tests/sparql/test-suite-archive/data-r2/construct/query-reif-1.rq,
+	  tests/sparql/test-suite-archive/data-r2/construct/query-reif-2.rq,
+	  tests/sparql/test-suite-archive/data-r2/construct/query-subgraph.rq,
+	  tests/sparql/test-suite-archive/data-r2/construct/result-construct-optional.ttl,
+	  tests/sparql/test-suite-archive/data-r2/construct/result-ident.ttl,
+	  tests/sparql/test-suite-archive/data-r2/construct/result-reif.ttl,
+	  tests/sparql/test-suite-archive/data-r2/construct/result-subgraph.ttl,
+	  tests/sparql/test-suite-archive/data-r2/dataset,
+	  tests/sparql/test-suite-archive/data-r2/dataset/data-g1-dup.ttl,
+	  tests/sparql/test-suite-archive/data-r2/dataset/data-g1.ttl,
+	  tests/sparql/test-suite-archive/data-r2/dataset/data-g2-dup.ttl,
+	  tests/sparql/test-suite-archive/data-r2/dataset/data-g2.ttl,
+	  tests/sparql/test-suite-archive/data-r2/dataset/data-g3-dup.ttl,
+	  tests/sparql/test-suite-archive/data-r2/dataset/data-g3.ttl,
+	  tests/sparql/test-suite-archive/data-r2/dataset/data-g4-dup.ttl,
+	  tests/sparql/test-suite-archive/data-r2/dataset/data-g4.ttl,
+	  tests/sparql/test-suite-archive/data-r2/dataset/dataset-01.rq,
+	  tests/sparql/test-suite-archive/data-r2/dataset/dataset-01.ttl,
+	  tests/sparql/test-suite-archive/data-r2/dataset/dataset-02.rq,
+	  tests/sparql/test-suite-archive/data-r2/dataset/dataset-02.ttl,
+	  tests/sparql/test-suite-archive/data-r2/dataset/dataset-03.rq,
+	  tests/sparql/test-suite-archive/data-r2/dataset/dataset-03.ttl,
+	  tests/sparql/test-suite-archive/data-r2/dataset/dataset-04.rq,
+	  tests/sparql/test-suite-archive/data-r2/dataset/dataset-04.ttl,
+	  tests/sparql/test-suite-archive/data-r2/dataset/dataset-05.rq,
+	  tests/sparql/test-suite-archive/data-r2/dataset/dataset-05.ttl,
+	  tests/sparql/test-suite-archive/data-r2/dataset/dataset-06.rq,
+	  tests/sparql/test-suite-archive/data-r2/dataset/dataset-06.ttl,
+	  tests/sparql/test-suite-archive/data-r2/dataset/dataset-07.rq,
+	  tests/sparql/test-suite-archive/data-r2/dataset/dataset-07.ttl,
+	  tests/sparql/test-suite-archive/data-r2/dataset/dataset-08.rq,
+	  tests/sparql/test-suite-archive/data-r2/dataset/dataset-08.ttl,
+	  tests/sparql/test-suite-archive/data-r2/dataset/dataset-09.rq,
+	  tests/sparql/test-suite-archive/data-r2/dataset/dataset-09.ttl,
+	  tests/sparql/test-suite-archive/data-r2/dataset/dataset-09b.rq,
+	  tests/sparql/test-suite-archive/data-r2/dataset/dataset-10.rq,
+	  tests/sparql/test-suite-archive/data-r2/dataset/dataset-10.ttl,
+	  tests/sparql/test-suite-archive/data-r2/dataset/dataset-10b.rq,
+	  tests/sparql/test-suite-archive/data-r2/dataset/dataset-11.rq,
+	  tests/sparql/test-suite-archive/data-r2/dataset/dataset-11.ttl,
+	  tests/sparql/test-suite-archive/data-r2/dataset/dataset-12.rq,
+	  tests/sparql/test-suite-archive/data-r2/dataset/dataset-12.ttl,
+	  tests/sparql/test-suite-archive/data-r2/dataset/dataset-12b.rq,
+	  tests/sparql/test-suite-archive/data-r2/dataset/manifest.ttl,
+	  tests/sparql/test-suite-archive/data-r2/dataset/manifest.ttl.bak,
+	  tests/sparql/test-suite-archive/data-r2/distinct,
+	  tests/sparql/test-suite-archive/data-r2/distinct/data-all.ttl,
+	  tests/sparql/test-suite-archive/data-r2/distinct/data-node.ttl,
+	  tests/sparql/test-suite-archive/data-r2/distinct/data-num.ttl,
+	  tests/sparql/test-suite-archive/data-r2/distinct/data-opt.ttl,
+	  tests/sparql/test-suite-archive/data-r2/distinct/data-star.ttl,
+	  tests/sparql/test-suite-archive/data-r2/distinct/data-str.ttl,
+	  tests/sparql/test-suite-archive/data-r2/distinct/distinct-1-results.srx,
+	  tests/sparql/test-suite-archive/data-r2/distinct/distinct-1.rq,
+	  tests/sparql/test-suite-archive/data-r2/distinct/distinct-2.rq,
+	  tests/sparql/test-suite-archive/data-r2/distinct/distinct-all.srx,
+	  tests/sparql/test-suite-archive/data-r2/distinct/distinct-node.srx,
+	  tests/sparql/test-suite-archive/data-r2/distinct/distinct-num.srx,
+	  tests/sparql/test-suite-archive/data-r2/distinct/distinct-opt.srx,
+	  tests/sparql/test-suite-archive/data-r2/distinct/distinct-star-1.rq,
+	  tests/sparql/test-suite-archive/data-r2/distinct/distinct-star-1.srx,
+	  tests/sparql/test-suite-archive/data-r2/distinct/distinct-str.srx,
+	  tests/sparql/test-suite-archive/data-r2/distinct/manifest.ttl,
+	  tests/sparql/test-suite-archive/data-r2/distinct/manifest.ttl.bak,
+	  tests/sparql/test-suite-archive/data-r2/distinct/no-distinct-1.rq,
+	  tests/sparql/test-suite-archive/data-r2/distinct/no-distinct-2.rq,
+	  tests/sparql/test-suite-archive/data-r2/distinct/no-distinct-all.srx,
+	  tests/sparql/test-suite-archive/data-r2/distinct/no-distinct-node.srx,
+	  tests/sparql/test-suite-archive/data-r2/distinct/no-distinct-num.srx,
+	  tests/sparql/test-suite-archive/data-r2/distinct/no-distinct-opt.srx,
+	  tests/sparql/test-suite-archive/data-r2/distinct/no-distinct-str.srx,
+	  tests/sparql/test-suite-archive/data-r2/expr-builtin,
+	  tests/sparql/test-suite-archive/data-r2/expr-builtin/data-builtin-1.ttl,
+	  tests/sparql/test-suite-archive/data-r2/expr-builtin/data-builtin-2.ttl,
+	  tests/sparql/test-suite-archive/data-r2/expr-builtin/data-langMatches-de.ttl,
+	  tests/sparql/test-suite-archive/data-r2/expr-builtin/data-langMatches.ttl,
+	  tests/sparql/test-suite-archive/data-r2/expr-builtin/lang-case-insensitive-eq.srx,
+	  tests/sparql/test-suite-archive/data-r2/expr-builtin/lang-case-insensitive-ne.srx,
+	  tests/sparql/test-suite-archive/data-r2/expr-builtin/lang-case-sensitivity-eq.rq,
+	  tests/sparql/test-suite-archive/data-r2/expr-builtin/lang-case-sensitivity-ne.rq,
+	  tests/sparql/test-suite-archive/data-r2/expr-builtin/lang-case-sensitivity.ttl,
+	  tests/sparql/test-suite-archive/data-r2/expr-builtin/manifest.ttl,
+	  tests/sparql/test-suite-archive/data-r2/expr-builtin/manifest.ttl.bak,
+	  tests/sparql/test-suite-archive/data-r2/expr-builtin/q-blank-1.rq,
+	  tests/sparql/test-suite-archive/data-r2/expr-builtin/q-datatype-1.rq,
+	  tests/sparql/test-suite-archive/data-r2/expr-builtin/q-datatype-2.rq,
+	  tests/sparql/test-suite-archive/data-r2/expr-builtin/q-datatype-3.rq,
+	  tests/sparql/test-suite-archive/data-r2/expr-builtin/q-iri-1.rq,
+	  tests/sparql/test-suite-archive/data-r2/expr-builtin/q-isliteral-1.rq,
+	  tests/sparql/test-suite-archive/data-r2/expr-builtin/q-lang-1.rq,
+	  tests/sparql/test-suite-archive/data-r2/expr-builtin/q-lang-2.rq,
+	  tests/sparql/test-suite-archive/data-r2/expr-builtin/q-lang-3.rq,
+	  tests/sparql/test-suite-archive/data-r2/expr-builtin/q-langMatches-1.rq,
+	  tests/sparql/test-suite-archive/data-r2/expr-builtin/q-langMatches-2.rq,
+	  tests/sparql/test-suite-archive/data-r2/expr-builtin/q-langMatches-3.rq,
+	  tests/sparql/test-suite-archive/data-r2/expr-builtin/q-langMatches-4.rq,
+	  tests/sparql/test-suite-archive/data-r2/expr-builtin/q-langMatches-de-de.rq,
+	  tests/sparql/test-suite-archive/data-r2/expr-builtin/q-str-1.rq,
+	  tests/sparql/test-suite-archive/data-r2/expr-builtin/q-str-2.rq,
+	  tests/sparql/test-suite-archive/data-r2/expr-builtin/q-str-3.rq,
+	  tests/sparql/test-suite-archive/data-r2/expr-builtin/q-str-4.rq,
+	  tests/sparql/test-suite-archive/data-r2/expr-builtin/q-uri-1.rq,
+	  tests/sparql/test-suite-archive/data-r2/expr-builtin/result-blank-1.ttl,
+	  tests/sparql/test-suite-archive/data-r2/expr-builtin/result-datatype-1.ttl,
+	  tests/sparql/test-suite-archive/data-r2/expr-builtin/result-datatype-2.srx,
+	  tests/sparql/test-suite-archive/data-r2/expr-builtin/result-datatype-3.srx,
+	  tests/sparql/test-suite-archive/data-r2/expr-builtin/result-iri-1.ttl,
+	  tests/sparql/test-suite-archive/data-r2/expr-builtin/result-isliteral-1.ttl,
+	  tests/sparql/test-suite-archive/data-r2/expr-builtin/result-lang-1.srx,
+	  tests/sparql/test-suite-archive/data-r2/expr-builtin/result-lang-2.srx,
+	  tests/sparql/test-suite-archive/data-r2/expr-builtin/result-lang-3.srx,
+	  tests/sparql/test-suite-archive/data-r2/expr-builtin/result-langMatches-1.ttl,
+	  tests/sparql/test-suite-archive/data-r2/expr-builtin/result-langMatches-2.ttl,
+	  tests/sparql/test-suite-archive/data-r2/expr-builtin/result-langMatches-3.ttl,
+	  tests/sparql/test-suite-archive/data-r2/expr-builtin/result-langMatches-4.ttl,
+	  tests/sparql/test-suite-archive/data-r2/expr-builtin/result-langMatches-de.ttl,
+	  tests/sparql/test-suite-archive/data-r2/expr-builtin/result-sameTerm-eq.ttl,
+	  tests/sparql/test-suite-archive/data-r2/expr-builtin/result-sameTerm-not-eq.ttl,
+	  tests/sparql/test-suite-archive/data-r2/expr-builtin/result-sameTerm.ttl,
+	  tests/sparql/test-suite-archive/data-r2/expr-builtin/result-str-1.ttl,
+	  tests/sparql/test-suite-archive/data-r2/expr-builtin/result-str-2.ttl,
+	  tests/sparql/test-suite-archive/data-r2/expr-builtin/result-str-3.ttl,
+	  tests/sparql/test-suite-archive/data-r2/expr-builtin/result-str-4.ttl,
+	  tests/sparql/test-suite-archive/data-r2/expr-builtin/result-uri-1.ttl,
+	  tests/sparql/test-suite-archive/data-r2/expr-builtin/sameTerm-eq.rq,
+	  tests/sparql/test-suite-archive/data-r2/expr-builtin/sameTerm-not-eq.rq,
+	  tests/sparql/test-suite-archive/data-r2/expr-builtin/sameTerm.rq,
+	  tests/sparql/test-suite-archive/data-r2/expr-equals,
+	  tests/sparql/test-suite-archive/data-r2/expr-equals/data-eq.ttl,
+	  tests/sparql/test-suite-archive/data-r2/expr-equals/manifest.ttl,
+	  tests/sparql/test-suite-archive/data-r2/expr-equals/manifest.ttl.bak,
+	  tests/sparql/test-suite-archive/data-r2/expr-equals/query-eq-1.rq,
+	  tests/sparql/test-suite-archive/data-r2/expr-equals/query-eq-2.rq,
+	  tests/sparql/test-suite-archive/data-r2/expr-equals/query-eq-3.rq,
+	  tests/sparql/test-suite-archive/data-r2/expr-equals/query-eq-4.rq,
+	  tests/sparql/test-suite-archive/data-r2/expr-equals/query-eq-5.rq,
+	  tests/sparql/test-suite-archive/data-r2/expr-equals/query-eq-graph-1.rq,
+	  tests/sparql/test-suite-archive/data-r2/expr-equals/query-eq-graph-2.rq,
+	  tests/sparql/test-suite-archive/data-r2/expr-equals/query-eq-graph-3.rq,
+	  tests/sparql/test-suite-archive/data-r2/expr-equals/query-eq-graph-4.rq,
+	  tests/sparql/test-suite-archive/data-r2/expr-equals/query-eq-graph-5.rq,
+	  tests/sparql/test-suite-archive/data-r2/expr-equals/query-eq2-1.rq,
+	  tests/sparql/test-suite-archive/data-r2/expr-equals/query-eq2-2.rq,
+	  tests/sparql/test-suite-archive/data-r2/expr-equals/query-eq2-graph-1.rq,
+	  tests/sparql/test-suite-archive/data-r2/expr-equals/result-eq-1.ttl,
+	  tests/sparql/test-suite-archive/data-r2/expr-equals/result-eq-2.ttl,
+	  tests/sparql/test-suite-archive/data-r2/expr-equals/result-eq-3.ttl,
+	  tests/sparql/test-suite-archive/data-r2/expr-equals/result-eq-4.ttl,
+	  tests/sparql/test-suite-archive/data-r2/expr-equals/result-eq-5.ttl,
+	  tests/sparql/test-suite-archive/data-r2/expr-equals/result-eq-graph-1.ttl,
+	  tests/sparql/test-suite-archive/data-r2/expr-equals/result-eq-graph-2.ttl,
+	  tests/sparql/test-suite-archive/data-r2/expr-equals/result-eq-graph-3.ttl,
+	  tests/sparql/test-suite-archive/data-r2/expr-equals/result-eq-graph-4.ttl,
+	  tests/sparql/test-suite-archive/data-r2/expr-equals/result-eq-graph-5.ttl,
+	  tests/sparql/test-suite-archive/data-r2/expr-equals/result-eq2-1.ttl,
+	  tests/sparql/test-suite-archive/data-r2/expr-equals/result-eq2-2.ttl,
+	  tests/sparql/test-suite-archive/data-r2/expr-equals/result-eq2-graph-1.ttl,
+	  tests/sparql/test-suite-archive/data-r2/expr-ops,
+	  tests/sparql/test-suite-archive/data-r2/expr-ops/data.ttl,
+	  tests/sparql/test-suite-archive/data-r2/expr-ops/manifest.ttl,
+	  tests/sparql/test-suite-archive/data-r2/expr-ops/manifest.ttl.bak,
+	  tests/sparql/test-suite-archive/data-r2/expr-ops/query-ge-1.rq,
+	  tests/sparql/test-suite-archive/data-r2/expr-ops/query-le-1.rq,
+	  tests/sparql/test-suite-archive/data-r2/expr-ops/query-minus-1.rq,
+	  tests/sparql/test-suite-archive/data-r2/expr-ops/query-mul-1.rq,
+	  tests/sparql/test-suite-archive/data-r2/expr-ops/query-plus-1.rq,
+	  tests/sparql/test-suite-archive/data-r2/expr-ops/query-unminus-1.rq,
+	  tests/sparql/test-suite-archive/data-r2/expr-ops/query-unplus-1.rq,
+	  tests/sparql/test-suite-archive/data-r2/expr-ops/result-ge-1.srx,
+	  tests/sparql/test-suite-archive/data-r2/expr-ops/result-le-1.srx,
+	  tests/sparql/test-suite-archive/data-r2/expr-ops/result-minus-1.srx,
+	  tests/sparql/test-suite-archive/data-r2/expr-ops/result-mul-1.srx,
+	  tests/sparql/test-suite-archive/data-r2/expr-ops/result-plus-1.srx,
+	  tests/sparql/test-suite-archive/data-r2/expr-ops/result-unminus-1.srx,
+	  tests/sparql/test-suite-archive/data-r2/expr-ops/result-unplus-1.srx,
+	  tests/sparql/test-suite-archive/data-r2/extended-manifest-evaluation.ttl,
+	  tests/sparql/test-suite-archive/data-r2/files-to-fix,
+	  tests/sparql/test-suite-archive/data-r2/foo,
+	  tests/sparql/test-suite-archive/data-r2/graph,
+	  tests/sparql/test-suite-archive/data-r2/graph/data-g1.ttl,
+	  tests/sparql/test-suite-archive/data-r2/graph/data-g2.ttl,
+	  tests/sparql/test-suite-archive/data-r2/graph/data-g3-dup.ttl,
+	  tests/sparql/test-suite-archive/data-r2/graph/data-g3.ttl,
+	  tests/sparql/test-suite-archive/data-r2/graph/data-g4.ttl,
+	  tests/sparql/test-suite-archive/data-r2/graph/graph-01.rq,
+	  tests/sparql/test-suite-archive/data-r2/graph/graph-01.ttl,
+	  tests/sparql/test-suite-archive/data-r2/graph/graph-02.rq,
+	  tests/sparql/test-suite-archive/data-r2/graph/graph-02.ttl,
+	  tests/sparql/test-suite-archive/data-r2/graph/graph-03.rq,
+	  tests/sparql/test-suite-archive/data-r2/graph/graph-03.ttl,
+	  tests/sparql/test-suite-archive/data-r2/graph/graph-04.rq,
+	  tests/sparql/test-suite-archive/data-r2/graph/graph-04.ttl,
+	  tests/sparql/test-suite-archive/data-r2/graph/graph-05.rq,
+	  tests/sparql/test-suite-archive/data-r2/graph/graph-05.ttl,
+	  tests/sparql/test-suite-archive/data-r2/graph/graph-06.rq,
+	  tests/sparql/test-suite-archive/data-r2/graph/graph-06.ttl,
+	  tests/sparql/test-suite-archive/data-r2/graph/graph-07.rq,
+	  tests/sparql/test-suite-archive/data-r2/graph/graph-07.ttl,
+	  tests/sparql/test-suite-archive/data-r2/graph/graph-08.rq,
+	  tests/sparql/test-suite-archive/data-r2/graph/graph-08.ttl,
+	  tests/sparql/test-suite-archive/data-r2/graph/graph-09.rq,
+	  tests/sparql/test-suite-archive/data-r2/graph/graph-09.ttl,
+	  tests/sparql/test-suite-archive/data-r2/graph/graph-10.rq,
+	  tests/sparql/test-suite-archive/data-r2/graph/graph-10.ttl,
+	  tests/sparql/test-suite-archive/data-r2/graph/graph-11.rq,
+	  tests/sparql/test-suite-archive/data-r2/graph/graph-11.ttl,
+	  tests/sparql/test-suite-archive/data-r2/graph/manifest.ttl,
+	  tests/sparql/test-suite-archive/data-r2/graph/manifest.ttl.bak,
+	  tests/sparql/test-suite-archive/data-r2/i18n,
+	  tests/sparql/test-suite-archive/data-r2/i18n/.htaccess,
+	  tests/sparql/test-suite-archive/data-r2/i18n/kanji-01-results.ttl,
+	  tests/sparql/test-suite-archive/data-r2/i18n/kanji-01.rq,
+	  tests/sparql/test-suite-archive/data-r2/i18n/kanji-02-results.ttl,
+	  tests/sparql/test-suite-archive/data-r2/i18n/kanji-02.rq,
+	  tests/sparql/test-suite-archive/data-r2/i18n/kanji.ttl,
+	  tests/sparql/test-suite-archive/data-r2/i18n/manifest.ttl,
+	  tests/sparql/test-suite-archive/data-r2/i18n/manifest.ttl.bak,
+	  tests/sparql/test-suite-archive/data-r2/i18n/normalization-01-results.ttl,
+	  tests/sparql/test-suite-archive/data-r2/i18n/normalization-01.rq,
+	  tests/sparql/test-suite-archive/data-r2/i18n/normalization-01.ttl,
+	  tests/sparql/test-suite-archive/data-r2/i18n/normalization-02-results.ttl,
+	  tests/sparql/test-suite-archive/data-r2/i18n/normalization-02.rq,
+	  tests/sparql/test-suite-archive/data-r2/i18n/normalization-02.ttl,
+	  tests/sparql/test-suite-archive/data-r2/i18n/normalization-03-results.ttl,
+	  tests/sparql/test-suite-archive/data-r2/i18n/normalization-03.rq,
+	  tests/sparql/test-suite-archive/data-r2/i18n/normalization-03.ttl,
+	  tests/sparql/test-suite-archive/data-r2/manifest-evaluation.ttl,
+	  tests/sparql/test-suite-archive/data-r2/manifest-syntax.ttl,
+	  tests/sparql/test-suite-archive/data-r2/open-world,
+	  tests/sparql/test-suite-archive/data-r2/open-world/data-1.ttl,
+	  tests/sparql/test-suite-archive/data-r2/open-world/data-2.ttl,
+	  tests/sparql/test-suite-archive/data-r2/open-world/data-3.ttl,
+	  tests/sparql/test-suite-archive/data-r2/open-world/data-4.ttl,
+	  tests/sparql/test-suite-archive/data-r2/open-world/date-1-result.srx,
+	  tests/sparql/test-suite-archive/data-r2/open-world/date-1.rq,
+	  tests/sparql/test-suite-archive/data-r2/open-world/date-2-result.srx,
+	  tests/sparql/test-suite-archive/data-r2/open-world/date-2.rq,
+	  tests/sparql/test-suite-archive/data-r2/open-world/date-3-result.srx,
+	  tests/sparql/test-suite-archive/data-r2/open-world/date-3.rq,
+	  tests/sparql/test-suite-archive/data-r2/open-world/date-4-result.srx,
+	  tests/sparql/test-suite-archive/data-r2/open-world/date-4.rq,
+	  tests/sparql/test-suite-archive/data-r2/open-world/manifest.ttl,
+	  tests/sparql/test-suite-archive/data-r2/open-world/manifest.ttl.bak,
+	  tests/sparql/test-suite-archive/data-r2/open-world/open-cmp-01-result.srx,
+	  tests/sparql/test-suite-archive/data-r2/open-world/open-cmp-01.rq,
+	  tests/sparql/test-suite-archive/data-r2/open-world/open-cmp-02-result.srx,
+	  tests/sparql/test-suite-archive/data-r2/open-world/open-cmp-02.rq,
+	  tests/sparql/test-suite-archive/data-r2/open-world/open-eq-01-result.srx,
+	  tests/sparql/test-suite-archive/data-r2/open-world/open-eq-01.rq,
+	  tests/sparql/test-suite-archive/data-r2/open-world/open-eq-02-result.srx,
+	  tests/sparql/test-suite-archive/data-r2/open-world/open-eq-02.rq,
+	  tests/sparql/test-suite-archive/data-r2/open-world/open-eq-03-result.srx,
+	  tests/sparql/test-suite-archive/data-r2/open-world/open-eq-03.rq,
+	  tests/sparql/test-suite-archive/data-r2/open-world/open-eq-04-result.srx,
+	  tests/sparql/test-suite-archive/data-r2/open-world/open-eq-04.rq,
+	  tests/sparql/test-suite-archive/data-r2/open-world/open-eq-05-result.srx,
+	  tests/sparql/test-suite-archive/data-r2/open-world/open-eq-05.rq,
+	  tests/sparql/test-suite-archive/data-r2/open-world/open-eq-06-result.srx,
+	  tests/sparql/test-suite-archive/data-r2/open-world/open-eq-06.rq,
+	  tests/sparql/test-suite-archive/data-r2/open-world/open-eq-07-result.srx,
+	  tests/sparql/test-suite-archive/data-r2/open-world/open-eq-07.rq,
+	  tests/sparql/test-suite-archive/data-r2/open-world/open-eq-08-result.srx,
+	  tests/sparql/test-suite-archive/data-r2/open-world/open-eq-08.rq,
+	  tests/sparql/test-suite-archive/data-r2/open-world/open-eq-09-result.srx,
+	  tests/sparql/test-suite-archive/data-r2/open-world/open-eq-09.rq,
+	  tests/sparql/test-suite-archive/data-r2/open-world/open-eq-10-result.srx,
+	  tests/sparql/test-suite-archive/data-r2/open-world/open-eq-10.rq,
+	  tests/sparql/test-suite-archive/data-r2/open-world/open-eq-11-result.srx,
+	  tests/sparql/test-suite-archive/data-r2/open-world/open-eq-11.rq,
+	  tests/sparql/test-suite-archive/data-r2/open-world/open-eq-12-result.srx,
+	  tests/sparql/test-suite-archive/data-r2/open-world/open-eq-12.rq,
+	  tests/sparql/test-suite-archive/data-r2/open-world/sameTerm-StringSimpleLiteralCmp.srx,
+	  tests/sparql/test-suite-archive/data-r2/open-world/sameTerm-eq-StringSimpleLiteralCmp.srx,
+	  tests/sparql/test-suite-archive/data-r2/open-world/sameTerm-eq.srx,
+	  tests/sparql/test-suite-archive/data-r2/open-world/sameTerm-manifest.ttl,
+	  tests/sparql/test-suite-archive/data-r2/open-world/sameTerm-not-eq-StringSimpleLiteralCmp.srx,
+	  tests/sparql/test-suite-archive/data-r2/open-world/sameTerm-not-eq.srx,
+	  tests/sparql/test-suite-archive/data-r2/open-world/sameTerm.srx,
+	  tests/sparql/test-suite-archive/data-r2/open-world/sameTerm.ttl,
+	  tests/sparql/test-suite-archive/data-r2/optional,
+	  tests/sparql/test-suite-archive/data-r2/optional/complex-data-1.ttl,
+	  tests/sparql/test-suite-archive/data-r2/optional/complex-data-2.ttl,
+	  tests/sparql/test-suite-archive/data-r2/optional/data.ttl,
+	  tests/sparql/test-suite-archive/data-r2/optional/manifest.ttl,
+	  tests/sparql/test-suite-archive/data-r2/optional/manifest.ttl.bak,
+	  tests/sparql/test-suite-archive/data-r2/optional/q-opt-1.rq,
+	  tests/sparql/test-suite-archive/data-r2/optional/q-opt-2.rq,
+	  tests/sparql/test-suite-archive/data-r2/optional/q-opt-3.rq,
+	  tests/sparql/test-suite-archive/data-r2/optional/q-opt-complex-1.rq,
+	  tests/sparql/test-suite-archive/data-r2/optional/q-opt-complex-2.rq,
+	  tests/sparql/test-suite-archive/data-r2/optional/q-opt-complex-3.rq,
+	  tests/sparql/test-suite-archive/data-r2/optional/q-opt-complex-4.rq,
+	  tests/sparql/test-suite-archive/data-r2/optional/result-opt-1.ttl,
+	  tests/sparql/test-suite-archive/data-r2/optional/result-opt-2.ttl,
+	  tests/sparql/test-suite-archive/data-r2/optional/result-opt-3.ttl,
+	  tests/sparql/test-suite-archive/data-r2/optional/result-opt-complex-1.ttl,
+	  tests/sparql/test-suite-archive/data-r2/optional/result-opt-complex-2.ttl,
+	  tests/sparql/test-suite-archive/data-r2/optional/result-opt-complex-3.ttl,
+	  tests/sparql/test-suite-archive/data-r2/optional/result-opt-complex-4.ttl,
+	  tests/sparql/test-suite-archive/data-r2/optional-filter,
+	  tests/sparql/test-suite-archive/data-r2/optional-filter/data-1.ttl,
+	  tests/sparql/test-suite-archive/data-r2/optional-filter/expr-1-result.ttl,
+	  tests/sparql/test-suite-archive/data-r2/optional-filter/expr-1.rq,
+	  tests/sparql/test-suite-archive/data-r2/optional-filter/expr-2-result.ttl,
+	  tests/sparql/test-suite-archive/data-r2/optional-filter/expr-2.rq,
+	  tests/sparql/test-suite-archive/data-r2/optional-filter/expr-3-result.ttl,
+	  tests/sparql/test-suite-archive/data-r2/optional-filter/expr-3.rq,
+	  tests/sparql/test-suite-archive/data-r2/optional-filter/expr-4-result.ttl,
+	  tests/sparql/test-suite-archive/data-r2/optional-filter/expr-4.rq,
+	  tests/sparql/test-suite-archive/data-r2/optional-filter/expr-5-result-not-simplified.ttl,
+	  tests/sparql/test-suite-archive/data-r2/optional-filter/expr-5-result-simplified.ttl,
+	  tests/sparql/test-suite-archive/data-r2/optional-filter/expr-5.rq,
+	  tests/sparql/test-suite-archive/data-r2/optional-filter/manifest.ttl,
+	  tests/sparql/test-suite-archive/data-r2/optional-filter/manifest.ttl.bak,
+	  tests/sparql/test-suite-archive/data-r2/reduced,
+	  tests/sparql/test-suite-archive/data-r2/reduced/manifest.ttl,
+	  tests/sparql/test-suite-archive/data-r2/reduced/reduced-1.rq,
+	  tests/sparql/test-suite-archive/data-r2/reduced/reduced-1.srx,
+	  tests/sparql/test-suite-archive/data-r2/reduced/reduced-2.rq,
+	  tests/sparql/test-suite-archive/data-r2/reduced/reduced-2.srx,
+	  tests/sparql/test-suite-archive/data-r2/reduced/reduced-star.ttl,
+	  tests/sparql/test-suite-archive/data-r2/reduced/reduced-str.ttl,
+	  tests/sparql/test-suite-archive/data-r2/regex/manifest.ttl,
+	  tests/sparql/test-suite-archive/data-r2/regex/regex-data-01.ttl,
+	  tests/sparql/test-suite-archive/data-r2/regex/regex-query-001.rq,
+	  tests/sparql/test-suite-archive/data-r2/regex/regex-query-002.rq,
+	  tests/sparql/test-suite-archive/data-r2/regex/regex-query-003.rq,
+	  tests/sparql/test-suite-archive/data-r2/regex/regex-query-004.rq,
+	  tests/sparql/test-suite-archive/data-r2/regex/regex-result-001.ttl,
+	  tests/sparql/test-suite-archive/data-r2/regex/regex-result-002.ttl,
+	  tests/sparql/test-suite-archive/data-r2/regex/regex-result-003.ttl,
+	  tests/sparql/test-suite-archive/data-r2/regex/regex-result-004.ttl,
+	  tests/sparql/test-suite-archive/data-r2/run-tests,
+	  tests/sparql/test-suite-archive/data-r2/solution-seq/data.ttl,
+	  tests/sparql/test-suite-archive/data-r2/solution-seq/manifest.ttl,
+	  tests/sparql/test-suite-archive/data-r2/solution-seq/slice-01.rq,
+	  tests/sparql/test-suite-archive/data-r2/solution-seq/slice-02.rq,
+	  tests/sparql/test-suite-archive/data-r2/solution-seq/slice-03.rq,
+	  tests/sparql/test-suite-archive/data-r2/solution-seq/slice-04.rq,
+	  tests/sparql/test-suite-archive/data-r2/solution-seq/slice-10.rq,
+	  tests/sparql/test-suite-archive/data-r2/solution-seq/slice-11.rq,
+	  tests/sparql/test-suite-archive/data-r2/solution-seq/slice-12.rq,
+	  tests/sparql/test-suite-archive/data-r2/solution-seq/slice-13.rq,
+	  tests/sparql/test-suite-archive/data-r2/solution-seq/slice-20.rq,
+	  tests/sparql/test-suite-archive/data-r2/solution-seq/slice-21.rq,
+	  tests/sparql/test-suite-archive/data-r2/solution-seq/slice-22.rq,
+	  tests/sparql/test-suite-archive/data-r2/solution-seq/slice-23.rq,
+	  tests/sparql/test-suite-archive/data-r2/solution-seq/slice-24.rq,
+	  tests/sparql/test-suite-archive/data-r2/solution-seq/slice-results-01.ttl,
+	  tests/sparql/test-suite-archive/data-r2/solution-seq/slice-results-02.ttl,
+	  tests/sparql/test-suite-archive/data-r2/solution-seq/slice-results-03.ttl,
+	  tests/sparql/test-suite-archive/data-r2/solution-seq/slice-results-04.ttl,
+	  tests/sparql/test-suite-archive/data-r2/solution-seq/slice-results-10.ttl,
+	  tests/sparql/test-suite-archive/data-r2/solution-seq/slice-results-11.ttl,
+	  tests/sparql/test-suite-archive/data-r2/solution-seq/slice-results-12.ttl,
+	  tests/sparql/test-suite-archive/data-r2/solution-seq/slice-results-13.ttl,
+	  tests/sparql/test-suite-archive/data-r2/solution-seq/slice-results-20.ttl,
+	  tests/sparql/test-suite-archive/data-r2/solution-seq/slice-results-21.ttl,
+	  tests/sparql/test-suite-archive/data-r2/solution-seq/slice-results-22.ttl,
+	  tests/sparql/test-suite-archive/data-r2/solution-seq/slice-results-23.ttl,
+	  tests/sparql/test-suite-archive/data-r2/solution-seq/slice-results-24.ttl,
+	  tests/sparql/test-suite-archive/data-r2/sort/.manifest.ttl.swp,
+	  tests/sparql/test-suite-archive/data-r2/sort/data-sort-1.ttl,
+	  tests/sparql/test-suite-archive/data-r2/sort/data-sort-11.ttl,
+	  tests/sparql/test-suite-archive/data-r2/sort/data-sort-3.ttl,
+	  tests/sparql/test-suite-archive/data-r2/sort/data-sort-4.ttl,
+	  tests/sparql/test-suite-archive/data-r2/sort/data-sort-6.ttl,
+	  tests/sparql/test-suite-archive/data-r2/sort/data-sort-7.ttl,
+	  tests/sparql/test-suite-archive/data-r2/sort/data-sort-8.ttl,
+	  tests/sparql/test-suite-archive/data-r2/sort/data-sort-9.ttl,
+	  tests/sparql/test-suite-archive/data-r2/sort/data-sort-builtin.ttl,
+	  tests/sparql/test-suite-archive/data-r2/sort/data-sort-function.ttl,
+	  tests/sparql/test-suite-archive/data-r2/sort/data-sort-numbers.ttl,
+	  tests/sparql/test-suite-archive/data-r2/sort/extended-manifest.ttl,
+	  tests/sparql/test-suite-archive/data-r2/sort/manifest.ttl,
+	  tests/sparql/test-suite-archive/data-r2/sort/query-sort-1.rq,
+	  tests/sparql/test-suite-archive/data-r2/sort/query-sort-10.rq,
+	  tests/sparql/test-suite-archive/data-r2/sort/query-sort-2.rq,
+	  tests/sparql/test-suite-archive/data-r2/sort/query-sort-3.rq,
+	  tests/sparql/test-suite-archive/data-r2/sort/query-sort-4.rq,
+	  tests/sparql/test-suite-archive/data-r2/sort/query-sort-5.rq,
+	  tests/sparql/test-suite-archive/data-r2/sort/query-sort-6.rq,
+	  tests/sparql/test-suite-archive/data-r2/sort/query-sort-9.rq,
+	  tests/sparql/test-suite-archive/data-r2/sort/query-sort-builtin.rq,
+	  tests/sparql/test-suite-archive/data-r2/sort/query-sort-function.rq,
+	  tests/sparql/test-suite-archive/data-r2/sort/query-sort-numbers.rq,
+	  tests/sparql/test-suite-archive/data-r2/sort/result-sort-1.rdf,
+	  tests/sparql/test-suite-archive/data-r2/sort/result-sort-10.rdf,
+	  tests/sparql/test-suite-archive/data-r2/sort/result-sort-11.ttl,
+	  tests/sparql/test-suite-archive/data-r2/sort/result-sort-2.rdf,
+	  tests/sparql/test-suite-archive/data-r2/sort/result-sort-3.rdf,
+	  tests/sparql/test-suite-archive/data-r2/sort/result-sort-4.rdf,
+	  tests/sparql/test-suite-archive/data-r2/sort/result-sort-5.rdf,
+	  tests/sparql/test-suite-archive/data-r2/sort/result-sort-6.rdf,
+	  tests/sparql/test-suite-archive/data-r2/sort/result-sort-7.rdf,
+	  tests/sparql/test-suite-archive/data-r2/sort/result-sort-8.rdf,
+	  tests/sparql/test-suite-archive/data-r2/sort/result-sort-9.rdf,
+	  tests/sparql/test-suite-archive/data-r2/sort/result-sort-builtin.ttl,
+	  tests/sparql/test-suite-archive/data-r2/sort/result-sort-function.ttl,
+	  tests/sparql/test-suite-archive/data-r2/sort/result-sort-numbers.ttl,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/manifest.ttl,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-basic-01.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-basic-02.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-basic-03.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-basic-04.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-basic-05.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-basic-06.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-bnodes-01.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-bnodes-02.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-bnodes-03.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-bnodes-04.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-bnodes-05.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-expr-01.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-expr-02.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-expr-03.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-expr-04.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-expr-05.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-forms-01.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-forms-02.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-limit-offset-01.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-limit-offset-02.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-limit-offset-03.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-limit-offset-04.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-lists-01.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-lists-02.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-lists-03.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-lists-04.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-lists-05.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-lit-01.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-lit-02.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-lit-03.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-lit-04.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-lit-05.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-lit-06.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-lit-07.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-lit-08.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-lit-09.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-lit-10.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-lit-11.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-lit-12.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-lit-13.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-lit-14.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-lit-15.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-lit-16.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-lit-17.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-lit-18.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-lit-19.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-lit-20.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-order-01.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-order-02.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-order-03.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-order-04.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-order-05.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-order-06.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-order-07.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-pat-01.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-pat-02.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-pat-03.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-pat-04.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-qname-01.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-qname-02.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-qname-03.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-qname-04.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-qname-05.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-qname-06.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-qname-07.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-qname-08.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-struct-01.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-struct-02.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-struct-03.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-struct-05.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-struct-06.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-struct-07.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-struct-08.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-struct-09.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-struct-10.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-struct-11.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-struct-12.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-struct-13.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-struct-14.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-union-01.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql1/syntax-union-02.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql2/manifest.ttl,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql2/syntax-bnode-01.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql2/syntax-bnode-02.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql2/syntax-bnode-03.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql2/syntax-dataset-01.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql2/syntax-dataset-02.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql2/syntax-dataset-03.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql2/syntax-dataset-04.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql2/syntax-esc-01.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql2/syntax-esc-02.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql2/syntax-esc-03.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql2/syntax-esc-04.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql2/syntax-esc-05.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql2/syntax-form-ask-02.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql2/syntax-form-construct01.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql2/syntax-form-construct02.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql2/syntax-form-construct03.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql2/syntax-form-construct04.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql2/syntax-form-construct06.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql2/syntax-form-describe01.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql2/syntax-form-describe02.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql2/syntax-form-select-01.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql2/syntax-form-select-02.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql2/syntax-function-01.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql2/syntax-function-02.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql2/syntax-function-03.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql2/syntax-function-04.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql2/syntax-general-01.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql2/syntax-general-02.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql2/syntax-general-03.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql2/syntax-general-04.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql2/syntax-general-05.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql2/syntax-general-06.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql2/syntax-general-07.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql2/syntax-general-08.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql2/syntax-general-09.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql2/syntax-general-10.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql2/syntax-general-11.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql2/syntax-general-12.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql2/syntax-general-13.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql2/syntax-general-14.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql2/syntax-graph-01.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql2/syntax-graph-02.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql2/syntax-graph-03.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql2/syntax-graph-04.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql2/syntax-graph-05.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql2/syntax-keywords-01.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql2/syntax-keywords-02.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql2/syntax-keywords-03.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql2/syntax-lists-01.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql2/syntax-lists-02.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql2/syntax-lists-03.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql2/syntax-lists-04.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql2/syntax-lists-05.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql3/manifest.ttl,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql3/syn-01.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql3/syn-02.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql3/syn-03.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql3/syn-04.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql3/syn-05.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql3/syn-06.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql3/syn-07.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql3/syn-08.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql3/syn-bad-01.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql3/syn-bad-02.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql3/syn-bad-03.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql3/syn-bad-04.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql3/syn-bad-05.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql3/syn-bad-06.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql3/syn-bad-07.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql3/syn-bad-08.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql3/syn-bad-09.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql3/syn-bad-10.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql3/syn-bad-11.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql3/syn-bad-12.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql3/syn-bad-13.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql3/syn-bad-14.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql3/syn-bad-15.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql3/syn-bad-16.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql3/syn-bad-17.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql3/syn-bad-18.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql3/syn-bad-19.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql3/syn-bad-20.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql3/syn-bad-21.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql3/syn-bad-22.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql3/syn-bad-23.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql3/syn-bad-24.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql3/syn-bad-25.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql3/syn-bad-26.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql3/syn-bad-27.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql3/syn-bad-28.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql3/syn-bad-29.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql3/syn-bad-30.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql3/syn-bad-31.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql3/syn-bad-bnode-dot.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql3/syn-bad-bnodes-missing-pvalues-01.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql3/syn-bad-bnodes-missing-pvalues-02.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql3/syn-bad-empty-optional-01.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql3/syn-bad-empty-optional-02.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql3/syn-bad-filter-missing-parens.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql3/syn-bad-lone-list.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql3/syn-bad-lone-node.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql3/syn-blabel-cross-filter.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql3/syn-blabel-cross-graph-bad.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql3/syn-blabel-cross-optional-bad.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql3/syn-blabel-cross-union-bad.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql4/manifest.ttl,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql4/syn-09.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql4/syn-10.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql4/syn-11.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql4/syn-bad-34.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql4/syn-bad-35.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql4/syn-bad-36.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql4/syn-bad-37.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql4/syn-bad-38.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql4/syn-bad-GRAPH-breaks-BGP.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql4/syn-bad-OPT-breaks-BGP.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql4/syn-bad-UNION-breaks-BGP.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql4/syn-leading-digits-in-prefixed-names.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql5/manifest.ttl,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql5/syntax-reduced-01.rq,
+	  tests/sparql/test-suite-archive/data-r2/syntax-sparql5/syntax-reduced-02.rq,
+	  tests/sparql/test-suite-archive/data-r2/triple-match/data-01.ttl,
+	  tests/sparql/test-suite-archive/data-r2/triple-match/data-02.ttl,
+	  tests/sparql/test-suite-archive/data-r2/triple-match/data-03.ttl,
+	  tests/sparql/test-suite-archive/data-r2/triple-match/dawg-data-01.ttl,
+	  tests/sparql/test-suite-archive/data-r2/triple-match/dawg-tp-01.rq,
+	  tests/sparql/test-suite-archive/data-r2/triple-match/dawg-tp-02.rq,
+	  tests/sparql/test-suite-archive/data-r2/triple-match/dawg-tp-03.rq,
+	  tests/sparql/test-suite-archive/data-r2/triple-match/dawg-tp-04.rq,
+	  tests/sparql/test-suite-archive/data-r2/triple-match/dawg-tp-05.rq,
+	  tests/sparql/test-suite-archive/data-r2/triple-match/manifest.ttl,
+	  tests/sparql/test-suite-archive/data-r2/triple-match/result-tp-01.ttl,
+	  tests/sparql/test-suite-archive/data-r2/triple-match/result-tp-02.ttl,
+	  tests/sparql/test-suite-archive/data-r2/triple-match/result-tp-03.ttl,
+	  tests/sparql/test-suite-archive/data-r2/triple-match/result-tp-04.ttl,
+	  tests/sparql/test-suite-archive/data-r2/type-promotion/false.ttl,
+	  tests/sparql/test-suite-archive/data-r2/type-promotion/manifest.ttl,
+	  tests/sparql/test-suite-archive/data-r2/type-promotion/tP-byte-short-fail.rq,
+	  tests/sparql/test-suite-archive/data-r2/type-promotion/tP-byte-short.rq,
+	  tests/sparql/test-suite-archive/data-r2/type-promotion/tP-decimal-decimal.rq,
+	  tests/sparql/test-suite-archive/data-r2/type-promotion/tP-double-decimal-fail.rq,
+	  tests/sparql/test-suite-archive/data-r2/type-promotion/tP-double-decimal.rq,
+	  tests/sparql/test-suite-archive/data-r2/type-promotion/tP-double-double.rq,
+	  tests/sparql/test-suite-archive/data-r2/type-promotion/tP-double-float-fail.rq,
+	  tests/sparql/test-suite-archive/data-r2/type-promotion/tP-double-float.rq,
+	  tests/sparql/test-suite-archive/data-r2/type-promotion/tP-float-decimal-fail.rq,
+	  tests/sparql/test-suite-archive/data-r2/type-promotion/tP-float-decimal.rq,
+	  tests/sparql/test-suite-archive/data-r2/type-promotion/tP-float-float.rq,
+	  tests/sparql/test-suite-archive/data-r2/type-promotion/tP-int-short.rq,
+	  tests/sparql/test-suite-archive/data-r2/type-promotion/tP-integer-short.rq,
+	  tests/sparql/test-suite-archive/data-r2/type-promotion/tP-long-short.rq,
+	  tests/sparql/test-suite-archive/data-r2/type-promotion/tP-negativeInteger-short.rq,
+	  tests/sparql/test-suite-archive/data-r2/type-promotion/tP-nonNegativeInteger-short.rq,
+	  tests/sparql/test-suite-archive/data-r2/type-promotion/tP-nonPositiveInteger-short.rq,
+	  tests/sparql/test-suite-archive/data-r2/type-promotion/tP-positiveInteger-short.rq,
+	  tests/sparql/test-suite-archive/data-r2/type-promotion/tP-short-byte-fail.rq,
+	  tests/sparql/test-suite-archive/data-r2/type-promotion/tP-short-decimal.rq,
+	  tests/sparql/test-suite-archive/data-r2/type-promotion/tP-short-double.rq,
+	  tests/sparql/test-suite-archive/data-r2/type-promotion/tP-short-float.rq,
+	  tests/sparql/test-suite-archive/data-r2/type-promotion/tP-short-int-fail.rq,
+	  tests/sparql/test-suite-archive/data-r2/type-promotion/tP-short-long-fail.rq,
+	  tests/sparql/test-suite-archive/data-r2/type-promotion/tP-short-short-fail.rq,
+	  tests/sparql/test-suite-archive/data-r2/type-promotion/tP-short-short.rq,
+	  tests/sparql/test-suite-archive/data-r2/type-promotion/tP-unsignedByte-short.rq,
+	  tests/sparql/test-suite-archive/data-r2/type-promotion/tP-unsignedInt-short.rq,
+	  tests/sparql/test-suite-archive/data-r2/type-promotion/tP-unsignedLong-short.rq,
+	  tests/sparql/test-suite-archive/data-r2/type-promotion/tP-unsignedShort-short.rq,
+	  tests/sparql/test-suite-archive/data-r2/type-promotion/tP.ttl,
+	  tests/sparql/test-suite-archive/data-r2/type-promotion/true.ttl
+	Add DAWG approved testsuites from 
+	http://www.w3.org/2001/sw/DataAccess/tests/r2
+	Revision 1.6 1008
+	contained in URL:
+
+	http://www.w3.org/2001/sw/DataAccess/tests/data-r2.tar.gz
+	Content-Length: 120802
+	Last-Modified: Wed, 09 Jan 2008 21:25:02 GMT
+
+	MD5  c5be294e5a1b6d4448a79b3187fbf0c1
+	SHA1 b6120fe932a15e97b146d5c5c2bc411418311a04
+
+	* tests/sparql/dawg: remove unapproved DAWG testcases
+
+2009-09-29  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_rowsource_distinct.c:
+	(rasqal_distinct_rowsource_read_row): Do not rasqal_free_row -
+	rasqal_engine_rowsort_map_add_row will do that.
+
+	* src/rasqal_rowsource_distinct.c:
+	(rasqal_distinct_rowsource_read_row): add ref to row which is
+	shared with distinct rowsort_map.
+
+	* src/rasqal_rowsource_distinct.c: remove unused var query
+
+	* src/rasqal_triples_source.c:
+	(rasqal_triples_match_bind_match): return RASQAL_TRIPLE_SPO for exact.
+
+	* src/rasqal_rowsource_distinct.c:
+	(rasqal_distinct_rowsource_read_row): Do not need to copy values
+	with distinct row, just mark as made here, fix offset and end
+
+	* src/rasqal_rowsource_triples.c:
+	(rasqal_triples_rowsource_get_next_row): Continue searching if
+	bind match returns no parts - like QE1
+
+	* src/rasqal_algebra.c:
+	(rasqal_algebra_query_to_algebra): Set up variables sequence to
+	free variables copied over.
+
+	* src/rasqal_rowsource_triples.c:
+	(rasqal_triples_rowsource_get_next_row): Comment out checking all
+	triple patterns finished code triggered by the set_preserve flag.
+	This makes 2 more tests pass:
+	  survey/survey-2
+	  examples/sparql-query-example-Testing-Values-isBlank
+
+	* src/rasqal_rowsource_join.c:
+	(rasqal_join_rowsource_init): allow joining an empty left row to
+	not be failure - it's a finished rowsource.
+
+	* src/rasqal_rowsource_triples.c:
+	(rasqal_new_triples_rowsource): Handle NULL triples to return an
+	empty rowsource.  This is SPARQL {}.
+
+	* docs/rasqal-docs.xml, docs/rasqal-sections.txt: Remove algebra
+	section and rasqal_algebra_node def
+
+	* src/rasqal.h, src/rasqal_internal.h: Move rasqal_algebra_node
+	from public API - just typedef.
+
+	* docs/Makefile.am: Add rasqal_internal.h to IGNORE_CFILES to stop
+	gtkdoc-mkdb referencing it even though it is already in
+	IGNORE_HFILES too.
+
+	* src/rasqal_internal.h: rasqal_engine_error autodocs
+
+	* docs/rasqal-docs.xml, docs/rasqal-sections.txt,
+	docs/tmpl/section-expression.sgml, docs/tmpl/section-general.sgml,
+	docs/tmpl/section-query.sgml,
+	docs/tmpl/section-query_results.sgml,
+	docs/tmpl/section-triple.sgml, docs/tmpl/section-unused.sgml: sgml
+	templates and docbook xml fixes
+
+	* docs/rasqal-docs.xml: update docbook xml
+
+	* src/rasqal_expr.c:
+	(rasqal_expression_evaluate_v2): autodocs - no query param
+
+	* src/rasqal_general.c:
+	(rasqal_world_open): autodocs
+
+	* src/rasqal_expr.c:
+	(rasqal_expression_evaluate, rasqal_expression_evaluate_v2): autodocs
+
+	* src/rasqal.h: rasqal_triple_parts: Added RASQAL_TRIPLE_NONE to
+	autodocs
+
+2009-09-29  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal.h, src/rasqal_internal.h,
+	src/rasqal_triples_source.c: Fixed int-enum conflict warning.
+	(rasqal_triple_parts): Added RASQAL_TRIPLE_NONE to enum.
+	(rasqal_triples_match_bind_match): Changed prototype to return
+	rasqal_triple_parts enum instead of int.
+
+2009-09-28  Dave Beckett <dave@dajobe.org>
+
+	* tests/improve: more tweaks
+
+	* tests/improve: nl
+
+	* tests/improve: Print error log summaries of failed tests when
+	verbose or recursive.
+	Tweak other messages/indenting.
+
+	* src/rasqal_rowsource_triples.c:
+	(rasqal_triples_rowsource_get_next_row): More logic tidying.
+
+	* src/rasqal_rowsource_triples.c:
+	(rasqal_triples_rowsource_get_next_row): Tidy code - remove goto
+	and make control flow clearer.
+
+2009-09-27  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_rowsource_triples.c: whitespace indenting
+	Remove unused var m->executed
+
+	* src/rasqal_engine.c: whitespace indenting
+	Remove unused var m->executed
+
+	* src/rasqal.h, src/rasqal_engine.c,
+	src/rasqal_rowsource_triples.c: rasqal_triple_meta is_exact and
+	executed fields are now unused.
+	(rasqal_triples_rowsource_init): Remove init of unused
+	m->is_exact.
+	(rasqal_triples_rowsource_get_next_row): Remove use of
+	rasqal_triples_source_triple_present and m->is_exact.
+	(rasqal_engine_graph_pattern_init): Remove init of m->is_exact.
+
+	* src/rasqal.h, src/rasqal_engine.c, src/rasqal_triples_source.c:
+	Move extra triples matching into the rasqal_triples_source module
+	and out of the query engines.  Code style cleanup.
+	rasqal_triples_match gains is_exact and finished fields.
+	(rasqal_free_triples_match, rasqal_new_triples_match,
+	rasqal_triples_match_bind_match, rasqal_triples_match_next_match,
+	rasqal_triples_match_is_end): set and use is_exact field.
+
+	* src/rasqal_engine.c, src/rasqal_rowsource_triples.c: Demote
+	failure of triple pattern match to init to an internal error but
+	still fail execution on both query engines:
+	(rasqal_engine_triple_graph_pattern_get_next_match): QE1
+	(rasqal_triples_rowsource_get_next_row): QE2
+
+	* src/rasqal.h: rasqal_triple_meta autodocs
+
+	* src/rasqal_engine.c: Removed a couple of check for m == NULL
+	that will never happen.
+
+	* tests/improve: Provide total test summary when running recursive
+
+	* src/rasqal_rowsource_triples.c: cosmetic code
+
+	* src/rasqal_rowsource_triples.c:
+	(rasqal_triples_rowsource_get_next_row): Removed check for m ==
+	NULL that will never happen.
+
+	* src/rasqal_engine.c, src/rasqal_engine_algebra.c,
+	src/rasqal_internal.h, src/rasqal_query.c,
+	src/rasqal_query_transform.c, src/rasqal_rowsource_triples.c:
+	Terminology change: variables declared in (...declared_in in
+	fields and functions) becomes bound in (...bound_in) to more
+	clearly reflect that this is where a variable is set to a value.
+
+	* src/rasqal_rowsource_triples.c:
+	(rasqal_triples_rowsource_init): Removed check for m == NULL that
+	will never happen.
+
+	* src/rasqal_engine.c, src/rasqal_internal.h,
+	src/rasqal_rowsource_triples.c:
+	(rasqal_engine_error_as_string): Added to print out engine errors
+	as label not int
+
+	* src/rasqal_rowsource_triples.c:
+	(rasqal_triples_rowsource_get_next_row): when checking for end of
+	triples, use <= not <
+
+	* src/rasqal_rowsource_join.c:
+	(rasqal_join_rowsource_read_row): Let left join work when right
+	row ends early.
+
+	* src/rasqal_rowsource_graph.c: graph variable is not optional to
+	this rowsource - remove if() conditions.
+
+	* src/rasqal_rowsource_graph.c:
+	Fix projection of variables - adding graph variable value to
+	output row.
+	(rasqal_graph_rowsource_read_row): Make a new row with graph
+	variable literal value at position #0
+
+	* src/rasqal_rowsource_graph.c:
+	(rasqal_graph_rowsource_ensure_variables): Add graph variable to
+	rowsource earlier.
+
+	* src/rasqal_rowsource_graph.c:
+	(rasqal_graph_rowsource_init, rasqal_graph_rowsource_reset): set
+	dg_offset to -1 to start/reset.
+
+	* src/rasqal_query_transform.c:
+	(rasqal_query_graph_build_mentioned_in_internal):
+	Add switch for other GP types and call new function below for
+	GRAPH graph patterns.
+	(rasqal_query_graph_build_mentioned_in_internal): Added
+
+	* src/rasqal_rowsource_triples.c:
+	(main): Update call to rasqal_new_triples_rowsource to pass size.
+
+2009-09-26  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_rowsource_graph.c:
+	(rasqal_graph_rowsource_read_row): Return result rows
+
+	* src/rasqal_rowsource_triples.c:
+	rasqal_triples_rowsource_context gains origin field to store
+	current GRAPH origin that is pushed down to all inner triple
+	patterns.
+	(rasqal_triples_rowsource_init): Ignore parts ORIGIN since binding
+	that variable is done outside this rowsource.
+	(rasqal_triples_rowsource_finish): Free origin if set.
+	(rasqal_triples_rowsource_set_origin): Added to iterate over
+	triple patterns and set the origin field directly.
+
+	* src/rasqal_rowsource_graph.c:
+	(rasqal_graph_next_dg): If a variable was given (i.e. GRAPH ?var),
+	set it's value as the datagraph URI.
+	(rasqal_graph_rowsource_init): Add the graph var to the
+	rowsource's variable table.
+	(rasqal_graph_rowsource_finish): Free any variable value on
+	finish.
+
+	* src/rasqal_rowsource_graph.c:
+	(rasqal_graph_next_dg): Always increment offset to advance through
+	data graph list rather than spin.
+	(rasqal_graph_rowsource_init): Init offset to -1 so above function
+	will set it to offset 0 for first graph.
+
+	* src/rasqal_engine_algebra.c, src/rasqal_internal.h,
+	src/rasqal_rowsource_triples.c:
+	rasqal_triples_rowsource_context gains field to store declared_in
+	size
+	(rasqal_new_triples_rowsource): Add size of declared_in array
+	rather than recalculate it again later, possibly wrongly.  store
+	it in new field.
+	(rasqal_triples_rowsource_init): Use above to check the right
+	number of variables for declared_in-ness.
+	(rasqal_algebra_basic_algebra_node_to_rowsource): Calculate
+	declared_in for all variables, not just named ones.
+
+2009-09-25  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_query_transform.c: autodocs
+
+2009-09-25  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_rowsource_triples.c:
+	(main): Fixed double free of declared_in
+
+2009-09-24  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_rowsource_triples.c:
+	(rasqal_new_triples_rowsource): Free passed in declared_in on
+	failure, not con->declared_in which isn't initialised yet.
+
+2009-09-23  Dave Beckett <dave@dajobe.org>
+
+	* tests/engine/rasqal_triples_test.c: note where example came from.
+
+	* src/rasqal_raptor.c: remove noisy debug message
+
+	* src/rasqal_engine.c, src/rasqal_internal.h,
+	src/rasqal_rowsource_triples.c:
+	(rasqal_engine_get_parts_string): Added.  Turns parts into a debug
+	string.  Use in rowsource triples and original engine
+
+	* data/Makefile.am, data/triples.ttl, tests/engine/Makefile.am,
+	tests/engine/rasqal_triples_test.c: Add triple patterns matching
+	test
+
+	* src/rasqal_engine_algebra.c:
+	(rasqal_algebra_basic_algebra_node_to_rowsource): Note declared_in
+	becomes owned by rowsource.
+
+	* src/rasqal_rowsource_triples.c:
+	(rasqal_new_triples_rowsource): Note declared_in becomes owned in
+	internal docs.
+	(rasqal_triples_rowsource_finish): Free declared_in.
+
+	* src/rasqal_rowsource_join.c:
+	(rasqal_new_join_rowsource): Make a reference to (copy) the
+	passed-in expression.
+
+	* src/rasqal_rowsource_filter.c:
+	(rasqal_new_filter_rowsource, rasqal_filter_rowsource_finish):
+	Make a reference to (copY) and free the passed-in expression.
+
+	* docs/tmpl/section-expression.sgml: Update docs
+
+2009-09-02  Dave Beckett <dave@dajobe.org>
+
+	* tests/laqrs/syntax/Makefile.am: Convert tests to use improve
+
+	* src/rasqal_expr.c: rasqal_op_labels: add new labels for sum,
+	avg, min and max.
+
+	* tests/laqrs/syntax/Makefile.am, tests/laqrs/syntax/avg1.rq,
+	tests/laqrs/syntax/max1.rq, tests/laqrs/syntax/min1.rq,
+	tests/laqrs/syntax/sum1.rq: Add basic syntax tests for AVG, MAX,
+	MIN and SUM for LAQRS
+
+	* src/rasqal.h, src/rasqal_expr.c, src/rasqal_query.c,
+	src/sparql_lexer.l, src/sparql_parser.y:
+	Add SUM, AVG, MIN and MAX aggregate expressions to LAQRS.
+	(SumAggregateExpression, AvgAggregateExpression,
+	MinAggregateExpression, MaxAggregateExpression): Added new tokens.
+	(AggregateExpression): Updated to use above.  rasqal_op gains
+	RASQAL_EXPR_SUM, RASQAL_EXPR_AVG, RASQAL_EXPR_MIN and
+	RASQAL_EXPR_MAX.  rasqal_sparql_op_labels gains labels for the new
+	expressions.
+	(rasqal_query_write_sparql_expression): Write new expressions.
+
+	* src/sparql_lexer.l:
+	(sparql_copy_string_token): Allow \' and \" in all string
+	literals, whatever the delimeter.
+
+	* src/sparql_lexer.l:
+	(sparql_copy_string_token): Support \b and \f escapes - which were
+	always in SPARQL
+
+	* src/rasqal_query.c:
+	(rasqal_query_add_prefix): Handle adding/updating with the default
+	namespace - NULL prefix string
+
+	* src/rasqal_query.c:
+	(rasqal_query_get_variable): Fix count check
+
+2009-08-30  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_triples_source.c:
+	(rasqal_set_triples_source_factory): Call rasqal_world_open to
+	ensure default world setup is done. Add comment to note this is
+	for helping the older V1 ABI calls to work.
+
+	* src/rasqal_general.c:
+	(rasqal_world_open): Test and set opened flag to prevent recursive
+	calls to this function.  It now acts as an 'attempt open' flag, and
+	tries init once only max.
+	Adjust comments to later calls to rasqal_world_open to reflect that
+	they are for helping the older V1 ABI calls to work.
+
+2009-08-25  Dave Beckett <dave@dajobe.org>
+
+	* autogen.sh: Update common autogen.sh
+
+	* configure.ac: Add -W to CPPFLAGS not CFLAGS, so they are not
+	used in link lines
+
+2009-08-21  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_query_transform.c:
+	(rasqal_query_build_mentioned_in): Removed compiler warning when
+	RASQAL_DEBUG is not defined
+
+2009-08-20  Dave Beckett <dave@dajobe.org>
+
+	* tests/improve: Add recursive option -r/--recursive and summary
+	for all testsuites in one dir.
+
+2009-08-18  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_internal.h: autodocs
+
+	* tests/improve: Show unexpected passes in output as warnings, not
+	failure
+
+	* src/rasqal_internal.h, src/rasqal_query_transform.c:
+	(rasqal_query_triples_build_mentioned_in): Added width param to
+	parallel rasqal_query_triples_build_declared_in call.
+
+	* src/rasqal_internal.h, src/rasqal_query_transform.c:
+	(rasqal_query_triples_build_mentioned_in_internal): Added with
+	main building work.
+	(rasqal_query_triples_build_mentioned_in): Returns a new 1D array
+	using above.
+
+	* src/rasqal_query_transform.c: *
+
+	* src/rasqal_internal.h, src/rasqal_query.c,
+	src/rasqal_query_transform.c:
+	Construct a 2D array to mark variables mentioned in GP
+	(rasqal_query_triples_build_mentioned_in,
+	rasqal_query_graph_pattern_build_mentioned_in,
+	rasqal_query_triples_build_mentioned_in): Added.
+	(rasqal_free_query): Free any table.
+	(rasqal_query_prepare_common): Call
+	rasqal_query_triples_build_mentioned_in when GP transformations
+	are done.
+
+	* src/rasqal_internal.h, src/rasqal_row_compatible.c:
+	(rasqal_print_row_compatible): Make internal not static
+
+	* src/rasqal_rowsource_join.c:
+	(rasqal_join_rowsource_init): Dump rc map when debugging.
+
+2009-08-17  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_rowsource_join.c:
+	Use rasqal_row_compatible to compute row compatibility.
+	(rasqal_join_rowsource_init, rasqal_join_rowsource_finish):
+	Init/free the compatible row map.
+	(rasqal_join_rowsource_read_row): Simplify control flow in getting
+	rows.  Check row compatibility always for all joins.  For left
+	joins, allow rows from left if condition or compatibility fails.
+	(main): Alter test data so rows can be joined (!) and add left
+	join and natural join tests.
+
+	* src/rasqal_feature.c, src/rasqal_general.c, src/rasqal_query.c:
+	(rasqal_get_query_language_factory,
+	rasqal_features_enumerate_common, rasqal_feature_from_uri,
+	rasqal_languages_enumerate, rasqal_new_query): Call
+	rasqal_world_open to ensure world is opened and items registered,
+	to help older code that may not yet call this function.
+
+	* tests/sparql/check-sparql: Call roqet -v which works if getopt
+	long is not available.
+
+	* tests/sparql/Expr1/Makefile.am, tests/sparql/Expr2/Makefile.am,
+	tests/sparql/ExprBuiltins/Makefile.am,
+	tests/sparql/ExprEquals/Makefile.am,
+	tests/sparql/SyntaxDev/Syntax-SPARQL/Makefile.am,
+	tests/sparql/SyntaxDev/Syntax-SPARQL2/Makefile.am,
+	tests/sparql/SyntaxDev/Syntax-SPARQL3/Makefile.am,
+	tests/sparql/SyntaxFull/Makefile.am,
+	tests/sparql/ValueTesting/Makefile.am,
+	tests/sparql/bound/Makefile.am, tests/sparql/examples/Makefile.am,
+	tests/sparql/part1/Makefile.am, tests/sparql/regex/Makefile.am,
+	tests/sparql/simple/Makefile.am, tests/sparql/sort/Makefile.am,
+	tests/sparql/survey/Makefile.am, tests/sparql/syntax/Makefile.am:
+	preconditon to precondition
+
+	* tests/rdql/testsuite/Makefile.am,
+	tests/sparql/Expr1/Makefile.am, tests/sparql/Expr2/Makefile.am,
+	tests/sparql/ExprBuiltins/Makefile.am,
+	tests/sparql/ExprEquals/Makefile.am,
+	tests/sparql/SyntaxDev/Syntax-SPARQL/Makefile.am,
+	tests/sparql/SyntaxDev/Syntax-SPARQL2/Makefile.am,
+	tests/sparql/SyntaxDev/Syntax-SPARQL3/Makefile.am,
+	tests/sparql/SyntaxFull/Makefile.am,
+	tests/sparql/ValueTesting/Makefile.am,
+	tests/sparql/bound/Makefile.am, tests/sparql/examples/Makefile.am,
+	tests/sparql/part1/Makefile.am, tests/sparql/regex/Makefile.am,
+	tests/sparql/simple/Makefile.am, tests/sparql/sort/Makefile.am,
+	tests/sparql/survey/Makefile.am, tests/sparql/syntax/Makefile.am:
+	Add roqet.tmp to CLEANFILES
+
+	* src/rasqal_engine_algebra.c, src/rasqal_internal.h,
+	src/rasqal_rowsource_join.c:
+	Rename RASQAL_JOIN_TYPE_CROSS to RASQAL_JOIN_TYPE_NATURAL.
+	Again. Add description of join types
+
+	* src/rasqal_rowsource_join.c:
+	(rasqal_new_join_rowsource): Allow RASQAL_JOIN_TYPE_CROSS
+
+	* src/rasqal_engine_algebra.c, src/rasqal_internal.h:
+	Added RASQAL_JOIN_TYPE_CROSS for sparql algebra Join()
+	(rasqal_algebra_join_algebra_node_to_rowsource): Added to use
+	RASQAL_JOIN_TYPE_CROSS with rasqal_new_join_rowsource.
+	(rasqal_algebra_node_to_rowsource): Call
+	rasqal_algebra_join_algebra_node_to_rowsource for Join().
+
+	* src/rasqal_row_compatible.c:
+	(main): Free row compatible map
+
+	* src/rasqal_row_compatible.c:
+	(main): test cases work
+
+	* src/rasqal_row.c, src/rasqal_rowsource_join.c,
+	src/rasqal_rowsource_project.c,
+	src/rasqal_rowsource_rowsequence.c, src/rasqal_rowsource_union.c:
+	(rasqal_new_row_sequence): Make it terminate on an entire row of
+	NULLs.
+	Update all test data to this format.
+
+	* src/rasqal_row.c:
+	(rasqal_new_row_sequence): Allow declaring variables with no
+	value, except as first on a row.
+
+	* src/Makefile.am, src/rasqal_internal.h,
+	src/rasqal_row_compatible.c:
+	Added rasqal_row_compatible object for checking if two query
+	result rows from two rowsources are compatible.  The object does
+	the preparation work so that the individual row checks are
+	quicker.
+	(rasqal_new_row_compatible, rasqal_free_row_compatible): Added
+	constructor and destructor.
+	(rasqal_row_compatible_check): Run compatibility check on two rows
+	from the given rowsources.
+	(main): start of test
+
+2009-08-13  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_engine_algebra.c:
+	(rasqal_algebra_leftjoin_algebra_node_to_rowsource): Use enum
+	value RASQAL_JOIN_TYPE_LEFT instead of int constant 0 (which maps
+	to RASQAL_JOIN_TYPE_UNKNOWN).
+
+	* src/rasqal_engine.c, src/rasqal_rowsource_distinct.c,
+	src/rasqal_rowsource_empty.c, src/rasqal_rowsource_filter.c,
+	src/rasqal_rowsource_graph.c, src/rasqal_rowsource_join.c,
+	src/rasqal_rowsource_project.c,
+	src/rasqal_rowsource_rowsequence.c, src/rasqal_rowsource_sort.c,
+	src/rasqal_rowsource_triples.c, src/rasqal_rowsource_union.c,
+	src/rasqal_sparql_xml.c: Fixed compiler warnings about implicitly
+	initialized rasqal_rowsource_handler members.
+	Fixed compiler warnings about empty if blocks when RASQAL_DEBUG is
+	not defined.
+
+2009-08-12  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_rowsource_join.c: Natural to left join
+
+	* src/rasqal_internal.h, src/rasqal_rowsource_join.c: Remove
+	NATURAL join again - it's not correctly name, doesn't work and
+	isn't needed yet.
+
+	* src/rasqal_internal.h, src/rasqal_rowsource_join.c: Add
+	RASQAL_JOIN_TYPE_NATURAL - the current implementation.
+	(rasqal_new_join_rowsource): Accept both.
+
+	* src/rasqal_internal.h, src/rasqal_rowsource_join.c: Add enum
+	rasqal_join_type and use it instead of magic ints.
+	(rasqal_new_join_rowsource): Update to use rasqal_join_type.
+
+2009-08-11  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_rowsource_filter.c:
+	(rasqal_filter_rowsource_read_row): Construct result variables in
+	correct order according to row variables order not variables table
+	order.
+
+	* src/rasqal_rowsource.c: debug messages
+
+	* tests/algebra/check-algebra: use srcdir for getting expected
+	path
+
+	* tests/algebra/Makefile.am: use srcdir for test
+
+	* tests/algebra/Makefile.am, tests/algebra/check-algebra: Convert
+	to improve format and use new perl test runner check-algebra to do
+	the checking
+
+2009-08-10  Dave Beckett <dave@dajobe.org>
+
+	* tests/sparql/Expr2/Makefile.am: Remove duplicate tests in pass &
+	xfail lists
+
+	* tests/sparql/regex/Makefile.am: run all tests via improve
+
+2009-08-05  Dave Beckett <dave@dajobe.org>
+
+	* tests/sparql/sort/Makefile.am: sort-3 passes - now all sort
+	tests pass
+
+	* tests/sparql/SyntaxFull/Makefile.am: negative tests do not apply
+	to lexer
+
+	* tests/sparql/bound/Makefile.am: dawg-bound-query-001 passes
+
+	* tests/sparql/examples/Makefile.am: These tests now pass in QE1:
+	sparql-query-example-Testing-Values-bound (ex11.2.3.2_0.rq)
+	sparql-query-example-Testing-Values-bound-2 (ex11.2.3.2_1.rq)
+
+	* tests/improve: annotate xfail
+
+	* tests/sparql/ValueTesting/Makefile.am: Move all tests to improve
+	testsuites
+
+	* tests/sparql/SyntaxDev/Syntax-SPARQL3/Makefile.am: Move all
+	tests to improve testsuites
+
+	* tests/sparql/SyntaxDev/Syntax-SPARQL2/Makefile.am: Move all
+	tests to improve testsuites
+
+	* tests/sparql/SyntaxDev/Syntax-SPARQL/Makefile.am: Move all tests
+	to improve testsuites
+
+	* tests/sparql/ExprEquals/Makefile.am: Move all tests to improve
+	testsuites
+
+	* tests/sparql/ExprBuiltins/Makefile.am: Move all tests to improve
+	testsuites
+
+	* tests/improve: Use a log file name that has no non-word chars
+
+	* tests/sparql/Expr2/Makefile.am: Switch to improve for testsuite.
+	All check-sparql testsuite tests are failing for some reason in
+	how check-sparql is invoked that I can't quite figure out why at
+	present.
+
+2009-08-05  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_raptor.c:
+	(rasqal_raptor_new_triples_source): Fixed raptor v2 experimental
+	support. Conditional reformatting.
+
+2009-08-04  Dave Beckett <dave@dajobe.org>
+
+	* tests/improve:
+	(decode_literal): Added to handle test names with "s in them
+
+	* tests/sparql/Expr1/Makefile.am: Switch to improve for testsuite
+
+	* tests/rdql/testsuite/Makefile.am: Add CLEANFILES for check-rdql
+	outputs
+
+	* tests/sparql/SyntaxFull/Makefile.am,
+	tests/sparql/bound/Makefile.am, tests/sparql/examples/Makefile.am,
+	tests/sparql/part1/Makefile.am, tests/sparql/simple/Makefile.am,
+	tests/sparql/survey/Makefile.am, tests/sparql/syntax/Makefile.am:
+	Add CLEANFILES for check-sparql outputs
+
+	* tests/sparql/Expr1/Makefile.am:
+	"OPTIONAL - Outer FILTER with BOUND" now passes with QE1
+
+	* src/rasqal_raptor.c:
+	(rasqal_raptor_new_triples_source): Make parser base URI
+	(name_uri) a copy of source uri if name_uri is NULL.
+
+	* tests/sparql/SyntaxFull/Makefile.am: improve tests working
+
+	* tests/sparql/SyntaxFull/Makefile.am: test with improve
+
+	* tests/improve: error reports from preparing and get_plan
+	Add debugging for all run of system $cmd
+
+	* tests/sparql/syntax/Makefile.am: Use improve to run all
+	testsuites
+
+	* tests/sparql/survey/Makefile.am: Use improve to run all
+	testsuites - with 1 test expected to fail on QE1.
+
+	* tests/sparql/survey/Makefile.am: survey-2 now works with QE1
+
+	* src/rasqal_engine.c:
+	(rasqal_engine_remove_optional_bgp_graph_patterns): Added to
+	replace OPTIONAL { BGP { triples } } with OPTIONAL { triples }
+	(rasqal_query_engine_1_execute_transform_hack): Add a do-while
+	loop that keeps going until no more modifications happen.  Invoke
+	rasqal_engine_remove_optional_bgp_graph_patterns.
+
+2009-08-03  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_engine.c:
+	(rasqal_engine_get_next_result): Reword confusing query ending
+	message.
+
+	* tests/sparql/bound/Makefile.am: Use improve to run all
+	testsuites - with 1 test, expected to fail on QE1/QE2
+
+	* tests/sparql/examples/Makefile.am: Use improve to run all
+	testsuites - with 3 expected failures on QE1 (and a different set
+	of 3 on QE2 at present)
+
+	* tests/improve: more indenting
+
+	* tests/improve: print testsuite name in output
+
+	* tests/sparql/simple/Makefile.am:
+	(get-testsuite-sparql-query): Use test names - tests pass again.
+
+	* tests/sparql/part1/Makefile.am: Use improve to run all testsuites
+
+	* tests/sparql/simple/Makefile.am: Use improve to run all testsuites
+
+	* tests/improve: try to reduce make output crap
+
+	* tests/sparql/part1/Makefile.am: Use test names not file names
+	for dawg-style tests.
+
+	* tests/improve: indenting
+
+	* tests/sparql/check-sparql: Fail if test given does not exist.
+
+	* tests/sparql/check-sparql: 2009
+
+	* tests/sparql/part1/Makefile.am: Add improve testsuites
+
+	* tests/improve: default DIR to .
+
+	* src/rasqal_query_results.c:
+	(rasqal_query_results_execute_with_engine): After execute init,
+	debug dump query
+
+	* tests/sparql/simple/Makefile.am: set t:precondition for check-sparql
+
+	* tests/sparql/simple/Makefile.am: Add improve testsuites
+
+	* tests/rdql/testsuite/Makefile.am: invoke check-rdql via $(PERL)
+
+	* tests/rdql/testsuite/Makefile.am: run all improve testsuites
+
+	* tests/rdql/Makefile.am: run all improve testsuites
+
+	* tests/engine/Makefile.am: run all improve testsuites
+
+	* tests/engine/Makefile.am: run improve in .
+
+	* tests/engine/Makefile.am: Use improve to run tests.
+
+	* tests/Makefile.am: Add improve to dist
+
+	* src/rasqal_engine.c:
+	(rasqal_query_engine_1_set_origin_triples): Free original origin
+	from GP.
+	(rasqal_engine_remove_graph_bgp_graph_patterns): Ignore GPs with
+	no origin.
+
+	* src/rasqal_engine.c:
+	(rasqal_query_engine_1_set_origin_triples): Handle setting NULL
+	origin.
+
+	* src/rasqal_engine.c:
+	(rasqal_query_engine_1_set_origin_triples): Ensure that if a
+	variable is moved to the origin, it is 'declared in' that triple
+	so it gets correctly bound in execution.
+	(rasqal_engine_remove_graph_bgp_graph_patterns): Remove top level
+	query transform ban.  Wrong.
+	(rasqal_engine_remove_graph_bgp_graph_patterns): Make the GP type
+	into BGP, call rasqal_query_engine_1_set_origin_triples with query
+	and free/remove original GP origin now that the type is BGP.
+
+	* tests/improve: indenting
+
+	* tests/engine/Makefile.am: add testsuite 'engine'
+
+	* tests/improve: fix xfail
+
+	* tests/improve: indenting wrapping
+
+	* src/rasqal_engine.c:
+	(rasqal_engine_remove_graph_bgp_graph_patterns): Do no transform
+	this at root of query GP tree, to keep QE1 happy
+
+	* tests/improve:
+	Add support for t:path for setting PATH for tests
+
+	(run_test): Take testsuite arg.
+	Notice SIGINT and abort testsuite if it happens.
+	Adjust messages so PATH is included with cmd.
+
+	Abort when no testsuites found
+
+	* tests/rdql/testsuite/Makefile.am: add improve
+	testsuite-generation rules
+
+	* tests/rdql/Makefile.am:
+	(check-rdql-lexer, check-rdql-parser): Use improve to run testsuites.
+
+	* tests/improve: fix exit code
+
+	* tests/improve:
+	(run_testsuite): When superverbose, show fail log
+
+	* tests/improve:
+	(run_testsuite): Remove preparation code
+
+	* tests/improve:
+	(prepare_testsuite): Added so failure here can be passed on before
+	running suite.
+	(format_testsuite_result): Pass in output FH
+
+	* tests/improve:
+	(run_test): self is $test
+
+	* tests/improve:
+	(read_plan): Does not need dir param.
+
+	* tests/improve:
+	(format_testsuite_result): Added.
+
+	* tests/rdql/Makefile.am: verb
+
+	* tests/improve: Tidy.  More OO-like
+	Add -n/--dryrun
+	Add skipped tests
+	Added -v verbose
+	Make plan file if not already there
+	Add xfailed - expected failures - to summary
+	(run_testsuite): Added
+
+2009-08-02  Dave Beckett <dave@dajobe.org>
+
+	* tests/improve: improve - Run Rasqal test suites
+
+	* tests/rdql/Makefile.am:
+	Added get-testsuites-list rule and get-testsuite-rdql-lexer
+	get-testsuite-rdql-parser rules to generate a Turtle/RDF
+	description of the tests.
+
+	* src/Makefile.am:
+	comments on rdql/sparql_lexer/parser_test
+
+	* configure.ac:
+	Add AC_SUBST(ECHO) since it seems not to be happening by default.
+
+2009-07-29  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_skiplist.c:
+	Remove obsolete skiplist code - never used.
+
+	* src/Makefile.am, src/rasqal_query_test.c,
+	src/rasqal_rowsource_triples.c, src/rdql_lexer.l,
+	src/rdql_parser.y, src/sparql_lexer.l, src/sparql_parser.y: Alter
+	rdql/sparql lexer/parser tests to automatically run a test query
+	from a file using envariables.  Alter TEST_ENVIRONMENT to set
+	those to run tests.  Add the 4 tests to TESTS and remove the
+	special case invoking
+
+	* src/rdql_parser.y:
+	(URI_LITERAL): Use raptor_uri_print instead of deprecated
+	raptor_sequence_print_uri.
+
+	* Remove ignores for files moved to build/
+
+	* Makefile.am, autogen.sh, build, build/shave-libtool.in,
+	build/shave.in, build/shave.m4, configure.ac: Add SHAVE support
+	for compiling and enable it for maintainer
+
+2009-07-28  Dave Beckett <dave@dajobe.org>
+
+	* configure.ac, fix-groff-xhtml, rasqal-src-config.in,
+	rasqal.rdf.in: 2009 and url fix
+
+2009-07-24  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_query.c:
+	(rasqal_query_write_sparql_20060406): Ouput DESCRIBE does not need
+	to write commas
+
+	* src/rasqal_query.c:
+	(rasqal_query_write_sparql_20060406): Make DESCRIBE write
+	comma-separated list of rasqal_literal, not space-separated list
+	of variables.
+
+	* src/rasqal.h, src/rasqal_query.c:
+	(rasqal_query_get_describe_sequence): Added
+
+2009-07-19  Dave Beckett <dave@dajobe.org>
+
+	* src/Makefile.am, src/rasqal_algebra.c,
+	src/rasqal_engine_algebra.c, src/rasqal_internal.h,
+	src/rasqal_rowsource_distinct.c: Implement
+	RASQAL_ALGEBRA_OPERATOR_DISTINCT
+	(rasqal_new_distinct_algebra_node): Added to make a distinct
+	algebra node.
+	(rasqal_new_distinct_rowsource): Added to implement distinct
+	rowsource - in new file rasqal_rowsource_distinct.c
+	(rasqal_algebra_node_to_rowsource): Call above function when
+	RASQAL_ALGEBRA_OPERATOR_DISTINCT is given to make a distinct
+	rowsource from the algebra node.
+
+	* src/rasqal_engine_sort.c:
+	(rasqal_engine_rowsort_row_compare): Only do the row-literals
+	compare if there is an order_conditions_sequence.
+
+	* src/Makefile.am, src/rasqal_algebra.c,
+	src/rasqal_engine_algebra.c, src/rasqal_internal.h,
+	src/rasqal_rowsource_distinct.c:
+	Implement RASQAL_ALGEBRA_OPERATOR_DISTINCT
+	(rasqal_new_distinct_algebra_node): Added to make a distinct
+	algebra node.
+	(rasqal_new_distinct_rowsource): Added to implement distinct
+	rowsource - in new file rasqal_rowsource_distinct.c
+	(rasqal_algebra_node_to_rowsource): Call above function when
+	RASQAL_ALGEBRA_OPERATOR_DISTINCT is given to make a distinct
+	rowsource from the algebra node.
+
+	* src/rasqal_engine_sort.c:
+	(rasqal_engine_rowsort_row_compare): Only do the row-literals
+	compare if there is an order_conditions_sequence.
+
+2009-07-17  Dave Beckett <dave@dajobe.org>
+
+	* src/rdql_parser.y, utils/roqet.c:
+	Updates to use raptor_new_sequence_v2 not
+	raptor_new_sequence_with_handler_context from 1.4.19
+
+	* COPYING, COPYING.LIB: Add specific versions of GPL (2) and
+	LGPL (2.1) to source control
+
+2009-07-15  Dave Beckett <dave@dajobe.org>
+
+	* configure.ac: Enable LAQRS in default build
+
+2009-01-19  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_rowsource_graph.c:
+	(rasqal_graph_next_dg): Fixed for raptor v2
+
+	* src/rasqal_engine_algebra.c: Replaced utf-8 in comment with
+	ascii
+
+2009-01-17  Dave Beckett <dave@dajobe.org>
+
+	* src/Makefile.am, src/rasqal_engine.c,
+	src/rasqal_engine_algebra.c, src/rasqal_internal.h,
+	src/rasqal_rowsource.c, src/rasqal_rowsource_graph.c:
+	Added graph rowsource.
+	(rasqal_new_graph_rowsource): Added.  rasqal_rowsource_handler
+	gains set_origin handler of type rasqal_rowsource_set_origin_func
+	(rasqal_algebra_visitor_set_origin): Added.
+	(rasqal_algebra_graph_algebra_node_to_rowsource): Added using
+	rasqal_new_graph_rowsource.
+	(rasqal_algebra_node_to_rowsource): Call
+	rasqal_algebra_graph_algebra_node_to_rowsource for graph operator.
+	(rasqal_query_engine_1_set_origin_triples): Added.
+	(rasqal_engine_remove_graph_bgp_graph_patterns): Added.
+	(rasqal_query_engine_1_execute_transform_hack): Call
+	rasqal_engine_remove_graph_bgp_graph_patterns to remove graph
+	operators for query engine #1.
+	(rasqal_rowsource_visitor_set_origin): Added.
+	(rasqal_rowsource_set_origin): Added using
+	rasqal_rowsource_visitor_set_origin.
