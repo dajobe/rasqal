@@ -107,7 +107,66 @@ ordinal_as_uri(rasqal_world* world, int ordinal)
   return uri;
 }
 
+
+#ifdef RAPTOR_V2_AVAILABLE
+static rasqal_triple*
+raptor_statement_as_rasqal_triple(rasqal_world* world,
+                                  const raptor_statement *statement)
+{
+  rasqal_literal *s, *p, *o;
+  raptor_uri *uri;
+  unsigned char *new_str;
+  size_t len;
+
+  /* subject */
+  if(statement->subject->type == RAPTOR_TERM_TYPE_BLANK) {
+    len = strlen((char*)statement->subject->value.blank);
+    new_str = (unsigned char*)RASQAL_MALLOC(cstring, len + 1);
+    strncpy((char*)new_str, (const char*)statement->subject->value.blank, len + 1);
+    s = rasqal_new_simple_literal(world, RASQAL_LITERAL_BLANK, new_str);
+  } else {
+    uri = raptor_uri_copy((raptor_uri*)statement->subject->value.uri);
+    s = rasqal_new_uri_literal(world, uri);
+  }
+
+  /* predicate */
+  uri = raptor_uri_copy((raptor_uri*)statement->predicate->value.uri);
+  p = rasqal_new_uri_literal(world, uri);
   
+  /* object */
+  if(statement->object->type == RAPTOR_TERM_TYPE_LITERAL) {
+    char *language = NULL;
+
+    len = strlen((char*)statement->object->value.literal.string);
+    new_str = (unsigned char*)RASQAL_MALLOC(cstring, len + 1);
+    strncpy((char*)new_str, (const char*)statement->object->value.literal.string, len + 1);
+
+    if(statement->object->value.literal.language) {
+      len = strlen((const char*)statement->object->value.literal.language);
+      language = (char*)RASQAL_MALLOC(cstring, len + 1);
+      strncpy(language, (const char*)statement->object->value.literal.language,
+              len + 1);
+    }
+
+    if(statement->object->value.literal.datatype)
+      uri = raptor_uri_copy(statement->object->value.literal.datatype);
+    else
+      uri = NULL;
+
+    o = rasqal_new_string_literal(world, new_str, language, uri, NULL);
+  } else if(statement->object->type == RAPTOR_TERM_TYPE_BLANK) {
+    len = strlen((char*)statement->object->value.blank);
+    new_str = (unsigned char*)RASQAL_MALLOC(cstring, len + 1);
+    strncpy((char*)new_str, (const char*)statement->object->value.blank, len + 1);
+    o = rasqal_new_simple_literal(world, RASQAL_LITERAL_BLANK, new_str);
+  } else {
+    uri = raptor_uri_copy((raptor_uri*)statement->object->value.uri);
+    o = rasqal_new_uri_literal(world, uri);
+  }
+
+  return rasqal_new_triple(s, p, o);
+}
+#else /* ifdef RAPTOR_V2_AVAILABLE */
 static rasqal_triple*
 raptor_statement_as_rasqal_triple(rasqal_world* world,
                                   const raptor_statement *statement)
@@ -172,11 +231,7 @@ raptor_statement_as_rasqal_triple(rasqal_world* world,
       const unsigned char* dt_uri_string;
 
       dt_uri_string = (const unsigned char*)raptor_xml_literal_datatype_uri_string;
-#ifdef RAPTOR_V2_AVAILABLE
-      uri = raptor_new_uri(world->raptor_world_ptr, dt_uri_string);
-#else
       uri = raptor_new_uri(dt_uri_string);
-#endif
     } else if(statement->object_literal_datatype) {
       raptor_uri *dt_uri = (raptor_uri*)statement->object_literal_datatype;
 
@@ -206,7 +261,7 @@ raptor_statement_as_rasqal_triple(rasqal_world* world,
 
   return rasqal_new_triple(s, p, o);
 }
-
+#endif /* ifdef RAPTOR_V2_AVAILABLE ... else */
 
 
 static void
