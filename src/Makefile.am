@@ -87,7 +87,8 @@ rasqal_rowsource_project.c rasqal_rowsource_join.c \
 rasqal_rowsource_graph.c rasqal_rowsource_distinct.c \
 rasqal_row_compatible.c rasqal_format_table.c rasqal_query_write.c \
 rasqal_format_json.c rasqal_format_sv.c \
-rasqal_rowsource_assignment.c rasqal_update.c
+rasqal_rowsource_assignment.c rasqal_update.c \
+rasqal_triple.c
 
 if RASQAL_QUERY_RDQL
 librasqal_la_SOURCES += rdql_lexer.c rdql_lexer.h \
