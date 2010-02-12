@@ -184,11 +184,7 @@ static void rdql_query_error(rasqal_query* rq, const char *message);
 
 %destructor {
   if($$)
-#ifdef RAPTOR_V2_AVAILABLE
-    raptor_free_uri_v2(((rasqal_query*)rq)->world->raptor_world_ptr, $$);
-#else    
     raptor_free_uri($$);
-#endif
 } URI_LITERAL
 
 %destructor {
@@ -929,7 +925,7 @@ main(int argc, char *argv[])
 
   uri_string=raptor_uri_filename_to_uri_string(filename);
 #ifdef RAPTOR_V2_AVAILABLE
-  base_uri = raptor_new_uri_v2(world->raptor_world_ptr, uri_string);
+  base_uri = raptor_new_uri(world->raptor_world_ptr, uri_string);
 #else
   base_uri = raptor_new_uri(uri_string);
 #endif
@@ -940,11 +936,7 @@ main(int argc, char *argv[])
 
   rasqal_free_query(query);
 
-#ifdef RAPTOR_V2_AVAILABLE
-  raptor_free_uri_v2(world->raptor_world_ptr, base_uri);
-#else
   raptor_free_uri(base_uri);
-#endif
 
   raptor_free_memory(uri_string);
 
