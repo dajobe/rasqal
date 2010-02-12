@@ -1,25 +1,218 @@
+2010-02-11  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_raptor.c:
+	(rasqal_raptor_new_triples_source): raptor2 raptor_new_parser()
+	call
+
+2010-02-11  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_algebra.c, src/rasqal_expr.c,
+	src/rasqal_format_json.c, src/rasqal_format_sparql_xml.c,
+	src/rasqal_format_sv.c, src/rasqal_general.c, src/rasqal_query.c,
+	src/rasqal_query_test.c, src/rasqal_query_write.c,
+	src/rasqal_result_formats.c, src/rasqal_row.c,
+	src/rasqal_rowsource.c, src/rasqal_rowsource_graph.c,
+	src/rasqal_rowsource_rowsequence.c, src/rasqal_rowsource_sort.c,
+	src/rasqal_rowsource_triples.c, src/rasqal_variable.c,
+	src/rasqal_xsd_datatypes.c, src/rdql_lexer.l, src/rdql_parser.y,
+	src/sparql_lexer.l, src/sparql_parser.y: Work-in-progress to make
+	rasqal compile with raptor2 git HEAD (with RAPTOR_V2_AVAILABLE
+	defined).
+
+	Changed RAPTOR_LOG_LEVEL_WARNING to RAPTOR_LOG_LEVEL_WARN
+
+	Changed function call args:
+	 * raptor_uri calls
+	 * raptor_print_locator() -> raptor_locator_print()
+	 * raptor_new_sequence():
+	   raptor_sequence_{free,print}_handler -> raptor_data_..._handler
+	 * raptor_qname_string_to_uri()
+
+2010-02-11  Lauri Aalto <laalto@iki.fi>
+
+	* tests/.gitignore: ignore roqet.tmp in tests
+
+2010-02-10  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_literal.c:
+	(rasqal_literal_divide): Make decimal division call
+	rasqal_xsd_decimal_divide() not add!
+
+	* src/Makefile.am, src/rasqal_formula.c, src/rasqal_literal.c:
+	Added rasqal_formula.c for rasqal_formula class code
+
+	* src/rasqal_variable.c: Revert
+	"(rasqal_new_variable_from_variable): Do not copy NULL expression"
+	This reverts commit 124173f9eddde4a57ed184ebd650418503d53e5b.
+
+	* src/rasqal_rowsource_join.c: Revert
+	"(rasqal_new_join_rowsource): Do not copy a NULL expr" This
+	reverts commit f9e92a72533cd8432c78175e0d65dce3392951da.
+
+	* src/rasqal_expr.c:
+	(rasqal_new_expression_from_expression): Allow NULL arg again for
+	the sake of code simplicity.
+
+	* src/rasqal_variable.c: Revert
+	"(rasqal_new_variable_from_variable): Do not try to copy NULL
+	literal pointer." This reverts commit
+	b1df8da1d6fadab183457ead62ab019eccde81ec.
+
+	* src/rasqal_literal.c:
+	(rasqal_new_literal_from_literal): Allow NULL arg again for the sake
+	of code simplicity.
+
+	* src/rasqal_variable.c:
+	(rasqal_new_variable_from_variable): Do not try to copy NULL
+	literal pointer.
+
+	* src/rasqal_literal.c: More assertions for NULL args for literal
+	class.  Tidied internal autodocs.
+
+	* src/rasqal_literal.c:
+	(rasqal_new_decimal_literal_from_decimal): Remove assertions
+	already checked in code
+
+	* src/rasqal_literal.c: casts for literal class arg checking
+
+	* src/rasqal_internal.h, src/rasqal_literal.c,
+	src/sparql_parser.y:
+	
+	rasqal_new_formula() gains a world arg.
+
+	* src/rasqal_literal.c: Code style: use var = ... calloc ( ...
+	sizeof(*var) )
+
+	* docs/tmpl/section-row.sgml,
+	docs/tmpl/section-variables-table.sgml: doc words
+
+	* docs/rasqal-docs.xml, docs/rasqal-sections.txt,
+	docs/tmpl/section-query_results.sgml, docs/tmpl/section-row.sgml,
+	docs/tmpl/section-variable.sgml,
+	docs/tmpl/section-variables-table.sgml: Update docs to add row and
+	variables-table sections and new functions
+
+	* src/rasqal_query_results.c:
+	(rasqal_query_results_add_row): This is public.  autodocs and
+	check params
+
+2010-02-10  Lauri Aalto <laalto@iki.fi>
+
+	* .gitignore: ignore .libs, *.exe
+
+	* src/rasqal_raptor.c: raptor_uri
+
+	* src/rasqal_query_results.c:
+	(rasqal_query_results_get_triple): Construct raptor_statement
+	using v2 raptor_terms.
+
+	(rasqal_new_query_results): Init static
+	raptor_statement.
+
+	(rasqal_free_query_results): Free terms owned by static
+	raptor_statement.
+
+2010-02-09  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_algebra.c, src/rasqal_engine.c,
+	src/rasqal_engine_sort.c, src/rasqal_expr.c, src/rasqal_feature.c,
+	src/rasqal_format_sparql_xml.c, src/rasqal_format_table.c,
+	src/rasqal_general.c, src/rasqal_graph_pattern.c,
+	src/rasqal_internal.h, src/rasqal_literal.c, src/rasqal_map.c,
+	src/rasqal_query.c, src/rasqal_query_results.c,
+	src/rasqal_query_transform.c, src/rasqal_query_write.c,
+	src/rasqal_raptor.c, src/rdql_lexer.l, src/sparql_lexer.l:
+	
+	Work-in-progress to make rasqal compile with raptor2 git HEAD (with
+	RAPTOR_V2_AVAILABLE defined).
+
+	(rasqal_escaped_name_to_utf8_string): Changed internal function
+	signature to be compatible with both raptor1 and raptor2.
+
+	(rasqal_query_results_get_triple): Construct raptor_statement
+	using v2 raptor_terms.
+
+	(rasqal_new_query_results): Init static raptor_statement.
+
+	(rasqal_free_query_results): Free terms owned by static
+	raptor_statement.
+
+	Changed RAPTOR_LOG_LEVEL_WARNING to RAPTOR_LOG_LEVEL_WARN
+
+	Changed function call args:
+	  * raptor_new_namespaces()
+	  * raptor_new_xml_writer()
+	  * raptor_new_qname(), raptor_new_qname_from_namespace_local_name()
+	  * raptor_qname_string_to_uri()
+	  * raptor_error_handlers_init()
+	  * raptor_new_sax2()
+	  * raptor_new_iostream_to_string(),
+	    raptor_new_iostream_to_file_handle()
+	  * raptor_uri calls
+	  * raptor_print_ntriples_string()
+	  * raptor_new_sequence(),
+	    raptor_sequence_{free,print}_handler ->  raptor_data_..._handler
+
+	* src/rasqal_general.c, src/rasqal_internal.h, src/rdql_lexer.l,
+	src/sparql_lexer.l:
+	(rasqal_escaped_name_to_utf8_string): Changed internal function
+	signature to be compatible with both raptor1 and raptor2.
+
 2010-02-09  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_expr.c:
+	(rasqal_new_prefix): Allow NULL prefix
+
+	* src/rasqal_graph_pattern.c:
+	(rasqal_new_graph_pattern_from_sequence): Allow NULL
+	graph_patterns seq.
+
+	* src/rasqal_variable.c:
+	(rasqal_new_variable_from_variable): Do not copy NULL expression
+	value.
+
+	* src/rasqal_expr.c:
+	(rasqal_expression_evaluate): Allow locator arg to be NULL.
+
+	* src/rasqal_rowsource_join.c:
+	(rasqal_new_join_rowsource): Do not copy a NULL expr
+
+	* src/rasqal_expr.c, src/rasqal_graph_pattern.c,
+	src/rasqal_result_formats.c: Add a lot of assertions for
+	validating parameters are not NULL.
+
+	* src/rasqal_feature.c, src/rasqal_general.c,
+	src/rasqal_internal.h, src/rasqal_query.c,
+	src/rasqal_query_results.c: Add a lot of assertions for validating
+	parameters are not NULL.
+
+	* tests/.gitignore: Ignore test output junk
+
+	* utils/.gitignore: Ignore example exes
+
+	* src/rasqal_format_json.c:
+	(rasqal_query_results_write_json1): Work when query is NULL and
+	take world from query results.
+
+	* src/rasqal_internal.h, src/rasqal_query_results.c: Add
+	rasqal_query_results_get_world()
+
+	* utils/Makefile.am: Add examples target
 
 	* utils/Makefile.am: Added srxwrite example to create a query
 	results via API and write it
 
-2010-02-09  Dave Beckett <dave@dajobe.org>
-
 	* utils/srxwrite.c: Added srxwrite example to create a query results
 	via API and write it
 
-2010-02-09  Dave Beckett <dave@dajobe.org>
-
-	* src/rasqal_query_results.c: (rasqal_query_results_get_binding_name): Use variables table to get
-	projection order if there is no query
-
-2010-02-09  Dave Beckett <dave@dajobe.org>
+	* src/rasqal_query_results.c: (rasqal_query_results_get_binding_name):
+	Use variables table to get projection order if there is no query
 
 	* src/rasqal_format_sparql_xml.c, src/rasqal_row.c: Change
-	rasqal_row_set_value_at semantics to copy the passed-in literal.  (rasqal_row_set_value_at): Free any existing literal and copy the
-	literal given.  Update all callers to above semantics.
+	rasqal_row_set_value_at semantics to copy the passed-in literal.
 
-2010-02-09  Dave Beckett <dave@dajobe.org>
+	(rasqal_row_set_value_at): Free any existing literal and copy the
+	literal given.  Update all callers to above semantics.
 
 	* src/rasqal.h, src/rasqal_row.c,
 	src/rasqal_rowsource_assignment.c, src/rasqal_rowsource_graph.c,
@@ -30,6 +223,114 @@
 
 	(rasqal_new_row_common): Gains world parameter.  Update all
 	callers.
+
+2010-02-08  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_internal.h, src/rasqal_literal.c:
+	(rasqal_literal_string_to_native): Deleted error_handler, error_data
+	args from internal function - not used.
+
+2010-02-08  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_format_sparql_xml.c:
+	(rasqal_query_results_get_rowsource_sparql_xml): Removed redundant
+	call to raptor_sax2_set_characters_handler().
+
+2010-02-08  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_algebra.c, src/rasqal_engine.c,
+	src/rasqal_engine_sort.c, src/rasqal_format_sparql_xml.c,
+	src/rasqal_format_table.c, src/rasqal_graph_pattern.c,
+	src/rasqal_internal.h, src/rasqal_map.c, src/rasqal_query.c,
+	src/rasqal_query_results.c, src/rasqal_query_transform.c:
+	
+	raptor_new_sequence(), raptor_sequence_{free,print}_handler ->
+	raptor_data_..._handler
+
+2010-02-08  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_literal.c:
+	raptor_qname_string_to_uri()
+
+2010-02-08  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_literal.c:
+	raptor_print_ntriples_string()
+
+2010-02-08  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_internal.h, src/rasqal_literal.c:
+	(rasqal_literal_string_to_native): Deleted error_handler, error_data
+	args from internal function - not used.
+
+2010-02-08  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_algebra.c, src/rasqal_graph_pattern.c:
+	
+	raptor_new_iostream_to_file_handle()
+
+2010-02-08  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_expr.c, src/rasqal_feature.c,
+	src/rasqal_format_sparql_xml.c, src/rasqal_general.c,
+	src/rasqal_literal.c, src/rasqal_query.c, src/rasqal_query_write.c:
+	
+	raptor_uri
+
+2010-02-08  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_format_table.c:
+	raptor_new_iostream_to_string()
+
+2010-02-08  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_format_sparql_xml.c:
+	(rasqal_query_results_get_rowsource_sparql_xml): Removed redundant
+	call to raptor_sax2_set_characters_handler().
+
+2010-02-08  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_format_sparql_xml.c:
+	raptor_new_sax2()
+
+2010-02-08  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_format_sparql_xml.c:
+	raptor_error_handlers_init()
+
+2010-02-08  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_format_sparql_xml.c:
+	
+	raptor_new_qname_from_namespace_local_name()
+
+2010-02-08  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_format_sparql_xml.c:
+	raptor_new_qname()
+
+2010-02-08  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_format_sparql_xml.c:
+	raptor_new_xml_writer()
+
+2010-02-08  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_format_sparql_xml.c, src/rasqal_query.c,
+	src/rasqal_query_write.c:
+	raptor_new_namespaces()
+
+2010-02-08  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_expr.c, src/rasqal_query.c,
+	src/rasqal_query_results.c, src/rasqal_query_transform.c:
+	
+	RAPTOR_LOG_LEVEL_WARNING -> RAPTOR_LOG_LEVEL_WARN
+
+2010-02-08  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_internal.h: raptor_simple_message_handler ->
+	raptor_message_handler
 
 2010-02-08  Dave Beckett <dave@dajobe.org>
 
