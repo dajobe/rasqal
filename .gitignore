@@ -38,3 +38,4 @@ run*
 setup.sh
 .libs
 *.exe
+*.stackdump
