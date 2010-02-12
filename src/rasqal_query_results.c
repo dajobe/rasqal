@@ -1176,8 +1176,8 @@ rasqal_query_results_get_triple(rasqal_query_results* query_results)
 #else
         rs->object = o->value.uri;
         rs->object_type = RAPTOR_IDENTIFIER_TYPE_RESOURCE;
-        break;
 #endif
+        break;
 
       case RASQAL_LITERAL_BLANK:
         nodeid = rasqal_prefix_id(query_results->result_count,
