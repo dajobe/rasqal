@@ -1612,7 +1612,13 @@ main(int argc, char *argv[]) {
   /* This is an artificial order conditions sequence equivalent to
    * ORDER BY 1, 2 which would probably never appear in a query.
    */
-  conditions = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_expression, (raptor_sequence_print_handler*)rasqal_expression_print);
+#ifdef RAPTOR_V2_AVAILABLE
+  conditions = raptor_new_sequence((raptor_data_free_handler*)rasqal_free_expression,
+                                   (raptor_data_print_handler*)rasqal_expression_print);
+#else
+  conditions = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_expression,
+                                   (raptor_sequence_print_handler*)rasqal_expression_print);
+#endif
   if(!conditions)
     FAIL;
   lit3 = rasqal_new_integer_literal(world, RASQAL_LITERAL_INTEGER, 1);
