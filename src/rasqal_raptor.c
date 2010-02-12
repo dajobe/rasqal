@@ -305,16 +305,14 @@ rasqal_raptor_error_handler(void *user_data,
 
   if(locator &&
 #ifdef RAPTOR_V2_AVAILABLE
-     (locator_len = raptor_format_locator_v2(query->world->raptor_world_ptr,
-                                             NULL, 0, locator)) > 0
+     (locator_len = raptor_locator_format(NULL, 0, locator)) > 0
 #else
      (locator_len = raptor_format_locator(NULL, 0, locator)) > 0
 #endif
     ) {
     char *buffer = (char*)RASQAL_MALLOC(cstring, locator_len + 1);
 #ifdef RAPTOR_V2_AVAILABLE
-    raptor_format_locator_v2(query->world->raptor_world_ptr, buffer,
-                             locator_len, locator);
+    raptor_locator_format(buffer, locator_len, locator);
 #else
     raptor_format_locator(buffer, locator_len, locator);
 #endif
