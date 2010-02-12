@@ -142,13 +142,9 @@ static void
 roqet_error_handler(void *user_data, 
                     raptor_locator* locator, const char *message) 
 {
-#ifdef RAPTOR_V2_AVAILABLE
-  rasqal_world* world = (rasqal_world *)user_data;
-#endif
-
   fprintf(stderr, "%s: Error - ", program);
 #ifdef RAPTOR_V2_AVAILABLE
-  raptor_print_locator_v2(rasqal_world_get_raptor(world), stderr, locator);
+  raptor_locator_print(locator, stderr);
 #else
   raptor_print_locator(stderr, locator);
 #endif
@@ -578,7 +574,7 @@ main(int argc, char *argv[])
             if(!results_formatter) {
               if(
 #ifdef RAPTOR_V2_AVAILABLE
-                raptor_serializer_syntax_name_check_v2(raptor_world_ptr, optarg)
+                raptor_world_is_serializer_name(raptor_world_ptr, optarg)
 #else
                 raptor_serializer_syntax_name_check(optarg)
 #endif
@@ -597,9 +593,9 @@ main(int argc, char *argv[])
         break;
 
       case 'i':
-	if(rasqal_language_name_check(world, optarg))
+        if(rasqal_language_name_check(world, optarg))
           ql_name = optarg;
-	else {
+        else {
           int i;
           fprintf(stderr,
                   "%s: invalid argument `%s' for `" HELP_ARG(i, input) "'\n",
@@ -614,7 +610,7 @@ main(int argc, char *argv[])
             fprintf(stderr, "  %-12s for %s\n", help_name, help_label);
           }
           usage = 1;
-	}
+        }
         break;
 
       case 'q':
@@ -628,15 +624,15 @@ main(int argc, char *argv[])
           unsigned char* source_uri_string;
           source_uri_string = raptor_uri_filename_to_uri_string((const char*)optarg);
 #ifdef RAPTOR_V2_AVAILABLE
-          source_uri = raptor_new_uri_v2(raptor_world_ptr, source_uri_string);
+          source_uri = raptor_new_uri(raptor_world_ptr, source_uri_string);
 #else
           source_uri = raptor_new_uri(source_uri_string);
 #endif
           raptor_free_memory(source_uri_string);
         } else
 #ifdef RAPTOR_V2_AVAILABLE
-          source_uri = raptor_new_uri_v2(raptor_world_ptr,
-                                         (const unsigned char*)optarg);
+          source_uri = raptor_new_uri(raptor_world_ptr,
+                                      (const unsigned char*)optarg);
 #else
           source_uri = raptor_new_uri((const unsigned char*)optarg);
 #endif
@@ -650,9 +646,8 @@ main(int argc, char *argv[])
         seq_p = (c == 'D') ? &data_source_uris : &named_source_uris;
         if(!*seq_p) {
 #ifdef RAPTOR_V2_AVAILABLE
-          *seq_p = raptor_new_sequence_v2((raptor_sequence_free_handler_v2*)raptor_free_uri_v2,
-                                          (raptor_sequence_print_handler_v2*)raptor_uri_print_v2,
-                                          (void*)raptor_world_ptr);
+          *seq_p = raptor_new_sequence((raptor_data_free_handler*)raptor_free_uri,
+                                       (raptor_data_print_handler*)raptor_uri_print);
 
 #else
           *seq_p = raptor_new_sequence((raptor_sequence_free_handler*)raptor_free_uri,
@@ -726,7 +721,7 @@ main(int argc, char *argv[])
   }
 
   if(help) {
-    int i;
+    int i, j;
     
     printf(title_format_string, rasqal_version_string);
     puts("Run an RDF query giving variable bindings or RDF triples.");
@@ -758,7 +753,13 @@ main(int argc, char *argv[])
     puts(HELP_TEXT("r", "results FORMAT  ", "Set query results output format to one of:"));
     puts("    For variable bindings and boolean results:");
     puts("      simple                A simple text format (default)");
-    for(i = 0; i < (int)raptor_get_feature_count(); i++) {
+
+#ifdef RAPTOR_V2_AVAILABLE
+    j = raptor_parser_get_option_count();
+#else
+    j = raptor_get_feature_count();
+#endif
+    for(i = 0; i < j; i++) {
       const char *name;
       const char *label;
       int qr_flags = 0;
@@ -773,8 +774,8 @@ main(int argc, char *argv[])
       const char *help_label;
       if(
 #ifdef RAPTOR_V2_AVAILABLE
-         raptor_serializers_enumerate_v2(raptor_world_ptr, i,
-                                         &help_name, &help_label, NULL, NULL)
+         raptor_world_enumerate_serializers(raptor_world_ptr, i,
+                                            &help_name, &help_label, NULL, NULL)
 #else
          raptor_serializers_enumerate(i, &help_name, &help_label, NULL, NULL)
 #endif
@@ -842,7 +843,7 @@ main(int argc, char *argv[])
     
     if(uri_string) {
 #ifdef RAPTOR_V2_AVAILABLE
-      uri = raptor_new_uri_v2(raptor_world_ptr, uri_string);
+      uri = raptor_new_uri(raptor_world_ptr, uri_string);
 #else
       uri = raptor_new_uri(uri_string);
 #endif
@@ -854,19 +855,14 @@ main(int argc, char *argv[])
     } else
       uri = NULL; /* stdin */
   }
-  
 
-#ifdef RAPTOR_V2_AVAILABLE
-  if(!base_uri_string) {
-    if(uri)
-      base_uri = raptor_uri_copy_v2(raptor_world_ptr, uri);
-  } else
-    base_uri = raptor_new_uri_v2(raptor_world_ptr, base_uri_string);
-#else
   if(!base_uri_string) {
     if(uri)
       base_uri = raptor_uri_copy(uri);
   } else
+#ifdef RAPTOR_V2_AVAILABLE
+    base_uri = raptor_new_uri(raptor_world_ptr, base_uri_string);
+#else
     base_uri = raptor_new_uri(base_uri_string);
 #endif
   if(base_uri_string && !base_uri) {
@@ -926,12 +922,14 @@ main(int argc, char *argv[])
   } else {
     raptor_www *www;
 #ifdef RAPTOR_V2_AVAILABLE
-    www = raptor_www_new_v2(raptor_world_ptr);
+    www = raptor_www_new(raptor_world_ptr);
 #else
     www = raptor_www_new();
 #endif
     if(www) {
+#ifndef RAPTOR_V2_AVAILABLE
       raptor_www_set_error_handler(www, roqet_error_handler, world);
+#endif
       raptor_www_fetch_to_string(www, uri, &query_string, NULL, malloc);
       raptor_www_free(www);
     }
@@ -992,18 +990,9 @@ main(int argc, char *argv[])
       if(rasqal_query_add_data_graph(rq, source_uri, source_uri, 
                                      RASQAL_DATA_GRAPH_NAMED)) {
         fprintf(stderr, "%s: Failed to add named graph %s\n", program, 
-#ifdef RAPTOR_V2_AVAILABLE
-                raptor_uri_as_string_v2(raptor_world_ptr, source_uri)
-#else
-                raptor_uri_as_string(source_uri)
-#endif
-                );
+                raptor_uri_as_string(source_uri));
       }
-#ifdef RAPTOR_V2_AVAILABLE
-      raptor_free_uri_v2(raptor_world_ptr, source_uri);
-#else
       raptor_free_uri(source_uri);
-#endif
     }
   }
   if(data_source_uris) {
@@ -1014,18 +1003,9 @@ main(int argc, char *argv[])
       if(rasqal_query_add_data_graph(rq, source_uri, NULL,
                                      RASQAL_DATA_GRAPH_BACKGROUND)) {
         fprintf(stderr, "%s: Failed to add to default graph %s\n", program, 
-#ifdef RAPTOR_V2_AVAILABLE
-                raptor_uri_as_string_v2(raptor_world_ptr, source_uri)
-#else
-                raptor_uri_as_string(source_uri)
-#endif
-                );
+                raptor_uri_as_string(source_uri));
       }
-#ifdef RAPTOR_V2_AVAILABLE
-      raptor_free_uri_v2(raptor_world_ptr, source_uri);
-#else
       raptor_free_uri(source_uri);
-#endif
     }
   }
 
@@ -1059,7 +1039,12 @@ main(int argc, char *argv[])
       
     case QUERY_OUTPUT_SPARQL:
       if(1) {
-        raptor_iostream* iostr = raptor_new_iostream_to_file_handle(stdout);
+        raptor_iostream* iostr;
+#ifdef RAPTOR_V2_AVAILABLE
+        iostr = raptor_new_iostream_to_file_handle(raptor_world_ptr, stdout);
+#else
+        iostr = raptor_new_iostream_to_file_handle(stdout);
+#endif
         rasqal_query_write(iostr, rq, NULL, base_uri);
         raptor_free_iostream(iostr);
       }
@@ -1090,8 +1075,11 @@ main(int argc, char *argv[])
 
   if(results_formatter != NULL) {
     raptor_iostream *iostr;
-  
+#ifdef RAPTOR_V2_AVAILABLE
+    iostr = raptor_new_iostream_to_file_handle(raptor_world_ptr, stdout);
+#else
     iostr = raptor_new_iostream_to_file_handle(stdout);
+#endif
     if(!iostr) {
       fprintf(stderr, "%s: Creating output iostream failed\n", program);
       rc = 1;
@@ -1151,8 +1139,8 @@ main(int argc, char *argv[])
         fprintf(stderr, "%s: Query has a graph result:\n", program);
 
 #ifdef RAPTOR_V2_AVAILABLE
-      serializer = raptor_new_serializer_v2(raptor_world_ptr,
-                                            serializer_syntax_name);
+      serializer = raptor_new_serializer(raptor_world_ptr,
+                                         serializer_syntax_name);
 #else
       serializer = raptor_new_serializer(serializer_syntax_name);
 #endif
@@ -1207,17 +1195,10 @@ main(int argc, char *argv[])
     raptor_free_sequence(data_source_uris);
   if(named_source_uris)
     raptor_free_sequence(named_source_uris);
-#ifdef RAPTOR_V2_AVAILABLE
-  if(base_uri)
-    raptor_free_uri_v2(raptor_world_ptr, base_uri);
-  if(uri)
-    raptor_free_uri_v2(raptor_world_ptr, uri);
-#else
   if(base_uri)
     raptor_free_uri(base_uri);
   if(uri)
     raptor_free_uri(uri);
-#endif
   if(free_uri_string)
     raptor_free_memory(uri_string);
 

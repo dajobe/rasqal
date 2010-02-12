@@ -138,7 +138,7 @@ main(int argc, char *argv[])
 
   query_file=argv[1];
 #ifdef RAPTOR_V2_AVAILABLE
-  base_uri = raptor_new_uri_v2(world->raptor_world_ptr, (const unsigned char*)argv[2]);
+  base_uri = raptor_new_uri(world->raptor_world_ptr, (const unsigned char*)argv[2]);
 #else
   base_uri = raptor_new_uri((const unsigned char*)argv[2]);
 #endif
@@ -167,7 +167,11 @@ main(int argc, char *argv[])
     FAIL;
   }
   
-  iostr=raptor_new_iostream_to_file_handle(stdout);
+#ifdef RAPTOR_V2_AVAILABLE
+  iostr = raptor_new_iostream_to_file_handle(world->raptor_world_ptr, stdout);
+#else
+  iostr = raptor_new_iostream_to_file_handle(stdout);
+#endif
   if(!iostr) {
     fprintf(stderr, "%s: Failed to make iostream\n", program);
     FAIL;
@@ -189,11 +193,7 @@ main(int argc, char *argv[])
   if(query)
     rasqal_free_query(query);
   if(base_uri)
-#ifdef RAPTOR_V2_AVAILABLE
-    raptor_free_uri_v2(world->raptor_world_ptr, base_uri);
-#else
     raptor_free_uri(base_uri);
-#endif
   if(world)
     rasqal_free_world(world);
   

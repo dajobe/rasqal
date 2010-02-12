@@ -120,15 +120,15 @@ main(int argc, char **argv) {
 
   uri_string = raptor_uri_filename_to_uri_string("");
 #ifdef RAPTOR_V2_AVAILABLE
-  base_uri = raptor_new_uri_v2(world->raptor_world_ptr, uri_string);  
+  base_uri = raptor_new_uri(world->raptor_world_ptr, uri_string);
 #else
-  base_uri = raptor_new_uri(uri_string);  
+  base_uri = raptor_new_uri(uri_string);
 #endif
   raptor_free_memory(uri_string);
 
   data_dir_string  =raptor_uri_filename_to_uri_string(argv[1]);
 #ifdef RAPTOR_V2_AVAILABLE
-  data_dir_uri = raptor_new_uri_v2(world->raptor_world_ptr, data_dir_string);
+  data_dir_uri = raptor_new_uri(world->raptor_world_ptr, data_dir_string);
 #else
   data_dir_uri = raptor_new_uri(data_dir_string);
 #endif
@@ -148,9 +148,9 @@ main(int argc, char **argv) {
   }
 
 #ifdef RAPTOR_V2_AVAILABLE
-  data_file_uri = raptor_new_uri_relative_to_base_v2(world->raptor_world_ptr,
-                                                     data_dir_uri,
-                                                     DATA_FILE_NAME);
+  data_file_uri = raptor_new_uri_relative_to_base(world->raptor_world_ptr,
+                                                  data_dir_uri,
+                                                  DATA_FILE_NAME);
 #else
   data_file_uri = raptor_new_uri_relative_to_base(data_dir_uri, DATA_FILE_NAME);
 #endif
@@ -158,11 +158,7 @@ main(int argc, char **argv) {
   rasqal_query_add_data_graph(query, data_file_uri, NULL,
                               RASQAL_DATA_GRAPH_BACKGROUND);
 
-#ifdef RAPTOR_V2_AVAILABLE
-  raptor_free_uri_v2(world->raptor_world_ptr, data_file_uri);
-#else
   raptor_free_uri(data_file_uri);
-#endif
   data_file_uri = NULL;
 
   printf("%s: executing query\n", program);
@@ -196,11 +192,7 @@ main(int argc, char **argv) {
 
   rasqal_free_query(query);
 
-#ifdef RAPTOR_V2_AVAILABLE
-  raptor_free_uri_v2(world->raptor_world_ptr, base_uri);
-#else
   raptor_free_uri(base_uri);
-#endif
 
   rasqal_free_world(world);
 

@@ -1021,12 +1021,7 @@ rdql_token_print(rasqal_world* world, int token, YYSTYPE *lval)
         if(lval->literal->datatype)
           sprintf(buffer, "STRING_LITERAL(\"%s\"@%s^^%s)",
                   lval->literal->string, lval->literal->language,
-#ifdef RAPTOR_V2_AVAILABLE
-                  raptor_uri_as_string_v2(world->raptor_world_ptr, lval->literal->datatype)
-#else                  
-                  raptor_uri_as_string(lval->literal->datatype)
-#endif
-                  );
+                  raptor_uri_as_string(lval->literal->datatype));
         else
           sprintf(buffer, "STRING_LITERAL(\"%s\"@%s)",
                   lval->literal->string, lval->literal->language);
@@ -1034,12 +1029,7 @@ rdql_token_print(rasqal_world* world, int token, YYSTYPE *lval)
         if(lval->literal->datatype)
           sprintf(buffer, "STRING_LITERAL(\"%s\"^^%s)", 
                   lval->literal->string,
-#ifdef RAPTOR_V2_AVAILABLE
-                  raptor_uri_as_string_v2(world->raptor_world_ptr, lval->literal->datatype)
-#else                  
-                  raptor_uri_as_string(lval->literal->datatype)
-#endif
-                  );
+                  raptor_uri_as_string(lval->literal->datatype));
         else
           sprintf(buffer, "STRING_LITERAL(\"%s\")", lval->literal->string);
       }
@@ -1058,13 +1048,7 @@ rdql_token_print(rasqal_world* world, int token, YYSTYPE *lval)
 
     case URI_LITERAL:
       sprintf(buffer, "URI_LITERAL(%s)",
-#ifdef RAPTOR_V2_AVAILABLE
-                  raptor_uri_as_string_v2(world->raptor_world_ptr, lval->uri)
-#else                  
-                  raptor_uri_as_string(lval->uri)
-#endif
-
-              );
+              raptor_uri_as_string(lval->uri));
       return buffer;
 
     case QNAME_LITERAL:
@@ -1097,11 +1081,7 @@ rdql_token_free(rasqal_world* world, int token, YYSTYPE *lval)
       rasqal_free_literal(lval->literal);
       break;
     case URI_LITERAL:
-#ifdef RAPTOR_V2_AVAILABLE
-      raptor_free_uri_v2(world->raptor_world_ptr, lval->uri);
-#else    
       raptor_free_uri(lval->uri);
-#endif
       break;
     case IDENTIFIER:
       RASQAL_FREE(cstring, lval->name);
@@ -1196,7 +1176,7 @@ main(int argc, char *argv[])
 
   uri_string=raptor_uri_filename_to_uri_string(filename);
 #ifdef RAPTOR_V2_AVAILABLE
-  rq.base_uri = raptor_new_uri_v2(world->raptor_world_ptr, uri_string);
+  rq.base_uri = raptor_new_uri(world->raptor_world_ptr, uri_string);
 #else
   rq.base_uri = raptor_new_uri(uri_string);
 #endif
@@ -1222,11 +1202,7 @@ main(int argc, char *argv[])
   
   yylex_destroy(scanner);
 
-#ifdef RAPTOR_V2_AVAILABLE
-  raptor_free_uri_v2(world->raptor_world_ptr, rq.base_uri);
-#else
   raptor_free_uri(rq.base_uri);
-#endif
 
   RASQAL_FREE(cstring, query_string);
 
