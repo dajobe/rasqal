@@ -265,8 +265,11 @@ raptor_statement_as_rasqal_triple(rasqal_world* world,
 
 
 static void
-rasqal_raptor_statement_handler(void *user_data, 
-                                const raptor_statement *statement) 
+rasqal_raptor_statement_handler(void *user_data,
+#ifndef RAPTOR_V2_AVAILABLE
+                                const
+#endif
+                                raptor_statement *statement)
 {
   rasqal_raptor_triples_source_user_data* rtsc;
   rasqal_raptor_triple *triple;
@@ -294,6 +297,7 @@ rasqal_raptor_statement_handler(void *user_data,
 }
 
 
+#ifndef RAPTOR_V2_AVAILABLE
 static void
 rasqal_raptor_error_handler(void *user_data, 
                             raptor_locator* locator, const char *message)
@@ -326,6 +330,7 @@ rasqal_raptor_error_handler(void *user_data,
                             &query->locator,
                             "Failed to parse - %s", message);
 }
+#endif
 
 
 static unsigned char*
@@ -420,13 +425,16 @@ rasqal_raptor_new_triples_source(rasqal_query* rdf_query,
 
 #ifdef RAPTOR_V2_AVAILABLE
     parser = raptor_new_parser(rdf_query->world->raptor_world_ptr, "guess");
+    raptor_parser_set_statement_handler(parser, rtsc, rasqal_raptor_statement_handler);
+    raptor_parser_set_generate_id_handler(parser, rtsc,
+                                          rasqal_raptor_generate_id_handler);
 #else
     parser = raptor_new_parser("guess");
-#endif
     raptor_set_statement_handler(parser, rtsc, rasqal_raptor_statement_handler);
     raptor_set_error_handler(parser, rdf_query, rasqal_raptor_error_handler);
     raptor_set_generate_id_handler(parser, rtsc,
                                    rasqal_raptor_generate_id_handler);
+#endif
 
 #ifdef RAPTOR_FEATURE_NO_NET
     if(rdf_query->features[RASQAL_FEATURE_NO_NET])
