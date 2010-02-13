@@ -2604,9 +2604,9 @@ rasqal_literal_as_node(rasqal_literal* l)
   raptor_uri* dt_uri;
   rasqal_literal* new_l = NULL;
   
-  reswitch:
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(l, rasqal_literal, NULL);
 
+  reswitch:
   switch(l->type) {
     case RASQAL_LITERAL_URI:
     case RASQAL_LITERAL_STRING:
