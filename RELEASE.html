@@ -13,6 +13,15 @@
 <p>Not yet released.
 </p>
 
+<p>The main changes in this release are:</p>
+<ul>
+<li>Add initial draft parsing and API support for
+<a href="http://www.w3.org/TR/2010/WD-sparql11-update-20100126/">SPARQL 1.1 Update W3C Working Draft of 2010-01-26</a></li>
+<li>Add public APIs (row, results, result formatter, variables table) so that query results can be built, read and written without a query.</li>
+<li>Add API resilience checks for invalid NULL pointer arguments.</li>
+</ul>
+
+
 <p>Fixed Issues:</p>
 <ul>
   <li><a href="http://bugs.librdf.org/mantis/view.php?id=320">0000320</a>: Add a void* user_data field to rasqal_variable</li>
@@ -24,26 +33,15 @@
 
 <h3>Query API Changes</h3>
 
+<p>A user data <code>void* user_data</code> field was added to the
+<code>rasqal_variable</code> structure to allow application code to
+store additional information.</p>
+
 <p>Added a new <code>rasqal_query_verb</code> enum value for SPARQL
 1.1 (draft) Update: <code>RASQAL_QUERY_VERB_UPDATE</code> which
 indicates that a sequence of update operations are available in the
 query structure, rather than a query (SELECT, ASK, DESCRIBE).
 </p>
-
-<p><code>rasqal_query</code> structure gains a <code>graph_uri</code>
-field for storing CLEAR or DROP graph URIs.
-</p>
-
-<p>Registered URIs for the CSV and TSV query result formats and fixed
-the mime types for those as well as jSON format:
-<a href="http://bugs.librdf.org/mantis/view.php?id=345">Issue #0000345</a>
-and
-<a href="http://bugs.librdf.org/mantis/view.php?id=323">Issue #0000323</a>.
-</p>
-
-<p>A user data <code>void* user_data</code> field was added to the
-<code>rasqal_variable</code> structure to allow application code to
-store additional information.</p>
 
 <p>Added a <code>rasqal_update_operation</code> class for holding
 an updates that adds and/or removes triples from a graph (with
@@ -58,6 +56,9 @@ graph update - clear, drop, delete, insert and, load.
 <p>Added <code>rasqal_update_type_label()</code> to get a label for
 a rasqal-update_type.
 </p>
+<pre>
+  const char* rasqal_update_type_label(rasqal_update_type type);
+</pre>
 
 <p>Added an <code>rasqal_update_flags</code> enum for capturing
 update operations flags such as SPARQL 1.1 Update <code>SILENT</code>
@@ -66,46 +67,73 @@ bulk insert/delete data, rather than graph pattern templates with
 variables.
 </p>
 
-<p>Added constructor, destructor and methods for the
-rasqal_update_operation class:
-<code>rasqal_new_update_operation()</code>,
-<code>rasqal_free_update_operation()</code> and
-<code>rasqal_update_operation_print()</code>.
-</p>
-
 <p>Added <code>rasqal_query_get_update_operations_sequence()</code>
 to get the sequence of updates from a query.  Added
 <code>rasqal_query_get_update_operation()</code> get an individual
 update operation from a query via an index.</p>
+<pre>
+  raptor_sequence* rasqal_query_get_update_operations_sequence(rasqal_query* query);
+
+  rasqal_update_operation* rasqal_query_get_update_operation(rasqal_query* query,
+    int idx);
+</pre>
 
 
 <h3>Query Results Class Changes</h3>
 
 <p><code>rasqal_new_query_results()</code> added to public API to
 construct a standalone query result set without being the result of a
-query eecution.  (The destructor is already present).  Added method
+query execution.  (The destructor is already present).  Added method
 <code>rasqal_query_results_add_row()</code> to add a row to a query
 result set.
 </p>
+<pre>
+  rasqal_query_results* rasqal_new_query_results(rasqal_world* world,
+     rasqal_query* query, rasqal_query_results_type type,
+     rasqal_variables_table* vars_table);
 
-<p><code>rasqal_query_results_type</code. enum added to public API
+  int rasqal_query_results_add_row(rasqal_query_results* query_results,
+     rasqal_row* row);
+</pre>
+
+<p><code>rasqal_query_results_type</code> enum added to public API
 for use with <code>rasqal_new_query_results()</code>.
 </p>
 
 
 <h3>Query Results Formatter Class Changes</h3>
 
+<p>Registered URIs for the CSV and TSV query result formats and fixed
+the mime types for those as well as jSON format:
+<a href="http://bugs.librdf.org/mantis/view.php?id=345">Issue #0000345</a>
+and
+<a href="http://bugs.librdf.org/mantis/view.php?id=323">Issue #0000323</a>.
+</p>
+
 <p>Added <code>rasqal_new_query_results_formatter2()</code> with
 format name, mime type and URI args deprecating
 <code>rasqal_new_query_results_formatter()</code> and
 <code>rasqal_new_query_results_formatter_by_mime_type()</code>.
 </p>
+<pre>
+  rasqal_query_results_formatter* rasqal_new_query_results_formatter2(rasqal_world* world,
+    const char *name, const char *mime_type, raptor_uri* format_uri);
+</pre>
 
 <p>Added <code>rasqal_query_results_write2()</code> and
 <code>rasqal_query_results_read2()</code> with both name and
 mime_type args deprecating <code>rasqal_query_results_write()</code>
 and <code>rasqal_query_results_read()</code> respectively.
 </p>
+<pre>
+  int rasqal_query_results_write2(raptor_iostream *iostr,
+    rasqal_query_results *results, const char* name, const char* mime_type,
+    raptor_uri *format_uri, raptor_uri *base_uri);
+
+  int rasqal_query_results_read2(raptor_iostream *iostr,
+    rasqal_query_results *results, const char* name, const char* mime_type,
+    raptor_uri *format_uri, raptor_uri *base_uri);
+</pre>
 
 
 <h3>Query Result Row Class</h3>
@@ -118,6 +146,15 @@ creating standalone query results set without a query.
 <code>rasqal_free_row()</code> to construct and destruct a row and
 <code>rasqal_row_set_value_at()</code> to set row literal values.
 </p>
+
+<pre>
+  rasqal_row* rasqal_new_row_for_size(rasqal_world* world, int size);
+
+  void rasqal_free_row(rasqal_row* row);
+
+  int rasqal_row_set_value_at(rasqal_row* row, int offset,
+    rasqal_literal* value);
+</pre>
 
 
 <h3>Variables Table Class</h3>
@@ -132,12 +169,24 @@ variables table.  Added method
 <code>rasqal_variables_table_add()</code> to add a variable to the
 variables table.
 </p>
+<pre>
+  rasqal_variables_table* rasqal_new_variables_table(rasqal_world* world);
+
+  void rasqal_free_variables_table(rasqal_variables_table* vt);
+
+  rasqal_variable* rasqal_variables_table_add(rasqal_variables_table* vt,
+    rasqal_variable_type type, const unsigned char *name,
+    rasqal_literal *value);
+</pre>
 
 
 <h3>SPARQL Changes</h3>
-<p>Added syntax-only support (no execution) for SPARQL 1.1 (draft) Updates
-syntax.  These are only available when using the 'laqrs' query language
-name, until SPARQL 1.1 is completed.</p>
+
+<p>Added syntax-only and API support (<strong>no execution</strong>)
+for the
+<a href="http://www.w3.org/TR/2010/WD-sparql11-update-20100126/">SPARQL 1.1 Update W3C Working Draft of 2010-01-26</a>
+syntax.  These are only available when using the 'laqrs' query
+language name, until SPARQL 1.1 is stable.</p>
 
 <p>Added new lexer support for keywords: WITH, CLEAR, CREATE, SILENT,
 DATA, DROP, LOAD</p>
@@ -158,20 +207,14 @@ DATA, DROP, LOAD</p>
 update form since other combinations are ambiguous.
 </p>
 
-<p>The older LAQRS experimental INSERT and DELETE formats are
-supported but deprecated.</p>
+<p><strong>NOTE:</strong> The older LAQRS experimental INSERT and
+DELETE formats are supported but deprecated.</p>
 
 
-<h3>Decimal Arithmetic changes</h3>
+<h3>Query Engine changes</h3>
 
-<p>Nobody report it, but decimal division was totally broken.  Fixed
+<p>Nobody reported it, but decimal division was totally broken.  Fixed
 it to do division and not add!
-</p>
-
-
-<h3>Example Changes</h3>
-
-<p>Added example code for constructing a query result set without a query
 </p>
 
 
@@ -182,6 +225,9 @@ it to do division and not add!
 
 <p>Added checks for the public API methods to ensure NULL pointers
 are not accepted or used.
+</p>
+
+<p>Added example code for constructing a query result set without a query
 </p>
 
 <p>Updated <code>configure</code> and the build system to use silent
@@ -195,8 +241,8 @@ rules for the maintainer (by default), or when
 autotools versions above.</p>
 
 <p>The rasqal.pc file now uses the Requires.private field for raptor;
-it should only be in the link line with <code>pkg-config --static ...</code>
-is used.
+it should only be in the link line with<br />
+<code>pkg-config --static ...</code> is used.
 </p>
 
 <p>Enforce that only raptor versions &lt;1.9.0 are supported.  No
