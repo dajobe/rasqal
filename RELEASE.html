@@ -24,12 +24,10 @@
 
 <h3>Query API Changes</h3>
 
-<p>Added <code>rasqal_query_verb</code> enum values for new verbs for
-SPARQL 1.1 (draft) Update:
-<code>RASQAL_QUERY_VERB_CLEAR</code>,
-<code>RASQAL_QUERY_VERB_CREATE</code>,
-<code>RASQAL_QUERY_VERB_DROP</code> and
-<code>RASQAL_QUERY_VERB_LOAD</code> .
+<p>Added a new <code>rasqal_query_verb</code> enum value for SPARQL
+1.1 (draft) Update: <code>RASQAL_QUERY_VERB_UPDATE</code> which
+indicates that a sequence of update operations are available in the
+query structure, rather than a query (SELECT, ASK, DESCRIBE).
 </p>
 
 <p><code>rasqal_query</code> structure gains a <code>graph_uri</code>
@@ -46,6 +44,94 @@ and
 <p>A user data <code>void* user_data</code> field was added to the
 <code>rasqal_variable</code> structure to allow application code to
 store additional information.</p>
+
+<p>Added a <code>rasqal_update_operation</code> class for holding
+an updates that adds and/or removes triples from a graph (with
+possible conditional where) or does a graph administration
+operation on a grpah.
+</p>
+
+<p>Added an <code>rasqal_update_type</code> enum for the types of
+graph update - clear, drop, delete, insert and, load.
+</p>
+
+<p>Added <code>rasqal_update_type_label()</code> to get a label for
+a rasqal-update_type.
+</p>
+
+<p>Added an <code>rasqal_update_flags</code> enum for capturing
+update operations flags such as SPARQL 1.1 Update <code>SILENT</code>
+for silent graph administration operations and <code>DATA</code> for
+bulk insert/delete data, rather than graph pattern templates with
+variables.
+</p>
+
+<p>Added constructor, destructor and methods for the
+rasqal_update_operation class:
+<code>rasqal_new_update_operation()</code>,
+<code>rasqal_free_update_operation()</code> and
+<code>rasqal_update_operation_print()</code>.
+</p>
+
+<p>Added <code>rasqal_query_get_update_operations_sequence()</code>
+to get the sequence of updates from a query.  Added
+<code>rasqal_query_get_update_operation()</code> get an individual
+update operation from a query via an index.</p>
+
+
+<h3>Query Results Class Changes</h3>
+
+<p><code>rasqal_new_query_results()</code> added to public API to
+construct a standalone query result set without being the result of a
+query eecution.  (The destructor is already present).  Added method
+<code>rasqal_query_results_add_row()</code> to add a row to a query
+result set.
+</p>
+
+<p><code>rasqal_query_results_type</code. enum added to public API
+for use with <code>rasqal_new_query_results()</code>.
+</p>
+
+
+<h3>Query Results Formatter Class Changes</h3>
+
+<p>Added <code>rasqal_new_query_results_formatter2()</code> with
+format name, mime type and URI args deprecating
+<code>rasqal_new_query_results_formatter()</code> and
+<code>rasqal_new_query_results_formatter_by_mime_type()</code>.
+</p>
+
+<p>Added <code>rasqal_query_results_write2()</code> and
+<code>rasqal_query_results_read2()</code> with both name and
+mime_type args deprecating <code>rasqal_query_results_write()</code>
+and <code>rasqal_query_results_read()</code> respectively.
+</p>
+
+
+<h3>Query Result Row Class</h3>
+
+<p>Export the query result row class to the public API to allow
+creating standalone query results set without a query.
+</p>
+
+<p>Added <code>rasqal_new_row_for_size()</code>,
+<code>rasqal_free_row()</code> to construct and destruct a row and
+<code>rasqal_row_set_value_at()</code> to set row literal values.
+</p>
+
+
+<h3>Variables Table Class</h3>
+
+<p>Added variables table class <code>rasqal_variables_table</code> to
+the public API to allow use in creating a standalone query results.
+</p>
+
+<p>Added <code>rasqal_new_variables_table()</code> and
+<code>rasqal_free_variables_table()</code> to construct and destroy a
+variables table.  Added method
+<code>rasqal_variables_table_add()</code> to add a variable to the
+variables table.
+</p>
 
 
 <h3>SPARQL Changes</h3>
@@ -72,12 +158,31 @@ DATA, DROP, LOAD</p>
 update form since other combinations are ambiguous.
 </p>
 
+<p>The older LAQRS experimental INSERT and DELETE formats are
+supported but deprecated.</p>
 
-<h3>Query Engine changes</h3>
-<p>
+
+<h3>Decimal Arithmetic changes</h3>
+
+<p>Nobody report it, but decimal division was totally broken.  Fixed
+it to do division and not add!
 </p>
 
+
+<h3>Example Changes</h3>
+
+<p>Added example code for constructing a query result set without a query
+</p>
+
+
 <h3>Other Changes</h3>
+
+<p>Multiple code style updates and code file reorganizing.
+</p>
+
+<p>Added checks for the public API methods to ensure NULL pointers
+are not accepted or used.
+</p>
 
 <p>Updated <code>configure</code> and the build system to use silent
 rules for the maintainer (by default), or when
