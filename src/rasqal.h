@@ -1002,14 +1002,14 @@ void rasqal_query_set_user_data(rasqal_query* query, void *user_data);
 
 /* query results */
 RASQAL_API
+rasqal_query_results* rasqal_new_query_results(rasqal_world* world, rasqal_query* query, rasqal_query_results_type type, rasqal_variables_table* vars_table);
+RASQAL_API
 void rasqal_free_query_results(rasqal_query_results *query_results);
 
 RASQAL_API
 rasqal_query* rasqal_query_results_get_query(rasqal_query_results* query_results);
 
 /* Bindings result format */
-RASQAL_API
-rasqal_query_results* rasqal_new_query_results(rasqal_world* world, rasqal_query* query, rasqal_query_results_type type, rasqal_variables_table* vars_table);
 RASQAL_API
 int rasqal_query_results_is_bindings(rasqal_query_results *query_results);
 RASQAL_API
