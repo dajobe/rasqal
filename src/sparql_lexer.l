@@ -831,7 +831,7 @@ sparql_copy_string_token(rasqal_query* rq, YYSTYPE* lval,
       RASQAL_FREE(cstring, string);
       return 1;
     }
-    strncpy(new_language, language, new_language_len);
+    strncpy(new_language, language, new_language_len + 1);
     language = new_language;
   }
   
