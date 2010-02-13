@@ -293,8 +293,11 @@ EXPONENT [eE][+-]?[0-9]+
 %{
 
   int c;
-  rasqal_query *rq=(rasqal_query*)yyextra;
-  rasqal_sparql_query_language *rqe=(rasqal_sparql_query_language*)rq->context;
+  rasqal_query *rq;
+  rasqal_sparql_query_language *rqe;
+
+  rq = (rasqal_query*)yyextra;
+  rqe = (rasqal_sparql_query_language*)rq->context;
 
 #ifdef HAVE_SETJMP
   if(setjmp(sparql_lexer_fatal_error_longjmp_env))
@@ -307,7 +310,7 @@ EXPONENT [eE][+-]?[0-9]+
         rqe->lineno++;
 }
 
-"/*"	{ int lines=sparql_skip_c_comment(rq);
+"/*"	{ int lines = sparql_skip_c_comment(rq);
           if(lines < 0)
             yyterminate();
           rqe->lineno += lines;
@@ -402,33 +405,33 @@ EXPONENT [eE][+-]?[0-9]+
 
 ":="         { return ASSIGN; }
 
-[-+]?{INTEGER}   { c=*yytext;
-                  sparql_parser_lval->literal=rasqal_new_typed_literal(rq->world, RASQAL_LITERAL_INTEGER, (const unsigned char*)yytext);
+[-+]?{INTEGER}   { c = *yytext;
+                  sparql_parser_lval->literal = rasqal_new_typed_literal(rq->world, RASQAL_LITERAL_INTEGER, (const unsigned char*)yytext);
                   if(!sparql_parser_lval->literal)
                     YY_FATAL_ERROR_EOF("rasqal_new_typed_literal failed");
  		  return (c=='+' ? INTEGER_POSITIVE_LITERAL : (c == '-' ? INTEGER_NEGATIVE_LITERAL : INTEGER_LITERAL));
 }
 
 [-+]?{DECIMAL}  { 
-                        c=*yytext;
+                        c = *yytext;
                         
                         if(!rasqal_xsd_datatype_check(RASQAL_LITERAL_DECIMAL, (const unsigned char*)yytext, 0)) {
                           sparql_syntax_error(rq, "SPARQL syntax error - Illegal decimal constant %s", yytext);
                           yyterminate();
                         }
-                        sparql_parser_lval->literal=rasqal_new_decimal_literal(rq->world, (const unsigned char*)yytext);
+                        sparql_parser_lval->literal = rasqal_new_decimal_literal(rq->world, (const unsigned char*)yytext);
                         if(!sparql_parser_lval->literal)
                           YY_FATAL_ERROR_EOF("rasqal_new_decimal_literal failed");
                         return (c=='+' ? DECIMAL_POSITIVE_LITERAL : (c == '-' ? DECIMAL_NEGATIVE_LITERAL : DECIMAL_LITERAL));
 }
 
 [-+]?{DOUBLE} {
-                        c=*yytext;
+                        c = *yytext;
                         if(!rasqal_xsd_datatype_check(RASQAL_LITERAL_DOUBLE, (const unsigned char*)yytext, 0)) {
                           sparql_syntax_error(rq, "SPARQL syntax error - Illegal double constant %s", yytext);
                           yyterminate();
                         }
-                        sparql_parser_lval->literal=rasqal_new_typed_literal(rq->world, RASQAL_LITERAL_DOUBLE, (const unsigned char*)yytext);
+                        sparql_parser_lval->literal = rasqal_new_typed_literal(rq->world, RASQAL_LITERAL_DOUBLE, (const unsigned char*)yytext);
                         if(!sparql_parser_lval->literal)
                           YY_FATAL_ERROR_EOF("rasqal_new_typed_literal failed");
                         return (c=='+' ? DOUBLE_POSITIVE_LITERAL : (c == '-' ? DOUBLE_NEGATIVE_LITERAL : DOUBLE_LITERAL));
@@ -458,7 +461,7 @@ EXPONENT [eE][+-]?[0-9]+
                           return STRING_LITERAL; }
 
 <LITERAL>(.|\n)	{ BEGIN(INITIAL);
-		  if (!*yytext)
+		  if(!*yytext)
                     return EOF;
 
                   sparql_syntax_error(rq, "syntax error at %c - \"\"\"string was not terminated", *yytext);
@@ -474,24 +477,24 @@ EXPONENT [eE][+-]?[0-9]+
                           return STRING_LITERAL; }
 
 <LITERAL2>(.|\n)	{ BEGIN(INITIAL);
-		  if (!*yytext)
+		  if(!*yytext)
                     return EOF;
 
                   sparql_syntax_error(rq, "syntax error at %c - '''string was not terminated", *yytext);
                   yyterminate();  }
 
 
-[Tt][Rr][Uu][Ee]	{ sparql_parser_lval->literal=rasqal_new_boolean_literal(rq->world, 1);
+[Tt][Rr][Uu][Ee]	{ sparql_parser_lval->literal = rasqal_new_boolean_literal(rq->world, 1);
                     if(!sparql_parser_lval->literal)
                       YY_FATAL_ERROR_EOF("rasqal_new_boolean_literal failed");
                   return BOOLEAN_LITERAL; }
 
-[Ff][Aa][Ll][Ss][Ee]	{ sparql_parser_lval->literal=rasqal_new_boolean_literal(rq->world, 0);
+[Ff][Aa][Ll][Ss][Ee]	{ sparql_parser_lval->literal = rasqal_new_boolean_literal(rq->world, 0);
                         if(!sparql_parser_lval->literal)
                           YY_FATAL_ERROR_EOF("rasqal_new_boolean_literal failed");
                   return BOOLEAN_LITERAL; }
 
-<ID>{VARNAME}	{ sparql_parser_lval->name=sparql_copy_name(rq, (const unsigned char*)yytext, yyleng, SPARQL_NAME_CHECK_VARNAME);
+<ID>{VARNAME}	{ sparql_parser_lval->name = sparql_copy_name(rq, (const unsigned char*)yytext, yyleng, SPARQL_NAME_CHECK_VARNAME);
 		  if(!sparql_parser_lval->name)
                     YY_FATAL_ERROR_EOF("sparql_copy_name failed");
                           BEGIN(INITIAL);
@@ -504,7 +507,7 @@ EXPONENT [eE][+-]?[0-9]+
 <SPID>[\ \t\v]+	{ /* eat up leading whitespace */
 	;
 }
-<SPID>{VARNAME}	{ sparql_parser_lval->name=sparql_copy_name(rq, (const unsigned char*)yytext, yyleng, SPARQL_NAME_CHECK_VARNAME);
+<SPID>{VARNAME}	{ sparql_parser_lval->name = sparql_copy_name(rq, (const unsigned char*)yytext, yyleng, SPARQL_NAME_CHECK_VARNAME);
 		  if(!sparql_parser_lval->name)
                     YY_FATAL_ERROR_EOF("sparql_copy_name failed");
                           BEGIN(INITIAL);
@@ -517,16 +520,16 @@ EXPONENT [eE][+-]?[0-9]+
 
 <PREF>[\ \t\v]+ { /* eat up leading whitespace */ }
 <PREF>{NCNAME_PREFIX}":"	{ BEGIN(INITIAL);
-		  	  sparql_parser_lval->name=sparql_copy_name(rq, (const unsigned char*)yytext, yyleng-1, SPARQL_NAME_CHECK_PREFIX);
+		  	  sparql_parser_lval->name = sparql_copy_name(rq, (const unsigned char*)yytext, yyleng-1, SPARQL_NAME_CHECK_PREFIX);
 			  if(!sparql_parser_lval->name)
 			    YY_FATAL_ERROR_EOF("sparql_copy_name failed");
                           return IDENTIFIER; }
 <PREF>":"	{ BEGIN(INITIAL);
-		  sparql_parser_lval->name=NULL;
+		  sparql_parser_lval->name = NULL;
                   return IDENTIFIER; }
 
 <PREF>(.|\n)	{ BEGIN(INITIAL);
-		  if (!*yytext)
+		  if(!*yytext)
                     return EOF;
 
                   sparql_syntax_error(rq, "SPARQL syntax error at '%c'", *yytext);
@@ -534,25 +537,25 @@ EXPONENT [eE][+-]?[0-9]+
 }
 
 {QNAME}\(?	{
-		int have_brace=(yytext[yyleng-1]=='(');
+		int have_brace = (yytext[yyleng-1]=='(');
 		if(have_brace)
 			yyleng--;
-		sparql_parser_lval->uri=sparql_copy_qname(rq, (const unsigned char*)yytext, yyleng);
+		sparql_parser_lval->uri = sparql_copy_qname(rq, (const unsigned char*)yytext, yyleng);
 		if(!sparql_parser_lval->uri)
 		  YY_FATAL_ERROR_EOF("sparql_copy_qname failed");
  		return have_brace ? URI_LITERAL_BRACE : URI_LITERAL;
 }
 
-{BNAME}	{	sparql_parser_lval->name=sparql_copy_name(rq, (unsigned char*)yytext+2, yyleng-2, SPARQL_NAME_CHECK_NCNAME);
+{BNAME}	{	sparql_parser_lval->name = sparql_copy_name(rq, (unsigned char*)yytext+2, yyleng-2, SPARQL_NAME_CHECK_NCNAME);
 		return BLANK_LITERAL;
 }
 
-{BNAME2}	{	sparql_parser_lval->name=sparql_copy_name(rq, (unsigned char*)yytext+3, yyleng-4, SPARQL_NAME_CHECK_NCNAME);
+{BNAME2}	{	sparql_parser_lval->name = sparql_copy_name(rq, (unsigned char*)yytext+3, yyleng-4, SPARQL_NAME_CHECK_NCNAME);
 		return BLANK_LITERAL;
 }
 
 {QUOTEDURI}\(?   { 
-		int have_brace=(yytext[yyleng-1]=='(');
+		int have_brace = (yytext[yyleng-1]=='(');
 		if(have_brace)
 			yyleng--;
 		if(yyleng == 2) 
@@ -560,7 +563,7 @@ EXPONENT [eE][+-]?[0-9]+
                 else {
                   unsigned char* uri_string;
 
-                  yytext[yyleng-1]='\0';
+                  yytext[yyleng-1] = '\0';
                   uri_string = rasqal_escaped_name_to_utf8_string((unsigned char*)yytext+1,
                                                                   yyleng-1,
                                                                   NULL,
@@ -583,7 +586,7 @@ EXPONENT [eE][+-]?[0-9]+
         	rqe->lineno++;
                 }
 
-.         	{ if (!*yytext)
+.         	{ if(!*yytext)
                     return EOF;
 
                   sparql_syntax_error(rq, "SPARQL syntax error at '%c'", *yytext);
@@ -594,7 +597,8 @@ EXPONENT [eE][+-]?[0-9]+
   /* user code */
 
 int
-yywrap (yyscan_t yyscanner) {
+yywrap (yyscan_t yyscanner)
+{
   return 1;
 }
 
@@ -603,8 +607,8 @@ static int
 rasqal_sparql_name_check(unsigned char *string, size_t length,
                          sparql_name_check_flags check_flags)
 {
-  int rc=0;
-  int c= -1;
+  int rc = 0;
+  int c = -1;
 #if RASQAL_DEBUG > 2
   RASQAL_DEBUG1("Checking name '");
   if(length)
@@ -617,8 +621,8 @@ rasqal_sparql_name_check(unsigned char *string, size_t length,
 
   if(check_flags && SPARQL_NAME_CHECK_ALLOW_09_FIRST &&
      (*string >= '0' && *string <= '9')) {
-    c=*string;
-    *string='X';
+    c = *string;
+    *string = 'X';
   }
 
   if(!raptor_xml_name_check(string, length, 11)) /* 11 = XML 1.1 */
@@ -632,23 +636,24 @@ rasqal_sparql_name_check(unsigned char *string, size_t length,
 
   if(check_flags & SPARQL_NAME_CHECK_NO_DOT_MINUS) {
     int i;
-    for(i=0; i < (int)length; i++)
+    for(i = 0; i < (int)length; i++)
       if(string[i] == '.' || string[i] == '-')
         goto done;
   }
-  rc=1;
+  rc = 1;
 
   done:
-  if(c >=0)
-    *string=c;
+  if(c >= 0)
+    *string = c;
   return rc;
 }
 
 
 static unsigned char *
 sparql_copy_name(rasqal_query *rq, const unsigned char *text, size_t len,
-                 sparql_name_check_flags check_flags) {
-  size_t dest_len=0;
+                 sparql_name_check_flags check_flags)
+{
+  size_t dest_len = 0;
   unsigned char *s;
 
   s = rasqal_escaped_name_to_utf8_string((unsigned char*)text, len,
@@ -665,11 +670,12 @@ sparql_copy_name(rasqal_query *rq, const unsigned char *text, size_t len,
 
 
 static raptor_uri*
-sparql_copy_qname(rasqal_query *rq, const unsigned char *text, size_t len) {
+sparql_copy_qname(rasqal_query *rq, const unsigned char *text, size_t len)
+{
   unsigned char *p;
-  size_t dest_len=0;
+  size_t dest_len = 0;
   unsigned char *s;
-  raptor_uri* uri=NULL;
+  raptor_uri* uri = NULL;
   
   s = rasqal_escaped_name_to_utf8_string((unsigned char*)text, len,
                                          &dest_len,
@@ -677,7 +683,7 @@ sparql_copy_qname(rasqal_query *rq, const unsigned char *text, size_t len) {
   if(!s)
     return NULL;
 
-  p=(unsigned char*)strchr((const char*)s, ':');
+  p = (unsigned char*)strchr((const char*)s, ':');
   if(!rasqal_sparql_name_check(s, p-s, SPARQL_NAME_CHECK_PREFIX))
     sparql_syntax_error(rq, "Invalid SPARQL prefix name \"%s\"", s);
   if(!rasqal_sparql_name_check(p+1, dest_len-((p+1)-s), SPARQL_NAME_CHECK_NCNAME))
@@ -713,59 +719,60 @@ sparql_copy_qname(rasqal_query *rq, const unsigned char *text, size_t len) {
 
 static int
 sparql_copy_string_token(rasqal_query* rq, YYSTYPE* lval,
-                         const unsigned char *text, size_t len, int delim) {
+                         const unsigned char *text, size_t len, int delim)
+{
   unsigned int i;
   const unsigned char *s;
   unsigned char *d;
   unsigned char *string;
-  char *language=NULL;
-  unsigned char *dt=NULL;
-  raptor_uri *dt_uri=NULL;
-  unsigned char *dt_qname=NULL;
+  char *language = NULL;
+  unsigned char *dt = NULL;
+  raptor_uri *dt_uri = NULL;
+  unsigned char *dt_qname = NULL;
 
-  string=(unsigned char *)RASQAL_MALLOC(cstring, len+1);
+  string = (unsigned char *)RASQAL_MALLOC(cstring, len+1);
   if(!string)
     return 1;
 
-  for(s=text, d=string, i=0; i<len; s++, i++) {
-    unsigned char c=*s;
+  for(s = text, d = string, i = 0; i<len; s++, i++) {
+    unsigned char c = *s;
 
     if(c == '\\' ) {
       s++; i++;
-      c=*s;
+      c = *s;
       if(c == 'n')
-        *d++= '\n';
+        *d++ =  '\n';
       else if(c == 'r')
-        *d++= '\r';
+        *d++ =  '\r';
       else if(c == 'f')
-        *d++= '\f';
+        *d++ =  '\f';
       else if(c == 'b')
-        *d++= '\b';
+        *d++ =  '\b';
       else if(c == 't')
-        *d++= '\t';
+        *d++ =  '\t';
       else if(c == '\\' || c == '\'' || c == '"')
-        *d++=c;
-      else if (c == 'u' || c == 'U') {
-        int ulen=(c == 'u') ? 4 : 8;
-        unsigned long unichar=0;
+        *d++ = c;
+      else if(c == 'u' || c == 'U') {
+        int ulen = (c == 'u') ? 4 : 8;
+        unsigned long unichar = 0;
         int n;
         
         s++; i++;
-        if(i+ulen > len) {
+        if(i + ulen > len) {
           printf("\\%c over end of line", c);
           RASQAL_FREE(cstring, string);
           return 1;
         }
         
-        n=sscanf((const char*)s, ((ulen == 4) ? "%04lx" : "%08lx"), &unichar);
+        n = sscanf((const char*)s, ((ulen == 4) ? "%04lx" : "%08lx"), &unichar);
         if(n != 1) {
           sparql_syntax_error(rq, "SPARQL syntax error - Illegal Uncode escape '%c%s...'", c, s);
           RASQAL_FREE(cstring, string);
           return 1;
         }
 
-        s+= ulen-1;
-        i+= ulen-1;
+        s += ulen - 1;
+        i += ulen - 1;
         
         if(unichar > 0x10ffff) {
           sparql_syntax_error(rq, "SPARQL syntax error - Illegal Unicode character with code point #x%lX.", unichar);
@@ -773,62 +780,65 @@ sparql_copy_string_token(rasqal_query* rq, YYSTYPE* lval,
           return 1;
         }
           
-        d+=raptor_unicode_char_to_utf8(unichar, d);
+        d += raptor_unicode_char_to_utf8(unichar, d);
       } else {
         /* Ignore \x where x isn't the one of: \n \r \t \\ (delim) \u \U */
         sparql_syntax_warning(rq, "Unknown SPARQL string escape \\%c in \"%s\"", c, text);
-        *d++=c;
+        *d++ = c;
       }
     } else if(c== delim) {
-      *d++='\0';
+      *d++ = '\0';
 
       /* skip delims (', ", ''' or """) */
       while(c == delim) {
-        c=*s++; i++;
+        c = *s++; i++;
       }
       
       if(c=='@') {
-        language=(char*)d;
-        while(i<=len) {
-          c=*s++; i++;
-          if(!isalpha(c) && !isdigit(c) && c!= '-')
+        language = (char*)d;
+        while(i <= len) {
+          c = *s++; i++;
+          if(!isalpha(c) && !isdigit(c) && c != '-')
             break;
-          *d++=c;
+          *d++ = c;
         }
-        *d++='\0';
+        *d++ = '\0';
       }
       if(c=='^') {
         /* skip second char of ^^ */
         s++; i++;
 
-        dt=d;
-        while(i++<=len)
-          *d++=*s++;
+        dt = d;
+        while(i++ <= len)
+          *d++ = *s++;
         /* *d='\0' below */
-      } else if (language)
-        *d='\0';
+      } else if(language)
+        *d = '\0';
       
       break;
    } else
-    *d++=c;
+    *d++ = c;
   } /* end of for */
 
-  *d='\0';
+  *d = '\0';
 
   if(language) {
-    char *new_language=(char *)RASQAL_MALLOC(cstring, strlen((const char*)language)+1);
+    char *new_language;
+    size_t new_language_len = strlen((const char*)language);
+    
+    new_language = (char*)RASQAL_MALLOC(cstring, new_language_len + 1);
     if(!new_language) {
       RASQAL_FREE(cstring, string);
       return 1;
     }
-    strcpy(new_language, language);
-    language=new_language;
+    strncpy(new_language, language, new_language_len);
+    language = new_language;
   }
   
   if(dt) {
     /* dt can be a URI or qname */
     if(*dt == '<') {
-      dt[strlen((const char*)dt)-1]='\0';
+      dt[strlen((const char*)dt)-1] = '\0';
 #ifdef RAPTOR_V2_AVAILABLE
       dt_uri = raptor_new_uri(rq->world->raptor_world_ptr, dt+1);
 #else
@@ -842,7 +852,7 @@ sparql_copy_string_token(rasqal_query* rq, YYSTYPE* lval,
       }
     } else {
       unsigned char *dt_p;
-      size_t dest_len=0;
+      size_t dest_len = 0;
       unsigned char *dt_s;
       
       dt_s = rasqal_escaped_name_to_utf8_string(dt,
@@ -856,7 +866,7 @@ sparql_copy_string_token(rasqal_query* rq, YYSTYPE* lval,
         return 1;
       }
 
-      dt_p=(unsigned char*)strchr((const char*)dt_s, ':');
+      dt_p = (unsigned char*)strchr((const char*)dt_s, ':');
       if(!rasqal_sparql_name_check(dt_s, dt_p-dt_s, SPARQL_NAME_CHECK_PREFIX))
         sparql_syntax_error(rq, "Invalid SPARQL prefix name \"%s\"", dt_s);
       if(!rasqal_sparql_name_check(dt_p+1, dest_len-((dt_p+1)-dt_s), 
@@ -865,7 +875,7 @@ sparql_copy_string_token(rasqal_query* rq, YYSTYPE* lval,
 
 #ifdef STANDALONE
       /* lexer test cannot declare namespaces - so just ignore expansion */
-      dt_qname=dt_s;
+      dt_qname = dt_s;
 #else
       if(!rq->namespaces) {
         sparql_syntax_error(rq, "SPARQL syntax error - no namespaces declared");
@@ -903,7 +913,7 @@ sparql_copy_string_token(rasqal_query* rq, YYSTYPE* lval,
           (dt_uri ? (const char*)raptor_uri_as_string(dt_uri) : ""));
 #endif
 
-  lval->literal=rasqal_new_string_literal(rq->world, string, language, dt_uri, dt_qname);
+  lval->literal = rasqal_new_string_literal(rq->world, string, language, dt_uri, dt_qname);
   if(!lval->literal)
     return 1;
 
@@ -912,35 +922,39 @@ sparql_copy_string_token(rasqal_query* rq, YYSTYPE* lval,
 
 
 static int
-sparql_skip_c_comment(rasqal_query *rq) {
-  rasqal_sparql_query_language *rqe=(rasqal_sparql_query_language*)rq->context;
-  yyscan_t yyscanner=rqe->scanner;
-  int lines=0;
+sparql_skip_c_comment(rasqal_query *rq)
+{
+  rasqal_sparql_query_language *rqe;
+  yyscan_t yyscanner;
+  int lines = 0;
   int c;
-  int lastc= -1;
+  int lastc = -1;
   
+  rqe = (rasqal_sparql_query_language*)rq->context;
+  yyscanner = rqe->scanner;
+
   while(1) {
-    while ((c=INPUT_FN(yyscanner)) != '*' && c!= EOF) {
+    while ((c = INPUT_FN(yyscanner)) != '*' && c != EOF) {
       if(c == '\r' || (c == '\n' && lastc != '\r'))
         lines++;
-      lastc= c;
+      lastc =  c;
     }
     if( c == '*') {
-      while ((c=INPUT_FN(yyscanner)) == '*') {
+      while ((c = INPUT_FN(yyscanner)) == '*') {
         if(c == '\r' || (c == '\n' && lastc != '\r'))
           lines++;
-        lastc= c;
+        lastc =  c;
       }
 
       if(c == '/')
         break;
     }
-    if (c == EOF) {
+    if(c == EOF) {
       sparql_syntax_error(rq, "SPARQL syntax error - EOF in comment");
-      lines= -1;
+      lines = -1;
       break;
     }
-    lastc= c;
+    lastc =  c;
   }
   return lines;
 }
@@ -956,14 +970,14 @@ sparql_skip_c_comment(rasqal_query *rq) {
  */
 static void sparql_lexer_fatal_error(yyconst char *msg, yyscan_t yyscanner)
 {
-  rasqal_query *rq=NULL;
+  rasqal_query *rq = NULL;
 
   if(yyscanner)
-    rq=(rasqal_query *)sparql_lexer_get_extra(yyscanner);
+    rq = (rasqal_query *)sparql_lexer_get_extra(yyscanner);
 
   if(rq) {
     /* avoid "format not a string literal and no format arguments" warning with %s */
-    rq->failed=1;
+    rq->failed = 1;
     rasqal_log_error_simple(rq->world, RAPTOR_LOG_LEVEL_FATAL,
                             &rq->locator, "%s", msg); 
   } else {
@@ -985,7 +999,7 @@ typedef struct {
 } lexer_alloc_tracker_header;
 
 /* Initial alloc tracker slot array size - 2 seems to be enough for almost all cases */
-static const int initial_lexer_allocs_size=2;
+static const int initial_lexer_allocs_size = 2;
 #endif
 
 /*
@@ -1005,22 +1019,22 @@ static void sparql_lexer_cleanup(yyscan_t yyscanner)
   if(!yyscanner)
     return;
 
-  rq=(rasqal_query *)sparql_lexer_get_extra(yyscanner);
+  rq = (rasqal_query *)sparql_lexer_get_extra(yyscanner);
   if(!rq)
     return;
 
-  tracker=(lexer_alloc_tracker_header *)rq->lexer_user_data;
+  tracker = (lexer_alloc_tracker_header *)rq->lexer_user_data;
   if(!tracker)
     return;
-  lexer_allocs=(void**)&tracker[1];
+  lexer_allocs = (void**)&tracker[1];
 
-  for(i=0; i<tracker->lexer_allocs_size; ++i) {
+  for(i = 0; i<tracker->lexer_allocs_size; ++i) {
     if(lexer_allocs[i])
       free(lexer_allocs[i]);
-    lexer_allocs[i]=NULL;
+    lexer_allocs[i] = NULL;
   }
   free(rq->lexer_user_data);
-  rq->lexer_user_data=NULL;
+  rq->lexer_user_data = NULL;
 #endif
 }
 
@@ -1048,57 +1062,57 @@ void *sparql_lexer_alloc(yy_size_t size, yyscan_t yyscanner)
   if(!yyscanner)
     return malloc(size);
 
-  rq=(rasqal_query *)sparql_lexer_get_extra(yyscanner);
+  rq = (rasqal_query *)sparql_lexer_get_extra(yyscanner);
   if(!rq)
     YY_FATAL_ERROR("lexer_alloc: yyscanner extra not initialized");
 
   /* try to allocate tracker if it does not exist */
-  tracker=(lexer_alloc_tracker_header *)rq->lexer_user_data;
+  tracker = (lexer_alloc_tracker_header *)rq->lexer_user_data;
   if(!tracker) {
     /* allocate tracker header + array of void* slots */
-    tracker=(lexer_alloc_tracker_header*)calloc(1, sizeof(lexer_alloc_tracker_header)+initial_lexer_allocs_size*sizeof(void*));
+    tracker = (lexer_alloc_tracker_header*)calloc(1, sizeof(lexer_alloc_tracker_header) + initial_lexer_allocs_size * sizeof(void*));
     if(!tracker)
       YY_FATAL_ERROR("lexer_alloc: cannot allocate tracker");
-    tracker->lexer_allocs_size=initial_lexer_allocs_size;
-    rq->lexer_user_data=(void *)tracker;
+    tracker->lexer_allocs_size = initial_lexer_allocs_size;
+    rq->lexer_user_data = (void *)tracker;
   }
-  lexer_allocs=(void**)&tracker[1];
+  lexer_allocs = (void**)&tracker[1];
 
   /* allocate memory */
-  ptr=malloc(size);
+  ptr = malloc(size);
   
   /* find a free slot for ptr */
-  for(i=0; i<tracker->lexer_allocs_size; ++i) {
+  for(i = 0; i<tracker->lexer_allocs_size; ++i) {
     if(!lexer_allocs[i]) {
-      lexer_allocs[i]=ptr;
+      lexer_allocs[i] = ptr;
       break;
     }
   }
 
   /* no free slots -> grow tracker slot array */
-  if(i>=tracker->lexer_allocs_size) {
+  if(i >= tracker->lexer_allocs_size) {
     int j;
     void **dest;
-    tracker=(lexer_alloc_tracker_header*)calloc(1, sizeof(lexer_alloc_tracker_header)+i*2*sizeof(void*));
+    tracker = (lexer_alloc_tracker_header*)calloc(1, sizeof(lexer_alloc_tracker_header) + i * 2 * sizeof(void*));
     if(!tracker) {
       if(ptr)
         free(ptr);
       YY_FATAL_ERROR("lexer_alloc: cannot grow tracker");
     }
-    tracker->lexer_allocs_size=i*2;
+    tracker->lexer_allocs_size = i*2;
     
     /* copy data from old tracker */
-    dest=(void**)&tracker[1];
-    for(j=0; j<i; ++j) {
-      dest[j]=lexer_allocs[j];
+    dest = (void**)&tracker[1];
+    for(j = 0; j<i; ++j) {
+      dest[j] = lexer_allocs[j];
     }
     
     /* set new item to first free slot */
-    dest[j]=ptr;
+    dest[j] = ptr;
 
     /* free old tracker and replace with new one */
     free(rq->lexer_user_data);
-    rq->lexer_user_data=tracker;
+    rq->lexer_user_data = tracker;
   }
 
   return ptr;
@@ -1126,30 +1140,30 @@ void *sparql_lexer_realloc(void *ptr, yy_size_t size, yyscan_t yyscanner)
   if(!yyscanner)
     YY_FATAL_ERROR("lexer_realloc: yyscanner not initialized");
 
-  rq=(rasqal_query *)sparql_lexer_get_extra(yyscanner);
+  rq = (rasqal_query *)sparql_lexer_get_extra(yyscanner);
   if(!rq)
     YY_FATAL_ERROR("lexer_realloc: yyscanner extra not initialized");
 
-  tracker=(lexer_alloc_tracker_header *)rq->lexer_user_data;
+  tracker = (lexer_alloc_tracker_header *)rq->lexer_user_data;
   if(!tracker)
     YY_FATAL_ERROR("lexer_realloc: no alloc tracker");
-  lexer_allocs=(void**)&tracker[1];
+  lexer_allocs = (void**)&tracker[1];
 
   /* find the old slot for ptr */
-  for(i=0; i<tracker->lexer_allocs_size; ++i) {
-    if(lexer_allocs[i]==ptr)
+  for(i = 0; i < tracker->lexer_allocs_size; ++i) {
+    if(lexer_allocs[i] == ptr)
       break;
   }
 
   /* no old slot -> error */  
-  if(i>=tracker->lexer_allocs_size)
+  if(i >= tracker->lexer_allocs_size)
     YY_FATAL_ERROR("lexer_realloc: cell not in tracker");
 
   /* realloc */
-  newptr=realloc((char*)ptr, size);
+  newptr = realloc((char*)ptr, size);
 
   /* replace entry in tracker */
-  lexer_allocs[i]=newptr;
+  lexer_allocs[i] = newptr;
 
   return newptr;
 #else
@@ -1185,27 +1199,27 @@ void sparql_lexer_free(void *ptr, yyscan_t yyscanner)
   if(!yyscanner || ptr==yyscanner)
     return;
 
-  rq=(rasqal_query *)sparql_lexer_get_extra(yyscanner);
+  rq = (rasqal_query *)sparql_lexer_get_extra(yyscanner);
   if(!rq)
     return;
 
-  tracker=(lexer_alloc_tracker_header *)rq->lexer_user_data;
+  tracker = (lexer_alloc_tracker_header *)rq->lexer_user_data;
   if(!tracker)
     return;
-  lexer_allocs=(void**)&tracker[1];
+  lexer_allocs = (void**)&tracker[1];
 
   /* find the slot for ptr */
-  for(i=0; i<tracker->lexer_allocs_size; ++i) {
+  for(i = 0; i<tracker->lexer_allocs_size; ++i) {
     if(lexer_allocs[i]==ptr)
       break;
   }
 
   /* no slot -> error */  
-  if(i>=tracker->lexer_allocs_size)
+  if(i >= tracker->lexer_allocs_size)
     YY_FATAL_ERROR("lexer_free: cell not in tracker");
 
   /* remove entry from tracker */
-  lexer_allocs[i]=NULL;
+  lexer_allocs[i] = NULL;
 #else
   if(ptr)
     free(ptr);
@@ -1573,22 +1587,22 @@ sparql_token_free(rasqal_world* world, int token, YYSTYPE *lval)
 int
 main(int argc, char *argv[]) 
 {
-  const char *program=rasqal_basename(argv[0]);
-  char *query_string=NULL;
+  const char *program = rasqal_basename(argv[0]);
+  char *query_string = NULL;
   rasqal_query rq;
   rasqal_sparql_query_language sparql;
   yyscan_t scanner;
-  int token=EOF;
+  int token = EOF;
   YYSTYPE lval;
   const unsigned char *uri_string;
-  const char *filename=NULL;
-  char *buf=NULL;
+  const char *filename = NULL;
+  char *buf = NULL;
   size_t len;
   void *buffer;
   rasqal_world *world;
   FILE *fh;
   
-  world=rasqal_new_world();
+  world = rasqal_new_world();
   if(!world || rasqal_world_open(world))
     exit(1);
   
@@ -1605,8 +1619,8 @@ main(int argc, char *argv[])
     filename = argv[1];
   }
   
-  query_string=(char*)RASQAL_CALLOC(cstring, FILE_READ_BUF_SIZE, 1);
-  fh=fopen(filename, "r");
+  query_string = (char*)RASQAL_CALLOC(cstring, FILE_READ_BUF_SIZE, 1);
+  fh = fopen(filename, "r");
   if(fh) {
     fread(query_string, FILE_READ_BUF_SIZE, 1, fh);
     fclose(fh);
@@ -1616,29 +1630,29 @@ main(int argc, char *argv[])
     exit(1);
   }
 
-  memset(&rq, 0, sizeof(rasqal_query));
-  rq.world=world;
-  memset(&sparql, 0, sizeof(rasqal_sparql_query_language));
+  memset(&rq, 0, sizeof(rq));
+  rq.world = world;
+  memset(&sparql, 0, sizeof(sparql));
 
   yylex_init(&sparql.scanner);
-  scanner=sparql.scanner;
+  scanner = sparql.scanner;
 
-  len= strlen((const char*)query_string);
-  buf= (char *)RASQAL_MALLOC(cstring, len+3);
+  len =  strlen((const char*)query_string);
+  buf =  (char *)RASQAL_MALLOC(cstring, len+3);
   strncpy(buf, query_string, len);
-  buf[len]= ' ';
-  buf[len+1]= buf[len+2]='\0'; /* YY_END_OF_BUFFER_CHAR; */
-  buffer= sparql_lexer__scan_buffer(buf, len+3, scanner);
+  buf[len] =  ' ';
+  buf[len+1] =  buf[len+2] = '\0'; /* YY_END_OF_BUFFER_CHAR; */
+  buffer =  sparql_lexer__scan_buffer(buf, len+3, scanner);
 
   sparql_lexer_set_extra(&rq, scanner);
 
   /* Initialise enough of the rasqal_query and locator to get error messages */
-  rq.context=&sparql;
-  sparql.lineno=1;
-  rq.locator.file=filename;
-  rq.locator.column= -1;
+  rq.context = &sparql;
+  sparql.lineno = 1;
+  rq.locator.file = filename;
+  rq.locator.column = -1;
 
-  uri_string=raptor_uri_filename_to_uri_string(filename);
+  uri_string = raptor_uri_filename_to_uri_string(filename);
 #ifdef RAPTOR_V2_AVAILABLE
   rq.base_uri = raptor_new_uri(world->raptor_world_ptr, uri_string);
 #else
@@ -1647,10 +1661,10 @@ main(int argc, char *argv[])
   raptor_free_memory((void*)uri_string);
 
   while(1) {
-    memset(&lval, 0, sizeof(YYSTYPE));
+    memset(&lval, 0, sizeof(lval));
     if(sparql_lexer_get_text(scanner) != NULL)
       printf("yyinput '%s'\n", sparql_lexer_get_text(scanner));
-    token=yylex(&lval, scanner);
+    token = yylex(&lval, scanner);
 #ifdef RASQAL_DEBUG
     printf("token %s\n", sparql_token_print(world, token, &lval));
 #else
