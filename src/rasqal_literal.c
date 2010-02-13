@@ -2596,7 +2596,7 @@ rasqal_literal_has_qname(rasqal_literal *l)
  *
  * Turn a literal into a new RDF string, URI or blank literal.
  * 
- * Return value: the new #rasqal_literal or NULL on failure
+ * Return value: the new #rasqal_literal or NULL on failure or if the literal was an unbound variable.
  **/
 rasqal_literal*
 rasqal_literal_as_node(rasqal_literal* l)
