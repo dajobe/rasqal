@@ -2616,6 +2616,8 @@ rasqal_literal_as_node(rasqal_literal* l)
       
     case RASQAL_LITERAL_VARIABLE:
       l = l->value.variable->value;
+      if(!l)
+        return NULL;
       goto reswitch;
 
     case RASQAL_LITERAL_DOUBLE:
