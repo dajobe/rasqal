@@ -1,10 +1,88 @@
+2010-02-12  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_literal.c:
+	(rasqal_literal_as_node): Return NULL rather than reswitch and die.
+
+	* src/rasqal_literal.c: autodocs
+
+	* src/rasqal_literal.c:
+	(rasqal_literal_as_node): Let reswitch - variable values return
+	a NULL value for an unbound variable.
+
+	* src/sparql_lexer.l:
+	(sparql_copy_string_token): copy language NUL
+
+	* src/sparql_lexer.l: code style
+
+	* src/rdql_lexer.l: code style
+
+	* src/rasqal_prefix.c: add includes
+
+	* src/Makefile.am: Add rasqal_prefix.c to lib
+
+	* src/rasqal_result_formats.c: code style
+
+	* src/rasqal_expr.c, src/rasqal_prefix.c: Move rasqal_prefix
+	class to rasqal_prefix.c
+
+	* src/Makefile.am, src/rasqal_data_graph.c, src/rasqal_expr.c:
+	Move rasqal_data_graph class to rasqal_data_graph.c
+
+	* src/Makefile.am, src/rasqal_expr.c, src/rasqal_triple.c:
+	Move rasqal_triple class to rasqal_triple.c
+
+	* ChangeLog, ChangeLog.7, Makefile.am: Add ChangeLog.7 for 2009
+
+	* .gitignore: do not ignore ChangeLog
+
+2010-02-12  Lauri Aalto <laalto@iki.fi>
+
+	* .gitignore: ignore *.stackdump files
+
+	* src/rasqal_general.c: raptor2 compatible rasqal_log_level_labels
+
+	* src/rasqal_query_results.c:
+	(rasqal_query_results_get_triple): break out of switch properly
+	with raptor2.
+
+	* tests/algebra/convert_graph_pattern.c,
+	tests/engine/rasqal_construct_test.c,
+	tests/engine/rasqal_graph_test.c,
+	tests/engine/rasqal_limit_test.c,
+	tests/engine/rasqal_order_test.c,
+	tests/engine/rasqal_triples_test.c: Ported test code to raptor2
+	git HEAD with RAPTOR_V2_AVAILABLE flagging.
+
+	* src/rasqal_algebra.c: raptor2 raptor_new_sequence()
+	compatibility in test code.
+
+	* utils/roqet.c: Ported roqet to raptor2 git HEAD with
+	RAPTOR_V2_AVAILABLE flagging.
+
+	* src/rdql_lexer.l, src/rdql_parser.y: RDQL parser/lexer:
+	raptor2 raptor_uri calls
+
+	* src/rasqal_raptor.c:
+	(rasqal_raptor_new_triples_source): raptor2 statement_handler,
+	generate_id_handler settings. Removed error_handler
+	setting.
+	(rasqal_raptor_statement_handler): Signature changed
+	to accept non-const raptor_statement for raptor2.
+	(rasqal_raptor_error_handler): Flagged out as unneeded with
+	raptor2.
+
+	* src/rasqal_raptor.c:
+	(rasqal_raptor_error_handler): raptor2 raptor_locator_format()
+
+	* src/rasqal_raptor.c:
+	(raptor_statement_as_rasqal_triple): raptor2 compatible variant
+	of the function
+
 2010-02-11  Lauri Aalto <laalto@iki.fi>
 
 	* src/rasqal_raptor.c:
 	(rasqal_raptor_new_triples_source): raptor2 raptor_new_parser()
 	call
-
-2010-02-11  Lauri Aalto <laalto@iki.fi>
 
 	* src/rasqal_algebra.c, src/rasqal_expr.c,
 	src/rasqal_format_json.c, src/rasqal_format_sparql_xml.c,
@@ -27,8 +105,6 @@
 	 * raptor_new_sequence():
 	   raptor_sequence_{free,print}_handler -> raptor_data_..._handler
 	 * raptor_qname_string_to_uri()
-
-2010-02-11  Lauri Aalto <laalto@iki.fi>
 
 	* tests/.gitignore: ignore roqet.tmp in tests
 
