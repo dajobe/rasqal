@@ -37,6 +37,10 @@
 #endif
 #include <stdarg.h>
 
+#include "rasqal.h"
+#include "rasqal_internal.h"
+
+
 /**
  * rasqal_new_prefix:
  * @world: rasqal_world object
