@@ -2,7 +2,7 @@
 #
 # Makefile.am - automake file for Rasqal utilities
 #
-# Copyright (C) 2005-2008, David Beckett http://www.dajobe.org/
+# Copyright (C) 2005-2010, David Beckett http://www.dajobe.org/
 # Copyright (C) 2005-2005, University of Bristol, UK http://www.bristol.ac.uk/
 # 
 # This package is Free Software and part of Redland http://librdf.org/
@@ -37,12 +37,15 @@ if GETOPT
 roqet_SOURCES += getopt.c rasqal_getopt.h
 endif
 roqet_LDADD = $(top_builddir)/src/librasqal.la
+roqet_LDFLAGS = -lraptor
 
 srxread_SOURCES = srxread.c
 srxread_LDADD = $(top_builddir)/src/librasqal.la
+srxread_LDFLAGS = -lraptor
 
 srxwrite_SOURCES = srxwrite.c
 srxwrite_LDADD = $(top_builddir)/src/librasqal.la
+srxwrite_LDFLAGS = -lraptor
 
 EXTRA_DIST= \
 $(man_MANS) \
