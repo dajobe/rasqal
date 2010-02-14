@@ -1,4 +1,6 @@
-2010-02-14  Dave Beckett <dave@dajobe.org>
+2010-02-14  Dave Beckett  <dave@dajobe.org>
+
+	* Snapshotted rasqal_0_9_18 for 0.9.18 release
 
 	* utils/Makefile.am: Add -lraptor to internal linking of utility
 	and example programs.
