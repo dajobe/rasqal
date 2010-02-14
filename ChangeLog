@@ -1,4 +1,38 @@
+2010-02-14  Dave Beckett <dave@dajobe.org>
+
+	* utils/Makefile.am: Add -lraptor to internal linking of utility
+	and example programs.
+
+	Added -lraptor to linking roqet, srxread and srxwrite so that on
+	systems where indirect library symbols (here in libraptor) are not
+	automatically found by looking up the base library (here
+	librasqal), the programs work.  This should not affect user
+	programs that link with rasqal since they use
+	  pkg-config rasqal --libs
+	or
+	  rasqal-config --libs
+	both of which add -lraptor.
+
+	See also
+	  Fedora bug 564885 for rasqal
+	  https://bugzilla.redhat.com/show_bug.cgi?id=564885
+	nd
+	  http://fedoraproject.org/wiki/Features/ChangeInImplicitDSOLinking
+	  https://fedoraproject.org/wiki/UnderstandingDSOLinkChange
+
+	Fixes Issue#0000347 http://bugs.librdf.org/mantis/view.php?id=347
+
+2010-02-13  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal.h:
+	reorder to put query results methods together
+
+	* src/rasqal_general.c: 2010
+
 2010-02-12  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal.h:
+	reorder to group query_results functions
 
 	* src/rasqal_literal.c:
 	(rasqal_literal_as_node): Return NULL rather than reswitch and die.
