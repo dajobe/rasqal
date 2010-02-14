@@ -28,6 +28,7 @@
   <li><a href="http://bugs.librdf.org/mantis/view.php?id=323">0000323</a>: Official MIME Type for JSON isn't text/json</li>
   <li><a href="http://bugs.librdf.org/mantis/view.php?id=343">0000343</a>: Mime type for 'table' results format is text/plan</li>
   <li><a href="http://bugs.librdf.org/mantis/view.php?id=345">0000345</a>: MIME Type and URI for TSV and CSV</li>
+  <li><a href="http://bugs.librdf.org/mantis/view.php?id=347">0000347</a>: rasqal linking fix</li>
 </ul>
 
 
@@ -221,6 +222,14 @@ it to do division and not add!
 <h3>Other Changes</h3>
 
 <p>Multiple code style updates and code file reorganizing.
+</p>
+
+<p>Link <code>roqet</code> directly with <code>-lraptor</code> to get
+raptor symbols used linked directly, to enable alternate library
+linking approaches to work.  Based on the request in
+<a href="http://bugs.librdf.org/mantis/view.php?id=347">Fixes Issue#0000347</a>
+and
+<a href="https://bugzilla.redhat.com/show_bug.cgi?id=564885">Fedora bug 564885</a>.
 </p>
 
 <p>Added checks for the public API methods to ensure NULL pointers
