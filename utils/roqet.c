@@ -922,7 +922,7 @@ main(int argc, char *argv[])
   } else {
     raptor_www *www;
 #ifdef RAPTOR_V2_AVAILABLE
-    www = raptor_www_new(raptor_world_ptr);
+    www = raptor_new_www(raptor_world_ptr);
 #else
     www = raptor_www_new();
 #endif
@@ -931,7 +931,11 @@ main(int argc, char *argv[])
       raptor_www_set_error_handler(www, roqet_error_handler, world);
 #endif
       raptor_www_fetch_to_string(www, uri, &query_string, NULL, malloc);
+#ifdef RAPTOR_V2_AVAILABLE
+      raptor_free_www(www);
+#else
       raptor_www_free(www);
+#endif
     }
     if(!query_string || error_count) {
       fprintf(stderr, "%s: Retrieving query at URI '%s' failed\n", 
@@ -1151,23 +1155,36 @@ main(int argc, char *argv[])
       }
 
       /* Declare any query namespaces in the output serializer */
+#ifdef RAPTOR_V2_AVAILABLE
+      for(i = 0; (prefix = rasqal_query_get_prefix(rq, i)); i++)
+        raptor_serializer_set_namespace(serializer, prefix->uri, prefix->prefix);
+      raptor_serializer_start_to_file_handle(serializer, base_uri, stdout);
+#else
       for(i = 0; (prefix = rasqal_query_get_prefix(rq, i)); i++)
         raptor_serialize_set_namespace(serializer, prefix->uri, prefix->prefix);
-
       raptor_serialize_start_to_file_handle(serializer, base_uri, stdout);
+#endif
 
       while(1) {
         raptor_statement *rs = rasqal_query_results_get_triple(results);
         if(!rs)
           break;
+#ifdef RAPTOR_V2_AVAILABLE
+        raptor_serializer_serialize_statement(serializer, rs);
+#else
         raptor_serialize_statement(serializer, rs);
+#endif
         triple_count++;
 
         if(rasqal_query_results_next_triple(results))
           break;
       }
 
+#ifdef RAPTOR_V2_AVAILABLE
+      raptor_serializer_serialize_end(serializer);
+#else
       raptor_serialize_end(serializer);
+#endif
       raptor_free_serializer(serializer);
 
       if(!quiet)
