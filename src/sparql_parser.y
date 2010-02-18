@@ -3774,14 +3774,20 @@ sparql_syntax_warning(rasqal_query *rq, const char *message, ...)
 
 static int
 rasqal_sparql_query_language_iostream_write_escaped_counted_string(rasqal_query* query,
-                                                                 raptor_iostream* iostr,
-                                                                 const unsigned char* string,
-                                                                 size_t len)
+                                                                   raptor_iostream* iostr,
+                                                                   const unsigned char* string,
+                                                                   size_t len)
 {
   const char delim = '"';
+  int rc;
   
   raptor_iostream_write_byte(iostr, delim);
-  if(raptor_iostream_write_string_ntriples(iostr, string, len, delim))
+#ifdef RAPTOR_V2_AVAILABLE
+  rc = raptor_string_ntriples_write(string, len, delim, iostr);
+#else
+  rc = raptor_iostream_write_string_ntriples(iostr, string, len, delim);
+#endif
+  if(rc)
     return 1;
   
   raptor_iostream_write_byte(iostr, delim);
