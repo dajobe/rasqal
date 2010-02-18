@@ -81,6 +81,7 @@ static int rasqal_raptor_triple_present(rasqal_triples_source *rts, void *user_d
 static void rasqal_raptor_free_triples_source(void *user_data);
 
 
+#ifndef RAPTOR_V2_AVAILABLE
 static raptor_uri* 
 ordinal_as_uri(rasqal_world* world, int ordinal) 
 {
@@ -97,15 +98,12 @@ ordinal_as_uri(rasqal_world* world, int ordinal)
     return NULL;
   
   sprintf((char*)buffer, "%s_%d", raptor_rdf_namespace_uri, ordinal);
-#ifdef RAPTOR_V2_AVAILABLE
-  uri = raptor_new_uri(world->raptor_world_ptr, buffer);
-#else
   uri = raptor_new_uri(buffer);
-#endif
   RASQAL_FREE(cstring, buffer);
 
   return uri;
 }
+#endif
 
 
 #ifdef RAPTOR_V2_AVAILABLE
