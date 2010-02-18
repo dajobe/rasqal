@@ -1049,17 +1049,24 @@ rasqal_literal_write_type(rasqal_literal* l, raptor_iostream* iostr)
 void
 rasqal_literal_print_type(rasqal_literal* l, FILE* fh)
 {
-  rasqal_literal_type type;
+  raptor_iostream *iostr;
 
   if(!l) {
     fputs("null", fh);
     return;
   }
-  
-  type = l->type;
-  if(type > RASQAL_LITERAL_LAST)
-    type = RASQAL_LITERAL_UNKNOWN;
-  fputs(rasqal_literal_type_labels[(int)type], fh);
+
+#ifdef RAPTOR_V2_AVAILABLE
+  iostr = raptor_new_iostream_to_file_handle(l->world->raptor_world_ptr, fh);
+#else
+  iostr = raptor_new_iostream_to_file_handle(fh);
+#endif
+  if(!iostr)
+    return;
+
+  rasqal_literal_write_type(l, iostr);
+
+  raptor_free_iostream(iostr);
 }
 
 
@@ -1093,7 +1100,11 @@ rasqal_literal_write(rasqal_literal* l, raptor_iostream* iostr)
     case RASQAL_LITERAL_URI:
       raptor_iostream_write_byte(iostr, '<');
       str = raptor_uri_as_counted_string(l->value.uri, &len);
+#ifdef RAPTOR_V2_AVAILABLE
+      raptor_string_ntriples_write(str, len, '>', iostr);
+#else
       raptor_iostream_write_string_ntriples(iostr, str, len, '>');
+#endif
       raptor_iostream_write_byte(iostr, '>');
       break;
     case RASQAL_LITERAL_BLANK:
@@ -1110,7 +1121,11 @@ rasqal_literal_write(rasqal_literal* l, raptor_iostream* iostr)
     case RASQAL_LITERAL_STRING:
     case RASQAL_LITERAL_UDT:
       raptor_iostream_write_counted_string(iostr, "(\"", 2);
+#ifdef RAPTOR_V2_AVAILABLE
+      raptor_string_ntriples_write(l->string, l->string_len, '"', iostr);
+#else
       raptor_iostream_write_string_ntriples(iostr, l->string, l->string_len, '"');
+#endif
       raptor_iostream_write_byte(iostr, '"');
       if(l->language) {
         raptor_iostream_write_byte(iostr, '@');
@@ -1119,7 +1134,11 @@ rasqal_literal_write(rasqal_literal* l, raptor_iostream* iostr)
       if(l->datatype) {
         raptor_iostream_write_counted_string(iostr, "^^<", 3);
         str = raptor_uri_as_counted_string(l->datatype, &len);
+#ifdef RAPTOR_V2_AVAILABLE
+        raptor_string_ntriples_write(str, len, '>', iostr);
+#else
         raptor_iostream_write_string_ntriples(iostr, str, len, '>');
+#endif
         raptor_iostream_write_byte(iostr, '>');
       }
       raptor_iostream_write_byte(iostr, ')');
@@ -1163,77 +1182,22 @@ rasqal_literal_write(rasqal_literal* l, raptor_iostream* iostr)
 int
 rasqal_literal_print(rasqal_literal* l, FILE* fh)
 {
+  raptor_iostream *iostr;
+
   if(!l) {
     fputs("null", fh);
     return 0;
   }
 
-  if(!l->valid)
-    fputs("INV:", fh);
-
-  if(l->type != RASQAL_LITERAL_VARIABLE)
-    rasqal_literal_print_type(l, fh);
-
-  switch(l->type) {
-    case RASQAL_LITERAL_URI:
-      fputc('<', fh);
 #ifdef RAPTOR_V2_AVAILABLE
-      raptor_print_ntriples_string(raptor_uri_as_string(l->value.uri), '>', fh);
+  iostr = raptor_new_iostream_to_file_handle(l->world->raptor_world_ptr, fh);
 #else
-      raptor_print_ntriples_string(fh, raptor_uri_as_string(l->value.uri), '>');
+  iostr = raptor_new_iostream_to_file_handle(fh);
 #endif
-      fputc('>', fh);
-      break;
-    case RASQAL_LITERAL_BLANK:
-      fprintf(fh, " %s", l->string);
-      break;
-    case RASQAL_LITERAL_PATTERN:
-      fprintf(fh, "/%s/%s", l->string, l->flags ? (const char*)l->flags : "");
-      break;
-    case RASQAL_LITERAL_STRING:
-    case RASQAL_LITERAL_UDT:
-      fputs("(\"", fh);
-#ifdef RAPTOR_V2_AVAILABLE
-      raptor_print_ntriples_string(l->string, '"', fh);
-#else
-      raptor_print_ntriples_string(fh, l->string, '"');
-#endif
-      fputc('"', fh);
-      if(l->language)
-        fprintf(fh, "@%s", l->language);
-      if(l->datatype) {
-        fputs("^^<", fh);
-#ifdef RAPTOR_V2_AVAILABLE
-        raptor_print_ntriples_string(raptor_uri_as_string(l->datatype), '>', fh);
-#else
-        raptor_print_ntriples_string(fh, raptor_uri_as_string(l->datatype), '>');
-#endif
-        fputc('>', fh);
-      }
-      fputc(')', fh);
-      break;
-    case RASQAL_LITERAL_VARIABLE:
-      rasqal_variable_print(l->value.variable, fh);
-      break;
 
-    case RASQAL_LITERAL_QNAME:
-    case RASQAL_LITERAL_INTEGER:
-    case RASQAL_LITERAL_XSD_STRING:
-    case RASQAL_LITERAL_BOOLEAN:
-    case RASQAL_LITERAL_DOUBLE:
-    case RASQAL_LITERAL_FLOAT:
-    case RASQAL_LITERAL_DECIMAL:
-    case RASQAL_LITERAL_DATETIME:
-      fputc('(', fh);
-      fwrite(l->string, 1, l->string_len, fh);
-      fputc(')', fh);
-      break;
+  rasqal_literal_write(l, iostr);
 
-    case RASQAL_LITERAL_UNKNOWN:
-    default:
-      RASQAL_FATAL2("Unknown literal type %d", l->type);
-      return 1;
-  }
+  raptor_free_iostream(iostr);
 
   return 0;
 }
