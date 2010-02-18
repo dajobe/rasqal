@@ -442,7 +442,11 @@ rasqal_raptor_new_triples_source(rasqal_query* rdf_query,
                          rdf_query->features[RASQAL_FEATURE_NO_NET]);
 #endif
 
+#ifdef RAPTOR_V2_AVAILABLE
+    raptor_parser_parse_uri(parser, uri, name_uri);
+#else
     raptor_parse_uri(parser, uri, name_uri);
+#endif
     raptor_free_parser(parser);
 
     raptor_free_uri(rtsc->source_uri);
