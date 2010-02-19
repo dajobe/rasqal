@@ -359,7 +359,7 @@ rasqal_graph_pattern_write_indent(raptor_iostream *iostr, int indent)
 {
   while(indent > 0) {
     int sp=(indent > SPACES_LENGTH) ? SPACES_LENGTH : indent;
-    raptor_iostream_write_bytes(iostr, spaces, sizeof(char), sp);
+    raptor_iostream_write_bytes(spaces, sizeof(char), sp, iostr);
     indent -= sp;
   }
 }
@@ -369,11 +369,11 @@ static void
 rasqal_graph_pattern_write_plurals(raptor_iostream *iostr,
                                    const char* label, int value)
 {
-  raptor_iostream_write_decimal(iostr, value);
-  raptor_iostream_write_byte(iostr, ' ');
-  raptor_iostream_write_string(iostr, label);
+  raptor_iostream_decimal_write(value, iostr);
+  raptor_iostream_write_byte(' ', iostr);
+  raptor_iostream_string_write(label, iostr);
   if(value != 1)
-    raptor_iostream_write_byte(iostr, 's');
+    raptor_iostream_write_byte('s', iostr);
 }
 
 
@@ -392,16 +392,16 @@ rasqal_graph_pattern_write_internal(rasqal_graph_pattern* gp,
 {
   int pending_nl=0;
   
-  raptor_iostream_write_counted_string(iostr, "graph pattern", 13);
+  raptor_iostream_counted_string_write("graph pattern", 13, iostr);
   if(gp->gp_index >= 0) {
-    raptor_iostream_write_byte(iostr, '[');
-    raptor_iostream_write_decimal(iostr, gp->gp_index);
-    raptor_iostream_write_byte(iostr, ']');
+    raptor_iostream_write_byte('[', iostr);
+    raptor_iostream_decimal_write(gp->gp_index, iostr);
+    raptor_iostream_write_byte(']', iostr);
   }
-  raptor_iostream_write_byte(iostr, ' ');
-  raptor_iostream_write_string(iostr, 
-                               rasqal_graph_pattern_operator_as_string(gp->op));
-  raptor_iostream_write_byte(iostr, '(');
+  raptor_iostream_write_byte(' ', iostr);
+  raptor_iostream_string_write(rasqal_graph_pattern_operator_as_string(gp->op),
+                               iostr);
+  raptor_iostream_write_byte('(', iostr);
 
   if(indent >= 0)
     indent+= 2;
@@ -409,12 +409,12 @@ rasqal_graph_pattern_write_internal(rasqal_graph_pattern* gp,
   if(gp->triples) {
     int size=gp->end_column - gp->start_column +1;
     int i;
-    raptor_iostream_write_counted_string(iostr, "over ", 5);
+    raptor_iostream_counted_string_write("over ", 5, iostr);
     rasqal_graph_pattern_write_plurals(iostr, "triple", size);
-    raptor_iostream_write_byte(iostr, '[');
+    raptor_iostream_write_byte('[', iostr);
 
     if(indent >= 0) {
-      raptor_iostream_write_byte(iostr, '\n');
+      raptor_iostream_write_byte('\n', iostr);
       indent+= 2;
       rasqal_graph_pattern_write_indent(iostr, indent);
     }
@@ -422,36 +422,36 @@ rasqal_graph_pattern_write_internal(rasqal_graph_pattern* gp,
     for(i=gp->start_column; i <= gp->end_column; i++) {
       rasqal_triple *t=(rasqal_triple*)raptor_sequence_get_at(gp->triples, i);
       if(i > gp->start_column) {
-        raptor_iostream_write_counted_string(iostr, " ,", 2);
+        raptor_iostream_counted_string_write(" ,", 2, iostr);
 
         if(indent >= 0) {
-          raptor_iostream_write_byte(iostr, '\n');
+          raptor_iostream_write_byte('\n', iostr);
           rasqal_graph_pattern_write_indent(iostr, indent);
         }
       }
       rasqal_triple_write(t, iostr);
     }
     if(indent >= 0) {
-      raptor_iostream_write_byte(iostr, '\n');
+      raptor_iostream_write_byte('\n', iostr);
       indent-= 2;
       rasqal_graph_pattern_write_indent(iostr, indent);
     }
-    raptor_iostream_write_byte(iostr, ']');
+    raptor_iostream_write_byte(']', iostr);
 
     pending_nl=1;
   }
 
   if(gp->origin) {
     if(pending_nl) {
-      raptor_iostream_write_counted_string(iostr, " ,", 2);
+      raptor_iostream_counted_string_write(" ,", 2, iostr);
 
       if(indent >= 0) {
-        raptor_iostream_write_byte(iostr, '\n');
+        raptor_iostream_write_byte('\n', iostr);
         rasqal_graph_pattern_write_indent(iostr, indent);
       }
     }
 
-    raptor_iostream_write_counted_string(iostr, "origin ", 7);
+    raptor_iostream_counted_string_write("origin ", 7, iostr);
 
     rasqal_literal_write(gp->origin, iostr);
 
@@ -463,19 +463,19 @@ rasqal_graph_pattern_write_internal(rasqal_graph_pattern* gp,
     int i;
 
     if(pending_nl) {
-      raptor_iostream_write_counted_string(iostr, " ,", 2);
+      raptor_iostream_counted_string_write(" ,", 2, iostr);
       if(indent >= 0) {
-        raptor_iostream_write_byte(iostr, '\n');
+        raptor_iostream_write_byte('\n', iostr);
         rasqal_graph_pattern_write_indent(iostr, indent);
       }
     }
     
-    raptor_iostream_write_counted_string(iostr, "over ", 5);
+    raptor_iostream_counted_string_write("over ", 5, iostr);
     rasqal_graph_pattern_write_plurals(iostr, "graph pattern", size);
-    raptor_iostream_write_byte(iostr, '[');
+    raptor_iostream_write_byte('[', iostr);
 
     if(indent >= 0) {
-      raptor_iostream_write_byte(iostr, '\n');
+      raptor_iostream_write_byte('\n', iostr);
       indent+= 2;
       rasqal_graph_pattern_write_indent(iostr, indent);
     }
@@ -484,48 +484,48 @@ rasqal_graph_pattern_write_internal(rasqal_graph_pattern* gp,
       rasqal_graph_pattern* sgp;
       sgp=(rasqal_graph_pattern*)raptor_sequence_get_at(gp->graph_patterns, i);
       if(i) {
-        raptor_iostream_write_counted_string(iostr, " ,", 2);
+        raptor_iostream_counted_string_write(" ,", 2, iostr);
         if(indent >= 0) {
-          raptor_iostream_write_byte(iostr, '\n');
+          raptor_iostream_write_byte('\n', iostr);
           rasqal_graph_pattern_write_indent(iostr, indent);
         }
       }
       if(sgp)
         rasqal_graph_pattern_write_internal(sgp, iostr, indent);
       else
-        raptor_iostream_write_counted_string(iostr, "(empty)", 7);
+        raptor_iostream_counted_string_write("(empty)", 7, iostr);
     }
     if(indent >= 0) {
-      raptor_iostream_write_byte(iostr, '\n');
+      raptor_iostream_write_byte('\n', iostr);
       indent-= 2;
       rasqal_graph_pattern_write_indent(iostr, indent);
     }
-    raptor_iostream_write_byte(iostr, ']');
+    raptor_iostream_write_byte(']', iostr);
 
     pending_nl=1;
   }
 
   if(gp->var) {
     rasqal_variable_write(gp->var, iostr);
-    raptor_iostream_write_counted_string(iostr, " := ", 4);
+    raptor_iostream_counted_string_write(" := ", 4, iostr);
     pending_nl = 0;
   }
   
   if(gp->filter_expression) {
     if(pending_nl) {
-      raptor_iostream_write_counted_string(iostr, " ,", 2);
+      raptor_iostream_counted_string_write(" ,", 2, iostr);
 
       if(indent >= 0) {
-        raptor_iostream_write_byte(iostr, '\n');
+        raptor_iostream_write_byte('\n', iostr);
         rasqal_graph_pattern_write_indent(iostr, indent);
       }
     }
     
     if(gp->triples || gp->graph_patterns)
-      raptor_iostream_write_counted_string(iostr, "with ", 5);
+      raptor_iostream_counted_string_write("with ", 5, iostr);
   
     if(indent >= 0) {
-      raptor_iostream_write_byte(iostr, '\n');
+      raptor_iostream_write_byte('\n', iostr);
       indent+= 2;
       rasqal_graph_pattern_write_indent(iostr, indent);
     }
@@ -542,12 +542,12 @@ rasqal_graph_pattern_write_internal(rasqal_graph_pattern* gp,
 
   if(pending_nl) {
     if(indent >= 0) {
-      raptor_iostream_write_byte(iostr, '\n');
+      raptor_iostream_write_byte('\n', iostr);
       rasqal_graph_pattern_write_indent(iostr, indent);
     }
   }
   
-  raptor_iostream_write_byte(iostr, ')');
+  raptor_iostream_write_byte(')', iostr);
 
   return 0;
 }

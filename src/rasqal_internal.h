@@ -1353,6 +1353,26 @@ void rasqal_free_update_operation(rasqal_update_operation *update);
 int rasqal_update_operation_print(rasqal_update_operation *update, FILE* stream);
 int rasqal_query_add_update_operation(rasqal_query* query, rasqal_update_operation *update);
 
+
+/* raptor1 -> raptor2 migration */
+/* use preprocessor macros to map raptor2 calls to raptor1 if raptor2 is not available */
+#ifndef RAPTOR_V2_AVAILABLE
+
+#define raptor_iostream_write_bytes(ptr, size, nmemb, iostr) raptor_iostream_write_bytes(iostr, ptr, size, nmemb)
+#define raptor_iostream_write_byte(byte, iostr) raptor_iostream_write_byte(iostr, byte)
+#define raptor_iostream_counted_string_write(string, len, iostr) raptor_iostream_write_counted_string(iostr, string, len)
+#define raptor_iostream_string_write(string, iostr) raptor_iostream_write_string(iostr, string)
+#define raptor_iostream_decimal_write(decimal, iostr) raptor_iostream_write_decimal(iostr, decimal)
+#define raptor_iostream_read_bytes(ptr, size, nmemb, iostr) raptor_iostream_read_bytes(iostr, ptr, size, nmemb)
+
+#define raptor_new_qname_from_namespace_uri(nstack, uri, xml_version) raptor_namespaces_qname_from_uri(nstack, uri, xml_version)
+
+#define raptor_unicode_decode_utf8_char(output, input, length) raptor_utf8_to_unicode_char(output, input, length)
+
+#define raptor_uri_write(uri, iostr) raptor_iostream_write_uri(iostr, uri)
+
+#endif /* !RAPTOR_V2_AVAILABLE */
+
   
 /* end of RASQAL_INTERNAL */
 #endif

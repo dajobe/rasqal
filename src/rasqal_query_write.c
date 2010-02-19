@@ -58,13 +58,13 @@ rasqal_query_write_sparql_variable(sparql_writer_context *wc,
 {
   if(v->expression) {
     rasqal_query_write_sparql_expression(wc, iostr, v->expression);
-    raptor_iostream_write_counted_string(iostr, " AS ", 4);
+    raptor_iostream_counted_string_write(" AS ", 4, iostr);
   }
   if(v->type == RASQAL_VARIABLE_TYPE_ANONYMOUS)
-    raptor_iostream_write_counted_string(iostr, "_:", 2);
+    raptor_iostream_counted_string_write("_:", 2, iostr);
   else if(!v->expression)
-    raptor_iostream_write_byte(iostr, '?');
-  raptor_iostream_write_string(iostr, v->name);
+    raptor_iostream_write_byte('?', iostr);
+  raptor_iostream_string_write(v->name, iostr);
 }
 
 
@@ -76,11 +76,11 @@ rasqal_query_write_sparql_uri(sparql_writer_context *wc,
   unsigned char* string;
   raptor_qname* qname;
 
-  qname = raptor_namespaces_qname_from_uri(wc->nstack, uri, 10);
+  qname = raptor_new_qname_from_namespace_uri(wc->nstack, uri, 10);
   if(qname) {
     const raptor_namespace* nspace = raptor_qname_get_namespace(qname);
     if(!raptor_namespace_get_prefix(nspace))
-      raptor_iostream_write_byte(iostr, ':');
+      raptor_iostream_write_byte(':', iostr);
 #ifdef RAPTOR_V2_AVAILABLE
     raptor_qname_write(qname, iostr);
 #else
@@ -95,13 +95,13 @@ rasqal_query_write_sparql_uri(sparql_writer_context *wc,
   else
     string = raptor_uri_as_counted_string(uri, &len);
 
-  raptor_iostream_write_byte(iostr, '<');
+  raptor_iostream_write_byte('<', iostr);
 #ifdef RAPTOR_V2_AVAILABLE
   raptor_string_ntriples_write(string, len, '>', iostr);
 #else
   raptor_iostream_write_string_ntriples(iostr, string, len, '>');
 #endif
-  raptor_iostream_write_byte(iostr, '>');
+  raptor_iostream_write_byte('>', iostr);
 
   if(wc->base_uri)
     raptor_free_memory(string);
@@ -113,7 +113,7 @@ rasqal_query_write_sparql_literal(sparql_writer_context *wc,
                                   raptor_iostream* iostr, rasqal_literal* l)
 {
   if(!l) {
-    raptor_iostream_write_counted_string(iostr, "null", 4);
+    raptor_iostream_counted_string_write("null", 4, iostr);
     return;
   }
 
@@ -122,39 +122,39 @@ rasqal_query_write_sparql_literal(sparql_writer_context *wc,
       rasqal_query_write_sparql_uri(wc, iostr, l->value.uri);
       break;
     case RASQAL_LITERAL_BLANK:
-      raptor_iostream_write_counted_string(iostr, "_:", 2);
-      raptor_iostream_write_string(iostr, l->string);
+      raptor_iostream_counted_string_write("_:", 2, iostr);
+      raptor_iostream_string_write(l->string, iostr);
       break;
     case RASQAL_LITERAL_STRING:
-      raptor_iostream_write_byte(iostr, '"');
+      raptor_iostream_write_byte('"', iostr);
 #ifdef RAPTOR_V2_AVAILABLE
       raptor_string_ntriples_write(l->string, l->string_len, '"', iostr);
 #else
       raptor_iostream_write_string_ntriples(iostr, l->string, l->string_len, '"');
 #endif
-      raptor_iostream_write_byte(iostr, '"');
+      raptor_iostream_write_byte('"', iostr);
       if(l->language) {
-        raptor_iostream_write_byte(iostr, '@');
-        raptor_iostream_write_string(iostr, l->language);
+        raptor_iostream_write_byte('@', iostr);
+        raptor_iostream_string_write(l->language, iostr);
       }
       if(l->datatype) {
-        raptor_iostream_write_counted_string(iostr, "^^", 2);
+        raptor_iostream_counted_string_write("^^", 2, iostr);
         rasqal_query_write_sparql_uri(wc, iostr, l->datatype);
       }
       break;
     case RASQAL_LITERAL_QNAME:
-      raptor_iostream_write_counted_string(iostr, "QNAME(", 6);
-      raptor_iostream_write_counted_string(iostr, l->string, l->string_len);
-      raptor_iostream_write_byte(iostr, ')');
+      raptor_iostream_counted_string_write("QNAME(", 6, iostr);
+      raptor_iostream_counted_string_write(l->string, l->string_len, iostr);
+      raptor_iostream_write_byte(')', iostr);
       break;
     case RASQAL_LITERAL_INTEGER:
-      raptor_iostream_write_decimal(iostr, l->value.integer);
+      raptor_iostream_decimal_write(l->value.integer, iostr);
       break;
     case RASQAL_LITERAL_BOOLEAN:
     case RASQAL_LITERAL_DOUBLE:
     case RASQAL_LITERAL_FLOAT:
     case RASQAL_LITERAL_DECIMAL:
-      raptor_iostream_write_counted_string(iostr, l->string, l->string_len);
+      raptor_iostream_counted_string_write(l->string, l->string_len, iostr);
       break;
     case RASQAL_LITERAL_VARIABLE:
       rasqal_query_write_sparql_variable(wc, iostr, l->value.variable);
@@ -165,13 +165,13 @@ rasqal_query_write_sparql_literal(sparql_writer_context *wc,
       if(1) {
         raptor_uri* dt_uri;
         
-        raptor_iostream_write_byte(iostr, '"');
+        raptor_iostream_write_byte('"', iostr);
 #ifdef RAPTOR_V2_AVAILABLE
         raptor_string_ntriples_write(l->string, l->string_len, '"', iostr);
 #else
         raptor_iostream_write_string_ntriples(iostr, l->string, l->string_len, '"');
 #endif
-        raptor_iostream_write_counted_string(iostr, "\"^^", 3);
+        raptor_iostream_counted_string_write("\"^^", 3, iostr);
         if(l->type == RASQAL_LITERAL_UDT) 
           dt_uri = l->datatype;
         else
@@ -193,15 +193,15 @@ rasqal_query_write_sparql_triple(sparql_writer_context *wc,
                                  raptor_iostream* iostr, rasqal_triple* triple)
 {
   rasqal_query_write_sparql_literal(wc, iostr, triple->subject);
-  raptor_iostream_write_byte(iostr, ' ');
+  raptor_iostream_write_byte(' ', iostr);
   if(triple->predicate->type == RASQAL_LITERAL_URI &&
      raptor_uri_equals(triple->predicate->value.uri, wc->type_uri))
-    raptor_iostream_write_byte(iostr, 'a');
+    raptor_iostream_write_byte('a', iostr);
   else
     rasqal_query_write_sparql_literal(wc, iostr, triple->predicate);
-  raptor_iostream_write_byte(iostr, ' ');
+  raptor_iostream_write_byte(' ', iostr);
   rasqal_query_write_sparql_literal(wc, iostr, triple->object);
-  raptor_iostream_write_counted_string(iostr, " .", 2);
+  raptor_iostream_counted_string_write(" .", 2, iostr);
 }
 
 
@@ -213,7 +213,7 @@ rasqal_query_write_indent(raptor_iostream* iostr, int indent)
 {
   while(indent > 0) {
     int sp = (indent > SPACES_LENGTH) ? SPACES_LENGTH : indent;
-    raptor_iostream_write_bytes(iostr, spaces, sizeof(char), sp);
+    raptor_iostream_write_bytes(spaces, sizeof(char), sp, iostr);
     indent -= sp;
   }
 }
@@ -282,9 +282,9 @@ rasqal_query_write_sparql_expression_op(sparql_writer_context *wc,
   string = rasqal_sparql_op_labels[(int)op];
   
   if(string)
-    raptor_iostream_write_string(iostr, string);
+    raptor_iostream_string_write(string, iostr);
   else
-    raptor_iostream_write_string(iostr, "NONE");
+    raptor_iostream_string_write("NONE", iostr);
 }
 
 
@@ -312,13 +312,13 @@ rasqal_query_write_sparql_expression(sparql_writer_context *wc,
     case RASQAL_EXPR_REM:
     case RASQAL_EXPR_STR_EQ:
     case RASQAL_EXPR_STR_NEQ:
-      raptor_iostream_write_counted_string(iostr, "( ", 2);
+      raptor_iostream_counted_string_write("( ", 2, iostr);
       rasqal_query_write_sparql_expression(wc, iostr, e->arg1);
-      raptor_iostream_write_byte(iostr, ' ');
+      raptor_iostream_write_byte(' ', iostr);
       rasqal_query_write_sparql_expression_op(wc, iostr, e);
-      raptor_iostream_write_byte(iostr, ' ');
+      raptor_iostream_write_byte(' ', iostr);
       rasqal_query_write_sparql_expression(wc, iostr, e->arg2);
-      raptor_iostream_write_counted_string(iostr, " )", 2);
+      raptor_iostream_counted_string_write(" )", 2, iostr);
       break;
 
     case RASQAL_EXPR_BOUND:
@@ -339,32 +339,32 @@ rasqal_query_write_sparql_expression(sparql_writer_context *wc,
     case RASQAL_EXPR_MIN:
     case RASQAL_EXPR_MAX:
       rasqal_query_write_sparql_expression_op(wc, iostr, e);
-      raptor_iostream_write_counted_string(iostr, "( ", 2);
+      raptor_iostream_counted_string_write("( ", 2, iostr);
       rasqal_query_write_sparql_expression(wc, iostr, e->arg1);
-      raptor_iostream_write_counted_string(iostr, " )", 2);
+      raptor_iostream_counted_string_write(" )", 2, iostr);
       break;
       
     case RASQAL_EXPR_LANGMATCHES:
     case RASQAL_EXPR_REGEX:
       rasqal_query_write_sparql_expression_op(wc, iostr, e);
-      raptor_iostream_write_counted_string(iostr, "( ", 2);
+      raptor_iostream_counted_string_write("( ", 2, iostr);
       rasqal_query_write_sparql_expression(wc, iostr, e->arg1);
-      raptor_iostream_write_counted_string(iostr, ", ", 2);
+      raptor_iostream_counted_string_write(", ", 2, iostr);
       rasqal_query_write_sparql_expression(wc, iostr, e->arg2);
       if(e->op == RASQAL_EXPR_REGEX && e->arg3) {
-        raptor_iostream_write_counted_string(iostr, ", ", 2);
+        raptor_iostream_counted_string_write(", ", 2, iostr);
         rasqal_query_write_sparql_expression(wc, iostr, e->arg3);
       }
-      raptor_iostream_write_counted_string(iostr, " )", 2);
+      raptor_iostream_counted_string_write(" )", 2, iostr);
       break;
 
     case RASQAL_EXPR_TILDE:
     case RASQAL_EXPR_BANG:
     case RASQAL_EXPR_UMINUS:
       rasqal_query_write_sparql_expression_op(wc, iostr, e);
-      raptor_iostream_write_counted_string(iostr, "( ", 2);
+      raptor_iostream_counted_string_write("( ", 2, iostr);
       rasqal_query_write_sparql_expression(wc, iostr, e->arg1);
-      raptor_iostream_write_counted_string(iostr, " )", 2);
+      raptor_iostream_counted_string_write(" )", 2, iostr);
       break;
 
     case RASQAL_EXPR_LITERAL:
@@ -372,41 +372,41 @@ rasqal_query_write_sparql_expression(sparql_writer_context *wc,
       break;
 
     case RASQAL_EXPR_FUNCTION:
-      raptor_iostream_write_uri(iostr, e->name);
-      raptor_iostream_write_counted_string(iostr, "( ", 2);
+      raptor_uri_write(e->name, iostr);
+      raptor_iostream_counted_string_write("( ", 2, iostr);
       count = raptor_sequence_size(e->args);
       for(i = 0; i < count ; i++) {
         rasqal_expression* arg;
         arg = (rasqal_expression*)raptor_sequence_get_at(e->args, i);
         if(i > 0)
-          raptor_iostream_write_counted_string(iostr, " ,", 2);
+          raptor_iostream_counted_string_write(" ,", 2, iostr);
         rasqal_query_write_sparql_expression(wc, iostr, arg);
       }
-      raptor_iostream_write_counted_string(iostr, " )", 2);
+      raptor_iostream_counted_string_write(" )", 2, iostr);
       break;
 
     case RASQAL_EXPR_CAST:
-      raptor_iostream_write_uri(iostr, e->name);
-      raptor_iostream_write_counted_string(iostr, "( ", 2);
+      raptor_uri_write(e->name, iostr);
+      raptor_iostream_counted_string_write("( ", 2, iostr);
       rasqal_query_write_sparql_expression(wc, iostr, e->arg1);
-      raptor_iostream_write_counted_string(iostr, " )", 2);
+      raptor_iostream_counted_string_write(" )", 2, iostr);
       break;
 
     case RASQAL_EXPR_VARSTAR:
-      raptor_iostream_write_byte(iostr, '*');
+      raptor_iostream_write_byte('*', iostr);
       break;
       
     case RASQAL_EXPR_COALESCE:
-      raptor_iostream_write_counted_string(iostr, "COALESCE( ", 10);
+      raptor_iostream_counted_string_write("COALESCE( ", 10, iostr);
       count = raptor_sequence_size(e->args);
       for(i = 0; i < count ; i++) {
         rasqal_expression* e2;
         e2 = (rasqal_expression*)raptor_sequence_get_at(e->args, i);
         if(i > 0)
-          raptor_iostream_write_counted_string(iostr, " ,", 2);
+          raptor_iostream_counted_string_write(" ,", 2, iostr);
         rasqal_query_write_sparql_expression(wc, iostr, e2);
       }
-      raptor_iostream_write_counted_string(iostr, " )", 2);
+      raptor_iostream_counted_string_write(" )", 2, iostr);
       break;
 
     case RASQAL_EXPR_UNKNOWN:
@@ -435,9 +435,9 @@ rasqal_query_write_sparql_triple_data(sparql_writer_context *wc,
       break;
 
     if(gp > 0)
-      raptor_iostream_write_byte(iostr, '\n');
+      raptor_iostream_write_byte('\n', iostr);
 
-    raptor_iostream_write_counted_string(iostr, "{\n", 2);
+    raptor_iostream_counted_string_write("{\n", 2, iostr);
     indent += 2;
     
     /* look for triples */
@@ -448,7 +448,7 @@ rasqal_query_write_sparql_triple_data(sparql_writer_context *wc,
       
       rasqal_query_write_indent(iostr, indent);
       rasqal_query_write_sparql_triple(wc, iostr, t);
-      raptor_iostream_write_byte(iostr, '\n');
+      raptor_iostream_write_byte('\n', iostr);
       
       triple_index++;
     }
@@ -456,7 +456,7 @@ rasqal_query_write_sparql_triple_data(sparql_writer_context *wc,
     indent -= 2;
     
     rasqal_query_write_indent(iostr, indent);
-    raptor_iostream_write_byte(iostr, '}');
+    raptor_iostream_write_byte('}', iostr);
 
   }
 
@@ -479,11 +479,11 @@ rasqal_query_write_sparql_graph_pattern(sparql_writer_context *wc,
   
   if(op == RASQAL_GRAPH_PATTERN_OPERATOR_LET) {
     /* LAQRS */
-    raptor_iostream_write_counted_string(iostr, "LET (", 5);
+    raptor_iostream_counted_string_write("LET (", 5, iostr);
     rasqal_query_write_sparql_variable(wc, iostr, gp->var);
-    raptor_iostream_write_counted_string(iostr, " := ", 4);
+    raptor_iostream_counted_string_write(" := ", 4, iostr);
     rasqal_query_write_sparql_expression(wc, iostr, gp->filter_expression);
-    raptor_iostream_write_counted_string(iostr, ") .", 3);
+    raptor_iostream_counted_string_write(") .", 3, iostr);
     return;
   }
   
@@ -491,11 +491,11 @@ rasqal_query_write_sparql_graph_pattern(sparql_writer_context *wc,
      op == RASQAL_GRAPH_PATTERN_OPERATOR_GRAPH) {
     /* prefix verbs */
     if(op == RASQAL_GRAPH_PATTERN_OPERATOR_OPTIONAL) 
-      raptor_iostream_write_counted_string(iostr, "OPTIONAL ", 9);
+      raptor_iostream_counted_string_write("OPTIONAL ", 9, iostr);
     else {
-      raptor_iostream_write_counted_string(iostr, "GRAPH ", 6);
+      raptor_iostream_counted_string_write("GRAPH ", 6, iostr);
       rasqal_query_write_sparql_literal(wc, iostr, gp->origin);
-      raptor_iostream_write_byte(iostr, ' ');
+      raptor_iostream_write_byte(' ', iostr);
     }
   }
 
@@ -504,7 +504,7 @@ rasqal_query_write_sparql_graph_pattern(sparql_writer_context *wc,
 
 
   if(want_braces) {
-    raptor_iostream_write_counted_string(iostr, "{\n", 2);
+    raptor_iostream_counted_string_write("{\n", 2, iostr);
     indent += 2;
   }
 
@@ -516,7 +516,7 @@ rasqal_query_write_sparql_graph_pattern(sparql_writer_context *wc,
     
     rasqal_query_write_indent(iostr, indent);
     rasqal_query_write_sparql_triple(wc, iostr, t);
-    raptor_iostream_write_byte(iostr, '\n');
+    raptor_iostream_write_byte('\n', iostr);
 
     triple_index++;
   }
@@ -540,17 +540,17 @@ rasqal_query_write_sparql_graph_pattern(sparql_writer_context *wc,
       else {
         if(op == RASQAL_GRAPH_PATTERN_OPERATOR_UNION)
           /* infix verb */
-          raptor_iostream_write_counted_string(iostr, " UNION ", 7);
+          raptor_iostream_counted_string_write(" UNION ", 7, iostr);
         else {
           /* must be prefix verb */
-          raptor_iostream_write_byte(iostr, '\n');
+          raptor_iostream_write_byte('\n', iostr);
           rasqal_query_write_indent(iostr, indent);
         }
       }
       
       rasqal_query_write_sparql_graph_pattern(wc, iostr, sgp, gp_index, indent);
     }
-    raptor_iostream_write_byte(iostr, '\n');
+    raptor_iostream_write_byte('\n', iostr);
   }
   
 
@@ -570,9 +570,9 @@ rasqal_query_write_sparql_graph_pattern(sparql_writer_context *wc,
       expr = rasqal_graph_pattern_get_filter_expression(sgp);
 
       rasqal_query_write_indent(iostr, indent);
-      raptor_iostream_write_counted_string(iostr, "FILTER( ", 8);
+      raptor_iostream_counted_string_write("FILTER( ", 8, iostr);
       rasqal_query_write_sparql_expression(wc, iostr, expr);
-      raptor_iostream_write_counted_string(iostr, " )\n", 3);
+      raptor_iostream_counted_string_write(" )\n", 3, iostr);
     }
   }
   
@@ -581,7 +581,7 @@ rasqal_query_write_sparql_graph_pattern(sparql_writer_context *wc,
     indent -= 2;
 
     rasqal_query_write_indent(iostr, indent);
-    raptor_iostream_write_byte(iostr, '}');
+    raptor_iostream_write_byte('}', iostr);
   }
 
 }
@@ -616,9 +616,9 @@ rasqal_query_write_sparql_20060406(raptor_iostream *iostr,
 #endif
 
   if(base_uri) {
-    raptor_iostream_write_counted_string(iostr, "BASE ", 5);
+    raptor_iostream_counted_string_write("BASE ", 5, iostr);
     rasqal_query_write_sparql_uri(&wc, iostr, base_uri);
-    raptor_iostream_write_byte(iostr, '\n');
+    raptor_iostream_write_byte('\n', iostr);
 
     /* from now on all URIs are relative to this */
     wc.base_uri = raptor_uri_copy(base_uri);
@@ -631,12 +631,12 @@ rasqal_query_write_sparql_20060406(raptor_iostream *iostr,
     if(!p)
       break;
     
-    raptor_iostream_write_counted_string(iostr, "PREFIX ", 7);
+    raptor_iostream_counted_string_write("PREFIX ", 7, iostr);
     if(p->prefix)
-      raptor_iostream_write_string(iostr, p->prefix);
-    raptor_iostream_write_counted_string(iostr,": ", 2);
+      raptor_iostream_string_write(p->prefix, iostr);
+    raptor_iostream_counted_string_write(": ", 2, iostr);
     rasqal_query_write_sparql_uri(&wc, iostr, p->uri);
-    raptor_iostream_write_byte(iostr, '\n');
+    raptor_iostream_write_byte('\n', iostr);
 
     /* Use this constructor so we copy a URI directly */
     nspace = raptor_new_namespace_from_uri(wc.nstack, p->prefix, p->uri, i);
@@ -644,15 +644,15 @@ rasqal_query_write_sparql_20060406(raptor_iostream *iostr,
   }
 
   if(query->explain)
-    raptor_iostream_write_counted_string(iostr, "EXPLAIN ", 8);
+    raptor_iostream_counted_string_write("EXPLAIN ", 8, iostr);
 
   /* Experimental LAQRS INSERT and DELETE (RASQAL_QUERY_VERB_INSERT
    * and RASQAL_QUERY_VERB_DELETE) are handled in generic code
    * below */
   if(query->verb == RASQAL_QUERY_VERB_INSERT ||
      query->verb == RASQAL_QUERY_VERB_DELETE) {
-    raptor_iostream_write_string(iostr,
-                                 "\n# Writing deprecated LAQRS INSERT/DELETE\n");
+    raptor_iostream_string_write("\n# Writing deprecated LAQRS INSERT/DELETE\n",
+                                 iostr);
   }
 
   
@@ -669,34 +669,34 @@ rasqal_query_write_sparql_20060406(raptor_iostream *iostr,
          * INSERT/DELETE DATA { triples } 
          */
         if(update->graph_uri) {
-          raptor_iostream_write_counted_string(iostr, "WITH ", 5);
+          raptor_iostream_counted_string_write("WITH ", 5, iostr);
           rasqal_query_write_sparql_uri(&wc, iostr, update->graph_uri);
-          raptor_iostream_write_byte(iostr, '\n');
+          raptor_iostream_write_byte('\n', iostr);
         }
         if(update->delete_templates) {
-          raptor_iostream_write_counted_string(iostr, "DELETE ", 7);
+          raptor_iostream_counted_string_write("DELETE ", 7, iostr);
           if(update->flags & RASQAL_UPDATE_FLAGS_DATA) 
-            raptor_iostream_write_counted_string(iostr, "DATA ", 5);
+            raptor_iostream_counted_string_write("DATA ", 5, iostr);
           rasqal_query_write_sparql_triple_data(&wc, iostr,
                                                 update->delete_templates,
                                                 0);
-          raptor_iostream_write_byte(iostr, '\n');
+          raptor_iostream_write_byte('\n', iostr);
         }
         if(update->insert_templates) {
-          raptor_iostream_write_counted_string(iostr, "INSERT ", 7);
+          raptor_iostream_counted_string_write("INSERT ", 7, iostr);
           if(update->flags & RASQAL_UPDATE_FLAGS_DATA) 
-            raptor_iostream_write_counted_string(iostr, "DATA ", 5);
+            raptor_iostream_counted_string_write("DATA ", 5, iostr);
           rasqal_query_write_sparql_triple_data(&wc, iostr,
                                                 update->insert_templates,
                                                 0);
-          raptor_iostream_write_byte(iostr, '\n');
+          raptor_iostream_write_byte('\n', iostr);
         }
         if(update->where) {
-          raptor_iostream_write_counted_string(iostr, "WHERE ", 6);
+          raptor_iostream_counted_string_write("WHERE ", 6, iostr);
           rasqal_query_write_sparql_graph_pattern(&wc, iostr,
                                                   update->where,
                                                   -1, 0);
-          raptor_iostream_write_byte(iostr, '\n');
+          raptor_iostream_write_byte('\n', iostr);
         }
       } else {
         /* admin operations:
@@ -705,22 +705,22 @@ rasqal_query_write_sparql_20060406(raptor_iostream *iostr,
          * DROP (SILENT) GRAPH graph-uri
          * LOAD GRAPH graph-uri / LOAD doc-uri INTO graph-uri
          */
-        raptor_iostream_write_string(iostr, 
-                                     rasqal_update_type_label(update->type));
+        raptor_iostream_string_write(rasqal_update_type_label(update->type),
+                                     iostr);
         if(update->flags & RASQAL_UPDATE_FLAGS_SILENT)
-          raptor_iostream_write_counted_string(iostr, " SILENT", 7);
+          raptor_iostream_counted_string_write(" SILENT", 7, iostr);
         if(update->document_uri) {
-          raptor_iostream_write_byte(iostr, ' ');
+          raptor_iostream_write_byte(' ', iostr);
           rasqal_query_write_sparql_uri(&wc, iostr, update->document_uri);
         }
         if(update->graph_uri) {
           if(update->type == RASQAL_UPDATE_TYPE_LOAD &&
              update->document_uri)
-            raptor_iostream_write_counted_string(iostr, " INTO ", 6);
+            raptor_iostream_counted_string_write(" INTO ", 6, iostr);
           else
-            raptor_iostream_write_counted_string(iostr, " GRAPH ", 7);
+            raptor_iostream_counted_string_write(" GRAPH ", 7, iostr);
           rasqal_query_write_sparql_uri(&wc, iostr, update->graph_uri);
-          raptor_iostream_write_byte(iostr, '\n');
+          raptor_iostream_write_byte('\n', iostr);
         }
       }
     }
@@ -730,25 +730,25 @@ rasqal_query_write_sparql_20060406(raptor_iostream *iostr,
 
 
   if(query->verb != RASQAL_QUERY_VERB_CONSTRUCT)
-    raptor_iostream_write_string(iostr,
-                                 rasqal_query_verb_as_string(query->verb));
+    raptor_iostream_string_write(rasqal_query_verb_as_string(query->verb),
+                                 iostr);
 
   if(query->distinct) {
     if(query->distinct == 1)
-      raptor_iostream_write_counted_string(iostr, " DISTINCT", 9);
+      raptor_iostream_counted_string_write(" DISTINCT", 9, iostr);
     else
-      raptor_iostream_write_counted_string(iostr, " REDUCED", 8);
+      raptor_iostream_counted_string_write(" REDUCED", 8, iostr);
   }
 
   if(query->wildcard)
-    raptor_iostream_write_counted_string(iostr, " *", 2);
+    raptor_iostream_counted_string_write(" *", 2, iostr);
   else if(query->verb == RASQAL_QUERY_VERB_DESCRIBE) {
     raptor_sequence *lit_seq = query->describes;
     int count = raptor_sequence_size(lit_seq);
 
     for(i = 0; i < count; i++) {
       rasqal_literal* l = (rasqal_literal*)raptor_sequence_get_at(lit_seq, i);
-      raptor_iostream_write_byte(iostr, ' ');
+      raptor_iostream_write_byte(' ', iostr);
       rasqal_query_write_sparql_literal(&wc, iostr, l);
     }
   } else if(query->verb == RASQAL_QUERY_VERB_SELECT) {
@@ -757,11 +757,11 @@ rasqal_query_write_sparql_20060406(raptor_iostream *iostr,
 
     for(i = 0; i < count; i++) {
       rasqal_variable* v = (rasqal_variable*)raptor_sequence_get_at(var_seq, i);
-      raptor_iostream_write_byte(iostr, ' ');
+      raptor_iostream_write_byte(' ', iostr);
       rasqal_query_write_sparql_variable(&wc, iostr, v);
     }
   }
-  raptor_iostream_write_byte(iostr, '\n');
+  raptor_iostream_write_byte('\n', iostr);
 
   if(query->data_graphs) {
     for(i = 0; 1; i++) {
@@ -772,9 +772,9 @@ rasqal_query_write_sparql_20060406(raptor_iostream *iostr,
       if(dg->flags & RASQAL_DATA_GRAPH_NAMED)
         continue;
       
-      raptor_iostream_write_counted_string(iostr, "FROM ", 5);
+      raptor_iostream_counted_string_write("FROM ", 5, iostr);
       rasqal_query_write_sparql_uri(&wc, iostr, dg->uri);
-      raptor_iostream_write_counted_string(iostr, "\n", 1);
+      raptor_iostream_counted_string_write("\n", 1, iostr);
     }
     
     for(i = 0; 1; i++) {
@@ -785,74 +785,74 @@ rasqal_query_write_sparql_20060406(raptor_iostream *iostr,
       if(!(dg->flags & RASQAL_DATA_GRAPH_NAMED))
         continue;
       
-      raptor_iostream_write_counted_string(iostr, "FROM NAMED ", 11);
+      raptor_iostream_counted_string_write("FROM NAMED ", 11, iostr);
       rasqal_query_write_sparql_uri(&wc, iostr, dg->name_uri);
-      raptor_iostream_write_byte(iostr, '\n');
+      raptor_iostream_write_byte('\n', iostr);
     }
     
   }
 
   if(query->constructs) {
-    raptor_iostream_write_string(iostr, "CONSTRUCT {\n");
+    raptor_iostream_string_write("CONSTRUCT {\n", iostr);
     for(i = 0; 1; i++) {
       rasqal_triple* t = rasqal_query_get_construct_triple(query, i);
       if(!t)
         break;
 
-      raptor_iostream_write_counted_string(iostr, "  ", 2);
+      raptor_iostream_counted_string_write("  ", 2, iostr);
       rasqal_query_write_sparql_triple(&wc, iostr, t);
-      raptor_iostream_write_byte(iostr, '\n');
+      raptor_iostream_write_byte('\n', iostr);
     }
-    raptor_iostream_write_counted_string(iostr, "}\n", 2);
+    raptor_iostream_counted_string_write("}\n", 2, iostr);
   }
   if(query->query_graph_pattern) {
-    raptor_iostream_write_counted_string(iostr, "WHERE ", 6);
+    raptor_iostream_counted_string_write("WHERE ", 6, iostr);
     rasqal_query_write_sparql_graph_pattern(&wc, iostr,
                                             query->query_graph_pattern, 
                                             -1, 0);
-    raptor_iostream_write_byte(iostr, '\n');
+    raptor_iostream_write_byte('\n', iostr);
   }
 
   if(query->group_conditions_sequence) {
-    raptor_iostream_write_counted_string(iostr, "GROUP BY ", 9);
+    raptor_iostream_counted_string_write("GROUP BY ", 9, iostr);
     for(i = 0; 1; i++) {
       rasqal_expression* expr = rasqal_query_get_group_condition(query, i);
       if(!expr)
         break;
 
       if(i > 0)
-        raptor_iostream_write_byte(iostr, ' ');
+        raptor_iostream_write_byte(' ', iostr);
       rasqal_query_write_sparql_expression(&wc, iostr, expr);
     }
-    raptor_iostream_write_byte(iostr, '\n');
+    raptor_iostream_write_byte('\n', iostr);
   }
 
   if(query->order_conditions_sequence) {
-    raptor_iostream_write_counted_string(iostr, "ORDER BY ", 9);
+    raptor_iostream_counted_string_write("ORDER BY ", 9, iostr);
     for(i = 0; 1; i++) {
       rasqal_expression* expr = rasqal_query_get_order_condition(query, i);
       if(!expr)
         break;
 
       if(i > 0)
-        raptor_iostream_write_byte(iostr, ' ');
+        raptor_iostream_write_byte(' ', iostr);
       rasqal_query_write_sparql_expression(&wc, iostr, expr);
     }
-    raptor_iostream_write_byte(iostr, '\n');
+    raptor_iostream_write_byte('\n', iostr);
   }
 
   if(query->limit >= 0 || query->offset >= 0) {
     if(query->limit >= 0) {
-      raptor_iostream_write_counted_string(iostr, "LIMIT ", 7);
-      raptor_iostream_write_decimal(iostr, query->limit);
+      raptor_iostream_counted_string_write("LIMIT ", 7, iostr);
+      raptor_iostream_decimal_write(query->limit, iostr);
     }
     if(query->offset >= 0) {
       if(query->limit)
-        raptor_iostream_write_byte(iostr, ' ');
-      raptor_iostream_write_counted_string(iostr, "OFFSET ", 8);
-      raptor_iostream_write_decimal(iostr, query->offset);
+        raptor_iostream_write_byte(' ', iostr);
+      raptor_iostream_counted_string_write("OFFSET ", 8, iostr);
+      raptor_iostream_decimal_write(query->offset, iostr);
     }
-    raptor_iostream_write_byte(iostr, '\n');
+    raptor_iostream_write_byte('\n', iostr);
   }
 
 

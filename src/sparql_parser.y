@@ -3781,7 +3781,7 @@ rasqal_sparql_query_language_iostream_write_escaped_counted_string(rasqal_query*
   const char delim = '"';
   int rc;
   
-  raptor_iostream_write_byte(iostr, delim);
+  raptor_iostream_write_byte(delim, iostr);
 #ifdef RAPTOR_V2_AVAILABLE
   rc = raptor_string_ntriples_write(string, len, delim, iostr);
 #else
@@ -3790,7 +3790,7 @@ rasqal_sparql_query_language_iostream_write_escaped_counted_string(rasqal_query*
   if(rc)
     return 1;
   
-  raptor_iostream_write_byte(iostr, delim);
+  raptor_iostream_write_byte(delim, iostr);
 
   return 0;
 }

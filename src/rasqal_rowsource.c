@@ -594,7 +594,7 @@ rasqal_rowsource_write_indent(raptor_iostream *iostr, int indent)
 {
   while(indent > 0) {
     int sp = (indent > SPACES_LENGTH) ? SPACES_LENGTH : indent;
-    raptor_iostream_write_bytes(iostr, spaces, sizeof(char), sp);
+    raptor_iostream_write_bytes(spaces, sizeof(char), sp, iostr);
     indent -= sp;
   }
 }
@@ -612,8 +612,8 @@ rasqal_rowsource_write_internal(rasqal_rowsource *rowsource,
   
   indent_delta = strlen(rs_name);
 
-  raptor_iostream_write_counted_string(iostr, rs_name, indent_delta);
-  raptor_iostream_write_counted_string(iostr, "(\n", 2);
+  raptor_iostream_counted_string_write(rs_name, indent_delta, iostr);
+  raptor_iostream_counted_string_write("(\n", 2, iostr);
   indent_delta++;
   
   indent += indent_delta;
@@ -624,18 +624,18 @@ rasqal_rowsource_write_internal(rasqal_rowsource *rowsource,
       (inner_rowsource = rasqal_rowsource_get_inner_rowsource(rowsource, offset));
       offset++) {
       if(arg_count) {
-        raptor_iostream_write_counted_string(iostr, " ,\n", 3);
+        raptor_iostream_counted_string_write(" ,\n", 3, iostr);
         rasqal_rowsource_write_indent(iostr, indent);
       }
       rasqal_rowsource_write_internal(inner_rowsource, iostr, indent);
       arg_count++;
   }
 
-  raptor_iostream_write_byte(iostr, '\n');
+  raptor_iostream_write_byte('\n', iostr);
   indent-= indent_delta;
 
   rasqal_rowsource_write_indent(iostr, indent);
-  raptor_iostream_write_byte(iostr, ')');
+  raptor_iostream_write_byte(')', iostr);
 
   return 0;
 }

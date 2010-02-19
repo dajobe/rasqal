@@ -73,12 +73,12 @@ rasqal_iostream_write_counted_string_padded(raptor_iostream *iostr,
   int w = width-len;
 
   if(len)
-    raptor_iostream_write_counted_string(iostr, string, len);
+    raptor_iostream_counted_string_write(string, len, iostr);
   
   if(w > 0) {
     int i;
     for(i = 0; i < w; i++)
-      raptor_iostream_write_byte(iostr, pad);
+      raptor_iostream_write_byte(pad, iostr);
   }
 
   return 0;
@@ -215,10 +215,10 @@ rasqal_query_results_write_table(raptor_iostream *iostr,
 
   /* Generate separator */
   rasqal_iostream_write_counted_string_padded(iostr, NULL, 0, '-', sep_len);
-  raptor_iostream_write_byte(iostr, '\n');
+  raptor_iostream_write_byte('\n', iostr);
 
   /* Generate variables header */
-  raptor_iostream_write_counted_string(iostr, VSEP, VSEP_LEN);
+  raptor_iostream_counted_string_write(VSEP, VSEP_LEN, iostr);
   for(i = 0; i < bindings_count; i++) {
     const unsigned char *name;
     int w;
@@ -227,17 +227,17 @@ rasqal_query_results_write_table(raptor_iostream *iostr,
       break;
     w = strlen((const char*)name);
     
-    raptor_iostream_write_counted_string(iostr, PAD, PAD_LEN);
+    raptor_iostream_counted_string_write(PAD, PAD_LEN, iostr);
     rasqal_iostream_write_counted_string_padded(iostr, name, w,
                                                 ' ', widths[i]);
-    raptor_iostream_write_counted_string(iostr, PAD, PAD_LEN);
-    raptor_iostream_write_counted_string(iostr, VSEP, VSEP_LEN);
+    raptor_iostream_counted_string_write(PAD, PAD_LEN, iostr);
+    raptor_iostream_counted_string_write(VSEP, VSEP_LEN, iostr);
   }
-  raptor_iostream_write_byte(iostr, '\n');
+  raptor_iostream_write_byte('\n', iostr);
 
   /* Generate separator */
   rasqal_iostream_write_counted_string_padded(iostr, NULL, 0, '=', sep_len);
-  raptor_iostream_write_byte(iostr, '\n');
+  raptor_iostream_write_byte('\n', iostr);
 
   /* Write values */
   if(rows_count) {
@@ -245,23 +245,23 @@ rasqal_query_results_write_table(raptor_iostream *iostr,
     for(rowi = 0; rowi < rows_count; rowi++) {
       char **values = (char**)raptor_sequence_get_at(seq, rowi);
       
-      raptor_iostream_write_counted_string(iostr, VSEP, VSEP_LEN);
+      raptor_iostream_counted_string_write(VSEP, VSEP_LEN, iostr);
       for(i = 0; i < bindings_count; i++) {
         char *value = values[i];
         int w = strlen((const char*)value);
     
-        raptor_iostream_write_counted_string(iostr, PAD, PAD_LEN);
+        raptor_iostream_counted_string_write(PAD, PAD_LEN, iostr);
         rasqal_iostream_write_counted_string_padded(iostr, value, w,
                                                     ' ', widths[i]);
-        raptor_iostream_write_counted_string(iostr, PAD, PAD_LEN);
-        raptor_iostream_write_counted_string(iostr, VSEP, VSEP_LEN);
+        raptor_iostream_counted_string_write(PAD, PAD_LEN, iostr);
+        raptor_iostream_counted_string_write(VSEP, VSEP_LEN, iostr);
       }
-      raptor_iostream_write_byte(iostr, '\n');
+      raptor_iostream_write_byte('\n', iostr);
     }
 
     /* Generate end separator */
     rasqal_iostream_write_counted_string_padded(iostr, NULL, 0, '-', sep_len);
-    raptor_iostream_write_byte(iostr, '\n');
+    raptor_iostream_write_byte('\n', iostr);
   }
   
 

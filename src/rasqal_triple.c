@@ -140,17 +140,17 @@ rasqal_triple_write(rasqal_triple* t, raptor_iostream* iostr)
   RASQAL_ASSERT_OBJECT_POINTER_RETURN(t, rasqal_triple);
   RASQAL_ASSERT_OBJECT_POINTER_RETURN(iostr, raptor_iostream);
   
-  raptor_iostream_write_counted_string(iostr, "triple(", 7);
+  raptor_iostream_counted_string_write("triple(", 7, iostr);
   rasqal_literal_write(t->subject, iostr);
-  raptor_iostream_write_counted_string(iostr, ", ", 2);
+  raptor_iostream_counted_string_write(", ", 2, iostr);
   rasqal_literal_write(t->predicate, iostr);
-  raptor_iostream_write_counted_string(iostr, ", ", 2);
+  raptor_iostream_counted_string_write(", ", 2, iostr);
   rasqal_literal_write(t->object, iostr);
-  raptor_iostream_write_byte(iostr, ')');
+  raptor_iostream_write_byte(')', iostr);
   if(t->origin) {
-    raptor_iostream_write_counted_string(iostr, " with origin(", 13);
+    raptor_iostream_counted_string_write(" with origin(", 13, iostr);
     rasqal_literal_write(t->origin, iostr);
-    raptor_iostream_write_byte(iostr, ')');
+    raptor_iostream_write_byte(')', iostr);
   }
 }
 

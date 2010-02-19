@@ -183,19 +183,19 @@ void
 rasqal_variable_write(rasqal_variable* v, raptor_iostream* iostr)
 {
   if(v->type == RASQAL_VARIABLE_TYPE_ANONYMOUS)
-    raptor_iostream_write_counted_string(iostr, "anon-variable(", 14);
+    raptor_iostream_counted_string_write("anon-variable(", 14, iostr);
   else
-    raptor_iostream_write_counted_string(iostr, "variable(", 9);
-  raptor_iostream_write_string(iostr, v->name);
+    raptor_iostream_counted_string_write("variable(", 9, iostr);
+  raptor_iostream_string_write(v->name, iostr);
   if(v->expression) {
-    raptor_iostream_write_byte(iostr, '=');
+    raptor_iostream_write_byte('=', iostr);
     rasqal_expression_write(v->expression, iostr);
   }
   if(v->value) {
-    raptor_iostream_write_byte(iostr, '=');
+    raptor_iostream_write_byte('=', iostr);
     rasqal_literal_write(v->value, iostr);
   }
-  raptor_iostream_write_byte(iostr, ')');
+  raptor_iostream_write_byte(')', iostr);
 }
 
 

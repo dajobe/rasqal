@@ -1769,7 +1769,7 @@ rasqal_expression_write_op(rasqal_expression* e, raptor_iostream* iostr)
   op = e->op;
   if(op > RASQAL_EXPR_LAST)
     op = RASQAL_EXPR_UNKNOWN;
-  raptor_iostream_write_string(iostr, rasqal_op_labels[(int)op]);
+  raptor_iostream_string_write(rasqal_op_labels[(int)op], iostr);
 }
 
 
@@ -1814,7 +1814,7 @@ rasqal_expression_write(rasqal_expression* e, raptor_iostream* iostr)
   RASQAL_ASSERT_OBJECT_POINTER_RETURN(e, rasqal_expression);
   RASQAL_ASSERT_OBJECT_POINTER_RETURN(iostr, raptor_iostr);
 
-  raptor_iostream_write_counted_string(iostr, "expr(", 5);
+  raptor_iostream_counted_string_write("expr(", 5, iostr);
   switch(e->op) {
     case RASQAL_EXPR_AND:
     case RASQAL_EXPR_OR:
@@ -1834,28 +1834,28 @@ rasqal_expression_write(rasqal_expression* e, raptor_iostream* iostr)
     case RASQAL_EXPR_LANGMATCHES:
     case RASQAL_EXPR_REGEX:
     case RASQAL_EXPR_SAMETERM:
-      raptor_iostream_write_counted_string(iostr, "op ", 3);
+      raptor_iostream_counted_string_write("op ", 3, iostr);
       rasqal_expression_write_op(e, iostr);
-      raptor_iostream_write_byte(iostr, '(');
+      raptor_iostream_write_byte('(', iostr);
       rasqal_expression_write(e->arg1, iostr);
-      raptor_iostream_write_counted_string(iostr, ", ", 2);
+      raptor_iostream_counted_string_write(", ", 2, iostr);
       rasqal_expression_write(e->arg2, iostr);
       /* There is only one 3-op expression and it's handled here */
       if(e->op == RASQAL_EXPR_REGEX && e->arg3) {
-        raptor_iostream_write_counted_string(iostr, ", ", 2);
+        raptor_iostream_counted_string_write(", ", 2, iostr);
         rasqal_expression_write(e->arg3, iostr);
       }
-      raptor_iostream_write_byte(iostr, ')');
+      raptor_iostream_write_byte(')', iostr);
       break;
     case RASQAL_EXPR_STR_MATCH:
     case RASQAL_EXPR_STR_NMATCH:
-      raptor_iostream_write_counted_string(iostr, "op ", 3);
+      raptor_iostream_counted_string_write("op ", 3, iostr);
       rasqal_expression_write_op(e, iostr);
-      raptor_iostream_write_byte(iostr, '(');
+      raptor_iostream_write_byte('(', iostr);
       rasqal_expression_write(e->arg1, iostr);
-      raptor_iostream_write_counted_string(iostr, ", ", 2);
+      raptor_iostream_counted_string_write(", ", 2, iostr);
       rasqal_literal_write(e->literal, iostr);
-      raptor_iostream_write_byte(iostr, ')');
+      raptor_iostream_write_byte(')', iostr);
       break;
     case RASQAL_EXPR_TILDE:
     case RASQAL_EXPR_BANG:
@@ -1876,11 +1876,11 @@ rasqal_expression_write(rasqal_expression* e, raptor_iostream* iostr)
     case RASQAL_EXPR_AVG:
     case RASQAL_EXPR_MIN:
     case RASQAL_EXPR_MAX:
-      raptor_iostream_write_counted_string(iostr, "op ", 3);
+      raptor_iostream_counted_string_write("op ", 3, iostr);
       rasqal_expression_write_op(e, iostr);
-      raptor_iostream_write_byte(iostr, '(');
+      raptor_iostream_write_byte('(', iostr);
       rasqal_expression_write(e->arg1, iostr);
-      raptor_iostream_write_byte(iostr, ')');
+      raptor_iostream_write_byte(')', iostr);
       break;
 
     case RASQAL_EXPR_LITERAL:
@@ -1888,48 +1888,48 @@ rasqal_expression_write(rasqal_expression* e, raptor_iostream* iostr)
       break;
 
     case RASQAL_EXPR_FUNCTION:
-      raptor_iostream_write_counted_string(iostr, "function(uri=", 13);
-      raptor_iostream_write_uri(iostr, e->name);
-      raptor_iostream_write_counted_string(iostr, ", args=", 7);
+      raptor_iostream_counted_string_write("function(uri=", 13, iostr);
+      raptor_uri_write(e->name, iostr);
+      raptor_iostream_counted_string_write(", args=", 7, iostr);
       for(i=0; i<raptor_sequence_size(e->args); i++) {
         rasqal_expression* e2;
         if(i>0)
-          raptor_iostream_write_counted_string(iostr, ", ", 2);
+          raptor_iostream_counted_string_write(", ", 2, iostr);
         e2=(rasqal_expression*)raptor_sequence_get_at(e->args, i);
         rasqal_expression_write(e2, iostr);
       }
-      raptor_iostream_write_byte(iostr, ')');
+      raptor_iostream_write_byte(')', iostr);
       break;
 
     case RASQAL_EXPR_CAST:
-      raptor_iostream_write_counted_string(iostr, "cast(type=", 10);
-      raptor_iostream_write_uri(iostr, e->name);
-      raptor_iostream_write_counted_string(iostr, ", value=", 8);
+      raptor_iostream_counted_string_write("cast(type=", 10, iostr);
+      raptor_uri_write(e->name, iostr);
+      raptor_iostream_counted_string_write(", value=", 8, iostr);
       rasqal_expression_write(e->arg1, iostr);
-      raptor_iostream_write_byte(iostr, ')');
+      raptor_iostream_write_byte(')', iostr);
       break;
 
     case RASQAL_EXPR_VARSTAR:
-      raptor_iostream_write_counted_string(iostr, "varstar", 7);
+      raptor_iostream_counted_string_write("varstar", 7, iostr);
       break;
       
     case RASQAL_EXPR_COALESCE:
-      raptor_iostream_write_counted_string(iostr, "coalesce(", 9);
+      raptor_iostream_counted_string_write("coalesce(", 9, iostr);
       for(i = 0; i < raptor_sequence_size(e->args); i++) {
         rasqal_expression* e2;
         if(i > 0)
-          raptor_iostream_write_counted_string(iostr, ", ", 2);
+          raptor_iostream_counted_string_write(", ", 2, iostr);
         e2 = (rasqal_expression*)raptor_sequence_get_at(e->args, i);
         rasqal_expression_write(e2, iostr);
       }
-      raptor_iostream_write_byte(iostr, ')');
+      raptor_iostream_write_byte(')', iostr);
       break;
 
     case RASQAL_EXPR_UNKNOWN:
     default:
       RASQAL_FATAL2("Unknown operation %d", e->op);
   }
-  raptor_iostream_write_byte(iostr, ')');
+  raptor_iostream_write_byte(')', iostr);
 }
 
 

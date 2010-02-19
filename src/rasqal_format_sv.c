@@ -79,7 +79,7 @@ rasqal_query_results_write_sv(raptor_iostream *iostr,
   }
   
   /* Header */
-  raptor_iostream_write_counted_string(iostr, "Result", 6);
+  raptor_iostream_counted_string_write("Result", 6, iostr);
  
   for(i = 0; 1; i++) {
     const unsigned char *name;
@@ -88,44 +88,44 @@ rasqal_query_results_write_sv(raptor_iostream *iostr,
     if(!name)
       break;
     
-    raptor_iostream_write_byte(iostr, sep);
-    raptor_iostream_write_string(iostr, name);
+    raptor_iostream_write_byte(sep, iostr);
+    raptor_iostream_string_write(name, iostr);
   }
-  raptor_iostream_write_counted_string(iostr, nl_str, nl_str_len);
+  raptor_iostream_counted_string_write(nl_str, nl_str_len, iostr);
 
 
   /* Variable Binding Results */
   vars_count = rasqal_query_results_get_bindings_count(results);
   while(!rasqal_query_results_finished(results)) {
     /* Result row */
-    raptor_iostream_write_decimal(iostr, count++);
+    raptor_iostream_decimal_write(count++, iostr);
 
     for(i = 0; i < vars_count; i++) {
       rasqal_literal *l = rasqal_query_results_get_binding_value(results, i);
 
-      raptor_iostream_write_byte(iostr, sep);
+      raptor_iostream_write_byte(sep, iostr);
 
       if(!l) {
         if(empty_value_str_len)
-          raptor_iostream_write_counted_string(iostr, empty_value_str,
-                                               empty_value_str_len);
+          raptor_iostream_counted_string_write(empty_value_str,
+                                               empty_value_str_len, iostr);
       } else switch(l->type) {
         const unsigned char* str;
         size_t len;
         
         case RASQAL_LITERAL_URI:
-          raptor_iostream_write_string(iostr, "uri(");
+          raptor_iostream_string_write("uri(", iostr);
           str = (const unsigned char*)raptor_uri_as_counted_string(l->value.uri, &len);
 #ifdef RAPTOR_V2_AVAILABLE
           raptor_string_ntriples_write(str, len, '"', iostr);
 #else
           raptor_iostream_write_string_ntriples(iostr, str, len, '"');
 #endif
-          raptor_iostream_write_byte(iostr, ')');
+          raptor_iostream_write_byte(')', iostr);
           break;
 
         case RASQAL_LITERAL_BLANK:
-          raptor_iostream_write_string(iostr, "blank(");
+          raptor_iostream_string_write("blank(", iostr);
 #ifdef RAPTOR_V2_AVAILABLE
           raptor_string_ntriples_write(l->string, l->string_len, '"', iostr);
 #else
@@ -133,7 +133,7 @@ rasqal_query_results_write_sv(raptor_iostream *iostr,
                                                 (const unsigned char*)l->string, 
                                                 l->string_len, '"');
 #endif
-          raptor_iostream_write_byte(iostr, ')');
+          raptor_iostream_write_byte(')', iostr);
           break;
 
         case RASQAL_LITERAL_STRING:
@@ -157,7 +157,7 @@ rasqal_query_results_write_sv(raptor_iostream *iostr,
             }
           }
           
-          raptor_iostream_write_byte(iostr, '"');
+          raptor_iostream_write_byte('"', iostr);
 #ifdef RAPTOR_V2_AVAILABLE
           raptor_string_ntriples_write(l->string, l->string_len, '"', iostr);
 #else
@@ -165,23 +165,23 @@ rasqal_query_results_write_sv(raptor_iostream *iostr,
                                                 (const unsigned char*)l->string,
                                                 l->string_len, '"');
 #endif
-          raptor_iostream_write_byte(iostr, '"');
+          raptor_iostream_write_byte('"', iostr);
 
           if(l->language) {
-            raptor_iostream_write_byte(iostr, '@');
-            raptor_iostream_write_string(iostr,
-                                         (const unsigned char*)l->language);
+            raptor_iostream_write_byte('@', iostr);
+            raptor_iostream_string_write((const unsigned char*)l->language,
+                                         iostr);
           }
           
           if(l->datatype) {
-            raptor_iostream_write_string(iostr, "^^uri(");
+            raptor_iostream_string_write("^^uri(", iostr);
             str = (const unsigned char*)raptor_uri_as_counted_string(l->datatype, &len);
 #ifdef RAPTOR_V2_AVAILABLE
             raptor_string_ntriples_write(str, len, '"', iostr);
 #else
             raptor_iostream_write_string_ntriples(iostr, str, len, '"');
 #endif
-            raptor_iostream_write_byte(iostr, ')');
+            raptor_iostream_write_byte(')', iostr);
           }
           
           break;
@@ -210,7 +210,7 @@ rasqal_query_results_write_sv(raptor_iostream *iostr,
     }
 
     /* End Result Row */
-    raptor_iostream_write_counted_string(iostr, nl_str, nl_str_len);
+    raptor_iostream_counted_string_write(nl_str, nl_str_len, iostr);
     
     rasqal_query_results_next(results);
   }
@@ -222,8 +222,8 @@ rasqal_query_results_write_sv(raptor_iostream *iostr,
 
 static int
 rasqal_query_results_write_csv(raptor_iostream *iostr,
-                              rasqal_query_results* results,
-                              raptor_uri *base_uri)
+                               rasqal_query_results* results,
+                               raptor_uri *base_uri)
 {
   return rasqal_query_results_write_sv(iostr, results, base_uri, "CSV", ',');
 }

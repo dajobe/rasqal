@@ -178,7 +178,7 @@ main(int argc, char *argv[])
   }
   
   rasqal_algebra_algebra_node_write(node, iostr);
-  raptor_iostream_write_byte(iostr, '\n');
+  raptor_iostream_write_byte('\n', iostr);
   raptor_free_iostream(iostr); iostr=NULL;
 
   rasqal_free_algebra_node(node); node=NULL;

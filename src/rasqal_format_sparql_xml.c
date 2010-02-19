@@ -873,8 +873,9 @@ rasqal_rowsource_sparql_xml_process(rasqal_rowsource_sparql_xml_context* con)
   while(!raptor_iostream_read_eof(con->iostr)) {
     size_t read_len;
     
-    read_len=raptor_iostream_read_bytes(con->iostr, (char*)con->buffer,
-                                        1, FILE_READ_BUF_SIZE);
+    read_len = raptor_iostream_read_bytes((char*)con->buffer, 1,
+                                          FILE_READ_BUF_SIZE,
+                                          con->iostr);
     if(read_len > 0) {
       RASQAL_DEBUG2("processing %d bytes\n", (int)read_len);
       raptor_sax2_parse_chunk(con->sax2, con->buffer, read_len, 0);
