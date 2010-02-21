@@ -1367,7 +1367,7 @@ int rasqal_query_add_update_operation(rasqal_query* query, rasqal_update_operati
 
 #define raptor_new_qname_from_namespace_uri(nstack, uri, xml_version) raptor_namespaces_qname_from_uri(nstack, uri, xml_version)
 
-#define raptor_unicode_decode_utf8_char(output, input, length) raptor_utf8_to_unicode_char(output, input, length)
+#define raptor_unicode_utf8_string_get_char(output, input, length) raptor_utf8_to_unicode_char(output, input, length)
 
 #define raptor_uri_write(uri, iostr) raptor_iostream_write_uri(iostr, uri)
 

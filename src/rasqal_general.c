@@ -712,7 +712,7 @@ rasqal_escaped_name_to_utf8_string(const unsigned char *src, size_t len,
 
     if(c > 0x7f) {
       /* just copy the UTF-8 bytes through */
-      size_t unichar_len = raptor_unicode_decode_utf8_char(NULL, (const unsigned char*)p, len+1);
+      size_t unichar_len = raptor_unicode_utf8_string_get_char(NULL, (const unsigned char*)p, len+1);
       if(unichar_len > len) {
         if(error_handler)
           error_handler(error_data, "UTF-8 encoding error at character %d (0x%02X) found.", c, c);
