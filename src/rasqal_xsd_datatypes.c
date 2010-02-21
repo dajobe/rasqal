@@ -473,13 +473,8 @@ rasqal_xsd_init(rasqal_world* world)
 
   for(i=RASQAL_LITERAL_FIRST_XSD; i < SPARQL_XSD_NAMES_COUNT; i++) {
     world->xsd_datatype_uris[i] =
-#ifdef RAPTOR_V2_AVAILABLE
       raptor_new_uri_from_uri_local_name(world->raptor_world_ptr, world->xsd_namespace_uri,
                                          (const unsigned char *)sparql_xsd_names[i]);
-#else
-      raptor_new_uri_from_uri_local_name(world->xsd_namespace_uri,
-                                         (const unsigned char *)sparql_xsd_names[i]);
-#endif
     if(!world->xsd_datatype_uris[i])
       return 1;
   }

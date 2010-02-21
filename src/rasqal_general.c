@@ -808,16 +808,9 @@ rasqal_uri_init(rasqal_world* world)
   if(!world->rdf_namespace_uri)
     goto oom;
 
-#ifdef RAPTOR_V2_AVAILABLE
   world->rdf_first_uri = raptor_new_uri_from_uri_local_name(world->raptor_world_ptr, world->rdf_namespace_uri, (const unsigned char*)"first");
   world->rdf_rest_uri = raptor_new_uri_from_uri_local_name(world->raptor_world_ptr, world->rdf_namespace_uri, (const unsigned char*)"rest");
   world->rdf_nil_uri = raptor_new_uri_from_uri_local_name(world->raptor_world_ptr, world->rdf_namespace_uri, (const unsigned char*)"nil");
-#else
-  world->rdf_first_uri = raptor_new_uri_from_uri_local_name(world->rdf_namespace_uri, (const unsigned char*)"first");
-  world->rdf_rest_uri = raptor_new_uri_from_uri_local_name(world->rdf_namespace_uri, (const unsigned char*)"rest");
-  world->rdf_nil_uri = raptor_new_uri_from_uri_local_name(world->rdf_namespace_uri, (const unsigned char*)"nil");
-#endif
-
   if(!world->rdf_first_uri || !world->rdf_rest_uri || !world->rdf_nil_uri)
     goto oom;
 

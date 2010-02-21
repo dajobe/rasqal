@@ -101,19 +101,11 @@ rasqal_features_enumerate_common(rasqal_world* world,
       
       if(uri) {
         raptor_uri *base_uri;
-#ifdef RAPTOR_V2_AVAILABLE
         base_uri = raptor_new_uri(world->raptor_world_ptr, (const unsigned char*)rasqal_feature_uri_prefix);
         if(!base_uri)
           return -1;
         *uri = raptor_new_uri_from_uri_local_name(world->raptor_world_ptr, base_uri,
                                                   (const unsigned char*)rasqal_features_list[i].name);
-#else
-        base_uri = raptor_new_uri((const unsigned char*)rasqal_feature_uri_prefix);
-        if(!base_uri)
-          return -1;
-        *uri = raptor_new_uri_from_uri_local_name(base_uri,
-                                                  (const unsigned char*)rasqal_features_list[i].name);
-#endif
         raptor_free_uri(base_uri);
       }
       if(label)
