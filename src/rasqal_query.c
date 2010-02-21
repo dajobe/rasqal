@@ -1290,11 +1290,7 @@ rasqal_query_prepare(rasqal_query* query,
     base_uri = raptor_uri_copy(base_uri);
   else {
     unsigned char *uri_string = raptor_uri_filename_to_uri_string("");
-#ifdef RAPTOR_V2_AVAILABLE
     base_uri = raptor_new_uri(query->world->raptor_world_ptr, uri_string);
-#else
-    base_uri = raptor_new_uri(uri_string);
-#endif
     if(uri_string)
       raptor_free_memory(uri_string);
   }

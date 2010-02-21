@@ -147,20 +147,12 @@ main(int argc, char **argv) {
   }
   
   uri_string=raptor_uri_filename_to_uri_string("");
-#ifdef RAPTOR_V2_AVAILABLE
   base_uri = raptor_new_uri(world->raptor_world_ptr, uri_string);
-#else
-  base_uri = raptor_new_uri(uri_string);
-#endif
   raptor_free_memory(uri_string);
 
 
   data_dir_string=raptor_uri_filename_to_uri_string(argv[1]);
-#ifdef RAPTOR_V2_AVAILABLE
   data_dir_uri = raptor_new_uri(world->raptor_world_ptr, data_dir_string);
-#else
-  data_dir_uri = raptor_new_uri(data_dir_string);
-#endif
 
   for(i=0; i < DATA_GRAPH_COUNT; i++)
 #ifdef RAPTOR_V2_AVAILABLE

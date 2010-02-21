@@ -623,19 +623,11 @@ main(int argc, char *argv[])
         if(!access((const char*)optarg, R_OK)) {
           unsigned char* source_uri_string;
           source_uri_string = raptor_uri_filename_to_uri_string((const char*)optarg);
-#ifdef RAPTOR_V2_AVAILABLE
           source_uri = raptor_new_uri(raptor_world_ptr, source_uri_string);
-#else
-          source_uri = raptor_new_uri(source_uri_string);
-#endif
           raptor_free_memory(source_uri_string);
         } else
-#ifdef RAPTOR_V2_AVAILABLE
           source_uri = raptor_new_uri(raptor_world_ptr,
                                       (const unsigned char*)optarg);
-#else
-          source_uri = raptor_new_uri((const unsigned char*)optarg);
-#endif
 
         if(!source_uri) {
           fprintf(stderr, "%s: Failed to create source URI for %s\n",
@@ -842,11 +834,7 @@ main(int argc, char *argv[])
     }
     
     if(uri_string) {
-#ifdef RAPTOR_V2_AVAILABLE
       uri = raptor_new_uri(raptor_world_ptr, uri_string);
-#else
-      uri = raptor_new_uri(uri_string);
-#endif
       if(!uri) {
         fprintf(stderr, "%s: Failed to create URI for %s\n",
                 program, uri_string);
@@ -860,11 +848,7 @@ main(int argc, char *argv[])
     if(uri)
       base_uri = raptor_uri_copy(uri);
   } else
-#ifdef RAPTOR_V2_AVAILABLE
     base_uri = raptor_new_uri(raptor_world_ptr, base_uri_string);
-#else
-    base_uri = raptor_new_uri(base_uri_string);
-#endif
   if(base_uri_string && !base_uri) {
     fprintf(stderr, "%s: Failed to create URI for %s\n",
             program, base_uri_string);

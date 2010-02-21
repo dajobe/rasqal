@@ -456,11 +456,7 @@ rasqal_xsd_init(rasqal_world* world)
 {
   int i;
 
-#ifdef RAPTOR_V2_AVAILABLE
   world->xsd_namespace_uri = raptor_new_uri(world->raptor_world_ptr, raptor_xmlschema_datatypes_namespace_uri);
-#else
-  world->xsd_namespace_uri = raptor_new_uri(raptor_xmlschema_datatypes_namespace_uri);
-#endif
   if(!world->xsd_namespace_uri)
     return 1;
 

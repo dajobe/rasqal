@@ -920,11 +920,7 @@ main(int argc, char *argv[])
   query=rasqal_new_query(world, "rdql", NULL);
 
   uri_string=raptor_uri_filename_to_uri_string(filename);
-#ifdef RAPTOR_V2_AVAILABLE
   base_uri = raptor_new_uri(world->raptor_world_ptr, uri_string);
-#else
-  base_uri = raptor_new_uri(uri_string);
-#endif
   
   rc=rasqal_query_prepare(query, (const unsigned char*)query_string, base_uri);
 

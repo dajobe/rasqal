@@ -98,7 +98,7 @@ ordinal_as_uri(rasqal_world* world, int ordinal)
     return NULL;
   
   sprintf((char*)buffer, "%s_%d", raptor_rdf_namespace_uri, ordinal);
-  uri = raptor_new_uri(buffer);
+  uri = raptor_new_uri(world->raptor_world_ptr, buffer);
   RASQAL_FREE(cstring, buffer);
 
   return uri;
@@ -229,7 +229,7 @@ raptor_statement_as_rasqal_triple(rasqal_world* world,
       const unsigned char* dt_uri_string;
 
       dt_uri_string = (const unsigned char*)raptor_xml_literal_datatype_uri_string;
-      uri = raptor_new_uri(dt_uri_string);
+      uri = raptor_new_uri(world->raptor_world_ptr, dt_uri_string);
     } else if(statement->object_literal_datatype) {
       raptor_uri *dt_uri = (raptor_uri*)statement->object_literal_datatype;
 

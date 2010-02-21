@@ -800,11 +800,7 @@ rasqal_escaped_name_to_utf8_string(const unsigned char *src, size_t len,
 int
 rasqal_uri_init(rasqal_world* world) 
 {
-#ifdef RAPTOR_V2_AVAILABLE
   world->rdf_namespace_uri = raptor_new_uri(world->raptor_world_ptr, raptor_rdf_namespace_uri);
-#else
-  world->rdf_namespace_uri = raptor_new_uri(raptor_rdf_namespace_uri);
-#endif
   if(!world->rdf_namespace_uri)
     goto oom;
 

@@ -743,11 +743,7 @@ rasqal_sparql_xml_sax2_end_element_handler(void *user_data,
         lvalue=(unsigned char*)RASQAL_MALLOC(cstring, con->value_len+1);
         strncpy((char*)lvalue, con->value, con->value_len+1);
         if(con->datatype)
-#ifdef RAPTOR_V2_AVAILABLE
           datatype_uri = raptor_new_uri(con->world->raptor_world_ptr, (const unsigned char*)con->datatype);
-#else
-          datatype_uri = raptor_new_uri((const unsigned char*)con->datatype);
-#endif
         if(con->language) {
           language_str=(char*)RASQAL_MALLOC(cstring, strlen(con->language)+1);
           strcpy(language_str, con->language);
@@ -779,11 +775,7 @@ rasqal_sparql_xml_sax2_end_element_handler(void *user_data,
       if(1) {
         raptor_uri* uri;
         rasqal_literal* l;
-#ifdef RAPTOR_V2_AVAILABLE
         uri = raptor_new_uri(con->world->raptor_world_ptr, (const unsigned char*)con->value);
-#else
-        uri = raptor_new_uri((const unsigned char*)con->value);
-#endif
         l = rasqal_new_uri_literal(con->world, uri);
         rasqal_row_set_value_at(con->row, con->result_offset, l);
         rasqal_free_literal(l);

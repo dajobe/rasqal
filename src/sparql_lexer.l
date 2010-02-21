@@ -839,11 +839,7 @@ sparql_copy_string_token(rasqal_query* rq, YYSTYPE* lval,
     /* dt can be a URI or qname */
     if(*dt == '<') {
       dt[strlen((const char*)dt)-1] = '\0';
-#ifdef RAPTOR_V2_AVAILABLE
       dt_uri = raptor_new_uri(rq->world->raptor_world_ptr, dt+1);
-#else
-      dt_uri = raptor_new_uri(dt+1);
-#endif
       if(!dt_uri) {
         if(language)
           RASQAL_FREE(cstring, language);
@@ -1653,11 +1649,7 @@ main(int argc, char *argv[])
   rq.locator.column = -1;
 
   uri_string = raptor_uri_filename_to_uri_string(filename);
-#ifdef RAPTOR_V2_AVAILABLE
   rq.base_uri = raptor_new_uri(world->raptor_world_ptr, uri_string);
-#else
-  rq.base_uri = raptor_new_uri(uri_string);
-#endif
   raptor_free_memory((void*)uri_string);
 
   while(1) {

@@ -137,12 +137,7 @@ main(int argc, char *argv[])
   
 
   query_file=argv[1];
-#ifdef RAPTOR_V2_AVAILABLE
   base_uri = raptor_new_uri(world->raptor_world_ptr, (const unsigned char*)argv[2]);
-#else
-  base_uri = raptor_new_uri((const unsigned char*)argv[2]);
-#endif
-
   query=rasqal_new_query(world, query_language_name, NULL);
   if(!query) {
     fprintf(stderr, "%s: creating query in language %s FAILED\n", program,

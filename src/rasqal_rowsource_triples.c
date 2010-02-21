@@ -573,11 +573,7 @@ main(int argc, char *argv[])
   raptor_free_memory(data_string);
   
   uri_string = raptor_uri_filename_to_uri_string("");
-#ifdef RAPTOR_V2_AVAILABLE
   base_uri = raptor_new_uri(world->raptor_world_ptr, uri_string);
-#else
-  base_uri = raptor_new_uri(uri_string);
-#endif
   raptor_free_memory(uri_string);
 
   query = rasqal_new_query(world, query_language_name, NULL);
@@ -641,13 +637,8 @@ main(int argc, char *argv[])
     fputc('\n', stderr);
   #endif
 
-#ifdef RAPTOR_V2_AVAILABLE
     s_uri = raptor_new_uri(world->raptor_world_ptr, SUBJECT_URI_STRING);
     p_uri = raptor_new_uri(world->raptor_world_ptr, PREDICATE_URI_STRING);
-#else
-    s_uri = raptor_new_uri(SUBJECT_URI_STRING);
-    p_uri = raptor_new_uri(PREDICATE_URI_STRING);
-#endif
     
     s = row->values[0];
     if(!s ||
