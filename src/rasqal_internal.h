@@ -1371,6 +1371,8 @@ int rasqal_query_add_update_operation(rasqal_query* query, rasqal_update_operati
 
 #define raptor_uri_write(uri, iostr) raptor_iostream_write_uri(iostr, uri)
 
+#define RAPTOR_LOG_LEVEL_WARN RAPTOR_LOG_LEVEL_WARNING
+
 #endif /* !RAPTOR_V2_AVAILABLE */
 
   

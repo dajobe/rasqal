@@ -390,13 +390,8 @@ rasqal_query_set_warning_handler(rasqal_query* query, void *user_data,
 
   error_handlers = &query->world->error_handlers;
   
-#ifdef RAPTOR_V2_AVAILABLE
   error_handlers->handlers[RAPTOR_LOG_LEVEL_WARN].user_data = user_data;
   error_handlers->handlers[RAPTOR_LOG_LEVEL_WARN].handler  =handler;
-#else
-  error_handlers->handlers[RAPTOR_LOG_LEVEL_WARNING].user_data = user_data;
-  error_handlers->handlers[RAPTOR_LOG_LEVEL_WARNING].handler  =handler;
-#endif
 }
 
 

@@ -823,11 +823,7 @@ rdql_syntax_warning(rasqal_query *rq, const char *message, ...)
 
   va_start(arguments, message);
   rasqal_log_error_varargs(rq->world,
-#ifdef RAPTOR_V2_AVAILABLE
                            RAPTOR_LOG_LEVEL_WARN,
-#else
-                           RAPTOR_LOG_LEVEL_WARNING,
-#endif
                            &rq->locator,
                            message, arguments);
   va_end(arguments);
