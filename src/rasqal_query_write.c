@@ -96,11 +96,7 @@ rasqal_query_write_sparql_uri(sparql_writer_context *wc,
     string = raptor_uri_as_counted_string(uri, &len);
 
   raptor_iostream_write_byte('<', iostr);
-#ifdef RAPTOR_V2_AVAILABLE
   raptor_string_ntriples_write(string, len, '>', iostr);
-#else
-  raptor_iostream_write_string_ntriples(iostr, string, len, '>');
-#endif
   raptor_iostream_write_byte('>', iostr);
 
   if(wc->base_uri)
@@ -127,11 +123,7 @@ rasqal_query_write_sparql_literal(sparql_writer_context *wc,
       break;
     case RASQAL_LITERAL_STRING:
       raptor_iostream_write_byte('"', iostr);
-#ifdef RAPTOR_V2_AVAILABLE
       raptor_string_ntriples_write(l->string, l->string_len, '"', iostr);
-#else
-      raptor_iostream_write_string_ntriples(iostr, l->string, l->string_len, '"');
-#endif
       raptor_iostream_write_byte('"', iostr);
       if(l->language) {
         raptor_iostream_write_byte('@', iostr);
@@ -166,11 +158,7 @@ rasqal_query_write_sparql_literal(sparql_writer_context *wc,
         raptor_uri* dt_uri;
         
         raptor_iostream_write_byte('"', iostr);
-#ifdef RAPTOR_V2_AVAILABLE
         raptor_string_ntriples_write(l->string, l->string_len, '"', iostr);
-#else
-        raptor_iostream_write_string_ntriples(iostr, l->string, l->string_len, '"');
-#endif
         raptor_iostream_counted_string_write("\"^^", 3, iostr);
         if(l->type == RASQAL_LITERAL_UDT) 
           dt_uri = l->datatype;

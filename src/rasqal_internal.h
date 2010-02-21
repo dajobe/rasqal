@@ -1365,6 +1365,8 @@ int rasqal_query_add_update_operation(rasqal_query* query, rasqal_update_operati
 #define raptor_iostream_decimal_write(decimal, iostr) raptor_iostream_write_decimal(iostr, decimal)
 #define raptor_iostream_read_bytes(ptr, size, nmemb, iostr) raptor_iostream_read_bytes(iostr, ptr, size, nmemb)
 
+#define raptor_string_ntriples_write(str, len, delim, iostr) raptor_iostream_write_string_ntriples(iostr, str, len, delim)
+
 #define raptor_new_qname_from_namespace_uri(nstack, uri, xml_version) raptor_namespaces_qname_from_uri(nstack, uri, xml_version)
 
 #define raptor_unicode_utf8_string_get_char(output, input, length) raptor_utf8_to_unicode_char(output, input, length)

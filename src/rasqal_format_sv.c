@@ -116,23 +116,13 @@ rasqal_query_results_write_sv(raptor_iostream *iostr,
         case RASQAL_LITERAL_URI:
           raptor_iostream_string_write("uri(", iostr);
           str = (const unsigned char*)raptor_uri_as_counted_string(l->value.uri, &len);
-#ifdef RAPTOR_V2_AVAILABLE
           raptor_string_ntriples_write(str, len, '"', iostr);
-#else
-          raptor_iostream_write_string_ntriples(iostr, str, len, '"');
-#endif
           raptor_iostream_write_byte(')', iostr);
           break;
 
         case RASQAL_LITERAL_BLANK:
           raptor_iostream_string_write("blank(", iostr);
-#ifdef RAPTOR_V2_AVAILABLE
           raptor_string_ntriples_write(l->string, l->string_len, '"', iostr);
-#else
-          raptor_iostream_write_string_ntriples(iostr,
-                                                (const unsigned char*)l->string, 
-                                                l->string_len, '"');
-#endif
           raptor_iostream_write_byte(')', iostr);
           break;
 
@@ -146,25 +136,13 @@ rasqal_query_results_write_sv(raptor_iostream *iostr,
               /* write integer, float, double and decimal XSD typed
                * data without quotes, datatype or language 
                */
-#ifdef RAPTOR_V2_AVAILABLE
               raptor_string_ntriples_write(l->string, l->string_len, '\0', iostr);
-#else
-              raptor_iostream_write_string_ntriples(iostr,
-                                                    (const unsigned char*)l->string,
-                                                    l->string_len, '\0');
-#endif
               break;
             }
           }
           
           raptor_iostream_write_byte('"', iostr);
-#ifdef RAPTOR_V2_AVAILABLE
           raptor_string_ntriples_write(l->string, l->string_len, '"', iostr);
-#else
-          raptor_iostream_write_string_ntriples(iostr,
-                                                (const unsigned char*)l->string,
-                                                l->string_len, '"');
-#endif
           raptor_iostream_write_byte('"', iostr);
 
           if(l->language) {
@@ -176,11 +154,7 @@ rasqal_query_results_write_sv(raptor_iostream *iostr,
           if(l->datatype) {
             raptor_iostream_string_write("^^uri(", iostr);
             str = (const unsigned char*)raptor_uri_as_counted_string(l->datatype, &len);
-#ifdef RAPTOR_V2_AVAILABLE
             raptor_string_ntriples_write(str, len, '"', iostr);
-#else
-            raptor_iostream_write_string_ntriples(iostr, str, len, '"');
-#endif
             raptor_iostream_write_byte(')', iostr);
           }
           
