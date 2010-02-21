@@ -1056,11 +1056,7 @@ rasqal_literal_print_type(rasqal_literal* l, FILE* fh)
     return;
   }
 
-#ifdef RAPTOR_V2_AVAILABLE
   iostr = raptor_new_iostream_to_file_handle(l->world->raptor_world_ptr, fh);
-#else
-  iostr = raptor_new_iostream_to_file_handle(fh);
-#endif
   if(!iostr)
     return;
 
@@ -1177,14 +1173,8 @@ rasqal_literal_print(rasqal_literal* l, FILE* fh)
     return 0;
   }
 
-#ifdef RAPTOR_V2_AVAILABLE
   iostr = raptor_new_iostream_to_file_handle(l->world->raptor_world_ptr, fh);
-#else
-  iostr = raptor_new_iostream_to_file_handle(fh);
-#endif
-
   rasqal_literal_write(l, iostr);
-
   raptor_free_iostream(iostr);
 
   return 0;

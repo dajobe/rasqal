@@ -1044,11 +1044,7 @@ main(int argc, char *argv[])
     case QUERY_OUTPUT_SPARQL:
       if(1) {
         raptor_iostream* iostr;
-#ifdef RAPTOR_V2_AVAILABLE
         iostr = raptor_new_iostream_to_file_handle(raptor_world_ptr, stdout);
-#else
-        iostr = raptor_new_iostream_to_file_handle(stdout);
-#endif
         rasqal_query_write(iostr, rq, NULL, base_uri);
         raptor_free_iostream(iostr);
       }
@@ -1079,11 +1075,7 @@ main(int argc, char *argv[])
 
   if(results_formatter != NULL) {
     raptor_iostream *iostr;
-#ifdef RAPTOR_V2_AVAILABLE
     iostr = raptor_new_iostream_to_file_handle(raptor_world_ptr, stdout);
-#else
-    iostr = raptor_new_iostream_to_file_handle(stdout);
-#endif
     if(!iostr) {
       fprintf(stderr, "%s: Creating output iostream failed\n", program);
       rc = 1;

@@ -1358,6 +1358,7 @@ int rasqal_query_add_update_operation(rasqal_query* query, rasqal_update_operati
 /* use preprocessor macros to map raptor2 calls to raptor1 if raptor2 is not available */
 #ifndef RAPTOR_V2_AVAILABLE
 
+#define raptor_new_iostream_to_file_handle(world, fh) raptor_new_iostream_to_file_handle(fh)
 #define raptor_iostream_write_bytes(ptr, size, nmemb, iostr) raptor_iostream_write_bytes(iostr, ptr, size, nmemb)
 #define raptor_iostream_write_byte(byte, iostr) raptor_iostream_write_byte(iostr, byte)
 #define raptor_iostream_counted_string_write(string, len, iostr) raptor_iostream_write_counted_string(iostr, string, len)

@@ -167,11 +167,7 @@ main(int argc, char *argv[])
     FAIL;
   }
   
-#ifdef RAPTOR_V2_AVAILABLE
   iostr = raptor_new_iostream_to_file_handle(world->raptor_world_ptr, stdout);
-#else
-  iostr = raptor_new_iostream_to_file_handle(stdout);
-#endif
   if(!iostr) {
     fprintf(stderr, "%s: Failed to make iostream\n", program);
     FAIL;

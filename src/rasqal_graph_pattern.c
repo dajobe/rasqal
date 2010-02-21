@@ -572,12 +572,7 @@ rasqal_graph_pattern_print(rasqal_graph_pattern* gp, FILE* fh)
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(gp, rasqal_graph_pattern, 1);
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(fh, FILE*, 1);
 
-#ifdef RAPTOR_V2_AVAILABLE
   iostr = raptor_new_iostream_to_file_handle(gp->query->world->raptor_world_ptr, fh);
-#else
-  iostr = raptor_new_iostream_to_file_handle(fh);
-#endif
-
   rasqal_graph_pattern_write_internal(gp, iostr, DO_INDENTING);
   raptor_free_iostream(iostr);
 

@@ -663,11 +663,7 @@ rasqal_rowsource_print(rasqal_rowsource *rowsource, FILE* fh)
 {
   raptor_iostream *iostr;
 
-#ifdef RAPTOR_V2_AVAILABLE
   iostr = raptor_new_iostream_to_file_handle(rowsource->world->raptor_world_ptr, fh);
-#else
-  iostr = raptor_new_iostream_to_file_handle(fh);
-#endif
   rasqal_rowsource_write(rowsource, iostr);
   raptor_free_iostream(iostr);
 }
