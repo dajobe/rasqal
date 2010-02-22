@@ -1370,7 +1370,8 @@ int rasqal_query_add_update_operation(rasqal_query* query, rasqal_update_operati
 
 #define raptor_new_qname_from_namespace_uri(nstack, uri, xml_version) raptor_namespaces_qname_from_uri(nstack, uri, xml_version)
 
-#define raptor_unicode_utf8_string_get_char(output, input, length) raptor_utf8_to_unicode_char(output, input, length)
+#define raptor_unicode_utf8_string_get_char(input, length, output) raptor_utf8_to_unicode_char(output, input, length)
+#define raptor_unicode_utf8_string_put_char(char, output, length) raptor_unicode_char_to_utf8(char, output)
 
 #define raptor_new_uri(world, uri_string) raptor_new_uri(uri_string)
 #define raptor_new_uri_from_uri_local_name(world, base_uri, name) raptor_new_uri_from_uri_local_name(base_uri, name)

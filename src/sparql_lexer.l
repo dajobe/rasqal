@@ -780,7 +780,7 @@ sparql_copy_string_token(rasqal_query* rq, YYSTYPE* lval,
           return 1;
         }
           
-        d += raptor_unicode_char_to_utf8(unichar, d);
+        d += raptor_unicode_utf8_string_put_char(unichar, d, len-(d-string));
       } else {
         /* Ignore \x where x isn't the one of: \n \r \t \\ (delim) \u \U */
         sparql_syntax_warning(rq, "Unknown SPARQL string escape \\%c in \"%s\"", c, text);
