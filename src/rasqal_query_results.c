@@ -595,11 +595,39 @@ rasqal_query_results_ensure_have_row_internal(rasqal_query_results* query_result
             query_results->execution_factory->get_row) {
     rasqal_engine_error execution_error = RASQAL_ENGINE_OK;
 
-    query_results->row = query_results->execution_factory->get_row(query_results->execution_data, &execution_error);
-    if(execution_error == RASQAL_ENGINE_FAILED)
-      query_results->failed = 1;
-    else if(execution_error == RASQAL_ENGINE_OK)
+    /* handle limit/offset for incremental get_row() */
+    while(1) {
+      query_results->row = query_results->execution_factory->get_row(query_results->execution_data, &execution_error);
+      if(execution_error == RASQAL_ENGINE_FAILED) {
+        query_results->failed = 1;
+        break;
+      }
+
+      if(execution_error != RASQAL_ENGINE_OK)
+        break;
+
       query_results->result_count++;
+      
+      /* finished if beyond result range */
+      if(rasqal_query_results_check_limit_offset(query_results) > 0) {
+        query_results->result_count--;
+        /* empty row to trigger finished */
+        rasqal_free_row(query_results->row); query_results->row = NULL;
+        break;
+      }
+      
+      /* continue if before start of result range */
+      if(rasqal_query_results_check_limit_offset(query_results) < 0) {
+        /* empty row because continuing */
+        rasqal_free_row(query_results->row); query_results->row = NULL;
+        continue;
+      }
+
+      /* got a row */
+      break;
+
+    } /* end while */
+    
   }
   
   if(query_results->row) {
