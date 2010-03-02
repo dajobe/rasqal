@@ -308,6 +308,7 @@ rasqal_query_get_label(rasqal_query* query)
 }
 
 
+#ifndef RAPTOR_V2_AVAILABLE
 /**
  * rasqal_query_set_fatal_error_handler:
  * @query: the query
@@ -393,6 +394,7 @@ rasqal_query_set_warning_handler(rasqal_query* query, void *user_data,
   error_handlers->handlers[RAPTOR_LOG_LEVEL_WARN].user_data = user_data;
   error_handlers->handlers[RAPTOR_LOG_LEVEL_WARN].handler  =handler;
 }
+#endif /* ifndef RAPTOR_V2_AVAILABLE */
 
 
 /**

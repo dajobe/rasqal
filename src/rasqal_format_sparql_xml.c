@@ -514,7 +514,9 @@ typedef struct
   raptor_sax2* sax2;
   raptor_locator locator;
   int depth; /* element depth */
+#ifndef RAPTOR_V2_AVAILABLE
   raptor_error_handlers error_handlers; /* SAX2 error handler */
+#endif
 
   /* SPARQL XML Results parsing */
   rasqal_sparql_xml_read_state state; /* state */
@@ -968,12 +970,10 @@ rasqal_query_results_get_rowsource_sparql_xml(rasqal_world *world,
 
   con->locator.uri=base_uri;
 
-  con->error_handlers.locator=&con->locator;
 #ifdef RAPTOR_V2_AVAILABLE
-  raptor_error_handlers_init(world->raptor_world_ptr, &con->error_handlers);
-
   con->sax2 = raptor_new_sax2(world->raptor_world_ptr, &con->locator, con);
 #else
+  con->error_handlers.locator = &con->locator;
   raptor_error_handlers_init(&con->error_handlers);
 
   con->sax2 = raptor_new_sax2(con, &con->error_handlers);

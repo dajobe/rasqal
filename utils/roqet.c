@@ -138,20 +138,32 @@ static const char *title_format_string = "Rasqal RDF query utility %s\n";
 #define MAX_QUERY_ERROR_REPORT_LEN 512
 
 
+#ifdef RAPTOR_V2_AVAILABLE
+static void
+roqet_log_handler(void* user_data, raptor_log_message *message)
+{
+  /* Only interested in errors and more severe */
+  if(message->level < RAPTOR_LOG_LEVEL_ERROR)
+    return;
+
+  fprintf(stderr, "%s: Error - ", program);
+  raptor_locator_print(message->locator, stderr);
+  fprintf(stderr, " - %s\n", message->text);
+
+  error_count++;
+}
+#else
 static void
 roqet_error_handler(void *user_data, 
                     raptor_locator* locator, const char *message) 
 {
   fprintf(stderr, "%s: Error - ", program);
-#ifdef RAPTOR_V2_AVAILABLE
-  raptor_locator_print(locator, stderr);
-#else
   raptor_print_locator(stderr, locator);
-#endif
   fprintf(stderr, " - %s\n", message);
 
   error_count++;
 }
+#endif
 
 #define SPACES_LENGTH 80
 static const char spaces[SPACES_LENGTH + 1] = "                                                                                ";
@@ -956,8 +968,12 @@ main(int argc, char *argv[])
   
   rq = rasqal_new_query(world, (const char*)ql_name,
                         (const unsigned char*)ql_uri);
+#ifdef RAPTOR_V2_AVAILABLE
+  rasqal_world_set_log_handler(world, world, roqet_log_handler);
+#else
   rasqal_query_set_error_handler(rq, world, roqet_error_handler);
   rasqal_query_set_fatal_error_handler(rq, world, roqet_error_handler);
+#endif
 
   if(query_feature_value >= 0)
     rasqal_query_set_feature(rq, query_feature, query_feature_value);

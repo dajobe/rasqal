@@ -864,7 +864,6 @@ int rasqal_query_language_register_factory(rasqal_world*, const char* name, cons
 rasqal_query_language_factory* rasqal_get_query_language_factory (rasqal_world*, const char* name, const unsigned char* uri);
 void rasqal_log_error_simple(rasqal_world* world, raptor_log_level level, raptor_locator* locator, const char* message, ...) RASQAL_PRINTF_FORMAT(4, 5);
 void rasqal_log_error_varargs(rasqal_world* world, raptor_log_level level, raptor_locator* locator, const char* message, va_list arguments) RASQAL_PRINTF_FORMAT(4, 0);
-void rasqal_log_error(raptor_log_level level, raptor_message_handler handler, void* handler_data, raptor_locator* locator, const char* message);
 void rasqal_query_simple_error(void* query, const char *message, ...) RASQAL_PRINTF_FORMAT(2, 3);
 
 const char* rasqal_basename(const char* name);
@@ -1091,8 +1090,14 @@ struct rasqal_world_s {
   /* should rasqal free the raptor_world */
   int raptor_world_allocated_here;
 
+#ifdef RAPTOR_V2_AVAILABLE
+  /* log handler */
+  raptor_log_handler log_handler;
+  void *log_handler_user_data;
+#else
   /* error handlers structure */
   raptor_error_handlers error_handlers;
+#endif
 
   /* linked list of query languages */
   rasqal_query_language_factory *query_languages;

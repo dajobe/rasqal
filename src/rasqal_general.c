@@ -163,11 +163,13 @@ rasqal_world_open(rasqal_world *world)
   if(rc)
     return rc;
 
+#ifndef RAPTOR_V2_AVAILABLE
 /* FIXME */
 #ifndef RAPTOR_ERROR_HANDLER_MAGIC
 #define RAPTOR_ERROR_HANDLER_MAGIC 0xD00DB1FF
 #endif
-  world->error_handlers.magic=RAPTOR_ERROR_HANDLER_MAGIC;
+  world->error_handlers.magic = RAPTOR_ERROR_HANDLER_MAGIC;
+#endif
 
   /* last one declared is the default - RDQL */
 
@@ -287,6 +289,25 @@ rasqal_world_get_raptor(rasqal_world* world)
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
   return world->raptor_world_ptr;
 }
+
+
+#ifdef RAPTOR_V2_AVAILABLE
+/**
+ * rasqal_world_set_log_handler:
+ * @world: rasqal_world object
+ * @user_data: user data for log handler function
+ * @handler: log handler function
+ *
+ * Set the log handler for this rasqal_world.
+ **/
+void
+rasqal_world_set_log_handler(rasqal_world* world, void *user_data, raptor_log_handler handler)
+{
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN(world, rasqal_world);
+  world->log_handler = handler;
+  world->log_handler_user_data = user_data;
+}
+#endif
 
 
 /* helper functions */
@@ -581,8 +602,14 @@ rasqal_log_error_varargs(rasqal_world* world, raptor_log_level level,
 {
   char *buffer;
   size_t length;
-  raptor_message_handler handler=world->error_handlers.handlers[level].handler;
-  void* handler_data=world->error_handlers.handlers[level].user_data;
+#ifdef RAPTOR_V2_AVAILABLE
+  raptor_log_message logmsg;
+  raptor_log_handler handler = world->log_handler;
+  void* handler_data = world->log_handler_user_data;
+#else
+  raptor_message_handler handler = world->error_handlers.handlers[level].handler;
+  void* handler_data = world->error_handlers.handlers[level].user_data;
+#endif
   
   if(level == RAPTOR_LOG_LEVEL_NONE)
     return;
@@ -609,12 +636,22 @@ rasqal_log_error_varargs(rasqal_world* world, raptor_log_level level,
   if(buffer[length-1]=='\n')
     buffer[length-1]='\0';
   
-  if(handler)
+  if(handler) {
     /* This is the single place in rasqal that the user error handler
      * functions are called.
      */
+#ifdef RAPTOR_V2_AVAILABLE
+    /* raptor2 raptor_log_handler */
+    logmsg.code = -1; /* no information to put as code */
+    logmsg.level = level;
+    logmsg.locator = locator;
+    logmsg.text = buffer;
+    handler(handler_data, &logmsg);
+#else
+    /* raptor1 raptor_message_handler */
     handler(handler_data, locator, buffer);
-  else {
+#endif
+  } else {
     if(locator) {
 #ifdef RAPTOR_V2_AVAILABLE
       raptor_locator_print(locator, stderr);

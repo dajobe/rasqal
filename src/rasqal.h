@@ -819,6 +819,11 @@ void rasqal_world_set_raptor(rasqal_world* world, raptor_world* raptor_world_ptr
 RASQAL_API
 raptor_world *rasqal_world_get_raptor(rasqal_world* world);
 
+#ifdef RAPTOR_V2_AVAILABLE
+RASQAL_API
+void rasqal_world_set_log_handler(rasqal_world* world, void *user_data, raptor_log_handler handler);
+#endif
+
 /* Features */
 RASQAL_API
 int rasqal_features_enumerate(rasqal_world* world, const rasqal_feature feature, const char **name, raptor_uri **uri, const char **label);
@@ -851,12 +856,17 @@ RASQAL_API
 const char* rasqal_query_get_name(rasqal_query* query);
 RASQAL_API
 const char* rasqal_query_get_label(rasqal_query* query);
+
+#ifndef RAPTOR_V2_AVAILABLE
+/* on raptor2: use rasqal_world_set_log_handler() instead of these */
 RASQAL_API
 void rasqal_query_set_fatal_error_handler(rasqal_query* query, void *user_data, raptor_message_handler handler);
 RASQAL_API
 void rasqal_query_set_error_handler(rasqal_query* query, void *user_data, raptor_message_handler handler);
 RASQAL_API
 void rasqal_query_set_warning_handler(rasqal_query* query, void *user_data, raptor_message_handler handler);
+#endif
+
 RASQAL_API
 int rasqal_query_set_feature(rasqal_query* query, rasqal_feature feature, int value);
 RASQAL_API
