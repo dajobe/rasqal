@@ -1,0 +1,5 @@
+SELECT ?x
+WHERE {
+  ?x <http://example.org/#val> ?y .
+  FILTER( ?y > 40 )
+}
