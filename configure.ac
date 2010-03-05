@@ -23,7 +23,7 @@ dnl
 
 
 AC_PREREQ(2.62)
-AC_INIT(Rasqal RDF Query Library, 0.9.19, http://bugs.librdf.org/, rasqal)
+AC_INIT(Rasqal RDF Query Library, 0.9.20, http://bugs.librdf.org/, rasqal)
 AC_CONFIG_SRCDIR([src/rasqal_general.c])
 AM_CONFIG_HEADER([src/rasqal_config.h])
 AC_CONFIG_AUX_DIR(build)

@@ -39,14 +39,14 @@ extern "C" {
  *
  * Format: major * 10000 + minor * 100 + release
  */
-#define RASQAL_VERSION 919
+#define RASQAL_VERSION 920
 
 /**
  * RASQAL_VERSION_STRING:
  *
  * Rasqal library version string
  */
-#define RASQAL_VERSION_STRING "0.9.19"
+#define RASQAL_VERSION_STRING "0.9.20"
 
 /**
  * RASQAL_VERSION_MAJOR:
@@ -67,7 +67,7 @@ extern "C" {
  *
  * Rasqal library release
  */
-#define RASQAL_VERSION_RELEASE 19
+#define RASQAL_VERSION_RELEASE 20
 
 
 /**
