@@ -514,9 +514,12 @@ rasqal_xsd_datatype_uri_to_type(rasqal_world* world, raptor_uri* uri)
   if(!uri || !world->xsd_datatype_uris)
     return native_type;
   
-  for(i = (int)RASQAL_LITERAL_FIRST_XSD; i <= (int)RASQAL_LITERAL_LAST_XSD; i++) {
+  for(i = (int)RASQAL_LITERAL_FIRST_XSD; i <= (int)XSD_INTEGER_DERIVED_LAST; i++) {
     if(raptor_uri_equals(uri, world->xsd_datatype_uris[i])) {
-      native_type = (rasqal_literal_type)i;
+      if(i >= XSD_INTEGER_DERIVED_FIRST)
+        native_type = RASQAL_LITERAL_INTEGER_SUBTYPE;
+      else
+        native_type = (rasqal_literal_type)i;
       break;
     }
   }
@@ -577,7 +580,8 @@ rasqal_xsd_is_datatype_uri(rasqal_world* world, raptor_uri* uri)
 int
 rasqal_xsd_datatype_is_numeric(rasqal_literal_type type)
 {
-  return (type >= RASQAL_LITERAL_BOOLEAN && type <= RASQAL_LITERAL_DECIMAL);
+  return ((type >= RASQAL_LITERAL_BOOLEAN && type <= RASQAL_LITERAL_DECIMAL) ||
+          (type == RASQAL_LITERAL_INTEGER_SUBTYPE));
 }
 
 
@@ -602,12 +606,15 @@ static const rasqal_literal_type parent_xsd_type[RASQAL_LITERAL_LAST + 1] =
   /*   RASQAL_LITERAL_UDT      */  RASQAL_LITERAL_UNKNOWN,
   /*   RASQAL_LITERAL_PATTERN  */  RASQAL_LITERAL_UNKNOWN,
   /*   RASQAL_LITERAL_QNAME    */  RASQAL_LITERAL_UNKNOWN,
-  /*   RASQAL_LITERAL_VARIABLE */  RASQAL_LITERAL_UNKNOWN
+  /*   RASQAL_LITERAL_VARIABLE */  RASQAL_LITERAL_UNKNOWN,
 };
 
 rasqal_literal_type
 rasqal_xsd_datatype_parent_type(rasqal_literal_type type)
 {
+  if(type == RASQAL_LITERAL_INTEGER_SUBTYPE)
+    return RASQAL_LITERAL_INTEGER;
+  
   if(type >= RASQAL_LITERAL_FIRST_XSD && type <= RASQAL_LITERAL_LAST_XSD)
     return parent_xsd_type[type];
   return RASQAL_LITERAL_UNKNOWN;

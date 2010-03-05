@@ -1071,6 +1071,7 @@ rasqal_query_results_get_triple(rasqal_query_results* query_results)
       case RASQAL_LITERAL_DECIMAL:
       case RASQAL_LITERAL_DATETIME:
       case RASQAL_LITERAL_UDT:
+      case RASQAL_LITERAL_INTEGER_SUBTYPE:
         /* QNames should be gone by the time expression eval happens
          * Everything else is removed by rasqal_literal_as_node() above. 
          */
@@ -1132,6 +1133,7 @@ rasqal_query_results_get_triple(rasqal_query_results* query_results)
       case RASQAL_LITERAL_DECIMAL:
       case RASQAL_LITERAL_DATETIME:
       case RASQAL_LITERAL_UDT:
+      case RASQAL_LITERAL_INTEGER_SUBTYPE:
         /* QNames should be gone by the time expression eval happens
          * Everything else is removed by rasqal_literal_as_node() above. 
          */
@@ -1243,6 +1245,7 @@ rasqal_query_results_get_triple(rasqal_query_results* query_results)
       case RASQAL_LITERAL_DECIMAL:
       case RASQAL_LITERAL_DATETIME:
       case RASQAL_LITERAL_UDT:
+      case RASQAL_LITERAL_INTEGER_SUBTYPE:
         /* QNames should be gone by the time expression eval happens
          * Everything else is removed by rasqal_literal_as_node() above. 
          */

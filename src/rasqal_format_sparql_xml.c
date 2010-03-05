@@ -396,6 +396,7 @@ rasqal_query_results_write_sparql_xml(raptor_iostream *iostr,
         case RASQAL_LITERAL_DECIMAL:
         case RASQAL_LITERAL_DATETIME:
         case RASQAL_LITERAL_UDT:
+        case RASQAL_LITERAL_INTEGER_SUBTYPE:
 
         case RASQAL_LITERAL_UNKNOWN:
         default:

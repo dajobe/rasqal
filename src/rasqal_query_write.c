@@ -154,6 +154,7 @@ rasqal_query_write_sparql_literal(sparql_writer_context *wc,
     case RASQAL_LITERAL_DATETIME:
     case RASQAL_LITERAL_XSD_STRING:
     case RASQAL_LITERAL_UDT:
+    case RASQAL_LITERAL_INTEGER_SUBTYPE:
       if(1) {
         raptor_uri* dt_uri;
         
