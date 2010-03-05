@@ -7,6 +7,15 @@
     rdfs:comment "Bug test cases" ;
     mf:entries
     (
+     [  mf:name    "352" ;
+        rdfs:comment
+            "CONSTRUCT with LIMIT" ;
+        mf:action
+            [ qt:query  <352.rq> ;
+              qt:data   <352.ttl> ] ;
+        mf:result  <352-result.ttl>
+     ]
+
      [  mf:name    "354" ;
         rdfs:comment
             "Comparing xsd:int to xsd:integer" ;
@@ -14,7 +23,7 @@
             [ qt:query  <354.rq> ;
               qt:data   <354.nt> ] ;
         mf:result  <354-result.ttl>
-      ]
+     ]
 
     # End of tests
    ).

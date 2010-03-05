@@ -23,15 +23,16 @@ MANIFEST_FILES= \
 manifest.ttl
 
 BUG_DATA_FILES= \
-354.nt
+352.ttl 354.nt
 
 SPARQL_TEST_FILES= \
-354.rq
+352.rq 354.rq
 
 SPARQL_TEST_NAMES= \
-354
+352 354
 
 SPARQL_RESULT_FILES= \
+352-result.ttl \
 354-result.ttl
 
 EXTRA_DIST= \
