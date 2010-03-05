@@ -52,6 +52,16 @@ their names, labels and URI.
 @Returns: 
 
 
+<!-- ##### FUNCTION rasqal_world_set_log_handler ##### -->
+<para>
+
+</para>
+
+@world: 
+@user_data: 
+@handler: 
+
+
 <!-- ##### FUNCTION rasqal_world_get_raptor ##### -->
 <para>
 

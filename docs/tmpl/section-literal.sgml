@@ -47,6 +47,7 @@ boolean, double, floating, integer, regex pattern and variables.
 @RASQAL_LITERAL_PATTERN: 
 @RASQAL_LITERAL_QNAME: 
 @RASQAL_LITERAL_VARIABLE: 
+@RASQAL_LITERAL_INTEGER_SUBTYPE: 
 @RASQAL_LITERAL_LAST: 
 
 <!-- ##### FUNCTION rasqal_new_typed_literal ##### -->
