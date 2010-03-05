@@ -4,6 +4,7 @@ rasqal_world
 rasqal_free_world
 rasqal_new_world
 rasqal_world_open
+rasqal_world_set_log_handler
 rasqal_world_get_raptor
 rasqal_world_set_raptor
 rasqal_version_decimal
