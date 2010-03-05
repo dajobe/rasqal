@@ -1,7 +1,7 @@
 /*
  * rasqal_xsd_datatypes.c - Rasqal XML Schema Datatypes support
  *
- * Copyright (C) 2005-2009, David Beckett http://www.dajobe.org/
+ * Copyright (C) 2005-2010, David Beckett http://www.dajobe.org/
  * Copyright (C) 2005-2005, University of Bristol, UK http://www.bristol.ac.uk/
  * 
  * This package is Free Software and part of Redland http://librdf.org/
@@ -144,7 +144,7 @@ rasqal_xsd_check_decimal_format(const unsigned char* string, int flags)
   /* This should be correct according to 
    * http://www.w3.org/TR/xmlschema-2/#decimal
    */
-  p=(const char*)string;
+  p = (const char*)string;
   if(*p == '+' || *p == '-') {
     ADVANCE_OR_DIE(p);
   }
@@ -183,11 +183,11 @@ rasqal_xsd_check_double_format(const unsigned char* string, int flags)
   /* FIXME validate using
    * http://www.w3.org/TR/xmlschema-2/#double
    */
-  double d=0.0;
-  char* eptr=NULL;
+  double d = 0.0;
+  char* eptr = NULL;
 
-  d=strtod((const char*)string, &eptr);
-  if((unsigned char*)eptr != string && *eptr=='\0')
+  d = strtod((const char*)string, &eptr);
+  if((unsigned char*)eptr != string && *eptr == '\0')
     return 1;
 
   return 0;
@@ -209,11 +209,11 @@ rasqal_xsd_check_float_format(const unsigned char* string, int flags)
   /* FIXME validate using
    * http://www.w3.org/TR/xmlschema-2/#float
    */
-  double d=0.0;
-  char* eptr=NULL;
+  double d = 0.0;
+  char* eptr = NULL;
 
-  d=strtod((const char*)string, &eptr);
-  if((unsigned char*)eptr != string && *eptr=='\0')
+  d = strtod((const char*)string, &eptr);
+  if((unsigned char*)eptr != string && *eptr == '\0')
     return 1;
 
   return 0;
@@ -233,15 +233,15 @@ static int
 rasqal_xsd_check_integer_format(const unsigned char* string, int flags)
 {
   long int v;
-  char* eptr=NULL;
+  char* eptr = NULL;
 
   /* This should be correct according to 
    * http://www.w3.org/TR/xmlschema-2/#integer
    */
 
-  v=(int)strtol((const char*)string, &eptr, 10);
+  v = (int)strtol((const char*)string, &eptr, 10);
 
-  if((unsigned char*)eptr != string && *eptr=='\0')
+  if((unsigned char*)eptr != string && *eptr == '\0')
     return 1;
 
   return 0;
@@ -333,28 +333,28 @@ rasqal_xsd_format_double(double d, size_t *len_p)
   size_t e_index = 0;
   size_t trailing_zero_start = 0;
   size_t exponent_start;
-  size_t len=0;
-  unsigned char* buf=NULL;
+  size_t len = 0;
+  unsigned char* buf = NULL;
   
   if(d == 0.0f) {
-    len=5;
-    buf=(unsigned char*)RASQAL_MALLOC(cstring, len+1);
+    len = 5;
+    buf = (unsigned char*)RASQAL_MALLOC(cstring, len + 1);
     if(!buf)
       return NULL;
 
-    strncpy((char*)buf, "0.0e0", len+1);
+    strncpy((char*)buf, "0.0e0", len + 1);
     if(len_p)
-      *len_p=len;
+      *len_p = len;
     return buf;
   }
 
-  len=20;
-  buf=(unsigned char*)RASQAL_MALLOC(cstring, len+1);
+  len = 20;
+  buf = (unsigned char*)RASQAL_MALLOC(cstring, len + 1);
   if(!buf)
     return NULL;
   
-  /* snprintf needs the length+1 because it writes a \0 too */
-  snprintf((char*)buf, len+1, "%1.14e", d);
+  /* snprintf needs the length + 1 because it writes a \0 too */
+  snprintf((char*)buf, len + 1, "%1.14e", d);
 
   /* find the 'e' and start of mantissa trailing zeros */
 
@@ -370,8 +370,8 @@ rasqal_xsd_format_double(double d, size_t *len_p)
 
   /* write an 'e' where the trailing zeros started */
   buf[trailing_zero_start] = 'e';
-  if(buf[e_index+1] == '-') {
-    buf[trailing_zero_start+1] = '-';
+  if(buf[e_index + 1] == '-') {
+    buf[trailing_zero_start + 1] = '-';
     ++trailing_zero_start;
   }
 
@@ -386,13 +386,13 @@ rasqal_xsd_format_double(double d, size_t *len_p)
     buf[len] = '\0';
   } else {
     /* copy the exponent (minus leading zeros) after the new E */
-    memmove(buf+trailing_zero_start+1, buf+exponent_start,
+    memmove(buf+trailing_zero_start + 1, buf+exponent_start,
             len-trailing_zero_start);
     len = strlen((const char*)buf);
   }
 
   if(len_p)
-    *len_p=len;
+    *len_p = len;
 
   return buf;
 }
@@ -411,14 +411,14 @@ typedef struct {
 
 
 #define XSD_INTEGER_DERIVED_COUNT 12
-#define XSD_INTEGER_DERIVED_FIRST (RASQAL_LITERAL_LAST_XSD+1)
+#define XSD_INTEGER_DERIVED_FIRST (RASQAL_LITERAL_LAST_XSD + 1)
 #define XSD_INTEGER_DERIVED_LAST (RASQAL_LITERAL_LAST_XSD + XSD_INTEGER_DERIVED_COUNT-1)
 
 /* atomic XSD literals + 12 types derived from xsd:integer plus a NULL */
-#define SPARQL_XSD_NAMES_COUNT (RASQAL_LITERAL_LAST_XSD+1 + XSD_INTEGER_DERIVED_COUNT)
+#define SPARQL_XSD_NAMES_COUNT (RASQAL_LITERAL_LAST_XSD + 1 + XSD_INTEGER_DERIVED_COUNT)
 
 
-static const char* const sparql_xsd_names[SPARQL_XSD_NAMES_COUNT+1]=
+static const char* const sparql_xsd_names[SPARQL_XSD_NAMES_COUNT + 1] =
 {
   NULL, /* RASQAL_LITERAL_UNKNOWN */
   NULL, /* ...BLANK */
@@ -440,7 +440,7 @@ static const char* const sparql_xsd_names[SPARQL_XSD_NAMES_COUNT+1]=
 };
 
 
-static int (*const sparql_xsd_checkfns[RASQAL_LITERAL_LAST_XSD-RASQAL_LITERAL_FIRST_XSD+1])(const unsigned char* string, int flags) =
+static int (*const sparql_xsd_checkfns[RASQAL_LITERAL_LAST_XSD-RASQAL_LITERAL_FIRST_XSD + 1])(const unsigned char* string, int flags) =
 {
   NULL, /* RASQAL_LITERAL_STRING */
   rasqal_xsd_check_boolean_format, /* RASQAL_LITERAL_BOOLEAN */
@@ -451,26 +451,29 @@ static int (*const sparql_xsd_checkfns[RASQAL_LITERAL_LAST_XSD-RASQAL_LITERAL_FI
   rasqal_xsd_check_dateTime_format /* RASQAL_LITERAL_DATETIME */
 };
 
+
 int
 rasqal_xsd_init(rasqal_world* world) 
 {
   int i;
 
-  world->xsd_namespace_uri = raptor_new_uri(world->raptor_world_ptr, raptor_xmlschema_datatypes_namespace_uri);
+  world->xsd_namespace_uri = raptor_new_uri(world->raptor_world_ptr,
+                                            raptor_xmlschema_datatypes_namespace_uri);
   if(!world->xsd_namespace_uri)
     return 1;
 
-  world->xsd_datatype_uris=
+  world->xsd_datatype_uris =
     (raptor_uri**)RASQAL_CALLOC(ptrarray,
-                                SPARQL_XSD_NAMES_COUNT+1,
+                                SPARQL_XSD_NAMES_COUNT + 1,
                                 sizeof(raptor_uri*));
   if(!world->xsd_datatype_uris)
     return 1;
 
-  for(i=RASQAL_LITERAL_FIRST_XSD; i < SPARQL_XSD_NAMES_COUNT; i++) {
+  for(i = RASQAL_LITERAL_FIRST_XSD; i < SPARQL_XSD_NAMES_COUNT; i++) {
+    const unsigned char* name = (const unsigned char*)sparql_xsd_names[i];
     world->xsd_datatype_uris[i] =
-      raptor_new_uri_from_uri_local_name(world->raptor_world_ptr, world->xsd_namespace_uri,
-                                         (const unsigned char *)sparql_xsd_names[i]);
+      raptor_new_uri_from_uri_local_name(world->raptor_world_ptr,
+                                         world->xsd_namespace_uri, name);
     if(!world->xsd_datatype_uris[i])
       return 1;
   }
@@ -485,7 +488,7 @@ rasqal_xsd_finish(rasqal_world* world)
   if(world->xsd_datatype_uris) {
     int i;
     
-    for(i=RASQAL_LITERAL_FIRST_XSD; i < SPARQL_XSD_NAMES_COUNT; i++) {
+    for(i = RASQAL_LITERAL_FIRST_XSD; i < SPARQL_XSD_NAMES_COUNT; i++) {
       if(world->xsd_datatype_uris[i])
         raptor_free_uri(world->xsd_datatype_uris[i]);
     }
@@ -506,14 +509,14 @@ rasqal_literal_type
 rasqal_xsd_datatype_uri_to_type(rasqal_world* world, raptor_uri* uri)
 {
   int i;
-  rasqal_literal_type native_type=RASQAL_LITERAL_UNKNOWN;
+  rasqal_literal_type native_type = RASQAL_LITERAL_UNKNOWN;
   
   if(!uri || !world->xsd_datatype_uris)
     return native_type;
   
-  for(i=(int)RASQAL_LITERAL_FIRST_XSD; i <= (int)RASQAL_LITERAL_LAST_XSD; i++) {
+  for(i = (int)RASQAL_LITERAL_FIRST_XSD; i <= (int)RASQAL_LITERAL_LAST_XSD; i++) {
     if(raptor_uri_equals(uri, world->xsd_datatype_uris[i])) {
-      native_type=(rasqal_literal_type)i;
+      native_type = (rasqal_literal_type)i;
       break;
     }
   }
@@ -546,7 +549,7 @@ rasqal_xsd_datatype_check(rasqal_literal_type native_type,
                           const unsigned char* string, int flags)
 {
   /* calculate check function index in sparql_xsd_checkfns table */
-  int checkidx=native_type-RASQAL_LITERAL_FIRST_XSD;
+  int checkidx = native_type - RASQAL_LITERAL_FIRST_XSD;
 
   /* test for index out of bounds and check function not defined */
   if(checkidx < 0 || checkidx >= (int)(sizeof(sparql_xsd_checkfns)/sizeof(*sparql_xsd_checkfns)) ||
@@ -578,7 +581,7 @@ rasqal_xsd_datatype_is_numeric(rasqal_literal_type type)
 }
 
 
-static const rasqal_literal_type parent_xsd_type[RASQAL_LITERAL_LAST+1] =
+static const rasqal_literal_type parent_xsd_type[RASQAL_LITERAL_LAST + 1] =
 {
   /*   RASQAL_LITERAL_UNKNOWN  */  RASQAL_LITERAL_UNKNOWN,
   /* RDF Blank / RDF Term: Blank */
@@ -616,7 +619,7 @@ rasqal_xsd_datatype_parent_type(rasqal_literal_type type)
 static rasqal_literal*
 rasqal_xsd_datatypes_date_less_than(raptor_uri* name, raptor_sequence *args,
                                     char **error_p) {
-  int error=0;
+  int error = 0;
   int b;
   rasqal_literal* l1;
   rasqal_literal* l2;
@@ -624,10 +627,10 @@ rasqal_xsd_datatypes_date_less_than(raptor_uri* name, raptor_sequence *args,
   if(raptor_sequence_size(args) != 2)
     return NULL;
   
-  l1=(rasqal_literal*)raptor_sequence_get_at(args, 0);
-  l2=(rasqal_literal*)raptor_sequence_get_at(args, 1);
+  l1 = (rasqal_literal*)raptor_sequence_get_at(args, 0);
+  l2 = (rasqal_literal*)raptor_sequence_get_at(args, 1);
   
-  b=(rasqal_literal_compare(l1, l2, 0, &error) < 0);
+  b = (rasqal_literal_compare(l1, l2, 0, &error) < 0);
   if(error)
     return NULL;
 
@@ -638,7 +641,7 @@ rasqal_xsd_datatypes_date_less_than(raptor_uri* name, raptor_sequence *args,
 static rasqal_literal*
 rasqal_xsd_datatypes_date_greater_than(raptor_uri* name, raptor_sequence *args,
                                        char **error_p) {
-  int error=0;
+  int error = 0;
   int b;
   rasqal_literal* l1;
   rasqal_literal* l2;
@@ -646,10 +649,10 @@ rasqal_xsd_datatypes_date_greater_than(raptor_uri* name, raptor_sequence *args,
   if(raptor_sequence_size(args) != 2)
     return NULL;
   
-  l1=(rasqal_literal*)raptor_sequence_get_at(args, 0);
-  l2=(rasqal_literal*)raptor_sequence_get_at(args, 1);
+  l1 = (rasqal_literal*)raptor_sequence_get_at(args, 0);
+  l2 = (rasqal_literal*)raptor_sequence_get_at(args, 1);
   
-  b=(rasqal_literal_compare(l1, l2, 0, &error) > 0);
+  b = (rasqal_literal_compare(l1, l2, 0, &error) > 0);
   if(error)
     return NULL;
 
@@ -660,7 +663,7 @@ rasqal_xsd_datatypes_date_greater_than(raptor_uri* name, raptor_sequence *args,
 static rasqal_literal*
 rasqal_xsd_datatypes_date_equal(raptor_uri* name, raptor_sequence *args,
                                 char **error_p) {
-  int error=0;
+  int error = 0;
   int b;
   rasqal_literal* l1;
   rasqal_literal* l2;
@@ -668,10 +671,10 @@ rasqal_xsd_datatypes_date_equal(raptor_uri* name, raptor_sequence *args,
   if(raptor_sequence_size(args) != 2)
     return NULL;
   
-  l1=(rasqal_literal*)raptor_sequence_get_at(args, 0);
-  l2=(rasqal_literal*)raptor_sequence_get_at(args, 1);
+  l1 = (rasqal_literal*)raptor_sequence_get_at(args, 0);
+  l2 = (rasqal_literal*)raptor_sequence_get_at(args, 1);
   
-  b=(rasqal_literal_compare(l1, l2, 0, &error) == 0);
+  b = (rasqal_literal_compare(l1, l2, 0, &error) == 0);
   if(error)
     return NULL;
 
@@ -680,7 +683,7 @@ rasqal_xsd_datatypes_date_equal(raptor_uri* name, raptor_sequence *args,
 
 
 #define RASQAL_XSD_DATATYPE_FNS_SIZE 9
-static rasqal_xsd_datatype_fn_info rasqal_xsd_datatype_fns[RASQAL_XSD_DATATYPE_FNS_SIZE]={
+static rasqal_xsd_datatype_fn_info rasqal_xsd_datatype_fns[RASQAL_XSD_DATATYPE_FNS_SIZE] = {
   { (const unsigned char*)"date-less-than",        1, 1, rasqal_xsd_datatypes_date_less_than },
   { (const unsigned char*)"dateTime-less-than",    1, 1, rasqal_xsd_datatypes_date_less_than },
   { (const unsigned char*)"time-less-than",        1, 1, rasqal_xsd_datatypes_date_less_than },
@@ -694,25 +697,25 @@ static rasqal_xsd_datatype_fn_info rasqal_xsd_datatype_fns[RASQAL_XSD_DATATYPE_F
 
 
 
-static raptor_uri* raptor_xpfo_base_uri=NULL;
-static raptor_uri* rasqal_sparql_op_namespace_uri=NULL;
+static raptor_uri* raptor_xpfo_base_uri = NULL;
+static raptor_uri* rasqal_sparql_op_namespace_uri = NULL;
 
 
 static void
 rasqal_init_datatypes(void) {
   int i;
   
-  raptor_xpfo_base_uri=raptor_new_uri((const unsigned char*)RASQAL_XPFO_BASE_URI);
-  rasqal_sparql_op_namespace_uri=raptor_new_uri((const unsigned char*)RASQAL_SPARQL_OP_NAMESPACE_URI);
+  raptor_xpfo_base_uri = raptor_new_uri((const unsigned char*)RASQAL_XPFO_BASE_URI);
+  rasqal_sparql_op_namespace_uri = raptor_new_uri((const unsigned char*)RASQAL_SPARQL_OP_NAMESPACE_URI);
 
-  for(i=0; i< RASQAL_XSD_DATATYPES_SIZE; i++) {
-    rasqal_xsd_datatypes[i].uri=raptor_new_uri_from_uri_local_name(raptor_xpfo_base_uri,
-                                                                   (const unsigned char*)rasqal_xsd_datatypes[i].name);
+  for(i = 0; i< RASQAL_XSD_DATATYPES_SIZE; i++) {
+    rasqal_xsd_datatypes[i].uri = raptor_new_uri_from_uri_local_name(raptor_xpfo_base_uri,
+                                                                     (const unsigned char*)rasqal_xsd_datatypes[i].name);
   }
 
-  for(i=0; i< RASQAL_XSD_DATATYPE_FNS_SIZE; i++) {
-    rasqal_xsd_datatype_fns[i].uri=raptor_new_uri_from_uri_local_name(rasqal_sparql_op_namespace_uri,
-                                                                  rasqal_xsd_datatype_fns[i].name);
+  for(i = 0; i< RASQAL_XSD_DATATYPE_FNS_SIZE; i++) {
+    rasqal_xsd_datatype_fns[i].uri = raptor_new_uri_from_uri_local_name(rasqal_sparql_op_namespace_uri,
+                                                                        rasqal_xsd_datatype_fns[i].name);
   }
 
 }
@@ -722,11 +725,11 @@ static void
 rasqal_finish_datatypes(void) {
   int i;
   
-  for(i=0; i< RASQAL_XSD_DATATYPES_SIZE; i++)
+  for(i = 0; i< RASQAL_XSD_DATATYPES_SIZE; i++)
     if(rasqal_xsd_datatypes[i].uri)
       raptor_free_uri(rasqal_xsd_datatypes[i].uri);
 
-  for(i=0; i< RASQAL_XSD_DATATYPE_FNS_SIZE; i++)
+  for(i = 0; i< RASQAL_XSD_DATATYPE_FNS_SIZE; i++)
     if(rasqal_xsd_datatype_fns[i].uri)
       raptor_free_uri(rasqal_xsd_datatype_fns[i].uri);
 
@@ -966,30 +969,30 @@ main(int argc, char *argv[])
   rasqal_literal *fn_result;
   rasqal_world *world;
   
-  world=rasqal_new_world();
+  world = rasqal_new_world();
   if(!world || rasqal_world_open(world)) {
     fprintf(stderr, "%s: rasqal_world init failed\n", program);
     return(1);
   }
 
-  xsd_uri=raptor_new_uri(raptor_xmlschema_datatypes_namespace_uri);
-  dateTime_uri=raptor_new_uri_from_uri_local_name(xsd_uri, (const unsigned char*)"dateTime");
+  xsd_uri = raptor_new_uri(raptor_xmlschema_datatypes_namespace_uri);
+  dateTime_uri = raptor_new_uri_from_uri_local_name(xsd_uri, (const unsigned char*)"dateTime");
 
   rasqal_init_datatypes();
 
-  fn_args=raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_literal, (raptor_sequence_print_handler*)rasqal_literal_print);
-  l1=rasqal_new_string_literal((unsigned char*)strdup("2004-05-04"), NULL, raptor_uri_copy(dateTime_uri), NULL);
+  fn_args = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_literal, (raptor_sequence_print_handler*)rasqal_literal_print);
+  l1 = rasqal_new_string_literal((unsigned char*)strdup("2004-05-04"), NULL, raptor_uri_copy(dateTime_uri), NULL);
   raptor_sequence_push(fn_args, l1);
-  l2=rasqal_new_string_literal((unsigned char*)strdup("2003-01-02"), NULL, raptor_uri_copy(dateTime_uri), NULL);
+  l2 = rasqal_new_string_literal((unsigned char*)strdup("2003-01-02"), NULL, raptor_uri_copy(dateTime_uri), NULL);
   raptor_sequence_push(fn_args, l2);
   
-  fn_i=0;
-  fn_name=rasqal_xsd_datatype_fns[fn_i].name;
-  fn=rasqal_xsd_datatype_fns[fn_i].fn;
-  fn_uri=rasqal_xsd_datatype_fns[fn_i].uri;
+  fn_i = 0;
+  fn_name = rasqal_xsd_datatype_fns[fn_i].name;
+  fn = rasqal_xsd_datatype_fns[fn_i].fn;
+  fn_uri = rasqal_xsd_datatype_fns[fn_i].uri;
 
-  error=NULL;
-  fn_result=fn(fn_uri, fn_args, &error);
+  error = NULL;
+  fn_result = fn(fn_uri, fn_args, &error);
   raptor_free_sequence(fn_args);
 
   if(!fn_result) {
