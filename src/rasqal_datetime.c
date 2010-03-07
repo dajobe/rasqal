@@ -70,6 +70,20 @@ typedef struct {
 }  rasqal_xsd_datetime;
 
 
+/**
+ * rasqal_xsd_date:
+ *
+ * INTERNAL - XML schema date datatype
+ *
+ */
+typedef struct {
+  signed int year;
+  /* the following fields are integer values not characters */
+  unsigned char month;
+  unsigned char day;
+} rasqal_xsd_date;
+
+
 static int rasqal_xsd_datetime_parse_and_normalize_common(const unsigned char *datetime_string, rasqal_xsd_datetime *result, int is_dateTime);
 static unsigned char *rasqal_xsd_datetime_to_string(const rasqal_xsd_datetime *dt);
 static unsigned int days_per_month(int month, int year);
@@ -185,6 +199,10 @@ rasqal_xsd_datetime_normalize(rasqal_xsd_datetime *datetime)
  * * ss is a two-integer-digit numeral that represents the whole seconds;
  * * '.' s+ (if present) represents the fractional seconds;
  * * zzzzzz (if present) represents the timezone"
+ *
+ *
+ *  http://www.w3.org/TR/xmlschema-2/#dt-date
+ *  lexical space: '-'? yyyy '-' mm '-' dd zzzzzz? 
  *
  * Return value: zero on success, non zero on failure.
  */
@@ -462,6 +480,24 @@ rasqal_xsd_datetime_parse_and_normalize(const unsigned char *datetime_string,
                                                         result, 1);
 }
 
+static int
+rasqal_xsd_date_parse_and_normalize(const unsigned char *date_string,
+                                    rasqal_xsd_date *result)
+{
+  rasqal_xsd_datetime dt_result; /* on stack */
+  int rc;
+
+  rc = rasqal_xsd_datetime_parse_and_normalize_common(date_string,
+                                                      &dt_result, 0);
+
+  if(!rc) {
+    result->year = dt_result.year;
+    result->month = dt_result.month;
+    result->day = dt_result.day;
+  }
+
+  return rc;
+}
 
 /**
  * rasqal_xsd_datetime_to_string:
@@ -559,6 +595,93 @@ rasqal_xsd_datetime_string_to_canonical(const unsigned char* datetime_string)
 
 
 /**
+ * rasqal_xsd_date_to_string:
+ * @dt: date struct
+ *
+ * INTERNAL - Convert a #rasqal_xsd_date struct to a xsd:date lexical form string.
+ *
+ * Caller should RASQAL_FREE() the returned string.
+ *
+ * Return value: lexical form string or NULL on failure.
+ */
+static unsigned char*
+rasqal_xsd_date_to_string(const rasqal_xsd_date *d)
+{
+  unsigned char *ret = 0;
+  int is_neg;
+  int r = 0;
+  int i;
+   
+  if(!d)
+    return NULL;
+    
+  is_neg = d->year < 0;
+
+  /* format twice: first with null buffer of zero size to get the
+   * required buffer size second time to the allocated buffer
+   */
+  for(i = 0; i < 2; i++) {
+    r = snprintf((char*)ret, r, "%s%04d-%2.2d-%2.2d",
+                 is_neg ? "-" : "",
+                 is_neg ? -d->year : d->year,
+                 d->month,
+                 d->day);
+
+    /* error? */
+    if(r < 0) {
+      if(ret)
+        RASQAL_FREE(cstring, ret);
+      return NULL;
+    }
+
+    /* alloc return buffer on first pass */
+    if(!i) {
+      ret = (unsigned char *)RASQAL_MALLOC(cstring, ++r);
+      if(!ret)
+        return NULL;
+    }
+  }
+  return ret;
+}
+
+
+/**
+ * rasqal_xsd_date_string_to_canonical:
+ * @date_string: xsd:date as lexical form string
+ *
+ * Convert a XML Schema date lexical form string to its canonical form.
+ *
+ * Caller should RASQAL_FREE() the returned string.
+ *
+ * Return value: canonical lexical form string or NULL on failure.
+ *
+ *
+ * http://www.w3.org/TR/xmlschema-2/#date-canonical-representation
+ * 
+ * "the date portion of the canonical representation (the entire
+ * representation for nontimezoned values, and all but the timezone
+ * representation for timezoned values) is always the date portion of
+ * the dateTime canonical representation of the interval midpoint
+ * (the dateTime representation, truncated on the right to eliminate
+ * 'T' and all following characters). For timezoned values, append
+ * the canonical representation of the ·recoverable timezone·. "
+ */
+const unsigned char*
+rasqal_xsd_date_string_to_canonical(const unsigned char* date_string)
+{
+  rasqal_xsd_date d; /* allocated on stack */
+
+  /* parse_and_normalize makes the rasqal_xsd_date canonical... */
+  if(rasqal_xsd_date_parse_and_normalize(date_string, &d))
+    return NULL;
+  /* ... so return a string representation of it */
+  return rasqal_xsd_date_to_string(&d);
+}
+
+
+
+
+/**
  * days_per_month:
  * @month: month 1-12
  * @year: gregorian year
@@ -617,6 +740,18 @@ rasqal_xsd_datetime_check(const unsigned char* string)
    * http://www.w3.org/TR/xmlschema-2/#dateTime
    */
   return !rasqal_xsd_datetime_parse_and_normalize(string, &d);
+}
+
+
+int
+rasqal_xsd_date_check(const unsigned char* string)
+{
+  rasqal_xsd_date d;
+  
+  /* This should be correct according to 
+   * http://www.w3.org/TR/xmlschema-2/#date
+   */
+  return !rasqal_xsd_date_parse_and_normalize(string, &d);
 }
 
 
