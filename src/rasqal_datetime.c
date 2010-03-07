@@ -70,7 +70,7 @@ typedef struct {
 }  rasqal_xsd_datetime;
 
 
-static int rasqal_xsd_datetime_parse_and_normalize(const unsigned char *datetime_string, rasqal_xsd_datetime *result);
+static int rasqal_xsd_datetime_parse_and_normalize_common(const unsigned char *datetime_string, rasqal_xsd_datetime *result, int is_dateTime);
 static unsigned char *rasqal_xsd_datetime_to_string(const rasqal_xsd_datetime *dt);
 static unsigned int days_per_month(int month, int year);
 
@@ -152,9 +152,11 @@ rasqal_xsd_datetime_normalize(rasqal_xsd_datetime *datetime)
 
 
 /**
- * rasqal_xsd_datetime_parse_and_normalize:
+ * rasqal_xsd_datetime_parse_and_normalize_common:
  * @datetime_string: xsd:dateTime as lexical form string
  * @result: target struct for holding dateTime components
+ * @is_dateTime: is xsd:dateTime and should look for time (hour, mins, secs)
+ *   otherwise is xsd:date and should skip to looking for timezone
  *
  * INTERNAL - Parse a xsd:dateTime string to a normalized #rasqal_xsd_datetime struct.
  *
@@ -186,9 +188,10 @@ rasqal_xsd_datetime_normalize(rasqal_xsd_datetime *datetime)
  *
  * Return value: zero on success, non zero on failure.
  */
-int
-rasqal_xsd_datetime_parse_and_normalize(const unsigned char *datetime_string,
-                                        rasqal_xsd_datetime *result)
+static int
+rasqal_xsd_datetime_parse_and_normalize_common(const unsigned char *datetime_string,
+                                               rasqal_xsd_datetime *result,
+                                               int is_dateTime)
 {
   const char *p, *q; 
   char b[16];
@@ -261,123 +264,131 @@ rasqal_xsd_datetime_parse_and_normalize(const unsigned char *datetime_string,
     ;
   l = p - q;
 
-  /* error if day is not 2 digits or 'T' is not the separator */
-  if(l != 2 || *p != 'T')
-    return -3;
+  if(is_dateTime) {
+    /* error if day is not 2 digits or 'T' is not the separator */
+    if(l != 2 || *p != 'T')
+      return -3;
 
-  t = (*q++ - '0') * 10;
-  t += *q - '0';
+    t = (*q++ - '0') * 10;
+    t += *q - '0';
 
-  /* day must be 1..days_per_month */
-  if(t < 1 || t > days_per_month(result->month, result->year))
-    return -3;
+    /* day must be 1..days_per_month */
+    if(t < 1 || t > days_per_month(result->month, result->year))
+      return -3;
 
-  result->day = t;
+    result->day = t;
 
-  /* parse hour */
+    /* parse hour */
 
-  for(q = ++p; ISNUM(*p); p++)
-    ;
-  l = p - q;
-
-  /* error if hour is not 2 digits or ':' is not the separator */
-  if(l != 2 || *p != ':')
-    return -4;
-
-  t = (*q++-'0')*10;
-  t += *q-'0';
-
-  /* hour must be 0..24 - will handle special case 24 later
-   * (no need to check for < 0)
-   */
-  if(t > 24)
-    return -4;
-
-  result->hour = t;
-
-  /* parse minute */
-
-  for(q = ++p; ISNUM(*p); p++)
-    ;
-  l = p - q;
-
-  /* error if minute is not 2 digits or ':' is not the separator */
-  if(l != 2 || *p != ':')
-    return -5;
-
-  t = (*q++ - '0') * 10;
-  t += *q - '0';
-
-  /* minute must be 0..59
-   * (no need to check for < 0)
-   */
-  if(t > 59)
-    return -5;
-
-  result->minute = t;
-
-  /* parse second whole part */
-
-  for(q = ++p; ISNUM(*p); p++)
-    ;
-  l = p - q;
-
-  /* error if second is not 2 digits or separator is not 
-   * '.' (second fraction)
-   * 'Z' (utc)
-   * '+' or '-' (timezone offset)
-   * nul (end of string - second fraction and timezone are optional)
-   */
-  if(l != 2 || (*p && *p != '.' && *p != 'Z' && *p != '+' && *p != '-'))
-    return -6;
-
-  t = (*q++ - '0')*10;
-  t += *q - '0';
-
-  /* second must be 0..59
-  * (no need to check for < 0)
-  */
-  if(t > 59)
-    return -6;
-
-  result->second = t;
-
-  /* now that we have hour, minute and second, we can check
-   * if hour == 24 -> only 24:00:00 permitted (normalized later)
-   */
-  if(result->hour == 24 && (result->minute || result->second))
-    return -7;
-
-  /* parse fraction seconds if any */
-  result->second_frac[0] = 0;
-  if(*p == '.') {
     for(q = ++p; ISNUM(*p); p++)
       ;
+    l = p - q;
 
-    /* ignore trailing zeros */
-    while(*--p == '0')
+    /* error if hour is not 2 digits or ':' is not the separator */
+    if(l != 2 || *p != ':')
+      return -4;
+
+    t = (*q++-'0')*10;
+    t += *q-'0';
+
+    /* hour must be 0..24 - will handle special case 24 later
+     * (no need to check for < 0)
+     */
+    if(t > 24)
+      return -4;
+
+    result->hour = t;
+
+    /* parse minute */
+
+    for(q = ++p; ISNUM(*p); p++)
       ;
-    p++;
+    l = p - q;
 
-    if(!(*q == '0' && q == p)) {
-      /* allow ".0" */
-      l = p - q;
-      /* support only to milliseconds with truncation */
-      if(l > sizeof(result->second_frac)-1)
-        l=sizeof(result->second_frac)-1;
+    /* error if minute is not 2 digits or ':' is not the separator */
+    if(l != 2 || *p != ':')
+      return -5;
 
-      if(l<1) /* need at least 1 num */
-        return -8;
+    t = (*q++ - '0') * 10;
+    t += *q - '0';
 
-      for(t2 = 0; t2 < l; ++t2)
-        result->second_frac[t2] = *q++;
+    /* minute must be 0..59
+     * (no need to check for < 0)
+     */
+    if(t > 59)
+      return -5;
 
-      result->second_frac[l] = 0;
+    result->minute = t;
+
+    /* parse second whole part */
+
+    for(q = ++p; ISNUM(*p); p++)
+      ;
+    l = p - q;
+
+    /* error if second is not 2 digits or separator is not 
+     * '.' (second fraction)
+     * 'Z' (utc)
+     * '+' or '-' (timezone offset)
+     * nul (end of string - second fraction and timezone are optional)
+     */
+    if(l != 2 || (*p && *p != '.' && *p != 'Z' && *p != '+' && *p != '-'))
+      return -6;
+
+    t = (*q++ - '0')*10;
+    t += *q - '0';
+
+    /* second must be 0..59
+    * (no need to check for < 0)
+    */
+    if(t > 59)
+      return -6;
+
+    result->second = t;
+
+    /* now that we have hour, minute and second, we can check
+     * if hour == 24 -> only 24:00:00 permitted (normalized later)
+     */
+    if(result->hour == 24 && (result->minute || result->second))
+      return -7;
+
+    /* parse fraction seconds if any */
+    result->second_frac[0] = 0;
+    if(*p == '.') {
+      for(q = ++p; ISNUM(*p); p++)
+        ;
+
+      /* ignore trailing zeros */
+      while(*--p == '0')
+        ;
+      p++;
+
+      if(!(*q == '0' && q == p)) {
+        /* allow ".0" */
+        l = p - q;
+        /* support only to milliseconds with truncation */
+        if(l > sizeof(result->second_frac)-1)
+          l=sizeof(result->second_frac)-1;
+
+        if(l<1) /* need at least 1 num */
+          return -8;
+
+        for(t2 = 0; t2 < l; ++t2)
+          result->second_frac[t2] = *q++;
+
+        result->second_frac[l] = 0;
+      }
+
+      /* skip ignored trailing zeros */
+      while(*p == '0')
+        p++;
     }
 
-    /* skip ignored trailing zeros */
-    while(*p == '0')
-      p++;
+  } else { /* end if is_dateTime */
+    /* set rest of dateTime field to center of day interval (noon) */
+    result->hour = 12;
+    result->minute = 0;
+    result->second = 0;
   }
 
   
@@ -440,6 +451,15 @@ rasqal_xsd_datetime_parse_and_normalize(const unsigned char *datetime_string,
   }
 
   return rasqal_xsd_datetime_normalize(result);
+}
+
+
+static int
+rasqal_xsd_datetime_parse_and_normalize(const unsigned char *datetime_string,
+                                        rasqal_xsd_datetime *result)
+{
+  return rasqal_xsd_datetime_parse_and_normalize_common(datetime_string,
+                                                        result, 1);
 }
 
 
