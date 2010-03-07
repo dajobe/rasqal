@@ -447,6 +447,7 @@ struct rasqal_literal_s {
     rasqal_variable* variable;
     /* decimal */
     rasqal_xsd_decimal* decimal;
+    /* datetime - does not write anything into value */
   } value;
 
   /* for string */
