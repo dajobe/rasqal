@@ -283,19 +283,29 @@ rasqal_xsd_datetime_parse_and_normalize_common(const unsigned char *datetime_str
   l = p - q;
 
   if(is_dateTime) {
-    /* error if day is not 2 digits or 'T' is not the separator */
+    /* xsd:dateTime: error if day is not 2 digits or 'T' is not the separator */
     if(l != 2 || *p != 'T')
       return -3;
-
-    t = (*q++ - '0') * 10;
-    t += *q - '0';
-
-    /* day must be 1..days_per_month */
-    if(t < 1 || t > days_per_month(result->month, result->year))
+  } else {
+    /* xsd:date: error if day is not 2 digits or separator is not
+     * 'Z' (utc)
+     * '+' or '-' (timezone offset)
+     * nul (end of string - timezone is optional)
+     */
+    if(l != 2 || (*p && *p != 'Z' && *p != '+' && *p != '-'))
       return -3;
+  }
+  
+  t = (*q++ - '0') * 10;
+  t += *q - '0';
 
-    result->day = t;
+  /* day must be 1..days_per_month */
+  if(t < 1 || t > days_per_month(result->month, result->year))
+    return -3;
 
+  result->day = t;
+
+  if(is_dateTime) {
     /* parse hour */
 
     for(q = ++p; ISNUM(*p); p++)
@@ -407,6 +417,7 @@ rasqal_xsd_datetime_parse_and_normalize_common(const unsigned char *datetime_str
     result->hour = 12;
     result->minute = 0;
     result->second = 0;
+    result->second_frac[0] = 0;
   }
 
   
@@ -621,7 +632,7 @@ rasqal_xsd_date_to_string(const rasqal_xsd_date *d)
    * required buffer size second time to the allocated buffer
    */
   for(i = 0; i < 2; i++) {
-    r = snprintf((char*)ret, r, "%s%04d-%2.2d-%2.2d",
+    r = snprintf((char*)ret, r, "%s%04d-%2.2d-%2.2dZ",
                  is_neg ? "-" : "",
                  is_neg ? -d->year : d->year,
                  d->month,
@@ -775,10 +786,26 @@ static int test_datetime_parser_tostring(const char *in_str, const char *out_exp
   if(s) {
     r = strcmp((char*)s, out_expected);
     if(r)
-      fprintf(stderr, "input \"%s\" converted to canonical \"%s\", expected \"%s\"\n", in_str, s, out_expected);
+      fprintf(stderr, "input dateTime \"%s\" converted to canonical \"%s\", expected \"%s\"\n", in_str, s, out_expected);
     RASQAL_FREE(cstring, (void*)s);
   } else
-    fprintf(stderr, "input \"%s\" converted to canonical (null), expected \"%s\"\n", in_str, out_expected);
+    fprintf(stderr, "input dateTime \"%s\" converted to canonical (null), expected \"%s\"\n", in_str, out_expected);
+  return r;
+}
+
+
+static int test_date_parser_tostring(const char *in_str, const char *out_expected)
+{
+  unsigned char const *s;
+  int r = 1;
+  s = rasqal_xsd_date_string_to_canonical((const unsigned char *)in_str);
+  if(s) {
+    r = strcmp((char*)s, out_expected);
+    if(r)
+      fprintf(stderr, "input date \"%s\" converted to canonical \"%s\", expected \"%s\"\n", in_str, s, out_expected);
+    RASQAL_FREE(cstring, (void*)s);
+  } else
+    fprintf(stderr, "input date \"%s\" converted to canonical (null), expected \"%s\"\n", in_str, out_expected);
   return r;
 }
 
@@ -788,6 +815,7 @@ main(int argc, char *argv[])
 {
   char const *program = rasqal_basename(*argv);
   rasqal_xsd_datetime dt;
+  rasqal_xsd_date d;
 
   /* days_per_month */
   
@@ -812,33 +840,35 @@ main(int argc, char *argv[])
   MYASSERT(days_per_month(12,4853) == 31);
   MYASSERT(!days_per_month(13,45894));
   
+  /* DATETIME */
+
   /* rasqal_xsd_datetime_parse_and_normalize,
      rasqal_xsd_datetime_to_string and
      rasqal_xsd_datetime_string_to_canonical */
   
-  #define PARSE_AND_NORMALIZE(_s,_d) \
+  #define PARSE_AND_NORMALIZE_DATETIME(_s,_d) \
     rasqal_xsd_datetime_parse_and_normalize((const unsigned char*)_s, _d)
   
   /* generic */
 
   MYASSERT(!rasqal_xsd_datetime_to_string(0));
 
-  MYASSERT(PARSE_AND_NORMALIZE(0,0));
-  MYASSERT(PARSE_AND_NORMALIZE("uhgsufi",0));
-  MYASSERT(PARSE_AND_NORMALIZE(0 ,&dt));
-  MYASSERT(PARSE_AND_NORMALIZE("fsdhufhdsuifhidu" ,&dt));
+  MYASSERT(PARSE_AND_NORMALIZE_DATETIME(0,0));
+  MYASSERT(PARSE_AND_NORMALIZE_DATETIME("uhgsufi",0));
+  MYASSERT(PARSE_AND_NORMALIZE_DATETIME(0 ,&dt));
+  MYASSERT(PARSE_AND_NORMALIZE_DATETIME("fsdhufhdsuifhidu", &dt));
   
   /* year */
   
-  MYASSERT(PARSE_AND_NORMALIZE("123-12-12T12:12:12Z" ,&dt));
-  MYASSERT(PARSE_AND_NORMALIZE("-123-12-12T12:12:12Z" ,&dt));
-  MYASSERT(PARSE_AND_NORMALIZE("0000-12-12T12:12:12Z" ,&dt));
-  MYASSERT(PARSE_AND_NORMALIZE("01234-12-12T12:12:12Z" ,&dt));
-  MYASSERT(PARSE_AND_NORMALIZE("-01234-12-12T12:12:12Z" ,&dt));
-  MYASSERT(PARSE_AND_NORMALIZE("1234a12-12T12:12:12Z" ,&dt));
-  MYASSERT(PARSE_AND_NORMALIZE("-1234b12-12T12:12:12Z" ,&dt));
-  MYASSERT(PARSE_AND_NORMALIZE("g162-12-12T12:12:12Z" ,&dt));
-  MYASSERT(PARSE_AND_NORMALIZE("5476574658746587465874-12-12T12:12:12Z" ,&dt));
+  MYASSERT(PARSE_AND_NORMALIZE_DATETIME("123-12-12T12:12:12Z", &dt));
+  MYASSERT(PARSE_AND_NORMALIZE_DATETIME("-123-12-12T12:12:12Z", &dt));
+  MYASSERT(PARSE_AND_NORMALIZE_DATETIME("0000-12-12T12:12:12Z", &dt));
+  MYASSERT(PARSE_AND_NORMALIZE_DATETIME("01234-12-12T12:12:12Z", &dt));
+  MYASSERT(PARSE_AND_NORMALIZE_DATETIME("-01234-12-12T12:12:12Z", &dt));
+  MYASSERT(PARSE_AND_NORMALIZE_DATETIME("1234a12-12T12:12:12Z", &dt));
+  MYASSERT(PARSE_AND_NORMALIZE_DATETIME("-1234b12-12T12:12:12Z", &dt));
+  MYASSERT(PARSE_AND_NORMALIZE_DATETIME("g162-12-12T12:12:12Z", &dt));
+  MYASSERT(PARSE_AND_NORMALIZE_DATETIME("5476574658746587465874-12-12T12:12:12Z", &dt));
   
   MYASSERT(test_datetime_parser_tostring("1234-12-12T12:12:12Z", "1234-12-12T12:12:12Z") == 0);
   MYASSERT(test_datetime_parser_tostring("-1234-12-12T12:12:12Z", "-1234-12-12T12:12:12Z") == 0);
@@ -847,76 +877,76 @@ main(int argc, char *argv[])
   
   /* month */
   
-  MYASSERT(PARSE_AND_NORMALIZE("2004-v-12T12:12:12Z" ,&dt));
-  MYASSERT(PARSE_AND_NORMALIZE("2004-00-12T12:12:12Z" ,&dt));
-  MYASSERT(PARSE_AND_NORMALIZE("PARSE_AND_NORMALIZE-011-12T12:12:12Z" ,&dt));
-  MYASSERT(PARSE_AND_NORMALIZE("2004-13-12T12:12:12Z" ,&dt));
-  MYASSERT(PARSE_AND_NORMALIZE("2004-12.12T12:12:12Z" ,&dt));
+  MYASSERT(PARSE_AND_NORMALIZE_DATETIME("2004-v-12T12:12:12Z", &dt));
+  MYASSERT(PARSE_AND_NORMALIZE_DATETIME("2004-00-12T12:12:12Z", &dt));
+  MYASSERT(PARSE_AND_NORMALIZE_DATETIME("PARSE_AND_NORMALIZE-011-12T12:12:12Z", &dt));
+  MYASSERT(PARSE_AND_NORMALIZE_DATETIME("2004-13-12T12:12:12Z", &dt));
+  MYASSERT(PARSE_AND_NORMALIZE_DATETIME("2004-12.12T12:12:12Z", &dt));
 
   MYASSERT(test_datetime_parser_tostring("2004-01-01T12:12:12Z", "2004-01-01T12:12:12Z") == 0);
 
   /* day */
   
-  MYASSERT(PARSE_AND_NORMALIZE("2004-01-ffT12:12:12Z" ,&dt));
-  MYASSERT(PARSE_AND_NORMALIZE("2004-01-00T12:12:12Z" ,&dt));
-  MYASSERT(PARSE_AND_NORMALIZE("2004-01-007T12:12:12Z" ,&dt));
-  MYASSERT(PARSE_AND_NORMALIZE("2004-01-32T12:12:12Z" ,&dt));
-  MYASSERT(PARSE_AND_NORMALIZE("2004-01-01t12:12:12Z" ,&dt));
-  MYASSERT(PARSE_AND_NORMALIZE("2004-01- 1T12:12:12Z" ,&dt));
+  MYASSERT(PARSE_AND_NORMALIZE_DATETIME("2004-01-ffT12:12:12Z", &dt));
+  MYASSERT(PARSE_AND_NORMALIZE_DATETIME("2004-01-00T12:12:12Z", &dt));
+  MYASSERT(PARSE_AND_NORMALIZE_DATETIME("2004-01-007T12:12:12Z", &dt));
+  MYASSERT(PARSE_AND_NORMALIZE_DATETIME("2004-01-32T12:12:12Z", &dt));
+  MYASSERT(PARSE_AND_NORMALIZE_DATETIME("2004-01-01t12:12:12Z", &dt));
+  MYASSERT(PARSE_AND_NORMALIZE_DATETIME("2004-01- 1T12:12:12Z", &dt));
   
-  MYASSERT(PARSE_AND_NORMALIZE("2005-02-29T12:12:12Z" ,&dt));
-  MYASSERT(!PARSE_AND_NORMALIZE("2005-02-28T12:12:12Z" ,&dt));
-  MYASSERT(!PARSE_AND_NORMALIZE("2004-02-29T12:12:12Z" ,&dt));
-  MYASSERT(!PARSE_AND_NORMALIZE("2000-02-29T12:12:12Z" ,&dt));
-  MYASSERT(PARSE_AND_NORMALIZE("1900-02-29T12:12:12Z" ,&dt));
+  MYASSERT(PARSE_AND_NORMALIZE_DATETIME("2005-02-29T12:12:12Z", &dt));
+  MYASSERT(!PARSE_AND_NORMALIZE_DATETIME("2005-02-28T12:12:12Z", &dt));
+  MYASSERT(!PARSE_AND_NORMALIZE_DATETIME("2004-02-29T12:12:12Z", &dt));
+  MYASSERT(!PARSE_AND_NORMALIZE_DATETIME("2000-02-29T12:12:12Z", &dt));
+  MYASSERT(PARSE_AND_NORMALIZE_DATETIME("1900-02-29T12:12:12Z", &dt));
 
   MYASSERT(test_datetime_parser_tostring("2012-04-12T12:12:12Z", "2012-04-12T12:12:12Z") == 0);
   
   /* hour */
 
-  MYASSERT(PARSE_AND_NORMALIZE("2004-01-01Tew:12:12Z" ,&dt));
-  MYASSERT(PARSE_AND_NORMALIZE("2004-01-01T-1:12:12Z" ,&dt));
-  MYASSERT(PARSE_AND_NORMALIZE("2004-01-01T001:12:12Z" ,&dt));
-  MYASSERT(PARSE_AND_NORMALIZE("2004-01-01T25:12:12Z" ,&dt));
-  MYASSERT(PARSE_AND_NORMALIZE("2004-01-01T01.12:12Z" ,&dt));
+  MYASSERT(PARSE_AND_NORMALIZE_DATETIME("2004-01-01Tew:12:12Z", &dt));
+  MYASSERT(PARSE_AND_NORMALIZE_DATETIME("2004-01-01T-1:12:12Z", &dt));
+  MYASSERT(PARSE_AND_NORMALIZE_DATETIME("2004-01-01T001:12:12Z", &dt));
+  MYASSERT(PARSE_AND_NORMALIZE_DATETIME("2004-01-01T25:12:12Z", &dt));
+  MYASSERT(PARSE_AND_NORMALIZE_DATETIME("2004-01-01T01.12:12Z", &dt));
   
-  MYASSERT(PARSE_AND_NORMALIZE("2004-01-01T24:12:00Z" ,&dt));
-  MYASSERT(PARSE_AND_NORMALIZE("2004-01-01T24:00:34Z" ,&dt));
-  MYASSERT(PARSE_AND_NORMALIZE("2004-01-01T24:12:34Z" ,&dt));
-  MYASSERT(!PARSE_AND_NORMALIZE("2004-01-01T24:00:00Z" ,&dt));
+  MYASSERT(PARSE_AND_NORMALIZE_DATETIME("2004-01-01T24:12:00Z", &dt));
+  MYASSERT(PARSE_AND_NORMALIZE_DATETIME("2004-01-01T24:00:34Z", &dt));
+  MYASSERT(PARSE_AND_NORMALIZE_DATETIME("2004-01-01T24:12:34Z", &dt));
+  MYASSERT(!PARSE_AND_NORMALIZE_DATETIME("2004-01-01T24:00:00Z", &dt));
   
   MYASSERT(test_datetime_parser_tostring("2012-04-12T24:00:00", "2012-04-13T00:00:00") == 0);
   
   /* minute */
   
-  MYASSERT(PARSE_AND_NORMALIZE("2004-01-01T12:ij:12Z" ,&dt));
-  MYASSERT(PARSE_AND_NORMALIZE("2004-01-01T12:-1:12Z" ,&dt));
-  MYASSERT(PARSE_AND_NORMALIZE("2004-01-01T12:042:12Z" ,&dt));
-  MYASSERT(PARSE_AND_NORMALIZE("2004-01-01T12:69:12Z" ,&dt));
-  MYASSERT(PARSE_AND_NORMALIZE("2004-01-01T12:12.12Z" ,&dt));
+  MYASSERT(PARSE_AND_NORMALIZE_DATETIME("2004-01-01T12:ij:12Z", &dt));
+  MYASSERT(PARSE_AND_NORMALIZE_DATETIME("2004-01-01T12:-1:12Z", &dt));
+  MYASSERT(PARSE_AND_NORMALIZE_DATETIME("2004-01-01T12:042:12Z", &dt));
+  MYASSERT(PARSE_AND_NORMALIZE_DATETIME("2004-01-01T12:69:12Z", &dt));
+  MYASSERT(PARSE_AND_NORMALIZE_DATETIME("2004-01-01T12:12.12Z", &dt));
   
   /* second */
 
-  MYASSERT(PARSE_AND_NORMALIZE("2004-01-01T12:12:ijZ" ,&dt));
-  MYASSERT(PARSE_AND_NORMALIZE("2004-01-01T12:12:-1" ,&dt));
-  MYASSERT(PARSE_AND_NORMALIZE("2004-01-01T12:12:054Z" ,&dt));
-  MYASSERT(PARSE_AND_NORMALIZE("2004-01-01T12:12:69Z" ,&dt));
-  MYASSERT(PARSE_AND_NORMALIZE("2004-01-01T12:12:12z" ,&dt));
+  MYASSERT(PARSE_AND_NORMALIZE_DATETIME("2004-01-01T12:12:ijZ", &dt));
+  MYASSERT(PARSE_AND_NORMALIZE_DATETIME("2004-01-01T12:12:-1", &dt));
+  MYASSERT(PARSE_AND_NORMALIZE_DATETIME("2004-01-01T12:12:054Z", &dt));
+  MYASSERT(PARSE_AND_NORMALIZE_DATETIME("2004-01-01T12:12:69Z", &dt));
+  MYASSERT(PARSE_AND_NORMALIZE_DATETIME("2004-01-01T12:12:12z", &dt));
   
-  MYASSERT(!PARSE_AND_NORMALIZE("2004-01-01T12:12:12" ,&dt));
+  MYASSERT(!PARSE_AND_NORMALIZE_DATETIME("2004-01-01T12:12:12", &dt));
   
   /* fraction second */
   
-  MYASSERT(PARSE_AND_NORMALIZE("2004-01-01T12:12:12." ,&dt));
-  MYASSERT(PARSE_AND_NORMALIZE("2004-01-01T12:12:12.i" ,&dt));
-  MYASSERT(!PARSE_AND_NORMALIZE("2004-01-01T12:12:12.0" ,&dt));
-  MYASSERT(!PARSE_AND_NORMALIZE("2004-01-01T12:12:12.01" ,&dt));
-  MYASSERT(!PARSE_AND_NORMALIZE("2004-01-01T12:12:12.1" ,&dt));
-  MYASSERT(!PARSE_AND_NORMALIZE("2004-01-01T12:12:12.100" ,&dt));
-  MYASSERT(!PARSE_AND_NORMALIZE("2004-01-01T12:12:12.1000000000000000000000000000000000000000000" ,&dt));
-  MYASSERT(!PARSE_AND_NORMALIZE("2004-01-01T12:12:12.5798459847598743987549" ,&dt));
-  MYASSERT(PARSE_AND_NORMALIZE("2004-01-01T12:12:12.1d" ,&dt));
-  MYASSERT(!PARSE_AND_NORMALIZE("2004-01-01T12:12:12.1Z" ,&dt));
+  MYASSERT(PARSE_AND_NORMALIZE_DATETIME("2004-01-01T12:12:12.", &dt));
+  MYASSERT(PARSE_AND_NORMALIZE_DATETIME("2004-01-01T12:12:12.i", &dt));
+  MYASSERT(!PARSE_AND_NORMALIZE_DATETIME("2004-01-01T12:12:12.0", &dt));
+  MYASSERT(!PARSE_AND_NORMALIZE_DATETIME("2004-01-01T12:12:12.01", &dt));
+  MYASSERT(!PARSE_AND_NORMALIZE_DATETIME("2004-01-01T12:12:12.1", &dt));
+  MYASSERT(!PARSE_AND_NORMALIZE_DATETIME("2004-01-01T12:12:12.100", &dt));
+  MYASSERT(!PARSE_AND_NORMALIZE_DATETIME("2004-01-01T12:12:12.1000000000000000000000000000000000000000000", &dt));
+  MYASSERT(!PARSE_AND_NORMALIZE_DATETIME("2004-01-01T12:12:12.5798459847598743987549", &dt));
+  MYASSERT(PARSE_AND_NORMALIZE_DATETIME("2004-01-01T12:12:12.1d", &dt));
+  MYASSERT(!PARSE_AND_NORMALIZE_DATETIME("2004-01-01T12:12:12.1Z", &dt));
 
   MYASSERT(test_datetime_parser_tostring("2006-05-18T18:36:03.01Z", "2006-05-18T18:36:03.01Z") == 0);
   MYASSERT(test_datetime_parser_tostring("2006-05-18T18:36:03.10Z", "2006-05-18T18:36:03.1Z") == 0);
@@ -928,21 +958,21 @@ main(int argc, char *argv[])
 
   /* timezones + normalization */
 
-  MYASSERT(PARSE_AND_NORMALIZE("2004-01-01T12:12:12+" ,&dt));
-  MYASSERT(PARSE_AND_NORMALIZE("2004-01-01T12:12:12-" ,&dt));
-  MYASSERT(PARSE_AND_NORMALIZE("2004-01-01T12:12:12+00.00" ,&dt));
-  MYASSERT(PARSE_AND_NORMALIZE("2004-01-01T12:12:12+aa:bb" ,&dt));
-  MYASSERT(PARSE_AND_NORMALIZE("2004-01-01T12:12:12+15:00" ,&dt));
-  MYASSERT(PARSE_AND_NORMALIZE("2004-01-01T12:12:12+14:01" ,&dt));
-  MYASSERT(!PARSE_AND_NORMALIZE("2004-01-01T12:12:12+14:00" ,&dt));
-  MYASSERT(PARSE_AND_NORMALIZE("2004-01-01T12:12:12-14:01" ,&dt));
-  MYASSERT(!PARSE_AND_NORMALIZE("2004-01-01T12:12:12-14:00" ,&dt));
-  MYASSERT(PARSE_AND_NORMALIZE("2004-01-01T12:12:12+10:99" ,&dt));
-  MYASSERT(!PARSE_AND_NORMALIZE("2004-01-01T12:12:12+10:59" ,&dt));
-  MYASSERT(PARSE_AND_NORMALIZE("2004-01-01T12:12:12+10:059" ,&dt));
-  MYASSERT(PARSE_AND_NORMALIZE("2004-01-01T12:12:12+010:59" ,&dt));
-  MYASSERT(PARSE_AND_NORMALIZE("2004-01-01T12:12:12+10:59a" ,&dt));
-  MYASSERT(PARSE_AND_NORMALIZE("2004-01-01T12:12:12+10:059" ,&dt));
+  MYASSERT(PARSE_AND_NORMALIZE_DATETIME("2004-01-01T12:12:12+", &dt));
+  MYASSERT(PARSE_AND_NORMALIZE_DATETIME("2004-01-01T12:12:12-", &dt));
+  MYASSERT(PARSE_AND_NORMALIZE_DATETIME("2004-01-01T12:12:12+00.00", &dt));
+  MYASSERT(PARSE_AND_NORMALIZE_DATETIME("2004-01-01T12:12:12+aa:bb", &dt));
+  MYASSERT(PARSE_AND_NORMALIZE_DATETIME("2004-01-01T12:12:12+15:00", &dt));
+  MYASSERT(PARSE_AND_NORMALIZE_DATETIME("2004-01-01T12:12:12+14:01", &dt));
+  MYASSERT(!PARSE_AND_NORMALIZE_DATETIME("2004-01-01T12:12:12+14:00", &dt));
+  MYASSERT(PARSE_AND_NORMALIZE_DATETIME("2004-01-01T12:12:12-14:01", &dt));
+  MYASSERT(!PARSE_AND_NORMALIZE_DATETIME("2004-01-01T12:12:12-14:00", &dt));
+  MYASSERT(PARSE_AND_NORMALIZE_DATETIME("2004-01-01T12:12:12+10:99", &dt));
+  MYASSERT(!PARSE_AND_NORMALIZE_DATETIME("2004-01-01T12:12:12+10:59", &dt));
+  MYASSERT(PARSE_AND_NORMALIZE_DATETIME("2004-01-01T12:12:12+10:059", &dt));
+  MYASSERT(PARSE_AND_NORMALIZE_DATETIME("2004-01-01T12:12:12+010:59", &dt));
+  MYASSERT(PARSE_AND_NORMALIZE_DATETIME("2004-01-01T12:12:12+10:59a", &dt));
+  MYASSERT(PARSE_AND_NORMALIZE_DATETIME("2004-01-01T12:12:12+10:059", &dt));
 
   MYASSERT(test_datetime_parser_tostring("2004-12-31T23:50:22-01:15", "2005-01-01T01:05:22Z") == 0);
   MYASSERT(test_datetime_parser_tostring("2005-01-01T01:00:05+02:12", "2004-12-31T22:48:05Z") == 0);
@@ -952,6 +982,88 @@ main(int argc, char *argv[])
   MYASSERT(test_datetime_parser_tostring("2004-03-01T00:00:00+01:00", "2004-02-29T23:00:00Z") == 0);
   MYASSERT(test_datetime_parser_tostring("2005-02-28T23:00:00-01:00", "2005-03-01T00:00:00Z") == 0);
   MYASSERT(test_datetime_parser_tostring("2004-02-29T23:00:00-01:00", "2004-03-01T00:00:00Z") == 0);
+
+
+  /* DATE */
+
+  #define PARSE_AND_NORMALIZE_DATE(_s,_d) \
+    rasqal_xsd_date_parse_and_normalize((const unsigned char*)_s, _d)
+  
+  /* generic */
+
+  MYASSERT(!rasqal_xsd_date_to_string(0));
+
+  MYASSERT(PARSE_AND_NORMALIZE_DATE(0,0));
+  MYASSERT(PARSE_AND_NORMALIZE_DATE("uhgsufi",0));
+  MYASSERT(PARSE_AND_NORMALIZE_DATE(0 ,&d));
+  MYASSERT(PARSE_AND_NORMALIZE_DATE("fsdhufhdsuifhidu", &d));
+  
+  /* year */
+  
+  MYASSERT(PARSE_AND_NORMALIZE_DATE("123-12-12Z", &d));
+  MYASSERT(PARSE_AND_NORMALIZE_DATE("-123-12-12Z", &d));
+  MYASSERT(PARSE_AND_NORMALIZE_DATE("0000-12-12Z", &d));
+  MYASSERT(PARSE_AND_NORMALIZE_DATE("01234-12-12Z", &d));
+  MYASSERT(PARSE_AND_NORMALIZE_DATE("-01234-12-12Z", &d));
+  MYASSERT(PARSE_AND_NORMALIZE_DATE("1234a12-12Z", &d));
+  MYASSERT(PARSE_AND_NORMALIZE_DATE("-1234b12-12Z", &d));
+  MYASSERT(PARSE_AND_NORMALIZE_DATE("g162-12-12Z", &d));
+  MYASSERT(PARSE_AND_NORMALIZE_DATE("5476574658746587465874-12-12Z", &d));
+  
+  MYASSERT(test_date_parser_tostring("1234-12-12Z", "1234-12-12Z") == 0);
+  MYASSERT(test_date_parser_tostring("-1234-12-12Z", "-1234-12-12Z") == 0);
+  MYASSERT(test_date_parser_tostring("1234567890-12-12Z", "1234567890-12-12Z") == 0);
+  MYASSERT(test_date_parser_tostring("-1234567890-12-12Z", "-1234567890-12-12Z") == 0);
+  
+  /* month */
+  
+  MYASSERT(PARSE_AND_NORMALIZE_DATE("2004-v-12Z", &d));
+  MYASSERT(PARSE_AND_NORMALIZE_DATE("2004-00-12Z", &d));
+  MYASSERT(PARSE_AND_NORMALIZE_DATE("PARSE_AND_NORMALIZE-011-12Z", &d));
+  MYASSERT(PARSE_AND_NORMALIZE_DATE("2004-13-12Z", &d));
+  MYASSERT(PARSE_AND_NORMALIZE_DATE("2004-12.12Z", &d));
+
+  MYASSERT(test_date_parser_tostring("2004-01-01Z", "2004-01-01Z") == 0);
+
+  /* day */
+  
+  MYASSERT(PARSE_AND_NORMALIZE_DATE("2004-01-ffZ", &d));
+  MYASSERT(PARSE_AND_NORMALIZE_DATE("2004-01-00Z", &d));
+  MYASSERT(PARSE_AND_NORMALIZE_DATE("2004-01-007Z", &d));
+  MYASSERT(PARSE_AND_NORMALIZE_DATE("2004-01-32Z", &d));
+  MYASSERT(PARSE_AND_NORMALIZE_DATE("2004-01-01t12:12:12Z", &d));
+  MYASSERT(PARSE_AND_NORMALIZE_DATE("2004-01- 1Z", &d));
+  
+  MYASSERT(PARSE_AND_NORMALIZE_DATE("2005-02-29Z", &d));
+  MYASSERT(!PARSE_AND_NORMALIZE_DATE("2005-02-28Z", &d));
+  MYASSERT(!PARSE_AND_NORMALIZE_DATE("2004-02-29Z", &d));
+  MYASSERT(!PARSE_AND_NORMALIZE_DATE("2000-02-29Z", &d));
+  MYASSERT(PARSE_AND_NORMALIZE_DATE("1900-02-29Z", &d));
+
+  MYASSERT(test_date_parser_tostring("2012-04-12Z", "2012-04-12Z") == 0);
+  
+  /* timezones + normalization */
+
+  MYASSERT(PARSE_AND_NORMALIZE_DATE("2004-01-01+", &d));
+  MYASSERT(PARSE_AND_NORMALIZE_DATE("2004-01-01-", &d));
+  MYASSERT(PARSE_AND_NORMALIZE_DATE("2004-01-01+00.00", &d));
+  MYASSERT(PARSE_AND_NORMALIZE_DATE("2004-01-01+aa:bb", &d));
+  MYASSERT(PARSE_AND_NORMALIZE_DATE("2004-01-01+15:00", &d));
+  MYASSERT(PARSE_AND_NORMALIZE_DATE("2004-01-01+14:01", &d));
+  MYASSERT(!PARSE_AND_NORMALIZE_DATE("2004-01-01+14:00", &d));
+  MYASSERT(PARSE_AND_NORMALIZE_DATE("2004-01-01-14:01", &d));
+  MYASSERT(!PARSE_AND_NORMALIZE_DATE("2004-01-01-14:00", &d));
+  MYASSERT(PARSE_AND_NORMALIZE_DATE("2004-01-01+10:99", &d));
+  MYASSERT(!PARSE_AND_NORMALIZE_DATE("2004-01-01+10:59", &d));
+  MYASSERT(PARSE_AND_NORMALIZE_DATE("2004-01-01+10:059", &d));
+  MYASSERT(PARSE_AND_NORMALIZE_DATE("2004-01-01+010:59", &d));
+  MYASSERT(PARSE_AND_NORMALIZE_DATE("2004-01-01+10:59a", &d));
+  MYASSERT(PARSE_AND_NORMALIZE_DATE("2004-01-01+10:059", &d));
+
+  MYASSERT(test_date_parser_tostring("2004-12-31-13:00", "2005-01-01Z") == 0);
+  MYASSERT(test_date_parser_tostring("2005-01-01+13:00", "2004-12-31Z") == 0);
+  MYASSERT(test_date_parser_tostring("2004-12-31-11:59", "2004-12-31Z") == 0);
+  MYASSERT(test_date_parser_tostring("2005-01-01+11:59", "2005-01-01Z") == 0);
 
   return 0;
 }
