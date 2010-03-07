@@ -1,7 +1,7 @@
 /*
- * rasqal_datetime.c - Rasqal XSD dateTime
+ * rasqal_datetime.c - Rasqal XSD dateTime and XSD date
  *
- * Copyright (C) 2007-2008, David Beckett http://www.dajobe.org/
+ * Copyright (C) 2007-2010, David Beckett http://www.dajobe.org/
  *
  * Contributions:
  *   Copyright (C) 2007, Lauri Aalto <laalto@iki.fi>
@@ -76,7 +76,7 @@ static unsigned int days_per_month(int month, int year);
 
 
 #ifndef ISNUM
-#define ISNUM(c) ((c)>='0'&&(c)<='9')
+#define ISNUM(c) ((c) >= '0' && (c) <= '9')
 #endif
 
 
@@ -126,7 +126,7 @@ rasqal_xsd_datetime_normalize(rasqal_xsd_datetime *datetime)
     } else
       y2 = datetime->year;
     datetime->day += days_per_month(t, y2);
-  } else if(datetime->day > (t=days_per_month(datetime->month, datetime->year))) {
+  } else if(datetime->day > (t = days_per_month(datetime->month, datetime->year))) {
     datetime->day -= t;
     datetime->month++;
   }
@@ -198,32 +198,32 @@ rasqal_xsd_datetime_parse_and_normalize(const unsigned char *datetime_string,
   if(!datetime_string || !result)
     return -1;
   
-  p=(const char *)datetime_string;
-  is_neg=0;
+  p = (const char *)datetime_string;
+  is_neg = 0;
 
   /* Parse year */
   
   /* negative years permitted */
   if(*p == '-') {
-    is_neg=1;
+    is_neg = 1;
     p++;
   }
-  for(q=p; ISNUM(*p); p++)
+  for(q = p; ISNUM(*p); p++)
     ;
-  l=p-q;
+  l = p - q;
   
   /* error if
      - less than 4 digits in year
      - more than 4 digits && leading zeros
      - '-' does not follow numbers
    */
-  if(l < 4 || (l > 4 && *q=='0') || *p!='-')
+  if(l < 4 || (l > 4 && *q=='0') || *p != '-')
     return -1;
 
-  l=(l < sizeof(b)-1 ? l : sizeof(b)-1);
+  l = (l < sizeof(b)-1 ? l : sizeof(b)-1);
   strncpy(b, q, l);
-  b[l]=0; /* ensure nul termination */
-  u=strtoul(b, 0, 10);
+  b[l] = 0; /* ensure nul termination */
+  u = strtoul(b, 0, 10);
   
   /* year "0000" not permitted
    * restrict to signed int range
@@ -234,94 +234,94 @@ rasqal_xsd_datetime_parse_and_normalize(const unsigned char *datetime_string,
   if(!u || u >= INT_MAX)
     return -1;
     
-  result->year=is_neg ? -(int)u : (int)u;
+  result->year = is_neg ? -(int)u : (int)u;
 
   /* parse month */
   
-  for(q=++p; ISNUM(*p); p++)
+  for(q = ++p; ISNUM(*p); p++)
     ;
-  l=p-q;
+  l = p - q;
   
   /* error if month is not 2 digits or '-' is not the separator */
-  if(l != 2 || *p!='-')
+  if(l != 2 || *p != '-')
     return -2;
   
-  t=(*q++-'0')*10;
-  t+=*q-'0';
+  t = (*q++ - '0')*10;
+  t += *q - '0';
   
   /* month must be 1..12 */
   if(t < 1 || t > 12)
     return -2;
   
-  result->month=t;
+  result->month = t;
   
   /* parse day */
   
-  for(q=++p; ISNUM(*p); p++)
+  for(q = ++p; ISNUM(*p); p++)
     ;
-  l=p-q;
-  
+  l = p - q;
+
   /* error if day is not 2 digits or 'T' is not the separator */
   if(l != 2 || *p != 'T')
     return -3;
-  
-  t=(*q++-'0')*10;
-  t+=*q-'0';
-  
+
+  t = (*q++ - '0') * 10;
+  t += *q - '0';
+
   /* day must be 1..days_per_month */
   if(t < 1 || t > days_per_month(result->month, result->year))
     return -3;
-    
-  result->day=t;
-  
+
+  result->day = t;
+
   /* parse hour */
-  
-  for(q=++p; ISNUM(*p); p++)
+
+  for(q = ++p; ISNUM(*p); p++)
     ;
-  l=p-q;
-  
+  l = p - q;
+
   /* error if hour is not 2 digits or ':' is not the separator */
   if(l != 2 || *p != ':')
     return -4;
-   
-  t=(*q++-'0')*10;
-  t+=*q-'0';
- 
+
+  t = (*q++-'0')*10;
+  t += *q-'0';
+
   /* hour must be 0..24 - will handle special case 24 later
    * (no need to check for < 0)
    */
   if(t > 24)
     return -4;
-    
-  result->hour=t;
- 
+
+  result->hour = t;
+
   /* parse minute */
 
-  for(q=++p; ISNUM(*p); p++)
+  for(q = ++p; ISNUM(*p); p++)
     ;
-  l=p-q;
-  
+  l = p - q;
+
   /* error if minute is not 2 digits or ':' is not the separator */
   if(l != 2 || *p != ':')
     return -5;
-   
-  t=(*q++-'0')*10;
-  t+=*q-'0';
- 
+
+  t = (*q++ - '0') * 10;
+  t += *q - '0';
+
   /* minute must be 0..59
    * (no need to check for < 0)
    */
   if(t > 59)
     return -5;
 
-  result->minute=t;
-  
+  result->minute = t;
+
   /* parse second whole part */
-  
-  for(q=++p; ISNUM(*p); p++)
+
+  for(q = ++p; ISNUM(*p); p++)
     ;
-  l=p-q;
-  
+  l = p - q;
+
   /* error if second is not 2 digits or separator is not 
    * '.' (second fraction)
    * 'Z' (utc)
@@ -330,9 +330,9 @@ rasqal_xsd_datetime_parse_and_normalize(const unsigned char *datetime_string,
    */
   if(l != 2 || (*p && *p != '.' && *p != 'Z' && *p != '+' && *p != '-'))
     return -6;
-    
-  t=(*q++-'0')*10;
-  t+=*q-'0';
+
+  t = (*q++ - '0')*10;
+  t += *q - '0';
 
   /* second must be 0..59
   * (no need to check for < 0)
@@ -340,18 +340,18 @@ rasqal_xsd_datetime_parse_and_normalize(const unsigned char *datetime_string,
   if(t > 59)
     return -6;
 
-  result->second=t;
+  result->second = t;
 
   /* now that we have hour, minute and second, we can check
    * if hour == 24 -> only 24:00:00 permitted (normalized later)
    */
-  if(result->hour==24 && (result->minute || result->second))
+  if(result->hour == 24 && (result->minute || result->second))
     return -7;
-  
+
   /* parse fraction seconds if any */
-  result->second_frac[0]=0;
+  result->second_frac[0] = 0;
   if(*p == '.') {
-    for(q=++p; ISNUM(*p); p++)
+    for(q = ++p; ISNUM(*p); p++)
       ;
 
     /* ignore trailing zeros */
@@ -359,9 +359,9 @@ rasqal_xsd_datetime_parse_and_normalize(const unsigned char *datetime_string,
       ;
     p++;
 
-    if(!(*q=='0' && q==p)) {
+    if(!(*q == '0' && q == p)) {
       /* allow ".0" */
-      l=p-q;
+      l = p - q;
       /* support only to milliseconds with truncation */
       if(l > sizeof(result->second_frac)-1)
         l=sizeof(result->second_frac)-1;
@@ -369,38 +369,39 @@ rasqal_xsd_datetime_parse_and_normalize(const unsigned char *datetime_string,
       if(l<1) /* need at least 1 num */
         return -8;
 
-      for(t2=0; t2 < l; ++t2)
-        result->second_frac[t2]=*q++;
+      for(t2 = 0; t2 < l; ++t2)
+        result->second_frac[t2] = *q++;
 
-      result->second_frac[l]=0;
+      result->second_frac[l] = 0;
     }
 
     /* skip ignored trailing zeros */
     while(*p == '0')
       p++;
   }
+
   
   /* parse & adjust timezone offset */
   /* result is normalized later */
-  result->have_tz=0;
+  result->have_tz = 0;
   if(*p) {
     if(*p == 'Z') {
       /* utc timezone - no need to adjust */
       p++;
-      result->have_tz=1;
-    } else if(*p=='+' || *p=='-') {
+      result->have_tz = 1;
+    } else if(*p == '+' || *p == '-') {
       /* work out timezone offsets */
-      is_neg=*p == '-';
+      is_neg = *p == '-';
      
       /* timezone hours */
-      for(q=++p; ISNUM(*p); p++)
+      for(q = ++p; ISNUM(*p); p++)
         ;
-      l=p-q;
+      l = p - q;
       if(l != 2 || *p!=':')
         return -9;
 
-      t2=(*q++ - '0')*10;
-      t2+=*q - '0';
+      t2 = (*q++ - '0') * 10;
+      t2 += *q - '0';
       if(t2 > 14)
         /* tz offset hours are restricted to 0..14
          * (no need to check for < 0)
@@ -408,18 +409,18 @@ rasqal_xsd_datetime_parse_and_normalize(const unsigned char *datetime_string,
         return -9;
     
       /* negative tz offset adds to the result */
-      result->hour+=is_neg ? t2 : -t2;
+      result->hour += is_neg ? t2 : -t2;
 
       /* timezone minutes */    
-      for(q=++p; ISNUM(*p); p++)
+      for(q = ++p; ISNUM(*p); p++)
         ;
-      l=p-q;
-      if(l!=2)
+      l = p - q;
+      if(l != 2)
         return -10;
 
-      t=(*q++ - '0')*10;
-      t+=*q - '0';
-      if(t > 59 || (t2 == 14 && t!=0)) {
+      t =(*q++ - '0') * 10;
+      t += *q - '0';
+      if(t > 59 || (t2 == 14 && t != 0)) {
         /* tz offset minutes are restricted to 0..59
          * (no need to check for < 0)
          * or 0 if hour offset is exactly +-14 
@@ -429,7 +430,7 @@ rasqal_xsd_datetime_parse_and_normalize(const unsigned char *datetime_string,
     
       /* negative tz offset adds to the result */
       result->minute += is_neg ? t : -t;
-      result->have_tz=1;
+      result->have_tz = 1;
     }
     
     /* failure if extra chars after the timezone part */
@@ -614,10 +615,10 @@ int main(int argc, char *argv[]);
 static int test_datetime_parser_tostring(const char *in_str, const char *out_expected)
 {
   unsigned char const *s;
-  int r=1;
-  s=rasqal_xsd_datetime_string_to_canonical((const unsigned char *)in_str);
+  int r = 1;
+  s = rasqal_xsd_datetime_string_to_canonical((const unsigned char *)in_str);
   if(s) {
-    r=strcmp((char*)s, out_expected);
+    r = strcmp((char*)s, out_expected);
     if(r)
       fprintf(stderr, "input \"%s\" converted to canonical \"%s\", expected \"%s\"\n", in_str, s, out_expected);
     RASQAL_FREE(cstring, (void*)s);
@@ -628,8 +629,9 @@ static int test_datetime_parser_tostring(const char *in_str, const char *out_exp
 
 
 int
-main(int argc, char *argv[]) {
-  char const *program=rasqal_basename(*argv);
+main(int argc, char *argv[])
+{
+  char const *program = rasqal_basename(*argv);
   rasqal_xsd_datetime d;
 
   /* days_per_month */
@@ -683,10 +685,10 @@ main(int argc, char *argv[]) {
   MYASSERT(PARSE_AND_NORMALIZE("g162-12-12T12:12:12Z",&d));
   MYASSERT(PARSE_AND_NORMALIZE("5476574658746587465874-12-12T12:12:12Z",&d));
   
-  MYASSERT(test_datetime_parser_tostring("1234-12-12T12:12:12Z", "1234-12-12T12:12:12Z")==0);
-  MYASSERT(test_datetime_parser_tostring("-1234-12-12T12:12:12Z", "-1234-12-12T12:12:12Z")==0);
-  MYASSERT(test_datetime_parser_tostring("1234567890-12-12T12:12:12Z", "1234567890-12-12T12:12:12Z")==0);
-  MYASSERT(test_datetime_parser_tostring("-1234567890-12-12T12:12:12Z", "-1234567890-12-12T12:12:12Z")==0);
+  MYASSERT(test_datetime_parser_tostring("1234-12-12T12:12:12Z", "1234-12-12T12:12:12Z") == 0);
+  MYASSERT(test_datetime_parser_tostring("-1234-12-12T12:12:12Z", "-1234-12-12T12:12:12Z") == 0);
+  MYASSERT(test_datetime_parser_tostring("1234567890-12-12T12:12:12Z", "1234567890-12-12T12:12:12Z") == 0);
+  MYASSERT(test_datetime_parser_tostring("-1234567890-12-12T12:12:12Z", "-1234567890-12-12T12:12:12Z") == 0);
   
   /* month */
   
@@ -696,7 +698,7 @@ main(int argc, char *argv[]) {
   MYASSERT(PARSE_AND_NORMALIZE("2004-13-12T12:12:12Z",&d));
   MYASSERT(PARSE_AND_NORMALIZE("2004-12.12T12:12:12Z",&d));
 
-  MYASSERT(test_datetime_parser_tostring("2004-01-01T12:12:12Z", "2004-01-01T12:12:12Z")==0);
+  MYASSERT(test_datetime_parser_tostring("2004-01-01T12:12:12Z", "2004-01-01T12:12:12Z") == 0);
 
   /* day */
   
@@ -713,7 +715,7 @@ main(int argc, char *argv[]) {
   MYASSERT(!PARSE_AND_NORMALIZE("2000-02-29T12:12:12Z",&d));
   MYASSERT(PARSE_AND_NORMALIZE("1900-02-29T12:12:12Z",&d));
 
-  MYASSERT(test_datetime_parser_tostring("2012-04-12T12:12:12Z", "2012-04-12T12:12:12Z")==0);
+  MYASSERT(test_datetime_parser_tostring("2012-04-12T12:12:12Z", "2012-04-12T12:12:12Z") == 0);
   
   /* hour */
 
@@ -728,7 +730,7 @@ main(int argc, char *argv[]) {
   MYASSERT(PARSE_AND_NORMALIZE("2004-01-01T24:12:34Z",&d));
   MYASSERT(!PARSE_AND_NORMALIZE("2004-01-01T24:00:00Z",&d));
   
-  MYASSERT(test_datetime_parser_tostring("2012-04-12T24:00:00", "2012-04-13T00:00:00")==0);
+  MYASSERT(test_datetime_parser_tostring("2012-04-12T24:00:00", "2012-04-13T00:00:00") == 0);
   
   /* minute */
   
@@ -761,13 +763,13 @@ main(int argc, char *argv[]) {
   MYASSERT(PARSE_AND_NORMALIZE("2004-01-01T12:12:12.1d",&d));
   MYASSERT(!PARSE_AND_NORMALIZE("2004-01-01T12:12:12.1Z",&d));
 
-  MYASSERT(test_datetime_parser_tostring("2006-05-18T18:36:03.01Z", "2006-05-18T18:36:03.01Z")==0);
-  MYASSERT(test_datetime_parser_tostring("2006-05-18T18:36:03.10Z", "2006-05-18T18:36:03.1Z")==0);
-  MYASSERT(test_datetime_parser_tostring("2006-05-18T18:36:03.010Z", "2006-05-18T18:36:03.01Z")==0);
-  MYASSERT(test_datetime_parser_tostring("2006-05-18T18:36:03.1234Z", "2006-05-18T18:36:03.123Z")==0);
-  MYASSERT(test_datetime_parser_tostring("2006-05-18T18:36:03.1234", "2006-05-18T18:36:03.123")==0);
-  MYASSERT(test_datetime_parser_tostring("2006-05-18T18:36:03.1239Z", "2006-05-18T18:36:03.123Z")==0);
-  MYASSERT(test_datetime_parser_tostring("2006-05-18T18:36:03.1239", "2006-05-18T18:36:03.123")==0);
+  MYASSERT(test_datetime_parser_tostring("2006-05-18T18:36:03.01Z", "2006-05-18T18:36:03.01Z") == 0);
+  MYASSERT(test_datetime_parser_tostring("2006-05-18T18:36:03.10Z", "2006-05-18T18:36:03.1Z") == 0);
+  MYASSERT(test_datetime_parser_tostring("2006-05-18T18:36:03.010Z", "2006-05-18T18:36:03.01Z") == 0);
+  MYASSERT(test_datetime_parser_tostring("2006-05-18T18:36:03.1234Z", "2006-05-18T18:36:03.123Z") == 0);
+  MYASSERT(test_datetime_parser_tostring("2006-05-18T18:36:03.1234", "2006-05-18T18:36:03.123") == 0);
+  MYASSERT(test_datetime_parser_tostring("2006-05-18T18:36:03.1239Z", "2006-05-18T18:36:03.123Z") == 0);
+  MYASSERT(test_datetime_parser_tostring("2006-05-18T18:36:03.1239", "2006-05-18T18:36:03.123") == 0);
 
   /* timezones + normalization */
 
@@ -787,14 +789,14 @@ main(int argc, char *argv[]) {
   MYASSERT(PARSE_AND_NORMALIZE("2004-01-01T12:12:12+10:59a",&d));
   MYASSERT(PARSE_AND_NORMALIZE("2004-01-01T12:12:12+10:059",&d));
 
-  MYASSERT(test_datetime_parser_tostring("2004-12-31T23:50:22-01:15", "2005-01-01T01:05:22Z")==0);
-  MYASSERT(test_datetime_parser_tostring("2005-01-01T01:00:05+02:12", "2004-12-31T22:48:05Z")==0);
-  MYASSERT(test_datetime_parser_tostring("0001-01-01T00:00:00+00:01", "-0001-12-31T23:59:00Z")==0);
-  MYASSERT(test_datetime_parser_tostring("-0001-12-31T23:59:00-00:01", "0001-01-01T00:00:00Z")==0);
-  MYASSERT(test_datetime_parser_tostring("2005-03-01T00:00:00+01:00", "2005-02-28T23:00:00Z")==0);
-  MYASSERT(test_datetime_parser_tostring("2004-03-01T00:00:00+01:00", "2004-02-29T23:00:00Z")==0);
-  MYASSERT(test_datetime_parser_tostring("2005-02-28T23:00:00-01:00", "2005-03-01T00:00:00Z")==0);
-  MYASSERT(test_datetime_parser_tostring("2004-02-29T23:00:00-01:00", "2004-03-01T00:00:00Z")==0);
+  MYASSERT(test_datetime_parser_tostring("2004-12-31T23:50:22-01:15", "2005-01-01T01:05:22Z") == 0);
+  MYASSERT(test_datetime_parser_tostring("2005-01-01T01:00:05+02:12", "2004-12-31T22:48:05Z") == 0);
+  MYASSERT(test_datetime_parser_tostring("0001-01-01T00:00:00+00:01", "-0001-12-31T23:59:00Z") == 0);
+  MYASSERT(test_datetime_parser_tostring("-0001-12-31T23:59:00-00:01", "0001-01-01T00:00:00Z") == 0);
+  MYASSERT(test_datetime_parser_tostring("2005-03-01T00:00:00+01:00", "2005-02-28T23:00:00Z") == 0);
+  MYASSERT(test_datetime_parser_tostring("2004-03-01T00:00:00+01:00", "2004-02-29T23:00:00Z") == 0);
+  MYASSERT(test_datetime_parser_tostring("2005-02-28T23:00:00-01:00", "2005-03-01T00:00:00Z") == 0);
+  MYASSERT(test_datetime_parser_tostring("2004-02-29T23:00:00-01:00", "2004-03-01T00:00:00Z") == 0);
 
   return 0;
 }
