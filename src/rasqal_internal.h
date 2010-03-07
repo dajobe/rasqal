@@ -855,6 +855,7 @@ typedef struct {
 
 /* rasqal_datetime.c */
 int rasqal_xsd_datetime_check(const unsigned char* string);
+int rasqal_xsd_date_check(const unsigned char* string);
 
 
 /* rasqal_general.c */
@@ -1071,6 +1072,8 @@ int rasqal_xsd_datatype_check(rasqal_literal_type native_type, const unsigned ch
 const char* rasqal_xsd_datatype_label(rasqal_literal_type native_type);
 int rasqal_xsd_is_datatype_uri(rasqal_world*, raptor_uri* uri);
 const unsigned char* rasqal_xsd_datetime_string_to_canonical(const unsigned char* datetime_string);
+const unsigned char* rasqal_xsd_date_string_to_canonical(const unsigned char* date_string);
+
 int rasqal_xsd_datatype_is_numeric(rasqal_literal_type type);
 unsigned char* rasqal_xsd_format_integer(int i, size_t *len_p);
 unsigned char* rasqal_xsd_format_float(float f, size_t *len_p);
