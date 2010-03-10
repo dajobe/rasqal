@@ -1,3 +1,281 @@
+2010-03-06  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal.h:
+	Note datetime does not write to literal value
+
+	* src/rasqal_internal.h: Added prototypes for
+	rasqal_xsd_date_check and rasqal_xsd_date_string_to_canonical
+
+	* src/rasqal_datetime.c: Adjust normalized xsd:date - no trailing Z
+
+	* src/rasqal_datetime.c: Fix
+	rasqal_xsd_datetime_parse_and_normalize_common() for dates.  Add
+	tests.
+
+	(rasqal_xsd_datetime_parse_and_normalize_common): Handle day in
+	common code and allow xsd:date to terminate on Z or +/- timezone.
+
+	(rasqal_xsd_date_to_string): Terminate in Z Add test framework for
+	xsd:date and adjust dateTime tests to check timezones with dates
+	that canonicalize to a different date.
+
+	* src/rasqal_datetime.c:
+	(main): Rename d var to dt for dateTime
+
+	* src/rasqal_datetime.c:
+	Add rasqal_xsd_date and xsd:date check,
+	normalization functions rasqal_xsd_date added based on y/m/d from
+	rasqal_xsd_dateTime
+
+	(rasqal_xsd_date_parse_and_normalize): Added calling
+	rasqal_xsd_datetime_parse_and_normalize_common and copying the
+	result fields over on success.
+
+	(rasqal_xsd_date_to_string): Added.
+
+	(rasqal_xsd_date_string_to_canonical): Added.
+
+	(rasqal_xsd_date_check): Added.
+
+	* src/rasqal_datetime.c:
+	Start letting rasqal_xsd_datetime_parse_and_normalize_common()
+	handle date
+
+	(rasqal_xsd_datetime_parse_and_normalize_common): Renamed from
+	rasqal_xsd_datetime_parse_and_normalize and takes is_dateTime
+	boolean arg.  If set, checks hour, mins, secs and fractions of
+	secs, otherwise sets that to 12:00:00.00 for
+	xsd:date.
+
+	(rasqal_xsd_datetime_parse_and_normalize): Call
+	rasqal_xsd_datetime_parse_and_normalize_common with flag set.
+
+	* src/rasqal_datetime.c: code style
+
+2010-03-04  Dave Beckett <dave@dajobe.org>
+
+	* NEWS.html, configure.ac, src/rasqal.h:
+	Bumped version to 0.9.20
+
+	* tests/sparql/bugs/352-result.ttl, tests/sparql/bugs/352.rq,
+	tests/sparql/bugs/352.ttl, tests/sparql/bugs/Makefile.am,
+	tests/sparql/bugs/manifest.ttl: Add tests for bug 352
+
+	* docs/tmpl/section-general.sgml, docs/tmpl/section-literal.sgml:
+	Update doc tmpls
+
+	* docs/rasqal-sections.txt:
+	Add rasqal_world_set_log_handler
+
+	* tests/sparql/.gitignore, tests/sparql/bugs/354-result.ttl,
+	tests/sparql/bugs/354.nt, tests/sparql/bugs/354.rq,
+	tests/sparql/bugs/Makefile.am, tests/sparql/bugs/manifest.ttl: Add
+	sparql bugs dir
+
+	* configure.ac, tests/sparql/Makefile.am: Add bugs test area and
+	test for Issue#0000354
+
+	* src/rasqal_xsd_datatypes.c: code style
+
+	* src/rasqal.h, src/rasqal_format_json.c,
+	src/rasqal_format_sparql_xml.c, src/rasqal_format_sv.c,
+	src/rasqal_literal.c, src/rasqal_query_results.c,
+	src/rasqal_query_write.c, src/rasqal_xsd_datatypes.c:
+	Added literal type RASQAL_LITERAL_INTEGER_SUBTYPE to let subtypes
+	of xsd:integer work.
+
+	rasqal_literal_type gains (internal)
+	RASQAL_LITERAL_INTEGER_SUBTYPE to handle literals that are
+	sub-types of xsd:integer - so their parent is always
+	RASQAL_LITERAL_INTEGER and for all other purposes, act as integer.
+
+	(rasqal_literal_set_typed_value): If type is
+	RASQAL_LITERAL_INTEGER_SUBTYPE, do not rewrite the datatype URI
+	based on the literal type, but assume URI already there and parent
+	type are correct.
+
+	(rasqal_xsd_datatype_uri_to_type): Recognize when a type URI is
+	found that is a subtype of xsd:integer, set literal type to
+	RASQAL_LITERAL_INTEGER_SUBTYPE.
+
+	(rasqal_xsd_datatype_is_numeric): Accept
+	RASQAL_LITERAL_INTEGER_SUBTYPE as a numeric type.
+
+	(rasqal_xsd_datatype_parent_type): Return RASQAL_LITERAL_INTEGER
+	as parent type for RASQAL_LITERAL_INTEGER_SUBTYPE.
+
+	Update all literal type switches to use
+	RASQAL_LITERAL_INTEGER_SUBTYPE as RASQAL_LITERAL_INTEGER.
+
+	* src/rasqal_xsd_datatypes.c:
+	code style
+
+2010-03-02  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal.h, src/rasqal_format_sparql_xml.c,
+	src/rasqal_general.c, src/rasqal_internal.h, src/rasqal_query.c,
+	utils/roqet.c:
+	Ported to raptor2 git head while retaining support for raptor1.
+	
+	(rasqal_query_set_fatal_error_handler,
+	rasqal_query_set_error_handler, rasqal_query_set_warning_handler):
+	Flagged out for raptor2. Use rasqal_world_set_log_handler()
+	instead.
+	
+	(rasqal_world_set_log_handler): Added new API function for raptor2
+	only. 
+	
+	(rasqal_rowsource_sparql_xml_context): Flagged out error_handlers.
+	Not needed with raptor2.
+	
+	(rasqal_query_results_get_rowsource_sparql_xml): No need to init
+	error_handlers. raptor2 raptor_new_sax2() takes a raptor_locator*,
+	not error_handlers containing raptor_locator*.
+	
+	(rasqal_world_open): Flagged out error_handlers magic.
+	
+	(rasqal_log_error_varargs): Support raptor2 raptor_log_messages and
+	raptor_log_handlers.
+	
+	(rasqal_log_error): Removed unused internal function declaration.
+	
+	(rasqal_world_s): Flagged out error_handlers. Added support for
+	raptor_log_handlers.
+	
+	(roqet_log_handler): Added.
+	
+	(main): Use raptor2 log_handler in roqet.
+
+2010-02-28  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_query_results.c: Check for limit and offsets when
+	reading incremental query results
+
+	(rasqal_query_results_ensure_have_row_internal): When calling the
+	execution factory get_row() method, check the query result limit
+	and offsets are met and select a subsequence of the returned
+	results.
+
+	Intended to address Issue#000352 but may also be better done with
+	other changes to QE1 to remove it's duplicate limit/offset
+	checking in favour of this check.
+
+2010-02-23  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_internal.h: Declare
+	rasqal_escaped_name_to_utf8_string with printf format arg.
+
+2010-02-22  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_general.c, src/rasqal_internal.h, src/rdql_lexer.l,
+	src/sparql_lexer.l: raptor2 raptor_unicode_utf8_string_put_char(),
+	raptor_unicode_utf8_string_get_char()
+
+2010-02-21  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_algebra.c, src/rasqal_format_sparql_xml.c,
+	src/rasqal_general.c, src/rasqal_query.c, src/rasqal_query_test.c,
+	src/rasqal_raptor.c, src/rasqal_row.c,
+	src/rasqal_rowsource_triples.c, src/rasqal_xsd_datatypes.c,
+	src/rdql_lexer.l, src/rdql_parser.y, src/sparql_lexer.l,
+	src/sparql_parser.y, tests/algebra/convert_graph_pattern.c,
+	tests/engine/rasqal_construct_test.c,
+	tests/engine/rasqal_graph_test.c,
+	tests/engine/rasqal_limit_test.c,
+	tests/engine/rasqal_order_test.c,
+	tests/engine/rasqal_triples_test.c, utils/roqet.c: raptor2
+	raptor_new_uri() with preprocessor macro for raptor1 compatibility
+
+	* src/rasqal_algebra.c, src/rasqal_graph_pattern.c,
+	src/rasqal_internal.h, src/rasqal_literal.c,
+	src/rasqal_rowsource.c, tests/algebra/convert_graph_pattern.c,
+	utils/roqet.c: raptor2 raptor_new_iostream_to_file_handle() with
+	preprocessor macro for raptor1 compatibility
+
+	* src/rasqal_format_json.c, src/rasqal_format_sv.c,
+	src/rasqal_internal.h, src/rasqal_literal.c,
+	src/rasqal_query_write.c, src/sparql_parser.y: raptor2
+	raptor_string_ntriples_write() with preprocessor macro for raptor1
+	raptor_iostream_write_string_ntriples() compatibility
+
+	* src/rasqal_feature.c, src/rasqal_general.c,
+	src/rasqal_internal.h, src/rasqal_xsd_datatypes.c: raptor2
+	raptor_new_uri_from_uri_local_name() with preprocessor macro for
+	raptor1 compatibility
+
+	* src/rasqal_expr.c, src/rasqal_internal.h, src/rasqal_query.c,
+	src/rasqal_query_results.c, src/rasqal_query_transform.c,
+	src/rdql_parser.y, src/sparql_parser.y: raptor2
+	RAPTOR_LOG_LEVEL_WARN with preprocessor macro for raptor1
+	compatibility
+
+	* src/rasqal_general.c, src/rasqal_internal.h:
+	raptor_unicode_decode_utf8_char() ->
+	raptor_unicode_utf8_string_get_char()
+
+2010-02-19  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_algebra.c, src/rasqal_expr.c,
+	src/rasqal_format_json.c, src/rasqal_format_sparql_xml.c,
+	src/rasqal_format_sv.c, src/rasqal_format_table.c,
+	src/rasqal_general.c, src/rasqal_graph_pattern.c,
+	src/rasqal_internal.h, src/rasqal_literal.c,
+	src/rasqal_query_write.c, src/rasqal_rowsource.c,
+	src/rasqal_triple.c, src/rasqal_variable.c, src/sparql_parser.y,
+	tests/algebra/convert_graph_pattern.c:
+	Ported to raptor2 git head.
+	  - raptor_iostream_*()  
+	  - raptor_uri_write()
+	  - raptor_new_qname_from_namespace_local_uri()
+
+	Use preprocessor defines to maintain compatibility with raptor1. 
+
+2010-02-18  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_literal.c:
+	(rasqal_literal_print): DRY: Use rasqal_literal_write().
+
+	(rasqal_literal_print_type): DRY: Use rasqal_literal_write_type().
+
+	(rasqal_literal_write): raptor2
+	raptor_iostream_write_string_ntriples() ->
+	raptor_string_ntriples_write()
+
+	* utils/roqet.c:
+	updated roqet.c to compile on raptor2 git head
+
+	* src/sparql_parser.y:
+	(rasqal_sparql_query_language_iostream_write_escaped_counted_string):
+	raptor2 raptor_iostream_write_string_ntriples() ->
+	raptor_string_ntriples_write()
+
+	* src/rasqal_format_json.c, src/rasqal_format_sv.c:
+	(rasqal_query_results_write_json1,rasqal_query_results_write_sv):
+	raptor2 raptor_iostream_write_string_ntriples() ->
+	raptor_string_ntriples_write()
+
+	* src/rasqal_query_write.c:
+	(rasqal_query_write_sparql_uri,rasqal_query_write_sparql_literal):
+	raptor2 raptor_iostream_write_qname() -> raptor_qname_write(),
+	raptor_iostream_write_string_ntriples() ->
+	raptor_string_ntriples_write()
+
+	* src/rasqal_raptor.c:
+	(ordinal_as_uri): Flagged out function needed only with raptor1
+
+	* src/rasqal_raptor.c:
+	(rasqal_raptor_new_triples_source): raptor2 raptor_parse_uri() ->
+	raptor_parser_parse_uri()
+
+2010-02-16  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_result_formats.c:
+	(rasqal_query_results_formatter_write): NULL base_uri is valid.
+
+	* src/fix-bison: Removed fix-bison %destructor hack.  Was required
+	to get the raptor_world* param to raptor_free_uri() - no longer
+	needed.
+
 2010-02-15  Dave Beckett  <dave@dajobe.org>
 
 	* Snapshotted rasqal_0_9_19 for 0.9.19 release
