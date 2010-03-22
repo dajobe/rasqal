@@ -759,7 +759,7 @@ main(int argc, char *argv[])
     puts("      simple                A simple text format (default)");
 
 #ifdef RAPTOR_V2_AVAILABLE
-    j = raptor_parser_get_option_count();
+    j = raptor_option_get_count();
 #else
     j = raptor_get_feature_count();
 #endif
