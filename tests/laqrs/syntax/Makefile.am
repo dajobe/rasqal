@@ -2,7 +2,7 @@
 #
 # Makefile.am - automake file for Rasqal syntax LAQRS tests
 #
-# Copyright (C) 2007-2009, David Beckett http://www.dajobe.org/
+# Copyright (C) 2007-2010, David Beckett http://www.dajobe.org/
 # 
 # This package is Free Software and part of Redland http://librdf.org/
 # 
@@ -38,7 +38,15 @@ min1.rq \
 sum1.rq \
 let1.rq \
 let2.rq \
-let3.rq
+let3.rq \
+strdt1.rq \
+strdt2.rq \
+strlang1.rq \
+bnode1.rq \
+bnode2.rq \
+uri1.rq \
+iri1.rq \
+if1.rq
 
 LAQRS_BAD_TEST_FILES= \
 bad-select-expr.rq

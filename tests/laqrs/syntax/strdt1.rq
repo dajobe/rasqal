@@ -1,0 +1,9 @@
+# STRDT(str, datatype URI) makes a datatyped literal
+
+PREFIX ex: <http://example.org/dt#>
+
+SELECT ?c
+WHERE {
+  ?a ?b ?c
+  FILTER ( STRDT(?c, ex:DT) = "val"^^ex:DT )
+}

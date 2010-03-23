@@ -1,0 +1,9 @@
+# IRI(str) makes an RDF URI Reference (aka IRI)
+
+PREFIX ex: <http://example.org/dt#>
+
+SELECT ?c
+WHERE {
+  ?a ?b ?c
+  FILTER ( IRI("http://www.example.org/") =  <http://www.example.org/> )
+}

@@ -513,6 +513,12 @@ struct rasqal_literal_s {
  * @RASQAL_EXPR_MIN: Expression for LAQRS select MIN()
  * @RASQAL_EXPR_MAX: Expression for LAQRS select MAX()
  * @RASQAL_EXPR_COALESCE: Expression for LAQRS COALESCE(Expr+)
+ * @RASQAL_EXPR_IF: Expression for LAQRS IF(expr, expr, expr)
+ * @RASQAL_EXPR_URI: Expression for LAQRS URI(expr)
+ * @RASQAL_EXPR_IRI: Expression for LAQRS IRI(expr)
+ * @RASQAL_EXPR_STRLANG: Expression for LAQRS STRLANG(expr, expr)
+ * @RASQAL_EXPR_STRDT: Expression for LAQRS STRDT(expr, expr)
+ * @RASQAL_EXPR_BNODE: Expression for LAQRS BNODE(expr)
  * @RASQAL_EXPR_UNKNOWN: Internal
  * @RASQAL_EXPR_LAST: Internal
  *
@@ -567,8 +573,14 @@ typedef enum {
   RASQAL_EXPR_MIN,
   RASQAL_EXPR_MAX,
   RASQAL_EXPR_COALESCE,
+  RASQAL_EXPR_IF,
+  RASQAL_EXPR_URI,
+  RASQAL_EXPR_IRI,
+  RASQAL_EXPR_STRLANG,
+  RASQAL_EXPR_STRDT,
+  RASQAL_EXPR_BNODE,
   /* internal */
-  RASQAL_EXPR_LAST= RASQAL_EXPR_COALESCE
+  RASQAL_EXPR_LAST= RASQAL_EXPR_BNODE
 } rasqal_op;
 
 
@@ -643,7 +655,11 @@ typedef enum {
 } rasqal_pattern_flags;
 
 
+#if !defined(RASQAL_DISABLE_DEPRECATED)
 typedef unsigned char* (*rasqal_generate_bnodeid_handler)(rasqal_query* query, void *user_data, unsigned char *user_bnodeid);
+#endif
+
+typedef unsigned char* (*rasqal_generate_bnodeid_handler2)(rasqal_world* world, void *user_data, unsigned char *user_bnodeid);
 
 
 /**
@@ -802,7 +818,7 @@ typedef enum {
  * User function to visit an graph_pattern and operate on it with
  * rasqal_graph_pattern_visit() or rasqal_query_graph_pattern_visit()
  *
- * Return value: 0 to truncate the visit
+ * Return value: non-0 to truncate the visit
  */
 typedef int (*rasqal_graph_pattern_visit_fn)(rasqal_query* query, rasqal_graph_pattern* gp, void *user_data);
 
@@ -827,6 +843,11 @@ raptor_world *rasqal_world_get_raptor(rasqal_world* world);
 RASQAL_API
 void rasqal_world_set_log_handler(rasqal_world* world, void *user_data, raptor_log_handler handler);
 #endif
+
+RASQAL_API
+int rasqal_world_set_default_generate_bnodeid_parameters(rasqal_world* world, char *prefix, int base);
+RASQAL_API
+int rasqal_world_set_generate_bnodeid_handler(rasqal_world* world, void *user_data, rasqal_generate_bnodeid_handler2 handler);
 
 /* Features */
 RASQAL_API
@@ -879,10 +900,12 @@ RASQAL_API
 int rasqal_query_get_feature(rasqal_query *query, rasqal_feature feature);
 RASQAL_API
 const unsigned char* rasqal_query_get_feature_string(rasqal_query *query, rasqal_feature feature);
-RASQAL_API
+#if !defined(RASQAL_DISABLE_DEPRECATED)
+RASQAL_API RASQAL_DEPRECATED
 void rasqal_query_set_default_generate_bnodeid_parameters(rasqal_query* rdf_query, char *prefix, int base);
-RASQAL_API
+RASQAL_API RASQAL_DEPRECATED
 void rasqal_query_set_generate_bnodeid_handler(rasqal_query* query, void *user_data, rasqal_generate_bnodeid_handler handler);
+#endif
 
 RASQAL_API
 rasqal_query_verb rasqal_query_get_verb(rasqal_query* query);
@@ -1063,12 +1086,16 @@ int rasqal_query_results_next_triple(rasqal_query_results *query_results);
 RASQAL_API
 int rasqal_query_results_is_syntax(rasqal_query_results* query_results);
 
+#if !defined(RASQAL_DISABLE_DEPRECATED)
 RASQAL_API RASQAL_DEPRECATED
 int rasqal_query_results_write(raptor_iostream *iostr, rasqal_query_results *results, raptor_uri *format_uri, raptor_uri *base_uri);
+#endif
 RASQAL_API
 int rasqal_query_results_write2(raptor_iostream *iostr, rasqal_query_results *results, const char* name, const char* mime_type, raptor_uri *format_uri, raptor_uri *base_uri);
+#if !defined(RASQAL_DISABLE_DEPRECATED)
 RASQAL_API RASQAL_DEPRECATED
 int rasqal_query_results_read(raptor_iostream *iostr, rasqal_query_results *results, raptor_uri *format_uri, raptor_uri *base_uri);
+#endif
 RASQAL_API
 int rasqal_query_results_read2(raptor_iostream *iostr, rasqal_query_results *results, const char* name, const char* mime_type, raptor_uri *format_uri, raptor_uri *base_uri);
 
@@ -1093,10 +1120,12 @@ RASQAL_API
 int rasqal_query_results_formats_check(rasqal_world* world, const char *name, raptor_uri* uri, const char *mime_type);
 RASQAL_API
 rasqal_query_results_formatter* rasqal_new_query_results_formatter2(rasqal_world* world, const char *name, const char *mime_type, raptor_uri* format_uri);
+#if !defined(RASQAL_DISABLE_DEPRECATED)
 RASQAL_API RASQAL_DEPRECATED
 rasqal_query_results_formatter* rasqal_new_query_results_formatter(rasqal_world* world, const char *name, raptor_uri* format_uri);
 RASQAL_API RASQAL_DEPRECATED
 rasqal_query_results_formatter* rasqal_new_query_results_formatter_by_mime_type(rasqal_world* world, const char *mime_type);
+#endif
 RASQAL_API
 void rasqal_free_query_results_formatter(rasqal_query_results_formatter* formatter);
 RASQAL_API
@@ -1181,7 +1210,7 @@ rasqal_literal* rasqal_expression_evaluate(rasqal_world *world, raptor_locator *
  * User function to visit an expression and operate on it with
  * rasqal_expression_visit()
  *
- * Return value: 0 to truncate the visit
+ * Return value: non-0 to truncate the visit
  */
 typedef int (*rasqal_expression_visit_fn)(void *user_data, rasqal_expression *e);
 RASQAL_API
