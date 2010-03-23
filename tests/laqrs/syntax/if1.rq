@@ -1,0 +1,12 @@
+# IF(expr_cond, expr_true, expr_false) evaluates expr_cond and if
+# true returns expr1, otherwise expr2.
+# AKA C ternary operation
+#   result = expr_cond ? expr_true : expr_false
+
+PREFIX ex: <http://example.org/dt#>
+
+SELECT ?c
+WHERE {
+  ?a ?b ?c
+  FILTER ( IF(?c = "10", ex:true, ex:false) = ex:true)
+}

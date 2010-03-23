@@ -1,0 +1,9 @@
+# STRLANG(str, language) makes a plain literal with language
+
+PREFIX ex: <http://example.org/dt#>
+
+SELECT ?c
+WHERE {
+  ?a ?b ?c
+  FILTER ( STRLANG(?c, "foo") = "val"@foo )
+}
