@@ -337,6 +337,8 @@ EXPONENT [eE][+-]?[0-9]+
 [Oo][Pp][Tt][Ii][Oo][Nn][Aa][Ll] { return OPTIONAL; }
 [Bb][Aa][Ss][Ee] { return BASE; }
 [Bb][Oo][Uu][Nn][Dd] { return BOUND; }
+[Ss][Tt][Rr][Ll][Aa][Nn][Gg] { return STRLANG; }
+[Ss][Tt][Rr][Dd][Tt] { return STRDT; }
 [Ss][Tt][Rr] { return STR; }
 [Ll][Aa][Nn][Gg] { return LANG; }
 [Dd][Aa][Tt][Aa][Tt][Yy][Pp][Ee] { return DATATYPE; }
@@ -374,6 +376,10 @@ EXPONENT [eE][+-]?[0-9]+
 [Dd][Rr][Oo][Pp] { return DROP; }
 [Ll][Oo][Aa][Dd] { return LOAD; }
 [Ii][Nn][Tt][Oo] { return INTO; }
+[Ii][Ff] { return IF; }
+[Ii][Rr][Ii] { return IRI; }
+[Ur][Rr][Ii] { return URI; }
+[Bb][Nn][Oo][Dd][Ee] { return BNODE; }
 
 "a" { return A; }
 
@@ -1273,6 +1279,12 @@ sparql_token_print(rasqal_world* world, int token, YYSTYPE *lval)
     case BOUND:
       return "BOUND";
 
+    case STRLANG:
+      return "STRLANG";
+      
+    case STRDT:
+      return "STRDT";
+      
     case STR:
       return "STR";
       
@@ -1447,6 +1459,9 @@ sparql_token_print(rasqal_world* world, int token, YYSTYPE *lval)
     case INTO:
       return "INTO";
       
+    case IF:
+      return "IF";
+
     case LET:
       return "LET";
 
@@ -1458,6 +1473,15 @@ sparql_token_print(rasqal_world* world, int token, YYSTYPE *lval)
 
     case COALESCE:
       return "COALESCE";
+
+    case IRI:
+      return "IRI";
+
+    case URI:
+      return "URI";
+
+    case BNODE:
+      return "BNODE";
 
     case INTEGER_LITERAL:
     case INTEGER_POSITIVE_LITERAL:
