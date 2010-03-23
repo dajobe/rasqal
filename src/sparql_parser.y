@@ -1140,6 +1140,23 @@ UpdateQuery: WITH URI_LITERAL
       YYERROR_MSG("UpdateQuery 3: rasqal_query_add_update_operation failed");
   }
 }
+| WITH URI_LITERAL 
+  INSERT DATA '{' GraphTriples '}'
+{
+  rasqal_sparql_query_language* sparql;
+  sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
+
+  if(!sparql->extended)
+    sparql_syntax_error((rasqal_query*)rq,
+                        "INSERT DATA cannot be used with SPARQL 1.0");
+
+  /* inserting inline atomic triples (no variables) - not via template */
+  $6->graph_uri = $2; /* graph uri */
+  $6->type = RASQAL_UPDATE_TYPE_UPDATE;
+  $6->flags |= RASQAL_UPDATE_FLAGS_DATA;
+
+  rasqal_query_add_update_operation((rasqal_query*)rq, $6);
+}
 ;
 
 
