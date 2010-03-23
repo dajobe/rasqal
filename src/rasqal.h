@@ -657,6 +657,8 @@ typedef enum {
 
 typedef unsigned char* (*rasqal_generate_bnodeid_handler)(rasqal_query* query, void *user_data, unsigned char *user_bnodeid);
 
+typedef unsigned char* (*rasqal_generate_bnodeid_handler2)(rasqal_world* world, void *user_data, unsigned char *user_bnodeid);
+
 
 /**
  * rasqal_query_verb:
@@ -839,6 +841,11 @@ raptor_world *rasqal_world_get_raptor(rasqal_world* world);
 RASQAL_API
 void rasqal_world_set_log_handler(rasqal_world* world, void *user_data, raptor_log_handler handler);
 #endif
+
+RASQAL_API
+int rasqal_world_set_default_generate_bnodeid_parameters(rasqal_world* world, char *prefix, int base);
+RASQAL_API
+int rasqal_world_set_generate_bnodeid_handler(rasqal_world* world, void *user_data, rasqal_generate_bnodeid_handler2 handler);
 
 /* Features */
 RASQAL_API

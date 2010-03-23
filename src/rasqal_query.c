@@ -2009,3 +2009,102 @@ rasqal_query_get_update_operation(rasqal_query* query, int idx)
   
   return (rasqal_update_operation*)raptor_sequence_get_at(query->updates, idx);
 }
+
+
+/**
+ * rasqal_query_set_default_generate_bnodeid_parameters:
+ * @rdf_query: #rasqal_query object
+ * @prefix: prefix string
+ * @base: integer base identifier
+ *
+ * Set default bnodeid generation parameters
+ *
+ * Sets the parameters for the default algorithm used to generate
+ * blank node IDs.  The default algorithm uses both @prefix and @base
+ * to generate a new identifier.  The exact identifier generated is
+ * not guaranteed to be a strict concatenation of @prefix and @base
+ * but will use both parts.
+ *
+ * For finer control of the generated identifiers, use
+ * rasqal_world_set_generate_bnodeid_handler() on the world class (or
+ * the deprecated rasqal_query_set_generate_bnodeid_handler() on the
+ * query class).
+ *
+ * If prefix is NULL, the default prefix is used (currently "bnodeid")
+ * If base is less than 1, it is initialised to 1.
+ * 
+ * This calls rasqal_world_set_default_generate_bnodeid_parameters()
+ * method on the world class; there is no separate configuration per
+ * query object.
+ *  
+ * @Deprecated: Use
+ * rasqal_world_set_default_generate_bnodeid_parameters() on the
+ * world class.
+ *
+ **/
+void
+rasqal_query_set_default_generate_bnodeid_parameters(rasqal_query* rdf_query, 
+                                                     char *prefix, int base)
+{
+
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN(rdf_query, rasqal_query);
+
+  rasqal_world_set_default_generate_bnodeid_parameters(rdf_query->world, 
+                                                       prefix, base);
+}
+
+
+/**
+ * rasqal_query_set_generate_bnodeid_handler:
+ * @query: #rasqal_query query object
+ * @user_data: user data pointer for callback
+ * @handler: generate blank ID callback function
+ *
+ * Set the generate blank node ID handler function for the query.
+ *
+ * Sets the function to generate blank node IDs for the query.
+ * The handler is called with a pointer to the rasqal_query, the
+ * @user_data pointer and a user_bnodeid which is the value of
+ * a user-provided blank node identifier (may be NULL).
+ * It can either be returned directly as the generated value when present or
+ * modified.  The passed in value must be free()d if it is not used.
+ *
+ * If handler is NULL, the default method is used
+ *
+ * Any hander set by rasqal_world_set_generate_bnodeid_handler()
+ * overrides this.
+ *  
+ * @Deprecated: Use
+ * rasqal_world_set_generate_bnodeid_handler() on the world class.
+ * 
+ **/
+void
+rasqal_query_set_generate_bnodeid_handler(rasqal_query* query,
+                                          void *user_data,
+                                          rasqal_generate_bnodeid_handler handler)
+{
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN(query, rasqal_query);
+
+  query->generate_bnodeid_handler_user_data = user_data;
+  query->generate_bnodeid_handler = handler;
+}
+
+
+/*
+ * rasqal_query_generate_bnodeid - Default generate id - internal
+ */
+unsigned char*
+rasqal_query_generate_bnodeid(rasqal_query* rdf_query,
+                              unsigned char *user_bnodeid)
+{
+  /* prefer world generate handler/data */
+  if(rdf_query->world->generate_bnodeid_handler)
+    return rasqal_world_generate_bnodeid(rdf_query->world, user_bnodeid);
+
+  if(rdf_query->generate_bnodeid_handler)
+    return rdf_query->generate_bnodeid_handler(rdf_query, 
+                                               rdf_query->generate_bnodeid_handler_user_data, user_bnodeid);
+  else
+    return rasqal_world_default_generate_bnodeid_handler(rdf_query->world,
+                                                         user_bnodeid);
+}

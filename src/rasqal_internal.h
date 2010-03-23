@@ -344,9 +344,10 @@ struct rasqal_query_s {
   /* stuff for our user */
   void* user_data;
 
-  int default_generate_bnodeid_handler_base;
-  char *default_generate_bnodeid_handler_prefix;
-  size_t default_generate_bnodeid_handler_prefix_length;
+  /* former state for generating blank node IDs; now in world object */
+  int unused1;
+  char *unused2;
+  size_t unused3;
 
   void *generate_bnodeid_handler_user_data;
   rasqal_generate_bnodeid_handler generate_bnodeid_handler;
@@ -860,6 +861,7 @@ int rasqal_xsd_date_check(const unsigned char* string);
 
 /* rasqal_general.c */
 char* rasqal_vsnprintf(const char* message, va_list arguments);
+unsigned char* rasqal_world_generate_bnodeid(rasqal_world* world, unsigned char *user_bnodeid);
 
 int rasqal_query_language_register_factory(rasqal_world*, const char* name, const char* label, const char* alias, const unsigned char* uri_string, void (*factory) (rasqal_query_language_factory*));
 rasqal_query_language_factory* rasqal_get_query_language_factory (rasqal_world*, const char* name, const unsigned char* uri);
@@ -868,6 +870,7 @@ void rasqal_log_error_varargs(rasqal_world* world, raptor_log_level level, rapto
 void rasqal_query_simple_error(void* query, const char *message, ...) RASQAL_PRINTF_FORMAT(2, 3);
 
 const char* rasqal_basename(const char* name);
+unsigned char* rasqal_world_default_generate_bnodeid_handler(void *user_data, unsigned char *user_bnodeid);
 
 unsigned char* rasqal_escaped_name_to_utf8_string(const unsigned char* src, size_t len, size_t* dest_lenp, int (*error_handler)(rasqal_query *error_data, const char *message, ...) RASQAL_PRINTF_FORMAT(2, 3), rasqal_query* error_data);
 
@@ -1124,6 +1127,13 @@ struct rasqal_world_s {
   /* graph factory */
   rasqal_graph_factory *graph_factory;
   void *graph_factory_user_data;
+
+  int default_generate_bnodeid_handler_base;
+  char *default_generate_bnodeid_handler_prefix;
+  size_t default_generate_bnodeid_handler_prefix_length;
+
+  void *generate_bnodeid_handler_user_data;
+  rasqal_generate_bnodeid_handler2 generate_bnodeid_handler;
 };
 
 
