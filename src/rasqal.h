@@ -513,6 +513,12 @@ struct rasqal_literal_s {
  * @RASQAL_EXPR_MIN: Expression for LAQRS select MIN()
  * @RASQAL_EXPR_MAX: Expression for LAQRS select MAX()
  * @RASQAL_EXPR_COALESCE: Expression for LAQRS COALESCE(Expr+)
+ * @RASQAL_EXPR_IF: Expression for LAQRS IF(expr, expr, expr)
+ * @RASQAL_EXPR_URI: Expression for LAQRS URI(expr)
+ * @RASQAL_EXPR_IRI: Expression for LAQRS IRI(expr)
+ * @RASQAL_EXPR_STRLANG: Expression for LAQRS STRLANG(expr, expr)
+ * @RASQAL_EXPR_STRDT: Expression for LAQRS STRDT(expr, expr)
+ * @RASQAL_EXPR_BNODE: Expression for LAQRS BNODE(expr)
  * @RASQAL_EXPR_UNKNOWN: Internal
  * @RASQAL_EXPR_LAST: Internal
  *
@@ -567,8 +573,14 @@ typedef enum {
   RASQAL_EXPR_MIN,
   RASQAL_EXPR_MAX,
   RASQAL_EXPR_COALESCE,
+  RASQAL_EXPR_IF,
+  RASQAL_EXPR_URI,
+  RASQAL_EXPR_IRI,
+  RASQAL_EXPR_STRLANG,
+  RASQAL_EXPR_STRDT,
+  RASQAL_EXPR_BNODE,
   /* internal */
-  RASQAL_EXPR_LAST= RASQAL_EXPR_COALESCE
+  RASQAL_EXPR_LAST= RASQAL_EXPR_BNODE
 } rasqal_op;
 
 
