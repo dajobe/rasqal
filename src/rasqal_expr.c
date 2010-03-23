@@ -573,9 +573,10 @@ rasqal_free_expression(rasqal_expression* e)
  * 
  * Visit a user function over a #rasqal_expression
  * 
- * If the user function @fn returns 0, the visit is truncated.
+ * If the user function @fn returns non-0, the visit is truncated
+ * and the value is returned.
  *
- * Return value: 0 if the visit was truncated.
+ * Return value: non-0 if the visit was truncated.
  **/
 int
 rasqal_expression_visit(rasqal_expression* e, 

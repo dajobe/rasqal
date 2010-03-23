@@ -814,7 +814,7 @@ typedef enum {
  * User function to visit an graph_pattern and operate on it with
  * rasqal_graph_pattern_visit() or rasqal_query_graph_pattern_visit()
  *
- * Return value: 0 to truncate the visit
+ * Return value: non-0 to truncate the visit
  */
 typedef int (*rasqal_graph_pattern_visit_fn)(rasqal_query* query, rasqal_graph_pattern* gp, void *user_data);
 
@@ -1193,7 +1193,7 @@ rasqal_literal* rasqal_expression_evaluate(rasqal_world *world, raptor_locator *
  * User function to visit an expression and operate on it with
  * rasqal_expression_visit()
  *
- * Return value: 0 to truncate the visit
+ * Return value: non-0 to truncate the visit
  */
 typedef int (*rasqal_expression_visit_fn)(void *user_data, rasqal_expression *e);
 RASQAL_API
