@@ -211,6 +211,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
 %type <seq> ConstructTemplate OrderConditionList
 %type <seq> GraphNodeListNotEmpty SelectExpressionListTail
 %type <seq> ModifyTemplateList
+%type <seq> IriRefList
 
 %type <update> GraphTriples
 
@@ -1443,11 +1444,45 @@ DropQuery: DROP URI_LITERAL
 ;
 
 
+/* NEW Grammar Term pulled out of SPARQL 1.1 draft [x] Load */
+IriRefList: IriRefList URI_LITERAL
+{
+  $$ = $1;
+  if(raptor_sequence_push($$, $2)) {
+    raptor_free_sequence($$);
+    $$ = NULL;
+    YYERROR_MSG("IriRefList 1: sequence push failed");
+  }
+}
+| URI_LITERAL
+{
+#ifdef RAPTOR_V2_AVAILABLE
+  $$ = raptor_new_sequence((raptor_data_free_handler*)raptor_free_uri,
+                           (raptor_data_print_handler*)raptor_uri_print);
+#else
+  $$ = raptor_new_sequence((raptor_sequence_free_handler*)raptor_free_uri,
+                           (raptor_sequence_print_handler*)raptor_uri_print);
+#endif
+  if(!$$) {
+    if($1)
+      raptor_free_uri($1);
+    YYERROR_MSG("IriRefList 2: cannot create sequence");
+  }
+  if(raptor_sequence_push($$, $1)) {
+    raptor_free_sequence($$);
+    $$ = NULL;
+    YYERROR_MSG("IriRefList 2: sequence push failed");
+  }
+}
+;
+
+ 
 /* SPARQL 1.1 Update (draft) / LAQRS */
-LoadQuery: LOAD URI_LITERAL
+LoadQuery: LOAD IriRefList
 {
   rasqal_sparql_query_language* sparql;
-  rasqal_update_operation* update;
+  int i;
+  raptor_uri* doc_uri;
   
   sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
 
@@ -1455,23 +1490,29 @@ LoadQuery: LOAD URI_LITERAL
     sparql_syntax_error((rasqal_query*)rq, 
                         "LOAD <document uri> cannot be used with SPARQL 1.0");
   
-  update = rasqal_new_update_operation(RASQAL_UPDATE_TYPE_LOAD,
-                                       NULL /* graph uri */, 
-                                       $2 /* document uri */,
-                                       NULL, NULL,
-                                       NULL /*where */,
-                                       0 /* flags */);
-  if(!update) {
-    YYERROR_MSG("LoadQuery: rasqal_new_update_operation failed");
-  } else {
-    if(rasqal_query_add_update_operation(((rasqal_query*)rq), update))
-      YYERROR_MSG("LoadQuery: rasqal_query_add_update_operation failed");
+  for(i = 0; (doc_uri = (raptor_uri*)raptor_sequence_get_at($2, i)); i++) {
+    rasqal_update_operation* update;
+    update = rasqal_new_update_operation(RASQAL_UPDATE_TYPE_LOAD,
+                                         NULL /* graph uri */, 
+                                         raptor_uri_copy(doc_uri) /* document uri */,
+                                         NULL, NULL,
+                                         NULL /* where */,
+                                         0 /* flags */);
+    if(!update) {
+      YYERROR_MSG("LoadQuery: rasqal_new_update_operation failed");
+    } else {
+      if(rasqal_query_add_update_operation(((rasqal_query*)rq), update))
+        YYERROR_MSG("LoadQuery: rasqal_query_add_update_operation failed");
+    }
   }
+
+  raptor_free_sequence($2);
 }
-| LOAD URI_LITERAL INTO GraphRef
+| LOAD IriRefList INTO GraphRef
 {
   rasqal_sparql_query_language* sparql;
-  rasqal_update_operation* update;
+  int i;
+  raptor_uri* doc_uri;
 
   sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
 
@@ -1479,18 +1520,24 @@ LoadQuery: LOAD URI_LITERAL
     sparql_syntax_error((rasqal_query*)rq, 
                         "LOAD <document uri> INTO <graph URI> cannot be used with SPARQL 1.0");
 
-  update = rasqal_new_update_operation(RASQAL_UPDATE_TYPE_LOAD,
-                                       $4 /* graph uri */,
-                                       $2 /* document uri */,
-                                       NULL, NULL,
-                                       NULL /*where */,
-                                       0 /* flags */);
-  if(!update) {
-    YYERROR_MSG("LoadQuery: rasqal_new_update_operation failed");
-  } else {
-    if(rasqal_query_add_update_operation(((rasqal_query*)rq), update))
-      YYERROR_MSG("LoadQuery: rasqal_query_add_update_operation failed");
+  for(i = 0; (doc_uri = (raptor_uri*)raptor_sequence_get_at($2, i)); i++) {
+    rasqal_update_operation* update;
+    update = rasqal_new_update_operation(RASQAL_UPDATE_TYPE_LOAD,
+                                         raptor_uri_copy($4) /* graph uri */,
+                                         raptor_uri_copy(doc_uri) /* document uri */,
+                                         NULL, NULL,
+                                         NULL /*where */,
+                                         0 /* flags */);
+    if(!update) {
+      YYERROR_MSG("LoadQuery: rasqal_new_update_operation failed");
+    } else {
+      if(rasqal_query_add_update_operation(((rasqal_query*)rq), update))
+        YYERROR_MSG("LoadQuery: rasqal_query_add_update_operation failed");
+    }
   }
+
+  raptor_free_sequence($2);
+  raptor_free_uri($4);
 }
 ;
 
