@@ -1,0 +1,12 @@
+# BNODE() =>  make a blank node
+#
+# This example is contrived; it probably needs a constructor
+# and/or sub-SELECTs to make sense
+
+PREFIX ex: <http://example.org/dt#>
+
+SELECT ?c
+WHERE {
+  ?a ?b ?c
+  FILTER ( ISBLANK(BNODE()) )
+}

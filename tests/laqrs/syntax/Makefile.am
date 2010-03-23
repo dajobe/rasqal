@@ -43,6 +43,7 @@ strdt1.rq \
 strdt2.rq \
 strlang1.rq \
 bnode1.rq \
+bnode2.rq \
 uri1.rq \
 iri1.rq \
 if1.rq
