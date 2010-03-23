@@ -1540,7 +1540,7 @@ LoadQuery: LOAD IriRefList
   for(i = 0; (doc_uri = (raptor_uri*)raptor_sequence_get_at($2, i)); i++) {
     rasqal_update_operation* update;
     update = rasqal_new_update_operation(RASQAL_UPDATE_TYPE_LOAD,
-                                         raptor_uri_copy($4) /* graph uri */,
+                                         $4 ? raptor_uri_copy($4) : NULL /* graph uri */,
                                          raptor_uri_copy(doc_uri) /* document uri */,
                                          NULL, NULL,
                                          NULL /*where */,
@@ -1554,7 +1554,8 @@ LoadQuery: LOAD IriRefList
   }
 
   raptor_free_sequence($2);
-  raptor_free_uri($4);
+  if($4)
+    raptor_free_uri($4);
 }
 ;
 
