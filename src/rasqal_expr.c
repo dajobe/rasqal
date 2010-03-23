@@ -1792,10 +1792,8 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
         }
       } else {
         s = rasqal_world_generate_bnodeid(world, NULL);
-        if(!s) {
-          rasqal_free_literal(l1);
+        if(!s)
           goto failed;
-        }
       }
 
       result = rasqal_new_simple_literal(world, RASQAL_LITERAL_BLANK, s);
