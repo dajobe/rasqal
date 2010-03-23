@@ -493,7 +493,9 @@ rasqal_expression_clear(rasqal_expression* e)
     case RASQAL_EXPR_URI:
     case RASQAL_EXPR_IRI:
     case RASQAL_EXPR_BNODE:
-      rasqal_free_expression(e->arg1);
+      /* arg1 is optional for RASQAL_EXPR_BNODE */
+      if(e->arg1)
+        rasqal_free_expression(e->arg1);
       break;
     case RASQAL_EXPR_STR_MATCH:
     case RASQAL_EXPR_STR_NMATCH:
@@ -646,7 +648,8 @@ rasqal_expression_visit(rasqal_expression* e,
     case RASQAL_EXPR_URI:
     case RASQAL_EXPR_IRI:
     case RASQAL_EXPR_BNODE:
-      return rasqal_expression_visit(e->arg1, fn, user_data);
+      /* arg1 is optional for RASQAL_EXPR_BNODE */
+      return (e->arg1) ? rasqal_expression_visit(e->arg1, fn, user_data) : 1;
       break;
     case RASQAL_EXPR_STR_MATCH:
     case RASQAL_EXPR_STR_NMATCH:
@@ -1777,14 +1780,22 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
       break;
 
     case RASQAL_EXPR_BNODE:
-      l1 = rasqal_expression_evaluate(world, locator, e->arg1, flags);
-      if(!l1)
-        goto failed;
+      if(e->arg1) {
+        l1 = rasqal_expression_evaluate(world, locator, e->arg1, flags);
+        if(!l1)
+          goto failed;
 
-      s = rasqal_literal_as_string_flags(l1, flags, &errs.e);
-      if(errs.e) {
-        rasqal_free_literal(l1);
-        goto failed;
+        s = rasqal_literal_as_string_flags(l1, flags, &errs.e);
+        if(errs.e) {
+          rasqal_free_literal(l1);
+          goto failed;
+        }
+      } else {
+        s = rasqal_world_generate_bnodeid(world, NULL);
+        if(!s) {
+          rasqal_free_literal(l1);
+          goto failed;
+        }
       }
 
       result = rasqal_new_simple_literal(world, RASQAL_LITERAL_BLANK, s);
@@ -2010,7 +2021,9 @@ rasqal_expression_write(rasqal_expression* e, raptor_iostream* iostr)
       raptor_iostream_counted_string_write("op ", 3, iostr);
       rasqal_expression_write_op(e, iostr);
       raptor_iostream_write_byte('(', iostr);
-      rasqal_expression_write(e->arg1, iostr);
+      /* arg1 is optional for RASQAL_EXPR_BNODE */
+      if(e->arg1)
+        rasqal_expression_write(e->arg1, iostr);
       raptor_iostream_write_byte(')', iostr);
       break;
 
@@ -2152,7 +2165,9 @@ rasqal_expression_print(rasqal_expression* e, FILE* fh)
       fputs("op ", fh);
       rasqal_expression_print_op(e, fh);
       fputc('(', fh);
-      rasqal_expression_print(e->arg1, fh);
+      /* arg1 is optional for RASQAL_EXPR_BNODE */
+      if(e->arg1)
+        rasqal_expression_print(e->arg1, fh);
       fputc(')', fh);
       break;
 
@@ -2280,7 +2295,8 @@ rasqal_expression_is_constant(rasqal_expression* e)
     case RASQAL_EXPR_URI:
     case RASQAL_EXPR_IRI:
     case RASQAL_EXPR_BNODE:
-      result=rasqal_expression_is_constant(e->arg1);
+      /* arg1 is optional for RASQAL_EXPR_BNODE and result is always constant */
+      result = (e->arg1) ? rasqal_expression_is_constant(e->arg1) : 1;
       break;
 
     case RASQAL_EXPR_LITERAL:
