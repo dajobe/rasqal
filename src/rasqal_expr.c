@@ -2,7 +2,7 @@
  *
  * rasqal_expr.c - Rasqal general expression support
  *
- * Copyright (C) 2003-2009, David Beckett http://www.dajobe.org/
+ * Copyright (C) 2003-2010, David Beckett http://www.dajobe.org/
  * Copyright (C) 2003-2005, University of Bristol, UK http://www.bristol.ac.uk/
  * 
  * This package is Free Software and part of Redland http://librdf.org/
@@ -459,10 +459,13 @@ rasqal_expression_clear(rasqal_expression* e)
     case RASQAL_EXPR_STR_NEQ:
     case RASQAL_EXPR_LANGMATCHES:
     case RASQAL_EXPR_SAMETERM:
+    case RASQAL_EXPR_STRLANG:
+    case RASQAL_EXPR_STRDT:
       rasqal_free_expression(e->arg1);
       rasqal_free_expression(e->arg2);
       break;
     case RASQAL_EXPR_REGEX:
+    case RASQAL_EXPR_IF:
       rasqal_free_expression(e->arg1);
       rasqal_free_expression(e->arg2);
       if(e->arg3)
@@ -487,6 +490,9 @@ rasqal_expression_clear(rasqal_expression* e)
     case RASQAL_EXPR_AVG:
     case RASQAL_EXPR_MIN:
     case RASQAL_EXPR_MAX:
+    case RASQAL_EXPR_URI:
+    case RASQAL_EXPR_IRI:
+    case RASQAL_EXPR_BNODE:
       rasqal_free_expression(e->arg1);
       break;
     case RASQAL_EXPR_STR_MATCH:
@@ -577,7 +583,7 @@ rasqal_expression_visit(rasqal_expression* e,
                         void *user_data)
 {
   int i;
-  int result=0;
+  int result = 0;
 
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(e, rasqal_expression, 1);
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(fn, rasqal_expression_visit_fn, 1);
@@ -605,10 +611,13 @@ rasqal_expression_visit(rasqal_expression* e,
     case RASQAL_EXPR_STR_NEQ:
     case RASQAL_EXPR_LANGMATCHES:
     case RASQAL_EXPR_SAMETERM:
+    case RASQAL_EXPR_STRLANG:
+    case RASQAL_EXPR_STRDT:
       return rasqal_expression_visit(e->arg1, fn, user_data) ||
              rasqal_expression_visit(e->arg2, fn, user_data);
       break;
     case RASQAL_EXPR_REGEX:
+    case RASQAL_EXPR_IF:
       return rasqal_expression_visit(e->arg1, fn, user_data) ||
              rasqal_expression_visit(e->arg2, fn, user_data) ||
              (e->arg3 && rasqal_expression_visit(e->arg3, fn, user_data));
@@ -633,6 +642,9 @@ rasqal_expression_visit(rasqal_expression* e,
     case RASQAL_EXPR_AVG:
     case RASQAL_EXPR_MIN:
     case RASQAL_EXPR_MAX:
+    case RASQAL_EXPR_URI:
+    case RASQAL_EXPR_IRI:
+    case RASQAL_EXPR_BNODE:
       return rasqal_expression_visit(e->arg1, fn, user_data);
       break;
     case RASQAL_EXPR_STR_MATCH:
@@ -1663,6 +1675,36 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
       }
       break;
 
+    case RASQAL_EXPR_IF:
+      /* FIXME */
+      RASQAL_FATAL1("RASQAL_EXPR_IF not implemented");
+      break;
+
+    case RASQAL_EXPR_URI:
+      /* FIXME */
+      RASQAL_FATAL1("RASQAL_EXPR_URI not implemented");
+      break;
+
+    case RASQAL_EXPR_IRI:
+      /* FIXME */
+      RASQAL_FATAL1("RASQAL_EXPR_IRI not implemented");
+      break;
+
+    case RASQAL_EXPR_STRLANG:
+      /* FIXME */
+      RASQAL_FATAL1("RASQAL_EXPR_STRLANG not implemented");
+      break;
+
+    case RASQAL_EXPR_STRDT:
+      /* FIXME */
+      RASQAL_FATAL1("RASQAL_EXPR_STRDT not implemented");
+      break;
+
+    case RASQAL_EXPR_BNODE:
+      /* FIXME */
+      RASQAL_FATAL1("RASQAL_EXPR_BNODE not implemented");
+      break;
+
     case RASQAL_EXPR_UNKNOWN:
     default:
       RASQAL_FATAL2("Unknown operation %d", e->op);
@@ -1739,6 +1781,12 @@ static const char* const rasqal_op_labels[RASQAL_EXPR_LAST+1]={
   "min",
   "max",
   "coalesce"
+  "if",
+  "uri",
+  "iri",
+  "strlang",
+  "strdt",
+  "bnode"
 };
 
 
@@ -1826,14 +1874,17 @@ rasqal_expression_write(rasqal_expression* e, raptor_iostream* iostr)
     case RASQAL_EXPR_LANGMATCHES:
     case RASQAL_EXPR_REGEX:
     case RASQAL_EXPR_SAMETERM:
+    case RASQAL_EXPR_IF:
+    case RASQAL_EXPR_STRLANG:
+    case RASQAL_EXPR_STRDT:
       raptor_iostream_counted_string_write("op ", 3, iostr);
       rasqal_expression_write_op(e, iostr);
       raptor_iostream_write_byte('(', iostr);
       rasqal_expression_write(e->arg1, iostr);
       raptor_iostream_counted_string_write(", ", 2, iostr);
       rasqal_expression_write(e->arg2, iostr);
-      /* There is only one 3-op expression and it's handled here */
-      if(e->op == RASQAL_EXPR_REGEX && e->arg3) {
+      /* There are two 3-op expressions - both handled here */
+      if((e->op == RASQAL_EXPR_REGEX || e->op == RASQAL_EXPR_IF) && e->arg3) {
         raptor_iostream_counted_string_write(", ", 2, iostr);
         rasqal_expression_write(e->arg3, iostr);
       }
@@ -1868,6 +1919,9 @@ rasqal_expression_write(rasqal_expression* e, raptor_iostream* iostr)
     case RASQAL_EXPR_AVG:
     case RASQAL_EXPR_MIN:
     case RASQAL_EXPR_MAX:
+    case RASQAL_EXPR_URI:
+    case RASQAL_EXPR_IRI:
+    case RASQAL_EXPR_BNODE:
       raptor_iostream_counted_string_write("op ", 3, iostr);
       rasqal_expression_write_op(e, iostr);
       raptor_iostream_write_byte('(', iostr);
@@ -1962,14 +2016,17 @@ rasqal_expression_print(rasqal_expression* e, FILE* fh)
     case RASQAL_EXPR_LANGMATCHES:
     case RASQAL_EXPR_REGEX:
     case RASQAL_EXPR_SAMETERM:
+    case RASQAL_EXPR_IF:
+    case RASQAL_EXPR_STRLANG:
+    case RASQAL_EXPR_STRDT:
       fputs("op ", fh);
       rasqal_expression_print_op(e, fh);
       fputc('(', fh);
       rasqal_expression_print(e->arg1, fh);
       fputs(", ", fh);
       rasqal_expression_print(e->arg2, fh);
-      /* There is only one 3-op expression and it's handled here */
-      if(e->op == RASQAL_EXPR_REGEX && e->arg3) {
+      /* There are two 3-op expressions - both handled here */
+      if((e->op == RASQAL_EXPR_REGEX || e->op == RASQAL_EXPR_IF) && e->arg3) {
         fputs(", ", fh);
         rasqal_expression_print(e->arg3, fh);
       }
@@ -2004,6 +2061,9 @@ rasqal_expression_print(rasqal_expression* e, FILE* fh)
     case RASQAL_EXPR_AVG:
     case RASQAL_EXPR_MIN:
     case RASQAL_EXPR_MAX:
+    case RASQAL_EXPR_URI:
+    case RASQAL_EXPR_IRI:
+    case RASQAL_EXPR_BNODE:
       fputs("op ", fh);
       rasqal_expression_print_op(e, fh);
       fputc('(', fh);
@@ -2077,7 +2137,7 @@ int
 rasqal_expression_is_constant(rasqal_expression* e) 
 {
   int i;
-  int result=0;
+  int result = 0;
   
   switch(e->op) {
     case RASQAL_EXPR_AND:
@@ -2097,18 +2157,21 @@ rasqal_expression_is_constant(rasqal_expression* e)
     case RASQAL_EXPR_STR_NEQ:
     case RASQAL_EXPR_LANGMATCHES:
     case RASQAL_EXPR_SAMETERM:
-      result=rasqal_expression_is_constant(e->arg1) &&
-             rasqal_expression_is_constant(e->arg2);
+    case RASQAL_EXPR_STRLANG:
+    case RASQAL_EXPR_STRDT:
+      result = rasqal_expression_is_constant(e->arg1) &&
+               rasqal_expression_is_constant(e->arg2);
       break;
     case RASQAL_EXPR_REGEX:
-      result=rasqal_expression_is_constant(e->arg1) &&
-             rasqal_expression_is_constant(e->arg2) &&
-             (e->arg3 && rasqal_expression_is_constant(e->arg3));
+    case RASQAL_EXPR_IF:
+      result = rasqal_expression_is_constant(e->arg1) &&
+               rasqal_expression_is_constant(e->arg2) &&
+               (e->arg3 && rasqal_expression_is_constant(e->arg3));
       break;
     case RASQAL_EXPR_STR_MATCH:
     case RASQAL_EXPR_STR_NMATCH:
-      result=rasqal_expression_is_constant(e->arg1) &&
-             rasqal_literal_is_constant(e->literal);
+      result = rasqal_expression_is_constant(e->arg1) &&
+               rasqal_literal_is_constant(e->literal);
       break;
     case RASQAL_EXPR_TILDE:
     case RASQAL_EXPR_BANG:
@@ -2129,6 +2192,9 @@ rasqal_expression_is_constant(rasqal_expression* e)
     case RASQAL_EXPR_AVG:
     case RASQAL_EXPR_MIN:
     case RASQAL_EXPR_MAX:
+    case RASQAL_EXPR_URI:
+    case RASQAL_EXPR_IRI:
+    case RASQAL_EXPR_BNODE:
       result=rasqal_expression_is_constant(e->arg1);
       break;
 

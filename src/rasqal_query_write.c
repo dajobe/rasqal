@@ -255,6 +255,12 @@ static const char* const rasqal_sparql_op_labels[RASQAL_EXPR_LAST+1] = {
   "MIN",
   "MAX",
   "COALESCE"
+  "IF",
+  "URI",
+  "IRI",
+  "STRLANG",
+  "STRDT",
+  "BNODE"
 };
 
 
@@ -301,6 +307,8 @@ rasqal_query_write_sparql_expression(sparql_writer_context *wc,
     case RASQAL_EXPR_REM:
     case RASQAL_EXPR_STR_EQ:
     case RASQAL_EXPR_STR_NEQ:
+    case RASQAL_EXPR_STRLANG:
+    case RASQAL_EXPR_STRDT:
       raptor_iostream_counted_string_write("( ", 2, iostr);
       rasqal_query_write_sparql_expression(wc, iostr, e->arg1);
       raptor_iostream_write_byte(' ', iostr);
@@ -327,6 +335,9 @@ rasqal_query_write_sparql_expression(sparql_writer_context *wc,
     case RASQAL_EXPR_AVG:
     case RASQAL_EXPR_MIN:
     case RASQAL_EXPR_MAX:
+    case RASQAL_EXPR_URI:
+    case RASQAL_EXPR_IRI:
+    case RASQAL_EXPR_BNODE:
       rasqal_query_write_sparql_expression_op(wc, iostr, e);
       raptor_iostream_counted_string_write("( ", 2, iostr);
       rasqal_query_write_sparql_expression(wc, iostr, e->arg1);
@@ -335,12 +346,13 @@ rasqal_query_write_sparql_expression(sparql_writer_context *wc,
       
     case RASQAL_EXPR_LANGMATCHES:
     case RASQAL_EXPR_REGEX:
+    case RASQAL_EXPR_IF:
       rasqal_query_write_sparql_expression_op(wc, iostr, e);
       raptor_iostream_counted_string_write("( ", 2, iostr);
       rasqal_query_write_sparql_expression(wc, iostr, e->arg1);
       raptor_iostream_counted_string_write(", ", 2, iostr);
       rasqal_query_write_sparql_expression(wc, iostr, e->arg2);
-      if(e->op == RASQAL_EXPR_REGEX && e->arg3) {
+      if((e->op == RASQAL_EXPR_REGEX || e->op == RASQAL_EXPR_IF) && e->arg3) {
         raptor_iostream_counted_string_write(", ", 2, iostr);
         rasqal_query_write_sparql_expression(wc, iostr, e->arg3);
       }
