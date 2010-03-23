@@ -896,7 +896,7 @@ rasqal_uri_finish(rasqal_world* world)
  * but will use both parts.
  *
  * For finer control of the generated identifiers, use
- * rasqal_set_default_generate_bnodeid_handler()
+ * rasqal_query_set_generate_bnodeid_handler()
  *
  * If prefix is NULL, the default prefix is used (currently "bnodeid")
  * If base is less than 1, it is initialised to 1.
