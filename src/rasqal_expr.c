@@ -1681,28 +1681,112 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
       break;
 
     case RASQAL_EXPR_URI:
-      /* FIXME */
-      RASQAL_FATAL1("RASQAL_EXPR_URI not implemented");
-      break;
-
     case RASQAL_EXPR_IRI:
-      /* FIXME */
-      RASQAL_FATAL1("RASQAL_EXPR_IRI not implemented");
+      l1 = rasqal_expression_evaluate(world, locator, e->arg1, flags);
+      if(!l1)
+        goto failed;
+
+      s = rasqal_literal_as_string_flags(l1, flags, &errs.e);
+      if(errs.e) {
+        rasqal_free_literal(l1);
+        goto failed;
+      }
+
+      vars.dt_uri = raptor_new_uri(world, s);
+      rasqal_free_literal(l1);
+      if(!vars.dt_uri)
+        goto failed;
+      
+      result = rasqal_new_uri_literal(world, vars.dt_uri);
+      /* vars.dt_uri becomes owned by the result literal */
       break;
 
     case RASQAL_EXPR_STRLANG:
-      /* FIXME */
-      RASQAL_FATAL1("RASQAL_EXPR_STRLANG not implemented");
+      l1 = rasqal_expression_evaluate(world, locator, e->arg1, flags);
+      if(!l1)
+        goto failed;
+      
+      s = rasqal_literal_as_string_flags(l1, flags, &errs.e);
+      if(errs.e) {
+        rasqal_free_literal(l1);
+        goto failed;
+      }
+
+      l2 = rasqal_expression_evaluate(world, locator, e->arg2, flags);
+      if(!l2) {
+        rasqal_free_literal(l1);
+        goto failed;
+      }
+
+      vars.s = rasqal_literal_as_string_flags(l1, flags, &errs.e);
+      if(errs.e) {
+        rasqal_free_literal(l1);
+        rasqal_free_literal(l2);
+        goto failed;
+      }
+
+      result = rasqal_new_string_literal(world, s, (const char*)vars.s,
+                                         /*datatype */ NULL, /* qname */ NULL);
+
+      rasqal_free_literal(l1);
+      rasqal_free_literal(l2);
       break;
 
     case RASQAL_EXPR_STRDT:
-      /* FIXME */
-      RASQAL_FATAL1("RASQAL_EXPR_STRDT not implemented");
+      l1 = rasqal_expression_evaluate(world, locator, e->arg1, flags);
+      if(!l1)
+        goto failed;
+      
+      s = rasqal_literal_as_string_flags(l1, flags, &errs.e);
+      if(errs.e) {
+        rasqal_free_literal(l1);
+        goto failed;
+      }
+
+      l2 = rasqal_expression_evaluate(world, locator, e->arg2, flags);
+      if(!l2) {
+        rasqal_free_literal(l1);
+        goto failed;
+      }
+
+      vars.dt_uri = rasqal_literal_as_uri(l2);
+      if(vars.dt_uri) {
+        vars.dt_uri = raptor_uri_copy(vars.dt_uri);
+      } else {
+        const unsigned char *uri_string;
+        uri_string = rasqal_literal_as_string_flags(l2, flags, &errs.e);
+        if(errs.e) {
+          rasqal_free_literal(l1);
+          rasqal_free_literal(l2);
+          goto failed;
+        }
+        vars.dt_uri = raptor_new_uri(world, uri_string);
+        if(!vars.dt_uri) {
+          rasqal_free_literal(l1);
+          rasqal_free_literal(l2);
+          goto failed;
+        }
+      }
+      
+      result = rasqal_new_string_literal(world, s, /* language */ NULL,
+                                         vars.dt_uri, /* qname */ NULL);
+
+      rasqal_free_literal(l1);
+      rasqal_free_literal(l2);
       break;
 
     case RASQAL_EXPR_BNODE:
-      /* FIXME */
-      RASQAL_FATAL1("RASQAL_EXPR_BNODE not implemented");
+      l1 = rasqal_expression_evaluate(world, locator, e->arg1, flags);
+      if(!l1)
+        goto failed;
+
+      s = rasqal_literal_as_string_flags(l1, flags, &errs.e);
+      if(errs.e) {
+        rasqal_free_literal(l1);
+        goto failed;
+      }
+
+      result = rasqal_new_simple_literal(world, RASQAL_LITERAL_BLANK, s);
       break;
 
     case RASQAL_EXPR_UNKNOWN:
