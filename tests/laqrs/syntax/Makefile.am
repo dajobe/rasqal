@@ -40,6 +40,7 @@ let1.rq \
 let2.rq \
 let3.rq \
 strdt1.rq \
+strdt2.rq \
 strlang1.rq \
 bnode1.rq \
 uri1.rq \

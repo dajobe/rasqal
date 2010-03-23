@@ -1,4 +1,4 @@
-# STRDT(str, datatype URI) makes a typed literal
+# STRDT(str, datatype URI) makes a datatyped literal
 
 PREFIX ex: <http://example.org/dt#>
 

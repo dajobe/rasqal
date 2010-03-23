@@ -5,5 +5,5 @@ PREFIX ex: <http://example.org/dt#>
 SELECT ?c
 WHERE {
   ?a ?b ?c
-  FILTER ( BNODE("foo") = ?c )
+  FILTER ( BNODE("foo") = _:foo )
 }
