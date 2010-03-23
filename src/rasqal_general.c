@@ -963,10 +963,10 @@ rasqal_query_set_generate_bnodeid_handler(rasqal_query* query,
 
 
 static unsigned char*
-rasqal_default_generate_bnodeid_handler(void *user_data,
+rasqal_query_default_generate_bnodeid_handler(void *user_data,
                                         unsigned char *user_bnodeid) 
 {
-  rasqal_query *rdf_query=(rasqal_query *)user_data;
+  rasqal_query *rdf_query = (rasqal_query *)user_data;
   int id;
   unsigned char *buffer;
   int length;
@@ -975,11 +975,11 @@ rasqal_default_generate_bnodeid_handler(void *user_data,
   if(user_bnodeid)
     return user_bnodeid;
 
-  id=++rdf_query->default_generate_bnodeid_handler_base;
+  id = ++rdf_query->default_generate_bnodeid_handler_base;
 
-  tmpid=id;
-  length=2; /* min length 1 + \0 */
-  while(tmpid/=10)
+  tmpid = id;
+  length = 2; /* min length 1 + \0 */
+  while(tmpid /= 10)
     length++;
 
   if(rdf_query->default_generate_bnodeid_handler_prefix)
@@ -987,7 +987,7 @@ rasqal_default_generate_bnodeid_handler(void *user_data,
   else
     length += 7; /* bnodeid */
   
-  buffer=(unsigned char*)RASQAL_MALLOC(cstring, length);
+  buffer = (unsigned char*)RASQAL_MALLOC(cstring, length);
   if(!buffer)
     return NULL;
   if(rdf_query->default_generate_bnodeid_handler_prefix) {
@@ -1013,7 +1013,8 @@ rasqal_query_generate_bnodeid(rasqal_query* rdf_query,
     return rdf_query->generate_bnodeid_handler(rdf_query, 
                                                rdf_query->generate_bnodeid_handler_user_data, user_bnodeid);
   else
-    return rasqal_default_generate_bnodeid_handler(rdf_query, user_bnodeid);
+    return rasqal_query_default_generate_bnodeid_handler(rdf_query,
+                                                         user_bnodeid);
 }
 
 
