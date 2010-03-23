@@ -24,6 +24,9 @@ data.ttl
 
 EXPECTED_SPARQL_CORRECT= \
 insert-data-1.rq \
+insert-data-2.rq \
+insert-data-3.rq \
+insert-data-4.rq \
 delete-data-1.rq \
 delete-data-2.rq \
 insert-delete-1.rq \
@@ -33,9 +36,12 @@ insert-1.rq \
 insert-2.rq \
 load-1.rq \
 load-2.rq \
+load-3.rq \
+load-4.rq \
 clear-1.rq \
 clear-2.rq \
 clear-3.rq \
+clear-4.rq \
 create-1.rq \
 create-2.rq \
 delete-1.rq \
