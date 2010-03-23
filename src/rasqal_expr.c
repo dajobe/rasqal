@@ -1696,7 +1696,7 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
         goto failed;
       }
 
-      vars.dt_uri = raptor_new_uri(world, s);
+      vars.dt_uri = raptor_new_uri(world->raptor_world_ptr, s);
       rasqal_free_literal(l1);
       if(!vars.dt_uri)
         goto failed;
@@ -1764,7 +1764,7 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
           rasqal_free_literal(l2);
           goto failed;
         }
-        vars.dt_uri = raptor_new_uri(world, uri_string);
+        vars.dt_uri = raptor_new_uri(world->raptor_world_ptr, uri_string);
         if(!vars.dt_uri) {
           rasqal_free_literal(l1);
           rasqal_free_literal(l2);
