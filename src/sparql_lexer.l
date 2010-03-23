@@ -380,6 +380,7 @@ EXPONENT [eE][+-]?[0-9]+
 [Ii][Rr][Ii] { return IRI; }
 [Ur][Rr][Ii] { return URI; }
 [Bb][Nn][Oo][Dd][Ee] { return BNODE; }
+[Dd][Ee][Ff][Aa][Uu][Ll][Tt] { return DEFAULT; }
 
 "a" { return A; }
 
@@ -1482,6 +1483,9 @@ sparql_token_print(rasqal_world* world, int token, YYSTYPE *lval)
 
     case BNODE:
       return "BNODE";
+
+    case DEFAULT:
+      return "DEFAULT";
 
     case INTEGER_LITERAL:
     case INTEGER_POSITIVE_LITERAL:
