@@ -3359,9 +3359,16 @@ BuiltInCall: STR '(' Expression ')'
 | BNODE '(' Expression ')'
 {
   $$ = rasqal_new_1op_expression(((rasqal_query*)rq)->world, 
-                                 RASQAL_EXPR_IRI, $3);
+                                 RASQAL_EXPR_BNODE, $3);
   if(!$$)
     YYERROR_MSG("BuiltInCall 7c: cannot create expr");
+}
+| BNODE '(' ')'
+{
+  $$ = rasqal_new_1op_expression(((rasqal_query*)rq)->world, 
+                                 RASQAL_EXPR_BNODE, NULL);
+  if(!$$)
+    YYERROR_MSG("BuiltInCall 7d: cannot create expr");
 }
 | CoalesceExpression
 {
@@ -3372,21 +3379,21 @@ BuiltInCall: STR '(' Expression ')'
   $$ = rasqal_new_3op_expression(((rasqal_query*)rq)->world,
                                  RASQAL_EXPR_IF, $3, $5, $7);
   if(!$$)
-    YYERROR_MSG("BuiltInCall 7d: cannot create expr");
+    YYERROR_MSG("BuiltInCall 7e: cannot create expr");
 }
 | STRLANG '(' Expression ',' Expression ')'
 {
   $$ = rasqal_new_2op_expression(((rasqal_query*)rq)->world,
                                  RASQAL_EXPR_STRLANG, $3, $5);
   if(!$$)
-    YYERROR_MSG("BuiltInCall 7e: cannot create expr");
+    YYERROR_MSG("BuiltInCall 7f: cannot create expr");
 }
 | STRDT '(' Expression ',' Expression ')'
 {
   $$ = rasqal_new_2op_expression(((rasqal_query*)rq)->world,
                                  RASQAL_EXPR_STRDT, $3, $5);
   if(!$$)
-    YYERROR_MSG("BuiltInCall 7f: cannot create expr");
+    YYERROR_MSG("BuiltInCall 7g: cannot create expr");
 }
 | SAMETERM '(' Expression ',' Expression ')'
 {
