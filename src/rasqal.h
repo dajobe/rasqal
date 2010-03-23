@@ -117,8 +117,7 @@ extern "C" {
 #include <Redland/raptor.h>
 #endif
 
-#ifndef RAPTOR_WORLD_DECLARED
-#define RAPTOR_WORLD_DECLARED 1
+#ifndef RAPTOR_V2_AVAILABLE
 /* Declare raptor_world type unless it is declared in raptor.h */
 typedef struct raptor_world_s raptor_world;
 #endif
@@ -1564,12 +1563,6 @@ int rasqal_set_triples_source_factory(rasqal_world* world, rasqal_triples_source
 
 /**
  * raptor_world:
- *
- * Internal
- */
-
-/**
- * RAPTOR_WORLD_DECLARED:
  *
  * Internal
  */
