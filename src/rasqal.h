@@ -117,11 +117,6 @@ extern "C" {
 #include <Redland/raptor.h>
 #endif
 
-#ifndef RAPTOR_V2_AVAILABLE
-/* Declare raptor_world type unless it is declared in raptor.h */
-typedef struct raptor_world_s raptor_world;
-#endif
-
 /* Public statics */
 RASQAL_API
 extern const char * const rasqal_short_copyright_string;
