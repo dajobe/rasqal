@@ -149,7 +149,7 @@ rasqal_xsd_check_decimal_format(const unsigned char* string, int flags)
     ADVANCE_OR_DIE(p);
   }
 
-  while(*p && isdigit(*p))
+  while(*p && isdigit((int)*p))
     p++;
   if(!*p)
     return 1;
@@ -158,7 +158,7 @@ rasqal_xsd_check_decimal_format(const unsigned char* string, int flags)
     return 0;
   p++;
   
-  while(*p && isdigit(*p))
+  while(*p && isdigit((int)*p))
     p++;
   /* Fail if anything other than a digit seen before NUL */
   if(*p)
