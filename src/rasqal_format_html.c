@@ -2,7 +2,7 @@
  *
  * rasqal_format_html.c - Format results in HTML Table
  *
- * Copyright (C) 2007-2010, David Beckett http://www.dajobe.org/
+ * Copyright (C) 2010, David Beckett http://www.dajobe.org/
  * 
  * This package is Free Software and part of Redland http://librdf.org/
  * 
@@ -41,12 +41,12 @@
 #include <rasqal_internal.h>
 
 
-static int rasqal_iostream_write_html_literal(
-    rasqal_world* world,
-    raptor_iostream *iostr,
-    rasqal_literal* l)
+static int
+rasqal_iostream_write_html_literal(rasqal_world* world,
+                                   raptor_iostream *iostr,
+                                   rasqal_literal* l)
 {
-  if (l == NULL) {
+  if(!l) {
     raptor_iostream_counted_string_write("<span class=\"unbound\">", 17, iostr);
     raptor_iostream_counted_string_write("unbound", 7, iostr);
   } else switch(l->type) {
@@ -54,37 +54,48 @@ static int rasqal_iostream_write_html_literal(
     size_t len;
 
     case RASQAL_LITERAL_URI:
-      str = (const unsigned char*)raptor_uri_as_counted_string(l->value.uri, &len);
+      str = (const unsigned char*)raptor_uri_as_counted_string(l->value.uri, 
+                                                               &len);
       raptor_iostream_counted_string_write("<span class=\"uri\">", 18, iostr);
       raptor_iostream_counted_string_write("<a href=\"", 9, iostr);
-      raptor_iostream_write_xml_escaped_string(iostr, str, len, '"', NULL, NULL);
+      raptor_iostream_write_xml_escaped_string(iostr, str, len, '"',
+                                               NULL, NULL);
       raptor_iostream_counted_string_write("\">", 2, iostr);
-      raptor_iostream_write_xml_escaped_string(iostr, str, len, 0, NULL, NULL);
+      raptor_iostream_write_xml_escaped_string(iostr, str, len, 0,
+                                               NULL, NULL);
       raptor_iostream_counted_string_write("</a>", 4, iostr);
       break;
 
     case RASQAL_LITERAL_BLANK:
       raptor_iostream_counted_string_write("<span class=\"blank\">", 20, iostr);
-      raptor_iostream_write_xml_escaped_string(iostr, l->string, l->string_len, 0, NULL, NULL);
+      raptor_iostream_write_xml_escaped_string(iostr,
+                                               l->string, l->string_len, 0,
+                                               NULL, NULL);
       break;
 
     case RASQAL_LITERAL_STRING:
       raptor_iostream_counted_string_write("<span class=\"literal\">", 22, iostr);
       raptor_iostream_counted_string_write("<span class=\"value\"", 19, iostr);
-      if (l->language) {
+      if(l->language) {
         str = (const unsigned char*)l->language;
         raptor_iostream_counted_string_write(" xml:lang=\"", 11, iostr);
-        raptor_iostream_write_xml_escaped_string(iostr, str, strlen(l->language), '"', NULL, NULL);
+        raptor_iostream_write_xml_escaped_string(iostr, str,
+                                                 strlen(l->language), '"',
+                                                 NULL, NULL);
         raptor_iostream_write_byte('"', iostr);
       }
       raptor_iostream_write_byte('>', iostr);
-      raptor_iostream_write_xml_escaped_string(iostr, l->string, l->string_len, 0, NULL, NULL);
+      raptor_iostream_write_xml_escaped_string(iostr,
+                                               l->string, l->string_len, 0,
+                                               NULL, NULL);
       raptor_iostream_counted_string_write("</span>", 7, iostr);
         
-      if (l->datatype) {
+      if(l->datatype) {
         raptor_iostream_counted_string_write("^^&lt;<span class=\"datatype\">", 29, iostr);
-        str = (const unsigned char*)raptor_uri_as_counted_string(l->datatype, &len);
-        raptor_iostream_write_xml_escaped_string(iostr, str, len, 0, NULL, NULL);
+        str = (const unsigned char*)raptor_uri_as_counted_string(l->datatype,
+                                                                 &len);
+        raptor_iostream_write_xml_escaped_string(iostr, str, len, 0,
+                                                 NULL, NULL);
         raptor_iostream_counted_string_write("</span>&gt;", 11, iostr);
       }
       break;
@@ -115,9 +126,9 @@ static int rasqal_iostream_write_html_literal(
 }
 
 
-static int rasqal_query_results_write_html_bindings(
-    raptor_iostream *iostr,
-    rasqal_query_results* results)
+static int
+rasqal_query_results_write_html_bindings(raptor_iostream *iostr,
+                                         rasqal_query_results* results)
 {
   rasqal_world* world = rasqal_query_results_get_world(results);
   int i;
@@ -136,16 +147,18 @@ static int rasqal_query_results_write_html_bindings(
     
     len = strlen((char*)name);
     raptor_iostream_counted_string_write("      <th>?", 11, iostr);
-    raptor_iostream_write_xml_escaped_string(iostr, name, len, 0, NULL, NULL);
+    raptor_iostream_write_xml_escaped_string(iostr, name, len, 0,
+                                             NULL, NULL);
     raptor_iostream_counted_string_write("</th>\n", 6, iostr);
   }
   raptor_iostream_counted_string_write("    </tr>\n", 10, iostr);
 
 
   while(!rasqal_query_results_finished(results)) {
-    raptor_iostream_counted_string_write("    <tr class=\"result\">\n", 24, iostr);
+    raptor_iostream_counted_string_write("    <tr class=\"result\">\n", 24,
+                                         iostr);
 
-    for(i = 0; i<rasqal_query_results_get_bindings_count(results); i++) {
+    for(i = 0; i < rasqal_query_results_get_bindings_count(results); i++) {
       rasqal_literal *l = rasqal_query_results_get_binding_value(results, i);
 
       raptor_iostream_counted_string_write("      <td>", 10, iostr);
@@ -168,12 +181,13 @@ static int rasqal_query_results_write_html_bindings(
 }
 
 
-static int rasqal_query_results_write_html_boolean(
-    raptor_iostream *iostr,
-    rasqal_query_results* results)
+static int
+rasqal_query_results_write_html_boolean(raptor_iostream *iostr,
+                                        rasqal_query_results* results)
 {
-  raptor_iostream_counted_string_write("  <p>The result of your query is:\n", 34, iostr);
-  if (rasqal_query_results_get_boolean(results)) {
+  raptor_iostream_counted_string_write("  <p>The result of your query is:\n",
+                                       34, iostr);
+  if(rasqal_query_results_get_boolean(results)) {
     raptor_iostream_counted_string_write("    <span id=\"result\">true</span>\n", 34, iostr);
   } else {
     raptor_iostream_counted_string_write("    <span id=\"result\">false</span>\n", 35, iostr);
@@ -225,11 +239,10 @@ rasqal_query_results_write_html(raptor_iostream *iostr,
   raptor_iostream_counted_string_write("</head>\n", 8, iostr);
   raptor_iostream_counted_string_write("<body>\n", 7, iostr);
 
-  if(rasqal_query_results_is_boolean(results)) {
+  if(rasqal_query_results_is_boolean(results))
     rasqal_query_results_write_html_boolean(iostr, results);
-  } else if (rasqal_query_results_is_bindings(results)) {
+  else if(rasqal_query_results_is_bindings(results))
     rasqal_query_results_write_html_bindings(iostr, results);
-  }
 
   raptor_iostream_counted_string_write("</body>\n", 8, iostr);
   raptor_iostream_counted_string_write("</html>\n", 8, iostr);
@@ -242,24 +255,24 @@ rasqal_query_results_write_html(raptor_iostream *iostr,
 int
 rasqal_init_result_format_html(rasqal_world* world)
 {
-  rasqal_query_results_formatter_func writer_fn=NULL;
-  int rc=0;
+  rasqal_query_results_formatter_func writer_fn = NULL;
+  int rc = 0;
 
-  writer_fn=&rasqal_query_results_write_html;
+  writer_fn = &rasqal_query_results_write_html;
 
-  rc+= rasqal_query_results_format_register_factory(world,
-                                                    "html", "HTML Table",
-                                                    (unsigned char*)"http://www.w3.org/1999/xhtml",
-                                                    writer_fn, NULL, NULL,
-                                                    "application/xhtml+xml")
-                                                    != 0;
+  rc += rasqal_query_results_format_register_factory(world,
+                                                     "html", "HTML Table",
+                                                     (unsigned char*)"http://www.w3.org/1999/xhtml",
+                                                     writer_fn, NULL, NULL,
+                                                     "application/xhtml+xml")
+                                                     != 0;
 
-  rc+= rasqal_query_results_format_register_factory(world,
-                                                    NULL, NULL,
-                                                    NULL,
-                                                    writer_fn, NULL, NULL,
-                                                    "text/html")
-                                                    != 0;
+  rc += rasqal_query_results_format_register_factory(world,
+                                                     NULL, NULL,
+                                                     NULL,
+                                                     writer_fn, NULL, NULL,
+                                                     "text/html")
+                                                     != 0;
 
   return rc;
 }
