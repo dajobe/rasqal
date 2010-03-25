@@ -58,19 +58,15 @@ rasqal_iostream_write_html_literal(rasqal_world* world,
                                                                &len);
       raptor_iostream_counted_string_write("<span class=\"uri\">", 18, iostr);
       raptor_iostream_counted_string_write("<a href=\"", 9, iostr);
-      raptor_iostream_write_xml_escaped_string(iostr, str, len, '"',
-                                               NULL, NULL);
+      raptor_xml_escape_string_write(str, len, '"', iostr);
       raptor_iostream_counted_string_write("\">", 2, iostr);
-      raptor_iostream_write_xml_escaped_string(iostr, str, len, 0,
-                                               NULL, NULL);
+      raptor_xml_escape_string_write(str, len, 0, iostr);
       raptor_iostream_counted_string_write("</a>", 4, iostr);
       break;
 
     case RASQAL_LITERAL_BLANK:
       raptor_iostream_counted_string_write("<span class=\"blank\">", 20, iostr);
-      raptor_iostream_write_xml_escaped_string(iostr,
-                                               l->string, l->string_len, 0,
-                                               NULL, NULL);
+      raptor_xml_escape_string_write(l->string, l->string_len, 0, iostr);
       break;
 
     case RASQAL_LITERAL_STRING:
@@ -79,23 +75,18 @@ rasqal_iostream_write_html_literal(rasqal_world* world,
       if(l->language) {
         str = (const unsigned char*)l->language;
         raptor_iostream_counted_string_write(" xml:lang=\"", 11, iostr);
-        raptor_iostream_write_xml_escaped_string(iostr, str,
-                                                 strlen(l->language), '"',
-                                                 NULL, NULL);
+        raptor_xml_escape_string_write(str, strlen(l->language), '"', iostr);
         raptor_iostream_write_byte('"', iostr);
       }
       raptor_iostream_write_byte('>', iostr);
-      raptor_iostream_write_xml_escaped_string(iostr,
-                                               l->string, l->string_len, 0,
-                                               NULL, NULL);
+      raptor_xml_escape_string_write(l->string, l->string_len, 0, iostr);
       raptor_iostream_counted_string_write("</span>", 7, iostr);
         
       if(l->datatype) {
         raptor_iostream_counted_string_write("^^&lt;<span class=\"datatype\">", 29, iostr);
         str = (const unsigned char*)raptor_uri_as_counted_string(l->datatype,
                                                                  &len);
-        raptor_iostream_write_xml_escaped_string(iostr, str, len, 0,
-                                                 NULL, NULL);
+        raptor_xml_escape_string_write(str, len, 0, iostr);
         raptor_iostream_counted_string_write("</span>&gt;", 11, iostr);
       }
       break;
@@ -147,8 +138,7 @@ rasqal_query_results_write_html_bindings(raptor_iostream *iostr,
     
     len = strlen((char*)name);
     raptor_iostream_counted_string_write("      <th>?", 11, iostr);
-    raptor_iostream_write_xml_escaped_string(iostr, name, len, 0,
-                                             NULL, NULL);
+    raptor_xml_escape_string_write(name, len, 0, iostr);
     raptor_iostream_counted_string_write("</th>\n", 6, iostr);
   }
   raptor_iostream_counted_string_write("    </tr>\n", 10, iostr);
