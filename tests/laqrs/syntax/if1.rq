@@ -8,5 +8,5 @@ PREFIX ex: <http://example.org/dt#>
 SELECT ?c
 WHERE {
   ?a ?b ?c
-  FILTER ( IF(?c = "10", ex:true, ex:false) = ex:true)
+  FILTER ( IF("10" = "10", ex:true, ex:false) = ex:true)
 }

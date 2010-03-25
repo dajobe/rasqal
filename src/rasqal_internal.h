@@ -1040,6 +1040,9 @@ int rasqal_init_result_format_sparql_xml(rasqal_world*);
 /* rasqal_format_table.c */
 int rasqal_init_result_format_table(rasqal_world*);
 
+/* rasqal_format_html.c */
+int rasqal_init_result_format_html(rasqal_world*);
+
 /* rasqal_row.c */
 rasqal_row* rasqal_new_row(rasqal_rowsource* rowsource);
 rasqal_row* rasqal_new_row_from_row(rasqal_row* row);
@@ -1383,6 +1386,7 @@ int rasqal_query_add_update_operation(rasqal_query* query, rasqal_update_operati
 #define raptor_iostream_string_write(string, iostr) raptor_iostream_write_string(iostr, string)
 #define raptor_iostream_decimal_write(decimal, iostr) raptor_iostream_write_decimal(iostr, decimal)
 #define raptor_iostream_read_bytes(ptr, size, nmemb, iostr) raptor_iostream_read_bytes(iostr, ptr, size, nmemb)
+#define raptor_xml_escape_string_write(string, len, quote, iostr) raptor_iostream_write_xml_escaped_string(iostr, string, len, quote, NULL, NULL)
 
 #define raptor_string_ntriples_write(str, len, delim, iostr) raptor_iostream_write_string_ntriples(iostr, str, len, delim)
 

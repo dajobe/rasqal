@@ -1680,8 +1680,21 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
       break;
 
     case RASQAL_EXPR_IF:
-      /* FIXME */
-      RASQAL_FATAL1("RASQAL_EXPR_IF not implemented");
+      l1 = rasqal_expression_evaluate(world, locator, e->arg1, flags);
+      if(!l1)
+        goto failed;
+
+      /* IF condition */
+      vars.b = rasqal_literal_as_boolean(l1, &errs.e);
+      rasqal_free_literal(l1);
+
+      if(errs.e)
+        goto failed;
+
+      /* condition is true: evaluate arg2 or false: evaluate arg3 */
+      result = rasqal_expression_evaluate(world, locator,
+                                          vars.b ? e->arg2 : e->arg3,
+                                          flags);
       break;
 
     case RASQAL_EXPR_URI:
