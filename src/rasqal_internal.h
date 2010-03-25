@@ -1040,6 +1040,9 @@ int rasqal_init_result_format_sparql_xml(rasqal_world*);
 /* rasqal_format_table.c */
 int rasqal_init_result_format_table(rasqal_world*);
 
+/* rasqal_format_html.c */
+int rasqal_init_result_format_html(rasqal_world*);
+
 /* rasqal_row.c */
 rasqal_row* rasqal_new_row(rasqal_rowsource* rowsource);
 rasqal_row* rasqal_new_row_from_row(rasqal_row* row);
