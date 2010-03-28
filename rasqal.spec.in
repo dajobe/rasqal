@@ -3,34 +3,43 @@
 %define version @VERSION@
 %define release SNAP
 
-Summary:   Rasqal RDF Query Library
 Name:      %{name}
 Version:   %{version}
 Release:   %{release}
-Prefix:    %{_prefix}
-License:   LGPL/Apache 2.0
-Group:     Development/Libraries
+Summary:   Rasqal RDF Query Library
+
+Group:     System Environment/Libraries
+License:   LGPLv2+ or ASL 2.0
 Source:    http://download.librdf.org/source/%{name}-%{version}.tar.gz
 URL:       http://librdf.org/rasqal/
 BuildRoot: /tmp/%{name}-%{version}
+
+BuildRequires: libxml2-devel
+BuildRequires: mpfr-devel
+BuildRequires: pcre-devel
 BuildRequires: raptor-devel >= @RAPTOR_MIN_VERSION@
-Packager:  Dave Beckett <Dave.Beckett@bristol.ac.uk>
-Docdir: %{_docdir}
-Requires: raptor
+# for the testsuite
+BuildRequires:  perl(XML::DOM)
+
+Packager:  Dave Beckett <dave@dajobe.org>
+
+# Not needed since raptor-devel require above will pull this in.
+# Requires: raptor >= @RAPTOR_MIN_VERSION@
 
 %description
 
 Rasqal is a library providing full support for querying Resource
 Description Framework (RDF) including parsing query syntaxes, constructing
-the queries, executing them and returning result formats.  It currently
-handles the RDF Data Query Language (RDQL) and SPARQL Query language.
+the queries, executing them and returning result formats.  It handles the
+SPARQL and RDQL query languages.
 
 %package devel
-Summary: Libraries, includes etc to develop with the Rasqal RDF query library
+Summary: Development files for the Rasqal RDF query library
 Group: Development/Libraries
 Requires: rasqal = %{version}
-Requires: raptor >= @RAPTOR_MIN_VERSION@
-
+Requires: gtk-doc
+Requires: pkgconfig
+Requires: raptor-devel >= @RAPTOR_MIN_VERSION@
 %description devel
 Libraries, includes etc to develop with the Rasqal RDF query language library.
 
@@ -51,6 +60,8 @@ install -d $RPM_BUILD_ROOT%{_mandir}/man3
 
 %makeinstall
 
+# Fedora deletes .la files here
+
 %clean
 [ -n "$RPM_BUILD_ROOT" -a "$RPM_BUILD_ROOT" != / ] && rm -rf $RPM_BUILD_ROOT
 
@@ -60,34 +71,27 @@ install -d $RPM_BUILD_ROOT%{_mandir}/man3
 
 %files
 %defattr(-, root, root)
-
 %doc AUTHORS COPYING COPYING.LIB ChangeLog LICENSE.txt NEWS README
+%doc LICENSE-2.0.txt NOTICE
 %doc *.html
-
-%doc %{_mandir}/man1/roqet.1*
-%doc %{_mandir}/man3/librasqal.3*
-
+%{_bindir}/roqet
 %{_libdir}/librasqal*.so.*
-%{prefix}/bin/roqet
-
+%doc %{_mandir}/man1/roqet.1*
 
 %files devel
 %defattr(-, root, root)
-
-%doc AUTHORS COPYING COPYING.LIB ChangeLog LICENSE.txt NEWS README
-%doc LICENSE-2.0.txt NOTICE
-%doc %{_mandir}/man1/rasqal-config.1*
-
 %doc docs/README.html
-%doc %{_datadir}/gtk-doc/html
-
-%{prefix}/bin/rasqal-config
+%{_bindir}/rasqal-config
+%{_includedir}/rasqal/
 %{_libdir}/librasqal*.so
+%{_libdir}/pkgconfig/rasqal.pc
+%{_mandir}/man1/rasqal-config.1*
+%{_mandir}/man3/librasqal.3*
+%{_datadir}/gtk-doc/html/rasqal/
+
+# Fedora rasqal-devel package does not include these
 %{_libdir}/librasqal*.a
 %{_libdir}/librasqal*.la
-%{_libdir}/pkgconfig/rasqal.pc
-
-%{prefix}/include/*
 
 
 %changelog
