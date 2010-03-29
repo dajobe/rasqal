@@ -206,7 +206,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
 
 
 %type <seq> SelectQuery ConstructQuery DescribeQuery
-%type <seq> SelectExpressionList VarOrIRIrefList ArgList
+%type <seq> SelectExpressionList VarOrIRIrefList ArgListNoBraces ArgList
 %type <seq> ConstructTriples ConstructTriplesOpt
 %type <seq> ConstructTemplate OrderConditionList
 %type <seq> GraphNodeListNotEmpty SelectExpressionListTail
@@ -280,7 +280,7 @@ QNAME_LITERAL QNAME_LITERAL_BRACE BLANK_LITERAL IDENTIFIER
     raptor_free_sequence($$);
 }
 SelectQuery ConstructQuery DescribeQuery
-SelectExpressionList VarOrIRIrefList ArgList
+SelectExpressionList VarOrIRIrefList ArgListNoBraces ArgList
 ConstructTriples ConstructTriplesOpt
 ConstructTemplate OrderConditionList
 GraphNodeListNotEmpty SelectExpressionListTail
@@ -2323,7 +2323,7 @@ Constraint: BrackettedExpression
 
 
 /* SPARQL Grammar: [28] FunctionCall */
-FunctionCall: IRIrefBrace ArgList ')'
+FunctionCall: IRIrefBrace ArgListNoBraces ')'
 {
   raptor_uri* uri = rasqal_literal_as_uri($1);
   
@@ -2360,7 +2360,7 @@ FunctionCall: IRIrefBrace ArgList ')'
 
 
 /* LAQRS */
-CoalesceExpression: COALESCE '(' ArgList ')'
+CoalesceExpression: COALESCE ArgList
 {
   rasqal_sparql_query_language* sparql;
   sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
@@ -2369,19 +2369,19 @@ CoalesceExpression: COALESCE '(' ArgList ')'
     sparql_syntax_error((rasqal_query*)rq,
                         "COALESCE cannot be used with SPARQL 1.0");
 
-  if(!$3) {
+  if(!$2) {
 #ifdef RAPTOR_V2_AVAILABLE
-    $3 = raptor_new_sequence((raptor_data_free_handler*)rasqal_free_expression,
+    $2 = raptor_new_sequence((raptor_data_free_handler*)rasqal_free_expression,
                              (raptor_data_print_handler*)rasqal_expression_print);
 #else
-    $3 = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_expression,
+    $2 = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_expression,
                              (raptor_sequence_print_handler*)rasqal_expression_print);
 #endif
-    if(!$3)
+    if(!$2)
       YYERROR_MSG("FunctionCall: cannot create sequence");
   }
 
-  $$ = rasqal_new_coalesce_expression(((rasqal_query*)rq)->world, $3);
+  $$ = rasqal_new_coalesce_expression(((rasqal_query*)rq)->world, $2);
   if(!$$)
     YYERROR_MSG("Coalesce: cannot create expr");
 }
@@ -2389,14 +2389,21 @@ CoalesceExpression: COALESCE '(' ArgList ')'
 
 
 /* SPARQL Grammar: [29] ArgList */
-ArgList: ArgList ',' Expression
+ArgList: '(' ArgListNoBraces ')'
+{
+  $$ = $2;
+}
+
+
+/* SPARQL Grammar: [29] ArgList modified to not have '(' and ')' */
+ArgListNoBraces: ArgListNoBraces ',' Expression
 {
   $$ = $1;
   if($3)
     if(raptor_sequence_push($$, $3)) {
       raptor_free_sequence($$);
       $$ = NULL;
-      YYERROR_MSG("ArgList 1: sequence push failed");
+      YYERROR_MSG("ArgListNoBraces 1: sequence push failed");
     }
 }
 | Expression
@@ -2411,13 +2418,13 @@ ArgList: ArgList ',' Expression
   if(!$$) {
     if($1)
       rasqal_free_expression($1);
-    YYERROR_MSG("ArgList 2: cannot create sequence");
+    YYERROR_MSG("ArgListNoBraces 2: cannot create sequence");
   }
   if($1)
     if(raptor_sequence_push($$, $1)) {
       raptor_free_sequence($$);
       $$ = NULL;
-      YYERROR_MSG("ArgList 2: sequence push failed");
+      YYERROR_MSG("ArgListNoBraces 2: sequence push failed");
     }
 }
 | /* empty */
