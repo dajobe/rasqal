@@ -314,10 +314,12 @@ rasqal_new_literal_expression(rasqal_world* world, rasqal_literal *literal)
 
 
 /**
- * rasqal_new_function_expression:
+ * rasqal_new_function_expression2:
  * @world: rasqal_world object
  * @name: function name
  * @args: sequence of #rasqal_expression function arguments
+ * @params: sequence of #rasqal_expression function parameters (or NULL)
+ * @flags: extension function bitflags
  * 
  * Constructor - create a new expression for a function with expression arguments.
  * Takes ownership of the function uri and arguments.
@@ -325,9 +327,11 @@ rasqal_new_literal_expression(rasqal_world* world, rasqal_literal *literal)
  * Return value: a new #rasqal_expression object or NULL on failure
  **/
 rasqal_expression*
-rasqal_new_function_expression(rasqal_world* world,
-                               raptor_uri* name,
-                               raptor_sequence* args)
+rasqal_new_function_expression2(rasqal_world* world,
+                                raptor_uri* name,
+                                raptor_sequence* args,
+                                raptor_sequence* params,
+                                unsigned int flags)
 {
   rasqal_expression* e = NULL;
 
@@ -341,6 +345,8 @@ rasqal_new_function_expression(rasqal_world* world,
     e->op = RASQAL_EXPR_FUNCTION;
     e->name = name; name = NULL;
     e->args = args; args = NULL;
+    e->params = params; params = NULL;
+    e->flags = flags;
   }
   
   tidy:
@@ -348,9 +354,33 @@ rasqal_new_function_expression(rasqal_world* world,
     raptor_free_uri(name);
   if(args)
     raptor_free_sequence(args);
+  if(params)
+    raptor_free_sequence(params);
 
   return e;
 }
+
+
+/**
+ * rasqal_new_function_expression:
+ * @world: rasqal_world object
+ * @name: function name
+ * 
+ * Constructor - create a new expression for a function with expression arguments.
+ * Takes ownership of the function uri and arguments.
+ * 
+ * @Deprecated: use rasqal_new_function_expression() with extra args
+ *
+ * Return value: a new #rasqal_expression object or NULL on failure
+ **/
+rasqal_expression*
+rasqal_new_function_expression(rasqal_world* world,
+                               raptor_uri* name,
+                               raptor_sequence* args)
+{
+  return rasqal_new_function_expression2(world, name, args, NULL, 0);
+}
+
 
 
 /**

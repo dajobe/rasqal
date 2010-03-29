@@ -590,6 +590,8 @@ typedef enum {
  * @value: UTF-8 value
  * @name: name for extension function qname(args...) and cast-to-uri
  * @args; args for extension function qname(args...), cast-to-uri and COALESCE
+ * @params; args for extension function parameters (SPARQL 1.1) (Rasqal 0.9.20+)
+ * @flags: bitflags for extension functions. bit 0 set = DISTINCT.
  *
  * Expression with arguments
  *
@@ -609,6 +611,9 @@ struct rasqal_expression_s {
 
   raptor_uri* name;
   raptor_sequence* args;
+
+  raptor_sequence* params;
+  unsigned int flags;
 };
 typedef struct rasqal_expression_s rasqal_expression;
 
@@ -1179,7 +1184,11 @@ rasqal_expression* rasqal_new_string_op_expression(rasqal_world* world, rasqal_o
 RASQAL_API
 rasqal_expression* rasqal_new_literal_expression(rasqal_world* world, rasqal_literal* literal);
 RASQAL_API
+rasqal_expression* rasqal_new_function_expression2(rasqal_world* world, raptor_uri* name, raptor_sequence* args, raptor_sequence* params, unsigned int flags);
+#if !defined(RASQAL_DISABLE_DEPRECATED)
+RASQAL_API RASQAL_DEPRECATED
 rasqal_expression* rasqal_new_function_expression(rasqal_world* world, raptor_uri* name, raptor_sequence* args);
+#endif
 RASQAL_API
 rasqal_expression* rasqal_new_cast_expression(rasqal_world* world, raptor_uri* name, rasqal_expression *value);
 RASQAL_API
