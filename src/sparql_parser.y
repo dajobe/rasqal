@@ -123,6 +123,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
   unsigned char *name;
   rasqal_formula *formula;
   rasqal_update_operation *update;
+  int integer;
 }
 
 
@@ -251,6 +252,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
 
 %type <uri> GraphRef
 
+%type <integer> DistinctOpt
 
 %destructor {
   if($$)
@@ -2321,9 +2323,59 @@ Constraint: BrackettedExpression
 }
 ;
 
+DistinctOpt : DISTINCT
+{
+  rasqal_sparql_query_language* sparql;
+  sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
+
+  if(!sparql->extended)
+    sparql_syntax_error((rasqal_query*)rq,
+                        "function call with DISTINCT cannot be used with SPARQL 1.0");
+  $$ = 1;
+}
+| /* empty */
+{
+  $$ = 0;
+}
+;
+
 
 /* SPARQL Grammar: [28] FunctionCall */
-FunctionCall: IRIrefBrace ArgListNoBraces ')'
+FunctionCall: IRIref DistinctOpt ArgList
+{
+  raptor_uri* uri = rasqal_literal_as_uri($1);
+  
+  if(!$3) {
+#ifdef RAPTOR_V2_AVAILABLE
+    $3 = raptor_new_sequence((raptor_data_free_handler*)rasqal_free_expression,
+                             (raptor_data_print_handler*)rasqal_expression_print);
+#else
+    $3 = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_expression,
+                             (raptor_sequence_print_handler*)rasqal_expression_print);
+#endif
+    if(!$3) {
+      rasqal_free_literal($1);
+      YYERROR_MSG("FunctionCall: cannot create sequence");
+    }
+  }
+
+  uri = raptor_uri_copy(uri);
+
+  if(raptor_sequence_size($3) == 1 &&
+     rasqal_xsd_is_datatype_uri(((rasqal_query*)rq)->world, uri)) {
+    rasqal_expression* e = (rasqal_expression*)raptor_sequence_pop($3);
+    $$ = rasqal_new_cast_expression(((rasqal_query*)rq)->world, uri, e);
+    raptor_free_sequence($3);
+  } else {
+    $$ = rasqal_new_function_expression(((rasqal_query*)rq)->world, uri, $3);
+  }
+  rasqal_free_literal($1);
+
+  if(!$$)
+    YYERROR_MSG("FunctionCall: cannot create expr");
+}
+|
+IRIrefBrace ArgListNoBraces ')'
 {
   raptor_uri* uri = rasqal_literal_as_uri($1);
   
