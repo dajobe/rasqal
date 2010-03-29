@@ -1,0 +1,9 @@
+# Test DISTINCT with a function call
+
+PREFIX ex: <http://example.org/func#>
+
+SELECT *
+WHERE {
+  ?s ?p ?o .
+  FILTER( ex:foo DISTINCT () )
+}
