@@ -213,6 +213,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
 %type <seq> GraphNodeListNotEmpty SelectExpressionListTail
 %type <seq> ModifyTemplateList
 %type <seq> IriRefList
+%type <seq> ParamsOpt
 
 %type <update> GraphTriples
 
@@ -286,7 +287,7 @@ SelectExpressionList VarOrIRIrefList ArgListNoBraces ArgList
 ConstructTriples ConstructTriplesOpt
 ConstructTemplate OrderConditionList
 GraphNodeListNotEmpty SelectExpressionListTail
-ModifyTemplateList
+ModifyTemplateList IriRefList ParamsOpt
 
 %destructor {
   if($$)
@@ -2340,20 +2341,31 @@ DistinctOpt : DISTINCT
 ;
 
 
+ParamsOpt: ';'
+{
+  $$ = NULL;
+}
+| /* empty */
+{
+  $$ = NULL;
+}
+;
+
+
 /* SPARQL Grammar: [28] FunctionCall */
-FunctionCall: IRIref DistinctOpt ArgList
+FunctionCall: IRIref '(' DistinctOpt ArgListNoBraces ParamsOpt ')'
 {
   raptor_uri* uri = rasqal_literal_as_uri($1);
   
-  if(!$3) {
+  if(!$4) {
 #ifdef RAPTOR_V2_AVAILABLE
-    $3 = raptor_new_sequence((raptor_data_free_handler*)rasqal_free_expression,
+    $4 = raptor_new_sequence((raptor_data_free_handler*)rasqal_free_expression,
                              (raptor_data_print_handler*)rasqal_expression_print);
 #else
-    $3 = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_expression,
+    $4 = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_expression,
                              (raptor_sequence_print_handler*)rasqal_expression_print);
 #endif
-    if(!$3) {
+    if(!$4) {
       rasqal_free_literal($1);
       YYERROR_MSG("FunctionCall: cannot create sequence");
     }
@@ -2361,18 +2373,18 @@ FunctionCall: IRIref DistinctOpt ArgList
 
   uri = raptor_uri_copy(uri);
 
-  if(raptor_sequence_size($3) == 1 &&
+  if(raptor_sequence_size($4) == 1 &&
      rasqal_xsd_is_datatype_uri(((rasqal_query*)rq)->world, uri)) {
-    rasqal_expression* e = (rasqal_expression*)raptor_sequence_pop($3);
+    rasqal_expression* e = (rasqal_expression*)raptor_sequence_pop($4);
     $$ = rasqal_new_cast_expression(((rasqal_query*)rq)->world, uri, e);
-    raptor_free_sequence($3);
+    raptor_free_sequence($4);
   } else {
     unsigned int flags = 0;
-    if($2)
+    if($3)
       flags |= 1;
     
     $$ = rasqal_new_function_expression2(((rasqal_query*)rq)->world, 
-                                         uri, $3, NULL /* params */,
+                                         uri, $4, $5 /* params */,
                                          flags);
   }
   rasqal_free_literal($1);
