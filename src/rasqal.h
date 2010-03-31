@@ -579,6 +579,18 @@ typedef enum {
 
 
 /**
+ * rasqal_expression_flags:
+ * @RASQAL_EXPR_FLAG_DISTINCT: Distinct
+ * @RASQAL_EXPR_FLAG_AGGREGATE: Aggregate function expression
+ *
+ * Flags for expressions.
+ */
+typedef enum {
+  RASQAL_EXPR_FLAG_DISTINCT = 1,
+  RASQAL_EXPR_FLAG_AGGREGATE = 2
+} rasqal_expression_flags;
+
+/**
  * rasqal_expression:
  * @world: rasqal_world object
  * @usage: reference count - 1 for itself
@@ -591,7 +603,7 @@ typedef enum {
  * @name: name for extension function qname(args...) and cast-to-uri
  * @args; args for extension function qname(args...), cast-to-uri and COALESCE
  * @params; args for extension function parameters (SPARQL 1.1) (Rasqal 0.9.20+)
- * @flags: bitflags for extension functions. bit 0 set = DISTINCT.
+ * @flags: bitflags from #rasqal_expression_flags for expressions
  *
  * Expression with arguments
  *
