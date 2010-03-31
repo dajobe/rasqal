@@ -1484,6 +1484,12 @@ sparql_token_print(rasqal_world* world, int token, YYSTYPE *lval)
     case BNODE:
       return "BNODE";
 
+    case GROUP_CONCAT:
+      return "GROUP_CONCAT";
+
+    case SAMPLE:
+      return "SAMPLE";
+
     case DEFAULT:
       return "DEFAULT";
 
