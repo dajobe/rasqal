@@ -590,7 +590,7 @@ SelectTerm: Var
 {
   $$ = $1;
 }
-| SelectExpression AS VarName
+| '(' SelectExpression AS VarName ')'
 {
   rasqal_sparql_query_language* sparql;
   sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
@@ -598,15 +598,15 @@ SelectTerm: Var
   $$ = NULL;
   if(!sparql->extended)
     sparql_syntax_error((rasqal_query*)rq,
-                        "SELECT expression AS Variable cannot be used with SPARQL 1.0");
+                        "SELECT ( expression ) AS Variable cannot be used with SPARQL 1.0");
   else {
-    if(rasqal_expression_mentions_variable($1, $3)) {
+    if(rasqal_expression_mentions_variable($2, $4)) {
       sparql_query_error_full((rasqal_query*)rq, 
-                              "SELECT expression contains the AS variable name '%s'",
-                              $3->name);
+                              "Expression in SELECT ( expression ) AS %s contains the variable name '%s'",
+                              $4->name, $4->name);
     } else {
-      $$ = $3;
-      $3->expression = $1;
+      $$ = $4;
+      $$->expression = $2;
     }
 
   }
@@ -619,13 +619,9 @@ SelectExpression: AggregateExpression
 {
   $$ = $1;
 }
-| '(' AggregateExpression ')'
+| Expression
 {
-  $$ = $2;
-}
-| '(' Expression ')'
-{
-  $$ = $2;
+  $$ = $1;
 }
 ;
 
@@ -1741,7 +1737,7 @@ GroupConditionList: GroupConditionList GroupCondition
 ;
 
 
-/* SPARQL Grammar: [17] GroupCondition */
+/* SPARQL 1.1 Grammar: [] GroupCondition */
 GroupCondition: BuiltInCall
 {
   $$ = $1;
@@ -1750,24 +1746,35 @@ GroupCondition: BuiltInCall
 {
   $$ = $1;
 }
-| BrackettedExpression
+| '(' Expression AS VarName ')'
 {
-  $$ = $1;
-}
-| BrackettedExpression AS VarName
-{
-  /* FIXME - implement renaming in GROUP BY - what does this mean */
-  $$ = $1;
+  if(rasqal_expression_mentions_variable($2, $4)) {
+    sparql_query_error_full((rasqal_query*)rq, 
+                            "Expression in GROUP BY ( expression ) AS %s contains the variable name '%s'",
+                            $4->name, $4->name);
+  } else {
+    rasqal_literal* l;
+
+    $4->expression = $2;
+
+    l = rasqal_new_variable_literal(((rasqal_query*)rq)->world, $4);
+    if(!l)
+      YYERROR_MSG("GroupCondition 4: cannot create lit");
+    $$ = rasqal_new_literal_expression(((rasqal_query*)rq)->world, l);
+    if(!$$)
+      YYERROR_MSG("GroupCondition 4: cannot create lit expr");
+  }
+  
 }
 | Var
 {
   rasqal_literal* l;
   l = rasqal_new_variable_literal(((rasqal_query*)rq)->world, $1);
   if(!l)
-    YYERROR_MSG("GroupCondition 4: cannot create lit");
+    YYERROR_MSG("GroupCondition 5: cannot create lit");
   $$ = rasqal_new_literal_expression(((rasqal_query*)rq)->world, l);
   if(!$$)
-    YYERROR_MSG("GroupCondition 4: cannot create lit expr");
+    YYERROR_MSG("GroupCondition 5: cannot create lit expr");
 }
 ;
 
