@@ -314,25 +314,14 @@ rasqal_new_literal_expression(rasqal_world* world, rasqal_literal *literal)
 }
 
 
-/**
- * rasqal_new_function_expression2:
- * @world: rasqal_world object
- * @name: function name
- * @args: sequence of #rasqal_expression function arguments
- * @params: sequence of #rasqal_expression function parameters (or NULL)
- * @flags: extension function bitflags
- * 
- * Constructor - create a new expression for a function with expression arguments.
- * Takes ownership of the function uri and arguments.
- * 
- * Return value: a new #rasqal_expression object or NULL on failure
- **/
-rasqal_expression*
-rasqal_new_function_expression2(rasqal_world* world,
-                                raptor_uri* name,
-                                raptor_sequence* args,
-                                raptor_sequence* params,
-                                unsigned int flags)
+static rasqal_expression*
+rasqal_new_function_expression_common(rasqal_world* world,
+                                      rasqal_op op,
+                                      raptor_uri* name,
+                                      rasqal_expression* arg1,
+                                      raptor_sequence* args,
+                                      raptor_sequence* params,
+                                      unsigned int flags)
 {
   rasqal_expression* e = NULL;
 
@@ -343,8 +332,9 @@ rasqal_new_function_expression2(rasqal_world* world,
   if(e) {
     e->usage = 1;
     e->world = world;
-    e->op = RASQAL_EXPR_FUNCTION;
+    e->op = op;
     e->name = name; name = NULL;
+    e->arg1 = arg1; arg1 = NULL;
     e->args = args; args = NULL;
     e->params = params; params = NULL;
     e->flags = flags;
@@ -363,14 +353,44 @@ rasqal_new_function_expression2(rasqal_world* world,
 
 
 /**
+ * rasqal_new_function_expression2:
+ * @world: rasqal_world object
+ * @name: function name
+ * @args: sequence of #rasqal_expression function arguments
+ * @params: sequence of #rasqal_expression function parameters (or NULL)
+ * @flags: extension function bitflags
+ * 
+ * Constructor - create a new expression for a URI-named function with arguments and optional parameters.
+ *
+ * Takes ownership of the @name, @args and @params arguments.
+ * 
+ * Return value: a new #rasqal_expression object or NULL on failure
+ **/
+rasqal_expression*
+rasqal_new_function_expression2(rasqal_world* world,
+                                raptor_uri* name,
+                                raptor_sequence* args,
+                                raptor_sequence* params,
+                                unsigned int flags)
+{
+  return rasqal_new_function_expression_common(world, RASQAL_EXPR_FUNCTION,
+                                               name,
+                                               NULL /* expr */, args,
+                                               params,
+                                               flags);
+}
+
+
+/**
  * rasqal_new_function_expression:
  * @world: rasqal_world object
  * @name: function name
+ * @args: arguments
  * 
  * Constructor - create a new expression for a function with expression arguments.
- * Takes ownership of the function uri and arguments.
+ * Takes ownership of the @name and @args
  * 
- * @Deprecated: use rasqal_new_function_expression() with extra args
+ * @Deprecated: use rasqal_new_function_expression2() with extra args
  *
  * Return value: a new #rasqal_expression object or NULL on failure
  **/
@@ -379,9 +399,42 @@ rasqal_new_function_expression(rasqal_world* world,
                                raptor_uri* name,
                                raptor_sequence* args)
 {
-  return rasqal_new_function_expression2(world, name, args, NULL, 0);
+  return rasqal_new_function_expression_common(world, RASQAL_EXPR_FUNCTION,
+                                               name, 
+                                               NULL /* expr */, args,
+                                               NULL /* params */,
+                                               0 /* flags */);
 }
 
+
+
+/**
+ * rasqal_new_aggregate_function_expression:
+ * @world: rasqal_world object
+ * @op:  built-in aggregate function expression operator
+ * @arg1: #rasqal_expression argument to aggregate function
+ * @params: sequence of #rasqal_expression function parameters (or NULL)
+ * @flags: extension function bitflags
+ * 
+ * Constructor - create a new 1-arg aggregate function expression for a builtin aggregate function
+ *
+ * Takes ownership of the @args and @params
+ * 
+ * Return value: a new #rasqal_expression object or NULL on failure
+ **/
+rasqal_expression*
+rasqal_new_aggregate_function_expression(rasqal_world* world,
+                                         rasqal_op op,
+                                         rasqal_expression* arg1,
+                                         raptor_sequence* params,
+                                         unsigned int flags)
+{
+  return rasqal_new_function_expression_common(world, op,
+                                               NULL /* name */,
+                                               arg1, NULL /* args */,
+                                               params,
+                                               flags | RASQAL_EXPR_FLAG_AGGREGATE);
+}
 
 
 /**

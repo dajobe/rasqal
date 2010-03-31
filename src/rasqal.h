@@ -1206,6 +1206,8 @@ RASQAL_API RASQAL_DEPRECATED
 rasqal_expression* rasqal_new_function_expression(rasqal_world* world, raptor_uri* name, raptor_sequence* args);
 #endif
 RASQAL_API
+rasqal_expression* rasqal_new_aggregate_function_expression(rasqal_world* world, rasqal_op op, rasqal_expression* arg1, raptor_sequence* params, unsigned int flags);
+RASQAL_API
 rasqal_expression* rasqal_new_cast_expression(rasqal_world* world, raptor_uri* name, rasqal_expression *value);
 RASQAL_API
 rasqal_expression* rasqal_new_coalesce_expression(rasqal_world* world, raptor_sequence* args);
