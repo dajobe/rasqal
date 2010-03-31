@@ -497,8 +497,8 @@ struct rasqal_literal_s {
  * @RASQAL_EXPR_CAST: Expression for cast literal A to type B.
  * @RASQAL_EXPR_ORDER_COND_ASC: Expression for SPARQL order condition ascending.
  * @RASQAL_EXPR_ORDER_COND_DESC: Expression for SPARQL order condition descending.
- * @RASQAL_EXPR_GROUP_COND_ASC: Expression for LAQRS group condition ascending.
- * @RASQAL_EXPR_GROUP_COND_DESC: Expression for LAQRS group condition descending.
+ * @RASQAL_EXPR_GROUP_COND_ASC: Obsolete - not used
+ * @RASQAL_EXPR_GROUP_COND_DESC: Obsolete - not used
  * @RASQAL_EXPR_COUNT: Expression for LAQRS select COUNT() aggregate function
  * @RASQAL_EXPR_VARSTAR: Expression for LAQRS select Variable *
  * @RASQAL_EXPR_SAMETERM: Expression for SPARQL sameTerm
