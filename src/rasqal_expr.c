@@ -100,8 +100,7 @@ rasqal_new_0op_expression(rasqal_world* world, rasqal_op op)
  * @RASQAL_EXPR_LANGMATCHES
  * @RASQAL_EXPR_DATATYPE @RASQAL_EXPR_ISURI @RASQAL_EXPR_ISBLANK
  * @RASQAL_EXPR_ISLITERAL @RASQAL_EXPR_ORDER_COND_ASC
- * @RASQAL_EXPR_ORDER_COND_DESC @RASQAL_EXPR_GROUP_COND_ASC
- * @RASQAL_EXPR_GROUP_COND_DESC @RASQAL_EXPR_COUNT @RASQAL_EXPR_SUM
+ * @RASQAL_EXPR_ORDER_COND_DESC @RASQAL_EXPR_COUNT @RASQAL_EXPR_SUM
  * @RASQAL_EXPR_AVG @RASQAL_EXPR_MIN @RASQAL_EXPR_MAX
  *
  * @RASQAL_EXPR_BANG and @RASQAL_EXPR_UMINUS are used by RDQL and
@@ -111,7 +110,8 @@ rasqal_new_0op_expression(rasqal_world* world, rasqal_op op)
  * Return value: a new #rasqal_expression object or NULL on failure
  **/
 rasqal_expression*
-rasqal_new_1op_expression(rasqal_world* world, rasqal_op op, rasqal_expression* arg)
+rasqal_new_1op_expression(rasqal_world* world, rasqal_op op,
+                          rasqal_expression* arg)
 {
   rasqal_expression* e = NULL;
 
@@ -313,21 +313,14 @@ rasqal_new_literal_expression(rasqal_world* world, rasqal_literal *literal)
 }
 
 
-/**
- * rasqal_new_function_expression:
- * @world: rasqal_world object
- * @name: function name
- * @args: sequence of #rasqal_expression function arguments
- * 
- * Constructor - create a new expression for a function with expression arguments.
- * Takes ownership of the function uri and arguments.
- * 
- * Return value: a new #rasqal_expression object or NULL on failure
- **/
-rasqal_expression*
-rasqal_new_function_expression(rasqal_world* world,
-                               raptor_uri* name,
-                               raptor_sequence* args)
+static rasqal_expression*
+rasqal_new_function_expression_common(rasqal_world* world,
+                                      rasqal_op op,
+                                      raptor_uri* name,
+                                      rasqal_expression* arg1,
+                                      raptor_sequence* args,
+                                      raptor_sequence* params,
+                                      unsigned int flags)
 {
   rasqal_expression* e = NULL;
 
@@ -338,9 +331,12 @@ rasqal_new_function_expression(rasqal_world* world,
   if(e) {
     e->usage = 1;
     e->world = world;
-    e->op = RASQAL_EXPR_FUNCTION;
+    e->op = op;
     e->name = name; name = NULL;
+    e->arg1 = arg1; arg1 = NULL;
     e->args = args; args = NULL;
+    e->params = params; params = NULL;
+    e->flags = flags;
   }
   
   tidy:
@@ -348,8 +344,95 @@ rasqal_new_function_expression(rasqal_world* world,
     raptor_free_uri(name);
   if(args)
     raptor_free_sequence(args);
+  if(params)
+    raptor_free_sequence(params);
 
   return e;
+}
+
+
+/**
+ * rasqal_new_function_expression2:
+ * @world: rasqal_world object
+ * @name: function name
+ * @args: sequence of #rasqal_expression function arguments
+ * @params: sequence of #rasqal_expression function parameters (or NULL)
+ * @flags: extension function bitflags
+ * 
+ * Constructor - create a new expression for a URI-named function with arguments and optional parameters.
+ *
+ * Takes ownership of the @name, @args and @params arguments.
+ * 
+ * Return value: a new #rasqal_expression object or NULL on failure
+ **/
+rasqal_expression*
+rasqal_new_function_expression2(rasqal_world* world,
+                                raptor_uri* name,
+                                raptor_sequence* args,
+                                raptor_sequence* params,
+                                unsigned int flags)
+{
+  return rasqal_new_function_expression_common(world, RASQAL_EXPR_FUNCTION,
+                                               name,
+                                               NULL /* expr */, args,
+                                               params,
+                                               flags);
+}
+
+
+/**
+ * rasqal_new_function_expression:
+ * @world: rasqal_world object
+ * @name: function name
+ * @args: arguments
+ * 
+ * Constructor - create a new expression for a function with expression arguments.
+ * Takes ownership of the @name and @args
+ * 
+ * @Deprecated: use rasqal_new_function_expression2() with extra args
+ *
+ * Return value: a new #rasqal_expression object or NULL on failure
+ **/
+rasqal_expression*
+rasqal_new_function_expression(rasqal_world* world,
+                               raptor_uri* name,
+                               raptor_sequence* args)
+{
+  return rasqal_new_function_expression_common(world, RASQAL_EXPR_FUNCTION,
+                                               name, 
+                                               NULL /* expr */, args,
+                                               NULL /* params */,
+                                               0 /* flags */);
+}
+
+
+
+/**
+ * rasqal_new_aggregate_function_expression:
+ * @world: rasqal_world object
+ * @op:  built-in aggregate function expression operator
+ * @arg1: #rasqal_expression argument to aggregate function
+ * @params: sequence of #rasqal_expression function parameters (or NULL)
+ * @flags: extension function bitflags
+ * 
+ * Constructor - create a new 1-arg aggregate function expression for a builtin aggregate function
+ *
+ * Takes ownership of the @args and @params
+ * 
+ * Return value: a new #rasqal_expression object or NULL on failure
+ **/
+rasqal_expression*
+rasqal_new_aggregate_function_expression(rasqal_world* world,
+                                         rasqal_op op,
+                                         rasqal_expression* arg1,
+                                         raptor_sequence* params,
+                                         unsigned int flags)
+{
+  return rasqal_new_function_expression_common(world, op,
+                                               NULL /* name */,
+                                               arg1, NULL /* args */,
+                                               params,
+                                               flags | RASQAL_EXPR_FLAG_AGGREGATE);
 }
 
 
@@ -493,6 +576,7 @@ rasqal_expression_clear(rasqal_expression* e)
     case RASQAL_EXPR_URI:
     case RASQAL_EXPR_IRI:
     case RASQAL_EXPR_BNODE:
+    case RASQAL_EXPR_SAMPLE:
       /* arg1 is optional for RASQAL_EXPR_BNODE */
       if(e->arg1)
         rasqal_free_expression(e->arg1);
@@ -505,6 +589,7 @@ rasqal_expression_clear(rasqal_expression* e)
       rasqal_free_literal(e->literal);
       break;
     case RASQAL_EXPR_FUNCTION:
+    case RASQAL_EXPR_GROUP_CONCAT:
       raptor_free_uri(e->name);
       raptor_free_sequence(e->args);
       break;
@@ -648,6 +733,7 @@ rasqal_expression_visit(rasqal_expression* e,
     case RASQAL_EXPR_URI:
     case RASQAL_EXPR_IRI:
     case RASQAL_EXPR_BNODE:
+    case RASQAL_EXPR_SAMPLE:
       /* arg1 is optional for RASQAL_EXPR_BNODE */
       return (e->arg1) ? rasqal_expression_visit(e->arg1, fn, user_data) : 1;
       break;
@@ -659,6 +745,7 @@ rasqal_expression_visit(rasqal_expression* e,
       return 0;
     case RASQAL_EXPR_FUNCTION:
     case RASQAL_EXPR_COALESCE:
+    case RASQAL_EXPR_GROUP_CONCAT:
       for(i = 0; i < raptor_sequence_size(e->args); i++) {
         rasqal_expression* e2;
         e2 = (rasqal_expression*)raptor_sequence_get_at(e->args, i);
@@ -1812,6 +1899,14 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
       result = rasqal_new_simple_literal(world, RASQAL_LITERAL_BLANK, s);
       break;
 
+    case RASQAL_EXPR_SAMPLE:
+      RASQAL_FATAL1("SAMPLE() not implemented");
+      break;
+      
+    case RASQAL_EXPR_GROUP_CONCAT:
+      RASQAL_FATAL1("GROUP_CONCAT() not implemented");
+      break;
+
     case RASQAL_EXPR_UNKNOWN:
     default:
       RASQAL_FATAL2("Unknown operation %d", e->op);
@@ -1893,7 +1988,9 @@ static const char* const rasqal_op_labels[RASQAL_EXPR_LAST+1]={
   "iri",
   "strlang",
   "strdt",
-  "bnode"
+  "bnode",
+  "group_concat",
+  "sample"
 };
 
 
@@ -2029,6 +2126,7 @@ rasqal_expression_write(rasqal_expression* e, raptor_iostream* iostr)
     case RASQAL_EXPR_URI:
     case RASQAL_EXPR_IRI:
     case RASQAL_EXPR_BNODE:
+    case RASQAL_EXPR_SAMPLE:
       raptor_iostream_counted_string_write("op ", 3, iostr);
       rasqal_expression_write_op(e, iostr);
       raptor_iostream_write_byte('(', iostr);
@@ -2071,6 +2169,18 @@ rasqal_expression_write(rasqal_expression* e, raptor_iostream* iostr)
     case RASQAL_EXPR_COALESCE:
       raptor_iostream_counted_string_write("coalesce(", 9, iostr);
       for(i = 0; i < raptor_sequence_size(e->args); i++) {
+        rasqal_expression* e2;
+        if(i > 0)
+          raptor_iostream_counted_string_write(", ", 2, iostr);
+        e2 = (rasqal_expression*)raptor_sequence_get_at(e->args, i);
+        rasqal_expression_write(e2, iostr);
+      }
+      raptor_iostream_write_byte(')', iostr);
+      break;
+
+    case RASQAL_EXPR_GROUP_CONCAT:
+      raptor_iostream_counted_string_write("group_concat(args=", 18, iostr);
+      for(i = 0; i<raptor_sequence_size(e->args); i++) {
         rasqal_expression* e2;
         if(i > 0)
           raptor_iostream_counted_string_write(", ", 2, iostr);
@@ -2173,6 +2283,7 @@ rasqal_expression_print(rasqal_expression* e, FILE* fh)
     case RASQAL_EXPR_URI:
     case RASQAL_EXPR_IRI:
     case RASQAL_EXPR_BNODE:
+    case RASQAL_EXPR_SAMPLE:
       fputs("op ", fh);
       rasqal_expression_print_op(e, fh);
       fputc('(', fh);
@@ -2208,6 +2319,12 @@ rasqal_expression_print(rasqal_expression* e, FILE* fh)
       
     case RASQAL_EXPR_COALESCE:
       fputs("coalesce(", fh);
+      raptor_sequence_print(e->args, fh);
+      fputc(')', fh);
+      break;
+
+    case RASQAL_EXPR_GROUP_CONCAT:
+      fputs("group_concat(args=", fh);
       raptor_sequence_print(e->args, fh);
       fputc(')', fh);
       break;
@@ -2306,6 +2423,7 @@ rasqal_expression_is_constant(rasqal_expression* e)
     case RASQAL_EXPR_URI:
     case RASQAL_EXPR_IRI:
     case RASQAL_EXPR_BNODE:
+    case RASQAL_EXPR_SAMPLE:
       /* arg1 is optional for RASQAL_EXPR_BNODE and result is always constant */
       result = (e->arg1) ? rasqal_expression_is_constant(e->arg1) : 1;
       break;
@@ -2316,6 +2434,7 @@ rasqal_expression_is_constant(rasqal_expression* e)
 
     case RASQAL_EXPR_FUNCTION:
     case RASQAL_EXPR_COALESCE:
+    case RASQAL_EXPR_GROUP_CONCAT:
       result = 1;
       for(i = 0; i < raptor_sequence_size(e->args); i++) {
         rasqal_expression* e2;

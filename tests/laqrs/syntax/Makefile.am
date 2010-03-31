@@ -23,6 +23,7 @@ LAQRS_MODEL_FILES= \
 data.n3
 
 LAQRS_TEST_FILES= \
+agg-function1.rq \
 coalesce1.rq \
 count1.rq \
 count2.rq \
@@ -30,6 +31,8 @@ count3.rq \
 count4.rq \
 coverage.rq \
 explain.rq \
+function-distinct1.rq \
+group-by1.rq \
 delete.rq \
 insert.rq \
 avg1.rq \

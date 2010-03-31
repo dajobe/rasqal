@@ -123,6 +123,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
   unsigned char *name;
   rasqal_formula *formula;
   rasqal_update_operation *update;
+  unsigned int uinteger;
 }
 
 
@@ -151,7 +152,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
 %token ISLITERAL "isLiteral"
 %token SAMETERM "sameTerm"
 /* SPARQL 1.1 (draft) / LAQRS */
-%token GROUP COUNT SUM AVG MIN MAX
+%token GROUP COUNT SUM AVG MIN MAX GROUP_CONCAT SAMPLE
 %token DELETE INSERT WITH CLEAR CREATE SILENT DATA DROP LOAD INTO DEFAULT
 %token COALESCE
 %token AS IF
@@ -206,12 +207,13 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
 
 
 %type <seq> SelectQuery ConstructQuery DescribeQuery
-%type <seq> SelectExpressionList VarOrIRIrefList ArgList
+%type <seq> SelectExpressionList VarOrIRIrefList ArgListNoBraces ArgList
 %type <seq> ConstructTriples ConstructTriplesOpt
-%type <seq> ConstructTemplate OrderConditionList
+%type <seq> ConstructTemplate OrderConditionList GroupConditionList
 %type <seq> GraphNodeListNotEmpty SelectExpressionListTail
 %type <seq> ModifyTemplateList
 %type <seq> IriRefList
+%type <seq> ParamsOpt
 
 %type <update> GraphTriples
 
@@ -236,10 +238,12 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
 %type <expr> MultiplicativeExpression UnaryExpression
 %type <expr> BuiltInCall RegexExpression FunctionCall
 %type <expr> BrackettedExpression PrimaryExpression
-%type <expr> OrderCondition Filter Constraint SelectExpression
+%type <expr> OrderCondition GroupCondition
+%type <expr> Filter Constraint SelectExpression
 %type <expr> AggregateExpression CountAggregateExpression SumAggregateExpression
 %type <expr> AvgAggregateExpression MinAggregateExpression MaxAggregateExpression
-%type <expr> CoalesceExpression
+%type <expr> CoalesceExpression GroupConcatAggregateExpression
+%type <expr> SampleAggregateExpression ExpressionOrStar
 
 %type <literal> GraphTerm IRIref BlankNode
 %type <literal> VarOrIRIref
@@ -251,6 +255,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
 
 %type <uri> GraphRef
 
+%type <uinteger> DistinctOpt
 
 %destructor {
   if($$)
@@ -280,11 +285,11 @@ QNAME_LITERAL QNAME_LITERAL_BRACE BLANK_LITERAL IDENTIFIER
     raptor_free_sequence($$);
 }
 SelectQuery ConstructQuery DescribeQuery
-SelectExpressionList VarOrIRIrefList ArgList
+SelectExpressionList VarOrIRIrefList ArgListNoBraces ArgList
 ConstructTriples ConstructTriplesOpt
-ConstructTemplate OrderConditionList
+ConstructTemplate OrderConditionList GroupConditionList
 GraphNodeListNotEmpty SelectExpressionListTail
-ModifyTemplateList
+ModifyTemplateList IriRefList ParamsOpt
 
 %destructor {
   if($$)
@@ -324,10 +329,12 @@ RelationalExpression AdditiveExpression
 MultiplicativeExpression UnaryExpression
 BuiltInCall RegexExpression FunctionCall
 BrackettedExpression PrimaryExpression
-OrderCondition Filter Constraint SelectExpression
+OrderCondition GroupCondition
+Filter Constraint SelectExpression
 AggregateExpression CountAggregateExpression SumAggregateExpression
 AvgAggregateExpression MinAggregateExpression MaxAggregateExpression
-CoalesceExpression
+CoalesceExpression GroupConcatAggregateExpression
+SampleAggregateExpression ExpressionOrStar
 
 %destructor {
   if($$)
@@ -583,7 +590,7 @@ SelectTerm: Var
 {
   $$ = $1;
 }
-| SelectExpression AS VarName
+| '(' SelectExpression AS VarName ')'
 {
   rasqal_sparql_query_language* sparql;
   sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
@@ -591,15 +598,15 @@ SelectTerm: Var
   $$ = NULL;
   if(!sparql->extended)
     sparql_syntax_error((rasqal_query*)rq,
-                        "SELECT expression AS Variable cannot be used with SPARQL 1.0");
+                        "SELECT ( expression ) AS Variable cannot be used with SPARQL 1.0");
   else {
-    if(rasqal_expression_mentions_variable($1, $3)) {
+    if(rasqal_expression_mentions_variable($2, $4)) {
       sparql_query_error_full((rasqal_query*)rq, 
-                              "SELECT expression contains the AS variable name '%s'",
-                              $3->name);
+                              "Expression in SELECT ( expression ) AS %s contains the variable name '%s'",
+                              $4->name, $4->name);
     } else {
-      $$ = $3;
-      $3->expression = $1;
+      $$ = $4;
+      $$->expression = $2;
     }
 
   }
@@ -612,13 +619,9 @@ SelectExpression: AggregateExpression
 {
   $$ = $1;
 }
-| '(' AggregateExpression ')'
+| Expression
 {
-  $$ = $2;
-}
-| '(' Expression ')'
-{
-  $$ = $2;
+  $$ = $1;
 }
 ;
 
@@ -643,120 +646,181 @@ AggregateExpression: CountAggregateExpression
 {
   $$ = $1;
 }
-;
-
-
-CountAggregateExpression: COUNT '(' Expression ')'
+| GroupConcatAggregateExpression
 {
-  rasqal_sparql_query_language* sparql;
-  sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
-
-  if(!sparql->extended) {
-    sparql_syntax_error((rasqal_query*)rq,
-                        "COUNT cannot be used with SPARQL 1.0");
-    $$ = NULL;
-  } else {
-    $$ = rasqal_new_1op_expression(((rasqal_query*)rq)->world,
-                                   RASQAL_EXPR_COUNT, $3);
-    if(!$$)
-      YYERROR_MSG("CountAggregateExpression 1: cannot create expr");
-  }
+  $$ = $1;
 }
-| COUNT '(' '*' ')'
+| SampleAggregateExpression
 {
-  rasqal_sparql_query_language* sparql;
-  sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
-
-  if(!sparql->extended) {
-    sparql_syntax_error((rasqal_query*)rq,
-                        "COUNT cannot be used with SPARQL 1.0");
-    $$ = NULL;
-  } else {
-    rasqal_expression* vs;
-    vs = rasqal_new_0op_expression(((rasqal_query*)rq)->world,
-                                   RASQAL_EXPR_VARSTAR);
-    if(!vs)
-      YYERROR_MSG("CountAggregateExpression 2: cannot create varstar expr");
-    $$ = rasqal_new_1op_expression(((rasqal_query*)rq)->world, 
-                                   RASQAL_EXPR_COUNT, vs);
-    if(!$$)
-      YYERROR_MSG("CountAggregateExpression 2: cannot create expr");
-  }
+  $$ = $1;
 }
 ;
 
 
-SumAggregateExpression: SUM '(' Expression ')'
+DistinctOpt: DISTINCT
 {
   rasqal_sparql_query_language* sparql;
   sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
 
-  if(!sparql->extended) {
+  if(!sparql->extended)
     sparql_syntax_error((rasqal_query*)rq,
-                        "SUM cannot be used with SPARQL 1.0");
-    $$ = NULL;
-  } else {
-    $$ = rasqal_new_1op_expression(((rasqal_query*)rq)->world,
-                                   RASQAL_EXPR_SUM, $3);
-    if(!$$)
-      YYERROR_MSG("SumAggregateExpression 1: cannot create expr");
-  }
+                        "functions with DISTINCT cannot be used with SPARQL 1.0");
+  $$ = RASQAL_EXPR_FLAG_DISTINCT;
+}
+| /* empty */
+{
+  $$ = 0;
 }
 ;
 
 
-AvgAggregateExpression: AVG '(' Expression ')'
+ExpressionOrStar: Expression
+{
+  $$ = $1;
+}
+| '*'
+{
+  $$ = rasqal_new_0op_expression(((rasqal_query*)rq)->world,
+                                 RASQAL_EXPR_VARSTAR);
+}
+;
+
+
+CountAggregateExpression: COUNT '(' DistinctOpt ExpressionOrStar ')'
 {
   rasqal_sparql_query_language* sparql;
   sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
 
   if(!sparql->extended) {
     sparql_syntax_error((rasqal_query*)rq,
-                        "AVG cannot be used with SPARQL 1.0");
+                        "COUNT() cannot be used with SPARQL 1.0");
     $$ = NULL;
   } else {
-    $$ = rasqal_new_1op_expression(((rasqal_query*)rq)->world,
-                                   RASQAL_EXPR_AVG, $3);
+    $$ = rasqal_new_aggregate_function_expression(((rasqal_query*)rq)->world,
+                                                  RASQAL_EXPR_COUNT, $4,
+                                                  NULL /* params */, $3);
     if(!$$)
-      YYERROR_MSG("AvgAggregateExpression 1: cannot create expr");
+      YYERROR_MSG("CountAggregateExpression: cannot create expr");
   }
 }
 ;
 
 
-MinAggregateExpression: MIN '(' Expression ')'
+SumAggregateExpression: SUM '(' DistinctOpt Expression ')'
 {
   rasqal_sparql_query_language* sparql;
   sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
 
   if(!sparql->extended) {
     sparql_syntax_error((rasqal_query*)rq,
-                        "MIN cannot be used with SPARQL 1.0");
+                        "SUM() cannot be used with SPARQL 1.0");
     $$ = NULL;
   } else {
-    $$ = rasqal_new_1op_expression(((rasqal_query*)rq)->world,
-                                   RASQAL_EXPR_MIN, $3);
+    $$ = rasqal_new_aggregate_function_expression(((rasqal_query*)rq)->world,
+                                                  RASQAL_EXPR_SUM, $4,
+                                                  NULL /* params */, $3);
     if(!$$)
-      YYERROR_MSG("MinAggregateExpression 1: cannot create expr");
+      YYERROR_MSG("SumAggregateExpression: cannot create expr");
   }
 }
 ;
 
 
-MaxAggregateExpression: MAX '(' Expression ')'
+AvgAggregateExpression: AVG '(' DistinctOpt Expression ')'
 {
   rasqal_sparql_query_language* sparql;
   sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
 
   if(!sparql->extended) {
     sparql_syntax_error((rasqal_query*)rq,
-                        "MAX cannot be used with SPARQL 1.0");
+                        "AVG() cannot be used with SPARQL 1.0");
     $$ = NULL;
   } else {
-    $$ = rasqal_new_1op_expression(((rasqal_query*)rq)->world,
-                                   RASQAL_EXPR_MAX, $3);
+    $$ = rasqal_new_aggregate_function_expression(((rasqal_query*)rq)->world,
+                                                  RASQAL_EXPR_AVG, $4,
+                                                  NULL /* params */, $3);
     if(!$$)
-      YYERROR_MSG("MaxAggregateExpression 1: cannot create expr");
+      YYERROR_MSG("AvgAggregateExpression: cannot create expr");
+  }
+}
+;
+
+
+MinAggregateExpression: MIN '(' DistinctOpt Expression ')'
+{
+  rasqal_sparql_query_language* sparql;
+  sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
+
+  if(!sparql->extended) {
+    sparql_syntax_error((rasqal_query*)rq,
+                        "MIN() cannot be used with SPARQL 1.0");
+    $$ = NULL;
+  } else {
+    $$ = rasqal_new_aggregate_function_expression(((rasqal_query*)rq)->world,
+                                                  RASQAL_EXPR_MIN, $4,
+                                                  NULL /* params */, $3);
+    if(!$$)
+      YYERROR_MSG("MinAggregateExpression: cannot create expr");
+  }
+}
+;
+
+
+MaxAggregateExpression: MAX '(' DistinctOpt Expression ')'
+{
+  rasqal_sparql_query_language* sparql;
+  sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
+
+  if(!sparql->extended) {
+    sparql_syntax_error((rasqal_query*)rq,
+                        "MAX() cannot be used with SPARQL 1.0");
+    $$ = NULL;
+  } else {
+    $$ = rasqal_new_aggregate_function_expression(((rasqal_query*)rq)->world,
+                                                  RASQAL_EXPR_MAX, $4,
+                                                  NULL /* params */, $3);
+    if(!$$)
+      YYERROR_MSG("MaxAggregateExpression: cannot create expr");
+  }
+}
+;
+
+
+GroupConcatAggregateExpression: GROUP_CONCAT '(' DistinctOpt Expression ')'
+{
+  rasqal_sparql_query_language* sparql;
+  sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
+
+  if(!sparql->extended) {
+    sparql_syntax_error((rasqal_query*)rq,
+                        "GROUP_CONCAT() cannot be used with SPARQL 1.0");
+    $$ = NULL;
+  } else {
+    $$ = rasqal_new_aggregate_function_expression(((rasqal_query*)rq)->world,
+                                                  RASQAL_EXPR_GROUP_CONCAT, $4,
+                                                  NULL /* params */, $3);
+    if(!$$)
+      YYERROR_MSG("GroupConcatAggregateExpression: cannot create expr");
+  }
+}
+;
+
+
+SampleAggregateExpression: SAMPLE '(' DistinctOpt Expression ')'
+{
+  rasqal_sparql_query_language* sparql;
+  sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
+
+  if(!sparql->extended) {
+    sparql_syntax_error((rasqal_query*)rq,
+                        "SAMPLE() cannot be used with SPARQL 1.0");
+    $$ = NULL;
+  } else {
+    $$ = rasqal_new_aggregate_function_expression(((rasqal_query*)rq)->world,
+                                                  RASQAL_EXPR_SAMPLE, $4,
+                                                  NULL /* params */, $3);
+    if(!$$)
+      YYERROR_MSG("SampleAggregateExpression: cannot create expr");
   }
 }
 ;
@@ -1638,8 +1702,85 @@ SolutionModifier: GroupClauseOpt OrderClauseOpt LimitOffsetClausesOpt
 ;
 
 
+/* NEW Grammar Term pulled out of [16] GroupClauseOpt */
+GroupConditionList: GroupConditionList GroupCondition
+{
+  $$ = $1;
+  if($2)
+    if(raptor_sequence_push($$, $2)) {
+      raptor_free_sequence($$);
+      $$ = NULL;
+      YYERROR_MSG("GroupConditionList 1: sequence push failed");
+    }
+}
+| GroupCondition
+{
+#ifdef RAPTOR_V2_AVAILABLE
+  $$ = raptor_new_sequence((raptor_data_free_handler*)rasqal_free_expression,
+                           (raptor_data_print_handler*)rasqal_expression_print);
+#else
+  $$ = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_expression,
+                           (raptor_sequence_print_handler*)rasqal_expression_print);
+#endif
+  if(!$$) {
+    if($1)
+      rasqal_free_expression($1);
+    YYERROR_MSG("GroupConditionList 2: cannot create sequence");
+  }
+  if($1)
+    if(raptor_sequence_push($$, $1)) {
+      raptor_free_sequence($$);
+      $$ = NULL;
+      YYERROR_MSG("GroupConditionList 2: sequence push failed");
+    }
+}
+;
+
+
+/* SPARQL 1.1 Grammar: [] GroupCondition */
+GroupCondition: BuiltInCall
+{
+  $$ = $1;
+}
+| FunctionCall 
+{
+  $$ = $1;
+}
+| '(' Expression AS VarName ')'
+{
+  if(rasqal_expression_mentions_variable($2, $4)) {
+    sparql_query_error_full((rasqal_query*)rq, 
+                            "Expression in GROUP BY ( expression ) AS %s contains the variable name '%s'",
+                            $4->name, $4->name);
+  } else {
+    rasqal_literal* l;
+
+    $4->expression = $2;
+
+    l = rasqal_new_variable_literal(((rasqal_query*)rq)->world, $4);
+    if(!l)
+      YYERROR_MSG("GroupCondition 4: cannot create lit");
+    $$ = rasqal_new_literal_expression(((rasqal_query*)rq)->world, l);
+    if(!$$)
+      YYERROR_MSG("GroupCondition 4: cannot create lit expr");
+  }
+  
+}
+| Var
+{
+  rasqal_literal* l;
+  l = rasqal_new_variable_literal(((rasqal_query*)rq)->world, $1);
+  if(!l)
+    YYERROR_MSG("GroupCondition 5: cannot create lit");
+  $$ = rasqal_new_literal_expression(((rasqal_query*)rq)->world, l);
+  if(!$$)
+    YYERROR_MSG("GroupCondition 5: cannot create lit expr");
+}
+;
+
+
 /* LAQRS */
-GroupClauseOpt: GROUP BY OrderConditionList
+GroupClauseOpt: GROUP BY GroupConditionList
 {
   rasqal_sparql_query_language* sparql;
   sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
@@ -1650,23 +1791,8 @@ GroupClauseOpt: GROUP BY OrderConditionList
   else if(((rasqal_query*)rq)->verb == RASQAL_QUERY_VERB_ASK) {
     sparql_query_error((rasqal_query*)rq, 
                        "GROUP BY cannot be used with ASK");
-  } else {
-    raptor_sequence *seq = $3;
-    ((rasqal_query*)rq)->group_conditions_sequence = seq;
-    if(seq) {
-      int i;
-      int size = raptor_sequence_size(seq);
-      
-      for(i = 0; i < size; i++) {
-        rasqal_expression* e;
-        e = (rasqal_expression*)raptor_sequence_get_at(seq, i);
-        if(e->op == RASQAL_EXPR_ORDER_COND_ASC)
-          e->op = RASQAL_EXPR_GROUP_COND_ASC;
-        else
-          e->op = RASQAL_EXPR_GROUP_COND_DESC;
-      }
-    }
-  }
+  } else
+    ((rasqal_query*)rq)->group_conditions_sequence = $3;
 }
 | /* empty */
 ;
@@ -2322,8 +2448,63 @@ Constraint: BrackettedExpression
 ;
 
 
+ParamsOpt: ';'
+{
+  $$ = NULL;
+}
+| /* empty */
+{
+  $$ = NULL;
+}
+;
+
+
 /* SPARQL Grammar: [28] FunctionCall */
-FunctionCall: IRIrefBrace ArgList ')'
+FunctionCall: IRIref '(' DistinctOpt ArgListNoBraces ParamsOpt ')'
+{
+  raptor_uri* uri = rasqal_literal_as_uri($1);
+  
+  if(!$4) {
+#ifdef RAPTOR_V2_AVAILABLE
+    $4 = raptor_new_sequence((raptor_data_free_handler*)rasqal_free_expression,
+                             (raptor_data_print_handler*)rasqal_expression_print);
+#else
+    $4 = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_expression,
+                             (raptor_sequence_print_handler*)rasqal_expression_print);
+#endif
+    if(!$4) {
+      rasqal_free_literal($1);
+      YYERROR_MSG("FunctionCall: cannot create sequence");
+    }
+  }
+
+  uri = raptor_uri_copy(uri);
+
+  if(raptor_sequence_size($4) == 1 &&
+     rasqal_xsd_is_datatype_uri(((rasqal_query*)rq)->world, uri)) {
+    rasqal_expression* e = (rasqal_expression*)raptor_sequence_pop($4);
+    $$ = rasqal_new_cast_expression(((rasqal_query*)rq)->world, uri, e);
+    if($$)
+      $$->flags |= $3;
+    raptor_free_sequence($4);
+  } else {
+    unsigned int flags = 0;
+    if($3)
+      flags |= 1;
+    
+    $$ = rasqal_new_function_expression2(((rasqal_query*)rq)->world, 
+                                         uri, $4, $5 /* params */,
+                                         flags);
+    if($$)
+      $$->flags |= $3;
+  }
+  rasqal_free_literal($1);
+
+  if(!$$)
+    YYERROR_MSG("FunctionCall: cannot create expr");
+}
+|
+IRIrefBrace ArgListNoBraces ')'
 {
   raptor_uri* uri = rasqal_literal_as_uri($1);
   
@@ -2349,7 +2530,9 @@ FunctionCall: IRIrefBrace ArgList ')'
     $$ = rasqal_new_cast_expression(((rasqal_query*)rq)->world, uri, e);
     raptor_free_sequence($2);
   } else {
-    $$ = rasqal_new_function_expression(((rasqal_query*)rq)->world, uri, $2);
+    $$ = rasqal_new_function_expression2(((rasqal_query*)rq)->world,
+                                         uri, $2, NULL /* params */,
+                                         0 /* flags */);
   }
   rasqal_free_literal($1);
 
@@ -2360,7 +2543,7 @@ FunctionCall: IRIrefBrace ArgList ')'
 
 
 /* LAQRS */
-CoalesceExpression: COALESCE '(' ArgList ')'
+CoalesceExpression: COALESCE ArgList
 {
   rasqal_sparql_query_language* sparql;
   sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
@@ -2369,19 +2552,19 @@ CoalesceExpression: COALESCE '(' ArgList ')'
     sparql_syntax_error((rasqal_query*)rq,
                         "COALESCE cannot be used with SPARQL 1.0");
 
-  if(!$3) {
+  if(!$2) {
 #ifdef RAPTOR_V2_AVAILABLE
-    $3 = raptor_new_sequence((raptor_data_free_handler*)rasqal_free_expression,
+    $2 = raptor_new_sequence((raptor_data_free_handler*)rasqal_free_expression,
                              (raptor_data_print_handler*)rasqal_expression_print);
 #else
-    $3 = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_expression,
+    $2 = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_expression,
                              (raptor_sequence_print_handler*)rasqal_expression_print);
 #endif
-    if(!$3)
+    if(!$2)
       YYERROR_MSG("FunctionCall: cannot create sequence");
   }
 
-  $$ = rasqal_new_coalesce_expression(((rasqal_query*)rq)->world, $3);
+  $$ = rasqal_new_coalesce_expression(((rasqal_query*)rq)->world, $2);
   if(!$$)
     YYERROR_MSG("Coalesce: cannot create expr");
 }
@@ -2389,14 +2572,21 @@ CoalesceExpression: COALESCE '(' ArgList ')'
 
 
 /* SPARQL Grammar: [29] ArgList */
-ArgList: ArgList ',' Expression
+ArgList: '(' ArgListNoBraces ')'
+{
+  $$ = $2;
+}
+
+
+/* SPARQL Grammar: [29] ArgList modified to not have '(' and ')' */
+ArgListNoBraces: ArgListNoBraces ',' Expression
 {
   $$ = $1;
   if($3)
     if(raptor_sequence_push($$, $3)) {
       raptor_free_sequence($$);
       $$ = NULL;
-      YYERROR_MSG("ArgList 1: sequence push failed");
+      YYERROR_MSG("ArgListNoBraces 1: sequence push failed");
     }
 }
 | Expression
@@ -2411,13 +2601,13 @@ ArgList: ArgList ',' Expression
   if(!$$) {
     if($1)
       rasqal_free_expression($1);
-    YYERROR_MSG("ArgList 2: cannot create sequence");
+    YYERROR_MSG("ArgListNoBraces 2: cannot create sequence");
   }
   if($1)
     if(raptor_sequence_push($$, $1)) {
       raptor_free_sequence($$);
       $$ = NULL;
-      YYERROR_MSG("ArgList 2: sequence push failed");
+      YYERROR_MSG("ArgListNoBraces 2: sequence push failed");
     }
 }
 | /* empty */

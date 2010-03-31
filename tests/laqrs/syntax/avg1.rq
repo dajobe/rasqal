@@ -1,2 +1,2 @@
-SELECT AVG(?c) AS x
+SELECT ( AVG(?c) AS x )
 WHERE { ?a ?b ?c }

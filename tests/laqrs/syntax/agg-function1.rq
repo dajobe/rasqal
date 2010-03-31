@@ -1,0 +1,10 @@
+# Test aggregate function call with a ';' introducting zero parameters
+# This isn't actually legal / useful but tests the expression grammar.
+
+PREFIX ex: <http://example.org/func#>
+
+SELECT *
+WHERE {
+  ?s ?p ?o .
+  FILTER( ex:foo ( ; ) )
+}

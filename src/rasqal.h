@@ -497,15 +497,15 @@ struct rasqal_literal_s {
  * @RASQAL_EXPR_CAST: Expression for cast literal A to type B.
  * @RASQAL_EXPR_ORDER_COND_ASC: Expression for SPARQL order condition ascending.
  * @RASQAL_EXPR_ORDER_COND_DESC: Expression for SPARQL order condition descending.
- * @RASQAL_EXPR_GROUP_COND_ASC: Expression for LAQRS group condition ascending.
- * @RASQAL_EXPR_GROUP_COND_DESC: Expression for LAQRS group condition descending.
- * @RASQAL_EXPR_COUNT: Expression for LAQRS select COUNT()
+ * @RASQAL_EXPR_GROUP_COND_ASC: Obsolete - not used
+ * @RASQAL_EXPR_GROUP_COND_DESC: Obsolete - not used
+ * @RASQAL_EXPR_COUNT: Expression for LAQRS select COUNT() aggregate function
  * @RASQAL_EXPR_VARSTAR: Expression for LAQRS select Variable *
  * @RASQAL_EXPR_SAMETERM: Expression for SPARQL sameTerm
- * @RASQAL_EXPR_SUM: Expression for LAQRS select SUM()
- * @RASQAL_EXPR_AVG: Expression for LAQRS select AVG()
- * @RASQAL_EXPR_MIN: Expression for LAQRS select MIN()
- * @RASQAL_EXPR_MAX: Expression for LAQRS select MAX()
+ * @RASQAL_EXPR_SUM: Expression for LAQRS select SUM() aggregate function
+ * @RASQAL_EXPR_AVG: Expression for LAQRS select AVG() aggregate function
+ * @RASQAL_EXPR_MIN: Expression for LAQRS select MIN() aggregate function
+ * @RASQAL_EXPR_MAX: Expression for LAQRS select MAX() aggregate function
  * @RASQAL_EXPR_COALESCE: Expression for LAQRS COALESCE(Expr+)
  * @RASQAL_EXPR_IF: Expression for LAQRS IF(expr, expr, expr)
  * @RASQAL_EXPR_URI: Expression for LAQRS URI(expr)
@@ -513,6 +513,8 @@ struct rasqal_literal_s {
  * @RASQAL_EXPR_STRLANG: Expression for LAQRS STRLANG(expr, expr)
  * @RASQAL_EXPR_STRDT: Expression for LAQRS STRDT(expr, expr)
  * @RASQAL_EXPR_BNODE: Expression for LAQRS BNODE(expr)
+ * @RASQAL_EXPR_GROUP_CONCAT: Expression for LAQRS GROUP_CONCAT(arglist) aggregate function
+ * @RASQAL_EXPR_SAMPLE: Expression for LAQRS SAMPLE(expr) aggregate function
  * @RASQAL_EXPR_UNKNOWN: Internal
  * @RASQAL_EXPR_LAST: Internal
  *
@@ -573,10 +575,24 @@ typedef enum {
   RASQAL_EXPR_STRLANG,
   RASQAL_EXPR_STRDT,
   RASQAL_EXPR_BNODE,
+  RASQAL_EXPR_GROUP_CONCAT,
+  RASQAL_EXPR_SAMPLE,
   /* internal */
-  RASQAL_EXPR_LAST= RASQAL_EXPR_BNODE
+  RASQAL_EXPR_LAST= RASQAL_EXPR_SAMPLE
 } rasqal_op;
 
+
+/**
+ * rasqal_expression_flags:
+ * @RASQAL_EXPR_FLAG_DISTINCT: Distinct
+ * @RASQAL_EXPR_FLAG_AGGREGATE: Aggregate function expression
+ *
+ * Flags for expressions.
+ */
+typedef enum {
+  RASQAL_EXPR_FLAG_DISTINCT = 1,
+  RASQAL_EXPR_FLAG_AGGREGATE = 2
+} rasqal_expression_flags;
 
 /**
  * rasqal_expression:
@@ -590,6 +606,8 @@ typedef enum {
  * @value: UTF-8 value
  * @name: name for extension function qname(args...) and cast-to-uri
  * @args; args for extension function qname(args...), cast-to-uri and COALESCE
+ * @params; args for extension function parameters (SPARQL 1.1) (Rasqal 0.9.20+)
+ * @flags: bitflags from #rasqal_expression_flags for expressions (Rasqal 0.9.20+)
  *
  * Expression with arguments
  *
@@ -609,6 +627,9 @@ struct rasqal_expression_s {
 
   raptor_uri* name;
   raptor_sequence* args;
+
+  raptor_sequence* params;
+  unsigned int flags;
 };
 typedef struct rasqal_expression_s rasqal_expression;
 
@@ -1179,7 +1200,13 @@ rasqal_expression* rasqal_new_string_op_expression(rasqal_world* world, rasqal_o
 RASQAL_API
 rasqal_expression* rasqal_new_literal_expression(rasqal_world* world, rasqal_literal* literal);
 RASQAL_API
+rasqal_expression* rasqal_new_function_expression2(rasqal_world* world, raptor_uri* name, raptor_sequence* args, raptor_sequence* params, unsigned int flags);
+#if !defined(RASQAL_DISABLE_DEPRECATED)
+RASQAL_API RASQAL_DEPRECATED
 rasqal_expression* rasqal_new_function_expression(rasqal_world* world, raptor_uri* name, raptor_sequence* args);
+#endif
+RASQAL_API
+rasqal_expression* rasqal_new_aggregate_function_expression(rasqal_world* world, rasqal_op op, rasqal_expression* arg1, raptor_sequence* params, unsigned int flags);
 RASQAL_API
 rasqal_expression* rasqal_new_cast_expression(rasqal_world* world, raptor_uri* name, rasqal_expression *value);
 RASQAL_API
