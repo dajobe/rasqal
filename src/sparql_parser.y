@@ -123,7 +123,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
   unsigned char *name;
   rasqal_formula *formula;
   rasqal_update_operation *update;
-  int integer;
+  unsigned int uinteger;
 }
 
 
@@ -253,7 +253,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
 
 %type <uri> GraphRef
 
-%type <integer> DistinctOpt
+%type <uinteger> DistinctOpt
 
 %destructor {
   if($$)
@@ -649,7 +649,24 @@ AggregateExpression: CountAggregateExpression
 ;
 
 
-CountAggregateExpression: COUNT '(' Expression ')'
+DistinctOpt: DISTINCT
+{
+  rasqal_sparql_query_language* sparql;
+  sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
+
+  if(!sparql->extended)
+    sparql_syntax_error((rasqal_query*)rq,
+                        "function call with DISTINCT cannot be used with SPARQL 1.0");
+  $$ = RASQAL_EXPR_FLAG_DISTINCT;
+}
+| /* empty */
+{
+  $$ = 0;
+}
+;
+
+
+CountAggregateExpression: COUNT '(' DistinctOpt Expression ')'
 {
   rasqal_sparql_query_language* sparql;
   sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
@@ -660,12 +677,14 @@ CountAggregateExpression: COUNT '(' Expression ')'
     $$ = NULL;
   } else {
     $$ = rasqal_new_1op_expression(((rasqal_query*)rq)->world,
-                                   RASQAL_EXPR_COUNT, $3);
+                                   RASQAL_EXPR_COUNT, $4);
+    if($$)
+      $$->flags |= ($3 | RASQAL_EXPR_FLAG_AGGREGATE);
     if(!$$)
       YYERROR_MSG("CountAggregateExpression 1: cannot create expr");
   }
 }
-| COUNT '(' '*' ')'
+| COUNT '(' DistinctOpt '*' ')'
 {
   rasqal_sparql_query_language* sparql;
   sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
@@ -682,6 +701,8 @@ CountAggregateExpression: COUNT '(' Expression ')'
       YYERROR_MSG("CountAggregateExpression 2: cannot create varstar expr");
     $$ = rasqal_new_1op_expression(((rasqal_query*)rq)->world, 
                                    RASQAL_EXPR_COUNT, vs);
+    if($$)
+      $$->flags |= ($3 | RASQAL_EXPR_FLAG_AGGREGATE);
     if(!$$)
       YYERROR_MSG("CountAggregateExpression 2: cannot create expr");
   }
@@ -689,7 +710,7 @@ CountAggregateExpression: COUNT '(' Expression ')'
 ;
 
 
-SumAggregateExpression: SUM '(' Expression ')'
+SumAggregateExpression: SUM '(' DistinctOpt Expression ')'
 {
   rasqal_sparql_query_language* sparql;
   sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
@@ -700,7 +721,9 @@ SumAggregateExpression: SUM '(' Expression ')'
     $$ = NULL;
   } else {
     $$ = rasqal_new_1op_expression(((rasqal_query*)rq)->world,
-                                   RASQAL_EXPR_SUM, $3);
+                                   RASQAL_EXPR_SUM, $4);
+    if($$)
+      $$->flags |= ($3 | RASQAL_EXPR_FLAG_AGGREGATE);
     if(!$$)
       YYERROR_MSG("SumAggregateExpression 1: cannot create expr");
   }
@@ -708,7 +731,7 @@ SumAggregateExpression: SUM '(' Expression ')'
 ;
 
 
-AvgAggregateExpression: AVG '(' Expression ')'
+AvgAggregateExpression: AVG '(' DistinctOpt Expression ')'
 {
   rasqal_sparql_query_language* sparql;
   sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
@@ -719,7 +742,9 @@ AvgAggregateExpression: AVG '(' Expression ')'
     $$ = NULL;
   } else {
     $$ = rasqal_new_1op_expression(((rasqal_query*)rq)->world,
-                                   RASQAL_EXPR_AVG, $3);
+                                   RASQAL_EXPR_AVG, $4);
+    if($$)
+      $$->flags |= ($3 | RASQAL_EXPR_FLAG_AGGREGATE);
     if(!$$)
       YYERROR_MSG("AvgAggregateExpression 1: cannot create expr");
   }
@@ -727,7 +752,7 @@ AvgAggregateExpression: AVG '(' Expression ')'
 ;
 
 
-MinAggregateExpression: MIN '(' Expression ')'
+MinAggregateExpression: MIN '(' DistinctOpt Expression ')'
 {
   rasqal_sparql_query_language* sparql;
   sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
@@ -738,7 +763,9 @@ MinAggregateExpression: MIN '(' Expression ')'
     $$ = NULL;
   } else {
     $$ = rasqal_new_1op_expression(((rasqal_query*)rq)->world,
-                                   RASQAL_EXPR_MIN, $3);
+                                   RASQAL_EXPR_MIN, $4);
+    if($$)
+      $$->flags |= ($3 | RASQAL_EXPR_FLAG_AGGREGATE);
     if(!$$)
       YYERROR_MSG("MinAggregateExpression 1: cannot create expr");
   }
@@ -746,7 +773,7 @@ MinAggregateExpression: MIN '(' Expression ')'
 ;
 
 
-MaxAggregateExpression: MAX '(' Expression ')'
+MaxAggregateExpression: MAX '(' DistinctOpt Expression ')'
 {
   rasqal_sparql_query_language* sparql;
   sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
@@ -757,7 +784,9 @@ MaxAggregateExpression: MAX '(' Expression ')'
     $$ = NULL;
   } else {
     $$ = rasqal_new_1op_expression(((rasqal_query*)rq)->world,
-                                   RASQAL_EXPR_MAX, $3);
+                                   RASQAL_EXPR_MAX, $4);
+    if($$)
+      $$->flags |= ($3 | RASQAL_EXPR_FLAG_AGGREGATE);
     if(!$$)
       YYERROR_MSG("MaxAggregateExpression 1: cannot create expr");
   }
@@ -2324,22 +2353,6 @@ Constraint: BrackettedExpression
 }
 ;
 
-DistinctOpt : DISTINCT
-{
-  rasqal_sparql_query_language* sparql;
-  sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
-
-  if(!sparql->extended)
-    sparql_syntax_error((rasqal_query*)rq,
-                        "function call with DISTINCT cannot be used with SPARQL 1.0");
-  $$ = 1;
-}
-| /* empty */
-{
-  $$ = 0;
-}
-;
-
 
 ParamsOpt: ';'
 {
@@ -2377,6 +2390,8 @@ FunctionCall: IRIref '(' DistinctOpt ArgListNoBraces ParamsOpt ')'
      rasqal_xsd_is_datatype_uri(((rasqal_query*)rq)->world, uri)) {
     rasqal_expression* e = (rasqal_expression*)raptor_sequence_pop($4);
     $$ = rasqal_new_cast_expression(((rasqal_query*)rq)->world, uri, e);
+    if($$)
+      $$->flags |= $3;
     raptor_free_sequence($4);
   } else {
     unsigned int flags = 0;
@@ -2386,6 +2401,8 @@ FunctionCall: IRIref '(' DistinctOpt ArgListNoBraces ParamsOpt ')'
     $$ = rasqal_new_function_expression2(((rasqal_query*)rq)->world, 
                                          uri, $4, $5 /* params */,
                                          flags);
+    if($$)
+      $$->flags |= $3;
   }
   rasqal_free_literal($1);
 
