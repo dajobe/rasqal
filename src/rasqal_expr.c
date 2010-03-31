@@ -524,6 +524,7 @@ rasqal_expression_clear(rasqal_expression* e)
     case RASQAL_EXPR_URI:
     case RASQAL_EXPR_IRI:
     case RASQAL_EXPR_BNODE:
+    case RASQAL_EXPR_SAMPLE:
       /* arg1 is optional for RASQAL_EXPR_BNODE */
       if(e->arg1)
         rasqal_free_expression(e->arg1);
@@ -536,6 +537,7 @@ rasqal_expression_clear(rasqal_expression* e)
       rasqal_free_literal(e->literal);
       break;
     case RASQAL_EXPR_FUNCTION:
+    case RASQAL_EXPR_GROUP_CONCAT:
       raptor_free_uri(e->name);
       raptor_free_sequence(e->args);
       break;
@@ -679,6 +681,7 @@ rasqal_expression_visit(rasqal_expression* e,
     case RASQAL_EXPR_URI:
     case RASQAL_EXPR_IRI:
     case RASQAL_EXPR_BNODE:
+    case RASQAL_EXPR_SAMPLE:
       /* arg1 is optional for RASQAL_EXPR_BNODE */
       return (e->arg1) ? rasqal_expression_visit(e->arg1, fn, user_data) : 1;
       break;
@@ -690,6 +693,7 @@ rasqal_expression_visit(rasqal_expression* e,
       return 0;
     case RASQAL_EXPR_FUNCTION:
     case RASQAL_EXPR_COALESCE:
+    case RASQAL_EXPR_GROUP_CONCAT:
       for(i = 0; i < raptor_sequence_size(e->args); i++) {
         rasqal_expression* e2;
         e2 = (rasqal_expression*)raptor_sequence_get_at(e->args, i);
@@ -1843,6 +1847,14 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
       result = rasqal_new_simple_literal(world, RASQAL_LITERAL_BLANK, s);
       break;
 
+    case RASQAL_EXPR_SAMPLE:
+      RASQAL_FATAL1("SAMPLE() not implemented");
+      break;
+      
+    case RASQAL_EXPR_GROUP_CONCAT:
+      RASQAL_FATAL1("GROUP_CONCAT() not implemented");
+      break;
+
     case RASQAL_EXPR_UNKNOWN:
     default:
       RASQAL_FATAL2("Unknown operation %d", e->op);
@@ -1924,7 +1936,9 @@ static const char* const rasqal_op_labels[RASQAL_EXPR_LAST+1]={
   "iri",
   "strlang",
   "strdt",
-  "bnode"
+  "bnode",
+  "group_concat",
+  "sample"
 };
 
 
@@ -2060,6 +2074,7 @@ rasqal_expression_write(rasqal_expression* e, raptor_iostream* iostr)
     case RASQAL_EXPR_URI:
     case RASQAL_EXPR_IRI:
     case RASQAL_EXPR_BNODE:
+    case RASQAL_EXPR_SAMPLE:
       raptor_iostream_counted_string_write("op ", 3, iostr);
       rasqal_expression_write_op(e, iostr);
       raptor_iostream_write_byte('(', iostr);
@@ -2102,6 +2117,18 @@ rasqal_expression_write(rasqal_expression* e, raptor_iostream* iostr)
     case RASQAL_EXPR_COALESCE:
       raptor_iostream_counted_string_write("coalesce(", 9, iostr);
       for(i = 0; i < raptor_sequence_size(e->args); i++) {
+        rasqal_expression* e2;
+        if(i > 0)
+          raptor_iostream_counted_string_write(", ", 2, iostr);
+        e2 = (rasqal_expression*)raptor_sequence_get_at(e->args, i);
+        rasqal_expression_write(e2, iostr);
+      }
+      raptor_iostream_write_byte(')', iostr);
+      break;
+
+    case RASQAL_EXPR_GROUP_CONCAT:
+      raptor_iostream_counted_string_write("group_concat(args=", 18, iostr);
+      for(i = 0; i<raptor_sequence_size(e->args); i++) {
         rasqal_expression* e2;
         if(i > 0)
           raptor_iostream_counted_string_write(", ", 2, iostr);
@@ -2204,6 +2231,7 @@ rasqal_expression_print(rasqal_expression* e, FILE* fh)
     case RASQAL_EXPR_URI:
     case RASQAL_EXPR_IRI:
     case RASQAL_EXPR_BNODE:
+    case RASQAL_EXPR_SAMPLE:
       fputs("op ", fh);
       rasqal_expression_print_op(e, fh);
       fputc('(', fh);
@@ -2239,6 +2267,12 @@ rasqal_expression_print(rasqal_expression* e, FILE* fh)
       
     case RASQAL_EXPR_COALESCE:
       fputs("coalesce(", fh);
+      raptor_sequence_print(e->args, fh);
+      fputc(')', fh);
+      break;
+
+    case RASQAL_EXPR_GROUP_CONCAT:
+      fputs("group_concat(args=", fh);
       raptor_sequence_print(e->args, fh);
       fputc(')', fh);
       break;
@@ -2337,6 +2371,7 @@ rasqal_expression_is_constant(rasqal_expression* e)
     case RASQAL_EXPR_URI:
     case RASQAL_EXPR_IRI:
     case RASQAL_EXPR_BNODE:
+    case RASQAL_EXPR_SAMPLE:
       /* arg1 is optional for RASQAL_EXPR_BNODE and result is always constant */
       result = (e->arg1) ? rasqal_expression_is_constant(e->arg1) : 1;
       break;
@@ -2347,6 +2382,7 @@ rasqal_expression_is_constant(rasqal_expression* e)
 
     case RASQAL_EXPR_FUNCTION:
     case RASQAL_EXPR_COALESCE:
+    case RASQAL_EXPR_GROUP_CONCAT:
       result = 1;
       for(i = 0; i < raptor_sequence_size(e->args); i++) {
         rasqal_expression* e2;
