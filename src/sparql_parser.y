@@ -1758,8 +1758,6 @@ GroupCondition: BuiltInCall
 {
   /* FIXME - implement renaming in GROUP BY - what does this mean */
   $$ = $1;
-  if($3)
-    rasqal_free_variable($3);
 }
 | Var
 {
