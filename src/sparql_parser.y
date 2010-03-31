@@ -152,7 +152,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
 %token ISLITERAL "isLiteral"
 %token SAMETERM "sameTerm"
 /* SPARQL 1.1 (draft) / LAQRS */
-%token GROUP COUNT SUM AVG MIN MAX
+%token GROUP COUNT SUM AVG MIN MAX GROUP_CONCAT SAMPLE
 %token DELETE INSERT WITH CLEAR CREATE SILENT DATA DROP LOAD INTO DEFAULT
 %token COALESCE
 %token AS IF
@@ -241,7 +241,8 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
 %type <expr> OrderCondition Filter Constraint SelectExpression
 %type <expr> AggregateExpression CountAggregateExpression SumAggregateExpression
 %type <expr> AvgAggregateExpression MinAggregateExpression MaxAggregateExpression
-%type <expr> CoalesceExpression
+%type <expr> CoalesceExpression GroupConcatAggregateExpression
+%type <expr> SampleAggregateExpression ExpressionOrStar
 
 %type <literal> GraphTerm IRIref BlankNode
 %type <literal> VarOrIRIref
@@ -330,7 +331,8 @@ BrackettedExpression PrimaryExpression
 OrderCondition Filter Constraint SelectExpression
 AggregateExpression CountAggregateExpression SumAggregateExpression
 AvgAggregateExpression MinAggregateExpression MaxAggregateExpression
-CoalesceExpression
+CoalesceExpression GroupConcatAggregateExpression
+SampleAggregateExpression ExpressionOrStar
 
 %destructor {
   if($$)
@@ -646,6 +648,14 @@ AggregateExpression: CountAggregateExpression
 {
   $$ = $1;
 }
+| GroupConcatAggregateExpression
+{
+  $$ = $1;
+}
+| SampleAggregateExpression
+{
+  $$ = $1;
+}
 ;
 
 
@@ -656,7 +666,7 @@ DistinctOpt: DISTINCT
 
   if(!sparql->extended)
     sparql_syntax_error((rasqal_query*)rq,
-                        "function call with DISTINCT cannot be used with SPARQL 1.0");
+                        "functions with DISTINCT cannot be used with SPARQL 1.0");
   $$ = RASQAL_EXPR_FLAG_DISTINCT;
 }
 | /* empty */
@@ -666,45 +676,33 @@ DistinctOpt: DISTINCT
 ;
 
 
-CountAggregateExpression: COUNT '(' DistinctOpt Expression ')'
+ExpressionOrStar: Expression
 {
-  rasqal_sparql_query_language* sparql;
-  sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
-
-  if(!sparql->extended) {
-    sparql_syntax_error((rasqal_query*)rq,
-                        "COUNT cannot be used with SPARQL 1.0");
-    $$ = NULL;
-  } else {
-    $$ = rasqal_new_1op_expression(((rasqal_query*)rq)->world,
-                                   RASQAL_EXPR_COUNT, $4);
-    if($$)
-      $$->flags |= ($3 | RASQAL_EXPR_FLAG_AGGREGATE);
-    if(!$$)
-      YYERROR_MSG("CountAggregateExpression 1: cannot create expr");
-  }
+  $$ = $1;
 }
-| COUNT '(' DistinctOpt '*' ')'
+| '*'
+{
+  $$ = rasqal_new_0op_expression(((rasqal_query*)rq)->world,
+                                 RASQAL_EXPR_VARSTAR);
+}
+;
+
+
+CountAggregateExpression: COUNT '(' DistinctOpt ExpressionOrStar ')'
 {
   rasqal_sparql_query_language* sparql;
   sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
 
   if(!sparql->extended) {
     sparql_syntax_error((rasqal_query*)rq,
-                        "COUNT cannot be used with SPARQL 1.0");
+                        "COUNT() cannot be used with SPARQL 1.0");
     $$ = NULL;
   } else {
-    rasqal_expression* vs;
-    vs = rasqal_new_0op_expression(((rasqal_query*)rq)->world,
-                                   RASQAL_EXPR_VARSTAR);
-    if(!vs)
-      YYERROR_MSG("CountAggregateExpression 2: cannot create varstar expr");
-    $$ = rasqal_new_1op_expression(((rasqal_query*)rq)->world, 
-                                   RASQAL_EXPR_COUNT, vs);
-    if($$)
-      $$->flags |= ($3 | RASQAL_EXPR_FLAG_AGGREGATE);
+    $$ = rasqal_new_aggregate_function_expression(((rasqal_query*)rq)->world,
+                                                  RASQAL_EXPR_COUNT, $4,
+                                                  NULL /* params */, $3);
     if(!$$)
-      YYERROR_MSG("CountAggregateExpression 2: cannot create expr");
+      YYERROR_MSG("CountAggregateExpression: cannot create expr");
   }
 }
 ;
@@ -717,15 +715,14 @@ SumAggregateExpression: SUM '(' DistinctOpt Expression ')'
 
   if(!sparql->extended) {
     sparql_syntax_error((rasqal_query*)rq,
-                        "SUM cannot be used with SPARQL 1.0");
+                        "SUM() cannot be used with SPARQL 1.0");
     $$ = NULL;
   } else {
-    $$ = rasqal_new_1op_expression(((rasqal_query*)rq)->world,
-                                   RASQAL_EXPR_SUM, $4);
-    if($$)
-      $$->flags |= ($3 | RASQAL_EXPR_FLAG_AGGREGATE);
+    $$ = rasqal_new_aggregate_function_expression(((rasqal_query*)rq)->world,
+                                                  RASQAL_EXPR_SUM, $4,
+                                                  NULL /* params */, $3);
     if(!$$)
-      YYERROR_MSG("SumAggregateExpression 1: cannot create expr");
+      YYERROR_MSG("SumAggregateExpression: cannot create expr");
   }
 }
 ;
@@ -738,15 +735,14 @@ AvgAggregateExpression: AVG '(' DistinctOpt Expression ')'
 
   if(!sparql->extended) {
     sparql_syntax_error((rasqal_query*)rq,
-                        "AVG cannot be used with SPARQL 1.0");
+                        "AVG() cannot be used with SPARQL 1.0");
     $$ = NULL;
   } else {
-    $$ = rasqal_new_1op_expression(((rasqal_query*)rq)->world,
-                                   RASQAL_EXPR_AVG, $4);
-    if($$)
-      $$->flags |= ($3 | RASQAL_EXPR_FLAG_AGGREGATE);
+    $$ = rasqal_new_aggregate_function_expression(((rasqal_query*)rq)->world,
+                                                  RASQAL_EXPR_AVG, $4,
+                                                  NULL /* params */, $3);
     if(!$$)
-      YYERROR_MSG("AvgAggregateExpression 1: cannot create expr");
+      YYERROR_MSG("AvgAggregateExpression: cannot create expr");
   }
 }
 ;
@@ -759,15 +755,14 @@ MinAggregateExpression: MIN '(' DistinctOpt Expression ')'
 
   if(!sparql->extended) {
     sparql_syntax_error((rasqal_query*)rq,
-                        "MIN cannot be used with SPARQL 1.0");
+                        "MIN() cannot be used with SPARQL 1.0");
     $$ = NULL;
   } else {
-    $$ = rasqal_new_1op_expression(((rasqal_query*)rq)->world,
-                                   RASQAL_EXPR_MIN, $4);
-    if($$)
-      $$->flags |= ($3 | RASQAL_EXPR_FLAG_AGGREGATE);
+    $$ = rasqal_new_aggregate_function_expression(((rasqal_query*)rq)->world,
+                                                  RASQAL_EXPR_MIN, $4,
+                                                  NULL /* params */, $3);
     if(!$$)
-      YYERROR_MSG("MinAggregateExpression 1: cannot create expr");
+      YYERROR_MSG("MinAggregateExpression: cannot create expr");
   }
 }
 ;
@@ -780,15 +775,54 @@ MaxAggregateExpression: MAX '(' DistinctOpt Expression ')'
 
   if(!sparql->extended) {
     sparql_syntax_error((rasqal_query*)rq,
-                        "MAX cannot be used with SPARQL 1.0");
+                        "MAX() cannot be used with SPARQL 1.0");
     $$ = NULL;
   } else {
-    $$ = rasqal_new_1op_expression(((rasqal_query*)rq)->world,
-                                   RASQAL_EXPR_MAX, $4);
-    if($$)
-      $$->flags |= ($3 | RASQAL_EXPR_FLAG_AGGREGATE);
+    $$ = rasqal_new_aggregate_function_expression(((rasqal_query*)rq)->world,
+                                                  RASQAL_EXPR_MAX, $4,
+                                                  NULL /* params */, $3);
     if(!$$)
-      YYERROR_MSG("MaxAggregateExpression 1: cannot create expr");
+      YYERROR_MSG("MaxAggregateExpression: cannot create expr");
+  }
+}
+;
+
+
+GroupConcatAggregateExpression: GROUP_CONCAT '(' DistinctOpt Expression ')'
+{
+  rasqal_sparql_query_language* sparql;
+  sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
+
+  if(!sparql->extended) {
+    sparql_syntax_error((rasqal_query*)rq,
+                        "GROUP_CONCAT() cannot be used with SPARQL 1.0");
+    $$ = NULL;
+  } else {
+    $$ = rasqal_new_aggregate_function_expression(((rasqal_query*)rq)->world,
+                                                  RASQAL_EXPR_GROUP_CONCAT, $4,
+                                                  NULL /* params */, $3);
+    if(!$$)
+      YYERROR_MSG("GroupConcatAggregateExpression: cannot create expr");
+  }
+}
+;
+
+
+SampleAggregateExpression: SAMPLE '(' DistinctOpt Expression ')'
+{
+  rasqal_sparql_query_language* sparql;
+  sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
+
+  if(!sparql->extended) {
+    sparql_syntax_error((rasqal_query*)rq,
+                        "SAMPLE() cannot be used with SPARQL 1.0");
+    $$ = NULL;
+  } else {
+    $$ = rasqal_new_aggregate_function_expression(((rasqal_query*)rq)->world,
+                                                  RASQAL_EXPR_SAMPLE, $4,
+                                                  NULL /* params */, $3);
+    if(!$$)
+      YYERROR_MSG("SampleAggregateExpression: cannot create expr");
   }
 }
 ;
