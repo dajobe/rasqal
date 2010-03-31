@@ -209,7 +209,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
 %type <seq> SelectQuery ConstructQuery DescribeQuery
 %type <seq> SelectExpressionList VarOrIRIrefList ArgListNoBraces ArgList
 %type <seq> ConstructTriples ConstructTriplesOpt
-%type <seq> ConstructTemplate OrderConditionList
+%type <seq> ConstructTemplate OrderConditionList GroupConditionList
 %type <seq> GraphNodeListNotEmpty SelectExpressionListTail
 %type <seq> ModifyTemplateList
 %type <seq> IriRefList
@@ -238,7 +238,8 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
 %type <expr> MultiplicativeExpression UnaryExpression
 %type <expr> BuiltInCall RegexExpression FunctionCall
 %type <expr> BrackettedExpression PrimaryExpression
-%type <expr> OrderCondition Filter Constraint SelectExpression
+%type <expr> OrderCondition GroupCondition
+%type <expr> Filter Constraint SelectExpression
 %type <expr> AggregateExpression CountAggregateExpression SumAggregateExpression
 %type <expr> AvgAggregateExpression MinAggregateExpression MaxAggregateExpression
 %type <expr> CoalesceExpression GroupConcatAggregateExpression
@@ -286,7 +287,7 @@ QNAME_LITERAL QNAME_LITERAL_BRACE BLANK_LITERAL IDENTIFIER
 SelectQuery ConstructQuery DescribeQuery
 SelectExpressionList VarOrIRIrefList ArgListNoBraces ArgList
 ConstructTriples ConstructTriplesOpt
-ConstructTemplate OrderConditionList
+ConstructTemplate OrderConditionList GroupConditionList
 GraphNodeListNotEmpty SelectExpressionListTail
 ModifyTemplateList IriRefList ParamsOpt
 
@@ -328,7 +329,8 @@ RelationalExpression AdditiveExpression
 MultiplicativeExpression UnaryExpression
 BuiltInCall RegexExpression FunctionCall
 BrackettedExpression PrimaryExpression
-OrderCondition Filter Constraint SelectExpression
+OrderCondition GroupCondition
+Filter Constraint SelectExpression
 AggregateExpression CountAggregateExpression SumAggregateExpression
 AvgAggregateExpression MinAggregateExpression MaxAggregateExpression
 CoalesceExpression GroupConcatAggregateExpression
@@ -1704,8 +1706,76 @@ SolutionModifier: GroupClauseOpt OrderClauseOpt LimitOffsetClausesOpt
 ;
 
 
+/* NEW Grammar Term pulled out of [16] GroupClauseOpt */
+GroupConditionList: GroupConditionList GroupCondition
+{
+  $$ = $1;
+  if($2)
+    if(raptor_sequence_push($$, $2)) {
+      raptor_free_sequence($$);
+      $$ = NULL;
+      YYERROR_MSG("GroupConditionList 1: sequence push failed");
+    }
+}
+| GroupCondition
+{
+#ifdef RAPTOR_V2_AVAILABLE
+  $$ = raptor_new_sequence((raptor_data_free_handler*)rasqal_free_expression,
+                           (raptor_data_print_handler*)rasqal_expression_print);
+#else
+  $$ = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_expression,
+                           (raptor_sequence_print_handler*)rasqal_expression_print);
+#endif
+  if(!$$) {
+    if($1)
+      rasqal_free_expression($1);
+    YYERROR_MSG("GroupConditionList 2: cannot create sequence");
+  }
+  if($1)
+    if(raptor_sequence_push($$, $1)) {
+      raptor_free_sequence($$);
+      $$ = NULL;
+      YYERROR_MSG("GroupConditionList 2: sequence push failed");
+    }
+}
+;
+
+
+/* SPARQL Grammar: [17] GroupCondition */
+GroupCondition: BuiltInCall
+{
+  $$ = $1;
+}
+| FunctionCall 
+{
+  $$ = $1;
+}
+| BrackettedExpression
+{
+  $$ = $1;
+}
+| BrackettedExpression AS VarName
+{
+  /* FIXME - implement renaming in GROUP BY - what does this mean */
+  $$ = $1;
+  if($3)
+    rasqal_free_variable($3);
+}
+| Var
+{
+  rasqal_literal* l;
+  l = rasqal_new_variable_literal(((rasqal_query*)rq)->world, $1);
+  if(!l)
+    YYERROR_MSG("GroupCondition 4: cannot create lit");
+  $$ = rasqal_new_literal_expression(((rasqal_query*)rq)->world, l);
+  if(!$$)
+    YYERROR_MSG("GroupCondition 4: cannot create lit expr");
+}
+;
+
+
 /* LAQRS */
-GroupClauseOpt: GROUP BY OrderConditionList
+GroupClauseOpt: GROUP BY GroupConditionList
 {
   rasqal_sparql_query_language* sparql;
   sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
