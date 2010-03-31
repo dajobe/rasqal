@@ -515,6 +515,8 @@ struct rasqal_literal_s {
  * @RASQAL_EXPR_BNODE: Expression for LAQRS BNODE(expr)
  * @RASQAL_EXPR_GROUP_CONCAT: Expression for LAQRS GROUP_CONCAT(arglist) aggregate function
  * @RASQAL_EXPR_SAMPLE: Expression for LAQRS SAMPLE(expr) aggregate function
+ * @RASQAL_EXPR_IN: Expression for LAQRS expr IN ( list of expr )
+ * @RASQAL_EXPR_NOT_IN: Expression for LAQRS expr NOT IN ( list of expr ) 
  * @RASQAL_EXPR_UNKNOWN: Internal
  * @RASQAL_EXPR_LAST: Internal
  *
@@ -577,8 +579,10 @@ typedef enum {
   RASQAL_EXPR_BNODE,
   RASQAL_EXPR_GROUP_CONCAT,
   RASQAL_EXPR_SAMPLE,
+  RASQAL_EXPR_IN,
+  RASQAL_EXPR_NOT_IN,
   /* internal */
-  RASQAL_EXPR_LAST= RASQAL_EXPR_SAMPLE
+  RASQAL_EXPR_LAST= RASQAL_EXPR_NOT_IN
 } rasqal_op;
 
 
