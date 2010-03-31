@@ -499,13 +499,13 @@ struct rasqal_literal_s {
  * @RASQAL_EXPR_ORDER_COND_DESC: Expression for SPARQL order condition descending.
  * @RASQAL_EXPR_GROUP_COND_ASC: Expression for LAQRS group condition ascending.
  * @RASQAL_EXPR_GROUP_COND_DESC: Expression for LAQRS group condition descending.
- * @RASQAL_EXPR_COUNT: Expression for LAQRS select COUNT()
+ * @RASQAL_EXPR_COUNT: Expression for LAQRS select COUNT() aggregate function
  * @RASQAL_EXPR_VARSTAR: Expression for LAQRS select Variable *
  * @RASQAL_EXPR_SAMETERM: Expression for SPARQL sameTerm
- * @RASQAL_EXPR_SUM: Expression for LAQRS select SUM()
- * @RASQAL_EXPR_AVG: Expression for LAQRS select AVG()
- * @RASQAL_EXPR_MIN: Expression for LAQRS select MIN()
- * @RASQAL_EXPR_MAX: Expression for LAQRS select MAX()
+ * @RASQAL_EXPR_SUM: Expression for LAQRS select SUM() aggregate function
+ * @RASQAL_EXPR_AVG: Expression for LAQRS select AVG() aggregate function
+ * @RASQAL_EXPR_MIN: Expression for LAQRS select MIN() aggregate function
+ * @RASQAL_EXPR_MAX: Expression for LAQRS select MAX() aggregate function
  * @RASQAL_EXPR_COALESCE: Expression for LAQRS COALESCE(Expr+)
  * @RASQAL_EXPR_IF: Expression for LAQRS IF(expr, expr, expr)
  * @RASQAL_EXPR_URI: Expression for LAQRS URI(expr)
@@ -513,6 +513,8 @@ struct rasqal_literal_s {
  * @RASQAL_EXPR_STRLANG: Expression for LAQRS STRLANG(expr, expr)
  * @RASQAL_EXPR_STRDT: Expression for LAQRS STRDT(expr, expr)
  * @RASQAL_EXPR_BNODE: Expression for LAQRS BNODE(expr)
+ * @RASQAL_EXPR_GROUP_CONCAT: Expression for LAQRS GROUP_CONCAT(arglist) aggregate function
+ * @RASQAL_EXPR_SAMPLE: Expression for LAQRS SAMPLE(expr) aggregate function
  * @RASQAL_EXPR_UNKNOWN: Internal
  * @RASQAL_EXPR_LAST: Internal
  *
@@ -573,8 +575,10 @@ typedef enum {
   RASQAL_EXPR_STRLANG,
   RASQAL_EXPR_STRDT,
   RASQAL_EXPR_BNODE,
+  RASQAL_EXPR_GROUP_CONCAT,
+  RASQAL_EXPR_SAMPLE,
   /* internal */
-  RASQAL_EXPR_LAST= RASQAL_EXPR_BNODE
+  RASQAL_EXPR_LAST= RASQAL_EXPR_SAMPLE
 } rasqal_op;
 
 
