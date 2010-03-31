@@ -324,7 +324,7 @@ rasqal_new_function_expression_common(rasqal_world* world,
 {
   rasqal_expression* e = NULL;
 
-  if(!world || !name || !args)
+  if(!world || (arg1 && args) || (name && !args)|| (!name && args))
     goto tidy;
   
   e = (rasqal_expression*)RASQAL_CALLOC(rasqal_expression, 1, sizeof(*e));
