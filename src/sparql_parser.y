@@ -1786,23 +1786,8 @@ GroupClauseOpt: GROUP BY GroupConditionList
   else if(((rasqal_query*)rq)->verb == RASQAL_QUERY_VERB_ASK) {
     sparql_query_error((rasqal_query*)rq, 
                        "GROUP BY cannot be used with ASK");
-  } else {
-    raptor_sequence *seq = $3;
-    ((rasqal_query*)rq)->group_conditions_sequence = seq;
-    if(seq) {
-      int i;
-      int size = raptor_sequence_size(seq);
-      
-      for(i = 0; i < size; i++) {
-        rasqal_expression* e;
-        e = (rasqal_expression*)raptor_sequence_get_at(seq, i);
-        if(e->op == RASQAL_EXPR_ORDER_COND_ASC)
-          e->op = RASQAL_EXPR_GROUP_COND_ASC;
-        else
-          e->op = RASQAL_EXPR_GROUP_COND_DESC;
-      }
-    }
-  }
+  } else
+    ((rasqal_query*)rq)->group_conditions_sequence = $3;
 }
 | /* empty */
 ;
