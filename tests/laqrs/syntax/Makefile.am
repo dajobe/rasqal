@@ -32,6 +32,7 @@ count4.rq \
 coverage.rq \
 explain.rq \
 function-distinct1.rq \
+group-by1.rq \
 delete.rq \
 insert.rq \
 avg1.rq \

@@ -1,0 +1,20 @@
+# Test GROUP BY with all the choices of GroupCondition
+
+PREFIX ex: <http://example.org/func#>
+
+SELECT *
+WHERE {
+  ?s ?p ?o .
+}
+
+# 1. BuiltInCall
+# 2. FunctionCall
+# 3. BrackettedExpression
+# 4. BrackettedExpression AS Var
+GROUP BY
+  STR(?o)
+  ex:foo(?o)
+  ( ?o )
+  ?o AS ?q
+
+ORDER BY ?o
