@@ -300,7 +300,7 @@ else
     RAPTOR_MAX_VERSION_DEC=`echo $RAPTOR_MAX_VERSION | $AWK -F. '{printf("%d\n", 10000*$1 + 100*$2 + $3)};'`
 
     if test "X$with_raptor" = Xauto; then
-      if test "X$RAPTOR_VERSION" -a $RAPTOR_VERSION_DEC -ge $RAPTOR_MIN_VERSION_DEC -a $RAPTOR_VERSION_DEC -le $RAPTOR_MAX_VERSION; then
+      if test "X$RAPTOR_VERSION" != X -a $RAPTOR_VERSION_DEC -ge $RAPTOR_MIN_VERSION_DEC -a $RAPTOR_VERSION_DEC -le $RAPTOR_MAX_VERSION_DEC; then
 	with_raptor=system
       else
         AC_MSG_WARN(System raptor $RAPTOR_VERSION is not in supported range - $RAPTOR_MIN_VERSION to $RAPTOR_MAX_VERSION)
