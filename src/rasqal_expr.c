@@ -111,7 +111,8 @@ rasqal_new_0op_expression(rasqal_world* world, rasqal_op op)
  * Return value: a new #rasqal_expression object or NULL on failure
  **/
 rasqal_expression*
-rasqal_new_1op_expression(rasqal_world* world, rasqal_op op, rasqal_expression* arg)
+rasqal_new_1op_expression(rasqal_world* world, rasqal_op op,
+                          rasqal_expression* arg)
 {
   rasqal_expression* e = NULL;
 
