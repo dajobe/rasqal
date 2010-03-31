@@ -383,6 +383,8 @@ rasqal_query_write_sparql_expression(sparql_writer_context *wc,
     case RASQAL_EXPR_FUNCTION:
       raptor_uri_write(e->name, iostr);
       raptor_iostream_counted_string_write("( ", 2, iostr);
+      if(e->flags & RASQAL_EXPR_FLAG_DISTINCT)
+        raptor_iostream_counted_string_write(" DISTINCT ", 10, iostr);
       count = raptor_sequence_size(e->args);
       for(i = 0; i < count ; i++) {
         rasqal_expression* arg;
