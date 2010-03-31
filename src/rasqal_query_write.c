@@ -57,6 +57,7 @@ rasqal_query_write_sparql_variable(sparql_writer_context *wc,
                                    raptor_iostream* iostr, rasqal_variable* v)
 {
   if(v->expression) {
+    raptor_iostream_counted_string_write("( ", 2, iostr);
     rasqal_query_write_sparql_expression(wc, iostr, v->expression);
     raptor_iostream_counted_string_write(" AS ", 4, iostr);
   }
@@ -65,6 +66,8 @@ rasqal_query_write_sparql_variable(sparql_writer_context *wc,
   else if(!v->expression)
     raptor_iostream_write_byte('?', iostr);
   raptor_iostream_string_write(v->name, iostr);
+  if(v->expression)
+    raptor_iostream_counted_string_write(" )", 2, iostr);
 }
 
 
