@@ -607,7 +607,7 @@ typedef enum {
  * @name: name for extension function qname(args...) and cast-to-uri
  * @args; args for extension function qname(args...), cast-to-uri and COALESCE
  * @params; args for extension function parameters (SPARQL 1.1) (Rasqal 0.9.20+)
- * @flags: bitflags from #rasqal_expression_flags for expressions
+ * @flags: bitflags from #rasqal_expression_flags for expressions (Rasqal 0.9.20+)
  *
  * Expression with arguments
  *
