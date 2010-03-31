@@ -1,2 +1,2 @@
-SELECT SUM(?c) AS x
+SELECT ( SUM(?c) AS x )
 WHERE { ?a ?b ?c }

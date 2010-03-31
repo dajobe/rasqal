@@ -1,2 +1,2 @@
-SELECT MAX(?c) AS x
+SELECT ( MAX(?c) AS x )
 WHERE { ?a ?b ?c }

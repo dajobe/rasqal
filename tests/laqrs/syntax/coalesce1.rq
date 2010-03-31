@@ -1,6 +1,6 @@
 PREFIX : <http://example.org/ns#>
 
-SELECT ( COALESCE(?o + 1 - 1, "not numeric") ) AS val
+SELECT ( COALESCE(?o + 1 - 1, "not numeric") AS val )
 WHERE {
  ?s ?p ?o .
 }
