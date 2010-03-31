@@ -1931,11 +1931,83 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
       break;
 
     case RASQAL_EXPR_IN:
-      RASQAL_FATAL1("IN not implemented");
+      l1 = rasqal_expression_evaluate(world, locator, e->arg1, flags);
+      if(!l1)
+        goto failed;
+
+      if(1) {
+        int found = 0;
+
+        for(vars.i = 0; vars.i < raptor_sequence_size(e->args); vars.i++) {
+          rasqal_expression* e2;
+          e2 = (rasqal_expression*)raptor_sequence_get_at(e->args, vars.i);
+          l2 = rasqal_expression_evaluate(world, locator, e2, flags);
+          if(!l2) {
+            rasqal_free_literal(l1);
+            goto failed;
+          }
+
+          vars.b = (rasqal_literal_equals_flags(l1, l2, flags, &errs.e) != 0);
+#if RASQAL_DEBUG > 1
+          if(errs.e)
+            RASQAL_DEBUG1("rasqal_literal_equals_flags returned: FAILURE\n");
+          else
+            RASQAL_DEBUG2("rasqal_literal_equals_flags returned: %d\n", vars.b);
+#endif
+          rasqal_free_literal(l2);
+          if(errs.e) {
+            rasqal_free_literal(l1);
+            goto failed;
+          }
+          if(vars.b) {
+            /* found - so succeeded */
+            found = 1;
+            break;
+          }
+        }
+        rasqal_free_literal(l1);
+        result = rasqal_new_boolean_literal(world, found);
+      }
       break;
 
     case RASQAL_EXPR_NOT_IN:
-      RASQAL_FATAL1("NOT IN not implemented");
+      l1 = rasqal_expression_evaluate(world, locator, e->arg1, flags);
+      if(!l1)
+        goto failed;
+
+      if(1) {
+        int found = 0;
+
+        for(vars.i = 0; vars.i < raptor_sequence_size(e->args); vars.i++) {
+          rasqal_expression* e2;
+          e2 = (rasqal_expression*)raptor_sequence_get_at(e->args, vars.i);
+          l2 = rasqal_expression_evaluate(world, locator, e2, flags);
+          if(!l2) {
+            rasqal_free_literal(l1);
+            goto failed;
+          }
+
+          vars.b = (rasqal_literal_equals_flags(l1, l2, flags, &errs.e) != 0);
+#if RASQAL_DEBUG > 1
+          if(errs.e)
+            RASQAL_DEBUG1("rasqal_literal_equals_flags returned: FAILURE\n");
+          else
+            RASQAL_DEBUG2("rasqal_literal_equals_flags returned: %d\n", vars.b);
+#endif
+          rasqal_free_literal(l2);
+          if(errs.e) {
+            rasqal_free_literal(l1);
+            goto failed;
+          }
+          if(vars.b) {
+            /* found - so failed */
+            found = 1;
+            break;
+          }
+        }
+        rasqal_free_literal(l1);
+        result = rasqal_new_boolean_literal(world, !found);
+      }
       break;
 
     case RASQAL_EXPR_UNKNOWN:
