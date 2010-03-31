@@ -156,6 +156,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
 %token DELETE INSERT WITH CLEAR CREATE SILENT DATA DROP LOAD INTO DEFAULT
 %token COALESCE
 %token AS IF
+%token NOT IN
 /* LAQRS */
 %token EXPLAIN LET
 
