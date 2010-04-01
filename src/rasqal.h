@@ -1216,6 +1216,8 @@ rasqal_expression* rasqal_new_cast_expression(rasqal_world* world, raptor_uri* n
 RASQAL_API
 rasqal_expression* rasqal_new_coalesce_expression(rasqal_world* world, raptor_sequence* args);
 RASQAL_API
+rasqal_expression* rasqal_new_set_expression(rasqal_world* world, rasqal_op op, rasqal_expression* arg1, raptor_sequence* args);
+RASQAL_API
 rasqal_expression* rasqal_new_expression_from_expression(rasqal_expression* e);
 
 RASQAL_API

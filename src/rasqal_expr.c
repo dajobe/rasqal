@@ -511,6 +511,48 @@ rasqal_new_coalesce_expression(rasqal_world* world, raptor_sequence* args)
 
 
 /**
+ * rasqal_new_set_expression:
+ * @world: rasqal_world object
+ * @op: list operation
+ * @arg1: expression to look for in list
+ * @args: sequence of #rasqal_expression list arguments
+ * 
+ * Constructor - create a new set IN/NOT IN operation with expression arguments.
+ *
+ * Takes ownership of the @arg1 and @args
+ * 
+ * Return value: a new #rasqal_expression object or NULL on failure
+ **/
+rasqal_expression*
+rasqal_new_set_expression(rasqal_world* world, rasqal_op op,
+                          rasqal_expression* arg1,
+                          raptor_sequence* args)
+{
+  rasqal_expression* e = NULL;
+
+  if(!world || !arg1 || !args)
+    goto tidy;
+  
+  e = (rasqal_expression*)RASQAL_CALLOC(rasqal_expression, 1, sizeof(*e));
+  if(e) {
+    e->usage = 1;
+    e->world = world;
+    e->op = op;
+    e->arg1 = arg1; arg1 = NULL;
+    e->args = args; args = NULL;
+  }
+  
+  tidy:
+  if(arg1)
+    rasqal_free_expression(arg1);
+  if(args)
+    raptor_free_sequence(args);
+
+  return e;
+}
+
+
+/**
  * rasqal_expression_clear:
  * @e: expression
  * 
@@ -2085,7 +2127,7 @@ static const char* const rasqal_op_labels[RASQAL_EXPR_LAST+1]={
   "avg",
   "min",
   "max",
-  "coalesce"
+  "coalesce",
   "if",
   "uri",
   "iri",
