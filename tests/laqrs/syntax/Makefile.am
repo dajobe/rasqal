@@ -34,6 +34,7 @@ explain.rq \
 function-distinct1.rq \
 group-by1.rq \
 delete.rq \
+in1.rq \
 insert.rq \
 avg1.rq \
 max1.rq \
