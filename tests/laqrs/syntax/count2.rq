@@ -1,2 +1,2 @@
-SELECT ( COUNT(?c) ) AS x
+SELECT ( COUNT(?c) AS x )
 WHERE { ?a ?b ?c }

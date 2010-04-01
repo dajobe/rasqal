@@ -230,7 +230,7 @@ rasqal_init_result_format_sv(rasqal_world* world)
   writer_fn = &rasqal_query_results_write_tsv;
   rc += rasqal_query_results_format_register_factory(world,
                                                      "tsv",
-                                                     "Tab Separated Values (CSV)",
+                                                     "Tab Separated Values (TSV)",
                                                      (const unsigned char*)"http://www.iana.org/assignments/media-types/text/tab-separated-values",
                                                      writer_fn,
                                                      NULL, NULL,
