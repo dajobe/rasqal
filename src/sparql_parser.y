@@ -3558,6 +3558,16 @@ RelationalExpression: AdditiveExpression EQ AdditiveExpression
   if(!$$)
     YYERROR_MSG("RelationalExpression 6: cannot create expr");
 }
+| AdditiveExpression IN ArgList
+{
+  $$ = rasqal_new_set_expression(((rasqal_query*)rq)->world,
+                                 RASQAL_EXPR_IN, $1, $3);
+}
+| AdditiveExpression NOT IN ArgList
+{
+  $$ = rasqal_new_set_expression(((rasqal_query*)rq)->world,
+                                 RASQAL_EXPR_NOT_IN, $1, $4);
+}
 | AdditiveExpression
 {
   $$ = $1;
