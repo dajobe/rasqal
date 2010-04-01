@@ -257,7 +257,7 @@ static const char* const rasqal_sparql_op_labels[RASQAL_EXPR_LAST+1] = {
   "AVG",
   "MIN",
   "MAX",
-  "COALESCE"
+  "COALESCE",
   "IF",
   "URI",
   "IRI",
