@@ -774,18 +774,19 @@ main(int argc, char *argv[])
     }
     puts("    For RDF graph results:");
     for(i = 0; 1; i++) {
+#ifdef RAPTOR_V2_AVAILABLE
+      const raptor_syntax_description *desc;
+      desc = raptor_world_get_parser_description(raptor_world_ptr, i);
+      if(!desc)
+        break;
+      printf("      %-15s       %s", desc->names[0], desc->label);
+#else
       const char *help_name;
       const char *help_label;
-      if(
-#ifdef RAPTOR_V2_AVAILABLE
-         raptor_world_enumerate_serializers(raptor_world_ptr, i,
-                                            &help_name, &help_label, NULL, NULL)
-#else
-         raptor_serializers_enumerate(i, &help_name, &help_label, NULL, NULL)
-#endif
-         )
+      if(raptor_serializers_enumerate(i, &help_name, &help_label, NULL, NULL))
         break;
       printf("      %-15s       %s", help_name, help_label);
+#endif
       if(!i)
         puts(" (default)");
       else
