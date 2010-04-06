@@ -279,6 +279,7 @@ if test "X$PKG_CONFIG" != X; then
     with_raptor=system
     if $PKG_CONFIG raptor2 --atleast-version=$RAPTOR_MIN_VERSION --max-version=$RAPTOR_MAX_VERSION; then
       RAPTOR_CONFIG="$PKG_CONFIG raptor2"
+      RAPTOR_PACKAGE="raptor2"
     else
       AC_MSG_WARN(Installed raptor2 $RAPTOR_VERSION is not in supported range - $RAPTOR_MIN_VERSION to $RAPTOR_MAX_VERSION)
     fi
@@ -289,6 +290,7 @@ if test "X$PKG_CONFIG" != X; then
       with_raptor=system
       if $PKG_CONFIG raptor --atleast-version=$RAPTOR_MIN_VERSION --max-version=$RAPTOR_MAX_VERSION; then
         RAPTOR_CONFIG="$PKG_CONFIG raptor"
+        RAPTOR_PACKAGE="raptor"
       else
         AC_MSG_WARN(Installed raptor $RAPTOR_VERSION is not in supported range - $RAPTOR_MIN_VERSION to $RAPTOR_MAX_VERSION)
       fi
@@ -326,8 +328,10 @@ else
       fi
     fi
   fi
+  RAPTOR_PACKAGE="raptor"
 fi
 AC_SUBST(with_raptor)
+AC_SUBST(RAPTOR_PACKAGE)
 
 AC_MSG_CHECKING(raptor library source)
 if test $with_raptor = system; then
