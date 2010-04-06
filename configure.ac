@@ -272,19 +272,30 @@ fi
 
 if test "X$PKG_CONFIG" != X; then
   # Prefer pkg-config raptor (ignores --with-raptor)
-  RAPTOR_VERSION=`$PKG_CONFIG raptor --modversion 2>/dev/null`
+  # Try raptor2 first, then raptor
+  RAPTOR_VERSION=`$PKG_CONFIG raptor2 --modversion 2>/dev/null`
 
-  if $PKG_CONFIG raptor --exists; then
+  if $PKG_CONFIG raptor2 --exists; then
     with_raptor=system
-    if $PKG_CONFIG raptor --atleast-version=$RAPTOR_MIN_VERSION --max-version=$RAPTOR_MAX_VERSION; then
-      : # ok
+    if $PKG_CONFIG raptor2 --atleast-version=$RAPTOR_MIN_VERSION --max-version=$RAPTOR_MAX_VERSION; then
+      RAPTOR_CONFIG="$PKG_CONFIG raptor2"
     else
-      AC_MSG_WARN(Installed raptor $RAPTOR_VERSION is not in supported range - $RAPTOR_MIN_VERSION to $RAPTOR_MAX_VERSION)
+      AC_MSG_WARN(Installed raptor2 $RAPTOR_VERSION is not in supported range - $RAPTOR_MIN_VERSION to $RAPTOR_MAX_VERSION)
     fi
   else
-    AC_MSG_ERROR(Raptor missing - get it from http://librdf.org/raptor/)
+    RAPTOR_VERSION=`$PKG_CONFIG raptor --modversion 2>/dev/null`
+
+    if $PKG_CONFIG raptor --exists; then
+      with_raptor=system
+      if $PKG_CONFIG raptor --atleast-version=$RAPTOR_MIN_VERSION --max-version=$RAPTOR_MAX_VERSION; then
+        RAPTOR_CONFIG="$PKG_CONFIG raptor"
+      else
+        AC_MSG_WARN(Installed raptor $RAPTOR_VERSION is not in supported range - $RAPTOR_MIN_VERSION to $RAPTOR_MAX_VERSION)
+      fi
+    else
+      AC_MSG_ERROR(Raptor missing - get it from http://librdf.org/raptor/)
+    fi
   fi
-  RAPTOR_CONFIG="$PKG_CONFIG raptor"
 else
   # otherwise use raptor-config
   AC_CHECK_PROG(RAPTOR_CONFIG, raptor-config, raptor-config)
