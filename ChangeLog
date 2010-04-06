@@ -1,12 +1,428 @@
-2010-03-06  Dave Beckett <dave@dajobe.org>
+2010-03-31  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_query_write.c: ,
+
+	* src/rasqal_query_write.c: write a, b not a ,b
+
+	* src/sparql_parser.y:
+	(RelationalExpression): Add IN and NOT IN
+
+	* src/rasqal.h, src/rasqal_expr.c:
+	(rasqal_new_set_expression): Added for expr IN/NOT-IN list ops
+
+	* tests/laqrs/syntax/Makefile.am, tests/laqrs/syntax/in1.rq: Add
+	IN test
+
+	* src/rasqal_format_sv.c: T is for TAB
+
+	* src/rasqal_query_write.c:
+	(rasqal_query_write_sparql_expression): Emit DISTINCT for func
+
+	* src/rasqal_query_write.c:
+	(rasqal_query_write_sparql_variable): Write ( expr AS var )
+
+	* tests/laqrs/syntax/count2.rq, tests/laqrs/syntax/count4.rq:
+	Update expr AS Var format
+
+	* src/rasqal_expr.c:
+	(rasqal_new_function_expression_common): Fix arg test
+
+	* configure.ac: fix raptor version test check
+
+	* src/rasqal_expr.c:
+	(rasqal_expression_evaluate): Implement executing of IN and NOT IN
+
+	* src/rasqal_expr.c, src/rasqal_query_write.c: Added expression
+	handling for IN and NOT IN - no executing yet.
+
+	(rasqal_expression_clear, rasqal_expression_evaluate,
+	rasqal_expression_write, rasqal_expression_print,
+	rasqal_expression_is_constant,
+	rasqal_query_write_sparql_expression): Added support for IN and
+	NOT IN
+
+	(rasqal_expression_visit): Added support for IN and NOT IN;
+	adjusted checking of result values for other forms to ensure visit
+	is truncated on a return value of non-0
+
+	* src/rasqal.h: Added expression enums for IN and NOT IN
+	expressions rasqal_op gains RASQAL_EXPR_IN and RASQAL_EXPR_NOT_IN
+
+	* src/sparql_lexer.l, src/sparql_parser.y: Add NOT and IN tokens
+	to sparql lexer and parser
+
+2010-03-30  Dave Beckett <dave@dajobe.org>
+
+	* tests/laqrs/syntax/explain.rq: Adjust to require () around
+	renamed vars
+
+	* src/sparql_parser.y: Accept ( Expr AS Var ) with required braces
+	in select and group by
+
+	(SelectTerm): SelectExpression does not include ()s
+
+	(SelectExpression): Remove optional ()s
+
+	(GroupCondition): Accept ( Expr AS Var ) and store expression in
+	var field expression.  Not totally a good idea, should be a new
+	rename expression probably.
+
+	* tests/laqrs/syntax/avg1.rq, tests/laqrs/syntax/coalesce1.rq,
+	tests/laqrs/syntax/count1.rq, tests/laqrs/syntax/count3.rq,
+	tests/laqrs/syntax/coverage.rq, tests/laqrs/syntax/group-by1.rq,
+	tests/laqrs/syntax/max1.rq, tests/laqrs/syntax/min1.rq,
+	tests/laqrs/syntax/sum1.rq: Update rename expr as var syntax from
+	latest SPARQL 1.1 draft
+
+	* src/sparql_parser.y:
+	(GroupCondition): Do not free unused variable $3 - not owned here.
+
+	* src/rasqal_query_transform.c: Support finding mentioned
+	variables in GROUP BY
+
+	(rasqal_query_expression_build_variables_use_map): Renamed from
+	rasqal_query_filter_build_variables_use_map_in_internal
+
+	(rasqal_query_graph_pattern_build_variables_use_map): Rename as
+	above for FILTER expression.
+
+	(rasqal_query_expression_build_variables_use_map_row): Renamed
+	from rasqal_expression_expr_build_variables_use_map_row
+
+	(rasqal_query_build_expressions_sequence_use_map_row) Lose unused
+	query arg.
+
+	(rasqal_query_build_variables_use_map): Tidy code and implement
+	finding mentioned vars in list of GROUP BY expressions. Does not
+	yet find declared EXPR as Var since SPARQL parser doesn't store it
+	anywhere yet.
+
+	* tests/laqrs/syntax/Makefile.am, tests/laqrs/syntax/group-by1.rq:
+	Add group-by1.rq for group by conditions
+
+	* src/sparql_parser.y:
+	(GroupClauseOpt): Do not add group asc/desc to group conditions
+	list.
+
+	* src/rasqal_expr.c:
+	(rasqal_new_0op_expression): Remove RASQAL_EXPR_GROUP_COND_ASC and
+	RASQAL_EXPR_GROUP_COND_DESC from autodocs
+
+	* src/rasqal.h: Mark RASQAL_EXPR_GROUP_COND_ASC and
+	RASQAL_EXPR_GROUP_COND_DESC as obsolete.
+
+	* src/sparql_parser.y: Update for GroupCondition rules.
+
+	(GroupConditionList): Added list of GroupCondition.
+
+	(GroupCondition): Added.  FIXME: what does Expression AS Var mean
+	in GROUP BY?
+
+	(GroupClauseOpt): Now a list of GroupConditionList
+
+	* src/sparql_parser.y: Implement GROUP_CONCAT and SAMPLE and
+	update other builtin agg functions.
+
+	(AggregateExpression): Added group concat and sample.
+
+	(ExpressionOrStar): Added pulled out of CountAggregateExpression.
+
+	(CountAggregateExpression): Simplified duplicate code handling an
+	expression and * in one place.  Use
+	rasqal_new_aggregate_function_expression() and set distinct flags.
+
+	(SumAggregateExpression, AvgAggregateExpression,
+	MinAggregateExpression, MaxAggregateExpression): Use
+	rasqal_new_aggregate_function_expression() and set distinct flags.
+
+	(GroupConcatAggregateExpression, SampleAggregateExpression): Added
+	using rasqal_new_aggregate_function_expression() and setting
+	distinct flags.
+
+	* src/rasqal.h, src/rasqal_expr.c: Add
+	rasqal_new_aggregate_function_expression() for built-in aggregate
+	functions
+
+	(rasqal_new_function_expression_common): Added internal function
+	based on core of rasqal_new_function_expression2 and taking
+	optional arg1 rasqal_expression for internal aggregate functions.
+
+	(rasqal_new_function_expression2): Rewritten in terms of
+	rasqal_new_function_expression_common.
+
+	(rasqal_new_aggregate_function_expression):
+	Added.  based on rasqal_new_function_expression_common.
+
+	* src/rasqal.h: autodocs
+
+	* src/sparql_lexer.l:
+	(sparql_token_print): Handle GROUP_CONCAT and SAMPLE tokens
+
+	* src/rasqal_expr.c, src/rasqal_query_write.c: Added expression
+	class suport for group_concat() and sample()
+
+	(rasqal_expression_clear, rasqal_expression_visit,
+	rasqal_expression_write, rasqal_expression_print,
+	rasqal_expression_is_constant,
+	rasqal_query_write_sparql_expression): Add support for
+	RASQAL_EXPR_SAMPLE and RASQAL_EXPR_GROUP_CONCAT.
+
+	(rasqal_expression_evaluate): Add placeholders for group_concat()
+	and sample() evaluation.  Do they have any meaning for
+	non-aggregate function evaluation?
 
 	* src/rasqal.h:
-	Note datetime does not write to literal value
+	Added RASQAL_EXPR_GROUP_CONCAT and
+	RASQAL_EXPR_SAMPLE for SPARQL 1.1 agg functions.
+
+	* src/sparql_parser.y: Added optional DISTINCT for built-in
+	aggregate functions, setting bitflags.
+
+	(%union): Added uninteger unsigned int for flags.
+
+	(DistinctOpt): Moved earlier
+
+	(CountAggregateExpression, SumAggregateExpression,
+	AvgAggregateExpression, MinAggregateExpression,
+	MaxAggregateExpression, FunctionCall): Add DistinctOpt and set
+	expression flags if present.
+
+	* src/rasqal.h: Added rasqal_expression_flags for
+	rasqal_expression bitflags
+
+	* src/rasqal_expr.c: #ws
+
+	* tests/laqrs/syntax/agg-function-1.rq,
+	tests/laqrs/syntax/agg-function1.rq: Rename test
+
+	* tests/laqrs/syntax/Makefile.am,
+	tests/laqrs/syntax/agg-function-1.rq: Test agg function with zero
+	params
+
+	* tests/laqrs/syntax/function-distinct1.rq: Update to latest draft
+	aggregate function syntax; note example is not real.
+
+	* src/sparql_parser.y: Start to handle latest draft aggregate
+	function style (DISTINCT + parameters)
+
+2010-03-29  Dave Beckett <dave@dajobe.org>
+
+	* src/sparql_parser.y:
+	(FunctionCall): Use rasqal_new_function_expression2
+
+	* src/rasqal.h, src/rasqal_expr.c: Added support for sparql 1.1
+	function parameters and flags.
+
+	(rasqal_new_function_expression2): Added.
+
+	(rasqal_new_function_expression): Deprecated for above
+
+	* src/sparql_parser.y: Add support for function with optional
+	DISTINCT.
+
+	(DistinctOpt): Added, returning boolean (integer) flag.
+
+	(FunctionCall): Add new clause for DISTINCT
+
+	* tests/laqrs/syntax/Makefile.am,
+	tests/laqrs/syntax/function-distinct1.rq: Added test for function
+	with DISTINCT for sparql 1.1
+
+	* src/sparql_parser.y: Add ArgList including braces, rename old
+	ArgList to ArgListNoBraces.
+
+2010-03-28  Dave Beckett <dave@dajobe.org>
+
+	* rasqal.spec.in: Updates based on fedora spec - not tested.
+
+2010-03-24  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_format_html.c, src/rasqal_internal.h: Rewrite in
+	RAPTOR V2 API terms with raptor_xml_escape_string_write
+
+	Add raptor_xml_escape_string_write for Raptor V1 to older
+	function.
+
+	* src/rasqal_format_html.c: code style
+
+	* src/Makefile.am, src/rasqal_format_html.c,
+	src/rasqal_internal.h, src/rasqal_result_formats.c: Add HTML Table
+	results format Applied patch from
+	http://bugs.librdf.org/mantis/view.php?id=360
+
+	* src/rasqal_expr.c:
+	(rasqal_expression_evaluate): Implement RASQAL_EXPR_IF
+
+	* tests/laqrs/syntax/if1.rq: turn into a constant IF expr that can
+	be evaluated at parse time
+
+	* configure.ac, src/rasqal.h: Update minimum raptor to 1.4.19 so
+	that raptor_world typedef is always available
+
+2010-03-23  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal.h: Use RAPTOR_V2_AVAILABLE instead of
+	RAPTOR_WORLD_DECLARED (no longer available) to decide whether to
+	declare raptor_world type
+
+	* src/rasqal_xsd_datatypes.c: Fixed gcc4 warnings about using a
+	char where an int is required
+
+	* src/sparql_parser.y:
+	(LoadQuery): Allow DEFAULT graphs i.e. NULL graph_uri.
+
+	* src/rasqal_expr.c:
+	(rasqal_expression_evaluate): Use raptor_world not rasqal_world
+	for raptor_new_uri()
+
+2010-03-22  Dave Beckett <dave@dajobe.org>
+
+	* src/sparql_parser.y:
+	(UpdateQuery): Handle WITH URI INSERT DATA
+
+	* src/rasqal.h: Record deprecated bnodeid functions.Adjust
+	macros.
+
+	Add RASQAL_DEPRECATED for
+	rasqal_query_set_default_generate_bnodeid_parameters and
+	rasqal_query_set_generate_bnodeid_handler.  If
+	RASQAL_DISABLE_DEPRECATED is defined, remove all deprecated
+	prototypes and typedefs.
+
+	* src/sparql_parser.y: Handle LOAD ... list of DocUris... (INTO
+	GraphUri)
+
+	(IriRefList): Added to build a raptor_sequence of raptor_uri
+
+	(LoadQuery): Use IriRefList to iterate over doc uris and make an
+	update operation for each of them.  This may not correspond to the
+	actual sparql update semantics, to be determined. If the list-load
+	is one operation, it will need a rasqal_update_operation API
+	change
+
+	* src/sparql_parser.y: Handle updated SPARQL 1.1 update draft
+	syntax removing GRAPH keyword in update operations, adding DEFAULT
+	keyword
+
+	* src/sparql_lexer.l: Added DEFAULT token
+
+	* src/rasqal_expr.c:
+	(rasqal_expression_evaluate): RASQAL_EXPR_BNODE fix for no arg.
+
+	* src/rasqal_expr.c: Handle BNODE() with NULL expression arg.
+
+	(rasqal_expression_clear, rasqal_expression_visit,
+	rasqal_expression_evaluate, rasqal_expression_write,
+	rasqal_expression_print, rasqal_expression_is_constant): Handle
+	optional arg1 for RASQAL_EXPR_BNODE.
+
+	* src/rasqal.h, src/rasqal_general.c, src/rasqal_internal.h,
+	src/rasqal_query.c: Move generate blank node ID functionality to
+	world class and deprecate query class methods
+
+	rasqal_generate_bnodeid_handler2 added handler typedef taking world
+	arg.
+
+	rasqal_world gains bnodeid generating parameter fields and
+	handler/user data fields.
+
+	rasqal_query loses the bnodeid generating parameter fields,
+	renamed to unused1-3.
+
+	(rasqal_world_set_default_generate_bnodeid_parameters,
+	rasqal_world_set_generate_bnodeid_handler): Added
+
+	(rasqal_query_set_default_generate_bnodeid_parameters): Deprecated
+	for rasqal_world_set_default_generate_bnodeid_parameters and now
+	is a wrapper for it.
+
+	(rasqal_query_set_generate_bnodeid_handler): Deprecated but still
+	has to be stored since handler signature is not the same as new
+	rasqal_generate_bnodeid_handler2
+	typedef.
+
+	(rasqal_query_generate_bnodeid): Prefer world bnodeid handler,
+	then query handler, then world generate bnodeid functionality.
+
+	* src/rasqal_general.c: Renamed some internal functions
+
+	(rasqal_query_default_generate_bnodeid_handler): Renamed from
+	rasqal_default_generate_bnodeid_handler
+
+	* src/rasqal_general.c: autodocs
+
+	* src/rasqal.h, src/rasqal_expr.c: Fix rasqal_expression_visit,
+	rasqal_graph_pattern_visit_fn and rasqal_expression_visit_fn docs
+	to match code
+
+	* src/sparql_parser.y:
+	(BuiltInCall): Handle BNODE() and BNODE(expr)
+
+	* tests/laqrs/syntax/Makefile.am, tests/laqrs/syntax/bnode2.rq:
+	Add test for BNODE() with no args
+
+	* tests/sparql/update/Makefile.am, tests/sparql/update/clear-4.rq,
+	tests/sparql/update/insert-data-2.rq,
+	tests/sparql/update/insert-data-3.rq,
+	tests/sparql/update/insert-data-4.rq,
+	tests/sparql/update/load-3.rq, tests/sparql/update/load-4.rq:
+	Added laqrs / SPARQL 1.1 update draft syntax examples from
+
+	http://lists.w3.org/Archives/Public/public-rdf-dawg/2010JanMar/0569.html
+
+	* tests/laqrs/syntax/Makefile.am, tests/laqrs/syntax/bnode1.rq,
+	tests/laqrs/syntax/strdt1.rq, tests/laqrs/syntax/strdt2.rq: Update
+	laqrs tests for bnode() and strdt()
+
+	* src/rasqal_expr.c: Implement expression evaluation for IRI, URI,
+	STRLANG, STRDT, BNODE.
+
+	(rasqal_expression_evaluate): Implement RASQAL_EXPR_IRI,
+	RASQAL_EXPR_URI, RASQAL_EXPR_STRLANG, RASQAL_EXPR_STRDT and
+	RASQAL_EXPR_BNODE.
+
+	* tests/laqrs/syntax/Makefile.am, tests/laqrs/syntax/bnode1.rq,
+	tests/laqrs/syntax/if1.rq, tests/laqrs/syntax/iri1.rq,
+	tests/laqrs/syntax/strdt1.rq, tests/laqrs/syntax/strlang1.rq,
+	tests/laqrs/syntax/uri1.rq: Add LAQRS tests for new LAQRS (draft
+	SPARQL 1.1) expressions
+
+	* src/rasqal_expr.c, src/rasqal_query_write.c: Add expression
+	support for STRLANG, STRDT, IF, URI, IRI and BNODE.
+
+	(rasqal_expression_clear, rasqal_expression_visit,
+	rasqal_expression_write, rasqal_expression_print,
+	rasqal_expression_is_constant,
+	rasqal_query_write_sparql_expression): Added cases for new
+	expressions.  rasqal_op_labels and rasqal_sparql_op_labels gain
+	labels for new tokens.
+
+	(rasqal_expression_evaluate): Added dummy support for these
+	expressions, causing a fatal error.
+
+	* src/sparql_lexer.l, src/sparql_parser.y: Added SPARQL
+	lexer/parser for STRLANG, STRDT, IF, IRI, URI and BNODE.
+
+	* src/rasqal.h: Added operations for IF, URI, IRI, STRLANG, STRDT
+	and BNODE expressions.
+
+	rasqal_op gains RASQAL_EXPR_IF, RASQAL_EXPR_URI, RASQAL_EXPR_IRI,
+	RASQAL_EXPR_STRLANG, RASQAL_EXPR_STRDT and RASQAL_EXPR_BNODE
+
+2010-03-22  Lauri Aalto <laalto@iki.fi>
+
+	* utils/roqet.c: Ported to raptor2 git head.
+	raptor_parser_get_option_count() -> raptor_option_get_count()
+
+2010-03-06  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal.h: Note datetime does not write to literal value
 
 	* src/rasqal_internal.h: Added prototypes for
 	rasqal_xsd_date_check and rasqal_xsd_date_string_to_canonical
 
-	* src/rasqal_datetime.c: Adjust normalized xsd:date - no trailing Z
+	* src/rasqal_datetime.c: Adjust normalized xsd:date - no trailing
+	Z
 
 	* src/rasqal_datetime.c: Fix
 	rasqal_xsd_datetime_parse_and_normalize_common() for dates.  Add

@@ -324,7 +324,7 @@ rasqal_new_function_expression_common(rasqal_world* world,
 {
   rasqal_expression* e = NULL;
 
-  if(!world || !name || !args)
+  if(!world || (arg1 && args) || (name && !args)|| (!name && args))
     goto tidy;
   
   e = (rasqal_expression*)RASQAL_CALLOC(rasqal_expression, 1, sizeof(*e));
@@ -511,6 +511,48 @@ rasqal_new_coalesce_expression(rasqal_world* world, raptor_sequence* args)
 
 
 /**
+ * rasqal_new_set_expression:
+ * @world: rasqal_world object
+ * @op: list operation
+ * @arg1: expression to look for in list
+ * @args: sequence of #rasqal_expression list arguments
+ * 
+ * Constructor - create a new set IN/NOT IN operation with expression arguments.
+ *
+ * Takes ownership of the @arg1 and @args
+ * 
+ * Return value: a new #rasqal_expression object or NULL on failure
+ **/
+rasqal_expression*
+rasqal_new_set_expression(rasqal_world* world, rasqal_op op,
+                          rasqal_expression* arg1,
+                          raptor_sequence* args)
+{
+  rasqal_expression* e = NULL;
+
+  if(!world || !arg1 || !args)
+    goto tidy;
+  
+  e = (rasqal_expression*)RASQAL_CALLOC(rasqal_expression, 1, sizeof(*e));
+  if(e) {
+    e->usage = 1;
+    e->world = world;
+    e->op = op;
+    e->arg1 = arg1; arg1 = NULL;
+    e->args = args; args = NULL;
+  }
+  
+  tidy:
+  if(arg1)
+    rasqal_free_expression(arg1);
+  if(args)
+    raptor_free_sequence(args);
+
+  return e;
+}
+
+
+/**
  * rasqal_expression_clear:
  * @e: expression
  * 
@@ -603,6 +645,12 @@ rasqal_expression_clear(rasqal_expression* e)
       break;
       
     case RASQAL_EXPR_COALESCE:
+      raptor_free_sequence(e->args);
+      break;
+
+    case RASQAL_EXPR_IN:
+    case RASQAL_EXPR_NOT_IN:
+      rasqal_free_expression(e->arg1);
       raptor_free_sequence(e->args);
       break;
 
@@ -749,10 +797,9 @@ rasqal_expression_visit(rasqal_expression* e,
       for(i = 0; i < raptor_sequence_size(e->args); i++) {
         rasqal_expression* e2;
         e2 = (rasqal_expression*)raptor_sequence_get_at(e->args, i);
-        if(!rasqal_expression_visit(e2, fn, user_data)) {
-          result = 0;
+        result = rasqal_expression_visit(e2, fn, user_data);
+        if(result)
           break;
-        }
       }
       return result;
       break;
@@ -762,11 +809,29 @@ rasqal_expression_visit(rasqal_expression* e,
       return 0;
       break;
       
+    case RASQAL_EXPR_IN:
+    case RASQAL_EXPR_NOT_IN:
+      result = rasqal_expression_visit(e->arg1, fn, user_data);
+      if(result)
+        return result;
+
+      for(i = 0; i < raptor_sequence_size(e->args); i++) {
+        rasqal_expression* e2;
+        e2 = (rasqal_expression*)raptor_sequence_get_at(e->args, i);
+        result = rasqal_expression_visit(e2, fn, user_data);
+        if(result)
+          break;
+      }
+      return result;
+      break;
+
     case RASQAL_EXPR_UNKNOWN:
     default:
       RASQAL_FATAL2("Unknown operation %d", e->op);
       return -1; /* keep some compilers happy */
   }
+
+  return result;
 }
 
 
@@ -1907,6 +1972,86 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
       RASQAL_FATAL1("GROUP_CONCAT() not implemented");
       break;
 
+    case RASQAL_EXPR_IN:
+      l1 = rasqal_expression_evaluate(world, locator, e->arg1, flags);
+      if(!l1)
+        goto failed;
+
+      if(1) {
+        int found = 0;
+
+        for(vars.i = 0; vars.i < raptor_sequence_size(e->args); vars.i++) {
+          rasqal_expression* e2;
+          e2 = (rasqal_expression*)raptor_sequence_get_at(e->args, vars.i);
+          l2 = rasqal_expression_evaluate(world, locator, e2, flags);
+          if(!l2) {
+            rasqal_free_literal(l1);
+            goto failed;
+          }
+
+          vars.b = (rasqal_literal_equals_flags(l1, l2, flags, &errs.e) != 0);
+#if RASQAL_DEBUG > 1
+          if(errs.e)
+            RASQAL_DEBUG1("rasqal_literal_equals_flags returned: FAILURE\n");
+          else
+            RASQAL_DEBUG2("rasqal_literal_equals_flags returned: %d\n", vars.b);
+#endif
+          rasqal_free_literal(l2);
+          if(errs.e) {
+            rasqal_free_literal(l1);
+            goto failed;
+          }
+          if(vars.b) {
+            /* found - so succeeded */
+            found = 1;
+            break;
+          }
+        }
+        rasqal_free_literal(l1);
+        result = rasqal_new_boolean_literal(world, found);
+      }
+      break;
+
+    case RASQAL_EXPR_NOT_IN:
+      l1 = rasqal_expression_evaluate(world, locator, e->arg1, flags);
+      if(!l1)
+        goto failed;
+
+      if(1) {
+        int found = 0;
+
+        for(vars.i = 0; vars.i < raptor_sequence_size(e->args); vars.i++) {
+          rasqal_expression* e2;
+          e2 = (rasqal_expression*)raptor_sequence_get_at(e->args, vars.i);
+          l2 = rasqal_expression_evaluate(world, locator, e2, flags);
+          if(!l2) {
+            rasqal_free_literal(l1);
+            goto failed;
+          }
+
+          vars.b = (rasqal_literal_equals_flags(l1, l2, flags, &errs.e) != 0);
+#if RASQAL_DEBUG > 1
+          if(errs.e)
+            RASQAL_DEBUG1("rasqal_literal_equals_flags returned: FAILURE\n");
+          else
+            RASQAL_DEBUG2("rasqal_literal_equals_flags returned: %d\n", vars.b);
+#endif
+          rasqal_free_literal(l2);
+          if(errs.e) {
+            rasqal_free_literal(l1);
+            goto failed;
+          }
+          if(vars.b) {
+            /* found - so failed */
+            found = 1;
+            break;
+          }
+        }
+        rasqal_free_literal(l1);
+        result = rasqal_new_boolean_literal(world, !found);
+      }
+      break;
+
     case RASQAL_EXPR_UNKNOWN:
     default:
       RASQAL_FATAL2("Unknown operation %d", e->op);
@@ -1982,7 +2127,7 @@ static const char* const rasqal_op_labels[RASQAL_EXPR_LAST+1]={
   "avg",
   "min",
   "max",
-  "coalesce"
+  "coalesce",
   "if",
   "uri",
   "iri",
@@ -1990,7 +2135,9 @@ static const char* const rasqal_op_labels[RASQAL_EXPR_LAST+1]={
   "strdt",
   "bnode",
   "group_concat",
-  "sample"
+  "sample",
+  "in",
+  "not in"
 };
 
 
@@ -2190,6 +2337,23 @@ rasqal_expression_write(rasqal_expression* e, raptor_iostream* iostr)
       raptor_iostream_write_byte(')', iostr);
       break;
 
+    case RASQAL_EXPR_IN:
+    case RASQAL_EXPR_NOT_IN:
+      raptor_iostream_counted_string_write("op ", 3, iostr);
+      rasqal_expression_write_op(e, iostr);
+      raptor_iostream_counted_string_write("(expr=", 6, iostr);
+      rasqal_expression_write(e->arg1, iostr);
+      raptor_iostream_counted_string_write(", args=", 7, iostr);
+      for(i = 0; i < raptor_sequence_size(e->args); i++) {
+        rasqal_expression* e2;
+        if(i > 0)
+          raptor_iostream_counted_string_write(", ", 2, iostr);
+        e2 = (rasqal_expression*)raptor_sequence_get_at(e->args, i);
+        rasqal_expression_write(e2, iostr);
+      }
+      raptor_iostream_write_byte(')', iostr);
+      break;
+
     case RASQAL_EXPR_UNKNOWN:
     default:
       RASQAL_FATAL2("Unknown operation %d", e->op);
@@ -2329,6 +2493,17 @@ rasqal_expression_print(rasqal_expression* e, FILE* fh)
       fputc(')', fh);
       break;
 
+    case RASQAL_EXPR_IN:
+    case RASQAL_EXPR_NOT_IN:
+      fputs("op ", fh);
+      rasqal_expression_print_op(e, fh);
+      fputs("(expr=", fh);
+      rasqal_expression_print(e->arg1, fh);
+      fputs(", args=", fh);
+      raptor_sequence_print(e->args, fh);
+      fputc(')', fh);
+      break;
+
     case RASQAL_EXPR_UNKNOWN:
     default:
       RASQAL_FATAL2("Unknown operation %d", e->op);
@@ -2452,6 +2627,23 @@ rasqal_expression_is_constant(rasqal_expression* e)
 
     case RASQAL_EXPR_VARSTAR:
       result=0;
+      break;
+      
+    case RASQAL_EXPR_IN:
+    case RASQAL_EXPR_NOT_IN:
+      result = rasqal_expression_is_constant(e->arg1);
+      if(!result)
+        break;
+      
+      result = 1;
+      for(i = 0; i < raptor_sequence_size(e->args); i++) {
+        rasqal_expression* e2;
+        e2 = (rasqal_expression*)raptor_sequence_get_at(e->args, i);
+        if(!rasqal_expression_is_constant(e2)) {
+          result = 0;
+          break;
+        }
+      }
       break;
       
     case RASQAL_EXPR_UNKNOWN:

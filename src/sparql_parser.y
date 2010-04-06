@@ -156,6 +156,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
 %token DELETE INSERT WITH CLEAR CREATE SILENT DATA DROP LOAD INTO DEFAULT
 %token COALESCE
 %token AS IF
+%token NOT IN
 /* LAQRS */
 %token EXPLAIN LET
 
@@ -3556,6 +3557,16 @@ RelationalExpression: AdditiveExpression EQ AdditiveExpression
                                  RASQAL_EXPR_GE, $1, $3);
   if(!$$)
     YYERROR_MSG("RelationalExpression 6: cannot create expr");
+}
+| AdditiveExpression IN ArgList
+{
+  $$ = rasqal_new_set_expression(((rasqal_query*)rq)->world,
+                                 RASQAL_EXPR_IN, $1, $3);
+}
+| AdditiveExpression NOT IN ArgList
+{
+  $$ = rasqal_new_set_expression(((rasqal_query*)rq)->world,
+                                 RASQAL_EXPR_NOT_IN, $1, $4);
 }
 | AdditiveExpression
 {
