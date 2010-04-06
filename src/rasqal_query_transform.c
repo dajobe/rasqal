@@ -1576,7 +1576,7 @@ rasqal_query_print_variables_use_map(FILE* fh, rasqal_query* query)
 /* for use with rasqal_expression_visit and user_data=rasqal_query */
 static int
 rasqal_query_expression_build_variables_use_map_row(short *use_map_row,
-                                                   rasqal_expression *e)
+                                                    rasqal_expression *e)
 {
   if(e->literal) {
     rasqal_variable* v;
