@@ -37,7 +37,7 @@ if GETOPT
 roqet_SOURCES += getopt.c rasqal_getopt.h
 endif
 roqet_LDADD = $(top_builddir)/src/librasqal.la
-roqet_LDFLAGS = -lraptor
+roqet_LDFLAGS = `@RAPTOR_CONFIG@ --libs`
 
 srxread_SOURCES = srxread.c
 srxread_LDADD = $(top_builddir)/src/librasqal.la
