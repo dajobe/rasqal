@@ -2,7 +2,7 @@
  *
  * rasqal_format_table.c - Format Results in a Table
  *
- * Copyright (C) 2009, David Beckett http://www.dajobe.org/
+ * Copyright (C) 2009-2010, David Beckett http://www.dajobe.org/
  * 
  * This package is Free Software and part of Redland http://librdf.org/
  * 
@@ -86,7 +86,7 @@ rasqal_iostream_write_counted_string_padded(raptor_iostream *iostr,
     
 
 static int
-rasqal_query_results_write_table(raptor_iostream *iostr,
+rasqal_query_results_write_table_bindings(raptor_iostream *iostr,
                                  rasqal_query_results* results,
                                  raptor_uri *base_uri)
 {
@@ -100,13 +100,6 @@ rasqal_query_results_write_table(raptor_iostream *iostr,
   int i;
   size_t sep_len;
   char *sep = NULL;
-  
-  if(!rasqal_query_results_is_bindings(results)) {
-    rasqal_log_error_simple(query->world, RAPTOR_LOG_LEVEL_ERROR,
-                            &query->locator,
-                            "Can only write table format for variable binding results");
-    return 1;
-  }
 
   bindings_count = rasqal_query_results_get_bindings_count(results);
   widths = (int*)RASQAL_CALLOC(intarray, sizeof(int), bindings_count + 1);
@@ -276,6 +269,42 @@ rasqal_query_results_write_table(raptor_iostream *iostr,
   return 0;
 }
 
+static int
+rasqal_query_results_write_table_boolean(raptor_iostream *iostr,
+                                 rasqal_query_results* results,
+                                 raptor_uri *base_uri)
+{
+  if (rasqal_query_results_get_boolean(results)) {
+    raptor_iostream_counted_string_write("--------\n", 9, iostr);
+    raptor_iostream_counted_string_write("| true |\n", 9, iostr);
+    raptor_iostream_counted_string_write("--------\n", 9, iostr);
+  } else {
+    raptor_iostream_counted_string_write("---------\n", 10, iostr);
+    raptor_iostream_counted_string_write("| false |\n", 10, iostr);
+    raptor_iostream_counted_string_write("---------\n", 10, iostr);
+  }
+
+  return 0;
+}
+
+static int
+rasqal_query_results_write_table(raptor_iostream *iostr,
+                                 rasqal_query_results* results,
+                                 raptor_uri *base_uri)
+{
+  rasqal_query* query = rasqal_query_results_get_query(results);
+
+  if(rasqal_query_results_is_bindings(results)) {
+    return rasqal_query_results_write_table_bindings(iostr, results, base_uri);
+  } else if(rasqal_query_results_is_boolean(results)) {
+    return rasqal_query_results_write_table_boolean(iostr, results, base_uri);
+  } else {
+    rasqal_log_error_simple(query->world, RAPTOR_LOG_LEVEL_ERROR,
+                            &query->locator,
+                            "Can only write table format for variable binding and boolean results");
+    return 1;
+  }
+}
 
 int
 rasqal_init_result_format_table(rasqal_world* world)
