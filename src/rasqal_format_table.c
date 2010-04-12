@@ -87,8 +87,8 @@ rasqal_iostream_write_counted_string_padded(raptor_iostream *iostr,
 
 static int
 rasqal_query_results_write_table_bindings(raptor_iostream *iostr,
-                                 rasqal_query_results* results,
-                                 raptor_uri *base_uri)
+                                          rasqal_query_results* results,
+                                          raptor_uri *base_uri)
 {
   rasqal_query* query = rasqal_query_results_get_query(results);
   raptor_sequence *seq = NULL;
@@ -271,8 +271,8 @@ rasqal_query_results_write_table_bindings(raptor_iostream *iostr,
 
 static int
 rasqal_query_results_write_table_boolean(raptor_iostream *iostr,
-                                 rasqal_query_results* results,
-                                 raptor_uri *base_uri)
+                                         rasqal_query_results* results,
+                                         raptor_uri *base_uri)
 {
   if (rasqal_query_results_get_boolean(results)) {
     raptor_iostream_counted_string_write("--------\n", 9, iostr);
