@@ -8,6 +8,151 @@
 
   <h1>Rasqal RDF Query Library - Release Notes</h1>
 
+<h2 id="rel0_9_20"><a name="rel0_9_20">Rasqal 0.9.20 Changes</a></h2>
+
+<p>Not yet released.
+</p>
+
+<p>Updated to build with raptor1 and raptor2 (GIT, unreleased).
+</p>
+
+<p>The never used <code>RASQAL_EXPR_GROUP_COND_ASC</code> and
+<code>RASQAL_EXPR_GROUP_COND_DESC</code> are marked as obsolete.
+</p>
+
+<p>Adjust SPARQL 1.1 draft select expression syntax to latest
+version: '(' Expr 'AS' Var ')' with required braces.
+</p>
+
+<p>Add support for SPARQL 1.1 draft <code>GROUP BY</code> expressions,
+except for <em>Expr</em> AS var.
+</p>
+
+<p>Added <code>rasqal_new_aggregate_function_expression()</code>
+helper for making expressions with built-in aggregate functions.
+</p>
+
+<p>Added support for SPARQL 1.1 aggregate functions
+<code>GROUP_CONCAT()</code> and <code>SAMPLE()</code>
+with new expression enum
+<code>RASQAL_EXPR_GROUP_CONCAT</code> and
+<code>RASQAL_EXPR_SAMPLE</code> as well as formatting to SPARQL and
+placeholder expression handling implementation - no aggregate expression
+evaluation.
+</p>
+
+<p>Added new bitflags enum <code>Added rasqal_expression_flags</code>
+for expression flags - currently just DISTINCT for aggregate
+extension function calls..
+</p>
+
+<p>Added <code>rasqal_new_function_expression2()</code> for functions
+with parameters and flags deprecating
+<code>rasqal_new_function_expression()</code.
+</p>
+
+<p>Add partial support for SPARQL 1.1 draft extension (aggregate)
+functions with DISTINCT and parameters.
+</p>
+
+<p>Updated rasqal.spec.in based on fedora spec (not tested)
+</p>
+
+<p>Add HTML Table results format from patch applied from
+Issue#0000360 http://bugs.librdf.org/mantis/view.php?id=360
+</p>
+
+<p>Minimum raptor version is now 1.4.19 so that raptor_world typedef
+is always available.
+</p>
+
+<p>Add partial support for SPARQL 1.1 Update draft INSERT, DELETE,
+LOAD (INTO), UPDATE, WITH forms.
+</p>
+
+<p>Moved generate blank node ID functionality to
+world class, deprecating the query class methods.
+Added
+<code>rasqal_world_set_default_generate_bnodeid_parameters()</code>,
+<code>rasqal_world_set_generate_bnodeid_handler()</code> with new
+handler typedef <code>rasqal_generate_bnodeid_handler2</code>.
+Deprecated
+<code>rasqal_query_set_default_generate_bnodeid_parameters()</code>
+for
+<code>rasqal_world_set_default_generate_bnodeid_parameters()</code>.
+Deprecated <code>rasqal_query_set_generate_bnodeid_handler()</code>
+for new function (with different handler signature)
+<code>rasqal_world_set_generate_bnodeid_handler()</code>.
+</p>
+
+<p>Updated documentation for <code>rasqal_expression_visit()</code>,
+<code>rasqal_graph_pattern_visit_fn</code> and
+<code>rasqal_expression_visit_fn</code> typedef to match what the code
+actually does.</p>
+
+<p>Add support for SPARQL 1.1 draft FILTER expression operators
+including execution in the expression evaluation, writing the expression
+as SPARQL:</p>
+<table>
+<tr>
+<th><code>rasqal_op</code> enum</th>
+<th>SPARQL 1.1 expression</th>
+</tr>
+<tr>
+<td><code>RASQAL_EXPR_IF</code></td>
+<td>IF(condition expression, expr if true, expr if false)</td>
+</tr>
+<tr>
+<td><code>RASQAL_EXPR_URI</code></td>
+<td>URI(uri string)</td>
+</tr>
+<tr>
+<td><code>RASQAL_EXPR_IRI</code></td>
+<td>IRI(iri string)</td>
+</tr>
+<tr>
+<td><code>RASQAL_EXPR_STRLANG</code></td>
+<td>STRLANG(literal string, language string)</td>
+</tr>
+<tr>
+<td><code>RASQAL_EXPR_STRDT</code></td>
+<td>STRDT(literal string, datatype URI)</td>
+</tr>
+<tr>
+<td><code>RASQAL_EXPR_BNODE</code></td>
+<td>BNODE() and BNODE(string)</td>
+</tr>
+<tr>
+<td><code>RASQAL_EXPR_IN</code></td>
+<td>Expr IN ( list )</td>
+</tr>
+<tr>
+<td><code>RASQAL_EXPR_NOT_IN</code></td>
+<td>Expr NOT IN ( list )</td>
+</tr>
+</table>
+
+<p>Add datatype support for <code>xsd:date</code> - normalization and
+comparisons.
+</p>
+
+<p>Added new literal type <code>RASQAL_LITERAL_INTEGER_SUBTYPE</code>
+to let subtypes of <code>xsd:integer</code> work in data and
+expression evaluation.
+</p>
+
+
+<p>Make query result limit and offset work when no ORDER BY is
+part of the query (yes - this is rather unpredictable) with
+the original query engine.
+Related to Issue#000352
+</p>
+
+<p>Allow NULL base uri for
+<code>rasqal_query_results_formatter_write()</code>.</p>
+
+
+
 <h2 id="rel0_9_19"><a name="rel0_9_19">Rasqal 0.9.19 Changes</a></h2>
 
 <p>The only change to this release is to fix the pkg-config
