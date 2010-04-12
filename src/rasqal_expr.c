@@ -1106,7 +1106,10 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
     const unsigned char *s;
     unsigned char *new_s;
     rasqal_variable *v;
+    rasqal_expression *e;
+    struct { void *dummy_do_not_mask; int found; } flags;
   } vars;
+  int i; /* for looping */
 
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(e, rasqal_expression, NULL);
@@ -1822,10 +1825,9 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
       break;
       
     case RASQAL_EXPR_COALESCE:
-      for(vars.i = 0; vars.i < raptor_sequence_size(e->args); vars.i++) {
-        rasqal_expression* e2;
-        e2 = (rasqal_expression*)raptor_sequence_get_at(e->args, vars.i);
-        result = rasqal_expression_evaluate(world, locator, e2, flags);
+      for(i = 0; i < raptor_sequence_size(e->args); i++) {
+        vars.e = (rasqal_expression*)raptor_sequence_get_at(e->args, i);
+        result = rasqal_expression_evaluate(world, locator, vars.e, flags);
         if(result)
           break;
       }
@@ -1978,12 +1980,10 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
         goto failed;
 
       if(1) {
-        int found = 0;
-
-        for(vars.i = 0; vars.i < raptor_sequence_size(e->args); vars.i++) {
-          rasqal_expression* e2;
-          e2 = (rasqal_expression*)raptor_sequence_get_at(e->args, vars.i);
-          l2 = rasqal_expression_evaluate(world, locator, e2, flags);
+        vars.flags.found = 0;
+        for(i = 0; i < raptor_sequence_size(e->args); i++) {
+          vars.e = (rasqal_expression*)raptor_sequence_get_at(e->args, i);
+          l2 = rasqal_expression_evaluate(world, locator, vars.e, flags);
           if(!l2) {
             rasqal_free_literal(l1);
             goto failed;
@@ -2003,12 +2003,13 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
           }
           if(vars.b) {
             /* found - so succeeded */
-            found = 1;
+            vars.flags.found = 1;
             break;
           }
         }
         rasqal_free_literal(l1);
-        result = rasqal_new_boolean_literal(world, found);
+
+        result = rasqal_new_boolean_literal(world, vars.flags.found);
       }
       break;
 
@@ -2018,12 +2019,10 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
         goto failed;
 
       if(1) {
-        int found = 0;
-
-        for(vars.i = 0; vars.i < raptor_sequence_size(e->args); vars.i++) {
-          rasqal_expression* e2;
-          e2 = (rasqal_expression*)raptor_sequence_get_at(e->args, vars.i);
-          l2 = rasqal_expression_evaluate(world, locator, e2, flags);
+        vars.flags.found = 0;
+        for(i = 0; i < raptor_sequence_size(e->args); i++) {
+          vars.e = (rasqal_expression*)raptor_sequence_get_at(e->args, i);
+          l2 = rasqal_expression_evaluate(world, locator, vars.e, flags);
           if(!l2) {
             rasqal_free_literal(l1);
             goto failed;
@@ -2043,12 +2042,12 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
           }
           if(vars.b) {
             /* found - so failed */
-            found = 1;
+            vars.flags.found = 1;
             break;
           }
         }
         rasqal_free_literal(l1);
-        result = rasqal_new_boolean_literal(world, !found);
+        result = rasqal_new_boolean_literal(world, !vars.flags.found);
       }
       break;
 
