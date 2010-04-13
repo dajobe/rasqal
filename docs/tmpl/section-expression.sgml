@@ -29,6 +29,14 @@ constants and #rasqal_variable values bound in some
 </para>
 
 
+<!-- ##### ENUM rasqal_expression_flags ##### -->
+<para>
+
+</para>
+
+@RASQAL_EXPR_FLAG_DISTINCT: 
+@RASQAL_EXPR_FLAG_AGGREGATE: 
+
 <!-- ##### ENUM rasqal_op ##### -->
 <para>
 
@@ -156,6 +164,19 @@ constants and #rasqal_variable values bound in some
 @Returns: 
 
 
+<!-- ##### FUNCTION rasqal_new_aggregate_function_expression ##### -->
+<para>
+
+</para>
+
+@world: 
+@op: 
+@arg1: 
+@params: 
+@flags: 
+@Returns: 
+
+
 <!-- ##### FUNCTION rasqal_new_cast_expression ##### -->
 <para>
 
@@ -188,6 +209,19 @@ constants and #rasqal_variable values bound in some
 @Returns: 
 
 
+<!-- ##### FUNCTION rasqal_new_function_expression2 ##### -->
+<para>
+
+</para>
+
+@world: 
+@name: 
+@args: 
+@params: 
+@flags: 
+@Returns: 
+
+
 <!-- ##### FUNCTION rasqal_new_literal_expression ##### -->
 <para>
 
@@ -195,6 +229,18 @@ constants and #rasqal_variable values bound in some
 
 @world: 
 @literal: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_new_set_expression ##### -->
+<para>
+
+</para>
+
+@world: 
+@op: 
+@arg1: 
+@args: 
 @Returns: 
 
 

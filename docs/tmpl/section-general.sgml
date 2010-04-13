@@ -84,6 +84,28 @@ their names, labels and URI.
 @raptor_world_ptr: 
 
 
+<!-- ##### FUNCTION rasqal_world_set_generate_bnodeid_handler ##### -->
+<para>
+
+</para>
+
+@world: 
+@user_data: 
+@handler: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_world_set_default_generate_bnodeid_parameters ##### -->
+<para>
+
+</para>
+
+@world: 
+@prefix: 
+@base: 
+@Returns: 
+
+
 <!-- ##### VARIABLE rasqal_version_decimal ##### -->
 <para>
 
