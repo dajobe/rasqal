@@ -20,6 +20,9 @@ constants and #rasqal_variable values bound in some
 <!-- ##### SECTION Stability_Level ##### -->
 
 
+<!-- ##### SECTION Image ##### -->
+
+
 <!-- ##### TYPEDEF rasqal_expression ##### -->
 <para>
 
@@ -76,6 +79,16 @@ constants and #rasqal_variable values bound in some
 @RASQAL_EXPR_MIN: 
 @RASQAL_EXPR_MAX: 
 @RASQAL_EXPR_COALESCE: 
+@RASQAL_EXPR_IF: 
+@RASQAL_EXPR_URI: 
+@RASQAL_EXPR_IRI: 
+@RASQAL_EXPR_STRLANG: 
+@RASQAL_EXPR_STRDT: 
+@RASQAL_EXPR_BNODE: 
+@RASQAL_EXPR_GROUP_CONCAT: 
+@RASQAL_EXPR_SAMPLE: 
+@RASQAL_EXPR_IN: 
+@RASQAL_EXPR_NOT_IN: 
 @RASQAL_EXPR_LAST: 
 
 <!-- ##### ENUM rasqal_compare_flags ##### -->

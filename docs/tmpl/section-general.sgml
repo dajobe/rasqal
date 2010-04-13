@@ -21,6 +21,9 @@ their names, labels and URI.
 <!-- ##### SECTION Stability_Level ##### -->
 
 
+<!-- ##### SECTION Image ##### -->
+
+
 <!-- ##### TYPEDEF rasqal_world ##### -->
 <para>
 
@@ -40,6 +43,7 @@ their names, labels and URI.
 
 </para>
 
+@void: 
 @Returns: 
 
 
@@ -199,6 +203,7 @@ their names, labels and URI.
 
 </para>
 
+@void: 
 @Returns: 
 
 
