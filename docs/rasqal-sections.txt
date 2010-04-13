@@ -43,6 +43,7 @@ rasqal_data_graph_print
 <SECTION>
 <FILE>section-expression</FILE>
 rasqal_expression
+rasqal_expression_flags
 rasqal_op
 rasqal_compare_flags
 rasqal_pattern_flags
@@ -50,11 +51,13 @@ rasqal_new_0op_expression
 rasqal_new_1op_expression
 rasqal_new_2op_expression
 rasqal_new_3op_expression
+rasqal_new_aggregate_function_expression
 rasqal_new_cast_expression
 rasqal_new_coalesce_expression
 rasqal_new_function_expression
 rasqal_new_function_expression2
 rasqal_new_literal_expression
+rasqal_new_set_expression
 rasqal_new_string_op_expression
 rasqal_new_expression_from_expression
 rasqal_free_expression
