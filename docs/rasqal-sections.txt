@@ -7,6 +7,8 @@ rasqal_world_open
 rasqal_world_set_log_handler
 rasqal_world_get_raptor
 rasqal_world_set_raptor
+rasqal_world_set_generate_bnodeid_handler
+rasqal_world_set_default_generate_bnodeid_parameters
 rasqal_version_decimal
 rasqal_version_major
 rasqal_version_minor
