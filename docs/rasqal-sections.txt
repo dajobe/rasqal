@@ -109,6 +109,7 @@ rasqal_literal_as_variable
 rasqal_literal_compare
 rasqal_literal_datatype
 rasqal_literal_equals
+rasqal_literal_equals_flags
 rasqal_literal_get_rdf_term_type
 rasqal_literal_is_rdf_literal
 rasqal_literal_print
