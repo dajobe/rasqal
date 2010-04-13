@@ -1178,8 +1178,7 @@ int rasqal_data_graph_print(rasqal_data_graph* dg, FILE* fh);
  * @RASQAL_COMPARE_SAMETERM: SPARQL sameTerm() builtin rules apply.
  *
  * Flags for rasqal_expression_evaluate(), rasqal_literal_compare(),
- * rasqal_literal_as_string_flags(), rasqal_new_literal_from_promotion(),
- * rasqal_literal_equals_flags().
+ * rasqal_literal_as_string_flags() or rasqal_literal_equals_flags().
  */
 typedef enum {
   RASQAL_COMPARE_NOCASE = 1,
