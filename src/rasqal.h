@@ -1615,22 +1615,6 @@ int rasqal_set_triples_source_factory(rasqal_world* world, rasqal_triples_source
  */
 
 /**
- * rasqal_expression_s:
- * @usage: Internal
- * @op: Internal
- * @arg1: Internal
- * @arg2: Internal
- * @arg3: Internal
- * @literal: Internal
- * @value: Internal
- * @name: Internal
- * @args: Internal
- *
- * Internal - see #rasqal_expression.
- *
- */
-
-/**
  * bind_match:
  * @rtm: triples match context
  * @user_data: user data
