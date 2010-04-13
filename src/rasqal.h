@@ -600,7 +600,7 @@ typedef enum {
 
 
 /**
- * rasqal_expression_s:
+ * rasqal_expression:
  * @world: rasqal_world object
  * @usage: reference count - 1 for itself
  * @op: expression operation
@@ -1612,6 +1612,24 @@ int rasqal_set_triples_source_factory(rasqal_world* world, rasqal_triples_source
  * RASQAL_LITERAL_UDT_DEFINED
  *
  * Internal
+ */
+
+/**
+ * rasqal_expression_s:
+ * @usage: Internal
+ * @op: Internal
+ * @arg1: Internal
+ * @arg2: Internal
+ * @arg3: Internal
+ * @literal: Internal
+ * @value: Internal
+ * @name: Internal
+ * @args: Internal
+ * @params: Internal
+ * @flags: Internal
+ *
+ * Internal - see #rasqal_expression.
+ *
  */
 
 /**
