@@ -20,6 +20,9 @@ with the SPARQL <literal>GRAPH</literal>).
 <!-- ##### SECTION Stability_Level ##### -->
 
 
+<!-- ##### SECTION Image ##### -->
+
+
 <!-- ##### STRUCT rasqal_triple ##### -->
 <para>
 

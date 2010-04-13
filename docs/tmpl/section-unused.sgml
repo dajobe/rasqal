@@ -17,11 +17,7 @@ Not used
 <!-- ##### SECTION Stability_Level ##### -->
 
 
-<!-- ##### MACRO RAPTOR_WORLD_DECLARED ##### -->
-<para>
-
-</para>
-
+<!-- ##### SECTION Image ##### -->
 
 
 <!-- ##### MACRO RASQAL_API ##### -->
@@ -45,7 +41,7 @@ Not used
 
 
 
-<!-- ##### FUNCTION bind_match ##### -->
+<!-- ##### USER_FUNCTION bind_match ##### -->
 <para>
 
 </para>
@@ -57,7 +53,7 @@ Not used
 @Returns: 
 
 
-<!-- ##### FUNCTION finish ##### -->
+<!-- ##### USER_FUNCTION finish ##### -->
 <para>
 
 </para>
@@ -66,7 +62,7 @@ Not used
 @user_data: 
 
 
-<!-- ##### FUNCTION free_triples_source ##### -->
+<!-- ##### USER_FUNCTION free_triples_source ##### -->
 <para>
 
 </para>
@@ -74,7 +70,7 @@ Not used
 @user_data: 
 
 
-<!-- ##### FUNCTION init_triples_match ##### -->
+<!-- ##### USER_FUNCTION init_triples_match ##### -->
 <para>
 
 </para>
@@ -87,7 +83,7 @@ Not used
 @Returns: 
 
 
-<!-- ##### FUNCTION is_end ##### -->
+<!-- ##### USER_FUNCTION is_end ##### -->
 <para>
 
 </para>
@@ -97,7 +93,7 @@ Not used
 @Returns: 
 
 
-<!-- ##### FUNCTION next_match ##### -->
+<!-- ##### USER_FUNCTION next_match ##### -->
 <para>
 
 </para>
@@ -112,7 +108,7 @@ Not used
 </para>
 
 
-<!-- ##### FUNCTION triple_present ##### -->
+<!-- ##### USER_FUNCTION triple_present ##### -->
 <para>
 
 </para>
@@ -121,12 +117,6 @@ Not used
 @user_data: 
 @t: 
 @Returns: 
-
-
-<!-- ##### TYPEDEF raptor_world ##### -->
-<para>
-
-</para>
 
 
 <!-- ##### MACRO RASQAL_LITERAL_UDT_DEFINED ##### -->

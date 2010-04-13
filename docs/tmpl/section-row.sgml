@@ -19,6 +19,9 @@ a #rasqal_query_results query result set.
 <!-- ##### SECTION Stability_Level ##### -->
 
 
+<!-- ##### SECTION Image ##### -->
+
+
 <!-- ##### TYPEDEF rasqal_row ##### -->
 <para>
 

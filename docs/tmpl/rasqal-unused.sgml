@@ -22,6 +22,18 @@
 rasqal
 
 
+<!-- ##### MACRO RAPTOR_WORLD_DECLARED ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### TYPEDEF raptor_world ##### -->
+<para>
+
+</para>
+
+
 <!-- ##### FUNCTION rasqal_expression_evaluate2 ##### -->
 <para>
 

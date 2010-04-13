@@ -20,6 +20,9 @@ in which case it might define the order of variables in resulting rows.
 <!-- ##### SECTION Stability_Level ##### -->
 
 
+<!-- ##### SECTION Image ##### -->
+
+
 <!-- ##### TYPEDEF rasqal_variables_table ##### -->
 <para>
 
