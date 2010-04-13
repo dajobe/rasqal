@@ -598,14 +598,15 @@ typedef enum {
   RASQAL_EXPR_FLAG_AGGREGATE = 2
 } rasqal_expression_flags;
 
+
 /**
- * rasqal_expression:
+ * rasqal_expression_s:
  * @world: rasqal_world object
  * @usage: reference count - 1 for itself
  * @op: expression operation
  * @arg1: first argument
  * @arg2: second argument
- * @arg3: third argument (for #EXPR_REGEX )
+ * @arg3: third argument (for #RASQAL_EXPR_REGEX )
  * @literal: literal argument
  * @value: UTF-8 value
  * @name: name for extension function qname(args...) and cast-to-uri
