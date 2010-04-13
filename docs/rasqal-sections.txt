@@ -326,7 +326,6 @@ rasqal_xsd_decimal_negate
 
 <SECTION>
 <FILE>section-unused</FILE>
-RAPTOR_WORLD_DECLARED
 RASQAL_API
 RASQAL_QUERY_RESULTS_FORMATTER_DECLARED
 RASQAL_WORLD_DECLARED
@@ -338,6 +337,5 @@ is_end
 next_match
 rasqal_expression_s
 triple_present
-raptor_world
 RASQAL_LITERAL_UDT_DEFINED
 </SECTION>
