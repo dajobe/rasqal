@@ -758,8 +758,7 @@ rasqal_new_string_literal_common(rasqal_world* world,
  * prefixes have not yet been declared or checked.
  * 
  * If the string literal is datatyped and of certain types recognised
- * it may be converted to a different literal type by
- * rasqal_literal_string_to_native()
+ * it may be converted to a different literal type.
  *
  * Return value: New #rasqal_literal or NULL on failure
  **/
