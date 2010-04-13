@@ -2283,14 +2283,14 @@ rasqal_literal_equals(rasqal_literal* l1, rasqal_literal* l2)
 }
 
 
-/**
+/*
  * rasqal_literal_equals_flags:
  * @l1: #rasqal_literal literal
  * @l2: #rasqal_literal data literal
  * @flags: comparison flags
  * @error_p: type error
  *
- * Compare two literals with optional type promotion.
+ * INTERNAL - Compare two literals with optional type promotion.
  * 
  * flag bits affects equality:
  *   RASQAL_COMPARE_XQUERY: use XQuery comparison and type promotion rules
