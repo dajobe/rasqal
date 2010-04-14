@@ -149,7 +149,7 @@ rasqal_query_results_write_table_bindings(raptor_iostream *iostr,
         continue;
 
 #ifdef RAPTOR_V2_AVAILABLE
-      str_iostr = raptor_new_iostream_to_string(query->world->raptor_world_ptr,
+      str_iostr = raptor_new_iostream_to_string(rasqal_query_results_get_query(results)->world->raptor_world_ptr,
                                                 (void**)&values[i], &v_len,
                                                 rasqal_alloc_memory);
 #else
