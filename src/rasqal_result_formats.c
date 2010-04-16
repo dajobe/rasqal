@@ -410,6 +410,9 @@ rasqal_query_results_formatter_get_mime_type(rasqal_query_results_formatter *for
  * @base_uri: #raptor_uri base URI of the output format
  *
  * Write the query results using the given formatter to an iostream
+ *
+ * Note that after calling this method, the query results will be
+ * empty and rasqal_query_results_finished() will return true (non-0)
  * 
  * See rasqal_query_results_formats_enumerate() to get the
  * list of syntax URIs and their description. 

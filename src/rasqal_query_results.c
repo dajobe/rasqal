@@ -1385,6 +1385,9 @@ rasqal_query_results_get_boolean(rasqal_query_results* query_results)
  * rasqal_query_results_formatter_write() method to perform the
  * formatting.
  *
+ * Note that after calling this method, the query results will be
+ * empty and rasqal_query_results_finished() will return true (non-0)
+ *
  * See rasqal_query_results_formats_enumerate() for obtaining the
  * supported format names, mime_types and URIs at run time.
  *
@@ -1435,6 +1438,9 @@ rasqal_query_results_write2(raptor_iostream *iostr,
  * to perform the formatting. See
  * rasqal_query_results_formats_enumerate() 
  * for obtaining the supported format URIs at run time.
+ *
+ * Note that after calling this method, the query results will be
+ * empty and rasqal_query_results_finished() will return true (non-0)
  *
  * @Deprecated: Use rasqal_query_results_write2() with extra format
  * name and mime_type args.
