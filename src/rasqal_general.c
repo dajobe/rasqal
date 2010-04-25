@@ -226,7 +226,8 @@ rasqal_world_open(rasqal_world *world)
 void
 rasqal_free_world(rasqal_world* world) 
 {
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN(world, rasqal_world);
+  if(!world)
+    return;
   
   rasqal_finish_result_formats(world);
   rasqal_finish_query_results();
@@ -1042,7 +1043,8 @@ rasqal_world_generate_bnodeid(rasqal_world* world,
 void
 rasqal_free_memory(void *ptr)
 {
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN(ptr, memory);
+  if(!ptr)
+    return;
   
   RASQAL_FREE(void, ptr);
 }

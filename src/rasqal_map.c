@@ -163,7 +163,8 @@ rasqal_new_map(rasqal_compare_fn* compare_fn,
 void
 rasqal_free_map(rasqal_map *map)
 {
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN(map, rasqal_map);
+  if(!map)
+    return;
   
   if(map->root)
     rasqal_free_map_node(map->root, map->free);

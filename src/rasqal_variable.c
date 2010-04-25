@@ -157,7 +157,8 @@ rasqal_new_variable_from_variable(rasqal_variable* v)
 void
 rasqal_free_variable(rasqal_variable* v)
 {
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN(v, rasqal_variable);
+  if(!v)
+    return;
   
   if(v->name)
     RASQAL_FREE(cstring, (void*)v->name);
@@ -367,7 +368,8 @@ rasqal_new_variables_table_from_variables_table(rasqal_variables_table* vt)
 void
 rasqal_free_variables_table(rasqal_variables_table* vt)
 {
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN(vt, rasqal_variables_table);
+  if(!vt)
+    return;
 
   if(--vt->usage)
     return;

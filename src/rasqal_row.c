@@ -144,7 +144,8 @@ rasqal_new_row_from_row(rasqal_row* row)
 void 
 rasqal_free_row(rasqal_row* row)
 {
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN(row, rasqal_row);
+  if(!row)
+    return;
 
   if(--row->usage)
     return;

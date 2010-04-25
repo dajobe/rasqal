@@ -929,7 +929,8 @@ rasqal_new_literal_from_literal(rasqal_literal* l)
 void
 rasqal_free_literal(rasqal_literal* l)
 {
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN(l, rasqal_literal);
+  if(!l)
+    return;
   
   if(--l->usage)
     return;

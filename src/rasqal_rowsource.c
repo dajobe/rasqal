@@ -120,7 +120,7 @@ rasqal_new_rowsource_from_handler(rasqal_world* world,
  * rasqal_free_rowsource:
  * @rowsource: rowsource object
  *
- * Destructor - destroy an rowsource.
+ * INTERNAL - Destructor - destroy an rowsource.
  **/
 void
 rasqal_free_rowsource(rasqal_rowsource *rowsource)

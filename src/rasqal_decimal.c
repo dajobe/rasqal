@@ -125,7 +125,8 @@ rasqal_new_xsd_decimal(rasqal_world* world)
 void
 rasqal_free_xsd_decimal(rasqal_xsd_decimal* dec)
 {
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN(dec, rasqal_xsd_decimal);
+  if(!dec)
+    return;
   
   rasqal_xsd_decimal_clear(dec);
   RASQAL_FREE(decimal, dec);

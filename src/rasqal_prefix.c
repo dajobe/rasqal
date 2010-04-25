@@ -84,7 +84,8 @@ rasqal_new_prefix(rasqal_world* world, const unsigned char *prefix,
 void
 rasqal_free_prefix(rasqal_prefix* p)
 {
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN(p, rasqal_prefix);
+  if(!p)
+    return;
   
   if(p->prefix)
     RASQAL_FREE(cstring, (void*)p->prefix);

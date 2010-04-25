@@ -111,7 +111,8 @@ rasqal_new_triple_from_triple(rasqal_triple* t)
 void
 rasqal_free_triple(rasqal_triple* t)
 {
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN(t, rasqal_triple);
+  if(!t)
+    return;
   
   if(t->subject)
     rasqal_free_literal(t->subject);

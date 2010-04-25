@@ -86,8 +86,9 @@ rasqal_new_data_graph(rasqal_world* world, raptor_uri* uri,
 void
 rasqal_free_data_graph(rasqal_data_graph* dg)
 {
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN(dg, rasqal_data_graph);
-
+  if(!dg)
+    return;
+  
   if(dg->uri)
     raptor_free_uri(dg->uri);
   if(dg->name_uri)

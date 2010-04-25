@@ -690,7 +690,8 @@ rasqal_new_expression_from_expression(rasqal_expression* e)
 void
 rasqal_free_expression(rasqal_expression* e)
 {
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN(e, rasqal_expression);
+  if(!e)
+    return;
   
   if(--e->usage)
     return;
