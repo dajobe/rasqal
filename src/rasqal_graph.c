@@ -127,12 +127,12 @@ void rasqal_free_graph_bindings(rasqal_graph_bindings *graph_bindings);
 int rasqal_graph_bindings_bind(rasqal_graph_bindings *graph_bindings);
 
 
-/**
+/*
  * rasqal_init_graph_factory:
  * @world: rasqal world
  * @factory: factory
  *
- * Set graph matching factory for rasqal world.
+ * INTERNAL - Set graph matching factory for rasqal world.
  *
  * Return value: non-0 on failure
  **/
@@ -154,11 +154,11 @@ rasqal_init_graph_factory(rasqal_world *world,
 }
 
 
-/**
+/*
  * rasqal_free_graph_factory:
  * @world: rasqal world
  *
- * Free any resources attached to the graph factory
+ * INTERNAL - Free any resources attached to the graph factory
  */
 void
 rasqal_free_graph_factory(rasqal_world *world)
@@ -170,12 +170,12 @@ rasqal_free_graph_factory(rasqal_world *world)
 }
 
 
-/**
+/*
  * rasqal_dataset_enumerate:
  * @world: rasqal world
  * @offset: offset
  * 
- * Get the URIs of the graphs in the dataset
+ * INTERNAL - Get the URIs of the graphs in the dataset
  * 
  * Return value: URI or NULL if offset is out of rangek
  **/
@@ -188,12 +188,12 @@ rasqal_dataset_enumerate(rasqal_world* world, int offset)
 }
 
 
-/**
+/*
  * rasqal_dataset_graph_present:
  * @world: rasqal world
  * @uri: graph URI
  * 
- * Check if a graph is in the dataset
+ * INTERNAL - Check if a graph is in the dataset
  * 
  * Return value: non-0 if the graph is present
  **/
@@ -217,12 +217,12 @@ rasqal_dataset_graph_present(rasqal_world* world, raptor_uri* uri)
 }
 
 
-/**
+/*
  * rasqal_dataset_graph_load:
  * @world: rasqal world
  * @uri: graph URI to load
  * 
- * Load graph into daaset
+ * INTERNAL - Load graph into daaset
  * 
  * Return value: graph API object or NULL on failure
  **/
@@ -235,12 +235,12 @@ rasqal_dataset_graph_load(rasqal_world* world, raptor_uri* uri)
 }
 
 
-/**
+/*
  * rasqal_new_graph:
  * @world: rasqal world
  * @uri: graph URI (or NULL for default graph)
  * 
- * Constructor - Create a new graph API for a given URI
+ * INTERNAL - Constructor - Create a new graph API for a given URI
  * 
  * Returns: graph API object or NULL on failure
  **/
@@ -265,11 +265,11 @@ rasqal_new_graph(rasqal_world* world, raptor_uri *uri)
 }
 
 
-/**
+/*
  * rasqal_free_graph:
  * @graph: graph API object
  * 
- * Destructor - Destroy a graph API object
+ * INTERNAL - Destructor - Destroy a graph API object
  * 
  **/
 void
@@ -286,11 +286,11 @@ rasqal_free_graph(rasqal_graph *graph)
 }
 
 
-/**
+/*
  * rasqal_new_graph_from_graph:
  * @graph: graph API object
  *
- * Copy constructor
+ * INTERNAL - Copy constructor
  *
  * Return value: new graph object
  */
@@ -303,12 +303,12 @@ rasqal_new_graph_from_graph(rasqal_graph *graph)
 }
 
 
-/**
+/*
  * rasqal_graph_triple_present:
  * @graph: graph API object
  * @triple: triple
  *
- * Test if a triple is in a graph
+ * INTERNAL - Test if a triple is in a graph
  *
  * Return value: non-0 if triple is present
  */
@@ -321,12 +321,12 @@ rasqal_graph_triple_present(rasqal_graph *graph, rasqal_triple *triple)
 }
 
 
-/**
+/*
  * rasqal_new_graph_match:
  * @graph: graph API object
  * @triple: triple pattern
  * 
- * Constructor - create a new triple pattern matcher for a triple pattern
+ * INTERNAL - Constructor - create a new triple pattern matcher for a triple pattern
  * 
  * Returns: triple pattern matcher or NULL on failure
  **/
@@ -352,11 +352,11 @@ rasqal_new_graph_match(rasqal_graph *graph, rasqal_triple *triple)
 }
 
 
-/**
+/*
  * rasqal_free_graph_match:
  * @match: triple pattern matcher object
  * 
- * Destructor - Delete a triple pattern matcher
+ * INTERNAL - Destructor - Delete a triple pattern matcher
  **/
 void
 rasqal_free_graph_match(rasqal_graph_match *match)
@@ -371,11 +371,11 @@ rasqal_free_graph_match(rasqal_graph_match *match)
 }
 
 
-/**
+/*
  * rasqal_graph_match_get_triple:
  * @match: triple pattern matcher object
  * 
- * Get the next triple from a triple pattern matcher
+ * INTERNAL - Get the next triple from a triple pattern matcher
  * 
  * Returns: new triple object or NULL when no (more) triples match
  **/
@@ -388,14 +388,14 @@ rasqal_graph_match_get_triple(rasqal_graph_match *match)
 }
 
 
-/**
+/*
  * rasqal_new_graph_bindings:
  * @graph: graph API object 
  * @triples: graph pattern as an array of triples of size @triples_count
  * @triples_count: number of triples in graph pattern
  * @filter: expression over the resulting bound variables to filter and constrain matches
  * 
- * Constructor - Make a new graph bindings  
+ * INTERNAL - Constructor - Make a new graph bindings  
  *
  * Returns: new graph bindings or NULL on failure
  **/
@@ -425,11 +425,11 @@ rasqal_new_graph_bindings(rasqal_graph *graph,
 }
 
 
-/**
+/*
  * rasqal_free_graph_bindings:
  * @graph_bindings: graph binding object
  * 
- * Destructor - free a graph bindings object
+ * INTERNAL - Destructor - free a graph bindings object
  **/
 void
 rasqal_free_graph_bindings(rasqal_graph_bindings *graph_bindings)
@@ -444,11 +444,11 @@ rasqal_free_graph_bindings(rasqal_graph_bindings *graph_bindings)
 }
 
 
-/**
+/*
  * rasqal_graph_bindings_bind:
  * @graph_bindings: graph bindings object
  *
- * Match a graph pattern and bind variables to the matches
+ * INTERNAL - Match a graph pattern and bind variables to the matches
  * 
  * Returns: non-0 on failure
  **/
