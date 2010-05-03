@@ -123,7 +123,7 @@ rasqal_query_results_write_table_bindings(raptor_iostream *iostr,
   }
 
 #ifdef RAPTOR_V2_AVAILABLE
-  seq = raptor_new_sequence((raptor_data_free_handler*)rasqal_free_chararray_v2, NULL);
+  seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_chararray_v2, NULL);
 #else
   seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_chararray, NULL);
 #endif

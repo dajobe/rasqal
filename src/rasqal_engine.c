@@ -625,7 +625,7 @@ rasqal_engine_remove_filter_graph_patterns(rasqal_query* query,
   
   
 #ifdef RAPTOR_V2_AVAILABLE
-  seq = raptor_new_sequence((raptor_data_free_handler*)rasqal_free_graph_pattern, (raptor_data_print_handler*)rasqal_graph_pattern_print);
+  seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_graph_pattern, (raptor_data_print_handler)rasqal_graph_pattern_print);
 #else
   seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_graph_pattern, (raptor_sequence_print_handler*)rasqal_graph_pattern_print);
 #endif
@@ -1442,7 +1442,7 @@ rasqal_engine_make_rowsource(rasqal_query* query,
   }
   
 #ifdef RAPTOR_V2_AVAILABLE
-  con->seq = raptor_new_sequence((raptor_data_free_handler*)rasqal_free_row, (raptor_data_print_handler*)rasqal_row_print);
+  con->seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_row, (raptor_data_print_handler)rasqal_row_print);
 #else
   con->seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_row, (raptor_sequence_print_handler*)rasqal_row_print);
 #endif
@@ -1807,7 +1807,7 @@ rasqal_query_engine_1_execute_init(void* ex_data,
   }
 
 #ifdef RAPTOR_V2_AVAILABLE
-  execution_data->seq = raptor_new_sequence((raptor_data_free_handler*)rasqal_free_gp_data, NULL);
+  execution_data->seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_gp_data, NULL);
 #else
   execution_data->seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_gp_data, NULL);
 #endif

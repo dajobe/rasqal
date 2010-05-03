@@ -320,8 +320,8 @@ rasqal_new_variables_table(rasqal_world* world)
   vt->world = world;
 
 #ifdef RAPTOR_V2_AVAILABLE
-  vt->variables_sequence = raptor_new_sequence((raptor_data_free_handler*)rasqal_free_variable,
-                                               (raptor_data_print_handler*)rasqal_variable_print);
+  vt->variables_sequence = raptor_new_sequence((raptor_data_free_handler)rasqal_free_variable,
+                                               (raptor_data_print_handler)rasqal_variable_print);
 #else
   vt->variables_sequence = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_variable,
                                                (raptor_sequence_print_handler*)rasqal_variable_print);
@@ -330,8 +330,8 @@ rasqal_new_variables_table(rasqal_world* world)
     goto tidy;
 
 #ifdef RAPTOR_V2_AVAILABLE
-  vt->anon_variables_sequence = raptor_new_sequence((raptor_data_free_handler*)rasqal_free_variable,
-                                                    (raptor_data_print_handler*)rasqal_variable_print);
+  vt->anon_variables_sequence = raptor_new_sequence((raptor_data_free_handler)rasqal_free_variable,
+                                                    (raptor_data_print_handler)rasqal_variable_print);
 #else
   vt->anon_variables_sequence = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_variable,
                                                     (raptor_sequence_print_handler*)rasqal_variable_print);

@@ -988,7 +988,7 @@ void rasqal_expression_write(rasqal_expression* e, raptor_iostream* iostr);
 typedef void (*rasqal_map_visit_fn)(void *key, void *value, void *user_data);
 
 #ifdef RAPTOR_V2_AVAILABLE
-rasqal_map* rasqal_new_map(rasqal_compare_fn* compare_fn, void* compare_user_data, rasqal_compare_free_user_data_fn* free_compare_user_data, rasqal_kv_free_fn* free_fn, raptor_data_print_handler* print_key_fn, raptor_data_print_handler* print_value_fn, int flags);
+rasqal_map* rasqal_new_map(rasqal_compare_fn* compare_fn, void* compare_user_data, rasqal_compare_free_user_data_fn* free_compare_user_data, rasqal_kv_free_fn* free_fn, raptor_data_print_handler print_key_fn, raptor_data_print_handler print_value_fn, int flags);
 #else
 rasqal_map* rasqal_new_map(rasqal_compare_fn* compare_fn, void* compare_user_data, rasqal_compare_free_user_data_fn* free_compare_user_data, rasqal_kv_free_fn* free_fn, raptor_sequence_print_handler* print_key_fn, raptor_sequence_print_handler* print_value_fn, int flags);
 #endif

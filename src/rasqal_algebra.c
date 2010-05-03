@@ -1288,7 +1288,7 @@ rasqal_algebra_query_to_algebra(rasqal_query* query)
        * the ORDERBY algebra node
        */
 #ifdef RAPTOR_V2_AVAILABLE
-      seq = raptor_new_sequence((raptor_data_free_handler*)rasqal_free_expression, (raptor_data_print_handler*)rasqal_expression_print);
+      seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_expression, (raptor_data_print_handler)rasqal_expression_print);
 #else
       seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_expression, (raptor_sequence_print_handler*)rasqal_expression_print);
 #endif
@@ -1333,8 +1333,8 @@ rasqal_algebra_query_to_algebra(rasqal_query* query)
       vars_size = raptor_sequence_size(seq);
     
 #ifdef RAPTOR_V2_AVAILABLE
-    vars_seq = raptor_new_sequence((raptor_data_free_handler*)rasqal_free_variable,
-                                   (raptor_data_print_handler*)rasqal_variable_print);
+    vars_seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_variable,
+                                   (raptor_data_print_handler)rasqal_variable_print);
 #else
     vars_seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_variable,
                                    (raptor_sequence_print_handler*)rasqal_variable_print);
@@ -1605,8 +1605,8 @@ main(int argc, char *argv[]) {
    * ORDER BY 1, 2 which would probably never appear in a query.
    */
 #ifdef RAPTOR_V2_AVAILABLE
-  conditions = raptor_new_sequence((raptor_data_free_handler*)rasqal_free_expression,
-                                   (raptor_data_print_handler*)rasqal_expression_print);
+  conditions = raptor_new_sequence((raptor_data_free_handler)rasqal_free_expression,
+                                   (raptor_data_print_handler)rasqal_expression_print);
 #else
   conditions = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_expression,
                                    (raptor_sequence_print_handler*)rasqal_expression_print);

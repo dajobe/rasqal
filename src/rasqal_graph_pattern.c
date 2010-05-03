@@ -668,7 +668,7 @@ rasqal_graph_pattern_add_sub_graph_pattern(rasqal_graph_pattern* graph_pattern,
 
   if(!graph_pattern->graph_patterns) {
 #ifdef RAPTOR_V2_AVAILABLE
-    graph_pattern->graph_patterns = raptor_new_sequence((raptor_data_free_handler*)rasqal_free_graph_pattern, (raptor_data_print_handler*)rasqal_graph_pattern_print);
+    graph_pattern->graph_patterns = raptor_new_sequence((raptor_data_free_handler)rasqal_free_graph_pattern, (raptor_data_print_handler)rasqal_graph_pattern_print);
 #else
     graph_pattern->graph_patterns = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_graph_pattern, (raptor_sequence_print_handler*)rasqal_graph_pattern_print);
 #endif
@@ -841,7 +841,7 @@ rasqal_new_2_group_graph_pattern(rasqal_query* query,
   raptor_sequence *seq;
 
 #ifdef RAPTOR_V2_AVAILABLE
-  seq = raptor_new_sequence((raptor_data_free_handler*)rasqal_free_graph_pattern, (raptor_data_print_handler*)rasqal_graph_pattern_print);
+  seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_graph_pattern, (raptor_data_print_handler)rasqal_graph_pattern_print);
 #else
   seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_graph_pattern, (raptor_sequence_print_handler*)rasqal_graph_pattern_print);
 #endif

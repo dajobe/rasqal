@@ -650,8 +650,8 @@ main(int argc, char *argv[])
         seq_p = (c == 'D') ? &data_source_uris : &named_source_uris;
         if(!*seq_p) {
 #ifdef RAPTOR_V2_AVAILABLE
-          *seq_p = raptor_new_sequence((raptor_data_free_handler*)raptor_free_uri,
-                                       (raptor_data_print_handler*)raptor_uri_print);
+          *seq_p = raptor_new_sequence((raptor_data_free_handler)raptor_free_uri,
+                                       (raptor_data_print_handler)raptor_uri_print);
 
 #else
           *seq_p = raptor_new_sequence((raptor_sequence_free_handler*)raptor_free_uri,

@@ -57,8 +57,8 @@ struct rasqal_map_s {
   rasqal_compare_free_user_data_fn* free_compare_data;
   rasqal_kv_free_fn* free;
 #ifdef RAPTOR_V2_AVAILABLE
-  raptor_data_print_handler* print_key;
-  raptor_data_print_handler* print_value;
+  raptor_data_print_handler print_key;
+  raptor_data_print_handler print_value;
 #else
   raptor_sequence_print_handler* print_key;
   raptor_sequence_print_handler* print_value;
@@ -119,8 +119,8 @@ rasqal_new_map(rasqal_compare_fn* compare_fn,
                void *compare_user_data,
                rasqal_compare_free_user_data_fn* free_compare_data_fn,
                rasqal_kv_free_fn* free_fn,
-               raptor_data_print_handler* print_key_fn,
-               raptor_data_print_handler* print_value_fn,
+               raptor_data_print_handler print_key_fn,
+               raptor_data_print_handler print_value_fn,
                int flags)
 #else
 rasqal_map*

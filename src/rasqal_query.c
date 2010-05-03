@@ -150,7 +150,7 @@ rasqal_new_query(rasqal_world *world, const char *name,
     goto tidy;
 
 #ifdef RAPTOR_V2_AVAILABLE
-  query->triples = raptor_new_sequence((raptor_data_free_handler*)rasqal_free_triple, (raptor_data_print_handler*)rasqal_triple_print);
+  query->triples = raptor_new_sequence((raptor_data_free_handler)rasqal_free_triple, (raptor_data_print_handler)rasqal_triple_print);
 #else
   query->triples = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_triple, (raptor_sequence_print_handler*)rasqal_triple_print);
 #endif
@@ -158,7 +158,7 @@ rasqal_new_query(rasqal_world *world, const char *name,
     goto tidy;
 
 #ifdef RAPTOR_V2_AVAILABLE
-  query->prefixes = raptor_new_sequence((raptor_data_free_handler*)rasqal_free_prefix, (raptor_data_print_handler*)rasqal_prefix_print);
+  query->prefixes = raptor_new_sequence((raptor_data_free_handler)rasqal_free_prefix, (raptor_data_print_handler)rasqal_prefix_print);
 #else
   query->prefixes = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_prefix, (raptor_sequence_print_handler*)rasqal_prefix_print);
 #endif
@@ -166,7 +166,7 @@ rasqal_new_query(rasqal_world *world, const char *name,
     goto tidy;
 
 #ifdef RAPTOR_V2_AVAILABLE
-  query->data_graphs = raptor_new_sequence((raptor_data_free_handler*)rasqal_free_data_graph, (raptor_data_print_handler*)rasqal_data_graph_print);
+  query->data_graphs = raptor_new_sequence((raptor_data_free_handler)rasqal_free_data_graph, (raptor_data_print_handler)rasqal_data_graph_print);
 #else
   query->data_graphs = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_data_graph, (raptor_sequence_print_handler*)rasqal_data_graph_print);
 #endif
@@ -174,7 +174,7 @@ rasqal_new_query(rasqal_world *world, const char *name,
     goto tidy;
 
 #ifdef RAPTOR_V2_AVAILABLE
-  query->results = raptor_new_sequence((raptor_data_free_handler*)rasqal_query_results_remove_query_reference, NULL);
+  query->results = raptor_new_sequence((raptor_data_free_handler)rasqal_query_results_remove_query_reference, NULL);
 #else
   query->results = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_query_results_remove_query_reference, NULL);
 #endif
@@ -795,7 +795,7 @@ rasqal_query_add_variable(rasqal_query* query, rasqal_variable* var)
 
   if(!query->selects) {
 #ifdef RAPTOR_V2_AVAILABLE
-    query->selects = raptor_new_sequence(NULL, (raptor_data_print_handler*)rasqal_variable_print);
+    query->selects = raptor_new_sequence(NULL, (raptor_data_print_handler)rasqal_variable_print);
 #else
     query->selects = raptor_new_sequence(NULL, (raptor_sequence_print_handler*)rasqal_variable_print);
 #endif
@@ -1074,7 +1074,7 @@ rasqal_query_add_prefix(rasqal_query* query, rasqal_prefix* prefix)
 
   if(!query->prefixes) {
 #ifdef RAPTOR_V2_AVAILABLE
-    query->prefixes = raptor_new_sequence((raptor_data_free_handler*)rasqal_free_prefix, (raptor_data_print_handler*)rasqal_prefix_print);
+    query->prefixes = raptor_new_sequence((raptor_data_free_handler)rasqal_free_prefix, (raptor_data_print_handler)rasqal_prefix_print);
 #else
     query->prefixes = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_prefix, (raptor_sequence_print_handler*)rasqal_prefix_print);
 #endif
@@ -1958,7 +1958,7 @@ rasqal_query_add_update_operation(rasqal_query* query,
 
   if(!query->updates) {
 #ifdef RAPTOR_V2_AVAILABLE
-    query->updates = raptor_new_sequence((raptor_data_free_handler*)rasqal_free_update_operation, (raptor_data_print_handler*)rasqal_update_operation_print);
+    query->updates = raptor_new_sequence((raptor_data_free_handler)rasqal_free_update_operation, (raptor_data_print_handler)rasqal_update_operation_print);
 #else
     query->updates = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_update_operation, (raptor_sequence_print_handler*)rasqal_update_operation_print);
 #endif

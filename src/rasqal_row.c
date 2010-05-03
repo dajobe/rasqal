@@ -303,8 +303,8 @@ rasqal_new_row_sequence(rasqal_world* world,
   row_data[((((row)*vars_count)+(column))<<1)+(offset)]
 
 #ifdef RAPTOR_V2_AVAILABLE
-  seq = raptor_new_sequence((raptor_data_free_handler*)rasqal_free_row,
-                            (raptor_data_print_handler*)rasqal_row_print);
+  seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_row,
+                            (raptor_data_print_handler)rasqal_row_print);
 #else
   seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_row,
                             (raptor_sequence_print_handler*)rasqal_row_print);
@@ -315,7 +315,7 @@ rasqal_new_row_sequence(rasqal_world* world,
   if(vars_seq_p) {
 #ifdef RAPTOR_V2_AVAILABLE
     vars_seq = raptor_new_sequence(NULL,
-                                   (raptor_data_print_handler*)rasqal_variable_print);
+                                   (raptor_data_print_handler)rasqal_variable_print);
 #else
     vars_seq = raptor_new_sequence(NULL,
                                    (raptor_sequence_print_handler*)rasqal_variable_print);
