@@ -840,7 +840,7 @@ sparql_copy_string_token(rasqal_query* rq, YYSTYPE* lval,
       RASQAL_FREE(cstring, string);
       return 1;
     }
-    strncpy(new_language, language, new_language_len + 1);
+    memcpy(new_language, language, new_language_len + 1);
     language = new_language;
   }
   
@@ -1677,7 +1677,7 @@ main(int argc, char *argv[])
 
   len =  strlen((const char*)query_string);
   buf =  (char *)RASQAL_MALLOC(cstring, len+3);
-  strncpy(buf, query_string, len);
+  memcpy(buf, query_string, len);
   buf[len] =  ' ';
   buf[len+1] =  buf[len+2] = '\0'; /* YY_END_OF_BUFFER_CHAR; */
   buffer =  sparql_lexer__scan_buffer(buf, len+3, scanner);

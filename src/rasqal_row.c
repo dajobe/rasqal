@@ -341,7 +341,7 @@ rasqal_new_row_sequence(rasqal_world* world,
       goto tidy;
     }
 
-    strncpy((char*)name, var_name, var_name_len+1);
+    memcpy((void*)name, var_name, var_name_len + 1);
     v = rasqal_variables_table_add(vt, RASQAL_VARIABLE_TYPE_NORMAL, name, NULL);
     if(!v) {
       failed = 1;
@@ -382,7 +382,7 @@ rasqal_new_row_sequence(rasqal_world* world,
         unsigned char *val;
         val = (unsigned char*)RASQAL_MALLOC(cstring, str_len+1);
         if(val) {
-          strncpy((char*)val, str, str_len+1);
+          memcpy(val, str, str_len + 1);
           l = rasqal_new_string_literal_node(world, val, NULL, NULL);
         } else 
           failed = 1;

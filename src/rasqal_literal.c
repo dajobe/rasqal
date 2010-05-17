@@ -502,7 +502,7 @@ rasqal_literal_set_typed_value(rasqal_literal* l, rasqal_literal_type type,
     l->string = (unsigned char*)RASQAL_MALLOC(cstring, l->string_len+1);
     if(!l->string)
       return 1;
-    strncpy((char*)l->string, (const char*)string, l->string_len+1);
+    memcpy((void*)l->string, string, l->string_len + 1);
   }
 
   if(l->type != RASQAL_LITERAL_INTEGER_SUBTYPE) {
@@ -1681,7 +1681,7 @@ rasqal_new_literal_from_promotion(rasqal_literal* lit,
       new_s = (unsigned char*)RASQAL_MALLOC(sstring, len+1);
       if(new_s) {
         raptor_uri* dt_uri = NULL;
-        strncpy((char*)new_s, (const char*)s, len+1);
+        memcpy(new_s, s, len + 1);
         if(lit->datatype) {
           dt_uri = raptor_uri_copy(lit->datatype);
         }
@@ -1743,7 +1743,7 @@ rasqal_new_literal_from_promotion(rasqal_literal* lit,
       len = strlen((const char*)s);
       new_s = (unsigned char*)RASQAL_MALLOC(sstring, len+1);
       if(new_s) {
-        strncpy((char*)new_s, (const char*)s, len+1);
+        memcpy(new_s, s, len + 1);
         new_lit = rasqal_new_string_literal(lit->world, new_s, NULL, NULL, NULL);
       }
       break;
@@ -1754,7 +1754,7 @@ rasqal_new_literal_from_promotion(rasqal_literal* lit,
       new_s = (unsigned char*)RASQAL_MALLOC(sstring, len+1);
       if(new_s) {
         raptor_uri* dt_uri;
-        strncpy((char*)new_s, (const char*)s, len+1);
+        memcpy(new_s, s, len + 1);
         dt_uri = rasqal_xsd_datatype_type_to_uri(lit->world, lit->type);
         dt_uri = raptor_uri_copy(dt_uri);
         new_lit = rasqal_new_string_literal(lit->world, new_s, NULL, dt_uri,
@@ -2598,7 +2598,7 @@ rasqal_literal_as_node(rasqal_literal* l)
           rasqal_free_literal(new_l);
           return NULL; 
         }
-        strncpy((char*)new_l->string, (const char*)l->string, l->string_len+1);
+        memcpy((void*)new_l->string, l->string, l->string_len + 1);
         dt_uri = rasqal_xsd_datatype_type_to_uri(l->world, l->type);
         if(!dt_uri) {
           rasqal_free_literal(new_l);

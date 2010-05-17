@@ -1001,8 +1001,8 @@ rasqal_world_default_generate_bnodeid_handler(void *user_data,
   if(!buffer)
     return NULL;
   if(world->default_generate_bnodeid_handler_prefix) {
-    strncpy((char*)buffer, world->default_generate_bnodeid_handler_prefix,
-            world->default_generate_bnodeid_handler_prefix_length);
+    memcpy(buffer, world->default_generate_bnodeid_handler_prefix,
+           world->default_generate_bnodeid_handler_prefix_length);
     sprintf((char*)buffer + world->default_generate_bnodeid_handler_prefix_length,
             "%d", id);
   } else 

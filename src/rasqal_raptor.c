@@ -120,7 +120,7 @@ raptor_statement_as_rasqal_triple(rasqal_world* world,
   if(statement->subject->type == RAPTOR_TERM_TYPE_BLANK) {
     len = strlen((char*)statement->subject->value.blank.string);
     new_str = (unsigned char*)RASQAL_MALLOC(cstring, len + 1);
-    strncpy((char*)new_str, (const char*)statement->subject->value.blank.string, len + 1);
+    memcpy(new_str, statement->subject->value.blank.string, len + 1);
     s = rasqal_new_simple_literal(world, RASQAL_LITERAL_BLANK, new_str);
   } else {
     uri = raptor_uri_copy((raptor_uri*)statement->subject->value.uri);
@@ -137,13 +137,12 @@ raptor_statement_as_rasqal_triple(rasqal_world* world,
 
     len = strlen((char*)statement->object->value.literal.string);
     new_str = (unsigned char*)RASQAL_MALLOC(cstring, len + 1);
-    strncpy((char*)new_str, (const char*)statement->object->value.literal.string, len + 1);
+    memcpy(new_str, statement->object->value.literal.string, len + 1);
 
     if(statement->object->value.literal.language) {
       len = strlen((const char*)statement->object->value.literal.language);
       language = (char*)RASQAL_MALLOC(cstring, len + 1);
-      strncpy(language, (const char*)statement->object->value.literal.language,
-              len + 1);
+      memcpy(language, statement->object->value.literal.language, len + 1);
     }
 
     if(statement->object->value.literal.datatype)
@@ -155,7 +154,7 @@ raptor_statement_as_rasqal_triple(rasqal_world* world,
   } else if(statement->object->type == RAPTOR_TERM_TYPE_BLANK) {
     len = strlen((char*)statement->object->value.blank.string);
     new_str = (unsigned char*)RASQAL_MALLOC(cstring, len + 1);
-    strncpy((char*)new_str, (const char*)statement->object->value.blank.string, len + 1);
+    memcpy(new_str, statement->object->value.blank.string, len + 1);
     o = rasqal_new_simple_literal(world, RASQAL_LITERAL_BLANK, new_str);
   } else {
     uri = raptor_uri_copy((raptor_uri*)statement->object->value.uri);
@@ -177,7 +176,7 @@ raptor_statement_as_rasqal_triple(rasqal_world* world,
 
     blank_len = strlen((char*)statement->subject);
     new_blank = (unsigned char*)RASQAL_MALLOC(cstring, blank_len + 1);
-    strncpy((char*)new_blank, (const char*)statement->subject, blank_len + 1);
+    memcpy(new_blank, statement->subject, blank_len + 1);
     s = rasqal_new_simple_literal(world, RASQAL_LITERAL_BLANK, new_blank);
   } else if(statement->subject_type == RAPTOR_IDENTIFIER_TYPE_ORDINAL) {
     raptor_uri* uri;
@@ -215,14 +214,13 @@ raptor_statement_as_rasqal_triple(rasqal_world* world,
 
     literal_len = strlen((char*)statement->object);
     string = (unsigned char*)RASQAL_MALLOC(cstring, literal_len + 1);
-    strncpy((char*)string, (const char*)statement->object, literal_len + 1);
+    memcpy(string, statement->object, literal_len + 1);
 
     if(statement->object_literal_language) {
       size_t language_len;
       language_len = strlen((const char*)statement->object_literal_language);
       language = (char*)RASQAL_MALLOC(cstring, language_len + 1);
-      strncpy(language, (const char*)statement->object_literal_language,
-              language_len + 1);
+      memcpy(language, statement->object_literal_language, language_len + 1);
     }
 
     if(statement->object_type == RAPTOR_IDENTIFIER_TYPE_XML_LITERAL) {
@@ -243,7 +241,7 @@ raptor_statement_as_rasqal_triple(rasqal_world* world,
 
     blank_len = strlen(blank);
     new_blank = (unsigned char*)RASQAL_MALLOC(cstring, blank_len + 1);
-    strncpy((char*)new_blank, (const char*)blank, blank_len + 1);
+    memcpy(new_blank, blank, blank_len + 1);
     o = rasqal_new_simple_literal(world, RASQAL_LITERAL_BLANK, new_blank);
   } else if(statement->object_type == RAPTOR_IDENTIFIER_TYPE_ORDINAL) {
     raptor_uri* uri = ordinal_as_uri(world, *((int*)statement->object));
@@ -347,11 +345,10 @@ rasqal_raptor_generate_id_handler(void *user_data,
     mapped_id = (unsigned char*)RASQAL_MALLOC(cstring, 
                                               rtsc->mapped_id_base_len + 1 + 
                                               user_bnodeid_len + 1);
-    strncpy((char*)mapped_id, (const char*)rtsc->mapped_id_base, 
-            rtsc->mapped_id_base_len);
+    memcpy(mapped_id, rtsc->mapped_id_base, rtsc->mapped_id_base_len);
     mapped_id[rtsc->mapped_id_base_len] = '_';
-    strncpy((char*)(mapped_id+rtsc->mapped_id_base_len + 1),
-            (const char*)user_bnodeid, user_bnodeid_len + 1);
+    memcpy(mapped_id + rtsc->mapped_id_base_len + 1,
+           user_bnodeid, user_bnodeid_len + 1);
 
     raptor_free_memory(user_bnodeid);
     return mapped_id;

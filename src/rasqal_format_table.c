@@ -195,11 +195,11 @@ rasqal_query_results_write_table_bindings(raptor_iostream *iostr,
 
   if(1) {
     char * p = sep;
-    strncpy(p, VSEP, VSEP_LEN);
+    memcpy(p, VSEP, VSEP_LEN);
     p += VSEP_LEN;
     for(i = 0; i < bindings_count; i++) {
       p += PAD_LEN + widths[i] + PAD_LEN;
-      strncpy(p, VSEP, VSEP_LEN);
+      memcpy(p, VSEP, VSEP_LEN);
       p += VSEP_LEN;
     }
   }

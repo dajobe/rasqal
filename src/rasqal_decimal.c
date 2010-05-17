@@ -217,7 +217,7 @@ rasqal_xsd_decimal_set_string(rasqal_xsd_decimal* dec, const char* string)
   dec->string=(char*)RASQAL_MALLOC(cstring, len+1);
   if(!dec->string)
     return 1;
-  strncpy(dec->string, string, len+1);
+  memcpy(dec->string, string, len + 1);
   dec->string_len=len;
   
 #if defined(RASQAL_DECIMAL_C99) || defined(RASQAL_DECIMAL_NONE)
@@ -370,7 +370,7 @@ rasqal_xsd_decimal_as_string(rasqal_xsd_decimal* dec)
     /* first digit of mantissa */
     if(!*from_p || *from_p == '0') {
       len=5;
-      strncpy(s, "0.0e0", len+1);
+      memcpy(s, "0.0e0", len + 1);
     } else {
       char* to_p=s;
       int n;
@@ -387,7 +387,7 @@ rasqal_xsd_decimal_as_string(rasqal_xsd_decimal* dec)
       /* remove trailing 0s */
       while(from_len > 1 && from_p[from_len-1]=='0')
         from_len--;
-      strncpy(to_p, from_p, from_len);
+      memcpy(to_p, from_p, from_len);
       to_p += from_len;
       /* exp */
       n=sprintf(to_p, "e%ld", expo-1);
@@ -414,7 +414,7 @@ rasqal_xsd_decimal_as_string(rasqal_xsd_decimal* dec)
     /* first digit of mantissa */
     if(!*from_p || *from_p == '0') {
       len=5;
-      strncpy(s, "0.0e0", len+1);
+      memcpy(s, "0.0e0", len + 1);
     } else {
       char *to_p=s;
       int n;
@@ -428,7 +428,7 @@ rasqal_xsd_decimal_as_string(rasqal_xsd_decimal* dec)
       from_len--;
       *to_p++ = '.';
       /* rest of mantissa */
-      strncpy(to_p, from_p, from_len);
+      memcpy(to_p, from_p, from_len);
       to_p+= from_len;
       /* exp */
       n=sprintf(to_p, "e%ld", expo-1);

@@ -426,7 +426,7 @@ rdql_copy_regex_token(rasqal_query* rq, YYSTYPE* lval, unsigned char delim)
         new_buffer_len = 10;
       new_buffer = (unsigned char*)RASQAL_CALLOC(cstring, 1, new_buffer_len + 1);
       if(buffer_len) {
-        strncpy((char*)new_buffer, (const char*)buffer, buffer_len);
+        memcpy(new_buffer, buffer, buffer_len);
         RASQAL_FREE(cstring, buffer);
       }
       buffer=new_buffer;
@@ -461,7 +461,7 @@ rdql_copy_regex_token(rasqal_query* rq, YYSTYPE* lval, unsigned char delim)
         new_flags_len = 5;
       new_flags = (unsigned char*)RASQAL_CALLOC(cstring, 1, new_flags_len + 1);
       if(flags_len) {
-        strncpy((char*)new_flags, (const char*)flags, flags_len);
+        memcpy(new_flags, flags, flags_len);
         RASQAL_FREE(cstring, flags);
       }
       flags = new_flags;
@@ -581,7 +581,7 @@ rdql_copy_string_token(rasqal_query* rq, YYSTYPE* lval,
     char *new_language;
     size_t new_language_len = strlen((const char*)language);
     new_language = (char*)RASQAL_MALLOC(cstring, new_language_len + 1);
-    strncpy(new_language, language, new_language_len + 1);
+    memcpy(new_language, language, new_language_len + 1);
     language = new_language;
   }
   
@@ -598,7 +598,7 @@ rdql_copy_string_token(rasqal_query* rq, YYSTYPE* lval,
       
       /* the qname is expanded later */
       dt_qname = (unsigned char*)RASQAL_MALLOC(cstring, dt_qname_len + 1);
-      strncpy((char*)dt_qname, (const char*)dt, dt_qname_len + 1);
+      memcpy(dt_qname, dt, dt_qname_len + 1);
     }
   }
 
@@ -1172,7 +1172,7 @@ main(int argc, char *argv[])
   
   len = strlen((const char*)query_string);
   buf = (char *)RASQAL_MALLOC(cstring, len + 3);
-  strncpy(buf, query_string, len);
+  memcpy(buf, query_string, len);
   buf[len] = ' ';
   buf[len + 1] = buf[len + 2] = '\0'; /* YY_END_OF_BUFFER_CHAR; */
   buffer = rdql_lexer__scan_buffer(buf, len + 3, scanner);

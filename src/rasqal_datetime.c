@@ -242,7 +242,7 @@ rasqal_xsd_datetime_parse_and_normalize_common(const unsigned char *datetime_str
     return -1;
 
   l = (l < sizeof(b)-1 ? l : sizeof(b)-1);
-  strncpy(b, q, l);
+  memcpy(b, q, l);
   b[l] = 0; /* ensure nul termination */
   u = strtoul(b, 0, 10);
   
