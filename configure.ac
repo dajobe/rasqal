@@ -262,6 +262,11 @@ AC_TRY_LINK([#ifdef HAVE_GETOPT_H
 # raptor is REQUIRED despite the checking here
 RAPTOR_MIN_VERSION=1.4.19
 RAPTOR_MAX_VERSION=1.8.99
+RAPTOR2_MIN_VERSION=1.9.0
+
+raptor2=no
+AC_ARG_ENABLE(raptor2, [  --enable-raptor2  Enable use of raptor2], raptor2="$enableval", raptor2="no")
+
 AC_SUBST(RAPTOR_MIN_VERSION)
 AC_SUBST(RAPTOR_MAX_VERSION)
 
@@ -270,36 +275,37 @@ if test "X$PKG_CONFIG" = X; then
   AC_MSG_WARN(pkg-config not found. configuring raptor 2.0 will require it.  Get it from http://pkg-config.freedesktop.org/)
 fi
 
+AC_MSG_CHECKING(for raptor)
 if test "X$PKG_CONFIG" != X; then
-  # Prefer pkg-config raptor (ignores --with-raptor)
-  # Try raptor2 first, then raptor
-  RAPTOR_VERSION=`$PKG_CONFIG raptor2 --modversion 2>/dev/null`
+  # When raptor2 is stable, this can be changed to prefer raptor2
+  # For now an explicit configure --enable-raptor2 is required.
+  if test "X$raptor2" = "Xyes"; then
+    RAPTOR_MIN_VERSION=$RAPTOR2_MIN_VERSION
 
-  if $PKG_CONFIG raptor2 --exists; then
-    with_raptor=system
-    if $PKG_CONFIG raptor2 --atleast-version=$RAPTOR_MIN_VERSION --max-version=$RAPTOR_MAX_VERSION; then
+    if $PKG_CONFIG raptor2 --exists; then
       RAPTOR_CONFIG="$PKG_CONFIG raptor2"
       RAPTOR_PACKAGE="raptor2"
     else
-      AC_MSG_WARN(Installed raptor2 $RAPTOR_VERSION is not in supported range - $RAPTOR_MIN_VERSION to $RAPTOR_MAX_VERSION)
+      AC_MSG_ERROR(Raptor2 is not installed - see http://librdf.org/raptor/ to get a version newer than $RAPTOR_MIN_VERSION)
     fi
   else
-    RAPTOR_VERSION=`$PKG_CONFIG raptor --modversion 2>/dev/null`
-
     if $PKG_CONFIG raptor --exists; then
-      with_raptor=system
       if $PKG_CONFIG raptor --atleast-version=$RAPTOR_MIN_VERSION --max-version=$RAPTOR_MAX_VERSION; then
         RAPTOR_CONFIG="$PKG_CONFIG raptor"
         RAPTOR_PACKAGE="raptor"
       else
-        AC_MSG_WARN(Installed raptor $RAPTOR_VERSION is not in supported range - $RAPTOR_MIN_VERSION to $RAPTOR_MAX_VERSION)
+        AC_MSG_ERROR(Installed raptor $RAPTOR_VERSION is not in supported range - $RAPTOR_MIN_VERSION to $RAPTOR_MAX_VERSION)
       fi
     else
-      AC_MSG_ERROR(Raptor missing - get it from http://librdf.org/raptor/)
+      AC_MSG_ERROR(Raptor is not installed - see http://librdf.org/raptor/ to get a version newer than $RAPTOR_MIN_VERSION)
     fi
   fi
+
+  with_raptor=system
+  RAPTOR_VERSION=`$RAPTOR_CONFIG --modversion 2>/dev/null`
 else
-  # otherwise use raptor-config
+  # otherwise use raptor-config for raptor V1 only
+  raptor2=no
   AC_CHECK_PROG(RAPTOR_CONFIG, raptor-config, raptor-config)
   AC_ARG_WITH(raptor, [  --with-raptor=SOURCE        Pick raptor source - system/internal (default auto)], with_raptor="$withval", with_raptor="auto")
 
@@ -327,13 +333,14 @@ else
 	AC_MSG_WARN(or omit any --with-raptor argument.)
       fi
     fi
+
+    unset RAPTOR_VERSION_DEC RAPTOR_MIN_VERSION_DEC RAPTOR_MAX_VERSION_DEC
   fi
   RAPTOR_PACKAGE="raptor"
 fi
 AC_SUBST(with_raptor)
 AC_SUBST(RAPTOR_PACKAGE)
 
-AC_MSG_CHECKING(raptor library source)
 if test $with_raptor = system; then
   AC_MSG_RESULT(system $RAPTOR_VERSION)
 else
@@ -342,6 +349,11 @@ else
   if test ! -r $srcdir/../raptor/src/raptor_general.c; then
     AC_MSG_ERROR(Raptor sources missing from $srcdir/../raptor directory - cannot use internal)
   fi
+fi
+
+AM_CONDITIONAL(RAPTOR2, test "X$raptor2" = "Xyes")
+if test "X$raptor2" = "Xyes"; then
+  AC_DEFINE(HAVE_RAPTOR2_API, 1, [Raptor2 API is available])
 fi
 
 
