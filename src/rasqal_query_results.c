@@ -217,7 +217,7 @@ rasqal_new_query_results(rasqal_world* world,
   query_results->ask_result = -1; 
   query_results->store_results = 0; 
   query_results->current_triple_result = -1;
-#ifdef RAPTOR_V2_AVAILABLE
+#ifdef HAVE_RAPTOR2_API
   /* initialize static query_results->result_triple */
   raptor_statement_init(&query_results->result_triple, world->raptor_world_ptr);
 #else
@@ -364,7 +364,7 @@ rasqal_free_query_results(rasqal_query_results* query_results)
   if(query_results->results_sequence)
     raptor_free_sequence(query_results->results_sequence);
 
-#ifdef RAPTOR_V2_AVAILABLE
+#ifdef HAVE_RAPTOR2_API
   /* free terms owned by static query_results->result_triple */
   raptor_free_statement(&query_results->result_triple);
 #endif
@@ -1015,7 +1015,7 @@ rasqal_query_results_get_triple(rasqal_query_results* query_results)
       continue;
     }
 
-#ifdef RAPTOR_V2_AVAILABLE
+#ifdef HAVE_RAPTOR2_API
     /* raptor v2 terms are copied, not shared */
     if(rs->subject) {
       raptor_free_term(rs->subject);
@@ -1025,7 +1025,7 @@ rasqal_query_results_get_triple(rasqal_query_results* query_results)
 
     switch(s->type) {
       case RASQAL_LITERAL_URI:
-#ifdef RAPTOR_V2_AVAILABLE
+#ifdef HAVE_RAPTOR2_API
         rs->subject = raptor_new_term_from_uri(query_results->world->raptor_world_ptr,
                                                s->value.uri);
 #else
@@ -1052,7 +1052,7 @@ rasqal_query_results_get_triple(rasqal_query_results* query_results)
                                   "Could not create a new subject blank literal");
           return NULL;
         }
-#ifdef RAPTOR_V2_AVAILABLE
+#ifdef HAVE_RAPTOR2_API
         rs->subject = raptor_new_term_from_blank(query_results->world->raptor_world_ptr,
                                                  nodeid);
 #else
@@ -1109,7 +1109,7 @@ rasqal_query_results_get_triple(rasqal_query_results* query_results)
     }
     switch(p->type) {
       case RASQAL_LITERAL_URI:
-#ifdef RAPTOR_V2_AVAILABLE
+#ifdef HAVE_RAPTOR2_API
         /* raptor v2 terms are copied, not shared */
         if(rs->predicate) {
           raptor_free_term(rs->predicate);
@@ -1171,7 +1171,7 @@ rasqal_query_results_get_triple(rasqal_query_results* query_results)
       continue;
     }
 
-#ifdef RAPTOR_V2_AVAILABLE
+#ifdef HAVE_RAPTOR2_API
     /* raptor v2 terms are copied, not shared */
     if(rs->object) {
       raptor_free_term(rs->object);
@@ -1181,7 +1181,7 @@ rasqal_query_results_get_triple(rasqal_query_results* query_results)
 
     switch(o->type) {
       case RASQAL_LITERAL_URI:
-#ifdef RAPTOR_V2_AVAILABLE
+#ifdef HAVE_RAPTOR2_API
         rs->object = raptor_new_term_from_uri(query_results->world->raptor_world_ptr,
                                               o->value.uri);
 #else
@@ -1212,7 +1212,7 @@ rasqal_query_results_get_triple(rasqal_query_results* query_results)
           rasqal_free_literal(p);
           return NULL;
         }
-#ifdef RAPTOR_V2_AVAILABLE
+#ifdef HAVE_RAPTOR2_API
         rs->object = raptor_new_term_from_blank(query_results->world->raptor_world_ptr,
                                                 nodeid);
 #else
@@ -1222,7 +1222,7 @@ rasqal_query_results_get_triple(rasqal_query_results* query_results)
         break;
 
       case RASQAL_LITERAL_STRING:
-#ifdef RAPTOR_V2_AVAILABLE
+#ifdef HAVE_RAPTOR2_API
         rs->object = raptor_new_term_from_literal(query_results->world->raptor_world_ptr,
                                                   o->string,
                                                   o->datatype,
@@ -1571,7 +1571,7 @@ rasqal_query_results_add_row(rasqal_query_results* query_results,
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(row, rasqal_row, 1);
 
   if(!query_results->results_sequence) {
-#ifdef RAPTOR_V2_AVAILABLE
+#ifdef HAVE_RAPTOR2_API
     query_results->results_sequence = raptor_new_sequence((raptor_data_free_handler)rasqal_free_row, (raptor_data_print_handler)rasqal_row_print);
 #else
     query_results->results_sequence = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_row, (raptor_sequence_print_handler*)rasqal_row_print);

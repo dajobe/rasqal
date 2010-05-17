@@ -87,7 +87,7 @@ rasqal_init_result_formats(rasqal_world* world)
 {
   int rc = 0;
   
-#ifdef RAPTOR_V2_AVAILABLE
+#ifdef HAVE_RAPTOR2_API
   world->query_results_formats = raptor_new_sequence((raptor_data_free_handler)rasqal_free_query_results_format_factory, NULL);
 #else
   world->query_results_formats = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_query_results_format_factory, NULL);

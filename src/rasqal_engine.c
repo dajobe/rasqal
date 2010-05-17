@@ -624,7 +624,7 @@ rasqal_engine_remove_filter_graph_patterns(rasqal_query* query,
   }
   
   
-#ifdef RAPTOR_V2_AVAILABLE
+#ifdef HAVE_RAPTOR2_API
   seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_graph_pattern, (raptor_data_print_handler)rasqal_graph_pattern_print);
 #else
   seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_graph_pattern, (raptor_sequence_print_handler*)rasqal_graph_pattern_print);
@@ -1441,7 +1441,7 @@ rasqal_engine_make_rowsource(rasqal_query* query,
       con->order_size = raptor_sequence_size(query->order_conditions_sequence);
   }
   
-#ifdef RAPTOR_V2_AVAILABLE
+#ifdef HAVE_RAPTOR2_API
   con->seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_row, (raptor_data_print_handler)rasqal_row_print);
 #else
   con->seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_row, (raptor_sequence_print_handler*)rasqal_row_print);
@@ -1806,7 +1806,7 @@ rasqal_query_engine_1_execute_init(void* ex_data,
     }
   }
 
-#ifdef RAPTOR_V2_AVAILABLE
+#ifdef HAVE_RAPTOR2_API
   execution_data->seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_gp_data, NULL);
 #else
   execution_data->seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_gp_data, NULL);

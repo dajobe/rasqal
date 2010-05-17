@@ -1287,7 +1287,7 @@ rasqal_algebra_query_to_algebra(rasqal_query* query)
       /* Make a deep copy of the query order conditions sequence for
        * the ORDERBY algebra node
        */
-#ifdef RAPTOR_V2_AVAILABLE
+#ifdef HAVE_RAPTOR2_API
       seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_expression, (raptor_data_print_handler)rasqal_expression_print);
 #else
       seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_expression, (raptor_sequence_print_handler*)rasqal_expression_print);
@@ -1332,7 +1332,7 @@ rasqal_algebra_query_to_algebra(rasqal_query* query)
     if(seq)
       vars_size = raptor_sequence_size(seq);
     
-#ifdef RAPTOR_V2_AVAILABLE
+#ifdef HAVE_RAPTOR2_API
     vars_seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_variable,
                                    (raptor_data_print_handler)rasqal_variable_print);
 #else
@@ -1604,7 +1604,7 @@ main(int argc, char *argv[]) {
   /* This is an artificial order conditions sequence equivalent to
    * ORDER BY 1, 2 which would probably never appear in a query.
    */
-#ifdef RAPTOR_V2_AVAILABLE
+#ifdef HAVE_RAPTOR2_API
   conditions = raptor_new_sequence((raptor_data_free_handler)rasqal_free_expression,
                                    (raptor_data_print_handler)rasqal_expression_print);
 #else

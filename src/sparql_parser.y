@@ -566,7 +566,7 @@ SelectExpressionListTail: SelectExpressionListTail SelectTerm
 | SelectTerm
 {
   /* The variables are freed from the raptor_query field variables */
-#ifdef RAPTOR_V2_AVAILABLE
+#ifdef HAVE_RAPTOR2_API
   $$ = raptor_new_sequence(NULL,
                            (raptor_data_print_handler)rasqal_variable_print);
 #else
@@ -874,7 +874,7 @@ VarOrIRIrefList: VarOrIRIrefList VarOrIRIref
 }
 | VarOrIRIref
 {
-#ifdef RAPTOR_V2_AVAILABLE
+#ifdef HAVE_RAPTOR2_API
   $$ = raptor_new_sequence((raptor_data_free_handler)rasqal_free_literal,
                            (raptor_data_print_handler)rasqal_literal_print);
 #else
@@ -1060,7 +1060,7 @@ ModifyTemplateList: ModifyTemplateList ModifyTemplate
 }
 | ModifyTemplate
 {
-#ifdef RAPTOR_V2_AVAILABLE
+#ifdef HAVE_RAPTOR2_API
   $$ = raptor_new_sequence((raptor_data_free_handler)rasqal_free_graph_pattern,
                            (raptor_data_print_handler)rasqal_graph_pattern_print);
 #else
@@ -1538,7 +1538,7 @@ IriRefList: IriRefList URI_LITERAL
 }
 | URI_LITERAL
 {
-#ifdef RAPTOR_V2_AVAILABLE
+#ifdef HAVE_RAPTOR2_API
   $$ = raptor_new_sequence((raptor_data_free_handler)raptor_free_uri,
                            (raptor_data_print_handler)raptor_uri_print);
 #else
@@ -1716,7 +1716,7 @@ GroupConditionList: GroupConditionList GroupCondition
 }
 | GroupCondition
 {
-#ifdef RAPTOR_V2_AVAILABLE
+#ifdef HAVE_RAPTOR2_API
   $$ = raptor_new_sequence((raptor_data_free_handler)rasqal_free_expression,
                            (raptor_data_print_handler)rasqal_expression_print);
 #else
@@ -1836,7 +1836,7 @@ OrderConditionList: OrderConditionList OrderCondition
 }
 | OrderCondition
 {
-#ifdef RAPTOR_V2_AVAILABLE
+#ifdef HAVE_RAPTOR2_API
   $$ = raptor_new_sequence((raptor_data_free_handler)rasqal_free_expression,
                            (raptor_data_print_handler)rasqal_expression_print);
 #else
@@ -2260,7 +2260,7 @@ OptionalGraphPattern: OPTIONAL GroupGraphPattern
   if($2) {
     raptor_sequence *seq;
 
-#ifdef RAPTOR_V2_AVAILABLE
+#ifdef HAVE_RAPTOR2_API
     seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_graph_pattern,
                               (raptor_data_print_handler)rasqal_graph_pattern_print);
 #else
@@ -2304,7 +2304,7 @@ GraphGraphPattern: GRAPH VarOrIRIref GroupGraphPattern
   if($3) {
     raptor_sequence *seq;
 
-#ifdef RAPTOR_V2_AVAILABLE
+#ifdef HAVE_RAPTOR2_API
     seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_graph_pattern,
                               (raptor_data_print_handler)rasqal_graph_pattern_print);
 #else
@@ -2378,7 +2378,7 @@ GroupOrUnionGraphPatternList: GroupOrUnionGraphPatternList UNION GroupGraphPatte
 | GroupGraphPattern
 {
   raptor_sequence *seq;
-#ifdef RAPTOR_V2_AVAILABLE
+#ifdef HAVE_RAPTOR2_API
   seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_graph_pattern,
                             (raptor_data_print_handler)rasqal_graph_pattern_print);
 #else
@@ -2466,7 +2466,7 @@ FunctionCall: IRIref '(' DistinctOpt ArgListNoBraces ParamsOpt ')'
   raptor_uri* uri = rasqal_literal_as_uri($1);
   
   if(!$4) {
-#ifdef RAPTOR_V2_AVAILABLE
+#ifdef HAVE_RAPTOR2_API
     $4 = raptor_new_sequence((raptor_data_free_handler)rasqal_free_expression,
                              (raptor_data_print_handler)rasqal_expression_print);
 #else
@@ -2510,7 +2510,7 @@ IRIrefBrace ArgListNoBraces ')'
   raptor_uri* uri = rasqal_literal_as_uri($1);
   
   if(!$2) {
-#ifdef RAPTOR_V2_AVAILABLE
+#ifdef HAVE_RAPTOR2_API
     $2 = raptor_new_sequence((raptor_data_free_handler)rasqal_free_expression,
                              (raptor_data_print_handler)rasqal_expression_print);
 #else
@@ -2554,7 +2554,7 @@ CoalesceExpression: COALESCE ArgList
                         "COALESCE cannot be used with SPARQL 1.0");
 
   if(!$2) {
-#ifdef RAPTOR_V2_AVAILABLE
+#ifdef HAVE_RAPTOR2_API
     $2 = raptor_new_sequence((raptor_data_free_handler)rasqal_free_expression,
                              (raptor_data_print_handler)rasqal_expression_print);
 #else
@@ -2592,7 +2592,7 @@ ArgListNoBraces: ArgListNoBraces ',' Expression
 }
 | Expression
 {
-#ifdef RAPTOR_V2_AVAILABLE
+#ifdef HAVE_RAPTOR2_API
   $$ = raptor_new_sequence((raptor_data_free_handler)rasqal_free_expression,
                            (raptor_data_print_handler)rasqal_expression_print);
 #else
@@ -2633,7 +2633,7 @@ ConstructTriplesOpt: ConstructTriples
 }
 | /* empty */
 {
-#ifdef RAPTOR_V2_AVAILABLE
+#ifdef HAVE_RAPTOR2_API
   $$ = raptor_new_sequence((raptor_data_free_handler)rasqal_free_triple,
                            (raptor_data_print_handler)rasqal_triple_print);
 #else
@@ -2660,7 +2660,7 @@ ConstructTriples: TriplesSameSubject '.' ConstructTriplesOpt
   
   if($3) {
     if(!$$) {
-#ifdef RAPTOR_V2_AVAILABLE
+#ifdef HAVE_RAPTOR2_API
       $$ = raptor_new_sequence((raptor_data_free_handler)rasqal_free_triple,
                                (raptor_data_print_handler)rasqal_triple_print);
 #else
@@ -2826,7 +2826,7 @@ PropertyListNotEmpty: Verb ObjectList PropertyListTailOpt
         rasqal_free_formula($3);
       YYERROR_MSG("PropertyList 1: cannot create formula");
     }
-#ifdef RAPTOR_V2_AVAILABLE
+#ifdef HAVE_RAPTOR2_API
     formula->triples = raptor_new_sequence((raptor_data_free_handler)rasqal_free_triple,
                                            (raptor_data_print_handler)rasqal_triple_print);
 #else
@@ -2943,7 +2943,7 @@ ObjectList: Object ObjectTail
     YYERROR_MSG("ObjectList: cannot create formula");
   }
   
-#ifdef RAPTOR_V2_AVAILABLE
+#ifdef HAVE_RAPTOR2_API
   formula->triples = raptor_new_sequence((raptor_data_free_handler)rasqal_free_triple,
                                          (raptor_data_print_handler)rasqal_triple_print);
 #else
@@ -3038,7 +3038,7 @@ Verb: VarOrIRIref
   fprintf(DEBUG_FH, "verb Verb=rdf:type (a)\n");
 #endif
 
-#ifdef RAPTOR_V2_AVAILABLE
+#ifdef HAVE_RAPTOR2_API
   uri = raptor_new_uri_for_rdf_concept(((rasqal_query*)rq)->world->raptor_world_ptr,
                                        (const unsigned char*)"type");
 #else
@@ -3167,7 +3167,7 @@ Collection: '(' GraphNodeListNotEmpty ')'
   if(!$$)
     YYERR_MSG_GOTO(err_Collection, "Collection: cannot create formula");
 
-#ifdef RAPTOR_V2_AVAILABLE
+#ifdef HAVE_RAPTOR2_API
   $$->triples = raptor_new_sequence((raptor_data_free_handler)rasqal_free_triple,
                                     (raptor_data_print_handler)rasqal_triple_print);
 #else
@@ -3295,7 +3295,7 @@ GraphNodeListNotEmpty: GraphNodeListNotEmpty GraphNode
 
   $$ = $1;
   if(!$$) {
-#ifdef RAPTOR_V2_AVAILABLE
+#ifdef HAVE_RAPTOR2_API
     $$ = raptor_new_sequence((raptor_data_free_handler)rasqal_free_formula,
                              (raptor_data_print_handler)rasqal_formula_print);
 #else
@@ -3346,7 +3346,7 @@ GraphNodeListNotEmpty: GraphNodeListNotEmpty GraphNode
   if(!$1)
     $$ = NULL;
   else {
-#ifdef RAPTOR_V2_AVAILABLE
+#ifdef HAVE_RAPTOR2_API
     $$ = raptor_new_sequence((raptor_data_free_handler)rasqal_free_formula,
                              (raptor_data_print_handler)rasqal_formula_print);
 #else

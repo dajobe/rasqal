@@ -98,7 +98,7 @@ rasqal_new_query(rasqal_world *world, const char *name,
 {
   rasqal_query_language_factory* factory;
   rasqal_query* query;
-#ifndef RAPTOR_V2_AVAILABLE
+#ifndef HAVE_RAPTOR2_API
   const raptor_uri_handler *uri_handler;
   void *uri_context;
 #endif
@@ -133,7 +133,7 @@ rasqal_new_query(rasqal_world *world, const char *name,
   if(!query->context)
     goto tidy;
   
-#ifdef RAPTOR_V2_AVAILABLE
+#ifdef HAVE_RAPTOR2_API
   query->namespaces = raptor_new_namespaces(world->raptor_world_ptr, 0);
 #else
   raptor_uri_get_handler(&uri_handler, &uri_context);
@@ -149,7 +149,7 @@ rasqal_new_query(rasqal_world *world, const char *name,
   if(!query->vars_table)
     goto tidy;
 
-#ifdef RAPTOR_V2_AVAILABLE
+#ifdef HAVE_RAPTOR2_API
   query->triples = raptor_new_sequence((raptor_data_free_handler)rasqal_free_triple, (raptor_data_print_handler)rasqal_triple_print);
 #else
   query->triples = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_triple, (raptor_sequence_print_handler*)rasqal_triple_print);
@@ -157,7 +157,7 @@ rasqal_new_query(rasqal_world *world, const char *name,
   if(!query->triples)
     goto tidy;
 
-#ifdef RAPTOR_V2_AVAILABLE
+#ifdef HAVE_RAPTOR2_API
   query->prefixes = raptor_new_sequence((raptor_data_free_handler)rasqal_free_prefix, (raptor_data_print_handler)rasqal_prefix_print);
 #else
   query->prefixes = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_prefix, (raptor_sequence_print_handler*)rasqal_prefix_print);
@@ -165,7 +165,7 @@ rasqal_new_query(rasqal_world *world, const char *name,
   if(!query->prefixes)
     goto tidy;
 
-#ifdef RAPTOR_V2_AVAILABLE
+#ifdef HAVE_RAPTOR2_API
   query->data_graphs = raptor_new_sequence((raptor_data_free_handler)rasqal_free_data_graph, (raptor_data_print_handler)rasqal_data_graph_print);
 #else
   query->data_graphs = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_data_graph, (raptor_sequence_print_handler*)rasqal_data_graph_print);
@@ -173,7 +173,7 @@ rasqal_new_query(rasqal_world *world, const char *name,
   if(!query->data_graphs)
     goto tidy;
 
-#ifdef RAPTOR_V2_AVAILABLE
+#ifdef HAVE_RAPTOR2_API
   query->results = raptor_new_sequence((raptor_data_free_handler)rasqal_query_results_remove_query_reference, NULL);
 #else
   query->results = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_query_results_remove_query_reference, NULL);
@@ -801,7 +801,7 @@ rasqal_query_add_variable(rasqal_query* query, rasqal_variable* var)
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(var, rasqal_variable, 1);
 
   if(!query->selects) {
-#ifdef RAPTOR_V2_AVAILABLE
+#ifdef HAVE_RAPTOR2_API
     query->selects = raptor_new_sequence(NULL, (raptor_data_print_handler)rasqal_variable_print);
 #else
     query->selects = raptor_new_sequence(NULL, (raptor_sequence_print_handler*)rasqal_variable_print);
@@ -1080,7 +1080,7 @@ rasqal_query_add_prefix(rasqal_query* query, rasqal_prefix* prefix)
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(prefix, rasqal_prefix, 1);
 
   if(!query->prefixes) {
-#ifdef RAPTOR_V2_AVAILABLE
+#ifdef HAVE_RAPTOR2_API
     query->prefixes = raptor_new_sequence((raptor_data_free_handler)rasqal_free_prefix, (raptor_data_print_handler)rasqal_prefix_print);
 #else
     query->prefixes = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_prefix, (raptor_sequence_print_handler*)rasqal_prefix_print);
@@ -1844,7 +1844,7 @@ rasqal_query_escape_counted_string(rasqal_query* query,
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, NULL);
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(string, char*, NULL);
 
-#ifdef RAPTOR_V2_AVAILABLE
+#ifdef HAVE_RAPTOR2_API
   iostr = raptor_new_iostream_to_string(query->world->raptor_world_ptr,
                                         &output_string, output_len_p,
                                         rasqal_alloc_memory);
@@ -1964,7 +1964,7 @@ rasqal_query_add_update_operation(rasqal_query* query,
     return 1;
 
   if(!query->updates) {
-#ifdef RAPTOR_V2_AVAILABLE
+#ifdef HAVE_RAPTOR2_API
     query->updates = raptor_new_sequence((raptor_data_free_handler)rasqal_free_update_operation, (raptor_data_print_handler)rasqal_update_operation_print);
 #else
     query->updates = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_update_operation, (raptor_sequence_print_handler*)rasqal_update_operation_print);

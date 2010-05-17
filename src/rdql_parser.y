@@ -241,7 +241,7 @@ VarList : VarList ',' Var
 | Var
 {
   /* The variables are freed from the rasqal_query field variables */
-#ifdef RAPTOR_V2_AVAILABLE
+#ifdef HAVE_RAPTOR2_API
   $$ = raptor_new_sequence(NULL, (raptor_data_print_handler)rasqal_variable_print);
 #else
   $$ = raptor_new_sequence(NULL, (raptor_sequence_print_handler*)rasqal_variable_print);
@@ -608,7 +608,7 @@ URIList : URI_LITERAL ',' URIList
 }
 | URI_LITERAL
 {
-#ifdef RAPTOR_V2_AVAILABLE
+#ifdef HAVE_RAPTOR2_API
   $$ = raptor_new_sequence((raptor_data_free_handler)raptor_free_uri,
                            (raptor_data_print_handler)raptor_uri_print);
 #else

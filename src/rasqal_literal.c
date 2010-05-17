@@ -2477,7 +2477,7 @@ rasqal_literal_expand_qname(void *user_data, rasqal_literal *l)
     raptor_uri *uri;
 
     /* expand a literal qname */
-#ifdef RAPTOR_V2_AVAILABLE
+#ifdef HAVE_RAPTOR2_API
     uri = raptor_qname_string_to_uri(rq->namespaces,
                                      l->string, l->string_len);
 #else
@@ -2496,7 +2496,7 @@ rasqal_literal_expand_qname(void *user_data, rasqal_literal *l)
     
     if(l->flags) {
       /* expand a literal string datatype qname */
-#ifdef RAPTOR_V2_AVAILABLE
+#ifdef HAVE_RAPTOR2_API
       uri = raptor_qname_string_to_uri(rq->namespaces,
                                        l->flags,
                                        strlen((const char*)l->flags));

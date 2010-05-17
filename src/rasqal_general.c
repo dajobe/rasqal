@@ -140,7 +140,7 @@ rasqal_world_open(rasqal_world *world)
   if(world->opened++)
     return 0; /* not an error */
 
-#ifdef RAPTOR_V2_AVAILABLE
+#ifdef HAVE_RAPTOR2_API
   /* Create and init a raptor_world unless one is provided externally with rasqal_world_set_raptor() */
   if(!world->raptor_world_ptr) {
     world->raptor_world_ptr = raptor_new_world();
@@ -163,7 +163,7 @@ rasqal_world_open(rasqal_world *world)
   if(rc)
     return rc;
 
-#ifndef RAPTOR_V2_AVAILABLE
+#ifndef HAVE_RAPTOR2_API
 /* FIXME */
 #ifndef RAPTOR_ERROR_HANDLER_MAGIC
 #define RAPTOR_ERROR_HANDLER_MAGIC 0xD00DB1FF
@@ -242,7 +242,7 @@ rasqal_free_world(rasqal_world* world)
 
   rasqal_uri_finish(world);
 
-#ifdef RAPTOR_V2_AVAILABLE
+#ifdef HAVE_RAPTOR2_API
   if(world->raptor_world_ptr && world->raptor_world_allocated_here)
     raptor_free_world(world->raptor_world_ptr);
 #else
@@ -562,7 +562,7 @@ rasqal_language_name_check(rasqal_world* world, const char *name)
 
 
 static const char* const rasqal_log_level_labels[RAPTOR_LOG_LEVEL_LAST+1]={
-#ifdef RAPTOR_V2_AVAILABLE
+#ifdef HAVE_RAPTOR2_API
   /* raptor2 levels */
  "none",
  "trace",
@@ -605,7 +605,7 @@ rasqal_log_error_varargs(rasqal_world* world, raptor_log_level level,
 {
   char *buffer;
   size_t length;
-#ifdef RAPTOR_V2_AVAILABLE
+#ifdef HAVE_RAPTOR2_API
   raptor_log_message logmsg;
   raptor_log_handler handler = world->log_handler;
   void* handler_data = world->log_handler_user_data;
@@ -620,7 +620,7 @@ rasqal_log_error_varargs(rasqal_world* world, raptor_log_level level,
   buffer=raptor_vsnprintf(message, arguments);
   if(!buffer) {
     if(locator) {
-#ifdef RAPTOR_V2_AVAILABLE
+#ifdef HAVE_RAPTOR2_API
       raptor_locator_print(locator, stderr);
 #else
       raptor_print_locator(stderr, locator);
@@ -643,7 +643,7 @@ rasqal_log_error_varargs(rasqal_world* world, raptor_log_level level,
     /* This is the single place in rasqal that the user error handler
      * functions are called.
      */
-#ifdef RAPTOR_V2_AVAILABLE
+#ifdef HAVE_RAPTOR2_API
     /* raptor2 raptor_log_handler */
     logmsg.code = -1; /* no information to put as code */
     logmsg.level = level;
@@ -656,7 +656,7 @@ rasqal_log_error_varargs(rasqal_world* world, raptor_log_level level,
 #endif
   } else {
     if(locator) {
-#ifdef RAPTOR_V2_AVAILABLE
+#ifdef HAVE_RAPTOR2_API
       raptor_locator_print(locator, stderr);
 #else
       raptor_print_locator(stderr, locator);

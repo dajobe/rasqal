@@ -84,7 +84,7 @@ rasqal_query_write_sparql_uri(sparql_writer_context *wc,
     const raptor_namespace* nspace = raptor_qname_get_namespace(qname);
     if(!raptor_namespace_get_prefix(nspace))
       raptor_iostream_write_byte(':', iostr);
-#ifdef RAPTOR_V2_AVAILABLE
+#ifdef HAVE_RAPTOR2_API
     raptor_qname_write(qname, iostr);
 #else
     raptor_iostream_write_qname(iostr, qname);
@@ -635,7 +635,7 @@ rasqal_query_write_sparql_20060406(raptor_iostream *iostr,
 {
   int i;
   sparql_writer_context wc;
-#ifndef RAPTOR_V2_AVAILABLE
+#ifndef HAVE_RAPTOR2_API
   const raptor_uri_handler *uri_handler;
   void *uri_context;
 #endif
@@ -643,7 +643,7 @@ rasqal_query_write_sparql_20060406(raptor_iostream *iostr,
   wc.world = query->world;
   wc.base_uri = NULL;
 
-#ifdef RAPTOR_V2_AVAILABLE
+#ifdef HAVE_RAPTOR2_API
   wc.type_uri = raptor_new_uri_for_rdf_concept(query->world->raptor_world_ptr,
                                                (const unsigned char*)"type");
   wc.nstack = raptor_new_namespaces(query->world->raptor_world_ptr, 1);

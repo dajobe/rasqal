@@ -2725,7 +2725,7 @@ main(int argc, char *argv[])
   int error=0;
   rasqal_world *world;
 
-#ifdef RAPTOR_V2_AVAILABLE
+#ifdef HAVE_RAPTOR2_API
   raptor_world* raptor_world_ptr;
   raptor_world_ptr = raptor_new_world();
   if(!raptor_world_ptr || raptor_world_open(raptor_world_ptr))
@@ -2735,7 +2735,7 @@ main(int argc, char *argv[])
 #endif
 
   world = rasqal_new_world();
-#ifdef RAPTOR_V2_AVAILABLE
+#ifdef HAVE_RAPTOR2_API
   rasqal_world_set_raptor(world, raptor_world_ptr);
 #endif
   /* no rasqal_world_open() */
@@ -2783,7 +2783,7 @@ main(int argc, char *argv[])
   
   RASQAL_FREE(rasqal_world, world);
 
-#ifdef RAPTOR_V2_AVAILABLE
+#ifdef HAVE_RAPTOR2_API
   raptor_free_world(raptor_world_ptr);
 #else
   raptor_finish();

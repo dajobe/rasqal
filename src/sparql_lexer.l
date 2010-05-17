@@ -580,7 +580,7 @@ EXPONENT [eE][+-]?[0-9]+
                   if(!uri_string)
                     YY_FATAL_ERROR_EOF("rasqal_escaped_name_to_utf8_string failed");
 
-#ifdef RAPTOR_V2_AVAILABLE
+#ifdef HAVE_RAPTOR2_API
                   sparql_parser_lval->uri = raptor_new_uri_relative_to_base(rq->world->raptor_world_ptr, rq->base_uri, uri_string);
 #else
                   sparql_parser_lval->uri = raptor_new_uri_relative_to_base(rq->base_uri, uri_string);
@@ -700,7 +700,7 @@ sparql_copy_qname(rasqal_query *rq, const unsigned char *text, size_t len)
 
 #ifdef STANDALONE
   /* lexer test cannot declare namespaces - so just ignore expansion */
-# ifdef RAPTOR_V2_AVAILABLE
+# ifdef HAVE_RAPTOR2_API
   uri = raptor_new_uri_relative_to_base(rq->world->raptor_world_ptr, rq->base_uri, s);
 # else
   uri = raptor_new_uri_relative_to_base(rq->base_uri, s);
@@ -711,7 +711,7 @@ sparql_copy_qname(rasqal_query *rq, const unsigned char *text, size_t len)
     return NULL;
   }
   
-# ifdef RAPTOR_V2_AVAILABLE
+# ifdef HAVE_RAPTOR2_API
   uri = raptor_qname_string_to_uri(rq->namespaces,
                                    s, dest_len);
 # else
@@ -891,7 +891,7 @@ sparql_copy_string_token(rasqal_query* rq, YYSTYPE* lval,
         return 1;
       }
 
-# ifdef RAPTOR_V2_AVAILABLE
+# ifdef HAVE_RAPTOR2_API
       dt_uri = raptor_qname_string_to_uri(rq->namespaces,
                                           dt_s, dest_len);
 # else

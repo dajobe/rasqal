@@ -324,7 +324,7 @@ QUOTEDURI \<[A-Za-z][^>]+\>
                   rdql_parser_lval->uri = raptor_uri_copy(rq->base_uri);
                 else {
                   yytext[yyleng - 1] = '\0';
-#ifdef RAPTOR_V2_AVAILABLE
+#ifdef HAVE_RAPTOR2_API
                   rdql_parser_lval->uri = raptor_new_uri_relative_to_base(rq->world->raptor_world_ptr, rq->base_uri, (const unsigned char*)yytext + 1);
 #else                  
                   rdql_parser_lval->uri = raptor_new_uri_relative_to_base(rq->base_uri, (const unsigned char*)yytext + 1);

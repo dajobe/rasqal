@@ -96,7 +96,7 @@ rasqal_new_rowsource_from_handler(rasqal_world* world,
     rowsource->vars_table = NULL;
 
   /* no free method here - the variables are owned by rowsource->vars_table */
-#ifdef RAPTOR_V2_AVAILABLE
+#ifdef HAVE_RAPTOR2_API
   rowsource->variables_sequence = raptor_new_sequence(NULL, (raptor_data_print_handler)rasqal_variable_print);
 #else
   rowsource->variables_sequence = raptor_new_sequence(NULL, (raptor_sequence_print_handler*)rasqal_variable_print);
@@ -299,7 +299,7 @@ rasqal_rowsource_read_all_rows(rasqal_rowsource *rowsource)
   if(rowsource->handler->read_all_rows) {
     seq = rowsource->handler->read_all_rows(rowsource, rowsource->user_data);
     if(!seq)
-#ifdef RAPTOR_V2_AVAILABLE
+#ifdef HAVE_RAPTOR2_API
       seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_row,
                                 (raptor_data_print_handler)rasqal_row_print);
 #else
@@ -309,7 +309,7 @@ rasqal_rowsource_read_all_rows(rasqal_rowsource *rowsource)
     return seq;
   }
 
-#ifdef RAPTOR_V2_AVAILABLE
+#ifdef HAVE_RAPTOR2_API
   seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_row,
                             (raptor_data_print_handler)rasqal_row_print);
 #else

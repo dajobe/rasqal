@@ -987,7 +987,7 @@ void rasqal_expression_write(rasqal_expression* e, raptor_iostream* iostr);
 /* rasqal_map.c */
 typedef void (*rasqal_map_visit_fn)(void *key, void *value, void *user_data);
 
-#ifdef RAPTOR_V2_AVAILABLE
+#ifdef HAVE_RAPTOR2_API
 rasqal_map* rasqal_new_map(rasqal_compare_fn* compare_fn, void* compare_user_data, rasqal_compare_free_user_data_fn* free_compare_user_data, rasqal_kv_free_fn* free_fn, raptor_data_print_handler print_key_fn, raptor_data_print_handler print_value_fn, int flags);
 #else
 rasqal_map* rasqal_new_map(rasqal_compare_fn* compare_fn, void* compare_user_data, rasqal_compare_free_user_data_fn* free_compare_user_data, rasqal_kv_free_fn* free_fn, raptor_sequence_print_handler* print_key_fn, raptor_sequence_print_handler* print_value_fn, int flags);
@@ -1099,7 +1099,7 @@ struct rasqal_world_s {
   /* should rasqal free the raptor_world */
   int raptor_world_allocated_here;
 
-#ifdef RAPTOR_V2_AVAILABLE
+#ifdef HAVE_RAPTOR2_API
   /* log handler */
   raptor_log_handler log_handler;
   void *log_handler_user_data;
@@ -1377,7 +1377,7 @@ int rasqal_query_add_update_operation(rasqal_query* query, rasqal_update_operati
 
 /* raptor1 -> raptor2 migration */
 /* use preprocessor macros to map raptor2 calls to raptor1 if raptor2 is not available */
-#ifndef RAPTOR_V2_AVAILABLE
+#ifndef HAVE_RAPTOR2_API
 
 #define raptor_new_iostream_to_file_handle(world, fh) raptor_new_iostream_to_file_handle(fh)
 #define raptor_iostream_write_bytes(ptr, size, nmemb, iostr) raptor_iostream_write_bytes(iostr, ptr, size, nmemb)
@@ -1401,7 +1401,7 @@ int rasqal_query_add_update_operation(rasqal_query* query, rasqal_update_operati
 
 #define RAPTOR_LOG_LEVEL_WARN RAPTOR_LOG_LEVEL_WARNING
 
-#endif /* !RAPTOR_V2_AVAILABLE */
+#endif /* !HAVE_RAPTOR2_API */
 
   
 /* end of RASQAL_INTERNAL */

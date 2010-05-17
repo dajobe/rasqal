@@ -85,7 +85,7 @@ rasqal_query_results_write_sparql_xml(raptor_iostream *iostr,
 {
   int rc=1;
   rasqal_query* query = rasqal_query_results_get_query(results);
-#ifndef RAPTOR_V2_AVAILABLE
+#ifndef HAVE_RAPTOR2_API
   const raptor_uri_handler *uri_handler;
   void *uri_context;
 #endif
@@ -110,7 +110,7 @@ rasqal_query_results_write_sparql_xml(raptor_iostream *iostr,
   }
   
 
-#ifdef RAPTOR_V2_AVAILABLE  
+#ifdef HAVE_RAPTOR2_API  
   nstack = raptor_new_namespaces(query->world->raptor_world_ptr, 1);
 #else
   raptor_uri_get_handler(&uri_handler, &uri_context);
@@ -121,7 +121,7 @@ rasqal_query_results_write_sparql_xml(raptor_iostream *iostr,
   if(!nstack)
     return 1;
 
-#ifdef RAPTOR_V2_AVAILABLE
+#ifdef HAVE_RAPTOR2_API
   xml_writer = raptor_new_xml_writer(query->world->raptor_world_ptr,
                                      nstack,
                                      iostr);
@@ -179,7 +179,7 @@ rasqal_query_results_write_sparql_xml(raptor_iostream *iostr,
       attrs=(raptor_qname **)raptor_alloc_memory(sizeof(raptor_qname*));
       if(!attrs)
         goto tidy;
-#ifdef RAPTOR_V2_AVAILABLE
+#ifdef HAVE_RAPTOR2_API
       attrs[0] = raptor_new_qname_from_namespace_local_name(query->world->raptor_world_ptr,
                                                             res_ns,
                                                             (const unsigned char*)"name",
@@ -279,7 +279,7 @@ rasqal_query_results_write_sparql_xml(raptor_iostream *iostr,
       attrs=(raptor_qname **)raptor_alloc_memory(sizeof(raptor_qname*));
       if(!attrs)
         goto tidy;
-#ifdef RAPTOR_V2_AVAILABLE
+#ifdef HAVE_RAPTOR2_API
       attrs[0] = raptor_new_qname_from_namespace_local_name(query->world->raptor_world_ptr,
                                                             res_ns,
                                                             (const unsigned char*)"name",
@@ -351,12 +351,12 @@ rasqal_query_results_write_sparql_xml(raptor_iostream *iostr,
               attrs[0]=raptor_new_qname(nstack,
                                         (const unsigned char*)"xml:lang",
                                         (const unsigned char*)l->language
-#ifndef RAPTOR_V2_AVAILABLE
+#ifndef HAVE_RAPTOR2_API
                                         , (raptor_simple_message_handler)rasqal_query_simple_error, query
 #endif
                                         );
             else
-#ifdef RAPTOR_V2_AVAILABLE
+#ifdef HAVE_RAPTOR2_API
               attrs[0] = raptor_new_qname_from_namespace_local_name(query->world->raptor_world_ptr,
                                                                     res_ns,
                                                                     (const unsigned char*)"datatype",
@@ -515,7 +515,7 @@ typedef struct
   raptor_sax2* sax2;
   raptor_locator locator;
   int depth; /* element depth */
-#ifndef RAPTOR_V2_AVAILABLE
+#ifndef HAVE_RAPTOR2_API
   raptor_error_handlers error_handlers; /* SAX2 error handler */
 #endif
 
@@ -971,7 +971,7 @@ rasqal_query_results_get_rowsource_sparql_xml(rasqal_world *world,
 
   con->locator.uri=base_uri;
 
-#ifdef RAPTOR_V2_AVAILABLE
+#ifdef HAVE_RAPTOR2_API
   con->sax2 = raptor_new_sax2(world->raptor_world_ptr, &con->locator, con);
 #else
   con->error_handlers.locator = &con->locator;
@@ -990,7 +990,7 @@ rasqal_query_results_get_rowsource_sparql_xml(rasqal_world *world,
   raptor_sax2_set_end_element_handler(con->sax2,
                                       rasqal_sparql_xml_sax2_end_element_handler);
 
-#ifdef RAPTOR_V2_AVAILABLE
+#ifdef HAVE_RAPTOR2_API
   con->results_sequence = raptor_new_sequence((raptor_data_free_handler)rasqal_free_row, (raptor_data_print_handler)rasqal_row_print);
 #else
   con->results_sequence = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_row, (raptor_sequence_print_handler*)rasqal_row_print);
