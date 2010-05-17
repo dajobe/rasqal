@@ -292,7 +292,7 @@ rasqal_world_get_raptor(rasqal_world* world)
 }
 
 
-#ifdef RAPTOR_V2_AVAILABLE
+#ifdef HAVE_RAPTOR2_API
 /**
  * rasqal_world_set_log_handler:
  * @world: rasqal_world object
@@ -302,9 +302,11 @@ rasqal_world_get_raptor(rasqal_world* world)
  * Set the log handler for this rasqal_world.
  **/
 void
-rasqal_world_set_log_handler(rasqal_world* world, void *user_data, raptor_log_handler handler)
+rasqal_world_set_log_handler(rasqal_world* world, void *user_data,
+                             raptor_log_handler handler)
 {
   RASQAL_ASSERT_OBJECT_POINTER_RETURN(world, rasqal_world);
+
   world->log_handler = handler;
   world->log_handler_user_data = user_data;
 }
