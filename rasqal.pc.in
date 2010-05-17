@@ -3,6 +3,8 @@ exec_prefix=@exec_prefix@
 libdir=@libdir@
 includedir=@includedir@/@PACKAGE@
 
+have_raptor2_api=@HAVE_RAPTOR2_API@
+
 Name: Rasqal RDF Query Library
 Description: Rasqal RDF Query parsing and execution library
 Requires: @RAPTOR_PACKAGE@ >= @RAPTOR_MIN_VERSION@
