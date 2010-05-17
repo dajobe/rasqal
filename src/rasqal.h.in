@@ -902,15 +902,16 @@ const char* rasqal_query_get_name(rasqal_query* query);
 RASQAL_API
 const char* rasqal_query_get_label(rasqal_query* query);
 
-#if !@HAVE_RAPTOR2_API@
 /* on raptor2: use rasqal_world_set_log_handler() instead of these */
+#if @HAVE_RAPTOR2_API@
+typedef void* raptor_message_handler;
+#endif
 RASQAL_API
 void rasqal_query_set_fatal_error_handler(rasqal_query* query, void *user_data, raptor_message_handler handler);
 RASQAL_API
 void rasqal_query_set_error_handler(rasqal_query* query, void *user_data, raptor_message_handler handler);
 RASQAL_API
 void rasqal_query_set_warning_handler(rasqal_query* query, void *user_data, raptor_message_handler handler);
-#endif
 
 RASQAL_API
 int rasqal_query_set_feature(rasqal_query* query, rasqal_feature feature, int value);
