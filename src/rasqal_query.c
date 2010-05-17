@@ -309,7 +309,6 @@ rasqal_query_get_label(rasqal_query* query)
 }
 
 
-#ifndef RAPTOR_V2_AVAILABLE
 /**
  * rasqal_query_set_fatal_error_handler:
  * @query: the query
@@ -325,6 +324,8 @@ void
 rasqal_query_set_fatal_error_handler(rasqal_query* query, void *user_data,
                                      raptor_message_handler handler)
 {
+#ifdef HAVE_RAPTOR2_API
+#else
   raptor_error_handlers* error_handlers;
 
   RASQAL_ASSERT_OBJECT_POINTER_RETURN(query, rasqal_query);
@@ -335,7 +336,8 @@ rasqal_query_set_fatal_error_handler(rasqal_query* query, void *user_data,
   error_handlers = &query->world->error_handlers;
   
   error_handlers->handlers[RAPTOR_LOG_LEVEL_FATAL].user_data = user_data;
-  error_handlers->handlers[RAPTOR_LOG_LEVEL_FATAL].handler = handler;
+  error_handlers->handlers[RAPTOR_LOG_LEVEL_FATAL].handler   = handler;
+#endif
 }
 
 
@@ -354,6 +356,8 @@ void
 rasqal_query_set_error_handler(rasqal_query* query, void *user_data,
                                raptor_message_handler handler)
 {
+#ifdef HAVE_RAPTOR2_API
+#else
   raptor_error_handlers* error_handlers;
 
   RASQAL_ASSERT_OBJECT_POINTER_RETURN(query, rasqal_query);
@@ -364,7 +368,8 @@ rasqal_query_set_error_handler(rasqal_query* query, void *user_data,
   error_handlers = &query->world->error_handlers;
   
   error_handlers->handlers[RAPTOR_LOG_LEVEL_ERROR].user_data = user_data;
-  error_handlers->handlers[RAPTOR_LOG_LEVEL_ERROR].handler = handler;
+  error_handlers->handlers[RAPTOR_LOG_LEVEL_ERROR].handler   = handler;
+#endif
 }
 
 
@@ -383,6 +388,8 @@ void
 rasqal_query_set_warning_handler(rasqal_query* query, void *user_data,
                                  raptor_message_handler handler)
 {
+#ifdef HAVE_RAPTOR2_API
+#else
   raptor_error_handlers* error_handlers;
 
   RASQAL_ASSERT_OBJECT_POINTER_RETURN(query, rasqal_query);
@@ -393,9 +400,9 @@ rasqal_query_set_warning_handler(rasqal_query* query, void *user_data,
   error_handlers = &query->world->error_handlers;
   
   error_handlers->handlers[RAPTOR_LOG_LEVEL_WARN].user_data = user_data;
-  error_handlers->handlers[RAPTOR_LOG_LEVEL_WARN].handler  =handler;
+  error_handlers->handlers[RAPTOR_LOG_LEVEL_WARN].handler   = handler;
+#endif
 }
-#endif /* ifndef RAPTOR_V2_AVAILABLE */
 
 
 /**
