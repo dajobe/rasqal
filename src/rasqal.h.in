@@ -2,7 +2,7 @@
  *
  * rasqal.h - Rasqal RDF Query library interfaces and definition
  *
- * Copyright (C) 2003-2009, David Beckett http://www.dajobe.org/
+ * Copyright (C) 2003-2010, David Beckett http://www.dajobe.org/
  * Copyright (C) 2003-2005, University of Bristol, UK http://www.bristol.ac.uk/
  * 
  * This package is Free Software and part of Redland http://librdf.org/
@@ -859,7 +859,7 @@ void rasqal_world_set_raptor(rasqal_world* world, raptor_world* raptor_world_ptr
 RASQAL_API
 raptor_world *rasqal_world_get_raptor(rasqal_world* world);
 
-#ifdef RAPTOR_V2_AVAILABLE
+#if @HAVE_RAPTOR2_API@
 RASQAL_API
 void rasqal_world_set_log_handler(rasqal_world* world, void *user_data, raptor_log_handler handler);
 #endif
@@ -902,7 +902,7 @@ const char* rasqal_query_get_name(rasqal_query* query);
 RASQAL_API
 const char* rasqal_query_get_label(rasqal_query* query);
 
-#ifndef RAPTOR_V2_AVAILABLE
+#if !@HAVE_RAPTOR2_API@
 /* on raptor2: use rasqal_world_set_log_handler() instead of these */
 RASQAL_API
 void rasqal_query_set_fatal_error_handler(rasqal_query* query, void *user_data, raptor_message_handler handler);

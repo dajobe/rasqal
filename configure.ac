@@ -354,7 +354,11 @@ fi
 AM_CONDITIONAL(RAPTOR2, test "X$raptor2" = "Xyes")
 if test "X$raptor2" = "Xyes"; then
   AC_DEFINE(HAVE_RAPTOR2_API, 1, [Raptor2 API is available])
+  HAVE_RAPTOR2_API=1
+else
+  HAVE_RAPTOR2_API=0
 fi
+AC_SUBST(HAVE_RAPTOR2_API)
 
 
 AC_CHECK_PROG(REDLAND_CONFIG, redland-config, redland-config)
@@ -957,6 +961,7 @@ data/Makefile
 docs/Makefile
 docs/version.xml
 src/Makefile
+src/rasqal.h
 tests/Makefile
 tests/algebra/Makefile
 tests/engine/Makefile
