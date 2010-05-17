@@ -118,9 +118,9 @@ raptor_statement_as_rasqal_triple(rasqal_world* world,
 
   /* subject */
   if(statement->subject->type == RAPTOR_TERM_TYPE_BLANK) {
-    len = strlen((char*)statement->subject->value.blank);
+    len = strlen((char*)statement->subject->value.blank.string);
     new_str = (unsigned char*)RASQAL_MALLOC(cstring, len + 1);
-    strncpy((char*)new_str, (const char*)statement->subject->value.blank, len + 1);
+    strncpy((char*)new_str, (const char*)statement->subject->value.blank.string, len + 1);
     s = rasqal_new_simple_literal(world, RASQAL_LITERAL_BLANK, new_str);
   } else {
     uri = raptor_uri_copy((raptor_uri*)statement->subject->value.uri);
@@ -153,9 +153,9 @@ raptor_statement_as_rasqal_triple(rasqal_world* world,
 
     o = rasqal_new_string_literal(world, new_str, language, uri, NULL);
   } else if(statement->object->type == RAPTOR_TERM_TYPE_BLANK) {
-    len = strlen((char*)statement->object->value.blank);
+    len = strlen((char*)statement->object->value.blank.string);
     new_str = (unsigned char*)RASQAL_MALLOC(cstring, len + 1);
-    strncpy((char*)new_str, (const char*)statement->object->value.blank, len + 1);
+    strncpy((char*)new_str, (const char*)statement->object->value.blank.string, len + 1);
     o = rasqal_new_simple_literal(world, RASQAL_LITERAL_BLANK, new_str);
   } else {
     uri = raptor_uri_copy((raptor_uri*)statement->object->value.uri);
