@@ -1,6 +1,0 @@
-# http://lists.w3.org/Archives/Public/public-rdf-dawg/2010JanMar/0569.html
-
-WITH <http://graph.example.org/>
-INSERT DATA {
-   <http://example.org/X> <http://example.org/p> 123
-}
