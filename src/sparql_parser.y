@@ -1226,7 +1226,7 @@ UpdateQuery: WITH URI_LITERAL
 
 
 /* SPARQL 1.1 Update (draft) / LAQRS */
-ClearQuery: CLEAR GraphRef
+ClearQuery: CLEAR GRAPH GraphRef
 {
   rasqal_sparql_query_language* sparql;
   rasqal_update_operation* update;
@@ -1238,7 +1238,7 @@ ClearQuery: CLEAR GraphRef
                         "CLEAR GRAPH <uri> cannot be used with SPARQL 1.0");
 
   update = rasqal_new_update_operation(RASQAL_UPDATE_TYPE_CLEAR,
-                                       $2 /* graph uri or NULL */, 
+                                       $3 /* graph uri or NULL */, 
                                        NULL /* document uri */,
                                        NULL, NULL,
                                        NULL /*where */,
@@ -1263,41 +1263,13 @@ ClearQuery: CLEAR GraphRef
 
   /* Early draft syntax - deprecated */
   sparql_syntax_warning((rasqal_query*)rq,
-                        "CLEAR is replaced by CLEAR DEFAULT in later SPARQL 1.1 drafts");
+                        "CLEAR is replaced by CLEAR GRAPH DEFAULT in later SPARQL 1.1 drafts");
 
   update = rasqal_new_update_operation(RASQAL_UPDATE_TYPE_CLEAR,
                                        NULL /* graph uri */, 
                                        NULL /* document uri */,
                                        NULL, NULL,
                                        NULL /* where */,
-                                       0 /* flags */);
-  if(!update) {
-    YYERROR_MSG("ClearQuery: rasqal_new_update_operation failed");
-  } else {
-    if(rasqal_query_add_update_operation(((rasqal_query*)rq), update))
-      YYERROR_MSG("ClearQuery: rasqal_query_add_update_operation failed");
-  }
-}
-| CLEAR GRAPH URI_LITERAL
-{
-  rasqal_sparql_query_language* sparql;
-  rasqal_update_operation* update;
-
-  sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
-
-  if(!sparql->extended)
-    sparql_syntax_error((rasqal_query*)rq,
-                        "CLEAR GRAPH <uri> cannot be used with SPARQL 1.0");
-
-  /* Early draft syntax - deprecated */
-  sparql_syntax_warning((rasqal_query*)rq,
-                        "CLEAR GRAPH <uri> is replaced by CLEAR <uri> in later SPARQL 1.1 drafts");
-
-  update = rasqal_new_update_operation(RASQAL_UPDATE_TYPE_CLEAR,
-                                       $3 /* graph uri */, 
-                                       NULL /* document uri */,
-                                       NULL, NULL,
-                                       NULL /*where */,
                                        0 /* flags */);
   if(!update) {
     YYERROR_MSG("ClearQuery: rasqal_new_update_operation failed");
