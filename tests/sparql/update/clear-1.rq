@@ -1,4 +1,5 @@
-# http://www.w3.org/TR/2010/WD-sparql11-update-20100601/#t418
+# http://www.w3.org/TR/2010/WD-sparql11-update-20100126/#t417
 # (no example given in doc)
+# This 2010-01-26 draft syntax is DEPRECATED and gives a warning
 
-CLEAR GRAPH DEFAULT
+CLEAR
