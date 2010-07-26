@@ -1,3 +1,192 @@
+2010-07-25  Dave Beckett <dave@dajobe.org>
+
+	* src/sparql_parser.y: Allow SPARQL 1.1 UPDATE 2010-06-01 CLEAR
+	GRAPH <uri>/DEFAULT
+
+	* tests/sparql/update/clear-4.rq: CLEAR GRAPH DEFAULT
+
+	* tests/sparql/update/clear-1.rq: note CLEAR is not legal syntax
+	anymore
+
+	* tests/sparql/update/Makefile.am, tests/sparql/update/clear-1.rq,
+	tests/sparql/update/clear-2.rq, tests/sparql/update/clear-3.rq,
+	tests/sparql/update/create-1.rq, tests/sparql/update/create-2.rq,
+	tests/sparql/update/delete-1.rq, tests/sparql/update/delete-2.rq,
+	tests/sparql/update/delete-data-1.rq,
+	tests/sparql/update/delete-data-2.rq,
+	tests/sparql/update/delete-insert-1.rq,
+	tests/sparql/update/delete-where-1.rq,
+	tests/sparql/update/delete-where-2.rq,
+	tests/sparql/update/drop-1.rq, tests/sparql/update/drop-2.rq,
+	tests/sparql/update/insert-1.rq, tests/sparql/update/insert-2.rq,
+	tests/sparql/update/insert-data-1.rq,
+	tests/sparql/update/insert-data-2.rq,
+	tests/sparql/update/insert-data-3.rq,
+	tests/sparql/update/insert-data-4.rq,
+	tests/sparql/update/insert-delete-1.rq,
+	tests/sparql/update/load-1.rq, tests/sparql/update/load-2.rq: 
+	Updated tests for
+	http://www.w3.org/TR/2010/WD-sparql11-update-20100601/
+
+2010-05-17  Dave Beckett <dave@dajobe.org>
+
+	* rasqal.pc.in: set have_raptor2_api boolean for rasqal pkgconfig
+
+2010-05-16  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_algebra.c, src/rasqal_engine.c,
+	src/rasqal_engine_sort.c, src/rasqal_expr.c,
+	src/rasqal_format_sparql_xml.c, src/rasqal_format_table.c,
+	src/rasqal_general.c, src/rasqal_graph_pattern.c,
+	src/rasqal_internal.h, src/rasqal_literal.c, src/rasqal_map.c,
+	src/rasqal_query.c, src/rasqal_query_results.c,
+	src/rasqal_query_transform.c, src/rasqal_query_write.c,
+	src/rasqal_raptor.c, src/rasqal_result_formats.c, src/rasqal_row.c,
+	src/rasqal_rowsource.c, src/rasqal_rowsource_rowsequence.c,
+	src/rasqal_rowsource_sort.c, src/rasqal_variable.c,
+	src/rdql_lexer.l, src/rdql_parser.y, src/sparql_lexer.l,
+	src/sparql_parser.y, utils/roqet.c:
+	Replace #ifdef RAPTOR_V2_AVAILABLE with #ifdef HAVE_RAPTOR2_API -
+	controlled by configure --enable-raptor2
+
+	* src/rasqal_general.c:
+	(rasqal_world_set_log_handler): Enable with HAVE_RAPTOR2_API
+
+	* src/rasqal_query.c: Stub out raptor1 error handler functions.
+
+	(rasqal_query_set_fatal_error_handler,
+	rasqal_query_set_error_handler, rasqal_query_set_warning_handler):
+	Declare as stubs
+
+	* src/rasqal.h.in: When HAVE_RAPTOR2_API, declare raptor1 APIs with
+	void* arg
+
+	* configure.ac, src/rasqal.h, src/rasqal.h.in: Define
+	HAVE_RAPTOR2_API subst var and alter API depending on raptor2
+	availability
+
+	* configure.ac: Add --enable-raptor configure arg
+
+	Raptor2 is only considered if --enable-raptor2 is given to
+	configure.  When raptor2 is present and sufficient, #define
+	HAVE_RAPTOR2_API and add automakefile variable RAPTOR2
+
+	* src/rasqal_datetime.c, src/rasqal_decimal.c,
+	src/rasqal_format_sparql_xml.c, src/rasqal_format_table.c,
+	src/rasqal_general.c, src/rasqal_literal.c, src/rasqal_raptor.c,
+	src/rasqal_row.c, src/rasqal_variable.c,
+	src/rasqal_xsd_datatypes.c, src/rdql_lexer.l, src/sparql_lexer.l: 
+	code style: replace strncpy with memcpy - never need strncpy
+	zero-checking/filling semantics.
+
+	* src/rasqal_raptor.c: Update to latest raptor_term blank field
+	structure.
+
+2010-05-03  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_algebra.c, src/rasqal_engine.c,
+	src/rasqal_format_sparql_xml.c, src/rasqal_format_table.c,
+	src/rasqal_graph_pattern.c, src/rasqal_internal.h,
+	src/rasqal_map.c, src/rasqal_query.c, src/rasqal_query_results.c,
+	src/rasqal_query_transform.c, src/rasqal_result_formats.c,
+	src/rasqal_row.c, src/rasqal_rowsource.c,
+	src/rasqal_rowsource_rowsequence.c, src/rasqal_rowsource_sort.c,
+	src/rasqal_variable.c, src/rdql_parser.y, src/sparql_parser.y,
+	utils/roqet.c: Ported to raptor2 head - funcptr typedef changes
+
+2010-04-24  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_data_graph.c, src/rasqal_decimal.c, src/rasqal_expr.c,
+	src/rasqal_general.c, src/rasqal_literal.c, src/rasqal_map.c,
+	src/rasqal_prefix.c, src/rasqal_query.c,
+	src/rasqal_query_results.c, src/rasqal_result_formats.c,
+	src/rasqal_row.c, src/rasqal_rowsource.c, src/rasqal_triple.c,
+	src/rasqal_variable.c: Make all rasqal destructors simply return
+	when given a NULL object pointer.  They mostly did this already -
+	just remove macros to make it obvious.
+
+	* src/rasqal_graph.c: Mark autodocs as INTERNAL
+
+2010-04-16  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_query_results.c, src/rasqal_result_formats.c: autodocs
+	noting that formatting query results drains them
+
+2010-04-14  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_format_table.c:
+	(rasqal_query_results_write_table_bindings): Made function compile
+	on raptor2 again.
+
+2010-04-13  Dave Beckett <dave@dajobe.org>
+
+	* docs/tmpl/section-expression.sgml, docs/tmpl/section-general.sgml: 
+	Updated docbook tmpls
+
+	* src/rasqal.h: rasqal_expression_s autodocs
+
+	* src/rasqal.h: autodocs
+
+	* src/rasqal.h: autodocs
+
+	* src/rasqal.h: autodocs
+
+	* docs/rasqal-sections.txt: Added new funcs
+
+	* docs/rasqal-sections.txt, src/rasqal.h, src/rasqal_literal.c: 
+	rasqal_literal_equals_flags is internal
+
+	* docs/rasqal-sections.txt: remove unused unused raptor world tokens
+
+	* docs/rasqal-sections.txt: Added rasqal_new_function_expression2
+
+	* src/rasqal.h: rasqal_compare_flags: autodocs do not refer to
+	internal funcs
+
+	* docs/rasqal-sections.txt: Add rasqal_literal_equals_flags
+
+	* docs/rasqal-sections.txt: Add new funcs
+	rasqal_world_set_generate_bnodeid_handler
+	rasqal_world_set_default_generate_bnodeid_parameters
+
+	* src/rasqal_literal.c:
+	(rasqal_new_string_literal): autodocs do not link to internal
+	rasqal_literal_string_to_native
+
+	* src/rasqal_format_table.c:
+	(rasqal_query_results_write_table_bindings): Remove unused query
+	var.
+
+2010-04-12  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_expr.c:
+	(rasqal_expression_evaluate): Pack local vars in union to save
+	some stack.
+
+	* src/rasqal_format_table.c: #ws
+
+2010-04-11  Dave Beckett <dave@dajobe.org>
+
+	* RELEASE.html: 0.9.20 notes
+
+2010-04-11  Nicholas J Humfrey <njh@aelius.com>
+
+	* src/rasqal_format_table.c: Added boolean result support to the
+	Table results format.
+
+2010-04-06  Lauri Aalto <laalto@iki.fi>
+
+	* configure.ac, rasqal.pc.in: Proper pkg-config dependencies when
+	built with raptor2.
+
+	* configure.ac: Support configuring with raptor2. Prefer installed
+	raptor2 over raptor v1.
+
+	* utils/Makefile.am: Support linking with libraptor2
+
+	* utils/roqet.c: Ported to raptor2 git head. Support
+	raptor_syntax_description.
+
 2010-03-31  Dave Beckett <dave@dajobe.org>
 
 	* src/rasqal_query_write.c: ,
