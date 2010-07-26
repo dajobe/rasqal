@@ -13,69 +13,24 @@
 <p>Not yet released.
 </p>
 
-<p>Updated to build with raptor1 and raptor2 (GIT, unreleased).
-</p>
+<p>The main changes in this release are:</p>
+<ul>
+<li>Support building with raptor2 APIs as well as raptor1.  At
+present, Raptor2 is only considered if <code>--enable-raptor2</code>
+is given to <code>configure</code>.</li>
+<li>Support more SPARQL 1.1 Query and Update draft syntax and some
+execution semantics for new built-in expressions.</li>
+</ul>
 
-<p>The never used <code>RASQAL_EXPR_GROUP_COND_ASC</code> and
-<code>RASQAL_EXPR_GROUP_COND_DESC</code> are marked as obsolete.
-</p>
+<p>Fixed Issues:</p>
+<ul>
+  <li><a href="http://bugs.librdf.org/mantis/view.php?id=360">0000360</a>: FIXME</li>
+</ul>
 
-<p>Adjust SPARQL 1.1 draft select expression syntax to latest
-version: '(' Expr 'AS' Var ')' with required braces.
-</p>
 
-<p>Add support for SPARQL 1.1 draft <code>GROUP BY</code> expressions,
-except for <em>Expr</em> AS var.
-</p>
+<h3>Query API changes</h3>
 
-<p>Added <code>rasqal_new_aggregate_function_expression()</code>
-helper for making expressions with built-in aggregate functions.
-</p>
-
-<p>Added support for SPARQL 1.1 aggregate functions
-<code>GROUP_CONCAT()</code> and <code>SAMPLE()</code>
-with new expression enum
-<code>RASQAL_EXPR_GROUP_CONCAT</code> and
-<code>RASQAL_EXPR_SAMPLE</code> as well as formatting to SPARQL and
-placeholder expression handling implementation - no aggregate expression
-evaluation.
-</p>
-
-<p>Added new bitflags enum <code>Added rasqal_expression_flags</code>
-for expression flags - currently just DISTINCT for aggregate
-extension function calls..
-</p>
-
-<p>Added <code>rasqal_new_function_expression2()</code> for functions
-with parameters and flags deprecating
-<code>rasqal_new_function_expression()</code.
-</p>
-
-<p>Add partial support for SPARQL 1.1 draft extension (aggregate)
-functions with DISTINCT and parameters.
-</p>
-
-<p>Updated rasqal.spec.in based on fedora spec (not tested)
-</p>
-
-<p>Add HTML Table results format from patch applied from
-Issue#0000360 http://bugs.librdf.org/mantis/view.php?id=360
-</p>
-
-<p>Minimum raptor version is now 1.4.19 so that raptor_world typedef
-is always available.
-</p>
-
-<p>Add partial support for SPARQL 1.1 Update draft INSERT, DELETE,
-LOAD (INTO), UPDATE, WITH forms.
-</p>
-
-<p>Moved generate blank node ID functionality to
-world class, deprecating the query class methods.
-Added
-<code>rasqal_world_set_default_generate_bnodeid_parameters()</code>,
-<code>rasqal_world_set_generate_bnodeid_handler()</code> with new
-handler typedef <code>rasqal_generate_bnodeid_handler2</code>.
+<p>Moved generate blank node ID functionality to world class.
 Deprecated
 <code>rasqal_query_set_default_generate_bnodeid_parameters()</code>
 for
@@ -85,17 +40,20 @@ for new function (with different handler signature)
 <code>rasqal_world_set_generate_bnodeid_handler()</code>.
 </p>
 
-<p>Updated documentation for <code>rasqal_expression_visit()</code>,
-<code>rasqal_graph_pattern_visit_fn</code> and
-<code>rasqal_expression_visit_fn</code> typedef to match what the code
-actually does.</p>
+
+<h3>Expression and literal class changes</h3>
+
+<p>Added new literal type <code>RASQAL_LITERAL_INTEGER_SUBTYPE</code>
+to let subtypes of <code>xsd:integer</code> work in data and
+expression evaluation.
+</p>
 
 <p>Add support for SPARQL 1.1 draft FILTER expression operators
-including execution in the expression evaluation, writing the expression
+including execution in the expression evaluation and writing the expression
 as SPARQL:</p>
 <table>
 <tr>
-<th><code>rasqal_op</code> enum</th>
+<th>New <code>rasqal_op</code> enum</th>
 <th>SPARQL 1.1 expression</th>
 </tr>
 <tr>
@@ -132,15 +90,91 @@ as SPARQL:</p>
 </tr>
 </table>
 
-<p>Add datatype support for <code>xsd:date</code> - normalization and
-comparisons.
+<p><code>rasqal_op</code> enumeration gains new values:
+<code>RASQAL_EXPR_GROUP_CONCAT</code>,
+<code>RASQAL_EXPR_SAMPLE</code>,
+.
 </p>
 
-<p>Added new literal type <code>RASQAL_LITERAL_INTEGER_SUBTYPE</code>
-to let subtypes of <code>xsd:integer</code> work in data and
-expression evaluation.
+<p>Added expression evaluation and expression formatting support for
+the above new operations in multiple functions:
+<code>rasqal_expression_clear()</code>,
+<code>rasqal_expression_visit()</code>,
+<code>rasqal_expression_write()</code>,
+<code>rasqal_expression_print()</code>,
+<code>rasqal_expression_is_constant()</code> and
+<code>rasqal_query_write_sparql_expression()</code>.</p>
+
+<p>Added new bitflgs <code>rasqal_expression_flags</code> enumeration for
+<code>rasqal_expression</code> flags.  Added flags
+<code>RASQAL_EXPR_FLAG_DISTINCT</code> for aggregate functions with distinct and
+<code>RASQAL_EXPR_FLAG_AGGREGATE</code> for aggregate functions.
 </p>
 
+<p>Added <code>rasqal_new_function_expression2()</code> for functions
+with parameters and flags deprecating
+<code>rasqal_new_function_expression()</code>
+</p>
+
+<p>Added new <code>rasqal_new_aggregate_function_expression()</code>
+constructor for making expressions with built-in aggregate functions.
+</p>
+
+<p>The never used <code>RASQAL_EXPR_GROUP_COND_ASC</code> and
+<code>RASQAL_EXPR_GROUP_COND_DESC</code> are marked as obsolete.
+</p>
+
+<p>Updated documentation for <code>rasqal_expression_visit()</code>,
+<code>rasqal_graph_pattern_visit_fn</code> and
+<code>rasqal_expression_visit_fn</code> typedef to match what the code
+actually does.</p>
+
+
+<h3>SPARQL query language changes</h3>
+
+<p>Support latest
+<a href="http://www.w3.org/TR/2010/WD-sparql11-update-20100601/">SPARQL 1.1 UPDATE WD of 2010-06-01</a>
+syntax such as
+CLEAR GRAPH DEFAULT, CLEAR GRAPH uri, INSERT DATA, LOAD list of
+URIs INTO GraphUri, WITH uri INSERT DATA .  Not all cases may be covered
+yet since the grammar is hard to implement and may be ambiguous.
+</p>
+
+<p>Allow <code>DISTINCT</code> optionally before extension function
+expressions with new flag <code>RASQAL_EXPR_FLAG_DISTINCT</code>.</p>
+
+<p>Added draft SPARQL 1.1 <code>IF()</code>, <code>URI()</code>,
+<code>IRI()</code>, <code>STRLANG()</code>, <code>STRDT()</code> and
+<code>BNODE()</code> (with optional expression arg) built-in
+expressions.</p>
+
+<p>Added draft SPARQL 1.1 <code>IN</code> and <code>NOT IN</code>
+operators.</p>
+
+<p>Adjust SPARQL 1.1 draft select expression syntax to latest
+version: '(' Expr 'AS' Var ')' with required braces.
+</p>
+
+<p>Added support for SPARQL 1.1 aggregate functions
+<code>GROUP_CONCAT()</code> and <code>SAMPLE()</code>
+with new expression enum
+<code>RASQAL_EXPR_GROUP_CONCAT</code> and
+<code>RASQAL_EXPR_SAMPLE</code> as well as formatting to SPARQL and
+placeholder expression handling implementation - no aggregate expression
+evaluation.
+</p>
+
+<p>Add support for SPARQL 1.1 draft <code>GROUP BY</code>
+expressions, except for <em>Expr</em> AS var.  This may not be in the
+latest draft. FIXME.
+</p>
+
+<p>Add partial support for SPARQL 1.1 draft extension (aggregate)
+functions with DISTINCT and parameters.
+</p>
+
+
+<h3>Query engine changes</h3>
 
 <p>Make query result limit and offset work when no ORDER BY is
 part of the query (yes - this is rather unpredictable) with
@@ -148,8 +182,49 @@ the original query engine.
 Related to Issue#000352
 </p>
 
-<p>Allow NULL base uri for
-<code>rasqal_query_results_formatter_write()</code>.</p>
+<p>Add datatype support for <code>xsd:date</code> - normalization and
+comparisons.
+</p>
+
+
+<h3>Query results formatter class changes</h3>
+
+<p>Added an HTML Table results format (name 'table') by Nicholas J Humfrey
+using patch from 
+<a href="http://bugs.librdf.org/mantis/view.php?id=360">Issue#0000360</a>.
+</p>
+
+<p>A NULL base_uri is valid in
+<code>rasqal_query_results_formatter_write()</code></p>
+
+
+<h3>World class changes</h3>
+
+<p>Moved generate blank node ID functionality to
+world class, deprecating the query class methods.
+Added
+<code>rasqal_world_set_default_generate_bnodeid_parameters()</code>,
+<code>rasqal_world_set_generate_bnodeid_handler()</code> with new
+handler typedef <code>rasqal_generate_bnodeid_handler2</code>.
+</p>
+
+
+<h3>Other changes</h3>
+
+<p>Made all rasqal destructors simply return when given a NULL object
+pointer.  They mostly did this already.
+</p>
+
+<p>Updated rasqal.spec.in based on fedora spec (not tested)
+</p>
+
+<p>Replace strncpy() with memcpy() - never need the strncpy()
+zero-checking/filling semantics.
+</p>
+
+<p>Minimum raptor version is now 1.4.19 so that the
+<code>raptor_world</code> typedef is always available.
+</p>
 
 
 
