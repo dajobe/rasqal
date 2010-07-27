@@ -1,0 +1,78 @@
+# -*- Mode: Makefile -*-
+#
+# Makefile.am - automake file for Rasqal SPARQL aggregate tests
+#
+# Copyright (C) 2010, David Beckett http://www.dajobe.org/
+# 
+# This package is Free Software and part of Redland http://librdf.org/
+# 
+# It is licensed under the following three licenses as alternatives:
+#   1. GNU Lesser General Public License (LGPL) V2.1 or any newer version
+#   2. GNU General Public License (GPL) V2 or any newer version
+#   3. Apache License, V2.0 or any newer version
+# 
+# You may not use this file except in compliance with at least one of
+# the above three licenses.
+# 
+# See LICENSE.html or LICENSE.txt at the top of this package for the
+# complete terms and further detail along with the license texts for
+# the licenses in COPYING.LIB, COPYING and LICENSE-2.0.txt respectively.
+# 
+
+SPARQL_MODEL_FILES= \
+data-1.ttl
+
+EXPECTED_SPARQL_CORRECT= \
+agg-1.rq \
+agg-2.rq
+
+SPARQL_BAD_TEST_FILES= \
+bad-1.rq
+
+EXPECTED_SPARQL_CORRECT_FAILURES=
+
+EXTRA_DIST= \
+$(SPARQL_MODEL_FILES) \
+$(EXPECTED_SPARQL_CORRECT) \
+$(SPARQL_BAD_TEST_FILES)
+
+build-sparql-parser-test:
+	@(cd $(top_builddir)/src ; $(MAKE) sparql_parser_test)
+
+check-local: build-sparql-parser-test
+	@$(PERL) $(srcdir)/../../improve .
+
+get-testsuites-list:
+	@echo "sparql-parse-good sparql-parse-bad"
+
+get-testsuite-sparql-parse-good:
+	@prog=sparql_parser_test; \
+	$(ECHO) '@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .'; \
+	$(ECHO) '@prefix mf:     <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .'; \
+	$(ECHO) '@prefix t:     <http://ns.librdf.org/2009/test-manifest#> .'; \
+	$(ECHO) ' '; \
+	$(ECHO) "<> a mf:Manifest; rdfs:comment \"SPARQL 1.1 Query aggregates legal parsing\"; mf:entries ("; \
+	for test in $(EXPECTED_SPARQL_CORRECT); do \
+	  comment="sparql parsing of $$test"; \
+	  $(ECHO) "  [ a t:PositiveTest; mf:name \"$$test\"; rdfs:comment \"$$comment\"; mf:action  \"$(top_builddir)/src/$$prog -i laqrs $(srcdir)/$$test\" ]"; \
+	done; \
+	for test in $(EXPECTED_SPARQL_CORRECT_FAILURES); do \
+	  comment="sparql parsing of $$test"; \
+	  $(ECHO) "  [ a t:NegativeTest; mf:name \"$$test\"; rdfs:comment \"$$comment\"; mf:action  \"$(top_builddir)/src/$$prog -i laqrs $(srcdir)/$$test\" ]"; \
+	done; \
+	$(ECHO) ")."
+
+
+get-testsuite-sparql-parse-bad:
+	@prog=sparql_parser_test; \
+	$(ECHO) '@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .'; \
+	$(ECHO) '@prefix mf:     <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .'; \
+	$(ECHO) '@prefix t:     <http://ns.librdf.org/2009/test-manifest#> .'; \
+	$(ECHO) ' '; \
+	$(ECHO) "<> a mf:Manifest; rdfs:comment \"SPARQL 1.1 Query aggregates illegal parsing\"; mf:entries ("; \
+	for test in $(SPARQL_BAD_TEST_FILES); do \
+	  comment="sparql failing to parse of $$test"; \
+	  $(ECHO) "  [ a t:NegativeTest; mf:name \"$$test\"; rdfs:comment \"$$comment\"; mf:action  \"$(top_builddir)/src/$$prog -i laqrs $(srcdir)/$$test\" ]"; \
+	done; \
+	$(ECHO) ")."
+

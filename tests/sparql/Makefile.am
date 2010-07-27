@@ -25,7 +25,8 @@ ValueTesting \
 regex Expr1 Expr2 ExprBuiltins ExprEquals \
 SyntaxDev \
 update \
-bugs
+bugs \
+aggregate
 
 EXTRA_DIST=check-sparql
 
