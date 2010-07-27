@@ -17,6 +17,7 @@
 TAGS
 dmalloc*
 example?
+rasqal.h
 rasqal-config
 rasqal_config.h
 rasqal_config.h.in
