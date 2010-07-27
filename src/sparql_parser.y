@@ -255,7 +255,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
 %type <literal> NumericLiteralPositive NumericLiteralNegative
 %type <literal> SeparatorOpt
 
-%type <variable> Var VarName SelectTerm
+%type <variable> Var VarName VarOrBadVarName SelectTerm
 
 %type <uri> GraphRef
 
@@ -596,7 +596,7 @@ SelectTerm: Var
 {
   $$ = $1;
 }
-| '(' Expression AS Var ')'
+| '(' Expression AS VarOrBadVarName ')'
 {
   rasqal_sparql_query_language* sparql;
   sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
@@ -3510,6 +3510,23 @@ VarName: IDENTIFIER
 }
 ;
 
+
+/* LAQRS legacy  */
+VarOrBadVarName: '?' VarName
+{
+  $$ = $2;
+}
+| '$' VarName
+{
+  $$ = $2;
+}
+| VarName
+{
+  $$ = $1;
+  sparql_syntax_warning(((rasqal_query*)rq), 
+                        "... AS varname is deprecated LAQRS syntax, use ... AS ?varname");
+}
+;
 
 
 /* SPARQL Grammar: [45] GraphTerm */
