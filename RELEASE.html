@@ -15,8 +15,8 @@
 
 <p>The main changes in this release are:</p>
 <ul>
-<li>Support building with raptor2 APIs as well as raptor1.  At
-present, Raptor2 is only considered if <code>--enable-raptor2</code>
+<li>Support building with Raptor v2 APIs as well as Raptor v1 APIs.  At
+present, Raptor 2 APIs are only considered if <code>--enable-raptor2</code>
 is given to <code>configure</code>.</li>
 <li>Support more SPARQL 1.1 Query and Update draft syntax and some
 execution semantics for new built-in expressions.</li>
@@ -48,9 +48,9 @@ to let subtypes of <code>xsd:integer</code> work in data and
 expression evaluation.
 </p>
 
-<p>Add support for SPARQL 1.1 draft FILTER expression operators
-including execution in the expression evaluation and writing the expression
-as SPARQL:</p>
+<p>Add support for SPARQL 1.1 draft <code>FILTER</code> expression
+operators including execution in the expression evaluation and
+writing the expression as SPARQL:</p>
 <table>
 <tr>
 <th>New <code>rasqal_op</code> enum</th>
@@ -90,14 +90,8 @@ as SPARQL:</p>
 </tr>
 </table>
 
-<p><code>rasqal_op</code> enumeration gains new values:
-<code>RASQAL_EXPR_GROUP_CONCAT</code>,
-<code>RASQAL_EXPR_SAMPLE</code>,
-.
-</p>
-
 <p>Added expression evaluation and expression formatting support for
-the above new operations in multiple functions:
+the above new (non-aggregate) expression operations in:
 <code>rasqal_expression_clear()</code>,
 <code>rasqal_expression_visit()</code>,
 <code>rasqal_expression_write()</code>,
@@ -105,19 +99,26 @@ the above new operations in multiple functions:
 <code>rasqal_expression_is_constant()</code> and
 <code>rasqal_query_write_sparql_expression()</code>.</p>
 
-<p>Added new bitflgs <code>rasqal_expression_flags</code> enumeration for
-<code>rasqal_expression</code> flags.  Added flags
-<code>RASQAL_EXPR_FLAG_DISTINCT</code> for aggregate functions with distinct and
+<p>Added <code>rasqal_op</code> enumeration values for built-in
+aggregate functions <code>RASQAL_EXPR_GROUP_CONCAT</code> and
+<code>RASQAL_EXPR_SAMPLE</code> but no expression execution.
+</p>
+
+<p>Added new bitflags <code>rasqal_expression_flags</code> for
+<code>rasqal_expression</code> flags with initial bitflags
+<code>RASQAL_EXPR_FLAG_DISTINCT</code> for distinct (aggregate functions) and
 <code>RASQAL_EXPR_FLAG_AGGREGATE</code> for aggregate functions.
 </p>
 
 <p>Added <code>rasqal_new_function_expression2()</code> for functions
-with parameters and flags deprecating
-<code>rasqal_new_function_expression()</code>
+with parameters and optional bit flags deprecating
+<code>rasqal_new_function_expression()</code>.  This is not
+capable of adding a user extension aggregate function.
 </p>
 
 <p>Added new <code>rasqal_new_aggregate_function_expression()</code>
-constructor for making expressions with built-in aggregate functions.
+constructor for making a 1-arg built-in aggregate functions.
+This is not capable of adding a user extension aggregate function.
 </p>
 
 <p>The never used <code>RASQAL_EXPR_GROUP_COND_ASC</code> and
@@ -134,9 +135,24 @@ actually does.</p>
 
 <p>Support latest
 <a href="http://www.w3.org/TR/2010/WD-sparql11-update-20100601/">SPARQL 1.1 UPDATE WD of 2010-06-01</a>
-syntax such as
-CLEAR GRAPH DEFAULT, CLEAR GRAPH uri, INSERT DATA, LOAD list of
-URIs INTO GraphUri, WITH uri INSERT DATA .  Not all cases may be covered
+syntax such as:</p>
+<ul>
+<li><code>CLEAR GRAPH DEFAULT</code></li>
+<li><code>CLEAR GRAPH uri</code></li>
+<li><code>DELETE DATA { ... }</code></li>
+<li><code>DELETE DATA { GRAPH uri { ... } } INSERT DATA { GRAPH uri { ... } }</code></li>
+<li><code>DELETE WHERE { ... }</code></li>
+<li><code>DELETE WHERE { GRAPH uri { ... } }</code></li>
+<li><code>DELETE { ... } WHERE { ... }</code></li>
+<li><code>DROP GRAPH uri</code></li>
+<li><code>DROP SILENT GRAPH uri</code></li>
+<li><code>INSERT DATA { ... }</code></li>
+<li><code>INSERT { GRAPH uri { ... } } WHERE { ... }</code></li>
+<li><code>LOAD uri INTO DEFAULT</code></li>
+<li><code>LOAD uri INTO uri</code></li>
+<li><code>LOAD uri</code></li>
+</ul>
+<p>Not all cases may be covered
 yet since the grammar is hard to implement and may be ambiguous.
 </p>
 
@@ -148,7 +164,7 @@ expressions with new flag <code>RASQAL_EXPR_FLAG_DISTINCT</code>.</p>
 <code>BNODE()</code> (with optional expression arg) built-in
 expressions.</p>
 
-<p>Added draft SPARQL 1.1 <code>IN</code> and <code>NOT IN</code>
+<p>Added draft SPARQL 1.1 <code>IN()</code> and <code>NOT IN()</code>
 operators.</p>
 
 <p>Adjust SPARQL 1.1 draft select expression syntax to latest
@@ -176,14 +192,14 @@ functions with DISTINCT and parameters.
 
 <h3>Query engine changes</h3>
 
-<p>Make query result limit and offset work when no ORDER BY is
-part of the query (yes - this is rather unpredictable) with
-the original query engine.
+<p>Make query result limit and offset work when no <code>ORDER
+BY</code> is part of the query (yes - this is a well-defined count of
+under-defined actual results) with the original query engine.
 Related to Issue#000352
 </p>
 
-<p>Add datatype support for <code>xsd:date</code> - normalization and
-comparisons.
+<p>Add datatype support for <code>xsd:date</code> for value
+normalization and comparisons.
 </p>
 
 
@@ -211,15 +227,16 @@ handler typedef <code>rasqal_generate_bnodeid_handler2</code>.
 
 <h3>Other changes</h3>
 
-<p>Made all rasqal destructors simply return when given a NULL object
-pointer.  They mostly did this already.
+<p>Made all rasqal destructors simply return when given a
+<code>NULL</code> object pointer.  They mostly did this already.
 </p>
 
-<p>Updated rasqal.spec.in based on fedora spec (not tested)
+<p>Updated <code>rasqal.spec.in</code> based on fedora spec (not tested)
 </p>
 
-<p>Replace strncpy() with memcpy() - never need the strncpy()
-zero-checking/filling semantics.
+<p>Replace <code>strncpy()</code> with <code>memcpy()</code> since
+the the <code>strncpy()</code> zero-checking and zero-filling
+semantics are never needed.
 </p>
 
 <p>Minimum raptor version is now 1.4.19 so that the
