@@ -152,7 +152,8 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
 %token ISLITERAL "isLiteral"
 %token SAMETERM "sameTerm"
 /* SPARQL 1.1 (draft) / LAQRS */
-%token GROUP COUNT SUM AVG MIN MAX GROUP_CONCAT SAMPLE
+%token GROUP HAVING
+%token COUNT SUM AVG MIN MAX GROUP_CONCAT SAMPLE SEPARATOR
 %token DELETE INSERT WITH CLEAR CREATE SILENT DATA DROP LOAD INTO DEFAULT
 %token COALESCE
 %token AS IF
@@ -211,6 +212,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
 %type <seq> SelectExpressionList VarOrIRIrefList ArgListNoBraces ArgList
 %type <seq> ConstructTriples ConstructTriplesOpt
 %type <seq> ConstructTemplate OrderConditionList GroupConditionList
+%type <seq> HavingConditionList
 %type <seq> GraphNodeListNotEmpty SelectExpressionListTail
 %type <seq> ModifyTemplateList
 %type <seq> IriRefList
@@ -240,7 +242,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
 %type <expr> BuiltInCall RegexExpression FunctionCall
 %type <expr> BrackettedExpression PrimaryExpression
 %type <expr> OrderCondition GroupCondition
-%type <expr> Filter Constraint SelectExpression
+%type <expr> Filter Constraint HavingCondition
 %type <expr> AggregateExpression CountAggregateExpression SumAggregateExpression
 %type <expr> AvgAggregateExpression MinAggregateExpression MaxAggregateExpression
 %type <expr> CoalesceExpression GroupConcatAggregateExpression
@@ -251,6 +253,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
 %type <literal> IRIrefBrace SourceSelector
 %type <literal> NumericLiteral NumericLiteralUnsigned
 %type <literal> NumericLiteralPositive NumericLiteralNegative
+%type <literal> SeparatorOpt
 
 %type <variable> Var VarName SelectTerm
 
@@ -289,6 +292,7 @@ SelectQuery ConstructQuery DescribeQuery
 SelectExpressionList VarOrIRIrefList ArgListNoBraces ArgList
 ConstructTriples ConstructTriplesOpt
 ConstructTemplate OrderConditionList GroupConditionList
+HavingConditionList
 GraphNodeListNotEmpty SelectExpressionListTail
 ModifyTemplateList IriRefList ParamsOpt
 
@@ -331,7 +335,7 @@ MultiplicativeExpression UnaryExpression
 BuiltInCall RegexExpression FunctionCall
 BrackettedExpression PrimaryExpression
 OrderCondition GroupCondition
-Filter Constraint SelectExpression
+Filter Constraint HavingCondition
 AggregateExpression CountAggregateExpression SumAggregateExpression
 AvgAggregateExpression MinAggregateExpression MaxAggregateExpression
 CoalesceExpression GroupConcatAggregateExpression
@@ -346,6 +350,7 @@ VarOrIRIref
 IRIrefBrace SourceSelector
 NumericLiteral NumericLiteralUnsigned
 NumericLiteralPositive NumericLiteralNegative
+SeparatorOpt
 
 %destructor {
   if($$)
@@ -591,7 +596,7 @@ SelectTerm: Var
 {
   $$ = $1;
 }
-| '(' SelectExpression AS VarName ')'
+| '(' Expression AS Var ')'
 {
   rasqal_sparql_query_language* sparql;
   sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
@@ -615,18 +620,22 @@ SelectTerm: Var
 ;
 
 
-/* NEW Grammar Term pulled out of [5] SelectQuery */
-SelectExpression: AggregateExpression
-{
-  $$ = $1;
-}
-| Expression
-{
-  $$ = $1;
-}
-;
+/* SPARQL 1.1 Grammar: [107] Aggregate - renamed for clarity */
+/*
 
+Original definition:
+  ( 'COUNT' '(' 'DISTINCT'? ( '*' | Expression ) ')' |
+    'SUM' ExprAggArg |
+    'MIN' ExprAggArg |
+    'MAX' ExprAggArg |
+    'AVG' ExprAggArg |
+    'SAMPLE' ExprAggArg | 
+    'GROUP_CONCAT' '(' 'DISTINCT'? Expression ( ',' Expression )* ( ';' 'SEPARATOR' '=' String )? ')'
+   )
 
+  where ExprAggArg is '(' 'DISTINCT'? Expression ')'
+
+ */
 AggregateExpression: CountAggregateExpression
 {
   $$ = $1;
@@ -787,9 +796,28 @@ MaxAggregateExpression: MAX '(' DistinctOpt Expression ')'
 ;
 
 
-GroupConcatAggregateExpression: GROUP_CONCAT '(' DistinctOpt Expression ')'
+SeparatorOpt: ';' SEPARATOR '=' STRING_LITERAL
+{
+  $$ = $4;
+}
+| /* empty */
+{
+  $$ = NULL;
+}
+;
+
+
+/*
+FIXME - Does not take a list of expressions
+
+Original definition from SPARQL 1.1 [107] Aggregate
+
+    'GROUP_CONCAT' '(' 'DISTINCT'? Expression ( ',' Expression )* ( ';' 'SEPARATOR' '=' String )? ')'
+ */
+GroupConcatAggregateExpression: GROUP_CONCAT '(' DistinctOpt Expression SeparatorOpt ')'
 {
   rasqal_sparql_query_language* sparql;
+  
   sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
 
   if(!sparql->extended) {
@@ -797,6 +825,9 @@ GroupConcatAggregateExpression: GROUP_CONCAT '(' DistinctOpt Expression ')'
                         "GROUP_CONCAT() cannot be used with SPARQL 1.0");
     $$ = NULL;
   } else {
+    if($5)
+      rasqal_free_literal($5); /* FIXME - unused */
+
     $$ = rasqal_new_aggregate_function_expression(((rasqal_query*)rq)->world,
                                                   RASQAL_EXPR_GROUP_CONCAT, $4,
                                                   NULL /* params */, $3);
@@ -1646,7 +1677,7 @@ SourceSelector: IRIref
 ;
 
 
-/* SPARQL Grammar: [13] WhereClause - remained for clarity */
+/* SPARQL 1.1 Grammar: [17] WhereClause - remained for clarity */
 WhereClause:  WHERE GroupGraphPattern
 {
   $$ = $2;
@@ -1658,7 +1689,7 @@ WhereClause:  WHERE GroupGraphPattern
 ;
 
 
-/* NEW Grammar Term pulled out of [13] WhereClause */
+/* NEW Grammar Term pulled out of [17] WhereClause */
 WhereClauseOpt:  WhereClause
 {
   $$ = $1;
@@ -1670,12 +1701,12 @@ WhereClauseOpt:  WhereClause
 ;
 
 
-/* SPARQL Grammar: [14] SolutionModifier */
-SolutionModifier: GroupClauseOpt OrderClauseOpt LimitOffsetClausesOpt
+/* SPARQL 1.1 Grammar: [18] SolutionModifier */
+SolutionModifier: GroupClauseOpt HavingClauseOpt OrderClauseOpt LimitOffsetClausesOpt
 ;
 
 
-/* NEW Grammar Term pulled out of [16] GroupClauseOpt */
+/* NEW Grammar Term pulled out of SPARQL 1.1 [19] GroupClauseOpt */
 GroupConditionList: GroupConditionList GroupCondition
 {
   $$ = $1;
@@ -1719,7 +1750,7 @@ GroupCondition: BuiltInCall
 {
   $$ = $1;
 }
-| '(' Expression AS VarName ')'
+| '(' Expression AS Var ')'
 {
   if(rasqal_expression_mentions_variable($2, $4)) {
     sparql_query_error_full((rasqal_query*)rq, 
@@ -1752,7 +1783,7 @@ GroupCondition: BuiltInCall
 ;
 
 
-/* LAQRS */
+/* SPARQL 1.1 Grammar: [19] GroupClause renamed for clarity */
 GroupClauseOpt: GROUP BY GroupConditionList
 {
   rasqal_sparql_query_language* sparql;
@@ -1766,6 +1797,70 @@ GroupClauseOpt: GROUP BY GroupConditionList
                        "GROUP BY cannot be used with ASK");
   } else
     ((rasqal_query*)rq)->group_conditions_sequence = $3;
+}
+| /* empty */
+;
+
+
+/* SPARQL 1.1 [22] HavingCondition */
+HavingCondition: Constraint
+{
+  $$ = $1;
+}
+;
+
+/* NEW Grammar Term pulled out of SPARQL 1.1 [19] HavingClauseOpt */
+HavingConditionList: HavingConditionList HavingCondition
+{
+  $$ = $1;
+  if($2)
+    if(raptor_sequence_push($$, $2)) {
+      raptor_free_sequence($$);
+      $$ = NULL;
+      YYERROR_MSG("HavingConditionList 1: sequence push failed");
+    }
+}
+| HavingCondition
+{
+#ifdef HAVE_RAPTOR2_API
+  $$ = raptor_new_sequence((raptor_data_free_handler)rasqal_free_expression,
+                           (raptor_data_print_handler)rasqal_expression_print);
+#else
+  $$ = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_expression,
+                           (raptor_sequence_print_handler*)rasqal_expression_print);
+#endif
+  if(!$$) {
+    if($1)
+      rasqal_free_expression($1);
+    YYERROR_MSG("HavingConditionList 2: cannot create sequence");
+  }
+  if($1)
+    if(raptor_sequence_push($$, $1)) {
+      raptor_free_sequence($$);
+      $$ = NULL;
+      YYERROR_MSG("HavingConditionList 2: sequence push failed");
+    }
+}
+;
+
+
+/* SPARQL 1.1 Grammar: [19] HavingClause renamed for clarity */
+HavingClauseOpt: HAVING HavingConditionList
+{
+  rasqal_sparql_query_language* sparql;
+  sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
+
+  if(!sparql->extended)
+    sparql_syntax_error((rasqal_query*)rq,
+                        "HAVING cannot be used with SPARQL 1.0");
+  else if(((rasqal_query*)rq)->verb == RASQAL_QUERY_VERB_ASK) {
+    sparql_query_error((rasqal_query*)rq, 
+                       "HAVING cannot be used with ASK");
+  } else {
+    /* FIXME - where to store this? */
+    /* ((rasqal_query*)rq)->having_conditions_sequence = $2; */
+    raptor_free_sequence($2);
+  }
 }
 | /* empty */
 ;
@@ -3644,10 +3739,10 @@ UnaryExpression: '!' PrimaryExpression
 
 
 /* SPARQL Grammar: [55] PrimaryExpression
- * == BrackettedExpression | BuiltInCall | IRIrefOrFunction | RDFLiteral | NumericLiteral | BooleanLiteral | BlankNode | Var
- * == BrackettedExpression | BuiltInCall | IRIref ArgList? | RDFLiteral | NumericLiteral | BooleanLiteral | BlankNode | Var
+ * == BrackettedExpression | BuiltInCall | IRIrefOrFunction | RDFLiteral | NumericLiteral | BooleanLiteral | Var | Aggregate
+ * == BrackettedExpression | BuiltInCall | IRIref ArgList? | RDFLiteral | NumericLiteral | BooleanLiteral | Var | Aggregate
  * == BrackettedExpression | BuiltInCall | FunctionCall |
- *    approximately GraphTerm | Var
+ *    approximately GraphTerm | Var | Aggregate
  * 
 */
 PrimaryExpression: BrackettedExpression 
@@ -3682,6 +3777,10 @@ PrimaryExpression: BrackettedExpression
   $$ = rasqal_new_literal_expression(((rasqal_query*)rq)->world, l);
   if(!$$)
     YYERROR_MSG("PrimaryExpression 5: cannot create expr");
+}
+| AggregateExpression
+{
+  $$ = $1;
 }
 ;
 
