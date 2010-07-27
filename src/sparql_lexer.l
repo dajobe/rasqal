@@ -357,6 +357,7 @@ EXPONENT [eE][+-]?[0-9]+
 [Ll][Aa][Nn][Gg][Mm][Aa][Tt][Cc][Hh][Ee][Ss] { return LANGMATCHES; } 
 [Ee][Xx][Pp][Ll][Aa][Ii][Nn] { return EXPLAIN; }
 [Gg][Rr][Oo][Uu][Pp] { return GROUP; }
+[Hh][Aa][Vv][Ii][Nn][Gg] { return HAVING; }
 [Cc][Oo][Uu][Nn][Tt] { return COUNT; }
 [Ss][Uu][Mm] { return SUM; }
 [Aa][Vv][Gg] { return AVG; }
@@ -383,6 +384,8 @@ EXPONENT [eE][+-]?[0-9]+
 [Dd][Ee][Ff][Aa][Uu][Ll][Tt] { return DEFAULT; }
 [Nn][Oo][Tt] { return NOT; }
 [Ii][Nn] { return IN; }
+[Gg][Rr][Oo][Uu][Pp][Cc][Oo][Nn][Cc][Aa][Tt] { return GROUP_CONCAT; }
+[Ss][Ee][Pp][Aa][Rr][Aa][Tt][Oo][Rr] { return SEPARATOR; }
 
 "a" { return A; }
 
@@ -1403,6 +1406,9 @@ sparql_token_print(rasqal_world* world, int token, YYSTYPE *lval)
     case GROUP:
       return "GROUP";
 
+    case HAVING:
+      return "HAVING";
+
     case COUNT:
       return "COUNT";
 
@@ -1472,9 +1478,6 @@ sparql_token_print(rasqal_world* world, int token, YYSTYPE *lval)
     case BNODE:
       return "BNODE";
 
-    case GROUP_CONCAT:
-      return "GROUP_CONCAT";
-
     case SAMPLE:
       return "SAMPLE";
 
@@ -1486,6 +1489,12 @@ sparql_token_print(rasqal_world* world, int token, YYSTYPE *lval)
 
     case IN:
       return "IN";
+
+    case GROUP_CONCAT:
+      return "GROUP_CONCAT";
+
+    case SEPARATOR:
+      return "SEPARATOR";
 
     case INTEGER_LITERAL:
     case INTEGER_POSITIVE_LITERAL:
