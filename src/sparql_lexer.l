@@ -70,7 +70,7 @@
 %option reentrant
 
 
-%x ID PREF LITERAL LITERAL2
+%x ID SPID PREF LITERAL LITERAL2
 
   /* definitions */
 
@@ -363,7 +363,7 @@ EXPONENT [eE][+-]?[0-9]+
 [Aa][Vv][Gg] { return AVG; }
 [Mm][Ii][Nn] { return MIN; }
 [Mm][Aa][Xx] { return MAX; }
-[Aa][Ss] { return AS; }
+[Aa][Ss] { BEGIN(SPID); return AS; }
 [Dd][Ee][Ll][Ee][Tt][Ee]  { return DELETE; }
 [Ii][Nn][Ss][Ee][Rr][Tt]  { return INSERT; }
 [Ss][Aa][Mm][Ee][Tt][Ee][Rr][Mm] { return SAMETERM; }
@@ -512,6 +512,29 @@ EXPONENT [eE][+-]?[0-9]+
                           BEGIN(INITIAL);
                           return IDENTIFIER; }
 <ID>(.|\n)	{	BEGIN(INITIAL);
+		sparql_syntax_error(rq, "SPARQL syntax error - missing variable name after ?");
+                yyterminate();
+}
+
+<SPID>[\ \t\v]+	{ /* eat up leading whitespace */
+	;
+}
+
+<SPID>\? {
+	return '?';
+}
+
+<SPID>\$ {
+	return '$';
+}
+
+<SPID>{VARNAME}	{ sparql_parser_lval->name = sparql_copy_name(rq, (const unsigned char*)yytext, yyleng, SPARQL_NAME_CHECK_VARNAME);
+		  if(!sparql_parser_lval->name)
+                    YY_FATAL_ERROR_EOF("sparql_copy_name failed");
+                          BEGIN(INITIAL);
+                          return IDENTIFIER; }
+
+<SPID>(.|\n)	{	BEGIN(INITIAL);
 		sparql_syntax_error(rq, "SPARQL syntax error - missing variable name after ?");
                 yyterminate();
 }
