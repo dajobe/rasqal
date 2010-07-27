@@ -134,23 +134,24 @@ actually does.</p>
 <h3>SPARQL query language changes</h3>
 
 <p>Support latest
-<a href="http://www.w3.org/TR/2010/WD-sparql11-update-20100601/">SPARQL 1.1 UPDATE WD of 2010-06-01</a>
+<a href="http://www.w3.org/TR/2010/WD-sparql11-update-20100601/">SPARQL 1.1 Update W3C working draft of 1 June 2010</a>
 syntax such as:</p>
 <ul>
 <li><code>CLEAR GRAPH DEFAULT</code></li>
-<li><code>CLEAR GRAPH uri</code></li>
+<li><code>CLEAR GRAPH <em>uri</em></code></li>
 <li><code>DELETE DATA { ... }</code></li>
-<li><code>DELETE DATA { GRAPH uri { ... } } INSERT DATA { GRAPH uri { ... } }</code></li>
+<li><code>DELETE DATA { GRAPH <em>uri</em> { ... } } INSERT DATA { GRAPH <em>uri</em> { ... } }</code></li>
 <li><code>DELETE WHERE { ... }</code></li>
-<li><code>DELETE WHERE { GRAPH uri { ... } }</code></li>
+<li><code>DELETE WHERE { GRAPH <em>uri</em> { ... } }</code></li>
 <li><code>DELETE { ... } WHERE { ... }</code></li>
-<li><code>DROP GRAPH uri</code></li>
-<li><code>DROP SILENT GRAPH uri</code></li>
+<li><code>DROP GRAPH <em>uri</em></code></li>
+<li><code>DROP SILENT GRAPH <em>uri</em></code></li>
 <li><code>INSERT DATA { ... }</code></li>
-<li><code>INSERT { GRAPH uri { ... } } WHERE { ... }</code></li>
-<li><code>LOAD uri INTO DEFAULT</code></li>
-<li><code>LOAD uri INTO uri</code></li>
-<li><code>LOAD uri</code></li>
+<li><code>INSERT { GRAPH <em>uri</em> { ... } } WHERE { ... }</code></li>
+<li><code>LOAD <em>uri</em> INTO DEFAULT</code></li>
+<li><code>LOAD <em>uri</em> INTO <em>uri</em></code></li>
+<li><code>LOAD <em>uri</em></code></li>
+<li><code>WITH <em>uri</em> DELETE { ... } INSERT { ... } USING NAMED <em>uri</em> WHERE { ... }</code></li>
 </ul>
 <p>Not all cases may be covered
 yet since the grammar is hard to implement and may be ambiguous.
