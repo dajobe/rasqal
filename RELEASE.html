@@ -134,6 +134,43 @@ actually does.</p>
 <h3>SPARQL query language changes</h3>
 
 <p>Support latest
+<a href="http://www.w3.org/TR/2010/WD-sparql11-query-20100601/">SPARQL 1.1 Query W3C working draft of 1 June 2010</a>
+syntax such as:</p>
+
+<p>For SPARQL 1.1 Query, allow <code>DISTINCT</code> optionally before extension function
+expressions with new flag <code>RASQAL_EXPR_FLAG_DISTINCT</code>.</p>
+
+<p>Added draft SPARQL 1.1 Query <code>IF()</code>, <code>URI()</code>,
+<code>IRI()</code>, <code>STRLANG()</code>, <code>STRDT()</code> and
+<code>BNODE()</code> (with optional expression arg) built-in
+expressions.</p>
+
+<p>Added draft SPARQL 1.1 Query <code>IN()</code> and <code>NOT IN()</code>
+operators.</p>
+
+<p>Adjust draft SPARQL 1.1 Query select expression syntax to latest
+version: '(' Expr 'AS' Var ')' with required braces.
+</p>
+
+<p>Added draft SPARQL 1.1 Query aggregate functions
+<code>GROUP_CONCAT()</code> and <code>SAMPLE()</code>
+with new expression enum
+<code>RASQAL_EXPR_GROUP_CONCAT</code> and
+<code>RASQAL_EXPR_SAMPLE</code> as well as formatting to SPARQL and
+placeholder expression handling implementation - no aggregate expression
+evaluation.
+</p>
+
+<p>Added draft SPARQL 1.1 Query <code>GROUP BY</code>
+expressions, except for <em>Expr</em> AS var.  This may not be in the
+latest draft. FIXME - GROUP BY only takes Expr now, check code.
+</p>
+
+<p>Add partial support for draft SPARQL 1.1 Query extension (aggregate)
+functions with DISTINCT and parameters.
+</p>
+
+<p>Support latest
 <a href="http://www.w3.org/TR/2010/WD-sparql11-update-20100601/">SPARQL 1.1 Update W3C working draft of 1 June 2010</a>
 syntax such as:</p>
 <ul>
@@ -157,38 +194,6 @@ syntax such as:</p>
 yet since the grammar is hard to implement and may be ambiguous.
 </p>
 
-<p>Allow <code>DISTINCT</code> optionally before extension function
-expressions with new flag <code>RASQAL_EXPR_FLAG_DISTINCT</code>.</p>
-
-<p>Added draft SPARQL 1.1 <code>IF()</code>, <code>URI()</code>,
-<code>IRI()</code>, <code>STRLANG()</code>, <code>STRDT()</code> and
-<code>BNODE()</code> (with optional expression arg) built-in
-expressions.</p>
-
-<p>Added draft SPARQL 1.1 <code>IN()</code> and <code>NOT IN()</code>
-operators.</p>
-
-<p>Adjust SPARQL 1.1 draft select expression syntax to latest
-version: '(' Expr 'AS' Var ')' with required braces.
-</p>
-
-<p>Added support for SPARQL 1.1 aggregate functions
-<code>GROUP_CONCAT()</code> and <code>SAMPLE()</code>
-with new expression enum
-<code>RASQAL_EXPR_GROUP_CONCAT</code> and
-<code>RASQAL_EXPR_SAMPLE</code> as well as formatting to SPARQL and
-placeholder expression handling implementation - no aggregate expression
-evaluation.
-</p>
-
-<p>Add support for SPARQL 1.1 draft <code>GROUP BY</code>
-expressions, except for <em>Expr</em> AS var.  This may not be in the
-latest draft. FIXME.
-</p>
-
-<p>Add partial support for SPARQL 1.1 draft extension (aggregate)
-functions with DISTINCT and parameters.
-</p>
 
 
 <h3>Query engine changes</h3>
