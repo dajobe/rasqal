@@ -331,7 +331,10 @@ rasqal_raptor_error_handler(void *user_data,
 
 static unsigned char*
 rasqal_raptor_generate_id_handler(void *user_data,
+#ifdef HAVE_RAPTOR2_API
+#else
                                   raptor_genid_type type,
+#endif
                                   unsigned char *user_bnodeid) 
 {
   rasqal_raptor_triples_source_user_data* rtsc;
@@ -421,8 +424,9 @@ rasqal_raptor_new_triples_source(rasqal_query* rdf_query,
 #ifdef HAVE_RAPTOR2_API
     parser = raptor_new_parser(rdf_query->world->raptor_world_ptr, "guess");
     raptor_parser_set_statement_handler(parser, rtsc, rasqal_raptor_statement_handler);
-    raptor_parser_set_generate_id_handler(parser, rtsc,
-                                          rasqal_raptor_generate_id_handler);
+    raptor_world_set_generate_bnodeid_handler(rdf_query->world->raptor_world_ptr,
+                                              rtsc,
+                                              rasqal_raptor_generate_id_handler);
 #else
     parser = raptor_new_parser("guess");
     raptor_set_statement_handler(parser, rtsc, rasqal_raptor_statement_handler);
