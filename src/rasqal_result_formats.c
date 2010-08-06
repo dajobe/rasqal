@@ -408,7 +408,7 @@ rasqal_query_results_formatter_get_mime_type(rasqal_query_results_formatter *for
  * @iostr: #raptor_iostream to write the query to
  * @formatter: #rasqal_query_results_formatter object
  * @results: #rasqal_query_results query results format
- * @base_uri: #raptor_uri base URI of the output format
+ * @base_uri: #raptor_uri base URI of the output format (or NULL)
  *
  * Write the query results using the given formatter to an iostream
  *
