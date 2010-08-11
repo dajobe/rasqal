@@ -1,3 +1,89 @@
+2010-08-05  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_result_formats.c:
+	(rasqal_query_results_formatter_write): document NULL base_uri is
+	allowed
+
+2010-08-04  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_raptor.c: Update rasqal_raptor_generate_id_handler to
+	handle new raptor generate nodeid API
+
+2010-07-27  Dave Beckett <dave@dajobe.org>
+
+	* src/.gitignore: Ignore generated rasqal.h
+
+	* src/sparql_parser.y:
+	Add VarOrBadVarName state to track deprecated LAQRS .. AS varname ...
+
+	(SelectTerm): Use VarOrBadVarName for deprecated LAQRS SELECT
+	... AS varname, instead of the draft SPARQL 1.1 Query SELECT
+	... AS ?varname
+
+	(VarOrBadVarName): Added generating a warning for a bare varname.
+
+	* src/sparql_lexer.l: Restore SPID state after AS and return $, ?
+	and VarName tokens
+
+	* tests/laqrs/syntax/Makefile.am, tests/laqrs/syntax/group-by1.rq:
+	Remove group-by1.rq - syntax was never added to sparql 1.1 and this
+	was never in shipped rasqal release
+
+	* src/sparql_parser.y:
+	Make SELECT AS, HAVING, GROUP_CONCAT with SEPARATOR partially work
+
+	Added tokens HAVING and SEPARATOR
+
+	(SelectTerm): Use AS Var not VarName.
+
+	(SelectExpression): Deleted, SelectQuery uses Expression direct.
+
+	(AggregateExpression): Add annotations.
+
+	(SeparatorOpt): Added to handle ; SEPARATOR = "string" for
+	GROUP_CONCAT.
+
+	(GroupConcatAggregateExpression): Use SeparatorOpt but throw away
+	the string for now - FIXME.
+
+	(SolutionModifier): Add HavingClauseOpt
+
+	(GroupCondition): Use AS Var not VarName
+
+	(HavingCondition): Added, just alias for Constraint.
+
+	(HavingConditionList): Added as list of HavingCondiiton
+
+	(HavingClauseOpt): Added for HAVING.  Throws away result for now -
+	FIXME.
+
+	(PrimaryExpression): Add AggregateExpression here; so you can put an
+	aggregate expression such as as SUM() etc. anywhere an expression
+	can go!
+
+2010-07-26  Dave Beckett <dave@dajobe.org>
+
+	* src/sparql_lexer.l: Added HAVING, GROUP_CONCAT, SEPARATOR tokens
+
+	* configure.ac, tests/sparql/Makefile.am,
+	tests/sparql/aggregate/Makefile.am,
+	tests/sparql/aggregate/agg-1.rq, tests/sparql/aggregate/agg-2.rq,
+	tests/sparql/aggregate/bad-1.rq, tests/sparql/aggregate/data-1.ttl:
+	
+	Add SPARQL 1.1 aggregate function tests
+
+	* src/sparql_lexer.l:
+	Accept ( Expr AS Var ) not ( Expr as VarName ) (AS): Return AS, do
+	not enter SPID state.
+
+	(SPID state): Deleted
+
+	* RELEASE.html: words
+
+	* RELEASE.html: words
+
+	* words and formatting
+
 2010-07-25  Dave Beckett <dave@dajobe.org>
 
 	* src/sparql_parser.y: Allow SPARQL 1.1 UPDATE 2010-06-01 CLEAR
