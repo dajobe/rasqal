@@ -1243,6 +1243,42 @@ rasqal_algebra_remove_znodes(rasqal_query* query, rasqal_algebra_node* node,
 }
 
 
+static raptor_sequence*
+rasqal_algebra_get_variables_mentioned_in(rasqal_query* query,
+                                          int row_index)
+{
+  raptor_sequence* seq; /* sequence of rasqal_variable* */
+  int width;
+  short *row;
+  int i;
+  
+#ifdef HAVE_RAPTOR2_API
+  seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_variable,
+                            (raptor_data_print_handler)rasqal_variable_print);
+#else
+  seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_variable,
+                            (raptor_sequence_print_handler*)rasqal_variable_print);
+#endif
+  if(!seq)
+    return NULL;
+
+  width = rasqal_variables_table_get_total_variables_count(query->vars_table);
+  row = &query->variables_use_map[row_index * width];
+
+  for(i = 0; i < width; i++) {
+    rasqal_variable* v;
+
+    if(!(row[i] & RASQAL_VAR_USE_MENTIONED_HERE))
+      continue;
+
+    v = rasqal_variables_table_get(query->vars_table, i);
+    raptor_sequence_push(seq, rasqal_new_variable_from_variable(v));
+  }
+
+  return seq;
+}
+
+
 /**
  * rasqal_algebra_query_to_algebra:
  * @query: #rasqal_query to operate on
@@ -1320,14 +1356,22 @@ rasqal_algebra_query_to_algebra(rasqal_query* query)
    */
   if(1) {
     int vars_size = 0;
-    raptor_sequence* seq = NULL;
+    raptor_sequence* seq = NULL;  /* sequence of rasqal_variable* */
     raptor_sequence* vars_seq;
     int i;
 
-    if(query->verb == RASQAL_QUERY_VERB_SELECT ||
-       query->verb == RASQAL_QUERY_VERB_CONSTRUCT)
-      /* sequence of rasqal_variable* */
+    if(query->verb == RASQAL_QUERY_VERB_SELECT)
+      /* project all selected variables */
       seq = query->selects;
+    else if(query->verb == RASQAL_QUERY_VERB_CONSTRUCT) {
+      /* project all variables mentioned in CONSTRUCT  */
+      seq = rasqal_algebra_get_variables_mentioned_in(query, 
+                                                      RASQAL_VAR_USE_MAP_OFFSET_VERBS);
+      if(!seq) {
+        rasqal_free_algebra_node(node);
+        return NULL;
+      }
+    }
 
     if(seq)
       vars_size = raptor_sequence_size(seq);
@@ -1343,6 +1387,7 @@ rasqal_algebra_query_to_algebra(rasqal_query* query)
       rasqal_free_algebra_node(node);
       return NULL;
     }
+
     for(i = 0; i < vars_size; i++) {
       rasqal_variable* v;
       v = (rasqal_variable*)raptor_sequence_get_at(seq, i);
@@ -1353,12 +1398,14 @@ rasqal_algebra_query_to_algebra(rasqal_query* query)
     modified = 1;
 
 #if RASQAL_DEBUG > 1
-  RASQAL_DEBUG2("modified=%d after adding project node, algebra node now:\n  ", modified);
-  rasqal_algebra_node_print(node, stderr);
-  fputs("\n", stderr);
+    RASQAL_DEBUG2("modified=%d after adding project node, algebra node now:\n  ", modified);
+    rasqal_algebra_node_print(node, stderr);
+    fputs("\n", stderr);
 #endif
-  }
 
+    if(query->verb == RASQAL_QUERY_VERB_CONSTRUCT && seq) 
+      raptor_free_sequence(seq);
+  }
 
   if(query->distinct) {
     node = rasqal_new_distinct_algebra_node(query, node);
