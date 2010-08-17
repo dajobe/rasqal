@@ -13,13 +13,13 @@
 <p>Not yet released.
 </p>
 
+<!-- Updated to ChangeLog 2010-08-05 -->
+
 <p>The main changes in this release are:</p>
 <ul>
-<li>Support building with Raptor v2 APIs as well as Raptor v1 APIs.  At
-present, Raptor 2 APIs are only considered if <code>--enable-raptor2</code>
-is given to <code>configure</code>.</li>
 <li>Support more SPARQL 1.1 Query and Update draft syntax and some
 execution semantics for new built-in expressions.</li>
+<li>Support building with Raptor V2 API as well as Raptor V1 API.  The Raptor V2 API is only used if <code>--enable-raptor2</code> is given to <code>configure</code>.</li>
 </ul>
 
 <p>Fixed Issues:</p>
@@ -158,12 +158,12 @@ with new expression enum
 <code>RASQAL_EXPR_GROUP_CONCAT</code> and
 <code>RASQAL_EXPR_SAMPLE</code> as well as formatting to SPARQL and
 placeholder expression handling implementation - no aggregate expression
-evaluation.
+evaluation.  Partially support the <code>SEPARATOR = "string"</code> syntax for group concat - currently throws away the data..
 </p>
 
-<p>Added draft SPARQL 1.1 Query <code>GROUP BY</code>
-expressions, except for <em>Expr</em> AS var.  This may not be in the
-latest draft. FIXME - GROUP BY only takes Expr now, check code.
+<p>Add partial support for draft SPARQL 1.1 Query
+<code>GROUP BY</code> with <code>HAVING</code>.  Currently it throws away
+the having list.
 </p>
 
 <p>Add partial support for draft SPARQL 1.1 Query extension (aggregate)
@@ -194,6 +194,12 @@ syntax such as:</p>
 yet since the grammar is hard to implement and may be ambiguous.
 </p>
 
+<h3>LAQRS syntax support</h3>
+
+<p>Start giving deprecated messages for LAQRS <code>SELECT ... AS
+varname</code> (bare variable name) instead of the draft SPARQL 1.1
+Query <code>SELECT ... AS ?varname</code> with $ or ? symbol.
+</p>
 
 
 <h3>Query engine changes</h3>
