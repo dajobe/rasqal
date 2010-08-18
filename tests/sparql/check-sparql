@@ -90,13 +90,13 @@ sub toDebug($) {
   return $str if $str =~ s/^_:(.*)$/blank _/;
 }
 
-sub read_rdf_results_file($) {
-  my($result_file)=@_;
+sub read_rdf_results_file($$) {
+  my($result_file, $base_uri)=@_;
   my(@node_order);
   my(%nodes);
   my(%node_type);
 
-  my $cmd="$rapper -q -g -o ntriples $result_file";
+  my $cmd="$rapper -q -g -o ntriples $result_file $base_uri";
 
   warn "$program: Opening pipe from '$cmd'\n"
     if $debug;
@@ -121,7 +121,7 @@ sub read_rdf_results_file($) {
   my(@errs)=();
   while(<ERR>) {
     chomp;
-    push(@errs, "$result_file: $1") if m{rapper: Error - (?:URI \S+) - (.*)$};
+    push(@errs, "$result_file: $1") if m{rapper: Error - (.*)$};
   }
   close(ERR);
   if(@errs) {
@@ -240,6 +240,48 @@ sub read_srx_results_file($) {
 }
 
 
+sub read_rdf_graph_file($$) {
+  my($result_file, $base_uri)=@_;
+
+  my $cmd="$rapper -q -g -o ntriples $result_file $base_uri";
+
+  warn "$program: (read_rdf_graph_file): Opening pipe from '$cmd'\n"
+    if $debug;
+
+  my $result_string='';
+  open(PIPE, "$cmd 2>rapper.err |");
+  while(<PIPE>) {
+    $result_string .= $_;
+  }
+  close(PIPE);
+
+  open(ERR, "<rapper.err") or die "$program: Cannot open rapper.err - $!\n";
+  my(@errs)=();
+  while(<ERR>) {
+    chomp;
+    push(@errs, "$result_file: $1") if m{rapper: Error - (.*)$};
+  }
+  close(ERR);
+  if(@errs) {
+    warn "$program: parsing RDF graph result file '$result_file' FAILED - rapper returned errors:\n  ".join("\n  ",@errs)."\n";
+    warn "Failing program was:\n";
+    warn "  $cmd\n";
+    my $curdir=getcwd;
+    my $r=$cmd; $r =~ s,file:[^ ]+/,,g; $r =~ s,$curdir/,,g;
+    warn "  OR $r\n";
+    return undef;
+  }
+
+  unlink "rapper.err";
+
+  my(%results)=(graph_ntriples => $result_string);
+
+  print "STR::>>$result_string<<\n";
+
+  return \%results;
+}
+
+
 sub run_test {
   my($config)=@_;
   my($name,$dir,$test_file,$result_file,$expect_fail)=
@@ -292,6 +334,7 @@ sub run_test {
   my $sorted=0;
   my $first_result=1;
   my $roqet_results=0;
+  my $result_type='bindings';
   my(@vars_order);
 
   while(<PIPE>) {
@@ -301,6 +344,12 @@ sub run_test {
       $vars =~ s/variable\(([^)]+)\)/$1/g; # ) ]
       $vars =~ s/,//g;
       @vars_order=split(/ /, $vars);
+    }
+
+    if(/^query verb:\s+(\S+)/) {
+      my $verb = $1;
+      $result_type='graph' if $verb eq 'CONSTRUCT';
+      $result_type='boolean' if $verb eq 'ASK';
     }
 
     s/blank \w+/blank _/g;
@@ -334,6 +383,18 @@ sub run_test {
       print OUT "$line\n";
       $roqet_results++;
     }
+
+    # RDF Graph result - seen N-Triple
+    if(m/^[_<]/) {
+      my $line = $_;
+      if($first_result) {
+        open(OUT, "|$sort >roqet.out") or die "$program: Cannot create pipe to roqet.out - $!\n";
+        $first_result=0;
+      }
+
+      print OUT "$line\n";
+    }
+
   }
   close(PIPE);
   unlink $roqet_tmp;
@@ -364,18 +425,24 @@ sub run_test {
 
   my $results={expect_empty => 1};
 
-  if(defined $result_file) {
-    if($result_file =~ /\.srx$/) {
-      warn "$program: Reading SPARQL XML bindings result file $result_file\n"
-	if $debug;
-      $results=read_srx_results_file($result_file);
-    } elsif($result_file =~ /\.srj$/) {
-      warn "$program: Cannot read SPARQL results in JSON yet ($result_file)\n";
-      return 1;
-    } else {
-      warn "$program: Reading RDF syntax encoding bindings result file $result_file\n"
-	if $debug;
-      $results = read_rdf_results_file($result_file);
+  if($result_type eq 'graph') {
+    warn "$program: Reading RDF graph result file $result_file\n"
+      if $debug;
+    $results = read_rdf_graph_file($result_file, $test_uri);
+  } else {
+    if(defined $result_file) {
+      if($result_file =~ /\.srx$/) {
+	warn "$program: Reading SPARQL XML bindings result file $result_file\n"
+	  if $debug;
+	$results = read_srx_results_file($result_file);
+      } elsif($result_file =~ /\.srj$/) {
+	warn "$program: Cannot read SPARQL results in JSON yet ($result_file)\n";
+	return 1;
+      } else {
+	warn "$program: Reading RDF syntax encoding bindings result file $result_file\n"
+	  if $debug;
+	$results = read_rdf_results_file($result_file, $test_uri);
+      }
     }
   }
 
@@ -388,16 +455,26 @@ sub run_test {
     return $expect_fail ? 1 : 0;
   }
 
-  open(OUT, "|$sort >result.out")
-    or die "$program: Cannot create pipe to result.out - $!\n";
+  my $count;
+  if($result_type eq 'bindings') {
+    open(OUT, "|$sort >result.out")
+      or die "$program: Cannot create pipe to result.out - $!\n";
 
-  my $count=0;
-  for my $row (@{$results->{rows}}) {
-    my(@defined_vars)=grep(defined $row->{$_}, @vars_order);
-    print OUT "result: [",join(", ",map {"$_=$row->{$_}"} @defined_vars),"]\n";
-    $count++;
-  }
-  close(OUT);
+    $count=0;
+    for my $row (@{$results->{rows}}) {
+      my(@defined_vars)=grep(defined $row->{$_}, @vars_order);
+      print OUT "result: [",join(", ",map {"$_=$row->{$_}"} @defined_vars),"]\n";
+      $count++;
+    }
+    close(OUT);
+  } else {
+    # graph
+    open(OUT, ">result.out")
+      or die "$program: Cannot create pipe to result.out - $!\n";
+    print OUT $results->{graph_ntriples};
+    close(OUT);
+  }   
+
 
   $cmd="diff -u result.out roqet.out > diff.out";
   $rc=system($cmd);
@@ -410,7 +487,9 @@ sub run_test {
     warn "  OR $r\n";
     warn "Difference is:\n";
     system("cat diff.out");
-    warn "$program: Expected ".plural("result","s",$count).", got $roqet_results\n";
+    if($result_type eq 'bindings') {
+      warn "$program: Expected ".plural("result","s",$count).", got $roqet_results\n";
+    }
     return 1;
   } else {
     warn "$program: '$name' OK\n";
