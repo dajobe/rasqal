@@ -23,16 +23,17 @@ MANIFEST_FILES= \
 manifest.ttl
 
 BUG_DATA_FILES= \
-352.ttl 354.nt
+352.ttl 353.ttl 354.nt
 
 SPARQL_TEST_FILES= \
-352.rq 354.rq
+352.rq 353.rq 354.rq
 
 SPARQL_TEST_NAMES= \
-352 354
+352 353 354
 
 SPARQL_RESULT_FILES= \
 352-result.ttl \
+353-result.ttl \
 354-result.ttl
 
 EXTRA_DIST= \
@@ -42,6 +43,8 @@ $(SPARQL_TEST_FILES) \
 $(SPARQL_RESULT_FILES)
 
 CLEANFILES=diff.out roqet.err roqet.out roqet.tmp result.out
+
+ECHO=/bin/echo
 
 build-roqet:
 	@(cd $(top_builddir)/utils ; $(MAKE) roqet)

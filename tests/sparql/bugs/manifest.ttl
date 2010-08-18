@@ -16,6 +16,15 @@
         mf:result  <352-result.ttl>
      ]
 
+     [  mf:name    "353" ;
+        rdfs:comment
+            "CONSTRUCT with ORDER BY" ;
+        mf:action
+            [ qt:query  <353.rq> ;
+              qt:data   <353.ttl> ] ;
+        mf:result  <353-result.ttl>
+     ]
+
      [  mf:name    "354" ;
         rdfs:comment
             "Comparing xsd:int to xsd:integer" ;
