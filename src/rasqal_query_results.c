@@ -1668,7 +1668,7 @@ rasqal_query_results_update_bindings(rasqal_query_results* query_results)
   for(i = 0; i< size; i++) {
     rasqal_variable* v;
     rasqal_row* row;
-    rasqal_literal* value;
+    rasqal_literal* value = NULL;
 
     v = rasqal_variables_table_get(query_results->vars_table, i);
 
