@@ -366,12 +366,16 @@ sub run_test {
 
   if(defined $result_file) {
     if($result_file =~ /\.srx$/) {
+      warn "$program: Reading SPARQL XML bindings result file $result_file\n"
+	if $debug;
       $results=read_srx_results_file($result_file);
     } elsif($result_file =~ /\.srj$/) {
       warn "$program: Cannot read SPARQL results in JSON yet ($result_file)\n";
       return 1;
     } else {
-      $results=read_rdf_results_file($result_file);
+      warn "$program: Reading RDF syntax encoding bindings result file $result_file\n"
+	if $debug;
+      $results = read_rdf_results_file($result_file);
     }
   }
 
