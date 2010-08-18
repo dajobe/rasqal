@@ -561,6 +561,8 @@ rasqal_query_results_get_row_from_saved(rasqal_query_results* query_results)
       /* stored results may not be canonicalized yet - do it lazily */
       rasqal_row_to_nodes(row);
 
+      query_results->row = row;
+      
       if(query && query->constructs)
         rasqal_query_results_update_bindings(query_results);
     }
@@ -1665,9 +1667,18 @@ rasqal_query_results_update_bindings(rasqal_query_results* query_results)
   size = rasqal_variables_table_get_named_variables_count(query_results->vars_table);
   for(i = 0; i< size; i++) {
     rasqal_variable* v;
+    rasqal_row* row;
     rasqal_literal* value;
+
     v = rasqal_variables_table_get(query_results->vars_table, i);
-    value = rasqal_query_results_get_binding_value(query_results, i);
+
+    rasqal_query_results_ensure_have_row_internal(query_results);
+    row = query_results->row;
+    if(row)
+      value = row->values[i];
+    else
+      query_results->finished = 1;
+
     rasqal_variable_set_value(v, rasqal_new_literal_from_literal(value));
   }
 }
