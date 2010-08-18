@@ -428,7 +428,7 @@ sub run_test {
   if($result_type eq 'graph') {
     warn "$program: Reading RDF graph result file $result_file\n"
       if $debug;
-    $results = read_rdf_graph_file($result_file, $test_uri);
+    $results = read_rdf_graph_file($result_file, "file://$result_file");
   } else {
     if(defined $result_file) {
       if($result_file =~ /\.srx$/) {
@@ -441,7 +441,7 @@ sub run_test {
       } else {
 	warn "$program: Reading RDF syntax encoding bindings result file $result_file\n"
 	  if $debug;
-	$results = read_rdf_results_file($result_file, $test_uri);
+	$results = read_rdf_results_file($result_file, "file://$result_file");
       }
     }
   }
