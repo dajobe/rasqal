@@ -1,3 +1,42 @@
+2010-08-18  Dave Beckett <dave@dajobe.org>
+
+	* 000-README-GIT.txt: Remove 000-README-GIT.txt intended for old
+	repo
+
+	* tests/sparql/bugs/353-result.ttl, tests/sparql/bugs/353.rq,
+	tests/sparql/bugs/Makefile.am, tests/sparql/bugs/manifest.ttl: Add
+	test for 353 - currently fails
+
+	* tests/sparql/check-sparql: Handle RDF graph results type as well
+	as bindings
+
+	* tests/sparql/check-sparql: debug messages when reading results
+
+2010-08-18  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_query_results.c:
+	(rasqal_query_results_update_bindings): Avoid using uninitialized
+	pointer
+
+2010-08-17  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_algebra.c: Ensure CONSTRUCT sets up variables for
+	projection.
+
+	(rasqal_algebra_get_variables_mentioned_in): Added to get list of
+	variables mentioned in a construct.
+
+	(rasqal_algebra_query_to_algebra): For a CONSTRUCT, get the
+	mentioned vars and use those in the projection and free the
+	sequence after.
+
+	* AUTHORS: Added Lauri Aalto
+
+	* 000-README-GIT.txt: Moved to GitHub at
+	http://github.com/dajobe/rasqal
+
+	* README.html: Update for github
+
 2010-08-05  Dave Beckett <dave@dajobe.org>
 
 	* src/rasqal_result_formats.c:
