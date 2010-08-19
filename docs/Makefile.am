@@ -34,7 +34,7 @@ SCAN_OPTIONS=
 DOC_SOURCE_DIR=../src
 
 # Used for dependencies
-HFILE_GLOB=$(top_srcdir)/src/rasqal.h
+HFILE_GLOB=$(top_builddir)/src/rasqal.h
 CFILE_GLOB=$(top_srcdir)/src/rasqal_*.c
 
 IGNORE_CFILES= \
@@ -104,6 +104,9 @@ librasqal.html: $(srcdir)/librasqal.3 $(srcdir)/../fix-groff-xhtml
 #
 # rasqal-overrides.txt: rasqal-overrides.txt.in $(srcdir)/src/rasqal.h
 #	$(PERL) $(srcdir)/update-overrides $< $(srcdir)/src/rasqal.h $@
+
+$(top_builddir)/src/rasqal.h:
+	cd $(top_builddir)/src && $(MAKE) rasqal.h
 endif
 
 
