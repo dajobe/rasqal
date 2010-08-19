@@ -276,8 +276,6 @@ sub read_rdf_graph_file($$) {
 
   my(%results)=(graph_ntriples => $result_string);
 
-  print "STR::>>$result_string<<\n";
-
   return \%results;
 }
 
