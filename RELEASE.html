@@ -224,7 +224,8 @@ Query <code>SELECT ... AS ?varname</code> with $ or ? symbol.
 <p>Make query result limit and offset work when no <code>ORDER
 BY</code> is part of the query (yes - this is a well-defined count of
 under-defined actual results) with the original query engine.
-Related to Issue#000352
+Related to
+<a href="http://bugs.librdf.org/mantis/view.php?id=352">Issue#0000352</a>.
 </p>
 
 <p>Add datatype support for <code>xsd:date</code> for value
@@ -232,9 +233,9 @@ normalization and comparisons.
 </p>
 
 <p>Handle when results are sorted before used to build triples via
-CONSTRUCT, which has no practical use since triples are not ordered
-and is less efficient since you have to read all the results into
-memory.  Anyway, it works now.
+<code>CONSTRUCT</code>, which has no practical use since triples are
+not ordered and is less efficient since you have to read all the
+results into memory.  Anyway, it works now.
 </p>
 
 
