@@ -1,3 +1,90 @@
+2010-08-21  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal.h.in, src/rasqal_internal.h, src/rasqal_query.c,
+	src/rasqal_query_transform.c, src/rasqal_query_write.c,
+	src/sparql_parser.y, tests/sparql/aggregate/Makefile.am,
+	tests/sparql/aggregate/group-concat-1.rq,
+	tests/sparql/aggregate/group-concat-2.rq,
+	tests/sparql/aggregate/group-concat-3.rq:
+	Add support for SPARQL 1.1 HAVING <list of Expression>
+
+	(rasqal_query_get_having_conditions_sequence,
+	rasqal_query_get_having_condition): Added.
+
+	struct rasqal_query gains new internal field
+	having_conditions_sequence.
+
+	(rasqal_free_query, rasqal_query_print,
+	rasqal_query_write_sparql_20060406): Handle new sequence of having
+	conditions.
+
+	(rasqal_query_build_variables_use_map): Scan HAVING expr for
+	variable use.  Removes a fixme.
+
+	(SPARQL parser token HavingClauseOpt): Store having conditions
+	sequence.  Removes a fixme.  Added teses for above.
+
+	* src/rasqal_expr.c:
+	(rasqal_new_group_concat_expression): Allow separator to be NULL
+
+	* src/rasqal.h.in:
+	Add rasqal_new_group_concat_expression header
+
+	* src/rasqal_expr.c, src/rasqal_query_write.c, src/sparql_lexer.l,
+	src/sparql_parser.y, tests/sparql/aggregate/Makefile.am,
+	tests/sparql/aggregate/group-concat-1.rq: Add full GROUP_CONCAT()
+	syntax and representation support.
+
+	Added tests/sparql/aggregate/group-concat-1.rq (nothing in spec
+	yet)
+
+	(rasqal_new_group_concat_expression): Added taking distinct flag,
+	sequence of expressions and literal separator
+
+	(rasqal_expression_clear, rasqal_expression_write,
+	rasqal_expression_print, rasqal_expression_is_constant,
+	rasqal_query_write_sparql_expression): updated for above change.
+
+	Fix SPARQL lexer token to be GROUP_CONCAT not GROUPCONCAT.  Oops -
+	that's why a test is needed.
+
+	(SeparatorOpt): Use EQ not '=' which never gets here.
+
+	(ExpressionList): added for a comma-separated list of
+	expressions.
+
+	(GroupConcatAggregateExpression): Use ExpressionList and create
+	new expression from rasqal_new_group_concat_expression().
+
+2010-08-20  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_engine_algebra.c:
+	Zero out freed node pointer
+
+	(rasqal_algebra_graph_algebra_node_to_rowsource): After "case #2"
+	when rasqal_free_algebra_node() is called, zap out the pointer.
+	Addresses Issue#0000378
+	http://bugs.librdf.org/mantis/view.php?id=378
+
+	* src/rasqal_rowsource_empty.c:
+	(rasqal_empty_rowsource_ensure_variables): Use to set row width to
+	0
+
+2010-08-19  Dave Beckett <dave@dajobe.org>
+
+	* docs/Makefile.am, src/Makefile.am: Do not ship rasqal.h in
+	tarball since it is system-dependent (raptor2 or not)
+
+	Add nodist_ before list of installed includes: rasqal.h must be
+	installed but not distributed.
+
+	Add docs dependency rule for rasqal.h for gtk-doc scanning.
+
+	* tests/sparql/bugs/353-result.ttl, tests/sparql/bugs/353.ttl: Add
+	bug353 ttl files
+
+	* tests/sparql/check-sparql: remove debug print
+
 2010-08-18  Dave Beckett <dave@dajobe.org>
 
 	* 000-README-GIT.txt: Remove 000-README-GIT.txt intended for old
