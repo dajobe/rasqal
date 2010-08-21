@@ -59,6 +59,14 @@ rasqal_empty_rowsource_finish(rasqal_rowsource* rowsource, void *user_data)
   return 0;
 }
 
+static int
+rasqal_empty_rowsource_ensure_variables(rasqal_rowsource* rowsource,
+                                        void *user_data)
+{
+  rowsource->size = 0;
+  return 0;
+}
+
 static rasqal_row*
 rasqal_empty_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
 {
@@ -81,7 +89,7 @@ static const rasqal_rowsource_handler rasqal_empty_rowsource_handler = {
   "empty",
   /* .init = */ NULL,
   /* .finish = */ rasqal_empty_rowsource_finish,
-  /* .ensure_variables = */ NULL,
+  /* .ensure_variables = */ rasqal_empty_rowsource_ensure_variables,
   /* .read_row = */ rasqal_empty_rowsource_read_row,
   /* .read_all_rows = */ rasqal_empty_rowsource_read_all_rows,
   /* .reset = */ NULL,
