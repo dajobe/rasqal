@@ -384,7 +384,7 @@ EXPONENT [eE][+-]?[0-9]+
 [Dd][Ee][Ff][Aa][Uu][Ll][Tt] { return DEFAULT; }
 [Nn][Oo][Tt] { return NOT; }
 [Ii][Nn] { return IN; }
-[Gg][Rr][Oo][Uu][Pp][Cc][Oo][Nn][Cc][Aa][Tt] { return GROUP_CONCAT; }
+[Gg][Rr][Oo][Uu][Pp]_[Cc][Oo][Nn][Cc][Aa][Tt] { return GROUP_CONCAT; }
 [Ss][Ee][Pp][Aa][Rr][Aa][Tt][Oo][Rr] { return SEPARATOR; }
 
 "a" { return A; }

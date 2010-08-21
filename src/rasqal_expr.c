@@ -553,6 +553,53 @@ rasqal_new_set_expression(rasqal_world* world, rasqal_op op,
 
 
 /**
+ * rasqal_new_group_concat_expression:
+ * @world: rasqal_world object
+ * @flags: bitset of flags.  Only #RASQAL_EXPR_FLAG_DISTINCT is defined
+ * @args: sequence of #rasqal_expression list arguments
+ * @separator: SEPARATOR string literal or NULL
+ * 
+ * Constructor - create a new SPARQL group concat expression
+ *
+ * Takes an optional distinct flag, a list of expressions and an optional separator string.
+ *
+ * Takes ownership of the @args and @separator
+ * 
+ * Return value: a new #rasqal_expression object or NULL on failure
+ **/
+rasqal_expression*
+rasqal_new_group_concat_expression(rasqal_world* world, 
+                                   int flags,
+                                   raptor_sequence* args,
+                                   rasqal_literal* separator)
+{
+  rasqal_expression* e = NULL;
+
+  if(!world || !args || !separator)
+    goto tidy;
+  
+  e = (rasqal_expression*)RASQAL_CALLOC(rasqal_expression, 1, sizeof(*e));
+  if(e) {
+    e->usage = 1;
+    e->world = world;
+    /* Discard any flags except RASQAL_EXPR_FLAG_DISTINCT */
+    e->flags = flags & RASQAL_EXPR_FLAG_DISTINCT;
+    e->op = RASQAL_EXPR_GROUP_CONCAT;
+    e->args = args; args = NULL;
+    e->literal = separator; separator = NULL;
+  }
+  
+  tidy:
+  if(args)
+    raptor_free_sequence(args);
+  if(separator)
+    rasqal_free_literal(separator);
+
+  return e;
+}
+
+
+/**
  * rasqal_expression_clear:
  * @e: expression
  * 
@@ -634,6 +681,8 @@ rasqal_expression_clear(rasqal_expression* e)
     case RASQAL_EXPR_GROUP_CONCAT:
       raptor_free_uri(e->name);
       raptor_free_sequence(e->args);
+      if(e->literal) /* GROUP_CONCAT() SEPARATOR */
+        rasqal_free_literal(e->literal);
       break;
     case RASQAL_EXPR_CAST:
       raptor_free_uri(e->name);
@@ -2326,13 +2375,20 @@ rasqal_expression_write(rasqal_expression* e, raptor_iostream* iostr)
       break;
 
     case RASQAL_EXPR_GROUP_CONCAT:
-      raptor_iostream_counted_string_write("group_concat(args=", 18, iostr);
-      for(i = 0; i<raptor_sequence_size(e->args); i++) {
+      raptor_iostream_counted_string_write("group_concat(", 13, iostr);
+      if(e->flags & RASQAL_EXPR_FLAG_DISTINCT)
+        raptor_iostream_counted_string_write("distinct,", 9, iostr);
+      raptor_iostream_counted_string_write("args=", 5, iostr);
+      for(i = 0; i < raptor_sequence_size(e->args); i++) {
         rasqal_expression* e2;
         if(i > 0)
           raptor_iostream_counted_string_write(", ", 2, iostr);
         e2 = (rasqal_expression*)raptor_sequence_get_at(e->args, i);
         rasqal_expression_write(e2, iostr);
+      }
+      if(e->literal) {
+        raptor_iostream_counted_string_write(",separator=", 11, iostr);
+        rasqal_literal_write(e->literal, iostr);
       }
       raptor_iostream_write_byte(')', iostr);
       break;
@@ -2488,8 +2544,15 @@ rasqal_expression_print(rasqal_expression* e, FILE* fh)
       break;
 
     case RASQAL_EXPR_GROUP_CONCAT:
-      fputs("group_concat(args=", fh);
+      fputs("group_concat(", fh);
+      if(e->flags & RASQAL_EXPR_FLAG_DISTINCT)
+        fputs("distinct,", fh);
+      fputs("args=", fh);
       raptor_sequence_print(e->args, fh);
+      if(e->literal) {
+        fputs(",separator=", fh);
+        rasqal_literal_print(e->literal, fh);
+      }
       fputc(')', fh);
       break;
 
@@ -2619,6 +2682,7 @@ rasqal_expression_is_constant(rasqal_expression* e)
           break;
         }
       }
+      /* e->literal is always a string constant - do not need to check */
       break;
 
     case RASQAL_EXPR_CAST:

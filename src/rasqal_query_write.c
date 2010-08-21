@@ -422,6 +422,9 @@ rasqal_query_write_sparql_expression(sparql_writer_context *wc,
 
     case RASQAL_EXPR_GROUP_CONCAT:
       raptor_iostream_counted_string_write("GROUP_CONCAT( ", 14, iostr);
+      if(e->flags & RASQAL_EXPR_FLAG_DISTINCT)
+        raptor_iostream_counted_string_write("DISTINCT ", 9, iostr);
+
       count = raptor_sequence_size(e->args);
       for(i = 0; i < count ; i++) {
         rasqal_expression* arg;
@@ -430,6 +433,12 @@ rasqal_query_write_sparql_expression(sparql_writer_context *wc,
           raptor_iostream_counted_string_write(", ", 2, iostr);
         rasqal_query_write_sparql_expression(wc, iostr, arg);
       }
+
+      if(e->literal) {
+        raptor_iostream_counted_string_write(" ; SEPARATOR = ", 15, iostr);
+        rasqal_query_write_sparql_literal(wc, iostr, e->literal);
+      }
+      
       raptor_iostream_counted_string_write(" )", 2, iostr);
       break;
 

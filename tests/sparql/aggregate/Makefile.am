@@ -24,7 +24,8 @@ data-1.ttl
 
 EXPECTED_SPARQL_CORRECT= \
 agg-1.rq \
-agg-2.rq
+agg-2.rq \
+group-concat-1.rq
 
 SPARQL_BAD_TEST_FILES= \
 bad-1.rq

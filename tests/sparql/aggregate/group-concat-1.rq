@@ -1,0 +1,8 @@
+PREFIX ex: <http://example.org/>
+SELECT ?state (GROUP_CONCAT(?name ; SEPARATOR = '\n') AS ?residents) 
+WHERE
+{
+  ?person ex:name ?name .
+  ?person ex:livesIn ?state
+}
+GROUP BY ?state

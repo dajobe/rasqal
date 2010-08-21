@@ -217,6 +217,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
 %type <seq> ModifyTemplateList
 %type <seq> IriRefList
 %type <seq> ParamsOpt
+%type <seq> ExpressionList
 
 %type <update> GraphTriples
 
@@ -796,7 +797,7 @@ MaxAggregateExpression: MAX '(' DistinctOpt Expression ')'
 ;
 
 
-SeparatorOpt: ';' SEPARATOR '=' STRING_LITERAL
+SeparatorOpt: ';' SEPARATOR EQ STRING_LITERAL
 {
   $$ = $4;
 }
@@ -807,14 +808,40 @@ SeparatorOpt: ';' SEPARATOR '=' STRING_LITERAL
 ;
 
 
-/*
-FIXME - Does not take a list of expressions
-
-Original definition from SPARQL 1.1 [107] Aggregate
-
-    'GROUP_CONCAT' '(' 'DISTINCT'? Expression ( ',' Expression )* ( ';' 'SEPARATOR' '=' String )? ')'
+/* NEW Grammar Term pulled out of [107] Aggregate
+ * A comma-separated non-empty list of Expression
  */
-GroupConcatAggregateExpression: GROUP_CONCAT '(' DistinctOpt Expression SeparatorOpt ')'
+ExpressionList: ExpressionList ',' Expression
+{
+  $$ = $1;
+  if(raptor_sequence_push($$, $3)) {
+    raptor_free_sequence($$);
+    $$ = NULL;
+    YYERROR_MSG("ExpressionList 1: sequence push failed");
+  }
+}
+| Expression
+{
+#ifdef HAVE_RAPTOR2_API
+  $$ = raptor_new_sequence((raptor_data_free_handler)rasqal_free_expression,
+                           (raptor_data_print_handler)rasqal_expression_print);
+#else
+  $$ = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_expression,
+                           (raptor_sequence_print_handler*)rasqal_expression_print);
+#endif
+  if(!$$)
+    YYERROR_MSG("ExpressionList 2: failed to create sequence");
+
+  if(raptor_sequence_push($$, $1)) {
+    raptor_free_sequence($$);
+    $$ = NULL;
+    YYERROR_MSG("ExpressionList 2: sequence push failed");
+  }
+}
+;
+
+
+GroupConcatAggregateExpression: GROUP_CONCAT '(' DistinctOpt ExpressionList SeparatorOpt ')'
 {
   rasqal_sparql_query_language* sparql;
   
@@ -825,12 +852,15 @@ GroupConcatAggregateExpression: GROUP_CONCAT '(' DistinctOpt Expression Separato
                         "GROUP_CONCAT() cannot be used with SPARQL 1.0");
     $$ = NULL;
   } else {
-    if($5)
-      rasqal_free_literal($5); /* FIXME - unused */
+    int flags = 0;
+    
+    if($3)
+      flags |= RASQAL_EXPR_FLAG_DISTINCT;
 
-    $$ = rasqal_new_aggregate_function_expression(((rasqal_query*)rq)->world,
-                                                  RASQAL_EXPR_GROUP_CONCAT, $4,
-                                                  NULL /* params */, $3);
+    $$ = rasqal_new_group_concat_expression(((rasqal_query*)rq)->world,
+                                            flags /* flags */,
+                                            $4 /* args */,
+                                            $5 /* separator */);
     if(!$$)
       YYERROR_MSG("GroupConcatAggregateExpression: cannot create expr");
   }
