@@ -575,7 +575,7 @@ rasqal_new_group_concat_expression(rasqal_world* world,
 {
   rasqal_expression* e = NULL;
 
-  if(!world || !args || !separator)
+  if(!world || !args)
     goto tidy;
   
   e = (rasqal_expression*)RASQAL_CALLOC(rasqal_expression, 1, sizeof(*e));
