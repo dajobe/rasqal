@@ -14,15 +14,16 @@
 <p>Not yet released.
 </p>
 
-<p>Updated to parse more of the
+<p>Updated to handle more of the new syntax defined by the
 <a href="http://www.w3.org/TR/2010/WD-sparql11-query-20100601/">SPARQL 1.1 Query</a>
 and
 <a href="http://www.w3.org/TR/2010/WD-sparql11-update-20100601/">SPARQL 1.1 Update</a>
 W3C working drafts of 1 June 2010<br />
-Added execution support for new SPARQL 1.1 query built-in expressions (URI, BNODE etc.)<br />
+Added execution support for new SPARQL 1.1 query built-in expressions IF, URI, STRLANG, STRDT, BNODE, IN and NOT IN.<br />
 Added an 'html' query result table format from patch by Nicholas J Humfrey<br />
-Added API support for HAVING expressions<br />
-Added xsd:date comparison support<br />
+Added API support for group by <code>HAVING</code> expressions<br />
+Added XSD Date comparison support<br />
+Support building with Raptor V2 API if configured with <code>--with-raptor2</code>.<br />
 Many other bug fixes and improvements were made.<br />
 Fixed Issues:
 <a href="http://bugs.librdf.org/mantis/view.php?id=352">0000352</a>,
