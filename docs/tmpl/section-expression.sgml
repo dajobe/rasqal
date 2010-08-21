@@ -222,6 +222,18 @@ constants and #rasqal_variable values bound in some
 @Returns: 
 
 
+<!-- ##### FUNCTION rasqal_new_group_concat_expression ##### -->
+<para>
+
+</para>
+
+@world: 
+@flags: 
+@args: 
+@separator: 
+@Returns: 
+
+
 <!-- ##### FUNCTION rasqal_new_literal_expression ##### -->
 <para>
 

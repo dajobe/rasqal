@@ -56,6 +56,7 @@ rasqal_new_cast_expression
 rasqal_new_coalesce_expression
 rasqal_new_function_expression
 rasqal_new_function_expression2
+rasqal_new_group_concat_expression
 rasqal_new_literal_expression
 rasqal_new_set_expression
 rasqal_new_string_op_expression
@@ -154,6 +155,8 @@ rasqal_query_get_group_condition
 rasqal_query_get_group_conditions_sequence
 rasqal_query_get_graph_pattern
 rasqal_query_get_graph_pattern_sequence
+rasqal_query_get_having_condition
+rasqal_query_get_having_conditions_sequence
 rasqal_query_get_label
 rasqal_query_get_limit
 rasqal_query_get_name
@@ -340,4 +343,5 @@ next_match
 rasqal_expression_s
 triple_present
 RASQAL_LITERAL_UDT_DEFINED
+raptor_message_handler
 </SECTION>
