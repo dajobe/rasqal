@@ -993,6 +993,10 @@ raptor_sequence* rasqal_query_get_group_conditions_sequence(rasqal_query* query)
 RASQAL_API
 rasqal_expression* rasqal_query_get_group_condition(rasqal_query* query, int idx);
 RASQAL_API
+raptor_sequence* rasqal_query_get_having_conditions_sequence(rasqal_query* query);
+RASQAL_API
+rasqal_expression* rasqal_query_get_having_condition(rasqal_query* query, int idx);
+RASQAL_API
 raptor_sequence* rasqal_query_get_construct_triples_sequence(rasqal_query* query);
 RASQAL_API
 rasqal_triple* rasqal_query_get_construct_triple(rasqal_query* query, int idx);

@@ -256,6 +256,9 @@ rasqal_free_query(rasqal_query* query)
   if(query->group_conditions_sequence)
     raptor_free_sequence(query->group_conditions_sequence);
 
+  if(query->having_conditions_sequence)
+    raptor_free_sequence(query->having_conditions_sequence);
+
   if(query->graph_patterns_sequence)
     raptor_free_sequence(query->graph_patterns_sequence);
 
@@ -1520,6 +1523,10 @@ rasqal_query_print(rasqal_query* query, FILE *fh)
     fputs("\nquery group conditions: ", fh);
     raptor_sequence_print(query->group_conditions_sequence, fh);
   }
+  if(query->having_conditions_sequence) {
+    fputs("\nquery having conditions: ", fh);
+    raptor_sequence_print(query->having_conditions_sequence, fh);
+  }
   if(query->updates) {
     fputs("\nupdate operations: ", fh);
     raptor_sequence_print(query->updates, fh);
@@ -1717,6 +1724,44 @@ rasqal_query_get_group_condition(rasqal_query* query, int idx)
     return NULL;
   
   return (rasqal_expression*)raptor_sequence_get_at(query->group_conditions_sequence, idx);
+}
+
+
+/**
+ * rasqal_query_get_having_conditions_sequence:
+ * @query: #rasqal_query query object
+ *
+ * Get the sequence of query having conditions.
+ *
+ * Return value: a #raptor_sequence of #rasqal_expression pointers.
+ **/
+raptor_sequence*
+rasqal_query_get_having_conditions_sequence(rasqal_query* query)
+{
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, NULL);
+
+  return query->having_conditions_sequence;
+}
+
+
+/**
+ * rasqal_query_get_having_condition:
+ * @query: #rasqal_query query object
+ * @idx: index into the sequence (0 or larger)
+ *
+ * Get a query having expression in the sequence of query havinging conditions.
+ *
+ * Return value: a #rasqal_expression pointer or NULL if out of the sequence range
+ **/
+rasqal_expression*
+rasqal_query_get_having_condition(rasqal_query* query, int idx)
+{
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, NULL);
+
+  if(!query->having_conditions_sequence)
+    return NULL;
+  
+  return (rasqal_expression*)raptor_sequence_get_at(query->having_conditions_sequence, idx);
 }
 
 

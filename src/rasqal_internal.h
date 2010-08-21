@@ -418,6 +418,9 @@ struct rasqal_query_s {
    * INSERT (deprecated), DELETE (deprecated) or UPDATE
    */
   raptor_sequence* updates;
+
+  /* sequence of (group by ...) having condition expressions */
+  raptor_sequence* having_conditions_sequence;
 };
 
 

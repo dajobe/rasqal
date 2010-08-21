@@ -1887,9 +1887,7 @@ HavingClauseOpt: HAVING HavingConditionList
     sparql_query_error((rasqal_query*)rq, 
                        "HAVING cannot be used with ASK");
   } else {
-    /* FIXME - where to store this? */
-    /* ((rasqal_query*)rq)->having_conditions_sequence = $2; */
-    raptor_free_sequence($2);
+    ((rasqal_query*)rq)->having_conditions_sequence = $2;
   }
 }
 | /* empty */

@@ -1771,7 +1771,14 @@ rasqal_query_build_variables_use_map(rasqal_query* query)
   }
   
 
-  /* FIXME: record variable use for 3) HAVING expr (SPARQL 1.1 TBD) */
+  /* Record variable use for 3) HAVING expr (SPARQL 1.1) */
+  seq = query->having_conditions_sequence;
+  if(seq) {
+    rc = rasqal_query_build_expressions_sequence_use_map_row(&use_map[RASQAL_VAR_USE_MAP_OFFSET_HAVING],
+                                                             seq);
+    if(rc)
+      goto done;
+  }
 
   /* record variable use for 4) ORDER list-of-expr (SPARQL 1.0) */
   seq = query->order_conditions_sequence;

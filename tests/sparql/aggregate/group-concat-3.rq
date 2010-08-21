@@ -1,9 +1,10 @@
-# Test GROUP_CONCAT() with SEPARATOR
+# Test GROUP with HAVING condition
 PREFIX ex: <http://example.org/>
-SELECT ?state (GROUP_CONCAT(?name ; SEPARATOR = '\n') AS ?residents) 
+SELECT ?state
 WHERE
 {
   ?person ex:name ?name .
   ?person ex:livesIn ?state
 }
 GROUP BY ?state
+HAVING ( ?state != 'CA' ) ( ?state != 'FL')

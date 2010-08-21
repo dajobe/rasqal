@@ -877,6 +877,20 @@ rasqal_query_write_sparql_20060406(raptor_iostream *iostr,
     raptor_iostream_write_byte('\n', iostr);
   }
 
+  if(query->having_conditions_sequence) {
+    raptor_iostream_counted_string_write("HAVING ", 7, iostr);
+    for(i = 0; 1; i++) {
+      rasqal_expression* expr = rasqal_query_get_having_condition(query, i);
+      if(!expr)
+        break;
+
+      if(i > 0)
+        raptor_iostream_write_byte(' ', iostr);
+      rasqal_query_write_sparql_expression(&wc, iostr, expr);
+    }
+    raptor_iostream_write_byte('\n', iostr);
+  }
+
   if(query->order_conditions_sequence) {
     raptor_iostream_counted_string_write("ORDER BY ", 9, iostr);
     for(i = 0; 1; i++) {
