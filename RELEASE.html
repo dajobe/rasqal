@@ -13,7 +13,7 @@
 <p>Not yet released.
 </p>
 
-<!-- Updated to ChangeLog 2010-08-05 -->
+<!-- Updated to ChangeLog 2010-08-21 -->
 
 <p>The main changes in this release are:</p>
 <ul>
@@ -24,11 +24,13 @@ execution semantics for new built-in expressions.</li>
 
 <p>Fixed Issues:</p>
 <ul>
+  <li><a href="http://bugs.librdf.org/mantis/view.php?id=352">0000352</a>: CONSTRUCT with a LIMIT doesn't limit query results</li>
+  <li><a href="http://bugs.librdf.org/mantis/view.php?id=353">0000353</a>: CONSTRUCT with an ORDER always(?) returns an empty graph</li>
+  <li><a href="http://bugs.librdf.org/mantis/view.php?id=354">0000354</a>: Comparing xsd:int and xsd:integer fails in SPARQL</li>
+  <li><a href="http://bugs.librdf.org/mantis/view.php?id=360">0000360</a>: [PATCH] HTML Table results format</li>
   <li><a href="http://bugs.librdf.org/mantis/view.php?id=374">0000374</a>: Solaris 10 'make check' failures</li>
   <li><a href="http://bugs.librdf.org/mantis/view.php?id=377">0000377</a>: Cannot format results in roqet</li>
-  <li><a href="http://bugs.librdf.org/mantis/view.php?id=360">0000360</a>: [PATCH] HTML Table results format</li>
-  <li><a href="http://bugs.librdf.org/mantis/view.php?id=352">0000352</a>: CONSTRUCT with a LIMIT doesn't limit query results</li>
-  <li><a href="http://bugs.librdf.org/mantis/view.php?id=354">0000354</a>: Comparing xsd:int and xsd:integer fails in SPARQL</li>
+  <li><a href="http://bugs.librdf.org/mantis/view.php?id=378">0000378</a>: Crash when cleaning up after a failed query containing unsupported syntax</li>
 </ul>
 
 
@@ -42,6 +44,11 @@ for
 Deprecated <code>rasqal_query_set_generate_bnodeid_handler()</code>
 for new function (with different handler signature)
 <code>rasqal_world_set_generate_bnodeid_handler()</code>.
+</p>
+
+<p>Added <code>rasqal_query_get_having_conditions_sequence()</code> and
+<code>rasqal_query_get_having_condition()</code> for getting access
+to the HAVING expression list in a query.
 </p>
 
 
@@ -134,6 +141,11 @@ This is not capable of adding a user extension aggregate function.
 <code>rasqal_expression_visit_fn</code> typedef to match what the code
 actually does.</p>
 
+<p>Added <code>rasqal_new_group_concat_expression()</code> for
+building SPARQL GROUP_CONCAT() expressions with flags, non-empty list
+of expressions and optional literal separator.
+</p>
+
 
 <h3>SPARQL query language changes</h3>
 
@@ -162,12 +174,13 @@ with new expression enum
 <code>RASQAL_EXPR_GROUP_CONCAT</code> and
 <code>RASQAL_EXPR_SAMPLE</code> as well as formatting to SPARQL and
 placeholder expression handling implementation - no aggregate expression
-evaluation.  Partially support the <code>SEPARATOR = "string"</code> syntax for group concat - currently throws away the data..
+evaluation.  Supports the optional <code>; SEPARATOR =
+"string"</code> syntax for GROUP_CONCAT().
 </p>
 
-<p>Add partial support for draft SPARQL 1.1 Query
-<code>GROUP BY</code> with <code>HAVING</code>.  Currently it throws away
-the having list.
+<p>Add support for draft SPARQL 1.1 Query syntax
+<code>GROUP BY</code> a list of select expressions and
+<code>HAVING</code> with a list of expressions.
 </p>
 
 <p>Add partial support for draft SPARQL 1.1 Query extension (aggregate)
@@ -216,6 +229,12 @@ Related to Issue#000352
 
 <p>Add datatype support for <code>xsd:date</code> for value
 normalization and comparisons.
+</p>
+
+<p>Handle when results are sorted before used to build triples via
+CONSTRUCT, which has no practical use since triples are not ordered
+and is less efficient since you have to read all the results into
+memory.  Anyway, it works now.
 </p>
 
 
