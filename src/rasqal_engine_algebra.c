@@ -337,7 +337,8 @@ eval(D(G), Graph(IRI,P)) = the empty multiset
     } else {
       /* case #2 - IRI is not a graph name in D - return empty rowsource */
       rasqal_free_algebra_node(node->node1);
-
+      node->node1 = NULL;
+      
       rs = rasqal_new_empty_rowsource(query->world, query);
     }
 
