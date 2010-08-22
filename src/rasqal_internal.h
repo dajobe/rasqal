@@ -35,15 +35,6 @@ extern "C" {
 
 #ifdef RASQAL_INTERNAL
 
-/* for the memory allocation functions */
-#if defined(HAVE_DMALLOC_H) && defined(RASQAL_MEMORY_DEBUG_DMALLOC)
-#ifdef HAVE_STDLIB_H
-#include <stdlib.h>
-#undef HAVE_STDLIB_H
-#endif
-#include <dmalloc.h>
-#endif
-
 #if __GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ > 4)
 #define RASQAL_PRINTF_FORMAT(string_index, first_to_check_index) \
   __attribute__((__format__(__printf__, string_index, first_to_check_index)))

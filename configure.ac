@@ -189,7 +189,7 @@ PKGCONFIG_CFLAGS=
 
 dnl Checks for header files.
 AC_HEADER_STDC
-AC_CHECK_HEADERS(errno.h stdlib.h unistd.h string.h dmalloc.h getopt.h regex.h sys/time.h)
+AC_CHECK_HEADERS(errno.h stdlib.h unistd.h string.h getopt.h regex.h sys/time.h)
 AC_HEADER_TIME
 
 
@@ -891,24 +891,6 @@ fi
 MEM=
 MEM_LIBS=
 CPPFLAGS="-DRASQAL_INTERNAL=1 $CPPFLAGS"
-AC_ARG_WITH(dmalloc, [  --with-dmalloc              Use dmalloc debugging library (default=no)], use_dmalloc="$withval", use_dmalloc="no") 
-AC_MSG_CHECKING(using dmalloc library)
-if test "$USE_MAINTAINER_MODE" = yes; then
-  if test "$ac_cv_header_dmalloc_h" = yes; then
-    if test "X$use_dmalloc" = Xauto; then
-      use_dmalloc=yes
-    fi
-  else
-    use_dmalloc=no
-  fi
-else
-  use_dmalloc=no
-fi
-AC_MSG_RESULT($use_dmalloc);
-if test $use_dmalloc = yes; then
-  MEM=-DRASQAL_MEMORY_DEBUG_DMALLOC=1
-  MEM_LIBS=-ldmalloc
-fi
 if test "$USE_MAINTAINER_MODE" = yes; then
   CPPFLAGS="-g -DRASQAL_DEBUG=1 $CPPFLAGS"
 fi
