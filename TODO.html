@@ -2,107 +2,17 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-  <title>Rasqal RDF Query Library - To Do List</title>
+  <title>Rasqal RDF Query Library - Issues</title>
 </head>
 <body>
 
-<h1 style="align:center">Rasqal RDF Query Library - To Do List</h1>
+<h1 style="align:center">Rasqal RDF Query Library - Issues</h1>
 
 <h2>Bugs and Features</h2>
 
 <p>Bugs should be reported at the
 <a href="http://bugs.librdf.org/">Redland Issue Tracker</a>.
 </p>
-
-
-<h3><a name="general">General</a></h3>
-
-<ul>
-<li>QL: SeRQL - needs many engine changes (multiple sources, distinct, paths, anon variables, anon predicates) - <a href="http://www.openrdf.org/doc/users/ch05.html">The SeRQL query language</a> in Sesame user manual.</li>
-<li>QL: Squish - should be just syntax - <a href="http://swordfish.rdfweb.org/rdfquery/squish-bnf.html">Squish BNF</a></li> 
-<li>QL: <a href="http://www.guha.com/rdfdb/query.html">RDFDB query language</a> - should be just syntax</li>
-<li>QL: RQL, others - functional requirements not determined</li>
-</ul>
-
-
-<h3><a name="sparql">SPARQL</a></h3>
-
-<p>Rasqal provides support for the SPARQL language as defined in
-<a href="http://www.w3.org/TR/2007/PR-rdf-sparql-query-20071112/">SPARQL Query Language for RDF</a> W3C Proposed Recommendation, 12 November 2007.</p>
-
-<p>Rasqal fails to implement the following parts of SPARQL:</p>
-<ul>
-<li><a href="http://www.w3.org/TR/2007/PR-rdf-sparql-query-20071112/#GroupPatterns" class="tocxref">4.1 Group Graph Patterns</a></li>
-<li><a href="http://www.w3.org/TR/2007/PR-rdf-sparql-query-20071112/#MultipleOptionals">5.3 Multiple Optional Graph Patterns</a></li>
-<li><a href="http://www.w3.org/TR/2007/PR-rdf-sparql-query-20071112/#OptionalMatchingNested">5.5 Nested Optional Graph Patterns</a></li>
-<li><a href="http://www.w3.org/TR/2007/PR-rdf-sparql-query-20071112/#unionOp">6.1 Joining Patterns with UNION</a></li>
-</ul>
-
-
-<h3><a name="rdql">RDQL</a></h3>
-<ul>
-<li>Check difference between <code>FROM</code> and <code>SOURCE</code>, currently they are the same</li>
-<li>RDQL testsuite failures:
-<ul>
-
-<li>1-09: relies on <code>&lt;prefix:/r-1&gt;</code>
-being interpreted as a qname after <code>prefix:</code> is defined later.
-However this syntax is not in the 
-<a href="http://www.w3.org/Submission/2004/SUBM-RDQL-20040109/">RDQL - A Query Language for RDF, W3C Member Submission 9 January 2004</a>.
-Legacy syntax.</li>
-
-<li>B-17: No current support for "true" matching "true"^^xsd:boolean.</li>
-
-</ul>
-</li>
-<li>LIMIT and OFFSET result constraints, now that the engine supports them.  AKT's Triplestore implementation of RDQL has this option. (extension)</li>
-<li>Error recovery - when parsing a query fails, memory is leaked because the lists of selects, constraints etc. are lost when some part fails.  This requires understanding error recovery in Yacc/Bison.</li>
-</ul>
-
-
-<h2>Done</h2>
-
-<p>The most recent changes are at the top, with the first
-release version where appropriate.</p>
-
-<ul>
-<li>SPARQL: Syntax details (0.9.15)</li>
-<li>Engine: datatypes (0.9.15)</li>
-<li>Engine: graph names (0.9.15)</li>
-<li>Engine: result distinct, limit and ordering (0.9.11)</li>
-<li>Engine: result ordering (0.9.10)</li>
-<li>Engine: result constraints - like <code>LIMIT</code> and <code>OFFSET</code> in SQL (0.9.9)</li>
-<li>Engine: multiple data graphs (0.9.7)</li>
-<li>SPARQL: <code>BOUND</code> from <a href="http://www.w3.org/TR/2005/WD-rdf-sparql-query-20050419/#func-isBound">11.2.1.2 sop:bound</a> (0.9.6)</li>
-<li>SPARQL: <a href="http://www.w3.org/TR/2005/WD-rdf-sparql-query-20050419/#ask">10.4 Asking "yes or no" questions</a> (<code>ASK</code>) (0.9.6)</li>
-<li>SPARQL: <a href="http://www.w3.org/TR/2005/WD-rdf-sparql-query-20050419/#construct">10.2 Constructing an Output Graph</a> (<code>CONSTRUCT</code> with triples and <code>CONSTRUCT *</code>) (0.9.6)</li>
-<li>Engine: constructing of RDF graph results as a sequence of triples (0.9.6)</li>
-<li>RDQL: Allowed UTF-8 in QNames; enabling RDQL testsuite tests S-03, S-04 and S-05 to pass (0.9.6)</li>
-<li>Engine: generating result sets in XML vocabulary (0.9.5)</li>
-<li>SPARQL <a href="http://www.w3.org/TR/2005/WD-rdf-sparql-query-20050419/#optionals">5 Including Optional Values</a> (0.9.5)</li>
-<li>SPARQL <a href="http://www.w3.org/TR/2005/WD-rdf-sparql-query-20050419/#OptionalMatching">5.1 Optional Pattern Matching</a> - <code>OPTIONAL</code> and <code>[</code> ...<code>]</code> (0.9.5)</li>
-<li>Engine: optional triples (0.9.5)</li>
-<li>RDQL: Allow UTF-8 in prefix to the RDQL lexer; enabling RDQL testsuite test S-02 to pass (0.9.5)</li>
-<li>Engine: re-running an execute() on a prepared query
-works and does not leak memory (0.9.3)</li>
-<li>RDQL: Checked that blank nodes are not allowed in RDQL queries.</li>
-<li>RDQL: string matches should be case insensitive with EQ, NE; not with ==,  !=</li>
-<li>Engine: comparisons between integer and floats return &lt;0 (-1),0 or &gt;0 (1) integers as appropriate</li>
-<li>Literal languages, datatypes - <code>"lit"@lang</code> and
-<code>"lit"@lang^^datatype</code></li>
-<li>Engine: added checks that (?x, ?x, constant) (and permutations) and
-(?x, ?x, ?x) work in triplesMatching implementation, for redland.</li>
-<li>RDQL testsuite file model9.n3 has a floating literal constant, N3 but not Turtle</li>
-<li>RDQL: kill functioncall grammar term</li>
-<li>Engine: recognise xsd:integer as integer, xsd:double as floating</li>
-<li>RDQL: Updated for changes in
-<a href="http://www.w3.org/Submission/2004/SUBM-RDQL-20040109/">RDQL - A Query Language for RDF, W3C Member Submission 9 January 2004</a></li>
-<li>Engine: base URIs handled</li>
-<li>RDQL: defined keywords are handled case insensitive.</li>
-<li>RDQL: lexer and parser handle new and old qname style (with a warning) - <code>a:b</code> and <code>&lt;a:b&gt;</code>.</li>
-<li>RDQL: Recognise pattern literals in /foo/, m/foo/ forms with
-optional flags</li>
-</ul>
 
 <hr />
 
