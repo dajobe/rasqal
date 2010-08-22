@@ -1,3 +1,8 @@
+2010-08-22  Dave Beckett <dave@dajobe.org>
+
+	* Snapshotted rasqal_0_9_20 for 0.9.20 release (GIT
+	6b842b7e85565693bb8fe7a250710443f8d3a2a3)
+
 2010-08-22  Nicholas J Humfrey <njh@aelius.com>
 
 	* rasqal.rdf.in: Updated repository section to new Git repository
