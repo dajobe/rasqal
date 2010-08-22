@@ -60,10 +60,10 @@
 
     <!-- source repository -->
     <repository>
-      <CVSRepository>
-        <anonCVS>:pserver:anonymous@cvs.librdf.org:/cvs/redland rasqal</anonCVS>
-        <repositoryWebView rdf:resource="http://cvs.librdf.org/cvsweb/redland/rasqal/"/>
-      </CVSRepository>
+      <GITRepository>
+        <location rdf:resource="git://github.com/dajobe/rasqal.git" />
+        <browse rdf:resource="http://github.com/dajobe/rasqal" />
+      </GITRepository>
     </repository>
   </Project>
 
