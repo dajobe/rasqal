@@ -1,4 +1,23 @@
+2010-08-22  Nicholas J Humfrey <njh@aelius.com>
+
+	* rasqal.rdf.in: Updated repository section to new Git repository
+	on Github
+
+	* rasqal.rdf.in: Normalised tabs into spaces #ws
+
 2010-08-21  Dave Beckett <dave@dajobe.org>
+
+	* README.html, RELEASE.html: Remove links to TODO.html
+
+	* README.html: words
+
+	* RELEASE.html: 0.9.20
+
+	* NEWS.html: 0.9.20
+
+	* src/rasqal_expr.c:
+	(rasqal_expression_evaluate): Return error failure not abort on
+	attempt to evaluate SAMPLE() and GROUP_CONCAT()
 
 	* TODO.html: Empty document and point at bugs.librdf.org
 
