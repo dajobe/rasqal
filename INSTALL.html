@@ -11,8 +11,8 @@
 <h2>0. Prerequisites</h2>
 
 <p>Rasqal requires the
-<a href="http://librdf.org/raptor/">Raptor RDF parser toolkit</a>
-version 1.4.17 or later for parsing RDF, retrieving WWW content and
+<a href="http://librdf.org/raptor/">Raptor RDF Syntax Library</a>
+version 1.4.19 or later for parsing RDF, retrieving WWW content and
 other utility classes and libraries.  It can also use
 <a href="http://librdf.org/">Redland</a>
 as an alternate triple store and enabled by
@@ -29,25 +29,19 @@ however Raptor is also required.</p>
 <a href="http://sourceforge.net/projects/librdf/">SourceForge site</a>.</p>
 
 
-<h2>1.2 Getting the sources from Subversion</h2>
+<h2>1.2 Getting the sources from GIT</h2>
 
 <p>Building from development sources rather than from a release
 may required some extra development tools.  Presently this includes the 
 <a href="http://lex.sourceforge.net/">flex scanner generator</a>
 version 2.5.31 or later.</p>
 
-<p><strong>NOTE</strong>: Rasqal switched to use
-<a href="http://subversion.tigris.org/">Subversion</a>
-for version control after the 0.9.11 release.  If you were
-using CVS, you will need to re-check out the sources.</p>
-
 <pre>
-  svn checkout http://svn.librdf.org/repository/rasqal/trunk/
-  mv trunk rasqal
+  git clone git://github.com/dajobe/rasqal.git
   cd rasqal
 </pre>
 
-<p>At this stage, or after a <tt>svn update</tt> you will
+<p>At this stage, or after a <tt>git pull</tt> you will
 need to create the automake and autoconf derived files, as described
 below in <a href="#sec-create-configure">Create the configure program</a>
 by using the <code>autogen.sh</code> script.</p>
@@ -63,16 +57,18 @@ versions.</p>
 <h2>2. Configuring and building</h2>
 
 <p>Requirements: 
-the <a href="http://librdf.org/raptor/">Raptor RDF parser toolkit</a>
-version 1.4.11 or later
-(plus flex and bison as specified above, when building from Subversion).
+the <a href="http://librdf.org/raptor/">Raptor RDF Syntax Library</a>
+version 1.4.19 or later
+(plus flex and bison as specified above, when building from GIT).
 Recommended: <a href="http://www.pcre.org/">PCRE</a> regex library
 or another implementing the POSIX regex API.  If neither is
 present some of the tests will fail and the query engine will
 fail to handle regex matches.
 </p>
 
-<p>Rasqal is developed and built on x86 GNU/Linux and PPC Apple OSX.
+<p>Raptor uses the GNU automake and autoconf to handle system
+dependency checking.  It is developed and built on x86 Linux
+and x86 OSX but is also tested on other systems occasionally.
 </p>
 
 
@@ -108,19 +104,18 @@ OSX <code>libtoolize</code> is a different program:</p>
 </pre>
 
 <p>The automake and autoconf tools have many different versions and
-at present development is being done with automake 1.8.3 (minimum
-version 1.7), autoconf 2.59 (minimum version 2.54) and libtool 1.5.4
-(minimum version 1.4).  These are only needed when compiling from Subversion
-sources.  autogen.sh enforces the requirements.  In future
-development will move to require automake 1.8, autoconf 2.58 and
-libtool 1.5.</p>
+at present development is being done with automake 1.11.1 (minimum
+version 1.11), autoconf 2.65 (minimum version 2.62) and libtool
+2.2.10 (minimum version 2.2.0).  These are only needed when compiling
+from GIT sources.  autogen.sh enforces the requirements.
+</p>
 
 <p>Rasqal also requires
 <a href="http://lex.sourceforge.net/">flex</a> version 2.5.31 or newer
 (2.5.4 will not work) and
 <a href="http://www.gnu.org/software/bison/bison.html">GNU Bison</a>
 to build lexers and parsers.
-These are only required when building from Subversion.</p>
+These are only required when building from GIT.</p>
 
 
 <h3>2.2 Options for <tt>configure</tt></h3>
@@ -133,6 +128,18 @@ These are only required when building from Subversion.</p>
 <code>rdql sparql laqrs</code><br />
 The default when this option is omitted is to enable all query languages
 except the experimental one, laqrs.
+</p>
+</dd>
+
+<dt><tt>--enable-raptor2</tt><br /></dt>
+<dd><p>Build raptor against the
+beta <a href="http://librdf.org/raptor/">Raptor</a>
+V2 APIs (libraptor2) rather than the default V1 APIs (libraptor).  This
+is a developer option for testing against the raptor 2 beta APIs.  In
+some future version, this will be the default and rasqal will depend
+on raptor2.  When rasqal is built in this way and librdf is built
+against it, librdf also has to be built with a configure
+<code>--enable-raptor</code> option.
 </p>
 </dd>
 
@@ -162,11 +169,11 @@ also <tt>--with-redland-config</tt>.</p>
 <dt><code>--with-raptor=</code> <code>system</code> or <code>internal</code><br /></dt>
 <dd><p>
 This option tells Rasqal to use either the system installed version
-of raptor or a version in the sibling directory of ../raptor
+of Raptor or a version in the sibling directory of ../raptor
 If the option is omittted, Rasqal will guess and choose either the
 system one, if new enough or the internal one if present.  If
 <code>--with-raptor=system</code> is used and Rasqal discovers that
-the system raptor is too old, a warning will be given but the
+the system Raptor is too old, a warning will be given but the
 configuration will continue.  </p></dd>
 
 <dt><tt>--with-redland-config=NAME</tt><br /></dt>
@@ -194,8 +201,9 @@ configuration will continue.  </p></dd>
 <pre>
    make
 </pre>
-<p>Note: GNU make is probably required so it may be gmake or gnumake
-on your system</p>
+<p>Note: GNU make is probably required which may be called
+gmake or gnumake if your system has a different make available too.
+</p>
 
 
 <h3>2.5 Testing</h3>
@@ -210,7 +218,7 @@ conclude with something like:<br />
   <tt>All </tt><em>n</em><tt> tests passed</tt><br />
 if everything works correctly.  There might be some regex
 tests that fail if no POSIX regex library was available when
-raptor was compiled</p>
+Rasqal was compiled.</p>
 
 
 <h2>3. Using the library</h2>
