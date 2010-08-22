@@ -1,5 +1,25 @@
 2010-08-21  Dave Beckett <dave@dajobe.org>
 
+	* TODO.html: Empty document and point at bugs.librdf.org
+
+	* README.html: requires raptor 1.4.19
+
+	* README.html: words - jena RDQL links are all broken; comment
+	out.
+
+	* LICENSE.html: Link to specific LGPL 2.1 version doc.  Wording
+	and formatting
+
+	* INSTALL.html: words
+
+	* src/rasqal_general.c: Removed dmalloc support
+
+	* configure.ac, src/rasqal_internal.h: Removed dmalloc support
+
+	* docs/rasqal-sections.txt, docs/tmpl/section-expression.sgml,
+	docs/tmpl/section-query.sgml, docs/tmpl/section-unused.sgml:
+	Updated docbook tmpls and sections
+
 	* src/rasqal.h.in, src/rasqal_internal.h, src/rasqal_query.c,
 	src/rasqal_query_transform.c, src/rasqal_query_write.c,
 	src/sparql_parser.y, tests/sparql/aggregate/Makefile.am,
