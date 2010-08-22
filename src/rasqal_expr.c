@@ -2017,11 +2017,19 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
       break;
 
     case RASQAL_EXPR_SAMPLE:
-      RASQAL_FATAL1("SAMPLE() not implemented");
+      rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR,
+                              locator,
+                              "Evaluation of SPARQL SAMPLE() expression is not implemented yet, returning error.");
+      errs.e = 1;
+      goto failed;
       break;
       
     case RASQAL_EXPR_GROUP_CONCAT:
-      RASQAL_FATAL1("GROUP_CONCAT() not implemented");
+      rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR,
+                              locator,
+                              "Evaluation of SPARQL GROUP_CONCAT() expression is not implemented yet, returning error.");
+      errs.e = 1;
+      goto failed;
       break;
 
     case RASQAL_EXPR_IN:
