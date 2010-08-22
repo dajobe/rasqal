@@ -83,7 +83,13 @@ It currently implements most of the functionality except for
 <code>GRAPH</code>, <code>UNION</code> and part of <code>OPTIONAL</code>.
 For detailed information on the implementation state, see the Rasqal
 <a href="TODO.html#sparql">todo / bugs list</a>
-and the <a href="http://bugs.librdf.org/">Redland issue tracker</a>.</p>
+and the <a href="http://bugs.librdf.org/">Redland issue tracker</a>.
+It also implements some of the
+<a href="http://www.w3.org/TR/2010/WD-sparql11-query-20100601/">SPARQL 1.1 Query</a>
+and
+<a href="http://www.w3.org/TR/2010/WD-sparql11-update-20100601/">SPARQL 1.1 Update</a>
+W3C working drafts of 1 June 2010.
+</p>
 
 
 <h3>RDF Data Query Language (RDQL)</h3>
@@ -91,18 +97,28 @@ and the <a href="http://bugs.librdf.org/">Redland issue tracker</a>.</p>
 <p>Rasqal provides a complete implementation of the RDQL language, as defined in
 <a href="http://www.w3.org/Submission/2004/SUBM-RDQL-20040109/">RDQL - A Query Language for RDF</a>,
 W3C Member Submission 9 January 2004
-based on the earlier versions in Jena defined in
+based on the earlier versions in Jena.
+<em>RDQL RDF Data Query Language</em>
+<!--
 <a href="http://www.hpl.hp.com/semweb/rdql.htm">RDQL RDF Data Query Language</a>
+-->
 and the
+<em>RDQL Grammar</em>.
+<!--
 <a href="http://www.hpl.hp.com/semweb/rdql-grammar.html">RDQL Grammar</a>.
+-->
 The
-<a href="http://www.hpl.hp.com/semweb/doc/tutorial/RDQL/">Jena RDQL Tutorial</a>
+<a href="http://jena.sourceforge.net/tutorial/RDQL/">Jena RDQL Tutorial</a>
 gives an introduction on the language.
 Rasqal currently passes all the
+<em>Jena RDQL test suite</em>
+<!--
 <a href="http://jena.hpl.hp.com/2003/07/query/">Jena RDQL test suite</a>
+-->
 bar a couple.
 Detail of the status of the RDQL support is given in the
 <a href="http://bugs.librdf.org/">Redland issue tracker</a>.</p>
+
 
 <h3>LAQRS Adds to Querying RDF in SPARQL (LAQRS)</h3>
 
