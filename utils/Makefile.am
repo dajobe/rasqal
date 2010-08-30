@@ -41,11 +41,19 @@ roqet_LDFLAGS = `@RAPTOR_CONFIG@ --libs`
 
 srxread_SOURCES = srxread.c
 srxread_LDADD = $(top_builddir)/src/librasqal.la
+if RAPTOR2
+srxread_LDFLAGS = -lraptor2
+else
 srxread_LDFLAGS = -lraptor
+endif
 
 srxwrite_SOURCES = srxwrite.c
 srxwrite_LDADD = $(top_builddir)/src/librasqal.la
+if RAPTOR2
+srxwrite_LDFLAGS = -lraptor2
+else
 srxwrite_LDFLAGS = -lraptor
+endif
 
 EXTRA_DIST= \
 $(man_MANS) \
