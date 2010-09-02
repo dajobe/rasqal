@@ -56,14 +56,6 @@ rasqal_free_chararray(void* object)
   free(values);
 }
 
-#ifdef HAVE_RAPTOR2_API
-static void
-rasqal_free_chararray_v2(void* context, void* object)
-{
-  rasqal_free_chararray(object);
-}
-#endif
-
 
 static int
 rasqal_iostream_write_counted_string_padded(raptor_iostream *iostr,
@@ -123,7 +115,7 @@ rasqal_query_results_write_table_bindings(raptor_iostream *iostr,
   }
 
 #ifdef HAVE_RAPTOR2_API
-  seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_chararray_v2, NULL);
+  seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_chararray, NULL);
 #else
   seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_chararray, NULL);
 #endif
