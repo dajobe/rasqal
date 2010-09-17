@@ -30,6 +30,7 @@ delete-1.rq \
 delete-2.rq \
 insert-1.rq \
 insert-2.rq \
+insert-3.rq \
 load-1.rq \
 load-2.rq \
 load-3.rq \

@@ -1157,7 +1157,7 @@ InsertQuery: INSERT DatasetClauseList WhereClauseOpt
                         "INSERT FROM <uri> ... WHERE ... is deprecated LAQRS syntax.");
   ((rasqal_query*)rq)->query_graph_pattern = $3;
 }
-| INSERT '{' ModifyTemplateList '}' WhereClause
+| INSERT '{' ModifyTemplateList '}' WhereClauseOpt
 {
   rasqal_sparql_query_language* sparql;
   rasqal_update_operation* update;
