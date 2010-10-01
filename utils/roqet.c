@@ -419,10 +419,79 @@ print_bindings_result_simple(rasqal_query_results *results,
 
 static void
 print_boolean_result_simple(rasqal_query_results *results,
-                            FILE* output, int quiet, int count)
+                            FILE* output, int quiet)
 {
   fprintf(stderr, "%s: Query has a boolean result: %s\n", program,
           rasqal_query_results_get_boolean(results) ? "true" : "false");
+}
+
+
+static int
+print_graph_result(rasqal_query* rq,
+                   rasqal_query_results *results,
+                   raptor_world* raptor_world_ptr,
+                   FILE* output,
+                   const char* serializer_syntax_name, raptor_uri* base_uri,
+                   int quiet)
+{
+  int triple_count = 0;
+  rasqal_prefix* prefix;
+  int i;
+  raptor_serializer* serializer = NULL;
+  
+  if(!quiet)
+    fprintf(stderr, "%s: Query has a graph result:\n", program);
+  
+#ifdef HAVE_RAPTOR2_API
+  serializer = raptor_new_serializer(raptor_world_ptr,
+                                     serializer_syntax_name);
+#else
+  serializer = raptor_new_serializer(serializer_syntax_name);
+#endif
+  if(!serializer) {
+    fprintf(stderr, "%s: Failed to create raptor serializer type %s\n",
+            program, serializer_syntax_name);
+    return(1);
+  }
+  
+  /* Declare any query namespaces in the output serializer */
+#ifdef HAVE_RAPTOR2_API
+  for(i = 0; (prefix = rasqal_query_get_prefix(rq, i)); i++)
+    raptor_serializer_set_namespace(serializer, prefix->uri, prefix->prefix);
+  raptor_serializer_start_to_file_handle(serializer, base_uri, output);
+#else
+  for(i = 0; (prefix = rasqal_query_get_prefix(rq, i)); i++)
+    raptor_serialize_set_namespace(serializer, prefix->uri, prefix->prefix);
+  raptor_serialize_start_to_file_handle(serializer, base_uri, output);
+#endif
+  
+  while(1) {
+    raptor_statement *rs = rasqal_query_results_get_triple(results);
+    if(!rs)
+      break;
+
+#ifdef HAVE_RAPTOR2_API
+    raptor_serializer_serialize_statement(serializer, rs);
+#else
+    raptor_serialize_statement(serializer, rs);
+#endif
+    triple_count++;
+    
+    if(rasqal_query_results_next_triple(results))
+      break;
+  }
+  
+#ifdef HAVE_RAPTOR2_API
+  raptor_serializer_serialize_end(serializer);
+#else
+  raptor_serialize_end(serializer);
+#endif
+  raptor_free_serializer(serializer);
+  
+  if(!quiet)
+    fprintf(stderr, "%s: Total %d triples\n", program, triple_count);
+
+  return 0;
 }
 
 
@@ -450,7 +519,6 @@ main(int argc, char *argv[])
   int dryrun = 0;
   raptor_sequence* data_source_uris = NULL;
   raptor_sequence* named_source_uris = NULL;
-  raptor_serializer* serializer = NULL;
   const char *serializer_syntax_name = "ntriples";
   query_output_format output_format = QUERY_OUTPUT_UNKNOWN;
   rasqal_query_results_formatter* results_formatter = NULL;
@@ -1140,64 +1208,12 @@ main(int argc, char *argv[])
   } else {
     if(rasqal_query_results_is_bindings(results)) {
       print_bindings_result_simple(results, stdout, quiet, count);
-    } else if (rasqal_query_results_is_boolean(results)) {
-      print_boolean_result_simple(results, stdout, quiet, count);
-    }
-    else if (rasqal_query_results_is_graph(results)) {
-      int triple_count = 0;
-      rasqal_prefix* prefix;
-      int i;
-      
-      if(!quiet)
-        fprintf(stderr, "%s: Query has a graph result:\n", program);
-
-#ifdef HAVE_RAPTOR2_API
-      serializer = raptor_new_serializer(raptor_world_ptr,
-                                         serializer_syntax_name);
-#else
-      serializer = raptor_new_serializer(serializer_syntax_name);
-#endif
-      if(!serializer) {
-        fprintf(stderr, "%s: Failed to create raptor serializer type %s\n",
-                program, serializer_syntax_name);
-        return(1);
-      }
-
-      /* Declare any query namespaces in the output serializer */
-#ifdef HAVE_RAPTOR2_API
-      for(i = 0; (prefix = rasqal_query_get_prefix(rq, i)); i++)
-        raptor_serializer_set_namespace(serializer, prefix->uri, prefix->prefix);
-      raptor_serializer_start_to_file_handle(serializer, base_uri, stdout);
-#else
-      for(i = 0; (prefix = rasqal_query_get_prefix(rq, i)); i++)
-        raptor_serialize_set_namespace(serializer, prefix->uri, prefix->prefix);
-      raptor_serialize_start_to_file_handle(serializer, base_uri, stdout);
-#endif
-
-      while(1) {
-        raptor_statement *rs = rasqal_query_results_get_triple(results);
-        if(!rs)
-          break;
-#ifdef HAVE_RAPTOR2_API
-        raptor_serializer_serialize_statement(serializer, rs);
-#else
-        raptor_serialize_statement(serializer, rs);
-#endif
-        triple_count++;
-
-        if(rasqal_query_results_next_triple(results))
-          break;
-      }
-
-#ifdef HAVE_RAPTOR2_API
-      raptor_serializer_serialize_end(serializer);
-#else
-      raptor_serialize_end(serializer);
-#endif
-      raptor_free_serializer(serializer);
-
-      if(!quiet)
-        fprintf(stderr, "%s: Total %d triples\n", program, triple_count);
+    } else if(rasqal_query_results_is_boolean(results)) {
+      print_boolean_result_simple(results, stdout, quiet);
+    } else if(rasqal_query_results_is_graph(results)) {
+      rc = print_graph_result(rq, results, raptor_world_ptr,
+                              stdout, serializer_syntax_name, base_uri,
+                              quiet);
     } else {
       fprintf(stderr, "%s: Query returned unknown result format\n", program);
       rc = 1;
