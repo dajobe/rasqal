@@ -519,7 +519,7 @@ print_formatted_query_results(rasqal_world* world,
 {
   raptor_iostream *iostr;
   rasqal_query_results_formatter* results_formatter;
-  int rc;
+  int rc = 0;
   
   results_formatter = rasqal_new_query_results_formatter2(world,
                                                           result_format,
@@ -528,13 +528,18 @@ print_formatted_query_results(rasqal_world* world,
   iostr = raptor_new_iostream_to_file_handle(raptor_world_ptr, output);
   if(!iostr) {
     rasqal_free_query_results_formatter(results_formatter);
-    return 1;
+    rc = 1;
+    goto tidy;
   }
   
   rc = rasqal_query_results_formatter_write(iostr, results_formatter,
                                             results, base_uri);
   raptor_free_iostream(iostr);
   rasqal_free_query_results_formatter(results_formatter);
+
+  tidy:
+  if(rc)
+    fprintf(stderr, "%s: Formatting query results failed\n", program);
 
   return rc;
 }
@@ -1225,22 +1230,18 @@ main(int argc, char *argv[])
   }
 
   if(rasqal_query_results_is_bindings(results)) {
-    if(result_format) {
+    if(result_format)
       rc = print_formatted_query_results(world, results,
                                          raptor_world_ptr, stdout,
                                          result_format, base_uri, quiet);
-      if(rc)
-        fprintf(stderr, "%s: Formatting query results failed\n", program);
-    } else
+    else
       print_bindings_result_simple(results, stdout, quiet, count);
   } else if(rasqal_query_results_is_boolean(results)) {
-    if(result_format) {
+    if(result_format)
       rc = print_formatted_query_results(world, results,
                                          raptor_world_ptr, stdout,
                                          result_format, base_uri, quiet);
-      if(rc)
-        fprintf(stderr, "%s: Formatting query results failed\n", program);
-    } else
+    else
       print_boolean_result_simple(results, stdout, quiet);
   } else if(rasqal_query_results_is_graph(results)) {
     rc = print_graph_result(rq, results, raptor_world_ptr,
