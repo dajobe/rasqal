@@ -417,6 +417,15 @@ print_bindings_result_simple(rasqal_query_results *results,
 }
 
 
+static void
+print_boolean_result_simple(rasqal_query_results *results,
+                            FILE* output, int quiet, int count)
+{
+  fprintf(stderr, "%s: Query has a boolean result: %s\n", program,
+          rasqal_query_results_get_boolean(results) ? "true" : "false");
+}
+
+
 int
 main(int argc, char *argv[]) 
 { 
@@ -1132,8 +1141,7 @@ main(int argc, char *argv[])
     if(rasqal_query_results_is_bindings(results)) {
       print_bindings_result_simple(results, stdout, quiet, count);
     } else if (rasqal_query_results_is_boolean(results)) {
-      fprintf(stderr, "%s: Query has a boolean result: %s\n", program,
-              rasqal_query_results_get_boolean(results) ? "true" : "false");
+      print_boolean_result_simple(results, stdout, quiet, count);
     }
     else if (rasqal_query_results_is_graph(results)) {
       int triple_count = 0;
