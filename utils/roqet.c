@@ -509,23 +509,32 @@ print_graph_result(rasqal_query* rq,
 
 
 static int
-print_formatted_query_results(rasqal_query_results* results,
+print_formatted_query_results(rasqal_world* world,
+                              rasqal_query_results* results,
                               raptor_world* raptor_world_ptr,
                               FILE* output,
-                              rasqal_query_results_formatter* results_formatter,
+                              const char* result_format,
                               raptor_uri* base_uri,
                               int quiet)
 {
   raptor_iostream *iostr;
+  rasqal_query_results_formatter* results_formatter;
   int rc;
+  
+  results_formatter = rasqal_new_query_results_formatter2(world,
+                                                          result_format,
+                                                          NULL, NULL);
 
   iostr = raptor_new_iostream_to_file_handle(raptor_world_ptr, output);
-  if(!iostr)
+  if(!iostr) {
+    rasqal_free_query_results_formatter(results_formatter);
     return 1;
+  }
   
   rc = rasqal_query_results_formatter_write(iostr, results_formatter,
                                             results, base_uri);
   raptor_free_iostream(iostr);
+  rasqal_free_query_results_formatter(results_formatter);
 
   return rc;
 }
@@ -1217,34 +1226,20 @@ main(int argc, char *argv[])
 
   if(rasqal_query_results_is_bindings(results)) {
     if(result_format) {
-      rasqal_query_results_formatter* results_formatter;
-      
-      results_formatter = rasqal_new_query_results_formatter2(world,
-                                                              result_format,
-                                                              NULL, NULL);
-      rc = print_formatted_query_results(results, raptor_world_ptr, stdout,
-                                         results_formatter, base_uri, quiet);
-      if(rc) {
+      rc = print_formatted_query_results(world, results,
+                                         raptor_world_ptr, stdout,
+                                         result_format, base_uri, quiet);
+      if(rc)
         fprintf(stderr, "%s: Formatting query results failed\n", program);
-        rc = 1;
-      }
-      rasqal_free_query_results_formatter(results_formatter);
     } else
       print_bindings_result_simple(results, stdout, quiet, count);
   } else if(rasqal_query_results_is_boolean(results)) {
     if(result_format) {
-      rasqal_query_results_formatter* results_formatter;
-      
-      results_formatter = rasqal_new_query_results_formatter2(world,
-                                                              result_format,
-                                                              NULL, NULL);
-      rc = print_formatted_query_results(results, raptor_world_ptr, stdout,
-                                         results_formatter, base_uri, quiet);
-      if(rc) {
+      rc = print_formatted_query_results(world, results,
+                                         raptor_world_ptr, stdout,
+                                         result_format, base_uri, quiet);
+      if(rc)
         fprintf(stderr, "%s: Formatting query results failed\n", program);
-        rc = 1;
-      }
-      rasqal_free_query_results_formatter(results_formatter);
     } else
       print_boolean_result_simple(results, stdout, quiet);
   } else if(rasqal_query_results_is_graph(results)) {
