@@ -545,6 +545,7 @@ print_formatted_query_results(rasqal_world* world,
 }
 
 
+#define DEFAULT_GRAPH_FORMAT "ntriples"
 
 int
 main(int argc, char *argv[]) 
@@ -1244,6 +1245,9 @@ main(int argc, char *argv[])
     else
       print_boolean_result_simple(results, stdout, quiet);
   } else if(rasqal_query_results_is_graph(results)) {
+    if(!result_format)
+      result_format = DEFAULT_GRAPH_FORMAT;
+    
     rc = print_graph_result(rq, results, raptor_world_ptr,
                             stdout, result_format, base_uri, quiet);
   } else {
