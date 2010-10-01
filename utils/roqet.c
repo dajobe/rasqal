@@ -378,6 +378,45 @@ const char* query_output_format_labels[QUERY_OUTPUT_LAST + 1][2] = {
 
 
 
+static void
+print_bindings_result_simple(rasqal_query_results *results,
+                             FILE* output, int quiet, int count)
+{
+  if(!quiet)
+    fprintf(stderr, "%s: Query has a variable bindings result\n", program);
+  
+  while(!rasqal_query_results_finished(results)) {
+    if(!count) {
+      int i;
+      
+      fputs("result: [", output);
+      for(i = 0; i < rasqal_query_results_get_bindings_count(results); i++) {
+        const unsigned char *name;
+        rasqal_literal *value;
+
+        name = rasqal_query_results_get_binding_name(results, i);
+        value = rasqal_query_results_get_binding_value(results, i);
+        
+        if(i > 0)
+          fputs(", ", output);
+        fprintf(output, "%s=", name);
+        if(value)
+          rasqal_literal_print(value, output);
+        else
+          fputs("NULL", output);
+      }
+      fputs("]\n", output);
+    }
+    
+    rasqal_query_results_next(results);
+  }
+
+  if(!quiet)
+    fprintf(stderr, "%s: Query returned %d results\n", program, 
+            rasqal_query_results_get_count(results));
+}
+
+
 int
 main(int argc, char *argv[]) 
 { 
@@ -1091,38 +1130,7 @@ main(int argc, char *argv[])
     
   } else {
     if(rasqal_query_results_is_bindings(results)) {
-      if(!quiet)
-        fprintf(stderr, "%s: Query has a variable bindings result\n", program);
-
-      while(!rasqal_query_results_finished(results)) {
-        if(!count) {
-          int i;
-          
-          fputs("result: [", stdout);
-          for(i = 0; i < rasqal_query_results_get_bindings_count(results); i++) {
-            const unsigned char *name;
-            rasqal_literal *value;
-            name = rasqal_query_results_get_binding_name(results, i);
-            value = rasqal_query_results_get_binding_value(results, i);
-            
-            if(i > 0)
-              fputs(", ", stdout);
-            fprintf(stdout, "%s=", name);
-            if(value)
-              rasqal_literal_print(value, stdout);
-            else
-              fputs("NULL", stdout);
-          }
-          fputs("]\n", stdout);
-        }
-        
-        rasqal_query_results_next(results);
-      }
-
-      if(!quiet)
-        fprintf(stderr, "%s: Query returned %d results\n", program, 
-                rasqal_query_results_get_count(results));
-
+      print_bindings_result_simple(results, stdout, quiet, count);
     } else if (rasqal_query_results_is_boolean(results)) {
       fprintf(stderr, "%s: Query has a boolean result: %s\n", program,
               rasqal_query_results_get_boolean(results) ? "true" : "false");
