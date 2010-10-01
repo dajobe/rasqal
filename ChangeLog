@@ -1,3 +1,18 @@
+2010-09-24  Dave Beckett <dave@dajobe.org>
+
+	* configure.ac: Use AC_LANG_SOURCE for gcc flag test
+
+2010-08-29  Dave Beckett <dave@dajobe.org>
+
+	* LICENSE.html: or any newer versions
+
+	* utils/Makefile.am: Link srxread and srxwrite using
+	`@RAPTOR_CONFIG@ --libs` approach like roqet.
+
+	* utils/Makefile.am:
+	Link to raptor2 for utilities Updating approach used in
+	http://bugs.librdf.org/mantis/view.php?id=347 for Raptor V2
+
 2010-08-22  Dave Beckett <dave@dajobe.org>
 
 	* Snapshotted rasqal_0_9_20 for 0.9.20 release (GIT
