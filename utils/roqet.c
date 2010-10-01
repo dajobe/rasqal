@@ -442,6 +442,19 @@ print_graph_result(rasqal_query* rq,
   if(!quiet)
     fprintf(stderr, "%s: Query has a graph result:\n", program);
   
+  if(!(
+#ifdef HAVE_RAPTOR2_API
+       raptor_world_is_serializer_name(raptor_world_ptr, serializer_syntax_name)
+#else
+       raptor_serializer_syntax_name_check(serializer_syntax_name)
+#endif
+       )) {
+    fprintf(stderr, 
+            "%s: invalid query result serializer name `%s' for `" HELP_ARG(r, results) "'\n",
+            program, serializer_syntax_name);
+    return 1;
+  }
+
 #ifdef HAVE_RAPTOR2_API
   serializer = raptor_new_serializer(raptor_world_ptr,
                                      serializer_syntax_name);
@@ -543,9 +556,8 @@ main(int argc, char *argv[])
   int dryrun = 0;
   raptor_sequence* data_source_uris = NULL;
   raptor_sequence* named_source_uris = NULL;
-  const char *serializer_syntax_name = "ntriples";
+  const char *result_format = NULL;
   query_output_format output_format = QUERY_OUTPUT_UNKNOWN;
-  rasqal_query_results_formatter* results_formatter = NULL;
   rasqal_feature query_feature = (rasqal_feature)-1;
   int query_feature_value= -1;
   unsigned char* query_feature_string_value = NULL;
@@ -713,34 +725,23 @@ main(int argc, char *argv[])
 
       case 'r':
         if(optarg) {
-          if(results_formatter)
-            rasqal_free_query_results_formatter(results_formatter);
-
-          if(!strcmp(optarg, "simple"))
-            results_formatter = NULL;
-          else {
-            results_formatter = rasqal_new_query_results_formatter2(world,
-                                                                    optarg,
-                                                                    NULL,
-                                                                    NULL);
-            if(!results_formatter) {
-              if(
+          if(strcmp(optarg, "simple")) {
+            if(!(
 #ifdef HAVE_RAPTOR2_API
-                raptor_world_is_serializer_name(raptor_world_ptr, optarg)
+                 raptor_world_is_serializer_name(raptor_world_ptr, optarg)
 #else
-                raptor_serializer_syntax_name_check(optarg)
+                 raptor_serializer_syntax_name_check(optarg)
 #endif
-                )
-                serializer_syntax_name = optarg;
-              else {
-                fprintf(stderr, 
-                        "%s: invalid argument `%s' for `" HELP_ARG(r, results) "'\n",
-                        program, optarg);
-                usage = 1;
-                break;
-              }
+                 )) {
+              fprintf(stderr, 
+                      "%s: invalid argument `%s' for `" HELP_ARG(r, results) "'\n",
+                      program, optarg);
+              usage = 1;
+              break;
             }
-          }
+            result_format = optarg;
+          } else
+            result_format = NULL;
         }
         break;
 
@@ -1214,34 +1215,49 @@ main(int argc, char *argv[])
     goto tidy_query;
   }
 
-  if(results_formatter != NULL) {
-    rc = print_formatted_query_results(results, raptor_world_ptr, stdout,
-                                       results_formatter, base_uri, quiet);
-    if(rc) {
-      fprintf(stderr, "%s: Formatting query results failed\n", program);
-      return 1;
-    }
-  } else {
-    if(rasqal_query_results_is_bindings(results)) {
+  if(rasqal_query_results_is_bindings(results)) {
+    if(result_format) {
+      rasqal_query_results_formatter* results_formatter;
+      
+      results_formatter = rasqal_new_query_results_formatter2(world,
+                                                              result_format,
+                                                              NULL, NULL);
+      rc = print_formatted_query_results(results, raptor_world_ptr, stdout,
+                                         results_formatter, base_uri, quiet);
+      if(rc) {
+        fprintf(stderr, "%s: Formatting query results failed\n", program);
+        rc = 1;
+      }
+      rasqal_free_query_results_formatter(results_formatter);
+    } else
       print_bindings_result_simple(results, stdout, quiet, count);
-    } else if(rasqal_query_results_is_boolean(results)) {
+  } else if(rasqal_query_results_is_boolean(results)) {
+    if(result_format) {
+      rasqal_query_results_formatter* results_formatter;
+      
+      results_formatter = rasqal_new_query_results_formatter2(world,
+                                                              result_format,
+                                                              NULL, NULL);
+      rc = print_formatted_query_results(results, raptor_world_ptr, stdout,
+                                         results_formatter, base_uri, quiet);
+      if(rc) {
+        fprintf(stderr, "%s: Formatting query results failed\n", program);
+        rc = 1;
+      }
+      rasqal_free_query_results_formatter(results_formatter);
+    } else
       print_boolean_result_simple(results, stdout, quiet);
-    } else if(rasqal_query_results_is_graph(results)) {
-      rc = print_graph_result(rq, results, raptor_world_ptr,
-                              stdout, serializer_syntax_name, base_uri,
-                              quiet);
-    } else {
-      fprintf(stderr, "%s: Query returned unknown result format\n", program);
-      rc = 1;
-    }
+  } else if(rasqal_query_results_is_graph(results)) {
+    rc = print_graph_result(rq, results, raptor_world_ptr,
+                            stdout, result_format, base_uri, quiet);
+  } else {
+    fprintf(stderr, "%s: Query returned unknown result format\n", program);
+    rc = 1;
   }
 
   rasqal_free_query_results(results);
   
  tidy_query:  
-  if(results_formatter)
-    rasqal_free_query_results_formatter(results_formatter);
-
   rasqal_free_query(rq);
 
   if(!query_from_string)
