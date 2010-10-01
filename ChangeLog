@@ -1,3 +1,44 @@
+2010-09-30  Dave Beckett  <dave@dajobe.org>
+
+	* utils/roqet.c:
+	Set default graph format to "ntriples" again.
+
+	* utils/roqet.c:
+	(print_formatted_query_results): Move error reporting here
+
+	* utils/roqet.c:
+	(print_formatted_query_results): Create/destroy formatter here
+
+	* utils/roqet.c: Delay -r FORMAT checking until result type is
+	known.
+	Fixes Issue#0000388 http://bugs.librdf.org/mantis/view.php?id=388
+
+	(print_graph_result): Move graph serializer format checking here.
+
+	(main): For each result type decide if simple or if formatted
+
+	* utils/roqet.c:
+	(print_formatted_query_results): Added making formatted query
+	results from code in main()
+
+	* utils/roqet.c:
+	(print_graph_result): Added making graph results from code in
+	main()
+
+	* utils/roqet.c:
+	(print_boolean_result_simple): Added with simple boolean results
+	out of main()
+
+	* utils/roqet.c:
+	(print_bindings_result_simple): Added to refactor out huge main()
+
+	* NEWS.html, configure.ac, src/rasqal.h.in: Bumped version to
+	0.9.21
+
+2010-09-24  Dave Beckett <dave@dajobe.org>
+
+	* Use AC_LANG_SOURCE for gcc flag test
+
 2010-09-24  Dave Beckett <dave@dajobe.org>
 
 	* configure.ac: Use AC_LANG_SOURCE for gcc flag test
