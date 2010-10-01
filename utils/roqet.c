@@ -495,6 +495,30 @@ print_graph_result(rasqal_query* rq,
 }
 
 
+static int
+print_formatted_query_results(rasqal_query_results* results,
+                              raptor_world* raptor_world_ptr,
+                              FILE* output,
+                              rasqal_query_results_formatter* results_formatter,
+                              raptor_uri* base_uri,
+                              int quiet)
+{
+  raptor_iostream *iostr;
+  int rc;
+
+  iostr = raptor_new_iostream_to_file_handle(raptor_world_ptr, output);
+  if(!iostr)
+    return 1;
+  
+  rc = rasqal_query_results_formatter_write(iostr, results_formatter,
+                                            results, base_uri);
+  raptor_free_iostream(iostr);
+
+  return rc;
+}
+
+
+
 int
 main(int argc, char *argv[]) 
 { 
@@ -1191,20 +1215,12 @@ main(int argc, char *argv[])
   }
 
   if(results_formatter != NULL) {
-    raptor_iostream *iostr;
-    iostr = raptor_new_iostream_to_file_handle(raptor_world_ptr, stdout);
-    if(!iostr) {
-      fprintf(stderr, "%s: Creating output iostream failed\n", program);
-      rc = 1;
-      goto tidy_query;
+    rc = print_formatted_query_results(results, raptor_world_ptr, stdout,
+                                       results_formatter, base_uri, quiet);
+    if(rc) {
+      fprintf(stderr, "%s: Formatting query results failed\n", program);
+      return 1;
     }
-
-    rc = rasqal_query_results_formatter_write(iostr, results_formatter,
-                                              results, base_uri);
-    raptor_free_iostream(iostr);
-    if(rc)
-      fprintf(stderr, "%s: Formatting results failed\n", program);
-    
   } else {
     if(rasqal_query_results_is_bindings(results)) {
       print_bindings_result_simple(results, stdout, quiet, count);
