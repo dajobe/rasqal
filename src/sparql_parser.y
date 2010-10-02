@@ -4381,36 +4381,86 @@ rasqal_sparql_query_language_iostream_write_escaped_counted_string(rasqal_query*
 }
 
 
-static void
+static const char* const sparql_names[4] = { "sparql", "sparql10", "sparql11", NULL};
+
+#define SPARQL_TYPES_COUNT 1
+static const raptor_type_q sparql_types[SPARQL_TYPES_COUNT + 1] = {
+  { "application/sparql", 18, 10}, 
+  { NULL, 0, 0}
+};
+
+
+static int
 rasqal_sparql_query_language_register_factory(rasqal_query_language_factory *factory)
 {
+  int rc = 0;
+
+  factory->desc.names = sparql_names;
+
+  factory->desc.mime_types = sparql_types;
+  factory->desc.mime_types_count = SPARQL_TYPES_COUNT;
+
+  factory->desc.label = "SPARQL W3C DAWG RDF Query Language";
+
+  factory->desc.uri_string = "http://www.w3.org/TR/rdf-sparql-query/";
+
   factory->context_length = sizeof(rasqal_sparql_query_language);
 
   factory->init      = rasqal_sparql_query_language_init;
   factory->terminate = rasqal_sparql_query_language_terminate;
   factory->prepare   = rasqal_sparql_query_language_prepare;
   factory->iostream_write_escaped_counted_string = rasqal_sparql_query_language_iostream_write_escaped_counted_string;
+
+  return rc;
 }
 
 
 int
-rasqal_init_query_language_sparql(rasqal_world* world) {
-  return rasqal_query_language_register_factory(world,
-                                                "sparql", 
-                                                "SPARQL W3C DAWG RDF Query Language",
-                                                NULL,
-                                                (const unsigned char*)"http://www.w3.org/TR/rdf-sparql-query/",
-                                                &rasqal_sparql_query_language_register_factory);
+rasqal_init_query_language_sparql(rasqal_world* world)
+{
+  return !rasqal_query_language_register_factory(world,
+                                                 &rasqal_sparql_query_language_register_factory);
 }
 
+
+static const char* const laqrs_names[3] = { "laqrs", NULL};
+
+#define LAQRS_TYPES_COUNT 0
+static const raptor_type_q laqrs_types[LAQRS_TYPES_COUNT + 1] = {
+  { NULL, 0, 0}
+};
+
+
+static int
+rasqal_laqrs_query_language_register_factory(rasqal_query_language_factory *factory)
+{
+  int rc = 0;
+
+  factory->desc.names = laqrs_names;
+
+  factory->desc.mime_types = laqrs_types;
+  factory->desc.mime_types_count = LAQRS_TYPES_COUNT;
+
+  factory->desc.label = "LAQRS adds to Querying RDF in SPARQL";
+
+  factory->desc.uri_string = NULL;
+
+  factory->context_length = sizeof(rasqal_sparql_query_language);
+
+  factory->init      = rasqal_sparql_query_language_init;
+  factory->terminate = rasqal_sparql_query_language_terminate;
+  factory->prepare   = rasqal_sparql_query_language_prepare;
+  factory->iostream_write_escaped_counted_string = rasqal_sparql_query_language_iostream_write_escaped_counted_string;
+
+  return rc;
+}
+
+
 int
-rasqal_init_query_language_laqrs(rasqal_world* world) {
-  return rasqal_query_language_register_factory(world,
-                                                "laqrs", 
-                                                "LAQRS adds to Querying RDF in SPARQL",
-                                                NULL,
-                                                NULL,
-                                                &rasqal_sparql_query_language_register_factory);
+rasqal_init_query_language_laqrs(rasqal_world* world)
+{
+  return !rasqal_query_language_register_factory(world,
+                                                 &rasqal_laqrs_query_language_register_factory);
 }
 
 
