@@ -442,25 +442,15 @@ print_graph_result(rasqal_query* rq,
   if(!quiet)
     fprintf(stderr, "%s: Query has a graph result:\n", program);
   
-  if(!(
-#ifdef HAVE_RAPTOR2_API
-       raptor_world_is_serializer_name(raptor_world_ptr, serializer_syntax_name)
-#else
-       raptor_serializer_syntax_name_check(serializer_syntax_name)
-#endif
-       )) {
+  if(!(raptor_world_is_serializer_name(raptor_world_ptr, serializer_syntax_name))) {
     fprintf(stderr, 
             "%s: invalid query result serializer name `%s' for `" HELP_ARG(r, results) "'\n",
             program, serializer_syntax_name);
     return 1;
   }
 
-#ifdef HAVE_RAPTOR2_API
   serializer = raptor_new_serializer(raptor_world_ptr,
                                      serializer_syntax_name);
-#else
-  serializer = raptor_new_serializer(serializer_syntax_name);
-#endif
   if(!serializer) {
     fprintf(stderr, "%s: Failed to create raptor serializer type %s\n",
             program, serializer_syntax_name);
@@ -577,9 +567,7 @@ main(int argc, char *argv[])
   int query_feature_value= -1;
   unsigned char* query_feature_string_value = NULL;
   rasqal_world *world;
-#ifdef HAVE_RAPTOR2_API
-  raptor_world* raptor_world_ptr;
-#endif
+  raptor_world* raptor_world_ptr = NULL;
 #ifdef RASQAL_INTERNAL
   int store_results = -1;
   const rasqal_query_execution_factory* engine = NULL;
@@ -741,13 +729,7 @@ main(int argc, char *argv[])
       case 'r':
         if(optarg) {
           if(strcmp(optarg, "simple")) {
-            if(!(
-#ifdef HAVE_RAPTOR2_API
-                 raptor_world_is_serializer_name(raptor_world_ptr, optarg)
-#else
-                 raptor_serializer_syntax_name_check(optarg)
-#endif
-                 )) {
+            if(!raptor_world_is_serializer_name(raptor_world_ptr, optarg)) {
               fprintf(stderr, 
                       "%s: invalid argument `%s' for `" HELP_ARG(r, results) "'\n",
                       program, optarg);
@@ -1074,11 +1056,7 @@ main(int argc, char *argv[])
     query_from_string = 0;
   } else {
     raptor_www *www;
-#ifdef HAVE_RAPTOR2_API
     www = raptor_new_www(raptor_world_ptr);
-#else
-    www = raptor_www_new();
-#endif
     if(www) {
 #ifndef HAVE_RAPTOR2_API
       raptor_www_set_error_handler(www, roqet_error_handler, world);
