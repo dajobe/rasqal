@@ -291,7 +291,7 @@ rasqal_query_get_name(rasqal_query* query)
 {
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, NULL);
 
-  return query->factory->name;
+  return query->factory->desc.names[0];
 }
 
 
@@ -308,7 +308,7 @@ rasqal_query_get_label(rasqal_query* query)
 {
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, NULL);
 
-  return query->factory->label;
+  return query->factory->desc.label;
 }
 
 
