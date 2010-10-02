@@ -45,8 +45,13 @@ struct rasqal_sparql_query_language_s {
   /* for error reporting */
   unsigned int lineno;
 
-  /* SPARQL extended */
-  int extended;
+  /* SPARQL query language language features supported */
+  int sparql10 : 1;
+  int sparql11_query : 1;
+  int sparql11_aggregates : 1;
+  int sparql11_property_paths : 1;
+  int sparql11_update : 1;
+  int experimental : 1; /* laqrs */
 
   /* count of errors in current query parse */
   int error_count;

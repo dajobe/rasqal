@@ -379,11 +379,11 @@ ExplainOpt: EXPLAIN
   rasqal_sparql_query_language* sparql;
   sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
 
-  if(sparql->extended)
-    ((rasqal_query*)rq)->explain=1;
+  if(sparql->experimental)
+    ((rasqal_query*)rq)->explain = 1;
   else
     sparql_syntax_error((rasqal_query*)rq, 
-                        "EXPLAIN cannot be used with SPARQL 1.0");
+                        "EXPLAIN can only used with LAQRS");
 }
 |
 {
@@ -603,7 +603,7 @@ SelectTerm: Var
   sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
 
   $$ = NULL;
-  if(!sparql->extended)
+  if(!sparql->sparql11_query)
     sparql_syntax_error((rasqal_query*)rq,
                         "SELECT ( expression ) AS Variable cannot be used with SPARQL 1.0");
   else {
@@ -673,7 +673,7 @@ DistinctOpt: DISTINCT
   rasqal_sparql_query_language* sparql;
   sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
 
-  if(!sparql->extended)
+  if(!sparql->sparql11_query)
     sparql_syntax_error((rasqal_query*)rq,
                         "functions with DISTINCT cannot be used with SPARQL 1.0");
   $$ = RASQAL_EXPR_FLAG_DISTINCT;
@@ -702,7 +702,7 @@ CountAggregateExpression: COUNT '(' DistinctOpt ExpressionOrStar ')'
   rasqal_sparql_query_language* sparql;
   sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
 
-  if(!sparql->extended) {
+  if(!sparql->sparql11_aggregates) {
     sparql_syntax_error((rasqal_query*)rq,
                         "COUNT() cannot be used with SPARQL 1.0");
     $$ = NULL;
@@ -722,7 +722,7 @@ SumAggregateExpression: SUM '(' DistinctOpt Expression ')'
   rasqal_sparql_query_language* sparql;
   sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
 
-  if(!sparql->extended) {
+  if(!sparql->sparql11_aggregates) {
     sparql_syntax_error((rasqal_query*)rq,
                         "SUM() cannot be used with SPARQL 1.0");
     $$ = NULL;
@@ -742,7 +742,7 @@ AvgAggregateExpression: AVG '(' DistinctOpt Expression ')'
   rasqal_sparql_query_language* sparql;
   sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
 
-  if(!sparql->extended) {
+  if(!sparql->sparql11_aggregates) {
     sparql_syntax_error((rasqal_query*)rq,
                         "AVG() cannot be used with SPARQL 1.0");
     $$ = NULL;
@@ -762,7 +762,7 @@ MinAggregateExpression: MIN '(' DistinctOpt Expression ')'
   rasqal_sparql_query_language* sparql;
   sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
 
-  if(!sparql->extended) {
+  if(!sparql->sparql11_aggregates) {
     sparql_syntax_error((rasqal_query*)rq,
                         "MIN() cannot be used with SPARQL 1.0");
     $$ = NULL;
@@ -782,7 +782,7 @@ MaxAggregateExpression: MAX '(' DistinctOpt Expression ')'
   rasqal_sparql_query_language* sparql;
   sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
 
-  if(!sparql->extended) {
+  if(!sparql->sparql11_aggregates) {
     sparql_syntax_error((rasqal_query*)rq,
                         "MAX() cannot be used with SPARQL 1.0");
     $$ = NULL;
@@ -847,7 +847,7 @@ GroupConcatAggregateExpression: GROUP_CONCAT '(' DistinctOpt ExpressionList Sepa
   
   sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
 
-  if(!sparql->extended) {
+  if(!sparql->sparql11_aggregates) {
     sparql_syntax_error((rasqal_query*)rq,
                         "GROUP_CONCAT() cannot be used with SPARQL 1.0");
     $$ = NULL;
@@ -873,7 +873,7 @@ SampleAggregateExpression: SAMPLE '(' DistinctOpt Expression ')'
   rasqal_sparql_query_language* sparql;
   sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
 
-  if(!sparql->extended) {
+  if(!sparql->sparql11_aggregates) {
     sparql_syntax_error((rasqal_query*)rq,
                         "SAMPLE() cannot be used with SPARQL 1.0");
     $$ = NULL;
@@ -980,7 +980,7 @@ DeleteQuery: DELETE DatasetClauseList WhereClauseOpt
   rasqal_sparql_query_language* sparql;
   sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
 
-  if(!sparql->extended)
+  if(!sparql->sparql11_update)
     sparql_syntax_error((rasqal_query*)rq,
                         "DELETE cannot be used with SPARQL 1.0");
 
@@ -996,7 +996,7 @@ DeleteQuery: DELETE DatasetClauseList WhereClauseOpt
 
   sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
 
-  if(!sparql->extended)
+  if(!sparql->sparql11_update)
     sparql_syntax_error((rasqal_query*)rq,
                         "DELETE cannot be used with SPARQL 1.0");
 
@@ -1023,7 +1023,7 @@ DeleteQuery: DELETE DatasetClauseList WhereClauseOpt
   rasqal_sparql_query_language* sparql;
   sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
 
-  if(!sparql->extended)
+  if(!sparql->sparql11_update)
     sparql_syntax_error((rasqal_query*)rq,
                         "DELETE DATA cannot be used with SPARQL 1.0");
 
@@ -1148,7 +1148,7 @@ InsertQuery: INSERT DatasetClauseList WhereClauseOpt
   rasqal_sparql_query_language* sparql;
   sparql  = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
 
-  if(!sparql->extended)
+  if(!sparql->sparql11_update)
     sparql_syntax_error((rasqal_query*)rq,
                         "INSERT cannot be used with SPARQL 1.0");
 
@@ -1164,7 +1164,7 @@ InsertQuery: INSERT DatasetClauseList WhereClauseOpt
 
   sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
 
-  if(!sparql->extended)
+  if(!sparql->sparql11_update)
     sparql_syntax_error((rasqal_query*)rq,
                         "INSERT cannot be used with SPARQL 1.0");
 
@@ -1189,7 +1189,7 @@ InsertQuery: INSERT DatasetClauseList WhereClauseOpt
   rasqal_sparql_query_language* sparql;
   sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
 
-  if(!sparql->extended)
+  if(!sparql->sparql11_update)
     sparql_syntax_error((rasqal_query*)rq,
                         "INSERT DATA cannot be used with SPARQL 1.0");
 
@@ -1272,7 +1272,7 @@ UpdateQuery: WITH URI_LITERAL
   rasqal_sparql_query_language* sparql;
   sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
 
-  if(!sparql->extended)
+  if(!sparql->sparql11_update)
     sparql_syntax_error((rasqal_query*)rq,
                         "INSERT DATA cannot be used with SPARQL 1.0");
 
@@ -1294,7 +1294,7 @@ ClearQuery: CLEAR GRAPH GraphRef
 
   sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
 
-  if(!sparql->extended)
+  if(!sparql->sparql11_update)
     sparql_syntax_error((rasqal_query*)rq,
                         "CLEAR GRAPH <uri> cannot be used with SPARQL 1.0");
 
@@ -1318,7 +1318,7 @@ ClearQuery: CLEAR GRAPH GraphRef
 
   sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
 
-  if(!sparql->extended)
+  if(!sparql->sparql11_update)
     sparql_syntax_error((rasqal_query*)rq,
                         "CLEAR cannot be used with SPARQL 1.0");
 
@@ -1350,7 +1350,7 @@ CreateQuery: CREATE URI_LITERAL
 
   sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
 
-  if(!sparql->extended)
+  if(!sparql->sparql11_update)
     sparql_syntax_error((rasqal_query*)rq, 
                         "CREATE <uri> cannot be used with SPARQL 1.0");
 
@@ -1374,7 +1374,7 @@ CreateQuery: CREATE URI_LITERAL
 
   sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
 
-  if(!sparql->extended)
+  if(!sparql->sparql11_update)
     sparql_syntax_error((rasqal_query*)rq, 
                         "CREATE SILENT <uri> cannot be used with SPARQL 1.0");
 
@@ -1398,7 +1398,7 @@ CreateQuery: CREATE URI_LITERAL
 
   sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
 
-  if(!sparql->extended)
+  if(!sparql->sparql11_update)
     sparql_syntax_error((rasqal_query*)rq, 
                         "CREATE GRAPH <uri> cannot be used with SPARQL 1.0");
 
@@ -1426,7 +1426,7 @@ CreateQuery: CREATE URI_LITERAL
 
   sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
 
-  if(!sparql->extended)
+  if(!sparql->sparql11_update)
     sparql_syntax_error((rasqal_query*)rq, 
                         "CREATE SILENT GRAPH <uri> cannot be used with SPARQL 1.0");
 
@@ -1458,7 +1458,7 @@ DropQuery: DROP URI_LITERAL
 
   sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
 
-  if(!sparql->extended)
+  if(!sparql->sparql11_update)
     sparql_syntax_error((rasqal_query*)rq, 
                         "DROP <uri> cannot be used with SPARQL 1.0");
 
@@ -1482,7 +1482,7 @@ DropQuery: DROP URI_LITERAL
 
   sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
 
-  if(!sparql->extended)
+  if(!sparql->sparql11_update)
     sparql_syntax_error((rasqal_query*)rq, 
                         "DROP SILENT <uri> cannot be used with SPARQL 1.0");
 
@@ -1507,7 +1507,7 @@ DropQuery: DROP URI_LITERAL
 
   sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
 
-  if(!sparql->extended)
+  if(!sparql->sparql11_update)
     sparql_syntax_error((rasqal_query*)rq, 
                         "DROP GRAPH <uri> cannot be used with SPARQL 1.0");
 
@@ -1535,7 +1535,7 @@ DropQuery: DROP URI_LITERAL
 
   sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
 
-  if(!sparql->extended)
+  if(!sparql->sparql11_update)
     sparql_syntax_error((rasqal_query*)rq, 
                         "DROP SILENT GRAPH <uri> cannot be used with SPARQL 1.0");
 
@@ -1601,7 +1601,7 @@ LoadQuery: LOAD IriRefList
   
   sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
 
-  if(!sparql->extended)
+  if(!sparql->sparql11_update)
     sparql_syntax_error((rasqal_query*)rq, 
                         "LOAD <document uri> cannot be used with SPARQL 1.0");
   
@@ -1631,7 +1631,7 @@ LoadQuery: LOAD IriRefList
 
   sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
 
-  if(!sparql->extended)
+  if(!sparql->sparql11_update)
     sparql_syntax_error((rasqal_query*)rq, 
                         "LOAD <document uri> INTO <graph URI> cannot be used with SPARQL 1.0");
 
@@ -1819,7 +1819,7 @@ GroupClauseOpt: GROUP BY GroupConditionList
   rasqal_sparql_query_language* sparql;
   sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
 
-  if(!sparql->extended)
+  if(!sparql->sparql11_query)
     sparql_syntax_error((rasqal_query*)rq,
                         "GROUP BY cannot be used with SPARQL 1.0");
   else if(((rasqal_query*)rq)->verb == RASQAL_QUERY_VERB_ASK) {
@@ -1880,7 +1880,7 @@ HavingClauseOpt: HAVING HavingConditionList
   rasqal_sparql_query_language* sparql;
   sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
 
-  if(!sparql->extended)
+  if(!sparql->sparql11_query)
     sparql_syntax_error((rasqal_query*)rq,
                         "HAVING cannot be used with SPARQL 1.0");
   else if(((rasqal_query*)rq)->verb == RASQAL_QUERY_VERB_ASK) {
@@ -2506,11 +2506,11 @@ LetGraphPattern: LET '(' Var ASSIGN Expression ')'
   sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
 
   if($3 && $5) {
-    if(sparql->extended)
+    if(sparql->experimental)
       $$ = rasqal_new_let_graph_pattern((rasqal_query*)rq, $3, $5);
     else {
       sparql_syntax_error((rasqal_query*)rq,
-                          "LET cannot be used with SPARQL 1.0");
+                          "LET can only be used with LAQRS");
       rasqal_free_expression($5);
       $$ = NULL;
     }
@@ -2644,9 +2644,9 @@ CoalesceExpression: COALESCE ArgList
   rasqal_sparql_query_language* sparql;
   sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
 
-  if(!sparql->extended)
+  if(!sparql->experimental)
     sparql_syntax_error((rasqal_query*)rq,
-                        "COALESCE cannot be used with SPARQL 1.0");
+                        "COALESCE can only be used with LAQRS");
 
   if(!$2) {
 #ifdef HAVE_RAPTOR2_API
@@ -4163,7 +4163,21 @@ rasqal_sparql_query_language_init(rasqal_query* rdf_query, const char *name)
 
   rdf_query->compare_flags = RASQAL_COMPARE_XQUERY;
 
-  rqe->extended = (strcmp(name, "laqrs") == 0);
+  /* All the sparql query families support this */
+  rqe->sparql10 = 1;
+
+  /* SPARQL 1.1 */
+  if(!strcmp(name, "sparql11") || !strcmp(name, "laqrs")) {
+    rqe->sparql11_query = 1;
+    rqe->sparql11_aggregates = 1;
+    rqe->sparql11_property_paths = 1;
+    rqe->sparql11_update = 1;
+  }
+
+  /* LAQRS for experiments */
+  if(!strcmp(name, "laqrs"))
+    rqe->experimental = 1;
+
   return 0;
 }
 
