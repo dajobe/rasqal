@@ -415,6 +415,32 @@ struct rasqal_query_s {
 };
 
 
+/* Definitions from raptor V2 raptor.h - REMOVE when Raptor V2 is required */
+#ifndef HAVE_RAPTOR2_API
+typedef void (*raptor_data_free_handler)(void* data);
+
+typedef struct {
+  const char* mime_type;
+  size_t mime_type_len;
+  unsigned char q;
+} raptor_type_q;
+
+
+typedef struct {
+  const char* const* names;
+
+  const char* label;
+
+  const raptor_type_q* mime_types;
+  unsigned int mime_types_count;
+
+  const char* uri_string;
+
+  unsigned int flags;
+} raptor_syntax_description;
+#endif
+
+
 /*
  * A query language factory for a query language.
  *
@@ -423,22 +449,12 @@ struct rasqal_query_s {
  * query in any manner.
  */
 struct rasqal_query_language_factory_s {
+  rasqal_world* world;
+  
   struct rasqal_query_language_factory_s* next;
 
-  /* query language name */
-  const char* name;
-
-  /* query language readable label */
-  const char* label;
-
-  /* query language alternate name */
-  const char* alias;
-
-  /* query language MIME type (or NULL) */
-  const char* mime_type;
-
-  /* query language URI (or NULL) */
-  const unsigned char* uri_string;
+  /* static description that the query language registration initialises */
+  raptor_syntax_description desc;
   
   /* the rest of this structure is populated by the
      query-language-specific register function */
@@ -857,7 +873,7 @@ int rasqal_xsd_date_check(const unsigned char* string);
 char* rasqal_vsnprintf(const char* message, va_list arguments);
 unsigned char* rasqal_world_generate_bnodeid(rasqal_world* world, unsigned char *user_bnodeid);
 
-int rasqal_query_language_register_factory(rasqal_world*, const char* name, const char* label, const char* alias, const unsigned char* uri_string, void (*factory) (rasqal_query_language_factory*));
+rasqal_query_language_factory* rasqal_query_language_register_factory(rasqal_world *world, int (*factory) (rasqal_query_language_factory*));
 rasqal_query_language_factory* rasqal_get_query_language_factory (rasqal_world*, const char* name, const unsigned char* uri);
 void rasqal_log_error_simple(rasqal_world* world, raptor_log_level level, raptor_locator* locator, const char* message, ...) RASQAL_PRINTF_FORMAT(4, 5);
 void rasqal_log_error_varargs(rasqal_world* world, raptor_log_level level, raptor_locator* locator, const char* message, va_list arguments) RASQAL_PRINTF_FORMAT(4, 0);
@@ -1102,8 +1118,8 @@ struct rasqal_world_s {
   raptor_error_handlers error_handlers;
 #endif
 
-  /* linked list of query languages */
-  rasqal_query_language_factory *query_languages;
+  /* sequence of query language factories */
+  raptor_sequence *query_languages;
 
   /* registered query results formats */
   raptor_sequence *query_results_formats;
