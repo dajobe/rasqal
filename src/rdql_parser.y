@@ -832,27 +832,44 @@ rdql_syntax_warning(rasqal_query *rq, const char *message, ...)
 }
 
 
-static void
+static const char* const rdql_names[2] = { "rdql", NULL};
+
+#define RDQL_TYPES_COUNT 1
+static const raptor_type_q rdql_types[RDQL_TYPES_COUNT + 1] = {
+  { "application/x-rdql", 18, 10}, 
+  { NULL, 0, 0}
+};
+
+static int
 rasqal_rdql_query_language_register_factory(rasqal_query_language_factory *factory)
 {
+  int rc = 0;
+
+  factory->desc.names = rdql_names;
+
+  factory->desc.mime_types = rdql_types;
+  factory->desc.mime_types_count = RDQL_TYPES_COUNT;
+
+  factory->desc.label = "RDF Data Query Language (RDQL)";
+
+  /* http://www.w3.org/Submission/2004/SUBM-RDQL-20040109/ */
+  factory->desc.uri_string = "http://jena.hpl.hp.com/2003/07/query/RDQL";
+
   factory->context_length = sizeof(rasqal_rdql_query_language);
 
   factory->init      = rasqal_rdql_query_language_init;
   factory->terminate = rasqal_rdql_query_language_terminate;
   factory->prepare   = rasqal_rdql_query_language_prepare;
+
+  return rc;
 }
 
 
 int
-rasqal_init_query_language_rdql(rasqal_world* world) {
-  /* http://www.w3.org/Submission/2004/SUBM-RDQL-20040109/ */
-
-  return rasqal_query_language_register_factory(world,
-                                                "rdql", 
-                                                "RDF Data Query Language (RDQL)",
-                                                NULL,
-                                                (const unsigned char*)"http://jena.hpl.hp.com/2003/07/query/RDQL",
-                                                &rasqal_rdql_query_language_register_factory);
+rasqal_init_query_language_rdql(rasqal_world* world)
+{
+  return !rasqal_query_language_register_factory(world,
+                                                 &rasqal_rdql_query_language_register_factory);
 }
 
 
