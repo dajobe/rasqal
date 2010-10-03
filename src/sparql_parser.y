@@ -4395,7 +4395,7 @@ rasqal_sparql_query_language_iostream_write_escaped_counted_string(rasqal_query*
 }
 
 
-static const char* const sparql_names[4] = { "sparql", "sparql10", "sparql11", NULL};
+static const char* const sparql_names[3] = { "sparql", "sparql10", NULL};
 
 #define SPARQL_TYPES_COUNT 1
 static const raptor_type_q sparql_types[SPARQL_TYPES_COUNT + 1] = {
