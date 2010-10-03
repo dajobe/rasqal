@@ -2638,15 +2638,15 @@ IRIrefBrace ArgListNoBraces ')'
 ;
 
 
-/* LAQRS */
+/* SPARQL 1.1 */
 CoalesceExpression: COALESCE ArgList
 {
   rasqal_sparql_query_language* sparql;
   sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
 
-  if(!sparql->experimental)
+  if(!sparql->sparql11_query)
     sparql_syntax_error((rasqal_query*)rq,
-                        "COALESCE can only be used with LAQRS");
+                        "COALESCE cannote be used with SPARQL 1.0");
 
   if(!$2) {
 #ifdef HAVE_RAPTOR2_API
