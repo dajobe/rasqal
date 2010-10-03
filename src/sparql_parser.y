@@ -4510,14 +4510,15 @@ main(int argc, char *argv[])
   int rc;
   const char *filename = NULL;
   raptor_uri* base_uri = NULL;
-  unsigned char *uri_string;
-  const char* query_languages[2] = {"sparql", "laqrs"};
-  const char* query_language;
+  unsigned char *uri_string = NULL;
+  const char* query_language = "sparql";
   int usage = 0;
   rasqal_world *world;
   
-  query_language=query_languages[0];
-  
+  world = rasqal_new_world();
+  if(!world || rasqal_world_open(world))
+    exit(1);
+
   filename = getenv("SPARQL_QUERY_FILE");
     
   while(!usage) {
@@ -4540,12 +4541,11 @@ main(int argc, char *argv[])
   
       case 'i':
         if(optarg) {
-          if(!strcmp(optarg, "laqrs")) {
-            query_language = query_languages[1];
-          } else if(!strcmp(optarg, "sparql")) {
-            query_language = query_languages[0];
+          if(rasqal_language_name_check(world, optarg)) {
+            query_language = optarg;
           } else {
-            fprintf(stderr, "-i laqrs or -i sparql only\n");
+            fprintf(stderr, "%s: Unknown query language '%s'\n",
+                    program, optarg);
             usage = 1;
           }
         }
@@ -4570,7 +4570,8 @@ main(int argc, char *argv[])
     fprintf(stderr, " -d           Bison parser debugging\n");
 #endif
     fprintf(stderr, " -i LANGUAGE  Set query language\n");
-    exit(1);
+    rc = 1;
+    goto tidy;
   }
 
 
@@ -4578,7 +4579,8 @@ main(int argc, char *argv[])
  if(!fh) {
    fprintf(stderr, "%s: Cannot open file %s - %s\n", program, filename,
            strerror(errno));
-   exit(1);
+   rc = 1;
+   goto tidy;
  }
  
   memset(query_string, 0, SPARQL_FILE_BUF_SIZE);
@@ -4588,33 +4590,43 @@ main(int argc, char *argv[])
       fprintf(stderr, "%s: file '%s' read failed - %s\n",
               program, filename, strerror(errno));
       fclose(fh);
-      return(1);
+      rc = 1;
+      goto tidy;
     }
   }
   
   fclose(fh);
 
-  world = rasqal_new_world();
-  if(!world || rasqal_world_open(world))
-    exit(1);
-
   query = rasqal_new_query(world, query_language, NULL);
+  rc = 1;
+  if(query) {
+    uri_string = raptor_uri_filename_to_uri_string(filename);
 
-  uri_string = raptor_uri_filename_to_uri_string(filename);
-  base_uri = raptor_new_uri(world->raptor_world_ptr, uri_string);
+    if(uri_string) {
+      base_uri = raptor_new_uri(world->raptor_world_ptr, uri_string);
 
-  rc = rasqal_query_prepare(query, 
-                            (const unsigned char*)query_string, base_uri);
+      if(base_uri) {
+        rc = rasqal_query_prepare(query, (const unsigned char*)query_string, 
+                                  base_uri);
 
-  rasqal_query_print(query, stdout);
+        if(!rc)
+          rasqal_query_print(query, stdout);
+      }
+    }
+  }
 
-  rasqal_free_query(query);
+  tidy:
+  if(query)
+    rasqal_free_query(query);
 
-  raptor_free_uri(base_uri);
+  if(base_uri)
+    raptor_free_uri(base_uri);
 
-  raptor_free_memory(uri_string);
+  if(uri_string)
+    raptor_free_memory(uri_string);
 
-  rasqal_free_world(world);
+  if(world)
+    rasqal_free_world(world);
 
   return rc;
 }
