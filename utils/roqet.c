@@ -218,7 +218,7 @@ roqet_graph_pattern_walk(rasqal_graph_pattern *gp, int gp_index,
       fputs("triples {\n", fh);
       seen = 1;
     }
-    roqet_write_indent(fh, indent+2);
+    roqet_write_indent(fh, indent + 2);
     fprintf(fh, "triple #%d { ", triple_index);
     rasqal_triple_print(t, fh);
     fputs(" }\n", fh);
@@ -244,7 +244,7 @@ roqet_graph_pattern_walk(rasqal_graph_pattern *gp, int gp_index,
       if(!sgp)
         break;
       
-      roqet_graph_pattern_walk(sgp, gp_index, fh, indent+2);
+      roqet_graph_pattern_walk(sgp, gp_index, fh, indent + 2);
       gp_index++;
     }
 
@@ -345,7 +345,7 @@ roqet_query_walk(rasqal_query *rq, FILE *fh, int indent) {
       if(!t)
         break;
     
-      roqet_write_indent(fh, indent+2);
+      roqet_write_indent(fh, indent + 2);
       fprintf(fh, "triple #%d { ", i);
       rasqal_triple_print(t, fh);
       fputs(" }\n", fh);
@@ -442,7 +442,7 @@ print_graph_result(rasqal_query* rq,
   if(!quiet)
     fprintf(stderr, "%s: Query has a graph result:\n", program);
   
-  if(!(raptor_world_is_serializer_name(raptor_world_ptr, serializer_syntax_name))) {
+  if(!raptor_world_is_serializer_name(raptor_world_ptr, serializer_syntax_name)) {
     fprintf(stderr, 
             "%s: invalid query result serializer name `%s' for `" HELP_ARG(r, results) "'\n",
             program, serializer_syntax_name);
@@ -691,17 +691,18 @@ main(int argc, char *argv[])
               if(rasqal_features_enumerate(world, (rasqal_feature)i,
                                            &feature_name, NULL, NULL))
                 continue;
+
               len = strlen(feature_name);
               if(!strncmp(optarg, feature_name, len)) {
                 query_feature = (rasqal_feature)i;
                 if(rasqal_feature_value_type(query_feature) == 0) {
                   if(len < arg_len && optarg[len] == '=')
-                    query_feature_value=atoi(&optarg[len+1]);
+                    query_feature_value=atoi(&optarg[len + 1]);
                   else if(len == arg_len)
                     query_feature_value = 1;
                 } else {
                   if(len < arg_len && optarg[len] == '=')
-                    query_feature_string_value = (unsigned char*)&optarg[len+1];
+                    query_feature_string_value = (unsigned char*)&optarg[len + 1];
                   else if(len == arg_len)
                     query_feature_string_value = (unsigned char*)"";
                 }
@@ -747,6 +748,7 @@ main(int argc, char *argv[])
           ql_name = optarg;
         else {
           int i;
+
           fprintf(stderr,
                   "%s: invalid argument `%s' for `" HELP_ARG(i, input) "'\n",
                   program, optarg);
@@ -757,6 +759,7 @@ main(int argc, char *argv[])
             if(rasqal_languages_enumerate(world, i, 
                                           &help_name, &help_label, NULL))
               break;
+
             fprintf(stderr, "  %-12s for %s\n", help_name, help_label);
           }
           usage = 1;
@@ -917,12 +920,14 @@ main(int argc, char *argv[])
       desc = raptor_world_get_parser_description(raptor_world_ptr, i);
       if(!desc)
         break;
+
       printf("      %-15s       %s", desc->names[0], desc->label);
 #else
       const char *help_name;
       const char *help_label;
       if(raptor_serializers_enumerate(i, &help_name, &help_label, NULL, NULL))
         break;
+
       printf("      %-15s       %s", help_name, help_label);
 #endif
       if(!i)
@@ -977,6 +982,7 @@ main(int argc, char *argv[])
                 program);
         return(1);
       }
+
       uri_string = NULL;
     } else if(!access((const char*)uri_string, R_OK)) {
       filename = (char*)uri_string;
@@ -1000,6 +1006,7 @@ main(int argc, char *argv[])
       base_uri = raptor_uri_copy(uri);
   } else
     base_uri = raptor_new_uri(raptor_world_ptr, base_uri_string);
+
   if(base_uri_string && !base_uri) {
     fprintf(stderr, "%s: Failed to create URI for %s\n",
             program, base_uri_string);
@@ -1017,6 +1024,7 @@ main(int argc, char *argv[])
               program, strerror(errno));
       return(1);
     }
+
     query_from_string = 0;
   } else if(filename) {
     raptor_stringbuffer *sb = raptor_new_stringbuffer();
@@ -1037,6 +1045,7 @@ main(int argc, char *argv[])
       read_len = fread((char*)buffer, 1, FILE_READ_BUF_SIZE, fh);
       if(read_len > 0)
         raptor_stringbuffer_append_counted_string(sb, buffer, read_len, 1);
+
       if(read_len < FILE_READ_BUF_SIZE) {
         if(ferror(fh)) {
           fprintf(stderr, "%s: file '%s' read failed - %s\n",
@@ -1050,7 +1059,7 @@ main(int argc, char *argv[])
     fclose(fh);
 
     len = raptor_stringbuffer_length(sb);
-    query_string = malloc(len+1);
+    query_string = malloc(len + 1);
     raptor_stringbuffer_copy_to_string(sb, (unsigned char*)query_string, len);
     raptor_free_stringbuffer(sb);
     query_from_string = 0;
@@ -1068,12 +1077,14 @@ main(int argc, char *argv[])
       raptor_www_free(www);
 #endif
     }
+
     if(!query_string || error_count) {
       fprintf(stderr, "%s: Retrieving query at URI '%s' failed\n", 
               program, uri_string);
       rc = 1;
       goto tidy_setup;
     }
+
     query_from_string = 0;
   }
 
@@ -1131,6 +1142,7 @@ main(int argc, char *argv[])
         fprintf(stderr, "%s: Failed to add named graph %s\n", program, 
                 raptor_uri_as_string(source_uri));
       }
+
       raptor_free_uri(source_uri);
     }
   }
@@ -1144,6 +1156,7 @@ main(int argc, char *argv[])
         fprintf(stderr, "%s: Failed to add to default graph %s\n", program, 
                 raptor_uri_as_string(source_uri));
       }
+
       raptor_free_uri(source_uri);
     }
   }
