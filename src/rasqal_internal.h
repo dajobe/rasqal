@@ -897,6 +897,7 @@ int rasqal_init_query_language_rdql(rasqal_world*);
 
 /* sparql_parser.y */
 int rasqal_init_query_language_sparql(rasqal_world*);
+int rasqal_init_query_language_sparql11(rasqal_world*);
 int rasqal_init_query_language_laqrs(rasqal_world*);
 
 /* rasqal_query_transform.c */

@@ -182,6 +182,10 @@ rasqal_world_open(rasqal_world *world)
   rc = rasqal_init_query_language_sparql(world);
   if(rc)
     return rc;
+
+  rc = rasqal_init_query_language_sparql11(world);
+  if(rc)
+    return rc;
 #endif
 
 #ifdef RASQAL_QUERY_LAQRS
