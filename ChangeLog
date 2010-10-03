@@ -1,4 +1,113 @@
-2010-09-30  Dave Beckett  <dave@dajobe.org>
+2010-10-02  Dave Beckett <dave@dajobe.org>
+
+	* src/sparql_common.h, src/sparql_parser.y: Add sparql query
+	language feature flags to separate sparql 1.0, 1.1 and experiments
+	in laqrs
+
+	rasqal_sparql_query_language_s gains bit flags to replace extended
+	field.  Update grammar to use appropriate flags for family language
+	features.  Alter some error messages to mention can only be used in
+	LAQRS such as EXPLAIN, COALESCE
+
+	(rasqal_sparql_query_language_init): Initialise the query language
+	family flags.
+
+	* src/sparql_parser.y: Update SPARQL and LAQRS query language
+	registrations adding aliases
+
+	(rasqal_sparql_query_language_register_factory): Updated for new
+	registration model.  Adds aliases sparql10 and sparql11 for
+	sparql.
+
+	(rasqal_laqrs_query_language_register_factory): Added for new
+	registration model but calling same functions as
+	rasqal_sparql_query_language_register_factory
+
+	* src/rdql_parser.y:
+	(rasqal_rdql_query_language_register_factory): Updated for new
+	registration model.
+
+	* src/rasqal_query.c:
+	(rasqal_query_get_name, rasqal_query_get_label): Use syntax
+	description fields.
+
+	* src/rasqal_general.c: Initialise query languages using
+	raptor-style syntax description model
+
+	(rasqal_world_open): Initialise sequence and re-order initialisation
+	of languages since it's now default-first instead of default-last.
+
+	(rasqal_free_query_language_factory): Just free query languages
+	sequence now.
+
+	(rasqal_query_language_register_factory): Updated to just use a
+	callback function to do registration returning int status, and this
+	function returns the factory it makes.  Alter logic based on Raptor
+	V2 raptor_world_register_parser_factory()
+
+	(rasqal_get_query_language_factory): Updated to use sequence and
+	logic based on Raptor V2 raptor_world_get_parser_factory()
+
+	(rasqal_languages_enumerate): Simplify using query languages
+	sequence.
+
+	* src/rasqal_internal.h: Add a Raptor V2-style
+	raptor_syntax_description data model to rasqal.
+
+	For now this requires importing bits of Raptor V2
+	raptor_syntax_description public API if building with Raptor V1.
+
+	Specifically, import: typedef raptor_data_free_handler,
+	raptor_type_q and raptor_syntax_description from Raptor
+
+	rasqal_query_language_factory_s gains world arg and loses name,
+	label, alias, mime_type, uri_string fields. The latter replaced by
+	raptor_syntax_description static.
+
+	typedef rasqal_query_language_register_factory loses most args and
+	just uses a callback to (sic) call.  Return value is the factory.
+	Callback returns an error int.
+
+	typedef rasqal_world replaces linked list of query languages with
+	a raptor_sequence
+
+	* src/rasqal_internal.h, utils/roqet.c: Add more Raptor V1
+	backward compatiblity defines for roqet.c
+
+2010-09-30  Dave Beckett <dave@dajobe.org>
+
+	* utils/roqet.c: Set default graph format to "ntriples" again.
+
+	* utils/roqet.c:
+	(print_formatted_query_results): Move error reporting here
+
+	* utils/roqet.c:
+	(print_formatted_query_results): Create/destroy formatter here
+
+	* utils/roqet.c:
+	Delay -r FORMAT checking until result type is known
+
+	(print_graph_result): Move graph serializer format checking
+	here.
+
+	(main): For each result type decide if simple or if formatted
+
+	* utils/roqet.c:
+	(print_formatted_query_results): Added making formatted query
+	results from code in main()
+
+	* utils/roqet.c:
+	(print_graph_result): Added making graph results from code in main()
+
+	* utils/roqet.c:
+	(print_boolean_result_simple): Added with simple boolean results out
+	of main()
+
+	* utils/roqet.c:
+	(print_bindings_result_simple): Added to refactor out huge main()
+
+	* NEWS.html, configure.ac, src/rasqal.h.in:
+	Bumped version to 0.9.21
 
 	* utils/roqet.c:
 	Set default graph format to "ntriples" again.
