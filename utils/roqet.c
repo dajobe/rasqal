@@ -956,19 +956,19 @@ main(int argc, char *argv[])
     puts("\nAdditional options:");
     puts(HELP_TEXT("c", "count             ", "Count triples - no output"));
     puts(HELP_TEXT("d", "dump-query FORMAT ", "Print the parsed query out in FORMAT:"));
+    puts(HELP_TEXT("D", "data URI          ", "RDF data source URI"));
     for(i = 1; i <= QUERY_OUTPUT_LAST; i++)
       printf("      %-15s         %s\n", query_output_format_labels[i][0],
              query_output_format_labels[i][1]);
     puts(HELP_TEXT("f FEATURE(=VALUE)", "feature FEATURE(=VALUE)", HELP_PAD "Set query features" HELP_PAD "Use `-f help' for a list of valid features"));
+    puts(HELP_TEXT("F", "format NAME       ", "Set data source format name (default: guess)"));
 #ifdef RASQAL_INTERNAL
     puts(HELP_TEXT("g", "engine NAME       ", "INTERNAL: Pick execution engine NAME"));
 #endif
+    puts(HELP_TEXT("G", "named URI         ", "RDF named graph data source URI"));
     puts(HELP_TEXT("h", "help              ", "Print this help, then exit"));
     puts(HELP_TEXT("n", "dryrun            ", "Prepare but do not run the query"));
     puts(HELP_TEXT("q", "quiet             ", "No extra information messages"));
-    puts(HELP_TEXT("D", "data URI          ", "RDF data source URI"));
-    puts(HELP_TEXT("F", "format NAME       ", "Set data source format name (default: guess)"));
-    puts(HELP_TEXT("G", "named URI         ", "RDF named graph data source URI"));
     puts(HELP_TEXT("s", "source URI        ", "Same as `-G URI'"));
     puts(HELP_TEXT("v", "version           ", "Print the Rasqal version"));
     puts(HELP_TEXT("w", "walk-query        ", "Print query.  Same as '-d structure'"));
