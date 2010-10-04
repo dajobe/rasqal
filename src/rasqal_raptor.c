@@ -406,7 +406,8 @@ rasqal_raptor_init_triples_source(rasqal_query* rdf_query,
     raptor_uri* uri;
     raptor_uri* name_uri;
     int free_name_uri = 0;
-
+    const char* parser_name;
+    
     dg = (rasqal_data_graph*)raptor_sequence_get_at(rdf_query->data_graphs, i);
     uri = dg->uri;
     name_uri = dg->name_uri;
@@ -428,14 +429,25 @@ rasqal_raptor_init_triples_source(rasqal_query* rdf_query,
                                                   i);
     rtsc->mapped_id_base_len = strlen((const char*)rtsc->mapped_id_base);
 
+    parser_name = dg->format_name;
+    if(parser_name) {
+      if(!raptor_world_is_parser_name(raptor_world_ptr, parser_name)) {
+        handler(rdf_query, /* locator */ NULL,
+                "Invalid data graph parser name ignored");
+        parser_name = NULL;
+      }
+    }
+    if(!parser_name)
+      parser_name = "guess";
+    
 #ifdef HAVE_RAPTOR2_API
-    parser = raptor_new_parser(rdf_query->world->raptor_world_ptr, "guess");
+    parser = raptor_new_parser(rdf_query->world->raptor_world_ptr, parser_name);
     raptor_parser_set_statement_handler(parser, rtsc, rasqal_raptor_statement_handler);
     raptor_world_set_generate_bnodeid_handler(rdf_query->world->raptor_world_ptr,
                                               rtsc,
                                               rasqal_raptor_generate_id_handler);
 #else
-    parser = raptor_new_parser("guess");
+    parser = raptor_new_parser(parser_name);
     raptor_set_statement_handler(parser, rtsc, rasqal_raptor_statement_handler);
     raptor_set_error_handler(parser, rdf_query, rasqal_raptor_error_handler);
     raptor_set_generate_id_handler(parser, rtsc,
