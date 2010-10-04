@@ -638,6 +638,30 @@ rasqal_query_write_sparql_graph_pattern(sparql_writer_context *wc,
 
 
     
+static void
+rasqal_query_write_data_format_comment(sparql_writer_context* wc,
+                                       raptor_iostream *iostr,
+                                       rasqal_data_graph* dg) 
+{
+  if(dg->format_type || dg->format_name || dg->format_uri) {
+    raptor_iostream_counted_string_write("# format ", 9, iostr);
+    if(dg->format_type) {
+      raptor_iostream_counted_string_write("type ", 5, iostr);
+      raptor_iostream_string_write(dg->format_type, iostr);
+    }
+    if(dg->format_type) {
+      raptor_iostream_counted_string_write("name ", 5, iostr);
+      raptor_iostream_string_write(dg->format_name, iostr);
+    }
+    if(dg->format_type) {
+      raptor_iostream_counted_string_write("uri ", 4, iostr);
+      rasqal_query_write_sparql_uri(wc, iostr, dg->format_uri);
+    }
+  }
+}
+  
+
+
 int
 rasqal_query_write_sparql_20060406(raptor_iostream *iostr, 
                                    rasqal_query* query, raptor_uri *base_uri)
@@ -822,6 +846,7 @@ rasqal_query_write_sparql_20060406(raptor_iostream *iostr,
       if(dg->flags & RASQAL_DATA_GRAPH_NAMED)
         continue;
       
+      rasqal_query_write_data_format_comment(&wc, iostr, dg);
       raptor_iostream_counted_string_write("FROM ", 5, iostr);
       rasqal_query_write_sparql_uri(&wc, iostr, dg->uri);
       raptor_iostream_counted_string_write("\n", 1, iostr);
@@ -835,6 +860,7 @@ rasqal_query_write_sparql_20060406(raptor_iostream *iostr,
       if(!(dg->flags & RASQAL_DATA_GRAPH_NAMED))
         continue;
       
+      rasqal_query_write_data_format_comment(&wc, iostr, dg);
       raptor_iostream_counted_string_write("FROM NAMED ", 11, iostr);
       rasqal_query_write_sparql_uri(&wc, iostr, dg->name_uri);
       raptor_iostream_write_byte('\n', iostr);

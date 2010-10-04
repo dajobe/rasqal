@@ -93,6 +93,13 @@ rasqal_free_data_graph(rasqal_data_graph* dg)
     raptor_free_uri(dg->uri);
   if(dg->name_uri)
     raptor_free_uri(dg->name_uri);
+  if(dg->format_type)
+    RASQAL_FREE(cstring, dg->format_type);
+  if(dg->format_name)
+    RASQAL_FREE(cstring, dg->format_name);
+  if(dg->format_uri)
+    raptor_free_uri(dg->format_uri);
+
   RASQAL_FREE(rasqal_data_graph, dg);
 }
 
@@ -115,13 +122,23 @@ rasqal_data_graph_print(rasqal_data_graph* dg, FILE* fh)
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(fh, FILE*, 1);
 
   if(dg->name_uri)
-    fprintf(fh, "data graph(%s named as %s flags %d)", 
+    fprintf(fh, "data graph(%s named as %s flags %d", 
             raptor_uri_as_string(dg->uri),
             raptor_uri_as_string(dg->name_uri),
             dg->flags);
   else
-    fprintf(fh, "data graph(%s, flags %d)", 
+    fprintf(fh, "data graph(%s, flags %d", 
             raptor_uri_as_string(dg->uri), dg->flags);
-
+  if(dg->format_type || dg->format_name || dg->format_uri) {
+    fputs("with format ", fh);
+    if(dg->format_type)
+      fprintf(fh, "type %s", dg->format_type);
+    if(dg->format_type)
+      fprintf(fh, "name %s", dg->format_name);
+    if(dg->format_type)
+      fprintf(fh, "uri %s", raptor_uri_as_string(dg->format_uri));
+  } else
+    fputc(')', fh);
+  
   return 0;
 }
