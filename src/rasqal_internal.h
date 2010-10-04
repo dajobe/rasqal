@@ -1407,6 +1407,7 @@ int rasqal_query_add_update_operation(rasqal_query* query, rasqal_update_operati
 
 #define raptor_new_serializer(world, name) raptor_new_serializer(name)
 #define raptor_world_is_serializer_name(world, name) raptor_serializer_syntax_name_check(name)
+#define raptor_world_is_parser_name(world, name) raptor_syntax_name_check(name)
 
 #define raptor_unicode_utf8_string_get_char(input, length, output) raptor_utf8_to_unicode_char(output, input, length)
 #define raptor_unicode_utf8_string_put_char(char, output, length) raptor_unicode_char_to_utf8(char, output)

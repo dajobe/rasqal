@@ -680,6 +680,49 @@ rasqal_query_set_offset(rasqal_query* query, int offset)
 
 
 /**
+ * rasqal_query_add_data_graph2:
+ * @query: #rasqal_query query object
+ * @uri: #raptor_uri source uri for retrieval
+ * @name_uri: #raptor_uri name uri (or NULL)
+ * @flags: RASQAL_DATA_GRAPH_NAMED or RASQAL_DATA_GRAPH_BACKGROUND
+ * @format_mime_type: MIME Type of data format at @uri (or NULL)
+ * @format_name: Raptor parser Name of data format at @uri (or NULL)
+ * @format_uri: URI of data format at @uri (or NULL)
+ *
+ * Add a data graph to the query.
+ *
+ * named_uri must be given if flags RASQAL_DATA_GRAPH_NAMED is set.
+ * It is the name of the graph and also used as the base URI
+ * when resolving any relative URIs for the graph in uri.
+ *
+ * Return value: non-0 on failure
+ **/
+int
+rasqal_query_add_data_graph2(rasqal_query* query, 
+                             raptor_uri* uri, raptor_uri* name_uri,
+                             int flags, const char* format_type,
+                             const char* format_name,
+                             raptor_uri* format_uri)
+{
+  rasqal_data_graph *dg;
+
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, 1);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(uri, raptor_uri, 1);
+
+  if((flags & RASQAL_DATA_GRAPH_NAMED) && !name_uri)
+    return 1;
+  
+  dg = rasqal_new_data_graph2(query->world, uri, name_uri, flags,
+                              format_type, format_name, format_uri);
+  if(!dg)
+    return 1;
+  if(raptor_sequence_push(query->data_graphs, (void*)dg))
+    return 1;
+  return 0;
+}
+
+
+/**
  * rasqal_query_add_data_graph:
  * @query: #rasqal_query query object
  * @uri: #raptor_uri source uri for retrieval
@@ -692,6 +735,9 @@ rasqal_query_set_offset(rasqal_query* query, int offset)
  * It is the name of the graph and also used as the base URI
  * when resolving any relative URIs for the graph in uri.
  *
+ * @Deprecated: Replaced by rasqal_query_add_data_graph2() with extra
+ * format argumetns.
+ *
  * Return value: non-0 on failure
  **/
 int
@@ -699,20 +745,8 @@ rasqal_query_add_data_graph(rasqal_query* query,
                             raptor_uri* uri, raptor_uri* name_uri,
                             int flags)
 {
-  rasqal_data_graph *dg;
-
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, 1);
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(uri, raptor_uri, 1);
-
-  if((flags & RASQAL_DATA_GRAPH_NAMED) && !name_uri)
-    return 1;
-  
-  dg = rasqal_new_data_graph(query->world, uri, name_uri, flags);
-  if(!dg)
-    return 1;
-  if(raptor_sequence_push(query->data_graphs, (void*)dg))
-    return 1;
-  return 0;
+  return rasqal_query_add_data_graph2(query, uri, name_uri, flags,
+                                      NULL, NULL, NULL);
 }
 
 

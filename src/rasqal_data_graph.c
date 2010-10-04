@@ -42,11 +42,14 @@
 
 
 /**
- * rasqal_new_data_graph:
+ * rasqal_new_data_graph2:
  * @world: rasqal_world object
  * @uri: source URI
  * @name_uri: name of graph (or NULL)
  * @flags: %RASQAL_DATA_GRAPH_NAMED or %RASQAL_DATA_GRAPH_BACKGROUND
+ * @format_mime_type: MIME Type of data format at @uri (or NULL)
+ * @format_name: Raptor parser Name of data format at @uri (or NULL)
+ * @format_uri: URI of data format at @uri (or NULL)
  * 
  * Constructor - create a new #rasqal_data_graph.
  * 
@@ -55,8 +58,11 @@
  * Return value: a new #rasqal_data_graph or NULL on failure.
  **/
 rasqal_data_graph*
-rasqal_new_data_graph(rasqal_world* world, raptor_uri* uri,
-                      raptor_uri* name_uri, int flags)
+rasqal_new_data_graph2(rasqal_world* world, raptor_uri* uri,
+                       raptor_uri* name_uri, int flags,
+                       const char* format_type,
+                       const char* format_name,
+                       raptor_uri* format_uri)
 {
   rasqal_data_graph* dg;
 
@@ -67,12 +73,61 @@ rasqal_new_data_graph(rasqal_world* world, raptor_uri* uri,
   if(dg) {
     dg->world = world;
     dg->uri = raptor_uri_copy(uri);
+
     if(name_uri)
       dg->name_uri = raptor_uri_copy(name_uri);
+
     dg->flags = flags;
+
+    if(format_type) {
+      size_t len = strlen(format_type);
+      dg->format_type = RASQAL_MALLOC(string, len + 1);
+      if(!dg->format_type)
+        goto error;
+      strncpy((char*)dg->format_type, (const char*)format_type, len + 1);
+    }
+
+    if(format_name) {
+      size_t len = strlen(format_name);
+      dg->format_name = RASQAL_MALLOC(string, len + 1);
+      if(!dg->format_name)
+        goto error;
+      strncpy((char*)dg->format_name, (const char*)format_name, len + 1);
+    }
+
+    if(format_uri)
+      dg->format_uri = raptor_uri_copy(format_uri);
   }
 
   return dg;
+
+  error:
+  rasqal_free_data_graph(dg);
+  return NULL;
+}
+
+
+/**
+ * rasqal_new_data_graph:
+ * @world: rasqal_world object
+ * @uri: source URI
+ * @name_uri: name of graph (or NULL)
+ * @flags: %RASQAL_DATA_GRAPH_NAMED or %RASQAL_DATA_GRAPH_BACKGROUND
+ * 
+ * Constructor - create a new #rasqal_data_graph.
+ * 
+ * The name_uri is only used when the flags are %RASQAL_DATA_GRAPH_NAMED.
+ *
+ * @Deprecated: replaced by rasqal_new_data_graph2() with extra
+ * format argumetns.
+ *
+ * Return value: a new #rasqal_data_graph or NULL on failure.
+ **/
+rasqal_data_graph*
+rasqal_new_data_graph(rasqal_world* world, raptor_uri* uri,
+                      raptor_uri* name_uri, int flags)
+{
+  return rasqal_new_data_graph2(world, uri, name_uri, flags, NULL, NULL, NULL);
 }
 
 
