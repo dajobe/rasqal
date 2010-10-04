@@ -362,10 +362,11 @@ rasqal_raptor_generate_id_handler(void *user_data,
 
 
 static int
-rasqal_raptor_new_triples_source(rasqal_query* rdf_query,
-                                 void *factory_user_data,
-                                 void *user_data,
-                                 rasqal_triples_source *rts)
+rasqal_raptor_init_triples_source(rasqal_query* rdf_query,
+                                  void *factory_user_data,
+                                  void *user_data,
+                                  rasqal_triples_source *rts,
+                                  rasqal_triples_error_handler handler)
 {
   rasqal_raptor_triples_source_user_data* rtsc;
   raptor_parser *parser;
@@ -373,8 +374,11 @@ rasqal_raptor_new_triples_source(rasqal_query* rdf_query,
 
   rtsc = (rasqal_raptor_triples_source_user_data*)user_data;
 
-  if(!rdf_query->data_graphs)
+  if(!rdf_query->data_graphs) {
+    if(handler)
+      handler(rdf_query, /* locator */ NULL, "Query has no data graphs.");
     return -1;  /* no data */
+  }
 
   /* Max API version this triples source generates */
   rts->version = 1;
@@ -385,8 +389,11 @@ rasqal_raptor_new_triples_source(rasqal_query* rdf_query,
 
   rtsc->sources_count = raptor_sequence_size(rdf_query->data_graphs);
   /* no default triple source possible */
-  if(!rtsc->sources_count)
+  if(!rtsc->sources_count) {
+    if(handler)
+      handler(rdf_query, /* locator */ NULL, "Query has no data graphs.");
     return -1;  /* no data */
+  }
 
   rtsc->source_literals = (rasqal_literal**)RASQAL_CALLOC(rasqal_literal_ptr,
                                                           rtsc->sources_count,
@@ -464,6 +471,18 @@ rasqal_raptor_new_triples_source(rasqal_query* rdf_query,
   }
 
   return rdf_query->failed;
+}
+
+
+static int
+rasqal_raptor_new_triples_source(rasqal_query* rdf_query,
+                                 void *factory_user_data,
+                                 void *user_data,
+                                 rasqal_triples_source *rts)
+{
+  return rasqal_raptor_init_triples_source(rdf_query, factory_user_data,
+                                           user_data, rts,
+                                           rasqal_triples_source_error_handler);
 }
 
 
@@ -602,9 +621,12 @@ rasqal_raptor_free_triples_source(void *user_data)
 static int
 rasqal_raptor_register_triples_source_factory(rasqal_triples_source_factory *factory) 
 {
-  factory->version = 1;
+  factory->version = 2;
   factory->user_data_size = sizeof(rasqal_raptor_triples_source_user_data);
+  /* V1 */
   factory->new_triples_source = rasqal_raptor_new_triples_source;
+  /* V2 */
+  factory->init_triples_source = rasqal_raptor_init_triples_source;
 
   return 0;
 }
