@@ -301,6 +301,9 @@ typedef enum {
  * @uri: source URI
  * @name_uri: name of graph for %RASQAL_DATA_GRAPH_NAMED
  * @flags: %RASQAL_DATA_GRAPH_NAMED or %RASQAL_DATA_GRAPH_BACKGROUND
+ * @format_mime_type: MIME Type of data format at @uri (or NULL)
+ * @format_name: Raptor parser Name of data format at @uri (or NULL)
+ * @format_uri: URI of data format at @uri (or NULL)
  *
  * A source of RDF data for querying. 
  *
@@ -313,6 +316,9 @@ typedef struct {
   raptor_uri* uri;
   raptor_uri* name_uri;
   int flags;
+  const char* format_type;
+  const char* format_name;
+  raptor_uri* format_uri;
 } rasqal_data_graph;
 
 
