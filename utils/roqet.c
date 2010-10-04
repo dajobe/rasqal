@@ -86,9 +86,9 @@ static char *program=NULL;
 
 #ifdef RASQAL_INTERNAL
 /* add 'g:' */
-#define GETOPT_STRING "cd:D:e:f:g:G:hi:nr:qs:vw"
+#define GETOPT_STRING "cd:D:e:f:F:g:G:hi:nr:qs:vw"
 #else
-#define GETOPT_STRING "cd:D:e:f:G:hi:nr:qs:vw"
+#define GETOPT_STRING "cd:D:e:f:F:G:hi:nr:qs:vw"
 #endif
 
 #ifdef HAVE_GETOPT_LONG
@@ -105,6 +105,7 @@ static struct option long_options[] =
   {"dryrun", 0, 0, 'n'},
   {"exec", 1, 0, 'e'},
   {"feature", 1, 0, 'f'},
+  {"format", 1, 0, 'F'},
 #ifdef RASQAL_INTERNAL
   {"engine", 1, 0, 'g'},
 #endif
@@ -535,6 +536,9 @@ print_formatted_query_results(rasqal_world* world,
 }
 
 
+/* Default parser for input graphs */
+#define DEFAULT_DATA_GRAPH_FORMAT "guess"
+/* Default serializer for output graphs */
 #define DEFAULT_GRAPH_FORMAT "ntriples"
 
 int
@@ -572,6 +576,7 @@ main(int argc, char *argv[])
   int store_results = -1;
   const rasqal_query_execution_factory* engine = NULL;
 #endif
+  char* data_graph_parser_name = NULL;
   
   program = argv[0];
   if((p = strrchr(program, '/')))
@@ -719,6 +724,19 @@ main(int argc, char *argv[])
         }
         break;
 
+      case 'F':
+        if(optarg) {
+          if(!raptor_world_is_parser_name(raptor_world_ptr, optarg)) {
+              fprintf(stderr,
+                      "%s: invalid parser name `%s' for `" HELP_ARG(F, format) "'\n\n",
+                      program, optarg);
+              usage = 1;
+          } else {
+            data_graph_parser_name = optarg;
+          }
+        }
+        break;
+        
       case 'h':
         help = 1;
         break;
@@ -1137,8 +1155,9 @@ main(int argc, char *argv[])
       raptor_uri* source_uri;
 
       source_uri = (raptor_uri*)raptor_sequence_pop(named_source_uris);
-      if(rasqal_query_add_data_graph(rq, source_uri, source_uri, 
-                                     RASQAL_DATA_GRAPH_NAMED)) {
+      if(rasqal_query_add_data_graph2(rq, source_uri, source_uri, 
+                                      RASQAL_DATA_GRAPH_NAMED,
+                                      NULL, data_graph_parser_name, NULL)) {
         fprintf(stderr, "%s: Failed to add named graph %s\n", program, 
                 raptor_uri_as_string(source_uri));
       }
@@ -1151,8 +1170,9 @@ main(int argc, char *argv[])
       raptor_uri* source_uri;
 
       source_uri = (raptor_uri*)raptor_sequence_pop(data_source_uris);
-      if(rasqal_query_add_data_graph(rq, source_uri, NULL,
-                                     RASQAL_DATA_GRAPH_BACKGROUND)) {
+      if(rasqal_query_add_data_graph2(rq, source_uri, NULL,
+                                      RASQAL_DATA_GRAPH_BACKGROUND,
+                                      NULL, data_graph_parser_name, NULL)) {
         fprintf(stderr, "%s: Failed to add to default graph %s\n", program, 
                 raptor_uri_as_string(source_uri));
       }
