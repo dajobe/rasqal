@@ -1377,6 +1377,8 @@ const char* rasqal_engine_get_parts_string(rasqal_triple_parts parts);
 /* New query engine based on executing over query algebra */
 extern const rasqal_query_execution_factory rasqal_query_engine_algebra;
 
+/* rasqal_triples_source.c */
+void rasqal_triples_source_error_handler(rasqal_query* rdf_query, raptor_locator* locator, const char* message);
 
 /* rasqal_update.c */
 const char* rasqal_update_type_label(rasqal_update_type type);
