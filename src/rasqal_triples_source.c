@@ -93,6 +93,24 @@ rasqal_set_triples_source_factory(rasqal_world* world,
 
 
 /**
+ * rasqal_triples_source_error_handler:
+ * @query: query
+ * @locator: any locator information
+ * @message: error message
+ *
+ * INTERNAL - Return an error during creation of a triples source
+ */
+void
+rasqal_triples_source_error_handler(rasqal_query* rdf_query,
+                                    raptor_locator* locator, 
+                                    const char* message)
+{
+  rasqal_log_error_simple(rdf_query->world, RAPTOR_LOG_LEVEL_ERROR, locator,
+                          "%s", message);
+}
+
+
+/**
  * rasqal_new_triples_source:
  * @query: query
  *
@@ -119,10 +137,22 @@ rasqal_new_triples_source(rasqal_query* query)
   }
   rts->query = query;
 
-  rc = rtsf->new_triples_source(query, rtsf->user_data, rts->user_data, rts);
+  if(rtsf->init_triples_source) {
+    /* rasqal_triples_source_factory API V2 */
+    rc = rtsf->init_triples_source(query, rtsf->user_data, rts->user_data, rts,
+                                   rasqal_triples_source_error_handler);
+    /* if there is an error, it will have been already reported more
+     * specifically via the error handler so no need to do it again
+     * below in a generic form.
+     */
+    goto error_tidy;
+  } else
+    /* rasqal_triples_source_factory API V1 */
+    rc = rtsf->new_triples_source(query, rtsf->user_data, rts->user_data, rts);
 
-  /* Failed if the returned triples source API version is not in the
-   * supported range 
+
+  /* Failure if the returned triples source API version is not in the
+   * supported range
    */
   if(!(rts->version >= RASQAL_TRIPLES_SOURCE_MIN_VERSION && 
        rts->version <= RASQAL_TRIPLES_SOURCE_MAX_VERSION)
@@ -145,11 +175,14 @@ rasqal_new_triples_source(rasqal_query* query)
                               &query->locator,
                               "No data to query.");
     }
+  }
+
+  error_tidy:
+  if(rc) {
     RASQAL_FREE(user_data, rts->user_data);
     RASQAL_FREE(rasqal_triples_source, rts);
     return NULL;
   }
-  
   
   return rts;
 }
