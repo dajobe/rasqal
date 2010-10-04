@@ -1,13 +1,11 @@
 .\"                                      Hey, EMACS: -*- nroff -*-
 .\"
-.\" roqet.1 - Rasqal RDF query test program
+.\" roqet.1 - Rasqal RDF query utility
 .\"
-.\" $Id$
-.\"
-.\" Copyright (C) 2004-2009 David Beckett - http://www.dajobe.org/
+.\" Copyright (C) 2004-2010 David Beckett - http://www.dajobe.org/
 .\" Copyright (C) 2004-2005 University of Bristol - http://www.bristol.ac.uk/
 .\"
-.TH roqet 1 "2009-12-15"
+.TH roqet 1 "2010-10-04"
 .\" Please adjust this date whenever revising the manpage.
 .SH NAME
 roqet \- Rasqal RDF query utility
@@ -70,15 +68,15 @@ but is given correct in the usage message with \-h.
 .B \-c, \-\-count
 Only count the triples and produce no other output.
 .TP
-.B \-D, \-\-data URI
-Add RDF data source URI (not a named graph).  If no data sources
-are given, the query itself must point to the data such as via
-SPARQL or RDQL FROM \fIuri\fP statements.
-.TP
 .B \-d, \-\-dump\-query FORMAT
 Print the parsed query out in a given
 .I FORMAT
 one of 'debug', 'structure' or 'sparql'
+.TP
+.B \-D, \-\-data URI
+Add RDF data source URI (not a named graph).  If no data sources
+are given, the query itself must point to the data such as via
+SPARQL or RDQL FROM \fIuri\fP statements.
 .TP
 .B \-f, \-\-feature NAME(=VALUE)
 Set query feature
@@ -87,6 +85,12 @@ to the
 .I VALUE
 or integer 1 if omitted.
 The known features can be shown with \fB-f help\fP or \fB--feature help\fP.
+.TP
+.B \-F, \-\-format NAME
+Set the data source format \fIname\fP for subsequent data graphs called
+with \-D / \-\-data or \-G / \-\-named.  The default if this is not
+specified is for the query engine to guess.  The \fIname\fP is a
+Raptor parser name.
 .TP
 .B \-G, \-\-named URI
 Add RDF data source URI (named graph)
