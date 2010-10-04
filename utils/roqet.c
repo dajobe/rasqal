@@ -967,6 +967,7 @@ main(int argc, char *argv[])
     puts(HELP_TEXT("n", "dryrun            ", "Prepare but do not run the query"));
     puts(HELP_TEXT("q", "quiet             ", "No extra information messages"));
     puts(HELP_TEXT("D", "data URI          ", "RDF data source URI"));
+    puts(HELP_TEXT("F", "format NAME       ", "Set data source format name (default: guess)"));
     puts(HELP_TEXT("G", "named URI         ", "RDF named graph data source URI"));
     puts(HELP_TEXT("s", "source URI        ", "Same as `-G URI'"));
     puts(HELP_TEXT("v", "version           ", "Print the Rasqal version"));
