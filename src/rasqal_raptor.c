@@ -431,7 +431,8 @@ rasqal_raptor_init_triples_source(rasqal_query* rdf_query,
 
     parser_name = dg->format_name;
     if(parser_name) {
-      if(!raptor_world_is_parser_name(raptor_world_ptr, parser_name)) {
+      if(!raptor_world_is_parser_name(rdf_query->world->raptor_world_ptr,
+                                      parser_name)) {
         handler(rdf_query, /* locator */ NULL,
                 "Invalid data graph parser name ignored");
         parser_name = NULL;
