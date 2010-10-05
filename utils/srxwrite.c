@@ -104,7 +104,7 @@ main(int argc, char *argv[])
   
   vars_table = rasqal_new_variables_table(world);
   if(!vars_table) {
-    fprintf(stderr, "%s: Failed to create variables table", program);
+    fprintf(stderr, "%s: Failed to create variables table\n", program);
     rc = 1;
     goto tidy;
   }
@@ -118,7 +118,7 @@ main(int argc, char *argv[])
   results = rasqal_new_query_results(world, NULL,
                                      RASQAL_QUERY_RESULTS_BINDINGS, vars_table);
   if(!results) {
-    fprintf(stderr, "%s: Failed to create query results", program);
+    fprintf(stderr, "%s: Failed to create query results\n", program);
     rc = 1;
     goto tidy;
   }
@@ -127,7 +127,7 @@ main(int argc, char *argv[])
 
   l = rasqal_new_boolean_literal(world, 1);
   if(!l) {
-    fprintf(stderr, "%s: Failed to create boolean literal", program);
+    fprintf(stderr, "%s: Failed to create boolean literal\n", program);
     rc = 1;
     goto tidy;
   }
@@ -136,7 +136,7 @@ main(int argc, char *argv[])
   
   l = rasqal_new_integer_literal(world, RASQAL_LITERAL_INTEGER, 42);
   if(!l) {
-    fprintf(stderr, "%s: Failed to integer boolean literal", program);
+    fprintf(stderr, "%s: Failed to integer boolean literal\n", program);
     rc = 1;
     goto tidy;
   }

@@ -125,14 +125,14 @@ main(int argc, char *argv[])
                                      RASQAL_QUERY_RESULTS_BINDINGS, vars_table);
   rasqal_free_variables_table(vars_table);
   if(!results) {
-    fprintf(stderr, "%s: Failed to create query results", program);
+    fprintf(stderr, "%s: Failed to create query results\n", program);
     rc = 1;
     goto tidy;
   }
   
   iostr = raptor_new_iostream_from_filename(raptor_world_ptr, srx_filename);
   if(!iostr) {
-    fprintf(stderr, "%s: Failed to open iostream to file %s", program,
+    fprintf(stderr, "%s: Failed to open iostream to file %s\n", program,
             srx_filename);
     rc = 1;
     goto tidy;
@@ -142,7 +142,7 @@ main(int argc, char *argv[])
                                                        read_formatter_name,
                                                        NULL, NULL);
   if(!read_formatter) {
-    fprintf(stderr, "%s: Failed to create query results read formatter '%s'",
+    fprintf(stderr, "%s: Failed to create query results read formatter '%s'\n",
             program, read_formatter_name);
     rc = 1;
     goto tidy;
@@ -157,7 +157,7 @@ main(int argc, char *argv[])
                                                         write_formatter_name,
                                                         NULL, NULL);
   if(!write_formatter) {
-    fprintf(stderr, "%s: Failed to create query results write formatter '%s'",
+    fprintf(stderr, "%s: Failed to create query results write formatter '%s'\n",
             program, write_formatter_name);
     rc = 1;
     goto tidy;
