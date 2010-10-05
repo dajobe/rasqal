@@ -45,6 +45,13 @@
 /* Rasqal includes */
 #include <rasqal.h>
 
+#ifdef RAPTOR_V2_AVAILABLE
+#else
+#define raptor_new_uri(world, string) raptor_new_uri(string)
+#define raptor_new_iostream_from_filename(world, filename) raptor_new_iostream_from_filename(filename)
+#define raptor_new_iostream_to_file_handle(world, fh) raptor_new_iostream_to_file_handle(fh)
+#endif
+
 
 static char *program = NULL;
 
@@ -67,6 +74,9 @@ main(int argc, char *argv[])
   raptor_iostream *write_iostr = NULL;
   rasqal_world *world;
   rasqal_variables_table* vars_table;
+#ifdef RAPTOR_V2_AVAILABLE
+  raptor_world *raptor_world_ptr;
+#endif
   
   program = argv[0];
   if((p=strrchr(program, '/')))
@@ -99,11 +109,15 @@ main(int argc, char *argv[])
     }
   }
 
+#ifdef RAPTOR_V2_AVAILABLE
+  raptor_world_ptr = rasqal_world_get_raptor(world);
+#endif
+  
   uri_string = raptor_uri_filename_to_uri_string((const char*)srx_filename);
   if(!uri_string)
     goto tidy;
   
-  base_uri = raptor_new_uri(uri_string);
+  base_uri = raptor_new_uri(raptor_world_ptr, uri_string);
   raptor_free_memory(uri_string);
 
   vars_table = rasqal_new_variables_table(world);
@@ -116,7 +130,7 @@ main(int argc, char *argv[])
     goto tidy;
   }
   
-  iostr = raptor_new_iostream_from_filename(srx_filename);
+  iostr = raptor_new_iostream_from_filename(raptor_world_ptr, srx_filename);
   if(!iostr) {
     fprintf(stderr, "%s: Failed to open iostream to file %s", program,
             srx_filename);
@@ -149,7 +163,7 @@ main(int argc, char *argv[])
     goto tidy;
   }
   
-  write_iostr = raptor_new_iostream_to_file_handle(stdout);
+  write_iostr = raptor_new_iostream_to_file_handle(raptor_world_ptr, stdout);
   if(!write_iostr) {
     fprintf(stderr, "%s: Creating output iostream failed\n", program);
   } else {

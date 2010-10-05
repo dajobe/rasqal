@@ -45,6 +45,11 @@
 /* Rasqal includes */
 #include <rasqal.h>
 
+#ifdef RAPTOR_V2_AVAILABLE
+#else
+#define raptor_new_iostream_to_file_handle(world, fh) raptor_new_iostream_to_file_handle(fh)
+#endif
+
 static char *program = NULL;
 
 int main(int argc, char *argv[]);
@@ -63,6 +68,9 @@ main(int argc, char *argv[])
   rasqal_variables_table* vars_table = NULL;
   rasqal_row* row = NULL;
   rasqal_literal* l = NULL;
+#ifdef RAPTOR_V2_AVAILABLE
+  raptor_world *raptor_world_ptr;
+#endif
   
   program = argv[0];
   if((p=strrchr(program, '/')))
@@ -90,6 +98,10 @@ main(int argc, char *argv[])
       write_formatter_name = argv[1];
   }
 
+#ifdef RAPTOR_V2_AVAILABLE
+  raptor_world_ptr = rasqal_world_get_raptor(world);
+#endif
+  
   vars_table = rasqal_new_variables_table(world);
   if(!vars_table) {
     fprintf(stderr, "%s: Failed to create variables table", program);
@@ -145,7 +157,7 @@ main(int argc, char *argv[])
     goto tidy;
   }
   
-  iostr = raptor_new_iostream_to_file_handle(stdout);
+  iostr = raptor_new_iostream_to_file_handle(raptor_world_ptr, stdout);
   if(!iostr) {
     fprintf(stderr, "%s: Creating output iostream failed\n", program);
   } else {
