@@ -43,6 +43,7 @@ sum1.rq \
 let1.rq \
 let2.rq \
 let3.rq \
+let4.rq \
 strdt1.rq \
 strdt2.rq \
 strlang1.rq \
