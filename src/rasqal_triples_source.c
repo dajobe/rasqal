@@ -137,7 +137,7 @@ rasqal_new_triples_source(rasqal_query* query)
   }
   rts->query = query;
 
-  if(rtsf->init_triples_source) {
+  if(rtsf->version >= 2 && rtsf->init_triples_source) {
     /* rasqal_triples_source_factory API V2 */
     rc = rtsf->init_triples_source(query, rtsf->user_data, rts->user_data, rts,
                                    rasqal_triples_source_error_handler);
