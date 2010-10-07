@@ -712,8 +712,8 @@ rasqal_query_add_data_graph_from_uri(rasqal_query* query,
   if((flags & RASQAL_DATA_GRAPH_NAMED) && !name_uri)
     return 1;
   
-  dg = rasqal_new_data_graph2(query->world, uri, name_uri, flags,
-                              format_type, format_name, format_uri);
+  dg = rasqal_new_data_graph_from_uri(query->world, uri, name_uri, flags,
+                                      format_type, format_name, format_uri);
   if(!dg)
     return 1;
   if(raptor_sequence_push(query->data_graphs, (void*)dg))

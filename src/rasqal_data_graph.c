@@ -42,7 +42,7 @@
 
 
 /**
- * rasqal_new_data_graph2:
+ * rasqal_new_data_graph_from_uri:
  * @world: rasqal_world object
  * @uri: source URI
  * @name_uri: name of graph (or NULL)
@@ -58,11 +58,11 @@
  * Return value: a new #rasqal_data_graph or NULL on failure.
  **/
 rasqal_data_graph*
-rasqal_new_data_graph2(rasqal_world* world, raptor_uri* uri,
-                       raptor_uri* name_uri, int flags,
-                       const char* format_type,
-                       const char* format_name,
-                       raptor_uri* format_uri)
+rasqal_new_data_graph_from_uri(rasqal_world* world, raptor_uri* uri,
+                               raptor_uri* name_uri, int flags,
+                               const char* format_type,
+                               const char* format_name,
+                               raptor_uri* format_uri)
 {
   rasqal_data_graph* dg;
 
@@ -118,8 +118,8 @@ rasqal_new_data_graph2(rasqal_world* world, raptor_uri* uri,
  * 
  * The name_uri is only used when the flags are %RASQAL_DATA_GRAPH_NAMED.
  *
- * @Deprecated: replaced by rasqal_new_data_graph2() with extra
- * format argumetns.
+ * @Deprecated: replaced by rasqal_new_data_graph_from_uri() with
+ * extra format arguments.
  *
  * Return value: a new #rasqal_data_graph or NULL on failure.
  **/
@@ -127,7 +127,8 @@ rasqal_data_graph*
 rasqal_new_data_graph(rasqal_world* world, raptor_uri* uri,
                       raptor_uri* name_uri, int flags)
 {
-  return rasqal_new_data_graph2(world, uri, name_uri, flags, NULL, NULL, NULL);
+  return rasqal_new_data_graph_from_uri(world, uri, name_uri, flags, 
+                                        NULL, NULL, NULL);
 }
 
 
