@@ -680,7 +680,7 @@ rasqal_query_set_offset(rasqal_query* query, int offset)
 
 
 /**
- * rasqal_query_add_data_graph2:
+ * rasqal_query_add_data_graph_from_uri:
  * @query: #rasqal_query query object
  * @uri: #raptor_uri source uri for retrieval
  * @name_uri: #raptor_uri name uri (or NULL)
@@ -698,11 +698,11 @@ rasqal_query_set_offset(rasqal_query* query, int offset)
  * Return value: non-0 on failure
  **/
 int
-rasqal_query_add_data_graph2(rasqal_query* query, 
-                             raptor_uri* uri, raptor_uri* name_uri,
-                             int flags, const char* format_type,
-                             const char* format_name,
-                             raptor_uri* format_uri)
+rasqal_query_add_data_graph_from_uri(rasqal_query* query, 
+                                     raptor_uri* uri, raptor_uri* name_uri,
+                                     int flags, const char* format_type,
+                                     const char* format_name,
+                                     raptor_uri* format_uri)
 {
   rasqal_data_graph *dg;
 
@@ -735,8 +735,8 @@ rasqal_query_add_data_graph2(rasqal_query* query,
  * It is the name of the graph and also used as the base URI
  * when resolving any relative URIs for the graph in uri.
  *
- * @Deprecated: Replaced by rasqal_query_add_data_graph2() with extra
- * format argumetns.
+ * @Deprecated: Replaced by rasqal_query_add_data_graph_from_uri()
+ * with extra format arguments.
  *
  * Return value: non-0 on failure
  **/
@@ -745,8 +745,8 @@ rasqal_query_add_data_graph(rasqal_query* query,
                             raptor_uri* uri, raptor_uri* name_uri,
                             int flags)
 {
-  return rasqal_query_add_data_graph2(query, uri, name_uri, flags,
-                                      NULL, NULL, NULL);
+  return rasqal_query_add_data_graph_from_uri(query, uri, name_uri, flags,
+                                              NULL, NULL, NULL);
 }
 
 
