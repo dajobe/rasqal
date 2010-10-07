@@ -1,4 +1,139 @@
+2010-10-06  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal.h.in: Lets assume OSX GCC precompiled headers are
+	working after many years
+
+	* src/rdql_parser.y, src/sparql_parser.y: Replace calls to
+	rasqal_query_add_data_graph() with rasqal_query_add_data_graph2()
+
+	* src/rasqal.h.in, src/rasqal_result_formats.c: Added
+	rasqal_query_results_formats_check2() allowing checking for a
+	readable and/or writable result format.
+
+	(rasqal_query_results_formats_check2): Added with new flags arg,
+	deprecating rasqal_query_results_formats_check.
+
+	(rasqal_query_results_formats_check): Calls above and deprecated.
+
+	* tests/laqrs/syntax/Makefile.am, tests/laqrs/syntax/let4.rq: Add
+	let4 example with a SELECT *
+
+2010-10-04  Dave Beckett <dave@dajobe.org>
+
+	* utils/srxread.c, utils/srxwrite.c: Newlines in error messages
+
+	* utils/srxread.c, utils/srxwrite.c: Provide raptor2 support in
+	example programs srxread.c and srxwrite.c
+
+	* src/rasqal_raptor.c:
+	(rasqal_raptor_init_triples_source): Fix raptor_world_ptr reference.
+
+	* utils/roqet.1: Document -F/--format
+
+	* utils/roqet.c: Re-order help args to be alphabetic
+
+	* utils/roqet.c: Document -F/--format
+
+	* src/rasqal_raptor.c:
+	(rasqal_raptor_init_triples_source): Support using parser name
+
+	* utils/roqet.c: Add -F NAME format arg for specifying data graph
+	formats
+
+	(main): Add -F support and check it is a legal parser na,e.  Use
+	rasqal_query_add_data_graph2() to pass in parser name as format.
+
+	* src/rasqal.h.in, src/rasqal_data_graph.c, src/rasqal_internal.h,
+	src/rasqal_query.c: Added data graph constructors/helpers that add
+	format args
+
+	(rasqal_query_add_data_graph2): Added with format args deprecating
+	rasqal_query_add_data_graph()
+
+	(rasqal_query_add_data_graph): Deprecated for above.
+
+	(rasqal_new_data_graph2): Added with format args deprecating
+	rasqal_new_data_graph().
+
+	(rasqal_new_data_graph): Deprecated for above.
+
+	* src/rasqal.h.in: Add new data graph format fields to
+	rasqal_data_graph
+
+	* src/rasqal_data_graph.c, src/rasqal_query_write.c: Add format
+	mime type, name and uri to rasqal_data_graph
+
+	(rasqal_free_data_graph): Free new fields.
+
+	(rasqal_data_graph_print): Print new fields
+
+	(rasqal_query_write_data_format_comment): Add to print new fields
+	to sparql query output as a comment.
+
+	(rasqal_query_write_sparql_20060406): Use above.
+
+2010-10-03  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_raptor.c: Make raptor triples source provide new init
+	method init_triples_source
+
+	(rasqal_raptor_init_triples_source): Added to implement the new
+	triples source factory initialisation.  Call the handler with
+	locator and message.
+
+	(rasqal_raptor_new_triples_source): Rewritten to call
+	rasqal_raptor_init_triples_source() with
+	rasqal_triples_source_error_handler as error handler.
+
+	(rasqal_raptor_register_triples_source_factory): Indicate this
+	supports triples source factory API v2
+
+	* src/rasqal_internal.h: Export
+	rasqal_triples_source_error_handler for internal use
+
+	* src/rasqal_triples_source.c: Support using new triples source
+	factory init method init_triples_source
+
+	(rasqal_triples_source_error_handler): Added.
+
+	(rasqal_new_triples_source): Use above to provide an error handler
+	when making a rasqal triples source.  Keep generic error code for
+	V1 triples source factory init method (new_triples_source)
+
+	* src/rasqal.h.in: Add a way for a triples source factory to
+	return meaningful errors.
+
+	Added typedef rasqal_triples_error_handler for triples source
+	factory error callback.
+
+	rasqal_triples_source_factory bumps max API version to 2 and adds
+	new @init_triples_source factory method to replace
+	@new_triples_source allowing an error callback arg.
+
+	RASQAL_TRIPLES_SOURCE_FACTORY_MAX_VERSION is now 2
+
+	* src/sparql_parser.y:
+	(CoalesceExpression): COALESCE is in SPARQL 1.1
+
 2010-10-02  Dave Beckett <dave@dajobe.org>
+
+	* tests/sparql/update/Makefile.am: Switch to -i sparql11
+
+	* src/sparql_parser.y: Do not register sparql11 name twice
+
+	* src/rasqal_general.c, src/rasqal_internal.h, src/sparql_parser.y:
+	Separate SPARQL 1.0 and SPARQL 1.1 language names
+
+	(rasqal_sparql11_query_language_register_factory): Added to
+	register SPARQL 1.1
+
+	(rasqal_world_open): Register SPARQL 1.1 with
+	rasqal_sparql11_query_language_register_factory.
+
+	* src/sparql_parser.y: Use rasqal_language_name_check() to check
+	language and code tidy
+
+	* utils/roqet.c: code style
 
 	* src/sparql_common.h, src/sparql_parser.y: Add sparql query
 	language feature flags to separate sparql 1.0, 1.1 and experiments
