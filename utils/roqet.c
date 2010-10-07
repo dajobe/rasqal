@@ -1156,9 +1156,10 @@ main(int argc, char *argv[])
       raptor_uri* source_uri;
 
       source_uri = (raptor_uri*)raptor_sequence_pop(named_source_uris);
-      if(rasqal_query_add_data_graph2(rq, source_uri, source_uri, 
-                                      RASQAL_DATA_GRAPH_NAMED,
-                                      NULL, data_graph_parser_name, NULL)) {
+      if(rasqal_query_add_data_graph_from_uri(rq, source_uri, source_uri, 
+                                              RASQAL_DATA_GRAPH_NAMED,
+                                              NULL, data_graph_parser_name,
+                                              NULL)) {
         fprintf(stderr, "%s: Failed to add named graph %s\n", program, 
                 raptor_uri_as_string(source_uri));
       }
@@ -1171,9 +1172,10 @@ main(int argc, char *argv[])
       raptor_uri* source_uri;
 
       source_uri = (raptor_uri*)raptor_sequence_pop(data_source_uris);
-      if(rasqal_query_add_data_graph2(rq, source_uri, NULL,
-                                      RASQAL_DATA_GRAPH_BACKGROUND,
-                                      NULL, data_graph_parser_name, NULL)) {
+      if(rasqal_query_add_data_graph_from_uri(rq, source_uri, NULL,
+                                              RASQAL_DATA_GRAPH_BACKGROUND,
+                                              NULL, data_graph_parser_name,
+                                              NULL)) {
         fprintf(stderr, "%s: Failed to add to default graph %s\n", program, 
                 raptor_uri_as_string(source_uri));
       }
