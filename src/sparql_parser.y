@@ -1672,8 +1672,9 @@ DefaultGraphClause: SourceSelector
 {
   if($1) {
     raptor_uri* uri = rasqal_literal_as_uri($1);
-    if(rasqal_query_add_data_graph((rasqal_query*)rq, uri, NULL,
-                                   RASQAL_DATA_GRAPH_BACKGROUND)) {
+    if(rasqal_query_add_data_graph2((rasqal_query*)rq, uri, NULL,
+                                    RASQAL_DATA_GRAPH_BACKGROUND,
+                                    NULL, NULL, NULL)) {
       rasqal_free_literal($1);
       YYERROR_MSG("DefaultGraphClause: rasqal_query_add_data_graph failed");
     }
@@ -1688,8 +1689,9 @@ NamedGraphClause: NAMED SourceSelector
 {
   if($2) {
     raptor_uri* uri = rasqal_literal_as_uri($2);
-    if(rasqal_query_add_data_graph((rasqal_query*)rq, uri, uri,
-                                   RASQAL_DATA_GRAPH_NAMED)) {
+    if(rasqal_query_add_data_graph2((rasqal_query*)rq, uri, uri,
+                                    RASQAL_DATA_GRAPH_NAMED,
+                                    NULL, NULL, NULL)) {
       rasqal_free_literal($2);
       YYERROR_MSG("NamedGraphClause: rasqal_query_add_data_graph failed");
     }
