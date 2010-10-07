@@ -206,16 +206,28 @@ rasqal_query_results_formats_enumerate(rasqal_world* world,
 static rasqal_query_results_format_factory*
 rasqal_get_query_results_formatter_factory(rasqal_world* world,
                                            const char *name, raptor_uri* uri,
-                                           const char *mime_type)
+                                           const char *mime_type,
+                                           int flags)
 {
   int i;
   rasqal_query_results_format_factory* factory = NULL;
   
   for(i = 0; 1; i++) {
+    int factory_flags = 0;
+    
     factory = (rasqal_query_results_format_factory*)raptor_sequence_get_at(world->query_results_formats,
                                                                          i);
     if(!factory)
       break;
+
+    if(factory->reader)
+      factory_flags |= RASQAL_QUERY_RESULTS_FORMAT_FLAG_READER;
+    if(factory->writer)
+      factory_flags |= RASQAL_QUERY_RESULTS_FORMAT_FLAG_WRITER;
+
+    /* Flags must match */
+    if(flags && factory_flags != flags)
+      continue;
 
     if(!name && !uri)
       /* the default is the first registered format */
@@ -231,13 +243,41 @@ rasqal_get_query_results_formatter_factory(rasqal_world* world,
                (const char*)factory->uri_string))
       break;
 
-
     if(mime_type && factory->mime_type &&
        !strcmp(factory->mime_type, (const char*)mime_type))
       return factory;
   }
   
   return factory;
+}
+
+
+/**
+ * rasqal_query_results_formats_check2:
+ * @world: rasqal_world object
+ * @name: the query results format name (or NULL)
+ * @uri: #raptor_uri query results format uri (or NULL)
+ * @mime_type: mime type name
+ * @flags: bitmask of flags to signify that format is needed for reading (#RASQAL_QUERY_RESULTS_FORMAT_FLAG_READER ) or writing ( #RASQAL_QUERY_RESULTS_FORMAT_FLAG_WRITER )
+ * 
+ * Check if a query results formatter exists for the requested format.
+ * 
+ * Return value: non-0 if a formatter exists.
+ **/
+int
+rasqal_query_results_formats_check2(rasqal_world* world,
+                                    const char *name, raptor_uri* uri,
+                                    const char *mime_type,
+                                    int flags)
+{
+  rasqal_query_results_format_factory* factory = NULL;
+  
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, 1);
+
+  factory = rasqal_get_query_results_formatter_factory(world,
+                                                       name, uri, mime_type,
+                                                       flags);
+  return (factory != NULL);
 }
 
 
@@ -250,6 +290,8 @@ rasqal_get_query_results_formatter_factory(rasqal_world* world,
  * 
  * Check if a query results formatter exists for the requested format.
  * 
+ * @Deprecated: Use rasqal_query_results_formats_check() with extra flags argument.
+ *
  * Return value: non-0 if a formatter exists.
  **/
 int
@@ -257,10 +299,7 @@ rasqal_query_results_formats_check(rasqal_world* world,
                                    const char *name, raptor_uri* uri,
                                    const char *mime_type)
 {
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, 1);
-
-  return (rasqal_get_query_results_formatter_factory(world, name, uri, mime_type) 
-          != NULL);
+  return rasqal_query_results_formats_check2(world, name, uri, mime_type, 0);
 }
 
 
@@ -292,11 +331,13 @@ rasqal_new_query_results_formatter2(rasqal_world* world,
 {
   rasqal_query_results_format_factory* factory;
   rasqal_query_results_formatter* formatter;
+  int flags = 0;
 
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
 
   factory = rasqal_get_query_results_formatter_factory(world, name, 
-                                                       format_uri, mime_type);
+                                                       format_uri, mime_type,
+                                                       flags);
   if(!factory)
     return NULL;
 
