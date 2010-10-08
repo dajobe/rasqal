@@ -260,8 +260,8 @@ rasqal_data_graph_print(rasqal_data_graph* dg, FILE* fh)
       fprintf(fh, "name %s", dg->format_name);
     if(dg->format_type)
       fprintf(fh, "uri %s", raptor_uri_as_string(dg->format_uri));
-  } else
-    fputc(')', fh);
+  }
+  fputc(')', fh);
   
   return 0;
 }
