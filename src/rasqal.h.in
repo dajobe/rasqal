@@ -299,13 +299,16 @@ typedef enum {
  * @format_mime_type: MIME Type of data format at @uri (or NULL)
  * @format_name: Raptor parser Name of data format at @uri (or NULL)
  * @format_uri: URI of data format at @uri (or NULL)
- * @iostr: Raptor iostream for content, overriding @uri if present
+ * @iostr: Raptor iostream for content, overriding @uri if present (or NULL)
  *
  * A source of RDF data for querying. 
  *
- * The @uri is the original source (base URI) of the content.  It may
- * also have an additional name @name_uri as long as @flags is
- * %RASQAL_DATA_GRAPH_NAMED
+ * If @iostr is present, the graph can be constructed by parsing the
+ * iostream and using @name_uri as a base uri, otherwise the graph
+ * can be constructed from the graph at URI @uri
+ *
+ * In either case the @name_uri may be the graph name as long as
+ * @flags is %RASQAL_DATA_GRAPH_NAMED
  */
 typedef struct {
   rasqal_world* world;
