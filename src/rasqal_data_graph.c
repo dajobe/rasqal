@@ -41,38 +41,24 @@
 #include "rasqal_internal.h"
 
 
-/**
- * rasqal_new_data_graph_from_uri:
- * @world: rasqal_world object
- * @uri: source URI
- * @name_uri: name of graph (or NULL)
- * @flags: %RASQAL_DATA_GRAPH_NAMED or %RASQAL_DATA_GRAPH_BACKGROUND
- * @format_mime_type: MIME Type of data format at @uri (or NULL)
- * @format_name: Raptor parser Name of data format at @uri (or NULL)
- * @format_uri: URI of data format at @uri (or NULL)
- * 
- * Constructor - create a new #rasqal_data_graph.
- * 
- * The name_uri is only used when the flags are %RASQAL_DATA_GRAPH_NAMED.
- * 
- * Return value: a new #rasqal_data_graph or NULL on failure.
- **/
-rasqal_data_graph*
-rasqal_new_data_graph_from_uri(rasqal_world* world, raptor_uri* uri,
-                               raptor_uri* name_uri, int flags,
-                               const char* format_type,
-                               const char* format_name,
-                               raptor_uri* format_uri)
+static rasqal_data_graph*
+rasqal_new_data_graph_common(rasqal_world* world,
+                             raptor_uri* uri, raptor_iostream* iostr,
+                             raptor_uri* name_uri, int flags,
+                             const char* format_type,
+                             const char* format_name,
+                             raptor_uri* format_uri)
 {
   rasqal_data_graph* dg;
-
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(uri, raptor_uri, NULL);
 
   dg = (rasqal_data_graph*)RASQAL_CALLOC(rasqal_data_graph, 1, sizeof(*dg));
   if(dg) {
     dg->world = world;
-    dg->uri = raptor_uri_copy(uri);
+
+    if(iostr)
+      dg->iostr = iostr;
+    else if(uri)
+      dg->uri = raptor_uri_copy(uri);
 
     if(name_uri)
       dg->name_uri = raptor_uri_copy(name_uri);
@@ -108,6 +94,73 @@ rasqal_new_data_graph_from_uri(rasqal_world* world, raptor_uri* uri,
 
 
 /**
+ * rasqal_new_data_graph_from_uri:
+ * @world: rasqal_world object
+ * @uri: source URI
+ * @name_uri: name of graph (or NULL)
+ * @flags: %RASQAL_DATA_GRAPH_NAMED or %RASQAL_DATA_GRAPH_BACKGROUND
+ * @format_mime_type: MIME Type of data format at @uri (or NULL)
+ * @format_name: Raptor parser Name of data format at @uri (or NULL)
+ * @format_uri: URI of data format at @uri (or NULL)
+ * 
+ * Constructor - create a new #rasqal_data_graph.
+ * 
+ * The name_uri is only used when the flags are %RASQAL_DATA_GRAPH_NAMED.
+ * 
+ * Return value: a new #rasqal_data_graph or NULL on failure.
+ **/
+rasqal_data_graph*
+rasqal_new_data_graph_from_uri(rasqal_world* world, raptor_uri* uri,
+                               raptor_uri* name_uri, int flags,
+                               const char* format_type,
+                               const char* format_name,
+                               raptor_uri* format_uri)
+{
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(uri, raptor_uri, NULL);
+
+  return rasqal_new_data_graph_common(world, uri, /* iostr */ NULL,
+                                      name_uri, flags,
+                                      format_type, format_name, format_uri);
+}
+
+
+/**
+ * rasqal_new_data_graph_from_iostream:
+ * @world: rasqal_world object
+ * @iostr: source graph format iostream
+ * @name_uri: name of graph (or NULL)
+ * @flags: %RASQAL_DATA_GRAPH_NAMED or %RASQAL_DATA_GRAPH_BACKGROUND
+ * @format_mime_type: MIME Type of data format at @uri (or NULL)
+ * @format_name: Raptor parser Name of data format at @uri (or NULL)
+ * @format_uri: URI of data format at @uri (or NULL)
+ * 
+ * Constructor - create a new #rasqal_data_graph from iostream content
+ * 
+ * The @name_uri is used when the flags are %RASQAL_DATA_GRAPH_NAMED.
+ * and when the graph format (Raptor parser) requires a base URI.  If
+ * a base URI is required but no name is given, the parsing will fail
+ * and the query that uses this data source will fail.
+ * 
+ * Return value: a new #rasqal_data_graph or NULL on failure.
+ **/
+rasqal_data_graph*
+rasqal_new_data_graph_from_iostream(rasqal_world* world,
+                                    raptor_iostream* iostr,
+                                    raptor_uri* name_uri, int flags,
+                                    const char* format_type,
+                                    const char* format_name,
+                                    raptor_uri* format_uri)
+{
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
+
+  return rasqal_new_data_graph_common(world, /* uri */ NULL, iostr,
+                                      name_uri, flags,
+                                      format_type, format_name, format_uri);
+}
+
+
+/**
  * rasqal_new_data_graph:
  * @world: rasqal_world object
  * @uri: source URI
@@ -127,8 +180,12 @@ rasqal_data_graph*
 rasqal_new_data_graph(rasqal_world* world, raptor_uri* uri,
                       raptor_uri* name_uri, int flags)
 {
-  return rasqal_new_data_graph_from_uri(world, uri, name_uri, flags, 
-                                        NULL, NULL, NULL);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(uri, raptor_uri, NULL);
+
+  return rasqal_new_data_graph_common(world, uri, /* iostr */ NULL,
+                                      name_uri, flags,
+                                      NULL, NULL, NULL);
 }
 
 
