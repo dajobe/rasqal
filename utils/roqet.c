@@ -536,6 +536,26 @@ print_formatted_query_results(rasqal_world* world,
 }
 
 
+struct data_graph
+{
+  int is_named;
+  raptor_uri* uri;
+  raptor_iostream* iostr;
+};
+
+
+static void
+roqet_free_data_graph(void* data) {
+  struct data_graph* dg = (struct data_graph*)data;
+  if(dg->uri)
+    raptor_free_uri(dg->uri);
+
+  raptor_free_memory(dg);
+}
+
+
+
+
 /* Default parser for input graphs */
 #define DEFAULT_DATA_GRAPH_FORMAT "guess"
 /* Default serializer for output graphs */
@@ -563,8 +583,7 @@ main(int argc, char *argv[])
   int quiet = 0;
   int count = 0;
   int dryrun = 0;
-  raptor_sequence* data_source_uris = NULL;
-  raptor_sequence* named_source_uris = NULL;
+  raptor_sequence* data_graphs = NULL;
   const char *result_format = NULL;
   query_output_format output_format = QUERY_OUTPUT_UNKNOWN;
   rasqal_feature query_feature = (rasqal_feature)-1;
@@ -607,8 +626,6 @@ main(int argc, char *argv[])
   while (!usage && !help)
   {
     int c;
-    raptor_uri *source_uri;
-    raptor_sequence** seq_p = NULL;
     
 #ifdef HAVE_GETOPT_LONG
     int option_index = 0;
@@ -791,38 +808,67 @@ main(int argc, char *argv[])
       case 's':
       case 'D':
       case 'G':
-        if(!access((const char*)optarg, R_OK)) {
-          unsigned char* source_uri_string;
-          source_uri_string = raptor_uri_filename_to_uri_string((const char*)optarg);
-          source_uri = raptor_new_uri(raptor_world_ptr, source_uri_string);
-          raptor_free_memory(source_uri_string);
-        } else
-          source_uri = raptor_new_uri(raptor_world_ptr,
-                                      (const unsigned char*)optarg);
+        if(optarg) {
+          struct data_graph *dg = NULL;
 
-        if(!source_uri) {
-          fprintf(stderr, "%s: Failed to create source URI for %s\n",
-                  program, optarg);
-          return(1);
-        }
+          dg = (struct data_graph *)rasqal_calloc_memory(1, sizeof(*dg));
 
-        seq_p = (c == 'D') ? &data_source_uris : &named_source_uris;
-        if(!*seq_p) {
-#ifdef HAVE_RAPTOR2_API
-          *seq_p = raptor_new_sequence((raptor_data_free_handler)raptor_free_uri,
-                                       (raptor_data_print_handler)raptor_uri_print);
+          dg->is_named = (c == 's' || c == 'G');
 
-#else
-          *seq_p = raptor_new_sequence((raptor_sequence_free_handler*)raptor_free_uri,
-                                       (raptor_sequence_print_handler*)raptor_uri_print);
-#endif
-          if(!*seq_p) {
-            fprintf(stderr, "%s: Failed to create source sequence\n", program);
+          if(!strcmp((const char*)optarg, "-")) {
+            /* stdin: use an iostream not a URI data graph */
+            unsigned char* source_uri_string;
+            source_uri_string = (unsigned char*)""; /* CWD */
+
+            dg->uri = raptor_new_uri(raptor_world_ptr, source_uri_string);
+            if(dg->uri) {
+              dg->iostr = raptor_new_iostream_from_file_handle(raptor_world_ptr,
+                                                               stdin);
+              if(!dg->iostr) {
+                raptor_free_uri(dg->uri);
+                dg->uri = NULL;
+              }
+            }
+            /* Either both dg->uri & dg->iostr are defined are none (error) */
+
+          } else if(!access((const char*)optarg, R_OK)) {
+            /* file: use URI */
+            unsigned char* source_uri_string;
+            source_uri_string = raptor_uri_filename_to_uri_string((const char*)optarg);
+            dg->uri = raptor_new_uri(raptor_world_ptr, source_uri_string);
+            raptor_free_memory(source_uri_string);
+
+          } else {
+            /* URI: use URI */
+            dg->uri = raptor_new_uri(raptor_world_ptr,
+                                     (const unsigned char*)optarg);
+          }
+          
+          if(!dg->iostr && !dg->uri) {
+            fprintf(stderr, "%s: Failed to create source URI for %s\n",
+                    program, optarg);
+            roqet_free_data_graph(dg);
             return(1);
           }
-        }
+          
+          if(!data_graphs) {
+#ifdef HAVE_RAPTOR2_API
+            data_graphs = raptor_new_sequence((raptor_data_free_handler)roqet_free_data_graph,
+                                              NULL);
 
-        raptor_sequence_push(*seq_p, source_uri);
+#else
+            data_graphs = raptor_new_sequence((raptor_sequence_free_handler*)roqet_free_data_graph,
+                                              NULL);
+#endif
+            if(!data_graphs) {
+              fprintf(stderr, "%s: Failed to create data graphs sequence\n",
+                      program);
+              return(1);
+            }
+          }
+
+          raptor_sequence_push(data_graphs, dg);
+        }
         break;
 
       case 'v':
@@ -1151,37 +1197,38 @@ main(int argc, char *argv[])
     rasqal_query_set_store_results(rq, store_results);
 #endif
   
-  if(named_source_uris) {
-    while(raptor_sequence_size(named_source_uris)) {
-      raptor_uri* source_uri;
+  if(data_graphs) {
+    struct data_graph* dg;
+    
+    while((dg = (struct data_graph*)raptor_sequence_pop(data_graphs))) {
+      rasqal_data_graph_flags type;
+      type = (dg->is_named) ? RASQAL_DATA_GRAPH_NAMED : RASQAL_DATA_GRAPH_BACKGROUND;
 
-      source_uri = (raptor_uri*)raptor_sequence_pop(named_source_uris);
-      if(rasqal_query_add_data_graph_from_uri(rq, source_uri, source_uri, 
-                                              RASQAL_DATA_GRAPH_NAMED,
-                                              NULL, data_graph_parser_name,
-                                              NULL)) {
-        fprintf(stderr, "%s: Failed to add named graph %s\n", program, 
-                raptor_uri_as_string(source_uri));
+      if(dg->iostr) {
+        if(rasqal_query_add_data_graph_from_iostream(rq, dg->iostr, dg->uri,
+                                                     type,
+                                                     NULL, 
+                                                     data_graph_parser_name,
+                                                     NULL)) {
+          fprintf(stderr, "%s: Failed to add data graph from iostream\n",
+                  program);
+        }
+      } else {
+        raptor_uri* graph_name = graph_name = (dg->is_named) ? dg->uri : NULL;
+      
+        if(rasqal_query_add_data_graph_from_uri(rq, dg->uri, graph_name,
+                                                type,
+                                                NULL, data_graph_parser_name,
+                                                NULL)) {
+          fprintf(stderr, "%s: Failed to add data graph from URI %s\n",
+                  program, raptor_uri_as_string(dg->uri));
+        }
       }
 
-      raptor_free_uri(source_uri);
+      roqet_free_data_graph(dg);
     }
-  }
-  if(data_source_uris) {
-    while(raptor_sequence_size(data_source_uris)) {
-      raptor_uri* source_uri;
-
-      source_uri = (raptor_uri*)raptor_sequence_pop(data_source_uris);
-      if(rasqal_query_add_data_graph_from_uri(rq, source_uri, NULL,
-                                              RASQAL_DATA_GRAPH_BACKGROUND,
-                                              NULL, data_graph_parser_name,
-                                              NULL)) {
-        fprintf(stderr, "%s: Failed to add to default graph %s\n", program, 
-                raptor_uri_as_string(source_uri));
-      }
-
-      raptor_free_uri(source_uri);
-    }
+    raptor_free_sequence(data_graphs);
+    data_graphs = NULL;
   }
 
   if(rasqal_query_prepare(rq, (const unsigned char*)query_string, base_uri)) {
@@ -1279,10 +1326,8 @@ main(int argc, char *argv[])
 
  tidy_setup:
 
-  if(data_source_uris)
-    raptor_free_sequence(data_source_uris);
-  if(named_source_uris)
-    raptor_free_sequence(named_source_uris);
+  if(data_graphs)
+    raptor_free_sequence(data_graphs);
   if(base_uri)
     raptor_free_uri(base_uri);
   if(uri)
