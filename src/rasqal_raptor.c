@@ -362,6 +362,22 @@ rasqal_raptor_generate_id_handler(void *user_data,
 
 
 static int
+rasqal_raptor_support_feature(void *user_data,
+                              rasqal_triple_source_feature feature)
+{
+  switch(feature) {
+    case RASQAL_TRIPLE_SOURCE_FEATURE_IOSTREAM_DATA_GRAPH:
+      return 1;
+      break;
+      
+    default:
+    case RASQAL_TRIPLE_SOURCE_FEATURE_NONE:
+      return 0;
+  }
+}
+
+
+static int
 rasqal_raptor_init_triples_source(rasqal_query* rdf_query,
                                   void *factory_user_data,
                                   void *user_data,
@@ -386,6 +402,7 @@ rasqal_raptor_init_triples_source(rasqal_query* rdf_query,
   rts->init_triples_match = rasqal_raptor_init_triples_match;
   rts->triple_present = rasqal_raptor_triple_present;
   rts->free_triples_source = rasqal_raptor_free_triples_source;
+  rts->support_feature = rasqal_raptor_support_feature;
 
   rtsc->sources_count = raptor_sequence_size(rdf_query->data_graphs);
   /* no default triple source possible */
