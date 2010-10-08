@@ -253,12 +253,12 @@ rasqal_data_graph_print(rasqal_data_graph* dg, FILE* fh)
   }
   
   if(dg->format_type || dg->format_name || dg->format_uri) {
-    fputs("with format ", fh);
+    fputs(" with format ", fh);
     if(dg->format_type)
       fprintf(fh, "type %s", dg->format_type);
-    if(dg->format_type)
+    if(dg->format_name)
       fprintf(fh, "name %s", dg->format_name);
-    if(dg->format_type)
+    if(dg->format_uri)
       fprintf(fh, "uri %s", raptor_uri_as_string(dg->format_uri));
   }
   fputc(')', fh);
