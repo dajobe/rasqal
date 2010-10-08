@@ -234,14 +234,24 @@ rasqal_data_graph_print(rasqal_data_graph* dg, FILE* fh)
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(dg, rasqal_data_graph, 1);
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(fh, FILE*, 1);
 
-  if(dg->name_uri)
-    fprintf(fh, "data graph(%s named as %s flags %d", 
-            raptor_uri_as_string(dg->uri),
-            raptor_uri_as_string(dg->name_uri),
-            dg->flags);
-  else
-    fprintf(fh, "data graph(%s, flags %d", 
-            raptor_uri_as_string(dg->uri), dg->flags);
+  if(dg->iostr) {
+    if(dg->name_uri)
+      fprintf(fh, "data graph(from iostream, named as %s, flags %d", 
+              raptor_uri_as_string(dg->name_uri), dg->flags);
+    else
+      fprintf(fh, "data graph(from iostream, %d", dg->flags);
+  } else {
+    /* dg->uri must exist */
+    if(dg->name_uri)
+      fprintf(fh, "data graph(from uri %s, named as %s, flags %d", 
+              raptor_uri_as_string(dg->uri),
+              raptor_uri_as_string(dg->name_uri),
+              dg->flags);
+    else
+      fprintf(fh, "data graph(from uri %s, flags %d", 
+              raptor_uri_as_string(dg->uri), dg->flags);
+  }
+  
   if(dg->format_type || dg->format_name || dg->format_uri) {
     fputs("with format ", fh);
     if(dg->format_type)
