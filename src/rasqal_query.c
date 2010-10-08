@@ -723,6 +723,52 @@ rasqal_query_add_data_graph_from_uri(rasqal_query* query,
 
 
 /**
+ * rasqal_query_add_data_graph_from_iostream:
+ * @query: #rasqal_query query object
+ * @iostr: source graph format iostream
+ * @name_uri: #raptor_uri name uri (or NULL)
+ * @flags: RASQAL_DATA_GRAPH_NAMED or RASQAL_DATA_GRAPH_BACKGROUND
+ * @format_mime_type: MIME Type of data format at @uri (or NULL)
+ * @format_name: Raptor parser Name of data format at @uri (or NULL)
+ * @format_uri: URI of data format at @uri (or NULL)
+ *
+ * Add a data graph to the query based on iostream content.
+ *
+ * The @name_uri is used when the flags are %RASQAL_DATA_GRAPH_NAMED.
+ * and when the graph format (Raptor parser) requires a base URI.  If
+ * a base URI is required but no name is given, the parsing will fail
+ * and the query that uses this data source will fail.
+ *
+ * Return value: non-0 on failure
+ **/
+int
+rasqal_query_add_data_graph_from_iostream(rasqal_query* query, 
+                                          raptor_iostream* iostr,
+                                          raptor_uri* name_uri,
+                                          int flags, const char* format_type,
+                                          const char* format_name,
+                                          raptor_uri* format_uri)
+{
+  rasqal_data_graph *dg;
+
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, 1);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(iostr, raptor_iostream, 1);
+
+  if((flags & RASQAL_DATA_GRAPH_NAMED) && !name_uri)
+    return 1;
+  
+  dg = rasqal_new_data_graph_from_iostream(query->world, iostr, name_uri, flags,
+                                           format_type, format_name, format_uri);
+  if(!dg)
+    return 1;
+
+  if(raptor_sequence_push(query->data_graphs, (void*)dg))
+    return 1;
+  return 0;
+}
+
+
+/**
  * rasqal_query_add_data_graph:
  * @query: #rasqal_query query object
  * @uri: #raptor_uri source uri for retrieval
