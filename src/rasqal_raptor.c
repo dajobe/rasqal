@@ -381,7 +381,7 @@ rasqal_raptor_init_triples_source(rasqal_query* rdf_query,
   }
 
   /* Max API version this triples source generates */
-  rts->version = 1;
+  rts->version = 2;
   
   rts->init_triples_match = rasqal_raptor_init_triples_match;
   rts->triple_present = rasqal_raptor_triple_present;

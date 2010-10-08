@@ -341,3 +341,26 @@ rasqal_reset_triple_meta(rasqal_triple_meta* m)
   
   return resets;
 }
+
+
+
+/*
+ * rasqal_triples_source_support_feature:
+ * @rts: triples source
+ * @feature: triples source feature
+ *
+ * INTERNAL - Test support for a feature
+ *
+ * Return value: non-0 if @feature is supported
+ */
+int
+rasqal_triples_source_support_feature(rasqal_triples_source *rts,
+                                      rasqal_triple_source_feature feature)
+{
+  if(rts->version >= 2 && rts->support_feature)
+    return rts->support_feature(rts->user_data, feature);
+  else
+    return 0;
+}
+
+

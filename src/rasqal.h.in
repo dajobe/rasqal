@@ -1522,8 +1522,21 @@ typedef struct {
  *
  * Highest accepted @rasqal_triples_source API version
  */
-#define RASQAL_TRIPLES_SOURCE_MAX_VERSION 1
+#define RASQAL_TRIPLES_SOURCE_MAX_VERSION 2
 
+
+/**
+ * rasqal_triple_source_feature:
+ * @RASQAL_TRIPLE_SOURCE_FEATURE_NONE: No feature
+ * @RASQAL_TRIPLE_SOURCE_FEATURE_IOSTREAM_DATA_GRAPH: Support raptor_iostream data graphs
+ *
+ * Optional features that may be supported by a triple source factory
+ */
+typedef enum {
+  RASQAL_TRIPLE_SOURCE_FEATURE_NONE,
+  RASQAL_TRIPLE_SOURCE_FEATURE_IOSTREAM_DATA_GRAPH
+} rasqal_triple_source_feature;
+  
 
 /**
  * rasqal_triples_source:
@@ -1533,6 +1546,7 @@ typedef struct {
  * @init_triples_match: Factory method to initalise a new #rasqal_triples_match.
  * @triple_present: Factory method to return presence or absence of a complete triple.
  * @free_triples_source: Factory method to deallocate resources.
+ * @support_feature: Factory method to test support for a feature, returning non-0 if supported
  *
  * Triples source as initialised by a #rasqal_triples_source_factory.
  */
@@ -1549,7 +1563,9 @@ struct rasqal_triples_source_s {
   int (*triple_present)(struct rasqal_triples_source_s* rts, void *user_data, rasqal_triple *t);
 
   void (*free_triples_source)(void *user_data);
+
   /* API v2 onwards */
+  int (*support_feature)(void *user_data, rasqal_triple_source_feature feature);
 };
 typedef struct rasqal_triples_source_s rasqal_triples_source;
 
