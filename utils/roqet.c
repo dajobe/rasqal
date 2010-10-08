@@ -818,7 +818,9 @@ main(int argc, char *argv[])
           if(!strcmp((const char*)optarg, "-")) {
             /* stdin: use an iostream not a URI data graph */
             unsigned char* source_uri_string;
-            source_uri_string = (unsigned char*)""; /* CWD */
+
+            /* FIXME - get base URI from somewhere else */
+            source_uri_string = (unsigned char*)"file:///dev/stdin";
 
             dg->uri = raptor_new_uri(raptor_world_ptr, source_uri_string);
             if(dg->uri) {
