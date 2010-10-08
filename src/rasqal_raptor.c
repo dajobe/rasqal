@@ -377,6 +377,41 @@ rasqal_raptor_support_feature(void *user_data,
 }
 
 
+#ifdef HAVE_RAPTOR2_API
+#else
+
+#define RASQAL_RAPTOR_READ_BUFFER_SIZE 4096
+
+/* Based on raptor_parser_parse_iostream() from Raptor 1.9.0
+ * backported to the Raptor V1 API
+ */
+static int
+rasqal_raptor_parse_iostream(raptor_parser* rdf_parser, raptor_iostream *iostr,
+                             raptor_uri *base_uri)
+{
+  /* Read buffer */
+  unsigned char buffer[RASQAL_RAPTOR_READ_BUFFER_SIZE + 1];
+  int rc = 0;
+
+  rc = raptor_start_parse(rdf_parser, base_uri);
+  if(rc)
+    return rc;
+  
+  while(!raptor_iostream_read_eof(iostr)) {
+    int len = raptor_iostream_read_bytes(buffer, 1, RAPTOR_READ_BUFFER_SIZE,
+                                         iostr);
+    int is_end = (len < RAPTOR_READ_BUFFER_SIZE);
+
+    rc = raptor_parse_chunk(rdf_parser, buffer, len, is_end);
+    if(rc || is_end)
+      break;
+  }
+  
+  return rc;
+}
+#endif
+
+
 static int
 rasqal_raptor_init_triples_source(rasqal_query* rdf_query,
                                   void *factory_user_data,
@@ -420,23 +455,26 @@ rasqal_raptor_init_triples_source(rasqal_query* rdf_query,
 
   for(i = 0; i < rtsc->sources_count; i++) {
     rasqal_data_graph *dg;
-    raptor_uri* uri;
+    raptor_uri* uri = NULL;
     raptor_uri* name_uri;
     int free_name_uri = 0;
     const char* parser_name;
+    raptor_iostream* iostr = NULL;
     
     dg = (rasqal_data_graph*)raptor_sequence_get_at(rdf_query->data_graphs, i);
     uri = dg->uri;
     name_uri = dg->name_uri;
+    iostr = dg->iostr;
 
     rtsc->source_index = i;
-    rtsc->source_uri = raptor_uri_copy(uri);
+    if(uri)
+      rtsc->source_uri = raptor_uri_copy(uri);
 
     if(name_uri)
       rtsc->source_literals[i] = rasqal_new_uri_literal(rdf_query->world, 
                                                         raptor_uri_copy(name_uri)
                                                         );
-    else {
+    else if(uri) {
       name_uri = raptor_uri_copy(uri);
       free_name_uri = 1;
     }
@@ -478,11 +516,20 @@ rasqal_raptor_init_triples_source(rasqal_query* rdf_query,
                          rdf_query->features[RASQAL_FEATURE_NO_NET]);
 #endif
 
+    if(iostr) {
 #ifdef HAVE_RAPTOR2_API
-    raptor_parser_parse_uri(parser, uri, name_uri);
+      raptor_parser_parse_iostream(parser, iostr, name_uri);
 #else
-    raptor_parse_uri(parser, uri, name_uri);
+      rasqal_raptor_parse_iostream(parser, iostr, name_uri);
 #endif
+    } else {
+#ifdef HAVE_RAPTOR2_API
+      raptor_parser_parse_uri(parser, uri, name_uri);
+#else
+      raptor_parse_uri(parser, uri, name_uri);
+#endif
+    }
+    
     raptor_free_parser(parser);
 
     raptor_free_uri(rtsc->source_uri);
