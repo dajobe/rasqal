@@ -43,7 +43,8 @@
 
 static rasqal_data_graph*
 rasqal_new_data_graph_common(rasqal_world* world,
-                             raptor_uri* uri, raptor_iostream* iostr,
+                             raptor_uri* uri,
+                             raptor_iostream* iostr, raptor_uri* base_uri,
                              raptor_uri* name_uri, int flags,
                              const char* format_type,
                              const char* format_name,
@@ -83,6 +84,9 @@ rasqal_new_data_graph_common(rasqal_world* world,
 
     if(format_uri)
       dg->format_uri = raptor_uri_copy(format_uri);
+
+    if(base_uri)
+      dg->base_uri = raptor_uri_copy(base_uri);
   }
 
   return dg;
@@ -119,7 +123,9 @@ rasqal_new_data_graph_from_uri(rasqal_world* world, raptor_uri* uri,
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(uri, raptor_uri, NULL);
 
-  return rasqal_new_data_graph_common(world, uri, /* iostr */ NULL,
+  return rasqal_new_data_graph_common(world,
+                                      uri,
+                                      /* iostr */ NULL, /* base URI */ NULL,
                                       name_uri, flags,
                                       format_type, format_name, format_uri);
 }
@@ -129,6 +135,7 @@ rasqal_new_data_graph_from_uri(rasqal_world* world, raptor_uri* uri,
  * rasqal_new_data_graph_from_iostream:
  * @world: rasqal_world object
  * @iostr: source graph format iostream
+ * @base_uri: base URI for iostream content
  * @name_uri: name of graph (or NULL)
  * @flags: %RASQAL_DATA_GRAPH_NAMED or %RASQAL_DATA_GRAPH_BACKGROUND
  * @format_mime_type: MIME Type of data format at @uri (or NULL)
@@ -138,8 +145,9 @@ rasqal_new_data_graph_from_uri(rasqal_world* world, raptor_uri* uri,
  * Constructor - create a new #rasqal_data_graph from iostream content
  * 
  * The @name_uri is used when the flags are %RASQAL_DATA_GRAPH_NAMED.
- * and when the graph format (Raptor parser) requires a base URI.  If
- * a base URI is required but no name is given, the parsing will fail
+ *
+ * The @base_uri is used to provide the Raptor parser a base URI.  If
+ * a base URI is required but none is given, the parsing will fail
  * and the query that uses this data source will fail.
  * 
  * Return value: a new #rasqal_data_graph or NULL on failure.
@@ -147,6 +155,7 @@ rasqal_new_data_graph_from_uri(rasqal_world* world, raptor_uri* uri,
 rasqal_data_graph*
 rasqal_new_data_graph_from_iostream(rasqal_world* world,
                                     raptor_iostream* iostr,
+                                    raptor_uri* base_uri,
                                     raptor_uri* name_uri, int flags,
                                     const char* format_type,
                                     const char* format_name,
@@ -154,7 +163,9 @@ rasqal_new_data_graph_from_iostream(rasqal_world* world,
 {
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
 
-  return rasqal_new_data_graph_common(world, /* uri */ NULL, iostr,
+  return rasqal_new_data_graph_common(world,
+                                      /* uri */ NULL,
+                                      iostr, base_uri,
                                       name_uri, flags,
                                       format_type, format_name, format_uri);
 }
@@ -183,7 +194,9 @@ rasqal_new_data_graph(rasqal_world* world, raptor_uri* uri,
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(uri, raptor_uri, NULL);
 
-  return rasqal_new_data_graph_common(world, uri, /* iostr */ NULL,
+  return rasqal_new_data_graph_common(world,
+                                      uri, 
+                                      /* iostr */ NULL, /* base URI */ NULL,
                                       name_uri, flags,
                                       NULL, NULL, NULL);
 }
@@ -212,6 +225,8 @@ rasqal_free_data_graph(rasqal_data_graph* dg)
     RASQAL_FREE(cstring, dg->format_name);
   if(dg->format_uri)
     raptor_free_uri(dg->format_uri);
+  if(dg->base_uri)
+    raptor_free_uri(dg->base_uri);
 
   RASQAL_FREE(rasqal_data_graph, dg);
 }
@@ -260,6 +275,8 @@ rasqal_data_graph_print(rasqal_data_graph* dg, FILE* fh)
       fprintf(fh, "name %s", dg->format_name);
     if(dg->format_uri)
       fprintf(fh, "uri %s", raptor_uri_as_string(dg->format_uri));
+    if(dg->base_uri)
+      fprintf(fh, "base uri %s", raptor_uri_as_string(dg->base_uri));
   }
   fputc(')', fh);
   

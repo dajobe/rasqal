@@ -300,15 +300,16 @@ typedef enum {
  * @format_name: Raptor parser Name of data format at @uri (or NULL)
  * @format_uri: URI of data format at @uri (or NULL)
  * @iostr: Raptor iostream for content, overriding @uri if present (or NULL)
+ * @base_uri: base URI for reading from iostream
  *
  * A source of RDF data for querying. 
  *
  * If @iostr is present, the graph can be constructed by parsing the
- * iostream and using @name_uri as a base uri, otherwise the graph
- * can be constructed from the graph at URI @uri
+ * iostream and using @base_uri as a base uri. Otherwise the graph
+ * can be constructed from the graph at URI @uri.
  *
- * In either case the @name_uri may be the graph name as long as
- * @flags is %RASQAL_DATA_GRAPH_NAMED
+ * In either case the @name_uri is the graph name as long as @flags
+ * is %RASQAL_DATA_GRAPH_NAMED
  */
 typedef struct {
   rasqal_world* world;
@@ -319,6 +320,7 @@ typedef struct {
   const char* format_name;
   raptor_uri* format_uri;
   raptor_iostream* iostr;
+  raptor_uri* base_uri;
 } rasqal_data_graph;
 
 
@@ -958,10 +960,10 @@ void rasqal_query_set_offset(rasqal_query* query, int offset);
 RASQAL_API
 int rasqal_query_add_data_graph_from_uri(rasqal_query* query, raptor_uri* uri, raptor_uri* name_uri, int flags, const char* format_type, const char* format_name, raptor_uri* format_uri);
 RASQAL_API
-int rasqal_query_add_data_graph_from_iostream(rasqal_query* query, raptor_iostream* iostr, raptor_uri* name_uri, int flags, const char* format_type, const char* format_name, raptor_uri* format_uri);
+int rasqal_query_add_data_graph_from_iostream(rasqal_query* query, raptor_iostream* iostr, raptor_uri* base_uri, raptor_uri* name_uri, int flags, const char* format_type, const char* format_name, raptor_uri* format_uri);
 
 RASQAL_API
-rasqal_data_graph* rasqal_new_data_graph_from_iostream(rasqal_world* world, raptor_iostream* iostr, raptor_uri* name_uri, int flags, const char* format_type, const char* format_name, raptor_uri* format_uri);
+rasqal_data_graph* rasqal_new_data_graph_from_iostream(rasqal_world* world, raptor_iostream* iostr, raptor_uri* base_uri, raptor_uri* name_uri, int flags, const char* format_type, const char* format_name, raptor_uri* format_uri);
 RASQAL_API RASQAL_DEPRECATED
 int rasqal_query_add_data_graph(rasqal_query* query, raptor_uri* uri, raptor_uri* name_uri, int flags);
 RASQAL_API
