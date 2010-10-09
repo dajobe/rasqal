@@ -518,9 +518,9 @@ rasqal_raptor_init_triples_source(rasqal_query* rdf_query,
 
     if(iostr) {
 #ifdef HAVE_RAPTOR2_API
-      raptor_parser_parse_iostream(parser, iostr, name_uri);
+      raptor_parser_parse_iostream(parser, iostr, dg->base_uri);
 #else
-      rasqal_raptor_parse_iostream(parser, iostr, name_uri);
+      rasqal_raptor_parse_iostream(parser, iostr, dg->base_uri);
 #endif
     } else {
 #ifdef HAVE_RAPTOR2_API
