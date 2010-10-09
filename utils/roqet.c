@@ -540,15 +540,20 @@ struct data_graph
 {
   int is_named;
   raptor_uri* uri;
+  raptor_uri* base_uri;
   raptor_iostream* iostr;
 };
 
 
 static void
-roqet_free_data_graph(void* data) {
+roqet_free_data_graph(void* data)
+{
   struct data_graph* dg = (struct data_graph*)data;
+
   if(dg->uri)
     raptor_free_uri(dg->uri);
+  if(dg->base_uri)
+    raptor_free_uri(dg->base_uri);
 
   raptor_free_memory(dg);
 }
@@ -822,17 +827,18 @@ main(int argc, char *argv[])
             /* FIXME - get base URI from somewhere else */
             source_uri_string = (unsigned char*)"file:///dev/stdin";
 
-            dg->uri = raptor_new_uri(raptor_world_ptr, source_uri_string);
-            if(dg->uri) {
+            dg->base_uri = raptor_new_uri(raptor_world_ptr, source_uri_string);
+            if(dg->base_uri) {
               dg->iostr = raptor_new_iostream_from_file_handle(raptor_world_ptr,
                                                                stdin);
               if(!dg->iostr) {
-                raptor_free_uri(dg->uri);
-                dg->uri = NULL;
+                raptor_free_uri(dg->base_uri);
+                dg->base_uri = NULL;
               }
             }
-            /* Either both dg->uri & dg->iostr are defined are none (error) */
-
+            /* Either both dg->base_uri & dg->iostr are defined or
+             * none are, the error case
+             */
           } else if(!access((const char*)optarg, R_OK)) {
             /* file: use URI */
             unsigned char* source_uri_string;
@@ -1203,11 +1209,14 @@ main(int argc, char *argv[])
     struct data_graph* dg;
     
     while((dg = (struct data_graph*)raptor_sequence_pop(data_graphs))) {
+      raptor_uri* graph_name = graph_name = (dg->is_named) ? dg->uri : NULL;
       rasqal_data_graph_flags type;
       type = (dg->is_named) ? RASQAL_DATA_GRAPH_NAMED : RASQAL_DATA_GRAPH_BACKGROUND;
 
       if(dg->iostr) {
-        if(rasqal_query_add_data_graph_from_iostream(rq, dg->iostr, dg->uri,
+        if(rasqal_query_add_data_graph_from_iostream(rq, 
+                                                     dg->iostr, dg->base_uri,
+                                                     graph_name,
                                                      type,
                                                      NULL, 
                                                      data_graph_parser_name,
@@ -1216,8 +1225,6 @@ main(int argc, char *argv[])
                   program);
         }
       } else {
-        raptor_uri* graph_name = graph_name = (dg->is_named) ? dg->uri : NULL;
-      
         if(rasqal_query_add_data_graph_from_uri(rq, dg->uri, graph_name,
                                                 type,
                                                 NULL, data_graph_parser_name,
