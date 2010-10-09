@@ -1214,21 +1214,26 @@ main(int argc, char *argv[])
       type = (dg->is_named) ? RASQAL_DATA_GRAPH_NAMED : RASQAL_DATA_GRAPH_BACKGROUND;
 
       if(dg->iostr) {
-        if(rasqal_query_add_data_graph_from_iostream(rq, 
-                                                     dg->iostr, dg->base_uri,
-                                                     graph_name,
-                                                     type,
-                                                     NULL, 
-                                                     data_graph_parser_name,
-                                                     NULL)) {
+        rasqal_data_graph* rdg;
+        rdg = rasqal_new_data_graph_from_iostream(world,
+                                                  dg->iostr, dg->base_uri,
+                                                  graph_name,
+                                                  type,
+                                                  NULL, data_graph_parser_name,
+                                                  NULL);
+        if(!rdg || rasqal_query_add_data_graph2(rq, rdg)) {
           fprintf(stderr, "%s: Failed to add data graph from iostream\n",
                   program);
         }
       } else {
-        if(rasqal_query_add_data_graph_from_uri(rq, dg->uri, graph_name,
-                                                type,
-                                                NULL, data_graph_parser_name,
-                                                NULL)) {
+        rasqal_data_graph* rdg;
+        rdg = rasqal_new_data_graph_from_uri(world,
+                                             dg->uri,
+                                             graph_name,
+                                             type,
+                                             NULL, data_graph_parser_name,
+                                             NULL);
+        if(!rdg || rasqal_query_add_data_graph2(rq, rdg)) {
           fprintf(stderr, "%s: Failed to add data graph from URI %s\n",
                   program, raptor_uri_as_string(dg->uri));
         }
