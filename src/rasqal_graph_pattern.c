@@ -935,3 +935,20 @@ rasqal_new_basic_graph_pattern_from_triples(rasqal_query* query,
 }
 
 
+/**
+ * rasqal_graph_pattern_get_variable:
+ * @graph_pattern: #rasqal_graph_pattern graph pattern object
+ *
+ * Get the variable for #RASQAL_GRAPH_PATTERN_OPERATOR_LET graph patterns
+ * 
+ * Return value: graph literal parameter
+ **/
+rasqal_variable*
+rasqal_graph_pattern_get_variable(rasqal_graph_pattern* graph_pattern)
+{
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(graph_pattern, rasqal_graph_pattern, NULL);
+
+  return graph_pattern->var;
+}
+  
+
