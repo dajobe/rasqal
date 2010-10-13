@@ -1,4 +1,150 @@
+2010-10-13  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal.h.in:
+	(rasqal_graph_pattern_get_variable): Added RASQAL_API to public
+	API function
+
+2010-10-11  Dave Beckett <dajobe@digg.com>
+
+	* src/rasqal.h.in, src/rasqal_graph_pattern.c: Add
+	rasqal_graph_pattern_get_variable to get variable for LAQRS LET
+	graph patterns
+
+2010-10-09  Dave Beckett <dave@dajobe.org>
+
+	* utils/roqet.c: Replace internal data_graph with
+	rasqal_data_graph and functions
+
+	Save a list of rasqal_data_graph from the -s/-D/-G args using
+	rasqal_new_data_graph_from_iostream() and
+	rasqal_new_data_graph_from_uri() then later on use
+	rasqal_query_add_data_graph2()
+
+	* src/rasqal_raptor.c:
+	(rasqal_raptor_init_triples_source): Set parser base URI from
+	rasqal_data_graph
+
+2010-10-08  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal.h.in, src/rasqal_query.c, src/rdql_parser.y,
+	src/sparql_parser.y, utils/roqet.c: Replace
+	rasqal_query_add_data_graph_from_uri/iostream() with
+	rasqal_query_add_data_graph2()
+
+	(rasqal_query_add_data_graph2): Added just to append to sequence.
+
+	(rasqal_query_add_data_graph_from_uri,
+	rasqal_query_add_data_graph_from_iostream): Removed Update rdql
+	and sparql parsers
+
+	* utils/roqet.c: Add base_uri to roqet data_graph and use for
+	iostream
+
+	* src/rasqal.h.in, src/rasqal_data_graph.c, src/rasqal_query.c:
+	Add base_uri to rasqal_data_graph and functions for iostream
+
+	The iostream functions for a data graph need a separate base URI.
+
+	rasqal_data_graph gains uri field
+
+	(query_add_data_graph_from_iostream,
+	rasqal_new_data_graph_from_iostream, rasqal_new_data_graph_common,
+	rasqal_free_data_graph): Gain base_uri arg and use/store/free
+	it.
+
+	(rasqal_data_graph_print): Print base URI
+
+2010-10-07  Dave Beckett <dave@dajobe.org>
+
+	* utils/roqet.c: Set fake base URI for now when reading from stdin
+
+	* src/rasqal_data_graph.c:
+	(rasqal_data_graph_print): Fix print fields
+
+	* src/rasqal_internal.h, utils/roqet.c: Add support for data graph
+	from stdin to roqet
+
+	Accept -D/-G/-s with '-' arg to mean use stdin as a source of a
+	data graph.
+
+	Use rasqal_query_add_data_graph_from_iostream() to set up the data
+	graph.
+
+	Add an internal data_graph struct to hold flags arg.  This is a
+	stopgap, should be able to use rasqal_data_graph here.
+
+	* src/rasqal_raptor.c: Support data graphs from iostreams via a
+	rasqal_data_graph
+
+	(rasqal_raptor_parse_iostream): Added internal for raptor V1 to
+	support same feature as raptor V2 raptor_parser_parse_iostream()
+
+	(rasqal_raptor_init_triples_source): Support parsing from an
+	iostream with no URI using name_uri as base URI
+
+	* src/rasqal.h.in, src/rasqal_query.c: Added
+	rasqal_query_add_data_graph_from_iostream() wrapping
+	rasqal_new_data_graph_from_iostream()
+
+	* src/rasqal_raptor.c:
+	(rasqal_raptor_support_feature): Declare support for
+	RASQAL_TRIPLE_SOURCE_FEATURE_IOSTREAM_DATA_GRAPH
+
+	* src/rasqal.h.in, src/rasqal_internal.h, src/rasqal_raptor.c,
+	src/rasqal_triples_source.c: Add rasqal_triples_source_factory API
+	V2: support.
+
+	RASQAL_TRIPLES_SOURCE_MAX_VERSION now 2
+
+	Added enum rasqal_triple_source_feature for factories to respond
+	to.
+
+	rasqal_triples_source gains support_feature factory method for API
+	V2
+
+	(rasqal_triples_source_support_feature): Added internal check
+	method.
+
+	(rasqal_raptor_init_triples_source): Declare support for API V2
+
+	* src/rasqal.h.in: rasqal_data_graph autodocs
+
+	* src/rasqal_data_graph.c:
+	(rasqal_data_graph_print): Print fix
+
+	* src/rasqal_data_graph.c:
+	(rasqal_data_graph_print): Support iostream/uri data graphs
+
+	* src/rasqal.h.in, src/rasqal_data_graph.c: Added
+	rasqal_new_data_graph_from_iostream to get data graphs from
+	non-URIs.
+
+	rasqal_data_graph gains raptor_iostream field.
+
+	(rasqal_new_data_graph_common): Added internal function to support
+	all data graph constructors.
+
+	(rasqal_new_data_graph_from_iostream): Added taking a
+	raptor_iostream arg (shared) using
+	rasqal_new_data_graph_common() (rasqal_new_data_graph_from_uri):
+	Now using rasqal_new_data_graph_common()
+
+	* src/rasqal_triples_source.c:
+	(rasqal_new_triples_source): Only use init_triples_source if
+	factory API version >=2
+
 2010-10-06  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal.h.in, src/rasqal_data_graph.c, src/rasqal_query.c:
+	Rename rasqal_new_data_graph2() to
+	rasqal_new_data_graph_from_uri()
+
+	* utils/roqet.c: Rename rasqal_query_add_data_graph2() to
+	rasqal_query_add_data_graph_from_uri()
+
+	* src/rasqal.h.in, src/rasqal_query.c, src/rdql_parser.y,
+	src/sparql_parser.y: Rename rasqal_query_add_data_graph2() to
+	rasqal_query_add_data_graph_from_uri()
 
 	* src/rasqal.h.in: Lets assume OSX GCC precompiled headers are
 	working after many years
