@@ -666,6 +666,7 @@ rasqal_expression_clear(rasqal_expression* e)
     case RASQAL_EXPR_IRI:
     case RASQAL_EXPR_BNODE:
     case RASQAL_EXPR_SAMPLE:
+    case RASQAL_EXPR_ISNUMERIC:
       /* arg1 is optional for RASQAL_EXPR_BNODE */
       if(e->arg1)
         rasqal_free_expression(e->arg1);
@@ -832,6 +833,7 @@ rasqal_expression_visit(rasqal_expression* e,
     case RASQAL_EXPR_IRI:
     case RASQAL_EXPR_BNODE:
     case RASQAL_EXPR_SAMPLE:
+    case RASQAL_EXPR_ISNUMERIC:
       /* arg1 is optional for RASQAL_EXPR_BNODE */
       return (e->arg1) ? rasqal_expression_visit(e->arg1, fn, user_data) : 1;
       break;
@@ -2109,6 +2111,30 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
       }
       break;
 
+    case RASQAL_EXPR_ISNUMERIC:
+      errs.flags.free_literal = 1;
+      
+      l1 = rasqal_expression_evaluate(world, locator, e->arg1, flags);
+      if(!l1)
+        goto failed;
+      
+      vars.v = rasqal_literal_as_variable(l1);
+      if(vars.v) {
+        rasqal_free_literal(l1);
+        l1 = vars.v->value; /* don't need vars.v after this */
+        errs.flags.free_literal = 0;
+        if(!l1)
+          goto failed;
+      }
+
+      vars.b = (rasqal_literal_is_numeric(l1));
+
+      if(errs.flags.free_literal)
+        rasqal_free_literal(l1);
+
+      result = rasqal_new_boolean_literal(world, vars.b);
+      break;
+      
     case RASQAL_EXPR_UNKNOWN:
     default:
       RASQAL_FATAL2("Unknown operation %d", e->op);
@@ -2331,6 +2357,7 @@ rasqal_expression_write(rasqal_expression* e, raptor_iostream* iostr)
     case RASQAL_EXPR_IRI:
     case RASQAL_EXPR_BNODE:
     case RASQAL_EXPR_SAMPLE:
+    case RASQAL_EXPR_ISNUMERIC:
       raptor_iostream_counted_string_write("op ", 3, iostr);
       rasqal_expression_write_op(e, iostr);
       raptor_iostream_write_byte('(', iostr);
@@ -2512,6 +2539,7 @@ rasqal_expression_print(rasqal_expression* e, FILE* fh)
     case RASQAL_EXPR_IRI:
     case RASQAL_EXPR_BNODE:
     case RASQAL_EXPR_SAMPLE:
+    case RASQAL_EXPR_ISNUMERIC:
       fputs("op ", fh);
       rasqal_expression_print_op(e, fh);
       fputc('(', fh);
@@ -2670,6 +2698,7 @@ rasqal_expression_is_constant(rasqal_expression* e)
     case RASQAL_EXPR_IRI:
     case RASQAL_EXPR_BNODE:
     case RASQAL_EXPR_SAMPLE:
+    case RASQAL_EXPR_ISNUMERIC:
       /* arg1 is optional for RASQAL_EXPR_BNODE and result is always constant */
       result = (e->arg1) ? rasqal_expression_is_constant(e->arg1) : 1;
       break;

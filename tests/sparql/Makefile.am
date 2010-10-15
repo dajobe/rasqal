@@ -26,7 +26,8 @@ regex Expr1 Expr2 ExprBuiltins ExprEquals \
 SyntaxDev \
 update \
 bugs \
-aggregate
+aggregate \
+sparql11
 
 EXTRA_DIST=check-sparql
 

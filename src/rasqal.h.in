@@ -526,6 +526,7 @@ struct rasqal_literal_s {
  * @RASQAL_EXPR_SAMPLE: Expression for LAQRS SAMPLE(expr) aggregate function
  * @RASQAL_EXPR_IN: Expression for LAQRS expr IN ( list of expr )
  * @RASQAL_EXPR_NOT_IN: Expression for LAQRS expr NOT IN ( list of expr ) 
+ * @RASQAL_EXPR_ISNUMERIC: Expression for SPARQL 1.1 isNUMERIC(expr)
  * @RASQAL_EXPR_UNKNOWN: Internal
  * @RASQAL_EXPR_LAST: Internal
  *
@@ -590,8 +591,9 @@ typedef enum {
   RASQAL_EXPR_SAMPLE,
   RASQAL_EXPR_IN,
   RASQAL_EXPR_NOT_IN,
+  RASQAL_EXPR_ISNUMERIC,
   /* internal */
-  RASQAL_EXPR_LAST= RASQAL_EXPR_NOT_IN
+  RASQAL_EXPR_LAST = RASQAL_EXPR_ISNUMERIC
 } rasqal_op;
 
 

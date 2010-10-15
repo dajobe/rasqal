@@ -1536,6 +1536,9 @@ sparql_token_print(rasqal_world* world, int token, YYSTYPE *lval)
     case MINUS:
       return "MINUS";
 
+    case ISNUMERIC:
+      return "isNUMERIC";
+
     case INTEGER_LITERAL:
     case INTEGER_POSITIVE_LITERAL:
     case INTEGER_NEGATIVE_LITERAL:

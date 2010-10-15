@@ -267,7 +267,8 @@ static const char* const rasqal_sparql_op_labels[RASQAL_EXPR_LAST+1] = {
   "GROUP_CONCAT",
   "SAMPLE",
   "IN",
-  "NOT IN"
+  "NOT IN",
+  "isNUMERIC"
 };
 
 
@@ -346,6 +347,7 @@ rasqal_query_write_sparql_expression(sparql_writer_context *wc,
     case RASQAL_EXPR_IRI:
     case RASQAL_EXPR_BNODE:
     case RASQAL_EXPR_SAMPLE:
+    case RASQAL_EXPR_ISNUMERIC:
       rasqal_query_write_sparql_expression_op(wc, iostr, e);
       raptor_iostream_counted_string_write("( ", 2, iostr);
       rasqal_query_write_sparql_expression(wc, iostr, e->arg1);
