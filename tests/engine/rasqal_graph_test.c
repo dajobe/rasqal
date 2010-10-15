@@ -191,10 +191,15 @@ main(int argc, char **argv) {
 
     for(j=0; j < DATA_GRAPH_COUNT; j++) {
       int offset=tests[i].data_graphs[j];
-      if(offset >= 0)
-        rasqal_query_add_data_graph(query, 
-                                    graph_uris[offset], graph_uris[offset],
-                                    RASQAL_DATA_GRAPH_NAMED);
+      if(offset >= 0) {
+        rasqal_data_graph* dg;
+        dg = rasqal_new_data_graph_from_uri(world,
+                                            /* source URI */ graph_uris[offset], 
+                                            /* name URI */ graph_uris[offset],
+                                            RASQAL_DATA_GRAPH_NAMED,
+                                            NULL, NULL, NULL);
+        rasqal_query_add_data_graph2(query, dg);
+      }
     }
     
 
