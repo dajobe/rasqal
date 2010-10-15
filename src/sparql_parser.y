@@ -130,8 +130,14 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
 /*
  * shift/reduce conflicts
  * FIXME: document this
+ *  34 total
+ *
+ *   7 shift/reduce are OPTIONAL/GRAPH/FILTER/SERVICE/MINUS/LET/{
+ *      after a TriplesBlockOpt has been accepted but before a
+ *      GraphPatternListOpt.  Choice is made to reduce with GraphPatternListOpt.
+ * 
  */
-%expect 32
+%expect 34
 
 /* word symbols */
 %token SELECT FROM WHERE
@@ -150,6 +156,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
 %token ISURI "isUri"
 %token ISBLANK "isBlank"
 %token ISLITERAL "isLiteral"
+%token ISNUMERIC "isNumeric"
 %token SAMETERM "sameTerm"
 /* SPARQL 1.1 (draft) / LAQRS */
 %token GROUP HAVING
@@ -158,6 +165,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
 %token COALESCE
 %token AS IF
 %token NOT IN
+%token BINDINGS UNDEF SERVICE MINUS
 /* LAQRS */
 %token EXPLAIN LET
 
@@ -208,7 +216,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
 %token <name> IDENTIFIER "identifier"
 
 
-%type <seq> SelectQuery ConstructQuery DescribeQuery
+%type <seq> SelectQuery SelectClause ConstructQuery DescribeQuery
 %type <seq> SelectExpressionList VarOrIRIrefList ArgListNoBraces ArgList
 %type <seq> ConstructTriples ConstructTriplesOpt
 %type <seq> ConstructTemplate OrderConditionList GroupConditionList
@@ -218,6 +226,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
 %type <seq> IriRefList
 %type <seq> ParamsOpt
 %type <seq> ExpressionList
+%type <seq> BindingsClauseOpt BindingValueList
 
 %type <update> GraphTriples
 
@@ -228,12 +237,12 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
 %type <formula> BlankNodePropertyList
 %type <formula> TriplesBlock TriplesBlockOpt
 
-%type <graph_pattern> GroupGraphPattern
-%type <graph_pattern> GraphGraphPattern OptionalGraphPattern
+%type <graph_pattern> GroupGraphPattern SubSelect GroupGraphPatternSub
+%type <graph_pattern> GraphGraphPattern OptionalGraphPattern MinusGraphPattern
 %type <graph_pattern> GroupOrUnionGraphPattern GroupOrUnionGraphPatternList
 %type <graph_pattern> GraphPatternNotTriples
 %type <graph_pattern> GraphPatternListOpt GraphPatternList GraphPatternListFilter
-%type <graph_pattern> LetGraphPattern
+%type <graph_pattern> LetGraphPattern ServiceGraphPattern
 %type <graph_pattern> GraphTemplate ModifyTemplate
 %type <graph_pattern> WhereClause WhereClauseOpt
 
@@ -255,6 +264,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
 %type <literal> NumericLiteral NumericLiteralUnsigned
 %type <literal> NumericLiteralPositive NumericLiteralNegative
 %type <literal> SeparatorOpt
+%type <literal> BindingValue
 
 %type <variable> Var VarName VarOrBadVarName SelectTerm
 
@@ -289,13 +299,13 @@ QNAME_LITERAL QNAME_LITERAL_BRACE BLANK_LITERAL IDENTIFIER
   if($$)
     raptor_free_sequence($$);
 }
-SelectQuery ConstructQuery DescribeQuery
+SelectQuery SelectClause ConstructQuery DescribeQuery
 SelectExpressionList VarOrIRIrefList ArgListNoBraces ArgList
 ConstructTriples ConstructTriplesOpt
 ConstructTemplate OrderConditionList GroupConditionList
 HavingConditionList
 GraphNodeListNotEmpty SelectExpressionListTail
-ModifyTemplateList IriRefList ParamsOpt
+ModifyTemplateList IriRefList ParamsOpt BindingsClauseOpt BindingValueList
 
 %destructor {
   if($$)
@@ -318,12 +328,12 @@ TriplesBlock TriplesBlockOpt
   if($$)
     rasqal_free_graph_pattern($$);
 }
-GroupGraphPattern
-GraphGraphPattern OptionalGraphPattern
+GroupGraphPattern SubSelect GroupGraphPatternSub
+GraphGraphPattern OptionalGraphPattern MinusGraphPattern
 GroupOrUnionGraphPattern GroupOrUnionGraphPatternList
 GraphPatternNotTriples
 GraphPatternListOpt GraphPatternList GraphPatternListFilter
-LetGraphPattern
+LetGraphPattern ServiceGraphPattern
 ModifyTemplate GraphTemplate
 
 %destructor {
@@ -346,7 +356,7 @@ SampleAggregateExpression ExpressionOrStar
   if($$)
     rasqal_free_literal($$);
 }
-GraphTerm IRIref BlankNode
+GraphTerm IRIref BlankNode BindingValue
 VarOrIRIref
 IRIrefBrace SourceSelector
 NumericLiteral NumericLiteralUnsigned
@@ -510,30 +520,48 @@ PrefixDeclListOpt: PrefixDeclListOpt PREFIX IDENTIFIER URI_LITERAL
 
 
 /* SPARQL Grammar: SelectQuery */
-SelectQuery: SELECT DISTINCT SelectExpressionList
-        DatasetClauseListOpt WhereClause SolutionModifier
+SelectQuery: SelectClause DatasetClauseListOpt WhereClause SolutionModifier BindingsClauseOpt
+{
+  /* FIXME - not implemented: must store bindings clause somewhere */
+  void* fake1 = $5;
+
+  $$ = $1;
+  ((rasqal_query*)rq)->query_graph_pattern = $3;
+}
+;
+
+/* SPARQL Grammar: SubSelect */
+SubSelect: SelectClause WhereClause SolutionModifier
+{
+  /* FIXME - not implemented: must create graph pattern for subquery */
+  void* fake1 = $1;
+  void* fake2 = $2;
+
+  $$ = NULL;
+  
+  ((rasqal_query*)rq)->query_graph_pattern = $2;
+}
+
+
+/* SPARQL Grammar: SelectClause */
+SelectClause: SELECT DISTINCT SelectExpressionList
 {
   $$ = $3;
   ((rasqal_query*)rq)->distinct = 1;
-  ((rasqal_query*)rq)->query_graph_pattern = $5;
 }
 | SELECT REDUCED SelectExpressionList
-        DatasetClauseListOpt WhereClause SolutionModifier
 {
   $$ = $3;
   ((rasqal_query*)rq)->distinct = 2;
-  ((rasqal_query*)rq)->query_graph_pattern = $5;
 }
 | SELECT SelectExpressionList
-        DatasetClauseListOpt WhereClause SolutionModifier
 {
   $$ = $2;
-  ((rasqal_query*)rq)->query_graph_pattern = $4;
 }
 ;
 
 
-/* NEW Grammar Term pulled out of [5] SelectQuery
+/* NEW Grammar Term pulled out of SelectClause
  * A list of SelectTerm OR a NULL list and a wildcard
  */
 SelectExpressionList: SelectExpressionListTail
@@ -548,7 +576,7 @@ SelectExpressionList: SelectExpressionListTail
 ;
 
 
-/* NEW Grammar Term pulled out of [5] SelectQuery 
+/* NEW Grammar Term pulled out of SelectClause
  * Non-empty list of SelectTerm with optional commas
  */
 SelectExpressionListTail: SelectExpressionListTail SelectTerm
@@ -590,7 +618,7 @@ SelectExpressionListTail: SelectExpressionListTail SelectTerm
 ;
 
 
-/* NEW Grammar Term pulled out of [5] SelectQuery 
+/* NEW Grammar Term pulled out of SelectClause
  * A variable (?x) or a select expression assigned to a name (x) with AS
  */
 SelectTerm: Var
@@ -2053,46 +2081,134 @@ OffsetClause:  OFFSET INTEGER_LITERAL
 ;
 
 
+/* SPARQL Grammar: BindingsClause renamed for clarity */
+/* 
+BindingsClause   ::=   ( 'BINDINGS' Var+ Var* '{' ( '(' BindingValue+ ')' | NIL )* '}' )?
+*/
+BindingsClauseOpt: BINDINGS BindingValueList
+{
+  /* FIXME - not implemented: must create structure for bindings and fix grammar */
+  $$ = $2;
+}
+| /* empty */
+{
+  $$ = NULL;
+}
+;
+
+
+BindingValueList: BindingValueList BindingValue
+{
+  $$ = $1;
+  if(raptor_sequence_push($$, $2)) {
+    raptor_free_sequence($$);
+    $$ = NULL;
+    YYERROR_MSG("IriRefList 1: sequence push failed");
+  }
+}
+| BindingValue
+{
+#ifdef HAVE_RAPTOR2_API
+  $$ = raptor_new_sequence((raptor_data_free_handler)rasqal_free_literal,
+                           (raptor_data_print_handler)rasqal_literal_print);
+#else
+  $$ = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_literal,
+                           (raptor_sequence_print_handler*)rasqal_literal_print);
+#endif
+  if(!$$) {
+    if($1)
+      rasqal_free_literal($1);
+    YYERROR_MSG("IriRefList 2: cannot create sequence");
+  }
+  if(raptor_sequence_push($$, $1)) {
+    raptor_free_sequence($$);
+    $$ = NULL;
+    YYERROR_MSG("IriRefList 2: sequence push failed");
+  }
+}
+;
+
+
+/* SPARQL Grammar: BindingValue */
+BindingValue: IRIref
+{
+  $$ = $1;
+}
+| STRING_LITERAL
+{
+  $$ = $1;
+}
+| NumericLiteral
+{
+  $$ = $1;
+}
+| BOOLEAN_LITERAL
+{
+  $$ = $1;
+}
+| UNDEF
+{
+  /* FIXME - not implemented: maybe create an undef literal? */
+  $$ = NULL;
+}
+;
+
+
 /* SPARQL Grammar: GroupGraphPattern 
  * TriplesBlockOpt: formula or NULL (on success or error)
  * GraphPatternListOpt: always 1 Group GP or NULL (on error)
  */
-GroupGraphPattern: '{' TriplesBlockOpt GraphPatternListOpt '}'
+GroupGraphPattern: '{' SubSelect '}'
+{
+  $$ = $2;
+}
+| '{' GroupGraphPatternSub '}'
+{
+  $$ = $2;
+}
+;
+
+
+/* SPARQL Grammar: GroupGraphPatternSub
+ * TriplesBlockOpt: formula or NULL (on success or error)
+ * GraphPatternListOpt: always 1 Group GP or NULL (on error)
+ */
+GroupGraphPatternSub: TriplesBlockOpt GraphPatternListOpt
 {
   rasqal_graph_pattern *formula_gp = NULL;
 
 #if RASQAL_DEBUG > 1  
   fprintf(DEBUG_FH, "GroupGraphPattern\n  TriplesBlockOpt=");
   if($2)
-    rasqal_formula_print($2, DEBUG_FH);
+    rasqal_formula_print($1, DEBUG_FH);
   else
     fputs("NULL", DEBUG_FH);
   fprintf(DEBUG_FH, ", GraphpatternListOpt=");
-  if($3)
-    rasqal_graph_pattern_print($3, DEBUG_FH);
+  if($2)
+    rasqal_graph_pattern_print($2, DEBUG_FH);
   else
     fputs("NULL", DEBUG_FH);
   fputs("\n", DEBUG_FH);
 #endif
 
 
-  if(!$2 && !$3) {
+  if(!$1 && !$2) {
     $$ = rasqal_new_2_group_graph_pattern((rasqal_query*)rq, NULL, NULL);
     if(!$$)
       YYERROR_MSG("GroupGraphPattern: cannot create group gp");
   } else {
-    if($2) {
+    if($1) {
       formula_gp = rasqal_new_basic_graph_pattern_from_formula((rasqal_query*)rq,
-                                                               $2);
+                                                               $1);
       if(!formula_gp) {
-        if($3)
-          rasqal_free_graph_pattern($3);
+        if($2)
+          rasqal_free_graph_pattern($2);
         YYERROR_MSG("GroupGraphPattern: cannot create formula_gp");
       }
     }
 
-    if($3) {
-      $$ = $3;
+    if($2) {
+      $$ = $2;
       if(formula_gp && raptor_sequence_shift($$->graph_patterns, formula_gp)) {
         rasqal_free_graph_pattern($$);
         $$ = NULL;
@@ -2329,15 +2445,23 @@ TriplesBlock: TriplesSameSubject '.' TriplesBlockOpt
 
 
 /* SPARQL Grammar: GraphPatternNotTriples */
-GraphPatternNotTriples: OptionalGraphPattern
+GraphPatternNotTriples: GroupOrUnionGraphPattern
 {
   $$ = $1;
 }
-| GroupOrUnionGraphPattern
+| OptionalGraphPattern
+{
+  $$ = $1;
+}
+| MinusGraphPattern
 {
   $$ = $1;
 }
 | GraphGraphPattern
+{
+  $$ = $1;
+}
+| ServiceGraphPattern
 {
   $$ = $1;
 }
@@ -2443,6 +2567,27 @@ GraphGraphPattern: GRAPH VarOrIRIref GroupGraphPattern
 #endif
 
   rasqal_free_literal($2);
+}
+;
+
+
+/* SPARQL Grammar: ServiceGraphPattern */
+ServiceGraphPattern: SERVICE VarOrIRIref GroupGraphPattern
+{
+  /* FIXME - not implemented: must create a service graph pattern */
+  void* fake1 = $2;
+  void* fake2 = $3;
+  $$ = NULL;
+}
+;
+
+
+/* SPARQL Grammar: MinusGraphPattern */
+MinusGraphPattern: MINUS GroupGraphPattern
+{
+  /* FIXME - not implemented: must create a service graph pattern */
+  void* fake1 = $2;
+  $$ = NULL;
 }
 ;
 
@@ -3968,6 +4113,14 @@ BuiltInCall: STR '(' Expression ')'
 }
 | ISLITERAL '(' Expression ')'
 {
+  $$ = rasqal_new_1op_expression(((rasqal_query*)rq)->world,
+                                 RASQAL_EXPR_ISLITERAL, $3);
+  if(!$$)
+    YYERROR_MSG("BuiltInCall 11: cannot create expr");
+}
+| ISNUMERIC '(' Expression ')'
+{
+  /* FIXME - not implemented: must create an RASQAL_EXPR_ISNUMERIC */
   $$ = rasqal_new_1op_expression(((rasqal_query*)rq)->world,
                                  RASQAL_EXPR_ISLITERAL, $3);
   if(!$$)

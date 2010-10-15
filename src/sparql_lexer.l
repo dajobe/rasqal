@@ -386,6 +386,11 @@ EXPONENT [eE][+-]?[0-9]+
 [Ii][Nn] { return IN; }
 [Gg][Rr][Oo][Uu][Pp]_[Cc][Oo][Nn][Cc][Aa][Tt] { return GROUP_CONCAT; }
 [Ss][Ee][Pp][Aa][Rr][Aa][Tt][Oo][Rr] { return SEPARATOR; }
+[Bb][Ii][Nn][Dd][Ii][Nn][Gg][Ss] { return BINDINGS; }
+[Uu][Nn][Dd][Ee][Ff] { return UNDEF; }
+[Ss][Ee][Rr][Vv][Ii][Cc][Ee] { return SERVICE; }
+[Mm][Ii][Nn][Uu][Ss] { return MINUS; }
+[Ii][Ss][Nn][Uu][Mm][Ee][Rr][Ii][Cc] { return ISNUMERIC; }
 
 "a" { return A; }
 
@@ -1518,6 +1523,18 @@ sparql_token_print(rasqal_world* world, int token, YYSTYPE *lval)
 
     case SEPARATOR:
       return "SEPARATOR";
+
+    case BINDINGS:
+      return "BINDINGS";
+
+    case UNDEF:
+      return "UNDEF";
+
+    case SERVICE:
+      return "SERVICE";
+
+    case MINUS:
+      return "MINUS";
 
     case INTEGER_LITERAL:
     case INTEGER_POSITIVE_LITERAL:
