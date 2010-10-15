@@ -124,6 +124,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
   rasqal_formula *formula;
   rasqal_update_operation *update;
   unsigned int uinteger;
+  rasqal_data_graph* data_graph;
 }
 
 
@@ -227,6 +228,9 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
 %type <seq> ParamsOpt
 %type <seq> ExpressionList
 %type <seq> BindingsClauseOpt BindingValueList
+%type <seq> DatasetClauseList DatasetClauseListOpt
+
+%type <data_graph> DatasetClause DefaultGraphClause NamedGraphClause
 
 %type <update> GraphTriples
 
@@ -306,6 +310,7 @@ ConstructTemplate OrderConditionList GroupConditionList
 HavingConditionList
 GraphNodeListNotEmpty SelectExpressionListTail
 ModifyTemplateList IriRefList ParamsOpt BindingsClauseOpt BindingValueList
+DatasetClauseList DatasetClauseListOpt
 
 %destructor {
   if($$)
@@ -368,6 +373,13 @@ SeparatorOpt
     rasqal_free_variable($$);
 }
 Var VarName SelectTerm
+
+
+%destructor {
+  if($$)
+    rasqal_free_data_graph($$);
+}
+DatasetClause DefaultGraphClause NamedGraphClause
 
 
 %%
@@ -524,8 +536,10 @@ SelectQuery: SelectClause DatasetClauseListOpt WhereClause SolutionModifier Bind
 {
   /* FIXME - not implemented: must store bindings clause somewhere */
   void* fake1 = $5;
-
+  
   $$ = $1;
+  if($2)
+    rasqal_query_add_data_graphs((rasqal_query*)rq, $2);
   ((rasqal_query*)rq)->query_graph_pattern = $3;
 }
 ;
@@ -921,6 +935,9 @@ ConstructQuery: CONSTRUCT ConstructTemplate
         DatasetClauseListOpt WhereClause SolutionModifier
 {
   $$ = $2;
+
+  if($3)
+    rasqal_query_add_data_graphs((rasqal_query*)rq, $3);
   ((rasqal_query*)rq)->query_graph_pattern = $4;
 }
 ;
@@ -931,12 +948,20 @@ DescribeQuery: DESCRIBE VarOrIRIrefList
         DatasetClauseListOpt WhereClauseOpt SolutionModifier
 {
   $$ = $2;
+
+  if($3)
+    rasqal_query_add_data_graphs((rasqal_query*)rq, $3);
+
   ((rasqal_query*)rq)->query_graph_pattern = $4;
 }
 | DESCRIBE '*'
         DatasetClauseListOpt WhereClauseOpt SolutionModifier
 {
   $$ = NULL;
+
+  if($3)
+    rasqal_query_add_data_graphs((rasqal_query*)rq, $3);
+
   ((rasqal_query*)rq)->query_graph_pattern = $4;
 }
 ;
@@ -985,7 +1010,22 @@ VarOrIRIrefList: VarOrIRIrefList VarOrIRIref
 AskQuery: ASK 
         DatasetClauseListOpt WhereClause
 {
+  if($2)
+    rasqal_query_add_data_graphs((rasqal_query*)rq, $2);
+
   ((rasqal_query*)rq)->query_graph_pattern = $3;
+}
+;
+
+
+/* SPARQL Grammar: DatasetClause */
+DatasetClause: FROM DefaultGraphClause
+{
+  $$ = $2;
+}
+| FROM NamedGraphClause
+{
+  $$ = $2;
 }
 ;
 
@@ -1015,6 +1055,10 @@ DeleteQuery: DELETE DatasetClauseList WhereClauseOpt
   /* LAQRS: experimental syntax */
   sparql_syntax_warning(((rasqal_query*)rq), 
                         "DELETE FROM <uri> ... WHERE ... is deprecated LAQRS syntax.");
+
+  if($2)
+    rasqal_query_add_data_graphs((rasqal_query*)rq, $2);
+
   ((rasqal_query*)rq)->query_graph_pattern = $3;
 }
 | DELETE '{' ModifyTemplateList '}' WhereClause
@@ -1183,6 +1227,10 @@ InsertQuery: INSERT DatasetClauseList WhereClauseOpt
   /* LAQRS: experimental syntax */
   sparql_syntax_warning(((rasqal_query*)rq), 
                         "INSERT FROM <uri> ... WHERE ... is deprecated LAQRS syntax.");
+
+  if($2)
+    rasqal_query_add_data_graphs((rasqal_query*)rq, $2);
+
   ((rasqal_query*)rq)->query_graph_pattern = $3;
 }
 | INSERT '{' ModifyTemplateList '}' WhereClauseOpt
@@ -1687,12 +1735,34 @@ LoadQuery: LOAD IriRefList
 
 
 /* SPARQL Grammar: DatasetClause */
-DatasetClauseList: DatasetClauseListOpt FROM DefaultGraphClause
-| DatasetClauseListOpt FROM NamedGraphClause
+DatasetClauseList: DatasetClauseList DatasetClause
+{
+  $$ = $1;
+  if($1 && $2)
+    raptor_sequence_push($1, $2);
+}
+| DatasetClause
+{
+#ifdef HAVE_RAPTOR2_API
+  $$ = raptor_new_sequence((raptor_data_free_handler)rasqal_free_data_graph, (raptor_data_print_handler)rasqal_data_graph_print);
+#else
+  $$ = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_data_graph, (raptor_sequence_print_handler*)rasqal_data_graph_print);
+#endif
+  if($$ && $1)
+    raptor_sequence_push($$, $1);
+}
 ;
 
+
 DatasetClauseListOpt: DatasetClauseList
+{
+  $$ = $1;
+}
 | /* empty */
+{
+  $$ = NULL;
+}
+;
 
 
 /* SPARQL Grammar: DefaultGraphClause */
@@ -1706,12 +1776,15 @@ DefaultGraphClause: SourceSelector
                                         NULL, RASQAL_DATA_GRAPH_BACKGROUND,
                                         NULL, NULL, NULL);
 
-    if(!dg || rasqal_query_add_data_graph2((rasqal_query*)rq, dg)) {
+    if(!dg) {
       rasqal_free_literal($1);
-      YYERROR_MSG("DefaultGraphClause: rasqal_query_add_data_graph2 failed");
+      YYERROR_MSG("DefaultGraphClause: rasqal_query_new_data_graph_from_uri() failed");
     }
     rasqal_free_literal($1);
-  }
+
+    $$ = dg;
+  } else
+    $$ = NULL;
 }
 ;  
 
@@ -1727,12 +1800,14 @@ NamedGraphClause: NAMED SourceSelector
                                         uri, RASQAL_DATA_GRAPH_NAMED,
                                         NULL, NULL, NULL);
     
-    if(!dg || rasqal_query_add_data_graph2((rasqal_query*)rq, dg)) {
+    if(!dg) {
       rasqal_free_literal($2);
-      YYERROR_MSG("NamedGraphClause: rasqal_query_add_data_graph2 failed");
+      YYERROR_MSG("NamedGraphClause: rasqal_query_new_data_graph_from_uri() failed");
     }
     rasqal_free_literal($2);
-  }
+    $$ = dg;
+  } else
+    $$ = NULL;
 }
 ;
 

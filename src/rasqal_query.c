@@ -735,6 +735,33 @@ rasqal_query_add_data_graph(rasqal_query* query,
 
 
 /**
+ * rasqal_query_add_data_graphs:
+ * @query: #rasqal_query query object
+ * @data_graphs: sequence of #rasqal_data_graph
+ *
+ * Add a set of data graphs to the query.
+ *
+ * The passed-in @data_graphs sequence becomes owned by the query.
+ *
+ * Return value: non-0 on failure
+ **/
+int
+rasqal_query_add_data_graphs(rasqal_query* query,
+                             raptor_sequence* data_graphs)
+{
+  int rc;
+  
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, 1);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(data_graphs, raptor_sequence, 1);
+
+  rc = raptor_sequence_join(query->data_graphs, data_graphs);
+  raptor_free_sequence(data_graphs);
+
+  return rc;
+}
+
+
+/**
  * rasqal_query_get_data_graph_sequence:
  * @query: #rasqal_query query object
  *
