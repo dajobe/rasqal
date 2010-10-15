@@ -1,3 +1,60 @@
+2010-10-15  Dave Beckett <dave@dajobe.org>
+
+	* configure.ac, src/rasqal.h.in, src/rasqal_expr.c,
+	src/rasqal_query_write.c, src/sparql_lexer.l,
+	tests/sparql/Makefile.am, tests/sparql/sparql11/Makefile.am,
+	tests/sparql/sparql11/data-1.ttl,
+	tests/sparql/sparql11/isnumeric-1.rq: Add SPARQL 1.1 isNUMERIC()
+
+	rasqal_op gains RASQAL_EXPR_ISNUMERIC
+
+	(rasqal_expression_clear, rasqal_expression_visit,
+	rasqal_expression_evaluate, rasqal_expression_write,
+	rasqal_expression_print, rasqal_expression_is_constant,
+	rasqal_query_write_sparql_expression): Added support for
+	RASQAL_EXPR_ISNUMERIC Added sparql11 tests dir with isnumeric-1.rq
+	test
+
+2010-10-14  Dave Beckett <dave@dajobe.org>
+
+	* src/sparql_lexer.l, src/sparql_parser.y: Update SPARQL grammar
+	for 1.1 2010-10-14 draft
+
+	Added new tokens: BINDINGS, UNDEF, SERVICE, MINUS, isNUMERIC (case
+	independent all)
+
+	Still not added: any property path tokens (SPARQL grammar tokens
+	Path to PathOneInPropertyClass)
+
+	(sparql_token_print): Print new tokens
+
+	(SelectQuery): Split into new SelectClause
+
+	(SubSelect): Added, to be implemented.
+
+	(BindingsCLauseOpt): Added, to be implemented.
+
+	(BindingValueList): Added for above.
+
+	(BindingValue): Added, UNDEF to be implemented maybe.
+
+	(GroupGraphPattern): Add SubSelect.
+
+	(GroupGraphPatternSub): Added with old GroupGraphPattern code.
+
+	(GraphPatternNotTriples): Add MinusGraphPattern and
+	ServiceGraphPattern.
+
+	(ServiceGraphPattern): Added, to be implemented.
+
+	(MinusGraphPattern): Added, to be implemented.
+
+	(BuiltInCall): Accept isNUMERIC, to be implemented in expression
+	code.
+
+	* src/sparql_parser.y: Remove SPARQL grammar term numbers, keep
+	changing too much
+
 2010-10-13  Lauri Aalto <laalto@iki.fi>
 
 	* src/rasqal.h.in:
