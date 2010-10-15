@@ -111,6 +111,7 @@ main(int argc, char **argv) {
   int count;
   rasqal_world *world;
   raptor_uri *data_file_uri;
+  rasqal_data_graph* dg;
   
   world=rasqal_new_world();
   if(!world || rasqal_world_open(world)) {
@@ -147,8 +148,12 @@ main(int argc, char **argv) {
   data_file_uri = raptor_new_uri_relative_to_base(data_dir_uri, DATA_FILE_NAME);
 #endif
 
-  rasqal_query_add_data_graph(query, data_file_uri, NULL,
-                              RASQAL_DATA_GRAPH_BACKGROUND);
+  dg = rasqal_new_data_graph_from_uri(world,
+                                      /* source URI */ data_file_uri,
+                                      /* name URI */ NULL,
+                                      RASQAL_DATA_GRAPH_BACKGROUND,
+                                      NULL, NULL, NULL);
+  rasqal_query_add_data_graph2(query, dg);
 
   raptor_free_uri(data_file_uri);
   data_file_uri = NULL;
