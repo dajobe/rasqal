@@ -515,6 +515,24 @@ rasqal_query_write_sparql_triple_data(sparql_writer_context *wc,
 }
 
 
+static int
+rasqal_query_write_sparql_select(sparql_writer_context *wc,
+                                 raptor_iostream *iostr, 
+                                 raptor_sequence* var_seq)
+{
+  int count = raptor_sequence_size(var_seq);
+  int i;
+  
+  for(i = 0; i < count; i++) {
+    rasqal_variable* v = (rasqal_variable*)raptor_sequence_get_at(var_seq, i);
+    raptor_iostream_write_byte(' ', iostr);
+    rasqal_query_write_sparql_variable(wc, iostr, v);
+  }
+
+  return 0;
+}
+
+
 static void
 rasqal_query_write_sparql_graph_pattern(sparql_writer_context *wc,
                                         raptor_iostream* iostr,
@@ -528,7 +546,20 @@ rasqal_query_write_sparql_graph_pattern(sparql_writer_context *wc,
   int want_braces = 1;
   
   op = rasqal_graph_pattern_get_operator(gp);
-  
+
+  if(op == RASQAL_GRAPH_PATTERN_OPERATOR_SELECT) {
+    raptor_iostream_counted_string_write("SELECT", 6, iostr);
+    rasqal_query_write_sparql_select(wc, iostr, gp->variables);
+    raptor_iostream_write_byte('\n', iostr);
+    rasqal_query_write_indent(iostr, indent);
+    raptor_iostream_counted_string_write("WHERE ", 6, iostr);
+    rasqal_query_write_sparql_graph_pattern(wc, iostr,
+                                            gp->where,
+                                            0, indent);
+    /* FIXME - not implemented: modifiers */
+    return;
+  }
+
   if(op == RASQAL_GRAPH_PATTERN_OPERATOR_LET) {
     /* LAQRS */
     raptor_iostream_counted_string_write("LET (", 5, iostr);
@@ -828,14 +859,7 @@ rasqal_query_write_sparql_20060406(raptor_iostream *iostr,
       rasqal_query_write_sparql_literal(&wc, iostr, l);
     }
   } else if(query->verb == RASQAL_QUERY_VERB_SELECT) {
-    raptor_sequence *var_seq = query->selects;
-    int count = raptor_sequence_size(var_seq);
-
-    for(i = 0; i < count; i++) {
-      rasqal_variable* v = (rasqal_variable*)raptor_sequence_get_at(var_seq, i);
-      raptor_iostream_write_byte(' ', iostr);
-      rasqal_query_write_sparql_variable(&wc, iostr, v);
-    }
+    rasqal_query_write_sparql_select(&wc, iostr, query->selects);
   }
   raptor_iostream_write_byte('\n', iostr);
 
