@@ -1894,10 +1894,13 @@ SolutionModifier: GroupClauseOpt HavingClauseOpt OrderClauseOpt LimitOffsetClaus
   ((rasqal_query*)rq)->limit = $4[0];
   ((rasqal_query*)rq)->offset = $4[1];
 
+  /* FIXME - sequences set to NULL so ownership does not pass to
+   * solution_modifier for now 
+   */
   sm = rasqal_new_solution_modifier((rasqal_query*)rq,
-                                    /* order_conditions */ $3,
-                                    /* group_conditions */ $1,
-                                    /* having_conditions */ $2,
+                                    /* order_conditions $3 */ NULL,
+                                    /* group_conditions $1 */ NULL,
+                                    /* having_conditions $2 */ NULL,
                                     /* limit */ $4[0],
                                     /* offset */ $4[1]);
   
