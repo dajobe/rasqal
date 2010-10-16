@@ -2,7 +2,7 @@
  *
  * rasqal_graph_pattern.c - Rasqal graph pattern class
  *
- * Copyright (C) 2004-2009, David Beckett http://www.dajobe.org/
+ * Copyright (C) 2004-2010, David Beckett http://www.dajobe.org/
  * Copyright (C) 2004-2005, University of Bristol, UK http://www.bristol.ac.uk/
  * 
  * This package is Free Software and part of Redland http://librdf.org/
@@ -214,6 +214,51 @@ rasqal_new_let_graph_pattern(rasqal_query *query,
 
 
 /*
+ * rasqal_new_select_graph_pattern:
+ * @query: #rasqal_graph_pattern query object
+ * @select_variables: sequence of #rasqal_variable
+ * @where: WHERE graph pattern
+ * @modifiers: sequence of ?
+ *
+ * INTERNAL - Create a new SELECT graph pattern
+ * 
+ * Return value: a new #rasqal_graph_pattern object or NULL on failure
+ **/
+rasqal_graph_pattern*
+rasqal_new_select_graph_pattern(rasqal_query *query,
+                                raptor_sequence* select_variables,
+                                rasqal_graph_pattern* where,
+                                void* modifiers)
+{
+  rasqal_graph_pattern* gp;
+
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, NULL);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(select_variables, raptor_sequence, NULL);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(where, rasqal_graph_pattern, NULL);
+  
+  gp = rasqal_new_graph_pattern(query, RASQAL_GRAPH_PATTERN_OPERATOR_SELECT);
+  if(!gp) {
+    raptor_free_sequence(select_variables);
+    if(where)
+      rasqal_free_graph_pattern(where);
+#if 0
+    /* FIXME - not implemented: define a structure for modifiers */
+    if(modifiers)
+      free(modifiers);
+#endif
+    return NULL;
+  }
+
+  /* FIXME - not implemented: define a structure for modifiers */
+  gp->variables = select_variables;
+  gp->where = where;
+  gp->modifiers = modifiers;
+  
+  return gp;
+}
+
+
+/*
  * rasqal_free_graph_pattern:
  * @gp: #rasqal_graph_pattern object
  *
@@ -233,6 +278,18 @@ rasqal_free_graph_pattern(rasqal_graph_pattern* gp)
 
   if(gp->origin)
     rasqal_free_literal(gp->origin);
+
+  if(gp->variables)
+    raptor_free_sequence(gp->variables);
+
+  if(gp->where)
+    rasqal_free_graph_pattern(gp->where);
+  
+#if 0
+  /* FIXME - not implemented: define a structure for modifiers */
+  if(gp->modifiers)
+    free(gp->modifiers);
+#endif
 
   RASQAL_FREE(rasqal_graph_pattern, gp);
 }
@@ -322,7 +379,8 @@ static const char* const rasqal_graph_pattern_operator_labels[RASQAL_GRAPH_PATTE
   "Group",
   "Graph",
   "Filter",
-  "Let"
+  "Let",
+  "Select"
 };
 
 
@@ -390,7 +448,7 @@ static int
 rasqal_graph_pattern_write_internal(rasqal_graph_pattern* gp,
                                     raptor_iostream* iostr, int indent)
 {
-  int pending_nl=0;
+  int pending_nl = 0;
   
   raptor_iostream_counted_string_write("graph pattern", 13, iostr);
   if(gp->gp_index >= 0) {
@@ -404,10 +462,10 @@ rasqal_graph_pattern_write_internal(rasqal_graph_pattern* gp,
   raptor_iostream_write_byte('(', iostr);
 
   if(indent >= 0)
-    indent+= 2;
+    indent += 2;
 
   if(gp->triples) {
-    int size=gp->end_column - gp->start_column +1;
+    int size = gp->end_column - gp->start_column + 1;
     int i;
     raptor_iostream_counted_string_write("over ", 5, iostr);
     rasqal_graph_pattern_write_plurals(iostr, "triple", size);
@@ -415,12 +473,12 @@ rasqal_graph_pattern_write_internal(rasqal_graph_pattern* gp,
 
     if(indent >= 0) {
       raptor_iostream_write_byte('\n', iostr);
-      indent+= 2;
+      indent += 2;
       rasqal_graph_pattern_write_indent(iostr, indent);
     }
     
-    for(i=gp->start_column; i <= gp->end_column; i++) {
-      rasqal_triple *t=(rasqal_triple*)raptor_sequence_get_at(gp->triples, i);
+    for(i = gp->start_column; i <= gp->end_column; i++) {
+      rasqal_triple *t = (rasqal_triple*)raptor_sequence_get_at(gp->triples, i);
       if(i > gp->start_column) {
         raptor_iostream_counted_string_write(" ,", 2, iostr);
 
@@ -433,12 +491,12 @@ rasqal_graph_pattern_write_internal(rasqal_graph_pattern* gp,
     }
     if(indent >= 0) {
       raptor_iostream_write_byte('\n', iostr);
-      indent-= 2;
+      indent -= 2;
       rasqal_graph_pattern_write_indent(iostr, indent);
     }
     raptor_iostream_write_byte(']', iostr);
 
-    pending_nl=1;
+    pending_nl = 1;
   }
 
   if(gp->origin) {
@@ -455,11 +513,11 @@ rasqal_graph_pattern_write_internal(rasqal_graph_pattern* gp,
 
     rasqal_literal_write(gp->origin, iostr);
 
-    pending_nl=1;
+    pending_nl = 1;
   }
 
   if(gp->graph_patterns) {
-    int size=raptor_sequence_size(gp->graph_patterns);
+    int size = raptor_sequence_size(gp->graph_patterns);
     int i;
 
     if(pending_nl) {
@@ -476,13 +534,13 @@ rasqal_graph_pattern_write_internal(rasqal_graph_pattern* gp,
 
     if(indent >= 0) {
       raptor_iostream_write_byte('\n', iostr);
-      indent+= 2;
+      indent += 2;
       rasqal_graph_pattern_write_indent(iostr, indent);
     }
     
-    for(i=0; i< size; i++) {
+    for(i = 0; i< size; i++) {
       rasqal_graph_pattern* sgp;
-      sgp=(rasqal_graph_pattern*)raptor_sequence_get_at(gp->graph_patterns, i);
+      sgp = (rasqal_graph_pattern*)raptor_sequence_get_at(gp->graph_patterns, i);
       if(i) {
         raptor_iostream_counted_string_write(" ,", 2, iostr);
         if(indent >= 0) {
@@ -497,12 +555,12 @@ rasqal_graph_pattern_write_internal(rasqal_graph_pattern* gp,
     }
     if(indent >= 0) {
       raptor_iostream_write_byte('\n', iostr);
-      indent-= 2;
+      indent -= 2;
       rasqal_graph_pattern_write_indent(iostr, indent);
     }
     raptor_iostream_write_byte(']', iostr);
 
-    pending_nl=1;
+    pending_nl = 1;
   }
 
   if(gp->var) {
@@ -526,19 +584,78 @@ rasqal_graph_pattern_write_internal(rasqal_graph_pattern* gp,
   
     if(indent >= 0) {
       raptor_iostream_write_byte('\n', iostr);
-      indent+= 2;
+      indent += 2;
       rasqal_graph_pattern_write_indent(iostr, indent);
     }
 
     rasqal_expression_write(gp->filter_expression, iostr);
     if(indent >= 0)
-      indent-= 2;
+      indent -= 2;
     
-    pending_nl=1;
+    pending_nl = 1;
   }
 
+  if(gp->variables) {
+    int i;
+    
+    if(pending_nl) {
+      raptor_iostream_counted_string_write(" ,", 2, iostr);
+
+      if(indent >= 0) {
+        raptor_iostream_write_byte('\n', iostr);
+        rasqal_graph_pattern_write_indent(iostr, indent);
+      }
+    }
+
+    if(indent >= 0) {
+      raptor_iostream_write_byte('\n', iostr);
+      indent += 2;
+      rasqal_graph_pattern_write_indent(iostr, indent);
+    }
+
+    raptor_iostream_counted_string_write("select-variables(", 10, iostr);
+    for(i = 0; i < raptor_sequence_size(gp->variables); i++) {
+      rasqal_variable* v;
+      v = (rasqal_variable*)raptor_sequence_get_at(gp->variables, i);
+      if(i > 0)
+        raptor_iostream_counted_string_write(" ,", 2, iostr);
+
+      rasqal_variable_write(v, iostr);
+    }
+    raptor_iostream_counted_string_write(")", 1, iostr);
+    
+    if(indent >= 0)
+      indent -= 2;
+    
+    pending_nl = 1;
+  }
+  
+  if(gp->where) {
+    if(pending_nl) {
+      raptor_iostream_counted_string_write(" ,", 2, iostr);
+
+      if(indent >= 0) {
+        raptor_iostream_write_byte('\n', iostr);
+        rasqal_graph_pattern_write_indent(iostr, indent);
+      }
+    }
+
+    if(indent >= 0) {
+      raptor_iostream_write_byte('\n', iostr);
+      indent += 2;
+      rasqal_graph_pattern_write_indent(iostr, indent);
+    }
+
+    raptor_iostream_counted_string_write("select ", 7, iostr);
+    rasqal_graph_pattern_write_internal(gp->where, iostr, indent);
+    if(indent >= 0)
+      indent -= 2;
+    
+    pending_nl = 1;
+  }
+  
   if(indent >= 0)
-    indent-= 2;
+    indent -= 2;
 
   if(pending_nl) {
     if(indent >= 0) {

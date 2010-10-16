@@ -2,7 +2,7 @@
  *
  * rasqal_query_transform.c - Rasqal query transformations
  *
- * Copyright (C) 2004-2009, David Beckett http://www.dajobe.org/
+ * Copyright (C) 2004-2010, David Beckett http://www.dajobe.org/
  * Copyright (C) 2004-2005, University of Bristol, UK http://www.bristol.ac.uk/
  * 
  * This package is Free Software and part of Redland http://librdf.org/
@@ -53,6 +53,7 @@ static int rasqal_query_build_variables_use_map(rasqal_query* query);
 static void rasqal_query_graph_build_variables_use_map_in_internal(rasqal_query* query, short *use_map, rasqal_literal *origin);
 static void rasqal_query_expression_build_variables_use_map(short *use_map, rasqal_expression* e);
 static void rasqal_query_let_build_variables_use_map_in_internal(rasqal_query* query, short *use_map, rasqal_variable *var, rasqal_expression* e);
+static void rasqal_query_select_build_variables_use_map_in_internal(rasqal_query* query, short *use_map);
 
 
 int
@@ -1494,6 +1495,11 @@ rasqal_query_graph_pattern_build_variables_use_map(rasqal_query* query,
                                                            gp->filter_expression);
       break;
       
+    case RASQAL_GRAPH_PATTERN_OPERATOR_SELECT:
+      rasqal_query_select_build_variables_use_map_in_internal(query, 
+                                                              &use_map[offset]);
+      break;
+      
     case RASQAL_GRAPH_PATTERN_OPERATOR_OPTIONAL:
     case RASQAL_GRAPH_PATTERN_OPERATOR_UNION:
     case RASQAL_GRAPH_PATTERN_OPERATOR_GROUP:
@@ -1867,5 +1873,23 @@ rasqal_query_let_build_variables_use_map_in_internal(rasqal_query* query,
   rasqal_expression_visit(e, 
                           (rasqal_expression_visit_fn)rasqal_query_expression_build_variables_use_map_row,
                           use_map_row);
+}
+
+
+
+/**
+ * rasqal_query_select_build_variables_use_map_in_internal:
+ * @query: the #rasqal_query to find the variables in
+ * @use_map_row: 1D array of size num. variables to write
+ *
+ * INTERNAL - Mark variables mentioned in a sub-SELECT graph pattern
+ * 
+ **/
+static void
+rasqal_query_select_build_variables_use_map_in_internal(rasqal_query* query,
+                                                        short *use_map_row)
+{
+  rasqal_log_error_simple(query->world, RAPTOR_LOG_LEVEL_ERROR, NULL,
+                          "Evaluation of Sub SELECT is not implemented.");
 }
 

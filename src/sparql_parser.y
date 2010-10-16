@@ -540,6 +540,7 @@ SelectQuery: SelectClause DatasetClauseListOpt WhereClause SolutionModifier Bind
   $$ = $1;
   if($2)
     rasqal_query_add_data_graphs((rasqal_query*)rq, $2);
+
   ((rasqal_query*)rq)->query_graph_pattern = $3;
 }
 ;
@@ -547,13 +548,13 @@ SelectQuery: SelectClause DatasetClauseListOpt WhereClause SolutionModifier Bind
 /* SPARQL Grammar: SubSelect */
 SubSelect: SelectClause WhereClause SolutionModifier
 {
-  /* FIXME - not implemented: must create graph pattern for subquery */
-  void* fake1 = $1;
-  void* fake2 = $2;
+  /* FIXME - not implemented completely: must create graph pattern
+   * fields for all parts of subquery including SolutionModifier */
 
-  $$ = NULL;
-  
-  ((rasqal_query*)rq)->query_graph_pattern = $2;
+  $$ = rasqal_new_select_graph_pattern((rasqal_query*)rq,
+                                       $1,
+                                       $2,
+                                       /* $3 modifiers */ NULL);
 }
 
 

@@ -2,7 +2,7 @@
  *
  * rasqal_internal.h - Rasqal RDF Query library internals
  *
- * Copyright (C) 2003-2009, David Beckett http://www.dajobe.org/
+ * Copyright (C) 2003-2010, David Beckett http://www.dajobe.org/
  * Copyright (C) 2003-2005, University of Bristol, UK http://www.bristol.ac.uk/
  * 
  * This package is Free Software and part of Redland http://librdf.org/
@@ -211,12 +211,18 @@ struct rasqal_graph_pattern_s {
 
   /* Variable for LET graph pattern */
   rasqal_variable *var;
+
+  /* SELECT graph pattern */
+  raptor_sequence* variables;   /* Sequence of rasqal_variable*  */
+  rasqal_graph_pattern* where;
+  void* modifiers; /* FIXME: not implemented: choose a structure for modifiers */
 };
 
 rasqal_graph_pattern* rasqal_new_basic_graph_pattern(rasqal_query* query, raptor_sequence* triples, int start_column, int end_column);
 rasqal_graph_pattern* rasqal_new_graph_pattern_from_sequence(rasqal_query* query, raptor_sequence* graph_patterns, rasqal_graph_pattern_operator op);
 rasqal_graph_pattern* rasqal_new_filter_graph_pattern(rasqal_query* query, rasqal_expression* expr);
 rasqal_graph_pattern* rasqal_new_let_graph_pattern(rasqal_query *query, rasqal_variable *var, rasqal_expression *expr);  
+rasqal_graph_pattern* rasqal_new_select_graph_pattern(rasqal_query *query, raptor_sequence* select_variables, rasqal_graph_pattern* where, void* modifiers);
 void rasqal_free_graph_pattern(rasqal_graph_pattern* gp);
 void rasqal_graph_pattern_adjust(rasqal_graph_pattern* gp, int offset);
 void rasqal_graph_pattern_set_origin(rasqal_graph_pattern* graph_pattern, rasqal_literal* origin);
