@@ -613,20 +613,20 @@ rasqal_graph_pattern_write_internal(rasqal_graph_pattern* gp,
       rasqal_graph_pattern_write_indent(iostr, indent);
     }
 
-    raptor_iostream_counted_string_write("select-variables(", 10, iostr);
+    raptor_iostream_counted_string_write("select-variables: [", 19, iostr);
     for(i = 0; i < raptor_sequence_size(gp->variables); i++) {
       rasqal_variable* v;
       v = (rasqal_variable*)raptor_sequence_get_at(gp->variables, i);
       if(i > 0)
-        raptor_iostream_counted_string_write(" ,", 2, iostr);
+        raptor_iostream_counted_string_write(", ", 2, iostr);
 
       rasqal_variable_write(v, iostr);
     }
-    raptor_iostream_counted_string_write(")", 1, iostr);
+    raptor_iostream_counted_string_write("]", 1, iostr);
     
     if(indent >= 0)
       indent -= 2;
-    
+
     pending_nl = 1;
   }
   
@@ -646,7 +646,6 @@ rasqal_graph_pattern_write_internal(rasqal_graph_pattern* gp,
       rasqal_graph_pattern_write_indent(iostr, indent);
     }
 
-    raptor_iostream_counted_string_write("select ", 7, iostr);
     rasqal_graph_pattern_write_internal(gp->where, iostr, indent);
     if(indent >= 0)
       indent -= 2;
