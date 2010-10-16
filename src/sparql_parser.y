@@ -125,6 +125,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
   rasqal_update_operation *update;
   unsigned int uinteger;
   rasqal_data_graph* data_graph;
+  rasqal_row* row;
 }
 
 
@@ -227,8 +228,9 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
 %type <seq> IriRefList
 %type <seq> ParamsOpt
 %type <seq> ExpressionList
-%type <seq> BindingsClauseOpt BindingValueList
+%type <seq> BindingsClauseOpt BindingValueList BindingsRowList BindingsRowListOpt
 %type <seq> DatasetClauseList DatasetClauseListOpt
+%type <seq> VarList
 
 %type <data_graph> DatasetClause DefaultGraphClause NamedGraphClause
 
@@ -276,6 +278,9 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
 
 %type <uinteger> DistinctOpt
 
+%type <row> BindingsRow
+
+
 %destructor {
   if($$)
     rasqal_free_literal($$);
@@ -309,8 +314,10 @@ ConstructTriples ConstructTriplesOpt
 ConstructTemplate OrderConditionList GroupConditionList
 HavingConditionList
 GraphNodeListNotEmpty SelectExpressionListTail
-ModifyTemplateList IriRefList ParamsOpt BindingsClauseOpt BindingValueList
+ModifyTemplateList IriRefList ParamsOpt
+BindingsClauseOpt BindingValueList BindingsRowList BindingsRowListOpt
 DatasetClauseList DatasetClauseListOpt
+VarList
 
 %destructor {
   if($$)
@@ -374,12 +381,18 @@ SeparatorOpt
 }
 Var VarName SelectTerm
 
-
 %destructor {
   if($$)
     rasqal_free_data_graph($$);
 }
 DatasetClause DefaultGraphClause NamedGraphClause
+
+%destructor {
+  if($$)
+    rasqal_free_row($$);
+}
+BindingsRow
+
 
 
 %%
@@ -2158,13 +2171,18 @@ OffsetClause:  OFFSET INTEGER_LITERAL
 
 
 /* SPARQL Grammar: BindingsClause renamed for clarity */
-/* 
-BindingsClause ::= ( 'BINDINGS' Var* '{' ( '(' BindingValue+ ')' | NIL )* '}' )?
-*/
-BindingsClauseOpt: BINDINGS BindingValueList
+BindingsClauseOpt: BINDINGS VarList '{' BindingsRowListOpt '}' 
 {
-  /* FIXME - not implemented: must create structure for bindings and fix grammar */
-  $$ = $2;
+  /* FIXME - not implemented: must create structure for bindings and
+   * fix grammar 
+   */
+  $$ = NULL;
+
+  if($2)
+    raptor_free_sequence($2);
+  
+  if($4)
+    raptor_free_sequence($4);
 }
 | /* empty */
 {
@@ -2173,6 +2191,114 @@ BindingsClauseOpt: BINDINGS BindingValueList
 ;
 
 
+/* NEW Grammar Term pulled out of BindingsClause */
+VarList: VarList Var
+{
+  $$ = $1;
+  if(raptor_sequence_push($$, $2)) {
+    raptor_free_sequence($$);
+    $$ = NULL;
+    YYERROR_MSG("VarList 1: sequence push failed");
+  }
+}
+| Var
+{
+#ifdef HAVE_RAPTOR2_API
+  $$ = raptor_new_sequence((raptor_data_free_handler)rasqal_free_variable,
+                           (raptor_data_print_handler)rasqal_variable_print);
+#else
+  $$ = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_variable,
+                           (raptor_sequence_print_handler*)rasqal_variable_print);
+#endif
+  if(!$$)
+    YYERROR_MSG("VarList 2: cannot create seq");
+  if(raptor_sequence_push($$, $1)) {
+    raptor_free_sequence($$);
+    $$ = NULL;
+    YYERROR_MSG("VarList 3: sequence push failed");
+  }
+}
+;
+
+
+/* NEW Grammar Term pulled out of BindingsClause */
+BindingsRowListOpt: BindingsRowList
+{
+  $$ = $1;
+}
+| /* empty */
+{
+  $$ = NULL;
+}
+;
+
+
+/* NEW Grammar Term pulled out of BindingsClause */
+BindingsRowList: BindingsRowList BindingsRow
+{
+  $$ = $1;
+  if(raptor_sequence_push($$, $2)) {
+    raptor_free_sequence($$);
+    $$ = NULL;
+    YYERROR_MSG("BindingsRowList 1: sequence push failed");
+  }
+}
+| BindingsRow
+{
+#ifdef HAVE_RAPTOR2_API
+  $$ = raptor_new_sequence((raptor_data_free_handler)rasqal_free_row,
+                           (raptor_data_print_handler)rasqal_row_print);
+#else
+  $$ = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_row,
+                           (raptor_sequence_print_handler*)rasqal_row_print);
+#endif
+  if(!$$) {
+    if($1)
+      rasqal_free_row($1);
+    YYERROR_MSG("BindingsRowList 2: cannot create sequence");
+  }
+  if(raptor_sequence_push($$, $1)) {
+    raptor_free_sequence($$);
+    $$ = NULL;
+    YYERROR_MSG("BindingsRowList 2: sequence push failed");
+  }
+}
+;
+
+
+/* NEW Grammar Term pulled out of BindingsClause */
+BindingsRow: '(' BindingValueList ')'
+{
+  $$ = NULL;
+  if($2) {
+    int size;
+    rasqal_row* row;
+    int i;
+    
+    size = raptor_sequence_size($2);
+
+    row = rasqal_new_row_for_size(((rasqal_query*)rq)->world, size);
+
+    for(i = 0; i < size; i++) {
+      rasqal_literal* value;
+      value = raptor_sequence_delete_at($2, i);
+      
+      rasqal_row_set_value_at(row, i, value);
+    }
+
+    raptor_free_sequence($2);
+    
+    $$ = row;
+  }
+}
+| '(' ')'
+{
+  $$ = NULL;
+}
+;
+
+
+/* NEW Grammar Term pulled out of BindingsClause */
 BindingValueList: BindingValueList BindingValue
 {
   $$ = $1;
