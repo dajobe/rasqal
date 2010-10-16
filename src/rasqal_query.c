@@ -271,6 +271,9 @@ rasqal_free_query(rasqal_query* query)
 
   if(query->updates)
     raptor_free_sequence(query->updates);
+
+  if(query->modifier)
+    rasqal_free_solution_modifier(query->modifier);
   
   RASQAL_FREE(rasqal_query, query);
 }

@@ -218,7 +218,7 @@ rasqal_new_let_graph_pattern(rasqal_query *query,
  * @query: #rasqal_graph_pattern query object
  * @select_variables: sequence of #rasqal_variable
  * @where: WHERE graph pattern
- * @modifiers: sequence of ?
+ * @modifiers: solution modifier
  *
  * INTERNAL - Create a new SELECT graph pattern
  * 
@@ -228,7 +228,7 @@ rasqal_graph_pattern*
 rasqal_new_select_graph_pattern(rasqal_query *query,
                                 raptor_sequence* select_variables,
                                 rasqal_graph_pattern* where,
-                                void* modifiers)
+                                rasqal_solution_modifier* modifier)
 {
   rasqal_graph_pattern* gp;
 
@@ -241,18 +241,15 @@ rasqal_new_select_graph_pattern(rasqal_query *query,
     raptor_free_sequence(select_variables);
     if(where)
       rasqal_free_graph_pattern(where);
-#if 0
-    /* FIXME - not implemented: define a structure for modifiers */
-    if(modifiers)
-      free(modifiers);
-#endif
+
+    if(modifier)
+      rasqal_free_solution_modifier(modifier);
     return NULL;
   }
 
-  /* FIXME - not implemented: define a structure for modifiers */
   gp->variables = select_variables;
   gp->where = where;
-  gp->modifiers = modifiers;
+  gp->modifier = modifier;
   
   return gp;
 }
@@ -285,11 +282,8 @@ rasqal_free_graph_pattern(rasqal_graph_pattern* gp)
   if(gp->where)
     rasqal_free_graph_pattern(gp->where);
   
-#if 0
-  /* FIXME - not implemented: define a structure for modifiers */
-  if(gp->modifiers)
-    free(gp->modifiers);
-#endif
+  if(gp->modifier)
+    rasqal_free_solution_modifier(gp->modifier);
 
   RASQAL_FREE(rasqal_graph_pattern, gp);
 }

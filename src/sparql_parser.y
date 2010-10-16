@@ -126,6 +126,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
   unsigned int uinteger;
   rasqal_data_graph* data_graph;
   rasqal_row* row;
+  rasqal_solution_modifier* modifier;
 }
 
 
@@ -280,6 +281,8 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
 
 %type <row> BindingsRow
 
+%type <modifier> SolutionModifier
+
 
 %destructor {
   if($$)
@@ -393,7 +396,11 @@ DatasetClause DefaultGraphClause NamedGraphClause
 }
 BindingsRow
 
-
+%destructor {
+  if($$)
+    rasqal_free_solution_modifier($$);
+}
+SolutionModifier
 
 %%
 
@@ -548,12 +555,15 @@ PrefixDeclListOpt: PrefixDeclListOpt PREFIX IDENTIFIER URI_LITERAL
 SelectQuery: SelectClause DatasetClauseListOpt WhereClause SolutionModifier BindingsClauseOpt
 {
   /* FIXME - not implemented: must store bindings clause somewhere */
-  void* fake1 = $5;
+  void* fake2 = $5;
   
   $$ = $1;
   if($2)
     rasqal_query_add_data_graphs((rasqal_query*)rq, $2);
 
+  if($4)
+    ((rasqal_query*)rq)->modifier = $4;
+  
   ((rasqal_query*)rq)->query_graph_pattern = $3;
 }
 ;
@@ -561,13 +571,11 @@ SelectQuery: SelectClause DatasetClauseListOpt WhereClause SolutionModifier Bind
 /* SPARQL Grammar: SubSelect */
 SubSelect: SelectClause WhereClause SolutionModifier
 {
-  /* FIXME - not implemented completely: must create graph pattern
-   * fields for all parts of subquery including SolutionModifier */
-
-  $$ = rasqal_new_select_graph_pattern((rasqal_query*)rq,
-                                       $1,
-                                       $2,
-                                       /* $3 modifiers */ NULL);
+  if($1 && $2 && $3)
+    $$ = rasqal_new_select_graph_pattern((rasqal_query*)rq,
+                                         $1, $2, $3);
+  else
+    $$ = NULL;
 }
 
 
@@ -953,6 +961,9 @@ ConstructQuery: CONSTRUCT ConstructTemplate
   if($3)
     rasqal_query_add_data_graphs((rasqal_query*)rq, $3);
   ((rasqal_query*)rq)->query_graph_pattern = $4;
+
+  if($5)
+    ((rasqal_query*)rq)->modifier = $5;
 }
 ;
 
@@ -967,6 +978,9 @@ DescribeQuery: DESCRIBE VarOrIRIrefList
     rasqal_query_add_data_graphs((rasqal_query*)rq, $3);
 
   ((rasqal_query*)rq)->query_graph_pattern = $4;
+
+  if($5)
+    ((rasqal_query*)rq)->modifier = $5;
 }
 | DESCRIBE '*'
         DatasetClauseListOpt WhereClauseOpt SolutionModifier
@@ -977,6 +991,9 @@ DescribeQuery: DESCRIBE VarOrIRIrefList
     rasqal_query_add_data_graphs((rasqal_query*)rq, $3);
 
   ((rasqal_query*)rq)->query_graph_pattern = $4;
+
+  if($5)
+    ((rasqal_query*)rq)->modifier = $5;
 }
 ;
 
@@ -1860,6 +1877,18 @@ WhereClauseOpt:  WhereClause
 
 /* SPARQL 1.1 Grammar: [18] SolutionModifier */
 SolutionModifier: GroupClauseOpt HavingClauseOpt OrderClauseOpt LimitOffsetClausesOpt
+{
+  rasqal_solution_modifier* sm;
+
+  sm = rasqal_new_solution_modifier((rasqal_query*)rq,
+                                    /* order_conditions */ NULL,
+                                    /* group_conditions */ NULL,
+                                    /* having_conditions */ NULL,
+                                    /* limit */ -1,
+                                    /* offset */ -1);
+  
+  $$ = sm;
+}
 ;
 
 

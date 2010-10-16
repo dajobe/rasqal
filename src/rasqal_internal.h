@@ -185,6 +185,33 @@ typedef struct rasqal_query_execution_factory_s rasqal_query_execution_factory;
 typedef struct rasqal_query_language_factory_s rasqal_query_language_factory;
 
 
+/**
+ * rasqal_solution_modifier:
+ * @query: rasqal query
+ * @order_conditions: sequence of order condition expressions (or NULL)
+ * @group_conditions: sequence of group by condition expressions (or NULL)
+ * @having_conditions: sequence of (group by ...) having condition expressions (or NULL)
+ * @limit: result limit LIMIT (>=0) or <0 if not given
+ * @offset: result offset OFFSET (>=0) or <0 if not given
+ *
+ * Query solution modifiers
+ *
+ */
+typedef struct {
+  rasqal_query* query;
+  
+  raptor_sequence* order_conditions;
+
+  raptor_sequence* group_conditions;
+
+  raptor_sequence* having_conditions;
+  
+  int limit;
+
+  int offset;
+} rasqal_solution_modifier;  
+
+
 /*
  * Graph Pattern
  */
@@ -215,14 +242,14 @@ struct rasqal_graph_pattern_s {
   /* SELECT graph pattern */
   raptor_sequence* variables;   /* Sequence of rasqal_variable*  */
   rasqal_graph_pattern* where;
-  void* modifiers; /* FIXME: not implemented: choose a structure for modifiers */
+  rasqal_solution_modifier* modifier;
 };
 
 rasqal_graph_pattern* rasqal_new_basic_graph_pattern(rasqal_query* query, raptor_sequence* triples, int start_column, int end_column);
 rasqal_graph_pattern* rasqal_new_graph_pattern_from_sequence(rasqal_query* query, raptor_sequence* graph_patterns, rasqal_graph_pattern_operator op);
 rasqal_graph_pattern* rasqal_new_filter_graph_pattern(rasqal_query* query, rasqal_expression* expr);
 rasqal_graph_pattern* rasqal_new_let_graph_pattern(rasqal_query *query, rasqal_variable *var, rasqal_expression *expr);  
-rasqal_graph_pattern* rasqal_new_select_graph_pattern(rasqal_query *query, raptor_sequence* select_variables, rasqal_graph_pattern* where, void* modifiers);
+rasqal_graph_pattern* rasqal_new_select_graph_pattern(rasqal_query *query, raptor_sequence* select_variables, rasqal_graph_pattern* where, rasqal_solution_modifier* modifier);
 void rasqal_free_graph_pattern(rasqal_graph_pattern* gp);
 void rasqal_graph_pattern_adjust(rasqal_graph_pattern* gp, int offset);
 void rasqal_graph_pattern_set_origin(rasqal_graph_pattern* graph_pattern, rasqal_literal* origin);
@@ -418,6 +445,9 @@ struct rasqal_query_s {
 
   /* sequence of (group by ...) having condition expressions */
   raptor_sequence* having_conditions_sequence;
+  
+  /* INTERNAL solution modifier */
+  rasqal_solution_modifier* modifier;
 };
 
 
@@ -1395,6 +1425,12 @@ rasqal_update_operation* rasqal_new_update_operation(rasqal_update_type type, ra
 void rasqal_free_update_operation(rasqal_update_operation *update);
 int rasqal_update_operation_print(rasqal_update_operation *update, FILE* stream);
 int rasqal_query_add_update_operation(rasqal_query* query, rasqal_update_operation *update);
+
+
+
+/* rasqal_solution_modifier.c */
+rasqal_solution_modifier* rasqal_new_solution_modifier(rasqal_query* query, raptor_sequence* order_conditions, raptor_sequence* group_conditions, raptor_sequence* having_conditions, int limit, int offset);
+void rasqal_free_solution_modifier(rasqal_solution_modifier* sm);
 
 
 /* raptor1 -> raptor2 migration */
