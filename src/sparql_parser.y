@@ -127,6 +127,8 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
   rasqal_data_graph* data_graph;
   rasqal_row* row;
   rasqal_solution_modifier* modifier;
+  int limit_offset[2];
+  int integer;
 }
 
 
@@ -232,6 +234,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
 %type <seq> BindingsClauseOpt BindingValueList BindingsRowList BindingsRowListOpt
 %type <seq> DatasetClauseList DatasetClauseListOpt
 %type <seq> VarList
+%type <seq> GroupClauseOpt HavingClauseOpt OrderClauseOpt
 
 %type <data_graph> DatasetClause DefaultGraphClause NamedGraphClause
 
@@ -283,6 +286,9 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
 
 %type <modifier> SolutionModifier
 
+%type <limit_offset> LimitOffsetClausesOpt
+%type <integer> LimitClause OffsetClause
+
 
 %destructor {
   if($$)
@@ -321,6 +327,8 @@ ModifyTemplateList IriRefList ParamsOpt
 BindingsClauseOpt BindingValueList BindingsRowList BindingsRowListOpt
 DatasetClauseList DatasetClauseListOpt
 VarList
+GroupClauseOpt HavingClauseOpt OrderClauseOpt
+
 
 %destructor {
   if($$)
@@ -1880,12 +1888,18 @@ SolutionModifier: GroupClauseOpt HavingClauseOpt OrderClauseOpt LimitOffsetClaus
 {
   rasqal_solution_modifier* sm;
 
+  ((rasqal_query*)rq)->group_conditions_sequence = $1;
+  ((rasqal_query*)rq)->having_conditions_sequence = $2;
+  ((rasqal_query*)rq)->order_conditions_sequence = $3;
+  ((rasqal_query*)rq)->limit = $4[0];
+  ((rasqal_query*)rq)->offset = $4[1];
+
   sm = rasqal_new_solution_modifier((rasqal_query*)rq,
-                                    /* order_conditions */ NULL,
-                                    /* group_conditions */ NULL,
-                                    /* having_conditions */ NULL,
-                                    /* limit */ -1,
-                                    /* offset */ -1);
+                                    /* order_conditions */ $3,
+                                    /* group_conditions */ $1,
+                                    /* having_conditions */ $2,
+                                    /* limit */ $4[0],
+                                    /* offset */ $4[1]);
   
   $$ = sm;
 }
@@ -1975,6 +1989,8 @@ GroupClauseOpt: GROUP BY GroupConditionList
   rasqal_sparql_query_language* sparql;
   sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
 
+  $$ = NULL;
+  
   if(!sparql->sparql11_query)
     sparql_syntax_error((rasqal_query*)rq,
                         "GROUP BY cannot be used with SPARQL 1.0");
@@ -1982,9 +1998,12 @@ GroupClauseOpt: GROUP BY GroupConditionList
     sparql_query_error((rasqal_query*)rq, 
                        "GROUP BY cannot be used with ASK");
   } else
-    ((rasqal_query*)rq)->group_conditions_sequence = $3;
+    $$ = $3;
 }
 | /* empty */
+{
+  $$ = NULL;
+}
 ;
 
 
@@ -2036,27 +2055,49 @@ HavingClauseOpt: HAVING HavingConditionList
   rasqal_sparql_query_language* sparql;
   sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
 
+  $$ = NULL;
+  
   if(!sparql->sparql11_query)
     sparql_syntax_error((rasqal_query*)rq,
                         "HAVING cannot be used with SPARQL 1.0");
   else if(((rasqal_query*)rq)->verb == RASQAL_QUERY_VERB_ASK) {
     sparql_query_error((rasqal_query*)rq, 
                        "HAVING cannot be used with ASK");
-  } else {
-    ((rasqal_query*)rq)->having_conditions_sequence = $2;
-  }
+  } else 
+    $$ = $2;
 }
 | /* empty */
+{
+  $$ = NULL;
+}
 ;
 
 
 /* SPARQL Grammar: LimitOffsetClauses */
 LimitOffsetClausesOpt: LimitClause OffsetClause
+{
+  $$[0] = $1;
+  $$[1] = $2;
+}
 | OffsetClause LimitClause
+{
+  $$[0] = $2;
+  $$[1] = $1;
+}
 | LimitClause
+{
+  $$[0] = $1;
+  $$[1] = -1;
+}
 | OffsetClause
+{
+  $$[0] = -1;
+  $$[1] = $1;
+}
 | /* empty */
-{ 
+{
+  $$[0] = -1;
+  $$[1] = -1;
 }
 ;
 
@@ -2064,13 +2105,17 @@ LimitOffsetClausesOpt: LimitClause OffsetClause
 /* SPARQL Grammar: OrderClause - remained for clarity */
 OrderClauseOpt: ORDER BY OrderConditionList
 {
+  $$ = NULL;
   if(((rasqal_query*)rq)->verb == RASQAL_QUERY_VERB_ASK) {
     sparql_query_error((rasqal_query*)rq, "ORDER BY cannot be used with ASK");
   } else {
-    ((rasqal_query*)rq)->order_conditions_sequence = $3;
+    $$ = $3;
   }
 }
 | /* empty */
+{
+  $$ = NULL;
+}
 ;
 
 
@@ -2169,13 +2214,14 @@ OrderCondition: ASC BrackettedExpression
 
 
 /* SPARQL Grammar: LimitClause - remained for clarity */
-LimitClause:  LIMIT INTEGER_LITERAL
+LimitClause: LIMIT INTEGER_LITERAL
 {
+  $$ = -1;
   if(((rasqal_query*)rq)->verb == RASQAL_QUERY_VERB_ASK) {
     sparql_query_error((rasqal_query*)rq, "LIMIT cannot be used with ASK");
   } else {
     if($2 != NULL) {
-      ((rasqal_query*)rq)->limit = $2->value.integer;
+      $$ = $2->value.integer;
       rasqal_free_literal($2);
     }
   }
@@ -2185,13 +2231,14 @@ LimitClause:  LIMIT INTEGER_LITERAL
 
 
 /* SPARQL Grammar: OffsetClause - remained for clarity */
-OffsetClause:  OFFSET INTEGER_LITERAL
+OffsetClause: OFFSET INTEGER_LITERAL
 {
+  $$ = -1;
   if(((rasqal_query*)rq)->verb == RASQAL_QUERY_VERB_ASK) {
     sparql_query_error((rasqal_query*)rq, "LIMIT cannot be used with ASK");
   } else {
     if($2 != NULL) {
-      ((rasqal_query*)rq)->offset = $2->value.integer;
+      $$ = $2->value.integer;
       rasqal_free_literal($2);
     }
   }
