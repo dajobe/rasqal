@@ -4322,7 +4322,6 @@ BuiltInCall: STR '(' Expression ')'
 }
 | ISNUMERIC '(' Expression ')'
 {
-  /* FIXME - not implemented: must create an RASQAL_EXPR_ISNUMERIC */
   $$ = rasqal_new_1op_expression(((rasqal_query*)rq)->world,
                                  RASQAL_EXPR_ISLITERAL, $3);
   if(!$$)
