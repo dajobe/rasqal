@@ -1994,10 +1994,7 @@ GroupClauseOpt: GROUP BY GroupConditionList
   if(!sparql->sparql11_query)
     sparql_syntax_error((rasqal_query*)rq,
                         "GROUP BY cannot be used with SPARQL 1.0");
-  else if(((rasqal_query*)rq)->verb == RASQAL_QUERY_VERB_ASK) {
-    sparql_query_error((rasqal_query*)rq, 
-                       "GROUP BY cannot be used with ASK");
-  } else
+  else
     $$ = $3;
 }
 | /* empty */
@@ -2060,10 +2057,7 @@ HavingClauseOpt: HAVING HavingConditionList
   if(!sparql->sparql11_query)
     sparql_syntax_error((rasqal_query*)rq,
                         "HAVING cannot be used with SPARQL 1.0");
-  else if(((rasqal_query*)rq)->verb == RASQAL_QUERY_VERB_ASK) {
-    sparql_query_error((rasqal_query*)rq, 
-                       "HAVING cannot be used with ASK");
-  } else 
+  else 
     $$ = $2;
 }
 | /* empty */
@@ -2105,12 +2099,7 @@ LimitOffsetClausesOpt: LimitClause OffsetClause
 /* SPARQL Grammar: OrderClause - remained for clarity */
 OrderClauseOpt: ORDER BY OrderConditionList
 {
-  $$ = NULL;
-  if(((rasqal_query*)rq)->verb == RASQAL_QUERY_VERB_ASK) {
-    sparql_query_error((rasqal_query*)rq, "ORDER BY cannot be used with ASK");
-  } else {
-    $$ = $3;
-  }
+  $$ = $3;
 }
 | /* empty */
 {
@@ -2217,13 +2206,10 @@ OrderCondition: ASC BrackettedExpression
 LimitClause: LIMIT INTEGER_LITERAL
 {
   $$ = -1;
-  if(((rasqal_query*)rq)->verb == RASQAL_QUERY_VERB_ASK) {
-    sparql_query_error((rasqal_query*)rq, "LIMIT cannot be used with ASK");
-  } else {
-    if($2 != NULL) {
-      $$ = $2->value.integer;
-      rasqal_free_literal($2);
-    }
+
+  if($2 != NULL) {
+    $$ = $2->value.integer;
+    rasqal_free_literal($2);
   }
   
 }
@@ -2234,13 +2220,10 @@ LimitClause: LIMIT INTEGER_LITERAL
 OffsetClause: OFFSET INTEGER_LITERAL
 {
   $$ = -1;
-  if(((rasqal_query*)rq)->verb == RASQAL_QUERY_VERB_ASK) {
-    sparql_query_error((rasqal_query*)rq, "LIMIT cannot be used with ASK");
-  } else {
-    if($2 != NULL) {
-      $$ = $2->value.integer;
-      rasqal_free_literal($2);
-    }
+
+  if($2 != NULL) {
+    $$ = $2->value.integer;
+    rasqal_free_literal($2);
   }
 }
 ;
