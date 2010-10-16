@@ -2159,7 +2159,7 @@ OffsetClause:  OFFSET INTEGER_LITERAL
 
 /* SPARQL Grammar: BindingsClause renamed for clarity */
 /* 
-BindingsClause   ::=   ( 'BINDINGS' Var+ Var* '{' ( '(' BindingValue+ ')' | NIL )* '}' )?
+BindingsClause ::= ( 'BINDINGS' Var* '{' ( '(' BindingValue+ ')' | NIL )* '}' )?
 */
 BindingsClauseOpt: BINDINGS BindingValueList
 {
