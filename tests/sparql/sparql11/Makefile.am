@@ -20,10 +20,12 @@
 # 
 
 SPARQL_MODEL_FILES= \
-data-1.ttl
+data-1.ttl \
+subquery-1.ttl
 
 EXPECTED_SPARQL_CORRECT= \
-isnumeric-1.rq
+isnumeric-1.rq \
+subquery-1.rq
 
 EXPECTED_SPARQL_CORRECT_FAILURES=
 
@@ -49,10 +51,10 @@ get-testsuite-sparql-parse-good:
 	$(ECHO) "<> a mf:Manifest; rdfs:comment \"SPARQL 1.1 expressions legal parsing\"; mf:entries ("; \
 	for test in $(EXPECTED_SPARQL_CORRECT); do \
 	  comment="sparql parsing of $$test"; \
-	  $(ECHO) "  [ a t:PositiveTest; mf:name \"$$test\"; rdfs:comment \"$$comment\"; mf:action  \"$(top_builddir)/src/$$prog -i laqrs $(srcdir)/$$test\" ]"; \
+	  $(ECHO) "  [ a t:PositiveTest; mf:name \"$$test\"; rdfs:comment \"$$comment\"; mf:action  \"$(top_builddir)/src/$$prog -i sparql11 $(srcdir)/$$test\" ]"; \
 	done; \
 	for test in $(EXPECTED_SPARQL_CORRECT_FAILURES); do \
 	  comment="sparql parsing of $$test"; \
-	  $(ECHO) "  [ a t:NegativeTest; mf:name \"$$test\"; rdfs:comment \"$$comment\"; mf:action  \"$(top_builddir)/src/$$prog -i laqrs $(srcdir)/$$test\" ]"; \
+	  $(ECHO) "  [ a t:NegativeTest; mf:name \"$$test\"; rdfs:comment \"$$comment\"; mf:action  \"$(top_builddir)/src/$$prog -i sparql11 $(srcdir)/$$test\" ]"; \
 	done; \
 	$(ECHO) ")."
