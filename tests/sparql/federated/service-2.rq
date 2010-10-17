@@ -1,0 +1,23 @@
+# http://www.w3.org/2009/sparql/docs/fed/service
+# Revision 1.13  2010/08/06 12:06:52  aseaborne
+# Section 2
+
+PREFIX  iuphar:     <http://iuphar.example/ns#>
+PREFIX  entrez:     <http://entrez.example/ns#>
+PREFIX  void:       <http://rdfs.org/ns/void#>
+PREFIX  dcterms:    <http://purl.org/dc/terms/>
+
+SELECT ?service ?id ?iuphar
+WHERE {
+  # Find the service with the expertise.
+  [] dcterms:subject ?gene ;
+     void:sparqlEndpoint ?service
+  FILTER (?gene = entrez:h2550 || ?gene = entrez:h9568)
+
+  # Query that service for species and iuphar.
+  SERVICE ?service {
+    ?receptor  iuphar:species    ?species .
+    ?species   iuphar:name       ?iuphar .
+    ?species   entrez:id         ?id .
+  }
+}

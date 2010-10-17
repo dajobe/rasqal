@@ -1,0 +1,3 @@
+# Most useless binding query
+
+SELECT * WHERE { } BINDINGS ?a { }

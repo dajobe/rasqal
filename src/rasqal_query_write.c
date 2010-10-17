@@ -698,6 +698,57 @@ rasqal_query_write_data_format_comment(sparql_writer_context* wc,
   
 
 
+static int
+rasqal_write_sparql_row(sparql_writer_context* wc,
+                        raptor_iostream* iostr,
+                        rasqal_row* row)
+{
+  int i;
+  
+  raptor_iostream_counted_string_write("( ", 2, iostr);
+  for(i = 0; i < row->size; i++) {
+    rasqal_literal* value = row->values[i];
+    if(i > 0)
+      raptor_iostream_counted_string_write(" ", 1, iostr);
+
+    if(value)
+      rasqal_query_write_sparql_literal(wc, iostr, value);
+    else
+      raptor_iostream_counted_string_write("UNDEF", 5, iostr);
+  }
+  raptor_iostream_counted_string_write(" )", 2, iostr);
+
+  return 0;
+}
+
+
+static int
+rasqal_write_sparql_bindings(sparql_writer_context* wc,
+                             raptor_iostream* iostr,
+                             rasqal_bindings* bindings)
+{
+  raptor_iostream_counted_string_write("BINDINGS", 8, iostr);
+  rasqal_query_write_sparql_select(wc, iostr, bindings->variables);
+  raptor_iostream_counted_string_write(" {\n", 3, iostr);
+
+  if(bindings->rows) {
+    int i;
+  
+    for(i = 0; i < raptor_sequence_size(bindings->rows); i++) {
+      rasqal_row* row;
+      row = raptor_sequence_get_at(bindings->rows, i);
+      raptor_iostream_counted_string_write("  ", 2, iostr);
+      rasqal_write_sparql_row(wc, iostr, row);
+      raptor_iostream_counted_string_write("\n", 1, iostr);
+    }
+  }
+
+  raptor_iostream_counted_string_write("}\n", 2, iostr);
+
+  return 0;
+}
+
+
 int
 rasqal_query_write_sparql_20060406(raptor_iostream *iostr, 
                                    rasqal_query* query, raptor_uri *base_uri)
@@ -974,6 +1025,8 @@ rasqal_query_write_sparql_20060406(raptor_iostream *iostr,
     raptor_iostream_write_byte('\n', iostr);
   }
 
+  if(query->bindings)
+    rasqal_write_sparql_bindings(&wc, iostr, query->bindings);
 
   tidy:
   raptor_free_uri(wc.type_uri);

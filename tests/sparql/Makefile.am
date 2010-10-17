@@ -27,7 +27,8 @@ SyntaxDev \
 update \
 bugs \
 aggregate \
-sparql11
+sparql11 \
+federated
 
 EXTRA_DIST=check-sparql
 

@@ -1,0 +1,8 @@
+# Just construct a result table here
+
+SELECT *
+WHERE { } BINDINGS ?a ?b ?c {
+  (UNDEF "b1"  "c1")
+  ("a1"  UNDEF "c2")
+  ("a2"  "b2"   UNDEF )
+}

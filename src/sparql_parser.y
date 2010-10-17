@@ -130,6 +130,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
   int limit_offset[2];
   int integer;
   rasqal_projection* projection;
+  rasqal_bindings* bindings;
 }
 
 
@@ -232,7 +233,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
 %type <seq> IriRefList
 %type <seq> ParamsOpt
 %type <seq> ExpressionList
-%type <seq> BindingsClauseOpt BindingValueList BindingsRowList BindingsRowListOpt
+%type <seq> BindingValueList BindingsRowList BindingsRowListOpt
 %type <seq> DatasetClauseList DatasetClauseListOpt
 %type <seq> VarList
 %type <seq> GroupClauseOpt HavingClauseOpt OrderClauseOpt
@@ -292,6 +293,9 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
 
 %type <projection> SelectClause SelectExpressionList
 
+%type <bindings> BindingsClauseOpt
+
+
 %destructor {
   if($$)
     rasqal_free_literal($$);
@@ -326,7 +330,7 @@ ConstructTemplate OrderConditionList GroupConditionList
 HavingConditionList
 GraphNodeListNotEmpty SelectExpressionListTail
 ModifyTemplateList IriRefList ParamsOpt
-BindingsClauseOpt BindingValueList BindingsRowList BindingsRowListOpt
+BindingValueList BindingsRowList BindingsRowListOpt
 DatasetClauseList DatasetClauseListOpt
 VarList
 GroupClauseOpt HavingClauseOpt OrderClauseOpt
@@ -417,6 +421,13 @@ SolutionModifier
     rasqal_free_projection($$);
 }
 SelectClause SelectExpressionList
+
+
+%destructor {
+  if($$)
+    rasqal_free_bindings($$);
+}
+BindingsClauseOpt
 
 
 %%
@@ -571,9 +582,6 @@ PrefixDeclListOpt: PrefixDeclListOpt PREFIX IDENTIFIER URI_LITERAL
 /* SPARQL Grammar: SelectQuery */
 SelectQuery: SelectClause DatasetClauseListOpt WhereClause SolutionModifier BindingsClauseOpt
 {
-  /* FIXME - not implemented: must store bindings clause somewhere */
-  void* fake2 = $5;
-  
   /* FIXME - this peeks inside rasqal_projection */
   $$ = $1->variables; $1->variables = NULL;
   if($1->wildcard)
@@ -584,10 +592,14 @@ SelectQuery: SelectClause DatasetClauseListOpt WhereClause SolutionModifier Bind
   if($2)
     rasqal_query_add_data_graphs((rasqal_query*)rq, $2);
 
+  ((rasqal_query*)rq)->query_graph_pattern = $3;
+
   if($4)
     ((rasqal_query*)rq)->modifier = $4;
   
-  ((rasqal_query*)rq)->query_graph_pattern = $3;
+  if($5)
+    ((rasqal_query*)rq)->bindings = $5;
+  
 }
 ;
 
@@ -657,7 +669,7 @@ SelectExpressionListTail: SelectExpressionListTail SelectTerm
 }
 | SelectTerm
 {
-  /* The variables are freed from the raptor_query field variables */
+  /* All variables are freed from the raptor_query field variables */
 #ifdef HAVE_RAPTOR2_API
   $$ = raptor_new_sequence(NULL,
                            (raptor_data_print_handler)rasqal_variable_print);
@@ -2249,16 +2261,16 @@ OffsetClause: OFFSET INTEGER_LITERAL
 /* SPARQL Grammar: BindingsClause renamed for clarity */
 BindingsClauseOpt: BINDINGS VarList '{' BindingsRowListOpt '}' 
 {
-  /* FIXME - not implemented: must create structure for bindings and
-   * fix grammar 
-   */
-  $$ = NULL;
+  if($2) {
+    $$ = rasqal_new_bindings((rasqal_query*)rq, $2, $4);
+    if(!$$)
+      YYERROR_MSG("BindingsClauseOpt: cannot create bindings");
+  } else {
+    if($4)
+      raptor_free_sequence($4);
 
-  if($2)
-    raptor_free_sequence($2);
-  
-  if($4)
-    raptor_free_sequence($4);
+    $$ = NULL;
+  }
 }
 | /* empty */
 {
@@ -2279,15 +2291,17 @@ VarList: VarList Var
 }
 | Var
 {
+  /* All variables are freed from the raptor_query field variables */
 #ifdef HAVE_RAPTOR2_API
-  $$ = raptor_new_sequence((raptor_data_free_handler)rasqal_free_variable,
+  $$ = raptor_new_sequence(NULL,
                            (raptor_data_print_handler)rasqal_variable_print);
 #else
-  $$ = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_variable,
+  $$ = raptor_new_sequence(NULL,
                            (raptor_sequence_print_handler*)rasqal_variable_print);
 #endif
   if(!$$)
     YYERROR_MSG("VarList 2: cannot create seq");
+
   if(raptor_sequence_push($$, $1)) {
     raptor_free_sequence($$);
     $$ = NULL;
@@ -2331,6 +2345,7 @@ BindingsRowList: BindingsRowList BindingsRow
   if(!$$) {
     if($1)
       rasqal_free_row($1);
+
     YYERROR_MSG("BindingsRowList 2: cannot create sequence");
   }
   if(raptor_sequence_push($$, $1)) {
@@ -2354,14 +2369,14 @@ BindingsRow: '(' BindingValueList ')'
     size = raptor_sequence_size($2);
 
     row = rasqal_new_row_for_size(((rasqal_query*)rq)->world, size);
-
-    for(i = 0; i < size; i++) {
-      rasqal_literal* value;
-      value = raptor_sequence_delete_at($2, i);
-      
-      rasqal_row_set_value_at(row, i, value);
+    if(!row) {
+      YYERROR_MSG("BindingsRow: cannot create row");
+    } else {
+      for(i = 0; i < size; i++) {
+        rasqal_literal* value = raptor_sequence_delete_at($2, i);
+        rasqal_row_set_value_at(row, i, value);
+      }
     }
-
     raptor_free_sequence($2);
     
     $$ = row;
@@ -2426,7 +2441,6 @@ BindingValue: IRIref
 }
 | UNDEF
 {
-  /* FIXME - not implemented: maybe create an undef literal? */
   $$ = NULL;
 }
 ;
@@ -2863,7 +2877,7 @@ ServiceGraphPattern: SERVICE VarOrIRIref GroupGraphPattern
 /* SPARQL Grammar: MinusGraphPattern */
 MinusGraphPattern: MINUS GroupGraphPattern
 {
-  /* FIXME - not implemented: must create a service graph pattern */
+  /* FIXME - not implemented: must create a minus graph pattern */
   void* fake1 = $2;
   $$ = NULL;
 }

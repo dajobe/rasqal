@@ -974,6 +974,7 @@ tests/sparql/SyntaxDev/Syntax-SPARQL3/Makefile
 tests/sparql/update/Makefile
 tests/sparql/aggregate/Makefile
 tests/sparql/sparql11/Makefile
+tests/sparql/federated/Makefile
 utils/Makefile
 win32/Makefile
 rasqal.spec

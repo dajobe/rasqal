@@ -1,0 +1,16 @@
+# http://www.w3.org/2009/sparql/docs/fed/service
+# Revision 1.13  2010/08/06 12:06:52  aseaborne
+# Section 2
+
+# Data in default graph at service: http://study.example/analyzed
+@prefix  med:        <http://med.example/testDrug#> .
+@prefix  entrez:     <http://entrez.example/ns#> .
+@prefix  study:      <http://study.example/affects#> .
+
+_:study9  entrez:id        2550 .
+_:study9  med:ication      "Illudium Phosdex"
+_:study9  study:change     -.23 .
+
+_:study10 entrez:id        2986 .
+_:study10 med:ication      "Illudium Phosdex"
+_:study10 study:change     +.38 .

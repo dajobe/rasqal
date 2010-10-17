@@ -1,0 +1,16 @@
+# http://www.w3.org/2009/sparql/docs/fed/service
+# Revision 1.13  2010/08/06 12:06:52  aseaborne
+# Section 2.1
+
+# Default graph
+@prefix void:    <http://rdfs.org/ns/void#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix entrez:  &lt;http://entrez.example/ns#&gt; .
+
+[] dcterms:subject entrez:h2550 ;
+   void:sparqlEndpoint <http://GABBR1.example/SPARQL>
+[] dcterms:subject entrez:h9568 ;
+   void:sparqlEndpoint <http://GABBR2.example/SPARQL>
+[] dcterms:subject entrez:h33248 .
+   void:sparqlEndpoint <http://GABA-B-R3.example/SPARQL>
+# ...

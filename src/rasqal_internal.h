@@ -229,7 +229,25 @@ typedef struct {
   int limit;
 
   int offset;
-} rasqal_solution_modifier;  
+} rasqal_solution_modifier;
+
+
+/**
+ * rasqal_bindings:
+ * @query: rasqal query
+ * @variables: sequence of variables
+ * @rows: sequence of #rasqal_row (or NULL)
+ *
+ * Result bindings from SPARQL 1.1 BINDINGS block
+ *
+ */
+typedef struct {
+  rasqal_query* query;
+  
+  raptor_sequence* variables;
+
+  raptor_sequence* rows;
+} rasqal_bindings;  
 
 
 /*
@@ -468,6 +486,9 @@ struct rasqal_query_s {
   
   /* INTERNAL solution modifier */
   rasqal_solution_modifier* modifier;
+
+  /* INTERNAL SELECT bindings */
+  rasqal_bindings* bindings;
 };
 
 
@@ -1445,6 +1466,12 @@ rasqal_update_operation* rasqal_new_update_operation(rasqal_update_type type, ra
 void rasqal_free_update_operation(rasqal_update_operation *update);
 int rasqal_update_operation_print(rasqal_update_operation *update, FILE* stream);
 int rasqal_query_add_update_operation(rasqal_query* query, rasqal_update_operation *update);
+
+
+/* rasqal_bindings.c */
+rasqal_bindings* rasqal_new_bindings(rasqal_query* query, raptor_sequence* variables, raptor_sequence* rows);
+void rasqal_free_bindings(rasqal_bindings* bindings);
+int rasqal_bindings_print(rasqal_bindings* bindings, FILE* fh);
 
 
 /* rasqal_projection.c */

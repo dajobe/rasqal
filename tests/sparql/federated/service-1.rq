@@ -1,0 +1,25 @@
+# http://www.w3.org/2009/sparql/docs/fed/service
+# Revision 1.13  2010/08/06 12:06:52  aseaborne
+# Section 2
+
+PREFIX  iuphar:     <http://iuphar.example/ns#>
+PREFIX  entrez:     <http://entrez.example/ns#>
+PREFIX  med:        <http://med.example/testDrug#>
+PREFIX  study:      <http://study.example/affects#>
+
+SELECT ?med ?species ?iuphar
+WHERE {
+  SERVICE <http://bio.example/receptors> {
+    ?receptor  iuphar:ligand     "GABA" .
+    ?receptor  iuphar:species    ?species .
+    ?species   iuphar:name       ?iuphar .
+    ?species   entrez:id         ?id .
+  }
+  SERVICE <http://study.example/analyzed> {
+    ?study  entrez:id            ?id .
+    ?study  study:species        ?species .
+    ?study  med:ication          ?med .
+    ?study  study:change         ?change .
+    FILTER (?change < -.2)
+  }
+}

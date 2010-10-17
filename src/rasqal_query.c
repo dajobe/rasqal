@@ -275,6 +275,9 @@ rasqal_free_query(rasqal_query* query)
   if(query->modifier)
     rasqal_free_solution_modifier(query->modifier);
   
+  if(query->bindings)
+    rasqal_free_bindings(query->bindings);
+  
   RASQAL_FREE(rasqal_query, query);
 }
 
@@ -1578,6 +1581,10 @@ rasqal_query_print(rasqal_query* query, FILE *fh)
   if(query->updates) {
     fputs("\nupdate operations: ", fh);
     raptor_sequence_print(query->updates, fh);
+  }
+  if(query->bindings) {
+    fputs("\nbindings: ", fh);
+    rasqal_bindings_print(query->bindings, fh);
   }
   fputc('\n', fh);
 

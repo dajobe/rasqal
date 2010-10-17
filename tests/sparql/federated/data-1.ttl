@@ -1,0 +1,20 @@
+# http://www.w3.org/2009/sparql/docs/fed/service
+# Revision 1.13  2010/08/06 12:06:52  aseaborne
+# Section 2
+
+# Data in default graph at service: http://bio.example/receptors
+@prefix  iuphar:     <http://iuphar.example/ns#> .
+@prefix  entrez:     <http://entrez.example/ns#> .
+
+_:GABBR1  iuphar:code       "2.3:GABA:1:GABAB1:" .
+_:GABBR1  iuphar:ligand     "GABA" .
+_:GABBR1  iuphar:species    _:h2550 .
+_:h2550   iuphar:name       "GABBR1" .
+_:h2550   entrez:id         2550 .
+
+
+_:GABBR2  iuphar:code       "2.3:GABA:1:GABAB2:" .
+_:GABBR2  iuphar:ligand     "GABA" .
+_:GABBR2  iuphar:species    _:h9568 .
+_:h9568   iuphar:name       "GABBR2" .
+_:h9568   entrez:id         9568 .
