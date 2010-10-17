@@ -92,7 +92,8 @@ rasqal_new_solution_modifier(rasqal_query* query,
 void
 rasqal_free_solution_modifier(rasqal_solution_modifier* sm)
 {
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN(sm, rasqal_solution_modifier);
+  if(!sm)
+    return;
   
   if(sm->order_conditions)
     raptor_free_sequence(sm->order_conditions);

@@ -85,7 +85,8 @@ rasqal_new_projection(rasqal_query* query,
 void
 rasqal_free_projection(rasqal_projection* projection)
 {
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN(projection, rasqal_projection);
+  if(projection)
+    return;
   
   if(projection->variables)
     raptor_free_sequence(projection->variables);

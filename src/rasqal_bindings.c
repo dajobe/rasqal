@@ -84,7 +84,8 @@ rasqal_new_bindings(rasqal_query* query,
 void
 rasqal_free_bindings(rasqal_bindings* bindings)
 {
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN(bindings, rasqal_bindings);
+  if(!bindings)
+    return;
   
   raptor_free_sequence(bindings->variables);
   if(bindings->rows)
@@ -130,5 +131,3 @@ rasqal_bindings_print(rasqal_bindings* bindings, FILE* fh)
 
   return 0;
 }
-
-
