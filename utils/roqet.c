@@ -385,6 +385,46 @@ roqet_query_walk(rasqal_query *rq, FILE *fh, int indent) {
     fputs("}\n", fh);
   }
 
+  /* look for binding rows */
+  seq = rasqal_query_get_bindings_variables_sequence(rq);
+  if(seq) {
+    roqet_write_indent(fh, indent);
+    fprintf(fh, "bindings variables (%d): ",  raptor_sequence_size(seq));
+    
+    i = 0;
+    while(1) {
+      rasqal_variable* v = rasqal_query_get_bindings_variable(rq, i);
+      if(!v)
+        break;
+
+      if(i > 0)
+        fputs(", ", fh);
+      roqet_query_write_variable(fh, v);
+      i++;
+    }
+    fputc('\n', fh);
+    
+    seq = rasqal_query_get_bindings_rows_sequence(rq);
+
+    fprintf(fh, "bindings rows (%d) {\n", raptor_sequence_size(seq));
+    i = 0;
+    while(1) {
+      rasqal_row* row;
+      
+      row = rasqal_query_get_bindings_row(rq, i);
+      if(!row)
+        break;
+      
+      roqet_write_indent(fh, indent + 2);
+      fprintf(fh, "row #%d { ", i);
+      rasqal_row_print(row, fh);
+      fputs("}\n", fh);
+      
+      i++;
+    }
+  }
+
+
   fputs("query ", fh);
   roqet_graph_pattern_walk(gp, -1, fh, indent);
 }
