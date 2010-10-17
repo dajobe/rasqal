@@ -398,7 +398,8 @@ rasqal_raptor_parse_iostream(raptor_parser* rdf_parser, raptor_iostream *iostr,
     return rc;
   
   while(!raptor_iostream_read_eof(iostr)) {
-    int len = raptor_iostream_read_bytes(buffer, 1, RAPTOR_READ_BUFFER_SIZE,
+    int len = raptor_iostream_read_bytes(buffer, 1,
+                                         RASQAL_RAPTOR_READ_BUFFER_SIZE,
                                          iostr);
     int is_end = (len < RAPTOR_READ_BUFFER_SIZE);
 
