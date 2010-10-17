@@ -280,9 +280,6 @@ struct rasqal_graph_pattern_s {
   /* SELECT projection */
   rasqal_projection* projection;
 
-  /* SELECT / SERVICE / MINUS graph pattern */
-  rasqal_graph_pattern* where;
-
   /* SELECT modifiers */
   rasqal_solution_modifier* modifier;
 };

@@ -549,6 +549,7 @@ rasqal_query_write_sparql_graph_pattern(sparql_writer_context *wc,
 
   if(op == RASQAL_GRAPH_PATTERN_OPERATOR_SELECT) {
     raptor_sequence* vars_seq;
+    rasqal_graph_pattern* where_gp;
     
     raptor_iostream_counted_string_write("SELECT", 6, iostr);
     vars_seq = rasqal_projection_get_variables_sequence(gp->projection);
@@ -556,9 +557,8 @@ rasqal_query_write_sparql_graph_pattern(sparql_writer_context *wc,
     raptor_iostream_write_byte('\n', iostr);
     rasqal_query_write_indent(iostr, indent);
     raptor_iostream_counted_string_write("WHERE ", 6, iostr);
-    rasqal_query_write_sparql_graph_pattern(wc, iostr,
-                                            gp->where,
-                                            0, indent);
+    where_gp = rasqal_graph_pattern_get_sub_graph_pattern(gp, 0);
+    rasqal_query_write_sparql_graph_pattern(wc, iostr, where_gp, 0, indent);
     /* FIXME - not implemented: modifiers */
     return;
   }
@@ -574,13 +574,14 @@ rasqal_query_write_sparql_graph_pattern(sparql_writer_context *wc,
   }
   
   if(op == RASQAL_GRAPH_PATTERN_OPERATOR_SERVICE) {
+    rasqal_graph_pattern* service_gp;
+
     /* LAQRS */
     raptor_iostream_counted_string_write("SERVICE ", 8, iostr);
     rasqal_query_write_sparql_literal(wc, iostr, gp->origin);
     raptor_iostream_counted_string_write(" ", 1, iostr);
-    rasqal_query_write_sparql_graph_pattern(wc, iostr,
-                                            gp->where,
-                                            0, indent);
+    service_gp = rasqal_graph_pattern_get_sub_graph_pattern(gp, 0);
+    rasqal_query_write_sparql_graph_pattern(wc, iostr, service_gp, 0, indent);
     return;
   }
   
