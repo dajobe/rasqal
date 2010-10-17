@@ -1,4 +1,297 @@
+2010-10-17  Dave Beckett <dave@dajobe.org>
+
+	* src/sparql_parser.y:
+	(BindingsRowList): Set row offset
+
+	* utils/roqet.c: Add bindings block to query walk using API
+
+	* src/rasqal.h.in, src/rasqal_query.c: Added API access to
+	bindings variables and rows
+
+	(rasqal_query_get_bindings_variables_sequence,
+	rasqal_query_get_bindings_variable,
+	rasqal_query_get_bindings_rows_sequence,
+	rasqal_query_get_bindings_row): Added.
+
+	* src/rasqal_internal.h, src/rasqal_query_write.c: Elimiate graph
+	pattern field where and use existing graph_patterns
+
+	* src/rasqal_graph_pattern.c:
+	(rasqal_graph_pattern_get_service): Add again
+
+	* utils/roqet.c:
+	(roqet_graph_pattern_walk): Print LET variable, GRAPH and SERVICE
+	literals using rasqal public APIs Code tidy: reorder options
+
+	* src/rasqal.h.in, src/rasqal_graph_pattern.c:
+	(rasqal_graph_pattern_get_service): Added
+
+2010-10-16  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal.h.in, src/rasqal_algebra.c,
+	src/rasqal_graph_pattern.c, src/rasqal_internal.h,
+	src/rasqal_query_transform.c, src/rasqal_query_write.c,
+	src/sparql_parser.y: Added SPARQL SERVICE and MINUS syntax and
+	graph pattern support
+
+	rasqal_graph_pattern_operator gains
+	RASQAL_GRAPH_PATTERN_OPERATOR_SERVICE and
+	RASQAL_GRAPH_PATTERN_OPERATOR_MINUS
+
+	(rasqal_new_single_graph_pattern): Added.  Added service and minus
+	to rasqal_graph_pattern_operator_labels.
+
+	rasqal_graph_pattern: Document use of origin for service literal
+	and where for MINUS graph pattern.
+
+	(ServiceGraphPattern, MinusGraphPattern): use
+	rasqal_new_single_graph_pattern() to store service and minus graph
+	patterns.
+
+	* src/rasqal_bindings.c, src/rasqal_projection.c,
+	src/rasqal_solution_modifier.c: Code style - allow NULL free
+	pointer for destructors
+
+	(rasqal_free_projection, rasqal_free_solution_modifier,
+	rasqal_free_bindings): Do nothing with NULL reference
+
+	* src/rasqal_bindings.c:
+	remove unused functions
+
+	* src/rasqal_bindings.c:
+	rasqal bindings added
+
+	* configure.ac, src/Makefile.am, src/rasqal_internal.h,
+	src/rasqal_query.c, src/rasqal_query_write.c, src/sparql_parser.y,
+	tests/sparql/Makefile.am, tests/sparql/federated/Makefile.am,
+	tests/sparql/federated/bindings-1.rq,
+	tests/sparql/federated/bindings-2.rq,
+	tests/sparql/federated/bindings-3.rq,
+	tests/sparql/federated/data-1.ttl,
+	tests/sparql/federated/data-2.ttl,
+	tests/sparql/federated/data-3.ttl,
+	tests/sparql/federated/data-4.ttl,
+	tests/sparql/federated/data-5.ttl,
+	tests/sparql/federated/service-1.rq,
+	tests/sparql/federated/service-2.rq: Add SPARQL BINDINGS federated
+	query data structures
+
+	Added (internal) rasqal_bindings datatype.
+
+	rasqal_query gains bindings structure.
+
+	(rasqal_free_query, rasqal_query_print): Handle bindings
+
+	(rasqal_new_bindings, rasqal_free_bindings,
+	rasqal_bindings_print): Added.
+
+	(rasqal_query_write_sparql_bindings, rasqal_write_sparql_row):
+	Added for writing bindings.
+
+	(rasqal_query_write_sparql_20060406): Add SPARQL formatting for
+	BINDINGS Updated SPARQL grammar for full BINDINGS support.
+
+	(BindingsClauseOpt): Now is a rasqal_bindings type and stores
+	fields properly.
+
+	(SelectQuery): Store bindings.
+
+	(VarList): Fixed to not free variables and fix error handling
+
+	(MinusGraphPattern): Fix comment.
+
+	Added syntax tests from
+	http://www.w3.org/2009/sparql/docs/fed/service draft in
+	tests/sparql/federated
+
+	* src/rasqal_raptor.c:
+	RASQAL_RAPTOR_READ_BUFFER_SIZE again
+
+	* src/rasqal_raptor.c:
+	RASQAL_RAPTOR_READ_BUFFER_SIZE
+
+	* src/Makefile.am, src/rasqal_graph_pattern.c,
+	src/rasqal_internal.h, src/rasqal_projection.c,
+	src/rasqal_query_write.c, src/sparql_parser.y: Add select
+	projection class
+
+	Added internal class rasqal_projection to wrap SELECT variables,
+	wildcard flag, distinct/reduced mode.
+
+	(rasqal_new_projection, rasqal_free_projection,
+	rasqal_projection_get_variables_sequence): Added.
+
+	rasqal_graph_pattern replace select variables field with a
+	projection.
+
+	(rasqal_new_select_graph_pattern, rasqal_free_graph_pattern,
+	rasqal_graph_pattern_write_internal): Adjust to use
+	rasqal_projection rather than variable sequence.
+
+	(rasqal_query_write_sparql_graph_pattern): Adjust to use
+	rasqal_projection_get_variables_sequence() to get select variables
+	for sub SELECT.  SPARQL grammar: Add projection to token union
+
+	(SelectClause, SelectExpressionList): Now return projection.
+
+	(SelectQuery): Use returned projection object to write old fields
+	in query object.  At this point there is very little, if any,
+	writing direct to fields of the query object deep in the SPARQL
+	parse tree, it is mostly to objects passed back.
+
+	* src/sparql_parser.y:
+	(SolutionModifier): Do not pass in sequences to solution_modifier
+	for now.
+
+	* src/sparql_parser.y: Remove grammar checks for ASK verb that can
+	never happen
+
+	(GroupClauseOpt, HavingClauseOpt, LimitOffsetClausesOpt,
+	OrderCondition, LimitClause): Remove checks for group by, having,
+	limit, offset with ASK that will never happen due to the grammar
+	not allowing it.
+
+	* src/sparql_parser.y: Make limit and offsets pass data up to
+	higher level structures
+
+	Add limit_offset integer pair and integer int to token union
+
+	(GroupClauseOpt, HavingClauseOpt, OrderClauseOpt): now return
+	sequences or NULL rather than write to query object.
+
+	(LimitOffsetClausesOpt): Now returns an int pair in (limit,
+	offset)
+
+	(LimitClause. OffsetClause): Now return int rather than write to
+	query object.
+
+	(SolutionModifier): Write group, having, order, limit and offset
+	to query structure.
+
+	* src/Makefile.am, src/rasqal_graph_pattern.c,
+	src/rasqal_internal.h, src/rasqal_query.c,
+	src/rasqal_solution_modifier.c, src/sparql_parser.y: Add solution
+	modifier class and use for sub SELECT parsing
+
+	Add private structure rasqal_solution_modifier with fields for
+	order, group, having, limit and offset for modifying a solution.
+
+	(rasqal_new_select_graph_pattern): Change last arg to
+	rasqal_solution_modifier* pointer.
+
+	(rasqal_free_graph_pattern): Free modifier.
+
+	rasqal_graph_pattern now points to a modifier for sub-SELECT.
+
+	rasqal_query gains a filed pointing to a modifier (not used yet).
+	
+	(rasqal_free_query): Destroy above.
+
+	(rasqal_new_solution_modifier, rasqal_free_solution_modifier): Added
+	constructor and destructor for new class.
+
+	SPARQL parsing token union gains a modifier field.
+
+	(SolutionModifier): returns a modifier.
+
+	(SelectQuery, ConstructQuery, DescribeQuery): Store modifier in
+	query modifier field.
+
+	(SubSelect): Pass modifier to select graph pattern.
+
+	(SolutionModifier): Construct a modifier object from empty fields
+	for now.
+
+	* src/sparql_parser.y:
+	(BuiltInCall): FIXME is done - RASQAL_EXPR_ISNUMERIC exists
+
+	* src/sparql_parser.y: Add support for BINDINGS variables and
+	lists of rows
+
+	Extended parser token to contain a rasqal_row
+
+	(BindingsRowList, BindingsRowListOpt): Added as sequences of
+	rasqal_row
+
+	(BindingValueList): Added as sequence of rasqal_literals
+
+	(BindingsRow): Added as a rasqal_row
+
+	(VarList): Added as a sequence of variables
+
+	(BindingsClause): Rewritten to follow SPARQL 1.1 grammar and
+	construct a sequence of variables and sequence of rows.  All are
+	discarded rather than stored for now.
+
+	* src/sparql_parser.y: Fix BindingsClause defn
+
 2010-10-15  Dave Beckett <dave@dajobe.org>
+
+	* tests/sparql/sparql11/Makefile.am,
+	tests/sparql/sparql11/subquery-1.rq,
+	tests/sparql/sparql11/subquery-1.ttl: Add subquery - sub SELECT
+	from SPARQL 1.1 Query 2010-10-14 WD
+
+	* src/rasqal_query_write.c:
+	(rasqal_query_write_sparql_graph_pattern): Write sub-SELECT except
+	modifiers.
+
+	* src/rasqal_graph_pattern.c:
+	(rasqal_graph_pattern_print_indent): Improve SELECT GP printing
+
+	* src/rasqal.h.in, src/rasqal_algebra.c,
+	src/rasqal_graph_pattern.c, src/rasqal_internal.h,
+	src/rasqal_query_transform.c, src/sparql_parser.y: Add start of
+	SELECT graph pattern support
+
+	rasqal_graph_pattern_operator gains
+	RASQAL_GRAPH_PATTERN_OPERATOR_SELECT
+
+	rasqal_graph_pattern gains internal fields for variables and where
+	along with temporary void* for modifiers, yet to be implemented.
+
+	(rasqal_new_select_graph_pattern): Added with new fields for
+	variables and where graph pattern.
+
+	(rasqal_free_graph_pattern): Free new fields.
+
+	(rasqal_algebra_select_graph_pattern_to_algebra,
+	rasqal_query_select_build_variables_use_map_in_internal): Added
+	skeleton algebra supports - fail with error.
+
+	rasqal_graph_pattern_operator_labels gains select label
+
+	(rasqal_graph_pattern_write_internal): Code style.
+
+	SPARQL grammar: store select graph pattern for sub SELECT.
+
+	(rasqal_graph_pattern_write_internal): Print new fields.
+
+	* src/rasqal.h.in, src/rasqal_query.c, src/sparql_parser.y: Use
+	rasqal_data_graph inside SPARQL parser.
+
+	(rasqal_query_add_data_graphs): Added to add a list of data graphs
+	in a raptor_sequence
+
+	Add data_graph to SPARQL token union.
+
+	(DatasetClauseList, DatasetClauseListOpt): Now raptor_sequence of
+	rasqal_data_graph
+
+	(DatasetClause): Added, taking a rasqal_data_graph type.
+
+	(DefaultGraphClause, NamedGraphClause): Now rasqal_data_graph
+	types.
+
+	(SelectQuery, ConstructQuery, DescribeQuery, AskQuery,
+	DeleteQuery, InsertQuery, LoadQuery): Store data graphs in query
+	object.
+
+	* tests/engine/rasqal_triples_test.c: Updated tests to use
+	rasqal_new_data_graph_from_uri()
+
+	* tests/engine/rasqal_graph_test.c: Updated tests to use
+	rasqal_new_data_graph_from_uri()
 
 	* configure.ac, src/rasqal.h.in, src/rasqal_expr.c,
 	src/rasqal_query_write.c, src/sparql_lexer.l,
