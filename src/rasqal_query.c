@@ -2216,3 +2216,87 @@ rasqal_query_generate_bnodeid(rasqal_query* rdf_query,
     return rasqal_world_default_generate_bnodeid_handler(rdf_query->world,
                                                          user_bnodeid);
 }
+
+
+/**
+ * rasqal_query_get_bindings_variables_sequence:
+ * @query: #rasqal_query query object
+ *
+ * Get the sequence of BINDINGS block variables
+ *
+ * Return value: a #raptor_sequence of #raptor_variable pointers
+ **/
+raptor_sequence*
+rasqal_query_get_bindings_variables_sequence(rasqal_query* query)
+{
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, NULL);
+
+  if(query->bindings)
+    return query->bindings->variables;
+  else
+    return NULL;
+  
+}
+
+
+/**
+ * rasqal_query_get_bindings_variable:
+ * @query: #rasqal_query query object
+ * @idx: index into the sequence (0 or larger)
+ *
+ * Get a rasqal_variable* in the sequence of BINDINGS block variables
+ *
+ * Return value: a #raptor_sequence of #raptor_variable pointers
+ **/
+rasqal_variable*
+rasqal_query_get_bindings_variable(rasqal_query* query, int idx)
+{
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, NULL);
+
+  if(!query->bindings || !query->bindings->variables)
+    return NULL;
+  
+  return (rasqal_variable*)raptor_sequence_get_at(query->bindings->variables, idx);
+}
+
+
+/**
+ * rasqal_query_get_bindings_rows_sequence:
+ * @query: #rasqal_query query object
+ *
+ * Get the sequence of BINDINGS block result rows
+ *
+ * Return value: a #raptor_sequence of #raptor_row pointers
+ **/
+raptor_sequence*
+rasqal_query_get_bindings_rows_sequence(rasqal_query* query)
+{
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, NULL);
+
+  if(query->bindings)
+    return query->bindings->rows;
+  else
+    return NULL;
+  
+}
+
+
+/**
+ * rasqal_query_get_bindings_row:
+ * @query: #rasqal_query query object
+ * @idx: index into the sequence (0 or larger)
+ *
+ * Get a rasqal_row* in the sequence of BINDINGS block result rows
+ *
+ * Return value: a #raptor_sequence of #raptor_row pointers
+ **/
+rasqal_row*
+rasqal_query_get_bindings_row(rasqal_query* query, int idx)
+{
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, NULL);
+
+  if(!query->bindings || !query->bindings->rows)
+    return NULL;
+  
+  return (rasqal_row*)raptor_sequence_get_at(query->bindings->rows, idx);
+}

@@ -1088,6 +1088,16 @@ void* rasqal_query_get_user_data(rasqal_query* query);
 RASQAL_API
 void rasqal_query_set_user_data(rasqal_query* query, void *user_data);
 
+RASQAL_API
+raptor_sequence* rasqal_query_get_bindings_variables_sequence(rasqal_query* query);
+RASQAL_API
+rasqal_variable* rasqal_query_get_bindings_variable(rasqal_query* query, int idx);
+RASQAL_API
+raptor_sequence* rasqal_query_get_bindings_rows_sequence(rasqal_query* query);
+RASQAL_API
+rasqal_row* rasqal_query_get_bindings_row(rasqal_query* query, int idx);
+
+
 /* query results */
 RASQAL_API
 rasqal_query_results* rasqal_new_query_results(rasqal_world* world, rasqal_query* query, rasqal_query_results_type type, rasqal_variables_table* vars_table);
