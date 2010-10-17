@@ -102,20 +102,20 @@ static struct option long_options[] =
   /* name, has_arg, flag, val */
   {"count", 0, 0, 'c'},
   {"dump-query", 1, 0, 'd'},
-  {"dryrun", 0, 0, 'n'},
+  {"data", 1, 0, 'D'},
   {"exec", 1, 0, 'e'},
   {"feature", 1, 0, 'f'},
   {"format", 1, 0, 'F'},
 #ifdef RASQAL_INTERNAL
   {"engine", 1, 0, 'g'},
 #endif
+  {"named", 1, 0, 'G'},
   {"help", 0, 0, 'h'},
   {"input", 1, 0, 'i'},
+  {"dryrun", 0, 0, 'n'},
   {"quiet", 0, 0, 'q'},
   {"results", 1, 0, 'r'},
   {"source", 1, 0, 's'},
-  {"data", 1, 0, 'D'},
-  {"named", 1, 0, 'G'},
   {"version", 0, 0, 'v'},
   {"walk-query", 0, 0, 'w'},
 #ifdef STORE_RESULTS_FLAG
@@ -190,6 +190,8 @@ roqet_graph_pattern_walk(rasqal_graph_pattern *gp, int gp_index,
   raptor_sequence *seq;
   int idx;
   rasqal_expression* expr;
+  rasqal_variable* var;
+  rasqal_literal* literal;
   
   op = rasqal_graph_pattern_get_operator(gp);
   
@@ -204,6 +206,32 @@ roqet_graph_pattern_walk(rasqal_graph_pattern *gp, int gp_index,
   fputs(" {\n", fh);
   
   indent += 2;
+
+  /* look for LET variable and value */
+  var = rasqal_graph_pattern_get_variable(gp);
+  if(var) {
+    roqet_write_indent(fh, indent);
+    fprintf(fh, "%s := ", var->name);
+    rasqal_expression_print(var->expression, fh);
+  }
+
+  /* look for GRAPH literal */
+  literal = rasqal_graph_pattern_get_origin(gp);
+  if(literal) {
+    roqet_write_indent(fh, indent);
+    fputs("origin ", fh);
+    rasqal_literal_print(literal, fh);
+    fputc('\n', fh);
+  }
+  
+  /* look for SERVICE literal */
+  literal = rasqal_graph_pattern_get_service(gp);
+  if(literal) {
+    roqet_write_indent(fh, indent);
+    rasqal_literal_print(literal, fh);
+    fputc('\n', fh);
+  }
+  
 
   /* look for triples */
   seen = 0;
