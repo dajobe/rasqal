@@ -216,7 +216,7 @@ rasqal_new_let_graph_pattern(rasqal_query *query,
 /*
  * rasqal_new_select_graph_pattern:
  * @query: #rasqal_graph_pattern query object
- * @select_variables: sequence of #rasqal_variable
+ * @projection: projection object
  * @where: WHERE graph pattern
  * @modifiers: solution modifier
  *
@@ -226,19 +226,19 @@ rasqal_new_let_graph_pattern(rasqal_query *query,
  **/
 rasqal_graph_pattern*
 rasqal_new_select_graph_pattern(rasqal_query *query,
-                                raptor_sequence* select_variables,
+                                rasqal_projection* projection,
                                 rasqal_graph_pattern* where,
                                 rasqal_solution_modifier* modifier)
 {
   rasqal_graph_pattern* gp;
 
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, NULL);
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(select_variables, raptor_sequence, NULL);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(projection, rasqal_projeciton, NULL);
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(where, rasqal_graph_pattern, NULL);
   
   gp = rasqal_new_graph_pattern(query, RASQAL_GRAPH_PATTERN_OPERATOR_SELECT);
   if(!gp) {
-    raptor_free_sequence(select_variables);
+    rasqal_free_projection(projection);
     if(where)
       rasqal_free_graph_pattern(where);
 
@@ -247,7 +247,7 @@ rasqal_new_select_graph_pattern(rasqal_query *query,
     return NULL;
   }
 
-  gp->variables = select_variables;
+  gp->projection = projection;
   gp->where = where;
   gp->modifier = modifier;
   
@@ -276,8 +276,8 @@ rasqal_free_graph_pattern(rasqal_graph_pattern* gp)
   if(gp->origin)
     rasqal_free_literal(gp->origin);
 
-  if(gp->variables)
-    raptor_free_sequence(gp->variables);
+  if(gp->projection)
+    rasqal_free_projection(gp->projection);
 
   if(gp->where)
     rasqal_free_graph_pattern(gp->where);
@@ -589,8 +589,9 @@ rasqal_graph_pattern_write_internal(rasqal_graph_pattern* gp,
     pending_nl = 1;
   }
 
-  if(gp->variables) {
+  if(gp->projection) {
     int i;
+    raptor_sequence* vars_seq;
     
     if(pending_nl) {
       raptor_iostream_counted_string_write(" ,", 2, iostr);
@@ -608,9 +609,10 @@ rasqal_graph_pattern_write_internal(rasqal_graph_pattern* gp,
     }
 
     raptor_iostream_counted_string_write("select-variables: [", 19, iostr);
-    for(i = 0; i < raptor_sequence_size(gp->variables); i++) {
+    vars_seq = rasqal_projection_get_variables_sequence(gp->projection);
+    for(i = 0; i < raptor_sequence_size(vars_seq); i++) {
       rasqal_variable* v;
-      v = (rasqal_variable*)raptor_sequence_get_at(gp->variables, i);
+      v = (rasqal_variable*)raptor_sequence_get_at(vars_seq, i);
       if(i > 0)
         raptor_iostream_counted_string_write(", ", 2, iostr);
 

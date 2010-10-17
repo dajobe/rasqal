@@ -548,8 +548,11 @@ rasqal_query_write_sparql_graph_pattern(sparql_writer_context *wc,
   op = rasqal_graph_pattern_get_operator(gp);
 
   if(op == RASQAL_GRAPH_PATTERN_OPERATOR_SELECT) {
+    raptor_sequence* vars_seq;
+    
     raptor_iostream_counted_string_write("SELECT", 6, iostr);
-    rasqal_query_write_sparql_select(wc, iostr, gp->variables);
+    vars_seq = rasqal_projection_get_variables_sequence(gp->projection);
+    rasqal_query_write_sparql_select(wc, iostr, vars_seq);
     raptor_iostream_write_byte('\n', iostr);
     rasqal_query_write_indent(iostr, indent);
     raptor_iostream_counted_string_write("WHERE ", 6, iostr);

@@ -186,6 +186,26 @@ typedef struct rasqal_query_language_factory_s rasqal_query_language_factory;
 
 
 /**
+ * rasqal_projection:
+ * @query: rasqal query
+ * @wildcard: non-0 if @variables was '*'
+ * @distinct: 1 if distinct, 2 if reduced, otherwise neither
+ *
+ * Query projection (SELECT vars, SELECT *, SELECT DISTINCT/REDUCED ...)
+ *
+ */
+typedef struct {
+  rasqal_query* query;
+  
+  raptor_sequence* variables;
+
+  int wildcard:1;
+
+  int distinct;
+} rasqal_projection;  
+
+
+/**
  * rasqal_solution_modifier:
  * @query: rasqal query
  * @order_conditions: sequence of order condition expressions (or NULL)
@@ -240,7 +260,7 @@ struct rasqal_graph_pattern_s {
   rasqal_variable *var;
 
   /* SELECT graph pattern */
-  raptor_sequence* variables;   /* Sequence of rasqal_variable*  */
+  rasqal_projection* projection;
   rasqal_graph_pattern* where;
   rasqal_solution_modifier* modifier;
 };
@@ -249,7 +269,7 @@ rasqal_graph_pattern* rasqal_new_basic_graph_pattern(rasqal_query* query, raptor
 rasqal_graph_pattern* rasqal_new_graph_pattern_from_sequence(rasqal_query* query, raptor_sequence* graph_patterns, rasqal_graph_pattern_operator op);
 rasqal_graph_pattern* rasqal_new_filter_graph_pattern(rasqal_query* query, rasqal_expression* expr);
 rasqal_graph_pattern* rasqal_new_let_graph_pattern(rasqal_query *query, rasqal_variable *var, rasqal_expression *expr);  
-rasqal_graph_pattern* rasqal_new_select_graph_pattern(rasqal_query *query, raptor_sequence* select_variables, rasqal_graph_pattern* where, rasqal_solution_modifier* modifier);
+rasqal_graph_pattern* rasqal_new_select_graph_pattern(rasqal_query *query, rasqal_projection* projection, rasqal_graph_pattern* where, rasqal_solution_modifier* modifier);
 void rasqal_free_graph_pattern(rasqal_graph_pattern* gp);
 void rasqal_graph_pattern_adjust(rasqal_graph_pattern* gp, int offset);
 void rasqal_graph_pattern_set_origin(rasqal_graph_pattern* graph_pattern, rasqal_literal* origin);
@@ -1426,6 +1446,11 @@ void rasqal_free_update_operation(rasqal_update_operation *update);
 int rasqal_update_operation_print(rasqal_update_operation *update, FILE* stream);
 int rasqal_query_add_update_operation(rasqal_query* query, rasqal_update_operation *update);
 
+
+/* rasqal_projection.c */
+rasqal_projection* rasqal_new_projection(rasqal_query* query, raptor_sequence* variables, int wildcard, int distinct);
+void rasqal_free_projection(rasqal_projection* projection);
+raptor_sequence* rasqal_projection_get_variables_sequence(rasqal_projection* projection);
 
 
 /* rasqal_solution_modifier.c */

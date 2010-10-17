@@ -129,6 +129,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
   rasqal_solution_modifier* modifier;
   int limit_offset[2];
   int integer;
+  rasqal_projection* projection;
 }
 
 
@@ -221,8 +222,8 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
 %token <name> IDENTIFIER "identifier"
 
 
-%type <seq> SelectQuery SelectClause ConstructQuery DescribeQuery
-%type <seq> SelectExpressionList VarOrIRIrefList ArgListNoBraces ArgList
+%type <seq> SelectQuery ConstructQuery DescribeQuery
+%type <seq> VarOrIRIrefList ArgListNoBraces ArgList
 %type <seq> ConstructTriples ConstructTriplesOpt
 %type <seq> ConstructTemplate OrderConditionList GroupConditionList
 %type <seq> HavingConditionList
@@ -289,6 +290,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
 %type <limit_offset> LimitOffsetClausesOpt
 %type <integer> LimitClause OffsetClause
 
+%type <projection> SelectClause SelectExpressionList
 
 %destructor {
   if($$)
@@ -317,8 +319,8 @@ QNAME_LITERAL QNAME_LITERAL_BRACE BLANK_LITERAL IDENTIFIER
   if($$)
     raptor_free_sequence($$);
 }
-SelectQuery SelectClause ConstructQuery DescribeQuery
-SelectExpressionList VarOrIRIrefList ArgListNoBraces ArgList
+SelectQuery ConstructQuery DescribeQuery
+VarOrIRIrefList ArgListNoBraces ArgList
 ConstructTriples ConstructTriplesOpt
 ConstructTemplate OrderConditionList GroupConditionList
 HavingConditionList
@@ -409,6 +411,13 @@ BindingsRow
     rasqal_free_solution_modifier($$);
 }
 SolutionModifier
+
+%destructor {
+  if($$)
+    rasqal_free_projection($$);
+}
+SelectClause SelectExpressionList
+
 
 %%
 
@@ -565,7 +574,13 @@ SelectQuery: SelectClause DatasetClauseListOpt WhereClause SolutionModifier Bind
   /* FIXME - not implemented: must store bindings clause somewhere */
   void* fake2 = $5;
   
-  $$ = $1;
+  /* FIXME - this peeks inside rasqal_projection */
+  $$ = $1->variables; $1->variables = NULL;
+  if($1->wildcard)
+    ((rasqal_query*)rq)->wildcard = 1;
+  ((rasqal_query*)rq)->distinct = $1->distinct;
+  rasqal_free_projection($1);
+  
   if($2)
     rasqal_query_add_data_graphs((rasqal_query*)rq, $2);
 
@@ -591,12 +606,12 @@ SubSelect: SelectClause WhereClause SolutionModifier
 SelectClause: SELECT DISTINCT SelectExpressionList
 {
   $$ = $3;
-  ((rasqal_query*)rq)->distinct = 1;
+  $$->distinct = 1;
 }
 | SELECT REDUCED SelectExpressionList
 {
   $$ = $3;
-  ((rasqal_query*)rq)->distinct = 2;
+  $$->distinct = 2;
 }
 | SELECT SelectExpressionList
 {
@@ -610,12 +625,11 @@ SelectClause: SELECT DISTINCT SelectExpressionList
  */
 SelectExpressionList: SelectExpressionListTail
 {
-  $$ = $1;
+  $$ = rasqal_new_projection((rasqal_query*)rq, $1, 0, 0);
 }
 | '*'
 {
-  $$ = NULL;
-  ((rasqal_query*)rq)->wildcard = 1;
+  $$ = rasqal_new_projection((rasqal_query*)rq, NULL, /* wildcard */ 1, 0);
 }
 ;
 
