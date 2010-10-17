@@ -623,7 +623,9 @@ rasqal_query_write_sparql_graph_pattern(sparql_writer_context *wc,
   seq = rasqal_graph_pattern_get_sub_graph_pattern_sequence(gp);
   if(seq && raptor_sequence_size(seq) > 0) {
     for(gp_index = 0; 1; gp_index++) {
-      rasqal_graph_pattern* sgp = rasqal_graph_pattern_get_sub_graph_pattern(gp, gp_index);
+      rasqal_graph_pattern* sgp;
+
+      sgp = rasqal_graph_pattern_get_sub_graph_pattern(gp, gp_index);
       if(!sgp)
         break;
 
