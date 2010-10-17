@@ -2331,6 +2331,9 @@ BindingsRowList: BindingsRowList BindingsRow
     raptor_free_sequence($$);
     $$ = NULL;
     YYERROR_MSG("BindingsRowList 1: sequence push failed");
+  } else {
+    int size = raptor_sequence_size($$);
+    $2->offset = size-1;
   }
 }
 | BindingsRow
