@@ -919,16 +919,21 @@ rasqal_graph_pattern_get_sub_graph_pattern(rasqal_graph_pattern* graph_pattern, 
  * rasqal_graph_pattern_get_origin:
  * @graph_pattern: #rasqal_graph_pattern graph pattern object
  *
- * Get the graph pattern literal for #RASQAL_GRAPH_PATTERN_OPERATOR_GRAPH graph patterns
+ * Get the graph pattern literal for
+ * #RASQAL_GRAPH_PATTERN_OPERATOR_GRAPH graph pattern
  * 
- * Return value: graph literal parameter
+ * Return value: graph literal parameter or NULL if wrong graph pattern type or not defined
  **/
 rasqal_literal*
 rasqal_graph_pattern_get_origin(rasqal_graph_pattern* graph_pattern)
 {
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(graph_pattern, rasqal_graph_pattern, NULL);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(graph_pattern,
+                                            rasqal_graph_pattern, NULL);
 
-  return graph_pattern->origin;
+  if(graph_pattern->op == RASQAL_GRAPH_PATTERN_OPERATOR_GRAPH)
+    return graph_pattern->origin;
+  else
+    return NULL;
 }
   
 
@@ -1119,14 +1124,16 @@ rasqal_new_basic_graph_pattern_from_triples(rasqal_query* query,
  *
  * Get the variable for #RASQAL_GRAPH_PATTERN_OPERATOR_LET graph patterns
  * 
- * Return value: graph literal parameter
+ * Return value: graph variable or NULL if wrong graph pattern or not defined
  **/
 rasqal_variable*
 rasqal_graph_pattern_get_variable(rasqal_graph_pattern* graph_pattern)
 {
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(graph_pattern, rasqal_graph_pattern, NULL);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(graph_pattern,
+                                            rasqal_graph_pattern, NULL);
 
-  return graph_pattern->var;
+  if(graph_pattern->op == RASQAL_GRAPH_PATTERN_OPERATOR_LET)
+    return graph_pattern->var;
+  else
+    return NULL;
 }
-  
-
