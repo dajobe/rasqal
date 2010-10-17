@@ -94,43 +94,6 @@ rasqal_free_bindings(rasqal_bindings* bindings)
 }
 
 
-#if 0
-/*
- * rasqal_bindings_get_variables_sequence:
- * @bindings: #rasqal_bindings object
- *
- * INTERNAL - Get variables inside bindings
- * 
- * Return value: variables sequence
- **/
-raptor_sequence*
-rasqal_bindings_get_variables_sequence(rasqal_bindings* bindings)
-{
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(bindings, rasqal_bindings, NULL);
-  
-  return bindings->variables;
-}
-
-
-/*
- * rasqal_bindings_get_rows:
- * @bindings: #rasqal_bindings object
- *
- * INTERNAL - Get result rows inside bindings
- * 
- * Return value: rows or NULL if there are none
- **/
-raptor_sequence*
-rasqal_bindings_get_rows(rasqal_bindings* bindings)
-{
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(bindings, rasqal_bindings, NULL);
-  
-  return bindings->rows;
-}
-#endif
-
-
-
 /*
  * rasqal_bindings_print:
  * @gp: the #rasqal_bindings object
