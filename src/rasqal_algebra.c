@@ -1128,6 +1128,8 @@ rasqal_algebra_graph_pattern_to_algebra(rasqal_query* query,
       break;
 
     case RASQAL_GRAPH_PATTERN_OPERATOR_FILTER:
+    case RASQAL_GRAPH_PATTERN_OPERATOR_SERVICE:
+    case RASQAL_GRAPH_PATTERN_OPERATOR_MINUS:
 
     case RASQAL_GRAPH_PATTERN_OPERATOR_UNKNOWN:
     default:

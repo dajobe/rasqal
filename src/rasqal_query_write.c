@@ -573,6 +573,17 @@ rasqal_query_write_sparql_graph_pattern(sparql_writer_context *wc,
     return;
   }
   
+  if(op == RASQAL_GRAPH_PATTERN_OPERATOR_SERVICE) {
+    /* LAQRS */
+    raptor_iostream_counted_string_write("SERVICE ", 8, iostr);
+    rasqal_query_write_sparql_literal(wc, iostr, gp->origin);
+    raptor_iostream_counted_string_write(" ", 1, iostr);
+    rasqal_query_write_sparql_graph_pattern(wc, iostr,
+                                            gp->where,
+                                            0, indent);
+    return;
+  }
+  
   if(op == RASQAL_GRAPH_PATTERN_OPERATOR_OPTIONAL ||
      op == RASQAL_GRAPH_PATTERN_OPERATOR_GRAPH) {
     /* prefix verbs */

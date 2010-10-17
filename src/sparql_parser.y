@@ -2866,10 +2866,13 @@ GraphGraphPattern: GRAPH VarOrIRIref GroupGraphPattern
 /* SPARQL Grammar: ServiceGraphPattern */
 ServiceGraphPattern: SERVICE VarOrIRIref GroupGraphPattern
 {
-  /* FIXME - not implemented: must create a service graph pattern */
-  void* fake1 = $2;
-  void* fake2 = $3;
-  $$ = NULL;
+  $$ = rasqal_new_single_graph_pattern((rasqal_query*)rq,
+                                       RASQAL_GRAPH_PATTERN_OPERATOR_SERVICE,
+                                       $3);
+  if($$)
+    $$->origin = $2;
+  else
+    rasqal_free_literal($2);
 }
 ;
 
@@ -2877,9 +2880,9 @@ ServiceGraphPattern: SERVICE VarOrIRIref GroupGraphPattern
 /* SPARQL Grammar: MinusGraphPattern */
 MinusGraphPattern: MINUS GroupGraphPattern
 {
-  /* FIXME - not implemented: must create a minus graph pattern */
-  void* fake1 = $2;
-  $$ = NULL;
+  $$ = rasqal_new_single_graph_pattern((rasqal_query*)rq,
+                                       RASQAL_GRAPH_PATTERN_OPERATOR_MINUS,
+                                       $2);
 }
 ;
 

@@ -271,15 +271,19 @@ struct rasqal_graph_pattern_s {
   /* index of the graph pattern in the query (0.. query->graph_pattern_count-1) */
   int gp_index;
 
-  /* Graph literal */
+  /* Graph literal / SERVICE literal */
   rasqal_literal *origin;
 
   /* Variable for LET graph pattern */
   rasqal_variable *var;
 
-  /* SELECT graph pattern */
+  /* SELECT projection */
   rasqal_projection* projection;
+
+  /* SELECT / SERVICE / MINUS graph pattern */
   rasqal_graph_pattern* where;
+
+  /* SELECT modifiers */
   rasqal_solution_modifier* modifier;
 };
 
@@ -288,6 +292,7 @@ rasqal_graph_pattern* rasqal_new_graph_pattern_from_sequence(rasqal_query* query
 rasqal_graph_pattern* rasqal_new_filter_graph_pattern(rasqal_query* query, rasqal_expression* expr);
 rasqal_graph_pattern* rasqal_new_let_graph_pattern(rasqal_query *query, rasqal_variable *var, rasqal_expression *expr);  
 rasqal_graph_pattern* rasqal_new_select_graph_pattern(rasqal_query *query, rasqal_projection* projection, rasqal_graph_pattern* where, rasqal_solution_modifier* modifier);
+rasqal_graph_pattern* rasqal_new_single_graph_pattern(rasqal_query* query, rasqal_graph_pattern_operator op, rasqal_graph_pattern* single);
 void rasqal_free_graph_pattern(rasqal_graph_pattern* gp);
 void rasqal_graph_pattern_adjust(rasqal_graph_pattern* gp, int offset);
 void rasqal_graph_pattern_set_origin(rasqal_graph_pattern* graph_pattern, rasqal_literal* origin);

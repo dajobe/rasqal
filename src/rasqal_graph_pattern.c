@@ -256,6 +256,36 @@ rasqal_new_select_graph_pattern(rasqal_query *query,
 
 
 /*
+ * rasqal_new_single_graph_pattern:
+ * @query: #rasqal_graph_pattern query object
+ * @op: enum #rasqal_graph_pattern_operator operator
+ * @single: single inner graph grattern
+ *
+ * INTERNAL - Create a new graph pattern object over a single graph pattern.
+ * 
+ * Return value: a new #rasqal_graph_pattern object or NULL on failure
+ **/
+rasqal_graph_pattern*
+rasqal_new_single_graph_pattern(rasqal_query* query,
+                                rasqal_graph_pattern_operator op,
+                                rasqal_graph_pattern* single)
+{
+  rasqal_graph_pattern* gp;
+
+  gp = rasqal_new_graph_pattern(query, op);
+  if(!gp) {
+    if(single)
+      rasqal_free_graph_pattern(single);
+    return NULL;
+  }
+
+  gp->where = single;
+
+  return gp;
+}
+
+
+/*
  * rasqal_free_graph_pattern:
  * @gp: #rasqal_graph_pattern object
  *
@@ -374,7 +404,9 @@ static const char* const rasqal_graph_pattern_operator_labels[RASQAL_GRAPH_PATTE
   "Graph",
   "Filter",
   "Let",
-  "Select"
+  "Select",
+  "Service",
+  "Minus"
 };
 
 
