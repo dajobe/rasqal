@@ -252,9 +252,13 @@ rasqal_new_select_graph_pattern(rasqal_query *query,
   }
 
   gp->projection = projection;
-  gp->where = where;
   gp->modifier = modifier;
   
+  if(rasqal_graph_pattern_add_sub_graph_pattern(gp, where)) {
+    rasqal_free_graph_pattern(gp);
+    return NULL;
+  }
+
   return gp;
 }
 
@@ -284,7 +288,10 @@ rasqal_new_single_graph_pattern(rasqal_query* query,
     return NULL;
   }
 
-  gp->where = single;
+  if(rasqal_graph_pattern_add_sub_graph_pattern(gp, single)) {
+    rasqal_free_graph_pattern(gp);
+    return NULL;
+  }
 
   return gp;
 }
@@ -314,9 +321,6 @@ rasqal_free_graph_pattern(rasqal_graph_pattern* gp)
   if(gp->projection)
     rasqal_free_projection(gp->projection);
 
-  if(gp->where)
-    rasqal_free_graph_pattern(gp->where);
-  
   if(gp->modifier)
     rasqal_free_solution_modifier(gp->modifier);
 
@@ -676,7 +680,8 @@ rasqal_graph_pattern_write_internal(rasqal_graph_pattern* gp,
 
     pending_nl = 1;
   }
-  
+
+#if 0  
   if(gp->where) {
     if(pending_nl) {
       raptor_iostream_counted_string_write(" ,", 2, iostr);
@@ -700,6 +705,7 @@ rasqal_graph_pattern_write_internal(rasqal_graph_pattern* gp,
     
     pending_nl = 1;
   }
+#endif
   
   if(indent >= 0)
     indent -= 2;
@@ -1122,7 +1128,7 @@ rasqal_new_basic_graph_pattern_from_triples(rasqal_query* query,
  * rasqal_graph_pattern_get_variable:
  * @graph_pattern: #rasqal_graph_pattern graph pattern object
  *
- * Get the variable for #RASQAL_GRAPH_PATTERN_OPERATOR_LET graph patterns
+ * Get the variable for #RASQAL_GRAPH_PATTERN_OPERATOR_LET graph pattern
  * 
  * Return value: graph variable or NULL if wrong graph pattern or not defined
  **/
@@ -1134,6 +1140,27 @@ rasqal_graph_pattern_get_variable(rasqal_graph_pattern* graph_pattern)
 
   if(graph_pattern->op == RASQAL_GRAPH_PATTERN_OPERATOR_LET)
     return graph_pattern->var;
+  else
+    return NULL;
+}
+
+
+/**
+ * rasqal_graph_pattern_get_service:
+ * @graph_pattern: #rasqal_graph_pattern graph pattern object
+ *
+ * Get the literal for #RASQAL_GRAPH_PATTERN_OPERATOR_SERVICE graph pattern
+ * 
+ * Return value: graph variable or NULL if wrong graph pattern or not defined
+ **/
+rasqal_literal*
+rasqal_graph_pattern_get_service(rasqal_graph_pattern* graph_pattern)
+{
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(graph_pattern,
+                                            rasqal_graph_pattern, NULL);
+
+  if(graph_pattern->op == RASQAL_GRAPH_PATTERN_OPERATOR_SERVICE)
+    return graph_pattern->origin;
   else
     return NULL;
 }
