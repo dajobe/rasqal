@@ -888,8 +888,14 @@ roqet_call_sparql_service(rasqal_world* world, raptor_world* raptor_world_ptr,
   if(rrws.content_type)
     free(rrws.content_type);
 
-  if(rrws.www)
+  if(rrws.www) {
+#ifdef HAVE_RAPTOR2_API
     raptor_free_www(rrws.www);
+#else
+    raptor_www_free(rrws.www);
+#endif
+  }
+  
   
   if(rrws.sb)
     raptor_free_stringbuffer(rrws.sb);
