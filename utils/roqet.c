@@ -694,6 +694,19 @@ roqet_call_sparql_service(rasqal_world* world, raptor_world* raptor_world_ptr,
   raptor_www_set_content_type_handler(www, roqet_results_content_type_handler,
                                       &rrws);
 
+  /* FIXME
+   *
+   *  Should construct a URI to retrieve following SPARQL protocol
+   *  HTTP binding from concatenation of
+   *
+   * 1. service_uri
+   * 2. '?'
+   * 3. "query=" query_string
+   * 4. "default-graph-uri=" background graph URI if any
+   * 5. "named-graph-uri=" named graph URI for all named graphs
+   * with URI-escaping of the values
+   */
+  
   if(raptor_www_fetch(www, service_uri)) {
     fprintf(stderr, "%s: Failed to call service URI %s\n", program,
             raptor_uri_as_string(service_uri));
