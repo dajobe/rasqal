@@ -5,7 +5,7 @@
 .\" Copyright (C) 2004-2010 David Beckett - http://www.dajobe.org/
 .\" Copyright (C) 2004-2005 University of Bristol - http://www.bristol.ac.uk/
 .\"
-.TH roqet 1 "2010-10-04"
+.TH roqet 1 "2010-10-18"
 .\" Please adjust this date whenever revising the manpage.
 .SH NAME
 roqet \- Rasqal RDF query utility
@@ -18,6 +18,14 @@ roqet \- Rasqal RDF query utility
 .B roqet
 .RB [ OPTIONS ] -e
 .IR "query-string"
+.IR "[base-URI]"
+.br
+.B roqet
+.RB [ OPTIONS ] -p
+.IR "sparql-protocol-service-URI" 
+.RB [ -e
+.IR "query-string"
+.RB ]
 .IR "[base-URI]"
 .SH DESCRIPTION
 The
@@ -43,6 +51,10 @@ Set the input query
 to one of'sparql' (SPARQL Query Language for RDF, default)
 or 'rdql' (RDF Data Query Language).   The list of
 supported languages is given in the help summary given by \-h.
+.TP
+.B \-p, \-\-protocol SERVICE-URI
+Call the SPARQL HTTP protocol \fISERVICE-URI\fP to execute the query
+instead of executing it inside the Rasqal query engine locally.
 .TP
 .B \-r, \-\-results FORMAT
 Set the query results format.
