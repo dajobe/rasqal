@@ -661,6 +661,63 @@ roqet_results_content_type_handler(raptor_www* www, void* userdata,
 }
 
 
+static int
+roqet_stringbuffer_append_hexadecimal(raptor_stringbuffer* stringbuffer, 
+                                      int hex)
+{
+  if(hex < 10)
+    raptor_stringbuffer_append_decimal(stringbuffer, hex);
+  else {
+    unsigned char buf[2];
+  
+    buf[0] = 'A' + (hex - 10);
+    buf[1] = '\0';
+    raptor_stringbuffer_append_counted_string(stringbuffer, buf, 1, 1);
+  }
+  return 0;
+}
+
+
+/* RFC3986 Unreserved */
+#define IS_URI_UNRESERVED(c) ( (c >= 'A' && c <= 'F') || \
+                               (c >= 'a' && c <= 'f') || \
+                               (c >= '0' && c <= '9') || \
+                               (c == '-' || c == '.' || c == '_' || c == '~') )
+#define IS_URI_SAFE(c) (IS_URI_UNRESERVED(c))
+    
+
+static int
+roqet_stringbuffer_append_uri_escaped_string(raptor_stringbuffer* sb,
+                                             const char* string,
+                                             size_t len, int space_is_plus)
+{
+  unsigned int i;
+  unsigned char buf[2];
+  buf[1] = '\0';
+
+  for(i = 0; i < len; i++) {
+    int c = string[i];
+    if(!c)
+      break;
+    
+    if(IS_URI_SAFE(c)) {
+      *buf = c;
+      raptor_stringbuffer_append_counted_string(sb, buf, 1, 1);
+    } else if (c == ' ' && space_is_plus) {
+      *buf = '+';
+      raptor_stringbuffer_append_counted_string(sb, buf, 1, 1);
+    } else {
+      *buf = '%';
+      raptor_stringbuffer_append_counted_string(sb, buf, 1, 1);
+      roqet_stringbuffer_append_hexadecimal(sb, (c & 0xf0) >> 4);
+      roqet_stringbuffer_append_hexadecimal(sb, (c & 0x0f));
+    }
+  }
+
+  return 0;
+}
+
+
 static rasqal_query_results*
 roqet_call_sparql_service(rasqal_world* world, raptor_world* raptor_world_ptr,
                           raptor_uri* service_uri,
@@ -675,6 +732,10 @@ roqet_call_sparql_service(rasqal_world* world, raptor_world* raptor_world_ptr,
   raptor_uri* read_base_uri = NULL;
   rasqal_variables_table* vars_table = NULL;
   rasqal_query_results_formatter* read_formatter = NULL;
+  raptor_uri* retrieval_uri = NULL;
+  raptor_stringbuffer* sb = NULL;
+  size_t len;
+  unsigned char* str;
   
   /* Execute a remote query at the service_uri - no query execution locally */
   www = raptor_new_www(raptor_world_ptr);
@@ -694,22 +755,58 @@ roqet_call_sparql_service(rasqal_world* world, raptor_world* raptor_world_ptr,
   raptor_www_set_content_type_handler(www, roqet_results_content_type_handler,
                                       &rrws);
 
-  /* FIXME
-   *
-   *  Should construct a URI to retrieve following SPARQL protocol
-   *  HTTP binding from concatenation of
+  /* Construct a URI to retrieve following SPARQL protocol HTTP
+   *  binding from concatenation of
    *
    * 1. service_uri
    * 2. '?'
    * 3. "query=" query_string
-   * 4. "default-graph-uri=" background graph URI if any
-   * 5. "named-graph-uri=" named graph URI for all named graphs
+   * 4. "&default-graph-uri=" background graph URI if any
+   * 5. "&named-graph-uri=" named graph URI for all named graphs
    * with URI-escaping of the values
    */
+
+  sb = raptor_new_stringbuffer();
+  if(!sb) {
+    fprintf(stderr, "%s: Failed to create stringbuffer\n", program);
+    goto error;
+  }
+
+  str = raptor_uri_as_counted_string(service_uri, &len);
+  raptor_stringbuffer_append_counted_string(sb, str, len, 1);
+
+  raptor_stringbuffer_append_counted_string(sb,
+                                            (const unsigned char*)"?", 1, 1);
+
+  if(query_string) {
+    raptor_stringbuffer_append_counted_string(sb,
+                                              (const unsigned char*)"query=", 6, 1);
+    roqet_stringbuffer_append_uri_escaped_string(sb, query_string,
+                                                 strlen(query_string), 1);
+  }
+
+#if 0
+  raptor_stringbuffer_append_counted_string(sb,
+                                            (const unsigned char*)"&default-graph-uri=", 19, 1);
+
+  raptor_stringbuffer_append_counted_string(sb,
+                                            (const unsigned char*)"&named-graph-uri=", 17, 1);
+#endif
+
+  str = raptor_stringbuffer_as_string(sb);
+
+  retrieval_uri = raptor_new_uri(raptor_world_ptr, str);
+  if(!retrieval_uri) {
+    fprintf(stderr, "%s: Failed to create retrieval URI %s\n", program,
+            raptor_uri_as_string(retrieval_uri));
+    goto error;
+  }
+
+  raptor_free_stringbuffer(sb); sb = NULL;
   
-  if(raptor_www_fetch(www, service_uri)) {
-    fprintf(stderr, "%s: Failed to call service URI %s\n", program,
-            raptor_uri_as_string(service_uri));
+  if(raptor_www_fetch(www, retrieval_uri)) {
+    fprintf(stderr, "%s: Failed to fetch retrieval URI %s\n", program,
+            raptor_uri_as_string(retrieval_uri));
     goto error;
   }
 
@@ -766,6 +863,12 @@ roqet_call_sparql_service(rasqal_world* world, raptor_world* raptor_world_ptr,
 
 
   error:
+  if(retrieval_uri)
+    raptor_free_uri(retrieval_uri);
+
+  if(sb)
+    raptor_free_stringbuffer(sb);
+
   if(read_formatter)
     rasqal_free_query_results_formatter(read_formatter);
   
@@ -804,7 +907,7 @@ main(int argc, char *argv[])
   unsigned char *uri_string = NULL;
   int free_uri_string = 0;
   unsigned char *base_uri_string = NULL;
-  rasqal_query *rq;
+  rasqal_query *rq = NULL;
   rasqal_query_results *results;
   const char *ql_name = "sparql";
   char *ql_uri = NULL;
@@ -1009,7 +1112,7 @@ main(int argc, char *argv[])
         if(query_string) {
           fprintf(stderr, 
                   "%s: Cannot use " HELP_ARG(e, exec) " and " HELP_ARG(p, protocol) " together\n",
-            program);
+                  program);
           usage = 1;
         } else if(optarg) {
           service_uri_string = (const unsigned char*)optarg;
@@ -1319,8 +1422,10 @@ main(int argc, char *argv[])
 
   if(service_uri_string) {
     service_uri = raptor_new_uri(raptor_world_ptr, service_uri_string);
-    if(optind == argc-1)
+    if(optind == argc-1) {
       query_string = (unsigned char*)argv[optind];
+      query_from_string = 1;
+    }
   } else if(query_string) {
     if(optind == argc-1)
       base_uri_string = (unsigned char*)argv[optind];
@@ -1621,7 +1726,8 @@ main(int argc, char *argv[])
   rasqal_free_query_results(results);
   
  tidy_query:
-  rasqal_free_query(rq);
+  if(rq)
+    rasqal_free_query(rq);
 
   if(!query_from_string)
     free(query_string);
