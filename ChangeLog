@@ -1,5 +1,67 @@
 2010-10-17  Dave Beckett <dave@dajobe.org>
 
+	* utils/roqet.c: One more raptor_www_free() for Raptor V1
+
+	* utils/roqet.c: Use raptor_www_free() for Raptor V1
+
+	* utils/roqet.c: Use Raptor V1 or V2
+	raptor_new_iostream_from_string() call
+
+	* src/rasqal_format_sparql_xml.c:
+	(rasqal_query_results_write_sparql_xml): One more
+	rasqal_world_simple_error needed
+
+	* src/rasqal_format_sparql_xml.c:
+	(rasqal_query_results_write_sparql_xml): use
+	rasqal_world_simple_error() for error reporting with Raptor V1
+
+	* src/rasqal_general.c, src/rasqal_internal.h: Add
+	rasqal_world_simple_error() to help building with raptor1 and
+	passing errors up without a query
+
+	* utils/roqet.c: Roqet is a sparql protocol client
+
+	(roqet_stringbuffer_append_hexadecimal): Added.
+
+	(roqet_stringbuffer_append_uri_escaped_string): Added to escape a
+	URI string for a query parameter, using above.
+
+	(roqet_call_sparql_service): Uses above to correctly form the
+	sparql query parameter with encoding.  Does not send default or
+	named graph parameters.
+
+	(main): Fix some cleanups
+
+	* utils/roqet.c: FIXME note that this isn't calling using sparql
+	protocol yet
+
+	* utils/roqet.c: Add support for reading from SPARQL protocol
+	services
+
+	Added -p/--protocol SERVICE-URI
+
+	Added internal struct roqet_results_write_state
+
+	(roqet_results_write_bytes, roqet_results_content_type_handler):
+	Added.
+
+	(roqet_call_sparql_service): Added to call a SPARQL protocol with a
+	query string (optional - not yet used here) against a service URI.
+
+	(main): Validate that -e and -p are not used together
+
+	Move -r validation to after result format has been chosen.  (I
+	thought I did that already)
+
+	Add help message and verbose message for sparql protocol -p uses.
+
+	* src/rasqal_format_sparql_xml.c, src/rasqal_format_table.c: Do
+	not assume a query_results has a query in formatting.
+
+	(rasqal_query_results_write_table_bindings,
+	rasqal_query_results_write_sparql_xml): Use
+	rasqal_query_results_get_world() to get rasqal world.
+
 	* src/sparql_parser.y:
 	(BindingsRowList): Set row offset
 
@@ -354,7 +416,7 @@
 	(rasqal_graph_pattern_get_variable): Added RASQAL_API to public
 	API function
 
-2010-10-11  Dave Beckett <dajobe@digg.com>
+2010-10-11  Dave Beckett <dave@dajobe.org>
 
 	* src/rasqal.h.in, src/rasqal_graph_pattern.c: Add
 	rasqal_graph_pattern_get_variable to get variable for LAQRS LET
