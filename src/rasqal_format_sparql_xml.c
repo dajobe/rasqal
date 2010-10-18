@@ -352,7 +352,7 @@ rasqal_query_results_write_sparql_xml(raptor_iostream *iostr,
                                         (const unsigned char*)"xml:lang",
                                         (const unsigned char*)l->language
 #ifndef HAVE_RAPTOR2_API
-                                        , (raptor_simple_message_handler)rasqal_query_simple_error, query
+                                        , (raptor_simple_message_handler)rasqal_world_simple_error, world
 #endif
                                         );
             else
