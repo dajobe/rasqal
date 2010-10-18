@@ -1,6 +1,6 @@
 /* -*- Mode: c; c-basic-offset: 2 -*-
  *
- * rasqal_solution_modifier.c - Rasqal (SELECT) projection class
+ * rasqal_projection.c - Rasqal (SELECT) projection class
  *
  * Copyright (C) 2010, David Beckett http://www.dajobe.org/
  * 
