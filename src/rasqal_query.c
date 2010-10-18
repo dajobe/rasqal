@@ -747,7 +747,8 @@ rasqal_query_add_data_graph(rasqal_query* query,
  *
  * Add a set of data graphs to the query.
  *
- * The passed-in @data_graphs sequence becomes owned by the query.
+ * The objects in the passed-in @data_graphs sequence becomes owne by the query.
+ * The @data_graphs sequence itself is freed and must not be used after this call.
  *
  * Return value: non-0 on failure
  **/
