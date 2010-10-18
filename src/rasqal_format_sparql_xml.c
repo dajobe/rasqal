@@ -115,7 +115,7 @@ rasqal_query_results_write_sparql_xml(raptor_iostream *iostr,
 #else
   raptor_uri_get_handler(&uri_handler, &uri_context);
   nstack = raptor_new_namespaces(uri_handler, uri_context,
-                                 (raptor_simple_message_handler)rasqal_query_simple_error, query,
+                                 (raptor_simple_message_handler)rasqal_world_simple_error, world,
                                  1);
 #endif
   if(!nstack)
@@ -129,7 +129,7 @@ rasqal_query_results_write_sparql_xml(raptor_iostream *iostr,
   xml_writer = raptor_new_xml_writer(nstack,
                                      uri_handler, uri_context,
                                      iostr,
-                                     (raptor_simple_message_handler)rasqal_query_simple_error, query,
+                                     (raptor_simple_message_handler)rasqal_world_simple_error, world,
                                      1);
 #endif
   if(!xml_writer)
