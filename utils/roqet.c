@@ -1030,12 +1030,7 @@ main(int argc, char *argv[])
         
 
       case 'e':
-        if(service_uri_string) {
-          fprintf(stderr, 
-                  "%s: Cannot use " HELP_ARG(e, exec) " and " HELP_ARG(p, protocol) " together\n",
-                  program);
-          usage = 1;
-        } else if(optarg) {
+        if(optarg) {
           query_string = optarg;
           query_from_string = 1;
         }
@@ -1124,14 +1119,8 @@ main(int argc, char *argv[])
         break;
 
       case 'p':
-        if(query_string) {
-          fprintf(stderr, 
-                  "%s: Cannot use " HELP_ARG(e, exec) " and " HELP_ARG(p, protocol) " together\n",
-                  program);
-          usage = 1;
-        } else if(optarg) {
+        if(optarg)
           service_uri_string = (const unsigned char*)optarg;
-        }
         break;
 
       case 'r':
@@ -1340,7 +1329,7 @@ main(int argc, char *argv[])
     puts("Run an RDF query giving variable bindings or RDF triples.");
     printf("Usage: %s [OPTIONS] <query URI> [base URI]\n", program);
     printf("       %s [OPTIONS] -e <query string> [base URI]\n", program);
-    printf("       %s [OPTIONS] -p <SPARQL protocol service URI> [query string]\n\n", program);
+    printf("       %s [OPTIONS] -p <SPARQL protocol service URI> -e <query string> [base URI]\n\n", program);
 
     fputs(rasqal_copyright_string, stdout);
     fputs("\nLicense: ", stdout);
@@ -1438,8 +1427,7 @@ main(int argc, char *argv[])
   if(service_uri_string) {
     service_uri = raptor_new_uri(raptor_world_ptr, service_uri_string);
     if(optind == argc-1) {
-      query_string = (unsigned char*)argv[optind];
-      query_from_string = 1;
+      base_uri_string = (unsigned char*)argv[optind];
     }
   } else if(query_string) {
     if(optind == argc-1)
@@ -1570,14 +1558,15 @@ main(int argc, char *argv[])
 
   if(!quiet) {
     if(service_uri) {
+      fprintf(stderr, "%s: Calling SPARQL service at URI %s", program,
+              service_uri_string);
       if(query_string)
-        fprintf(stderr,
-                "%s: Calling SPARQL service at URI %s with query '%s'\n",
-                program, service_uri_string, (char*)query_string);
-      else
-        fprintf(stderr,
-                "%s: Calling SPARQL service at URI %s\n", program,
-                service_uri_string);
+        fprintf(stderr, " with query '%s'", (char*)query_string);
+
+      if(base_uri_string)
+        fprintf(stderr, " with base URI %s\n", base_uri_string);
+
+      fputc('\n', stderr);
     } else if(query_from_string) {
       if(base_uri_string)
         fprintf(stderr, "%s: Running query '%s' with base URI %s\n", program,
