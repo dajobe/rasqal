@@ -86,9 +86,9 @@ static char *program=NULL;
 
 #ifdef RASQAL_INTERNAL
 /* add 'g:' */
-#define GETOPT_STRING "cd:D:e:f:F:g:G:hi:nr:qs:vw"
+#define GETOPT_STRING "cd:D:e:f:F:g:G:hi:np:r:qs:vw"
 #else
-#define GETOPT_STRING "cd:D:e:f:F:G:hi:nr:qs:vw"
+#define GETOPT_STRING "cd:D:e:f:F:G:hi:np:r:qs:vw"
 #endif
 
 #ifdef HAVE_GETOPT_LONG
@@ -113,6 +113,7 @@ static struct option long_options[] =
   {"help", 0, 0, 'h'},
   {"input", 1, 0, 'i'},
   {"dryrun", 0, 0, 'n'},
+  {"protocol", 0, 0, 'p'},
   {"quiet", 0, 0, 'q'},
   {"results", 1, 0, 'r'},
   {"source", 1, 0, 's'},
@@ -583,6 +584,13 @@ print_formatted_query_results(rasqal_world* world,
   results_formatter = rasqal_new_query_results_formatter2(world,
                                                           result_format,
                                                           NULL, NULL);
+  if(!results_formatter) {
+    fprintf(stderr, "%s: Invalid bindings result format `%s'\n",
+            program, result_format);
+    rc = 1;
+    goto tidy;
+  }
+  
 
   iostr = raptor_new_iostream_to_file_handle(raptor_world_ptr, output);
   if(!iostr) {
@@ -601,6 +609,172 @@ print_formatted_query_results(rasqal_world* world,
     fprintf(stderr, "%s: Formatting query results failed\n", program);
 
   return rc;
+}
+
+
+typedef struct 
+{
+  raptor_www* www;
+  int started;
+  raptor_uri* final_uri;
+  raptor_stringbuffer* sb;
+  char* content_type;
+} roqet_results_write_state;
+
+
+static void
+roqet_results_write_bytes(raptor_www* www,
+                          void *userdata, const void *ptr, 
+                          size_t size, size_t nmemb)
+{
+  roqet_results_write_state* rrws = (roqet_results_write_state*)userdata;
+  int len = size * nmemb;
+
+  if(!rrws->started) {
+    rrws->final_uri = raptor_www_get_final_uri(www);
+    rrws->started = 1;
+  }
+
+  raptor_stringbuffer_append_counted_string(rrws->sb, ptr, len, 1);
+}
+
+
+static void
+roqet_results_content_type_handler(raptor_www* www, void* userdata, 
+                                   const char* content_type)
+{
+  roqet_results_write_state* rwb = (roqet_results_write_state*)userdata;
+  size_t len;
+  char* p;
+  
+  len = strlen(content_type) + 1;
+  rwb->content_type = (char*)RASQAL_MALLOC(cstring, len);
+  if(rwb->content_type)
+    memcpy(rwb->content_type, content_type, len);
+
+  for(p = rwb->content_type; *p; p++) {
+    if(*p == ';' || *p == ' ') {
+      *p = '\0';
+      break;
+    }
+  }
+}
+
+
+static rasqal_query_results*
+roqet_call_sparql_service(rasqal_world* world, raptor_world* raptor_world_ptr,
+                          raptor_uri* service_uri,
+                          const char* query_string, raptor_uri* base_uri)
+{
+  roqet_results_write_state rrws;
+  rasqal_query_results* results = NULL;
+  raptor_www* www;
+  unsigned char* result_string = NULL;
+  size_t result_length;
+  raptor_iostream* read_iostr = NULL;
+  raptor_uri* read_base_uri = NULL;
+  rasqal_variables_table* vars_table = NULL;
+  rasqal_query_results_formatter* read_formatter = NULL;
+  
+  /* Execute a remote query at the service_uri - no query execution locally */
+  www = raptor_new_www(raptor_world_ptr);
+  if(!www) {
+    fprintf(stderr, "%s: Could not create WWW object\n", program);
+    goto error;
+  }
+    
+  rrws.www = www;
+  rrws.started = 0;
+  rrws.final_uri = NULL;
+  rrws.sb = raptor_new_stringbuffer();
+  rrws.content_type = NULL;
+  
+  raptor_www_set_http_accept(www, "application/sparql-results+xml");
+  raptor_www_set_write_bytes_handler(www, roqet_results_write_bytes, &rrws);
+  raptor_www_set_content_type_handler(www, roqet_results_content_type_handler,
+                                      &rrws);
+
+  if(raptor_www_fetch(www, service_uri)) {
+    fprintf(stderr, "%s: Failed to call service URI %s\n", program,
+            raptor_uri_as_string(service_uri));
+    goto error;
+  }
+
+  raptor_free_www(rrws.www); rrws.www = NULL;
+
+  vars_table = rasqal_new_variables_table(world);
+  if(!vars_table) {
+    fprintf(stderr, "%s: Could not create variables table\n", program);
+    goto error;
+  }
+  
+  results = rasqal_new_query_results(world, NULL, 
+                                     RASQAL_QUERY_RESULTS_BINDINGS, 
+                                     vars_table);
+  /* (results takes a reference/copy to vars_table) */
+  rasqal_free_variables_table(vars_table); vars_table = NULL;
+
+  if(!results) {
+    fprintf(stderr, "%s: Could not create query results\n", program);
+    goto error;
+  }
+  
+  result_length = raptor_stringbuffer_length(rrws.sb);  
+  result_string = raptor_stringbuffer_as_string(rrws.sb);
+  read_iostr = raptor_new_iostream_from_string(raptor_world_ptr,
+                                               result_string, result_length);
+  if(!read_iostr) {
+    fprintf(stderr, "%s: Could not create iostream from string\n", program);
+    rasqal_free_query_results(results);
+    results = NULL;
+    goto error;
+  }
+    
+  read_base_uri = rrws.final_uri ? rrws.final_uri : service_uri;
+  read_formatter = rasqal_new_query_results_formatter2(world,
+                                                       /* format name */ NULL,
+                                                       rrws.content_type,
+                                                       /* format URI */ NULL);
+  if(!read_formatter) {
+    fprintf(stderr, "%s: Could not create query formatter for type %s\n",
+            program, rrws.content_type);
+    rasqal_free_query_results(results);
+    results = NULL;
+    goto error;
+  }
+
+  if(rasqal_query_results_formatter_read(world, read_iostr, read_formatter,
+                                         results, read_base_uri)) {
+    fprintf(stderr, "%s: Could not read from query formatter\n", program);
+    rasqal_free_query_results(results);
+    results = NULL;
+    goto error;
+  }
+
+
+  error:
+  if(read_formatter)
+    rasqal_free_query_results_formatter(read_formatter);
+  
+  if(read_iostr)
+    raptor_free_iostream(read_iostr);
+  
+  if(vars_table)
+    rasqal_free_variables_table(vars_table);
+  
+  if(rrws.final_uri)
+    raptor_free_uri(rrws.final_uri);
+
+  if(rrws.content_type)
+    free(rrws.content_type);
+
+  if(rrws.www)
+    raptor_free_www(rrws.www);
+  
+  if(rrws.sb)
+    raptor_free_stringbuffer(rrws.sb);
+  
+  return results;
 }
 
 
@@ -645,6 +819,8 @@ main(int argc, char *argv[])
 #endif
   char* data_graph_parser_name = NULL;
   raptor_iostream* iostr = NULL;
+  const unsigned char* service_uri_string = 0;
+  raptor_uri* service_uri = NULL;
   
   program = argv[0];
   if((p = strrchr(program, '/')))
@@ -723,7 +899,12 @@ main(int argc, char *argv[])
         
 
       case 'e':
-	if(optarg) {
+        if(service_uri_string) {
+          fprintf(stderr, 
+                  "%s: Cannot use " HELP_ARG(e, exec) " and " HELP_ARG(p, protocol) " together\n",
+                  program);
+          usage = 1;
+        } else if(optarg) {
           query_string = optarg;
           query_from_string = 1;
         }
@@ -811,20 +992,20 @@ main(int argc, char *argv[])
         dryrun = 1;
         break;
 
-      case 'r':
-        if(optarg) {
-          if(strcmp(optarg, "simple")) {
-            if(!raptor_world_is_serializer_name(raptor_world_ptr, optarg)) {
-              fprintf(stderr, 
-                      "%s: invalid argument `%s' for `" HELP_ARG(r, results) "'\n",
-                      program, optarg);
-              usage = 1;
-              break;
-            }
-            result_format = optarg;
-          } else
-            result_format = NULL;
+      case 'p':
+        if(query_string) {
+          fprintf(stderr, 
+                  "%s: Cannot use " HELP_ARG(e, exec) " and " HELP_ARG(p, protocol) " together\n",
+            program);
+          usage = 1;
+        } else if(optarg) {
+          service_uri_string = (const unsigned char*)optarg;
         }
+        break;
+
+      case 'r':
+        if(optarg)
+          result_format = optarg;
         break;
 
       case 'i':
@@ -988,9 +1169,12 @@ main(int argc, char *argv[])
     }
     
   }
-  
+
   if(!help && !usage) {
-    if(query_string) {
+    if(service_uri_string) {
+      if(optind != argc && optind != argc-1)
+        usage = 2; /* Title and usage */
+    } else if(query_string) {
       if(optind != argc && optind != argc-1)
         usage = 2; /* Title and usage */
     } else {
@@ -1024,7 +1208,8 @@ main(int argc, char *argv[])
     printf(title_format_string, rasqal_version_string);
     puts("Run an RDF query giving variable bindings or RDF triples.");
     printf("Usage: %s [OPTIONS] <query URI> [base URI]\n", program);
-    printf("       %s [OPTIONS] -e <query string> [base URI]\n\n", program);
+    printf("       %s [OPTIONS] -e <query string> [base URI]\n", program);
+    printf("       %s [OPTIONS] -p <SPARQL protocol service URI> [query string]\n\n", program);
 
     fputs(rasqal_copyright_string, stdout);
     fputs("\nLicense: ", stdout);
@@ -1036,6 +1221,7 @@ main(int argc, char *argv[])
     puts("and print the results in a simple text format.");
     puts("\nMain options:");
     puts(HELP_TEXT("e", "exec QUERY      ", "Execute QUERY string instead of <query URI>"));
+    puts(HELP_TEXT("p", "protocol QUERY  ", "Execute QUERY against a SPARQL protocol service URI"));
     puts(HELP_TEXT("i", "input LANGUAGE  ", "Set query language name to one of:"));
     for(i = 0; 1; i++) {
       const char *help_name;
@@ -1118,7 +1304,11 @@ main(int argc, char *argv[])
   }
 
 
-  if(query_string) {
+  if(service_uri_string) {
+    service_uri = raptor_new_uri(raptor_world_ptr, service_uri_string);
+    if(optind == argc-1)
+      query_string = (unsigned char*)argv[optind];
+  } else if(query_string) {
     if(optind == argc-1)
       base_uri_string = (unsigned char*)argv[optind];
   } else {
@@ -1168,7 +1358,9 @@ main(int argc, char *argv[])
   }
 
 
-  if(query_string) {
+  if(service_uri_string) {
+    /* NOP - nothing to do here */
+  } else if(query_string) {
     /* NOP - already got it */
   } else if(!uri_string) {
     query_string = calloc(FILE_READ_BUF_SIZE, 1);
@@ -1244,7 +1436,16 @@ main(int argc, char *argv[])
 
 
   if(!quiet) {
-    if(query_from_string) {
+    if(service_uri) {
+      if(query_string)
+        fprintf(stderr,
+                "%s: Calling SPARQL service at URI %s with query '%s'\n",
+                program, service_uri_string, (char*)query_string);
+      else
+        fprintf(stderr,
+                "%s: Calling SPARQL service at URI %s\n", program,
+                service_uri_string);
+    } else if(query_from_string) {
       if(base_uri_string)
         fprintf(stderr, "%s: Running query '%s' with base URI %s\n", program,
                 (char*)query_string, base_uri_string);
@@ -1266,6 +1467,21 @@ main(int argc, char *argv[])
     }
   }
   
+
+
+  if(service_uri) {
+
+    results = roqet_call_sparql_service(world, raptor_world_ptr,
+                                        service_uri, query_string,
+                                        base_uri);
+
+
+    goto show_results;
+  }
+
+
+  /* Below here running a query in this query engine (default, or -e QUERY) */
+
   rq = rasqal_new_query(world, (const char*)ql_name,
                         (const unsigned char*)ql_uri);
 #ifdef HAVE_RAPTOR2_API
@@ -1362,6 +1578,8 @@ main(int argc, char *argv[])
     goto tidy_query;
   }
 
+
+  show_results:
   if(rasqal_query_results_is_bindings(results)) {
     if(result_format)
       rc = print_formatted_query_results(world, results,
@@ -1389,7 +1607,7 @@ main(int argc, char *argv[])
 
   rasqal_free_query_results(results);
   
- tidy_query:  
+ tidy_query:
   rasqal_free_query(rq);
 
   if(!query_from_string)
@@ -1407,6 +1625,8 @@ main(int argc, char *argv[])
     raptor_free_memory(uri_string);
   if(iostr)
     raptor_free_iostream(iostr);
+  if(service_uri)
+    raptor_free_uri(service_uri);
 
   rasqal_free_world(world);
   
