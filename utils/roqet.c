@@ -831,8 +831,12 @@ roqet_call_sparql_service(rasqal_world* world, raptor_world* raptor_world_ptr,
   
   result_length = raptor_stringbuffer_length(rrws.sb);  
   result_string = raptor_stringbuffer_as_string(rrws.sb);
+#ifdef HAVE_RAPTOR2_API
   read_iostr = raptor_new_iostream_from_string(raptor_world_ptr,
                                                result_string, result_length);
+#else
+  read_iostr = raptor_new_iostream_from_string(result_string, result_length);
+#endif
   if(!read_iostr) {
     fprintf(stderr, "%s: Could not create iostream from string\n", program);
     rasqal_free_query_results(results);
