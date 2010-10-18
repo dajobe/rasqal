@@ -1,3 +1,11 @@
+2010-10-18  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_projection.c: #filename in boilerplate
+
+	* src/rasqal_query.c:
+	(rasqal_query_add_data_graph): docs: Clarify ownership of passed
+	in data_graphs.
+
 2010-10-17  Dave Beckett <dave@dajobe.org>
 
 	* utils/roqet.c: One more raptor_www_free() for Raptor V1
