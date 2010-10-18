@@ -677,6 +677,30 @@ rasqal_query_simple_error(void* user_data, const char *message, ...)
 }
 
 
+/*
+ * rasqal_world_simple_error:
+ *
+ * INTERNAL - Handle a simple error
+ *
+ * Matches the raptor_simple_message_handler API but with a world object
+ */
+void
+rasqal_world_simple_error(void* user_data, const char *message, ...)
+{
+  rasqal_world* world = (rasqal_world*)user_data;
+
+  va_list arguments;
+
+  va_start(arguments, message);
+
+  rasqal_log_error_varargs(world,
+                           RAPTOR_LOG_LEVEL_ERROR, NULL,
+                           message, arguments);
+  
+  va_end(arguments);
+}
+
+
 /* wrapper */
 const char*
 rasqal_basename(const char *name)

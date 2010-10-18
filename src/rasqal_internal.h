@@ -956,7 +956,8 @@ rasqal_query_language_factory* rasqal_query_language_register_factory(rasqal_wor
 rasqal_query_language_factory* rasqal_get_query_language_factory (rasqal_world*, const char* name, const unsigned char* uri);
 void rasqal_log_error_simple(rasqal_world* world, raptor_log_level level, raptor_locator* locator, const char* message, ...) RASQAL_PRINTF_FORMAT(4, 5);
 void rasqal_log_error_varargs(rasqal_world* world, raptor_log_level level, raptor_locator* locator, const char* message, va_list arguments) RASQAL_PRINTF_FORMAT(4, 0);
-void rasqal_query_simple_error(void* query, const char *message, ...) RASQAL_PRINTF_FORMAT(2, 3);
+void rasqal_query_simple_error(void* user_data /* query */, const char *message, ...) RASQAL_PRINTF_FORMAT(2, 3);
+void rasqal_world_simple_error(void* user_data /* world */, const char *message, ...) RASQAL_PRINTF_FORMAT(2, 3);
 
 const char* rasqal_basename(const char* name);
 unsigned char* rasqal_world_default_generate_bnodeid_handler(void *user_data, unsigned char *user_bnodeid);
