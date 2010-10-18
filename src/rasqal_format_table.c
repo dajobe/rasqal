@@ -82,6 +82,7 @@ rasqal_query_results_write_table_bindings(raptor_iostream *iostr,
                                           rasqal_query_results* results,
                                           raptor_uri *base_uri)
 {
+  rasqal_world* world = rasqal_query_results_get_world(results);
   raptor_sequence *seq = NULL;
   int *widths = NULL;
   int bindings_count = -1;
@@ -141,7 +142,7 @@ rasqal_query_results_write_table_bindings(raptor_iostream *iostr,
         continue;
 
 #ifdef HAVE_RAPTOR2_API
-      str_iostr = raptor_new_iostream_to_string(rasqal_query_results_get_query(results)->world->raptor_world_ptr,
+      str_iostr = raptor_new_iostream_to_string(world->raptor_world_ptr,
                                                 (void**)&values[i], &v_len,
                                                 rasqal_alloc_memory);
 #else

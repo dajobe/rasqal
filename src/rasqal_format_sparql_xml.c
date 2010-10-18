@@ -84,7 +84,7 @@ rasqal_query_results_write_sparql_xml(raptor_iostream *iostr,
                                       raptor_uri *base_uri)
 {
   int rc=1;
-  rasqal_query* query = rasqal_query_results_get_query(results);
+  rasqal_world* world = rasqal_query_results_get_world(results);
 #ifndef HAVE_RAPTOR2_API
   const raptor_uri_handler *uri_handler;
   void *uri_context;
@@ -103,15 +103,15 @@ rasqal_query_results_write_sparql_xml(raptor_iostream *iostr,
 
   if(!rasqal_query_results_is_bindings(results) &&
      !rasqal_query_results_is_boolean(results)) {
-    rasqal_log_error_simple(query->world, RAPTOR_LOG_LEVEL_ERROR,
-                            &query->locator,
+    rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR,
+                            NULL,
                             "Can only write XML format v3 for variable binding and boolean results");
     return 1;
   }
   
 
 #ifdef HAVE_RAPTOR2_API  
-  nstack = raptor_new_namespaces(query->world->raptor_world_ptr, 1);
+  nstack = raptor_new_namespaces(world->raptor_world_ptr, 1);
 #else
   raptor_uri_get_handler(&uri_handler, &uri_context);
   nstack = raptor_new_namespaces(uri_handler, uri_context,
@@ -122,7 +122,7 @@ rasqal_query_results_write_sparql_xml(raptor_iostream *iostr,
     return 1;
 
 #ifdef HAVE_RAPTOR2_API
-  xml_writer = raptor_new_xml_writer(query->world->raptor_world_ptr,
+  xml_writer = raptor_new_xml_writer(world->raptor_world_ptr,
                                      nstack,
                                      iostr);
 #else
@@ -180,7 +180,7 @@ rasqal_query_results_write_sparql_xml(raptor_iostream *iostr,
       if(!attrs)
         goto tidy;
 #ifdef HAVE_RAPTOR2_API
-      attrs[0] = raptor_new_qname_from_namespace_local_name(query->world->raptor_world_ptr,
+      attrs[0] = raptor_new_qname_from_namespace_local_name(world->raptor_world_ptr,
                                                             res_ns,
                                                             (const unsigned char*)"name",
                                                             (const unsigned char*)name); /* attribute value */
@@ -280,7 +280,7 @@ rasqal_query_results_write_sparql_xml(raptor_iostream *iostr,
       if(!attrs)
         goto tidy;
 #ifdef HAVE_RAPTOR2_API
-      attrs[0] = raptor_new_qname_from_namespace_local_name(query->world->raptor_world_ptr,
+      attrs[0] = raptor_new_qname_from_namespace_local_name(world->raptor_world_ptr,
                                                             res_ns,
                                                             (const unsigned char*)"name",
                                                             name);
@@ -357,7 +357,7 @@ rasqal_query_results_write_sparql_xml(raptor_iostream *iostr,
                                         );
             else
 #ifdef HAVE_RAPTOR2_API
-              attrs[0] = raptor_new_qname_from_namespace_local_name(query->world->raptor_world_ptr,
+              attrs[0] = raptor_new_qname_from_namespace_local_name(world->raptor_world_ptr,
                                                                     res_ns,
                                                                     (const unsigned char*)"datatype",
                                                                     (const unsigned char*)raptor_uri_as_string(l->datatype));
@@ -400,8 +400,8 @@ rasqal_query_results_write_sparql_xml(raptor_iostream *iostr,
 
         case RASQAL_LITERAL_UNKNOWN:
         default:
-          rasqal_log_error_simple(query->world, RAPTOR_LOG_LEVEL_ERROR,
-                                  &query->locator,
+          rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR,
+                                  NULL,
                                   "Cannot turn literal type %d into XML", 
                                   l->type);
           goto tidy;
