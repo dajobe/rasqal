@@ -1449,7 +1449,26 @@ int rasqal_xsd_decimal_equals(rasqal_xsd_decimal* a, rasqal_xsd_decimal* b);
 RASQAL_API
 int rasqal_xsd_decimal_is_zero(rasqal_xsd_decimal* d);
 
-/* rasqal_engine.c */
+
+/**
+ * rasqal_service:
+ *
+ * Rasqal SPARQL Protocol Service
+ */
+typedef struct rasqal_service_s rasqal_service;
+  
+RASQAL_API
+rasqal_service* rasqal_new_service(rasqal_world* world, raptor_uri* service_uri, const char* query_string);
+RASQAL_API
+void rasqal_free_service(rasqal_service* svc);
+RASQAL_API
+rasqal_query_results* rasqal_service_execute(rasqal_service* svc);
+RASQAL_API
+int rasqal_service_set_www(rasqal_service* svc, raptor_www* www);
+RASQAL_API
+int rasqal_service_set_format(rasqal_service* svc, const char *format);
+
+
 
 /**
  * rasqal_triple_parts:
