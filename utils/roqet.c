@@ -1068,7 +1068,7 @@ main(int argc, char *argv[])
     puts("and print the results in a simple text format.");
     puts("\nMain options:");
     puts(HELP_TEXT("e", "exec QUERY      ", "Execute QUERY string instead of <query URI>"));
-    puts(HELP_TEXT("p", "protocol QUERY  ", "Execute QUERY against a SPARQL protocol service URI"));
+    puts(HELP_TEXT("p", "protocol URI    ", "Execute QUERY against a SPARQL protocol service URI"));
     puts(HELP_TEXT("i", "input LANGUAGE  ", "Set query language name to one of:"));
     for(i = 0; 1; i++) {
       const char *help_name;
