@@ -612,305 +612,26 @@ print_formatted_query_results(rasqal_world* world,
 }
 
 
-typedef struct 
-{
-  raptor_www* www;
-  int started;
-  raptor_uri* final_uri;
-  raptor_stringbuffer* sb;
-  char* content_type;
-} roqet_results_write_state;
-
-
-static void
-roqet_results_write_bytes(raptor_www* www,
-                          void *userdata, const void *ptr, 
-                          size_t size, size_t nmemb)
-{
-  roqet_results_write_state* rrws = (roqet_results_write_state*)userdata;
-  int len = size * nmemb;
-
-  if(!rrws->started) {
-    rrws->final_uri = raptor_www_get_final_uri(www);
-    rrws->started = 1;
-  }
-
-  raptor_stringbuffer_append_counted_string(rrws->sb, ptr, len, 1);
-}
-
-
-static void
-roqet_results_content_type_handler(raptor_www* www, void* userdata, 
-                                   const char* content_type)
-{
-  roqet_results_write_state* rwb = (roqet_results_write_state*)userdata;
-  size_t len;
-  char* p;
-  
-  len = strlen(content_type) + 1;
-  rwb->content_type = (char*)RASQAL_MALLOC(cstring, len);
-  if(rwb->content_type)
-    memcpy(rwb->content_type, content_type, len);
-
-  for(p = rwb->content_type; *p; p++) {
-    if(*p == ';' || *p == ' ') {
-      *p = '\0';
-      break;
-    }
-  }
-}
-
-
-#ifdef RAPTOR_STRINGBUFFER_APPEND_URI_ESCAPED_COUNTED_STRING
-#else
-
-/* RFC3986 Unreserved */
-#define IS_URI_UNRESERVED(c) ( (c >= 'A' && c <= 'F') || \
-                               (c >= 'a' && c <= 'f') || \
-                               (c >= '0' && c <= '9') || \
-                               (c == '-' || c == '.' || c == '_' || c == '~') )
-#define IS_URI_SAFE(c) (IS_URI_UNRESERVED(c))
-    
-
-static int
-raptor_stringbuffer_append_hexadecimal(raptor_stringbuffer* stringbuffer, 
-                                       int hex)
-{
-  unsigned char buf[2];
-  
-  if(hex < 0 || hex > 0xF)
-     return 1;
-
-  *buf = (hex < 10) ? ('0' + hex) : ('A' + hex - 10);
-  buf[1] = '\0';
-
-  return raptor_stringbuffer_append_counted_string(stringbuffer, buf, 1, 1);
-}
-
- 
-static int
-raptor_stringbuffer_append_uri_escaped_counted_string(raptor_stringbuffer* sb,
-                                                      const char* string,
-                                                      size_t length,
-                                                      int space_is_plus)
-{
-  unsigned int i;
-  unsigned char buf[2];
-  buf[1] = '\0';
-
-  for(i = 0; i < length; i++) {
-    int c = string[i];
-    if(!c)
-      break;
-    
-    if(IS_URI_SAFE(c)) {
-      *buf = c;
-      raptor_stringbuffer_append_counted_string(sb, buf, 1, 1);
-    } else if (c == ' ' && space_is_plus) {
-      *buf = '+';
-      raptor_stringbuffer_append_counted_string(sb, buf, 1, 1);
-    } else {
-      *buf = '%';
-      raptor_stringbuffer_append_counted_string(sb, buf, 1, 1);
-      raptor_stringbuffer_append_hexadecimal(sb, (c & 0xf0) >> 4);
-      raptor_stringbuffer_append_hexadecimal(sb, (c & 0x0f));
-    }
-  }
-
-  return 0;
-}
-#endif
-
-
 
 static rasqal_query_results*
 roqet_call_sparql_service(rasqal_world* world, raptor_uri* service_uri,
-                          const char* query_string, raptor_uri* base_uri)
+                          const char* query_string, const char* format)
 {
-  roqet_results_write_state rrws;
-  rasqal_query_results* results = NULL;
-  raptor_www* www;
-  unsigned char* result_string = NULL;
-  size_t result_length;
-  raptor_iostream* read_iostr = NULL;
-  raptor_uri* read_base_uri = NULL;
-  rasqal_variables_table* vars_table = NULL;
-  rasqal_query_results_formatter* read_formatter = NULL;
-  raptor_uri* retrieval_uri = NULL;
-  raptor_stringbuffer* sb = NULL;
-  size_t len;
-  unsigned char* str;
-  raptor_world* raptor_world_ptr = rasqal_world_get_raptor(world);
-  
-  /* Execute a remote query at the service_uri - no query execution locally */
-  www = raptor_new_www(raptor_world_ptr);
-  if(!www) {
-    fprintf(stderr, "%s: Could not create WWW object\n", program);
-    goto error;
-  }
-    
-  rrws.www = www;
-  rrws.started = 0;
-  rrws.final_uri = NULL;
-  rrws.sb = raptor_new_stringbuffer();
-  rrws.content_type = NULL;
-  
-  raptor_www_set_http_accept(www, "application/sparql-results+xml");
-  raptor_www_set_write_bytes_handler(www, roqet_results_write_bytes, &rrws);
-  raptor_www_set_content_type_handler(www, roqet_results_content_type_handler,
-                                      &rrws);
+  rasqal_service* svc;
+  rasqal_query_results* results;
 
-  /* Construct a URI to retrieve following SPARQL protocol HTTP
-   *  binding from concatenation of
-   *
-   * 1. service_uri
-   * 2. '?'
-   * 3. "query=" query_string
-   * 4. "&default-graph-uri=" background graph URI if any
-   * 5. "&named-graph-uri=" named graph URI for all named graphs
-   * with URI-escaping of the values
-   */
-
-  sb = raptor_new_stringbuffer();
-  if(!sb) {
-    fprintf(stderr, "%s: Failed to create stringbuffer\n", program);
-    goto error;
+  svc = rasqal_new_service(world, service_uri, query_string);
+  if(!svc) {
+    fprintf(stderr, "%s: Failed to create service object\n", program);
+    return NULL;
   }
 
-  str = raptor_uri_as_counted_string(service_uri, &len);
-  raptor_stringbuffer_append_counted_string(sb, str, len, 1);
+  rasqal_service_set_format(svc, format);
 
-  raptor_stringbuffer_append_counted_string(sb,
-                                            (const unsigned char*)"?", 1, 1);
+  results = rasqal_service_execute(svc);
 
-  if(query_string) {
-    raptor_stringbuffer_append_counted_string(sb,
-                                              (const unsigned char*)"query=", 6, 1);
-    raptor_stringbuffer_append_uri_escaped_counted_string(sb, query_string,
-                                                          strlen(query_string),
-                                                          1);
-  }
+  rasqal_free_service(svc);
 
-#if 0
-  raptor_stringbuffer_append_counted_string(sb,
-                                            (const unsigned char*)"&default-graph-uri=", 19, 1);
-
-  raptor_stringbuffer_append_counted_string(sb,
-                                            (const unsigned char*)"&named-graph-uri=", 17, 1);
-#endif
-
-  str = raptor_stringbuffer_as_string(sb);
-
-  retrieval_uri = raptor_new_uri(raptor_world_ptr, str);
-  if(!retrieval_uri) {
-    fprintf(stderr, "%s: Failed to create retrieval URI %s\n", program,
-            raptor_uri_as_string(retrieval_uri));
-    goto error;
-  }
-
-  raptor_free_stringbuffer(sb); sb = NULL;
-  
-  if(raptor_www_fetch(www, retrieval_uri)) {
-    fprintf(stderr, "%s: Failed to fetch retrieval URI %s\n", program,
-            raptor_uri_as_string(retrieval_uri));
-    goto error;
-  }
-
-#ifdef HAVE_RAPTOR2_API
-  raptor_free_www(rrws.www);
-#else
-  raptor_www_free(rrws.www);
-#endif
-  rrws.www = NULL;
-
-  vars_table = rasqal_new_variables_table(world);
-  if(!vars_table) {
-    fprintf(stderr, "%s: Could not create variables table\n", program);
-    goto error;
-  }
-  
-  results = rasqal_new_query_results(world, NULL, 
-                                     RASQAL_QUERY_RESULTS_BINDINGS, 
-                                     vars_table);
-  /* (results takes a reference/copy to vars_table) */
-  rasqal_free_variables_table(vars_table); vars_table = NULL;
-
-  if(!results) {
-    fprintf(stderr, "%s: Could not create query results\n", program);
-    goto error;
-  }
-  
-  result_length = raptor_stringbuffer_length(rrws.sb);  
-  result_string = raptor_stringbuffer_as_string(rrws.sb);
-#ifdef HAVE_RAPTOR2_API
-  read_iostr = raptor_new_iostream_from_string(raptor_world_ptr,
-                                               result_string, result_length);
-#else
-  read_iostr = raptor_new_iostream_from_string(result_string, result_length);
-#endif
-  if(!read_iostr) {
-    fprintf(stderr, "%s: Could not create iostream from string\n", program);
-    rasqal_free_query_results(results);
-    results = NULL;
-    goto error;
-  }
-    
-  read_base_uri = rrws.final_uri ? rrws.final_uri : service_uri;
-  read_formatter = rasqal_new_query_results_formatter2(world,
-                                                       /* format name */ NULL,
-                                                       rrws.content_type,
-                                                       /* format URI */ NULL);
-  if(!read_formatter) {
-    fprintf(stderr, "%s: Could not create query formatter for type %s\n",
-            program, rrws.content_type);
-    rasqal_free_query_results(results);
-    results = NULL;
-    goto error;
-  }
-
-  if(rasqal_query_results_formatter_read(world, read_iostr, read_formatter,
-                                         results, read_base_uri)) {
-    fprintf(stderr, "%s: Could not read from query formatter\n", program);
-    rasqal_free_query_results(results);
-    results = NULL;
-    goto error;
-  }
-
-
-  error:
-  if(retrieval_uri)
-    raptor_free_uri(retrieval_uri);
-
-  if(sb)
-    raptor_free_stringbuffer(sb);
-
-  if(read_formatter)
-    rasqal_free_query_results_formatter(read_formatter);
-  
-  if(read_iostr)
-    raptor_free_iostream(read_iostr);
-  
-  if(vars_table)
-    rasqal_free_variables_table(vars_table);
-  
-  if(rrws.final_uri)
-    raptor_free_uri(rrws.final_uri);
-
-  if(rrws.content_type)
-    free(rrws.content_type);
-
-  if(rrws.www) {
-#ifdef HAVE_RAPTOR2_API
-    raptor_free_www(rrws.www);
-#else
-    raptor_www_free(rrws.www);
-#endif
-  }
-  
-  
-  if(rrws.sb)
-    raptor_free_stringbuffer(rrws.sb);
-  
   return results;
 }
 
@@ -1600,7 +1321,7 @@ main(int argc, char *argv[])
   if(service_uri) {
 
     results = roqet_call_sparql_service(world, service_uri, query_string,
-                                        base_uri);
+                                        /* service_format */ NULL);
 
 
     goto show_results;
