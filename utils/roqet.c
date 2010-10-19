@@ -661,24 +661,8 @@ roqet_results_content_type_handler(raptor_www* www, void* userdata,
 }
 
 
-#ifdef HAVE_RAPTOR_STRINGBUFFER_APPEND_HEXADECIMAL
+#ifdef RAPTOR_STRINGBUFFER_APPEND_URI_ESCAPED_COUNTED_STRING
 #else
-static int
-raptor_stringbuffer_append_hexadecimal(raptor_stringbuffer* stringbuffer, 
-                                       int hex)
-{
-  unsigned char buf[2];
-  
-  if(hex < 0 || hex > 0xF)
-     return 1;
-
-  *buf = (hex < 10) ? ('0' + hex) : ('A' + hex - 10);
-  buf[1] = '\0';
-
-  return raptor_stringbuffer_append_counted_string(stringbuffer, buf, 1, 1);
-}
-#endif
-
 
 /* RFC3986 Unreserved */
 #define IS_URI_UNRESERVED(c) ( (c >= 'A' && c <= 'F') || \
@@ -688,16 +672,17 @@ raptor_stringbuffer_append_hexadecimal(raptor_stringbuffer* stringbuffer,
 #define IS_URI_SAFE(c) (IS_URI_UNRESERVED(c))
     
 
-static int
-roqet_stringbuffer_append_uri_escaped_string(raptor_stringbuffer* sb,
-                                             const char* string,
-                                             size_t len, int space_is_plus)
+int
+raptor_stringbuffer_append_uri_escaped_counted_string(raptor_stringbuffer* sb,
+                                                      const char* string,
+                                                      size_t length,
+                                                      int space_is_plus)
 {
   unsigned int i;
   unsigned char buf[2];
   buf[1] = '\0';
 
-  for(i = 0; i < len; i++) {
+  for(i = 0; i < length; i++) {
     int c = string[i];
     if(!c)
       break;
@@ -718,7 +703,7 @@ roqet_stringbuffer_append_uri_escaped_string(raptor_stringbuffer* sb,
 
   return 0;
 }
-
+#endif
 
 static rasqal_query_results*
 roqet_call_sparql_service(rasqal_world* world, raptor_world* raptor_world_ptr,
@@ -783,8 +768,9 @@ roqet_call_sparql_service(rasqal_world* world, raptor_world* raptor_world_ptr,
   if(query_string) {
     raptor_stringbuffer_append_counted_string(sb,
                                               (const unsigned char*)"query=", 6, 1);
-    roqet_stringbuffer_append_uri_escaped_string(sb, query_string,
-                                                 strlen(query_string), 1);
+    raptor_stringbuffer_append_uri_escaped_counted_string(sb, query_string,
+                                                          strlen(query_string),
+                                                          1);
   }
 
 #if 0
