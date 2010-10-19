@@ -238,7 +238,6 @@ rasqal_query_results*
 rasqal_service_execute(rasqal_service* svc)
 {
   rasqal_query_results* results = NULL;
-  raptor_www* www;
   unsigned char* result_string = NULL;
   size_t result_length;
   raptor_iostream* read_iostr = NULL;
@@ -246,7 +245,7 @@ rasqal_service_execute(rasqal_service* svc)
   rasqal_variables_table* vars_table = NULL;
   rasqal_query_results_formatter* read_formatter = NULL;
   raptor_uri* retrieval_uri = NULL;
-  raptor_stringbuffer* sb = NULL;
+  raptor_stringbuffer* uri_sb = NULL;
   size_t len;
   unsigned char* str;
   raptor_world* raptor_world_ptr = rasqal_world_get_raptor(svc->world);
@@ -268,9 +267,9 @@ rasqal_service_execute(rasqal_service* svc)
   svc->content_type = NULL;
   
   if(svc->format)
-    raptor_www_set_http_accept(www, svc->format);
+    raptor_www_set_http_accept(svc->www, svc->format);
   else
-    raptor_www_set_http_accept(www, DEFAULT_FORMAT);
+    raptor_www_set_http_accept(svc->www, DEFAULT_FORMAT);
 
   raptor_www_set_write_bytes_handler(svc->www,
                                      rasqal_service_write_bytes, svc);
@@ -289,37 +288,38 @@ rasqal_service_execute(rasqal_service* svc)
    * with URI-escaping of the values
    */
 
-  sb = raptor_new_stringbuffer();
-  if(!sb) {
+  uri_sb = raptor_new_stringbuffer();
+  if(!uri_sb) {
     rasqal_log_error_simple(svc->world, RAPTOR_LOG_LEVEL_ERROR, NULL,
                             "Failed to create stringbuffer");
     goto error;
   }
 
   str = raptor_uri_as_counted_string(svc->service_uri, &len);
-  raptor_stringbuffer_append_counted_string(sb, str, len, 1);
+  raptor_stringbuffer_append_counted_string(uri_sb, str, len, 1);
 
-  raptor_stringbuffer_append_counted_string(sb,
+  raptor_stringbuffer_append_counted_string(uri_sb,
                                             (const unsigned char*)"?", 1, 1);
 
   if(svc->query_string) {
-    raptor_stringbuffer_append_counted_string(sb,
+    raptor_stringbuffer_append_counted_string(uri_sb,
                                               (const unsigned char*)"query=", 6, 1);
-    raptor_stringbuffer_append_uri_escaped_counted_string(sb,
+    raptor_stringbuffer_append_uri_escaped_counted_string(uri_sb,
                                                           svc->query_string,
                                                           svc->query_string_len,
                                                           1);
   }
 
 #if 0
-  raptor_stringbuffer_append_counted_string(sb,
+  /* FIXME - need to walk through data graphs */
+  raptor_stringbuffer_append_counted_string(uri_sb,
                                             (const unsigned char*)"&default-graph-uri=", 19, 1);
 
-  raptor_stringbuffer_append_counted_string(sb,
+  raptor_stringbuffer_append_counted_string(uri_sb,
                                             (const unsigned char*)"&named-graph-uri=", 17, 1);
 #endif
 
-  str = raptor_stringbuffer_as_string(sb);
+  str = raptor_stringbuffer_as_string(uri_sb);
 
   retrieval_uri = raptor_new_uri(raptor_world_ptr, str);
   if(!retrieval_uri) {
@@ -329,9 +329,9 @@ rasqal_service_execute(rasqal_service* svc)
     goto error;
   }
 
-  raptor_free_stringbuffer(sb); sb = NULL;
+  raptor_free_stringbuffer(uri_sb); uri_sb = NULL;
   
-  if(raptor_www_fetch(www, retrieval_uri)) {
+  if(raptor_www_fetch(svc->www, retrieval_uri)) {
     rasqal_log_error_simple(svc->world, RAPTOR_LOG_LEVEL_ERROR, NULL,
                             "Failed to fetch retrieval URI %s",
                             raptor_uri_as_string(retrieval_uri));
@@ -402,8 +402,8 @@ rasqal_service_execute(rasqal_service* svc)
   if(retrieval_uri)
     raptor_free_uri(retrieval_uri);
 
-  if(sb)
-    raptor_free_stringbuffer(sb);
+  if(uri_sb)
+    raptor_free_stringbuffer(uri_sb);
 
   if(read_formatter)
     rasqal_free_query_results_formatter(read_formatter);
