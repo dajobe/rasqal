@@ -721,9 +721,10 @@ raptor_stringbuffer_append_uri_escaped_counted_string(raptor_stringbuffer* sb,
 }
 #endif
 
+
+
 static rasqal_query_results*
-roqet_call_sparql_service(rasqal_world* world, raptor_world* raptor_world_ptr,
-                          raptor_uri* service_uri,
+roqet_call_sparql_service(rasqal_world* world, raptor_uri* service_uri,
                           const char* query_string, raptor_uri* base_uri)
 {
   roqet_results_write_state rrws;
@@ -739,6 +740,7 @@ roqet_call_sparql_service(rasqal_world* world, raptor_world* raptor_world_ptr,
   raptor_stringbuffer* sb = NULL;
   size_t len;
   unsigned char* str;
+  raptor_world* raptor_world_ptr = rasqal_world_get_raptor(world);
   
   /* Execute a remote query at the service_uri - no query execution locally */
   www = raptor_new_www(raptor_world_ptr);
@@ -1597,8 +1599,7 @@ main(int argc, char *argv[])
 
   if(service_uri) {
 
-    results = roqet_call_sparql_service(world, raptor_world_ptr,
-                                        service_uri, query_string,
+    results = roqet_call_sparql_service(world, service_uri, query_string,
                                         base_uri);
 
 
