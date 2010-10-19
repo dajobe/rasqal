@@ -201,7 +201,8 @@ rasqal_new_query_results(rasqal_world* world,
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(vars_table, rasqal_variables_table, NULL);
 
-  query_results = (rasqal_query_results*)RASQAL_CALLOC(rasqal_query_results, 1, sizeof(rasqal_query_results));
+  query_results = (rasqal_query_results*)RASQAL_CALLOC(rasqal_query_results, 
+                                                       1, sizeof(*query_results));
   if(!query_results)
     return NULL;
   
@@ -295,6 +296,7 @@ rasqal_query_results_execute_with_engine(rasqal_query* query,
   ex_data_size = query_results->execution_factory->execution_data_size;
   if(ex_data_size > 0) {
     query_results->execution_data = RASQAL_CALLOC(data, 1, ex_data_size);
+
     if(!query_results->execution_data) {
       rasqal_free_query_results(query_results);
       return NULL;
@@ -309,6 +311,7 @@ rasqal_query_results_execute_with_engine(rasqal_query* query,
       execution_flags |= 1;
 
     rc = query_results->execution_factory->execute_init(query_results->execution_data, query, query_results, execution_flags, &execution_error);
+
     if(rc || execution_error != RASQAL_ENGINE_OK) {
       query_results->failed = 1;
       rasqal_free_query_results(query_results);
@@ -555,7 +558,7 @@ rasqal_query_results_get_row_from_saved(rasqal_query_results* query_results)
     
     /* else got result or finished */
     row = (rasqal_row*)raptor_sequence_delete_at(query_results->results_sequence,
-                                                 query_results->result_count-1);
+                                                 query_results->result_count - 1);
     
     if(row) {
       /* stored results may not be canonicalized yet - do it lazily */
@@ -691,9 +694,11 @@ rasqal_query_results_get_count(rasqal_query_results* query_results)
     return -1;
 
   query = query_results->query;
+
   if(query && query->offset > 0)
     return query_results->result_count - query->offset;
-  return query_results->result_count;
+  else
+    return query_results->result_count;
 }
 
 
