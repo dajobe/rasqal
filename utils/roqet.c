@@ -672,7 +672,23 @@ roqet_results_content_type_handler(raptor_www* www, void* userdata,
 #define IS_URI_SAFE(c) (IS_URI_UNRESERVED(c))
     
 
-int
+static int
+raptor_stringbuffer_append_hexadecimal(raptor_stringbuffer* stringbuffer, 
+                                       int hex)
+{
+  unsigned char buf[2];
+  
+  if(hex < 0 || hex > 0xF)
+     return 1;
+
+  *buf = (hex < 10) ? ('0' + hex) : ('A' + hex - 10);
+  buf[1] = '\0';
+
+  return raptor_stringbuffer_append_counted_string(stringbuffer, buf, 1, 1);
+}
+
+ 
+static int
 raptor_stringbuffer_append_uri_escaped_counted_string(raptor_stringbuffer* sb,
                                                       const char* string,
                                                       size_t length,
