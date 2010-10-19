@@ -70,7 +70,7 @@ struct rasqal_service_s
  * rasqal_new_service:
  * @world: rasqal_world object
  * @service_uri: sparql protocol service URI
- * @query_string: query string
+ * @query_string: query string (or NULL)
  *
  * Constructor - create a new rasqal protocol service object.
  *
@@ -85,11 +85,10 @@ rasqal_new_service(rasqal_world* world, raptor_uri* service_uri,
                    const char* query_string)
 {
   rasqal_service* svc;
-  size_t len;
+  size_t len = 0;
   
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(service_uri, raptor_uri, NULL);
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query_string, cstring, NULL);
   
   svc = (rasqal_service*)RASQAL_CALLOC(rasqal_service, 1, sizeof(*svc));
   if(!svc)
@@ -98,20 +97,28 @@ rasqal_new_service(rasqal_world* world, raptor_uri* service_uri,
   svc->world = world;
   svc->service_uri = raptor_uri_copy(service_uri);
 
-  len = strlen(query_string) + 1;
-  svc->query_string = RASQAL_MALLOC(cstring, len);
-  if(!svc->query_string) {
-    rasqal_free_service(svc);
-    return NULL;
-  }
+  if(query_string) {
+    len = strlen(query_string) + 1;
+    svc->query_string = RASQAL_MALLOC(cstring, len);
+    if(!svc->query_string) {
+      rasqal_free_service(svc);
+      return NULL;
+    }
   
-  memcpy(svc->query_string, query_string, len);
+    memcpy(svc->query_string, query_string, len);
+  }
   svc->query_string_len = len;
   
   return svc;
 }
 
 
+/**
+ * rasqal_free_service:
+ * @svc: #rasqal_service object
+ * 
+ * Destructor - destroy a #rasqal_service object.
+ **/
 void
 rasqal_free_service(rasqal_service* svc)
 {
@@ -131,7 +138,7 @@ rasqal_free_service(rasqal_service* svc)
 /**
  * rasqal_service_set_www:
  * @service: #rasqal_service service object
- * @www: WWW object
+ * @www: WWW object (or NULL)
  *
  * Set the WWW object to use when executing the service
  * 
@@ -157,7 +164,7 @@ rasqal_service_set_www(rasqal_service* svc, raptor_www* www)
 /**
  * rasqal_service_set_format:
  * @service: #rasqal_service service object
- * @format: service mime type
+ * @format: service mime type (or NULL)
  *
  * Set the MIME Type to use in HTTP Accept when executing the service
  * 
