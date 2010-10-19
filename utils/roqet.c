@@ -661,21 +661,23 @@ roqet_results_content_type_handler(raptor_www* www, void* userdata,
 }
 
 
+#ifdef HAVE_RAPTOR_STRINGBUFFER_APPEND_HEXADECIMAL
+#else
 static int
-roqet_stringbuffer_append_hexadecimal(raptor_stringbuffer* stringbuffer, 
-                                      int hex)
+raptor_stringbuffer_append_hexadecimal(raptor_stringbuffer* stringbuffer, 
+                                       int hex)
 {
-  if(hex < 10)
-    raptor_stringbuffer_append_decimal(stringbuffer, hex);
-  else {
-    unsigned char buf[2];
+  unsigned char buf[2];
   
-    buf[0] = 'A' + (hex - 10);
-    buf[1] = '\0';
-    raptor_stringbuffer_append_counted_string(stringbuffer, buf, 1, 1);
-  }
-  return 0;
+  if(hex < 0 || hex > 0xF)
+     return 1;
+
+  *buf = (hex < 10) ? ('0' + hex) : ('A' + hex - 10);
+  buf[1] = '\0';
+
+  return raptor_stringbuffer_append_counted_string(stringbuffer, buf, 1, 1);
 }
+#endif
 
 
 /* RFC3986 Unreserved */
@@ -709,8 +711,8 @@ roqet_stringbuffer_append_uri_escaped_string(raptor_stringbuffer* sb,
     } else {
       *buf = '%';
       raptor_stringbuffer_append_counted_string(sb, buf, 1, 1);
-      roqet_stringbuffer_append_hexadecimal(sb, (c & 0xf0) >> 4);
-      roqet_stringbuffer_append_hexadecimal(sb, (c & 0x0f));
+      raptor_stringbuffer_append_hexadecimal(sb, (c & 0xf0) >> 4);
+      raptor_stringbuffer_append_hexadecimal(sb, (c & 0x0f));
     }
   }
 
