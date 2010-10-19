@@ -711,6 +711,19 @@ else
   RAPPER_PATH=""
 fi
 
+
+oLIBS="$LIBS"
+LIBS="$LIBS $RASQAL_EXTERNAL_LIBS"
+# FIXME remove these raptor checks when RAPTOR2_MIN_VERSION increases
+#  raptor_stringbuffer_append_hexadecimal() is in raptor2 >1.9.0
+AC_CHECK_FUNC(raptor_stringbuffer_append_hexadecimal, have_rsah=yes, have_rsah=no)
+LIBS="$oLIBS"
+
+if test "X$have_rsah" = Xyes; then
+  AC_DEFINE(HAVE_RAPTOR_STRINGBUFFER_APPEND_HEXADECIMAL, 1, [Have raptor_stringbuffer_append_hexadecimal()])
+fi
+
+
 if test $need_regex_pcre = 1; then
   C=`$PCRE_CONFIG --cflags`
   L=`$PCRE_CONFIG --libs`
