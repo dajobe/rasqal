@@ -567,7 +567,8 @@ VarOrLiteral : Var
 
 Var : '?' IDENTIFIER
 {
-  $$=rasqal_new_variable((rasqal_query*)rq, $2, NULL);
+  $$ = rasqal_variables_table_add(((rasqal_query*)rq)->vars_table,
+                                  RASQAL_VARIABLE_TYPE_NORMAL, $2, NULL);
 }
 ;
 

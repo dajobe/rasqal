@@ -68,6 +68,8 @@
  * 
  * The @name and @value become owned by the rasqal_variable structure
  *
+ * @Deprecated: for rasqal_variables_table_add()
+ *
  * Return value: a new #rasqal_variable or NULL on failure.
  **/
 rasqal_variable*
@@ -95,6 +97,8 @@ rasqal_new_variable_typed(rasqal_query* rq,
  * to create other variables.
  * 
  * The @name and @value become owned by the rasqal_variable structure
+ *
+ * @Deprecated: for rasqal_variables_table_add()
  *
  * Return value: a new #rasqal_variable or NULL on failure.
  **/

@@ -1381,9 +1381,9 @@ RASQAL_API
 rasqal_literal* rasqal_triple_get_origin(rasqal_triple* t);
 
 /* Variable class */
-RASQAL_API
+RASQAL_API RASQAL_DEPRECATED
 rasqal_variable* rasqal_new_variable_typed(rasqal_query* rq, rasqal_variable_type type, unsigned char *name, rasqal_literal *value);
-RASQAL_API
+RASQAL_API RASQAL_DEPRECATED
 rasqal_variable* rasqal_new_variable(rasqal_query* rq, unsigned char *name, rasqal_literal *value);
 RASQAL_API
 rasqal_variable* rasqal_new_variable_from_variable(rasqal_variable* v);
