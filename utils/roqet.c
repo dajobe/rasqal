@@ -697,8 +697,6 @@ roqet_init_query(rasqal_world *world,
         goto tidy_query;
       }
     }
-    raptor_free_sequence(data_graphs);
-    data_graphs = NULL;
   }
 
   if(rasqal_query_prepare(rq, (const unsigned char*)query_string, base_uri)) {
