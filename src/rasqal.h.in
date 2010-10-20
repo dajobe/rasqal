@@ -302,6 +302,7 @@ typedef enum {
  * @format_uri: URI of data format at @uri (or NULL)
  * @iostr: Raptor iostream for content, overriding @uri if present (or NULL)
  * @base_uri: base URI for reading from iostream
+ * @usage: usage count of this object
  *
  * A source of RDF data for querying. 
  *
@@ -322,6 +323,7 @@ typedef struct {
   raptor_uri* format_uri;
   raptor_iostream* iostr;
   raptor_uri* base_uri;
+  int usage;
 } rasqal_data_graph;
 
 
@@ -1211,6 +1213,8 @@ RASQAL_API
 rasqal_data_graph* rasqal_new_data_graph_from_iostream(rasqal_world* world, raptor_iostream* iostr, raptor_uri* base_uri, raptor_uri* name_uri, int flags, const char* format_type, const char* format_name, raptor_uri* format_uri);
 RASQAL_API RASQAL_DEPRECATED
 rasqal_data_graph* rasqal_new_data_graph(rasqal_world* world, raptor_uri* uri, raptor_uri* name_uri, int flags);
+RASQAL_API
+rasqal_data_graph* rasqal_new_data_graph_from_data_graph(rasqal_data_graph* dg);
 RASQAL_API
 void rasqal_free_data_graph(rasqal_data_graph* dg);
 RASQAL_API

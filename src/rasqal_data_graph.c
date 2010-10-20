@@ -56,6 +56,8 @@ rasqal_new_data_graph_common(rasqal_world* world,
   if(dg) {
     dg->world = world;
 
+    dg->usage = 1;
+
     if(iostr)
       dg->iostr = iostr;
     else if(uri)
@@ -203,6 +205,23 @@ rasqal_new_data_graph(rasqal_world* world, raptor_uri* uri,
 
 
 /**
+ * rasqal_new_data_graph_from_data_graph:
+ * @dg: #rasqal_data_graph object to copy or NULL
+ *
+ * Copy Constructor - create a new #rasqal_data_graph object from an existing #rasqal_data_graph object.
+ *
+ * Return value: a new #rasqal_data_graph object or NULL if @dg was NULL.
+ **/
+rasqal_data_graph*
+rasqal_new_data_graph_from_data_graph(rasqal_data_graph* dg)
+{
+  dg->usage++;
+
+  return dg;
+}
+
+
+/**
  * rasqal_free_data_graph:
  * @dg: #rasqal_data_graph object
  * 
@@ -213,6 +232,9 @@ void
 rasqal_free_data_graph(rasqal_data_graph* dg)
 {
   if(!dg)
+    return;
+
+  if(--dg->usage)
     return;
   
   if(dg->uri)
