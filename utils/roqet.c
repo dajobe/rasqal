@@ -1485,6 +1485,11 @@ main(int argc, char *argv[])
     }
 
   }
+
+
+  /* No results from dryrun */
+  if(dryrun)
+    goto tidy_query;
   
   if(!results) {
     fprintf(stderr, "%s: Query execution failed\n", program);
