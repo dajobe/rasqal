@@ -623,12 +623,15 @@ print_formatted_query_results(rasqal_world* world,
 
 static rasqal_query_results*
 roqet_call_sparql_service(rasqal_world* world, raptor_uri* service_uri,
-                          const char* query_string, const char* format)
+                          const char* query_string,
+                          raptor_sequence* data_graphs,
+                          const char* format)
 {
   rasqal_service* svc;
   rasqal_query_results* results;
 
-  svc = rasqal_new_service(world, service_uri, query_string);
+  svc = rasqal_new_service(world, service_uri, query_string,
+                           data_graphs);
   if(!svc) {
     fprintf(stderr, "%s: Failed to create service object\n", program);
     return NULL;
@@ -1455,6 +1458,7 @@ main(int argc, char *argv[])
     /* Execute query remotely */
     if(!dryrun)
       results = roqet_call_sparql_service(world, service_uri, query_string,
+                                          data_graphs,
                                           /* service_format */ NULL);
   } else {
     /* Execute query in this query engine (from URI or from -e QUERY) */

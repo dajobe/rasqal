@@ -1462,7 +1462,7 @@ int rasqal_xsd_decimal_is_zero(rasqal_xsd_decimal* d);
 typedef struct rasqal_service_s rasqal_service;
   
 RASQAL_API
-rasqal_service* rasqal_new_service(rasqal_world* world, raptor_uri* service_uri, const char* query_string);
+rasqal_service* rasqal_new_service(rasqal_world* world, raptor_uri* service_uri, const char* query_string, raptor_sequence* data_graphs);
 RASQAL_API
 void rasqal_free_service(rasqal_service* svc);
 RASQAL_API

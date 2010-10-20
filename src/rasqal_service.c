@@ -54,11 +54,14 @@ struct rasqal_service_s
   raptor_uri* service_uri;
   char* query_string;
   size_t query_string_len;
+  raptor_sequence* data_graphs; /* background graph and named graphs */
   char* format; /* MIME Type to use as request HTTP Accept: */
 
-  /* retrieval fields */
+  /* URL retrieval fields */
   raptor_www* www;
   int started;
+
+  /* response fields */
   raptor_uri* final_uri;
   raptor_stringbuffer* sb;
   char* content_type;
@@ -71,6 +74,7 @@ struct rasqal_service_s
  * @world: rasqal_world object
  * @service_uri: sparql protocol service URI
  * @query_string: query string (or NULL)
+ * @data_graphs: sequence of #rasqal_data_graph graphs for service
  *
  * Constructor - create a new rasqal protocol service object.
  *
@@ -78,11 +82,14 @@ struct rasqal_service_s
  * @service_uri running the query @query_string and returning
  * a sparql result set.
  *
+ * All arguments are copied by the service object
+ *
  * Return value: a new #rasqal_query object or NULL on failure
  */
 rasqal_service*
 rasqal_new_service(rasqal_world* world, raptor_uri* service_uri,
-                   const char* query_string)
+                   const char* query_string,
+                   raptor_sequence* data_graphs)
 {
   rasqal_service* svc;
   size_t len = 0;
@@ -98,16 +105,41 @@ rasqal_new_service(rasqal_world* world, raptor_uri* service_uri,
   svc->service_uri = raptor_uri_copy(service_uri);
 
   if(query_string) {
-    len = strlen(query_string) + 1;
-    svc->query_string = RASQAL_MALLOC(cstring, len);
+    len = strlen(query_string);
+    svc->query_string = RASQAL_MALLOC(cstring, len + 1);
     if(!svc->query_string) {
       rasqal_free_service(svc);
       return NULL;
     }
   
-    memcpy(svc->query_string, query_string, len);
+    memcpy(svc->query_string, query_string, len + 1);
   }
   svc->query_string_len = len;
+
+  if(data_graphs) {
+    int i;
+    rasqal_data_graph* dg;
+    
+#ifdef HAVE_RAPTOR2_API
+    svc->data_graphs = raptor_new_sequence((raptor_data_free_handler)rasqal_free_data_graph,
+                                           NULL);
+
+#else
+    svc->data_graphs = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_data_graph,
+                                           NULL);
+#endif
+    if(!svc->data_graphs) {
+      rasqal_free_service(svc);
+      return NULL;
+    }
+
+    for(i = 0;
+        (dg = (rasqal_data_graph*)raptor_sequence_get_at(data_graphs, i));
+        i++) {
+      raptor_sequence_push(svc->data_graphs,
+                           rasqal_new_data_graph_from_data_graph(dg));
+    }
+  }
   
   return svc;
 }
@@ -131,6 +163,9 @@ rasqal_free_service(rasqal_service* svc)
   if(svc->query_string)
     RASQAL_FREE(cstring, svc->query_string);
 
+  if(svc->data_graphs)
+    raptor_free_sequence(svc->data_graphs);
+  
   rasqal_service_set_www(svc, NULL);
 }
 
@@ -319,7 +354,6 @@ rasqal_service_execute(rasqal_service* svc)
   unsigned char* str;
   raptor_world* raptor_world_ptr = rasqal_world_get_raptor(svc->world);
   
-  /* Execute a remote query at the service_uri - no query execution locally */
   if(!svc->www) {
     svc->www = raptor_new_www(raptor_world_ptr);
 
@@ -379,14 +413,46 @@ rasqal_service_execute(rasqal_service* svc)
                                                           1);
   }
 
-#if 0
-  /* FIXME - need to walk through data graphs */
-  raptor_stringbuffer_append_counted_string(uri_sb,
-                                            (const unsigned char*)"&default-graph-uri=", 19, 1);
 
-  raptor_stringbuffer_append_counted_string(uri_sb,
-                                            (const unsigned char*)"&named-graph-uri=", 17, 1);
-#endif
+  if(svc->data_graphs) {
+    rasqal_data_graph* dg;
+    int i;
+    int bg_graph_count;
+    
+    for(i = 0, bg_graph_count = 0;
+        (dg = (rasqal_data_graph*)raptor_sequence_get_at(svc->data_graphs, i));
+        i++) {
+      unsigned char* graph_str;
+      size_t graph_len;
+      raptor_uri* graph_uri;
+      
+      if(dg->flags & RASQAL_DATA_GRAPH_BACKGROUND) {
+
+        if(bg_graph_count++) {
+          if(bg_graph_count == 2) {
+            /* Warn once, only when the second BG is seen */
+            rasqal_log_error_simple(svc->world, RAPTOR_LOG_LEVEL_WARN, NULL,
+                                    "Attempted to add use background graphs");
+          }
+          /* always skip after first BG */
+          continue;
+        }
+        
+        raptor_stringbuffer_append_counted_string(uri_sb,
+                                                  (const unsigned char*)"&default-graph-uri=", 19, 1);
+        graph_uri = dg->uri;
+      } else {
+        raptor_stringbuffer_append_counted_string(uri_sb,
+                                                  (const unsigned char*)"&named-graph-uri=", 17, 1);
+        graph_uri = dg->name_uri;
+      }
+      
+      graph_str = raptor_uri_as_counted_string(graph_uri, &graph_len);
+      raptor_stringbuffer_append_uri_escaped_counted_string(uri_sb,
+                                                            (const char*)graph_str, graph_len, 1);
+    }
+  }
+  
 
   str = raptor_stringbuffer_as_string(uri_sb);
 
