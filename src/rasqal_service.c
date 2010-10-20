@@ -167,6 +167,8 @@ rasqal_free_service(rasqal_service* svc)
     raptor_free_sequence(svc->data_graphs);
   
   rasqal_service_set_www(svc, NULL);
+
+  RASQAL_FREE(rasqal_service, svc);
 }
 
 
@@ -234,15 +236,15 @@ rasqal_service_write_bytes(raptor_www* www,
                            void *userdata, const void *ptr, 
                            size_t size, size_t nmemb)
 {
-  rasqal_service* rrws = (rasqal_service*)userdata;
+  rasqal_service* svc = (rasqal_service*)userdata;
   int len = size * nmemb;
 
-  if(!rrws->started) {
-    rrws->final_uri = raptor_www_get_final_uri(www);
-    rrws->started = 1;
+  if(!svc->started) {
+    svc->final_uri = raptor_www_get_final_uri(www);
+    svc->started = 1;
   }
 
-  raptor_stringbuffer_append_counted_string(rrws->sb, ptr, len, 1);
+  raptor_stringbuffer_append_counted_string(svc->sb, ptr, len, 1);
 }
 
 
@@ -250,21 +252,25 @@ static void
 rasqal_service_content_type_handler(raptor_www* www, void* userdata, 
                                     const char* content_type)
 {
-  rasqal_service* rwb = (rasqal_service*)userdata;
+  rasqal_service* svc = (rasqal_service*)userdata;
   size_t len;
-  char* p;
   
   len = strlen(content_type) + 1;
-  rwb->content_type = (char*)RASQAL_MALLOC(cstring, len);
-  if(rwb->content_type)
-    memcpy(rwb->content_type, content_type, len);
+  svc->content_type = (char*)RASQAL_MALLOC(cstring, len);
 
-  for(p = rwb->content_type; *p; p++) {
-    if(*p == ';' || *p == ' ') {
-      *p = '\0';
-      break;
+  if(svc->content_type) {
+    char* p;
+
+    memcpy(svc->content_type, content_type, len);
+
+    for(p = svc->content_type; *p; p++) {
+      if(*p == ';' || *p == ' ') {
+        *p = '\0';
+        break;
+      }
     }
   }
+
 }
 
 
@@ -555,7 +561,7 @@ rasqal_service_execute(rasqal_service* svc)
   }
 
   if(svc->content_type) {
-    free(svc->content_type);
+    RASQAL_FREE(cstring, svc->content_type);
     svc->content_type = NULL;
   }
 
