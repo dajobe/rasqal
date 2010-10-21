@@ -360,15 +360,18 @@ rasqal_engine_rowsort_calculate_order_values(rasqal_query* query,
                                              rasqal_row* row)
 {
   int i;
+  raptor_sequence *order_seq;
   
   if(!row->order_size)
     return 1;
   
+  order_seq = rasqal_query_get_order_conditions_sequence(query);
+
   for(i = 0; i < row->order_size; i++) {
     rasqal_expression* e;
     rasqal_literal *l;
     
-    e = (rasqal_expression*)raptor_sequence_get_at(query->order_conditions_sequence, i);
+    e = (rasqal_expression*)raptor_sequence_get_at(order_seq, i);
     l = rasqal_expression_evaluate(query->world, &query->locator,
                                    e, query->compare_flags);
     if(row->order_values[i])

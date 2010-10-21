@@ -1428,17 +1428,20 @@ rasqal_engine_make_rowsource(rasqal_query* query,
   con->need_store_results = need_store_results;
 
   if(con->need_store_results) {
+    raptor_sequence *order_seq;
+    order_seq = rasqal_query_get_order_conditions_sequence(query);
+    
     /* make a row:NULL map in order to sort or do distinct */
     con->map = rasqal_engine_new_rowsort_map(query->distinct,
                                              query->compare_flags,
-                                             query->order_conditions_sequence);
+                                             order_seq);
     if(!con->map) {
       rasqal_rowsource_engine_finish(NULL, con);
       return NULL;
     }
 
-    if(query->order_conditions_sequence)
-      con->order_size = raptor_sequence_size(query->order_conditions_sequence);
+    if(order_seq)
+      con->order_size = raptor_sequence_size(order_seq);
   }
   
 #ifdef HAVE_RAPTOR2_API

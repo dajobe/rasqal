@@ -773,6 +773,7 @@ rasqal_query_write_sparql_20060406(raptor_iostream *iostr,
   const raptor_uri_handler *uri_handler;
   void *uri_context;
 #endif
+  int limit, offset;
 
   wc.world = query->world;
   wc.base_uri = NULL;
@@ -983,7 +984,7 @@ rasqal_query_write_sparql_20060406(raptor_iostream *iostr,
     raptor_iostream_write_byte('\n', iostr);
   }
 
-  if(query->group_conditions_sequence) {
+  if(rasqal_query_get_group_conditions_sequence(query)) {
     raptor_iostream_counted_string_write("GROUP BY ", 9, iostr);
     for(i = 0; 1; i++) {
       rasqal_expression* expr = rasqal_query_get_group_condition(query, i);
@@ -997,7 +998,7 @@ rasqal_query_write_sparql_20060406(raptor_iostream *iostr,
     raptor_iostream_write_byte('\n', iostr);
   }
 
-  if(query->having_conditions_sequence) {
+  if(rasqal_query_get_having_conditions_sequence(query)) {
     raptor_iostream_counted_string_write("HAVING ", 7, iostr);
     for(i = 0; 1; i++) {
       rasqal_expression* expr = rasqal_query_get_having_condition(query, i);
@@ -1011,7 +1012,7 @@ rasqal_query_write_sparql_20060406(raptor_iostream *iostr,
     raptor_iostream_write_byte('\n', iostr);
   }
 
-  if(query->order_conditions_sequence) {
+  if(rasqal_query_get_order_conditions_sequence(query)) {
     raptor_iostream_counted_string_write("ORDER BY ", 9, iostr);
     for(i = 0; 1; i++) {
       rasqal_expression* expr = rasqal_query_get_order_condition(query, i);
@@ -1025,16 +1026,18 @@ rasqal_query_write_sparql_20060406(raptor_iostream *iostr,
     raptor_iostream_write_byte('\n', iostr);
   }
 
-  if(query->limit >= 0 || query->offset >= 0) {
-    if(query->limit >= 0) {
+  limit = rasqal_query_get_limit(query);
+  offset = rasqal_query_get_offset(query);
+  if(limit >= 0 || offset >= 0) {
+    if(limit >= 0) {
       raptor_iostream_counted_string_write("LIMIT ", 7, iostr);
-      raptor_iostream_decimal_write(query->limit, iostr);
+      raptor_iostream_decimal_write(limit, iostr);
     }
-    if(query->offset >= 0) {
-      if(query->limit)
+    if(offset >= 0) {
+      if(limit)
         raptor_iostream_write_byte(' ', iostr);
       raptor_iostream_counted_string_write("OFFSET ", 8, iostr);
-      raptor_iostream_decimal_write(query->offset, iostr);
+      raptor_iostream_decimal_write(offset, iostr);
     }
     raptor_iostream_write_byte('\n', iostr);
   }

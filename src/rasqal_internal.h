@@ -370,11 +370,11 @@ struct rasqal_query_s {
    */
   int distinct;
 
-  /* result limit LIMIT (>=0) or <0 if not given */
-  int limit;
+  /* WAS: result limit LIMIT (>=0) or <0 if not given */
+  int unused4;
 
-  /* result offset OFFSET (>=0) or <0 if not given */
-  int offset;
+  /* WAS: result offset OFFSET (>=0) or <0 if not given */
+  int unused5;
 
   /* non-0 if '*' was seen after a verb (the appropriate list such as selects or constructs will be NULL) */
   int wildcard;
@@ -430,11 +430,11 @@ struct rasqal_query_s {
   /* incrementing counter for declaring prefixes in order of appearance */
   int prefix_depth;
 
-  /* sequence of order condition expressions */
-  raptor_sequence* order_conditions_sequence;
+  /* WAS: sequence of order condition expressions */
+  void* unused6;
 
-  /* sequence of group by condition expressions */
-  raptor_sequence* group_conditions_sequence;
+  /* WAS: sequence of group by condition expressions */
+  void* unused7;
 
   /* INTERNAL rasqal_literal_compare / rasqal_expression_evaluate flags */
   int compare_flags;
@@ -483,8 +483,8 @@ struct rasqal_query_s {
    */
   raptor_sequence* updates;
 
-  /* sequence of (group by ...) having condition expressions */
-  raptor_sequence* having_conditions_sequence;
+  /* WAS: sequence of (group by ...) having condition expressions */
+  raptor_sequence* unused8;
   
   /* INTERNAL solution modifier */
   rasqal_solution_modifier* modifier;

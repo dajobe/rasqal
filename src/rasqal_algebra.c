@@ -1310,7 +1310,8 @@ rasqal_algebra_query_to_algebra(rasqal_query* query)
   rasqal_graph_pattern* query_gp;
   rasqal_algebra_node* node;
   int modified = 0;
-
+  raptor_sequence* order_seq = NULL;
+  
   query_gp = rasqal_query_get_query_graph_pattern(query);
   if(!query_gp)
     return NULL;
@@ -1331,8 +1332,12 @@ rasqal_algebra_query_to_algebra(rasqal_query* query)
   fputs("\n", stderr);
 #endif
 
-  if(query->order_conditions_sequence) {
-    int order_size = raptor_sequence_size(query->order_conditions_sequence);
+  if(query->modifier)
+     order_seq = query->modifier->order_conditions;
+
+  if(order_seq) {
+    int order_size = raptor_sequence_size(order_seq);
+
     if(order_size) {
       int i;
       raptor_sequence* seq;
@@ -1349,9 +1354,10 @@ rasqal_algebra_query_to_algebra(rasqal_query* query)
         rasqal_free_algebra_node(node);
         return NULL;
       }
+
       for(i = 0; i < order_size; i++) {
         rasqal_expression* e;
-        e = (rasqal_expression*)raptor_sequence_get_at(query->order_conditions_sequence, i);
+        e = (rasqal_expression*)raptor_sequence_get_at(order_seq, i);
         raptor_sequence_push(seq, rasqal_new_expression_from_expression(e));
       }
 

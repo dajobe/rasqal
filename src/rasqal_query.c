@@ -123,9 +123,6 @@ rasqal_new_query(rasqal_world *world, const char *name,
   
   query->factory = factory;
 
-  query->limit = -1;
-  query->offset = -1;
-
   query->genid_counter = 1;
 
   query->context = (char*)RASQAL_CALLOC(rasqal_query_context, 1,
@@ -249,15 +246,6 @@ rasqal_free_query(rasqal_query* query)
 
   if(query->query_graph_pattern)
     rasqal_free_graph_pattern(query->query_graph_pattern);
-
-  if(query->order_conditions_sequence)
-    raptor_free_sequence(query->order_conditions_sequence);
-
-  if(query->group_conditions_sequence)
-    raptor_free_sequence(query->group_conditions_sequence);
-
-  if(query->having_conditions_sequence)
-    raptor_free_sequence(query->having_conditions_sequence);
 
   if(query->graph_patterns_sequence)
     raptor_free_sequence(query->graph_patterns_sequence);
@@ -626,7 +614,10 @@ rasqal_query_get_limit(rasqal_query* query)
 {
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, 0);
 
-  return query->limit;
+  if(query->modifier)
+    return query->modifier->limit;
+  else
+    return -1;
 }
 
 
@@ -637,14 +628,17 @@ rasqal_query_get_limit(rasqal_query* query)
  *
  * Set the query-specified limit on results.
  *
- * This is the limit given in the query on the number of results allowed.
+ * This is the limit given in the query on the number of results
+ * allowed.  It is only guaranteed to work after the query is
+ * prepared and before it is executed.
  **/
 void
 rasqal_query_set_limit(rasqal_query* query, int limit)
 {
   RASQAL_ASSERT_OBJECT_POINTER_RETURN(query, rasqal_query);
 
-  query->limit = limit;
+  if(query->modifier)
+    query->modifier->limit = limit;
 }
 
 
@@ -654,7 +648,9 @@ rasqal_query_set_limit(rasqal_query* query, int limit)
  *
  * Get the query-specified offset on results.
  *
- * This is the offset given in the query on the number of results allowed.
+ * This is the offset given in the query on the number of results
+ * allowed.  It is only guaranteed to work after the query is
+ * prepared and before it is executed.
  *
  * Return value: integer >=0 if a offset is given, otherwise <0
  **/
@@ -663,7 +659,10 @@ rasqal_query_get_offset(rasqal_query* query)
 {
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, 0);
 
-  return query->offset;
+  if(query->modifier)
+    return query->modifier->offset;
+  else
+    return -1;
 }
 
 
@@ -681,7 +680,8 @@ rasqal_query_set_offset(rasqal_query* query, int offset)
 {
   RASQAL_ASSERT_OBJECT_POINTER_RETURN(query, rasqal_query);
 
-  query->offset = offset;
+  if(query->modifier)
+    query->modifier->offset = offset;
 }
 
 
@@ -1521,11 +1521,14 @@ rasqal_query_print(rasqal_query* query, FILE *fh)
             (query->distinct == 1 ? "distinct" : "reduced"));
   if(query->explain)
     fputs("query results explain: yes\n", fh);
-  if(query->limit >= 0)
-    fprintf(fh, "query results limit: %d\n", query->limit);
-  if(query->offset >= 0)
-    fprintf(fh, "query results offset: %d\n", query->offset);
 
+  if(query->modifier) {
+    if(query->modifier->limit >= 0)
+      fprintf(fh, "query results limit: %d\n", query->modifier->limit);
+    if(query->modifier->offset >= 0)
+      fprintf(fh, "query results offset: %d\n", query->modifier->offset);
+  }
+  
   fputs("data graphs: ", fh);
   if(query->data_graphs)
     raptor_sequence_print(query->data_graphs, fh);
@@ -1567,18 +1570,22 @@ rasqal_query_print(rasqal_query* query, FILE *fh)
     fputs("\nquery graph pattern: ", fh);
     rasqal_graph_pattern_print(query->query_graph_pattern, fh);
   }
-  if(query->order_conditions_sequence) {
-    fputs("\nquery order conditions: ", fh);
-    raptor_sequence_print(query->order_conditions_sequence, fh);
+
+  if(query->modifier) {
+    if(query->modifier->order_conditions) {
+      fputs("\nquery order conditions: ", fh);
+      raptor_sequence_print(query->modifier->order_conditions, fh);
+    }
+    if(query->modifier->group_conditions) {
+      fputs("\nquery group conditions: ", fh);
+      raptor_sequence_print(query->modifier->group_conditions, fh);
+    }
+    if(query->modifier->having_conditions) {
+      fputs("\nquery having conditions: ", fh);
+      raptor_sequence_print(query->modifier->having_conditions, fh);
+    }
   }
-  if(query->group_conditions_sequence) {
-    fputs("\nquery group conditions: ", fh);
-    raptor_sequence_print(query->group_conditions_sequence, fh);
-  }
-  if(query->having_conditions_sequence) {
-    fputs("\nquery having conditions: ", fh);
-    raptor_sequence_print(query->having_conditions_sequence, fh);
-  }
+  
   if(query->updates) {
     fputs("\nupdate operations: ", fh);
     raptor_sequence_print(query->updates, fh);
@@ -1720,7 +1727,10 @@ rasqal_query_get_order_conditions_sequence(rasqal_query* query)
 {
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, NULL);
 
-  return query->order_conditions_sequence;
+  if(query->modifier)
+    return query->modifier->order_conditions;
+  else
+    return NULL;
 }
 
 
@@ -1738,10 +1748,10 @@ rasqal_query_get_order_condition(rasqal_query* query, int idx)
 {
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, NULL);
 
-  if(!query->order_conditions_sequence)
+  if(!query->modifier || !query->modifier->order_conditions)
     return NULL;
   
-  return (rasqal_expression*)raptor_sequence_get_at(query->order_conditions_sequence, idx);
+  return (rasqal_expression*)raptor_sequence_get_at(query->modifier->order_conditions, idx);
 }
 
 
@@ -1758,7 +1768,10 @@ rasqal_query_get_group_conditions_sequence(rasqal_query* query)
 {
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, NULL);
 
-  return query->group_conditions_sequence;
+  if(query->modifier)
+    return query->modifier->group_conditions;
+  else
+    return NULL;
 }
 
 
@@ -1776,10 +1789,10 @@ rasqal_query_get_group_condition(rasqal_query* query, int idx)
 {
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, NULL);
 
-  if(!query->group_conditions_sequence)
+   if(!query->modifier || !query->modifier->group_conditions)
     return NULL;
   
-  return (rasqal_expression*)raptor_sequence_get_at(query->group_conditions_sequence, idx);
+  return (rasqal_expression*)raptor_sequence_get_at(query->modifier->group_conditions, idx);
 }
 
 
@@ -1796,7 +1809,10 @@ rasqal_query_get_having_conditions_sequence(rasqal_query* query)
 {
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, NULL);
 
-  return query->having_conditions_sequence;
+  if(query->modifier)
+    return query->modifier->having_conditions;
+  else
+    return NULL;
 }
 
 
@@ -1814,10 +1830,10 @@ rasqal_query_get_having_condition(rasqal_query* query, int idx)
 {
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, NULL);
 
-  if(!query->having_conditions_sequence)
+   if(!query->modifier || !query->modifier->having_conditions)
     return NULL;
   
-  return (rasqal_expression*)raptor_sequence_get_at(query->having_conditions_sequence, idx);
+  return (rasqal_expression*)raptor_sequence_get_at(query->modifier->having_conditions, idx);
 }
 
 

@@ -1160,21 +1160,22 @@ rasqal_query_fold_expressions(rasqal_query* rq)
 {
   rasqal_graph_pattern *gp = rq->query_graph_pattern;
   int order_size;
+  raptor_sequence *order_seq = rasqal_query_get_order_conditions_sequence(rq);
 
   if(gp)
     rasqal_graph_pattern_fold_expressions(rq, gp);
 
-  if(!rq->order_conditions_sequence)
+  if(!order_seq)
     return 0;
   
-  order_size = raptor_sequence_size(rq->order_conditions_sequence);
+  order_size = raptor_sequence_size(order_seq);
   if(order_size) {
     int i;
     
     for(i = 0; i < order_size; i++) {
       rasqal_expression* e;
 
-      e = (rasqal_expression*)raptor_sequence_get_at(rq->order_conditions_sequence, i);
+      e = (rasqal_expression*)raptor_sequence_get_at(order_seq, i);
       rasqal_query_expression_fold(rq, e);
     }
   }
@@ -1812,7 +1813,7 @@ rasqal_query_build_variables_use_map(rasqal_query* query)
   
 
   /* Record variable use for 2) GROUP BY expressions (SPARQL 1.1) */
-  seq = query->group_conditions_sequence;
+  seq = rasqal_query_get_group_conditions_sequence(query);
   if(seq) {
     rc = rasqal_query_build_expressions_sequence_use_map_row(&use_map[RASQAL_VAR_USE_MAP_OFFSET_GROUP_BY],
                                                              seq);
@@ -1822,7 +1823,7 @@ rasqal_query_build_variables_use_map(rasqal_query* query)
   
 
   /* Record variable use for 3) HAVING expr (SPARQL 1.1) */
-  seq = query->having_conditions_sequence;
+  seq = rasqal_query_get_having_conditions_sequence(query);
   if(seq) {
     rc = rasqal_query_build_expressions_sequence_use_map_row(&use_map[RASQAL_VAR_USE_MAP_OFFSET_HAVING],
                                                              seq);
@@ -1831,7 +1832,7 @@ rasqal_query_build_variables_use_map(rasqal_query* query)
   }
 
   /* record variable use for 4) ORDER list-of-expr (SPARQL 1.0) */
-  seq = query->order_conditions_sequence;
+  seq = rasqal_query_get_order_conditions_sequence(query);
   if(seq) {
     rc = rasqal_query_build_expressions_sequence_use_map_row(&use_map[RASQAL_VAR_USE_MAP_OFFSET_ORDER_BY],
                                                              seq);
