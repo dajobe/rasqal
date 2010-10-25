@@ -45,8 +45,23 @@
 
 typedef struct 
 {
+  /* group expression list */
   raptor_sequence* expr_seq;
+
+  /* size of above list: can be 0 if @expr_seq is NULL too */
+  int expr_seq_size;
+
+  /* last group ID assigned */
   int groupid;
+
+  /* map for grouping.  [lit, lit, ...] -> [ row, row, row, ... ]
+   *  key: raptor_sequence* of rasqal_literal*
+   *  value: raptor_sequence* of rasqal_row*
+   */
+  rasqal_map* map;
+
+  /* rasqal_literal_compare() flags */
+  int compare_flags;
 } rasqal_groupby_rowsource_context;
 
 
@@ -57,6 +72,8 @@ rasqal_groupby_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
   con = (rasqal_groupby_rowsource_context*)user_data;
 
   con->groupid = -1;
+
+  con->compare_flags = RASQAL_COMPARE_URI;
   
   return 0;
 }
@@ -71,6 +88,9 @@ rasqal_groupby_rowsource_finish(rasqal_rowsource* rowsource, void *user_data)
   if(con->expr_seq)
     raptor_free_sequence(con->expr_seq);
   
+  if(con->map)
+    rasqal_free_map(con->map);
+  
   RASQAL_FREE(rasqal_groupby_rowsource_context, con);
 
   return 0;
@@ -79,9 +99,10 @@ rasqal_groupby_rowsource_finish(rasqal_rowsource* rowsource, void *user_data)
 
 static int
 rasqal_groupby_rowsource_ensure_variables(rasqal_rowsource* rowsource,
-                                        void *user_data)
+                                          void *user_data)
 {
   rowsource->size = 0;
+
   return 0;
 }
 
@@ -89,8 +110,25 @@ rasqal_groupby_rowsource_ensure_variables(rasqal_rowsource* rowsource,
 static rasqal_row*
 rasqal_groupby_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
 {
-  /* rasqal_groupby_rowsource_context* con;
-  con = (rasqal_groupby_rowsource_context*)user_data; */
+  rasqal_groupby_rowsource_context* con;
+
+  con = (rasqal_groupby_rowsource_context*)user_data;
+
+  if(con->expr_seq) {
+    raptor_sequence* literal_seq;
+
+    literal_seq = rasqal_expression_sequence_evaluate(rowsource->query,
+                                                      con->expr_seq,
+                                                      /* literal_seq */ NULL,
+                                                      /* error_p */ NULL,
+                                                      /* ignore_errors */ 0);
+
+    if(literal_seq) {
+      raptor_free_sequence(literal_seq);
+    }
+    
+  }
+  
   return NULL;
 }
 
@@ -101,6 +139,7 @@ rasqal_groupby_rowsource_read_all_rows(rasqal_rowsource* rowsource,
 {
   /* rasqal_groupby_rowsource_context* con;
   con = (rasqal_groupby_rowsource_context*)user_data; */
+
   return NULL;
 }
 
@@ -110,6 +149,81 @@ rasqal_groupby_rowsource_reset(rasqal_rowsource* rowsource, void *user_data)
 {
   return 0;
 }
+
+
+static int
+rasqal_rowsource_groupby_literal_sequence_compare(void* user_data,
+                                                  const void *a, const void *b)
+{
+  rasqal_groupby_rowsource_context* con;
+  raptor_sequence* values_a = *(raptor_sequence**)a;
+  raptor_sequence* values_b = *(raptor_sequence**)b;
+  
+  con = (rasqal_groupby_rowsource_context*)user_data;
+
+  return rasqal_literal_sequence_compare(con->compare_flags,
+                                         values_a, values_b);
+}
+
+
+static void
+rasqal_rowsource_groupby_map_free_kv(const void *key, const void *value)
+{
+  if(key)
+    raptor_free_sequence((raptor_sequence*)key);
+  if(value)
+    raptor_free_sequence((raptor_sequence*)value);
+}
+
+
+#ifdef HAVE_RAPTOR2_API
+static int
+#else
+static void
+#endif
+rasqal_rowsource_groupby_map_print_key(void *object, FILE *fh)
+{
+  if(object)
+    /* sequence of literals */
+    raptor_sequence_print((raptor_sequence*)object, fh);
+  else
+    fputs("NULL", fh);
+#ifdef HAVE_RAPTOR2_API
+  return 0;
+#endif
+}
+
+
+#ifdef HAVE_RAPTOR2_API
+static int
+#else
+static void
+#endif
+rasqal_rowsource_groupby_map_print_value(void *object, FILE *fh)
+{
+  if(object)
+    /* sequence of rows */
+    rasqal_row_print((rasqal_row*)object, fh);
+  else
+    fputs("NULL", fh);
+#ifdef HAVE_RAPTOR2_API
+  return 0;
+#endif
+}
+
+
+static
+rasqal_map* rasqal_groupby_new_map(rasqal_groupby_rowsource_context* con)
+{
+  return rasqal_new_map(rasqal_rowsource_groupby_literal_sequence_compare,
+                        /* compare_user_data */ con,
+                        /* free_compare_data */ NULL,
+                        /* free_fn */ rasqal_rowsource_groupby_map_free_kv,
+                        /* print_key_fn */ rasqal_rowsource_groupby_map_print_key,
+                        /* print_value_fn */ rasqal_rowsource_groupby_map_print_value,
+                        /* flags */ 0);
+}
+
 
 
 static const rasqal_rowsource_handler rasqal_groupby_rowsource_handler = {
@@ -148,6 +262,16 @@ rasqal_new_groupby_rowsource(rasqal_world *world, rasqal_query* query,
       RASQAL_FREE(rasqal_groupby_rowsource_context, con);
       return NULL;
     }
+
+    con->expr_seq_size = raptor_sequence_size(expr_seq);
+  } else
+    con->expr_seq_size = 0;
+  
+  con->map = rasqal_groupby_new_map(con);
+  if(!con->map) {
+    rasqal_groupby_rowsource_finish(NULL, con);
+    RASQAL_FREE(rasqal_groupby_rowsource_context, con);
+    return NULL;
   }
   
   return rasqal_new_rowsource_from_handler(world, query,
