@@ -119,9 +119,9 @@ rasqal_groupby_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
 
     literal_seq = rasqal_expression_sequence_evaluate(rowsource->query,
                                                       con->expr_seq,
+                                                      /* ignore_errors */ 0,
                                                       /* literal_seq */ NULL,
-                                                      /* error_p */ NULL,
-                                                      /* ignore_errors */ 0);
+                                                      /* error_p */ NULL);
 
     if(literal_seq) {
       raptor_free_sequence(literal_seq);

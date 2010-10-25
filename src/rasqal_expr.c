@@ -2804,6 +2804,9 @@ rasqal_expression_mentions_variable(rasqal_expression* e, rasqal_variable* v)
 }
 
 
+/*
+ * Deep copy a sequence of rasqal_expression to a new one.
+ */
 raptor_sequence*
 rasqal_expression_copy_expression_sequence(raptor_sequence* expr_seq) 
 {
@@ -2845,7 +2848,7 @@ rasqal_expression_copy_expression_sequence(raptor_sequence* expr_seq)
  * @values_a: first sequence of literals
  * @values_b: second sequence of literals
  *
- * INTERNAL - compare two sequences of evaluated literals
+ * INTERNAL - compare two sequences of literals
  *
  * Return value: <0, 0 or >1 comparison
  */
@@ -2947,21 +2950,21 @@ rasqal_literal_sequence_compare(int compare_flags,
 /**
  * rasqal_expression_sequence_evaluate:
  * @query: query
- * @expr_seq: sequence of expression
- * @literal_seq: sequence of literals to OUT to
- * @error_p: pointer to error flag (or NULL)
+ * @expr_seq: sequence of #rasqal_expression to evaluate
  * @ignore_errors: non-0 to ignore errors in evaluation
+ * @literal_seq: OUT: sequence of #rasqal_literal to write to (or NULL)
+ * @error_p: OUT: pointer to error flag (or NULL)
  *
- * INTERNAL - evaluate a sequence of expressions returning a sequence of literals
+ * INTERNAL - evaluate a sequence of expressions into a sequence of literals
  *
  * Return value: sequence of literals or NULL on failure
  */
 raptor_sequence*
 rasqal_expression_sequence_evaluate(rasqal_query* query,
                                     raptor_sequence* expr_seq,
+                                    int ignore_errors,
                                     raptor_sequence* literal_seq,
-                                    int* error_p,
-                                    int ignore_errors)
+                                    int* error_p)
 {
   int size;
   int i;

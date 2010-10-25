@@ -1023,7 +1023,7 @@ void rasqal_variable_write(rasqal_variable* v, raptor_iostream* iostr);
 
 raptor_sequence* rasqal_expression_copy_expression_sequence(raptor_sequence* expr_seq);
 int rasqal_literal_sequence_compare(int compare_flags, raptor_sequence* values_a, raptor_sequence* values_b);
-raptor_sequence* rasqal_expression_sequence_evaluate(rasqal_query* query, raptor_sequence* expr_seq, raptor_sequence* literal_seq, int* error_p, int ignore_errors);
+raptor_sequence* rasqal_expression_sequence_evaluate(rasqal_query* query, raptor_sequence* expr_seq, int ignore_errors, raptor_sequence* literal_seq, int* error_p);
 
 /* strcasecmp.c */
 #ifdef HAVE_STRCASECMP
