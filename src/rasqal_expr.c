@@ -51,6 +51,9 @@
 #include "rasqal_internal.h"
 
 
+#define DEBUG_FH stderr
+
+
 #ifndef STANDALONE
 
 
@@ -2835,6 +2838,177 @@ rasqal_expression_copy_expression_sequence(raptor_sequence* expr_seq)
   return nexpr_seq;
 }
 
+
+/**
+ * rasqal_literal_sequence_compare:
+ * @compare_flags: comparison flags for rasqal_literal_compare()
+ * @values_a: first sequence of literals
+ * @values_b: second sequence of literals
+ *
+ * INTERNAL - compare two sequences of evaluated literals
+ *
+ * Return value: <0, 0 or >1 comparison
+ */
+int
+rasqal_literal_sequence_compare(int compare_flags,
+                                raptor_sequence* values_a,
+                                raptor_sequence* values_b)
+{
+  int result = 0;
+  int i;
+  int size_a = 0;
+  int size_b = 0;
+  
+  /* Turn 0-length sequences into NULL */
+  if(values_a) {
+    size_a = raptor_sequence_size(values_a);
+    if(!size_a)
+      values_a = NULL;
+  }
+
+  if(values_b) {
+    size_b = raptor_sequence_size(values_b);
+    if(!size_b)
+      values_b = NULL;
+  }
+
+  /* Handle empty sequences: equal if both empty, otherwise empty is earlier */
+  if(!size_a && !size_b)
+    return 0;
+  else if(!size_a)
+    return -1;
+  else if(!size_b)
+    return 1;
+  
+
+  /* Now know they are not 0 length */
+
+  /* Walk maximum length of the values */
+  if(size_b > size_a)
+    size_a = size_b;
+  
+  for(i = 0; i < size_a; i++) {
+    rasqal_literal* literal_a = raptor_sequence_get_at(values_a, i);
+    rasqal_literal* literal_b = raptor_sequence_get_at(values_b, i);
+    int error = 0;
+    
+#ifdef RASQAL_DEBUG
+    RASQAL_DEBUG1("Comparing ");
+    if(literal_a)
+      rasqal_literal_print(literal_a, DEBUG_FH);
+    else
+      fputs("NULL", DEBUG_FH);
+    fputs(" to ", DEBUG_FH);
+    if(literal_b)
+      rasqal_literal_print(literal_b, DEBUG_FH);
+    else
+      fputs("NULL", DEBUG_FH);
+    fputs("\n", DEBUG_FH);
+#endif
+
+    if(!literal_a || !literal_b) {
+      if(!literal_a && !literal_b)
+        result = 0;
+      else {
+        result = literal_a ? 1 : -1;
+#ifdef RASQAL_DEBUG
+        RASQAL_DEBUG2("Got one NULL literal comparison, returning %d\n",
+                      result);
+#endif
+        break;
+      }
+    }
+    
+    result = rasqal_literal_compare(literal_a, literal_b,
+                                    compare_flags, &error);
+
+    if(error) {
+#ifdef RASQAL_DEBUG
+      RASQAL_DEBUG2("Got literal comparison error at literal %d, returning 0\n",
+                    i);
+#endif
+      result = 0;
+      break;
+    }
+        
+    if(!result)
+      continue;
+
+#ifdef RASQAL_DEBUG
+    RASQAL_DEBUG3("Returning comparison result %d at literal %d\n", result, i);
+#endif
+    break;
+  }
+
+  return result;
+}
+
+
+/**
+ * rasqal_expression_sequence_evaluate:
+ * @query: query
+ * @expr_seq: sequence of expression
+ * @literal_seq: sequence of literals to OUT to
+ * @error_p: pointer to error flag (or NULL)
+ * @ignore_errors: non-0 to ignore errors in evaluation
+ *
+ * INTERNAL - evaluate a sequence of expressions returning a sequence of literals
+ *
+ * Return value: sequence of literals or NULL on failure
+ */
+raptor_sequence*
+rasqal_expression_sequence_evaluate(rasqal_query* query,
+                                    raptor_sequence* expr_seq,
+                                    raptor_sequence* literal_seq,
+                                    int* error_p,
+                                    int ignore_errors)
+{
+  int size;
+  int i;
+  
+  if(!query || !expr_seq) {
+    if(error_p)
+      *error_p = 1;
+    return NULL;
+  }
+  
+  size = raptor_sequence_size(expr_seq);
+  if(!size) {
+    if(error_p)
+      *error_p = 1;
+    return NULL;
+  }
+
+  if(!literal_seq) {
+#ifdef HAVE_RAPTOR2_API
+    literal_seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_literal,
+                                      (raptor_data_print_handler)rasqal_literal_print);
+#else
+    literal_seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_literal,
+                                      (raptor_sequence_print_handler*)rasqal_literal_print);
+#endif
+  }
+
+  for(i = 0; i < size; i++) {
+    rasqal_expression* e;
+    rasqal_literal *l;
+    
+    e = (rasqal_expression*)raptor_sequence_get_at(expr_seq, i);
+    l = rasqal_expression_evaluate(query->world, &query->locator,
+                                   e, query->compare_flags);
+    if(!l) {
+      if(error_p)
+        *error_p = 1;
+      return NULL;
+    }
+    
+    l = rasqal_new_literal_from_literal(rasqal_literal_value(l));
+    raptor_sequence_set_at(literal_seq, i, l);
+    rasqal_free_literal(l);
+  }
+  
+  return literal_seq;
+}
 
 
 #endif /* not STANDALONE */
