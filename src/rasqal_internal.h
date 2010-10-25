@@ -579,6 +579,9 @@ struct rasqal_row_s {
   /* number of expressions (can be 0) */
   int order_size;
   rasqal_literal** order_values;
+
+  /* Group ID */
+  int group_id;
 };
 
 
@@ -618,6 +621,9 @@ rasqal_rowsource* rasqal_new_filter_rowsource(rasqal_world *world, rasqal_query 
 
 /* rasqal_rowsource_graph.c */
 rasqal_rowsource* rasqal_new_graph_rowsource(rasqal_world *world, rasqal_query *query, rasqal_rowsource* rowsource, rasqal_variable *var);
+
+/* rasqal_rowsource_groupby.c */
+rasqal_rowsource* rasqal_new_groupby_rowsource(rasqal_world *world, rasqal_query* query, raptor_sequence* expr_seq);
 
 /* rasqal_rowsource_join.c */
 rasqal_rowsource* rasqal_new_join_rowsource(rasqal_world *world, rasqal_query* query, rasqal_rowsource* left, rasqal_rowsource* right, rasqal_join_type join_type, rasqal_expression *expr);
