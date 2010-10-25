@@ -1015,6 +1015,8 @@ int rasqal_expression_mentions_variable(rasqal_expression* e, rasqal_variable* v
 void rasqal_triple_write(rasqal_triple* t, raptor_iostream* iostr);
 void rasqal_variable_write(rasqal_variable* v, raptor_iostream* iostr);
 
+raptor_sequence* rasqal_expression_copy_expression_sequence(raptor_sequence* expr_seq);
+
 
 /* strcasecmp.c */
 #ifdef HAVE_STRCASECMP

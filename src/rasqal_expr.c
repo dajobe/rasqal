@@ -2801,6 +2801,42 @@ rasqal_expression_mentions_variable(rasqal_expression* e, rasqal_variable* v)
 }
 
 
+raptor_sequence*
+rasqal_expression_copy_expression_sequence(raptor_sequence* expr_seq) 
+{
+  raptor_sequence* nexpr_seq = NULL;
+  int size;
+  int i;
+  
+  if(!expr_seq)
+    return NULL;
+  
+#ifdef HAVE_RAPTOR2_API
+  nexpr_seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_expression,
+                                  (raptor_data_print_handler)rasqal_expression_print);
+#else
+  nexpr_seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_expression,
+                                  (raptor_sequence_print_handler*)rasqal_expression_print);
+#endif
+  if(!nexpr_seq)
+    return NULL;
+
+  size = raptor_sequence_size(expr_seq);
+  for(i = 0; i < size; i++) {
+    rasqal_expression* e;
+    e = (rasqal_expression*)raptor_sequence_get_at(expr_seq, i);
+    if(e) {
+      e = rasqal_new_expression_from_expression(e);
+      if(e)
+        raptor_sequence_set_at(nexpr_seq, i, e);
+    }
+  }
+  
+  return nexpr_seq;
+}
+
+
+
 #endif /* not STANDALONE */
 
 
