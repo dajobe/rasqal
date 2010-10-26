@@ -623,7 +623,7 @@ rasqal_rowsource* rasqal_new_filter_rowsource(rasqal_world *world, rasqal_query 
 rasqal_rowsource* rasqal_new_graph_rowsource(rasqal_world *world, rasqal_query *query, rasqal_rowsource* rowsource, rasqal_variable *var);
 
 /* rasqal_rowsource_groupby.c */
-rasqal_rowsource* rasqal_new_groupby_rowsource(rasqal_world *world, rasqal_query* query, raptor_sequence* expr_seq);
+rasqal_rowsource* rasqal_new_groupby_rowsource(rasqal_world *world, rasqal_query* query, rasqal_rowsource* rowsource, raptor_sequence* expr_seq);
 
 /* rasqal_rowsource_join.c */
 rasqal_rowsource* rasqal_new_join_rowsource(rasqal_world *world, rasqal_query* query, rasqal_rowsource* left, rasqal_rowsource* right, rasqal_join_type join_type, rasqal_expression *expr);
@@ -1152,6 +1152,8 @@ int rasqal_row_to_nodes(rasqal_row* row);
 void rasqal_row_set_values_from_variables_table(rasqal_row* row, rasqal_variables_table* vars_table);
 int rasqal_row_set_order_size(rasqal_row *row, int order_size);
 int rasqal_row_expand_size(rasqal_row *row, int size);
+int rasqal_row_bind_variables(rasqal_row* row, rasqal_variables_table* vars_table);
+
 
 /* rasqal_row_compatible.c */
 rasqal_row_compatible* rasqal_new_row_compatible(rasqal_variables_table* vt, rasqal_rowsource *first_rowsource, rasqal_rowsource *second_rowsource);
