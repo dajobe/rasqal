@@ -43,6 +43,15 @@
 
 #ifndef STANDALONE
 
+/**
+ * rasqal_groupby_rowsource_context:
+ *
+ * INTERNAL - GROUP BY rowsource context
+ *
+ * Structure for handing grouping an input rowsource by a sequence of
+ * #rasqal_expression - in SPARQL, the GROUP BY exprList.
+ *
+ */
 typedef struct 
 {
   /* inner rowsource to filter */
@@ -57,9 +66,8 @@ typedef struct
   /* last group ID assigned */
   int group_id;
 
-  /* avltree for grouping.  [lit, lit, ...] -> [ row, row, row, ... ]
-   *  key: raptor_sequence* of rasqal_literal*
-   *  value: raptor_sequence* of rasqal_row*
+  /* avltree for grouping.
+   * the tree nodes are #rasqal_groupby_tree_node objects
    */
   raptor_avltree* tree;
 
@@ -76,6 +84,20 @@ typedef struct
 } rasqal_groupby_rowsource_context;
 
 
+/**
+ * rasqal_groupby_tree_node:
+ *
+ * INTERNAL - Node structure for grouping rows by a sequence of literals
+ *
+ * Each node contains the data for one group
+ *    [lit, lit, ...] -> [ row, row, row, ... ]
+ *
+ *  key: raptor_sequence* of rasqal_literal*
+ *  value: raptor_sequence* of rasqal_row*
+ *
+ * Plus an integer group ID identifier.
+ *
+ */
 typedef struct {
   rasqal_groupby_rowsource_context* con;
 
