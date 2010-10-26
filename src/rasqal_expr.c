@@ -2957,6 +2957,15 @@ rasqal_literal_sequence_compare(int compare_flags,
  *
  * INTERNAL - evaluate a sequence of expressions into a sequence of literals
  *
+ * Intended to implement SPARQL 1.1 Algebra ListEval defined:
+ *   ListEval(ExprList, μ) returns a list E, where Ei = μ(ExprListi).
+ *
+ * The result is a new sequence unless @literal_seq is given in which
+ * case it is used to append the #rasqal_literal values evaluated
+ * from the sequence of expressions @expr_seq.  If @ignore_errors is
+ * non-0, errors returned by a expressions are ignored (this
+ * corresponds to SPARQL 1.1 Algebra ListEvalE )
+ *
  * Return value: sequence of literals or NULL on failure
  */
 raptor_sequence*
@@ -3000,6 +3009,9 @@ rasqal_expression_sequence_evaluate(rasqal_query* query,
     l = rasqal_expression_evaluate(query->world, &query->locator,
                                    e, query->compare_flags);
     if(!l) {
+      if(ignore_errors)
+        continue;
+      
       if(error_p)
         *error_p = 1;
       return NULL;
