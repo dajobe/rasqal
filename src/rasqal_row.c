@@ -71,6 +71,8 @@ rasqal_new_row_common(rasqal_world* world, int size, int order_size)
       return NULL;
     }
   }
+
+  row->group_id = -1;
   
   return row;
 }
@@ -227,6 +229,9 @@ rasqal_row_print(rasqal_row* row, FILE* fh)
     fputs("]", fh);
 
   }
+
+  if(row->group_id >= 0)
+    fprintf(fh, " group %d", row->group_id);
 
   fprintf(fh, " offset %d]", row->offset);
 
