@@ -3014,12 +3014,12 @@ rasqal_expression_sequence_evaluate(rasqal_query* query,
       
       if(error_p)
         *error_p = 1;
+
       return NULL;
     }
-    
-    l = rasqal_new_literal_from_literal(rasqal_literal_value(l));
+
+    /* l becomes owned by the sequence after this */
     raptor_sequence_set_at(literal_seq, i, l);
-    rasqal_free_literal(l);
   }
   
   return literal_seq;
