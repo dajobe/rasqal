@@ -551,3 +551,41 @@ rasqal_row_expand_size(rasqal_row *row, int size)
   return 0;
 }
 
+
+
+/**
+ * rasqal_row_bind_variables:
+ * @row: Result row
+ * @vars_table: Variables table
+ *
+ * INTERNAL - Bind the variable table vars withvalues in the row
+ *
+ * Return value: non-0 on failure
+ */
+int
+rasqal_row_bind_variables(rasqal_row* row,
+                          rasqal_variables_table* vars_table)
+{
+  int i;
+  
+  for(i = 0; i < row->size; i++) {
+    rasqal_variable* v;
+    
+    v = rasqal_rowsource_get_variable_by_offset(row->rowsource, i);
+    if(v) {
+      rasqal_literal *value = row->values[i];
+      if(value) {
+        value = rasqal_new_literal_from_literal(value);
+        if(!value)
+          return 1;
+      }
+      
+      /* it is OK to bind to NULL */
+      rasqal_variable_set_value(v, value);
+    }
+  }
+
+  return 0;
+}
+
+
