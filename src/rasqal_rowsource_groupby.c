@@ -43,6 +43,133 @@
 
 #ifndef STANDALONE
 
+#ifdef HAVE_RAPTOR2_API
+#else
+
+/* Fake AVL Tree implementation for Raptor V1 - using a sequence to
+ *  store content and implementing just enough of the API for the
+ *  grouping to work
+*/
+
+typedef int (*raptor_data_compare_handler)(const void* data1, const void* data2);
+typedef void (*raptor_data_print_handler)(void *object, FILE *fh);
+
+typedef struct {
+  raptor_sequence* seq;
+  raptor_data_compare_handler compare_handler;
+  raptor_data_free_handler free_handler;
+} raptor_avltree;
+
+typedef struct {
+  raptor_avltree* tree;
+  int index;
+} raptor_avltree_iterator;
+
+static raptor_avltree* raptor_new_avltree(raptor_data_compare_handler compare_handler, raptor_data_free_handler free_handler, unsigned int flags)
+{
+  raptor_avltree* tree;
+
+  tree = (raptor_avltree*)RASQAL_CALLOC(raptor_avltree, sizeof(*tree), 1);
+  if(!tree)
+    return NULL;
+
+  tree->compare_handler = compare_handler;
+  tree->free_handler = free_handler;
+
+  tree->seq = raptor_new_sequence(free_handler, NULL);
+  
+  return tree;
+}
+
+static void
+raptor_free_avltree(raptor_avltree* tree)
+{
+  if(!tree)
+    return;
+  
+  if(tree->seq)
+    raptor_free_sequence(tree->seq);
+  RASQAL_FREE(avltree, tree);
+}
+
+static int
+raptor_avltree_add(raptor_avltree* tree, void* p_data)
+{
+  if(!tree)
+    return 1;
+  
+  return raptor_sequence_push(tree->seq, p_data);
+}
+
+static void*
+raptor_avltree_search(raptor_avltree* tree, const void* p_data)
+{
+  int size;
+  int i;
+
+  if(!tree)
+    return NULL;
+  
+  size = raptor_sequence_size(tree->seq);
+  for(i = 0; i < size; i++) {
+    void* data = raptor_sequence_get_at(tree->seq, i);
+    if(tree->compare_handler(p_data, data))
+      return data;
+  }
+
+  return NULL;
+}
+
+static void
+raptor_avltree_set_print_handler(raptor_avltree* tree,
+                                 raptor_data_print_handler print_handler)
+{
+}
+
+
+
+static raptor_avltree_iterator*
+raptor_new_avltree_iterator(raptor_avltree* tree, void* range,
+                            raptor_data_free_handler range_free_handler,
+                            int direction)
+{
+  raptor_avltree_iterator* iterator;
+
+  iterator = (raptor_avltree_iterator*)RASQAL_CALLOC(avltree_iterator, sizeof(*iterator), 1);
+  
+  iterator->tree = tree;
+  iterator->index = 0;
+
+  return iterator;
+}
+
+static int
+raptor_avltree_iterator_next(raptor_avltree_iterator* iterator) 
+{
+  iterator->index++;
+
+  return (iterator->index > raptor_sequence_size(iterator->tree->seq));
+}
+
+static void*
+raptor_avltree_iterator_get(raptor_avltree_iterator* iterator)
+{
+  return raptor_sequence_get_at(iterator->tree->seq, iterator->index);
+}
+
+static void
+raptor_free_avltree_iterator(raptor_avltree_iterator* iterator)
+{
+  if(!iterator)
+    return;
+
+  RASQAL_FREE(iterator, iterator);
+}
+
+
+#endif
+
+
 /**
  * rasqal_groupby_rowsource_context:
  *
