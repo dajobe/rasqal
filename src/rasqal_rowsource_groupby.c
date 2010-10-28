@@ -477,8 +477,8 @@ rasqal_groupby_rowsource_process(rasqal_rowsource* rowsource,
       
       row->group_id = node->group_id;
 
-      /* add copy (reference) of row */
-      raptor_sequence_push(node->rows, rasqal_new_row_from_row(row));
+      /* after this, node owns the row */
+      raptor_sequence_push(node->rows, row);
 
     }
   }
@@ -532,8 +532,9 @@ rasqal_groupby_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
         break;
       }
 
-      row = (rasqal_row*)raptor_sequence_get_at(node->rows, 
-                                                con->group_row_index++);
+      /* removes row from sequence and this code now owns the reference */
+      row = (rasqal_row*)raptor_sequence_delete_at(node->rows, 
+                                                   con->group_row_index++);
       if(row)
         break;
 
