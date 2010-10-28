@@ -784,22 +784,48 @@ static const char* const data_us_senators_100_rows[] =
   NULL, NULL, NULL, NULL, NULL, NULL,
 };
 
+
+/* Group IDs expected */
+/* Test 0 */
+static const int test0_groupids[] = {
+  0, 0, 0 
+};
+
+
+/* Test 1 */
+static const int test1_groupids[] = {
+  0, 0, 1 
+};
+
+  
+#ifdef HAVE_RAPTOR2_API
+* Raptor AVL Tree - Enumerated by order in AVL Tree which is sorted by expression list */
+static const int results_us_senators_97_groups[] =
+  { 21, 21, 27, 2, 38, 79, 10, 18, 24, 15, 40, 74, 80, 31, 4, 29, 47, 75, 33, 82, 92, 30, 57, 91, 96, 3, 58, 76, 6, 7, 67, 8, 14, 43, 50, 72, 5, 35, 41, 46, 53, 86, 17, 25, 49, 70, 37, 42, 93, 34, 52, 73, 94, 55, 95, 95, 32, 83, 19, 23, 64, 71, 77, 0, 39, 69, 81, 12, 44, 44, 89, 90, 20, 54, 84, 13, 65, 26, 59, 66, 78, 88, 36, 51, 85, 60, 45, 61, 87, 1, 9, 11, 22, 48, 62, 63, 68, 56, 28, 16 };
+
+#else
+/* Raptor sequence - Enumerated by order added */
+static const int results_us_senators_97_groups[] =
+  { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 95, 96 };
+#endif
+
+
 static const struct {
   int vars;
   int rows;
   int ngroups;
   const char* const *data;
-  const int const group_ids[MAX_TEST_GROUPS];
+  const int const *group_ids;
   const char* const expr_vars[MAX_TEST_VARS];
 } test_data[GROUP_TESTS_COUNT] = {
   /* Test 0: No GROUP BY : 1 group expected */
-  {2, 3, 1, data_xy_3_rows, {  0,  0,  0 }, { NULL } },
+  {2, 3, 1, data_xy_3_rows, test0_groupids, { NULL } },
 
   /* Test 1: GROUP BY ?x : 2 groups expected */
-  {2, 3, 2, data_xy_3_rows, {  0,  0,  1 }, { "x", NULL } },
+  {2, 3, 2, data_xy_3_rows, test1_groupids, { "x", NULL } },
 
   /* Test 2: GROUP BY ?year, ?name : 97 groups expected */
-  {3, 100, 97, data_us_senators_100_rows, { 21, 21, 27, 2, 38, 79, 10, 18, 24, 15, 40, 74, 80, 31, 4, 29, 47, 75, 33, 82, 92, 30, 57, 91, 96, 3, 58, 76, 6, 7, 67, 8, 14, 43, 50, 72, 5, 35, 41, 46, 53, 86, 17, 25, 49, 70, 37, 42, 93, 34, 52, 73, 94, 55, 95, 95, 32, 83, 19, 23, 64, 71, 77, 0, 39, 69, 81, 12, 44, 44, 89, 90, 20, 54, 84, 13, 65, 26, 59, 66, 78, 88, 36, 51, 85, 60, 45, 61, 87, 1, 9, 11, 22, 48, 62, 63, 68, 56, 28, 16 }, { "year", "name", NULL } },
+  {3, 100, 97, data_us_senators_100_rows, results_us_senators_97_groups, { "year", "name", NULL } },
    
 };
 
