@@ -116,7 +116,7 @@ raptor_avltree_search(raptor_avltree* tree, const void* p_data)
   size = raptor_sequence_size(tree->seq);
   for(i = 0; i < size; i++) {
     void* data = raptor_sequence_get_at(tree->seq, i);
-    if(tree->compare_handler(p_data, data))
+    if(!tree->compare_handler(p_data, data))
       return data;
   }
 
