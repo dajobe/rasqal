@@ -177,7 +177,7 @@ static int
 raptor_avltree_print(raptor_avltree* tree, FILE* stream)
 {
   if(!tree)
-    return NULL;
+    return 1;
   
   fprintf(stream, "Group sequence with %d groups\n",
           raptor_sequence_size(tree->seq));
