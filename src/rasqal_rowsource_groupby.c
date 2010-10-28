@@ -360,6 +360,9 @@ rasqal_groupby_rowsource_finish(rasqal_rowsource* rowsource, void *user_data)
   if(con->tree)
     raptor_free_avltree(con->tree);
   
+  if(con->group_iterator)
+    raptor_free_avltree_iterator(con->group_iterator);
+
   RASQAL_FREE(rasqal_groupby_rowsource_context, con);
 
   return 0;
@@ -474,8 +477,8 @@ rasqal_groupby_rowsource_process(rasqal_rowsource* rowsource,
       
       row->group_id = node->group_id;
 
-      /* after this, row is owned by the sequence owned by node */
-      raptor_sequence_push(node->rows, row);
+      /* add copy (reference) of row */
+      raptor_sequence_push(node->rows, rasqal_new_row_from_row(row));
 
     }
   }
