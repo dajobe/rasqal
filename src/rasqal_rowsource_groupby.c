@@ -653,10 +653,10 @@ Group((?x), S) = {
 */
 
 
-#define GROUP_TESTS_COUNT 2
+#define GROUP_TESTS_COUNT 3
 
-#define MAX_TEST_ROWS 4
-#define MAX_TEST_VARS 3
+#define MAX_TEST_GROUPS 100
+#define MAX_TEST_VARS 5
 
 /* Test 0 and Test 1 */
 static const char* const data_xy_3_rows[] =
@@ -674,18 +674,132 @@ static const char* const data_xy_3_rows[] =
 };
 
 
+/* Test 2 */
+static const char* const data_us_senators_100_rows[] =
+{
+  /* 3 variable names and 50 rows */
+  "name", NULL,  "state", NULL,  "year", NULL, 
+  /* row 1 data */
+  "Al", NULL,  "Minnesota", NULL,  "1951", NULL, 
+  "Amy", NULL,  "Minnesota", NULL,  "1960", NULL, 
+  "Arlen", NULL,  "Pennsylvania", NULL,  "1930", NULL, 
+  "Barbara", NULL,  "California", NULL,  "1940", NULL, 
+  "Barbara", NULL,  "Maryland", NULL,  "1936", NULL, 
+  "Ben", NULL,  "Maryland", NULL,  "1943", NULL, 
+  "Ben", NULL,  "Nebraska", NULL,  "1941", NULL, 
+  "Bernie", NULL,  "Vermont", NULL,  "1941", NULL, 
+  "Bill", NULL,  "Florida", NULL,  "1942", NULL, 
+  "Blanche", NULL,  "Arkansas", NULL,  "1960", NULL, 
+  "Bob", NULL,  "Utah", NULL,  "1933", NULL, 
+  "Bob", NULL,  "Pennsylvania", NULL,  "1960", NULL, 
+  "Bob", NULL,  "Tennessee", NULL,  "1952", NULL, 
+  "Bob", NULL,  "New Jersey", NULL,  "1954", NULL, 
+  "Byron", NULL,  "North Dakota", NULL,  "1942", NULL, 
+  "Carl", NULL,  "Michigan", NULL,  "1934", NULL, 
+  "Carte", NULL,  "West Virginia", NULL,  "1974", NULL, 
+  "Christopher", NULL,  "Connecticut", NULL,  "1944", NULL, 
+  "Chuck", NULL,  "Iowa", NULL,  "1933", NULL, 
+  "Chuck", NULL,  "New York", NULL,  "1950", NULL, 
+  "Claire", NULL,  "Missouri", NULL,  "1953", NULL, 
+  "Daniel", NULL,  "Hawaii", NULL,  "1924", NULL, 
+  "Daniel", NULL,  "Hawaii", NULL,  "1924", NULL, 
+  "David", NULL,  "Louisiana", NULL,  "1961", NULL, 
+  "Debbie", NULL,  "Michigan", NULL,  "1950", NULL, 
+  "Dianne", NULL,  "California", NULL,  "1933", NULL, 
+  "Dick", NULL,  "Illinois", NULL,  "1944", NULL, 
+  "Evan", NULL,  "Indiana", NULL,  "1955", NULL, 
+  "Frank", NULL,  "New Jersey", NULL,  "1924", NULL, 
+  "George", NULL,  "Florida", NULL,  "1969", NULL, 
+  "George", NULL,  "Ohio", NULL,  "1936", NULL, 
+  "Harry", NULL,  "Nevada", NULL,  "1939", NULL, 
+  "Herb", NULL,  "Wisconsin", NULL,  "1935", NULL, 
+  "Jack", NULL,  "Rhode Island", NULL,  "1949", NULL, 
+  "Jay", NULL,  "West Virginia", NULL,  "1937", NULL, 
+  "Jeanne", NULL,  "New Hampshire", NULL,  "1947", NULL, 
+  "Jeff", NULL,  "New Mexico", NULL,  "1943", NULL, 
+  "Jeff", NULL,  "Oregon", NULL,  "1956", NULL, 
+  "Jeff", NULL,  "Alabama", NULL,  "1946", NULL, 
+  "Jim", NULL,  "Kentucky", NULL,  "1931", NULL, 
+  "Jim", NULL,  "South Carolina", NULL,  "1951", NULL, 
+  "Jim", NULL,  "Oklahoma", NULL,  "1934", NULL, 
+  "Jim", NULL,  "Idaho", NULL,  "1943", NULL, 
+  "Jim", NULL,  "Virginia", NULL,  "1946", NULL, 
+  "Joe", NULL,  "Connecticut", NULL,  "1942", NULL, 
+  "John", NULL,  "Wyoming", NULL,  "1952", NULL, 
+  "John", NULL,  "Texas", NULL,  "1952", NULL, 
+  "John", NULL,  "Nevada", NULL,  "1958", NULL, 
+  "John", NULL,  "Massachusetts", NULL,  "1943", NULL, 
+  "John", NULL,  "Arizona", NULL,  "1936", NULL, 
+  "John", NULL,  "South Dakota", NULL,  "1961", NULL, 
+  "Johnny", NULL,  "Georgia", NULL,  "1944", NULL, 
+  "Jon", NULL,  "Arizona", NULL,  "1942", NULL, 
+  "Jon", NULL,  "Montana", NULL,  "1956", NULL, 
+  "Judd", NULL,  "New Hampshire", NULL,  "1947", NULL, 
+  "Kay", NULL,  "Texas", NULL,  "1943", NULL, 
+  "Kay", NULL,  "North Carolina", NULL,  "1953", NULL, 
+  "Kent", NULL,  "North Dakota", NULL,  "1948", NULL, 
+  "Kirsten", NULL,  "New York", NULL,  "1966", NULL, 
+  "Kit", NULL,  "Missouri", NULL,  "1939", NULL, 
+  "Lamar", NULL,  "Tennessee", NULL,  "1940", NULL, 
+  "Lindsey", NULL,  "South Carolina", NULL,  "1955", NULL, 
+  "Lisa", NULL,  "Alaska", NULL,  "1957", NULL, 
+  "Maria", NULL,  "Washington", NULL,  "1958", NULL, 
+  "Mark", NULL,  "Alaska", NULL,  "1962", NULL, 
+  "Mark", NULL,  "Arkansas", NULL,  "1963", NULL, 
+  "Mark", NULL,  "Colorado", NULL,  "1950", NULL, 
+  "Mark", NULL,  "Virginia", NULL,  "1954", NULL, 
+  "Mary", NULL,  "Louisiana", NULL,  "1955", NULL, 
+  "Max", NULL,  "Montana", NULL,  "1941", NULL, 
+  "Michael", NULL,  "Colorado", NULL,  "1964", NULL, 
+  "Mike", NULL,  "Idaho", NULL,  "1951", NULL, 
+  "Mike", NULL,  "Wyoming", NULL,  "1944", NULL, 
+  "Mike", NULL,  "Nebraska", NULL,  "1950", NULL, 
+  "Mitch", NULL,  "Kentucky", NULL,  "1942", NULL, 
+  "Olympia", NULL,  "Maine", NULL,  "1947", NULL, 
+  "Orrin", NULL,  "Utah", NULL,  "1934", NULL, 
+  "Pat", NULL,  "Kansas", NULL,  "1936", NULL, 
+  "Patrick", NULL,  "Vermont", NULL,  "1940", NULL, 
+  "Patty", NULL,  "Washington", NULL,  "1950", NULL, 
+  "Richard", NULL,  "North Carolina", NULL,  "1955", NULL, 
+  "Richard", NULL,  "Indiana", NULL,  "1932", NULL, 
+  "Richard", NULL,  "Alabama", NULL,  "1934", NULL, 
+  "Roger", NULL,  "Mississippi", NULL,  "1951", NULL, 
+  "Roland", NULL,  "Illinois", NULL,  "1937", NULL, 
+  "Ron", NULL,  "Oregon", NULL,  "1949", NULL, 
+  "Russ", NULL,  "Wisconsin", NULL,  "1953", NULL, 
+  "Sam", NULL,  "Kansas", NULL,  "1956", NULL, 
+  "Saxby", NULL,  "Georgia", NULL,  "1943", NULL, 
+  "Scott", NULL,  "Massachusetts", NULL,  "1959", NULL, 
+  "Sheldon", NULL,  "Rhode Island", NULL,  "1955", NULL, 
+  "Sherrod", NULL,  "Ohio", NULL,  "1952", NULL, 
+  "Susan", NULL,  "Maine", NULL,  "1952", NULL, 
+  "Ted", NULL,  "Delaware", NULL,  "1939", NULL, 
+  "Thad", NULL,  "Mississippi", NULL,  "1937", NULL, 
+  "Tim", NULL,  "South Dakota", NULL,  "1946", NULL, 
+  "Tom", NULL,  "Delaware", NULL,  "1947", NULL, 
+  "Tom", NULL,  "Oklahoma", NULL,  "1948", NULL, 
+  "Tom", NULL,  "Iowa", NULL,  "1939", NULL, 
+  "Tom", NULL,  "New Mexico", NULL,  "1948", NULL, 
+  /* end of data */
+  NULL, NULL, NULL, NULL, NULL, NULL,
+};
+
 static const struct {
   int vars;
   int rows;
   const char* const *data;
-  const int const group_ids[MAX_TEST_ROWS];
+  const int const group_ids[MAX_TEST_GROUPS];
   const char* const expr_vars[MAX_TEST_VARS];
 } test_data[GROUP_TESTS_COUNT] = {
   /* Test 0: No GROUP BY : 1 group expected */
   {2, 3, data_xy_3_rows, {  0,  0,  0 }, { NULL } },
 
   /* Test 1: GROUP BY ?x : 2 groups expected */
-  {2, 3, data_xy_3_rows, {  0,  0,  1 }, { "x", NULL } }
+  {2, 3, data_xy_3_rows, {  0,  0,  1 }, { "x", NULL } },
+
+  /* Test 2: GROUP BY ?year, ?name : 99 groups expected */
+  {3, 100, data_us_senators_100_rows, { 21, 21, 27, 2, 38, 79, 10, 18, 24, 15, 40, 74, 80, 31, 4, 29, 47, 75, 33, 82, 92, 30, 57, 91, 96, 3, 58, 76, 6, 7, 67, 8, 14, 43, 50, 72, 5, 35, 41, 46, 53, 86, 17, 25, 49, 70, 37, 42, 93, 34, 52, 73, 94, 55, 95, 95, 32, 83, 19, 23, 64, 71, 77, 0, 39, 69, 81, 12, 44, 44, 89, 90, 20, 54, 84, 13, 65, 26, 59, 66, 78, 88, 36, 51, 85, 60, 45, 61, 87, 1, 9, 11, 22, 48, 62, 63, 68, 56, 28, 16 }, { "year", "name", NULL } },
+   
 };
 
 
