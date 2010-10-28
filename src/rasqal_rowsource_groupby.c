@@ -799,7 +799,7 @@ static const int test1_groupids[] = {
 
   
 #ifdef HAVE_RAPTOR2_API
-* Raptor AVL Tree - Enumerated by order in AVL Tree which is sorted by expression list */
+/* Raptor AVL Tree - Enumerated by order in AVL Tree which is sorted by expression list */
 static const int results_us_senators_97_groups[] =
   { 21, 21, 27, 2, 38, 79, 10, 18, 24, 15, 40, 74, 80, 31, 4, 29, 47, 75, 33, 82, 92, 30, 57, 91, 96, 3, 58, 76, 6, 7, 67, 8, 14, 43, 50, 72, 5, 35, 41, 46, 53, 86, 17, 25, 49, 70, 37, 42, 93, 34, 52, 73, 94, 55, 95, 95, 32, 83, 19, 23, 64, 71, 77, 0, 39, 69, 81, 12, 44, 44, 89, 90, 20, 54, 84, 13, 65, 26, 59, 66, 78, 88, 36, 51, 85, 60, 45, 61, 87, 1, 9, 11, 22, 48, 62, 63, 68, 56, 28, 16 };
 
