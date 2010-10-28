@@ -358,7 +358,10 @@ rasqal_service_execute(rasqal_service* svc)
   raptor_stringbuffer* uri_sb = NULL;
   size_t len;
   unsigned char* str;
+#ifdef HAVE_RAPTOR2_API
   raptor_world* raptor_world_ptr = rasqal_world_get_raptor(svc->world);
+#else
+#endif
   
   if(!svc->www) {
     svc->www = raptor_new_www(raptor_world_ptr);
