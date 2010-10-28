@@ -2895,7 +2895,7 @@ rasqal_literal_sequence_compare(int compare_flags,
     rasqal_literal* literal_b = raptor_sequence_get_at(values_b, i);
     int error = 0;
     
-#ifdef RASQAL_DEBUG
+#if RASQAL_DEBUG > 1
     RASQAL_DEBUG1("Comparing ");
     if(literal_a)
       rasqal_literal_print(literal_a, DEBUG_FH);
@@ -2914,7 +2914,7 @@ rasqal_literal_sequence_compare(int compare_flags,
         result = 0;
       else {
         result = literal_a ? 1 : -1;
-#ifdef RASQAL_DEBUG
+#if RASQAL_DEBUG > 1
         RASQAL_DEBUG2("Got one NULL literal comparison, returning %d\n",
                       result);
 #endif
@@ -2926,7 +2926,7 @@ rasqal_literal_sequence_compare(int compare_flags,
                                     compare_flags, &error);
 
     if(error) {
-#ifdef RASQAL_DEBUG
+#if RASQAL_DEBUG > 1
       RASQAL_DEBUG2("Got literal comparison error at literal %d, returning 0\n",
                     i);
 #endif
@@ -2937,7 +2937,7 @@ rasqal_literal_sequence_compare(int compare_flags,
     if(!result)
       continue;
 
-#ifdef RASQAL_DEBUG
+#if RASQAL_DEBUG > 1
     RASQAL_DEBUG3("Returning comparison result %d at literal %d\n", result, i);
 #endif
     break;
