@@ -1688,9 +1688,11 @@ rasqal_query_results_update_bindings(rasqal_query_results* query_results)
 
     rasqal_query_results_ensure_have_row_internal(query_results);
     row = query_results->row;
-    if(row)
+    if(row) {
+      if (i >= row->size)
+        continue;
       value = row->values[i];
-    else
+    } else
       query_results->finished = 1;
 
     rasqal_variable_set_value(v, rasqal_new_literal_from_literal(value));
