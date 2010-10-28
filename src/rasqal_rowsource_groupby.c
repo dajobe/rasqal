@@ -635,6 +635,9 @@ int main(int argc, char *argv[]);
 
 
 /*
+ * Test 0 and Test 1 test the following example from SPARQL 1.1 Query Draft
+
+"
 For example, given a
    solution sequence S, ( {?x→2, ?y→3}, {?x→2, ?y→5}, {?x→6, ?y→7} ),
 
@@ -642,11 +645,17 @@ Group((?x), S) = {
   (2) → ( {?x→2, ?y→3}, {?x→2, ?y→5} ),
   (6) → ( {?x→6, ?y→7} )
 }
+"
 */
 
-#define EXPECTED_VARS_COUNT 2
-#define EXPECTED_ROWS_COUNT 3
-const char* const data_xy_3_rows[] =
+
+#define GROUP_TESTS_COUNT 2
+
+#define MAX_TEST_ROWS 4
+#define MAX_TEST_VARS 3
+
+/* Test 0 and Test 1 */
+static const char* const data_xy_3_rows[] =
 {
   /* 2 variable names and 3 rows */
   "x",  NULL, "y",  NULL,
@@ -660,14 +669,19 @@ const char* const data_xy_3_rows[] =
   NULL, NULL, NULL, NULL,
 };
 
-#define GROUP_TESTS_COUNT 2
 
+static const struct {
+  int vars;
+  int rows;
+  const char* const *data;
+  const int const group_ids[MAX_TEST_ROWS];
+  const char* const expr_vars[MAX_TEST_VARS];
+} test_data[GROUP_TESTS_COUNT] = {
+  /* Test 0: No GROUP BY : 1 group expected */
+  {2, 3, data_xy_3_rows, {  0,  0,  0 }, { NULL } },
 
-
-static const int const
-group_test_result_group_ids[GROUP_TESTS_COUNT][EXPECTED_ROWS_COUNT] = {
-  {  0,  0,  0 }, /* No GROUP BY : 1 group expected */
-  {  0,  0,  1 }  /* GROUP BY ?x : 2 groups expected */
+  /* Test 1: GROUP BY ?x : 2 groups expected */
+  {2, 3, data_xy_3_rows, {  0,  0,  1 }, { "x", NULL } }
 };
 
 
@@ -699,17 +713,16 @@ main(int argc, char *argv[])
   vt = query->vars_table;
   
   for(test_id = 0; test_id < GROUP_TESTS_COUNT; test_id++) {
+    int expected_rows_count = test_data[test_id].rows;
+    int expected_vars_count = test_data[test_id].vars;
+    const int* expected_group_ids = test_data[test_id].group_ids;
     raptor_sequence* seq = NULL;
     int count;
-    int expected_count = EXPECTED_ROWS_COUNT;
     int size;
-    int expected_size = EXPECTED_VARS_COUNT;
-    const int* expected_group_ids = group_test_result_group_ids[test_id];
     int i;
     
-    /* Input Rowsource over 2 variables and 3 rows */
-    vars_count = 2;
-    row_seq = rasqal_new_row_sequence(world, vt, data_xy_3_rows,
+    vars_count = expected_vars_count;
+    row_seq = rasqal_new_row_sequence(world, vt, test_data[test_id].data,
                                       vars_count, &vars_seq);
     if(row_seq)
       input_rs = rasqal_new_rowsequence_rowsource(world, query, vt, 
@@ -729,16 +742,34 @@ main(int argc, char *argv[])
                                    (raptor_sequence_print_handler*)rasqal_expression_print);
 #endif
 
-    if(test_id == 1) {
-      rasqal_variable* v;
-      rasqal_literal *l;
-      rasqal_expression* e;
+    if(test_data[test_id].expr_vars[0] != NULL) {
+      int vindex;
+      const unsigned char* var_name;
       
-      v = rasqal_variables_table_get_by_name(vt, (const unsigned char*)"x");
-      l = rasqal_new_variable_literal(world, v);
-      e = rasqal_new_literal_expression(world, l);
+      for(vindex = 0;
+          (var_name = (const unsigned char*)test_data[test_id].expr_vars[vindex] );
+          vindex++) {
+        rasqal_variable* v;
+        rasqal_literal *l = NULL;
+        rasqal_expression* e = NULL;
 
-      raptor_sequence_push(expr_seq, e);
+        v = rasqal_variables_table_get_by_name(vt, var_name);
+        if(v)
+          l = rasqal_new_variable_literal(world, v);
+
+        if(l)
+          e = rasqal_new_literal_expression(world, l);
+
+        if(e)
+          raptor_sequence_push(expr_seq, e);
+        else {
+          fprintf(stderr, "%s: failed to create variable %s\n", program,
+                  (const char*)var_name);
+          failures++;
+          goto tidy;
+        }
+        
+      }
     }
     
     rowsource = rasqal_new_groupby_rowsource(world, query, input_rs, expr_seq);
@@ -754,25 +785,25 @@ main(int argc, char *argv[])
     seq = rasqal_rowsource_read_all_rows(rowsource);
     if(!seq) {
       fprintf(stderr,
-              "%s: read_rows returned a NULL seq for a groupby rowsource\n",
-              program);
+              "%s: test %d rasqal_rowsource_read_all_rows() returned a NULL seq for a groupby rowsource\n",
+              program, test_id);
       failures++;
       goto tidy;
     }
     count = raptor_sequence_size(seq);
-    if(count != expected_count) {
+    if(count != expected_rows_count) {
       fprintf(stderr,
-              "%s: read_rows returned %d rows for a groupby rowsource, expected %d\n",
-              program, count, expected_count);
+              "%s: test %d rasqal_rowsource_read_all_rows() returned %d rows for a groupby rowsource, expected %d\n",
+              program, test_id, count, expected_rows_count);
       failures++;
       goto tidy;
     }
 
     size = rasqal_rowsource_get_size(rowsource);
-    if(size != expected_size) {
+    if(size != expected_vars_count) {
       fprintf(stderr,
-              "%s: read_rows returned %d columns (variables) for a groupby rowsource, expected %d\n",
-              program, size, expected_size);
+              "%s: test %d rasqal_rowsource_get_size() returned %d columns (variables) for a groupby rowsource, expected %d\n",
+              program, test_id, size, expected_vars_count);
       failures++;
       goto tidy;
     }
