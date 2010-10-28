@@ -93,6 +93,8 @@ rasqal_rowsequence_rowsource_finish(rasqal_rowsource* rowsource,
   con = (rasqal_rowsequence_rowsource_context*)user_data;
   if(con->seq)
     raptor_free_sequence(con->seq);
+  if(con->vars_seq)
+    raptor_free_sequence(con->vars_seq);
   
   RASQAL_FREE(rasqal_rowsequence_rowsource_context, con);
 
