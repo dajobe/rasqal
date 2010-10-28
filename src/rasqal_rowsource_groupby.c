@@ -728,9 +728,12 @@ main(int argc, char *argv[])
     vars_count = expected_vars_count;
     row_seq = rasqal_new_row_sequence(world, vt, test_data[test_id].data,
                                       vars_count, &vars_seq);
-    if(row_seq)
+    if(row_seq) {
       input_rs = rasqal_new_rowsequence_rowsource(world, query, vt, 
                                                   row_seq, vars_seq);
+      /* vars_seq and row_seq are now owned by input_rs */
+      vars_seq = row_seq = NULL;
+    }
     if(!input_rs) {
       fprintf(stderr, "%s: failed to create rowsequence rowsource\n", program);
       failures++;
@@ -777,8 +780,8 @@ main(int argc, char *argv[])
     }
     
     rowsource = rasqal_new_groupby_rowsource(world, query, input_rs, expr_seq);
-    /* input_rs and expr_seq are now owned by rowsource */
-    input_rs = NULL; expr_seq = NULL;
+    /* input_rs is now owned by rowsource */
+    input_rs = NULL;
    
     if(!rowsource) {
       fprintf(stderr, "%s: failed to create groupby rowsource\n", program);
@@ -832,6 +835,10 @@ main(int argc, char *argv[])
     raptor_free_sequence(seq); seq = NULL;
 
     rasqal_free_rowsource(rowsource); rowsource = NULL;
+
+    if(expr_seq)
+      raptor_free_sequence(expr_seq);
+    expr_seq = NULL;
   }
   
   tidy:
