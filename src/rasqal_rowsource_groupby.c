@@ -663,7 +663,6 @@ const char* const data_xy_3_rows[] =
 #define GROUP_TESTS_COUNT 2
 
 
-#define EXPECTED_GROUP_IDS_COUNT (GROUP_TESTS_COUNT * EXPECTED_ROWS_COUNT)
 
 static const int const
 group_test_result_group_ids[GROUP_TESTS_COUNT][EXPECTED_ROWS_COUNT] = {
