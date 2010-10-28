@@ -41,6 +41,9 @@
 #include "rasqal_internal.h"
 
 
+#define DEBUG_FH stderr
+
+
 #ifndef STANDALONE
 
 #ifdef HAVE_RAPTOR2_API
@@ -124,6 +127,10 @@ static void
 raptor_avltree_set_print_handler(raptor_avltree* tree,
                                  raptor_data_print_handler print_handler)
 {
+  if(!tree)
+    return;
+
+  raptor_sequence_set_print_handler(tree->seq, print_handler);
 }
 
 
@@ -166,6 +173,18 @@ raptor_free_avltree_iterator(raptor_avltree_iterator* iterator)
   RASQAL_FREE(iterator, iterator);
 }
 
+static int
+raptor_avltree_print(raptor_avltree* tree, FILE* stream)
+{
+  if(!tree)
+    return NULL;
+  
+  fprintf(stream, "Group sequence with %d groups\n",
+          raptor_sequence_size(tree->seq));
+  raptor_sequence_print(tree->seq, stream);
+
+  return 0;
+}
 
 #endif
 
@@ -268,14 +287,14 @@ rasqal_rowsource_groupby_tree_print_node(void *object, FILE *fh)
 {
   rasqal_groupby_tree_node* node = (rasqal_groupby_tree_node*)object;
   
-  fputs("Key Literals:\n", fh);
+  fputs("Group\n  Key Sequence of literals: ", fh);
   if(node->literals)
     /* sequence of literals */
     raptor_sequence_print(node->literals, fh);
   else
     fputs("None", fh);
 
-  fputs("\nValue Rows:\n", fh);
+  fputs("\n  Value Sequence of rows:\n", fh);
   if(node->rows) {
     int i;
     int size = raptor_sequence_size(node->rows);
@@ -283,11 +302,13 @@ rasqal_rowsource_groupby_tree_print_node(void *object, FILE *fh)
     /* sequence of rows */
     for(i = 0; i < size; i++) {
       rasqal_row* row = (rasqal_row*)raptor_sequence_get_at(node->rows, i);
-      fprintf(fh, "  Row %d: ", i);
+      
+      fprintf(fh, "    Row %d: ", i);
       rasqal_row_print(row, fh);
+      fputc('\n', fh);
     }
   } else
-    fputs("None", fh);
+    fputs("None\n", fh);
 
 #ifdef HAVE_RAPTOR2_API
   return 0;
@@ -459,6 +480,14 @@ rasqal_groupby_rowsource_process(rasqal_rowsource* rowsource,
     }
   }
 
+#ifdef RASQAL_DEBUG
+  if(con->tree) {
+    fputs("Grouping ", DEBUG_FH);
+    raptor_avltree_print(con->tree, DEBUG_FH);
+    fputs("\n", DEBUG_FH);
+  }
+#endif
+  
   con->group_iterator = raptor_new_avltree_iterator(con->tree,
                                                     NULL, NULL,
                                                     1);
