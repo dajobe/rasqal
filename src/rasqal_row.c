@@ -412,6 +412,8 @@ rasqal_new_row_sequence(rasqal_world* world,
         goto tidy;
       }
       rasqal_row_set_value_at(row, column_i, l);
+      /* free our copy of literal, rasqal_row has a reference */
+      rasqal_free_literal(l);
     }
 
     raptor_sequence_push(seq, row);
