@@ -787,18 +787,19 @@ static const char* const data_us_senators_100_rows[] =
 static const struct {
   int vars;
   int rows;
+  int ngroups;
   const char* const *data;
   const int const group_ids[MAX_TEST_GROUPS];
   const char* const expr_vars[MAX_TEST_VARS];
 } test_data[GROUP_TESTS_COUNT] = {
   /* Test 0: No GROUP BY : 1 group expected */
-  {2, 3, data_xy_3_rows, {  0,  0,  0 }, { NULL } },
+  {2, 3, 1, data_xy_3_rows, {  0,  0,  0 }, { NULL } },
 
   /* Test 1: GROUP BY ?x : 2 groups expected */
-  {2, 3, data_xy_3_rows, {  0,  0,  1 }, { "x", NULL } },
+  {2, 3, 2, data_xy_3_rows, {  0,  0,  1 }, { "x", NULL } },
 
-  /* Test 2: GROUP BY ?year, ?name : 99 groups expected */
-  {3, 100, data_us_senators_100_rows, { 21, 21, 27, 2, 38, 79, 10, 18, 24, 15, 40, 74, 80, 31, 4, 29, 47, 75, 33, 82, 92, 30, 57, 91, 96, 3, 58, 76, 6, 7, 67, 8, 14, 43, 50, 72, 5, 35, 41, 46, 53, 86, 17, 25, 49, 70, 37, 42, 93, 34, 52, 73, 94, 55, 95, 95, 32, 83, 19, 23, 64, 71, 77, 0, 39, 69, 81, 12, 44, 44, 89, 90, 20, 54, 84, 13, 65, 26, 59, 66, 78, 88, 36, 51, 85, 60, 45, 61, 87, 1, 9, 11, 22, 48, 62, 63, 68, 56, 28, 16 }, { "year", "name", NULL } },
+  /* Test 2: GROUP BY ?year, ?name : 97 groups expected */
+  {3, 100, 97, data_us_senators_100_rows, { 21, 21, 27, 2, 38, 79, 10, 18, 24, 15, 40, 74, 80, 31, 4, 29, 47, 75, 33, 82, 92, 30, 57, 91, 96, 3, 58, 76, 6, 7, 67, 8, 14, 43, 50, 72, 5, 35, 41, 46, 53, 86, 17, 25, 49, 70, 37, 42, 93, 34, 52, 73, 94, 55, 95, 95, 32, 83, 19, 23, 64, 71, 77, 0, 39, 69, 81, 12, 44, 44, 89, 90, 20, 54, 84, 13, 65, 26, 59, 66, 78, 88, 36, 51, 85, 60, 45, 61, 87, 1, 9, 11, 22, 48, 62, 63, 68, 56, 28, 16 }, { "year", "name", NULL } },
    
 };
 
@@ -834,10 +835,13 @@ main(int argc, char *argv[])
     int expected_rows_count = test_data[test_id].rows;
     int expected_vars_count = test_data[test_id].vars;
     const int* expected_group_ids = test_data[test_id].group_ids;
+    int expected_ngroups = test_data[test_id].ngroups;
     raptor_sequence* seq = NULL;
     int count;
     int size;
     int i;
+    int groups_counted;
+    int last_group_id;
     
     vars_count = expected_vars_count;
     row_seq = rasqal_new_row_sequence(world, vt, test_data[test_id].data,
@@ -929,8 +933,15 @@ main(int argc, char *argv[])
       goto tidy;
     }
 
+    groups_counted = 0;
+    last_group_id = -1;
     for(i = 0; i < count; i++) {
       rasqal_row* row = raptor_sequence_get_at(seq, i);
+
+      if(row->group_id != last_group_id) {
+        groups_counted++;
+        last_group_id = row->group_id;
+      }
 
       if(row->group_id != expected_group_ids[i]) {
         fprintf(stderr, "%s: test %d row #%d has group_id %d, expected %d\n",
@@ -941,6 +952,12 @@ main(int argc, char *argv[])
       
     }
     
+    if(groups_counted != expected_ngroups) {
+        fprintf(stderr, "%s: test %d returnd %d groups, expected %d\n",
+                program, test_id, groups_counted, expected_ngroups);
+        failures++;
+        goto tidy;
+      }
 
 #ifdef RASQAL_DEBUG
     rasqal_rowsource_print_row_sequence(rowsource, seq, stderr);
