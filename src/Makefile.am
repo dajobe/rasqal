@@ -46,7 +46,8 @@ rasqal_rowsource_join_test$(EXEEXT) \
 rasqal_query_test$(EXEEXT) \
 rasqal_rowsource_triples_test$(EXEEXT) \
 rasqal_row_compatible_test$(EXEEXT) \
-rasqal_rowsource_groupby_test$(EXEEXT)
+rasqal_rowsource_groupby_test$(EXEEXT) \
+rasqal_rowsource_aggregation_test$(EXEEXT)
 
 # These 4 test programs are compiled here and run here as 'smoke
 # tests' but mostly used in tests in $(srcdir)/../tests/{rdql,sparql}
@@ -86,7 +87,7 @@ rasqal_rowsource_triples.c rasqal_rowsource_filter.c \
 rasqal_rowsource_sort.c rasqal_engine_sort.c \
 rasqal_rowsource_project.c rasqal_rowsource_join.c \
 rasqal_rowsource_graph.c rasqal_rowsource_distinct.c \
-rasqal_rowsource_groupby.c \
+rasqal_rowsource_groupby.c rasqal_rowsource_aggregation.c \
 rasqal_row_compatible.c rasqal_format_table.c rasqal_query_write.c \
 rasqal_format_json.c rasqal_format_sv.c rasqal_format_html.c \
 rasqal_rowsource_assignment.c rasqal_update.c \
@@ -207,6 +208,10 @@ rasqal_algebra_test_LDADD = librasqal.la
 rasqal_variable_test_SOURCES = rasqal_variable.c
 rasqal_variable_test_CPPFLAGS = -DSTANDALONE
 rasqal_variable_test_LDADD = librasqal.la
+
+rasqal_rowsource_aggregation_test_SOURCES = rasqal_rowsource_aggregation.c
+rasqal_rowsource_aggregation_test_CPPFLAGS = -DSTANDALONE
+rasqal_rowsource_aggregation_test_LDADD = librasqal.la
 
 rasqal_rowsource_empty_test_SOURCES = rasqal_rowsource_empty.c
 rasqal_rowsource_empty_test_CPPFLAGS = -DSTANDALONE
