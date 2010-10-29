@@ -569,6 +569,20 @@ rasqal_groupby_rowsource_reset(rasqal_rowsource* rowsource, void *user_data)
 }
 
 
+static rasqal_rowsource*
+rasqal_groupby_rowsource_get_inner_rowsource(rasqal_rowsource* rowsource,
+                                             void *user_data, int offset)
+{
+  rasqal_groupby_rowsource_context *con;
+  con = (rasqal_groupby_rowsource_context*)user_data;
+
+  if(offset == 0)
+    return con->rowsource;
+
+  return NULL;
+}
+
+
 static const rasqal_rowsource_handler rasqal_groupby_rowsource_handler = {
   /* .version = */ 1,
   "groupby",
@@ -579,7 +593,7 @@ static const rasqal_rowsource_handler rasqal_groupby_rowsource_handler = {
   /* .read_all_rows = */ NULL,
   /* .reset = */ rasqal_groupby_rowsource_reset,
   /* .set_preserve = */ NULL,
-  /* .get_inner_rowsource = */ NULL,
+  /* .get_inner_rowsource = */ rasqal_groupby_rowsource_get_inner_rowsource,
   /* .set_origin = */ NULL,
 };
 

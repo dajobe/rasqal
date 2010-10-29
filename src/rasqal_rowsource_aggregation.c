@@ -165,6 +165,20 @@ rasqal_aggregation_rowsource_read_row(rasqal_rowsource* rowsource,
 }
 
 
+static rasqal_rowsource*
+rasqal_aggregation_rowsource_get_inner_rowsource(rasqal_rowsource* rowsource,
+                                                 void *user_data, int offset)
+{
+  rasqal_aggregation_rowsource_context *con;
+  con = (rasqal_aggregation_rowsource_context*)user_data;
+
+  if(offset == 0)
+    return con->rowsource;
+
+  return NULL;
+}
+
+
 static const rasqal_rowsource_handler rasqal_aggregation_rowsource_handler = {
   /* .version = */ 1,
   "aggregation",
@@ -175,7 +189,7 @@ static const rasqal_rowsource_handler rasqal_aggregation_rowsource_handler = {
   /* .read_all_rows = */ NULL,
   /* .reset = */ NULL,
   /* .set_preserve = */ NULL,
-  /* .get_inner_rowsource = */ NULL,
+  /* .get_inner_rowsource = */ rasqal_aggregation_rowsource_get_inner_rowsource,
   /* .set_origin = */ NULL,
 };
 
