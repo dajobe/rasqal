@@ -431,9 +431,9 @@ main(int argc, char *argv[])
     }
 
 
-//#ifdef RASQAL_DEBUG
+#ifdef RASQAL_DEBUG
     rasqal_rowsource_print_row_sequence(rowsource, seq, stderr);
-//#endif
+#endif
 
     raptor_free_sequence(seq); seq = NULL;
 
