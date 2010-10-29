@@ -1775,7 +1775,7 @@ rasqal_new_literal_from_promotion(rasqal_literal* lit,
       new_lit = NULL;
   }
 
-#ifdef RASQAL_DEBUG
+#if RASQAL_DEBUG > 1
   if(new_lit)
     RASQAL_DEBUG4("promoted literal type %s to type %s, with value '%s'\n", 
                   rasqal_literal_type_labels[lit->type],
@@ -1973,10 +1973,12 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
   new_lits[0] = NULL;
   new_lits[1] = NULL;
 
+#if RASQAL_DEBUG > 1
   RASQAL_DEBUG3("literal 0 type %s.  literal 1 type %s\n", 
                 rasqal_literal_type_labels[lits[0]->type],
                 rasqal_literal_type_labels[lits[1]->type]);
-  
+#endif
+
   if(flags & RASQAL_COMPARE_RDF) {
     /* no promotion but compare as RDF terms; like rasqal_literal_as_node() */
     rasqal_literal_type type0 = rasqal_literal_get_rdf_term_type(lits[0]);
@@ -1987,8 +1989,10 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
       return 1;
     type_diff = type0 - type1;
     if(type_diff != 0) {
+#if RASQAL_DEBUG > 1
       RASQAL_DEBUG2("RDF term literal returning type difference %d\n",
                     type_diff);
+#endif
       return type_diff;
     }
     type = type1;
@@ -1997,9 +2001,11 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
     rasqal_literal_type type0 = lits[0]->type;
     rasqal_literal_type type1 = lits[1]->type;
 
+#if RASQAL_DEBUG > 1
     RASQAL_DEBUG3("xquery literal compare types %s vs %s\n",
                 rasqal_literal_type_labels[type0],
                 rasqal_literal_type_labels[type1]);
+#endif
 
     /* cannot compare UDTs */
     if(type0 == RASQAL_LITERAL_UDT || type1 == RASQAL_LITERAL_UDT) {
@@ -2020,8 +2026,10 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
         return 1;
       type_diff = type0 - type1;
       if(type_diff != 0) {
+#if RASQAL_DEBUG > 1
         RASQAL_DEBUG2("RDF term literal returning type difference %d\n",
                       type_diff);
+#endif
         return type_diff;
       }
       if(error)
@@ -2035,7 +2043,7 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
     promotion = 1;
   }
 
-#ifdef RASQAL_DEBUG
+#if RASQAL_DEBUG > 1
   if(promotion)
     RASQAL_DEBUG2("promoting to type %s\n", rasqal_literal_type_labels[type]);
 #endif
