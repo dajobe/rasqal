@@ -96,6 +96,15 @@ typedef struct
 
   /* sequence used to hold literals from recent row evaluation */
   raptor_sequence* literal_seq;
+
+  /* last group ID seen */
+  int last_group_id;
+  
+  /* saved row between group boundaries */
+  rasqal_row* saved_row;
+
+  /* output row offset */
+  int offset;
 } rasqal_aggregation_rowsource_context;
 
 
@@ -228,13 +237,6 @@ rasqal_aggregation_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
   rasqal_aggregation_rowsource_context* con;
   con = (rasqal_aggregation_rowsource_context*)user_data;
 
-  con->agg_user_data = rasqal_builtin_aggregation_init(rowsource->world,
-                                                       con->expr_seq, con->op,
-                                                       con->parameters);
-  
-  if(!con->agg_user_data)
-    return 1;
-  
   /* Used to store (and own) literals from row expression evaluations */
 #ifdef HAVE_RAPTOR2_API
   con->literal_seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_literal,
@@ -248,7 +250,10 @@ rasqal_aggregation_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
     rasqal_builtin_aggregation_finish(con->agg_user_data);
     return 1;
   }
-  
+
+  con->last_group_id = -1;
+  con->offset = 0;
+
   return 0;
 }
 
@@ -273,6 +278,9 @@ rasqal_aggregation_rowsource_finish(rasqal_rowsource* rowsource, void *user_data
 
   if(con->literal_seq)
     raptor_free_sequence(con->literal_seq);
+
+  if(con->saved_row)
+    rasqal_free_row(con->saved_row);
 
   RASQAL_FREE(rasqal_aggregation_rowsource_context, con);
 
@@ -307,19 +315,70 @@ rasqal_aggregation_rowsource_read_row(rasqal_rowsource* rowsource,
 {
   rasqal_aggregation_rowsource_context* con;
   rasqal_row* row;
-  int rc = 0;
+  int error = 0;
   
   con = (rasqal_aggregation_rowsource_context*)user_data;
 
   if(con->finished)
     return NULL;
   
+
+  /* Iterate over input rows until last row seen or group done */
   while(1) {
-    int error = 0;
+    error = 0;
     
-    row = rasqal_rowsource_read_row(con->rowsource);
-    if(!row)
+    if(con->saved_row)
+      row = con->saved_row;
+    else
+      row = rasqal_rowsource_read_row(con->rowsource);
+
+    if(!row) {
+      /* End of input - calculate last aggregation result */
+      con->finished = 1;
       break;
+    }
+
+
+    if(con->last_group_id != row->group_id) {
+      if(!con->saved_row && con->last_group_id >= 0) {
+        /* Existing aggregation is done - return result */
+
+        /* save current row for next time this function is called */
+        con->saved_row = row;
+
+        row = NULL;
+#ifdef RASQAL_DEBUG
+        RASQAL_DEBUG3("Aggregation op %s ending group %d",
+                      rasqal_expression_op_label(con->op), con->last_group_id);
+        fputc('\n', DEBUG_FH);
+#endif
+        break;
+      }
+
+      /* reference is now in 'row' variable */
+      con->saved_row = NULL;
+
+#ifdef RASQAL_DEBUG
+    RASQAL_DEBUG3("Aggregation op %s starting group %d",
+                  rasqal_expression_op_label(con->op), row->group_id);
+    fputc('\n', DEBUG_FH);
+#endif
+
+
+      /* next time this function is called we continue here */
+      con->agg_user_data = rasqal_builtin_aggregation_init(rowsource->world,
+                                                           con->expr_seq, con->op,
+                                                           con->parameters);
+      
+      if(!con->agg_user_data) {
+        /* FIXME - what to do on errors? */
+        error = 1;
+        break;
+      }
+
+      con->last_group_id = row->group_id;
+    } /* end if handling change of group ID */
+  
 
     /* Bind the values in the input row to the variables in the table */
     rasqal_row_bind_variables(row, rowsource->query->vars_table);
@@ -335,8 +394,9 @@ rasqal_aggregation_rowsource_read_row(rasqal_rowsource* rowsource,
     
     if(error) {
       /* FIXME - what to do on errors? */
-      continue;
+      break;
     }
+
 
 #ifdef RASQAL_DEBUG
     RASQAL_DEBUG2("Aggregation op %s step over literals: ",
@@ -345,22 +405,30 @@ rasqal_aggregation_rowsource_read_row(rasqal_rowsource* rowsource,
     fputc('\n', DEBUG_FH);
 #endif
 
-    rc = rasqal_builtin_aggregation_step(con->agg_user_data, con->literal_seq);
-    rasqal_free_row(row);
-
-    if(rc)
+    error = rasqal_builtin_aggregation_step(con->agg_user_data,
+                                            con->literal_seq);
+    rasqal_free_row(row); row = NULL;
+    
+    if(error)
       break;
-  }
+
+  } /* end while reading rows */
   
 
-  if(!rc) {
+  if(error) {
+    /* Discard row on error */
+    if(row) {
+      rasqal_free_row(row);
+      row = NULL;
+    }
+  } else {
     rasqal_literal* result;
 
-    /* end of rows and success - calculate result */
+    /* Calculate the result because the input ended or a new group started */
     result = rasqal_builtin_aggregation_result(con->agg_user_data);
   
 #ifdef RASQAL_DEBUG
-    RASQAL_DEBUG2("Aggregation op %s result:",
+    RASQAL_DEBUG2("Aggregation op %s ending group with result:",
                   rasqal_expression_op_label(con->op));
     if(result)
       rasqal_literal_print(result, DEBUG_FH);
@@ -369,7 +437,7 @@ rasqal_aggregation_rowsource_read_row(rasqal_rowsource* rowsource,
     
     fputc('\n', DEBUG_FH);
 #endif
-
+  
     if(result) {
       row = rasqal_new_row_for_size(rowsource->world, 1);
       if(row)
@@ -379,10 +447,9 @@ rasqal_aggregation_rowsource_read_row(rasqal_rowsource* rowsource,
     }
     
     if(row)
-      row->offset = 0;
+      row->offset = con->offset++;
   }
-  
-  con->finished = 1;
+
   
   return row;
 }
@@ -534,9 +601,14 @@ static const struct {
   int output_rows;
   const char* const *data;
   const int const *group_ids;
+  rasqal_op op;
   const char* const expr_vars[MAX_TEST_VARS];
 } test_data[AGGREGATION_TESTS_COUNT] = {
-  {3, 3, 2, 1, 1, data_xyz_3_rows, test0_groupids, { "y", "z" } }
+  /* Execute the aggregation part of SELECT (MAX(?y) AS ?fake)
+   *   Input 3 vars (x, y, z), 3 rows and 2 groups.
+   *   Output is 1 var (fake), 2 rows (1 per input group)
+   */
+  {3, 3, 2, 1, 2, data_xyz_3_rows, test0_groupids, RASQAL_EXPR_MAX, { "y" } }
 };
 
 
@@ -569,6 +641,7 @@ main(int argc, char *argv[])
     int expected_rows_count = test_data[test_id].output_rows;
     int expected_vars_count = test_data[test_id].output_vars;
     const int* input_group_ids = test_data[test_id].group_ids;
+    rasqal_op op  = test_data[test_id].op;
     raptor_sequence* seq = NULL;
     int count;
     int size;
@@ -634,17 +707,6 @@ main(int argc, char *argv[])
     }
 
 
-    /* Roughly execute:
-     *   SELECT (MAX(*) AS ?fake) 
-     * This is not actual SPARQL syntax
-     *
-     * It is wrong because it does not evaluate the expression
-     * sequence argument (expr_seq) to get the correct values to
-     * apply to MAX().
-     *
-     * It should generate an internal variable name in the output
-     * rather than the hardcoded 'fake'.
-     */
     output_var_name = (char*)RASQAL_MALLOC(cstring, 5);
     memcpy(output_var_name, "fake", 5);
     output_var = rasqal_variables_table_add(vt, RASQAL_VARIABLE_TYPE_ANONYMOUS, 
@@ -652,7 +714,7 @@ main(int argc, char *argv[])
 
     rowsource = rasqal_new_aggregation_rowsource(world, query, input_rs,
                                                  expr_seq,
-                                                 RASQAL_EXPR_MAX, NULL,
+                                                 op, NULL,
                                                  /* parameters */ NULL,
                                                  /* flags */ 0,
                                                  output_var);
