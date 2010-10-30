@@ -93,6 +93,9 @@ typedef struct
 
   /* non-0 when done */
   int finished;
+
+  /* sequence used to hold literals from recent row evaluation */
+  raptor_sequence* literal_seq;
 } rasqal_aggregation_rowsource_context;
 
 
@@ -229,7 +232,24 @@ rasqal_aggregation_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
                                                        con->expr_seq, con->op,
                                                        con->parameters);
   
-  return (con->agg_user_data == NULL);
+  if(!con->agg_user_data)
+    return 1;
+  
+  /* Used to store (and own) literals from row expression evaluations */
+#ifdef HAVE_RAPTOR2_API
+  con->literal_seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_literal,
+                                         (raptor_data_print_handler)rasqal_literal_print);
+#else
+  con->literal_seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_literal,
+                                         (raptor_sequence_print_handler*)rasqal_literal_print);
+#endif
+  
+  if(!con->literal_seq) {
+    rasqal_builtin_aggregation_finish(con->agg_user_data);
+    return 1;
+  }
+  
+  return 0;
 }
 
 
@@ -250,6 +270,9 @@ rasqal_aggregation_rowsource_finish(rasqal_rowsource* rowsource, void *user_data
   
   if(con->parameters)
     raptor_free_sequence(con->parameters);
+
+  if(con->literal_seq)
+    raptor_free_sequence(con->literal_seq);
 
   RASQAL_FREE(rasqal_aggregation_rowsource_context, con);
 
@@ -284,7 +307,6 @@ rasqal_aggregation_rowsource_read_row(rasqal_rowsource* rowsource,
 {
   rasqal_aggregation_rowsource_context* con;
   rasqal_row* row;
-  raptor_sequence* literal_seq = NULL;
   int rc = 0;
   
   con = (rasqal_aggregation_rowsource_context*)user_data;
@@ -292,16 +314,6 @@ rasqal_aggregation_rowsource_read_row(rasqal_rowsource* rowsource,
   if(con->finished)
     return NULL;
   
-  /* Used to store (and own) literals from row expression evaluations */
-#ifdef HAVE_RAPTOR2_API
-  literal_seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_literal,
-                                    (raptor_data_print_handler)rasqal_literal_print);
-#else
-    literal_seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_literal,
-                                      (raptor_sequence_print_handler*)rasqal_literal_print);
-#endif
-  
-
   while(1) {
     int error = 0;
     
@@ -318,7 +330,7 @@ rasqal_aggregation_rowsource_read_row(rasqal_rowsource* rowsource,
     rasqal_expression_sequence_evaluate(rowsource->query,
                                         con->expr_seq,
                                         /* ignore_errors */ 0,
-                                        literal_seq,
+                                        con->literal_seq,
                                         &error);
     
     if(error) {
@@ -329,11 +341,11 @@ rasqal_aggregation_rowsource_read_row(rasqal_rowsource* rowsource,
 #ifdef RASQAL_DEBUG
     RASQAL_DEBUG2("Aggregation op %s step over literals: ",
                   rasqal_expression_op_label(con->op));
-    raptor_sequence_print(literal_seq, DEBUG_FH);
+    raptor_sequence_print(con->literal_seq, DEBUG_FH);
     fputc('\n', DEBUG_FH);
 #endif
 
-    rc = rasqal_builtin_aggregation_step(con->agg_user_data, literal_seq);
+    rc = rasqal_builtin_aggregation_step(con->agg_user_data, con->literal_seq);
     rasqal_free_row(row);
 
     if(rc)
@@ -370,9 +382,6 @@ rasqal_aggregation_rowsource_read_row(rasqal_rowsource* rowsource,
       row->offset = 0;
   }
   
-  if(literal_seq)
-    raptor_free_sequence(literal_seq);
-
   con->finished = 1;
   
   return row;
