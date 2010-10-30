@@ -58,12 +58,25 @@
  *   2. a function with operation #rasqal_op (may be internal funcs)
  *   3. a sequence of k:v parameters
  *
- * For example with the SPARQL 1.1 example query
+ * For example with the SPARQL 1.1 example queries
+ *
  *   SELECT (ex:agg(?y, ?z) AS ?agg) WHERE { ?x ?y ?z } GROUP BY ?x.
  * the aggregation part corresponds to
  *   1. [?y, ?z]
  *   2. ex:agg and #RASQAL_EXPR_FUNCTION
  *   3. []
+ *
+ *   SELECT (MAX(?y) AS ?agg) WHERE { ?x ?y ?z } GROUP BY ?x.
+ * the aggregation part corresponds to
+ *   1. [?y]
+ *   2. NULL and #RASQAL_EXPR_MAX
+ *   3. []
+ *
+ *   SELECT (GROUP_CONCAT(?z; separator=';') AS ?agg) WHERE { ?x ?y ?z } GROUP BY ?x.
+ * the aggregation part corresponds to
+ *   1. [?z]
+ *   2. NULL and #RASQAL_EXPR_GROUP_CONCAT
+ *   3. [separator=';']
  */
 typedef struct 
 {
