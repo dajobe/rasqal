@@ -1281,6 +1281,8 @@ RASQAL_API
 int rasqal_expression_print(rasqal_expression* e, FILE* fh);
 RASQAL_API
 rasqal_literal* rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator, rasqal_expression* e, int flags);
+RASQAL_API
+const char* rasqal_expression_op_label(rasqal_op op);
 
 /**
  * rasqal_expression_visit_fn:

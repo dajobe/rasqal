@@ -2228,25 +2228,38 @@ static const char* const rasqal_op_labels[RASQAL_EXPR_LAST+1]={
 
 
 /**
+ * rasqal_expression_op_label:
+ * @op: the #rasqal_expression_op object
+ * 
+ * Get a label for the rasqal expression operator
+ *
+ * Return value: the label (shared string) or NULL if op is out of range or unknown
+ **/
+const char*
+rasqal_expression_op_label(rasqal_op op)
+{
+  if(op > RASQAL_EXPR_LAST)
+    op = RASQAL_EXPR_UNKNOWN;
+
+  return rasqal_op_labels[(int)op];
+}
+
+
+/**
  * rasqal_expression_write_op:
  * @e: the #rasqal_expression object
  * @iostr: the #raptor_iostream to write to
  * 
- * Write a rasqal expression operator to an iostream in a debug format.
+ * INTERNAL - Write a rasqal expression operator to an iostream in a debug format.
  *
  * The print debug format may change in any release.
  **/
 void
 rasqal_expression_write_op(rasqal_expression* e, raptor_iostream* iostr)
 {
-  rasqal_op op;
-
   RASQAL_ASSERT_OBJECT_POINTER_RETURN(e, rasqal_expression);
 
-  op = e->op;
-  if(op > RASQAL_EXPR_LAST)
-    op = RASQAL_EXPR_UNKNOWN;
-  raptor_iostream_string_write(rasqal_op_labels[(int)op], iostr);
+  raptor_iostream_string_write(rasqal_expression_op_label(e->op), iostr);
 }
 
 
@@ -2262,15 +2275,10 @@ rasqal_expression_write_op(rasqal_expression* e, raptor_iostream* iostr)
 void
 rasqal_expression_print_op(rasqal_expression* e, FILE* fh)
 {
-  rasqal_op op;
-
   RASQAL_ASSERT_OBJECT_POINTER_RETURN(e, rasqal_expression);
   RASQAL_ASSERT_OBJECT_POINTER_RETURN(fh, FILE*);
 
-  op = e->op;
-  if(op > RASQAL_EXPR_LAST)
-    op = RASQAL_EXPR_UNKNOWN;
-  fputs(rasqal_op_labels[(int)op], fh);
+  fputs(rasqal_expression_op_label(e->op), fh);
 }
 
 
