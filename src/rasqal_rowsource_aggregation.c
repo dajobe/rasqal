@@ -379,6 +379,23 @@ static const rasqal_rowsource_handler rasqal_aggregation_rowsource_handler = {
 };
 
 
+/**
+ * rasqal_new_aggregation_rowsource:
+ * @world: world
+ * @query: query
+ * @rowsource: input (grouped) rowsource - typically constructed by rasqal_new_groupby_rowsource()
+ * @expr_seq: sequence of expressions arguments to aggregation function
+ * @op: aggregation expression if builtin or #RASQAL_EXPR_FUNCTION if user defined.
+ * @func: pointer to user defined function
+ * @parameters: sequence of 'scalar' parameters to function such as 'separator' for SPARQL 1.1. GROUP_CONCAT (#RASQAL_EXPR_GROUP_CONCAT)
+ * @flags: bitset of flags to aggregation. Only #RASQAL_EXPR_FLAG_DISTINCT is defined
+ * @variable: output variable to bind the value
+ *
+ * INTERNAL - Create a new rowsource for a aggregration for a built-in function or a user aggregration function.
+ *
+ * Return value: new rowsource or NULL on failure
+*/
+
 rasqal_rowsource*
 rasqal_new_aggregation_rowsource(rasqal_world *world, rasqal_query* query,
                                  rasqal_rowsource* rowsource,
@@ -386,10 +403,10 @@ rasqal_new_aggregation_rowsource(rasqal_world *world, rasqal_query* query,
                                  rasqal_op op,
                                  void *func,
                                  raptor_sequence* parameters,
+                                 unsigned int flags,
                                  rasqal_variable* variable)
 {
   rasqal_aggregation_rowsource_context* con;
-  int flags = 0;
 
   if(!world || !query)
     return NULL;
@@ -599,6 +616,7 @@ main(int argc, char *argv[])
                                                  expr_seq,
                                                  RASQAL_EXPR_MAX, NULL,
                                                  /* parameters */ NULL,
+                                                 /* flags */ 0,
                                                  output_var);
     /* expr_seq and input_rs are now owned by rowsource */
     expr_seq = NULL; input_rs = NULL;
