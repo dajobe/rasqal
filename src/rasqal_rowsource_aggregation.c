@@ -371,7 +371,6 @@ rasqal_aggregation_rowsource_read_row(rasqal_rowsource* rowsource,
                                                            con->parameters);
       
       if(!con->agg_user_data) {
-        /* FIXME - what to do on errors? */
         error = 1;
         break;
       }
@@ -393,7 +392,6 @@ rasqal_aggregation_rowsource_read_row(rasqal_rowsource* rowsource,
                                         &error);
     
     if(error) {
-      /* FIXME - what to do on errors? */
       break;
     }
 
@@ -720,7 +718,6 @@ main(int argc, char *argv[])
                                                  output_var);
     /* expr_seq and input_rs are now owned by rowsource */
     expr_seq = NULL; input_rs = NULL;
-    /* FIXME - who owns output_var ? */
 
     if(!rowsource) {
       fprintf(stderr, "%s: failed to create aggregation rowsource\n", program);
