@@ -179,10 +179,18 @@ rasqal_builtin_aggregation_step(void* user_data, raptor_sequence* literals)
   for(i = 0; (l = (rasqal_literal*)raptor_sequence_get_at(literals, i)); i++) {
     rasqal_literal* result;
 
+    if(b->op == RASQAL_EXPR_SAMPLE) {
+      /* Sample chooses the first literal it sees */
+      if(!b->l)
+        b->l = rasqal_new_literal_from_literal(l);
+
+      break;
+    }
+    
     if(!b->l)
       result = rasqal_new_literal_from_literal(l);
     else {
-      if(b->op == RASQAL_EXPR_SUM) {
+      if(b->op == RASQAL_EXPR_SUM || b->op == RASQAL_EXPR_AVG) {
         result = rasqal_literal_add(b->l, l, &b->error);
       } else if(b->op == RASQAL_EXPR_MIN) {
         int cmp = rasqal_literal_compare(b->l, l, RASQAL_COMPARE_RDF,
@@ -199,7 +207,8 @@ rasqal_builtin_aggregation_step(void* user_data, raptor_sequence* literals)
         else
           result = rasqal_new_literal_from_literal(l);
       } else {
-        RASQAL_FATAL2("Builtin aggregation operation %d implemented", b->op);
+        RASQAL_FATAL2("Builtin aggregation operation %d is not implemented", 
+                      b->op);
       }
 
       rasqal_free_literal(b->l);
@@ -223,6 +232,26 @@ rasqal_builtin_aggregation_result(void* user_data)
     rasqal_literal* result;
     result = rasqal_new_integer_literal(b->world, RASQAL_LITERAL_INTEGER,
                                         b->count);
+    return result;
+  }
+    
+  if(b->op == RASQAL_EXPR_AVG) {
+    rasqal_literal* count_l;
+    rasqal_literal* result;
+    count_l = rasqal_new_integer_literal(b->world, RASQAL_LITERAL_INTEGER,
+                                         b->count);
+
+    result = rasqal_literal_divide(b->l, count_l, &b->error);
+    rasqal_free_literal(count_l);
+
+    if(b->error) {
+      /* result will be NULL and error will be non-0 on division by 0
+       * in which case the result is literal(integer 0)
+       */
+      result = rasqal_new_integer_literal(b->world, RASQAL_LITERAL_INTEGER,
+                                          0);
+    }
+    
     return result;
   }
     
