@@ -479,7 +479,7 @@ rasqal_aggregation_rowsource_read_row(rasqal_rowsource* rowsource,
 #endif
   
     if(result) {
-      row = rasqal_new_row_for_size(rowsource->world, 1);
+      row = rasqal_new_row(rowsource);
       if(row)
         rasqal_row_set_value_at(row, 0, result);
       
