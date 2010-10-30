@@ -605,7 +605,7 @@ rasqal_new_aggregation_rowsource(rasqal_world *world, rasqal_query* query,
 int main(int argc, char *argv[]);
 
 
-#define AGGREGATION_TESTS_COUNT 1
+#define AGGREGATION_TESTS_COUNT 5
 
 
 #define MAX_TEST_VARS 3
@@ -644,11 +644,37 @@ static const struct {
   rasqal_op op;
   const char* const expr_vars[MAX_TEST_VARS];
 } test_data[AGGREGATION_TESTS_COUNT] = {
-  /* Execute the aggregation part of SELECT (MAX(?y) AS ?fake)
+  /*
+   * Execute the aggregation part of SELECT (MAX(?y) AS ?fake) ... GROUP BY ?x
    *   Input 3 vars (x, y, z), 3 rows and 2 groups.
    *   Output is 1 var (fake), 2 rows (1 per input group)
+   * Expected result: [ ?fake => 3, ?fake => 5]
    */
-  {3, 3, 2, 1, 2, data_xyz_3_rows, test0_groupids, RASQAL_EXPR_MAX, { "y" } }
+  {3, 3, 2, 1, 2, data_xyz_3_rows, test0_groupids, RASQAL_EXPR_MAX, { "y" } },
+
+  /*
+   * Execute the aggregation part of SELECT (MIN(?x) AS ?fake) ... GROUP BY ?x
+   * Expected result: [ ?fake => 1, ?fake => 2]
+   */
+  {3, 3, 2, 1, 2, data_xyz_3_rows, test0_groupids, RASQAL_EXPR_MIN, { "x" } },
+
+  /*
+   * Execute the aggregation part of SELECT (SUM(?z) AS ?fake) ... GROUP BY ?x
+   * Expected result: [ ?fake => 7, ?fake => 6]
+   */
+  {3, 3, 2, 1, 2, data_xyz_3_rows, test0_groupids, RASQAL_EXPR_SUM, { "z" } },
+
+  /*
+   * Execute the aggregation part of SELECT (AVG(?x) AS ?fake) ... GROUP BY ?x
+   * Expected result: [ ?fake => 1, ?fake => 2]
+   */
+  {3, 3, 2, 1, 2, data_xyz_3_rows, test0_groupids, RASQAL_EXPR_AVG, { "x" } },
+
+  /*
+   * Execute the aggregation part of SELECT (SAMPLE(?y) AS ?fake) ... GROUP BY ?x
+   * Expected result: [ ?fake => 2, ?fake => 5]
+   */
+  {3, 3, 2, 1, 2, data_xyz_3_rows, test0_groupids, RASQAL_EXPR_SAMPLE, { "y" } }
 };
 
 
