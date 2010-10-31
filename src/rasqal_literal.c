@@ -1049,14 +1049,12 @@ rasqal_literal_type_label(rasqal_literal_type type)
 void
 rasqal_literal_write_type(rasqal_literal* l, raptor_iostream* iostr)
 {
-  rasqal_literal_type type;
-
   if(!l) {
     raptor_iostream_counted_string_write("null", 4, iostr);
     return;
   }
   
-  raptor_iostream_string_write(rasqal_literal_type_label(type), iostr);
+  raptor_iostream_string_write(rasqal_literal_type_label(l->type), iostr);
 }
 
 
