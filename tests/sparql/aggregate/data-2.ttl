@@ -1,102 +1,102 @@
 @prefix ex: <http://example.org/> .
 
-_:person00  ex:name  "Al"; ex:livesIn "Minnesota"; ex:year 1951 .
-_:person01  ex:name  "Amy"; ex:livesIn "Minnesota"; ex:year 1960 .
-_:person02  ex:name  "Arlen"; ex:livesIn "Pennsylvania"; ex:year 1930 .
-_:person03  ex:name  "Barbara"; ex:livesIn "California"; ex:year 1940 .
-_:person04  ex:name  "Barbara"; ex:livesIn "Maryland"; ex:year 1936 .
-_:person05  ex:name  "Ben"; ex:livesIn "Maryland"; ex:year 1943 .
-_:person06  ex:name  "Ben"; ex:livesIn "Nebraska"; ex:year 1941 .
-_:person07  ex:name  "Bernie"; ex:livesIn "Vermont"; ex:year 1941 .
-_:person08  ex:name  "Bill"; ex:livesIn "Florida"; ex:year 1942 .
-_:person09  ex:name  "Blanche"; ex:livesIn "Arkansas"; ex:year 1960 .
-_:person10  ex:name  "Bob"; ex:livesIn "Utah"; ex:year 1933 .
-_:person11  ex:name  "Bob"; ex:livesIn "Pennsylvania"; ex:year 1960 .
-_:person12  ex:name  "Bob"; ex:livesIn "Tennessee"; ex:year 1952 .
-_:person13  ex:name  "Bob"; ex:livesIn "New Jersey"; ex:year 1954 .
-_:person14  ex:name  "Byron"; ex:livesIn "North Dakota"; ex:year 1942 .
-_:person15  ex:name  "Carl"; ex:livesIn "Michigan"; ex:year 1934 .
-_:person16  ex:name  "Carte"; ex:livesIn "West Virginia"; ex:year 1974 .
-_:person17  ex:name  "Christopher"; ex:livesIn "Connecticut"; ex:year 1944 .
-_:person18  ex:name  "Chuck"; ex:livesIn "Iowa"; ex:year 1933 .
-_:person19  ex:name  "Chuck"; ex:livesIn "New York"; ex:year 1950 .
-_:person20  ex:name  "Claire"; ex:livesIn "Missouri"; ex:year 1953 .
-_:person21  ex:name  "Daniel"; ex:livesIn "Hawaii"; ex:year 1924 .
-_:person22  ex:name  "Daniel"; ex:livesIn "Hawaii"; ex:year 1924 .
-_:person23  ex:name  "David"; ex:livesIn "Louisiana"; ex:year 1961 .
-_:person24  ex:name  "Debbie"; ex:livesIn "Michigan"; ex:year 1950 .
-_:person25  ex:name  "Dianne"; ex:livesIn "California"; ex:year 1933 .
-_:person26  ex:name  "Dick"; ex:livesIn "Illinois"; ex:year 1944 .
-_:person27  ex:name  "Evan"; ex:livesIn "Indiana"; ex:year 1955 .
-_:person28  ex:name  "Frank"; ex:livesIn "New Jersey"; ex:year 1924 .
-_:person29  ex:name  "George"; ex:livesIn "Florida"; ex:year 1969 .
-_:person30  ex:name  "George"; ex:livesIn "Ohio"; ex:year 1936 .
-_:person31  ex:name  "Harry"; ex:livesIn "Nevada"; ex:year 1939 .
-_:person32  ex:name  "Herb"; ex:livesIn "Wisconsin"; ex:year 1935 .
-_:person33  ex:name  "Jack"; ex:livesIn "Rhode Island"; ex:year 1949 .
-_:person34  ex:name  "Jay"; ex:livesIn "West Virginia"; ex:year 1937 .
-_:person35  ex:name  "Jeanne"; ex:livesIn "New Hampshire"; ex:year 1947 .
-_:person36  ex:name  "Jeff"; ex:livesIn "New Mexico"; ex:year 1943 .
-_:person37  ex:name  "Jeff"; ex:livesIn "Oregon"; ex:year 1956 .
-_:person38  ex:name  "Jeff"; ex:livesIn "Alabama"; ex:year 1946 .
-_:person39  ex:name  "Jim"; ex:livesIn "Kentucky"; ex:year 1931 .
-_:person40  ex:name  "Jim"; ex:livesIn "South Carolina"; ex:year 1951 .
-_:person41  ex:name  "Jim"; ex:livesIn "Oklahoma"; ex:year 1934 .
-_:person42  ex:name  "Jim"; ex:livesIn "Idaho"; ex:year 1943 .
-_:person43  ex:name  "Jim"; ex:livesIn "Virginia"; ex:year 1946 .
-_:person44  ex:name  "Joe"; ex:livesIn "Connecticut"; ex:year 1942 .
-_:person45  ex:name  "John"; ex:livesIn "Wyoming"; ex:year 1952 .
-_:person46  ex:name  "John"; ex:livesIn "Texas"; ex:year 1952 .
-_:person47  ex:name  "John"; ex:livesIn "Nevada"; ex:year 1958 .
-_:person48  ex:name  "John"; ex:livesIn "Massachusetts"; ex:year 1943 .
-_:person49  ex:name  "John"; ex:livesIn "Arizona"; ex:year 1936 .
-_:person50  ex:name  "John"; ex:livesIn "South Dakota"; ex:year 1961 .
-_:person51  ex:name  "Johnny"; ex:livesIn "Georgia"; ex:year 1944 .
-_:person52  ex:name  "Jon"; ex:livesIn "Arizona"; ex:year 1942 .
-_:person53  ex:name  "Jon"; ex:livesIn "Montana"; ex:year 1956 .
-_:person54  ex:name  "Judd"; ex:livesIn "New Hampshire"; ex:year 1947 .
-_:person55  ex:name  "Kay"; ex:livesIn "Texas"; ex:year 1943 .
-_:person56  ex:name  "Kay"; ex:livesIn "North Carolina"; ex:year 1953 .
-_:person57  ex:name  "Kent"; ex:livesIn "North Dakota"; ex:year 1948 .
-_:person58  ex:name  "Kirsten"; ex:livesIn "New York"; ex:year 1966 .
-_:person59  ex:name  "Kit"; ex:livesIn "Missouri"; ex:year 1939 .
-_:person60  ex:name  "Lamar"; ex:livesIn "Tennessee"; ex:year 1940 .
-_:person61  ex:name  "Lindsey"; ex:livesIn "South Carolina"; ex:year 1955 .
-_:person62  ex:name  "Lisa"; ex:livesIn "Alaska"; ex:year 1957 .
-_:person63  ex:name  "Maria"; ex:livesIn "Washington"; ex:year 1958 .
-_:person64  ex:name  "Mark"; ex:livesIn "Alaska"; ex:year 1962 .
-_:person65  ex:name  "Mark"; ex:livesIn "Arkansas"; ex:year 1963 .
-_:person66  ex:name  "Mark"; ex:livesIn "Colorado"; ex:year 1950 .
-_:person67  ex:name  "Mark"; ex:livesIn "Virginia"; ex:year 1954 .
-_:person68  ex:name  "Mary"; ex:livesIn "Louisiana"; ex:year 1955 .
-_:person69  ex:name  "Max"; ex:livesIn "Montana"; ex:year 1941 .
-_:person70  ex:name  "Michael"; ex:livesIn "Colorado"; ex:year 1964 .
-_:person71  ex:name  "Mike"; ex:livesIn "Idaho"; ex:year 1951 .
-_:person72  ex:name  "Mike"; ex:livesIn "Wyoming"; ex:year 1944 .
-_:person73  ex:name  "Mike"; ex:livesIn "Nebraska"; ex:year 1950 .
-_:person74  ex:name  "Mitch"; ex:livesIn "Kentucky"; ex:year 1942 .
-_:person75  ex:name  "Olympia"; ex:livesIn "Maine"; ex:year 1947 .
-_:person76  ex:name  "Orrin"; ex:livesIn "Utah"; ex:year 1934 .
-_:person77  ex:name  "Pat"; ex:livesIn "Kansas"; ex:year 1936 .
-_:person78  ex:name  "Patrick"; ex:livesIn "Vermont"; ex:year 1940 .
-_:person79  ex:name  "Patty"; ex:livesIn "Washington"; ex:year 1950 .
-_:person80  ex:name  "Richard"; ex:livesIn "North Carolina"; ex:year 1955 .
-_:person81  ex:name  "Richard"; ex:livesIn "Indiana"; ex:year 1932 .
-_:person82  ex:name  "Richard"; ex:livesIn "Alabama"; ex:year 1934 .
-_:person83  ex:name  "Roger"; ex:livesIn "Mississippi"; ex:year 1951 .
-_:person84  ex:name  "Roland"; ex:livesIn "Illinois"; ex:year 1937 .
-_:person85  ex:name  "Ron"; ex:livesIn "Oregon"; ex:year 1949 .
-_:person86  ex:name  "Russ"; ex:livesIn "Wisconsin"; ex:year 1953 .
-_:person87  ex:name  "Sam"; ex:livesIn "Kansas"; ex:year 1956 .
-_:person88  ex:name  "Saxby"; ex:livesIn "Georgia"; ex:year 1943 .
-_:person89  ex:name  "Scott"; ex:livesIn "Massachusetts"; ex:year 1959 .
-_:person90  ex:name  "Sheldon"; ex:livesIn "Rhode Island"; ex:year 1955 .
-_:person91  ex:name  "Sherrod"; ex:livesIn "Ohio"; ex:year 1952 .
-_:person92  ex:name  "Susan"; ex:livesIn "Maine"; ex:year 1952 .
-_:person93  ex:name  "Ted"; ex:livesIn "Delaware"; ex:year 1939 .
-_:person94  ex:name  "Thad"; ex:livesIn "Mississippi"; ex:year 1937 .
-_:person95  ex:name  "Tim"; ex:livesIn "South Dakota"; ex:year 1946 .
-_:person96  ex:name  "Tom"; ex:livesIn "Delaware"; ex:year 1947 .
-_:person97  ex:name  "Tom"; ex:livesIn "Oklahoma"; ex:year 1948 .
-_:person98  ex:name  "Tom"; ex:livesIn "Iowa"; ex:year 1939 .
-_:person99  ex:name  "Tom"; ex:livesIn "New Mexico"; ex:year 1948 .
+_:person00  ex:name "Al"; ex:livesIn "Minnesota"; ex:year 1951 .
+_:person01  ex:name "Amy"; ex:livesIn "Minnesota"; ex:year 1960 .
+_:person02  ex:name "Arlen"; ex:livesIn "Pennsylvania"; ex:year 1930 .
+_:person03  ex:name "Barbara"; ex:livesIn "California"; ex:year 1940 .
+_:person04  ex:name "Barbara"; ex:livesIn "Maryland"; ex:year 1936 .
+_:person05  ex:name "Ben"; ex:livesIn "Maryland"; ex:year 1943 .
+_:person06  ex:name "Ben"; ex:livesIn "Nebraska"; ex:year 1941 .
+_:person07  ex:name "Bernie"; ex:livesIn "Vermont"; ex:year 1941 .
+_:person08  ex:name "Bill"; ex:livesIn "Florida"; ex:year 1942 .
+_:person09  ex:name "Blanche"; ex:livesIn "Arkansas"; ex:year 1960 .
+_:person10  ex:name "Bob"; ex:livesIn "Utah"; ex:year 1933 .
+_:person11  ex:name "Bob"; ex:livesIn "Pennsylvania"; ex:year 1960 .
+_:person12  ex:name "Bob"; ex:livesIn "Tennessee"; ex:year 1952 .
+_:person13  ex:name "Bob"; ex:livesIn "New Jersey"; ex:year 1954 .
+_:person14  ex:name "Byron"; ex:livesIn "North Dakota"; ex:year 1942 .
+_:person15  ex:name "Carl"; ex:livesIn "Michigan"; ex:year 1934 .
+_:person16  ex:name "Carte"; ex:livesIn "West Virginia"; ex:year 1974 .
+_:person17  ex:name "Christopher"; ex:livesIn "Connecticut"; ex:year 1944 .
+_:person18  ex:name "Chuck"; ex:livesIn "Iowa"; ex:year 1933 .
+_:person19  ex:name "Chuck"; ex:livesIn "New York"; ex:year 1950 .
+_:person20  ex:name "Claire"; ex:livesIn "Missouri"; ex:year 1953 .
+_:person21  ex:name "Daniel"; ex:livesIn "Hawaii"; ex:year 1924 .
+_:person22  ex:name "Daniel"; ex:livesIn "Hawaii"; ex:year 1924 .
+_:person23  ex:name "David"; ex:livesIn "Louisiana"; ex:year 1961 .
+_:person24  ex:name "Debbie"; ex:livesIn "Michigan"; ex:year 1950 .
+_:person25  ex:name "Dianne"; ex:livesIn "California"; ex:year 1933 .
+_:person26  ex:name "Dick"; ex:livesIn "Illinois"; ex:year 1944 .
+_:person27  ex:name "Evan"; ex:livesIn "Indiana"; ex:year 1955 .
+_:person28  ex:name "Frank"; ex:livesIn "New Jersey"; ex:year 1924 .
+_:person29  ex:name "George"; ex:livesIn "Florida"; ex:year 1969 .
+_:person30  ex:name "George"; ex:livesIn "Ohio"; ex:year 1936 .
+_:person31  ex:name "Harry"; ex:livesIn "Nevada"; ex:year 1939 .
+_:person32  ex:name "Herb"; ex:livesIn "Wisconsin"; ex:year 1935 .
+_:person33  ex:name "Jack"; ex:livesIn "Rhode Island"; ex:year 1949 .
+_:person34  ex:name "Jay"; ex:livesIn "West Virginia"; ex:year 1937 .
+_:person35  ex:name "Jeanne"; ex:livesIn "New Hampshire"; ex:year 1947 .
+_:person36  ex:name "Jeff"; ex:livesIn "New Mexico"; ex:year 1943 .
+_:person37  ex:name "Jeff"; ex:livesIn "Oregon"; ex:year 1956 .
+_:person38  ex:name "Jeff"; ex:livesIn "Alabama"; ex:year 1946 .
+_:person39  ex:name "Jim"; ex:livesIn "Kentucky"; ex:year 1931 .
+_:person40  ex:name "Jim"; ex:livesIn "South Carolina"; ex:year 1951 .
+_:person41  ex:name "Jim"; ex:livesIn "Oklahoma"; ex:year 1934 .
+_:person42  ex:name "Jim"; ex:livesIn "Idaho"; ex:year 1943 .
+_:person43  ex:name "Jim"; ex:livesIn "Virginia"; ex:year 1946 .
+_:person44  ex:name "Joe"; ex:livesIn "Connecticut"; ex:year 1942 .
+_:person45  ex:name "John"; ex:livesIn "Wyoming"; ex:year 1952 .
+_:person46  ex:name "John"; ex:livesIn "Texas"; ex:year 1952 .
+_:person47  ex:name "John"; ex:livesIn "Nevada"; ex:year 1958 .
+_:person48  ex:name "John"; ex:livesIn "Massachusetts"; ex:year 1943 .
+_:person49  ex:name "John"; ex:livesIn "Arizona"; ex:year 1936 .
+_:person50  ex:name "John"; ex:livesIn "South Dakota"; ex:year 1961 .
+_:person51  ex:name "Johnny"; ex:livesIn "Georgia"; ex:year 1944 .
+_:person52  ex:name "Jon"; ex:livesIn "Arizona"; ex:year 1942 .
+_:person53  ex:name "Jon"; ex:livesIn "Montana"; ex:year 1956 .
+_:person54  ex:name "Judd"; ex:livesIn "New Hampshire"; ex:year 1947 .
+_:person55  ex:name "Kay"; ex:livesIn "Texas"; ex:year 1943 .
+_:person56  ex:name "Kay"; ex:livesIn "North Carolina"; ex:year 1953 .
+_:person57  ex:name "Kent"; ex:livesIn "North Dakota"; ex:year 1948 .
+_:person58  ex:name "Kirsten"; ex:livesIn "New York"; ex:year 1966 .
+_:person59  ex:name "Kit"; ex:livesIn "Missouri"; ex:year 1939 .
+_:person60  ex:name "Lamar"; ex:livesIn "Tennessee"; ex:year 1940 .
+_:person61  ex:name "Lindsey"; ex:livesIn "South Carolina"; ex:year 1955 .
+_:person62  ex:name "Lisa"; ex:livesIn "Alaska"; ex:year 1957 .
+_:person63  ex:name "Maria"; ex:livesIn "Washington"; ex:year 1958 .
+_:person64  ex:name "Mark"; ex:livesIn "Alaska"; ex:year 1962 .
+_:person65  ex:name "Mark"; ex:livesIn "Arkansas"; ex:year 1963 .
+_:person66  ex:name "Mark"; ex:livesIn "Colorado"; ex:year 1950 .
+_:person67  ex:name "Mark"; ex:livesIn "Virginia"; ex:year 1954 .
+_:person68  ex:name "Mary"; ex:livesIn "Louisiana"; ex:year 1955 .
+_:person69  ex:name "Max"; ex:livesIn "Montana"; ex:year 1941 .
+_:person70  ex:name "Michael"; ex:livesIn "Colorado"; ex:year 1964 .
+_:person71  ex:name "Mike"; ex:livesIn "Idaho"; ex:year 1951 .
+_:person72  ex:name "Mike"; ex:livesIn "Wyoming"; ex:year 1944 .
+_:person73  ex:name "Mike"; ex:livesIn "Nebraska"; ex:year 1950 .
+_:person74  ex:name "Mitch"; ex:livesIn "Kentucky"; ex:year 1942 .
+_:person75  ex:name "Olympia"; ex:livesIn "Maine"; ex:year 1947 .
+_:person76  ex:name "Orrin"; ex:livesIn "Utah"; ex:year 1934 .
+_:person77  ex:name "Pat"; ex:livesIn "Kansas"; ex:year 1936 .
+_:person78  ex:name "Patrick"; ex:livesIn "Vermont"; ex:year 1940 .
+_:person79  ex:name "Patty"; ex:livesIn "Washington"; ex:year 1950 .
+_:person80  ex:name "Richard"; ex:livesIn "North Carolina"; ex:year 1955 .
+_:person81  ex:name "Richard"; ex:livesIn "Indiana"; ex:year 1932 .
+_:person82  ex:name "Richard"; ex:livesIn "Alabama"; ex:year 1934 .
+_:person83  ex:name "Roger"; ex:livesIn "Mississippi"; ex:year 1951 .
+_:person84  ex:name "Roland"; ex:livesIn "Illinois"; ex:year 1937 .
+_:person85  ex:name "Ron"; ex:livesIn "Oregon"; ex:year 1949 .
+_:person86  ex:name "Russ"; ex:livesIn "Wisconsin"; ex:year 1953 .
+_:person87  ex:name "Sam"; ex:livesIn "Kansas"; ex:year 1956 .
+_:person88  ex:name "Saxby"; ex:livesIn "Georgia"; ex:year 1943 .
+_:person89  ex:name "Scott"; ex:livesIn "Massachusetts"; ex:year 1959 .
+_:person90  ex:name "Sheldon"; ex:livesIn "Rhode Island"; ex:year 1955 .
+_:person91  ex:name "Sherrod"; ex:livesIn "Ohio"; ex:year 1952 .
+_:person92  ex:name "Susan"; ex:livesIn "Maine"; ex:year 1952 .
+_:person93  ex:name "Ted"; ex:livesIn "Delaware"; ex:year 1939 .
+_:person94  ex:name "Thad"; ex:livesIn "Mississippi"; ex:year 1937 .
+_:person95  ex:name "Tim"; ex:livesIn "South Dakota"; ex:year 1946 .
+_:person96  ex:name "Tom"; ex:livesIn "Delaware"; ex:year 1947 .
+_:person97  ex:name "Tom"; ex:livesIn "Oklahoma"; ex:year 1948 .
+_:person98  ex:name "Tom"; ex:livesIn "Iowa"; ex:year 1939 .
+_:person99  ex:name "Tom"; ex:livesIn "New Mexico"; ex:year 1948 .
