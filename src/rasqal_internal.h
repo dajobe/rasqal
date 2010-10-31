@@ -1098,6 +1098,8 @@ void rasqal_free_map(rasqal_map *map);
 int rasqal_map_add_kv(rasqal_map* map, void* key, void *value);
 void rasqal_map_visit(rasqal_map* map, rasqal_map_visit_fn fn, void *user_data);
 int rasqal_map_print(rasqal_map* map, FILE* fh);
+void* rasqal_map_search(rasqal_map* map, const void* key);
+
 
 /* rasqal_query.c */
 rasqal_query_results* rasqal_query_execute_with_engine(rasqal_query* query, const rasqal_query_execution_factory* engine);
@@ -1269,8 +1271,10 @@ typedef enum {
   RASQAL_ALGEBRA_OPERATOR_SLICE    = 12,
   RASQAL_ALGEBRA_OPERATOR_GRAPH    = 13,
   RASQAL_ALGEBRA_OPERATOR_ASSIGN   = 14,
+  RASQAL_ALGEBRA_OPERATOR_GROUP    = 15,
+  RASQAL_ALGEBRA_OPERATOR_AGGREGATION = 16,
 
-  RASQAL_ALGEBRA_OPERATOR_LAST = RASQAL_ALGEBRA_OPERATOR_ASSIGN
+  RASQAL_ALGEBRA_OPERATOR_LAST = RASQAL_ALGEBRA_OPERATOR_AGGREGATION
 } rasqal_algebra_node_operator;
 
 
@@ -1292,7 +1296,7 @@ struct rasqal_algebra_node_s {
   
   /* types JOIN, DIFF, LEFTJOIN, UNION, ORDERBY: node1 and node2 ALWAYS present
    * types FILTER, TOLIST: node1 ALWAYS present, node2 ALWAYS NULL
-   * type PROJECT, GRAPH: node1 always present
+   * type PROJECT, GRAPH, GROUPBY, AGGREGATION: node1 always present
    * (otherwise NULL)
    */
   struct rasqal_algebra_node_s *node1;
@@ -1303,7 +1307,8 @@ struct rasqal_algebra_node_s {
    */
   rasqal_expression* expr;
 
-  /* types ORDERBY always present
+  /* types ORDERBY, GROUPBY, AGGREGATION always present: sequence of
+   * #rasqal_expression
    * (otherwise NULL)
    */
   raptor_sequence* seq;
@@ -1311,7 +1316,7 @@ struct rasqal_algebra_node_s {
   /* types PROJECT, DISTINCT, REDUCED
    * FIXME: sequence of solution mappings */
 
-  /* types PROJECT, SLICE */
+  /* types PROJECT, SLICE: sequence of #rasqal_variable */
   raptor_sequence* vars_seq;
 
   /* type SLICE: start and length */
@@ -1321,10 +1326,23 @@ struct rasqal_algebra_node_s {
   /* type GRAPH */
   rasqal_literal *graph;
 
-  /* type LET */
+  /* type LET, type AGGREGATION */
   rasqal_variable *var;
+
+  /* type AGGREGATION: aggregation operation */
+  rasqal_op expr_op;
+
+  /* type AGGREGATION: custom function */
+  void* func;
+
+  /* types AGGREGATION: parameters */
+  raptor_sequence* parameters;
+
+  /* types AGGREGATION: flags */
+  unsigned int flags;
 };
 typedef struct rasqal_algebra_node_s rasqal_algebra_node;
+
 
 /**
  * rasqal_algebra_node_visit_fn:
@@ -1353,6 +1371,9 @@ rasqal_algebra_node* rasqal_new_orderby_algebra_node(rasqal_query* query, rasqal
 rasqal_algebra_node* rasqal_new_project_algebra_node(rasqal_query* query, rasqal_algebra_node* node1, raptor_sequence* vars_seq);
 rasqal_algebra_node* rasqal_new_graph_algebra_node(rasqal_query* query, rasqal_algebra_node* node1, rasqal_literal *graph);
 rasqal_algebra_node* rasqal_new_let_algebra_node(rasqal_query* query, rasqal_variable *var, rasqal_expression *expr);
+rasqal_algebra_node* rasqal_new_groupby_algebra_node(rasqal_query* query, rasqal_algebra_node* node1, raptor_sequence* seq);
+rasqal_algebra_node* rasqal_new_aggregation_algebra_node(rasqal_query* query, rasqal_algebra_node* node1, raptor_sequence* expr_seq, rasqal_op op, void* func, raptor_sequence* parameters, int flags);
+
 void rasqal_free_algebra_node(rasqal_algebra_node* node);
 rasqal_algebra_node_operator rasqal_algebra_node_get_operator(rasqal_algebra_node* node);
 const char* rasqal_algebra_node_operator_as_string(rasqal_algebra_node_operator op);

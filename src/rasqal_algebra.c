@@ -455,6 +455,104 @@ rasqal_new_assignment_algebra_node(rasqal_query* query,
 
 
 /*
+ * rasqal_new_groupby_algebra_node:
+ * @query: #rasqal_query query object
+ * @node1: inner algebra node
+ * @seq: sequence of order condition #rasqal_expression
+ *
+ * INTERNAL - Create a new GROUP algebra node for a sequence of GROUP BY conditions
+ * 
+ * #node and #seq become owned by the new node
+ *
+ * Return value: a new #rasqal_algebra_node object or NULL on failure
+ **/
+rasqal_algebra_node*
+rasqal_new_groupby_algebra_node(rasqal_query* query,
+                                rasqal_algebra_node* node1,
+                                raptor_sequence* seq)
+{
+  rasqal_algebra_node* node;
+
+  if(!query || !node1 || !seq || !raptor_sequence_size(seq))
+    goto fail;
+
+  node = rasqal_new_algebra_node(query, RASQAL_ALGEBRA_OPERATOR_GROUP);
+  if(node) {
+    node->node1 = node1;
+    node->seq = seq;
+    
+    return node;
+  }
+
+  fail:
+  if(node1)
+    rasqal_free_algebra_node(node1);
+  if(seq)
+    raptor_free_sequence(seq);
+
+  return NULL;
+}
+
+
+/*
+ * rasqal_new_aggregation_algebra_node:
+ * @query: #rasqal_query query object
+ * @node1: inner algebra node
+ * @expr_seq: sequence of expression function arguments
+ * @op: aggregation expression if builtin or #RASQAL_EXPR_FUNCTION if user defined.
+ * @func: pointer to user defined function (or NULL).
+ * @parameters: sequence of 'scalar' parameters to function such as 'separator' for SPARQL 1.1. GROUP_CONCAT (#RASQAL_EXPR_GROUP_CONCAT) (or NULL)
+ * @flags: bitset of flags to aggregation. Only #RASQAL_EXPR_FLAG_DISTINCT is defined
+ *
+ * INTERNAL - Create a new AGGREGATION algebra node for a query with aggregate operation
+ * 
+ * On construction @node1, @expr_seq and @parameters (if given)
+ * become owned by the new node.  @func must be given if @op is
+ * #RASQAL_EXPR_FUNCTION.
+ *
+ * Return value: a new #rasqal_algebra_node object or NULL on failure
+ **/
+rasqal_algebra_node*
+rasqal_new_aggregation_algebra_node(rasqal_query* query,
+                                    rasqal_algebra_node* node1,
+                                    raptor_sequence* expr_seq,
+                                    rasqal_op op,
+                                    void* func,
+                                    raptor_sequence* parameters,
+                                    int flags)
+{
+  rasqal_algebra_node* node;
+
+  if(!query || !node1 || !expr_seq)
+    goto fail;
+
+  if(op == RASQAL_EXPR_FUNCTION && !func)
+    goto fail;
+
+  node = rasqal_new_algebra_node(query, RASQAL_ALGEBRA_OPERATOR_AGGREGATION);
+  if(node) {
+    node->node1 = node1;
+    node->expr_op = op;
+    node->seq = expr_seq;
+    node->func = func;
+    node->parameters = parameters;
+    node->flags = flags;
+    return node;
+  }
+
+  fail:
+  if(node1)
+    rasqal_free_algebra_node(node1);
+  if(expr_seq)
+    raptor_free_sequence(expr_seq);
+  if(parameters)
+    raptor_free_sequence(parameters);
+
+  return NULL;
+}
+
+
+/*
  * rasqal_free_algebra_node:
  * @gp: #rasqal_algebra_node object
  *
@@ -489,6 +587,9 @@ rasqal_free_algebra_node(rasqal_algebra_node* node)
   if(node->var)
     rasqal_free_variable(node->var);
 
+  if(node->parameters)
+    raptor_free_sequence(node->parameters);
+
   RASQAL_FREE(rasqal_algebra, node);
 }
 
@@ -511,7 +612,8 @@ rasqal_algebra_node_get_operator(rasqal_algebra_node* node)
 }
 
 
-static const char* const rasqal_algebra_node_operator_labels[RASQAL_ALGEBRA_OPERATOR_LAST+1] = {
+static const char* const
+rasqal_algebra_node_operator_labels[RASQAL_ALGEBRA_OPERATOR_LAST + 1] = {
   "UNKNOWN",
   "BGP",
   "Filter",
@@ -526,7 +628,9 @@ static const char* const rasqal_algebra_node_operator_labels[RASQAL_ALGEBRA_OPER
   "Reduced",
   "Slice",
   "Graph",
-  "Assignment"
+  "Assignment",
+  "Group",
+  "Aggregate"
 };
 
 
@@ -1310,7 +1414,6 @@ rasqal_algebra_query_to_algebra(rasqal_query* query)
   rasqal_graph_pattern* query_gp;
   rasqal_algebra_node* node;
   int modified = 0;
-  raptor_sequence* order_seq = NULL;
   
   query_gp = rasqal_query_get_query_graph_pattern(query);
   if(!query_gp)
@@ -1332,44 +1435,58 @@ rasqal_algebra_query_to_algebra(rasqal_query* query)
   fputs("\n", stderr);
 #endif
 
-  if(query->modifier)
-     order_seq = query->modifier->order_conditions;
 
-  if(order_seq) {
-    int order_size = raptor_sequence_size(order_seq);
+  if(query->modifier) {
+    raptor_sequence* modifier_seq;
 
-    if(order_size) {
-      int i;
+    /* GROUP BY */
+    modifier_seq = query->modifier->group_conditions;
+    if(modifier_seq) {
       raptor_sequence* seq;
 
-      /* Make a deep copy of the query order conditions sequence for
-       * the ORDERBY algebra node
+      /* Make a deep copy of the query group conditions sequence for
+       * the GROUP algebra node
        */
-#ifdef HAVE_RAPTOR2_API
-      seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_expression, (raptor_data_print_handler)rasqal_expression_print);
-#else
-      seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_expression, (raptor_sequence_print_handler*)rasqal_expression_print);
-#endif
+      seq = rasqal_expression_copy_expression_sequence(modifier_seq);
       if(!seq) {
         rasqal_free_algebra_node(node);
         return NULL;
       }
 
-      for(i = 0; i < order_size; i++) {
-        rasqal_expression* e;
-        e = (rasqal_expression*)raptor_sequence_get_at(order_seq, i);
-        raptor_sequence_push(seq, rasqal_new_expression_from_expression(e));
+      node = rasqal_new_groupby_algebra_node(query, node, seq);
+      modified = 1;
+
+
+#if RASQAL_DEBUG > 1
+    RASQAL_DEBUG2("modified=%d after adding group node, algebra node now:\n  ", modified);
+    rasqal_algebra_node_print(node, stderr);
+    fputs("\n", stderr);
+#endif
+    }
+
+    /* ORDER BY */
+    modifier_seq = query->modifier->order_conditions;
+    if(modifier_seq) {
+      raptor_sequence* seq;
+
+      /* Make a deep copy of the query order conditions sequence for
+       * the ORDERBY algebra node
+       */
+      seq = rasqal_expression_copy_expression_sequence(modifier_seq);
+      if(!seq) {
+        rasqal_free_algebra_node(node);
+        return NULL;
       }
 
       node = rasqal_new_orderby_algebra_node(query, node, seq);
       modified = 1;
-    }
 
 #if RASQAL_DEBUG > 1
-  RASQAL_DEBUG2("modified=%d after adding orderby node, algebra node now:\n  ", modified);
-  rasqal_algebra_node_print(node, stderr);
-  fputs("\n", stderr);
+      RASQAL_DEBUG2("modified=%d after adding orderby node, algebra node now:\n  ", modified);
+      rasqal_algebra_node_print(node, stderr);
+      fputs("\n", stderr);
 #endif
+    }
 
   }
 

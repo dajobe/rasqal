@@ -374,6 +374,45 @@ rasqal_algebra_distinct_algebra_node_to_rowsource(rasqal_engine_algebra_data* ex
 
 
 static rasqal_rowsource*
+rasqal_algebra_group_algebra_node_to_rowsource(rasqal_engine_algebra_data* execution_data,
+                                               rasqal_algebra_node* node,
+                                               rasqal_engine_error *error_p)
+{
+  rasqal_query *query = execution_data->query;
+  rasqal_rowsource *rs;
+
+  rs = rasqal_algebra_node_to_rowsource(execution_data, node->node1, error_p);
+  if(!rs || *error_p)
+    return NULL;
+
+  return rasqal_new_groupby_rowsource(query->world, query, rs, node->seq);
+}
+
+
+static rasqal_rowsource*
+rasqal_algebra_aggregation_algebra_node_to_rowsource(rasqal_engine_algebra_data* execution_data,
+                                                     rasqal_algebra_node* node,
+                                                     rasqal_engine_error *error_p)
+{
+  rasqal_query *query = execution_data->query;
+  rasqal_op op = node->expr_op;
+  rasqal_rowsource *rs;
+
+  rs = rasqal_algebra_node_to_rowsource(execution_data, node->node1, error_p);
+  if(!rs || *error_p)
+    return NULL;
+
+  return rasqal_new_aggregation_rowsource(query->world, query, rs,
+                                          node->seq,
+                                          op, NULL,
+                                          /* parameters */ NULL,
+                                          /* flags */ 0,
+                                          node->var);
+}
+
+
+
+static rasqal_rowsource*
 rasqal_algebra_node_to_rowsource(rasqal_engine_algebra_data* execution_data,
                                  rasqal_algebra_node* node,
                                  rasqal_engine_error *error_p)
@@ -430,6 +469,17 @@ rasqal_algebra_node_to_rowsource(rasqal_engine_algebra_data* execution_data,
       rs = rasqal_algebra_assignment_algebra_node_to_rowsource(execution_data,
                                                                node, error_p);
       break;
+
+    case RASQAL_ALGEBRA_OPERATOR_GROUP:
+      rs = rasqal_algebra_group_algebra_node_to_rowsource(execution_data,
+                                                          node, error_p);
+      break;
+
+    case RASQAL_ALGEBRA_OPERATOR_AGGREGATION:
+      rs = rasqal_algebra_aggregation_algebra_node_to_rowsource(execution_data,
+                                                                node, error_p);
+      break;
+
 
     case RASQAL_ALGEBRA_OPERATOR_UNKNOWN:
     case RASQAL_ALGEBRA_OPERATOR_DIFF:
