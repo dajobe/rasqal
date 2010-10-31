@@ -518,7 +518,7 @@ rasqal_new_aggregation_algebra_node(rasqal_query* query,
                                     raptor_sequence* expr_seq,
                                     rasqal_op op,
                                     void* func,
-                                    raptor_sequence* parameters,
+                                    rasqal_map* parameters,
                                     int flags)
 {
   rasqal_algebra_node* node;
@@ -546,7 +546,7 @@ rasqal_new_aggregation_algebra_node(rasqal_query* query,
   if(expr_seq)
     raptor_free_sequence(expr_seq);
   if(parameters)
-    raptor_free_sequence(parameters);
+    rasqal_free_map(parameters);
 
   return NULL;
 }
@@ -588,7 +588,7 @@ rasqal_free_algebra_node(rasqal_algebra_node* node)
     rasqal_free_variable(node->var);
 
   if(node->parameters)
-    raptor_free_sequence(node->parameters);
+    rasqal_free_map(node->parameters);
 
   RASQAL_FREE(rasqal_algebra, node);
 }

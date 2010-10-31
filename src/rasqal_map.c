@@ -210,6 +210,39 @@ rasqal_map_node_add_kv(rasqal_map_node* node, void *key, void *value)
 }
 
 
+static rasqal_map_node*
+rasqal_map_search_internal(rasqal_map* map, rasqal_map_node* node,
+                           const void* key)
+{
+  if(node) {
+    int cmp = map->compare(map->compare_user_data, key, node->key);
+
+    if(cmp > 0)
+      return rasqal_map_search_internal(map, node->next, key);
+    else if(cmp < 0)
+      return rasqal_map_search_internal(map, node->prev, key);
+
+    /* found */
+    return node;
+  }
+
+  /* otherwise not found */
+  return NULL;
+}
+
+
+void*
+rasqal_map_search(rasqal_map* map, const void* key)
+{
+  rasqal_map_node* node;
+
+  node = rasqal_map_search_internal(map, map->root, key);
+
+  return node ? node->value : NULL;
+}
+
+
+
 /**
  * rasqal_map_add_kv:
  * @map: #rasqal_map adding to

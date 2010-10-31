@@ -56,7 +56,7 @@
  * (formed by the group_by rowsource) with parameters of:
  *   1. a sequence of #rasqal_expression
  *   2. a function with operation #rasqal_op (may be internal funcs)
- *   3. a sequence of k:v parameters
+ *   3. a rasqal_map of k:v parameters
  *
  * For example with the SPARQL 1.1 example queries
  *
@@ -95,8 +95,8 @@ typedef struct
   /* Implementation function if op == #RASQAL_EXPR_FUNCTION */
   void* func;
   
-  /* sequence of parameters (SPARQL 1.1 calls them 'scalar') */
-  raptor_sequence* parameters;
+  /* map of parameters (SPARQL 1.1 calls them 'scalar') */
+  rasqal_map* parameters;
   
   /* aggregation function user data */
   void* agg_user_data;
@@ -143,7 +143,7 @@ static void*
 rasqal_builtin_aggregation_init(rasqal_world *world,
                                 raptor_sequence* expr_seq,
                                 rasqal_op op,
-                                raptor_sequence* parameters)
+                                rasqal_map* parameters)
 {
   builtin_agg* b = (builtin_agg*)RASQAL_CALLOC(builtin_agg, sizeof(*b), 1);
   if(!b)
@@ -314,7 +314,7 @@ rasqal_aggregation_rowsource_finish(rasqal_rowsource* rowsource, void *user_data
     raptor_free_sequence(con->expr_seq);
   
   if(con->parameters)
-    raptor_free_sequence(con->parameters);
+    rasqal_free_map(con->parameters);
 
   if(con->literal_seq)
     raptor_free_sequence(con->literal_seq);
@@ -530,7 +530,7 @@ static const rasqal_rowsource_handler rasqal_aggregation_rowsource_handler = {
  * @expr_seq: sequence of expressions arguments to aggregation function
  * @op: aggregation expression if builtin or #RASQAL_EXPR_FUNCTION if user defined.
  * @func: pointer to user defined function (or NULL)
- * @parameters: sequence of 'scalar' parameters to function such as 'separator' for SPARQL 1.1. GROUP_CONCAT (#RASQAL_EXPR_GROUP_CONCAT) (or NULL)
+ * @parameters: map of 'scalar' parameters to function such as 'separator' for SPARQL 1.1. GROUP_CONCAT (#RASQAL_EXPR_GROUP_CONCAT) (or NULL)
  * @flags: bitset of flags to aggregation. Only #RASQAL_EXPR_FLAG_DISTINCT is defined
  * @variable: output variable to bind the value
  *
@@ -547,7 +547,7 @@ rasqal_new_aggregation_rowsource(rasqal_world *world, rasqal_query* query,
                                  raptor_sequence* expr_seq,
                                  rasqal_op op,
                                  void *func,
-                                 raptor_sequence* parameters,
+                                 rasqal_map* parameters,
                                  unsigned int flags,
                                  rasqal_variable* variable)
 {
@@ -590,7 +590,7 @@ rasqal_new_aggregation_rowsource(rasqal_world *world, rasqal_query* query,
   if(expr_seq)
     raptor_free_sequence(expr_seq);
   if(parameters)
-    raptor_free_sequence(parameters);
+    rasqal_free_map(parameters);
 
   return NULL;
 }
