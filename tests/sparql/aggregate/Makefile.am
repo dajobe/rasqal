@@ -20,11 +20,13 @@
 # 
 
 SPARQL_MODEL_FILES= \
-data-1.ttl
+data-1.ttl \
+data-2.ttl
 
 EXPECTED_SPARQL_CORRECT= \
 agg-1.rq \
 agg-2.rq \
+agg-3.rq \
 group-concat-1.rq \
 group-concat-2.rq \
 group-concat-3.rq

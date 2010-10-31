@@ -1,0 +1,11 @@
+# Test GROUP BY
+PREFIX ex: <http://example.org/>
+
+SELECT ?state (SAMPLE(?name) AS ?residents)
+FROM <data-2.ttl>
+WHERE
+{
+  ?person ex:name ?name .
+  ?person ex:livesIn ?state
+}
+GROUP BY ?state
