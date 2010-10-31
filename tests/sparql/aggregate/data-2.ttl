@@ -1,5 +1,6 @@
 @prefix ex: <http://example.org/> .
 
+# US Senators (Oct 2010) first name, state and year of birth
 _:person00  ex:name "Al"; ex:livesIn "Minnesota"; ex:year 1951 .
 _:person01  ex:name "Amy"; ex:livesIn "Minnesota"; ex:year 1960 .
 _:person02  ex:name "Arlen"; ex:livesIn "Pennsylvania"; ex:year 1930 .
