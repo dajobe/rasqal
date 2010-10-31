@@ -1020,6 +1020,25 @@ static const char* const rasqal_literal_type_labels[RASQAL_LITERAL_LAST+1]={
 
 
 /**
+ * rasqal_literal_type_label:
+ * @type: the #rasqal_literal_type object
+ * 
+ * Get a label for the rasqal literal type
+ *
+ * Return value: the label (shared string) or NULL if type is out of
+ * range or unknown
+ **/
+const char*
+rasqal_literal_type_label(rasqal_literal_type type)
+{
+  if(type > RASQAL_LITERAL_LAST)
+    type = RASQAL_LITERAL_UNKNOWN;
+
+  return rasqal_literal_type_labels[(int)type];
+}
+
+
+/**
  * rasqal_literal_write_type:
  * @l: the #rasqal_literal object
  * @iostr: the #raptor_iostream handle to print to
@@ -1037,10 +1056,7 @@ rasqal_literal_write_type(rasqal_literal* l, raptor_iostream* iostr)
     return;
   }
   
-  type = l->type;
-  if(type > RASQAL_LITERAL_LAST)
-    type = RASQAL_LITERAL_UNKNOWN;
-  raptor_iostream_string_write(rasqal_literal_type_labels[(int)type], iostr);
+  raptor_iostream_string_write(rasqal_literal_type_label(type), iostr);
 }
 
 
@@ -1565,11 +1581,11 @@ rasqal_literal_promote_numerics(rasqal_literal* l1, rasqal_literal* l2,
     rasqal_literal_type parent_type2 = rasqal_xsd_datatype_parent_type(type2);
     
     RASQAL_DEBUG3("literal 1: type %s   parent type %s\n",
-                  rasqal_literal_type_labels[type1],
-                  rasqal_literal_type_labels[parent_type1]);
+                  rasqal_literal_type_label(type1),
+                  rasqal_literal_type_label(parent_type1));
     RASQAL_DEBUG3("literal 2: type %s   parent type %s\n",
-                  rasqal_literal_type_labels[type2],
-                  rasqal_literal_type_labels[parent_type2]);
+                  rasqal_literal_type_label(type2),
+                  rasqal_literal_type_label(parent_type2));
   
     /* Finished */
     if(type1 == type2)
@@ -1667,13 +1683,13 @@ rasqal_new_literal_from_promotion(rasqal_literal* lit,
     return rasqal_new_literal_from_literal(lit);
 
   RASQAL_DEBUG3("promoting literal type %s to type %s\n", 
-                rasqal_literal_type_labels[lit->type],
-                rasqal_literal_type_labels[type]);
+                rasqal_literal_type_label(lit->type),
+                rasqal_literal_type_label(type));
 
   /* May not promote to non-numerics */
   if(!rasqal_xsd_datatype_is_numeric(type)) {
     RASQAL_DEBUG2("NOT promoting to non-numeric type %s\n", 
-                  rasqal_literal_type_labels[lit->type]);
+                  rasqal_literal_type_label(lit->type));
 
     if(type == RASQAL_LITERAL_STRING || type ==  RASQAL_LITERAL_UDT) {
       s = rasqal_literal_as_string(lit);
@@ -1778,13 +1794,13 @@ rasqal_new_literal_from_promotion(rasqal_literal* lit,
 #if RASQAL_DEBUG > 1
   if(new_lit)
     RASQAL_DEBUG4("promoted literal type %s to type %s, with value '%s'\n", 
-                  rasqal_literal_type_labels[lit->type],
-                  rasqal_literal_type_labels[new_lit->type],
+                  rasqal_literal_type_label(lit->type),
+                  rasqal_literal_type_label(new_lit->type),
                   rasqal_literal_as_string(new_lit));
   else
     RASQAL_DEBUG3("failed to promote literal type %s to type %s\n", 
-                  rasqal_literal_type_labels[lit->type],
-                  rasqal_literal_type_labels[type]);
+                  rasqal_literal_type_label(lit->type),
+                  rasqal_literal_type_label(type));
 #endif
 
   return new_lit;
@@ -1975,8 +1991,8 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
 
 #if RASQAL_DEBUG > 1
   RASQAL_DEBUG3("literal 0 type %s.  literal 1 type %s\n", 
-                rasqal_literal_type_labels[lits[0]->type],
-                rasqal_literal_type_labels[lits[1]->type]);
+                rasqal_literal_type_label(lits[0]->type),
+                rasqal_literal_type_label(lits[1]->type));
 #endif
 
   if(flags & RASQAL_COMPARE_RDF) {
@@ -2003,8 +2019,8 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
 
 #if RASQAL_DEBUG > 1
     RASQAL_DEBUG3("xquery literal compare types %s vs %s\n",
-                rasqal_literal_type_labels[type0],
-                rasqal_literal_type_labels[type1]);
+                  rasqal_literal_type_label(type0),
+                  rasqal_literal_type_label(type1));
 #endif
 
     /* cannot compare UDTs */
@@ -2045,7 +2061,7 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
 
 #if RASQAL_DEBUG > 1
   if(promotion)
-    RASQAL_DEBUG2("promoting to type %s\n", rasqal_literal_type_labels[type]);
+    RASQAL_DEBUG2("promoting to type %s\n", rasqal_literal_type_label(type));
 #endif
 
   /* do promotions */
@@ -2359,9 +2375,9 @@ rasqal_literal_equals_flags(rasqal_literal* l1, rasqal_literal* l2,
         promotion = 1;
 #if RASQAL_DEBUG > 1
       RASQAL_DEBUG4("xquery promoted literals types (%s, %s) to type %s\n", 
-                    rasqal_literal_type_labels[l1->type],
-                    rasqal_literal_type_labels[l2->type],
-                    rasqal_literal_type_labels[type]);
+                    rasqal_literal_type_label(l1->type),
+                    rasqal_literal_type_label(l2->type),
+                    rasqal_literal_type_label(type));
 #endif
     } else
       type = l1->type;
