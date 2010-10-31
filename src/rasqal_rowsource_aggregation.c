@@ -206,15 +206,13 @@ rasqal_builtin_aggregation_step(void* user_data, raptor_sequence* literals)
       if(b->op == RASQAL_EXPR_SUM || b->op == RASQAL_EXPR_AVG) {
         result = rasqal_literal_add(b->l, l, &b->error);
       } else if(b->op == RASQAL_EXPR_MIN) {
-        int cmp = rasqal_literal_compare(b->l, l, RASQAL_COMPARE_RDF,
-                                         &b->error);
+        int cmp = rasqal_literal_compare(b->l, l, 0, &b->error);
         if(cmp <= 0)
           result = rasqal_new_literal_from_literal(b->l);
         else
           result = rasqal_new_literal_from_literal(l);
       } else if(b->op == RASQAL_EXPR_MAX) {
-        int cmp = rasqal_literal_compare(b->l, l, RASQAL_COMPARE_RDF,
-                                         &b->error);
+        int cmp = rasqal_literal_compare(b->l, l, 0, &b->error);
         if(cmp >= 0)
           result = rasqal_new_literal_from_literal(b->l);
         else
@@ -625,6 +623,21 @@ static const char* const data_xyz_3_rows[] =
   NULL, NULL, NULL, NULL, NULL, NULL,
 };
 
+/* MAX(?y) GROUP BY ?x result */
+static const int const test0_output_rows[] =
+{ 3, 5, };
+/* MIN(?x) GROUP BY ?x result */
+static const int const test1_output_rows[] =
+{ 1, 2, };
+/* SUM(?z) GROUP BY ?x result */
+static const int const test2_output_rows[] =
+{ 7, 6, };
+/* AVG(?x) GROUP BY ?x result */
+static const int const test3_output_rows[] =
+{ 1, 2, };
+/* SAMPLE(?y) GROUP BY ?x result */
+static const int const test4_output_rows[] =
+{ 2, 5, };
 
 
 /* Input Group IDs expected */
@@ -641,6 +654,7 @@ static const struct {
   int output_rows;
   const char* const *data;
   const int const *group_ids;
+  const int const *result_data;
   rasqal_op op;
   const char* const expr_vars[MAX_TEST_VARS];
 } test_data[AGGREGATION_TESTS_COUNT] = {
@@ -650,31 +664,36 @@ static const struct {
    *   Output is 1 var (fake), 2 rows (1 per input group)
    * Expected result: [ ?fake => 3, ?fake => 5]
    */
-  {3, 3, 2, 1, 2, data_xyz_3_rows, test0_groupids, RASQAL_EXPR_MAX, { "y" } },
+  {3, 3, 2, 1, 2, data_xyz_3_rows, test0_groupids, test0_output_rows,
+   RASQAL_EXPR_MAX, { "y" } },
 
   /*
    * Execute the aggregation part of SELECT (MIN(?x) AS ?fake) ... GROUP BY ?x
    * Expected result: [ ?fake => 1, ?fake => 2]
    */
-  {3, 3, 2, 1, 2, data_xyz_3_rows, test0_groupids, RASQAL_EXPR_MIN, { "x" } },
+  {3, 3, 2, 1, 2, data_xyz_3_rows, test0_groupids, test1_output_rows,
+   RASQAL_EXPR_MIN, { "x" } },
 
   /*
    * Execute the aggregation part of SELECT (SUM(?z) AS ?fake) ... GROUP BY ?x
    * Expected result: [ ?fake => 7, ?fake => 6]
    */
-  {3, 3, 2, 1, 2, data_xyz_3_rows, test0_groupids, RASQAL_EXPR_SUM, { "z" } },
+  {3, 3, 2, 1, 2, data_xyz_3_rows, test0_groupids, test2_output_rows,
+   RASQAL_EXPR_SUM, { "z" } },
 
   /*
    * Execute the aggregation part of SELECT (AVG(?x) AS ?fake) ... GROUP BY ?x
    * Expected result: [ ?fake => 1, ?fake => 2]
    */
-  {3, 3, 2, 1, 2, data_xyz_3_rows, test0_groupids, RASQAL_EXPR_AVG, { "x" } },
+  {3, 3, 2, 1, 2, data_xyz_3_rows, test0_groupids, test3_output_rows,
+   RASQAL_EXPR_AVG, { "x" } },
 
   /*
    * Execute the aggregation part of SELECT (SAMPLE(?y) AS ?fake) ... GROUP BY ?x
    * Expected result: [ ?fake => 2, ?fake => 5]
    */
-  {3, 3, 2, 1, 2, data_xyz_3_rows, test0_groupids, RASQAL_EXPR_SAMPLE, { "y" } }
+  {3, 3, 2, 1, 2, data_xyz_3_rows, test0_groupids, test4_output_rows,
+   RASQAL_EXPR_SAMPLE, { "y" } }
 };
 
 
@@ -707,6 +726,7 @@ main(int argc, char *argv[])
     int expected_rows_count = test_data[test_id].output_rows;
     int expected_vars_count = test_data[test_id].output_vars;
     const int* input_group_ids = test_data[test_id].group_ids;
+    const int* result_data = test_data[test_id].result_data;
     rasqal_op op  = test_data[test_id].op;
     raptor_sequence* seq = NULL;
     int count;
@@ -821,6 +841,42 @@ main(int argc, char *argv[])
       goto tidy;
     }
 
+    if(result_data) {
+      for(i = 0; i < expected_rows_count; i++) {
+        rasqal_row* row = (rasqal_row*)raptor_sequence_get_at(seq, i);
+        rasqal_literal* value;
+        int integer;
+        int expected_integer = result_data[i];
+        
+        if(row->size != 1) {
+          fprintf(stderr,
+                  "%s: test %d row #%d is size %d expected 1\n",
+                  program, test_id, i, row->size);
+          failures++;
+          goto tidy;
+        }
+        
+        value = row->values[0];
+        if(value->type != RASQAL_LITERAL_INTEGER) {
+          fprintf(stderr,
+                  "%s: test %d row #%d result is type %s expected integer\n",
+                  program, test_id, i, rasqal_literal_type_label(value->type));
+          failures++;
+          goto tidy;
+        }
+
+        integer = rasqal_literal_as_integer(value, NULL);
+        
+        if(integer != expected_integer) {
+          fprintf(stderr,
+                  "%s: test %d row #%d result is %d expected %d\n",
+                  program, test_id, i, integer, expected_integer);
+          failures++;
+          goto tidy;
+        }
+      }
+    }
+    
 
 #ifdef RASQAL_DEBUG
     rasqal_rowsource_print_row_sequence(rowsource, seq, stderr);
