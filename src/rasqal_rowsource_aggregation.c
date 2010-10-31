@@ -529,12 +529,14 @@ static const rasqal_rowsource_handler rasqal_aggregation_rowsource_handler = {
  * @rowsource: input (grouped) rowsource - typically constructed by rasqal_new_groupby_rowsource()
  * @expr_seq: sequence of expressions arguments to aggregation function
  * @op: aggregation expression if builtin or #RASQAL_EXPR_FUNCTION if user defined.
- * @func: pointer to user defined function
- * @parameters: sequence of 'scalar' parameters to function such as 'separator' for SPARQL 1.1. GROUP_CONCAT (#RASQAL_EXPR_GROUP_CONCAT)
+ * @func: pointer to user defined function (or NULL)
+ * @parameters: sequence of 'scalar' parameters to function such as 'separator' for SPARQL 1.1. GROUP_CONCAT (#RASQAL_EXPR_GROUP_CONCAT) (or NULL)
  * @flags: bitset of flags to aggregation. Only #RASQAL_EXPR_FLAG_DISTINCT is defined
  * @variable: output variable to bind the value
  *
  * INTERNAL - Create a new rowsource for a aggregration for a built-in function or a user aggregration function.
+ *
+ * Constraints: @func must be given if @op is #RASQAL_EXPR_FUNCTION.
  *
  * Return value: new rowsource or NULL on failure
 */
