@@ -391,6 +391,7 @@ EXPONENT [eE][+-]?[0-9]+
 [Ss][Ee][Rr][Vv][Ii][Cc][Ee] { return SERVICE; }
 [Mm][Ii][Nn][Uu][Ss] { return MINUS; }
 [Ii][Ss][Nn][Uu][Mm][Ee][Rr][Ii][Cc] { return ISNUMERIC; }
+[Ss][Aa][Mm][Pp][Ll][Ee] { return SAMPLE; }
 
 "a" { return A; }
 
