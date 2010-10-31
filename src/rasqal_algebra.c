@@ -1458,9 +1458,9 @@ rasqal_algebra_query_to_algebra(rasqal_query* query)
 
 
 #if RASQAL_DEBUG > 1
-    RASQAL_DEBUG2("modified=%d after adding group node, algebra node now:\n  ", modified);
-    rasqal_algebra_node_print(node, stderr);
-    fputs("\n", stderr);
+      RASQAL_DEBUG2("modified=%d after adding group node, algebra node now:\n  ", modified);
+      rasqal_algebra_node_print(node, stderr);
+      fputs("\n", stderr);
 #endif
     }
 
