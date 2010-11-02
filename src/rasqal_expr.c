@@ -2647,7 +2647,7 @@ rasqal_expression_expand_qname(void *user_data, rasqal_expression *e)
 
 
 int
-rasqal_expression_is_constant(rasqal_expression* e) 
+rasqal_expression_is_constant(rasqal_expression* e)
 {
   int i;
   int result = 0;
@@ -3145,7 +3145,31 @@ rasqal_expression_compare(rasqal_expression* e1, rasqal_expression* e2,
 }
 
 
+/**
+ * rasqal_expression_is_aggregate:
+ * @e: expression
+ *
+ * INTERNAL - determine if expression is an aggregate expression (at the top; not recursively)
+ *
+ * Return value: non-0 if is aggreate
+ */
+int
+rasqal_expression_is_aggregate(rasqal_expression* e)
+{
+  if(e->op == RASQAL_EXPR_COUNT ||
+     e->op == RASQAL_EXPR_SUM ||
+     e->op == RASQAL_EXPR_AVG ||
+     e->op == RASQAL_EXPR_MIN ||
+     e->op == RASQAL_EXPR_MAX ||
+     e->op == RASQAL_EXPR_SAMPLE ||
+     e->op == RASQAL_EXPR_GROUP_CONCAT)
+    return 1;
 
+  if(e->op != RASQAL_EXPR_FUNCTION)
+    return 0;
+
+  return (e->flags & RASQAL_EXPR_FLAG_AGGREGATE) != 0;
+}
 
 
 #endif /* not STANDALONE */
