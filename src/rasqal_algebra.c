@@ -1400,6 +1400,215 @@ rasqal_algebra_get_variables_mentioned_in(rasqal_query* query,
 }
 
 
+struct agg_extract 
+{
+  rasqal_query* query;
+  
+  /* aggregate expression variables map
+   * key: rasqal_variable*
+   * value: rasqal_expression*
+   */
+  rasqal_map* agg_vars;
+
+  /* (new) project expression to use: sequence of rasqal_expression */
+  raptor_sequence* project_expr;
+
+  /* number of internal variables created */
+  int counter;
+
+  /* compare flags */
+  int flags;
+
+  /* error indicator */
+  int error;
+};
+
+
+/**
+ * rasqal_agg_expr_var_compare:
+ * @user_data: comparison user data pointer
+ * @a: pointer to address of first #rasqal_expression
+ * @b: pointer to address of second #rasqal_expression
+ *
+ * INTERNAL - compare two void pointers to #rasqal_expression objects with signature suitable for for #rasqal_map comparison.
+ *
+ * Return value: <0, 0 or >1 comparison
+ */
+static int
+rasqal_agg_expr_var_compare(void* user_data, const void *a, const void *b)
+{
+  struct agg_extract* ae = (struct agg_extract*)user_data;
+  rasqal_expression* expr_a  = (rasqal_expression*)a;
+  rasqal_expression* expr_b  = (rasqal_expression*)b;
+  int result = 0;
+
+  result = rasqal_expression_compare(expr_a, expr_b, ae->flags, &ae->error);
+
+  return result;
+}
+
+
+static void
+rasqal_free_agg_expr_var(const void *key, const void *value)
+{
+  if(key)
+    rasqal_free_expression((rasqal_expression*)key);
+
+  /* Never free variable - all are owned by query object */
+}
+
+
+/*
+ * SPEC:
+ *   at each node:
+ *     if expression contains an aggregate function
+ *       is expression is in map?
+ *       Yes:
+ *         get value => use existing internal variable for it
+ *       No: 
+ *         create a new internal variable for it $$internal{id}
+ *         inc id
+ *         add it to the map
+ *       rewrite expression to use internal variable
+ *
+ */
+static int
+rasqal_algebra_extract_aggregate_expression_visit(void *user_data,
+                                                  rasqal_expression *e)
+{
+  struct agg_extract* ae = (struct agg_extract*)user_data;
+  rasqal_variable* v;
+
+  ae->error = 0;
+
+  if(!rasqal_expression_is_aggregate(e))
+    return 0;
+
+  /* is expression is in map? */
+  v = rasqal_map_search(ae->agg_vars, e);
+  if(v) {
+    /* Yes: get value => use existing internal variable for it */
+    RASQAL_DEBUG2("Found variable %s for existing expression", v->name);
+
+    /* convert expression in-situ to use existing internal variable */
+    if(rasqal_expression_convert_aggregate_to_variable(e, v, NULL)) {
+      ae->error = 1;
+      return 1;
+    }
+
+
+  } else {
+    /* No: create a new internal variable name for it $$agg{id}$$
+     * and add it to the map.
+     */
+    char* var_name;
+    rasqal_expression* new_e = NULL;
+        
+    var_name = (char*)RASQAL_MALLOC(cstring, 20);
+    if(!var_name) {
+      ae->error = 1;
+      return 1;
+    }
+    
+    sprintf(var_name, "$$agg$$%d", ae->counter++);
+
+    v = rasqal_variables_table_add(ae->query->vars_table, 
+                                   RASQAL_VARIABLE_TYPE_ANONYMOUS, 
+                                   (const unsigned char*)var_name, NULL);
+    if(!v) {
+      ae->error = 1;
+      return 1;
+    }
+
+    /* convert expression in-situ to use new internal variable
+     * and create a new expression in new_e from the old fields
+     */
+    if(rasqal_expression_convert_aggregate_to_variable(e, v, &new_e)) {
+      ae->error = 1;
+      return 1;
+    }
+
+    /* new_e is a new reference and after this new_a is owned by map 
+     * (all variables are shared and owned by query object)
+     */
+    if(rasqal_map_add_kv(ae->agg_vars, v, new_e)) {
+      ae->error = 1;
+      return 1;
+    }
+  }
+
+
+  return 0;
+}
+
+
+static int
+rasqal_algebra_extract_aggregate_expressions(rasqal_query* query,
+                                             rasqal_algebra_node* node,
+                                             struct agg_extract* ae)
+{
+  raptor_sequence* seq;
+  int i;
+  int rc = 0;
+  rasqal_variable* v;
+  
+  if(query->verb != RASQAL_QUERY_VERB_SELECT)
+    return 0;
+
+  ae->query = query;
+
+  /* Initialisation rasqal variable: rasqal_expression map */
+  ae->agg_vars = rasqal_new_map(/* compare key function */ rasqal_agg_expr_var_compare,
+                                /* compare data */ ae,
+                                /* free compare data */ NULL,
+                                rasqal_free_agg_expr_var,
+                                (raptor_data_print_handler)rasqal_expression_print,
+                                (raptor_data_print_handler)rasqal_variable_print,
+                                /* flags */ 0);
+
+  /* Make a new projection expression */
+#ifdef HAVE_RAPTOR2_API
+  seq = raptor_new_sequence((raptor_data_free_handler)NULL,
+                            (raptor_data_print_handler)rasqal_variable_print);
+#else
+  seq = raptor_new_sequence((raptor_sequence_free_handler*)NULL,
+                            (raptor_sequence_print_handler*)rasqal_variable_print);
+#endif
+  ae->project_expr = seq;
+
+  /* init internal variable counter */
+  ae->counter = 0;
+
+  ae->flags = 0;
+  
+  ae->error = 0;
+
+  /*
+   * walk each select/project expression recursively and pull out aggregate
+   * expressions into the ae->agg_vars map, replacing them with
+   * internal variable names.
+   */
+  for(seq = query->selects, i = 0;
+      (v = (rasqal_variable*)raptor_sequence_get_at(seq, i));
+      i++) {
+    rasqal_expression* expr = v->expression;
+    if(!expr)
+      continue;
+    
+    if(rasqal_expression_visit(expr,
+                               rasqal_algebra_extract_aggregate_expression_visit,
+                               ae)) {
+      rc = 1;
+      goto tidy;
+    }
+  }
+
+  tidy:
+  
+  return 0;
+}
+
+
 /**
  * rasqal_algebra_query_to_algebra:
  * @query: #rasqal_query to operate on
@@ -1414,7 +1623,10 @@ rasqal_algebra_query_to_algebra(rasqal_query* query)
   rasqal_graph_pattern* query_gp;
   rasqal_algebra_node* node;
   int modified = 0;
+  struct agg_extract ae;
   
+  memset(&ae, '\0', sizeof(ae));
+
   query_gp = rasqal_query_get_query_graph_pattern(query);
   if(!query_gp)
     return NULL;
@@ -1423,7 +1635,6 @@ rasqal_algebra_query_to_algebra(rasqal_query* query)
 
   if(!node)
     return NULL;
-
 
   rasqal_algebra_node_visit(query, node, 
                             rasqal_algebra_remove_znodes,
@@ -1436,6 +1647,33 @@ rasqal_algebra_query_to_algebra(rasqal_query* query)
 #endif
 
 
+  if(rasqal_algebra_extract_aggregate_expressions(query, node, &ae)) {
+    RASQAL_DEBUG1("rasqal_algebra_extract_aggregate_expressions() failed");
+    rasqal_free_algebra_node(node);
+    return NULL;
+  }
+
+#if RASQAL_DEBUG
+  RASQAL_DEBUG1("aggregate expressions extracted:\n");
+  raptor_sequence_print(query->selects, stderr);
+  fputs("\n", stderr);
+#endif
+
+
+  /* if agg expressions were found, need to walk HAVING list and do a
+   * similar replacement substituion in the expressions
+   */
+
+  /* store/clean agg expression state: where to store it since this
+   * is not inside the engine
+   */
+
+  if(ae.project_expr)
+    raptor_free_sequence(ae.project_expr);
+  
+  if(ae.agg_vars)
+    rasqal_free_map(ae.agg_vars);
+  
   if(query->modifier) {
     raptor_sequence* modifier_seq;
 
