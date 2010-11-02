@@ -1654,9 +1654,11 @@ rasqal_algebra_query_to_algebra(rasqal_query* query)
   }
 
 #if RASQAL_DEBUG
-  RASQAL_DEBUG1("aggregate expressions extracted:\n");
-  raptor_sequence_print(query->selects, stderr);
-  fputs("\n", stderr);
+  if(query->selects) {
+    RASQAL_DEBUG1("aggregate expressions extracted:\n");
+    raptor_sequence_print(query->selects, stderr);
+    fputs("\n", stderr);
+  }
 #endif
 
 
