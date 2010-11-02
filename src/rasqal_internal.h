@@ -1360,6 +1360,30 @@ typedef struct rasqal_algebra_node_s rasqal_algebra_node;
  */
 typedef int (*rasqal_algebra_node_visit_fn)(rasqal_query* query, rasqal_algebra_node* node, void *user_data);
 
+typedef struct
+{
+  rasqal_query* query;
+  
+  /* aggregate expression variables map
+   * key: rasqal_variable*
+   * value: rasqal_expression*
+   */
+  rasqal_map* agg_vars;
+
+  /* (new) project expression to use: sequence of rasqal_expression */
+  raptor_sequence* project_expr;
+
+  /* number of internal variables created */
+  int counter;
+
+  /* compare flags */
+  int flags;
+
+  /* error indicator */
+  int error;
+} rasqal_algebra_aggregate;
+
+
 /* rasqal_algebra.c */
 
 rasqal_algebra_node* rasqal_new_assignment_algebra_node(rasqal_query* query, rasqal_variable *var, rasqal_expression *expr);

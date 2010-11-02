@@ -1400,30 +1400,6 @@ rasqal_algebra_get_variables_mentioned_in(rasqal_query* query,
 }
 
 
-struct agg_extract 
-{
-  rasqal_query* query;
-  
-  /* aggregate expression variables map
-   * key: rasqal_variable*
-   * value: rasqal_expression*
-   */
-  rasqal_map* agg_vars;
-
-  /* (new) project expression to use: sequence of rasqal_expression */
-  raptor_sequence* project_expr;
-
-  /* number of internal variables created */
-  int counter;
-
-  /* compare flags */
-  int flags;
-
-  /* error indicator */
-  int error;
-};
-
-
 /**
  * rasqal_agg_expr_var_compare:
  * @user_data: comparison user data pointer
@@ -1437,7 +1413,7 @@ struct agg_extract
 static int
 rasqal_agg_expr_var_compare(void* user_data, const void *a, const void *b)
 {
-  struct agg_extract* ae = (struct agg_extract*)user_data;
+  rasqal_algebra_aggregate* ae = (rasqal_algebra_aggregate*)user_data;
   rasqal_expression* expr_a  = (rasqal_expression*)a;
   rasqal_expression* expr_b  = (rasqal_expression*)b;
   int result = 0;
@@ -1476,7 +1452,7 @@ static int
 rasqal_algebra_extract_aggregate_expression_visit(void *user_data,
                                                   rasqal_expression *e)
 {
-  struct agg_extract* ae = (struct agg_extract*)user_data;
+  rasqal_algebra_aggregate* ae = (rasqal_algebra_aggregate*)user_data;
   rasqal_variable* v;
 
   ae->error = 0;
@@ -1545,7 +1521,7 @@ rasqal_algebra_extract_aggregate_expression_visit(void *user_data,
 static int
 rasqal_algebra_extract_aggregate_expressions(rasqal_query* query,
                                              rasqal_algebra_node* node,
-                                             struct agg_extract* ae)
+                                             rasqal_algebra_aggregate* ae)
 {
   raptor_sequence* seq;
   int i;
@@ -1648,6 +1624,22 @@ rasqal_algebra_query_to_algebra(rasqal_query* query)
 }
 
 
+static void
+rasqal_free_algebra_aggregate(rasqal_algebra_aggregate* ae) 
+{
+  if(!ae)
+    return;
+  
+  if(ae->project_expr)
+    raptor_free_sequence(ae->project_expr);
+  
+  if(ae->agg_vars)
+    rasqal_free_map(ae->agg_vars);
+
+  RASQAL_FREE(rasqal_algebra_aggregate, ae);
+}
+
+  
 /**
  * rasqal_algebra_query_prepare_aggregates:
  * @query: #rasqal_query to read from
@@ -1662,11 +1654,14 @@ rasqal_algebra_query_prepare_aggregates(rasqal_query* query,
                                         rasqal_algebra_node* node)
 {
   int modified = 0;
-  struct agg_extract ae;
+  rasqal_algebra_aggregate* ae;
   
-  memset(&ae, '\0', sizeof(ae));
+  ae = (rasqal_algebra_aggregate*)RASQAL_CALLOC(rasqal_algebra_aggregate,
+                                                sizeof(*ae), 1);
+  if(!ae)
+    return 1;
 
-  if(rasqal_algebra_extract_aggregate_expressions(query, node, &ae)) {
+  if(rasqal_algebra_extract_aggregate_expressions(query, node, ae)) {
     RASQAL_DEBUG1("rasqal_algebra_extract_aggregate_expressions() failed");
     rasqal_free_algebra_node(node);
     return 1;
@@ -1689,11 +1684,7 @@ rasqal_algebra_query_prepare_aggregates(rasqal_query* query,
    * is not inside the engine
    */
 
-  if(ae.project_expr)
-    raptor_free_sequence(ae.project_expr);
-  
-  if(ae.agg_vars)
-    rasqal_free_map(ae.agg_vars);
+  rasqal_free_algebra_aggregate(ae);
 
   modified = 0;
   
