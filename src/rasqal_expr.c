@@ -3172,6 +3172,70 @@ rasqal_expression_is_aggregate(rasqal_expression* e)
 }
 
 
+/*
+ * rasqal_expression_convert_aggregate_to_variable:
+ * @e_in: Input aggregate expression
+ * @v: Input variable
+ * @e_out: Output expression (or NULL)
+ *
+ * INTERNAL - Turn aggregate expression @e_in into a
+ * #RASQAL_EXPR_LITERAL type one pointing at #rasqal_variable @v. If
+ * field @e_out is not NULL, it returns in that variable a new
+ * aggregate expression with the old expression fields.
+ *
+ * Takes ownership of @v
+ *
+ * Return value: non-0 on failure
+ */
+int
+rasqal_expression_convert_aggregate_to_variable(rasqal_expression* e_in,
+                                                rasqal_variable* v,
+                                                rasqal_expression** e_out)
+{
+  rasqal_world *world;
+  rasqal_literal* l;
+  
+  if(!e_in || !v)
+    goto tidy;
+
+  world = e_in->world;
+  
+  if(e_out) {
+    *e_out = (rasqal_expression*)RASQAL_MALLOC(rasqal_expression,
+                                               sizeof(*e_out));
+    if(!*e_out)
+      goto tidy;
+  }
+  
+  l = rasqal_new_variable_literal(world, v);
+  if(!l)
+    goto tidy;
+  
+  if(e_out) {
+    /* if e_out is not NULL, copy entire contents to new expression */
+    memcpy(*e_out, e_in, sizeof(**e_out));
+
+    /* ... and zero out old expression */
+    memset(e_in, 0, sizeof(*e_in));
+  } else {
+    /* Otherwise just destroy the old aggregate fields */
+    rasqal_expression_clear(e_in);
+  }
+  
+
+  e_in->usage = 1;
+  e_in->world = world;
+  e_in->op = RASQAL_EXPR_LITERAL;
+  e_in->literal = l;
+
+  return 0;
+
+  tidy:
+
+  return 1;
+}
+
+
 #endif /* not STANDALONE */
 
 
