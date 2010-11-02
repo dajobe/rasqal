@@ -1623,10 +1623,7 @@ rasqal_algebra_query_to_algebra(rasqal_query* query)
   rasqal_graph_pattern* query_gp;
   rasqal_algebra_node* node;
   int modified = 0;
-  struct agg_extract ae;
   
-  memset(&ae, '\0', sizeof(ae));
-
   query_gp = rasqal_query_get_query_graph_pattern(query);
   if(!query_gp)
     return NULL;
@@ -1647,10 +1644,32 @@ rasqal_algebra_query_to_algebra(rasqal_query* query)
 #endif
 
 
+  return node;
+}
+
+
+/**
+ * rasqal_algebra_query_prepare_aggregates:
+ * @query: #rasqal_query to read from
+ * @node: algebra node to prepare
+ *
+ * INTERNAL - prepare query aggregates
+ *
+ * Return value: non-0 on failure
+ */
+int
+rasqal_algebra_query_prepare_aggregates(rasqal_query* query,
+                                        rasqal_algebra_node* node)
+{
+  int modified = 0;
+  struct agg_extract ae;
+  
+  memset(&ae, '\0', sizeof(ae));
+
   if(rasqal_algebra_extract_aggregate_expressions(query, node, &ae)) {
     RASQAL_DEBUG1("rasqal_algebra_extract_aggregate_expressions() failed");
     rasqal_free_algebra_node(node);
-    return NULL;
+    return 1;
   }
 
 #if RASQAL_DEBUG
@@ -1676,7 +1695,9 @@ rasqal_algebra_query_to_algebra(rasqal_query* query)
   if(ae.agg_vars)
     rasqal_free_map(ae.agg_vars);
 
-  return node;
+  modified = 0;
+  
+  return 0;
 }
 
 
@@ -1687,9 +1708,9 @@ rasqal_algebra_query_to_algebra(rasqal_query* query)
  *
  * Apply query modifiers to query algebra structure
  *
- * Return value: algebra expression or NULL on failure
+ * Return value: non-0 on failure
  */
-rasqal_algebra_node*
+int
 rasqal_algebra_query_add_modifiers(rasqal_query* query,
                                    rasqal_algebra_node* node)
 {
@@ -1697,7 +1718,7 @@ rasqal_algebra_query_add_modifiers(rasqal_query* query,
   int modified;
   
   if(!query->modifier)
-    return node;
+    return 0;
   
   /* GROUP BY */
   modifier_seq = query->modifier->group_conditions;
@@ -1710,7 +1731,7 @@ rasqal_algebra_query_add_modifiers(rasqal_query* query,
     seq = rasqal_expression_copy_expression_sequence(modifier_seq);
     if(!seq) {
       rasqal_free_algebra_node(node);
-      return NULL;
+      return 1;
     }
     
     node = rasqal_new_groupby_algebra_node(query, node, seq);
@@ -1735,7 +1756,7 @@ rasqal_algebra_query_add_modifiers(rasqal_query* query,
     seq = rasqal_expression_copy_expression_sequence(modifier_seq);
     if(!seq) {
       rasqal_free_algebra_node(node);
-      return NULL;
+      return 1;
     }
     
     node = rasqal_new_orderby_algebra_node(query, node, seq);
@@ -1767,7 +1788,7 @@ rasqal_algebra_query_add_modifiers(rasqal_query* query,
                                                       RASQAL_VAR_USE_MAP_OFFSET_VERBS);
       if(!seq) {
         rasqal_free_algebra_node(node);
-        return NULL;
+        return 1;
       }
     }
 
@@ -1783,7 +1804,7 @@ rasqal_algebra_query_add_modifiers(rasqal_query* query,
 #endif
     if(!vars_seq) {
       rasqal_free_algebra_node(node);
-      return NULL;
+      return 1;
     }
 
     for(i = 0; i < vars_size; i++) {
@@ -1816,7 +1837,7 @@ rasqal_algebra_query_add_modifiers(rasqal_query* query,
 #endif
   }
 
-  return node;
+  return 0;
 }
 
 
