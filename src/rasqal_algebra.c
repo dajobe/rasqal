@@ -1675,61 +1675,79 @@ rasqal_algebra_query_to_algebra(rasqal_query* query)
   
   if(ae.agg_vars)
     rasqal_free_map(ae.agg_vars);
+
+  return node;
+}
+
+
+/**
+ * rasqal_algebra_query_add_modifiers:
+ * @query: #rasqal_query to read from
+ * @node: node to apply modifiers to
+ *
+ * Apply query modifiers to query algebra structure
+ *
+ * Return value: algebra expression or NULL on failure
+ */
+rasqal_algebra_node*
+rasqal_algebra_query_add_modifiers(rasqal_query* query,
+                                   rasqal_algebra_node* node)
+{
+  raptor_sequence* modifier_seq;
+  int modified;
   
-  if(query->modifier) {
-    raptor_sequence* modifier_seq;
-
-    /* GROUP BY */
-    modifier_seq = query->modifier->group_conditions;
-    if(modifier_seq) {
-      raptor_sequence* seq;
-
-      /* Make a deep copy of the query group conditions sequence for
-       * the GROUP algebra node
-       */
-      seq = rasqal_expression_copy_expression_sequence(modifier_seq);
-      if(!seq) {
-        rasqal_free_algebra_node(node);
-        return NULL;
-      }
-
-      node = rasqal_new_groupby_algebra_node(query, node, seq);
-      modified = 1;
-
-
-#if RASQAL_DEBUG > 1
-      RASQAL_DEBUG2("modified=%d after adding group node, algebra node now:\n  ", modified);
-      rasqal_algebra_node_print(node, stderr);
-      fputs("\n", stderr);
-#endif
+  if(!query->modifier)
+    return node;
+  
+  /* GROUP BY */
+  modifier_seq = query->modifier->group_conditions;
+  if(modifier_seq) {
+    raptor_sequence* seq;
+    
+    /* Make a deep copy of the query group conditions sequence for
+     * the GROUP algebra node
+     */
+    seq = rasqal_expression_copy_expression_sequence(modifier_seq);
+    if(!seq) {
+      rasqal_free_algebra_node(node);
+      return NULL;
     }
-
-    /* ORDER BY */
-    modifier_seq = query->modifier->order_conditions;
-    if(modifier_seq) {
-      raptor_sequence* seq;
-
-      /* Make a deep copy of the query order conditions sequence for
-       * the ORDERBY algebra node
-       */
-      seq = rasqal_expression_copy_expression_sequence(modifier_seq);
-      if(!seq) {
-        rasqal_free_algebra_node(node);
-        return NULL;
-      }
-
-      node = rasqal_new_orderby_algebra_node(query, node, seq);
-      modified = 1;
-
+    
+    node = rasqal_new_groupby_algebra_node(query, node, seq);
+    modified = 1;
+    
+    
 #if RASQAL_DEBUG > 1
-      RASQAL_DEBUG2("modified=%d after adding orderby node, algebra node now:\n  ", modified);
-      rasqal_algebra_node_print(node, stderr);
-      fputs("\n", stderr);
+    RASQAL_DEBUG2("modified=%d after adding group node, algebra node now:\n  ", modified);
+    rasqal_algebra_node_print(node, stderr);
+    fputs("\n", stderr);
 #endif
-    }
-
   }
-
+  
+  /* ORDER BY */
+  modifier_seq = query->modifier->order_conditions;
+  if(modifier_seq) {
+    raptor_sequence* seq;
+    
+    /* Make a deep copy of the query order conditions sequence for
+     * the ORDERBY algebra node
+     */
+    seq = rasqal_expression_copy_expression_sequence(modifier_seq);
+    if(!seq) {
+      rasqal_free_algebra_node(node);
+      return NULL;
+    }
+    
+    node = rasqal_new_orderby_algebra_node(query, node, seq);
+    modified = 1;
+    
+#if RASQAL_DEBUG > 1
+    RASQAL_DEBUG2("modified=%d after adding orderby node, algebra node now:\n  ", modified);
+    rasqal_algebra_node_print(node, stderr);
+    fputs("\n", stderr);
+#endif
+  }
+  
 
   /* FIXME - do not always need a PROJECT node when the variables at
    * the top level node are the same as the projection list.
@@ -1739,7 +1757,7 @@ rasqal_algebra_query_to_algebra(rasqal_query* query)
     raptor_sequence* seq = NULL;  /* sequence of rasqal_variable* */
     raptor_sequence* vars_seq;
     int i;
-
+  
     if(query->verb == RASQAL_QUERY_VERB_SELECT)
       /* project all selected variables */
       seq = query->selects;

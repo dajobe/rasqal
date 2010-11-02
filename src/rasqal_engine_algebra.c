@@ -529,6 +529,11 @@ rasqal_query_engine_algebra_execute_init(void* ex_data,
   if(!execution_data->algebra_node)
     return 1;
 
+  execution_data->algebra_node = rasqal_algebra_query_add_modifiers(query,
+                                                                    execution_data->algebra_node);
+  if(!execution_data->algebra_node)
+    return 1;
+
   execution_data->nodes_count = 0; 
   rasqal_algebra_node_visit(query, execution_data->algebra_node,
                             rasqal_engine_algebra_count_nodes,
