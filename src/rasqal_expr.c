@@ -2929,6 +2929,225 @@ rasqal_expression_sequence_evaluate(rasqal_query* query,
 }
 
 
+/**
+ * rasqal_expression_compare:
+ * @e1: #rasqal_expression first expression
+ * @e2: #rasqal_expression second expression
+ * @flags: comparison flags: see rasqal_literal_compare()
+ * @error_p: pointer to error
+ * 
+ * Compare two expressions
+ * 
+ * The two literals are compared.  The comparison returned is as for
+ * strcmp, first before second returns <0.  equal returns 0, and
+ * first after second returns >0.  For URIs, the string value is used
+ * for the comparsion.
+ *
+ * See rasqal_literal_compare() for comparison flags.
+ * 
+ * If @error is not NULL, *error is set to non-0 on error
+ *
+ * Return value: <0, 0, or >0 as described above.
+ **/
+int
+rasqal_expression_compare(rasqal_expression* e1, rasqal_expression* e2,
+                          int flags, int* error_p)
+{
+  int rc = 0;
+  int i;
+  int diff;
+  
+  if(error_p)
+    *error_p = 0;
+
+  /* sort NULLs earlier */
+  if(!e1 || !e2) {
+    if(!e1 && !e2)
+      return 0;
+    if(!e1)
+      return -1;
+    else
+      return 1;
+  }
+  
+
+  if(e1->op != e2->op) {
+    if(e1->op == RASQAL_EXPR_UNKNOWN || e2->op == RASQAL_LITERAL_UNKNOWN)
+      return 1;
+
+    return e2->op - e1->op;
+  }
+    
+  switch(e1->op) {
+    case RASQAL_EXPR_AND:
+    case RASQAL_EXPR_OR:
+    case RASQAL_EXPR_EQ:
+    case RASQAL_EXPR_NEQ:
+    case RASQAL_EXPR_LT:
+    case RASQAL_EXPR_GT:
+    case RASQAL_EXPR_LE:
+    case RASQAL_EXPR_GE:
+    case RASQAL_EXPR_PLUS:
+    case RASQAL_EXPR_MINUS:
+    case RASQAL_EXPR_STAR:
+    case RASQAL_EXPR_SLASH:
+    case RASQAL_EXPR_REM:
+    case RASQAL_EXPR_STR_EQ:
+    case RASQAL_EXPR_STR_NEQ:
+    case RASQAL_EXPR_LANGMATCHES:
+    case RASQAL_EXPR_REGEX:
+    case RASQAL_EXPR_SAMETERM:
+    case RASQAL_EXPR_IF:
+    case RASQAL_EXPR_STRLANG:
+    case RASQAL_EXPR_STRDT:
+      rc = rasqal_expression_compare(e1->arg1, e2->arg1, flags, error_p);
+      if(rc)
+        return rc;
+      
+      rc = rasqal_expression_compare(e1->arg2, e2->arg2, flags, error_p);
+      if(rc)
+        return rc;
+      
+      /* There are two 3-op expressions - both handled here */
+      if(e1->op == RASQAL_EXPR_REGEX || e1->op == RASQAL_EXPR_IF)
+        rc = rasqal_expression_compare(e1->arg3, e2->arg3, flags, error_p);
+
+      break;
+
+    case RASQAL_EXPR_STR_MATCH:
+    case RASQAL_EXPR_STR_NMATCH:
+      rc = rasqal_expression_compare(e1->arg1, e2->arg1, flags, error_p);
+      if(rc)
+        return rc;
+      
+      rc = rasqal_literal_compare(e1->literal, e2->literal, flags, error_p);
+      break;
+
+    case RASQAL_EXPR_TILDE:
+    case RASQAL_EXPR_BANG:
+    case RASQAL_EXPR_UMINUS:
+    case RASQAL_EXPR_BOUND:
+    case RASQAL_EXPR_STR:
+    case RASQAL_EXPR_LANG:
+    case RASQAL_EXPR_DATATYPE:
+    case RASQAL_EXPR_ISURI:
+    case RASQAL_EXPR_ISBLANK:
+    case RASQAL_EXPR_ISLITERAL:
+    case RASQAL_EXPR_ORDER_COND_ASC:
+    case RASQAL_EXPR_ORDER_COND_DESC:
+    case RASQAL_EXPR_GROUP_COND_ASC:
+    case RASQAL_EXPR_GROUP_COND_DESC:
+    case RASQAL_EXPR_COUNT:
+    case RASQAL_EXPR_SUM:
+    case RASQAL_EXPR_AVG:
+    case RASQAL_EXPR_MIN:
+    case RASQAL_EXPR_MAX:
+    case RASQAL_EXPR_URI:
+    case RASQAL_EXPR_IRI:
+    case RASQAL_EXPR_BNODE:
+    case RASQAL_EXPR_SAMPLE:
+    case RASQAL_EXPR_ISNUMERIC:
+      /* arg1 is optional for RASQAL_EXPR_BNODE */
+      rc = rasqal_expression_compare(e1->arg1, e2->arg1, flags, error_p);
+      break;
+
+    case RASQAL_EXPR_LITERAL:
+      rc = rasqal_literal_compare(e1->literal, e2->literal, flags, error_p);
+      break;
+
+    case RASQAL_EXPR_FUNCTION:
+    case RASQAL_EXPR_COALESCE:
+      diff = raptor_sequence_size(e2->args) - raptor_sequence_size(e1->args);
+      if(diff)
+        return diff;
+      
+      for(i = 0; i < raptor_sequence_size(e1->args); i++) {
+        rasqal_expression* e1_f;
+        rasqal_expression* e2_f;
+
+        e1_f = (rasqal_expression*)raptor_sequence_get_at(e1->args, i);
+        e2_f = (rasqal_expression*)raptor_sequence_get_at(e2->args, i);
+
+        rc = rasqal_expression_compare(e1_f, e2_f, flags, error_p);
+        if(rc)
+          break;
+      }
+      break;
+
+    case RASQAL_EXPR_CAST:
+      rc = raptor_uri_compare(e1->name, e2->name);
+      if(rc)
+        break;
+      
+      rc = rasqal_expression_compare(e1->arg1, e2->arg1, flags, error_p);
+      break;
+
+    case RASQAL_EXPR_VARSTAR:
+      /* 0-args: always equal */
+      rc = 0;
+      break;
+      
+    case RASQAL_EXPR_GROUP_CONCAT:
+      rc = (e2->flags - e1->flags);
+      if(rc)
+        break;
+
+      diff = raptor_sequence_size(e2->args) - raptor_sequence_size(e1->args);
+      if(diff)
+        return diff;
+      
+      for(i = 0; i < raptor_sequence_size(e1->args); i++) {
+        rasqal_expression* e1_f;
+        rasqal_expression* e2_f;
+
+        e1_f = (rasqal_expression*)raptor_sequence_get_at(e1->args, i);
+        e2_f = (rasqal_expression*)raptor_sequence_get_at(e2->args, i);
+
+        rc = rasqal_expression_compare(e1_f, e2_f, flags, error_p);
+        if(rc)
+          break;
+      }
+      if(rc)
+        break;
+
+      rc = rasqal_literal_compare(e1->literal, e2->literal, flags, error_p);
+      break;
+
+    case RASQAL_EXPR_IN:
+    case RASQAL_EXPR_NOT_IN:
+      rc = rasqal_expression_compare(e1->arg1, e2->arg1, flags, error_p);
+      if(rc)
+        return rc;
+      
+      diff = raptor_sequence_size(e2->args) - raptor_sequence_size(e1->args);
+      if(diff)
+        return diff;
+      
+      for(i = 0; i < raptor_sequence_size(e1->args); i++) {
+        rasqal_expression* e1_f;
+        rasqal_expression* e2_f;
+
+        e1_f = (rasqal_expression*)raptor_sequence_get_at(e1->args, i);
+        e2_f = (rasqal_expression*)raptor_sequence_get_at(e2->args, i);
+
+        rc = rasqal_expression_compare(e1_f, e2_f, flags, error_p);
+        if(rc)
+          break;
+      }
+      break;
+
+    case RASQAL_EXPR_UNKNOWN:
+    default:
+      RASQAL_FATAL2("Unknown operation %d", e1->op);
+  }
+
+  return rc;
+}
+
+
+
+
+
 #endif /* not STANDALONE */
 
 

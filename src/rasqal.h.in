@@ -1283,6 +1283,7 @@ RASQAL_API
 rasqal_literal* rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator, rasqal_expression* e, int flags);
 RASQAL_API
 const char* rasqal_expression_op_label(rasqal_op op);
+int rasqal_expression_compare(rasqal_expression* e1, rasqal_expression* e2, int flags, int* error_p);
 
 /**
  * rasqal_expression_visit_fn:
