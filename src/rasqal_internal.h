@@ -1365,15 +1365,17 @@ typedef struct
   rasqal_query* query;
   
   /* aggregate expression variables map
-   * key: rasqal_variable*
-   * value: rasqal_expression*
+   * key: rasqal_expression* tree with an aggregate function at top
+   * value: rasqal_variable*
    */
   rasqal_map* agg_vars;
 
   /* (new) project expression to use: sequence of rasqal_expression */
   raptor_sequence* project_expr;
 
-  /* number of internal variables created */
+  /* number of aggregate expressions seen
+   * ( = number of internal variables created )
+   */
   int counter;
 
   /* compare flags */
