@@ -1474,12 +1474,22 @@ rasqal_algebra_extract_aggregate_expression_visit(void *user_data,
 
 
   } else {
-    /* No: create a new internal variable name for it $$agg{id}$$
-     * and add it to the map.
-     */
+    /* No */
     char* var_name;
     rasqal_expression* new_e = NULL;
         
+    /* Check if a new variable is allowed to be added */
+    if(ae->adding_new_vars_is_error) {
+      rasqal_log_error_simple(ae->query->world, RAPTOR_LOG_LEVEL_ERROR,
+                              NULL, "Found new aggregate expression in %s",
+                              ae->error_part);
+      ae->error = 1;
+      return 1;
+    }
+    
+    /* If not an error, create a new internal variable name for it
+     * $$agg{id}$$ and add it to the map.
+     */
     var_name = (char*)RASQAL_MALLOC(cstring, 20);
     if(!var_name) {
       ae->error = 1;
@@ -1647,6 +1657,36 @@ rasqal_free_algebra_aggregate(rasqal_algebra_aggregate* ae)
 }
 
   
+static int
+rasqal_algebra_replace_aggregate_expressions(rasqal_query* query,
+                                             raptor_sequence* expr_seq,
+                                             rasqal_algebra_aggregate* ae)
+{
+  int i;
+  rasqal_expression* expr;
+
+  /* It is now a mistake to find a new aggregate expressions not
+   * previously found in SELECT
+   */
+  ae->adding_new_vars_is_error = 1;
+  ae->error_part = "HAVING";
+  
+  for(i = 0;
+      (expr = (rasqal_expression*)raptor_sequence_get_at(expr_seq, i));
+      i++) {
+    
+    if(rasqal_expression_visit(expr,
+                               rasqal_algebra_extract_aggregate_expression_visit,
+                               ae)) {
+      return 1;
+    }
+    
+  }
+
+  return 0;
+}
+
+
 /**
  * rasqal_algebra_query_prepare_aggregates:
  * @query: #rasqal_query to read from
@@ -1692,6 +1732,16 @@ rasqal_algebra_query_prepare_aggregates(rasqal_query* query,
   /* if agg expressions were found, need to walk HAVING list and do a
    * similar replacement substituion in the expressions
    */
+  if(ae->counter && query->modifier && query->modifier->having_conditions) {
+    if(rasqal_algebra_replace_aggregate_expressions(query, 
+                                                    query->modifier->having_conditions,
+                                                    ae)) {
+      RASQAL_DEBUG1("rasqal_algebra_replace_aggregate_expressions() failed");
+      rasqal_free_algebra_node(node);
+      return 1;
+    }
+  }
+  
 
   /* store/clean agg expression state: where to store it since this
    * is not inside the engine
