@@ -1383,6 +1383,12 @@ typedef struct
 
   /* error indicator */
   int error;
+
+  /* if set, finding a new expression is an error */
+  int adding_new_vars_is_error : 1;
+
+  /* query part for error messages */
+  const char* error_part;
 } rasqal_algebra_aggregate;
 
 
