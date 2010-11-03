@@ -114,17 +114,17 @@ main(int argc, char *argv[])
 {
   char const *program=rasqal_basename(*argv);
   const char *query_language_name=QUERY_LANGUAGE;
-  int failures=0;
+  int failures = 0;
 #define FAIL do { failures++; goto tidy; } while(0)
   rasqal_world *world;
-  rasqal_query* query=NULL;
-  raptor_uri *base_uri=NULL;
+  rasqal_query* query = NULL;
+  raptor_uri *base_uri = NULL;
   char *query_file;
-  unsigned char *query_string=NULL;
-  raptor_iostream* iostr=NULL;
-  rasqal_algebra_node* node=NULL;
+  unsigned char *query_string = NULL;
+  raptor_iostream* iostr = NULL;
+  rasqal_algebra_node* node = NULL;
 
-  world=rasqal_new_world();
+  world = rasqal_new_world();
   if(!world || rasqal_world_open(world)) {
     fprintf(stderr, "%s: rasqal_world init failed\n", program);
     return(1);
@@ -136,16 +136,17 @@ main(int argc, char *argv[])
   }
   
 
-  query_file=argv[1];
-  base_uri = raptor_new_uri(world->raptor_world_ptr, (const unsigned char*)argv[2]);
-  query=rasqal_new_query(world, query_language_name, NULL);
+  query_file = argv[1];
+  base_uri = raptor_new_uri(world->raptor_world_ptr,
+                            (const unsigned char*)argv[2]);
+  query = rasqal_new_query(world, query_language_name, NULL);
   if(!query) {
     fprintf(stderr, "%s: creating query in language %s FAILED\n", program,
             query_language_name);
     FAIL;
   }
 
-  query_string=file_read_string(program, query_file, "query");
+  query_string = file_read_string(program, query_file, "query");
   if(!query_string) {
     FAIL;
   }
@@ -156,11 +157,30 @@ main(int argc, char *argv[])
     FAIL;
   }
 
-  node=rasqal_algebra_query_to_algebra(query);
+  node = rasqal_algebra_query_to_algebra(query);
   if(!node) {
     fprintf(stderr, "%s: Failed to make algebra node\n", program);
     FAIL;
   }
+
+  node = rasqal_algebra_query_add_modifiers(query, node);
+  if(!node) {
+    fprintf(stderr, "%s: Failed to add algebra modifiers\n", program);
+    FAIL;
+  }
+
+  node = rasqal_algebra_query_add_projection(query, node);
+  if(!node) {
+    fprintf(stderr, "%s: Failed to add algebra projection\n", program);
+    FAIL;
+  }
+
+  node = rasqal_algebra_query_add_distinct(query, node);
+  if(!node) {
+    fprintf(stderr, "%s: Failed to add algebra distinct\n", program);
+    FAIL;
+  }
+
   
   iostr = raptor_new_iostream_to_file_handle(world->raptor_world_ptr, stdout);
   if(!iostr) {
@@ -170,11 +190,11 @@ main(int argc, char *argv[])
   
   rasqal_algebra_algebra_node_write(node, iostr);
   raptor_iostream_write_byte('\n', iostr);
-  raptor_free_iostream(iostr); iostr=NULL;
+  raptor_free_iostream(iostr); iostr = NULL;
 
-  rasqal_free_algebra_node(node); node=NULL;
+  rasqal_free_algebra_node(node); node = NULL;
   
-  rasqal_free_memory(query_string); query_string=NULL;
+  rasqal_free_memory(query_string); query_string = NULL;
 
   tidy:
   if(node)
