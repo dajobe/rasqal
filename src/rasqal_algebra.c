@@ -1764,7 +1764,7 @@ rasqal_algebra_query_prepare_aggregates(rasqal_query* query,
  *
  * Return value: non-0 on failure
  */
-int
+rasqal_algebra_node*
 rasqal_algebra_query_add_modifiers(rasqal_query* query,
                                    rasqal_algebra_node* node)
 {
@@ -1772,10 +1772,11 @@ rasqal_algebra_query_add_modifiers(rasqal_query* query,
   int modified;
   
   if(!query->modifier)
-    return 0;
+    return node;
   
   /* GROUP BY */
   modifier_seq = query->modifier->group_conditions;
+
   if(modifier_seq) {
     raptor_sequence* seq;
     
@@ -1785,7 +1786,7 @@ rasqal_algebra_query_add_modifiers(rasqal_query* query,
     seq = rasqal_expression_copy_expression_sequence(modifier_seq);
     if(!seq) {
       rasqal_free_algebra_node(node);
-      return 1;
+      return NULL;
     }
     
     node = rasqal_new_groupby_algebra_node(query, node, seq);
@@ -1810,7 +1811,7 @@ rasqal_algebra_query_add_modifiers(rasqal_query* query,
     seq = rasqal_expression_copy_expression_sequence(modifier_seq);
     if(!seq) {
       rasqal_free_algebra_node(node);
-      return 1;
+      return NULL;
     }
     
     node = rasqal_new_orderby_algebra_node(query, node, seq);
@@ -1824,74 +1825,109 @@ rasqal_algebra_query_add_modifiers(rasqal_query* query,
   }
   
 
+  return node;
+}
+
+
+/**
+ * rasqal_algebra_query_add_projection:
+ * @query: #rasqal_query to read from
+ * @node: node to apply projection to
+ *
+ * Apply query projection to query algebra structure
+ *
+ * Return value: non-0 on failure
+ */
+rasqal_algebra_node*
+rasqal_algebra_query_add_projection(rasqal_query* query,
+                                   rasqal_algebra_node* node)
+{
+  int modified = 0;
+  int vars_size = 0;
+  raptor_sequence* seq = NULL;  /* sequence of rasqal_variable* */
+  raptor_sequence* vars_seq;
+  int i;
+  
   /* FIXME - do not always need a PROJECT node when the variables at
    * the top level node are the same as the projection list.
    */
-  if(1) {
-    int vars_size = 0;
-    raptor_sequence* seq = NULL;  /* sequence of rasqal_variable* */
-    raptor_sequence* vars_seq;
-    int i;
-  
-    if(query->verb == RASQAL_QUERY_VERB_SELECT)
-      /* project all selected variables */
-      seq = query->selects;
-    else if(query->verb == RASQAL_QUERY_VERB_CONSTRUCT) {
-      /* project all variables mentioned in CONSTRUCT  */
-      seq = rasqal_algebra_get_variables_mentioned_in(query, 
-                                                      RASQAL_VAR_USE_MAP_OFFSET_VERBS);
-      if(!seq) {
-        rasqal_free_algebra_node(node);
-        return 1;
-      }
-    }
-
-    if(seq)
-      vars_size = raptor_sequence_size(seq);
-    
-#ifdef HAVE_RAPTOR2_API
-    vars_seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_variable,
-                                   (raptor_data_print_handler)rasqal_variable_print);
-#else
-    vars_seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_variable,
-                                   (raptor_sequence_print_handler*)rasqal_variable_print);
-#endif
-    if(!vars_seq) {
+  if(query->verb == RASQAL_QUERY_VERB_SELECT)
+    /* project all selected variables */
+    seq = query->selects;
+  else if(query->verb == RASQAL_QUERY_VERB_CONSTRUCT) {
+    /* project all variables mentioned in CONSTRUCT  */
+    seq = rasqal_algebra_get_variables_mentioned_in(query, 
+                                                    RASQAL_VAR_USE_MAP_OFFSET_VERBS);
+    if(!seq) {
       rasqal_free_algebra_node(node);
-      return 1;
+      return NULL;
     }
-
-    for(i = 0; i < vars_size; i++) {
-      rasqal_variable* v;
-      v = (rasqal_variable*)raptor_sequence_get_at(seq, i);
-      raptor_sequence_push(vars_seq, rasqal_new_variable_from_variable(v));
-    }
-
-    node = rasqal_new_project_algebra_node(query, node, vars_seq);
-    modified = 1;
-
-#if RASQAL_DEBUG > 1
-    RASQAL_DEBUG2("modified=%d after adding project node, algebra node now:\n  ", modified);
-    rasqal_algebra_node_print(node, stderr);
-    fputs("\n", stderr);
-#endif
-
-    if(query->verb == RASQAL_QUERY_VERB_CONSTRUCT && seq) 
-      raptor_free_sequence(seq);
   }
+  
+  if(seq)
+    vars_size = raptor_sequence_size(seq);
+  
+#ifdef HAVE_RAPTOR2_API
+  vars_seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_variable,
+                                 (raptor_data_print_handler)rasqal_variable_print);
+#else
+  vars_seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_variable,
+                                 (raptor_sequence_print_handler*)rasqal_variable_print);
+#endif
+  if(!vars_seq) {
+    rasqal_free_algebra_node(node);
+    return NULL;
+  }
+  
+  for(i = 0; i < vars_size; i++) {
+    rasqal_variable* v;
+    v = (rasqal_variable*)raptor_sequence_get_at(seq, i);
+    raptor_sequence_push(vars_seq, rasqal_new_variable_from_variable(v));
+  }
+  
+  node = rasqal_new_project_algebra_node(query, node, vars_seq);
+  modified = 1;
+  
+#if RASQAL_DEBUG > 1
+  RASQAL_DEBUG2("modified=%d after adding project node, algebra node now:\n  ", modified);
+  rasqal_algebra_node_print(node, stderr);
+  fputs("\n", stderr);
+#endif
+  
+  if(query->verb == RASQAL_QUERY_VERB_CONSTRUCT && seq) 
+    raptor_free_sequence(seq);
 
+  return node;
+}
+
+
+/**
+ * rasqal_algebra_query_add_distinct:
+ * @query: #rasqal_query to read from
+ * @node: node to apply distinct to
+ *
+ * Apply distinctness to query algebra structure
+ *
+ * Return value: non-0 on failure
+ */
+rasqal_algebra_node*
+rasqal_algebra_query_add_distinct(rasqal_query* query,
+                                  rasqal_algebra_node* node)
+{
+  int modified;
+  
   if(query->distinct) {
     node = rasqal_new_distinct_algebra_node(query, node);
     modified = 1;
 
 #if RASQAL_DEBUG > 1
-  RASQAL_DEBUG2("modified=%d after adding distinct node, algebra node now:\n  ", modified);
-  rasqal_algebra_node_print(node, stderr);
-  fputs("\n", stderr);
+    RASQAL_DEBUG2("modified=%d after adding distinct node, algebra node now:\n  ", modified);
+    rasqal_algebra_node_print(node, stderr);
+    fputs("\n", stderr);
 #endif
   }
 
-  return 0;
+  return node;
 }
 
 
