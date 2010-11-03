@@ -510,6 +510,7 @@ rasqal_query_engine_algebra_execute_init(void* ex_data,
   rasqal_engine_algebra_data* execution_data;
   rasqal_engine_error error;
   int rc = 0;
+  rasqal_algebra_node* node;
   
   execution_data = (rasqal_engine_algebra_data*)ex_data;
 
@@ -525,45 +526,46 @@ rasqal_query_engine_algebra_execute_init(void* ex_data,
     }
   }
 
-  execution_data->algebra_node = rasqal_algebra_query_to_algebra(query);
-  if(!execution_data->algebra_node)
+  node = rasqal_algebra_query_to_algebra(query);
+  if(!node)
     return 1;
 
-  if(rasqal_algebra_query_prepare_aggregates(query,
-                                             execution_data->algebra_node))
+  if(rasqal_algebra_query_prepare_aggregates(query, node))
     return 1;
 
-  execution_data->algebra_node = rasqal_algebra_query_add_modifiers(query,
-                                                                    execution_data->algebra_node);
-  if(!execution_data->algebra_node)
+  node = rasqal_algebra_query_add_modifiers(query, node);
+  if(!node)
     return 1;
 
-  execution_data->algebra_node = rasqal_algebra_query_add_projection(query,
-                                                                    execution_data->algebra_node);
-  if(!execution_data->algebra_node)
+  node = rasqal_algebra_query_add_projection(query, node);
+  if(!node)
     return 1;
 
-  execution_data->algebra_node = rasqal_algebra_query_add_distinct(query,
-                                                                   execution_data->algebra_node);
-  if(!execution_data->algebra_node)
+  node = rasqal_algebra_query_add_distinct(query,node);
+  if(!node)
     return 1;
 
 
+  execution_data->algebra_node = node;
+
+  /* count final number of nodes */
   execution_data->nodes_count = 0; 
-  rasqal_algebra_node_visit(query, execution_data->algebra_node,
+  rasqal_algebra_node_visit(query,
+                            execution_data->algebra_node,
                             rasqal_engine_algebra_count_nodes,
                             &execution_data->nodes_count);
   
+  
 #ifdef RASQAL_DEBUG
   RASQAL_DEBUG1("algebra result: \n");
-  rasqal_algebra_node_print(execution_data->algebra_node, DEBUG_FH);
+  rasqal_algebra_node_print(node, DEBUG_FH);
   fputc('\n', DEBUG_FH);
 #endif
   RASQAL_DEBUG2("algebra nodes: %d\n", execution_data->nodes_count);
 
   error = RASQAL_ENGINE_OK;
   execution_data->rowsource = rasqal_algebra_node_to_rowsource(execution_data,
-                                                               execution_data->algebra_node,
+                                                               node,
                                                                &error);
 #ifdef RASQAL_DEBUG
   RASQAL_DEBUG1("rowsource (query plan) result: \n");
