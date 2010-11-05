@@ -1,6 +1,6 @@
 /* -*- Mode: c; c-basic-offset: 2 -*-
  *
- * rasqal_rowsource_groupby.c - Rasqal GROUP BY and HAVING rowsource class
+ * rasqal_rowsource_aggregation.c - Rasqal aggregation rowsource class
  *
  * Copyright (C) 2010, David Beckett http://www.dajobe.org/
  * 
@@ -47,6 +47,25 @@
 #ifndef STANDALONE
 
 
+typedef struct 
+{
+  /* agg expression */
+  rasqal_expression* expr;
+  
+  /* aggregation function user data */
+  void* agg_user_data;
+
+  /* output variable */
+  rasqal_variable* variable;
+
+  /* sequence used to hold functions expressions for evaluating */
+  raptor_sequence* expr_seq;
+
+  /* sequence used to hold literals from recent row evaluation */
+  raptor_sequence* literal_seq;
+} rasqal_agg_expr_data;
+
+  
 /**
  * rasqal_aggregation_rowsource_context:
  *
@@ -83,23 +102,14 @@ typedef struct
   /* inner (grouped) rowsource */
   rasqal_rowsource *rowsource;
 
-  /* agg expression */
-  rasqal_expression* expr;
+  /* pointer to array of data per expression */
+  rasqal_agg_expr_data* expr_data;
   
-  /* aggregation function user data */
-  void* agg_user_data;
-
-  /* output variable */
-  rasqal_variable* variable;
-
+  /* number of agg expressions / size of expr_data */
+  int expr_count;
+  
   /* non-0 when done */
   int finished;
-
-  /* sequence used to hold functions expressions for evaluating */
-  raptor_sequence* expr_seq;
-
-  /* sequence used to hold literals from recent row evaluation */
-  raptor_sequence* literal_seq;
 
   /* last group ID seen */
   int last_group_id;
@@ -345,20 +355,26 @@ static int
 rasqal_aggregation_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
 {
   rasqal_aggregation_rowsource_context* con;
+  int i;
+
   con = (rasqal_aggregation_rowsource_context*)user_data;
 
   /* Used to store (and own) literals from row expression evaluations */
+  for(i = 0; i < con->expr_count; i++) {
+    rasqal_agg_expr_data* expr_data = &con->expr_data[i];
+    
 #ifdef HAVE_RAPTOR2_API
-  con->literal_seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_literal,
-                                         (raptor_data_print_handler)rasqal_literal_print);
+    expr_data->literal_seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_literal,
+                                                 (raptor_data_print_handler)rasqal_literal_print);
 #else
-  con->literal_seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_literal,
-                                         (raptor_sequence_print_handler*)rasqal_literal_print);
+    expr_data->literal_seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_literal,
+                                                 (raptor_sequence_print_handler*)rasqal_literal_print);
 #endif
-  
-  if(!con->literal_seq) {
-    rasqal_builtin_aggregation_finish(con->agg_user_data);
-    return 1;
+    
+    if(!expr_data->literal_seq) {
+      rasqal_builtin_aggregation_finish(expr_data->agg_user_data);
+      return 1;
+    }
   }
 
   con->last_group_id = -1;
@@ -372,23 +388,29 @@ static int
 rasqal_aggregation_rowsource_finish(rasqal_rowsource* rowsource, void *user_data)
 {
   rasqal_aggregation_rowsource_context* con;
+  int i;
+
   con = (rasqal_aggregation_rowsource_context*)user_data;
 
-  if(con->agg_user_data)
-    rasqal_builtin_aggregation_finish(con->agg_user_data);
-  
+  for(i = 0; i < con->expr_count; i++) {
+    rasqal_agg_expr_data* expr_data = &con->expr_data[i];
+
+    if(expr_data->agg_user_data)
+      rasqal_builtin_aggregation_finish(expr_data->agg_user_data);
+
+    if(expr_data->expr_seq)
+      raptor_free_sequence(expr_data->expr_seq);
+    
+    if(expr_data->literal_seq)
+      raptor_free_sequence(expr_data->literal_seq);
+
+    if(expr_data->expr)
+      rasqal_free_expression(expr_data->expr);
+  }
+
   if(con->rowsource)
     rasqal_free_rowsource(con->rowsource);
   
-  if(con->expr)
-    rasqal_free_expression(con->expr);
-  
-  if(con->expr_seq)
-    raptor_free_sequence(con->expr_seq);
-
-  if(con->literal_seq)
-    raptor_free_sequence(con->literal_seq);
-
   if(con->saved_row)
     rasqal_free_row(con->saved_row);
 
@@ -404,6 +426,7 @@ rasqal_aggregation_rowsource_ensure_variables(rasqal_rowsource* rowsource,
 {
   rasqal_aggregation_rowsource_context* con;
   int offset;
+  int i;
   
   con = (rasqal_aggregation_rowsource_context*)user_data; 
 
@@ -411,10 +434,15 @@ rasqal_aggregation_rowsource_ensure_variables(rasqal_rowsource* rowsource,
     return 1;
 
   rowsource->size = 0;
-  offset = rasqal_rowsource_add_variable(rowsource, con->variable);
-  if(offset < 0)
-    return 1;
 
+  for(i = 0; i < con->expr_count; i++) {
+    rasqal_agg_expr_data* expr_data = &con->expr_data[i];
+
+    offset = rasqal_rowsource_add_variable(rowsource, expr_data->variable);
+    if(offset < 0)
+      return 1;
+  }
+  
   return 0;
 }
 
@@ -450,6 +478,8 @@ rasqal_aggregation_rowsource_read_row(rasqal_rowsource* rowsource,
 
 
     if(con->last_group_id != row->group_id) {
+      int i;
+      
       if(!con->saved_row && con->last_group_id >= 0) {
         /* Existing aggregation is done - return result */
 
@@ -475,16 +505,21 @@ rasqal_aggregation_rowsource_read_row(rasqal_rowsource* rowsource,
 
       /* next time this function is called we continue here */
 
-      if(!con->agg_user_data) {
-        /* init once */
-        con->agg_user_data = rasqal_builtin_aggregation_init(rowsource->world,
-                                                             con->expr);
-      
-        if(!con->agg_user_data) {
-          error = 1;
-          break;
+      for(i = 0; i < con->expr_count; i++) {
+        rasqal_agg_expr_data* expr_data = &con->expr_data[i];
+
+        if(!expr_data->agg_user_data) {
+          /* init once */
+          expr_data->agg_user_data = rasqal_builtin_aggregation_init(rowsource->world,
+                                                                     expr_data->expr);
+          
+          if(!expr_data->agg_user_data) {
+            error = 1;
+            break;
+          }
         }
       }
+      
 
       con->last_group_id = row->group_id;
     } /* end if handling change of group ID */
@@ -496,23 +531,33 @@ rasqal_aggregation_rowsource_read_row(rasqal_rowsource* rowsource,
     /* Evaluate the expressions giving a sequence of literals to 
      * run the aggregation step over.
      */
-    rasqal_expression_sequence_evaluate(rowsource->query,
-                                        con->expr_seq,
-                                        /* ignore_errors */ 0,
-                                        con->literal_seq,
-                                        &error);
-    if(error)
-      break;
+    if(1) {
+      int i;
 
+      for(i = 0; i < con->expr_count; i++) {
+        rasqal_agg_expr_data* expr_data = &con->expr_data[i];
+        
+        rasqal_expression_sequence_evaluate(rowsource->query,
+                                            expr_data->expr_seq,
+                                            /* ignore_errors */ 0,
+                                            expr_data->literal_seq,
+                                            &error);
+        if(error)
+          break;
 
 #ifdef RASQAL_DEBUG
-    RASQAL_DEBUG1("Aggregation step over literals: ");
-    raptor_sequence_print(con->literal_seq, DEBUG_FH);
-    fputc('\n', DEBUG_FH);
+        RASQAL_DEBUG1("Aggregation step over literals: ");
+        raptor_sequence_print(expr_data->literal_seq, DEBUG_FH);
+        fputc('\n', DEBUG_FH);
 #endif
+        
+        error = rasqal_builtin_aggregation_step(expr_data->agg_user_data,
+                                                expr_data->literal_seq);
+        if(error)
+          break;
+      }
+    }
 
-    error = rasqal_builtin_aggregation_step(con->agg_user_data,
-                                            con->literal_seq);
     rasqal_free_row(row); row = NULL;
     
     if(error)
@@ -528,32 +573,39 @@ rasqal_aggregation_rowsource_read_row(rasqal_rowsource* rowsource,
       row = NULL;
     }
   } else {
-    rasqal_literal* result;
+    int i;
+    
+    row = rasqal_new_row(rowsource);
 
-    /* Calculate the result because the input ended or a new group started */
-    result = rasqal_builtin_aggregation_result(con->agg_user_data);
+    for(i = 0; i < con->expr_count; i++) {
+      rasqal_literal* result;
+      rasqal_agg_expr_data* expr_data = &con->expr_data[i];
+      
+      /* Calculate the result because the input ended or a new group started */
+      result = rasqal_builtin_aggregation_result(expr_data->agg_user_data);
   
 #ifdef RASQAL_DEBUG
-    RASQAL_DEBUG1("Aggregation ending group with result:");
-    if(result)
-      rasqal_literal_print(result, DEBUG_FH);
-    else
-      fputs("NULL", DEBUG_FH);
-    
-    fputc('\n', DEBUG_FH);
-#endif
-  
-    if(result) {
-      row = rasqal_new_row(rowsource);
-      if(row)
-        rasqal_row_set_value_at(row, 0, result);
+      RASQAL_DEBUG1("Aggregation ending group with result:");
+      if(result)
+        rasqal_literal_print(result, DEBUG_FH);
+      else
+        fputs("NULL", DEBUG_FH);
       
-      rasqal_free_literal(result);
-    }
+      fputc('\n', DEBUG_FH);
+#endif
+      
+      if(result) {
+        /* FIXME - assigns value by offset not by var name */
+        rasqal_row_set_value_at(row, i, result);
+        
+        rasqal_free_literal(result);
+      }
     
-    if(rasqal_builtin_aggregation_reset(con->agg_user_data)) {
-      rasqal_free_row(row);
-      row = NULL;
+      if(rasqal_builtin_aggregation_reset(expr_data->agg_user_data)) {
+        rasqal_free_row(row);
+        row = NULL;
+        break;
+      }
     }
 
     if(row)
@@ -621,6 +673,7 @@ rasqal_new_aggregation_rowsource(rasqal_world *world, rasqal_query* query,
 {
   rasqal_aggregation_rowsource_context* con;
   int flags = 0;
+  rasqal_agg_expr_data* expr_data0;
   
   if(!world || !query || !rowsource || !expr)
     return NULL;
@@ -630,25 +683,37 @@ rasqal_new_aggregation_rowsource(rasqal_world *world, rasqal_query* query,
     goto fail;
 
   con->rowsource = rowsource;
-  con->expr = expr;
-  con->variable = variable;
+
+  /* allocate per-expr data */
+  con->expr_count = expr->args ? raptor_sequence_size(expr->args) : 1;
+  con->expr_data = (rasqal_agg_expr_data*)RASQAL_CALLOC(rasqal_agg_expr_data, 
+                                                        sizeof(rasqal_agg_expr_data),
+                                                        con->expr_count);
+  if(!con->expr_data)
+    goto fail;
+  
+  /* Handle just 1 agg expression now */
+  expr_data0 = &con->expr_data[0];
+
+  expr_data0->expr = expr;
+  expr_data0->variable = variable;
 
   if(expr->args) {
     /* list of #rasqal_expression arguments already in expr
      * RASQAL_EXPR_FUNCTION and RASQAL_EXPR_GROUP_CONCAT 
      */
-    con->expr_seq = rasqal_expression_copy_expression_sequence(expr->args);
+    expr_data0->expr_seq = rasqal_expression_copy_expression_sequence(expr->args);
   } else {
     /* single argument */
 
 #ifdef HAVE_RAPTOR2_API
-    con->expr_seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_expression,
+    expr_data0->expr_seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_expression,
                                         (raptor_data_print_handler)rasqal_expression_print);
 #else
-    con->expr_seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_expression,
+    expr_data0->expr_seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_expression,
                                         (raptor_sequence_print_handler*)rasqal_expression_print);
 #endif
-    raptor_sequence_push(con->expr_seq,
+    raptor_sequence_push(expr_data0->expr_seq,
                          rasqal_new_expression_from_expression(expr->arg1));
   }
   
