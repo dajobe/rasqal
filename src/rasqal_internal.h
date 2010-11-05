@@ -604,7 +604,7 @@ typedef enum {
 
 
 /* rasqal_rowsource_aggregation.c */
-rasqal_rowsource* rasqal_new_aggregation_rowsource(rasqal_world *world, rasqal_query* query, rasqal_rowsource* rowsource, raptor_sequence* expr_seq, rasqal_op op, void *func, rasqal_map* parameters, unsigned int flags, rasqal_variable* variable);
+rasqal_rowsource* rasqal_new_aggregation_rowsource(rasqal_world *world, rasqal_query* query, rasqal_rowsource* rowsource, rasqal_expression *expr, void* func, rasqal_variable* variable);
 
 /* rasqal_rowsource_empty.c */
 rasqal_rowsource* rasqal_new_empty_rowsource(rasqal_world *world, rasqal_query* query);
@@ -1305,7 +1305,7 @@ struct rasqal_algebra_node_s {
   struct rasqal_algebra_node_s *node1;
   struct rasqal_algebra_node_s *node2;
 
-  /* types FILTER, LEFTJOIN
+  /* types FILTER, LEFTJOIN, AGGREGATION
    * (otherwise NULL) 
    */
   rasqal_expression* expr;
@@ -1332,17 +1332,8 @@ struct rasqal_algebra_node_s {
   /* type LET, type AGGREGATION */
   rasqal_variable *var;
 
-  /* type AGGREGATION: aggregation operation */
-  rasqal_op expr_op;
-
   /* type AGGREGATION: custom function */
   void* func;
-
-  /* types AGGREGATION: parameters */
-  rasqal_map* parameters;
-
-  /* types AGGREGATION: flags */
-  unsigned int flags;
 };
 typedef struct rasqal_algebra_node_s rasqal_algebra_node;
 
@@ -1407,7 +1398,7 @@ rasqal_algebra_node* rasqal_new_project_algebra_node(rasqal_query* query, rasqal
 rasqal_algebra_node* rasqal_new_graph_algebra_node(rasqal_query* query, rasqal_algebra_node* node1, rasqal_literal *graph);
 rasqal_algebra_node* rasqal_new_let_algebra_node(rasqal_query* query, rasqal_variable *var, rasqal_expression *expr);
 rasqal_algebra_node* rasqal_new_groupby_algebra_node(rasqal_query* query, rasqal_algebra_node* node1, raptor_sequence* seq);
-rasqal_algebra_node* rasqal_new_aggregation_algebra_node(rasqal_query* query, rasqal_algebra_node* node1, raptor_sequence* expr_seq, rasqal_op op, void* func, rasqal_map* parameters, int flags);
+rasqal_algebra_node* rasqal_new_aggregation_algebra_node(rasqal_query* query, rasqal_algebra_node* node1, rasqal_expression* expr, void* func);
 
 void rasqal_free_algebra_node(rasqal_algebra_node* node);
 rasqal_algebra_node_operator rasqal_algebra_node_get_operator(rasqal_algebra_node* node);

@@ -395,7 +395,6 @@ rasqal_algebra_aggregation_algebra_node_to_rowsource(rasqal_engine_algebra_data*
                                                      rasqal_engine_error *error_p)
 {
   rasqal_query *query = execution_data->query;
-  rasqal_op op = node->expr_op;
   rasqal_rowsource *rs;
 
   rs = rasqal_algebra_node_to_rowsource(execution_data, node->node1, error_p);
@@ -403,10 +402,8 @@ rasqal_algebra_aggregation_algebra_node_to_rowsource(rasqal_engine_algebra_data*
     return NULL;
 
   return rasqal_new_aggregation_rowsource(query->world, query, rs,
-                                          node->seq,
-                                          op, NULL,
-                                          /* parameters */ NULL,
-                                          /* flags */ 0,
+                                          node->expr,
+                                          node->func,
                                           node->var);
 }
 

@@ -498,55 +498,42 @@ rasqal_new_groupby_algebra_node(rasqal_query* query,
  * rasqal_new_aggregation_algebra_node:
  * @query: #rasqal_query query object
  * @node1: inner algebra node
- * @expr_seq: sequence of expression function arguments
- * @op: aggregation expression if builtin or #RASQAL_EXPR_FUNCTION if user defined.
- * @func: pointer to user defined function (or NULL).
- * @parameters: sequence of 'scalar' parameters to function such as 'separator' for SPARQL 1.1. GROUP_CONCAT (#RASQAL_EXPR_GROUP_CONCAT) (or NULL)
- * @flags: bitset of flags to aggregation. Only #RASQAL_EXPR_FLAG_DISTINCT is defined
+ * @expr: aggregate expression
+ * @func: funciton
  *
  * INTERNAL - Create a new AGGREGATION algebra node for a query with aggregate operation
  * 
- * On construction @node1, @expr_seq and @parameters (if given)
- * become owned by the new node.  @func must be given if @op is
- * #RASQAL_EXPR_FUNCTION.
+ * On construction @node1 and @expr become owned by the new node.
+ * @func must be given if @op is #RASQAL_EXPR_FUNCTION.
  *
  * Return value: a new #rasqal_algebra_node object or NULL on failure
  **/
 rasqal_algebra_node*
 rasqal_new_aggregation_algebra_node(rasqal_query* query,
                                     rasqal_algebra_node* node1,
-                                    raptor_sequence* expr_seq,
-                                    rasqal_op op,
-                                    void* func,
-                                    rasqal_map* parameters,
-                                    int flags)
+                                    rasqal_expression* expr,
+                                    void* func)
 {
   rasqal_algebra_node* node;
 
-  if(!query || !node1 || !expr_seq)
+  if(!query || !node1 || !expr)
     goto fail;
 
-  if(op == RASQAL_EXPR_FUNCTION && !func)
+  if(expr->op == RASQAL_EXPR_FUNCTION && !func)
     goto fail;
 
   node = rasqal_new_algebra_node(query, RASQAL_ALGEBRA_OPERATOR_AGGREGATION);
   if(node) {
     node->node1 = node1;
-    node->expr_op = op;
-    node->seq = expr_seq;
-    node->func = func;
-    node->parameters = parameters;
-    node->flags = flags;
+    node->expr = expr;
     return node;
   }
 
   fail:
   if(node1)
     rasqal_free_algebra_node(node1);
-  if(expr_seq)
-    raptor_free_sequence(expr_seq);
-  if(parameters)
-    rasqal_free_map(parameters);
+  if(expr)
+    rasqal_free_expression(expr);
 
   return NULL;
 }
@@ -586,9 +573,6 @@ rasqal_free_algebra_node(rasqal_algebra_node* node)
 
   if(node->var)
     rasqal_free_variable(node->var);
-
-  if(node->parameters)
-    rasqal_free_map(node->parameters);
 
   RASQAL_FREE(rasqal_algebra, node);
 }
