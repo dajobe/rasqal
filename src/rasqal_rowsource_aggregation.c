@@ -442,10 +442,10 @@ rasqal_aggregation_rowsource_read_row(rasqal_rowsource* rowsource,
 
       /* reference is now in 'row' variable */
       con->saved_row = NULL;
-
+      
 #ifdef RASQAL_DEBUG
-    RASQAL_DEBUG2("Aggregation starting group %d", row->group_id);
-    fputc('\n', DEBUG_FH);
+      RASQAL_DEBUG2("Aggregation starting group %d", row->group_id);
+      fputc('\n', DEBUG_FH);
 #endif
 
 
@@ -523,6 +523,9 @@ rasqal_aggregation_rowsource_read_row(rasqal_rowsource* rowsource,
       rasqal_free_literal(result);
     }
     
+    rasqal_builtin_aggregation_finish(con->agg_user_data);
+    con->agg_user_data = NULL;
+
     if(row)
       row->offset = con->offset++;
   }
