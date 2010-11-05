@@ -683,7 +683,9 @@ rasqal_expression_clear(rasqal_expression* e)
       break;
     case RASQAL_EXPR_FUNCTION:
     case RASQAL_EXPR_GROUP_CONCAT:
-      raptor_free_uri(e->name);
+      /* FUNCTION name */
+      if(e->name)
+        raptor_free_uri(e->name);
       raptor_free_sequence(e->args);
       if(e->literal) /* GROUP_CONCAT() SEPARATOR */
         rasqal_free_literal(e->literal);
