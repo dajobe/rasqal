@@ -182,6 +182,30 @@ rasqal_builtin_aggregation_finish(void* user_data)
 
 
 static int
+rasqal_builtin_aggregation_reset(void* user_data)
+{
+  builtin_agg* b = (builtin_agg*)user_data;
+
+  b->count = 0;
+  b->error = 0;
+
+  if(b->l) {
+    rasqal_free_literal(b->l);
+    b->l = 0;
+  }
+
+  if(b->sb) {
+    raptor_free_stringbuffer(b->sb);
+    b->sb = raptor_new_stringbuffer();
+    if(!b)
+      return 1;
+  }
+  
+  return 0;
+}
+
+
+static int
 rasqal_builtin_aggregation_step(void* user_data, raptor_sequence* literals)
 {
   builtin_agg* b = (builtin_agg*)user_data;
@@ -450,12 +474,16 @@ rasqal_aggregation_rowsource_read_row(rasqal_rowsource* rowsource,
 
 
       /* next time this function is called we continue here */
-      con->agg_user_data = rasqal_builtin_aggregation_init(rowsource->world,
-                                                           con->expr);
-      
+
       if(!con->agg_user_data) {
-        error = 1;
-        break;
+        /* init once */
+        con->agg_user_data = rasqal_builtin_aggregation_init(rowsource->world,
+                                                             con->expr);
+      
+        if(!con->agg_user_data) {
+          error = 1;
+          break;
+        }
       }
 
       con->last_group_id = row->group_id;
@@ -523,8 +551,10 @@ rasqal_aggregation_rowsource_read_row(rasqal_rowsource* rowsource,
       rasqal_free_literal(result);
     }
     
-    rasqal_builtin_aggregation_finish(con->agg_user_data);
-    con->agg_user_data = NULL;
+    if(rasqal_builtin_aggregation_reset(con->agg_user_data)) {
+      rasqal_free_row(row);
+      row = NULL;
+    }
 
     if(row)
       row->offset = con->offset++;
