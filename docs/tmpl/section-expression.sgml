@@ -97,6 +97,7 @@ constants and #rasqal_variable values bound in some
 @RASQAL_EXPR_SAMPLE: 
 @RASQAL_EXPR_IN: 
 @RASQAL_EXPR_NOT_IN: 
+@RASQAL_EXPR_ISNUMERIC: 
 @RASQAL_EXPR_LAST: 
 
 <!-- ##### ENUM rasqal_compare_flags ##### -->

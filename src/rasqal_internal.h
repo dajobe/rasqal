@@ -497,6 +497,7 @@ struct rasqal_query_s {
 /* Definitions from raptor V2 raptor.h - REMOVE when Raptor V2 is required */
 #ifndef HAVE_RAPTOR2_API
 typedef void (*raptor_data_free_handler)(void* data);
+typedef void (*raptor_data_print_handler)(void *object, FILE *fh);
 
 typedef struct {
   const char* mime_type;

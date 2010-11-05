@@ -68,6 +68,7 @@ to initialise and build a #rasqal_triples_match for some
 @user_data: 
 @user_data_size: 
 @new_triples_source: 
+@init_triples_source: 
 
 <!-- ##### USER_FUNCTION rasqal_triples_source_factory_register_fn ##### -->
 <para>

@@ -55,7 +55,6 @@
 */
 
 typedef int (*raptor_data_compare_handler)(const void* data1, const void* data2);
-typedef void (*raptor_data_print_handler)(void *object, FILE *fh);
 
 typedef struct {
   raptor_sequence* seq;
