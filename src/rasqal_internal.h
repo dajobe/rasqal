@@ -605,7 +605,7 @@ typedef enum {
 
 
 /* rasqal_rowsource_aggregation.c */
-rasqal_rowsource* rasqal_new_aggregation_rowsource(rasqal_world *world, rasqal_query* query, rasqal_rowsource* rowsource, rasqal_expression *expr, rasqal_variable* variable);
+rasqal_rowsource* rasqal_new_aggregation_rowsource(rasqal_world *world, rasqal_query* query, rasqal_rowsource* rowsource, raptor_sequence* expr_seq, raptor_sequence* vars_seq);
 
 /* rasqal_rowsource_empty.c */
 rasqal_rowsource* rasqal_new_empty_rowsource(rasqal_world *world, rasqal_query* query);
