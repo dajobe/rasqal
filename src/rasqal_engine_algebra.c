@@ -403,7 +403,6 @@ rasqal_algebra_aggregation_algebra_node_to_rowsource(rasqal_engine_algebra_data*
 
   return rasqal_new_aggregation_rowsource(query->world, query, rs,
                                           node->expr,
-                                          node->func,
                                           node->var);
 }
 

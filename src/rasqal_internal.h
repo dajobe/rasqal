@@ -605,7 +605,7 @@ typedef enum {
 
 
 /* rasqal_rowsource_aggregation.c */
-rasqal_rowsource* rasqal_new_aggregation_rowsource(rasqal_world *world, rasqal_query* query, rasqal_rowsource* rowsource, rasqal_expression *expr, void* func, rasqal_variable* variable);
+rasqal_rowsource* rasqal_new_aggregation_rowsource(rasqal_world *world, rasqal_query* query, rasqal_rowsource* rowsource, rasqal_expression *expr, rasqal_variable* variable);
 
 /* rasqal_rowsource_empty.c */
 rasqal_rowsource* rasqal_new_empty_rowsource(rasqal_world *world, rasqal_query* query);
@@ -1337,8 +1337,6 @@ struct rasqal_algebra_node_s {
   /* type LET, type AGGREGATION */
   rasqal_variable *var;
 
-  /* type AGGREGATION: custom function */
-  void* func;
 };
 typedef struct rasqal_algebra_node_s rasqal_algebra_node;
 

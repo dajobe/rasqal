@@ -683,14 +683,11 @@ static const rasqal_rowsource_handler rasqal_aggregation_rowsource_handler = {
  * @query: query
  * @rowsource: input (grouped) rowsource - typically constructed by rasqal_new_groupby_rowsource()
  * @expr: expression
- * @func: user execution function
  * @variable: output variable to bind the value
  *
- * INTERNAL - Create a new rowsource for a aggregration for a built-in function or a user aggregration function.
+ * INTERNAL - Create a new rowsource for a aggregration
  *
  * The @expr and @rowsource become owned by the new rowsource.
- *
- * Constraints: @func must be given if @op is #RASQAL_EXPR_FUNCTION.
  *
  * Return value: new rowsource or NULL on failure
 */
@@ -699,7 +696,6 @@ rasqal_rowsource*
 rasqal_new_aggregation_rowsource(rasqal_world *world, rasqal_query* query,
                                  rasqal_rowsource* rowsource,
                                  rasqal_expression *expr,
-                                 void* func,
                                  rasqal_variable* variable)
 {
   rasqal_aggregation_rowsource_context* con;
@@ -1026,7 +1022,7 @@ main(int argc, char *argv[])
     expr_seq = NULL;
 
     rowsource = rasqal_new_aggregation_rowsource(world, query, input_rs,
-                                                 expr, NULL, output_var);
+                                                 expr, output_var);
     /* expr and input_rs are now owned by rowsource */
     expr = NULL; input_rs = NULL;
 
