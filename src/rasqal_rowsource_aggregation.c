@@ -60,16 +60,21 @@ typedef struct
   /* agg expression */
   rasqal_expression* expr;
   
-  /* aggregation function user data */
+  /* aggregation function execution user data as created by
+   * rasqal_builtin_agg_expression_execute_init() and destroyed by
+   * rasqal_builtin_agg_expression_execute_finish().
+   */
   void* agg_user_data;
 
-  /* output variable */
+  /* output variable for this expression */
   rasqal_variable* variable;
 
-  /* sequence used to hold functions expressions for evaluating */
+  /* sequence of aggregate function arguments */
   raptor_sequence* exprs_seq;
 
-  /* sequence used to hold literals from recent row evaluation */
+  /* sequence of argument literal values from last evaluation of @exprs_seq
+   * passed to rasqal_builtin_agg_expression_execute_step()
+   */
   raptor_sequence* literal_seq;
 } rasqal_agg_expr_data;
 
@@ -77,33 +82,11 @@ typedef struct
 /*
  * rasqal_aggregation_rowsource_context:
  *
- * INTERNAL - Aggregration rowsource context over a sequence of aggregate expressions
+ * INTERNAL - Aggregration rowsource context
  *
  * Structure for handing aggregation over a grouped input rowsource
- * (formed by the group_by rowsource) with parameters of:
- *   1. a sequence of #rasqal_expression
- *   2. a function with operation #rasqal_op (may be internal funcs)
- *   3. a rasqal_map of k:v parameters
+ * created by rasqal_new_aggregation_rowsource().
  *
- * For example with the SPARQL 1.1 example queries
- *
- *   SELECT (ex:agg(?y, ?z) AS ?agg) WHERE { ?x ?y ?z } GROUP BY ?x.
- * the aggregation part corresponds to
- *   1. [?y, ?z]
- *   2. ex:agg and #RASQAL_EXPR_FUNCTION
- *   3. []
- *
- *   SELECT (MAX(?y) AS ?agg) WHERE { ?x ?y ?z } GROUP BY ?x.
- * the aggregation part corresponds to
- *   1. [?y]
- *   2. NULL and #RASQAL_EXPR_MAX
- *   3. []
- *
- *   SELECT (GROUP_CONCAT(?z; separator=';') AS ?agg) WHERE { ?x ?y ?z } GROUP BY ?x.
- * the aggregation part corresponds to
- *   1. [?z]
- *   2. NULL and #RASQAL_EXPR_GROUP_CONCAT
- *   3. [separator=';']
  */
 typedef struct 
 {
@@ -562,7 +545,7 @@ rasqal_aggregation_rowsource_read_row(rasqal_rowsource* rowsource,
         if(!expr_data->agg_user_data) {
           /* init once */
           expr_data->agg_user_data = rasqal_builtin_agg_expression_execute_init(rowsource->world,
-                                                                     expr_data->expr);
+                                                                                expr_data->expr);
           
           if(!expr_data->agg_user_data) {
             error = 1;
@@ -605,7 +588,7 @@ rasqal_aggregation_rowsource_read_row(rasqal_rowsource* rowsource,
 #endif
         
         error = rasqal_builtin_agg_expression_execute_step(expr_data->agg_user_data,
-                                                expr_data->literal_seq);
+                                                           expr_data->literal_seq);
         if(error)
           break;
       }
@@ -710,6 +693,24 @@ static const rasqal_rowsource_handler rasqal_aggregation_rowsource_handler = {
  * INTERNAL - Create a new rowsource for a aggregration
  *
  * The @exprs_seq, @vars_seq and @rowsource become owned by the new rowsource.
+ *
+ * For example with the SPARQL 1.1 example queries
+ *
+ * SELECT (MAX(?y) AS ?agg) WHERE { ?x ?y ?z } GROUP BY ?x
+ * the aggregation part corresponds to
+ *   exprs_seq : [ expr MAX with sequence of expression args [?y] }
+ *   vars_seq  : [ {internal variable name} ]
+ *
+ * SELECT (ex:agg(?y, ?z) AS ?agg) WHERE { ?x ?y ?z } GROUP BY ?x
+ * the aggregation part corresponds to
+ *   exprs_seq : [ expr ex:agg with sequence of expression args [?y, ?z] ]
+ *   vars_seq  : [ {internal variable name} ]
+ *
+ * SELECT ?x, (MIN(?z) AS ?agg) WHERE { ?x ?y ?z } GROUP BY ?x
+ * the aggregation part corresponds to
+ *   exprs_seq : [ non-aggregate expression ?x,
+ *                 expr MIN with sequence of expression args [?z] ]
+ *   vars_seq  : [ ?x, {internal variable name} ]
  *
  * Return value: new rowsource or NULL on failure
 */
