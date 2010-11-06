@@ -380,6 +380,9 @@ rasqal_aggregation_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
   con->last_group_id = -1;
   con->offset = 0;
 
+  if(rasqal_rowsource_request_grouping(con->rowsource))
+    return 1;
+  
   return 0;
 }
 
