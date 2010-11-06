@@ -3174,6 +3174,27 @@ rasqal_expression_is_aggregate(rasqal_expression* e)
 }
 
 
+static int
+rasqal_expression_mentions_aggregate_visitor(void *user_data,
+                                             rasqal_expression *e)
+{
+  return rasqal_expression_is_aggregate(e);
+}
+
+
+/*
+ * Return non-0 if the expression tree mentions an aggregate expression
+ */
+int
+rasqal_expression_mentions_aggregate(rasqal_expression* e)
+{
+  return rasqal_expression_visit(e,
+                                 rasqal_expression_mentions_aggregate_visitor,
+                                 NULL);
+}
+
+
+
 /*
  * rasqal_expression_convert_aggregate_to_variable:
  * @e_in: Input aggregate expression

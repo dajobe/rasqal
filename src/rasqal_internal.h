@@ -1029,7 +1029,7 @@ void rasqal_triple_write(rasqal_triple* t, raptor_iostream* iostr);
 void rasqal_variable_write(rasqal_variable* v, raptor_iostream* iostr);
 int rasqal_expression_is_aggregate(rasqal_expression* e);
 int rasqal_expression_convert_aggregate_to_variable(rasqal_expression* e_in, rasqal_variable* v, rasqal_expression** e_out);
-
+int rasqal_expression_mentions_aggregate(rasqal_expression* e);
 
 raptor_sequence* rasqal_expression_copy_expression_sequence(raptor_sequence* expr_seq);
 int rasqal_literal_sequence_compare(int compare_flags, raptor_sequence* values_a, raptor_sequence* values_b);
