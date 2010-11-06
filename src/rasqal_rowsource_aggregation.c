@@ -430,26 +430,29 @@ rasqal_aggregation_rowsource_finish(rasqal_rowsource* rowsource,
                                     void *user_data)
 {
   rasqal_aggregation_rowsource_context* con;
-  int i;
 
   con = (rasqal_aggregation_rowsource_context*)user_data;
 
-  for(i = 0; i < con->expr_count; i++) {
-    rasqal_agg_expr_data* expr_data = &con->expr_data[i];
+  if(con->expr_data) {
+    int i;
 
-    if(expr_data->agg_user_data)
-      rasqal_builtin_agg_expression_execute_finish(expr_data->agg_user_data);
+    for(i = 0; i < con->expr_count; i++) {
+      rasqal_agg_expr_data* expr_data = &con->expr_data[i];
 
-    if(expr_data->exprs_seq)
-      raptor_free_sequence(expr_data->exprs_seq);
-    
-    if(expr_data->literal_seq)
-      raptor_free_sequence(expr_data->literal_seq);
+      if(expr_data->agg_user_data)
+        rasqal_builtin_agg_expression_execute_finish(expr_data->agg_user_data);
 
-    if(expr_data->expr)
-      rasqal_free_expression(expr_data->expr);
+      if(expr_data->exprs_seq)
+        raptor_free_sequence(expr_data->exprs_seq);
+
+      if(expr_data->literal_seq)
+        raptor_free_sequence(expr_data->literal_seq);
+
+      if(expr_data->expr)
+        rasqal_free_expression(expr_data->expr);
+    }
   }
-
+  
   if(con->exprs_seq)
     raptor_free_sequence(con->exprs_seq);
 
