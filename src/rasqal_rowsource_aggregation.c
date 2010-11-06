@@ -241,7 +241,8 @@ rasqal_builtin_agg_expression_execute_reset(void* user_data)
 
 
 static int
-rasqal_builtin_agg_expression_execute_step(void* user_data, raptor_sequence* literals)
+rasqal_builtin_agg_expression_execute_step(void* user_data,
+                                           raptor_sequence* literals)
 {
   rasqal_builtin_agg_expression_execute* b;
   rasqal_literal* l;
@@ -324,10 +325,12 @@ static rasqal_literal*
 rasqal_builtin_agg_expression_execute_result(void* user_data)
 {
   rasqal_builtin_agg_expression_execute* b;
+
   b = (rasqal_builtin_agg_expression_execute*)user_data;
 
   if(b->expr->op == RASQAL_EXPR_COUNT) {
     rasqal_literal* result;
+
     result = rasqal_new_integer_literal(b->world, RASQAL_LITERAL_INTEGER,
                                         b->count);
     return result;
@@ -357,6 +360,7 @@ rasqal_builtin_agg_expression_execute_result(void* user_data)
   if(b->expr->op == RASQAL_EXPR_AVG) {
     rasqal_literal* count_l;
     rasqal_literal* result;
+
     count_l = rasqal_new_integer_literal(b->world, RASQAL_LITERAL_INTEGER,
                                          b->count);
 
@@ -416,7 +420,8 @@ rasqal_aggregation_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
 
 
 static int
-rasqal_aggregation_rowsource_finish(rasqal_rowsource* rowsource, void *user_data)
+rasqal_aggregation_rowsource_finish(rasqal_rowsource* rowsource,
+                                    void *user_data)
 {
   rasqal_aggregation_rowsource_context* con;
   int i;
@@ -551,6 +556,8 @@ rasqal_aggregation_rowsource_read_row(rasqal_rowsource* rowsource,
         }
       }
       
+      if(error)
+        break;
 
       con->last_group_id = row->group_id;
     } /* end if handling change of group ID */
@@ -735,10 +742,10 @@ rasqal_new_aggregation_rowsource(rasqal_world *world, rasqal_query* query,
 
 #ifdef HAVE_RAPTOR2_API
     expr_data0->expr_seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_expression,
-                                        (raptor_data_print_handler)rasqal_expression_print);
+                                               (raptor_data_print_handler)rasqal_expression_print);
 #else
     expr_data0->expr_seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_expression,
-                                        (raptor_sequence_print_handler*)rasqal_expression_print);
+                                               (raptor_sequence_print_handler*)rasqal_expression_print);
 #endif
     raptor_sequence_push(expr_data0->expr_seq,
                          rasqal_new_expression_from_expression(expr->arg1));
@@ -828,7 +835,7 @@ static const struct {
   const int const *result_data;
   const char* const *result_string_data;
   rasqal_op op;
-  const char* const expr_vars[MAX_TEST_VARS];
+  const char* const expr_agg_vars[MAX_TEST_VARS];
 } test_data[AGGREGATION_TESTS_COUNT] = {
   /*
    * Execute the aggregation part of SELECT (MAX(?y) AS ?fake) ... GROUP BY ?x
@@ -922,7 +929,7 @@ main(int argc, char *argv[])
   rasqal_world* world = NULL;
   rasqal_query* query = NULL;
   raptor_sequence* row_seq = NULL;
-  raptor_sequence* expr_seq = NULL;
+  raptor_sequence* expr_args_seq = NULL;
   int failures = 0;
   rasqal_variables_table* vt;
   rasqal_rowsource *input_rs = NULL;
@@ -974,19 +981,19 @@ main(int argc, char *argv[])
     }
 
 #ifdef HAVE_RAPTOR2_API
-    expr_seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_expression,
+    expr_args_seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_expression,
                                    (raptor_data_print_handler)rasqal_expression_print);
 #else
-    expr_seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_expression,
+    expr_args_seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_expression,
                                    (raptor_sequence_print_handler*)rasqal_expression_print);
 #endif
 
-    if(test_data[test_id].expr_vars[0] != NULL) {
+    if(test_data[test_id].expr_agg_vars[0] != NULL) {
       int vindex;
       const unsigned char* var_name;
       
       for(vindex = 0;
-          (var_name = (const unsigned char*)test_data[test_id].expr_vars[vindex] );
+          (var_name = (const unsigned char*)test_data[test_id].expr_agg_vars[vindex] );
           vindex++) {
         rasqal_variable* v;
         rasqal_literal *l = NULL;
@@ -1000,7 +1007,7 @@ main(int argc, char *argv[])
           e = rasqal_new_literal_expression(world, l);
 
         if(e)
-          raptor_sequence_push(expr_seq, e);
+          raptor_sequence_push(expr_args_seq, e);
         else {
           fprintf(stderr, "%s: failed to create variable %s\n", program,
                   (const char*)var_name);
@@ -1017,9 +1024,9 @@ main(int argc, char *argv[])
     output_var = rasqal_variables_table_add(vt, RASQAL_VARIABLE_TYPE_ANONYMOUS, 
                                             (const unsigned char*)output_var_name, NULL);
 
-    expr = make_test_expr(world, expr_seq, op);
-    /* expr_seq is now owned by expr */
-    expr_seq = NULL;
+    expr = make_test_expr(world, expr_args_seq, op);
+    /* expr_args_seq is now owned by expr */
+    expr_args_seq = NULL;
 
     rowsource = rasqal_new_aggregation_rowsource(world, query, input_rs,
                                                  expr, output_var);
@@ -1141,15 +1148,15 @@ main(int argc, char *argv[])
 
     rasqal_free_rowsource(rowsource); rowsource = NULL;
 
-    if(expr_seq)
-      raptor_free_sequence(expr_seq);
-    expr_seq = NULL;
+    if(expr_args_seq)
+      raptor_free_sequence(expr_args_seq);
+    expr_args_seq = NULL;
   }
   
   
   tidy:
-  if(expr_seq)
-    raptor_free_sequence(expr_seq);
+  if(expr_args_seq)
+    raptor_free_sequence(expr_args_seq);
   if(rowsource)
     rasqal_free_rowsource(rowsource);
   if(input_rs)
