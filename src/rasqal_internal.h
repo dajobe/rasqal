@@ -819,6 +819,7 @@ typedef struct {
  * @size: number of variables in @variables_sequence
  * @rows_sequence: stored sequence of rows for use by rasqal_rowsource_read_row() (or NULL)
  * @offset: size of @rows_sequence
+ * @generate_group: non-0 to generate a group (ID 0) around all the returned rows, if there is no grouping returned.
  *
  * Rasqal Row Source class providing a sequence of rows of values similar to a SQL table.
  *
@@ -863,7 +864,7 @@ struct rasqal_rowsource_s
 
   const rasqal_rowsource_handler* handler;
 
-  int finished;
+  int finished : 1;
 
   int count;
 
@@ -878,6 +879,8 @@ struct rasqal_rowsource_s
   raptor_sequence* rows_sequence;
 
   int offset;
+
+  int generate_group : 1;
 };
 
 
@@ -901,6 +904,7 @@ int rasqal_rowsource_write(rasqal_rowsource *rowsource,  raptor_iostream *iostr)
 void rasqal_rowsource_print(rasqal_rowsource* rs, FILE* fh);
 int rasqal_rowsource_ensure_variables(rasqal_rowsource *rowsource);
 int rasqal_rowsource_set_origin(rasqal_rowsource* rowsource, rasqal_literal *literal);
+int rasqal_rowsource_request_grouping(rasqal_rowsource* rowsource);
 
 typedef int (*rasqal_query_results_formatter_func)(raptor_iostream *iostr, rasqal_query_results* results, raptor_uri *base_uri);
 

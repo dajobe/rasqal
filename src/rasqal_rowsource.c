@@ -88,8 +88,10 @@ rasqal_new_rowsource_from_handler(rasqal_world* world,
   rowsource->handler = handler;
   rowsource->flags = flags;
 
-  rowsource->size= -1;
+  rowsource->size = -1;
 
+  rowsource->generate_group = 0;
+  
   if(vars_table)
     rowsource->vars_table = rasqal_new_variables_table_from_variables_table(vars_table);
   else
@@ -245,8 +247,13 @@ rasqal_rowsource_read_row(rasqal_rowsource *rowsource)
   
   if(!row)
     rowsource->finished = 1;
-  else
+  else {
     rowsource->count++;
+
+    /* Generate a group around all rows if there are no groups returned */
+    if(rowsource->generate_group && row->group_id < 0)
+      row->group_id = 0;
+  }
 
 #ifdef RASQAL_DEBUG
   RASQAL_DEBUG3("rowsource %p read %s row : ", rowsource, 
@@ -298,7 +305,7 @@ rasqal_rowsource_read_all_rows(rasqal_rowsource *rowsource)
 
   if(rowsource->handler->read_all_rows) {
     seq = rowsource->handler->read_all_rows(rowsource, rowsource->user_data);
-    if(!seq)
+    if(!seq) {
 #ifdef HAVE_RAPTOR2_API
       seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_row,
                                 (raptor_data_print_handler)rasqal_row_print);
@@ -306,6 +313,23 @@ rasqal_rowsource_read_all_rows(rasqal_rowsource *rowsource)
       seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_row,
                                 (raptor_sequence_print_handler*)rasqal_row_print);
 #endif
+    }
+
+    if(seq && rowsource->generate_group) {
+      int i;
+      rasqal_row* row;
+      
+      /* Set group for all rows if there are no groups returned */
+
+      for(i = 0; (row = raptor_sequence_get_at(seq, i)); i++) {
+        /* if first row has a group ID, end */
+        if(!i && row->group_id >= 0)
+          break;
+        
+        row->group_id = 0;
+      }
+    }
+
     return seq;
   }
 
@@ -323,6 +347,11 @@ rasqal_rowsource_read_all_rows(rasqal_rowsource *rowsource)
     rasqal_row* row = rasqal_rowsource_read_row(rowsource);
     if(!row)
       break;
+
+    /* Generate a group around all rows if there are no groups returned */
+    if(rowsource->generate_group && row->group_id < 0)
+      row->group_id = 0;
+
     raptor_sequence_push(seq, row);
   }
   
@@ -584,6 +613,14 @@ rasqal_rowsource_set_origin(rasqal_rowsource* rowsource,
   return 0;
 }
 
+
+int
+rasqal_rowsource_request_grouping(rasqal_rowsource* rowsource)
+{
+  rowsource->generate_group = 1;
+
+  return 0;
+}
 
 
 #define SPACES_LENGTH 80
