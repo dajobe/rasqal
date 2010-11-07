@@ -1,3 +1,710 @@
+2010-11-06  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_rowsource_aggregation.c: docs
+
+	* src/rasqal_rowsource_aggregation.c:
+	(rasqal_aggregation_rowsource_finish): code style
+
+	* src/rasqal_internal.h, src/rasqal_rowsource_aggregation.c:
+	
+	Aggregate rowsource now operates on seq of input expr/output vars
+
+	rasqal_aggregation_rowsource_context gains sequence of expression
+	input and sequence of output variables.
+
+	(rasqal_aggregation_rowsource_finish): Free new seqs.
+
+	(rasqal_new_aggregation_rowsource): Args now are the two sequences
+	of expressions and variables.
+
+	* src/rasqal_rowsource_aggregation.c: code style
+
+	* src/rasqal_engine_algebra.c, src/rasqal_internal.h,
+	src/rasqal_rowsource_aggregation.c: Remove func arg/field from
+	aggregation rowsource and rasqal_algebra_node
+
+	* src/rasqal_expr.c, src/rasqal_internal.h:
+	(rasqal_expression_mentions_aggregate): Added
+
+2010-11-05  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_rowsource_aggregation.c: Rename builtin_agg
+	struct/methods to rasqal_builtin_agg_expression_execute*
+
+	* src/rasqal_rowsource_aggregation.c:
+	(rasqal_aggregation_rowsource_init): Request grouping.
+
+	* src/rasqal_internal.h, src/rasqal_rowsource.c:
+	Allow rowsource users to request groups
+
+	rasqal_rowsource gains bit flag for marking request.  Turn
+	finished flag into bitflag too while here.
+
+	(rasqal_rowsource_request_grouping): Added to set flag.
+
+	(rasqal_rowsource_read_row): Synthesise group if not in output row
+
+	(rasqal_rowsource_read_rows): If seq is returned, check for group
+	ID in first row and if missing, add to rest of rows.  If no seq is
+	returned, filter each returned row and set a group ID if missing.
+
+	* src/rasqal_rowsource_aggregation.c: Add rasqal_agg_expr_data for
+	per-agg expr execution data.
+
+	rasqal_agg_expr_data added with all data that is per-aggregate
+	expression incuding input: expr, expr_seq (args) and output:
+	variable to write to, sequence of literals and the per-execution
+	data agg_user_data.
+
+	rasqal_aggregation_rowsource_context loses a bunch of fields to
+	above.  Refactor remaining code to add loops around per-expr data,
+	only supporting 1-arg initialising at this time.
+
+	* src/rasqal_rowsource_aggregation.c: Added
+	rasqal_builtin_aggregation_reset to reset state to avoid
+	finish/init pair
+
+2010-11-04  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_expr.c:
+	(rasqal_expression_clear): Do not try to clear name field for
+	group_concat.
+
+	* src/rasqal_rowsource_aggregation.c:
+	(rasqal_aggregation_rowsource_read_row): Free builtin_agg data
+	after result.
+
+	* docs/tmpl/section-data.sgml, docs/tmpl/section-expression.sgml,
+	docs/tmpl/section-graph_pattern.sgml,
+	docs/tmpl/section-triples_source.sgml, src/rasqal_internal.h,
+	src/rasqal_rowsource_groupby.c: Fixes for building with raptor V1
+
+	* src/rasqal_algebra.c, src/rasqal_engine_algebra.c,
+	src/rasqal_internal.h, src/rasqal_rowsource_aggregation.c: Alter
+	rowsource aggregation calling convention to take an expression
+
+	(rasqal_new_aggregation_rowsource): Take an expression; ditch op,
+	parameters, flags.  Parameters will return later but is not used
+	now for GROUP_CONCAT()
+
+	rasqal_algebra_node loses unused/not used used fields op,
+	parameters, flags.
+
+	(rasqal_new_aggregation_algebra_node): Take an expression; ditch
+	op, paramaters and flags.  Parameters will return later but is not
+	used now for GROUP_CONCAT().  Creates or initialises an expression
+	sequence based on the expression passed in.
+
+	rasqal_aggregation_rowsource_context loses expr_seq_size, op, func
+	and parameters fields.  Gains expr field.  builtin_agg gains expr
+	field.
+
+	(rasqal_builtin_aggregation_init): expr param replaces expr_seq,
+	op, parameters.  Parameters will return later.
+
+	(rasqal_aggregation_rowsource_finish): Destroy expr field.
+	Updated test code to make/use an expression for agg testing.
+
+	(rasqal_algebra_aggregation_algebra_node_to_rowsource): Update
+	calling convention for aggregation rowsource.
+
+2010-11-02  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_rowsource_aggregation.c:
+	Made GROUP_CONCAT work with fixed ' ' separator.
+
+	builtin_agg gains stringbuffer and separator
+
+	(rasqal_builtin_aggregation_init): Init above for group concat.
+
+	(rasqal_builtin_aggregation_finish): Free stringbuffer.
+
+	(rasqal_builtin_aggregation_step): At each step, concat the
+	literal string and put a separator before it if not first literal.
+
+	(rasqal_builtin_aggregation_result): Compute result from
+	stringbuffer.
+
+	(main): Add group concat test
+
+	* src/rasqal_engine_algebra.c:
+	(rasqal_query_engine_algebra_execute_init): code tidy
+
+	* src/rasqal_algebra.c, src/rasqal_engine_algebra.c,
+	src/rasqal_internal.h: Pull out more algebra transformations and
+	all take/return nodes
+
+	(rasqal_algebra_query_add_modifiers): Take and return a node so
+	that the algebra node tree gets modified.
+
+	(rasqal_algebra_query_add_projection): Added to add projection
+	node to algebra node tree.
+
+	(rasqal_algebra_query_add_distinct): Added to add distinct node to
+	algebra node tree.
+
+	(rasqal_query_engine_algebra_execute_init): Call new functions
+	above to transform algebra node tree.
+
+	* tests/algebra/convert_graph_pattern.c:
+	(main): Add new pulled-out query transforms.  code style
+
+	* src/rasqal_internal.h: rasqal_algebra_aggregate gains error
+	fields
+
+	* src/rasqal_algebra.c:
+	(rasqal_algebra_replace_aggregate_expressions): Added to transform
+	expression sequences with aggregages.
+
+	* src/rasqal_algebra.c:
+	(rasqal_algebra_query_prepare_aggregates): Print agg expressions
+	in debugging
+
+	* src/rasqal_internal.h: rasqal_algebra_aggregate renames
+	project_exprs field to agg_exprs and values are rasqal_expression
+
+	* src/rasqal_algebra.c: Store aggregate expression in
+	rasqal_algebra_aggregate
+
+	agg_exprs seq rasqal_algebra_aggregate renames project_exprs field
+	to agg_exprs and values are rasqal_expression
+
+	(rasqal_algebra_extract_aggregate_expressions): Alter
+	raptor_new_sequence args.
+
+	* src/rasqal_internal.h: docs
+
+	* src/rasqal_algebra.c, src/rasqal_internal.h: Introduce internal
+	rasqal_algebra_aggregate
+
+	(rasqal_free_algebra_aggregate): Added.
+
+	(rasqal_algebra_query_prepare_aggregates): Dynamically create the
+	rasqal_algebra_aggregate* and free with above.
+
+	* src/rasqal_algebra.c, src/rasqal_engine_algebra.c,
+	src/rasqal_internal.h:
+
+	(rasqal_algebra_query_prepare_aggregates): Added pulled out of
+	rasqal_algebra_query_to_algebra.
+
+	* src/rasqal_algebra.c, src/rasqal_engine_algebra.c,
+	src/rasqal_internal.h:
+
+	(rasqal_algebra_query_add_modifiers): Pulled out of
+	rasqal_algebra_query_to_algebra.
+
+2010-11-02  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_algebra.c:
+	(rasqal_algebra_query_to_algebra): don't attempt to debugprint
+	query->selects for construct queries
+
+2010-11-01  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_algebra.c: Add initial code for transforming project
+	expression to handle aggregates
+
+	struct agg_extract added for handling state during walk of select
+	expression trees.
+
+	(rasqal_agg_expr_var_compare, rasqal_free_agg_expr_var): Added for
+	support a rasqal_map of k:expression, v:variable when scanning for
+	aggregate expressions.
+
+	(rasqal_algebra_extract_aggregate_expression_visit): Added as a
+	rasqal_expression tree visit function to do an in-line change of
+	aggregate expressions to new internal variables.
+
+	(rasqal_algebra_extract_aggregate_expressions): Added to wrap
+	above transformation.
+
+	(rasqal_algebra_query_to_algebra): Call above with initialised
+	working state and print out result.  Free working state.
+
+	* src/rasqal_expr.c, src/rasqal_internal.h:
+	(rasqal_expression_convert_aggregate_to_variable): Added to do an
+	inplace edit of an expression to replace an aggregate.  This feels
+	like a hack but at least it's in one place
+
+	* src/rasqal_expr.c, src/rasqal_internal.h:
+	(rasqal_expression_is_aggregate): Added
+
+	* src/rasqal.h.in, src/rasqal_expr.c:
+	(rasqal_expression_compare): Added
+
+	* src/rasqal_expr.c, src/rasqal_literal.c: Move
+	rasqal_literal_sequence_compare to rasqal_literal.c
+
+2010-10-31  Dave Beckett <dave@dajobe.org>
+
+	* tests/sparql/aggregate/data-2.ttl: make ex:year data integer for
+	later numeric testing
+
+	* src/rasqal_algebra.c: code style
+
+	* tests/sparql/aggregate/Makefile.am,
+	tests/sparql/aggregate/agg-3.rq,
+	tests/sparql/aggregate/data-2.ttl:
+	
+	Add agg-3.rq GROUP BY test with SAMPLE (lexes, parses, does not
+	execute correctly)
+
+	* src/sparql_lexer.l: Add SAMPLE
+
+	* src/rasqal_algebra.c, src/rasqal_internal.h, src/rasqal_map.c,
+	src/rasqal_rowsource_aggregation.c: Switch aggregation parameters
+	from sequence to map
+
+	Switch raptor_sequence* parameters to rasqal_map* parameters in
+	aggregation rowsource and algebra node structures and functions.
+
+	* src/rasqal_algebra.c, src/rasqal_engine_algebra.c,
+	src/rasqal_internal.h: Start adding algebra nodes for grouping and
+	aggregation
+
+	rasqal_algebra_node_operator gains RASQAL_ALGEBRA_OPERATOR_GROUP
+	and RASQAL_ALGEBRA_OPERATOR_AGGREGATE
+
+	rasqal_algebra_node gains fields for aggregation: expr_op, func,
+	parameters and flags.  group reuses seq.
+
+	(rasqal_new_groupby_algebra_node,
+	rasqal_new_aggregation_algebra_node): Added.
+	rasqal_algebra_node_operator_labels gains labels for two new
+	algebra operators.
+
+	(rasqal_algebra_group_algebra_node_to_rowsource,
+	rasqal_algebra_aggregation_algebra_node_to_rowsource): Added.
+
+	(rasqal_algebra_query_to_algebra): Use
+	rasqal_new_groupby_algebra_node() when group conditions expression
+	is present to make a group algebra node. (Does not yet do
+	aggregation).
+
+	(rasqal_algebra_node_to_rowsource): Use
+	rasqal_algebra_group_algebra_node_to_rowsource() and
+	rasqal_algebra_aggregation_algebra_node_to_rowsource().
+
+	* src/rasqal_rowsource_aggregation.c: docs
+
+	* src/rasqal_map.c: code style
+
+	* src/rasqal.h.in: Fix rasqal_literal_type arg in source header
+
+	* src/rasqal_rowsource_aggregation.c:
+	(rasqal_builtin_aggregation_step): Fix max/min compare (main): Add
+	tests for final row outputs of aggregations
+
+	* src/rasqal_literal.c: Fix rasqal_literal_write_type
+
+	* src/rasqal.h.in, src/rasqal_literal.c:
+	(rasqal_literal_type_label): Added and used for debug prints
+
+2010-10-30  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_rowsource_aggregation.c:
+	(rasqal_aggregation_rowsource_read_row): Create output row
+	connected to rowsource.
+
+	* src/rasqal_rowsource_aggregation.c: Add MIN, SUM, AVG, SAMPLE to
+	tests
+
+	* src/rasqal_row.c:
+	(rasqal_new_row_sequence): Make integer literals from things that
+	strtol() likes i.e. match ^[0-9]$
+
+	* src/rasqal_rowsource_aggregation.c: Implement SAMPLE and AVG
+
+	* src/rasqal_rowsource_aggregation.c: Aggregation works over
+	multiple group inputs
+
+	rasqal_aggregation_rowsource_context gains last_group_id to know
+	boundaries, saved_row to store a row when a boundary change
+	happens and offset to mark output rows correctly.
+
+	(rasqal_aggregation_rowsource_init): Move agg init into read_row
+	factory method.  Init last_group_id and offset.
+
+	(rasqal_aggregation_rowsource_finish): Tidy up saved_row if left.
+
+	(rasqal_aggregation_rowsource_read_row): Restructured to recognize
+	start/end of group boundaries and end of input to know when to
+	init/finish aggregation.  Otherwise, read input rows.
+
+	(main): Make test expect 2 row results as it should be.
+
+	* src/rasqal_rowsource_aggregation.c: Move literal_seq to a field
+	of rasqal_aggregation_rowsource_context for reuse across groups.
+
+	* src/rasqal_rowsource_aggregation.c:
+	(rasqal_aggregation_rowsource_read_row): Evaluate expressions to
+	form list of literals for aggregations step.
+
+	* src/rasqal.h.in, src/rasqal_expr.c:
+	(rasqal_expression_op_label): Added public function
+
+	(rasqal_expression_write_op, rasqal_expression_print_op): Internal
+	functions just call above.
+
+	* src/rasqal_internal.h:
+	(rasqal_new_aggregation_rowsource): Add flags arg.
+
+	* src/rasqal_rowsource_aggregation.c:
+	(rasqal_new_aggregation_rowsource): Add flags arg.
+
+2010-10-28  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_internal.h, src/rasqal_rowsource_aggregation.c:
+	Initial aggregation rowsource executes
+
+	There are many issues to fix primarily in the execution steps to
+	use the expression sequence and the issue of what to name the
+	result variable, which the execution engine needs to decide.
+
+	* src/rasqal_rowsource_aggregation.c,
+	src/rasqal_rowsource_groupby.c: Implement get_inner_rowsource
+	rowsource method for groupby and aggregation rowsources
+
+	* src/Makefile.am, src/rasqal_internal.h,
+	src/rasqal_rowsource_aggregation.c: Add skeleton aggregation
+	rowsource with test that just copies rows through (cat rowsource)
+
+	* src/rasqal_literal.c: less verbose when debugging
+
+	* src/rasqal_rowsource_groupby.c: aargh
+
+	* src/rasqal_format_table.c:
+	(rasqal_query_results_write_table_bindings): Fix for raptor V2
+
+	* src/rasqal_rowsource_groupby.c: Make group ID orders work for
+	avltree ordering and raptor V1 sequence ordering
+
+	* src/rasqal_rowsource_groupby.c:
+	(raptor_avltree_search): compare correctly for raptor
+
+	* src/rasqal_format_table.c:
+	(rasqal_query_results_write_table_bindings): Remove unused world var
+
+2010-10-28  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_query_results.c:
+	(rasqal_query_results_update_bindings): Do not access row values
+	beyond row size
+
+2010-10-27  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_rowsource_groupby.c:
+	(main): Check number of groups returned is as expected
+
+	* src/rasqal_rowsource_groupby.c: Add US Senators data test #3
+	with 2 group by vars, many groups
+
+	* src/rasqal_expr.c:
+	(rasqal_literal_sequence_compare): Make less debug verbose
+
+	* src/rasqal_row.c:
+	(rasqal_new_row_sequence): Remove local reference to new literal.
+
+	* src/rasqal_rowsource_groupby.c: Fix variable ownership and
+	cleanup in tests
+
+	* src/rasqal_rowsource_groupby.c: Fix groupby rowsource row
+	returning to always return a new row
+
+	(rasqal_groupby_rowsource_process): Do not copy row, let sequence
+	own it.
+
+	(rasqal_groupby_rowsource_read_row): Delete row from sequence so
+	reference is passed back.
+
+	* src/rasqal_rowsource_groupby.c:
+	(Fake raptor_avltree_print): Return int on error
+
+	* src/rasqal_rowsource_rowsequence.c:
+	(rasqal_rowsequence_rowsource_finish): Free owned vars_seq
+
+	* src/rasqal_rowsource_groupby.c: Memory
+	tracking
+
+	(rasqal_groupby_rowsource_finish): Ensure avltree iterator is
+	destroyed
+
+	(rasqal_groupby_rowsource_process): Copy/take reference to row
+	before saving.
+
+	* src/rasqal_rowsource_groupby.c: Refactor tests to be data driven
+
+	* src/rasqal_rowsource_groupby.c: Print out grouping when computed
+	and debugging
+
+2010-10-26  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_rowsource_groupby.c: Add a fake rasqal_avltree to
+	make groups work for Raptor V1
+
+2010-10-25  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_internal.h: Added rasqal_row_bind_variables and fixed
+	rasqal_new_groupby_rowsource()
+
+	* src/rasqal_row.c:
+	(rasqal_row_bind_variables): Added.
+
+	* src/rasqal_rowsource_groupby.c: GROUP BY rowsource passes unit
+	tests for no grouping / grouping
+
+	(rasqal_groupby_rowsource_process): Using processed flag to know
+	when to do no work so that when there are no expressions, the
+	group ID is setup.  Use rasqal_row_bind_variables() to bind
+	variables from the row into the variables table.  Add the node
+	containing rows to the avltree in order to group them.
+
+	(rasqal_groupby_rowsource_read_row): Handle no expression case as
+	well as avltree/expression list case.
+
+	(rasqal_new_groupby_rowsource): Add rowsource arg and save it.
+	Tidy error cleanup path.
+
+	(main): Add test case for no group by expression and one from
+	SPARQL 1.1 query draft
+
+	* src/rasqal_row.c: Set/show group IDs in rows
+
+	(rasqal_new_row_common): Set default row group_id to
+	-1 (rasqal_row_print): Print group_id if in range >= 0
+
+	* src/rasqal_expr.c:
+	(rasqal_expression_sequence_evaluate): Save a copy/free literal.
+
+	* src/rasqal_expr.c:
+	(rasqal_expression_sequence_evaluate): Do ignore errors when
+	ignore_errors arg is set.
+
+	(rasqal_literal_sequence_compare): Docs
+
+	* src/rasqal_rowsource_groupby.c: Update groupby rowsource to use
+	raptor_avltree for grouping
+
+	Added typedef rasqal_groupby_tree_node to use as nodes in avltree.
+
+	(rasqal_free_groupby_tree_node,
+	rasqal_free_groupby_tree_print_node): Added.
+
+	(rasqal_rowsource_groupby_literal_sequence_compare): Added to
+	compare a sequence of literals in an avltree comparison.
+
+	(rasqal_groupby_rowsource_init): Init group_id and row offset.
+
+	(rasqal_groupby_rowsource_finish): Destry input rowsource, avltree
+	if set.
+
+	(rasqal_groupby_rowsource_ensure_variables): Call input rowsource.
+
+	(rasqal_groupby_rowsource_process): Added to do the grouping logic
+	- read all input rows, add them to the avltree if new, extend
+	sequence of rows.  Initilise an avltree iterator and sequence
+	index.
+
+	(rasqal_groupby_rowsource_read_row): Call above to ensure group
+	data is there then deliver rows from store using the avltree
+	iterator and sequence index.
+
+	(rasqal_groupby_new_map): Deleted.
+
+	* src/rasqal_expr.c, src/rasqal_internal.h,
+	src/rasqal_rowsource_groupby.c:
+	(rasqal_expression_sequence_evaluate): Put OUT parameters at end.
+
+	* src/rasqal_rowsource_groupby.c: Group by rowsource gains map for
+	grouping and map factory method.  Added but looks like a
+	raptor_avltree would be better since it allows lookups.
+
+	(rasqal_groupby_new_map): Added to make a map for grouping.
+
+	* src/rasqal_expr.c, src/rasqal_internal.h:
+	(rasqal_literal_sequence_compare,
+	rasqal_expression_sequence_evaluate): Added.
+
+	* src/Makefile.am, src/rasqal_internal.h,
+	src/rasqal_rowsource_groupby.c: Added skeleton of groupby
+	rowsource
+
+	(rasqal_new_groupby_rowsource): Added taking sequence of
+	expressions.  Need to add HAVING conditions and possibly other
+	flags.
+
+	* src/rasqal_expr.c, src/rasqal_internal.h:
+	(rasqal_expression_copy_expression_sequence): Added
+
+2010-10-21  Lauri Aalto <laalto@iki.fi>
+
+	* src/strcasecmp.c:
+	(rasqal_strcasecmp,rasqal_strncasecmp): Fixed gcc "array subscript
+	has type ‘char’" warnings
+
+	* src/rasqal_query_transform.c: #ws
+
+2010-10-20  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_algebra.c, src/rasqal_engine.c,
+	src/rasqal_engine_sort.c, src/rasqal_internal.h,
+	src/rasqal_query.c, src/rasqal_query_results.c,
+	src/rasqal_query_transform.c, src/rasqal_query_write.c,
+	src/rasqal_rowsource_sort.c, src/sparql_parser.y: Move solution
+	modifiers in query from fields to rasqal_modifier fields.
+
+	rasqal_query loses fields limit, offset,
+	order_conditions_sequence, group_conditions_sequence and
+	having_conditions_sequence.
+
+	(rasqal_new_query, rasqal_free_query): Do not init/free fields.
+
+	(rasqal_query_get_limit, rasqal_query_set_limit,
+	rasqal_query_get_offset, rasqal_query_set_offset,
+	rasqal_query_get_order_conditions_sequence,
+	rasqal_query_get_order_condition,
+	rasqal_query_get_group_conditions_sequence,
+	rasqal_query_get_group_condition,
+	rasqal_query_get_having_conditions_sequence,
+	rasqal_query_get_having_condition, rasqal_query_print): Update for
+	field changes and do not access modifier if it is NULL.  Adjust
+	docs to note cannot set limit or offset until query is prepared,
+	ie after parsing.
+
+	(rasqal_algebra_query_to_algebra, rasqal_engine_make_rowsource,
+	rasqal_engine_rowsort_calculate_order_values,
+	rasqal_query_results_execute_with_engine,
+	rasqal_query_results_check_limit_offset,
+	rasqal_query_results_get_count,
+	rasqal_query_results_execute_and_store_results,
+	rasqal_query_build_variables_use_map,
+	rasqal_query_write_sparql_20060406, rasqal_sort_rowsource_init):
+	Use query methods to get limit, offset fields rather than direct
+	access.
+
+	(SPARQL parser WhereClauseOpt): Return solution modifier and do not
+	write to query fields.
+
+2010-10-19  Dave Beckett <dave@dajobe.org>
+
+	* utils/roqet.c:
+	Make dryrun be success (exit 0)
+
+	* utils/roqet.c:
+	(roqet_init_query: Do not free data graphs here,
+	let main() do it
+
+	* src/rasqal_service.c: Cleanup allocations
+
+	(rasqal_free_service): Free
+	object (rasqal_service_content_type_handler): Only check content
+	type for ; or ' ' if not NULL.  Code tidy
+
+	* src/rasqal.h.in, src/rasqal_service.c, utils/roqet.c:
+	
+	rasqal_new_service now takes an optional list of data
+	graphs (rasqal_new_service): Add new raptor_sequence* data_graphs
+	arg.
+
+	(rasqal_service_execute): Use data graphs to add default-graph-uri
+	and named-graph-uri parameters to the sparql protocol service URI
+	that is resolved.  Update roqet to pass in data graphs from command line.
+
+	* src/rasqal.h.in, src/rasqal_data_graph.c: Add usage counting and
+	copy constructor for rasqal_data_graph
+
+	rasqal_data_graph gains new int usage field.
+
+	(rasqal_new_data_graph_from_data_graph): Added
+
+	(rasqal_new_data_graph_common, rasqal_free_data_graph): Handle
+	usage counts.
+
+	* utils/roqet.c:
+	# code style
+
+2010-10-18  Dave Beckett <dave@dajobe.org>
+
+	* utils/roqet.c: docs
+
+	* src/rasqal_service.c: Tidy some service function args
+
+	(rasqal_new_service): Allow NULL query_string.
+
+	(rasqal_free_service): autodocs
+
+	(rasqal_service_set_www): autodocs for NULL www
+
+	(rasqal_service_set_format): autodocs for NULL format
+
+	* src/rasqal_service.c: Restore local
+	raptor_stringbuffer_append_uri_escaped_counted_string()
+
+	* utils/roqet.c: Switch to using rasqal_service to execute sparql
+	protocol service
+
+	* src/rasqal_service.c: Make rasqal_service_execute use correct
+	variables
+
+	(rasqal_service_execute): Fix aliasing of www var with svc->www.
+	Rename sb to uri_sb for clarity since there is a local and svc
+	stringbuffer in use.
+
+	* src/Makefile.am, src/rasqal.h.in, src/rasqal_service.c: Added
+	rasqal_service class for executing remote queries
+
+	Added public rasqal_service
+
+	Internal typedef rasqal_service_s
+
+	(rasqal_new_service, rasqal_free_service): Added constructor and
+	destructor.  Args will change since no data graphs are passed in
+	yet.
+
+	(rasqal_service_set_www): Added to set WWW object
+
+	(rasqal_service_set_format): Added to set request Accept header.
+
+	(rasqal_service_execute): Added to execute remote query and get
+	back a result set.  May need to be changed to use a rowsource for
+	internal execution inside a query for a SPARQL 1.1 SERVICE.
+
+	* utils/roqet.c: Remove raptor_world* from
+	roqet_call_sparql_service()
+
+	* utils/roqet.c: Also conditionally define
+	raptor_stringbuffer_append_hexadecimal
+
+	* configure.ac, utils/roqet.c: Use
+	raptor_stringbuffer_append_uri_escaped_counted_string() when
+	present.
+
+	(raptor_stringbuffer_append_uri_escaped_counted_string): Defined
+	here if not available in raptor2.
+
+	* utils/roqet.c: Use HAVE_RAPTOR_STRINGBUFFER_APPEND_HEXADECIMAL
+	to not use internal version.
+
+	* configure.ac: Add configure test for
+	raptor_stringbuffer_append_hexadecimal() defining
+	HAVE_RAPTOR_STRINGBUFFER_APPEND_HEXADECIMAL
+
+	* src/rasqal.h.in, src/rasqal_query_transform.c,
+	src/rasqal_variable.c, src/rdql_parser.y, src/sparql_parser.y:
+	Deprecate rasqal_new_variable() and rasqal_new_variable_typed()
+	for rasqal_variables_table_add()
+
+	(rasqal_new_variable, rasqal_new_variable_typed): Already were
+	calling rasqal_variables_table_add() but add deprecated docs and
+	flag to prototype.  Update all callers to use
+	rasqal_variables_table_add().
+
+	* utils/roqet.c: Use and allow -p URI and -e QUERY for protocol
+	invocations.
+
+	* utils/roqet.1: Document -p
+
 2010-10-18  Lauri Aalto <laalto@iki.fi>
 
 	* src/rasqal_projection.c: #filename in boilerplate
