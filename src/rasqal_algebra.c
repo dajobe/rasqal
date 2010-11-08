@@ -1441,8 +1441,18 @@ rasqal_algebra_extract_aggregate_expression_visit(void *user_data,
 
   ae->error = 0;
 
-  if(!rasqal_expression_is_aggregate(e))
+  /* If not an aggregate expression, just add it */
+  if(!rasqal_expression_is_aggregate(e)) {
+    e = rasqal_new_expression_from_expression(e);
+    
+    if(raptor_sequence_push(ae->agg_exprs, e)) {
+      ae->error = 1;
+      return 1;
+    }
+
     return 0;
+  }
+
 
   /* is expression is in map? */
   v = rasqal_map_search(ae->agg_vars, e);
@@ -1581,8 +1591,10 @@ rasqal_algebra_extract_aggregate_expressions(rasqal_query* query,
   }
 
   tidy:
+  if(ae->error)
+    rc = 1;
   
-  return 0;
+  return rc;
 }
 
 
@@ -1709,6 +1721,8 @@ rasqal_algebra_query_prepare_aggregates(rasqal_query* query,
       raptor_sequence_print(ae->agg_exprs, stderr);
       fputs("\n", stderr);
     }
+  } else {
+    RASQAL_DEBUG1("found no aggregate expressions in select\n");
   }
 #endif
 
