@@ -250,7 +250,7 @@ rasqal_builtin_agg_expression_execute_step(void* user_data,
     
 
   for(i = 0; (l = (rasqal_literal*)raptor_sequence_get_at(literals, i)); i++) {
-    rasqal_literal* result;
+    rasqal_literal* result = NULL;
 
     if(b->expr->op == RASQAL_EXPR_SAMPLE) {
       /* Sample chooses the first literal it sees */
