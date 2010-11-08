@@ -1637,8 +1637,8 @@ rasqal_algebra_query_to_algebra(rasqal_query* query)
 }
 
 
-static void
-rasqal_free_algebra_aggregate(rasqal_algebra_aggregate* ae) 
+void
+rasqal_free_algebra_aggregate(rasqal_algebra_aggregate* ae)
 {
   if(!ae)
     return;
@@ -1690,9 +1690,9 @@ rasqal_algebra_replace_aggregate_expressions(rasqal_query* query,
  *
  * INTERNAL - prepare query aggregates
  *
- * Return value: non-0 on failure
+ * Return value: aggregate expression data or NULL on failure
  */
-int
+rasqal_algebra_aggregate*
 rasqal_algebra_query_prepare_aggregates(rasqal_query* query,
                                         rasqal_algebra_node* node)
 {
@@ -1702,12 +1702,12 @@ rasqal_algebra_query_prepare_aggregates(rasqal_query* query,
   ae = (rasqal_algebra_aggregate*)RASQAL_CALLOC(rasqal_algebra_aggregate,
                                                 sizeof(*ae), 1);
   if(!ae)
-    return 1;
+    return NULL;
 
   if(rasqal_algebra_extract_aggregate_expressions(query, node, ae)) {
     RASQAL_DEBUG1("rasqal_algebra_extract_aggregate_expressions() failed");
     rasqal_free_algebra_node(node);
-    return 1;
+    return NULL;
   }
 
 #if RASQAL_DEBUG
@@ -1736,20 +1736,13 @@ rasqal_algebra_query_prepare_aggregates(rasqal_query* query,
                                                     ae)) {
       RASQAL_DEBUG1("rasqal_algebra_replace_aggregate_expressions() failed");
       rasqal_free_algebra_node(node);
-      return 1;
+      return NULL;
     }
   }
   
-
-  /* store/clean agg expression state: where to store it since this
-   * is not inside the engine
-   */
-
-  rasqal_free_algebra_aggregate(ae);
-
   modified = 0;
   
-  return 0;
+  return ae;
 }
 
 

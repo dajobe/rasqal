@@ -1409,11 +1409,13 @@ int rasqal_algebra_algebra_node_write(rasqal_algebra_node *node, raptor_iostream
 int rasqal_algebra_node_print(rasqal_algebra_node* node, FILE* fh);
 int rasqal_algebra_node_visit(rasqal_query *query, rasqal_algebra_node* node, rasqal_algebra_node_visit_fn fn, void *user_data);
 rasqal_algebra_node* rasqal_algebra_query_to_algebra(rasqal_query* query);
-int rasqal_algebra_query_prepare_aggregates(rasqal_query* query, rasqal_algebra_node* node);
 rasqal_algebra_node* rasqal_algebra_query_add_modifiers(rasqal_query* query, rasqal_algebra_node* node);
 rasqal_algebra_node* rasqal_algebra_query_add_projection(rasqal_query* query, rasqal_algebra_node* node);
 rasqal_algebra_node* rasqal_algebra_query_add_distinct(rasqal_query* query, rasqal_algebra_node* node);
 int rasqal_algebra_node_is_empty(rasqal_algebra_node* node);
+
+rasqal_algebra_aggregate* rasqal_algebra_query_prepare_aggregates(rasqal_query* query, rasqal_algebra_node* node);
+void rasqal_free_algebra_aggregate(rasqal_algebra_aggregate* ae);
 
 /* rasqal_variable.c */
 rasqal_variables_table* rasqal_new_variables_table_from_variables_table(rasqal_variables_table* vt);

@@ -507,6 +507,7 @@ rasqal_query_engine_algebra_execute_init(void* ex_data,
   rasqal_engine_error error;
   int rc = 0;
   rasqal_algebra_node* node;
+  rasqal_algebra_aggregate* ae;
   
   execution_data = (rasqal_engine_algebra_data*)ex_data;
 
@@ -526,8 +527,12 @@ rasqal_query_engine_algebra_execute_init(void* ex_data,
   if(!node)
     return 1;
 
-  if(rasqal_algebra_query_prepare_aggregates(query, node))
+  ae = rasqal_algebra_query_prepare_aggregates(query, node);
+  if(!ae)
     return 1;
+
+  if(ae)
+    rasqal_free_algebra_aggregate(ae);
 
   node = rasqal_algebra_query_add_modifiers(query, node);
   if(!node)
