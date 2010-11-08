@@ -498,42 +498,42 @@ rasqal_new_groupby_algebra_node(rasqal_query* query,
  * rasqal_new_aggregation_algebra_node:
  * @query: #rasqal_query query object
  * @node1: inner algebra node
- * @expr: aggregate expression
- * @func: funciton
+ * @expr_seq: sequence of #rasqal_expression
+ * @vars_seq: sequence of #rasqal_sequence
  *
- * INTERNAL - Create a new AGGREGATION algebra node for a query with aggregate operation
+ * INTERNAL - Create a new AGGREGATION algebra node for a query over a sequence of expressions to variables
  * 
- * On construction @node1 and @expr become owned by the new node.
- * @func must be given if @op is #RASQAL_EXPR_FUNCTION.
+ * On construction @node1, @exprs_seq and @vars_seq become owned by
+ * the new node.
  *
  * Return value: a new #rasqal_algebra_node object or NULL on failure
  **/
 rasqal_algebra_node*
 rasqal_new_aggregation_algebra_node(rasqal_query* query,
                                     rasqal_algebra_node* node1,
-                                    rasqal_expression* expr,
-                                    void* func)
+                                    raptor_sequence* exprs_seq,
+                                    raptor_sequence* vars_seq)
 {
   rasqal_algebra_node* node;
 
-  if(!query || !node1 || !expr)
-    goto fail;
-
-  if(expr->op == RASQAL_EXPR_FUNCTION && !func)
+  if(!query || !node1 || !exprs_seq || !vars_seq)
     goto fail;
 
   node = rasqal_new_algebra_node(query, RASQAL_ALGEBRA_OPERATOR_AGGREGATION);
   if(node) {
     node->node1 = node1;
-    node->expr = expr;
+    node->seq = exprs_seq;
+    node->vars_seq = vars_seq;
     return node;
   }
 
   fail:
   if(node1)
     rasqal_free_algebra_node(node1);
-  if(expr)
-    rasqal_free_expression(expr);
+  if(exprs_seq)
+    raptor_free_sequence(exprs_seq);
+  if(vars_seq)
+    raptor_free_sequence(vars_seq);
 
   return NULL;
 }
