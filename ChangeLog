@@ -1,3 +1,41 @@
+2010-11-08  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_rowsource_aggregation.c:
+	(rasqal_builtin_agg_expression_execute_step): fixed warning:
+	result may be used before being set
+
+2010-11-07  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_algebra.c, src/rasqal_engine_algebra.c,
+	src/rasqal_internal.h: Return rasqal_algebra_aggregate to engine
+
+	(rasqal_algebra_query_prepare_aggregates): return
+	rasqal_algebra_aggregate.
+
+	(rasqal_free_algebra_aggregate): Export internally.
+
+	(rasqal_query_engine_algebra_execute_init): Update
+	call to above and free returned structure.
+
+	* src/rasqal_algebra.c: When looking for aggregate expressions,
+	preserve scalar ones
+
+	(rasqal_algebra_extract_aggregate_expression_visit): Add scalar
+	exprs to agg_exprs list.
+
+	(rasqal_algebra_query_prepare_aggregates): Debug message when no
+	agg exprs found.
+
+	* src/rasqal_algebra.c, src/rasqal_engine_algebra.c,
+	src/rasqal_internal.h: Store sequence of expr + vars in algebra
+	node for aggregation
+
+	(rasqal_new_aggregation_algebra_node): Change params to be two
+	sequences of expressions and variables.
+
+	rasqal_algebra_node update docs for AGGREGATION using of sequence
+	fields.
+
 2010-11-06  Dave Beckett <dave@dajobe.org>
 
 	* src/rasqal_rowsource_aggregation.c: docs
