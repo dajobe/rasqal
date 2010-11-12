@@ -99,7 +99,7 @@ typedef struct
   /* output variables to bind (in order) */
   raptor_sequence* vars_seq;
   
-  /* pointer to array of data per expression */
+  /* pointer to array of data per aggregate expression */
   rasqal_agg_expr_data* expr_data;
   
   /* number of agg expressions (size of exprs_seq, vars_seq, expr_data) */
@@ -116,6 +116,16 @@ typedef struct
 
   /* output row offset */
   int offset;
+
+  /* sequence of values from input rowsource to copy/sample through */
+  raptor_sequence* input_values;
+
+  /* number of variables/values on input rowsource to copy/sample through
+   * (size of @input_values) */
+  int input_values_count;
+
+  /* step into current group */
+  int step_count;
 } rasqal_aggregation_rowsource_context;
 
 
@@ -398,9 +408,19 @@ rasqal_aggregation_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
     }
   }
 
+#ifdef HAVE_RAPTOR2_API
+  con->input_values = raptor_new_sequence((raptor_data_free_handler)rasqal_free_literal,
+                                          (raptor_data_print_handler)rasqal_literal_print);
+#else
+  con->input_values = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_literal,
+                                          (raptor_sequence_print_handler*)rasqal_literal_print);
+#endif
+    
+
   con->last_group_id = -1;
   con->offset = 0;
-
+  con->step_count = 0;
+  
   if(rasqal_rowsource_request_grouping(con->rowsource))
     return 1;
   
@@ -448,6 +468,9 @@ rasqal_aggregation_rowsource_finish(rasqal_rowsource* rowsource,
   if(con->saved_row)
     rasqal_free_row(con->saved_row);
 
+  if(con->input_values)
+    raptor_free_sequence(con->input_values);
+
   RASQAL_FREE(rasqal_aggregation_rowsource_context, con);
 
   return 0;
@@ -468,6 +491,11 @@ rasqal_aggregation_rowsource_ensure_variables(rasqal_rowsource* rowsource,
     return 1;
 
   rowsource->size = 0;
+
+  if(rasqal_rowsource_copy_variables(rowsource, con->rowsource))
+    return 1;
+
+  con->input_values_count = rowsource->size;
 
   for(i = 0; i < con->expr_count; i++) {
     rasqal_agg_expr_data* expr_data = &con->expr_data[i];
@@ -570,6 +598,18 @@ rasqal_aggregation_rowsource_read_row(rasqal_rowsource* rowsource,
     if(1) {
       int i;
 
+      if(!con->step_count) {
+        /* copy first value row from input rowsource */
+        for(i = 0; i < con->input_values_count; i++) {
+          rasqal_literal* value;
+          
+          value = rasqal_new_literal_from_literal(row->values[i]);
+          raptor_sequence_set_at(con->input_values, i, value);
+        }
+      }
+
+      con->step_count++;
+      
       for(i = 0; i < con->expr_count; i++) {
         rasqal_agg_expr_data* expr_data = &con->expr_data[i];
         
@@ -609,10 +649,27 @@ rasqal_aggregation_rowsource_read_row(rasqal_rowsource* rowsource,
       row = NULL;
     }
   } else {
+    int offset = 0;
     int i;
-    
+
+    /* Generate result row and reset for next group */
     row = rasqal_new_row(rowsource);
 
+    /* Copy scalar results through */
+    for(i = 0; i < con->input_values_count; i++) {
+      rasqal_literal* result;
+
+      /* Reset: get and delete any stored input rowsource literal */
+      result = (rasqal_literal*)raptor_sequence_delete_at(con->input_values, i);
+
+      rasqal_row_set_value_at(row, offset, result);
+      rasqal_free_literal(result);
+      
+      offset++;
+    }
+
+
+    /* Set aggregate results */
     for(i = 0; i < con->expr_count; i++) {
       rasqal_literal* result;
       rasqal_agg_expr_data* expr_data = &con->expr_data[i];
@@ -631,12 +688,13 @@ rasqal_aggregation_rowsource_read_row(rasqal_rowsource* rowsource,
 #endif
       
       if(result) {
-        /* FIXME - assigns value by offset not by var name */
-        rasqal_row_set_value_at(row, i, result);
+        rasqal_row_set_value_at(row, offset, result);
         
         rasqal_free_literal(result);
       }
     
+      offset++;
+
       if(rasqal_builtin_agg_expression_execute_reset(expr_data->agg_user_data)) {
         rasqal_free_row(row);
         row = NULL;
@@ -644,6 +702,8 @@ rasqal_aggregation_rowsource_read_row(rasqal_rowsource* rowsource,
       }
     }
 
+    con->step_count = 0;
+      
     if(row)
       row->offset = con->offset++;
   }
@@ -980,8 +1040,9 @@ main(int argc, char *argv[])
   vt = query->vars_table;
   
   for(test_id = 0; test_id < AGGREGATION_TESTS_COUNT; test_id++) {
-    int expected_rows_count = test_data[test_id].output_rows;
-    int expected_vars_count = test_data[test_id].output_vars;
+    int input_vars_count = test_data[test_id].input_vars;
+    int output_rows_count = test_data[test_id].output_rows;
+    int output_vars_count = test_data[test_id].output_vars;
     const int* input_group_ids = test_data[test_id].group_ids;
     const int* result_int_data = test_data[test_id].result_data;
     const char* const* result_string_data = test_data[test_id].result_string_data;
@@ -993,7 +1054,16 @@ main(int argc, char *argv[])
     char* output_var_name;
     rasqal_variable* output_var;
     rasqal_expression* expr;
+    int output_row_size = (input_vars_count + output_vars_count);
     
+    if(output_vars_count != 1) {
+      fprintf(stderr,
+              "%s: test %d expects %d variables which is not supported. Test skipped\n",
+              program, test_id, output_vars_count);
+      failures++;
+      goto tidy;
+    }
+
     row_seq = rasqal_new_row_sequence(world, vt, test_data[test_id].data,
                                       test_data[test_id].input_vars, &vars_seq);
     if(row_seq) {
@@ -1103,92 +1173,136 @@ main(int argc, char *argv[])
       goto tidy;
     }
     count = raptor_sequence_size(seq);
-    if(count != expected_rows_count) {
+    if(count != output_rows_count) {
       fprintf(stderr,
               "%s: test %d rasqal_rowsource_read_all_rows() returned %d rows for a aggregation rowsource, expected %d\n",
-              program, test_id, count, expected_rows_count);
+              program, test_id, count, output_rows_count);
       failures++;
       goto tidy;
     }
 
     size = rasqal_rowsource_get_size(rowsource);
-    if(size != expected_vars_count) {
+    if(size != output_row_size) {
       fprintf(stderr,
               "%s: test %d rasqal_rowsource_get_size() returned %d columns (variables) for a aggregation rowsource, expected %d\n",
-              program, test_id, size, expected_vars_count);
+              program, test_id, size, output_row_size);
       failures++;
       goto tidy;
     }
 
     if(result_int_data) {
-      for(i = 0; i < expected_rows_count; i++) {
+      for(i = 0; i < output_rows_count; i++) {
         rasqal_row* row = (rasqal_row*)raptor_sequence_get_at(seq, i);
         rasqal_literal* value;
         int integer;
         int expected_integer = result_int_data[i];
+        int vc;
         
-        if(row->size != 1) {
+        if(row->size != output_row_size) {
           fprintf(stderr,
-                  "%s: test %d row #%d is size %d expected 1\n",
-                  program, test_id, i, row->size);
+                  "%s: test %d row #%d is size %d expected %d\n",
+                  program, test_id, i, row->size, output_row_size);
           failures++;
           goto tidy;
         }
         
-        value = row->values[0];
-        if(value->type != RASQAL_LITERAL_INTEGER) {
-          fprintf(stderr,
-                  "%s: test %d row #%d result is type %s expected integer\n",
-                  program, test_id, i, rasqal_literal_type_label(value->type));
-          failures++;
-          goto tidy;
-        }
+        /* Expected variable ordering in output row is:
+         * {input vars} {output_vars}
+         */
+        for(vc = 0; vc < output_vars_count; vc++) {
+          rasqal_variable* row_var;
+          int offset = input_vars_count + vc;
+          
+          row_var = rasqal_rowsource_get_variable_by_offset(rowsource, offset);
+          value = row->values[offset]; 
 
-        integer = rasqal_literal_as_integer(value, NULL);
-        
-        if(integer != expected_integer) {
-          fprintf(stderr,
-                  "%s: test %d row #%d result is %d expected %d\n",
-                  program, test_id, i, integer, expected_integer);
-          failures++;
-          goto tidy;
+          if(!value) {
+            fprintf(stderr,
+                    "%s: test %d row #%d %s value #%d result is NULL\n",
+                    program, test_id, i, row_var->name, vc);
+            failures++;
+            goto tidy;
+          }
+
+          if(value->type != RASQAL_LITERAL_INTEGER) {
+            fprintf(stderr,
+                    "%s: test %d row #%d %s value #%d result is type %s expected integer\n",
+                    program, test_id, i, row_var->name, vc,
+                    rasqal_literal_type_label(value->type));
+            failures++;
+            goto tidy;
+          }
+
+          integer = rasqal_literal_as_integer(value, NULL);
+
+          if(integer != expected_integer) {
+            fprintf(stderr,
+                    "%s: test %d row #%d %s value #%d result is %d expected %d\n",
+                    program, test_id, i, row_var->name, vc,
+                    integer, expected_integer);
+            failures++;
+            goto tidy;
+          }
         }
+        
       }
     }
     
     if(result_string_data) {
-      for(i = 0; i < expected_rows_count; i++) {
+      for(i = 0; i < output_rows_count; i++) {
         rasqal_row* row = (rasqal_row*)raptor_sequence_get_at(seq, i);
         rasqal_literal* value;
         const unsigned char* str;
         const char* expected_string = result_string_data[i];
+        int vc;
         
-        if(row->size != 1) {
+        if(row->size != output_row_size) {
           fprintf(stderr,
-                  "%s: test %d row #%d is size %d expected 1\n",
-                  program, test_id, i, row->size);
+                  "%s: test %d row #%d is size %d expected %d\n",
+                  program, test_id, i, row->size, output_row_size);
           failures++;
           goto tidy;
         }
         
-        value = row->values[0];
-        if(value->type != RASQAL_LITERAL_STRING) {
-          fprintf(stderr,
-                  "%s: test %d row #%d result is type %s expected integer\n",
-                  program, test_id, i, rasqal_literal_type_label(value->type));
-          failures++;
-          goto tidy;
-        }
+        /* Expected variable ordering in output row is:
+         * {input vars} {output_vars}
+         */
+        for(vc = 0; vc < output_vars_count; vc++) {
+          rasqal_variable* row_var;
+          int offset = input_vars_count + vc;
 
-        str = rasqal_literal_as_string(value);
-        
-        if(strcmp((const char*)str, expected_string)) {
-          fprintf(stderr,
-                  "%s: test %d row #%d result is %s expected %s\n",
-                  program, test_id, i, str, expected_string);
-          failures++;
-          goto tidy;
+          row_var = rasqal_rowsource_get_variable_by_offset(rowsource, offset);
+          value = row->values[offset]; 
+
+          if(!value) {
+            fprintf(stderr,
+                    "%s: test %d row #%d %s value #%d result is NULL\n",
+                    program, test_id, i, row_var->name, vc);
+            failures++;
+            goto tidy;
+          }
+
+          if(value->type != RASQAL_LITERAL_STRING) {
+            fprintf(stderr,
+                    "%s: test %d row #%d %s value #%d is type %s expected integer\n",
+                    program, test_id, i, row_var->name, vc,
+                    rasqal_literal_type_label(value->type));
+            failures++;
+            goto tidy;
+          }
+
+          str = rasqal_literal_as_string(value);
+
+          if(strcmp((const char*)str, expected_string)) {
+            fprintf(stderr,
+                    "%s: test %d row #%d %s value #%d is %s expected %s\n",
+                    program, test_id, i, row_var->name, vc,
+                    str, expected_string);
+            failures++;
+            goto tidy;
+          }
         }
+        
       }
     }
     
