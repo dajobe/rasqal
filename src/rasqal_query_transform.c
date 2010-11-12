@@ -1761,6 +1761,7 @@ rasqal_query_build_variables_use_map(rasqal_query* query)
   int rc = 0;
   short *use_map;
   raptor_sequence* seq;
+  short *use_map_row;
   
   width = rasqal_variables_table_get_total_variables_count(query->vars_table);
   height = RASQAL_VAR_USE_MAP_OFFSET_LAST + 1 + query->graph_pattern_count;
@@ -1771,17 +1772,19 @@ rasqal_query_build_variables_use_map(rasqal_query* query)
 
   query->variables_use_map = use_map;
 
+  use_map_row = &use_map[RASQAL_VAR_USE_MAP_OFFSET_VERBS * width];
+  
   /* record variable use for 1) Query verbs */
   switch(query->verb) {
     case RASQAL_QUERY_VERB_SELECT:
       /* This also handles 1a) select/project expressions */
-      rc = rasqal_query_build_variables_sequence_use_map_row(&use_map[RASQAL_VAR_USE_MAP_OFFSET_VERBS],
+      rc = rasqal_query_build_variables_sequence_use_map_row(use_map_row,
                                                              query->selects);
       break;
   
     case RASQAL_QUERY_VERB_DESCRIBE:
       /* This is a list of rasqal_literal not rasqal_variable */
-      rc = rasqal_query_build_literals_sequence_use_map_row(&use_map[RASQAL_VAR_USE_MAP_OFFSET_VERBS],
+      rc = rasqal_query_build_literals_sequence_use_map_row(use_map_row,
                                                             query->describes);
       break;
       
@@ -1790,7 +1793,7 @@ rasqal_query_build_variables_use_map(rasqal_query* query)
         int last_column = raptor_sequence_size(query->constructs)-1;
         
         rc = rasqal_query_triples_build_variables_use_map_row(query->constructs, 
-                                                              &use_map[RASQAL_VAR_USE_MAP_OFFSET_VERBS],
+                                                              use_map_row,
                                                               0,
                                                               last_column);
       }
@@ -1815,8 +1818,8 @@ rasqal_query_build_variables_use_map(rasqal_query* query)
   /* Record variable use for 2) GROUP BY expressions (SPARQL 1.1) */
   seq = rasqal_query_get_group_conditions_sequence(query);
   if(seq) {
-    rc = rasqal_query_build_expressions_sequence_use_map_row(&use_map[RASQAL_VAR_USE_MAP_OFFSET_GROUP_BY],
-                                                             seq);
+    use_map_row = &use_map[RASQAL_VAR_USE_MAP_OFFSET_GROUP_BY * width];
+    rc = rasqal_query_build_expressions_sequence_use_map_row(use_map_row, seq);
     if(rc)
       goto done;
   }
@@ -1825,8 +1828,8 @@ rasqal_query_build_variables_use_map(rasqal_query* query)
   /* Record variable use for 3) HAVING expr (SPARQL 1.1) */
   seq = rasqal_query_get_having_conditions_sequence(query);
   if(seq) {
-    rc = rasqal_query_build_expressions_sequence_use_map_row(&use_map[RASQAL_VAR_USE_MAP_OFFSET_HAVING],
-                                                             seq);
+    use_map_row = &use_map[RASQAL_VAR_USE_MAP_OFFSET_HAVING * width];
+    rc = rasqal_query_build_expressions_sequence_use_map_row(use_map_row, seq);
     if(rc)
       goto done;
   }
@@ -1834,8 +1837,8 @@ rasqal_query_build_variables_use_map(rasqal_query* query)
   /* record variable use for 4) ORDER list-of-expr (SPARQL 1.0) */
   seq = rasqal_query_get_order_conditions_sequence(query);
   if(seq) {
-    rc = rasqal_query_build_expressions_sequence_use_map_row(&use_map[RASQAL_VAR_USE_MAP_OFFSET_ORDER_BY],
-                                                             seq);
+    use_map_row = &use_map[RASQAL_VAR_USE_MAP_OFFSET_ORDER_BY * width];
+    rc = rasqal_query_build_expressions_sequence_use_map_row(use_map_row, seq);
     if(rc)
       goto done;
   }
