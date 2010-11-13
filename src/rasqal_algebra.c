@@ -1706,6 +1706,7 @@ rasqal_algebra_query_prepare_aggregates(rasqal_query* query,
 
   if(rasqal_algebra_extract_aggregate_expressions(query, node, ae)) {
     RASQAL_DEBUG1("rasqal_algebra_extract_aggregate_expressions() failed");
+    rasqal_free_algebra_aggregate(ae);
     rasqal_free_algebra_node(node);
     return NULL;
   }
@@ -1735,6 +1736,7 @@ rasqal_algebra_query_prepare_aggregates(rasqal_query* query,
                                                     query->modifier->having_conditions,
                                                     ae)) {
       RASQAL_DEBUG1("rasqal_algebra_replace_aggregate_expressions() failed");
+      rasqal_free_algebra_aggregate(ae);
       rasqal_free_algebra_node(node);
       return NULL;
     }
