@@ -1508,13 +1508,19 @@ rasqal_algebra_extract_aggregate_expression_visit(void *user_data,
       return 1;
     }
 
-    /* new_e is a new reference and after this new_a is owned by map 
+    /* new_e is a new reference and after this new_e is owned by map 
      * (all variables are shared and owned by query object)
      */
-    if(rasqal_map_add_kv(ae->agg_vars, v, new_e)) {
+    if(rasqal_map_add_kv(ae->agg_vars, new_e, v)) {
       ae->error = 1;
       return 1;
     }
+
+#ifdef RASQAL_DEBUG
+    RASQAL_DEBUG1("after adding new variable, resulting aggregate vars ");
+    rasqal_map_print(ae->agg_vars, stderr);
+    fputc('\n', stderr);
+#endif
 
     new_e = rasqal_new_expression_from_expression(new_e);
     if(raptor_sequence_push(ae->agg_exprs, new_e)) {
@@ -1543,7 +1549,7 @@ rasqal_algebra_extract_aggregate_expressions(rasqal_query* query,
 
   ae->query = query;
 
-  /* Initialisation rasqal variable: rasqal_expression map */
+  /* Initialisation of map (key: rasqal_expression, value: rasqal_variable ) */
   ae->agg_vars = rasqal_new_map(/* compare key function */ rasqal_agg_expr_var_compare,
                                 /* compare data */ ae,
                                 /* free compare data */ NULL,
