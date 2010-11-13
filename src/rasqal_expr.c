@@ -3225,7 +3225,7 @@ rasqal_expression_convert_aggregate_to_variable(rasqal_expression* e_in,
   
   if(e_out) {
     *e_out = (rasqal_expression*)RASQAL_MALLOC(rasqal_expression,
-                                               sizeof(*e_out));
+                                               sizeof(**e_out));
     if(!*e_out)
       goto tidy;
   }
