@@ -518,13 +518,13 @@ rasqal_query_write_sparql_triple_data(sparql_writer_context *wc,
 static int
 rasqal_query_write_sparql_select(sparql_writer_context *wc,
                                  raptor_iostream *iostr, 
-                                 raptor_sequence* var_seq)
+                                 raptor_sequence* vars_seq)
 {
-  int count = raptor_sequence_size(var_seq);
+  int count = raptor_sequence_size(vars_seq);
   int i;
   
   for(i = 0; i < count; i++) {
-    rasqal_variable* v = (rasqal_variable*)raptor_sequence_get_at(var_seq, i);
+    rasqal_variable* v = (rasqal_variable*)raptor_sequence_get_at(vars_seq, i);
     raptor_iostream_write_byte(' ', iostr);
     rasqal_query_write_sparql_variable(wc, iostr, v);
   }

@@ -2818,44 +2818,44 @@ rasqal_expression_mentions_variable(rasqal_expression* e, rasqal_variable* v)
  * Deep copy a sequence of rasqal_expression to a new one.
  */
 raptor_sequence*
-rasqal_expression_copy_expression_sequence(raptor_sequence* expr_seq) 
+rasqal_expression_copy_expression_sequence(raptor_sequence* exprs_seq) 
 {
-  raptor_sequence* nexpr_seq = NULL;
+  raptor_sequence* nexprs_seq = NULL;
   int size;
   int i;
   
-  if(!expr_seq)
+  if(!exprs_seq)
     return NULL;
   
 #ifdef HAVE_RAPTOR2_API
-  nexpr_seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_expression,
+  nexprs_seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_expression,
                                   (raptor_data_print_handler)rasqal_expression_print);
 #else
-  nexpr_seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_expression,
+  nexprs_seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_expression,
                                   (raptor_sequence_print_handler*)rasqal_expression_print);
 #endif
-  if(!nexpr_seq)
+  if(!nexprs_seq)
     return NULL;
 
-  size = raptor_sequence_size(expr_seq);
+  size = raptor_sequence_size(exprs_seq);
   for(i = 0; i < size; i++) {
     rasqal_expression* e;
-    e = (rasqal_expression*)raptor_sequence_get_at(expr_seq, i);
+    e = (rasqal_expression*)raptor_sequence_get_at(exprs_seq, i);
     if(e) {
       e = rasqal_new_expression_from_expression(e);
       if(e)
-        raptor_sequence_set_at(nexpr_seq, i, e);
+        raptor_sequence_set_at(nexprs_seq, i, e);
     }
   }
   
-  return nexpr_seq;
+  return nexprs_seq;
 }
 
 
 /**
  * rasqal_expression_sequence_evaluate:
  * @query: query
- * @expr_seq: sequence of #rasqal_expression to evaluate
+ * @exprs_seq: sequence of #rasqal_expression to evaluate
  * @ignore_errors: non-0 to ignore errors in evaluation
  * @literal_seq: OUT: sequence of #rasqal_literal to write to (or NULL)
  * @error_p: OUT: pointer to error flag (or NULL)
@@ -2867,7 +2867,7 @@ rasqal_expression_copy_expression_sequence(raptor_sequence* expr_seq)
  *
  * The result is a new sequence unless @literal_seq is given in which
  * case it is used to append the #rasqal_literal values evaluated
- * from the sequence of expressions @expr_seq.  If @ignore_errors is
+ * from the sequence of expressions @exprs_seq.  If @ignore_errors is
  * non-0, errors returned by a expressions are ignored (this
  * corresponds to SPARQL 1.1 Algebra ListEvalE )
  *
@@ -2875,7 +2875,7 @@ rasqal_expression_copy_expression_sequence(raptor_sequence* expr_seq)
  */
 raptor_sequence*
 rasqal_expression_sequence_evaluate(rasqal_query* query,
-                                    raptor_sequence* expr_seq,
+                                    raptor_sequence* exprs_seq,
                                     int ignore_errors,
                                     raptor_sequence* literal_seq,
                                     int* error_p)
@@ -2883,13 +2883,13 @@ rasqal_expression_sequence_evaluate(rasqal_query* query,
   int size;
   int i;
   
-  if(!query || !expr_seq) {
+  if(!query || !exprs_seq) {
     if(error_p)
       *error_p = 1;
     return NULL;
   }
   
-  size = raptor_sequence_size(expr_seq);
+  size = raptor_sequence_size(exprs_seq);
   if(!size) {
     if(error_p)
       *error_p = 1;
@@ -2910,7 +2910,7 @@ rasqal_expression_sequence_evaluate(rasqal_query* query,
     rasqal_expression* e;
     rasqal_literal *l;
     
-    e = (rasqal_expression*)raptor_sequence_get_at(expr_seq, i);
+    e = (rasqal_expression*)raptor_sequence_get_at(exprs_seq, i);
     l = rasqal_expression_evaluate(query->world, &query->locator,
                                    e, query->compare_flags);
     if(!l) {

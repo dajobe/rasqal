@@ -498,7 +498,7 @@ rasqal_new_groupby_algebra_node(rasqal_query* query,
  * rasqal_new_aggregation_algebra_node:
  * @query: #rasqal_query query object
  * @node1: inner algebra node
- * @expr_seq: sequence of #rasqal_expression
+ * @exprs_seq: sequence of #rasqal_expression
  * @vars_seq: sequence of #rasqal_sequence
  *
  * INTERNAL - Create a new AGGREGATION algebra node for a query over a sequence of expressions to variables
@@ -1661,7 +1661,7 @@ rasqal_free_algebra_aggregate(rasqal_algebra_aggregate* ae)
   
 static int
 rasqal_algebra_replace_aggregate_expressions(rasqal_query* query,
-                                             raptor_sequence* expr_seq,
+                                             raptor_sequence* exprs_seq,
                                              rasqal_algebra_aggregate* ae)
 {
   int i;
@@ -1674,7 +1674,7 @@ rasqal_algebra_replace_aggregate_expressions(rasqal_query* query,
   ae->error_part = "HAVING";
   
   for(i = 0;
-      (expr = (rasqal_expression*)raptor_sequence_get_at(expr_seq, i));
+      (expr = (rasqal_expression*)raptor_sequence_get_at(exprs_seq, i));
       i++) {
     
     if(rasqal_expression_visit(expr,

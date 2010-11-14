@@ -213,15 +213,17 @@ static const rasqal_rowsource_handler rasqal_rowsequence_rowsource_handler = {
  * @world: world object
  * @query: query object
  * @vt: variables table
- * @seq: sequence of rasqal_row*
- * @vars_seq: sequence of variables for this row
+ * @rows_seq: input sequence of #rasqal_row
+ * @vars_seq: input sequence of #rasqal_variable for all rows in @rows_seq
  *
- * INTERNAL - create a new rowsource over a sequence of rows
+ * INTERNAL - create a new rowsource over a sequence of rows with given variables
  *
  * This uses the number of variables in @vt to set the rowsource size
  * (order size is always 0) and then checks that all the rows in the
  * sequence are the same.  If not, construction fails and NULL is
  * returned.
+ *
+ * The @rows_seq and @vars_seq become owned by the new rowsource.
  *
  * Return value: new rowsource or NULL on failure
  */
@@ -229,23 +231,23 @@ rasqal_rowsource*
 rasqal_new_rowsequence_rowsource(rasqal_world *world,
                                  rasqal_query* query, 
                                  rasqal_variables_table* vt,
-                                 raptor_sequence* seq,
+                                 raptor_sequence* rows_seq,
                                  raptor_sequence* vars_seq)
 {
   rasqal_rowsequence_rowsource_context* con;
   int flags = 0;
   
-  if(!world || !query || !vt || !seq || !vars_seq)
+  if(!world || !query || !vt || !rows_seq || !vars_seq)
     return NULL;
 
-  if(!raptor_sequence_size(seq) || !raptor_sequence_size(vars_seq))
+  if(!raptor_sequence_size(rows_seq) || !raptor_sequence_size(vars_seq))
     return NULL;
   
   con = (rasqal_rowsequence_rowsource_context*)RASQAL_CALLOC(rasqal_rowsequence_rowsource_context, 1, sizeof(rasqal_rowsequence_rowsource_context));
   if(!con)
     return NULL;
 
-  con->seq = seq;
+  con->seq = rows_seq;
   con->vars_seq = vars_seq;
 
   return rasqal_new_rowsource_from_handler(world, query,

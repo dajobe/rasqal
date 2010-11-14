@@ -49,7 +49,7 @@
  * @compare_flags: comparison flags for rasqal_literal_compare()
  * @values_a: first array of literals
  * @values_b: second array of literals
- * @expr_sequence: array of expressions
+ * @exprs_seq: array of expressions
  * @size: size of arrays
  *
  * INTERNAL - compare two arrays of literals evaluated in an array of expressions
@@ -60,7 +60,7 @@ static int
 rasqal_engine_rowsort_compare_literals_sequence(int compare_flags,
                                                 rasqal_literal** values_a,
                                                 rasqal_literal** values_b,
-                                                raptor_sequence* expr_sequence,
+                                                raptor_sequence* exprs_seq,
                                                 int size)
 {
   int result = 0;
@@ -72,8 +72,8 @@ rasqal_engine_rowsort_compare_literals_sequence(int compare_flags,
     rasqal_literal* literal_a = values_a[i];
     rasqal_literal* literal_b = values_b[i];
     
-    if(expr_sequence)
-      e = (rasqal_expression*)raptor_sequence_get_at(expr_sequence, i);
+    if(exprs_seq)
+      e = (rasqal_expression*)raptor_sequence_get_at(exprs_seq, i);
 
 #ifdef RASQAL_DEBUG
     RASQAL_DEBUG1("Comparing ");

@@ -605,7 +605,7 @@ typedef enum {
 
 
 /* rasqal_rowsource_aggregation.c */
-rasqal_rowsource* rasqal_new_aggregation_rowsource(rasqal_world *world, rasqal_query* query, rasqal_rowsource* rowsource, raptor_sequence* expr_seq, raptor_sequence* vars_seq);
+rasqal_rowsource* rasqal_new_aggregation_rowsource(rasqal_world *world, rasqal_query* query, rasqal_rowsource* rowsource, raptor_sequence* exprs_seq, raptor_sequence* vars_seq);
 
 /* rasqal_rowsource_empty.c */
 rasqal_rowsource* rasqal_new_empty_rowsource(rasqal_world *world, rasqal_query* query);
@@ -626,7 +626,7 @@ rasqal_rowsource* rasqal_new_filter_rowsource(rasqal_world *world, rasqal_query 
 rasqal_rowsource* rasqal_new_graph_rowsource(rasqal_world *world, rasqal_query *query, rasqal_rowsource* rowsource, rasqal_variable *var);
 
 /* rasqal_rowsource_groupby.c */
-rasqal_rowsource* rasqal_new_groupby_rowsource(rasqal_world *world, rasqal_query* query, rasqal_rowsource* rowsource, raptor_sequence* expr_seq);
+rasqal_rowsource* rasqal_new_groupby_rowsource(rasqal_world *world, rasqal_query* query, rasqal_rowsource* rowsource, raptor_sequence* exprs_seq);
 
 /* rasqal_rowsource_join.c */
 rasqal_rowsource* rasqal_new_join_rowsource(rasqal_world *world, rasqal_query* query, rasqal_rowsource* left, rasqal_rowsource* right, rasqal_join_type join_type, rasqal_expression *expr);
@@ -635,7 +635,7 @@ rasqal_rowsource* rasqal_new_join_rowsource(rasqal_world *world, rasqal_query* q
 rasqal_rowsource* rasqal_new_project_rowsource(rasqal_world *world, rasqal_query *query, rasqal_rowsource* rowsource, raptor_sequence* projection_variables);
 
 /* rasqal_rowsource_rowsequence.c */
-rasqal_rowsource* rasqal_new_rowsequence_rowsource(rasqal_world *world, rasqal_query* query, rasqal_variables_table* vt, raptor_sequence* row, raptor_sequence* vars_seq);
+rasqal_rowsource* rasqal_new_rowsequence_rowsource(rasqal_world *world, rasqal_query* query, rasqal_variables_table* vt, raptor_sequence* rows_seq, raptor_sequence* vars_seq);
 
 /* rasqal_rowsource_sort.c */
 rasqal_rowsource* rasqal_new_sort_rowsource(rasqal_world *world, rasqal_query *query, rasqal_rowsource *rowsource);
@@ -1031,9 +1031,9 @@ int rasqal_expression_is_aggregate(rasqal_expression* e);
 int rasqal_expression_convert_aggregate_to_variable(rasqal_expression* e_in, rasqal_variable* v, rasqal_expression** e_out);
 int rasqal_expression_mentions_aggregate(rasqal_expression* e);
 
-raptor_sequence* rasqal_expression_copy_expression_sequence(raptor_sequence* expr_seq);
+raptor_sequence* rasqal_expression_copy_expression_sequence(raptor_sequence* exprs_seq);
 int rasqal_literal_sequence_compare(int compare_flags, raptor_sequence* values_a, raptor_sequence* values_b);
-raptor_sequence* rasqal_expression_sequence_evaluate(rasqal_query* query, raptor_sequence* expr_seq, int ignore_errors, raptor_sequence* literal_seq, int* error_p);
+raptor_sequence* rasqal_expression_sequence_evaluate(rasqal_query* query, raptor_sequence* exprs_seq, int ignore_errors, raptor_sequence* literal_seq, int* error_p);
 
 /* strcasecmp.c */
 #ifdef HAVE_STRCASECMP
