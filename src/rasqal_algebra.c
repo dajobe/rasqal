@@ -1527,6 +1527,13 @@ rasqal_algebra_extract_aggregate_expression_visit(void *user_data,
       ae->error = 1;
       return 1;
     }
+
+    /* add to variables sequence too */
+    if(raptor_sequence_push(ae->agg_vars_seq, v)) {
+      ae->error = 1;
+      return 1;
+    }
+
   }
 
 
@@ -1567,6 +1574,15 @@ rasqal_algebra_extract_aggregate_expressions(rasqal_query* query,
                             (raptor_sequence_print_handler*)rasqal_expression_print);
 #endif
   ae->agg_exprs = seq;
+
+#ifdef HAVE_RAPTOR2_API
+  seq = raptor_new_sequence((raptor_data_free_handler)NULL,
+                            (raptor_data_print_handler)rasqal_variable_print);
+#else
+  seq = raptor_new_sequence((raptor_sequence_free_handler*)NULL,
+                            (raptor_sequence_print_handler*)rasqal_variable_print);
+#endif
+  ae->agg_vars_seq = seq;
 
   /* init internal variable counter */
   ae->counter = 0;
@@ -1655,6 +1671,9 @@ rasqal_free_algebra_aggregate(rasqal_algebra_aggregate* ae)
   if(ae->agg_vars)
     rasqal_free_map(ae->agg_vars);
 
+  if(ae->agg_vars_seq)
+    raptor_free_sequence(ae->agg_vars_seq);
+  
   RASQAL_FREE(rasqal_algebra_aggregate, ae);
 }
 

@@ -1363,8 +1363,11 @@ typedef struct
    */
   rasqal_map* agg_vars;
 
-  /* sequence of aggregate #rasqal_expression */
+  /* sequence of aggregate #rasqal_expression in same order as @agg_vars_seq */
   raptor_sequence* agg_exprs;
+
+  /* sequence of aggregate #rasqal_expression in same order as @agg_exprs */
+  raptor_sequence* agg_vars_seq;
 
   /* number of aggregate expressions seen
    * ( = number of internal variables created )
