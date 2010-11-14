@@ -201,7 +201,8 @@ rasqal_rowsource_ensure_variables(rasqal_rowsource *rowsource)
 
 #ifdef RASQAL_DEBUG
   if(!rc) {
-    RASQAL_DEBUG2("rowsource %p ", rowsource);
+    RASQAL_DEBUG3("%s rowsource %p header: ", rowsource->handler->name,
+                  rowsource);
     rasqal_rowsource_print_header(rowsource, stderr);
   }
 #endif
@@ -256,8 +257,8 @@ rasqal_rowsource_read_row(rasqal_rowsource *rowsource)
   }
 
 #ifdef RASQAL_DEBUG
-  RASQAL_DEBUG3("rowsource %p read %s row : ", rowsource, 
-                rowsource->handler->name);
+  RASQAL_DEBUG3("%s rowsource %p read row:  ", rowsource->handler->name, 
+                rowsource);
   if(row)
     rasqal_row_print(row, stderr);
   else
