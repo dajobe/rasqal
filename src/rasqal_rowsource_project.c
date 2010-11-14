@@ -124,6 +124,9 @@ rasqal_project_rowsource_finish(rasqal_rowsource* rowsource, void *user_data)
   if(con->rowsource)
     rasqal_free_rowsource(con->rowsource);
   
+  if(con->projection_variables)
+    raptor_free_sequence(con->projection_variables);
+  
   if(con->projection)
     RASQAL_FREE(int, con->projection);
   
@@ -238,7 +241,7 @@ static const rasqal_rowsource_handler rasqal_project_rowsource_handler = {
  *
  * INTERNAL - create a PROJECTion over input rowsource
  *
- * The @rowsource and @projection_variables become owned by the new rowsource.
+ * The @rowsource becomes owned by the new rowsource.
  *
  * Return value: new rowsource or NULL on failure
  */
@@ -259,7 +262,7 @@ rasqal_new_project_rowsource(rasqal_world *world,
     goto fail;
 
   con->rowsource = rowsource;
-  con->projection_variables = projection_variables;
+  con->projection_variables = rasqal_variable_copy_variable_sequence(projection_variables);
 
   return rasqal_new_rowsource_from_handler(world, query,
                                            con,
