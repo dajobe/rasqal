@@ -631,10 +631,10 @@ rasqal_variable_copy_variable_sequence(raptor_sequence* vars_seq)
     return NULL;
   
 #ifdef HAVE_RAPTOR2_API
-  nvars_seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_variable,
+  nvars_seq = raptor_new_sequence((raptor_data_free_handler)NULL,
                                   (raptor_data_print_handler)rasqal_variable_print);
 #else
-  nvars_seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_variable,
+  nvars_seq = raptor_new_sequence((raptor_sequence_free_handler*)NULL,
                                   (raptor_sequence_print_handler*)rasqal_variable_print);
 #endif
   if(!nvars_seq)
