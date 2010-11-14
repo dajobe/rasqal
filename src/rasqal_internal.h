@@ -864,7 +864,7 @@ struct rasqal_rowsource_s
 
   const rasqal_rowsource_handler* handler;
 
-  int finished : 1;
+  unsigned int finished : 1;
 
   int count;
 
@@ -880,7 +880,7 @@ struct rasqal_rowsource_s
 
   int offset;
 
-  int generate_group : 1;
+  unsigned int generate_group : 1;
 };
 
 
@@ -1381,7 +1381,7 @@ typedef struct
   int error;
 
   /* if set, finding a new expression is an error */
-  int adding_new_vars_is_error : 1;
+  unsigned int adding_new_vars_is_error : 1;
 
   /* query part for error messages */
   const char* error_part;
