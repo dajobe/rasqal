@@ -1458,7 +1458,7 @@ rasqal_algebra_extract_aggregate_expression_visit(void *user_data,
   v = rasqal_map_search(ae->agg_vars, e);
   if(v) {
     /* Yes: get value => use existing internal variable for it */
-    RASQAL_DEBUG2("Found variable %s for existing expression", v->name);
+    RASQAL_DEBUG2("Found variable %s for existing expression\n", v->name);
 
     /* convert expression in-situ to use existing internal variable */
     if(rasqal_expression_convert_aggregate_to_variable(e, v, NULL)) {
