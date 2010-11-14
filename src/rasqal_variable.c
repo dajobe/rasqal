@@ -616,6 +616,45 @@ rasqal_variables_table_get_names(rasqal_variables_table* vt)
   return vt->variable_names;
 }
 
+
+/*
+ * Deep copy a sequence of rasqal_variable to a new one.
+ */
+raptor_sequence*
+rasqal_variable_copy_variable_sequence(raptor_sequence* vars_seq)
+{
+  raptor_sequence* nvars_seq = NULL;
+  int size;
+  int i;
+  
+  if(!vars_seq)
+    return NULL;
+  
+#ifdef HAVE_RAPTOR2_API
+  nvars_seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_variable,
+                                  (raptor_data_print_handler)rasqal_variable_print);
+#else
+  nvars_seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_variable,
+                                  (raptor_sequence_print_handler*)rasqal_variable_print);
+#endif
+  if(!nvars_seq)
+    return NULL;
+
+  size = raptor_sequence_size(vars_seq);
+  for(i = 0; i < size; i++) {
+    rasqal_variable* v;
+    v = (rasqal_variable*)raptor_sequence_get_at(vars_seq, i);
+    if(v) {
+      /* v = rasqal_new_variable_from_variable(v); */
+      if(v)
+        raptor_sequence_set_at(nvars_seq, i, v);
+    }
+  }
+  
+  return nvars_seq;
+}
+
+
 #endif /* not STANDALONE */
 
 
