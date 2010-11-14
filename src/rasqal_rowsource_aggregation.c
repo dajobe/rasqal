@@ -752,7 +752,7 @@ static const rasqal_rowsource_handler rasqal_aggregation_rowsource_handler = {
  *
  * INTERNAL - Create a new rowsource for a aggregration
  *
- * The @exprs_seq, @vars_seq and @rowsource become owned by the new rowsource.
+ * The @rowsource becomes owned by the new rowsource.
  *
  * For example with the SPARQL 1.1 example queries
  *
@@ -789,9 +789,14 @@ rasqal_new_aggregation_rowsource(rasqal_world *world, rasqal_query* query,
   if(!world || !query || !rowsource || !exprs_seq || !vars_seq)
     goto fail;
 
+  exprs_seq = rasqal_expression_copy_expression_sequence(exprs_seq);
+  vars_seq = rasqal_variable_copy_variable_sequence(vars_seq);
+
   size = raptor_sequence_size(exprs_seq);
-  if(size != raptor_sequence_size(vars_seq))
+  if(size != raptor_sequence_size(vars_seq)) {
+    RASQAL_DEBUG3("expressions sequence size %d does not match vars sequence size %d\n", size, raptor_sequence_size(vars_seq));
     goto fail;
+  }
 
 
   con = (rasqal_aggregation_rowsource_context*)RASQAL_CALLOC(rasqal_aggregation_rowsource_context, 1, sizeof(*con));
