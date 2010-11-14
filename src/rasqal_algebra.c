@@ -1441,17 +1441,9 @@ rasqal_algebra_extract_aggregate_expression_visit(void *user_data,
 
   ae->error = 0;
 
-  /* If not an aggregate expression, just add it */
-  if(!rasqal_expression_is_aggregate(e)) {
-    e = rasqal_new_expression_from_expression(e);
-    
-    if(raptor_sequence_push(ae->agg_exprs, e)) {
-      ae->error = 1;
-      return 1;
-    }
-
+  /* If not an aggregate expression, ignore it */
+  if(!rasqal_expression_is_aggregate(e))
     return 0;
-  }
 
 
   /* is expression is in map? */
