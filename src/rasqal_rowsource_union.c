@@ -358,6 +358,8 @@ static const rasqal_rowsource_handler rasqal_union_rowsource_handler = {
  * sequence are the same.  If not, construction fails and NULL is
  * returned.
  *
+ * The @left and @right rowsources become owned by the new rowsource.
+ *
  * Return value: new rowsource or NULL on failure
  */
 rasqal_rowsource*

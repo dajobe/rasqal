@@ -533,10 +533,10 @@ static const rasqal_rowsource_handler rasqal_join_rowsource_handler = {
 
 /**
  * rasqal_new_join_rowsource:
- * @world: query world
- * @query: query results object
- * @left: left (first) rowsource
- * @right: right (second) rowsource
+ * @world: world object
+ * @query: query object
+ * @left: input left (first) rowsource
+ * @right: input right (second) rowsource
  * @join_type: join type
  * @expr: join expression to filter result rows
  *
@@ -546,6 +546,8 @@ static const rasqal_rowsource_handler rasqal_join_rowsource_handler = {
  * (order size is always 0) and then checks that all the rows in the
  * sequence are the same.  If not, construction fails and NULL is
  * returned.
+ *
+ * The @left and @right rowsources become owned by the rowsource.
  *
  * Return value: new rowsource or NULL on failure
  */

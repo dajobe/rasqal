@@ -447,7 +447,7 @@ static const rasqal_rowsource_handler rasqal_triples_rowsource_handler = {
  *
  * INTERNAL - create a new triples rowsource
  *
- * NOTE @bound_in becomes owned by the new rowsource
+ * The @bound_in becomes owned by the new rowsource
  *
  * Return value: new triples rowsource or NULL on failure
  */
