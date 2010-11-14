@@ -1848,6 +1848,67 @@ rasqal_algebra_query_add_modifiers(rasqal_query* query,
 
 
 /**
+ * rasqal_algebra_query_add_aggregation:
+ * @query: #rasqal_query to read from
+ * @ae: aggregation structure
+ * @node: node to apply aggregation to
+ *
+ * Apply any aggregation step needed to query algebra structure
+ *
+ * Becomes the owner of @ae
+ *
+ * Return value: non-0 on failure
+ */
+rasqal_algebra_node*
+rasqal_algebra_query_add_aggregation(rasqal_query* query,
+                                     rasqal_algebra_aggregate* ae,
+                                     rasqal_algebra_node* node)
+{
+  int modified = 0;
+  raptor_sequence* exprs_seq;
+  raptor_sequence* vars_seq;
+  
+  if(!query || !ae || !node)
+    goto tidy;
+  
+  if(!ae->counter)
+    return node;
+
+  /* Move ownership of sequences inside ae to here */
+  exprs_seq = ae->agg_exprs; ae->agg_exprs = NULL;
+  vars_seq = ae->agg_vars_seq; ae->agg_vars_seq = NULL;
+
+  rasqal_free_algebra_aggregate(ae);
+  
+  node = rasqal_new_aggregation_algebra_node(query, node, exprs_seq, vars_seq);
+  exprs_seq = NULL; vars_seq = NULL;
+  if(!node) {
+    RASQAL_DEBUG1("rasqal_new_aggregation_algebra_node() failed");
+    goto tidy;
+  }
+  
+  modified = 1;
+  
+#if RASQAL_DEBUG > 1
+  RASQAL_DEBUG2("modified=%d after adding aggregation node, algebra node now:\n  ", modified);
+  rasqal_algebra_node_print(node, stderr);
+  fputs("\n", stderr);
+#endif
+
+  return node;
+
+
+  tidy:
+  if(ae)
+    rasqal_free_algebra_aggregate(ae);
+  if(node)
+    rasqal_free_algebra_node(node);
+
+  return NULL;
+}
+
+
+/**
  * rasqal_algebra_query_add_projection:
  * @query: #rasqal_query to read from
  * @node: node to apply projection to
