@@ -173,6 +173,17 @@ static const rasqal_rowsource_handler rasqal_assignment_rowsource_handler = {
 };
 
 
+/**
+ * rasqal_new_assignment_rowsource:
+ * @world: world object
+ * @query: query object
+ * @var: variable to bind value to
+ * @expr: expression to use to create value
+ *
+ * INTERNAL - create a new ASSIGNment
+ *
+ * Return value: new rowsource or NULL on failure
+ */
 rasqal_rowsource*
 rasqal_new_assignment_rowsource(rasqal_world *world,
                                 rasqal_query *query,

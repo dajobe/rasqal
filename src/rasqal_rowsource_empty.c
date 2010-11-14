@@ -99,6 +99,15 @@ static const rasqal_rowsource_handler rasqal_empty_rowsource_handler = {
 };
 
 
+/**
+ * rasqal_new_empty_rowsource:
+ * @world: world object
+ * @query: query object
+ *
+ * INTERNAL - create a new EMPTY rowsource that always returns zero rows
+ *
+ * Return value: new rowsource or NULL on failure
+ */
 rasqal_rowsource*
 rasqal_new_empty_rowsource(rasqal_world *world, rasqal_query* query)
 {

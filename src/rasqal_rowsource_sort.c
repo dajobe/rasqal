@@ -246,6 +246,18 @@ static const rasqal_rowsource_handler rasqal_sort_rowsource_handler = {
 };
 
 
+/**
+ * rasqal_new_sort_rowsource:
+ * @world: query world
+ * @query: query results object
+ * @rowsource: input rowsource
+ *
+ * INTERNAL - create a SORT over rows from input rowsource
+ *
+ * The @rowsource becomes owned by the new rowsource.
+ *
+ * Return value: new rowsource or NULL on failure
+ */
 rasqal_rowsource*
 rasqal_new_sort_rowsource(rasqal_world *world,
                           rasqal_query *query,

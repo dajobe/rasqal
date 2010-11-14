@@ -193,6 +193,18 @@ static const rasqal_rowsource_handler rasqal_distinct_rowsource_handler = {
 };
 
 
+/**
+ * rasqal_new_distinct_rowsource:
+ * @world: world object
+ * @query: query object
+ * @rowsource: input rowsource
+ *
+ * INTERNAL - create a new DISTINCT rowsoruce
+ *
+ * The @rowsource becomes owned by the new rowsource
+ *
+ * Return value: new rowsource or NULL on failure
+ */
 rasqal_rowsource*
 rasqal_new_distinct_rowsource(rasqal_world *world,
                               rasqal_query *query,

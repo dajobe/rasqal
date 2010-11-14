@@ -435,7 +435,7 @@ static const rasqal_rowsource_handler rasqal_triples_rowsource_handler = {
 };
 
 
-/*
+/**
  * rasqal_new_triples_rowsource:
  * @world: world object
  * @query: query object

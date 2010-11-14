@@ -597,6 +597,19 @@ static const rasqal_rowsource_handler rasqal_groupby_rowsource_handler = {
 };
 
 
+/**
+ * rasqal_new_groupby_rowsource:
+ * @world: world object
+ * @query: query object
+ * @rowsource: input rowsource
+ * @expr_seq: sequence of group by expressions
+ *
+ * INTERNAL - create a new group by rowsource
+ *
+ * the @rowsource becomes owned by the new rowsource
+ *
+ * Return value: new rowsource or NULL on failure
+ */
 rasqal_rowsource*
 rasqal_new_groupby_rowsource(rasqal_world *world, rasqal_query* query,
                              rasqal_rowsource* rowsource,

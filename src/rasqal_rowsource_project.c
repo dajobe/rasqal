@@ -229,6 +229,19 @@ static const rasqal_rowsource_handler rasqal_project_rowsource_handler = {
 };
 
 
+/**
+ * rasqal_new_project_rowsource:
+ * @world: query world
+ * @query: query results object
+ * @rowsource: input rowsource
+ * @projection_variables: input sequence of #rasqal_variable
+ *
+ * INTERNAL - create a PROJECTion over input rowsource
+ *
+ * The @rowsource and @projection_variables become owned by the new rowsource.
+ *
+ * Return value: new rowsource or NULL on failure
+ */
 rasqal_rowsource*
 rasqal_new_project_rowsource(rasqal_world *world,
                              rasqal_query *query,
