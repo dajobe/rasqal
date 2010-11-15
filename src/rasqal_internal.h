@@ -1336,21 +1336,6 @@ struct rasqal_algebra_node_s {
 
   /* type LET */
   rasqal_variable *var;
-
-  /* type TRIPLES
-   * array of columns (triple #) one for each variable in the query
-   * ordered by variable offset.
-   *
-   * The column int is >=0 if the variable is bound in a column (in a
-   * triple) or <0 if unknown (BOUND_IN_UNBOUND) or not bound in a
-   * triple column (BOUND_IN_ELSEWHERE)
-   */
-  int *bound_in;
-
-  /* type TRIPLES
-   * size of above array
-   */
-  int bound_in_size;
 };
 typedef struct rasqal_algebra_node_s rasqal_algebra_node;
 
@@ -1409,9 +1394,7 @@ rasqal_algebra_node* rasqal_new_assignment_algebra_node(rasqal_query* query, ras
 rasqal_algebra_node* rasqal_new_distinct_algebra_node(rasqal_query* query, rasqal_algebra_node* node1);
 rasqal_algebra_node* rasqal_new_filter_algebra_node(rasqal_query* query, rasqal_expression* expr, rasqal_algebra_node* node);
 rasqal_algebra_node* rasqal_new_empty_algebra_node(rasqal_query* query);
-int* rasqal_algebra_make_bound_in_for_gp(rasqal_graph_pattern* gp, int *size_p);
-int* rasqal_algebra_make_bound_in_for_all_query_variables(rasqal_query* query, int *size_p);
-rasqal_algebra_node* rasqal_new_triples_algebra_node(rasqal_query* query, raptor_sequence* triples, int start_column, int end_column, int* bound_in, int bound_in_size);
+rasqal_algebra_node* rasqal_new_triples_algebra_node(rasqal_query* query, raptor_sequence* triples, int start_column, int end_column);
 rasqal_algebra_node* rasqal_new_2op_algebra_node(rasqal_query* query, rasqal_algebra_node_operator op, rasqal_algebra_node* node1, rasqal_algebra_node* node2);
 rasqal_algebra_node* rasqal_new_leftjoin_algebra_node(rasqal_query* query, rasqal_algebra_node* node1, rasqal_algebra_node* node2, rasqal_expression* expr);
 rasqal_algebra_node* rasqal_new_join_algebra_node(rasqal_query* query, rasqal_algebra_node* node1, rasqal_algebra_node* node2, rasqal_expression* expr);

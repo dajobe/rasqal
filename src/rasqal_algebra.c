@@ -110,66 +110,6 @@ rasqal_new_filter_algebra_node(rasqal_query* query,
 }
 
 
-int*
-rasqal_algebra_make_bound_in_for_gp(rasqal_graph_pattern* gp, int *size_p)
-{
-  rasqal_query* query = gp->query;
-  int width;
-  int row_index;
-  short *row;
-  int *bound_in = NULL;
-  int i;
-  
-  if(!gp || !size_p)
-    return NULL;
-
-  width = rasqal_variables_table_get_total_variables_count(query->vars_table);
-
-  /* row index is based on the GP index for graph patterns */
-  row_index = (gp->gp_index + RASQAL_VAR_USE_MAP_OFFSET_LAST + 1);
-  row = &query->variables_use_map[row_index * width];
-
-  bound_in = (int*)RASQAL_CALLOC(intarray, width, sizeof(int));
-  if(!bound_in)
-    return NULL;
-
-  for(i = 0; i < width; i++) {
-    if(!(row[i] & RASQAL_VAR_USE_MENTIONED_HERE))
-      bound_in[i] = query->variables_bound_in[i];
-    else
-      bound_in[i] = BOUND_IN_ELSEWHERE;
-  }
-
-  *size_p = width;
-
-  return bound_in;
-}
-
-
-/*
- * INTERNAL - Get a copy of the query->variables_bound_in array
- */
-int*
-rasqal_algebra_make_bound_in_for_all_query_variables(rasqal_query* query,
-                                                     int *size_p)
-{
-  int size;
-  int *bound_in;
-  int i;
-  
-  size = rasqal_variables_table_get_total_variables_count(query->vars_table);
-  bound_in = (int*)RASQAL_CALLOC(intarray, size + 1, sizeof(int));
-  if(!bound_in)
-    return NULL;
-
-  for(i = 0; i < size; i++)
-    bound_in[i] = query->variables_bound_in[i];
- 
-  return bound_in;
-}
-
-
-
 /*
  * rasqal_new_triples_algebra_node:
  * @query: #rasqal_query query object
@@ -179,19 +119,16 @@ rasqal_algebra_make_bound_in_for_all_query_variables(rasqal_query* query,
  *
  * INTERNAL - Create a new algebra node for Basic Graph Pattern
  * 
- * The @bound_in array becomes owned by the new noew
- *
  * Return value: a new #rasqal_algebra_node object or NULL on failure
  **/
 rasqal_algebra_node*
 rasqal_new_triples_algebra_node(rasqal_query* query,
                                 raptor_sequence* triples,
-                                int start_column, int end_column,
-                                int* bound_in, int bound_in_size)
+                                int start_column, int end_column)
 {
   rasqal_algebra_node* node;
 
-  if(!query || !bound_in)
+  if(!query)
     return NULL;
   
   node = rasqal_new_algebra_node(query, RASQAL_ALGEBRA_OPERATOR_BGP);
@@ -200,15 +137,12 @@ rasqal_new_triples_algebra_node(rasqal_query* query,
 
   node->triples = triples;
   if(!triples) {
-    start_column = -1;
-    end_column = -1;
+    start_column= -1;
+    end_column= -1;
   }
-
   node->start_column = start_column;
   node->end_column = end_column;
-  node->bound_in = bound_in;
-  node->bound_in_size = bound_in_size;
-  
+
   return node;
 }
 
@@ -942,19 +876,12 @@ static rasqal_algebra_node*
 rasqal_algebra_basic_graph_pattern_to_algebra(rasqal_query* query,
                                               rasqal_graph_pattern* gp)
 {
-  int *bound_in = NULL;
-  int bound_in_size;
   rasqal_algebra_node* node = NULL;
   rasqal_expression* fs = NULL;
   
-  bound_in = rasqal_algebra_make_bound_in_for_gp(gp, &bound_in_size);
-  if(!bound_in)
-    goto fail;
-
   node = rasqal_new_triples_algebra_node(query, 
                                          rasqal_query_get_triple_sequence(query),
-                                         gp->start_column, gp->end_column,
-                                         bound_in, bound_in_size);
+                                         gp->start_column, gp->end_column);
   if(!node)
     goto fail;
 
@@ -981,8 +908,6 @@ rasqal_algebra_basic_graph_pattern_to_algebra(rasqal_query* query,
   return node;
   
   fail:
-  if(bound_in)
-    RASQAL_FREE(intarray, bound_in);
   if(node)
     rasqal_free_algebra_node(node);
   if(fs)
@@ -2127,9 +2052,7 @@ main(int argc, char *argv[]) {
   raptor_sequence* conditions = NULL;
   rasqal_literal* lit3 = NULL;
   rasqal_literal* lit4 = NULL;
-  int* bound_in = NULL;
-  int bound_in_size;
-  
+
   world = rasqal_new_world();
   if(!world || rasqal_world_open(world))
     FAIL;
@@ -2235,18 +2158,7 @@ main(int argc, char *argv[]) {
 
   /* make an triples node around first (and only) triple pattern */
   triples = rasqal_query_get_triple_sequence(query);
-  bound_in = rasqal_algebra_make_bound_in_for_all_query_variables(query,
-                                                                  &bound_in_size);
-  if(!bound_in) {
-    fprintf(stderr,
-            "%s: rasqal_algebra_make_bound_in_for_all_query_variables() failed\n",
-            program);
-    FAIL;
-  }
-  
-  node2 = rasqal_new_triples_algebra_node(query, triples, 0, 0,
-                                          bound_in, bound_in_size);
-  bound_in = NULL;
+  node2 = rasqal_new_triples_algebra_node(query, triples, 0, 0);
   if(!node2)
     FAIL;
 
