@@ -2317,3 +2317,11 @@ rasqal_query_get_bindings_row(rasqal_query* query, int idx)
   
   return (rasqal_row*)raptor_sequence_get_at(query->bindings->rows, idx);
 }
+
+
+int
+rasqal_query_get_bound_in_column_for_variable(rasqal_query* query,
+                                              rasqal_variable* v)
+{
+  return query->variables_bound_in[v->offset];
+}
