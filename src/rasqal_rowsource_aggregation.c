@@ -673,12 +673,13 @@ rasqal_aggregation_rowsource_read_row(rasqal_rowsource* rowsource,
     for(i = 0; i < con->expr_count; i++) {
       rasqal_literal* result;
       rasqal_agg_expr_data* expr_data = &con->expr_data[i];
+      rasqal_variable* v;
       
       /* Calculate the result because the input ended or a new group started */
       result = rasqal_builtin_agg_expression_execute_result(expr_data->agg_user_data);
   
 #ifdef RASQAL_DEBUG
-      RASQAL_DEBUG1("Aggregation ending group with result:");
+      RASQAL_DEBUG1("Aggregation ending group with result: ");
       if(result)
         rasqal_literal_print(result, DEBUG_FH);
       else
@@ -687,11 +688,15 @@ rasqal_aggregation_rowsource_read_row(rasqal_rowsource* rowsource,
       fputc('\n', DEBUG_FH);
 #endif
       
-      if(result) {
-        rasqal_row_set_value_at(row, offset, result);
+      v = rasqal_rowsource_get_variable_by_offset(rowsource, offset);
+      result = rasqal_new_literal_from_literal(result);
+      /* it is OK to bind to NULL */
+      rasqal_variable_set_value(v, result);
+
+      rasqal_row_set_value_at(row, offset, result);
         
+      if(result)
         rasqal_free_literal(result);
-      }
     
       offset++;
 
