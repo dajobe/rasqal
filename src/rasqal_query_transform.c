@@ -523,6 +523,9 @@ rasqal_query_build_bound_in(rasqal_query* query)
   int size;
 
   size = rasqal_variables_table_get_total_variables_count(query->vars_table);
+
+  if(query->variables_bound_in)
+    RASQAL_FREE(intarray, query->variables_bound_in);
   
   query->variables_bound_in = (int*)RASQAL_CALLOC(intarray, size+1, sizeof(int));
   if(!query->variables_bound_in)
