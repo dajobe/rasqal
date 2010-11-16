@@ -1834,6 +1834,9 @@ rasqal_algebra_query_add_modifiers(rasqal_query* query,
   raptor_sequence* modifier_seq;
   int modified;
   
+  if(!query->modifier)
+    return node;
+  
   /* ORDER BY */
   modifier_seq = query->modifier->order_conditions;
   if(modifier_seq) {
