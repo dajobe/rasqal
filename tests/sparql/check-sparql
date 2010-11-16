@@ -282,14 +282,16 @@ sub read_rdf_graph_file($$) {
 
 sub run_test {
   my($config)=@_;
-  my($name,$dir,$test_file,$result_file,$expect_fail)=
+  my($name,$dir,$test_file,$result_file,$expect_fail,$language)=
     ($config->{name}, $config->{dir}, $config->{test_file}, 
-     $config->{result_file}, $config->{expect_fail});
+     $config->{result_file}, $config->{expect_fail}, $config->{language});
   my($test_uri)=$config->{test_uri};
   my(@data_files)=@{$config->{data_files}};
   my(@named_data_files)=@{$config->{named_data_files}};
 
-  warn "run_test(\n  name       : $name\n  dir        : $dir\n  query      : $test_file\n  data       : ",join("; ",@data_files),"\n  named data : ",join("; ",@named_data_files),"\n  result     : ",($result_file||"none"),"\n  expect     : ",($expect_fail ? "failure":"success"),"\n)\n"
+  $language ||= 'sparql';
+
+  warn "run_test(\n  name       : $name\n  dir        : $dir\n  language : $language\n  query      : $test_file\n  data       : ",join("; ",@data_files),"\n  named data : ",join("; ",@named_data_files),"\n  result     : ",($result_file||"none"),"\n  expect     : ",($expect_fail ? "failure":"success"),"\n)\n"
     if $debug;
 
   my(@args)=();
@@ -301,7 +303,7 @@ sub run_test {
 
   my $args_s=join(" ",@args);
   my $roqet_tmp='roqet.tmp';
-  my $roqet_cmd="$roqet -d debug -i sparql $args_s $test_file 2>roqet.err > $roqet_tmp";
+  my $roqet_cmd="$roqet -d debug -i $language $args_s $test_file 2>roqet.err > $roqet_tmp";
   my $sort="sort";
 
   warn "$program: Running '$roqet_cmd'\n"
@@ -506,10 +508,12 @@ my $usage=0;
 my $manifest_file=undef;
 my $earl_report_file=undef;
 my $approved=0;
+my $language='sparql';
 
 GetOptions(
   'debug|d+'   => \$debug, # incremental
   'srcdir|s=s' => \$srcdir,
+  'input|i=s' => \$language,
   'manifest|m=s' => \$manifest_file,
   'earl|e=s' => \$earl_report_file,
   'help|h|?' => \$usage,
@@ -683,6 +687,8 @@ my(@passed);
 my $result=0;
 for my $test (@tests) {
   my($config)=$test;
+
+  $config->{language} = $language;
 
   my $rc = run_test($config);
 
