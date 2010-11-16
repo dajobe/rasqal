@@ -1772,6 +1772,9 @@ rasqal_query_build_variables_use_map(rasqal_query* query)
   if(!use_map)
     return 1;
 
+  if(query->variables_use_map)
+    RASQAL_FREE(intarray, query->variables_use_map);
+
   query->variables_use_map = use_map;
 
   use_map_row = &use_map[RASQAL_VAR_USE_MAP_OFFSET_VERBS * width];
