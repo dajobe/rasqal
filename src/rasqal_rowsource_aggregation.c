@@ -828,7 +828,7 @@ rasqal_new_aggregation_rowsource(rasqal_world *world, rasqal_query* query,
     rasqal_agg_expr_data* expr_data = &con->expr_data[i];
 
     expr_data->expr = rasqal_new_expression_from_expression(expr);
-    expr_data->variable = rasqal_new_variable_from_variable(variable);
+    expr_data->variable = variable;
 
     /* Prepare expression arguments sequence in per-expr data */
     if(expr->args) {

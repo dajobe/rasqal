@@ -1358,10 +1358,10 @@ rasqal_algebra_get_variables_mentioned_in(rasqal_query* query,
   int i;
   
 #ifdef HAVE_RAPTOR2_API
-  seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_variable,
+  seq = raptor_new_sequence((raptor_data_free_handler)NULL,
                             (raptor_data_print_handler)rasqal_variable_print);
 #else
-  seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_variable,
+  seq = raptor_new_sequence((raptor_sequence_free_handler*)NULL,
                             (raptor_sequence_print_handler*)rasqal_variable_print);
 #endif
   if(!seq)
@@ -1377,7 +1377,7 @@ rasqal_algebra_get_variables_mentioned_in(rasqal_query* query,
       continue;
 
     v = rasqal_variables_table_get(query->vars_table, i);
-    raptor_sequence_push(seq, rasqal_new_variable_from_variable(v));
+    raptor_sequence_push(seq, v);
   }
 
   return seq;
@@ -1965,10 +1965,10 @@ rasqal_algebra_query_add_projection(rasqal_query* query,
     vars_size = raptor_sequence_size(seq);
   
 #ifdef HAVE_RAPTOR2_API
-  vars_seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_variable,
+  vars_seq = raptor_new_sequence((raptor_data_free_handler)NULL,
                                  (raptor_data_print_handler)rasqal_variable_print);
 #else
-  vars_seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_variable,
+  vars_seq = raptor_new_sequence((raptor_sequence_free_handler*)NULL,
                                  (raptor_sequence_print_handler*)rasqal_variable_print);
 #endif
   if(!vars_seq) {
@@ -1979,7 +1979,7 @@ rasqal_algebra_query_add_projection(rasqal_query* query,
   for(i = 0; i < vars_size; i++) {
     rasqal_variable* v;
     v = (rasqal_variable*)raptor_sequence_get_at(seq, i);
-    raptor_sequence_push(vars_seq, rasqal_new_variable_from_variable(v));
+    raptor_sequence_push(vars_seq, v);
   }
   
   node = rasqal_new_project_algebra_node(query, node, vars_seq);
