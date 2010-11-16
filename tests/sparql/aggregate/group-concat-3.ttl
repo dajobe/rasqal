@@ -1,0 +1,406 @@
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix rs:      <http://www.w3.org/2001/sw/DataAccess/tests/result-set#> .
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+[]    rdf:type      rs:ResultSet ;
+      rs:resultVariable  "state" ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Alabama"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Alabama"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Alaska"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Alaska"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Arizona"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Arizona"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Arkansas"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Arkansas"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "California"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "California"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Colorado"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Colorado"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Connecticut"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Connecticut"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Delaware"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Delaware"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Florida"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Florida"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Georgia"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Georgia"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Hawaii"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Hawaii"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Idaho"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Idaho"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Illinois"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Illinois"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Indiana"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Indiana"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Iowa"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Iowa"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Kansas"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Kansas"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Kentucky"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Kentucky"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Louisiana"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Louisiana"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Maine"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Maine"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Maryland"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Maryland"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Massachusetts"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Massachusetts"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Michigan"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Michigan"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Minnesota"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Minnesota"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Mississippi"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Mississippi"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Missouri"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Missouri"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Montana"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Montana"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Nebraska"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Nebraska"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Nevada"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Nevada"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "New Hampshire"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "New Hampshire"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "New Jersey"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "New Jersey"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "New Mexico"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "New Mexico"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "New York"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "New York"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "North Carolina"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "North Carolina"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "North Dakota"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "North Dakota"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Ohio"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Ohio"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Oklahoma"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Oklahoma"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Oregon"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Oregon"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Pennsylvania"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Pennsylvania"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Rhode Island"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Rhode Island"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "South Carolina"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "South Carolina"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "South Dakota"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "South Dakota"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Tennessee"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Tennessee"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Texas"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Texas"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Utah"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Utah"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Vermont"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Vermont"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Virginia"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Virginia"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Washington"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Washington"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "West Virginia"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "West Virginia"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Wisconsin"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Wisconsin"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Wyoming"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Wyoming"
+                                    ] 
+      ] .
