@@ -648,7 +648,7 @@ rasqal_aggregation_rowsource_read_row(rasqal_rowsource* rowsource,
       rasqal_free_row(row);
       row = NULL;
     }
-  } else {
+  } else if (con->last_group_id >= 0) {
     int offset = 0;
     int i;
 
