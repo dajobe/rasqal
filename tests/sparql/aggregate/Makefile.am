@@ -60,6 +60,8 @@ $(SPARQL_TEST_FILES) \
 $(SPARQL_BAD_TEST_FILES) \
 $(SPARQL_RESULT_FILES)
 
+CLEANFILES=diff.out roqet.err roqet.out roqet.tmp result.out
+
 build-sparql-parser-test:
 	@(cd $(top_builddir)/src ; $(MAKE) sparql_parser_test)
 
