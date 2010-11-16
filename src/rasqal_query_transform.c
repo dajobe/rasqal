@@ -1206,6 +1206,43 @@ rasqal_query_prepare_count_graph_patterns(rasqal_query* query,
 
 
 /**
+ * rasqal_query_build_variables_use:
+ * @query: query
+ *
+ * INTERNAL - build structures recording variable use in the query
+ *
+ * Should be called if the query variable usage is modified such as
+ * a variable added during query planning.
+ *
+ */
+int
+rasqal_query_build_variables_use(rasqal_query* query)
+{
+  int rc;
+  
+  /* create query->variables_use_map that marks where a variable is 
+   * mentioned, bound or used in a graph pattern.
+   */
+  rc = rasqal_query_build_variables_use_map(query); 
+  if(rc)
+    return rc;
+  
+  /* create query->variables_bound_in to find triples where a variable
+   * is bound and look for variables selected that are not used
+   * in the execution order (graph pattern tree walk order).
+   *
+   * The query->variables_bound_in array is used in
+   * rasqal_engine_graph_pattern_init() when trying to figure out
+   * which parts of a triple pattern need to bind to a variable:
+   * only the first reference to it.
+   */
+  rc = rasqal_query_build_bound_in(query);
+  
+  return rc;
+}
+
+
+/**
  * rasqal_query_prepare_common:
  * @query: query
  *
@@ -1310,26 +1347,9 @@ rasqal_query_prepare_common(rasqal_query *query)
                                      rasqal_query_prepare_count_graph_patterns,
                                      query->graph_patterns_sequence);
 
-    /* create query->variables_use_map that marks where a variable is 
-     * mentioned, bound or used in a graph pattern.
-     */
-    rc = rasqal_query_build_variables_use_map(query); 
-    if(rc)
+    if(rasqal_query_build_variables_use(query))
       goto done;
-
-    /* create query->variables_bound_in to find triples where a variable
-     * is bound and look for variables selected that are not used
-     * in the execution order (graph pattern tree walk order).
-     *
-     * The query->variables_bound_in array is used in
-     * rasqal_engine_graph_pattern_init() when trying to figure out
-     * which parts of a triple pattern need to bind to a variable:
-     * only the first reference to it.
-     */
-    rc = rasqal_query_build_bound_in(query);
-    if(rc)
-      goto done;
-
+    
     /* warn if any of the selected named variables are not in a triple */
     rc = rasqal_query_check_unused_variables(query, query->variables_bound_in);
     if(rc)

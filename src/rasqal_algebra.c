@@ -1728,6 +1728,10 @@ rasqal_algebra_query_prepare_aggregates(rasqal_query* query,
     return NULL;
   }
 
+  /* Update variable use structures since agg variables were created */
+  if(ae->counter)
+    rasqal_query_build_variables_use(query);
+  
 #if RASQAL_DEBUG
   if(ae->counter) {
     if(query->selects) {

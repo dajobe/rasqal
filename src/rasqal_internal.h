@@ -1002,6 +1002,7 @@ int rasqal_query_expand_query_constraints_qnames(rasqal_query* rq);
 int rasqal_query_build_anonymous_variables(rasqal_query* rq);
 int rasqal_query_expand_wildcards(rasqal_query* rq);
 int rasqal_query_remove_duplicate_select_vars(rasqal_query* rq);
+int rasqal_query_build_variables_use(rasqal_query* query);
 int rasqal_query_prepare_common(rasqal_query *query);
 int rasqal_query_merge_graph_patterns(rasqal_query* query, rasqal_graph_pattern* gp, void* data);
 int rasqal_graph_patterns_join(rasqal_graph_pattern *dest_gp, rasqal_graph_pattern *src_gp);
