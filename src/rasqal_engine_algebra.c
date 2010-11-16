@@ -514,6 +514,10 @@ rasqal_query_engine_algebra_execute_init(void* ex_data,
   if(!node)
     return 1;
 
+  node = rasqal_algebra_query_add_group_by(query, node);
+  if(!node)
+    return 1;
+
   ae = rasqal_algebra_query_prepare_aggregates(query, node);
   if(!ae)
     return 1;

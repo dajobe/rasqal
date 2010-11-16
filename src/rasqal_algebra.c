@@ -1770,17 +1770,17 @@ rasqal_algebra_query_prepare_aggregates(rasqal_query* query,
 
 
 /**
- * rasqal_algebra_query_add_modifiers:
+ * rasqal_algebra_query_add_group_by:
  * @query: #rasqal_query to read from
  * @node: node to apply modifiers to
  *
- * Apply query modifiers to query algebra structure
+ * Apply any needed GROUP BY to query algebra structure
  *
  * Return value: non-0 on failure
  */
 rasqal_algebra_node*
-rasqal_algebra_query_add_modifiers(rasqal_query* query,
-                                   rasqal_algebra_node* node)
+rasqal_algebra_query_add_group_by(rasqal_query* query,
+                                  rasqal_algebra_node* node)
 {
   raptor_sequence* modifier_seq;
   int modified;
@@ -1814,6 +1814,26 @@ rasqal_algebra_query_add_modifiers(rasqal_query* query,
 #endif
   }
   
+  return node;
+}
+  
+
+/**
+ * rasqal_algebra_query_add_modifiers:
+ * @query: #rasqal_query to read from
+ * @node: node to apply modifiers to
+ *
+ * Apply any needed modifiers to query algebra structure
+ *
+ * Return value: non-0 on failure
+ */
+rasqal_algebra_node*
+rasqal_algebra_query_add_modifiers(rasqal_query* query,
+                                   rasqal_algebra_node* node)
+{
+  raptor_sequence* modifier_seq;
+  int modified;
+  
   /* ORDER BY */
   modifier_seq = query->modifier->order_conditions;
   if(modifier_seq) {
@@ -1837,7 +1857,6 @@ rasqal_algebra_query_add_modifiers(rasqal_query* query,
     fputs("\n", stderr);
 #endif
   }
-  
 
   return node;
 }
