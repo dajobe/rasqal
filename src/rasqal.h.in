@@ -256,6 +256,7 @@ struct rasqal_expression_s;
  * @type: Variable type.
  * @expression: Expression when the variable is a computed SELECT expression 
  * @user_data: Pointer to user data associated with a variable.  This is not used by rasqal.
+ * @usage: reference count
  *
  * Binding between a variable name and a value.
  *
@@ -270,6 +271,7 @@ typedef struct {
   rasqal_variable_type type;
   struct rasqal_expression_s* expression;
   void *user_data;
+  int usage;
 } rasqal_variable;
 
 
