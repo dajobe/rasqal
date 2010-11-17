@@ -3513,3 +3513,75 @@ rasqal_literal_sequence_compare(int compare_flags,
 
   return result;
 }
+
+
+int
+rasqal_literal_write_turtle(rasqal_literal* l, raptor_iostream* iostr)
+{
+  const unsigned char* str;
+  size_t len;
+  int rc = 0;
+  
+  if(!l)
+    return rc;
+
+  switch(l->type) {
+    case RASQAL_LITERAL_URI:
+      str = (const unsigned char*)raptor_uri_as_counted_string(l->value.uri,
+                                                               &len);
+      
+      raptor_iostream_write_byte('<', iostr);
+      if(str)
+        raptor_string_ntriples_write(str, len, '>', iostr);
+      raptor_iostream_write_byte('>', iostr);
+      break;
+      
+    case RASQAL_LITERAL_BLANK:
+      raptor_iostream_counted_string_write("_:", 2, iostr);
+      raptor_iostream_counted_string_write(l->string, l->string_len,
+                                           iostr);
+      break;
+      
+    case RASQAL_LITERAL_STRING:
+      raptor_iostream_write_byte('"', iostr);
+      raptor_string_ntriples_write(l->string, l->string_len, '"', iostr);
+      raptor_iostream_write_byte('"', iostr);
+      
+      if(l->language) {
+        raptor_iostream_write_byte('@', iostr);
+        raptor_iostream_string_write(l->language, iostr);
+      }
+      
+      if(l->datatype) {
+        str = (const unsigned char*)raptor_uri_as_counted_string(l->datatype,
+                                                                 &len);
+        raptor_iostream_counted_string_write("^^<", 3, iostr);
+        raptor_string_ntriples_write(str, len, '>', iostr);
+        raptor_iostream_write_byte('>', iostr);
+      }
+      
+      break;
+      
+    case RASQAL_LITERAL_PATTERN:
+    case RASQAL_LITERAL_QNAME:
+    case RASQAL_LITERAL_INTEGER:
+    case RASQAL_LITERAL_XSD_STRING:
+    case RASQAL_LITERAL_BOOLEAN:
+    case RASQAL_LITERAL_DOUBLE:
+    case RASQAL_LITERAL_FLOAT:
+    case RASQAL_LITERAL_VARIABLE:
+    case RASQAL_LITERAL_DECIMAL:
+    case RASQAL_LITERAL_DATETIME:
+    case RASQAL_LITERAL_UDT:
+    case RASQAL_LITERAL_INTEGER_SUBTYPE:
+      
+    case RASQAL_LITERAL_UNKNOWN:
+    default:
+      rasqal_log_error_simple(l->world, RAPTOR_LOG_LEVEL_ERROR, NULL,
+                              "Cannot turn literal type %d into Turtle", 
+                              l->type);
+      rc = 1;
+  }
+
+  return rc;
+}

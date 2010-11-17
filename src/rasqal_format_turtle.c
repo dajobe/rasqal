@@ -62,11 +62,11 @@ rasqal_query_results_write_turtle(raptor_iostream *iostr,
   int i;
   int row_semicolon;
   int column_semicolon = 0;
+  int size;
   
-  if(!rasqal_query_results_is_bindings(results) &&
-     !rasqal_query_results_is_boolean(results)) {
+  if(!rasqal_query_results_is_bindings(results)) {
     rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR, NULL,
-                            "Can only write Turtle format for variable binding and boolean results");
+                            "Can only write Turtle format for variable binding results");
     return 1;
   }
   
@@ -80,29 +80,25 @@ rasqal_query_results_write_turtle(raptor_iostream *iostr,
                                        35, iostr);
 
 
-  /* Header */
-  if(rasqal_query_results_is_bindings(results)) {
-    for(i = 0; 1; i++) {
-      const unsigned char *name;
-      
-      name = rasqal_query_results_get_binding_name(results, i);
-      if(!name)
-        break;
-      
-      raptor_iostream_counted_string_write("      rs:resultVariable  \"",
-                                           26, iostr);
-      raptor_iostream_string_write(name, iostr);
-      raptor_iostream_counted_string_write("\" ;\n", 4, iostr);
-    }
-  }
-
   /* Variable Binding Results */
 
-
-  row_semicolon = 0;
-  while(!rasqal_query_results_finished(results)) {
-    int size = rasqal_query_results_get_bindings_count(results);
+  for(i = 0; 1; i++) {
+    const unsigned char *name;
     
+    name = rasqal_query_results_get_binding_name(results, i);
+    if(!name)
+      break;
+      
+    raptor_iostream_counted_string_write("      rs:resultVariable  \"",
+                                         26, iostr);
+    raptor_iostream_string_write(name, iostr);
+    raptor_iostream_counted_string_write("\" ;\n", 4, iostr);
+  }
+
+  size = rasqal_query_results_get_bindings_count(results);
+  row_semicolon = 0;
+
+  while(!rasqal_query_results_finished(results)) {
     if(row_semicolon)
       raptor_iostream_counted_string_write(" ;\n", 3, iostr);
 
@@ -118,78 +114,22 @@ rasqal_query_results_write_turtle(raptor_iostream *iostr,
       l = rasqal_query_results_get_binding_value(results, i);
 
       if(column_semicolon)
-        raptor_iostream_counted_string_write("; \n                      ", 25, iostr);
+        raptor_iostream_counted_string_write("; \n                      ",
+                                             25, iostr);
 
       /* binding */
       raptor_iostream_counted_string_write("rs:binding    [ ", 16, iostr);
 
-      if(!l) {
-        /* no value: do not emit rs:value or rs:variable triples */
-        ;
-      } else { 
-        const unsigned char* str;
-        size_t len;
-
+      /* only emit rs:value and rs:variable triples if there is a value */
+      if(l) {
         raptor_iostream_counted_string_write("rs:variable   \"", 15, iostr);
         raptor_iostream_string_write(name, iostr);
         raptor_iostream_counted_string_write("\" ;\n                                      rs:value      ", 56, iostr);
-        
-        switch(l->type) {
-          case RASQAL_LITERAL_URI:
-            str = (const unsigned char*)raptor_uri_as_counted_string(l->value.uri, &len);
-
-            raptor_iostream_write_byte('<', iostr);
-            if(str)
-              raptor_string_ntriples_write(str, len, '>', iostr);
-            raptor_iostream_write_byte('>', iostr);
-            break;
-
-          case RASQAL_LITERAL_BLANK:
-            raptor_iostream_counted_string_write("_:", 2, iostr);
-            raptor_iostream_counted_string_write(l->string, l->string_len, iostr);
-            break;
-
-          case RASQAL_LITERAL_STRING:
-            raptor_iostream_write_byte('"', iostr);
-            raptor_string_ntriples_write(l->string, l->string_len, '"', iostr);
-            raptor_iostream_write_byte('"', iostr);
-
-            if(l->language) {
-              raptor_iostream_write_byte('@', iostr);
-              raptor_iostream_string_write(l->language, iostr);
-            }
-            if(l->datatype) {
-              str = (const unsigned char*)raptor_uri_as_counted_string(l->datatype, &len);
-              raptor_iostream_counted_string_write("^^<", 3, iostr);
-              raptor_string_ntriples_write(str, len, '>', iostr);
-              raptor_iostream_write_byte('>', iostr);
-            }
-
-            break;
-
-          case RASQAL_LITERAL_PATTERN:
-          case RASQAL_LITERAL_QNAME:
-          case RASQAL_LITERAL_INTEGER:
-          case RASQAL_LITERAL_XSD_STRING:
-          case RASQAL_LITERAL_BOOLEAN:
-          case RASQAL_LITERAL_DOUBLE:
-          case RASQAL_LITERAL_FLOAT:
-          case RASQAL_LITERAL_VARIABLE:
-          case RASQAL_LITERAL_DECIMAL:
-          case RASQAL_LITERAL_DATETIME:
-          case RASQAL_LITERAL_UDT:
-          case RASQAL_LITERAL_INTEGER_SUBTYPE:
-
-          case RASQAL_LITERAL_UNKNOWN:
-          default:
-            rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR, NULL,
-                                    "Cannot turn literal type %d into Turtle", 
-                                    l->type);
-        }
-
+        rasqal_literal_write_turtle(l, iostr);
         raptor_iostream_counted_string_write("\n                                    ] ", 39, iostr);
         column_semicolon = 1;
       }
+
     }
 
     /* End Result Row */
@@ -221,9 +161,9 @@ rasqal_init_result_format_turtle(rasqal_world* world)
   rc += rasqal_query_results_format_register_factory(world,
                                                      "turtle",
                                                      "Turtle Query Results",
-                                                     (unsigned char*)"http://www.w3.org/2001/sw/DataAccess/tests/result-set#",
+                                                     NULL,
                                                      writer_fn, reader_fn, get_rowsource_fn,
-                                                     "application/json")
+                                                     "application/turtle")
                                                      != 0;
   return rc;
 }

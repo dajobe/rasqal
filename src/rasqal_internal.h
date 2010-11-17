@@ -1094,6 +1094,7 @@ void rasqal_literal_write_type(rasqal_literal* l, raptor_iostream* iostr);
 void rasqal_literal_write(rasqal_literal* l, raptor_iostream* iostr);
 void rasqal_expression_write_op(rasqal_expression* e, raptor_iostream* iostr);
 void rasqal_expression_write(rasqal_expression* e, raptor_iostream* iostr);
+int rasqal_literal_write_turtle(rasqal_literal* l, raptor_iostream* iostr);
 
 /* rasqal_map.c */
 typedef void (*rasqal_map_visit_fn)(void *key, void *value, void *user_data);
