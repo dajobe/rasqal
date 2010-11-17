@@ -104,6 +104,7 @@ rasqal_triples_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
     column = rasqal_query_get_bound_in_column_for_variable(query, v);
 
     if(column >= con->start_column && column <= con->end_column) {
+      v = rasqal_new_variable_from_variable(v);
       if(raptor_sequence_push(rowsource->variables_sequence, v))
         return -1;
       con->size++;

@@ -1358,10 +1358,10 @@ rasqal_algebra_get_variables_mentioned_in(rasqal_query* query,
   int i;
   
 #ifdef HAVE_RAPTOR2_API
-  seq = raptor_new_sequence((raptor_data_free_handler)NULL,
+  seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_variable,
                             (raptor_data_print_handler)rasqal_variable_print);
 #else
-  seq = raptor_new_sequence((raptor_sequence_free_handler*)NULL,
+  seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_variable,
                             (raptor_sequence_print_handler*)rasqal_variable_print);
 #endif
   if(!seq)
@@ -1377,7 +1377,7 @@ rasqal_algebra_get_variables_mentioned_in(rasqal_query* query,
       continue;
 
     v = rasqal_variables_table_get(query->vars_table, i);
-    raptor_sequence_push(seq, v);
+    raptor_sequence_push(seq, rasqal_new_variable_from_variable(v));
   }
 
   return seq;
@@ -1414,7 +1414,8 @@ rasqal_free_agg_expr_var(const void *key, const void *value)
   if(key)
     rasqal_free_expression((rasqal_expression*)key);
 
-  /* Never free variable - all are owned by query object */
+  if(value)
+    rasqal_free_variable((rasqal_variable*)value);
 }
 
 
@@ -1521,6 +1522,7 @@ rasqal_algebra_extract_aggregate_expression_visit(void *user_data,
     }
 
     /* add to variables sequence too */
+    v = rasqal_new_variable_from_variable(v);
     if(raptor_sequence_push(ae->agg_vars_seq, v)) {
       ae->error = 1;
       return 1;
@@ -1568,10 +1570,10 @@ rasqal_algebra_extract_aggregate_expressions(rasqal_query* query,
   ae->agg_exprs = seq;
 
 #ifdef HAVE_RAPTOR2_API
-  seq = raptor_new_sequence((raptor_data_free_handler)NULL,
+  seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_variable,
                             (raptor_data_print_handler)rasqal_variable_print);
 #else
-  seq = raptor_new_sequence((raptor_sequence_free_handler*)NULL,
+  seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_variable,
                             (raptor_sequence_print_handler*)rasqal_variable_print);
 #endif
   ae->agg_vars_seq = seq;
@@ -1965,10 +1967,10 @@ rasqal_algebra_query_add_projection(rasqal_query* query,
     vars_size = raptor_sequence_size(seq);
   
 #ifdef HAVE_RAPTOR2_API
-  vars_seq = raptor_new_sequence((raptor_data_free_handler)NULL,
+  vars_seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_variable,
                                  (raptor_data_print_handler)rasqal_variable_print);
 #else
-  vars_seq = raptor_new_sequence((raptor_sequence_free_handler*)NULL,
+  vars_seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_variable,
                                  (raptor_sequence_print_handler*)rasqal_variable_print);
 #endif
   if(!vars_seq) {
@@ -1978,7 +1980,9 @@ rasqal_algebra_query_add_projection(rasqal_query* query,
   
   for(i = 0; i < vars_size; i++) {
     rasqal_variable* v;
+
     v = (rasqal_variable*)raptor_sequence_get_at(seq, i);
+    v = rasqal_new_variable_from_variable(v);
     raptor_sequence_push(vars_seq, v);
   }
   

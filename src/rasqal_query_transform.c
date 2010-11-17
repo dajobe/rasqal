@@ -257,9 +257,11 @@ rasqal_query_expand_wildcards(rasqal_query* rq)
   
   /* If 'SELECT *' was given, make the selects be a list of all variables */
 #ifdef HAVE_RAPTOR2_API
-  rq->selects = raptor_new_sequence(NULL, (raptor_data_print_handler)rasqal_variable_print);
+  rq->selects = raptor_new_sequence((raptor_data_free_handler)rasqal_free_variable,
+                                    (raptor_data_print_handler)rasqal_variable_print);
 #else
-  rq->selects = raptor_new_sequence(NULL, (raptor_sequence_print_handler*)rasqal_variable_print);
+  rq->selects = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_variable,
+                                    (raptor_sequence_print_handler*)rasqal_variable_print);
 #endif
   if(!rq->selects)
     return 1;
@@ -268,6 +270,7 @@ rasqal_query_expand_wildcards(rasqal_query* rq)
   for(i = 0; i < size; i++) {
     rasqal_variable* v = rasqal_variables_table_get(rq->vars_table, i);
 
+    v = rasqal_new_variable_from_variable(v);
     if(raptor_sequence_push(rq->selects, v))
       return 1;
   }
@@ -305,9 +308,11 @@ rasqal_query_remove_duplicate_select_vars(rasqal_query* rq)
     return 0;
 
 #ifdef HAVE_RAPTOR2_API
-  new_seq = raptor_new_sequence(NULL, (raptor_data_print_handler)rasqal_variable_print);
+  new_seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_variable,
+                                (raptor_data_print_handler)rasqal_variable_print);
 #else
-  new_seq = raptor_new_sequence(NULL, (raptor_sequence_print_handler*)rasqal_variable_print);
+  new_seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_variable,
+                                (raptor_sequence_print_handler*)rasqal_variable_print);
 #endif
   if(!new_seq)
     return 1;
@@ -343,6 +348,7 @@ rasqal_query_remove_duplicate_select_vars(rasqal_query* rq)
       }
     }
     if(!warned) {
+      v = rasqal_new_variable_from_variable(v);
       raptor_sequence_push(new_seq, v);
       modified = 1;
     }

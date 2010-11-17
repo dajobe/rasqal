@@ -99,9 +99,11 @@ rasqal_new_rowsource_from_handler(rasqal_world* world,
 
   /* no free method here - the variables are owned by rowsource->vars_table */
 #ifdef HAVE_RAPTOR2_API
-  rowsource->variables_sequence = raptor_new_sequence(NULL, (raptor_data_print_handler)rasqal_variable_print);
+  rowsource->variables_sequence = raptor_new_sequence((raptor_data_free_handler)rasqal_free_variable,
+                                                      (raptor_data_print_handler)rasqal_variable_print);
 #else
-  rowsource->variables_sequence = raptor_new_sequence(NULL, (raptor_sequence_print_handler*)rasqal_variable_print);
+  rowsource->variables_sequence = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_variable,
+                                                      (raptor_sequence_print_handler*)rasqal_variable_print);
 #endif
   if(!rowsource->variables_sequence) {
     rasqal_free_rowsource(rowsource);
@@ -164,6 +166,7 @@ rasqal_rowsource_add_variable(rasqal_rowsource *rowsource, rasqal_variable* v)
   if(offset >= 0)
     return offset;
 
+  v = rasqal_new_variable_from_variable(v);
   if(raptor_sequence_push(rowsource->variables_sequence, v))
     return -1;
 

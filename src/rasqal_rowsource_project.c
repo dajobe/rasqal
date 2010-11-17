@@ -354,13 +354,21 @@ main(int argc, char *argv[])
   /* vars_seq and seq are now owned by input_rs */
   vars_seq = seq = NULL;
   
-  projection_seq = raptor_new_sequence(NULL, NULL);
+#ifdef HAVE_RAPTOR2_API
+  projection_seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_variable,
+                                       (raptor_data_print_handler)rasqal_variable_print);
+#else
+  projection_seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_variable,
+                                       (raptor_sequence_print_handler*)rasqal_variable_print);
+#endif
   for(i = 0 ; i < EXPECTED_COLUMNS_COUNT; i++) {
     rasqal_variable* v;
     unsigned const char* name=(unsigned const char*)project_1_var_names[i];
     v = rasqal_variables_table_get_by_name(vt, name);
-    if(v)
+    if(v) {
+      v = rasqal_new_variable_from_variable(v);
       raptor_sequence_push(projection_seq, v);
+    }
   }
 
   rowsource = rasqal_new_project_rowsource(world, query, input_rs, projection_seq);

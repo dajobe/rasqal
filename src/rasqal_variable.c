@@ -2,7 +2,7 @@
  *
  * rasqal_variable.c - Rasqal variable support
  *
- * Copyright (C) 2003-2008, David Beckett http://www.dajobe.org/
+ * Copyright (C) 2003-2010, David Beckett http://www.dajobe.org/
  * Copyright (C) 2003-2005, University of Bristol, UK http://www.bristol.ac.uk/
  * 
  * This package is Free Software and part of Redland http://librdf.org/
@@ -117,38 +117,19 @@ rasqal_new_variable(rasqal_query* rq,
  *
  * Copy Constructor - Create a new Rasqal variable from an existing one
  *
- * This does a deep copy of all variable fields
+ * This adds a new reference to the variable, it does not do a deep copy
  *
  * Return value: a new #rasqal_variable or NULL on failure.
  **/
 rasqal_variable*
 rasqal_new_variable_from_variable(rasqal_variable* v)
 {
-  rasqal_variable* new_v;
-  size_t name_len;
-  unsigned char *new_name;
-
-  new_v = (rasqal_variable*)RASQAL_CALLOC(rasqal_variable, 1,
-                                          sizeof(rasqal_variable));
-  if(!new_v)
+  if(!v)
     return NULL;
   
-  name_len = strlen((const char*)v->name);
-  new_name = (unsigned char*)RASQAL_MALLOC(cstring, name_len+1);
-  if(!new_name) {
-    RASQAL_FREE(rasqal_variable, new_v);
-    return NULL;
-  }
-  memcpy(new_name, v->name, name_len+1);
-
-  new_v->vars_table = v->vars_table;
-  new_v->name= new_name;
-  new_v->value= rasqal_new_literal_from_literal(v->value);
-  new_v->offset= v->offset;
-  new_v->type= v->type;
-  new_v->expression= rasqal_new_expression_from_expression(v->expression);
-
-  return new_v;
+  v->usage++;
+  
+  return v;
 }
 
 /**
@@ -163,13 +144,19 @@ rasqal_free_variable(rasqal_variable* v)
 {
   if(!v)
     return;
+
+  if(--v->usage)
+    return;
   
   if(v->name)
     RASQAL_FREE(cstring, (void*)v->name);
+
   if(v->value)
     rasqal_free_literal(v->value);
+
   if(v->expression)
     rasqal_free_expression(v->expression);
+
   RASQAL_FREE(rasqal_variable, v);
 }
 
@@ -191,15 +178,19 @@ rasqal_variable_write(rasqal_variable* v, raptor_iostream* iostr)
     raptor_iostream_counted_string_write("anon-variable(", 14, iostr);
   else
     raptor_iostream_counted_string_write("variable(", 9, iostr);
+
   raptor_iostream_string_write(v->name, iostr);
+
   if(v->expression) {
     raptor_iostream_write_byte('=', iostr);
     rasqal_expression_write(v->expression, iostr);
   }
+
   if(v->value) {
     raptor_iostream_write_byte('=', iostr);
     rasqal_literal_write(v->value, iostr);
   }
+
   raptor_iostream_write_byte(')', iostr);
 }
 
@@ -222,10 +213,12 @@ rasqal_variable_print(rasqal_variable* v, FILE* fh)
     fprintf(fh, "anon-variable(%s", v->name);
   else
     fprintf(fh, "variable(%s", v->name);
+
   if(v->expression) {
     fputc('=', fh);
     rasqal_expression_print(v->expression, fh);
   }
+
   if(v->value) {
     fputc('=', fh);
     rasqal_literal_print(v->value, fh);
@@ -252,12 +245,15 @@ rasqal_variable_set_value(rasqal_variable* v, rasqal_literal* l)
 {
   if(v->value)
     rasqal_free_literal(v->value);
+
   v->value = l;
 
 #ifdef RASQAL_DEBUG
   if(!v->name)
     RASQAL_FATAL1("variable has no name");
+
   RASQAL_DEBUG2("setting variable %s to value ", v->name);
+
   if(v->value)
     rasqal_literal_print(v->value, stderr);
   else
@@ -438,10 +434,11 @@ rasqal_variables_table_add(rasqal_variables_table* vt,
   
   for(i = 0; i < raptor_sequence_size(seq); i++) {
     v = (rasqal_variable*)raptor_sequence_get_at(seq, i);
+
     if(!strcmp((const char*)v->name, (const char*)name)) {
-      /* name already present, do not need a copy */
+      /* variable with this name already present */
       RASQAL_FREE(cstring, name);
-      return v;
+      return rasqal_new_variable_from_variable(v);
     }
   }
 
@@ -449,13 +446,17 @@ rasqal_variables_table_add(rasqal_variables_table* vt,
   v = (rasqal_variable*)RASQAL_CALLOC(rasqal_variable, 1,
                                       sizeof(rasqal_variable));
   if(v) {
+    v->usage = 1;
+    
     v->vars_table = vt;
-    v->type= type;
-    v->name= name;
-    v->value= value;
+    v->type = type;
+    v->name = name;
+    v->value = value;
     if(count_p)
-      v->offset= (*count_p);
+      v->offset = (*count_p);
 
+    /* add one v reference for sequence, leaving one reference for returned v */
+    v = rasqal_new_variable_from_variable(v);
     if(seq && raptor_sequence_push(seq, v))
       return NULL;
 
@@ -514,9 +515,11 @@ rasqal_literal*
 rasqal_variables_table_get_value(rasqal_variables_table* vt, int idx)
 {
   rasqal_variable* v;
+
   v = rasqal_variables_table_get(vt, idx);
   if(!v)
     return NULL;
+
   return v->value;
 }
 
@@ -602,12 +605,13 @@ rasqal_variables_table_get_names(rasqal_variables_table* vt)
   if(!vt->variable_names && size) {
     int i;
     
-    vt->variable_names = (const unsigned char**)RASQAL_CALLOC(cstrings, sizeof(unsigned char*), (size+1));
+    vt->variable_names = (const unsigned char**)RASQAL_CALLOC(cstrings, sizeof(unsigned char*), (size + 1));
     if(!vt->variable_names)
       return NULL;
 
     for(i = 0; i < size; i++) {
       rasqal_variable* v;
+
       v = (rasqal_variable*)raptor_sequence_get_at(vt->variables_sequence, i);
       vt->variable_names[i] = v->name;
     }
@@ -631,10 +635,10 @@ rasqal_variable_copy_variable_sequence(raptor_sequence* vars_seq)
     return NULL;
   
 #ifdef HAVE_RAPTOR2_API
-  nvars_seq = raptor_new_sequence((raptor_data_free_handler)NULL,
+  nvars_seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_variable,
                                   (raptor_data_print_handler)rasqal_variable_print);
 #else
-  nvars_seq = raptor_new_sequence((raptor_sequence_free_handler*)NULL,
+  nvars_seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_variable,
                                   (raptor_sequence_print_handler*)rasqal_variable_print);
 #endif
   if(!nvars_seq)
@@ -643,12 +647,10 @@ rasqal_variable_copy_variable_sequence(raptor_sequence* vars_seq)
   size = raptor_sequence_size(vars_seq);
   for(i = 0; i < size; i++) {
     rasqal_variable* v;
+
     v = (rasqal_variable*)raptor_sequence_get_at(vars_seq, i);
-    if(v) {
-      /* v = rasqal_new_variable_from_variable(v); */
-      if(v)
-        raptor_sequence_set_at(nvars_seq, i, v);
-    }
+    v = rasqal_new_variable_from_variable(v);
+    raptor_sequence_set_at(nvars_seq, i, v);
   }
   
   return nvars_seq;
@@ -700,7 +702,7 @@ main(int argc, char *argv[])
   }
   
   vars[0] = rasqal_variables_table_add(vt, RASQAL_VARIABLE_TYPE_NORMAL,
-                                     names[0], NULL);
+                                       names[0], NULL);
   if(!vars[0]) {
     fprintf(stderr, "%s: Failed to make normal variable with NULL value\n",
             program);
@@ -719,7 +721,7 @@ main(int argc, char *argv[])
     goto tidy;
   }
   vars[1] = rasqal_variables_table_add(vt, RASQAL_VARIABLE_TYPE_NORMAL,
-                                     names[1], value);
+                                       names[1], value);
   if(!vars[1]) {
     fprintf(stderr, "%s: Failed to make normal variable with literal value\n",
             program);
@@ -733,7 +735,7 @@ main(int argc, char *argv[])
   /* vars[1] now owned by vt */
   
   vars[2] = rasqal_variables_table_add(vt, RASQAL_VARIABLE_TYPE_ANONYMOUS,
-                                     names[2], NULL);
+                                       names[2], NULL);
   if(!vars[2]) {
     fprintf(stderr, "%s: Failed to make anonymous variable with NULL value\n",
             program);

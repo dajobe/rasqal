@@ -319,10 +319,10 @@ rasqal_new_row_sequence(rasqal_world* world,
 
   if(vars_seq_p) {
 #ifdef HAVE_RAPTOR2_API
-    vars_seq = raptor_new_sequence(NULL,
+    vars_seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_variable,
                                    (raptor_data_print_handler)rasqal_variable_print);
 #else
-    vars_seq = raptor_new_sequence(NULL,
+    vars_seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_variable,
                                    (raptor_sequence_print_handler*)rasqal_variable_print);
 #endif
     if(!vars_seq) {
@@ -353,8 +353,10 @@ rasqal_new_row_sequence(rasqal_world* world,
       goto tidy;
     }
 
-    if(vars_seq)
+    if(vars_seq) {
+      v = rasqal_new_variable_from_variable(v);
       raptor_sequence_push(vars_seq, v);
+    }
   }
 
   for(row_i = 1; 1; row_i++) {

@@ -669,12 +669,11 @@ SelectExpressionListTail: SelectExpressionListTail SelectTerm
 }
 | SelectTerm
 {
-  /* All variables are freed from the raptor_query field variables */
 #ifdef HAVE_RAPTOR2_API
-  $$ = raptor_new_sequence(NULL,
+  $$ = raptor_new_sequence((raptor_data_free_handler)rasqal_free_variable,
                            (raptor_data_print_handler)rasqal_variable_print);
 #else
-  $$ = raptor_new_sequence(NULL,
+  $$ = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_variable,
                            (raptor_sequence_print_handler*)rasqal_variable_print);
 #endif
   if(!$$)
@@ -2279,12 +2278,11 @@ VarList: VarList Var
 }
 | Var
 {
-  /* All variables are freed from the raptor_query field variables */
 #ifdef HAVE_RAPTOR2_API
-  $$ = raptor_new_sequence(NULL,
+  $$ = raptor_new_sequence((raptor_data_free_handler)rasqal_free_variable,
                            (raptor_data_print_handler)rasqal_variable_print);
 #else
-  $$ = raptor_new_sequence(NULL,
+  $$ = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_variable,
                            (raptor_sequence_print_handler*)rasqal_variable_print);
 #endif
   if(!$$)

@@ -48,6 +48,8 @@
  *
  * INTERNAL - Create a new bindings object.
  * 
+ * The @variables and @rows become owned by the bindings object.
+ *
  * Return value: a new #rasqal_bindings object or NULL on failure
  **/
 rasqal_bindings*

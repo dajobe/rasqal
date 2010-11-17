@@ -844,7 +844,7 @@ rasqal_query_dataset_contains_named_graph(rasqal_query* query,
  *
  * Add a binding variable to the query.
  *
- * See also rasqal_query_set_variable which assigns or removes a value to
+ * See also rasqal_query_set_variable() which assigns or removes a value to
  * a previously added variable in the query.
  *
  * Return value: non-0 on failure
@@ -857,14 +857,17 @@ rasqal_query_add_variable(rasqal_query* query, rasqal_variable* var)
 
   if(!query->selects) {
 #ifdef HAVE_RAPTOR2_API
-    query->selects = raptor_new_sequence(NULL, (raptor_data_print_handler)rasqal_variable_print);
+    query->selects = raptor_new_sequence((raptor_data_free_handler)rasqal_free_variable,
+                                         (raptor_data_print_handler)rasqal_variable_print);
 #else
-    query->selects = raptor_new_sequence(NULL, (raptor_sequence_print_handler*)rasqal_variable_print);
+    query->selects = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_variable,
+                                         (raptor_sequence_print_handler*)rasqal_variable_print);
 #endif
     if(!query->selects)
       return 1;
   }
 
+  var = rasqal_new_variable_from_variable(var);
   return raptor_sequence_push(query->selects, (void*)var);
 }
 

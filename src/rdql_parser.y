@@ -246,11 +246,12 @@ VarList : VarList ',' Var
 }
 | Var
 {
-  /* The variables are freed from the rasqal_query field variables */
 #ifdef HAVE_RAPTOR2_API
-  $$ = raptor_new_sequence(NULL, (raptor_data_print_handler)rasqal_variable_print);
+  $$ = raptor_new_sequence((raptor_data_free_handler)rasqal_free_variable,
+                           (raptor_data_print_handler)rasqal_variable_print);
 #else
-  $$ = raptor_new_sequence(NULL, (raptor_sequence_print_handler*)rasqal_variable_print);
+  $$ = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_variable,
+                           (raptor_sequence_print_handler*)rasqal_variable_print);
 #endif
   raptor_sequence_push($$, $1);
 }

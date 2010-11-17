@@ -1153,12 +1153,13 @@ main(int argc, char *argv[])
     expr = NULL;
     
 #ifdef HAVE_RAPTOR2_API
-    vars_seq = raptor_new_sequence(NULL,
+    vars_seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_variable,
                                    (raptor_data_print_handler)rasqal_variable_print);
 #else
-    vars_seq = raptor_new_sequence(NULL,
+    vars_seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_variable,
                                    (raptor_sequence_print_handler*)rasqal_variable_print);
 #endif
+    output_var = rasqal_new_variable_from_variable(output_var);
     raptor_sequence_push(vars_seq, output_var);
 
     rowsource = rasqal_new_aggregation_rowsource(world, query, input_rs,
