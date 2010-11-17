@@ -147,7 +147,7 @@ sub read_rdf_results_file($$) {
     last;
   }
   
-  warn "Resultset node $resultset_node\n"
+  warn "$program: Resultset node $resultset_node\n"
     if $debug > 1;
 
   if(!defined $resultset_node) {
@@ -156,7 +156,7 @@ sub read_rdf_results_file($$) {
   }
 
   for my $node (@{$nodes{$resultset_node}->{$solution_predicate}}) {
-    warn "Row node $node\n"
+    warn "$program: Row node $node\n"
       if $debug > 1;
 
     # Get binding nodes
@@ -182,7 +182,7 @@ sub read_rdf_results_file($$) {
       push(@{$results{rows}}, $row);
     }
   }
-  warn "Found ".scalar(@{$results{rows}})." rows in results\n"
+  warn "$program: Found ".scalar(@{$results{rows}})." rows in results\n"
     if $debug > 0;
   return \%results;
 }
@@ -354,11 +354,10 @@ sub run_test {
     chomp;
     if(/^(?:selects|bound variables): \[(.*)\]$/) {
       my $vars=$1;
-      $vars =~ s/variable\(([^)]+)\)/$1/g; # ) ]
-      $vars =~ s/,//g;
-      @vars_order=split(/ /, $vars);
-      @vars_order= map { s/=.*$//; $_; } @vars_order;
-      warn "Set vars order to @vars_order\n"
+      while($vars =~ s/variable\((\w+)//) {
+	push(@vars_order, $1);
+      }
+      warn "$program: Set vars order to @vars_order\n"
 	if $debug;
     }
 
@@ -387,7 +386,7 @@ sub run_test {
 	$vars =~ s/=NULL//g;
 	$vars =~ s/,//g;
 	@vars_order=split(/ /, $vars);
-	warn "Set vars order later to @vars_order\n"
+	warn "$program: Set vars order later to @vars_order\n"
 	  if $debug;
       }
       $line =~ s/,?\s+\w+=NULL//g;
