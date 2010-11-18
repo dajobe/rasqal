@@ -2,6 +2,9 @@
  *
  * rasqal_rowsource_aggregation.c - Rasqal aggregation rowsource class
  *
+ * Handles SPARQL Aggregation() algebra including Distinct of
+ * expression arguments.
+ *
  * Copyright (C) 2010, David Beckett http://www.dajobe.org/
  * 
  * This package is Free Software and part of Redland http://librdf.org/
@@ -249,15 +252,23 @@ rasqal_builtin_agg_expression_execute_step(void* user_data,
 
   b = (rasqal_builtin_agg_expression_execute*)user_data;
 
-  b->count++;
-
   if(b->error)
     return 1;
   
-  /* COUNT() does not care about the values */
-  if(b->expr->op == RASQAL_EXPR_COUNT)
-    return 0;
+  if(b->expr->op == RASQAL_EXPR_COUNT) {
+    /* COUNT(*) : counts every row (does not care about literals) */
+    if(b->expr->arg1->op == RASQAL_EXPR_VARSTAR)
+      b->count++;
+    /* COUNT(expr list) : counts rows with non-empty sequence of literals */
+    else if(raptor_sequence_size(literals) > 0)
+      b->count++;
     
+    return 0;
+  }
+    
+
+  /* Other aggregate functions count every row */
+  b->count++;
 
   for(i = 0; (l = (rasqal_literal*)raptor_sequence_get_at(literals, i)); i++) {
     rasqal_literal* result = NULL;
@@ -613,13 +624,16 @@ rasqal_aggregation_rowsource_read_row(rasqal_rowsource* rowsource,
       for(i = 0; i < con->expr_count; i++) {
         rasqal_agg_expr_data* expr_data = &con->expr_data[i];
         
+        /* SPARQL Aggregation uses ListEvalE() to evaluate - ignoring
+         * errors and filtering out expressions that fail
+         */
         rasqal_expression_sequence_evaluate(rowsource->query,
                                             expr_data->exprs_seq,
-                                            /* ignore_errors */ 0,
+                                            /* ignore_errors */ 1,
                                             expr_data->literal_seq,
                                             &error);
         if(error)
-          break;
+          continue;
 
 #ifdef RASQAL_DEBUG
         RASQAL_DEBUG1("Aggregation step over literals: ");
