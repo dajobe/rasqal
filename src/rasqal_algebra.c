@@ -540,6 +540,46 @@ rasqal_new_aggregation_algebra_node(rasqal_query* query,
 
 
 /*
+ * rasqal_new_having_algebra_node:
+ * @query: #rasqal_query query object
+ * @node1: inner algebra node
+ * @exprs_seq: sequence of variables
+ *
+ * INTERNAL - Create a new HAVING algebra node for a sequence of expressions over an inner node
+ * 
+ * The inputs @node and @exprs_seq become owned by the new node
+ *
+ * Return value: a new #rasqal_algebra_node object or NULL on failure
+ **/
+rasqal_algebra_node*
+rasqal_new_having_algebra_node(rasqal_query* query,
+                               rasqal_algebra_node* node1,
+                               raptor_sequence* exprs_seq)
+{
+  rasqal_algebra_node* node;
+
+  if(!query || !node1 || !exprs_seq)
+    goto fail;
+
+  node = rasqal_new_algebra_node(query, RASQAL_ALGEBRA_OPERATOR_HAVING);
+  if(node) {
+    node->node1 = node1;
+    node->seq = exprs_seq;
+    
+    return node;
+  }
+
+  fail:
+  if(node1)
+    rasqal_free_algebra_node(node1);
+  if(exprs_seq)
+    raptor_free_sequence(exprs_seq);
+
+  return NULL;
+}
+
+
+/*
  * rasqal_free_algebra_node:
  * @gp: #rasqal_algebra_node object
  *
@@ -614,7 +654,8 @@ rasqal_algebra_node_operator_labels[RASQAL_ALGEBRA_OPERATOR_LAST + 1] = {
   "Graph",
   "Assignment",
   "Group",
-  "Aggregate"
+  "Aggregate",
+  "Having"
 };
 
 
@@ -2023,6 +2064,53 @@ rasqal_algebra_query_add_distinct(rasqal_query* query,
 
 #if RASQAL_DEBUG > 1
     RASQAL_DEBUG2("modified=%d after adding distinct node, algebra node now:\n  ", modified);
+    rasqal_algebra_node_print(node, stderr);
+    fputs("\n", stderr);
+#endif
+  }
+
+  return node;
+}
+
+
+/**
+ * rasqal_algebra_query_add_having:
+ * @query: #rasqal_query to read from
+ * @node: node to apply having to
+ *
+ * Apply any needed HAVING expressions to query algebra structure
+ *
+ * Return value: non-0 on failure
+ */
+rasqal_algebra_node*
+rasqal_algebra_query_add_having(rasqal_query* query,
+                                rasqal_algebra_node* node)
+{
+  raptor_sequence* modifier_seq;
+  int modified;
+  
+  if(!query->modifier)
+    return node;
+  
+  /* HAVING */
+  modifier_seq = query->modifier->having_conditions;
+  if(modifier_seq) {
+    raptor_sequence* exprs_seq;
+    
+    /* Make a deep copy of the query order conditions sequence for
+     * the ORDERBY algebra node
+     */
+    exprs_seq = rasqal_expression_copy_expression_sequence(modifier_seq);
+    if(!exprs_seq) {
+      rasqal_free_algebra_node(node);
+      return NULL;
+    }
+    
+    node = rasqal_new_having_algebra_node(query, node, exprs_seq);
+    modified = 1;
+    
+#if RASQAL_DEBUG > 1
+    RASQAL_DEBUG2("modified=%d after adding having node, algebra node now:\n  ", modified);
     rasqal_algebra_node_print(node, stderr);
     fputs("\n", stderr);
 #endif

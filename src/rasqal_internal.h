@@ -628,6 +628,9 @@ rasqal_rowsource* rasqal_new_graph_rowsource(rasqal_world *world, rasqal_query *
 /* rasqal_rowsource_groupby.c */
 rasqal_rowsource* rasqal_new_groupby_rowsource(rasqal_world *world, rasqal_query* query, rasqal_rowsource* rowsource, raptor_sequence* exprs_seq);
 
+/* rasqal_rowsource_having.c */
+rasqal_rowsource* rasqal_new_having_rowsource(rasqal_world *world, rasqal_query *query, rasqal_rowsource* rowsource, raptor_sequence* exprs_seq);
+
 /* rasqal_rowsource_join.c */
 rasqal_rowsource* rasqal_new_join_rowsource(rasqal_world *world, rasqal_query* query, rasqal_rowsource* left, rasqal_rowsource* right, rasqal_join_type join_type, rasqal_expression *expr);
 
@@ -1287,8 +1290,9 @@ typedef enum {
   RASQAL_ALGEBRA_OPERATOR_ASSIGN   = 14,
   RASQAL_ALGEBRA_OPERATOR_GROUP    = 15,
   RASQAL_ALGEBRA_OPERATOR_AGGREGATION = 16,
+  RASQAL_ALGEBRA_OPERATOR_HAVING   = 17,
 
-  RASQAL_ALGEBRA_OPERATOR_LAST = RASQAL_ALGEBRA_OPERATOR_AGGREGATION
+  RASQAL_ALGEBRA_OPERATOR_LAST = RASQAL_ALGEBRA_OPERATOR_HAVING
 } rasqal_algebra_node_operator;
 
 
@@ -1310,7 +1314,7 @@ struct rasqal_algebra_node_s {
   
   /* types JOIN, DIFF, LEFTJOIN, UNION, ORDERBY: node1 and node2 ALWAYS present
    * types FILTER, TOLIST: node1 ALWAYS present, node2 ALWAYS NULL
-   * type PROJECT, GRAPH, GROUPBY, AGGREGATION: node1 always present
+   * type PROJECT, GRAPH, GROUPBY, AGGREGATION, HAVING: node1 always present
    * (otherwise NULL)
    */
   struct rasqal_algebra_node_s *node1;
@@ -1321,7 +1325,7 @@ struct rasqal_algebra_node_s {
    */
   rasqal_expression* expr;
 
-  /* types ORDERBY, GROUPBY, AGGREGATION always present: sequence of
+  /* types ORDERBY, GROUPBY, AGGREGATION, HAVING always present: sequence of
    * #rasqal_expression
    * (otherwise NULL)
    */
@@ -1410,6 +1414,7 @@ rasqal_algebra_node* rasqal_new_graph_algebra_node(rasqal_query* query, rasqal_a
 rasqal_algebra_node* rasqal_new_let_algebra_node(rasqal_query* query, rasqal_variable *var, rasqal_expression *expr);
 rasqal_algebra_node* rasqal_new_groupby_algebra_node(rasqal_query* query, rasqal_algebra_node* node1, raptor_sequence* seq);
 rasqal_algebra_node* rasqal_new_aggregation_algebra_node(rasqal_query* query, rasqal_algebra_node* node1, raptor_sequence* exprs_seq, raptor_sequence* vars_seq);
+rasqal_algebra_node* rasqal_new_having_algebra_node(rasqal_query* query,rasqal_algebra_node* node1, raptor_sequence* exprs_seq);
 
 void rasqal_free_algebra_node(rasqal_algebra_node* node);
 rasqal_algebra_node_operator rasqal_algebra_node_get_operator(rasqal_algebra_node* node);
@@ -1423,6 +1428,7 @@ rasqal_algebra_node* rasqal_algebra_query_add_modifiers(rasqal_query* query, ras
 rasqal_algebra_node* rasqal_algebra_query_add_aggregation(rasqal_query* query, rasqal_algebra_aggregate* ae, rasqal_algebra_node* node);
 rasqal_algebra_node* rasqal_algebra_query_add_projection(rasqal_query* query, rasqal_algebra_node* node);
 rasqal_algebra_node* rasqal_algebra_query_add_distinct(rasqal_query* query, rasqal_algebra_node* node);
+rasqal_algebra_node* rasqal_algebra_query_add_having(rasqal_query* query, rasqal_algebra_node* node);
 int rasqal_algebra_node_is_empty(rasqal_algebra_node* node);
 
 rasqal_algebra_aggregate* rasqal_algebra_query_prepare_aggregates(rasqal_query* query, rasqal_algebra_node* node);

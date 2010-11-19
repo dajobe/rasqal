@@ -394,6 +394,21 @@ rasqal_algebra_aggregation_algebra_node_to_rowsource(rasqal_engine_algebra_data*
 }
 
 
+static rasqal_rowsource*
+rasqal_algebra_having_algebra_node_to_rowsource(rasqal_engine_algebra_data* execution_data,
+                                                rasqal_algebra_node* node,
+                                                rasqal_engine_error *error_p)
+{
+  rasqal_query *query = execution_data->query;
+  rasqal_rowsource *rs;
+
+  rs = rasqal_algebra_node_to_rowsource(execution_data, node->node1, error_p);
+  if(!rs || *error_p)
+    return NULL;
+
+  return rasqal_new_having_rowsource(query->world, query, rs, node->seq);
+}
+
 
 static rasqal_rowsource*
 rasqal_algebra_node_to_rowsource(rasqal_engine_algebra_data* execution_data,
@@ -463,6 +478,11 @@ rasqal_algebra_node_to_rowsource(rasqal_engine_algebra_data* execution_data,
                                                                 node, error_p);
       break;
 
+    case RASQAL_ALGEBRA_OPERATOR_HAVING:
+      rs = rasqal_algebra_having_algebra_node_to_rowsource(execution_data,
+                                                           node, error_p);
+      break;
+
 
     case RASQAL_ALGEBRA_OPERATOR_UNKNOWN:
     case RASQAL_ALGEBRA_OPERATOR_DIFF:
@@ -528,6 +548,10 @@ rasqal_query_engine_algebra_execute_init(void* ex_data,
     if(!node)
       return 1;
   }
+
+  node = rasqal_algebra_query_add_having(query, node);
+  if(!node)
+    return 1;
 
   node = rasqal_algebra_query_add_projection(query, node);
   if(!node)

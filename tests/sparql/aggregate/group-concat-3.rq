@@ -7,4 +7,4 @@ WHERE
   ?person ex:livesIn ?state
 }
 GROUP BY ?state
-HAVING ( ?state != 'CA' ) ( ?state != 'FL')
+HAVING ( ?state != 'California' ) ( ?state != 'Florida')

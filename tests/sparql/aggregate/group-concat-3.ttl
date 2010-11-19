@@ -37,14 +37,6 @@
                                     ] 
       ] ;
       rs:solution   [ rs:binding    [ rs:variable   "state" ;
-                                      rs:value      "California"
-                                    ] 
-      ] ;
-      rs:solution   [ rs:binding    [ rs:variable   "state" ;
-                                      rs:value      "California"
-                                    ] 
-      ] ;
-      rs:solution   [ rs:binding    [ rs:variable   "state" ;
                                       rs:value      "Colorado"
                                     ] 
       ] ;
@@ -66,14 +58,6 @@
       ] ;
       rs:solution   [ rs:binding    [ rs:variable   "state" ;
                                       rs:value      "Delaware"
-                                    ] 
-      ] ;
-      rs:solution   [ rs:binding    [ rs:variable   "state" ;
-                                      rs:value      "Florida"
-                                    ] 
-      ] ;
-      rs:solution   [ rs:binding    [ rs:variable   "state" ;
-                                      rs:value      "Florida"
                                     ] 
       ] ;
       rs:solution   [ rs:binding    [ rs:variable   "state" ;
