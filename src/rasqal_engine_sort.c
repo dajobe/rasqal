@@ -44,131 +44,6 @@
 #define DEBUG_FH stderr
 
 
-/**
- * rasqal_engine_rowsort_compare_literals_sequence:
- * @compare_flags: comparison flags for rasqal_literal_compare()
- * @values_a: first array of literals
- * @values_b: second array of literals
- * @exprs_seq: array of expressions
- * @size: size of arrays
- *
- * INTERNAL - compare two arrays of literals evaluated in an array of expressions
- *
- * Return value: <0, 0 or >1 comparison
- */
-static int
-rasqal_engine_rowsort_compare_literals_sequence(int compare_flags,
-                                                rasqal_literal** values_a,
-                                                rasqal_literal** values_b,
-                                                raptor_sequence* exprs_seq,
-                                                int size)
-{
-  int result = 0;
-  int i;
-
-  for(i = 0; i < size; i++) {
-    rasqal_expression* e = NULL;
-    int error = 0;
-    rasqal_literal* literal_a = values_a[i];
-    rasqal_literal* literal_b = values_b[i];
-    
-    if(exprs_seq)
-      e = (rasqal_expression*)raptor_sequence_get_at(exprs_seq, i);
-
-#ifdef RASQAL_DEBUG
-    RASQAL_DEBUG1("Comparing ");
-    rasqal_literal_print(literal_a, DEBUG_FH);
-    fputs(" to ", DEBUG_FH);
-    rasqal_literal_print(literal_b, DEBUG_FH);
-    fputs("\n", DEBUG_FH);
-#endif
-
-    if(!literal_a || !literal_b) {
-      if(!literal_a && !literal_b)
-        result = 0;
-      else {
-        result = literal_a ? 1 : -1;
-#ifdef RASQAL_DEBUG
-        RASQAL_DEBUG2("Got one NULL literal comparison, returning %d\n", result);
-#endif
-        break;
-      }
-    }
-    
-    result = rasqal_literal_compare(literal_a, literal_b,
-                                    compare_flags | RASQAL_COMPARE_URI,
-                                    &error);
-
-    if(error) {
-#ifdef RASQAL_DEBUG
-      RASQAL_DEBUG2("Got literal comparison error at expression %d, returning 0\n", i);
-#endif
-      result = 0;
-      break;
-    }
-        
-    if(!result)
-      continue;
-
-    if(e && e->op == RASQAL_EXPR_ORDER_COND_DESC)
-      result= -result;
-    /* else Order condition is RASQAL_EXPR_ORDER_COND_ASC so nothing to do */
-    
-#ifdef RASQAL_DEBUG
-    RASQAL_DEBUG3("Returning comparison result %d at expression %d\n", result, i);
-#endif
-    break;
-  }
-
-  return result;
-}
-
-
-/**
- * rasqal_engine_rowsort_literal_sequence_equals:
- * @values_a: first array of literals
- * @values_b: second array of literals
- * @size: size of arrays
- *
- * INTERNAL - compare two arrays of literals for equality
- *
- * Return value: non-0 if equal
- */
-static int
-rasqal_engine_rowsort_literal_sequence_equals(rasqal_literal** values_a,
-                                              rasqal_literal** values_b,
-                                              int size)
-{
-  int result = 1; /* equal */
-  int i;
-  int error = 0;
-
-  for(i = 0; i < size; i++) {
-    rasqal_literal* literal_a = values_a[i];
-    rasqal_literal* literal_b = values_b[i];
-    
-    result = rasqal_literal_equals_flags(literal_a, literal_b,
-                                         RASQAL_COMPARE_RDF, &error);
-#ifdef RASQAL_DEBUG
-    RASQAL_DEBUG1("Comparing ");
-    rasqal_literal_print(literal_a, DEBUG_FH);
-    fputs(" to ", DEBUG_FH);
-    rasqal_literal_print(literal_b, DEBUG_FH);
-    fprintf(DEBUG_FH, " gave %s\n", (result ? "equality" : "not equal"));
-#endif
-
-    if(error)
-      result = 0;
-    
-    /* if different, end */
-    if(!result)
-      break;
-  }
-
-  return result;
-}
-
-
 typedef struct 
 { 
   int is_distinct;
@@ -210,9 +85,8 @@ rasqal_engine_rowsort_row_compare(void* user_data, const void *a, const void *b)
   row_b = *(rasqal_row**)b;
 
   if(rcd->is_distinct) {
-    result = !rasqal_engine_rowsort_literal_sequence_equals(row_a->values,
-                                                            row_b->values,
-                                                            row_a->size);
+    result = !rasqal_literal_array_equals(row_a->values, row_b->values,
+                                          row_a->size);
     
     if(!result)
       /* duplicate, so return that */
@@ -221,11 +95,11 @@ rasqal_engine_rowsort_row_compare(void* user_data, const void *a, const void *b)
   
   /* now order it */
   if(rcd->order_conditions_sequence)
-    result = rasqal_engine_rowsort_compare_literals_sequence(rcd->compare_flags,
-                                                             row_a->order_values,
-                                                             row_b->order_values,
-                                                             rcd->order_conditions_sequence,
-                                                             row_a->order_size);
+    result = rasqal_literal_array_compare(row_a->order_values,
+                                          row_b->order_values,
+                                          rcd->order_conditions_sequence,
+                                          row_a->order_size,
+                                          rcd->compare_flags);
 
 
   /* still equal?  make sort stable by using the original order */

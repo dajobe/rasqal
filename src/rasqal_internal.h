@@ -1098,6 +1098,8 @@ void rasqal_literal_write(rasqal_literal* l, raptor_iostream* iostr);
 void rasqal_expression_write_op(rasqal_expression* e, raptor_iostream* iostr);
 void rasqal_expression_write(rasqal_expression* e, raptor_iostream* iostr);
 int rasqal_literal_write_turtle(rasqal_literal* l, raptor_iostream* iostr);
+int rasqal_literal_array_equals(rasqal_literal** values_a, rasqal_literal** values_b, int size);
+int rasqal_literal_array_compare(rasqal_literal** values_a, rasqal_literal** values_b, raptor_sequence* exprs_seq, int size, int compare_flags);
 
 /* rasqal_map.c */
 typedef void (*rasqal_map_visit_fn)(void *key, void *value, void *user_data);
