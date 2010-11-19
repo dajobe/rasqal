@@ -534,8 +534,11 @@ rasqal_groupby_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
       /* removes row from sequence and this code now owns the reference */
       row = (rasqal_row*)raptor_sequence_delete_at(node->rows, 
                                                    con->group_row_index++);
-      if(row)
+      if(row) {
+        /* Bind the values in the input row to the variables in the table */
+        rasqal_row_bind_variables(row, rowsource->query->vars_table);
         break;
+      }
 
       /* End of sequence so reset row sequence index and advance iterator */
       con->group_row_index = 0;
