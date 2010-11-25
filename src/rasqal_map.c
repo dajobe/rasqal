@@ -54,8 +54,9 @@ struct rasqal_map_s {
   struct rasqal_map_node_s* root;
   rasqal_compare_fn* compare;
   void *compare_user_data;
-  rasqal_compare_free_user_data_fn* free_compare_data;
-  rasqal_kv_free_fn* free;
+  raptor_data_free_handler free_compare_data;
+  raptor_data_free_handler free_key;
+  raptor_data_free_handler free_value;
 #ifdef HAVE_RAPTOR2_API
   raptor_data_print_handler print_key;
   raptor_data_print_handler print_value;
@@ -86,17 +87,18 @@ rasqal_new_map_node(rasqal_map* map, void *key, void *value)
 
 
 static void
-rasqal_free_map_node(rasqal_map_node *node, rasqal_kv_free_fn* free_fn) 
+rasqal_free_map_node(rasqal_map* map, rasqal_map_node *node) 
 {
   RASQAL_ASSERT_OBJECT_POINTER_RETURN(node, rasqal_map_node);
   
   if(node->prev)
-    rasqal_free_map_node(node->prev, free_fn);
+    rasqal_free_map_node(map, node->prev);
 
   if(node->next)
-    rasqal_free_map_node(node->next, free_fn);
+    rasqal_free_map_node(map, node->next);
 
-  free_fn(node->key, node->value);
+  map->free_key(node->key);
+  map->free_value(node->key);
 
   RASQAL_FREE(rasqal_map_node, node);
 }
@@ -116,25 +118,15 @@ rasqal_free_map_node(rasqal_map_node *node, rasqal_kv_free_fn* free_fn)
  * 
  * Return value: a new #rasqal_map or NULL on failure
  **/
-#ifdef HAVE_RAPTOR2_API
 rasqal_map*
 rasqal_new_map(rasqal_compare_fn* compare_fn,
                void *compare_user_data,
-               rasqal_compare_free_user_data_fn* free_compare_data_fn,
-               rasqal_kv_free_fn* free_fn,
+               raptor_data_free_handler free_compare_data_fn,
+               raptor_data_free_handler free_key_fn,
+               raptor_data_free_handler free_value_fn,
                raptor_data_print_handler print_key_fn,
                raptor_data_print_handler print_value_fn,
                int flags)
-#else
-rasqal_map*
-rasqal_new_map(rasqal_compare_fn* compare_fn,
-               void *compare_user_data,
-               rasqal_compare_free_user_data_fn* free_compare_data_fn,
-               rasqal_kv_free_fn* free_fn,
-               raptor_sequence_print_handler* print_key_fn,
-               raptor_sequence_print_handler* print_value_fn,
-               int flags)
-#endif
 {
   rasqal_map *map;
 
@@ -148,7 +140,8 @@ rasqal_new_map(rasqal_compare_fn* compare_fn,
   map->compare = compare_fn;
   map->compare_user_data = compare_user_data;
   map->free_compare_data = free_compare_data_fn;
-  map->free = free_fn;
+  map->free_key = free_key_fn;
+  map->free_value = free_value_fn;
   map->print_key = print_key_fn;
   map->print_value = print_value_fn;
   map->allow_duplicates = flags;
@@ -171,7 +164,7 @@ rasqal_free_map(rasqal_map *map)
     return;
   
   if(map->root)
-    rasqal_free_map_node(map->root, map->free);
+    rasqal_free_map_node(map, map->root);
 
   if(map->free_compare_data)
     map->free_compare_data(map->compare_user_data);

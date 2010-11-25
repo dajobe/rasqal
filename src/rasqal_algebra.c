@@ -1449,17 +1449,6 @@ rasqal_agg_expr_var_compare(void* user_data, const void *a, const void *b)
 }
 
 
-static void
-rasqal_free_agg_expr_var(const void *key, const void *value)
-{
-  if(key)
-    rasqal_free_expression((rasqal_expression*)key);
-
-  if(value)
-    rasqal_free_variable((rasqal_variable*)value);
-}
-
-
 /*
  * SPEC:
  *   at each node:
@@ -1595,7 +1584,8 @@ rasqal_algebra_extract_aggregate_expressions(rasqal_query* query,
   ae->agg_vars = rasqal_new_map(/* compare key function */ rasqal_agg_expr_var_compare,
                                 /* compare data */ ae,
                                 /* free compare data */ NULL,
-                                rasqal_free_agg_expr_var,
+                                (raptor_data_free_handler)rasqal_free_expression,
+                                (raptor_data_free_handler)rasqal_free_variable,
                                 (raptor_data_print_handler)rasqal_expression_print,
                                 (raptor_data_print_handler)rasqal_variable_print,
                                 /* flags */ 0);

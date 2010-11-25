@@ -498,6 +498,7 @@ struct rasqal_query_s {
 #ifndef HAVE_RAPTOR2_API
 typedef void (*raptor_data_free_handler)(void* data);
 typedef void (*raptor_data_print_handler)(void *object, FILE *fh);
+typedef raptor_data_print_handler raptor_sequence_print_handler;
 
 typedef struct {
   const char* mime_type;
@@ -1076,7 +1077,6 @@ rasqal_formula* rasqal_formula_join(rasqal_formula* first_formula, rasqal_formul
 /* The following should be public eventually in rasqal.h or raptor.h or ...? */
 
 typedef int (rasqal_compare_fn)(void* user_data, const void *a, const void *b);
-typedef void (rasqal_compare_free_user_data_fn)(const void *data);
 typedef void (rasqal_kv_free_fn)(const void *key, const void *value);
 
 
@@ -1104,11 +1104,8 @@ int rasqal_literal_array_compare(rasqal_literal** values_a, rasqal_literal** val
 /* rasqal_map.c */
 typedef void (*rasqal_map_visit_fn)(void *key, void *value, void *user_data);
 
-#ifdef HAVE_RAPTOR2_API
-rasqal_map* rasqal_new_map(rasqal_compare_fn* compare_fn, void* compare_user_data, rasqal_compare_free_user_data_fn* free_compare_user_data, rasqal_kv_free_fn* free_fn, raptor_data_print_handler print_key_fn, raptor_data_print_handler print_value_fn, int flags);
-#else
-rasqal_map* rasqal_new_map(rasqal_compare_fn* compare_fn, void* compare_user_data, rasqal_compare_free_user_data_fn* free_compare_user_data, rasqal_kv_free_fn* free_fn, raptor_sequence_print_handler* print_key_fn, raptor_sequence_print_handler* print_value_fn, int flags);
-#endif
+rasqal_map* rasqal_new_map(rasqal_compare_fn* compare_fn, void* compare_user_data, raptor_data_free_handler free_compare_user_data, raptor_data_free_handler free_key_fn, raptor_data_free_handler free_value_fn, raptor_data_print_handler print_key_fn, raptor_data_print_handler print_value_fn, int flags);
+
 void rasqal_free_map(rasqal_map *map);
 int rasqal_map_add_kv(rasqal_map* map, void* key, void *value);
 void rasqal_map_visit(rasqal_map* map, rasqal_map_visit_fn fn, void *user_data);

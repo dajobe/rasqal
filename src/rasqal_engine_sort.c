@@ -113,16 +113,6 @@ rasqal_engine_rowsort_row_compare(void* user_data, const void *a, const void *b)
 }
 
 
-static void
-rasqal_engine_rowsort_map_free_row(const void *key, const void *value)
-{
-  if(key)
-    rasqal_free_row((rasqal_row*)key);
-  if(value)
-    rasqal_free_row((rasqal_row*)value);
-}
-
-
 #ifdef HAVE_RAPTOR2_API
 static int
 #else
@@ -163,8 +153,9 @@ rasqal_engine_new_rowsort_map(int is_distinct, int compare_flags,
   rcd->order_conditions_sequence = order_conditions_sequence;
   
   return rasqal_new_map(rasqal_engine_rowsort_row_compare, rcd,
-                        rasqal_engine_rowsort_free_compare_data,
-                        rasqal_engine_rowsort_map_free_row,
+                        (raptor_data_free_handler)rasqal_engine_rowsort_free_compare_data,
+                        (raptor_data_free_handler)rasqal_free_row,
+                        (raptor_data_free_handler)rasqal_free_row,
                         rasqal_engine_rowsort_map_print_row,
                         NULL,
                         0);
