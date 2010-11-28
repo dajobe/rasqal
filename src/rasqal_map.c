@@ -98,7 +98,7 @@ rasqal_free_map_node(rasqal_map* map, rasqal_map_node *node)
     rasqal_free_map_node(map, node->next);
 
   map->free_key(node->key);
-  map->free_value(node->key);
+  map->free_value(node->value);
 
   RASQAL_FREE(rasqal_map_node, node);
 }
