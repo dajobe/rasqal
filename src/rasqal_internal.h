@@ -1039,6 +1039,7 @@ int rasqal_expression_mentions_aggregate(rasqal_expression* e);
 raptor_sequence* rasqal_expression_copy_expression_sequence(raptor_sequence* exprs_seq);
 int rasqal_literal_sequence_compare(int compare_flags, raptor_sequence* values_a, raptor_sequence* values_b);
 raptor_sequence* rasqal_expression_sequence_evaluate(rasqal_query* query, raptor_sequence* exprs_seq, int ignore_errors, raptor_sequence* literal_seq, int* error_p);
+int rasqal_literal_sequence_equals(raptor_sequence* values_a, raptor_sequence* values_b);
 
 /* strcasecmp.c */
 #ifdef HAVE_STRCASECMP
@@ -1100,6 +1101,8 @@ void rasqal_expression_write(rasqal_expression* e, raptor_iostream* iostr);
 int rasqal_literal_write_turtle(rasqal_literal* l, raptor_iostream* iostr);
 int rasqal_literal_array_equals(rasqal_literal** values_a, rasqal_literal** values_b, int size);
 int rasqal_literal_array_compare(rasqal_literal** values_a, rasqal_literal** values_b, raptor_sequence* exprs_seq, int size, int compare_flags);
+raptor_sequence* rasqal_new_literal_sequence_of_sequence_from_data(rasqal_world* world, const char* const row_data[], int width);
+
 
 /* rasqal_map.c */
 typedef void (*rasqal_map_visit_fn)(void *key, void *value, void *user_data);

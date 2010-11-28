@@ -54,6 +54,8 @@
 #define DEBUG_FH stderr
 
 
+#ifndef STANDALONE
+
 /* prototypes */
 static rasqal_literal_type rasqal_literal_promote_numerics(rasqal_literal* l1, rasqal_literal* l2, int flags);
 static int rasqal_literal_set_typed_value(rasqal_literal* l, rasqal_literal_type type, const unsigned char* string);
@@ -3713,3 +3715,220 @@ rasqal_literal_array_equals(rasqal_literal** values_a,
 
   return result;
 }
+
+
+/**
+ * rasqal_new_literal_sequence_of_sequence_from_data:
+ * @world: world object ot use
+ * @row_data: row data
+ *
+ * INTERNAL - Make a sequence of sequence of #rasqal_literal* literals
+ *
+ * The @row_data parameter is an array of strings forming a table of
+ * width (literals_count * 2).
+ * The rows are values where offset 0 is a string literal and
+ * offset 1 is a URI string literal.  If a string literal looks like
+ * a number (strtol passes), an integer literal is formed.
+ *
+ * The end of data is indicated by an entire row of NULLs.
+ *
+ * Return value: sequence of rows or NULL on failure
+ */
+raptor_sequence*
+rasqal_new_literal_sequence_of_sequence_from_data(rasqal_world* world,
+                                                  const char* const row_data[],
+                                                  int width)
+{
+  raptor_sequence *seq = NULL;
+  int row_i;
+  int column_i;
+  int failed = 0;
+  
+#define GET_CELL(row, column, offset) \
+  row_data[((((row) * width) + (column))<<1) + (offset)]
+
+#ifdef HAVE_RAPTOR2_API
+  seq = raptor_new_sequence((raptor_data_free_handler)raptor_free_sequence,
+                            (raptor_data_print_handler)raptor_sequence_print);
+#else
+  seq = raptor_new_sequence((raptor_sequence_free_handler*)raptor_free_sequence,
+                            (raptor_sequence_print_handler*)raptor_sequence_print);
+#endif
+  if(!seq)
+    return NULL;
+
+  for(row_i = 0; 1; row_i++) {
+    raptor_sequence* row;
+    int data_values_seen = 0;
+
+    /* Terminate on an entire row of NULLs */
+    for(column_i = 0; column_i < width; column_i++) {
+      if(GET_CELL(row_i, column_i, 0) || GET_CELL(row_i, column_i, 1)) {
+        data_values_seen++;
+        break;
+      }
+    }
+    if(!data_values_seen)
+      break;
+    
+#ifdef HAVE_RAPTOR2_API
+    row = raptor_new_sequence((raptor_data_free_handler)rasqal_free_literal,
+                              (raptor_data_print_handler)rasqal_literal_print);
+#else
+    row = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_literal,
+                              (raptor_sequence_print_handler*)rasqal_literal_print);
+#endif
+    if(!row) {
+      raptor_free_sequence(seq); seq = NULL;
+      goto tidy;
+    }
+
+    for(column_i = 0; column_i < width; column_i++) {
+      rasqal_literal* l = NULL;
+
+      if(GET_CELL(row_i, column_i, 0)) {
+        /* string literal */
+        const char* str = GET_CELL(row_i, column_i, 0);
+        size_t str_len = strlen(str);
+        char *eptr = NULL;
+        int integer;
+        
+        integer = (int)strtol((const char*)str, &eptr, 10);
+        if(!*eptr) {
+          /* is an integer */
+          l = rasqal_new_integer_literal(world, RASQAL_LITERAL_INTEGER, 
+                                         integer);
+        } else {
+          unsigned char *val;
+          val = (unsigned char*)RASQAL_MALLOC(cstring, str_len+1);
+          if(val) {
+            memcpy(val, str, str_len + 1);
+
+            l = rasqal_new_string_literal_node(world, val, NULL, NULL);
+          } else 
+            failed = 1;
+        }
+      } else if(GET_CELL(row_i, column_i, 1)) {
+        /* URI */
+        const unsigned char* str;
+        raptor_uri* u;
+
+        str = (const unsigned char*)GET_CELL(row_i, column_i, 1);
+        u = raptor_new_uri(world->raptor_world_ptr, str);
+
+        if(u)
+          l = rasqal_new_uri_literal(world, u);
+        else
+          failed = 1;
+      } else {
+        /* variable is not defined for this row */
+        continue;
+      }
+
+      if(!l) {
+        raptor_free_sequence(row);
+        failed = 1;
+        goto tidy;
+      }
+      raptor_sequence_set_at(row, column_i, l);
+    }
+
+    raptor_sequence_push(seq, row);
+  }
+
+  tidy:
+  if(failed) {
+    if(seq) {
+      raptor_free_sequence(seq);
+      seq = NULL;
+    }
+  }
+  
+  return seq;
+}
+
+
+#endif /* not STANDALONE */
+
+
+
+
+#ifdef STANDALONE
+#include <stdio.h>
+
+int main(int argc, char *argv[]);
+
+/* Test 0 and Test 1 */
+static const char* const data_3x3_unique_rows[] =
+{
+  /* 3 literals in 3 rows - all distinct */
+  /* row 1 data */
+  "0",  NULL, "1",  NULL, "2", NULL,
+  /* row 2 data */
+  "3",  NULL, "4",  NULL, "5", NULL,
+  /* row 3 data */
+  "6",  NULL, "7",  NULL, "8", NULL,
+  /* end of data */
+  NULL, NULL, NULL, NULL, NULL, NULL,
+};
+
+
+
+#define TESTS_COUNT 1
+
+static const struct {
+  int width;
+  int expected_rows;
+  const char* const *data;
+} test_data[TESTS_COUNT] = {
+  /* Test 0: 3 literals, 3 rows (no duplicates) */
+  {3, 3, data_3x3_unique_rows },
+};
+
+
+int
+main(int argc, char *argv[]) 
+{
+  const char *program = rasqal_basename(argv[0]);
+  int failures = 0;
+  rasqal_world *world;
+  int test_id;
+  
+  world = rasqal_new_world();
+  if(!world || rasqal_world_open(world)) {
+    fprintf(stderr, "%s: rasqal_world init failed\n", program);
+    return(1);
+  }
+    
+  /* test */
+  fprintf(stderr, "%s: Testing literals\n", program);
+
+  for(test_id = 0; test_id < TESTS_COUNT; test_id++) {
+    int expected_rows_count = test_data[test_id].expected_rows;
+    int width = test_data[test_id].width;
+    raptor_sequence* seq;
+    
+    seq = rasqal_new_literal_sequence_of_sequence_from_data(world,
+                                                            test_data[test_id].data,
+                                                            width);
+    if(!seq) {
+      fprintf(stderr, "%s: failed to create seq of literal seq\n", program);
+      failures++;
+      goto tidy;
+    }
+
+    fprintf(DEBUG_FH, "%s: Test %d data (seq of seq of literals) is: ", program,
+            test_id);
+    raptor_sequence_print(seq, DEBUG_FH);
+    fputc('\n', DEBUG_FH);
+    
+    raptor_free_sequence(seq);
+  }
+  
+
+  tidy:
+  rasqal_free_world(world);
+
+  return failures;
+}
+#endif
