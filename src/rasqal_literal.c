@@ -3761,6 +3761,145 @@ rasqal_literal_sequence_equals(raptor_sequence* values_a,
 }
 
 
+typedef struct 
+{ 
+  int is_distinct;
+  int compare_flags;
+} literal_sequence_sort_compare_data;
+
+
+/**
+ * rasqal_literal_sequence_sort_map_compare:
+ * @user_data: comparison user data pointer
+ * @a: pointer to address of first array
+ * @b: pointer to address of second array
+ *
+ * INTERNAL - compare two pointers to array of iterals objects
+ *
+ * Suitable for use as a compare function in qsort_r() or similar.
+ *
+ * Return value: <0, 0 or >1 comparison
+ */
+static int
+rasqal_literal_sequence_sort_map_compare(void* user_data,
+                                         const void *a,
+                                         const void *b)
+{
+  raptor_sequence* literal_seq_a;
+  raptor_sequence* literal_seq_b;
+  literal_sequence_sort_compare_data* lsscd;
+  int result = 0;
+
+  lsscd = (literal_sequence_sort_compare_data*)user_data;
+
+  literal_seq_a = *(raptor_sequence**)a;
+  literal_seq_b = *(raptor_sequence**)b;
+
+  if(lsscd->is_distinct) {
+    result = !rasqal_literal_sequence_equals(literal_seq_a, literal_seq_b);
+    if(!result)
+      /* duplicate, so return that */
+      return 0;
+  }
+  
+  /* now order it */
+  result = rasqal_literal_sequence_compare(lsscd->compare_flags,
+                                           literal_seq_a, literal_seq_b);
+
+  /* still equal?  make sort stable by using the pointers */
+  if(!result) {
+    /* Have to cast raptor_sequence* to something with a known type
+     * (not void*, not raptor_sequence* whose size is private to
+     * raptor) so we can do pointer arithmetic.  We only care about
+     * the relative pointer difference.
+     */
+    result = (char*)literal_seq_a - (char*)literal_seq_b;
+    RASQAL_DEBUG2("Got equality result so using pointers, returning %d\n",
+                  result);
+  }
+  
+  return result;
+}
+
+
+#ifdef HAVE_RAPTOR2_API
+static int
+#else
+static void
+#endif
+rasqal_literal_sequence_sort_map_print_literal_sequence(void *object, FILE *fh)
+{
+  if(object)
+    raptor_sequence_print((raptor_sequence*)object, fh);
+  else
+    fputs("NULL", fh);
+#ifdef HAVE_RAPTOR2_API
+  return 0;
+#endif
+}
+
+
+/**
+ * rasqal_new_literal_sequence_sort_map:
+ * @compare_flags: flags for rasqal_literal_compare()
+ *
+ * INTERNAL - create a new map for sorting arrays of literals
+ *
+ */
+rasqal_map*
+rasqal_new_literal_sequence_sort_map(int is_distinct, int compare_flags)
+{
+  literal_sequence_sort_compare_data* lsscd;
+
+  lsscd = (literal_sequence_sort_compare_data*)RASQAL_MALLOC(literal_sequence_sort_compare_data,
+                                                             sizeof(*lsscd));
+  if(!lsscd)
+    return NULL;
+  
+  lsscd->is_distinct = is_distinct;
+  lsscd->compare_flags = compare_flags;
+  
+  return rasqal_new_map(rasqal_literal_sequence_sort_map_compare,
+                        lsscd,
+                        (raptor_data_free_handler)rasqal_free_memory,
+                        (raptor_data_free_handler)raptor_free_sequence,
+                        NULL, /* free_value_fn */
+                        rasqal_literal_sequence_sort_map_print_literal_sequence,
+                        NULL,
+                        0 /* do not allow duplicates */);
+}
+
+
+/**
+ * rasqal_literal_sequence_sort_map_add_literal_sequence:
+ * @map: literal sort map
+ * @literals_seq: Sequence of #rasqal_literal to add
+ *
+ * INTERNAL - Add a row to an literal sequence sort map for sorting
+ *
+ * The literals array @literals_sequence becomes owned by the map.
+ *
+ * return value: non-0 if the array of literals was a duplicate (and not added)
+ */
+int
+rasqal_literal_sequence_sort_map_add_literal_sequence(rasqal_map* map,
+                                                      raptor_sequence *literals_seq)
+{
+  if(!rasqal_map_add_kv(map, literals_seq, NULL))
+    return 0;
+
+  /* duplicate, and not added so delete it */
+#ifdef RASQAL_DEBUG
+  RASQAL_DEBUG1("Got duplicate array of literals ");
+  raptor_sequence_print(literals_seq, DEBUG_FH);
+  fputc('\n', DEBUG_FH);
+#endif
+  raptor_free_sequence(literals_seq);
+
+  return 1;
+}
+
+
 /**
  * rasqal_new_literal_sequence_of_sequence_from_data:
  * @world: world object ot use

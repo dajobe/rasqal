@@ -1101,6 +1101,8 @@ void rasqal_expression_write(rasqal_expression* e, raptor_iostream* iostr);
 int rasqal_literal_write_turtle(rasqal_literal* l, raptor_iostream* iostr);
 int rasqal_literal_array_equals(rasqal_literal** values_a, rasqal_literal** values_b, int size);
 int rasqal_literal_array_compare(rasqal_literal** values_a, rasqal_literal** values_b, raptor_sequence* exprs_seq, int size, int compare_flags);
+rasqal_map* rasqal_new_literal_sequence_sort_map(int is_distinct, int compare_flags);
+int rasqal_literal_sequence_sort_map_add_literal_sequence(rasqal_map* map, raptor_sequence* literals_sequence);
 raptor_sequence* rasqal_new_literal_sequence_of_sequence_from_data(rasqal_world* world, const char* const row_data[], int width);
 
 

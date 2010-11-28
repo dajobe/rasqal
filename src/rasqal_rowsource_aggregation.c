@@ -79,6 +79,9 @@ typedef struct
    * passed to rasqal_builtin_agg_expression_execute_step()
    */
   raptor_sequence* literal_seq;
+
+  /* map for distincting literal values */
+  rasqal_map* map;
 } rasqal_agg_expr_data;
 
   
@@ -417,6 +420,10 @@ rasqal_aggregation_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
       rasqal_builtin_agg_expression_execute_finish(expr_data->agg_user_data);
       return 1;
     }
+
+    if(expr_data->expr->flags & RASQAL_EXPR_FLAG_DISTINCT) {
+      expr_data->map = NULL;
+    }
   }
 
 #ifdef HAVE_RAPTOR2_API
@@ -464,6 +471,9 @@ rasqal_aggregation_rowsource_finish(rasqal_rowsource* rowsource,
 
       if(expr_data->expr)
         rasqal_free_expression(expr_data->expr);
+
+      if(expr_data->map)
+        rasqal_free_map(expr_data->map);
     }
   }
   
