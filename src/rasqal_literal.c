@@ -3718,6 +3718,50 @@ rasqal_literal_array_equals(rasqal_literal** values_a,
 
 
 /**
+ * rasqal_literal_sequence_equals:
+ * @values_a: first sequence of literals
+ * @values_b: second sequence of literals
+ *
+ * INTERNAL - compare two arrays of literals for equality
+ *
+ * Return value: non-0 if equal
+ */
+int
+rasqal_literal_sequence_equals(raptor_sequence* values_a,
+                               raptor_sequence* values_b)
+{
+  int result = 1; /* equal */
+  int i;
+  int error = 0;
+  int size = raptor_sequence_size(values_a);
+
+  for(i = 0; i < size; i++) {
+    rasqal_literal* literal_a = (rasqal_literal*)raptor_sequence_get_at(values_a, i);
+    rasqal_literal* literal_b = (rasqal_literal*)raptor_sequence_get_at(values_b, i);
+    
+    result = rasqal_literal_equals_flags(literal_a, literal_b,
+                                         RASQAL_COMPARE_RDF, &error);
+#ifdef RASQAL_DEBUG
+    RASQAL_DEBUG1("Comparing ");
+    rasqal_literal_print(literal_a, DEBUG_FH);
+    fputs(" to ", DEBUG_FH);
+    rasqal_literal_print(literal_b, DEBUG_FH);
+    fprintf(DEBUG_FH, " gave %s\n", (result ? "equality" : "not equal"));
+#endif
+
+    if(error)
+      result = 0;
+    
+    /* if different, end */
+    if(!result)
+      break;
+  }
+
+  return result;
+}
+
+
+/**
  * rasqal_new_literal_sequence_of_sequence_from_data:
  * @world: world object ot use
  * @row_data: row data
