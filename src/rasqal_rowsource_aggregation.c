@@ -75,11 +75,6 @@ typedef struct
   /* sequence of aggregate function arguments */
   raptor_sequence* exprs_seq;
 
-  /* sequence of argument literal values from last evaluation of @exprs_seq
-   * passed to rasqal_builtin_agg_expression_execute_step()
-   */
-  raptor_sequence* literal_seq;
-
   /* map for distincting literal values */
   rasqal_map* map;
 } rasqal_agg_expr_data;
@@ -408,21 +403,9 @@ rasqal_aggregation_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
   for(i = 0; i < con->expr_count; i++) {
     rasqal_agg_expr_data* expr_data = &con->expr_data[i];
     
-#ifdef HAVE_RAPTOR2_API
-    expr_data->literal_seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_literal,
-                                                 (raptor_data_print_handler)rasqal_literal_print);
-#else
-    expr_data->literal_seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_literal,
-                                                 (raptor_sequence_print_handler*)rasqal_literal_print);
-#endif
-    
-    if(!expr_data->literal_seq) {
-      rasqal_builtin_agg_expression_execute_finish(expr_data->agg_user_data);
-      return 1;
-    }
-
     if(expr_data->expr->flags & RASQAL_EXPR_FLAG_DISTINCT) {
-      expr_data->map = NULL;
+      expr_data->map = rasqal_new_literal_sequence_sort_map(1 /* is_distinct */,
+                                                            0 /* compare_flags */);
     }
   }
 
@@ -465,9 +448,6 @@ rasqal_aggregation_rowsource_finish(rasqal_rowsource* rowsource,
 
       if(expr_data->exprs_seq)
         raptor_free_sequence(expr_data->exprs_seq);
-
-      if(expr_data->literal_seq)
-        raptor_free_sequence(expr_data->literal_seq);
 
       if(expr_data->expr)
         rasqal_free_expression(expr_data->expr);
@@ -633,26 +613,43 @@ rasqal_aggregation_rowsource_read_row(rasqal_rowsource* rowsource,
       
       for(i = 0; i < con->expr_count; i++) {
         rasqal_agg_expr_data* expr_data = &con->expr_data[i];
+        raptor_sequence* seq;
         
         /* SPARQL Aggregation uses ListEvalE() to evaluate - ignoring
          * errors and filtering out expressions that fail
          */
-        rasqal_expression_sequence_evaluate(rowsource->query,
-                                            expr_data->exprs_seq,
-                                            /* ignore_errors */ 1,
-                                            expr_data->literal_seq,
-                                            &error);
+        seq = rasqal_expression_sequence_evaluate(rowsource->query,
+                                                  expr_data->exprs_seq,
+                                                  /* ignore_errors */ 1,
+                                                  &error);
         if(error)
           continue;
 
+        if(expr_data->map) {
+          if(rasqal_literal_sequence_sort_map_add_literal_sequence(expr_data->map, 
+                                                                   seq)) {
+            /* duplicate found
+             *
+             * The above function just freed seq so no data is lost
+             */
+            continue;
+          }
+        }
+
 #ifdef RASQAL_DEBUG
         RASQAL_DEBUG1("Aggregation step over literals: ");
-        raptor_sequence_print(expr_data->literal_seq, DEBUG_FH);
+        raptor_sequence_print(seq, DEBUG_FH);
         fputc('\n', DEBUG_FH);
 #endif
-        
+
         error = rasqal_builtin_agg_expression_execute_step(expr_data->agg_user_data,
-                                                           expr_data->literal_seq);
+                                                           seq);
+        /* when DISTINCTing, seq remains owned by the map
+         * otherwise seq is local and must be freed
+         */
+        if(!expr_data->map)
+          raptor_free_sequence(seq);
+
         if(error)
           break;
       }
