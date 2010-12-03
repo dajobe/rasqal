@@ -14,7 +14,7 @@
 </p>
 
 
-<!-- Updated to include 2010-10-06 -->
+<!-- Updated to include 2010-10-07 -->
 
 <h3>SPARQL Query Language changes</h3>
 
@@ -56,6 +56,15 @@ flags arg for asking for a format to read or write, deprecating
 <code>rasqal_query_results_formats_check()</code> without it.
 </p>
 
+<p><code>rasqal_new_data_graph_from_iostream()</code> added taking a
+raptor_iostream arg to allow getting data graphs from non-URIs which
+could be strings, memory etc.
+</p>
+
+<p><code>rasqal_query_add_data_graph_from_iostream()</code> added
+using new <code>rasqal_new_data_graph_from_iostream()</code>.
+</p>
+
 
 <h3>Query Engine changes</h3>
 
@@ -88,6 +97,10 @@ Raptor serializer / Rasqal result formatter name such as for example
 
 <p>Add <code>-F NAME</code> format arg for specifying the data graph
 format; otherwise Raptor uses the guessing mechanism.</p>
+
+<p>Can now handle reading a data graph from standard input (stdin)
+when -D, -G or -s are used with value '-'.
+</p>
 
 
 <h3>Configuration and build changes</h3>
