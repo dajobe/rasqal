@@ -8,6 +8,45 @@
 
   <h1>Rasqal RDF Query Library - Release Notes</h1>
 
+<h2 id="rel0_9_21"><a name="rel0_9_21">Rasqal 0.9.21 Changes</a></h2>
+
+<p>Not yet released.
+</p>
+
+
+<!-- Updated to include 2010-10-02 -->
+
+<h3>SPARQL Query Language changes</h3>
+
+<p>Separate SPARQL 1.0 and SPARQL 1.1 language names giving query
+languages <em>sparql</em>, <em>sparql10</em> and <em>sparql11</em>.
+SPARQL 1.0 is the current default for the sparql name.
+</p>
+
+<h3>LAQRS Query Language changes</h3>
+
+<p>Explain more carefully that EXPLAIN and COALESCE are laqrs only
+</p>
+
+<h3>Internal changes</h3>
+
+<p>Add a Raptor V2-style raptor_syntax_description data model to
+rasqal and use it to initialise query languages.
+</p>
+
+<h3>roqet utility changes</h3>
+
+<p>Can now handle serializing to graphs or bindings with the same
+raptor serializer / rasqal result formatter name such as for example
+'json'.
+</p>
+
+<h3>Configuration and build changes</h3>
+
+<p>Use AC_LANG_SOURCE for gcc flag test.
+</p>
+
+
 <h2 id="rel0_9_20"><a name="rel0_9_20">Rasqal 0.9.20 Changes</a></h2>
 
 <p>The main changes in this release are:</p>
