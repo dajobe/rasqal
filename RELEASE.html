@@ -14,7 +14,7 @@
 </p>
 
 
-<!-- Updated to include 2010-10-02 -->
+<!-- Updated to include 2010-10-03 -->
 
 <h3>SPARQL Query Language changes</h3>
 
@@ -22,6 +22,26 @@
 languages <em>sparql</em>, <em>sparql10</em> and <em>sparql11</em>.
 SPARQL 1.0 is the current default for the sparql name.
 </p>
+
+<h3>Query API changes</h3>
+
+<p><code>rasqal_triples_source_factory</code> gains an init_triples
+factory method with an error callback arg using a new
+<code>rasqal_triples_source_error_handler</code> typedef to replace
+new_triples_source.  This allows triples source factories to return
+better errors to the query engine.
+<code>RASQAL_TRIPLES_SOURCE_FACTORY_MAX_VERSION</code> is bumped to 2
+to allow declaring support for the new factory method.
+</p>
+
+<h3>Query Engine changes</h3>
+
+<p>Add a way for a triples source factory to return meaningful errors
+by adding a <code>rasqal_triples_error_handler</code> callback for
+the <code>rasqal_triples_source_factory</code>.  The
+<code>RASQAL_TRIPLES_SOURCE_FACTORY_MAX_VERSION</code> is now 2.
+</p>
+
 
 <h3>LAQRS Query Language changes</h3>
 
