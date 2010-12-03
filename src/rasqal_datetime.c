@@ -523,21 +523,21 @@ rasqal_xsd_date_parse_and_normalize(const unsigned char *date_string,
 static unsigned char*
 rasqal_xsd_datetime_to_string(const rasqal_xsd_datetime *dt)
 {
-  unsigned char *ret=0;
+  unsigned char *ret = 0;
   int is_neg;
-  int r=0;
+  int r = 0;
   int i;
    
   if(!dt)
     return NULL;
     
-  is_neg=dt->year<0;
+  is_neg = dt->year < 0;
 
   /* format twice: first with null buffer of zero size to get the
    * required buffer size second time to the allocated buffer
    */
-  for(i=0; i < 2; i++) {
-    r=snprintf((char*)ret, r, "%s%04d-%2.2d-%2.2dT%2.2d:%2.2d:%2.2d%s%s%s",
+  for(i = 0; i < 2; i++) {
+    r = snprintf((char*)ret, r, "%s%04d-%2.2d-%2.2dT%2.2d:%2.2d:%2.2d%s%s%s",
       is_neg ? "-" : "",
       is_neg ? -dt->year : dt->year,
       dt->month,
@@ -550,7 +550,7 @@ rasqal_xsd_datetime_to_string(const rasqal_xsd_datetime *dt)
       dt->have_tz ? "Z" : "");
 
     /* error? */
-    if(r<0) {
+    if(r < 0) {
       if(ret)
         RASQAL_FREE(cstring, ret);
       return NULL;
@@ -558,7 +558,7 @@ rasqal_xsd_datetime_to_string(const rasqal_xsd_datetime *dt)
 
     /* alloc return buffer on first pass */
     if(!i) {
-      ret=(unsigned char *)RASQAL_MALLOC(cstring, ++r);
+      ret = (unsigned char *)RASQAL_MALLOC(cstring, ++r);
       if(!ret)
         return NULL;
     }
@@ -598,6 +598,7 @@ rasqal_xsd_datetime_string_to_canonical(const unsigned char* datetime_string)
   /* parse_and_normalize makes the rasqal_xsd_datetime canonical... */
   if(rasqal_xsd_datetime_parse_and_normalize(datetime_string, &d))
     return NULL;
+
   /* ... so return a string representation of it */
   return rasqal_xsd_datetime_to_string(&d);
 }
@@ -685,6 +686,7 @@ rasqal_xsd_date_string_to_canonical(const unsigned char* date_string)
   /* parse_and_normalize makes the rasqal_xsd_date canonical... */
   if(rasqal_xsd_date_parse_and_normalize(date_string, &d))
     return NULL;
+
   /* ... so return a string representation of it */
   return rasqal_xsd_date_to_string(&d);
 }
