@@ -14,7 +14,7 @@
 </p>
 
 
-<!-- Updated to include 2010-10-07 -->
+<!-- Updated to include 2010-10-13 -->
 
 <h3>SPARQL Query Language changes</h3>
 
@@ -36,8 +36,9 @@ better errors to the query engine.
 to allow declaring support for the new factory method.
 </p>
 
-<p>typedef <code>rasqal_data_graph</code> gains new format_type,
-format_name and format_uri fields.
+<p>typedef <code>rasqal_data_graph</code> gains new optional
+format_type, format_name and format_uri fields for describing the
+format of the graph as well as optional uri field for base URI.
 </p>
 
 <p><code>rasqal_new_data_graph_from_uri()</code> added with
@@ -46,9 +47,10 @@ rasqal_new_data_graph() without them, which always guessed the
 format.
 </p>
 
-<p><code>rasqal_query_add_data_graph_from_uri()</code> added with
-format_type format_name and format_uri args deprecating
-<code>rasqal_query_add_data_graph()</code> without them.
+<p><code>rasqal_query_add_data_graph2()</code> added to 
+add a previously constructed data graph to a query
+deprecating <code>rasqal_query_add_data_graph()</code> that 
+did construct and add in one go.
 </p>
 
 <p><code>rasqal_query_results_formats_check2()</code> added with new
@@ -61,8 +63,16 @@ raptor_iostream arg to allow getting data graphs from non-URIs which
 could be strings, memory etc.
 </p>
 
-<p><code>rasqal_query_add_data_graph_from_iostream()</code> added
+<p>Added <code>rasqal_query_add_data_graph_from_iostream()</code>
 using new <code>rasqal_new_data_graph_from_iostream()</code>.
+</p>
+
+
+<h3>Graph pattern API changes</h3>
+
+<p>Added <code>rasqal_graph_pattern_get_variable()</code> to get
+variable for SPARQL 1.1 <code>BIND</code> and LAQRS <code>LET</code>
+graph patterns.
 </p>
 
 
@@ -100,6 +110,9 @@ format; otherwise Raptor uses the guessing mechanism.</p>
 
 <p>Can now handle reading a data graph from standard input (stdin)
 when -D, -G or -s are used with value '-'.
+</p>
+
+<p>Uses <code>rasqal_data_graph</code> instead of internal structure.
 </p>
 
 
