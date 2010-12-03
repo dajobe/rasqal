@@ -50,17 +50,17 @@ get-testsuites-list:
 	@echo "sparql-algebra"
 
 get-testsuite-sparql-algebra:
-	@$(ECHO) '@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .'; \
-	$(ECHO) '@prefix mf:     <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .'; \
-	$(ECHO) '@prefix t:     <http://ns.librdf.org/2009/test-manifest#> .'; \
-	$(ECHO) ' '; \
-	$(ECHO) "<> a mf:Manifest; rdfs:comment \"SPARQL Algebra Conversions\"; t:path \"`pwd`:$$PATH\"; t:precondition \"$(PERL) -MXML::DOM -e 'exit 0'\"; mf:entries ("; \
+	@$(RECHO) '@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .'; \
+	$(RECHO) '@prefix mf:     <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .'; \
+	$(RECHO) '@prefix t:     <http://ns.librdf.org/2009/test-manifest#> .'; \
+	$(RECHO) ' '; \
+	$(RECHO) "<> a mf:Manifest; rdfs:comment \"SPARQL Algebra Conversions\"; t:path \"`pwd`:$$PATH\"; t:precondition \"$(PERL) -MXML::DOM -e 'exit 0'\"; mf:entries ("; \
 	for test in $(ALGEBRA_TEST_FILES); do \
 	  comment="SPARQL algebra $$test"; \
 	  base=$(BASE_URI)$$test; \
-	  $(ECHO) "  [ a t:PositiveTest; mf:name \"$$test\"; rdfs:comment \"$$comment\"; mf:action  \"\"\"$(PERL) $(srcdir)/check-algebra \"$(srcdir)/$$test\" \"$$base\" \"\"\" ]"; \
+	  $(RECHO) "  [ a t:PositiveTest; mf:name \"$$test\"; rdfs:comment \"$$comment\"; mf:action  \"\"\"$(PERL) $(srcdir)/check-algebra \"$(srcdir)/$$test\" \"$$base\" \"\"\" ]"; \
 	done; \
-	$(ECHO) ")."
+	$(RECHO) ")."
 
 $(top_builddir)/src/librasqal.la:
 	cd $(top_builddir)/src && $(MAKE) librasqal.la

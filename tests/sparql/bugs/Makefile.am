@@ -44,7 +44,7 @@ $(SPARQL_RESULT_FILES)
 
 CLEANFILES=diff.out roqet.err roqet.out roqet.tmp result.out
 
-ECHO=/bin/echo
+RECHO=/bin/echo
 
 build-roqet:
 	@(cd $(top_builddir)/utils ; $(MAKE) roqet)
@@ -57,15 +57,15 @@ get-testsuites-list:
 
 get-testsuite-sparql-query:
 	@tests="$(SPARQL_TEST_NAMES)"; \
-	$(ECHO) '@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .'; \
-	$(ECHO) '@prefix mf:     <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .'; \
-	$(ECHO) '@prefix t:     <http://ns.librdf.org/2009/test-manifest#> .'; \
-	$(ECHO) ' '; \
-	$(ECHO) "<> a mf:Manifest; rdfs:comment \"Bug Tests via SPARQL\"; t:path \"$(top_builddir)/utils:$(top_builddir)@RAPPER_PATH@:$$PATH\"; t:precondition \"$(PERL) -MXML::DOM -e 'exit 0'\"; mf:entries ("; \
+	$(RECHO) '@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .'; \
+	$(RECHO) '@prefix mf:     <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .'; \
+	$(RECHO) '@prefix t:     <http://ns.librdf.org/2009/test-manifest#> .'; \
+	$(RECHO) ' '; \
+	$(RECHO) "<> a mf:Manifest; rdfs:comment \"Bug Tests via SPARQL\"; t:path \"$(top_builddir)/utils:$(top_builddir)@RAPPER_PATH@:$$PATH\"; t:precondition \"$(PERL) -MXML::DOM -e 'exit 0'\"; mf:entries ("; \
 	for test in $$tests; do \
 	  comment="sparql query $$test"; \
 	  expect="PositiveTest"; \
 	  t=`echo $$test`; \
-	  $(ECHO) "  [ a t:$$expect; mf:name \"$$test\"; rdfs:comment \"$$comment\"; mf:action  \"$(PERL) $(srcdir)/../check-sparql -s $(srcdir) $$t\" ]"; \
+	  $(RECHO) "  [ a t:$$expect; mf:name \"$$test\"; rdfs:comment \"$$comment\"; mf:action  \"$(PERL) $(srcdir)/../check-sparql -s $(srcdir) $$t\" ]"; \
 	done; \
-	$(ECHO) ")."
+	$(RECHO) ")."

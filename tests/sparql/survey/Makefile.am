@@ -79,34 +79,34 @@ get-testsuite-sparql-lexer get-testsuite-sparql-parser:
 	type=`echo $@ | sed -e 's/^.*sparql-//' -e 's/er$$//'`; \
 	verb=`echo $$type`ing; \
 	prog=sparql_`echo $$type`er_test; \
-	$(ECHO) '@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .'; \
-	$(ECHO) '@prefix mf:     <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .'; \
-	$(ECHO) '@prefix t:     <http://ns.librdf.org/2009/test-manifest#> .'; \
-	$(ECHO) ' '; \
-	$(ECHO) "<> a mf:Manifest; rdfs:comment \"SPARQL legal $$verb\"; mf:entries ("; \
+	$(RECHO) '@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .'; \
+	$(RECHO) '@prefix mf:     <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .'; \
+	$(RECHO) '@prefix t:     <http://ns.librdf.org/2009/test-manifest#> .'; \
+	$(RECHO) ' '; \
+	$(RECHO) "<> a mf:Manifest; rdfs:comment \"SPARQL legal $$verb\"; mf:entries ("; \
 	for test in $$tests; do \
 	  comment="sparql $$type of $$test"; \
-	  $(ECHO) "  [ a t:PositiveTest; mf:name \"$$test\"; rdfs:comment \"$$comment\"; mf:action  \"$(top_builddir)/src/$$prog $(srcdir)/$$test\" ]"; \
+	  $(RECHO) "  [ a t:PositiveTest; mf:name \"$$test\"; rdfs:comment \"$$comment\"; mf:action  \"$(top_builddir)/src/$$prog $(srcdir)/$$test\" ]"; \
 	done; \
-	$(ECHO) ")."
+	$(RECHO) ")."
 
 get-testsuite-sparql-query:
 	@tests="$(SPARQL_TEST_NAMES)"; \
-	$(ECHO) '@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .'; \
-	$(ECHO) '@prefix mf:     <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .'; \
-	$(ECHO) '@prefix t:     <http://ns.librdf.org/2009/test-manifest#> .'; \
-	$(ECHO) ' '; \
-	$(ECHO) "<> a mf:Manifest; rdfs:comment \"SPARQL Query Execution\"; t:path \"$(top_builddir)/utils:$(top_builddir)@RAPPER_PATH@:$$PATH\"; t:precondition \"$(PERL) -MXML::DOM -e 'exit 0'\"; mf:entries ("; \
+	$(RECHO) '@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .'; \
+	$(RECHO) '@prefix mf:     <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .'; \
+	$(RECHO) '@prefix t:     <http://ns.librdf.org/2009/test-manifest#> .'; \
+	$(RECHO) ' '; \
+	$(RECHO) "<> a mf:Manifest; rdfs:comment \"SPARQL Query Execution\"; t:path \"$(top_builddir)/utils:$(top_builddir)@RAPPER_PATH@:$$PATH\"; t:precondition \"$(PERL) -MXML::DOM -e 'exit 0'\"; mf:entries ("; \
 	for test in $(EXPECTED_SPARQL_CORRECT); do \
 	  comment="sparql query $$test"; \
 	  expect="PositiveTest"; \
 	  t=`echo $$test`; \
-	  $(ECHO) "  [ a t:$$expect; mf:name \"$$test\"; rdfs:comment \"$$comment\"; mf:action  \"$(PERL) $(srcdir)/../check-sparql -s $(srcdir) $$t\" ]"; \
+	  $(RECHO) "  [ a t:$$expect; mf:name \"$$test\"; rdfs:comment \"$$comment\"; mf:action  \"$(PERL) $(srcdir)/../check-sparql -s $(srcdir) $$t\" ]"; \
 	done; \
 	for test in $(EXPECTED_SPARQL_CORRECT_FAILURES); do \
 	  comment="sparql query $$test"; \
 	  expect="NegativeTest"; \
 	  t=`echo $$test`; \
-	  $(ECHO) "  [ a t:$$expect; mf:name \"$$test\"; rdfs:comment \"$$comment\"; mf:action  \"$(PERL) $(srcdir)/../check-sparql -s $(srcdir) $$t\" ]"; \
+	  $(RECHO) "  [ a t:$$expect; mf:name \"$$test\"; rdfs:comment \"$$comment\"; mf:action  \"$(PERL) $(srcdir)/../check-sparql -s $(srcdir) $$t\" ]"; \
 	done; \
-	$(ECHO) ")."
+	$(RECHO) ")."

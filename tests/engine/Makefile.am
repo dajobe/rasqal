@@ -64,11 +64,11 @@ get-testsuites-list:
 
 get-testsuite-engine:
 	@tests="$(local_tests)"; \
-	$(ECHO) '@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .'; \
-	$(ECHO) '@prefix mf:     <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .'; \
-	$(ECHO) '@prefix t:     <http://ns.librdf.org/2009/test-manifest#> .'; \
-	$(ECHO) ' '; \
-	$(ECHO) "<> a mf:Manifest; rdfs:comment \"Query Engine Tests\"; mf:entries ("; \
+	$(RECHO) '@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .'; \
+	$(RECHO) '@prefix mf:     <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .'; \
+	$(RECHO) '@prefix t:     <http://ns.librdf.org/2009/test-manifest#> .'; \
+	$(RECHO) ' '; \
+	$(RECHO) "<> a mf:Manifest; rdfs:comment \"Query Engine Tests\"; mf:entries ("; \
 	for test in $$tests; do \
 	  comment="rdql query $$test"; \
 	  expect="PositiveTest"; \
@@ -76,6 +76,6 @@ get-testsuite-engine:
 	  if [ $$test = rasqal_limit_test$(EXEEXT) ]; then \
 	    arg="$$arg/letters.nt"; \
           fi; \
-	  $(ECHO) "  [ a t:$$expect; mf:name \"$$test\"; rdfs:comment \"$$comment\"; mf:action  \"./$$test $$arg\" ]"; \
+	  $(RECHO) "  [ a t:$$expect; mf:name \"$$test\"; rdfs:comment \"$$comment\"; mf:action  \"./$$test $$arg\" ]"; \
 	done; \
-	$(ECHO) ")."
+	$(RECHO) ")."

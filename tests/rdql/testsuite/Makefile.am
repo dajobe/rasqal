@@ -94,11 +94,11 @@ get-testsuites-list:
 
 get-testsuite-rdql-query:
 	@tests="$(rdql_testsuite_test_files)"; \
-	$(ECHO) '@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .'; \
-	$(ECHO) '@prefix mf:     <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .'; \
-	$(ECHO) '@prefix t:     <http://ns.librdf.org/2009/test-manifest#> .'; \
-	$(ECHO) ' '; \
-	$(ECHO) "<> a mf:Manifest; rdfs:comment \"RDQL Query Testsuite\"; t:path \"$(top_builddir)/utils:$(top_builddir)@RAPPER_PATH@:$$PATH\"; mf:entries ("; \
+	$(RECHO) '@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .'; \
+	$(RECHO) '@prefix mf:     <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .'; \
+	$(RECHO) '@prefix t:     <http://ns.librdf.org/2009/test-manifest#> .'; \
+	$(RECHO) ' '; \
+	$(RECHO) "<> a mf:Manifest; rdfs:comment \"RDQL Query Testsuite\"; t:path \"$(top_builddir)/utils:$(top_builddir)@RAPPER_PATH@:$$PATH\"; mf:entries ("; \
 	for test in $$tests; do \
 	  comment="rdql query $$test"; \
 	  expect="PositiveTest"; \
@@ -106,6 +106,6 @@ get-testsuite-rdql-query:
 	    expect="NegativeTest"; \
           fi; \
 	  t=`echo $$test | sed -e 's/^test-//'`; \
-	  $(ECHO) "  [ a t:$$expect; mf:name \"$$test\"; rdfs:comment \"$$comment\"; mf:action  \"$(PERL) $(srcdir)/check-rdql -s $(srcdir) $$t\" ]"; \
+	  $(RECHO) "  [ a t:$$expect; mf:name \"$$test\"; rdfs:comment \"$$comment\"; mf:action  \"$(PERL) $(srcdir)/check-rdql -s $(srcdir) $$t\" ]"; \
 	done; \
-	$(ECHO) ")."
+	$(RECHO) ")."
