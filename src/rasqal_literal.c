@@ -4041,7 +4041,7 @@ rasqal_new_literal_sequence_of_sequence_from_data(rasqal_world* world,
 
 int main(int argc, char *argv[]);
 
-/* Test 0 and Test 1 */
+/* Test 0 */
 static const char* const data_3x3_unique_rows[] =
 {
   /* 3 literals in 3 rows - all distinct */
@@ -4055,9 +4055,43 @@ static const char* const data_3x3_unique_rows[] =
   NULL, NULL, NULL, NULL, NULL, NULL,
 };
 
+static const char* const data_3x4_1_duplicate_rows[] =
+{
+  /* 3 literals in 4 rows - with one duplicate */
+  /* row 1 data */
+  "0",  NULL, "1",  NULL, "2", NULL,
+  /* row 2 data */
+  "3",  NULL, "4",  NULL, "5", NULL,
+  /* row 3 data */
+  "0",  NULL, "1",  NULL, "2", NULL,
+  /* row 4 data */
+  "6",  NULL, "7",  NULL, "8", NULL,
+  /* end of data */
+  NULL, NULL, NULL, NULL, NULL, NULL,
+};
+
+static const char* const data_3x6_2_duplicate_rows[] =
+{
+  /* 3 literals in 6 rows - with one duplicate */
+  /* row 1 data */
+  "0",  NULL, "1",  NULL, "2", NULL,
+  /* row 2 data */
+  "3",  NULL, "4",  NULL, "5", NULL,
+  /* row 3 data */
+  "0",  NULL, "1",  NULL, "2", NULL,
+  /* row 4 data */
+  "3",  NULL, "4",  NULL, "5", NULL,
+  /* row 5 data */
+  "6",  NULL, "7",  NULL, "8", NULL,
+  /* row 6 data */
+  "8",  NULL, "9",  NULL, "0", NULL,
+  /* end of data */
+  NULL, NULL, NULL, NULL, NULL, NULL,
+};
 
 
-#define TESTS_COUNT 1
+
+#define TESTS_COUNT 3
 
 static const struct {
   int width;
@@ -4066,6 +4100,10 @@ static const struct {
 } test_data[TESTS_COUNT] = {
   /* Test 0: 3 literals, 3 rows (no duplicates) */
   {3, 3, data_3x3_unique_rows },
+  /* Test 1: 3 literals, 4 rows (1 duplicate) */
+  {3, 3, data_3x4_1_duplicate_rows },
+  /* Test 2: 3 literals, 6 rows (2 duplicate2) */
+  {3, 4, data_3x6_2_duplicate_rows }
 };
 
 
@@ -4087,9 +4125,14 @@ main(int argc, char *argv[])
   fprintf(stderr, "%s: Testing literals\n", program);
 
   for(test_id = 0; test_id < TESTS_COUNT; test_id++) {
-    int expected_rows_count = test_data[test_id].expected_rows;
+    int expected_rows = test_data[test_id].expected_rows;
     int width = test_data[test_id].width;
     raptor_sequence* seq;
+    int duplicates;
+    int count;
+    int i;
+    raptor_sequence* seq2;
+    rasqal_map* map;
     
     seq = rasqal_new_literal_sequence_of_sequence_from_data(world,
                                                             test_data[test_id].data,
@@ -4105,7 +4148,45 @@ main(int argc, char *argv[])
     raptor_sequence_print(seq, DEBUG_FH);
     fputc('\n', DEBUG_FH);
     
+    map = rasqal_new_literal_sequence_sort_map(1 /* is_distinct */,
+                                               0 /* compare_flags */);
+    if(!map) {
+      fprintf(DEBUG_FH, "%s: Test %d failed to create map\n",
+              program, test_id);
+      failures++;
+      raptor_free_sequence(seq);
+      continue;
+    }
+    
+    duplicates = 0;
+    count = 0;
+    for(i = 0;
+        (seq2 = (raptor_sequence*)raptor_sequence_delete_at(seq, i)); 
+        i++) {
+      int rc;
+      
+      rc = rasqal_literal_sequence_sort_map_add_literal_sequence(map, seq2);
+      if(rc) {
+        fprintf(DEBUG_FH, "%s: Test %d literal seq %d is a duplicate\n", 
+                program, test_id, i);
+        duplicates++;
+      } else
+        count++;
+    }
+    rasqal_free_map(map);
+
+#if RASQAL_DEBUG > 1
+    fprintf(DEBUG_FH, "%s: Test %d had %d duplicates\n", program, test_id, 
+            duplicates);
+#endif
+
     raptor_free_sequence(seq);
+
+    if(count != expected_rows) {
+      fprintf(DEBUG_FH, "%s: Test %d returned %d rows expected %d\n", program,
+              test_id, count, expected_rows);
+      failures++;
+    }
   }
   
 
