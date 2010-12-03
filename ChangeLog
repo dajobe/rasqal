@@ -1713,9 +1713,10 @@
 	all data graph constructors.
 
 	(rasqal_new_data_graph_from_iostream): Added taking a
-	raptor_iostream arg (shared) using
-	rasqal_new_data_graph_common() (rasqal_new_data_graph_from_uri):
-	Now using rasqal_new_data_graph_common()
+	raptor_iostream arg (shared) using rasqal_new_data_graph_common()
+
+	(rasqal_new_data_graph_from_uri): Now using
+	rasqal_new_data_graph_common()
 
 	* src/rasqal_triples_source.c:
 	(rasqal_new_triples_source): Only use init_triples_source if
