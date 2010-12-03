@@ -3741,7 +3741,7 @@ rasqal_literal_sequence_equals(raptor_sequence* values_a,
     
     result = rasqal_literal_equals_flags(literal_a, literal_b,
                                          RASQAL_COMPARE_RDF, &error);
-#ifdef RASQAL_DEBUG
+#if RASQAL_DEBUG > 1
     RASQAL_DEBUG1("Comparing ");
     rasqal_literal_print(literal_a, DEBUG_FH);
     fputs(" to ", DEBUG_FH);
