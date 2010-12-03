@@ -1,6 +1,6 @@
-# Test GROUP_CONCAT() with DISTINCT
+# Test GROUP_CONCAT() with default separator
 PREFIX ex: <http://example.org/>
-SELECT ?state (GROUP_CONCAT(DISTINCT ?name) AS ?residents) 
+SELECT ?state (GROUP_CONCAT(?name) AS ?residents) 
 WHERE
 {
   ?person ex:name ?name .
