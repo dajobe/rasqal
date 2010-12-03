@@ -294,6 +294,7 @@ if test "X$PKG_CONFIG" = X; then
 fi
 
 AC_MSG_CHECKING(for raptor)
+RAPTOR_VERSION_DEC=0
 if test "X$PKG_CONFIG" != X; then
   # When raptor2 is stable, this can be changed to prefer raptor2
   # For now an explicit configure --enable-raptor2 is required.
@@ -321,6 +322,7 @@ if test "X$PKG_CONFIG" != X; then
 
   with_raptor=system
   RAPTOR_VERSION=`$RAPTOR_CONFIG --modversion 2>/dev/null`
+  RAPTOR_VERSION_DEC=`echo $RAPTOR_VERSION | $AWK -F. '{printf("%d\n", 10000*$1 + 100*$2 + $3)};'`
 else
   # otherwise use raptor-config for raptor V1 only
   raptor2=no
@@ -352,7 +354,7 @@ else
       fi
     fi
 
-    unset RAPTOR_VERSION_DEC RAPTOR_MIN_VERSION_DEC RAPTOR_MAX_VERSION_DEC
+    unset RAPTOR_MIN_VERSION_DEC RAPTOR_MAX_VERSION_DEC
   fi
   RAPTOR_PACKAGE="raptor"
 fi
@@ -368,6 +370,7 @@ else
     AC_MSG_ERROR(Raptor sources missing from $srcdir/../raptor directory - cannot use internal)
   fi
 fi
+AC_SUBST(RAPTOR_VERSION_DEC)
 
 AM_CONDITIONAL(RAPTOR2, test "X$raptor2" = "Xyes")
 if test "X$raptor2" = "Xyes"; then
