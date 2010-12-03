@@ -1,3 +1,84 @@
+2010-12-03  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_literal.c: rasqal_literal_sequence_equals debug print
+	less
+
+	* src/rasqal.h.in: Declare RASQAL_RAPTOR_VERSION to record what
+	version of raptor was built with.
+
+	* configure.ac: Save raptor version that rasqal was built with in
+	RAPTOR_VERSION_DEC
+
+2010-12-02  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_datetime.c: internal docs
+
+	* src/rasqal_datetime.c: code style
+
+	* tests/sparql/aggregate/Makefile.am: Add group-concat-4 files to
+	dist
+
+	* tests/sparql/aggregate/Makefile.am,
+	tests/sparql/aggregate/group-concat-4.rq,
+	tests/sparql/aggregate/group-concat-4.ttl,
+	tests/sparql/aggregate/manifest.n3: Add group-concat-4* test for
+	GROUP DISTINCT
+
+	* src/rasqal_rowsource_aggregation.c: Initialise group DISTINCT at
+	start/end of each group
+
+	(rasqal_aggregation_rowsource_init): Remove init of distinct map
+
+	(rasqal_aggregation_rowsource_read_row): Destroy/create a distinct
+	map at the group boundaries.
+
+	* tests/sparql/aggregate/group-concat-2.rq: Test GROUP_CONCAT()
+	with default separator
+
+	* configure.ac, tests/algebra/Makefile.am,
+	tests/engine/Makefile.am, tests/laqrs/syntax/Makefile.am,
+	tests/rdql/Makefile.am, tests/rdql/testsuite/Makefile.am,
+	tests/sparql/Expr1/Makefile.am, tests/sparql/Expr2/Makefile.am,
+	tests/sparql/ExprBuiltins/Makefile.am,
+	tests/sparql/ExprEquals/Makefile.am,
+	tests/sparql/SyntaxDev/Syntax-SPARQL/Makefile.am,
+	tests/sparql/SyntaxDev/Syntax-SPARQL2/Makefile.am,
+	tests/sparql/SyntaxDev/Syntax-SPARQL3/Makefile.am,
+	tests/sparql/SyntaxFull/Makefile.am,
+	tests/sparql/ValueTesting/Makefile.am,
+	tests/sparql/aggregate/Makefile.am,
+	tests/sparql/bound/Makefile.am, tests/sparql/bugs/Makefile.am,
+	tests/sparql/examples/Makefile.am,
+	tests/sparql/federated/Makefile.am,
+	tests/sparql/part1/Makefile.am, tests/sparql/regex/Makefile.am,
+	tests/sparql/simple/Makefile.am, tests/sparql/sort/Makefile.am,
+	tests/sparql/sparql11/Makefile.am,
+	tests/sparql/survey/Makefile.am, tests/sparql/syntax/Makefile.am,
+	tests/sparql/update/Makefile.am: Use local echo subst vars RECHO*
+	and real echo program
+
+	* src/rasqal_rowsource_aggregation.c: Add DISTINCTing of aggregate
+	expression results in aggregate expressions.
+
+	Remove literal_seq from expr_data
+
+	(rasqal_aggregation_rowsource_read_row): Use
+	rasqal_expression_sequence_evaluate() to make a new sequence of
+	literals each time.  If a duplicate is found, do not evaluate a
+	step.
+
+	* src/rasqal_expr.c, src/rasqal_internal.h,
+	src/rasqal_rowsource_groupby.c, src/rasqal_rowsource_having.c:
+	Make rasqal_expression_sequence_evaluate() return a new seq of
+	literal each time
+
+	(rasqal_expression_sequence_evaluate): Lose literals_seq argument
+	This was an unused and confusing approach.  A new list each time
+	is easier to deal with.  Update all callers to
+	rasqal_expression_sequence_evaluate()
+
+	* src/rasqal_literal.c: Add tests for literal sequence sort map
+
 2010-11-27  Dave Beckett <dave@dajobe.org>
 
 	* src/rasqal_map.c:
