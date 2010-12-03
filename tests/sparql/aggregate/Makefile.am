@@ -39,7 +39,8 @@ EXPECTED_SPARQL_CORRECT= \
   "Aggregate 3 - SAMPLE and GROUP BY" \
   "Group Concat 1 - Newline separator" \
   "Group Concat 2 - default separator" \
-  "Group Concat 3 - HAVING"
+  "Group Concat 3 - HAVING" \
+  "Group Concat 4 - DISTINCT"
 
 SPARQL_BAD_TEST_FILES= \
 bad-1.rq

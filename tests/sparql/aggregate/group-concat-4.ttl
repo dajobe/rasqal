@@ -1,0 +1,357 @@
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix rs:      <http://www.w3.org/2001/sw/DataAccess/tests/result-set#> .
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+[]    rdf:type      rs:ResultSet ;
+      rs:resultVariable  "state" ;
+      rs:resultVariable  "residents" ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Alabama"
+                                    ] ; 
+                      rs:binding    [ rs:variable   "residents" ;
+                                      rs:value      "Jeff Richard"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Alaska"
+                                    ] ; 
+                      rs:binding    [ rs:variable   "residents" ;
+                                      rs:value      "Lisa Mark"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Arizona"
+                                    ] ; 
+                      rs:binding    [ rs:variable   "residents" ;
+                                      rs:value      "John Jon"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Arkansas"
+                                    ] ; 
+                      rs:binding    [ rs:variable   "residents" ;
+                                      rs:value      "Blanche Mark"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "California"
+                                    ] ; 
+                      rs:binding    [ rs:variable   "residents" ;
+                                      rs:value      "Barbara Dianne"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Colorado"
+                                    ] ; 
+                      rs:binding    [ rs:variable   "residents" ;
+                                      rs:value      "Mark Michael"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Connecticut"
+                                    ] ; 
+                      rs:binding    [ rs:variable   "residents" ;
+                                      rs:value      "Christopher Joe"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Delaware"
+                                    ] ; 
+                      rs:binding    [ rs:variable   "residents" ;
+                                      rs:value      "Ted Tom"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Florida"
+                                    ] ; 
+                      rs:binding    [ rs:variable   "residents" ;
+                                      rs:value      "Bill George"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Georgia"
+                                    ] ; 
+                      rs:binding    [ rs:variable   "residents" ;
+                                      rs:value      "Johnny Saxby"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Hawaii"
+                                    ] ; 
+                      rs:binding    [ rs:variable   "residents" ;
+                                      rs:value      "Daniel"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Idaho"
+                                    ] ; 
+                      rs:binding    [ rs:variable   "residents" ;
+                                      rs:value      "Jim Mike"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Illinois"
+                                    ] ; 
+                      rs:binding    [ rs:variable   "residents" ;
+                                      rs:value      "Dick Roland"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Indiana"
+                                    ] ; 
+                      rs:binding    [ rs:variable   "residents" ;
+                                      rs:value      "Evan Richard"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Iowa"
+                                    ] ; 
+                      rs:binding    [ rs:variable   "residents" ;
+                                      rs:value      "Chuck Tom"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Kansas"
+                                    ] ; 
+                      rs:binding    [ rs:variable   "residents" ;
+                                      rs:value      "Pat Sam"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Kentucky"
+                                    ] ; 
+                      rs:binding    [ rs:variable   "residents" ;
+                                      rs:value      "Jim Mitch"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Louisiana"
+                                    ] ; 
+                      rs:binding    [ rs:variable   "residents" ;
+                                      rs:value      "David Mary"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Maine"
+                                    ] ; 
+                      rs:binding    [ rs:variable   "residents" ;
+                                      rs:value      "Olympia Susan"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Maryland"
+                                    ] ; 
+                      rs:binding    [ rs:variable   "residents" ;
+                                      rs:value      "Barbara Ben"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Massachusetts"
+                                    ] ; 
+                      rs:binding    [ rs:variable   "residents" ;
+                                      rs:value      "John Scott"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Michigan"
+                                    ] ; 
+                      rs:binding    [ rs:variable   "residents" ;
+                                      rs:value      "Carl Debbie"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Minnesota"
+                                    ] ; 
+                      rs:binding    [ rs:variable   "residents" ;
+                                      rs:value      "Al Amy"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Mississippi"
+                                    ] ; 
+                      rs:binding    [ rs:variable   "residents" ;
+                                      rs:value      "Roger Thad"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Missouri"
+                                    ] ; 
+                      rs:binding    [ rs:variable   "residents" ;
+                                      rs:value      "Claire Kit"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Montana"
+                                    ] ; 
+                      rs:binding    [ rs:variable   "residents" ;
+                                      rs:value      "Jon Max"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Nebraska"
+                                    ] ; 
+                      rs:binding    [ rs:variable   "residents" ;
+                                      rs:value      "Ben Mike"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Nevada"
+                                    ] ; 
+                      rs:binding    [ rs:variable   "residents" ;
+                                      rs:value      "Harry John"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "New Hampshire"
+                                    ] ; 
+                      rs:binding    [ rs:variable   "residents" ;
+                                      rs:value      "Jeanne Judd"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "New Jersey"
+                                    ] ; 
+                      rs:binding    [ rs:variable   "residents" ;
+                                      rs:value      "Bob Frank"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "New Mexico"
+                                    ] ; 
+                      rs:binding    [ rs:variable   "residents" ;
+                                      rs:value      "Jeff Tom"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "New York"
+                                    ] ; 
+                      rs:binding    [ rs:variable   "residents" ;
+                                      rs:value      "Chuck Kirsten"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "North Carolina"
+                                    ] ; 
+                      rs:binding    [ rs:variable   "residents" ;
+                                      rs:value      "Kay Richard"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "North Dakota"
+                                    ] ; 
+                      rs:binding    [ rs:variable   "residents" ;
+                                      rs:value      "Byron Kent"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Ohio"
+                                    ] ; 
+                      rs:binding    [ rs:variable   "residents" ;
+                                      rs:value      "George Sherrod"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Oklahoma"
+                                    ] ; 
+                      rs:binding    [ rs:variable   "residents" ;
+                                      rs:value      "Jim Tom"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Oregon"
+                                    ] ; 
+                      rs:binding    [ rs:variable   "residents" ;
+                                      rs:value      "Jeff Ron"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Pennsylvania"
+                                    ] ; 
+                      rs:binding    [ rs:variable   "residents" ;
+                                      rs:value      "Arlen Bob"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Rhode Island"
+                                    ] ; 
+                      rs:binding    [ rs:variable   "residents" ;
+                                      rs:value      "Jack Sheldon"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "South Carolina"
+                                    ] ; 
+                      rs:binding    [ rs:variable   "residents" ;
+                                      rs:value      "Jim Lindsey"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "South Dakota"
+                                    ] ; 
+                      rs:binding    [ rs:variable   "residents" ;
+                                      rs:value      "John Tim"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Tennessee"
+                                    ] ; 
+                      rs:binding    [ rs:variable   "residents" ;
+                                      rs:value      "Bob Lamar"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Texas"
+                                    ] ; 
+                      rs:binding    [ rs:variable   "residents" ;
+                                      rs:value      "John Kay"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Utah"
+                                    ] ; 
+                      rs:binding    [ rs:variable   "residents" ;
+                                      rs:value      "Bob Orrin"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Vermont"
+                                    ] ; 
+                      rs:binding    [ rs:variable   "residents" ;
+                                      rs:value      "Bernie Patrick"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Virginia"
+                                    ] ; 
+                      rs:binding    [ rs:variable   "residents" ;
+                                      rs:value      "Jim Mark"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Washington"
+                                    ] ; 
+                      rs:binding    [ rs:variable   "residents" ;
+                                      rs:value      "Maria Patty"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "West Virginia"
+                                    ] ; 
+                      rs:binding    [ rs:variable   "residents" ;
+                                      rs:value      "Carte Jay"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Wisconsin"
+                                    ] ; 
+                      rs:binding    [ rs:variable   "residents" ;
+                                      rs:value      "Herb Russ"
+                                    ] 
+      ] ;
+      rs:solution   [ rs:binding    [ rs:variable   "state" ;
+                                      rs:value      "Wyoming"
+                                    ] ; 
+                      rs:binding    [ rs:variable   "residents" ;
+                                      rs:value      "John Mike"
+                                    ] 
+      ] .

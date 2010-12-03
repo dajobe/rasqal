@@ -37,7 +37,7 @@
 
       [  mf:name    "Group Concat 2 - default separator" ;
          mf:action
-            [ qt:query  <group-concat-1.rq> ;
+            [ qt:query  <group-concat-2.rq> ;
               qt:data   <data-2.ttl> ] ;
          mf:result  <group-concat-2.ttl>
       ]
@@ -47,6 +47,13 @@
             [ qt:query  <group-concat-3.rq> ;
               qt:data   <data-2.ttl> ] ;
          mf:result  <group-concat-3.ttl>
+      ]
+
+      [  mf:name    "Group Concat 4 - DISTINCT" ;
+         mf:action
+            [ qt:query  <group-concat-4.rq> ;
+              qt:data   <data-2.ttl> ] ;
+         mf:result  <group-concat-4.ttl>
       ]
 
     ).

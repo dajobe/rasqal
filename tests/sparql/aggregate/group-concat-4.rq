@@ -1,0 +1,10 @@
+# Test GROUP_CONCAT() with DISTINCT and default separator
+PREFIX ex: <http://example.org/>
+# Pick unique names per state; Hawaii has two Daniels
+SELECT ?state (GROUP_CONCAT(DISTINCT ?name) AS ?residents) 
+WHERE
+{
+  ?person ex:name ?name .
+  ?person ex:livesIn ?state
+}
+GROUP BY ?state
