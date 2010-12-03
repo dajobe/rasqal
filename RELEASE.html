@@ -14,7 +14,7 @@
 </p>
 
 
-<!-- Updated to include 2010-10-03 -->
+<!-- Updated to include 2010-10-04 -->
 
 <h3>SPARQL Query Language changes</h3>
 
@@ -33,6 +33,21 @@ better errors to the query engine.
 <code>RASQAL_TRIPLES_SOURCE_FACTORY_MAX_VERSION</code> is bumped to 2
 to allow declaring support for the new factory method.
 </p>
+
+<p>typedef <code>rasqal_data_graph</code> gains new format_type,
+format_name and format_uri fields.
+</p>
+
+<p><code>rasqal_new_data_graph2()</code> added with format_type,
+format_name and format_uri args deprecating rasqal_new_data_graph()
+without them, which always guessed the format.
+</p>
+
+<p><code>rasqal_query_add_data_graph2()</code> added with format_type
+format_name and format_uri args deprecating
+<code>rasqal_query_add_data_graph()</code> without them.
+</p>
+
 
 <h3>Query Engine changes</h3>
 
@@ -61,9 +76,18 @@ raptor serializer / rasqal result formatter name such as for example
 'json'.
 </p>
 
+<p>Add <code>-F NAME</code> format arg for specifying the data graph
+format; otherwise raptor uses the guessing mechanism.</p>
+
+
 <h3>Configuration and build changes</h3>
 
 <p>Use AC_LANG_SOURCE for gcc flag test.
+</p>
+
+<h3>Example program changes</h3>
+
+<p>srxread and srxwrite now build when compiled with raptor V2.
 </p>
 
 
