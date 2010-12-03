@@ -47,6 +47,14 @@
  
 /**
  * rasqal_xsd_datetime:
+ * @year: year
+ * @month: month 1-12
+ * @day: 0-31
+ * @hour: hour 0-23
+ * @minute: minute 0-59
+ * @second: second 0-60 (yes 60 is allowed for leap seconds)
+ * @second_frac: 3 decimal digits of fractions of seconds (first byte is \0 if missing)
+ * @have_tz: non-0 if 'Z'ulu timezone is present
  *
  * INTERNAL - XML schema dateTime datatype
  *
@@ -55,23 +63,22 @@
  */
 typedef struct {
   signed int year;
-  /* the following fields are integer values not characters */
   unsigned char month;
   unsigned char day;
+  /* the following fields are integer values not characters */
   signed char hour;
   signed char minute;
   signed char second;
-  /* second_frac is a string of 1-3 length (+1 for NUL)
-   * supports only up to milliseconds
-   */
-  char second_frac[3+1];
-  /* have_tz is an integer flag: non-0 if 'Z'ulu timezone is present */
-  char have_tz;
-}  rasqal_xsd_datetime;
+  char second_frac[3 + 1];
+  unsigned int have_tz:1;
+} rasqal_xsd_datetime;
 
 
 /**
  * rasqal_xsd_date:
+ * @year: year
+ * @month: month 1-12
+ * @day: 0-31
  *
  * INTERNAL - XML schema date datatype
  *
