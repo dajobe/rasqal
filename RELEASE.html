@@ -14,7 +14,7 @@
 </p>
 
 
-<!-- Updated to include 2010-10-13 -->
+<!-- Updated to include 2010-10-16 -->
 
 <h3>SPARQL Query Language changes</h3>
 
@@ -24,6 +24,17 @@ languages <em>sparql</em> (with alias <em>sparql10</em> for SPARQL
 experiments.  The <em>sparql</em> name without a version currently
 points to SPARQL 1.0 but over time will advance to be SPARQL 1.1
 </p>
+
+<p>Added support for parsing (not executing) new SPARQL 1.1 tokens:
+<code>BINDINGS</code> for variable bindings, <code>UNDEF</code>,
+<code>SERVICE</code>, <code>MINUS</code>, <code>isNUMERIC</code> (all
+case independent)
+</p>
+
+<p>Added support for parsing (not executing) new SPARQL 1.1
+sub-SELECT queries.
+</p>
+
 
 <h3>Query API changes</h3>
 
@@ -67,12 +78,32 @@ could be strings, memory etc.
 using new <code>rasqal_new_data_graph_from_iostream()</code>.
 </p>
 
+<p>Added rasqal_op gains <code>RASQAL_EXPR_ISNUMERIC</code> for
+SPARQL 1.1 isNUMERIC() function.</p>
+
+<p>Added new variable bindings class rasqal_bindings with
+constructor <code>rasqal_new_bindings</code>, destructor
+<code>rasqal_free_bindings()</code> and method
+<code>rasqal_bindings_print()</code>
+</p>
+
 
 <h3>Graph pattern API changes</h3>
 
 <p>Added <code>rasqal_graph_pattern_get_variable()</code> to get
 variable for SPARQL 1.1 <code>BIND</code> and LAQRS <code>LET</code>
 graph patterns.
+</p>
+
+<p>rasqal_graph_pattern_operator gains new values for SPARQL 1.1 features:
+<code>RASQAL_GRAPH_PATTERN_OPERATOR_SELECT</code> for sub-SELECT,
+<code>RASQAL_GRAPH_PATTERN_OPERATOR_SERVICE</code> for service binding
+and <code>RASQAL_GRAPH_PATTERN_OPERATOR_MINUS</code> for minus operation
+between graph patterns.
+</p>
+
+<p>Added new constructor <code>rasqal_new_single_graph_pattern()</code>
+for use with service and minus graph patterns.
 </p>
 
 
@@ -84,6 +115,8 @@ the <code>rasqal_triples_source_factory</code>.  The
 <code>RASQAL_TRIPLES_SOURCE_FACTORY_MAX_VERSION</code> is now 2.
 </p>
 
+<p>Support executing new SPARQL 1.1 function isNumeric</p>
+
 
 <h3>LAQRS Query Language changes</h3>
 
@@ -91,12 +124,27 @@ the <code>rasqal_triples_source_factory</code>.  The
 <code>COALESCE</code> are laqrs only and remain experimental.
 </p>
 
+
 <h3>Internal changes</h3>
+
+<p>All destructors accept NULL objects and do nothing.
+</p>
 
 <p>Add a Raptor V2-style raptor_syntax_description data model to
 rasqal and use it to initialise query languages.  It is not currently
 exposed in the API and may not be until Rasqal requires Raptor V2.
 </p>
+
+<p>Added an internal <code>rasqal_bindings</code> structure
+for SPARQL 1.1 BINDINGS.
+</p>
+
+<p>Add an internal query results modifiers structure
+rasqsal_solution_modifier class for use in storing group by, having,
+limit, offset information which together SPARQL 1.1 documentationc
+calls modifiers.
+</p>
+
 
 <h3><code>roqet(1)</code> utility changes</h3>
 
