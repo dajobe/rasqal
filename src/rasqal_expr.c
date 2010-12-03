@@ -2857,7 +2857,6 @@ rasqal_expression_copy_expression_sequence(raptor_sequence* exprs_seq)
  * @query: query
  * @exprs_seq: sequence of #rasqal_expression to evaluate
  * @ignore_errors: non-0 to ignore errors in evaluation
- * @literal_seq: OUT: sequence of #rasqal_literal to write to (or NULL)
  * @error_p: OUT: pointer to error flag (or NULL)
  *
  * INTERNAL - evaluate a sequence of expressions into a sequence of literals
@@ -2865,8 +2864,7 @@ rasqal_expression_copy_expression_sequence(raptor_sequence* exprs_seq)
  * Intended to implement SPARQL 1.1 Algebra ListEval defined:
  *   ListEval(ExprList, μ) returns a list E, where Ei = μ(ExprListi).
  *
- * The result is a new sequence unless @literal_seq is given in which
- * case it is used to append the #rasqal_literal values evaluated
+ * The result is a new sequence with #rasqal_literal values evaluated
  * from the sequence of expressions @exprs_seq.  If @ignore_errors is
  * non-0, errors returned by a expressions are ignored (this
  * corresponds to SPARQL 1.1 Algebra ListEvalE )
@@ -2877,11 +2875,11 @@ raptor_sequence*
 rasqal_expression_sequence_evaluate(rasqal_query* query,
                                     raptor_sequence* exprs_seq,
                                     int ignore_errors,
-                                    raptor_sequence* literal_seq,
                                     int* error_p)
 {
   int size;
   int i;
+  raptor_sequence* literal_seq = NULL;
   
   if(!query || !exprs_seq) {
     if(error_p)
@@ -2896,15 +2894,13 @@ rasqal_expression_sequence_evaluate(rasqal_query* query,
     return NULL;
   }
 
-  if(!literal_seq) {
 #ifdef HAVE_RAPTOR2_API
-    literal_seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_literal,
-                                      (raptor_data_print_handler)rasqal_literal_print);
+  literal_seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_literal,
+                                    (raptor_data_print_handler)rasqal_literal_print);
 #else
-    literal_seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_literal,
-                                      (raptor_sequence_print_handler*)rasqal_literal_print);
+  literal_seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_literal,
+                                    (raptor_sequence_print_handler*)rasqal_literal_print);
 #endif
-  }
 
   for(i = 0; i < size; i++) {
     rasqal_expression* e;

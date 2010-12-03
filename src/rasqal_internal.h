@@ -1037,7 +1037,7 @@ int rasqal_expression_mentions_aggregate(rasqal_expression* e);
 
 raptor_sequence* rasqal_expression_copy_expression_sequence(raptor_sequence* exprs_seq);
 int rasqal_literal_sequence_compare(int compare_flags, raptor_sequence* values_a, raptor_sequence* values_b);
-raptor_sequence* rasqal_expression_sequence_evaluate(rasqal_query* query, raptor_sequence* exprs_seq, int ignore_errors, raptor_sequence* literal_seq, int* error_p);
+raptor_sequence* rasqal_expression_sequence_evaluate(rasqal_query* query, raptor_sequence* exprs_seq, int ignore_errors, int* error_p);
 int rasqal_literal_sequence_equals(raptor_sequence* values_a, raptor_sequence* values_b);
 
 /* strcasecmp.c */

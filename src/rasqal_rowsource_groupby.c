@@ -432,7 +432,6 @@ rasqal_groupby_rowsource_process(rasqal_rowsource* rowsource,
       literal_seq = rasqal_expression_sequence_evaluate(rowsource->query,
                                                         con->exprs_seq,
                                                         /* ignore_errors */ 0,
-                                                        /* literal_seq */ NULL,
                                                         /* error_p */ NULL);
       
       if(!literal_seq) {

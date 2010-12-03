@@ -127,7 +127,6 @@ rasqal_having_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
     literal_seq  = rasqal_expression_sequence_evaluate(rowsource->query,
                                                        con->exprs_seq,
                                                        /* ignore_errors */ 0,
-                                                       NULL,
                                                        &error);
     if(error) {
       if(literal_seq)
