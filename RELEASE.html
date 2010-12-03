@@ -14,18 +14,20 @@
 </p>
 
 
-<!-- Updated to include 2010-10-04 -->
+<!-- Updated to include 2010-10-06 -->
 
 <h3>SPARQL Query Language changes</h3>
 
 <p>Separate SPARQL 1.0 and SPARQL 1.1 language names giving query
-languages <em>sparql</em>, <em>sparql10</em> and <em>sparql11</em>.
-SPARQL 1.0 is the current default for the sparql name.
+languages <em>sparql</em> (with alias <em>sparql10</em> for SPARQL
+1.0), <em>sparql11</em> for SPARQL 1.1 and <em>laqrs</em> for
+experiments.  The <em>sparql</em> name without a version currently
+points to SPARQL 1.0 but over time will advance to be SPARQL 1.1
 </p>
 
 <h3>Query API changes</h3>
 
-<p><code>rasqal_triples_source_factory</code> gains an init_triples
+<p><code>rasqal_triples_source_factory</code> gains an <code>init_triples</code>
 factory method with an error callback arg using a new
 <code>rasqal_triples_source_error_handler</code> typedef to replace
 new_triples_source.  This allows triples source factories to return
@@ -38,14 +40,20 @@ to allow declaring support for the new factory method.
 format_name and format_uri fields.
 </p>
 
-<p><code>rasqal_new_data_graph2()</code> added with format_type,
-format_name and format_uri args deprecating rasqal_new_data_graph()
-without them, which always guessed the format.
+<p><code>rasqal_new_data_graph_from_uri()</code> added with
+format_type, format_name and format_uri args deprecating
+rasqal_new_data_graph() without them, which always guessed the
+format.
 </p>
 
-<p><code>rasqal_query_add_data_graph2()</code> added with format_type
-format_name and format_uri args deprecating
+<p><code>rasqal_query_add_data_graph_from_uri()</code> added with
+format_type format_name and format_uri args deprecating
 <code>rasqal_query_add_data_graph()</code> without them.
+</p>
+
+<p><code>rasqal_query_results_formats_check2()</code> added with new
+flags arg for asking for a format to read or write, deprecating
+<code>rasqal_query_results_formats_check()</code> without it.
 </p>
 
 
@@ -60,24 +68,26 @@ the <code>rasqal_triples_source_factory</code>.  The
 
 <h3>LAQRS Query Language changes</h3>
 
-<p>Explain more carefully that EXPLAIN and COALESCE are laqrs only
+<p>Explain more carefully that <code>EXPLAIN</code> and
+<code>COALESCE</code> are laqrs only and remain experimental.
 </p>
 
 <h3>Internal changes</h3>
 
 <p>Add a Raptor V2-style raptor_syntax_description data model to
-rasqal and use it to initialise query languages.
+rasqal and use it to initialise query languages.  It is not currently
+exposed in the API and may not be until Rasqal requires Raptor V2.
 </p>
 
-<h3>roqet utility changes</h3>
+<h3><code>roqet(1)</code> utility changes</h3>
 
 <p>Can now handle serializing to graphs or bindings with the same
-raptor serializer / rasqal result formatter name such as for example
+Raptor serializer / Rasqal result formatter name such as for example
 'json'.
 </p>
 
 <p>Add <code>-F NAME</code> format arg for specifying the data graph
-format; otherwise raptor uses the guessing mechanism.</p>
+format; otherwise Raptor uses the guessing mechanism.</p>
 
 
 <h3>Configuration and build changes</h3>
