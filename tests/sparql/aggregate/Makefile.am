@@ -31,7 +31,8 @@ agg-2.rq \
 agg-3.rq \
 group-concat-1.rq \
 group-concat-2.rq \
-group-concat-3.rq
+group-concat-3.rq \
+group-concat-4.rq
 
 EXPECTED_SPARQL_CORRECT= \
   "Aggregate 1 - SUM with GROUP BY and HAVING" \
@@ -52,7 +53,8 @@ agg-2.ttl \
 agg-3.ttl \
 group-concat-1.ttl \
 group-concat-2.ttl \
-group-concat-3.ttl
+group-concat-3.ttl \
+group-concat-4.ttl
 
 EXTRA_DIST= \
 $(SPARQL_MANIFEST_FILES) \
