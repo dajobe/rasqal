@@ -395,19 +395,8 @@ static int
 rasqal_aggregation_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
 {
   rasqal_aggregation_rowsource_context* con;
-  int i;
 
   con = (rasqal_aggregation_rowsource_context*)user_data;
-
-  /* Used to store (and own) literals from row expression evaluations */
-  for(i = 0; i < con->expr_count; i++) {
-    rasqal_agg_expr_data* expr_data = &con->expr_data[i];
-    
-    if(expr_data->expr->flags & RASQAL_EXPR_FLAG_DISTINCT) {
-      expr_data->map = rasqal_new_literal_sequence_sort_map(1 /* is_distinct */,
-                                                            0 /* compare_flags */);
-    }
-  }
 
 #ifdef HAVE_RAPTOR2_API
   con->input_values = raptor_new_sequence((raptor_data_free_handler)rasqal_free_literal,
@@ -554,6 +543,17 @@ rasqal_aggregation_rowsource_read_row(rasqal_rowsource* rowsource,
         RASQAL_DEBUG2("Aggregation ending group %d", con->last_group_id);
         fputc('\n', DEBUG_FH);
 #endif
+
+        /* Empty distinct maps */
+        for(i = 0; i < con->expr_count; i++) {
+          rasqal_agg_expr_data* expr_data = &con->expr_data[i];
+
+          if(expr_data->map) {
+            rasqal_free_map(expr_data->map);
+            expr_data->map = NULL;
+          }
+        }
+      
         break;
       }
 
@@ -577,6 +577,16 @@ rasqal_aggregation_rowsource_read_row(rasqal_rowsource* rowsource,
                                                                                 expr_data->expr);
           
           if(!expr_data->agg_user_data) {
+            error = 1;
+            break;
+          }
+        }
+
+        /* Init map for each group */
+        if(expr_data->expr->flags & RASQAL_EXPR_FLAG_DISTINCT) {
+          expr_data->map = rasqal_new_literal_sequence_sort_map(1 /* is_distinct */,
+                                                                0 /* compare_flags */);
+          if(!expr_data->map) {
             error = 1;
             break;
           }
