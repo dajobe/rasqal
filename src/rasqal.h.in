@@ -133,6 +133,15 @@ RASQAL_API
 extern const char * const rasqal_home_url_string;
 
 
+
+/**
+ * @RASQAL_RAPTOR_VERSION:
+ *
+ * Version of Raptor that Rasqal was configured against.
+ */
+#define RASQAL_RAPTOR_VERSION @RAPTOR_VERSION_DEC@
+
+
 /* Public structures */
 
 #ifndef RASQAL_WORLD_DECLARED
