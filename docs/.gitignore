@@ -6,6 +6,7 @@ librasqal.html
 rasqal-decl-list.txt
 rasqal-decl.txt
 rasqal-docs.sgml
+rasqal-fake.i
 rasqal-undeclared.txt
 rasqal-undocumented.txt
 rasqal-unused.txt
