@@ -754,8 +754,9 @@
 	* src/rasqal.h.in: Fix rasqal_literal_type arg in source header
 
 	* src/rasqal_rowsource_aggregation.c:
-	(rasqal_builtin_aggregation_step): Fix max/min compare (main): Add
-	tests for final row outputs of aggregations
+	(rasqal_builtin_aggregation_step): Fix max/min compare
+
+	(main): Add tests for final row outputs of aggregations
 
 	* src/rasqal_literal.c: Fix rasqal_literal_write_type
 
