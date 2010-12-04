@@ -104,6 +104,13 @@ constructor <code>rasqal_new_bindings</code>, destructor
 <code>rasqal_variables_table_add()</code>.
 </p>
 
+<p>Note in the docs for <code>rasqal_query_set_limit()</code> and
+<code>rasqal_query_set_offset()</code> that with the new query engine
+approach, you cannot set the limit or offset until the query is
+prepared, ie after parsing.
+</p>
+
+
 <h3>Graph pattern API changes</h3>
 
 <p>Added <code>rasqal_graph_pattern_get_variable()</code> to get
@@ -128,7 +135,8 @@ for use with service and minus graph patterns.
 <p>Added a <code>rasqal_service</code> class for executing remote
 queries against a SPARQL HTTP protocol endpoint and getting back a
 query results set.  The data graphs attached get turned into
-default-graph-uri and named-graph-uri URI parameters to the request.
+<code>default-graph-uri</code> and <code>named-graph-uri</code> URI
+parameters to the request.
 </p>
 
 <p>Added constructor <code>rasqal_new_service()</code>,
