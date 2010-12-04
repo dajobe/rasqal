@@ -18,13 +18,8 @@
 
 <h3>Query Engine changes</h3>
 
-<p>Add a way for a triples source factory to return meaningful errors
-by adding a <code>rasqal_triples_error_handler</code> callback for
-the <code>rasqal_triples_source_factory</code>.  The
-<code>RASQAL_TRIPLES_SOURCE_FACTORY_MAX_VERSION</code> is now 2.
-</p>
-
-<p>Support executing new SPARQL 1.1 draft function <code>isNUMERIC()</code>.</p>
+<p>Support executing new SPARQL 1.1 draft function
+<code>isNUMERIC()</code>.</p>
 
 <p>Support executing built-in aggregate expressions:</p>
 <ul>
@@ -37,6 +32,11 @@ the <code>rasqal_triples_source_factory</code>.  The
   <li><code>SUM(expr)</code></li>
 </ul>
 <p>with and without <code>DISTINCT</code> across the arguments.</p>
+
+<p>Support executing grouping of results with <code>GROUP BY</code>
+(or implicitly if aggregate function was given) and
+<code>HAVING</code> to filter groups.
+</p> 
 
 
 <h3>LAQRS Query Language changes</h3>
@@ -57,7 +57,7 @@ points to SPARQL 1.0 but over time will advance to be SPARQL 1.1
 
 <p>Added support for parsing (not executing) new SPARQL 1.1 draft tokens:
 <code>BINDINGS</code> for variable bindings, <code>UNDEF</code>,
-<code>SERVICE</code> and <code>MINUS</code> (all case independent)
+<code>SERVICE</code> and <code>MINUS</code>.
 </p>
 
 <p>Added support for parsing and executing new SPARQL 1.1 draft
@@ -81,37 +81,9 @@ with and without <code>DISTINCT</code> across the arguments.
 </p>
 
 <p>Added support for executing grouping of results with <code>GROUP BY</code>
-(or implicitly if aggregate function was given) and <code>HAVING</code>.
+(or implicitly if aggregate function was given) and <code>HAVING</code>
+to filter groups.
 </p> 
-
-
-<h3>Query API changes</h3>
-
-<p><code>rasqal_triples_source_factory</code> gains an
-<code>init_triples</code> factory method with an error callback arg
-using a new <code>rasqal_triples_source_error_handler</code> typedef
-to replace the <code>new_triples_source</code> factory method.  The
-new method allows triples source factories to return better errors to
-the query engine.
-<code>RASQAL_TRIPLES_SOURCE_FACTORY_MAX_VERSION</code> is bumped to 2
-to allow declaring support for the new factory method.
-</p>
-
-<p>Added <code>rasqal_query_add_data_graph2()</code> to
-add a previously constructed data graph to a query
-deprecating <code>rasqal_query_add_data_graph()</code> that 
-did construct and add in one go.
-</p>
-
-<p>Added <code>rasqal_query_add_data_graph_from_iostream()</code>
-using new <code>rasqal_new_data_graph_from_iostream()</code>.
-</p>
-
-<p>Note in the docs for <code>rasqal_query_set_limit()</code> and
-<code>rasqal_query_set_offset()</code> that with the new query engine
-approach, you cannot set the limit or offset until the query is
-prepared which is after parsing.
-</p>
 
 
 <h3>Bindings class changes</h3>
@@ -186,13 +158,12 @@ expression is an aggregate one - has an aggregate operation or
 user-defined function.
 </p>
 
+<p>Added <code>rasqal_literal_type_label()</code> to return
+the label for a literal type.
+</p>
+
 
 <h3>Graph pattern class changes</h3>
-
-<p>Added <code>rasqal_graph_pattern_get_variable()</code> to get
-variable for SPARQL 1.1 draft <code>BIND</code> and LAQRS
-<code>LET</code> graph patterns.
-</p>
 
 <p><code>rasqal_graph_pattern_operator</code> enumeration gains
 new values for SPARQL 1.1 draft features:
@@ -204,6 +175,39 @@ between graph patterns.
 
 <p>Added new constructor <code>rasqal_new_single_graph_pattern()</code>
 for use with service and minus graph patterns.
+</p>
+
+<p>Added <code>rasqal_graph_pattern_get_variable()</code> method to
+get the variable for SPARQL 1.1 draft <code>BIND</code> and LAQRS
+<code>LET</code> graph patterns.
+</p>
+
+<p>Added <code>rasqal_graph_pattern_get_service()</code> method to
+get the service object for SPARQL 1.1 draft <code>SERVICE</code>
+graph pattern.
+</p>
+
+
+<h3>Query class changes</h3>
+
+<p>Added <code>rasqal_query_add_data_graph2()</code> to
+add a previously constructed data graph to a query
+deprecating <code>rasqal_query_add_data_graph()</code> that 
+did construct and add in one go.
+</p>
+
+<p>Added <code>rasqal_query_add_data_graphs()</code> to
+add a sequence of data graphs to a query.
+</p>
+
+<p>Added <code>rasqal_query_add_data_graph_from_iostream()</code>
+using new <code>rasqal_new_data_graph_from_iostream()</code>.
+</p>
+
+<p>Note in the docs for <code>rasqal_query_set_limit()</code> and
+<code>rasqal_query_set_offset()</code> that with the new query engine
+approach, you cannot set the limit or offset until the query is
+prepared which is after parsing.
 </p>
 
 
@@ -247,7 +251,33 @@ returning the results.
 </p>
 
 
+<h3>Triples source class changes</h3>
+
+<p>Add a way for a triples source factory to return meaningful errors
+by adding a new <code>init_triples_source</code> factory method to
+the <code>rasqal_triples_source_factory</code> that takes a
+<code>rasqal_triples_error_handler</code> callback.  The
+<code>RASQAL_TRIPLES_SOURCE_FACTORY_MAX_VERSION</code> is now 2 and
+ranges 1 to 2 are supported.
+</p>
+
+<p>Add a way for a triples source to indicate support for optional
+features by adding a <code>support_feature</code> method toe the
+<code>rasqal_triples_source</code> structure.  The
+<code>RASQAL_TRIPLES_SOURCE_MAX_VERSION</code> is now 2 and
+ranges 1 to 2 are supported.
+</p>
+
+<p>Added enum <code>rasqal_triple_source_feature</code> with
+value <code>RASQAL_TRIPLE_SOURCE_FEATURE_IOSTREAM_DATA_GRAPH</code>
+to indicate a triple source supports reading data graphs from
+a <code>raptor_iostream</code>.
+</p>
+
+
 <h3>Variable class changes</h3>
+
+<p>Now a reference-counted class.</p>
 
 <p>Deprecated <code>rasqal_new_variable()</code> and
 <code>rasqal_new_variable_typed()</code> for
@@ -310,9 +340,10 @@ string</em> to specify the query to execute remotely.
 <p>Use AC_LANG_SOURCE for gcc flag test.
 </p>
 
-<h3>Example program changes</h3>
+<h3>Other changes</h3>
 
-<p>srxread and srxwrite now build when compiled with raptor V2.
+<p>The srxread and srxwrite example programs now build when Rasqal is
+configured and built with raptor V2.
 </p>
 
 
