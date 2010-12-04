@@ -1,0 +1,77 @@
+<!-- ##### SECTION Title ##### -->
+section-service
+
+<!-- ##### SECTION Short_Description ##### -->
+
+
+<!-- ##### SECTION Long_Description ##### -->
+<para>
+
+</para>
+
+<!-- ##### SECTION See_Also ##### -->
+<para>
+
+</para>
+
+<!-- ##### SECTION Stability_Level ##### -->
+
+
+<!-- ##### SECTION Image ##### -->
+
+
+<!-- ##### TYPEDEF rasqal_service ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### FUNCTION rasqal_new_service ##### -->
+<para>
+
+</para>
+
+@world: 
+@service_uri: 
+@query_string: 
+@data_graphs: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_free_service ##### -->
+<para>
+
+</para>
+
+@svc: 
+
+
+<!-- ##### FUNCTION rasqal_service_execute ##### -->
+<para>
+
+</para>
+
+@svc: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_service_set_format ##### -->
+<para>
+
+</para>
+
+@svc: 
+@format: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_service_set_www ##### -->
+<para>
+
+</para>
+
+@svc: 
+@www: 
+@Returns: 
+
+
