@@ -363,15 +363,15 @@ rasqal_raptor_generate_id_handler(void *user_data,
 
 static int
 rasqal_raptor_support_feature(void *user_data,
-                              rasqal_triple_source_feature feature)
+                              rasqal_triples_source_feature feature)
 {
   switch(feature) {
-    case RASQAL_TRIPLE_SOURCE_FEATURE_IOSTREAM_DATA_GRAPH:
+    case RASQAL_TRIPLES_SOURCE_FEATURE_IOSTREAM_DATA_GRAPH:
       return 1;
       break;
       
     default:
-    case RASQAL_TRIPLE_SOURCE_FEATURE_NONE:
+    case RASQAL_TRIPLES_SOURCE_FEATURE_NONE:
       return 0;
   }
 }

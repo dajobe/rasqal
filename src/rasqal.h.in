@@ -1594,16 +1594,16 @@ typedef struct {
 
 
 /**
- * rasqal_triple_source_feature:
- * @RASQAL_TRIPLE_SOURCE_FEATURE_NONE: No feature
- * @RASQAL_TRIPLE_SOURCE_FEATURE_IOSTREAM_DATA_GRAPH: Support raptor_iostream data graphs
+ * rasqal_triples_source_feature:
+ * @RASQAL_TRIPLES_SOURCE_FEATURE_NONE: No feature
+ * @RASQAL_TRIPLES_SOURCE_FEATURE_IOSTREAM_DATA_GRAPH: Support raptor_iostream data graphs
  *
  * Optional features that may be supported by a triple source factory
  */
 typedef enum {
-  RASQAL_TRIPLE_SOURCE_FEATURE_NONE,
-  RASQAL_TRIPLE_SOURCE_FEATURE_IOSTREAM_DATA_GRAPH
-} rasqal_triple_source_feature;
+  RASQAL_TRIPLES_SOURCE_FEATURE_NONE,
+  RASQAL_TRIPLES_SOURCE_FEATURE_IOSTREAM_DATA_GRAPH
+} rasqal_triples_source_feature;
   
 
 /**
@@ -1633,7 +1633,7 @@ struct rasqal_triples_source_s {
   void (*free_triples_source)(void *user_data);
 
   /* API v2 onwards */
-  int (*support_feature)(void *user_data, rasqal_triple_source_feature feature);
+  int (*support_feature)(void *user_data, rasqal_triples_source_feature feature);
 };
 typedef struct rasqal_triples_source_s rasqal_triples_source;
 
