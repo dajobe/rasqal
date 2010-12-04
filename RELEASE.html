@@ -16,33 +16,61 @@
 
 <!-- Updated to include 2010-12-03 -->
 
+<h3>Query Engine changes</h3>
+
+<p>Add a way for a triples source factory to return meaningful errors
+by adding a <code>rasqal_triples_error_handler</code> callback for
+the <code>rasqal_triples_source_factory</code>.  The
+<code>RASQAL_TRIPLES_SOURCE_FACTORY_MAX_VERSION</code> is now 2.
+</p>
+
+<p>Support executing new SPARQL 1.1 draft function <code>isNUMERIC()</code>.</p>
+
+<p>Support executing built-in aggregate expressions:</p>
+<ul>
+  <li><code>AVG(expr)</code></li>
+  <li><code>COUNT(*)</code> and <code>COUNT(expr)</code></li>
+  <li><code>GROUP_CONCAT(expr)</code> with optional <code>;separator = 'string'</code></li>
+  <li><code>MAX(expr)</code></li>
+  <li><code>MIN(expr)</code></li>
+  <li><code>SAMPLE(expr)</code></li>
+  <li><code>SUM(expr)</code></li>
+</ul>
+<p>with and without <code>DISTINCT</code> across the arguments.</p>
+
+
+<h3>LAQRS Query Language changes</h3>
+
+<p>Explain more carefully that <code>EXPLAIN</code> and
+<code>COALESCE()</code> are LAQRS only and remain experimental.
+</p>
+
+
 <h3>SPARQL Query Language changes</h3>
 
-<p>Separate SPARQL 1.0 and SPARQL 1.1 language names giving query
+<p>Separate SPARQL 1.0 and SPARQL 1.1 draft language names giving query
 languages <em>sparql</em> (with alias <em>sparql10</em> for SPARQL
 1.0), <em>sparql11</em> for SPARQL 1.1 and <em>laqrs</em> for
 experiments.  The <em>sparql</em> name without a version currently
 points to SPARQL 1.0 but over time will advance to be SPARQL 1.1
 </p>
 
-<p>Added support for parsing (not executing) new SPARQL 1.1 tokens:
+<p>Added support for parsing (not executing) new SPARQL 1.1 draft tokens:
 <code>BINDINGS</code> for variable bindings, <code>UNDEF</code>,
 <code>SERVICE</code> and <code>MINUS</code> (all case independent)
 </p>
 
-<p>Added support for parsing and executing new SPARQL 1.1
+<p>Added support for parsing and executing new SPARQL 1.1 draft
 <code>isNUMERIC()</code> expression.
 </p>
 
-<p>Added support for parsing (not executing) new SPARQL 1.1
+<p>Added support for parsing (not executing) new SPARQL 1.1 draft
 sub-<code>SELECT</code> queries.
 </p>
 
-<p>Support for parsing and executing built-in (not user)
-aggregate functions:
+<p>Support for parsing and executing built-in (not user) aggregate expressions:
 <code>AVG(expr)</code>,
-<code>COUNT(*)</code>,
-<code>COUNT(expr)</code>,
+<code>COUNT(*)</code> and <code>COUNT(expr)</code>,
 <code>GROUP_CONCAT(expr)</code> with optional <code>;separator = 'string'</code>,
 <code>MAX(expr)</code>,
 <code>MIN(expr)</code>,
@@ -59,56 +87,43 @@ with and without <code>DISTINCT</code> across the arguments.
 
 <h3>Query API changes</h3>
 
-<p><code>rasqal_triples_source_factory</code> gains an <code>init_triples</code>
-factory method with an error callback arg using a new
-<code>rasqal_triples_source_error_handler</code> typedef to replace
-new_triples_source.  This allows triples source factories to return
-better errors to the query engine.
+<p><code>rasqal_triples_source_factory</code> gains an
+<code>init_triples</code> factory method with an error callback arg
+using a new <code>rasqal_triples_source_error_handler</code> typedef
+to replace the <code>new_triples_source</code> factory method.  The
+new method allows triples source factories to return better errors to
+the query engine.
 <code>RASQAL_TRIPLES_SOURCE_FACTORY_MAX_VERSION</code> is bumped to 2
 to allow declaring support for the new factory method.
 </p>
 
-<p>typedef <code>rasqal_data_graph</code> gains new optional
-format_type, format_name and format_uri fields for describing the
-format of the graph an optional uri field for base URI and
-a usage field.  It is now reference counted.
-</p>
-
-<p>Added constructor
-<code>rasqal_new_data_graph_from_uri()</code> with format_type,
-format_name and format_uri args deprecating rasqal_new_data_graph()
-without them, which always guessed the format.
-</p>
-
-<p>Added copy constructor
-<code>rasqal_new_data_graph_from_data_graph()</code> for data graphs.
-</p>
-
-<p><code>rasqal_query_add_data_graph2()</code> added to 
+<p>Added <code>rasqal_query_add_data_graph2()</code> to
 add a previously constructed data graph to a query
 deprecating <code>rasqal_query_add_data_graph()</code> that 
 did construct and add in one go.
-</p>
-
-<p><code>rasqal_query_results_formats_check2()</code> added with new
-flags arg for asking for a format to read or write, deprecating
-<code>rasqal_query_results_formats_check()</code> without it.
-</p>
-
-<p><code>rasqal_new_data_graph_from_iostream()</code> added taking a
-raptor_iostream arg to allow getting data graphs from non-URIs which
-could be strings, memory etc.
 </p>
 
 <p>Added <code>rasqal_query_add_data_graph_from_iostream()</code>
 using new <code>rasqal_new_data_graph_from_iostream()</code>.
 </p>
 
-<p>Added rasqal_op gains <code>RASQAL_EXPR_ISNUMERIC</code> for
-SPARQL 1.1 isNUMERIC() function.</p>
+<p>Note in the docs for <code>rasqal_query_set_limit()</code> and
+<code>rasqal_query_set_offset()</code> that with the new query engine
+approach, you cannot set the limit or offset until the query is
+prepared which is after parsing.
+</p>
 
-<p>Added new variable bindings class rasqal_bindings with
-constructor <code>rasqal_new_bindings</code>, destructor
+
+<h3>Bindings class changes</h3>
+
+<p>Added a class to support for SPARQL 1.1 draft
+<code>BINDINGS</code> in a query specifying a set of variable
+bindings and a sequence of rows of values to bind to them.  Intended
+for applying to a SPARQL 1.1 draft query <code>SERVICE</code>
+call.</p>
+
+<p>Added bindings class rasqal_bindings with constructor
+<code>rasqal_new_bindings</code>, destructor
 <code>rasqal_free_bindings()</code> and method
 <code>rasqal_bindings_print()</code>
 </p>
@@ -120,28 +135,47 @@ constructor <code>rasqal_new_bindings</code>, destructor
 <code>rasqal_query_get_bindings_row()</code>
 </p>
 
-<p>Deprecated <code>rasqal_new_variable()</code> and
-<code>rasqal_new_variable_typed()</code> for
-<code>rasqal_variables_table_add()</code>.
+
+<h3>Data Graph class changes</h3>
+
+<p>Turn a data graph into a reference-counted class and add support
+for specifying the format of a data graph for parsing after
+retrieval.</p>
+
+<p>typedef <code>rasqal_data_graph</code> gains new optional
+format_type, format_name and format_uri fields for describing the
+format of the graph an optional uri field for base URI and
+a usage field.
 </p>
 
-<p>Note in the docs for <code>rasqal_query_set_limit()</code> and
-<code>rasqal_query_set_offset()</code> that with the new query engine
-approach, you cannot set the limit or offset until the query is
-prepared, ie after parsing.
+<p>Added constructor
+<code>rasqal_new_data_graph_from_uri()</code> with format_type,
+format_name and format_uri args deprecating rasqal_new_data_graph()
+without them, which always guessed the format.
 </p>
 
-<p>The <code>rasqal_row</code> gains a group_id field for returning
-group boundaries.  Change of groups should be detected by a change
-in IDs between rows.
+<p>Added constructor
+<code>rasqal_new_data_graph_from_iostream()</code> taking a
+raptor_iostream arg to allow getting data graphs from non-URIs which
+could be strings, memory etc.
+</p>
+
+<p>Added copy constructor
+<code>rasqal_new_data_graph_from_data_graph()</code> for data graphs.
 </p>
 
 
-<h3>Expression API changes</h3>
+
+<h3>Expression and literal class changes</h3>
+
+<p>Added support for SPARQL 1.1 draft <code>isNUMERIC()</code>
+expressions.  The <code>rasqal_op</code> gains a new
+<code>RASQAL_EXPR_ISNUMERIC</code> value.
+</p>
+
 <p>Added <code>rasqal_expression_op_label()</code> to return
 the label for an expression operation.
 </p>
-
 
 <p>Added <code>rasqal_expression_compare()</code> to compare
 literals.
@@ -153,17 +187,18 @@ user-defined function.
 </p>
 
 
-<h3>Graph pattern API changes</h3>
+<h3>Graph pattern class changes</h3>
 
 <p>Added <code>rasqal_graph_pattern_get_variable()</code> to get
-variable for SPARQL 1.1 <code>BIND</code> and LAQRS <code>LET</code>
-graph patterns.
+variable for SPARQL 1.1 draft <code>BIND</code> and LAQRS
+<code>LET</code> graph patterns.
 </p>
 
-<p>rasqal_graph_pattern_operator gains new values for SPARQL 1.1 features:
+<p><code>rasqal_graph_pattern_operator</code> enumeration gains
+new values for SPARQL 1.1 draft features:
 <code>RASQAL_GRAPH_PATTERN_OPERATOR_SELECT</code> for sub-SELECT,
-<code>RASQAL_GRAPH_PATTERN_OPERATOR_SERVICE</code> for service binding
-and <code>RASQAL_GRAPH_PATTERN_OPERATOR_MINUS</code> for minus operation
+<code>RASQAL_GRAPH_PATTERN_OPERATOR_SERVICE</code> for service binding and
+<code>RASQAL_GRAPH_PATTERN_OPERATOR_MINUS</code> for minus operation
 between graph patterns.
 </p>
 
@@ -172,7 +207,28 @@ for use with service and minus graph patterns.
 </p>
 
 
-<h3>SPARQL Service API changes</h3>
+<h3>Query results class changes</h3>
+
+<p>Add a formatter to write a variable bindings query results in
+Turtle format with the schema used for the W3C DAWG and SPARQL
+Working group test cases.
+</p>
+
+<p><code>rasqal_query_results_formats_check2()</code> added with new
+flags arg for asking for a format to read or write, deprecating
+<code>rasqal_query_results_formats_check()</code> without it.
+</p>
+
+
+<h3>Row class changes</h3>
+
+<p>The <code>rasqal_row</code> gains a <code>group_id</code> field
+for returning group boundaries.  Change of groups should be detected
+by a change in IDs between rows.
+</p>
+
+
+<h3>Service class changes</h3>
 
 <p>Added a <code>rasqal_service</code> class for executing remote
 queries against a SPARQL HTTP protocol endpoint and getting back a
@@ -186,46 +242,16 @@ destructor <code>rasqal_free_service()</code> and methods
 <code>rasqal_service_set_www()</code> to set the WWW object
 <code>rasqal_service_set_format()</code> to set the accept
 request header and
-<code>rasqal_service_execute()</code> to execute the query.
+<code>rasqal_service_execute()</code> to execute the query
+returning the results.
 </p>
 
 
-<h3>Query Engine changes</h3>
+<h3>Variable class changes</h3>
 
-<p>Add a way for a triples source factory to return meaningful errors
-by adding a <code>rasqal_triples_error_handler</code> callback for
-the <code>rasqal_triples_source_factory</code>.  The
-<code>RASQAL_TRIPLES_SOURCE_FACTORY_MAX_VERSION</code> is now 2.
-</p>
-
-<p>Support executing new SPARQL 1.1 function <code>isNUMERIC()</code>.</p>
-
-<p>Support executing built-in aggregate functions
-<code>AVG(expr)</code>,
-<code>COUNT(*)</code>,
-<code>COUNT(expr)</code>,
-<code>GROUP_CONCAT(expr)</code> with optional <code>;separator = 'string'</code>,
-<code>MAX(expr)</code>,
-<code>MIN(expr)</code>,
-<code>SAMPLE(expr)</code>
-and
-<code>SUM(expr)</code>
-with and without <code>DISTINCT</code> across the arguments.
-</p>
-
-
-<h3>Query Results class changes</h3>
-
-<p>Add a formatter to write a variable bindings query results in
-Turtle format with the schema used for the W3C DAWG and SPARQL
-Working group test cases.
-</p>
-
-
-<h3>LAQRS Query Language changes</h3>
-
-<p>Explain more carefully that <code>EXPLAIN</code> and
-<code>COALESCE</code> are laqrs only and remain experimental.
+<p>Deprecated <code>rasqal_new_variable()</code> and
+<code>rasqal_new_variable_typed()</code> for
+<code>rasqal_variables_table_add()</code>.
 </p>
 
 
@@ -235,8 +261,9 @@ Working group test cases.
 </p>
 
 <p>Add a Raptor V2-style raptor_syntax_description data model to
-rasqal and use it to initialise query languages.  It is not currently
-exposed in the API and may not be until Rasqal requires Raptor V2.
+Rasqal and use it to initialise query languages.  It is not currently
+exposed in the API and may not be until Rasqal requires Raptor V2 when
+it can share code.
 </p>
 
 <p>Added an internal <code>rasqal_bindings</code> structure
@@ -249,32 +276,32 @@ limit, offset information which together SPARQL 1.1 documentationc
 calls modifiers.
 </p>
 
-<p>Added rowsources for GROUP BY, executing aggregated queries,
-HAVING.  Modified projection rowsource to handle aggregation.
+<p>Added rowsources for grouping, executing aggregated queries across
+groups, having filters per group.  Modified the projection rowsource
+to handle aggregation.
 </p>
 
 
 <h3><code>roqet(1)</code> utility changes</h3>
 
-<p>Can now handle serializing to graphs or bindings with the same
+<p>Added support for serializing to graphs or bindings with the same
 Raptor serializer / Rasqal result formatter name such as for example
 'json'.
 </p>
 
-<p>Add <code>-F NAME</code> format arg for specifying the data graph
+<p>Added <code>-F NAME</code> option for specifying the data graph
 format; otherwise Raptor uses the guessing mechanism.</p>
 
-<p>Can now handle reading a data graph from standard input (stdin)
-when -D, -G or -s are used with value '-'.
-</p>
-
-<p>Uses <code>rasqal_data_graph</code> instead of internal structure.
+<p>Added support for reading a data graph from standard input (stdin)
+when the <code>-D</code> / <code>--data</code> , <code>-G</code> /
+<code>--name</code> or <code>-s</code> / <code>--source</code>
+options are used with value <code>'-'</code>.
 </p>
 
 <p>Added <code>-p</code> / <code>--protocol</code>
-<em>SERVICE-URI</em> to execute a remote query at a SPARQL HTTP
-protocol URI.  This is used with -e to specify the query to execute
-remotely.
+<em>SERVICE-URI</em> option to execute a remote query at a SPARQL
+HTTP protocol URI.  This is used with <code>-e</code> <em>query
+string</em> to specify the query to execute remotely.
 </p>
 
 
