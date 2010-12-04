@@ -105,7 +105,7 @@ rasqal_new_data_graph_common(rasqal_world* world,
  * @uri: source URI
  * @name_uri: name of graph (or NULL)
  * @flags: %RASQAL_DATA_GRAPH_NAMED or %RASQAL_DATA_GRAPH_BACKGROUND
- * @format_mime_type: MIME Type of data format at @uri (or NULL)
+ * @format_type: MIME Type of data format at @uri (or NULL)
  * @format_name: Raptor parser Name of data format at @uri (or NULL)
  * @format_uri: URI of data format at @uri (or NULL)
  * 
@@ -140,7 +140,7 @@ rasqal_new_data_graph_from_uri(rasqal_world* world, raptor_uri* uri,
  * @base_uri: base URI for iostream content
  * @name_uri: name of graph (or NULL)
  * @flags: %RASQAL_DATA_GRAPH_NAMED or %RASQAL_DATA_GRAPH_BACKGROUND
- * @format_mime_type: MIME Type of data format at @uri (or NULL)
+ * @format_type: MIME Type of data format at @uri (or NULL)
  * @format_name: Raptor parser Name of data format at @uri (or NULL)
  * @format_uri: URI of data format at @uri (or NULL)
  * 
