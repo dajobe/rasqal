@@ -49,13 +49,18 @@ to allow declaring support for the new factory method.
 
 <p>typedef <code>rasqal_data_graph</code> gains new optional
 format_type, format_name and format_uri fields for describing the
-format of the graph as well as optional uri field for base URI.
+format of the graph an optional uri field for base URI and
+a usage field.  It is now reference counted.
 </p>
 
-<p><code>rasqal_new_data_graph_from_uri()</code> added with
-format_type, format_name and format_uri args deprecating
-rasqal_new_data_graph() without them, which always guessed the
-format.
+<p>Added constructor
+<code>rasqal_new_data_graph_from_uri()</code> with format_type,
+format_name and format_uri args deprecating rasqal_new_data_graph()
+without them, which always guessed the format.
+</p>
+
+<p>Added copy constructor
+<code>rasqal_new_data_graph_from_data_graph()</code> for data graphs.
 </p>
 
 <p><code>rasqal_query_add_data_graph2()</code> added to 
@@ -122,7 +127,8 @@ for use with service and minus graph patterns.
 
 <p>Added a <code>rasqal_service</code> class for executing remote
 queries against a SPARQL HTTP protocol endpoint and getting back a
-query results set.
+query results set.  The data graphs attached get turned into
+default-graph-uri and named-graph-uri URI parameters to the request.
 </p>
 
 <p>Added constructor <code>rasqal_new_service()</code>,
