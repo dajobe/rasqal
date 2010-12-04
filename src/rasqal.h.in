@@ -135,7 +135,7 @@ extern const char * const rasqal_home_url_string;
 
 
 /**
- * @RASQAL_RAPTOR_VERSION:
+ * RASQAL_RAPTOR_VERSION:
  *
  * Version of Raptor that Rasqal was configured against.
  */
@@ -308,7 +308,7 @@ typedef enum {
  * @uri: source URI
  * @name_uri: name of graph for %RASQAL_DATA_GRAPH_NAMED
  * @flags: %RASQAL_DATA_GRAPH_NAMED or %RASQAL_DATA_GRAPH_BACKGROUND
- * @format_mime_type: MIME Type of data format at @uri (or NULL)
+ * @format_type: MIME Type of data format at @uri (or NULL)
  * @format_name: Raptor parser Name of data format at @uri (or NULL)
  * @format_uri: URI of data format at @uri (or NULL)
  * @iostr: Raptor iostream for content, overriding @uri if present (or NULL)
