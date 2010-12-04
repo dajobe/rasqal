@@ -1655,13 +1655,13 @@ typedef struct rasqal_triples_source_s rasqal_triples_source;
 
 /**
  * rasqal_triples_error_handler:
- * @rasqal_query: query object
+ * @query: query object
  * @locator: error locator (or NULL)
  * @message: error message
  *
  * Triples source factory error handler callback.
  */
-typedef void (*rasqal_triples_error_handler)(rasqal_query* rdf_query, raptor_locator* locator, const char* message);
+typedef void (*rasqal_triples_error_handler)(rasqal_query* query, raptor_locator* locator, const char* message);
 
 
 /**
