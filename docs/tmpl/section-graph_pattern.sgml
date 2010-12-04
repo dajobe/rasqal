@@ -43,6 +43,25 @@ or apply a GRAPH matching keyword (%RASQAL_GRAPH_PATTERN_OPERATOR_GRAPH).
 @Returns: 
 
 
+<!-- ##### FUNCTION rasqal_graph_pattern_get_filter_expression ##### -->
+<para>
+
+</para>
+
+@gp: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_graph_pattern_set_filter_expression ##### -->
+<para>
+
+</para>
+
+@gp: 
+@expr: 
+@Returns: 
+
+
 <!-- ##### FUNCTION rasqal_graph_pattern_get_index ##### -->
 <para>
 
@@ -53,6 +72,15 @@ or apply a GRAPH matching keyword (%RASQAL_GRAPH_PATTERN_OPERATOR_GRAPH).
 
 
 <!-- ##### FUNCTION rasqal_graph_pattern_get_operator ##### -->
+<para>
+
+</para>
+
+@graph_pattern: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_graph_pattern_get_origin ##### -->
 <para>
 
 </para>
@@ -90,7 +118,7 @@ or apply a GRAPH matching keyword (%RASQAL_GRAPH_PATTERN_OPERATOR_GRAPH).
 @Returns: 
 
 
-<!-- ##### FUNCTION rasqal_graph_pattern_get_origin ##### -->
+<!-- ##### FUNCTION rasqal_graph_pattern_get_service ##### -->
 <para>
 
 </para>
@@ -99,22 +127,12 @@ or apply a GRAPH matching keyword (%RASQAL_GRAPH_PATTERN_OPERATOR_GRAPH).
 @Returns: 
 
 
-<!-- ##### FUNCTION rasqal_graph_pattern_get_filter_expression ##### -->
+<!-- ##### FUNCTION rasqal_graph_pattern_get_variable ##### -->
 <para>
 
 </para>
 
-@gp: 
-@Returns: 
-
-
-<!-- ##### FUNCTION rasqal_graph_pattern_set_filter_expression ##### -->
-<para>
-
-</para>
-
-@gp: 
-@expr: 
+@graph_pattern: 
 @Returns: 
 
 

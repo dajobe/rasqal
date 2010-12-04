@@ -37,6 +37,19 @@ handle or other custom destination.
 @Returns: 
 
 
+<!-- ##### FUNCTION rasqal_query_results_formats_check2 ##### -->
+<para>
+
+</para>
+
+@world: 
+@name: 
+@uri: 
+@mime_type: 
+@flags: 
+@Returns: 
+
+
 <!-- ##### MACRO RASQAL_QUERY_RESULTS_FORMAT_FLAG_READER ##### -->
 <para>
 

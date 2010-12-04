@@ -51,6 +51,46 @@ which graphs are used in the query.
 @Returns: 
 
 
+<!-- ##### FUNCTION rasqal_new_data_graph_from_data_graph ##### -->
+<para>
+
+</para>
+
+@dg: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_new_data_graph_from_iostream ##### -->
+<para>
+
+</para>
+
+@world: 
+@iostr: 
+@base_uri: 
+@name_uri: 
+@flags: 
+@format_type: 
+@format_name: 
+@format_uri: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_new_data_graph_from_uri ##### -->
+<para>
+
+</para>
+
+@world: 
+@uri: 
+@name_uri: 
+@flags: 
+@format_type: 
+@format_name: 
+@format_uri: 
+@Returns: 
+
+
 <!-- ##### FUNCTION rasqal_free_data_graph ##### -->
 <para>
 

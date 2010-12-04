@@ -79,6 +79,24 @@ to initialise and build a #rasqal_triples_match for some
 @Returns: 
 
 
+<!-- ##### ENUM rasqal_triples_source_feature ##### -->
+<para>
+
+</para>
+
+@RASQAL_TRIPLES_SOURCE_FEATURE_NONE: 
+@RASQAL_TRIPLES_SOURCE_FEATURE_IOSTREAM_DATA_GRAPH: 
+
+<!-- ##### USER_FUNCTION rasqal_triples_error_handler ##### -->
+<para>
+
+</para>
+
+@query: 
+@locator: 
+@message: 
+
+
 <!-- ##### FUNCTION rasqal_set_triples_source_factory ##### -->
 <para>
 

@@ -99,6 +99,26 @@ then retrieved.
 @Returns: 
 
 
+<!-- ##### FUNCTION rasqal_query_add_data_graph2 ##### -->
+<para>
+
+</para>
+
+@query: 
+@data_graph: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_query_add_data_graphs ##### -->
+<para>
+
+</para>
+
+@query: 
+@data_graphs: 
+@Returns: 
+
+
 <!-- ##### FUNCTION rasqal_query_add_prefix ##### -->
 <para>
 
@@ -148,6 +168,44 @@ then retrieved.
 
 
 <!-- ##### FUNCTION rasqal_query_get_anonymous_variable_sequence ##### -->
+<para>
+
+</para>
+
+@query: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_query_get_bindings_row ##### -->
+<para>
+
+</para>
+
+@query: 
+@idx: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_query_get_bindings_rows_sequence ##### -->
+<para>
+
+</para>
+
+@query: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_query_get_bindings_variable ##### -->
+<para>
+
+</para>
+
+@query: 
+@idx: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_query_get_bindings_variables_sequence ##### -->
 <para>
 
 </para>

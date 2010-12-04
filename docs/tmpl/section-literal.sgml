@@ -304,6 +304,15 @@ boolean, double, floating, integer, regex pattern and variables.
 @fh: 
 
 
+<!-- ##### FUNCTION rasqal_literal_type_label ##### -->
+<para>
+
+</para>
+
+@type: 
+@Returns: 
+
+
 <!-- ##### FUNCTION rasqal_literal_same_term ##### -->
 <para>
 
