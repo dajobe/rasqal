@@ -174,7 +174,7 @@ rasqal_free_service(rasqal_service* svc)
 
 /**
  * rasqal_service_set_www:
- * @service: #rasqal_service service object
+ * @svc: #rasqal_service service object
  * @www: WWW object (or NULL)
  *
  * Set the WWW object to use when executing the service
@@ -200,7 +200,7 @@ rasqal_service_set_www(rasqal_service* svc, raptor_www* www)
 
 /**
  * rasqal_service_set_format:
- * @service: #rasqal_service service object
+ * @svc: #rasqal_service service object
  * @format: service mime type (or NULL)
  *
  * Set the MIME Type to use in HTTP Accept when executing the service
