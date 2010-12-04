@@ -1053,20 +1053,19 @@
 	Make dryrun be success (exit 0)
 
 	* utils/roqet.c:
-	(roqet_init_query: Do not free data graphs here,
-	let main() do it
+	(roqet_init_query): Do not free data graphs here, let main() do it
 
 	* src/rasqal_service.c: Cleanup allocations
 
-	(rasqal_free_service): Free
-	object (rasqal_service_content_type_handler): Only check content
+	(rasqal_free_service): Free object
+
+	(rasqal_service_content_type_handler): Only check content
 	type for ; or ' ' if not NULL.  Code tidy
 
 	* src/rasqal.h.in, src/rasqal_service.c, utils/roqet.c:
-	
-	rasqal_new_service now takes an optional list of data
-	graphs (rasqal_new_service): Add new raptor_sequence* data_graphs
-	arg.
+	rasqal_new_service now takes an optional list of data graphs
+
+	(rasqal_new_service): Add new raptor_sequence* data_graphs arg.
 
 	(rasqal_service_execute): Use data graphs to add default-graph-uri
 	and named-graph-uri parameters to the sparql protocol service URI
