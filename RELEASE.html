@@ -14,7 +14,7 @@
 </p>
 
 
-<!-- Updated to include 2010-10-31 -->
+<!-- Updated to include 2010-12-03 -->
 
 <h3>SPARQL Query Language changes</h3>
 
@@ -27,13 +27,34 @@ points to SPARQL 1.0 but over time will advance to be SPARQL 1.1
 
 <p>Added support for parsing (not executing) new SPARQL 1.1 tokens:
 <code>BINDINGS</code> for variable bindings, <code>UNDEF</code>,
-<code>SERVICE</code>, <code>MINUS</code>, <code>isNUMERIC</code> (all
-case independent)
+<code>SERVICE</code> and <code>MINUS</code> (all case independent)
+</p>
+
+<p>Added support for parsing and executing new SPARQL 1.1
+<code>isNUMERIC()</code> expression.
 </p>
 
 <p>Added support for parsing (not executing) new SPARQL 1.1
-sub-SELECT queries.
+sub-<code>SELECT</code> queries.
 </p>
+
+<p>Support for parsing and executing built-in (not user)
+aggregate functions:
+<code>AVG(expr)</code>,
+<code>COUNT(*)</code>,
+<code>COUNT(expr)</code>,
+<code>GROUP_CONCAT(expr)</code> with optional <code>;separator = 'string'</code>,
+<code>MAX(expr)</code>,
+<code>MIN(expr)</code>,
+<code>SAMPLE(expr)</code>
+and
+<code>SUM(expr)</code>
+with and without <code>DISTINCT</code> across the arguments.
+</p>
+
+<p>Added support for executing grouping of results with <code>GROUP BY</code>
+(or implicitly if aggregate function was given) and <code>HAVING</code>.
+</p> 
 
 
 <h3>Query API changes</h3>
@@ -115,10 +136,21 @@ group boundaries.  Change of groups should be detected by a change
 in IDs between rows.
 </p>
 
+
+<h3>Expression API changes</h3>
 <p>Added <code>rasqal_expression_op_label()</code> to return
 the label for an expression operation.
 </p>
 
+
+<p>Added <code>rasqal_expression_compare()</code> to compare
+literals.
+</p>
+
+<p>Added <code>rasqal_expression_is_aggregate()</code> to test if an
+expression is an aggregate one - has an aggregate operation or
+user-defined function.
+</p>
 
 
 <h3>Graph pattern API changes</h3>
@@ -166,11 +198,27 @@ the <code>rasqal_triples_source_factory</code>.  The
 <code>RASQAL_TRIPLES_SOURCE_FACTORY_MAX_VERSION</code> is now 2.
 </p>
 
-<p>Support executing new SPARQL 1.1 function isNumeric</p>
+<p>Support executing new SPARQL 1.1 function <code>isNUMERIC()</code>.</p>
 
-<p>Support executing built-in aggregate functions AVG, COUNT,
-GROUP_CONCAT, MAX, MIN, SAMPLE and SUM with and without DISTINCT
-across the arguments.
+<p>Support executing built-in aggregate functions
+<code>AVG(expr)</code>,
+<code>COUNT(*)</code>,
+<code>COUNT(expr)</code>,
+<code>GROUP_CONCAT(expr)</code> with optional <code>;separator = 'string'</code>,
+<code>MAX(expr)</code>,
+<code>MIN(expr)</code>,
+<code>SAMPLE(expr)</code>
+and
+<code>SUM(expr)</code>
+with and without <code>DISTINCT</code> across the arguments.
+</p>
+
+
+<h3>Query Results class changes</h3>
+
+<p>Add a formatter to write a variable bindings query results in
+Turtle format with the schema used for the W3C DAWG and SPARQL
+Working group test cases.
 </p>
 
 
@@ -192,7 +240,7 @@ exposed in the API and may not be until Rasqal requires Raptor V2.
 </p>
 
 <p>Added an internal <code>rasqal_bindings</code> structure
-for SPARQL 1.1 BINDINGS.
+for SPARQL 1.1 <code>BINDINGS</code>.
 </p>
 
 <p>Add an internal query results modifiers structure
@@ -201,8 +249,8 @@ limit, offset information which together SPARQL 1.1 documentationc
 calls modifiers.
 </p>
 
-<p>Added rowsources for GROUP BY, executing aggregated queries and
-HAVING.
+<p>Added rowsources for GROUP BY, executing aggregated queries,
+HAVING.  Modified projection rowsource to handle aggregation.
 </p>
 
 
