@@ -14,7 +14,7 @@
 </p>
 
 
-<!-- Updated to include 2010-10-21 -->
+<!-- Updated to include 2010-10-31 -->
 
 <h3>SPARQL Query Language changes</h3>
 
@@ -110,6 +110,16 @@ approach, you cannot set the limit or offset until the query is
 prepared, ie after parsing.
 </p>
 
+<p>The <code>rasqal_row</code> gains a group_id field for returning
+group boundaries.  Change of groups should be detected by a change
+in IDs between rows.
+</p>
+
+<p>Added <code>rasqal_expression_op_label()</code> to return
+the label for an expression operation.
+</p>
+
+
 
 <h3>Graph pattern API changes</h3>
 
@@ -158,6 +168,11 @@ the <code>rasqal_triples_source_factory</code>.  The
 
 <p>Support executing new SPARQL 1.1 function isNumeric</p>
 
+<p>Support executing built-in aggregate functions AVG, COUNT,
+GROUP_CONCAT, MAX, MIN, SAMPLE and SUM with and without DISTINCT
+across the arguments.
+</p>
+
 
 <h3>LAQRS Query Language changes</h3>
 
@@ -184,6 +199,10 @@ for SPARQL 1.1 BINDINGS.
 rasqsal_solution_modifier class for use in storing group by, having,
 limit, offset information which together SPARQL 1.1 documentationc
 calls modifiers.
+</p>
+
+<p>Added rowsources for GROUP BY, executing aggregated queries and
+HAVING.
 </p>
 
 
