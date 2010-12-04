@@ -974,6 +974,7 @@ AC_CONFIG_FILES([Makefile
 data/Makefile
 docs/Makefile
 docs/version.xml
+scripts/Makefile
 src/Makefile
 src/rasqal.h
 tests/Makefile

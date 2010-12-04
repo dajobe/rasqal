@@ -24,7 +24,7 @@ noinst_SCRIPTS = rasqal-src-config
 
 ACLOCAL_AMFLAGS = -I build
 
-SUBDIRS=src utils tests docs data win32
+SUBDIRS=src utils tests docs data win32 scripts
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = rasqal.pc
@@ -40,7 +40,6 @@ rasqal.rdf.in \
 autogen.sh \
 rasqal-src-config.in \
 rasqal.spec.in \
-fix-groff-xhtml \
 $(man_MANS) \
 rasqal.pc.in
 

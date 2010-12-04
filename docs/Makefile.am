@@ -34,7 +34,7 @@ SCAN_OPTIONS=
 DOC_SOURCE_DIR=../src
 
 # Used for dependencies
-HFILE_GLOB=$(top_builddir)/src/rasqal.h
+HFILE_GLOB=$(srcdir)/rasqal-fake.i
 CFILE_GLOB=$(top_srcdir)/src/rasqal_*.c
 
 IGNORE_CFILES= \
@@ -47,8 +47,13 @@ strcasecmp.c \
 rasqal_internal.h \
 rasqal_graph.c
 
-# Headers to ignore
+# Use fixed version of rasqal.h
+EXTRA_HFILES=$(srcdir)/rasqal-fake.i
+
+# Headers to ignore: yes rasqal.h is intended to be in this list
+# since it is added as a fixed file rasqal-fake.i by EXTRA_HFILES above
 IGNORE_HFILES= \
+	rasqal.h \
 	rasqal_config.h \
 	rasqal_getopt.h \
 	rasqal_internal.h \
@@ -88,15 +93,16 @@ EXTRA_DIST+= README.html README \
 $(man_MANS) \
 version.xml.in
 
-CLEANFILES+= README
+CLEANFILES += README \
+rasqal-fake.i
 
 # Create some text files from HTML sources
 LYNX=lynx
 LYNXARGS=-dump -nolist
 
 if MAINTAINER_MODE
-librasqal.html: $(srcdir)/librasqal.3 $(srcdir)/../fix-groff-xhtml
-	-groff -man -Thtml -P-l $< | tidy -asxml -wrap 1000 2>/dev/null | $(PERL) $(srcdir)/../fix-groff-xhtml $@
+librasqal.html: $(srcdir)/librasqal.3 $(srcdir)/../scripts/fix-groff-xhtml
+	-groff -man -Thtml -P-l $< | tidy -asxml -wrap 1000 2>/dev/null | $(PERL) $(srcdir)/../scripts/fix-groff-xhtml $@
 
 # FIXME: automate updating the rasqal-overrides.txt definition of
 #   rasqal_triples_match  rasqal_triples_source
@@ -107,8 +113,11 @@ librasqal.html: $(srcdir)/librasqal.3 $(srcdir)/../fix-groff-xhtml
 
 $(top_builddir)/src/rasqal.h:
 	cd $(top_builddir)/src && $(MAKE) rasqal.h
-endif
-
 
 README: README.html
 	$(LYNX) $(LYNXARGS) $< > $@
+
+rasqal-fake.i: $(top_srcdir)/src/rasqal.h $(srcdir)/../scripts/fix-gtkdoc-header.pl
+	$(PERL) $(srcdir)/../scripts/fix-gtkdoc-header.pl < $< > $@
+
+endif

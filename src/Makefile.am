@@ -120,7 +120,6 @@ rdql_lexer.l rdql_parser.y \
 sparql_lexer.l sparql_parser.y \
 rasqal-config.in \
 $(man_MANS) \
-fix-flex fix-bison \
 rasqal_query_test.c
 
 
@@ -135,26 +134,26 @@ SUFFIXES = .html .txt
 
 if MAINTAINER_MODE
 # Actually it needs rdql_parser.h but nevermind
-rdql_lexer.c: $(srcdir)/rdql_lexer.l rdql_parser.c $(srcdir)/fix-flex
+rdql_lexer.c: $(srcdir)/rdql_lexer.l rdql_parser.c $(srcdir)/../scripts/fix-flex
 	$(LEX) -o$@ $(srcdir)/rdql_lexer.l
-	$(PERL) $(srcdir)/fix-flex $@ > rdql_lexer.t
+	$(PERL) $(srcdir)/../scripts/fix-flex $@ > rdql_lexer.t
 	mv rdql_lexer.t $@
 
-rdql_parser.c: $(srcdir)/rdql_parser.y $(srcdir)/fix-bison
+rdql_parser.c: $(srcdir)/rdql_parser.y $(srcdir)/../scripts/fix-bison
 	$(YACC) -b rdql_parser -p rdql_parser_ -d -v $(srcdir)/rdql_parser.y
-	$(PERL) $(srcdir)/fix-bison rdql_parser.tab.c > $@
+	$(PERL) $(srcdir)/../scripts/fix-bison rdql_parser.tab.c > $@
 	mv rdql_parser.tab.h rdql_parser.h
 	rm -f rdql_parser.tab.c
 
 # Actually it needs sparql_parser.h but nevermind
-sparql_lexer.c: $(srcdir)/sparql_lexer.l sparql_parser.c $(srcdir)/fix-flex
+sparql_lexer.c: $(srcdir)/sparql_lexer.l sparql_parser.c $(srcdir)/../scripts/fix-flex
 	$(LEX) -o$@ $(srcdir)/sparql_lexer.l
-	$(PERL) $(srcdir)/fix-flex $@ > sparql_lexer.t
+	$(PERL) $(srcdir)/../scripts/fix-flex $@ > sparql_lexer.t
 	mv sparql_lexer.t $@
 
-sparql_parser.c: $(srcdir)/sparql_parser.y $(srcdir)/fix-bison
+sparql_parser.c: $(srcdir)/sparql_parser.y $(srcdir)/../scripts/fix-bison
 	$(YACC) -b sparql_parser -p sparql_parser_ -d -v $(srcdir)/sparql_parser.y
-	$(PERL) $(srcdir)/fix-bison sparql_parser.tab.c > $@
+	$(PERL) $(srcdir)/../scripts/fix-bison sparql_parser.tab.c > $@
 	mv sparql_parser.tab.h sparql_parser.h
 	rm -f sparql_parser.tab.c
 endif
