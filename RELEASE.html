@@ -87,6 +87,17 @@ constructor <code>rasqal_new_bindings</code>, destructor
 <code>rasqal_bindings_print()</code>
 </p>
 
+<p>Added accessor methods for getting bindings variables and rows
+<code>rasqal_query_get_bindings_variables_sequence()</code>,
+<code>rasqal_query_get_bindings_variable()</code>,
+<code>rasqal_query_get_bindings_rows_sequence()</code> and
+<code>rasqal_query_get_bindings_row()</code>
+</p>
+
+<p>Deprecated <code>rasqal_new_variable()</code> and
+<code>rasqal_new_variable_typed()</code> for
+<code>rasqal_variables_table_add()</code>.
+</p>
 
 <h3>Graph pattern API changes</h3>
 
@@ -104,6 +115,22 @@ between graph patterns.
 
 <p>Added new constructor <code>rasqal_new_single_graph_pattern()</code>
 for use with service and minus graph patterns.
+</p>
+
+
+<h3>SPARQL Service API changes</h3>
+
+<p>Added a <code>rasqal_service</code> class for executing remote
+queries against a SPARQL HTTP protocol endpoint and getting back a
+query results set.
+</p>
+
+<p>Added constructor <code>rasqal_new_service()</code>,
+destructor <code>rasqal_free_service()</code> and methods
+<code>rasqal_service_set_www()</code> to set the WWW object
+<code>rasqal_service_set_format()</code> to set the accept
+request header and
+<code>rasqal_service_execute()</code> to execute the query.
 </p>
 
 
@@ -161,6 +188,12 @@ when -D, -G or -s are used with value '-'.
 </p>
 
 <p>Uses <code>rasqal_data_graph</code> instead of internal structure.
+</p>
+
+<p>Added <code>-p</code> / <code>--protocol</code>
+<em>SERVICE-URI</em> to execute a remote query at a SPARQL HTTP
+protocol URI.  This is used with -e to specify the query to execute
+remotely.
 </p>
 
 
