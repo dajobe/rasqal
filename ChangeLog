@@ -1,4 +1,7 @@
-2010-12-04  Dave Beckett <dave@dajobe.org>
+2010-12-04  Dave Beckett  <dave@dajobe.org>
+
+	* Snapshotted rasqal_0_9_21 for 0.9.21 release (GIT
+	ec8c54cccd2cf2fdc716ac90dfb66f5d06b0a138)
 
 	* INSTALL.html, README.html: update notes encouraging use of
 	release tarballs, more using rasqal sections
