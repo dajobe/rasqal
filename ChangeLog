@@ -1,4 +1,43 @@
+2010-12-04  Dave Beckett <dave@dajobe.org>
+
+	* INSTALL.html, README.html: update notes encouraging use of
+	release tarballs, more using rasqal sections
+
+	* docs/tmpl/section-service.sgml:
+	Add section-service descriptions
+
+	* utils/Makefile.am:
+	Update for moved fix script
+
+	* docs/.gitignore:
+	Ignore rasqal-fake.i
+
+	* docs/tmpl/section-data.sgml, docs/tmpl/section-expression.sgml,
+	docs/tmpl/section-general.sgml,
+	docs/tmpl/section-graph_pattern.sgml,
+	docs/tmpl/section-literal.sgml, docs/tmpl/section-prefix.sgml,
+	docs/tmpl/section-query.sgml,
+	docs/tmpl/section-query_results_formatter.sgml,
+	docs/tmpl/section-triples_source.sgml,
+	docs/tmpl/section-variable.sgml: Update tmpls
+
+	* Makefile.am, configure.ac, docs/Makefile.am, fix-groff-xhtml,
+	scripts/Makefile.am, scripts/fix-bison, scripts/fix-flex,
+	scripts/fix-groff-xhtml, scripts/fix-gtkdoc-header.pl,
+	src/Makefile.am, src/fix-bison, src/fix-flex: Add scripts dir,
+	move fix* scripts there and fixup gtkdoc-header with fake
+	mechanism like raptor
+
 2010-12-03  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal.h.in, src/rasqal_internal.h, src/rasqal_raptor.c,
+	src/rasqal_triples_source.c: Rename rasqal_triple_source_feature
+	to rasqal_triples_source_feature to match other names
+
+	* src/rasqal.h.in: autodocs
+
+	* src/rasqal.h.in:
+	Add RASQAL_API for rasqal_expression_compare
 
 	* src/rasqal_literal.c: rasqal_literal_sequence_equals debug print
 	less
