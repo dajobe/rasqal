@@ -10,11 +10,22 @@
 
 <h2 id="rel0_9_21"><a name="rel0_9_21">Rasqal 0.9.21 Changes</a></h2>
 
-<p>Not yet released.
+<p>The main changes in this release are to add support for features of
+<a href="http://www.w3.org/TR/2010/WD-sparql11-query-20101014/">SPARQL 1.1 Query</a>
+W3C working draft of 14 October 2010:
 </p>
+<ul>
+<li>Executing grouping of results: <code>GROUP BY</code></li>
+<li>Executing aggregate expressions: <code>AVG</code>, <code>COUNT</code>, <code>GROUP_CONCAT</code>, <code>MAX</code>, <code>MIN</code>, <code>SAMPLE</code>, <code>SUM</code></li>
+<li>Executing filtering of aggregate expressions: <code>HAVING</code></li>
+<li>Parsing of new syntax: <code>BINDINGS</code>, <code>isNUMERIC()</code>, <code>MINUS</code>, sub <code>SELECT</code> and <code>SERVICE</code>.</li>
+</ul>
 
+<p>Fixed Issues:</p>
+<ul>
+  <li><a href="http://bugs.librdf.org/mantis/view.php?id=388">0000388</a>: Can only write JSON format for variable binding and boolean results</li>
+</ul>
 
-<!-- Updated to include 2010-12-03 -->
 
 <h3>Query Engine changes</h3>
 
