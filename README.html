@@ -20,7 +20,8 @@ queries returning results as bindings, boolean, RDF graphs/triples or
 syntaxes.  The supported query languages are SPARQL 1.0, RDQL, Draft
 SPARQL Query 1.1, Update 1.1 Syntax and Experimental SPARQL
 extensions (LAQRS).  Rasqal can write binding query results in the
-SPARQL XML, SPARQL JSON, CSV, TSV, HTML and ASCII tables.
+SPARQL XML, SPARQL JSON, CSV, TSV, HTML, ASCII tables and Turtle
+and read them in SPARQL XML.
 </p>
 
 <p>Rasqal was designed to work closely with the
@@ -35,19 +36,17 @@ architectures.  Rasqal has no known memory leaks.
 </p>
 
 <p>A summary of the changes can be found in the
-<a href="NEWS.html">NEWS</a> file,
-detailed API changes in the <a href="RELEASE.html">release notes</a>
-and file-by-file changes in the CVS <a href="ChangeLog">ChangeLog</a>.</p>
-
+<a href="NEWS.html">NEWS</a> file and detailed API changes in the
+<a href="RELEASE.html">release notes</a>.</p>
 
 <p>Rasqal provides:</p>
 <ul>
 <li>An RDF <a href="docs/api/query.html">query</a> construction and access API.</li>
 <li>Query language support for <a href="http://www.w3.org/TR/2007/PR-rdf-sparql-query-20071112/">SPARQL</a>.</li>
 <li>Query language support for <a href="http://www.w3.org/Submission/2004/SUBM-RDQL-20040109/">RDQL</a>.</li>
-<li>A query execution engine including constraint expression evaluation.</li>
+<li>A query execution engine including grouping, aggregate expression and filtering evaluation.</li>
 <li>A query result binding API.</li>
-<li>Query result bindings formatting into SPARQL XML, SPARQL JSON, CSV, TSV, HTML and ASCII tables.</li>
+<li>Query result bindings formatting into SPARQL XML, SPARQL JSON, CSV, TSV, HTML and ASCII tables and from SPARQL XML.</li>
 <li>Triple store querying APIs to support running over external RDF graphs.</li>
 <li>No memory leaks.</li>
 <li><a href="roqet.html">roqet</a> standalone command line RDF query utility program</li>
@@ -57,21 +56,20 @@ and file-by-file changes in the CVS <a href="ChangeLog">ChangeLog</a>.</p>
 <p>Rasqal does not provide an RDF API or triple store, but relies on
 external libraries implementing the triple store API providing
 matched RDF data originally from a specified content URI.  Rasqal
-ships with triple store implementations using the output of an RDF
-parser from
-<a href="http://librdf.org/raptor/">Raptor</a>
-and over a
-<a href="http://librdf.org/">Redland</a>
-indexed triple store. These can be called using the standalone
+ships with a triple store implementation using the output of an RDF
+parser from <a href="http://librdf.org/raptor/">Raptor</a>.
+This can be called using the standalone
 command line <a href="roqet.html">roqet</a>
 query utility giving a query language
 identifier (default sparql), the query string and optionally
 the data to use unless it is declared in the query string.
 </p>
 
-<p>Rasqal also works inside Redland (0.9.17 or newer) to provide
-support for query languages, a query API and a result bindings API
-over graphs stored in Redland.
+<p>Rasqal is used inside Redland to provide support for query
+languages, a query API and a result bindings API over graphs stored
+in indexed Redland triple stores.  Since this can index the triples
+it will be faster than the default rasqal triple store of reading
+the triples from Raptor into memory when the queries are complex.
 </p>
 
 
@@ -84,15 +82,14 @@ being developed by the W3C
 <a href="http://www.w3.org/2001/sw/DataAccess/">RDF Data Access Working Group</a>,
 as defined in
 <a href="http://www.w3.org/TR/2007/PR-rdf-sparql-query-20071112/">SPARQL Query Language for RDF</a>, W3C Proposed Recommendation 12 November 2007.
-It currently implements most of the functionality except for
-<code>GRAPH</code>, <code>UNION</code> and part of <code>OPTIONAL</code>.
+It currently implements most of the functionality except for <code>UNION</code>.
 For detailed information on the implementation state, see the Rasqal
 bugs in the <a href="http://bugs.librdf.org/">Redland issue tracker</a>.
 It also implements some of the
-<a href="http://www.w3.org/TR/2010/WD-sparql11-query-20100601/">SPARQL 1.1 Query</a>
+<a href="http://www.w3.org/TR/2010/WD-sparql11-query-20101014/">SPARQL 1.1 Query</a>
 and
-<a href="http://www.w3.org/TR/2010/WD-sparql11-update-20100601/">SPARQL 1.1 Update</a>
-W3C working drafts of 1 June 2010.
+<a href="http://www.w3.org/TR/2010/WD-sparql11-update-20101014/">SPARQL 1.1 Update</a>
+W3C working drafts of 14 October 2010.
 </p>
 
 
@@ -137,8 +134,6 @@ provides only parsing and API support for it.
 <h2>Installation and Documentation</h2>
 
 <p>The public API is described in the
-<a href="librasqal.html">librasqal.3</a> UNIX manual page
-and in more detail in the
 <a href="docs/api/index.html">API reference</a>.
 It is demonstrated in the
 <a href="roqet.html">roqet</a>
@@ -149,7 +144,8 @@ the Redland documentation explains
 how to call the query engine and contains several example programs.
 </p>
 
-<p>To install Rasqal see the <a href="INSTALL.html">Installation document</a>.
+<p>To build and install Rasqal from sources see the
+<a href="INSTALL.html">Installation document</a>.
 </p>
 
 

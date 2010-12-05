@@ -8,21 +8,24 @@
 
 <h1>Rasqal RDF Query Library - Building and Installing from Source</h1>
 
-<h2>0. Prerequisites</h2>
-
-<p>Rasqal requires the
-<a href="http://librdf.org/raptor/">Raptor RDF Syntax Library</a>
-version 1.4.19 or later for parsing RDF, retrieving WWW content and
-other utility classes and libraries.  It can also use
-<a href="http://librdf.org/">Redland</a>
-as an alternate triple store and enabled by
-<tt>--with-triples-source=redland</tt> as described below
-however Raptor is also required.</p>
-
-
 <h2>1. Getting the sources</h2>
 
+<p>There are several ways to get the sources.  The most stable and
+tested versions are the sources shipped with each release and these
+are recommended as the first place to start.  If you want to get a
+latest development sources, use anonymous GIT access but this will
+require installing developer tools that are not needed for the
+released tarballs.
+</p>
+
+<p>The source releases contain all the HTML files and documentation
+provided on the <a href="http://librdf.org/rasqal/">Rasqal web site</a>.
+</p>
+
 <h2>1.1 Getting the sources from releases</h2>
+
+<p><b>This is the recommended source to build and install Rsaqal.</b>  It
+ensures that a tested and working set of files are used.</p>
 
 <p>The sources are available from
 <a href="http://download.librdf.org/source/">http://download.librdf.org/source/</a> (master site) and also from the
@@ -31,10 +34,9 @@ however Raptor is also required.</p>
 
 <h2>1.2 Getting the sources from GIT</h2>
 
-<p>Building from development sources rather than from a release
-may required some extra development tools.  Presently this includes the 
-<a href="http://lex.sourceforge.net/">flex scanner generator</a>
-version 2.5.31 or later.</p>
+<p><b>This is the recommended source for developers</b>.  It provides
+the latest beta or unstable code.  For a stable version, use a release
+as described above.</p>
 
 <pre>
   git clone git://github.com/dajobe/rasqal.git
@@ -47,32 +49,59 @@ below in <a href="#sec-create-configure">Create the configure program</a>
 by using the <code>autogen.sh</code> script.</p>
 
 <p>Building Rasqal in this way requires some particular development
-tools not needed when building from snapshot releases - automake and
-autoconf.  The <code>autogen.sh</code> script looks for the newest
-versions of the auto* tools and checks that they meet the minimum
-versions.</p>
+tools not needed when building from snapshot releases - automake,
+autoconf, libtool, gtk-doc and dependencies.
+The <code>autogen.sh</code> script looks for the newest versions of
+the auto* tools and checks that they meet the minimum versions.</p>
+
+<p>Building from development sources rather than from a release also
+requires some additional development tools.  Presently this includes
+the <a href="http://lex.sourceforge.net/">flex scanner generator</a>
+version 2.5.31 or later and the GNU Bison parser generator.
+The <code>configure</code> script checks that the minimum versions
+are present.  There are optional dependencies that will be used if
+present such as MPFR or GMP for decimal arithmetic and PCRE for
+regex support.</p>
 
 
 
 <h2>2. Configuring and building</h2>
 
-<p>Requirements: 
-the <a href="http://librdf.org/raptor/">Raptor RDF Syntax Library</a>
-version 1.4.19 or later
-(plus flex and bison as specified above, when building from GIT).
-Recommended: <a href="http://www.pcre.org/">PCRE</a> regex library
-or another implementing the POSIX regex API.  If neither is
-present some of the tests will fail and the query engine will
-fail to handle regex matches.
-</p>
-
-<p>Raptor uses the GNU automake and autoconf to handle system
+<p>Rasqal uses the GNU automake and autoconf to handle system
 dependency checking.  It is developed and built on x86 Linux
 and x86 OSX but is also tested on other systems occasionally.
 </p>
 
+<p><b>Required</b> (Rasqal will not build without these):</p>
+<ul>
+<li>The <a href="http://librdf.org/raptor/">Raptor RDF Syntax Library</a>
+version 1.4.19 or later for parsing RDF, retrieving WWW content from
+URIs and other utility classes.
+</li>
+</ul>
+
+<p><b>Recommended</b> (Optional):
+</p>
+<ul>
+<li><a href="http://www.pcre.org/">PCRE</a> regex library
+or another implementing the POSIX regex API.</li>
+<li><a href="http://www.mpfr.org/">GNU multiple-precision floating-point library (MPFR)</a> or
+<a href="http://gmplib.org/">GNU Multiple Precision Arithmetic Library (GMP)</a>
+
+libraries for decimal arithmetic.
+</li>
+</ul>
+<p>
+If some of the recommended libraries are not present some of the
+tests will fail and the query engine will fail to handle regex
+matches or decimal arithmetic accurately.
+</p>
+
 
 <h3><a id="sec-create-configure" name="sec-create-configure"></a>2.1. Create <code>configure</code> program</h3>
+
+<p>If there is a <code>configure</code> program, skip to the next
+section.</p>
 
 <p>If there is no <tt>configure</tt> program, you can create it 
 using the <tt>autogen.sh</tt> script, as long as you have the
@@ -120,7 +149,7 @@ These are only required when building from GIT.</p>
 
 <h3>2.2 Options for <tt>configure</tt></h3>
 
-<p>Rasqal also supports the following extra configure options:</p>
+<p>Rasqal's configure supports the following options:</p>
 
 <dl>
 <dt><tt>--enable-query-languages=LANGUAGES</tt><br /></dt>
@@ -184,20 +213,30 @@ configuration will continue.  </p></dd>
 
 <h3>2.3 Configuring</h3>
 
-<p>If everything is in the default place, do:</p>
+<p>The default configuration will install into /usr/local:
+</p>
 <pre>
    ./configure
 </pre>
 
-<p>The most common configuration you will be doing something like this:</p>
+<p>To install into the standard Unix / Linux (and also Cygwin) system
+directory, use:
+</p>
 <pre>
    ./configure --prefix=/usr
 </pre>
 
 
+<p>Append to the line any additional options you need like this:
+</p>
+<pre>
+   ./configure --prefix=/usr --enable-query-languages=sparql
+</pre>
+
+
 <h3>2.4 Compiling</h3>
 
-<p>Compile the library with;</p>
+<p>Compile the library and the <tt>roqet</tt> utility with:</p>
 <pre>
    make
 </pre>
@@ -208,7 +247,8 @@ gmake or gnumake if your system has a different make available too.
 
 <h3>2.5 Testing</h3>
 
-<p>You can build and run the built-in test suite with:</p>
+<p>Rasqal has a built-in test suite that can be invoked with:
+</p>
 <pre>
   make check
 </pre>
@@ -217,14 +257,54 @@ gmake or gnumake if your system has a different make available too.
 conclude with something like:<br />
   <tt>All </tt><em>n</em><tt> tests passed</tt><br />
 if everything works correctly.  There might be some regex
-tests that fail if no POSIX regex library was available when
-Rasqal was compiled.</p>
+or decimal tests that fail if no POSIX regex library or multiple
+precision numeric library was available when Rasqal was compiled.</p>
+
+
+<h3>2.6 Installing</h3>
+
+<p>Install the library and the <tt>roqet</tt> utility into the area
+configure with <code>--prefix</code> (or /usr/local if not given)
+with:</p>
+<pre>
+   make install
+</pre>
+<p>Note: This may require root access if the destination area is
+a system directory such as /usr.  In that case you may have to do
+<code>sudo make install</code>.
+</p>
 
 
 <h2>3. Using the library</h2>
 
-<p>The public Rasqal API is described in the
-<a href="librasqal.html">librasqal.3</a> UNIX manual/web page
+<h3>3.1 Documentation</h3>
+
+<p>Rasqal includes a reference manual for the library but no tutorial
+at this time.  This is installed into
+<em>PREFIX</em><code>/share/gtk-doc/html/rasqal</code>
+and is also available from the
+<a href="http://librdf.org/rasqal/api/">Rasqal web site</a>.
+</p>
+
+<h3>3.2 Examples</h3>
+
+<p>At present, to get a good idea of how to use Rasqal in a program,
+check out the source for roqet in src/roqet.c which uses the library
+extensively with the recommended APIs.
+</p>
+
+
+<h3>3.3 roqet utility</h3>
+
+<p>Rasqal provides an RDF query utility program called
+<em>roqet</em> which can do a variety of query operations on local
+and remote data, local and remote queries and running queries on
+SPARQL protocol services.
+</p>
+
+<p>See the roqet manual page for full details using 'man roqet'
+or read the HTML version in docs/roqet.html or on the
+<a href="http://librdf.org/rasqal/roqet.html">Rasqal website</a>.
 </p>
 
 
