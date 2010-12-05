@@ -1,12 +1,16 @@
 <!-- ##### SECTION Title ##### -->
-section-service
+Service
 
 <!-- ##### SECTION Short_Description ##### -->
-
+Execute queries remotely via a SPARQL HTTP Protocol service.
 
 <!-- ##### SECTION Long_Description ##### -->
 <para>
-
+The SPARQL Protocol defines an HTTP binding that enables remote
+queries to be executed over specified default and named graphs.
+This class allows that to be constructed and executed, returning
+a Rasqal query results #rasqal_query_results that may be used,
+for example, with a formatter to generate output.
 </para>
 
 <!-- ##### SECTION See_Also ##### -->
