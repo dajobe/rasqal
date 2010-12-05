@@ -1,5 +1,5 @@
 <!-- ##### SECTION Title ##### -->
-Query Result Row.
+Query Result Row
 
 <!-- ##### SECTION Short_Description ##### -->
 Result row in a query result set containing a set of literals that are bound to variables.
