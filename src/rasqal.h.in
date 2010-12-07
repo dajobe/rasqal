@@ -424,6 +424,36 @@ typedef struct rasqal_row_s rasqal_row;
  */
 typedef struct rasqal_xsd_decimal_s rasqal_xsd_decimal;
 
+
+/**
+ * rasqal_xsd_datetime:
+ * @year: year
+ * @month: month 1-12
+ * @day: 0-31
+ * @hour: hour 0-23
+ * @minute: minute 0-59
+ * @second: second 0-60 (yes 60 is allowed for leap seconds)
+ * @second_frac: 3 decimal digits of fractions of seconds (first byte is \0 if missing)
+ * @have_tz: non-0 if 'Z'ulu timezone is present
+ *
+ * XML Schema dateTime datatype (xsd:dateTime)
+ *
+ * Signed types are required for normalization process where a value
+ * can be negative temporarily.
+ */
+typedef struct {
+  signed int year;
+  unsigned char month;
+  unsigned char day;
+  /* the following fields are integer values not characters */
+  signed char hour;
+  signed char minute;
+  signed char second;
+  char second_frac[3 + 1];
+  unsigned int have_tz:1;
+} rasqal_xsd_datetime;
+
+
 /**
  * rasqal_literal:
  * @world: world object pointer
@@ -1470,6 +1500,14 @@ int rasqal_xsd_decimal_equals(rasqal_xsd_decimal* a, rasqal_xsd_decimal* b);
 RASQAL_API
 int rasqal_xsd_decimal_is_zero(rasqal_xsd_decimal* d);
 
+
+/* datetime functions */
+RASQAL_API
+rasqal_xsd_datetime* rasqal_new_xsd_datetime(rasqal_world* world, const unsigned char *datetime_string);
+RASQAL_API
+void rasqal_free_xsd_datetime(rasqal_xsd_datetime* dt);
+RASQAL_API
+unsigned char* rasqal_xsd_datetime_to_string(const rasqal_xsd_datetime *dt);
 
 /**
  * rasqal_service:

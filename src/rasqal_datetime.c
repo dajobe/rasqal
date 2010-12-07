@@ -46,35 +46,6 @@
 /* Local definitions */
  
 /**
- * rasqal_xsd_datetime:
- * @year: year
- * @month: month 1-12
- * @day: 0-31
- * @hour: hour 0-23
- * @minute: minute 0-59
- * @second: second 0-60 (yes 60 is allowed for leap seconds)
- * @second_frac: 3 decimal digits of fractions of seconds (first byte is \0 if missing)
- * @have_tz: non-0 if 'Z'ulu timezone is present
- *
- * INTERNAL - XML schema dateTime datatype
- *
- * Signed types are required for normalization process where a value
- * can be negative temporarily.
- */
-typedef struct {
-  signed int year;
-  unsigned char month;
-  unsigned char day;
-  /* the following fields are integer values not characters */
-  signed char hour;
-  signed char minute;
-  signed char second;
-  char second_frac[3 + 1];
-  unsigned int have_tz:1;
-} rasqal_xsd_datetime;
-
-
-/**
  * rasqal_xsd_date:
  * @year: year
  * @month: month 1-12
@@ -92,7 +63,6 @@ typedef struct {
 
 
 static int rasqal_xsd_datetime_parse_and_normalize_common(const unsigned char *datetime_string, rasqal_xsd_datetime *result, int is_dateTime);
-static unsigned char *rasqal_xsd_datetime_to_string(const rasqal_xsd_datetime *dt);
 static unsigned int days_per_month(int month, int year);
 
 
@@ -517,17 +487,46 @@ rasqal_xsd_date_parse_and_normalize(const unsigned char *date_string,
   return rc;
 }
 
+
+rasqal_xsd_datetime*
+rasqal_new_xsd_datetime(rasqal_world* world, 
+                        const unsigned char *datetime_string)
+{
+  rasqal_xsd_datetime* dt;
+
+  dt = (rasqal_xsd_datetime*)RASQAL_MALLOC(datetime, sizeof(*dt));
+  if(!dt)
+    return NULL;
+  
+  if(rasqal_xsd_datetime_parse_and_normalize_common(datetime_string, dt, 1)) {
+    rasqal_free_xsd_datetime(dt); dt = NULL;
+  }
+
+  return dt;
+}
+
+
+void
+rasqal_free_xsd_datetime(rasqal_xsd_datetime* dt)
+{
+  if(!dt)
+    return;
+  
+  RASQAL_FREE(datetime, dt);
+}
+
+
 /**
  * rasqal_xsd_datetime_to_string:
  * @dt: datetime struct
  *
- * INTERNAL - Convert a #rasqal_xsd_datetime struct to a xsd:dateTime lexical form string.
+ * Convert a #rasqal_xsd_datetime struct to a xsd:dateTime lexical form string.
  *
- * Caller should RASQAL_FREE() the returned string.
+ * Caller should rasqal_free_memory() the returned string.
  *
  * Return value: lexical form string or NULL on failure.
  */
-static unsigned char*
+unsigned char*
 rasqal_xsd_datetime_to_string(const rasqal_xsd_datetime *dt)
 {
   unsigned char *ret = 0;
