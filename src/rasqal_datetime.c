@@ -192,6 +192,7 @@ rasqal_xsd_datetime_parse_and_normalize_common(const unsigned char *datetime_str
   char b[16];
   unsigned int l, t, t2, is_neg;
   unsigned long u;
+#define MICROSECONDS_MAX_DIGITS 6
 
   if(!datetime_string || !result)
     return -1;
@@ -358,7 +359,7 @@ rasqal_xsd_datetime_parse_and_normalize_common(const unsigned char *datetime_str
       return -7;
 
     /* parse fraction seconds if any */
-    result->second_frac[0] = 0;
+    result->microseconds = 0;
     if(*p == '.') {
       for(q = ++p; ISNUM(*p); p++)
         ;
@@ -371,17 +372,22 @@ rasqal_xsd_datetime_parse_and_normalize_common(const unsigned char *datetime_str
       if(!(*q == '0' && q == p)) {
         /* allow ".0" */
         l = p - q;
-        /* support only to milliseconds with truncation */
-        if(l > sizeof(result->second_frac)-1)
-          l=sizeof(result->second_frac)-1;
 
-        if(l<1) /* need at least 1 num */
+        if(l < 1) /* need at least 1 num */
           return -8;
 
-        for(t2 = 0; t2 < l; ++t2)
-          result->second_frac[t2] = *q++;
+        /* support only to microseconds with truncation */
+        if(l > MICROSECONDS_MAX_DIGITS)
+          l = MICROSECONDS_MAX_DIGITS;
+        
+        result->microseconds = 0;
+        for(t2 = 0; t2 < MICROSECONDS_MAX_DIGITS; ++t2) {
+          if(t2 < l)
+            result->microseconds += (*q++ - '0');
+          if(t2 != MICROSECONDS_MAX_DIGITS - 1)
+            result->microseconds *= 10;
+        }
 
-        result->second_frac[l] = 0;
       }
 
       /* skip ignored trailing zeros */
@@ -394,7 +400,7 @@ rasqal_xsd_datetime_parse_and_normalize_common(const unsigned char *datetime_str
     result->hour = 12;
     result->minute = 0;
     result->second = 0;
-    result->second_frac[0] = 0;
+    result->microseconds = 0;
   }
 
   
@@ -542,19 +548,37 @@ rasqal_xsd_datetime_to_string(const rasqal_xsd_datetime *dt)
   /* format twice: first with null buffer of zero size to get the
    * required buffer size second time to the allocated buffer
    */
-  for(i = 0; i < 2; i++) {
-    r = snprintf((char*)ret, r, "%s%04d-%2.2d-%2.2dT%2.2d:%2.2d:%2.2d%s%s%s",
-      is_neg ? "-" : "",
-      is_neg ? -dt->year : dt->year,
-      dt->month,
-      dt->day,
-      dt->hour,
-      dt->minute,
-      dt->second,
-      *dt->second_frac ? "." : "",
-      dt->second_frac,
-      dt->have_tz ? "Z" : "");
-
+  for(i = 0; i < 2; i++) { 
+    if(dt->microseconds) {
+      char microsecs[9];
+      int j;
+      
+      snprintf(microsecs, 9, "%.6f", ((double)dt->microseconds) / 1000000);
+      for(j = strlen(microsecs) - 1; j > 2 && microsecs[j] == '0'; j--)
+        microsecs[j] = '\0';
+      
+      r = snprintf((char*)ret, r, "%s%04d-%2.2d-%2.2dT%2.2d:%2.2d:%2.2d%s%s",
+                   is_neg ? "-" : "",
+                   is_neg ? -dt->year : dt->year,
+                   dt->month,
+                   dt->day,
+                   dt->hour,
+                   dt->minute,
+                   dt->second,
+                   microsecs+1,
+                   dt->have_tz ? "Z" : "");
+    } else {
+      r = snprintf((char*)ret, r, "%s%04d-%2.2d-%2.2dT%2.2d:%2.2d:%2.2d%s",
+                   is_neg ? "-" : "",
+                   is_neg ? -dt->year : dt->year,
+                   dt->month,
+                   dt->day,
+                   dt->hour,
+                   dt->minute,
+                   dt->second,
+                   dt->have_tz ? "Z" : "");
+    }
+    
     /* error? */
     if(r < 0) {
       if(ret)
@@ -959,10 +983,10 @@ main(int argc, char *argv[])
   MYASSERT(test_datetime_parser_tostring("2006-05-18T18:36:03.01Z", "2006-05-18T18:36:03.01Z") == 0);
   MYASSERT(test_datetime_parser_tostring("2006-05-18T18:36:03.10Z", "2006-05-18T18:36:03.1Z") == 0);
   MYASSERT(test_datetime_parser_tostring("2006-05-18T18:36:03.010Z", "2006-05-18T18:36:03.01Z") == 0);
-  MYASSERT(test_datetime_parser_tostring("2006-05-18T18:36:03.1234Z", "2006-05-18T18:36:03.123Z") == 0);
-  MYASSERT(test_datetime_parser_tostring("2006-05-18T18:36:03.1234", "2006-05-18T18:36:03.123") == 0);
-  MYASSERT(test_datetime_parser_tostring("2006-05-18T18:36:03.1239Z", "2006-05-18T18:36:03.123Z") == 0);
-  MYASSERT(test_datetime_parser_tostring("2006-05-18T18:36:03.1239", "2006-05-18T18:36:03.123") == 0);
+  MYASSERT(test_datetime_parser_tostring("2006-05-18T18:36:03.1234Z", "2006-05-18T18:36:03.1234Z") == 0);
+  MYASSERT(test_datetime_parser_tostring("2006-05-18T18:36:03.1234", "2006-05-18T18:36:03.1234") == 0);
+  MYASSERT(test_datetime_parser_tostring("2006-05-18T18:36:03.1239Z", "2006-05-18T18:36:03.1239Z") == 0);
+  MYASSERT(test_datetime_parser_tostring("2006-05-18T18:36:03.1239", "2006-05-18T18:36:03.1239") == 0);
 
   /* timezones + normalization */
 

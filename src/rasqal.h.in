@@ -433,7 +433,7 @@ typedef struct rasqal_xsd_decimal_s rasqal_xsd_decimal;
  * @hour: hour 0-23
  * @minute: minute 0-59
  * @second: second 0-60 (yes 60 is allowed for leap seconds)
- * @second_frac: 3 decimal digits of fractions of seconds (first byte is \0 if missing)
+ * @microseconds: microseconds
  * @have_tz: non-0 if 'Z'ulu timezone is present
  *
  * XML Schema dateTime datatype (xsd:dateTime)
@@ -449,7 +449,7 @@ typedef struct {
   signed char hour;
   signed char minute;
   signed char second;
-  char second_frac[3 + 1];
+  signed int microseconds;
   unsigned int have_tz:1;
 } rasqal_xsd_datetime;
 
