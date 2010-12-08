@@ -2300,6 +2300,7 @@ static const char* const rasqal_op_labels[RASQAL_EXPR_LAST+1]={
   "sample",
   "in",
   "not in",
+  "isnumeric",
   "year",
   "month",
   "day",
