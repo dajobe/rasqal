@@ -670,6 +670,13 @@ rasqal_expression_clear(rasqal_expression* e)
     case RASQAL_EXPR_BNODE:
     case RASQAL_EXPR_SAMPLE:
     case RASQAL_EXPR_ISNUMERIC:
+    case RASQAL_EXPR_YEAR:
+    case RASQAL_EXPR_MONTH:
+    case RASQAL_EXPR_DAY:
+    case RASQAL_EXPR_HOURS:
+    case RASQAL_EXPR_MINUTES:
+    case RASQAL_EXPR_SECONDS:
+    case RASQAL_EXPR_TIMEZONE:
       /* arg1 is optional for RASQAL_EXPR_BNODE */
       if(e->arg1)
         rasqal_free_expression(e->arg1);
@@ -839,6 +846,13 @@ rasqal_expression_visit(rasqal_expression* e,
     case RASQAL_EXPR_BNODE:
     case RASQAL_EXPR_SAMPLE:
     case RASQAL_EXPR_ISNUMERIC:
+    case RASQAL_EXPR_YEAR:
+    case RASQAL_EXPR_MONTH:
+    case RASQAL_EXPR_DAY:
+    case RASQAL_EXPR_HOURS:
+    case RASQAL_EXPR_MINUTES:
+    case RASQAL_EXPR_SECONDS:
+    case RASQAL_EXPR_TIMEZONE:
       /* arg1 is optional for RASQAL_EXPR_BNODE */
       return (e->arg1) ? rasqal_expression_visit(e->arg1, fn, user_data) : 1;
       break;
@@ -2140,6 +2154,55 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
       result = rasqal_new_boolean_literal(world, vars.b);
       break;
       
+    case RASQAL_EXPR_YEAR:
+    case RASQAL_EXPR_MONTH:
+    case RASQAL_EXPR_DAY:
+    case RASQAL_EXPR_HOURS:
+    case RASQAL_EXPR_MINUTES:
+    case RASQAL_EXPR_SECONDS:
+    case RASQAL_EXPR_TIMEZONE:
+      l1 = rasqal_expression_evaluate(world, locator, e->arg1, flags);
+      if(!l1)
+        goto failed;
+
+      if(l1->type != RASQAL_LITERAL_DATETIME)
+        goto failed;
+
+      if(e->op == RASQAL_EXPR_TIMEZONE) {
+        RASQAL_FATAL1("TIMEZONE() not implemented");
+        goto failed;
+      }
+
+      /* SECONDS accessor has decimal results and includes microseconds */
+      if(e->op == RASQAL_EXPR_SECONDS) {
+        char *str = rasqal_xsd_datetime_to_string(l1->value.datetime);
+        if(!str)
+          goto failed;
+        
+        /* 17 bytes into "YYYY-MM-DDTHH:MM:SS.sss" is start of SS */
+        result = rasqal_new_decimal_literal(world,
+                                            (const unsigned char*)(str + 17));
+        RASQAL_FREE(cstring, str);
+        break;
+      }
+
+      /* The remain accessors have xsd:integer results */
+      if(e->op == RASQAL_EXPR_YEAR)
+        vars.i = l1->value.datetime->year;
+      else if(e->op == RASQAL_EXPR_MONTH)
+        vars.i = l1->value.datetime->month;
+      else if(e->op == RASQAL_EXPR_DAY)
+        vars.i = l1->value.datetime->day;
+      else if(e->op == RASQAL_EXPR_HOURS)
+        vars.i = l1->value.datetime->hour;
+      else if(e->op == RASQAL_EXPR_MINUTES)
+        vars.i = l1->value.datetime->minute;
+      else if(e->op == RASQAL_EXPR_SECONDS)
+        vars.i = l1->value.datetime->second;
+
+      result = rasqal_new_integer_literal(world, RASQAL_LITERAL_INTEGER, vars.i);
+      break;
+
     case RASQAL_EXPR_UNKNOWN:
     default:
       RASQAL_FATAL2("Unknown operation %d", e->op);
@@ -2371,6 +2434,13 @@ rasqal_expression_write(rasqal_expression* e, raptor_iostream* iostr)
     case RASQAL_EXPR_BNODE:
     case RASQAL_EXPR_SAMPLE:
     case RASQAL_EXPR_ISNUMERIC:
+    case RASQAL_EXPR_YEAR:
+    case RASQAL_EXPR_MONTH:
+    case RASQAL_EXPR_DAY:
+    case RASQAL_EXPR_HOURS:
+    case RASQAL_EXPR_MINUTES:
+    case RASQAL_EXPR_SECONDS:
+    case RASQAL_EXPR_TIMEZONE:
       raptor_iostream_counted_string_write("op ", 3, iostr);
       rasqal_expression_write_op(e, iostr);
       raptor_iostream_write_byte('(', iostr);
@@ -2553,6 +2623,13 @@ rasqal_expression_print(rasqal_expression* e, FILE* fh)
     case RASQAL_EXPR_BNODE:
     case RASQAL_EXPR_SAMPLE:
     case RASQAL_EXPR_ISNUMERIC:
+    case RASQAL_EXPR_YEAR:
+    case RASQAL_EXPR_MONTH:
+    case RASQAL_EXPR_DAY:
+    case RASQAL_EXPR_HOURS:
+    case RASQAL_EXPR_MINUTES:
+    case RASQAL_EXPR_SECONDS:
+    case RASQAL_EXPR_TIMEZONE:
       fputs("op ", fh);
       rasqal_expression_print_op(e, fh);
       fputc('(', fh);
@@ -2712,6 +2789,13 @@ rasqal_expression_is_constant(rasqal_expression* e)
     case RASQAL_EXPR_BNODE:
     case RASQAL_EXPR_SAMPLE:
     case RASQAL_EXPR_ISNUMERIC:
+    case RASQAL_EXPR_YEAR:
+    case RASQAL_EXPR_MONTH:
+    case RASQAL_EXPR_DAY:
+    case RASQAL_EXPR_HOURS:
+    case RASQAL_EXPR_MINUTES:
+    case RASQAL_EXPR_SECONDS:
+    case RASQAL_EXPR_TIMEZONE:
       /* arg1 is optional for RASQAL_EXPR_BNODE and result is always constant */
       result = (e->arg1) ? rasqal_expression_is_constant(e->arg1) : 1;
       break;
@@ -3045,6 +3129,13 @@ rasqal_expression_compare(rasqal_expression* e1, rasqal_expression* e2,
     case RASQAL_EXPR_BNODE:
     case RASQAL_EXPR_SAMPLE:
     case RASQAL_EXPR_ISNUMERIC:
+    case RASQAL_EXPR_YEAR:
+    case RASQAL_EXPR_MONTH:
+    case RASQAL_EXPR_DAY:
+    case RASQAL_EXPR_HOURS:
+    case RASQAL_EXPR_MINUTES:
+    case RASQAL_EXPR_SECONDS:
+    case RASQAL_EXPR_TIMEZONE:
       /* arg1 is optional for RASQAL_EXPR_BNODE */
       rc = rasqal_expression_compare(e1->arg1, e2->arg1, flags, error_p);
       break;

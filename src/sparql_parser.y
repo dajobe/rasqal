@@ -173,6 +173,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
 %token AS IF
 %token NOT IN
 %token BINDINGS UNDEF SERVICE MINUS
+%token YEAR MONTH DAY HOURS MINUTES SECONDS TIMEZONE
 /* LAQRS */
 %token EXPLAIN LET
 

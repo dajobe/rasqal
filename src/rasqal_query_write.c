@@ -268,7 +268,14 @@ static const char* const rasqal_sparql_op_labels[RASQAL_EXPR_LAST+1] = {
   "SAMPLE",
   "IN",
   "NOT IN",
-  "isNUMERIC"
+  "isNUMERIC",
+  "YEAR",
+  "MONTH",
+  "DAY",
+  "HOURS",
+  "MINUTES",
+  "SECONDS",
+  "TIMEZONE"
 };
 
 
@@ -348,6 +355,13 @@ rasqal_query_write_sparql_expression(sparql_writer_context *wc,
     case RASQAL_EXPR_BNODE:
     case RASQAL_EXPR_SAMPLE:
     case RASQAL_EXPR_ISNUMERIC:
+    case RASQAL_EXPR_YEAR:
+    case RASQAL_EXPR_MONTH:
+    case RASQAL_EXPR_DAY:
+    case RASQAL_EXPR_HOURS:
+    case RASQAL_EXPR_MINUTES:
+    case RASQAL_EXPR_SECONDS:
+    case RASQAL_EXPR_TIMEZONE:
       rasqal_query_write_sparql_expression_op(wc, iostr, e);
       raptor_iostream_counted_string_write("( ", 2, iostr);
       rasqal_query_write_sparql_expression(wc, iostr, e->arg1);

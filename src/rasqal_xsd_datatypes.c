@@ -123,7 +123,7 @@ rasqal_xsd_check_dateTime_format(const unsigned char* string, int flags)
   /* This should be correct according to 
    * http://www.w3.org/TR/xmlschema-2/#dateTime
    */
-  return rasqal_xsd_datetime_check(string);
+  return rasqal_xsd_datetime_check((const char*)string);
 }
 
 

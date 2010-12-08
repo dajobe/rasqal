@@ -579,7 +579,8 @@ rasqal_literal_set_typed_value(rasqal_literal* l, rasqal_literal_type type,
     break;
 
   case RASQAL_LITERAL_DATETIME:
-    l->value.datetime = rasqal_new_xsd_datetime(l->world, l->string);
+    l->value.datetime = rasqal_new_xsd_datetime(l->world,
+                                                (const char*)l->string);
     if(!l->value.datetime) {
       RASQAL_FREE(cstring, (void*)l->string);
       return 1;

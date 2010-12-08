@@ -392,6 +392,13 @@ EXPONENT [eE][+-]?[0-9]+
 [Mm][Ii][Nn][Uu][Ss] { return MINUS; }
 [Ii][Ss][Nn][Uu][Mm][Ee][Rr][Ii][Cc] { return ISNUMERIC; }
 [Ss][Aa][Mm][Pp][Ll][Ee] { return SAMPLE; }
+[Yy][Ee][Aa][Rr] { return YEAR; }
+[Mm][Oo][Nn][Tt][Hh] { return MONTH; }
+[Dd][Aa][Yy] { return DAY; }
+[Hh][Oo][Uu][Rr][Ss] { return HOURS; }
+[Mm][Ii][Nn][Uu][Tt][Ee][Ss] { return MINUTES; }
+[Ss][Ee][Cc][Oo][Nn][Dd][Ss] { return SECONDS; }
+[Tt][Ii][Mm][Ee][Zz][Oo][Nn][Ee] { return TIMEZONE; }
 
 "a" { return A; }
 
@@ -1539,6 +1546,27 @@ sparql_token_print(rasqal_world* world, int token, YYSTYPE *lval)
 
     case ISNUMERIC:
       return "isNUMERIC";
+
+    case YEAR:
+      return "YEAR";
+
+    case MONTH:
+      return "MONTH";
+
+    case DAY:
+      return "DAY";
+
+    case HOURS:
+      return "HOURS";
+
+    case MINUTES:
+      return "MINUTES";
+
+    case SECONDS:
+      return "SECONDS";
+
+    case TIMEZONE:
+      return "TIMEZONE";
 
     case INTEGER_LITERAL:
     case INTEGER_POSITIVE_LITERAL:
