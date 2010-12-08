@@ -329,8 +329,8 @@ typedef struct {
   raptor_uri* uri;
   raptor_uri* name_uri;
   int flags;
-  const char* format_type;
-  const char* format_name;
+  char* format_type;
+  char* format_name;
   raptor_uri* format_uri;
   raptor_iostream* iostr;
   raptor_uri* base_uri;
