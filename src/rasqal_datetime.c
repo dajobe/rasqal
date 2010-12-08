@@ -749,6 +749,46 @@ rasqal_xsd_datetime_compare(const rasqal_xsd_datetime *dt1,
 
 
 /**
+ * rasqal_xsd_datetime_compare:
+ * @dt: XSD dateTime
+ * 
+ * Get the seconds component of a dateTime as a decimal
+ * 
+ * Return value: decimal object or NULL on failure
+ **/
+rasqal_xsd_decimal*
+rasqal_xsd_datetime_get_seconds_as_decimal(rasqal_world* world,
+                                           rasqal_xsd_datetime* dt)
+{
+  size_t len;
+  char *str;
+  char *p;
+  rasqal_xsd_decimal* dec;
+  
+  str = rasqal_xsd_datetime_to_counted_string(dt, &len);
+  if(!str)
+    return NULL;
+  
+  /* Get rid of Z */
+  str[len-1] = '\0';
+  
+  /* 17 bytes into canonical form "YYYY-MM-DDTHH:MM:SS.sss" is start of SS */
+  p = str + 17;
+  /* if seconds is < 10, skip leading 0 */
+  if(*p == '0')
+    p++;
+
+  dec = rasqal_new_xsd_decimal(world);
+  if(dec)
+    rasqal_xsd_decimal_set_string(dec, p);
+
+  RASQAL_FREE(cstring, str);
+
+  return dec;
+}
+
+
+/**
  * rasqal_xsd_date_to_string:
  * @dt: date struct
  *

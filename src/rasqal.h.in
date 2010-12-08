@@ -1529,6 +1529,8 @@ RASQAL_API
 int rasqal_xsd_datetime_equals(const rasqal_xsd_datetime *dt1, const rasqal_xsd_datetime *dt2);
 RASQAL_API
 int rasqal_xsd_datetime_compare(const rasqal_xsd_datetime *dt1, const rasqal_xsd_datetime *dt2);
+RASQAL_API
+rasqal_xsd_decimal* rasqal_xsd_datetime_get_seconds_as_decimal(rasqal_world* world, rasqal_xsd_datetime* dt);
 
 
 /**

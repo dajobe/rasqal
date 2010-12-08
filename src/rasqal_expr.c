@@ -2175,25 +2175,19 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
 
       /* SECONDS accessor has decimal results and includes microseconds */
       if(e->op == RASQAL_EXPR_SECONDS) {
-        size_t len;
-        char *str;
-        char *p;
+        rasqal_xsd_decimal* dec;
         
-        str = rasqal_xsd_datetime_to_counted_string(l1->value.datetime, &len);
-        if(!str)
+        dec = rasqal_xsd_datetime_get_seconds_as_decimal(world,
+                                                         l1->value.datetime);
+        if(dec) {
+          result = rasqal_new_decimal_literal_from_decimal(world, NULL, dec);
+          if(!result)
+            rasqal_free_xsd_decimal(dec);
+        }
+        
+        if(!result)
           goto failed;
-
-        /* Get rid of Z */
-        str[len-1] = '\0';
-
-        /* 17 bytes into "YYYY-MM-DDTHH:MM:SS.sss" is start of SS */
-        p = str + 17;
-        /* if seconds is < 10, skip leading 0 */
-        if(*p == '0')
-          p++;
         
-        result = rasqal_new_decimal_literal(world, (const unsigned char*)p);
-        RASQAL_FREE(cstring, str);
         break;
       }
 
