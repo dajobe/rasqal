@@ -4407,9 +4407,9 @@ BuiltInCall: STR '(' Expression ')'
 | ISNUMERIC '(' Expression ')'
 {
   $$ = rasqal_new_1op_expression(((rasqal_query*)rq)->world,
-                                 RASQAL_EXPR_ISLITERAL, $3);
+                                 RASQAL_EXPR_ISNUMERIC, $3);
   if(!$$)
-    YYERROR_MSG("BuiltInCall 11: cannot create expr");
+    YYERROR_MSG("BuiltInCall 12: cannot create expr");
 }
 | RegexExpression
 {
