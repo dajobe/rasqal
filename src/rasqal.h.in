@@ -1504,13 +1504,13 @@ int rasqal_xsd_decimal_is_zero(rasqal_xsd_decimal* d);
 
 /* datetime functions */
 RASQAL_API
-rasqal_xsd_datetime* rasqal_new_xsd_datetime(rasqal_world* world, const unsigned char *datetime_string);
+rasqal_xsd_datetime* rasqal_new_xsd_datetime(rasqal_world* world, const char *datetime_string);
 RASQAL_API
 void rasqal_free_xsd_datetime(rasqal_xsd_datetime* dt);
 RASQAL_API
-unsigned char* rasqal_xsd_datetime_to_counted_string(const rasqal_xsd_datetime *dt, size_t *len_p);
+char* rasqal_xsd_datetime_to_counted_string(const rasqal_xsd_datetime *dt, size_t *len_p);
 RASQAL_API
-unsigned char* rasqal_xsd_datetime_to_string(const rasqal_xsd_datetime *dt);
+char* rasqal_xsd_datetime_to_string(const rasqal_xsd_datetime *dt);
 RASQAL_API
 int rasqal_xsd_datetime_equals(const rasqal_xsd_datetime *dt1, const rasqal_xsd_datetime *dt2);
 RASQAL_API

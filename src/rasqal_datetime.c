@@ -62,7 +62,7 @@ typedef struct {
 } rasqal_xsd_date;
 
 
-static int rasqal_xsd_datetime_parse(const unsigned char *datetime_string, rasqal_xsd_datetime *result, int is_dateTime);
+static int rasqal_xsd_datetime_parse(const char *datetime_string, rasqal_xsd_datetime *result, int is_dateTime);
 static unsigned int days_per_month(int month, int year);
 
 
@@ -187,7 +187,7 @@ rasqal_xsd_datetime_normalize(rasqal_xsd_datetime *datetime)
  * Return value: zero on success, non zero on failure.
  */
 static int
-rasqal_xsd_datetime_parse(const unsigned char *datetime_string,
+rasqal_xsd_datetime_parse(const char *datetime_string,
                           rasqal_xsd_datetime *result,
                           int is_dateTime)
 {
@@ -470,7 +470,7 @@ rasqal_xsd_datetime_parse(const unsigned char *datetime_string,
 
 
 static int
-rasqal_xsd_datetime_parse_and_normalize(const unsigned char *datetime_string,
+rasqal_xsd_datetime_parse_and_normalize(const char *datetime_string,
                                         rasqal_xsd_datetime *result)
 {
   if(rasqal_xsd_datetime_parse(datetime_string, result, 1))
@@ -480,7 +480,7 @@ rasqal_xsd_datetime_parse_and_normalize(const unsigned char *datetime_string,
 }
 
 static int
-rasqal_xsd_date_parse_and_normalize(const unsigned char *date_string,
+rasqal_xsd_date_parse_and_normalize(const char *date_string,
                                     rasqal_xsd_date *result)
 {
   rasqal_xsd_datetime dt_result; /* on stack */
@@ -502,7 +502,7 @@ rasqal_xsd_date_parse_and_normalize(const unsigned char *date_string,
 
 rasqal_xsd_datetime*
 rasqal_new_xsd_datetime(rasqal_world* world, 
-                        const unsigned char *datetime_string)
+                        const char *datetime_string)
 {
   rasqal_xsd_datetime* dt;
   int rc = 0;
@@ -544,11 +544,11 @@ rasqal_free_xsd_datetime(rasqal_xsd_datetime* dt)
  *
  * Return value: lexical form string or NULL on failure.
  */
-unsigned char*
+char*
 rasqal_xsd_datetime_to_counted_string(const rasqal_xsd_datetime *dt,
                                       size_t *len_p)
 {
-  unsigned char *ret = 0;
+  char *ret = 0;
   int is_neg;
   int r = 0;
   int i;
@@ -570,7 +570,7 @@ rasqal_xsd_datetime_to_counted_string(const rasqal_xsd_datetime *dt,
       for(j = strlen(microsecs) - 1; j > 2 && microsecs[j] == '0'; j--)
         microsecs[j] = '\0';
       
-      r = snprintf((char*)ret, r, "%s%04d-%2.2d-%2.2dT%2.2d:%2.2d:%2.2d%s%s",
+      r = snprintf(ret, r, "%s%04d-%2.2d-%2.2dT%2.2d:%2.2d:%2.2d%s%s",
                    is_neg ? "-" : "",
                    is_neg ? -dt->year : dt->year,
                    dt->month,
@@ -604,7 +604,7 @@ rasqal_xsd_datetime_to_counted_string(const rasqal_xsd_datetime *dt,
       if(len_p)
         *len_p = r;
 
-      ret = (unsigned char *)RASQAL_MALLOC(cstring, ++r);
+      ret = (char*)RASQAL_MALLOC(cstring, ++r);
       if(!ret)
         return NULL;
     }
@@ -623,7 +623,7 @@ rasqal_xsd_datetime_to_counted_string(const rasqal_xsd_datetime *dt,
  *
  * Return value: lexical form string or NULL on failure.
  */
-unsigned char*
+char*
 rasqal_xsd_datetime_to_string(const rasqal_xsd_datetime *dt)
 {
   return rasqal_xsd_datetime_to_counted_string(dt, NULL);
@@ -653,8 +653,8 @@ rasqal_xsd_datetime_to_string(const rasqal_xsd_datetime *dt)
  *    * for timezoned values, the timezone must be represented with 'Z'
  *      (All timezoned dateTime values are UTC.)."
  */
-const unsigned char*
-rasqal_xsd_datetime_string_to_canonical(const unsigned char* datetime_string)
+const char*
+rasqal_xsd_datetime_string_to_canonical(const char* datetime_string)
 {
   rasqal_xsd_datetime d; /* allocated on stack */
 
@@ -758,10 +758,10 @@ rasqal_xsd_datetime_compare(const rasqal_xsd_datetime *dt1,
  *
  * Return value: lexical form string or NULL on failure.
  */
-static unsigned char*
+static char*
 rasqal_xsd_date_to_string(const rasqal_xsd_date *d)
 {
-  unsigned char *ret = 0;
+  char *ret = 0;
   int is_neg;
   int r = 0;
   int i;
@@ -790,7 +790,7 @@ rasqal_xsd_date_to_string(const rasqal_xsd_date *d)
 
     /* alloc return buffer on first pass */
     if(!i) {
-      ret = (unsigned char *)RASQAL_MALLOC(cstring, ++r);
+      ret = (char*)RASQAL_MALLOC(cstring, ++r);
       if(!ret)
         return NULL;
     }
@@ -820,8 +820,8 @@ rasqal_xsd_date_to_string(const rasqal_xsd_date *d)
  * 'T' and all following characters). For timezoned values, append
  * the canonical representation of the ·recoverable timezone·. "
  */
-const unsigned char*
-rasqal_xsd_date_string_to_canonical(const unsigned char* date_string)
+const char*
+rasqal_xsd_date_string_to_canonical(const char* date_string)
 {
   rasqal_xsd_date d; /* allocated on stack */
 
@@ -887,7 +887,7 @@ days_per_month(int month, int year) {
 
 
 int
-rasqal_xsd_datetime_check(const unsigned char* string)
+rasqal_xsd_datetime_check(const char* string)
 {
   rasqal_xsd_datetime d;
   
@@ -899,7 +899,7 @@ rasqal_xsd_datetime_check(const unsigned char* string)
 
 
 int
-rasqal_xsd_date_check(const unsigned char* string)
+rasqal_xsd_date_check(const char* string)
 {
   rasqal_xsd_date d;
   
@@ -924,9 +924,9 @@ int main(int argc, char *argv[]);
 
 static int test_datetime_parser_tostring(const char *in_str, const char *out_expected)
 {
-  unsigned char const *s;
+  char const *s;
   int r = 1;
-  s = rasqal_xsd_datetime_string_to_canonical((const unsigned char *)in_str);
+  s = rasqal_xsd_datetime_string_to_canonical((const char*)in_str);
   if(s) {
     r = strcmp((char*)s, out_expected);
     if(r)
@@ -940,9 +940,9 @@ static int test_datetime_parser_tostring(const char *in_str, const char *out_exp
 
 static int test_date_parser_tostring(const char *in_str, const char *out_expected)
 {
-  unsigned char const *s;
+  char const *s;
   int r = 1;
-  s = rasqal_xsd_date_string_to_canonical((const unsigned char *)in_str);
+  s = rasqal_xsd_date_string_to_canonical((const char*)in_str);
   if(s) {
     r = strcmp((char*)s, out_expected);
     if(r)
@@ -991,7 +991,7 @@ main(int argc, char *argv[])
      rasqal_xsd_datetime_string_to_canonical */
   
   #define PARSE_AND_NORMALIZE_DATETIME(_s,_d) \
-    rasqal_xsd_datetime_parse_and_normalize((const unsigned char*)_s, _d)
+    rasqal_xsd_datetime_parse_and_normalize((const char*)_s, _d)
   
   /* generic */
 
@@ -1131,7 +1131,7 @@ main(int argc, char *argv[])
   /* DATE */
 
   #define PARSE_AND_NORMALIZE_DATE(_s,_d) \
-    rasqal_xsd_date_parse_and_normalize((const unsigned char*)_s, _d)
+    rasqal_xsd_date_parse_and_normalize((const char*)_s, _d)
   
   /* generic */
 
