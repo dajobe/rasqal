@@ -262,7 +262,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
 %type <expr> Expression ConditionalOrExpression ConditionalAndExpression
 %type <expr> RelationalExpression AdditiveExpression
 %type <expr> MultiplicativeExpression UnaryExpression
-%type <expr> BuiltInCall RegexExpression FunctionCall
+%type <expr> BuiltInCall RegexExpression FunctionCall DatetimeBuiltinAccessors
 %type <expr> BrackettedExpression PrimaryExpression
 %type <expr> OrderCondition GroupCondition
 %type <expr> Filter Constraint HavingCondition
@@ -373,7 +373,7 @@ ModifyTemplate GraphTemplate
 Expression ConditionalOrExpression ConditionalAndExpression
 RelationalExpression AdditiveExpression
 MultiplicativeExpression UnaryExpression
-BuiltInCall RegexExpression FunctionCall
+BuiltInCall RegexExpression FunctionCall DatetimeBuiltinAccessors
 BrackettedExpression PrimaryExpression
 OrderCondition GroupCondition
 Filter Constraint HavingCondition
@@ -4415,6 +4415,10 @@ BuiltInCall: STR '(' Expression ')'
 {
   $$ = $1;
 }
+| DatetimeBuiltinAccessors
+{
+  $$ = $1;
+}
 ;
 
 
@@ -4434,6 +4438,61 @@ RegexExpression: REGEX '(' Expression ',' Expression ')'
     YYERROR_MSG("RegexExpression 2: cannot create expr");
 }
 ;
+
+
+/* SPARQL 1.1 pre-draft */
+DatetimeBuiltinAccessors: YEAR '(' Expression ')'
+{
+  $$ = rasqal_new_1op_expression(((rasqal_query*)rq)->world,
+                                 RASQAL_EXPR_YEAR, $3);
+  if(!$$)
+    YYERROR_MSG("DatetimeBuiltinAccessors: cannot create YEAR expr");
+}
+| MONTH '(' Expression ')'
+{
+  $$ = rasqal_new_1op_expression(((rasqal_query*)rq)->world,
+                                 RASQAL_EXPR_MONTH, $3);
+  if(!$$)
+    YYERROR_MSG("DatetimeBuiltinAccessors: cannot create MONTH expr");
+}
+| DAY '(' Expression ')'
+{
+  $$ = rasqal_new_1op_expression(((rasqal_query*)rq)->world,
+                                 RASQAL_EXPR_DAY, $3);
+  if(!$$)
+    YYERROR_MSG("DatetimeBuiltinAccessors: cannot create DAY expr");
+}
+| HOURS '(' Expression ')'
+{
+  $$ = rasqal_new_1op_expression(((rasqal_query*)rq)->world,
+                                 RASQAL_EXPR_HOURS, $3);
+  if(!$$)
+    YYERROR_MSG("DatetimeBuiltinAccessors: cannot create HOURS expr");
+}
+| MINUTES '(' Expression ')'
+{
+  $$ = rasqal_new_1op_expression(((rasqal_query*)rq)->world,
+                                 RASQAL_EXPR_MINUTES, $3);
+  if(!$$)
+    YYERROR_MSG("DatetimeBuiltinAccessors: cannot create MINUTES expr");
+}
+| SECONDS '(' Expression ')'
+{
+  $$ = rasqal_new_1op_expression(((rasqal_query*)rq)->world,
+                                 RASQAL_EXPR_SECONDS, $3);
+  if(!$$)
+    YYERROR_MSG("DatetimeBuiltinAccessors: cannot create SECONDS expr");
+}
+| TIMEZONE '(' Expression ')'
+{
+  $$ = rasqal_new_1op_expression(((rasqal_query*)rq)->world,
+                                 RASQAL_EXPR_TIMEZONE, $3);
+  if(!$$)
+    YYERROR_MSG("DatetimeBuiltinAccessors: cannot create TIMEZONE expr");
+}
+;
+
+
 
 /* SPARQL Grammar: IRIrefOrFunction - not necessary in this
    grammar as the IRIref ambiguity is determined in lexer with the
