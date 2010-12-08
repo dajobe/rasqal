@@ -62,7 +62,7 @@ typedef struct {
 } rasqal_xsd_date;
 
 
-static int rasqal_xsd_datetime_parse_and_normalize_common(const unsigned char *datetime_string, rasqal_xsd_datetime *result, int is_dateTime);
+static int rasqal_xsd_datetime_parse(const unsigned char *datetime_string, rasqal_xsd_datetime *result, int is_dateTime);
 static unsigned int days_per_month(int month, int year);
 
 
@@ -143,13 +143,16 @@ rasqal_xsd_datetime_normalize(rasqal_xsd_datetime *datetime)
 
 
 /**
- * rasqal_xsd_datetime_parse_and_normalize_common:
+ * rasqal_xsd_datetime_parse:
  * @datetime_string: xsd:dateTime as lexical form string
  * @result: target struct for holding dateTime components
  * @is_dateTime: is xsd:dateTime and should look for time (hour, mins, secs)
  *   otherwise is xsd:date and should skip to looking for timezone
  *
- * INTERNAL - Parse a xsd:dateTime string to a normalized #rasqal_xsd_datetime struct.
+ * INTERNAL - Parse a xsd:dateTime string into a #rasqal_xsd_datetime struct.
+ *
+ * Does NOT normalize the structure.  Call
+ * rasqal_xsd_datetime_normalize() to do that.
  *
  * http://www.w3.org/TR/xmlschema-2/#dt-dateTime
  *
@@ -184,9 +187,9 @@ rasqal_xsd_datetime_normalize(rasqal_xsd_datetime *datetime)
  * Return value: zero on success, non zero on failure.
  */
 static int
-rasqal_xsd_datetime_parse_and_normalize_common(const unsigned char *datetime_string,
-                                               rasqal_xsd_datetime *result,
-                                               int is_dateTime)
+rasqal_xsd_datetime_parse(const unsigned char *datetime_string,
+                          rasqal_xsd_datetime *result,
+                          int is_dateTime)
 {
   const char *p, *q; 
   char b[16];
@@ -462,7 +465,7 @@ rasqal_xsd_datetime_parse_and_normalize_common(const unsigned char *datetime_str
 
   }
 
-  return rasqal_xsd_datetime_normalize(result);
+  return 0;
 }
 
 
@@ -470,8 +473,10 @@ static int
 rasqal_xsd_datetime_parse_and_normalize(const unsigned char *datetime_string,
                                         rasqal_xsd_datetime *result)
 {
-  return rasqal_xsd_datetime_parse_and_normalize_common(datetime_string,
-                                                        result, 1);
+  if(rasqal_xsd_datetime_parse(datetime_string, result, 1))
+    return 1;
+  
+  return rasqal_xsd_datetime_normalize(result);
 }
 
 static int
@@ -481,8 +486,9 @@ rasqal_xsd_date_parse_and_normalize(const unsigned char *date_string,
   rasqal_xsd_datetime dt_result; /* on stack */
   int rc;
 
-  rc = rasqal_xsd_datetime_parse_and_normalize_common(date_string,
-                                                      &dt_result, 0);
+  rc = rasqal_xsd_datetime_parse(date_string, &dt_result, 0);
+  if(!rc)
+    rc = rasqal_xsd_datetime_normalize(&dt_result);
 
   if(!rc) {
     result->year = dt_result.year;
@@ -499,12 +505,17 @@ rasqal_new_xsd_datetime(rasqal_world* world,
                         const unsigned char *datetime_string)
 {
   rasqal_xsd_datetime* dt;
-
+  int rc = 0;
+  
   dt = (rasqal_xsd_datetime*)RASQAL_MALLOC(datetime, sizeof(*dt));
   if(!dt)
     return NULL;
   
-  if(rasqal_xsd_datetime_parse_and_normalize_common(datetime_string, dt, 1)) {
+  rc = rasqal_xsd_datetime_parse(datetime_string, dt, 1);
+  if(!rc)
+    rc = rasqal_xsd_datetime_normalize(dt);
+
+  if(rc) {
     rasqal_free_xsd_datetime(dt); dt = NULL;
   }
 
