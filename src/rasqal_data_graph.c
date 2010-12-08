@@ -73,7 +73,8 @@ rasqal_new_data_graph_common(rasqal_world* world,
       dg->format_type = RASQAL_MALLOC(string, len + 1);
       if(!dg->format_type)
         goto error;
-      strncpy((char*)dg->format_type, (const char*)format_type, len + 1);
+
+      memcpy(dg->format_type, format_type, len + 1);
     }
 
     if(format_name) {
@@ -81,7 +82,8 @@ rasqal_new_data_graph_common(rasqal_world* world,
       dg->format_name = RASQAL_MALLOC(string, len + 1);
       if(!dg->format_name)
         goto error;
-      strncpy((char*)dg->format_name, (const char*)format_name, len + 1);
+
+      memcpy(dg->format_name, format_name, len + 1);
     }
 
     if(format_uri)
