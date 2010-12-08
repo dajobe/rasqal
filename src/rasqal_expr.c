@@ -2288,7 +2288,14 @@ static const char* const rasqal_op_labels[RASQAL_EXPR_LAST+1]={
   "group_concat",
   "sample",
   "in",
-  "not in"
+  "not in",
+  "year",
+  "month",
+  "day",
+  "hours",
+  "minutes",
+  "seconds",
+  "timezone"
 };
 
 
