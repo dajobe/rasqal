@@ -668,6 +668,85 @@ rasqal_xsd_datetime_string_to_canonical(const unsigned char* datetime_string)
 
 
 
+/**
+ * rasqal_xsd_datetime_equals:
+ * @dt1: first XSD dateTime
+ * @dt2: second XSD dateTime
+ * 
+ * Compare two XSD dateTimes for equality.
+ * 
+ * Return value: non-0 if equal.
+ **/
+int
+rasqal_xsd_datetime_equals(const rasqal_xsd_datetime *dt1,
+                           const rasqal_xsd_datetime *dt2)
+{
+  /* Handle NULLs */
+  if(!dt1 || !dt2) {
+    /* equal only if both are NULL */
+    return (dt1 && dt2);
+  }
+  
+  /* they should normalize identically on the same machine - memcmp
+   * should suffice */
+
+  return !memcmp(dt1, dt2, sizeof(*dt1));
+}
+
+
+/**
+ * rasqal_xsd_datetime_compare:
+ * @dt1: first XSD dateTime
+ * @dt2: second XSD dateTime
+ * 
+ * Compare two XSD dateTimes
+ * 
+ * Return value: <0 if @dt1 is less than @dt2, 0 if equal, >1 otherwise
+ **/
+int
+rasqal_xsd_datetime_compare(const rasqal_xsd_datetime *dt1,
+                            const rasqal_xsd_datetime *dt2)
+{
+  int rc;
+
+  /* Handle NULLs */
+  if(!dt1 || !dt2) {
+    /* NULLs sort earlier. equal only if both are NULL */
+    if(dt1 && dt2)
+      return 0;
+
+    return (!dt1) ? -1 : 1;
+  }
+  
+  rc = dt2->year - dt1->year;
+  if(rc)
+    return rc;
+
+  rc = dt2->month - dt1->month;
+  if(rc)
+    return rc;
+
+  rc = dt2->day - dt1->day;
+  if(rc)
+    return rc;
+
+  rc = dt2->hour - dt1->hour;
+  if(rc)
+    return rc;
+
+  rc = dt2->minute - dt1->minute;
+  if(rc)
+    return rc;
+
+  rc = dt2->second - dt1->second;
+  if(rc)
+    return rc;
+
+  rc = dt2->microseconds - dt1->microseconds;
+
+  return rc;
+}
+
 
 /**
  * rasqal_xsd_date_to_string:

@@ -2114,7 +2114,6 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
     case RASQAL_LITERAL_PATTERN:
     case RASQAL_LITERAL_QNAME:
     case RASQAL_LITERAL_XSD_STRING:
-    case RASQAL_LITERAL_DATETIME:
       if(flags & RASQAL_COMPARE_NOCASE)
         result = rasqal_strcasecmp((const char*)new_lits[0]->string,
                                  (const char*)new_lits[1]->string);
@@ -2123,6 +2122,9 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
                         (const char*)new_lits[1]->string);
       break;
 
+    case RASQAL_LITERAL_DATETIME:
+      result = rasqal_xsd_datetime_compare(new_lits[0]->value.datetime,
+                                           new_lits[1]->value.datetime);
     case RASQAL_LITERAL_INTEGER:
     case RASQAL_LITERAL_BOOLEAN:
     case RASQAL_LITERAL_INTEGER_SUBTYPE:
@@ -2432,12 +2434,8 @@ rasqal_literal_equals_flags(rasqal_literal* l1, rasqal_literal* l2,
       break;
 
     case RASQAL_LITERAL_DATETIME:
-      /* FIXME this should be xsd:dateTime equality */
-      if(l1_p->string_len != l2_p->string_len)
-        /* not-equal if lengths are different - cheap to compare this first */
-        result = 0;
-      else
-        result = !strcmp((const char*)l1_p->string, (const char*)l2_p->string);
+      result = rasqal_xsd_datetime_equals(l1_p->value.datetime,
+                                          l2_p->value.datetime);
       break;
       
     case RASQAL_LITERAL_INTEGER:
