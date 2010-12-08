@@ -482,7 +482,6 @@ rasqal_literal_set_typed_value(rasqal_literal* l, rasqal_literal_type type,
   raptor_uri* dt_uri;
   int i;
   double d;
-  const unsigned char *new_string;
 
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(l, rasqal_literal, 1);
 
@@ -580,16 +579,18 @@ rasqal_literal_set_typed_value(rasqal_literal* l, rasqal_literal_type type,
     break;
 
   case RASQAL_LITERAL_DATETIME:
-    new_string = rasqal_xsd_datetime_string_to_canonical(l->string);
-    if(new_string) {
-      RASQAL_DEBUG3("converted xsd:dateTime \"%s\" to canonical form \"%s\"\n", l->string, new_string);
-      RASQAL_FREE(cstring, l->string);
-      l->string = new_string;
-      l->string_len = strlen((const char*)l->string);
-      break; /* success */
+    l->value.datetime = rasqal_new_xsd_datetime(l->world, l->string);
+    if(!l->value.datetime) {
+      RASQAL_FREE(cstring, (void*)l->string);
+      return 1;
     }
-    RASQAL_DEBUG2("rasqal_xsd_datetime_string_to_canonical(\"%s\") failed\n", l->string);
-    return 1; /* error */
+    RASQAL_FREE(cstring, (void*)l->string);
+    l->string = (unsigned char*)rasqal_xsd_datetime_to_counted_string(l->value.datetime,
+                                                                      (size_t*)&l->string_len);
+    if(!l->string)
+      return 1;
+
+    break;
 
   case RASQAL_LITERAL_UNKNOWN:
   case RASQAL_LITERAL_BLANK:
@@ -953,7 +954,6 @@ rasqal_free_literal(rasqal_literal* l)
     case RASQAL_LITERAL_DOUBLE:
     case RASQAL_LITERAL_INTEGER: 
     case RASQAL_LITERAL_FLOAT:
-    case RASQAL_LITERAL_DATETIME:
     case RASQAL_LITERAL_UDT:
     case RASQAL_LITERAL_INTEGER_SUBTYPE:
       if(l->string)
@@ -968,6 +968,13 @@ rasqal_free_literal(rasqal_literal* l)
           RASQAL_FREE(cstring, (void*)l->flags);
       }
       break;
+    case RASQAL_LITERAL_DATETIME:
+      if(l->string)
+        RASQAL_FREE(cstring, (void*)l->string);
+      if(l->value.datetime)
+        rasqal_free_xsd_datetime(l->value.datetime);
+      break;
+
     case RASQAL_LITERAL_DECIMAL:
       /* l->string is owned by l->value.decimal - do not free it */
       if(l->datatype)
