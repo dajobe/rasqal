@@ -534,17 +534,19 @@ rasqal_free_xsd_datetime(rasqal_xsd_datetime* dt)
 
 
 /**
- * rasqal_xsd_datetime_to_string:
+ * rasqal_xsd_datetime_to_counted_string:
  * @dt: datetime struct
+ * @len_p: output length (or NULL)
  *
- * Convert a #rasqal_xsd_datetime struct to a xsd:dateTime lexical form string.
+ * Convert a #rasqal_xsd_datetime struct to a xsd:dateTime lexical form counted string.
  *
  * Caller should rasqal_free_memory() the returned string.
  *
  * Return value: lexical form string or NULL on failure.
  */
 unsigned char*
-rasqal_xsd_datetime_to_string(const rasqal_xsd_datetime *dt)
+rasqal_xsd_datetime_to_counted_string(const rasqal_xsd_datetime *dt,
+                                      size_t *len_p)
 {
   unsigned char *ret = 0;
   int is_neg;
@@ -599,12 +601,32 @@ rasqal_xsd_datetime_to_string(const rasqal_xsd_datetime *dt)
 
     /* alloc return buffer on first pass */
     if(!i) {
+      if(len_p)
+        *len_p = r;
+
       ret = (unsigned char *)RASQAL_MALLOC(cstring, ++r);
       if(!ret)
         return NULL;
     }
   }
   return ret;
+}
+
+
+/**
+ * rasqal_xsd_datetime_to_string:
+ * @dt: datetime struct
+ *
+ * Convert a #rasqal_xsd_datetime struct to a xsd:dateTime lexical form string.
+ *
+ * Caller should rasqal_free_memory() the returned string.
+ *
+ * Return value: lexical form string or NULL on failure.
+ */
+unsigned char*
+rasqal_xsd_datetime_to_string(const rasqal_xsd_datetime *dt)
+{
+  return rasqal_xsd_datetime_to_counted_string(dt, NULL);
 }
 
 
