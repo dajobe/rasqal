@@ -687,10 +687,13 @@ rasqal_xsd_datetime_equals(const rasqal_xsd_datetime *dt1,
     return (dt1 && dt2);
   }
   
-  /* they should normalize identically on the same machine - memcmp
-   * should suffice */
-
-  return !memcmp(dt1, dt2, sizeof(*dt1));
+  return ((dt1->year == dt2->year) &&
+          (dt1->month == dt2->month) &&
+          (dt1->day == dt2->day) &&
+          (dt1->hour == dt2->hour) &&
+          (dt1->minute == dt2->minute) &&
+          (dt1->second == dt2->second) &&
+          (dt1->microseconds == dt2->microseconds));
 }
 
 
