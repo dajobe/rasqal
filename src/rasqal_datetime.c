@@ -718,31 +718,31 @@ rasqal_xsd_datetime_compare(const rasqal_xsd_datetime *dt1,
     return (!dt1) ? -1 : 1;
   }
   
-  rc = dt2->year - dt1->year;
+  rc = dt1->year - dt2->year;
   if(rc)
     return rc;
 
-  rc = dt2->month - dt1->month;
+  rc = dt1->month - dt2->month;
   if(rc)
     return rc;
 
-  rc = dt2->day - dt1->day;
+  rc = dt1->day - dt2->day;
   if(rc)
     return rc;
 
-  rc = dt2->hour - dt1->hour;
+  rc = dt1->hour - dt2->hour;
   if(rc)
     return rc;
 
-  rc = dt2->minute - dt1->minute;
+  rc = dt1->minute - dt2->minute;
   if(rc)
     return rc;
 
-  rc = dt2->second - dt1->second;
+  rc = dt1->second - dt2->second;
   if(rc)
     return rc;
 
-  rc = dt2->microseconds - dt1->microseconds;
+  rc = dt1->microseconds - dt2->microseconds;
 
   return rc;
 }
