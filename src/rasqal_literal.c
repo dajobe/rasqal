@@ -2126,6 +2126,8 @@ rasqal_literal_compare(rasqal_literal* l1, rasqal_literal* l2, int flags,
     case RASQAL_LITERAL_DATETIME:
       result = rasqal_xsd_datetime_compare(new_lits[0]->value.datetime,
                                            new_lits[1]->value.datetime);
+      break;
+
     case RASQAL_LITERAL_INTEGER:
     case RASQAL_LITERAL_BOOLEAN:
     case RASQAL_LITERAL_INTEGER_SUBTYPE:
