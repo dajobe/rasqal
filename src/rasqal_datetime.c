@@ -83,6 +83,16 @@ static int
 rasqal_xsd_datetime_normalize(rasqal_xsd_datetime *datetime)
 {
   int t;
+
+  if(datetime->timezone_minutes &&
+     (datetime->timezone_minutes  != RASQAL_XSD_DATETIME_NO_TZ)) {
+    /* Normalize to Zulu if there was a timezone offset */
+
+    datetime->hour   += (datetime->timezone_minutes / 60);
+    datetime->minute += (datetime->timezone_minutes % 60);
+
+    datetime->timezone_minutes = 0;
+  }
   
   /* second & second parts: no need to normalize as they are not
    * touched after range check
@@ -409,13 +419,15 @@ rasqal_xsd_datetime_parse(const char *datetime_string,
   
   /* parse & adjust timezone offset */
   /* result is normalized later */
-  result->have_tz = 0;
+  result->timezone_minutes = RASQAL_XSD_DATETIME_NO_TZ;
   if(*p) {
     if(*p == 'Z') {
       /* utc timezone - no need to adjust */
+      result->timezone_minutes = 0;
       p++;
-      result->have_tz = 1;
     } else if(*p == '+' || *p == '-') {
+      result->timezone_minutes = 0;
+
       /* work out timezone offsets */
       is_neg = *p == '-';
      
@@ -435,7 +447,7 @@ rasqal_xsd_datetime_parse(const char *datetime_string,
         return -9;
     
       /* negative tz offset adds to the result */
-      result->hour += is_neg ? t2 : -t2;
+      result->timezone_minutes += (is_neg ? t2 : -t2) * 60;
 
       /* timezone minutes */    
       for(q = ++p; ISNUM(*p); p++)
@@ -455,8 +467,7 @@ rasqal_xsd_datetime_parse(const char *datetime_string,
       }
     
       /* negative tz offset adds to the result */
-      result->minute += is_neg ? t : -t;
-      result->have_tz = 1;
+      result->timezone_minutes += is_neg ? t : -t;
     }
     
     /* failure if extra chars after the timezone part */
@@ -552,11 +563,28 @@ rasqal_xsd_datetime_to_counted_string(const rasqal_xsd_datetime *dt,
   int is_neg;
   int r = 0;
   int i;
-   
+  /* "[+-]HH:MM\0" */
+#define TIMEZONE_STRING_LEN 7
+  char timezone_string[TIMEZONE_STRING_LEN];
+  int mins;
+  
   if(!dt)
     return NULL;
     
   is_neg = dt->year < 0;
+
+  mins = abs(dt->timezone_minutes);
+  if(mins == RASQAL_XSD_DATETIME_NO_TZ)
+    timezone_string[0] = '\0';
+  else if(!mins)
+     memcpy(timezone_string, "Z", 2);
+  else {
+    int hrs = (mins / 60);
+    snprintf(timezone_string, TIMEZONE_STRING_LEN, "%c%02d:%02d", 
+             (mins != dt->timezone_minutes ? '-' : '+'),
+             hrs, mins);
+  }
+  
 
   /* format twice: first with null buffer of zero size to get the
    * required buffer size second time to the allocated buffer
@@ -579,7 +607,7 @@ rasqal_xsd_datetime_to_counted_string(const rasqal_xsd_datetime *dt,
                    dt->minute,
                    dt->second,
                    microsecs+1,
-                   dt->have_tz ? "Z" : "");
+                   timezone_string);
     } else {
       r = snprintf((char*)ret, r, "%s%04d-%2.2d-%2.2dT%2.2d:%2.2d:%2.2d%s",
                    is_neg ? "-" : "",
@@ -589,7 +617,7 @@ rasqal_xsd_datetime_to_counted_string(const rasqal_xsd_datetime *dt,
                    dt->hour,
                    dt->minute,
                    dt->second,
-                   dt->have_tz ? "Z" : "");
+                   timezone_string);
     }
     
     /* error? */

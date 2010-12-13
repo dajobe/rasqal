@@ -425,6 +425,8 @@ typedef struct rasqal_row_s rasqal_row;
 typedef struct rasqal_xsd_decimal_s rasqal_xsd_decimal;
 
 
+#define RASQAL_XSD_DATETIME_NO_TZ (9999)
+
 /**
  * rasqal_xsd_datetime:
  * @year: year
@@ -434,7 +436,7 @@ typedef struct rasqal_xsd_decimal_s rasqal_xsd_decimal;
  * @minute: minute 0-59
  * @second: second 0-60 (yes 60 is allowed for leap seconds)
  * @microseconds: microseconds
- * @have_tz: non-0 if 'Z'ulu timezone is present
+ * @timezone_minutes: minutes +/- against UTC or RASQAL_XSD_DATETIME_NO_TZ if there isno timezone in the dateTime.
  *
  * XML Schema dateTime datatype (xsd:dateTime)
  *
@@ -450,7 +452,7 @@ typedef struct {
   signed char minute;
   signed char second;
   signed int microseconds;
-  unsigned int have_tz:1;
+  signed short timezone_minutes;
 } rasqal_xsd_datetime;
 
 
