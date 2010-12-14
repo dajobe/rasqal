@@ -34,6 +34,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
+#ifdef HAVE_SYS_TIME_H
+#include <sys/time.h>
+#endif
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
 #endif
@@ -981,8 +984,146 @@ rasqal_xsd_date_check(const char* string)
 }
 
 
+#define TM_YEAR_ORIGIN 1900
+#define TM_MONTH_ORIGIN 1
+
+/**
+ * rasqal_xsd_datetime_set_from_timeval:
+ * @dt: datetime
+ * @tv: timeval
+ * 
+ * Set an XSD dateTime from a struct timeval pointer
+ * 
+ * Returns: non-0 on failure
+ **/
+int
+rasqal_xsd_datetime_set_from_timeval(rasqal_xsd_datetime *dt,
+                                     struct timeval *tv)
+{
+  struct tm* my_time;
+#ifdef HAVE_GMTIME_R
+  struct tm time_buf;
+#endif
+
+  if(!dt || !tv)
+    return 1;
+
+#ifdef HAVE_GMTIME_R
+  memset(&time_buf, '\0', sizeof(time_buf));
+  my_time = gmtime_r(&tv->tv_sec, &time_buf);
+#else
+  my_time = gmtime(&tv->tv_sec);
+#endif
+  if(!my_time)
+    return 1;
+
+  dt->year = my_time->tm_year + TM_YEAR_ORIGIN;
+  dt->month = my_time->tm_mon + TM_MONTH_ORIGIN;
+  dt->day = my_time->tm_mday;
+  dt->hour = my_time->tm_hour;
+  dt->minute = my_time->tm_min;
+  dt->second = my_time->tm_sec;
+  dt->microseconds = tv->tv_usec;
+  dt->timezone_minutes = 0; /* always Zulu time */
+
+  return 0;
+}
+
+
+/**
+ * rasqal_xsd_datetime_set_from_unixtime:
+ * @dt: date time
+ * @clock: unix time in seconds
+ * 
+ * Set an XSD dateTime from unixtime seconds
+ * 
+ * Returns: non-0 on failure
+ **/
+int
+rasqal_xsd_datetime_set_from_unixtime(rasqal_xsd_datetime* dt,
+                                      time_t secs)
+{
+  struct timeval tv;
+
+  if(!dt)
+    return 1;
+  
+  tv.tv_sec = secs;
+  tv.tv_usec = 0;
+
+  return rasqal_xsd_datetime_set_from_timeval(dt, &tv);
+}
+
+
+/**
+ * rasqal_xsd_datetime_get_as_unixtime:
+ * @dt: datetime
+ * 
+ * Get a datetime as unix seconds
+ *
+ * Returns: unix seconds or 0 if @dt is NULL
+ **/
+time_t
+rasqal_xsd_datetime_get_as_unixtime(rasqal_xsd_datetime* dt)
+{
+  struct tm time_buf;
+
+  if(!dt)
+    return 0;
+  
+  memset(&time_buf, '\0', sizeof(time_buf));
+
+  time_buf.tm_year = dt->year - TM_YEAR_ORIGIN;
+  time_buf.tm_mon  = dt->month - TM_MONTH_ORIGIN;
+  time_buf.tm_mday = dt->day;
+  time_buf.tm_hour = dt->hour;
+  time_buf.tm_min  = dt->minute;
+  time_buf.tm_sec  = dt->second;
+  if(dt->timezone_minutes == RASQAL_XSD_DATETIME_NO_TZ)
+    time_buf.tm_gmtoff = 0;
+  else
+    time_buf.tm_gmtoff = dt->timezone_minutes * 60;
+
+  return timegm(&time_buf);
+}
+
+
+/**
+ * rasqal_xsd_datetime_get_as_timeval:
+ * @dt: datetime
+ * 
+ * Get a datetime as struct timeval
+ *
+ * The returned timeval must be freed by the caller such as using
+ * rasqal_free_memory().
+ *
+ * Returns: pointer to a new timeval structure or NULL on failure
+ **/
+struct timeval*
+rasqal_xsd_datetime_get_as_timeval(rasqal_xsd_datetime *dt)
+{
+  struct timeval *tv;
+  
+  if(!dt)
+    return NULL;
+  
+  tv = RASQAL_CALLOC(timeval, 1, sizeof(*tv));
+  if(!tv)
+    return NULL;
+  
+  tv->tv_sec = rasqal_xsd_datetime_get_as_unixtime(dt);
+  tv->tv_usec = dt->microseconds;
+  
+  return tv;
+}
+
+
+
 #ifdef STANDALONE
 #include <stdio.h>
+#ifdef HAVE_SYS_TIME_H
+#include <sys/time.h>
+#endif
 
 int main(int argc, char *argv[]);
 
@@ -1279,6 +1420,36 @@ main(int argc, char *argv[])
   MYASSERT(test_date_parser_tostring("2005-01-01+13:00", "2004-12-31") == 0);
   MYASSERT(test_date_parser_tostring("2004-12-31-11:59", "2004-12-31") == 0);
   MYASSERT(test_date_parser_tostring("2005-01-01+11:59", "2005-01-01") == 0);
+
+
+  if(1) {
+    struct timeval my_tv;
+    time_t secs;
+    time_t new_secs;
+    struct timeval* new_tv;
+
+    /* 2010-12-14T06:22:36.868099Z or 2010-12-13T22:22:36.868099+0800 
+     * when I was testing this
+     */
+    my_tv.tv_sec = 1292307756;
+    my_tv.tv_usec = 868099;
+
+    secs = my_tv.tv_sec;
+    
+    MYASSERT(rasqal_xsd_datetime_set_from_timeval(&dt, &my_tv) == 0);
+
+    MYASSERT((new_tv = rasqal_xsd_datetime_get_as_timeval(&dt)));
+    MYASSERT(new_tv->tv_sec == my_tv.tv_sec);
+    MYASSERT(new_tv->tv_usec == my_tv.tv_usec);
+
+    RASQAL_FREE(timeval, new_tv);
+    
+    MYASSERT(rasqal_xsd_datetime_set_from_unixtime(&dt, secs) == 0);
+    
+    MYASSERT((new_secs = rasqal_xsd_datetime_get_as_unixtime(&dt)));
+    MYASSERT(new_secs == secs);
+  }
+  
 
   return 0;
 }

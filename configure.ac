@@ -207,8 +207,21 @@ PKGCONFIG_CFLAGS=
 
 dnl Checks for header files.
 AC_HEADER_STDC
-AC_CHECK_HEADERS(errno.h stdlib.h unistd.h string.h getopt.h regex.h sys/time.h)
+AC_CHECK_HEADERS(errno.h stdlib.h unistd.h string.h getopt.h regex.h sys/time.h time.h)
 AC_HEADER_TIME
+
+if test "$ac_cv_header_sys_time_h" = "yes"; then
+  HAVE_SYS_TIME_H=1
+else
+  HAVE_SYS_TIME_H=0
+fi
+AC_SUBST(HAVE_SYS_TIME_H)
+if test "$ac_cv_header_time_h" = "yes"; then
+  HAVE_TIME_H=1
+else
+  HAVE_TIME_H=0
+fi
+AC_SUBST(HAVE_TIME_H)
 
 
 dnl Checks for typedefs, structures, and compiler characteristics.
@@ -257,7 +270,7 @@ AC_SUBST(RASQAL_LIBTOOL_VERSION)
 
 
 dnl Checks for library functions.
-AC_CHECK_FUNCS(getopt getopt_long stricmp strcasecmp vsnprintf srandomdev)
+AC_CHECK_FUNCS(getopt getopt_long stricmp strcasecmp vsnprintf srandomdev gmtime_r)
 
 AM_CONDITIONAL(STRCASECMP, test $ac_cv_func_stricmp = no -a $ac_cv_func_strcasecmp = no)
 AM_CONDITIONAL(GETOPT, test $ac_cv_func_getopt = no -a $ac_cv_func_getopt_long = no)

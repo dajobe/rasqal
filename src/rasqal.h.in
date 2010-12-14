@@ -112,6 +112,13 @@ extern "C" {
 #include <Redland/raptor.h>
 #endif
 
+#if @HAVE_SYS_TIME_H@
+#include <sys/time.h>
+#endif
+#if @HAVE_TIME_H@
+#include <time.h>
+#endif
+
 /* Public statics */
 RASQAL_API
 extern const char * const rasqal_short_copyright_string;
@@ -1533,6 +1540,14 @@ RASQAL_API
 int rasqal_xsd_datetime_compare(const rasqal_xsd_datetime *dt1, const rasqal_xsd_datetime *dt2);
 RASQAL_API
 rasqal_xsd_decimal* rasqal_xsd_datetime_get_seconds_as_decimal(rasqal_world* world, rasqal_xsd_datetime* dt);
+RASQAL_API
+int rasqal_xsd_datetime_set_from_timeval(rasqal_xsd_datetime *dt, struct timeval *tv);
+RASQAL_API
+int rasqal_xsd_datetime_set_from_unixtime(rasqal_xsd_datetime* dt, time_t clock);
+RASQAL_API
+time_t rasqal_xsd_datetime_get_as_unixtime(rasqal_xsd_datetime* dt);
+RASQAL_API
+struct timeval* rasqal_xsd_datetime_get_as_timeval(rasqal_xsd_datetime *dt);
 
 
 /**
