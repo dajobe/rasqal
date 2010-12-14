@@ -289,6 +289,21 @@ AC_TRY_LINK([#ifdef HAVE_GETOPT_H
             AC_MSG_RESULT(yes))
 
 
+AC_MSG_CHECKING(whether struct tm has tm_gmtoff field)
+AC_TRY_COMPILE([#ifdef HAVE_TIME_H
+#include <time.h>
+#endif
+#ifdef HAVE_SYS_TIME_H
+#include <sys/time.h>
+#endif
+], [struct tm my_time; my_time.tm_gmtoff = 0;],
+    have_tm_gmtoff="yes",
+    have_tm_gmtoff="no")
+AC_MSG_RESULT($have_tm_gmtoff)
+if test $have_tm_gmtoff = "yes" ; then
+  AC_DEFINE(HAVE_TM_GMTOFF, 1, [struct tm has tm_gmtoff field])
+fi
+
 
 # raptor is REQUIRED despite the checking here
 RAPTOR_MIN_VERSION=1.4.19

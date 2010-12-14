@@ -1081,10 +1081,16 @@ rasqal_xsd_datetime_get_as_unixtime(rasqal_xsd_datetime* dt)
   time_buf.tm_hour = dt->hour;
   time_buf.tm_min  = dt->minute;
   time_buf.tm_sec  = dt->second;
+  time_buf.tm_wday = 0;
+  time_buf.tm_yday = 0;
+  time_buf.tm_isdst = -1;
+
+#ifdef HAVE_TM_GMTOFF
   if(dt->timezone_minutes == RASQAL_XSD_DATETIME_NO_TZ)
     time_buf.tm_gmtoff = 0;
   else
     time_buf.tm_gmtoff = dt->timezone_minutes * 60;
+#endif
 
   return timegm(&time_buf);
 }
