@@ -2204,6 +2204,8 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
         vars.i = l1->value.datetime->minute;
       else if(e->op == RASQAL_EXPR_SECONDS)
         vars.i = l1->value.datetime->second;
+      else
+        vars.i = 0;
 
       result = rasqal_new_integer_literal(world, RASQAL_LITERAL_INTEGER, vars.i);
       break;
