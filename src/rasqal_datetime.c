@@ -1004,15 +1004,17 @@ rasqal_xsd_datetime_set_from_timeval(rasqal_xsd_datetime *dt,
 #ifdef HAVE_GMTIME_R
   struct tm time_buf;
 #endif
+  time_t sec;
 
   if(!dt || !tv)
     return 1;
 
+  sec = (time_t)tv->tv_sec;
 #ifdef HAVE_GMTIME_R
   memset(&time_buf, '\0', sizeof(time_buf));
-  my_time = gmtime_r(&tv->tv_sec, &time_buf);
+  my_time = gmtime_r(&sec, &time_buf);
 #else
-  my_time = gmtime(&tv->tv_sec);
+  my_time = gmtime(&sec);
 #endif
   if(!my_time)
     return 1;
