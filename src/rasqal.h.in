@@ -580,13 +580,13 @@ struct rasqal_literal_s {
  * @RASQAL_EXPR_IN: Expression for LAQRS expr IN ( list of expr )
  * @RASQAL_EXPR_NOT_IN: Expression for LAQRS expr NOT IN ( list of expr ) 
  * @RASQAL_EXPR_ISNUMERIC: Expression for SPARQL 1.1 isNUMERIC(expr)
- * @RASQAL_EXPR_YEAR: Year
- * @RASQAL_EXPR_MONTH: Month
- * @RASQAL_EXPR_DAY: Day
- * @RASQAL_EXPR_HOURS: Hours
- * @RASQAL_EXPR_MINUTES: Minutes
- * @RASQAL_EXPR_SECONDS: Seconds
- * @RASQAL_EXPR_TIMEZONE: Timezone
+ * @RASQAL_EXPR_YEAR: Expression for SPARQL 1.1 YEAR(datetime)
+ * @RASQAL_EXPR_MONTH: Expression for SPARQL 1.1 MONTH(datetime)
+ * @RASQAL_EXPR_DAY: Expression for SPARQL 1.1 DAY(datetime)
+ * @RASQAL_EXPR_HOURS: Expression for SPARQL 1.1 HOURS(datetime)
+ * @RASQAL_EXPR_MINUTES: Expression for SPARQL 1.1 MINUTES(datetime)
+ * @RASQAL_EXPR_SECONDS: Expression for SPARQL 1.1 SECONDS(datetime)
+ * @RASQAL_EXPR_TIMEZONE: Expression for SPARQL 1.1 TIMEZONE(datetime)
  * @RASQAL_EXPR_UNKNOWN: Internal
  * @RASQAL_EXPR_LAST: Internal
  *
