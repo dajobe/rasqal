@@ -1391,6 +1391,9 @@ RASQAL_API
 rasqal_literal* rasqal_new_decimal_literal(rasqal_world* world, const unsigned char *string);
 RASQAL_API
 rasqal_literal* rasqal_new_decimal_literal_from_decimal(rasqal_world* world, const unsigned char *string, rasqal_xsd_decimal* decimal);
+RASQAL_API
+rasqal_literal* rasqal_new_datetime_literal_from_datetime(rasqal_world* world, rasqal_xsd_datetime* dt);
+
 
 RASQAL_API
 rasqal_literal* rasqal_new_literal_from_literal(rasqal_literal* l);

@@ -451,6 +451,62 @@ rasqal_new_numeric_literal(rasqal_world* world, rasqal_literal_type type,
 }
 
 
+/**
+ * rasqal_new_datetime_literal_from_datetime:
+ * @world: rasqal world object
+ * @dt: rasqal XSD Datetime
+ *
+ * Constructor - Create a new Rasqal datetime literal from an existing datetime.
+ * 
+ * Takes ownership of @dt
+ *
+ * Return value: New #rasqal_literal or NULL on failure
+ **/
+rasqal_literal*
+rasqal_new_datetime_literal_from_datetime(rasqal_world* world,
+                                          rasqal_xsd_datetime* dt)
+{
+  rasqal_literal* l;
+  raptor_uri *dt_uri;
+
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(dt, rasqal_xsd_datetime, NULL);
+
+  l = (rasqal_literal*)RASQAL_CALLOC(rasqal_literal, 1, sizeof(*l));
+  if(!l)
+    goto failed;
+  
+  l->valid = 1;
+  l->usage = 1;
+  l->world = world;
+  l->type = RASQAL_LITERAL_DATETIME;
+
+  dt_uri = rasqal_xsd_datatype_type_to_uri(world, l->type);
+  if(!dt_uri)
+    goto failed;
+
+  l->datatype = raptor_uri_copy(dt_uri);
+
+  l->value.datetime = dt;
+  
+  l->string = (unsigned char*)rasqal_xsd_datetime_to_counted_string(l->value.datetime,
+                                                                    (size_t*)&l->string_len);
+  if(!l->string)
+    goto failed;
+
+  return l;
+
+  failed:
+  if(l)
+    rasqal_free_literal(l);
+  if(dt)
+    rasqal_free_xsd_datetime(dt);
+
+  return NULL;
+}
+
+
+
 static int
 rasqal_literal_string_interpreted_as_boolean(const unsigned char* string) 
 {
