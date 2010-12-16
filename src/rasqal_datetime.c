@@ -514,9 +514,17 @@ rasqal_xsd_date_parse_and_normalize(const char *date_string,
 }
 
 
+/**
+ * rasqal_new_xsd_datetime:
+ * @world: world object
+ * @datetime_string: XSD Decimal string
+ *
+ * Constructor - make a new XSD decimal object from a string
+ *
+ * Return value: new datetime or NULL on failure
+ */
 rasqal_xsd_datetime*
-rasqal_new_xsd_datetime(rasqal_world* world, 
-                        const char *datetime_string)
+rasqal_new_xsd_datetime(rasqal_world* world, const char *datetime_string)
 {
   rasqal_xsd_datetime* dt;
   int rc = 0;
@@ -528,6 +536,35 @@ rasqal_new_xsd_datetime(rasqal_world* world,
   rc = rasqal_xsd_datetime_parse(datetime_string, dt, 1);
   if(!rc)
     rc = rasqal_xsd_datetime_normalize(dt);
+
+  if(rc) {
+    rasqal_free_xsd_datetime(dt); dt = NULL;
+  }
+
+  return dt;
+}
+
+
+/**
+ * rasqal_new_xsd_datetime_from_unixtime:
+ * @world: world object
+ * @secs: unixtime
+ *
+ * Constructor - make a new XSD decimal object from unixtime seconds
+ *
+ * Return value: new datetime or NULL on failure
+ */
+rasqal_xsd_datetime*
+rasqal_new_xsd_datetime_from_unixtime(rasqal_world* world, time_t secs)
+{
+  rasqal_xsd_datetime* dt;
+  int rc = 0;
+  
+  dt = (rasqal_xsd_datetime*)RASQAL_MALLOC(datetime, sizeof(*dt));
+  if(!dt)
+    return NULL;
+
+  rc = rasqal_xsd_datetime_set_from_unixtime(dt, secs);
 
   if(rc) {
     rasqal_free_xsd_datetime(dt); dt = NULL;
