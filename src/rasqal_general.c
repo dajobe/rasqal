@@ -1035,6 +1035,52 @@ rasqal_world_generate_bnodeid(rasqal_world* world,
 
 
 /**
+ * rasqal_world_reset_now:
+ * @world: world
+ *
+ * Internal - Mark current now value as invalid
+ *
+ * Intended to be run before starting a query so that the
+ * value is recalculated.
+ *
+ * Return value: non-0 on failure
+ */
+int
+rasqal_world_reset_now(rasqal_world* world)
+{
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, 1);
+
+  world->now_set = 0;
+
+  return 0;
+}
+
+
+/**
+ * rasqal_world_get_now_timeval:
+ * @world: world
+ *
+ * Internal - Get current now timeval
+ *
+ * Return value: pointer to timeval or NULL on failure
+ */
+struct timeval*
+rasqal_world_get_now_timeval(rasqal_world* world)
+{
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
+
+  if(!world->now_set) {
+    if(gettimeofday(&world->now, NULL))
+      return NULL;
+    
+    world->now_set = 1;
+  }
+
+  return &world->now;
+}
+
+
+/**
  * rasqal_free_memory:
  * @ptr: memory pointer
  *

@@ -967,6 +967,8 @@ int rasqal_xsd_date_check(const char* string);
 /* rasqal_general.c */
 char* rasqal_vsnprintf(const char* message, va_list arguments);
 unsigned char* rasqal_world_generate_bnodeid(rasqal_world* world, unsigned char *user_bnodeid);
+int rasqal_world_reset_now(rasqal_world* world);
+struct timeval* rasqal_world_get_now_timeval(rasqal_world* world);
 
 rasqal_query_language_factory* rasqal_query_language_register_factory(rasqal_world *world, int (*factory) (rasqal_query_language_factory*));
 rasqal_query_language_factory* rasqal_get_query_language_factory (rasqal_world*, const char* name, const unsigned char* uri);
@@ -1266,6 +1268,11 @@ struct rasqal_world_s {
 
   void *generate_bnodeid_handler_user_data;
   rasqal_generate_bnodeid_handler2 generate_bnodeid_handler;
+
+  /* used for NOW() value */
+  struct timeval now;
+  /* set when now is a cached value */
+  unsigned int now_set : 1;
 };
 
 
