@@ -2366,7 +2366,11 @@ static const char* const rasqal_op_labels[RASQAL_EXPR_LAST+1]={
   "hours",
   "minutes",
   "seconds",
-  "timezone"
+  "timezone",
+  "current_datetime",
+  "now",
+  "from_unixtime",
+  "to_unixtime"
 };
 
 
@@ -2444,6 +2448,13 @@ rasqal_expression_write(rasqal_expression* e, raptor_iostream* iostr)
 
   raptor_iostream_counted_string_write("expr(", 5, iostr);
   switch(e->op) {
+    case RASQAL_EXPR_CURRENT_DATETIME:
+    case RASQAL_EXPR_NOW:
+      raptor_iostream_counted_string_write("op ", 3, iostr);
+      rasqal_expression_write_op(e, iostr);
+      raptor_iostream_counted_string_write("()", 2, iostr);
+      break;
+
     case RASQAL_EXPR_AND:
     case RASQAL_EXPR_OR:
     case RASQAL_EXPR_EQ:
@@ -2519,8 +2530,6 @@ rasqal_expression_write(rasqal_expression* e, raptor_iostream* iostr)
     case RASQAL_EXPR_MINUTES:
     case RASQAL_EXPR_SECONDS:
     case RASQAL_EXPR_TIMEZONE:
-    case RASQAL_EXPR_CURRENT_DATETIME:
-    case RASQAL_EXPR_NOW:
     case RASQAL_EXPR_FROM_UNIXTIME:
     case RASQAL_EXPR_TO_UNIXTIME:
       raptor_iostream_counted_string_write("op ", 3, iostr);
