@@ -574,6 +574,35 @@ rasqal_new_xsd_datetime_from_unixtime(rasqal_world* world, time_t secs)
 }
 
 
+/**
+ * rasqal_new_xsd_datetime_from_timeval:
+ * @world: world object
+ * @tv: pointer to struct timeval
+ *
+ * Constructor - make a new XSD decimal object from a timeval
+ *
+ * Return value: new datetime or NULL on failure
+ */
+rasqal_xsd_datetime*
+rasqal_new_xsd_datetime_from_timeval(rasqal_world* world, struct timeval *tv)
+{
+  rasqal_xsd_datetime* dt;
+  int rc = 0;
+  
+  dt = (rasqal_xsd_datetime*)RASQAL_MALLOC(datetime, sizeof(*dt));
+  if(!dt)
+    return NULL;
+
+  rc = rasqal_xsd_datetime_set_from_timeval(dt, tv);
+
+  if(rc) {
+    rasqal_free_xsd_datetime(dt); dt = NULL;
+  }
+
+  return dt;
+}
+
+
 void
 rasqal_free_xsd_datetime(rasqal_xsd_datetime* dt)
 {
