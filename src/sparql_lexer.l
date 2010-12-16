@@ -399,6 +399,10 @@ EXPONENT [eE][+-]?[0-9]+
 [Mm][Ii][Nn][Uu][Tt][Ee][Ss] { return MINUTES; }
 [Ss][Ee][Cc][Oo][Nn][Dd][Ss] { return SECONDS; }
 [Tt][Ii][Mm][Ee][Zz][Oo][Nn][Ee] { return TIMEZONE; }
+[Cc][Uu][Rr][Rr][Ee][Nn][Tt][__][Dd][Aa][Tt][Ee][Tt][Ii][Mm][Ee] { return CURRENT_DATETIME; }
+[Nn][Oo][Ww] { return NOW; }
+[Ff][Rr][Oo][Mm][__][Uu][Nn][Ii][Xx][Tt][Ii][Mm][Ee] { return FROM_UNIXTIME; }
+[Tt][Oo][__][Uu][Nn][Ii][Xx][Tt][Ii][Mm][Ee] { return TO_UNIXTIME; }
 
 "a" { return A; }
 
@@ -1567,6 +1571,18 @@ sparql_token_print(rasqal_world* world, int token, YYSTYPE *lval)
 
     case TIMEZONE:
       return "TIMEZONE";
+
+    case CURRENT_DATETIME:
+      return "CURRENT_DATETIME";
+
+    case NOW:
+      return "NOW";
+
+    case FROM_UNIXTIME:
+      return "FROM_UNIXTIME";
+
+    case TO_UNIXTIME:
+      return "TO_UNIXTIME";
 
     case INTEGER_LITERAL:
     case INTEGER_POSITIVE_LITERAL:

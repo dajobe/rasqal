@@ -176,6 +176,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
 %token YEAR MONTH DAY HOURS MINUTES SECONDS TIMEZONE
 /* LAQRS */
 %token EXPLAIN LET
+%token CURRENT_DATETIME NOW FROM_UNIXTIME TO_UNIXTIME
 
 /* expression delimiters */
 
@@ -262,7 +263,8 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
 %type <expr> Expression ConditionalOrExpression ConditionalAndExpression
 %type <expr> RelationalExpression AdditiveExpression
 %type <expr> MultiplicativeExpression UnaryExpression
-%type <expr> BuiltInCall RegexExpression FunctionCall DatetimeBuiltinAccessors
+%type <expr> BuiltInCall RegexExpression FunctionCall
+%type <expr> DatetimeBuiltinAccessors DatetimeExtensions
 %type <expr> BrackettedExpression PrimaryExpression
 %type <expr> OrderCondition GroupCondition
 %type <expr> Filter Constraint HavingCondition
@@ -373,7 +375,8 @@ ModifyTemplate GraphTemplate
 Expression ConditionalOrExpression ConditionalAndExpression
 RelationalExpression AdditiveExpression
 MultiplicativeExpression UnaryExpression
-BuiltInCall RegexExpression FunctionCall DatetimeBuiltinAccessors
+BuiltInCall RegexExpression FunctionCall
+DatetimeBuiltinAccessors DatetimeExtensions
 BrackettedExpression PrimaryExpression
 OrderCondition GroupCondition
 Filter Constraint HavingCondition
@@ -4419,6 +4422,10 @@ BuiltInCall: STR '(' Expression ')'
 {
   $$ = $1;
 }
+| DatetimeExtensions
+{
+  $$ = $1;
+}
 ;
 
 
@@ -4493,6 +4500,64 @@ DatetimeBuiltinAccessors: YEAR '(' Expression ')'
 ;
 
 
+/* LAQRS */
+DatetimeExtensions: CURRENT_DATETIME '(' ')'
+{
+  rasqal_sparql_query_language* sparql;
+  sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
+
+  if(sparql->experimental) {
+    $$ = rasqal_new_0op_expression(((rasqal_query*)rq)->world,
+                                   RASQAL_EXPR_CURRENT_DATETIME);
+    if(!$$)
+      YYERROR_MSG("DatetimeExtensions: cannot create CURRENT_DATETIME() expr");
+  } else
+    sparql_syntax_error((rasqal_query*)rq, 
+                        "CURRENT_DATETIME() can only used with LAQRS");
+}
+| NOW '(' ')'
+{
+  rasqal_sparql_query_language* sparql;
+  sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
+  
+  if(sparql->experimental) {
+    $$ = rasqal_new_0op_expression(((rasqal_query*)rq)->world,
+                                   RASQAL_EXPR_NOW);
+    if(!$$)
+      YYERROR_MSG("DatetimeExtensions: cannot create NOW()");
+  } else
+    sparql_syntax_error((rasqal_query*)rq, 
+                        "NOW() can only used with LAQRS");
+}
+| FROM_UNIXTIME '(' Expression ')'
+{
+  rasqal_sparql_query_language* sparql;
+  sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
+
+  if(sparql->experimental) {
+    $$ = rasqal_new_1op_expression(((rasqal_query*)rq)->world,
+                                   RASQAL_EXPR_FROM_UNIXTIME, $3);
+    if(!$$)
+      YYERROR_MSG("DatetimeExtensions: cannot create FROM_UNIXTIME() expr");
+  } else
+    sparql_syntax_error((rasqal_query*)rq, 
+                        "FROM_UNIXTIME() can only used with LAQRS");
+}
+| TO_UNIXTIME '(' Expression ')'
+{
+  rasqal_sparql_query_language* sparql;
+  sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
+
+  if(sparql->experimental) {
+    $$ = rasqal_new_1op_expression(((rasqal_query*)rq)->world,
+                                   RASQAL_EXPR_TO_UNIXTIME, $3);
+    if(!$$)
+      YYERROR_MSG("DatetimeExtensions: cannot create TO_UNIXTIME() expr");
+  } else
+    sparql_syntax_error((rasqal_query*)rq, 
+                        "TO_UNIXTIME() can only used with LAQRS");
+}
+;
 
 /* SPARQL Grammar: IRIrefOrFunction - not necessary in this
    grammar as the IRIref ambiguity is determined in lexer with the

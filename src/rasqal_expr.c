@@ -617,6 +617,10 @@ rasqal_expression_clear(rasqal_expression* e)
   RASQAL_ASSERT_OBJECT_POINTER_RETURN(e, rasqal_expression);
 
   switch(e->op) {
+    case RASQAL_EXPR_CURRENT_DATETIME:
+    case RASQAL_EXPR_NOW:
+      break;
+      
     case RASQAL_EXPR_AND:
     case RASQAL_EXPR_OR:
     case RASQAL_EXPR_EQ:
@@ -677,6 +681,8 @@ rasqal_expression_clear(rasqal_expression* e)
     case RASQAL_EXPR_MINUTES:
     case RASQAL_EXPR_SECONDS:
     case RASQAL_EXPR_TIMEZONE:
+    case RASQAL_EXPR_FROM_UNIXTIME:
+    case RASQAL_EXPR_TO_UNIXTIME:
       /* arg1 is optional for RASQAL_EXPR_BNODE */
       if(e->arg1)
         rasqal_free_expression(e->arg1);
@@ -793,6 +799,11 @@ rasqal_expression_visit(rasqal_expression* e,
     return result;
 
   switch(e->op) {
+    case RASQAL_EXPR_CURRENT_DATETIME:
+    case RASQAL_EXPR_NOW:
+      return 0;
+      break;
+
     case RASQAL_EXPR_AND:
     case RASQAL_EXPR_OR:
     case RASQAL_EXPR_EQ:
@@ -853,6 +864,8 @@ rasqal_expression_visit(rasqal_expression* e,
     case RASQAL_EXPR_MINUTES:
     case RASQAL_EXPR_SECONDS:
     case RASQAL_EXPR_TIMEZONE:
+    case RASQAL_EXPR_FROM_UNIXTIME:
+    case RASQAL_EXPR_TO_UNIXTIME:
       /* arg1 is optional for RASQAL_EXPR_BNODE */
       return (e->arg1) ? rasqal_expression_visit(e->arg1, fn, user_data) : 1;
       break;
@@ -1179,6 +1192,8 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
     rasqal_variable *v;
     rasqal_expression *e;
     struct { void *dummy_do_not_mask; int found; } flags;
+    rasqal_xsd_datetime* dt;
+    struct timeval *tv;
   } vars;
   int i; /* for looping */
 
@@ -2210,6 +2225,54 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
       result = rasqal_new_integer_literal(world, RASQAL_LITERAL_INTEGER, vars.i);
       break;
 
+    case RASQAL_EXPR_CURRENT_DATETIME:
+    case RASQAL_EXPR_NOW:
+      /* no args and implement same functionality */
+      vars.tv = rasqal_world_get_now_timeval(world);
+      if(!vars.tv)
+        goto failed;
+      
+      vars.dt = rasqal_new_xsd_datetime_from_timeval(world, vars.tv);
+      if(!vars.dt)
+        goto failed;
+      
+      result = rasqal_new_datetime_literal_from_datetime(world, vars.dt);
+      break;
+
+    case RASQAL_EXPR_TO_UNIXTIME:
+      l1 = rasqal_expression_evaluate(world, locator, e->arg1, flags);
+      if(!l1)
+        goto failed;
+
+      if(l1->type != RASQAL_LITERAL_DATETIME)
+        goto failed;
+
+      vars.i = rasqal_xsd_datetime_get_as_unixtime(l1->value.datetime);
+      rasqal_free_literal(l1);
+      if(!vars.i)
+        goto failed;
+
+      result = rasqal_new_integer_literal(world, RASQAL_LITERAL_INTEGER,
+                                          vars.i);
+      break;
+
+    case RASQAL_EXPR_FROM_UNIXTIME:
+      l1 = rasqal_expression_evaluate(world, locator, e->arg1, flags);
+      if(!l1)
+        goto failed;
+
+      vars.i = rasqal_literal_as_integer(l1, &errs.e);
+      rasqal_free_literal(l1);
+      if(errs.e)
+        goto failed;
+
+      vars.dt = rasqal_new_xsd_datetime_from_unixtime(world, vars.i);
+      if(!vars.dt)
+        goto failed;
+
+      result = rasqal_new_datetime_literal_from_datetime(world, vars.dt);
+      break;
+
     case RASQAL_EXPR_UNKNOWN:
     default:
       RASQAL_FATAL2("Unknown operation %d", e->op);
@@ -2456,6 +2519,10 @@ rasqal_expression_write(rasqal_expression* e, raptor_iostream* iostr)
     case RASQAL_EXPR_MINUTES:
     case RASQAL_EXPR_SECONDS:
     case RASQAL_EXPR_TIMEZONE:
+    case RASQAL_EXPR_CURRENT_DATETIME:
+    case RASQAL_EXPR_NOW:
+    case RASQAL_EXPR_FROM_UNIXTIME:
+    case RASQAL_EXPR_TO_UNIXTIME:
       raptor_iostream_counted_string_write("op ", 3, iostr);
       rasqal_expression_write_op(e, iostr);
       raptor_iostream_write_byte('(', iostr);
@@ -2645,6 +2712,10 @@ rasqal_expression_print(rasqal_expression* e, FILE* fh)
     case RASQAL_EXPR_MINUTES:
     case RASQAL_EXPR_SECONDS:
     case RASQAL_EXPR_TIMEZONE:
+    case RASQAL_EXPR_CURRENT_DATETIME:
+    case RASQAL_EXPR_NOW:
+    case RASQAL_EXPR_FROM_UNIXTIME:
+    case RASQAL_EXPR_TO_UNIXTIME:
       fputs("op ", fh);
       rasqal_expression_print_op(e, fh);
       fputc('(', fh);
@@ -2747,6 +2818,15 @@ rasqal_expression_is_constant(rasqal_expression* e)
   int result = 0;
   
   switch(e->op) {
+    case RASQAL_EXPR_CURRENT_DATETIME:
+    case RASQAL_EXPR_NOW:
+      /* Constant - set once at the first execution of the expression in
+       * a query execution after rasqal_world_reset_now() removes any
+       * existing value.
+       */
+      result = 1;
+      break;
+      
     case RASQAL_EXPR_AND:
     case RASQAL_EXPR_OR:
     case RASQAL_EXPR_EQ:
@@ -2811,6 +2891,8 @@ rasqal_expression_is_constant(rasqal_expression* e)
     case RASQAL_EXPR_MINUTES:
     case RASQAL_EXPR_SECONDS:
     case RASQAL_EXPR_TIMEZONE:
+    case RASQAL_EXPR_FROM_UNIXTIME:
+    case RASQAL_EXPR_TO_UNIXTIME:
       /* arg1 is optional for RASQAL_EXPR_BNODE and result is always constant */
       result = (e->arg1) ? rasqal_expression_is_constant(e->arg1) : 1;
       break;
@@ -3151,6 +3233,8 @@ rasqal_expression_compare(rasqal_expression* e1, rasqal_expression* e2,
     case RASQAL_EXPR_MINUTES:
     case RASQAL_EXPR_SECONDS:
     case RASQAL_EXPR_TIMEZONE:
+    case RASQAL_EXPR_FROM_UNIXTIME:
+    case RASQAL_EXPR_TO_UNIXTIME:
       /* arg1 is optional for RASQAL_EXPR_BNODE */
       rc = rasqal_expression_compare(e1->arg1, e2->arg1, flags, error_p);
       break;
@@ -3187,6 +3271,8 @@ rasqal_expression_compare(rasqal_expression* e1, rasqal_expression* e2,
       break;
 
     case RASQAL_EXPR_VARSTAR:
+    case RASQAL_EXPR_CURRENT_DATETIME:
+    case RASQAL_EXPR_NOW:
       /* 0-args: always equal */
       rc = 0;
       break;

@@ -304,6 +304,9 @@ rasqal_query_results_execute_with_engine(rasqal_query* query,
   } else
     query_results->execution_data = NULL;
 
+  /* Update the current datetime once per query execution */
+  rasqal_world_reset_now(query->world);
+  
   if(query_results->execution_factory->execute_init) {
     rasqal_engine_error execution_error = RASQAL_ENGINE_OK;
     int execution_flags = 0;
