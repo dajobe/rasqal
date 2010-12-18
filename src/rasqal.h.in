@@ -591,6 +591,7 @@ struct rasqal_literal_s {
  * @RASQAL_EXPR_NOW: Expression for LAQRS NOW()
  * @RASQAL_EXPR_FROM_UNIXTIME: Expression for LAQRS FROM_UNIXTIME()
  * @RASQAL_EXPR_TO_UNIXTIME: Expression for LAQRS TO_UNIXTIME()
+ * @RASQAL_EXPR_CONCAT: Expression for SPARQL 1.1 CONCAT()
  * @RASQAL_EXPR_UNKNOWN: Internal
  * @RASQAL_EXPR_LAST: Internal
  *
@@ -667,8 +668,9 @@ typedef enum {
   RASQAL_EXPR_NOW,
   RASQAL_EXPR_FROM_UNIXTIME,
   RASQAL_EXPR_TO_UNIXTIME,
+  RASQAL_EXPR_CONCAT,
   /* internal */
-  RASQAL_EXPR_LAST = RASQAL_EXPR_TO_UNIXTIME
+  RASQAL_EXPR_LAST = RASQAL_EXPR_CONCAT
 } rasqal_op;
 
 
@@ -1337,6 +1339,8 @@ RASQAL_API
 rasqal_expression* rasqal_new_aggregate_function_expression(rasqal_world* world, rasqal_op op, rasqal_expression* arg1, raptor_sequence* params, unsigned int flags);
 RASQAL_API
 rasqal_expression* rasqal_new_cast_expression(rasqal_world* world, raptor_uri* name, rasqal_expression *value);
+RASQAL_API
+rasqal_expression* rasqal_new_expr_seq_expression(rasqal_world* world, rasqal_op op, raptor_sequence* args);
 RASQAL_API
 rasqal_expression* rasqal_new_coalesce_expression(rasqal_world* world, raptor_sequence* args);
 RASQAL_API

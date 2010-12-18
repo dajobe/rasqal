@@ -479,18 +479,21 @@ rasqal_new_cast_expression(rasqal_world* world, raptor_uri* name,
 
 
 /**
- * rasqal_new_coalesce_expression:
+ * rasqal_new_expr_seq_expression:
  * @world: rasqal_world object
+ * @type: expression type
  * @args: sequence of #rasqal_expression coalesce arguments
  * 
- * Constructor - create a new COALESCE() with expression arguments.
+ * Constructor - create a new expression with a sequence of expression arguments.
  *
  * Takes ownership of the @args
  * 
  * Return value: a new #rasqal_expression object or NULL on failure
  **/
 rasqal_expression*
-rasqal_new_coalesce_expression(rasqal_world* world, raptor_sequence* args)
+rasqal_new_expr_seq_expression(rasqal_world* world,
+                               rasqal_op op,
+                               raptor_sequence* args)
 {
   rasqal_expression* e = NULL;
 
@@ -501,7 +504,7 @@ rasqal_new_coalesce_expression(rasqal_world* world, raptor_sequence* args)
   if(e) {
     e->usage = 1;
     e->world = world;
-    e->op = RASQAL_EXPR_COALESCE;
+    e->op = op;
     e->args = args; args = NULL;
   }
   
@@ -510,6 +513,26 @@ rasqal_new_coalesce_expression(rasqal_world* world, raptor_sequence* args)
     raptor_free_sequence(args);
 
   return e;
+}
+
+
+/**
+ * rasqal_new_coalesce_expression:
+ * @world: rasqal_world object
+ * @args: sequence of #rasqal_expression coalesce arguments
+ * 
+ * Constructor - create a new COALESCE() with expression arguments.
+ *
+ * Takes ownership of the @args
+ * 
+ * @Deprecated: use rasqal_new_expr_seq_expression() with op arg.
+ *
+ * Return value: a new #rasqal_expression object or NULL on failure
+ **/
+rasqal_expression*
+rasqal_new_coalesce_expression(rasqal_world* world, raptor_sequence* args)
+{
+  return rasqal_new_expr_seq_expression(world, RASQAL_EXPR_COALESCE, args);
 }
 
 
@@ -713,6 +736,7 @@ rasqal_expression_clear(rasqal_expression* e)
       break;
       
     case RASQAL_EXPR_COALESCE:
+    case RASQAL_EXPR_CONCAT:
       raptor_free_sequence(e->args);
       break;
 
@@ -875,9 +899,11 @@ rasqal_expression_visit(rasqal_expression* e,
       break;
     case RASQAL_EXPR_LITERAL:
       return 0;
+
     case RASQAL_EXPR_FUNCTION:
     case RASQAL_EXPR_COALESCE:
     case RASQAL_EXPR_GROUP_CONCAT:
+    case RASQAL_EXPR_CONCAT:
       for(i = 0; i < raptor_sequence_size(e->args); i++) {
         rasqal_expression* e2;
         e2 = (rasqal_expression*)raptor_sequence_get_at(e->args, i);
@@ -1194,6 +1220,7 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
     struct { void *dummy_do_not_mask; int found; } flags;
     rasqal_xsd_datetime* dt;
     struct timeval *tv;
+    raptor_stringbuffer* sb;
   } vars;
   int i; /* for looping */
 
@@ -1910,6 +1937,59 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
       result=rasqal_new_boolean_literal(world, vars.b);
       break;
       
+    case RASQAL_EXPR_CONCAT:
+      vars.sb = raptor_new_stringbuffer();
+
+      for(i = 0; i < raptor_sequence_size(e->args); i++) {
+        rasqal_expression *e2; /* do not use vars.e - unioned with vars.sb */
+        e2 = (rasqal_expression*)raptor_sequence_get_at(e->args, i);
+        if(!e2)
+          break;
+        
+        l1 = rasqal_expression_evaluate(world, locator, e2, flags);
+        s = NULL;
+        if(l1)
+          /* FIXME - check that altering the flags this way to allow
+           * concat of URIs is OK 
+           */
+          s = rasqal_literal_as_string_flags(l1, 
+                                             flags & ~RASQAL_COMPARE_XQUERY, 
+                                             &errs.e);
+
+        if(!s || errs.e) {
+          raptor_free_stringbuffer(vars.sb);
+          goto failed;
+        }
+
+        raptor_stringbuffer_append_string(vars.sb, s, 1); 
+      }
+
+      if(1) {
+        size_t len;
+        unsigned char* s2;
+        
+        len = raptor_stringbuffer_length(vars.sb);
+        s2 = (unsigned char*)RASQAL_MALLOC(cstring, len + 1);
+        if(!s2) {
+          raptor_free_stringbuffer(vars.sb);
+          goto failed;
+        }
+        
+        if(raptor_stringbuffer_copy_to_string(vars.sb, s2, len)) {
+          RASQAL_FREE(cstring, s2);
+          raptor_free_stringbuffer(vars.sb);
+          goto failed;
+        }
+        
+        raptor_free_stringbuffer(vars.sb);
+
+        /* s2 becomes owned by result */
+        result = rasqal_new_string_literal(world, s2, NULL, NULL, NULL);
+      }
+      
+      break;
+
+
     case RASQAL_EXPR_COALESCE:
       for(i = 0; i < raptor_sequence_size(e->args); i++) {
         vars.e = (rasqal_expression*)raptor_sequence_get_at(e->args, i);
@@ -2370,7 +2450,8 @@ static const char* const rasqal_op_labels[RASQAL_EXPR_LAST+1]={
   "current_datetime",
   "now",
   "from_unixtime",
-  "to_unixtime"
+  "to_unixtime",
+  "concat"
 };
 
 
@@ -2572,7 +2653,9 @@ rasqal_expression_write(rasqal_expression* e, raptor_iostream* iostr)
       break;
       
     case RASQAL_EXPR_COALESCE:
-      raptor_iostream_counted_string_write("coalesce(", 9, iostr);
+    case RASQAL_EXPR_CONCAT:
+      rasqal_expression_write_op(e, iostr);
+      raptor_iostream_write_byte('(', iostr);
       for(i = 0; i < raptor_sequence_size(e->args); i++) {
         rasqal_expression* e2;
         if(i > 0)
@@ -2759,7 +2842,9 @@ rasqal_expression_print(rasqal_expression* e, FILE* fh)
       break;
       
     case RASQAL_EXPR_COALESCE:
-      fputs("coalesce(", fh);
+    case RASQAL_EXPR_CONCAT:
+      rasqal_expression_print_op(e, fh);
+      fputc('(', fh);
       raptor_sequence_print(e->args, fh);
       fputc(')', fh);
       break;
@@ -2913,6 +2998,7 @@ rasqal_expression_is_constant(rasqal_expression* e)
     case RASQAL_EXPR_FUNCTION:
     case RASQAL_EXPR_COALESCE:
     case RASQAL_EXPR_GROUP_CONCAT:
+    case RASQAL_EXPR_CONCAT:
       result = 1;
       for(i = 0; i < raptor_sequence_size(e->args); i++) {
         rasqal_expression* e2;
@@ -3254,6 +3340,7 @@ rasqal_expression_compare(rasqal_expression* e1, rasqal_expression* e2,
 
     case RASQAL_EXPR_FUNCTION:
     case RASQAL_EXPR_COALESCE:
+    case RASQAL_EXPR_CONCAT:
       diff = raptor_sequence_size(e2->args) - raptor_sequence_size(e1->args);
       if(diff)
         return diff;

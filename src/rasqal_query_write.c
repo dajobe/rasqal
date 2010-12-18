@@ -279,7 +279,8 @@ static const char* const rasqal_sparql_op_labels[RASQAL_EXPR_LAST+1] = {
   "CURRENT_DATETIME",
   "NOW",
   "FROM_UNIXTIME",
-  "TO_UNIXTIME"
+  "TO_UNIXTIME",
+  "CONCAT"
 };
 
 
@@ -436,7 +437,9 @@ rasqal_query_write_sparql_expression(sparql_writer_context *wc,
       break;
       
     case RASQAL_EXPR_COALESCE:
-      raptor_iostream_counted_string_write("COALESCE( ", 10, iostr);
+    case RASQAL_EXPR_CONCAT:
+      rasqal_query_write_sparql_expression_op(wc, iostr, e);
+      raptor_iostream_counted_string_write("( ", 2, iostr);
       count = raptor_sequence_size(e->args);
       for(i = 0; i < count ; i++) {
         rasqal_expression* e2;

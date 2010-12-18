@@ -403,6 +403,7 @@ EXPONENT [eE][+-]?[0-9]+
 [Nn][Oo][Ww] { return NOW; }
 [Ff][Rr][Oo][Mm][__][Uu][Nn][Ii][Xx][Tt][Ii][Mm][Ee] { return FROM_UNIXTIME; }
 [Tt][Oo][__][Uu][Nn][Ii][Xx][Tt][Ii][Mm][Ee] { return TO_UNIXTIME; }
+[Cc][Oo][Nn][Cc][Aa][Tt] { return CONCAT; }
 
 "a" { return A; }
 
@@ -1583,6 +1584,9 @@ sparql_token_print(rasqal_world* world, int token, YYSTYPE *lval)
 
     case TO_UNIXTIME:
       return "TO_UNIXTIME";
+
+    case CONCAT:
+      return "CONCAT";
 
     case INTEGER_LITERAL:
     case INTEGER_POSITIVE_LITERAL:

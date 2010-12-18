@@ -174,6 +174,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
 %token NOT IN
 %token BINDINGS UNDEF SERVICE MINUS
 %token YEAR MONTH DAY HOURS MINUTES SECONDS TIMEZONE
+%token CONCAT
 /* LAQRS */
 %token EXPLAIN LET
 %token CURRENT_DATETIME NOW FROM_UNIXTIME TO_UNIXTIME
@@ -3103,14 +3104,15 @@ CoalesceExpression: COALESCE ArgList
       YYERROR_MSG("FunctionCall: cannot create sequence");
   }
 
-  $$ = rasqal_new_coalesce_expression(((rasqal_query*)rq)->world, $2);
+  $$ = rasqal_new_expr_seq_expression(((rasqal_query*)rq)->world, 
+                                      RASQAL_EXPR_COALESCE, $2);
   if(!$$)
     YYERROR_MSG("Coalesce: cannot create expr");
 }
 ;
 
 
-/* SPARQL Grammar: ArgList */
+/* SPARQL Grammar: ArgList - FIXME: add optional DISTINCT */
 ArgList: '(' ArgListNoBraces ')'
 {
   $$ = $2;
@@ -4353,6 +4355,13 @@ BuiltInCall: STR '(' Expression ')'
                                  RASQAL_EXPR_BNODE, NULL);
   if(!$$)
     YYERROR_MSG("BuiltInCall 7d: cannot create expr");
+}
+| CONCAT '(' ExpressionList ')'
+{
+  $$ = rasqal_new_expr_seq_expression(((rasqal_query*)rq)->world, 
+                                      RASQAL_EXPR_CONCAT, $3);
+  if(!$$)
+    YYERROR_MSG("BuiltInCall 7d2: cannot create expr");
 }
 | CoalesceExpression
 {
