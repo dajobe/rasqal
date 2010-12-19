@@ -55,6 +55,7 @@ my $mf='http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#';
 my $mfx='http://jena.hpl.hp.com/2005/05/test-manifest-extra#';
 my $qt='http://www.w3.org/2001/sw/DataAccess/tests/test-query#';
 my $dawgt='http://www.w3.org/2001/sw/DataAccess/tests/test-dawg#';
+my $ut='http://www.w3.org/2009/sparql/tests/test-update#';
 
 my $program=basename $0;
 my $debug=0;
@@ -630,13 +631,29 @@ while($list_node) {
   my $expect_fail=0;
   my $execute=1;
 
+  if($query_type eq "<${ut}UpdateEvaluationTest>") {
+    warn "Skipping query type $query_type - not supported\n"
+      if $debug > 1;
+    goto next_list_node;
+  }
+
+  my $lang = 'sparql';
+
   if($query_type && ($query_type eq "<${mf}PositiveSyntaxTest>" ||
-                    $query_type eq "<${mfx}TestSyntax>" ||
-                    $query_type eq "<${mf}NegativeSyntaxTest>" ||
-                    $query_type eq "<${mfx}TestBadSyntax>")) {
+		     $query_type eq "<${mf}PositiveSyntaxTest11>" ||
+		     $query_type eq "<${mf}PositiveUpdateSyntaxTest11>" ||
+		     $query_type eq "<${mfx}TestSyntax>" ||
+		     $query_type eq "<${mf}NegativeSyntaxTest>" ||
+		     $query_type eq "<${mf}NegativeSyntaxTest11>" ||
+		     $query_type eq "<${mf}NegativeUpdateSyntaxTest11>" ||
+		     $query_type eq "<${mfx}TestBadSyntax>")) {
+
+    $lang = 'sparql11' if $query_type =~ /Test11>$/;
+
     $query_node=$action_node;
     $execute=0; # Syntax checks do not need execution, just parsing
     $expect_fail=1 if
+      $query_type =~ /^<${mf}Negative/ ||
       $query_type eq "<${mf}NegativeSyntaxTest>" ||
       $query_type eq "<${mfx}TestBadSyntax>";
   } else {
@@ -686,7 +703,8 @@ while($list_node) {
 		  expect_fail => $expect_fail,
 		  test_type => $test_type,
 		  test_uri => $test_uri,
-		  execute => $execute
+		  execute => $execute,
+		  language => $lang
 	 } );
 
     last if $unique_test;
