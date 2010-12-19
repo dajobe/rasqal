@@ -727,15 +727,7 @@ if($earl_report_file) {
   my $rasqal_version=`$roqet -v`;
   my(@t)=gmtime;
   my $rasqal_date=sprintf("%04d-%02d-%02d", 1900+$t[5], 1+$t[4], $t[3]);
-  chomp $rasqal_version;
-  if(open(PIPE, "svn info . |")) {
-    while(<PIPE>) {
-      if(/^Revision:\s*(\d+)/) {
-	$rasqal_version .= " SVN r$1";
-      }
-    }
-    close(PIPE);
-  }
+  my $git_head = `git show-ref -h -s HEAD | head -1`;
   open(OUT, ">>$earl_report_file") 
     or die "Cannot write to $earl_report_file - $!\n";
   print OUT <<"EOT"
@@ -753,7 +745,7 @@ if($earl_report_file) {
      doap:release
        [ a doap:Version;
          doap:created "$rasqal_date"^^xsd:date ;
-         doap:name "rasqal ${rasqal_version}"].
+         doap:name "rasqal GIT ${git_head}"].
 EOT
     if $is_new;
 
