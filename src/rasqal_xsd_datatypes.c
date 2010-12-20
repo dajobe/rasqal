@@ -368,8 +368,8 @@ rasqal_xsd_format_double(double d, size_t *len_p)
   if(buf[trailing_zero_start-1] == '.')
     ++trailing_zero_start;
 
-  /* write an 'e' where the trailing zeros started */
-  buf[trailing_zero_start] = 'e';
+  /* write an 'E' where the trailing zeros started */
+  buf[trailing_zero_start] = 'E';
   if(buf[e_index + 1] == '-') {
     buf[trailing_zero_start + 1] = '-';
     ++trailing_zero_start;
