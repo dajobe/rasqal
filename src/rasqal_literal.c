@@ -1743,6 +1743,7 @@ rasqal_new_literal_from_promotion(rasqal_literal* lit,
   unsigned char *new_s = NULL;
   const unsigned char* s;
   size_t len;
+  rasqal_xsd_decimal* dec = NULL;
   
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(lit, rasqal_literal, NULL);
 
@@ -1777,7 +1778,18 @@ rasqal_new_literal_from_promotion(rasqal_literal* lit,
     
   switch(type) {
     case RASQAL_LITERAL_DECIMAL:
-      new_lit = rasqal_new_decimal_literal(lit->world, rasqal_literal_as_string(lit));
+      dec = rasqal_new_xsd_decimal(lit->world);
+      if(dec) {
+        d = rasqal_literal_as_floating(lit, &errori);
+        if(errori) {
+          rasqal_free_xsd_decimal(dec);
+          new_lit = NULL;
+        } else {
+          rasqal_xsd_decimal_set_double(dec, d);
+          new_lit = rasqal_new_decimal_literal_from_decimal(lit->world,
+                                                            NULL, dec);
+        }
+      }
       break;
       
     case RASQAL_LITERAL_DOUBLE:
