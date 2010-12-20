@@ -360,18 +360,18 @@ rasqal_xsd_decimal_as_string(rasqal_xsd_decimal* dec)
     char *from_p=mpf_s;
     size_t to_len;
 
-    /* 7=strlen("0.0e0")+1 for sign */
-    to_len=!from_len ? 6 : (from_len*2);
+    /* 5=strlen("0.0") + 1 for sign */
+    to_len = !from_len ? 4 : (from_len * 2);
 
-    s=(char*)RASQAL_MALLOC(cstring, to_len);
+    s = (char*)RASQAL_MALLOC(cstring, to_len + 1);
     if(!s) {
       mpfr_free_str((char*)mpf_s);
       return NULL;
     }
     /* first digit of mantissa */
     if(!*from_p || *from_p == '0') {
-      len=5;
-      memcpy(s, "0.0e0", len + 1);
+      len = 3;
+      memcpy(s, "0.0", len + 1);
     } else {
       char* to_p=s;
       int n;
@@ -410,18 +410,18 @@ rasqal_xsd_decimal_as_string(rasqal_xsd_decimal* dec)
     char *from_p=mpf_s;
     size_t to_len;
 
-    /* 7=strlen("0.0e0")+1 for sign */
-    to_len=!from_len ? 6 : (from_len*2);
+    /* 5 = strlen("0.0") + 1 for sign */
+    to_len = !from_len ? 5 : (from_len * 2);
 
-    s=RASQAL_MALLOC(cstring, to_len+1);
+    s = RASQAL_MALLOC(cstring, to_len + 1);
     if(!s) {
       free(mpf_s);
       return NULL;
     }
     /* first digit of mantissa */
     if(!*from_p || *from_p == '0') {
-      len=5;
-      memcpy(s, "0.0e0", len + 1);
+      len = 3;
+      memcpy(s, "0.0", len + 1);
     } else {
       char *to_p=s;
       int n;
