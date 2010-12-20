@@ -353,7 +353,8 @@ rasqal_xsd_decimal_as_string(rasqal_xsd_decimal* dec)
   len=strlen(s);
 #endif
 #ifdef RASQAL_DECIMAL_MPFR
-  mpf_s = mpfr_get_str(NULL, &expo, 10, 0, dec->raw, dec->rounding);
+  mpf_s = mpfr_get_str(NULL, &expo, 10, dec->precision_digits, dec->raw,
+                       dec->rounding);
   if(mpf_s) {
     size_t from_len=strlen(mpf_s);
     char *from_p=mpf_s;
@@ -383,21 +384,27 @@ rasqal_xsd_decimal_as_string(rasqal_xsd_decimal* dec)
       *to_p++ = *from_p++;
       from_len--;
       *to_p++ = '.';
+
       /* rest of mantissa */
       /* remove trailing 0s */
       while(from_len > 1 && from_p[from_len-1]=='0')
         from_len--;
       memcpy(to_p, from_p, from_len);
       to_p += from_len;
+
       /* exp */
-      n=sprintf(to_p, "e%ld", expo-1);
-      len=to_p+n-s;
+      if(expo != 1) {
+        n = sprintf(to_p, "e%ld", expo-1);
+        to_p += n;
+      }
+
+      len = to_p - s;
     }
     mpfr_free_str((char*)mpf_s);
   }
 #endif
 #ifdef RASQAL_DECIMAL_GMP
-  mpf_s=mpf_get_str(NULL, &expo, 10, 0, dec->raw);
+  mpf_s=mpf_get_str(NULL, &expo, 10, dec->precision_digits, dec->raw);
   if(mpf_s) {
     size_t from_len=strlen(mpf_s);
     char *from_p=mpf_s;
@@ -430,9 +437,14 @@ rasqal_xsd_decimal_as_string(rasqal_xsd_decimal* dec)
       /* rest of mantissa */
       memcpy(to_p, from_p, from_len);
       to_p+= from_len;
+
       /* exp */
-      n=sprintf(to_p, "e%ld", expo-1);
-      len=to_p+n-s;
+      if(expo != 1) {
+        n = sprintf(to_p, "e%ld", expo-1);
+        to_p += n;
+      }
+
+      len = to_p - s;
     }
     free(mpf_s);
   }
