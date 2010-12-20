@@ -183,19 +183,9 @@ rasqal_having_rowsource_read_row(rasqal_rowsource* rowsource, void *user_data)
 
 
   if(row) {
-    int i;
-    
-    for(i = 0; i < row->size; i++) {
-      rasqal_variable* v;
-
-      v = rasqal_rowsource_get_variable_by_offset(rowsource, i);
-
-      if(row->values[i])
-        rasqal_free_literal(row->values[i]);
-
-      row->values[i] = rasqal_new_literal_from_literal(v->value);
-    }
-
+    /* HAVING never adds/removes to the selection order from the
+     * input row, no need to re-bind row->values[] 
+     */
     row->offset = con->offset++;
   }
   
