@@ -318,6 +318,9 @@ rasqal_builtin_agg_expression_execute_step(void* user_data,
       }
 
       rasqal_free_literal(b->l);
+
+      if(!result)
+        b->error = 1;
     }
     
     b->l = result;
