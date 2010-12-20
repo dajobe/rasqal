@@ -321,6 +321,13 @@ rasqal_builtin_agg_expression_execute_step(void* user_data,
     }
     
     b->l = result;
+
+#ifdef RASQAL_DEBUG > 1
+    RASQAL_DEBUG3("Aggregation step result %s (error=%d)\n", 
+                  (result ? (const char*)rasqal_literal_as_string(result) : "(NULL)"),
+                  b->error);
+#endif
+    
     if(b->error)
       break;
   }

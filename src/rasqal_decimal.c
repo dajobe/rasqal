@@ -150,7 +150,7 @@ rasqal_xsd_decimal_init(rasqal_xsd_decimal* dec)
   mpfr_init2(dec->raw, dec->precision_bits);
 
   /* GMP_RNDD, GMP_RNDU, GMP_RNDN, GMP_RNDZ */
-  dec->rounding=mpfr_get_default_rounding_mode();
+  dec->rounding = mpfr_get_default_rounding_mode();
 #endif
 #ifdef RASQAL_DECIMAL_GMP
   mpf_init2(dec->raw, dec->precision_bits);
@@ -224,7 +224,7 @@ rasqal_xsd_decimal_set_string(rasqal_xsd_decimal* dec, const char* string)
   dec->raw=strtod(string, NULL);
 #endif
 #ifdef RASQAL_DECIMAL_MPFR
-  rc=mpfr_set_str(dec->raw, string, 10, dec->rounding);
+  rc = mpfr_set_str(dec->raw, string, 10, dec->rounding);
 #endif
 #ifdef RASQAL_DECIMAL_GMP
   rc=mpf_set_str(dec->raw, string, 10);
@@ -254,7 +254,7 @@ rasqal_xsd_decimal_set_long(rasqal_xsd_decimal* dec, long l)
   dec->raw=l;
 #endif
 #ifdef RASQAL_DECIMAL_MPFR
-  rc=mpfr_set_si(dec->raw, l, dec->rounding);
+  rc = mpfr_set_si(dec->raw, l, dec->rounding);
 #endif
 #ifdef RASQAL_DECIMAL_GMP
   mpf_set_si(dec->raw, l);
@@ -309,7 +309,7 @@ rasqal_xsd_decimal_get_double(rasqal_xsd_decimal* dec)
   result=(double)dec->raw;
 #endif
 #ifdef RASQAL_DECIMAL_MPFR
-  result=mpfr_get_d(dec->raw, dec->rounding);
+  result = mpfr_get_d(dec->raw, dec->rounding);
 #endif
 #ifdef RASQAL_DECIMAL_GMP
   result=mpf_get_d(dec->raw);
@@ -353,7 +353,7 @@ rasqal_xsd_decimal_as_string(rasqal_xsd_decimal* dec)
   len=strlen(s);
 #endif
 #ifdef RASQAL_DECIMAL_MPFR
-  mpf_s=mpfr_get_str(NULL, &expo, 10, 0, dec->raw, dec->rounding);
+  mpf_s = mpfr_get_str(NULL, &expo, 10, 0, dec->raw, dec->rounding);
   if(mpf_s) {
     size_t from_len=strlen(mpf_s);
     char *from_p=mpf_s;
@@ -567,7 +567,7 @@ rasqal_xsd_decimal_add(rasqal_xsd_decimal* result,
   result->raw = a->raw + b->raw;
 #endif
 #ifdef RASQAL_DECIMAL_MPFR
-  rc=mpfr_add(result->raw, a->raw, b->raw, result->rounding);
+  mpfr_add(result->raw, a->raw, b->raw, result->rounding);
 #endif
 #ifdef RASQAL_DECIMAL_GMP
   mpf_add(result->raw, a->raw, b->raw);
@@ -599,7 +599,7 @@ rasqal_xsd_decimal_subtract(rasqal_xsd_decimal* result,
   result->raw = a->raw - b->raw;
 #endif
 #ifdef RASQAL_DECIMAL_MPFR
-  rc=mpfr_sub(result->raw, a->raw, b->raw, result->rounding);
+  mpfr_sub(result->raw, a->raw, b->raw, result->rounding);
 #endif
 #ifdef RASQAL_DECIMAL_GMP
   mpf_sub(result->raw, a->raw, b->raw);
@@ -631,7 +631,7 @@ rasqal_xsd_decimal_multiply(rasqal_xsd_decimal* result,
   result->raw = a->raw * b->raw;
 #endif
 #ifdef RASQAL_DECIMAL_MPFR
-  rc=mpfr_mul(result->raw, a->raw, b->raw, result->rounding);
+  mpfr_mul(result->raw, a->raw, b->raw, result->rounding);
 #endif
 #ifdef RASQAL_DECIMAL_GMP
   mpf_mul(result->raw, a->raw, b->raw);
@@ -696,7 +696,7 @@ rasqal_xsd_decimal_divide(rasqal_xsd_decimal* result,
   result->raw = a->raw / b->raw;
 #endif
 #ifdef RASQAL_DECIMAL_MPFR
-  rc=mpfr_div(result->raw, a->raw, b->raw, result->rounding);
+  mpfr_div(result->raw, a->raw, b->raw, result->rounding);
 #endif
 #ifdef RASQAL_DECIMAL_GMP
   mpf_div(result->raw, a->raw, b->raw);
@@ -726,7 +726,7 @@ rasqal_xsd_decimal_negate(rasqal_xsd_decimal* result, rasqal_xsd_decimal* a)
   result->raw = -a->raw;
 #endif
 #ifdef RASQAL_DECIMAL_MPFR
-  rc=mpfr_neg(result->raw, a->raw, result->rounding);
+  mpfr_neg(result->raw, a->raw, result->rounding);
 #endif
 #ifdef RASQAL_DECIMAL_GMP
   mpf_neg(result->raw, a->raw);
@@ -763,7 +763,7 @@ rasqal_xsd_decimal_compare(rasqal_xsd_decimal* a, rasqal_xsd_decimal* b)
   /* else rc is 0 set above */
 #endif
 #ifdef RASQAL_DECIMAL_MPFR
-  rc=mpfr_cmp(a->raw, b->raw);
+  rc = mpfr_cmp(a->raw, b->raw);
 #endif
 #ifdef RASQAL_DECIMAL_GMP
   rc=mpf_cmp(a->raw, b->raw);
@@ -790,7 +790,7 @@ rasqal_xsd_decimal_equals(rasqal_xsd_decimal* a, rasqal_xsd_decimal* b)
 #if defined(RASQAL_DECIMAL_C99) || defined(RASQAL_DECIMAL_NONE)
   rc= (b->raw == a->raw);
 #elif defined(RASQAL_DECIMAL_MPFR)
-  rc=mpfr_equal_p(a->raw, b->raw);
+  rc = mpfr_equal_p(a->raw, b->raw);
 #elif defined(RASQAL_DECIMAL_GMP)
   /* NOTE: Not using mpf_eq() but could do, with sufficient bits */
   rc=!mpf_cmp(a->raw, b->raw);
