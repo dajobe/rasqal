@@ -82,6 +82,7 @@ static void rasqal_xsd_decimal_clear(rasqal_xsd_decimal* dec);
 /* No implementation - use double. */
 #define RASQAL_DECIMAL_RAW double
 #define RASQAL_DECIMAL_ROUNDING int
+#include <float.h>
 
 #endif
 #endif
@@ -139,12 +140,18 @@ rasqal_xsd_decimal_init(rasqal_xsd_decimal* dec)
   /* XSD wants min of 18 decimal (base 10) digits 
    * http://www.w3.org/TR/2004/REC-xmlschema-2-20041028/#decimal
    */
-  dec->precision_digits= 32;
+#ifdef RASQAL_DECIMAL_NONE
+  /* double has a restricted range */
+  dec->precision_digits = DBL_DIG;
+#else
+  dec->precision_digits = 18;
+#endif
+
   /* over-estimate bits since log(10)/log(2) = 3.32192809488736234789 < 4 */
-  dec->precision_bits= dec->precision_digits*4;
+  dec->precision_bits = dec->precision_digits*4;
   
 #ifdef RASQAL_DECIMAL_C99
-  dec->raw= 0DD;
+  dec->raw = 0DD;
 #endif
 #ifdef RASQAL_DECIMAL_MPFR
   mpfr_init2(dec->raw, dec->precision_bits);
@@ -156,11 +163,11 @@ rasqal_xsd_decimal_init(rasqal_xsd_decimal* dec)
   mpf_init2(dec->raw, dec->precision_bits);
 #endif
 #ifdef RASQAL_DECIMAL_NONE
-  dec->raw= 0e0;
+  dec->raw = 0e0;
 #endif
 
-  dec->string=NULL;
-  dec->string_len=0;
+  dec->string = NULL;
+  dec->string_len = 0;
 }
 
 
