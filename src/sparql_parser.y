@@ -587,6 +587,13 @@ PrefixDeclListOpt: PrefixDeclListOpt PREFIX IDENTIFIER URI_LITERAL
 /* SPARQL Grammar: SelectQuery */
 SelectQuery: SelectClause DatasetClauseListOpt WhereClause SolutionModifier BindingsClauseOpt
 {
+  rasqal_sparql_query_language* sparql;
+  sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
+
+  if(!sparql->sparql_query)
+    sparql_syntax_error((rasqal_query*)rq,
+                        "SELECT can only be used with a SPARQL query");
+
   /* FIXME - this peeks inside rasqal_projection */
   $$ = $1->variables; $1->variables = NULL;
   if($1->wildcard)
@@ -994,6 +1001,14 @@ SampleAggregateExpression: SAMPLE '(' DistinctOpt Expression ')'
 ConstructQuery: CONSTRUCT ConstructTemplate
         DatasetClauseListOpt WhereClause SolutionModifier
 {
+  rasqal_sparql_query_language* sparql;
+  
+  sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
+
+  if(!sparql->sparql_query)
+    sparql_syntax_error((rasqal_query*)rq,
+                        "CONSTRUCT can only be used with a SPARQL query");
+
   $$ = $2;
 
   if($3)
@@ -1010,6 +1025,14 @@ ConstructQuery: CONSTRUCT ConstructTemplate
 DescribeQuery: DESCRIBE VarOrIRIrefList
         DatasetClauseListOpt WhereClauseOpt SolutionModifier
 {
+  rasqal_sparql_query_language* sparql;
+  
+  sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
+
+  if(!sparql->sparql_query)
+    sparql_syntax_error((rasqal_query*)rq,
+                        "DESCRIBE can only be used with a SPARQL query");
+
   $$ = $2;
 
   if($3)
@@ -1079,6 +1102,13 @@ VarOrIRIrefList: VarOrIRIrefList VarOrIRIref
 AskQuery: ASK 
         DatasetClauseListOpt WhereClause
 {
+  rasqal_sparql_query_language* sparql;
+  sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
+
+  if(!sparql->sparql_query)
+    sparql_syntax_error((rasqal_query*)rq,
+                        "ASK can only be used with a SPARQL query");
+
   if($2)
     rasqal_query_add_data_graphs((rasqal_query*)rq, $2);
 
@@ -1119,7 +1149,7 @@ DeleteQuery: DELETE DatasetClauseList WhereClauseOpt
 
   if(!sparql->sparql11_update)
     sparql_syntax_error((rasqal_query*)rq,
-                        "DELETE cannot be used with SPARQL 1.0");
+                        "DELETE can only be used with a SPARQL 1.1 Update");
 
   /* LAQRS: experimental syntax */
   sparql_syntax_warning(((rasqal_query*)rq), 
@@ -1139,7 +1169,7 @@ DeleteQuery: DELETE DatasetClauseList WhereClauseOpt
 
   if(!sparql->sparql11_update)
     sparql_syntax_error((rasqal_query*)rq,
-                        "DELETE cannot be used with SPARQL 1.0");
+                        "DELETE can only be used with a SPARQL 1.1 Update");
 
   /* SPARQL 1.1 (Draft) update:
    * deleting via template + query - not inline atomic triples 
@@ -1166,7 +1196,7 @@ DeleteQuery: DELETE DatasetClauseList WhereClauseOpt
 
   if(!sparql->sparql11_update)
     sparql_syntax_error((rasqal_query*)rq,
-                        "DELETE DATA cannot be used with SPARQL 1.0");
+                        "DELETE can only be used with a SPARQL 1.1 Update");
 
   /* SPARQL 1.1 (Draft) update:
    * deleting inline triples - not inserting from graph URIs 
@@ -1291,7 +1321,7 @@ InsertQuery: INSERT DatasetClauseList WhereClauseOpt
 
   if(!sparql->sparql11_update)
     sparql_syntax_error((rasqal_query*)rq,
-                        "INSERT cannot be used with SPARQL 1.0");
+                        "INSERT can only be used with a SPARQL 1.1 Update");
 
   /* LAQRS: experimental syntax */
   sparql_syntax_warning(((rasqal_query*)rq), 
@@ -1311,7 +1341,7 @@ InsertQuery: INSERT DatasetClauseList WhereClauseOpt
 
   if(!sparql->sparql11_update)
     sparql_syntax_error((rasqal_query*)rq,
-                        "INSERT cannot be used with SPARQL 1.0");
+                        "INSERT can only be used with a SPARQL 1.1 Update");
 
   /* inserting via template + query - not inline atomic triples */
 
@@ -1336,7 +1366,7 @@ InsertQuery: INSERT DatasetClauseList WhereClauseOpt
 
   if(!sparql->sparql11_update)
     sparql_syntax_error((rasqal_query*)rq,
-                        "INSERT DATA cannot be used with SPARQL 1.0");
+                        "INSERT DATA can only be used with a SPARQL 1.1 Update");
 
   /* inserting inline atomic triples (no variables) - not via template */
   $4->type = RASQAL_UPDATE_TYPE_UPDATE;
@@ -1352,7 +1382,14 @@ UpdateQuery: WITH URI_LITERAL
   INSERT '{' ModifyTemplateList '}'
   WhereClauseOpt
 {
+  rasqal_sparql_query_language* sparql;
   rasqal_update_operation* update;
+
+  sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
+
+  if(!sparql->sparql11_update)
+    sparql_syntax_error((rasqal_query*)rq,
+                        "WITH can only be used with a SPARQL 1.1 Update");
 
   /* after this $2, $5, $9 and $12 are owned by update */
   update = rasqal_new_update_operation(RASQAL_UPDATE_TYPE_UPDATE,
@@ -1373,7 +1410,14 @@ UpdateQuery: WITH URI_LITERAL
   DELETE '{' ModifyTemplateList '}' 
   WhereClauseOpt
 {
+  rasqal_sparql_query_language* sparql;
   rasqal_update_operation* update;
+
+  sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
+
+  if(!sparql->sparql11_update)
+    sparql_syntax_error((rasqal_query*)rq,
+                        "WITH can only be used with a SPARQL 1.1 Update");
 
   /* after this $2, $5 and $8 are owned by update */
   update = rasqal_new_update_operation(RASQAL_UPDATE_TYPE_UPDATE,
@@ -1394,7 +1438,14 @@ UpdateQuery: WITH URI_LITERAL
   INSERT '{' ModifyTemplateList '}' 
   WhereClauseOpt
 {
+  rasqal_sparql_query_language* sparql;
   rasqal_update_operation* update;
+
+  sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
+
+  if(!sparql->sparql11_update)
+    sparql_syntax_error((rasqal_query*)rq,
+                        "WITH can only be used with a SPARQL 1.1 Update");
 
   /* after this $2, $5 and $8 are owned by update */
   update = rasqal_new_update_operation(RASQAL_UPDATE_TYPE_UPDATE,
@@ -1415,11 +1466,13 @@ UpdateQuery: WITH URI_LITERAL
   INSERT DATA '{' GraphTriples '}'
 {
   rasqal_sparql_query_language* sparql;
+
   sparql = (rasqal_sparql_query_language*)(((rasqal_query*)rq)->context);
 
   if(!sparql->sparql11_update)
     sparql_syntax_error((rasqal_query*)rq,
-                        "INSERT DATA cannot be used with SPARQL 1.0");
+                        "WITH can only be used with a SPARQL 1.1 Update");
+
 
   /* inserting inline atomic triples (no variables) - not via template */
   $6->graph_uri = $2; /* graph uri */
@@ -1441,7 +1494,7 @@ ClearQuery: CLEAR GRAPH GraphRef
 
   if(!sparql->sparql11_update)
     sparql_syntax_error((rasqal_query*)rq,
-                        "CLEAR GRAPH <uri> cannot be used with SPARQL 1.0");
+                        "CLEAR GRAPH <uri> can only be used with a SPARQL 1.1 Update");
 
   update = rasqal_new_update_operation(RASQAL_UPDATE_TYPE_CLEAR,
                                        $3 /* graph uri or NULL */, 
@@ -1465,7 +1518,7 @@ ClearQuery: CLEAR GRAPH GraphRef
 
   if(!sparql->sparql11_update)
     sparql_syntax_error((rasqal_query*)rq,
-                        "CLEAR cannot be used with SPARQL 1.0");
+                        "CLEAR GRAPH <uri> can only be used with a SPARQL 1.1 Update");
 
   /* Early draft syntax - deprecated */
   sparql_syntax_warning((rasqal_query*)rq,
@@ -1497,7 +1550,7 @@ CreateQuery: CREATE URI_LITERAL
 
   if(!sparql->sparql11_update)
     sparql_syntax_error((rasqal_query*)rq, 
-                        "CREATE <uri> cannot be used with SPARQL 1.0");
+                        "CREATE <uri> can only be used with a SPARQL 1.1 Update");
 
   update = rasqal_new_update_operation(RASQAL_UPDATE_TYPE_CREATE,
                                        $2 /* graph uri */, 
@@ -1521,7 +1574,7 @@ CreateQuery: CREATE URI_LITERAL
 
   if(!sparql->sparql11_update)
     sparql_syntax_error((rasqal_query*)rq, 
-                        "CREATE SILENT <uri> cannot be used with SPARQL 1.0");
+                        "CREATE SILENT <uri> can only be used with a SPARQL 1.1 Update");
 
   update = rasqal_new_update_operation(RASQAL_UPDATE_TYPE_CREATE,
                                        $3 /* graph uri */, 
@@ -1545,7 +1598,7 @@ CreateQuery: CREATE URI_LITERAL
 
   if(!sparql->sparql11_update)
     sparql_syntax_error((rasqal_query*)rq, 
-                        "CREATE GRAPH <uri> cannot be used with SPARQL 1.0");
+                        "CREATE GRAPH <uri> can only be used with a SPARQL 1.1 Update");
 
   /* Early draft syntax - deprecated */
   sparql_syntax_warning((rasqal_query*)rq,
@@ -1573,7 +1626,7 @@ CreateQuery: CREATE URI_LITERAL
 
   if(!sparql->sparql11_update)
     sparql_syntax_error((rasqal_query*)rq, 
-                        "CREATE SILENT GRAPH <uri> cannot be used with SPARQL 1.0");
+                        "CREATE SILENT GRAPH <uri> can only be used with a SPARQL 1.1 Update");
 
   /* Early draft syntax - deprecated */
   sparql_syntax_warning((rasqal_query*)rq,
@@ -1605,7 +1658,7 @@ DropQuery: DROP URI_LITERAL
 
   if(!sparql->sparql11_update)
     sparql_syntax_error((rasqal_query*)rq, 
-                        "DROP <uri> cannot be used with SPARQL 1.0");
+                        "DROP <uri> can only be used with a SPARQL 1.1 Update");
 
   update = rasqal_new_update_operation(RASQAL_UPDATE_TYPE_DROP,
                                        $2 /* graph uri */, 
@@ -1629,7 +1682,7 @@ DropQuery: DROP URI_LITERAL
 
   if(!sparql->sparql11_update)
     sparql_syntax_error((rasqal_query*)rq, 
-                        "DROP SILENT <uri> cannot be used with SPARQL 1.0");
+                        "DROP SILENT <uri> can only be used with a SPARQL 1.1 Update");
 
 
   update = rasqal_new_update_operation(RASQAL_UPDATE_TYPE_DROP,
@@ -1654,7 +1707,7 @@ DropQuery: DROP URI_LITERAL
 
   if(!sparql->sparql11_update)
     sparql_syntax_error((rasqal_query*)rq, 
-                        "DROP GRAPH <uri> cannot be used with SPARQL 1.0");
+                        "DROP GRAPH <uri> can only be used with a SPARQL 1.1 Update");
 
   /* Early draft syntax - deprecated */
   sparql_syntax_warning((rasqal_query*)rq,
@@ -1682,7 +1735,7 @@ DropQuery: DROP URI_LITERAL
 
   if(!sparql->sparql11_update)
     sparql_syntax_error((rasqal_query*)rq, 
-                        "DROP SILENT GRAPH <uri> cannot be used with SPARQL 1.0");
+                        "DROP SILENT GRAPH <uri> can only be used with a SPARQL 1.1 Update");
 
   /* Early draft syntax - deprecated */
   sparql_syntax_warning((rasqal_query*)rq,
@@ -1748,7 +1801,7 @@ LoadQuery: LOAD IriRefList
 
   if(!sparql->sparql11_update)
     sparql_syntax_error((rasqal_query*)rq, 
-                        "LOAD <document uri> cannot be used with SPARQL 1.0");
+                        "LOAD <uri list> can only be used with a SPARQL 1.1 Update");
   
   for(i = 0; (doc_uri = (raptor_uri*)raptor_sequence_get_at($2, i)); i++) {
     rasqal_update_operation* update;
@@ -1778,7 +1831,7 @@ LoadQuery: LOAD IriRefList
 
   if(!sparql->sparql11_update)
     sparql_syntax_error((rasqal_query*)rq, 
-                        "LOAD <document uri> INTO <graph URI> cannot be used with SPARQL 1.0");
+                        "LOAD <document uri list> INTO <graph URI> can only be used with a SPARQL 1.1 Update");
 
   for(i = 0; (doc_uri = (raptor_uri*)raptor_sequence_get_at($2, i)); i++) {
     rasqal_update_operation* update;
@@ -4746,15 +4799,27 @@ rasqal_sparql_query_language_init(rasqal_query* rdf_query, const char *name)
 
   /* All the sparql query families support this */
   rqe->sparql10 = 1;
+  rqe->sparql_query = 1;
 
   /* SPARQL 1.1 */
-  if(!strcmp(name, "sparql11") || !strcmp(name, "laqrs")) {
+  if(!strncmp(name, "sparql11", 8) || !strcmp(name, "laqrs")) {
     rqe->sparql11_query = 1;
     rqe->sparql11_aggregates = 1;
     rqe->sparql11_property_paths = 1;
     rqe->sparql11_update = 1;
   }
 
+  if(!strcmp(name, "sparql11-query")) {
+    /* No update if SPARQL 1.1 query */
+    rqe->sparql11_update = 0;
+  }
+  
+  if(!strcmp(name, "sparql11-update")) {
+    /* No query if SPARQL 1.1 update */
+    rqe->sparql_query = 0;
+    rqe->sparql11_query = 0;
+  }
+  
   /* LAQRS for experiments */
   if(!strcmp(name, "laqrs"))
     rqe->experimental = 1;
@@ -5018,10 +5083,46 @@ rasqal_init_query_language_sparql(rasqal_world* world)
 }
 
 
-static const char* const sparql11_names[4] = { "sparql11", NULL};
+static const char* const sparql11_names[2] = { "sparql11", NULL };
 
 #define SPARQL11_TYPES_COUNT 0
 static const raptor_type_q sparql11_types[SPARQL11_TYPES_COUNT + 1] = {
+  { NULL, 0, 0}
+};
+
+
+static int
+rasqal_sparql11_language_register_factory(rasqal_query_language_factory *factory)
+{
+  int rc = 0;
+
+  factory->desc.names = sparql11_names;
+
+  factory->desc.mime_types = sparql11_types;
+  factory->desc.mime_types_count = SPARQL11_TYPES_COUNT;
+
+  factory->desc.label = "SPARQL 1.1 (DRAFT) Query and Update Languages";
+
+  /* What URI describes Query and Update languages? */
+  factory->desc.uri_string = NULL;
+
+  factory->context_length = sizeof(rasqal_sparql_query_language);
+
+  factory->init      = rasqal_sparql_query_language_init;
+  factory->terminate = rasqal_sparql_query_language_terminate;
+  factory->prepare   = rasqal_sparql_query_language_prepare;
+  factory->iostream_write_escaped_counted_string = rasqal_sparql_query_language_iostream_write_escaped_counted_string;
+
+  return rc;
+}
+
+
+#define SPARQL11_QUERY_TYPES_COUNT 0
+
+static const char* const sparql11_query_names[2] = { "sparql11-query", NULL };
+
+#define SPARQL11_TYPES_COUNT 0
+static const raptor_type_q sparql11_query_types[SPARQL11_QUERY_TYPES_COUNT + 1] = {
   { NULL, 0, 0}
 };
 
@@ -5031,14 +5132,49 @@ rasqal_sparql11_query_language_register_factory(rasqal_query_language_factory *f
 {
   int rc = 0;
 
-  factory->desc.names = sparql11_names;
+  factory->desc.names = sparql11_query_names;
 
-  factory->desc.mime_types = sparql11_types;
+  factory->desc.mime_types = sparql11_query_types;
   factory->desc.mime_types_count = SPARQL11_TYPES_COUNT;
 
   factory->desc.label = "SPARQL 1.1 (DRAFT) Query Language";
 
-  factory->desc.uri_string = "http://www.w3.org/TR/2010/WD-sparql11-query-20100601/";
+  factory->desc.uri_string = "http://www.w3.org/TR/2010/WD-sparql11-query-20101014/";
+
+  factory->context_length = sizeof(rasqal_sparql_query_language);
+
+  factory->init      = rasqal_sparql_query_language_init;
+  factory->terminate = rasqal_sparql_query_language_terminate;
+  factory->prepare   = rasqal_sparql_query_language_prepare;
+  factory->iostream_write_escaped_counted_string = rasqal_sparql_query_language_iostream_write_escaped_counted_string;
+
+  return rc;
+}
+
+
+#define SPARQL11_UPDATE_TYPES_COUNT 0
+
+static const char* const sparql11_update_names[2] = { "sparql11-update", NULL };
+
+#define SPARQL11_TYPES_COUNT 0
+static const raptor_type_q sparql11_update_types[SPARQL11_UPDATE_TYPES_COUNT + 1] = {
+  { NULL, 0, 0}
+};
+
+
+static int
+rasqal_sparql11_update_language_register_factory(rasqal_query_language_factory *factory)
+{
+  int rc = 0;
+
+  factory->desc.names = sparql11_update_names;
+
+  factory->desc.mime_types = sparql11_update_types;
+  factory->desc.mime_types_count = SPARQL11_TYPES_COUNT;
+
+  factory->desc.label = "SPARQL 1.1 (DRAFT) Update Language";
+
+  factory->desc.uri_string = "http://www.w3.org/TR/2010/WD-sparql11-update-20101014/";
 
   factory->context_length = sizeof(rasqal_sparql_query_language);
 
@@ -5054,12 +5190,23 @@ rasqal_sparql11_query_language_register_factory(rasqal_query_language_factory *f
 int
 rasqal_init_query_language_sparql11(rasqal_world* world)
 {
-  return !rasqal_query_language_register_factory(world,
-                                                 &rasqal_sparql11_query_language_register_factory);
+  if(!rasqal_query_language_register_factory(world,
+                                             &rasqal_sparql11_language_register_factory))
+    return 1;
+  
+  if(!rasqal_query_language_register_factory(world,
+                                             &rasqal_sparql11_query_language_register_factory))
+    return 1;
+  
+  if(!rasqal_query_language_register_factory(world,
+                                             &rasqal_sparql11_update_language_register_factory))
+    return 1;
+  
+  return 0;
 }
 
 
-static const char* const laqrs_names[3] = { "laqrs", NULL};
+static const char* const laqrs_names[2] = { "laqrs", NULL};
 
 #define LAQRS_TYPES_COUNT 0
 static const raptor_type_q laqrs_types[LAQRS_TYPES_COUNT + 1] = {
