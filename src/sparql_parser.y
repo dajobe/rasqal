@@ -442,11 +442,15 @@ BindingsClauseOpt
  * except where noted
  */
 
-/* SPARQL Grammar: Query */
-Query: Prologue ExplainOpt ReportFormat
-{
-}
+/* SPARQL Grammar: Query or Update */
+Sparql: Query
+| Update
 ;
+
+
+Query: Prologue ExplainOpt ReportFormat
+;
+
 
 /* LAQRS */
 ExplainOpt: EXPLAIN
@@ -487,7 +491,10 @@ ReportFormat: SelectQuery
 {
   ((rasqal_query*)rq)->verb = RASQAL_QUERY_VERB_ASK;
 }
-| UpdateOperationList
+;
+
+
+Update: Prologue UpdateOperationList
 ;
 
 
