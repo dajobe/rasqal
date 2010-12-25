@@ -1063,8 +1063,14 @@ int rasqal_raptor_init(rasqal_world*);
 /* rasqal_redland.c */
 int rasqal_redland_init(rasqal_world*);
 void rasqal_redland_finish(void);
-#endif  
+#endif
 
+#ifdef HAVE_RAPTOR2_API
+rasqal_triple* raptor_statement_as_rasqal_triple(rasqal_world* world, const raptor_statement *statement);
+#else
+rasqal_triple* raptor_statement_as_rasqal_triple(rasqal_world* world, const raptor_statement *statement);
+int rasqal_raptor_parse_iostream(raptor_parser* rdf_parser, raptor_iostream *iostr, raptor_uri *base_uri);
+#endif
 
 /* rasqal_general.c */
 int rasqal_uri_init(rasqal_world*);

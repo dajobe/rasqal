@@ -107,7 +107,7 @@ ordinal_as_uri(rasqal_world* world, int ordinal)
 
 
 #ifdef HAVE_RAPTOR2_API
-static rasqal_triple*
+rasqal_triple*
 raptor_statement_as_rasqal_triple(rasqal_world* world,
                                   const raptor_statement *statement)
 {
@@ -164,7 +164,7 @@ raptor_statement_as_rasqal_triple(rasqal_world* world,
   return rasqal_new_triple(s, p, o);
 }
 #else /* ifdef HAVE_RAPTOR_API */
-static rasqal_triple*
+rasqal_triple*
 raptor_statement_as_rasqal_triple(rasqal_world* world,
                                   const raptor_statement *statement)
 {
@@ -385,8 +385,9 @@ rasqal_raptor_support_feature(void *user_data,
 /* Based on raptor_parser_parse_iostream() from Raptor 1.9.0
  * backported to the Raptor V1 API
  */
-static int
-rasqal_raptor_parse_iostream(raptor_parser* rdf_parser, raptor_iostream *iostr,
+int
+rasqal_raptor_parse_iostream(raptor_parser* rdf_parser,
+                             raptor_iostream *iostr,
                              raptor_uri *base_uri)
 {
   /* Read buffer */
