@@ -21,7 +21,7 @@
 # 
 
 bin_PROGRAMS = roqet
-EXTRA_PROGRAMS = srxread srxwrite
+EXTRA_PROGRAMS = srxread srxwrite rdfr_read
 
 CLEANFILES = $(EXTRA_PROGRAMS)
 
@@ -38,6 +38,10 @@ roqet_SOURCES += getopt.c rasqal_getopt.h
 endif
 roqet_LDADD = $(top_builddir)/src/librasqal.la
 roqet_LDFLAGS = `@RAPTOR_CONFIG@ --libs`
+
+rdfr_read_SOURCES = rdfr_read.c
+rdfr_read_LDADD = $(top_builddir)/src/librasqal.la
+rdfr_read_LDFLAGS = `@RAPTOR_CONFIG@ --libs`
 
 srxread_SOURCES = srxread.c
 srxread_LDADD = $(top_builddir)/src/librasqal.la
@@ -60,4 +64,4 @@ endif
 $(top_builddir)/src/librasqal.la:
 	cd $(top_builddir)/src && $(MAKE) librasqal.la
 
-examples: srxread$(EXTEXE) srxwrite$(EXTEXE)
+examples: srxread$(EXTEXE) srxwrite$(EXTEXE) rdfr_read$(EXEEXE)
