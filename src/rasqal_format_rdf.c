@@ -388,6 +388,7 @@ rasqal_rowsource_rdf_process(rasqal_rowsource_rdf_context* con)
   raptor_uri* uri;
   rasqal_literal* predicate_uri_literal;
   rasqal_literal* object_uri_literal;
+  rasqal_literal* binding_uri_literal;
   rasqal_literal* resultSet_node;
   rasqal_literal* solution_node;
   rasqal_dataset_term_iterator* solution_iter;
@@ -500,6 +501,12 @@ rasqal_rowsource_rdf_process(rasqal_rowsource_rdf_context* con)
 
 
 
+  uri = raptor_new_uri_from_uri_local_name(con->raptor_world_ptr,
+                                           con->rs_uri,
+                                           (const unsigned char*)"binding");
+  binding_uri_literal = rasqal_new_uri_literal(con->world, uri);
+
+
   /* for each solution node ?sol := getTargets(?rs, rs:solution) */
   uri = raptor_new_uri_from_uri_local_name(con->raptor_world_ptr,
                                            con->rs_uri,
@@ -525,15 +532,10 @@ rasqal_rowsource_rdf_process(rasqal_rowsource_rdf_context* con)
 
     row = rasqal_new_row(con->rowsource);
     
-    uri = raptor_new_uri_from_uri_local_name(con->raptor_world_ptr,
-                                             con->rs_uri,
-                                             (const unsigned char*)"binding");
-    predicate_uri_literal = rasqal_new_uri_literal(con->world, uri);
-
     /* for each binding node ?bn := getTargets(?sol, rs:binding) */
     binding_iter = rasqal_dataset_get_targets_iterator(con->ds,
                                                        solution_node,
-                                                       predicate_uri_literal);
+                                                       binding_uri_literal);
     while(1) {
       rasqal_literal* binding_node;
       rasqal_literal* var_literal;
@@ -594,6 +596,8 @@ rasqal_rowsource_rdf_process(rasqal_rowsource_rdf_context* con)
   rasqal_free_dataset_term_iterator(solution_iter); solution_iter = NULL;
 
   rasqal_free_literal(predicate_uri_literal); predicate_uri_literal = NULL;
+
+  rasqal_free_literal(binding_uri_literal); binding_uri_literal = NULL;
   
 
   /* sort sequence of rows by ?index or original order */
