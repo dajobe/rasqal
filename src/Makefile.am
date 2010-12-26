@@ -96,7 +96,8 @@ rasqal_format_turtle.c rasqal_format_rdf.c \
 rasqal_rowsource_assignment.c rasqal_update.c \
 rasqal_triple.c rasqal_data_graph.c rasqal_prefix.c \
 rasqal_solution_modifier.c rasqal_projection.c rasqal_bindings.c \
-rasqal_service.c
+rasqal_service.c \
+rasqal_dataset.c
 
 if RASQAL_QUERY_RDQL
 librasqal_la_SOURCES += rdql_lexer.c rdql_lexer.h \
