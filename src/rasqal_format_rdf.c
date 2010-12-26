@@ -624,6 +624,7 @@ rasqal_query_results_write_rdf(raptor_iostream *iostr,
         
         raptor_serializer_serialize_statement(ser, &statement);
         raptor_free_term(statement.predicate); statement.predicate = NULL;
+        raptor_free_term(statement.object); statement.object = NULL;
       }
 
     }
