@@ -444,7 +444,7 @@ rasqal_query_results_write_rdf(raptor_iostream *iostr,
   raptor_uri* rs_solution_uri;
   raptor_uri* rs_binding_uri;
   raptor_uri* rs_ResultSet_uri;
-  raptor_uri* rs_ResultVariable_uri;
+  raptor_uri* rs_resultVariable_uri;
   int i;
   int size;
   raptor_term* resultset_node;
@@ -486,9 +486,9 @@ rasqal_query_results_write_rdf(raptor_iostream *iostr,
   rs_ResultSet_uri = raptor_new_uri_from_uri_local_name(raptor_world_ptr,
                                                         rs_ns_uri,
                                                         (const unsigned char*)"ResultSet");
-  rs_ResultVariable_uri = raptor_new_uri_from_uri_local_name(raptor_world_ptr,
+  rs_resultVariable_uri = raptor_new_uri_from_uri_local_name(raptor_world_ptr,
                                                              rs_ns_uri,
-                                                             (const unsigned char*)"ResultVariable");
+                                                             (const unsigned char*)"resultVariable");
 
 
   /* Start serializing */
@@ -526,7 +526,7 @@ rasqal_query_results_write_rdf(raptor_iostream *iostr,
    */
   /* statement.subject = resultset_node; */
   statement.predicate = raptor_new_term_from_uri(raptor_world_ptr,
-                                                 rs_ResultVariable_uri);
+                                                 rs_resultVariable_uri);
   for(i = 0; 1; i++) {
     const unsigned char *name;
     
@@ -595,6 +595,7 @@ rasqal_query_results_write_rdf(raptor_iostream *iostr,
                                                           l->string);
             break;
         case RASQAL_LITERAL_STRING:
+        case RASQAL_LITERAL_UDT:
             statement.object = raptor_new_term_from_literal(raptor_world_ptr,
                                                             l->string,
                                                             l->datatype,
@@ -610,7 +611,6 @@ rasqal_query_results_write_rdf(raptor_iostream *iostr,
         case RASQAL_LITERAL_VARIABLE:
         case RASQAL_LITERAL_DECIMAL:
         case RASQAL_LITERAL_DATETIME:
-        case RASQAL_LITERAL_UDT:
         case RASQAL_LITERAL_INTEGER_SUBTYPE:
 
         case RASQAL_LITERAL_UNKNOWN:
@@ -645,7 +645,7 @@ rasqal_query_results_write_rdf(raptor_iostream *iostr,
   raptor_free_uri(rs_solution_uri);
   raptor_free_uri(rs_binding_uri);
   raptor_free_uri(rs_ResultSet_uri);
-  raptor_free_uri(rs_ResultVariable_uri);
+  raptor_free_uri(rs_resultVariable_uri);
 
   return rc;
 }
