@@ -1,6 +1,6 @@
 /* -*- Mode: c; c-basic-offset: 2 -*-
  *
- * rasqal_expr.c - Rasqal data graph class
+ * rasqal_data_graph.c - Rasqal data graph class
  *
  * Copyright (C) 2010, David Beckett http://www.dajobe.org/
  * 
