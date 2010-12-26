@@ -624,7 +624,7 @@ rasqal_sparql_xml_sax2_start_element_handler(void *user_data,
 
   switch(state) {
     case STATE_variable:
-      if(1) {
+      if(con->name) {
         unsigned char* var_name;
         rasqal_variable *v;
         
@@ -641,7 +641,7 @@ rasqal_sparql_xml_sax2_start_element_handler(void *user_data,
       
     case STATE_result:
       if(1) {
-        con->row=rasqal_new_row(con->rowsource);
+        con->row = rasqal_new_row(con->rowsource);
         RASQAL_DEBUG2("Made new row %d\n", con->offset);
         con->offset++;
       }
