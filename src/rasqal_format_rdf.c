@@ -55,330 +55,6 @@
 #endif
 
 
-struct rasqal_rdfr_triple_s {
-  struct rasqal_rdfr_triple_s *next;
-  rasqal_triple *triple;
-};
-
-typedef struct rasqal_rdfr_triple_s rasqal_rdfr_triple;
-
-
-typedef struct 
-{
-  rasqal_world* world;
-  
-  rasqal_literal* base_uri_literal;
-
-  rasqal_rdfr_triple *head;
-  rasqal_rdfr_triple *tail;
-} rasqal_rdfr_triplestore;
-
-
-typedef struct {
-  rasqal_rdfr_triplestore* triplestore;
-  
-  /* Simple cursor */
-  rasqal_triple match;
-
-  rasqal_triple_parts want;
-  rasqal_triple_parts parts;
-  
-  rasqal_rdfr_triple *cursor;
-} rasqal_rdfr_term_iterator;
-
-
-static
-rasqal_rdfr_triplestore*
-rasqal_new_rdfr_triplestore(rasqal_world* world)
-{
-  rasqal_rdfr_triplestore* rts;
-  
-  if(!world)
-    return NULL;
-  
-  rts = (rasqal_rdfr_triplestore*)RASQAL_CALLOC(rasqal_rdfr_triplestore, 1, 
-                                                sizeof(*rts));
-
-  rts->world = world;
-
-  return rts;
-}
-
-
-static void
-rasqal_rdfr_triplestore_statement_handler(void *user_data,
-#ifndef HAVE_RAPTOR2_API
-                                          const
-#endif
-                                          raptor_statement *statement)
-{
-  rasqal_rdfr_triplestore* rts;
-  rasqal_rdfr_triple *triple;
-  
-  rts = (rasqal_rdfr_triplestore*)user_data;
-
-  triple = (rasqal_rdfr_triple*)RASQAL_MALLOC(rasqal_rdfr_triple,
-                                              sizeof(*triple));
-  triple->next = NULL;
-  triple->triple = raptor_statement_as_rasqal_triple(rts->world,
-                                                     statement);
-
-#if 0
-  /* this origin URI literal is shared amongst the triples and
-   * freed only in rasqal_raptor_free_triples_source
-   */
-  rasqal_triple_set_origin(triple->triple, rts->base_uri_literal);
-#endif
-
-  if(rts->tail)
-    rts->tail->next = triple;
-  else
-    rts->head = triple;
-
-  rts->tail = triple;
-}
-
-
-static int
-rasqal_rdfr_triplestore_parse_iostream(rasqal_rdfr_triplestore* rts,
-                                       const char* format_name,
-                                       raptor_iostream* iostr,
-                                       raptor_uri* base_uri)
-{
-  raptor_parser* parser;
-
-  rts->base_uri_literal = rasqal_new_uri_literal(rts->world,
-                                                 raptor_uri_copy(base_uri));
-
-  if(format_name) {
-    if(!raptor_world_is_parser_name(rts->world->raptor_world_ptr,
-                                    format_name)) {
-      rasqal_log_error_simple(rts->world, RAPTOR_LOG_LEVEL_ERROR,
-                              /* locator */ NULL,
-                              "Invalid format name %s ignored",
-                              format_name);
-      format_name = NULL;
-    }
-  }
-
-  if(!format_name)
-    format_name = "guess";
-
-  /* parse iostr with parser and base_uri */
-#ifdef HAVE_RAPTOR2_API
-  parser = raptor_new_parser(rts->world->raptor_world_ptr, format_name);
-  raptor_parser_set_statement_handler(parser, rts,
-                                      rasqal_rdfr_triplestore_statement_handler);
-#else
-  parser = raptor_new_parser(format_name);
-  raptor_set_statement_handler(parser, rts,
-                               rasqal_rdfr_triplestore_statement_handler);
-  raptor_set_error_handler(parser, rts->world, rasqal_raptor_error_handler);
-#endif
-  
-  /* parse and store triples */
-#ifdef HAVE_RAPTOR2_API
-  raptor_parser_parse_iostream(parser, iostr, base_uri);
-#else
-  rasqal_raptor_parse_iostream(parser, iostr, base_uri);
-#endif
-    
-  raptor_free_parser(parser);
-
-  return 0;
-}
-
-
-static void rasqal_free_rdfr_term_iterator(rasqal_rdfr_term_iterator* iter);
-static int rasqal_rdfr_term_iterator_next(rasqal_rdfr_term_iterator* iter);
-
-
-static rasqal_rdfr_term_iterator*
-rasqal_rdfr_triplestore_init_match_internal(rasqal_rdfr_triplestore* rts,
-                                            rasqal_literal* subject,
-                                            rasqal_literal* predicate,
-                                            rasqal_literal* object)
-{
-  rasqal_rdfr_term_iterator* iter;
-
-  if(!rts)
-    return NULL;
-  
-  iter = (rasqal_rdfr_term_iterator*)RASQAL_CALLOC(rasqal_rdfr_term_iterator,
-                                                   1, sizeof(*iter));
-
-  if(!iter)
-    return NULL;
-
-  iter->triplestore = rts;
-  
-  iter->match.subject = subject;
-  iter->match.predicate = predicate;
-  iter->match.object = object;
-
-  iter->cursor = NULL;
-
-  if(!subject)
-    iter->want = RASQAL_TRIPLE_SUBJECT;
-  else if(!object)
-    iter->want = RASQAL_TRIPLE_OBJECT;
-  else
-    iter->want = RASQAL_TRIPLE_PREDICATE;
-  iter->parts = RASQAL_TRIPLE_SPO ^ iter->want;
-  
-  if(rasqal_rdfr_term_iterator_next(iter)) {
-    rasqal_free_rdfr_term_iterator(iter);
-    return NULL;
-  }
-  
-  return iter;
-}
-
-
-static void
-rasqal_free_rdfr_term_iterator(rasqal_rdfr_term_iterator* iter)
-{
-  RASQAL_FREE(rasqal_rdfr_term_iterator, iter);
-}
-
-
-static rasqal_literal*
-rasqal_rdfr_term_iterator_get(rasqal_rdfr_term_iterator* iter)
-{
-  if(!iter)
-    return NULL;
-  
-  if(!iter->cursor)
-    return NULL;
-
-  if(iter->want == RASQAL_TRIPLE_SUBJECT)
-    return iter->cursor->triple->subject;
-  else
-    return iter->cursor->triple->object;
-}
-
-
-static int
-rasqal_rdfr_term_iterator_next(rasqal_rdfr_term_iterator* iter)
-{
-  if(!iter)
-    return 1;
-  
-  while(1) { 
-    if(iter->cursor)
-      iter->cursor = iter->cursor->next;
-    else
-      iter->cursor = iter->triplestore->head;
-    
-    if(!iter->cursor)
-      break;
-    
-#if RASQAL_DEBUG > 2
-    RASQAL_DEBUG1("Matching against triple: ");
-    rasqal_triple_print(iter->cursor->triple, DEBUG_FH);
-    fputc('\n', DEBUG_FH);
-#endif
-
-    if(rasqal_raptor_triple_match(iter->triplestore->world,
-                                  iter->cursor->triple, &iter->match,
-                                  iter->parts))
-      return 0;
-  }
-  
-  return 1;
-}
-
-
-
-
-static rasqal_rdfr_term_iterator*
-rasqal_new_rdfr_triplestore_get_sources_iterator(rasqal_rdfr_triplestore* rts,
-                                                 rasqal_literal* predicate,
-                                                 rasqal_literal* object)
-{
-  return rasqal_rdfr_triplestore_init_match_internal(rts,
-                                                     NULL, predicate, object);
-}
-
-static rasqal_rdfr_term_iterator*
-rasqal_new_rdfr_triplestore_get_targets_iterator(rasqal_rdfr_triplestore* rts,
-                                                 rasqal_literal* subject,
-                                                 rasqal_literal* predicate)
-{
-  return rasqal_rdfr_triplestore_init_match_internal(rts,
-                                                     subject, predicate, NULL);
-}
-
-
-static rasqal_literal*
-rasqal_new_rdfr_triplestore_get_source(rasqal_rdfr_triplestore* rts,
-                                       rasqal_literal* predicate,
-                                       rasqal_literal* object)
-{
-  rasqal_literal *literal;
-  
-  rasqal_rdfr_term_iterator* iter;
-  
-  iter = rasqal_new_rdfr_triplestore_get_sources_iterator(rts, predicate,
-                                                          object);
-  if(!iter)
-    return NULL;
-
-  literal = rasqal_rdfr_term_iterator_get(iter);
-
-  rasqal_free_rdfr_term_iterator(iter);
-  return literal;
-}
-
-
-static rasqal_literal*
-rasqal_new_rdfr_triplestore_get_target(rasqal_rdfr_triplestore* rts,
-                                       rasqal_literal* subject,
-                                       rasqal_literal* predicate)
-{
-  rasqal_literal *literal;
-  
-  rasqal_rdfr_term_iterator* iter;
-  
-  iter = rasqal_new_rdfr_triplestore_get_targets_iterator(rts, subject,
-                                                          predicate);
-  if(!iter)
-    return NULL;
-
-  literal = rasqal_rdfr_term_iterator_get(iter);
-
-  rasqal_free_rdfr_term_iterator(iter);
-  return literal;
-}
-
-
-static void
-rasqal_free_rdfr_triplestore(rasqal_rdfr_triplestore* rts) 
-{
-  rasqal_rdfr_triple *cur;
-
-  if(!rts)
-    return;
-
-  cur = rts->head;
-  while(cur) {
-    rasqal_rdfr_triple *next = cur->next;
-
-#if 0
-    rasqal_triple_set_origin(cur->triple, NULL); /* shared URI literal */
-#endif
-    rasqal_free_triple(cur->triple);
-    RASQAL_FREE(rasqal_rdfr_triple, cur);
-    cur = next;
-  }
-
-  if(rts->base_uri_literal)
-    rasqal_free_literal(rts->base_uri_literal);
-
-  RASQAL_FREE(rasqal_rdfr_triplestore, rts);
-}
-
-
 typedef struct 
 {
   rasqal_world* world;
@@ -397,7 +73,7 @@ typedef struct
 
   /* Parsing fields */
   int parsed;
-  rasqal_rdfr_triplestore* triplestore;
+  rasqal_dataset* ds;
   const char* format_name;
   rasqal_row* row; /* current result row */
 
@@ -695,8 +371,8 @@ rasqal_rowsource_rdf_finish(rasqal_rowsource* rowsource, void *user_data)
   if(con->rs_uri)
     raptor_free_uri(con->rs_uri);
 
-  if(con->triplestore)
-    rasqal_free_rdfr_triplestore(con->triplestore);
+  if(con->ds)
+    rasqal_free_dataset(con->ds);
 
   RASQAL_FREE(rasqal_rowsource_rdf_context, con);
 
@@ -714,18 +390,17 @@ rasqal_rowsource_rdf_process(rasqal_rowsource_rdf_context* con)
   rasqal_literal* object_uri_literal;
   rasqal_literal* resultSet_node;
   rasqal_literal* solution_node;
-  rasqal_rdfr_term_iterator* solution_iter;
+  rasqal_dataset_term_iterator* solution_iter;
   rasqal_literal* variable_predicate;
   rasqal_literal* value_predicate;
 
   if(con->parsed)
     return 0;
   
-  con->triplestore = rasqal_new_rdfr_triplestore(con->world);
+  con->ds = rasqal_new_dataset(con->world);
   
-  if(rasqal_rdfr_triplestore_parse_iostream(con->triplestore,
-                                            format_name,
-                                            con->iostr, con->base_uri)) {
+  if(rasqal_dataset_load_graph_iostream(con->ds, format_name,
+                                        con->iostr, con->base_uri)) {
     return 1;
   }
 
@@ -757,9 +432,9 @@ rasqal_rowsource_rdf_process(rasqal_rowsource_rdf_context* con)
 
 
   /* find result set node ?rs := getSource(a, rs:ResultSet)  */
-  resultSet_node = rasqal_new_rdfr_triplestore_get_source(con->triplestore,
-                                                          predicate_uri_literal,
-                                                          object_uri_literal);
+  resultSet_node = rasqal_dataset_get_source(con->ds,
+                                             predicate_uri_literal,
+                                             object_uri_literal);
 
   rasqal_free_literal(predicate_uri_literal); predicate_uri_literal = NULL;
   rasqal_free_literal(object_uri_literal); object_uri_literal = NULL;
@@ -783,11 +458,11 @@ rasqal_rowsource_rdf_process(rasqal_rowsource_rdf_context* con)
                                            (const unsigned char*)"resultVariable");
   predicate_uri_literal = rasqal_new_uri_literal(con->world, uri);
 
-  solution_iter = rasqal_new_rdfr_triplestore_get_targets_iterator(con->triplestore,
-                                                                   resultSet_node,
-                                                                   predicate_uri_literal);
+  solution_iter = rasqal_dataset_get_targets_iterator(con->ds,
+                                                      resultSet_node,
+                                                      predicate_uri_literal);
   while(1) {
-    solution_node = rasqal_rdfr_term_iterator_get(solution_iter);
+    solution_node = rasqal_dataset_term_iterator_get(solution_iter);
     if(!solution_node)
       break;
 
@@ -819,9 +494,9 @@ rasqal_rowsource_rdf_process(rasqal_rowsource_rdf_context* con)
       }
     }
       
-    rasqal_rdfr_term_iterator_next(solution_iter);
+    rasqal_dataset_term_iterator_next(solution_iter);
   }
-  rasqal_free_rdfr_term_iterator(solution_iter); solution_iter = NULL;
+  rasqal_free_dataset_term_iterator(solution_iter); solution_iter = NULL;
 
 
 
@@ -831,14 +506,14 @@ rasqal_rowsource_rdf_process(rasqal_rowsource_rdf_context* con)
                                            (const unsigned char*)"solution");
   predicate_uri_literal = rasqal_new_uri_literal(con->world, uri);
 
-  solution_iter = rasqal_new_rdfr_triplestore_get_targets_iterator(con->triplestore,
-                                                                   resultSet_node,
-                                                                   predicate_uri_literal);
+  solution_iter = rasqal_dataset_get_targets_iterator(con->ds,
+                                                      resultSet_node,
+                                                      predicate_uri_literal);
   while(1) {
-    rasqal_rdfr_term_iterator* binding_iter;
+    rasqal_dataset_term_iterator* binding_iter;
     rasqal_row* row;
     
-    solution_node = rasqal_rdfr_term_iterator_get(solution_iter);
+    solution_node = rasqal_dataset_term_iterator_get(solution_iter);
     if(!solution_node)
       break;
 
@@ -856,15 +531,15 @@ rasqal_rowsource_rdf_process(rasqal_rowsource_rdf_context* con)
     predicate_uri_literal = rasqal_new_uri_literal(con->world, uri);
 
     /* for each binding node ?bn := getTargets(?sol, rs:binding) */
-    binding_iter = rasqal_new_rdfr_triplestore_get_targets_iterator(con->triplestore,
-                                                                    solution_node,
-                                                                    predicate_uri_literal);
+    binding_iter = rasqal_dataset_get_targets_iterator(con->ds,
+                                                       solution_node,
+                                                       predicate_uri_literal);
     while(1) {
       rasqal_literal* binding_node;
       rasqal_literal* var_literal;
       rasqal_literal* value_literal;
       
-      binding_node = rasqal_rdfr_term_iterator_get(binding_iter);
+      binding_node = rasqal_dataset_term_iterator_get(binding_iter);
       if(!binding_node)
         break;
 
@@ -875,14 +550,14 @@ rasqal_rowsource_rdf_process(rasqal_rowsource_rdf_context* con)
 #endif
 
       /* variable ?var := getTarget(?bn, rs:variable) */
-      var_literal = rasqal_new_rdfr_triplestore_get_target(con->triplestore,
-                                                           binding_node,
-                                                           variable_predicate);
+      var_literal = rasqal_dataset_get_target(con->ds,
+                                              binding_node,
+                                              variable_predicate);
 
       /* variable ?val := getTarget(?bn, rs:value) */
-      value_literal = rasqal_new_rdfr_triplestore_get_target(con->triplestore,
-                                                             binding_node,
-                                                             value_predicate);
+      value_literal = rasqal_dataset_get_target(con->ds,
+                                                binding_node,
+                                                value_predicate);
 
 #if RASQAL_DEBUG > 2
       RASQAL_DEBUG1("    Variable: ");
@@ -906,17 +581,17 @@ rasqal_rowsource_rdf_process(rasqal_rowsource_rdf_context* con)
        * if ?index exists then that is the integer order of the row
        * in the list of row results */
 
-      rasqal_rdfr_term_iterator_next(binding_iter);
+      rasqal_dataset_term_iterator_next(binding_iter);
     }
 
-    rasqal_free_rdfr_term_iterator(binding_iter); binding_iter = NULL;
+    rasqal_free_dataset_term_iterator(binding_iter); binding_iter = NULL;
 
     /* save row at end of sequence of rows */
     raptor_sequence_push(con->results_sequence, row);
 
-    rasqal_rdfr_term_iterator_next(solution_iter);
+    rasqal_dataset_term_iterator_next(solution_iter);
   }
-  rasqal_free_rdfr_term_iterator(solution_iter); solution_iter = NULL;
+  rasqal_free_dataset_term_iterator(solution_iter); solution_iter = NULL;
 
   rasqal_free_literal(predicate_uri_literal); predicate_uri_literal = NULL;
   
