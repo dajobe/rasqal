@@ -577,9 +577,9 @@ rasqal_rdf_results_read(rasqal_world *world,
                                                              binding_node,
                                                              value_predicate);
 
-      fputs(" Variable: ", stderr);
+      fputs("    Variable: ", stderr);
       rasqal_literal_print(var_literal, stderr);
-      fputs("  Value: ", stderr);
+      fputs(" Value: ", stderr);
       rasqal_literal_print(value_literal, stderr);
       fputc('\n', stderr);
 
