@@ -1071,6 +1071,8 @@ rasqal_triple* raptor_statement_as_rasqal_triple(rasqal_world* world, const rapt
 rasqal_triple* raptor_statement_as_rasqal_triple(rasqal_world* world, const raptor_statement *statement);
 int rasqal_raptor_parse_iostream(raptor_parser* rdf_parser, raptor_iostream *iostr, raptor_uri *base_uri);
 #endif
+int rasqal_raptor_triple_match(rasqal_world* world, rasqal_triple *triple, rasqal_triple *match, rasqal_triple_parts parts);
+
 
 /* rasqal_general.c */
 int rasqal_uri_init(rasqal_world*);
@@ -1174,6 +1176,9 @@ int rasqal_init_result_format_html(rasqal_world*);
 
 /* rasqal_format_turtle.c */
 int rasqal_init_result_format_turtle(rasqal_world*);
+
+/* rasqal_format_rdf.c */
+int rasqal_init_result_format_rdf(rasqal_world*);
 
 /* rasqal_row.c */
 rasqal_row* rasqal_new_row(rasqal_rowsource* rowsource);

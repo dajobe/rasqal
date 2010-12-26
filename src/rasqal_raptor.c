@@ -578,7 +578,7 @@ rasqal_raptor_new_triples_source(rasqal_query* rdf_query,
  * 
  * Return value: non-0 on match
  **/
-static int
+int
 rasqal_raptor_triple_match(rasqal_world* world,
                            rasqal_triple *triple,
                            rasqal_triple *match,

@@ -107,6 +107,8 @@ rasqal_init_result_formats(rasqal_world* world)
 
   rc += rasqal_init_result_format_turtle(world) != 0;
 
+  rc += rasqal_init_result_format_rdf(world) != 0;
+
   return rc;
 }
 
