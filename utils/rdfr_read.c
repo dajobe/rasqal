@@ -203,7 +203,8 @@ rasqal_rdfr_triplestore_init_match_internal(rasqal_rdfr_triplestore* rts,
   if(!rts)
     return NULL;
   
-  iter = (rasqal_rdfr_term_iterator*)RASQAL_CALLOC(rasqal_rdfr_term_iterator, 1, sizeof(*iter));
+  iter = (rasqal_rdfr_term_iterator*)RASQAL_CALLOC(rasqal_rdfr_term_iterator,
+                                                   1, sizeof(*iter));
 
   if(!iter)
     return NULL;
@@ -243,6 +244,9 @@ rasqal_free_rdfr_term_iterator(rasqal_rdfr_term_iterator* iter)
 static rasqal_literal*
 rasqal_rdfr_term_iterator_get(rasqal_rdfr_term_iterator* iter)
 {
+  if(!iter)
+    return NULL;
+  
   if(!iter->cursor)
     return NULL;
 
@@ -341,13 +345,17 @@ typedef struct
 
   const char* format_name;
   
-  raptor_uri* rs;
+  raptor_uri* rs_uri;
 
   raptor_uri* base_uri;
 
   rasqal_rdfr_triplestore* triplestore;
 } rasqal_rdfr_context;
 
+
+
+static const unsigned char* rs_namespace_uri_string =
+  (const unsigned char*)"http://www.w3.org/2001/sw/DataAccess/tests/result-set#";
 
 
 static
@@ -366,8 +374,8 @@ rasqal_new_rdfr_context(rasqal_world* world)
   rdfrc->raptor_world_ptr = rasqal_world_get_raptor(world);
 #endif
 
-  rdfrc->rs = raptor_new_uri(rdfrc->raptor_world_ptr,
-                             (const unsigned char*)"http://www.w3.org/2001/sw/DataAccess/tests/result-set#");
+  rdfrc->rs_uri = raptor_new_uri(rdfrc->raptor_world_ptr,
+                                 rs_namespace_uri_string);
 
   return rdfrc;
 }
@@ -379,8 +387,8 @@ rasqal_free_rdfr_context(rasqal_rdfr_context* rdfrc)
   if(!rdfrc)
     return;
 
-  if(rdfrc->rs)
-    raptor_free_uri(rdfrc->rs);
+  if(rdfrc->rs_uri)
+    raptor_free_uri(rdfrc->rs_uri);
 
   if(rdfrc->triplestore)
     rasqal_free_rdfr_triplestore(rdfrc->triplestore);
@@ -392,10 +400,6 @@ rasqal_free_rdfr_context(rasqal_rdfr_context* rdfrc)
 }
 
 
-static const unsigned char* rs_namespace_uri_string =
-  (const unsigned char*)"http://www.w3.org/2001/sw/DataAccess/tests/result-set#";
-
-
 static int
 rasqal_rdf_results_read(rasqal_world *world,
                         raptor_iostream *iostr,
@@ -405,7 +409,6 @@ rasqal_rdf_results_read(rasqal_world *world,
   rasqal_rdfr_context *rdfrc;
   raptor_world* raptor_world_ptr = world->raptor_world_ptr;
   const char* format_name = "guess";
-  raptor_uri* rs_ns_uri;
   raptor_uri* rdf_ns_uri;
   raptor_uri* rdf_type_uri;
   raptor_uri* rs_ResultSet_uri;
@@ -428,8 +431,6 @@ rasqal_rdf_results_read(rasqal_world *world,
   }
 
   rdf_ns_uri = raptor_new_uri(raptor_world_ptr, raptor_rdf_namespace_uri);
-  rs_ns_uri = raptor_new_uri(raptor_world_ptr, rs_namespace_uri_string);
-
 
   /* find result set node ?rs := getSource(a, rs:ResultSet)  */
   rdf_type_uri = raptor_new_uri_from_uri_local_name(raptor_world_ptr,
@@ -440,7 +441,7 @@ rasqal_rdf_results_read(rasqal_world *world,
                                                  raptor_uri_copy(rdf_type_uri));
   
   rs_ResultSet_uri = raptor_new_uri_from_uri_local_name(raptor_world_ptr,
-                                                        rs_ns_uri,
+                                                        rdfrc->rs_uri,
                                                         (const unsigned char*)"ResultSet");
   
   object_uri_literal = rasqal_new_uri_literal(world,
@@ -469,7 +470,7 @@ solution_iter = rasqal_new_rdfr_triplestore_get_sources_iterator(rdfrc->triplest
   /* for each solution node ?sol := getTargets(?rs, rs:solution) */
   predicate_uri_literal = rasqal_new_uri_literal(world,
                                                  raptor_new_uri_from_uri_local_name(raptor_world_ptr,
-                                                                                    rs_ns_uri,
+                                                                                    rdfrc->rs_uri,
                                                                                     (const unsigned char*)"solution"));
 
   solution_iter = rasqal_rdfr_triplestore_get_targets_iterator(rdfrc->triplestore,
