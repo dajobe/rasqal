@@ -1072,6 +1072,7 @@ rasqal_triple* raptor_statement_as_rasqal_triple(rasqal_world* world, const rapt
 int rasqal_raptor_parse_iostream(raptor_parser* rdf_parser, raptor_iostream *iostr, raptor_uri *base_uri);
 #endif
 int rasqal_raptor_triple_match(rasqal_world* world, rasqal_triple *triple, rasqal_triple *match, rasqal_triple_parts parts);
+void rasqal_raptor_error_handler(void *user_data, raptor_locator* locator, const char *message);
 
 
 /* rasqal_general.c */

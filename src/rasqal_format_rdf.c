@@ -170,7 +170,7 @@ rasqal_rdfr_triplestore_parse_iostream(rasqal_rdfr_triplestore* rts,
   raptor_parser_set_statement_handler(parser, rts,
                                       rasqal_rdfr_triplestore_statement_handler);
 #else
-  parser = raptor_new_parser(parser_name);
+  parser = raptor_new_parser(format_name);
   raptor_set_statement_handler(parser, rts,
                                rasqal_rdfr_triplestore_statement_handler);
   raptor_set_error_handler(parser, rts->world, rasqal_raptor_error_handler);

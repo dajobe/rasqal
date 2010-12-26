@@ -294,7 +294,7 @@ rasqal_raptor_statement_handler(void *user_data,
 
 
 #ifndef HAVE_RAPTOR2_API
-static void
+void
 rasqal_raptor_error_handler(void *user_data, 
                             raptor_locator* locator, const char *message)
 {
