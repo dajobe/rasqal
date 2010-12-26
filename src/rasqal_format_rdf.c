@@ -417,6 +417,7 @@ static const unsigned char* rs_namespace_uri_string =
   (const unsigned char*)"http://www.w3.org/2001/sw/DataAccess/tests/result-set#";
 
 
+#ifdef RAPTOR_V2_AVAILABLE
 /*
  * rasqal_query_results_write_rdf:
  * @iostr: #raptor_iostream to write the query results to
@@ -649,7 +650,7 @@ rasqal_query_results_write_rdf(raptor_iostream *iostr,
 
   return rc;
 }
-
+#endif
 
 
 /* Local handlers for turning RDF graph read from an iostream into rows */
@@ -1030,7 +1031,11 @@ rasqal_init_result_format_rdf(rasqal_world* world)
   rasqal_query_results_get_rowsource_func get_rowsource_fn = NULL;
   int rc = 0;
 
+#ifdef RAPTOR_V2_AVAILABLE
   writer_fn = &rasqal_query_results_write_rdf;
+#else
+  writer_fn = NULL;
+#endif
   reader_fn = NULL,
   get_rowsource_fn = &rasqal_query_results_get_rowsource_rdf;
 
