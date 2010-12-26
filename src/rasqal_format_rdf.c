@@ -454,7 +454,7 @@ rasqal_query_results_write_rdf(raptor_iostream *iostr,
   
   if(!rasqal_query_results_is_bindings(results)) {
     rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR, NULL,
-                            "Can only write Turtle format for variable binding results");
+                            "Can only write RDF format for variable binding results");
     return 1;
   }
 
