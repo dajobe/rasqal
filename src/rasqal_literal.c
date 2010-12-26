@@ -3624,6 +3624,7 @@ rasqal_literal_write_turtle(rasqal_literal* l, raptor_iostream* iostr)
       break;
       
     case RASQAL_LITERAL_STRING:
+    case RASQAL_LITERAL_UDT:
       raptor_iostream_write_byte('"', iostr);
       raptor_string_ntriples_write(l->string, l->string_len, '"', iostr);
       raptor_iostream_write_byte('"', iostr);
@@ -3653,7 +3654,6 @@ rasqal_literal_write_turtle(rasqal_literal* l, raptor_iostream* iostr)
     case RASQAL_LITERAL_VARIABLE:
     case RASQAL_LITERAL_DECIMAL:
     case RASQAL_LITERAL_DATETIME:
-    case RASQAL_LITERAL_UDT:
     case RASQAL_LITERAL_INTEGER_SUBTYPE:
       
     case RASQAL_LITERAL_UNKNOWN:

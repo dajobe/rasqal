@@ -336,6 +336,7 @@ rasqal_query_results_write_sparql_xml(raptor_iostream *iostr,
           break;
 
         case RASQAL_LITERAL_STRING:
+        case RASQAL_LITERAL_UDT:
           element1=raptor_new_xml_element_from_namespace_local_name(res_ns,
                                                                     (const unsigned char*)"literal",
                                                                     NULL, base_uri);
@@ -395,7 +396,6 @@ rasqal_query_results_write_sparql_xml(raptor_iostream *iostr,
         case RASQAL_LITERAL_VARIABLE:
         case RASQAL_LITERAL_DECIMAL:
         case RASQAL_LITERAL_DATETIME:
-        case RASQAL_LITERAL_UDT:
         case RASQAL_LITERAL_INTEGER_SUBTYPE:
 
         case RASQAL_LITERAL_UNKNOWN:
