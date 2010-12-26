@@ -452,8 +452,7 @@ rasqal_rdf_results_read(rasqal_world *world,
   raptor_world* raptor_world_ptr = world->raptor_world_ptr;
   const char* format_name = "guess";
   raptor_uri* rdf_ns_uri;
-  raptor_uri* rdf_type_uri;
-  raptor_uri* rs_ResultSet_uri;
+  raptor_uri* uri;
   rasqal_literal* predicate_uri_literal;
   rasqal_literal* object_uri_literal;
   rasqal_literal* resultSet_node;
@@ -476,29 +475,26 @@ rasqal_rdf_results_read(rasqal_world *world,
 
   rdf_ns_uri = raptor_new_uri(raptor_world_ptr, raptor_rdf_namespace_uri);
 
-  rdf_type_uri = raptor_new_uri_from_uri_local_name(raptor_world_ptr,
-                                                    rdf_ns_uri,
-                                                    (const unsigned char*)"type");
-  
-  predicate_uri_literal = rasqal_new_uri_literal(world,
-                                                 raptor_uri_copy(rdf_type_uri));
-  
-  rs_ResultSet_uri = raptor_new_uri_from_uri_local_name(raptor_world_ptr,
-                                                        rdfrc->rs_uri,
-                                                        (const unsigned char*)"ResultSet");
-  
-  object_uri_literal = rasqal_new_uri_literal(world,
-                                              raptor_uri_copy(rs_ResultSet_uri));
+  uri = raptor_new_uri_from_uri_local_name(raptor_world_ptr,
+                                           rdf_ns_uri,
+                                           (const unsigned char*)"type");
+  predicate_uri_literal = rasqal_new_uri_literal(world, uri);
 
-  variable_predicate = rasqal_new_uri_literal(world,
-                                              raptor_new_uri_from_uri_local_name(raptor_world_ptr,
-                                                                                 rdfrc->rs_uri,
-                                                                                 (const unsigned char*)"variable"));
+  raptor_free_uri(rdf_ns_uri); rdf_ns_uri = NULL;
+
+  uri = raptor_new_uri_from_uri_local_name(raptor_world_ptr,
+                                           rdfrc->rs_uri,
+                                           (const unsigned char*)"ResultSet");
+  object_uri_literal = rasqal_new_uri_literal(world, uri);
+
+  uri = raptor_new_uri_from_uri_local_name(raptor_world_ptr, rdfrc->rs_uri,
+                                           (const unsigned char*)"variable");
+  variable_predicate = rasqal_new_uri_literal(world, uri);
   
-  value_predicate = rasqal_new_uri_literal(world,
-                                           raptor_new_uri_from_uri_local_name(raptor_world_ptr,
-                                                                              rdfrc->rs_uri,
-                                                                              (const unsigned char*)"value"));
+  uri = raptor_new_uri_from_uri_local_name(raptor_world_ptr, rdfrc->rs_uri,
+                                           (const unsigned char*)"value");
+  value_predicate = rasqal_new_uri_literal(world, uri);
+  
 
 
 
@@ -527,11 +523,10 @@ rasqal_rdf_results_read(rasqal_world *world,
                                                                                     (const unsigned char*)"solution"));
 
   solution_iter = rasqal_new_rdfr_triplestore_get_targets_iterator(rdfrc->triplestore,
-                                                               resultSet_node,
-                                                               predicate_uri_literal);
+                                                                   resultSet_node,
+                                                                   predicate_uri_literal);
   while(1) {
     rasqal_rdfr_term_iterator* binding_iter;
-
     /* rasqal_row* row; */
     
     solution_node = rasqal_rdfr_term_iterator_get(solution_iter);
