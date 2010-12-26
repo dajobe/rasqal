@@ -964,6 +964,22 @@ int rasqal_xsd_datetime_check(const char* string);
 int rasqal_xsd_date_check(const char* string);
 
 
+/* rasqal_dataset.c */
+typedef struct rasqal_dataset_s rasqal_dataset;
+typedef struct rasqal_dataset_term_iterator_s rasqal_dataset_term_iterator;
+
+rasqal_dataset* rasqal_new_dataset(rasqal_world* world);
+void rasqal_free_dataset(rasqal_dataset* ds);
+int rasqal_dataset_load_graph_iostream(rasqal_dataset* ds, const char* format_name, raptor_iostream* iostr, raptor_uri* base_uri);
+void rasqal_free_dataset_term_iterator(rasqal_dataset_term_iterator* iter);
+rasqal_literal* rasqal_dataset_term_iterator_get(rasqal_dataset_term_iterator* iter);
+int rasqal_dataset_term_iterator_next(rasqal_dataset_term_iterator* iter);
+rasqal_dataset_term_iterator* rasqal_dataset_get_sources_iterator(rasqal_dataset* ds, rasqal_literal* predicate, rasqal_literal* object);
+rasqal_dataset_term_iterator* rasqal_dataset_get_targets_iterator(rasqal_dataset* ds, rasqal_literal* subject, rasqal_literal* predicate);
+rasqal_literal* rasqal_dataset_get_source(rasqal_dataset* ds, rasqal_literal* predicate, rasqal_literal* object);
+rasqal_literal* rasqal_dataset_get_target(rasqal_dataset* ds, rasqal_literal* subject, rasqal_literal* predicate);
+  
+
 /* rasqal_general.c */
 char* rasqal_vsnprintf(const char* message, va_list arguments);
 unsigned char* rasqal_world_generate_bnodeid(rasqal_world* world, unsigned char *user_bnodeid);
