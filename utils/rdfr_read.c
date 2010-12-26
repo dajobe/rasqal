@@ -70,13 +70,20 @@ typedef struct
 
   rasqal_rdfr_triple *head;
   rasqal_rdfr_triple *tail;
+} rasqal_rdfr_triplestore;
 
+
+typedef struct {
+  rasqal_rdfr_triplestore* triplestore;
+  
   /* Simple cursor */
   rasqal_triple match;
+
+  rasqal_triple_parts want;
   rasqal_triple_parts parts;
   
   rasqal_rdfr_triple *cursor;
-} rasqal_rdfr_triplestore;
+} rasqal_rdfr_term_iterator;
 
 
 static
@@ -181,57 +188,95 @@ rasqal_rdfr_triplestore_parse_iostream(rasqal_rdfr_triplestore* rts,
 }
 
 
-static int rasqal_rdfr_triplestore_next_match_internal(rasqal_rdfr_triplestore* rts);
+static void rasqal_free_rdfr_term_iterator(rasqal_rdfr_term_iterator* iter);
+static int rasqal_rdfr_term_iterator_next(rasqal_rdfr_term_iterator* iter);
 
 
-static int
+static rasqal_rdfr_term_iterator*
 rasqal_rdfr_triplestore_init_match_internal(rasqal_rdfr_triplestore* rts,
                                             rasqal_literal* subject,
                                             rasqal_literal* predicate,
-                                            rasqal_literal* object,
-                                            rasqal_triple_parts parts)
+                                            rasqal_literal* object)
 {
-  if(!rts)
-    return 1;
-  
-  memset(&rts->match, '\0', sizeof(rts->match));
-  rts->match.subject = subject;
-  rts->match.predicate = predicate;
-  rts->match.object = object;
+  rasqal_rdfr_term_iterator* iter;
 
-  rts->cursor = NULL;
-  rts->parts = parts;
+  if(!rts)
+    return NULL;
   
-  rasqal_rdfr_triplestore_next_match_internal(rts);
+  iter = (rasqal_rdfr_term_iterator*)RASQAL_CALLOC(rasqal_rdfr_term_iterator, 1, sizeof(*iter));
+
+  if(!iter)
+    return NULL;
+
+  iter->triplestore = rts;
   
-  return 0;
+  iter->match.subject = subject;
+  iter->match.predicate = predicate;
+  iter->match.object = object;
+
+  iter->cursor = NULL;
+
+  if(!subject)
+    iter->want = RASQAL_TRIPLE_SUBJECT;
+  else if(!object)
+    iter->want = RASQAL_TRIPLE_OBJECT;
+  else
+    iter->want = RASQAL_TRIPLE_PREDICATE;
+  iter->parts = RASQAL_TRIPLE_SPO ^ iter->want;
+  
+  if(rasqal_rdfr_term_iterator_next(iter)) {
+    rasqal_free_rdfr_term_iterator(iter);
+    return NULL;
+  }
+  
+  return iter;
+}
+
+
+static void
+rasqal_free_rdfr_term_iterator(rasqal_rdfr_term_iterator* iter)
+{
+  RASQAL_FREE(rasqal_rdfr_term_iterator, iter);
+}
+
+
+static rasqal_literal*
+rasqal_rdfr_term_iterator_get(rasqal_rdfr_term_iterator* iter)
+{
+  if(!iter->cursor)
+    return NULL;
+
+  if(iter->want == RASQAL_TRIPLE_SUBJECT)
+    return iter->cursor->triple->subject;
+  else
+    return iter->cursor->triple->object;
 }
 
 
 static int
-rasqal_rdfr_triplestore_next_match_internal(rasqal_rdfr_triplestore* rts)
+rasqal_rdfr_term_iterator_next(rasqal_rdfr_term_iterator* iter)
 {
-  if(!rts)
+  if(!iter)
     return 1;
   
   while(1) { 
-    if(rts->cursor)
-      rts->cursor = rts->cursor->next;
+    if(iter->cursor)
+      iter->cursor = iter->cursor->next;
     else
-      rts->cursor = rts->head;
+      iter->cursor = iter->triplestore->head;
     
-    if(!rts->cursor)
+    if(!iter->cursor)
       break;
     
 #if 0
     fputs("Matching against triple: ", stderr);
-    rasqal_triple_print(rts->cursor->triple, stderr);
+    rasqal_triple_print(iter->cursor->triple, stderr);
     fputc('\n', stderr);
 #endif
 
-    if(rasqal_raptor_triple_match(rts->world,
-                                  rts->cursor->triple, &rts->match,
-                                  rts->parts))
+    if(rasqal_raptor_triple_match(iter->triplestore->world,
+                                  iter->cursor->triple, &iter->match,
+                                  iter->parts))
       return 0;
   }
   
@@ -240,58 +285,23 @@ rasqal_rdfr_triplestore_next_match_internal(rasqal_rdfr_triplestore* rts)
 
 
 
-static int
-rasqal_rdfr_triplestore_get_sources_init(rasqal_rdfr_triplestore* rts,
-                                         rasqal_literal* predicate,
-                                         rasqal_literal* object)
+
+static rasqal_rdfr_term_iterator*
+rasqal_new_rdfr_triplestore_get_sources_iterator(rasqal_rdfr_triplestore* rts,
+                                                 rasqal_literal* predicate,
+                                                 rasqal_literal* object)
 {
-  return rasqal_rdfr_triplestore_init_match_internal(rts, 
-                                                     NULL, predicate, object,
-                                                     RASQAL_TRIPLE_PREDICATE | RASQAL_TRIPLE_OBJECT);
+  return rasqal_rdfr_triplestore_init_match_internal(rts,
+                                                     NULL, predicate, object);
 }
 
-static rasqal_literal*
-rasqal_rdfr_triplestore_get_sources_get(rasqal_rdfr_triplestore* rts)
+static rasqal_rdfr_term_iterator*
+rasqal_rdfr_triplestore_get_targets_iterator(rasqal_rdfr_triplestore* rts,
+                                             rasqal_literal* subject,
+                                             rasqal_literal* predicate)
 {
-  if(!rts->cursor)
-    return NULL;
-
-  return rts->cursor->triple->subject;
-}
-
-
-static int
-rasqal_rdfr_triplestore_get_sources_next(rasqal_rdfr_triplestore* rts)
-{
-  return rasqal_rdfr_triplestore_next_match_internal(rts);
-}
-
-
-static int
-rasqal_rdfr_triplestore_get_targets_init(rasqal_rdfr_triplestore* rts,
-                                         rasqal_literal* subject,
-                                         rasqal_literal* predicate)
-{
-  return rasqal_rdfr_triplestore_init_match_internal(rts, 
-                                                     subject, predicate, NULL,
-                                                     RASQAL_TRIPLE_SUBJECT | RASQAL_TRIPLE_PREDICATE);
-}
-
-
-static rasqal_literal*
-rasqal_rdfr_triplestore_get_targets_get(rasqal_rdfr_triplestore* rts)
-{
-  if(!rts->cursor)
-    return NULL;
-
-  return rts->cursor->triple->object;
-}
-
-
-static int
-rasqal_rdfr_triplestore_get_targets_next(rasqal_rdfr_triplestore* rts)
-{
-  return rasqal_rdfr_triplestore_next_match_internal(rts);
+  return rasqal_rdfr_triplestore_init_match_internal(rts,
+                                                     subject, predicate, NULL);
 }
 
 
@@ -403,6 +413,7 @@ rasqal_rdf_results_read(rasqal_world *world,
   rasqal_literal* object_uri_literal;
   rasqal_literal* resultSet_node;
   rasqal_literal* solution_node;
+  rasqal_rdfr_term_iterator* solution_iter;
   
   rdfrc = rasqal_new_rdfr_context(world);
 
@@ -435,14 +446,16 @@ rasqal_rdf_results_read(rasqal_world *world,
   object_uri_literal = rasqal_new_uri_literal(world,
                                               raptor_uri_copy(rs_ResultSet_uri));
 
-  rasqal_rdfr_triplestore_get_sources_init(rdfrc->triplestore,
-                                           predicate_uri_literal,
-                                           object_uri_literal);
-  resultSet_node = rasqal_rdfr_triplestore_get_sources_get(rdfrc->triplestore);
+solution_iter = rasqal_new_rdfr_triplestore_get_sources_iterator(rdfrc->triplestore,
+                                                                 predicate_uri_literal,
+                                                                 object_uri_literal);
+  resultSet_node = rasqal_rdfr_term_iterator_get(solution_iter);
 
   rasqal_free_literal(predicate_uri_literal); predicate_uri_literal = NULL;
   rasqal_free_literal(object_uri_literal); object_uri_literal = NULL;
 
+  rasqal_free_rdfr_term_iterator(solution_iter); solution_iter = NULL;
+  
 
   /* if no such triple, expecting empty results */
   if(!resultSet_node)
@@ -459,13 +472,14 @@ rasqal_rdf_results_read(rasqal_world *world,
                                                                                     rs_ns_uri,
                                                                                     (const unsigned char*)"solution"));
 
-  rasqal_rdfr_triplestore_get_targets_init(rdfrc->triplestore,
-                                           resultSet_node,
-                                           predicate_uri_literal);
+  solution_iter = rasqal_rdfr_triplestore_get_targets_iterator(rdfrc->triplestore,
+                                                               resultSet_node,
+                                                               predicate_uri_literal);
   while(1) {
+    /* rasqal_rdfr_term_iterator* binding_iter; */
     /* rasqal_row* row; */
     
-    solution_node = rasqal_rdfr_triplestore_get_targets_get(rdfrc->triplestore);
+    solution_node = rasqal_rdfr_term_iterator_get(solution_iter);
     if(!solution_node)
       break;
 
@@ -488,12 +502,14 @@ rasqal_rdf_results_read(rasqal_world *world,
        * in the list of row results */
 
     /* end for each binding */
+    /* rasqal_free_rdfr_term_iterator(binding_iter); binding_iter = NULL; */
 
     /* save row at end of sequence of rows */
     /* raptor_sequence_push(con->results_sequence, row); */
 
-    rasqal_rdfr_triplestore_get_targets_next(rdfrc->triplestore);
+    rasqal_rdfr_term_iterator_next(solution_iter);
   }
+  rasqal_free_rdfr_term_iterator(solution_iter); solution_iter = NULL;
 
   rasqal_free_literal(predicate_uri_literal); predicate_uri_literal = NULL;
   
