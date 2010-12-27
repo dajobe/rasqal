@@ -94,7 +94,6 @@ main(int argc, char *argv[])
   }
 
   if(argc < 2 || argc > 4) {
-    int count;
     int i;
     
     printf(title_format_string, rasqal_version_string);
@@ -108,41 +107,35 @@ main(int argc, char *argv[])
     puts(rasqal_home_url_string);
     
     puts("\nFormats supported are:");
-#ifdef HAVE_RAPTOR2_API
-    count = raptor_option_get_count();
-#else
-    count = raptor_get_feature_count();
-#endif
-
-    for(i = 0; i < count; i++) {
+    for(i = 0; 1; i++) {
       const char *name;
       const char *label;
       int qr_flags = 0;
+      int need_comma = 0;
 
-      if(!rasqal_query_results_formats_enumerate(world, i, &name, &label, 
-                                                 NULL, NULL, &qr_flags)) {
-        int need_comma = 0;
-        
-        int is_reader = (qr_flags & RASQAL_QUERY_RESULTS_FORMAT_FLAG_READER);
-        int is_writer = (qr_flags & RASQAL_QUERY_RESULTS_FORMAT_FLAG_WRITER);
-        printf("  %-10s %s (", name, label);
-        if(is_reader) {
-          fputs("read", stdout);
-          need_comma = 1;
-        }
-        if(is_writer) {
-          if(need_comma)
-            fputs(", ", stdout);
-          fputs("write", stdout);
-          need_comma = 1;
-        }
-        if(!i) {
-          if(need_comma)
-            fputs(", ", stdout);
-          fputs("default", stdout);
-        }
-        fputs(")\n", stdout);
+      if(rasqal_query_results_formats_enumerate(world, i, &name, &label, 
+                                                NULL, NULL, &qr_flags))
+        break;
+      
+      printf("  %-10s %s (", name, label);
+      if(qr_flags & RASQAL_QUERY_RESULTS_FORMAT_FLAG_READER) {
+        fputs("read", stdout);
+        need_comma = 1;
       }
+
+      if(qr_flags & RASQAL_QUERY_RESULTS_FORMAT_FLAG_WRITER) {
+        if(need_comma)
+          fputs(", ", stdout);
+        fputs("write", stdout);
+        need_comma = 1;
+      }
+
+      if(!i) {
+        if(need_comma)
+          fputs(", ", stdout);
+        fputs("default", stdout);
+      }
+      fputs(")\n", stdout);
    }
 
 

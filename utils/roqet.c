@@ -1174,7 +1174,7 @@ main(int argc, char *argv[])
   }
 
   if(help) {
-    int i, j;
+    int i;
     
     printf(title_format_string, rasqal_version_string);
     puts("Run an RDF query giving variable bindings or RDF triples.");
@@ -1212,20 +1212,16 @@ main(int argc, char *argv[])
     puts("    For variable bindings and boolean results:");
     puts("      simple                A simple text format (default)");
 
-#ifdef HAVE_RAPTOR2_API
-    j = raptor_option_get_count();
-#else
-    j = raptor_get_feature_count();
-#endif
-
-    for(i = 0; i < j; i++) {
+    for(i = 0; 1; i++) {
       const char *name;
       const char *label;
       int qr_flags = 0;
 
-      if(!rasqal_query_results_formats_enumerate(world, i, &name, &label, 
-                                                 NULL, NULL, &qr_flags) &&
-         (qr_flags & RASQAL_QUERY_RESULTS_FORMAT_FLAG_WRITER))
+      if(rasqal_query_results_formats_enumerate(world, i, &name, &label,
+                                                NULL, NULL, &qr_flags))
+        break;
+
+      if(qr_flags & RASQAL_QUERY_RESULTS_FORMAT_FLAG_WRITER)
         printf("      %-10s            %s\n", name, label);
     }
 
