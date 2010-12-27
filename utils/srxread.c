@@ -1,6 +1,6 @@
 /* -*- Mode: c; c-basic-offset: 2 -*-
  *
- * srxread.c - SPARQL Results XML Format reading test program
+ * srxread.c - SPARQL Results Formats reading test program
  *
  * Copyright (C) 2007-2008, David Beckett http://www.dajobe.org/
  * 
@@ -53,6 +53,8 @@
 #endif
 
 
+static const char *title_format_string = "Rasqal RDF query results utility %s\n";
+
 static char *program = NULL;
 
 int main(int argc, char *argv[]);
@@ -61,7 +63,7 @@ int
 main(int argc, char *argv[]) 
 { 
   int rc = 0;
-  const char* srx_filename = NULL;
+  const char* filename = NULL;
   raptor_iostream* iostr = NULL;
   char* p;
   unsigned char* uri_string = NULL;
@@ -92,14 +94,63 @@ main(int argc, char *argv[])
   }
 
   if(argc < 2 || argc > 4) {
-    fprintf(stderr, "USAGE: %s SRX file [read formatter] [write formatter]\n",
-            program);
+    int count;
+    int i;
+    
+    printf(title_format_string, rasqal_version_string);
+    puts("Read an RDF Query results file in one format and print in another\n");
+    printf("Usage: %s <results filename> [read format [write format]]\n\n",
+           program);
+    fputs(rasqal_copyright_string, stdout);
+    fputs("\nLicense: ", stdout);
+    puts(rasqal_license_string);
+    fputs("Rasqal home page: ", stdout);
+    puts(rasqal_home_url_string);
+    
+    puts("\nFormats supported are:");
+#ifdef HAVE_RAPTOR2_API
+    count = raptor_option_get_count();
+#else
+    count = raptor_get_feature_count();
+#endif
+
+    for(i = 0; i < count; i++) {
+      const char *name;
+      const char *label;
+      int qr_flags = 0;
+
+      if(!rasqal_query_results_formats_enumerate(world, i, &name, &label, 
+                                                 NULL, NULL, &qr_flags)) {
+        int need_comma = 0;
+        
+        int is_reader = (qr_flags & RASQAL_QUERY_RESULTS_FORMAT_FLAG_READER);
+        int is_writer = (qr_flags & RASQAL_QUERY_RESULTS_FORMAT_FLAG_WRITER);
+        printf("  %-10s %s (", name, label);
+        if(is_reader) {
+          fputs("read", stdout);
+          need_comma = 1;
+        }
+        if(is_writer) {
+          if(need_comma)
+            fputs(", ", stdout);
+          fputs("write", stdout);
+          need_comma = 1;
+        }
+        if(!i) {
+          if(need_comma)
+            fputs(", ", stdout);
+          fputs("default", stdout);
+        }
+        fputs(")\n", stdout);
+      }
+   }
+
 
     rc = 1;
     goto tidy;
   }
 
-  srx_filename = argv[1];
+  filename = argv[1];
   if(argc > 2) {
     if(strcmp(argv[2], "-"))
       read_formatter_name = argv[2];
@@ -113,7 +164,7 @@ main(int argc, char *argv[])
   raptor_world_ptr = rasqal_world_get_raptor(world);
 #endif
   
-  uri_string = raptor_uri_filename_to_uri_string((const char*)srx_filename);
+  uri_string = raptor_uri_filename_to_uri_string((const char*)filename);
   if(!uri_string)
     goto tidy;
   
@@ -130,10 +181,10 @@ main(int argc, char *argv[])
     goto tidy;
   }
   
-  iostr = raptor_new_iostream_from_filename(raptor_world_ptr, srx_filename);
+  iostr = raptor_new_iostream_from_filename(raptor_world_ptr, filename);
   if(!iostr) {
     fprintf(stderr, "%s: Failed to open iostream to file %s\n", program,
-            srx_filename);
+            filename);
     rc = 1;
     goto tidy;
   }
