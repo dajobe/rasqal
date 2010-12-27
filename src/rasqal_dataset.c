@@ -162,6 +162,34 @@ rasqal_dataset_statement_handler(void *user_data,
 }
 
 
+#ifndef HAVE_RAPTOR2_API
+/* Raptor V1 only */
+void
+rasqal_dataset_raptor_error_handler(void *user_data, 
+                                    raptor_locator* locator,
+                                    const char *message)
+{
+  rasqal_world* world = (rasqal_world*)user_data;
+  int locator_len;
+
+  if(locator &&
+     (locator_len = raptor_format_locator(NULL, 0, locator)) > 0
+    ) {
+    char *buffer = (char*)RASQAL_MALLOC(cstring, locator_len + 1);
+    raptor_format_locator(buffer, locator_len, locator);
+
+    rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR,
+                            locator,
+                            "Failed to parse %s - %s", buffer, message);
+    RASQAL_FREE(cstring, buffer);
+  } else
+    rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR,
+                            locator,
+                            "Failed to parse - %s", message);
+}
+#endif
+
+
 int
 rasqal_dataset_load_graph_iostream(rasqal_dataset* ds,
                                    const char* format_name,
@@ -199,7 +227,8 @@ rasqal_dataset_load_graph_iostream(rasqal_dataset* ds,
   parser = raptor_new_parser(format_name);
   raptor_set_statement_handler(parser, ds,
                                rasqal_dataset_statement_handler);
-  raptor_set_error_handler(parser, ds->world, rasqal_raptor_error_handler);
+  raptor_set_error_handler(parser, ds->world,
+                           rasqal_dataset_raptor_error_handler);
 #endif
   
   /* parse and store triples */
