@@ -164,7 +164,7 @@ rasqal_dataset_statement_handler(void *user_data,
 
 #ifndef HAVE_RAPTOR2_API
 /* Raptor V1 only */
-void
+static void
 rasqal_dataset_raptor_error_handler(void *user_data, 
                                     raptor_locator* locator,
                                     const char *message)
