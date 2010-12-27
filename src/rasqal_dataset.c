@@ -114,9 +114,9 @@ rasqal_free_dataset(rasqal_dataset* ds)
   while(cur) {
     rasqal_dataset_triple *next = cur->next;
 
-#if 0
-    rasqal_triple_set_origin(cur->triple, NULL); /* shared URI literal */
-#endif
+    /* free shared URI literal (if present) */
+    rasqal_triple_set_origin(cur->triple, NULL);
+
     rasqal_free_triple(cur->triple);
     RASQAL_FREE(rasqal_dataset_triple, cur);
     cur = next;
@@ -142,17 +142,16 @@ rasqal_dataset_statement_handler(void *user_data,
   ds = (rasqal_dataset*)user_data;
 
   triple = (rasqal_dataset_triple*)RASQAL_MALLOC(rasqal_dataset_triple,
-                                              sizeof(*triple));
+                                                 sizeof(*triple));
   triple->next = NULL;
   triple->triple = raptor_statement_as_rasqal_triple(ds->world,
                                                      statement);
 
-#if 0
   /* this origin URI literal is shared amongst the triples and
-   * freed only in rasqal_raptor_free_triples_source
+   * freed only in rasqal_free_dataset()
    */
-  rasqal_triple_set_origin(triple->triple, ds->base_uri_literal);
-#endif
+  if(ds->base_uri_literal)
+    rasqal_triple_set_origin(triple->triple, ds->base_uri_literal);
 
   if(ds->tail)
     ds->tail->next = triple;
@@ -173,9 +172,10 @@ rasqal_dataset_load_graph_iostream(rasqal_dataset* ds,
 
   if(!ds)
     return 1;
-  
-  ds->base_uri_literal = rasqal_new_uri_literal(ds->world,
-                                                raptor_uri_copy(base_uri));
+
+  if(base_uri)
+    ds->base_uri_literal = rasqal_new_uri_literal(ds->world,
+                                                  raptor_uri_copy(base_uri));
 
   if(format_name) {
     if(!raptor_world_is_parser_name(ds->world->raptor_world_ptr, format_name)) {
@@ -227,7 +227,7 @@ rasqal_dataset_init_match_internal(rasqal_dataset* ds,
     return NULL;
   
   iter = (rasqal_dataset_term_iterator*)RASQAL_CALLOC(rasqal_dataset_term_iterator,
-                                                   1, sizeof(*iter));
+                                                      1, sizeof(*iter));
 
   if(!iter)
     return NULL;
@@ -247,7 +247,10 @@ rasqal_dataset_init_match_internal(rasqal_dataset* ds,
   else
     iter->want = RASQAL_TRIPLE_PREDICATE;
 
-  iter->parts = RASQAL_TRIPLE_SPO ^ iter->want;
+  iter->parts = (RASQAL_TRIPLE_SPO ^ iter->want);
+
+  if(ds->base_uri_literal)
+    iter->parts |= RASQAL_TRIPLE_ORIGIN;
   
   if(rasqal_dataset_term_iterator_next(iter)) {
     rasqal_free_dataset_term_iterator(iter);
