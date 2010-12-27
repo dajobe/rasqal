@@ -201,9 +201,13 @@ rasqal_dataset_load_graph_iostream(rasqal_dataset* ds,
   if(!ds)
     return 1;
 
-  if(base_uri)
+  if(base_uri) {
+    if(ds->base_uri_literal)
+      rasqal_free_literal(ds->base_uri_literal);
+    
     ds->base_uri_literal = rasqal_new_uri_literal(ds->world,
                                                   raptor_uri_copy(base_uri));
+  }
 
   if(format_name) {
     if(!raptor_world_is_parser_name(ds->world->raptor_world_ptr, format_name)) {
