@@ -197,7 +197,7 @@ rasqal_query_results_formats_enumerate(rasqal_world* world,
     *mime_type = factory->mime_type;
   if(flags) {
     *flags = 0;
-    if(factory->reader)
+    if(factory->reader || factory->get_rowsource)
       *flags |= RASQAL_QUERY_RESULTS_FORMAT_FLAG_READER;
     if(factory->writer)
       *flags |= RASQAL_QUERY_RESULTS_FORMAT_FLAG_WRITER;
