@@ -1,6 +1,6 @@
 /* -*- Mode: c; c-basic-offset: 2 -*-
  *
- * srxread.c - SPARQL Results XML Format writing test program
+ * srxwrite.c - SPARQL Results Format writing test program
  *
  * Copyright (C) 2010, David Beckett http://www.dajobe.org/
  * 
