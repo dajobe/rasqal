@@ -110,11 +110,12 @@ main(int argc, char *argv[])
     for(i = 0; 1; i++) {
       const char *name;
       const char *label;
+      const char *mime_type = NULL;
       int qr_flags = 0;
       int need_comma = 0;
 
       if(rasqal_query_results_formats_enumerate(world, i, &name, &label, 
-                                                NULL, NULL, &qr_flags))
+                                                NULL, &mime_type, &qr_flags))
         break;
       
       printf("  %-10s %s (", name, label);
@@ -136,6 +137,8 @@ main(int argc, char *argv[])
         fputs("default", stdout);
       }
       fputs(")\n", stdout);
+      if(mime_type)
+        fprintf(stdout, "               %s\n", mime_type);
    }
 
 
