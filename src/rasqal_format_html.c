@@ -242,28 +242,42 @@ rasqal_query_results_write_html(raptor_iostream *iostr,
   
 
 
-int
-rasqal_init_result_format_html(rasqal_world* world)
+static const char* const html_names[2] = { "html", NULL};
+
+#define HTML_TYPES_COUNT 2
+static const raptor_type_q html_types[HTML_TYPES_COUNT + 1] = {
+  { "application/xhtml+xml", 21, 10}, 
+  { "text/html", 9, 10}, 
+  { NULL, 0, 0}
+};
+
+static int
+rasqal_query_results_html_register_factory(rasqal_query_results_format_factory *factory) 
 {
-  rasqal_query_results_formatter_func writer_fn = NULL;
   int rc = 0;
 
-  writer_fn = &rasqal_query_results_write_html;
+  factory->desc.names = html_names;
 
-  rc += rasqal_query_results_format_register_factory(world,
-                                                     "html", "HTML Table",
-                                                     (unsigned char*)"http://www.w3.org/1999/xhtml",
-                                                     writer_fn, NULL, NULL,
-                                                     "application/xhtml+xml")
-                                                     != 0;
+  factory->desc.mime_types = html_types;
+  factory->desc.mime_types_count = HTML_TYPES_COUNT;
 
-  rc += rasqal_query_results_format_register_factory(world,
-                                                     NULL, NULL,
-                                                     NULL,
-                                                     writer_fn, NULL, NULL,
-                                                     "text/html")
-                                                     != 0;
+  factory->desc.label = "HTML Table";
+
+  factory->desc.uri_string = "http://www.w3.org/1999/xhtml";
+
+  factory->desc.flags = 0;
+  
+  factory->writer        = &rasqal_query_results_write_html;
+  factory->reader        = NULL;
+  factory->get_rowsource = NULL;
 
   return rc;
 }
 
+
+int
+rasqal_init_result_format_html(rasqal_world* world)
+{
+  return !rasqal_world_register_query_results_format_factory(world,
+                                                             &rasqal_query_results_html_register_factory);
+}

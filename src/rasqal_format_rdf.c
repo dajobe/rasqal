@@ -702,30 +702,45 @@ rasqal_query_results_get_rowsource_rdf(rasqal_world *world,
 
 
 
-int
-rasqal_init_result_format_rdf(rasqal_world* world)
+static const char* const rdfxml_names[2] = { "rdfxml", NULL};
+
+#define RDFXML_TYPES_COUNT 1
+static const raptor_type_q rdfxml_types[RDFXML_TYPES_COUNT + 1] = {
+  { "application/rdf+xml", 19, 10}, 
+  { NULL, 0, 0}
+};
+
+static int
+rasqal_query_results_rdfxml_register_factory(rasqal_query_results_format_factory *factory) 
 {
-  rasqal_query_results_formatter_func writer_fn = NULL;
-  rasqal_query_results_formatter_func reader_fn = NULL;
-  rasqal_query_results_get_rowsource_func get_rowsource_fn = NULL;
   int rc = 0;
 
-#ifdef RAPTOR_V2_AVAILABLE
-  writer_fn = &rasqal_query_results_write_rdf;
-#else
-  writer_fn = NULL;
-#endif
-  reader_fn = NULL,
-  get_rowsource_fn = &rasqal_query_results_get_rowsource_rdf;
+  factory->desc.names = rdfxml_names;
 
-  rc += rasqal_query_results_format_register_factory(world,
-                                                     "rdfxml",
-                                                     "RDF/XML Query Results",
-                                                     NULL,
-                                                     writer_fn, reader_fn, get_rowsource_fn,
-                                                     "application/rdf+xml")
-                                                     != 0;
+  factory->desc.mime_types = rdfxml_types;
+  factory->desc.mime_types_count = RDFXML_TYPES_COUNT;
+
+  factory->desc.label = "RDF/XML Query Results";
+
+  factory->desc.uri_string = NULL;
+
+  factory->desc.flags = 0;
+  
+#ifdef RAPTOR_V2_AVAILABLE
+  factory->writer        = &rasqal_query_results_write_rdf;
+#else
+  factory->writer        = NULL;
+#endif
+  factory->reader        = NULL;
+  factory->get_rowsource = &rasqal_query_results_get_rowsource_rdf;
 
   return rc;
 }
 
+
+int
+rasqal_init_result_format_rdf(rasqal_world* world)
+{
+  return !rasqal_world_register_query_results_format_factory(world,
+                                                             &rasqal_query_results_rdfxml_register_factory);
+}

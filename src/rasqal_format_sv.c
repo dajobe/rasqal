@@ -213,28 +213,81 @@ rasqal_query_results_write_tsv(raptor_iostream *iostr,
 }
 
 
+static const char* const csv_names[2] = { "csv", NULL};
+
+#define CSV_TYPES_COUNT 1
+static const raptor_type_q csv_types[CSV_TYPES_COUNT + 1] = {
+  { "text/csv", 8, 10}, 
+  { NULL, 0, 0}
+};
+
+static int
+rasqal_query_results_csv_register_factory(rasqal_query_results_format_factory *factory) 
+{
+  int rc = 0;
+
+  factory->desc.names = csv_names;
+
+  factory->desc.mime_types = csv_types;
+  factory->desc.mime_types_count = CSV_TYPES_COUNT;
+
+  factory->desc.label = "Comma Separated Values (CSV)";
+
+  factory->desc.uri_string = NULL;
+
+  factory->desc.flags = 0;
+  
+  factory->writer        = &rasqal_query_results_write_csv;
+  factory->reader        = NULL;
+  factory->get_rowsource = NULL;
+
+  return rc;
+}
+
+
+static const char* const tsv_names[2] = { "tsv", NULL};
+
+#define TSV_TYPES_COUNT 1
+static const raptor_type_q tsv_types[TSV_TYPES_COUNT + 1] = {
+  { "text/tab-separated-values", 25, 10}, 
+  { NULL, 0, 0}
+};
+
+static int
+rasqal_query_results_tsv_register_factory(rasqal_query_results_format_factory *factory) 
+{
+  int rc = 0;
+
+  factory->desc.names = tsv_names;
+
+  factory->desc.mime_types = tsv_types;
+  factory->desc.mime_types_count = TSV_TYPES_COUNT;
+
+  factory->desc.label = "Tab Separated Values (TSV)";
+
+  factory->desc.uri_string = "http://www.iana.org/assignments/media-types/text/tab-separated-values";
+
+  factory->desc.flags = 0;
+  
+  factory->writer        = &rasqal_query_results_write_tsv;
+  factory->reader        = NULL;
+  factory->get_rowsource = NULL;
+
+  return rc;
+}
+
+
 int
 rasqal_init_result_format_sv(rasqal_world* world)
 {
-  int rc = 0;
-  rasqal_query_results_formatter_func writer_fn=NULL;
+  if(!rasqal_world_register_query_results_format_factory(world,
+                                                         &rasqal_query_results_csv_register_factory))
+    return 1;
 
-  writer_fn = &rasqal_query_results_write_csv;
-  rc += rasqal_query_results_format_register_factory(world,
-                                                      "csv",
-                                                      "Comma Separated Values (CSV)",
-                                                      (const unsigned char*)"http://www.ietf.org/rfc/rfc4180.txt",
-                                                      writer_fn,
-                                                      NULL, NULL,
-                                                      "text/csv") != 0;
-  writer_fn = &rasqal_query_results_write_tsv;
-  rc += rasqal_query_results_format_register_factory(world,
-                                                     "tsv",
-                                                     "Tab Separated Values (TSV)",
-                                                     (const unsigned char*)"http://www.iana.org/assignments/media-types/text/tab-separated-values",
-                                                     writer_fn,
-                                                     NULL, NULL,
-                                                     "text/tab-separated-values") != 0;
 
-  return rc;
+  if(!rasqal_world_register_query_results_format_factory(world,
+                                                         &rasqal_query_results_tsv_register_factory))
+    return 1;
+  
+  return 0;
 }

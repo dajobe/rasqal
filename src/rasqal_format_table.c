@@ -301,15 +301,42 @@ rasqal_query_results_write_table(raptor_iostream *iostr,
   }
 }
 
+
+static const char* const table_names[2] = { "table", NULL};
+
+#define TABLE_TYPES_COUNT 1
+static const raptor_type_q table_types[TABLE_TYPES_COUNT + 1] = {
+  { "text/plain", 10, 10}, 
+  { NULL, 0, 0}
+};
+
+static int
+rasqal_query_results_table_register_factory(rasqal_query_results_format_factory *factory) 
+{
+  int rc = 0;
+
+  factory->desc.names = table_names;
+
+  factory->desc.mime_types = table_types;
+  factory->desc.mime_types_count = TABLE_TYPES_COUNT;
+
+  factory->desc.label = "Table";
+
+  factory->desc.uri_string = NULL;
+
+  factory->desc.flags = 0;
+  
+  factory->writer        = &rasqal_query_results_write_table;
+  factory->reader        = NULL;
+  factory->get_rowsource = NULL;
+
+  return rc;
+}
+
+
 int
 rasqal_init_result_format_table(rasqal_world* world)
 {
-  rasqal_query_results_formatter_func writer_fn=NULL;
-  writer_fn = &rasqal_query_results_write_table;
-
-  return rasqal_query_results_format_register_factory(world,
-                                                      "table", "Table",
-                                                      NULL,
-                                                      writer_fn, NULL, NULL,
-                                                      "text/plain");
+  return !rasqal_world_register_query_results_format_factory(world,
+                                                             &rasqal_query_results_table_register_factory);
 }

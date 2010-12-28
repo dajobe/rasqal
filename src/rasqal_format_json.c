@@ -247,40 +247,49 @@ rasqal_query_results_write_json1(raptor_iostream *iostr,
 }
 
 
+static const char* const json_names[2] = { "json", NULL};
+
+#define JSON_TYPES_COUNT 1
+static const raptor_type_q json_types[JSON_TYPES_COUNT + 1] = {
+  { "application/json", 16, 10}, 
+  { NULL, 0, 0}
+};
+
+static int
+rasqal_query_results_json_register_factory(rasqal_query_results_format_factory *factory) 
+{
+  int rc = 0;
+
+  factory->desc.names = json_names;
+
+  factory->desc.mime_types = json_types;
+  factory->desc.mime_types_count = JSON_TYPES_COUNT;
+
+  factory->desc.label = "SPARQL JSON Query Results";
+
+  /* Released DAWG WG results in JSON
+   * http://www.w3.org/TR/2007/NOTE-rdf-sparql-json-res-20070618/
+   *
+   * URIs from 0.9.16 or earlier:
+   * http://www.w3.org/2001/sw/DataAccess/json-sparql/
+   * http://www.mindswap.org/%7Ekendall/sparql-results-json/
+   * 
+   */
+  factory->desc.uri_string = "http://www.w3.org/TR/rdf-sparql-json-res/";
+
+  factory->desc.flags = 0;
+  
+  factory->writer        = &rasqal_query_results_write_json1;
+  factory->reader        = NULL;
+  factory->get_rowsource = NULL;
+
+  return rc;
+}
+
+
 int
 rasqal_init_result_format_json(rasqal_world* world)
 {
-  rasqal_query_results_formatter_func writer_fn = NULL;
-  rasqal_query_results_formatter_func reader_fn = NULL;
-  rasqal_query_results_get_rowsource_func get_rowsource_fn = NULL;
-  int rc = 0;
-
-  writer_fn = &rasqal_query_results_write_json1;
-  reader_fn = NULL;
-  get_rowsource_fn = NULL;
-
-  /* Released DAWG WG results in JSON */
-  rc += rasqal_query_results_format_register_factory(world,
-                                                     "json",
-                                                     "SPARQL JSON Query Results",
-                                                     (unsigned char*)"http://www.w3.org/TR/2007/NOTE-rdf-sparql-json-res-20070618/",
-                                                     writer_fn, reader_fn, get_rowsource_fn,
-                                                     "application/json")
-                                                     != 0;
-  /* URIs from 0.9.16 or earlier */
-  rc+= rasqal_query_results_format_register_factory(world,
-                                                    NULL,
-                                                    NULL,
-                                                    (unsigned char*)"http://www.w3.org/2001/sw/DataAccess/json-sparql/",
-                                                    writer_fn, reader_fn, get_rowsource_fn,
-                                                    "application/json")
-                                                    != 0;
-  rc+= rasqal_query_results_format_register_factory(world,
-                                                    NULL,
-                                                    NULL,
-                                                    (unsigned char*)"http://www.mindswap.org/%7Ekendall/sparql-results-json/",
-                                                    writer_fn, reader_fn, get_rowsource_fn,
-                                                    "application/json")
-                                                    != 0;
-  return rc;
+  return !rasqal_world_register_query_results_format_factory(world,
+                                                             &rasqal_query_results_json_register_factory);
 }
