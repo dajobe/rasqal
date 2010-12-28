@@ -54,9 +54,17 @@
 #endif
 #endif
 
+
+#define QUERY_RESULTS_TURTLE_PRETTY 1
+
+
 typedef struct 
 {
   const char* name;
+
+  const char* read_format_name;
+
+  const char* write_format_name;
 } rasqal_query_results_format_rdf;
 
 
@@ -66,6 +74,9 @@ typedef struct
 #ifdef RAPTOR_V2_AVAILABLE
   raptor_world *raptor_world_ptr;
 #endif
+
+  rasqal_query_results_formatter* formatter;
+
   rasqal_rowsource* rowsource;
 
   int failed;
@@ -106,13 +117,24 @@ rasqal_query_results_rdf_init(rasqal_query_results_formatter* formatter,
   
   context->name = name;
 
+  if(!strcmp(name, "rdfxml")) {
+    context->read_format_name = "rdfxml";
+    context->write_format_name = "rdfxml-abbrev";
+  } else if(!strcmp(name, "turtle")) {
+    context->read_format_name = "turtle";
+    context->write_format_name = "turtle";
+  } else {
+    context->read_format_name = "guess";
+    context->read_format_name = NULL;
+  }
+
   return 0;
 }
 
 
 #ifdef RAPTOR_V2_AVAILABLE
 /*
- * rasqal_query_results_write_rdf:
+ * rasqal_query_results_rdf_write:
  * @iostr: #raptor_iostream to write the query results to
  * @results: #rasqal_query_results query results input
  * @base_uri: #raptor_uri base URI of the output format
@@ -124,13 +146,14 @@ rasqal_query_results_rdf_init(rasqal_query_results_formatter* formatter,
  * Return value: non-0 on failure
  **/
 static int
-rasqal_query_results_write_rdf(rasqal_query_results_formatter* formatter,
+rasqal_query_results_rdf_write(rasqal_query_results_formatter* formatter,
                                raptor_iostream *iostr,
                                rasqal_query_results* results,
                                raptor_uri *base_uri)
 {
   rasqal_world* world = rasqal_query_results_get_world(results);
   raptor_world *raptor_world_ptr;
+  rasqal_query_results_format_rdf* formatter_context;
   raptor_uri* rdf_ns_uri;
   raptor_uri* rs_ns_uri;
   raptor_uri* rdf_type_uri;
@@ -154,6 +177,16 @@ rasqal_query_results_write_rdf(rasqal_query_results_formatter* formatter,
   }
 
   raptor_world_ptr = world->raptor_world_ptr;
+
+  formatter_context = (rasqal_query_results_format_rdf*)formatter->context;
+  
+  if(!formatter_context->write_format_name) {
+    rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR, NULL,
+                            "Cannot write RDF in format %s",
+                            formatter_context->name);
+    return 1;
+  }
+  
 
   /* Namespaces */
   rdf_ns_uri = raptor_new_uri(raptor_world_ptr, raptor_rdf_namespace_uri);
@@ -187,7 +220,8 @@ rasqal_query_results_write_rdf(rasqal_query_results_formatter* formatter,
 
 
   /* Start serializing */
-  ser = raptor_new_serializer(raptor_world_ptr, "rdfxml-abbrev");
+  ser = raptor_new_serializer(raptor_world_ptr,
+                              formatter_context->write_format_name);
   if(!ser) {
     rc = 1;
     goto tidy;
@@ -401,7 +435,7 @@ rasqal_rowsource_rdf_finish(rasqal_rowsource* rowsource, void *user_data)
 static int
 rasqal_rowsource_rdf_process(rasqal_rowsource_rdf_context* con)
 {
-  const char* format_name = "guess";
+  rasqal_query_results_format_rdf* formatter_context;
   raptor_uri* rdf_ns_uri;
   raptor_uri* uri;
   rasqal_literal* predicate_uri_literal;
@@ -415,10 +449,13 @@ rasqal_rowsource_rdf_process(rasqal_rowsource_rdf_context* con)
 
   if(con->parsed)
     return 0;
+
+  formatter_context = (rasqal_query_results_format_rdf*)con->formatter->context;
   
   con->ds = rasqal_new_dataset(con->world);
   
-  if(rasqal_dataset_load_graph_iostream(con->ds, format_name,
+  if(rasqal_dataset_load_graph_iostream(con->ds,
+                                        formatter_context->read_format_name,
                                         con->iostr, con->base_uri)) {
     return 1;
   }
@@ -642,7 +679,7 @@ rasqal_rowsource_rdf_ensure_variables(rasqal_rowsource* rowsource,
 
 static rasqal_row*
 rasqal_rowsource_rdf_read_row(rasqal_rowsource* rowsource,
-                                     void *user_data)
+                              void *user_data)
 {
   rasqal_rowsource_rdf_context* con;
   rasqal_row* row = NULL;
@@ -688,7 +725,7 @@ static const rasqal_rowsource_handler rasqal_rowsource_rdf_handler={
  * Return value: a new rasqal_rowsource or NULL on failure
  **/
 static rasqal_rowsource*
-rasqal_query_results_get_rowsource_rdf(rasqal_query_results_formatter* formatter,
+rasqal_query_results_rdf_get_rowsource(rasqal_query_results_formatter* formatter,
                                        rasqal_world *world,
                                        rasqal_variables_table* vars_table,
                                        raptor_iostream *iostr,
@@ -701,6 +738,7 @@ rasqal_query_results_get_rowsource_rdf(rasqal_query_results_formatter* formatter
     return NULL;
 
   con->world = world;
+  con->formatter = formatter;
   con->base_uri = base_uri ? raptor_uri_copy(base_uri) : NULL;
   con->iostr = iostr;
 
@@ -749,11 +787,11 @@ rasqal_query_results_rdfxml_register_factory(rasqal_query_results_format_factory
   factory->init          = rasqal_query_results_rdf_init;
 
 #ifdef RAPTOR_V2_AVAILABLE
-  factory->write         = rasqal_query_results_write_rdf;
+  factory->write         = rasqal_query_results_rdf_write;
 #else
   factory->write         = NULL;
 #endif
-  factory->get_rowsource = rasqal_query_results_get_rowsource_rdf;
+  factory->get_rowsource = rasqal_query_results_rdf_get_rowsource;
 
   return rc;
 }
@@ -764,4 +802,159 @@ rasqal_init_result_format_rdf(rasqal_world* world)
 {
   return !rasqal_world_register_query_results_format_factory(world,
                                                              &rasqal_query_results_rdfxml_register_factory);
+}
+
+
+#ifdef QUERY_RESULTS_TURTLE_PRETTY
+/*
+ * rasqal_query_results_turtle_write:
+ * @iostr: #raptor_iostream to write the query to
+ * @results: #rasqal_query_results query results format
+ * @base_uri: #raptor_uri base URI of the output format
+ *
+ * Write a Turtle version of the query results format to an
+ * iostream in a format - INTERNAL.
+ * 
+ * If the writing succeeds, the query results will be exhausted.
+ * 
+ * Return value: non-0 on failure
+ **/
+static int
+rasqal_query_results_turtle_write(rasqal_query_results_formatter* formatter,
+                                  raptor_iostream *iostr,
+                                  rasqal_query_results* results,
+                                  raptor_uri *base_uri)
+{
+  rasqal_world* world = rasqal_query_results_get_world(results);
+  int i;
+  int row_semicolon;
+  int column_semicolon = 0;
+  int size;
+  
+  if(!rasqal_query_results_is_bindings(results)) {
+    rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR, NULL,
+                            "Can only write Turtle format for variable binding results");
+    return 1;
+  }
+  
+  
+  raptor_iostream_string_write("@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .\n", iostr);
+  raptor_iostream_string_write("@prefix rs:      <http://www.w3.org/2001/sw/DataAccess/tests/result-set#> .\n", iostr);
+  raptor_iostream_string_write("@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n", iostr);
+  raptor_iostream_write_byte('\n', iostr);
+
+  raptor_iostream_counted_string_write("[]    rdf:type      rs:ResultSet ;\n",
+                                       35, iostr);
+
+
+  /* Variable Binding Results */
+
+  for(i = 0; 1; i++) {
+    const unsigned char *name;
+    
+    name = rasqal_query_results_get_binding_name(results, i);
+    if(!name)
+      break;
+      
+    raptor_iostream_counted_string_write("      rs:resultVariable  \"",
+                                         26, iostr);
+    raptor_iostream_string_write(name, iostr);
+    raptor_iostream_counted_string_write("\" ;\n", 4, iostr);
+  }
+
+  size = rasqal_query_results_get_bindings_count(results);
+  row_semicolon = 0;
+
+  while(!rasqal_query_results_finished(results)) {
+    if(row_semicolon)
+      raptor_iostream_counted_string_write(" ;\n", 3, iostr);
+
+    /* Result row */
+    raptor_iostream_counted_string_write("      rs:solution   [ ", 22, iostr);
+
+    column_semicolon = 0;
+    for(i = 0; i < size; i++) {
+      const unsigned char *name;
+      rasqal_literal *l;
+
+      name = rasqal_query_results_get_binding_name(results, i);
+      l = rasqal_query_results_get_binding_value(results, i);
+
+      if(column_semicolon)
+        raptor_iostream_counted_string_write("; \n                      ",
+                                             25, iostr);
+
+      /* binding */
+      raptor_iostream_counted_string_write("rs:binding    [ ", 16, iostr);
+
+      /* only emit rs:value and rs:variable triples if there is a value */
+      if(l) {
+        raptor_iostream_counted_string_write("rs:variable   \"", 15, iostr);
+        raptor_iostream_string_write(name, iostr);
+        raptor_iostream_counted_string_write("\" ;\n                                      rs:value      ", 56, iostr);
+        rasqal_literal_write_turtle(l, iostr);
+        raptor_iostream_counted_string_write("\n                                    ] ", 39, iostr);
+        column_semicolon = 1;
+      }
+
+    }
+
+    /* End Result Row */
+    raptor_iostream_counted_string_write("\n      ]", 8, iostr);
+    row_semicolon = 1;
+    
+    rasqal_query_results_next(results);
+  }
+
+  raptor_iostream_counted_string_write(" .\n", 3, iostr);
+
+  return 0;
+}
+#endif
+
+
+static const char* const turtle_names[2] = { "turtle", NULL};
+
+#define TURTLE_TYPES_COUNT 1
+static const raptor_type_q turtle_types[TURTLE_TYPES_COUNT + 1] = {
+  { "application/turtle", 18, 10}, 
+  { NULL, 0, 0}
+};
+
+static int
+rasqal_query_results_turtle_register_factory(rasqal_query_results_format_factory *factory) 
+{
+  int rc = 0;
+
+  factory->desc.names = turtle_names;
+
+  factory->desc.mime_types = turtle_types;
+  factory->desc.mime_types_count = TURTLE_TYPES_COUNT;
+
+  factory->desc.label = "Turtle Query Results";
+
+  factory->desc.uri_string = "http://www.w3.org/TeamSubmission/turtle/";
+
+  factory->context_length = sizeof(rasqal_query_results_format_rdf);
+  
+  factory->init          = rasqal_query_results_rdf_init;
+  
+#ifdef QUERY_RESULTS_TURTLE_PRETTY
+  factory->write         = rasqal_query_results_turtle_write;
+#else
+  /* This is just not as pretty */
+  factory->write         = rasqal_query_results_rdf_write;
+#endif
+
+  factory->get_rowsource = rasqal_query_results_rdf_get_rowsource;
+
+  return rc;
+}
+
+
+int
+rasqal_init_result_format_turtle(rasqal_world* world)
+{
+  return !rasqal_world_register_query_results_format_factory(world,
+                                                             &rasqal_query_results_turtle_register_factory);
 }

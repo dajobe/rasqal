@@ -92,7 +92,7 @@ rasqal_rowsource_groupby.c rasqal_rowsource_aggregation.c \
 rasqal_rowsource_having.c \
 rasqal_row_compatible.c rasqal_format_table.c rasqal_query_write.c \
 rasqal_format_json.c rasqal_format_sv.c rasqal_format_html.c \
-rasqal_format_turtle.c rasqal_format_rdf.c \
+rasqal_format_rdf.c \
 rasqal_rowsource_assignment.c rasqal_update.c \
 rasqal_triple.c rasqal_data_graph.c rasqal_prefix.c \
 rasqal_solution_modifier.c rasqal_projection.c rasqal_bindings.c \
