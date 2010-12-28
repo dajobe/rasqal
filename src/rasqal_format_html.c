@@ -201,9 +201,10 @@ rasqal_query_results_write_html_boolean(raptor_iostream *iostr,
  * Return value: non-0 on failure
  **/
 static int
-rasqal_query_results_write_html(raptor_iostream *iostr,
-                                      rasqal_query_results* results,
-                                      raptor_uri *base_uri)
+rasqal_query_results_write_html(rasqal_query_results_formatter* formatter,
+                                raptor_iostream *iostr,
+                                rasqal_query_results* results,
+                                raptor_uri *base_uri)
 {
   rasqal_query* query = rasqal_query_results_get_query(results);
 
@@ -267,7 +268,7 @@ rasqal_query_results_html_register_factory(rasqal_query_results_format_factory *
 
   factory->desc.flags = 0;
   
-  factory->write         = &rasqal_query_results_write_html;
+  factory->write         = rasqal_query_results_write_html;
   factory->get_rowsource = NULL;
 
   return rc;

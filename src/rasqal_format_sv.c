@@ -196,7 +196,8 @@ rasqal_query_results_write_sv(raptor_iostream *iostr,
 
 
 static int
-rasqal_query_results_write_csv(raptor_iostream *iostr,
+rasqal_query_results_write_csv(rasqal_query_results_formatter* formatter,
+                               raptor_iostream *iostr,
                                rasqal_query_results* results,
                                raptor_uri *base_uri)
 {
@@ -205,7 +206,8 @@ rasqal_query_results_write_csv(raptor_iostream *iostr,
 
 
 static int
-rasqal_query_results_write_tsv(raptor_iostream *iostr,
+rasqal_query_results_write_tsv(rasqal_query_results_formatter* formatter,
+                               raptor_iostream *iostr,
                                rasqal_query_results* results,
                                raptor_uri *base_uri)
 {
@@ -237,7 +239,7 @@ rasqal_query_results_csv_register_factory(rasqal_query_results_format_factory *f
 
   factory->desc.flags = 0;
   
-  factory->write         = &rasqal_query_results_write_csv;
+  factory->write         = rasqal_query_results_write_csv;
   factory->get_rowsource = NULL;
 
   return rc;
@@ -268,7 +270,7 @@ rasqal_query_results_tsv_register_factory(rasqal_query_results_format_factory *f
 
   factory->desc.flags = 0;
   
-  factory->write         = &rasqal_query_results_write_tsv;
+  factory->write         = rasqal_query_results_write_tsv;
   factory->get_rowsource = NULL;
 
   return rc;

@@ -283,7 +283,8 @@ rasqal_query_results_write_table_boolean(raptor_iostream *iostr,
 }
 
 static int
-rasqal_query_results_write_table(raptor_iostream *iostr,
+rasqal_query_results_write_table(rasqal_query_results_formatter* formatter,
+                                 raptor_iostream *iostr,
                                  rasqal_query_results* results,
                                  raptor_uri *base_uri)
 {
@@ -326,7 +327,7 @@ rasqal_query_results_table_register_factory(rasqal_query_results_format_factory 
 
   factory->desc.flags = 0;
   
-  factory->write         = &rasqal_query_results_write_table;
+  factory->write         = rasqal_query_results_write_table;
   factory->get_rowsource = NULL;
 
   return rc;

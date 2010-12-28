@@ -396,7 +396,22 @@ rasqal_new_query_results_formatter2(rasqal_world* world,
 
   formatter->factory = factory;
 
-  formatter->mime_type = factory->desc.mime_types[0].mime_type;
+  formatter->context = NULL;
+  if(factory->context_length) {
+    formatter->context = (char*)RASQAL_CALLOC(rasqal_query_results_formatter_context, 1,
+                                              factory->context_length);
+    if(!formatter->context) {
+      rasqal_free_query_results_formatter(formatter);
+    return NULL;
+    }
+  }
+  
+  if(formatter->factory->init) {
+    if(formatter->factory->init(formatter, name)) {
+      rasqal_free_query_results_formatter(formatter);
+      return NULL;
+    }
+  }
   
   return formatter;
 }
@@ -472,6 +487,9 @@ rasqal_free_query_results_formatter(rasqal_query_results_formatter* formatter)
   if(!formatter)
     return;
 
+  if(formatter->context)
+    RASQAL_FREE(context, formatter->context);
+
   RASQAL_FREE(rasqal_query_results_formatter, formatter);
 }
 
@@ -489,7 +507,7 @@ rasqal_query_results_formatter_get_mime_type(rasqal_query_results_formatter *for
 {
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(formatter, rasqal_query_results_formatter, NULL);
 
-  return formatter->mime_type;
+  return formatter->factory->desc.mime_types[0].mime_type;
 }
 
 
@@ -522,7 +540,7 @@ rasqal_query_results_formatter_write(raptor_iostream *iostr,
 
   if(!formatter->factory->write)
      return 1;
-  return formatter->factory->write(iostr, results, base_uri);
+  return formatter->factory->write(formatter, iostr, results, base_uri);
 }
 
 
@@ -559,7 +577,7 @@ rasqal_query_results_formatter_read(rasqal_world *world,
   if(!formatter->factory->get_rowsource)
     return 1;
   
-  rowsource = formatter->factory->get_rowsource(world, 
+  rowsource = formatter->factory->get_rowsource(formatter, world, 
                                                 rasqal_query_results_get_variables_table(results),
                                                 iostr, base_uri);
   if(!rowsource)

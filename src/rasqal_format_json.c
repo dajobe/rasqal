@@ -71,7 +71,8 @@ rasqal_iostream_write_json_boolean(raptor_iostream* iostr,
  * Return value: non-0 on failure
  **/
 static int
-rasqal_query_results_write_json1(raptor_iostream *iostr,
+rasqal_query_results_write_json1(rasqal_query_results_formatter* formatter,
+                                 raptor_iostream *iostr,
                                  rasqal_query_results* results,
                                  raptor_uri *base_uri)
 {
@@ -279,7 +280,7 @@ rasqal_query_results_json_register_factory(rasqal_query_results_format_factory *
 
   factory->desc.flags = 0;
   
-  factory->write         = &rasqal_query_results_write_json1;
+  factory->write         = rasqal_query_results_write_json1;
   factory->get_rowsource = NULL;
 
   return rc;

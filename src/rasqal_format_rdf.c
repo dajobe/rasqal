@@ -54,6 +54,11 @@
 #endif
 #endif
 
+typedef struct 
+{
+  const char* name;
+} rasqal_query_results_format_rdf;
+
 
 typedef struct 
 {
@@ -93,6 +98,18 @@ static const unsigned char* rs_namespace_uri_string =
   (const unsigned char*)"http://www.w3.org/2001/sw/DataAccess/tests/result-set#";
 
 
+static int
+rasqal_query_results_rdf_init(rasqal_query_results_formatter* formatter,
+                              const char* name)
+{
+  rasqal_query_results_format_rdf* context = (rasqal_query_results_format_rdf*)formatter->context;
+  
+  context->name = name;
+
+  return 0;
+}
+
+
 #ifdef RAPTOR_V2_AVAILABLE
 /*
  * rasqal_query_results_write_rdf:
@@ -107,7 +124,8 @@ static const unsigned char* rs_namespace_uri_string =
  * Return value: non-0 on failure
  **/
 static int
-rasqal_query_results_write_rdf(raptor_iostream *iostr,
+rasqal_query_results_write_rdf(rasqal_query_results_formatter* formatter,
+                               raptor_iostream *iostr,
                                rasqal_query_results* results,
                                raptor_uri *base_uri)
 {
@@ -670,7 +688,8 @@ static const rasqal_rowsource_handler rasqal_rowsource_rdf_handler={
  * Return value: a new rasqal_rowsource or NULL on failure
  **/
 static rasqal_rowsource*
-rasqal_query_results_get_rowsource_rdf(rasqal_world *world,
+rasqal_query_results_get_rowsource_rdf(rasqal_query_results_formatter* formatter,
+                                       rasqal_world *world,
                                        rasqal_variables_table* vars_table,
                                        raptor_iostream *iostr,
                                        raptor_uri *base_uri)
@@ -701,7 +720,6 @@ rasqal_query_results_get_rowsource_rdf(rasqal_world *world,
 }
 
 
-
 static const char* const rdfxml_names[2] = { "rdfxml", NULL};
 
 #define RDFXML_TYPES_COUNT 1
@@ -726,12 +744,16 @@ rasqal_query_results_rdfxml_register_factory(rasqal_query_results_format_factory
 
   factory->desc.flags = 0;
   
+  factory->context_length = sizeof(rasqal_query_results_format_rdf);
+  
+  factory->init          = rasqal_query_results_rdf_init;
+
 #ifdef RAPTOR_V2_AVAILABLE
-  factory->write         = &rasqal_query_results_write_rdf;
+  factory->write         = rasqal_query_results_write_rdf;
 #else
   factory->write         = NULL;
 #endif
-  factory->get_rowsource = &rasqal_query_results_get_rowsource_rdf;
+  factory->get_rowsource = rasqal_query_results_get_rowsource_rdf;
 
   return rc;
 }

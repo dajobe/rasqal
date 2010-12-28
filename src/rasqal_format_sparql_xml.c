@@ -44,8 +44,8 @@
 #include <rasqal_internal.h>
 
 
-static int rasqal_query_results_write_sparql_xml(raptor_iostream *iostr, rasqal_query_results* results, raptor_uri *base_uri);
-static rasqal_rowsource* rasqal_query_results_get_rowsource_sparql_xml(rasqal_world *world, rasqal_variables_table* vars_table, raptor_iostream *iostr, raptor_uri *base_uri);
+static int rasqal_query_results_write_sparql_xml(rasqal_query_results_formatter* formatter, raptor_iostream *iostr, rasqal_query_results* results, raptor_uri *base_uri);
+static rasqal_rowsource* rasqal_query_results_get_rowsource_sparql_xml(rasqal_query_results_formatter* formatter, rasqal_world *world, rasqal_variables_table* vars_table, raptor_iostream *iostr, raptor_uri *base_uri);
 
 
 #if RASQAL_DEBUG > 1
@@ -79,7 +79,8 @@ static rasqal_rowsource* rasqal_query_results_get_rowsource_sparql_xml(rasqal_wo
  * Return value: non-0 on failure
  **/
 static int
-rasqal_query_results_write_sparql_xml(raptor_iostream *iostr,
+rasqal_query_results_write_sparql_xml(rasqal_query_results_formatter* formatter,
+                                      raptor_iostream *iostr,
                                       rasqal_query_results* results,
                                       raptor_uri *base_uri)
 {
@@ -954,7 +955,8 @@ static const rasqal_rowsource_handler rasqal_rowsource_sparql_xml_handler={
  * Return value: a new rasqal_rowsource or NULL on failure
  **/
 static rasqal_rowsource*
-rasqal_query_results_get_rowsource_sparql_xml(rasqal_world *world,
+rasqal_query_results_get_rowsource_sparql_xml(rasqal_query_results_formatter* formatter,
+                                              rasqal_world *world,
                                               rasqal_variables_table* vars_table,
                                               raptor_iostream *iostr,
                                               raptor_uri *base_uri)
@@ -1040,7 +1042,7 @@ rasqal_query_results_sparql_xml_register_factory(rasqal_query_results_format_fac
 
   factory->desc.flags = 0;
   
-  factory->write         = &rasqal_query_results_write_sparql_xml;
+  factory->write         = rasqal_query_results_write_sparql_xml;
   factory->get_rowsource = rasqal_query_results_get_rowsource_sparql_xml;
 
   return rc;
