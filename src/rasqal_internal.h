@@ -909,7 +909,7 @@ int rasqal_rowsource_ensure_variables(rasqal_rowsource *rowsource);
 int rasqal_rowsource_set_origin(rasqal_rowsource* rowsource, rasqal_literal *literal);
 int rasqal_rowsource_request_grouping(rasqal_rowsource* rowsource);
 
-typedef int (*rasqal_query_results_formatter_func)(raptor_iostream *iostr, rasqal_query_results* results, raptor_uri *base_uri);
+typedef int (*rasqal_query_results_write_func)(raptor_iostream *iostr, rasqal_query_results* results, raptor_uri *base_uri);
 
 typedef rasqal_rowsource* (*rasqal_query_results_get_rowsource_func)(rasqal_world*, rasqal_variables_table* vars_table, raptor_iostream *iostr, raptor_uri *base_uri);
 
@@ -929,10 +929,7 @@ struct rasqal_query_results_format_factory_s {
   raptor_syntax_description desc;
   
   /* format writer: READ from results, WRITE syntax (using base URI) to iostr */
-  rasqal_query_results_formatter_func writer;
-
-  /* format reader: READ syntax from iostr using base URI, WRITE to results */
-  rasqal_query_results_formatter_func reader;
+  rasqal_query_results_write_func write;
 
   /* format get rowsource: get a rowsource that will return a sequence of rows from an iostream */
   rasqal_query_results_get_rowsource_func get_rowsource;

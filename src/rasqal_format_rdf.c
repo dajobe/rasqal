@@ -727,11 +727,10 @@ rasqal_query_results_rdfxml_register_factory(rasqal_query_results_format_factory
   factory->desc.flags = 0;
   
 #ifdef RAPTOR_V2_AVAILABLE
-  factory->writer        = &rasqal_query_results_write_rdf;
+  factory->write         = &rasqal_query_results_write_rdf;
 #else
-  factory->writer        = NULL;
+  factory->write         = NULL;
 #endif
-  factory->reader        = NULL;
   factory->get_rowsource = &rasqal_query_results_get_rowsource_rdf;
 
   return rc;

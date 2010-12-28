@@ -237,8 +237,7 @@ rasqal_query_results_csv_register_factory(rasqal_query_results_format_factory *f
 
   factory->desc.flags = 0;
   
-  factory->writer        = &rasqal_query_results_write_csv;
-  factory->reader        = NULL;
+  factory->write         = &rasqal_query_results_write_csv;
   factory->get_rowsource = NULL;
 
   return rc;
@@ -269,8 +268,7 @@ rasqal_query_results_tsv_register_factory(rasqal_query_results_format_factory *f
 
   factory->desc.flags = 0;
   
-  factory->writer        = &rasqal_query_results_write_tsv;
-  factory->reader        = NULL;
+  factory->write         = &rasqal_query_results_write_tsv;
   factory->get_rowsource = NULL;
 
   return rc;

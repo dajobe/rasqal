@@ -326,8 +326,7 @@ rasqal_query_results_table_register_factory(rasqal_query_results_format_factory 
 
   factory->desc.flags = 0;
   
-  factory->writer        = &rasqal_query_results_write_table;
-  factory->reader        = NULL;
+  factory->write         = &rasqal_query_results_write_table;
   factory->get_rowsource = NULL;
 
   return rc;

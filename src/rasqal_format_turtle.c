@@ -169,8 +169,7 @@ rasqal_query_results_turtle_register_factory(rasqal_query_results_format_factory
 
   factory->desc.flags = 0;
   
-  factory->writer        = &rasqal_query_results_write_turtle;
-  factory->reader        = NULL;
+  factory->write         = &rasqal_query_results_write_turtle;
   factory->get_rowsource = NULL;
 
   return rc;

@@ -231,9 +231,9 @@ rasqal_query_results_formats_enumerate(rasqal_world* world,
     *mime_type = (const char*)factory->desc.mime_types[0].mime_type;
   if(flags) {
     *flags = 0;
-    if(factory->reader || factory->get_rowsource)
+    if(factory->get_rowsource)
       *flags |= RASQAL_QUERY_RESULTS_FORMAT_FLAG_READER;
-    if(factory->writer)
+    if(factory->write)
       *flags |= RASQAL_QUERY_RESULTS_FORMAT_FLAG_WRITER;
   }
   
@@ -258,9 +258,9 @@ rasqal_get_query_results_formatter_factory(rasqal_world* world,
     if(!factory)
       break;
 
-    if(factory->reader || factory->get_rowsource)
+    if(factory->get_rowsource)
       factory_flags |= RASQAL_QUERY_RESULTS_FORMAT_FLAG_READER;
-    if(factory->writer)
+    if(factory->write)
       factory_flags |= RASQAL_QUERY_RESULTS_FORMAT_FLAG_WRITER;
 
     /* Flags must match */
@@ -520,9 +520,9 @@ rasqal_query_results_formatter_write(raptor_iostream *iostr,
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(formatter, rasqal_query_results_formatter, 1);
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(results, rasqal_query_results, 1);
 
-  if(!formatter->factory->writer)
+  if(!formatter->factory->write)
      return 1;
-  return formatter->factory->writer(iostr, results, base_uri);
+  return formatter->factory->write(iostr, results, base_uri);
 }
 
 
@@ -555,9 +555,6 @@ rasqal_query_results_formatter_read(rasqal_world *world,
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(formatter, rasqal_query_results_formatter, 1);
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(results, rasqal_query_results, 1);
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(base_uri, raptor_uri, 1);
-
-  if(formatter->factory->reader)
-    return formatter->factory->reader(iostr, results, base_uri);
 
   if(!formatter->factory->get_rowsource)
     return 1;

@@ -1040,8 +1040,7 @@ rasqal_query_results_sparql_xml_register_factory(rasqal_query_results_format_fac
 
   factory->desc.flags = 0;
   
-  factory->writer        = &rasqal_query_results_write_sparql_xml;
-  factory->reader        = NULL;
+  factory->write         = &rasqal_query_results_write_sparql_xml;
   factory->get_rowsource = rasqal_query_results_get_rowsource_sparql_xml;
 
   return rc;
