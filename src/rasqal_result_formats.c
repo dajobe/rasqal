@@ -42,41 +42,89 @@
 
 
 
-int
-rasqal_query_results_format_register_factory(rasqal_world* world,
-                                             const char *name,
-                                             const char *label,
-                                             const unsigned char* uri_string,
-                                             rasqal_query_results_formatter_func writer,
-                                             rasqal_query_results_formatter_func reader,
-                                             rasqal_query_results_get_rowsource_func get_rowsource,
-                                             const char *mime_type)
+/*
+ * rasqal_world_register_query_result_format_factory:
+ * @world: rasqal world
+ * @factory: pointer to function to call to register the factory
+ * 
+ * INTERNAL - Register a query result format via a factory.
+ *
+ * All strings set in the @factory method are shared with the
+ * #rasqal_query_result_format_factory
+ *
+ * Return value: new factory object or NULL on failure
+ **/
+rasqal_query_results_format_factory*
+rasqal_world_register_query_results_format_factory(rasqal_world* world,
+                                                   int (*factory) (rasqal_query_results_format_factory*))
 {
-  rasqal_query_results_format_factory* factory;
+  rasqal_query_results_format_factory *result_format = NULL;
+  
+  result_format = (rasqal_query_results_format_factory*)RASQAL_CALLOC(rasqal_query_result_format_factory, 1,
+                                                                      sizeof(*result_format));
+  if(!result_format)
+    return NULL;
 
-  factory = (rasqal_query_results_format_factory*)RASQAL_CALLOC(query_results_format_factory, 
-                                                                1, sizeof(*factory));
+  result_format->world = world;
 
-  if(!factory) {
-    rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_FATAL, NULL,
-                            "Out of memory in rasqal_query_results_format_register_factory()");
-    return 1;
+  result_format->desc.mime_types = NULL;
+  
+  if(raptor_sequence_push(world->query_results_formats, result_format))
+    return NULL; /* on error, result_format is already freed by the sequence */
+  
+  /* Call the result_format registration function on the new object */
+  if(factory(result_format))
+    return NULL; /* result_format is owned and freed by the result_formats sequence */
+  
+  if(!result_format->desc.names || !result_format->desc.names[0] ||
+     !result_format->desc.label) {
+    rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR, NULL,
+                            "Result query result format failed to register required names and label fields\n");
+    goto tidy;
   }
-  factory->name = name;
-  factory->label = label;
-  factory->uri_string = uri_string;
-  factory->writer = writer;
-  factory->reader = reader;
-  factory->get_rowsource = get_rowsource;
-  factory->mime_type = mime_type;
 
-  return raptor_sequence_push(world->query_results_formats, factory);
+#ifdef RASQAL_DEBUG
+  /* Maintainer only check of static data */
+  if(result_format->desc.mime_types) {
+    unsigned int i;
+    const raptor_type_q* type_q = NULL;
+
+    for(i = 0; 
+        (type_q = &result_format->desc.mime_types[i]) && type_q->mime_type;
+        i++) {
+      size_t len = strlen(type_q->mime_type);
+      if(len != type_q->mime_type_len) {
+        fprintf(stderr,
+                "Query result format %s  mime type %s  actual len %d  static len %d\n",
+                result_format->desc.names[0], type_q->mime_type,
+                (int)len, (int)type_q->mime_type_len);
+      }
+    }
+
+    if(i != result_format->desc.mime_types_count) {
+        fprintf(stderr,
+                "Query result format %s  saw %d mime types  static count %d\n",
+                result_format->desc.names[0], i, result_format->desc.mime_types_count);
+    }
+  }
+#endif
+
+#if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
+  RASQAL_DEBUG3("Registered query result format %s with context size %d\n",
+                result_format->names[0], result_format->context_length);
+#endif
+
+  return result_format;
+
+  /* Clean up on failure */
+  tidy:
+  rasqal_free_query_results_format_factory(result_format);
+  return NULL;
 }
 
 
-
-static
-void rasqal_free_query_results_format_factory(rasqal_query_results_format_factory* factory) 
+void
+rasqal_free_query_results_format_factory(rasqal_query_results_format_factory* factory)
 {
   RASQAL_FREE(query_results_format_factory, factory);
 }
@@ -166,35 +214,21 @@ rasqal_query_results_formats_enumerate(rasqal_world* world,
 
 {
   rasqal_query_results_format_factory *factory;
-  int i;
-  unsigned int real_counter;
   
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, 1);
 
-  real_counter = 0;
-  for(i = 0; 1; i++) {
-    factory = (rasqal_query_results_format_factory*)raptor_sequence_get_at(world->query_results_formats, i);
-    if(!factory)
-      break;
-
-    if(factory->name) {
-      if(real_counter == counter)
-        break;
-      real_counter++;
-    }
-  }
-
+  factory = (rasqal_query_results_format_factory*)raptor_sequence_get_at(world->query_results_formats, counter);
   if(!factory)
     return 1;
 
   if(name)
-    *name = factory->name;
+    *name = factory->desc.names[0];
   if(label)
-    *label = factory->label;
+    *label = factory->desc.label;
   if(uri_string)
-    *uri_string = factory->uri_string;
+    *uri_string = (const unsigned char*)factory->desc.uri_string;
   if(mime_type)
-    *mime_type = factory->mime_type;
+    *mime_type = (const char*)factory->desc.mime_types[0].mime_type;
   if(flags) {
     *flags = 0;
     if(factory->reader || factory->get_rowsource)
@@ -220,11 +254,11 @@ rasqal_get_query_results_formatter_factory(rasqal_world* world,
     int factory_flags = 0;
     
     factory = (rasqal_query_results_format_factory*)raptor_sequence_get_at(world->query_results_formats,
-                                                                         i);
+                                                                           i);
     if(!factory)
       break;
 
-    if(factory->reader)
+    if(factory->reader || factory->get_rowsource)
       factory_flags |= RASQAL_QUERY_RESULTS_FORMAT_FLAG_READER;
     if(factory->writer)
       factory_flags |= RASQAL_QUERY_RESULTS_FORMAT_FLAG_WRITER;
@@ -236,20 +270,31 @@ rasqal_get_query_results_formatter_factory(rasqal_world* world,
     if(!name && !uri)
       /* the default is the first registered format */
       break;
-    
-    if(name && factory->name &&
-       !strcmp(factory->name, (const char*)name))
-      return factory;
 
+    if(name) {
+      int namei;
+      const char* fname;
+      
+      for(namei = 0; (fname = factory->desc.names[namei]); namei++) {
+        if(!strcmp(fname, name))
+          return factory;
+      }
+    }
 
-    if(uri && factory->uri_string &&
+    if(uri && factory->desc.uri_string &&
        !strcmp((const char*)raptor_uri_as_string(uri),
-               (const char*)factory->uri_string))
+               (const char*)factory->desc.uri_string))
       break;
 
-    if(mime_type && factory->mime_type &&
-       !strcmp(factory->mime_type, (const char*)mime_type))
-      return factory;
+    if(mime_type) {
+      int mti;
+      const char* mname;
+      
+      for(mti = 0; (mname = factory->desc.mime_types[mti].mime_type); mti++) {
+        if(!strcmp(mname, mime_type))
+          return factory;
+      }
+    }
   }
   
   return factory;
@@ -351,7 +396,7 @@ rasqal_new_query_results_formatter2(rasqal_world* world,
 
   formatter->factory = factory;
 
-  formatter->mime_type = factory->mime_type;
+  formatter->mime_type = factory->desc.mime_types[0].mime_type;
   
   return formatter;
 }

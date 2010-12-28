@@ -918,29 +918,25 @@ typedef int (*rasqal_rowsource_visit_fn)(rasqal_rowsource* rowsource, void *user
 int rasqal_rowsource_visit(rasqal_rowsource* rowsource, rasqal_rowsource_visit_fn fn, void *user_data);
 
 
+typedef struct rasqal_query_results_format_factory_s rasqal_query_results_format_factory;
 
-typedef struct {
-  /* query results format name */
-  const char* name;
+struct rasqal_query_results_format_factory_s {
+  rasqal_world* world;
 
-  /* query results format name */
-  const char* label;
+  struct rasqal_query_results_format_factory_s* next;
 
-  /* query results format URI (or NULL) */
-  const unsigned char* uri_string;
-
+  /* static desc that the parser registration initialises */
+  raptor_syntax_description desc;
+  
   /* format writer: READ from results, WRITE syntax (using base URI) to iostr */
   rasqal_query_results_formatter_func writer;
 
   /* format reader: READ syntax from iostr using base URI, WRITE to results */
   rasqal_query_results_formatter_func reader;
 
-  /* format get rowsource: get a rowsource that will return a sequence of rows from an iostram */
+  /* format get rowsource: get a rowsource that will return a sequence of rows from an iostream */
   rasqal_query_results_get_rowsource_func get_rowsource;
-
-  /* MIME Type of the format */
-  const char* mime_type;
-} rasqal_query_results_format_factory;
+};
 
 
 /*
@@ -1171,7 +1167,8 @@ rasqal_world* rasqal_query_results_get_world(rasqal_query_results* query_results
 int rasqal_query_write_sparql_20060406(raptor_iostream *iostr, rasqal_query* query, raptor_uri *base_uri);
 
 /* rasqal_result_formats.c */
-int rasqal_query_results_format_register_factory(rasqal_world*, const char *name, const char *label, const unsigned char* uri_string, rasqal_query_results_formatter_func writer, rasqal_query_results_formatter_func reader, rasqal_query_results_get_rowsource_func get_rowsource, const char *mime_type);
+rasqal_query_results_format_factory* rasqal_world_register_query_results_format_factory(rasqal_world* world, int (*factory) (rasqal_query_results_format_factory*));
+void rasqal_free_query_results_format_factory(rasqal_query_results_format_factory* factory);
 int rasqal_init_result_formats(rasqal_world*);
 void rasqal_finish_result_formats(rasqal_world*);
 
