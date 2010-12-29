@@ -795,6 +795,29 @@ rasqal_query_results_rdf_get_rowsource(rasqal_query_results_formatter* formatter
 }
 
 
+static void
+rasqal_query_results_format_rdf_copy_syntax_description_from_parser(rasqal_query_results_format_factory *factory, const char* name)
+{
+  raptor_world* raptor_world_ptr = factory->world->raptor_world_ptr;
+  const raptor_syntax_description* desc;
+  int i;
+
+  for(i = 0;
+      (desc = raptor_world_get_parser_description(raptor_world_ptr, i)); 
+      i++) {
+    int j;
+    for(j = 0; desc->names[j]; j++) {
+      if(!strcmp(desc->names[j], name)) {
+        factory->desc.mime_types = desc->mime_types;
+        factory->desc.mime_types_count = desc->mime_types_count;
+        return;
+      }
+    }
+  }
+}
+
+
+
 static const char* const rdfxml_names[2] = { "rdfxml", NULL};
 
 #define RDFXML_TYPES_COUNT 1
@@ -812,6 +835,11 @@ rasqal_query_results_rdfxml_register_factory(rasqal_query_results_format_factory
 
   factory->desc.mime_types = rdfxml_types;
   factory->desc.mime_types_count = RDFXML_TYPES_COUNT;
+#ifdef HAVE_RAPTOR2_API
+  rasqal_query_results_format_rdf_copy_syntax_description_from_parser(factory,
+                                                                      "rdfxml");
+#else
+#endif
 
   factory->desc.label = "RDF/XML Query Results";
 
@@ -968,7 +996,12 @@ rasqal_query_results_turtle_register_factory(rasqal_query_results_format_factory
 
   factory->desc.mime_types = turtle_types;
   factory->desc.mime_types_count = TURTLE_TYPES_COUNT;
-
+#ifdef HAVE_RAPTOR2_API
+  rasqal_query_results_format_rdf_copy_syntax_description_from_parser(factory,
+                                                                      "turtle");
+#else
+#endif
+  
   factory->desc.label = "Turtle Query Results";
 
   factory->desc.uri_string = "http://www.w3.org/TeamSubmission/turtle/";
