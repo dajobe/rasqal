@@ -487,6 +487,9 @@ rasqal_free_query_results_formatter(rasqal_query_results_formatter* formatter)
   if(!formatter)
     return;
 
+  if(formatter->factory->finish)
+    formatter->factory->finish(formatter);
+  
   if(formatter->context)
     RASQAL_FREE(context, formatter->context);
 

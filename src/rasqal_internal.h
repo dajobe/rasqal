@@ -911,6 +911,8 @@ int rasqal_rowsource_request_grouping(rasqal_rowsource* rowsource);
 
 typedef int (*rasqal_query_results_init_func)(rasqal_query_results_formatter* formatter, const char* name);
 
+typedef void (*rasqal_query_results_finish_func)(rasqal_query_results_formatter* formatter);
+
 typedef int (*rasqal_query_results_write_func)(rasqal_query_results_formatter* formatter, raptor_iostream *iostr, rasqal_query_results* results, raptor_uri *base_uri);
 
 typedef rasqal_rowsource* (*rasqal_query_results_get_rowsource_func)(rasqal_query_results_formatter* formatter, rasqal_world*, rasqal_variables_table* vars_table, raptor_iostream *iostr, raptor_uri *base_uri);
@@ -933,8 +935,11 @@ struct rasqal_query_results_format_factory_s {
   /* Memory to allocate for per-formatter data */
   int context_length;
   
-  /* format initialisation */
+  /* format initialisation (OPTIONAL) */
   rasqal_query_results_init_func init;
+
+  /* format initialisation (OPTIONAL) */
+  rasqal_query_results_finish_func finish;
 
   /* format writer: READ from results, WRITE syntax (using base URI) to iostr */
   rasqal_query_results_write_func write;

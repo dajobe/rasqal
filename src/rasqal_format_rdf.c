@@ -65,6 +65,21 @@ typedef struct
   const char* read_format_name;
 
   const char* write_format_name;
+
+  /* Namespace URIs */
+  raptor_uri* rdf_ns_uri;
+  raptor_uri* rs_ns_uri;
+
+  /* Predicate URIs */
+  raptor_uri* rdf_type_uri;
+  raptor_uri* rs_variable_uri;
+  raptor_uri* rs_value_uri;
+  raptor_uri* rs_solution_uri;
+  raptor_uri* rs_binding_uri;
+  raptor_uri* rs_resultVariable_uri;
+
+  /* Class URIs */
+  raptor_uri* rs_ResultSet_uri;
 } rasqal_query_results_format_rdf;
 
 
@@ -114,6 +129,7 @@ rasqal_query_results_rdf_init(rasqal_query_results_formatter* formatter,
                               const char* name)
 {
   rasqal_query_results_format_rdf* context = (rasqal_query_results_format_rdf*)formatter->context;
+  raptor_world* raptor_world_ptr = formatter->factory->world->raptor_world_ptr;
   
   context->name = name;
 
@@ -128,7 +144,76 @@ rasqal_query_results_rdf_init(rasqal_query_results_formatter* formatter,
     context->read_format_name = NULL;
   }
 
+  /* Namespaces */
+  context->rdf_ns_uri = raptor_new_uri(raptor_world_ptr,
+                                       raptor_rdf_namespace_uri);
+  context->rs_ns_uri = raptor_new_uri(raptor_world_ptr,
+                                      rs_namespace_uri_string);
+
+
+  /* Predicates */
+  context->rdf_type_uri = 
+    raptor_new_uri_from_uri_local_name(raptor_world_ptr,
+                                       context->rdf_ns_uri,
+                                       (const unsigned char*)"type");
+  context->rs_variable_uri =
+    raptor_new_uri_from_uri_local_name(raptor_world_ptr,
+                                       context->rs_ns_uri,
+                                       (const unsigned char*)"variable");
+  context->rs_value_uri =
+    raptor_new_uri_from_uri_local_name(raptor_world_ptr,
+                                       context->rs_ns_uri,
+                                       (const unsigned char*)"value");
+  context->rs_solution_uri =
+    raptor_new_uri_from_uri_local_name(raptor_world_ptr,
+                                       context->rs_ns_uri,
+                                       (const unsigned char*)"solution");
+  context->rs_binding_uri =
+    raptor_new_uri_from_uri_local_name(raptor_world_ptr,
+                                       context->rs_ns_uri,
+                                       (const unsigned char*)"binding");
+  context->rs_resultVariable_uri =
+    raptor_new_uri_from_uri_local_name(raptor_world_ptr,
+                                       context->rs_ns_uri,
+                                       (const unsigned char*)"resultVariable");
+
+  /* Classes */
+  context->rs_ResultSet_uri =
+    raptor_new_uri_from_uri_local_name(raptor_world_ptr,
+                                       context->rs_ns_uri,
+                                       (const unsigned char*)"ResultSet");
+
   return 0;
+}
+
+
+static void
+rasqal_query_results_rdf_finish(rasqal_query_results_formatter* formatter)
+{
+  rasqal_query_results_format_rdf* context;
+
+  context = (rasqal_query_results_format_rdf*)formatter->context;
+  
+  if(context->rdf_ns_uri)
+    raptor_free_uri(context->rdf_ns_uri);
+  if(context->rs_ns_uri)
+    raptor_free_uri(context->rs_ns_uri);
+
+  if(context->rdf_type_uri)
+    raptor_free_uri(context->rdf_type_uri);
+  if(context->rs_variable_uri)
+    raptor_free_uri(context->rs_variable_uri);
+  if(context->rs_value_uri)
+    raptor_free_uri(context->rs_value_uri);
+  if(context->rs_solution_uri)
+    raptor_free_uri(context->rs_solution_uri);
+  if(context->rs_binding_uri)
+    raptor_free_uri(context->rs_binding_uri);
+
+  if(context->rs_ResultSet_uri)
+    raptor_free_uri(context->rs_ResultSet_uri);
+  if(context->rs_resultVariable_uri)
+    raptor_free_uri(context->rs_resultVariable_uri);
 }
 
 
@@ -154,15 +239,6 @@ rasqal_query_results_rdf_write(rasqal_query_results_formatter* formatter,
   rasqal_world* world = rasqal_query_results_get_world(results);
   raptor_world *raptor_world_ptr;
   rasqal_query_results_format_rdf* formatter_context;
-  raptor_uri* rdf_ns_uri;
-  raptor_uri* rs_ns_uri;
-  raptor_uri* rdf_type_uri;
-  raptor_uri* rs_variable_uri;
-  raptor_uri* rs_value_uri;
-  raptor_uri* rs_solution_uri;
-  raptor_uri* rs_binding_uri;
-  raptor_uri* rs_ResultSet_uri;
-  raptor_uri* rs_resultVariable_uri;
   int i;
   int size;
   raptor_term* resultset_node;
@@ -188,37 +264,6 @@ rasqal_query_results_rdf_write(rasqal_query_results_formatter* formatter,
   }
   
 
-  /* Namespaces */
-  rdf_ns_uri = raptor_new_uri(raptor_world_ptr, raptor_rdf_namespace_uri);
-  rs_ns_uri = raptor_new_uri(raptor_world_ptr, rs_namespace_uri_string);
-
-
-  /* Predicates */
-  rdf_type_uri = raptor_new_uri_from_uri_local_name(raptor_world_ptr,
-                                                    rdf_ns_uri,
-                                                    (const unsigned char*)"type");
-  rs_variable_uri = raptor_new_uri_from_uri_local_name(raptor_world_ptr,
-                                                       rs_ns_uri,
-                                                       (const unsigned char*)"variable");
-  rs_value_uri = raptor_new_uri_from_uri_local_name(raptor_world_ptr,
-                                                    rs_ns_uri,
-                                                    (const unsigned char*)"value");
-  rs_solution_uri = raptor_new_uri_from_uri_local_name(raptor_world_ptr,
-                                                       rs_ns_uri,
-                                                       (const unsigned char*)"solution");
-  rs_binding_uri = raptor_new_uri_from_uri_local_name(raptor_world_ptr,
-                                                      rs_ns_uri,
-                                                      (const unsigned char*)"binding");
-
-  /* Classes */
-  rs_ResultSet_uri = raptor_new_uri_from_uri_local_name(raptor_world_ptr,
-                                                        rs_ns_uri,
-                                                        (const unsigned char*)"ResultSet");
-  rs_resultVariable_uri = raptor_new_uri_from_uri_local_name(raptor_world_ptr,
-                                                             rs_ns_uri,
-                                                             (const unsigned char*)"resultVariable");
-
-
   /* Start serializing */
   ser = raptor_new_serializer(raptor_world_ptr,
                               formatter_context->write_format_name);
@@ -229,9 +274,9 @@ rasqal_query_results_rdf_write(rasqal_query_results_formatter* formatter,
   
   raptor_serializer_start_to_iostream(ser, base_uri, iostr);
   
-  raptor_serializer_set_namespace(ser, rs_ns_uri,
+  raptor_serializer_set_namespace(ser, formatter_context->rs_ns_uri,
                                   (const unsigned char *)"rs");
-  raptor_serializer_set_namespace(ser, rdf_ns_uri,
+  raptor_serializer_set_namespace(ser, formatter_context->rdf_ns_uri,
                                   (const unsigned char *)"rdf");
 
   raptor_statement_init(&statement, raptor_world_ptr);
@@ -242,20 +287,20 @@ rasqal_query_results_rdf_write(rasqal_query_results_formatter* formatter,
   /* result set triple */
   statement.subject = resultset_node;
   statement.predicate = raptor_new_term_from_uri(raptor_world_ptr,
-                                                 rdf_type_uri);
+                                                 formatter_context->rdf_type_uri);
   statement.object = raptor_new_term_from_uri(raptor_world_ptr, 
-                                              rs_ResultSet_uri);
+                                              formatter_context->rs_ResultSet_uri);
   raptor_serializer_serialize_statement(ser, &statement);
   raptor_free_term(statement.predicate); statement.predicate = NULL;
   raptor_free_term(statement.object); statement.object = NULL;
 
 
   /* variable name triples
-   * all these statemnts have same predicate 
+   * all these statements have same predicate 
    */
   /* statement.subject = resultset_node; */
   statement.predicate = raptor_new_term_from_uri(raptor_world_ptr,
-                                                 rs_resultVariable_uri);
+                                                 formatter_context->rs_resultVariable_uri);
   for(i = 0; 1; i++) {
     const unsigned char *name;
     
@@ -278,14 +323,15 @@ rasqal_query_results_rdf_write(rasqal_query_results_formatter* formatter,
     /* Result row triples */
     statement.subject = resultset_node;
     statement.predicate = raptor_new_term_from_uri(raptor_world_ptr,
-                                                   rs_solution_uri);
+                                                   formatter_context->rs_solution_uri);
     statement.object = row_node;
     raptor_serializer_serialize_statement(ser, &statement);
     raptor_free_term(statement.predicate); statement.predicate = NULL;
 
     /* Binding triples */
     for(i = 0; i < size; i++) {
-      raptor_term* binding_node = raptor_new_term_from_blank(raptor_world_ptr, NULL);
+      raptor_term* binding_node = raptor_new_term_from_blank(raptor_world_ptr,
+                                                             NULL);
       const unsigned char *name;
       rasqal_literal *l;
 
@@ -295,7 +341,7 @@ rasqal_query_results_rdf_write(rasqal_query_results_formatter* formatter,
       /* binding */
       statement.subject = row_node;
       statement.predicate = raptor_new_term_from_uri(raptor_world_ptr,
-                                                     rs_binding_uri);
+                                                     formatter_context->rs_binding_uri);
       statement.object = binding_node;
       raptor_serializer_serialize_statement(ser, &statement);
       raptor_free_term(statement.predicate); statement.predicate = NULL;
@@ -304,7 +350,7 @@ rasqal_query_results_rdf_write(rasqal_query_results_formatter* formatter,
       if(l) {
         statement.subject = binding_node;
         statement.predicate = raptor_new_term_from_uri(raptor_world_ptr,
-                                                       rs_variable_uri);
+                                                       formatter_context->rs_variable_uri);
         statement.object = raptor_new_term_from_literal(raptor_world_ptr, 
                                                         name, NULL, NULL);
         raptor_serializer_serialize_statement(ser, &statement);
@@ -313,7 +359,7 @@ rasqal_query_results_rdf_write(rasqal_query_results_formatter* formatter,
 
         /* statement.subject = binding_node; */
         statement.predicate = raptor_new_term_from_uri(raptor_world_ptr,
-                                                       rs_value_uri);
+                                                       formatter_context->rs_value_uri);
         switch(l->type) {
           case RASQAL_LITERAL_URI:
             statement.object = raptor_new_term_from_uri(raptor_world_ptr,
@@ -366,15 +412,6 @@ rasqal_query_results_rdf_write(rasqal_query_results_formatter* formatter,
   raptor_free_serializer(ser);
 
   tidy:
-  raptor_free_uri(rdf_ns_uri);
-  raptor_free_uri(rs_ns_uri);
-  raptor_free_uri(rdf_type_uri);
-  raptor_free_uri(rs_variable_uri);
-  raptor_free_uri(rs_value_uri);
-  raptor_free_uri(rs_solution_uri);
-  raptor_free_uri(rs_binding_uri);
-  raptor_free_uri(rs_ResultSet_uri);
-  raptor_free_uri(rs_resultVariable_uri);
 
   return rc;
 }
@@ -785,6 +822,7 @@ rasqal_query_results_rdfxml_register_factory(rasqal_query_results_format_factory
   factory->context_length = sizeof(rasqal_query_results_format_rdf);
   
   factory->init          = rasqal_query_results_rdf_init;
+  factory->finish        = rasqal_query_results_rdf_finish;
 
 #ifdef RAPTOR_V2_AVAILABLE
   factory->write         = rasqal_query_results_rdf_write;
@@ -938,6 +976,7 @@ rasqal_query_results_turtle_register_factory(rasqal_query_results_format_factory
   factory->context_length = sizeof(rasqal_query_results_format_rdf);
   
   factory->init          = rasqal_query_results_rdf_init;
+  factory->finish        = rasqal_query_results_rdf_finish;
   
 #ifdef QUERY_RESULTS_TURTLE_PRETTY
   factory->write         = rasqal_query_results_turtle_write;
