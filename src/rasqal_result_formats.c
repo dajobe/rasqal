@@ -186,18 +186,10 @@ rasqal_finish_result_formats(rasqal_world* world)
  * The current list of format names/URI is given below however
  * the results of this function will always return the latest.
  *
- * SPARQL XML Results 2007-06-14 (default format when @counter is 0)
- * name '<literal>xml</literal>' with
- * URIs http://www.w3.org/TR/2006/WD-rdf-sparql-XMLres-20070614/ or
- * http://www.w3.org/2005/sparql-results#
- *
- * JSON name '<literal>json</literal>' and
- * URI http://www.w3.org/2001/sw/DataAccess/json-sparql/
- *
- * Table name '<literal>table</literal>' with no URI.
- *
  * All returned strings are shared and must be copied if needed to be
  * used dynamically.
+ *
+ * @Deprecated: Use rasqal_world_get_query_results_format_description()
  * 
  * Return value: non 0 on failure of if counter is out of range
  **/
@@ -503,6 +495,8 @@ rasqal_free_query_results_formatter(rasqal_query_results_formatter* formatter)
  * 
  * Get the mime type of the syntax being formatted.
  * 
+ * @Deprecated: Use rasqal_world_get_query_results_format_description() to get multiple mime types and Q values.
+ * 
  * Return value: a shared mime type string
  **/
 const char*
@@ -511,6 +505,35 @@ rasqal_query_results_formatter_get_mime_type(rasqal_query_results_formatter *for
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(formatter, rasqal_query_results_formatter, NULL);
 
   return formatter->factory->desc.mime_types[0].mime_type;
+}
+
+
+/**
+ * rasqal_world_get_query_results_format_description:
+ * @world: world object
+ * @counter: index into the list of query result formats
+ *
+ * Get query result format descriptive syntax information
+ *
+ * Return value: description or NULL if counter is out of range
+ **/
+const raptor_syntax_description*
+rasqal_world_get_query_results_format_description(rasqal_world* world, 
+                                                  unsigned int counter)
+{
+  rasqal_query_results_format_factory* factory;
+
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
+
+  rasqal_world_open(world);
+  
+  factory = (rasqal_query_results_format_factory*)raptor_sequence_get_at(world->query_results_formats,
+                                                                         counter);
+
+  if(!factory)
+    return NULL;
+
+  return &factory->desc;
 }
 
 

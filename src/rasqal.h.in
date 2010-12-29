@@ -963,6 +963,9 @@ int rasqal_world_set_default_generate_bnodeid_parameters(rasqal_world* world, ch
 RASQAL_API
 int rasqal_world_set_generate_bnodeid_handler(rasqal_world* world, void *user_data, rasqal_generate_bnodeid_handler2 handler);
 
+RASQAL_API
+const raptor_syntax_description* rasqal_world_get_query_results_format_description(rasqal_world* world, unsigned int counter);
+
 /* Features */
 RASQAL_API
 int rasqal_features_enumerate(rasqal_world* world, const rasqal_feature feature, const char **name, raptor_uri **uri, const char **label);
@@ -1252,7 +1255,7 @@ int rasqal_query_results_read2(raptor_iostream *iostr, rasqal_query_results *res
  */
 #define RASQAL_QUERY_RESULTS_FORMAT_FLAG_WRITER 2
 
-RASQAL_API
+RASQAL_API RASQAL_DEPRECATED
 int rasqal_query_results_formats_enumerate(rasqal_world* world, unsigned int counter, const char **name, const char **label, const unsigned char **uri_string, const char **mime_type, int* flags);
 RASQAL_API
 int rasqal_query_results_formats_check2(rasqal_world* world, const char *name, raptor_uri* uri, const char *mime_type, int flags);
@@ -1272,7 +1275,7 @@ RASQAL_API
 int rasqal_query_results_formatter_write(raptor_iostream *iostr, rasqal_query_results_formatter* formatter, rasqal_query_results* results, raptor_uri *base_uri);
 RASQAL_API
 int rasqal_query_results_formatter_read(rasqal_world* world, raptor_iostream *iostr, rasqal_query_results_formatter* formatter, rasqal_query_results* results, raptor_uri *base_uri);
-RASQAL_API
+RASQAL_API RASQAL_DEPRECATED
 const char* rasqal_query_results_formatter_get_mime_type(rasqal_query_results_formatter *formatter);
 
 RASQAL_API
