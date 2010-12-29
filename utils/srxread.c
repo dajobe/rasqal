@@ -108,23 +108,20 @@ main(int argc, char *argv[])
     
     puts("\nFormats supported are:");
     for(i = 0; 1; i++) {
-      const char *name;
-      const char *label;
-      const char *mime_type = NULL;
-      int qr_flags = 0;
+      const raptor_syntax_description* desc;
       int need_comma = 0;
-
-      if(rasqal_query_results_formats_enumerate(world, i, &name, &label, 
-                                                NULL, &mime_type, &qr_flags))
-        break;
       
-      printf("  %-10s %s (", name, label);
-      if(qr_flags & RASQAL_QUERY_RESULTS_FORMAT_FLAG_READER) {
+      desc = rasqal_world_get_query_results_format_description(world, i);
+      if(!desc)
+        break;
+
+      printf("  %-10s %s (", desc->names[0], desc->label);
+      if(desc->flags & RASQAL_QUERY_RESULTS_FORMAT_FLAG_READER) {
         fputs("read", stdout);
         need_comma = 1;
       }
 
-      if(qr_flags & RASQAL_QUERY_RESULTS_FORMAT_FLAG_WRITER) {
+      if(desc->flags & RASQAL_QUERY_RESULTS_FORMAT_FLAG_WRITER) {
         if(need_comma)
           fputs(", ", stdout);
         fputs("write", stdout);
@@ -137,8 +134,13 @@ main(int argc, char *argv[])
         fputs("default", stdout);
       }
       fputs(")\n", stdout);
-      if(mime_type)
-        fprintf(stdout, "               %s\n", mime_type);
+      if(desc->mime_types[0].mime_type) {
+        int mimei;
+        const char* mt;
+        for(mimei = 0; (mt = desc->mime_types[mimei].mime_type); mimei++) {
+          fprintf(stdout, "               %s\n", mt);
+        }
+      }
    }
 
 
