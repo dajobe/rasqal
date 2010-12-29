@@ -45,7 +45,7 @@
 /*
  * rasqal_world_register_query_result_format_factory:
  * @world: rasqal world
- * @factory: pointer to function to call to register the factory
+ * @register_factory: pointer to function to call to register the factory
  * 
  * INTERNAL - Register a query result format via a factory.
  *
@@ -56,69 +56,77 @@
  **/
 rasqal_query_results_format_factory*
 rasqal_world_register_query_results_format_factory(rasqal_world* world,
-                                                   int (*factory) (rasqal_query_results_format_factory*))
+                                                   int (*register_factory)(rasqal_query_results_format_factory*))
 {
-  rasqal_query_results_format_factory *result_format = NULL;
+  rasqal_query_results_format_factory *factory = NULL;
   
-  result_format = (rasqal_query_results_format_factory*)RASQAL_CALLOC(rasqal_query_result_format_factory, 1,
-                                                                      sizeof(*result_format));
-  if(!result_format)
+  factory = (rasqal_query_results_format_factory*)RASQAL_CALLOC(rasqal_query_factory_factory, 1,
+                                                                sizeof(*factory));
+  if(!factory)
     return NULL;
 
-  result_format->world = world;
+  factory->world = world;
 
-  result_format->desc.mime_types = NULL;
+  factory->desc.mime_types = NULL;
   
-  if(raptor_sequence_push(world->query_results_formats, result_format))
-    return NULL; /* on error, result_format is already freed by the sequence */
+  if(raptor_sequence_push(world->query_results_formats, factory))
+    return NULL; /* on error, factory is already freed by the sequence */
   
-  /* Call the result_format registration function on the new object */
-  if(factory(result_format))
-    return NULL; /* result_format is owned and freed by the result_formats sequence */
+  /* Call the factory registration function on the new object */
+  if(register_factory(factory))
+    /* factory is owned and freed by the query_results_formats sequence */
+    return NULL;
   
-  if(!result_format->desc.names || !result_format->desc.names[0] ||
-     !result_format->desc.label) {
+  if(!factory->desc.names || !factory->desc.names[0] ||
+     !factory->desc.label) {
     rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR, NULL,
                             "Result query result format failed to register required names and label fields\n");
     goto tidy;
   }
 
+  factory->desc.flags = 0;
+  if(factory->get_rowsource)
+    factory->desc.flags |= RASQAL_QUERY_RESULTS_FORMAT_FLAG_READER;
+  if(factory->write)
+    factory->desc.flags |= RASQAL_QUERY_RESULTS_FORMAT_FLAG_WRITER;
+
+
 #ifdef RASQAL_DEBUG
   /* Maintainer only check of static data */
-  if(result_format->desc.mime_types) {
+  if(factory->desc.mime_types) {
     unsigned int i;
     const raptor_type_q* type_q = NULL;
 
     for(i = 0; 
-        (type_q = &result_format->desc.mime_types[i]) && type_q->mime_type;
+        (type_q = &factory->desc.mime_types[i]) && type_q->mime_type;
         i++) {
       size_t len = strlen(type_q->mime_type);
       if(len != type_q->mime_type_len) {
         fprintf(stderr,
                 "Query result format %s  mime type %s  actual len %d  static len %d\n",
-                result_format->desc.names[0], type_q->mime_type,
+                factory->desc.names[0], type_q->mime_type,
                 (int)len, (int)type_q->mime_type_len);
       }
     }
 
-    if(i != result_format->desc.mime_types_count) {
+    if(i != factory->desc.mime_types_count) {
         fprintf(stderr,
                 "Query result format %s  saw %d mime types  static count %d\n",
-                result_format->desc.names[0], i, result_format->desc.mime_types_count);
+                factory->desc.names[0], i, factory->desc.mime_types_count);
     }
   }
 #endif
 
 #if defined(RASQAL_DEBUG) && RASQAL_DEBUG > 1
   RASQAL_DEBUG3("Registered query result format %s with context size %d\n",
-                result_format->names[0], result_format->context_length);
+                factory->names[0], factory->context_length);
 #endif
 
-  return result_format;
+  return factory;
 
   /* Clean up on failure */
   tidy:
-  rasqal_free_query_results_format_factory(result_format);
+  rasqal_free_query_results_format_factory(factory);
   return NULL;
 }
 

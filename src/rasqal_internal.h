@@ -1179,7 +1179,7 @@ rasqal_world* rasqal_query_results_get_world(rasqal_query_results* query_results
 int rasqal_query_write_sparql_20060406(raptor_iostream *iostr, rasqal_query* query, raptor_uri *base_uri);
 
 /* rasqal_result_formats.c */
-rasqal_query_results_format_factory* rasqal_world_register_query_results_format_factory(rasqal_world* world, int (*factory) (rasqal_query_results_format_factory*));
+rasqal_query_results_format_factory* rasqal_world_register_query_results_format_factory(rasqal_world* world, int (*register_factory) (rasqal_query_results_format_factory*));
 void rasqal_free_query_results_format_factory(rasqal_query_results_format_factory* factory);
 int rasqal_init_result_formats(rasqal_world*);
 void rasqal_finish_result_formats(rasqal_world*);
