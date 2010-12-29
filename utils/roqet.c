@@ -1213,16 +1213,14 @@ main(int argc, char *argv[])
     puts("      simple                A simple text format (default)");
 
     for(i = 0; 1; i++) {
-      const char *name;
-      const char *label;
-      int qr_flags = 0;
+      const raptor_syntax_description* desc;
 
-      if(rasqal_query_results_formats_enumerate(world, i, &name, &label,
-                                                NULL, NULL, &qr_flags))
+      desc = rasqal_world_get_query_results_format_description(world, i);
+      if(!desc)
         break;
 
-      if(qr_flags & RASQAL_QUERY_RESULTS_FORMAT_FLAG_WRITER)
-        printf("      %-10s            %s\n", name, label);
+      if(desc->flags & RASQAL_QUERY_RESULTS_FORMAT_FLAG_WRITER)
+        printf("      %-10s            %s\n", desc->names[0], desc->label);
     }
 
     puts("    For RDF graph results:");
