@@ -308,7 +308,7 @@ fi
 # raptor is REQUIRED despite the checking here
 RAPTOR_MIN_VERSION=1.4.19
 RAPTOR_MAX_VERSION=1.8.99
-RAPTOR2_MIN_VERSION=1.9.0
+RAPTOR2_MIN_VERSION=1.9.2
 
 raptor2=no
 AC_ARG_ENABLE(raptor2, [  --enable-raptor2  Enable use of raptor2], raptor2="$enableval", raptor2="no")
