@@ -795,6 +795,7 @@ rasqal_query_results_rdf_get_rowsource(rasqal_query_results_formatter* formatter
 }
 
 
+#ifdef HAVE_RAPTOR2_API
 static void
 rasqal_query_results_format_rdf_copy_syntax_description_from_parser(rasqal_query_results_format_factory *factory, const char* name)
 {
@@ -815,7 +816,7 @@ rasqal_query_results_format_rdf_copy_syntax_description_from_parser(rasqal_query
     }
   }
 }
-
+#endif
 
 
 static const char* const rdfxml_names[2] = { "rdfxml", NULL};
@@ -843,7 +844,7 @@ rasqal_query_results_rdfxml_register_factory(rasqal_query_results_format_factory
 
   factory->desc.label = "RDF/XML Query Results";
 
-  factory->desc.uri_string = NULL;
+  factory->desc.uri_strings = NULL;
 
   factory->desc.flags = 0;
   
@@ -981,6 +982,11 @@ rasqal_query_results_turtle_write(rasqal_query_results_formatter* formatter,
 
 static const char* const turtle_names[2] = { "turtle", NULL};
 
+static const char* const turtle_uri_strings[2] = {
+  "http://www.w3.org/TeamSubmission/turtle/",
+  NULL
+};
+
 #define TURTLE_TYPES_COUNT 1
 static const raptor_type_q turtle_types[TURTLE_TYPES_COUNT + 1] = {
   { "application/turtle", 18, 10}, 
@@ -1004,7 +1010,7 @@ rasqal_query_results_turtle_register_factory(rasqal_query_results_format_factory
   
   factory->desc.label = "Turtle Query Results";
 
-  factory->desc.uri_string = "http://www.w3.org/TeamSubmission/turtle/";
+  factory->desc.uri_strings = turtle_uri_strings;
 
   factory->context_length = sizeof(rasqal_query_results_format_rdf);
   

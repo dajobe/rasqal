@@ -842,6 +842,11 @@ rdql_syntax_warning(rasqal_query *rq, const char *message, ...)
 
 static const char* const rdql_names[2] = { "rdql", NULL};
 
+static const char* const rdql_uri_strings[2] = { 
+  "http://jena.hpl.hp.com/2003/07/query/RDQL",
+  NULL
+};
+
 #define RDQL_TYPES_COUNT 1
 static const raptor_type_q rdql_types[RDQL_TYPES_COUNT + 1] = {
   { "application/x-rdql", 18, 10}, 
@@ -861,7 +866,7 @@ rasqal_rdql_query_language_register_factory(rasqal_query_language_factory *facto
   factory->desc.label = "RDF Data Query Language (RDQL)";
 
   /* http://www.w3.org/Submission/2004/SUBM-RDQL-20040109/ */
-  factory->desc.uri_string = "http://jena.hpl.hp.com/2003/07/query/RDQL";
+  factory->desc.uri_strings = rdql_uri_strings;
 
   factory->context_length = sizeof(rasqal_rdql_query_language);
 

@@ -515,8 +515,8 @@ rasqal_languages_enumerate(rasqal_world *world,
   if(label)
     *label = factory->desc.label;
 
-  if(uri_string)
-    *uri_string = (const unsigned char*)factory->desc.uri_string;
+  if(uri_string && factory->desc.uri_strings)
+    *uri_string = (const unsigned char*)factory->desc.uri_strings[0];
 
   return 0;
 }

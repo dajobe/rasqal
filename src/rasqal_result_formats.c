@@ -225,8 +225,8 @@ rasqal_query_results_formats_enumerate(rasqal_world* world,
     *name = factory->desc.names[0];
   if(label)
     *label = factory->desc.label;
-  if(uri_string)
-    *uri_string = (const unsigned char*)factory->desc.uri_string;
+  if(uri_string && factory->desc.uri_strings)
+    *uri_string = (const unsigned char*)factory->desc.uri_strings[0];
   if(mime_type)
     *mime_type = (const char*)factory->desc.mime_types[0].mime_type;
   if(flags) {
@@ -281,10 +281,21 @@ rasqal_get_query_results_formatter_factory(rasqal_world* world,
       }
     }
 
-    if(uri && factory->desc.uri_string &&
-       !strcmp((const char*)raptor_uri_as_string(uri),
-               (const char*)factory->desc.uri_string))
-      break;
+    if(uri && factory->desc.uri_strings) {
+      int j;
+      const char* uri_string = (const char*)raptor_uri_as_string(uri);
+      const char* factory_uri_string;
+      
+      for(j = 0;
+          (factory_uri_string = factory->desc.uri_strings[j]);
+          j++) {
+        if(!strcmp(uri_string, factory_uri_string))
+          break;
+      }
+      if(uri_string)
+        /* got an exact match syntax for URI - return result */
+        break;
+    }
 
     if(mime_type) {
       int mti;
@@ -516,6 +527,7 @@ rasqal_query_results_formatter_get_mime_type(rasqal_query_results_formatter *for
 }
 
 
+#ifdef HAVE_RAPTOR2_API
 /**
  * rasqal_world_get_query_results_format_description:
  * @world: world object
@@ -543,6 +555,7 @@ rasqal_world_get_query_results_format_description(rasqal_world* world,
 
   return &factory->desc;
 }
+#endif
 
 
 /**

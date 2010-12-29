@@ -245,6 +245,11 @@ rasqal_query_results_write_html(rasqal_query_results_formatter* formatter,
 
 static const char* const html_names[2] = { "html", NULL};
 
+static const char* const html_uri_strings[2] = {
+  "http://www.w3.org/1999/xhtml",
+  NULL
+};
+
 #define HTML_TYPES_COUNT 2
 static const raptor_type_q html_types[HTML_TYPES_COUNT + 1] = {
   { "application/xhtml+xml", 21, 10}, 
@@ -264,7 +269,7 @@ rasqal_query_results_html_register_factory(rasqal_query_results_format_factory *
 
   factory->desc.label = "HTML Table";
 
-  factory->desc.uri_string = "http://www.w3.org/1999/xhtml";
+  factory->desc.uri_strings = html_uri_strings;
 
   factory->desc.flags = 0;
   

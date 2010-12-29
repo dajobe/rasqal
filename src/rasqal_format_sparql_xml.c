@@ -1011,6 +1011,13 @@ rasqal_query_results_get_rowsource_sparql_xml(rasqal_query_results_formatter* fo
 
 static const char* const sparql_xml_names[2] = { "xml", NULL};
 
+static const char* const sparql_xml_uri_strings[4] = {
+  "http://www.w3.org/TR/rdf-sparql-XMLres/",
+  "http://www.w3.org/TR/2008/REC-rdf-sparql-XMLres-20080115/",
+  "http://www.w3.org/2005/sparql-results#",
+  NULL
+};
+
 #define SPARQL_XML_TYPES_COUNT 1
 static const raptor_type_q sparql_xml_types[SPARQL_XML_TYPES_COUNT + 1] = {
   { "application/sparql-results+xml", 30, 10}, 
@@ -1029,16 +1036,7 @@ rasqal_query_results_sparql_xml_register_factory(rasqal_query_results_format_fac
 
   factory->desc.label = "SPARQL XML Query Results";
 
-  /*
-   * SPARQL Query Results XML Format
-   *
-   * Original REC:
-   * http://www.w3.org/TR/2008/REC-rdf-sparql-XMLres-20080115/
-   *
-   * Namespace:
-   * http://www.w3.org/2005/sparql-results#
-   */
-  factory->desc.uri_string = "http://www.w3.org/TR/rdf-sparql-XMLres/";
+  factory->desc.uri_strings = sparql_xml_uri_strings;
 
   factory->desc.flags = 0;
   

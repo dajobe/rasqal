@@ -250,6 +250,16 @@ rasqal_query_results_write_json1(rasqal_query_results_formatter* formatter,
 
 static const char* const json_names[2] = { "json", NULL};
 
+static const char* const json_uri_strings[5] = { 
+  "http://www.w3.org/TR/rdf-sparql-json-res/",
+  /* Released DAWG WG results in JSON */
+  "http://www.w3.org/TR/2007/NOTE-rdf-sparql-json-res-20070618/",
+  /* URIs from 0.9.16 or earlier */
+  "http://www.w3.org/2001/sw/DataAccess/json-sparql/",
+  "http://www.mindswap.org/%7Ekendall/sparql-results-json/",
+  NULL
+};
+
 #define JSON_TYPES_COUNT 1
 static const raptor_type_q json_types[JSON_TYPES_COUNT + 1] = {
   { "application/json", 16, 10}, 
@@ -268,15 +278,7 @@ rasqal_query_results_json_register_factory(rasqal_query_results_format_factory *
 
   factory->desc.label = "SPARQL JSON Query Results";
 
-  /* Released DAWG WG results in JSON
-   * http://www.w3.org/TR/2007/NOTE-rdf-sparql-json-res-20070618/
-   *
-   * URIs from 0.9.16 or earlier:
-   * http://www.w3.org/2001/sw/DataAccess/json-sparql/
-   * http://www.mindswap.org/%7Ekendall/sparql-results-json/
-   * 
-   */
-  factory->desc.uri_string = "http://www.w3.org/TR/rdf-sparql-json-res/";
+  factory->desc.uri_strings = json_uri_strings;
 
   factory->desc.flags = 0;
   

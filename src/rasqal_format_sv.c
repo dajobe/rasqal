@@ -235,7 +235,7 @@ rasqal_query_results_csv_register_factory(rasqal_query_results_format_factory *f
 
   factory->desc.label = "Comma Separated Values (CSV)";
 
-  factory->desc.uri_string = NULL;
+  factory->desc.uri_strings = NULL;
 
   factory->desc.flags = 0;
   
@@ -247,6 +247,12 @@ rasqal_query_results_csv_register_factory(rasqal_query_results_format_factory *f
 
 
 static const char* const tsv_names[2] = { "tsv", NULL};
+
+static const char* const tsv_uri_strings[2] = {
+  "http://www.iana.org/assignments/media-types/text/tab-separated-values",
+  NULL
+};
+
 
 #define TSV_TYPES_COUNT 1
 static const raptor_type_q tsv_types[TSV_TYPES_COUNT + 1] = {
@@ -266,7 +272,7 @@ rasqal_query_results_tsv_register_factory(rasqal_query_results_format_factory *f
 
   factory->desc.label = "Tab Separated Values (TSV)";
 
-  factory->desc.uri_string = "http://www.iana.org/assignments/media-types/text/tab-separated-values";
+  factory->desc.uri_strings = tsv_uri_strings;
 
   factory->desc.flags = 0;
   

@@ -508,13 +508,15 @@ typedef struct {
 
 typedef struct {
   const char* const* names;
+  unsigned int names_count;
 
   const char* label;
 
   const raptor_type_q* mime_types;
   unsigned int mime_types_count;
 
-  const char* uri_string;
+  const char* const* uri_strings;
+  unsigned int uri_strings_count;
 
   unsigned int flags;
 } raptor_syntax_description;

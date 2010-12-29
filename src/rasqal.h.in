@@ -963,8 +963,10 @@ int rasqal_world_set_default_generate_bnodeid_parameters(rasqal_world* world, ch
 RASQAL_API
 int rasqal_world_set_generate_bnodeid_handler(rasqal_world* world, void *user_data, rasqal_generate_bnodeid_handler2 handler);
 
+#if @HAVE_RAPTOR2_API@
 RASQAL_API
 const raptor_syntax_description* rasqal_world_get_query_results_format_description(rasqal_world* world, unsigned int counter);
+#endif
 
 /* Features */
 RASQAL_API

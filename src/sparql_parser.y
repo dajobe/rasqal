@@ -5050,6 +5050,11 @@ rasqal_sparql_query_language_iostream_write_escaped_counted_string(rasqal_query*
 
 static const char* const sparql_names[3] = { "sparql", "sparql10", NULL};
 
+static const char* const sparql_uri_strings[2] = { 
+  "http://www.w3.org/TR/rdf-sparql-query/",
+  NULL
+};
+
 #define SPARQL_TYPES_COUNT 1
 static const raptor_type_q sparql_types[SPARQL_TYPES_COUNT + 1] = {
   { "application/sparql", 18, 10}, 
@@ -5069,7 +5074,7 @@ rasqal_sparql_query_language_register_factory(rasqal_query_language_factory *fac
 
   factory->desc.label = "SPARQL 1.0 W3C RDF Query Language";
 
-  factory->desc.uri_string = "http://www.w3.org/TR/rdf-sparql-query/";
+  factory->desc.uri_strings = sparql_uri_strings;
 
   factory->context_length = sizeof(rasqal_sparql_query_language);
 
@@ -5111,7 +5116,7 @@ rasqal_sparql11_language_register_factory(rasqal_query_language_factory *factory
   factory->desc.label = "SPARQL 1.1 (DRAFT) Query and Update Languages";
 
   /* What URI describes Query and Update languages? */
-  factory->desc.uri_string = NULL;
+  factory->desc.uri_strings = NULL;
 
   factory->context_length = sizeof(rasqal_sparql_query_language);
 
@@ -5127,6 +5132,11 @@ rasqal_sparql11_language_register_factory(rasqal_query_language_factory *factory
 #define SPARQL11_QUERY_TYPES_COUNT 0
 
 static const char* const sparql11_query_names[2] = { "sparql11-query", NULL };
+
+static const char* const sparql11_uri_strings[2] = { 
+  "http://www.w3.org/TR/2010/WD-sparql11-query-20101014/",
+  NULL
+};
 
 #define SPARQL11_TYPES_COUNT 0
 static const raptor_type_q sparql11_query_types[SPARQL11_QUERY_TYPES_COUNT + 1] = {
@@ -5146,7 +5156,7 @@ rasqal_sparql11_query_language_register_factory(rasqal_query_language_factory *f
 
   factory->desc.label = "SPARQL 1.1 (DRAFT) Query Language";
 
-  factory->desc.uri_string = "http://www.w3.org/TR/2010/WD-sparql11-query-20101014/";
+  factory->desc.uri_strings = sparql11_uri_strings;
 
   factory->context_length = sizeof(rasqal_sparql_query_language);
 
@@ -5162,6 +5172,11 @@ rasqal_sparql11_query_language_register_factory(rasqal_query_language_factory *f
 #define SPARQL11_UPDATE_TYPES_COUNT 0
 
 static const char* const sparql11_update_names[2] = { "sparql11-update", NULL };
+
+static const char* const sparql11_update_uri_strings[2] = { 
+  "http://www.w3.org/TR/2010/WD-sparql11-update-20101014/",
+  NULL
+};
 
 #define SPARQL11_TYPES_COUNT 0
 static const raptor_type_q sparql11_update_types[SPARQL11_UPDATE_TYPES_COUNT + 1] = {
@@ -5181,7 +5196,7 @@ rasqal_sparql11_update_language_register_factory(rasqal_query_language_factory *
 
   factory->desc.label = "SPARQL 1.1 (DRAFT) Update Language";
 
-  factory->desc.uri_string = "http://www.w3.org/TR/2010/WD-sparql11-update-20101014/";
+  factory->desc.uri_strings = sparql11_update_uri_strings;
 
   factory->context_length = sizeof(rasqal_sparql_query_language);
 
@@ -5233,7 +5248,7 @@ rasqal_laqrs_query_language_register_factory(rasqal_query_language_factory *fact
 
   factory->desc.label = "LAQRS adds to Querying RDF in SPARQL";
 
-  factory->desc.uri_string = NULL;
+  factory->desc.uri_strings = NULL;
 
   factory->context_length = sizeof(rasqal_sparql_query_language);
 
