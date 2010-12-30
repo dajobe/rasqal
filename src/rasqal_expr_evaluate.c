@@ -415,6 +415,8 @@ rasqal_expression_evaluate_strdt(rasqal_world *world,
   rasqal_literal *l1 = NULL;
   rasqal_literal *l2 = NULL;
   const unsigned char* s = NULL;
+  unsigned char* new_s = NULL;
+  size_t len;
   raptor_uri* dt_uri = NULL;
   int error = 0;
   
@@ -449,14 +451,20 @@ rasqal_expression_evaluate_strdt(rasqal_world *world,
   
   rasqal_free_literal(l2);
   
-  /* after this s and dt_uri become owned by result */
-  return rasqal_new_string_literal(world, s, /* language */ NULL,
+  len = strlen((const char*)s);
+  new_s =(unsigned char*)RASQAL_MALLOC(cstring, len + 1);
+  if(!new_s)
+    goto failed;
+  memcpy(new_s, s, len + 1);
+
+  /* after this new_s and dt_uri become owned by result */
+  return rasqal_new_string_literal(world, new_s, /* language */ NULL,
                                    dt_uri, /* qname */ NULL);
   
   
   failed:
-  if(s)
-    RASQAL_FREE(cstring, s);
+  if(new_s)
+    RASQAL_FREE(cstring, new_s);
   if(l1)
     rasqal_free_literal(l1);
   if(l2)
