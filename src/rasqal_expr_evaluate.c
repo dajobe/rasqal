@@ -291,6 +291,111 @@ rasqal_expression_evaluate_strmatch(rasqal_world *world,
 
 
 /* 
+ * rasqal_expression_evaluate_concat:
+ * @world: #rasqal_world
+ * @locator: error locator object
+ * @e: The expression to evaluate.
+ * @flags: Compare flags
+ *
+ * INTERNAL - Evaluate RASQAL_EXPR_CONCAT(expr list) expression.
+ *
+ * Return value: A #rasqal_literal string value or NULL on failure.
+ */
+static rasqal_literal*
+rasqal_expression_evaluate_concat(rasqal_world *world,
+                                  raptor_locator *locator,
+                                  rasqal_expression *e,
+                                  int flags)
+{
+  raptor_stringbuffer* sb = NULL;
+  int i;
+  size_t len;
+  unsigned char* result_str;
+  int error = 0;
+  rasqal_literal* result = NULL;
+  int same_dt = 1;
+  raptor_uri* dt = NULL;
+  
+  sb = raptor_new_stringbuffer();
+  
+  for(i = 0; i < raptor_sequence_size(e->args); i++) {
+    rasqal_expression *arg_expr;
+    rasqal_literal* arg_literal;
+    const unsigned char* s = NULL;
+    
+    arg_expr = (rasqal_expression*)raptor_sequence_get_at(e->args, i);
+    if(!arg_expr)
+      break;
+
+    /* FIXME - check what to do with a NULL literal */
+    /* FIXME - check what to do with an empty string literal */
+
+    arg_literal = rasqal_expression_evaluate(world, locator, arg_expr, flags);
+    if(arg_literal) {
+
+      if(!dt)
+        /* First datatype URI seen is the result datatype */
+        dt = raptor_uri_copy(arg_literal->datatype);
+      else {
+        /* Otherwise if all same so far, check the datatype URI for
+         * this literal is also the same 
+         */
+        if(same_dt && !raptor_uri_equals(dt, arg_literal->datatype)) {
+          /* Seen a difference - tidy up */
+          if(dt) {
+            raptor_free_uri(dt);
+            dt = NULL;
+          }
+          same_dt = 0;
+        }
+      }
+      
+      /* FIXME - check that altering the flags this way to allow
+       * concat of URIs is OK 
+       */
+      s = rasqal_literal_as_string_flags(arg_literal, 
+                                         flags & ~RASQAL_COMPARE_XQUERY, 
+                                         &error);
+      rasqal_free_literal(arg_literal);
+    } else
+      error = 1;
+
+    if(!s || error)
+      goto failed;
+    
+    raptor_stringbuffer_append_string(sb, s, 1); 
+  }
+  
+  
+  len = raptor_stringbuffer_length(sb);
+  result_str = (unsigned char*)RASQAL_MALLOC(cstring, len + 1);
+  if(!result_str)
+    goto failed;
+  
+  if(raptor_stringbuffer_copy_to_string(sb, result_str, len))
+    goto failed;
+  
+  raptor_free_stringbuffer(sb);
+  
+  /* result_str and dt (if set) becomes owned by result */
+  return rasqal_new_string_literal(world, result_str, NULL, dt, NULL);
+
+
+  failed:
+  if(dt)
+    raptor_free_uri(dt);
+  if(result_str)
+    RASQAL_FREE(cstring, result_str);
+  if(sb)
+    raptor_free_stringbuffer(sb);
+  if(result)
+    rasqal_free_literal(result);
+
+  return NULL;
+}
+
+
+/* 
  * rasqal_expression_evaluate_now:
  * @world: #rasqal_world
  * @locator: error locator object
@@ -1246,55 +1351,7 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
       break;
       
     case RASQAL_EXPR_CONCAT:
-      vars.sb = raptor_new_stringbuffer();
-
-      for(i = 0; i < raptor_sequence_size(e->args); i++) {
-        rasqal_expression *e2; /* do not use vars.e - unioned with vars.sb */
-        e2 = (rasqal_expression*)raptor_sequence_get_at(e->args, i);
-        if(!e2)
-          break;
-        
-        l1 = rasqal_expression_evaluate(world, locator, e2, flags);
-        s = NULL;
-        if(l1)
-          /* FIXME - check that altering the flags this way to allow
-           * concat of URIs is OK 
-           */
-          s = rasqal_literal_as_string_flags(l1, 
-                                             flags & ~RASQAL_COMPARE_XQUERY, 
-                                             &errs.e);
-
-        if(!s || errs.e) {
-          raptor_free_stringbuffer(vars.sb);
-          goto failed;
-        }
-
-        raptor_stringbuffer_append_string(vars.sb, s, 1); 
-      }
-
-      if(1) {
-        size_t len;
-        unsigned char* s2;
-        
-        len = raptor_stringbuffer_length(vars.sb);
-        s2 = (unsigned char*)RASQAL_MALLOC(cstring, len + 1);
-        if(!s2) {
-          raptor_free_stringbuffer(vars.sb);
-          goto failed;
-        }
-        
-        if(raptor_stringbuffer_copy_to_string(vars.sb, s2, len)) {
-          RASQAL_FREE(cstring, s2);
-          raptor_free_stringbuffer(vars.sb);
-          goto failed;
-        }
-        
-        raptor_free_stringbuffer(vars.sb);
-
-        /* s2 becomes owned by result */
-        result = rasqal_new_string_literal(world, s2, NULL, NULL, NULL);
-      }
-      
+      result = rasqal_expression_evaluate_concat(world, locator, e, flags);
       break;
 
 
