@@ -409,6 +409,84 @@ rasqal_expression_evaluate_from_unixtime(rasqal_world *world,
 }
 
 
+/* 
+ * rasqal_expression_evaluate_datetime_part:
+ * @world: #rasqal_world
+ * @locator: error locator object
+ * @e: The expression to evaluate.
+ * @flags: Compare flags
+ *
+ * INTERNAL - Evaluate RASQAL_EXPR_YEAR, RASQAL_EXPR_MONTH,
+ *  RASQAL_EXPR_DAY, RASQAL_EXPR_HOURS, RASQAL_EXPR_MINUTES,
+ *  RASQAL_EXPR_SECONDS (datetime) expressions.
+ *
+ * Return value: A #rasqal_literal integer value or NULL on failure.
+ */
+static rasqal_literal*
+rasqal_expression_evaluate_datetime_part(rasqal_world *world,
+                                         raptor_locator *locator,
+                                         rasqal_expression *e,
+                                         int flags)
+{
+  rasqal_literal* l;
+  rasqal_literal* result = NULL;
+  int i;
+
+  l = rasqal_expression_evaluate(world, locator, e->arg1, flags);
+  if(!l)
+    goto failed;
+  
+  if(l->type != RASQAL_LITERAL_DATETIME)
+    goto failed;
+  
+  /* SECONDS accessor has decimal results and includes microseconds */
+  if(e->op == RASQAL_EXPR_SECONDS) {
+    rasqal_xsd_decimal* dec;
+    
+    dec = rasqal_xsd_datetime_get_seconds_as_decimal(world,
+                                                     l->value.datetime);
+    if(dec) {
+      result = rasqal_new_decimal_literal_from_decimal(world, NULL, dec);
+      if(!result)
+        rasqal_free_xsd_decimal(dec);
+    }
+    
+    if(!result)
+      goto failed;
+    
+    return result;
+  }
+  
+  /* The remaining accessors have xsd:integer results */
+  if(e->op == RASQAL_EXPR_YEAR)
+    i = l->value.datetime->year;
+  else if(e->op == RASQAL_EXPR_MONTH)
+    i = l->value.datetime->month;
+  else if(e->op == RASQAL_EXPR_DAY)
+    i = l->value.datetime->day;
+  else if(e->op == RASQAL_EXPR_HOURS)
+    i = l->value.datetime->hour;
+  else if(e->op == RASQAL_EXPR_MINUTES)
+    i = l->value.datetime->minute;
+  else if(e->op == RASQAL_EXPR_SECONDS)
+    i = l->value.datetime->second;
+  else
+    i = 0;
+  
+  result = rasqal_new_integer_literal(world, RASQAL_LITERAL_INTEGER, i);
+
+  return result;
+  
+  failed:
+  if(result) {
+    rasqal_free_literal(result);
+    result = NULL;
+  }
+
+  return NULL;
+}
+
+
 /**
  * rasqal_expression_evaluate:
  * @world: #rasqal_world
@@ -1483,54 +1561,15 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
     case RASQAL_EXPR_HOURS:
     case RASQAL_EXPR_MINUTES:
     case RASQAL_EXPR_SECONDS:
+      result = rasqal_expression_evaluate_datetime_part(world, locator, e, flags);
+      break;
+
     case RASQAL_EXPR_TIMEZONE:
-      l1 = rasqal_expression_evaluate(world, locator, e->arg1, flags);
-      if(!l1)
-        goto failed;
-
-      if(l1->type != RASQAL_LITERAL_DATETIME)
-        goto failed;
-
-      if(e->op == RASQAL_EXPR_TIMEZONE) {
-        RASQAL_FATAL1("TIMEZONE() not implemented");
-        goto failed;
-      }
-
-      /* SECONDS accessor has decimal results and includes microseconds */
-      if(e->op == RASQAL_EXPR_SECONDS) {
-        rasqal_xsd_decimal* dec;
-        
-        dec = rasqal_xsd_datetime_get_seconds_as_decimal(world,
-                                                         l1->value.datetime);
-        if(dec) {
-          result = rasqal_new_decimal_literal_from_decimal(world, NULL, dec);
-          if(!result)
-            rasqal_free_xsd_decimal(dec);
-        }
-        
-        if(!result)
-          goto failed;
-        
-        break;
-      }
-
-      /* The remain accessors have xsd:integer results */
-      if(e->op == RASQAL_EXPR_YEAR)
-        vars.i = l1->value.datetime->year;
-      else if(e->op == RASQAL_EXPR_MONTH)
-        vars.i = l1->value.datetime->month;
-      else if(e->op == RASQAL_EXPR_DAY)
-        vars.i = l1->value.datetime->day;
-      else if(e->op == RASQAL_EXPR_HOURS)
-        vars.i = l1->value.datetime->hour;
-      else if(e->op == RASQAL_EXPR_MINUTES)
-        vars.i = l1->value.datetime->minute;
-      else if(e->op == RASQAL_EXPR_SECONDS)
-        vars.i = l1->value.datetime->second;
-      else
-        vars.i = 0;
-
-      result = rasqal_new_integer_literal(world, RASQAL_LITERAL_INTEGER, vars.i);
+      rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR,
+                              locator,
+                              "Evaluation of SPARQL TIMEZONE() expression is not implemented yet, returning error.");
+      errs.e = 1;
+      goto failed;
       break;
 
     case RASQAL_EXPR_CURRENT_DATETIME:
