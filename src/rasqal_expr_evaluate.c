@@ -887,6 +887,43 @@ rasqal_expression_evaluate_if(rasqal_world *world,
 }
 
 
+/* 
+ * rasqal_expression_evaluate_coalesce:
+ * @world: #rasqal_world
+ * @locator: error locator object
+ * @e: The expression to evaluate.
+ * @flags: Compare flags
+ *
+ * INTERNAL - Evaluate RASQAL_EXPR_COALESCE (expr list) expressions.
+ *
+ * Return value: A #rasqal_literal value or NULL on failure.
+ */
+static rasqal_literal*
+rasqal_expression_evaluate_coalesce(rasqal_world *world,
+                                    raptor_locator *locator,
+                                    rasqal_expression *e,
+                                    int flags)
+{
+  int size = raptor_sequence_size(e->args);
+  int i;
+  
+  for(i = 0; i < size; i++) {
+    rasqal_expression* arg_e;
+
+    arg_e = (rasqal_expression*)raptor_sequence_get_at(e->args, i);
+    if(arg_e) {
+      rasqal_literal* result;
+      result = rasqal_expression_evaluate(world, locator, arg_e, flags);
+      if(result)
+        return result;
+    }
+  }
+  
+  /* No arguments evaluated to an RDF term, return an error (NULL) */
+  return NULL;
+}
+
+
 /**
  * rasqal_expression_evaluate:
  * @world: #rasqal_world
@@ -1566,14 +1603,8 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
       result = rasqal_expression_evaluate_concat(world, locator, e, flags);
       break;
 
-
     case RASQAL_EXPR_COALESCE:
-      for(i = 0; i < raptor_sequence_size(e->args); i++) {
-        vars.e = (rasqal_expression*)raptor_sequence_get_at(e->args, i);
-        result = rasqal_expression_evaluate(world, locator, vars.e, flags);
-        if(result)
-          break;
-      }
+      result = rasqal_expression_evaluate_coalesce(world, locator, e, flags);
       break;
 
     case RASQAL_EXPR_IF:
