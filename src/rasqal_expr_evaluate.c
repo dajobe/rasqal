@@ -924,6 +924,60 @@ rasqal_expression_evaluate_coalesce(rasqal_world *world,
 }
 
 
+/* 
+ * rasqal_expression_evaluate_str:
+ * @world: #rasqal_world
+ * @locator: error locator object
+ * @e: The expression to evaluate.
+ * @flags: Compare flags
+ *
+ * INTERNAL - Evaluate RASQAL_EXPR_STR (literal expr) expression.
+ *
+ * Return value: A #rasqal_literal value or NULL on failure.
+ */
+static rasqal_literal*
+rasqal_expression_evaluate_str(rasqal_world *world,
+                               raptor_locator *locator,
+                               rasqal_expression *e,
+                               int flags)
+{
+  rasqal_literal* l1;
+  rasqal_literal* result = NULL;
+  const unsigned char *s;
+  size_t len;
+  unsigned char *new_s;
+  int error = 0;
+  
+  l1 = rasqal_expression_evaluate(world, locator, e->arg1, flags);
+  if(!l1)
+    return NULL;
+  
+  /* Note: flags removes RASQAL_COMPARE_XQUERY as this is the
+   * explicit stringify operation and we want URIs as strings.
+   */
+  s = rasqal_literal_as_string_flags(l1, (flags & ~RASQAL_COMPARE_XQUERY),
+                                     &error);
+  if(!s || error)
+    goto failed;
+  
+  len = strlen((const char*)s);
+  new_s = (unsigned char *)RASQAL_MALLOC(cstring, len + 1);
+  if(!new_s)
+    goto failed;
+
+  memcpy((char*)new_s, (const char*)s, len + 1);
+  
+  /* after this new_s is owned by result */
+  result = rasqal_new_string_literal(world, new_s, NULL, NULL, NULL);
+
+  failed:
+  if(l1)
+    rasqal_free_literal(l1);
+  
+  return result;
+}
+
+
 /**
  * rasqal_expression_evaluate:
  * @world: #rasqal_world
@@ -1202,30 +1256,7 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
       break;
 
     case RASQAL_EXPR_STR:
-      l1 = rasqal_expression_evaluate(world, locator, e->arg1, flags);
-      if(!l1)
-        goto failed;
-
-      /* Note: flags removes RASQAL_COMPARE_XQUERY as this is the
-       * explicit stringify operation
-       */
-      s=rasqal_literal_as_string_flags(l1, (flags & ~RASQAL_COMPARE_XQUERY),
-                                       &errs.e);
-      if(!s || errs.e) {
-        rasqal_free_literal(l1);
-        goto failed;
-      }
-
-      vars.new_s=(unsigned char *)RASQAL_MALLOC(cstring, strlen((const char*)s)+1);
-      if(!vars.new_s) {
-        rasqal_free_literal(l1);
-        goto failed;
-      }
-      strcpy((char*)vars.new_s, (const char*)s);
-
-      result=rasqal_new_string_literal(world, vars.new_s, NULL, NULL, NULL);
-      rasqal_free_literal(l1);
-
+      result = rasqal_expression_evaluate_str(world, locator, e, flags);
       break;
       
     case RASQAL_EXPR_LANG:
