@@ -329,9 +329,9 @@ rasqal_expression_evaluate_now(rasqal_world *world,
  * @e: The expression to evaluate.
  * @flags: Compare flags
  *
- * INTERNAL - Evaluate RASQAL_EXPR_TO_UNIXTIME expression.
+ * INTERNAL - Evaluate RASQAL_EXPR_TO_UNIXTIME (datetime) expression.
  *
- * Return value: A #rasqal_literal value or NULL on failure.
+ * Return value: A #rasqal_literal integer value or NULL on failure.
  */
 static rasqal_literal*
 rasqal_expression_evaluate_to_unixtime(rasqal_world *world,
@@ -355,6 +355,51 @@ rasqal_expression_evaluate_to_unixtime(rasqal_world *world,
     goto failed;
 
   return rasqal_new_integer_literal(world, RASQAL_LITERAL_INTEGER, unixtime);
+
+  failed:
+  if(l)
+    rasqal_free_literal(l);
+  return NULL;
+
+}
+
+
+/* 
+ * rasqal_expression_evaluate_from_unixtime:
+ * @world: #rasqal_world
+ * @locator: error locator object
+ * @e: The expression to evaluate.
+ * @flags: Compare flags
+ *
+ * INTERNAL - Evaluate RASQAL_EXPR_FROM_UNIXTIME (integer expr) expression.
+ *
+ * Return value: A #rasqal_literal datetime value or NULL on failure.
+ */
+static rasqal_literal*
+rasqal_expression_evaluate_from_unixtime(rasqal_world *world,
+                                         raptor_locator *locator,
+                                         rasqal_expression *e,
+                                         int flags)
+{
+  rasqal_literal* l;
+  int error = 0;
+  int unixtime = 0;
+  rasqal_xsd_datetime* dt;
+  
+  l = rasqal_expression_evaluate(world, locator, e->arg1, flags);
+  if(!l)
+    goto failed;
+
+  unixtime = rasqal_literal_as_integer(l, &error);
+  rasqal_free_literal(l); l = NULL;
+  if(error)
+    goto failed;
+
+  dt = rasqal_new_xsd_datetime_from_unixtime(world, unixtime);
+  if(!dt)
+    goto failed;
+
+  return rasqal_new_datetime_literal_from_datetime(world, dt);
 
   failed:
   if(l)
@@ -1498,20 +1543,7 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
       break;
 
     case RASQAL_EXPR_FROM_UNIXTIME:
-      l1 = rasqal_expression_evaluate(world, locator, e->arg1, flags);
-      if(!l1)
-        goto failed;
-
-      vars.i = rasqal_literal_as_integer(l1, &errs.e);
-      rasqal_free_literal(l1);
-      if(errs.e)
-        goto failed;
-
-      vars.dt = rasqal_new_xsd_datetime_from_unixtime(world, vars.i);
-      if(!vars.dt)
-        goto failed;
-
-      result = rasqal_new_datetime_literal_from_datetime(world, vars.dt);
+      result = rasqal_expression_evaluate_from_unixtime(world, locator, e, flags);
       break;
 
     case RASQAL_EXPR_UNKNOWN:
