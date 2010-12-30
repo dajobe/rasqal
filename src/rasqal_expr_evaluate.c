@@ -1513,5 +1513,3 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
   }
   goto got_result;
 }
-
-
