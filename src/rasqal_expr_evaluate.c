@@ -808,6 +808,46 @@ failed:
 }
 
 
+/* 
+ * rasqal_expression_evaluate_bound:
+ * @world: #rasqal_world
+ * @locator: error locator object
+ * @e: The expression to evaluate.
+ * @flags: Compare flags
+ *
+ * INTERNAL - Evaluate RASQAL_EXPR_BOUND (variable) expressions.
+ *
+ * Return value: A #rasqal_literal boolean value or NULL on failure.
+ */
+static rasqal_literal*
+rasqal_expression_evaluate_bound(rasqal_world *world,
+                                 raptor_locator *locator,
+                                 rasqal_expression *e,
+                                 int flags)
+{
+  rasqal_literal* l1;
+  rasqal_variable* v;
+  
+  /* Do not use rasqal_expression_evaluate() here since
+   * we need to check the argument is a variable, and
+   * that function will flatten such thing to literals
+   * as early as possible. See (FLATTEN_LITERAL) below
+   */
+  if(!e->arg1 || e->arg1->op != RASQAL_EXPR_LITERAL)
+    return NULL;
+  
+  l1 = e->arg1->literal;
+  if(!l1 || l1->type != RASQAL_LITERAL_VARIABLE)
+    return NULL;
+  
+  v = rasqal_literal_as_variable(l1);
+  if(!v)
+    return NULL;
+  
+  return rasqal_new_boolean_literal(world, (v->value != NULL));
+}
+
+
 /**
  * rasqal_expression_evaluate:
  * @world: #rasqal_world
@@ -1082,23 +1122,7 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
       break;
 
     case RASQAL_EXPR_BOUND:
-      /* Do not use rasqal_expression_evaluate() here since
-       * we need to check the argument is a variable, and
-       * that function will flatten such thing to literals
-       * as early as possible. See (FLATTEN_LITERAL) below
-       */
-      if(!e->arg1 || e->arg1->op != RASQAL_EXPR_LITERAL)
-        goto failed;
-
-      l1=e->arg1->literal;
-      if(!l1 || l1->type != RASQAL_LITERAL_VARIABLE)
-        goto failed;
-
-      vars.v=rasqal_literal_as_variable(l1);
-      if(!vars.v)
-        goto failed;
-
-      result=rasqal_new_boolean_literal(world, (vars.v->value != NULL));
+      result = rasqal_expression_evaluate_bound(world, locator, e, flags);
       break;
 
     case RASQAL_EXPR_STR:
