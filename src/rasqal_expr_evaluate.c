@@ -475,6 +475,80 @@ rasqal_expression_evaluate_strdt(rasqal_world *world,
 
 
 /* 
+ * rasqal_expression_evaluate_strlang:
+ * @world: #rasqal_world
+ * @locator: error locator object
+ * @e: The expression to evaluate.
+ * @flags: Compare flags
+ *
+ * INTERNAL - Evaluate RASQAL_EXPR_STRLANG(expr) expression.
+ *
+ * Return value: A #rasqal_literal string value or NULL on failure.
+ */
+static rasqal_literal*
+rasqal_expression_evaluate_strlang(rasqal_world *world,
+                                   raptor_locator *locator,
+                                   rasqal_expression *e,
+                                   int flags)
+{
+  rasqal_literal *l1 = NULL;
+  rasqal_literal *l2 = NULL;
+  const unsigned char* s = NULL;
+  const unsigned char* lang = NULL;
+  unsigned char* new_s = NULL;
+  unsigned char* new_lang = NULL;
+  size_t len;
+  int error = 0;
+
+  l1 = rasqal_expression_evaluate(world, locator, e->arg1, flags);
+  if(!l1)
+    goto failed;
+  
+  s = rasqal_literal_as_string_flags(l1, flags, &error);
+  if(error)
+    goto failed;
+
+  l2 = rasqal_expression_evaluate(world, locator, e->arg2, flags);
+  if(!l2)
+    goto failed;
+  
+  lang = rasqal_literal_as_string_flags(l2, flags, &error);
+  if(error)
+    goto failed;
+  
+  len = strlen((const char*)s);
+  new_s = (unsigned char*)RASQAL_MALLOC(cstring, len + 1);
+  if(!new_s)
+    goto failed;
+  memcpy(new_s, s, len + 1);
+  
+  len = strlen((const char*)lang);
+  new_lang = (unsigned char*)RASQAL_MALLOC(cstring, len + 1);
+  if(!new_lang)
+    goto failed;
+  memcpy(new_lang, lang, len + 1);
+  
+  rasqal_free_literal(l1);
+  rasqal_free_literal(l2);
+
+  /* after this new_s and new_lang become owned by result */
+  return rasqal_new_string_literal(world, new_s, (const char*)new_lang,
+                                   /*datatype */ NULL, /* qname */ NULL);
+  
+
+  failed:
+  if(new_s)
+    RASQAL_FREE(cstring, new_s);
+  if(l1)
+    rasqal_free_literal(l1);
+  if(l2)
+    rasqal_free_literal(l2);
+
+  return NULL;
+}
+
+
+/* 
  * rasqal_expression_evaluate_now:
  * @world: #rasqal_world
  * @locator: error locator object
@@ -1483,34 +1557,7 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
       break;
 
     case RASQAL_EXPR_STRLANG:
-      l1 = rasqal_expression_evaluate(world, locator, e->arg1, flags);
-      if(!l1)
-        goto failed;
-      
-      s = rasqal_literal_as_string_flags(l1, flags, &errs.e);
-      if(errs.e) {
-        rasqal_free_literal(l1);
-        goto failed;
-      }
-
-      l2 = rasqal_expression_evaluate(world, locator, e->arg2, flags);
-      if(!l2) {
-        rasqal_free_literal(l1);
-        goto failed;
-      }
-
-      vars.s = rasqal_literal_as_string_flags(l1, flags, &errs.e);
-      if(errs.e) {
-        rasqal_free_literal(l1);
-        rasqal_free_literal(l2);
-        goto failed;
-      }
-
-      result = rasqal_new_string_literal(world, s, (const char*)vars.s,
-                                         /*datatype */ NULL, /* qname */ NULL);
-
-      rasqal_free_literal(l1);
-      rasqal_free_literal(l2);
+      result = rasqal_expression_evaluate_strlang(world, locator, e, flags);
       break;
 
     case RASQAL_EXPR_STRDT:
