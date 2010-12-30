@@ -1506,7 +1506,7 @@ rasqal_literal_as_floating(rasqal_literal* l, int *error)
  *
  * INTERNAL - Return a literal as a raptor_uri*
  * 
- * Return value: raptor_uri* value or NULL on failure
+ * Return value: shared raptor_uri* value or NULL on failure
  **/
 raptor_uri*
 rasqal_literal_as_uri(rasqal_literal* l)
