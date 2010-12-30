@@ -747,6 +747,67 @@ rasqal_expression_evaluate_datetime_part(rasqal_world *world,
 }
 
 
+/* 
+ * rasqal_expression_evaluate_istype:
+ * @world: #rasqal_world
+ * @locator: error locator object
+ * @e: The expression to evaluate.
+ * @flags: Compare flags
+ *
+ * INTERNAL - Evaluate RASQAL_EXPR_ISBLANK, RASQAL_EXPR_ISURI,
+ * RASQAL_EXPR_ISLITERAL and RASQAL_EXPR_ISNUMERIC (expr)
+ * expressions.
+ *
+ * Return value: A #rasqal_literal boolean value or NULL on failure.
+ */
+static rasqal_literal*
+rasqal_expression_evaluate_istype(rasqal_world *world,
+                                  raptor_locator *locator,
+                                  rasqal_expression *e,
+                                  int flags)
+{
+  rasqal_literal* l1;
+  int free_literal = 1;
+  rasqal_variable *v;
+  int b;
+  
+  l1 = rasqal_expression_evaluate(world, locator, e->arg1, flags);
+  if(!l1)
+    goto failed;
+
+  v = rasqal_literal_as_variable(l1);
+  if(v) {
+    rasqal_free_literal(l1);
+
+    l1 = v->value; /* don't need v after this */
+
+    free_literal = 0;
+    if(!l1)
+      goto failed;
+  }
+  
+  if(e->op == RASQAL_EXPR_ISBLANK)
+    b = (l1->type == RASQAL_LITERAL_BLANK);
+  else if(e->op == RASQAL_EXPR_ISLITERAL)
+    b = (rasqal_literal_get_rdf_term_type(l1) == RASQAL_LITERAL_STRING);
+  else if(e->op == RASQAL_EXPR_ISURI)
+    b =(l1->type == RASQAL_LITERAL_URI);
+  else
+    b = (rasqal_literal_is_numeric(l1));
+  
+  if(free_literal)
+    rasqal_free_literal(l1);
+  
+  return rasqal_new_boolean_literal(world, b);
+
+failed:
+  if(free_literal && l1)
+    rasqal_free_literal(l1);
+
+  return NULL;
+}
+
+
 /**
  * rasqal_expression_evaluate:
  * @world: #rasqal_world
@@ -1188,75 +1249,10 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
       break;
 
     case RASQAL_EXPR_ISURI:
-      errs.flags.free_literal=1;
-      
-      l1 = rasqal_expression_evaluate(world, locator, e->arg1, flags);
-      if(!l1)
-        goto failed;
-      
-      vars.v=rasqal_literal_as_variable(l1);
-      if(vars.v) {
-        rasqal_free_literal(l1);
-        l1=vars.v->value; /* don't need vars.v after this */
-        errs.flags.free_literal=0;
-        if(!l1)
-          goto failed;
-      }
-
-      vars.b=(l1->type == RASQAL_LITERAL_URI);
-      
-      if(errs.flags.free_literal)
-        rasqal_free_literal(l1);
-
-      result=rasqal_new_boolean_literal(world, vars.b);
-      break;
-
     case RASQAL_EXPR_ISBLANK:
-      errs.flags.free_literal=1;
-      
-      l1 = rasqal_expression_evaluate(world, locator, e->arg1, flags);
-      if(!l1)
-        goto failed;
-      
-      vars.v=rasqal_literal_as_variable(l1);
-      if(vars.v) {
-        rasqal_free_literal(l1);
-        l1=vars.v->value; /* don't need vars.v after this */
-        errs.flags.free_literal=0;
-        if(!l1)
-          goto failed;
-      }
-
-      vars.b=(l1->type == RASQAL_LITERAL_BLANK);
-
-      if(errs.flags.free_literal)
-        rasqal_free_literal(l1);
-
-      result=rasqal_new_boolean_literal(world, vars.b);
-      break;
-
     case RASQAL_EXPR_ISLITERAL:
-      errs.flags.free_literal=1;
-      
-      l1 = rasqal_expression_evaluate(world, locator, e->arg1, flags);
-      if(!l1)
-        goto failed;
-      
-      vars.v=rasqal_literal_as_variable(l1);
-      if(vars.v) {
-        rasqal_free_literal(l1);
-        l1=vars.v->value; /* don't need vars.v after this */
-        errs.flags.free_literal=0;
-        if(!l1)
-          goto failed;
-      }
-
-      vars.b=(rasqal_literal_get_rdf_term_type(l1) == RASQAL_LITERAL_STRING);
-
-      if(errs.flags.free_literal)
-        rasqal_free_literal(l1);
-
-      result=rasqal_new_boolean_literal(world, vars.b);
+    case RASQAL_EXPR_ISNUMERIC:
+      result = rasqal_expression_evaluate_istype(world, locator, e, flags);
       break;
       
     case RASQAL_EXPR_PLUS:
@@ -1677,30 +1673,6 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
       }
       break;
 
-    case RASQAL_EXPR_ISNUMERIC:
-      errs.flags.free_literal = 1;
-      
-      l1 = rasqal_expression_evaluate(world, locator, e->arg1, flags);
-      if(!l1)
-        goto failed;
-      
-      vars.v = rasqal_literal_as_variable(l1);
-      if(vars.v) {
-        rasqal_free_literal(l1);
-        l1 = vars.v->value; /* don't need vars.v after this */
-        errs.flags.free_literal = 0;
-        if(!l1)
-          goto failed;
-      }
-
-      vars.b = (rasqal_literal_is_numeric(l1));
-
-      if(errs.flags.free_literal)
-        rasqal_free_literal(l1);
-
-      result = rasqal_new_boolean_literal(world, vars.b);
-      break;
-      
     case RASQAL_EXPR_YEAR:
     case RASQAL_EXPR_MONTH:
     case RASQAL_EXPR_DAY:
