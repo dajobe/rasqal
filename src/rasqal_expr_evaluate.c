@@ -396,6 +396,77 @@ rasqal_expression_evaluate_concat(rasqal_world *world,
 
 
 /* 
+ * rasqal_expression_evaluate_strdt:
+ * @world: #rasqal_world
+ * @locator: error locator object
+ * @e: The expression to evaluate.
+ * @flags: Compare flags
+ *
+ * INTERNAL - Evaluate RASQAL_EXPR_STRDT(expr) expression.
+ *
+ * Return value: A #rasqal_literal string value or NULL on failure.
+ */
+static rasqal_literal*
+rasqal_expression_evaluate_strdt(rasqal_world *world,
+                                 raptor_locator *locator,
+                                 rasqal_expression *e,
+                                 int flags)
+{
+  rasqal_literal *l1 = NULL;
+  rasqal_literal *l2 = NULL;
+  const unsigned char* s = NULL;
+  raptor_uri* dt_uri = NULL;
+  int error = 0;
+  
+  l1 = rasqal_expression_evaluate(world, locator, e->arg1, flags);
+  if(!l1)
+    goto failed;
+  
+  s = rasqal_literal_as_string_flags(l1, flags, &error);
+  if(error)
+    goto failed;
+  
+  rasqal_free_literal(l1); l1 = NULL;
+
+  l2 = rasqal_expression_evaluate(world, locator, e->arg2, flags);
+  if(!l2)
+    goto failed;
+  
+  dt_uri = rasqal_literal_as_uri(l2);
+  if(dt_uri) {
+    dt_uri = raptor_uri_copy(dt_uri);
+  } else {
+    const unsigned char *uri_string;
+    
+    uri_string = rasqal_literal_as_string_flags(l2, flags, &error);
+    if(error)
+      goto failed;
+
+    dt_uri = raptor_new_uri(world->raptor_world_ptr, uri_string);
+    if(!dt_uri)
+      goto failed;
+  }
+  
+  rasqal_free_literal(l2);
+  
+  /* after this s and dt_uri become owned by result */
+  return rasqal_new_string_literal(world, s, /* language */ NULL,
+                                   dt_uri, /* qname */ NULL);
+  
+  
+  failed:
+  if(s)
+    RASQAL_FREE(cstring, s);
+  if(l1)
+    rasqal_free_literal(l1);
+  if(l2)
+    rasqal_free_literal(l2);
+
+  return NULL;
+}
+
+
+/* 
  * rasqal_expression_evaluate_now:
  * @world: #rasqal_world
  * @locator: error locator object
@@ -1435,46 +1506,7 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
       break;
 
     case RASQAL_EXPR_STRDT:
-      l1 = rasqal_expression_evaluate(world, locator, e->arg1, flags);
-      if(!l1)
-        goto failed;
-      
-      s = rasqal_literal_as_string_flags(l1, flags, &errs.e);
-      if(errs.e) {
-        rasqal_free_literal(l1);
-        goto failed;
-      }
-
-      l2 = rasqal_expression_evaluate(world, locator, e->arg2, flags);
-      if(!l2) {
-        rasqal_free_literal(l1);
-        goto failed;
-      }
-
-      vars.dt_uri = rasqal_literal_as_uri(l2);
-      if(vars.dt_uri) {
-        vars.dt_uri = raptor_uri_copy(vars.dt_uri);
-      } else {
-        const unsigned char *uri_string;
-        uri_string = rasqal_literal_as_string_flags(l2, flags, &errs.e);
-        if(errs.e) {
-          rasqal_free_literal(l1);
-          rasqal_free_literal(l2);
-          goto failed;
-        }
-        vars.dt_uri = raptor_new_uri(world->raptor_world_ptr, uri_string);
-        if(!vars.dt_uri) {
-          rasqal_free_literal(l1);
-          rasqal_free_literal(l2);
-          goto failed;
-        }
-      }
-      
-      result = rasqal_new_string_literal(world, s, /* language */ NULL,
-                                         vars.dt_uri, /* qname */ NULL);
-
-      rasqal_free_literal(l1);
-      rasqal_free_literal(l2);
+      result = rasqal_expression_evaluate_strdt(world, locator, e, flags);
       break;
 
     case RASQAL_EXPR_BNODE:
