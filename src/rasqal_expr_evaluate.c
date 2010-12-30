@@ -445,6 +445,7 @@ rasqal_expression_evaluate_datetime_part(rasqal_world *world,
     
     dec = rasqal_xsd_datetime_get_seconds_as_decimal(world,
                                                      l->value.datetime);
+    rasqal_free_literal(l);
     if(dec) {
       result = rasqal_new_decimal_literal_from_decimal(world, NULL, dec);
       if(!result)
@@ -473,9 +474,10 @@ rasqal_expression_evaluate_datetime_part(rasqal_world *world,
   else
     i = 0;
   
-  result = rasqal_new_integer_literal(world, RASQAL_LITERAL_INTEGER, i);
+  rasqal_free_literal(l);
 
-  return result;
+  return rasqal_new_integer_literal(world, RASQAL_LITERAL_INTEGER, i);
+
   
   failed:
   if(result) {
