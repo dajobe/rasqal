@@ -666,6 +666,7 @@ rasqal_expression_clear(rasqal_expression* e)
       rasqal_free_expression(e->arg1);
       rasqal_free_expression(e->arg2);
       break;
+
     case RASQAL_EXPR_REGEX:
     case RASQAL_EXPR_IF:
       rasqal_free_expression(e->arg1);
@@ -673,6 +674,7 @@ rasqal_expression_clear(rasqal_expression* e)
       if(e->arg3)
         rasqal_free_expression(e->arg3);
       break;
+
     case RASQAL_EXPR_TILDE:
     case RASQAL_EXPR_BANG:
     case RASQAL_EXPR_UMINUS:
@@ -710,13 +712,17 @@ rasqal_expression_clear(rasqal_expression* e)
       if(e->arg1)
         rasqal_free_expression(e->arg1);
       break;
+
     case RASQAL_EXPR_STR_MATCH:
     case RASQAL_EXPR_STR_NMATCH:
       rasqal_free_expression(e->arg1);
-      /* FALLTHROUGH */
+      rasqal_free_literal(e->literal);
+      break;
+
     case RASQAL_EXPR_LITERAL:
       rasqal_free_literal(e->literal);
       break;
+
     case RASQAL_EXPR_FUNCTION:
     case RASQAL_EXPR_GROUP_CONCAT:
       /* FUNCTION name */
@@ -726,6 +732,7 @@ rasqal_expression_clear(rasqal_expression* e)
       if(e->literal) /* GROUP_CONCAT() SEPARATOR */
         rasqal_free_literal(e->literal);
       break;
+
     case RASQAL_EXPR_CAST:
       raptor_free_uri(e->name);
       rasqal_free_expression(e->arg1);
@@ -850,12 +857,14 @@ rasqal_expression_visit(rasqal_expression* e,
       return rasqal_expression_visit(e->arg1, fn, user_data) ||
              rasqal_expression_visit(e->arg2, fn, user_data);
       break;
+
     case RASQAL_EXPR_REGEX:
     case RASQAL_EXPR_IF:
       return rasqal_expression_visit(e->arg1, fn, user_data) ||
              rasqal_expression_visit(e->arg2, fn, user_data) ||
              (e->arg3 && rasqal_expression_visit(e->arg3, fn, user_data));
       break;
+
     case RASQAL_EXPR_TILDE:
     case RASQAL_EXPR_BANG:
     case RASQAL_EXPR_UMINUS:
@@ -893,10 +902,12 @@ rasqal_expression_visit(rasqal_expression* e,
       /* arg1 is optional for RASQAL_EXPR_BNODE */
       return (e->arg1) ? rasqal_expression_visit(e->arg1, fn, user_data) : 1;
       break;
+
     case RASQAL_EXPR_STR_MATCH:
     case RASQAL_EXPR_STR_NMATCH:
       return fn(user_data, e->arg1);
       break;
+
     case RASQAL_EXPR_LITERAL:
       return 0;
 
@@ -1711,7 +1722,7 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
         goto failed;
       
       break;
-        
+
     case RASQAL_EXPR_MINUS:
       l1 = rasqal_expression_evaluate(world, locator, e->arg1, flags);
       if(!l1)
@@ -2570,6 +2581,7 @@ rasqal_expression_write(rasqal_expression* e, raptor_iostream* iostr)
       }
       raptor_iostream_write_byte(')', iostr);
       break;
+
     case RASQAL_EXPR_STR_MATCH:
     case RASQAL_EXPR_STR_NMATCH:
       raptor_iostream_counted_string_write("op ", 3, iostr);
@@ -2580,6 +2592,7 @@ rasqal_expression_write(rasqal_expression* e, raptor_iostream* iostr)
       rasqal_literal_write(e->literal, iostr);
       raptor_iostream_write_byte(')', iostr);
       break;
+
     case RASQAL_EXPR_TILDE:
     case RASQAL_EXPR_BANG:
     case RASQAL_EXPR_UMINUS:
@@ -2763,6 +2776,7 @@ rasqal_expression_print(rasqal_expression* e, FILE* fh)
       }
       fputc(')', fh);
       break;
+
     case RASQAL_EXPR_STR_MATCH:
     case RASQAL_EXPR_STR_NMATCH:
       fputs("op ", fh);
@@ -2773,6 +2787,7 @@ rasqal_expression_print(rasqal_expression* e, FILE* fh)
       rasqal_literal_print(e->literal, fh);
       fputc(')', fh);
       break;
+
     case RASQAL_EXPR_TILDE:
     case RASQAL_EXPR_BANG:
     case RASQAL_EXPR_UMINUS:
@@ -2943,17 +2958,20 @@ rasqal_expression_is_constant(rasqal_expression* e)
       result = rasqal_expression_is_constant(e->arg1) &&
                rasqal_expression_is_constant(e->arg2);
       break;
+
     case RASQAL_EXPR_REGEX:
     case RASQAL_EXPR_IF:
       result = rasqal_expression_is_constant(e->arg1) &&
                rasqal_expression_is_constant(e->arg2) &&
                (e->arg3 && rasqal_expression_is_constant(e->arg3));
       break;
+
     case RASQAL_EXPR_STR_MATCH:
     case RASQAL_EXPR_STR_NMATCH:
       result = rasqal_expression_is_constant(e->arg1) &&
                rasqal_literal_is_constant(e->literal);
       break;
+
     case RASQAL_EXPR_TILDE:
     case RASQAL_EXPR_BANG:
     case RASQAL_EXPR_UMINUS:
