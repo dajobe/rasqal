@@ -848,6 +848,45 @@ rasqal_expression_evaluate_bound(rasqal_world *world,
 }
 
 
+/* 
+ * rasqal_expression_evaluate_if:
+ * @world: #rasqal_world
+ * @locator: error locator object
+ * @e: The expression to evaluate.
+ * @flags: Compare flags
+ *
+ * INTERNAL - Evaluate RASQAL_EXPR_IF (condition, true expr, false expr) expressions.
+ *
+ * Return value: A #rasqal_literal value or NULL on failure.
+ */
+static rasqal_literal*
+rasqal_expression_evaluate_if(rasqal_world *world,
+                              raptor_locator *locator,
+                              rasqal_expression *e,
+                              int flags)
+{
+  rasqal_literal* l1;
+  int b;
+  int error = 0;
+  
+  l1 = rasqal_expression_evaluate(world, locator, e->arg1, flags);
+  if(!l1)
+    return NULL;
+
+  /* IF condition */
+  b = rasqal_literal_as_boolean(l1, &error);
+  rasqal_free_literal(l1);
+
+  if(error)
+    return NULL;
+
+  /* condition is true: evaluate arg2 or false: evaluate arg3 */
+  return rasqal_expression_evaluate(world, locator,
+                                    b ? e->arg2 : e->arg3,
+                                    flags);
+}
+
+
 /**
  * rasqal_expression_evaluate:
  * @world: #rasqal_world
@@ -1538,21 +1577,7 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
       break;
 
     case RASQAL_EXPR_IF:
-      l1 = rasqal_expression_evaluate(world, locator, e->arg1, flags);
-      if(!l1)
-        goto failed;
-
-      /* IF condition */
-      vars.b = rasqal_literal_as_boolean(l1, &errs.e);
-      rasqal_free_literal(l1);
-
-      if(errs.e)
-        goto failed;
-
-      /* condition is true: evaluate arg2 or false: evaluate arg3 */
-      result = rasqal_expression_evaluate(world, locator,
-                                          vars.b ? e->arg2 : e->arg3,
-                                          flags);
+      result = rasqal_expression_evaluate_if(world, locator, e, flags);
       break;
 
     case RASQAL_EXPR_URI:
