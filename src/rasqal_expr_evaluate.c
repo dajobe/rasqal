@@ -1,6 +1,6 @@
 /* -*- Mode: c; c-basic-offset: 2 -*-
  *
- * rasqal_expr.c - Rasqal general expression support
+ * rasqal_expr_evaluate.c - Rasqal expression evaluation
  *
  * Copyright (C) 2003-2010, David Beckett http://www.dajobe.org/
  * Copyright (C) 2003-2005, University of Bristol, UK http://www.bristol.ac.uk/
@@ -287,6 +287,38 @@ rasqal_expression_evaluate_strmatch(rasqal_world *world,
 
   failed:
   return NULL;
+}
+
+
+/* 
+ * rasqal_expression_evaluate_now:
+ * @world: #rasqal_world
+ * @locator: error locator object
+ * @e: The expression to evaluate.
+ * @flags: Compare flags
+ *
+ * INTERNAL - Evaluate RASQAL_EXPR_NOW, RASQAL_EXPR_DATETIME expressions.
+ *
+ * Return value: A #rasqal_literal value or NULL on failure.
+ */
+static rasqal_literal*
+rasqal_expression_evaluate_now(rasqal_world *world,
+                               raptor_locator *locator,
+                               rasqal_expression *e,
+                               int flags)
+{
+  struct timeval *tv;
+  rasqal_xsd_datetime* dt;
+
+  tv = rasqal_world_get_now_timeval(world);
+  if(!tv)
+    return NULL;
+  
+  dt = rasqal_new_xsd_datetime_from_timeval(world, tv);
+  if(!dt)
+    return NULL;
+  
+  return rasqal_new_datetime_literal_from_datetime(world, dt);
 }
 
 
@@ -1416,16 +1448,7 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
 
     case RASQAL_EXPR_CURRENT_DATETIME:
     case RASQAL_EXPR_NOW:
-      /* no args and implement same functionality */
-      vars.tv = rasqal_world_get_now_timeval(world);
-      if(!vars.tv)
-        goto failed;
-      
-      vars.dt = rasqal_new_xsd_datetime_from_timeval(world, vars.tv);
-      if(!vars.dt)
-        goto failed;
-      
-      result = rasqal_new_datetime_literal_from_datetime(world, vars.dt);
+      result = rasqal_expression_evaluate_now(world, locator, e, flags);
       break;
 
     case RASQAL_EXPR_TO_UNIXTIME:
