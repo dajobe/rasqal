@@ -978,6 +978,75 @@ rasqal_expression_evaluate_str(rasqal_world *world,
 }
 
 
+/* 
+ * rasqal_expression_evaluate_lang:
+ * @world: #rasqal_world
+ * @locator: error locator object
+ * @e: The expression to evaluate.
+ * @flags: Compare flags
+ *
+ * INTERNAL - Evaluate RASQAL_EXPR_LANG (literal expr) expression.
+ *
+ * Return value: A #rasqal_literal value or NULL on failure.
+ */
+static rasqal_literal*
+rasqal_expression_evaluate_lang(rasqal_world *world,
+                                raptor_locator *locator,
+                                rasqal_expression *e,
+                                int flags)
+{
+  rasqal_literal* l1;
+  int free_literal = 1;
+  rasqal_variable* v = NULL;
+  unsigned char* new_s;
+      
+  l1 = rasqal_expression_evaluate(world, locator, e->arg1, flags);
+  if(!l1)
+    goto failed;
+
+  v = rasqal_literal_as_variable(l1);
+  if(v) {
+    rasqal_free_literal(l1);
+
+    l1 = v->value; /* don't need v after this */
+
+    free_literal = 0;
+    if(!l1)
+      goto failed;
+  }
+  
+  if(rasqal_literal_get_rdf_term_type(l1) != RASQAL_LITERAL_STRING)
+    goto failed;
+  
+  if(l1->language) {
+    size_t len = strlen(l1->language);
+    new_s = (unsigned char*)RASQAL_MALLOC(cstring, len + 1);
+    if(!new_s)
+      goto failed;
+
+    memcpy((char*)new_s, l1->language, len + 1);
+  } else  {
+    new_s = (unsigned char*)RASQAL_MALLOC(cstring, 1);
+    if(!new_s)
+      goto failed;
+
+    *new_s = '\0';
+  }
+
+  /* after this new_s is owned by result */
+  if(free_literal)
+    rasqal_free_literal(l1);
+
+  return rasqal_new_string_literal(world, new_s, NULL, NULL, NULL);
+
+failed:
+  if(free_literal)
+    rasqal_free_literal(l1);
+
+  return NULL;
+}
+
+
 /**
  * rasqal_expression_evaluate:
  * @world: #rasqal_world
@@ -1260,50 +1329,7 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
       break;
       
     case RASQAL_EXPR_LANG:
-      errs.flags.free_literal=1;
-      
-      l1 = rasqal_expression_evaluate(world, locator, e->arg1, flags);
-      if(!l1)
-        goto failed;
-
-      vars.v=rasqal_literal_as_variable(l1);
-      if(vars.v) {
-        rasqal_free_literal(l1);
-        l1=vars.v->value; /* don't need vars.v after this */
-        errs.flags.free_literal=0;
-        if(!l1)
-          goto failed;
-      }
-
-      if(rasqal_literal_get_rdf_term_type(l1) != RASQAL_LITERAL_STRING) {
-        if(errs.flags.free_literal)
-          rasqal_free_literal(l1);
-        goto failed;
-      }
-
-      if(l1->language) {
-        vars.new_s=(unsigned char*)RASQAL_MALLOC(cstring,
-                                                 strlen(l1->language)+1);
-        if(!vars.new_s) {
-          if(errs.flags.free_literal)
-            rasqal_free_literal(l1);
-          goto failed;
-        }
-        strcpy((char*)vars.new_s, l1->language);
-      } else  {
-        vars.new_s=(unsigned char*)RASQAL_MALLOC(cstring, 1);
-        if(!vars.new_s) {
-          if(errs.flags.free_literal)
-            rasqal_free_literal(l1);
-          goto failed;
-        }
-        *vars.new_s='\0';
-      }
-      result=rasqal_new_string_literal(world, vars.new_s, NULL, NULL, NULL);
-      
-      if(errs.flags.free_literal)
-        rasqal_free_literal(l1);
-
+      result = rasqal_expression_evaluate_lang(world, locator, e, flags);
       break;
 
     case RASQAL_EXPR_LANGMATCHES:
