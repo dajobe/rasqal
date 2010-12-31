@@ -1068,6 +1068,15 @@ int rasqal_literal_sequence_compare(int compare_flags, raptor_sequence* values_a
 raptor_sequence* rasqal_expression_sequence_evaluate(rasqal_query* query, raptor_sequence* exprs_seq, int ignore_errors, int* error_p);
 int rasqal_literal_sequence_equals(raptor_sequence* values_a, raptor_sequence* values_b);
 
+
+/* rasqal_expr_evaluate.c */
+int rasqal_language_matches(const unsigned char* lang_tag, const unsigned char* lang_range);
+
+/* rasqal_expr_strings.c */
+rasqal_literal* rasqal_expression_evaluate_concat(rasqal_world *world, raptor_locator *locator, rasqal_expression *e,int flags);
+rasqal_literal* rasqal_expression_evaluate_strmatch(rasqal_world *world, raptor_locator *locator, rasqal_expression *e, int flags);
+  
+
 /* strcasecmp.c */
 #ifdef HAVE_STRCASECMP
 #  define rasqal_strcasecmp strcasecmp
