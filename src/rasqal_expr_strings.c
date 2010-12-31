@@ -102,6 +102,96 @@ rasqal_expression_evaluate_strlen(rasqal_world *world,
 
 
 /* 
+ * rasqal_expression_evaluate_set_case:
+ * @world: #rasqal_world
+ * @locator: error locator object
+ * @e: The expression to evaluate.
+ * @flags: Compare flags
+ *
+ * INTERNAL - Evaluate RASQAL_EXPR_UCASE(expr) or
+ * RASQAL_EXPR_LCASE(expr) expressions.
+ *
+ * Return value: A #rasqal_literal string value or NULL on failure.
+ */
+rasqal_literal*
+rasqal_expression_evaluate_set_case(rasqal_world *world,
+                                    raptor_locator *locator,
+                                    rasqal_expression *e,
+                                    int flags)
+{
+  rasqal_literal* l1;
+  const unsigned char *s;
+  unsigned char* new_s = NULL;
+  char* new_lang = NULL;
+  raptor_uri* dt_uri = NULL;
+  size_t len = 0;
+  int error = 0;
+  
+  l1 = rasqal_expression_evaluate(world, locator, e->arg1, flags);
+  if(!l1)
+    return NULL;
+  
+  s = rasqal_literal_as_string_flags(l1, flags, &error);
+  if(error)
+    goto failed;
+
+  len = strlen((const char*)s);
+  new_s =(unsigned char*)RASQAL_MALLOC(cstring, len + 1);
+  if(!new_s)
+    goto failed;
+
+  if(e->op == RASQAL_EXPR_UCASE) {
+    unsigned int i;
+    
+    for(i = 0; i < len; i++) {
+      char c = s[i];
+      if(islower(c))
+        c = toupper(c);
+      new_s[i] = c;
+    }
+  } else { /* RASQAL_EXPR_LCASE */
+    unsigned int i;
+
+    for(i = 0; i < len; i++) {
+      char c = s[i];
+      if(isupper(c))
+        c = tolower(c);
+      new_s[i] = c;
+    }
+  }
+  new_s[len] = '\0';
+
+  if(l1->language) {
+    len = strlen((const char*)l1->language);
+    new_lang = (char*)RASQAL_MALLOC(cstring, len + 1);
+    if(!new_lang)
+      goto failed;
+
+    memcpy(new_lang, l1->language, len + 1);
+  }
+
+  dt_uri = l1->datatype;
+  if(dt_uri)
+    dt_uri = raptor_uri_copy(dt_uri);
+
+  /* after this new_s becomes owned by result */
+  return rasqal_new_string_literal(world, new_s, new_lang, dt_uri,
+                                   /* qname */ NULL);
+  
+  
+  failed:
+  if(new_s)
+    RASQAL_FREE(cstring, new_s);
+  if(new_lang)
+    RASQAL_FREE(cstring, new_lang);
+  if(l1)
+    rasqal_free_literal(l1);
+
+  return NULL;
+}
+
+
+/* 
  * rasqal_expression_evaluate_concat:
  * @world: #rasqal_world
  * @locator: error locator object
