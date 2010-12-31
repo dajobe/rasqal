@@ -1864,12 +1864,21 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
     case RASQAL_EXPR_ORDER_COND_DESC:
     case RASQAL_EXPR_GROUP_COND_ASC:
     case RASQAL_EXPR_GROUP_COND_DESC:
+      result = rasqal_expression_evaluate(world, locator, e->arg1, flags);
+      break;
+
     case RASQAL_EXPR_COUNT:
     case RASQAL_EXPR_SUM:
     case RASQAL_EXPR_AVG:
     case RASQAL_EXPR_MIN:
     case RASQAL_EXPR_MAX:
-      result = rasqal_expression_evaluate(world, locator, e->arg1, flags);
+    case RASQAL_EXPR_SAMPLE:
+    case RASQAL_EXPR_GROUP_CONCAT:
+      rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR,
+                              locator,
+                              "Aggregate expressions cannot be evaluated in a general scalar expression.");
+      errs.e = 1;
+      goto failed;
       break;
 
     case RASQAL_EXPR_VARSTAR:
@@ -1909,22 +1918,8 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
       result = rasqal_expression_evaluate_bnode_constructor(world, locator, e, flags);
       break;
 
-    case RASQAL_EXPR_SAMPLE:
-      rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR,
-                              locator,
-                              "Evaluation of SPARQL SAMPLE() expression is not implemented yet, returning error.");
-      errs.e = 1;
-      goto failed;
       break;
       
-    case RASQAL_EXPR_GROUP_CONCAT:
-      rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR,
-                              locator,
-                              "Evaluation of SPARQL GROUP_CONCAT() expression is not implemented yet, returning error.");
-      errs.e = 1;
-      goto failed;
-      break;
-
     case RASQAL_EXPR_IN:
       result = rasqal_expression_evaluate_in_set(world, locator, e, flags);
       break;
