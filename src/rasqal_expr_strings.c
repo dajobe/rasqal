@@ -159,6 +159,64 @@ rasqal_expression_evaluate_concat(rasqal_world *world,
 
 
 /* 
+ * rasqal_expression_evaluate_langmatches:
+ * @world: #rasqal_world
+ * @locator: error locator object
+ * @e: The expression to evaluate.
+ * @flags: Compare flags
+ *
+ * INTERNAL - Evaluate RASQAL_EXPR_LANGMATCHES(lang tag, lang tag range) expression.
+ *
+ * Return value: A #rasqal_literal boolean value or NULL on failure.
+ */
+rasqal_literal*
+rasqal_expression_evaluate_langmatches(rasqal_world *world,
+                                       raptor_locator *locator,
+                                       rasqal_expression *e,
+                                       int flags)
+{
+  rasqal_literal *l1 = NULL;
+  rasqal_literal *l2 = NULL;
+  const unsigned char *tag;
+  const unsigned char *range;
+  int b;
+  int error = 0;
+  
+  l1 = rasqal_expression_evaluate(world, locator, e->arg1, flags);
+  if(!l1)
+    goto failed;
+  
+  l2 = rasqal_expression_evaluate(world, locator, e->arg2, flags);
+  if(!l2)
+    goto failed;
+  
+  tag = rasqal_literal_as_string_flags(l1, flags, &error);
+  if(error)
+    goto failed;
+  
+  range = rasqal_literal_as_string_flags(l2, flags, &error);
+  if(error)
+    goto failed;
+  
+  
+  b = rasqal_language_matches(tag, range);
+  
+  rasqal_free_literal(l1);
+  rasqal_free_literal(l2);
+  
+  return rasqal_new_boolean_literal(world, b);
+
+  failed:
+  if(l1)
+    rasqal_free_literal(l1);
+  if(l2)
+    rasqal_free_literal(l2);
+
+  return NULL;
+}
+
+
+/* 
  * rasqal_expression_evaluate_strmatch:
  * @world: #rasqal_world
  * @locator: error locator object

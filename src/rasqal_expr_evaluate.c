@@ -1358,28 +1358,7 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
       break;
 
     case RASQAL_EXPR_LANGMATCHES:
-      l1 = rasqal_expression_evaluate(world, locator, e->arg1, flags);
-      if(!l1)
-        goto failed;
-
-      l2 = rasqal_expression_evaluate(world, locator, e->arg2, flags);
-      if(!l2) {
-        rasqal_free_literal(l1);
-        goto failed;
-      }
-
-      s=rasqal_literal_as_string_flags(l1, flags, &errs.e);
-      vars.s=rasqal_literal_as_string_flags(l2, flags, &errs.e);
-
-      if(errs.e)
-        vars.b = 0;
-      else
-        vars.b = rasqal_language_matches(s, vars.s); /* don't need s anymore */
-      
-      rasqal_free_literal(l1);
-      rasqal_free_literal(l2);
-
-      result = rasqal_new_boolean_literal(world, vars.b);
+      result = rasqal_expression_evaluate_langmatches(world, locator, e, flags);
       break;
 
     case RASQAL_EXPR_DATATYPE:
