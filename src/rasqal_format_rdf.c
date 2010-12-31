@@ -129,7 +129,9 @@ rasqal_query_results_rdf_init(rasqal_query_results_formatter* formatter,
                               const char* name)
 {
   rasqal_query_results_format_rdf* context = (rasqal_query_results_format_rdf*)formatter->context;
+#ifdef HAVE_RAPTOR2_API
   raptor_world* raptor_world_ptr = formatter->factory->world->raptor_world_ptr;
+#endif
   
   context->name = name;
 
