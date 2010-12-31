@@ -54,6 +54,54 @@
 
 
 /* 
+ * rasqal_expression_evaluate_strlen:
+ * @world: #rasqal_world
+ * @locator: error locator object
+ * @e: The expression to evaluate.
+ * @flags: Compare flags
+ *
+ * INTERNAL - Evaluate RASQAL_EXPR_STRLEN(expr) expression.
+ *
+ * Return value: A #rasqal_literal integer value or NULL on failure.
+ */
+rasqal_literal*
+rasqal_expression_evaluate_strlen(rasqal_world *world,
+                                  raptor_locator *locator,
+                                  rasqal_expression *e,
+                                  int flags)
+{
+  rasqal_literal* l1;
+  rasqal_literal* result = NULL;
+  const unsigned char *s;
+  size_t len = 0;
+  int error = 0;
+  
+  l1 = rasqal_expression_evaluate(world, locator, e->arg1, flags);
+  if(!l1)
+    return NULL;
+  
+  s = rasqal_literal_as_string_flags(l1, flags, &error);
+  if(error)
+    goto failed;
+
+  if(!s)
+    len = 0;
+  else
+    len = strlen((const char*)s);
+
+  result = rasqal_new_integer_literal(world, RASQAL_LITERAL_INTEGER, len);
+  rasqal_free_literal(l1);
+  return result;
+
+  failed:
+  if(l1)
+    rasqal_free_literal(l1);
+
+  return NULL;
+}
+
+
+/* 
  * rasqal_expression_evaluate_concat:
  * @world: #rasqal_world
  * @locator: error locator object

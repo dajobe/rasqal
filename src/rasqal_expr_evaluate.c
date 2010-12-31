@@ -1456,8 +1456,11 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
       result = rasqal_expression_evaluate_from_unixtime(world, locator, e, flags);
       break;
 
-    case RASQAL_EXPR_TIMEZONE:
     case RASQAL_EXPR_STRLEN:
+      result = rasqal_expression_evaluate_strlen(world, locator, e, flags);
+      break;
+
+    case RASQAL_EXPR_TIMEZONE:
     case RASQAL_EXPR_UCASE:
     case RASQAL_EXPR_LCASE:
     case RASQAL_EXPR_ENCODE_FOR_URI:
