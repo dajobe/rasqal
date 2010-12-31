@@ -141,7 +141,7 @@ rasqal_query_results_rdf_init(rasqal_query_results_formatter* formatter,
     context->write_format_name = "turtle";
   } else {
     context->read_format_name = "guess";
-    context->read_format_name = NULL;
+    context->write_format_name = NULL;
   }
 
   /* Namespaces */
