@@ -303,22 +303,21 @@ rasqal_expression_evaluate_str_prefix_suffix(rasqal_world *world,
   len1 = strlen((const char*)s1);
   len2 = strlen((const char*)s2);
   
-  if(e->op == RASQAL_EXPR_STRSTARTS) {
-    if(len1 < len2) {
-      /* s1 is shorter than s2 so s2 can never be a prefix */
-      b = 0;
-    } else {
-      b = !memcmp(s1, s2, len2);
-    }
+  if(len1 < len2) {
+    /* s1 is shorter than s2 so s2 can never be a prefix, suffix or
+     * contain s1 */
+    b = 0;
   } else {
-    /* RASQAL_EXPR_STRENDS */
-    if(len1 < len2) {
-      /* s1 is shorter than s2 so s2 can never be a suffix */
-      b = 0;
-    } else {
+    if(e->op == RASQAL_EXPR_STRSTARTS) {
+      b = !memcmp(s1, s2, len2);
+    } else if(e->op == RASQAL_EXPR_STRENDS) {
       b = !memcmp(s1 + len1 - len2, s2, len2);
+    } else { /* RASQAL_EXPR_CONTAINS */
+      /* b = (strnstr((const char*)s1, (const char*)s2, len2) != NULL); */
+      b = (strstr((const char*)s1, (const char*)s2) != NULL);
     }
   }
+  
   
   
   rasqal_free_literal(l1);
