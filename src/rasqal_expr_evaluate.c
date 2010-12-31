@@ -1465,10 +1465,13 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
       result = rasqal_expression_evaluate_set_case(world, locator, e, flags);
       break;
 
-    case RASQAL_EXPR_TIMEZONE:
-    case RASQAL_EXPR_ENCODE_FOR_URI:
     case RASQAL_EXPR_STRSTARTS:
     case RASQAL_EXPR_STRENDS:
+      result = rasqal_expression_evaluate_str_prefix_suffix(world, locator, e, flags);
+      break;
+
+    case RASQAL_EXPR_TIMEZONE:
+    case RASQAL_EXPR_ENCODE_FOR_URI:
     case RASQAL_EXPR_CONTAINS:
     case RASQAL_EXPR_SUBSTR:
       rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR,

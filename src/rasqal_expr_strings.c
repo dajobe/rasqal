@@ -191,6 +191,151 @@ rasqal_expression_evaluate_set_case(rasqal_world *world,
 }
 
 
+/*
+ * rasqal_literals_sparql11_compatible:
+ * @l1: first literal
+ * @l2: second  literal
+ *
+ * INTERNAL - Check if two literals are SPARQL 1.1 compatible such as usable for STRSTARTS()
+ *
+ * From STRSTARTS(), STRENDS() and CONTAINS() draft definition:
+ * 1. pairs of simple literals,
+ * 2. pairs of xsd:string typed literals
+ * 3. pairs of plain literals with identical language tags
+ * 4. pairs of an xsd:string typed literal (arg1 or arg2) and a simple literal (arg2 or arg1)
+ * 5. pairs of a plain literal with language tag (arg1) and a simple literal (arg2)
+ * 6. pairs of a plain literal with language tag (arg1) and an xsd:string typed literal (arg2)
+ *
+ * Return value: non-0 if literals are compatible
+ */
+static int
+rasqal_literals_sparql11_compatible(rasqal_literal *l1, rasqal_literal *l2) 
+{
+  raptor_uri* dt1;
+  raptor_uri* dt2;
+  const char *lang1;
+  const char *lang2;
+  raptor_uri* xsd_string_uri;
+  
+  xsd_string_uri = rasqal_xsd_datatype_type_to_uri(l1->world, 
+                                                   RASQAL_LITERAL_XSD_STRING);
+
+  /* Languages */
+  lang1 = l1->language;
+  lang2 = l2->language;
+
+  /* Turn xsd:string datatypes into plain literals for compatibility
+   * purposes 
+   */
+  dt1 = l1->datatype;
+  if(dt1 && raptor_uri_equals(dt1, xsd_string_uri))
+    dt1 = NULL;
+  
+  dt2 = l2->datatype;
+  if(dt2 && raptor_uri_equals(dt2, xsd_string_uri))
+    dt2 = NULL;
+  
+  /* If there any datatypes left, the literals are not compatible */
+  if(dt1 || dt2)
+    return 0;
+  
+  /* pairs of simple literals (or pairs of xsd:string or mixtures): #1, #2, #4 */
+  if(!lang1 && !lang2)
+    return 1;
+
+  /* pairs of plain literals with identical language tags #3 */
+  if(lang1 && lang2)
+    return !strcmp(lang1, lang2);
+
+  /* pairs of a plain literal with language tag (arg1) and a simple
+   * literal or xsd:string typed literal [with no language tag] (arg2) #5, #6
+   */
+  return (lang1 && !lang2);
+}
+
+
+/* 
+ * rasqal_expression_evaluate_str_prefix_suffix:
+ * @world: #rasqal_world
+ * @locator: error locator object
+ * @e: The expression to evaluate.
+ * @flags: Compare flags
+ *
+ * INTERNAL - Evaluate RASQAL_EXPR_STRSTARTS(lit, lit) and
+ * RASQAL_EXPR_STRENDS(lit, lit) expressions.
+ *
+ * Return value: A #rasqal_literal integer value or NULL on failure.
+ */
+rasqal_literal*
+rasqal_expression_evaluate_str_prefix_suffix(rasqal_world *world,
+                                             raptor_locator *locator,
+                                             rasqal_expression *e,
+                                             int flags)
+{
+  rasqal_literal *l1 = NULL;
+  rasqal_literal *l2 = NULL;
+  int b;
+  const unsigned char *s1;
+  const unsigned char *s2;
+  size_t len1 = 0;
+  size_t len2 = 0;
+  int error = 0;
+  
+  l1 = rasqal_expression_evaluate(world, locator, e->arg1, flags);
+  if(!l1)
+    return NULL;
+  
+  l2 = rasqal_expression_evaluate(world, locator, e->arg2, flags);
+  if(!l2)
+    goto failed;
+
+  if(!rasqal_literals_sparql11_compatible(l1, l2))
+    goto failed;
+  
+  s1 = rasqal_literal_as_string_flags(l1, flags, &error);
+  if(error)
+    goto failed;
+  
+  s2 = rasqal_literal_as_string_flags(l2, flags, &error);
+  if(error)
+    goto failed;
+
+  len1 = strlen((const char*)s1);
+  len2 = strlen((const char*)s2);
+  
+  if(e->op == RASQAL_EXPR_STRSTARTS) {
+    if(len1 < len2) {
+      /* s1 is shorter than s2 so s2 can never be a prefix */
+      b = 0;
+    } else {
+      b = !memcmp(s1, s2, len2);
+    }
+  } else {
+    /* RASQAL_EXPR_STRENDS */
+    if(len1 < len2) {
+      /* s1 is shorter than s2 so s2 can never be a suffix */
+      b = 0;
+    } else {
+      b = !memcmp(s1 + len1 - len2, s2, len2);
+    }
+  }
+  
+  
+  rasqal_free_literal(l1);
+  rasqal_free_literal(l2);
+
+  return rasqal_new_boolean_literal(world, b);
+
+  failed:
+  if(l1)
+    rasqal_free_literal(l1);
+  if(l2)
+    rasqal_free_literal(l2);
+
+  return NULL;
+}
+
+
 /* 
  * rasqal_expression_evaluate_concat:
  * @world: #rasqal_world
