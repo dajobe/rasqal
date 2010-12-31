@@ -1072,6 +1072,12 @@ int rasqal_literal_sequence_equals(raptor_sequence* values_a, raptor_sequence* v
 /* rasqal_expr_evaluate.c */
 int rasqal_language_matches(const unsigned char* lang_tag, const unsigned char* lang_range);
 
+/* rasqal_expr_datetimes.c */
+rasqal_literal* rasqal_expression_evaluate_now(rasqal_world *world, raptor_locator *locator, rasqal_expression *e, int flags);
+rasqal_literal* rasqal_expression_evaluate_to_unixtime(rasqal_world *world, raptor_locator *locator, rasqal_expression *e, int flags);
+rasqal_literal* rasqal_expression_evaluate_from_unixtime(rasqal_world *world, raptor_locator *locator, rasqal_expression *e, int flags);
+rasqal_literal* rasqal_expression_evaluate_datetime_part(rasqal_world *world, raptor_locator *locator, rasqal_expression *e, int flags);
+  
 /* rasqal_expr_strings.c */
 rasqal_literal* rasqal_expression_evaluate_concat(rasqal_world *world, raptor_locator *locator, rasqal_expression *e,int flags);
 rasqal_literal* rasqal_expression_evaluate_langmatches(rasqal_world *world, raptor_locator *locator, rasqal_expression *e, int flags);
