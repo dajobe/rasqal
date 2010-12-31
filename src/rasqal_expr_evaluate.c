@@ -1392,21 +1392,21 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
     case RASQAL_EXPR_AND:
       l1 = rasqal_expression_evaluate(world, locator, e->arg1, flags);
       if(!l1) {
-        errs.errs.e1=1;
-        vars.bools.b1=0;
+        errs.errs.e1 = 1;
+        vars.bools.b1 = 0;
       } else {
-        errs.errs.e1=0;
-        vars.bools.b1=rasqal_literal_as_boolean(l1, &errs.errs.e1);
+        errs.errs.e1 = 0;
+        vars.bools.b1 = rasqal_literal_as_boolean(l1, &errs.errs.e1);
         rasqal_free_literal(l1);
       }
 
       l1 = rasqal_expression_evaluate(world, locator, e->arg2, flags);
       if(!l1) {
-        errs.errs.e2=1;
-        vars.bools.b2=0;
+        errs.errs.e2 = 1;
+        vars.bools.b2 = 0;
       } else {
-        errs.errs.e2=0;
-        vars.bools.b2=rasqal_literal_as_boolean(l1, &errs.errs.e2);
+        errs.errs.e2 = 0;
+        vars.bools.b2 = rasqal_literal_as_boolean(l1, &errs.errs.e2);
         rasqal_free_literal(l1);
       }
 
@@ -1417,32 +1417,33 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
       } else {
         if((!vars.bools.b1 && errs.errs.e2) || (errs.errs.e1 && vars.bools.b2))
           /* F && E => F.   E && F => F. */
-          vars.b=0;
+          vars.b = 0;
         else
           /* Otherwise E */
           goto failed;
       }
-      result=rasqal_new_boolean_literal(world, vars.b);
+
+      result = rasqal_new_boolean_literal(world, vars.b);
       break;
       
     case RASQAL_EXPR_OR:
       l1 = rasqal_expression_evaluate(world, locator, e->arg1, flags);
       if(!l1) {
-        errs.errs.e1=1;
-        vars.bools.b1=0;
+        errs.errs.e1 = 1;
+        vars.bools.b1 = 0;
       } else {
-        errs.errs.e1=0;
-        vars.bools.b1=rasqal_literal_as_boolean(l1, &errs.errs.e1);
+        errs.errs.e1 = 0;
+        vars.bools.b1 = rasqal_literal_as_boolean(l1, &errs.errs.e1);
         rasqal_free_literal(l1);
       }
 
       l1 = rasqal_expression_evaluate(world, locator, e->arg2, flags);
       if(!l1) {
-        errs.errs.e2=1;
-        vars.bools.b2=0;
+        errs.errs.e2 = 1;
+        vars.bools.b2 = 0;
       } else {
-        errs.errs.e2=0;
-        vars.bools.b2=rasqal_literal_as_boolean(l1, &errs.errs.e2);
+        errs.errs.e2 = 0;
+        vars.bools.b2 = rasqal_literal_as_boolean(l1, &errs.errs.e2);
         rasqal_free_literal(l1);
       }
 
@@ -1453,12 +1454,13 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
       } else {
         if((vars.bools.b1 && errs.errs.e2) || (errs.errs.e1 && vars.bools.b2))
           /* T || E => T.   E || T => T */
-          vars.b=1;
+          vars.b = 1;
         else
           /* Otherwise E */
           goto failed;
       }
-      result=rasqal_new_boolean_literal(world, vars.b);
+
+      result = rasqal_new_boolean_literal(world, vars.b);
       break;
 
     case RASQAL_EXPR_EQ:
@@ -1481,7 +1483,7 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
         goto failed;
       }
 
-      vars.b=(rasqal_literal_equals_flags(l1, l2, flags, &errs.e) != 0);
+      vars.b = (rasqal_literal_equals_flags(l1, l2, flags, &errs.e) != 0);
 #if RASQAL_DEBUG > 1
       if(errs.e)
         RASQAL_DEBUG1("rasqal_literal_equals_flags returned: FAILURE\n");
@@ -1492,7 +1494,8 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
       rasqal_free_literal(l2);
       if(errs.e)
         goto failed;
-      result=rasqal_new_boolean_literal(world, vars.b);
+
+      result = rasqal_new_boolean_literal(world, vars.b);
       break;
 
     case RASQAL_EXPR_NEQ:
@@ -1506,7 +1509,7 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
         goto failed;
       }
 
-      vars.b=(rasqal_literal_not_equals_flags(l1, l2, flags, &errs.e) != 0);
+      vars.b = (rasqal_literal_not_equals_flags(l1, l2, flags, &errs.e) != 0);
 #if RASQAL_DEBUG > 1
       if(errs.e)
         RASQAL_DEBUG1("rasqal_literal_not_equals_flags returned: FAILURE\n");
@@ -1517,7 +1520,8 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
       rasqal_free_literal(l2);
       if(errs.e)
         goto failed;
-      result=rasqal_new_boolean_literal(world, vars.b);
+
+      result = rasqal_new_boolean_literal(world, vars.b);
       break;
 
     case RASQAL_EXPR_LT:
@@ -1531,12 +1535,13 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
         goto failed;
       }
 
-      vars.b=(rasqal_literal_compare(l1, l2, flags, &errs.e) < 0);
+      vars.b = (rasqal_literal_compare(l1, l2, flags, &errs.e) < 0);
       rasqal_free_literal(l1);
       rasqal_free_literal(l2);
       if(errs.e)
         goto failed;
-      result=rasqal_new_boolean_literal(world, vars.b);
+
+      result = rasqal_new_boolean_literal(world, vars.b);
       break;
 
     case RASQAL_EXPR_GT:
@@ -1550,12 +1555,13 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
         goto failed;
       }
 
-      vars.b=(rasqal_literal_compare(l1, l2, flags, &errs.e) > 0);
+      vars.b = (rasqal_literal_compare(l1, l2, flags, &errs.e) > 0);
       rasqal_free_literal(l1);
       rasqal_free_literal(l2);
       if(errs.e)
         goto failed;
-      result=rasqal_new_boolean_literal(world, vars.b);
+
+      result = rasqal_new_boolean_literal(world, vars.b);
       break;
 
     case RASQAL_EXPR_LE:
@@ -1569,12 +1575,13 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
         goto failed;
       }
 
-      vars.b=(rasqal_literal_compare(l1, l2, flags, &errs.e) <= 0);
+      vars.b = (rasqal_literal_compare(l1, l2, flags, &errs.e) <= 0);
       rasqal_free_literal(l1);
       rasqal_free_literal(l2);
       if(errs.e)
         goto failed;
-      result=rasqal_new_boolean_literal(world, vars.b);
+      
+      result = rasqal_new_boolean_literal(world, vars.b);
       break;        
 
     case RASQAL_EXPR_GE:
@@ -1588,12 +1595,13 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
         goto failed;
       }
 
-      vars.b=(rasqal_literal_compare(l1, l2, flags, &errs.e) >= 0);
+      vars.b = (rasqal_literal_compare(l1, l2, flags, &errs.e) >= 0);
       rasqal_free_literal(l1);
       rasqal_free_literal(l2);
       if(errs.e)
         goto failed;
-      result=rasqal_new_boolean_literal(world, vars.b);
+
+      result = rasqal_new_boolean_literal(world, vars.b);
       break;
 
     case RASQAL_EXPR_UMINUS:
@@ -1601,7 +1609,7 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
       if(!l1)
         goto failed;
 
-      result=rasqal_literal_negate(l1, &errs.e);
+      result = rasqal_literal_negate(l1, &errs.e);
       rasqal_free_literal(l1);
       if(errs.e)
         goto failed;
@@ -1634,14 +1642,14 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
       vars.s=rasqal_literal_as_string_flags(l2, flags, &errs.e);
 
       if(errs.e)
-        vars.b=0;
+        vars.b = 0;
       else
-        vars.b=rasqal_language_matches(s, vars.s); /* don't need s anymore */
+        vars.b = rasqal_language_matches(s, vars.s); /* don't need s anymore */
       
       rasqal_free_literal(l1);
       rasqal_free_literal(l2);
 
-      result=rasqal_new_boolean_literal(world, vars.b);
+      result = rasqal_new_boolean_literal(world, vars.b);
       break;
 
     case RASQAL_EXPR_DATATYPE:
@@ -1666,7 +1674,7 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
         goto failed;
       }
 
-      result=rasqal_literal_add(l1, l2, &errs.e);
+      result = rasqal_literal_add(l1, l2, &errs.e);
       rasqal_free_literal(l1);
       rasqal_free_literal(l2);
       if(errs.e)
@@ -1685,7 +1693,7 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
         goto failed;
       }
 
-      result=rasqal_literal_subtract(l1, l2, &errs.e);
+      result = rasqal_literal_subtract(l1, l2, &errs.e);
       rasqal_free_literal(l1);
       rasqal_free_literal(l2);
       if(errs.e)
@@ -1704,7 +1712,7 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
         goto failed;
       }
 
-      result=rasqal_literal_multiply(l1, l2, &errs.e);
+      result = rasqal_literal_multiply(l1, l2, &errs.e);
       rasqal_free_literal(l1);
       rasqal_free_literal(l2);
       if(errs.e)
@@ -1723,7 +1731,7 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
         goto failed;
       }
 
-      result=rasqal_literal_divide(l1, l2, &errs.e);
+      result = rasqal_literal_divide(l1, l2, &errs.e);
       rasqal_free_literal(l1);
       rasqal_free_literal(l2);
       if(errs.e)
@@ -1742,19 +1750,19 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
         goto failed;
       }
 
-      vars.i=rasqal_literal_as_integer(l2, &errs.errs.e2);
+      vars.i = rasqal_literal_as_integer(l2, &errs.errs.e2);
       /* error if divisor is zero */
       if(!vars.i)
-        errs.errs.e2=1;
+        errs.errs.e2 = 1;
       else
-        vars.i=rasqal_literal_as_integer(l1, &errs.errs.e1) % vars.i;
+        vars.i = rasqal_literal_as_integer(l1, &errs.errs.e1) % vars.i;
 
       rasqal_free_literal(l1);
       rasqal_free_literal(l2);
       if(errs.errs.e1 || errs.errs.e2)
         goto failed;
 
-      result=rasqal_new_integer_literal(world, RASQAL_LITERAL_INTEGER, vars.i);
+      result = rasqal_new_integer_literal(world, RASQAL_LITERAL_INTEGER, vars.i);
       break;
       
     case RASQAL_EXPR_STR_EQ:
@@ -1768,14 +1776,14 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
         goto failed;
       }
 
-      vars.b=(rasqal_literal_compare(l1, l2, flags | RASQAL_COMPARE_NOCASE,
-                                     &errs.e) == 0);
+      vars.b = (rasqal_literal_compare(l1, l2, flags | RASQAL_COMPARE_NOCASE,
+                                       &errs.e) == 0);
       rasqal_free_literal(l1);
       rasqal_free_literal(l2);
       if(errs.e)
         goto failed;
 
-      result=rasqal_new_boolean_literal(world, vars.b);
+      result = rasqal_new_boolean_literal(world, vars.b);
       break;
       
     case RASQAL_EXPR_STR_NEQ:
@@ -1789,14 +1797,14 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
         goto failed;
       }
 
-      vars.b=(rasqal_literal_compare(l1, l2, flags | RASQAL_COMPARE_NOCASE, 
-                                     &errs.e) != 0);
+      vars.b = (rasqal_literal_compare(l1, l2, flags | RASQAL_COMPARE_NOCASE, 
+                                       &errs.e) != 0);
       rasqal_free_literal(l1);
       rasqal_free_literal(l2);
       if(errs.e)
         goto failed;
 
-      result=rasqal_new_boolean_literal(world, vars.b);
+      result = rasqal_new_boolean_literal(world, vars.b);
       break;
 
     case RASQAL_EXPR_TILDE:
@@ -1809,7 +1817,7 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
       if(errs.e)
         goto failed;
 
-      result=rasqal_new_integer_literal(world, RASQAL_LITERAL_INTEGER, vars.i);
+      result = rasqal_new_integer_literal(world, RASQAL_LITERAL_INTEGER, vars.i);
       break;
 
     case RASQAL_EXPR_BANG:
@@ -1817,18 +1825,18 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
       if(!l1)
         goto failed;
 
-      vars.b= ! rasqal_literal_as_boolean(l1, &errs.e);
+      vars.b = ! rasqal_literal_as_boolean(l1, &errs.e);
       rasqal_free_literal(l1);
       if(errs.e)
         goto failed;
 
-      result=rasqal_new_boolean_literal(world, vars.b);
+      result = rasqal_new_boolean_literal(world, vars.b);
       break;
 
     case RASQAL_EXPR_STR_MATCH:
     case RASQAL_EXPR_STR_NMATCH:
     case RASQAL_EXPR_REGEX:
-      result=rasqal_expression_evaluate_strmatch(world, locator, e, flags);
+      result = rasqal_expression_evaluate_strmatch(world, locator, e, flags);
       break;
 
     case RASQAL_EXPR_LITERAL:
@@ -1836,7 +1844,7 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
        * removes variables from expressions the first time they are seen.
        * (FLATTEN_LITERAL)
        */
-      result=rasqal_new_literal_from_literal(rasqal_literal_value(e->literal));
+      result = rasqal_new_literal_from_literal(rasqal_literal_value(e->literal));
       break;
 
     case RASQAL_EXPR_FUNCTION:
@@ -1844,7 +1852,7 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
                               RAPTOR_LOG_LEVEL_WARN,
                               locator,
                               "No function expressions support at present.  Returning false.");
-      result=rasqal_new_boolean_literal(world, 0);
+      result = rasqal_new_boolean_literal(world, 0);
       break;
       
     case RASQAL_EXPR_CAST:
@@ -1852,7 +1860,7 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
       if(!l1)
         goto failed;
 
-      result=rasqal_literal_cast(l1, e->name, flags, &errs.e);
+      result = rasqal_literal_cast(l1, e->name, flags, &errs.e);
 
       rasqal_free_literal(l1);
       if(errs.e)
@@ -1917,8 +1925,6 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
     case RASQAL_EXPR_BNODE:
       result = rasqal_expression_evaluate_bnode_constructor(world, locator, e, flags);
       break;
-
-      break;
       
     case RASQAL_EXPR_IN:
       result = rasqal_expression_evaluate_in_set(world, locator, e, flags);
@@ -1982,7 +1988,7 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
 
   if(result) {
     rasqal_free_literal(result);
-    result=NULL;
+    result = NULL;
   }
   goto got_result;
 }
