@@ -934,6 +934,69 @@ rasqal_expression_evaluate_sameterm(rasqal_world *world,
 }
 
 
+/* 
+ * rasqal_expression_evaluate_in:
+ * @world: #rasqal_world
+ * @locator: error locator object
+ * @e: The expression to evaluate.
+ * @flags: Compare flags
+ *
+ * INTERNAL - Evaluate RASQAL_EXPR_IN (expr, expr list) expression.
+ *
+ * Return value: A #rasqal_literal boolean value or NULL on failure.
+ */
+static rasqal_literal*
+rasqal_expression_evaluate_in(rasqal_world *world,
+                              raptor_locator *locator,
+                              rasqal_expression *e,
+                              int flags)
+{
+  int size = raptor_sequence_size(e->args);
+  int i;
+  rasqal_literal* l1;
+  int found = 0;
+
+  l1 = rasqal_expression_evaluate(world, locator, e->arg1, flags);
+  if(!l1)
+    goto failed;
+  
+  for(i = 0; i < size; i++) {
+    rasqal_expression* arg_e;
+    rasqal_literal* arg_literal;
+    int error = 0;
+    
+    arg_e = (rasqal_expression*)raptor_sequence_get_at(e->args, i);
+    arg_literal = rasqal_expression_evaluate(world, locator, arg_e, flags);
+    if(!arg_literal)
+      goto failed;
+    
+    found = (rasqal_literal_equals_flags(l1, arg_literal, flags, &error) != 0);
+#if RASQAL_DEBUG > 1
+    if(error)
+      RASQAL_DEBUG1("rasqal_literal_equals_flags() returned: FAILURE\n");
+    else
+      RASQAL_DEBUG2("rasqal_literal_equals_flags() returned: %d\n", found);
+#endif
+    rasqal_free_literal(arg_literal);
+
+    if(error)
+      goto failed;
+
+    if(found)
+      /* found - so succeeded */
+      break;
+  }
+  rasqal_free_literal(l1);
+    
+  return rasqal_new_boolean_literal(world, found);
+
+  failed:
+  if(l1)
+    rasqal_free_literal(l1);
+
+  return NULL;
+}
+
 
 /* 
  * rasqal_expression_evaluate_coalesce:
@@ -1787,42 +1850,7 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
       break;
 
     case RASQAL_EXPR_IN:
-      l1 = rasqal_expression_evaluate(world, locator, e->arg1, flags);
-      if(!l1)
-        goto failed;
-
-      if(1) {
-        vars.flags.found = 0;
-        for(i = 0; i < raptor_sequence_size(e->args); i++) {
-          vars.e = (rasqal_expression*)raptor_sequence_get_at(e->args, i);
-          l2 = rasqal_expression_evaluate(world, locator, vars.e, flags);
-          if(!l2) {
-            rasqal_free_literal(l1);
-            goto failed;
-          }
-
-          vars.b = (rasqal_literal_equals_flags(l1, l2, flags, &errs.e) != 0);
-#if RASQAL_DEBUG > 1
-          if(errs.e)
-            RASQAL_DEBUG1("rasqal_literal_equals_flags returned: FAILURE\n");
-          else
-            RASQAL_DEBUG2("rasqal_literal_equals_flags returned: %d\n", vars.b);
-#endif
-          rasqal_free_literal(l2);
-          if(errs.e) {
-            rasqal_free_literal(l1);
-            goto failed;
-          }
-          if(vars.b) {
-            /* found - so succeeded */
-            vars.flags.found = 1;
-            break;
-          }
-        }
-        rasqal_free_literal(l1);
-
-        result = rasqal_new_boolean_literal(world, vars.flags.found);
-      }
+      result = rasqal_expression_evaluate_in(world, locator, e, flags);
       break;
 
     case RASQAL_EXPR_NOT_IN:
