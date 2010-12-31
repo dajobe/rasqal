@@ -350,13 +350,18 @@ sub run_test {
   my $roqet_results=0;
   my $result_type='bindings';
   my(@vars_order);
+  my(%vars_seen);
 
   while(<PIPE>) {
     chomp;
     if(/^(?:selects|bound variables): \[(.*)\]$/) {
       my $vars=$1;
       while($vars =~ s/variable\((\w+)//) {
-	push(@vars_order, $1);
+	my $vname = $1;
+	unless($vars_seen{$vname}) {
+	  push(@vars_order, $vname);
+	  $vars_seen{$vname}=1;
+	}
       }
       warn "$program: Set vars order to @vars_order\n"
 	if $debug;
