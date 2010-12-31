@@ -1229,6 +1229,54 @@ rasqal_expression_evaluate_datatype(rasqal_world *world,
 }
 
 
+/* 
+ * rasqal_expression_evaluate_uri_constructor:
+ * @world: #rasqal_world
+ * @locator: error locator object
+ * @e: The expression to evaluate.
+ * @flags: Compare flags
+ *
+ * INTERNAL - Evaluate RASQAL_EXPR_URI and RASQAL_EXPR_IRI (string)
+ * expressions.
+ *
+ * Return value: A #rasqal_literal URI value or NULL on failure.
+ */
+static rasqal_literal*
+rasqal_expression_evaluate_uri_constructor(rasqal_world *world,
+                                           raptor_locator *locator,
+                                           rasqal_expression *e,
+                                           int flags)
+{
+  rasqal_literal* l1;
+  raptor_uri* dt_uri;
+  int error = 0;
+  const unsigned char *s;
+
+  l1 = rasqal_expression_evaluate(world, locator, e->arg1, flags);
+  if(!l1)
+    goto failed;
+  
+  s = rasqal_literal_as_string_flags(l1, flags, &error);
+  if(error)
+    goto failed;
+  
+  dt_uri = raptor_new_uri(world->raptor_world_ptr, s);
+  rasqal_free_literal(l1); l1 = NULL;
+  
+  if(!dt_uri)
+    goto failed;
+  
+  /* after this dt_uri is owned by the result literal */
+  return rasqal_new_uri_literal(world, dt_uri);
+
+  failed:
+  if(l1)
+    rasqal_free_literal(l1);
+
+  return NULL;
+}
+
+
 /**
  * rasqal_expression_evaluate:
  * @world: #rasqal_world
@@ -1789,23 +1837,7 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
 
     case RASQAL_EXPR_URI:
     case RASQAL_EXPR_IRI:
-      l1 = rasqal_expression_evaluate(world, locator, e->arg1, flags);
-      if(!l1)
-        goto failed;
-
-      s = rasqal_literal_as_string_flags(l1, flags, &errs.e);
-      if(errs.e) {
-        rasqal_free_literal(l1);
-        goto failed;
-      }
-
-      vars.dt_uri = raptor_new_uri(world->raptor_world_ptr, s);
-      rasqal_free_literal(l1);
-      if(!vars.dt_uri)
-        goto failed;
-      
-      result = rasqal_new_uri_literal(world, vars.dt_uri);
-      /* vars.dt_uri becomes owned by the result literal */
+      result = rasqal_expression_evaluate_uri_constructor(world, locator, e, flags);
       break;
 
     case RASQAL_EXPR_STRLANG:
