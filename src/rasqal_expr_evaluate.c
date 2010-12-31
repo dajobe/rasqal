@@ -1277,6 +1277,64 @@ rasqal_expression_evaluate_uri_constructor(rasqal_world *world,
 }
 
 
+/* 
+ * rasqal_expression_evaluate_bnode_constructor:
+ * @world: #rasqal_world
+ * @locator: error locator object
+ * @e: The expression to evaluate.
+ * @flags: Compare flags
+ *
+ * INTERNAL - Evaluate RASQAL_EXPR_BNODE (string) expression.
+ *
+ * Return value: A #rasqal_literal blank node value or NULL on failure.
+ */
+static rasqal_literal*
+rasqal_expression_evaluate_bnode_constructor(rasqal_world *world,
+                                             raptor_locator *locator,
+                                             rasqal_expression *e,
+                                             int flags)
+{
+  rasqal_literal *l1 = NULL;
+  unsigned char *new_s = NULL;
+
+  if(e->arg1) {
+    const unsigned char *s;
+    size_t len;
+    int error = 0;
+    
+    l1 = rasqal_expression_evaluate(world, locator, e->arg1, flags);
+    if(!l1)
+      goto failed;
+    
+    s = rasqal_literal_as_string_flags(l1, flags, &error);
+    if(error)
+      goto failed;
+
+    len = strlen((const char*)s);
+    new_s = (unsigned char*)RASQAL_MALLOC(cstring, len + 1);
+    if(!new_s)
+      goto failed;
+
+    memcpy((char*)new_s, s, len + 1);
+
+    rasqal_free_literal(l1);
+  } else {
+    new_s = rasqal_world_generate_bnodeid(world, NULL);
+    if(!new_s)
+      goto failed;
+  }
+
+  /* after this new_s is owned by the result */
+  return rasqal_new_simple_literal(world, RASQAL_LITERAL_BLANK, new_s);
+
+  failed:
+  if(l1)
+    rasqal_free_literal(l1);
+
+  return NULL;
+}
+
+
 /**
  * rasqal_expression_evaluate:
  * @world: #rasqal_world
@@ -1849,23 +1907,7 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
       break;
 
     case RASQAL_EXPR_BNODE:
-      if(e->arg1) {
-        l1 = rasqal_expression_evaluate(world, locator, e->arg1, flags);
-        if(!l1)
-          goto failed;
-
-        s = rasqal_literal_as_string_flags(l1, flags, &errs.e);
-        if(errs.e) {
-          rasqal_free_literal(l1);
-          goto failed;
-        }
-      } else {
-        s = rasqal_world_generate_bnodeid(world, NULL);
-        if(!s)
-          goto failed;
-      }
-
-      result = rasqal_new_simple_literal(world, RASQAL_LITERAL_BLANK, s);
+      result = rasqal_expression_evaluate_bnode_constructor(world, locator, e, flags);
       break;
 
     case RASQAL_EXPR_SAMPLE:
