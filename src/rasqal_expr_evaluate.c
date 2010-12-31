@@ -1376,7 +1376,6 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
     struct timeval *tv;
     raptor_stringbuffer* sb;
   } vars;
-  int i; /* for looping */
 
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(e, rasqal_expression, NULL);
