@@ -1033,13 +1033,81 @@ rasqal_expression_evaluate_lang(rasqal_world *world,
     *new_s = '\0';
   }
 
-  /* after this new_s is owned by result */
   if(free_literal)
     rasqal_free_literal(l1);
 
+  /* after this new_s is owned by result */
   return rasqal_new_string_literal(world, new_s, NULL, NULL, NULL);
 
-failed:
+  failed:
+  if(free_literal)
+    rasqal_free_literal(l1);
+
+  return NULL;
+}
+
+
+/* 
+ * rasqal_expression_evaluate_datatype:
+ * @world: #rasqal_world
+ * @locator: error locator object
+ * @e: The expression to evaluate.
+ * @flags: Compare flags
+ *
+ * INTERNAL - Evaluate RASQAL_EXPR_DATATYPE (string literal) expression.
+ *
+ * Return value: A #rasqal_literal URI value or NULL on failure.
+ */
+static rasqal_literal*
+rasqal_expression_evaluate_datatype(rasqal_world *world,
+                                    raptor_locator *locator,
+                                    rasqal_expression *e,
+                                    int flags)
+{
+  rasqal_literal* l1;
+  int free_literal = 1;
+  rasqal_variable* v = NULL;
+  raptor_uri* dt_uri = NULL;
+      
+  l1 = rasqal_expression_evaluate(world, locator, e->arg1, flags);
+  if(!l1)
+    goto failed;
+
+  v = rasqal_literal_as_variable(l1);
+  if(v) {
+    rasqal_free_literal(l1);
+
+    l1 = v->value; /* don't need v after this */
+
+    free_literal = 0;
+    if(!l1)
+      goto failed;
+  }
+  
+  if(rasqal_literal_get_rdf_term_type(l1) != RASQAL_LITERAL_STRING)
+    goto failed;
+  
+  if(l1->language)
+    goto failed;
+  
+  /* The datatype of a plain literal is xsd:string */
+  dt_uri = l1->datatype;
+  if(!dt_uri && l1->type == RASQAL_LITERAL_STRING)
+    dt_uri = rasqal_xsd_datatype_type_to_uri(l1->world,
+                                             RASQAL_LITERAL_XSD_STRING);
+  
+  if(!dt_uri)
+    goto failed;
+  
+  if(free_literal)
+    rasqal_free_literal(l1);
+
+  dt_uri = raptor_uri_copy(dt_uri);
+
+  /* after this dt_uri is owned by result */
+  return rasqal_new_uri_literal(world, dt_uri);
+
+  failed:
   if(free_literal)
     rasqal_free_literal(l1);
 
@@ -1358,51 +1426,7 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
       break;
 
     case RASQAL_EXPR_DATATYPE:
-      errs.flags.free_literal=1;
-      vars.dt_uri=NULL;
-      
-      l1 = rasqal_expression_evaluate(world, locator, e->arg1, flags);
-      if(!l1)
-        goto failed;
-
-      vars.v=rasqal_literal_as_variable(l1);
-      if(vars.v) {
-        rasqal_free_literal(l1);
-        l1=vars.v->value; /* don't need vars.v after this */
-        errs.flags.free_literal=0;
-        if(!l1)
-          goto failed;
-      }
-
-      if(rasqal_literal_get_rdf_term_type(l1) != RASQAL_LITERAL_STRING) {
-        if(errs.flags.free_literal)
-          rasqal_free_literal(l1);
-        goto failed;
-      }
-
-      if(l1->language) {
-        if(errs.flags.free_literal)
-          rasqal_free_literal(l1);
-        goto failed;
-      }
-
-      /* The datatype of a plain literal is xsd:string */
-      vars.dt_uri=l1->datatype;
-      if(!vars.dt_uri && l1->type == RASQAL_LITERAL_STRING)
-        vars.dt_uri=rasqal_xsd_datatype_type_to_uri(l1->world,
-                                                    RASQAL_LITERAL_XSD_STRING);
-
-      if(!vars.dt_uri) {
-        if(errs.flags.free_literal)
-          rasqal_free_literal(l1);
-        goto failed;
-      }
-      
-      result = rasqal_new_uri_literal(world, raptor_uri_copy(vars.dt_uri));
-
-      if(errs.flags.free_literal)
-        rasqal_free_literal(l1);
-
+      l1 = rasqal_expression_evaluate_datatype(world, locator, e, flags);
       break;
 
     case RASQAL_EXPR_ISURI:
