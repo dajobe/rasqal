@@ -888,6 +888,54 @@ rasqal_expression_evaluate_if(rasqal_world *world,
 
 
 /* 
+ * rasqal_expression_evaluate_sameterm:
+ * @world: #rasqal_world
+ * @locator: error locator object
+ * @e: The expression to evaluate.
+ * @flags: Compare flags
+ *
+ * INTERNAL - Evaluate RASQAL_EXPR_SAMETERM (expr1, expr2) expressions.
+ *
+ * Return value: A #rasqal_literal boolean value or NULL on failure.
+ */
+static rasqal_literal*
+rasqal_expression_evaluate_sameterm(rasqal_world *world,
+                                    raptor_locator *locator,
+                                    rasqal_expression *e,
+                                    int flags)
+{
+  rasqal_literal* l1;
+  rasqal_literal* l2;
+  int b;
+
+  l1 = rasqal_expression_evaluate(world, locator, e->arg1, flags);
+  if(!l1)
+    goto failed;
+  
+  l2 = rasqal_expression_evaluate(world, locator, e->arg2, flags);
+  if(!l2)
+    goto failed;
+
+  b = rasqal_literal_same_term(l1, l2);
+#if RASQAL_DEBUG > 1
+  RASQAL_DEBUG2("rasqal_literal_same_term() returned: %d\n", b);
+#endif
+
+  rasqal_free_literal(l1);
+  rasqal_free_literal(l2);
+
+  return rasqal_new_boolean_literal(world, b);
+
+  failed:
+  if(l1)
+    rasqal_free_literal(l1);
+
+  return NULL;
+}
+
+
+
+/* 
  * rasqal_expression_evaluate_coalesce:
  * @world: #rasqal_world
  * @locator: error locator object
@@ -1658,26 +1706,7 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
       break;
       
     case RASQAL_EXPR_SAMETERM:
-      l1 = rasqal_expression_evaluate(world, locator, e->arg1, flags);
-      if(!l1)
-        goto failed;
-      
-      l2 = rasqal_expression_evaluate(world, locator, e->arg2, flags);
-      if(!l2) {
-        rasqal_free_literal(l1);
-        goto failed;
-      }
-
-      vars.b = rasqal_literal_same_term(l1, l2);
-#if RASQAL_DEBUG > 1
-      RASQAL_DEBUG2("rasqal_literal_same_term returned: %d\n", vars.b);
-#endif
-      rasqal_free_literal(l1);
-      rasqal_free_literal(l2);
-      if(errs.e)
-        goto failed;
-
-      result=rasqal_new_boolean_literal(world, vars.b);
+      result = rasqal_expression_evaluate_sameterm(world, locator, e, flags);
       break;
       
     case RASQAL_EXPR_CONCAT:
