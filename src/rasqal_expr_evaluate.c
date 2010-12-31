@@ -1443,14 +1443,6 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
       result = rasqal_expression_evaluate_datetime_part(world, locator, e, flags);
       break;
 
-    case RASQAL_EXPR_TIMEZONE:
-      rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR,
-                              locator,
-                              "Evaluation of SPARQL TIMEZONE() expression is not implemented yet, returning error.");
-      errs.e = 1;
-      goto failed;
-      break;
-
     case RASQAL_EXPR_CURRENT_DATETIME:
     case RASQAL_EXPR_NOW:
       result = rasqal_expression_evaluate_now(world, locator, e, flags);
@@ -1464,9 +1456,29 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
       result = rasqal_expression_evaluate_from_unixtime(world, locator, e, flags);
       break;
 
+    case RASQAL_EXPR_TIMEZONE:
+    case RASQAL_EXPR_STRLEN:
+    case RASQAL_EXPR_UCASE:
+    case RASQAL_EXPR_LCASE:
+    case RASQAL_EXPR_ENCODE_FOR_URI:
+    case RASQAL_EXPR_STRSTARTS:
+    case RASQAL_EXPR_STRENDS:
+    case RASQAL_EXPR_CONTAINS:
+    case RASQAL_EXPR_SUBSTR:
+      rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR,
+                              locator,
+                              "Operation %s (%d) not implemented", 
+                              rasqal_expression_op_label(e->op), e->op);
+      errs.e = 1;
+      goto failed;
+      break;
+
+      break;
+
     case RASQAL_EXPR_UNKNOWN:
     default:
-      RASQAL_FATAL2("Unknown operation %d", e->op);
+      RASQAL_FATAL3("Unknown operation %s (%d)",
+                    rasqal_expression_op_label(e->op), e->op);
   }
 
   got_result:

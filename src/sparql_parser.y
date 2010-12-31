@@ -174,7 +174,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
 %token NOT IN
 %token BINDINGS UNDEF SERVICE MINUS
 %token YEAR MONTH DAY HOURS MINUTES SECONDS TIMEZONE
-%token CONCAT
+%token STRLEN SUBSTR UCASE LCASE STRSTARTS STRENDS CONTAINS ENCODE_FOR_URI CONCAT
 /* LAQRS */
 %token EXPLAIN LET
 %token CURRENT_DATETIME NOW FROM_UNIXTIME TO_UNIXTIME
@@ -264,7 +264,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
 %type <expr> Expression ConditionalOrExpression ConditionalAndExpression
 %type <expr> RelationalExpression AdditiveExpression
 %type <expr> MultiplicativeExpression UnaryExpression
-%type <expr> BuiltInCall RegexExpression FunctionCall
+%type <expr> BuiltInCall RegexExpression FunctionCall StringExpression
 %type <expr> DatetimeBuiltinAccessors DatetimeExtensions
 %type <expr> BrackettedExpression PrimaryExpression
 %type <expr> OrderCondition GroupCondition
@@ -4416,12 +4416,9 @@ BuiltInCall: STR '(' Expression ')'
   if(!$$)
     YYERROR_MSG("BuiltInCall 7d: cannot create expr");
 }
-| CONCAT '(' ExpressionList ')'
+| StringExpression
 {
-  $$ = rasqal_new_expr_seq_expression(((rasqal_query*)rq)->world, 
-                                      RASQAL_EXPR_CONCAT, $3);
-  if(!$$)
-    YYERROR_MSG("BuiltInCall 7d2: cannot create expr");
+  $$ = $1;
 }
 | CoalesceExpression
 {
@@ -4494,6 +4491,79 @@ BuiltInCall: STR '(' Expression ')'
 | DatetimeExtensions
 {
   $$ = $1;
+}
+;
+
+
+StringExpression: STRLEN '(' Expression ')'
+{
+  $$ = rasqal_new_1op_expression(((rasqal_query*)rq)->world,
+                                 RASQAL_EXPR_STRLEN, $3);
+  if(!$$)
+    YYERROR_MSG("StringExpression: cannot create STRLEN() expr");
+}
+| SUBSTR '(' Expression ',' Expression ')'
+{
+  $$ = rasqal_new_3op_expression(((rasqal_query*)rq)->world,
+                                 RASQAL_EXPR_SUBSTR, $3, $5, NULL);
+  if(!$$)
+    YYERROR_MSG("StringExpression: cannot create SUBSTR() expr");
+}
+| SUBSTR '(' Expression ',' Expression ',' Expression ')'
+{
+  $$ = rasqal_new_3op_expression(((rasqal_query*)rq)->world,
+                                 RASQAL_EXPR_SUBSTR, $3, $5, $7);
+  if(!$$)
+    YYERROR_MSG("StringExpression: cannot create SUBSTR() expr");
+}
+| UCASE  '(' Expression ')'
+{
+  $$ = rasqal_new_1op_expression(((rasqal_query*)rq)->world,
+                                 RASQAL_EXPR_UCASE, $3);
+  if(!$$)
+    YYERROR_MSG("StringExpression: cannot create UCASE() expr");
+}
+| LCASE  '(' Expression ')'
+{
+  $$ = rasqal_new_1op_expression(((rasqal_query*)rq)->world,
+                                 RASQAL_EXPR_LCASE, $3);
+  if(!$$)
+    YYERROR_MSG("StringExpression: cannot create LCASE() expr");
+}
+| STRSTARTS  '(' Expression ',' Expression ')'
+{
+  $$ = rasqal_new_2op_expression(((rasqal_query*)rq)->world,
+                                 RASQAL_EXPR_STRSTARTS, $3, $5);
+  if(!$$)
+    YYERROR_MSG("StringExpression: cannot create STRSTARTS() expr");
+}
+| STRENDS  '(' Expression ',' Expression ')'
+{
+  $$ = rasqal_new_2op_expression(((rasqal_query*)rq)->world,
+                                 RASQAL_EXPR_STRENDS, $3, $5);
+  if(!$$)
+    YYERROR_MSG("StringExpression: cannot create STRENDS() expr");
+}
+| CONTAINS  '(' Expression ',' Expression  ')'
+{
+  $$ = rasqal_new_2op_expression(((rasqal_query*)rq)->world,
+                                 RASQAL_EXPR_CONTAINS, $3, $5);
+  if(!$$)
+    YYERROR_MSG("StringExpression: cannot create YEAR expr");
+}
+| ENCODE_FOR_URI  '(' Expression ')'
+{
+  $$ = rasqal_new_1op_expression(((rasqal_query*)rq)->world,
+                                 RASQAL_EXPR_ENCODE_FOR_URI, $3);
+  if(!$$)
+    YYERROR_MSG("StringExpression: cannot create ENCODE_FOR_URI() expr");
+}
+| CONCAT '(' ExpressionList ')'
+{
+  $$ = rasqal_new_expr_seq_expression(((rasqal_query*)rq)->world, 
+                                      RASQAL_EXPR_CONCAT, $3);
+  if(!$$)
+    YYERROR_MSG("StringExpression: cannot create CONCAT() expr");
 }
 ;
 

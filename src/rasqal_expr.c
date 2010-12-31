@@ -669,6 +669,10 @@ rasqal_expression_clear(rasqal_expression* e)
 
     case RASQAL_EXPR_REGEX:
     case RASQAL_EXPR_IF:
+    case RASQAL_EXPR_STRSTARTS:
+    case RASQAL_EXPR_STRENDS:
+    case RASQAL_EXPR_CONTAINS:
+    case RASQAL_EXPR_SUBSTR:
       rasqal_free_expression(e->arg1);
       rasqal_free_expression(e->arg2);
       if(e->arg3)
@@ -708,6 +712,10 @@ rasqal_expression_clear(rasqal_expression* e)
     case RASQAL_EXPR_TIMEZONE:
     case RASQAL_EXPR_FROM_UNIXTIME:
     case RASQAL_EXPR_TO_UNIXTIME:
+    case RASQAL_EXPR_STRLEN:
+    case RASQAL_EXPR_UCASE:
+    case RASQAL_EXPR_LCASE:
+    case RASQAL_EXPR_ENCODE_FOR_URI:
       /* arg1 is optional for RASQAL_EXPR_BNODE */
       if(e->arg1)
         rasqal_free_expression(e->arg1);
@@ -854,12 +862,16 @@ rasqal_expression_visit(rasqal_expression* e,
     case RASQAL_EXPR_SAMETERM:
     case RASQAL_EXPR_STRLANG:
     case RASQAL_EXPR_STRDT:
+    case RASQAL_EXPR_STRSTARTS:
+    case RASQAL_EXPR_STRENDS:
+    case RASQAL_EXPR_CONTAINS:
       return rasqal_expression_visit(e->arg1, fn, user_data) ||
              rasqal_expression_visit(e->arg2, fn, user_data);
       break;
 
     case RASQAL_EXPR_REGEX:
     case RASQAL_EXPR_IF:
+    case RASQAL_EXPR_SUBSTR:
       return rasqal_expression_visit(e->arg1, fn, user_data) ||
              rasqal_expression_visit(e->arg2, fn, user_data) ||
              (e->arg3 && rasqal_expression_visit(e->arg3, fn, user_data));
@@ -899,6 +911,10 @@ rasqal_expression_visit(rasqal_expression* e,
     case RASQAL_EXPR_TIMEZONE:
     case RASQAL_EXPR_FROM_UNIXTIME:
     case RASQAL_EXPR_TO_UNIXTIME:
+    case RASQAL_EXPR_STRLEN:
+    case RASQAL_EXPR_UCASE:
+    case RASQAL_EXPR_LCASE:
+    case RASQAL_EXPR_ENCODE_FOR_URI:
       /* arg1 is optional for RASQAL_EXPR_BNODE */
       return (e->arg1) ? rasqal_expression_visit(e->arg1, fn, user_data) : 1;
       break;
@@ -1024,7 +1040,15 @@ static const char* const rasqal_op_labels[RASQAL_EXPR_LAST+1]={
   "now",
   "from_unixtime",
   "to_unixtime",
-  "concat"
+  "concat",
+  "strlen",
+  "substr",
+  "ucase",
+  "lcase",
+  "strstarts",
+  "strends",
+  "contains",
+  "encode_for_uri"
 };
 
 
@@ -1130,14 +1154,19 @@ rasqal_expression_write(rasqal_expression* e, raptor_iostream* iostr)
     case RASQAL_EXPR_IF:
     case RASQAL_EXPR_STRLANG:
     case RASQAL_EXPR_STRDT:
+    case RASQAL_EXPR_STRSTARTS:
+    case RASQAL_EXPR_STRENDS:
+    case RASQAL_EXPR_SUBSTR:
+    case RASQAL_EXPR_CONTAINS:
       raptor_iostream_counted_string_write("op ", 3, iostr);
       rasqal_expression_write_op(e, iostr);
       raptor_iostream_write_byte('(', iostr);
       rasqal_expression_write(e->arg1, iostr);
       raptor_iostream_counted_string_write(", ", 2, iostr);
       rasqal_expression_write(e->arg2, iostr);
-      /* There are two 3-op expressions - both handled here */
-      if((e->op == RASQAL_EXPR_REGEX || e->op == RASQAL_EXPR_IF) && e->arg3) {
+      /* There are three 3-op expressions - both handled here */
+      if((e->op == RASQAL_EXPR_REGEX || e->op == RASQAL_EXPR_IF ||
+          e->op == RASQAL_EXPR_SUBSTR) && e->arg3) {
         raptor_iostream_counted_string_write(", ", 2, iostr);
         rasqal_expression_write(e->arg3, iostr);
       }
@@ -1188,6 +1217,10 @@ rasqal_expression_write(rasqal_expression* e, raptor_iostream* iostr)
     case RASQAL_EXPR_TIMEZONE:
     case RASQAL_EXPR_FROM_UNIXTIME:
     case RASQAL_EXPR_TO_UNIXTIME:
+    case RASQAL_EXPR_STRLEN:
+    case RASQAL_EXPR_UCASE:
+    case RASQAL_EXPR_LCASE:
+    case RASQAL_EXPR_ENCODE_FOR_URI:
       raptor_iostream_counted_string_write("op ", 3, iostr);
       rasqal_expression_write_op(e, iostr);
       raptor_iostream_write_byte('(', iostr);
@@ -1325,14 +1358,19 @@ rasqal_expression_print(rasqal_expression* e, FILE* fh)
     case RASQAL_EXPR_IF:
     case RASQAL_EXPR_STRLANG:
     case RASQAL_EXPR_STRDT:
+    case RASQAL_EXPR_STRSTARTS:
+    case RASQAL_EXPR_STRENDS:
+    case RASQAL_EXPR_CONTAINS:
+    case RASQAL_EXPR_SUBSTR:
       fputs("op ", fh);
       rasqal_expression_print_op(e, fh);
       fputc('(', fh);
       rasqal_expression_print(e->arg1, fh);
       fputs(", ", fh);
       rasqal_expression_print(e->arg2, fh);
-      /* There are two 3-op expressions - both handled here */
-      if((e->op == RASQAL_EXPR_REGEX || e->op == RASQAL_EXPR_IF) && e->arg3) {
+      /* There are three 3-op expressions - both handled here */
+      if((e->op == RASQAL_EXPR_REGEX || e->op == RASQAL_EXPR_IF ||
+          e->op == RASQAL_EXPR_SUBSTR) && e->arg3) {
         fputs(", ", fh);
         rasqal_expression_print(e->arg3, fh);
       }
@@ -1385,6 +1423,10 @@ rasqal_expression_print(rasqal_expression* e, FILE* fh)
     case RASQAL_EXPR_NOW:
     case RASQAL_EXPR_FROM_UNIXTIME:
     case RASQAL_EXPR_TO_UNIXTIME:
+    case RASQAL_EXPR_STRLEN:
+    case RASQAL_EXPR_UCASE:
+    case RASQAL_EXPR_LCASE:
+    case RASQAL_EXPR_ENCODE_FOR_URI:
       fputs("op ", fh);
       rasqal_expression_print_op(e, fh);
       fputc('(', fh);
@@ -1517,12 +1559,16 @@ rasqal_expression_is_constant(rasqal_expression* e)
     case RASQAL_EXPR_SAMETERM:
     case RASQAL_EXPR_STRLANG:
     case RASQAL_EXPR_STRDT:
+    case RASQAL_EXPR_STRSTARTS:
+    case RASQAL_EXPR_STRENDS:
+    case RASQAL_EXPR_CONTAINS:
       result = rasqal_expression_is_constant(e->arg1) &&
                rasqal_expression_is_constant(e->arg2);
       break;
 
     case RASQAL_EXPR_REGEX:
     case RASQAL_EXPR_IF:
+    case RASQAL_EXPR_SUBSTR:
       result = rasqal_expression_is_constant(e->arg1) &&
                rasqal_expression_is_constant(e->arg2) &&
                (e->arg3 && rasqal_expression_is_constant(e->arg3));
@@ -1567,6 +1613,10 @@ rasqal_expression_is_constant(rasqal_expression* e)
     case RASQAL_EXPR_TIMEZONE:
     case RASQAL_EXPR_FROM_UNIXTIME:
     case RASQAL_EXPR_TO_UNIXTIME:
+    case RASQAL_EXPR_STRLEN:
+    case RASQAL_EXPR_UCASE:
+    case RASQAL_EXPR_LCASE:
+    case RASQAL_EXPR_ENCODE_FOR_URI:
       /* arg1 is optional for RASQAL_EXPR_BNODE and result is always constant */
       result = (e->arg1) ? rasqal_expression_is_constant(e->arg1) : 1;
       break;
@@ -1854,6 +1904,10 @@ rasqal_expression_compare(rasqal_expression* e1, rasqal_expression* e2,
     case RASQAL_EXPR_IF:
     case RASQAL_EXPR_STRLANG:
     case RASQAL_EXPR_STRDT:
+    case RASQAL_EXPR_STRSTARTS:
+    case RASQAL_EXPR_STRENDS:
+    case RASQAL_EXPR_CONTAINS:
+    case RASQAL_EXPR_SUBSTR:
       rc = rasqal_expression_compare(e1->arg1, e2->arg1, flags, error_p);
       if(rc)
         return rc;
@@ -1863,7 +1917,8 @@ rasqal_expression_compare(rasqal_expression* e1, rasqal_expression* e2,
         return rc;
       
       /* There are two 3-op expressions - both handled here */
-      if(e1->op == RASQAL_EXPR_REGEX || e1->op == RASQAL_EXPR_IF)
+      if(e1->op == RASQAL_EXPR_REGEX || e1->op == RASQAL_EXPR_IF ||
+         e1->op == RASQAL_EXPR_SUBSTR)
         rc = rasqal_expression_compare(e1->arg3, e2->arg3, flags, error_p);
 
       break;
@@ -1910,6 +1965,10 @@ rasqal_expression_compare(rasqal_expression* e1, rasqal_expression* e2,
     case RASQAL_EXPR_TIMEZONE:
     case RASQAL_EXPR_FROM_UNIXTIME:
     case RASQAL_EXPR_TO_UNIXTIME:
+    case RASQAL_EXPR_STRLEN:
+    case RASQAL_EXPR_UCASE:
+    case RASQAL_EXPR_LCASE:
+    case RASQAL_EXPR_ENCODE_FOR_URI:
       /* arg1 is optional for RASQAL_EXPR_BNODE */
       rc = rasqal_expression_compare(e1->arg1, e2->arg1, flags, error_p);
       break;

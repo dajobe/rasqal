@@ -280,7 +280,15 @@ static const char* const rasqal_sparql_op_labels[RASQAL_EXPR_LAST+1] = {
   "NOW",
   "FROM_UNIXTIME",
   "TO_UNIXTIME",
-  "CONCAT"
+  "CONCAT",
+  "STRLEN",
+  "SUBSTR",
+  "UCASE",
+  "LCASE",
+  "STRSTARTS",
+  "STRENDS",
+  "CONTAINS",
+  "ENCODE_FOR_URI",
 };
 
 
@@ -335,6 +343,9 @@ rasqal_query_write_sparql_expression(sparql_writer_context *wc,
     case RASQAL_EXPR_STR_NEQ:
     case RASQAL_EXPR_STRLANG:
     case RASQAL_EXPR_STRDT:
+    case RASQAL_EXPR_STRSTARTS:
+    case RASQAL_EXPR_STRENDS:
+    case RASQAL_EXPR_CONTAINS:
       raptor_iostream_counted_string_write("( ", 2, iostr);
       rasqal_query_write_sparql_expression(wc, iostr, e->arg1);
       raptor_iostream_write_byte(' ', iostr);
@@ -375,6 +386,10 @@ rasqal_query_write_sparql_expression(sparql_writer_context *wc,
     case RASQAL_EXPR_TIMEZONE:
     case RASQAL_EXPR_FROM_UNIXTIME:
     case RASQAL_EXPR_TO_UNIXTIME:
+    case RASQAL_EXPR_STRLEN:
+    case RASQAL_EXPR_UCASE:
+    case RASQAL_EXPR_LCASE:
+    case RASQAL_EXPR_ENCODE_FOR_URI:
       rasqal_query_write_sparql_expression_op(wc, iostr, e);
       raptor_iostream_counted_string_write("( ", 2, iostr);
       rasqal_query_write_sparql_expression(wc, iostr, e->arg1);
@@ -384,12 +399,14 @@ rasqal_query_write_sparql_expression(sparql_writer_context *wc,
     case RASQAL_EXPR_LANGMATCHES:
     case RASQAL_EXPR_REGEX:
     case RASQAL_EXPR_IF:
+    case RASQAL_EXPR_SUBSTR:
       rasqal_query_write_sparql_expression_op(wc, iostr, e);
       raptor_iostream_counted_string_write("( ", 2, iostr);
       rasqal_query_write_sparql_expression(wc, iostr, e->arg1);
       raptor_iostream_counted_string_write(", ", 2, iostr);
       rasqal_query_write_sparql_expression(wc, iostr, e->arg2);
-      if((e->op == RASQAL_EXPR_REGEX || e->op == RASQAL_EXPR_IF) && e->arg3) {
+      if((e->op == RASQAL_EXPR_REGEX || e->op == RASQAL_EXPR_IF ||
+          e->op == RASQAL_EXPR_SUBSTR) && e->arg3) {
         raptor_iostream_counted_string_write(", ", 2, iostr);
         rasqal_query_write_sparql_expression(wc, iostr, e->arg3);
       }

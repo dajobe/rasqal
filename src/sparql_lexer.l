@@ -404,6 +404,14 @@ EXPONENT [eE][+-]?[0-9]+
 [Ff][Rr][Oo][Mm][__][Uu][Nn][Ii][Xx][Tt][Ii][Mm][Ee] { return FROM_UNIXTIME; }
 [Tt][Oo][__][Uu][Nn][Ii][Xx][Tt][Ii][Mm][Ee] { return TO_UNIXTIME; }
 [Cc][Oo][Nn][Cc][Aa][Tt] { return CONCAT; }
+[Ss][Tt][Rr][Ll][Ee][Nn] { return STRLEN; }
+[Ss][Uu][Bb][Ss][Tt][Rr] { return SUBSTR; }
+[Uu][Cc][Aa][Ss][Ee] { return UCASE; }
+[Ll][Cc][Aa][Ss][Ee] { return LCASE; }
+[Ss][Tt][Rr][Ss][Tt][Aa][Rr][Tt][Ss] { return STRSTARTS; }
+[Ss][Tt][Rr][Ee][Nn][Dd][Ss] { return STRENDS; }
+[Cc][Oo][Nn][Tt][Aa][Ii][Nn][Ss] { return CONTAINS; }
+[Ee][Nn][Cc][Oo][Dd][Ee][__][Ff][Oo][Rr][__][Uu][Rr][Ii] { return ENCODE_FOR_URI; }
 
 "a" { return A; }
 
@@ -1587,6 +1595,30 @@ sparql_token_print(rasqal_world* world, int token, YYSTYPE *lval)
 
     case CONCAT:
       return "CONCAT";
+
+    case STRLEN:
+      return "STRLEN";
+
+    case SUBSTR:
+      return "SUBSTR";
+
+    case UCASE:
+      return "UCASE";
+
+    case LCASE:
+      return "LCASE";
+
+    case STRSTARTS:
+      return "STRSTARTS";
+
+    case STRENDS:
+      return "STRENDS";
+
+    case CONTAINS:
+      return "CONTAINS";
+
+    case ENCODE_FOR_URI:
+      return "ENCODE_FOR_URI";
 
     case INTEGER_LITERAL:
     case INTEGER_POSITIVE_LITERAL:
