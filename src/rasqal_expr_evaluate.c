@@ -876,7 +876,6 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
   rasqal_literal* result = NULL;
   rasqal_literal *l1;
   rasqal_literal *l2;
-  const unsigned char *s;
 
   /* pack vars from different switch cases in unions to save some stack space */
   union {
