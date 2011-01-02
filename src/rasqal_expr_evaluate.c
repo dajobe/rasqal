@@ -1150,7 +1150,7 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
       break;
 
     case RASQAL_EXPR_DATATYPE:
-      l1 = rasqal_expression_evaluate_datatype(world, locator, e, flags);
+      result = rasqal_expression_evaluate_datatype(world, locator, e, flags);
       break;
 
     case RASQAL_EXPR_ISURI:
