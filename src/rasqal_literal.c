@@ -599,16 +599,21 @@ rasqal_literal_set_typed_value(rasqal_literal* l, rasqal_literal_type type,
     case RASQAL_LITERAL_DECIMAL:
       l->value.decimal = rasqal_new_xsd_decimal(l->world);
       if(!l->value.decimal) {
-        RASQAL_FREE(cstring, (void*)l->string);
+        /* free l->string which is not owned by literal yet */
+        RASQAL_FREE(cstring, (void*)l->string); l->string = NULL;
         return 1;
       }
       if(rasqal_xsd_decimal_set_string(l->value.decimal,
                                        (const char*)l->string)) {
-        RASQAL_FREE(cstring, (void*)l->string);
+        /* free l->string which is not owned by literal yet */
+        RASQAL_FREE(cstring, (void*)l->string); l->string = NULL;
         return 1;
       }
       RASQAL_FREE(cstring, (void*)l->string);
-      /* string is owned by l->value.decimal */
+
+      /* l->string is now owned by l->value.decimal and will be freed
+       * on literal destruction
+       */
       l->string = (unsigned char*)rasqal_xsd_decimal_as_counted_string(l->value.decimal,
                                                                        (size_t*)&l->string_len);
       if(!l->string)
