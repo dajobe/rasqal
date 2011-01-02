@@ -819,6 +819,22 @@ rasqal_query_results_format_rdf_copy_syntax_description_from_parser(rasqal_query
 #endif
 
 
+static int
+rasqal_query_results_rdfxml_recognise_syntax(rasqal_query_results_format_factory* factory, 
+                                             const unsigned char *buffer, 
+                                             size_t len,
+                                             const unsigned char *identifier,
+                                             const unsigned char *suffix,
+const char *mime_type)
+{
+
+  if(suffix && !strcmp((const char*)suffix, "rdf"))
+    return 5;
+  
+  return 0;
+}
+
+
 static const char* const rdfxml_names[2] = { "rdfxml", NULL};
 
 #define RDFXML_TYPES_COUNT 1
@@ -859,7 +875,8 @@ rasqal_query_results_rdfxml_register_factory(rasqal_query_results_format_factory
   factory->write         = NULL;
 #endif
   factory->get_rowsource = rasqal_query_results_rdf_get_rowsource;
-
+  factory->recognise_syntax = rasqal_query_results_rdfxml_recognise_syntax;
+  
   return rc;
 }
 
@@ -980,6 +997,22 @@ rasqal_query_results_turtle_write(rasqal_query_results_formatter* formatter,
 #endif
 
 
+static int
+rasqal_query_results_turtle_recognise_syntax(rasqal_query_results_format_factory* factory, 
+                                             const unsigned char *buffer, 
+                                             size_t len,
+                                             const unsigned char *identifier,
+                                             const unsigned char *suffix,
+const char *mime_type)
+{
+  if(suffix && (!strcmp((const char*)suffix, "ttl") ||
+                !strcmp((const char*)suffix, "n3")))
+    return 7;
+  
+  return 0;
+}
+
+
 static const char* const turtle_names[2] = { "turtle", NULL};
 
 static const char* const turtle_uri_strings[2] = {
@@ -1025,6 +1058,7 @@ rasqal_query_results_turtle_register_factory(rasqal_query_results_format_factory
 #endif
 
   factory->get_rowsource = rasqal_query_results_rdf_get_rowsource;
+  factory->recognise_syntax = rasqal_query_results_turtle_recognise_syntax;
 
   return rc;
 }

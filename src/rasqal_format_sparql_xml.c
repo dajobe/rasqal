@@ -1010,6 +1010,22 @@ rasqal_query_results_get_rowsource_sparql_xml(rasqal_query_results_formatter* fo
 
 
 
+static int
+rasqal_query_results_xml_recognise_syntax(rasqal_query_results_format_factory* factory, 
+                                          const unsigned char *buffer, 
+                                          size_t len,
+                                          const unsigned char *identifier,
+                                          const unsigned char *suffix,
+const char *mime_type)
+{
+
+  if(suffix && !strcmp((const char*)suffix, "srx"))
+    return 8;
+  
+  return 0;
+}
+
+
 static const char* const sparql_xml_names[2] = { "xml", NULL};
 
 static const char* const sparql_xml_uri_strings[4] = {
@@ -1043,6 +1059,7 @@ rasqal_query_results_sparql_xml_register_factory(rasqal_query_results_format_fac
   
   factory->write         = rasqal_query_results_write_sparql_xml;
   factory->get_rowsource = rasqal_query_results_get_rowsource_sparql_xml;
+  factory->recognise_syntax = rasqal_query_results_xml_recognise_syntax;
 
   return rc;
 }
