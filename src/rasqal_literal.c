@@ -93,6 +93,7 @@ rasqal_new_integer_literal(rasqal_world* world, rasqal_literal_type type,
     if(type == RASQAL_LITERAL_BOOLEAN) {
        /* static l->string for boolean, does not need freeing */
        l->string = integer ? RASQAL_XSD_BOOLEAN_TRUE : RASQAL_XSD_BOOLEAN_FALSE;
+       l->string_len = integer ? RASQAL_XSD_BOOLEAN_TRUE_LEN : RASQAL_XSD_BOOLEAN_FALSE_LEN;
     } else  {
       l->string = rasqal_xsd_format_integer(integer, (size_t*)&l->string_len);
       if(!l->string) {
@@ -625,7 +626,7 @@ rasqal_literal_set_typed_value(rasqal_literal* l, rasqal_literal_type type,
       RASQAL_FREE(cstring, (void*)l->string);
       /* and replace with a static string */
       l->string = i ? RASQAL_XSD_BOOLEAN_TRUE : RASQAL_XSD_BOOLEAN_FALSE;
-      l->string_len = (i ? 4 : 5);
+      l->string_len = i ? RASQAL_XSD_BOOLEAN_TRUE_LEN : RASQAL_XSD_BOOLEAN_FALSE_LEN;
       
       l->value.integer = i;
       break;
@@ -915,7 +916,7 @@ rasqal_new_boolean_literal(rasqal_world* world, int value)
     l->type = RASQAL_LITERAL_BOOLEAN;
     l->value.integer = value;
     l->string = value ? RASQAL_XSD_BOOLEAN_TRUE : RASQAL_XSD_BOOLEAN_FALSE;
-    l->string_len = (value ? 4 : 5);
+    l->string_len = value ? RASQAL_XSD_BOOLEAN_TRUE_LEN : RASQAL_XSD_BOOLEAN_FALSE_LEN;
     dt_uri = rasqal_xsd_datatype_type_to_uri(world, l->type);
     if(!dt_uri) {
       rasqal_free_literal(l);
