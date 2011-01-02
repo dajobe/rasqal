@@ -1192,6 +1192,78 @@ rasqal_xsd_datetime_get_as_timeval(rasqal_xsd_datetime *dt)
 }
 
 
+/**
+ * rasqal_xsd_datetime_get_timezone_as_counted_string:
+ * @dt: datetime
+ * @len_p: pointer to store returned string length
+ * 
+ * Get the timezone of a datetime as a duration format string with optional length count
+ *
+ * The returned string is owned by the caller and must be freed
+ * by rasqal_free_memory().
+ *
+ * Returns: pointer to a new strng or NULL on failure
+ **/
+char*
+rasqal_xsd_datetime_get_timezone_as_counted_string(rasqal_xsd_datetime *dt,
+                                                   size_t *len_p)
+{
+  /* timezone duration as implemented here is a signed integer number
+   * of seconds like +- 14 hours:minutes (no days or larger units, no
+   * seconds or smaller).
+   *
+   * When written in the canonical format, a restricted
+   * xsd:dayTimeDuration format, it is constraint to a format like -?PThhmm
+   *
+   * For example: -PT14H59M PT14H59M and PT0S for a zero timezone offset
+   */
+#define TZ_STR_SIZE 10
+  char* tz_str;
+  char* p;
+  unsigned int hours;
+  unsigned int minutes;
+  
+  if(!dt)
+    return NULL;
+  
+  tz_str = RASQAL_MALLOC(cstring, TZ_STR_SIZE + 1);
+  if(!tz_str)
+    return NULL;
+  
+  p = tz_str;
+  
+  if(dt->timezone_minutes < 0)
+    *p++ = '-';
+
+  *p++ = 'P';
+  *p++ = 'T';
+    
+  hours = (dt->timezone_minutes / 60);
+  if(hours) {
+    sprintf(p, "%dH", hours);
+    p += 3;
+  }
+  
+  minutes = (dt->timezone_minutes % 60);
+  if(hours) {
+    sprintf(p, "%dM", minutes);
+    p += 3;
+  }
+
+  if(!hours && !minutes) {
+    *p++ = '0';
+    *p++ = 'S';
+  }
+  
+  *p = '\0';
+
+  if(len_p)
+    *len_p = p - tz_str;
+  
+  return tz_str;
+}
+
+
 
 #ifdef STANDALONE
 #include <stdio.h>
