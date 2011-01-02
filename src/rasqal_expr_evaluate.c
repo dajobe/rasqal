@@ -733,10 +733,10 @@ rasqal_expression_evaluate_datatype(rasqal_world *world,
   if(!dt_uri)
     goto failed;
   
+  dt_uri = raptor_uri_copy(dt_uri);
+
   if(free_literal)
     rasqal_free_literal(l1);
-
-  dt_uri = raptor_uri_copy(dt_uri);
 
   /* after this dt_uri is owned by result */
   return rasqal_new_uri_literal(world, dt_uri);
