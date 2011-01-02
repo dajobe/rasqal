@@ -987,7 +987,7 @@ const raptor_syntax_description* rasqal_world_get_query_results_format_descripti
 #endif
 
 RASQAL_API
-const char* rasqal_world_guess_query_results_format_name(rasqal_world* world, rasqal_uri *uri, const char *mime_type, const unsigned char *buffer, size_t len, const unsigned char *identifier);
+const char* rasqal_world_guess_query_results_format_name(rasqal_world* world, raptor_uri *uri, const char *mime_type, const unsigned char *buffer, size_t len, const unsigned char *identifier);
 
 /* Features */
 RASQAL_API
