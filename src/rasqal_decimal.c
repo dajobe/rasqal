@@ -220,21 +220,26 @@ rasqal_xsd_decimal_set_string(rasqal_xsd_decimal* dec, const char* string)
 
   rasqal_xsd_decimal_clear_string(dec);
 
-  len=strlen(string);
-  dec->string=(char*)RASQAL_MALLOC(cstring, len+1);
+  len = strlen(string);
+  dec->string = (char*)RASQAL_MALLOC(cstring, len+1);
   if(!dec->string)
     return 1;
+
   memcpy(dec->string, string, len + 1);
-  dec->string_len=len;
+  dec->string_len = len;
   
 #if defined(RASQAL_DECIMAL_C99) || defined(RASQAL_DECIMAL_NONE)
-  dec->raw=strtod(string, NULL);
+  dec->raw = strtod(string, NULL);
 #endif
 #ifdef RASQAL_DECIMAL_MPFR
+  if(*string == '+')
+    string++;
   rc = mpfr_set_str(dec->raw, string, 10, dec->rounding);
 #endif
 #ifdef RASQAL_DECIMAL_GMP
-  rc=mpf_set_str(dec->raw, string, 10);
+  if(*string == '+')
+    string++;
+  rc = mpf_set_str(dec->raw, string, 10);
 #endif
 
   return rc;
