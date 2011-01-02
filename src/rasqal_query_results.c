@@ -406,6 +406,23 @@ rasqal_query_results_get_query(rasqal_query_results* query_results)
 
 
 /**
+ * rasqal_query_results_get_type:
+ * @query_results: #rasqal_query_results object
+ *
+ * Get query results type
+ * 
+ * Return value: non-0 if true
+ **/
+rasqal_query_results_type
+rasqal_query_results_get_type(rasqal_query_results* query_results)
+{
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query_results, rasqal_query_results, 0);
+
+  return query_results->type;
+}
+
+
+/**
  * rasqal_query_results_is_bindings:
  * @query_results: #rasqal_query_results object
  *

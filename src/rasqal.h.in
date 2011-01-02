@@ -1207,6 +1207,8 @@ rasqal_query* rasqal_query_results_get_query(rasqal_query_results* query_results
 
 /* Bindings result format */
 RASQAL_API
+rasqal_query_results_type rasqal_query_results_get_type(rasqal_query_results* query_results);
+RASQAL_API
 int rasqal_query_results_is_bindings(rasqal_query_results *query_results);
 RASQAL_API
 int rasqal_query_results_get_count(rasqal_query_results *query_results);
