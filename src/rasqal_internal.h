@@ -1077,7 +1077,8 @@ rasqal_literal* rasqal_expression_evaluate_now(rasqal_world *world, raptor_locat
 rasqal_literal* rasqal_expression_evaluate_to_unixtime(rasqal_world *world, raptor_locator *locator, rasqal_expression *e, int flags);
 rasqal_literal* rasqal_expression_evaluate_from_unixtime(rasqal_world *world, raptor_locator *locator, rasqal_expression *e, int flags);
 rasqal_literal* rasqal_expression_evaluate_datetime_part(rasqal_world *world, raptor_locator *locator, rasqal_expression *e, int flags);
-  
+rasqal_literal* rasqal_expression_evaluate_datetime_timezone(rasqal_world *world, raptor_locator *locator, rasqal_expression *e, int flags);
+
 /* rasqal_expr_strings.c */
 rasqal_literal* rasqal_expression_evaluate_set_case(rasqal_world *world, raptor_locator *locator, rasqal_expression *e, int flags);
 rasqal_literal* rasqal_expression_evaluate_str_prefix_suffix(rasqal_world *world, raptor_locator *locator, rasqal_expression *e,int flags);

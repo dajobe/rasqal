@@ -241,3 +241,49 @@ rasqal_expression_evaluate_datetime_part(rasqal_world *world,
 
   return NULL;
 }
+
+
+/* 
+ * rasqal_expression_evaluate_datetime_timezone:
+ * @world: #rasqal_world
+ * @locator: error locator object
+ * @e: The expression to evaluate.
+ * @flags: Compare flags
+ *
+ * INTERNAL - Evaluate SPARQL 1.1 RASQAL_EXPR_TIMEZONE (datetime) expressions.
+ *
+ * Return value: A #rasqal_literal integer value or NULL on failure.
+ */
+rasqal_literal*
+rasqal_expression_evaluate_datetime_timezone(rasqal_world *world,
+                                             raptor_locator *locator,
+                                             rasqal_expression *e,
+                                             int flags)
+{
+  rasqal_literal* l;
+  char* s;
+  size_t len;
+
+  l = rasqal_expression_evaluate(world, locator, e->arg1, flags);
+  if(!l)
+    goto failed;
+  
+  if(l->type != RASQAL_LITERAL_DATETIME)
+    goto failed;
+  
+
+  s = rasqal_xsd_datetime_get_timezone_as_counted_string(l->value.datetime,
+                                                         &len);
+  if(!s)
+    return NULL;
+
+  /* after this s is owned by the result literal */
+  return rasqal_new_string_literal(world, s, NULL, NULL, NULL);
+
+  failed:
+  if(l)
+    rasqal_free_literal(l);
+
+  return NULL;
+}
+
