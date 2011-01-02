@@ -249,35 +249,16 @@ rasqal_query_results_execute_with_engine(rasqal_query* query,
   rasqal_query_results *query_results = NULL;
   int rc = 0;
   size_t ex_data_size;
-  rasqal_query_results_type type = RASQAL_QUERY_RESULTS_BINDINGS;
+  rasqal_query_results_type type;
 
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, NULL);
   
   if(query->failed)
     return NULL;
 
-  if(query->query_results_formatter_name)
-    type = RASQAL_QUERY_RESULTS_SYNTAX;
-  else
-    switch(query->verb) {
-      case RASQAL_QUERY_VERB_SELECT:
-        type = RASQAL_QUERY_RESULTS_BINDINGS;
-        break;
-      case RASQAL_QUERY_VERB_ASK:
-        type = RASQAL_QUERY_RESULTS_BOOLEAN;
-        break;
-      case RASQAL_QUERY_VERB_CONSTRUCT:
-      case RASQAL_QUERY_VERB_DESCRIBE:
-        type = RASQAL_QUERY_RESULTS_GRAPH;
-        break;
-        
-      case RASQAL_QUERY_VERB_UNKNOWN:
-      case RASQAL_QUERY_VERB_DELETE:
-      case RASQAL_QUERY_VERB_INSERT:
-      case RASQAL_QUERY_VERB_UPDATE:
-      default:
-        return NULL;
-    }
+  type = rasqal_query_get_result_type(query);
+  if(type == RASQAL_QUERY_RESULTS_UNKNOWN)
+    return NULL;
   
   query_results = rasqal_new_query_results(query->world, query, type,
                                            query->vars_table);
