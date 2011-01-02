@@ -209,6 +209,53 @@ check_query_read_file_string(const char* filename,
 
 
 
+static rasqal_query*
+check_query_init_query(rasqal_world *world, 
+                       const char* ql_name,
+                       const unsigned char* query_string,
+                       raptor_uri* base_uri,
+                       raptor_sequence* data_graphs)
+{
+  rasqal_query* rq;
+
+  rq = rasqal_new_query(world, (const char*)ql_name, NULL);
+  if(!rq) {
+    fprintf(stderr, "%s: Failed to create query in language %s\n",
+            program, ql_name);
+    goto tidy_query;
+  }
+  
+#ifdef HAVE_RAPTOR2_API
+#else
+  rasqal_query_set_error_handler(rq, world, check_query_error_handler);
+  rasqal_query_set_fatal_error_handler(rq, world, check_query_error_handler);
+#endif
+
+  if(data_graphs) {
+    rasqal_data_graph* dg;
+    
+    while((dg = (rasqal_data_graph*)raptor_sequence_pop(data_graphs))) {
+      if(rasqal_query_add_data_graph2(rq, dg)) {
+        fprintf(stderr, "%s: Failed to add data graph to query\n",
+                program);
+        goto tidy_query;
+      }
+    }
+  }
+
+  if(rasqal_query_prepare(rq, (const unsigned char*)query_string, base_uri)) {
+    fprintf(stderr, "%s: Parsing query failed\n", program);
+
+    rasqal_free_query(rq); rq = NULL;
+    goto tidy_query;
+  }
+
+  tidy_query:
+  return rq;
+}
+
+
+
 #define DEFAULT_QUERY_LANGUAGE "sparql"
 
 
@@ -522,43 +569,14 @@ main(int argc, char *argv[])
 
 
   /* Parse and prepare query */
-  if(1) {
-    rq = rasqal_new_query(world, query_language, NULL);
-    if(!rq) {
-      fprintf(stderr, "%s: Failed to create query name %s\n",
-              program, query_language);
-      goto tidy_setup;
-    }
-
-#ifdef HAVE_RAPTOR2_API
-#else
-    rasqal_query_set_error_handler(rq, world, check_query_error_handler);
-    rasqal_query_set_fatal_error_handler(rq, world, check_query_error_handler);
-#endif
-
-    if(data_graphs) {
-      rasqal_data_graph* dg;
-      
-      while((dg = (rasqal_data_graph*)raptor_sequence_pop(data_graphs))) {
-        if(rasqal_query_add_data_graph2(rq, dg)) {
-          fprintf(stderr, "%s: Failed to add data graph to query\n",
-                  program);
-          rasqal_free_query_results(results); results = NULL;
-          goto tidy_query;
-        }
-      }
-    }
-
-    if(rasqal_query_prepare(rq, (const unsigned char*)query_string, 
-                            query_base_uri)) {
-      
-      fprintf(stderr, "%s: Parsing query in %s failed\n", program,
-              query_filename);
-      goto tidy_query;
-    }
-
-    /* Query prepared OK - we now know the query details such as result type */
+  if(check_query_init_query(world, query_language, query_string,
+                            query_base_uri, data_graphs)) {
+    fprintf(stderr, "%s: Parsing query in %s failed\n", program,
+            query_filename);
+    goto tidy_query;
   }
+
+  /* Query prepared OK - we now know the query details such as result type */
 
 
   /* Report expected result type */
