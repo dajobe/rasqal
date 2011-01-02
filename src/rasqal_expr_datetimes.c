@@ -250,9 +250,9 @@ rasqal_expression_evaluate_datetime_part(rasqal_world *world,
  * @e: The expression to evaluate.
  * @flags: Compare flags
  *
- * INTERNAL - Evaluate SPARQL 1.1 RASQAL_EXPR_TIMEZONE (datetime) expressions.
+ * INTERNAL - Evaluate SPARQL 1.1 RASQAL_EXPR_TIMEZONE (datetime) expression.
  *
- * Return value: A #rasqal_literal integer value or NULL on failure.
+ * Return value: A #rasqal_literal string value or NULL on failure.
  */
 rasqal_literal*
 rasqal_expression_evaluate_datetime_timezone(rasqal_world *world,
