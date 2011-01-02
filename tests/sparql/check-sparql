@@ -194,8 +194,6 @@ sub read_srx_results_file($) {
 
   my(%results)=(rows => []);
 
-  $result_file =~ s%^file://%%;
-
   my $parser = new XML::DOM::Parser;
   my $doc = $parser->parsefile($result_file);
 
@@ -456,6 +454,11 @@ sub run_test {
     }
   } else {
     if(defined $result_file) {
+      my $result_file_base_uri = $result_file;
+
+      # File URI to filename
+      $result_file =~ s%^file://%%;
+
       if($result_file =~ /\.srx$/) {
 	warn "$program: Reading SPARQL XML bindings result file $result_file\n"
 	  if $debug;
@@ -466,7 +469,7 @@ sub run_test {
       } else {
 	warn "$program: Reading RDF syntax encoding bindings result file $result_file\n"
 	  if $debug;
-	$results = read_rdf_results_file($result_file, "file://$result_file");
+	$results = read_rdf_results_file($result_file, $result_file_base_uri);
       }
     }
   }
