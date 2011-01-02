@@ -2328,3 +2328,54 @@ rasqal_query_get_bound_in_column_for_variable(rasqal_query* query,
 {
   return query->variables_bound_in[v->offset];
 }
+
+
+/**
+ * rasqal_query_get_result_type:
+ * @query: #rasqal_query query object
+ *
+ * Get the result type expected from executing the query.
+ *
+ * This function is only valid after rasqal_query_prepare() has been
+ * run on the query and will return #RASQAL_QUERY_RESULTS_UNKNOWN if
+ * called before preparation.
+ *
+ * Return value: result type or #RASQAL_QUERY_RESULTS_UNKNOWN if not known or on error
+ **/
+rasqal_query_results_type
+rasqal_query_get_result_type(rasqal_query* query)
+{
+  rasqal_query_results_type type = RASQAL_QUERY_RESULTS_BINDINGS;
+
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, RASQAL_QUERY_RESULTS_UNKNOWN);
+
+  if(!query->prepared)
+    return RASQAL_QUERY_RESULTS_UNKNOWN;
+
+  if(query->query_results_formatter_name)
+    type = RASQAL_QUERY_RESULTS_SYNTAX;
+  else
+    switch(query->verb) {
+      case RASQAL_QUERY_VERB_SELECT:
+        type = RASQAL_QUERY_RESULTS_BINDINGS;
+        break;
+
+      case RASQAL_QUERY_VERB_ASK:
+        type = RASQAL_QUERY_RESULTS_BOOLEAN;
+        break;
+
+      case RASQAL_QUERY_VERB_CONSTRUCT:
+      case RASQAL_QUERY_VERB_DESCRIBE:
+        type = RASQAL_QUERY_RESULTS_GRAPH;
+        break;
+        
+      case RASQAL_QUERY_VERB_UNKNOWN:
+      case RASQAL_QUERY_VERB_DELETE:
+      case RASQAL_QUERY_VERB_INSERT:
+      case RASQAL_QUERY_VERB_UPDATE:
+      default:
+        type = RASQAL_QUERY_RESULTS_UNKNOWN;
+    }
+
+  return type;
+}
