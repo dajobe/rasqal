@@ -749,8 +749,9 @@ rasqal_sparql_xml_sax2_end_element_handler(void *user_data,
         if(con->datatype)
           datatype_uri = raptor_new_uri(con->world->raptor_world_ptr, (const unsigned char*)con->datatype);
         if(con->language) {
-          language_str=(char*)RASQAL_MALLOC(cstring, strlen(con->language)+1);
-          strcpy(language_str, con->language);
+          size_t language_len = strlen(con->language);
+          language_str=(char*)RASQAL_MALLOC(cstring, language_len + 1);
+          memcpy(language_str, con->language, language_len + 1);
         }
         l = rasqal_new_string_literal_node(con->world, lvalue, language_str,
                                            datatype_uri);

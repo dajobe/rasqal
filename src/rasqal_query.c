@@ -1347,9 +1347,9 @@ rasqal_query_prepare(rasqal_query* query,
       query->failed = 1;
       return 1;
     }
-    strcpy((char*)query_string_copy, (const char*)query_string);
-    query_string_copy[len-3] = ' ';
-    query_string_copy[len-2] = query_string_copy[len-1] = '\0';
+    memcpy(query_string_copy, query_string, len - 3);
+    query_string_copy[len - 3] = ' ';
+    query_string_copy[len - 2] = query_string_copy[len - 1] = '\0';
     query->query_string = query_string_copy;
     query->query_string_length = len;
   }

@@ -924,10 +924,10 @@ rasqal_world_set_default_generate_bnodeid_parameters(rasqal_world* world,
   if(prefix) {
     length = strlen(prefix);
     
-    prefix_copy = (char*)RASQAL_MALLOC(cstring, length+1);
+    prefix_copy = (char*)RASQAL_MALLOC(cstring, length + 1);
     if(!prefix_copy)
       return 1;
-    strcpy(prefix_copy, prefix);
+    memcpy(prefix_copy, prefix, length + 1);
   }
   
   if(world->default_generate_bnodeid_handler_prefix)

@@ -96,12 +96,14 @@ redland_node_to_rasqal_literal(rasqal_world *world, librdf_node *node)
     size_t len;
 
     string = (char*)librdf_node_get_literal_value_as_counted_string(node, &len);
-    new_string = LIBRDF_MALLOC(cstring, len+1);
-    strcpy(new_string, (const char*)string);
-    string=librdf_node_get_literal_value_language(node);
+    new_string = LIBRDF_MALLOC(cstring, len + 1);
+    memcpy(new_string, string, len + 1);
+
+    string = librdf_node_get_literal_value_language(node);
     if(string) {
-      new_language = LIBRDF_MALLOC(cstring, strlen(string)+1);
-      strcpy(new_language, (const char*)string);
+      size_t lang_len = strlen(string);
+      new_language = LIBRDF_MALLOC(cstring,  + 1);
+      memcpy(new_language, string, lang_len + 1);
     }
 
     uri = librdf_node_get_literal_value_datatype_uri(node);
@@ -112,8 +114,9 @@ redland_node_to_rasqal_literal(rasqal_world *world, librdf_node *node)
                                   new_language, new_datatype, NULL);
   } else {
     char *blank = (char*)librdf_node_get_blank_identifier(node);
-    char *new_blank = LIBRDF_MALLOC(cstring, strlen(blank)+1);
-    strcpy(new_blank, (const char*)blank);
+    size_t blank_len = strlen(blank);
+    char *new_blank = LIBRDF_MALLOC(cstring, blank-len + 1);
+    memcpy(new_blank, blank, blan_len + 1);
     l = rasqal_new_simple_literal(world, RASQAL_LITERAL_BLANK,
                                   (unsigned char*)new_blank);
   }
