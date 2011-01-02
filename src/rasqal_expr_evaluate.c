@@ -145,7 +145,7 @@ rasqal_expression_evaluate_strdt(rasqal_world *world,
   if(!l1)
     goto failed;
   
-  s = rasqal_literal_as_string_flags(l1, flags, &error);
+  s = rasqal_literal_as_counted_string(l1, &len, flags, &error);
   if(error)
     goto failed;
   
@@ -172,7 +172,6 @@ rasqal_expression_evaluate_strdt(rasqal_world *world,
   
   rasqal_free_literal(l2);
   
-  len = strlen((const char*)s);
   new_s =(unsigned char*)RASQAL_MALLOC(cstring, len + 1);
   if(!new_s)
     goto failed;
@@ -219,13 +218,14 @@ rasqal_expression_evaluate_strlang(rasqal_world *world,
   unsigned char* new_s = NULL;
   unsigned char* new_lang = NULL;
   size_t len;
+  size_t lang_len;
   int error = 0;
 
   l1 = rasqal_expression_evaluate(world, locator, e->arg1, flags);
   if(!l1)
     goto failed;
   
-  s = rasqal_literal_as_string_flags(l1, flags, &error);
+  s = rasqal_literal_as_counted_string(l1, &len, flags, &error);
   if(error)
     goto failed;
 
@@ -233,21 +233,19 @@ rasqal_expression_evaluate_strlang(rasqal_world *world,
   if(!l2)
     goto failed;
   
-  lang = rasqal_literal_as_string_flags(l2, flags, &error);
+  lang = rasqal_literal_as_counted_string(l2, &lang_len, flags, &error);
   if(error)
     goto failed;
   
-  len = strlen((const char*)s);
   new_s = (unsigned char*)RASQAL_MALLOC(cstring, len + 1);
   if(!new_s)
     goto failed;
   memcpy(new_s, s, len + 1);
   
-  len = strlen((const char*)lang);
-  new_lang = (unsigned char*)RASQAL_MALLOC(cstring, len + 1);
+  new_lang = (unsigned char*)RASQAL_MALLOC(cstring, lang_len + 1);
   if(!new_lang)
     goto failed;
-  memcpy(new_lang, lang, len + 1);
+  memcpy(new_lang, lang, lang_len + 1);
   
   rasqal_free_literal(l1);
   rasqal_free_literal(l2);
@@ -591,12 +589,12 @@ rasqal_expression_evaluate_str(rasqal_world *world,
   /* Note: flags removes RASQAL_COMPARE_XQUERY as this is the
    * explicit stringify operation and we want URIs as strings.
    */
-  s = rasqal_literal_as_string_flags(l1, (flags & ~RASQAL_COMPARE_XQUERY),
-                                     &error);
+  s = rasqal_literal_as_counted_string(l1, &len,
+                                       (flags & ~RASQAL_COMPARE_XQUERY),
+                                       &error);
   if(!s || error)
     goto failed;
   
-  len = strlen((const char*)s);
   new_s = (unsigned char *)RASQAL_MALLOC(cstring, len + 1);
   if(!new_s)
     goto failed;
@@ -828,11 +826,10 @@ rasqal_expression_evaluate_bnode_constructor(rasqal_world *world,
     if(!l1)
       goto failed;
     
-    s = rasqal_literal_as_string_flags(l1, flags, &error);
+    s = rasqal_literal_as_counted_string(l1, &len, flags, &error);
     if(error)
       goto failed;
 
-    len = strlen((const char*)s);
     new_s = (unsigned char*)RASQAL_MALLOC(cstring, len + 1);
     if(!new_s)
       goto failed;

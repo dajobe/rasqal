@@ -569,14 +569,12 @@ rasqal_rowsource_rdf_process(rasqal_rowsource_rdf_context* con)
     
     if(1) {
       const unsigned char* name;
+      size_t len;
 
-      name = rasqal_literal_as_string(solution_node);
+      name = rasqal_literal_as_counted_string(solution_node, &len, 0, NULL);
       if(name) {
         unsigned char* var_name;
         rasqal_variable *v;
-        size_t len;
-        
-        len = strlen((const char*)name);
 
         var_name = (unsigned char*)RASQAL_MALLOC(cstring, len + 1);
         memcpy(var_name, name, len + 1);

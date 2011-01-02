@@ -1791,8 +1791,7 @@ rasqal_new_literal_from_promotion(rasqal_literal* lit,
                   rasqal_literal_type_label(lit->type));
 
     if(type == RASQAL_LITERAL_STRING || type ==  RASQAL_LITERAL_UDT) {
-      s = rasqal_literal_as_string(lit);
-      len = strlen((const char*)s);
+      s = rasqal_literal_as_counted_string(lit, &len, 0, NULL);
       new_s = (unsigned char*)RASQAL_MALLOC(sstring, len+1);
       if(new_s) {
         raptor_uri* dt_uri = NULL;
@@ -1865,9 +1864,8 @@ rasqal_new_literal_from_promotion(rasqal_literal* lit,
       break;
     
     case RASQAL_LITERAL_STRING:
-      s = rasqal_literal_as_string(lit);
-      len = strlen((const char*)s);
-      new_s = (unsigned char*)RASQAL_MALLOC(sstring, len+1);
+      s = rasqal_literal_as_counted_string(lit, &len, 0, NULL);
+      new_s = (unsigned char*)RASQAL_MALLOC(sstring, len + 1);
       if(new_s) {
         memcpy(new_s, s, len + 1);
         new_lit = rasqal_new_string_literal(lit->world, new_s, NULL, NULL, NULL);
@@ -1875,9 +1873,8 @@ rasqal_new_literal_from_promotion(rasqal_literal* lit,
       break;
 
     case RASQAL_LITERAL_XSD_STRING:
-      s = rasqal_literal_as_string(lit);
-      len = strlen((const char*)s);
-      new_s = (unsigned char*)RASQAL_MALLOC(sstring, len+1);
+      s = rasqal_literal_as_counted_string(lit, &len, 0, NULL);
+      new_s = (unsigned char*)RASQAL_MALLOC(sstring, len + 1);
       if(new_s) {
         raptor_uri* dt_uri;
         memcpy(new_s, s, len + 1);
@@ -2886,7 +2883,8 @@ rasqal_literal_cast(rasqal_literal* l, raptor_uri* to_datatype, int flags,
   rasqal_literal* result = NULL;
   rasqal_literal_type from_native_type;
   rasqal_literal_type to_native_type;
-
+  size_t len;
+  
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(l, rasqal_literal, NULL);
   
   l = rasqal_literal_value(l);
@@ -2910,6 +2908,7 @@ rasqal_literal_cast(rasqal_literal* l, raptor_uri* to_datatype, int flags,
       case RASQAL_LITERAL_XSD_STRING:
       case RASQAL_LITERAL_UDT:
         string = l->string;
+        len =  l->string_len;
         break;
 
       /* XSD datatypes: RASQAL_LITERAL_FIRST_XSD to RASQAL_LITERAL_LAST_XSD */
@@ -2926,10 +2925,12 @@ rasqal_literal_cast(rasqal_literal* l, raptor_uri* to_datatype, int flags,
           break;
         }
         string = l->string;
+        len =  l->string_len;
         break;
 
       case RASQAL_LITERAL_DATETIME:
         string = l->string;
+        len =  l->string_len;
         break;
 
       /* SPARQL casts - FIXME */
@@ -2937,6 +2938,7 @@ rasqal_literal_cast(rasqal_literal* l, raptor_uri* to_datatype, int flags,
       case RASQAL_LITERAL_PATTERN:
       case RASQAL_LITERAL_QNAME:
         string = l->string;
+        len =  l->string_len;
         break;
 
       case RASQAL_LITERAL_URI:
@@ -2946,7 +2948,7 @@ rasqal_literal_cast(rasqal_literal* l, raptor_uri* to_datatype, int flags,
           break;
         }
 
-        string = raptor_uri_as_string(l->value.uri);
+        string = raptor_uri_as_counted_string(l->value.uri, &len);
         break;
 
       case RASQAL_LITERAL_VARIABLE:
@@ -2986,13 +2988,12 @@ rasqal_literal_cast(rasqal_literal* l, raptor_uri* to_datatype, int flags,
     return NULL;
   }
 
-  new_string = (unsigned char*)RASQAL_MALLOC(string, 
-                                             strlen((const char*)string)+1);
+  new_string = (unsigned char*)RASQAL_MALLOC(string, len + 1);
   if(!new_string) {
     *error_p = 1;
     return NULL;
   }
-  strcpy((char*)new_string, (const char*)string);
+  memcpy(new_string, string, len + 1);
   to_datatype = raptor_uri_copy(to_datatype);  
   
   result = rasqal_new_string_literal(l->world, new_string, NULL,

@@ -153,11 +153,10 @@ rasqal_expression_evaluate_set_case(rasqal_world *world,
   if(!l1)
     return NULL;
   
-  s = rasqal_literal_as_string_flags(l1, flags, &error);
+  s = rasqal_literal_as_counted_string(l1, &len, flags, &error);
   if(error)
     goto failed;
 
-  len = strlen((const char*)s);
   new_s =(unsigned char*)RASQAL_MALLOC(cstring, len + 1);
   if(!new_s)
     goto failed;
@@ -314,17 +313,14 @@ rasqal_expression_evaluate_str_prefix_suffix(rasqal_world *world,
   if(!rasqal_literals_sparql11_compatible(l1, l2))
     goto failed;
   
-  s1 = rasqal_literal_as_string_flags(l1, flags, &error);
+  s1 = rasqal_literal_as_counted_string(l1, &len1, flags, &error);
   if(error)
     goto failed;
   
-  s2 = rasqal_literal_as_string_flags(l2, flags, &error);
+  s2 = rasqal_literal_as_counted_string(l2, &len2, flags, &error);
   if(error)
     goto failed;
 
-  len1 = strlen((const char*)s1);
-  len2 = strlen((const char*)s2);
-  
   if(len1 < len2) {
     /* s1 is shorter than s2 so s2 can never be a prefix, suffix or
      * contain s1 */
@@ -557,12 +553,13 @@ rasqal_expression_evaluate_strmatch(rasqal_world *world,
   regex_t reg;
   int options=REG_EXTENDED | REG_NOSUB;
 #endif
+  size_t match_len;
     
   l1 = rasqal_expression_evaluate(world, locator, e->arg1, flags);
   if(!l1)
     goto failed;
 
-  match_string=rasqal_literal_as_string_flags(l1, flags, &error);
+  match_string = rasqal_literal_as_counted_string(l1, &match_len, flags, &error);
   if(error || !match_string) {
     rasqal_free_literal(l1);
     goto failed;
@@ -610,7 +607,7 @@ rasqal_expression_evaluate_strmatch(rasqal_world *world,
   } else {
     rc=pcre_exec(re, 
                  NULL, /* no study */
-                 (const char*)match_string, strlen((const char*)match_string),
+                 (const char*)match_string, match_len,
                  0 /* startoffset */,
                  0 /* options */,
                  NULL, 0 /* ovector, ovecsize - no matches wanted */
