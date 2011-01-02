@@ -1220,8 +1220,8 @@ rasqal_xsd_datetime_get_timezone_as_counted_string(rasqal_xsd_datetime *dt,
 #define TZ_STR_SIZE 10
   char* tz_str;
   char* p;
+  int minutes;
   unsigned int hours;
-  unsigned int minutes;
   
   if(!dt)
     return NULL;
@@ -1231,26 +1231,45 @@ rasqal_xsd_datetime_get_timezone_as_counted_string(rasqal_xsd_datetime *dt,
     return NULL;
   
   p = tz_str;
-  
-  if(dt->timezone_minutes < 0)
+
+  minutes = dt->timezone_minutes;
+  if(minutes < 0) {
     *p++ = '-';
+    minutes = -minutes;
+  }
 
   *p++ = 'P';
   *p++ = 'T';
     
-  hours = (dt->timezone_minutes / 60);
+  hours = (minutes / 60);
   if(hours) {
-    sprintf(p, "%dH", hours);
-    p += 3;
+#if 1
+    if(hours > 9) {
+      *p++ = '0' + (hours / 10);
+      hours %= 10;
+    }
+    *p++ = '0' + hours;
+    *p++ = 'H';
+#else
+    p += sprintf(p, "%dH", hours);
+#endif
+    minutes -= hours * 60;
   }
   
-  minutes = (dt->timezone_minutes % 60);
-  if(hours) {
-    sprintf(p, "%dM", minutes);
-    p += 3;
+  if(minutes) {
+#if 1
+    if(minutes > 9) {
+      *p++ = '0' + (minutes / 10);
+      minutes %= 10;
+    }
+    *p++ = '0' + minutes;
+    *p++ = 'M';
+#else
+    p += sprintf(p, "%dM", minutes);
+#endif
   }
 
-  if(!hours && !minutes) {
+  if(!dt->timezone_minutes) {
     *p++ = '0';
     *p++ = 'S';
   }
