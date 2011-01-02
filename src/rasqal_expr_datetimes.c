@@ -261,8 +261,7 @@ rasqal_expression_evaluate_datetime_timezone(rasqal_world *world,
                                              int flags)
 {
   rasqal_literal* l;
-  char* s;
-  size_t len;
+  const unsigned char* s;
 
   l = rasqal_expression_evaluate(world, locator, e->arg1, flags);
   if(!l)
@@ -272,8 +271,8 @@ rasqal_expression_evaluate_datetime_timezone(rasqal_world *world,
     goto failed;
   
 
-  s = rasqal_xsd_datetime_get_timezone_as_counted_string(l->value.datetime,
-                                                         &len);
+  s = (const unsigned char*)rasqal_xsd_datetime_get_timezone_as_counted_string(l->value.datetime,
+                                                                               NULL);
   if(!s)
     return NULL;
 
@@ -286,4 +285,3 @@ rasqal_expression_evaluate_datetime_timezone(rasqal_world *world,
 
   return NULL;
 }
-
