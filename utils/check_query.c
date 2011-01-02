@@ -255,6 +255,41 @@ check_query_init_query(rasqal_world *world,
 }
 
 
+static void
+print_bindings_result_simple(rasqal_query_results *results, FILE* output,
+                             int quiet)
+{
+  while(!rasqal_query_results_finished(results)) {
+    int i;
+    
+    fputs("result: [", output);
+    for(i = 0; i < rasqal_query_results_get_bindings_count(results); i++) {
+      const unsigned char *name;
+      rasqal_literal *value;
+      
+      name = rasqal_query_results_get_binding_name(results, i);
+      value = rasqal_query_results_get_binding_value(results, i);
+      
+      if(i > 0)
+        fputs(", ", output);
+      
+      fprintf(output, "%s=", name);
+      
+      if(value)
+        rasqal_literal_print(value, output);
+      else
+        fputs("NULL", output);
+    }
+    fputs("]\n", output);
+    
+    rasqal_query_results_next(results);
+  }
+
+  if(!quiet)
+    fprintf(stderr, "%s: Query returned %d results\n", program, 
+            rasqal_query_results_get_count(results));
+}
+
 
 #define DEFAULT_QUERY_LANGUAGE "sparql"
 
@@ -283,6 +318,7 @@ main(int argc, char *argv[])
   char* data_graph_parser_name = NULL;
   raptor_iostream* result_iostr = NULL;
   rasqal_dataset* ds = NULL;
+  rasqal_query_results_type results_type;
 
   /* Set globals */
   if(1) {
@@ -571,10 +607,8 @@ main(int argc, char *argv[])
 
   /* Read expected results */
   if(1) {
-    rasqal_query_results_type type;
-    
-    type = rasqal_query_get_result_type(rq);
-    fprintf(stderr, "%s: Expecting result type %d\n", program, type);
+    results_type = rasqal_query_get_result_type(rq);
+    fprintf(stderr, "%s: Expecting result type %d\n", program, results_type);
 
     /* Read result file */
     result_iostr = raptor_new_iostream_from_filename(raptor_world_ptr,
@@ -587,7 +621,7 @@ main(int argc, char *argv[])
     }
 
 
-    switch(type) {
+    switch(results_type) {
       case RASQAL_QUERY_RESULTS_BINDINGS:
       case RASQAL_QUERY_RESULTS_BOOLEAN:
         /* read results via rasqal query results format */
@@ -603,7 +637,8 @@ main(int argc, char *argv[])
                                                   query_results_base_uri_string);
 
           vars_table = rasqal_new_variables_table(world);
-          expected_results = rasqal_new_query_results(world, NULL, type, 
+          expected_results = rasqal_new_query_results(world, NULL,
+                                                      results_type, 
                                                       vars_table);
           rasqal_free_variables_table(vars_table); vars_table = NULL;
 
@@ -689,12 +724,29 @@ main(int argc, char *argv[])
 
   results = rasqal_query_execute(rq);
   if(results) {
-    rasqal_query_results_type type;
-
-    /* success in executing query */
-    type = rasqal_query_results_get_type(results);
+    switch(results_type) {
+      case RASQAL_QUERY_RESULTS_BINDINGS:
+        fprintf(stderr, "%s: Expected bindings results:\n", program);
+        print_bindings_result_simple(expected_results, stderr, 1);
+        
+        fprintf(stderr, "%s: Actual bindings results:\n", program);
+        print_bindings_result_simple(results, stderr, 1);
+        break;
+        
+      case RASQAL_QUERY_RESULTS_BOOLEAN:
+      case RASQAL_QUERY_RESULTS_GRAPH:
+      case RASQAL_QUERY_RESULTS_SYNTAX:
+      case RASQAL_QUERY_RESULTS_UNKNOWN:
+        /* failure */
+        fprintf(stderr, "%s: Query result format %d cannot be tested.", 
+                program, results_type);
+        rc = 1;
+        goto tidy_setup;
+        break;
+    }
   } else
     rc = 1;
+
 
   if(verbose) {
     fprintf(stdout, "%s: Result: %s\n", program, rc ? "FAILURE" : "success");
