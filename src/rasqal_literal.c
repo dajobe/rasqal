@@ -1526,6 +1526,68 @@ rasqal_literal_as_uri(rasqal_literal* l)
 
 
 /**
+ * rasqal_literal_as_counted_string:
+ * @l: #rasqal_literal object
+ * @len_p: pointer to store length of string (or NULL)
+ * @flags: comparison flags
+ * @error: pointer to error
+ *
+ * Return a counted string format of a literal according to flags.
+ * 
+ * flag bits affects conversion:
+ *   RASQAL_COMPARE_XQUERY: use XQuery conversion rules
+ * 
+ * If @error is not NULL, *error is set to non-0 on error
+ *
+ * Return value: pointer to a shared string format of the literal.
+ **/
+const unsigned char*
+rasqal_literal_as_counted_string(rasqal_literal* l, size_t *len_p,
+                                 int flags, int *error)
+{
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(l, rasqal_literal, NULL);
+  
+  switch(l->type) {
+    case RASQAL_LITERAL_XSD_STRING:
+    case RASQAL_LITERAL_BOOLEAN:
+    case RASQAL_LITERAL_INTEGER:
+    case RASQAL_LITERAL_DOUBLE:
+    case RASQAL_LITERAL_STRING:
+    case RASQAL_LITERAL_BLANK:
+    case RASQAL_LITERAL_PATTERN:
+    case RASQAL_LITERAL_QNAME:
+    case RASQAL_LITERAL_FLOAT:
+    case RASQAL_LITERAL_DECIMAL:
+    case RASQAL_LITERAL_DATETIME:
+    case RASQAL_LITERAL_UDT:
+    case RASQAL_LITERAL_INTEGER_SUBTYPE:
+      if(len_p)
+        *len_p = l->string_len;
+
+      return l->string;
+
+    case RASQAL_LITERAL_URI:
+      if(flags & RASQAL_COMPARE_XQUERY) {
+        if(error)
+          *error = 1;
+        return NULL;
+      }
+      return raptor_uri_as_counted_string(l->value.uri, len_p);
+
+    case RASQAL_LITERAL_VARIABLE:
+      return rasqal_literal_as_counted_string(l->value.variable->value, len_p,
+                                              flags, error);
+
+    case RASQAL_LITERAL_UNKNOWN:
+    default:
+      RASQAL_FATAL2("Unknown literal type %d", l->type);
+  }
+
+  return NULL;
+}
+
+
+/**
  * rasqal_literal_as_string_flags:
  * @l: #rasqal_literal object
  * @flags: comparison flags
@@ -1544,40 +1606,8 @@ const unsigned char*
 rasqal_literal_as_string_flags(rasqal_literal* l, int flags, int *error)
 {
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(l, rasqal_literal, NULL);
-  
-  switch(l->type) {
-    case RASQAL_LITERAL_XSD_STRING:
-    case RASQAL_LITERAL_BOOLEAN:
-    case RASQAL_LITERAL_INTEGER:
-    case RASQAL_LITERAL_DOUBLE:
-    case RASQAL_LITERAL_STRING:
-    case RASQAL_LITERAL_BLANK:
-    case RASQAL_LITERAL_PATTERN:
-    case RASQAL_LITERAL_QNAME:
-    case RASQAL_LITERAL_FLOAT:
-    case RASQAL_LITERAL_DECIMAL:
-    case RASQAL_LITERAL_DATETIME:
-    case RASQAL_LITERAL_UDT:
-    case RASQAL_LITERAL_INTEGER_SUBTYPE:
-      return l->string;
 
-    case RASQAL_LITERAL_URI:
-      if(flags & RASQAL_COMPARE_XQUERY) {
-        if(error)
-          *error = 1;
-        return NULL;
-      }
-      return raptor_uri_as_string(l->value.uri);
-
-    case RASQAL_LITERAL_VARIABLE:
-      return rasqal_literal_as_string_flags(l->value.variable->value, flags,
-                                            error);
-
-    case RASQAL_LITERAL_UNKNOWN:
-    default:
-      RASQAL_FATAL2("Unknown literal type %d", l->type);
-      return NULL; /* keep some compilers happy */
-  }
+  return rasqal_literal_as_counted_string(l, NULL, flags, error);
 }
 
 
