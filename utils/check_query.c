@@ -55,9 +55,9 @@
 
 /* Rasqal includes */
 #include <rasqal.h>
-#ifdef RASQAL_INTERNAL
+
+/* FIXME - this uses internal APIs */
 #include <rasqal_internal.h>
-#endif
 
 
 #ifdef BUFSIZ
@@ -279,6 +279,8 @@ main(int argc, char *argv[])
   rasqal_query_results* results = NULL;
   raptor_sequence* data_graphs = NULL;
   char* data_graph_parser_name = NULL;
+  raptor_iostream* result_iostr = NULL;
+  rasqal_dataset* ds;
 
   /* Set globals */
   if(1) {
@@ -519,21 +521,6 @@ main(int argc, char *argv[])
   }
 
 
-  /* Read result file */
-  if(1) {
-    FILE *fh;
-    
-    fh = fopen(result_filename, "r");
-    if(!fh) {
-      fprintf(stderr, "%s: result file '%s' open failed - %s", 
-              program, result_filename, strerror(errno));
-      rc = 1;
-      goto tidy_setup;
-    }
-    fclose(fh);
-  }
-
-
   /* Compute query base URI from filename or passed in -Q QUERY-BASE-URI */
   if(!query_base_uri_string) {
     query_base_uri_string = raptor_uri_filename_to_uri_string(query_filename);
@@ -579,12 +566,71 @@ main(int argc, char *argv[])
   /* Query prepared OK - we now know the query details such as result type */
 
 
-  /* Report expected result type */
+  /* Read expected results */
   if(1) {
     rasqal_query_results_type type;
     
     type = rasqal_query_get_result_type(rq);
     fprintf(stderr, "%s: Expecting result type %d\n", program, type);
+
+    /* Read result file */
+    result_iostr = raptor_new_iostream_from_filename(raptor_world_ptr,
+                                                     result_filename);
+    if(!result_iostr) {
+      fprintf(stderr, "%s: result file '%s' open failed - %s", 
+              program, result_filename, strerror(errno));
+      rc = 1;
+      goto tidy_setup;
+    }
+
+
+    switch(type) {
+      case RASQAL_QUERY_RESULTS_BINDINGS:
+      case RASQAL_QUERY_RESULTS_BOOLEAN:
+        /* read results via rasqal query results format */
+        break;
+
+      case RASQAL_QUERY_RESULTS_GRAPH:
+        /* read results via raptor parser */
+
+        if(1) {
+          const char* format_name = "xml";
+          
+          ds = rasqal_new_dataset(world);
+          if(!ds) {
+            fprintf(stderr, "%s: Failed to create dataset", program);
+            rc = 1;
+            goto tidy_setup;
+          }
+
+          if(rasqal_dataset_load_graph_iostream(ds, format_name, 
+                                                result_iostr, NULL)) {
+            fprintf(stderr, "%s: Failed to load graph into dataset", program);
+            rc = 1;
+            goto tidy_setup;
+          }
+
+          rasqal_free_dataset(ds); ds = NULL;
+        }
+        break;
+        
+      case RASQAL_QUERY_RESULTS_SYNTAX:
+        fprintf(stderr, 
+                "%s: Reading query results format 'syntax' is not supported", 
+                program);
+        rc = 1;
+        goto tidy_setup;
+        break;
+
+      case RASQAL_QUERY_RESULTS_UNKNOWN:
+        /* failure */
+        fprintf(stderr, "%s: Unknown query result format cannot be tested.", 
+                program);
+        rc = 1;
+        goto tidy_setup;
+        break;
+    }
+    
   }
 
 
@@ -611,6 +657,12 @@ main(int argc, char *argv[])
 
 
   tidy_setup:
+  if(result_iostr)
+    raptor_free_iostream(result_iostr);
+  
+  if(ds)
+    rasqal_free_dataset(ds);
+
   if(free_query_base_uri_string)
     raptor_free_memory(query_base_uri_string);
 
