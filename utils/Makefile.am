@@ -21,6 +21,7 @@
 # 
 
 bin_PROGRAMS = roqet
+noinst_PROGRAMS = check-query
 EXTRA_PROGRAMS = srxread srxwrite
 
 CLEANFILES = $(EXTRA_PROGRAMS)
@@ -38,6 +39,13 @@ roqet_SOURCES += getopt.c rasqal_getopt.h
 endif
 roqet_LDADD = $(top_builddir)/src/librasqal.la
 roqet_LDFLAGS = `@RAPTOR_CONFIG@ --libs`
+
+check_query_SOURCES = check_query.c
+if GETOPT
+check_query_SOURCES += getopt.c rasqal_getopt.h
+endif
+check_query_LDADD = $(top_builddir)/src/librasqal.la
+check_query_LDFLAGS = `@RAPTOR_CONFIG@ --libs`
 
 srxread_SOURCES = srxread.c
 srxread_LDADD = $(top_builddir)/src/librasqal.la
