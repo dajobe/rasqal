@@ -986,6 +986,9 @@ RASQAL_API
 const raptor_syntax_description* rasqal_world_get_query_results_format_description(rasqal_world* world, unsigned int counter);
 #endif
 
+RASQAL_API
+const char* rasqal_world_guess_query_results_format_name(rasqal_world* world, rasqal_uri *uri, const char *mime_type, const unsigned char *buffer, size_t len, const unsigned char *identifier);
+
 /* Features */
 RASQAL_API
 int rasqal_features_enumerate(rasqal_world* world, const rasqal_feature feature, const char **name, raptor_uri **uri, const char **label);
@@ -1292,6 +1295,7 @@ rasqal_query_results_formatter* rasqal_new_query_results_formatter(rasqal_world*
 RASQAL_API RASQAL_DEPRECATED
 rasqal_query_results_formatter* rasqal_new_query_results_formatter_by_mime_type(rasqal_world* world, const char *mime_type);
 #endif
+rasqal_query_results_formatter* rasqal_new_query_results_formatter_for_content(rasqal_world* world, raptor_uri *uri, const char *mime_type, const unsigned char *buffer, size_t len, const unsigned char *identifier);
 RASQAL_API
 void rasqal_free_query_results_formatter(rasqal_query_results_formatter* formatter);
 RASQAL_API

@@ -32,6 +32,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
 #endif
@@ -486,6 +487,46 @@ rasqal_new_query_results_formatter_by_mime_type(rasqal_world* world,
 }
 
 
+
+/**
+ * rasqal_new_query_results_formatter_for_content:
+ * @world: world object
+ * @uri: URI identifying the syntax (or NULL)
+ * @mime_type: mime type identifying the content (or NULL)
+ * @buffer: buffer of content to guess (or NULL)
+ * @len: length of buffer
+ * @identifier: identifier of content (or NULL)
+ * 
+ * Constructor - create a new queryresults formatter for an identified format.
+ *
+ * Uses rasqal_world_guess_query_results_formatter_name() to find a
+ * query results formatter by scoring recognition of the syntax by a
+ * block of characters, the content identifier or a mime type.  The
+ * content identifier is typically a filename or URI or some other
+ * identifier.
+ * 
+ * Return value: a new #rasqal_query_results_formatter object or NULL on failure
+ **/
+rasqal_query_results_formatter*
+rasqal_new_query_results_formatter_for_content(rasqal_world* world,
+                                               raptor_uri *uri,
+                                               const char *mime_type,
+                                               const unsigned char *buffer,
+                                               size_t len,
+                                               const unsigned char *identifier)
+{
+  const char* name;
+
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
+
+  name = rasqal_world_guess_query_results_format_name(world,
+                                                      uri, mime_type,
+                                                      buffer, len,
+                                                      identifier);
+  return name ? rasqal_new_query_results_formatter2(world, name, NULL, NULL) : NULL;
+}
+
+
 /**
  * rasqal_free_query_results_formatter:
  * @formatter: #rasqal_query_results_formatter object
@@ -641,4 +682,164 @@ rasqal_query_results_formatter_read(rasqal_world *world,
     rasqal_free_rowsource(rowsource);
   
   return 0;
+}
+
+
+struct syntax_score
+{
+  int score;
+  rasqal_query_results_format_factory *factory;
+};
+
+
+static int
+compare_syntax_score(const void *a, const void *b) {
+  return ((struct syntax_score*)b)->score - ((struct syntax_score*)a)->score;
+}
+  
+
+/**
+ * rasqal_world_guess_query_results_format_name:
+ * @world: world object
+ * @uri: URI identifying the syntax (or NULL)
+ * @mime_type: mime type identifying the content (or NULL)
+ * @buffer: buffer of content to guess (or NULL)
+ * @len: length of buffer
+ * @identifier: identifier of content (or NULL)
+ *
+ * Guess a query results format name for content.
+ * 
+ * Find a query results format by scoring recognition of the syntax
+ * by a block of characters, the content identifier or a mime type.
+ * The content identifier is typically a filename or URI or some
+ * other identifier.
+ * 
+ * Return value: a query results format name or NULL if no guess
+ * could be made
+ **/
+const char*
+rasqal_world_guess_query_results_format_name(rasqal_world* world,
+                                             raptor_uri *uri,
+                                             const char *mime_type,
+                                             const unsigned char *buffer,
+                                             size_t len,
+                                             const unsigned char *identifier)
+{
+  unsigned int i;
+  rasqal_query_results_format_factory *factory;
+  unsigned char *suffix = NULL;
+  struct syntax_score* scores;
+
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
+
+  scores = (struct syntax_score*)RASQAL_CALLOC(syntax_scores,
+                                               raptor_sequence_size(world->query_results_formats),
+                                               sizeof(struct syntax_score));
+  if(!scores)
+    return NULL;
+  
+  if(identifier) {
+    unsigned char *p = (unsigned char*)strrchr((const char*)identifier, '.');
+    if(p) {
+      unsigned char *from, *to;
+
+      p++;
+      suffix = (unsigned char*)RASQAL_MALLOC(cstring,
+                                             strlen((const char*)p) + 1);
+      if(!suffix)
+        return NULL;
+
+      for(from = p, to = suffix; *from; ) {
+        unsigned char c = *from++;
+        /* discard the suffix if it wasn't '\.[a-zA-Z0-9]+$' */
+        if(!isalpha(c) && !isdigit(c)) {
+          RASQAL_FREE(cstring, suffix);
+          suffix = NULL;
+          to = NULL;
+          break;
+        }
+        *to++ = isupper(c) ? (unsigned char)tolower(c): c;
+      }
+      if(to)
+        *to = '\0';
+    }
+  }
+
+  for(i = 0;
+      (factory = (rasqal_query_results_format_factory*)raptor_sequence_get_at(world->query_results_formats, i));
+      i++) {
+    int score = -1;
+    const raptor_type_q* type_q = NULL;
+    
+    if(mime_type && factory->desc.mime_types) {
+      int j;
+      type_q = NULL;
+      for(j = 0; 
+          (type_q = &factory->desc.mime_types[j]) && type_q->mime_type;
+          j++) {
+        if(!strcmp(mime_type, type_q->mime_type))
+          break;
+      }
+      /* got an exact match mime type - score it via the Q */
+      if(type_q)
+        score = type_q->q;
+    }
+    /* mime type match has high Q - return result */
+    if(score >= 10)
+      break;
+    
+    if(uri && factory->desc.uri_strings) {
+      int j;
+      const char* uri_string = (const char*)raptor_uri_as_string(uri);
+      const char* factory_uri_string = NULL;
+      
+      for(j = 0;
+          (factory_uri_string = factory->desc.uri_strings[j]);
+          j++) {
+        if(!strcmp(uri_string, factory_uri_string))
+          break;
+      }
+      if(factory_uri_string)
+        /* got an exact match syntax for URI - return result */
+        break;
+    }
+    
+    if(factory->recognise_syntax) {
+      int c = -1;
+    
+      /* Only use first N bytes to avoid HTML documents that contain examples */
+#define FIRSTN 1024
+      if(buffer && len && len > FIRSTN) {
+        c = buffer[FIRSTN];
+        ((char*)buffer)[FIRSTN] = '\0';
+      }
+
+      score += factory->recognise_syntax(factory, buffer, len, 
+                                         identifier, suffix, 
+                                         mime_type);
+
+      if(c >= 0)
+        ((char*)buffer)[FIRSTN] = c;
+    }
+
+    scores[i].score = score < 10 ? score : 10; 
+    scores[i].factory = factory;
+#if RASQAL_DEBUG > 2
+    RASQAL_DEBUG3("Score %15s : %d\n", factory->name, score);
+#endif
+  }
+  
+  if(!factory) {
+    /* sort the scores and pick a factory */
+    qsort(scores, i, sizeof(struct syntax_score), compare_syntax_score);
+    if(scores[0].score >= 0)
+      factory = scores[0].factory;
+  }
+
+  if(suffix)
+    RASQAL_FREE(cstring, suffix);
+
+  RASQAL_FREE(syntax_scores, scores);
+  
+  return factory ? factory->desc.names[0] : NULL;
 }
