@@ -282,7 +282,7 @@ main(int argc, char *argv[])
   raptor_sequence* data_graphs = NULL;
   char* data_graph_parser_name = NULL;
   raptor_iostream* result_iostr = NULL;
-  rasqal_dataset* ds;
+  rasqal_dataset* ds = NULL;
 
   /* Set globals */
   if(1) {
