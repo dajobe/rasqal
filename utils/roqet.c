@@ -659,7 +659,6 @@ roqet_init_query(rasqal_world *world,
                  raptor_sequence* data_graphs)
 {
   rasqal_query* rq;
-  rasqal_query_results* results = NULL;
 
   rq = rasqal_new_query(world, (const char*)ql_name,
                         (const unsigned char*)ql_uri);
@@ -693,7 +692,6 @@ roqet_init_query(rasqal_world *world,
       if(rasqal_query_add_data_graph2(rq, dg)) {
         fprintf(stderr, "%s: Failed to add data graph to query\n",
                 program);
-        rasqal_free_query_results(results); results = NULL;
         goto tidy_query;
       }
     }
