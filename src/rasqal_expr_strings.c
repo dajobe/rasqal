@@ -166,8 +166,8 @@ rasqal_expression_evaluate_set_case(rasqal_world *world,
     
     for(i = 0; i < len; i++) {
       char c = s[i];
-      if(islower(c))
-        c = toupper(c);
+      if(islower((int)c))
+        c = toupper((int)c);
       new_s[i] = c;
     }
   } else { /* RASQAL_EXPR_LCASE */
@@ -175,8 +175,8 @@ rasqal_expression_evaluate_set_case(rasqal_world *world,
 
     for(i = 0; i < len; i++) {
       char c = s[i];
-      if(isupper(c))
-        c = tolower(c);
+      if(isupper((int)c))
+        c = tolower((int)c);
       new_s[i] = c;
     }
   }
