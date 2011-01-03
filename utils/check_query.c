@@ -386,6 +386,7 @@ typedef struct
   raptor_log_message message;
 } compare_query_results;
 
+
 static compare_query_results*
 new_compare_query_results(rasqal_query_results* qr1, const char* qr1_label,
                           rasqal_query_results* qr2, const char* qr2_label) 
