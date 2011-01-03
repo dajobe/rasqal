@@ -555,10 +555,12 @@ rasqal_query_results_get_row_from_saved(rasqal_query_results* query_results)
       continue;
     
     /* else got result or finished */
-    row = (rasqal_row*)raptor_sequence_delete_at(query_results->results_sequence,
-                                                 query_results->result_count - 1);
+    row = (rasqal_row*)raptor_sequence_get_at(query_results->results_sequence,
+                                              query_results->result_count - 1);
     
     if(row) {
+      row = rasqal_new_row_from_row(row);
+      
       /* stored results may not be canonicalized yet - do it lazily */
       rasqal_row_to_nodes(row);
 
@@ -757,6 +759,76 @@ rasqal_query_results_finished(rasqal_query_results* query_results)
     rasqal_query_results_ensure_have_row_internal(query_results);
   
   return (query_results->failed || query_results->finished);
+}
+
+
+/**
+ * rasqal_query_results_rewind:
+ * @query_results: #rasqal_query_results query_results
+ *
+ * Rewind stored query results to start
+ *
+ * This requires rasqal_query_set_store_results() to be called before
+ * query execution.
+ * 
+ * Return value: non-0 if rewinding is not available when results are not stored
+ **/
+int
+rasqal_query_results_rewind(rasqal_query_results* query_results)
+{
+  int size;
+  int limit;
+  int offset;
+  rasqal_query* query;
+  
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query_results, rasqal_query_results, 1);
+
+  if(!query_results->results_sequence)
+    return 1;
+
+  size = raptor_sequence_size(query_results->results_sequence);
+
+  /* This may be NULL for a static query result */
+  query = query_results->query;
+
+  if(query) {
+    /* If the query failed, it remains failed */
+    if(query->failed)
+      return 1;
+    
+    limit = rasqal_query_get_limit(query);
+    offset = rasqal_query_get_offset(query);
+  }
+  
+  /* reset to first result */
+  query_results->finished = (size == 0);
+  
+  if(query && !limit)
+    query_results->finished = 1;
+  
+  if(!query_results->finished) {
+    /* Reset to first result, index-1 into sequence of results */
+    query_results->result_count = 0;
+    
+    /* skip past any OFFSET */
+    if(query && offset > 0) {
+      query_results->result_count += offset;
+      
+      if(query_results->result_count >= size)
+        query_results->finished = 1;
+    }
+    
+  }
+
+    
+  if(query_results->finished)
+    query_results->result_count = 0;
+  else {
+    if(query && query->constructs)
+      rasqal_query_results_update_bindings(query_results);
+  }
+
+  return 0;
 }
 
 
@@ -1602,7 +1674,7 @@ rasqal_query_results_add_row(rasqal_query_results* query_results,
  *
  * INTERNAL - Store all query result (rows) immediately
  *
- * Return value: non-0 on finished or failure
+ * Return value: non-0 on failure
  */
 static int
 rasqal_query_results_execute_and_store_results(rasqal_query_results* query_results)
@@ -1627,40 +1699,10 @@ rasqal_query_results_execute_and_store_results(rasqal_query_results* query_resul
 
   if(!seq) {
     query_results->finished = 1;
-  } else {
-    int size;
-    int limit = rasqal_query_get_limit(query);
-    int offset = rasqal_query_get_offset(query);
+  } else
+    rasqal_query_results_rewind(query_results);
 
-    size = raptor_sequence_size(seq);
-    query_results->finished = (size == 0);
-    
-    if(query && !limit)
-      query_results->finished = 1;
-    
-    if(!query_results->finished) {
-      /* Reset to first result, index-1 into sequence of results */
-      query_results->result_count = 0;
-      
-      /* skip past any OFFSET */
-      if(query && offset > 0) {
-        query_results->result_count += offset;
-
-        if(query_results->result_count >= size)
-          query_results->finished = 1;
-      }
-      
-    }
-    
-    if(query_results->finished)
-      query_results->result_count = 0;
-    else {
-      if(query && query->constructs)
-        rasqal_query_results_update_bindings(query_results);
-    }
-  }
-
-  return query_results->finished;
+  return query_results->failed;
 }
 
 

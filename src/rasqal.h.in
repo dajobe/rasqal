@@ -1269,6 +1269,10 @@ int rasqal_query_results_read(raptor_iostream *iostr, rasqal_query_results *resu
 RASQAL_API
 int rasqal_query_results_read2(raptor_iostream *iostr, rasqal_query_results *results, const char* name, const char* mime_type, raptor_uri *format_uri, raptor_uri *base_uri);
 
+/* One more time */
+RASQAL_API
+int rasqal_query_results_rewind(rasqal_query_results* query_results);
+
 
 /**
  * RASQAL_QUERY_RESULTS_FORMAT_FLAG_READER:
