@@ -470,21 +470,21 @@ rasqal_query_results_is_syntax(rasqal_query_results* query_results)
 
 
 /**
- * rasqal_query_results_check_limit_offset:
+ * rasqal_query_check_limit_offset:
  * @query_results: query results object
+ * @result_offset: offset to check
  *
  * INTERNAL - Check the query result count is in the limit and offset range if any.
  *
  * Return value: before range -1, in range 0, after range 1
  */
 int
-rasqal_query_results_check_limit_offset(rasqal_query_results* query_results)
+rasqal_query_check_limit_offset(rasqal_query* query,
+                                int result_offset)
 {
-  rasqal_query* query;
   int limit;
   int offset;
   
-  query = query_results->query;
   if(!query)
     return 0;
 
@@ -498,19 +498,19 @@ rasqal_query_results_check_limit_offset(rasqal_query_results* query_results)
   
   if(offset > 0) {
     /* offset */
-    if(query_results->result_count <= offset)
+    if(result_offset <= offset)
       return -1;
     
     if(limit >= 0) {
       /* offset and limit */
-      if(query_results->result_count > (offset + limit)) {
+      if(result_offset > (offset + limit)) {
         return 1;
       }
     }
     
   } else if(limit >= 0) {
     /* limit */
-    if(query_results->result_count > limit) {
+    if(result_offset > limit) {
       return 1;
     }
   }
@@ -546,7 +546,7 @@ rasqal_query_results_get_row_from_saved(rasqal_query_results* query_results)
     
     query_results->result_count++;
     
-    check = rasqal_query_results_check_limit_offset(query_results);
+    check = rasqal_query_check_limit_offset(query, query_results->result_count);
     
     /* finished if beyond result range */
     if(check > 0) {
@@ -621,7 +621,8 @@ rasqal_query_results_ensure_have_row_internal(rasqal_query_results* query_result
 
       query_results->result_count++;
       
-      check = rasqal_query_results_check_limit_offset(query_results);
+      check = rasqal_query_check_limit_offset(query_results->query,
+                                              query_results->result_count);
       
       /* finished if beyond result range */
       if(check > 0) {

@@ -1505,7 +1505,8 @@ rasqal_query_engine_1_get_row(void* ex_data, rasqal_engine_error *error_p)
     /* otherwise is >0 match */
     execution_data->result_count++;
 
-    check = rasqal_query_results_check_limit_offset(query_results);
+    check = rasqal_query_check_limit_offset(execution_data->query,
+                                            execution_data->result_count);
     
     /* finished if beyond result range */
     if(check > 0) {

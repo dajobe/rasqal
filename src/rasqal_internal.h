@@ -1197,7 +1197,7 @@ int rasqal_query_get_bound_in_column_for_variable(rasqal_query* query, rasqal_va
 int rasqal_init_query_results(void);
 void rasqal_finish_query_results(void);
 int rasqal_query_results_execute_with_engine(rasqal_query_results* query_results, const rasqal_query_execution_factory* factory, int store_results);
-int rasqal_query_results_check_limit_offset(rasqal_query_results* query_results);
+int rasqal_query_check_limit_offset(rasqal_query* query, int result_offset);
 void rasqal_query_results_remove_query_reference(rasqal_query_results* query_results);
 rasqal_variables_table* rasqal_query_results_get_variables_table(rasqal_query_results* query_results);
 rasqal_row* rasqal_query_results_get_current_row(rasqal_query_results* query_results);
