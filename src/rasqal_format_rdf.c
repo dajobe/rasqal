@@ -120,7 +120,7 @@ typedef struct
 } rasqal_rowsource_rdf_context;
 
 
-static const unsigned char* rs_namespace_uri_string =
+static const unsigned char* const rs_namespace_uri_string =
   (const unsigned char*)"http://www.w3.org/2001/sw/DataAccess/tests/result-set#";
 
 
