@@ -127,9 +127,12 @@ check_query_log_handler(void* user_data, raptor_log_message *message)
   if(message->level < RAPTOR_LOG_LEVEL_ERROR)
     return;
 
-  fprintf(stderr, "%s: Error - ", program);
-  raptor_locator_print(message->locator, stderr);
-  fprintf(stderr, " - %s\n", message->text);
+  fprintf(stderr, "%s: Error: ", program);
+  if(message->locator) {
+    raptor_locator_print(message->locator, stderr);
+    fputs(" : ", stderr);
+  }
+  fprintf(stderr, "%s\n", message->text);
 
   error_count++;
 }
@@ -138,9 +141,12 @@ static void
 check_query_error_handler(void *user_data, 
                           raptor_locator* locator, const char *message) 
 {
-  fprintf(stderr, "%s: Error - ", program);
-  raptor_print_locator(stderr, locator);
-  fprintf(stderr, " - %s\n", message);
+  fprintf(stderr, "%s: Error: ", program);
+  if(locator) {
+    raptor_print_locator(stderr, locator);
+    fputs(" : ", stderr);
+  }
+  fprintf(stderr, "%s\n", message);
 
   error_count++;
 }
@@ -365,6 +371,124 @@ check_query_read_results(rasqal_world* world,
 
   return NULL;
 }
+
+
+typedef struct 
+{
+  rasqal_query_results* qr1;
+  const char* qr1_label;
+  rasqal_query_results* qr2;
+  const char* qr2_label;
+  
+  void* log_user_data;
+  raptor_log_handler log_handler;
+
+  raptor_log_message message;
+} compare_query_results;
+
+static compare_query_results*
+new_compare_query_results(rasqal_query_results* qr1, const char* qr1_label,
+                          rasqal_query_results* qr2, const char* qr2_label) 
+{
+  compare_query_results* cqr;
+  
+  cqr = (compare_query_results*)RASQAL_CALLOC(compare_query_results, 
+                                              1, sizeof(*cqr));
+  if(!cqr)
+    return NULL;
+  
+  cqr->qr1 = qr1;
+  cqr->qr1_label = qr1_label;
+  cqr->qr2 = qr2;
+  cqr->qr2_label = qr2_label;
+
+  cqr->message.code = -1;
+  cqr->message.domain = RAPTOR_DOMAIN_NONE;
+  cqr->message.level = RAPTOR_LOG_LEVEL_NONE;
+  cqr->message.locator = NULL;
+  cqr->message.text = NULL;
+  
+  return cqr;
+}
+
+
+static void
+free_compare_query_results(compare_query_results* cqr)
+{
+  if(!cqr)
+    return;
+  
+  RASQAL_FREE(compare_query_results, cqr);
+}
+
+
+static void
+compare_query_results_set_log_handler(compare_query_results* cqr,
+                                      void* log_user_data,
+                                      raptor_log_handler log_handler)
+{
+  cqr->log_user_data = log_user_data;
+  cqr->log_handler = log_handler;
+}
+
+
+/*
+ * Return value: non-0 if equal
+ */
+static int
+compare_compare_query_results(compare_query_results* cqr)
+{
+  int differences = 0;
+  int i;
+  
+  /* check variables in each results project the same variables */
+  for(i=0; 1; i++) {
+    const unsigned char* v1;
+    const unsigned char* v2;
+    
+    v1 = rasqal_query_results_get_binding_name(cqr->qr1, i);
+    v2 = rasqal_query_results_get_binding_name(cqr->qr2, i);
+    if(!v1 && !v2)
+      break;
+
+    if(v1 && v2) {
+      if(strcmp((const char*)v1, (const char*)v2)) {
+        /* different names */
+        differences++;
+      }
+    } else
+      /* one is NULL, the other is a name */
+      differences++;
+  }
+
+  if(differences) {
+    cqr->message.level = RAPTOR_LOG_LEVEL_ERROR;
+    cqr->message.text = "Projections are different";
+    if(cqr->log_handler)
+      cqr->log_handler(cqr->log_user_data, &cqr->message);
+
+    goto done;
+  }
+  
+
+  /* set results to be stored? */
+  /* need rewindable query results? */
+
+  /* sort rows by something ?  As long as the sort is the same it
+   * probably does not matter what the method is. */
+
+  /* what to do about blank nodes? */
+
+  /* for each row */
+    /* for each variable in row1 (== same variables in row2) */
+     /* if variable in row2 has same value, do nothing */
+     /* if variable in row2 has different value, do nothing */
+  /* end for each row */
+
+  done:
+  return (differences == 0);
+}
+
 
 
 #define DEFAULT_QUERY_LANGUAGE "sparql"
@@ -773,6 +897,17 @@ main(int argc, char *argv[])
         
         fprintf(stderr, "%s: Actual bindings results:\n", program);
         print_bindings_result_simple(results, stderr, 1);
+
+        if(1) {
+          compare_query_results* cqr;
+          cqr = new_compare_query_results(expected_results, "expected",
+                                          results, "actual");
+          compare_query_results_set_log_handler(cqr, world,
+                                                check_query_log_handler);
+          rc = !compare_compare_query_results(cqr);
+          free_compare_query_results(cqr); cqr = NULL;
+        }
+        
         break;
         
       case RASQAL_QUERY_RESULTS_BOOLEAN:
