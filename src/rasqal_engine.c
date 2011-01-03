@@ -1487,6 +1487,7 @@ rasqal_query_engine_1_get_row(void* ex_data, rasqal_engine_error *error_p)
 
   while(1) {
     int rc;
+    int check;
     
     /* rc<0 error rc=0 end of results,  rc>0 got a result */
     rc = rasqal_engine_get_next_result(execution_data);
@@ -1504,17 +1505,19 @@ rasqal_query_engine_1_get_row(void* ex_data, rasqal_engine_error *error_p)
     /* otherwise is >0 match */
     execution_data->result_count++;
 
+    check = rasqal_query_results_check_limit_offset(query_results);
+    
     /* finished if beyond result range */
-    if(rasqal_query_results_check_limit_offset(query_results) > 0) {
+    if(check > 0) {
       execution_data->result_count--;
       break;
     }
 
     /* continue if before start of result range */
-    if(rasqal_query_results_check_limit_offset(query_results) < 0)
+    if(check < 0)
       continue;
 
-    /* else got result or finished */
+    /* else got result */
     break;
 
   } /* while */

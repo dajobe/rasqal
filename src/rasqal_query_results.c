@@ -537,6 +537,8 @@ rasqal_query_results_get_row_from_saved(rasqal_query_results* query_results)
   size = raptor_sequence_size(query_results->results_sequence);
   
   while(1) {
+    int check;
+    
     if(query_results->result_count >= size) {
       query_results->finished = 1;
       break;
@@ -544,17 +546,20 @@ rasqal_query_results_get_row_from_saved(rasqal_query_results* query_results)
     
     query_results->result_count++;
     
+    check = rasqal_query_results_check_limit_offset(query_results);
+    
     /* finished if beyond result range */
-    if(rasqal_query_results_check_limit_offset(query_results) > 0) {
+    if(check > 0) {
+      query_results->finished = 1;
       query_results->result_count--;
       break;
     }
     
     /* continue if before start of result range */
-    if(rasqal_query_results_check_limit_offset(query_results) < 0)
+    if(check < 0)
       continue;
     
-    /* else got result or finished */
+    /* else got result */
     row = (rasqal_row*)raptor_sequence_get_at(query_results->results_sequence,
                                               query_results->result_count - 1);
     
@@ -603,6 +608,8 @@ rasqal_query_results_ensure_have_row_internal(rasqal_query_results* query_result
 
     /* handle limit/offset for incremental get_row() */
     while(1) {
+      int check;
+      
       query_results->row = query_results->execution_factory->get_row(query_results->execution_data, &execution_error);
       if(execution_error == RASQAL_ENGINE_FAILED) {
         query_results->failed = 1;
@@ -614,16 +621,20 @@ rasqal_query_results_ensure_have_row_internal(rasqal_query_results* query_result
 
       query_results->result_count++;
       
+      check = rasqal_query_results_check_limit_offset(query_results);
+      
       /* finished if beyond result range */
-      if(rasqal_query_results_check_limit_offset(query_results) > 0) {
+      if(check > 0) {
+        query_results->finished = 1;
         query_results->result_count--;
+
         /* empty row to trigger finished */
         rasqal_free_row(query_results->row); query_results->row = NULL;
         break;
       }
       
       /* continue if before start of result range */
-      if(rasqal_query_results_check_limit_offset(query_results) < 0) {
+      if(check < 0) {
         /* empty row because continuing */
         rasqal_free_row(query_results->row); query_results->row = NULL;
         continue;
