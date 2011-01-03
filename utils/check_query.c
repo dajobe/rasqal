@@ -292,6 +292,7 @@ print_bindings_result_simple(rasqal_query_results *results, FILE* output,
 
 
 #define DEFAULT_QUERY_LANGUAGE "sparql"
+#define DEFAULT_RESULT_FORMAT_NAME_GRAPH "guess"
 
 
 int
@@ -305,6 +306,7 @@ main(int argc, char *argv[])
   const char* query_language = DEFAULT_QUERY_LANGUAGE;
   const char* query_filename = NULL;
   const char* result_filename = NULL;
+  const char* result_format_name = NULL;
   unsigned char* query_string = NULL;
   size_t query_len = 0;
   unsigned char *query_base_uri_string = NULL;
@@ -315,7 +317,6 @@ main(int argc, char *argv[])
   rasqal_query_results* expected_results = NULL;
   rasqal_variables_table* vars_table;
   raptor_sequence* data_graphs = NULL;
-  char* data_graph_parser_name = NULL;
   raptor_iostream* result_iostr = NULL;
   rasqal_dataset* ds = NULL;
   rasqal_query_results_type results_type;
@@ -371,14 +372,7 @@ main(int argc, char *argv[])
 
       case 'F':
         if(optarg) {
-          if(!raptor_world_is_parser_name(raptor_world_ptr, optarg)) {
-              fprintf(stderr,
-                      "%s: invalid parser name `%s' for `" HELP_ARG(F, format) "'\n\n",
-                      program, optarg);
-              usage = 1;
-          } else {
-            data_graph_parser_name = optarg;
-          }
+          result_format_name = optarg;
         }
         break;
         
@@ -443,7 +437,7 @@ main(int argc, char *argv[])
                                                   source_uri,
                                                   graph_name,
                                                   type,
-                                                  NULL, data_graph_parser_name,
+                                                  NULL, result_format_name,
                                                   NULL);
 
             if(source_uri)
@@ -463,7 +457,7 @@ main(int argc, char *argv[])
                                                   source_uri,
                                                   graph_name,
                                                   type,
-                                                  NULL, data_graph_parser_name,
+                                                  NULL, result_format_name,
                                                   NULL);
 
             if(source_uri)
@@ -626,7 +620,7 @@ main(int argc, char *argv[])
       case RASQAL_QUERY_RESULTS_BOOLEAN:
         /* read results via rasqal query results format */
         if(1) {
-          const char* format_name;
+          const char* format_name = NULL;
           rasqal_query_results_formatter* qrf;
           unsigned char *query_results_base_uri_string = NULL;
           raptor_uri* query_results_base_uri;
@@ -648,12 +642,20 @@ main(int argc, char *argv[])
             goto tidy_setup;
           }
 
-          format_name = rasqal_world_guess_query_results_format_name(world,
-                                                                     NULL /* uri */,
-                                                                     NULL /* mime_type */,
-                                                                     NULL /*buffer */,
-                                                                     0,
-                                                                     (const unsigned char*)result_filename);
+          if(result_format_name) {
+            /* FIXME validate result format name is legal query
+             * results formatter name 
+             */
+            format_name = result_format_name;
+          }
+          
+          if(!format_name)
+            format_name = rasqal_world_guess_query_results_format_name(world,
+                                                                       NULL /* uri */,
+                                                                       NULL /* mime_type */,
+                                                                       NULL /*buffer */,
+                                                                       0,
+                                                                       (const unsigned char*)result_filename);
 
           qrf = rasqal_new_query_results_formatter2(world, 
                                                     format_name, 
@@ -680,7 +682,21 @@ main(int argc, char *argv[])
         /* read results via raptor parser */
 
         if(1) {
-          const char* format_name = "xml";
+          const char* format_name = NULL;
+
+          if(result_format_name) {
+            if(!raptor_world_is_parser_name(raptor_world_ptr,
+                                            result_format_name)) {
+              fprintf(stderr,
+                      "%s: invalid parser name `%s' for `" HELP_ARG(F, format) "'\n\n",
+                      program, result_format_name);
+            } else
+              format_name = result_format_name;
+          }
+
+          if(!format_name)
+            format_name = DEFAULT_RESULT_FORMAT_NAME_GRAPH;
+
           
           ds = rasqal_new_dataset(world);
           if(!ds) {
