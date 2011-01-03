@@ -1188,7 +1188,6 @@ int rasqal_query_declare_prefix(rasqal_query* rq, rasqal_prefix* prefix);
 int rasqal_query_declare_prefixes(rasqal_query* rq);
 unsigned char* rasqal_query_get_genid(rasqal_query* query, const unsigned char* base, int counter);
 void rasqal_query_set_base_uri(rasqal_query* rq, raptor_uri* base_uri);
-void rasqal_query_set_store_results(rasqal_query* query, int store_results);
 rasqal_variable* rasqal_query_get_variable_by_offset(rasqal_query* query, int idx);
 const rasqal_query_execution_factory* rasqal_query_get_engine_by_name(const char* name);
 int rasqal_query_variable_bound_in_triple(rasqal_query *query, rasqal_variable *v, int column);

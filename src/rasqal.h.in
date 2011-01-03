@@ -1136,6 +1136,9 @@ raptor_sequence* rasqal_query_get_update_operations_sequence(rasqal_query* query
 RASQAL_API
 rasqal_update_operation* rasqal_query_get_update_operation(rasqal_query* query, int idx);
 
+/* results */
+int rasqal_query_set_store_results(rasqal_query* query, int store_results);
+
 /* graph patterns */
 RASQAL_API
 rasqal_graph_pattern* rasqal_query_get_query_graph_pattern(rasqal_query* query);

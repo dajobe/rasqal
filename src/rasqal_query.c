@@ -1328,6 +1328,8 @@ rasqal_query_prepare(rasqal_query* query,
     return 0;
   query->prepared = 1;
 
+  query->store_results = 0;
+
   if(query_string) {
     /* flex lexers require two NULs at the end of the lexed buffer.
      * Add them here instead of parser to allow resource cleanup on error.
@@ -2043,12 +2045,34 @@ rasqal_query_set_base_uri(rasqal_query* query, raptor_uri* base_uri)
 }
 
 
-void
+/**
+ * rasqal_query_set_store_results:
+ * @query: the #rasqal_query object
+ * @store_results: store results flag
+ *
+ * Request that query results are stored during execution
+ * 
+ * When called after a rasqal_query_prepare(), this tells
+ * rasqal_query_execute() to execute the entire query immediately
+ * rather than generate them lazily, and store all the results in
+ * memory.  The results will then be available for reading multiple
+ * times using rasqal_query_results_rewind() to move back to the
+ * start of the result object.  If called after preparation, returns
+ * failure.
+ *
+ * Return value: non-0 on failure.
+ **/
+int
 rasqal_query_set_store_results(rasqal_query* query, int store_results)
 {
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN(query, rasqal_query);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, 1);
+
+  if(query->prepared)
+    return 1;
 
   query->store_results = store_results;
+
+  return 0;
 }
 
 
