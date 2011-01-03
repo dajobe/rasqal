@@ -373,7 +373,7 @@ rasqal_expression_evaluate_concat(rasqal_world *world,
   raptor_stringbuffer* sb = NULL;
   int i;
   size_t len;
-  unsigned char* result_str;
+  unsigned char* result_str = NULL;
   int error = 0;
   rasqal_literal* result = NULL;
   int same_dt = 1;

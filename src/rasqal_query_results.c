@@ -777,8 +777,8 @@ int
 rasqal_query_results_rewind(rasqal_query_results* query_results)
 {
   int size;
-  int limit;
-  int offset;
+  int limit = -1;
+  int offset = -1;
   rasqal_query* query;
   
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query_results, rasqal_query_results, 1);
