@@ -291,6 +291,82 @@ print_bindings_result_simple(rasqal_query_results *results, FILE* output,
 }
 
 
+static rasqal_query_results*
+check_query_read_results(rasqal_world* world,
+                         raptor_world* raptor_world_ptr,
+                         rasqal_query_results_type results_type,
+                         raptor_iostream* result_iostr,
+                         const char* result_filename,
+                         const char* result_format_name)
+{
+  rasqal_variables_table* vars_table = NULL;
+  const char* format_name = NULL;
+  rasqal_query_results_formatter* qrf = NULL;
+  unsigned char *query_results_base_uri_string = NULL;
+  raptor_uri* query_results_base_uri = NULL;
+  rasqal_query_results* results = NULL;
+  
+  query_results_base_uri_string = raptor_uri_filename_to_uri_string(result_filename);
+  
+  query_results_base_uri = raptor_new_uri(raptor_world_ptr,
+                                          query_results_base_uri_string);
+  
+  vars_table = rasqal_new_variables_table(world);
+  results = rasqal_new_query_results(world, NULL, results_type, vars_table);
+  rasqal_free_variables_table(vars_table); vars_table = NULL;
+  
+  if(!results) {
+    fprintf(stderr, "%s: Failed to create query results\n", program);
+    goto tidy_fail;
+  }
+  
+  if(result_format_name) {
+    /* FIXME validate result format name is legal query
+     * results formatter name 
+     */
+    format_name = result_format_name;
+  }
+  
+  if(!format_name)
+    format_name = rasqal_world_guess_query_results_format_name(world,
+                                                               NULL /* uri */,
+                                                               NULL /* mime_type */,
+                                                               NULL /*buffer */,
+                                                               0,
+                                                               (const unsigned char*)result_filename);
+  
+  qrf = rasqal_new_query_results_formatter2(world, 
+                                            format_name, 
+                                            NULL /* mime type */,
+                                            NULL /* uri */);
+  if(!qrf)
+    goto tidy_fail;
+  
+  if(rasqal_query_results_formatter_read(world, result_iostr, 
+                                         qrf, results,
+                                         query_results_base_uri))
+  {
+    fprintf(stderr, "%s: Failed to read query results from %s with format %s",
+            program, result_filename, format_name);
+    goto tidy_fail;
+  }
+  
+  rasqal_free_query_results_formatter(qrf); qrf = NULL;
+  
+  return results;
+
+  tidy_fail:
+  if(vars_table)
+    rasqal_free_variables_table(vars_table);
+  if(results)
+    rasqal_free_query_results(results);
+  if(query_results_base_uri)
+    raptor_free_uri(query_results_base_uri);
+
+  return NULL;
+}
+
+
 #define DEFAULT_QUERY_LANGUAGE "sparql"
 #define DEFAULT_RESULT_FORMAT_NAME_GRAPH "guess"
 
@@ -315,7 +391,6 @@ main(int argc, char *argv[])
   rasqal_query* rq = NULL;
   rasqal_query_results* results = NULL;
   rasqal_query_results* expected_results = NULL;
-  rasqal_variables_table* vars_table;
   raptor_sequence* data_graphs = NULL;
   raptor_iostream* result_iostr = NULL;
   rasqal_dataset* ds = NULL;
@@ -619,63 +694,14 @@ main(int argc, char *argv[])
       case RASQAL_QUERY_RESULTS_BINDINGS:
       case RASQAL_QUERY_RESULTS_BOOLEAN:
         /* read results via rasqal query results format */
-        if(1) {
-          const char* format_name = NULL;
-          rasqal_query_results_formatter* qrf;
-          unsigned char *query_results_base_uri_string = NULL;
-          raptor_uri* query_results_base_uri;
-          
-          query_results_base_uri_string = raptor_uri_filename_to_uri_string(result_filename);
+        expected_results = check_query_read_results(world,
+                                                    raptor_world_ptr,
+                                                    results_type,
+                                                    result_iostr,
+                                                    result_filename,
+                                                    result_format_name);
+        raptor_free_iostream(result_iostr); result_iostr = NULL;
 
-          query_results_base_uri = raptor_new_uri(raptor_world_ptr,
-                                                  query_results_base_uri_string);
-
-          vars_table = rasqal_new_variables_table(world);
-          expected_results = rasqal_new_query_results(world, NULL,
-                                                      results_type, 
-                                                      vars_table);
-          rasqal_free_variables_table(vars_table); vars_table = NULL;
-
-          if(!expected_results) {
-            fprintf(stderr, "%s: Failed to create query results\n", program);
-            rc = 1;
-            goto tidy_setup;
-          }
-
-          if(result_format_name) {
-            /* FIXME validate result format name is legal query
-             * results formatter name 
-             */
-            format_name = result_format_name;
-          }
-          
-          if(!format_name)
-            format_name = rasqal_world_guess_query_results_format_name(world,
-                                                                       NULL /* uri */,
-                                                                       NULL /* mime_type */,
-                                                                       NULL /*buffer */,
-                                                                       0,
-                                                                       (const unsigned char*)result_filename);
-
-          qrf = rasqal_new_query_results_formatter2(world, 
-                                                    format_name, 
-                                                    NULL /* mime type */,
-                                                    NULL /* uri */);
-
-          if(rasqal_query_results_formatter_read(world, result_iostr, 
-                                                 qrf, expected_results,
-                                                 query_results_base_uri))
-          {
-            fprintf(stderr, "%s: Failed to read query results from %s with format %s",
-                    program, result_filename, format_name);
-            rc = 1;
-            goto tidy_setup;
-          }
-
-          rasqal_free_query_results_formatter(qrf); qrf = NULL;
-
-          raptor_free_iostream(result_iostr); result_iostr = NULL;
-        }
         break;
 
       case RASQAL_QUERY_RESULTS_GRAPH:
