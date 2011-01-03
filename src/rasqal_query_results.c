@@ -504,18 +504,18 @@ rasqal_query_results_check_limit_offset(rasqal_query_results* query_results)
     if(limit >= 0) {
       /* offset and limit */
       if(query_results->result_count > (offset + limit)) {
-        query_results->finished = 1;
+        return 1;
       }
     }
     
   } else if(limit >= 0) {
     /* limit */
     if(query_results->result_count > limit) {
-      query_results->finished = 1;
+      return 1;
     }
   }
 
-  return query_results->finished;
+  return 0;
 }
 
 
