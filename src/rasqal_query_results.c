@@ -1784,3 +1784,57 @@ rasqal_query_results_get_world(rasqal_query_results* query_results)
   return query_results->world;
 }
 
+
+/**
+ * rasqal_query_results_get_row_by_offset:
+ * @query_results: query result
+ * @result_offset: index into result rows
+ *
+ * Get stored result row by an offset
+ *
+ * The result_offset index is 0-indexed into the subset of results
+ * constrained by any query limit and offset.
+ *
+ * Return value: row or NULL if @result_offset is out of range
+ */
+rasqal_row*
+rasqal_query_results_get_row_by_offset(rasqal_query_results* query_results,
+                                       int result_offset)
+{
+  rasqal_query* query;
+  int check;
+  rasqal_row* row;
+  int offset = 0;
+  
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query_results, rasqal_query_results, NULL);
+
+  if(!query_results->results_sequence)
+    return NULL;
+
+  if(result_offset < 0)
+    return NULL;
+
+  query = query_results->query;
+  if(query)
+    offset = rasqal_query_get_offset(query);
+
+  /* Adjust 0-indexed to query results 1-indexed + query result offset */
+  result_offset += 1 + offset;
+
+  check = rasqal_query_check_limit_offset(query_results->query,
+                                          result_offset);
+  /* outside limit/offset range in some way */
+  if(check < 0 || check > 0)
+    return NULL;
+
+  row = (rasqal_row*)raptor_sequence_get_at(query_results->results_sequence,
+                                            result_offset - 1);
+  if(row) {
+    row = rasqal_new_row_from_row(row);
+
+    /* stored results may not be canonicalized yet - do it lazily */
+    rasqal_row_to_nodes(row);
+  }
+  
+  return row;
+}
