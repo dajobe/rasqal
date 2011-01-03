@@ -488,6 +488,9 @@ rasqal_query_check_limit_offset(rasqal_query* query,
   if(!query)
     return 0;
 
+  if(result_offset < 0)
+    return -1;
+
   limit = rasqal_query_get_limit(query);
 
   /* Ensure ASK queries never do more than one result */
