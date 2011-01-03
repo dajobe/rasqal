@@ -235,42 +235,38 @@ rasqal_new_query_results(rasqal_world* world,
 
 /**
  * rasqal_query_results_execute_with_engine:
- * @query: the #rasqal_query object
+ * @query_results: the #rasqal_query_results object
  * @engine: execution factory
+ * @store_results: non-0 to store query results
  *
  * INTERNAL - Create a new query results set executing a prepared query with the given execution engine
  *
- * return value: a #rasqal_query_results structure or NULL on failure.
+ * return value: non-0 on failure
  **/
-rasqal_query_results*
-rasqal_query_results_execute_with_engine(rasqal_query* query,
-                                         const rasqal_query_execution_factory* engine)
+int
+rasqal_query_results_execute_with_engine(rasqal_query_results* query_results,
+                                         const rasqal_query_execution_factory* engine,
+                                         int store_results)
 {
-  rasqal_query_results *query_results = NULL;
   int rc = 0;
   size_t ex_data_size;
-  rasqal_query_results_type type;
+  rasqal_query* query;
+  
 
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, NULL);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query_results, rasqal_query_results, 1);
+  
+  query = query_results->query;
   
   if(query->failed)
-    return NULL;
-
-  type = rasqal_query_get_result_type(query);
-  if(type == RASQAL_QUERY_RESULTS_UNKNOWN)
-    return NULL;
-  
-  query_results = rasqal_new_query_results(query->world, query, type,
-                                           query->vars_table);
-  if(!query_results)
-    return NULL;
+    return 1;
 
   query_results->execution_factory = engine;
   
   /* set executed flag early to enable cleanup on error */
   query_results->executed = 1;
 
-  query_results->store_results = (query->store_results || 
+  /* ensure stored results are present if ordering or distincting are being done */
+  query_results->store_results = (store_results ||
                                   rasqal_query_get_order_conditions_sequence(query) ||
                                   query->distinct);
   
@@ -278,10 +274,8 @@ rasqal_query_results_execute_with_engine(rasqal_query* query,
   if(ex_data_size > 0) {
     query_results->execution_data = RASQAL_CALLOC(data, 1, ex_data_size);
 
-    if(!query_results->execution_data) {
-      rasqal_free_query_results(query_results);
-      return NULL;
-    }
+    if(!query_results->execution_data)
+      return 1;
   } else
     query_results->execution_data = NULL;
 
@@ -291,6 +285,7 @@ rasqal_query_results_execute_with_engine(rasqal_query* query,
   if(query_results->execution_factory->execute_init) {
     rasqal_engine_error execution_error = RASQAL_ENGINE_OK;
     int execution_flags = 0;
+
     if(query_results->store_results)
       execution_flags |= 1;
 
@@ -298,8 +293,7 @@ rasqal_query_results_execute_with_engine(rasqal_query* query,
 
     if(rc || execution_error != RASQAL_ENGINE_OK) {
       query_results->failed = 1;
-      rasqal_free_query_results(query_results);
-      return NULL;
+      return 1;
     }
   }
 
@@ -312,7 +306,7 @@ rasqal_query_results_execute_with_engine(rasqal_query* query,
   if(query_results->store_results)
     rc = rasqal_query_results_execute_and_store_results(query_results);
 
-  return query_results;
+  return rc;
 }
 
 

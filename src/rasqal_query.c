@@ -1433,16 +1433,32 @@ rasqal_query_execute_with_engine(rasqal_query* query,
                                  const rasqal_query_execution_factory* engine)
 {
   rasqal_query_results *query_results = NULL;
+  rasqal_query_results_type type;
   
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, NULL);
 
   if(query->failed)
     return NULL;
 
+  type = rasqal_query_get_result_type(query);
+  if(type == RASQAL_QUERY_RESULTS_UNKNOWN)
+    return NULL;
+  
+  query_results = rasqal_new_query_results(query->world, query, type,
+                                           query->vars_table);
+  if(!query_results)
+    return NULL;
+
   if(!engine)
     engine = rasqal_query_get_engine_by_name(NULL);
 
-  query_results = rasqal_query_results_execute_with_engine(query, engine);
+  if(rasqal_query_results_execute_with_engine(query_results, engine,
+                                              query->store_results)) {
+    rasqal_free_query_results(query_results);
+    query_results = NULL;      
+  }
+    
+      
   if(query_results && rasqal_query_add_query_result(query, query_results)) {
     rasqal_free_query_results(query_results);
     query_results = NULL;      
