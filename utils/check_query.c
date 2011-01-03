@@ -120,6 +120,36 @@ static const char *title_format_string = "Rasqal RDF query test utility %s\n";
 
 
 #ifdef HAVE_RAPTOR2_API
+#else
+typedef enum {
+  RAPTOR_DOMAIN_NONE,
+  RAPTOR_DOMAIN_IOSTREAM,
+  RAPTOR_DOMAIN_NAMESPACE,
+  RAPTOR_DOMAIN_PARSER,
+  RAPTOR_DOMAIN_QNAME,
+  RAPTOR_DOMAIN_SAX2,
+  RAPTOR_DOMAIN_SERIALIZER,
+  RAPTOR_DOMAIN_TERM,
+  RAPTOR_DOMAIN_TURTLE_WRITER,
+  RAPTOR_DOMAIN_URI,
+  RAPTOR_DOMAIN_WORLD,
+  RAPTOR_DOMAIN_WWW,
+  RAPTOR_DOMAIN_XML_WRITER,
+  RAPTOR_DOMAIN_LAST = RAPTOR_DOMAIN_XML_WRITER
+} raptor_domain;
+
+typedef struct {
+  int code;
+  raptor_domain domain;
+  raptor_log_level level;
+  raptor_locator *locator;
+  const char *text;
+} raptor_log_message;
+
+typedef void (*raptor_log_handler)(void *user_data, raptor_log_message *message);
+#endif
+
+
 static void
 check_query_log_handler(void* user_data, raptor_log_message *message)
 {
@@ -129,13 +159,19 @@ check_query_log_handler(void* user_data, raptor_log_message *message)
 
   fprintf(stderr, "%s: Error: ", program);
   if(message->locator) {
+#ifdef HAVE_RAPTOR2_API
     raptor_locator_print(message->locator, stderr);
+#else
+    raptor_print_locator(stderr, message->locator);
+#endif
     fputs(" : ", stderr);
   }
   fprintf(stderr, "%s\n", message->text);
 
   error_count++;
 }
+
+#ifdef HAVE_RAPTOR2_API
 #else
 static void
 check_query_error_handler(void *user_data, 
@@ -382,7 +418,6 @@ typedef struct
   
   void* log_user_data;
   raptor_log_handler log_handler;
-
   raptor_log_message message;
 } compare_query_results;
 
@@ -443,7 +478,7 @@ compare_query_results_compare(compare_query_results* cqr)
   int i;
   
   /* check variables in each results project the same variables */
-  for(i=0; 1; i++) {
+  for(i = 0; 1; i++) {
     const unsigned char* v1;
     const unsigned char* v2;
     
@@ -481,10 +516,17 @@ compare_query_results_compare(compare_query_results* cqr)
   /* what to do about blank nodes? */
 
   /* for each row */
+  for(i = 0; 1; i++) {
+    rasqal_row* row1 = rasqal_query_results_get_row_by_offset(cqr->qr1, i);
+    rasqal_row* row2 = rasqal_query_results_get_row_by_offset(cqr->qr2, i);
+    
+    if(!row1 && !row2)
+      break;
+    
     /* for each variable in row1 (== same variables in row2) */
      /* if variable in row2 has same value, do nothing */
      /* if variable in row2 has different value, do nothing */
-  /* end for each row */
+  } /* end for each row */
 
   done:
   return (differences == 0);
@@ -542,8 +584,7 @@ main(int argc, char *argv[])
   raptor_world_ptr = rasqal_world_get_raptor(world);
 #ifdef HAVE_RAPTOR2_API
   rasqal_world_set_log_handler(world, world, check_query_log_handler);
-#endif
-  
+#endif  
 
   /* Option parsing */
   while (!usage && !help)
