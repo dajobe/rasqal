@@ -1768,7 +1768,7 @@ rasqal_expression_copy_expression_sequence(raptor_sequence* exprs_seq)
  * INTERNAL - evaluate a sequence of expressions into a sequence of literals
  *
  * Intended to implement SPARQL 1.1 Algebra ListEval defined:
- *   ListEval(ExprList, μ) returns a list E, where Ei = μ(ExprListi).
+ *   ListEval(ExprList, mu) returns a list E, where Ei = mu(ExprListi).
  *
  * The result is a new sequence with #rasqal_literal values evaluated
  * from the sequence of expressions @exprs_seq.  If @ignore_errors is
