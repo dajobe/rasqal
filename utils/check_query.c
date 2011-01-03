@@ -436,7 +436,7 @@ compare_query_results_set_log_handler(compare_query_results* cqr,
  * Return value: non-0 if equal
  */
 static int
-compare_compare_query_results(compare_query_results* cqr)
+compare_query_results_compare(compare_query_results* cqr)
 {
   int differences = 0;
   int i;
@@ -904,7 +904,7 @@ main(int argc, char *argv[])
                                           results, "actual");
           compare_query_results_set_log_handler(cqr, world,
                                                 check_query_log_handler);
-          rc = !compare_compare_query_results(cqr);
+          rc = !compare_query_results_compare(cqr);
           free_compare_query_results(cqr); cqr = NULL;
         }
         
