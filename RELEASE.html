@@ -14,6 +14,130 @@
 </p>
 
 
+<!-- Updated to end of 2010-12-15 -->
+
+<h3>Query Engine Changes</h3>
+
+<p>Query engine initialises start of execution datetime to enable a
+<code>NOW()</code> function to provide a stable value during a single
+execution.
+</p>
+
+
+<h3>LAQRS Query Language changes</h3>
+
+<p>Added experimental datetime builtin methods:</p> NOW(),
+<ul>
+  <li><code>NOW()</code> / <code>CURRENT_DATETIME()</code>: Synonyms
+  to return an XSD datetime for the current datetime.  At the first
+  execution / preparation of the query, the value is set as a constant
+  throughout the life of the query execution.
+  </li>
+  <li><code>FROM_UNIXTIME()</code>: turns an integer value into an XSD DateTime.
+  </li>
+  <li><code>TO_UNIXTIME()</code>: turns an XSD DateTime into an integer value.
+  </li>
+</ul>
+<p>These functions are likely not opposites since they do not take
+into consideration leap seconds or daylight saving time changes.
+</p>
+
+
+<h3>SPARQL Query Language changes</h3>
+
+<p>Fixed SPARQL 1.1 draft <code>isNUMERIC()</code> which was not
+working.
+</p>
+
+<p>Added SPARQL 1.1 draft dateTime accessors and builtin functions:
+YEAR(), MONTH(), DAY(), HOURS(), MINUTES(), SECONDS(), TIMEZONE()
+parsed and executed in expressions.
+</p>
+
+
+<h3>Datetime class changes</h3>
+
+<p>Added <code>rasqal_xsd_datetime</code> class to the public API
+implementing the XML Schema datatypes (XSD) dateTime with microsecond
+accuracy (where present) and timezone offsets of minutes accuracy.
+The new class has constructors: <code>rasqal_new_xsd_datetime()</code>,
+<code>rasqal_new_xsd_datetime_from_timeval()</code>,
+<code>rasqal_new_xsd_datetime_from_unixtime()</code>,
+destructor <code>rasqal_free_xsd_datetime()</code>
+and methods:
+<code>rasqal_xsd_datetime_compare()</code>,
+<code>rasqal_xsd_datetime_equals()</code>,
+<code>rasqal_xsd_datetime_get_as_timeval()</code>,
+<code>rasqal_xsd_datetime_get_as_unixtime()</code>,
+<code>rasqal_xsd_datetime_get_seconds_as_decimal()</code>,
+<code>rasqal_xsd_datetime_set_from_timeval()</code>,
+<code>rasqal_xsd_datetime_set_from_unixtime()</code>,
+<code>rasqal_xsd_datetime_to_counted_string()</code>,
+<code>rasqal_xsd_datetime_to_string()</code>,
+</p>
+
+
+<h3>Expression class changes</h3>
+
+<p><code>rasqal_expression_evaluate()</code> now evaluates datetime
+accessor builtins most of which return an integer literal, seconds
+returns a decimal and timezone returns a string.
+</p>
+
+<p><code>rasqal_op gains</code> RASQAL_EXPR_YEAR, RASQAL_EXPR_MONTH,
+RASQAL_EXPR_DAY, RASQAL_EXPR_HOURS, RASQAL_EXPR_MINUTES,
+RASQAL_EXPR_SECONDS, RASQAL_EXPR_TIMEZONE
+</p>
+
+<p><code>rasqal_expression_evaluate()</code> evalutes experimental
+datetime builtin methods NOW(), CURRENT_DATETIME(), FROM_UNIXTIME()
+and TO_UNIXTIME().
+</p>
+
+<p><code>rasqal_op gains</code> RASQAL_EXPR_CURRENT_DATETIME,
+RASQAL_EXPR_NOW, RASQAL_EXPR_FROM_UNIXTIME and
+RASQAL_EXPR_TO_UNIXTIME.
+</p>
+
+
+<h3>Literal class changes</h3>
+
+<p>Support XSD dateTime literals.  <code>rasqal_literal</code> value
+union gains a datetime field.</p>
+
+<p><code>rasqal_literal_set_typed_value()</code> turns xsd:dateTime
+literals into <code>rasqal_xsd_datetime</code> objects.
+</p>
+
+<p><code>rasqal_literal_equals_flags()</code> and
+<code>rasqal_literal_compare()</code> now use rasqal_datetime
+equality and comparison methods.
+</p>
+
+<p>Added new constructor
+<code>rasqal_new_datetime_literal_from_datetime()</code> to make a
+datetime literal.</p>
+
+
+<h3>Query class changes</h3>
+
+
+<h3>Query Results class changes</h3>
+
+
+<h3>Other changes</h3>
+
+<p>Replaced all uses of <code>strcpy()</code> with
+<code>memcpy()</code> and known lengths.
+</p>
+
+<p>Refactored huge <code>rasqal_expression_evaluate()</code> switch
+and case code into sub-methods preparing for possible later change to
+a jump table based on expression operation.
+</p>
+
+
+
 <h2 id="rel0_9_21"><a name="rel0_9_21">Rasqal 0.9.21 Changes</a></h2>
 
 <p>The main changes in this release are to add support for features of
