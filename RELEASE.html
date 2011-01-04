@@ -14,7 +14,21 @@
 </p>
 
 
-<!-- Updated to end of 2010-12-15 -->
+<!-- Updated to end of 2010-12-29 -->
+
+<p>Split query language support into more languages with aliases:
+</p>
+<ul>
+  <li>SPARQL 1.0 query with no 1.1 features: sparql and alias sparql10</li>
+  <li>SPARQL 1.1 query: sparql11-query</li>
+  <li>SPARQL 1.1 update: sparql11-update</li>
+  <li>SPARQL 1.1 with both query and update: sparql11</li>
+  <li>LAQRS experimental language: laqrs (all of above)</li>
+</ul>
+
+<p>The minimum Raptor V2 version is now 2.0.0
+</p>
+
 
 <h3>Query Engine Changes</h3>
 
@@ -52,6 +66,10 @@ working.
 <p>Added SPARQL 1.1 draft dateTime accessors and builtin functions:
 YEAR(), MONTH(), DAY(), HOURS(), MINUTES(), SECONDS(), TIMEZONE()
 parsed and executed in expressions.
+</p>
+
+<p>Added SPARQL 1.1 draft string builtin functions:
+CONCAT()
 </p>
 
 
@@ -99,6 +117,9 @@ RASQAL_EXPR_NOW, RASQAL_EXPR_FROM_UNIXTIME and
 RASQAL_EXPR_TO_UNIXTIME.
 </p>
 
+<p><code>rasqal_op</code> gains RASQAL_EXPR_CONCAT.
+</p>
+
 
 <h3>Literal class changes</h3>
 
@@ -125,6 +146,27 @@ datetime literal.</p>
 <h3>Query Results class changes</h3>
 
 
+<h3>Query Results Formatter class changes</h3>
+
+<p>Added query results format readering for the existing 'rdfxml' and
+'turtle' formatters using the DAWG RDF schema to make both of these
+read/write formats.
+</p>
+
+<p>Added
+<code>rasqal_world_get_query_results_format_description()</code> to
+get the list of query results format syntaxes using a
+<code>raptor_syntax_description</code> structure.  This replaced and
+deprecates the <code>rasqal_query_results_formats_enumerate()</code>
+and <code>rasqal_query_results_formatter_get_mime_type()</code>
+methods.</p>
+
+<p>This change allows the query result formats to be identified and
+discovered by multiple names (aliases) and URI strings when using the
+<code>rasqal_new_query_results_formatter2()</code> constructor.
+</p>
+
+
 <h3>Other changes</h3>
 
 <p>Replaced all uses of <code>strcpy()</code> with
@@ -136,6 +178,14 @@ and case code into sub-methods preparing for possible later change to
 a jump table based on expression operation.
 </p>
 
+<p><code>rasqal_xsd_decimal_as_string()</code>: Fix decimal to string
+xsd lexical form details: rounding precision, format details (such as
+0.0 not 0.0E0) when built with MPFR or GMP instead of the (imprecise)
+<code>double</code> implementation.
+</p>
+
+<p>Fix xsd double lexical form formatting to use capital E.
+</p>
 
 
 <h2 id="rel0_9_21"><a name="rel0_9_21">Rasqal 0.9.21 Changes</a></h2>
