@@ -74,6 +74,71 @@ rasqal_unicode_utf8_strlen(const unsigned char *string, size_t length)
 }
 
 
+/*
+ * rasqal_unicode_utf8_substr:
+ * @dest: destination string buffer to write to (or NULL)
+ * @dest_length_p: location to store actual destination length (or NULL)
+ * @src: source string
+ * @src_length: source length in bytes
+ * @startingLoc: starting location offset 0 for first Unicode character
+ * @length: number of Unicode characters to copy at offset @startingLoc (or < 0)
+ *
+ * INTERNAL - Get a unicode (UTF-8) substring of an existing UTF-8 string
+ *
+ * If @dest is NULL, returns the number of bytes needed to write and
+ * does no work.
+ * 
+ * Return value: number of bytes used in destination string
+ */
+static size_t
+rasqal_unicode_utf8_substr(unsigned char* dest, size_t* dest_length_p,
+                           const unsigned char* src, int src_length,
+                           int startingLoc, int length)
+{
+  size_t dest_length = 0; /* destination unicode characters count */
+  size_t dest_bytes = 0;  /* destination UTF-8 bytes count */
+  int dest_offset = 0; /* destination string unicode characters index */
+  unsigned char* p = dest;
+  
+  if(!src)
+    return -1;
+
+  while(src_length > 0) {
+    int unichar_len;
+
+    unichar_len = raptor_unicode_utf8_string_get_char(src, src_length, NULL);
+    if(unichar_len < 0 || unichar_len > (int)src_length)
+      break;
+
+    if(dest_offset >= startingLoc) {
+      if(p) {
+        /* copy 1 Unicode character to dest */
+        memcpy(p, src, unichar_len);
+        p += unichar_len;
+      }
+      dest_bytes += unichar_len;
+
+      dest_length++;
+      if(length >= 0 && (int)dest_length > length)
+        break;
+    }
+
+    src += unichar_len;
+    src_length -= unichar_len;
+
+    dest_offset++;
+  }
+
+  if(p)
+    *p = '\0';
+
+  if(dest_length_p)
+    *dest_length_p = dest_length;
+
+  return dest_bytes;
+}
+
+
 /* 
  * rasqal_expression_evaluate_strlen:
  * @world: #rasqal_world
@@ -118,6 +183,104 @@ rasqal_expression_evaluate_strlen(rasqal_world *world,
   failed:
   if(l1)
     rasqal_free_literal(l1);
+
+  return NULL;
+}
+
+
+/* 
+ * rasqal_expression_evaluate_substr:
+ * @world: #rasqal_world
+ * @locator: error locator object
+ * @e: The expression to evaluate.
+ * @flags: Compare flags
+ *
+ * INTERNAL - Evaluate RASQAL_EXPR_SUBSTR(expr) expression.
+ *
+ * Return value: A #rasqal_literal integer value or NULL on failure.
+ */
+rasqal_literal*
+rasqal_expression_evaluate_substr(rasqal_world *world,
+                                  raptor_locator *locator,
+                                  rasqal_expression *e,
+                                  int flags)
+{
+  rasqal_literal* l1 = NULL;
+  rasqal_literal* l2 = NULL;
+  rasqal_literal* l3 = NULL;
+  const unsigned char *s;
+  unsigned char* new_s = NULL;
+  char* new_lang = NULL;
+  raptor_uri* dt_uri = NULL;
+  size_t len = 0;
+  int error = 0;
+  int startingLoc = 0;
+  int length = -1;
+  
+  /* haystack string */
+  l1 = rasqal_expression_evaluate(world, locator, e->arg1, flags);
+  if(!l1)
+    return NULL;
+  
+  s = rasqal_literal_as_counted_string(l1, &len, flags, &error);
+  if(error)
+    goto failed;
+
+  /* integer startingLoc */
+  l2 = rasqal_expression_evaluate(world, locator, e->arg2, flags);
+  if(!l2)
+    return NULL;
+  
+  startingLoc = rasqal_literal_as_integer(l2, &error);
+  if(error)
+    goto failed;
+
+  /* optional integer length */
+  if(e->arg3) {
+    l3 = rasqal_expression_evaluate(world, locator, e->arg3, flags);
+    if(!l3)
+      return NULL;
+
+    length = rasqal_literal_as_integer(l3, &error);
+    if(error)
+      goto failed;
+
+  }
+  
+  new_s = (unsigned char*)RASQAL_MALLOC(cstring, len + 1);
+  if(!new_s)
+    goto failed;
+
+  /* adjust starting index to xsd fn:substring initial offset 1 */
+  rasqal_unicode_utf8_substr(new_s, /* dest_length_p */ NULL,
+                             s, len, startingLoc - 1, length);
+
+  if(l1->language) {
+    len = strlen((const char*)l1->language);
+    new_lang = (char*)RASQAL_MALLOC(cstring, len + 1);
+    if(!new_lang)
+      goto failed;
+
+    memcpy(new_lang, l1->language, len + 1);
+  }
+
+  dt_uri = l1->datatype;
+  if(dt_uri)
+    dt_uri = raptor_uri_copy(dt_uri);
+
+  /* after this new_s, new_lang and dt_uri become owned by result */
+  return rasqal_new_string_literal(world, new_s, new_lang, dt_uri,
+                                   /* qname */ NULL);
+  
+
+
+  failed:
+  if(l1)
+    rasqal_free_literal(l1);
+  if(l2)
+    rasqal_free_literal(l2);
+  if(l3)
+    rasqal_free_literal(l3);
 
   return NULL;
 }

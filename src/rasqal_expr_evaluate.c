@@ -1477,14 +1477,7 @@ rasqal_expression_evaluate(rasqal_world *world, raptor_locator *locator,
       break;
 
     case RASQAL_EXPR_SUBSTR:
-      rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR,
-                              locator,
-                              "Operation %s (%d) not implemented", 
-                              rasqal_expression_op_label(e->op), e->op);
-      errs.e = 1;
-      goto failed;
-      break;
-
+      result = rasqal_expression_evaluate_substr(world, locator, e, flags);
       break;
 
     case RASQAL_EXPR_UNKNOWN:
