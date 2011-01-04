@@ -14,7 +14,7 @@
 </p>
 
 
-<!-- Updated to end of 2010-12-29 -->
+<!-- Updated to end of 2010-01-03 21:33 PST -->
 
 <p>Split query language support into more languages with aliases:
 </p>
@@ -40,7 +40,7 @@ execution.
 
 <h3>LAQRS Query Language changes</h3>
 
-<p>Added experimental datetime builtin methods:</p> NOW(),
+<p>Added experimental datetime builtin methods:</p>
 <ul>
   <li><code>NOW()</code> / <code>CURRENT_DATETIME()</code>: Synonyms
   to return an XSD datetime for the current datetime.  At the first
@@ -63,14 +63,31 @@ into consideration leap seconds or daylight saving time changes.
 working.
 </p>
 
-<p>Added SPARQL 1.1 draft dateTime accessors and builtin functions:
-YEAR(), MONTH(), DAY(), HOURS(), MINUTES(), SECONDS(), TIMEZONE()
-parsed and executed in expressions.
-</p>
+<p>Added SPARQL 1.1 draft dateTime accessors and builtin functions
+with expression execution support.</p>
+<ul>
+  <li><code>DAY()</code></li>
+  <li><code>HOURS()</code></li>
+  <li><code>MINUTES()</code></li>
+  <li><code>MONTH()</code></li>
+  <li><code>SECONDS()</code></li>
+  <li><code>TIMEZONE()</code></li>
+  <li><code>YEAR()</code></li>
+</ul>
 
 <p>Added SPARQL 1.1 draft string builtin functions:
-CONCAT()
-</p>
+with expression execution support (except where noted)</p>
+<ul>
+  <li><code>CONCAT()</code></li>
+  <li><code>CONTAINS()</code></li>
+  <li><code>ENCODE_FOR_URI()</code> (not executable yet)</li>
+  <li><code>LCASE()</code></li>
+  <li><code>STRENDS()</code></li>
+  <li><code>STRLEN()</code></li>
+  <li><code>STRSTARTS()</code></li>
+  <li><code>SUBSTR()</code> (not executable yet)</li>
+  <li><code>UCASE()</code></li>
+</ul>
 
 
 <h3>Datetime class changes</h3>
@@ -82,17 +99,19 @@ The new class has constructors: <code>rasqal_new_xsd_datetime()</code>,
 <code>rasqal_new_xsd_datetime_from_timeval()</code>,
 <code>rasqal_new_xsd_datetime_from_unixtime()</code>,
 destructor <code>rasqal_free_xsd_datetime()</code>
-and methods:
-<code>rasqal_xsd_datetime_compare()</code>,
-<code>rasqal_xsd_datetime_equals()</code>,
-<code>rasqal_xsd_datetime_get_as_timeval()</code>,
-<code>rasqal_xsd_datetime_get_as_unixtime()</code>,
-<code>rasqal_xsd_datetime_get_seconds_as_decimal()</code>,
-<code>rasqal_xsd_datetime_set_from_timeval()</code>,
-<code>rasqal_xsd_datetime_set_from_unixtime()</code>,
-<code>rasqal_xsd_datetime_to_counted_string()</code>,
-<code>rasqal_xsd_datetime_to_string()</code>,
-</p>
+and methods:</p>
+<ul>
+  <li><code>rasqal_xsd_datetime_compare()</code></li>
+  <li><code>rasqal_xsd_datetime_equals()</code></li>
+  <li><code>rasqal_xsd_datetime_get_as_timeval()</code></li>
+  <li><code>rasqal_xsd_datetime_get_as_unixtime()</code></li>
+  <li><code>rasqal_xsd_datetime_get_seconds_as_decimal()</code></li>
+  <li><code>rasqal_xsd_datetime_get_timezone_as_counted_string()</code></li>
+  <li><code>rasqal_xsd_datetime_set_from_timeval()</code></li>
+  <li><code>rasqal_xsd_datetime_set_from_unixtime()</code></li>
+  <li><code>rasqal_xsd_datetime_to_counted_string()</code></li>
+  <li><code>rasqal_xsd_datetime_to_string()</code></li>
+</ul>
 
 
 <h3>Expression class changes</h3>
@@ -102,22 +121,31 @@ accessor builtins most of which return an integer literal, seconds
 returns a decimal and timezone returns a string.
 </p>
 
-<p><code>rasqal_op gains</code> RASQAL_EXPR_YEAR, RASQAL_EXPR_MONTH,
-RASQAL_EXPR_DAY, RASQAL_EXPR_HOURS, RASQAL_EXPR_MINUTES,
-RASQAL_EXPR_SECONDS, RASQAL_EXPR_TIMEZONE
-</p>
+<p><code>rasqal_op</code> gains new values for SPARQL 1.1 builtins
+and LAQRS experimental expressions:</p>
+<ul>
+  <li><code>RASQAL_EXPR_CONCAT</code></li>
+  <li><code>RASQAL_EXPR_CURRENT_DATETIME</code> (LAQRS)</li>
+  <li><code>RASQAL_EXPR_DAY</code></li>
+  <li><code>RASQAL_EXPR_FROM_UNIXTIME</code> (LAQRS)</li>
+  <li><code>RASQAL_EXPR_HOURS</code></li>
+  <li><code>RASQAL_EXPR_MINUTES</code></li>
+  <li><code>RASQAL_EXPR_MONTH</code></li>
+  <li><code>RASQAL_EXPR_NOW</code> (LAQRS)</li>
+  <li><code>RASQAL_EXPR_SECONDS</code></li>
+  <li><code>RASQAL_EXPR_TIMEZONE</code></li>
+  <li><code>RASQAL_EXPR_TO_UNIXTIME</code> (LAQRS)</li>
+  <li><code>RASQAL_EXPR_YEAR</code></li>
+</ul>
 
 <p><code>rasqal_expression_evaluate()</code> evalutes experimental
-datetime builtin methods NOW(), CURRENT_DATETIME(), FROM_UNIXTIME()
-and TO_UNIXTIME().
+LAQRS datetime builtin methods <code>NOW()</code>,
+<code>CURRENT_DATETIME()</code>, <code>FROM_UNIXTIME()</code> and
+<code>TO_UNIXTIME()</code>.
 </p>
 
-<p><code>rasqal_op gains</code> RASQAL_EXPR_CURRENT_DATETIME,
-RASQAL_EXPR_NOW, RASQAL_EXPR_FROM_UNIXTIME and
-RASQAL_EXPR_TO_UNIXTIME.
-</p>
-
-<p><code>rasqal_op</code> gains RASQAL_EXPR_CONCAT.
+<p>Fix <code>RASQAL_EXPR_DATATYPE</code> expression execution return
+value.
 </p>
 
 
@@ -139,18 +167,64 @@ equality and comparison methods.
 <code>rasqal_new_datetime_literal_from_datetime()</code> to make a
 datetime literal.</p>
 
+<p>Added new accessor <code>rasqal_literal_as_counted_string()</code>
+get the string version of its and its length, letting the caller
+avoid strlen() on the result.
+</p>
+
 
 <h3>Query class changes</h3>
+
+<p>Added method <code>rasqal_query_get_result_type()</code>
+to get the expected result type based on the query structure.
+</p>
+
+<p>Added method <code>rasqal_query_set_store_results</code> to enable
+storing results of an execution.</p>
 
 
 <h3>Query Results class changes</h3>
 
+<p>Added support for query result rewinding, if the results
+were stored in execution via <code>rasqal_query_set_store_results()</code>,
+new method <code>rasqal_query_results_rewind()</code> may be called
+to reset back to the initial binding result.
+</p>
+
+<p>Added <code>rasqal_query_results_get_row_by_offset()</code> to
+access stored query result rows if enabled.
+</p>
+
+<p>Enum <code>rasqal_query_results_type</code> gains value
+<code>RASQAL_QUERY_RESULTS_UNKNOWN</code> for when a query result
+type is unknown or yet to be determined.
+</p>
+
+<p>Added method <code>rasqal_query_results_get_type()</code>
+to get the result type.
+</p>
+
 
 <h3>Query Results Formatter class changes</h3>
 
-<p>Added query results format readering for the existing 'rdfxml' and
-'turtle' formatters using the DAWG RDF schema to make both of these
-read/write formats.
+<p>Added world method
+<code>rasqal_world_guess_query_results_format_name()</code> to guess
+format based on format URI, mime type, some initial content or an
+identifier.</p>
+
+<p>Added new constructor
+<code>rasqal_new_query_results_formatter_for_content()</code>
+to get a query result formatter based on guessing from format URI, name,
+mime type, some initial content or an identifier using
+<code>rasqal_world_guess_query_results_format_name()</code>.
+</p>
+
+<p>Added guessing based on identifier/filename suffix for the 'rdf'
+(.rdf), 'turtle' (.ttl, .n3) and 'xml' (.srx) formatters.
+</p>
+
+<p>Added reading support for the existing 'rdfxml' and 'turtle' query
+result formatters to make both of these read/write formatters.
 </p>
 
 <p>Added
@@ -186,6 +260,10 @@ xsd lexical form details: rounding precision, format details (such as
 
 <p>Fix xsd double lexical form formatting to use capital E.
 </p>
+
+<p>Started creating <code>check-query</code> query test runner utility.
+</p>
+
 
 
 <h2 id="rel0_9_21"><a name="rel0_9_21">Rasqal 0.9.21 Changes</a></h2>
