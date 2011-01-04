@@ -1,4 +1,1000 @@
+2011-01-03  Dave Beckett <dave@dajobe.org>
+
+	* docs/tmpl/section-query_results.sgml: Update tmpls
+
+	* utils/check_query.c: Raptor V1 support by importing V2 stuff.
+	Sigh.
+
+	* src/rasqal.h.in, src/rasqal_query_results.c:
+	(rasqal_query_results_get_row_by_offset): Added to access stored
+	query result rows
+
+	* src/rasqal_query_results.c:
+	(rasqal_query_check_limit_offset): negative offsets are errors
+
+	* src/rasqal_engine.c, src/rasqal_internal.h,
+	src/rasqal_query_results.c:
+	(rasqal_query_check_limit_offset): Renamed from
+	rasqal_query_results_check_limit_offset Renamed since this no
+	longer uses (reads/writes) any query result state Updated callers.
+
+	* src/rasqal_query_results.c:
+	(rasqal_query_results_check_limit_offset): Just check, do not set
+	finished flag
+
+	* src/rasqal_engine.c, src/rasqal_query_results.c: Adjust callers
+	of rasqal_query_results_check_limit_offset() to set finished flag
+	explicitly
+
+2011-01-03  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_format_rdf.c: Eliminated initialized data - added
+	const to ptr that does not need to be modified
+
+	* src/rasqal_expr_strings.c, src/rasqal_query_results.c:
+	(rasqal_expression_evaluate_concat,rasqal_query_results_rewind):
+	Init variables before using them
+
+	* src/rasqal_dataset.c, src/rasqal_query_results.c:
+	(rasqal_dataset_init_match_internal,rasqal_query_results_get_type):
+	Fixed int-enum warnings
+
+	* src/rasqal_expr.c: fixed non-ascii comment
+
+	* src/rasqal_expr_strings.c:
+	(rasqal_expression_evaluate_set_case): Fixed compiler warnings
+
+2011-01-02  Dave Beckett <dave@dajobe.org>
+
+	* utils/check_query.c:
+	(compare_query_results_compare): renamed to match code style
+
+	* src/rasqal.h.in, src/rasqal_query_results.c: Added rewindable
+	query results
+
+	(rasqal_query_results_rewind): Added.
+
+	(rasqal_query_results_execute_and_store_results): Calls above to
+	reset the state after execution of all rows.  Adjust return to be
+	failure so that empty result sets are not an error.
+
+	(rasqal_query_results_get_row_from_saved): Return a copy of a row
+	from a sequence rather then use the raptor_sequence_delete_at to
+	allow rewinding to work.
+
+	* src/rasqal.h.in, src/rasqal_internal.h, src/rasqal_query.c:
+	(rasqal_query_set_store_results): Moved to public API.  Resets to
+	unset after a prepare
+
+	* tests/sparql/check-sparql:
+	protect test for undef var
+
+	* src/rasqal_internal.h, src/rasqal_query.c,
+	src/rasqal_query_results.c: Alter rasqal_query_execute_with_engine
+	to allow storing query results
+
+	(rasqal_query_execute_with_engine): Construct a query result and
+	then call rasqal_query_results_execute_with_engine() to execute
+	it, passing in any query store_results flag directly.
+
+	(rasqal_query_results_execute_with_engine): Alter signature to
+	become a method query_results class, adding a store_results flag
+	argument and just do executing not construction and executing -
+	misnamed by code style.  Result is now a success int value.
+
+	* utils/check_query.c:
+	Add query results comparison local class
+
+	(check_query_log_handler, check_query_error_handler): Tidy to
+	print nicer messages if there is no locator
+
+	(new_compare_query_results, free_compare_query_results,
+	compare_query_results_set_log_handler,
+	compare_compare_query_results): Added skeleton of a query results
+	comparison class.
+
+	* utils/check_query.c:
+	(check_query_read_results): Added for code tidy.
+
+	* utils/check_query.c: Allow -F/--format to set parser or query
+	results format name.
+
+	* utils/check_query.c: Print out expected and actual bindings
+	result
+
+	* utils/check_query.c: Init ds to NULL
+
+	* src/rasqal_internal.h: Add V1 raptor_new_iostream_from_filename
+	macro
+
+	* utils/check_query.c: Read expected result
+
+	* src/rasqal.h.in: raptor_uri
+
+	* src/rasqal_format_rdf.c, src/rasqal_format_sparql_xml.c: Add
+	query results recongising for 'rdf', 'turtle' and 'xml'
+	formatters.
+
+	(rasqal_query_results_rdfxml_recognise_syntax,
+	rasqal_query_results_turtle_recognise_syntax,
+	rasqal_query_results_xml_recognise_syntax): Added. All recognising
+	just a few suffixes.
+
+	* src/rasqal_internal.h: recognise not recognize
+
+	* src/rasqal.h.in, src/rasqal_internal.h,
+	src/rasqal_result_formats.c: Add query results format guessing.
+
+	(rasqal_world_guess_query_results_format_name): Added to guess
+	format based on format URI, mime type, some sample content or an
+	identifier.
+
+	(rasqal_new_query_results_formatter_for_content): Added to use
+	above to construct a formatter from content.
+
+	Typedef rasqal_query_results_recognize_syntax_func added
+	rasqal_query_results_format_factory gains recognize_syntax
+	optional factory method.
+
+	* utils/roqet.c:
+	(roqet_init_query): Remove unused results variable
+
+	* utils/check_query.c: Use iostream and dataset to read graph
+	results.
+
+	* utils/check_query.c:
+	(check_query_init_query): Added to pull init query code out of
+	main
+
+	* utils/.gitignore, utils/Makefile.am, utils/check_query.c: Add
+	start of check_query utility
+
+	* src/rasqal_query_results.c: Use rasqal_query_get_result_type in
+	query engine execution
+
+	(rasqal_query_results_execute_with_engine): Call
+	rasqal_query_get_result_type() to get expected type and use
+	RASQAL_QUERY_RESULTS_UNKNOWN for error case.
+
+	* src/rasqal.h.in, src/rasqal_query.c:
+	(rasqal_query_get_result_type): Added to determine expected result
+	type from query structure Based on logic from
+	rasqal_query_results_execute_with_engine()
+
+	* src/rasqal.h.in: rasqal_query_results_type gains
+	RASQAL_QUERY_RESULTS_UNKNOWN
+
+	* src/rasqal.h.in, src/rasqal_query_results.c:
+	(rasqal_query_results_get_type): Added
+
+2011-01-01  Dave Beckett <dave@dajobe.org>
+
+	* docs/tmpl/section-expression.sgml: Update tmpls
+
+	* tests/sparql/check-sparql: Handle file: URIs properly for
+	reading rdf results
+
+	* src/rasqal_literal.c:
+	(rasqal_literal_set_typed_value): Document l->string ownership for
+	decimal.
+
+	* src/rasqal_decimal.c:
+	(rasqal_xsd_decimal_set_string): Strip leading '+' from decimal
+	string for MPFR and GMP
+
+	* src/rasqal_expr_evaluate.c:
+	(rasqal_expression_evaluate_datatype): Free literal after getting
+	a reference to dt_uri
+
+	* src/rasqal_expr_evaluate.c:
+	(rasqal_expression_evaluate): Fix RASQAL_EXPR_DATATYPE return
+	value.
+
+	* src/rasqal_format_sparql_xml.c, src/rasqal_general.c,
+	src/rasqal_query.c, src/rasqal_redland.c: Replace strcpy with
+	memcpy since strcpy() special features are not needed
+
+	* src/rasqal_expr_evaluate.c, src/rasqal_expr_strings.c,
+	src/rasqal_format_rdf.c, src/rasqal_literal.c: Replace
+	rasqal_literal_as_string + strlen() on result with
+	rasqal_literal_as_counted_string() call
+
+	* src/rasqal_internal.h, src/rasqal_literal.c: Ensure true/false
+	literal strings have lengths set consistently
+
+	* src/rasqal.h.in, src/rasqal_literal.c:
+	(rasqal_literal_as_counted_string): Added to get the literal
+	string with length.
+
+	* src/rasqal_expr_datetimes.c: autodocs
+
+	* src/rasqal_expr_datetimes.c:
+	(rasqal_expression_evaluate_datetime_timezone): No need to use len
+
+	* src/rasqal_datetime.c:
+	(rasqal_xsd_datetime_get_timezone_as_counted_string): Remove
+	sprintf for small integers.
+
+	* src/rasqal_expr_datetimes.c, src/rasqal_expr_evaluate.c,
+	src/rasqal_internal.h:
+	(rasqal_expression_evaluate_datetime_timezone): Added to execute
+	TIMEZONE()
+
+	* src/rasqal.h.in, src/rasqal_datetime.c:
+	(rasqal_xsd_datetime_get_timezone_as_counted_string): Added to
+	turn a timezone into a duration string
+
+2010-12-30  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_expr_strings.c: Count number of Unicode characters
+	not byte length
+
+	(rasqal_unicode_utf8_strlen): Added to count number of UTF-8
+	encoded characters in a string.
+
+	(rasqal_expression_evaluate_strlen): Use above to return strlen
+
+	* tests/sparql/check-sparql: Handle vars mentioned in select
+	expresssions, partially
+
+	* src/rasqal_expr_evaluate.c, src/rasqal_expr_strings.c: Use
+	rasqal_expression_evaluate_str_prefix_suffix() to implement
+	CONTAINS()
+
+	* src/rasqal_expr_evaluate.c, src/rasqal_expr_strings.c,
+	src/rasqal_internal.h: Implement SPARQL 1.1 STRSTARTS() and
+	STRENDS()
+
+	(rasqal_literals_sparql11_compatible): Added to check literal
+	compatibility for matching according to SPARQL 1.1 draft string
+	matching rules.
+
+	(rasqal_expression_evaluate_str_prefix_suffix): Added to implement
+	prefix and suffix matching if the literals are compatible.
+
+	* src/rasqal_expr_evaluate.c, src/rasqal_expr_strings.c,
+	src/rasqal_internal.h:
+	(rasqal_expression_evaluate_set_case): Added implementing UCASE()
+	and LCASE() for ASCII
+
+	* src/rasqal_expr_evaluate.c, src/rasqal_expr_strings.c,
+	src/rasqal_internal.h:
+	(rasqal_expression_evaluate_strlen): Added implementing STRLEN()
+
+	* src/rasqal.h.in, src/rasqal_expr.c, src/rasqal_expr_evaluate.c,
+	src/rasqal_query_write.c, src/sparql_lexer.l, src/sparql_parser.y:
+	
+	Added tokens and parsing for 7 more SPARQL 1.1 string functions
+
+	rasqal_op gains: RASQAL_EXPR_STRLEN, RASQAL_EXPR_SUBSTR,
+	RASQAL_EXPR_UCASE, RASQAL_EXPR_LCASE, RASQAL_EXPR_STRSTARTS,
+	RASQAL_EXPR_STRENDS, RASQAL_EXPR_CONTAINS,
+	RASQAL_EXPR_ENCODE_FOR_URI Added SPARQL parsing support for above
+	builtin functions.
+
+	(rasqal_expression_write, rasqal_expression_print,
+	rasqal_expression_is_constant, rasqal_expression_compare,
+	rasqal_query_write_sparql_expression, sparql_token_print): Add
+	support (rasqal_expression_evaluate): Add cases to switch with
+	not-implemented.
+
+	(STRLEN, SUBSTR, UCASE, LCASE, STRSTARTS, STRENDS, CONTAINS,
+	ENCODE_FOR_URI): Added terminal tokens.
+
+	(SPARQL grammar token StringExpression): Added token
+
+	* src/rasqal_format_rdf.c:
+	(rasqal_query_results_rdf_init): Only declare raptor_world_ptr for
+	Raptor V2
+
+	* src/rasqal_format_rdf.c:
+	(rasqal_query_results_rdf_init): For unknown name, set write
+	format to NULL.
+
+	* src/rasqal_expr_evaluate.c: remove unused var s
+
+	* src/rasqal_expr_evaluate.c: Remove regex headers
+
+	* src/Makefile.am, src/rasqal_expr_datetimes.c,
+	src/rasqal_expr_evaluate.c, src/rasqal_internal.h: Split date and
+	time expression evaluations out into rasqal_expr_datetimes.c
+
+	* src/rasqal_expr_evaluate.c, src/rasqal_expr_strings.c,
+	src/rasqal_internal.h:
+	(rasqal_expression_evaluate_langmatches): Added
+
+	* src/Makefile.am, src/rasqal_expr_evaluate.c,
+	src/rasqal_expr_strings.c, src/rasqal_internal.h: Split string
+	expression evaluations out into rasqal_expr_strings.c
+
+	* src/rasqal_expr_evaluate.c: Code style
+
+	* src/rasqal_expr_evaluate.c:
+	(rasqal_expression_evaluate): Report eror failure for executing
+	aggregate expressions.
+
+	* src/rasqal_expr_evaluate.c:
+	(rasqal_expression_evaluate): Remove unused i
+
+	* src/rasqal_expr_evaluate.c:
+	(rasqal_expression_evaluate_bnode_constructor): Added and make it
+	tidy up.
+
+	* src/rasqal_expr_evaluate.c:
+	(rasqal_expression_evaluate_uri_constructor): Added.
+
+	* src/rasqal_expr_evaluate.c: Handle IN and NOT_IN with one
+	function
+
+	(rasqal_expression_evaluate_in_set): Renamed from
+	rasqal_expression_evaluate_in and invert result for NOT_IN.
+
+	* src/rasqal_expr_evaluate.c:
+	(rasqal_expression_evaluate_in): Added.
+
+	* src/rasqal_expr_evaluate.c:
+	(rasqal_expression_evaluate_sameterm): Added.
+
+	* src/rasqal_expr_evaluate.c:
+	(rasqal_expression_evaluate_datatype): Added
+
+	* src/rasqal_expr_evaluate.c:
+	(rasqal_expression_evaluate_lang): Added
+
+	* src/rasqal_expr_evaluate.c:
+	(rasqal_expression_evaluate_str): Added
+
+	* src/rasqal_expr_evaluate.c:
+	(rasqal_expression_evaluate_coalesce): Added.
+
+	* src/rasqal_expr_evaluate.c:
+	(rasqal_expression_evaluate_if): Added
+
+	* src/rasqal_expr_evaluate.c:
+	(rasqal_expression_evaluate_bound): Added.
+
+	* src/rasqal_expr_evaluate.c:
+	(rasqal_expression_evaluate_istype): Added for checking term types
+
+	* src/rasqal_expr_evaluate.c:
+	(rasqal_expression_evaluate_strlang): Added and may even work now.
+
+	* src/rasqal_expr_evaluate.c:
+	(rasqal_expression_evaluate_strdt): Copy lang string
+
+	* src/rasqal_expr_evaluate.c:
+	(rasqal_expression_evaluate_strdt): Added.
+
+	* src/rasqal_literal.c:
+	docs
+
+	* src/rasqal_expr_evaluate.c:
+	(rasqal_expression_evaluate_concat): Added.  Preserves literal
+	datatype.
+
+	* src/rasqal_expr_evaluate.c:
+	(rasqal_expression_evaluate_datetime_part): Free literal
+
+	* src/rasqal_expr_evaluate.c:
+	(rasqal_expression_evaluate_datetime_part): Added Also make
+	TIMEZONE() report an error and fail rather than abort()
+
+	* src/rasqal_expr_evaluate.c:
+	(rasqal_expression_evaluate_from_unixtime): Added
+
+	* src/rasqal_expr_evaluate.c:
+	(rasqal_expression_evaluate_to_unixtime): Added
+
+	* src/rasqal_expr_evaluate.c: #ws
+
+	* src/rasqal_expr_evaluate.c:
+	(rasqal_expression_evaluate_now): Added
+
+	* src/Makefile.am, src/rasqal_expr.c, src/rasqal_expr_evaluate.c:
+	Move expression evaluate code to new file rasqal_expr_evaluate.c
+
+2010-12-29  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_expr.c: code style - newline after case break; remove
+	fallthrough
+
+	* src/rasqal_result_formats.c:
+	(rasqal_get_query_results_formatter_factory): Fix searching by uri
+
+	* utils/roqet.c: Compile when built with Raptor V1 for now.
+
+	* src/rasqal.h.in, src/rasqal_format_html.c,
+	src/rasqal_format_json.c, src/rasqal_format_rdf.c,
+	src/rasqal_format_sparql_xml.c, src/rasqal_format_sv.c,
+	src/rasqal_format_table.c, src/rasqal_general.c,
+	src/rasqal_internal.h, src/rasqal_result_formats.c,
+	src/rdql_parser.y, src/sparql_parser.y: Update factories to use
+	raptor V2 1.9.2+ or internal syntax description
+
+	* configure.ac: Raptor V2 min version is now 1.9.2 for syntax
+	description changes.
+
+2010-12-28  Dave Beckett <dave@dajobe.org>
+
+	* utils/srxread.c: Use
+	rasqal_world_get_query_results_format_description() and print all
+	mime types.
+
+	* utils/roqet.c: Use
+	rasqal_world_get_query_results_format_description()
+
+	* src/rasqal_internal.h, src/rasqal_result_formats.c: Set query
+	results format flags in registration
+
+	(rasqal_world_register_query_results_format_factory): Set
+	desc.flags based on presence/absence of factory methods.  Tidy
+	code and rename arg to be register_factory
+
+	* src/rasqal_format_rdf.c: Copy mime type information from raptor
+	syntax descriptions for Raptor V2
+
+	(rasqal_query_results_format_rdf_copy_syntax_description_from_parser):
+	Added to copy mime type static info for RDF query result formats.
+
+	* src/rasqal.h.in, src/rasqal_result_formats.c: Added method to
+	get syntax description for query results formats
+
+	(rasqal_world_get_query_results_format_description): Added,
+	deprecating rasqal_query_results_formats_enumerate() and
+	rasqal_query_results_formatter_get_mime_type()
+
+	* src/rasqal_format_rdf.c, src/rasqal_internal.h,
+	src/rasqal_result_formats.c: Add finish cleanup method for query
+	results formatter context
+
+	rasqal_query_results_finish_func added for finish method.
+
+	rasqal_query_results_format_factory gains finish factory method.
+
+	(rasqal_free_query_results_formatter): Call finish method if present
+	before cleaning up context.
+
+	rasqal_query_results_format_rdf gains static URIs used for reading
+
+	(rasqal_query_results_rdf_init, rasqal_query_results_rdf_finish):
+	Allocate and free static URIs.
+
+	(rasqal_query_results_rdf_write): Use static URIs rather than
+	allocate each time.  Use rasqal_query_results_rdf_finish in rdfxml
+	and turtle format cleanup factory methods.
+
+	* src/Makefile.am, src/rasqal_format_rdf.c,
+	src/rasqal_format_turtle.c: Provide read/write for turtle query
+	results using RDF formatter for reading
+
+	rasqal_query_results_format_rdf gains read and write format name
+	fields.
+
+	(rasqal_query_results_rdf_init): Init read and write format name
+	fields based on formatter name used.
+
+	(rasqal_query_results_rdf_write): Renamed from
+	rasqal_query_results_write_rdf. Use write_format_name from
+	formatter context.
+
+	(rasqal_rowsource_rdf_process): use read_format_name from
+	formatter context.
+
+	(rasqal_query_results_rdf_get_rowsource): Renamed from
+	rasqal_query_results_get_rowsource_rdf.
+
+	(rasqal_query_results_rdfxml_register_factory): Updated for
+	renames above.
+
+	(rasqal_query_results_turtle_write): Merge turtle writer function
+	into the rdf formatter code.  Still preserved since prettier than
+	what raptor does for rdf query results in turtle.
+
+	(rasqal_query_results_turtle_register_factory): Merged into rdf
+	formatter code and uses rasqal_query_results_rdf_get_rowsource to
+	read turtle query results.
+l
+2010-12-27  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_format_html.c, src/rasqal_format_json.c,
+	src/rasqal_format_rdf.c, src/rasqal_format_sparql_xml.c,
+	src/rasqal_format_sv.c, src/rasqal_format_table.c,
+	src/rasqal_format_turtle.c, src/rasqal_internal.h,
+	src/rasqal_result_formats.c: Query result formatter gains init
+	method, optional context and pass in formatter
+
+	Following raptor_parser factory pattern allow each formatter to have
+	some saved state on construction that can be used.
+
+	Adjust the factory methods to pass in formatter arg to get at
+	formatter->context.
+
+	rasqal_query_results_init_func typedef added for init function.
+
+	rasqal_query_results_format_factory gains context_length field and
+	init function. Loses mime_type field that is now handled by
+	factory syntax description.
+
+	rasqal_query_results_formatter gains context field.
+
+	(rasqal_new_query_results_formatter2): Allocate context field if
+	needed and call init function if present.
+
+	(rasqal_free_query_results_formatter): Free context if present.
+
+	(rasqal_query_results_formatter_get_mime_type): use first mime
+	type string from factory syntax description.
+
+	(rasqal_query_results_formatter_write,
+	rasqal_query_results_formatter_read): Pass in formatter arg to
+	factory methods.
+
+	(rasqal_query_results_rdf_init): Added as init function for rdf
+	formatter.
+
+	* src/rasqal_format_html.c, src/rasqal_format_json.c,
+	src/rasqal_format_rdf.c, src/rasqal_format_sparql_xml.c,
+	src/rasqal_format_sv.c, src/rasqal_format_table.c,
+	src/rasqal_format_turtle.c, src/rasqal_internal.h,
+	src/rasqal_result_formats.c: Remove unused
+	rasqal_query_results_format_factory method reader; rename writer
+	to write
+
+	* src/rasqal_format_html.c, src/rasqal_format_json.c,
+	src/rasqal_format_rdf.c, src/rasqal_format_sparql_xml.c,
+	src/rasqal_format_sv.c, src/rasqal_format_table.c,
+	src/rasqal_format_turtle.c: Switch query result formats to use
+	static rasqal_query_results_format_factory initialisation
+
+	* src/rasqal_internal.h, src/rasqal_result_formats.c: Switch
+	rasqal_query_results_format_factory to use a
+	raptor_syntax_description
+
+	* utils/srxread.c: Show format mime type
+
+2010-12-26  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_dataset.c:
+	(rasqal_dataset_load_graph_iostream): Handle being called multiple
+	times.
+
+	* utils/roqet.c, utils/srxread.c:
+	Remove bogus use of feature count
+	for query results format enumeration.
+
+	* utils/srxwrite.c:
+	Remove SRX branding
+
+	* utils/srxread.c:
+	Usage message, remove SRX branding
+
+	* src/rasqal_result_formats.c:
+	(rasqal_query_results_formats_enumerate): set reader flag if
+	get_rowsource is there.
+
+2010-12-26  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_internal.h, src/rasqal_raptor.c: Make
+	rasqal_raptor_error_handler static again
+
+	* src/rasqal_dataset.c: rasqal_dataset_raptor_error_handler is
+	static
+
+	* src/rasqal_dataset.c:
+	(rasqal_dataset_raptor_error_handler): Added for Raptor V1
+
+	* src/rasqal_dataset.c: Handle base URI in triple match (if
+	present)
+
+	* utils/.gitignore: ignore less
+
+	* src/rasqal_format_sparql_xml.c: crash fix when called on non
+	sparql XML
+
+	* src/rasqal_format_rdf.c: code tidy
+
+	* src/rasqal_format_rdf.c: Move RDF formatter to rasqal_dataset
+	internal API
+
+	* src/Makefile.am: Add rasqal_dataset internal API
+
+	* src/rasqal_dataset.c, src/rasqal_internal.h: Add rasqal_dataset
+	internal API
+
+	* src/rasqal_data_graph.c: # code style
+
+2010-12-25  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_format_rdf.c: Do not build
+	rasqal_query_results_write_rdf for raptor V1
+
+	* src/rasqal_format_sparql_xml.c, src/rasqal_literal.c: Allow
+	writing RASQAL_LITERAL_UDT in Turtle and SPARQL XML
+
+	* src/rasqal_format_rdf.c: Fix rs:resultVariable URI.  Serialize
+	RASQAL_LITERAL_UDT
+
+	* src/rasqal_format_rdf.c: message
+
+	* src/rasqal_format_rdf.c: Free resource
+
+	* src/rasqal_format_rdf.c:
+	(rasqal_query_results_write_rdf): Implement writing rdfxml
+
+	* utils/Makefile.am, utils/rdfr_read.c: Remove rdfr_read example;
+	srxread.c can do it
+
+	* src/rasqal_format_rdf.c, src/rasqal_internal.h,
+	src/rasqal_raptor.c: Export rasqal_raptor_error_handler()
+	internally
+
+	* src/Makefile.am, src/rasqal_format_rdf.c, src/rasqal_internal.h,
+	src/rasqal_raptor.c, src/rasqal_result_formats.c: Add RDF Query
+	Results format reading
+
+	* utils/rdfr_read.c: uri allocation tidy
+
+	* utils/rdfr_read.c: ws
+
+	* utils/rdfr_read.c: Add binding iterator.  Add
+	get_source/get_target helpers
+
+	* utils/rdfr_read.c: code tidy
+
+	* utils/rdfr_read.c: Added (sigh) yet another iterator class.
+
+	* utils/rdfr_read.c: Added simple iterator
+
+	* utils/.gitignore, utils/Makefile.am, utils/rdfr_read.c: Add
+	skeleton of code for reading rdf serialized query results
+
+	* src/rasqal_internal.h, src/rasqal_raptor.c: Make
+	raptor_statement_as_rasqal_triple() available to internal code.
+
+2010-12-22  Dave Beckett <dave@dajobe.org>
+
+	* src/sparql_parser.y: Start state is Sparql with Query or Update
+	alternatives.
+
+	* src/sparql_common.h, src/sparql_parser.y: Split SPARQL 1.1 into
+	sparql11-query, sparql11-update and sparql11 languages
+
+	struct rasqal_sparql_query_language_s gains flags for sparql_query
+	and sparql11_query plus some comments.
+
+	Updated SPARQL query grammar tokens to check for sparql_query flag
+	and return error.
+
+	Updated SPARQL update grammar tokens to reword error message to
+	mention update.
+
+	(rasqal_sparql11_query_language_register_factory,
+	rasqal_sparql11_update_language_register_factory): Added to
+	register the sparql11-query and sparql11-update names with
+	different descriptions and URIs.
+
+2010-12-20  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_decimal.c: Restrict decimal as double range to
+	DBL_DIG digits
+
+	* src/rasqal_decimal.c: Fix XSD decimal formatting to match
+	canonical lexical format.
+
+	(rasqal_xsd_decimal_as_string): Use appropriate library snprintf
+	and then prune trailing 0s
+
+	* src/rasqal_decimal.c: Canonical XSD decimal 0 is 0.0 not 0.0E0
+
+	* src/rasqal_xsd_datatypes.c:
+	(rasqal_xsd_format_double): Canonical xsd:double uses capital E.
+
+	* src/rasqal_rowsource_having.c:
+	(rasqal_having_rowsource_read_row): Do not rebind row.
+
+2010-12-20  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_rowsource_aggregation.c:
+	(rasqal_builtin_agg_expression_execute_step): Fixed debug
+	conditional
+
+2010-12-19  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_decimal.c:
+	(rasqal_xsd_decimal_as_string): Round to precision digits for
+	MPFR/GMP.
+
+	* src/rasqal_decimal.c, src/rasqal_rowsource_aggregation.c: MPFR
+	operation return code is rounding not an error code - ignore.  Add
+	debugging for agg step values
+
+	* tests/sparql/check-sparql: Handle SPARQL 1.1 test namespace,
+	sparql11 language and new update types.
+
+	* tests/sparql/check-sparql: Use GIT
+
+	* src/rasqal_literal.c: Fix promotion of numerics to decimal
+
+	(rasqal_new_literal_from_promotion): Promote to decimal via double
+	rather than string values which is both better and more accurate.
+
+	* src/rasqal_rowsource_aggregation.c:
+	(rasqal_builtin_agg_expression_execute_step): Set error if result
+	is NULL.
+
+2010-12-18  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal.h.in, src/rasqal_expr.c, src/rasqal_query_write.c,
+	src/sparql_lexer.l, src/sparql_parser.y: Added SPARQL 1.1 CONCAT()
+
+	rasqal_op gains RASQAL_EXPR_CONCAT
+
+	(rasqal_new_expr_seq_expression): Added, replacing deprecated
+	rasqal_new_coalece_expression
+
+	(rasqal_new_coalesce_expression): Deprecated for above. 
+
+	Add init/free/print code for CONCAT()
+
+	Execute concat by evaluating values as strings and building a plain
+	literal.  Not clear if it is allowed to work on URIs or what to do
+	with errors; right now it stringify URIs and stops at an expression
+	in the arg with an error.
+
+	(CoalesceExpression): Use rasqal_new_expr_seq_expression
+
+	(BuiltInCall): Added CONCAT() support using
+	rasqal_new_expr_seq_expression()
+
+2010-12-16  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_expr.c: Add new laqrs keywords to rasqal_op_labels
+
+	* docs/tmpl/section-expression.sgml: Update doc tmpls
+
+2010-12-15  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal.h.in, src/rasqal_expr.c, src/rasqal_query_results.c,
+	src/rasqal_query_write.c, src/sparql_lexer.l, src/sparql_parser.y:
+	Add experimental LAQRS NOW()/CURRENT_DATETIME(), FROM_UNIXTIME() and
+	TO_UNIXTIME() builtin functions
+
+	Added builtins enabled by use of the 'laqrs' query language.
+
+	NOW()/CURRENT_DATETIME() are synonyms to return an XSD datetime for
+	the current datetime.  At the first execution/preparation of the
+	query, the value is set as a constant throughout the life of the
+	query execution.
+
+	FROM_UNIXTIME() turns an integer value into an XSD DateTime
+
+	TO_UNIXTIME() turns an XSD DateTime into an integer value.
+
+	These functions are likely not opposites since they do not take into
+	consideration leap seconds or daylight saving time changes.
+
+	LAQRS (SPARQL) grammar gains new terminals NOW, CURRENT_DATETIME,
+	FROM_UNIXTIME and TO_UNIXTIME.
+
+	(DatetimeExtensions) Added to grammar, only allowing the terms
+	when query language is LAQRS.
+
+	(BuiltInCall): Call above.
+
+	rasqal_op gains new expressions RASQAL_EXPR_CURRENT_DATETIME,
+	RASQAL_EXPR_NOW, RASQAL_EXPR_FROM_UNIXTIME and
+	RASQAL_EXPR_TO_UNIXTIME.
+
+	(rasqal_expression_clear, rasqal_expression_write,
+	rasqal_expression_print, rasqal_expression_is_constant,
+	rasqal_expression_is_compare,
+	rasqal_query_write_sparql_expression): Updated all expression
+	functions to handle new expressions operations.
+
+	(rasqal_expression_evaluate): Execute new operations.
+
+	* src/rasqal_general.c, src/rasqal_internal.h: Add methods to
+	world class for getting current datetime timeval.
+
+	(rasqal_world_reset_now): Invalidate any cached current datetime
+
+	(rasqal_world_get_now_timeval): Get current datetime as a timeval.
+
+	rasqal_world_s gains a struct timeval now field and a bit flag to
+	know when it is set.
+
+	* src/rasqal.h.in, src/rasqal_datetime.c:
+	(rasqal_new_xsd_datetime_from_timeval): Added to make a new
+	datetime from struct timeval*
+
+	* src/rasqal.h.in, src/rasqal_literal.c:
+	(rasqal_new_datetime_literal_from_datetime): Added to make a
+	datetime literal
+
+	* src/rasqal.h.in, src/rasqal_datetime.c:
+	(rasqal_new_xsd_datetime_from_unixtime): Added to create a
+	datetime from a unix time int
+
+2010-12-14  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal.h.in: autodocs
+
+	* configure.ac, src/rasqal_datetime.c: Define HAVE_TM_GMTOFF and
+	use to detect this non-portable field of struct tm
+
+2010-12-14  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_datetime.c:
+	(rasqal_xsd_datetime_set_from_timeval): Fix compilation errors
+	systems where time_t and struct timeval tv_sec are of different
+	types (e.g. long, int)
+
+	* src/rasqal_expr.c:
+	(rasqal_expression_evaluate): Init vars.i in any case to keep some
+	optimizing compilers happy
+
+2010-12-13  Dave Beckett <dave@dajobe.org>
+
+	* configure.ac, src/rasqal.h.in, src/rasqal_datetime.c: Add
+	datetime to/from unix times and timevals
+
+	(rasqal_xsd_datetime_set_from_timeval,
+	rasqal_xsd_datetime_set_from_unixtime,
+	rasqal_xsd_datetime_get_as_unixtime,
+	rasqal_xsd_datetime_get_as_timeval): Added.
+
+	Added automake substitutions so that sys/time.h and/or time.h get
+	include in rasqal.h in order to get the timeval and time_t
+	definitions.
+
+	* src/rasqal.h.in, src/rasqal_datetime.c: Store full timezone
+	minutes offset in rasqal_xsd_datetime
+
+	rasqal_xsd_datetime gains timezone_minutes field with sentinel
+	value RASQAL_XSD_DATETIME_NO_TZ when there is no timezone.
+
+	(rasqal_xsd_datetime_normalize): Normalize timezone to Zulu here.
+
+	(rasqal_xsd_datetime_parse): Save but do not normalize timezone.
+
+	(rasqal_xsd_datetime_to_counted_string): Generate none, Zulu or
+	timezone offset setings.
+
+2010-12-12  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_datetime.c:
+	Fix datetime equals method
+
+	(rasqal_xsd_datetime_equals): Compare field by field since memcmp
+	fails due to padding bytes.
+
+	* src/rasqal_datetime.c: Fix rasqal_xsd_datetime_compare
+	comparison order
+
+	(rasqal_xsd_datetime_compare): Datetime comparison should be
+	negative for dt1 earlier than dt2.
+
+	* src/rasqal_literal.c:
+	(rasqal_literal_compare): break after datetime compare
+
+2010-12-07  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal.h.in, src/rasqal_datetime.c, src/rasqal_expr.c:
+	(rasqal_xsd_datetime_get_seconds_as_decimal): Added
+
+	* src/rasqal_expr.c: Add "isnumeric" to rasqal_op_labels
+
+	* src/rasqal_expr.c: Make SECONDS() return decimal correctly
+
+	* src/sparql_parser.y: Accept datetime accessor builtins
+
+	(DatetimeBuiltinAccessors): Added
+
+	(BuiltInCall): Use above as an alternative
+
+	* src/rasqal_expr.c:
+	Add labels for datetime accessors
+
+	* src/sparql_parser.y:
+	(BuiltInCall): Initialize isnumeric expression properly.  Now works.
+
+	* src/rasqal.h.in, src/rasqal_expr.c, src/rasqal_literal.c,
+	src/rasqal_query_write.c, src/rasqal_xsd_datatypes.c,
+	src/sparql_lexer.l, src/sparql_parser.y: Added datetime accessor
+	builtin functions: YEAR, MONTH, DAY, HOURS, MINUTES, SECONDS and
+	TIMEZONE
+
+	rasqal_op gains RASQAL_EXPR_YEAR, RASQAL_EXPR_MONTH,
+	RASQAL_EXPR_DAY, RASQAL_EXPR_HOURS, RASQAL_EXPR_MINUTES,
+	RASQAL_EXPR_SECONDS, RASQAL_EXPR_TIMEZONE.
+
+	(rasqal_expression_clear, rasqal_expression_visit,
+	rasqal_expression_write, rasqal_expression_print,
+	rasqal_expression_is_constant, rasqal_expression_compare,
+	rasqal_query_write_sparql_expression): Added handling for datetime
+	accessor builtins.
+
+	(rasqal_expression_evaluate): Evaluate datetime accessor builtins
+	mostly returning integer, seconds returns decimal and timezone
+	TBD.
+
+	rasqal_sparql_op_labels: Add labels for the builtins.
+
+	(YEAR, MONTH, DAY, HOURS, MINUTES, SECONDS, TIMEZONE): Added
+	tokens to SPARQL grammar
+
+	* src/rasqal.h.in, src/rasqal_datetime.c, src/rasqal_internal.h:
+	rasqal_xsd_datetime functions take/return const char* strings
+
+	* src/rasqal.h.in: rasqal_data_graph format_type and format_name
+	fields are not const.
+
+	* src/rasqal_data_graph.c:
+	(rasqal_new_data_graph_common): Replace strncpy with memcpy.
+
+	* src/rasqal.h.in, src/rasqal_datetime.c, src/rasqal_literal.c:
+	Added equals and compare methods for XSD datetime
+
+	(rasqal_xsd_datetime_equals, rasqal_xsd_datetime_compare): Added.
+
+	(rasqal_literal_compare): Use rasqal_xsd_datetime_compare.
+
+	(rasqal_literal_equals_flags): Use rasqal_xsd_datetime_equals.
+
+	* src/rasqal.h.in, src/rasqal_literal.c: Add datetime to rasqal
+	literal union
+
+	Now xsd:dateTime objects use the rasqal_xsd_datetime class and get a
+	new literal union value.
+
+	(rasqal_literal_set_typed_value): Set value.datetime as well as
+	the string field when a datetime is found.
+
+	(rasqal_free_literal): Free datetime.
+
+	* src/rasqal.h.in, src/rasqal_datetime.c:
+	(rasqal_xsd_datetime_to_counted_string): Added.
+	(rasqal_xsd_datetime_to_string): Edit to wrap above
+
+	* src/rasqal_datetime.c: Split datetime parsing and normalizing
+
+	(rasqal_xsd_datetime_parse): Renamed from
+	rasqal_xsd_datetime_parse_and_normalize_common and remove call to
+	rasqal_xsd_datetime_normalize() at end.
+
+	(rasqal_xsd_datetime_parse_and_normalize,
+	rasqal_xsd_date_parse_and_normalize, rasqal_new_xsd_datetime):
+	Update callers to call rasqal_xsd_datetime_parse() and
+	rasqal_xsd_datetime_normalize() in order.
+
+	* src/rasqal.h.in, src/rasqal_datetime.c: XSD datetime holds
+	microseconds now
+
+	rasqal_xsd_decimal gains int microseconds field replacing
+	second_frac string.
+
+	(rasqal_xsd_datetime_parse_and_normalize_common): Fill microseconds
+	field.
+
+	(rasqal_xsd_datetime_to_string): Format microseconds in
+	result.
+
+	(main): Adjust tests to allow 4th digit of decimal digits to work.
+
 2010-12-06  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal.h.in, src/rasqal_datetime.c: Added XSD DateTime class
+	to public API
+
+	Made rasqal_xsd_datetime struct public with public
+	fields.
+
+	(rasqal_new_xsd_datetime, rasqal_free_xsd_datetime): Added
+	constructor and destructor.
+
+	(rasqal_xsd_datetime_to_string): Added method to get datetime as
+	canonical string format.
+
 
 	* NEWS.html, RELEASE.html, configure.ac:
 	Bumped version to 0.9.22
