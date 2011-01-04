@@ -119,7 +119,7 @@ rasqal_unicode_utf8_substr(unsigned char* dest, size_t* dest_length_p,
       dest_bytes += unichar_len;
 
       dest_length++;
-      if(length >= 0 && (int)dest_length > length)
+      if(length >= 0 && (int)dest_length == length)
         break;
     }
 
