@@ -195,7 +195,7 @@ rasqal_expression_evaluate_set_case(rasqal_world *world,
   if(dt_uri)
     dt_uri = raptor_uri_copy(dt_uri);
 
-  /* after this new_s becomes owned by result */
+  /* after this new_s, new_lang and dt_uri become owned by result */
   return rasqal_new_string_literal(world, new_s, new_lang, dt_uri,
                                    /* qname */ NULL);
   
@@ -350,6 +350,110 @@ rasqal_expression_evaluate_str_prefix_suffix(rasqal_world *world,
     rasqal_free_literal(l2);
 
   return NULL;
+}
+
+
+/* 
+ * rasqal_expression_evaluate_encode_for_uri:
+ * @world: #rasqal_world
+ * @locator: error locator object
+ * @e: The expression to evaluate.
+ * @flags: Compare flags
+ *
+ * INTERNAL - Evaluate RASQAL_EXPR_ENCODE_FOR_URI(string) expression.
+ *
+ * Return value: A #rasqal_literal string value or NULL on failure.
+ */
+rasqal_literal*
+rasqal_expression_evaluate_encode_for_uri(rasqal_world *world,
+                                          raptor_locator *locator,
+                                          rasqal_expression *e,
+                                          int flags)
+{
+  rasqal_literal* l1;
+  raptor_uri* xsd_string_uri;
+  const unsigned char *s;
+  unsigned char* new_s = NULL;
+  raptor_uri* dt_uri = NULL;
+  char* new_lang = NULL;
+  size_t len = 0;
+  int error = 0;
+  unsigned int i;
+  unsigned char* p;
+
+  l1 = rasqal_expression_evaluate(world, locator, e->arg1, flags);
+  if(!l1)
+    return NULL;
+  
+  xsd_string_uri = rasqal_xsd_datatype_type_to_uri(l1->world, 
+                                                   RASQAL_LITERAL_XSD_STRING);
+
+  dt_uri = l1->datatype;
+  if(dt_uri && !raptor_uri_equals(dt_uri, xsd_string_uri))
+    /* datatype and not xsd:string */
+    goto failed;
+
+  s = rasqal_literal_as_counted_string(l1, &len, flags, &error);
+  if(error)
+    goto failed;
+
+  /* pessimistically assume every UTF-8 byte is %XX 3 x len */
+  new_s = (unsigned char*)RASQAL_MALLOC(cstring, (3 * len) + 1);
+  if(!new_s)
+    goto failed;
+
+  p = new_s;
+  for(i = 0; i < len; i++) {
+    unsigned char c = s[i];
+
+    /* All characters are escaped except those identified as
+     * "unreserved" by [RFC 3986], that is the upper- and lower-case
+     * letters A-Z, the digits 0-9, HYPHEN-MINUS ("-"), LOW LINE
+     * ("_"), FULL STOP ".", and TILDE "~".
+     */
+    if((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') ||
+       (c >= '0' && c <= '9') || 
+       c == '-' || c == '_' || c == '.' || c == '~') {
+      *p++ = c;
+    } else {
+      unsigned short hex;
+
+      *p++ = '%';
+      hex = (c & 0xf0) >> 4;
+      *p++ = (hex < 10) ? ('0' + hex) : ('A' + hex - 10);
+      hex = (c & 0x0f);
+      *p++ = (hex < 10) ? ('0' + hex) : ('A' + hex - 10);
+    }
+  }
+
+  *p = '\0';
+
+  if(l1->language) {
+    len = strlen((const char*)l1->language);
+    new_lang = (char*)RASQAL_MALLOC(cstring, len + 1);
+    if(!new_lang)
+      goto failed;
+
+    memcpy(new_lang, l1->language, len + 1);
+  }
+
+  dt_uri = l1->datatype;
+  if(dt_uri)
+    dt_uri = raptor_uri_copy(dt_uri);
+
+  /* after this new_s, new_lang and dt_uri become owned by result */
+  return rasqal_new_string_literal(world, new_s, new_lang, dt_uri,
+                                   /* qname */ NULL);
+  
+
+  failed:
+  if(new_s)
+    RASQAL_FREE(cstring, new_s);
+  if(l1)
+    rasqal_free_literal(l1);
+
+  return NULL;
+  
 }
 
 

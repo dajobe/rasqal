@@ -1089,6 +1089,7 @@ rasqal_literal* rasqal_expression_evaluate_datetime_timezone(rasqal_world *world
 rasqal_literal* rasqal_expression_evaluate_set_case(rasqal_world *world, raptor_locator *locator, rasqal_expression *e, int flags);
 rasqal_literal* rasqal_expression_evaluate_str_prefix_suffix(rasqal_world *world, raptor_locator *locator, rasqal_expression *e,int flags);
 rasqal_literal* rasqal_expression_evaluate_strlen(rasqal_world *world, raptor_locator *locator, rasqal_expression *e,int flags);
+rasqal_literal* rasqal_expression_evaluate_encode_for_uri(rasqal_world *world, raptor_locator *locator, rasqal_expression *e, int flags);
 rasqal_literal* rasqal_expression_evaluate_concat(rasqal_world *world, raptor_locator *locator, rasqal_expression *e,int flags);
 rasqal_literal* rasqal_expression_evaluate_langmatches(rasqal_world *world, raptor_locator *locator, rasqal_expression *e, int flags);
 rasqal_literal* rasqal_expression_evaluate_strmatch(rasqal_world *world, raptor_locator *locator, rasqal_expression *e, int flags);
