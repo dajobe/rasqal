@@ -101,7 +101,7 @@ rasqal_unicode_utf8_substr(unsigned char* dest, size_t* dest_length_p,
   unsigned char* p = dest;
   
   if(!src)
-    return -1;
+    return 0;
 
   while(src_length > 0) {
     int unichar_len;
