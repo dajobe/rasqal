@@ -160,13 +160,8 @@ rasqal_rowsequence_rowsource_read_all_rows(rasqal_rowsource* rowsource,
   if(con->offset < 0)
     return NULL;
 
-#ifdef HAVE_RAPTOR2_API
   seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_row,
                             (raptor_data_print_handler)rasqal_row_print);
-#else
-  seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_row,
-                            (raptor_sequence_print_handler*)rasqal_row_print);
-#endif
   if(seq) {
     int i;
     int size = raptor_sequence_size(con->seq);

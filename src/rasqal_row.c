@@ -307,24 +307,14 @@ rasqal_new_row_sequence(rasqal_world* world,
 #define GET_CELL(row, column, offset) \
   row_data[((((row)*vars_count)+(column))<<1)+(offset)]
 
-#ifdef HAVE_RAPTOR2_API
   seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_row,
                             (raptor_data_print_handler)rasqal_row_print);
-#else
-  seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_row,
-                            (raptor_sequence_print_handler*)rasqal_row_print);
-#endif
   if(!seq)
     return NULL;
 
   if(vars_seq_p) {
-#ifdef HAVE_RAPTOR2_API
     vars_seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_variable,
                                    (raptor_data_print_handler)rasqal_variable_print);
-#else
-    vars_seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_variable,
-                                   (raptor_sequence_print_handler*)rasqal_variable_print);
-#endif
     if(!vars_seq) {
       raptor_free_sequence(seq);
       return NULL;

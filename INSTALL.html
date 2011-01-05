@@ -160,18 +160,6 @@ except the experimental one, laqrs.
 </p>
 </dd>
 
-<dt><tt>--enable-raptor2</tt><br /></dt>
-<dd><p>Build raptor against the
-beta <a href="http://librdf.org/raptor/">Raptor</a>
-V2 APIs (libraptor2) rather than the default V1 APIs (libraptor).  This
-is a developer option for testing against the raptor 2 beta APIs.  In
-some future version, this will be the default and rasqal will depend
-on raptor2.  When rasqal is built in this way and librdf is built
-against it, librdf also has to be built with a configure
-<code>--enable-raptor</code> option.
-</p>
-</dd>
-
 <dt><tt>--with-memory-signing</tt><br /></dt>
 <dd><p>Enable signing of memory allocations so that when memory is
 allocated with malloc() and released free(), a check is made that the

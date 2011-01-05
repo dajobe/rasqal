@@ -246,13 +246,8 @@ VarList : VarList ',' Var
 }
 | Var
 {
-#ifdef HAVE_RAPTOR2_API
   $$ = raptor_new_sequence((raptor_data_free_handler)rasqal_free_variable,
                            (raptor_data_print_handler)rasqal_variable_print);
-#else
-  $$ = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_variable,
-                           (raptor_sequence_print_handler*)rasqal_variable_print);
-#endif
   raptor_sequence_push($$, $1);
 }
 ;
@@ -616,13 +611,8 @@ URIList : URI_LITERAL ',' URIList
 }
 | URI_LITERAL
 {
-#ifdef HAVE_RAPTOR2_API
   $$ = raptor_new_sequence((raptor_data_free_handler)raptor_free_uri,
                            (raptor_data_print_handler)raptor_uri_print);
-#else
-  $$ = raptor_new_sequence((raptor_sequence_free_handler*)raptor_free_uri,
-                           (raptor_sequence_print_handler*)raptor_uri_print);
-#endif
   raptor_sequence_push($$, $1);
 }
 ;

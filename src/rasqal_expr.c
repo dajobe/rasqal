@@ -1733,13 +1733,8 @@ rasqal_expression_copy_expression_sequence(raptor_sequence* exprs_seq)
   if(!exprs_seq)
     return NULL;
   
-#ifdef HAVE_RAPTOR2_API
   nexprs_seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_expression,
-                                  (raptor_data_print_handler)rasqal_expression_print);
-#else
-  nexprs_seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_expression,
-                                  (raptor_sequence_print_handler*)rasqal_expression_print);
-#endif
+                                   (raptor_data_print_handler)rasqal_expression_print);
   if(!nexprs_seq)
     return NULL;
 
@@ -1800,13 +1795,8 @@ rasqal_expression_sequence_evaluate(rasqal_query* query,
     return NULL;
   }
 
-#ifdef HAVE_RAPTOR2_API
   literal_seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_literal,
                                     (raptor_data_print_handler)rasqal_literal_print);
-#else
-  literal_seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_literal,
-                                    (raptor_sequence_print_handler*)rasqal_literal_print);
-#endif
 
   for(i = 0; i < size; i++) {
     rasqal_expression* e;
@@ -2207,19 +2197,13 @@ main(int argc, char *argv[])
   int error=0;
   rasqal_world *world;
 
-#ifdef HAVE_RAPTOR2_API
   raptor_world* raptor_world_ptr;
   raptor_world_ptr = raptor_new_world();
   if(!raptor_world_ptr || raptor_world_open(raptor_world_ptr))
     exit(1);
-#else
-  raptor_init();
-#endif
 
   world = rasqal_new_world();
-#ifdef HAVE_RAPTOR2_API
   rasqal_world_set_raptor(world, raptor_world_ptr);
-#endif
   /* no rasqal_world_open() */
   
   rasqal_uri_init(world);
@@ -2265,11 +2249,7 @@ main(int argc, char *argv[])
   
   RASQAL_FREE(rasqal_world, world);
 
-#ifdef HAVE_RAPTOR2_API
   raptor_free_world(raptor_world_ptr);
-#else
-  raptor_finish();
-#endif
 
   return error;
 }

@@ -971,20 +971,16 @@ void rasqal_world_set_raptor(rasqal_world* world, raptor_world* raptor_world_ptr
 RASQAL_API
 raptor_world *rasqal_world_get_raptor(rasqal_world* world);
 
-#if @HAVE_RAPTOR2_API@
 RASQAL_API
 void rasqal_world_set_log_handler(rasqal_world* world, void *user_data, raptor_log_handler handler);
-#endif
 
 RASQAL_API
 int rasqal_world_set_default_generate_bnodeid_parameters(rasqal_world* world, char *prefix, int base);
 RASQAL_API
 int rasqal_world_set_generate_bnodeid_handler(rasqal_world* world, void *user_data, rasqal_generate_bnodeid_handler2 handler);
 
-#if @HAVE_RAPTOR2_API@
 RASQAL_API
 const raptor_syntax_description* rasqal_world_get_query_results_format_description(rasqal_world* world, unsigned int counter);
-#endif
 
 RASQAL_API
 const char* rasqal_world_guess_query_results_format_name(rasqal_world* world, raptor_uri *uri, const char *mime_type, const unsigned char *buffer, size_t len, const unsigned char *identifier);
@@ -1022,15 +1018,18 @@ const char* rasqal_query_get_name(rasqal_query* query);
 RASQAL_API
 const char* rasqal_query_get_label(rasqal_query* query);
 
-/* on raptor2: use rasqal_world_set_log_handler() instead of these */
-#if @HAVE_RAPTOR2_API@
+/* This is a typedef to let these deprecated API work with raptor2
+ * which removed this typedef and changed the way error handling was
+ * done.  Use rasqal_world_set_log_handler() on the world class
+ * instead of these functions.
+ */
 typedef void* raptor_message_handler;
-#endif
-RASQAL_API
+
+RASQAL_API RASQAL_DEPRECATED
 void rasqal_query_set_fatal_error_handler(rasqal_query* query, void *user_data, raptor_message_handler handler);
-RASQAL_API
+RASQAL_API RASQAL_DEPRECATED
 void rasqal_query_set_error_handler(rasqal_query* query, void *user_data, raptor_message_handler handler);
-RASQAL_API
+RASQAL_API RASQAL_DEPRECATED
 void rasqal_query_set_warning_handler(rasqal_query* query, void *user_data, raptor_message_handler handler);
 
 RASQAL_API

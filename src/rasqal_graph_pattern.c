@@ -840,11 +840,7 @@ rasqal_graph_pattern_add_sub_graph_pattern(rasqal_graph_pattern* graph_pattern,
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(sub_graph_pattern, rasqal_graph_pattern, 1);
 
   if(!graph_pattern->graph_patterns) {
-#ifdef HAVE_RAPTOR2_API
     graph_pattern->graph_patterns = raptor_new_sequence((raptor_data_free_handler)rasqal_free_graph_pattern, (raptor_data_print_handler)rasqal_graph_pattern_print);
-#else
-    graph_pattern->graph_patterns = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_graph_pattern, (raptor_sequence_print_handler*)rasqal_graph_pattern_print);
-#endif
 
     if(!graph_pattern->graph_patterns) {
       if(sub_graph_pattern)
@@ -1022,11 +1018,7 @@ rasqal_new_2_group_graph_pattern(rasqal_query* query,
 {
   raptor_sequence *seq;
 
-#ifdef HAVE_RAPTOR2_API
   seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_graph_pattern, (raptor_data_print_handler)rasqal_graph_pattern_print);
-#else
-  seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_graph_pattern, (raptor_sequence_print_handler*)rasqal_graph_pattern_print);
-#endif
   if(!seq) {
     if(first_gp)
       rasqal_free_graph_pattern(first_gp);

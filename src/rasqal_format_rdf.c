@@ -86,9 +86,7 @@ typedef struct
 typedef struct 
 {
   rasqal_world* world;
-#ifdef RAPTOR_V2_AVAILABLE
   raptor_world *raptor_world_ptr;
-#endif
 
   rasqal_query_results_formatter* formatter;
 
@@ -129,9 +127,7 @@ rasqal_query_results_rdf_init(rasqal_query_results_formatter* formatter,
                               const char* name)
 {
   rasqal_query_results_format_rdf* context = (rasqal_query_results_format_rdf*)formatter->context;
-#ifdef HAVE_RAPTOR2_API
   raptor_world* raptor_world_ptr = formatter->factory->world->raptor_world_ptr;
-#endif
   
   context->name = name;
 
@@ -219,7 +215,6 @@ rasqal_query_results_rdf_finish(rasqal_query_results_formatter* formatter)
 }
 
 
-#ifdef RAPTOR_V2_AVAILABLE
 /*
  * rasqal_query_results_rdf_write:
  * @iostr: #raptor_iostream to write the query results to
@@ -417,7 +412,6 @@ rasqal_query_results_rdf_write(rasqal_query_results_formatter* formatter,
 
   return rc;
 }
-#endif
 
 
 /* Local handlers for turning RDF graph read from an iostream into rows */
@@ -432,9 +426,7 @@ rasqal_rowsource_rdf_init(rasqal_rowsource* rowsource, void *user_data)
   con->rowsource = rowsource;
 
   con->world = rowsource->world;
-#ifdef RAPTOR_V2_AVAILABLE
   con->raptor_world_ptr = rasqal_world_get_raptor(rowsource->world);
-#endif
 
   con->rs_uri = raptor_new_uri(con->raptor_world_ptr,
                                rs_namespace_uri_string);
@@ -779,11 +771,7 @@ rasqal_query_results_rdf_get_rowsource(rasqal_query_results_formatter* formatter
   con->base_uri = base_uri ? raptor_uri_copy(base_uri) : NULL;
   con->iostr = iostr;
 
-#ifdef HAVE_RAPTOR2_API
   con->results_sequence = raptor_new_sequence((raptor_data_free_handler)rasqal_free_row, (raptor_data_print_handler)rasqal_row_print);
-#else
-  con->results_sequence = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_row, (raptor_sequence_print_handler*)rasqal_row_print);
-#endif
 
   con->vars_table = rasqal_new_variables_table_from_variables_table(vars_table);
   
@@ -795,7 +783,6 @@ rasqal_query_results_rdf_get_rowsource(rasqal_query_results_formatter* formatter
 }
 
 
-#ifdef HAVE_RAPTOR2_API
 static void
 rasqal_query_results_format_rdf_copy_syntax_description_from_parser(rasqal_query_results_format_factory *factory, const char* name)
 {
@@ -816,7 +803,6 @@ rasqal_query_results_format_rdf_copy_syntax_description_from_parser(rasqal_query
     }
   }
 }
-#endif
 
 
 static int
@@ -852,11 +838,8 @@ rasqal_query_results_rdfxml_register_factory(rasqal_query_results_format_factory
 
   factory->desc.mime_types = rdfxml_types;
   factory->desc.mime_types_count = RDFXML_TYPES_COUNT;
-#ifdef HAVE_RAPTOR2_API
   rasqal_query_results_format_rdf_copy_syntax_description_from_parser(factory,
                                                                       "rdfxml");
-#else
-#endif
 
   factory->desc.label = "RDF/XML Query Results";
 
@@ -869,11 +852,7 @@ rasqal_query_results_rdfxml_register_factory(rasqal_query_results_format_factory
   factory->init          = rasqal_query_results_rdf_init;
   factory->finish        = rasqal_query_results_rdf_finish;
 
-#ifdef RAPTOR_V2_AVAILABLE
   factory->write         = rasqal_query_results_rdf_write;
-#else
-  factory->write         = NULL;
-#endif
   factory->get_rowsource = rasqal_query_results_rdf_get_rowsource;
   factory->recognise_syntax = rasqal_query_results_rdfxml_recognise_syntax;
   
@@ -1035,11 +1014,8 @@ rasqal_query_results_turtle_register_factory(rasqal_query_results_format_factory
 
   factory->desc.mime_types = turtle_types;
   factory->desc.mime_types_count = TURTLE_TYPES_COUNT;
-#ifdef HAVE_RAPTOR2_API
   rasqal_query_results_format_rdf_copy_syntax_description_from_parser(factory,
                                                                       "turtle");
-#else
-#endif
   
   factory->desc.label = "Turtle Query Results";
 

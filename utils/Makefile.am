@@ -38,22 +38,22 @@ if GETOPT
 roqet_SOURCES += getopt.c rasqal_getopt.h
 endif
 roqet_LDADD = $(top_builddir)/src/librasqal.la
-roqet_LDFLAGS = `@RAPTOR_CONFIG@ --libs`
+roqet_LDFLAGS = `$(PKG_CONFIG) raptor2 --libs`
 
 check_query_SOURCES = check_query.c
 if GETOPT
 check_query_SOURCES += getopt.c rasqal_getopt.h
 endif
 check_query_LDADD = $(top_builddir)/src/librasqal.la
-check_query_LDFLAGS = `@RAPTOR_CONFIG@ --libs`
+check_query_LDFLAGS = `$(PKG_CONFIG) raptor2 --libs`
 
 srxread_SOURCES = srxread.c
 srxread_LDADD = $(top_builddir)/src/librasqal.la
-srxread_LDFLAGS = `@RAPTOR_CONFIG@ --libs`
+srxread_LDFLAGS = `$(PKG_CONFIG) raptor2 --libs`
 
 srxwrite_SOURCES = srxwrite.c
 srxwrite_LDADD = $(top_builddir)/src/librasqal.la
-srxwrite_LDFLAGS = `@RAPTOR_CONFIG@ --libs`
+srxwrite_LDFLAGS = `$(PKG_CONFIG) raptor2 --libs`
 
 EXTRA_DIST= \
 $(man_MANS) \

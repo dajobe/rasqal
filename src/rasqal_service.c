@@ -120,14 +120,9 @@ rasqal_new_service(rasqal_world* world, raptor_uri* service_uri,
     int i;
     rasqal_data_graph* dg;
     
-#ifdef HAVE_RAPTOR2_API
     svc->data_graphs = raptor_new_sequence((raptor_data_free_handler)rasqal_free_data_graph,
                                            NULL);
 
-#else
-    svc->data_graphs = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_data_graph,
-                                           NULL);
-#endif
     if(!svc->data_graphs) {
       rasqal_free_service(svc);
       return NULL;
@@ -184,13 +179,8 @@ rasqal_free_service(rasqal_service* svc)
 int
 rasqal_service_set_www(rasqal_service* svc, raptor_www* www) 
 {
-  if(svc->www) {
-#ifdef HAVE_RAPTOR2_API
+  if(svc->www)
     raptor_free_www(svc->www);
-#else
-    raptor_www_free(svc->www);
-#endif
-  }
 
   svc->www = www;
 
@@ -274,68 +264,6 @@ rasqal_service_content_type_handler(raptor_www* www, void* userdata,
 }
 
 
-#ifdef RAPTOR_STRINGBUFFER_APPEND_URI_ESCAPED_COUNTED_STRING
-#else
-
-/* RFC3986 Unreserved */
-#define IS_URI_UNRESERVED(c) ( (c >= 'A' && c <= 'F') || \
-                               (c >= 'a' && c <= 'f') || \
-                               (c >= '0' && c <= '9') || \
-                               (c == '-' || c == '.' || c == '_' || c == '~') )
-#define IS_URI_SAFE(c) (IS_URI_UNRESERVED(c))
-    
-
-static int
-raptor_stringbuffer_append_hexadecimal(raptor_stringbuffer* stringbuffer, 
-                                       int hex)
-{
-  unsigned char buf[2];
-  
-  if(hex < 0 || hex > 0xF)
-     return 1;
-
-  *buf = (hex < 10) ? ('0' + hex) : ('A' + hex - 10);
-  buf[1] = '\0';
-
-  return raptor_stringbuffer_append_counted_string(stringbuffer, buf, 1, 1);
-}
-
- 
-static int
-raptor_stringbuffer_append_uri_escaped_counted_string(raptor_stringbuffer* sb,
-                                                      const char* string,
-                                                      size_t length,
-                                                      int space_is_plus)
-{
-  unsigned int i;
-  unsigned char buf[2];
-  buf[1] = '\0';
-
-  for(i = 0; i < length; i++) {
-    int c = string[i];
-    if(!c)
-      break;
-    
-    if(IS_URI_SAFE(c)) {
-      *buf = c;
-      raptor_stringbuffer_append_counted_string(sb, buf, 1, 1);
-    } else if (c == ' ' && space_is_plus) {
-      *buf = '+';
-      raptor_stringbuffer_append_counted_string(sb, buf, 1, 1);
-    } else {
-      *buf = '%';
-      raptor_stringbuffer_append_counted_string(sb, buf, 1, 1);
-      raptor_stringbuffer_append_hexadecimal(sb, (c & 0xf0) >> 4);
-      raptor_stringbuffer_append_hexadecimal(sb, (c & 0x0f));
-    }
-  }
-
-  return 0;
-}
-#endif
-
-
- 
 /**
  * rasqal_service_execute:
  * @svc: rasqal service
@@ -358,10 +286,7 @@ rasqal_service_execute(rasqal_service* svc)
   raptor_stringbuffer* uri_sb = NULL;
   size_t len;
   unsigned char* str;
-#ifdef HAVE_RAPTOR2_API
   raptor_world* raptor_world_ptr = rasqal_world_get_raptor(svc->world);
-#else
-#endif
   
   if(!svc->www) {
     svc->www = raptor_new_www(raptor_world_ptr);
@@ -503,12 +428,8 @@ rasqal_service_execute(rasqal_service* svc)
   
   result_length = raptor_stringbuffer_length(svc->sb);  
   result_string = raptor_stringbuffer_as_string(svc->sb);
-#ifdef HAVE_RAPTOR2_API
   read_iostr = raptor_new_iostream_from_string(raptor_world_ptr,
                                                result_string, result_length);
-#else
-  read_iostr = raptor_new_iostream_from_string(result_string, result_length);
-#endif
   if(!read_iostr) {
     rasqal_log_error_simple(svc->world, RAPTOR_LOG_LEVEL_ERROR, NULL,
                             "Failed to create iostream from string");

@@ -46,146 +46,6 @@
 
 #ifndef STANDALONE
 
-#ifdef HAVE_RAPTOR2_API
-#else
-
-/* Fake AVL Tree implementation for Raptor V1 - using a sequence to
- *  store content and implementing just enough of the API for the
- *  grouping to work
-*/
-
-typedef int (*raptor_data_compare_handler)(const void* data1, const void* data2);
-
-typedef struct {
-  raptor_sequence* seq;
-  raptor_data_compare_handler compare_handler;
-  raptor_data_free_handler free_handler;
-} raptor_avltree;
-
-typedef struct {
-  raptor_avltree* tree;
-  int index;
-} raptor_avltree_iterator;
-
-static raptor_avltree* raptor_new_avltree(raptor_data_compare_handler compare_handler, raptor_data_free_handler free_handler, unsigned int flags)
-{
-  raptor_avltree* tree;
-
-  tree = (raptor_avltree*)RASQAL_CALLOC(raptor_avltree, sizeof(*tree), 1);
-  if(!tree)
-    return NULL;
-
-  tree->compare_handler = compare_handler;
-  tree->free_handler = free_handler;
-
-  tree->seq = raptor_new_sequence(free_handler, NULL);
-  
-  return tree;
-}
-
-static void
-raptor_free_avltree(raptor_avltree* tree)
-{
-  if(!tree)
-    return;
-  
-  if(tree->seq)
-    raptor_free_sequence(tree->seq);
-  RASQAL_FREE(avltree, tree);
-}
-
-static int
-raptor_avltree_add(raptor_avltree* tree, void* p_data)
-{
-  if(!tree)
-    return 1;
-  
-  return raptor_sequence_push(tree->seq, p_data);
-}
-
-static void*
-raptor_avltree_search(raptor_avltree* tree, const void* p_data)
-{
-  int size;
-  int i;
-
-  if(!tree)
-    return NULL;
-  
-  size = raptor_sequence_size(tree->seq);
-  for(i = 0; i < size; i++) {
-    void* data = raptor_sequence_get_at(tree->seq, i);
-    if(!tree->compare_handler(p_data, data))
-      return data;
-  }
-
-  return NULL;
-}
-
-static void
-raptor_avltree_set_print_handler(raptor_avltree* tree,
-                                 raptor_data_print_handler print_handler)
-{
-  if(!tree)
-    return;
-
-  raptor_sequence_set_print_handler(tree->seq, print_handler);
-}
-
-
-
-static raptor_avltree_iterator*
-raptor_new_avltree_iterator(raptor_avltree* tree, void* range,
-                            raptor_data_free_handler range_free_handler,
-                            int direction)
-{
-  raptor_avltree_iterator* iterator;
-
-  iterator = (raptor_avltree_iterator*)RASQAL_CALLOC(avltree_iterator, sizeof(*iterator), 1);
-  
-  iterator->tree = tree;
-  iterator->index = 0;
-
-  return iterator;
-}
-
-static int
-raptor_avltree_iterator_next(raptor_avltree_iterator* iterator) 
-{
-  iterator->index++;
-
-  return (iterator->index > raptor_sequence_size(iterator->tree->seq));
-}
-
-static void*
-raptor_avltree_iterator_get(raptor_avltree_iterator* iterator)
-{
-  return raptor_sequence_get_at(iterator->tree->seq, iterator->index);
-}
-
-static void
-raptor_free_avltree_iterator(raptor_avltree_iterator* iterator)
-{
-  if(!iterator)
-    return;
-
-  RASQAL_FREE(iterator, iterator);
-}
-
-static int
-raptor_avltree_print(raptor_avltree* tree, FILE* stream)
-{
-  if(!tree)
-    return 1;
-  
-  fprintf(stream, "Group sequence with %d groups\n",
-          raptor_sequence_size(tree->seq));
-  raptor_sequence_print(tree->seq, stream);
-
-  return 0;
-}
-
-#endif
 
 
 /**
@@ -277,11 +137,7 @@ rasqal_free_groupby_tree_node(rasqal_groupby_tree_node* node)
 }
 
 
-#ifdef HAVE_RAPTOR2_API
 static int
-#else
-static void
-#endif
 rasqal_rowsource_groupby_tree_print_node(void *object, FILE *fh)
 {
   rasqal_groupby_tree_node* node = (rasqal_groupby_tree_node*)object;
@@ -309,9 +165,7 @@ rasqal_rowsource_groupby_tree_print_node(void *object, FILE *fh)
   } else
     fputs("None\n", fh);
 
-#ifdef HAVE_RAPTOR2_API
   return 0;
-#endif
 }
 
 
@@ -458,11 +312,7 @@ rasqal_groupby_rowsource_process(rasqal_rowsource* rowsource,
         /* node now owns literal_seq */
         node->literals = literal_seq;
 
-#ifdef HAVE_RAPTOR2_API
         node->rows = raptor_new_sequence((raptor_data_free_handler)rasqal_free_row, (raptor_data_print_handler)rasqal_row_print);
-#else
-        node->rows = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_row, (raptor_sequence_print_handler*)rasqal_row_print);
-#endif
         if(!node->rows) {
           rasqal_free_groupby_tree_node(node);
           return 1;
@@ -827,16 +677,10 @@ static const int test1_groupids[] = {
 };
 
   
-#ifdef HAVE_RAPTOR2_API
 /* Raptor AVL Tree - Enumerated by order in AVL Tree which is sorted by expression list */
 static const int results_us_senators_97_groups[] =
   { 21, 21, 27, 2, 38, 79, 10, 18, 24, 15, 40, 74, 80, 31, 4, 29, 47, 75, 33, 82, 92, 30, 57, 91, 96, 3, 58, 76, 6, 7, 67, 8, 14, 43, 50, 72, 5, 35, 41, 46, 53, 86, 17, 25, 49, 70, 37, 42, 93, 34, 52, 73, 94, 55, 95, 95, 32, 83, 19, 23, 64, 71, 77, 0, 39, 69, 81, 12, 44, 44, 89, 90, 20, 54, 84, 13, 65, 26, 59, 66, 78, 88, 36, 51, 85, 60, 45, 61, 87, 1, 9, 11, 22, 48, 62, 63, 68, 56, 28, 16 };
 
-#else
-/* Raptor sequence - Enumerated by order added */
-static const int results_us_senators_97_groups[] =
-  { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 95, 96 };
-#endif
 
 
 static const struct {
@@ -914,13 +758,8 @@ main(int argc, char *argv[])
     }
 
 
-#ifdef HAVE_RAPTOR2_API
     exprs_seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_expression,
                                    (raptor_data_print_handler)rasqal_expression_print);
-#else
-    exprs_seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_expression,
-                                   (raptor_sequence_print_handler*)rasqal_expression_print);
-#endif
 
     if(test_data[test_id].expr_vars[0] != NULL) {
       int vindex;

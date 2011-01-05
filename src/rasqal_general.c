@@ -141,7 +141,6 @@ rasqal_world_open(rasqal_world *world)
   if(world->opened++)
     return 0; /* not an error */
 
-#ifdef HAVE_RAPTOR2_API
   /* Create and init a raptor_world unless one is provided externally with rasqal_world_set_raptor() */
   if(!world->raptor_world_ptr) {
     world->raptor_world_ptr = raptor_new_world();
@@ -152,9 +151,6 @@ rasqal_world_open(rasqal_world *world)
     if(rc)
       return rc;
   }
-#else  
-  raptor_init();
-#endif
 
   rc = rasqal_uri_init(world);
   if(rc)
@@ -163,14 +159,6 @@ rasqal_world_open(rasqal_world *world)
   rc = rasqal_xsd_init(world);
   if(rc)
     return rc;
-
-#ifndef HAVE_RAPTOR2_API
-/* FIXME */
-#ifndef RAPTOR_ERROR_HANDLER_MAGIC
-#define RAPTOR_ERROR_HANDLER_MAGIC 0xD00DB1FF
-#endif
-  world->error_handlers.magic = RAPTOR_ERROR_HANDLER_MAGIC;
-#endif
 
   world->query_languages = raptor_new_sequence((raptor_data_free_handler)rasqal_free_query_language_factory, NULL);
   if(!world->query_languages)
@@ -252,12 +240,8 @@ rasqal_free_world(rasqal_world* world)
 
   rasqal_uri_finish(world);
 
-#ifdef HAVE_RAPTOR2_API
   if(world->raptor_world_ptr && world->raptor_world_allocated_here)
     raptor_free_world(world->raptor_world_ptr);
-#else
-  raptor_finish();
-#endif
 
   RASQAL_FREE(rasqal_world, world);
 }
@@ -302,7 +286,6 @@ rasqal_world_get_raptor(rasqal_world* world)
 }
 
 
-#ifdef HAVE_RAPTOR2_API
 /**
  * rasqal_world_set_log_handler:
  * @world: rasqal_world object
@@ -320,7 +303,6 @@ rasqal_world_set_log_handler(rasqal_world* world, void *user_data,
   world->log_handler = handler;
   world->log_handler_user_data = user_data;
 }
-#endif
 
 
 /* helper functions */
@@ -541,8 +523,6 @@ rasqal_language_name_check(rasqal_world* world, const char *name)
 
 
 static const char* const rasqal_log_level_labels[RAPTOR_LOG_LEVEL_LAST+1]={
-#ifdef HAVE_RAPTOR2_API
-  /* raptor2 levels */
  "none",
  "trace",
  "debug",
@@ -550,13 +530,6 @@ static const char* const rasqal_log_level_labels[RAPTOR_LOG_LEVEL_LAST+1]={
  "warn",
  "error",
  "fatal"
-#else
-  /* raptor1 levels */
-  "none",
-  "fatal error",
-  "error",
-  "warning"
-#endif
 };
 
 
@@ -584,14 +557,9 @@ rasqal_log_error_varargs(rasqal_world* world, raptor_log_level level,
 {
   char *buffer;
   size_t length;
-#ifdef HAVE_RAPTOR2_API
   raptor_log_message logmsg;
   raptor_log_handler handler = world->log_handler;
   void* handler_data = world->log_handler_user_data;
-#else
-  raptor_message_handler handler = world->error_handlers.handlers[level].handler;
-  void* handler_data = world->error_handlers.handlers[level].user_data;
-#endif
   
   if(level == RAPTOR_LOG_LEVEL_NONE)
     return;
@@ -599,11 +567,7 @@ rasqal_log_error_varargs(rasqal_world* world, raptor_log_level level,
   buffer=raptor_vsnprintf(message, arguments);
   if(!buffer) {
     if(locator) {
-#ifdef HAVE_RAPTOR2_API
       raptor_locator_print(locator, stderr);
-#else
-      raptor_print_locator(stderr, locator);
-#endif
       fputc(' ', stderr);
     }
     fputs("rasqal ", stderr);
@@ -622,24 +586,15 @@ rasqal_log_error_varargs(rasqal_world* world, raptor_log_level level,
     /* This is the single place in rasqal that the user error handler
      * functions are called.
      */
-#ifdef HAVE_RAPTOR2_API
     /* raptor2 raptor_log_handler */
     logmsg.code = -1; /* no information to put as code */
     logmsg.level = level;
     logmsg.locator = locator;
     logmsg.text = buffer;
     handler(handler_data, &logmsg);
-#else
-    /* raptor1 raptor_message_handler */
-    handler(handler_data, locator, buffer);
-#endif
   } else {
     if(locator) {
-#ifdef HAVE_RAPTOR2_API
       raptor_locator_print(locator, stderr);
-#else
-      raptor_print_locator(stderr, locator);
-#endif
       fputc(' ', stderr);
     }
     fputs("rasqal ", stderr);

@@ -140,7 +140,6 @@ static const char *title_format_string = "Rasqal RDF query utility %s\n";
 #define MAX_QUERY_ERROR_REPORT_LEN 512
 
 
-#ifdef HAVE_RAPTOR2_API
 static void
 roqet_log_handler(void* user_data, raptor_log_message *message)
 {
@@ -154,18 +153,6 @@ roqet_log_handler(void* user_data, raptor_log_message *message)
 
   error_count++;
 }
-#else
-static void
-roqet_error_handler(void *user_data, 
-                    raptor_locator* locator, const char *message) 
-{
-  fprintf(stderr, "%s: Error - ", program);
-  raptor_print_locator(stderr, locator);
-  fprintf(stderr, " - %s\n", message);
-
-  error_count++;
-}
-#endif
 
 #define SPACES_LENGTH 80
 static const char spaces[SPACES_LENGTH + 1] = "                                                                                ";
@@ -536,37 +523,23 @@ print_graph_result(rasqal_query* rq,
   }
   
   /* Declare any query namespaces in the output serializer */
-#ifdef HAVE_RAPTOR2_API
   for(i = 0; (prefix = rasqal_query_get_prefix(rq, i)); i++)
     raptor_serializer_set_namespace(serializer, prefix->uri, prefix->prefix);
   raptor_serializer_start_to_file_handle(serializer, base_uri, output);
-#else
-  for(i = 0; (prefix = rasqal_query_get_prefix(rq, i)); i++)
-    raptor_serialize_set_namespace(serializer, prefix->uri, prefix->prefix);
-  raptor_serialize_start_to_file_handle(serializer, base_uri, output);
-#endif
   
   while(1) {
     raptor_statement *rs = rasqal_query_results_get_triple(results);
     if(!rs)
       break;
 
-#ifdef HAVE_RAPTOR2_API
     raptor_serializer_serialize_statement(serializer, rs);
-#else
-    raptor_serialize_statement(serializer, rs);
-#endif
     triple_count++;
     
     if(rasqal_query_results_next_triple(results))
       break;
   }
   
-#ifdef HAVE_RAPTOR2_API
   raptor_serializer_serialize_end(serializer);
-#else
-  raptor_serialize_end(serializer);
-#endif
   raptor_free_serializer(serializer);
   
   if(!quiet)
@@ -668,11 +641,6 @@ roqet_init_query(rasqal_world *world,
     goto tidy_query;
   }
   
-#ifdef HAVE_RAPTOR2_API
-#else
-  rasqal_query_set_error_handler(rq, world, roqet_error_handler);
-  rasqal_query_set_fatal_error_handler(rq, world, roqet_error_handler);
-#endif
 
   if(query_feature_value >= 0)
     rasqal_query_set_feature(rq, query_feature, query_feature_value);
@@ -814,9 +782,7 @@ main(int argc, char *argv[])
   }
   
   raptor_world_ptr = rasqal_world_get_raptor(world);
-#ifdef HAVE_RAPTOR2_API
   rasqal_world_set_log_handler(world, world, roqet_log_handler);
-#endif
   
 #ifdef STORE_RESULTS_FLAG
   /* This is for debugging only */
@@ -1091,14 +1057,9 @@ main(int argc, char *argv[])
           }
           
           if(!data_graphs) {
-#ifdef HAVE_RAPTOR2_API
             data_graphs = raptor_new_sequence((raptor_data_free_handler)rasqal_free_data_graph,
                                               NULL);
 
-#else
-            data_graphs = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_data_graph,
-                                              NULL);
-#endif
             if(!data_graphs) {
               fprintf(stderr, "%s: Failed to create data graphs sequence\n",
                       program);
@@ -1211,7 +1172,6 @@ main(int argc, char *argv[])
     puts("      simple                A simple text format (default)");
 
     for(i = 0; 1; i++) {
-#ifdef HAVE_RAPTOR2_API
       const raptor_syntax_description* desc;
  
       desc = rasqal_world_get_query_results_format_description(world, i);
@@ -1220,37 +1180,17 @@ main(int argc, char *argv[])
  
       if(desc->flags & RASQAL_QUERY_RESULTS_FORMAT_FLAG_WRITER)
         printf("      %-10s            %s\n", desc->names[0], desc->label);
-#else
-      const char *name;
-      const char *label;
-      int qr_flags = 0;
-      if(rasqal_query_results_formats_enumerate(world, i, &name, &label,
-                                                NULL, NULL, &qr_flags))
-        break;
-
-      if(qr_flags & RASQAL_QUERY_RESULTS_FORMAT_FLAG_WRITER)
-        printf("      %-10s            %s\n", name, label);
-#endif
     }
 
     puts("    For RDF graph results:");
 
     for(i = 0; 1; i++) {
-#ifdef HAVE_RAPTOR2_API
       const raptor_syntax_description *desc;
       desc = raptor_world_get_parser_description(raptor_world_ptr, i);
       if(!desc)
         break;
 
       printf("      %-15s       %s", desc->names[0], desc->label);
-#else
-      const char *help_name;
-      const char *help_label;
-      if(raptor_serializers_enumerate(i, &help_name, &help_label, NULL, NULL))
-        break;
-
-      printf("      %-15s       %s", help_name, help_label);
-#endif
       if(!i)
         puts(" (default)");
       else
@@ -1399,15 +1339,8 @@ main(int argc, char *argv[])
 
     www = raptor_new_www(raptor_world_ptr);
     if(www) {
-#ifndef HAVE_RAPTOR2_API
-      raptor_www_set_error_handler(www, roqet_error_handler, world);
-#endif
       raptor_www_fetch_to_string(www, uri, &query_string, NULL, malloc);
-#ifdef HAVE_RAPTOR2_API
       raptor_free_www(www);
-#else
-      raptor_www_free(www);
-#endif
     }
 
     if(!query_string || error_count) {

@@ -119,35 +119,6 @@ static int verbose = 0;
 static const char *title_format_string = "Rasqal RDF query test utility %s\n";
 
 
-#ifdef HAVE_RAPTOR2_API
-#else
-typedef enum {
-  RAPTOR_DOMAIN_NONE,
-  RAPTOR_DOMAIN_IOSTREAM,
-  RAPTOR_DOMAIN_NAMESPACE,
-  RAPTOR_DOMAIN_PARSER,
-  RAPTOR_DOMAIN_QNAME,
-  RAPTOR_DOMAIN_SAX2,
-  RAPTOR_DOMAIN_SERIALIZER,
-  RAPTOR_DOMAIN_TERM,
-  RAPTOR_DOMAIN_TURTLE_WRITER,
-  RAPTOR_DOMAIN_URI,
-  RAPTOR_DOMAIN_WORLD,
-  RAPTOR_DOMAIN_WWW,
-  RAPTOR_DOMAIN_XML_WRITER,
-  RAPTOR_DOMAIN_LAST = RAPTOR_DOMAIN_XML_WRITER
-} raptor_domain;
-
-typedef struct {
-  int code;
-  raptor_domain domain;
-  raptor_log_level level;
-  raptor_locator *locator;
-  const char *text;
-} raptor_log_message;
-
-typedef void (*raptor_log_handler)(void *user_data, raptor_log_message *message);
-#endif
 
 
 static void
@@ -159,34 +130,13 @@ check_query_log_handler(void* user_data, raptor_log_message *message)
 
   fprintf(stderr, "%s: Error: ", program);
   if(message->locator) {
-#ifdef HAVE_RAPTOR2_API
     raptor_locator_print(message->locator, stderr);
-#else
-    raptor_print_locator(stderr, message->locator);
-#endif
     fputs(" : ", stderr);
   }
   fprintf(stderr, "%s\n", message->text);
 
   error_count++;
 }
-
-#ifdef HAVE_RAPTOR2_API
-#else
-static void
-check_query_error_handler(void *user_data, 
-                          raptor_locator* locator, const char *message) 
-{
-  fprintf(stderr, "%s: Error: ", program);
-  if(locator) {
-    raptor_print_locator(stderr, locator);
-    fputs(" : ", stderr);
-  }
-  fprintf(stderr, "%s\n", message);
-
-  error_count++;
-}
-#endif
 
 
 static unsigned char*
@@ -267,11 +217,6 @@ check_query_init_query(rasqal_world *world,
     goto tidy_query;
   }
   
-#ifdef HAVE_RAPTOR2_API
-#else
-  rasqal_query_set_error_handler(rq, world, check_query_error_handler);
-  rasqal_query_set_fatal_error_handler(rq, world, check_query_error_handler);
-#endif
 
   if(data_graphs) {
     rasqal_data_graph* dg;
@@ -582,9 +527,7 @@ main(int argc, char *argv[])
   }
   
   raptor_world_ptr = rasqal_world_get_raptor(world);
-#ifdef HAVE_RAPTOR2_API
   rasqal_world_set_log_handler(world, world, check_query_log_handler);
-#endif  
 
   /* Option parsing */
   while (!usage && !help)
@@ -712,14 +655,9 @@ main(int argc, char *argv[])
           }
           
           if(!data_graphs) {
-#ifdef HAVE_RAPTOR2_API
             data_graphs = raptor_new_sequence((raptor_data_free_handler)rasqal_free_data_graph,
                                               NULL);
 
-#else
-            data_graphs = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_data_graph,
-                                              NULL);
-#endif
             if(!data_graphs) {
               fprintf(stderr, "%s: Failed to create data graphs sequence\n",
                       program);

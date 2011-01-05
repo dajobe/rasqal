@@ -2613,14 +2613,8 @@ rasqal_literal_expand_qname(void *user_data, rasqal_literal *l)
     raptor_uri *uri;
 
     /* expand a literal qname */
-#ifdef HAVE_RAPTOR2_API
     uri = raptor_qname_string_to_uri(rq->namespaces,
                                      l->string, l->string_len);
-#else
-    uri = raptor_qname_string_to_uri(rq->namespaces,
-                                     l->string, l->string_len,
-                                     (raptor_simple_message_handler)rasqal_query_simple_error, rq);
-#endif
     if(!uri)
       return 1;
     RASQAL_FREE(cstring, (void*)l->string);
@@ -2632,16 +2626,9 @@ rasqal_literal_expand_qname(void *user_data, rasqal_literal *l)
     
     if(l->flags) {
       /* expand a literal string datatype qname */
-#ifdef HAVE_RAPTOR2_API
       uri = raptor_qname_string_to_uri(rq->namespaces,
                                        l->flags,
                                        strlen((const char*)l->flags));
-#else
-      uri = raptor_qname_string_to_uri(rq->namespaces,
-                                       l->flags,
-                                       strlen((const char*)l->flags),
-                                       (raptor_simple_message_handler)rasqal_query_simple_error, rq);
-#endif
       if(!uri)
         return 1;
       l->datatype = uri;
@@ -3935,20 +3922,14 @@ rasqal_literal_sequence_sort_map_compare(void* user_data,
 }
 
 
-#ifdef HAVE_RAPTOR2_API
 static int
-#else
-static void
-#endif
 rasqal_literal_sequence_sort_map_print_literal_sequence(void *object, FILE *fh)
 {
   if(object)
     raptor_sequence_print((raptor_sequence*)object, fh);
   else
     fputs("NULL", fh);
-#ifdef HAVE_RAPTOR2_API
   return 0;
-#endif
 }
 
 
@@ -4043,13 +4024,8 @@ rasqal_new_literal_sequence_of_sequence_from_data(rasqal_world* world,
 #define GET_CELL(row, column, offset) \
   row_data[((((row) * width) + (column))<<1) + (offset)]
 
-#ifdef HAVE_RAPTOR2_API
   seq = raptor_new_sequence((raptor_data_free_handler)raptor_free_sequence,
                             (raptor_data_print_handler)raptor_sequence_print);
-#else
-  seq = raptor_new_sequence((raptor_sequence_free_handler*)raptor_free_sequence,
-                            (raptor_sequence_print_handler*)raptor_sequence_print);
-#endif
   if(!seq)
     return NULL;
 
@@ -4067,13 +4043,8 @@ rasqal_new_literal_sequence_of_sequence_from_data(rasqal_world* world,
     if(!data_values_seen)
       break;
     
-#ifdef HAVE_RAPTOR2_API
     row = raptor_new_sequence((raptor_data_free_handler)rasqal_free_literal,
                               (raptor_data_print_handler)rasqal_literal_print);
-#else
-    row = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_literal,
-                              (raptor_sequence_print_handler*)rasqal_literal_print);
-#endif
     if(!row) {
       raptor_free_sequence(seq); seq = NULL;
       goto tidy;

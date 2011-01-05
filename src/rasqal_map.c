@@ -57,13 +57,8 @@ struct rasqal_map_s {
   raptor_data_free_handler free_compare_data;
   raptor_data_free_handler free_key;
   raptor_data_free_handler free_value;
-#ifdef HAVE_RAPTOR2_API
   raptor_data_print_handler print_key;
   raptor_data_print_handler print_value;
-#else
-  raptor_sequence_print_handler* print_key;
-  raptor_sequence_print_handler* print_value;
-#endif
   int allow_duplicates;
 };
 

@@ -1398,13 +1398,8 @@ rasqal_algebra_get_variables_mentioned_in(rasqal_query* query,
   short *row;
   int i;
   
-#ifdef HAVE_RAPTOR2_API
   seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_variable,
                             (raptor_data_print_handler)rasqal_variable_print);
-#else
-  seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_variable,
-                            (raptor_sequence_print_handler*)rasqal_variable_print);
-#endif
   if(!seq)
     return NULL;
 
@@ -1591,22 +1586,12 @@ rasqal_algebra_extract_aggregate_expressions(rasqal_query* query,
                                 /* flags */ 0);
 
   /* Sequence to hold list of aggregate expressions */
-#ifdef HAVE_RAPTOR2_API
   seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_expression,
                             (raptor_data_print_handler)rasqal_expression_print);
-#else
-  seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_expression,
-                            (raptor_sequence_print_handler*)rasqal_expression_print);
-#endif
   ae->agg_exprs = seq;
 
-#ifdef HAVE_RAPTOR2_API
   seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_variable,
                             (raptor_data_print_handler)rasqal_variable_print);
-#else
-  seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_variable,
-                            (raptor_sequence_print_handler*)rasqal_variable_print);
-#endif
   ae->agg_vars_seq = seq;
 
   /* init internal variable counter */
@@ -1997,13 +1982,8 @@ rasqal_algebra_query_add_projection(rasqal_query* query,
   if(seq)
     vars_size = raptor_sequence_size(seq);
   
-#ifdef HAVE_RAPTOR2_API
   vars_seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_variable,
                                  (raptor_data_print_handler)rasqal_variable_print);
-#else
-  vars_seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_variable,
-                                 (raptor_sequence_print_handler*)rasqal_variable_print);
-#endif
   if(!vars_seq) {
     rasqal_free_algebra_node(node);
     return NULL;
@@ -2339,13 +2319,8 @@ main(int argc, char *argv[]) {
   /* This is an artificial order conditions sequence equivalent to
    * ORDER BY 1, 2 which would probably never appear in a query.
    */
-#ifdef HAVE_RAPTOR2_API
   conditions = raptor_new_sequence((raptor_data_free_handler)rasqal_free_expression,
                                    (raptor_data_print_handler)rasqal_expression_print);
-#else
-  conditions = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_expression,
-                                   (raptor_sequence_print_handler*)rasqal_expression_print);
-#endif
   if(!conditions)
     FAIL;
   lit3 = rasqal_new_integer_literal(world, RASQAL_LITERAL_INTEGER, 1);

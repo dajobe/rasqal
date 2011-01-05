@@ -86,10 +86,6 @@ rasqal_query_results_write_sparql_xml(rasqal_query_results_formatter* formatter,
 {
   int rc=1;
   rasqal_world* world = rasqal_query_results_get_world(results);
-#ifndef HAVE_RAPTOR2_API
-  const raptor_uri_handler *uri_handler;
-  void *uri_context;
-#endif
   raptor_xml_writer* xml_writer=NULL;
   raptor_namespace *res_ns=NULL;
   raptor_namespace_stack *nstack=NULL;
@@ -111,28 +107,13 @@ rasqal_query_results_write_sparql_xml(rasqal_query_results_formatter* formatter,
   }
   
 
-#ifdef HAVE_RAPTOR2_API  
   nstack = raptor_new_namespaces(world->raptor_world_ptr, 1);
-#else
-  raptor_uri_get_handler(&uri_handler, &uri_context);
-  nstack = raptor_new_namespaces(uri_handler, uri_context,
-                                 (raptor_simple_message_handler)rasqal_world_simple_error, world,
-                                 1);
-#endif
   if(!nstack)
     return 1;
 
-#ifdef HAVE_RAPTOR2_API
   xml_writer = raptor_new_xml_writer(world->raptor_world_ptr,
                                      nstack,
                                      iostr);
-#else
-  xml_writer = raptor_new_xml_writer(nstack,
-                                     uri_handler, uri_context,
-                                     iostr,
-                                     (raptor_simple_message_handler)rasqal_world_simple_error, world,
-                                     1);
-#endif
   if(!xml_writer)
     goto tidy;
 
@@ -180,16 +161,10 @@ rasqal_query_results_write_sparql_xml(rasqal_query_results_formatter* formatter,
       attrs=(raptor_qname **)raptor_alloc_memory(sizeof(raptor_qname*));
       if(!attrs)
         goto tidy;
-#ifdef HAVE_RAPTOR2_API
       attrs[0] = raptor_new_qname_from_namespace_local_name(world->raptor_world_ptr,
                                                             res_ns,
                                                             (const unsigned char*)"name",
                                                             (const unsigned char*)name); /* attribute value */
-#else
-      attrs[0] = raptor_new_qname_from_namespace_local_name(res_ns, 
-                                                            (const unsigned char*)"name",
-                                                            (const unsigned char*)name); /* attribute value */
-#endif
       if(!attrs[0]) {
         raptor_free_memory((void*)attrs);
         goto tidy;
@@ -280,17 +255,11 @@ rasqal_query_results_write_sparql_xml(rasqal_query_results_formatter* formatter,
       attrs=(raptor_qname **)raptor_alloc_memory(sizeof(raptor_qname*));
       if(!attrs)
         goto tidy;
-#ifdef HAVE_RAPTOR2_API
       attrs[0] = raptor_new_qname_from_namespace_local_name(world->raptor_world_ptr,
                                                             res_ns,
                                                             (const unsigned char*)"name",
                                                             name);
 
-#else
-      attrs[0] = raptor_new_qname_from_namespace_local_name(res_ns, 
-                                                            (const unsigned char*)"name",
-                                                            name);
-#endif
       if(!attrs[0]) {
         raptor_free_memory((void*)attrs);
         goto tidy;
@@ -352,22 +321,12 @@ rasqal_query_results_write_sparql_xml(rasqal_query_results_formatter* formatter,
             if(l->language)
               attrs[0]=raptor_new_qname(nstack,
                                         (const unsigned char*)"xml:lang",
-                                        (const unsigned char*)l->language
-#ifndef HAVE_RAPTOR2_API
-                                        , (raptor_simple_message_handler)rasqal_world_simple_error, world
-#endif
-                                        );
+                                        (const unsigned char*)l->language);
             else
-#ifdef HAVE_RAPTOR2_API
               attrs[0] = raptor_new_qname_from_namespace_local_name(world->raptor_world_ptr,
                                                                     res_ns,
                                                                     (const unsigned char*)"datatype",
                                                                     (const unsigned char*)raptor_uri_as_string(l->datatype));
-#else
-              attrs[0] = raptor_new_qname_from_namespace_local_name(res_ns, 
-                                                                    (const unsigned char*)"datatype",
-                                                                    (const unsigned char*)raptor_uri_as_string(l->datatype));
-#endif
             if(!attrs[0]) {
               raptor_free_memory((void*)attrs);
               goto tidy;
@@ -516,9 +475,6 @@ typedef struct
   raptor_sax2* sax2;
   raptor_locator locator;
   int depth; /* element depth */
-#ifndef HAVE_RAPTOR2_API
-  raptor_error_handlers error_handlers; /* SAX2 error handler */
-#endif
 
   /* SPARQL XML Results parsing */
   rasqal_sparql_xml_read_state state; /* state */
@@ -974,14 +930,7 @@ rasqal_query_results_get_rowsource_sparql_xml(rasqal_query_results_formatter* fo
 
   con->locator.uri=base_uri;
 
-#ifdef HAVE_RAPTOR2_API
   con->sax2 = raptor_new_sax2(world->raptor_world_ptr, &con->locator, con);
-#else
-  con->error_handlers.locator = &con->locator;
-  raptor_error_handlers_init(&con->error_handlers);
-
-  con->sax2 = raptor_new_sax2(con, &con->error_handlers);
-#endif
   if(!con->sax2)
     return NULL;
   
@@ -993,11 +942,7 @@ rasqal_query_results_get_rowsource_sparql_xml(rasqal_query_results_formatter* fo
   raptor_sax2_set_end_element_handler(con->sax2,
                                       rasqal_sparql_xml_sax2_end_element_handler);
 
-#ifdef HAVE_RAPTOR2_API
   con->results_sequence = raptor_new_sequence((raptor_data_free_handler)rasqal_free_row, (raptor_data_print_handler)rasqal_row_print);
-#else
-  con->results_sequence = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_row, (raptor_sequence_print_handler*)rasqal_row_print);
-#endif
 
   con->vars_table = rasqal_new_variables_table_from_variables_table(vars_table);
   

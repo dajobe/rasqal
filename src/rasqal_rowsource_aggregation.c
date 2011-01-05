@@ -408,13 +408,8 @@ rasqal_aggregation_rowsource_init(rasqal_rowsource* rowsource, void *user_data)
 
   con = (rasqal_aggregation_rowsource_context*)user_data;
 
-#ifdef HAVE_RAPTOR2_API
   con->input_values = raptor_new_sequence((raptor_data_free_handler)rasqal_free_literal,
                                           (raptor_data_print_handler)rasqal_literal_print);
-#else
-  con->input_values = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_literal,
-                                          (raptor_sequence_print_handler*)rasqal_literal_print);
-#endif
     
 
   con->last_group_id = -1;
@@ -880,13 +875,8 @@ rasqal_new_aggregation_rowsource(rasqal_world *world, rasqal_query* query,
     } else {
       /* single argument */
       
-#ifdef HAVE_RAPTOR2_API
       expr_data->exprs_seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_expression,
                                                (raptor_data_print_handler)rasqal_expression_print);
-#else
-      expr_data->exprs_seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_expression,
-                                                (raptor_sequence_print_handler*)rasqal_expression_print);
-#endif
       raptor_sequence_push(expr_data->exprs_seq,
                            rasqal_new_expression_from_expression(expr->arg1));
     }
@@ -1134,13 +1124,8 @@ main(int argc, char *argv[])
       goto tidy;
     }
 
-#ifdef HAVE_RAPTOR2_API
     expr_args_seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_expression,
                                         (raptor_data_print_handler)rasqal_expression_print);
-#else
-    expr_args_seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_expression,
-                                        (raptor_sequence_print_handler*)rasqal_expression_print);
-#endif
 
     if(test_data[test_id].expr_agg_vars[0] != NULL) {
       int vindex;
@@ -1182,24 +1167,14 @@ main(int argc, char *argv[])
     /* expr_args_seq is now owned by expr */
     expr_args_seq = NULL;
 
-#ifdef HAVE_RAPTOR2_API
     exprs_seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_expression,
                                     (raptor_data_print_handler)rasqal_expression_print);
-#else
-    exprs_seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_expression,
-                                    (raptor_sequence_print_handler*)rasqal_expression_print);
-#endif
     raptor_sequence_push(exprs_seq, expr);
     /* expr is now owned by exprs_seq */
     expr = NULL;
     
-#ifdef HAVE_RAPTOR2_API
     vars_seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_variable,
                                    (raptor_data_print_handler)rasqal_variable_print);
-#else
-    vars_seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_variable,
-                                   (raptor_sequence_print_handler*)rasqal_variable_print);
-#endif
     output_var = rasqal_new_variable_from_variable(output_var);
     raptor_sequence_push(vars_seq, output_var);
 

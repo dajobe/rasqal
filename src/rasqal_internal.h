@@ -494,35 +494,6 @@ struct rasqal_query_s {
 };
 
 
-/* Definitions from raptor V2 raptor.h - REMOVE when Raptor V2 is required */
-#ifndef HAVE_RAPTOR2_API
-typedef void (*raptor_data_free_handler)(void* data);
-typedef void (*raptor_data_print_handler)(void *object, FILE *fh);
-
-typedef struct {
-  const char* mime_type;
-  size_t mime_type_len;
-  unsigned char q;
-} raptor_type_q;
-
-
-typedef struct {
-  const char* const* names;
-  unsigned int names_count;
-
-  const char* label;
-
-  const raptor_type_q* mime_types;
-  unsigned int mime_types_count;
-
-  const char* const* uri_strings;
-  unsigned int uri_strings_count;
-
-  unsigned int flags;
-} raptor_syntax_description;
-#endif
-
-
 /*
  * A query language factory for a query language.
  *
@@ -1119,12 +1090,7 @@ int rasqal_redland_init(rasqal_world*);
 void rasqal_redland_finish(void);
 #endif
 
-#ifdef HAVE_RAPTOR2_API
 rasqal_triple* raptor_statement_as_rasqal_triple(rasqal_world* world, const raptor_statement *statement);
-#else
-rasqal_triple* raptor_statement_as_rasqal_triple(rasqal_world* world, const raptor_statement *statement);
-int rasqal_raptor_parse_iostream(raptor_parser* rdf_parser, raptor_iostream *iostr, raptor_uri *base_uri);
-#endif
 int rasqal_raptor_triple_match(rasqal_world* world, rasqal_triple *triple, rasqal_triple *match, rasqal_triple_parts parts);
 
 
@@ -1297,14 +1263,9 @@ struct rasqal_world_s {
   /* should rasqal free the raptor_world */
   int raptor_world_allocated_here;
 
-#ifdef HAVE_RAPTOR2_API
   /* log handler */
   raptor_log_handler log_handler;
   void *log_handler_user_data;
-#else
-  /* error handlers structure */
-  raptor_error_handlers error_handlers;
-#endif
 
   /* sequence of query language factories */
   raptor_sequence *query_languages;
@@ -1650,43 +1611,6 @@ rasqal_solution_modifier* rasqal_new_solution_modifier(rasqal_query* query, rapt
 void rasqal_free_solution_modifier(rasqal_solution_modifier* sm);
 
 
-/* raptor1 -> raptor2 migration */
-/* use preprocessor macros to map raptor2 calls to raptor1 if raptor2 is not available */
-#ifndef HAVE_RAPTOR2_API
-
-#define raptor_new_iostream_to_file_handle(world, fh) raptor_new_iostream_to_file_handle(fh)
-#define raptor_new_iostream_from_file_handle(world, fh) raptor_new_iostream_from_file_handle(fh)
-#define raptor_new_iostream_from_filename(world, filename) raptor_new_iostream_from_filename(filename)
-#define raptor_iostream_write_bytes(ptr, size, nmemb, iostr) raptor_iostream_write_bytes(iostr, ptr, size, nmemb)
-#define raptor_iostream_write_byte(byte, iostr) raptor_iostream_write_byte(iostr, byte)
-#define raptor_iostream_counted_string_write(string, len, iostr) raptor_iostream_write_counted_string(iostr, string, len)
-#define raptor_iostream_string_write(string, iostr) raptor_iostream_write_string(iostr, string)
-#define raptor_iostream_decimal_write(decimal, iostr) raptor_iostream_write_decimal(iostr, decimal)
-#define raptor_iostream_read_bytes(ptr, size, nmemb, iostr) raptor_iostream_read_bytes(iostr, ptr, size, nmemb)
-#define raptor_xml_escape_string_write(string, len, quote, iostr) raptor_iostream_write_xml_escaped_string(iostr, string, len, quote, NULL, NULL)
-
-#define raptor_string_ntriples_write(str, len, delim, iostr) raptor_iostream_write_string_ntriples(iostr, str, len, delim)
-
-#define raptor_new_qname_from_namespace_uri(nstack, uri, xml_version) raptor_namespaces_qname_from_uri(nstack, uri, xml_version)
-
-#define raptor_new_serializer(world, name) raptor_new_serializer(name)
-#define raptor_world_is_serializer_name(world, name) raptor_serializer_syntax_name_check(name)
-#define raptor_world_is_parser_name(world, name) raptor_syntax_name_check(name)
-
-#define raptor_unicode_utf8_string_get_char(input, length, output) raptor_utf8_to_unicode_char(output, input, length)
-#define raptor_unicode_utf8_string_put_char(char, output, length) raptor_unicode_char_to_utf8(char, output)
-
-#define raptor_new_uri(world, uri_string) raptor_new_uri(uri_string)
-#define raptor_new_uri_from_uri_local_name(world, base_uri, name) raptor_new_uri_from_uri_local_name(base_uri, name)
-#define raptor_uri_write(uri, iostr) raptor_iostream_write_uri(iostr, uri)
-
-#define raptor_new_www(world) raptor_www_new()
-
-#define RAPTOR_LOG_LEVEL_WARN RAPTOR_LOG_LEVEL_WARNING
-
-#endif /* !HAVE_RAPTOR2_API */
-
-  
 /* end of RASQAL_INTERNAL */
 #endif
 

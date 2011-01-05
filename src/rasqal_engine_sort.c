@@ -113,20 +113,14 @@ rasqal_engine_rowsort_row_compare(void* user_data, const void *a, const void *b)
 }
 
 
-#ifdef HAVE_RAPTOR2_API
 static int
-#else
-static void
-#endif
 rasqal_engine_rowsort_map_print_row(void *object, FILE *fh)
 {
   if(object)
     rasqal_row_print((rasqal_row*)object, fh);
   else
     fputs("NULL", fh);
-#ifdef HAVE_RAPTOR2_API
   return 0;
-#endif
 }
 
 

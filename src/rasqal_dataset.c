@@ -131,9 +131,6 @@ rasqal_free_dataset(rasqal_dataset* ds)
 
 static void
 rasqal_dataset_statement_handler(void *user_data,
-#ifndef HAVE_RAPTOR2_API
-                                 const
-#endif
                                  raptor_statement *statement)
 {
   rasqal_dataset* ds;
@@ -160,34 +157,6 @@ rasqal_dataset_statement_handler(void *user_data,
 
   ds->tail = triple;
 }
-
-
-#ifndef HAVE_RAPTOR2_API
-/* Raptor V1 only */
-static void
-rasqal_dataset_raptor_error_handler(void *user_data, 
-                                    raptor_locator* locator,
-                                    const char *message)
-{
-  rasqal_world* world = (rasqal_world*)user_data;
-  int locator_len;
-
-  if(locator &&
-     (locator_len = raptor_format_locator(NULL, 0, locator)) > 0
-    ) {
-    char *buffer = (char*)RASQAL_MALLOC(cstring, locator_len + 1);
-    raptor_format_locator(buffer, locator_len, locator);
-
-    rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR,
-                            locator,
-                            "Failed to parse %s - %s", buffer, message);
-    RASQAL_FREE(cstring, buffer);
-  } else
-    rasqal_log_error_simple(world, RAPTOR_LOG_LEVEL_ERROR,
-                            locator,
-                            "Failed to parse - %s", message);
-}
-#endif
 
 
 int
@@ -223,24 +192,12 @@ rasqal_dataset_load_graph_iostream(rasqal_dataset* ds,
     format_name = "guess";
 
   /* parse iostr with parser and base_uri */
-#ifdef HAVE_RAPTOR2_API
   parser = raptor_new_parser(ds->world->raptor_world_ptr, format_name);
   raptor_parser_set_statement_handler(parser, ds,
                                       rasqal_dataset_statement_handler);
-#else
-  parser = raptor_new_parser(format_name);
-  raptor_set_statement_handler(parser, ds,
-                               rasqal_dataset_statement_handler);
-  raptor_set_error_handler(parser, ds->world,
-                           rasqal_dataset_raptor_error_handler);
-#endif
   
   /* parse and store triples */
-#ifdef HAVE_RAPTOR2_API
   raptor_parser_parse_iostream(parser, iostr, base_uri);
-#else
-  rasqal_raptor_parse_iostream(parser, iostr, base_uri);
-#endif
     
   raptor_free_parser(parser);
 

@@ -688,13 +688,8 @@ SelectExpressionListTail: SelectExpressionListTail SelectTerm
 }
 | SelectTerm
 {
-#ifdef HAVE_RAPTOR2_API
   $$ = raptor_new_sequence((raptor_data_free_handler)rasqal_free_variable,
                            (raptor_data_print_handler)rasqal_variable_print);
-#else
-  $$ = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_variable,
-                           (raptor_sequence_print_handler*)rasqal_variable_print);
-#endif
   if(!$$)
     YYERROR_MSG("SelectExpressionListTail 3: failed to create sequence");
   if(raptor_sequence_push($$, $1)) {
@@ -938,13 +933,8 @@ ExpressionList: ExpressionList ',' Expression
 }
 | Expression
 {
-#ifdef HAVE_RAPTOR2_API
   $$ = raptor_new_sequence((raptor_data_free_handler)rasqal_free_expression,
                            (raptor_data_print_handler)rasqal_expression_print);
-#else
-  $$ = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_expression,
-                           (raptor_sequence_print_handler*)rasqal_expression_print);
-#endif
   if(!$$)
     YYERROR_MSG("ExpressionList 2: failed to create sequence");
 
@@ -1087,13 +1077,8 @@ VarOrIRIrefList: VarOrIRIrefList VarOrIRIref
 }
 | VarOrIRIref
 {
-#ifdef HAVE_RAPTOR2_API
   $$ = raptor_new_sequence((raptor_data_free_handler)rasqal_free_literal,
                            (raptor_data_print_handler)rasqal_literal_print);
-#else
-  $$ = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_literal,
-                           (raptor_sequence_print_handler*)rasqal_literal_print);
-#endif
   if(!$$)
     YYERROR_MSG("VarOrIRIrefList 3: cannot create seq");
   if(raptor_sequence_push($$, $1)) {
@@ -1299,13 +1284,8 @@ ModifyTemplateList: ModifyTemplateList ModifyTemplate
 }
 | ModifyTemplate
 {
-#ifdef HAVE_RAPTOR2_API
   $$ = raptor_new_sequence((raptor_data_free_handler)rasqal_free_graph_pattern,
                            (raptor_data_print_handler)rasqal_graph_pattern_print);
-#else
-  $$ = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_graph_pattern,
-                           (raptor_sequence_print_handler*)rasqal_graph_pattern_print);
-#endif
   if(!$$)
     YYERROR_MSG("ModifyTemplateList 2: cannot create sequence");
   if($$) {
@@ -1776,13 +1756,8 @@ IriRefList: IriRefList URI_LITERAL
 }
 | URI_LITERAL
 {
-#ifdef HAVE_RAPTOR2_API
   $$ = raptor_new_sequence((raptor_data_free_handler)raptor_free_uri,
                            (raptor_data_print_handler)raptor_uri_print);
-#else
-  $$ = raptor_new_sequence((raptor_sequence_free_handler*)raptor_free_uri,
-                           (raptor_sequence_print_handler*)raptor_uri_print);
-#endif
   if(!$$) {
     if($1)
       raptor_free_uri($1);
@@ -1872,11 +1847,7 @@ DatasetClauseList: DatasetClauseList DatasetClause
 }
 | DatasetClause
 {
-#ifdef HAVE_RAPTOR2_API
   $$ = raptor_new_sequence((raptor_data_free_handler)rasqal_free_data_graph, (raptor_data_print_handler)rasqal_data_graph_print);
-#else
-  $$ = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_data_graph, (raptor_sequence_print_handler*)rasqal_data_graph_print);
-#endif
   if($$ && $1)
     raptor_sequence_push($$, $1);
 }
@@ -2000,13 +1971,8 @@ GroupConditionList: GroupConditionList GroupCondition
 }
 | GroupCondition
 {
-#ifdef HAVE_RAPTOR2_API
   $$ = raptor_new_sequence((raptor_data_free_handler)rasqal_free_expression,
                            (raptor_data_print_handler)rasqal_expression_print);
-#else
-  $$ = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_expression,
-                           (raptor_sequence_print_handler*)rasqal_expression_print);
-#endif
   if(!$$) {
     if($1)
       rasqal_free_expression($1);
@@ -2105,13 +2071,8 @@ HavingConditionList: HavingConditionList HavingCondition
 }
 | HavingCondition
 {
-#ifdef HAVE_RAPTOR2_API
   $$ = raptor_new_sequence((raptor_data_free_handler)rasqal_free_expression,
                            (raptor_data_print_handler)rasqal_expression_print);
-#else
-  $$ = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_expression,
-                           (raptor_sequence_print_handler*)rasqal_expression_print);
-#endif
   if(!$$) {
     if($1)
       rasqal_free_expression($1);
@@ -2202,13 +2163,8 @@ OrderConditionList: OrderConditionList OrderCondition
 }
 | OrderCondition
 {
-#ifdef HAVE_RAPTOR2_API
   $$ = raptor_new_sequence((raptor_data_free_handler)rasqal_free_expression,
                            (raptor_data_print_handler)rasqal_expression_print);
-#else
-  $$ = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_expression,
-                           (raptor_sequence_print_handler*)rasqal_expression_print);
-#endif
   if(!$$) {
     if($1)
       rasqal_free_expression($1);
@@ -2343,13 +2299,8 @@ VarList: VarList Var
 }
 | Var
 {
-#ifdef HAVE_RAPTOR2_API
   $$ = raptor_new_sequence((raptor_data_free_handler)rasqal_free_variable,
                            (raptor_data_print_handler)rasqal_variable_print);
-#else
-  $$ = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_variable,
-                           (raptor_sequence_print_handler*)rasqal_variable_print);
-#endif
   if(!$$)
     YYERROR_MSG("VarList 2: cannot create seq");
 
@@ -2389,13 +2340,8 @@ BindingsRowList: BindingsRowList BindingsRow
 }
 | BindingsRow
 {
-#ifdef HAVE_RAPTOR2_API
   $$ = raptor_new_sequence((raptor_data_free_handler)rasqal_free_row,
                            (raptor_data_print_handler)rasqal_row_print);
-#else
-  $$ = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_row,
-                           (raptor_sequence_print_handler*)rasqal_row_print);
-#endif
   if(!$$) {
     if($1)
       rasqal_free_row($1);
@@ -2455,13 +2401,8 @@ BindingValueList: BindingValueList BindingValue
 }
 | BindingValue
 {
-#ifdef HAVE_RAPTOR2_API
   $$ = raptor_new_sequence((raptor_data_free_handler)rasqal_free_literal,
                            (raptor_data_print_handler)rasqal_literal_print);
-#else
-  $$ = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_literal,
-                           (raptor_sequence_print_handler*)rasqal_literal_print);
-#endif
   if(!$$) {
     if($1)
       rasqal_free_literal($1);
@@ -2835,13 +2776,8 @@ OptionalGraphPattern: OPTIONAL GroupGraphPattern
   if($2) {
     raptor_sequence *seq;
 
-#ifdef HAVE_RAPTOR2_API
     seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_graph_pattern,
                               (raptor_data_print_handler)rasqal_graph_pattern_print);
-#else
-    seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_graph_pattern,
-                              (raptor_sequence_print_handler*)rasqal_graph_pattern_print);
-#endif
     if(!seq) {
       rasqal_free_graph_pattern($2);
       YYERROR_MSG("OptionalGraphPattern 1: cannot create sequence");
@@ -2879,13 +2815,8 @@ GraphGraphPattern: GRAPH VarOrIRIref GroupGraphPattern
   if($3) {
     raptor_sequence *seq;
 
-#ifdef HAVE_RAPTOR2_API
     seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_graph_pattern,
                               (raptor_data_print_handler)rasqal_graph_pattern_print);
-#else
-    seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_graph_pattern,
-                              (raptor_sequence_print_handler*)rasqal_graph_pattern_print);
-#endif
     if(!seq) {
       rasqal_free_graph_pattern($3);
       YYERROR_MSG("GraphGraphPattern 1: cannot create sequence");
@@ -2977,13 +2908,8 @@ GroupOrUnionGraphPatternList: GroupOrUnionGraphPatternList UNION GroupGraphPatte
 | GroupGraphPattern
 {
   raptor_sequence *seq;
-#ifdef HAVE_RAPTOR2_API
   seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_graph_pattern,
                             (raptor_data_print_handler)rasqal_graph_pattern_print);
-#else
-  seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_graph_pattern,
-                            (raptor_sequence_print_handler*)rasqal_graph_pattern_print);
-#endif
   if(!seq) {
     if($1)
       rasqal_free_graph_pattern($1);
@@ -3065,13 +2991,8 @@ FunctionCall: IRIref '(' DistinctOpt ArgListNoBraces ParamsOpt ')'
   raptor_uri* uri = rasqal_literal_as_uri($1);
   
   if(!$4) {
-#ifdef HAVE_RAPTOR2_API
     $4 = raptor_new_sequence((raptor_data_free_handler)rasqal_free_expression,
                              (raptor_data_print_handler)rasqal_expression_print);
-#else
-    $4 = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_expression,
-                             (raptor_sequence_print_handler*)rasqal_expression_print);
-#endif
     if(!$4) {
       rasqal_free_literal($1);
       YYERROR_MSG("FunctionCall: cannot create sequence");
@@ -3109,13 +3030,8 @@ IRIrefBrace ArgListNoBraces ')'
   raptor_uri* uri = rasqal_literal_as_uri($1);
   
   if(!$2) {
-#ifdef HAVE_RAPTOR2_API
     $2 = raptor_new_sequence((raptor_data_free_handler)rasqal_free_expression,
                              (raptor_data_print_handler)rasqal_expression_print);
-#else
-    $2 = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_expression,
-                             (raptor_sequence_print_handler*)rasqal_expression_print);
-#endif
     if(!$2) {
       rasqal_free_literal($1);
       YYERROR_MSG("FunctionCall: cannot create sequence");
@@ -3153,13 +3069,8 @@ CoalesceExpression: COALESCE ArgList
                         "COALESCE cannote be used with SPARQL 1.0");
 
   if(!$2) {
-#ifdef HAVE_RAPTOR2_API
     $2 = raptor_new_sequence((raptor_data_free_handler)rasqal_free_expression,
                              (raptor_data_print_handler)rasqal_expression_print);
-#else
-    $2 = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_expression,
-                             (raptor_sequence_print_handler*)rasqal_expression_print);
-#endif
     if(!$2)
       YYERROR_MSG("FunctionCall: cannot create sequence");
   }
@@ -3192,13 +3103,8 @@ ArgListNoBraces: ArgListNoBraces ',' Expression
 }
 | Expression
 {
-#ifdef HAVE_RAPTOR2_API
   $$ = raptor_new_sequence((raptor_data_free_handler)rasqal_free_expression,
                            (raptor_data_print_handler)rasqal_expression_print);
-#else
-  $$ = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_expression,
-                           (raptor_sequence_print_handler*)rasqal_expression_print);
-#endif
   if(!$$) {
     if($1)
       rasqal_free_expression($1);
@@ -3233,13 +3139,8 @@ ConstructTriplesOpt: ConstructTriples
 }
 | /* empty */
 {
-#ifdef HAVE_RAPTOR2_API
   $$ = raptor_new_sequence((raptor_data_free_handler)rasqal_free_triple,
                            (raptor_data_print_handler)rasqal_triple_print);
-#else
-  $$ = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_triple,
-                           (raptor_sequence_print_handler*)rasqal_triple_print);
-#endif
   if(!$$) {
     YYERROR_MSG("ConstructTriplesOpt: cannot create sequence");
   }
@@ -3260,13 +3161,8 @@ ConstructTriples: TriplesSameSubject '.' ConstructTriplesOpt
   
   if($3) {
     if(!$$) {
-#ifdef HAVE_RAPTOR2_API
       $$ = raptor_new_sequence((raptor_data_free_handler)rasqal_free_triple,
                                (raptor_data_print_handler)rasqal_triple_print);
-#else
-      $$ = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_triple,
-                               (raptor_sequence_print_handler*)rasqal_triple_print);
-#endif
       if(!$$) {
         raptor_free_sequence($3);
         YYERROR_MSG("ConstructTriples: cannot create sequence");
@@ -3426,13 +3322,8 @@ PropertyListNotEmpty: Verb ObjectList PropertyListTailOpt
         rasqal_free_formula($3);
       YYERROR_MSG("PropertyList 1: cannot create formula");
     }
-#ifdef HAVE_RAPTOR2_API
     formula->triples = raptor_new_sequence((raptor_data_free_handler)rasqal_free_triple,
                                            (raptor_data_print_handler)rasqal_triple_print);
-#else
-    formula->triples = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_triple,
-                                           (raptor_sequence_print_handler*)rasqal_triple_print);
-#endif
     if(!formula->triples) {
       rasqal_free_formula(formula);
       rasqal_free_formula($1);
@@ -3543,13 +3434,8 @@ ObjectList: Object ObjectTail
     YYERROR_MSG("ObjectList: cannot create formula");
   }
   
-#ifdef HAVE_RAPTOR2_API
   formula->triples = raptor_new_sequence((raptor_data_free_handler)rasqal_free_triple,
                                          (raptor_data_print_handler)rasqal_triple_print);
-#else
-  formula->triples = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_triple,
-                                         (raptor_sequence_print_handler*)rasqal_triple_print);
-#endif
   if(!formula->triples) {
     rasqal_free_formula(formula);
     rasqal_free_formula($1);
@@ -3638,12 +3524,8 @@ Verb: VarOrIRIref
   fprintf(DEBUG_FH, "verb Verb=rdf:type (a)\n");
 #endif
 
-#ifdef HAVE_RAPTOR2_API
   uri = raptor_new_uri_for_rdf_concept(((rasqal_query*)rq)->world->raptor_world_ptr,
                                        (const unsigned char*)"type");
-#else
-  uri = raptor_new_uri_for_rdf_concept("type");
-#endif
   if(!uri)
     YYERROR_MSG("Verb 2: uri for rdf concept type failed");
   $$ = rasqal_new_formula(((rasqal_query*)rq)->world);
@@ -3767,13 +3649,8 @@ Collection: '(' GraphNodeListNotEmpty ')'
   if(!$$)
     YYERR_MSG_GOTO(err_Collection, "Collection: cannot create formula");
 
-#ifdef HAVE_RAPTOR2_API
   $$->triples = raptor_new_sequence((raptor_data_free_handler)rasqal_free_triple,
                                     (raptor_data_print_handler)rasqal_triple_print);
-#else
-  $$->triples = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_triple,
-                                    (raptor_sequence_print_handler*)rasqal_triple_print);
-#endif
   if(!$$->triples)
     YYERR_MSG_GOTO(err_Collection, "Collection: cannot create sequence");
 
@@ -3895,13 +3772,8 @@ GraphNodeListNotEmpty: GraphNodeListNotEmpty GraphNode
 
   $$ = $1;
   if(!$$) {
-#ifdef HAVE_RAPTOR2_API
     $$ = raptor_new_sequence((raptor_data_free_handler)rasqal_free_formula,
                              (raptor_data_print_handler)rasqal_formula_print);
-#else
-    $$ = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_formula,
-                             (raptor_sequence_print_handler*)rasqal_formula_print);
-#endif
     if(!$$)
       YYERR_MSG_GOTO(err_GraphNodeListNotEmpty,
                      "GraphNodeListNotEmpty: cannot create formula");
@@ -3946,13 +3818,8 @@ GraphNodeListNotEmpty: GraphNodeListNotEmpty GraphNode
   if(!$1)
     $$ = NULL;
   else {
-#ifdef HAVE_RAPTOR2_API
     $$ = raptor_new_sequence((raptor_data_free_handler)rasqal_free_formula,
                              (raptor_data_print_handler)rasqal_formula_print);
-#else
-    $$ = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_formula,
-                             (raptor_sequence_print_handler*)rasqal_formula_print);
-#endif
     if(!$$) {
       rasqal_free_formula($1);
       YYERROR_MSG("GraphNodeListNotEmpty 2: cannot create sequence");

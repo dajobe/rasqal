@@ -82,10 +82,7 @@ rasqal_query_results_write_table_bindings(raptor_iostream *iostr,
                                           rasqal_query_results* results,
                                           raptor_uri *base_uri)
 {
-#ifdef HAVE_RAPTOR2_API
   rasqal_world* world = rasqal_query_results_get_world(results);
-#else
-#endif
   raptor_sequence *seq = NULL;
   int *widths = NULL;
   int bindings_count = -1;
@@ -118,11 +115,7 @@ rasqal_query_results_write_table_bindings(raptor_iostream *iostr,
       widths[i] = w;
   }
 
-#ifdef HAVE_RAPTOR2_API
   seq = raptor_new_sequence((raptor_data_free_handler)rasqal_free_chararray, NULL);
-#else
-  seq = raptor_new_sequence((raptor_sequence_free_handler*)rasqal_free_chararray, NULL);
-#endif
   if(!seq) {
     rc = 1;
     goto tidy;
@@ -144,14 +137,9 @@ rasqal_query_results_write_table_bindings(raptor_iostream *iostr,
       if(!l)
         continue;
 
-#ifdef HAVE_RAPTOR2_API
       str_iostr = raptor_new_iostream_to_string(world->raptor_world_ptr,
                                                 (void**)&values[i], &v_len,
                                                 rasqal_alloc_memory);
-#else
-      str_iostr = raptor_new_iostream_to_string((void**)&values[i], &v_len,
-                                                rasqal_alloc_memory);
-#endif
       if(!str_iostr) {
         rc = 1;
         goto tidy;
