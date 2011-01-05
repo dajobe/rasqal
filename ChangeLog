@@ -1,4 +1,38 @@
+2011-01-04  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal_expr_strings.c:
+	(rasqal_unicode_utf8_substr): Fixed integer conversion resulting
+	in change of sign
+
 2011-01-03  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_expr_strings.c:
+	(rasqal_unicode_utf8_substr): End substr after length unichars
+
+	* RELEASE.html, src/rasqal_expr_evaluate.c,
+	src/rasqal_expr_strings.c, src/rasqal_internal.h: Execute SUBSTR()
+	2 and 3-arg versions
+
+	(rasqal_unicode_utf8_substr): Added to do unicode UTF-8 substr
+	using 0-offset index.
+
+	(rasqal_expression_evaluate_substr): Added to implement SPARQL 1.1
+	draft SUBSTR() using above.  Adjust XSD string 1-offset indexes.
+
+	(rasqal_expression_evaluate): Call above for RASQAL_EXPR_SUBSTR
+
+	* RELEASE.html, src/rasqal_expr_evaluate.c,
+	src/rasqal_expr_strings.c, src/rasqal_internal.h: Execute
+	ENCODE_FOR_URI()
+
+	(rasqal_expression_evaluate_encode_for_uri): Added to implement
+	SPARQL 1.1 draft ENCODE_FOR_URI()
+
+	(rasqal_expression_evaluate): Call above for
+	RASQAL_EXPR_ENCODE_FOR_URI.
+
+	* INSTALL.html, LICENSE.html, NEWS.html, README.html,
+	RELEASE.html, TODO.html, docs/rasqal-docs.xml: #2011
 
 	* docs/tmpl/section-query_results.sgml: Update tmpls
 
