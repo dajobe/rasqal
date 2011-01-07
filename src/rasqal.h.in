@@ -1025,12 +1025,14 @@ const char* rasqal_query_get_label(rasqal_query* query);
  */
 typedef void* raptor_message_handler;
 
+#if !defined(RASQAL_DISABLE_DEPRECATED)
 RASQAL_API RASQAL_DEPRECATED
 void rasqal_query_set_fatal_error_handler(rasqal_query* query, void *user_data, raptor_message_handler handler);
 RASQAL_API RASQAL_DEPRECATED
 void rasqal_query_set_error_handler(rasqal_query* query, void *user_data, raptor_message_handler handler);
 RASQAL_API RASQAL_DEPRECATED
 void rasqal_query_set_warning_handler(rasqal_query* query, void *user_data, raptor_message_handler handler);
+#endif
 
 RASQAL_API
 int rasqal_query_set_feature(rasqal_query* query, rasqal_feature feature, int value);
@@ -1068,8 +1070,10 @@ int rasqal_query_get_offset(rasqal_query* query);
 RASQAL_API
 void rasqal_query_set_offset(rasqal_query* query, int offset);
 
+#if !defined(RASQAL_DISABLE_DEPRECATED)
 RASQAL_API RASQAL_DEPRECATED
 int rasqal_query_add_data_graph(rasqal_query* query, raptor_uri* uri, raptor_uri* name_uri, int flags);
+#endif
 RASQAL_API
 int rasqal_query_add_data_graph2(rasqal_query* query, rasqal_data_graph* data_graph);
 RASQAL_API
@@ -1289,13 +1293,16 @@ int rasqal_query_results_rewind(rasqal_query_results* query_results);
  */
 #define RASQAL_QUERY_RESULTS_FORMAT_FLAG_WRITER 2
 
-RASQAL_API RASQAL_DEPRECATED
-int rasqal_query_results_formats_enumerate(rasqal_world* world, unsigned int counter, const char **name, const char **label, const unsigned char **uri_string, const char **mime_type, int* flags);
 RASQAL_API
 int rasqal_query_results_formats_check2(rasqal_world* world, const char *name, raptor_uri* uri, const char *mime_type, int flags);
+#if !defined(RASQAL_DISABLE_DEPRECATED)
+RASQAL_API RASQAL_DEPRECATED
+int rasqal_query_results_formats_enumerate(rasqal_world* world, unsigned int counter, const char **name, const char **label, const unsigned char **uri_string, const char **mime_type, int* flags);
 RASQAL_API RASQAL_DEPRECATED
 int rasqal_query_results_formats_check(rasqal_world* world, const char *name, raptor_uri* uri, const char *mime_type);
 RASQAL_API
+#endif
+
 rasqal_query_results_formatter* rasqal_new_query_results_formatter2(rasqal_world* world, const char *name, const char *mime_type, raptor_uri* format_uri);
 #if !defined(RASQAL_DISABLE_DEPRECATED)
 RASQAL_API RASQAL_DEPRECATED
@@ -1303,6 +1310,7 @@ rasqal_query_results_formatter* rasqal_new_query_results_formatter(rasqal_world*
 RASQAL_API RASQAL_DEPRECATED
 rasqal_query_results_formatter* rasqal_new_query_results_formatter_by_mime_type(rasqal_world* world, const char *mime_type);
 #endif
+
 rasqal_query_results_formatter* rasqal_new_query_results_formatter_for_content(rasqal_world* world, raptor_uri *uri, const char *mime_type, const unsigned char *buffer, size_t len, const unsigned char *identifier);
 RASQAL_API
 void rasqal_free_query_results_formatter(rasqal_query_results_formatter* formatter);
@@ -1310,8 +1318,10 @@ RASQAL_API
 int rasqal_query_results_formatter_write(raptor_iostream *iostr, rasqal_query_results_formatter* formatter, rasqal_query_results* results, raptor_uri *base_uri);
 RASQAL_API
 int rasqal_query_results_formatter_read(rasqal_world* world, raptor_iostream *iostr, rasqal_query_results_formatter* formatter, rasqal_query_results* results, raptor_uri *base_uri);
+#if !defined(RASQAL_DISABLE_DEPRECATED)
 RASQAL_API RASQAL_DEPRECATED
 const char* rasqal_query_results_formatter_get_mime_type(rasqal_query_results_formatter *formatter);
+#endif
 
 RASQAL_API
 int rasqal_query_iostream_write_escaped_counted_string(rasqal_query* query, raptor_iostream* iostr, const unsigned char* string, size_t len);
@@ -1324,8 +1334,10 @@ RASQAL_API
 rasqal_data_graph* rasqal_new_data_graph_from_uri(rasqal_world* world, raptor_uri* uri, raptor_uri* name_uri, int flags, const char* format_type, const char* format_name, raptor_uri* format_uri);
 RASQAL_API
 rasqal_data_graph* rasqal_new_data_graph_from_iostream(rasqal_world* world, raptor_iostream* iostr, raptor_uri* base_uri, raptor_uri* name_uri, int flags, const char* format_type, const char* format_name, raptor_uri* format_uri);
+#if !defined(RASQAL_DISABLE_DEPRECATED)
 RASQAL_API RASQAL_DEPRECATED
 rasqal_data_graph* rasqal_new_data_graph(rasqal_world* world, raptor_uri* uri, raptor_uri* name_uri, int flags);
+#endif
 RASQAL_API
 rasqal_data_graph* rasqal_new_data_graph_from_data_graph(rasqal_data_graph* dg);
 RASQAL_API
@@ -1511,10 +1523,12 @@ RASQAL_API
 rasqal_literal* rasqal_triple_get_origin(rasqal_triple* t);
 
 /* Variable class */
+#if !defined(RASQAL_DISABLE_DEPRECATED)
 RASQAL_API RASQAL_DEPRECATED
 rasqal_variable* rasqal_new_variable_typed(rasqal_query* rq, rasqal_variable_type type, unsigned char *name, rasqal_literal *value);
 RASQAL_API RASQAL_DEPRECATED
 rasqal_variable* rasqal_new_variable(rasqal_query* rq, unsigned char *name, rasqal_literal *value);
+#endif
 RASQAL_API
 rasqal_variable* rasqal_new_variable_from_variable(rasqal_variable* v);
 RASQAL_API

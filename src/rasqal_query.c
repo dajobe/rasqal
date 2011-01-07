@@ -278,6 +278,7 @@ rasqal_query_get_label(rasqal_query* query)
 }
 
 
+#if !defined(RASQAL_DISABLE_DEPRECATED)
 /**
  * rasqal_query_set_fatal_error_handler:
  * @query: the query
@@ -333,6 +334,7 @@ rasqal_query_set_warning_handler(rasqal_query* query, void *user_data,
                                  raptor_message_handler handler)
 {
 }
+#endif
 
 
 /**
@@ -639,6 +641,7 @@ rasqal_query_add_data_graph2(rasqal_query* query, rasqal_data_graph* data_graph)
 }
 
 
+#if !defined(RASQAL_DISABLE_DEPRECATED)
 /**
  * rasqal_query_add_data_graph:
  * @query: #rasqal_query query object
@@ -671,6 +674,7 @@ rasqal_query_add_data_graph(rasqal_query* query,
 
   return rasqal_query_add_data_graph2(query, dg);
 }
+#endif
 
 
 /**
@@ -2094,6 +2098,7 @@ rasqal_query_get_update_operation(rasqal_query* query, int idx)
 }
 
 
+#if !defined(RASQAL_DISABLE_DEPRECATED)
 /**
  * rasqal_query_set_default_generate_bnodeid_parameters:
  * @rdf_query: #rasqal_query object
@@ -2171,6 +2176,7 @@ rasqal_query_set_generate_bnodeid_handler(rasqal_query* query,
   query->generate_bnodeid_handler_user_data = user_data;
   query->generate_bnodeid_handler = handler;
 }
+#endif
 
 
 /*
@@ -2184,10 +2190,12 @@ rasqal_query_generate_bnodeid(rasqal_query* rdf_query,
   if(rdf_query->world->generate_bnodeid_handler)
     return rasqal_world_generate_bnodeid(rdf_query->world, user_bnodeid);
 
+#if !defined(RASQAL_DISABLE_DEPRECATED)
   if(rdf_query->generate_bnodeid_handler)
     return rdf_query->generate_bnodeid_handler(rdf_query, 
                                                rdf_query->generate_bnodeid_handler_user_data, user_bnodeid);
   else
+#endif
     return rasqal_world_default_generate_bnodeid_handler(rdf_query->world,
                                                          user_bnodeid);
 }

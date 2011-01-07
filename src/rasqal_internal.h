@@ -413,9 +413,10 @@ struct rasqal_query_s {
   char *unused2;
   size_t unused3;
 
+#if !defined(RASQAL_DISABLE_DEPRECATED)
   void *generate_bnodeid_handler_user_data;
   rasqal_generate_bnodeid_handler generate_bnodeid_handler;
-
+#endif
 
   /* query engine specific stuff */
   void* context;
