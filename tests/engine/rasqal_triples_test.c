@@ -153,7 +153,7 @@ main(int argc, char **argv) {
                                       /* name URI */ NULL,
                                       RASQAL_DATA_GRAPH_BACKGROUND,
                                       NULL, NULL, NULL);
-  rasqal_query_add_data_graph2(query, dg);
+  rasqal_query_add_data_graph(query, dg);
 
   raptor_free_uri(data_file_uri);
   data_file_uri = NULL;

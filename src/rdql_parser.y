@@ -215,7 +215,7 @@ Query : SELECT SelectClause SourceClause WHERE TriplePatternList ConstraintClaus
                                           RASQAL_DATA_GRAPH_BACKGROUND,
                                           NULL, NULL, NULL);
       if(dg)
-        rasqal_query_add_data_graph2((rasqal_query*)rq, dg);
+        rasqal_query_add_data_graph((rasqal_query*)rq, dg);
     }
     raptor_free_sequence($3);
   }

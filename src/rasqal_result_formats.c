@@ -176,70 +176,6 @@ rasqal_finish_result_formats(rasqal_world* world)
 }
 
 
-#if !defined(RASQAL_DISABLE_DEPRECATED)
-/**
- * rasqal_query_results_formats_enumerate:
- * @world: rasqal_world object
- * @counter: index into the list of query result syntaxes
- * @name: pointer to store the name of the query result syntax (or NULL)
- * @label: pointer to store query result syntax readable label (or NULL)
- * @uri_string: pointer to store query result syntax URI string (or NULL)
- * @mime_type: pointer to store query result syntax mime type string (or NULL)
- * @flags: pointer to store query result syntax flags (or NULL)
- *
- * Get information on query result syntaxes.
- * 
- * The current list of format names/URI is given below however
- * the results of this function will always return the latest.
- *
- * All returned strings are shared and must be copied if needed to be
- * used dynamically.
- *
- * @Deprecated: Use rasqal_world_get_query_results_format_description()
- * 
- * Return value: non 0 on failure of if counter is out of range
- **/
-int
-rasqal_query_results_formats_enumerate(rasqal_world* world,
-                                       unsigned int counter,
-                                       const char **name,
-                                       const char **label,
-                                       const unsigned char **uri_string,
-                                       const char **mime_type,
-                                       int *flags)
-
-
-
-{
-  rasqal_query_results_format_factory *factory;
-  
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, 1);
-
-  factory = (rasqal_query_results_format_factory*)raptor_sequence_get_at(world->query_results_formats, counter);
-  if(!factory)
-    return 1;
-
-  if(name)
-    *name = factory->desc.names[0];
-  if(label)
-    *label = factory->desc.label;
-  if(uri_string && factory->desc.uri_strings)
-    *uri_string = (const unsigned char*)factory->desc.uri_strings[0];
-  if(mime_type)
-    *mime_type = (const char*)factory->desc.mime_types[0].mime_type;
-  if(flags) {
-    *flags = 0;
-    if(factory->get_rowsource)
-      *flags |= RASQAL_QUERY_RESULTS_FORMAT_FLAG_READER;
-    if(factory->write)
-      *flags |= RASQAL_QUERY_RESULTS_FORMAT_FLAG_WRITER;
-  }
-  
-  return 0;
-}
-#endif
-
-
 static rasqal_query_results_format_factory*
 rasqal_get_query_results_formatter_factory(rasqal_world* world,
                                            const char *name, raptor_uri* uri,
@@ -312,7 +248,7 @@ rasqal_get_query_results_formatter_factory(rasqal_world* world,
 
 
 /**
- * rasqal_query_results_formats_check2:
+ * rasqal_query_results_formats_check:
  * @world: rasqal_world object
  * @name: the query results format name (or NULL)
  * @uri: #raptor_uri query results format uri (or NULL)
@@ -324,10 +260,10 @@ rasqal_get_query_results_formatter_factory(rasqal_world* world,
  * Return value: non-0 if a formatter exists.
  **/
 int
-rasqal_query_results_formats_check2(rasqal_world* world,
-                                    const char *name, raptor_uri* uri,
-                                    const char *mime_type,
-                                    int flags)
+rasqal_query_results_formats_check(rasqal_world* world,
+                                   const char *name, raptor_uri* uri,
+                                   const char *mime_type,
+                                   int flags)
 {
   rasqal_query_results_format_factory* factory = NULL;
   
@@ -340,32 +276,8 @@ rasqal_query_results_formats_check2(rasqal_world* world,
 }
 
 
-#if !defined(RASQAL_DISABLE_DEPRECATED)
 /**
- * rasqal_query_results_formats_check:
- * @world: rasqal_world object
- * @name: the query results format name (or NULL)
- * @uri: #raptor_uri query results format uri (or NULL)
- * @mime_type: mime type name
- * 
- * Check if a query results formatter exists for the requested format.
- * 
- * @Deprecated: Use rasqal_query_results_formats_check() with extra flags argument.
- *
- * Return value: non-0 if a formatter exists.
- **/
-int
-rasqal_query_results_formats_check(rasqal_world* world,
-                                   const char *name, raptor_uri* uri,
-                                   const char *mime_type)
-{
-  return rasqal_query_results_formats_check2(world, name, uri, mime_type, 0);
-}
-#endif
-
-
-/**
- * rasqal_new_query_results_formatter2:
+ * rasqal_new_query_results_formatter:
  * @world: rasqal_world object
  * @name: the query results format name (or NULL)
  * @mime_type: the query results format mime type (or NULL)
@@ -379,16 +291,16 @@ rasqal_query_results_formats_check(rasqal_world* world,
  * order.  The default query results format will be used if all are
  * format identifying fields are NULL.
  *
- * rasqal_query_results_formats_enumerate() returns information on
- * the known query results names, labels, mime types and URIs.
+ * See rasqal_world_get_query_results_format_description() for
+ * obtaining the supported format URIs at run time.
  *
  * Return value: a new #rasqal_query_results_formatter object or NULL on failure
  */
 rasqal_query_results_formatter*
-rasqal_new_query_results_formatter2(rasqal_world* world,
-                                    const char *name, 
-                                    const char *mime_type,
-                                    raptor_uri* format_uri)
+rasqal_new_query_results_formatter(rasqal_world* world,
+                                   const char *name, 
+                                   const char *mime_type,
+                                   raptor_uri* format_uri)
 {
   rasqal_query_results_format_factory* factory;
   rasqal_query_results_formatter* formatter;
@@ -429,66 +341,6 @@ rasqal_new_query_results_formatter2(rasqal_world* world,
 }
 
 
-#if !defined(RASQAL_DISABLE_DEPRECATED)
-/**
- * rasqal_new_query_results_formatter:
- * @world: rasqal_world object
- * @name: the query results format name (or NULL)
- * @format_uri: #raptor_uri query results format uri (or NULL)
- *
- * Constructor - create a new rasqal_query_results_formatter object by identified format.
- *
- * A query results format can be named or identified by a URI, both
- * of which are optional.  The default query results format will be used
- * if both are NULL.  rasqal_query_results_formats_enumerate() returns
- * information on the known query results names, labels and URIs.
- *
- * @Deprecated: Use rasqal_new_query_results_formatter2() with extra
- * mime_type arg.
- *
- * Return value: a new #rasqal_query_results_formatter object or NULL on failure
- */
-rasqal_query_results_formatter*
-rasqal_new_query_results_formatter(rasqal_world* world,
-                                   const char *name, raptor_uri* format_uri)
-{
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
-
-  return rasqal_new_query_results_formatter2(world, 
-                                             name, NULL, format_uri);
-}
-
-
-/**
- * rasqal_new_query_results_formatter_by_mime_type:
- * @world: rasqal_world object
- * @mime_type: mime type name
- *
- * Constructor - create a new rasqal_query_results_formatter object by mime type.
- *
- * A query results format generates a syntax with a mime type which
- * may be requested with this constructor.
- *
- * Note that there may be several formatters that generate the same
- * MIME Type (such as SPARQL XML results format drafts) and in thot
- * case the rasqal_new_query_results_formatter() constructor allows
- * selecting of a specific one by name or URI.
- *
- * @Deprecated: Use rasqal_new_query_results_formatter2() with extra
- * name and format_uri args.
- *
- * Return value: a new #rasqal_query_results_formatter object or NULL on failure
- */
-rasqal_query_results_formatter*
-rasqal_new_query_results_formatter_by_mime_type(rasqal_world* world,
-                                                const char *mime_type)
-{
-  return rasqal_new_query_results_formatter2(world, 
-                                             NULL, mime_type, NULL);
-}
-#endif
-
-
 /**
  * rasqal_new_query_results_formatter_for_content:
  * @world: world object
@@ -524,7 +376,7 @@ rasqal_new_query_results_formatter_for_content(rasqal_world* world,
                                                       uri, mime_type,
                                                       buffer, len,
                                                       identifier);
-  return name ? rasqal_new_query_results_formatter2(world, name, NULL, NULL) : NULL;
+  return name ? rasqal_new_query_results_formatter(world, name, NULL, NULL) : NULL;
 }
 
 
@@ -548,27 +400,6 @@ rasqal_free_query_results_formatter(rasqal_query_results_formatter* formatter)
 
   RASQAL_FREE(rasqal_query_results_formatter, formatter);
 }
-
-
-#if !defined(RASQAL_DISABLE_DEPRECATED)
-/**
- * rasqal_query_results_formatter_get_mime_type:
- * @formatter: #rasqal_query_results_formatter object
- * 
- * Get the mime type of the syntax being formatted.
- * 
- * @Deprecated: Use rasqal_world_get_query_results_format_description() to get multiple mime types and Q values.
- * 
- * Return value: a shared mime type string
- **/
-const char*
-rasqal_query_results_formatter_get_mime_type(rasqal_query_results_formatter *formatter)
-{
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(formatter, rasqal_query_results_formatter, NULL);
-
-  return formatter->factory->desc.mime_types[0].mime_type;
-}
-#endif
 
 
 /**
@@ -612,8 +443,8 @@ rasqal_world_get_query_results_format_description(rasqal_world* world,
  * Note that after calling this method, the query results will be
  * empty and rasqal_query_results_finished() will return true (non-0)
  * 
- * See rasqal_query_results_formats_enumerate() to get the
- * list of syntax URIs and their description. 
+ * See rasqal_world_get_query_results_format_description() for
+ * obtaining the supported format URIs at run time.
  *
  * Return value: non-0 on failure
  **/
@@ -643,8 +474,8 @@ rasqal_query_results_formatter_write(raptor_iostream *iostr,
  *
  * Read the query results using the given formatter from an iostream
  * 
- * See rasqal_query_results_formats_enumerate() to get the
- * list of syntax URIs and their description. 
+ * See rasqal_world_get_query_results_format_description() for
+ * obtaining the supported format URIs at run time.
  *
  * Return value: non-0 on failure
  **/

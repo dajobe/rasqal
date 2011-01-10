@@ -921,7 +921,7 @@ rasqal_world_set_default_generate_bnodeid_parameters(rasqal_world* world,
 int
 rasqal_world_set_generate_bnodeid_handler(rasqal_world* world,
                                           void *user_data,
-                                          rasqal_generate_bnodeid_handler2 handler)
+                                          rasqal_generate_bnodeid_handler handler)
 {
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, 1);
 

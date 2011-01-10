@@ -147,9 +147,9 @@ main(int argc, char *argv[])
   row = NULL; /* now owned by results */
 
 
-  write_formatter = rasqal_new_query_results_formatter2(world, 
-                                                        write_formatter_name,
-                                                        NULL, NULL);
+  write_formatter = rasqal_new_query_results_formatter(world, 
+                                                       write_formatter_name,
+                                                       NULL, NULL);
   if(!write_formatter) {
     fprintf(stderr, "%s: Failed to create query results write formatter '%s'\n",
             program, write_formatter_name);

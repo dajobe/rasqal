@@ -1427,7 +1427,7 @@ rasqal_query_results_get_boolean(rasqal_query_results* query_results)
 
 
 /**
- * rasqal_query_results_write2:
+ * rasqal_query_results_write:
  * @iostr: #raptor_iostream to write the query to
  * @results: #rasqal_query_results query results format
  * @name: format name (or NULL)
@@ -1444,106 +1444,13 @@ rasqal_query_results_get_boolean(rasqal_query_results* query_results)
  * Note that after calling this method, the query results will be
  * empty and rasqal_query_results_finished() will return true (non-0)
  *
- * See rasqal_query_results_formats_enumerate() for obtaining the
+ * See rasqal_world_get_query_results_format_description() for obtaining the
  * supported format names, mime_types and URIs at run time.
  *
  * Return value: non-0 on failure
  **/
 int
-rasqal_query_results_write2(raptor_iostream *iostr,
-                            rasqal_query_results* results,
-                            const char *name,
-                            const char *mime_type,
-                            raptor_uri *format_uri,
-                            raptor_uri *base_uri)
-{
-  rasqal_query_results_formatter *formatter;
-  int status;
-  
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(iostr, raptor_iostream, 1);
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(results, rasqal_query_results, 1);
-
-  if(results->failed)
-    return 1;
-
-  formatter = rasqal_new_query_results_formatter2(results->world, 
-                                                  name, mime_type,
-                                                  format_uri);
-  if(!formatter)
-    return 1;
-
-  status = rasqal_query_results_formatter_write(iostr, formatter,
-                                                results, base_uri);
-
-  rasqal_free_query_results_formatter(formatter);
-  return status;
-}
-
-
-#if !defined(RASQAL_DISABLE_DEPRECATED)
-/**
- * rasqal_query_results_write:
- * @iostr: #raptor_iostream to write the query to
- * @results: #rasqal_query_results query results format
- * @format_uri: #raptor_uri describing the format to write (or NULL for default)
- * @base_uri: #raptor_uri base URI of the output format
- *
- * Write the query results to an iostream in a format.
- * 
- * This uses the #rasqal_query_results_formatter class
- * and the rasqal_query_results_formatter_write() method
- * to perform the formatting. See
- * rasqal_query_results_formats_enumerate() 
- * for obtaining the supported format URIs at run time.
- *
- * Note that after calling this method, the query results will be
- * empty and rasqal_query_results_finished() will return true (non-0)
- *
- * @Deprecated: Use rasqal_query_results_write2() with extra format
- * name and mime_type args.
- *
- * Return value: non-0 on failure
- **/
-int
 rasqal_query_results_write(raptor_iostream *iostr,
-                           rasqal_query_results* results,
-                           raptor_uri *format_uri,
-                           raptor_uri *base_uri)
-{
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(iostr, raptor_iostream, 1);
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(results, rasqal_query_results, 1);
-
-  return rasqal_query_results_write2(iostr,
-                                     results,
-                                     NULL /* name */,
-                                     NULL /* mime_type */,
-                                     format_uri,
-                                     base_uri);
-}
-#endif
-
-
-/**
- * rasqal_query_results_read2:
- * @iostr: #raptor_iostream to read the query from
- * @results: #rasqal_query_results query results format
- * @name: format name (or NULL)
- * @mime_type: format mime type (or NULL)
- * @format_uri: #raptor_uri describing the format to read (or NULL for default)
- * @base_uri: #raptor_uri base URI of the input format
- *
- * Read the query results from an iostream in a format.
- * 
- * This uses the #rasqal_query_results_formatter class
- * and the rasqal_query_results_formatter_read() method
- * to perform the formatting. See
- * rasqal_query_results_formats_enumerate() 
- * for obtaining the supported format URIs at run time.
- *
- * Return value: non-0 on failure
- **/
-int
-rasqal_query_results_read2(raptor_iostream *iostr,
                            rasqal_query_results* results,
                            const char *name,
                            const char *mime_type,
@@ -1559,9 +1466,60 @@ rasqal_query_results_read2(raptor_iostream *iostr,
   if(results->failed)
     return 1;
 
-  formatter = rasqal_new_query_results_formatter2(results->world,
-                                                  name, mime_type,
-                                                  format_uri);
+  formatter = rasqal_new_query_results_formatter(results->world, 
+                                                 name, mime_type,
+                                                 format_uri);
+  if(!formatter)
+    return 1;
+
+  status = rasqal_query_results_formatter_write(iostr, formatter,
+                                                results, base_uri);
+
+  rasqal_free_query_results_formatter(formatter);
+  return status;
+}
+
+
+/**
+ * rasqal_query_results_read:
+ * @iostr: #raptor_iostream to read the query from
+ * @results: #rasqal_query_results query results format
+ * @name: format name (or NULL)
+ * @mime_type: format mime type (or NULL)
+ * @format_uri: #raptor_uri describing the format to read (or NULL for default)
+ * @base_uri: #raptor_uri base URI of the input format
+ *
+ * Read the query results from an iostream in a format.
+ * 
+ * This uses the #rasqal_query_results_formatter class
+ * and the rasqal_query_results_formatter_read() method
+ * to perform the formatting. 
+ *
+ * See rasqal_world_get_query_results_format_description() for
+ * obtaining the supported format URIs at run time.
+ *
+ * Return value: non-0 on failure
+ **/
+int
+rasqal_query_results_read(raptor_iostream *iostr,
+                          rasqal_query_results* results,
+                          const char *name,
+                          const char *mime_type,
+                          raptor_uri *format_uri,
+                          raptor_uri *base_uri)
+{
+  rasqal_query_results_formatter *formatter;
+  int status;
+  
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(iostr, raptor_iostream, 1);
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(results, rasqal_query_results, 1);
+
+  if(results->failed)
+    return 1;
+
+  formatter = rasqal_new_query_results_formatter(results->world,
+                                                 name, mime_type,
+                                                 format_uri);
   if(!formatter)
     return 1;
 
@@ -1571,46 +1529,6 @@ rasqal_query_results_read2(raptor_iostream *iostr,
   rasqal_free_query_results_formatter(formatter);
   return status;
 }
-
-
-#if !defined(RASQAL_DISABLE_DEPRECATED)
-/**
- * rasqal_query_results_read:
- * @iostr: #raptor_iostream to read the query from
- * @results: #rasqal_query_results query results format
- * @format_uri: #raptor_uri describing the format to read (or NULL for default)
- * @base_uri: #raptor_uri base URI of the input format
- *
- * Read the query results from an iostream in a format.
- * 
- * This uses the #rasqal_query_results_formatter class
- * and the rasqal_query_results_formatter_read() method
- * to perform the formatting. See
- * rasqal_query_results_formats_enumerate() 
- * for obtaining the supported format URIs at run time.
- *
- * @Deprecated: Use rasqal_query_results_read2() with extra format
- * name and mime_type arguments.
- *
- * Return value: non-0 on failure
- **/
-int
-rasqal_query_results_read(raptor_iostream *iostr,
-                          rasqal_query_results* results,
-                          raptor_uri *format_uri,
-                          raptor_uri *base_uri)
-{
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(iostr, raptor_iostream, 1);
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(results, rasqal_query_results, 1);
-
-  return rasqal_query_results_read2(iostr,
-                                    results,
-                                    NULL /* name */,
-                                    NULL /* mime_type */,
-                                    format_uri,
-                                    base_uri);
-}
-#endif
 
 
 /**

@@ -413,11 +413,6 @@ struct rasqal_query_s {
   char *unused2;
   size_t unused3;
 
-#if !defined(RASQAL_DISABLE_DEPRECATED)
-  void *generate_bnodeid_handler_user_data;
-  rasqal_generate_bnodeid_handler generate_bnodeid_handler;
-#endif
-
   /* query engine specific stuff */
   void* context;
 
@@ -1296,7 +1291,7 @@ struct rasqal_world_s {
   size_t default_generate_bnodeid_handler_prefix_length;
 
   void *generate_bnodeid_handler_user_data;
-  rasqal_generate_bnodeid_handler2 generate_bnodeid_handler;
+  rasqal_generate_bnodeid_handler generate_bnodeid_handler;
 
   /* used for NOW() value */
   struct timeval now;

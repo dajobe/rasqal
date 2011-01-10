@@ -175,39 +175,6 @@ rasqal_new_data_graph_from_iostream(rasqal_world* world,
 }
 
 
-#if !defined(RASQAL_DISABLE_DEPRECATED)
-/**
- * rasqal_new_data_graph:
- * @world: rasqal_world object
- * @uri: source URI
- * @name_uri: name of graph (or NULL)
- * @flags: %RASQAL_DATA_GRAPH_NAMED or %RASQAL_DATA_GRAPH_BACKGROUND
- * 
- * Constructor - create a new #rasqal_data_graph.
- * 
- * The name_uri is only used when the flags are %RASQAL_DATA_GRAPH_NAMED.
- *
- * @Deprecated: replaced by rasqal_new_data_graph_from_uri() with
- * extra format arguments.
- *
- * Return value: a new #rasqal_data_graph or NULL on failure.
- **/
-rasqal_data_graph*
-rasqal_new_data_graph(rasqal_world* world, raptor_uri* uri,
-                      raptor_uri* name_uri, int flags)
-{
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(world, rasqal_world, NULL);
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(uri, raptor_uri, NULL);
-
-  return rasqal_new_data_graph_common(world,
-                                      uri, 
-                                      /* iostr */ NULL, /* base URI */ NULL,
-                                      name_uri, flags,
-                                      NULL, NULL, NULL);
-}
-#endif
-
-
 /**
  * rasqal_new_data_graph_from_data_graph:
  * @dg: #rasqal_data_graph object to copy or NULL

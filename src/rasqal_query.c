@@ -278,65 +278,6 @@ rasqal_query_get_label(rasqal_query* query)
 }
 
 
-#if !defined(RASQAL_DISABLE_DEPRECATED)
-/**
- * rasqal_query_set_fatal_error_handler:
- * @query: the query
- * @user_data: user data to pass to function
- * @handler: pointer to the function
- *
- * Set the query error handling function.
- * 
- * @Deprecated: Does nothing - use rasqal_world_set_log_handler() to
- * set the handler for all messages.
- * 
- **/
-void
-rasqal_query_set_fatal_error_handler(rasqal_query* query, void *user_data,
-                                     raptor_message_handler handler)
-{
-}
-
-
-/**
- * rasqal_query_set_error_handler:
- * @query: the query
- * @user_data: user data to pass to function
- * @handler: pointer to the function
- *
- * Set the query error handling function.
- * 
- * @Deprecated: Does nothing - use rasqal_world_set_log_handler() to
- * set the handler for all messages.
- * 
- **/
-void
-rasqal_query_set_error_handler(rasqal_query* query, void *user_data,
-                               raptor_message_handler handler)
-{
-}
-
-
-/**
- * rasqal_query_set_warning_handler:
- * @query: the query
- * @user_data: user data to pass to function
- * @handler: pointer to the function
- *
- * Set the query warning handling function.
- * 
- * @Deprecated: Does nothing - use rasqal_world_set_log_handler() to
- * set the handler for all messages.
- * 
- **/
-void
-rasqal_query_set_warning_handler(rasqal_query* query, void *user_data,
-                                 raptor_message_handler handler)
-{
-}
-#endif
-
-
 /**
  * rasqal_query_set_feature:
  * @query: #rasqal_query query object
@@ -621,7 +562,7 @@ rasqal_query_set_offset(rasqal_query* query, int offset)
 
 
 /**
- * rasqal_query_add_data_graph2:
+ * rasqal_query_add_data_graph:
  * @query: #rasqal_query query object
  * @data_graph: data graph
  *
@@ -630,7 +571,7 @@ rasqal_query_set_offset(rasqal_query* query, int offset)
  * Return value: non-0 on failure
  **/
 int
-rasqal_query_add_data_graph2(rasqal_query* query, rasqal_data_graph* data_graph)
+rasqal_query_add_data_graph(rasqal_query* query, rasqal_data_graph* data_graph)
 {
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(query, rasqal_query, 1);
   RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(data_graph, rasqal_data_graph, 1);
@@ -639,42 +580,6 @@ rasqal_query_add_data_graph2(rasqal_query* query, rasqal_data_graph* data_graph)
     return 1;
   return 0;
 }
-
-
-#if !defined(RASQAL_DISABLE_DEPRECATED)
-/**
- * rasqal_query_add_data_graph:
- * @query: #rasqal_query query object
- * @uri: #raptor_uri source uri for retrieval
- * @name_uri: #raptor_uri name uri (or NULL)
- * @flags: RASQAL_DATA_GRAPH_NAMED or RASQAL_DATA_GRAPH_BACKGROUND
- *
- * Add a data graph to the query.
- *
- * named_uri must be given if flags RASQAL_DATA_GRAPH_NAMED is set.
- * It is the name of the graph and also used as the base URI
- * when resolving any relative URIs for the graph in uri.
- *
- * @Deprecated: Replaced by rasqal_new_data_graph_from_uri() with
- * extra format arguments and rasqal_query_add_data_graph2()
- *
- * Return value: non-0 on failure
- **/
-int
-rasqal_query_add_data_graph(rasqal_query* query, 
-                            raptor_uri* uri, raptor_uri* name_uri,
-                            int flags)
-{
-  rasqal_data_graph* dg;
-  
-  dg = rasqal_new_data_graph_from_uri(query->world, uri, name_uri, flags,
-                                      NULL, NULL, NULL);
-  if(!dg)
-    return 1;
-
-  return rasqal_query_add_data_graph2(query, dg);
-}
-#endif
 
 
 /**
@@ -2098,87 +2003,6 @@ rasqal_query_get_update_operation(rasqal_query* query, int idx)
 }
 
 
-#if !defined(RASQAL_DISABLE_DEPRECATED)
-/**
- * rasqal_query_set_default_generate_bnodeid_parameters:
- * @rdf_query: #rasqal_query object
- * @prefix: prefix string
- * @base: integer base identifier
- *
- * Set default bnodeid generation parameters
- *
- * Sets the parameters for the default algorithm used to generate
- * blank node IDs.  The default algorithm uses both @prefix and @base
- * to generate a new identifier.  The exact identifier generated is
- * not guaranteed to be a strict concatenation of @prefix and @base
- * but will use both parts.
- *
- * For finer control of the generated identifiers, use
- * rasqal_world_set_generate_bnodeid_handler() on the world class (or
- * the deprecated rasqal_query_set_generate_bnodeid_handler() on the
- * query class).
- *
- * If prefix is NULL, the default prefix is used (currently "bnodeid")
- * If base is less than 1, it is initialised to 1.
- * 
- * This calls rasqal_world_set_default_generate_bnodeid_parameters()
- * method on the world class; there is no separate configuration per
- * query object.
- *  
- * @Deprecated: Use
- * rasqal_world_set_default_generate_bnodeid_parameters() on the
- * world class.
- *
- **/
-void
-rasqal_query_set_default_generate_bnodeid_parameters(rasqal_query* rdf_query, 
-                                                     char *prefix, int base)
-{
-
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN(rdf_query, rasqal_query);
-
-  rasqal_world_set_default_generate_bnodeid_parameters(rdf_query->world, 
-                                                       prefix, base);
-}
-
-
-/**
- * rasqal_query_set_generate_bnodeid_handler:
- * @query: #rasqal_query query object
- * @user_data: user data pointer for callback
- * @handler: generate blank ID callback function
- *
- * Set the generate blank node ID handler function for the query.
- *
- * Sets the function to generate blank node IDs for the query.
- * The handler is called with a pointer to the rasqal_query, the
- * @user_data pointer and a user_bnodeid which is the value of
- * a user-provided blank node identifier (may be NULL).
- * It can either be returned directly as the generated value when present or
- * modified.  The passed in value must be free()d if it is not used.
- *
- * If handler is NULL, the default method is used
- *
- * Any hander set by rasqal_world_set_generate_bnodeid_handler()
- * overrides this.
- *  
- * @Deprecated: Use
- * rasqal_world_set_generate_bnodeid_handler() on the world class.
- * 
- **/
-void
-rasqal_query_set_generate_bnodeid_handler(rasqal_query* query,
-                                          void *user_data,
-                                          rasqal_generate_bnodeid_handler handler)
-{
-  RASQAL_ASSERT_OBJECT_POINTER_RETURN(query, rasqal_query);
-
-  query->generate_bnodeid_handler_user_data = user_data;
-  query->generate_bnodeid_handler = handler;
-}
-#endif
-
-
 /*
  * rasqal_query_generate_bnodeid - Default generate id - internal
  */
@@ -2190,12 +2014,6 @@ rasqal_query_generate_bnodeid(rasqal_query* rdf_query,
   if(rdf_query->world->generate_bnodeid_handler)
     return rasqal_world_generate_bnodeid(rdf_query->world, user_bnodeid);
 
-#if !defined(RASQAL_DISABLE_DEPRECATED)
-  if(rdf_query->generate_bnodeid_handler)
-    return rdf_query->generate_bnodeid_handler(rdf_query, 
-                                               rdf_query->generate_bnodeid_handler_user_data, user_bnodeid);
-  else
-#endif
     return rasqal_world_default_generate_bnodeid_handler(rdf_query->world,
                                                          user_bnodeid);
 }

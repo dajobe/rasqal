@@ -54,65 +54,6 @@
 #ifndef STANDALONE
 
 
-#if !defined(RASQAL_DISABLE_DEPRECATED)
-/**
- * rasqal_new_variable_typed:
- * @rq: #rasqal_query to associate the variable with
- * @type: variable type defined by enumeration rasqal_variable_type
- * @name: variable name
- * @value: variable #rasqal_literal value (or NULL)
- *
- * Constructor - Create a new typed Rasqal variable.
- * 
- * The variable must be associated with a query, since variable
- * names are only significant with a single query.
- * 
- * The @name and @value become owned by the rasqal_variable structure
- *
- * @Deprecated: for rasqal_variables_table_add()
- *
- * Return value: a new #rasqal_variable or NULL on failure.
- **/
-rasqal_variable*
-rasqal_new_variable_typed(rasqal_query* rq,
-                          rasqal_variable_type type, 
-                          unsigned char *name, rasqal_literal *value)
-{
-  return rasqal_variables_table_add(rq->vars_table, type, name, value);
-}
-
-
-/**
- * rasqal_new_variable:
- * @rq: #rasqal_query to associate the variable with
- * @name: variable name
- * @value: variable #rasqal_literal value (or NULL)
- *
- * Constructor - Create a new Rasqal normal variable.
- * 
- * The variable must be associated with a query, since variable
- * names are only significant with a single query.
- *
- * This creates a regular variable that can be returned of type
- * RASQAL_VARIABLE_TYPE_NORMAL.  Use rasqal_new_variable_typed
- * to create other variables.
- * 
- * The @name and @value become owned by the rasqal_variable structure
- *
- * @Deprecated: for rasqal_variables_table_add()
- *
- * Return value: a new #rasqal_variable or NULL on failure.
- **/
-rasqal_variable*
-rasqal_new_variable(rasqal_query* rq,
-                    unsigned char *name, rasqal_literal *value) 
-{
-  return rasqal_variables_table_add(rq->vars_table, RASQAL_VARIABLE_TYPE_NORMAL,
-                                    name, value);
-}
-#endif
-
-
 /**
  * rasqal_new_variable_from_variable:
  * @v: #rasqal_variable to copy

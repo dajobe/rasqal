@@ -198,7 +198,7 @@ main(int argc, char **argv) {
                                             /* name URI */ graph_uris[offset],
                                             RASQAL_DATA_GRAPH_NAMED,
                                             NULL, NULL, NULL);
-        rasqal_query_add_data_graph2(query, dg);
+        rasqal_query_add_data_graph(query, dg);
       }
     }
     

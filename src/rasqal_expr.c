@@ -355,7 +355,7 @@ rasqal_new_function_expression_common(rasqal_world* world,
 
 
 /**
- * rasqal_new_function_expression2:
+ * rasqal_new_function_expression:
  * @world: rasqal_world object
  * @name: function name
  * @args: sequence of #rasqal_expression function arguments
@@ -369,11 +369,11 @@ rasqal_new_function_expression_common(rasqal_world* world,
  * Return value: a new #rasqal_expression object or NULL on failure
  **/
 rasqal_expression*
-rasqal_new_function_expression2(rasqal_world* world,
-                                raptor_uri* name,
-                                raptor_sequence* args,
-                                raptor_sequence* params,
-                                unsigned int flags)
+rasqal_new_function_expression(rasqal_world* world,
+                               raptor_uri* name,
+                               raptor_sequence* args,
+                               raptor_sequence* params,
+                               unsigned int flags)
 {
   return rasqal_new_function_expression_common(world, RASQAL_EXPR_FUNCTION,
                                                name,
@@ -381,34 +381,6 @@ rasqal_new_function_expression2(rasqal_world* world,
                                                params,
                                                flags);
 }
-
-
-#if !defined(RASQAL_DISABLE_DEPRECATED)
-/**
- * rasqal_new_function_expression:
- * @world: rasqal_world object
- * @name: function name
- * @args: arguments
- * 
- * Constructor - create a new expression for a function with expression arguments.
- * Takes ownership of the @name and @args
- * 
- * @Deprecated: use rasqal_new_function_expression2() with extra args
- *
- * Return value: a new #rasqal_expression object or NULL on failure
- **/
-rasqal_expression*
-rasqal_new_function_expression(rasqal_world* world,
-                               raptor_uri* name,
-                               raptor_sequence* args)
-{
-  return rasqal_new_function_expression_common(world, RASQAL_EXPR_FUNCTION,
-                                               name, 
-                                               NULL /* expr */, args,
-                                               NULL /* params */,
-                                               0 /* flags */);
-}
-#endif
 
 
 /**
@@ -515,28 +487,6 @@ rasqal_new_expr_seq_expression(rasqal_world* world,
 
   return e;
 }
-
-
-#if !defined(RASQAL_DISABLE_DEPRECATED)
-/**
- * rasqal_new_coalesce_expression:
- * @world: rasqal_world object
- * @args: sequence of #rasqal_expression coalesce arguments
- * 
- * Constructor - create a new COALESCE() with expression arguments.
- *
- * Takes ownership of the @args
- * 
- * @Deprecated: use rasqal_new_expr_seq_expression() with op arg.
- *
- * Return value: a new #rasqal_expression object or NULL on failure
- **/
-rasqal_expression*
-rasqal_new_coalesce_expression(rasqal_world* world, raptor_sequence* args)
-{
-  return rasqal_new_expr_seq_expression(world, RASQAL_EXPR_COALESCE, args);
-}
-#endif
 
 
 /**

@@ -3013,9 +3013,9 @@ FunctionCall: IRIref '(' DistinctOpt ArgListNoBraces ParamsOpt ')'
     if($3)
       flags |= 1;
     
-    $$ = rasqal_new_function_expression2(((rasqal_query*)rq)->world, 
-                                         uri, $4, $5 /* params */,
-                                         flags);
+    $$ = rasqal_new_function_expression(((rasqal_query*)rq)->world, 
+                                        uri, $4, $5 /* params */,
+                                        flags);
     if($$)
       $$->flags |= $3;
   }
@@ -3046,9 +3046,9 @@ IRIrefBrace ArgListNoBraces ')'
     $$ = rasqal_new_cast_expression(((rasqal_query*)rq)->world, uri, e);
     raptor_free_sequence($2);
   } else {
-    $$ = rasqal_new_function_expression2(((rasqal_query*)rq)->world,
-                                         uri, $2, NULL /* params */,
-                                         0 /* flags */);
+    $$ = rasqal_new_function_expression(((rasqal_query*)rq)->world,
+                                        uri, $2, NULL /* params */,
+                                        0 /* flags */);
   }
   rasqal_free_literal($1);
 

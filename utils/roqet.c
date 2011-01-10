@@ -86,9 +86,9 @@ static char *program=NULL;
 
 #ifdef RASQAL_INTERNAL
 /* add 'g:' */
-#define GETOPT_STRING "cd:D:e:f:F:g:G:hi:np:r:qs:vw"
+#define GETOPT_STRING "cd:D:e:f:F:g:G:hi:np:r:qs:v"
 #else
-#define GETOPT_STRING "cd:D:e:f:F:G:hi:np:r:qs:vw"
+#define GETOPT_STRING "cd:D:e:f:F:G:hi:np:r:qs:v"
 #endif
 
 #ifdef HAVE_GETOPT_LONG
@@ -118,7 +118,6 @@ static struct option long_options[] =
   {"results", 1, 0, 'r'},
   {"source", 1, 0, 's'},
   {"version", 0, 0, 'v'},
-  {"walk-query", 0, 0, 'w'},
 #ifdef STORE_RESULTS_FLAG
   {"store-results", 1, 0, STORE_RESULTS_FLAG},
 #endif
@@ -562,9 +561,9 @@ print_formatted_query_results(rasqal_world* world,
   rasqal_query_results_formatter* results_formatter;
   int rc = 0;
   
-  results_formatter = rasqal_new_query_results_formatter2(world,
-                                                          result_format,
-                                                          NULL, NULL);
+  results_formatter = rasqal_new_query_results_formatter(world,
+                                                         result_format,
+                                                         NULL, NULL);
   if(!results_formatter) {
     fprintf(stderr, "%s: Invalid bindings result format `%s'\n",
             program, result_format);
@@ -657,7 +656,7 @@ roqet_init_query(rasqal_world *world,
     rasqal_data_graph* dg;
     
     while((dg = (rasqal_data_graph*)raptor_sequence_pop(data_graphs))) {
-      if(rasqal_query_add_data_graph2(rq, dg)) {
+      if(rasqal_query_add_data_graph(rq, dg)) {
         fprintf(stderr, "%s: Failed to add data graph to query\n",
                 program);
         goto tidy_query;
@@ -1076,13 +1075,6 @@ main(int argc, char *argv[])
         fputc('\n', stdout);
         rasqal_free_world(world);
         exit(0);
-
-      case 'w':
-        fprintf(stderr,
-                "%s: WARNING: `-w' is deprecated.  Please use `" HELP_ARG(d, dump-query) " structure' instead.\n",
-                program);
-        output_format = QUERY_OUTPUT_STRUCTURE;
-        break;
 
 #ifdef STORE_RESULTS_FLAG
       case STORE_RESULTS_FLAG:

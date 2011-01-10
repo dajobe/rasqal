@@ -439,10 +439,10 @@ rasqal_service_execute(rasqal_service* svc)
   }
     
   read_base_uri = svc->final_uri ? svc->final_uri : svc->service_uri;
-  read_formatter = rasqal_new_query_results_formatter2(svc->world,
-                                                       /* format name */ NULL,
-                                                       svc->content_type,
-                                                       /* format URI */ NULL);
+  read_formatter = rasqal_new_query_results_formatter(svc->world,
+                                                      /* format name */ NULL,
+                                                      svc->content_type,
+                                                      /* format URI */ NULL);
   if(!read_formatter) {
     rasqal_log_error_simple(svc->world, RAPTOR_LOG_LEVEL_ERROR, NULL,
                             "Failed to create query formatter for type %s",

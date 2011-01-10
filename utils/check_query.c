@@ -222,7 +222,7 @@ check_query_init_query(rasqal_world *world,
     rasqal_data_graph* dg;
     
     while((dg = (rasqal_data_graph*)raptor_sequence_pop(data_graphs))) {
-      if(rasqal_query_add_data_graph2(rq, dg)) {
+      if(rasqal_query_add_data_graph(rq, dg)) {
         fprintf(stderr, "%s: Failed to add data graph to query\n",
                 program);
         goto tidy_query;
@@ -322,10 +322,10 @@ check_query_read_results(rasqal_world* world,
                                                                0,
                                                                (const unsigned char*)result_filename);
   
-  qrf = rasqal_new_query_results_formatter2(world, 
-                                            format_name, 
-                                            NULL /* mime type */,
-                                            NULL /* uri */);
+  qrf = rasqal_new_query_results_formatter(world, 
+                                           format_name, 
+                                           NULL /* mime type */,
+                                           NULL /* uri */);
   if(!qrf)
     goto tidy_fail;
   
