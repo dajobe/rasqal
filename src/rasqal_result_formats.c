@@ -176,6 +176,7 @@ rasqal_finish_result_formats(rasqal_world* world)
 }
 
 
+#if !defined(RASQAL_DISABLE_DEPRECATED)
 /**
  * rasqal_query_results_formats_enumerate:
  * @world: rasqal_world object
@@ -236,6 +237,7 @@ rasqal_query_results_formats_enumerate(rasqal_world* world,
   
   return 0;
 }
+#endif
 
 
 static rasqal_query_results_format_factory*
@@ -338,6 +340,7 @@ rasqal_query_results_formats_check2(rasqal_world* world,
 }
 
 
+#if !defined(RASQAL_DISABLE_DEPRECATED)
 /**
  * rasqal_query_results_formats_check:
  * @world: rasqal_world object
@@ -358,6 +361,7 @@ rasqal_query_results_formats_check(rasqal_world* world,
 {
   return rasqal_query_results_formats_check2(world, name, uri, mime_type, 0);
 }
+#endif
 
 
 /**
@@ -425,6 +429,7 @@ rasqal_new_query_results_formatter2(rasqal_world* world,
 }
 
 
+#if !defined(RASQAL_DISABLE_DEPRECATED)
 /**
  * rasqal_new_query_results_formatter:
  * @world: rasqal_world object
@@ -481,7 +486,7 @@ rasqal_new_query_results_formatter_by_mime_type(rasqal_world* world,
   return rasqal_new_query_results_formatter2(world, 
                                              NULL, mime_type, NULL);
 }
-
+#endif
 
 
 /**
@@ -545,6 +550,7 @@ rasqal_free_query_results_formatter(rasqal_query_results_formatter* formatter)
 }
 
 
+#if !defined(RASQAL_DISABLE_DEPRECATED)
 /**
  * rasqal_query_results_formatter_get_mime_type:
  * @formatter: #rasqal_query_results_formatter object
@@ -562,6 +568,7 @@ rasqal_query_results_formatter_get_mime_type(rasqal_query_results_formatter *for
 
   return formatter->factory->desc.mime_types[0].mime_type;
 }
+#endif
 
 
 /**

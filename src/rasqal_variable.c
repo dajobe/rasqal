@@ -54,6 +54,7 @@
 #ifndef STANDALONE
 
 
+#if !defined(RASQAL_DISABLE_DEPRECATED)
 /**
  * rasqal_new_variable_typed:
  * @rq: #rasqal_query to associate the variable with
@@ -109,6 +110,7 @@ rasqal_new_variable(rasqal_query* rq,
   return rasqal_variables_table_add(rq->vars_table, RASQAL_VARIABLE_TYPE_NORMAL,
                                     name, value);
 }
+#endif
 
 
 /**

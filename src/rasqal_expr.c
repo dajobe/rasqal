@@ -517,6 +517,7 @@ rasqal_new_expr_seq_expression(rasqal_world* world,
 }
 
 
+#if !defined(RASQAL_DISABLE_DEPRECATED)
 /**
  * rasqal_new_coalesce_expression:
  * @world: rasqal_world object
@@ -535,6 +536,7 @@ rasqal_new_coalesce_expression(rasqal_world* world, raptor_sequence* args)
 {
   return rasqal_new_expr_seq_expression(world, RASQAL_EXPR_COALESCE, args);
 }
+#endif
 
 
 /**

@@ -175,6 +175,7 @@ rasqal_new_data_graph_from_iostream(rasqal_world* world,
 }
 
 
+#if !defined(RASQAL_DISABLE_DEPRECATED)
 /**
  * rasqal_new_data_graph:
  * @world: rasqal_world object
@@ -204,6 +205,7 @@ rasqal_new_data_graph(rasqal_world* world, raptor_uri* uri,
                                       name_uri, flags,
                                       NULL, NULL, NULL);
 }
+#endif
 
 
 /**

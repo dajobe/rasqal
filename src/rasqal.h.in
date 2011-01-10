@@ -1391,8 +1391,10 @@ RASQAL_API
 rasqal_expression* rasqal_new_cast_expression(rasqal_world* world, raptor_uri* name, rasqal_expression *value);
 RASQAL_API
 rasqal_expression* rasqal_new_expr_seq_expression(rasqal_world* world, rasqal_op op, raptor_sequence* args);
-RASQAL_API
+#if !defined(RASQAL_DISABLE_DEPRECATED)
+RASQAL_API RASQAL_DEPRECATED
 rasqal_expression* rasqal_new_coalesce_expression(rasqal_world* world, raptor_sequence* args);
+#endif
 RASQAL_API
 rasqal_expression* rasqal_new_set_expression(rasqal_world* world, rasqal_op op, rasqal_expression* arg1, raptor_sequence* args);
 RASQAL_API

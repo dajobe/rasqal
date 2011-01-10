@@ -1480,6 +1480,7 @@ rasqal_query_results_write2(raptor_iostream *iostr,
 }
 
 
+#if !defined(RASQAL_DISABLE_DEPRECATED)
 /**
  * rasqal_query_results_write:
  * @iostr: #raptor_iostream to write the query to
@@ -1519,6 +1520,7 @@ rasqal_query_results_write(raptor_iostream *iostr,
                                      format_uri,
                                      base_uri);
 }
+#endif
 
 
 /**
@@ -1571,6 +1573,7 @@ rasqal_query_results_read2(raptor_iostream *iostr,
 }
 
 
+#if !defined(RASQAL_DISABLE_DEPRECATED)
 /**
  * rasqal_query_results_read:
  * @iostr: #raptor_iostream to read the query from
@@ -1607,6 +1610,7 @@ rasqal_query_results_read(raptor_iostream *iostr,
                                     format_uri,
                                     base_uri);
 }
+#endif
 
 
 /**
