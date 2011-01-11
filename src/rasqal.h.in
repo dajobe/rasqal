@@ -432,6 +432,11 @@ typedef struct rasqal_row_s rasqal_row;
 typedef struct rasqal_xsd_decimal_s rasqal_xsd_decimal;
 
 
+/**
+ * RASQAL_XSD_DATETIME_NO_TZ:
+ *
+ * Sentinel XSD Decimal timezone value indicating no timezone is present.
+ */
 #define RASQAL_XSD_DATETIME_NO_TZ (9999)
 
 /**
