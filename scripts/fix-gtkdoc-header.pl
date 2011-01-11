@@ -31,5 +31,8 @@ while(<>) {
   # and unsigned char
   s/const unsigned char \*(\w+)/const char \* $1/;
 
+  # and unsigned char in a handler typedef
+  s/typedef unsigned char\s*\*/typedef char \*/;
+
   print;
 }
