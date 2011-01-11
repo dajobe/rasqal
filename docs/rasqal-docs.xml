@@ -96,6 +96,8 @@ execution plans and execute the queries into query result sets.
     <xi:include href="xml/section-xsd.xml"/>
 
     <!-- <xi:include href="xml/section-unused.xml"/> -->
+
+    <xi:include href="rasqal-changes.xml"/>
   </part>
   <index id="indexes">
     <title>Index</title>

@@ -1,0 +1,15 @@
+# OLD VERSION<tab>OLD RETURN<tab>OLD NAME<tab>OLD ARGS<tab>NEW VERSION<tab>NEW RETURN<tab>NEW NAME<tab>NEW ARGS<tab>NOTES
+# OLD VERSION<tab>type<tab>OLD NAME<tab>-<tab>NEW VERSION<tab>type<tab>NEW NAME<tab>-<tab>NOTES
+# OLD VERSION<tab>enum<tab>OLD NAME<tab>-<tab>NEW VERSION<tab>type<tab>NEW NAME<tab>-<tab>NOTES
+#
+# Functions
+#
+#0.9.21	void	oldfunctionor-	(args)	0.9.22	void	newfunctionor-	(args)	Note
+#
+# Types
+#
+0.9.21	type	rasqal_generate_bnodeid_handler	-	0.9.22	type	rasqal_generate_bnodeid_handler	-	Typedef for is now for a handler on the #rasqal_world object.
+#
+# Enums
+#
+#0.9.21	enum	oldenumvalueor-	-	0.9.22	enum	newenumvalueor-	-	Note
