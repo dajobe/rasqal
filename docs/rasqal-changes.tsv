@@ -5,9 +5,9 @@
 # Functions
 #
 #0.9.21	void	oldfunctionor-	(args)	0.9.22	void	newfunctionor-	(args)	Note
-0.9.21	-	-		-	0.9.22	void	rasqal_world_set_log_handler	(rasqal_world* world, void *user_data, raptor_log_handler handler)	-
+0.9.21	-	-	-	0.9.22	void	rasqal_world_set_log_handler	(rasqal_world* world, void *user_data, raptor_log_handler handler)	-
 0.9.21	int	rasqal_world_set_generate_bnodeid_handler	(rasqal_world* world, void *user_data, rasqal_generate_bnodeid_handler2 handler)	0.9.22	int	rasqal_world_set_generate_bnodeid_handler	(rasqal_world* world, void *user_data, rasqal_generate_bnodeid_handler handler)	-
-0.9.21	-	-	-	0.9.22	const	raptor_syntax_description*	rasqal_world_get_query_results_format_description	(rasqal_world* world, unsigned int counter)	-
+0.9.21	-	-	-	0.9.22	const raptor_syntax_description*	rasqal_world_get_query_results_format_description	(rasqal_world* world, unsigned int counter)	-
 0.9.21	-	-	-	0.9.22	const char*	rasqal_world_guess_query_results_format_name	(rasqal_world* world, raptor_uri *uri, const char *mime_type, const unsigned char *buffer, size_t len, const unsigned char *identifier)	-
 0.9.21	void	rasqal_query_set_fatal_error_handler	(rasqal_query* query, void *user_data, raptor_message_handler handler)	0.9.22	-	-	-	-
 0.9.21	void	rasqal_query_set_error_handler	(rasqal_query* query, void *user_data, raptor_message_handler handler)	0.9.22	-	-	-	-
@@ -53,8 +53,8 @@
 0.9.21	enum	-	-	0.9.22	enum	RASQAL_EXPR_CONTAINS	-	Expression for SPARQL 1.1 CONTAINS(str, str)
 0.9.21	enum	-	-	0.9.22	enum	RASQAL_EXPR_ENCODE_FOR_URI	-	Expression for SPARQL 1.1 ENCODE_FOR_URI(str)
 0.9.21	enum	-	-	0.9.22	enum	RASQAL_QUERY_RESULTS_UNKNOWN	-	Unknown result format type
-
-
+#
+#
 # @@ -1160,56 +1247,41 @@
 #  RASQAL_API
 #  int rasqal_query_results_is_syntax(rasqal_query_results* query_results);
