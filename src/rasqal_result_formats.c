@@ -352,7 +352,7 @@ rasqal_new_query_results_formatter(rasqal_world* world,
  * 
  * Constructor - create a new queryresults formatter for an identified format.
  *
- * Uses rasqal_world_guess_query_results_formatter_name() to find a
+ * Uses rasqal_world_guess_query_results_format_name() to find a
  * query results formatter by scoring recognition of the syntax by a
  * block of characters, the content identifier or a mime type.  The
  * content identifier is typically a filename or URI or some other
