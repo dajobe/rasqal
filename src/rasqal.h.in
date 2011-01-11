@@ -1014,12 +1014,6 @@ const char* rasqal_query_get_name(rasqal_query* query);
 RASQAL_API
 const char* rasqal_query_get_label(rasqal_query* query);
 
-/* This is a typedef to let these deprecated API work with raptor2
- * which removed this typedef and changed the way error handling was
- * done.  Use rasqal_world_set_log_handler() on the world class
- * instead of these functions.
- */
-typedef void* raptor_message_handler;
 
 RASQAL_API
 int rasqal_query_set_feature(rasqal_query* query, rasqal_feature feature, int value);
