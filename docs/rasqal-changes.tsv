@@ -5,11 +5,226 @@
 # Functions
 #
 #0.9.21	void	oldfunctionor-	(args)	0.9.22	void	newfunctionor-	(args)	Note
+0.9.21	-	-		-	0.9.22	void	rasqal_world_set_log_handler	(rasqal_world* world, void *user_data, raptor_log_handler handler)	-
+0.9.21	int	rasqal_world_set_generate_bnodeid_handler	(rasqal_world* world, void *user_data, rasqal_generate_bnodeid_handler2 handler)	0.9.22	int	rasqal_world_set_generate_bnodeid_handler	(rasqal_world* world, void *user_data, rasqal_generate_bnodeid_handler handler)	-
+0.9.21	-	-	-	0.9.22	const	raptor_syntax_description*	rasqal_world_get_query_results_format_description	(rasqal_world* world, unsigned int counter)	-
+0.9.21	-	-	-	0.9.22	const char*	rasqal_world_guess_query_results_format_name	(rasqal_world* world, raptor_uri *uri, const char *mime_type, const unsigned char *buffer, size_t len, const unsigned char *identifier)	-
+0.9.21	void	rasqal_query_set_fatal_error_handler	(rasqal_query* query, void *user_data, raptor_message_handler handler)	0.9.22	-	-	-	-
+0.9.21	void	rasqal_query_set_error_handler	(rasqal_query* query, void *user_data, raptor_message_handler handler)	0.9.22	-	-	-	-
+0.9.21	void	rasqal_query_set_warning_handler	(rasqal_query* query, void *user_data, raptor_message_handler handler)	0.9.22	-	-	-	-
+0.9.21	void	rasqal_query_set_default_generate_bnodeid_parameters	(rasqal_query* rdf_query, char *prefix, int base)	0.9.22	-	-	-	-
+0.9.21	void	rasqal_query_set_generate_bnodeid_handler	(rasqal_query* query, void *user_data, rasqal_generate_bnodeid_handler handler)	0.9.22	-	-	-	-
+0.9.21	int	rasqal_query_add_data_graph	(rasqal_query* query, raptor_uri* uri, raptor_uri* name_uri, int flags)	0.9.22	int	rasqal_query_add_data_graph	(rasqal_query* query, rasqal_data_graph* data_graph)	-
+0.9.21	int	rasqal_query_add_data_graph2	(rasqal_query* query, rasqal_data_graph* data_graph)	0.9.22	int	rasqal_query_add_data_graph	(rasqal_query* query, rasqal_data_graph* data_graph)	-
+0.9.21	-	-	-	0.9.22	int	rasqal_query_set_store_results	(rasqal_query* query, int store_results)	-
+0.9.21	-	-	-	0.9.22	rasqal_query_results_type	rasqal_query_get_result_type	(rasqal_query* query)	-
+0.9.21	-	-	-	0.9.22	rasqal_query_results_type	rasqal_query_results_get_type	(rasqal_query_results* query_results)	-
+0.9.21	-	-	-	0.9.22	rasqal_row*	rasqal_query_results_get_row_by_offset	(rasqal_query_results* query_results, int result_offset)	-
 #
 # Types
 #
-0.9.21	type	rasqal_generate_bnodeid_handler	-	0.9.22	type	rasqal_generate_bnodeid_handler	-	Typedef for is now for a handler on the #rasqal_world object.
+0.9.21	type	rasqal_generate_bnodeid_handler	-	0.9.22	type	rasqal_generate_bnodeid_handler	-	Handler takes a pointer to the #rasqal_world object not #rasqal_query.
+0.9.21	type	rasqal_data_graph	-	0.9.22	type	rasqal_data_graph	-	Added const for format_type and format_name fields.
+0.9.21	type	-	-	0.9.22	type	rasqal_xsd_datetime	-	-
+0.9.21	type	rasqal_literal	-	0.9.22	type	rasqal_literal	-	Added datetime to value union.
 #
 # Enums
 #
 #0.9.21	enum	oldenumvalueor-	-	0.9.22	enum	newenumvalueor-	-	Note
+0.9.21	enum	-	-	0.9.22	enum	RASQAL_XSD_DATETIME_NO_TZ	-	Sentinel XSD Decimal timezone value indicating no timezone is present.
+0.9.21	enum	-	-	0.9.22	enum	RASQAL_EXPR_YEAR	-	Expression for SPARQL 1.1 YEAR(datetime)
+0.9.21	enum	-	-	0.9.22	enum	RASQAL_EXPR_MONTH	-	Expression for SPARQL 1.1 MONTH(datetime)
+0.9.21	enum	-	-	0.9.22	enum	RASQAL_EXPR_DAY	-	Expression for SPARQL 1.1 DAY(datetime)
+0.9.21	enum	-	-	0.9.22	enum	RASQAL_EXPR_HOURS	-	Expression for SPARQL 1.1 HOURS(datetime)
+0.9.21	enum	-	-	0.9.22	enum	RASQAL_EXPR_MINUTES	-	Expression for SPARQL 1.1 MINUTES(datetime)
+0.9.21	enum	-	-	0.9.22	enum	RASQAL_EXPR_SECONDS	-	Expression for SPARQL 1.1 SECONDS(datetime)
+0.9.21	enum	-	-	0.9.22	enum	RASQAL_EXPR_TIMEZONE	-	Expression for SPARQL 1.1 TIMEZONE(datetime)
+0.9.21	enum	-	-	0.9.22	enum	RASQAL_EXPR_CURRENT_DATETIME	-	Expression for LAQRS CURRENT_DATETIME( void )
+0.9.21	enum	-	-	0.9.22	enum	RASQAL_EXPR_NOW	-	Expression for LAQRS NOW( void )
+0.9.21	enum	-	-	0.9.22	enum	RASQAL_EXPR_FROM_UNIXTIME	-	Expression for LAQRS FROM_UNIXTIME(int)
+0.9.21	enum	-	-	0.9.22	enum	RASQAL_EXPR_TO_UNIXTIME	-	Expression for LAQRS TO_UNIXTIME(datetime)
+0.9.21	enum	-	-	0.9.22	enum	RASQAL_EXPR_CONCAT	-	Expression for SPARQL 1.1 CONCAT(strings)
+0.9.21	enum	-	-	0.9.22	enum	RASQAL_EXPR_STRLEN	-	Expression for SPARQL 1.1 STRLEN(str)
+0.9.21	enum	-	-	0.9.22	enum	RASQAL_EXPR_SUBSTR	-	Expression for SPARQL 1.1 SUBSTR(str, start[,offset])
+0.9.21	enum	-	-	0.9.22	enum	RASQAL_EXPR_UCASE	-	Expression for SPARQL 1.1 UCASE(str)
+0.9.21	enum	-	-	0.9.22	enum	RASQAL_EXPR_LCASE	-	Expression for SPARQL 1.1 LCASE(str)
+0.9.21	enum	-	-	0.9.22	enum	RASQAL_EXPR_STRSTARTS	-	Expression for SPARQL 1.1 STRSTARTS(str, str)
+0.9.21	enum	-	-	0.9.22	enum	RASQAL_EXPR_STRENDS	-	Expression for SPARQL 1.1 STRENDS(str, str)
+0.9.21	enum	-	-	0.9.22	enum	RASQAL_EXPR_CONTAINS	-	Expression for SPARQL 1.1 CONTAINS(str, str)
+0.9.21	enum	-	-	0.9.22	enum	RASQAL_EXPR_ENCODE_FOR_URI	-	Expression for SPARQL 1.1 ENCODE_FOR_URI(str)
+0.9.21	enum	-	-	0.9.22	enum	RASQAL_QUERY_RESULTS_UNKNOWN	-	Unknown result format type
+
+
+# @@ -1160,56 +1247,41 @@
+#  RASQAL_API
+#  int rasqal_query_results_is_syntax(rasqal_query_results* query_results);
+#  
+# -#if !defined(RASQAL_DISABLE_DEPRECATED)
+# -RASQAL_API RASQAL_DEPRECATED
+# -int rasqal_query_results_write(raptor_iostream *iostr, rasqal_query_results *results, raptor_uri *format_uri, raptor_uri *base_uri);
+# -#endif
+#  RASQAL_API
+# -int rasqal_query_results_write2(raptor_iostream *iostr, rasqal_query_results *results, const char* name, const char* mime_type, raptor_uri *format_uri, raptor_uri *base_uri);
+# -#if !defined(RASQAL_DISABLE_DEPRECATED)
+# -RASQAL_API RASQAL_DEPRECATED
+# -int rasqal_query_results_read(raptor_iostream *iostr, rasqal_query_results *results, raptor_uri *format_uri, raptor_uri *base_uri);
+# -#endif
+# +int rasqal_query_results_write(raptor_iostream *iostr, rasqal_query_results *results, const char* name, const char* mime_type, raptor_uri *format_uri, raptor_uri *base_uri);
+#  RASQAL_API
+# -int rasqal_query_results_read2(raptor_iostream *iostr, rasqal_query_results *results, const char* name, const char* mime_type, raptor_uri *format_uri, raptor_uri *base_uri);
+# +int rasqal_query_results_read(raptor_iostream *iostr, rasqal_query_results *results, const char* name, const char* mime_type, raptor_uri *format_uri, raptor_uri *base_uri);
+#  
+# +/* One more time */
+# +RASQAL_API
+# +int rasqal_query_results_rewind(rasqal_query_results* query_results);
+#  
+# -/**
+# - * RASQAL_QUERY_RESULTS_FORMAT_FLAG_READER:
+# - *
+# - * Flag for rasqal_query_results_formats_enumerate() to get query results formats that can be read.
+# - */
+# -#define RASQAL_QUERY_RESULTS_FORMAT_FLAG_READER 1
+#  
+#  /**
+# - * RASQAL_QUERY_RESULTS_FORMAT_FLAG_WRITER:
+# + * rasqal_query_results_format_flags:
+# + * @RASQAL_QUERY_RESULTS_FORMAT_FLAG_READER: format can be read.
+# + * @RASQAL_QUERY_RESULTS_FORMAT_FLAG_WRITER: format can be written.
+#   *
+# - * Flag for rasqal_query_results_formats_enumerate() to get query results formats that can be written.
+# + * Bitflags for rasqal_query_results_formats_check() to find formats with features.
+#   */
+# -#define RASQAL_QUERY_RESULTS_FORMAT_FLAG_WRITER 2
+# +typedef enum {
+# +  RASQAL_QUERY_RESULTS_FORMAT_FLAG_READER = 1,
+# +  RASQAL_QUERY_RESULTS_FORMAT_FLAG_WRITER = 2
+# +} rasqal_query_results_format_flags;
+# +
+#  
+#  RASQAL_API
+# -int rasqal_query_results_formats_enumerate(rasqal_world* world, unsigned int counter, const char **name, const char **label, const unsigned char **uri_string, const char **mime_type, int* flags);
+# +int rasqal_query_results_formats_check(rasqal_world* world, const char *name, raptor_uri* uri, const char *mime_type, int flags);
+#  RASQAL_API
+# -int rasqal_query_results_formats_check2(rasqal_world* world, const char *name, raptor_uri* uri, const char *mime_type, int flags);
+# -RASQAL_API RASQAL_DEPRECATED
+# -int rasqal_query_results_formats_check(rasqal_world* world, const char *name, raptor_uri* uri, const char *mime_type);
+# +rasqal_query_results_formatter* rasqal_new_query_results_formatter(rasqal_world* world, const char *name, const char *mime_type, raptor_uri* format_uri);
+#  RASQAL_API
+# -rasqal_query_results_formatter* rasqal_new_query_results_formatter2(rasqal_world* world, const char *name, const char *mime_type, raptor_uri* format_uri);
+# -#if !defined(RASQAL_DISABLE_DEPRECATED)
+# -RASQAL_API RASQAL_DEPRECATED
+# -rasqal_query_results_formatter* rasqal_new_query_results_formatter(rasqal_world* world, const char *name, raptor_uri* format_uri);
+# -RASQAL_API RASQAL_DEPRECATED
+# -rasqal_query_results_formatter* rasqal_new_query_results_formatter_by_mime_type(rasqal_world* world, const char *mime_type);
+# -#endif
+# +rasqal_query_results_formatter* rasqal_new_query_results_formatter_for_content(rasqal_world* world, raptor_uri *uri, const char *mime_type, const unsigned char *buffer, size_t len, const unsigned char *identifier);
+#  RASQAL_API
+#  void rasqal_free_query_results_formatter(rasqal_query_results_formatter* formatter);
+#  RASQAL_API
+#  int rasqal_query_results_formatter_write(raptor_iostream *iostr, rasqal_query_results_formatter* formatter, rasqal_query_results* results, raptor_uri *base_uri);
+#  RASQAL_API
+#  int rasqal_query_results_formatter_read(rasqal_world* world, raptor_iostream *iostr, rasqal_query_results_formatter* formatter, rasqal_query_results* results, raptor_uri *base_uri);
+# -RASQAL_API
+# -const char* rasqal_query_results_formatter_get_mime_type(rasqal_query_results_formatter *formatter);
+#  
+#  RASQAL_API
+#  int rasqal_query_iostream_write_escaped_counted_string(rasqal_query* query, raptor_iostream* iostr, const unsigned char* string, size_t len);
+# @@ -1222,8 +1294,6 @@
+#  rasqal_data_graph* rasqal_new_data_graph_from_uri(rasqal_world* world, raptor_uri* uri, raptor_uri* name_uri, int flags, const char* format_type, const char* format_name, raptor_uri* format_uri);
+#  RASQAL_API
+#  rasqal_data_graph* rasqal_new_data_graph_from_iostream(rasqal_world* world, raptor_iostream* iostr, raptor_uri* base_uri, raptor_uri* name_uri, int flags, const char* format_type, const char* format_name, raptor_uri* format_uri);
+# -RASQAL_API RASQAL_DEPRECATED
+# -rasqal_data_graph* rasqal_new_data_graph(rasqal_world* world, raptor_uri* uri, raptor_uri* name_uri, int flags);
+#  RASQAL_API
+#  rasqal_data_graph* rasqal_new_data_graph_from_data_graph(rasqal_data_graph* dg);
+#  RASQAL_API
+# @@ -1266,17 +1336,13 @@
+#  RASQAL_API
+#  rasqal_expression* rasqal_new_literal_expression(rasqal_world* world, rasqal_literal* literal);
+#  RASQAL_API
+# -rasqal_expression* rasqal_new_function_expression2(rasqal_world* world, raptor_uri* name, raptor_sequence* args, raptor_sequence* params, unsigned int flags);
+# -#if !defined(RASQAL_DISABLE_DEPRECATED)
+# -RASQAL_API RASQAL_DEPRECATED
+# -rasqal_expression* rasqal_new_function_expression(rasqal_world* world, raptor_uri* name, raptor_sequence* args);
+# -#endif
+# +rasqal_expression* rasqal_new_function_expression(rasqal_world* world, raptor_uri* name, raptor_sequence* args, raptor_sequence* params, unsigned int flags);
+#  RASQAL_API
+#  rasqal_expression* rasqal_new_aggregate_function_expression(rasqal_world* world, rasqal_op op, rasqal_expression* arg1, raptor_sequence* params, unsigned int flags);
+#  RASQAL_API
+#  rasqal_expression* rasqal_new_cast_expression(rasqal_world* world, raptor_uri* name, rasqal_expression *value);
+#  RASQAL_API
+# -rasqal_expression* rasqal_new_coalesce_expression(rasqal_world* world, raptor_sequence* args);
+# +rasqal_expression* rasqal_new_expr_seq_expression(rasqal_world* world, rasqal_op op, raptor_sequence* args);
+#  RASQAL_API
+#  rasqal_expression* rasqal_new_set_expression(rasqal_world* world, rasqal_op op, rasqal_expression* arg1, raptor_sequence* args);
+#  RASQAL_API
+# @@ -1337,6 +1403,9 @@
+#  rasqal_literal* rasqal_new_decimal_literal(rasqal_world* world, const unsigned char *string);
+#  RASQAL_API
+#  rasqal_literal* rasqal_new_decimal_literal_from_decimal(rasqal_world* world, const unsigned char *string, rasqal_xsd_decimal* decimal);
+# +RASQAL_API
+# +rasqal_literal* rasqal_new_datetime_literal_from_datetime(rasqal_world* world, rasqal_xsd_datetime* dt);
+# +
+#  
+#  RASQAL_API
+#  rasqal_literal* rasqal_new_literal_from_literal(rasqal_literal* l);
+# @@ -1351,6 +1420,8 @@
+#  RASQAL_API
+#  rasqal_variable* rasqal_literal_as_variable(rasqal_literal* l);
+#  RASQAL_API
+# +const unsigned char* rasqal_literal_as_counted_string(rasqal_literal* l, size_t *len_p, int flags, int *error);
+# +RASQAL_API
+#  const unsigned char* rasqal_literal_as_string(rasqal_literal* l);
+#  RASQAL_API
+#  const unsigned char* rasqal_literal_as_string_flags(rasqal_literal* l, int flags, int *error);
+# @@ -1402,10 +1473,6 @@
+#  rasqal_literal* rasqal_triple_get_origin(rasqal_triple* t);
+#  
+#  /* Variable class */
+# -RASQAL_API RASQAL_DEPRECATED
+# -rasqal_variable* rasqal_new_variable_typed(rasqal_query* rq, rasqal_variable_type type, unsigned char *name, rasqal_literal *value);
+# -RASQAL_API RASQAL_DEPRECATED
+# -rasqal_variable* rasqal_new_variable(rasqal_query* rq, unsigned char *name, rasqal_literal *value);
+#  RASQAL_API
+#  rasqal_variable* rasqal_new_variable_from_variable(rasqal_variable* v);
+#  RASQAL_API
+# @@ -1471,6 +1538,38 @@
+#  int rasqal_xsd_decimal_is_zero(rasqal_xsd_decimal* d);
+#  
+#  
+# +/* datetime functions */
+# +RASQAL_API
+# +rasqal_xsd_datetime* rasqal_new_xsd_datetime(rasqal_world* world, const char *datetime_string);
+# +RASQAL_API
+# +rasqal_xsd_datetime* rasqal_new_xsd_datetime_from_unixtime(rasqal_world* world, time_t secs);
+# +RASQAL_API
+# +rasqal_xsd_datetime* rasqal_new_xsd_datetime_from_timeval(rasqal_world* world, struct timeval *tv);
+# +RASQAL_API
+# +void rasqal_free_xsd_datetime(rasqal_xsd_datetime* dt);
+# +RASQAL_API
+# +char* rasqal_xsd_datetime_to_counted_string(const rasqal_xsd_datetime *dt, size_t *len_p);
+# +RASQAL_API
+# +char* rasqal_xsd_datetime_to_string(const rasqal_xsd_datetime *dt);
+# +RASQAL_API
+# +int rasqal_xsd_datetime_equals(const rasqal_xsd_datetime *dt1, const rasqal_xsd_datetime *dt2);
+# +RASQAL_API
+# +int rasqal_xsd_datetime_compare(const rasqal_xsd_datetime *dt1, const rasqal_xsd_datetime *dt2);
+# +RASQAL_API
+# +rasqal_xsd_decimal* rasqal_xsd_datetime_get_seconds_as_decimal(rasqal_world* world, rasqal_xsd_datetime* dt);
+# +RASQAL_API
+# +int rasqal_xsd_datetime_set_from_timeval(rasqal_xsd_datetime *dt, struct timeval *tv);
+# +RASQAL_API
+# +int rasqal_xsd_datetime_set_from_unixtime(rasqal_xsd_datetime* dt, time_t clock);
+# +RASQAL_API
+# +time_t rasqal_xsd_datetime_get_as_unixtime(rasqal_xsd_datetime* dt);
+# +RASQAL_API
+# +struct timeval* rasqal_xsd_datetime_get_as_timeval(rasqal_xsd_datetime *dt);
+# +RASQAL_API
+# +char*
+# +rasqal_xsd_datetime_get_timezone_as_counted_string(rasqal_xsd_datetime *dt, size_t *len_p);
+# +
+# +
+#  /**
+#   * rasqal_service:
+#   *
+# 
