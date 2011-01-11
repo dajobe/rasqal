@@ -1243,18 +1243,17 @@ int rasqal_query_results_rewind(rasqal_query_results* query_results);
 
 
 /**
- * RASQAL_QUERY_RESULTS_FORMAT_FLAG_READER:
+ * rasqal_query_results_format_flags:
+ * @RASQAL_QUERY_RESULTS_FORMAT_FLAG_READER: format can be read.
+ * @RASQAL_QUERY_RESULTS_FORMAT_FLAG_WRITER: format can be written.
  *
- * Flag for rasqal_query_results_formats_enumerate() to get query results formats that can be read.
+ * Bitflags for rasqal_query_results_formats_check() to find formats with features.
  */
-#define RASQAL_QUERY_RESULTS_FORMAT_FLAG_READER 1
+typedef enum {
+  RASQAL_QUERY_RESULTS_FORMAT_FLAG_READER = 1,
+  RASQAL_QUERY_RESULTS_FORMAT_FLAG_WRITER = 2
+} rasqal_query_results_format_flags;
 
-/**
- * RASQAL_QUERY_RESULTS_FORMAT_FLAG_WRITER:
- *
- * Flag for rasqal_query_results_formats_enumerate() to get query results formats that can be written.
- */
-#define RASQAL_QUERY_RESULTS_FORMAT_FLAG_WRITER 2
 
 RASQAL_API
 int rasqal_query_results_formats_check(rasqal_world* world, const char *name, raptor_uri* uri, const char *mime_type, int flags);
