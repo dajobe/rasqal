@@ -849,7 +849,8 @@ rasqal_xsd_datetime_compare(const rasqal_xsd_datetime *dt1,
 
 
 /**
- * rasqal_xsd_datetime_compare:
+ * rasqal_xsd_datetime_get_seconds_as_decimal:
+ * @world: world object
  * @dt: XSD dateTime
  * 
  * Get the seconds component of a dateTime as a decimal
@@ -890,7 +891,7 @@ rasqal_xsd_datetime_get_seconds_as_decimal(rasqal_world* world,
 
 /**
  * rasqal_xsd_date_to_string:
- * @dt: date struct
+ * @d: date struct
  *
  * INTERNAL - Convert a #rasqal_xsd_date struct to a xsd:date lexical form string.
  *
