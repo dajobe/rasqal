@@ -150,6 +150,25 @@ library for serializing to a syntax.
 @Returns: 
 
 
+<!-- ##### FUNCTION rasqal_query_results_get_row_by_offset ##### -->
+<para>
+
+</para>
+
+@query_results: 
+@result_offset: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_query_results_get_type ##### -->
+<para>
+
+</para>
+
+@query_results: 
+@Returns: 
+
+
 <!-- ##### FUNCTION rasqal_query_results_is_bindings ##### -->
 <para>
 
@@ -204,33 +223,7 @@ library for serializing to a syntax.
 @Returns: 
 
 
-<!-- ##### FUNCTION rasqal_query_results_read2 ##### -->
-<para>
-
-</para>
-
-@iostr: 
-@results: 
-@name: 
-@mime_type: 
-@format_uri: 
-@base_uri: 
-@Returns: 
-
-
 <!-- ##### FUNCTION rasqal_query_results_read ##### -->
-<para>
-
-</para>
-
-@iostr: 
-@results: 
-@format_uri: 
-@base_uri: 
-@Returns: 
-
-
-<!-- ##### FUNCTION rasqal_query_results_write2 ##### -->
 <para>
 
 </para>
@@ -251,6 +244,8 @@ library for serializing to a syntax.
 
 @iostr: 
 @results: 
+@name: 
+@mime_type: 
 @format_uri: 
 @base_uri: 
 @Returns: 
@@ -266,4 +261,13 @@ library for serializing to a syntax.
 @RASQAL_QUERY_RESULTS_GRAPH: 
 @RASQAL_QUERY_RESULTS_SYNTAX: 
 @RASQAL_QUERY_RESULTS_UNKNOWN: 
+
+<!-- ##### FUNCTION rasqal_query_results_rewind ##### -->
+<para>
+
+</para>
+
+@query_results: 
+@Returns: 
+
 

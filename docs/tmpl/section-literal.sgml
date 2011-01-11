@@ -74,6 +74,16 @@ boolean, double, floating, integer, regex pattern and variables.
 @Returns: 
 
 
+<!-- ##### FUNCTION rasqal_new_datetime_literal_from_datetime ##### -->
+<para>
+
+</para>
+
+@world: 
+@dt: 
+@Returns: 
+
+
 <!-- ##### FUNCTION rasqal_new_decimal_literal ##### -->
 <para>
 
@@ -204,6 +214,18 @@ boolean, double, floating, integer, regex pattern and variables.
 </para>
 
 @l: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_literal_as_counted_string ##### -->
+<para>
+
+</para>
+
+@l: 
+@len_p: 
+@flags: 
+@error: 
 @Returns: 
 
 

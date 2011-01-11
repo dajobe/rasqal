@@ -28,6 +28,24 @@ rasqal
 </para>
 
 
+<!-- ##### MACRO RASQAL_QUERY_RESULTS_FORMAT_FLAG_READER ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### MACRO RASQAL_QUERY_RESULTS_FORMAT_FLAG_WRITER ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### TYPEDEF raptor_message_handler ##### -->
+<para>
+
+</para>
+
+
 <!-- ##### TYPEDEF raptor_world ##### -->
 <para>
 
@@ -81,6 +99,193 @@ rasqal
 
 @gp: 
 @Returns: 
+
+<!-- ##### FUNCTION rasqal_new_coalesce_expression ##### -->
+<para>
+
+</para>
+
+@world: 
+@args: 
+@Returns: 
+
+<!-- ##### FUNCTION rasqal_new_data_graph ##### -->
+<para>
+
+</para>
+
+@world: 
+@uri: 
+@name_uri: 
+@flags: 
+@Returns: 
+
+<!-- ##### FUNCTION rasqal_new_function_expression2 ##### -->
+<para>
+
+</para>
+
+@world: 
+@name: 
+@args: 
+@params: 
+@flags: 
+@Returns: 
+
+<!-- ##### FUNCTION rasqal_new_query_results_formatter2 ##### -->
+<para>
+
+</para>
+
+@world: 
+@name: 
+@mime_type: 
+@format_uri: 
+@Returns: 
+
+<!-- ##### FUNCTION rasqal_new_query_results_formatter_by_mime_type ##### -->
+<para>
+
+</para>
+
+@world: 
+@mime_type: 
+@Returns: 
+
+<!-- ##### FUNCTION rasqal_new_variable ##### -->
+<para>
+
+</para>
+
+@rq: 
+@name: 
+@value: 
+@Returns: 
+
+<!-- ##### FUNCTION rasqal_new_variable_typed ##### -->
+<para>
+
+</para>
+
+@rq: 
+@type: 
+@name: 
+@value: 
+@Returns: 
+
+<!-- ##### FUNCTION rasqal_query_add_data_graph2 ##### -->
+<para>
+
+</para>
+
+@query: 
+@data_graph: 
+@Returns: 
+
+<!-- ##### FUNCTION rasqal_query_results_formats_check2 ##### -->
+<para>
+
+</para>
+
+@world: 
+@name: 
+@uri: 
+@mime_type: 
+@flags: 
+@Returns: 
+
+<!-- ##### FUNCTION rasqal_query_results_formats_enumerate ##### -->
+<para>
+
+</para>
+
+@world: 
+@counter: 
+@name: 
+@label: 
+@uri_string: 
+@mime_type: 
+@flags: 
+@Returns: 
+
+<!-- ##### FUNCTION rasqal_query_results_formatter_get_mime_type ##### -->
+<para>
+
+</para>
+
+@formatter: 
+@Returns: 
+
+<!-- ##### FUNCTION rasqal_query_results_read2 ##### -->
+<para>
+
+</para>
+
+@iostr: 
+@results: 
+@name: 
+@mime_type: 
+@format_uri: 
+@base_uri: 
+@Returns: 
+
+<!-- ##### FUNCTION rasqal_query_results_write2 ##### -->
+<para>
+
+</para>
+
+@iostr: 
+@results: 
+@name: 
+@mime_type: 
+@format_uri: 
+@base_uri: 
+@Returns: 
+
+<!-- ##### FUNCTION rasqal_query_set_default_generate_bnodeid_parameters ##### -->
+<para>
+
+</para>
+
+@rdf_query: 
+@prefix: 
+@base: 
+
+<!-- ##### FUNCTION rasqal_query_set_error_handler ##### -->
+<para>
+
+</para>
+
+@query: 
+@user_data: 
+@handler: 
+
+<!-- ##### FUNCTION rasqal_query_set_fatal_error_handler ##### -->
+<para>
+
+</para>
+
+@query: 
+@user_data: 
+@handler: 
+
+<!-- ##### FUNCTION rasqal_query_set_generate_bnodeid_handler ##### -->
+<para>
+
+</para>
+
+@query: 
+@user_data: 
+@handler: 
+
+<!-- ##### FUNCTION rasqal_query_set_warning_handler ##### -->
+<para>
+
+</para>
+
+@query: 
+@user_data: 
+@handler: 
 
 <!-- ##### ENUM rasqal_triple_flags ##### -->
 <para>

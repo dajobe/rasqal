@@ -93,18 +93,6 @@ then retrieved.
 </para>
 
 @query: 
-@uri: 
-@name_uri: 
-@flags: 
-@Returns: 
-
-
-<!-- ##### FUNCTION rasqal_query_add_data_graph2 ##### -->
-<para>
-
-</para>
-
-@query: 
 @data_graph: 
 @Returns: 
 
@@ -525,16 +513,6 @@ then retrieved.
 @data: 
 
 
-<!-- ##### FUNCTION rasqal_query_set_default_generate_bnodeid_parameters ##### -->
-<para>
-
-</para>
-
-@rdf_query: 
-@prefix: 
-@base: 
-
-
 <!-- ##### FUNCTION rasqal_query_set_distinct ##### -->
 <para>
 
@@ -551,36 +529,6 @@ then retrieved.
 
 @query: 
 @is_explain: 
-
-
-<!-- ##### FUNCTION rasqal_query_set_error_handler ##### -->
-<para>
-
-</para>
-
-@query: 
-@user_data: 
-@handler: 
-
-
-<!-- ##### FUNCTION rasqal_query_set_fatal_error_handler ##### -->
-<para>
-
-</para>
-
-@query: 
-@user_data: 
-@handler: 
-
-
-<!-- ##### FUNCTION rasqal_query_set_generate_bnodeid_handler ##### -->
-<para>
-
-</para>
-
-@query: 
-@user_data: 
-@handler: 
 
 
 <!-- ##### FUNCTION rasqal_query_set_limit ##### -->
@@ -621,14 +569,14 @@ then retrieved.
 @Returns: 
 
 
-<!-- ##### FUNCTION rasqal_query_set_warning_handler ##### -->
+<!-- ##### FUNCTION rasqal_query_set_store_results ##### -->
 <para>
 
 </para>
 
 @query: 
-@user_data: 
-@handler: 
+@store_results: 
+@Returns: 
 
 
 <!-- ##### FUNCTION rasqal_query_verb_as_string ##### -->
@@ -715,6 +663,15 @@ then retrieved.
 
 @query: 
 @feature: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_query_get_result_type ##### -->
+<para>
+
+</para>
+
+@query: 
 @Returns: 
 
 

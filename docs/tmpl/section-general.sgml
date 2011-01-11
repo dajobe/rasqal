@@ -84,6 +84,27 @@ their names, labels and URI.
 @raptor_world_ptr: 
 
 
+<!-- ##### FUNCTION rasqal_world_get_query_results_format_description ##### -->
+<para>
+
+</para>
+
+@world: 
+@counter: 
+@Returns: 
+
+
+<!-- ##### USER_FUNCTION rasqal_generate_bnodeid_handler ##### -->
+<para>
+
+</para>
+
+@world: 
+@user_data: 
+@user_bnodeid: 
+@Returns: 
+
+
 <!-- ##### FUNCTION rasqal_world_set_generate_bnodeid_handler ##### -->
 <para>
 
@@ -103,6 +124,20 @@ their names, labels and URI.
 @world: 
 @prefix: 
 @base: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_world_guess_query_results_format_name ##### -->
+<para>
+
+</para>
+
+@world: 
+@uri: 
+@mime_type: 
+@buffer: 
+@len: 
+@identifier: 
 @Returns: 
 
 

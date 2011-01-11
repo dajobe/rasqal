@@ -25,6 +25,20 @@ handle or other custom destination.
 <!-- ##### SECTION Image ##### -->
 
 
+<!-- ##### TYPEDEF rasqal_query_results_formatter ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### ENUM rasqal_query_results_format_flags ##### -->
+<para>
+
+</para>
+
+@RASQAL_QUERY_RESULTS_FORMAT_FLAG_READER: 
+@RASQAL_QUERY_RESULTS_FORMAT_FLAG_WRITER: 
+
 <!-- ##### FUNCTION rasqal_query_results_formats_check ##### -->
 <para>
 
@@ -34,66 +48,7 @@ handle or other custom destination.
 @name: 
 @uri: 
 @mime_type: 
-@Returns: 
-
-
-<!-- ##### FUNCTION rasqal_query_results_formats_check2 ##### -->
-<para>
-
-</para>
-
-@world: 
-@name: 
-@uri: 
-@mime_type: 
 @flags: 
-@Returns: 
-
-
-<!-- ##### MACRO RASQAL_QUERY_RESULTS_FORMAT_FLAG_READER ##### -->
-<para>
-
-</para>
-
-
-
-<!-- ##### MACRO RASQAL_QUERY_RESULTS_FORMAT_FLAG_WRITER ##### -->
-<para>
-
-</para>
-
-
-
-<!-- ##### FUNCTION rasqal_query_results_formats_enumerate ##### -->
-<para>
-
-</para>
-
-@world: 
-@counter: 
-@name: 
-@label: 
-@uri_string: 
-@mime_type: 
-@flags: 
-@Returns: 
-
-
-<!-- ##### TYPEDEF rasqal_query_results_formatter ##### -->
-<para>
-
-</para>
-
-
-<!-- ##### FUNCTION rasqal_new_query_results_formatter2 ##### -->
-<para>
-
-</para>
-
-@world: 
-@name: 
-@mime_type: 
-@format_uri: 
 @Returns: 
 
 
@@ -104,17 +59,22 @@ handle or other custom destination.
 
 @world: 
 @name: 
+@mime_type: 
 @format_uri: 
 @Returns: 
 
 
-<!-- ##### FUNCTION rasqal_new_query_results_formatter_by_mime_type ##### -->
+<!-- ##### FUNCTION rasqal_new_query_results_formatter_for_content ##### -->
 <para>
 
 </para>
 
 @world: 
+@uri: 
 @mime_type: 
+@buffer: 
+@len: 
+@identifier: 
 @Returns: 
 
 
@@ -124,15 +84,6 @@ handle or other custom destination.
 </para>
 
 @formatter: 
-
-
-<!-- ##### FUNCTION rasqal_query_results_formatter_get_mime_type ##### -->
-<para>
-
-</para>
-
-@formatter: 
-@Returns: 
 
 
 <!-- ##### FUNCTION rasqal_query_results_formatter_read ##### -->

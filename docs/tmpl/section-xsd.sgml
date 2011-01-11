@@ -21,6 +21,162 @@ floating point decimals.
 <!-- ##### SECTION Image ##### -->
 
 
+<!-- ##### STRUCT rasqal_xsd_datetime ##### -->
+<para>
+
+</para>
+
+@year: 
+@month: 
+@day: 
+@hour: 
+@minute: 
+@second: 
+@microseconds: 
+@timezone_minutes: 
+
+<!-- ##### MACRO RASQAL_XSD_DATETIME_NO_TZ ##### -->
+<para>
+
+</para>
+
+
+
+<!-- ##### FUNCTION rasqal_new_xsd_datetime ##### -->
+<para>
+
+</para>
+
+@world: 
+@datetime_string: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_new_xsd_datetime_from_timeval ##### -->
+<para>
+
+</para>
+
+@world: 
+@tv: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_new_xsd_datetime_from_unixtime ##### -->
+<para>
+
+</para>
+
+@world: 
+@secs: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_free_xsd_datetime ##### -->
+<para>
+
+</para>
+
+@dt: 
+
+
+<!-- ##### FUNCTION rasqal_xsd_datetime_compare ##### -->
+<para>
+
+</para>
+
+@dt1: 
+@dt2: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_xsd_datetime_equals ##### -->
+<para>
+
+</para>
+
+@dt1: 
+@dt2: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_xsd_datetime_get_as_timeval ##### -->
+<para>
+
+</para>
+
+@dt: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_xsd_datetime_get_as_unixtime ##### -->
+<para>
+
+</para>
+
+@dt: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_xsd_datetime_get_seconds_as_decimal ##### -->
+<para>
+
+</para>
+
+@world: 
+@dt: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_xsd_datetime_get_timezone_as_counted_string ##### -->
+<para>
+
+</para>
+
+@dt: 
+@len_p: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_xsd_datetime_set_from_timeval ##### -->
+<para>
+
+</para>
+
+@dt: 
+@tv: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_xsd_datetime_set_from_unixtime ##### -->
+<para>
+
+</para>
+
+@dt: 
+@clock: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_xsd_datetime_to_counted_string ##### -->
+<para>
+
+</para>
+
+@dt: 
+@len_p: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_xsd_datetime_to_string ##### -->
+<para>
+
+</para>
+
+@dt: 
+@Returns: 
+
+
 <!-- ##### FUNCTION rasqal_free_xsd_decimal ##### -->
 <para>
 

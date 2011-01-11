@@ -209,28 +209,7 @@ constants and #rasqal_variable values bound in some
 @Returns: 
 
 
-<!-- ##### FUNCTION rasqal_new_coalesce_expression ##### -->
-<para>
-
-</para>
-
-@world: 
-@args: 
-@Returns: 
-
-
 <!-- ##### FUNCTION rasqal_new_function_expression ##### -->
-<para>
-
-</para>
-
-@world: 
-@name: 
-@args: 
-@Returns: 
-
-
-<!-- ##### FUNCTION rasqal_new_function_expression2 ##### -->
 <para>
 
 </para>
@@ -295,6 +274,17 @@ constants and #rasqal_variable values bound in some
 </para>
 
 @e: 
+@Returns: 
+
+
+<!-- ##### FUNCTION rasqal_new_expr_seq_expression ##### -->
+<para>
+
+</para>
+
+@world: 
+@op: 
+@args: 
 @Returns: 
 
 
