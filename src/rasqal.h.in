@@ -779,6 +779,16 @@ typedef enum {
 } rasqal_pattern_flags;
 
 
+/**
+ * rasqal_generate_bnodeid_handler:
+ * @world: world arg
+ * @user_data: user data given to 
+ * @user_bnodeid: user blank node ID string passed in
+ *
+ * User handler used with rasqal_world_set_generate_bnodeid_handler() to set method for generating a blank node ID.
+ *
+ * Return value: blank node ID string or NULL on failure.
+ */
 typedef unsigned char* (*rasqal_generate_bnodeid_handler)(rasqal_world* world, void *user_data, unsigned char *user_bnodeid);
 
 
