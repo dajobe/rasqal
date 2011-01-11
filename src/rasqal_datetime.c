@@ -605,7 +605,7 @@ rasqal_new_xsd_datetime_from_timeval(rasqal_world* world, struct timeval *tv)
 
 /**
  * rasqal_free_xsd_datetime:
- * @dec: datetime object
+ * @dt: datetime object
  * 
  * Destroy XSD datetime object.
  **/
