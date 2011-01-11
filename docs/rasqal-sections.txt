@@ -250,7 +250,6 @@ rasqal_query_results_formatter
 rasqal_new_query_results_formatter
 rasqal_new_query_results_formatter_for_content
 rasqal_free_query_results_formatter
-rasqal_query_results_formatter_get_mime_type
 rasqal_query_results_formatter_read
 rasqal_query_results_formatter_write
 </SECTION>
@@ -381,5 +380,4 @@ next_match
 rasqal_expression_s
 triple_present
 RASQAL_LITERAL_UDT_DEFINED
-raptor_message_handler
 </SECTION>
