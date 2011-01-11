@@ -454,8 +454,8 @@ rasqal_new_cast_expression(rasqal_world* world, raptor_uri* name,
 /**
  * rasqal_new_expr_seq_expression:
  * @world: rasqal_world object
- * @type: expression type
- * @args: sequence of #rasqal_expression coalesce arguments
+ * @op: expression operation
+ * @args: sequence of #rasqal_expression arguments
  * 
  * Constructor - create a new expression with a sequence of expression arguments.
  *
