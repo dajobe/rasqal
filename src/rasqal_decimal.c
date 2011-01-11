@@ -451,10 +451,10 @@ rasqal_xsd_decimal_as_counted_string(rasqal_xsd_decimal* dec, size_t* len_p)
 
 /**
  * rasqal_xsd_decimal_print:
- * @dec: XSD Decimal
- * @stream: FILE* stream
+ * @dec: XSD Decimal object
+ * @stream: FILE* handle to print to
  * 
- * Write an XSD Decimal to a FILE* stream
+ * Print an XSD Decimal to a stream
  * 
  * Return value: non-0 on failure
  **/
