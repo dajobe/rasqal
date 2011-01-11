@@ -1918,6 +1918,14 @@ int rasqal_set_triples_source_factory(rasqal_world* world, rasqal_triples_source
  */
 
 /**
+ * support_feature:
+ * @user_data: user data
+ * @feature: feature to test
+ *
+ * Internal - see #rasqal_triples_source
+ */
+
+/**
  * rasqal_variables_table:
  *
  * Internal - for now
