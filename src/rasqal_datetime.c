@@ -1,7 +1,7 @@
 /*
  * rasqal_datetime.c - Rasqal XSD dateTime and XSD date
  *
- * Copyright (C) 2007-2010, David Beckett http://www.dajobe.org/
+ * Copyright (C) 2007-2011, David Beckett http://www.dajobe.org/
  *
  * Contributions:
  *   Copyright (C) 2007, Lauri Aalto <laalto@iki.fi>
@@ -517,9 +517,9 @@ rasqal_xsd_date_parse_and_normalize(const char *date_string,
 /**
  * rasqal_new_xsd_datetime:
  * @world: world object
- * @datetime_string: XSD Decimal string
+ * @datetime_string: XSD Datetime string
  *
- * Constructor - make a new XSD decimal object from a string
+ * Constructor - make a new XSD datetime object from a string
  *
  * Return value: new datetime or NULL on failure
  */
@@ -550,7 +550,7 @@ rasqal_new_xsd_datetime(rasqal_world* world, const char *datetime_string)
  * @world: world object
  * @secs: unixtime
  *
- * Constructor - make a new XSD decimal object from unixtime seconds
+ * Constructor - make a new XSD datetime object from unixtime seconds
  *
  * Return value: new datetime or NULL on failure
  */
@@ -579,7 +579,7 @@ rasqal_new_xsd_datetime_from_unixtime(rasqal_world* world, time_t secs)
  * @world: world object
  * @tv: pointer to struct timeval
  *
- * Constructor - make a new XSD decimal object from a timeval
+ * Constructor - make a new XSD datetime object from a timeval
  *
  * Return value: new datetime or NULL on failure
  */
@@ -603,6 +603,12 @@ rasqal_new_xsd_datetime_from_timeval(rasqal_world* world, struct timeval *tv)
 }
 
 
+/**
+ * rasqal_free_xsd_datetime:
+ * @dec: datetime object
+ * 
+ * Destroy XSD datetime object.
+ **/
 void
 rasqal_free_xsd_datetime(rasqal_xsd_datetime* dt)
 {
