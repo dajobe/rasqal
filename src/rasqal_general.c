@@ -913,9 +913,6 @@ rasqal_world_set_default_generate_bnodeid_parameters(rasqal_world* world,
  *
  * If handler is NULL, the default method is used
  *
- * If set, this overrides any bnodeid handler set via
- * rasqal_query_set_generate_bnodeid_handler().
- *  
  * Return value: non-0 on failure
  **/
 int
