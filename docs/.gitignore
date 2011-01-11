@@ -3,6 +3,7 @@
 *.stamp
 html/
 librasqal.html
+rasqal-changes.xml
 rasqal-decl-list.txt
 rasqal-decl.txt
 rasqal-docs.sgml
