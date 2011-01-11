@@ -773,9 +773,9 @@ typedef struct {
  * Flags for #rasqal_graph_pattern.
  */
 typedef enum {
-  RASQAL_PATTERN_FLAGS_OPTIONAL=1,
+  RASQAL_PATTERN_FLAGS_OPTIONAL = 1,
 
-  RASQAL_PATTERN_FLAGS_LAST=RASQAL_PATTERN_FLAGS_OPTIONAL
+  RASQAL_PATTERN_FLAGS_LAST     = RASQAL_PATTERN_FLAGS_OPTIONAL
 } rasqal_pattern_flags;
 
 
