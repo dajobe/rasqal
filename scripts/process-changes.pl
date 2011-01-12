@@ -151,6 +151,9 @@ EOT
   print $fh "  <caption>$title</caption>\n"
     if defined $title;
 
+  # Sort by fn_name name
+  @list = sort { $a->[1] cmp $b->[1] } @list;
+
   for my $item (@list) {
     my($fn_return, $fn_name, $fn_args, $notes) = @$item;
     my $formatted_fn = format_fn_sig($format_name, $show_sig, 
@@ -188,6 +191,9 @@ EOT
   print $fh "  <caption>$title</caption>\n"
     if defined $title;
 
+  # Sort by type name
+  @list = sort { $a->[0] cmp $b->[0] } @list;
+
   for my $item (@list) {
     my($type_name, $notes) = @$item;
     my $formatted_fn = format_type_sig($format_name, $type_name);
@@ -213,6 +219,9 @@ EOT
   print $fh "  <caption>$title</caption>\n"
     if defined $title;
 
+  # Sort by format name
+  @list = sort { $a->[0] cmp $b->[0] } @list;
+
   for my $item (@list) {
     my($enum_name, $notes) = @$item;
     my $formatted_fn = format_enum_sig($format_name, $enum_name);
@@ -236,6 +245,9 @@ EOT
 
   print $fh  "  <caption>$title</caption>\n"
     if defined $title;
+
+  # Sort by from name
+  @list = sort { $a->[0] cmp $b->[0] } @list;
 
   print $fh <<"EOT";
   <thead>
@@ -325,6 +337,9 @@ EOT
   print $fh "  <caption>$title</caption>\n"
     if defined $title;
 
+  # Sort by old type name
+  @list = sort { $a->[0] cmp $b->[0] } @list;
+
   print $fh <<"EOT";
   <thead>
   </thead>
@@ -363,6 +378,9 @@ EOT
 
   print $fh "  <caption>$title</caption>\n"
     if defined $title;
+
+  # Sort by from name
+  @list = sort { $a->[0] cmp $b->[0] } @list;
 
   print $fh <<"EOT";
   <thead>
