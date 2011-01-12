@@ -1,3 +1,135 @@
+2011-01-11  Dave Beckett <dave@dajobe.org>
+
+	* scripts/process-changes.pl: Make changes generate 1 page per
+	changeset. Sort output by function, type or enum name
+
+	* docs/rasqal-changes.tsv: 0.9.22 changes
+
+	* src/rasqal.h.in: code style
+
+	* docs/tmpl/rasqal-unused.sgml, docs/tmpl/section-data.sgml,
+	docs/tmpl/section-expression.sgml, docs/tmpl/section-general.sgml,
+	docs/tmpl/section-literal.sgml, docs/tmpl/section-query.sgml,
+	docs/tmpl/section-query_results.sgml,
+	docs/tmpl/section-query_results_formatter.sgml,
+	docs/tmpl/section-unused.sgml, docs/tmpl/section-variable.sgml,
+	docs/tmpl/section-xsd.sgml: Update tmpls
+
+	* src/rasqal.h.in: document rasqal_generate_bnodeid_handler.
+	Added enum rasqal_query_results_format_flags for bitflags
+
+	* docs/rasqal-sections.txt: Added rasqal_generate_bnodeid_handler,
+	rasqal_query_results_format_flags.  Removed
+	rasqal_query_results_formatter_get_mime_type,
+	raptor_message_handler
+
+	* docs/rasqal-sections.txt: updated sections
+
+2011-01-11  Lauri Aalto <laalto@iki.fi>
+
+	* src/rasqal.h.in:
+	(rasqal_new_query_results_formatter,
+	rasqal_new_query_results_formatter_for_content): Added RASQAL_API
+	exports to public API functions.
+
+2011-01-10  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal.h.in: Removed raptor_message_handler
+
+	* docs/.gitignore, docs/Makefile.am, docs/rasqal-changes.tsv,
+	docs/rasqal-docs.xml, scripts/Makefile.am,
+	scripts/process-changes.pl: Generate Rasqal changes doc sections
+	
+	Generate the changes using an update version process-changes.pl
+	from raptor V2 that can handle multiple sections for different
+	old/new versions as well as omitting sections that have no
+	content.
+
+	* src/rasqal.h.in, src/rasqal_data_graph.c, src/rasqal_expr.c,
+	src/rasqal_general.c, src/rasqal_internal.h, src/rasqal_query.c,
+	src/rasqal_query_results.c, src/rasqal_result_formats.c,
+	src/rasqal_service.c, src/rasqal_variable.c, src/rdql_parser.y,
+	src/sparql_parser.y, tests/engine/rasqal_graph_test.c,
+	tests/engine/rasqal_triples_test.c, utils/check_query.c,
+	utils/roqet.1, utils/roqet.c, utils/srxread.c, utils/srxwrite.c:
+	
+	Remove all deprecated functions and rename foo2() to foo()
+
+	rasqal_generate_bnodeid_handler takes a world object (was
+	rasqal_generate_bnodeid_handler2)
+
+	(rasqal_world_set_generate_bnodeid_handler):
+	takes a rasqal_generate_bnodeid_handler arg (was
+	rasqal_generate_bnodeid_handler2)
+
+	Removed deprecated: rasqal_query_set_fatal_error_handler,
+	rasqal_query_set_error_handler, rasqal_query_set_warning_handler,
+	rasqal_query_set_default_generate_bnodeid_parameters,
+	rasqal_query_set_generate_bnodeid_handler,
+	rasqal_query_results_formats_enumerate,
+	rasqal_new_query_results_formatter_by_mime_type,
+	rasqal_query_results_formatter_get_mime_type,
+	rasqal_new_data_graph, rasqal_new_coalesce_expression,
+	rasqal_new_variable_typed,
+	rasqal_new_variable.
+
+	(rasqal_query_add_data_graph): Takes a data_graph arg instead of
+	uri, name and flags (renamed from rasqal_query_add_data_graph2)
+
+	(rasqal_query_results_write, rasqal_query_results_read): Take a
+	name, mime_type, format_uri, base_uri args instead of format_uri,
+	base_uri. (Renamed from rasqal_query_results_write2 and
+	rasqal_query_results_read2 respectively).
+
+	(rasqal_query_results_formats_check): Takes name, format URI,
+	mime_type flags instead of name, uri and type. (Renamed from
+	rasqal_query_results_formats_check2)
+
+	(rasqal_new_query_results_formatter): Takes name, format type,
+	format URI args instead of just name, format URI (renamed from
+	rasqal_new_query_results_formatter2)
+
+	(rasqal_new_query_results_formatter_for_content): Replaces
+	rasqal_new_query_results_formatter_by_mime_type and takes optional
+	buffer with length and identifer.
+
+	(rasqal_new_function_expression): Added params and flags args to
+	handle aggregate expressions. (Renamed from
+	rasqal_new_function_expression2)
+
+	roqet: delete deprecated -w arg. Use -d structure instead.
+
+	* src/rasqal.h.in, src/rasqal_data_graph.c, src/rasqal_expr.c,
+	src/rasqal_query_results.c, src/rasqal_result_formats.c,
+	src/rasqal_variable.c: Add if !defined(RASQAL_DISABLE_DEPRECATED)
+	around remaining deprecated functions
+
+2011-01-06  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal.h.in, src/rasqal_expr.c, src/rasqal_internal.h,
+	src/rasqal_query.c: Added RASQAL_DISABLE_DEPRECATED macros around
+	things that are going away
+
+2011-01-04  Dave Beckett <dave@dajobe.org>
+
+	* INSTALL.html, configure.ac, rasqal.pc.in, src/rasqal.h.in,
+	src/rasqal_algebra.c, src/rasqal_dataset.c, src/rasqal_engine.c,
+	src/rasqal_engine_sort.c, src/rasqal_expr.c,
+	src/rasqal_format_rdf.c, src/rasqal_format_sparql_xml.c,
+	src/rasqal_format_table.c, src/rasqal_general.c,
+	src/rasqal_graph_pattern.c, src/rasqal_internal.h,
+	src/rasqal_literal.c, src/rasqal_map.c, src/rasqal_query.c,
+	src/rasqal_query_results.c, src/rasqal_query_transform.c,
+	src/rasqal_query_write.c, src/rasqal_raptor.c,
+	src/rasqal_result_formats.c, src/rasqal_row.c,
+	src/rasqal_rowsource.c, src/rasqal_rowsource_aggregation.c,
+	src/rasqal_rowsource_groupby.c, src/rasqal_rowsource_project.c,
+	src/rasqal_rowsource_rowsequence.c, src/rasqal_rowsource_sort.c,
+	src/rasqal_service.c, src/rasqal_variable.c, src/rdql_lexer.l,
+	src/rdql_parser.y, src/sparql_lexer.l, src/sparql_parser.y,
+	utils/Makefile.am, utils/check_query.c, utils/roqet.c: Kill
+	support for Raptor V1
+
 2011-01-04  Lauri Aalto <laalto@iki.fi>
 
 	* src/rasqal_expr_strings.c:
