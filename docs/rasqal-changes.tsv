@@ -20,6 +20,11 @@
 0.9.21	-	-	-	0.9.22	rasqal_query_results_type	rasqal_query_get_result_type	(rasqal_query* query)	-
 0.9.21	-	-	-	0.9.22	rasqal_query_results_type	rasqal_query_results_get_type	(rasqal_query_results* query_results)	-
 0.9.21	-	-	-	0.9.22	rasqal_row*	rasqal_query_results_get_row_by_offset	(rasqal_query_results* query_results, int result_offset)	-
+0.9.21	int	rasqal_query_results_write	(raptor_iostream *iostr, rasqal_query_results *results, raptor_uri *format_uri, raptor_uri *base_uri)	0.9.22	int	rasqal_query_results_write	(raptor_iostream *iostr, rasqal_query_results *results, const char* name, const char* mime_type, raptor_uri *format_uri, raptor_uri *base_uri)	-
+0.9.21	int	rasqal_query_results_write2	(raptor_iostream *iostr, rasqal_query_results *results, const char* name, const char* mime_type, raptor_uri *format_uri, raptor_uri *base_uri)	0.9.22	int	rasqal_query_results_write	(raptor_iostream *iostr, rasqal_query_results *results, const char* name, const char* mime_type, raptor_uri *format_uri, raptor_uri *base_uri)	-
+0.9.21	int	rasqal_query_results_read	(raptor_iostream *iostr, rasqal_query_results *results, raptor_uri *format_uri, raptor_uri *base_uri)	0.9.22	int	rasqal_query_results_read	(raptor_iostream *iostr, rasqal_query_results *results, const char* name, const char* mime_type, raptor_uri *format_uri, raptor_uri *base_uri)	-
+0.9.21	int	rasqal_query_results_read2	(raptor_iostream *iostr, rasqal_query_results *results, const char* name, const char* mime_type, raptor_uri *format_uri, raptor_uri *base_uri)	0.9.22	int	rasqal_query_results_read	(raptor_iostream *iostr, rasqal_query_results *results, const char* name, const char* mime_type, raptor_uri *format_uri, raptor_uri *base_uri)	-
+0.9.21	-	-	-	0.9.22	int	rasqal_query_results_rewind	(rasqal_query_results* query_results)	-
 #
 # Types
 #
@@ -53,30 +58,6 @@
 0.9.21	enum	-	-	0.9.22	enum	RASQAL_EXPR_CONTAINS	-	Expression for SPARQL 1.1 CONTAINS(str, str)
 0.9.21	enum	-	-	0.9.22	enum	RASQAL_EXPR_ENCODE_FOR_URI	-	Expression for SPARQL 1.1 ENCODE_FOR_URI(str)
 0.9.21	enum	-	-	0.9.22	enum	RASQAL_QUERY_RESULTS_UNKNOWN	-	Unknown result format type
-#
-#
-# @@ -1160,56 +1247,41 @@
-#  RASQAL_API
-#  int rasqal_query_results_is_syntax(rasqal_query_results* query_results);
-#  
-# -#if !defined(RASQAL_DISABLE_DEPRECATED)
-# -RASQAL_API RASQAL_DEPRECATED
-# -int rasqal_query_results_write(raptor_iostream *iostr, rasqal_query_results *results, raptor_uri *format_uri, raptor_uri *base_uri);
-# -#endif
-#  RASQAL_API
-# -int rasqal_query_results_write2(raptor_iostream *iostr, rasqal_query_results *results, const char* name, const char* mime_type, raptor_uri *format_uri, raptor_uri *base_uri);
-# -#if !defined(RASQAL_DISABLE_DEPRECATED)
-# -RASQAL_API RASQAL_DEPRECATED
-# -int rasqal_query_results_read(raptor_iostream *iostr, rasqal_query_results *results, raptor_uri *format_uri, raptor_uri *base_uri);
-# -#endif
-# +int rasqal_query_results_write(raptor_iostream *iostr, rasqal_query_results *results, const char* name, const char* mime_type, raptor_uri *format_uri, raptor_uri *base_uri);
-#  RASQAL_API
-# -int rasqal_query_results_read2(raptor_iostream *iostr, rasqal_query_results *results, const char* name, const char* mime_type, raptor_uri *format_uri, raptor_uri *base_uri);
-# +int rasqal_query_results_read(raptor_iostream *iostr, rasqal_query_results *results, const char* name, const char* mime_type, raptor_uri *format_uri, raptor_uri *base_uri);
-#  
-# +/* One more time */
-# +RASQAL_API
-# +int rasqal_query_results_rewind(rasqal_query_results* query_results);
 #  
 # -/**
 # - * RASQAL_QUERY_RESULTS_FORMAT_FLAG_READER:
