@@ -7,7 +7,7 @@
 #0.9.21	void	oldfunctionor-	(args)	0.9.22	void	newfunctionor-	(args)	Note
 0.9.21	-	-	-	0.9.22	void	rasqal_world_set_log_handler	(rasqal_world* world, void *user_data, raptor_log_handler handler)	-
 0.9.21	int	rasqal_world_set_generate_bnodeid_handler	(rasqal_world* world, void *user_data, rasqal_generate_bnodeid_handler2 handler)	0.9.22	int	rasqal_world_set_generate_bnodeid_handler	(rasqal_world* world, void *user_data, rasqal_generate_bnodeid_handler handler)	-
-0.9.21	-	-	-	0.9.22	const raptor_syntax_description*	rasqal_world_get_query_results_format_description	(rasqal_world* world, unsigned int counter)	-
+0.9.21	int	rasqal_query_results_formats_enumerate	(rasqal_world* world, unsigned int counter, const char **name, const char **label, const unsigned char **uri_string, const char **mime_type, int* flags)	0.9.22	const raptor_syntax_description*	rasqal_world_get_query_results_format_description	(rasqal_world* world, unsigned int counter)	-
 0.9.21	-	-	-	0.9.22	const char*	rasqal_world_guess_query_results_format_name	(rasqal_world* world, raptor_uri *uri, const char *mime_type, const unsigned char *buffer, size_t len, const unsigned char *identifier)	-
 0.9.21	void	rasqal_query_set_fatal_error_handler	(rasqal_query* query, void *user_data, raptor_message_handler handler)	0.9.22	-	-	-	-
 0.9.21	void	rasqal_query_set_error_handler	(rasqal_query* query, void *user_data, raptor_message_handler handler)	0.9.22	-	-	-	-
@@ -25,7 +25,6 @@
 0.9.21	int	rasqal_query_results_read	(raptor_iostream *iostr, rasqal_query_results *results, raptor_uri *format_uri, raptor_uri *base_uri)	0.9.22	int	rasqal_query_results_read	(raptor_iostream *iostr, rasqal_query_results *results, const char* name, const char* mime_type, raptor_uri *format_uri, raptor_uri *base_uri)	-
 0.9.21	int	rasqal_query_results_read2	(raptor_iostream *iostr, rasqal_query_results *results, const char* name, const char* mime_type, raptor_uri *format_uri, raptor_uri *base_uri)	0.9.22	int	rasqal_query_results_read	(raptor_iostream *iostr, rasqal_query_results *results, const char* name, const char* mime_type, raptor_uri *format_uri, raptor_uri *base_uri)	-
 0.9.21	-	-	-	0.9.22	int	rasqal_query_results_rewind	(rasqal_query_results* query_results)	-
-0.9.21	int	rasqal_query_results_formats_enumerate	(rasqal_world* world, unsigned int counter, const char **name, const char **label, const unsigned char **uri_string, const char **mime_type, int* flags)	0.9.22	-	-	-	-
 0.9.21	int	rasqal_query_results_formats_check	(rasqal_world* world, const char *name, raptor_uri* uri, const char *mime_type, int flags)	0.9.22	int	rasqal_query_results_formats_check	(rasqal_world* world, const char *name, raptor_uri* uri, const char *mime_type)	-
 0.9.21	int	rasqal_query_results_formats_check2	(rasqal_world* world, const char *name, raptor_uri* uri, const char *mime_type, int flags)	0.9.22	int	rasqal_query_results_formats_check	(rasqal_world* world, const char *name, raptor_uri* uri, const char *mime_type)	-
 0.9.21	rasqal_query_results_formatter*	rasqal_new_query_results_formatter	(rasqal_world* world, const char *name, const char *mime_type, raptor_uri* format_uri)	0.9.22	rasqal_query_results_formatter*	rasqal_new_query_results_formatter	(rasqal_world* world, const char *name, raptor_uri* format_uri)	-
