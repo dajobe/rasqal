@@ -43,7 +43,7 @@ our $program = basename $0;
 
 our $nbsp = '&#160;';
 
-our $id_prefix = 'raptor';
+our $id_prefix = undef;
 
 sub print_start_chapter_as_docbook_xml($$$$) {
   my($fh, $id, $title, $intro_para)=@_;
@@ -500,6 +500,7 @@ pod2usage(-verbose => 2)
 # Arguments
 our($package, $file) = @ARGV;
 
+$id_prefix ||= $package;
 
 # Read in data
 
@@ -624,17 +625,13 @@ EOT
 				     $intro_para);
   
 
-  for my $vp (@version_pairs) {
-    my($old_version, $new_version)= @$vp;
-    my $id = to_id($old_version) . "-to-" . to_id($new_version);
-
     print_start_section_as_docbook_xml($out_fh,
-				       $id_prefix.'-changes-'.$id,
-				       "Changes between $old_version and $new_version");
+				       $id_prefix.'-changes-intro',
+				       "Introduction");
     print $out_fh <<"EOT";
 <para>
 The following sections describe the function changes in the API
-between $old_version and $new_version including
+between version including
 additions, deletions, renames (retaining the same number of
 parameters, types and return value type) and functions with more
 complex changes.  Changes to typedefs and structs are not described here.
@@ -642,6 +639,14 @@ complex changes.  Changes to typedefs and structs are not described here.
 EOT
 
     print_end_section_as_docbook_xml($out_fh);
+
+  for my $vp (@version_pairs) {
+    my($old_version, $new_version)= @$vp;
+    my $id = to_id($old_version) . "-to-" . to_id($new_version);
+
+    print_start_section_as_docbook_xml($out_fh,
+				       $id_prefix.'-changes-'.$id,
+				       "Changes between $old_version and $new_version");
 
 
     if(@deleted_functions || @deleted_types || @deleted_enums) {
@@ -676,7 +681,7 @@ EOT
 					 $id_prefix.'-changes-renamed-'.$id,
 					 "Renamed function and enums in $package $new_version");
       print_renamed_functions_as_docbook_xml($out_fh,
-					     undef,
+					     'Functions',
 					     "$old_version function",
 					     "$new_version function",
 					     @renamed_functions);
@@ -704,6 +709,8 @@ EOT
 					 @changed_types);
       print_end_section_as_docbook_xml($out_fh);
    }
+
+   print_end_section_as_docbook_xml($out_fh);
 
   } # end pair of old/new versions
 
