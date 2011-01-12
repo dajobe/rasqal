@@ -327,6 +327,7 @@ else
 fi
 
 AC_SUBST(RAPTOR_VERSION_DEC)
+AC_SUBST(RAPTOR_MIN_VERSION)
 
 
 AC_CHECK_PROG(REDLAND_CONFIG, redland-config, redland-config)
