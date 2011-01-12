@@ -14,7 +14,7 @@
 </p>
 
 
-<!-- Updated to end of 956b329313c1cc934f5cbafa36259b4faf5d3823 Tue Jan 4 17:22:08 2011 -0800 -->
+<!-- Updated to end of 45de59a16d007d45d8ee6f1d53570b814eddb3e9 Tue Jan 11 22:24:34 2011 -0800 -->
 
 <p>Split query language support into more languages with aliases:
 </p>
@@ -26,7 +26,12 @@
   <li><code>laqrs:</code> LAQRS experimental language with all of above plus experiments</li>
 </ul>
 
-<p>The minimum Raptor V2 version is now 2.0.0
+<p>The minimum Raptor version is Raptor V2 2.0.0.  Raptor V1 is not supported.
+</p>
+
+<p>Consequent to the above large dependency change, made an ABI and
+API break.  Removed all deprecated functions, types and
+functionality. Bumped the shared library version to 3.0.0.
 </p>
 
 
@@ -89,6 +94,15 @@ along with expression execution support.</p>
   <li><code>SUBSTR()</code></li>
   <li><code>UCASE()</code></li>
 </ul>
+
+
+
+<h3>Data Graph class changes</h3>
+
+<p>Removed deprecated <code>rasqal_new_data_graph()</code>
+constructor replaced by <code>rasqal_new_data_graph_from_uri()</code>
+with additional arguments.
+</p>
 
 
 <h3>Datetime class changes</h3>
@@ -159,6 +173,27 @@ builtin functions:</p>
 return the result rather than the function argument.
 </p>
 
+<p><code>rasqal_new_function_expression()</code> gained params and
+flags arguments to handle aggregate expressions. This was renamed
+from rasqal_new_function_expression2().
+</p>
+
+<p>Removed deprecated <code>rasqal_new_function_expression2()</code>
+replaced by <code>rasqal_new_function_expression()</code> with same
+arguments.
+</p>
+
+<p>Added constructor <code>rasqal_new_expr_seq_expression()</code>
+replacing <code>rasqal_new_coalesce_expression()</code> and taking an
+op argument to use for different expression operations.
+</p>
+
+<p>Removed method <code>rasqal_new_coalesce_expression()</code>
+replaced by <code>rasqal_new_expr_seq_expression()</code> with
+additional op argument.
+</p>
+
+
 
 <h3>Literal class changes</h3>
 
@@ -194,6 +229,34 @@ to get the expected result type based on the query structure.
 storing results of an execution.</p>
 
 
+<p>Removed deprecated methods:
+<code>rasqal_query_set_fatal_error_handler()</code>
+<code>rasqal_query_set_error_handler()</code>
+<code>rasqal_query_set_warning_handler()</code>
+replaced by using
+<code>rasqal_world_set_log_handler()</code> calling a
+raptor_log_handler.
+</p>
+
+<p>Removed deprecated methods:
+<code>rasqal_query_set_default_generate_bnodeid_parameters()</code>
+<code>rasqal_query_set_generate_bnodeid_handler()</code>
+that have moved to methods on the rasqal_world object:
+<code>rasqal_world_set_default_generate_bnodeid_parameters()</code> and
+<code>rasqal_world_set_generate_bnodeid_handler()</code> respectively.
+</p>
+
+<p><code>rasqal_query_add_data_graph()</code> altered to take a
+rasqal_data_graph argument instead of uri, name and flags (renamed
+from rasqal_query_add_data_graph2)
+</p>
+
+<p>Removed
+<code>rasqal_query_add_data_graph2()</code> replaced by
+<code>rasqal_query_add_data_graph()</code> with same parameters.
+</p>
+
+
 <h3>Query Results class changes</h3>
 
 <p>Added support for query result rewinding, if the results
@@ -213,6 +276,24 @@ type is unknown or yet to be determined.
 
 <p>Added method <code>rasqal_query_results_get_type()</code>
 to get the result type.
+</p>
+
+<p><code>rasqal_query_results_read()</code> was altered to take a
+name, mime_type, format_uri, base_uri args instead of format_uri,
+base_uri. (Renamed from rasqal_query_results_read2).
+</p>
+
+<p>Removed <code>rasqal_query_results_read2()</code>
+replaced by <code>rasqal_query_results_read()</code> with the same arguments.
+</p>
+
+<p><code>rasqal_query_results_write()</code> was altered to take a
+name, mime_type, format_uri, base_uri args instead of format_uri,
+base_uri. (Renamed from rasqal_query_results_write2).
+</p>
+
+<p>Removed <code>rasqal_query_results_write2()</code>
+replaced by <code>rasqal_query_results_write()</code> with same arguments.
 </p>
 
 
@@ -249,6 +330,53 @@ methods.</p>
 <p>This change allows the query result formats to be identified and
 discovered by multiple names (aliases) and URI strings when using the
 <code>rasqal_new_query_results_formatter2()</code> constructor.
+</p>
+
+<p><code>rasqal_new_query_results_formatter()</code> constructor was
+altered to take name, format type, format URI args instead of just
+name, format URI (renamed from rasqal_new_query_results_formatter2).
+</p>
+
+<p>Removed <code>rasqal_new_query_results_formatter2()</code>
+constructor replaced by
+<code>rasqal_new_query_results_formatter()</code> constructor.
+</p>
+
+<p>Removed deprecated
+<code>rasqal_new_query_results_formatter_by_mime_type()</code>
+replaced by
+<code>rasqal_new_query_results_formatter_for_content()</code> with
+additional arguments.
+</p>
+
+<p><code>rasqal_query_results_formats_check()</code> was altered to
+take name, format URI, mime_type flags instead of name, uri and
+type. (Renamed from rasqal_query_results_formats_check2)
+</p>
+
+<p>Removed <code>rasqal_query_results_formats_check2()</code>
+replaced by <code>rasqal_query_results_formats_check()</code> with
+the same arguments.
+</p>
+
+<p>Removed <code>rasqal_query_results_formats_enumerate()</code> replaced by
+<code>rasqal_world_get_query_results_format_description()</code>
+using static syntax description approach.
+</p>
+
+<p>Removed <code>rasqal_query_results_formatter_get_mime_type()</code>
+replaced by using fields of <code>raptor_syntax_description</code> structure
+returned by <code>rasqal_world_get_query_results_format_description()</code>.
+</p>
+
+
+<h3>Variable class changes</h3>
+
+<p>Removed deprecated constructors
+<code>rasqal_new_variable_typed()</code>
+<code>rasqal_new_variable()</code> replaced by the
+<code>rasqal_variables_table_add()</code> method on a variables table
+to create and add a variable in a context.
 </p>
 
 
