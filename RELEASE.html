@@ -16,22 +16,29 @@
 
 <!-- Updated to end of 45de59a16d007d45d8ee6f1d53570b814eddb3e9 Tue Jan 11 22:24:34 2011 -0800 -->
 
-<p>Split query language support into more languages with aliases:
-</p>
-<ul>
-  <li><code>sparql</code> (and alias sparql10): SPARQL 1.0 query with no 1.1 features</li>
-  <li><code>sparql11-query:</code> SPARQL 1.1 query</li>
-  <li><code>sparql11-update:</code> SPARQL 1.1 update</li>
-  <li><code>sparql11:</code> SPARQL 1.1 with both query and update</li>
-  <li><code>laqrs:</code> LAQRS experimental language with all of above plus experiments</li>
-</ul>
+<blockquote>
+<p><b>WARNING: ABI AND API CHANGED IN THIS RELEASE.</b></p>
 
-<p>The minimum Raptor version is Raptor V2 2.0.0.  Raptor V1 is not supported.
+<p>This means: functions, enums and types were added, removed and changed.</p>
+
+<p>Consequently the shared library major soname version has changed from 2 to 3.</p> 
+
+</blockquote>
+
+<p>The main changes in this release were to add more draft SPARQL 1.1
+features and to use Raptor V2.</p>
+
+<p>Rasqal now depends on Raptor V2. Raptor V1 is not supported. The
+minimum Raptor2 version is 2.0.0.
 </p>
 
-<p>Consequent to the above large dependency change, made an ABI and
-API break.  Removed all deprecated functions, types and
-functionality. Bumped the shared library version to 3.0.0.
+<p>Given the the large dependency change above that requires
+recompiling with some breakage, this release makes an ABI and API
+break.  All deprecated functions, types and other deprecated
+functionality have been removed.  The libtool library version
+was bumped to 3.0.0.  The detailed API changes are described in the
+Changes section of the
+<a href="http://librdf.org/rasqal/docs/api/">Rasqal reference manual</a>.
 </p>
 
 
@@ -41,6 +48,19 @@ functionality. Bumped the shared library version to 3.0.0.
 <code>NOW()</code> function to provide a stable value during a single
 execution.
 </p>
+
+
+<h3>Query Language Changes</h3>
+
+<p>Split query language support into more languages with aliases:
+</p>
+<ul>
+  <li><code>sparql</code> (and alias <code>sparql10</code>): SPARQL 1.0 query with no 1.1 features.</li>
+  <li><code>sparql11-query:</code> SPARQL 1.1 query.</li>
+  <li><code>sparql11-update:</code> SPARQL 1.1 update.</li>
+  <li><code>sparql11:</code> SPARQL 1.1 with both query and update.</li>
+  <li><code>laqrs:</code> LAQRS experimental language with all of above plus experiments.</li>
+</ul>
 
 
 <h3>LAQRS Query Language changes</h3>
@@ -66,7 +86,7 @@ daylight saving time changes.
 <h3>SPARQL Query Language changes</h3>
 
 <p>Fixed SPARQL 1.1 draft <code>isNUMERIC()</code> which was stored
-erroneously in the parse tree as RASQAL_EXPR_ISLITERAL
+wrongly in the parse tree as <code>RASQAL_EXPR_ISLITERAL</code>.
 </p>
 
 <p>Added SPARQL 1.1 draft dateTime accessor builtin functions
@@ -154,12 +174,6 @@ functions:</p>
   <li><code>RASQAL_EXPR_YEAR</code></li>
 </ul>
 
-<p><code>rasqal_expression_evaluate()</code> evalutes experimental
-LAQRS datetime builtin methods <code>NOW()</code>,
-<code>CURRENT_DATETIME()</code>, <code>FROM_UNIXTIME()</code> and
-<code>TO_UNIXTIME()</code>.
-</p>
-
 <p><code>rasqal_op</code> gains new values for LAQRS experimental
 builtin functions:</p>
 <ul>
@@ -169,13 +183,10 @@ builtin functions:</p>
   <li><code>RASQAL_EXPR_TO_UNIXTIME</code></li>
 </ul>
 
-<p>Fixed <code>RASQAL_EXPR_DATATYPE</code> expression execution to
-return the result rather than the function argument.
-</p>
-
-<p><code>rasqal_new_function_expression()</code> gained params and
-flags arguments to handle aggregate expressions. This was renamed
-from rasqal_new_function_expression2().
+<p><code>rasqal_new_function_expression()</code> constructor gained
+<code>params</code> and <code>flags</code> arguments to handle
+aggregate expressions.  This was renamed from
+<code>rasqal_new_function_expression2()</code>.
 </p>
 
 <p>Removed deprecated <code>rasqal_new_function_expression2()</code>
@@ -193,6 +204,15 @@ replaced by <code>rasqal_new_expr_seq_expression()</code> with
 additional op argument.
 </p>
 
+<p><code>rasqal_expression_evaluate()</code> evalutes experimental
+LAQRS datetime builtin methods <code>NOW()</code>,
+<code>CURRENT_DATETIME()</code>, <code>FROM_UNIXTIME()</code> and
+<code>TO_UNIXTIME()</code>.
+</p>
+
+<p>Fixed <code>RASQAL_EXPR_DATATYPE</code> expression execution to
+return the result rather than the function argument.
+</p>
 
 
 <h3>Literal class changes</h3>
@@ -200,18 +220,18 @@ additional op argument.
 <p>Support XSD dateTime literals.  <code>rasqal_literal</code> value
 union gains a datetime field.</p>
 
+<p>Added new constructor
+<code>rasqal_new_datetime_literal_from_datetime()</code> to make a
+datetime literal.</p>
+
 <p><code>rasqal_literal_set_typed_value()</code> turns xsd:dateTime
 literals into <code>rasqal_xsd_datetime</code> objects.
 </p>
 
 <p><code>rasqal_literal_equals_flags()</code> and
-<code>rasqal_literal_compare()</code> now use rasqal_datetime
+<code>rasqal_literal_compare()</code> now use <code>rasqal_datetime</code>
 equality and comparison methods.
 </p>
-
-<p>Added new constructor
-<code>rasqal_new_datetime_literal_from_datetime()</code> to make a
-datetime literal.</p>
 
 <p>Added new accessor <code>rasqal_literal_as_counted_string()</code>
 get the string version of its and its length, letting the caller
@@ -246,14 +266,14 @@ that have moved to methods on the rasqal_world object:
 <code>rasqal_world_set_generate_bnodeid_handler()</code> respectively.
 </p>
 
-<p><code>rasqal_query_add_data_graph()</code> altered to take a
-rasqal_data_graph argument instead of uri, name and flags (renamed
-from rasqal_query_add_data_graph2)
+<p><code>rasqal_query_add_data_graph()</code> was altered to take a
+single <code>rasqal_data_graph</code> argument instead of uri, name
+and flags.  This was renamed from <code>rasqal_query_add_data_graph2()</code>.
 </p>
 
 <p>Removed
 <code>rasqal_query_add_data_graph2()</code> replaced by
-<code>rasqal_query_add_data_graph()</code> with same parameters.
+<code>rasqal_query_add_data_graph()</code> with same arguments.
 </p>
 
 
@@ -266,7 +286,8 @@ to reset back to the initial binding result.
 </p>
 
 <p>Added <code>rasqal_query_results_get_row_by_offset()</code> to
-access stored query result rows if enabled.
+access stored query result rows if storing results was enabled by
+<code>rasqal_query_set_store_results()</code>.
 </p>
 
 <p>Enum <code>rasqal_query_results_type</code> gains value
@@ -275,12 +296,12 @@ type is unknown or yet to be determined.
 </p>
 
 <p>Added method <code>rasqal_query_results_get_type()</code>
-to get the result type.
+to get the query result type.
 </p>
 
 <p><code>rasqal_query_results_read()</code> was altered to take a
 name, mime_type, format_uri, base_uri args instead of format_uri,
-base_uri. (Renamed from rasqal_query_results_read2).
+base_uri.  This was renamed from <code>rasqal_query_results_read2()</code>.
 </p>
 
 <p>Removed <code>rasqal_query_results_read2()</code>
@@ -289,7 +310,7 @@ replaced by <code>rasqal_query_results_read()</code> with the same arguments.
 
 <p><code>rasqal_query_results_write()</code> was altered to take a
 name, mime_type, format_uri, base_uri args instead of format_uri,
-base_uri. (Renamed from rasqal_query_results_write2).
+base_uri.  This was renamed from <code>rasqal_query_results_write2()</code>.
 </p>
 
 <p>Removed <code>rasqal_query_results_write2()</code>
@@ -299,17 +320,29 @@ replaced by <code>rasqal_query_results_write()</code> with same arguments.
 
 <h3>Query Results Formatter class changes</h3>
 
-<p>Added world method
-<code>rasqal_world_guess_query_results_format_name()</code> to guess
-format based on format URI, mime type, some initial content or an
-identifier.</p>
-
 <p>Added new constructor
 <code>rasqal_new_query_results_formatter_for_content()</code>
 to get a query result formatter based on guessing from format URI, name,
 mime type, some initial content or an identifier using
 <code>rasqal_world_guess_query_results_format_name()</code>.
 </p>
+
+<p>Removed <code>rasqal_new_query_results_formatter2()</code>
+constructor replaced by
+<code>rasqal_new_query_results_formatter()</code> constructor.
+</p>
+
+<p>Removed deprecated
+<code>rasqal_new_query_results_formatter_by_mime_type()</code>
+replaced by
+<code>rasqal_new_query_results_formatter_for_content()</code> with
+additional arguments.
+</p>
+
+<p>Added world method
+<code>rasqal_world_guess_query_results_format_name()</code> to guess
+format based on format URI, mime type, some initial content or an
+identifier.</p>
 
 <p>Added guessing based on identifier/filename suffix for the 'rdf'
 (.rdf), 'turtle' (.ttl, .n3) and 'xml' (.srx) formatters.
@@ -334,24 +367,13 @@ discovered by multiple names (aliases) and URI strings when using the
 
 <p><code>rasqal_new_query_results_formatter()</code> constructor was
 altered to take name, format type, format URI args instead of just
-name, format URI (renamed from rasqal_new_query_results_formatter2).
-</p>
-
-<p>Removed <code>rasqal_new_query_results_formatter2()</code>
-constructor replaced by
-<code>rasqal_new_query_results_formatter()</code> constructor.
-</p>
-
-<p>Removed deprecated
-<code>rasqal_new_query_results_formatter_by_mime_type()</code>
-replaced by
-<code>rasqal_new_query_results_formatter_for_content()</code> with
-additional arguments.
+name, format URI.  This was renamed from
+<code>rasqal_new_query_results_formatter2()</code>.
 </p>
 
 <p><code>rasqal_query_results_formats_check()</code> was altered to
 take name, format URI, mime_type flags instead of name, uri and
-type. (Renamed from rasqal_query_results_formats_check2)
+type. This was renamed from <code>rasqal_query_results_formats_check2()</code>.
 </p>
 
 <p>Removed <code>rasqal_query_results_formats_check2()</code>
