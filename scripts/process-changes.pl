@@ -630,11 +630,10 @@ EOT
 				       "Introduction");
     print $out_fh <<"EOT";
 <para>
-The following sections describe the function changes in the API
-between version including
-additions, deletions, renames (retaining the same number of
-parameters, types and return value type) and functions with more
-complex changes.  Changes to typedefs and structs are not described here.
+The following sections describe the changes in the API between
+versions including additions, deletions, renames (retaining the same
+number of parameters, types and return value type) and more complex
+changes to functions, types and enums.
 </para>
 EOT
 
@@ -681,12 +680,12 @@ EOT
 					 $id_prefix.'-changes-renamed-'.$id,
 					 "Renamed function and enums in $package $new_version");
       print_renamed_functions_as_docbook_xml($out_fh,
-					     'Functions',
+					     undef,
 					     "$old_version function",
 					     "$new_version function",
 					     @renamed_functions);
       print_renamed_enums_as_docbook_xml($out_fh,
-					 'Enums', 
+					 undef,
 					 "$old_version enum",
 					 "$new_version enum",
 					 @renamed_enums);
@@ -698,12 +697,12 @@ EOT
 					 $id_prefix.'-changes-changed-'.$id,
 					 "Changed functions and types in $package $new_version");
       print_changed_functions_as_docbook_xml($out_fh,
-					     'Functions', 
+					     undef,
 					     "$old_version function",
 					     "$new_version function",
 					     @changed_functions);
       print_changed_types_as_docbook_xml($out_fh,
-					 'Types', 
+					 undef,
 					 "$old_version type",
 					 "$new_version type",
 					 @changed_types);
