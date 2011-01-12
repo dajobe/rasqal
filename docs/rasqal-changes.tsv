@@ -57,7 +57,7 @@
 #
 # Types
 #
-0.9.21	type	rasqal_generate_bnodeid_handler	-	0.9.22	type	rasqal_generate_bnodeid_handler	-	Handler takes a pointer to the #rasqal_world object not #rasqal_query.
+0.9.21	type	rasqal_generate_bnodeid_handler2	-	0.9.22	type	rasqal_generate_bnodeid_handler	-	Handler now takes a pointer to the #rasqal_world object not #rasqal_query.
 0.9.21	type	rasqal_data_graph	-	0.9.22	type	rasqal_data_graph	-	Added const for format_type and format_name fields.
 0.9.21	type	-	-	0.9.22	type	rasqal_xsd_datetime	-	-
 0.9.21	type	rasqal_literal	-	0.9.22	type	rasqal_literal	-	Added datetime to value union.
