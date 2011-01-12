@@ -1566,8 +1566,7 @@ time_t rasqal_xsd_datetime_get_as_unixtime(rasqal_xsd_datetime* dt);
 RASQAL_API
 struct timeval* rasqal_xsd_datetime_get_as_timeval(rasqal_xsd_datetime *dt);
 RASQAL_API
-char*
-rasqal_xsd_datetime_get_timezone_as_counted_string(rasqal_xsd_datetime *dt, size_t *len_p);
+char* rasqal_xsd_datetime_get_timezone_as_counted_string(rasqal_xsd_datetime *dt, size_t *len_p);
 
 
 /**
