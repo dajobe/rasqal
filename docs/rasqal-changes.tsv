@@ -25,6 +25,13 @@
 0.9.21	int	rasqal_query_results_read	(raptor_iostream *iostr, rasqal_query_results *results, raptor_uri *format_uri, raptor_uri *base_uri)	0.9.22	int	rasqal_query_results_read	(raptor_iostream *iostr, rasqal_query_results *results, const char* name, const char* mime_type, raptor_uri *format_uri, raptor_uri *base_uri)	-
 0.9.21	int	rasqal_query_results_read2	(raptor_iostream *iostr, rasqal_query_results *results, const char* name, const char* mime_type, raptor_uri *format_uri, raptor_uri *base_uri)	0.9.22	int	rasqal_query_results_read	(raptor_iostream *iostr, rasqal_query_results *results, const char* name, const char* mime_type, raptor_uri *format_uri, raptor_uri *base_uri)	-
 0.9.21	-	-	-	0.9.22	int	rasqal_query_results_rewind	(rasqal_query_results* query_results)	-
+0.9.21	int	rasqal_query_results_formats_enumerate	(rasqal_world* world, unsigned int counter, const char **name, const char **label, const unsigned char **uri_string, const char **mime_type, int* flags)	0.9.22	-	-	-	-
+0.9.21	int	rasqal_query_results_formats_check	(rasqal_world* world, const char *name, raptor_uri* uri, const char *mime_type, int flags)	0.9.22	int	rasqal_query_results_formats_check	(rasqal_world* world, const char *name, raptor_uri* uri, const char *mime_type)	-
+0.9.21	int	rasqal_query_results_formats_check2	(rasqal_world* world, const char *name, raptor_uri* uri, const char *mime_type, int flags)	0.9.22	int	rasqal_query_results_formats_check	(rasqal_world* world, const char *name, raptor_uri* uri, const char *mime_type)	-
+0.9.21	rasqal_query_results_formatter*	rasqal_new_query_results_formatter	(rasqal_world* world, const char *name, const char *mime_type, raptor_uri* format_uri)	0.9.22	rasqal_query_results_formatter*	rasqal_new_query_results_formatter	(rasqal_world* world, const char *name, raptor_uri* format_uri)	-
+0.9.21	rasqal_query_results_formatter*	rasqal_new_query_results_formatter2	(rasqal_world* world, const char *name, const char *mime_type, raptor_uri* format_uri)	0.9.22	rasqal_query_results_formatter*	rasqal_new_query_results_formatter	(rasqal_world* world, const char *name, raptor_uri* format_uri)	-
+0.9.21	rasqal_query_results_formatter*	rasqal_new_query_results_formatter_by_mime_type	(rasqal_world* world, const char *mime_type)	0.9.22	rasqal_query_results_formatter*	rasqal_new_query_results_formatter_for_content	(rasqal_world* world, raptor_uri *uri, const char *mime_type, const unsigned char *buffer, size_t len, const unsigned char *identifier)	-
+0.9.21	const char*	rasqal_query_results_formatter_get_mime_type	(rasqal_query_results_formatter *formatter)	0.9.22	-	-	-	-
 #
 # Types
 #
@@ -58,55 +65,8 @@
 0.9.21	enum	-	-	0.9.22	enum	RASQAL_EXPR_CONTAINS	-	Expression for SPARQL 1.1 CONTAINS(str, str)
 0.9.21	enum	-	-	0.9.22	enum	RASQAL_EXPR_ENCODE_FOR_URI	-	Expression for SPARQL 1.1 ENCODE_FOR_URI(str)
 0.9.21	enum	-	-	0.9.22	enum	RASQAL_QUERY_RESULTS_UNKNOWN	-	Unknown result format type
-#  
-# -/**
-# - * RASQAL_QUERY_RESULTS_FORMAT_FLAG_READER:
-# - *
-# - * Flag for rasqal_query_results_formats_enumerate() to get query results formats that can be read.
-# - */
-# -#define RASQAL_QUERY_RESULTS_FORMAT_FLAG_READER 1
-#  
-#  /**
-# - * RASQAL_QUERY_RESULTS_FORMAT_FLAG_WRITER:
-# + * rasqal_query_results_format_flags:
-# + * @RASQAL_QUERY_RESULTS_FORMAT_FLAG_READER: format can be read.
-# + * @RASQAL_QUERY_RESULTS_FORMAT_FLAG_WRITER: format can be written.
-#   *
-# - * Flag for rasqal_query_results_formats_enumerate() to get query results formats that can be written.
-# + * Bitflags for rasqal_query_results_formats_check() to find formats with features.
-#   */
-# -#define RASQAL_QUERY_RESULTS_FORMAT_FLAG_WRITER 2
-# +typedef enum {
-# +  RASQAL_QUERY_RESULTS_FORMAT_FLAG_READER = 1,
-# +  RASQAL_QUERY_RESULTS_FORMAT_FLAG_WRITER = 2
-# +} rasqal_query_results_format_flags;
-# +
-#  
-#  RASQAL_API
-# -int rasqal_query_results_formats_enumerate(rasqal_world* world, unsigned int counter, const char **name, const char **label, const unsigned char **uri_string, const char **mime_type, int* flags);
-# +int rasqal_query_results_formats_check(rasqal_world* world, const char *name, raptor_uri* uri, const char *mime_type, int flags);
-#  RASQAL_API
-# -int rasqal_query_results_formats_check2(rasqal_world* world, const char *name, raptor_uri* uri, const char *mime_type, int flags);
-# -RASQAL_API RASQAL_DEPRECATED
-# -int rasqal_query_results_formats_check(rasqal_world* world, const char *name, raptor_uri* uri, const char *mime_type);
-# +rasqal_query_results_formatter* rasqal_new_query_results_formatter(rasqal_world* world, const char *name, const char *mime_type, raptor_uri* format_uri);
-#  RASQAL_API
-# -rasqal_query_results_formatter* rasqal_new_query_results_formatter2(rasqal_world* world, const char *name, const char *mime_type, raptor_uri* format_uri);
-# -#if !defined(RASQAL_DISABLE_DEPRECATED)
-# -RASQAL_API RASQAL_DEPRECATED
-# -rasqal_query_results_formatter* rasqal_new_query_results_formatter(rasqal_world* world, const char *name, raptor_uri* format_uri);
-# -RASQAL_API RASQAL_DEPRECATED
-# -rasqal_query_results_formatter* rasqal_new_query_results_formatter_by_mime_type(rasqal_world* world, const char *mime_type);
-# -#endif
-# +rasqal_query_results_formatter* rasqal_new_query_results_formatter_for_content(rasqal_world* world, raptor_uri *uri, const char *mime_type, const unsigned char *buffer, size_t len, const unsigned char *identifier);
-#  RASQAL_API
-#  void rasqal_free_query_results_formatter(rasqal_query_results_formatter* formatter);
-#  RASQAL_API
-#  int rasqal_query_results_formatter_write(raptor_iostream *iostr, rasqal_query_results_formatter* formatter, rasqal_query_results* results, raptor_uri *base_uri);
-#  RASQAL_API
-#  int rasqal_query_results_formatter_read(rasqal_world* world, raptor_iostream *iostr, rasqal_query_results_formatter* formatter, rasqal_query_results* results, raptor_uri *base_uri);
-# -RASQAL_API
-# -const char* rasqal_query_results_formatter_get_mime_type(rasqal_query_results_formatter *formatter);
+0.9.21	enum	-	-	0.9.22	enum	RASQAL_QUERY_RESULTS_FORMAT_FLAG_READER	-	Bitflag for rasqal_query_results_formats_check() to request formats that can be read.
+0.9.21	enum	-	-	0.9.22	enum	RASQAL_QUERY_RESULTS_FORMAT_FLAG_WRITER	-	Bitflag for rasqal_query_results_formats_check() to request formats that can be written.
 #  
 #  RASQAL_API
 #  int rasqal_query_iostream_write_escaped_counted_string(rasqal_query* query, raptor_iostream* iostr, const unsigned char* string, size_t len);
