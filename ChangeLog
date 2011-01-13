@@ -1,4 +1,7 @@
-2011-01-12  Dave Beckett <dave@dajobe.org>
+2011-01-12  Dave Beckett  <dave@dajobe.org>
+
+	* Snapshotted rasqal_0_9_22 for 0.9.22 release (GIT
+	b2b04e39695cced136e1d24d00d84066868d0c89)
 
 	* docs/librasqal.3: skeleton
 
