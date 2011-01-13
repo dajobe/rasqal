@@ -1,3 +1,13 @@
+2011-01-12  Dave Beckett <dave@dajobe.org>
+
+	* rasqal-src-config.in: pkg-config raptor2 only
+
+	* configure.ac: RAPTOR_MIN_VERSION 2.0.0
+
+	* configure.ac: AC_SUBST(RAPTOR_MIN_VERSION)
+
+	* configure.ac: RASQAL_LIBTOOL_VERSION 3:0:0 causing soname bump
+
 2011-01-11  Dave Beckett <dave@dajobe.org>
 
 	* scripts/process-changes.pl: Make changes generate 1 page per
