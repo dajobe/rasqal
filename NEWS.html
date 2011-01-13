@@ -9,9 +9,20 @@
 <h1>Rasqal RDF Query Library - News</h1>
 
 
-<h2 id="D2011-XX-YY-V0.9.22">2011-XX-YY Rasqal Version 0.9.22 Released</h2>
+<h2 id="D2011-01-12-V0.9.22">2011-01-12 Rasqal Version 0.9.22 Released</h2>
 
-<p>Not yet released.
+<p><b>WARNING: ABI AND API CHANGED in this release.  Rasqal 0.9.22
+is binary incompatible with 0.9.21 or earlier.</b></p>
+
+<p>Builds only against Raptor V2 (2.0.0+) from this release<br />
+Added SPARQL 1.1 editor's draft datetime builtins: DAY, HOURS, MINUTES, MONTH, SECONDS, TIMEZONE and YEAR<br />
+Added SPARQL 1.1 editor's draft string builtins: CONCAT, CONTAINS, ENCODE_FOR_URI, LCASE, STRENDS, STRLEN, STRSTARTS, SUBSTR and UCASE<br />
+Added LAQRS datetime extension builtins: NOW / CURRENT_DATETIME, FROM_UNIXTIME and TO_UNIXTIME<br />
+Added query language names for SPARQL 1.0, 1.1 Query and Update, 1.1 Query, 1.1 Update and LAQRS<br />
+Added expression evaluation support for new builtins<br />
+Added an XSD dateTime class and public API<br />
+Added support for reading and writing RDF-encoded query result formats in RDF/XML and Turtle / N3<br />
+Many other API additions, removals and changes all described in the <a href="http://librdf.org/rasqal/docs/api/">Rasqal reference manual</a>
 </p>
 
 <p>See the <a href="RELEASE.html#rel0_9_22">Rasqal 0.9.22 Release Notes</a>
