@@ -33,3 +33,4 @@ sparql_lexer.h
 sparql_parser.c
 sparql_parser.h
 sparql_parser.output
+win32_rasqal_config.h

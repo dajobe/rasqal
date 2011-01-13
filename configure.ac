@@ -269,6 +269,32 @@ RASQAL_LIBTOOL_VERSION=3:0:0
 AC_SUBST(RASQAL_LIBTOOL_VERSION)
 
 
+dnl need to change quotes to allow square brackets
+changequote(<<, >>)dnl
+version_major=`echo $VERSION | sed -e 's/^\([^\.]*\)\.\([^\.]*\)\.\(.*\)$/\1/'`
+version_minor=`echo $VERSION | sed -e 's/^\([^\.]*\)\.\([^\.]*\)\.\(.*\)$/\2/'`
+version_release=`echo $VERSION | sed -e 's/^\([^\.]*\)\.\([^\.]*\)\.\(.*\)$/\3/'`
+changequote([, ])dnl
+
+version_decimal=`expr $version_major \* 10000 + $version_minor \* 100 + $version_release`
+
+AC_DEFINE_UNQUOTED(RASQAL_VERSION_MAJOR, $version_major, [Major version number])
+AC_DEFINE_UNQUOTED(RASQAL_VERSION_MINOR, $version_minor, [Minor version number])
+AC_DEFINE_UNQUOTED(RASQAL_VERSION_RELEASE, $version_release, [Release version number])
+AC_DEFINE_UNQUOTED(RASQAL_VERSION_DECIMAL, $version_decimal, [Release version as a decimal])
+
+# for rasqal-config.in
+RASQAL_VERSION_MAJOR=$version_major
+RASQAL_VERSION_MINOR=$version_minor
+RASQAL_VERSION_RELEASE=$version_release
+RASQAL_VERSION_DECIMAL=$version_decimal
+AC_SUBST(RASQAL_VERSION)
+AC_SUBST(RASQAL_VERSION_MAJOR)
+AC_SUBST(RASQAL_VERSION_MINOR)
+AC_SUBST(RASQAL_VERSION_RELEASE)
+AC_SUBST(RASQAL_VERSION_DECIMAL)
+
+
 dnl Checks for library functions.
 AC_CHECK_FUNCS(getopt getopt_long stricmp strcasecmp vsnprintf srandomdev gmtime_r)
 
@@ -906,6 +932,7 @@ docs/version.xml
 scripts/Makefile
 src/Makefile
 src/rasqal.h
+src/win32_rasqal_config.h
 tests/Makefile
 tests/algebra/Makefile
 tests/engine/Makefile
