@@ -43,14 +43,17 @@ getopt_long function.  Otherwise only the short options are available.
 .B \-e, \-\-exec QUERY
 Execute the query in the argument
 .I QUERY
-instead of reading the query from a URI (when -e is not given).
+instead of reading the query from a URI (when \fB\-e\fP /
+\fB\-\-exec\fP is not given).
 .TP
 .B \-i, \-\-input LANGUAGE
 Set the input query
 .I LANGUAGE
-to one of'sparql' (SPARQL Query Language for RDF, default)
-or 'rdql' (RDF Data Query Language).   The list of
-supported languages is given in the help summary given by \-h.
+to one of the supported languages which includes 'sparql'
+(SPARQL Query Language for RDF, default), 'sparql11', 'laqrs'
+and 'rdql' (RDF Data Query Language).   The full list of
+supported languages and susbets is given in the help summary with the
+\fB\-h\fP / \fB\-\-help\fP option.
 .TP
 .B \-p, \-\-protocol SERVICE-URI
 Call the SPARQL HTTP protocol \fISERVICE-URI\fP to execute the query
@@ -63,7 +66,8 @@ For variable bindings, the values of
 .I FORMAT
 vary upon what Rasqal supports but include 'simple'
 for a simple text format (default), 'xml'
-for the SPARQL Query Results XML format
+for the SPARQL Query Results XML format, 'rdfxml'
+and 'turtle' for RDF syntax formats,
 and 'json' for a JSON version of the results.
 .IP
 For RDF graph results, the values of
@@ -73,7 +77,7 @@ are 'ntriples' (N-Triples, default), 'rdfxml-abbrev'
 (RDF/JSON resource centric), 'json-triples' (RDF/JSON triples)
 or 'rss-1.0' (RSS 1.0, also an RDF/XML syntax).
 .IP
-The exact list of formats depends on what libraptor(3) was built with
+The exact list of formats depends on what libraptor2(3) was built with
 but is given correct in the usage message with \-h.
 .SH OTHER OPTIONS
 .TP
@@ -100,9 +104,9 @@ The known features can be shown with \fB-f help\fP or \fB--feature help\fP.
 .TP
 .B \-F, \-\-format NAME
 Set the data source format \fIname\fP for subsequent data graphs called
-with \-D / \-\-data or \-G / \-\-named.  The default if this is not
-specified is for the query engine to guess.  The \fIname\fP is a
-Raptor parser name.
+with \fB\-D\fP / \fB\-\-data\fP or \fB\-G\fP / \fB\-\-named\fP.
+The default if this is not specified is for the query engine to
+guess.  The \fIname\fP is a Raptor parser name.
 .TP
 .B \-G, \-\-named URI
 Add RDF data source URI (named graph)
@@ -173,7 +177,7 @@ W3C Member Submission 9 January 2004
 http://www.w3.org/Submission/2004/SUBM-RDQL-20040109/
 .UE
 .SH SEE ALSO
-.BR librasqal(3), rasqal-config(1), libraptor(3)
+.BR librasqal(3), libraptor(3)
 .SH CHANGES
 .br
 .SH AUTHOR
