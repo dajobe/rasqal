@@ -13,18 +13,20 @@
 <p>There are several ways to get the sources.  The most stable and
 tested versions are the sources shipped with each release and these
 are recommended as the first place to start.  If you want to get a
-latest development sources, use anonymous GIT access but this will
-require installing developer tools that are not needed for the
-released tarballs.
+newer set, then there are nightly snapshots made of the development
+sources, which may not yet be committed to GIT.  For the
+latest developent sources, anonymous GIT access is available
+but this may require some configuring of developer tools that are not
+needed for the snapshot releases.
 </p>
 
-<p>The source releases contain all the HTML files and documentation
-provided on the <a href="http://librdf.org/rasqal/">Rasqal web site</a>.
+<p>The source bundle and package files contain all the HTML files and
+documentation provided on the web site.
 </p>
 
 <h2>1.1 Getting the sources from releases</h2>
 
-<p><b>This is the recommended source to build and install Rsaqal.</b>  It
+<p><b>This is the recommended source to build and install Rasqal.</b>  It
 ensures that a tested and working set of files are used.</p>
 
 <p>The sources are available from
@@ -75,7 +77,7 @@ and x86 OSX but is also tested on other systems occasionally.
 <p><b>Required</b> (Rasqal will not build without these):</p>
 <ul>
 <li>The <a href="http://librdf.org/raptor/">Raptor RDF Syntax Library</a>
-version 1.4.19 or later for parsing RDF, retrieving WWW content from
+version 2.0.0 or later for parsing RDF, retrieving WWW content from
 URIs and other utility classes.
 </li>
 </ul>
@@ -247,6 +249,11 @@ conclude with something like:<br />
 if everything works correctly.  There might be some regex
 or decimal tests that fail if no POSIX regex library or multiple
 precision numeric library was available when Rasqal was compiled.</p>
+
+<p>NOTE: if the system perl program XML:DOM package is not installed,
+some of the test suite perl scripts will fail.  This will be fixed in
+a future release.
+</p>
 
 
 <h3>2.6 Installing</h3>
