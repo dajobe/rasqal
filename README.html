@@ -20,8 +20,8 @@ queries returning results as bindings, boolean, RDF graphs/triples or
 syntaxes.  The supported query languages are SPARQL 1.0, RDQL, Draft
 SPARQL Query 1.1, Update 1.1 Syntax and Experimental SPARQL
 extensions (LAQRS).  Rasqal can write binding query results in the
-SPARQL XML, SPARQL JSON, CSV, TSV, HTML, ASCII tables and Turtle
-and read them in SPARQL XML.
+SPARQL XML, SPARQL JSON, CSV, TSV, HTML, ASCII tables, RDF/XML and
+Turtle / N3 and read them in SPARQL XML, RDF/XML and Turtle / N3.
 </p>
 
 <p>Rasqal was designed to work closely with the
@@ -42,16 +42,19 @@ architectures.  Rasqal has no known memory leaks.
 <p>Rasqal provides:</p>
 <ul>
 <li>An RDF <a href="docs/api/query.html">query</a> construction and access API.</li>
-<li>Query language support for <a href="http://www.w3.org/TR/2007/PR-rdf-sparql-query-20071112/">SPARQL</a>.</li>
+<li>Query language support for <a href="http://www.w3.org/TR/2007/PR-rdf-sparql-query-20071112/">SPARQL 1.0</a> and parts of draft <a href="http://www.w3.org/TR/2010/WD-sparql11-query-20101014/">SPARQL 1.1 Query</a>.</li>
 <li>Query language support for <a href="http://www.w3.org/Submission/2004/SUBM-RDQL-20040109/">RDQL</a>.</li>
 <li>A query execution engine including grouping, aggregate expression and filtering evaluation.</li>
 <li>A query result binding API.</li>
-<li>Query result bindings formatting into SPARQL XML, SPARQL JSON, CSV, TSV, HTML and ASCII tables and from SPARQL XML.</li>
+<li>Query result bindings formatting into SPARQL XML, SPARQL JSON, CSV, TSV, HTML, ASCII tables, RDF/XML, Turtle / N3 and from SPARQL XML, RDF/XML and Turtle / N3.</li>
 <li>Triple store querying APIs to support running over external RDF graphs.</li>
 <li>No memory leaks.</li>
 <li><a href="roqet.html">roqet</a> standalone command line RDF query utility program</li>
 </ul>
 
+<p>Known bugs and issues are recorded in the
+<a href="http://bugs.librdf.org/">Redland issue tracker</a>.
+</p>
 
 <p>Rasqal does not provide an RDF API or triple store, but relies on
 external libraries implementing the triple store API providing
@@ -77,12 +80,13 @@ the triples from Raptor into memory when the queries are complex.
 
 <h3>SPARQL Query Language for RDF</h3>
 
-<p>Rasqal provides support for the W3C SPARQL Query Language
-being developed by the W3C
+<p>Rasqal provides support for the W3C SPARQL Query Language 1.0
+developed by the W3C
 <a href="http://www.w3.org/2001/sw/DataAccess/">RDF Data Access Working Group</a>,
 as defined in
-<a href="http://www.w3.org/TR/2007/PR-rdf-sparql-query-20071112/">SPARQL Query Language for RDF</a>, W3C Proposed Recommendation 12 November 2007.
-It currently implements most of the functionality except for <code>UNION</code>.
+<a href="http://www.w3.org/TR/2008/REC-rdf-sparql-query-20080115//">SPARQL Query Language for RDF</a>, W3C Recommendation 15 January 2008.
+It currently implements most of the functionality except for
+<code>UNION</code> and nested <code>OPTIONAL</code>s.
 For detailed information on the implementation state, see the Rasqal
 bugs in the <a href="http://bugs.librdf.org/">Redland issue tracker</a>.
 It also implements some of the
@@ -127,7 +131,10 @@ Detail of the status of the RDQL support is given in the
 <a href="http://www.dajobe.org/2007/04/laqrs/">LAQRS</a>
 is an <b>experimental</b> set of syntax extensions for SPARQL.  The
 syntax and features may change at any time.  At present Rasqal
-provides only parsing and API support for it.
+provides parsing and API support for alternate update syntaxes,
+the <code>EXPLAIN</code> keyword, plus executing a few experimental
+extension functions: NOW() / CURRENT_DATETIME(), FROM_UNIXTIME() and
+TO_UNIXTIME().
 </p>
 
 
@@ -159,7 +166,7 @@ The development GIT sources can also be
 or checked out at git://github.com/dajobe/rasqal.git
 </p>
 
-<p>Rasqal requires <a href="http://librdf.org/raptor/">Raptor</a> 1.4.19
+<p>Rasqal requires <a href="http://librdf.org/raptor/">Raptor</a> 2.0.0
 or newer to build and run, which can be downloaded from the same area
 as the Rasqal source and binaries.</p>
 
