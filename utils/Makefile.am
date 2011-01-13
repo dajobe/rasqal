@@ -2,7 +2,7 @@
 #
 # Makefile.am - automake file for Rasqal utilities
 #
-# Copyright (C) 2005-2010, David Beckett http://www.dajobe.org/
+# Copyright (C) 2005-2011, David Beckett http://www.dajobe.org/
 # Copyright (C) 2005-2005, University of Bristol, UK http://www.bristol.ac.uk/
 # 
 # This package is Free Software and part of Redland http://librdf.org/
@@ -21,8 +21,7 @@
 # 
 
 bin_PROGRAMS = roqet
-noinst_PROGRAMS = check-query
-EXTRA_PROGRAMS = srxread srxwrite
+EXTRA_PROGRAMS = srxread srxwrite check-query
 
 CLEANFILES = $(EXTRA_PROGRAMS)
 
