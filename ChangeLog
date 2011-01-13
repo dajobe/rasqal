@@ -1,5 +1,13 @@
 2011-01-12  Dave Beckett <dave@dajobe.org>
 
+	* docs/librasqal.3: skeleton
+
+	* utils/Makefile.am: move check-query to EXTRA for now
+
+	* utils/roqet.1: formatting
+
+	* src/rasqal_general.c: 2011
+
 	* configure.ac, src/.gitignore, src/rasqal.h.in,
 	src/win32_rasqal_config.h, src/win32_rasqal_config.h.in:
 	Substitute rasqal versions into src/rasqal.h.in and
