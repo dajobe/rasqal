@@ -1,5 +1,10 @@
 2011-01-12  Dave Beckett <dave@dajobe.org>
 
+	* configure.ac, src/.gitignore, src/rasqal.h.in,
+	src/win32_rasqal_config.h, src/win32_rasqal_config.h.in:
+	Substitute rasqal versions into src/rasqal.h.in and
+	src/win32_rasqal_config.h.in
+
 	* rasqal-src-config.in: pkg-config raptor2 only
 
 	* configure.ac: RAPTOR_MIN_VERSION 2.0.0
