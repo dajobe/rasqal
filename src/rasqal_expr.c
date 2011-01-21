@@ -1819,7 +1819,7 @@ rasqal_expression_compare(rasqal_expression* e1, rasqal_expression* e2,
   
 
   if(e1->op != e2->op) {
-    if(e1->op == RASQAL_EXPR_UNKNOWN || e2->op == RASQAL_LITERAL_UNKNOWN)
+    if(e1->op == RASQAL_EXPR_UNKNOWN || e2->op == RASQAL_EXPR_UNKNOWN)
       return 1;
 
     return e2->op - e1->op;
