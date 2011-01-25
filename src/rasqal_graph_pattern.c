@@ -1156,3 +1156,112 @@ rasqal_graph_pattern_get_service(rasqal_graph_pattern* graph_pattern)
   else
     return NULL;
 }
+
+
+struct gpft
+{
+  /* sequence owned here */
+  raptor_sequence* triples;
+  /* shared pointer to current origin */
+  rasqal_literal* origin;
+};
+
+static int
+rasqal_graph_pattern_get_flattened_triples_visit(rasqal_query* query,
+                                                 rasqal_graph_pattern* gp,
+                                                 struct gpft* state)
+{
+  raptor_sequence* seq;
+  int size;
+
+  if(gp->op == RASQAL_GRAPH_PATTERN_OPERATOR_GRAPH)
+    state->origin = gp->origin;
+  else if(gp->op != RASQAL_GRAPH_PATTERN_OPERATOR_BASIC)
+    return 1;
+  else {
+    /*  RASQAL_GRAPH_PATTERN_OPERATOR_BASIC */
+    int i;
+    
+    seq = gp->triples;
+    if(!seq)
+      return 1;
+  
+    size = raptor_sequence_size(seq);
+    for(i = 0; i < size; i++) {
+      rasqal_triple *t;
+      t = (rasqal_triple*)raptor_sequence_get_at(seq, i);
+      if(t->origin)
+        rasqal_free_literal(t->origin);
+      t->origin = rasqal_new_literal_from_literal(state->origin);
+
+      t = rasqal_new_triple_from_triple(t);
+      raptor_sequence_push(state->triples, t);
+    }
+  }
+
+  
+  seq = rasqal_graph_pattern_get_sub_graph_pattern_sequence(gp);
+  
+  size = raptor_sequence_size(seq);
+  if(seq && size > 0) {
+    int gp_index = 0;
+    int result = 0;
+    
+    while(1) {
+      rasqal_graph_pattern* sgp;
+      sgp = rasqal_graph_pattern_get_sub_graph_pattern(gp, gp_index);
+      if(!sgp)
+        break;
+      
+      result = rasqal_graph_pattern_get_flattened_triples_visit(query, sgp,
+                                                                state);
+      if(result)
+        return result;
+      
+      gp_index++;
+    }
+  }
+    
+
+  if(gp->op == RASQAL_GRAPH_PATTERN_OPERATOR_GRAPH)
+    state->origin = NULL;
+  
+  return 0;
+}
+
+
+/**
+ * rasqal_graph_pattern_get_flattened_triples:
+ * @query: query
+ * @graph_pattern: graph pattern
+ *
+ * Get the triples inside a tree of graph patterns (BASIC + GRAPH) as a single sequence with GRAPHs turned into triple origin.
+ *
+ * The returned sequence and all the #rasqal_triple in it are owned
+ * by the caller (hold references).
+ *
+ * Return value: new sequence of #raptor_triple or NULL on failure
+ */
+raptor_sequence*
+rasqal_graph_pattern_get_flattened_triples(rasqal_query* query,
+                                           rasqal_graph_pattern* graph_pattern)
+{
+  struct gpft state;
+  
+  RASQAL_ASSERT_OBJECT_POINTER_RETURN_VALUE(graph_pattern,
+                                            rasqal_graph_pattern, NULL);
+
+  memset(&state, '\0', sizeof(state));
+
+  state.triples = raptor_new_sequence((raptor_data_free_handler)rasqal_free_triple,
+                                      (raptor_data_print_handler)rasqal_triple_print);
+  state.origin = NULL;
+  
+  if(rasqal_graph_pattern_get_flattened_triples_visit(query, graph_pattern,
+                                                      &state)) {
+    raptor_free_sequence(state.triples);
+    return NULL;
+  }
+
+  return state.triples;
+}
