@@ -75,9 +75,10 @@ rasqal_update_type_label(rasqal_update_type type)
  * @type: type of update
  * @graph_uri: optional graph URI
  * @document_uri: optional document URI
- * @insert_templates: optional sequence of triple templates (BASIC graph patterns) to insert
- * @delete_templates: optional sequence of triple templates (BASIC graph patterns) to delete
- * @where: optional where template (BASIC graph pattern)
+ * @insert_templates: optional sequence of #rasqal_triple to insert. Data triples if @flags is #RASQAL_UPDATE_FLAGS_DATA set, templates otherwise.
+ * @delete_templates: optional sequence of #rasqal_triple templates to delete
+ * @where: optional where BASIC graph pattern
+ * @flags: update flags - bit-or of flags defined in #rasqal_update_flags
  *
  * INTERNAL - Constructor - Create new update operation
  *
