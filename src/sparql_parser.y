@@ -1298,7 +1298,8 @@ GraphTemplate: GRAPH VarOrIRIref '{' ConstructTriples '}'
 ModifyTemplate: ConstructTriples
 {
   $$ = $1;
-} | GraphTemplate
+}
+| GraphTemplate
 {
   $$ = $1;
 }
