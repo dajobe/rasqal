@@ -893,8 +893,8 @@ typedef enum {
  * @type: type of update
  * @graph_uri: optional graph URI (clear, drop, load, with ... delete/insert)
  * @document_uri: optional document URI (load)
- * @insert_templates: optional sequence of triple templates to insert
- * @delete_templates: optional sequence of triple templates to delete
+ * @insert_templates: optional sequence of #rasqal_triple to insert. Data triples if @flags is #RASQAL_UPDATE_FLAGS_DATA set, templates otherwise.
+ * @delete_templates: optional sequence of #rasqal_triple templates to delete
  * @where: optional where template (insert/delete)
  * @flags: update flags - bit-or of flags defined in #rasqal_update_flags
  *
