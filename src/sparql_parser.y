@@ -240,6 +240,7 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
 %type <seq> DatasetClauseList DatasetClauseListOpt
 %type <seq> VarList
 %type <seq> GroupClauseOpt HavingClauseOpt OrderClauseOpt
+%type <seq> GraphTemplate ModifyTemplate
 
 %type <data_graph> DatasetClause DefaultGraphClause NamedGraphClause
 
@@ -258,7 +259,6 @@ static void sparql_query_error_full(rasqal_query *rq, const char *message, ...) 
 %type <graph_pattern> GraphPatternNotTriples
 %type <graph_pattern> GraphPatternListOpt GraphPatternList GraphPatternListFilter
 %type <graph_pattern> LetGraphPattern ServiceGraphPattern
-%type <graph_pattern> GraphTemplate ModifyTemplate
 %type <graph_pattern> WhereClause WhereClauseOpt
 
 %type <expr> Expression ConditionalOrExpression ConditionalAndExpression
@@ -338,7 +338,7 @@ BindingValueList BindingsRowList BindingsRowListOpt
 DatasetClauseList DatasetClauseListOpt
 VarList
 GroupClauseOpt HavingClauseOpt OrderClauseOpt
-
+GraphTemplate ModifyTemplate
 
 %destructor {
   if($$)
@@ -367,7 +367,6 @@ GroupOrUnionGraphPattern GroupOrUnionGraphPatternList
 GraphPatternNotTriples
 GraphPatternListOpt GraphPatternList GraphPatternListFilter
 LetGraphPattern ServiceGraphPattern
-ModifyTemplate GraphTemplate
 
 %destructor {
   if($$)
@@ -1272,11 +1271,16 @@ GraphTriples: TriplesBlock
 GraphTemplate: GRAPH VarOrIRIref '{' ConstructTriples '}'
 {
   if($4) {
-    $$ = rasqal_new_basic_graph_pattern_from_triples((rasqal_query*)rq, $4);
-    if(!$$)
+    rasqal_graph_pattern* gp;
+    
+    gp = rasqal_new_basic_graph_pattern_from_triples((rasqal_query*)rq, $4);
+    if(!gp)
       YYERROR_MSG("GraphGraphPattern: cannot create graph pattern");
     else
-      rasqal_graph_pattern_set_origin($$, $2);
+      rasqal_graph_pattern_set_origin(gp, $2);
+
+    $$ = rasqal_graph_pattern_get_flattened_triples((rasqal_query*)rq, gp);
+    rasqal_free_graph_pattern(gp);
   }
 }
 ;
@@ -1286,12 +1290,8 @@ GraphTemplate: GRAPH VarOrIRIref '{' ConstructTriples '}'
 /* SPARQL 1.1 Update (draft) SS 4.1.3 */
 ModifyTemplate: ConstructTriples
 {
-  if($1)
-    $$ = rasqal_new_basic_graph_pattern_from_triples((rasqal_query*)rq, $1);
-  else
-    $$ = NULL;
-}
-| GraphTemplate
+  $$ = $1;
+} | GraphTemplate
 {
   $$ = $1;
 }
@@ -1304,27 +1304,19 @@ ModifyTemplateList: ModifyTemplateList ModifyTemplate
   $$ = $1;
 
   if($2) {
-    if(raptor_sequence_push($$, $2)) {
+    if(raptor_sequence_join($$, $2)) {
+      raptor_free_sequence($2);
       raptor_free_sequence($$);
       $$ = NULL;
-      YYERROR_MSG("ModifyTemplateList 1: sequence push failed");
+      YYERROR_MSG("ModifyTemplateList: sequence join failed");
     }
+    raptor_free_sequence($2);
   }
 
 }
 | ModifyTemplate
 {
-  $$ = raptor_new_sequence((raptor_data_free_handler)rasqal_free_graph_pattern,
-                           (raptor_data_print_handler)rasqal_graph_pattern_print);
-  if(!$$)
-    YYERROR_MSG("ModifyTemplateList 2: cannot create sequence");
-  if($$) {
-    if(raptor_sequence_push($$, $1)) {
-      raptor_free_sequence($$);
-      $$ = NULL;
-      YYERROR_MSG("ModifyTemplateList 2: sequence push failed");
-    }
-  }
+  $$ = $1;
 }
 ;
 
