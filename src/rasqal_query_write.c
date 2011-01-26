@@ -515,45 +515,32 @@ rasqal_query_write_sparql_expression(sparql_writer_context *wc,
 static void
 rasqal_query_write_sparql_triple_data(sparql_writer_context *wc,
                                       raptor_iostream* iostr,
-                                      raptor_sequence *triple_gps,
+                                      raptor_sequence *triples,
                                       int indent)
 {
-  int gp = 0;
+  int triple_index = 0;
   
-  for(gp = 0; 1; gp++) {
-    rasqal_graph_pattern* tgp;
-    int triple_index = 0;
+  raptor_iostream_counted_string_write("{\n", 2, iostr);
+  indent += 2;
   
-    tgp = (rasqal_graph_pattern*)raptor_sequence_get_at(triple_gps, gp);
-    if(!tgp)
+  /* look for triples */
+  while(1) {
+    rasqal_triple* t = raptor_sequence_get_at(triples, triple_index);
+    if(!t)
       break;
-
-    if(gp > 0)
-      raptor_iostream_write_byte('\n', iostr);
-
-    raptor_iostream_counted_string_write("{\n", 2, iostr);
-    indent += 2;
-    
-    /* look for triples */
-    while(1) {
-      rasqal_triple* t = rasqal_graph_pattern_get_triple(tgp, triple_index);
-      if(!t)
-        break;
-      
-      rasqal_query_write_indent(iostr, indent);
-      rasqal_query_write_sparql_triple(wc, iostr, t);
-      raptor_iostream_write_byte('\n', iostr);
-      
-      triple_index++;
-    }
-    
-    indent -= 2;
     
     rasqal_query_write_indent(iostr, indent);
-    raptor_iostream_write_byte('}', iostr);
-
+    rasqal_query_write_sparql_triple(wc, iostr, t);
+    raptor_iostream_write_byte('\n', iostr);
+    
+    triple_index++;
   }
-
+  
+  indent -= 2;
+  
+  rasqal_query_write_indent(iostr, indent);
+  raptor_iostream_write_byte('}', iostr);
+  
 }
 
 
@@ -812,6 +799,7 @@ rasqal_query_write_sparql_20060406(raptor_iostream *iostr,
   int i;
   sparql_writer_context wc;
   int limit, offset;
+  rasqal_query_verb verb;
 
   wc.world = query->world;
   wc.base_uri = NULL;
@@ -851,18 +839,17 @@ rasqal_query_write_sparql_20060406(raptor_iostream *iostr,
   if(query->explain)
     raptor_iostream_counted_string_write("EXPLAIN ", 8, iostr);
 
-  /* Experimental LAQRS INSERT and DELETE (RASQAL_QUERY_VERB_INSERT
-   * and RASQAL_QUERY_VERB_DELETE) are handled in generic code
-   * below */
+  verb = query->verb;
+  
+  /* These terms are deprecated */
   if(query->verb == RASQAL_QUERY_VERB_INSERT ||
      query->verb == RASQAL_QUERY_VERB_DELETE) {
-    raptor_iostream_string_write("\n# Writing deprecated LAQRS INSERT/DELETE\n",
-                                 iostr);
+    verb = RASQAL_QUERY_VERB_UPDATE;
   }
 
   
   /* Write SPARQL 1.1 (Draft) Update forms */
-  if(query->verb == RASQAL_QUERY_VERB_UPDATE) {
+  if(verb == RASQAL_QUERY_VERB_UPDATE) {
     rasqal_update_operation* update;
     /* Write SPARQL Update */
 
@@ -934,7 +921,7 @@ rasqal_query_write_sparql_20060406(raptor_iostream *iostr,
   }
 
 
-  if(query->verb != RASQAL_QUERY_VERB_CONSTRUCT)
+  if(verb != RASQAL_QUERY_VERB_CONSTRUCT)
     raptor_iostream_string_write(rasqal_query_verb_as_string(query->verb),
                                  iostr);
 
@@ -947,7 +934,7 @@ rasqal_query_write_sparql_20060406(raptor_iostream *iostr,
 
   if(query->wildcard)
     raptor_iostream_counted_string_write(" *", 2, iostr);
-  else if(query->verb == RASQAL_QUERY_VERB_DESCRIBE) {
+  else if(verb == RASQAL_QUERY_VERB_DESCRIBE) {
     raptor_sequence *lit_seq = query->describes;
     int count = raptor_sequence_size(lit_seq);
 
@@ -956,7 +943,7 @@ rasqal_query_write_sparql_20060406(raptor_iostream *iostr,
       raptor_iostream_write_byte(' ', iostr);
       rasqal_query_write_sparql_literal(&wc, iostr, l);
     }
-  } else if(query->verb == RASQAL_QUERY_VERB_SELECT) {
+  } else if(verb == RASQAL_QUERY_VERB_SELECT) {
     rasqal_query_write_sparql_select(&wc, iostr, query->selects);
   }
   raptor_iostream_write_byte('\n', iostr);
