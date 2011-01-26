@@ -1,3 +1,66 @@
+2011-01-25  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_query_write.c:
+	(rasqal_query_write_sparql_triple_data): Emit GRAPH lit { ... }
+	correctly
+
+	* src/sparql_parser.y:
+	(GraphTemplate): Tidy conditions and do cleanup
+
+	* src/sparql_parser.y:
+	(GraphTemplate): Apply GRAPH to triples sequence directly
+
+	* src/rasqal_query_write.c:
+	(rasqal_query_write_sparql_triple_data): Handle triples templates
+
+	* src/rasqal_graph_pattern.c:
+	(rasqal_graph_pattern_get_flattened_triples_visit): Handle empty
+	seq.
+
+	* src/sparql_parser.y: Return flat triples in update insert/delete
+	templates
+
+	(GraphTriples, UpdateQuery): Use
+	rasqal_triples_sequence_set_origin() to expand BGP/GGP into a flat
+	sequence of triples for caller.
+
+	* src/rasqal_graph_pattern.c:
+	(rasqal_graph_pattern_get_flattened_triples_visit): Use
+	rasqal_triples_sequence_set_origin().
+
+	* src/rasqal_internal.h, src/rasqal_triple.c:
+	(rasqal_triples_sequence_set_origin): Added to set the same graph
+	URI origin for a sequence of rasqal_triple
+
+	* src/sparql_parser.y: Make update operations
+	insert/delete_template fields store seq of triples.
+
+	(GraphTemplate, ModifyTemplate): Now seq of
+	rasqal_triple (GraphTemplate): Use
+	rasqal_graph_pattern_get_flattened_triples() to turn a basic graph
+	pattern or one with GRAPH gp into a sequence of triples.
+
+	* src/rasqal.h.in, src/rasqal_graph_pattern.c:
+	(rasqal_graph_pattern_get_flattened_triples): Added to flatten
+	triple templates
+
+	* NEWS.html, RELEASE.html, configure.ac: Bumped version to 0.9.23
+
+	* src/rasqal_update.c:
+	(rasqal_new_update_operation): Correct internal docs
+
+	* src/rasqal.h.in: rasqal_update_operation docs
+
+2011-01-21  Dave Beckett <dave@dajobe.org>
+
+	* src/rasqal_expr.c:
+	(rasqal_expression_compare): Compare op to RASQAL_EXPR_UNKNOWN
+
+2011-01-17  Dave Beckett <dave@dajobe.org>
+
+	* src/sparql_parser.y: When language feature is not allowed, use
+	YYERROR to unwind stack and abort query cleanly
+
 2011-01-12  Dave Beckett  <dave@dajobe.org>
 
 	* Snapshotted rasqal_0_9_22 for 0.9.22 release (GIT
