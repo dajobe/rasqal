@@ -1283,16 +1283,9 @@ GraphTriples: TriplesBlock
 GraphTemplate: GRAPH VarOrIRIref '{' ConstructTriples '}'
 {
   if($4) {
-    rasqal_graph_pattern* gp;
+    $$ = $4;
     
-    gp = rasqal_new_basic_graph_pattern_from_triples((rasqal_query*)rq, $4);
-    if(!gp)
-      YYERROR_MSG("GraphGraphPattern: cannot create graph pattern");
-    else
-      rasqal_graph_pattern_set_origin(gp, $2);
-
-    $$ = rasqal_graph_pattern_get_flattened_triples((rasqal_query*)rq, gp);
-    rasqal_free_graph_pattern(gp);
+    rasqal_triples_sequence_set_origin(NULL, $$, $2);
   }
 }
 ;
