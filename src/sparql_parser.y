@@ -1253,10 +1253,22 @@ GraphTriples: TriplesBlock
   $$ = NULL;
 
   if($4) {
+    raptor_sequence* seq;
+    seq = $4->triples;
+
+    if($2) {
+      rasqal_literal* origin_literal;
+      
+      origin_literal = rasqal_new_uri_literal(((rasqal_query*)rq)->world, $2);
+      $2 = NULL;
+
+      rasqal_triples_sequence_set_origin(/* dest */ NULL, seq, origin_literal);
+      rasqal_free_literal(origin_literal);
+    }
     $$ = rasqal_new_update_operation(RASQAL_UPDATE_TYPE_UNKNOWN,
-                                     $2 /* graph uri */,
+                                     NULL /* graph uri */,
                                      NULL /* document uri */,
-                                     $4->triples /* insert templates */,
+                                     seq /* insert templates */,
                                      NULL /* delete templates */,
                                      NULL /* where */,
                                      0 /* flags */);
@@ -1408,9 +1420,21 @@ UpdateQuery: WITH URI_LITERAL
     YYERROR;
   }
   
-  /* after this $2, $5, $9 and $12 are owned by update */
+  if($2) {
+    rasqal_literal* origin_literal;
+
+    origin_literal = rasqal_new_uri_literal(((rasqal_query*)rq)->world, $2);
+    $2 = NULL;
+
+    rasqal_triples_sequence_set_origin(/* dest */ NULL, $9, origin_literal);
+    rasqal_triples_sequence_set_origin(/* dest */ NULL, $5, origin_literal);
+
+    rasqal_free_literal(origin_literal);
+  }
+
+  /* after this $5, $9 and $12 are owned by update */
   update = rasqal_new_update_operation(RASQAL_UPDATE_TYPE_UPDATE,
-                                       $2 /* graph uri */, 
+                                       NULL /* graph uri */, 
                                        NULL /* document uri */,
                                        $9 /* insert templates */,
                                        $5 /* delete templates */,
@@ -1438,9 +1462,20 @@ UpdateQuery: WITH URI_LITERAL
     YYERROR;
   }
   
-  /* after this $2, $5 and $8 are owned by update */
+  if($2) {
+    rasqal_literal* origin_literal;
+    
+    origin_literal = rasqal_new_uri_literal(((rasqal_query*)rq)->world, $2);
+    $2 = NULL;
+
+    rasqal_triples_sequence_set_origin(/* dest */ NULL, $5, origin_literal);
+
+    rasqal_free_literal(origin_literal);
+  }
+  
+  /* after this $5 and $7 are owned by update */
   update = rasqal_new_update_operation(RASQAL_UPDATE_TYPE_UPDATE,
-                                       $2 /* graph uri */, 
+                                       NULL /* graph uri */, 
                                        NULL /* document uri */,
                                        NULL /* insert templates */,
                                        $5 /* delete templates */,
@@ -1468,9 +1503,20 @@ UpdateQuery: WITH URI_LITERAL
     YYERROR;
   }
 
-  /* after this $2, $5 and $8 are owned by update */
+  if($2) {
+    rasqal_literal* origin_literal;
+    
+    origin_literal = rasqal_new_uri_literal(((rasqal_query*)rq)->world, $2);
+    $2 = NULL;
+
+    rasqal_triples_sequence_set_origin(/* dest */ NULL, $5, origin_literal);
+
+    rasqal_free_literal(origin_literal);
+  }
+
+  /* after this $5 and $7 are owned by update */
   update = rasqal_new_update_operation(RASQAL_UPDATE_TYPE_UPDATE,
-                                       $2 /* graph uri */, 
+                                       NULL /* graph uri */, 
                                        NULL /* document uri */,
                                        $5 /* insert templates */,
                                        NULL /* delete templates */,
