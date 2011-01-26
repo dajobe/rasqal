@@ -530,7 +530,17 @@ rasqal_query_write_sparql_triple_data(sparql_writer_context *wc,
       break;
     
     rasqal_query_write_indent(iostr, indent);
+    if(t->origin) {
+      raptor_iostream_counted_string_write("GRAPH ", 6, iostr);
+      rasqal_query_write_sparql_literal(wc, iostr, t->origin);
+      raptor_iostream_counted_string_write(" { ", 3, iostr);
+    }
+    
     rasqal_query_write_sparql_triple(wc, iostr, t);
+
+    if(t->origin)
+      raptor_iostream_counted_string_write(" }", 2, iostr);
+
     raptor_iostream_write_byte('\n', iostr);
     
     triple_index++;
