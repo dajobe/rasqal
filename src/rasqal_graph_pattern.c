@@ -1180,28 +1180,12 @@ rasqal_graph_pattern_get_flattened_triples_visit(rasqal_query* query,
     return 1;
   else {
     /*  RASQAL_GRAPH_PATTERN_OPERATOR_BASIC */
-    int i;
-    
-    seq = gp->triples;
-    if(!seq)
-      return 1;
-  
-    size = raptor_sequence_size(seq);
-    for(i = 0; i < size; i++) {
-      rasqal_triple *t;
-      t = (rasqal_triple*)raptor_sequence_get_at(seq, i);
-      if(t->origin)
-        rasqal_free_literal(t->origin);
-      t->origin = rasqal_new_literal_from_literal(state->origin);
-
-      t = rasqal_new_triple_from_triple(t);
-      raptor_sequence_push(state->triples, t);
-    }
+    rasqal_triples_sequence_set_origin(state->triples,
+                                       gp->triples, state->origin);
   }
+  
 
-  
-  seq = rasqal_graph_pattern_get_sub_graph_pattern_sequence(gp);
-  
+  seq = rasqal_graph_pattern_get_sub_graph_pattern_sequence(gp);  
   size = raptor_sequence_size(seq);
   if(seq && size > 0) {
     int gp_index = 0;
