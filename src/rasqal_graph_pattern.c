@@ -1186,12 +1186,12 @@ rasqal_graph_pattern_get_flattened_triples_visit(rasqal_query* query,
   
 
   seq = rasqal_graph_pattern_get_sub_graph_pattern_sequence(gp);  
-  size = raptor_sequence_size(seq);
-  if(seq && size > 0) {
+  if(seq) {
     int gp_index = 0;
     int result = 0;
     
-    while(1) {
+    size = raptor_sequence_size(seq);
+    while(size > 0) {
       rasqal_graph_pattern* sgp;
       sgp = rasqal_graph_pattern_get_sub_graph_pattern(gp, gp_index);
       if(!sgp)
@@ -1203,6 +1203,7 @@ rasqal_graph_pattern_get_flattened_triples_visit(rasqal_query* query,
         return result;
       
       gp_index++;
+      size--;
     }
   }
     
