@@ -1606,6 +1606,9 @@ raptor_sequence* rasqal_projection_get_variables_sequence(rasqal_projection* pro
 rasqal_solution_modifier* rasqal_new_solution_modifier(rasqal_query* query, raptor_sequence* order_conditions, raptor_sequence* group_conditions, raptor_sequence* having_conditions, int limit, int offset);
 void rasqal_free_solution_modifier(rasqal_solution_modifier* sm);
 
+/* rasqal_triples.c */
+int rasqal_triples_sequence_set_origin(raptor_sequence* dest_seq, raptor_sequence* src_seq, rasqal_literal* origin);
+
 
 /* end of RASQAL_INTERNAL */
 #endif

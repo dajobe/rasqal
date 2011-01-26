@@ -221,3 +221,43 @@ rasqal_triple_get_origin(rasqal_triple* t)
 
   return t->origin;
 }
+
+
+int    
+rasqal_triples_sequence_set_origin(raptor_sequence* dest_seq, 
+                                   raptor_sequence* src_seq,
+                                   rasqal_literal* origin) 
+{
+  int i;
+  int size;
+  
+  if(!src_seq)
+    return 1;
+  
+  size = raptor_sequence_size(src_seq);
+  for(i = 0; i < size; i++) {
+    rasqal_triple *t;
+    t = (rasqal_triple*)raptor_sequence_get_at(src_seq, i);
+
+    if(dest_seq) {
+      /* altern copied triple; this is a deep copy */
+      t = rasqal_new_triple_from_triple(t);
+      if(!t)
+        return 1;
+      
+      if(t->origin)
+        rasqal_free_literal(t->origin);
+      t->origin = rasqal_new_literal_from_literal(origin);
+      raptor_sequence_push(dest_seq, t);
+    } else {
+      /* alter sequence in-place */
+      if(t->origin)
+        rasqal_free_literal(t->origin);
+
+      t->origin = rasqal_new_literal_from_literal(origin);
+    }
+
+  }
+
+  return 0;
+}
