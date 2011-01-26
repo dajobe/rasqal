@@ -1282,10 +1282,12 @@ GraphTriples: TriplesBlock
 /* SPARQL 1.1 Update (draft) SS 4.1.3 */
 GraphTemplate: GRAPH VarOrIRIref '{' ConstructTriples '}'
 {
-  if($4) {
-    $$ = $4;
-    
+  $$ = $4;
+
+  if($2) {
     rasqal_triples_sequence_set_origin(NULL, $$, $2);
+    rasqal_free_literal($2);
+    $2 = NULL;
   }
 }
 ;
