@@ -124,6 +124,6 @@ rasqal-fake.i: $(top_srcdir)/src/rasqal.h $(srcdir)/../scripts/fix-gtkdoc-header
 	$(PERL) $(srcdir)/../scripts/fix-gtkdoc-header.pl < $< > $@
 
 rasqal-changes.xml: $(srcdir)/rasqal-changes.tsv $(srcdir)/../scripts/process-changes.pl
-	$(PERL) $(srcdir)/../scripts/process-changes.pl --package rasqal --docbook-xml $@ $(PACKAGE) $(srcdir)/rasqal-changes.tsv
+	$(PERL) $(srcdir)/../scripts/process-changes.pl --package rasqal --docbook-xml $@ "Rasqal" $(srcdir)/rasqal-changes.tsv
 
 endif
