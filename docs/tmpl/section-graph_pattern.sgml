@@ -62,6 +62,16 @@ or apply a GRAPH matching keyword (%RASQAL_GRAPH_PATTERN_OPERATOR_GRAPH).
 @Returns: 
 
 
+<!-- ##### FUNCTION rasqal_graph_pattern_get_flattened_triples ##### -->
+<para>
+
+</para>
+
+@query: 
+@graph_pattern: 
+@Returns: 
+
+
 <!-- ##### FUNCTION rasqal_graph_pattern_get_index ##### -->
 <para>
 
