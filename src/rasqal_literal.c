@@ -3743,9 +3743,16 @@ rasqal_literal_array_compare(rasqal_literal** values_a,
       }
     }
     
-    result = rasqal_literal_compare(literal_a, literal_b,
-                                    compare_flags | RASQAL_COMPARE_URI,
-                                    &error);
+    /* NULLs order first */
+    if(!literal_a || !literal_b) {
+      if(!literal_a && !literal_b)
+        result = 0;
+      else
+        result = (!literal_a) ? -1 : 1;
+    } else
+      result = rasqal_literal_compare(literal_a, literal_b,
+                                      compare_flags | RASQAL_COMPARE_URI,
+                                      &error);
 
     if(error) {
 #ifdef RASQAL_DEBUG
