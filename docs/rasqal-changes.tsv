@@ -52,6 +52,7 @@
 0.9.21	-	-	-	0.9.22	time_t	rasqal_xsd_datetime_get_as_unixtime	(rasqal_xsd_datetime* dt)	-
 0.9.21	-	-	-	0.9.22	struct timeval*	rasqal_xsd_datetime_get_as_timeval	(rasqal_xsd_datetime *dt)	-
 0.9.21	-	-	-	0.9.22	char*	rasqal_xsd_datetime_get_timezone_as_counted_string	(rasqal_xsd_datetime *dt, size_t *len_p)	-
+0.9.22	-	-	-	0.9.23	raptor_sequence*	rasqal_graph_pattern_get_flattened_triples	(rasqal_query* query, rasqal_graph_pattern* graph_pattern)	-
 #
 # Types
 #
