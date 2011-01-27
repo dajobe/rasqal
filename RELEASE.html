@@ -14,6 +14,27 @@
 </p>
 
 
+<h3>Graph pattern class changes</h3>
+
+<p>Added <code>rasqal_graph_pattern_get_flattened_triples()</code> to
+flatten a recursive basic/graph graph pattern
+to a sequence of triples or triple patterns (have variables).
+</p>
+
+<h3>SPARQL Query Language changes</h3>
+
+<p>Fix the parsing of SPARQL 1.1 Update draft INSERT and DELETE to
+return sequences of triples in the insert_templates and
+delete_templates fields as documented.  It would previously sometimes
+return that but mostly return a sequence of recursive graph patterns.
+</p>
+
+<p>When a syntax error happens due to use of a language feature, do
+proper error handling (no aborting) and clean up parsing resources.
+</p>
+
+
+
 <h2 id="rel0_9_22"><a name="rel0_9_22">Rasqal 0.9.22 Changes</a></h2>
 
 <blockquote>
