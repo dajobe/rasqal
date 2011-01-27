@@ -657,7 +657,7 @@ EOT
 
     print_start_section_as_docbook_xml($out_fh,
 				       $id_prefix.'-changes-'.$id,
-				       "Changes between $old_version and $new_version");
+				       "Changes between $package $old_version and $new_version");
 
     my(@f, @t, @e);
     @f = @{$new_functions{$version_pair} || []};
@@ -667,7 +667,7 @@ EOT
     if(@f || @t || @e) {
       print_start_section_as_docbook_xml($out_fh,
 					 $id_prefix.'-changes-new-'.$id,
-					 "New functions, types and enums in $package $new_version");
+					 "New functions, types and enums");
       print_functions_list_as_docbook_xml($out_fh,
 					  undef, 1, 1, @f);
       print_types_list_as_docbook_xml($out_fh,
@@ -683,7 +683,7 @@ EOT
     if(@f || @t || @e) {
       print_start_section_as_docbook_xml($out_fh,
 					 $id_prefix.'-changes-deleted-'.$id,
-					 "Deleted functions, types and enums in $package $new_version");
+					 "Deleted functions, types and enums");
       print_functions_list_as_docbook_xml($out_fh,
 					  undef, 0, 0, @f);
       print_types_list_as_docbook_xml($out_fh,
@@ -699,7 +699,7 @@ EOT
     if(@f || @e) {
       print_start_section_as_docbook_xml($out_fh,
 					 $id_prefix.'-changes-renamed-'.$id,
-					 "Renamed function and enums in $package $new_version");
+					 "Renamed function and enums");
       print_renamed_functions_as_docbook_xml($out_fh,
 					     undef,
 					     "$old_version function",
@@ -718,7 +718,7 @@ EOT
     if(@f || @t) {
       print_start_section_as_docbook_xml($out_fh,
 					 $id_prefix.'-changes-changed-'.$id,
-					 "Changed functions and types in $package $new_version");
+					 "Changed functions and types");
       print_changed_functions_as_docbook_xml($out_fh,
 					     undef,
 					     "$old_version function",
